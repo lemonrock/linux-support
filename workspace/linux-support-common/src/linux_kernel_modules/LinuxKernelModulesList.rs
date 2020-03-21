@@ -122,9 +122,12 @@ impl LinuxKernelModulesList
 		self.0.contains(linux_kernel_module_name)
 	}
 
-	/// Parses the list of loaded Linux Kernel modules.
-	pub fn parse(file_path: &Path) -> Result<Self, LinuxKernelModulesListParseError>
+	/// Current loaded Linux kernel modules (from `/proc/modules`).
+	#[inline(always)]
+	pub fn parse(proc_path: &ProcPath) -> Result<Self, LinuxKernelModulesListParseError>
 	{
+		let file_path = proc_path.file_path("modules");
+
 		let reader = BufReader::with_capacity(4096, File::open(file_path)?);
 
 		let mut modules_list = HashSet::new();

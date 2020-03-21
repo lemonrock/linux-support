@@ -187,7 +187,12 @@ impl ProcessConfiguration
 	#[inline(always)]
 	fn write_system_control_values<P: Process>(&self) -> Result<(), ProcessConfigurationExecutionError<P::LoadKernelModulesError, P::AdditionalLinuxKernelCommandLineValidationsError, P::MainError>>
 	{
-		self.proc_path().write_system_control_values(&self.system_control_settings).map_err(ProcessConfigurationExecutionError::CouldNotWriteSystemControlValues)
+		for (setting_name, setting_value) in self.system_control_settings.iter()
+		{
+			let file_path = self.proc_path().file_path(&format!("sys/{}", setting_name));
+			file_path.write_value(setting_value).map_err(ProcessConfigurationExecutionError::CouldNotWriteSystemControlValues)?;
+		}
+		Ok(())
 	}
 
 	#[inline(always)]

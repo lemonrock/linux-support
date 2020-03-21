@@ -25,7 +25,8 @@ impl ResourceLimit
 	/// Obtains the maximum number of file descriptors as a finite resource limit.
 	pub fn maximum_number_of_open_file_descriptors(proc_path: &ProcPath) -> Result<ResourceLimit, io::Error>
 	{
-		Ok(ResourceLimit::Finite(proc_path.maximum_number_of_open_file_descriptors()?))
+		let value = proc_path.file_path("sys/fs/nr_open").read_value()?;
+		Ok(ResourceLimit::Finite(value))
 	}
 
 	/// Value.

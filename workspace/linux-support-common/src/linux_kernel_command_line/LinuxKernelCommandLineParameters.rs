@@ -850,10 +850,11 @@ impl LinuxKernelCommandLineParameters
 		}
 	}
 
-	/// Parse the Linux Kernel command line parameters.
+	/// Parse.
 	#[inline(always)]
-	pub fn parse(file_path: &Path) -> Result<Self, io::Error>
+	pub fn parse(proc_path: &ProcPath) -> Result<Self, io::Error>
 	{
+		let file_path = proc_path.file_path("cmdline");
 		let line_of_parameters = file_path.read_raw_without_line_feed()?;
 
 		let mut map = HashMap::with_capacity(32);

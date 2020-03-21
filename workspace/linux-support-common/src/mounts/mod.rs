@@ -2,12 +2,13 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::file_systems::FileSystemType;
-use super::paths::PathExt;
-use super::strings::c_string_pointer_to_path_buf;
-use super::strings::ConstCStr;
-use super::strings::split;
-use super::strings::splitn;
+use crate::file_systems::FileSystemType;
+use crate::paths::PathExt;
+use crate::paths::ProcPath;
+use crate::strings::c_string_pointer_to_path_buf;
+use crate::strings::ConstCStr;
+use crate::strings::split;
+use crate::strings::splitn;
 use bitflags::bitflags;
 use errno::errno;
 use libc::*;

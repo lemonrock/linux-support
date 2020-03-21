@@ -2,21 +2,25 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::huge_pages::HugePageSize;
-use crate::paths::*;
-use std::collections::HashMap;
-use std::error;
-use std::fmt;
-use std::fmt::Debug;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::io;
-use std::num::ParseIntError;
-use std::str::Utf8Error;
-
-
-include!("MemoryInformation.rs");
-include!("MemoryInformationName.rs");
-include!("MemoryInformationParseError.rs");
-include!("MemoryInformationUnit.rs");
-include!("VirtualMemoryStatisticName.rs");
+#[allow(missing_docs)]
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Serialize, Deserialize)]
+#[repr(u16)]
+pub enum WirelessController
+{
+	/// IRDA.
+	IrdaController = 0x00,
+	ConsumerIrController = 0x01,
+	RfController = 0x10,
+	Bluetooth = 0x11,
+	Broadband = 0x12,
+	
+	/// 802.1a.
+	_802_1aController = 0x20,
+	
+	/// 802.1b.
+	_802_1bController = 0x21,
+	
+	/// No effective sub class.
+	WirelessController = 0x80,
+}

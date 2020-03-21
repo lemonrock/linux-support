@@ -2,21 +2,4 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::huge_pages::HugePageSize;
-use crate::paths::*;
-use std::collections::HashMap;
-use std::error;
-use std::fmt;
-use std::fmt::Debug;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::io;
-use std::num::ParseIntError;
-use std::str::Utf8Error;
-
-
-include!("MemoryInformation.rs");
-include!("MemoryInformationName.rs");
-include!("MemoryInformationParseError.rs");
-include!("MemoryInformationUnit.rs");
-include!("VirtualMemoryStatisticName.rs");
+pub(crate) const UnassignedSubClass: u16 = 0xFF;

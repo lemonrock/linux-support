@@ -54,6 +54,15 @@ pub enum VirtualMemoryStatisticName
 
 impl VirtualMemoryStatisticName
 {
+	/// Memory statistics (from `/proc/vmstat`).
+	///
+	/// Interpret this by multiplying counts by page size.
+	#[inline(always)]
+	pub fn global_zoned_virtual_memory_statistics(proc_path: &ProcPath) -> io::Result<HashMap<Self, u64>>
+	{
+		proc_path.file_path("vmstat").parse_virtual_memory_statistics_file()
+	}
+
 	#[inline]
 	pub(crate) fn parse(name: &[u8]) -> Self
 	{

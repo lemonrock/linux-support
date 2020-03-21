@@ -2,21 +2,33 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::huge_pages::HugePageSize;
-use crate::paths::*;
-use std::collections::HashMap;
-use std::error;
-use std::fmt;
-use std::fmt::Debug;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::io;
-use std::num::ParseIntError;
-use std::str::Utf8Error;
-
-
-include!("MemoryInformation.rs");
-include!("MemoryInformationName.rs");
-include!("MemoryInformationParseError.rs");
-include!("MemoryInformationUnit.rs");
-include!("VirtualMemoryStatisticName.rs");
+#[allow(missing_docs)]
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Serialize, Deserialize)]
+#[repr(u16)]
+pub enum Processor
+{
+	/// 80386.
+	_386 = 0x00,
+	
+	/// 80486.
+	_486 = 0x01,
+	
+	Pentium = 0x02,
+	
+	/// ?
+	PentiumAlt = 0x03,
+	
+	/// ?
+	P6 = 0x04,
+	
+	Alpha = 0x10,
+	
+	PowerPC = 0x20,
+	
+	/// MIPS.
+	Mips = 0x30,
+	
+	/// Also exists as a class...
+	Coprocessor = 0x40,
+}

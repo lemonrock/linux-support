@@ -8,7 +8,7 @@ use linux_support_clone::clone_child_process_in_new_namespace;
 use linux_support_clone::CouldNotStartChildProcessError;
 use linux_support_common::namespaces::NamespacesProcPath;
 use linux_support_common::cpu::HyperThread;
-use linux_support_common::file_systems::FileSystemSupportedError;
+use linux_support_common::file_systems::{FileSystemSupportedError, FileSystemTypeList};
 use linux_support_common::file_systems::FileSystemType;
 use linux_support_common::linux_kernel_command_line::LinuxKernelCommandLineParameters;
 use linux_support_common::paths::ProcPath;

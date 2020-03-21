@@ -25,7 +25,8 @@ impl Process for MasterProcess
 	{
 		use self::MasterProcessAdditionalLinuxKernelCommandLineValidationsError::*;
 
-		let file_systems = proc_path.file_systems().map_err(|io_error| ReadingFileSystems(io_error))?;
+
+		let file_systems = FileSystemTypeList::parse(proc_path).map_err(|io_error| ReadingFileSystems(io_error))?;
 		file_systems.verify_file_system_is_supported(FileSystemType::cgroup2)?;
 		Ok(())
 	}

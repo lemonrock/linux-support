@@ -19,9 +19,7 @@ impl PageMap
 	#[inline(always)]
 	pub fn read_process_pagemap<HVA: HasVirtualAddress>(proc_path: &ProcPath, process: pid_t, have_virtual_addresses: impl Iterator<Item=HVA>, page_map_entry_user: impl FnMut(HVA, VirtualAddress, PageMapEntry)) -> io::Result<()>
 	{
-		let mut page_map_file_path = proc_path.proces_folder_path(process);
-		page_map_file_path.push("pagemap");
-		Self::read_pagemap_file(have_virtual_addresses, page_map_entry_user, &page_map_file_path)
+		Self::read_pagemap_file(have_virtual_addresses, page_map_entry_user, &proc_path.process_folder_path(process, "pagemap"))
 	}
 
 	#[inline(always)]

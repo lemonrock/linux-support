@@ -39,7 +39,7 @@ impl ProcessNiceness
 	#[inline(always)]
 	pub fn is_autogroup_active(proc_path: &ProcPath) -> Result<bool, io::Error>
 	{
-		let value = proc_path.sched_autogroup_enabled_file_path().read_raw_without_line_feed()?;
+		let value = Self::sched_autogroup_enabled_file_path(proc_path).read_raw_without_line_feed()?;
 		match &value[..]
 		{
 			b"0" => Ok(false),
@@ -60,7 +60,7 @@ impl ProcessNiceness
 		{
 			"0"
 		};
-		proc_path.sched_autogroup_enabled_file_path().write_value(value)
+		Self::sched_autogroup_enabled_file_path(proc_path).write_value(value)
 	}
 
 	/// Adjusts in favour of the current process.
@@ -85,5 +85,11 @@ impl ProcessNiceness
 		Nice::set_autogroup_for_current_process_if_desired(self.share_of_cpu_cycles_in_autogroup, proc_path)?;
 
 		Ok(())
+	}
+
+	#[inline(always)]
+	fn sched_autogroup_enabled_file_path(proc_path: &ProcPath) -> PathBuf
+	{
+		proc_path.file_path("sys/kernel/sched_autogroup_enabled")
 	}
 }

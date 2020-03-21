@@ -2,8 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::strings::splitn;
-use super::user_and_groups::assert_effective_user_id_is_root;
+use crate::paths::ProcPath;
+use crate::strings::splitn;
+use crate::user_and_groups::assert_effective_user_id_is_root;
 use errno::errno;
 use libc::*;
 use std::env::var_os;

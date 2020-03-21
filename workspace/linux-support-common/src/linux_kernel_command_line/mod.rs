@@ -20,7 +20,6 @@ use std::ffi::OsString;
 use std::fmt::{Debug, Display, Formatter};
 use std::io;
 use std::os::unix::ffi::OsStringExt;
-use std::path::Path;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::str::from_utf8;

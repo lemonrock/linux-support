@@ -314,6 +314,20 @@ impl ProcessStatusStatistics
 		self.unrecognised.get(statistic_name)
 	}
 
+	/// Status information from `/proc/self/status`.
+	#[inline(always)]
+	pub fn self_status(proc_path: &ProcPath) -> Result<Self, ProcessStatusFileParseError>
+	{
+		Self::process_status(proc_path, 0)
+	}
+
+	/// Status information from `/proc/<IDENTIFIER>/status` where `<IDENTIFIER>` is `identifier`.
+	#[inline(always)]
+	pub fn process_status(proc_path: &ProcPath, identifier: pid_t) -> Result<Self, ProcessStatusFileParseError>
+	{
+		proc_path.process_folder_path(identifier, "status").parse_process_status_file()
+	}
+
 	/// Parses; returns a zero-based line number and parse error if it fails.
 	pub fn parse(reader: BufReader<File>) -> Result<Self, ProcessStatusFileParseError>
 	{

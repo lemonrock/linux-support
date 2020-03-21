@@ -2,21 +2,28 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::huge_pages::HugePageSize;
-use crate::paths::*;
-use std::collections::HashMap;
-use std::error;
-use std::fmt;
-use std::fmt::Debug;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::io;
-use std::num::ParseIntError;
-use std::str::Utf8Error;
-
-
-include!("MemoryInformation.rs");
-include!("MemoryInformationName.rs");
-include!("MemoryInformationParseError.rs");
-include!("MemoryInformationUnit.rs");
-include!("VirtualMemoryStatisticName.rs");
+#[allow(missing_docs)]
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Serialize, Deserialize)]
+#[repr(u16)]
+pub enum Bridge
+{
+	HostBridge = 0x00,
+	ISABridge = 0x01,
+	EISABridge = 0x02,
+	MicroChannelBridge = 0x03,
+	PciBridge = 0x04,
+	
+	/// PCMCIA.
+	PcmciaBridge = 0x05,
+	NuBusBridge = 0x06,
+	CardBusBridge = 0x07,
+	
+	/// RACEway.
+	RaceWayBridge = 0x08,
+	SemiTransparentPciToPciBridge = 0x09,
+	InfiniBandToPciHostBridge = 0x0a,
+	
+	/// No effective sub class.
+	Bridge = 0x80,
+}

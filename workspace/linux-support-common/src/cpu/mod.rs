@@ -19,6 +19,7 @@ use std::mem::zeroed;
 use std::num::TryFromIntError;
 use std::path::PathBuf;
 use std::str::FromStr;
+use crate::status::ProcessStatusStatistics;
 
 
 include!("CpuFeatures.rs");

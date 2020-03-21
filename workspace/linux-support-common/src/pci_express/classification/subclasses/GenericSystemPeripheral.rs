@@ -2,21 +2,29 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::huge_pages::HugePageSize;
-use crate::paths::*;
-use std::collections::HashMap;
-use std::error;
-use std::fmt;
-use std::fmt::Debug;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::io;
-use std::num::ParseIntError;
-use std::str::Utf8Error;
-
-
-include!("MemoryInformation.rs");
-include!("MemoryInformationName.rs");
-include!("MemoryInformationParseError.rs");
-include!("MemoryInformationUnit.rs");
-include!("VirtualMemoryStatisticName.rs");
+#[allow(missing_docs)]
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Serialize, Deserialize)]
+#[repr(u16)]
+pub enum GenericSystemPeripheral
+{
+	/// PIC.
+	Pic = 0x00,
+	
+	/// DMAController.
+	DmaController = 0x01,
+	Timer = 0x02,
+	
+	/// RTC (real time clock).
+	Rtc = 0x03,
+	PciHotPlugController = 0x04,
+	
+	/// SD HostController.
+	SdHostController = 0x05,
+	
+	/// IOMMU.
+	Iommu = 0x06,
+	
+	/// No effective sub class.
+	SystemPeripheral = 0x80,
+}

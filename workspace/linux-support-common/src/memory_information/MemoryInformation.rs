@@ -12,6 +12,13 @@ pub struct MemoryInformation(pub(crate) HashMap<MemoryInformationName, u64>);
 
 impl MemoryInformation
 {
+	/// Memory information (from `/proc/meminfo`).
+	#[inline(always)]
+	pub fn parse(proc_path: &ProcPath, memory_information_name_prefix: &[u8]) -> Result<Self, MemoryInformationParseError>
+	{
+		proc_path.file_path("meminfo").parse_memory_information_file(memory_information_name_prefix)
+	}
+
 	/// Get a statistic.
 	#[inline]
 	pub fn get_statistic(&self, memory_information_name: &MemoryInformationName) -> Option<u64>

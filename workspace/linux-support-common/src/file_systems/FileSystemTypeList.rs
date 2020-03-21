@@ -28,10 +28,11 @@ impl FileSystemTypeList
 			},
 		}
 	}
-
-	/// Parse the file system types.
-	pub fn parse(file_path: &Path) -> Result<Self, io::Error>
+	/// File systems (from `/proc/filesystems`).
+	#[inline(always)]
+	pub fn parse(proc_path: &ProcPath) -> Result<FileSystemTypeList, io::Error>
 	{
+		let file_path = proc_path.file_path("filesystems");
 		use self::ErrorKind::InvalidData;
 
 		let reader = BufReader::with_capacity(4096, File::open(file_path)?);

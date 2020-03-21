@@ -12,7 +12,7 @@ impl LinuxKernelCommandLineValidator
 	#[inline(always)]
 	pub fn new(proc_path: &ProcPath) -> Self
 	{
-		Self(proc_path.linux_command_line_parameters().expect("Could not parse linux command line parameters"))
+		Self(LinuxKernelCommandLineParameters::parse(proc_path).expect("Could not parse linux command line parameters"))
 	}
 
 	/// Validate and find isolated hyper threads, ie those hyper threads not in general use for the Kernel or other applications.

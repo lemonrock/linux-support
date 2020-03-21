@@ -3,12 +3,13 @@
 
 
 use crate::cpu::*;
-use crate::paths::ListParseError;
+use crate::paths::*;
 use crate::strings::*;
-use likely::*;
 use libc::*;
+use likely::*;
 use std::collections::BTreeSet;
 use std::collections::HashMap;
+use std::convert::TryFrom;
 use std::error;
 use std::fmt;
 use std::fmt::Debug;
@@ -21,7 +22,6 @@ use std::io::BufRead;
 use std::io::BufReader;
 use std::str::from_utf8;
 use std::str::Utf8Error;
-use std::convert::TryFrom;
 
 
 include!("Bitmask.rs");

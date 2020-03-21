@@ -83,7 +83,7 @@ impl HyperThread
 		#[inline(always)]
 		fn all_available_to_process_even_if_they_do_not_exist(proc_path: &ProcPath) -> BTreeSet<HyperThread>
 		{
-			let process_status_statistics = proc_path.self_status().unwrap();
+			let process_status_statistics = ProcessStatusStatistics::self_status(proc_path).unwrap();
 			process_status_statistics.cpus_allowed_list.unwrap()
 		}
 

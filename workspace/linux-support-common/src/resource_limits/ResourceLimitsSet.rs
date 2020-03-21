@@ -12,7 +12,7 @@ impl Default for ResourceLimitsSet
 	#[inline(always)]
 	fn default() -> Self
 	{
-		Self::defaultish(ResourceLimit::Finite(ProcPath::default().maximum_number_of_open_file_descriptors().unwrap()))
+		Self::defaultish(ResourceLimit::maximum_number_of_open_file_descriptors(&ProcPath::default()).unwrap())
 	}
 }
 

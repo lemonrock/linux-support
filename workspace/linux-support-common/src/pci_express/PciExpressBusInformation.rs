@@ -1,5 +1,5 @@
-// This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of dpdk, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
-// Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
+// This file is part of linux-support. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT. No part of linux-support, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+// Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
 /// PCI Express Bus Information.
@@ -24,14 +24,9 @@ impl Drop for PciExpressBusInformation
 
 impl PciExpressBusInformation
 {
-	/// Number of bytes in a PCI address string such as `XXXX:XX:XX.XX`.
-	pub const NumberOfBytesInPciAddressString: usize = 13;
-
-	/// Obtains a raw PCI bus address string in the format `XXXX:XX:XX.XX`.
-	pub fn raw_pci_bus_address_for_network_interface_index(network_interface_one_based_index: u32) -> Result<String, OpenPciExpressBusInformationError>
+	/// Obtains a PCI bus address.
+	pub fn raw_pci_bus_address_for_network_interface_index(network_interface_one_based_index: u32) -> Result<PciDeviceAddress, OpenPciExpressBusInformationError>
 	{
-		debug_assert!(ETHTOOL_BUSINFO_LEN > Self::NumberOfBytesInPciAddressString + 1, "ETHTOOL_BUSINFO_LEN must exceed by at least one (for a Nul byte)");
-		
 		let socket_file_descriptor = Self::open_socket_for_ioctl()?;
 		
 		let mut interface_request = ifreq::default();
@@ -45,7 +40,7 @@ impl PciExpressBusInformation
 		// Specify ifr_data 'field'.
 		unsafe { write(interface_request.ifr_ifru.ifru_data(), &mut command as * mut _ as *mut c_void) };
 
-		let raw_pci_bus_address = match unsafe { ioctl(socket_file_descriptor.0, SIOCETHTOOL, &mut interface_request as *mut _ as *mut c_void) }
+		match unsafe { ioctl(socket_file_descriptor.0, SIOCETHTOOL, &mut interface_request as *mut _ as *mut c_void) }
 		{
 			-1 => Err(OpenPciExpressBusInformationError::IoctlCallFailed),
 
@@ -53,28 +48,11 @@ impl PciExpressBusInformation
 			{
 				// Technically incorrect, as the length can be ETHTOOL_BUSINFO_LEN with no terminating NUL; too bad.
 				let bytes: &[u8] = unsafe { transmute(&command.bus_info[..]) };
-				match CStr::from_bytes_with_nul(bytes)
-				{
-					Err(_) => Err(OpenPciExpressBusInformationError::InvalidCString),
-
-					Ok(c_string) => match c_string.to_str()
-					{
-						Err(_) => Err(OpenPciExpressBusInformationError::InvalidUtf8String),
-						
-						Ok(str) => if str.len() != Self::NumberOfBytesInPciAddressString
-						{
-							Err(OpenPciExpressBusInformationError::InvalidNumberOfBytesInPciBusAddress)
-						}
-						else
-						{
-							Ok(str.to_owned())
-						}
-					},
-				}
+				let c_string = CStr::from_bytes_with_nul(bytes)?;
+				let string = c_string.to_str()?;
+				Ok(PciDeviceAddress::try_from(string)?)
 			}
-		};
-		
-		raw_pci_bus_address
+		}
 	}
 
 	#[inline(always)]
