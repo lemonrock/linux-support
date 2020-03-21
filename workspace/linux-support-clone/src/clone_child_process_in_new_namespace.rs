@@ -1,3 +1,7 @@
+// This file is part of linux-support. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT. No part of linux-support, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+// Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
+
+
 /// Clone a child process in a new namespace.
 pub fn clone_child_process_in_new_namespace<CPF: ChildProcessFunction, A: AllocRef>(proc_path: &ProcPath, child_stack_allocator: &mut A, child_process_stack_size: usize, child_process_argument: CPF::ChildProcessArgument, new_root: PathBuf) -> Result<(NonZeroU32, SendPipeFileDescriptor), CouldNotStartChildProcessError>
 {
