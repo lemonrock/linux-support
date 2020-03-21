@@ -12,25 +12,13 @@ impl Drop for PciExpressBusInformation
 	fn drop(&mut self)
 	{
 		let socket_file_descriptor = self.0;
-		
-		loop
-		{
-			match unsafe { close(socket_file_descriptor) }
-			{
-				0 => return,
-				
-				-1 => match errno().0
-				{
-					EINTR => continue,
-					EIO => break,
-					EBADF => panic!("File descriptor '{}' is not a valid socket file descriptor", socket_file_descriptor),
-					
-					error_number @ _ => panic!("Could not close() socket_file_descriptor '{}' got error number '{}'", socket_file_descriptor, error_number),
-				},
-				
-				illegal @ _ => panic!("Illegal result '{}' from close() for socket_file_descriptor '{}'", illegal, socket_file_descriptor),
-			}
-		}
+
+		// Please see <http://austingroupbugs.net/view.php?id=529> and <http://austingroupbugs.net/view.php?id=529> for why ignoring the `EINTR` error on close is actually sane.
+		//
+		// Frankly, the defects here are those of POSIX: (a) signals, and (b) using a file descriptor so small that it isn't thread safe.
+		//
+		// To be fair, both signals and file descriptors predate threads by a long way.
+		unsafe { close(socket_file_descriptor) };
 	}
 }
 
@@ -38,40 +26,13 @@ impl PciExpressBusInformation
 {
 	/// Number of bytes in a PCI address string such as `XXXX:XX:XX.XX`.
 	pub const NumberOfBytesInPciAddressString: usize = 13;
-	
-	#[inline(always)]
-	fn open_socket_for_ioctl() -> Result<Self, OpenPciExpressBusInformationError>
-	{
-		use self::OpenPciExpressBusInformationError::*;
-		match unsafe { socket(AF_INET, SOCK_DGRAM, IPPROTO_IP) }
-		{
-			socket_file_descriptor if socket_file_descriptor >= 0 => Ok(Self(socket_file_descriptor)),
-			
-			-1 => match { errno().0 }
-			{
-				EACCES => Err(PermissionDenied),
-				EAFNOSUPPORT => Err(Unsupported("Address family not supported")),
-				EPROTOTYPE => Err(Unsupported("The socket type is not supported by the protocol")),
-				EPROTONOSUPPORT => Err(Unsupported("The protocol type or the specified protocol is not supported within this domain")),
-				
-				EMFILE => Err(OutOfMemoryOrResources("The per-process descriptor table is full")),
-				ENFILE => Err(OutOfMemoryOrResources("The system file table is full")),
-				ENOBUFS => Err(OutOfMemoryOrResources("Insufficient buffer space is available; the socket cannot be created until sufficient resources are freed")),
-				ENOMEM => Err(OutOfMemoryOrResources("Insufficient memory was available to fulfill the request")),
-				
-				illegal @ _ => panic!("socket() had illegal errno '{}'", illegal),
-			},
-			
-			illegal @ _ => panic!("Illegal result '{}' from socket()", illegal),
-		}
-	}
-	
+
 	/// Obtains a raw PCI bus address string in the format `XXXX:XX:XX.XX`.
-	pub fn raw_pci_bus_address_for_network_interface_index(network_interface_one_based_index: u32) -> Option<String>
+	pub fn raw_pci_bus_address_for_network_interface_index(network_interface_one_based_index: u32) -> Result<String, OpenPciExpressBusInformationError>
 	{
 		debug_assert!(ETHTOOL_BUSINFO_LEN > Self::NumberOfBytesInPciAddressString + 1, "ETHTOOL_BUSINFO_LEN must exceed by at least one (for a Nul byte)");
 		
-		let socket_file_descriptor = Self::open_socket_for_ioctl().unwrap();
+		let socket_file_descriptor = Self::open_socket_for_ioctl()?;
 		
 		let mut interface_request = ifreq::default();
 		
@@ -83,28 +44,30 @@ impl PciExpressBusInformation
 	
 		// Specify ifr_data 'field'.
 		unsafe { write(interface_request.ifr_ifru.ifru_data(), &mut command as * mut _ as *mut c_void) };
-		
+
 		let raw_pci_bus_address = match unsafe { ioctl(socket_file_descriptor.0, SIOCETHTOOL, &mut interface_request as *mut _ as *mut c_void) }
 		{
-			-1 => None,
+			-1 => Err(OpenPciExpressBusInformationError::IoctlCallFailed),
+
 			_ =>
 			{
 				// Technically incorrect, as the length can be ETHTOOL_BUSINFO_LEN with no terminating NUL; too bad.
 				let bytes: &[u8] = unsafe { transmute(&command.bus_info[..]) };
 				match CStr::from_bytes_with_nul(bytes)
 				{
-					Err(_) => None,
+					Err(_) => Err(OpenPciExpressBusInformationError::InvalidCString),
+
 					Ok(c_string) => match c_string.to_str()
 					{
-						Err(_) => None,
+						Err(_) => Err(OpenPciExpressBusInformationError::InvalidUtf8String),
 						
 						Ok(str) => if str.len() != Self::NumberOfBytesInPciAddressString
 						{
-							None
+							Err(OpenPciExpressBusInformationError::InvalidNumberOfBytesInPciBusAddress)
 						}
 						else
 						{
-							Some(str.to_owned())
+							Ok(str.to_owned())
 						}
 					},
 				}
@@ -112,5 +75,32 @@ impl PciExpressBusInformation
 		};
 		
 		raw_pci_bus_address
+	}
+
+	#[inline(always)]
+	fn open_socket_for_ioctl() -> Result<Self, OpenPciExpressBusInformationError>
+	{
+		use self::OpenPciExpressBusInformationError::*;
+		match unsafe { socket(AF_INET, SOCK_DGRAM, IPPROTO_IP) }
+		{
+			socket_file_descriptor if socket_file_descriptor >= 0 => Ok(Self(socket_file_descriptor)),
+
+			-1 => match { errno().0 }
+			{
+				EACCES => Err(PermissionDenied),
+				EAFNOSUPPORT => Err(Unsupported("Address family not supported")),
+				EPROTOTYPE => Err(Unsupported("The socket type is not supported by the protocol")),
+				EPROTONOSUPPORT => Err(Unsupported("The protocol type or the specified protocol is not supported within this domain")),
+
+				EMFILE => Err(OutOfMemoryOrResources("The per-process descriptor table is full")),
+				ENFILE => Err(OutOfMemoryOrResources("The system file table is full")),
+				ENOBUFS => Err(OutOfMemoryOrResources("Insufficient buffer space is available; the socket cannot be created until sufficient resources are freed")),
+				ENOMEM => Err(OutOfMemoryOrResources("Insufficient memory was available to fulfill the request")),
+
+				illegal @ _ => panic!("socket() had illegal errno '{}'", illegal),
+			},
+
+			illegal @ _ => panic!("Illegal result '{}' from socket()", illegal),
+		}
 	}
 }

@@ -18,6 +18,24 @@ pub enum OpenPciExpressBusInformationError
 	///
 	/// Field contains details.
 	OutOfMemoryOrResources(&'static str),
+
+	/// ioctl call failed.
+	IoctlCallFailed,
+
+	/// Invalid C String.
+	///
+	/// This should not happen.
+	InvalidCString,
+
+	/// Invalid UTF-8 String.
+	///
+	/// This should not happen.
+	InvalidUtf8String,
+
+	/// Invalid number of bytes in PCI bus address.
+	///
+	/// This should not happen.
+	InvalidNumberOfBytesInPciBusAddress,
 }
 
 impl Display for OpenPciExpressBusInformationError
@@ -43,6 +61,14 @@ impl error::Error for OpenPciExpressBusInformationError
 			&Unsupported(_) => None,
 
 			&OutOfMemoryOrResources(_) => None,
+
+			&IoctlCallFailed => None,
+
+			&InvalidCString => None,
+
+			&InvalidUtf8String => None,
+
+			&InvalidNumberOfBytesInPciBusAddress => None,
 		}
 	}
 }
