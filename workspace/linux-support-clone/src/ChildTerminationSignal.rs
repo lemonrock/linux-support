@@ -1,0 +1,1 @@
+const ChildTerminationSignal: SignalNumber = SIGCHLD;

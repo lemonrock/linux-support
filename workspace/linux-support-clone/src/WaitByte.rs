@@ -1,0 +1,1 @@
+const WaitByte: u8 = 0xFFu8;
