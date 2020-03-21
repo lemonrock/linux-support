@@ -2,17 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Enable or disable transparent huge pages.
-#[inline(always)]
-pub fn adjust_transparent_huge_pages(enable_transparent_huge_pages: bool)
+/// Has a virtual address.
+pub trait HasVirtualAddress
 {
-	let value = if enable_transparent_huge_pages
-	{
-		1
-	}
-	else
-	{
-		0
-	};
-	unsafe { prctl(PR_SET_THP_DISABLE, value as c_ulong) };
+	/// Provides the virtual address of this object.
+	fn virtual_address(&self) -> VirtualAddress;
 }

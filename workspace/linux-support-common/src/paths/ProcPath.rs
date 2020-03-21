@@ -7,6 +7,7 @@
 /// Frankly, there are files in `/proc` that really belong in `/sys`.
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct ProcPath(PathBuf);
 
 impl Default for ProcPath
@@ -20,70 +21,15 @@ impl Default for ProcPath
 
 impl ProcPath
 {
-	/// Is autogroup active? (from `/proc/sys/kernel/sched_autogroup_enabled`).
+	/// Autogroup setting of nice for the current process.
 	#[inline(always)]
-	pub fn is_autogroup_active(&self) -> Result<bool, io::Error>
+	pub(crate) fn self_autogroup_filepath(&self) -> PathBuf
 	{
-		if cfg!(any(target_os = "android", target_os = "linux"))
-		{
-			let value = self.sched_autogroup_enabled_file_path().read_raw_without_line_feed()?;
-			match &value[..]
-			{
-				b"0" => Ok(false),
-				b"1" => Ok(true),
-				_ => Err(io::Error::from(ErrorKind::InvalidData)),
-			}
-		}
-		else
-		{
-			Ok(false)
-		}
-	}
-
-	/// Enable the autogroup feature (requires root).
-	#[inline(always)]
-	pub fn enable_autogroup(&self) -> Result<(), io::Error>
-	{
-		if cfg!(any(target_os = "android", target_os = "linux"))
-		{
-			self.sched_autogroup_enabled_file_path().write_value("1")
-		}
-		else
-		{
-			Ok(())
-		}
-	}
-
-	/// Disable the autogroup feature (requires Root).
-	#[inline(always)]
-	pub fn disable_autogroup(&self) -> Result<(), io::Error>
-	{
-		if cfg!(any(target_os = "android", target_os = "linux"))
-		{
-			self.sched_autogroup_enabled_file_path().write_value("0")
-		}
-		else
-		{
-			Ok(())
-		}
-	}
-
-	/// Adjust the autogroup setting of nice for the current process.
-	#[inline(always)]
-	pub fn adjust_autogroup_nice_value_for_self(&self, nice_value: Nice) -> Result<(), io::Error>
-	{
-		if cfg!(any(target_os = "android", target_os = "linux"))
-		{
-			self.file_path("self/autogroup").write_value(nice_value)
-		}
-		else
-		{
-			Ok(())
-		}
+		self.file_path("self/autogroup")
 	}
 
 	#[inline(always)]
-	fn sched_autogroup_enabled_file_path(&self) -> PathBuf
+	pub(crate) fn sched_autogroup_enabled_file_path(&self) -> PathBuf
 	{
 		self.file_path("sys/kernel/sched_autogroup_enabled")
 	}
@@ -93,6 +39,29 @@ impl ProcPath
 	pub fn self_status(&self) -> Result<ProcessStatusStatistics, ProcessStatusFileParseError>
 	{
 		self.file_path("self/status").parse_process_status_file()
+	}
+
+	/// Status information from `/proc/<IDENTIFIER>/status` where `<IDENTIFIER>` is `identifier`.
+	#[inline(always)]
+	pub fn process_status(&self, identifier: pid_t) -> Result<ProcessStatusStatistics, ProcessStatusFileParseError>
+	{
+		self.file_path(&format!("{}/status", identifier)).parse_process_status_file()
+	}
+
+	/// Memory statistics (from `/proc/vmstat`).
+	///
+	/// Interpret this by multiplying counts by page size.
+	#[inline(always)]
+	pub fn global_zoned_virtual_memory_statistics(&self) -> io::Result<HashMap<VirtualMemoryStatisticName, u64>>
+	{
+		self.file_path("vmstat").parse_virtual_memory_statistics_file()
+	}
+
+	/// Memory information (from `/proc/meminfo`).
+	#[inline(always)]
+	pub fn memory_information(&self, memory_information_name_prefix: &[u8]) -> Result<MemoryInformation, MemoryInformationParseError>
+	{
+		self.file_path("meminfo").parse_memory_information_file(memory_information_name_prefix)
 	}
 
 	/// Only execute this after any kernel modules have loaded.
@@ -176,6 +145,20 @@ impl ProcPath
 		else
 		{
 			Ok(LinuxKernelCommandLineParameters::default())
+		}
+	}
+
+	/// Get a folder path for the current process (`process` is `0`) or another process.
+	#[inline(always)]
+	pub fn proces_folder_path(&self, process: pid_t) -> PathBuf
+	{
+		if process == 0
+		{
+			self.file_path("self")
+		}
+		else
+		{
+			self.file_path(&format!("{}", process))
 		}
 	}
 

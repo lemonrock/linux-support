@@ -2,22 +2,15 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::niceness::Nice;
-use super::cpu::HyperThread;
-use super::file_systems::FileSystemTypeList;
-use super::linux_kernel_command_line::LinuxKernelCommandLineParameters;
-use super::linux_kernel_modules::LinuxKernelModulesList;
-use super::linux_kernel_modules::LinuxKernelModulesListParseError;
-use super::mounts::Mounts;
-use super::status::ProcessStatusFileParseError;
-use super::status::ProcessStatusStatistics;
-use super::strings::split;
-use super::strings::splitn;
-use super::transparent_huge_pages::adjust_transparent_huge_pages;
-use super::transparent_huge_pages::DisableTransparentHugePagesError;
-use super::transparent_huge_pages::TransparentHugePageDefragmentationChoice;
-use super::transparent_huge_pages::TransparentHugePageRegularMemoryChoice;
-use super::transparent_huge_pages::TransparentHugePageSharedMemoryChoice;
+use crate::cpu::*;
+use crate::file_systems::FileSystemTypeList;
+use crate::linux_kernel_command_line::LinuxKernelCommandLineParameters;
+use crate::linux_kernel_modules::*;
+use crate::memory_information::*;
+use crate::mounts::Mounts;
+use crate::status::*;
+use crate::strings::*;
+use libc::pid_t;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::BTreeSet;
@@ -35,10 +28,11 @@ use std::fs::Permissions;
 use std::fs::read_to_string;
 use std::fs::set_permissions;
 use std::io;
+use std::io::BufRead;
 use std::io::BufReader;
 use std::io::ErrorKind;
 use std::io::Write;
-use std::num::ParseIntError;
+use std::num::{ParseIntError, TryFromIntError};
 use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
@@ -46,6 +40,7 @@ use std::path::PathBuf;
 use std::str::from_utf8;
 use std::str::FromStr;
 use std::str::Utf8Error;
+use crate::huge_pages::HugePageSize;
 
 
 include!("DevPath.rs");

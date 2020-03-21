@@ -2,22 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::paths::ProcPath;
-use errno::errno;
-use libc::*;
-use likely::likely;
-use serde::Deserialize;
-use serde::Serialize;
-use std::error;
-use std::fmt;
-use std::fmt::Debug;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::io;
-use crate::paths::PathExt;
-use std::io::ErrorKind;
-
-
-include!("Nice.rs");
-include!("ProcessNiceness.rs");
-include!("ProcessNicenessAdjustmentError.rs");
+/// A very slightly faster function to get page size than `sysconf(_SC_PAGESIZE)` on musl libc systems.
+///
+/// Result is normally constant, but is derived from data passed when an executable is first loaded.
+#[inline(always)]
+pub fn page_size() -> usize
+{
+	// `getpagesize()` is faster than `sysconf(_SC_PAGESIZE)` on musl libc systems.
+	unsafe { getpagesize() as usize }
+}

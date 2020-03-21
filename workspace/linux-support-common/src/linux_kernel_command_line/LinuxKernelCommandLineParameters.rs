@@ -211,7 +211,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	fn parse_cpu_list(list: &[u8]) -> BTreeSet<u16>
 	{
-		ListParseError::parse_linux_list_string(list, |value| value).unwrap()
+		ListParseError::parse_linux_list_string(list, |value| Ok(value)).unwrap()
 	}
 
 	/// CPUs isolated from the Linux scheduler.

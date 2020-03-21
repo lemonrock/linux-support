@@ -13,8 +13,8 @@ pub struct ProcessConfiguration
 	/// Locale.
 	#[serde(default = "ProcessConfiguration::locale_default")] pub locale: CString,
 
-	/// Disable transparent huge pages?
-	#[serde(default)] pub disable_transparent_huge_pages: bool,
+	/// Configure transparent huge pages?
+	#[serde(default)] pub transparent_huge_pages_configuration: Option<TransparentHugePagesConfiguration>,
 
 	/// System control settings (`sysctl`).
 	///
@@ -42,7 +42,7 @@ impl Default for ProcessConfiguration
 
 			locale: Self::locale_default(),
 
-			disable_transparent_huge_pages: Default::default(),
+			transparent_huge_pages_configuration: Default::default(),
 
 			system_control_settings: Self::system_control_settings_default(),
 
@@ -267,7 +267,7 @@ impl ProcessConfiguration
 
 		{
 			let mut numa_nodes = BTreeSet::new();
-			if self.sys_path().is_a_numa_machine()
+			if NumaNode::is_a_numa_machine(self.sys_path())
 			{
 				for online_shared_hyper_thread in online_shared_hyper_threads.iter()
 				{
@@ -307,9 +307,9 @@ impl ProcessConfiguration
 	#[inline(always)]
 	pub(crate) fn disable_transparent_huge_pages_if_requested<P: Process>(&self) -> Result<(), ProcessConfigurationExecutionError<P::LoadKernelModulesError, P::AdditionalLinuxKernelCommandLineValidationsError, P::MainError>>
 	{
-		if self.disable_transparent_huge_pages
+		if let Some(ref transparent_huge_pages_configuration) = self.transparent_huge_pages_configuration
 		{
-			self.sys_path().disable_transparent_huge_pages()?;
+			transparent_huge_pages_configuration.configure(self.sys_path())?;
 		}
 		Ok(())
 	}

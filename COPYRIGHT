@@ -1,10 +1,10 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Comment: Distribution Compilation Copyright and License
-Copyright: Copyright © 2018, Raphael Cohn <raphael.cohn@stormmq.com>
+Copyright: Copyright © 2020, Raphael Cohn <raphael.cohn@stormmq.com>
 License: MIT
  The MIT License (MIT)
  .
- Copyright © 2018, Raphael Cohn <raphael.cohn@stormmq.com>
+ Copyright © 2020, Raphael Cohn <raphael.cohn@stormmq.com>
  .
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,11 @@ License: MIT
  SOFTWARE.
 
 Files: *
-Copyright: Copyright © 2018, Raphael Cohn <raphael.cohn@stormmq.com>
+Copyright: Copyright © 2020, Raphael Cohn <raphael.cohn@stormmq.com>
 License: MIT
  The MIT License (MIT)
  .
- Copyright © 2018, Raphael Cohn <raphael.cohn@stormmq.com>
+ Copyright © 2020, Raphael Cohn <raphael.cohn@stormmq.com>
  .
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal

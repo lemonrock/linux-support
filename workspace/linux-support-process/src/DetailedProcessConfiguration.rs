@@ -10,6 +10,9 @@ pub struct DetailedProcessConfiguration
 	/// Paths to add to `PATH`.
 	#[serde(default = "DetailedProcessConfiguration::binary_paths_default")] pub binary_paths: BTreeSet<PathBuf>,
 
+	/// Adjust autogroup globally (`Some(false)` to disable it globally).
+	#[serde(default)] pub adjust_autogroup: Option<bool>,
+
 	/// Process niceness.
 	#[serde(default)] pub process_niceness: ProcessNiceness,
 
@@ -59,6 +62,8 @@ impl Default for DetailedProcessConfiguration
 		{
 			binary_paths: Self::binary_paths_default(),
 
+			adjust_autogroup: None,
+
 			process_niceness: ProcessNiceness::default(),
 
 			resource_limits: Self::resource_limits_default(),
@@ -89,6 +94,8 @@ impl DetailedProcessConfiguration
 
 		Self::set_current_process_affinity(&valid_hyper_threads_for_the_current_process)?;
 
+		self.adjust_autogroup()?;
+
 		self.adjust_process_niceness()?;
 
 		self.set_resource_limits();
@@ -108,6 +115,16 @@ impl DetailedProcessConfiguration
 	{
 		let cpu_set = CpuSet::from(valid_hyper_threads_for_the_current_process);
 		cpu_set.set_current_process_affinity().map_err(DetailedProcessConfigurationError::CouldNotSetCurrentProcessAffinity)
+	}
+
+	#[inline(always)]
+	fn adjust_autogroup(&self) -> Result<(), DetailedProcessConfigurationError>
+	{
+		if let Some(adjustment) = self.adjust_autogroup
+		{
+			ProcessNiceness::adjust_autogroup(self.proc_path(), adjustment)?
+		}
+		Ok(())
 	}
 
 	#[inline(always)]

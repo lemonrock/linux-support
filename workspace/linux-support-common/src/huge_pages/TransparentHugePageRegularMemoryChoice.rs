@@ -7,6 +7,7 @@
 /// Used for at least:-
 ///
 /// * Ashmem
+#[derive(Deserialize, Serialize)]
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub enum TransparentHugePageRegularMemoryChoice
 {
@@ -18,6 +19,15 @@ pub enum TransparentHugePageRegularMemoryChoice
 
 	/// Only for pages so specified by the `madvise()` (or `fadvise()`) syscall with the `MADV_HUGEPAGE` flag.
 	Advise,
+}
+
+impl Default for TransparentHugePageRegularMemoryChoice
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		TransparentHugePageRegularMemoryChoice::Never
+	}
 }
 
 impl TransparentHugePageRegularMemoryChoice
@@ -34,5 +44,25 @@ impl TransparentHugePageRegularMemoryChoice
 			Always => "always",
 			Advise => "madvise",
 		}
+	}
+
+	/// Changes Transparent Huge Pages (THP) settings.
+	///
+	/// The value of `self` can also be specified in the Linux kernel command line parameters as one of "transparent_hugepage=never", "transparent_hugepage=always" or "transparent_hugepage=madvise".
+	pub fn change_transparent_huge_pages_usage(self, sys_path: &SysPath, transparent_huge_page_shared_memory_choice: TransparentHugePageSharedMemoryChoice, use_zero_page: bool) -> io::Result<()>
+	{
+		let use_zero_page_value = if use_zero_page
+		{
+			1
+		}
+		else
+		{
+			0
+		};
+		sys_path.global_transparent_huge_memory_file_path("use_zero_page").write_value(use_zero_page_value)?;
+
+		transparent_huge_page_shared_memory_choice.change_transparent_huge_pages_usage(sys_path)?;
+
+		sys_path.global_transparent_huge_memory_file_path("enabled").write_value(self.to_value())
 	}
 }

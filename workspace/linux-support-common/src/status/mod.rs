@@ -2,15 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::cpu::HyperThread;
-use super::cpu::HyperThreadBitmask;
-use super::cpu::NumaNode;
-use super::cpu::NumaNodeBitmask;
-use super::paths::ListParseError;
-use super::strings::split;
-use super::strings::splitn;
-use likely::likely;
-use likely::unlikely;
+use crate::cpu::*;
+use crate::paths::ListParseError;
+use crate::strings::*;
+use likely::*;
 use libc::*;
 use std::collections::BTreeSet;
 use std::collections::HashMap;
@@ -26,6 +21,7 @@ use std::io::BufRead;
 use std::io::BufReader;
 use std::str::from_utf8;
 use std::str::Utf8Error;
+use std::convert::TryFrom;
 
 
 include!("Bitmask.rs");

@@ -2,48 +2,44 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Represents `/dev`.
-#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-#[derive(Deserialize, Serialize)]
-#[repr(transparent)]
-pub struct DevPath(PathBuf);
+/// A Virtual Page Frame Number (PFN).
+#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+pub struct VirtualPageFrameNumber(usize);
 
-impl Default for DevPath
+impl From<VirtualAddress> for VirtualPageFrameNumber
 {
 	#[inline(always)]
-	fn default() -> Self
+	fn from(value: VirtualAddress) -> Self
 	{
-		DevPath(PathBuf::from("/dev"))
+		let into: usize = value.into();
+		VirtualPageFrameNumber(into / page_size())
 	}
 }
 
-impl DevPath
+impl Into<usize> for VirtualPageFrameNumber
 {
-	/// `/dev/null`.
 	#[inline(always)]
-	pub fn null(&self) -> PathBuf
+	fn into(self) -> usize
 	{
-		self.file_path("null")
+		self.0
 	}
+}
 
-	/// `/dev/zero`.
+impl Into<u64> for VirtualPageFrameNumber
+{
 	#[inline(always)]
-	pub fn zero(&self) -> PathBuf
+	fn into(self) -> u64
 	{
-		self.file_path("zero")
+		self.0 as u64
 	}
+}
 
+impl Into<SeekFrom> for VirtualPageFrameNumber
+{
 	#[inline(always)]
-	fn file_path(&self, file_name: &str) -> PathBuf
+	fn into(self) -> SeekFrom
 	{
-		let mut path = self.path();
-		path.push(file_name);
-		path
-	}
-
-	#[inline(always)]
-	fn path(&self) -> PathBuf
-	{
-		self.0.to_owned()
+		let offset = self.0 * size_of::<PageMapEntry>();
+		SeekFrom::Start(offset as u64)
 	}
 }

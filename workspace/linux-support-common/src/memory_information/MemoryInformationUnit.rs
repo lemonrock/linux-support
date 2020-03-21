@@ -2,22 +2,28 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::paths::ProcPath;
-use errno::errno;
-use libc::*;
-use likely::likely;
-use serde::Deserialize;
-use serde::Serialize;
-use std::error;
-use std::fmt;
-use std::fmt::Debug;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::io;
-use crate::paths::PathExt;
-use std::io::ErrorKind;
+/// Memory information unit.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum MemoryInformationUnit
+{
+	/// KiloByte.
+	KiloByte,
+	
+	/// Numeric count.
+	Count,
+}
 
+impl MemoryInformationUnit
+{
+	#[inline(always)]
+	pub(crate) fn ends_with(&self) -> &'static str
+	{
+		use self::MemoryInformationUnit::*;
 
-include!("Nice.rs");
-include!("ProcessNiceness.rs");
-include!("ProcessNicenessAdjustmentError.rs");
+		match *self
+		{
+			KiloByte => " kB",
+			Count => "",
+		}
+	}
+}

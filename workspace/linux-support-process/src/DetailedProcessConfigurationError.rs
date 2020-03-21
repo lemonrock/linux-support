@@ -51,3 +51,12 @@ impl From<ProcessNicenessAdjustmentError> for DetailedProcessConfigurationError
 		DetailedProcessConfigurationError::ProcessNicenessAdjustmentFailed(error)
 	}
 }
+
+impl From<io::Error> for DetailedProcessConfigurationError
+{
+	#[inline(always)]
+	fn from(error: io::Error) -> Self
+	{
+		DetailedProcessConfigurationError::CouldNotSetCurrentProcessAffinity(error)
+	}
+}

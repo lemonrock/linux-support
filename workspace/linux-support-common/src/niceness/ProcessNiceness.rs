@@ -35,6 +35,34 @@ impl Default for ProcessNiceness
 
 impl ProcessNiceness
 {
+	/// Is autogroup active? (from `/proc/sys/kernel/sched_autogroup_enabled`).
+	#[inline(always)]
+	pub fn is_autogroup_active(proc_path: &ProcPath) -> Result<bool, io::Error>
+	{
+		let value = proc_path.sched_autogroup_enabled_file_path().read_raw_without_line_feed()?;
+		match &value[..]
+		{
+			b"0" => Ok(false),
+			b"1" => Ok(true),
+			_ => Err(io::Error::from(ErrorKind::InvalidData)),
+		}
+	}
+
+	/// Enable the autogroup feature (requires root).
+	#[inline(always)]
+	pub fn adjust_autogroup(proc_path: &ProcPath, enable_if_true_disable_if_false: bool) -> Result<(), io::Error>
+	{
+		let value = if enable_if_true_disable_if_false
+		{
+			"1"
+		}
+		else
+		{
+			"0"
+		};
+		proc_path.sched_autogroup_enabled_file_path().write_value(value)
+	}
+
 	/// Adjusts in favour of the current process.
 	#[allow(unused_variables)]
 	pub fn adjust(&self, proc_path: &ProcPath) -> Result<(), ProcessNicenessAdjustmentError>

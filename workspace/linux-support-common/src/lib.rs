@@ -7,6 +7,7 @@
 #![allow(non_camel_case_types)]
 #![deny(missing_docs)]
 #![deny(unreachable_patterns)]
+#![feature(asm)]
 #![feature(core_intrinsics)]
 
 
@@ -51,6 +52,10 @@ pub mod environment;
 pub mod file_systems;
 
 
+/// Huge Pages.
+pub mod huge_pages;
+
+
 /// Inode.
 pub mod inode;
 
@@ -66,6 +71,15 @@ pub mod linux_kernel_modules;
 /// Logging.
 pub mod logging;
 
+
+/// Memory Information.
+pub mod memory_information;
+
+
+/// Memory layout
+pub mod memory_layout;
+
+
 /// Mounts.
 pub mod mounts;
 
@@ -80,6 +94,10 @@ pub mod niceness;
 
 /// Paths.
 pub mod paths;
+
+
+/// PCI Express (PCIe).
+pub mod pci_express;
 
 
 /// Resource limits.
@@ -100,10 +118,6 @@ pub mod status;
 
 /// Strings.
 pub mod strings;
-
-
-/// Transparent Huge Pages.
-pub mod transparent_huge_pages;
 
 
 /// User and groups.

@@ -6,6 +6,15 @@
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct HyperThread(pub u16);
 
+impl From<u8> for HyperThread
+{
+	#[inline(always)]
+	fn from(value: u8) -> Self
+	{
+		HyperThread(value as u16)
+	}
+}
+
 impl From<u16> for HyperThread
 {
 	#[inline(always)]
@@ -24,8 +33,44 @@ impl Into<u16> for HyperThread
 	}
 }
 
+impl Into<u32> for HyperThread
+{
+	#[inline(always)]
+	fn into(self) -> u32
+	{
+		self.0 as u32
+	}
+}
+
+impl Into<u64> for HyperThread
+{
+	#[inline(always)]
+	fn into(self) -> u64
+	{
+		self.0 as u64
+	}
+}
+
+impl Into<usize> for HyperThread
+{
+	#[inline(always)]
+	fn into(self) -> usize
+	{
+		self.0 as usize
+	}
+}
+
 impl HyperThread
 {
+	/// Reads the hyper thread and NUMA node of the currently executing CPU from the `IA32_TSC_AUX` model state register, which Linux populates.
+	///
+	/// Currently uses the `RDTSCP` instruction, but, once Ice Lake is widely available, could be changed to use the `RDPID` instruction.
+	#[inline(always)]
+	pub fn current_numa_node_and_hyper_thread() -> (NumaNode, HyperThread)
+	{
+		NumaNode::current_numa_node_and_hyper_thread()
+	}
+
 	/// Valid logical cores for the current process.
 	///
 	/// ***Only valid at start up before `sched_setaffinity()` has been called.***
@@ -56,7 +101,7 @@ impl HyperThread
 		};
 
 		let mut hyper_threads = BTreeSet::new();
-		for hyper_thread in all_available_to_process_even_if_they_do_not_exist.range(Self::from(0) ..= Self::from(maximum_logical_core_identifier))
+		for hyper_thread in all_available_to_process_even_if_they_do_not_exist.range(Self::from(0u16) ..= Self::from(maximum_logical_core_identifier))
 		{
 			hyper_threads.insert(*hyper_thread);
 		}
@@ -98,8 +143,8 @@ impl HyperThread
 	{
 		let mask = Self::hyper_threads_to_mask(hyper_threads);
 
-		sys_path.workqueue_file_path("cpumask").write_value(&mask)?;
-		sys_path.workqueue_file_path("writeback/cpumask").write_value(&mask)
+		sys_path.hyper_thread_workqueue_file_path("cpumask").write_value(&mask)?;
+		sys_path.hyper_thread_workqueue_file_path("writeback/cpumask").write_value(&mask)
 	}
 
 	/// We ignore failures as the `/proc` for this is brittle.
@@ -253,7 +298,7 @@ impl HyperThread
 	#[inline(always)]
 	pub fn siblings(self, sys_path: &SysPath) -> BTreeSet<Self>
 	{
-		sys_path.hyper_thread_path(self, "topology/core_siblings_list").read_linux_core_or_numa_list(Self::from).unwrap()
+		sys_path.hyper_thread_path(self, "topology/core_siblings_list").read_linux_core_or_numa_list(|value_u16| Ok(Self(value_u16))).unwrap()
 	}
 
 	/// Hyper threaded logical cores that are hyper-thread-siblings of this one.
@@ -266,7 +311,7 @@ impl HyperThread
 	#[inline(always)]
 	pub fn thread_siblings(self, sys_path: &SysPath) -> BTreeSet<Self>
 	{
-		sys_path.hyper_thread_path(self, "topology/thread_siblings_list").read_linux_core_or_numa_list(Self::from).unwrap()
+		sys_path.hyper_thread_path(self, "topology/thread_siblings_list").read_linux_core_or_numa_list(|value_u16| Ok(Self(value_u16))).unwrap()
 	}
 
 	/// Hyper threaded logical cores grouped as hyper thread groups (eg HT 0 and 1, 2 and 3, etc).
@@ -318,7 +363,7 @@ impl HyperThread
 	#[inline(always)]
 	pub fn level1_cache_hyper_thread_siblings_including_self(self, sys_path: &SysPath) -> BTreeSet<Self>
 	{
-		sys_path.hyper_thread_path(self, "cache/index0/shared_cpu_list").read_linux_core_or_numa_list(Self::from).unwrap()
+		sys_path.hyper_thread_path(self, "cache/index0/shared_cpu_list").read_linux_core_or_numa_list(|value_u16| Ok(Self(value_u16))).unwrap()
 	}
 
 	/// Hyper threaded logical cores that are thread-siblings of this one according to the level 1 cache.
@@ -366,7 +411,7 @@ impl HyperThread
 	#[inline(always)]
 	fn parse_list_mask(sys_path: &SysPath, file_name: &str) -> BTreeSet<Self>
 	{
-		sys_path.hyper_threads_path(file_name).read_linux_core_or_numa_list(Self::from).unwrap()
+		sys_path.hyper_threads_path(file_name).read_linux_core_or_numa_list(|value_u16| Ok(Self(value_u16))).unwrap()
 	}
 
 	/// Current hyper thread index that this thread is running on.

@@ -163,7 +163,7 @@ impl Nice
 	#[inline(always)]
 	pub fn set_autogroup_for_current_process(self, proc_path: &ProcPath) -> Result<(), io::Error>
 	{
-		proc_path.adjust_autogroup_nice_value_for_self(self)
+		proc_path.self_autogroup_filepath().write_value(self as i32)
 	}
 
 	/// Set the autogroup for the current process.
@@ -172,7 +172,7 @@ impl Nice
 	{
 		if let Some(nice) = only_set_if_is_some
 		{
-			if proc_path.is_autogroup_active()?
+			if ProcessNiceness::is_autogroup_active(proc_path)?
 			{
 				nice.set_autogroup_for_current_process(proc_path)
 			}

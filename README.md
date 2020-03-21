@@ -1,6 +1,8 @@
 # linux-support
 
-[linux-support] is a rust crate.
+[linux-support] is a set of Rust crates to make it easier to interoperate with Linux as a process.
+
+The most complete is [linux-support-common](workspace/linux-support-common).
 
 
 ## Licensing

@@ -2,22 +2,24 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::paths::ProcPath;
-use errno::errno;
-use libc::*;
-use likely::likely;
-use serde::Deserialize;
-use serde::Serialize;
-use std::error;
-use std::fmt;
-use std::fmt::Debug;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::io;
-use crate::paths::PathExt;
-use std::io::ErrorKind;
+/// Physical Page Frame Number (PFN).
+#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+pub struct PhysicalPageFrameNumber(pub(crate) u64);
 
+impl Into<u64> for PhysicalPageFrameNumber
+{
+	#[inline(always)]
+	fn into(self) -> u64
+	{
+		self.0
+	}
+}
 
-include!("Nice.rs");
-include!("ProcessNiceness.rs");
-include!("ProcessNicenessAdjustmentError.rs");
+impl Into<PhysicalAddress> for PhysicalPageFrameNumber
+{
+	#[inline(always)]
+	fn into(self) -> PhysicalAddress
+	{
+		PhysicalAddress(self.0 * (page_size() as u64))
+	}
+}

@@ -2,22 +2,17 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::paths::ProcPath;
-use errno::errno;
-use libc::*;
-use likely::likely;
-use serde::Deserialize;
-use serde::Serialize;
-use std::error;
-use std::fmt;
-use std::fmt::Debug;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::io;
-use crate::paths::PathExt;
-use std::io::ErrorKind;
-
-
-include!("Nice.rs");
-include!("ProcessNiceness.rs");
-include!("ProcessNicenessAdjustmentError.rs");
+/// Enable or disable transparent huge pages.
+#[inline(always)]
+fn adjust_transparent_huge_pages(enable_transparent_huge_pages: bool)
+{
+	let value = if enable_transparent_huge_pages
+	{
+		1
+	}
+	else
+	{
+		0
+	};
+	unsafe { prctl(PR_SET_THP_DISABLE, value as c_ulong) };
+}

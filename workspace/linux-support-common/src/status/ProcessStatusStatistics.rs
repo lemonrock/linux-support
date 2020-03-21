@@ -432,7 +432,7 @@ impl ProcessStatusStatistics
 		#[inline(always)]
 		fn parse_numa_node(value: &[u8]) -> Result<NumaNode, ProcessStatusStatisticParseError>
 		{
-			Ok(NumaNode(u16::from_str_radix(from_utf8(value)?, 10)?))
+			Ok(NumaNode::from(u8::from_str_radix(from_utf8(value)?, 10)?))
 		}
 
 		#[inline(always)]
@@ -675,13 +675,13 @@ impl ProcessStatusStatistics
 		#[inline(always)]
 		fn parse_cpus_allowed_list(value: &[u8]) -> Result<BTreeSet<HyperThread>, ProcessStatusStatisticParseError>
 		{
-			Ok(ListParseError::parse_linux_list_string(value, HyperThread)?)
+			Ok(ListParseError::parse_linux_list_string(value, |value_u16| Ok(HyperThread::from(value_u16)))?)
 		}
 
 		#[inline(always)]
 		fn parse_numa_nodes_allowed_list(value: &[u8]) -> Result<BTreeSet<NumaNode>, ProcessStatusStatisticParseError>
 		{
-			Ok(ListParseError::parse_linux_list_string(value, NumaNode)?)
+			Ok(ListParseError::parse_linux_list_string(value, NumaNode::try_from)?)
 		}
 
 		macro_rules! parse

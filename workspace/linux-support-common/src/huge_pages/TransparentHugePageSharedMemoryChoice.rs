@@ -12,6 +12,7 @@
 /// * shared anonymous mmaps (of /dev/zero or `MAP_ANONYMOUS`)
 /// * GPU drivers' DRM objects
 /// * Ashmem
+#[derive(Deserialize, Serialize)]
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub enum TransparentHugePageSharedMemoryChoice
 {
@@ -36,6 +37,15 @@ pub enum TransparentHugePageSharedMemoryChoice
 	Force,
 }
 
+impl Default for TransparentHugePageSharedMemoryChoice
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		TransparentHugePageSharedMemoryChoice::Never
+	}
+}
+
 impl TransparentHugePageSharedMemoryChoice
 {
 	/// To value.
@@ -53,5 +63,12 @@ impl TransparentHugePageSharedMemoryChoice
 			Deny => "deny",
 			Force => "force",
 		}
+	}
+
+	/// Changes Transparent Huge Pages (THP) settings.
+	#[inline(always)]
+	pub(crate) fn change_transparent_huge_pages_usage(self, sys_path: &SysPath) -> io::Result<()>
+	{
+		sys_path.global_transparent_huge_memory_file_path("shmem_enabled").write_value(self.to_value())
 	}
 }
