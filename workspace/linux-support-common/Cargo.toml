@@ -14,7 +14,7 @@ repository = "https://github.com/lemonrock/linux-support.git"
 exclude = ["*"]
 include = ["README.md", "LICENSE", "COPYRIGHT", "src/**/*.rs", "Cargo.toml", "rustfmt.toml", "clippy.toml"]
 readme = "README.md"
-publish = false
+publish = true
 edition = '2018'
 version = "0.0.0"
 
