@@ -96,6 +96,10 @@ pub mod niceness;
 pub mod paths;
 
 
+/// Linux personality.
+pub mod personality;
+
+
 /// PCI Express (PCIe).
 pub mod pci_express;
 

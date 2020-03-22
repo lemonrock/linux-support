@@ -35,6 +35,7 @@ use linux_support_common::linux_kernel_command_line::*;
 use linux_support_common::logging::*;
 use linux_support_common::niceness::*;
 use linux_support_common::paths::*;
+use linux_support_common::personality::PersonalityFlags;
 use linux_support_common::resource_limits::*;
 use linux_support_common::seccomp::*;
 use linux_support_common::signals::*;

@@ -79,6 +79,8 @@ impl ProcessConfiguration
 
 		Self::verify_not_running_with_set_uid_bit_set();
 
+		Self::verify_personality_is_standard_linux();
+
 		Self::restrict_umask_to_current_user();
 
 		let result: thread::Result<Result<(), ProcessConfigurationExecutionError<P::LoadKernelModulesError, P::AdditionalLinuxKernelCommandLineValidationsError, P::MainError>>> = catch_unwind(AssertUnwindSafe(|| self.inner_execute(process)));
@@ -340,11 +342,17 @@ impl ProcessConfiguration
 		&self.detailed_process_configuration.dev_path()
 	}
 
-	//noinspection SpellCheckingInspection
 	#[inline(always)]
 	fn verify_not_running_with_set_uid_bit_set()
 	{
 		assert_eq!(unsafe { geteuid() }, unsafe { getuid() }, "Can not be run with set uid bit set ('setuid')");
+	}
+
+	#[inline(always)]
+	fn verify_personality_is_standard_linux()
+	{
+		let current_personality = PersonalityFlags::get_process_domain_execution_model();
+		assert!(current_personality.expect("Can not get personality").is_standard_linux(), "Personality is not standard Linux but '{:?}'", current_personality);
 	}
 
 	#[inline(always)]
