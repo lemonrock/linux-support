@@ -23,6 +23,8 @@ use libc::ENOMEM;
 use libc::ENOTTY;
 use libc::EPROTOTYPE;
 use libc::EPROTONOSUPPORT;
+use libc::IF_NAMESIZE;
+use libc::if_nametoindex;
 use libc::ioctl;
 use libc::IPPROTO_IP;
 use libc::SOCK_DGRAM;
@@ -36,7 +38,7 @@ use std::collections::BTreeSet;
 use std::convert::TryFrom;
 use std::error;
 use std::io;
-use std::ffi::CStr;
+use std::ffi::{CStr, CString, NulError};
 use std::ffi::FromBytesWithNulError;
 use std::fmt;
 use std::fmt::Debug;
@@ -48,6 +50,7 @@ use std::os::unix::io::RawFd;
 use std::path::PathBuf;
 use std::ptr::write;
 use std::str::Utf8Error;
+use std::ops::Deref;
 
 
 /// Classifications
@@ -57,6 +60,9 @@ pub mod classification;
 include!("ConvertNetworkInterfaceIndexToPciDeviceAddressError.rs");
 include!("LinuxPciUserspaceKernelDriverModule.rs");
 include!("NetworkInterfaceIndex.rs");
+include!("NetworkInterfaceName.rs");
+include!("NetworkInterfaceNameToIndexConversionError.rs");
+include!("NetworkInterfaceNameToPciDeviceAddressConversionError.rs");
 include!("PciDevice.rs");
 include!("PciDeviceAddress.rs");
 include!("PciDeviceAddressStringParseError.rs");

@@ -28,6 +28,21 @@ impl Into<PciDeviceAddress> for PciDevice
 
 impl PciDevice
 {
+	/// Is this an ethernet device?
+	#[inline(always)]
+	pub fn is_class_network_ethernet(&self, sys_path: &SysPath) -> bool
+	{
+		// See: https://pci-ids.ucw.cz/read/PD/
+		const Network: u8 = 0x02;
+		const EthernetNetwork: u8 = 0x00;
+
+		match self.class_identifier(sys_path)
+		{
+			(Network, EthernetNetwork, _) => true,
+			_ => false,
+		}
+	}
+
 	/// PCI device's associated NUMA node, if known.
 	#[inline(always)]
 	pub fn associated_numa_node(&self, sys_path: &SysPath) -> Option<NumaNode>
@@ -42,6 +57,19 @@ impl PciDevice
 		{
 			None
 		}
+	}
+
+	/// PCI device associated hyper threads.
+	///
+	/// May report CPUs that don't actually exist; refine list against that known for a NUMA node.
+	///
+	/// Panics if file unreadable.
+	#[inline(always)]
+	pub fn associated_hyper_threads(&self, sys_path: &SysPath) -> BTreeSet<HyperThread>
+	{
+		let file_path = self.device_file_or_folder_path(sys_path, "local_cpulist");
+
+		file_path.read_linux_core_or_numa_list(|value_u16| Ok(HyperThread::from(value_u16))).expect("Could not parse local_cpulist")
 	}
 
 	/// Take for use by userspace.
@@ -71,37 +99,20 @@ impl PciDevice
 		self.bind_to_original_driver_if_necessary(sys_path, original_linux_pci_userspace_kernel_driver_module_name)
 	}
 	
-	/// PCI device associated hyper threads.
-	///
-	/// May report CPUs that don't actually exist.
-	///
-	/// Panics if file unreadable.
+	/// PCI vendor identifier and device identifier.
 	#[inline(always)]
-	pub fn associated_hyper_threads(&self, sys_path: &SysPath) -> BTreeSet<HyperThread>
+	pub fn vendor_and_device(&self, sys_path: &SysPath) -> PciVendorAndDevice
 	{
-		let file_path = self.device_file_or_folder_path(sys_path, "local_cpulist");
-		
-		file_path.read_linux_core_or_numa_list(|value_u16| Ok(HyperThread::from(value_u16))).expect("Could not parse local_cpulist")
-	}
-	
-	/// Is this an ethernet device?
-	#[inline(always)]
-	pub fn is_class_network_ethernet(&self, sys_path: &SysPath) -> bool
-	{
-		// See: https://pci-ids.ucw.cz/read/PD/
-		const Network: u8 = 0x02;
-		const EthernetNetwork: u8 = 0x00;
-		
-		match self.pci_class_identifier(sys_path)
+		PciVendorAndDevice
 		{
-			(Network, EthernetNetwork, _) => true,
-			_ => false,
+			vendor: self.vendor_identifier(sys_path),
+			device: self.device_identifier(sys_path),
 		}
 	}
-	
+
 	/// PCI vendor identifier.
 	#[inline(always)]
-	pub fn pci_vendor_identifier(&self, sys_path: &SysPath) -> PciVendorIdentifier
+	fn vendor_identifier(&self, sys_path: &SysPath) -> PciVendorIdentifier
 	{
 		let file_path = self.device_file_or_folder_path(sys_path, "vendor");
 		PciVendorIdentifier::new(file_path.read_hexadecimal_value_with_prefix_u16().expect("Seems PCI device's vendor id does not properly exist")).expect("PCI vendor Id should not be 'Any'")
@@ -109,7 +120,7 @@ impl PciDevice
 	
 	/// PCI device identifier.
 	#[inline(always)]
-	pub fn pci_device_identifier(&self, sys_path: &SysPath) -> PciDeviceIdentifier
+	fn device_identifier(&self, sys_path: &SysPath) -> PciDeviceIdentifier
 	{
 		let file_path = self.device_file_or_folder_path(sys_path, "device");
 		PciDeviceIdentifier::new(file_path.read_hexadecimal_value_with_prefix_u16().expect("Seems PCI device's device id does not properly exist")).expect("PCI device Id should not be 'Any'")
@@ -117,7 +128,7 @@ impl PciDevice
 	
 	/// PCI class identifier.
 	#[inline(always)]
-	pub fn pci_class_identifier(&self, sys_path: &SysPath) -> (u8, u8, u8)
+	pub(crate) fn class_identifier(&self, sys_path: &SysPath) -> (u8, u8, u8)
 	{
 		let file_path = self.device_file_or_folder_path(sys_path, "class");
 		let value = file_path.read_hexadecimal_value_with_prefix(6, |raw_string| u32::from_str_radix(raw_string, 16)).expect("Could not parse class");

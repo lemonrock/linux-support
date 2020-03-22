@@ -22,12 +22,26 @@ impl Into<String> for PciDeviceAddress
 	}
 }
 
+impl TryFrom<NetworkInterfaceName> for PciDeviceAddress
+{
+	type Error = NetworkInterfaceNameToPciDeviceAddressConversionError;
+
+	#[inline(always)]
+	fn try_from(network_interface_name: NetworkInterfaceName) -> Result<Self, Self::Error>
+	{
+		let network_interface_index = NetworkInterfaceIndex::try_from(&network_interface_name)?;
+		let pci_device_address: PciDeviceAddress = Self::try_from(network_interface_index)?;
+		Ok(pci_device_address)
+	}
+}
+
+#[doc(hidden)]
 impl TryFrom<NetworkInterfaceIndex> for PciDeviceAddress
 {
 	type Error = ConvertNetworkInterfaceIndexToPciDeviceAddressError;
 
 	#[inline(always)]
-	fn try_from(network_interface_one_based_index: NetworkInterfaceIndex) -> Result<Self, Self::Error>
+	fn try_from(network_interface_index: NetworkInterfaceIndex) -> Result<Self, Self::Error>
 	{
 		let socket_file_descriptor = Self::open_socket_for_ioctl()?;
 
@@ -37,7 +51,7 @@ impl TryFrom<NetworkInterfaceIndex> for PciDeviceAddress
 		command.cmd = ETHTOOL_GDRVINFO;
 
 		// Specify ifr_ifindex 'field'.
-		let x = network_interface_one_based_index.into();
+		let x = network_interface_index.into();
 		unsafe { write(interface_request.ifr_ifru.ifru_ivalue(), x) };
 
 		// Specify ifr_data 'field'.
