@@ -6,6 +6,7 @@ use crate::paths::ProcPath;
 use crate::strings::splitn;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 use errno::errno;
+use lazy_static::lazy_static;
 use libc::*;
 use std::env::var_os;
 use std::ffi::OsStr;
@@ -28,9 +29,12 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
 use std::process::Stdio;
+use std::str::from_utf8_unchecked;
 
 
+include!("LinuxKernelModule.rs");
+include!("LinuxKernelModuleFileBaseName.rs");
+include!("LinuxKernelModuleName.rs");
 include!("LinuxKernelModulesList.rs");
 include!("LinuxKernelModulesListParseError.rs");
-include!("modprobe.rs");
 include!("ModProbeError.rs");

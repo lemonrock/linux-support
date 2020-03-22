@@ -19,13 +19,12 @@ impl Default for SysPath
 
 impl SysPath
 {
-	/// Rescans all PCI buses and devices.
 	#[inline(always)]
-	pub fn rescan_all_pci_buses_and_devices(&self) -> io::Result<()>
+	pub(crate) fn pci_bus_path(&self) -> PathBuf
 	{
 		let mut path = self.path();
-		path.push("bus/pci/rescan");
-		path.write_value(1)
+		path.push("bus/pci");
+		path
 	}
 
 	/// A path about all hyper threads.
@@ -36,6 +35,7 @@ impl SysPath
 		path.push(file_name);
 		path
 	}
+
 	/// A hyper thread file.
 	#[inline(always)]
 	pub(crate) fn hyper_thread_path(&self, hyper_thread: HyperThread, file_name: &str) -> PathBuf
@@ -70,39 +70,6 @@ impl SysPath
 		let mut path = self.path();
 		path.push("devices/virtual/workqueue");
 		path.push(file_name);
-		path
-	}
-
-	/// A PCI device file.
-	#[inline(always)]
-	pub(crate) fn pci_device_path(&self, pci_device: (u32, u8, u8, u8), file_name: &str) -> PathBuf
-	{
-		let mut path = self.pci_device_folder_path(pci_device);
-		path.push(file_name);
-		path
-	}
-
-	/// PCI device folder path.
-	#[inline(always)]
-	pub(crate) fn pci_device_folder_path(&self, pci_device: (u32, u8, u8, u8)) -> PathBuf
-	{
-		self.pci_devices_path(&format!("{:04x}:{:02x}:{:02x}.{:01x}", pci_device.0, pci_device.1, pci_device.2, pci_device.3))
-	}
-
-	/// A path about all PCI devices.
-	#[inline(always)]
-	pub(crate) fn pci_devices_path(&self, file_name: &str) -> PathBuf
-	{
-		let mut path = self.pci_devices_parent_path();
-		path.push(file_name);
-		path
-	}
-
-	#[inline(always)]
-	fn pci_devices_parent_path(&self) -> PathBuf
-	{
-		let mut path = self.path();
-		path.push("bus/pci/devices");
 		path
 	}
 

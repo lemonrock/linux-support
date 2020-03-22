@@ -23,7 +23,7 @@ pub enum LinuxKernelModulesListParseError
 		zero_based_line_number: usize,
 
 		/// The Linux kernel module name (not necessarily UTF-8).
-		linux_kernel_module_name: Box<[u8]>,
+		linux_kernel_module_name: LinuxKernelModuleName,
 	},
 }
 

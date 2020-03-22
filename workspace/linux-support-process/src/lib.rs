@@ -60,6 +60,7 @@ use std::panic::catch_unwind;
 use std::panic::resume_unwind;
 use std::path::PathBuf;
 use std::thread;
+use linux_support_common::pci_express::PciDeviceAddress;
 
 
 /// Daemon support.

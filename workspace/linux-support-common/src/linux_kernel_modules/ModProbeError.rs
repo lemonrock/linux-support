@@ -10,17 +10,13 @@ pub enum ModProbeError
 	InputOutputError(io::Error),
 
 	/// A module name was empty.
-	SignalTerminatedExitCode
-	{
-		/// The Linux kernel module name (not necessarily UTF-8).
-		linux_kernel_module_name: Box<[u8]>,
-	},
+	SignalTerminatedExitCode(LinuxKernelModuleName),
 
 	/// A module name was duplicated.
 	NonZeroExitCode
 	{
 		/// The Linux kernel module name (not necessarily UTF-8).
-		linux_kernel_module_name: Box<[u8]>,
+		linux_kernel_module_name: LinuxKernelModuleName,
 
 		/// Exit code.
 		exit_code: i32,

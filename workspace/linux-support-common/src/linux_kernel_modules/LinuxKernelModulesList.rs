@@ -6,7 +6,7 @@
 ///
 /// Is *not* updated if a module is loaded or unloaded.
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
-pub struct LinuxKernelModulesList(HashSet<Box<[u8]>>);
+pub struct LinuxKernelModulesList(HashSet<LinuxKernelModuleName>);
 
 impl LinuxKernelModulesList
 {
@@ -16,12 +16,12 @@ impl LinuxKernelModulesList
 	///
 	/// true if unloaded.
 	/// false if does not exist.
-	pub fn unload_linux_kernel_module(linux_kernel_module_name: &[u8]) -> Result<bool, io::Error>
+	pub fn unload_linux_kernel_module(linux_kernel_module_name: &LinuxKernelModuleName) -> Result<bool, io::Error>
 	{
 		use self::ErrorKind::*;
 
-		let name = CString::new(linux_kernel_module_name).unwrap();
-		let flags = O_NONBLOCK;
+		let name: CString = linux_kernel_module_name.into();
+		const flags: c_long = O_NONBLOCK as c_long;
 
 		match unsafe { syscall(SYS_delete_module as i64, name.as_ptr(), flags) }
 		{
@@ -43,36 +43,6 @@ impl LinuxKernelModulesList
 
 	/// Loads a Linux Kernel Module.
 	///
-	/// Does not use `modprobe`.
-	///
-	/// Returns true if loaded.
-	/// Returns false if permissions error occurred (eg was not root).
-	///
-	/// `linux_kernel_module_path` normally ends in a '.ko' file extension, but this is not enforced.
-	pub fn load_linux_kernel_module_from_ko_file(linux_kernel_module_path: &Path) -> Result<bool, io::Error>
-	{
-		use self::ErrorKind::*;
-
-		let file = OpenOptions::new().read(true).open(linux_kernel_module_path)?;
-		let file_descriptor = file.as_raw_fd();
-
-		let options = CString::new("").unwrap();
-		let flags = 0;
-
-		match unsafe { syscall(SYS_finit_module as i64, file_descriptor, options.as_ptr(), flags) }
-		{
-			0 => Ok(true),
-			-1 => match errno().0
-				{
-					EPERM => Err(io::Error::new(PermissionDenied, "permission denied")),
-					unknown @ _ => Err(io::Error::new(Other, format!("Error Code was '{}'", unknown))),
-				},
-			illegal @ _ => panic!("syscall(SYS_finit_module) returned illegal value '{}'", illegal),
-		}
-	}
-
-	/// Loads a Linux Kernel Module.
-	///
 	/// `module_file_base_name` excludes the `.ko` file extension.
 	///
 	/// Does not use `modprobe`.
@@ -81,20 +51,18 @@ impl LinuxKernelModulesList
 	/// Returns false if already loaded.
 	///
 	/// Updates the list of loaded modules.
-	pub fn load_linux_kernel_module_if_absent_from_ko_file(&mut self, linux_kernel_module_name: &[u8], module_file_base_name: &str, linux_kernel_modules_path: &Path) -> Result<bool, io::Error>
+	pub fn load_linux_kernel_module_if_absent_from_ko_file(&mut self, linux_kernel_module: &LinuxKernelModule, linux_kernel_modules_path: &Path) -> Result<bool, io::Error>
 	{
+		let linux_kernel_module_name = linux_kernel_module.linux_kernel_module_name();
+
 		if self.is_linux_kernel_module_is_loaded(linux_kernel_module_name)
 		{
-			Ok(false)
+			return Ok(false)
 		}
-		else
-		{
-			let mut linux_kernel_module_path = PathBuf::from(linux_kernel_modules_path);
-			linux_kernel_module_path.push(format!("{}.ko", module_file_base_name));
-			LinuxKernelModulesList::load_linux_kernel_module_from_ko_file(&linux_kernel_module_path)?;
-			self.0.insert(linux_kernel_module_name.to_vec().into_boxed_slice());
-			Ok(true)
-		}
+
+		linux_kernel_module.load_linux_kernel_module_from_ko_file(linux_kernel_modules_path)?;
+		self.0.insert(linux_kernel_module_name.clone());
+		Ok(true)
 	}
 
 	/// Loads a module if absent from the Kernel.
@@ -102,22 +70,23 @@ impl LinuxKernelModulesList
 	/// Uses `modprobe`.
 	///
 	/// Updates the list of loaded modules.
-	pub fn load_linux_kernel_module_if_absent_using_modprobe(&mut self, linux_kernel_module_name: &[u8], module_file_base_name: &[u8]) -> Result<bool, ModProbeError>
+	pub fn load_linux_kernel_module_if_absent_using_modprobe(&mut self, linux_kernel_module: &LinuxKernelModule) -> Result<bool, ModProbeError>
 	{
+		let linux_kernel_module_name = linux_kernel_module.linux_kernel_module_name();
+
 		if self.is_linux_kernel_module_is_loaded(linux_kernel_module_name)
 		{
-			Ok(false)
+			return Ok(false)
 		}
-		else
-		{
-			modprobe(module_file_base_name)?;
-			self.0.insert(linux_kernel_module_name.to_vec().into_boxed_slice());
-			Ok(true)
-		}
+
+		linux_kernel_module.load_linux_kernel_module_using_modprobe()?;
+		self.0.insert(linux_kernel_module_name.clone());
+		Ok(true)
 	}
 
-	/// Is the `linux_kernel_module_name` loaded?
-	pub fn is_linux_kernel_module_is_loaded(&self, linux_kernel_module_name: &[u8]) -> bool
+	/// Is the Linux kernel module loaded?
+	#[inline(always)]
+	pub fn is_linux_kernel_module_is_loaded(&self, linux_kernel_module_name: &LinuxKernelModuleName) -> bool
 	{
 		self.0.contains(linux_kernel_module_name)
 	}
@@ -132,23 +101,25 @@ impl LinuxKernelModulesList
 
 		let mut modules_list = HashSet::new();
 		let mut zero_based_line_number = 0;
+		use self::LinuxKernelModulesListParseError::*;
 		for line in reader.split(b'\n')
 		{
 			{
 				let line = line?;
 				let mut split = splitn(&line, 2, b' ');
 
-				let linux_kernel_module_name = split.next().unwrap();
+				let linux_kernel_module_name_bytes = split.next().unwrap();
 
-				if linux_kernel_module_name.is_empty()
+				if linux_kernel_module_name_bytes.is_empty()
 				{
-					return Err(LinuxKernelModulesListParseError::CouldNotParseEmptyModuleName { zero_based_line_number })
+					return Err(CouldNotParseEmptyModuleName { zero_based_line_number })
 				}
 
-				let is_original = modules_list.insert(linux_kernel_module_name.to_vec().into_boxed_slice());
-				if !is_original
+				let linux_kernel_module_name = linux_kernel_module_name_bytes.into();
+
+				if let Some(duplicated) = modules_list.replace(linux_kernel_module_name)
 				{
-					 return Err(LinuxKernelModulesListParseError::DuplicateModuleName { zero_based_line_number, linux_kernel_module_name: linux_kernel_module_name.to_vec().into_boxed_slice() });
+					return Err(DuplicateModuleName { zero_based_line_number, linux_kernel_module_name: duplicated });
 				}
 			}
 

@@ -4,7 +4,7 @@
 
 /// Error caused when trying to open an ioctl socket.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum OpenPciExpressBusInformationError
+pub enum ConvertNetworkInterfaceIndexToPciDeviceAddressError
 {
 	/// Permission denied.
 	PermissionDenied,
@@ -38,48 +38,48 @@ pub enum OpenPciExpressBusInformationError
 	ParseError(PciDeviceAddressStringParseError),
 }
 
-impl Display for OpenPciExpressBusInformationError
+impl Display for ConvertNetworkInterfaceIndexToPciDeviceAddressError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
 	{
-		<OpenPciExpressBusInformationError as Debug>::fmt(self, f)
+		<ConvertNetworkInterfaceIndexToPciDeviceAddressError as Debug>::fmt(self, f)
 	}
 }
 
-impl From<FromBytesWithNulError> for OpenPciExpressBusInformationError
+impl From<FromBytesWithNulError> for ConvertNetworkInterfaceIndexToPciDeviceAddressError
 {
 	#[inline(always)]
 	fn from(error: FromBytesWithNulError) -> Self
 	{
-		OpenPciExpressBusInformationError::InvalidCString(error)
+		ConvertNetworkInterfaceIndexToPciDeviceAddressError::InvalidCString(error)
 	}
 }
 
-impl From<Utf8Error> for OpenPciExpressBusInformationError
+impl From<Utf8Error> for ConvertNetworkInterfaceIndexToPciDeviceAddressError
 {
 	#[inline(always)]
 	fn from(error: Utf8Error) -> Self
 	{
-		OpenPciExpressBusInformationError::InvalidUtf8String(error)
+		ConvertNetworkInterfaceIndexToPciDeviceAddressError::InvalidUtf8String(error)
 	}
 }
 
-impl From<PciDeviceAddressStringParseError> for OpenPciExpressBusInformationError
+impl From<PciDeviceAddressStringParseError> for ConvertNetworkInterfaceIndexToPciDeviceAddressError
 {
 	#[inline(always)]
 	fn from(error: PciDeviceAddressStringParseError) -> Self
 	{
-		OpenPciExpressBusInformationError::ParseError(error)
+		ConvertNetworkInterfaceIndexToPciDeviceAddressError::ParseError(error)
 	}
 }
 
-impl error::Error for OpenPciExpressBusInformationError
+impl error::Error for ConvertNetworkInterfaceIndexToPciDeviceAddressError
 {
 	#[inline(always)]
 	fn source(&self) ->  Option<&(dyn error::Error + 'static)>
 	{
-		use self::OpenPciExpressBusInformationError::*;
+		use self::ConvertNetworkInterfaceIndexToPciDeviceAddressError::*;
 
 		match self
 		{
