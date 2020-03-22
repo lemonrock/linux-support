@@ -97,6 +97,8 @@ pub mod paths;
 
 
 /// Linux personality.
+///
+/// A mostly broken and discarded concept, but important to check it is 'Linux standard'.
 pub mod personality;
 
 
