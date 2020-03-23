@@ -53,8 +53,12 @@ use std::str::Utf8Error;
 use std::ops::Deref;
 
 
-/// Classifications
+/// Classifications.
 pub mod classification;
+
+
+/// Registers.
+pub mod registers;
 
 
 include!("ConvertNetworkInterfaceIndexToPciDeviceAddressError.rs");
@@ -66,5 +70,3 @@ include!("NetworkInterfaceNameToPciDeviceAddressConversionError.rs");
 include!("PciDevice.rs");
 include!("PciDeviceAddress.rs");
 include!("PciDeviceAddressStringParseError.rs");
-
-

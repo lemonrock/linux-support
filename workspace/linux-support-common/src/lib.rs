@@ -8,6 +8,7 @@
 #![deny(missing_docs)]
 #![deny(unreachable_patterns)]
 #![feature(asm)]
+#![feature(const_fn)]
 #![feature(core_intrinsics)]
 
 
