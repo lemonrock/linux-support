@@ -1,0 +1,44 @@
+ALLRXDCTL   0x0c028 +0x40*0..7      RW    Receive Descriptor Control Queue
+RAL64       0x05400 +0x08*0..15     RW64  Receive Address Low
+RAL         0x05400 +0x08*0..15     RW    Receive Address Low
+RAH         0x05404 +0x08*0..15     RW    Receive Address High
+VFTA        0x05600 +0x04*0..127    RW    VLAN Filter Table Array
+RDBAL       0x0c000 +0x40*0..7      RW    Receive Descriptor Base low
+RDBAH       0x0c004 +0x40*0..7      RW    Receive Descriptor Base High
+RDLEN       0x0c008 +0x40*0..7      RW    Receive Descriptor Ring Length
+RDH         0x0c010 +0x40*0..7      RO    Receive Descriptor Head
+RDT         0x0c018 +0x40*0..7      RW    Receive Descriptor Tail
+RXDCTL      0x0c028 +0x40*0..7      RW    Re Descriptor Control Queue
+RXCTL       0x0c014 +0x40*0..7      RW    Receive DCA CTRL Register Queue
+SRRCTL      0x0c00c +0x40*0..7      RW    Split and Replication Receive Control
+ALGNERRC    0x04004 -               RC    Alignment Error Count
+RXERRC      0x0400C -               RC    Receive Error Count
+RLEC        0x04040 -               RC    Receive Length Error Count
+CRCERRS     0x04000 -               RC    Cyclic Redundancy Check (CRC) Error Count
+MPC         0x04010 -               RC    Missed Packets Count
+MRQC        0x05818 -               RW    Multiple Receive Queues Command Register
+EEER        0x00E30 -               RW    Energy Efficient Ethernet (EEE) Register
+EIMC        0x01528 -               RW    Extended Interrupt Mask Clear
+SWSM        0x05b50 -               RW    Software Semaphore
+MANC        0x05820 -               RW    Management Control
+MDIC        0x00020 -               RW    MDI Control
+MDICNFG     0x00E04 -               RW    MDI Configuration
+RLPML       0x05004 -               RW    Receive Long packet maximal length
+RPTHC       0x04104 -               RC    Receive Packets to host count
+SW_FW_SYNC  0x05b5c -               RW    Software Firmware Synchronization
+TCTL        0x00400 -               RW    Transmit Control
+TCTL_EXT    0x00400 -               RW    Extended Transmit Control
+ECOL        0x04018 -               RC    Excessive Collisions Count
+LATECOL     0x0401C -               RC    Late Collisions Count
+GORCL       0x04088 -               RC    Good Octets Received Count
+GORCH       0x0408C -               RC    Good Octets Received Count
+GOTCL       0x04090 -               RC    Good Octets Transmitted Count
+GOTCH       0x04094 -               RC    Good Octets Transmitted Count
+RNBC        0x040A0 -               RC    Receive No Buffers Count
+TDBAL       0xe000 +0x40*0..7       RW    Transmit Descriptor Base Low
+TDBAH       0xe004 +0x40*0..7       RW    Transmit Descriptor Base High
+TDLEN       0xe008 +0x40*0..7       RW    Transmit Descriptor Ring Length
+TDH         0xe010 +0x40*0..7       RO    Transmit Descriptor Head
+TDT         0xe018 +0x40*0..7       RW    Transmit Descriptor Tail
+TXDCTL      0xe028 +0x40*0..7       RW    Transmit Descriptor Control Queue
+TXCTL       0xe014 +0x40*0..7       RW    Transmit DCA CTRL Register Queue

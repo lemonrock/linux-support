@@ -1,0 +1,16 @@
+VFGEN_RSTAT       0x00008800 -            RW   VF Reset Status
+VFINT_DYN_CTL0    0x00005C00 -            RW   VF Interrupt Dynamic Control Zero
+VF_ATQBAL         0x00007C00 -            RW   VF MailBox Transmit Queu e Base Address Low
+VF_ATQBAH         0x00007800 -            RW   VF MailBox Transmit Queue Base Address High
+VF_ATQLEN         0x00006800 -            RW   VF MailBox Transmit Queue Length
+VF_ATQH           0x00006400 -            RW   VF MailBox Transmit Head
+VF_ATQT           0x00008400 -            RW   VF MailBox Transmit Tail
+VF_ARQBAL         0x00006C00 -            RW   VF MailBox Receive Queue Base Address Low
+VF_ARQBAH         0x00006000 -            RW   VF MailBox Receive Queue Base Address High
+VF_ARQLEN         0x00008000 -            RW   VF MailBox Receive Queue Length
+VF_ARQH           0x00007400 -            RW   VF MailBox Receive Head
+VF_ARQT           0x00007000 -            RW   VF MailBox Receive Tail
+VFINT_DYN_CTLN    0x00003800 +0x4*0..63   RW   VF Interrupt Dynamic Control N
+VFINT_ITR0        0x00004C00 +0x4*0..2    RW   VF Interrupt Throttling Zero
+QTX_TAIL          0x00000000 +0x4*0..255  RW   Transmit Queue Tail
+QRX_TAIL          0x00002000 +0x4*0..255  RW   Receive Queue Tail

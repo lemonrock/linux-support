@@ -225,10 +225,37 @@ EOF
 	} >"$folderPath"/registers.rs
 }
 
+process_folder()
+{
+	local relativePath="$1"
+
+	if [ -f "$relativePath"/registers.snabb ]; then
+		parse "$relativePath"
+	fi
+
+	local folder
+	set +f
+	for folder in "$relativePath"/*
+	do
+		set -f
+		if [ ! -e "$folder" ]; then
+			continue
+		fi
+		if [ -L "$folder" ]; then
+			continue
+		fi
+		if [ ! -d "$folder" ]; then
+			continue
+		fi
+
+		process_folder "$folder"
+	done
+	set -f
+}
+
 main()
 {
-	parse intel_ethernet
-	parse intel_ethernet/_82599ES
+	process_folder '.'
 }
 
 main "$@"

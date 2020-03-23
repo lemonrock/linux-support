@@ -1,0 +1,25 @@
+VMVIR       0x03700 +0x04*0..7      RW    VM VLAN insert
+PSRTYPE     0x05480 +0x04*0..7      RW    Packet Split Receive Type
+VMOLR       0x05AD0 +0x04*0..7      RW    VM Offload
+VLVF        0x05d00 +0x04*0..31     RW    VLAN VM Filter
+DVMOLR      0x0C038 +0x04*0..7      RW    DMA VM Offload
+VMRCTL      0x05D80 +0x04*0..7      RW    Virtual Mirror rule control
+VMRVLAN     0x05D90 +0x04*0..7      RW    Virtual Mirror rule VLAN
+VMRVM       0x05DA0 +0x04*0..7      RW    Virtual Mirror rule VM
+RQDPC       0x0C030 +0x40*0..7      RC    Receive Queue Drop Packet Count
+TQDPC       0x0E030 +0x40*0..7      RCR   Transmit Queue Drop Packet Count
+PQGPRC      0x10010 +0x100*0..7     RCR   Per Queue Good Packets Received Count
+PQGPTC      0x10014 +0x100*0..7     RCR   Per Queue Good Packets Transmitted Count
+PQGORC      0x10018 +0x100*0..7     RCR   Per Queue Good Octets Received Count
+PQGOTC      0x10034 +0x100*0..7     RCR   Per Queue Octets Transmitted Count
+PQMPRC      0x10038 +0x100*0..7     RCR   Per Queue Multicast Packets Received
+VFRE        0x00C8C -               RW    VF Receive Enable
+VFTE        0x00C90 -               RW    VF Transmit Enable
+EEMNGCTL    0x01010 -               RW    Manageability EEPROM-Mode Control
+EEC         0x00010 -               RW    EEPROM-Mode Control
+QDE         0x02408 -               RW    Queue Drop Enable
+DTXCTL      0x03590 -               RW    DMA Transmit Control
+RPLPSRTYPE  0x054C0 -               RW    Replicated Packet Split Receive Type
+VT_CTL      0x0581C -               RW    VMDq Control
+TXSWC       0x05ACC -               RW    Transmit Switch Control
+FACTPS	    0x05B30 -               RW    Function Active and Power State to MNG

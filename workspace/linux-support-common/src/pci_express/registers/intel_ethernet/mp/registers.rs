@@ -5,7 +5,7 @@
 /// Redirection Table.
 pub const RETA: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::array(0x5c00, 0x04, 0, 31);
 
-/// RSS Random Key.
+/// Receive Side Scaling (RSS) Random Key.
 pub const RSSRK: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::array(0x5C80, 0x04, 0, 9);
 
 /// Broadcast Packets Received Count.
@@ -23,7 +23,7 @@ pub const CTRL_EXT: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDe
 /// Device Status.
 pub const STATUS: RegisterDefinition<ReadOnlyRegister<u32>, u32> = RegisterDefinition::singleton(0x00008);
 
-/// RX Control.
+/// Receive Control.
 pub const RCTL: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::singleton(0x00100);
 
 /// CRC Error Count.

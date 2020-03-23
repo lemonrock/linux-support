@@ -11,10 +11,10 @@ pub const DAQF: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefini
 /// Five Tuple Queue Filter.
 pub const FTQF: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::array(0x0E600, 0x04, 0, 127);
 
-/// EType Queue Filter.
+/// EtherType Queue Filter.
 pub const ETQF: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::array(0x05128, 0x04, 0, 7);
 
-/// EType Queue Select.
+/// EtherType Queue Select.
 pub const ETQS: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::array(0x0EC00, 0x04, 0, 7);
 
 /// MAC Pool Select Array.
@@ -44,7 +44,7 @@ pub const PFVFRE: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefi
 /// PF VF Transmit Enable.
 pub const PFVFTE: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::array(0x08110, 0x04, 0, 1);
 
-/// PF VM Tx Switch Loopback Enable.
+/// PF VM Transmit Switch Loopback Enable.
 pub const PFVMTXSW: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::array(0x05180, 0x04, 0, 1);
 
 /// PF VF Anti Spoof Control.
@@ -113,7 +113,7 @@ pub const TQSM: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefini
 /// Transmit Packet Buffer Size.
 pub const TXPBSIZE: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::array(0x0CC00, 0x04, 0, 7);
 
-/// Tx Packet Buffer Threshold.
+/// Transmit Packet Buffer Threshold.
 pub const TXPBTHRESH: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::array(0x04950, 0x04, 0, 7);
 
 /// VLAN Filter Table Array.
@@ -122,7 +122,7 @@ pub const VFTA: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefini
 /// Flow Control Receive Threshold High.
 pub const FCRTH: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::array(0x03260, 0x40, 0, 7);
 
-/// Rx DCA Control Register.
+/// Receive DCA Control Register.
 pub const DCA_RXCTRL: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::split_array(0x0100C, 0x40, 0, 63, 0x0D00C, 0x40, 64, 127);
 
 /// Split Receive Control Registers.
@@ -152,10 +152,10 @@ pub const AUTOC: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefin
 /// Auto Negotiation Control 2.
 pub const AUTOC2: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::singleton(0x042A8);
 
-/// DMA Tx Control.
+/// DMA Transmit Control.
 pub const DMATXCTL: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::singleton(0x04A80);
 
-/// DMA Tx Map Allow Size Requests.
+/// DMA Transmit Map Allow Size Requests.
 pub const DTXMXSZRQ: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::singleton(0x08100);
 
 /// EEPROM/Flash Control Register.
@@ -167,7 +167,7 @@ pub const EIMC: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefini
 /// Flow Control Configuration.
 pub const FCCFG: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::singleton(0x03D00);
 
-/// Rx Packets Dropped Count.
+/// Receive Packets Dropped Count.
 pub const FCOERPDC: RegisterDefinition<ReadOnlyCounterResetOnReadRegister<u32>, u32> = RegisterDefinition::singleton(0x0241C);
 
 /// Filter Control.
@@ -203,7 +203,7 @@ pub const PFVTCTL: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDef
 /// PF Queue Drop Enable Register.
 pub const PFQDE: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::singleton(0x02F04);
 
-/// PF DMA Tx General Switch Control.
+/// PF DMA Transmit General Switch Control.
 pub const PFDTXGSWC: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::singleton(0x08220);
 
 /// Receive DMA Control Register.
@@ -239,13 +239,13 @@ pub const RFCTL: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefin
 /// Receive Control.
 pub const RXCTRL: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::singleton(0x03000);
 
-/// DMA Good Rx Packet Counter.
+/// DMA Good Receive Packet Counter.
 pub const RXDGPC: RegisterDefinition<ReadOnlyCounterResetOnReadRegister<u32>, u32> = RegisterDefinition::singleton(0x02F50);
 
-/// DMA Good Tx Packet Counter.
+/// DMA Good Transmit Packet Counter.
 pub const TXDGPC: RegisterDefinition<ReadOnlyCounterResetOnReadRegister<u32>, u32> = RegisterDefinition::singleton(0x087A0);
 
-/// Rx DMA Statistic Counter Control.
+/// Receive DMA Statistic Counter Control.
 pub const RXDSTATCTRL: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::singleton(0x02F40);
 
 /// Receive Undersize Count.
@@ -281,7 +281,7 @@ pub const GORCL: RegisterDefinition<ReadOnlyCounterResetOnReadRegister<u32>, u32
 /// Good Octets Transmitted Count Low.
 pub const GOTCL: RegisterDefinition<ReadOnlyCounterResetOnReadRegister<u32>, u32> = RegisterDefinition::singleton(0x04090);
 
-/// Tx DCA Control Register.
+/// Transmit DCA Control Register.
 pub const DCA_TXCTRL: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::array(0x0600C, 0x40, 0, 127);
 
 /// Transmit Descriptor Base Address Low.
@@ -302,5 +302,5 @@ pub const TDT: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinit
 /// Transmit Descriptor Control.
 pub const TXDCTL: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::array(0x06028, 0x40, 0, 127);
 
-/// Tx Descriptor Completion Write Back Address Low.
+/// Transmit Descriptor Completion Write Back Address Low.
 pub const TDWBAL: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::array(0x06038, 0x40, 0, 127);
