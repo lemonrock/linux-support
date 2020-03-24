@@ -64,24 +64,24 @@ impl Controller
 	const MaximumNumberOfControllers: usize = 6;
 
 	#[inline(always)]
-	fn append_to(self, line: &mut String, sign: char)
+	fn append_to(self, line: &mut Vec<u8>, sign: u8)
 	{
 		line.push(sign);
-		line.push_str(self.to_str())
+		line.extend_from_slice(self.to_bytes())
 	}
 
 	#[inline(always)]
-	fn to_str(self) -> &'static str
+	fn to_bytes(self) -> &'static [u8]
 	{
 		use self::Controller::*;
 		match self
 		{
-			io => "io",
-			memory => "memory",
-			pids => "pids",
-			perf_event => "perf_event",
-			rdma => "rdma",
-			cpu => "cpu",
+			io => b"io" as &[u8],
+			memory => b"memory" as &[u8],
+			pids => b"pids" as &[u8],
+			perf_event => b"perf_event" as &[u8],
+			rdma => b"rdma" as &[u8],
+			cpu => b"cpu" as &[u8],
 		}
 	}
 }

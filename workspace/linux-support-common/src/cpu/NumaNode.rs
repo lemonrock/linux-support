@@ -72,6 +72,16 @@ impl Into<usize> for NumaNode
 	}
 }
 
+impl<'a> IntoLineFeedTerminatedByteString<'a> for NumaNode
+{
+	/// Converts data to a byte string terminated with a new line (`\n`).
+	#[inline(always)]
+	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
+	{
+		self.0.into_line_feed_terminated_byte_string()
+	}
+}
+
 impl NumaNode
 {
 	/// Is this a NUMA-based machine?
@@ -244,7 +254,8 @@ impl NumaNode
 	#[inline(always)]
 	pub fn numa_memory_statistics(self, sys_path: &SysPath) -> io::Result<HashMap<VirtualMemoryStatisticName, u64>>
 	{
-		sys_path.numa_node_path(self.into(), "numastat").parse_virtual_memory_statistics_file()
+		let file_path = sys_path.numa_node_path(self.into(), "numastat");
+		VirtualMemoryStatisticName::parse_virtual_memory_statistics_file(&file_path)
 	}
 
 	/// Memory statistics.
@@ -253,14 +264,16 @@ impl NumaNode
 	#[inline(always)]
 	pub fn zoned_virtual_memory_statistics(self, sys_path: &SysPath) -> io::Result<HashMap<VirtualMemoryStatisticName, u64>>
 	{
-		sys_path.numa_node_path(self.into(), "vmstat").parse_virtual_memory_statistics_file()
+		let file_path = sys_path.numa_node_path(self.into(), "vmstat");
+		VirtualMemoryStatisticName::parse_virtual_memory_statistics_file(&file_path)
 	}
 
 	/// Memory information.
 	#[inline(always)]
 	pub fn memory_information(self, sys_path: &SysPath, memory_information_name_prefix: &[u8]) -> Result<MemoryInformation, MemoryInformationParseError>
 	{
-		sys_path.numa_node_path(self.into(), "meminfo").parse_memory_information_file(memory_information_name_prefix)
+		let file_path = sys_path.numa_node_path(self.into(), "meminfo");
+		MemoryInformation::parse_memory_information_file(&file_path, memory_information_name_prefix)
 	}
 
 	#[inline(always)]

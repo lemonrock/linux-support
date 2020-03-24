@@ -33,31 +33,30 @@ impl Default for TransparentHugePageDefragmentationChoice
 
 impl TransparentHugePageDefragmentationChoice
 {
-	/// To value.
 	#[inline(always)]
-	pub fn to_value(self) -> &'static str
+	fn to_value(self) -> &'static [u8]
 	{
 		use self::TransparentHugePageDefragmentationChoice::*;
 
 		match self
 		{
-			Never => "never",
-			Defer => "defer",
-			Advise => "madvise",
-			DeferAndAdvise => "defer+madvise",
+			Never => b"never\n" as &[u8],
+			Defer => b"defer\n" as &[u8],
+			Advise => b"madvise\n" as &[u8],
+			DeferAndAdvise => b"defer+madvise\n" as &[u8],
 		}
 	}
 
 	/// Defrag value.
 	#[inline(always)]
-	pub fn defrag_value(self) -> &'static str
+	fn defrag_value(self) -> bool
 	{
 		use self::TransparentHugePageDefragmentationChoice::*;
 
 		match self
 		{
-			Never => "0",
-			_ => "1",
+			Never => false,
+			_ => true,
 		}
 	}
 

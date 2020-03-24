@@ -52,15 +52,7 @@ impl ProcessNiceness
 	#[inline(always)]
 	pub fn adjust_autogroup(proc_path: &ProcPath, enable_if_true_disable_if_false: bool) -> Result<(), io::Error>
 	{
-		let value = if enable_if_true_disable_if_false
-		{
-			"1"
-		}
-		else
-		{
-			"0"
-		};
-		Self::sched_autogroup_enabled_file_path(proc_path).write_value(value)
+		Self::sched_autogroup_enabled_file_path(proc_path).write_value(enable_if_true_disable_if_false)
 	}
 
 	/// Adjusts in favour of the current process.

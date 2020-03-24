@@ -3,14 +3,14 @@
 
 
 use crate::cpu::*;
-use crate::memory_information::*;
-use crate::status::*;
+use crate::huge_pages::HugePageSize;
 use crate::strings::*;
 use libc::pid_t;
+use num::Num;
 use serde::Deserialize;
 use serde::Serialize;
+use std::borrow::Cow;
 use std::collections::BTreeSet;
-use std::collections::HashMap;
 use std::error;
 use std::ffi::CString;
 use std::fmt;
@@ -24,11 +24,11 @@ use std::fs::Permissions;
 use std::fs::read_to_string;
 use std::fs::set_permissions;
 use std::io;
-use std::io::BufRead;
-use std::io::BufReader;
 use std::io::ErrorKind;
 use std::io::Write;
-use std::num::{ParseIntError, TryFromIntError};
+#[allow(deprecated)] use std::mem::uninitialized;
+use std::num::ParseIntError;
+use std::num::TryFromIntError;
 use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
@@ -36,11 +36,13 @@ use std::path::PathBuf;
 use std::str::from_utf8;
 use std::str::FromStr;
 use std::str::Utf8Error;
-use crate::huge_pages::HugePageSize;
 
 
 include!("DevPath.rs");
+include!("IntoLineFeedTerminatedByteString.rs");
 include!("ListParseError.rs");
 include!("PathExt.rs");
 include!("ProcPath.rs");
+include!("signed_into_line_feed_terminated_byte_string.rs");
 include!("SysPath.rs");
+include!("unsigned_into_line_feed_terminated_byte_string.rs.rs");

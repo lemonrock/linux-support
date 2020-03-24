@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::paths::ProcPath;
+use crate::paths::{ProcPath, IntoLineFeedTerminatedByteString};
 use crate::strings::splitn;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 use errno::errno;
@@ -30,6 +30,7 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::process::Stdio;
 use std::str::from_utf8_unchecked;
+use std::borrow::Cow;
 
 
 include!("LinuxKernelModule.rs");

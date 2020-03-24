@@ -20,6 +20,7 @@ use std::num::TryFromIntError;
 use std::path::PathBuf;
 use std::str::FromStr;
 use crate::status::ProcessStatusStatistics;
+use std::borrow::Cow;
 
 
 include!("CpuFeatures.rs");

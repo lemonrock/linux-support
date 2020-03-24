@@ -30,6 +30,14 @@ impl PciDeviceIdentifier
 	
 	/// Any or invalid.
 	pub const AnyOrInvalid: PciDeviceIdentifier = PciDeviceIdentifier(Self::AnyOrInvalidRaw);
+
+	/// New, unchecked apart from a static assertion.
+	#[inline(always)]
+	pub const fn new_unchecked(pci_device_identifier: u16) -> Self
+	{
+		cfn_assert_ne!(pci_device_identifier, Self::AnyOrInvalidRaw);
+		Self(pci_device_identifier)
+	}
 	
 	/// New.
 	#[inline(always)]

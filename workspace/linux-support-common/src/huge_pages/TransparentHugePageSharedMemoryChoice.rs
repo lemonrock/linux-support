@@ -48,20 +48,19 @@ impl Default for TransparentHugePageSharedMemoryChoice
 
 impl TransparentHugePageSharedMemoryChoice
 {
-	/// To value.
 	#[inline(always)]
-	pub fn to_value(self) -> &'static str
+	fn to_value(self) -> &'static [u8]
 	{
 		use self::TransparentHugePageSharedMemoryChoice::*;
 
 		match self
 		{
-			Never => "never",
-			Always => "always",
-			WithinSize => "within_size",
-			Advise => "advise",
-			Deny => "deny",
-			Force => "force",
+			Never => b"never\n" as &[u8],
+			Always => b"always\n" as &[u8],
+			WithinSize => b"within_size\n" as &[u8],
+			Advise => b"advise\n" as &[u8],
+			Deny => b"deny\n" as &[u8],
+			Force => b"force\n" as &[u8],
 		}
 	}
 

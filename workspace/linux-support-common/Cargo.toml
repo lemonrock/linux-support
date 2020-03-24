@@ -30,6 +30,7 @@ lazy_static = "^1.4.0"
 libc = "^0.2"
 libc-extra = "^0.3.2"
 likely = "^0.1"
+num = "^0.2.1"
 raw-cpuid = "^5.0"
 serde = { version = "1.0", features = ["derive"] }
 strum = "^0.16.0"

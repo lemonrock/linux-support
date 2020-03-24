@@ -17,18 +17,19 @@ pub enum MaximumNumber
 	Maximum,
 }
 
-impl Display for MaximumNumber
+impl<'a> IntoLineFeedTerminatedByteString<'a> for MaximumNumber
 {
+	/// Converts data to a byte string terminated with a new line (`\n`).
 	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
 	{
 		use self::MaximumNumber::*;
 
 		match self
 		{
-			Finite(value) => write!(f, "{}", value),
+			Finite(value) => value.into_line_feed_terminated_byte_string(),
 
-			&Maximum => write!(f, "max"),
+			Maximum => Cow::from(b"max\n" as &[u8]),
 		}
 	}
 }

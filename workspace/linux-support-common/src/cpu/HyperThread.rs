@@ -110,7 +110,7 @@ impl HyperThread
 
 	/// Hyper Threads to mask.
 	#[inline(always)]
-	pub fn hyper_threads_to_mask(hyper_threads: &BTreeSet<Self>) -> String
+	pub fn hyper_threads_to_mask(hyper_threads: &BTreeSet<Self>) -> Vec<u8>
 	{
 		let mut mask: u32 = 0;
 		for hyper_thread in hyper_threads.iter()
@@ -118,21 +118,22 @@ impl HyperThread
 			let bit = (1 << hyper_thread.0) as u32;
 			mask |= bit;
 		}
-		format!("{:08x}", mask)
+		format!("{:08x}\n", mask).into_bytes()
 	}
 
 	/// Hyper Threads to list.
 	#[inline(always)]
-	pub fn hyper_threads_to_list(hyper_threads: &BTreeSet<Self>) -> String
+	fn hyper_threads_to_list(hyper_threads: &BTreeSet<Self>) -> Vec<u8>
 	{
-		let mut list = String::with_capacity(hyper_threads.len() * 4);
+		let mut list = Vec::with_capacity(hyper_threads.len() * 4);
 		for hyper_thread in hyper_threads.iter()
 		{
 			if !list.is_empty()
 			{
-				list.push(',');
+				list.push(b',');
 			}
-			list.push_str(&format!("{}", hyper_thread.0))
+			let x = hyper_thread.0.into_line_feed_terminated_byte_string();
+			list.extend_from_slice(&x[.. x.len() - 1])
 		}
 		list
 	}
@@ -156,7 +157,7 @@ impl HyperThread
 		if cfg!(any(target_os = "android", target_os = "linux"))
 		{
 			let yes_a_list_even_though_file_is_named_a_cpumask = Self::hyper_threads_to_list(hyper_threads);
-			proc_path.file_path("sys/kernel/watchdog_cpumask").write_value(&yes_a_list_even_though_file_is_named_a_cpumask)
+			proc_path.file_path("sys/kernel/watchdog_cpumask").write_value(yes_a_list_even_though_file_is_named_a_cpumask)
 		}
 		else
 		{
@@ -405,7 +406,7 @@ impl HyperThread
 	#[inline(always)]
 	pub fn kernel_maximum_index(sys_path: &SysPath) -> io::Result<Self>
 	{
-		sys_path.hyper_threads_path("kernel_max").read_value().map(|value| HyperThread(value))
+		sys_path.hyper_threads_path("kernel_max").read_value().map(|value| Self(value))
 	}
 
 	#[inline(always)]

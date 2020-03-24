@@ -15,13 +15,7 @@ pub trait PathExt
 	fn make_folder_searchable_to_all(&self) -> io::Result<()>;
 
 	/// Reads a value from a file which is line-feed terminated and is hexadecimal using a parser.
-	fn read_hexadecimal_value_with_prefix<P: Fn(&str) -> Result<T, ParseIntError>, T>(&self, size: usize, parser: P) -> io::Result<T>;
-
-	/// Reads a value from a file which is line-feed terminated and is hexadecimal into an u16.
-	fn read_hexadecimal_value_with_prefix_u16(&self) -> io::Result<u16>
-	{
-		self.read_hexadecimal_value_with_prefix(4, |raw_string| u16::from_str_radix(raw_string, 16))
-	}
+	fn read_hexadecimal_value_with_prefix<T: Num>(&self, size: usize) -> io::Result<T>;
 
 	/// Reads a file as bytes.
 	///
@@ -47,7 +41,7 @@ pub trait PathExt
 	fn read_value<F>(&self) -> io::Result<F> where F: FromStr, <F as FromStr>::Err: 'static + Send + Sync + error::Error;
 
 	/// Writes a value to a file which is line-feed terminated.
-	fn write_value<D: Display>(&self, value: D) -> io::Result<()>;
+	fn write_value<'a>(&self, value: impl IntoLineFeedTerminatedByteString<'a>) -> io::Result<()>;
 
 	/// Opens a file for writing.
 	fn open_file_for_writing(&self) -> io::Result<File>;
@@ -59,15 +53,6 @@ pub trait PathExt
 
 	/// Reads and parses a linux core or numa mask string from a file.
 	fn parse_linux_core_or_numa_bitmask(&self) -> Result<u32, io::Error>;
-
-	/// Parses a process status, such as `/proc/status/self`.
-	fn parse_process_status_file(&self) -> Result<ProcessStatusStatistics, ProcessStatusFileParseError>;
-
-	/// Parses a virtual memory statistics file (`vmstat`).
-	fn parse_virtual_memory_statistics_file(&self) -> io::Result<HashMap<VirtualMemoryStatisticName, u64>>;
-
-	/// Parses a memory information file (`meminfo`).
-	fn parse_memory_information_file(&self, memory_information_name_prefix: &[u8]) -> Result<MemoryInformation, MemoryInformationParseError>;
 }
 
 impl PathExt for Path
@@ -103,7 +88,7 @@ impl PathExt for Path
 	}
 
 	#[inline(always)]
-	fn read_hexadecimal_value_with_prefix<P: Fn(&str) -> Result<T, ParseIntError>, T>(&self, size: usize, parser: P) -> io::Result<T>
+	fn read_hexadecimal_value_with_prefix<T: Num>(&self, size: usize) -> io::Result<T>
 	{
 		use self::ErrorKind::InvalidData;
 
@@ -122,11 +107,7 @@ impl PathExt for Path
 			_ => return Err(io::Error::new(InvalidData, "value does not start '0x'")),
 		}
 
-		match parser(&raw_string[2..])
-		{
-			Err(error) => Err(io::Error::new(InvalidData, error)),
-			Ok(value) => Ok(value),
-		}
+		T::from_str_radix(&raw_string[2..], 16).map_err(|_| io::Error::new(InvalidData, "Could not parse hexadecimal value"))
 	}
 
 	#[inline(always)]
@@ -198,11 +179,10 @@ impl PathExt for Path
 	}
 
 	#[inline(always)]
-	fn write_value<D: Display>(&self, value: D) -> io::Result<()>
+	fn write_value<'a>(&self, value: impl IntoLineFeedTerminatedByteString<'a>) -> io::Result<()>
 	{
 		let mut file = self.open_file_for_writing()?;
-		let value = format!("{}\n", value).into_bytes();
-		file.write_all(value.as_slice())
+		file.write_all(&value.into_line_feed_terminated_byte_string())
 	}
 
 	#[inline(always)]
@@ -230,131 +210,5 @@ impl PathExt for Path
 		}
 
 		u32::from_str_radix(&without_line_feed, 16).map_err(|error| io::Error::new(ErrorKind::InvalidData, error))
-	}
-
-	#[inline(always)]
-	fn parse_process_status_file(&self) -> Result<ProcessStatusStatistics, ProcessStatusFileParseError>
-	{
-		let file = File::open(self)?;
-
-		let reader = BufReader::with_capacity(4096, file);
-
-		ProcessStatusStatistics::parse(reader)
-	}
-
-	#[inline(always)]
-	fn parse_virtual_memory_statistics_file(&self) -> io::Result<HashMap<VirtualMemoryStatisticName, u64>>
-	{
-		let file = File::open(self)?;
-
-		let reader = BufReader::with_capacity(4096, file);
-
-		let mut statistics = HashMap::with_capacity(6);
-		let mut zero_based_line_number = 0;
-
-		for line in reader.split(b'\n')
-		{
-			let mut line = line?;
-
-			{
-				use self::ErrorKind::InvalidData;
-
-				let mut split = splitn(&line, 2, b' ');
-
-				let statistic_name = VirtualMemoryStatisticName::parse(split.next().unwrap());
-
-				let statistic_value = match split.next()
-				{
-					None => return Err(io::Error::new(InvalidData, format!("Zero based line '{}' does not have a value second column", zero_based_line_number))),
-					Some(value) =>
-					{
-						let str_value = match from_utf8(value)
-						{
-							Err(utf8_error) => return Err(io::Error::new(InvalidData, utf8_error)),
-							Ok(str_value) => str_value,
-						};
-
-						match str_value.parse::<u64>()
-						{
-							Err(parse_error) => return Err(io::Error::new(InvalidData, parse_error)),
-							Ok(value) => value,
-						}
-					}
-				};
-
-				if let Some(previous) = statistics.insert(statistic_name, statistic_value)
-				{
-					return Err(io::Error::new(InvalidData, format!("Zero based line '{}' has a duplicate statistic (was '{}')", zero_based_line_number, previous)))
-				}
-			}
-
-			line.clear();
-			zero_based_line_number += 1;
-		}
-
-		Ok(statistics)
-	}
-
-	/// Parses the `meminfo` file.
-	fn parse_memory_information_file(&self, memory_information_name_prefix: &[u8]) -> Result<MemoryInformation, MemoryInformationParseError>
-	{
-		let reader = BufReader::with_capacity(4096, File::open(self)?);
-
-		let mut map = HashMap::new();
-		let mut zero_based_line_number = 0;
-
-		use self::MemoryInformationParseError::*;
-
-		for line in reader.split(b'\n')
-		{
-			let mut line = line?;
-
-			{
-				let mut split = splitn(&line, 2, b':');
-
-				let memory_information_name = MemoryInformationName::parse(split.next().unwrap(), memory_information_name_prefix);
-
-				let memory_information_value = match split.next()
-				{
-					None => return Err(MemoryInformationParseError::CouldNotParseMemoryInformationValue { zero_based_line_number, memory_information_name }),
-					Some(raw_value) =>
-					{
-						let str_value = match from_utf8(raw_value)
-						{
-							Err(utf8_error) => return Err(CouldNotParseAsUtf8 { zero_based_line_number, memory_information_name, bad_value: raw_value.to_vec().into_boxed_slice(), cause: utf8_error }),
-							Ok(str_value) => str_value,
-						};
-
-						let trimmed_str_value = str_value.trim();
-						let ends_with = memory_information_name.unit().ends_with();
-
-						if !trimmed_str_value.ends_with(ends_with)
-						{
-							return Err(CouldNotParseMemoryInformationValueTrimmed { zero_based_line_number, memory_information_name, bad_value: trimmed_str_value.to_owned() });
-						}
-
-						let trimmed = &trimmed_str_value[0 .. trimmed_str_value.len() - ends_with.len()];
-
-						match trimmed.parse::<u64>()
-						{
-							Ok(value) => value,
-							Err(int_parse_error) => return Err(CouldNotParseMemoryInformationValueAsU64 { zero_based_line_number, memory_information_name, bad_value: trimmed.to_owned(), cause: int_parse_error })
-						}
-					}
-				};
-
-				if map.contains_key(&memory_information_name)
-				{
-					return Err(DuplicateMemoryInformation { zero_based_line_number, memory_information_name, new_value: memory_information_value });
-				}
-
-				map.insert(memory_information_name, memory_information_value);
-			}
-
-			line.clear();
-			zero_based_line_number += 1;
-		}
-
-		Ok(MemoryInformation(map))
 	}
 }

@@ -31,6 +31,12 @@ impl Default for LinuxPciUserspaceKernelDriverModule
 impl LinuxPciUserspaceKernelDriverModule
 {
 	#[inline(always)]
+	pub(crate) fn linux_kernel_module_name(self) -> &'static LinuxKernelModuleName
+	{
+		self.linux_kernel_module().linux_kernel_module_name()
+	}
+
+	#[inline(always)]
 	pub(crate) fn linux_kernel_module(self) -> &'static LinuxKernelModule<'static>
 	{
 		use self::LinuxPciUserspaceKernelDriverModule::*;

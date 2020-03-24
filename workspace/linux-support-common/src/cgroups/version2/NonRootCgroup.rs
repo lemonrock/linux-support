@@ -50,7 +50,7 @@ impl<'a> NonRootCgroup<'a>
 	pub fn make_type_threaded(&self, mount_point: &CgroupMountPoint) -> io::Result<()>
 	{
 		let path = self.type_file_path(mount_point);
-		path.write_value("threaded")
+		path.write_value(b"threaded\n" as &[u8])
 	}
 
 	/// Is populated?

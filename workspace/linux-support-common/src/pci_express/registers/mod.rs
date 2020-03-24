@@ -14,10 +14,6 @@ use std::thread::sleep;
 use std::time::Duration;
 
 
-/// Intel Ethernet Controller register definitions.
-pub mod intel_ethernet;
-
-
 include!("ArrayIndexing.rs");
 include!("Indexing.rs");
 include!("ReadOnlyCounterNotResetOnReadRegister.rs");

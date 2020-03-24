@@ -5,18 +5,23 @@
 use crate::huge_pages::HugePageSize;
 use crate::paths::*;
 use std::collections::HashMap;
+use crate::strings::splitn;
 use std::error;
 use std::fmt;
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Formatter;
+use std::fs::File;
 use std::io;
+use std::io::BufRead;
+use std::io::BufReader;
+use std::io::ErrorKind;
 use std::num::ParseIntError;
+use std::path::Path;
+use std::str::from_utf8;
 use std::str::Utf8Error;
 
 
-include!("MemoryInformation.rs");
-include!("MemoryInformationName.rs");
-include!("MemoryInformationParseError.rs");
+include!("MemoryInformation.rs");include!("MemoryInformationName.rs");include!("MemoryInformationParseError.rs");
 include!("MemoryInformationUnit.rs");
 include!("VirtualMemoryStatisticName.rs");

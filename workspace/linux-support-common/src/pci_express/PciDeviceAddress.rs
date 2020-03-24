@@ -22,6 +22,27 @@ impl Into<String> for PciDeviceAddress
 	}
 }
 
+impl<'a> Into<String> for &'a PciDeviceAddress
+{
+	#[inline(always)]
+	fn into(self) -> String
+	{
+		format!("{:04x}:{:02x}:{:02x}.{:01x}", self.domain, self.bus, self.devid, self.function)
+	}
+}
+
+impl<'a> IntoLineFeedTerminatedByteString<'a> for &'a PciDeviceAddress
+{
+	#[inline(always)]
+	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
+	{
+		let string: String = self.into();
+		let mut bytes = string.into_bytes();
+		bytes.push(b'\n');
+		Cow::from(bytes)
+	}
+}
+
 impl TryFrom<NetworkInterfaceName> for PciDeviceAddress
 {
 	type Error = NetworkInterfaceNameToPciDeviceAddressConversionError;
@@ -52,10 +73,10 @@ impl TryFrom<NetworkInterfaceIndex> for PciDeviceAddress
 
 		// Specify ifr_ifindex 'field'.
 		let x = network_interface_index.into();
-		unsafe { write(interface_request.ifr_ifru.ifru_ivalue(), x) };
+		unsafe { interface_request.ifr_ifru.ifru_ivalue().write(x) };
 
 		// Specify ifr_data 'field'.
-		unsafe { write(interface_request.ifr_ifru.ifru_data(), &mut command as * mut _ as *mut c_void) };
+		unsafe { interface_request.ifr_ifru.ifru_data().write(&mut command as * mut _ as *mut c_void) };
 
 		let result = unsafe { ioctl(socket_file_descriptor, SIOCETHTOOL, &mut interface_request as *mut _ as *mut c_void) };
 
@@ -218,15 +239,6 @@ impl TryFrom<&str> for PciDeviceAddress
 				function
 			}
 		)
-	}
-}
-
-impl<'a> Into<String> for &'a PciDeviceAddress
-{
-	#[inline(always)]
-	fn into(self) -> String
-	{
-		format!("{:04x}:{:02x}:{:02x}.{:01x}", self.domain, self.bus, self.devid, self.function)
 	}
 }
 

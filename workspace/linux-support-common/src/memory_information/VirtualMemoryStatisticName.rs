@@ -57,10 +57,66 @@ impl VirtualMemoryStatisticName
 	/// Memory statistics (from `/proc/vmstat`).
 	///
 	/// Interpret this by multiplying counts by page size.
+	///
+	/// For NUMA node specific information, see `NumaNode.numa_memory_statistics()` and `NumaNode.zoned_virtual_memory_statistics()`.
 	#[inline(always)]
 	pub fn global_zoned_virtual_memory_statistics(proc_path: &ProcPath) -> io::Result<HashMap<Self, u64>>
 	{
-		proc_path.file_path("vmstat").parse_virtual_memory_statistics_file()
+		let file_path = proc_path.file_path("vmstat");
+		Self::parse_virtual_memory_statistics_file(&file_path)
+	}
+
+	#[inline(always)]
+	pub(crate) fn parse_virtual_memory_statistics_file(file_path: &Path) -> io::Result<HashMap<Self, u64>>
+	{
+		let file = File::open(file_path)?;
+
+		let reader = BufReader::with_capacity(4096, file);
+
+		let mut statistics = HashMap::with_capacity(6);
+		let mut zero_based_line_number = 0;
+
+		for line in reader.split(b'\n')
+		{
+			let mut line = line?;
+
+			{
+				use self::ErrorKind::InvalidData;
+
+				let mut split = splitn(&line, 2, b' ');
+
+				let statistic_name = VirtualMemoryStatisticName::parse(split.next().unwrap());
+
+				let statistic_value = match split.next()
+				{
+					None => return Err(io::Error::new(InvalidData, format!("Zero based line '{}' does not have a value second column", zero_based_line_number))),
+					Some(value) =>
+					{
+						let str_value = match from_utf8(value)
+						{
+							Err(utf8_error) => return Err(io::Error::new(InvalidData, utf8_error)),
+							Ok(str_value) => str_value,
+						};
+
+						match str_value.parse::<u64>()
+						{
+							Err(parse_error) => return Err(io::Error::new(InvalidData, parse_error)),
+							Ok(value) => value,
+						}
+					}
+				};
+
+				if let Some(previous) = statistics.insert(statistic_name, statistic_value)
+				{
+					return Err(io::Error::new(InvalidData, format!("Zero based line '{}' has a duplicate statistic (was '{}')", zero_based_line_number, previous)))
+				}
+			}
+
+			line.clear();
+			zero_based_line_number += 1;
+		}
+
+		Ok(statistics)
 	}
 
 	#[inline]

@@ -27,42 +27,56 @@ use libc::IF_NAMESIZE;
 use libc::if_nametoindex;
 use libc::ioctl;
 use libc::IPPROTO_IP;
+use libc::mmap;
+use libc::MAP_FAILED;
+use libc::MAP_SHARED;
+use libc::munmap;
+use libc::PROT_READ;
+use libc::PROT_WRITE;
 use libc::SOCK_DGRAM;
 use libc::socket;
 use libc_extra::android_linux::linux::ethtool::*;
 use libc_extra::android_linux::linux::sockios::SIOCETHTOOL;
 use libc_extra::android_linux::net::if_::ifreq;
+use likely::likely;
+use likely::unlikely;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::BTreeSet;
 use std::convert::TryFrom;
 use std::error;
 use std::io;
-use std::ffi::{CStr, CString, NulError};
-use std::ffi::FromBytesWithNulError;
+use std::io::ErrorKind;
+use std::ffi::*;
 use std::fmt;
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Formatter;
+use std::fs::*;
 use std::mem::transmute;
 use std::num::*;
-use std::os::unix::io::RawFd;
-use std::path::PathBuf;
-use std::ptr::write;
-use std::str::Utf8Error;
 use std::ops::Deref;
+use std::os::unix::io::*;
+use std::path::PathBuf;
+use std::ptr::NonNull;
+use std::ptr::null_mut;
+use std::str::Utf8Error;
+use std::borrow::Cow;
 
 
 /// Classifications.
 pub mod classification;
 
 
+/// Definitions.
+pub mod definitions;
+
+
 /// Registers.
 pub mod registers;
 
 
-include!("ConvertNetworkInterfaceIndexToPciDeviceAddressError.rs");
-include!("LinuxPciUserspaceKernelDriverModule.rs");
+include!("ConvertNetworkInterfaceIndexToPciDeviceAddressError.rs");include!("LinuxPciUserspaceKernelDriverModule.rs");
 include!("NetworkInterfaceIndex.rs");
 include!("NetworkInterfaceName.rs");
 include!("NetworkInterfaceNameToIndexConversionError.rs");
@@ -70,3 +84,5 @@ include!("NetworkInterfaceNameToPciDeviceAddressConversionError.rs");
 include!("PciDevice.rs");
 include!("PciDeviceAddress.rs");
 include!("PciDeviceAddressStringParseError.rs");
+include!("PciDevicePhysicalOrVirtualFunction.rs");
+include!("PciResource.rs");

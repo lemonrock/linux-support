@@ -38,11 +38,11 @@ impl DerefMut for Controllers
 
 impl Controllers
 {
-	/// Creates a change line such as `+pids -memory` without a trailing line feed.
-	fn create_change_line(enable: &Self, disable: &Self) -> String
+	/// Creates a change line such as `+pids -memory` *with* a trailing line feed.
+	fn create_change_line(enable: &Self, disable: &Self) -> Vec<u8>
 	{
 		#[inline(always)]
-		fn append_to_line(line: &mut String, sign: char, controllers: &Controllers)
+		fn append_to_line(line: &mut Vec<u8>, sign: u8, controllers: &Controllers)
 		{
 			let mut controllers = controllers.iter();
 			let first_controller = controllers.next();
@@ -57,9 +57,10 @@ impl Controllers
 			}
 		}
 
-		let mut line = String::with_capacity(Controller::MaximumNumberOfControllers * 10);
-		append_to_line(&mut line, '+', enable);
-		append_to_line(&mut line, '-', disable);
+		let mut line = Vec::with_capacity(Controller::MaximumNumberOfControllers * 10);
+		append_to_line(&mut line, b'+', enable);
+		append_to_line(&mut line, b'-', disable);
+		line.push(b'\n');
 		line
 	}
 

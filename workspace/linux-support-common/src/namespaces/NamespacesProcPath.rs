@@ -19,26 +19,18 @@ pub enum SetGroupsPermission
 	Deny,
 }
 
-impl Display for SetGroupsPermission
+impl<'a> IntoLineFeedTerminatedByteString<'a> for SetGroupsPermission
 {
+	/// Converts data to a byte string terminated with a new line (`\n`).
 	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter) -> fmt::Result
-	{
-		write!(f, "{}", self.to_str())
-	}
-}
-
-impl SetGroupsPermission
-{
-	#[inline(always)]
-	fn to_str(self) -> &'static str
+	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
 	{
 		use self::SetGroupsPermission::*;
 
 		match self
 		{
-			Allow => "allow",
-			Deny => "deny",
+			Allow => Cow::from(b"allow\n" as &[u8]),
+			Deny => Cow::from(b"deny\n" as &[u8]),
 		}
 	}
 }

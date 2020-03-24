@@ -60,6 +60,18 @@ impl<'a> Into<CString> for &'a LinuxKernelModuleName
 	}
 }
 
+impl<'a> IntoLineFeedTerminatedByteString<'a> for &'a LinuxKernelModuleName
+{
+	/// Converts data to a byte string terminated with a new line (`\n`).
+	#[inline(always)]
+	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
+	{
+		let mut value = self.0.clone().into_vec();
+		value.push(b'\n');
+		Cow::from(value)
+	}
+}
+
 impl LinuxKernelModuleName
 {
 	/// Loads a Linux Kernel Module.
@@ -98,12 +110,5 @@ impl LinuxKernelModuleName
 				_ => Err(NonZeroExitCode { linux_kernel_module_name: self.clone(), exit_code }),
 			}
 		}
-	}
-
-	/// Ghastly.
-	#[inline(always)]
-	pub(crate) fn to_str(&self) -> &str
-	{
-		unsafe { from_utf8_unchecked(self.0.as_ref()) }
 	}
 }
