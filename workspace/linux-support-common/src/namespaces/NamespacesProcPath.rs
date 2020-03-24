@@ -41,16 +41,14 @@ impl<'a> NamespacesProcPath<'a>
 	#[inline(always)]
 	pub fn write_setgroups_permission(&self, child_process_identifier: NonZeroU32, set_groups_permission: SetGroupsPermission) -> io::Result<()>
 	{
-		let mut file_path = self.file_path(&format!("{}", child_process_identifier.get()));
-		file_path.push("setgroups");
+		let file_path = self.0.process_folder_path(child_process_identifier.get() as i32, "setgroups");
 		file_path.write_value(set_groups_permission)
 	}
 
 	#[inline(always)]
 	pub fn write_user_or_group_identifiers_map<U: UserOrGroupIdentifier>(&self, child_process_identifier: NonZeroU32, user_or_group_identifiers_map: &UserOrGroupIdentifierMap<U>) -> io::Result<()>
 	{
-		let mut file_path = self.file_path(&format!("{}", child_process_identifier.get()));
-		file_path.push(U::FileName);
+		let file_path = self.0.process_folder_path(child_process_identifier.get() as i32, U::FileName);
 		user_or_group_identifiers_map.write_to_map_file(&file_path)
 	}
 
@@ -283,23 +281,14 @@ impl<'a> NamespacesProcPath<'a>
 	#[inline(always)]
 	fn maximum_namespaces_file_path(&self, name: &str) -> PathBuf
 	{
-		let mut file_path = self.file_path("sys/user");
-		file_path.push(name);
-		file_path
+		self.0.sys_user_file_path(name)
 	}
 
 	#[inline(always)]
 	fn namespace_file_path(&self, process_identifier: NonZeroU32, namespace: &str) -> PathBuf
 	{
-		let mut file_path = self.file_path(&format!("{}", process_identifier.get()));
-		file_path.push("ns");
+		let mut file_path = self.0.process_folder_path(process_identifier.get() as i32, "ns");
 		file_path.push(namespace);
 		file_path
-	}
-
-	#[inline(always)]
-	fn file_path(&self, file_name: &str) -> PathBuf
-	{
-		self.0.file_path(file_name)
 	}
 }

@@ -157,7 +157,7 @@ impl HyperThread
 		if cfg!(any(target_os = "android", target_os = "linux"))
 		{
 			let yes_a_list_even_though_file_is_named_a_cpumask = Self::hyper_threads_to_list(hyper_threads);
-			proc_path.file_path("sys/kernel/watchdog_cpumask").write_value(yes_a_list_even_though_file_is_named_a_cpumask)
+			proc_path.sys_kernel_file_path("watchdog_cpumask").write_value(yes_a_list_even_though_file_is_named_a_cpumask)
 		}
 		else
 		{

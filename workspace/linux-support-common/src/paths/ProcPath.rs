@@ -37,6 +37,42 @@ impl ProcPath
 		path
 	}
 
+	/// Get a file path within the ProcPath, `/proc/sys/fs/<file_name>`.
+	#[inline(always)]
+	pub fn sys_fs_file_path(&self, file_name: &str) -> PathBuf
+	{
+		let mut fs_folder_path = self.sys_file_path("fs");
+		fs_folder_path.push(file_name);
+		fs_folder_path
+	}
+
+	/// Get a file path within the ProcPath, `/proc/sys/user/<file_name>`.
+	#[inline(always)]
+	pub fn sys_user_file_path(&self, file_name: &str) -> PathBuf
+	{
+		let mut user_folder_path = self.sys_file_path("user");
+		user_folder_path.push(file_name);
+		user_folder_path
+	}
+
+	/// Get a file path within the ProcPath, `/proc/sys/kernel/<file_name>`.
+	#[inline(always)]
+	pub fn sys_kernel_file_path(&self, file_name: &str) -> PathBuf
+	{
+		let mut kernel_folder_path = self.sys_file_path("kernel");
+		kernel_folder_path.push(file_name);
+		kernel_folder_path
+	}
+
+	/// Get a file path within the ProcPath, `/proc/sys/<file_name>`.
+	#[inline(always)]
+	pub fn sys_file_path(&self, file_name: &str) -> PathBuf
+	{
+		let mut sys_folder_path = self.file_path("sys");
+		sys_folder_path.push(file_name);
+		sys_folder_path
+	}
+
 	/// Get a file path within the ProcPath, `/proc`.
 	#[inline(always)]
 	pub fn file_path(&self, file_name: &str) -> PathBuf

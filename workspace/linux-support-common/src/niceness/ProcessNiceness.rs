@@ -82,6 +82,6 @@ impl ProcessNiceness
 	#[inline(always)]
 	fn sched_autogroup_enabled_file_path(proc_path: &ProcPath) -> PathBuf
 	{
-		proc_path.file_path("sys/kernel/sched_autogroup_enabled")
+		proc_path.sys_kernel_file_path("sched_autogroup_enabled")
 	}
 }

@@ -191,8 +191,8 @@ impl ProcessConfiguration
 	{
 		for (setting_name, setting_value) in self.system_control_settings.iter()
 		{
-			let file_path = self.proc_path().file_path(&format!("sys/{}", setting_name));
-			file_path.write_value(setting_value).map_err(ProcessConfigurationExecutionError::CouldNotWriteSystemControlValues)?;
+			let file_path = self.proc_path().sys_file_path(setting_name);
+			file_path.write_value(*setting_value).map_err(ProcessConfigurationExecutionError::CouldNotWriteSystemControlValues)?;
 		}
 		Ok(())
 	}
