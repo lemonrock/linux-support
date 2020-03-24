@@ -5,12 +5,48 @@
 #[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Serialize, Deserialize)]
-#[repr(u16)]
 pub enum EncryptionController
 {
 	NetworkAndComputingEncryptionDevice = 0x00,
+
 	EntertainmentEncryptionDevice = 0x10,
 	
-	/// No effective sub class.
-	EncryptionController = 0x80,
+	/// Other.
+	Other = 0x80,
+}
+
+impl EncryptionController
+{
+	#[inline(always)]
+	pub(crate) fn programming_interface(self) -> u8
+	{
+		0x00
+	}
+
+	#[inline(always)]
+	pub(crate) fn parse(value: u8, programming_interface: u8) -> Option<Self>
+	{
+		use self::EncryptionController::*;
+
+		match value
+		{
+			0x00 => zero_programming_interface!(NetworkAndComputingEncryptionDevice, programming_interface),
+			0x01 => zero_programming_interface!(EntertainmentEncryptionDevice, programming_interface),
+			0x80 => zero_programming_interface!(Other, programming_interface),
+			_ => None,
+		}
+	}
+
+	#[inline(always)]
+	pub(crate) fn minor(self) -> u8
+	{
+		use self::EncryptionController::*;
+
+		match self
+		{
+			NetworkAndComputingEncryptionDevice => 0x00,
+			EntertainmentEncryptionDevice => 0x10,
+			Other => 0x80,
+		}
+	}
 }

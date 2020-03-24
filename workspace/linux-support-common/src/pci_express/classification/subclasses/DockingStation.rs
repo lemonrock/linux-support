@@ -2,14 +2,48 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[allow(missing_docs)]
+/// Docking station.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Serialize, Deserialize)]
-#[repr(u16)]
 pub enum DockingStation
 {
-	GenericDockingStation = 0x00,
+	/// Generic.
+	Generic,
 	
-	/// No effective sub class.
-	DockingStation = 0x80,
+	/// Other.
+	Other,
+}
+
+impl DockingStation
+{
+	#[inline(always)]
+	pub(crate) fn programming_interface(self) -> u8
+	{
+		0x00
+	}
+
+	#[inline(always)]
+	pub(crate) fn parse(value: u8, programming_interface: u8) -> Option<Self>
+	{
+		use self::DockingStation::*;
+
+		match value
+		{
+			0x00 => zero_programming_interface!(Generic, programming_interface),
+			0x80 => zero_programming_interface!(Other, programming_interface),
+			_ => None,
+		}
+	}
+
+	#[inline(always)]
+	pub(crate) fn minor(self) -> u8
+	{
+		use self::DockingStation::*;
+
+		match self
+		{
+			Generic => 0x00,
+			Other => 0x80,
+		}
+	}
 }

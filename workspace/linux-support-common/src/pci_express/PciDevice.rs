@@ -28,21 +28,6 @@ impl Into<PciDeviceAddress> for PciDevice
 
 impl PciDevice
 {
-	/// Is this an ethernet device?
-	#[inline(always)]
-	pub fn is_class_network_ethernet(&self, sys_path: &SysPath) -> bool
-	{
-		// See: https://pci-ids.ucw.cz/read/PD/
-		const Network: u8 = 0x02;
-		const EthernetNetwork: u8 = 0x00;
-
-		match self.class_identifier(sys_path)
-		{
-			(Network, EthernetNetwork, _) => true,
-			_ => false,
-		}
-	}
-
 	/// PCI device's associated NUMA node, if known.
 	#[inline(always)]
 	pub fn associated_numa_node(&self, sys_path: &SysPath) -> Option<NumaNode>
@@ -74,11 +59,26 @@ impl PciDevice
 	///
 	/// May report CPUs that don't actually exist; refine list against that known for a NUMA node.
 	///
+	/// On a test machine, with one hyper thread, reports that hyper threads 0 through 31 were assocated.
+	///
 	/// Panics if file unreadable.
 	#[inline(always)]
 	pub fn associated_hyper_threads(&self, sys_path: &SysPath) -> BTreeSet<HyperThread>
 	{
 		self.local_cpulist_file_path(sys_path).read_linux_core_or_numa_list(|value_u16| Ok(HyperThread::from(value_u16))).expect("Could not parse local_cpulist")
+	}
+
+	/// PCI device hyper threads that are permitted to use this device.
+	///
+	/// May report CPUs that don't actually exist; refine list against that known for a NUMA node.
+	///
+	/// ***Even more useless than `associated_hyper_threads()`; on a test machine, with one hyper thread, which  reports that hyper threads 0 through 31 were assocated in `associated_hyper_threads()`, reported hyper threads 0 through 2^31 - 1 were permitted!
+	///
+	/// Panics if file unreadable.
+	#[inline(always)]
+	pub fn permitted_hyper_threads(&self, sys_path: &SysPath) -> u32
+	{
+		self.local_cpus_file_path(sys_path).parse_linux_core_or_numa_bitmask().expect("Could not parse local_cpulist")
 	}
 
 	/// Take for use by userspace.
@@ -146,43 +146,76 @@ impl PciDevice
 //	{
 //	}
 
+	/// Details.
+	#[inline(always)]
+	pub fn details(&self, sys_path: &SysPath) -> PciDeviceDetails
+	{
+		PciDeviceDetails
+		{
+			vendor_and_device: self.vendor_and_device(sys_path),
+			subsystem_vendor_and_subsystem_device: self.subsystem_vendor_and_subsystem_device(sys_path),
+			class: self.class(sys_path),
+			revision: self.revision(sys_path),
+			associated_numa_node: self.associated_numa_node(sys_path),
+			associated_hyper_threads: self.associated_hyper_threads(sys_path),
+			permitted_hyper_threads: self.permitted_hyper_threads(sys_path),
+		}
+	}
+
 	/// PCI vendor identifier and device identifier.
 	#[inline(always)]
-	pub fn vendor_and_device(&self, sys_path: &SysPath) -> PciVendorAndDevice
+	fn vendor_and_device(&self, sys_path: &SysPath) -> PciVendorAndDevice
 	{
 		PciVendorAndDevice
 		{
-			vendor: self.vendor_identifier(sys_path),
-			device: self.device_identifier(sys_path),
+			vendor: self.new_from_file(sys_path, "vendor", PciVendorIdentifier::new),
+			device: self.new_from_file(sys_path, "device", PciDeviceIdentifier::new),
 		}
 	}
 
-	/// PCI vendor identifier.
+	/// PCI subsystem vendor identifier and subsystem device identifier.
 	#[inline(always)]
-	fn vendor_identifier(&self, sys_path: &SysPath) -> PciVendorIdentifier
+	fn subsystem_vendor_and_subsystem_device(&self, sys_path: &SysPath) -> PciVendorAndDevice
 	{
-		PciVendorIdentifier::new(self.vendor_file_path(sys_path).read_hexadecimal_value_with_prefix::<u16>(4).expect("Seems PCI device's vendor id does not properly exist")).expect("PCI vendor Id should not be 'Any'")
+		PciVendorAndDevice
+		{
+			vendor: self.new_from_file(sys_path, "subsystem_vendor", PciVendorIdentifier::new),
+			device: self.new_from_file(sys_path, "subsystem_device", PciDeviceIdentifier::new),
+		}
 	}
-	
-	/// PCI device identifier.
+
 	#[inline(always)]
-	fn device_identifier(&self, sys_path: &SysPath) -> PciDeviceIdentifier
+	fn new_from_file<P: Sized>(&self, sys_path: &SysPath, file_name: &str, constructor: impl FnOnce(u16) -> Option<P>) -> P
 	{
-		PciDeviceIdentifier::new(self.device_file_path(sys_path).read_hexadecimal_value_with_prefix::<u16>(4).expect("Seems PCI device's device id does not properly exist")).expect("PCI device Id should not be 'Any'")
+		let file_path = self.driver_file_or_folder_path(sys_path, file_name);
+
+		let identifier = match file_path.read_hexadecimal_value_with_prefix::<u16>(4)
+		{
+			Ok(value) => value,
+			Err(error) => panic!("PCI {:?} identifier is missing or invalid: {:?}", file_name, error),
+		};
+
+		match constructor(identifier)
+		{
+			Some(identifier) => identifier,
+			None => panic!("PCI {:?} identifier is Any"),
+		}
 	}
-	
+
 	/// PCI class identifier.
 	#[inline(always)]
-	pub(crate) fn class_identifier(&self, sys_path: &SysPath) -> (u8, u8, u8)
+	fn class(&self, sys_path: &SysPath) -> Option<PciDeviceClass>
 	{
-		#[inline(always)]
-		const fn extract_u8(value: u32, byte_index: u32) -> u8
-		{
-			let shift = 8 * byte_index;
-			((value & (0xFF << shift)) >> shift) as u8
-		}
+		let u24 = self.class_file_path(sys_path).read_hexadecimal_value_with_prefix::<u32>(6).expect("Could not parse PCI class identifier");
 
-		self.class_file_path(sys_path).read_hexadecimal_value_with_prefix::<u32>(6).map(|value| (extract_u8(value, 2), extract_u8(value, 1), extract_u8(value, 0))).expect("Could not parse PCI class")
+		PciDeviceClass::parse(u24)
+	}
+
+	/// PCI class identifier.
+	#[inline(always)]
+	fn revision(&self, sys_path: &SysPath) -> u8
+	{
+		self.revision_file_path(sys_path).read_hexadecimal_value_with_prefix::<u8>(2).expect("Could not parse PCI revision")
 	}
 	
 	#[inline(always)]
@@ -236,15 +269,15 @@ impl PciDevice
 	}
 
 	#[inline(always)]
-	fn device_file_path(&self, sys_path: &SysPath) -> PathBuf
+	fn local_cpus_file_path(&self, sys_path: &SysPath) -> PathBuf
 	{
-		self.driver_file_or_folder_path(sys_path, "device")
+		self.driver_file_or_folder_path(sys_path, "local_cpus")
 	}
 
 	#[inline(always)]
-	fn vendor_file_path(&self, sys_path: &SysPath) -> PathBuf
+	fn revision_file_path(&self, sys_path: &SysPath) -> PathBuf
 	{
-		self.driver_file_or_folder_path(sys_path, "vendor")
+		self.driver_file_or_folder_path(sys_path, "revision")
 	}
 
 	#[inline(always)]

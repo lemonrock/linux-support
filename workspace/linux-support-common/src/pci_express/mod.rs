@@ -62,6 +62,7 @@ use std::ptr::NonNull;
 use std::ptr::null_mut;
 use std::str::Utf8Error;
 use std::borrow::Cow;
+use crate::pci_express::classification::subclasses::NetworkController;
 
 
 /// Classifications.
@@ -82,6 +83,7 @@ include!("NetworkInterfaceName.rs");
 include!("NetworkInterfaceNameToIndexConversionError.rs");
 include!("NetworkInterfaceNameToPciDeviceAddressConversionError.rs");
 include!("PciDevice.rs");
+include!("PciDeviceDetails.rs");
 include!("PciDeviceAddress.rs");
 include!("PciDeviceAddressStringParseError.rs");
 include!("PciDevicePhysicalOrVirtualFunction.rs");

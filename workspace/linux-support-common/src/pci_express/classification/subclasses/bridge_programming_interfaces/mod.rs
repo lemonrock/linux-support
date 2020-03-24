@@ -2,4 +2,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) const UnassignedSubClass: u16 = 0xFF;
+use serde::Deserialize;
+use serde::Serialize;
+
+
+include!("AdvancedSwitchingBridgeProgrammingInterface.rs");
+include!("PciToPciBridgeProgrammingInterface.rs");
+include!("RacewayBridgeProgrammingInterface.rs");
+include!("SemiTransparentPciToPciBridgeProgrammingInterface.rs");

@@ -5,10 +5,37 @@
 #[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Serialize, Deserialize)]
-#[repr(u16)]
 pub enum Unassigned
 {
-	AppleComputerKeyLargo = 0x00,
+	AppleComputerKeyLargo,
+}
 
-	Unassigned = UnassignedSubClass,
+impl Unassigned
+{
+	#[inline(always)]
+	pub(crate) fn programming_interface(self) -> u8
+	{
+		0x00
+	}
+
+	#[inline(always)]
+	pub(crate) fn parse(value: u8, programming_interface: u8) -> Option<Self>
+	{
+		match (value, programming_interface)
+		{
+			(0x00, 0x00) => Some(Unassigned::AppleComputerKeyLargo),
+			_ => None,
+		}
+	}
+
+	#[inline(always)]
+	pub(crate) fn minor(self) -> u8
+	{
+		use self::Unassigned::*;
+
+		match self
+		{
+			AppleComputerKeyLargo => 0x00,
+		}
+	}
 }

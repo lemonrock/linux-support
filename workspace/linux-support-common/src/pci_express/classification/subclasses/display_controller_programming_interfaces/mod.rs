@@ -2,12 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[allow(missing_docs)]
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-#[derive(Serialize, Deserialize)]
-#[repr(u16)]
-pub enum UnclassifiedDevice
-{
-	NonVgaUnclassifiedDevice = 0x00,
-	VgaCompatibleUnclassifiedDevice = 0x01,
-}
+use serde::Deserialize;
+use serde::Serialize;
+
+
+include!("VgaOr8514DisplayControllerProgrammingInterface.rs");

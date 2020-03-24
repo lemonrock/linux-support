@@ -2,38 +2,105 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[allow(missing_docs)]
+/// Mass storage controllers.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Serialize, Deserialize)]
-#[repr(u16)]
 pub enum MassStorageController
 {
 	/// SCSI.
-	ScsiStorageController = 0x00,
+	ScsiStorageController(ScsiStorageControllerProgrammingInterface),
 	
-	/// IDE
-	IdeInterface = 0x01,
-	
-	FloppyDiskController = 0x02,
+	/// IDE.
+	IdeInterface,
+
+	/// Floppy disk.
+	FloppyDiskController,
 	
 	/// IPI bus.
-	IpiBusController = 0x03,
+	IpiBusController,
 	
 	/// RAID bus.
-	RaidBusController = 0x04,
+	RaidBusController,
 	
-	/// ATA (PATA).
-	AtaController = 0x05,
+	/// ATA (also known as PATA, Parallel ATA).
+	AtaController(AtaControllerProgrammingInterface),
 	
-	/// SATA
-	SataController = 0x06,
+	/// Serial ATA (SATA).
+	SerialAtaController(SerialAtaControllerProgrammingInterface),
 	
-	/// SAS, Serial Attached SCSI.
-	SerialAttachedScsiController = 0x07,
+	/// Serial Attached SCSI (SAS).
+	SerialAttachedScsiController(SerialAttachedScsiControllerProgrammingInterface),
 	
 	/// NVMe.
-	NonVolatileMemoryController = 0x08,
+	NonVolatileMemorySubsystem(NonVolatileMemorySubsystemProgrammingInterface),
+
+	/// Universal Flash Storage (UFS).
+	UniversalFlashStorageController(UniversalFlashStorageControllerProgrammingInterface),
 	
-	/// No effective sub class.
-	MassStorageController = 0x80,
+	/// Other.
+	Other,
+}
+
+impl MassStorageController
+{
+	#[inline(always)]
+	pub(crate) fn programming_interface(self) -> u8
+	{
+		use self::MassStorageController::*;
+
+		match self
+		{
+			ScsiStorageController(programming_interface) => programming_interface as u8,
+			AtaController(programming_interface) => programming_interface as u8,
+			SerialAtaController(programming_interface) => programming_interface as u8,
+			SerialAttachedScsiController(programming_interface) => programming_interface as u8,
+			NonVolatileMemorySubsystem(programming_interface) => programming_interface as u8,
+			UniversalFlashStorageController(programming_interface) => programming_interface as u8,
+
+			_ => 0x00,
+		}
+	}
+
+	#[inline(always)]
+	pub(crate) fn parse(value: u8, programming_interface: u8) -> Option<Self>
+	{
+		use self::MassStorageController::*;
+
+		match value
+		{
+			0x00 => programming_interface!(ScsiStorageController, programming_interface, ScsiStorageControllerProgrammingInterface),
+			0x01 => zero_programming_interface!(IdeInterface, programming_interface),
+			0x02 => zero_programming_interface!(FloppyDiskController, programming_interface),
+			0x03 => zero_programming_interface!(IpiBusController, programming_interface),
+			0x04 => zero_programming_interface!(RaidBusController, programming_interface),
+			0x05 => programming_interface!(AtaController, programming_interface, AtaControllerProgrammingInterface),
+			0x06 => programming_interface!(SerialAtaController, programming_interface, SerialAtaControllerProgrammingInterface),
+			0x07 => programming_interface!(SerialAttachedScsiController, programming_interface, SerialAttachedScsiControllerProgrammingInterface),
+			0x08 => programming_interface!(NonVolatileMemorySubsystem, programming_interface, NonVolatileMemorySubsystemProgrammingInterface),
+			0x09 => programming_interface!(UniversalFlashStorageController, programming_interface, UniversalFlashStorageControllerProgrammingInterface),
+			0x80 => zero_programming_interface!(Other, programming_interface),
+			_ => None,
+		}
+	}
+
+	#[inline(always)]
+	pub(crate) fn minor(self) -> u8
+	{
+		use self::MassStorageController::*;
+
+		match self
+		{
+			ScsiStorageController(_) => 0x00,
+			IdeInterface => 0x01,
+			FloppyDiskController => 0x02,
+			IpiBusController => 0x03,
+			RaidBusController => 0x04,
+			AtaController(_) => 0x05,
+			SerialAtaController(_) => 0x06,
+			SerialAttachedScsiController(_) => 0x07,
+			NonVolatileMemorySubsystem(_) => 0x08,
+			UniversalFlashStorageController(_) => 0x09,
+			Other => 0x80,
+		}
+	}
 }
