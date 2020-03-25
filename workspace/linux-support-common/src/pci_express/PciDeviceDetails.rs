@@ -14,6 +14,10 @@ pub struct PciDeviceDetails
 	pub associated_numa_node: Option<NumaNode>,
 	pub associated_hyper_threads: BTreeSet<HyperThread>,
 	pub permitted_hyper_threads: u32,
+	pub d3cold_allowed: Option<bool>,
+	pub interrupt_request_line: u8, // This should have a type and a range of permitted values.
+	pub current_link_speed_and_width: LinkSpeedAndWidth,
+	pub maximum_link_speed_and_width: LinkSpeedAndWidth,
 }
 
 impl PciDeviceDetails

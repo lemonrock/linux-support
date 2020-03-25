@@ -7,6 +7,7 @@ use crate::cpu::*;
 use crate::linux_kernel_modules::*;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 use self::classification::*;
+use self::link::*;
 use errno::errno;
 use file_descriptors::RawFdExt;
 use libc::c_void;
@@ -73,11 +74,16 @@ pub mod classification;
 pub mod definitions;
 
 
+/// Link.
+pub mod link;
+
+
 /// Registers.
 pub mod registers;
 
 
-include!("ConvertNetworkInterfaceIndexToPciDeviceAddressError.rs");include!("LinuxPciUserspaceKernelDriverModule.rs");
+include!("ConvertNetworkInterfaceIndexToPciDeviceAddressError.rs");
+include!("LinuxPciUserspaceKernelDriverModule.rs");
 include!("NetworkInterfaceIndex.rs");
 include!("NetworkInterfaceName.rs");
 include!("NetworkInterfaceNameToIndexConversionError.rs");

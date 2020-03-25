@@ -40,6 +40,9 @@ pub trait PathExt
 	/// Reads a value from a file which is line-feed terminated.
 	fn read_value<F>(&self) -> io::Result<F> where F: FromStr, <F as FromStr>::Err: 'static + Send + Sync + error::Error;
 
+	/// Reads a 0 or 1 bool from a file which is line-feed terminated.
+	fn read_zero_or_one_bool(&self) -> io::Result<bool>;
+
 	/// Writes a value to a file which is line-feed terminated.
 	fn write_value<'a>(&self, value: impl IntoLineFeedTerminatedByteString<'a>) -> io::Result<()>;
 
@@ -96,7 +99,7 @@ impl PathExt for Path
 
 		// '0x' eg '0x1af4'.
 		let size_wih_0x_prefix = 2 + size;
-		if raw_string.len() != size_wih_0x_prefix
+		if unlikely!(raw_string.len() != size_wih_0x_prefix)
 		{
 			return Err(io::Error::new(InvalidData, format!("{} bytes not read", size_wih_0x_prefix)));
 		}
@@ -115,7 +118,7 @@ impl PathExt for Path
 	{
 		let raw = ::std::fs::read(self)?.into_boxed_slice();
 
-		if raw.is_empty()
+		if unlikely!(raw.is_empty())
 		{
 			Err(io::Error::new(ErrorKind::InvalidData, "Empty file"))
 		}
@@ -131,7 +134,7 @@ impl PathExt for Path
 		let mut raw = self.read_raw()?.to_vec();
 		let length = raw.len();
 		let should_be_line_feed = raw.remove(length - 1);
-		if should_be_line_feed != b'\n'
+		if unlikely!(should_be_line_feed != b'\n')
 		{
 			return Err(io::Error::new(ErrorKind::InvalidData, "File lacks terminating line feed"));
 		}
@@ -143,7 +146,7 @@ impl PathExt for Path
 	{
 		let raw_string = read_to_string(self)?;
 
-		if raw_string.is_empty()
+		if unlikely!(raw_string.is_empty())
 		{
 			Err(io::Error::new(ErrorKind::InvalidData, "Empty file"))
 		}
@@ -159,7 +162,7 @@ impl PathExt for Path
 		let mut raw_string = self.read_raw_string()?;
 		let length = raw_string.len();
 		let should_be_line_feed = raw_string.remove(length - 1);
-		if should_be_line_feed != '\n'
+		if unlikely!(should_be_line_feed != '\n')
 		{
 			return Err(io::Error::new(ErrorKind::InvalidData, "File lacks terminating line feed"));
 		}
@@ -175,6 +178,24 @@ impl PathExt for Path
 		{
 			Err(error) => Err(io::Error::new(ErrorKind::InvalidData, error)),
 			Ok(value) => Ok(value),
+		}
+	}
+
+	#[inline(always)]
+	fn read_zero_or_one_bool(&self) -> io::Result<bool>
+	{
+		let bytes = self.read_raw_without_line_feed()?;
+
+		if unlikely!(bytes.len() != 1)
+		{
+			return Err(io::Error::new(ErrorKind::InvalidData, "bool is not one byte long"));
+		}
+
+		match bytes[0]
+		{
+			b'0' => Ok(false),
+			b'1' => Ok(true),
+			_ => Err(io::Error::new(ErrorKind::InvalidData, "bool is not 0 or 1")),
 		}
 	}
 

@@ -47,7 +47,7 @@ impl<'a> NamespacesProcPath<'a>
 	#[inline(always)]
 	pub fn write_user_or_group_identifiers_map<U: UserOrGroupIdentifier>(&self, child_process_identifier: NonZeroI32, user_or_group_identifiers_map: &UserOrGroupIdentifierMap<U>) -> io::Result<()>
 	{
-		self.0.process_file_path(child_process_identifier, U::FileName).write_to_map_file(&file_path)
+		user_or_group_identifiers_map.write_to_map_file(&self.0.process_file_path(child_process_identifier, U::FileName))
 	}
 
 	#[inline(always)]

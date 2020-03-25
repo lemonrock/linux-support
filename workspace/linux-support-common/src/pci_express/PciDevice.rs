@@ -7,7 +7,6 @@
 /// Some device files are not parsed (looking at linux's `drivers/pci/pci-sysfs.c` source):-
 ///
 /// * `of_node`: This is a file that only exists for architectures where Open Firmware (part of the Device Tree) is supported. Read-only.
-/// * `d3cold_allowed`: This is a file that only exists if ACPI is supported by the Kernel (which it normally is). Read-write.
 /// * `label`
 /// * `modalias`
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -42,22 +41,6 @@ impl PciDevice
 		sys_path.pci_bus_file_path("rescan").write_value(1)
 	}
 
-	/// PCI device's associated NUMA node, if known.
-	#[inline(always)]
-	pub fn associated_numa_node(&self, sys_path: &SysPath) -> Option<NumaNode>
-	{
-		let numa_node_file_path = self.numa_node_file_path(sys_path);
-
-		if numa_node_file_path.exists()
-		{
-			Some(numa_node_file_path.read_value::<u8>().map(NumaNode::from).expect("Could not parse numa_node"))
-		}
-		else
-		{
-			None
-		}
-	}
-
 	/// Tries to set the NUMA node of a PCI device.
 	///
 	/// Very brittle; only really to be used for broken system buses.
@@ -69,30 +52,16 @@ impl PciDevice
 		self.numa_node_file_path(sys_path).write_value(numa_node);
 	}
 
-	/// PCI device associated hyper threads.
+	/// This value does not exist if the Kernel does not support ACPI.
 	///
-	/// May report CPUs that don't actually exist; refine list against that known for a NUMA node.
-	///
-	/// On a test machine, with one hyper thread, reports that hyper threads 0 through 31 were assocated.
-	///
-	/// Panics if file unreadable.
-	#[inline(always)]
-	pub fn associated_hyper_threads(&self, sys_path: &SysPath) -> BTreeSet<HyperThread>
+	/// Panics if file exists but a write error occurs; does nothing if file does not exist.
+	pub fn write_d3cold_allowed(&self, sys_path: &SysPath, allowed: bool)
 	{
-		self.local_cpulist_file_path(sys_path).read_linux_core_or_numa_list(|value_u16| Ok(HyperThread::from(value_u16))).expect("Could not parse local_cpulist")
-	}
-
-	/// PCI device hyper threads that are permitted to use this device.
-	///
-	/// May report CPUs that don't actually exist; refine list against that known for a NUMA node.
-	///
-	/// ***Even more useless than `associated_hyper_threads()`; on a test machine, with one hyper thread, which  reports that hyper threads 0 through 31 were assocated in `associated_hyper_threads()`, reported hyper threads 0 through 2^31 - 1 were permitted!
-	///
-	/// Panics if file unreadable.
-	#[inline(always)]
-	pub fn permitted_hyper_threads(&self, sys_path: &SysPath) -> u32
-	{
-		self.local_cpus_file_path(sys_path).parse_linux_core_or_numa_bitmask().expect("Could not parse local_cpulist")
+		let file_path = self.d3cold_allowed_file_path(sys_path);
+		if likely!(file_path.exists())
+		{
+			file_path.write_value(allowed).expect("Could not write d3cold_allowed")
+		}
 	}
 
 	/// Take for use by userspace.
@@ -178,10 +147,13 @@ impl PciDevice
 			associated_numa_node: self.associated_numa_node(sys_path),
 			associated_hyper_threads: self.associated_hyper_threads(sys_path),
 			permitted_hyper_threads: self.permitted_hyper_threads(sys_path),
+			d3cold_allowed: self.d3cold_allowed(sys_path),
+			interrupt_request_line: self.interrupt_request_line(sys_path),
+			current_link_speed_and_width: self.current_link_speed_and_width(sys_path),
+			maximum_link_speed_and_width: self.maximum_link_speed_and_width(sys_path),
 		}
 	}
 
-	/// PCI vendor identifier and device identifier.
 	#[inline(always)]
 	fn vendor_and_device(&self, sys_path: &SysPath) -> PciVendorAndDevice
 	{
@@ -192,7 +164,6 @@ impl PciDevice
 		}
 	}
 
-	/// PCI subsystem vendor identifier and subsystem device identifier.
 	#[inline(always)]
 	fn subsystem_vendor_and_subsystem_device(&self, sys_path: &SysPath) -> PciVendorAndDevice
 	{
@@ -200,6 +171,105 @@ impl PciDevice
 		{
 			vendor: self.new_from_file(sys_path, "subsystem_vendor", PciVendorIdentifier::new),
 			device: self.new_from_file(sys_path, "subsystem_device", PciDeviceIdentifier::new),
+		}
+	}
+
+	#[inline(always)]
+	fn class(&self, sys_path: &SysPath) -> Option<PciDeviceClass>
+	{
+		let u24 = self.driver_file_or_folder_path(sys_path, "class").read_hexadecimal_value_with_prefix::<u32>(6).expect("Could not parse PCI class identifier");
+
+		PciDeviceClass::parse(u24)
+	}
+
+	#[inline(always)]
+	fn revision(&self, sys_path: &SysPath) -> u8
+	{
+		self.driver_file_or_folder_path(sys_path, "revision").read_hexadecimal_value_with_prefix::<u8>(2).expect("Could not parse PCI revision")
+	}
+
+	/// PCI device's associated NUMA node.
+	///
+	/// May not be present.
+	#[inline(always)]
+	fn associated_numa_node(&self, sys_path: &SysPath) -> Option<NumaNode>
+	{
+		let numa_node_file_path = self.numa_node_file_path(sys_path);
+
+		if numa_node_file_path.exists()
+		{
+			Some(numa_node_file_path.read_value::<u8>().map(NumaNode::from).expect("Could not parse numa_node"))
+		}
+		else
+		{
+			None
+		}
+	}
+
+	/// PCI device associated hyper threads.
+	///
+	/// May report CPUs that don't actually exist; refine list against that known for a NUMA node.
+	///
+	/// On a test machine, with one hyper thread, reports that hyper threads 0 through 31 were assocated.
+	///
+	/// Panics if file unreadable.
+	#[inline(always)]
+	fn associated_hyper_threads(&self, sys_path: &SysPath) -> BTreeSet<HyperThread>
+	{
+		self.driver_file_or_folder_path(sys_path, "local_cpulist").read_linux_core_or_numa_list(|value_u16| Ok(HyperThread::from(value_u16))).expect("Could not parse local_cpulist")
+	}
+
+	/// PCI device hyper threads that are permitted to use this device.
+	///
+	/// May report CPUs that don't actually exist; refine list against that known for a NUMA node.
+	///
+	/// ***Even more useless than `associated_hyper_threads()`; on a test machine, with one hyper thread, which  reports that hyper threads 0 through 31 were assocated in `associated_hyper_threads()`, reported hyper threads 0 through 2^31 - 1 were permitted!
+	///
+	/// Panics if file unreadable.
+	#[inline(always)]
+	fn permitted_hyper_threads(&self, sys_path: &SysPath) -> u32
+	{
+		self.driver_file_or_folder_path(sys_path, "local_cpus").parse_linux_core_or_numa_bitmask().expect("Could not parse local_cpulist")
+	}
+
+	/// This value does not exist if the Kernel does not support ACPI.
+	#[inline(always)]
+	fn d3cold_allowed(&self, sys_path: &SysPath) -> Option<bool>
+	{
+		let file_path = self.d3cold_allowed_file_path(sys_path);
+		if likely!(file_path.exists())
+		{
+			Some(file_path.read_zero_or_one_bool().unwrap())
+		}
+		else
+		{
+			None
+		}
+	}
+
+	#[inline(always)]
+	fn interrupt_request_line(&self, sys_path: &SysPath) -> u8
+	{
+		self.driver_file_or_folder_path(sys_path, "irq").read_value().expect("Could not parse irq")
+	}
+
+	#[inline(always)]
+	fn current_link_speed_and_width(&self, sys_path: &SysPath) -> LinkSpeedAndWidth
+	{
+		LinkSpeedAndWidth
+		{
+			speed: self.driver_file_or_folder_path(sys_path, "current_link_speed").read_value().unwrap(),
+			width: self.driver_file_or_folder_path(sys_path, "current_link_width").read_value().unwrap(),
+		}
+	}
+
+	#[inline(always)]
+	fn maximum_link_speed_and_width(&self, sys_path: &SysPath) -> LinkSpeedAndWidth
+	{
+		LinkSpeedAndWidth
+		{
+			speed: self.driver_file_or_folder_path(sys_path, "max_link_speed").read_value().unwrap(),
+			width: self.driver_file_or_folder_path(sys_path, "max_link_width").read_value().unwrap(),
 		}
 	}
 
@@ -221,22 +291,6 @@ impl PciDevice
 		}
 	}
 
-	/// PCI class identifier.
-	#[inline(always)]
-	fn class(&self, sys_path: &SysPath) -> Option<PciDeviceClass>
-	{
-		let u24 = self.class_file_path(sys_path).read_hexadecimal_value_with_prefix::<u32>(6).expect("Could not parse PCI class identifier");
-
-		PciDeviceClass::parse(u24)
-	}
-
-	/// PCI class identifier.
-	#[inline(always)]
-	fn revision(&self, sys_path: &SysPath) -> u8
-	{
-		self.revision_file_path(sys_path).read_hexadecimal_value_with_prefix::<u8>(2).expect("Could not parse PCI revision")
-	}
-	
 	#[inline(always)]
 	fn unbind_from_driver_if_necessary(&self, sys_path: &SysPath) -> Option<LinuxKernelModuleName>
 	{
@@ -272,7 +326,7 @@ impl PciDevice
 	#[inline(always)]
 	fn remove_override_of_pci_kernel_driver(&self, sys_path: &SysPath)
 	{
-		self.write_to_driver_override_file(sys_path, b"\0\n" as &[u8])
+		self.write_to_driver_override_file(sys_path, false)
 	}
 	
 	#[inline(always)]
@@ -282,27 +336,9 @@ impl PciDevice
 	}
 
 	#[inline(always)]
-	fn local_cpulist_file_path(&self, sys_path: &SysPath) -> PathBuf
+	fn d3cold_allowed_file_path(&self, sys_path: &SysPath) -> PathBuf
 	{
-		self.driver_file_or_folder_path(sys_path, "local_cpulist")
-	}
-
-	#[inline(always)]
-	fn local_cpus_file_path(&self, sys_path: &SysPath) -> PathBuf
-	{
-		self.driver_file_or_folder_path(sys_path, "local_cpus")
-	}
-
-	#[inline(always)]
-	fn revision_file_path(&self, sys_path: &SysPath) -> PathBuf
-	{
-		self.driver_file_or_folder_path(sys_path, "revision")
-	}
-
-	#[inline(always)]
-	fn class_file_path(&self, sys_path: &SysPath) -> PathBuf
-	{
-		self.driver_file_or_folder_path(sys_path, "class")
+		self.driver_file_or_folder_path(sys_path, "d3cold_allowed")
 	}
 
 	#[inline(always)]

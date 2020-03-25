@@ -6,6 +6,7 @@ use crate::cpu::*;
 use crate::huge_pages::HugePageSize;
 use crate::strings::*;
 use libc::pid_t;
+use likely::*;
 use num::Num;
 use serde::Deserialize;
 use serde::Serialize;
