@@ -4,7 +4,7 @@
 
 /// Write the UID and GID maps.
 #[inline(always)]
-pub fn write_uid_and_gid_maps(proc_path: &ProcPath, child_process_identifier: NonZeroU32) -> io::Result<()>
+pub fn write_uid_and_gid_maps(proc_path: &ProcPath, child_process_identifier: NonZeroI32) -> io::Result<()>
 {
 	let namespaces_proc_path = NamespacesProcPath(proc_path);
 	namespaces_proc_path.write_setgroups_permission(child_process_identifier, SetGroupsPermission::Deny)?;

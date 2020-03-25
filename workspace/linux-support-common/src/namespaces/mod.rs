@@ -19,6 +19,7 @@ use std::fs::File;
 use std::io;
 use std::io::BufWriter;
 use std::io::Write;
+use std::num::NonZeroI32;
 use std::num::NonZeroU32;
 use std::num::ParseIntError;
 use std::ops::Deref;

@@ -325,7 +325,7 @@ impl ProcessStatusStatistics
 	#[inline(always)]
 	pub fn process_status(proc_path: &ProcPath, identifier: pid_t) -> Result<Self, ProcessStatusFileParseError>
 	{
-		let file = File::open(proc_path.process_folder_path(identifier, "status"))?;
+		let file = File::open(proc_path.process_file_path(identifier, "status"))?;
 		let reader = BufReader::with_capacity(4096, file);
 
 		use self::ProcessStatusFileParseError::*;

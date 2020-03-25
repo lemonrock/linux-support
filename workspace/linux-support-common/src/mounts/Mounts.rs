@@ -12,7 +12,7 @@ impl Mounts
 	#[inline(always)]
 	pub fn parse(proc_path: &ProcPath) -> Result<Mounts, io::Error>
 	{
-		let mounts_wrapper = MountsWrapper::new(&proc_path.process_folder_path(0, "mounts"), true)?;
+		let mounts_wrapper = MountsWrapper::new(&proc_path.process_file_path(0, "mounts"), true)?;
 
 		let mut map = HashMap::with_capacity(64);
 

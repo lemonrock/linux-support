@@ -39,111 +39,111 @@ impl<'a> IntoLineFeedTerminatedByteString<'a> for SetGroupsPermission
 impl<'a> NamespacesProcPath<'a>
 {
 	#[inline(always)]
-	pub fn write_setgroups_permission(&self, child_process_identifier: NonZeroU32, set_groups_permission: SetGroupsPermission) -> io::Result<()>
+	pub fn write_setgroups_permission(&self, child_process_identifier: NonZeroI32, set_groups_permission: SetGroupsPermission) -> io::Result<()>
 	{
-		let file_path = self.0.process_folder_path(child_process_identifier.get() as i32, "setgroups");
+		let file_path = self.0.process_file_path(child_process_identifier, "setgroups");
 		file_path.write_value(set_groups_permission)
 	}
 
 	#[inline(always)]
-	pub fn write_user_or_group_identifiers_map<U: UserOrGroupIdentifier>(&self, child_process_identifier: NonZeroU32, user_or_group_identifiers_map: &UserOrGroupIdentifierMap<U>) -> io::Result<()>
+	pub fn write_user_or_group_identifiers_map<U: UserOrGroupIdentifier>(&self, child_process_identifier: NonZeroI32, user_or_group_identifiers_map: &UserOrGroupIdentifierMap<U>) -> io::Result<()>
 	{
-		let file_path = self.0.process_folder_path(child_process_identifier.get() as i32, U::FileName);
+		let file_path = self.0.process_file_path(child_process_identifier, U::FileName);
 		user_or_group_identifiers_map.write_to_map_file(&file_path)
 	}
 
 	#[inline(always)]
-	pub fn cgroup_namespace_inode(&self, process_identifier: NonZeroU32) -> Result<Inode, NamespaceInodeParseError>
+	pub fn cgroup_namespace_inode(&self, process_identifier: NonZeroI32) -> Result<Inode, NamespaceInodeParseError>
 	{
 		self.namespace_inode(process_identifier, "cgroup")
 	}
 
 	#[inline(always)]
-	pub fn cgroup_namespace_file_descriptor(&self, process_identifier: NonZeroU32) -> io::Result<RawFd>
+	pub fn cgroup_namespace_file_descriptor(&self, process_identifier: NonZeroI32) -> io::Result<RawFd>
 	{
 		self.namespace_file_descriptor(process_identifier, "cgroup")
 	}
 
 	#[inline(always)]
-	pub fn inter_process_communication_namespace_inode(&self, process_identifier: NonZeroU32) -> Result<Inode, NamespaceInodeParseError>
+	pub fn inter_process_communication_namespace_inode(&self, process_identifier: NonZeroI32) -> Result<Inode, NamespaceInodeParseError>
 	{
 		self.namespace_inode(process_identifier, "ipc")
 	}
 
 	#[inline(always)]
-	pub fn inter_process_communication_namespace_file_descriptor(&self, process_identifier: NonZeroU32) -> io::Result<RawFd>
+	pub fn inter_process_communication_namespace_file_descriptor(&self, process_identifier: NonZeroI32) -> io::Result<RawFd>
 	{
 		self.namespace_file_descriptor(process_identifier, "ipc")
 	}
 
 	#[inline(always)]
-	pub fn mount_namespace_inode(&self, process_identifier: NonZeroU32) -> Result<Inode, NamespaceInodeParseError>
+	pub fn mount_namespace_inode(&self, process_identifier: NonZeroI32) -> Result<Inode, NamespaceInodeParseError>
 	{
 		self.namespace_inode(process_identifier, "mnt")
 	}
 
 	#[inline(always)]
-	pub fn mount_namespace_file_descriptor(&self, process_identifier: NonZeroU32) -> io::Result<RawFd>
+	pub fn mount_namespace_file_descriptor(&self, process_identifier: NonZeroI32) -> io::Result<RawFd>
 	{
 		self.namespace_file_descriptor(process_identifier, "mnt")
 	}
 
 	#[inline(always)]
-	pub fn net_namespace_inode(&self, process_identifier: NonZeroU32) -> Result<Inode, NamespaceInodeParseError>
+	pub fn net_namespace_inode(&self, process_identifier: NonZeroI32) -> Result<Inode, NamespaceInodeParseError>
 	{
 		self.namespace_inode(process_identifier, "net")
 	}
 
 	#[inline(always)]
-	pub fn net_namespace_file_descriptor(&self, process_identifier: NonZeroU32) -> io::Result<RawFd>
+	pub fn net_namespace_file_descriptor(&self, process_identifier: NonZeroI32) -> io::Result<RawFd>
 	{
 		self.namespace_file_descriptor(process_identifier, "net")
 	}
 
 	#[inline(always)]
-	pub fn process_identifier_namespace_inode(&self, process_identifier: NonZeroU32) -> Result<Inode, NamespaceInodeParseError>
+	pub fn process_identifier_namespace_inode(&self, process_identifier: NonZeroI32) -> Result<Inode, NamespaceInodeParseError>
 	{
 		self.namespace_inode(process_identifier, "pid")
 	}
 
 	#[inline(always)]
-	pub fn process_identifier_namespace_file_descriptor(&self, process_identifier: NonZeroU32) -> io::Result<RawFd>
+	pub fn process_identifier_namespace_file_descriptor(&self, process_identifier: NonZeroI32) -> io::Result<RawFd>
 	{
 		self.namespace_file_descriptor(process_identifier, "pid")
 	}
 
 	#[inline(always)]
-	pub fn process_identifier_for_children_namespace_inode(&self, process_identifier: NonZeroU32) -> Result<Inode, NamespaceInodeParseError>
+	pub fn process_identifier_for_children_namespace_inode(&self, process_identifier: NonZeroI32) -> Result<Inode, NamespaceInodeParseError>
 	{
 		self.namespace_inode(process_identifier, "pid_for_children")
 	}
 
 	#[inline(always)]
-	pub fn process_identifier_for_children_namespace_file_descriptor(&self, process_identifier: NonZeroU32) -> io::Result<RawFd>
+	pub fn process_identifier_for_children_namespace_file_descriptor(&self, process_identifier: NonZeroI32) -> io::Result<RawFd>
 	{
 		self.namespace_file_descriptor(process_identifier, "pid_for_children")
 	}
 
 	#[inline(always)]
-	pub fn user_namespace_inode(&self, process_identifier: NonZeroU32) -> Result<Inode, NamespaceInodeParseError>
+	pub fn user_namespace_inode(&self, process_identifier: NonZeroI32) -> Result<Inode, NamespaceInodeParseError>
 	{
 		self.namespace_inode(process_identifier, "user")
 	}
 
 	#[inline(always)]
-	pub fn user_namespace_file_descriptor(&self, process_identifier: NonZeroU32) -> io::Result<RawFd>
+	pub fn user_namespace_file_descriptor(&self, process_identifier: NonZeroI32) -> io::Result<RawFd>
 	{
 		self.namespace_file_descriptor(process_identifier, "user")
 	}
 
 	#[inline(always)]
-	pub fn uts_namespace_inode(&self, process_identifier: NonZeroU32) -> Result<Inode, NamespaceInodeParseError>
+	pub fn uts_namespace_inode(&self, process_identifier: NonZeroI32) -> Result<Inode, NamespaceInodeParseError>
 	{
 		self.namespace_inode(process_identifier, "uts")
 	}
 
 	#[inline(always)]
-	pub fn uts_namespace_file_descriptor(&self, process_identifier: NonZeroU32) -> io::Result<RawFd>
+	pub fn uts_namespace_file_descriptor(&self, process_identifier: NonZeroI32) -> io::Result<RawFd>
 	{
 		self.namespace_file_descriptor(process_identifier, "uts")
 	}
@@ -233,7 +233,7 @@ impl<'a> NamespacesProcPath<'a>
 	}
 
 	#[inline(always)]
-	fn namespace_inode(&self, process_identifier: NonZeroU32, namespace: &str) -> Result<Inode, NamespaceInodeParseError>
+	fn namespace_inode(&self, process_identifier: NonZeroI32, namespace: &str) -> Result<Inode, NamespaceInodeParseError>
 	{
 		use self::NamespaceInodeParseError::*;
 
@@ -273,7 +273,7 @@ impl<'a> NamespacesProcPath<'a>
 	}
 
 	#[inline(always)]
-	fn namespace_file_descriptor(&self, process_identifier: NonZeroU32, namespace: &str) -> io::Result<RawFd>
+	fn namespace_file_descriptor(&self, process_identifier: NonZeroI32, namespace: &str) -> io::Result<RawFd>
 	{
 		Ok(File::open(self.namespace_file_path(process_identifier, namespace))?.into_raw_fd())
 	}
@@ -285,8 +285,8 @@ impl<'a> NamespacesProcPath<'a>
 	}
 
 	#[inline(always)]
-	fn namespace_file_path(&self, process_identifier: NonZeroU32, namespace: &str) -> PathBuf
+	fn namespace_file_path(&self, process_identifier: NonZeroI32, namespace: &str) -> PathBuf
 	{
-		self.0.process_folder_path(process_identifier.get() as i32, "ns").append(namespace)
+		self.0.process_file_path(process_identifier, "ns").append(namespace)
 	}
 }

@@ -21,19 +21,11 @@ impl Default for ProcPath
 
 impl ProcPath
 {
-	/// Get a folder path for the current process (`process` is `0`) or another process.
+	/// Get a folder path for the current process (`process_identifier` is `0`) or another process.
 	#[inline(always)]
-	pub fn process_folder_path(&self, process: pid_t, relative_path: &str) -> PathBuf
+	pub fn process_file_path(&self, process_identifier: impl ProcessIdentifier, relative_path: &str) -> PathBuf
 	{
-		let path = if process == 0
-		{
-			self.file_path("self")
-		}
-		else
-		{
-			self.file_path(&format!("{}", process))
-		};
-		path.append(relative_path)
+		self.file_path(&process_identifier.to_file_name()).append(relative_path)
 	}
 
 	/// Get a file path within the ProcPath, `/proc/sys/fs/<file_name>`.
