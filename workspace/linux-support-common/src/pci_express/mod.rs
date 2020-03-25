@@ -5,6 +5,7 @@
 use crate::paths::*;
 use crate::cpu::*;
 use crate::linux_kernel_modules::*;
+use crate::pci_express::classification::subclasses::NetworkController;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 use self::classification::*;
 use self::link::*;
@@ -28,42 +29,31 @@ use libc::IF_NAMESIZE;
 use libc::if_nametoindex;
 use libc::ioctl;
 use libc::IPPROTO_IP;
-use libc::mmap;
-use libc::MAP_FAILED;
-use libc::MAP_SHARED;
-use libc::munmap;
-use libc::PROT_READ;
-use libc::PROT_WRITE;
 use libc::SOCK_DGRAM;
 use libc::socket;
 use libc_extra::android_linux::linux::ethtool::*;
 use libc_extra::android_linux::linux::sockios::SIOCETHTOOL;
 use libc_extra::android_linux::net::if_::ifreq;
 use likely::likely;
-use likely::unlikely;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::BTreeSet;
 use std::convert::TryFrom;
 use std::error;
 use std::io;
-use std::io::ErrorKind;
 use std::ffi::*;
 use std::fmt;
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Formatter;
-use std::fs::*;
 use std::mem::transmute;
 use std::num::*;
 use std::ops::Deref;
 use std::os::unix::io::*;
 use std::path::PathBuf;
-use std::ptr::NonNull;
-use std::ptr::null_mut;
 use std::str::Utf8Error;
 use std::borrow::Cow;
-use crate::pci_express::classification::subclasses::NetworkController;
+use crate::pci_express::resources::Resources;
 
 
 /// Classifications.
@@ -82,6 +72,10 @@ pub mod link;
 pub mod registers;
 
 
+/// Resources.
+pub mod resources;
+
+
 include!("ConvertNetworkInterfaceIndexToPciDeviceAddressError.rs");
 include!("LinuxPciUserspaceKernelDriverModule.rs");
 include!("NetworkInterfaceIndex.rs");
@@ -93,4 +87,3 @@ include!("PciDeviceDetails.rs");
 include!("PciDeviceAddress.rs");
 include!("PciDeviceAddressStringParseError.rs");
 include!("PciDevicePhysicalOrVirtualFunction.rs");
-include!("PciResource.rs");

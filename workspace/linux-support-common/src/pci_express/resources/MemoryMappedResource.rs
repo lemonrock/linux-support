@@ -4,14 +4,14 @@
 
 /// A memory-mapped PCI resource.
 #[derive(Debug)]
-pub struct PciResource
+pub struct MemoryMappedResource
 {
 	/// Technically, this isn't true; `mmap()` could return a pointer of zero.
 	pointer: NonNull<u8>,
 	size: usize,
 }
 
-impl Drop for PciResource
+impl Drop for MemoryMappedResource
 {
 	#[inline(always)]
 	fn drop(&mut self)
@@ -32,7 +32,7 @@ impl Drop for PciResource
 	}
 }
 
-impl PciResource
+impl MemoryMappedResource
 {
 	#[inline(always)]
 	fn pointer(&self) -> NonNull<u8>

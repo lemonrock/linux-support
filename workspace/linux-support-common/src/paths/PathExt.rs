@@ -116,7 +116,7 @@ impl PathExt for Path
 	#[inline(always)]
 	fn read_raw(&self) -> io::Result<Box<[u8]>>
 	{
-		let raw = ::std::fs::read(self)?.into_boxed_slice();
+		let raw = std::fs::read(self)?.into_boxed_slice();
 
 		if unlikely!(raw.is_empty())
 		{

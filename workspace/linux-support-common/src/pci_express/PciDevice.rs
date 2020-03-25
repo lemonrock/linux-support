@@ -2,23 +2,6 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-// TODO: resource (a list of resources, I think)
-/*
-0x0000000000008200 0x000000000000823f 0x0000000000040101
-0x00000000ee000000 0x00000000ee000fff 0x0000000000040200
-0x0000000000000000 0x0000000000000000 0x0000000000000000
-0x0000000000000000 0x0000000000000000 0x0000000000000000
-0x0000000000000000 0x0000000000000000 0x0000000000000000
-0x0000000000000000 0x0000000000000000 0x0000000000000000
-0x0000000000000000 0x0000000000000000 0x0000000000000000
-0x0000000000000000 0x0000000000000000 0x0000000000000000
-0x0000000000000000 0x0000000000000000 0x0000000000000000
-0x0000000000000000 0x0000000000000000 0x0000000000000000
-0x0000000000000000 0x0000000000000000 0x0000000000000000
-0x0000000000000000 0x0000000000000000 0x0000000000000000
-0x0000000000000000 0x0000000000000000 0x0000000000000000
-*/
-// TODO: resource
 // TODO: Find how many `resourceN` files there are.
 // TODO: Find PciBus.
 /// Models a PCI device.
@@ -83,6 +66,12 @@ impl<'a> PciDevice<'a>
 		self.pci_bus_folder_path().exists()
 	}
 
+	/// Resources
+	#[inline(always)]
+	pub fn resources(&self) -> Resources
+	{
+		Resources::parse_lines(self).expect("No resources")
+	}
 
 //	#[inline(always)]
 //	pub fn enable_bus_mastering_for_direct_memory_access(&self, _sys_path: &SysPath)
@@ -206,40 +195,6 @@ impl<'a> PciDevice<'a>
 		{
 			original_pci_driver_name.bind(self.sys_path, self.pci_device_address)
 		}
-	}
-	
-	/// Memory map resource.
-	#[inline(always)]
-	pub fn memory_map_resource(&self, resource_index: u8) -> Result<PciResource, io::Error>
-	{
-		let resource_file_path = self.device_file_or_folder_path(&format!("resource{:?}", resource_index));
-
-		let file = OpenOptions::new().read(true).write(true).open(&resource_file_path)?;
-
-		let size =
-		{
-			let metadata = resource_file_path.metadata()?;
-			if !metadata.is_file()
-			{
-				return Err(io::Error::from(ErrorKind::Other))
-			}
-			metadata.len() as usize
-		};
-
-		let result = unsafe { mmap(null_mut(), size, PROT_READ | PROT_WRITE, MAP_SHARED, file.as_raw_fd(), 0) };
-		if unlikely!(result == MAP_FAILED)
-		{
-			return Err(io::Error::last_os_error())
-		}
-
-		Ok
-		(
-			PciResource
-			{
-				pointer: unsafe { NonNull::new_unchecked(result as *mut u8) },
-				size,
-			}
-		)
 	}
 
 	#[inline(always)]
