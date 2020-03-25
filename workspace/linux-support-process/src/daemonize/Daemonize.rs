@@ -159,8 +159,7 @@ impl Daemonize
 		let value = unsafe { &mut * self.pid_file_path.get() };
 		if unlikely!(value.is_none())
 		{
-			let mut path = self.pid_folder_path.clone();
-			path.push(format!("{}.pid", &self.program_name));
+			let path = self.pid_folder_path.clone().append(format!("{}.pid", &self.program_name));
 			value.replace(path);
 		}
 		value.as_ref().unwrap()

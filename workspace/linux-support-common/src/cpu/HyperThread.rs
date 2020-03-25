@@ -406,13 +406,13 @@ impl HyperThread
 	#[inline(always)]
 	pub fn kernel_maximum_index(sys_path: &SysPath) -> io::Result<Self>
 	{
-		sys_path.hyper_threads_path("kernel_max").read_value().map(|value| Self(value))
+		sys_path.hyper_threads_folder_path("kernel_max").read_value().map(|value| Self(value))
 	}
 
 	#[inline(always)]
 	fn parse_list_mask(sys_path: &SysPath, file_name: &str) -> BTreeSet<Self>
 	{
-		sys_path.hyper_threads_path(file_name).read_linux_core_or_numa_list(|value_u16| Ok(Self(value_u16))).unwrap()
+		sys_path.hyper_threads_folder_path(file_name).read_linux_core_or_numa_list(|value_u16| Ok(Self(value_u16))).unwrap()
 	}
 
 	/// Current hyper thread index that this thread is running on.

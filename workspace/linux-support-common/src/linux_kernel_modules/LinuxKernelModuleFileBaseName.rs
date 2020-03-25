@@ -52,8 +52,7 @@ impl LinuxKernelModuleFileBaseName
 	/// Returns false if permissions error occurred (eg was not root).
 	pub fn load_linux_kernel_module_from_ko_file(&self, linux_kernel_modules_path: &Path) -> Result<bool, io::Error>
 	{
-		let mut linux_kernel_module_path = PathBuf::from(linux_kernel_modules_path);
-		linux_kernel_module_path.push(self.to_ko_file_name());
+		let linux_kernel_module_path = PathBuf::from(linux_kernel_modules_path).append(self.to_ko_file_name());
 
 		let file = OpenOptions::new().read(true).open(linux_kernel_module_path)?;
 		let file_descriptor = file.as_raw_fd();

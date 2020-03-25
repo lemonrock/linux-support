@@ -25,9 +25,7 @@ impl<'a> NonRootCgroup<'a>
 	#[inline(always)]
 	pub fn to_path<'b>(&self, mount_point: &'b CgroupMountPoint) -> PathBuf
 	{
-		let mut parent_path_buffer = self.parent.to_path(mount_point).into_owned();
-		parent_path_buffer.push(&self.name);
-		parent_path_buffer
+		self.parent.file_path(mount_point, &self.name)
 	}
 
 	/// Returns `None` if this is the root cgroup.
@@ -91,8 +89,6 @@ impl<'a> NonRootCgroup<'a>
 	#[inline(always)]
 	fn file_path(&self, mount_point: &CgroupMountPoint, file_name: &str) -> PathBuf
 	{
-		let mut file_path = self.to_path(mount_point);
-		file_path.push(file_name);
-		file_path
+		self.to_path(mount_point).append(file_name)
 	}
 }

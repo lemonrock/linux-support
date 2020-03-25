@@ -26,7 +26,7 @@ use std::os::unix::io::IntoRawFd;
 use std::os::unix::io::RawFd;
 use std::path::Path;
 use std::path::PathBuf;
-use crate::paths::IntoLineFeedTerminatedByteString;
+use crate::paths::{IntoLineFeedTerminatedByteString, PathBufExt};
 use std::borrow::Cow;
 
 

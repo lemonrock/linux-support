@@ -244,22 +244,11 @@ impl TryFrom<&str> for PciDeviceAddress
 
 impl PciDeviceAddress
 {
-	/// Rescans all PCI buses and devices.
-	#[inline(always)]
-	pub fn rescan_all_pci_buses_and_devices(sys_path: &SysPath) -> io::Result<()>
-	{
-		let mut path = sys_path.pci_bus_path();
-		path.push("rescan");
-		path.write_value(1)
-	}
-
 	/// A PCI device file.
 	#[inline(always)]
 	pub(crate) fn pci_device_file_path(&self, sys_path: &SysPath, file_name: &str) -> PathBuf
 	{
-		let mut path = self.pci_device_folder_path(sys_path);
-		path.push(file_name);
-		path
+		self.pci_device_folder_path(sys_path).append(file_name)
 	}
 
 	/// PCI device folder path.
@@ -273,17 +262,13 @@ impl PciDeviceAddress
 	#[inline(always)]
 	fn pci_devices_path(sys_path: &SysPath, string_address: &str) -> PathBuf
 	{
-		let mut path = Self::pci_devices_parent_path(sys_path);
-		path.push(string_address);
-		path
+		Self::pci_devices_parent_path(sys_path).append(string_address)
 	}
 
 	#[inline(always)]
 	fn pci_devices_parent_path(sys_path: &SysPath) -> PathBuf
 	{
-		let mut path = sys_path.pci_bus_path();
-		path.push("devices");
-		path
+		sys_path.pci_bus_file_path("devices")
 	}
 
 	#[inline(always)]

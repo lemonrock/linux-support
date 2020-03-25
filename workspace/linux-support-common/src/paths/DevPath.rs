@@ -36,9 +36,7 @@ impl DevPath
 	#[inline(always)]
 	fn file_path(&self, file_name: &str) -> PathBuf
 	{
-		let mut path = self.path();
-		path.push(file_name);
-		path
+		self.path().append(file_name)
 	}
 
 	#[inline(always)]

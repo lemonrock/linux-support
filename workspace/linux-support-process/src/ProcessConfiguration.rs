@@ -200,7 +200,7 @@ impl ProcessConfiguration
 	#[inline(always)]
 	fn rescan_all_pci_buses_and_devices<P: Process>(&self) -> Result<(), ProcessConfigurationExecutionError<P::LoadKernelModulesError, P::AdditionalLinuxKernelCommandLineValidationsError, P::MainError>>
 	{
-		PciDeviceAddress::rescan_all_pci_buses_and_devices(self.sys_path()).map_err(ProcessConfigurationExecutionError::RescanOfAllPciBusesAndDevices)
+		PciDevice::rescan_all_pci_buses_and_devices(self.sys_path()).map_err(ProcessConfigurationExecutionError::RescanOfAllPciBusesAndDevices)
 	}
 
 	#[inline(always)]

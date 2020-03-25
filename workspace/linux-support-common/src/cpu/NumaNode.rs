@@ -88,7 +88,7 @@ impl NumaNode
 	#[inline(always)]
 	pub fn is_a_numa_machine(sys_path: &SysPath) -> bool
 	{
-		sys_path.numa_nodes_parent_path().exists()
+		sys_path.numa_nodes_folder_path().exists()
 	}
 
 	/// Is this a NUMA node (assuming we're on a NUMA-based machine)?

@@ -36,6 +36,7 @@ use linux_support_common::logging::*;
 use linux_support_common::niceness::*;
 use linux_support_common::paths::*;
 use linux_support_common::personality::PersonalityFlags;
+use linux_support_common::pci_express::PciDevice;
 use linux_support_common::resource_limits::*;
 use linux_support_common::seccomp::*;
 use linux_support_common::signals::*;
@@ -61,7 +62,6 @@ use std::panic::catch_unwind;
 use std::panic::resume_unwind;
 use std::path::PathBuf;
 use std::thread;
-use linux_support_common::pci_express::PciDeviceAddress;
 
 
 /// Daemon support.

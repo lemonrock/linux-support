@@ -278,7 +278,7 @@ impl HugePageSize
 	#[inline(always)]
 	pub fn number_of_numa_huge_pages(self, sys_path: &SysPath, numa_node: NumaNode) -> io::Result<u64>
 	{
-		sys_path.read_numa_hugepages_value(self, numa_node, "nr_hugepages")
+		self.read_numa_hugepages_value(sys_path, numa_node, "nr_hugepages")
 	}
 	
 	/// Read number of free NUMA node huge pages of `self` size.
@@ -287,7 +287,7 @@ impl HugePageSize
 	#[inline(always)]
 	pub fn number_of_free_numa_huge_pages(self, sys_path: &SysPath, numa_node: NumaNode) -> io::Result<u64>
 	{
-		sys_path.read_numa_hugepages_value(self, numa_node, "free_hugepages")
+		self.read_numa_hugepages_value(sys_path, numa_node, "free_hugepages")
 	}
 	
 	/// Read number of surplus NUMA huge pages of `self` size.
@@ -296,6 +296,13 @@ impl HugePageSize
 	#[inline(always)]
 	pub fn number_of_surplus_numa_huge_pages(self, sys_path: &SysPath, numa_node: NumaNode) -> io::Result<u64>
 	{
-		sys_path.read_numa_hugepages_value(self, numa_node, "surplus_hugepages")
+		self.read_numa_hugepages_value(sys_path, numa_node, "surplus_hugepages")
 	}
+
+	#[inline(always)]
+	fn read_numa_hugepages_value(self, sys_path: &SysPath, numa_node: NumaNode, file_name: &str) -> io::Result<u64>
+	{
+		sys_path.numa_hugepages_file_path(self, numa_node, file_name).read_value()
+	}
+
 }

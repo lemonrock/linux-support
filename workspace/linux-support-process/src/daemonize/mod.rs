@@ -8,7 +8,7 @@ use likely::likely;
 use likely::unlikely;
 use linux_support_common::get_program_name;
 use linux_support_common::logging::redirect_standard_out_and_standard_error_to_syslog;
-use linux_support_common::paths::DevPath;
+use linux_support_common::paths::{DevPath, PathBufExt};
 use linux_support_common::paths::PathExt;
 use linux_support_common::strings::OsStrExtMore;
 use linux_support_common::user_and_groups::OriginalRealUserAndGroupIdentifierUser;

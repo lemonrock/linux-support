@@ -287,8 +287,6 @@ impl<'a> NamespacesProcPath<'a>
 	#[inline(always)]
 	fn namespace_file_path(&self, process_identifier: NonZeroU32, namespace: &str) -> PathBuf
 	{
-		let mut file_path = self.0.process_folder_path(process_identifier.get() as i32, "ns");
-		file_path.push(namespace);
-		file_path
+		self.0.process_folder_path(process_identifier.get() as i32, "ns").append(namespace)
 	}
 }

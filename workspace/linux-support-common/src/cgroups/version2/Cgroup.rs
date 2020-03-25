@@ -19,6 +19,13 @@ pub enum Cgroup<'a>
 
 impl<'a> Cgroup<'a>
 {
+	/// To an owned path.
+	#[inline(always)]
+	pub fn to_owned_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.to_path(mount_point).into_owned()
+	}
+
 	/// To a path.
 	#[inline(always)]
 	pub fn to_path<'b>(&self, mount_point: &'b CgroupMountPoint) -> Cow<'b, Path>
@@ -186,11 +193,8 @@ impl<'a> Cgroup<'a>
 	}
 
 	#[inline(always)]
-	fn file_path(&self, mount_point: &CgroupMountPoint, file_name: &str) -> PathBuf
+	fn file_path(&self, mount_point: &CgroupMountPoint, file_name: impl AsRef<Path>) -> PathBuf
 	{
-		let absolute_path = self.to_path(mount_point);
-		let mut file_path = absolute_path.into_owned();
-		file_path.push(file_name);
-		file_path
+		self.to_owned_path(mount_point).append(file_name)
 	}
 }

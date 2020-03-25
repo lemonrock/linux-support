@@ -3,6 +3,13 @@
 
 
 /// Models a PCI device.
+///
+/// Some device files are not parsed (looking at linux's `drivers/pci/pci-sysfs.c` source):-
+///
+/// * `of_node`: This is a file that only exists for architectures where Open Firmware (part of the Device Tree) is supported. Read-only.
+/// * `d3cold_allowed`: This is a file that only exists if ACPI is supported by the Kernel (which it normally is). Read-write.
+/// * `label`
+/// * `modalias`
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Serialize, Deserialize)]
 #[repr(transparent)]
@@ -28,6 +35,13 @@ impl Into<PciDeviceAddress> for PciDevice
 
 impl PciDevice
 {
+	/// Rescans all PCI buses and devices.
+	#[inline(always)]
+	pub fn rescan_all_pci_buses_and_devices(sys_path: &SysPath) -> io::Result<()>
+	{
+		sys_path.pci_bus_file_path("rescan").write_value(1)
+	}
+
 	/// PCI device's associated NUMA node, if known.
 	#[inline(always)]
 	pub fn associated_numa_node(&self, sys_path: &SysPath) -> Option<NumaNode>
@@ -144,6 +158,11 @@ impl PciDevice
 //	#[inline(always)]
 //	pub fn enable_bus_mastering_for_direct_memory_access(&self, _sys_path: &SysPath)
 //	{
+//	// TODO: How does the 'config' file work?
+//	https://www.mjmwired.net/kernel/Documentation/ABI/testing/sysfs-bus-pci
+//	https://www.kernel.org/doc/html/v4.12/driver-api/uio-howto.html
+//	https://raw.githubusercontent.com/pciutils/pciutils/master/pci.ids - Look up Intel IDs!
+//	https://www.kernel.org/doc/Documentation/
 //	}
 
 	/// Details.
@@ -313,9 +332,7 @@ impl PciDevice
 	#[inline(always)]
 	fn driver_file_or_folder_path(&self, sys_path: &SysPath, file_or_folder_name: &str) -> PathBuf
 	{
-		let mut path = self.device_file_or_folder_path(sys_path, "driver");
-		path.push(file_or_folder_name);
-		path
+		self.device_file_or_folder_path(sys_path, "driver").append(file_or_folder_name)
 	}
 	
 	#[inline(always)]
