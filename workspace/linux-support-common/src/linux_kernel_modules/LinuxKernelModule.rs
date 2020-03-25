@@ -125,4 +125,43 @@ impl<'depends> LinuxKernelModule<'depends>
 	{
 		&self.linux_kernel_module_file_base_name
 	}
+
+	/// First PCI driver name (typically a module only implements one driver).
+	#[inline(always)]
+	pub fn first_pci_driver_name(&self, sys_path: &SysPath) -> Option<PciDriverName>
+	{
+		self.pci_driver_names(sys_path).next()
+	}
+
+	/// Use a prefix of `pci` for PCI drivers.
+	#[inline(always)]
+	fn pci_driver_names(&self, sys_path: &SysPath) -> impl Iterator<Item=PciDriverName>
+	{
+		self.driver_names(sys_path, b"pci:", PciDriverName)
+	}
+
+	#[inline(always)]
+	fn driver_names<'a, 'prefix, F: Fn(DriverName) -> DN + 'static, DN>(&self, sys_path: &'a SysPath, prefix: &'prefix [u8], convert: F) -> impl Iterator<Item=DN> + 'prefix
+	{
+		let drivers_path = sys_path.module_file_or_folder_path("drivers");
+		if !drivers_path.exists()
+		{
+			panic!();
+		}
+
+		let prefix_length = prefix.len();
+
+		drivers_path.read_dir().unwrap().map(|entry| entry.unwrap().file_name().into_vec()).filter(move |file_name|
+		{
+			if file_name.len() <= prefix_length
+			{
+				return false
+			}
+			&file_name[0 .. prefix_length] != prefix
+		}).map(move |file_name|
+		{
+			let driver_name = DriverName(move_to_front_of_vec(file_name, prefix_length).into_boxed_slice());
+			convert(driver_name)
+		})
+	}
 }

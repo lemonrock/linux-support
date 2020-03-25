@@ -60,6 +60,24 @@ impl<'a> Into<CString> for &'a LinuxKernelModuleName
 	}
 }
 
+impl Into<OsString> for LinuxKernelModuleName
+{
+	#[inline(always)]
+	fn into(self) -> OsString
+	{
+		OsString::from_vec(self.0.to_vec())
+	}
+}
+
+impl<'a> Into<OsString> for &'a LinuxKernelModuleName
+{
+	#[inline(always)]
+	fn into(self) -> OsString
+	{
+		OsString::from_vec(self.0.clone().to_vec())
+	}
+}
+
 impl<'a> IntoLineFeedTerminatedByteString<'a> for &'a LinuxKernelModuleName
 {
 	/// Converts data to a byte string terminated with a new line (`\n`).

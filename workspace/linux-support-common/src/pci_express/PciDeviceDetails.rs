@@ -8,16 +8,34 @@
 pub struct PciDeviceDetails
 {
 	pub vendor_and_device: PciVendorAndDevice,
+
 	pub subsystem_vendor_and_subsystem_device: PciVendorAndDevice,
+
 	pub class: Option<PciDeviceClass>,
+
 	pub revision: u8,
+
 	pub associated_numa_node: Option<NumaNode>,
+
 	pub associated_hyper_threads: BTreeSet<HyperThread>,
-	pub permitted_hyper_threads: u32,
+
+	pub permitted_hyper_threads_bitmask: u32,
+
 	pub d3cold_allowed: Option<bool>,
+
 	pub interrupt_request_line: u8, // This should have a type and a range of permitted values.
-	pub current_link_speed_and_width: LinkSpeedAndWidth,
-	pub maximum_link_speed_and_width: LinkSpeedAndWidth,
+
+	/// PCI Express only.
+	pub current_link_speed_and_width: Option<LinkSpeedAndWidth>,
+
+	/// PCI Express only.
+	pub maximum_link_speed_and_width: Option<LinkSpeedAndWidth>,
+
+	pub enabled: bool,
+
+	pub msi_and_msi_x_enabled: bool,
+
+	pub driver: Option<PciDriverName>,
 }
 
 impl PciDeviceDetails

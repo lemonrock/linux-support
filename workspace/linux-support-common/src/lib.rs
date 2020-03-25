@@ -132,4 +132,5 @@ pub mod user_and_groups;
 
 
 include!("get_program_name.rs");
+include!("move_to_front_of_vec.rs");
 include!("WarningsToSuppress.rs");

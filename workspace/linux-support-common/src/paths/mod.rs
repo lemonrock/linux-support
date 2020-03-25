@@ -28,6 +28,7 @@ use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::PermissionsExt;
 use std::path::*;
 use std::str::*;
+use crate::pci_express::PciDeviceAddress;
 
 
 include!("DevPath.rs");

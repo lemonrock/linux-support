@@ -19,12 +19,6 @@ impl Default for SysPath
 
 impl SysPath
 {
-	#[inline(always)]
-	pub(crate) fn pci_bus_file_path(&self, file_name: &str) -> PathBuf
-	{
-		self.pci_bus_folder_path().append(file_name)
-	}
-
 	/// A path about all hyper threads.
 	#[inline(always)]
 	pub(crate) fn hyper_threads_folder_path(&self, file_name: &str) -> PathBuf
@@ -87,12 +81,6 @@ impl SysPath
 	}
 
 	#[inline(always)]
-	pub(crate) fn numa_nodes_folder_path(&self) -> PathBuf
-	{
-		self.system_devices_folder_path().append("node")
-	}
-
-	#[inline(always)]
 	pub(crate) fn khugepaged_file_path(&self, file_name: &str) -> PathBuf
 	{
 		self.global_transparent_huge_memory_file_path("khugepaged").append(file_name)
@@ -122,58 +110,117 @@ impl SysPath
 		folder_path.append("hugepages").append(format!("hugepages-{}kB", huge_page_size.size_in_kilo_bytes())).append(file_name)
 	}
 
+	/// `/sys/devices/system/node`.
+	#[inline(always)]
+	pub(crate) fn numa_nodes_folder_path(&self) -> PathBuf
+	{
+		self.system_devices_folder_path().append("node")
+	}
+
+	/// `/sys/devices/system/cpu`.
 	#[inline(always)]
 	fn cpu_system_devices_folder_path(&self) -> PathBuf
 	{
 		self.system_devices_folder_path().append("cpu")
 	}
 
-	#[inline(always)]
-	fn global_memory_folder_path(&self) -> PathBuf
-	{
-		self.kernel_folder_path().append("mm")
-	}
-
-	#[inline(always)]
-	fn pci_bus_folder_path(&self) -> PathBuf
-	{
-		self.bus_folder_path().append("pci")
-	}
-
-	#[inline(always)]
-	fn workqueue_virtual_devices_folder_path(&self) -> PathBuf
-	{
-		self.virtual_devices_folder_path().append("workqueue")
-	}
-
-	#[inline(always)]
-	fn virtual_devices_folder_path(&self) -> PathBuf
-	{
-		self.devices_folder_path().append("virtual")
-	}
-
+	/// `/sys/devices/system`.
 	#[inline(always)]
 	fn system_devices_folder_path(&self) -> PathBuf
 	{
 		self.devices_folder_path().append("system")
 	}
 
+	/// `/sys/kernel/mm`.
+	#[inline(always)]
+	fn global_memory_folder_path(&self) -> PathBuf
+	{
+		self.kernel_folder_path().append("mm")
+	}
+
+	/// `/sys/kernel`.
+	#[inline(always)]
+	fn kernel_folder_path(&self) -> PathBuf
+	{
+		self.path().append("kernel")
+	}
+
+	/// `/sys/devices/virtual/workqueue`.
+	#[inline(always)]
+	fn workqueue_virtual_devices_folder_path(&self) -> PathBuf
+	{
+		self.virtual_devices_folder_path().append("workqueue")
+	}
+
+	/// `/sys/devices/virtual`.
+	#[inline(always)]
+	fn virtual_devices_folder_path(&self) -> PathBuf
+	{
+		self.devices_folder_path().append("virtual")
+	}
+
+	/// `/sys/devices`.
 	#[inline(always)]
 	fn devices_folder_path(&self) -> PathBuf
 	{
 		self.path().append("devices")
 	}
 
+	/// `/sys/bus/pci/drivers/<driver_name>`.
+	#[inline(always)]
+	pub(crate) fn pci_driver_folder_path(&self, driver_name: impl AsRef<Path>) -> PathBuf
+	{
+		self.drivers_pci_bus_folder_path().append(driver_name)
+	}
+
+	/// `/sys/bus/pci/drivers`.
+	#[inline(always)]
+	fn drivers_pci_bus_folder_path(&self) -> PathBuf
+	{
+		self.pci_bus_file_path("drivers")
+	}
+
+	/// `/sys/bus/pci/devices/<pci_device_address>`.
+	#[inline(always)]
+	pub(crate) fn pci_device_folder_path(&self, pci_device_address: PciDeviceAddress) -> PathBuf
+	{
+		let string_address: String = pci_device_address.into();
+		self.devices_pci_bus_folder_path().append(&string_address)
+	}
+
+	/// `/sys/bus/pci/devices`.
+	#[inline(always)]
+	fn devices_pci_bus_folder_path(&self) -> PathBuf
+	{
+		self.pci_bus_file_path("devices")
+	}
+
+	/// `/sys/bus/pci/<file_name>`.
+	#[inline(always)]
+	pub(crate) fn pci_bus_file_path(&self, file_name: &str) -> PathBuf
+	{
+		self.pci_bus_folder_path().append(file_name)
+	}
+
+	/// `/sys/bus/pci`.
+	#[inline(always)]
+	fn pci_bus_folder_path(&self) -> PathBuf
+	{
+		self.bus_folder_path().append("pci")
+	}
+
+	/// `/sys/bus`.
 	#[inline(always)]
 	fn bus_folder_path(&self) -> PathBuf
 	{
 		self.path().append("bus")
 	}
 
+	/// `/sys/module/<file_name>`.
 	#[inline(always)]
-	fn kernel_folder_path(&self) -> PathBuf
+	pub(crate) fn module_file_or_folder_path(&self, file_name: impl AsRef<Path>) -> PathBuf
 	{
-		self.path().append("kernel")
+		self.path().append("module").append(file_name)
 	}
 
 	#[inline(always)]

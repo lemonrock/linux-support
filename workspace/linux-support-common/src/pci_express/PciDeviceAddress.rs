@@ -31,6 +31,18 @@ impl<'a> Into<String> for &'a PciDeviceAddress
 	}
 }
 
+impl<'a> IntoLineFeedTerminatedByteString<'a> for PciDeviceAddress
+{
+	#[inline(always)]
+	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
+	{
+		let string: String = self.into();
+		let mut bytes = string.into_bytes();
+		bytes.push(b'\n');
+		Cow::from(bytes)
+	}
+}
+
 impl<'a> IntoLineFeedTerminatedByteString<'a> for &'a PciDeviceAddress
 {
 	#[inline(always)]
@@ -244,33 +256,6 @@ impl TryFrom<&str> for PciDeviceAddress
 
 impl PciDeviceAddress
 {
-	/// A PCI device file.
-	#[inline(always)]
-	pub(crate) fn pci_device_file_path(&self, sys_path: &SysPath, file_name: &str) -> PathBuf
-	{
-		self.pci_device_folder_path(sys_path).append(file_name)
-	}
-
-	/// PCI device folder path.
-	#[inline(always)]
-	fn pci_device_folder_path(&self, sys_path: &SysPath) -> PathBuf
-	{
-		let string_address: String = self.into();
-		Self::pci_devices_path(sys_path, &string_address)
-	}
-
-	#[inline(always)]
-	fn pci_devices_path(sys_path: &SysPath, string_address: &str) -> PathBuf
-	{
-		Self::pci_devices_parent_path(sys_path).append(string_address)
-	}
-
-	#[inline(always)]
-	fn pci_devices_parent_path(sys_path: &SysPath) -> PathBuf
-	{
-		sys_path.pci_bus_file_path("devices")
-	}
-
 	#[inline(always)]
 	fn open_socket_for_ioctl() -> Result<RawFd, ConvertNetworkInterfaceIndexToPciDeviceAddressError>
 	{

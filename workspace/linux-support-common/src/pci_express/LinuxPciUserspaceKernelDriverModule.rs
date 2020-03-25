@@ -30,14 +30,23 @@ impl Default for LinuxPciUserspaceKernelDriverModule
 
 impl LinuxPciUserspaceKernelDriverModule
 {
+	/// Module name.
 	#[inline(always)]
-	pub(crate) fn linux_kernel_module_name(self) -> &'static LinuxKernelModuleName
+	pub fn linux_kernel_module_name(self) -> &'static LinuxKernelModuleName
 	{
 		self.linux_kernel_module().linux_kernel_module_name()
 	}
 
+	/// First PCI driver name.
 	#[inline(always)]
-	pub(crate) fn linux_kernel_module(self) -> &'static LinuxKernelModule<'static>
+	pub fn first_pci_driver_name(self, sys_path: &SysPath) -> PciDriverName
+	{
+		self.linux_kernel_module().first_pci_driver_name(sys_path).unwrap()
+	}
+
+	/// Kernel module.
+	#[inline(always)]
+	pub fn linux_kernel_module(self) -> &'static LinuxKernelModule<'static>
 	{
 		use self::LinuxPciUserspaceKernelDriverModule::*;
 
