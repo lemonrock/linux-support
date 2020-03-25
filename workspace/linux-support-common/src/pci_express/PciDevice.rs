@@ -66,11 +66,18 @@ impl<'a> PciDevice<'a>
 		self.pci_bus_folder_path().exists()
 	}
 
-	/// Resources
+	/// Resources.
 	#[inline(always)]
 	pub fn resources(&self) -> Resources
 	{
 		Resources::parse_lines(self).expect("No resources")
+	}
+
+	/// Configuration space.
+	#[inline(always)]
+	pub fn configuration_space(&self) -> Result<MemoryMappedConfigurationSpace, io::Error>
+	{
+		self.device_file_or_folder_path("config").memory_map().map(|memory_mapped_file| MemoryMappedConfigurationSpace(memory_mapped_file))
 	}
 
 //	#[inline(always)]

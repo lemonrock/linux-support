@@ -7,8 +7,10 @@
 #[allow(missing_docs)]
 pub struct PciDeviceDetails
 {
+	/// Typically this is the 'Chipset Manufacturer'.
 	pub vendor_and_device: PciVendorAndDevice,
 
+	/// Typically this is the 'Card Manufacturer'.
 	pub subsystem_vendor_and_subsystem_device: PciVendorAndDevice,
 
 	pub class: Option<PciDeviceClass>,

@@ -28,34 +28,7 @@ impl ResourceEntry
 	#[inline(always)]
 	pub(crate) fn memory_map<'a>(pci_device: &PciDevice<'a>, resource_index: u8) -> Result<MemoryMappedResource, io::Error>
 	{
-		let resource_file_path = pci_device.device_file_or_folder_path(&format!("resource{:?}", resource_index));
-
-		let file = OpenOptions::new().read(true).write(true).open(&resource_file_path)?;
-
-		let size =
-		{
-			let metadata = resource_file_path.metadata()?;
-			if !metadata.is_file()
-			{
-				return Err(io::Error::from(ErrorKind::Other))
-			}
-			metadata.len() as usize
-		};
-
-		let result = unsafe { mmap(null_mut(), size, PROT_READ | PROT_WRITE, MAP_SHARED, file.as_raw_fd(), 0) };
-		if unlikely!(result == MAP_FAILED)
-		{
-			return Err(io::Error::last_os_error())
-		}
-
-		Ok
-		(
-			MemoryMappedResource
-			{
-				pointer: unsafe { NonNull::new_unchecked(result as *mut u8) },
-				size,
-			}
-		)
+		pci_device.device_file_or_folder_path(&format!("resource{:?}", resource_index)).memory_map().map(|memory_mapped_file| MemoryMappedResource(memory_mapped_file))
 	}
 
 	/// A typical line might be `0x0000000000008200 0x000000000000823f 0x0000000000040101`.

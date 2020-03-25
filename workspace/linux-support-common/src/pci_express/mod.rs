@@ -54,10 +54,15 @@ use std::path::PathBuf;
 use std::str::Utf8Error;
 use std::borrow::Cow;
 use crate::pci_express::resources::Resources;
+use crate::pci_express::configuration_space::MemoryMappedConfigurationSpace;
 
 
 /// Classifications.
 pub mod classification;
+
+
+/// Configuration Space.
+pub mod configuration_space;
 
 
 /// Definitions.

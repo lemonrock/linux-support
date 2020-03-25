@@ -56,6 +56,9 @@ pub trait PathExt
 
 	/// Reads and parses a linux core or numa mask string from a file.
 	fn parse_linux_core_or_numa_bitmask(&self) -> Result<u32, io::Error>;
+
+	/// Memory map a file.
+	fn memory_map<'a>(&self) -> Result<MemoryMappedFile, io::Error>;
 }
 
 impl PathExt for Path
@@ -231,5 +234,36 @@ impl PathExt for Path
 		}
 
 		u32::from_str_radix(&without_line_feed, 16).map_err(|error| io::Error::new(ErrorKind::InvalidData, error))
+	}
+
+	#[inline(always)]
+	fn memory_map<'a>(&self) -> Result<MemoryMappedFile, io::Error>
+	{
+		let file = OpenOptions::new().read(true).write(true).open(self)?;
+
+		let size =
+		{
+			let metadata = file.metadata()?;
+			if !metadata.is_file()
+			{
+				return Err(io::Error::from(ErrorKind::Other))
+			}
+			metadata.len() as usize
+		};
+
+		let result = unsafe { mmap(null_mut(), size, PROT_READ | PROT_WRITE, MAP_SHARED, file.as_raw_fd(), 0) };
+		if unlikely!(result == MAP_FAILED)
+		{
+			return Err(io::Error::last_os_error())
+		}
+
+		Ok
+		(
+			MemoryMappedFile
+			{
+				pointer: unsafe { NonNull::new_unchecked(result as *mut u8) },
+				size,
+			}
+		)
 	}
 }

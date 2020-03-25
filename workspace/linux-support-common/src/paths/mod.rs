@@ -4,8 +4,17 @@
 
 use crate::cpu::*;
 use crate::huge_pages::HugePageSize;
+use crate::pci_express::PciDeviceAddress;
 use crate::strings::*;
+use errno::errno;
+use libc::c_void;
+use libc::MAP_FAILED;
+use libc::MAP_SHARED;
+use libc::mmap;
+use libc::munmap;
 use libc::pid_t;
+use libc::PROT_READ;
+use libc::PROT_WRITE;
 use likely::*;
 use num::Num;
 use serde::Deserialize;
@@ -26,14 +35,18 @@ use std::io::Write;
 use std::num::*;
 use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::PermissionsExt;
+use std::os::unix::io::AsRawFd;
 use std::path::*;
+use std::ptr::{NonNull, read_volatile, write_volatile};
+use std::ptr::null_mut;
 use std::str::*;
-use crate::pci_express::PciDeviceAddress;
+use static_assertions::_core::mem::align_of;
 
 
 include!("DevPath.rs");
 include!("IntoLineFeedTerminatedByteString.rs");
 include!("ListParseError.rs");
+include!("MemoryMappedFile.rs");
 include!("PathBufExt.rs");
 include!("PathExt.rs");
 include!("ProcessIdentifier.rs");

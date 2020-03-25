@@ -4,39 +4,15 @@
 
 /// A memory-mapped PCI resource.
 #[derive(Debug)]
-pub struct MemoryMappedResource
-{
-	/// Technically, this isn't true; `mmap()` could return a pointer of zero.
-	pointer: NonNull<u8>,
-	size: usize,
-}
+pub struct MemoryMappedResource(MemoryMappedFile);
 
-impl Drop for MemoryMappedResource
+impl Deref for MemoryMappedResource
 {
-	#[inline(always)]
-	fn drop(&mut self)
-	{
-		let result = unsafe { munmap(self.pointer.as_ptr() as *mut c_void, self.size) };
-		if likely!(result == 0)
-		{
-			return
-		}
-		else if likely!(result == -1)
-		{
-			panic!("munmap returned an error of {}", errno())
-		}
-		else
-		{
-			panic!("munmap() failed with an unexpected exit code of {:?}", result)
-		}
-	}
-}
+	type Target = MemoryMappedFile;
 
-impl MemoryMappedResource
-{
 	#[inline(always)]
-	fn pointer(&self) -> NonNull<u8>
+	fn deref(&self) -> &Self::Target
 	{
-		self.pointer
+		&self.0
 	}
 }
