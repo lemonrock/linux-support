@@ -41,15 +41,13 @@ impl<'a> NamespacesProcPath<'a>
 	#[inline(always)]
 	pub fn write_setgroups_permission(&self, child_process_identifier: NonZeroI32, set_groups_permission: SetGroupsPermission) -> io::Result<()>
 	{
-		let file_path = self.0.process_file_path(child_process_identifier, "setgroups");
-		file_path.write_value(set_groups_permission)
+		self.0.process_file_path(child_process_identifier, "setgroups").write_value(set_groups_permission)
 	}
 
 	#[inline(always)]
 	pub fn write_user_or_group_identifiers_map<U: UserOrGroupIdentifier>(&self, child_process_identifier: NonZeroI32, user_or_group_identifiers_map: &UserOrGroupIdentifierMap<U>) -> io::Result<()>
 	{
-		let file_path = self.0.process_file_path(child_process_identifier, U::FileName);
-		user_or_group_identifiers_map.write_to_map_file(&file_path)
+		self.0.process_file_path(child_process_identifier, U::FileName).write_to_map_file(&file_path)
 	}
 
 	#[inline(always)]
