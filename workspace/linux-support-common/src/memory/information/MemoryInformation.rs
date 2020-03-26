@@ -40,19 +40,6 @@ impl MemoryInformation
 		self.get_statistic(&MemoryInformationName::FreePhysicalRam)
 	}
 	
-	/// Default huge page size.
-	pub fn default_huge_page_size(&self) -> Option<HugePageSize>
-	{
-		if let Some(size_in_bytes) = self.get_statistic(&MemoryInformationName::SizeOfAHugePage)
-		{
-			HugePageSize::from_proc_mem_info_value(size_in_bytes)
-		}
-		else
-		{
-			None
-		}
-	}
-	
 	/// Used physical RAM in bytes.
 	#[inline]
 	pub fn used_physical_ram(&self) -> Option<u64>

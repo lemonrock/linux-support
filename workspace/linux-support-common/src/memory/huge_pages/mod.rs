@@ -17,10 +17,13 @@ use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::path::{Path, PathBuf};
+use crate::memory::information::{MemoryInformation, MemoryInformationName};
+use crate::memory::page_size;
 
 
 include!("adjust_transparent_huge_pages.rs");
 include!("DisableTransparentHugePagesError.rs");
+include!("DynamicHugePagePoolStatistics.rs");
 include!("HugePageSize.rs");
 include!("HugePagePoolStatistics.rs");
 include!("TransparentHugePageDefragmentationChoice.rs");

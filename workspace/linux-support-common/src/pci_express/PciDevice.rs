@@ -277,7 +277,7 @@ impl<'a> PciDevice<'a>
 	///
 	/// Panics if file unreadable.
 	#[inline(always)]
-	fn permitted_hyper_threads_bitmask(&self) -> u32
+	fn permitted_hyper_threads_bitmask(&self) -> HyperThreadBitmask
 	{
 		self.device_file_or_folder_path("local_cpus").parse_linux_core_or_numa_bitmask().expect("Could not parse local_cpulist")
 	}

@@ -3,24 +3,19 @@
 
 
 use crate::WarningsToSuppress;
-use crate::memory::huge_pages::{HugePageSize, HugePagePoolStatistics};
-use crate::memory::information::*;
+use crate::memory::numa::*;
 use crate::paths::*;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 use libc::*;
 use likely::*;
 use raw_cpuid::*;
 use std::collections::BTreeSet;
-use std::collections::HashMap;
-use std::convert::TryFrom;
 use std::io;
 use std::mem::size_of;
 use std::mem::zeroed;
-use std::num::TryFromIntError;
 use std::path::PathBuf;
 use std::str::FromStr;
 use crate::status::ProcessStatusStatistics;
-use std::borrow::Cow;
 use std::io::ErrorKind;
 
 
@@ -29,5 +24,3 @@ include!("CpuSet.rs");
 include!("HyperThread.rs");
 include!("HyperThreadBitmask.rs");
 include!("HyperThreadingStatus.rs");
-include!("NumaNode.rs");
-include!("NumaNodeBitmask.rs");

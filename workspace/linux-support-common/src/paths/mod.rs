@@ -3,6 +3,7 @@
 
 
 use crate::cpu::*;
+use crate::memory::numa::NumaNode;
 use crate::memory::huge_pages::HugePageSize;
 use crate::pci_express::PciDeviceAddress;
 use crate::strings::*;

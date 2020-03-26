@@ -26,6 +26,9 @@ pub mod huge_pages;
 /// Memory information.
 pub mod information;
 
+/// NUMA.
+pub mod numa;
+
 
 include!("HasVirtualAddress.rs");
 include!("page_size.rs");
@@ -38,27 +41,3 @@ include!("VirtualPageFrameNumber.rs");
 
 
 const DirectMemoyAccessMemoryAlignment: usize = 128;
-
-/*
--- Allocate DMA-friendly memory.
--- Return virtual memory pointer, physical address, and actual size.
-function dma_alloc (bytes,  align)
-   align = align or DirectMemoyAccessMemoryAlignment
-   assert(bytes <= huge_page_size)
-   -- Get current chunk of memory to allocate from
-   if #chunks == 0 then allocate_next_chunk() end
-   local chunk = chunks[#chunks]
-   -- Skip allocation forward pointer to suit alignment
-   chunk.used = lib.align(chunk.used, align)
-   -- Need a new chunk to service this allocation?
-   if chunk.used + bytes > chunk.size then
-      allocate_next_chunk()
-      chunk = chunks[#chunks]
-   end
-   -- Slice out the memory we need
-   local where = chunk.used
-   chunk.used = chunk.used + bytes
-   return chunk.pointer + where, chunk.physical + where, bytes
-end
-
-*/

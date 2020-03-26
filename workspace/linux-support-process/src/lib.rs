@@ -33,6 +33,7 @@ use linux_support_common::environment::*;
 use linux_support_common::linux_kernel_command_line::*;
 use linux_support_common::logging::*;
 use linux_support_common::memory::huge_pages::*;
+use linux_support_common::memory::numa::*;
 use linux_support_common::niceness::*;
 use linux_support_common::paths::*;
 use linux_support_common::personality::PersonalityFlags;

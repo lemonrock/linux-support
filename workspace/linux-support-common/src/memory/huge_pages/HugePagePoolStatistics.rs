@@ -10,6 +10,10 @@ pub struct HugePagePoolStatistics
 	///
 	/// Reducing this value converts the difference from `static` huge pages to `dynamic` huge pages.
 	///
+	/// Sometimes called `preallocated` huge pages.
+	///
+	/// Can be thought of as 'capacity'.
+	///
 	/// Found in `hugepages/hugepages-<huge_page_size>kB/nr_hugepages` for absolute paths:-
 	///
 	/// * `/sys/kernel/mm`;
@@ -20,18 +24,9 @@ pub struct HugePagePoolStatistics
 	/// Readable and writable.
 	pub static_pool_maximum_size: u64,
 
-	/// Maximum number of `surplus` (ie dynamic) huge pages, ie these are the number of pages that *could be* in the Kernel's huge page size pool for the associated Huge Page Size.
+	/// Number of static pages free.
 	///
-	/// `surplus` pages are created by coalescing (defragmenting) memory in the Kernel's ordinary (eg 4Kb on x86-64) page pool.
-	///
-	/// Found in `hugepages/hugepages-<huge_page_size>kB/nr_overcommit_hugepages` for absolute paths:-
-	///
-	/// * `/sys/kernel/mm`;
-	/// * `/sys/devices/system/node/node<numa_node>`.
-	///
-	/// Readable and writable.
-	pub dynamic_pool_maximum_size: u64,
-
+	/// Can be thought of as 'available'.
 	///
 	/// Found in `hugepages/hugepages-<huge_page_size>kB/free_hugepages` for absolute paths:-
 	///
@@ -39,19 +34,7 @@ pub struct HugePagePoolStatistics
 	/// * `/sys/devices/system/node/node<numa_node>`.
 	///
 	/// Readable only.
-	pub free: u64,
-
-	/// Number of `surplus` (ie dynamic) huge pages in use.
-	///
-	/// This value *can* exceed `self.maximum_surplus` *temporarily* if the value `self.maximum_static` has recently been reduced.
-	///
-	/// Found in `hugepages/hugepages-<huge_page_size>kB/surplus_hugepages` for absolute paths:-
-	///
-	/// * `/sys/kernel/mm`;
-	/// * `/sys/devices/system/node/node<numa_node>`.
-	///
-	/// Readable only.
-	pub number_of_dynamic_pages_in_use: u64,
+	pub number_of_static_pages_free: u64,
 
 	///
 	/// Found in `hugepages/hugepages-<huge_page_size>kB/resv_hugepages` for absolute paths:-
@@ -61,6 +44,9 @@ pub struct HugePagePoolStatistics
 	///
 	/// Readable only.
 	pub reserved: u64,
+
+	/// Dynamic huge page pool only exists if the huge page is *not* a gigantic huge page.
+	pub dynamic: DynamicHugePagePoolStatistics,
 
 	base_path: PathBuf,
 }
@@ -75,7 +61,14 @@ impl HugePagePoolStatistics
 	#[inline(always)]
 	pub fn maximum_number_of_huge_pages_possible(&self) -> u64
 	{
-		self.static_pool_maximum_size + self.dynamic_pool_maximum_size
+		self.static_pool_maximum_size + self.dynamic.dynamic_pool_maximum_size_and_number_of_dynamic_pages_in_use().0
+	}
+
+	/// Also known as 'surplus'.
+	#[inline(always)]
+	pub fn number_of_dynamic_pages_in_use(&self) -> u64
+	{
+		self.dynamic.dynamic_pool_maximum_size_and_number_of_dynamic_pages_in_use().1
 	}
 
 	#[inline(always)]
@@ -94,13 +87,25 @@ impl HugePagePoolStatistics
 		const SurpulusHugePagesFileName: &'static str = "surplus_hugepages";
 		const ReservedHugePagesFileName: &'static str = "resv_hugepages";
 
+		use self::DynamicHugePagePoolStatistics::*;
+
 		Self
 		{
 			static_pool_maximum_size: read(base_path_ref, Self::NumberOfHugePagesFileName),
-			dynamic_pool_maximum_size: read(base_path_ref, Self::NumberOfOvercommitHugePagesFileName),
-			free: read(base_path_ref, FreeHugePagesFileName),
-			number_of_dynamic_pages_in_use: read(base_path_ref, SurpulusHugePagesFileName),
+			number_of_static_pages_free: read(base_path_ref, FreeHugePagesFileName),
 			reserved: read(base_path_ref, ReservedHugePagesFileName),
+			dynamic: if huge_page_size.is_a_gigantic_huge_page()
+			{
+				GiganticPageDoesNotHaveADynamicHugePagePagePool
+			}
+			else
+			{
+				DynamicHugePagePagePool
+				{
+					dynamic_pool_maximum_size: read(base_path_ref, Self::NumberOfOvercommitHugePagesFileName),
+					number_of_dynamic_pages_in_use: read(base_path_ref, SurpulusHugePagesFileName),
+				}
+			},
 			base_path,
 		}
 	}
@@ -115,12 +120,21 @@ impl HugePagePoolStatistics
 	}
 
 	/// Will only work as root.
+	///
+	/// Ignored for gigantic pages.
 	#[inline(always)]
 	pub fn change_dynamic_pool_maximum_size(self, maximum_size: u64)
 	{
 		assert_effective_user_id_is_root(&format!("change_dynamic_pool_maximum_size number_of_huge_pages '{:?}'", maximum_size));
 
-		self.write(Self::NumberOfOvercommitHugePagesFileName, maximum_size)
+		use self::DynamicHugePagePoolStatistics::*;
+
+		match self.dynamic
+		{
+			DynamicHugePagePagePool { .. } => self.write(Self::NumberOfOvercommitHugePagesFileName, maximum_size),
+			_ => (),
+		}
+
 	}
 
 	#[inline(always)]

@@ -56,12 +56,22 @@ pub enum MemoryInformationName
 	UsedVirtualAddressSpaceEgByMalloc,
 	LargestContiguousChunkInVirtualAddressSpaceEgByMalloc,
 	
-	/// The number is derived by dividing `SizeOfAHugePage` by the megabytes set aside for `hugepages` specified in `/proc/sys/vm/hugetlb_pool`.
+	/// The number is derived by dividing `SizeOfDefaultHugePage` by the megabytes set aside for `hugepages` specified in `/proc/sys/vm/hugetlb_pool`.
+	///
+	/// It only applies for the default page size.
 	TotalNumberOfHugePages,
+
+	/// Number of free static huge pages for default page size.
 	FreeNumberOfHugePages,
+
+	/// Number of reserved static huge pages for default page size.
 	ReservedNumberOfHugePages,
+
+	/// Number of dynamic huge pages in use for default page size.
 	SurplusNumberOfHugePages,
-	SizeOfAHugePage,
+
+	SizeOfDefaultHugePage,
+
 	/// Not mapped using `tlbfs`.
 	TransparentHugePagesMemoryUsage,
 	DirectMap4k,
@@ -142,7 +152,7 @@ impl MemoryInformationName
 			b"HugePages_Free" => FreeNumberOfHugePages,
 			b"HugePages_Rsvd" => ReservedNumberOfHugePages,
 			b"HugePages_Surp" => SurplusNumberOfHugePages,
-			b"Hugepagesize" => SizeOfAHugePage,
+			b"Hugepagesize" => SizeOfDefaultHugePage,
 			b"AnonHugePages" => TransparentHugePagesMemoryUsage,
 			b"DirectMap4k" => DirectMap4k,
 			b"DirectMap2M" => DirectMap2M,

@@ -56,6 +56,23 @@ impl HugePageSize
 		HugePageSize::_2MB,
 		HugePageSize::_1MB,
 	];
+
+	/// Is this considered a gigantic huge page?
+	#[inline(always)]
+	pub fn can_have_a_dynamic_huge_page_pool(self) -> bool
+	{
+		!self.is_a_gigantic_huge_page()
+	}
+
+	/// Is this considered a gigantic huge page?
+	#[inline(always)]
+	pub fn is_a_gigantic_huge_page(self) -> bool
+	{
+		const Scalar: u64 = 2048;
+
+		let minimum_gigantic_huge_page = (page_size() as u64) * Scalar;
+		self.size_in_bytes() >= minimum_gigantic_huge_page
+	}
 	
 	/// Size in mega bytes.
 	#[inline(always)]
@@ -155,6 +172,38 @@ impl HugePageSize
 		}
 	}
 
+	/// Default huge page size.
+	///
+	/// Usually 2Mb on x86-64 (but controlled by kernel command line options).
+	#[inline(always)]
+	pub fn default_huge_page_size(memory_information: &MemoryInformation) -> Option<Self>
+	{
+		if let Some(size_in_bytes) = memory_information.get_statistic(&MemoryInformationName::SizeOfDefaultHugePage)
+		{
+			Self::from_proc_mem_info_value(size_in_bytes)
+		}
+		else
+		{
+			None
+		}
+	}
+
+	/// May be absent on some Kernels.
+	#[inline(always)]
+	pub fn transparent_huge_page_size(sys_path: &SysPath) -> Option<Self>
+	{
+		let file_path = sys_path.transparent_huge_memory_file_path("hpage_pmd_size");
+		if file_path.exists()
+		{
+			let value: u64 = file_path.read_value().unwrap();
+			Self::from_proc_mem_info_value(value)
+		}
+		else
+		{
+			None
+		}
+	}
+
 	/// Largest supported huge page size.
 	#[inline(always)]
 	pub fn largest_supported_huge_page_size(sys_path: &SysPath) -> Self
@@ -164,7 +213,13 @@ impl HugePageSize
 	
 	/// Supported huge page sizes, sorted smallest to largest.
 	///
-	/// In theory (but unlikely in practice) could be empty; on modern x86-64, will contain 1Gb and 2Mb huge page sizes.
+	/// There may be no huge pages because:-
+	///
+	/// * The folder `/sys/kernel/mm/hugepages` does not exist (I have seen this on Alpine Linux 3.11 running the 'linux-lts' kernel on a Parallels Hypervisor).
+	/// * The architecture only has huge pages we do not support (extremely unlikely).
+	/// * We are on an ancient CPU that does not have huge pages (extremely unlikely).
+	///
+	/// On modern x86-64 from Sandy Bridge onwards, will contain 1Gb and 2Mb huge page sizes.
 	#[inline(always)]
 	pub fn supported_huge_page_sizes(sys_path: &SysPath) -> BTreeSet<Self>
 	{

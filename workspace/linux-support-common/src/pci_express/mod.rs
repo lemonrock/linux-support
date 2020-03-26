@@ -5,10 +5,13 @@
 use crate::paths::*;
 use crate::cpu::*;
 use crate::linux_kernel_modules::*;
-use crate::pci_express::classification::subclasses::NetworkController;
+use crate::memory::numa::NumaNode;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 use self::classification::*;
+use self::classification::subclasses::NetworkController;
+use self::configuration_space::MemoryMappedConfigurationSpace;
 use self::link::*;
+use self::resources::Resources;
 use errno::errno;
 use file_descriptors::RawFdExt;
 use libc::c_void;
@@ -53,8 +56,6 @@ use std::os::unix::io::*;
 use std::path::PathBuf;
 use std::str::Utf8Error;
 use std::borrow::Cow;
-use crate::pci_express::resources::Resources;
-use crate::pci_express::configuration_space::MemoryMappedConfigurationSpace;
 
 
 /// Classifications.

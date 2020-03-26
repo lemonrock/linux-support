@@ -50,10 +50,10 @@ impl TransparentHugePageRegularMemoryChoice
 	/// The value of `self` can also be specified in the Linux kernel command line parameters as one of "transparent_hugepage=never", "transparent_hugepage=always" or "transparent_hugepage=madvise".
 	pub fn change_transparent_huge_pages_usage(self, sys_path: &SysPath, transparent_huge_page_shared_memory_choice: TransparentHugePageSharedMemoryChoice, use_zero_page: bool) -> io::Result<()>
 	{
-		sys_path.global_transparent_huge_memory_file_path("use_zero_page").write_value(use_zero_page)?;
+		sys_path.transparent_huge_memory_file_path("use_zero_page").write_value(use_zero_page)?;
 
 		transparent_huge_page_shared_memory_choice.change_transparent_huge_pages_usage(sys_path)?;
 
-		sys_path.global_transparent_huge_memory_file_path("enabled").write_value(self.to_value())
+		sys_path.transparent_huge_memory_file_path("enabled").write_value(self.to_value())
 	}
 }

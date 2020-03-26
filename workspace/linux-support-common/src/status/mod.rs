@@ -3,6 +3,7 @@
 
 
 use crate::cpu::*;
+use crate::memory::numa::*;
 use crate::paths::*;
 use crate::strings::*;
 use libc::*;

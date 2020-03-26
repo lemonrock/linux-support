@@ -88,12 +88,12 @@ impl SysPath
 	#[inline(always)]
 	pub(crate) fn khugepaged_file_path(&self, file_name: &str) -> PathBuf
 	{
-		self.global_transparent_huge_memory_file_path("khugepaged").append(file_name)
+		self.transparent_huge_memory_file_path("khugepaged").append(file_name)
 	}
 
 	/// `/sys/kernel/mm/transparent_hugepage/<file_name>`
 	#[inline(always)]
-	pub(crate) fn global_transparent_huge_memory_file_path(&self, file_name: &str) -> PathBuf
+	pub(crate) fn transparent_huge_memory_file_path(&self, file_name: &str) -> PathBuf
 	{
 		self.global_memory_folder_path().append("transparent_hugepage").append(file_name)
 	}

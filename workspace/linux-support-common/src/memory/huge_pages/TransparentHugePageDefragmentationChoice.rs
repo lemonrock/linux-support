@@ -76,7 +76,7 @@ impl TransparentHugePageDefragmentationChoice
 		sys_path.khugepaged_file_path("max_ptes_none").write_value(how_many_extra_small_pages_not_already_mapped_can_be_allocated_when_collapsing_small_pages)?;
 		sys_path.khugepaged_file_path("max_ptes_swap").write_value(how_many_extra_small_pages_not_already_mapped_can_be_swapped_when_collapsing_small_pages)?;
 		sys_path.khugepaged_file_path("defrag").write_value(self.defrag_value())?;
-		sys_path.global_transparent_huge_memory_file_path("defrag").write_value(self.to_value())?;
+		sys_path.transparent_huge_memory_file_path("defrag").write_value(self.to_value())?;
 		Ok(())
 	}
 }

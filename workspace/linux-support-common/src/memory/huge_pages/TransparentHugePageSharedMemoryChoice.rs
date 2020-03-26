@@ -68,6 +68,6 @@ impl TransparentHugePageSharedMemoryChoice
 	#[inline(always)]
 	pub(crate) fn change_transparent_huge_pages_usage(self, sys_path: &SysPath) -> io::Result<()>
 	{
-		sys_path.global_transparent_huge_memory_file_path("shmem_enabled").write_value(self.to_value())
+		sys_path.transparent_huge_memory_file_path("shmem_enabled").write_value(self.to_value())
 	}
 }
