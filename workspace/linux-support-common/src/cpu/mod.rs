@@ -3,8 +3,8 @@
 
 
 use crate::WarningsToSuppress;
-use crate::huge_pages::HugePageSize;
-use crate::memory_information::*;
+use crate::memory::huge_pages::HugePageSize;
+use crate::memory::information::*;
 use crate::paths::*;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 use libc::*;

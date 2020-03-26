@@ -3,7 +3,7 @@
 
 
 use crate::cpu::*;
-use crate::huge_pages::HugePageSize;
+use crate::memory::huge_pages::HugePageSize;
 use crate::pci_express::PciDeviceAddress;
 use crate::strings::*;
 use errno::errno;

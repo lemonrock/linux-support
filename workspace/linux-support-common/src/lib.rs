@@ -53,10 +53,6 @@ pub mod environment;
 pub mod file_systems;
 
 
-/// Huge Pages.
-pub mod huge_pages;
-
-
 /// Inode.
 pub mod inode;
 
@@ -73,12 +69,8 @@ pub mod linux_kernel_modules;
 pub mod logging;
 
 
-/// Memory Information.
-pub mod memory_information;
-
-
-/// Memory layout
-pub mod memory_layout;
+/// Memory
+pub mod memory;
 
 
 /// Mounts.

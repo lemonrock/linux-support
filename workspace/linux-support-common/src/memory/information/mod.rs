@@ -2,8 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::huge_pages::HugePageSize;
 use crate::paths::*;
+use super::huge_pages::HugePageSize;
 use std::collections::HashMap;
 use crate::strings::splitn;
 use std::error;

@@ -20,6 +20,13 @@ use std::path::Path;
 use std::ptr::NonNull;
 
 
+/// Huge Pages.
+pub mod huge_pages;
+
+/// Memory information.
+pub mod information;
+
+
 include!("HasVirtualAddress.rs");
 include!("page_size.rs");
 include!("PageMap.rs");
