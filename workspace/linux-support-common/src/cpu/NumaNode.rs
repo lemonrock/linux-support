@@ -186,53 +186,13 @@ impl NumaNode
 		Self::parse_list_mask(sys_path, "has_cpu")
 	}
 
-	/// Try to unreserve (clear reservations of) huge pages.
-	///
-	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
-	///
-	/// Will only work as root.
-	#[inline(always)]
-	pub fn unreserve_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize)
-	{
-		huge_page_size.unreserve_numa_huge_pages(sys_path, self)
-	}
-
-	/// Try to reserve huge pages.
-	///
-	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
-	///
-	/// Will only work as root.
-	#[inline(always)]
-	pub fn reserve_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize, number_to_try_to_reserve: u64)
-	{
-		huge_page_size.reserve_numa_huge_pages(sys_path, self, number_to_try_to_reserve)
-	}
-
-	/// Read number of huge pages of `huge_page_size` size.
+	/// Huge page pool statistics.
 	///
 	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
 	#[inline(always)]
-	pub fn number_of_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> u64
+	pub fn huge_page_pool_statistics(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> HugePagePoolStatistics
 	{
-		huge_page_size.number_of_numa_huge_pages(sys_path, self)
-	}
-
-	/// Read number of free huge pages of `huge_page_size` size.
-	///
-	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
-	#[inline(always)]
-	pub fn number_of_free_global_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> u64
-	{
-		huge_page_size.number_of_free_numa_huge_pages(sys_path, self)
-	}
-
-	/// Read number of surplus huge pages of `huge_page_size` size.
-	///
-	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
-	#[inline(always)]
-	pub fn number_of_surplus_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> u64
-	{
-		huge_page_size.number_of_surplus_numa_huge_pages(sys_path, self)
+		HugePagePoolStatistics::new(sys_path, huge_page_size, |sys_path, huge_page_size| sys_path.numa_node_hugepages_folder_path(huge_page_size, self))
 	}
 
 	/// Tries to compact pages for this NUMA node.

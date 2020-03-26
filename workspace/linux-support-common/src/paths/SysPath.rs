@@ -55,11 +55,11 @@ impl SysPath
 		self.workqueue_virtual_devices_folder_path().append(file_name)
 	}
 
-	/// `/sys/devices/system/node/node<numa_node>/hugepages/hugepages-<huge_page_size>kB/<file_name>`
+	/// `/sys/devices/system/node/node<numa_node>/hugepages/hugepages-<huge_page_size>kB`
 	#[inline(always)]
-	pub(crate) fn numa_node_hugepages_file_path(&self, huge_page_size: HugePageSize, numa_node: NumaNode, file_name: &str) -> PathBuf
+	pub(crate) fn numa_node_hugepages_folder_path(&self, huge_page_size: HugePageSize, numa_node: NumaNode) -> PathBuf
 	{
-		Self::hugepages_file_path(self.numa_node_folder_path(numa_node), huge_page_size, file_name)
+		Self::hugepages_folder_path(self.numa_node_folder_path(numa_node), huge_page_size)
 	}
 
 	/// `/sys/devices/system/node/node<numa_node>/<file_name>`
@@ -98,18 +98,11 @@ impl SysPath
 		self.global_memory_folder_path().append("transparent_hugepage").append(file_name)
 	}
 
-	/// `/sys/kernel/mm/hugepages/hugepages-<huge_page_size>kB/<file_name>`
+	/// `/sys/kernel/mm/hugepages/hugepages-<huge_page_size>kB`
 	#[inline(always)]
-	pub(crate) fn global_hugepages_file_path(&self, huge_page_size: HugePageSize, file_name: &str) -> PathBuf
+	pub(crate) fn global_hugepages_folder_path(&self, huge_page_size: HugePageSize) -> PathBuf
 	{
-		Self::hugepages_file_path(self.global_memory_folder_path(), huge_page_size, file_name)
-	}
-
-	/// `hugepages/hugepages-<huge_page_size>kB/<file_name>`
-	#[inline(always)]
-	fn hugepages_file_path(folder_path: PathBuf, huge_page_size: HugePageSize, file_name: &str) -> PathBuf
-	{
-		folder_path.append("hugepages").append(format!("hugepages-{}kB", huge_page_size.size_in_kilo_bytes())).append(file_name)
+		Self::hugepages_folder_path(self.global_memory_folder_path(), huge_page_size)
 	}
 
 	/// `/sys/devices/system/node`.
@@ -229,5 +222,12 @@ impl SysPath
 	fn path(&self) -> PathBuf
 	{
 		self.0.to_owned()
+	}
+
+	/// `hugepages/hugepages-<huge_page_size>kB`
+	#[inline(always)]
+	fn hugepages_folder_path(folder_path: PathBuf, huge_page_size: HugePageSize) -> PathBuf
+	{
+		folder_path.append("hugepages").append(format!("hugepages-{}kB", huge_page_size.size_in_kilo_bytes()))
 	}
 }
