@@ -62,18 +62,37 @@ impl Into<usize> for HyperThread
 
 impl HyperThread
 {
-	/// This is *unreliable*; it reports `false` on a test virtual machine.
+	/// This is *unreliable*:
+	///
+	/// * it reports `false` on a test virtual machine;
+	/// * it is absent on some machines.
 	#[inline(always)]
-	pub fn is_hyper_threading_active(sys_path: &SysPath) -> bool
+	pub fn is_hyper_threading_active(sys_path: &SysPath) -> Option<bool>
 	{
-		sys_path.hyper_thread_smt_file_path("active").read_zero_or_one_bool().unwrap()
+		let file_path = sys_path.hyper_thread_smt_file_path("active");
+		if file_path.exists()
+		{
+			Some(file_path.read_zero_or_one_bool().unwrap())
+		}
+		else
+		{
+			None
+		}
 	}
 
-	/// This is much more reliable that `is_hyper_threading_active()`.
+	/// This is much more reliable that `is_hyper_threading_active()` but may still be absent.
 	#[inline(always)]
-	pub fn hyper_threading_control(sys_path: &SysPath) -> HyperThreadingStatus
+	pub fn hyper_threading_control(sys_path: &SysPath) -> Option<HyperThreadingStatus>
 	{
-		HyperThread::smt_control_file_path(sys_path).read_value().unwrap()
+		let file_path = HyperThread::smt_control_file_path(sys_path);
+		if file_path.exists()
+		{
+			Some(file_path.read_value().unwrap())
+		}
+		else
+		{
+			None
+		}
 	}
 
 	#[inline(always)]
@@ -94,7 +113,7 @@ impl HyperThread
 			Off =>
 			{
 				Self::smt_control_file_path(sys_path).write_value(b"on\n" as &[u8]).unwrap();
-				Self::hyper_threading_control(sys_path)
+				Self::hyper_threading_control(sys_path).unwrap()
 			}
 		}
 	}
@@ -111,7 +130,7 @@ impl HyperThread
 			On =>
 			{
 				Self::smt_control_file_path(sys_path).write_value(b"off\n" as &[u8]).unwrap();
-				Self::hyper_threading_control(sys_path)
+				Self::hyper_threading_control(sys_path).unwrap()
 			}
 		}
 	}

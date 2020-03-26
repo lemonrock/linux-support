@@ -182,17 +182,19 @@ impl ProcessConfiguration
 	}
 
 	#[inline(always)]
-	fn enable_or_disable_hyper_threading(&self) -> HyperThreadingStatus
+	fn enable_or_disable_hyper_threading(&self)
 	{
-		let current_status = HyperThread::hyper_threading_control(self.sys_path());
-		if self.disable_hyper_threading
+		HyperThread::hyper_threading_control(self.sys_path()).map(|current_status|
 		{
-			HyperThread::try_to_disable_hyper_threading(self.sys_path(), current_status)
-		}
-		else
-		{
-			HyperThread::try_to_enable_hyper_threading(self.sys_path(), current_status)
-		}
+		   if self.disable_hyper_threading
+		   {
+			   HyperThread::try_to_disable_hyper_threading(self.sys_path(), current_status)
+		   }
+		   else
+		   {
+			   HyperThread::try_to_enable_hyper_threading(self.sys_path(), current_status)
+		   }
+		});
 	}
 
 	#[inline(always)]
