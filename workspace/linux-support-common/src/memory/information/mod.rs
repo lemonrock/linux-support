@@ -22,6 +22,8 @@ use std::str::from_utf8;
 use std::str::Utf8Error;
 
 
-include!("MemoryInformation.rs");include!("MemoryInformationName.rs");include!("MemoryInformationParseError.rs");
+include!("MemoryInformation.rs");
+include!("MemoryInformationName.rs");
+include!("MemoryInformationParseError.rs");
 include!("MemoryInformationUnit.rs");
 include!("VirtualMemoryStatisticName.rs");
