@@ -21,11 +21,13 @@ use std::path::PathBuf;
 use std::str::FromStr;
 use crate::status::ProcessStatusStatistics;
 use std::borrow::Cow;
+use std::io::ErrorKind;
 
 
 include!("CpuFeatures.rs");
 include!("CpuSet.rs");
 include!("HyperThread.rs");
 include!("HyperThreadBitmask.rs");
+include!("HyperThreadingStatus.rs");
 include!("NumaNode.rs");
 include!("NumaNodeBitmask.rs");

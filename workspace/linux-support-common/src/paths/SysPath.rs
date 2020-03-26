@@ -19,23 +19,14 @@ impl Default for SysPath
 
 impl SysPath
 {
-	/// A path about all hyper threads.
+	/// `/sys/devices/system/cpu/cpu<hyper_thread>/<file_name>`.
 	#[inline(always)]
-	pub(crate) fn hyper_threads_folder_path(&self, file_name: &str) -> PathBuf
-	{
-		self.cpu_system_devices_folder_path().append(file_name)
-	}
-
-	/// A hyper thread file.
-	#[inline(always)]
-	pub(crate) fn hyper_thread_path(&self, hyper_thread: HyperThread, file_name: &str) -> PathBuf
+	pub(crate) fn hyper_thread_file_path(&self, hyper_thread: HyperThread, file_name: &str) -> PathBuf
 	{
 		self.hyper_thread_folder_path(hyper_thread).append(file_name)
 	}
 
-	/// Hyper thread folder path.
-	///
-	/// Look at `HyperThread` for functions that use this.
+	/// `/sys/devices/system/cpu/cpu<hyper_thread>`.
 	#[inline(always)]
 	pub(crate) fn hyper_thread_folder_path(&self, hyper_thread: HyperThread) -> PathBuf
 	{
@@ -43,29 +34,42 @@ impl SysPath
 		self.hyper_threads_folder_path(&format!("cpu{}", into))
 	}
 
-	/// Workqueue file path.
+	/// `/sys/devices/system/cpu/smt/<file_name>`.
 	#[inline(always)]
-	pub(crate) fn hyper_thread_workqueue_file_path(&self, file_name: &str) -> PathBuf
+	pub(crate) fn hyper_thread_smt_file_path(&self, file_name: &str) -> PathBuf
+	{
+		self.hyper_threads_folder_path("smt").append(file_name)
+	}
+
+	/// `/sys/devices/system/cpu/<file_name>`.
+	#[inline(always)]
+	pub(crate) fn hyper_threads_folder_path(&self, file_name: &str) -> PathBuf
+	{
+		self.cpu_system_devices_folder_path().append(file_name)
+	}
+
+	/// `/sys/devices/virtual/workqueue/<file_name>`.
+	#[inline(always)]
+	pub(crate) fn hyper_thread_work_queue_file_path(&self, file_name: &str) -> PathBuf
 	{
 		self.workqueue_virtual_devices_folder_path().append(file_name)
 	}
 
+	/// `/sys/devices/system/node/node<numa_node>/hugepages/hugepages-<huge_page_size>kB/<file_name>`
 	#[inline(always)]
-	pub(crate) fn numa_hugepages_file_path(&self, huge_page_size: HugePageSize, numa_node: NumaNode, file_name: &str) -> PathBuf
+	pub(crate) fn numa_node_hugepages_file_path(&self, huge_page_size: HugePageSize, numa_node: NumaNode, file_name: &str) -> PathBuf
 	{
 		Self::hugepages_file_path(self.numa_node_folder_path(numa_node), huge_page_size, file_name)
 	}
 
-	/// A NUMA node file.
+	/// `/sys/devices/system/node/node<numa_node>/<file_name>`
 	#[inline(always)]
-	pub(crate) fn numa_node_path(&self, numa_node: NumaNode, file_name: &str) -> PathBuf
+	pub(crate) fn numa_node_file_path(&self, numa_node: NumaNode, file_name: &str) -> PathBuf
 	{
 		self.numa_node_folder_path(numa_node).append(file_name)
 	}
 
-	/// NUMA node folder path.
-	///
-	/// Look at `NumaNode` for functions that use this.
+	/// `/sys/devices/system/node/node<numa_node>`
 	#[inline(always)]
 	pub(crate) fn numa_node_folder_path(&self, numa_node: NumaNode) -> PathBuf
 	{
@@ -73,37 +77,35 @@ impl SysPath
 		self.numa_nodes_path(&format!("node{}", into))
 	}
 
-	/// A path about all NUMA nodes.
+	/// `/sys/devices/system/node/<file_name>`
 	#[inline(always)]
 	pub(crate) fn numa_nodes_path(&self, file_name: &str) -> PathBuf
 	{
 		self.numa_nodes_folder_path().append(file_name)
 	}
 
+	/// `/sys/kernel/mm/khugepaged/<file_name>`
 	#[inline(always)]
 	pub(crate) fn khugepaged_file_path(&self, file_name: &str) -> PathBuf
 	{
 		self.global_transparent_huge_memory_file_path("khugepaged").append(file_name)
 	}
 
+	/// `/sys/kernel/mm/transparent_hugepage/<file_name>`
 	#[inline(always)]
 	pub(crate) fn global_transparent_huge_memory_file_path(&self, file_name: &str) -> PathBuf
 	{
 		self.global_memory_folder_path().append("transparent_hugepage").append(file_name)
 	}
 
-	#[inline(always)]
-	pub(crate) fn read_global_hugepages_value(&self, huge_page_size: HugePageSize, file_name: &str) -> io::Result<u64>
-	{
-		self.global_hugepages_file_path(huge_page_size, file_name).read_value()
-	}
-
+	/// `/sys/kernel/mm/hugepages/hugepages-<huge_page_size>kB/<file_name>`
 	#[inline(always)]
 	pub(crate) fn global_hugepages_file_path(&self, huge_page_size: HugePageSize, file_name: &str) -> PathBuf
 	{
 		Self::hugepages_file_path(self.global_memory_folder_path(), huge_page_size, file_name)
 	}
 
+	/// `hugepages/hugepages-<huge_page_size>kB/<file_name>`
 	#[inline(always)]
 	fn hugepages_file_path(folder_path: PathBuf, huge_page_size: HugePageSize, file_name: &str) -> PathBuf
 	{

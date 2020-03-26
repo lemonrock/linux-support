@@ -62,6 +62,60 @@ impl Into<usize> for HyperThread
 
 impl HyperThread
 {
+	/// This is *unreliable*; it reports `false` on a test virtual machine.
+	#[inline(always)]
+	pub fn is_hyper_threading_active(sys_path: &SysPath) -> bool
+	{
+		sys_path.hyper_thread_smt_file_path("active").read_zero_or_one_bool().unwrap()
+	}
+
+	/// This is much more reliable that `is_hyper_threading_active()`.
+	#[inline(always)]
+	pub fn hyper_threading_control(sys_path: &SysPath) -> HyperThreadingStatus
+	{
+		HyperThread::smt_control_file_path(sys_path).read_value().unwrap()
+	}
+
+	#[inline(always)]
+	fn smt_control_file_path(sys_path: &SysPath) -> PathBuf
+	{
+		sys_path.hyper_thread_smt_file_path("control")
+	}
+
+	/// Try to enable hyper threading.
+	#[inline(always)]
+	pub fn try_to_enable_hyper_threading(sys_path: &SysPath, current_status: HyperThreadingStatus) -> HyperThreadingStatus
+	{
+		use self::HyperThreadingStatus::*;
+
+		match current_status
+		{
+			On | ForceOff | NotSupported | NotImplemented => current_status,
+			Off =>
+			{
+				Self::smt_control_file_path(sys_path).write_value(b"on\n" as &[u8]).unwrap();
+				Self::hyper_threading_control(sys_path)
+			}
+		}
+	}
+
+	/// Try to enable disable threading.
+	#[inline(always)]
+	pub fn try_to_disable_hyper_threading(sys_path: &SysPath, current_status: HyperThreadingStatus) -> HyperThreadingStatus
+	{
+		use self::HyperThreadingStatus::*;
+
+		match current_status
+		{
+			Off | ForceOff | NotSupported | NotImplemented => current_status,
+			On =>
+			{
+				Self::smt_control_file_path(sys_path).write_value(b"off\n" as &[u8]).unwrap();
+				Self::hyper_threading_control(sys_path)
+			}
+		}
+	}
+
 	/// Reads the hyper thread and NUMA node of the currently executing CPU from the `IA32_TSC_AUX` model state register, which Linux populates.
 	///
 	/// Currently uses the `RDTSCP` instruction, but, once Ice Lake is widely available, could be changed to use the `RDPID` instruction.
@@ -144,8 +198,8 @@ impl HyperThread
 	{
 		let mask = Self::hyper_threads_to_mask(hyper_threads);
 
-		sys_path.hyper_thread_workqueue_file_path("cpumask").write_value(&mask)?;
-		sys_path.hyper_thread_workqueue_file_path("writeback/cpumask").write_value(&mask)
+		sys_path.hyper_thread_work_queue_file_path("cpumask").write_value(&mask)?;
+		sys_path.hyper_thread_work_queue_file_path("writeback/cpumask").write_value(&mask)
 	}
 
 	/// We ignore failures as the `/proc` for this is brittle.
@@ -288,7 +342,7 @@ impl HyperThread
 	#[inline(always)]
 	fn online_file_path(self, sys_path: &SysPath) -> PathBuf
 	{
-		sys_path.hyper_thread_path(self, "online")
+		sys_path.hyper_thread_file_path(self, "online")
 	}
 
 	/// Hyper threaded logical cores that are siblings of this one.
@@ -299,7 +353,7 @@ impl HyperThread
 	#[inline(always)]
 	pub fn siblings(self, sys_path: &SysPath) -> BTreeSet<Self>
 	{
-		sys_path.hyper_thread_path(self, "topology/core_siblings_list").read_linux_core_or_numa_list(|value_u16| Ok(Self(value_u16))).unwrap()
+		sys_path.hyper_thread_file_path(self, "topology/core_siblings_list").read_linux_core_or_numa_list(|value_u16| Ok(Self(value_u16))).unwrap()
 	}
 
 	/// Hyper threaded logical cores that are hyper-thread-siblings of this one.
@@ -312,7 +366,7 @@ impl HyperThread
 	#[inline(always)]
 	pub fn thread_siblings(self, sys_path: &SysPath) -> BTreeSet<Self>
 	{
-		sys_path.hyper_thread_path(self, "topology/thread_siblings_list").read_linux_core_or_numa_list(|value_u16| Ok(Self(value_u16))).unwrap()
+		sys_path.hyper_thread_file_path(self, "topology/thread_siblings_list").read_linux_core_or_numa_list(|value_u16| Ok(Self(value_u16))).unwrap()
 	}
 
 	/// Hyper threaded logical cores grouped as hyper thread groups (eg HT 0 and 1, 2 and 3, etc).
@@ -330,9 +384,9 @@ impl HyperThread
 
 	/// Tries to find this hyper thread's NUMA node, if this is a NUMA machine.
 	#[inline(always)]
-	pub fn numa_node(self, sys_path: &SysPath) -> Option<u8>
+	pub fn numa_node(self, sys_path: &SysPath) -> Option<NumaNode>
 	{
-		match sys_path.hyper_thread_path(self, "node").canonicalize()
+		match sys_path.hyper_thread_file_path(self, "node").canonicalize()
 		{
 			Err(_) => None,
 			Ok(canonical) => match canonical.file_name()
@@ -343,7 +397,7 @@ impl HyperThread
 					None => None,
 					Some(file_name) => if file_name.starts_with("node")
 					{
-						u8::from_str(&file_name[ ("node".len()) .. ]).ok()
+						Some(NumaNode::from(u8::from_str(&file_name[ ("node".len()) .. ]).unwrap()))
 					}
 					else
 					{
@@ -364,7 +418,7 @@ impl HyperThread
 	#[inline(always)]
 	pub fn level1_cache_hyper_thread_siblings_including_self(self, sys_path: &SysPath) -> BTreeSet<Self>
 	{
-		sys_path.hyper_thread_path(self, "cache/index0/shared_cpu_list").read_linux_core_or_numa_list(|value_u16| Ok(Self(value_u16))).unwrap()
+		sys_path.hyper_thread_file_path(self, "cache/index0/shared_cpu_list").read_linux_core_or_numa_list(|value_u16| Ok(Self(value_u16))).unwrap()
 	}
 
 	/// Hyper threaded logical cores that are thread-siblings of this one according to the level 1 cache.
@@ -386,7 +440,7 @@ impl HyperThread
 	#[inline(always)]
 	pub fn underlying_hardware_physical_core_identifier(self, sys_path: &SysPath) -> io::Result<u16>
 	{
-		sys_path.hyper_thread_path(self, "topology/core_id").read_value()
+		sys_path.hyper_thread_file_path(self, "topology/core_id").read_value()
 	}
 
 	/// Underlying hardware, not Linux, socket identifier.
@@ -395,7 +449,7 @@ impl HyperThread
 	#[inline(always)]
 	pub fn underlying_hardware_physical_socket_identifier(self, sys_path: &SysPath) -> io::Result<u16>
 	{
-		sys_path.hyper_thread_path(self, "topology/physical_package_id").read_value()
+		sys_path.hyper_thread_file_path(self, "topology/physical_package_id").read_value()
 	}
 
 	/// Simply reports the maximum *identifier* that could be used by the Linux kernel upto the `CONFIG_` number of CPUs.

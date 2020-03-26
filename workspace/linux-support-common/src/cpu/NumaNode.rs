@@ -142,6 +142,8 @@ impl NumaNode
 
 	/// NUMA nodes that could possibly be online at some point.
 	///
+	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
+	///
 	/// Not reliable, as includes NUMA nodes that can never be brought online; simply reports the number that could be used by the Linux kernel upto the `CONFIG_` number of CPUs.
 	///
 	/// Consider using libnuma-backed `valid_numa_nodes()` instead of this call.
@@ -153,6 +155,8 @@ impl NumaNode
 
 	/// NUMA nodes that are online at some point.
 	///
+	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
+	///
 	/// Consider using libnuma-backed `valid_numa_nodes()` instead of this call.
 	#[inline(always)]
 	pub fn online(sys_path: &SysPath) -> Option<BTreeSet<Self>>
@@ -161,6 +165,8 @@ impl NumaNode
 	}
 
 	/// NUMA nodes that have normal memory (as opposed to what was high memory; I suspect this is a bit useless).
+	///
+	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
 	///
 	/// Consider using libnuma-backed `valid_numa_nodes()` instead of this call.
 	#[inline(always)]
@@ -182,44 +188,56 @@ impl NumaNode
 
 	/// Try to unreserve (clear reservations of) huge pages.
 	///
+	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
+	///
 	/// Will only work as root.
 	#[inline(always)]
-	pub fn unreserve_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> Result<(), io::Error>
+	pub fn unreserve_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize)
 	{
 		huge_page_size.unreserve_numa_huge_pages(sys_path, self)
 	}
 
 	/// Try to reserve huge pages.
 	///
+	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
+	///
 	/// Will only work as root.
 	#[inline(always)]
-	pub fn reserve_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize, number_to_try_to_reserve: u64) -> io::Result<()>
+	pub fn reserve_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize, number_to_try_to_reserve: u64)
 	{
 		huge_page_size.reserve_numa_huge_pages(sys_path, self, number_to_try_to_reserve)
 	}
 
 	/// Read number of huge pages of `huge_page_size` size.
+	///
+	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
 	#[inline(always)]
-	pub fn number_of_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> io::Result<u64>
+	pub fn number_of_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> u64
 	{
 		huge_page_size.number_of_numa_huge_pages(sys_path, self)
 	}
 
 	/// Read number of free huge pages of `huge_page_size` size.
+	///
+	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
 	#[inline(always)]
-	pub fn number_of_free_global_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> io::Result<u64>
+	pub fn number_of_free_global_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> u64
 	{
 		huge_page_size.number_of_free_numa_huge_pages(sys_path, self)
 	}
 
 	/// Read number of surplus huge pages of `huge_page_size` size.
+	///
+	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
 	#[inline(always)]
-	pub fn number_of_surplus_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> io::Result<u64>
+	pub fn number_of_surplus_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> u64
 	{
 		huge_page_size.number_of_surplus_numa_huge_pages(sys_path, self)
 	}
 
 	/// Tries to compact pages for this NUMA node.
+	///
+	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
 	///
 	/// Will only work as root.
 	#[inline(always)]
@@ -229,11 +247,13 @@ impl NumaNode
 
 		if Self::is_a_numa_machine(sys_path)
 		{
-			sys_path.numa_node_path(self.into(), "compact").write_value(1).unwrap();
+			sys_path.numa_node_file_path(self.into(), "compact").write_value(1).unwrap();
 		}
 	}
 
 	/// Tries to evict pages for this NUMA node.
+	///
+	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
 	///
 	/// Will only work as root.
 	#[inline(always)]
@@ -243,36 +263,42 @@ impl NumaNode
 
 		if Self::is_a_numa_machine(sys_path)
 		{
-			sys_path.numa_node_path(self.into(), "scan_unevictable_pages").write_value(1).unwrap();
+			sys_path.numa_node_file_path(self.into(), "scan_unevictable_pages").write_value(1).unwrap();
 		}
 	}
 
 	/// This is a subset of `self.zoned_virtual_memory_statistics()`.
+	///
+	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
 	///
 	/// Interpret this by multiplying counts by page size.
 	#[deprecated]
 	#[inline(always)]
 	pub fn numa_memory_statistics(self, sys_path: &SysPath) -> io::Result<HashMap<VirtualMemoryStatisticName, u64>>
 	{
-		let file_path = sys_path.numa_node_path(self.into(), "numastat");
+		let file_path = sys_path.numa_node_file_path(self.into(), "numastat");
 		VirtualMemoryStatisticName::parse_virtual_memory_statistics_file(&file_path)
 	}
 
 	/// Memory statistics.
 	///
+	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
+	///
 	/// Interpret this by multiplying counts by page size.
 	#[inline(always)]
 	pub fn zoned_virtual_memory_statistics(self, sys_path: &SysPath) -> io::Result<HashMap<VirtualMemoryStatisticName, u64>>
 	{
-		let file_path = sys_path.numa_node_path(self.into(), "vmstat");
+		let file_path = sys_path.numa_node_file_path(self.into(), "vmstat");
 		VirtualMemoryStatisticName::parse_virtual_memory_statistics_file(&file_path)
 	}
 
 	/// Memory information.
+	///
+	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
 	#[inline(always)]
 	pub fn memory_information(self, sys_path: &SysPath, memory_information_name_prefix: &[u8]) -> Result<MemoryInformation, MemoryInformationParseError>
 	{
-		let file_path = sys_path.numa_node_path(self.into(), "meminfo");
+		let file_path = sys_path.numa_node_file_path(self.into(), "meminfo");
 		MemoryInformation::parse_memory_information_file(&file_path, memory_information_name_prefix)
 	}
 

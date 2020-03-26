@@ -13,6 +13,9 @@ pub struct ProcessConfiguration
 	/// Locale.
 	#[serde(default = "ProcessConfiguration::locale_default")] pub locale: CString,
 
+	/// Disable hyper threading.
+	#[serde(default)] pub disable_hyper_threading: bool,
+
 	/// Configure transparent huge pages?
 	#[serde(default)] pub transparent_huge_pages_configuration: Option<TransparentHugePagesConfiguration>,
 
@@ -41,6 +44,8 @@ impl Default for ProcessConfiguration
 			logging_configuration: LoggingConfiguration::default(),
 
 			locale: Self::locale_default(),
+
+			disable_hyper_threading: false,
 
 			transparent_huge_pages_configuration: Default::default(),
 
@@ -97,6 +102,8 @@ impl ProcessConfiguration
 		block_all_signals_on_current_thread();
 
 		self.set_locale();
+
+		self.enable_or_disable_hyper_threading();
 
 		let valid_hyper_threads_for_the_current_process = self.valid_hyper_threads_for_the_current_process();
 
@@ -172,6 +179,20 @@ impl ProcessConfiguration
 	{
 		let result = unsafe { setlocale(LC_ALL, self.locale.as_ptr() as *const _) };
 		assert!(!result.is_null(), "Could not set locale to `{:?}`", self.locale)
+	}
+
+	#[inline(always)]
+	fn enable_or_disable_hyper_threading(&self) -> HyperThreadingStatus
+	{
+		let current_status = HyperThread::hyper_threading_control(self.sys_path());
+		if self.disable_hyper_threading
+		{
+			HyperThread::try_to_disable_hyper_threading(self.sys_path(), current_status)
+		}
+		else
+		{
+			HyperThread::try_to_enable_hyper_threading(self.sys_path(), current_status)
+		}
 	}
 
 	#[inline(always)]
