@@ -32,7 +32,7 @@ pub struct ProcessStatusStatistics
 	///
 	/// Known as `Ngid`.
 	///
-	/// Zero if no NUMA is not supported.
+	/// Zero if the Linux kernel wasn't configured with `CONFIG_NUMA`.
 	pub numa_group_identifier: Option<NumaNode>,
 
 	/// Process identifier.
@@ -289,7 +289,7 @@ pub struct ProcessStatusStatistics
 	///
 	/// Known as `Mems_allowed_list`.
 	///
-	/// On a non-NUMA system, defaults to 0.
+	/// If the Linux kernel wasn't configured with `CONFIG_NUMA`, defaults to 0.
 	pub numa_nodes_allowed_list: Option<BTreeSet<NumaNode>>,
 
 	/// Voluntary context switches.

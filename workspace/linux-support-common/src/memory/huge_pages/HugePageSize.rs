@@ -240,6 +240,8 @@ impl HugePageSize
 	/// Huge page pool statistics.
 	///
 	/// For per-NUMA Node statistics, see `NumaNode.huge_page_pool_statistics()`.
+	///
+	/// This will panic if the kernel was compiled without `CONFIG_HUGETLBFS` and the `hugepages` folder is missing under the `node<N>` folder.
 	#[inline(always)]
 	pub fn global_huge_page_pool_statistics(self, sys_path: &SysPath) -> HugePagePoolStatistics
 	{
@@ -248,7 +250,7 @@ impl HugePageSize
 
 	/// Read number of memory policy global huge pages of `self` size.
 	///
-	/// This file is missing on non-NUMA machines.
+	/// This file is missing if the Linux kernel wasn't configured with `CONFIG_NUMA`.
 	#[inline(always)]
 	pub fn memory_policy_global_huge_pages(self, sys_path: &SysPath) -> Option<u64>
 	{

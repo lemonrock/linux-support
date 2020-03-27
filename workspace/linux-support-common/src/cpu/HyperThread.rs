@@ -401,7 +401,9 @@ impl HyperThread
 		hyper_thread_groups
 	}
 
-	/// Tries to find this hyper thread's NUMA node, if this is a NUMA machine.
+	/// Tries to find this hyper thread's NUMA node.
+	///
+	/// Returns `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`.
 	#[inline(always)]
 	pub fn numa_node(self, sys_path: &SysPath) -> Option<NumaNode>
 	{
@@ -426,8 +428,6 @@ impl HyperThread
 			},
 		}
 	}
-
-	// there is a /node file that symlinks to a NUMA node location.
 
 	/// Hyper threaded logical cores that are thread-siblings of this one according to the level 1 cache.
 	///

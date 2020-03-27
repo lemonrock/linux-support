@@ -48,6 +48,8 @@ impl TransparentHugePageRegularMemoryChoice
 	/// Changes Transparent Huge Pages (THP) settings.
 	///
 	/// The value of `self` can also be specified in the Linux kernel command line parameters as one of "transparent_hugepage=never", "transparent_hugepage=always" or "transparent_hugepage=madvise".
+	///
+	/// It is also present in `/sys/kernel/mm/transparent_hugepage/enabled`, where it is displayed as either `[always] madvise never`, `always [madvise] never` or `always madvise [never]`! (But is written as just, say `always`! Linux, the world's least consistent operating system).
 	pub fn change_transparent_huge_pages_usage(self, sys_path: &SysPath, transparent_huge_page_shared_memory_choice: TransparentHugePageSharedMemoryChoice, use_zero_page: bool) -> io::Result<()>
 	{
 		sys_path.transparent_huge_memory_file_path("use_zero_page").write_value(use_zero_page)?;

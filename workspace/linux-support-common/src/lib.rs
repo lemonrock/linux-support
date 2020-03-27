@@ -91,7 +91,7 @@ pub mod paths;
 
 /// Linux personality.
 ///
-/// A mostly broken and discarded concept, but important to check it is 'Linux standard'.
+/// A mostly broken and discarded concept, but we should check we're running as a standard Linux process.
 pub mod personality;
 
 
@@ -117,6 +117,10 @@ pub mod status;
 
 /// Strings.
 pub mod strings;
+
+
+/// Support for raw syscalls.
+pub mod syscall;
 
 
 /// User and groups.

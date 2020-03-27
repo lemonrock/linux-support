@@ -34,29 +34,16 @@ impl Default for TransparentHugePageDefragmentationChoice
 impl TransparentHugePageDefragmentationChoice
 {
 	#[inline(always)]
-	fn to_value(self) -> &'static [u8]
+	fn to_value(self) -> (&'static [u8], bool)
 	{
 		use self::TransparentHugePageDefragmentationChoice::*;
 
 		match self
 		{
-			Never => b"never\n" as &[u8],
-			Defer => b"defer\n" as &[u8],
-			Advise => b"madvise\n" as &[u8],
-			DeferAndAdvise => b"defer+madvise\n" as &[u8],
-		}
-	}
-
-	/// Defrag value.
-	#[inline(always)]
-	fn defrag_value(self) -> bool
-	{
-		use self::TransparentHugePageDefragmentationChoice::*;
-
-		match self
-		{
-			Never => false,
-			_ => true,
+			Never => (b"never\n" as &[u8], false),
+			Defer => (b"defer\n" as &[u8], true),
+			Advise => (b"madvise\n" as &[u8], true),
+			DeferAndAdvise => (b"defer+madvise\n" as &[u8], true),
 		}
 	}
 
@@ -67,6 +54,8 @@ impl TransparentHugePageDefragmentationChoice
 	/// * The kernel default for `alloc_sleep_millisecs` is 60_000.
 	/// * The kernel default for `how_many_extra_small_pages_not_already_mapped_can_be_allocated_when_collapsing_small_pages` is 511. Also known as `max_ptes_none`. A higher value leads to use additional memory for programs. A lower value produces less gains in performance. The value itself has very little effect on CPU usage.
 	/// * The kernel default for `how_many_extra_small_pages_not_already_mapped_can_be_swapped_when_collapsing_small_pages` is 64. Also known as `max_ptes_swap`. A higher value can cause excessive swap IO and waste memory. A lower value can prevent THPs from being collapsed, resulting in fewer pages being collapsed into THPs, and so lower memory access performance.
+	///
+	/// Can also be read as a value in `/sys/kernel/mm/transparent_hugepage/defrag` such as `always defer defer+madvise [madvise] never`! (but written as just `madvise`)! but as just a boolean `1` or `0` in `/sys/kernel/mm/transparent_hugepage/khugepaged/defrag`. Good old Linux, carrying the flag for consistency and commonsense.
 	#[inline(always)]
 	pub fn change_transparent_huge_pages_defragmentation(&self, sys_path: &SysPath, pages_to_scan: u16, scan_sleep_in_milliseconds: usize, allocation_sleep_in_milliseconds: usize, how_many_extra_small_pages_not_already_mapped_can_be_allocated_when_collapsing_small_pages: u16, how_many_extra_small_pages_not_already_mapped_can_be_swapped_when_collapsing_small_pages: u16) -> io::Result<()>
 	{
@@ -75,8 +64,11 @@ impl TransparentHugePageDefragmentationChoice
 		sys_path.khugepaged_file_path("scan_sleep_millisecs").write_value(allocation_sleep_in_milliseconds)?;
 		sys_path.khugepaged_file_path("max_ptes_none").write_value(how_many_extra_small_pages_not_already_mapped_can_be_allocated_when_collapsing_small_pages)?;
 		sys_path.khugepaged_file_path("max_ptes_swap").write_value(how_many_extra_small_pages_not_already_mapped_can_be_swapped_when_collapsing_small_pages)?;
-		sys_path.khugepaged_file_path("defrag").write_value(self.defrag_value())?;
-		sys_path.transparent_huge_memory_file_path("defrag").write_value(self.to_value())?;
+
+		let (ransparent_huge_memory_defrag, khugepaged_defrag) = self.to_value();
+		sys_path.khugepaged_file_path("defrag").write_value(khugepaged_defrag)?;
+		sys_path.transparent_huge_memory_file_path("defrag").write_value(ransparent_huge_memory_defrag)?;
+
 		Ok(())
 	}
 }

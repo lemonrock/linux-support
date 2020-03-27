@@ -21,12 +21,16 @@ use std::ptr::NonNull;
 
 
 /// Huge Pages.
+///
+/// Functionality in here replaces the need to use `libhugetlbfs`.
 pub mod huge_pages;
 
 /// Memory information.
 pub mod information;
 
 /// NUMA.
+///
+/// Functionality in here replaces the need to use `libnuma`.
 pub mod numa;
 
 

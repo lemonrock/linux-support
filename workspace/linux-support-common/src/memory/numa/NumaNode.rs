@@ -84,20 +84,11 @@ impl<'a> IntoLineFeedTerminatedByteString<'a> for NumaNode
 
 impl NumaNode
 {
-	/// Is this a NUMA-based machine?
+	/// True if the Linux kernel was configured with `CONFIG_NUMA`
 	#[inline(always)]
 	pub fn is_a_numa_machine(sys_path: &SysPath) -> bool
 	{
 		sys_path.numa_nodes_folder_path().exists()
-	}
-
-	/// Is this a NUMA node (assuming we're on a NUMA-based machine)?
-	///
-	/// Note that this might be a fake NUMA node, ie one lacking any hyper threads.
-	#[inline(always)]
-	pub fn is_a_numa_node(self, sys_path: &SysPath) -> bool
-	{
-		sys_path.numa_node_folder_path(self).exists()
 	}
 
 	/// Reads the hyper thread and NUMA node of the currently executing CPU from the `IA32_TSC_AUX` model state register, which Linux populates.
@@ -140,13 +131,53 @@ impl NumaNode
 		(Self(numa_node as u8), HyperThread::from(hyper_thread as u16))
 	}
 
+	/// Is this a NUMA node (assuming the Linux kernel wasn't configured with `CONFIG_NUMA`)?
+	///
+	/// Note that this might be a fake NUMA node, ie one lacking any hyper threads.
+	#[inline(always)]
+	pub fn is_a_numa_node(self, sys_path: &SysPath) -> bool
+	{
+		sys_path.numa_node_folder_path(self).exists()
+	}
+
+	/// Returns the intersection of `have_at_least_one_cpu()`, `possible()`, `online()` and `have_normal_memory()` before then checking `is_a_numa_node()`.
+	///
+	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`.
+	#[inline(always)]
+	pub fn valid(sys_path: &SysPath) -> Option<BTreeSet<Self>>
+	{
+		let have_cpu = Self::have_at_least_one_cpu(sys_path)?;
+		let possible = Self::possible(sys_path).unwrap();
+		let online = Self::online(sys_path).unwrap();
+		let have_normal_memory = Self::have_normal_memory(sys_path).unwrap();
+
+		Some
+		(
+			have_cpu.into_iter()
+			.filter(|numa_node| possible.contains(&numa_node))
+			.filter(|numa_node| online.contains(&numa_node))
+			.filter(|numa_node| have_normal_memory.contains(&numa_node))
+			.filter(|numa_node| numa_node.is_a_numa_node(sys_path))
+			.collect()
+		)
+	}
+
+	/// NUMA nodes that have a CPU.
+	///
+	/// NUMA nodes without a CPU are effectively fake NUMA nodes.
+	///
+	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`.
+	#[inline(always)]
+	fn have_at_least_one_cpu(sys_path: &SysPath) -> Option<BTreeSet<Self>>
+	{
+		Self::parse_list_mask(sys_path, "has_cpu")
+	}
+
 	/// NUMA nodes that could possibly be online at some point.
 	///
-	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
+	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`.
 	///
-	/// Not reliable, as includes NUMA nodes that can never be brought online; simply reports the number that could be used by the Linux kernel upto the `CONFIG_` number of CPUs.
-	///
-	/// Consider using libnuma-backed `valid_numa_nodes()` instead of this call.
+	/// Not reliable, as includes NUMA nodes that can never be brought online; simply reports the number that could be used by the Linux kernel upto the `CONFIG_` number of NUMA nodes.
 	#[inline(always)]
 	pub fn possible(sys_path: &SysPath) -> Option<BTreeSet<Self>>
 	{
@@ -155,40 +186,51 @@ impl NumaNode
 
 	/// NUMA nodes that are online at some point.
 	///
-	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
-	///
-	/// Consider using libnuma-backed `valid_numa_nodes()` instead of this call.
+	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`.
 	#[inline(always)]
 	pub fn online(sys_path: &SysPath) -> Option<BTreeSet<Self>>
 	{
 		Self::parse_list_mask(sys_path, "online")
 	}
 
-	/// NUMA nodes that have normal memory (as opposed to what was high memory; I suspect this is a bit useless).
+	/// NUMA nodes that have normal memory (as opposed to what was high memory, `has_high_memory`, which only exists if Linux is compiled with `CONFIG_HIGHMEM` which is an ancient setting).
 	///
-	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
+	/// I suspect this value is effectively useless.
 	///
-	/// Consider using libnuma-backed `valid_numa_nodes()` instead of this call.
+	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`.
 	#[inline(always)]
 	pub fn have_normal_memory(sys_path: &SysPath) -> Option<BTreeSet<Self>>
 	{
 		Self::parse_list_mask(sys_path, "has_normal_memory")
 	}
 
-	/// NUMA nodes that have a CPU.
+	/// NUMA nodes that have hot-pluggable memory.
 	///
-	/// NUMA nodes without a CPU are effectively fake NUMA nodes.
+	/// Intended to support hot-plugging of memory.
 	///
-	/// Consider using libnuma-backed `valid_numa_nodes()` instead of this call.
+	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`.
 	#[inline(always)]
-	pub fn have_at_least_one_cpu(sys_path: &SysPath) -> Option<BTreeSet<Self>>
+	pub fn have_movable_memory(sys_path: &SysPath) -> Option<BTreeSet<Self>>
 	{
-		Self::parse_list_mask(sys_path, "has_cpu")
+		Self::parse_list_mask(sys_path, "has_memory")
+	}
+
+	/// NUMA nodes that have high memory.
+	///
+	/// Obsolete.
+	///
+	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`.
+	#[inline(always)]
+	pub fn have_high_memory(sys_path: &SysPath) -> Option<BTreeSet<Self>>
+	{
+		Self::parse_list_mask(sys_path, "has_high_memory")
 	}
 
 	/// Huge page pool statistics.
 	///
-	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
+	/// This will panic if this the Linux kernel wasn't configured with `CONFIG_NUMA` or the NUMA node is not present.
+	///
+	/// This will also panic if the kernel was compiled without `CONFIG_HUGETLBFS` and the `hugepages` folder is missing under the `node<N>` folder.
 	#[inline(always)]
 	pub fn huge_page_pool_statistics(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> HugePagePoolStatistics
 	{
@@ -197,7 +239,7 @@ impl NumaNode
 
 	/// Tries to compact pages for this NUMA node.
 	///
-	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
+	/// This will panic if this the Linux kernel wasn't configured with `CONFIG_NUMA` or the NUMA node is not present.
 	///
 	/// Will only work as root.
 	#[inline(always)]
@@ -205,31 +247,23 @@ impl NumaNode
 	{
 		assert_effective_user_id_is_root(&format!("Compact pages in NUMA node '{}'", self.0));
 
-		if Self::is_a_numa_machine(sys_path)
-		{
-			sys_path.numa_node_file_path(self.into(), "compact").write_value(1).unwrap();
-		}
+		sys_path.numa_node_file_path(self.into(), "compact").write_value(1).unwrap();
 	}
 
-	/// Tries to evict pages for this NUMA node.
+	/// ?Distance between NUMA nodes?
 	///
-	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
+	/// This will panic if this the Linux kernel wasn't configured with `CONFIG_NUMA` or the NUMA node is not present.
 	///
-	/// Will only work as root.
+	/// Minimum value seems to be 10.
 	#[inline(always)]
-	pub fn evict_pages(self, sys_path: &SysPath)
+	pub fn distance(self, sys_path: &SysPath) -> u8
 	{
-		assert_effective_user_id_is_root(&format!("Evict pages from NUMA node '{}'", self.0));
-
-		if Self::is_a_numa_machine(sys_path)
-		{
-			sys_path.numa_node_file_path(self.into(), "scan_unevictable_pages").write_value(1).unwrap();
-		}
+		sys_path.numa_node_file_path(self.into(), "distance").read_value().unwrap()
 	}
 
 	/// This is a subset of `self.zoned_virtual_memory_statistics()`.
 	///
-	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
+	/// This will panic if this the Linux kernel wasn't configured with `CONFIG_NUMA` or the NUMA node is not present.
 	///
 	/// Interpret this by multiplying counts by page size.
 	#[deprecated]
@@ -242,7 +276,7 @@ impl NumaNode
 
 	/// Memory statistics.
 	///
-	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
+	/// This will panic if this the Linux kernel wasn't configured with `CONFIG_NUMA` or the NUMA node is not present.
 	///
 	/// Interpret this by multiplying counts by page size.
 	#[inline(always)]
@@ -254,7 +288,7 @@ impl NumaNode
 
 	/// Memory information.
 	///
-	/// This will panic if this is not a NUMA-based machine or the NUMA node is not present.
+	/// This will panic if this the Linux kernel wasn't configured with `CONFIG_NUMA` or the NUMA node is not present.
 	#[inline(always)]
 	pub fn memory_information(self, sys_path: &SysPath, memory_information_name_prefix: &[u8]) -> Result<MemoryInformation, MemoryInformationParseError>
 	{
@@ -265,9 +299,10 @@ impl NumaNode
 	#[inline(always)]
 	fn parse_list_mask(sys_path: &SysPath, file_name: &str) -> Option<BTreeSet<Self>>
 	{
-		if Self::is_a_numa_machine(sys_path)
+		let file_path = sys_path.numa_nodes_path(file_name);
+		if file_path.exists()
 		{
-			Some(sys_path.numa_nodes_path(file_name).read_linux_core_or_numa_list(Self::try_from).unwrap())
+			Some(file_path.read_linux_core_or_numa_list(Self::try_from).unwrap())
 		}
 		else
 		{

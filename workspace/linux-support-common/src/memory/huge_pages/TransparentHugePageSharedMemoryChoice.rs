@@ -65,6 +65,8 @@ impl TransparentHugePageSharedMemoryChoice
 	}
 
 	/// Changes Transparent Huge Pages (THP) settings.
+	///
+	/// Also can be read as a value like `always within_size advise [never] deny force` (!) in `/sys/kernel/mm/transparent_hugepage/shmem_enabled`! (But written as just `never`)!
 	#[inline(always)]
 	pub(crate) fn change_transparent_huge_pages_usage(self, sys_path: &SysPath) -> io::Result<()>
 	{

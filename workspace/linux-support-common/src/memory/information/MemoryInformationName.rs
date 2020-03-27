@@ -153,17 +153,22 @@ impl MemoryInformationName
 			b"HugePages_Rsvd" => ReservedNumberOfHugePages,
 			b"HugePages_Surp" => SurplusNumberOfHugePages,
 			b"Hugepagesize" => SizeOfDefaultHugePage,
+
+			// Only if the Linux Kernel has been compiled with `CONFIG_TRANSPARENT_HUGEPAGE`.
 			b"AnonHugePages" => TransparentHugePagesMemoryUsage,
+			b"ShmemHugePages" => ShmemHugePageUsage,
+			b"ShmemPmdMapped" => ShmemMemoryMappedIntoUserSpaceUsingHugePages,
+
 			b"DirectMap4k" => DirectMap4k,
 			b"DirectMap2M" => DirectMap2M,
 			
 			b"HardwareCorrupted" => HardwareCorrupted,
+
+			// Only if the Linux Kernel has been compiled with `CONFIG_HIGHMEM`.
 			b"HighTotal" => TotalHighNotDirectlyMappedIntoKernelSpace,
 			b"HighFree" => FreeHighNotDirectlyMappedIntoKernelSpace,
 			b"LowTotal" => TotalLowDirectlyMappedIntoKernelSpace,
 			b"LowFree" => FreeLowDirectlyMappedIntoKernelSpace,
-			b"ShmemHugePages" => ShmemHugePageUsage,
-			b"ShmemPmdMapped" => ShmemMemoryMappedIntoUserSpaceUsingHugePages,
 			
 			name @ _ => Unknown(name.to_vec().into_boxed_slice()),
 		}
