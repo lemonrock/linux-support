@@ -2,16 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Caught an unwind.
-///
-/// Log it to to syslog.
 #[inline(always)]
-pub fn caught_unwind_and_log_it_to_syslog(panic_payload: &(dyn Any + 'static + Send))
+pub(super) fn move_pages(pid: i32, count: usize, pages: *mut *mut c_void, nodes: *const i32, status: *mut i32, flags: i32) -> isize
 {
-	let thread: u16 = HyperThread::current_hyper_thread().into();
-	let hyper_thread = to_c_string_robustly(format!("{}", thread));
-
-	let cause = to_c_string_robustly(panic_payload_to_cause(panic_payload));
-
-	unsafe { syslog(LOG_ERR, b"HyperThread:%s:Cause:%s\0".as_ptr() as *const _, hyper_thread.as_ptr(), cause.as_ptr()) }
+	SYS::move_pages.syscall6(pid as usize, count, pages as usize, nodes as usize, status as usize, flags as usize)
 }

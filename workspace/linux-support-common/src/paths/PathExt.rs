@@ -52,10 +52,18 @@ pub trait PathExt
 	/// Reads and parses a linux core or numa list string from a file.
 	///
 	/// Returns a BTreeSet with the zero-based indices found in the string. For example, "2,4-31,32-63" would return a set with all values between 0 to 63 except 0, 1 and 3.
-	fn read_linux_core_or_numa_list<Mapper: Fn(u16) -> Result<R, TryFromIntError>, R: Ord>(&self, mapper: Mapper) -> Result<BTreeSet<R>, ListParseError>;
+	fn read_hyper_thread_or_numa_node_list<Mapper: Fn(u16) -> Result<R, BitSetAwareTryFromU16Error>, R: Ord>(&self, mapper: Mapper) -> Result<BTreeSet<R>, ListParseError>;
 
-	/// Reads and parses a linux core or numa mask string from a file.
-	fn parse_linux_core_or_numa_bitmask(&self) -> Result<u32, io::Error>;
+	/// Reads and parses a HyperThread or NumaNode bit set from a file.
+	///
+	/// A bit set might look like:-
+	///
+	/// `ffffffff` for CPUs 0 through 31.
+	/// `00000000,00000001` for CPU 0 only.
+	/// `ffffffff,ffffffff,ffffffff,ffffffff` for CPUs 0 through 127.
+	///
+	/// Elements are 32-bit words.
+	fn parse_hyper_thread_or_numa_node_bit_set<BSA: BitSetAware>(&self) -> Result<BitSet<BSA>, io::Error>;
 
 	/// Memory map a file.
 	fn memory_map<'a>(&self) -> Result<MemoryMappedFile, io::Error>;
@@ -216,7 +224,7 @@ impl PathExt for Path
 	}
 
 	#[inline(always)]
-	fn read_linux_core_or_numa_list<Mapper: Fn(u16) -> Result<R, TryFromIntError>, R: Ord>(&self, mapper: Mapper) -> Result<BTreeSet<R>, ListParseError>
+	fn read_hyper_thread_or_numa_node_list<Mapper: Fn(u16) -> Result<R, BitSetAwareTryFromU16Error>, R: Ord>(&self, mapper: Mapper) -> Result<BTreeSet<R>, ListParseError>
 	{
 		let without_line_feed = self.read_raw_without_line_feed()?;
 
@@ -224,16 +232,10 @@ impl PathExt for Path
 	}
 
 	#[inline(always)]
-	fn parse_linux_core_or_numa_bitmask(&self) -> Result<u32, io::Error>
+	fn parse_hyper_thread_or_numa_node_bit_set<BSA: BitSetAware>(&self) -> Result<BitSet<BSA>, io::Error>
 	{
-		let without_line_feed = self.read_string_without_line_feed()?;
-
-		if without_line_feed.len() != 8
-		{
-			return Err(io::Error::new(ErrorKind::InvalidData, "Linux core or numa mask string should be 8 characters long"))
-		}
-
-		u32::from_str_radix(&without_line_feed, 16).map_err(|error| io::Error::new(ErrorKind::InvalidData, error))
+		let without_line_feed = self.read_raw_without_line_feed()?;
+		Ok(BitSet::parse_hyper_thread_or_numa_node_bit_set(&without_line_feed))
 	}
 
 	#[inline(always)]

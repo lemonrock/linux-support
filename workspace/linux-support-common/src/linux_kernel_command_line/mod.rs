@@ -15,14 +15,18 @@ use super::strings::splitn;
 use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::collections::HashSet;
-use std::{error, fmt};
+use std::convert::TryFrom;
+use std::error;
 use std::ffi::OsString;
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt;
+use std::fmt::Display;
+use std::fmt::Debug;
+use std::fmt::Formatter;
 use std::io;
 use std::os::unix::ffi::OsStringExt;
 use std::path::PathBuf;
-use std::str::FromStr;
 use std::str::from_utf8;
+use std::str::FromStr;
 
 
 include!("LinuxKernelCommandLineParameters.rs");

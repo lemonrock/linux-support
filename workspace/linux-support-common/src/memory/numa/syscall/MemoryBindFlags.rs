@@ -2,16 +2,19 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Caught an unwind.
-///
-/// Log it to to syslog.
-#[inline(always)]
-pub fn caught_unwind_and_log_it_to_syslog(panic_payload: &(dyn Any + 'static + Send))
+bitflags!
 {
-	let thread: u16 = HyperThread::current_hyper_thread().into();
-	let hyper_thread = to_c_string_robustly(format!("{}", thread));
+	/// Flags for `mbind()`.
+	#[allow(missing_docs)]
+	pub(crate) struct MemoryBindFlags: u32
+	{
+		/// Verify existing pages in the mapping.
+		const MPOL_MF_STRICT = 1 << 0;
 
-	let cause = to_c_string_robustly(panic_payload_to_cause(panic_payload));
+		/// Move pages owned by this process to conform to mapping.
+		const MPOL_MF_MOVE = 1 << 1;
 
-	unsafe { syslog(LOG_ERR, b"HyperThread:%s:Cause:%s\0".as_ptr() as *const _, hyper_thread.as_ptr(), cause.as_ptr()) }
+		/// Move every page to conform to mapping.
+		const MPOL_MF_MOVE_ALL = 1 << 2;
+	}
 }

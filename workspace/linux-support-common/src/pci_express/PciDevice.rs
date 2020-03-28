@@ -102,7 +102,7 @@ impl<'a> PciDevice<'a>
 			revision: self.revision(),
 			associated_numa_node: self.associated_numa_node(),
 			associated_hyper_threads: self.associated_hyper_threads(),
-			permitted_hyper_threads_bitmask: self.permitted_hyper_threads_bitmask(),
+			associated_hyper_threads_bitmask: self.associated_hyper_threads_bitmask(),
 			d3cold_allowed: self.d3cold_allowed(),
 			interrupt_request_line: self.interrupt_request_line(),
 			current_link_speed_and_width: self.current_link_speed_and_width(),
@@ -266,20 +266,20 @@ impl<'a> PciDevice<'a>
 	#[inline(always)]
 	fn associated_hyper_threads(&self) -> BTreeSet<HyperThread>
 	{
-		self.device_file_or_folder_path("local_cpulist").read_linux_core_or_numa_list(|value_u16| Ok(HyperThread::from(value_u16))).expect("Could not parse local_cpulist")
+		self.device_file_or_folder_path("local_cpulist").read_hyper_thread_or_numa_node_list(HyperThread::try_from).expect("Could not parse local_cpulist")
 	}
 
 	/// PCI device hyper threads that are permitted to use this device.
 	///
 	/// May report CPUs that don't actually exist; refine list against that known for a NUMA node.
 	///
-	/// ***Even more useless than `associated_hyper_threads()`; on a test machine, with one hyper thread, which  reports that hyper threads 0 through 31 were assocated in `associated_hyper_threads()`, reported hyper threads 0 through 2^31 - 1 were permitted!
+	/// Should be identical to `associated_hyper_threads()`.
 	///
 	/// Panics if file unreadable.
 	#[inline(always)]
-	fn permitted_hyper_threads_bitmask(&self) -> HyperThreadBitmask
+	fn associated_hyper_threads_bitmask(&self) -> BitSet<HyperThread>
 	{
-		self.device_file_or_folder_path("local_cpus").parse_linux_core_or_numa_bitmask().expect("Could not parse local_cpulist")
+		self.device_file_or_folder_path("local_cpus").parse_hyper_thread_or_numa_node_bit_set().expect("Could not parse local_cpulist")
 	}
 
 	#[inline(always)]

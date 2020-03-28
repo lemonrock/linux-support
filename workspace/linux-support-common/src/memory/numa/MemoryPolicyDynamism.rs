@@ -2,5 +2,25 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A NUMA node bitmask.
-pub type NumaNodeBitmask = u32;
+/// Edge use cases.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum MemoryPolicyDynamism
+{
+	/// No dynamism.
+	NoDynamism = 0,
+
+	/// `MPOL_F_RELATIVE_NODES`.
+	Relative = 0x4000,
+
+	/// `MPOL_F_STATIC_NODES`.
+	Static = 0x8000,
+}
+
+impl Default for MemoryPolicyDynamism
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		MemoryPolicyDynamism::NoDynamism
+	}
+}

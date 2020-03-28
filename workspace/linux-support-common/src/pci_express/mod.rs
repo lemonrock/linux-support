@@ -56,6 +56,7 @@ use std::os::unix::io::*;
 use std::path::PathBuf;
 use std::str::Utf8Error;
 use std::borrow::Cow;
+use crate::bit_set::BitSet;
 
 
 /// Classifications.

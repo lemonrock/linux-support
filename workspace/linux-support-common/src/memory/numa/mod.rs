@@ -2,21 +2,44 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use self::syscall::*;
+use super::page_size;
+use super::huge_pages::*;
+use super::information::*;
+use crate::current_numa_node_and_hyper_thread;
+use crate::bit_set::*;
 use crate::cpu::HyperThread;
-use crate::memory::huge_pages::*;
-use crate::memory::information::*;
-use crate::user_and_groups::assert_effective_user_id_is_root;
 use crate::paths::*;
+use crate::user_and_groups::assert_effective_user_id_is_root;
+use bitflags::bitflags;
+use errno::errno;
+use libc::c_void;
+use libc::EFAULT;
+use libc::EINVAL;
+use libc::EIO;
+use libc::ENOMEM;
+use libc::EPERM;
+use likely::*;
 use std::borrow::Cow;
 use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::io;
-use std::num::TryFromIntError;
+use std::mem::transmute;
+#[allow(deprecated)] use std::mem::uninitialized;
+use std::ptr::NonNull;
+use std::ptr::null;
+use std::ptr::null_mut;
 
 
+include!("GetMemoryPolicyFlags.rs");
 include!("NumaNode.rs");
-include!("NumaNodeBitmask.rs");
+include!("MemoryPolicy.rs");
+include!("MemoryPolicyDynamism.rs");
+include!("SetMemoryPolicy.rs");
+
+
+mod syscall;
 
 /*
 	xxx;
@@ -30,48 +53,3 @@ include!("NumaNodeBitmask.rs");
 
 	// TODO: Use mmap with the new flags to mmap huge pages
 */
-
-//mod syscall
-//{
-//	use libc::*;
-//
-//	#[inline(always)]
-//	fn get_mempolicy(policy: *mut c_int, nmask: *c_ulong, maxnode: c_ulong, add: *mut c_void, flags: uint) -> c_long
-//	{
-//		unsafe { syscall(__NR_get_mempolicy, policy, nmask, maxnode, addr, flags) }
-//	}
-//
-//	#[inline(always)]
-//	fn set_mempolicy(mode: c_int, nmask: *const c_ulong, maxnode: c_ulong) -> c_long
-//	{
-//		unsafe { syscall(__NR_set_mempolicy, mode, nmask, maxnode) }
-//	}
-//
-//	#[inline(always)]
-//	fn mbind(start: *mut c_void, len: c_ulong, mode: c_int, nmask: *const c_ulong, maxnode: c_ulong, flags: c_uint) -> c_long
-//	{
-//		unsafe { syscall(__NR_mbind, (long) start, len, mode, (long) nmask, maxnode, flags) }
-//	}
-//
-//	#[inline(always)]
-//	fn migrate_pages(pid: c_int, maxnode: c_ulong, frommask: *const c_ulong, tomask: *const c_ulong) -> c_long
-//	{
-//		if defined(__NR_migrate_pages)
-//		{
-//			unsafe { syscall(__NR_migrate_pages, pid, maxnode, frommask, tomask) }
-//		}
-//		else
-//		{
-//			use errno::Errno;
-//			use errno::set_errno;
-//			set_errno(Errno(ENOSYS));
-//			return -1
-//		}
-//	}
-//
-//	#[inline(always)]
-//	fn move_pages(pid: c_int, count: c_ulong, pages: *mut *mut c_void, nodes: *const c_int, status: *mut c_int, flags: c_int) -> c_long
-//	{
-//		unsafe { syscall(__NR_move_pages, pid, count, pages, nodes, status, flags) }
-//	}
-//}

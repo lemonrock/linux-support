@@ -19,6 +19,20 @@ impl Default for SysPath
 
 impl SysPath
 {
+	/// `/sys/devices/system/cpu/cpu<hyper_thread>/cache/<file_name>`.
+	#[inline(always)]
+	pub(crate) fn hyper_thread_cache_file_path(&self, hyper_thread: HyperThread, file_name: &str) -> PathBuf
+	{
+		self.hyper_thread_file_path(hyper_thread, "cache").append(file_name)
+	}
+
+	/// `/sys/devices/system/cpu/cpu<hyper_thread>/topology/<file_name>`.
+	#[inline(always)]
+	pub(crate) fn hyper_thread_topology_file_path(&self, hyper_thread: HyperThread, file_name: &str) -> PathBuf
+	{
+		self.hyper_thread_file_path(hyper_thread, "topology").append(file_name)
+	}
+
 	/// `/sys/devices/system/cpu/cpu<hyper_thread>/<file_name>`.
 	#[inline(always)]
 	pub(crate) fn hyper_thread_file_path(&self, hyper_thread: HyperThread, file_name: &str) -> PathBuf
@@ -73,7 +87,7 @@ impl SysPath
 	#[inline(always)]
 	pub(crate) fn numa_node_folder_path(&self, numa_node: NumaNode) -> PathBuf
 	{
-		let into: u8 = numa_node.into();
+		let into: u16 = numa_node.into();
 		self.numa_nodes_path(&format!("node{}", into))
 	}
 

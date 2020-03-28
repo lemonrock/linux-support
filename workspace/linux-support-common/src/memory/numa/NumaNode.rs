@@ -3,36 +3,41 @@
 
 
 /// A NUMA node.
+///
+/// Internally, this is modelled as an unsigned 16-bit value as `CONFIG_NODES_SHIFT` can be as high as 10, giving a maximum of 1024 nodes, even though in practice:-
+///
+/// * most Linux systems have very NUMA nodes;
+/// * most never change `CONFIG_NODES_SHIFT` from its default of 6 (which gives a maximum of 64 nodes).
+///
+/// Indeed, the trend in modern x86-64 systems with CPUs such as AMD's Zen2 is to have just 2 NUMA nodes for 128 cores.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub struct NumaNode(u8);
+pub struct NumaNode(u16);
 
 impl From<u8> for NumaNode
 {
 	#[inline(always)]
 	fn from(value: u8) -> Self
 	{
-		Self(value)
+		Self(value as u16)
 	}
 }
 
 impl TryFrom<u16> for NumaNode
 {
-	type Error = TryFromIntError;
+	type Error = BitSetAwareTryFromU16Error;
 
 	#[inline(always)]
 	fn try_from(value: u16) -> Result<Self, Self::Error>
 	{
-		Ok(Self(u8::try_from(value)?))
-	}
-}
-
-impl Into<u8> for NumaNode
-{
-	#[inline(always)]
-	fn into(self) -> u8
-	{
-		self.0
+		if unlikely!(value >= Self::LinuxMaximum)
+		{
+			Err(BitSetAwareTryFromU16Error::default())
+		}
+		else
+		{
+			Ok(Self(value))
+		}
 	}
 }
 
@@ -82,53 +87,39 @@ impl<'a> IntoLineFeedTerminatedByteString<'a> for NumaNode
 	}
 }
 
+impl BitSetAware for NumaNode
+{
+	const LinuxMaximum: u16 = 1 << Self::LinuxMaximumFor_CONFIG_NUMA_SHIFT;
+
+	const InclusiveMinimum: Self = Self(0);
+
+	const InclusiveMaximum: Self = Self(Self::LinuxMaximum - 1);
+
+	#[inline(always)]
+	fn hydrate(value: u16) -> Self
+	{
+		debug_assert!(value < Self::LinuxMaximum);
+
+		Self(value)
+	}
+}
+
 impl NumaNode
 {
+	pub(crate) const LinuxMaximumFor_CONFIG_NUMA_SHIFT: u16 = 10;
+
+	/// Reads the hyper thread and NUMA node of the currently executing CPU from the `IA32_TSC_AUX` model state register, which Linux populates.
+	#[inline(always)]
+	pub fn current() -> (Self, HyperThread)
+	{
+		current_numa_node_and_hyper_thread()
+	}
+
 	/// True if the Linux kernel was configured with `CONFIG_NUMA`
 	#[inline(always)]
 	pub fn is_a_numa_machine(sys_path: &SysPath) -> bool
 	{
 		sys_path.numa_nodes_folder_path().exists()
-	}
-
-	/// Reads the hyper thread and NUMA node of the currently executing CPU from the `IA32_TSC_AUX` model state register, which Linux populates.
-	///
-	/// Currently uses the `RDTSCP` instruction, but, once Ice Lake is widely available, could be changed to use the `RDPID` instruction.
-	#[inline(always)]
-	pub fn current_numa_node_and_hyper_thread() -> (NumaNode, HyperThread)
-	{
-		// The value of the timestamp register is stored into the `RDX` and `RAX` registers.
-		// The value of the hyper thread and NUMA node is stored into the `RCX` register.
-		// The top 32-bits of `RDX`, `RAX` and `RCX` are cleared (zero).
-		#[inline(always)]
-		unsafe fn rdtscp() -> u64
-		{
-			let _rax: u64;
-			let _rdx: u64;
-			let rcx: u64;
-
-			asm!
-			(
-				"rdtscp"
-				:
-					"={rax}"(_rax), "={rdx}"(_rdx), "={rcx}"(rcx)
-				:
-				:
-				:
-					"volatile"
-			);
-
-			rcx
-		}
-		let rcx = unsafe { rdtscp() };
-
-		let numa_node = (rcx & 0x00000000_0FFFF000) >> 12;
-		debug_assert!(numa_node <= u8::MAX as u64);
-
-		let hyper_thread = rcx & 0x00000000_00000FFF;
-		debug_assert!(hyper_thread <= u16::MAX as u64);
-
-		(Self(numa_node as u8), HyperThread::from(hyper_thread as u16))
 	}
 
 	/// Is this a NUMA node (assuming the Linux kernel wasn't configured with `CONFIG_NUMA`)?
@@ -263,7 +254,7 @@ impl NumaNode
 
 	/// This is a subset of `self.zoned_virtual_memory_statistics()`.
 	///
-	/// This will panic if this the Linux kernel wasn't configured with `CONFIG_NUMA` or the NUMA node is not present.
+	/// This will return `Err()` if this the Linux kernel wasn't configured with `CONFIG_NUMA` or the NUMA node is not present.
 	///
 	/// Interpret this by multiplying counts by page size.
 	#[deprecated]
@@ -276,7 +267,7 @@ impl NumaNode
 
 	/// Memory statistics.
 	///
-	/// This will panic if this the Linux kernel wasn't configured with `CONFIG_NUMA` or the NUMA node is not present.
+	/// This will return `Err()` if this the Linux kernel wasn't configured with `CONFIG_NUMA` or the NUMA node is not present.
 	///
 	/// Interpret this by multiplying counts by page size.
 	#[inline(always)]
@@ -288,7 +279,7 @@ impl NumaNode
 
 	/// Memory information.
 	///
-	/// This will panic if this the Linux kernel wasn't configured with `CONFIG_NUMA` or the NUMA node is not present.
+	/// This will return `Err()` if this the Linux kernel wasn't configured with `CONFIG_NUMA` or the NUMA node is not present.
 	#[inline(always)]
 	pub fn memory_information(self, sys_path: &SysPath, memory_information_name_prefix: &[u8]) -> Result<MemoryInformation, MemoryInformationParseError>
 	{
@@ -302,7 +293,7 @@ impl NumaNode
 		let file_path = sys_path.numa_nodes_path(file_name);
 		if file_path.exists()
 		{
-			Some(file_path.read_linux_core_or_numa_list(Self::try_from).unwrap())
+			Some(file_path.read_hyper_thread_or_numa_node_list(Self::try_from).unwrap())
 		}
 		else
 		{

@@ -7,9 +7,12 @@
 #![allow(non_camel_case_types)]
 #![deny(missing_docs)]
 #![deny(unreachable_patterns)]
+#![feature(alloc_layout_extra)]
+#![feature(allocator_api)]
 #![feature(asm)]
 #![feature(const_fn)]
 #![feature(core_intrinsics)]
+#![feature(const_transmute)]
 
 
 //! #linux-support-common
@@ -23,7 +26,10 @@ assert_cfg!(target_arch = "x86_64");
 assert_cfg!(target_pointer_width = "64");
 
 
+use crate::bit_set::BitSetAware;
+use crate::cpu::HyperThread;
 use crate::logging::LoggingConfiguration;
+use crate::memory::numa::NumaNode;
 use libc_extra::linux::errno::program_invocation_short_name;
 use raw_cpuid::*;
 use serde::Deserialize;
@@ -31,6 +37,11 @@ use serde::Serialize;
 use std::collections::HashSet;
 use std::ffi::CStr;
 use std::fmt::Debug;
+use std::mem::transmute;
+
+
+/// A set of types to support the use of bit sets in Linux APIs and files.
+pub mod bit_set;
 
 
 /// Capabilities and privileges.
@@ -127,6 +138,8 @@ pub mod syscall;
 pub mod user_and_groups;
 
 
+include!("current_numa_node_and_hyper_thread.rs");
 include!("get_program_name.rs");
+include!("Kilobyte.rs");
 include!("move_to_front_of_vec.rs");
 include!("WarningsToSuppress.rs");

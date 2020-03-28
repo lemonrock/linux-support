@@ -2,16 +2,23 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Caught an unwind.
-///
-/// Log it to to syslog.
-#[inline(always)]
-pub fn caught_unwind_and_log_it_to_syslog(panic_payload: &(dyn Any + 'static + Send))
+bitflags!
 {
-	let thread: u16 = HyperThread::current_hyper_thread().into();
-	let hyper_thread = to_c_string_robustly(format!("{}", thread));
+	/// Flags for `get_mempolicy()`.
+	#[allow(missing_docs)]
+	pub(crate) struct GetMemoryPolicyFlags: u32
+	{
+		/// Return next 'il' node or node of address (whatever that means).
+		///
+		/// Unsupported and possibly subject to change (although it's been around a long time).
+		const MPOL_F_NODE = 1 << 0;
 
-	let cause = to_c_string_robustly(panic_payload_to_cause(panic_payload));
+		/// Look up vma using address.
+		const MPOL_F_ADDR = 1 << 1;
 
-	unsafe { syslog(LOG_ERR, b"HyperThread:%s:Cause:%s\0".as_ptr() as *const _, hyper_thread.as_ptr(), cause.as_ptr()) }
+		/// Query nodes allowed in cpuset.
+		///
+		/// Can not be combined with either MPOL_F_NODE or MPOL_F_ADDR.
+		const MPOL_F_MEMS_ALLOWED = 1 << 2;
+	}
 }

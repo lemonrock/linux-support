@@ -39,7 +39,7 @@ pub enum ListParseError
 	},
 
 	/// Index out of range (eg only an u8 is acceptable but a value larger than 255 was parsed).
-	IndexOutOfRange(TryFromIntError),
+	IndexOutOfRange(BitSetAwareTryFromU16Error),
 
 	/// Contains mis-sorted indices.
 	ContainsMisSortedIndices
@@ -106,10 +106,10 @@ impl From<io::Error> for ListParseError
 	}
 }
 
-impl From<TryFromIntError> for ListParseError
+impl From<BitSetAwareTryFromU16Error> for ListParseError
 {
 	#[inline(always)]
-	fn from(error: TryFromIntError) -> Self
+	fn from(error: BitSetAwareTryFromU16Error) -> Self
 	{
 		ListParseError::IndexOutOfRange(error)
 	}
@@ -120,7 +120,7 @@ impl ListParseError
 	/// Parses a Linux list string used for cpu sets, core masks and NUMA nodes such as "2,4-31,32-63" and "1,2,10-20,100-2000:2/25" (see <https://www.kernel.org/doc/html/latest/admin-guide/kernel-parameters.html> for an awful description of this mad syntax).
 	///
 	/// Returns a BTreeSet with the zero-based indices found in the string. For example, "2,4-31,32-63" would return a set with all values between 0 to 63 except 0, 1 and 3.
-	pub fn parse_linux_list_string<Mapper: Fn(u16) -> Result<R, TryFromIntError>, R: Ord>(linux_list_string: &[u8], mapper: Mapper) -> Result<BTreeSet<R>, Self>
+	pub fn parse_linux_list_string<Mapper: Fn(u16) -> Result<R, BitSetAwareTryFromU16Error>, R: Ord>(linux_list_string: &[u8], mapper: Mapper) -> Result<BTreeSet<R>, Self>
 	{
 		#[inline(always)]
 		fn parse_index(index_string: &[u8], description: &'static str) -> Result<u16, ListParseError>

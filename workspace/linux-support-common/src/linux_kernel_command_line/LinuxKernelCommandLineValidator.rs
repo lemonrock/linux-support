@@ -51,7 +51,13 @@ impl LinuxKernelCommandLineValidator
 				return Err("Kernel parameters `isolcpus`, `rcu_nocbs` and `nohz_full` should all match".to_string())
 			}
 
-			Ok(isolated_cpus.iter().map(|value| HyperThread::from(*value)).collect())
+			let mut result = BTreeSet::new();
+			for &value in isolated_cpus.iter()
+			{
+				result.insert(HyperThread::try_from(value).map_err(|_| "Invalid integer".to_string())?);
+			}
+
+			Ok(result)
 		}
 		else
 		{

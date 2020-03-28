@@ -74,6 +74,50 @@ pub enum Capability
 	WakeAlarm = capability::CAP_WAKE_ALARM as u8,
 }
 
+impl TryFrom<u16> for Capability
+{
+	type Error = BitSetAwareTryFromU16Error;
+
+	#[inline(always)]
+	fn try_from(value: u16) -> Result<Self, Self::Error>
+	{
+		if unlikely!(value >= Self::LinuxMaximum)
+		{
+			Err(BitSetAwareTryFromU16Error::default())
+		}
+		else
+		{
+			Ok(unsafe { transmute(value as u8) })
+		}
+	}
+}
+
+impl Into<u16> for Capability
+{
+	#[inline(always)]
+	fn into(self) -> u16
+	{
+		self as u8 as u16
+	}
+}
+
+impl BitSetAware for Capability
+{
+	const LinuxMaximum: u16 = capability::CAP_LAST_CAP as u16;
+
+	const InclusiveMinimum: Self = unsafe { transmute(0u8) };
+
+	const InclusiveMaximum: Self = unsafe { transmute(Self::LinuxMaximum as u8) };
+
+	#[inline(always)]
+	fn hydrate(value: u16) -> Self
+	{
+		debug_assert!(value < Self::LinuxMaximum);
+
+		unsafe { transmute(value as u8) }
+	}
+}
+
 impl Capability
 {
 	/// Clears all ambient capabilities from the current process.

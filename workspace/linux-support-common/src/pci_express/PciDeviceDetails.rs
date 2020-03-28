@@ -21,7 +21,7 @@ pub struct PciDeviceDetails
 
 	pub associated_hyper_threads: BTreeSet<HyperThread>,
 
-	pub permitted_hyper_threads_bitmask: HyperThreadBitmask,
+	pub associated_hyper_threads_bitmask: BitSet<HyperThread>,
 
 	pub d3cold_allowed: Option<bool>,
 

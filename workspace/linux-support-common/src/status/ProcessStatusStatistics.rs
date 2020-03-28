@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Status statistics.
+/// Status statistics for `/proc/self/status` or `/proc/<identifier>/status`
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
 pub struct ProcessStatusStatistics
 {
@@ -202,52 +202,52 @@ pub struct ProcessStatusStatistics
 	/// Pending signals for the thread.
 	///
 	/// Known as `SigPnd`.
-	pub thread_pending_signals: Option<Bitmask>,
+	pub thread_pending_signals: Option<SignalBitSet>,
 
 	/// Shared pending signals for the process.
 	///
 	/// Known as `ShdPnd`.
-	pub process_shared_pending_signals: Option<Bitmask>,
+	pub process_shared_pending_signals: Option<SignalBitSet>,
 
 	/// Blocked signals.
 	///
 	/// Known as `SigBlk`.
-	pub blocked_signals: Option<Bitmask>,
+	pub blocked_signals: Option<SignalBitSet>,
 
 	/// Ignored signals.
 	///
 	/// Known as `SigIgn`.
-	pub ignored_signals: Option<Bitmask>,
+	pub ignored_signals: Option<SignalBitSet>,
 
 	/// Caught signals.
 	///
 	/// Known as `SigCgt`.
-	pub caught_signals: Option<Bitmask>,
+	pub caught_signals: Option<SignalBitSet>,
 
 	/// Inheritable capabilities.
 	///
 	/// Known as `CapInh`.
-	pub inheritable_capabilities: Option<Bitmask>,
+	pub inheritable_capabilities_mask: Option<BitSet<Capability>>,
 
 	/// Permitted capabilities.
 	///
 	/// Known as `CapPrm`.
-	pub permitted_capabilities: Option<Bitmask>,
+	pub permitted_capabilities_mask: Option<BitSet<Capability>>,
 
 	/// Effective capabilities.
 	///
 	/// Known as `CapEff`.
-	pub effective_capabilities: Option<Bitmask>,
+	pub effective_capabilities_mask: Option<BitSet<Capability>>,
 
 	/// Capabilities bounding set.
 	///
 	/// Known as `CapBnd`.
-	pub capabilities_bounding_set: Option<Bitmask>,
+	pub capabilities_bounding_set: Option<BitSet<Capability>>,
 
 	/// Ambient capabilities.
 	///
 	/// Known as `CapAmb`.
-	pub ambient_capabilities: Option<Bitmask>,
+	pub ambient_capabilities_set: Option<BitSet<Capability>>,
 
 	/// Thread's `no_new_privs` bit (see `man 2 prctl` description for `PR_GET_NO_NEW_PRIVS`).
 	///
@@ -269,13 +269,13 @@ pub struct ProcessStatusStatistics
 	/// Known as `Cpus_allowed`.
 	///
 	/// May have bits set well beyond those than the number of cores on the system.
-	pub cpus_allowed_bitmasks: Option<Vec<HyperThreadBitmask>>,
+	///
+	/// Tuples of 32-bit, LSB to the far right, eg `ffffffff,ffffffff,ffffffff,ffffffff`.
+	pub cpus_allowed: Option<BitSet<HyperThread>>,
 
 	/// CPUs (actually, hyper threaded cores) allowed for the current process.
 	///
 	/// Known as `Cpus_allowed_list`.
-	///
-	/// May have cores available beyond those than the number of cores on the system, but usually a much more restricted list than `cpus_allowed_bitmask`.
 	pub cpus_allowed_list: Option<BTreeSet<HyperThread>>,
 
 	/// NUMA nodes allowed for the current process.
@@ -283,7 +283,9 @@ pub struct ProcessStatusStatistics
 	/// Known as `Mems_allowed`.
 	///
 	/// Linux defines the config option `NODES_SHIFT` (aka `CONFIG_NODES_SHIFT`) to be 1 to 10 if defined and 0 if not defined, giving a maximum of 2^10 (1024) NUMA nodes, if defaults to 6 (ie 64 NUMA nodes) on x86-64.
-	pub numa_nodes_allowed_bitmasks: Option<Vec<NumaNodeBitmask>>,
+	///
+	/// Tuples of 32-bit, LSB to the far right, eg `00000000,00000001`.
+	pub numa_nodes_allowed: Option<BitSet<NumaNode>>,
 
 	/// NUMA nodes allowed for the current process.
 	///
@@ -418,18 +420,18 @@ impl ProcessStatusStatistics
 			use self::ProcessState::*;
 
 			let value = match value[0]
-				{
-					b'R' => Running,
-					b'S' => Sleeping,
-					b'D' => SleepingInAnUninterruptibleWait,
-					b'T' => TracedOrStopped,
-					b't' => TracingStop,
-					b'X' => Dead,
-					b'Z' => Zombie,
-					b'P' => Parked,
-					b'I' => Idle,
-					_ => return Err(ProcessStatusStatisticParseError::OutOfRange)
-				};
+			{
+				b'R' => Running,
+				b'S' => Sleeping,
+				b'D' => SleepingInAnUninterruptibleWait,
+				b'T' => TracedOrStopped,
+				b't' => TracingStop,
+				b'X' => Dead,
+				b'Z' => Zombie,
+				b'P' => Parked,
+				b'I' => Idle,
+				_ => return Err(ProcessStatusStatisticParseError::OutOfRange)
+			};
 
 			Ok(value)
 		}
@@ -477,15 +479,15 @@ impl ProcessStatusStatistics
 			let mut iterator = splitn(value, 4, b'\t');
 
 			Ok
-				(
-					ProcessUserIdentifiers
-						{
-							real: parse_uid(iterator.next().unwrap())?,
-							effective: parse_subsequent(&mut iterator)?,
-							saved_set: parse_subsequent(&mut iterator)?,
-							file_system: parse_subsequent(&mut iterator)?,
-						}
-				)
+			(
+				ProcessUserIdentifiers
+				{
+					real: parse_uid(iterator.next().unwrap())?,
+					effective: parse_subsequent(&mut iterator)?,
+					saved_set: parse_subsequent(&mut iterator)?,
+					file_system: parse_subsequent(&mut iterator)?,
+				}
+			)
 		}
 
 		#[inline(always)]
@@ -507,15 +509,15 @@ impl ProcessStatusStatistics
 			let mut iterator = splitn(value, 4, b'\t');
 
 			Ok
-				(
-					ProcessGroupIdentifiers
-						{
-							real: parse_gid(iterator.next().unwrap())?,
-							effective: parse_subsequent(&mut iterator)?,
-							saved_set: parse_subsequent(&mut iterator)?,
-							file_system: parse_subsequent(&mut iterator)?,
-						}
-				)
+			(
+				ProcessGroupIdentifiers
+				{
+					real: parse_gid(iterator.next().unwrap())?,
+					effective: parse_subsequent(&mut iterator)?,
+					saved_set: parse_subsequent(&mut iterator)?,
+					file_system: parse_subsequent(&mut iterator)?,
+				}
+			)
 		}
 
 		#[inline(always)]
@@ -523,13 +525,13 @@ impl ProcessStatusStatistics
 		{
 			let mut groups = BTreeSet::new();
 			for value in split(value, b' ')
+			{
+				let was_added_for_the_first_time = groups.insert(parse_gid(value)?);
+				if unlikely!(!was_added_for_the_first_time)
 				{
-					let was_added_for_the_first_time = groups.insert(parse_gid(value)?);
-					if unlikely!(!was_added_for_the_first_time)
-					{
-						return Err(ProcessStatusStatisticParseError::DuplicatedStatisticValue)
-					}
+					return Err(ProcessStatusStatisticParseError::DuplicatedStatisticValue)
 				}
+			}
 			Ok(groups)
 		}
 
@@ -538,13 +540,13 @@ impl ProcessStatusStatistics
 		{
 			let mut pids = BTreeSet::new();
 			for value in split(value, b'\t')
+			{
+				let was_added_for_the_first_time = pids.insert(parse_pid(value)?);
+				if unlikely!(!was_added_for_the_first_time)
 				{
-					let was_added_for_the_first_time = pids.insert(parse_pid(value)?);
-					if unlikely!(!was_added_for_the_first_time)
-					{
-						return Err(ProcessStatusStatisticParseError::DuplicatedStatisticValue)
-					}
+					return Err(ProcessStatusStatisticParseError::DuplicatedStatisticValue)
 				}
+			}
 			Ok(pids)
 		}
 
@@ -576,24 +578,24 @@ impl ProcessStatusStatistics
 			let mut iterator = splitn(value, 2, b'/');
 			let number_of_signals_queued = parse_u64(iterator.next().unwrap())?;
 			let maximum_number_of_signals_that_can_be_queued = match iterator.next()
-				{
-					None => return Err(ProcessStatusStatisticParseError::InvalidSeparator),
+			{
+				None => return Err(ProcessStatusStatisticParseError::InvalidSeparator),
 
-					Some(maximum_number_of_signals_that_can_be_queued) => parse_u64(maximum_number_of_signals_that_can_be_queued)?,
-				};
+				Some(maximum_number_of_signals_that_can_be_queued) => parse_u64(maximum_number_of_signals_that_can_be_queued)?,
+			};
 
 			Ok
-				(
-					SignalQueueStatus
-						{
-							number_of_signals_queued,
-							maximum_number_of_signals_that_can_be_queued
-						}
-				)
+			(
+				SignalQueueStatus
+				{
+					number_of_signals_queued,
+					maximum_number_of_signals_that_can_be_queued
+				}
+			)
 		}
 
 		#[inline(always)]
-		fn parse_bitmask(value: &[u8]) -> Result<Bitmask, ProcessStatusStatisticParseError>
+		fn parse_hexadecimal_u64(value: &[u8]) -> Result<u64, ProcessStatusStatisticParseError>
 		{
 			if likely!(value.len() == 16)
 			{
@@ -604,6 +606,18 @@ impl ProcessStatusStatistics
 				Err(ProcessStatusStatisticParseError::InvalidLength)
 			}
 		}
+		
+		#[inline(always)]
+		fn parse_signal_bitset(value: &[u8]) -> Result<SignalBitSet, ProcessStatusStatisticParseError>
+		{
+			Ok(SignalBitSet(parse_hexadecimal_u64(value)?))
+		}
+
+		#[inline(always)]
+		fn parse_capability_mask_or_set(value: &[u8]) -> Result<BitSet<Capability>, ProcessStatusStatisticParseError>
+		{
+			Ok(BitSet::from_u64(parse_hexadecimal_u64(value)?))
+		}
 
 		#[inline(always)]
 		fn parse_bool(value: &[u8]) -> Result<bool, ProcessStatusStatisticParseError>
@@ -611,11 +625,11 @@ impl ProcessStatusStatistics
 			if likely!(value.len() == 1)
 			{
 				match value[0]
-					{
-						b'0' => Ok(false),
-						b'1' => Ok(true),
-						_ => Err(ProcessStatusStatisticParseError::OutOfRange)
-					}
+				{
+					b'0' => Ok(false),
+					b'1' => Ok(true),
+					_ => Err(ProcessStatusStatisticParseError::OutOfRange)
+				}
 			}
 			else
 			{
@@ -631,12 +645,12 @@ impl ProcessStatusStatistics
 				use self::SeccompMode::*;
 
 				match value[0]
-					{
-						b'0' => Ok(Off),
-						b'1' => Ok(Strict),
-						b'2' => Ok(Filter),
-						_ => Err(ProcessStatusStatisticParseError::OutOfRange)
-					}
+				{
+					b'0' => Ok(Off),
+					b'1' => Ok(Strict),
+					b'2' => Ok(Filter),
+					_ => Err(ProcessStatusStatisticParseError::OutOfRange)
+				}
 			}
 			else
 			{
@@ -650,43 +664,29 @@ impl ProcessStatusStatistics
 			use self::SpeculationStoreBypassStatus::*;
 
 			let value = match value
-				{
-					b"unknown" => SpeculationStoreBypassStatus::Unknown,
-					b"not vulnerable" => NotVulnerable,
-					b"thread force mitigated" => ThreadForceMitigated,
-					b"thread mitigated" => ThreadMitigated,
-					b"thread vulnerable" => ThreadVulnerable,
-					b"globally mitigated" => GloballyMitigated,
-					b"vulnerable" => Vulnerable,
-					_ => return Err(ProcessStatusStatisticParseError::OutOfRange),
-				};
+			{
+				b"unknown" => SpeculationStoreBypassStatus::Unknown,
+				b"not vulnerable" => NotVulnerable,
+				b"thread force mitigated" => ThreadForceMitigated,
+				b"thread mitigated" => ThreadMitigated,
+				b"thread vulnerable" => ThreadVulnerable,
+				b"globally mitigated" => GloballyMitigated,
+				b"vulnerable" => Vulnerable,
+				_ => return Err(ProcessStatusStatisticParseError::OutOfRange),
+			};
 			Ok(value)
 		}
 
 		#[inline(always)]
-		fn parse_cpus_or_numa_nodes_allowed_bitmasks(value: &[u8]) -> Result<Vec<u32>, ProcessStatusStatisticParseError>
+		fn parse_cpus_or_numa_nodes_allowed<BSA: BitSetAware>(value: &[u8]) -> Result<BitSet<BSA>, ProcessStatusStatisticParseError>
 		{
-			let iterator = split(value, b',');
-			let mut bitmasks = Vec::with_capacity(1);
-
-			for raw_value in iterator
-				{
-					if likely!(raw_value.len() <= 8 && raw_value.len() != 0)
-					{
-						bitmasks.push(u32::from_str_radix(from_utf8(value)?, 16)?);
-					}
-					else
-					{
-						return Err(ProcessStatusStatisticParseError::InvalidLength)
-					}
-				}
-			Ok(bitmasks)
+			Ok(BitSet::parse_hyper_thread_or_numa_node_bit_set(&value))
 		}
 
 		#[inline(always)]
 		fn parse_cpus_allowed_list(value: &[u8]) -> Result<BTreeSet<HyperThread>, ProcessStatusStatisticParseError>
 		{
-			Ok(ListParseError::parse_linux_list_string(value, |value_u16| Ok(HyperThread::from(value_u16)))?)
+			Ok(ListParseError::parse_linux_list_string(value, HyperThread::try_from)?)
 		}
 
 		#[inline(always)]
@@ -771,22 +771,22 @@ impl ProcessStatusStatistics
 			b"HugetlbPages" => huge_tlb_pages_memory_size @ parse_kb,
 			b"Threads" => threads @ parse_u64,
 			b"SigQ" => signal_queue @ parse_signal_queue,
-			b"SigPnd" => thread_pending_signals @ parse_bitmask,
-			b"ShdPnd" => process_shared_pending_signals @ parse_bitmask,
-			b"SigBlk" => blocked_signals @ parse_bitmask,
-			b"SigIgn" => ignored_signals @ parse_bitmask,
-			b"SigCgt" => caught_signals @ parse_bitmask,
-			b"CapInh" => inheritable_capabilities @ parse_bitmask,
-			b"CapPrm" => permitted_capabilities @ parse_bitmask,
-			b"CapEff" => effective_capabilities @ parse_bitmask,
-			b"CapBnd" => capabilities_bounding_set @ parse_bitmask,
-			b"CapAm" => ambient_capabilities @ parse_bitmask,
+			b"SigPnd" => thread_pending_signals @ parse_signal_bitset,
+			b"ShdPnd" => process_shared_pending_signals @ parse_signal_bitset,
+			b"SigBlk" => blocked_signals @ parse_signal_bitset,
+			b"SigIgn" => ignored_signals @ parse_signal_bitset,
+			b"SigCgt" => caught_signals @ parse_signal_bitset,
+			b"CapInh" => inheritable_capabilities_mask @ parse_capability_mask_or_set,
+			b"CapPrm" => permitted_capabilities_mask @ parse_capability_mask_or_set,
+			b"CapEff" => effective_capabilities_mask @ parse_capability_mask_or_set,
+			b"CapBnd" => capabilities_bounding_set @ parse_capability_mask_or_set,
+			b"CapAm" => ambient_capabilities_set @ parse_capability_mask_or_set,
 			b"NoNewPrivs" => thread_no_new_privileges_bit @ parse_bool,
 			b"Seccomp" => seccomp_mode @ parse_seccomp_mode,
 			b"Speculation_Store_Bypass" => speculation_store_bypass @ parse_speculation_store_bypass,
-			b"Cpus_allowed" => cpus_allowed_bitmasks @ parse_cpus_or_numa_nodes_allowed_bitmasks,
+			b"Cpus_allowed" => cpus_allowed @ parse_cpus_or_numa_nodes_allowed,
 			b"Cpus_allowed_list" => cpus_allowed_list @ parse_cpus_allowed_list,
-			b"Mems_allowed" => numa_nodes_allowed_bitmasks @ parse_cpus_or_numa_nodes_allowed_bitmasks,
+			b"Mems_allowed" => numa_nodes_allowed @ parse_cpus_or_numa_nodes_allowed,
 			b"Mems_allowed_list" => numa_nodes_allowed_list @ parse_numa_nodes_allowed_list,
 			b"voluntary_ctxt_switches" => voluntary_context_switches @ parse_u64,
 			b"nonvoluntary_ctxt_switches" => involuntary_context_switches @ parse_u64,

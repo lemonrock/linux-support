@@ -2,5 +2,27 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A hyper thread bitmask.
-pub type HyperThreadBitmask = u32;
+/// A structure that can be stored in a bit set.
+pub trait BitSetAware: Sized + Into<u16> + TryFrom<u16, Error=BitSetAwareTryFromU16Error>
+{
+	#[doc(hidden)]
+	const LinuxMaximum: u16;
+
+	/// Minimum.
+	const InclusiveMinimum: Self;
+
+	/// Maixmum.
+	const InclusiveMaximum: Self;
+
+	/// Converts item into set of item.
+	#[inline(always)]
+	fn into_bit_set(self) -> BitSet<Self>
+	{
+		let mut new = BitSet::empty();
+		new.add(self);
+		new
+	}
+
+	#[doc(hidden)]
+	fn hydrate(value: u16) -> Self;
+}

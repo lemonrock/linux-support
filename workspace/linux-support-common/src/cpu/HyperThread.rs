@@ -4,7 +4,7 @@
 
 /// Represents a logical hyper thread, which in Operating System terms is usually a logical CPU (core).
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub struct HyperThread(pub u16);
+pub struct HyperThread(u16);
 
 impl From<u8> for HyperThread
 {
@@ -15,12 +15,21 @@ impl From<u8> for HyperThread
 	}
 }
 
-impl From<u16> for HyperThread
+impl TryFrom<u16> for HyperThread
 {
+	type Error = BitSetAwareTryFromU16Error;
+
 	#[inline(always)]
-	fn from(value: u16) -> Self
+	fn try_from(value: u16) -> Result<Self, Self::Error>
 	{
-		HyperThread(value)
+		if unlikely!(value >= Self::LinuxMaximum)
+		{
+			Err(BitSetAwareTryFromU16Error::default())
+		}
+		else
+		{
+			Ok(Self(value))
+		}
 	}
 }
 
@@ -57,6 +66,24 @@ impl Into<usize> for HyperThread
 	fn into(self) -> usize
 	{
 		self.0 as usize
+	}
+}
+
+impl BitSetAware for HyperThread
+{
+	/// Maximum value of `CONFIG_NR_CPUS`.
+	const LinuxMaximum: u16 = 8192;
+
+	const InclusiveMinimum: Self = Self(0);
+
+	const InclusiveMaximum: Self = Self(Self::LinuxMaximum - 1);
+
+	#[inline(always)]
+	fn hydrate(value: u16) -> Self
+	{
+		debug_assert!(value < Self::LinuxMaximum);
+
+		Self(value)
 	}
 }
 
@@ -136,49 +163,49 @@ impl HyperThread
 	}
 
 	/// Reads the hyper thread and NUMA node of the currently executing CPU from the `IA32_TSC_AUX` model state register, which Linux populates.
-	///
-	/// Currently uses the `RDTSCP` instruction, but, once Ice Lake is widely available, could be changed to use the `RDPID` instruction.
 	#[inline(always)]
-	pub fn current_numa_node_and_hyper_thread() -> (NumaNode, HyperThread)
+	pub fn current() -> (NumaNode, Self)
 	{
-		NumaNode::current_numa_node_and_hyper_thread()
+		current_numa_node_and_hyper_thread()
 	}
 
-	/// Valid logical cores for the current process.
+	/// Current hyper thread index that this thread is running on.
 	///
-	/// ***Only valid at start up before `sched_setaffinity()` has been called.***
+	/// Unless this thread has been scheduled to only run on this hyper thread, then the result is close to useless.
 	///
-	/// Logic inspired by [libnuma](https://github.com/numactl/numactl)'s `numa_num_task_cpus()` function.
-	///
-	/// Slow as it will parse the file `/proc/self/status`.
-	pub fn valid_hyper_threads_for_the_current_process(proc_path: &ProcPath) -> BTreeSet<Self>
+	/// Prefer `current()`.
+	pub fn current_hyper_thread() -> Self
 	{
-		#[inline(always)]
-		fn all_available_to_process_even_if_they_do_not_exist(proc_path: &ProcPath) -> BTreeSet<HyperThread>
+		let result = unsafe { sched_getcpu() };
+		debug_assert!(result >= 0, "sched_getcpu() was negative");
+
+		debug_assert!(result <= std::u16::MAX as i32, "sched_getcpu() was too large");
+		let result = result as u16;
+
+		debug_assert!(result < Self::LinuxMaximum);
+
+		Self(result as u16)
+	}
+
+	/// Uses `sysconf(_SC_NPROCESSORS_CONF)` which is ***only valid*** if `sched_setaffinity()` has not been called.
+	///
+	/// Internally `sysconf(_SC_NPROCESSORS_CONF)`, in musl, uses the system call `SYS_sched_getaffinity()`.
+	#[inline(always)]
+	pub fn sysconf_maximum() -> u16
+	{
+		let result = unsafe { sysconf(_SC_NPROCESSORS_CONF) };
+		if result <= 0
 		{
-			let process_status_statistics = ProcessStatusStatistics::self_status(proc_path).unwrap();
-			process_status_statistics.cpus_allowed_list.unwrap()
+			1
 		}
-
-		let all_available_to_process_even_if_they_do_not_exist = all_available_to_process_even_if_they_do_not_exist(proc_path);
-
-		// This logic is borrowed from libnuma; internally `sysconf(_SC_NPROCESSORS_CONF)`, in musl, uses the system call `SYS_sched_getaffinity()`.
-		let number_of_logical_cores = unsafe { sysconf(_SC_NPROCESSORS_CONF) } - 1;
-		let maximum_logical_core_identifier = if unlikely!(number_of_logical_cores == 0)
+		else if result > Self::LinuxMaximum as c_long
 		{
-			0
+			Self::LinuxMaximum
 		}
 		else
 		{
-			(number_of_logical_cores - 1) as u16
-		};
-
-		let mut hyper_threads = BTreeSet::new();
-		for hyper_thread in all_available_to_process_even_if_they_do_not_exist.range(Self::from(0u16) ..= Self::from(maximum_logical_core_identifier))
-		{
-			hyper_threads.insert(*hyper_thread);
+			result as u16
 		}
-		hyper_threads
 	}
 
 	/// Hyper Threads to mask.
@@ -227,15 +254,8 @@ impl HyperThread
 	#[inline(always)]
 	pub fn force_watchdog_to_just_these_hyper_threads(hyper_threads: &BTreeSet<Self>, proc_path: &ProcPath) -> io::Result<()>
 	{
-		if cfg!(any(target_os = "android", target_os = "linux"))
-		{
-			let yes_a_list_even_though_file_is_named_a_cpumask = Self::hyper_threads_to_list(hyper_threads);
-			proc_path.sys_kernel_file_path("watchdog_cpumask").write_value(yes_a_list_even_though_file_is_named_a_cpumask)
-		}
-		else
-		{
-			Ok(())
-		}
+		let yes_a_list_even_though_file_is_named_a_cpumask = Self::hyper_threads_to_list(hyper_threads);
+		proc_path.sys_kernel_file_path("watchdog_cpumask").write_value(yes_a_list_even_though_file_is_named_a_cpumask)
 	}
 
 	/// Last hyper thread.
@@ -259,6 +279,36 @@ impl HyperThread
 	{
 		let online = Self::online(sys_path);
 		online.intersection(hyper_threads).cloned().collect()
+	}
+
+	/// Valid logical cores for the current process.
+	///
+	/// ***Only valid at start up before `sched_setaffinity()` has been called as it affects sysconf.***
+	///
+	/// Logic inspired by [libnuma](https://github.com/numactl/numactl)'s `numa_num_task_cpus()` function.
+	///
+	/// Slow as it will parse the file `/proc/self/status`.
+	pub fn valid_hyper_threads_for_the_current_process(proc_path: &ProcPath) -> BTreeSet<Self>
+	{
+		let all_available_to_process_even_if_they_do_not_exist = Self::in_process_status(proc_path);
+
+		let number_of_logical_cores = Self::sysconf_maximum();
+		let maximum = if unlikely!(number_of_logical_cores == 0 || number_of_logical_cores == 1)
+		{
+			Self::InclusiveMinimum
+		}
+		else
+		{
+			let alternative = Self((number_of_logical_cores - 1) as u16);
+			min(alternative, Self::InclusiveMaximum)
+		};
+
+		let mut hyper_threads = BTreeSet::new();
+		for hyper_thread in all_available_to_process_even_if_they_do_not_exist.range(Self::InclusiveMinimum ..= maximum)
+		{
+			hyper_threads.insert(*hyper_thread);
+		}
+		hyper_threads
 	}
 
 	/// CPUs (hyper threaded logical cores) that are present and that could become online.
@@ -305,6 +355,14 @@ impl HyperThread
 	pub fn possible(sys_path: &SysPath) -> BTreeSet<Self>
 	{
 		Self::parse_list_mask(sys_path, "possible")
+	}
+
+	/// Hyper threads available according to `/proc/self/status`.
+	#[inline(always)]
+	pub fn in_process_status(proc_path: &ProcPath) -> BTreeSet<HyperThread>
+	{
+		let process_status_statistics = ProcessStatusStatistics::self_status(proc_path).unwrap();
+		process_status_statistics.cpus_allowed_list.unwrap()
 	}
 
 	/// Is this hyper thread online?
@@ -372,7 +430,7 @@ impl HyperThread
 	#[inline(always)]
 	pub fn siblings(self, sys_path: &SysPath) -> BTreeSet<Self>
 	{
-		sys_path.hyper_thread_file_path(self, "topology/core_siblings_list").read_linux_core_or_numa_list(|value_u16| Ok(Self(value_u16))).unwrap()
+		sys_path.hyper_thread_topology_file_path(self, "core_siblings_list").read_hyper_thread_or_numa_node_list(Self::try_from).unwrap()
 	}
 
 	/// Hyper threaded logical cores that are hyper-thread-siblings of this one.
@@ -385,7 +443,7 @@ impl HyperThread
 	#[inline(always)]
 	pub fn thread_siblings(self, sys_path: &SysPath) -> BTreeSet<Self>
 	{
-		sys_path.hyper_thread_file_path(self, "topology/thread_siblings_list").read_linux_core_or_numa_list(|value_u16| Ok(Self(value_u16))).unwrap()
+		sys_path.hyper_thread_topology_file_path(self, "thread_siblings_list").read_hyper_thread_or_numa_node_list(Self::try_from).unwrap()
 	}
 
 	/// Hyper threaded logical cores grouped as hyper thread groups (eg HT 0 and 1, 2 and 3, etc).
@@ -437,7 +495,7 @@ impl HyperThread
 	#[inline(always)]
 	pub fn level1_cache_hyper_thread_siblings_including_self(self, sys_path: &SysPath) -> BTreeSet<Self>
 	{
-		sys_path.hyper_thread_file_path(self, "cache/index0/shared_cpu_list").read_linux_core_or_numa_list(|value_u16| Ok(Self(value_u16))).unwrap()
+		sys_path.hyper_thread_cache_file_path(self, "index0/shared_cpu_list").read_hyper_thread_or_numa_node_list(Self::try_from).unwrap()
 	}
 
 	/// Hyper threaded logical cores that are thread-siblings of this one according to the level 1 cache.
@@ -459,7 +517,7 @@ impl HyperThread
 	#[inline(always)]
 	pub fn underlying_hardware_physical_core_identifier(self, sys_path: &SysPath) -> io::Result<u16>
 	{
-		sys_path.hyper_thread_file_path(self, "topology/core_id").read_value()
+		sys_path.hyper_thread_topology_file_path(self, "core_id").read_value()
 	}
 
 	/// Underlying hardware, not Linux, socket identifier.
@@ -468,7 +526,7 @@ impl HyperThread
 	#[inline(always)]
 	pub fn underlying_hardware_physical_socket_identifier(self, sys_path: &SysPath) -> io::Result<u16>
 	{
-		sys_path.hyper_thread_file_path(self, "topology/physical_package_id").read_value()
+		sys_path.hyper_thread_topology_file_path(self, "physical_package_id").read_value()
 	}
 
 	/// Simply reports the maximum *identifier* that could be used by the Linux kernel upto the `CONFIG_` number of CPUs.
@@ -485,17 +543,6 @@ impl HyperThread
 	#[inline(always)]
 	fn parse_list_mask(sys_path: &SysPath, file_name: &str) -> BTreeSet<Self>
 	{
-		sys_path.hyper_threads_folder_path(file_name).read_linux_core_or_numa_list(|value_u16| Ok(Self(value_u16))).unwrap()
-	}
-
-	/// Current hyper thread index that this thread is running on.
-	///
-	/// Unless this thread has been scheduled to only run on this hyper thread, then the result is close to useless.
-	pub fn current_hyper_thread() -> Self
-	{
-		let result = unsafe { sched_getcpu() };
-		debug_assert!(result >= 0, "sched_getcpu() was negative");
-		debug_assert!(result <= ::std::u16::MAX as i32, "sched_getcpu() was too large");
-		HyperThread(result as u16)
+		sys_path.hyper_threads_folder_path(file_name).read_hyper_thread_or_numa_node_list(Self::try_from).unwrap()
 	}
 }

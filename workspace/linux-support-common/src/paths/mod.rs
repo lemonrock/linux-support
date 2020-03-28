@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use crate::bit_set::*;
 use crate::cpu::*;
 use crate::memory::numa::NumaNode;
 use crate::memory::huge_pages::HugePageSize;
@@ -32,16 +33,19 @@ use std::fs::*;
 use std::io;
 use std::io::ErrorKind;
 use std::io::Write;
+use std::mem::align_of;
 #[allow(deprecated)] use std::mem::uninitialized;
-use std::num::*;
+use std::num::NonZeroI32;
+use std::num::ParseIntError;
 use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::PermissionsExt;
 use std::os::unix::io::AsRawFd;
 use std::path::*;
-use std::ptr::{NonNull, read_volatile, write_volatile};
+use std::ptr::NonNull;
 use std::ptr::null_mut;
+use std::ptr::read_volatile;
+use std::ptr::write_volatile;
 use std::str::*;
-use static_assertions::_core::mem::align_of;
 
 
 include!("DevPath.rs");
