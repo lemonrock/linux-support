@@ -67,7 +67,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	{
 		let (word_index, relative_bit_index_within_word) = Self::word_index_and_relative_bit_index_within_word(element);
 
-		if word_index >= self.0.len()
+		if word_index >= self.capacity()
 		{
 			self.extend(word_index + 1)
 		}
@@ -81,7 +81,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	{
 		let (word_index, relative_bit_index_within_word) = Self::word_index_and_relative_bit_index_within_word(element);
 
-		debug_assert!(word_index < self.0.len());
+		debug_assert!(word_index < self.capacity());
 
 		self.add_internal(word_index, relative_bit_index_within_word)
 	}
@@ -92,7 +92,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	{
 		let (word_index, relative_bit_index_within_word) = Self::word_index_and_relative_bit_index_within_word(element);
 
-		debug_assert!(word_index < self.0.len());
+		debug_assert!(word_index < self.capacity());
 
 		let word = * unsafe { self.0.get_unchecked(word_index) };
 		word & (1 << relative_bit_index_within_word) != 0
@@ -104,19 +104,19 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	#[inline(always)]
 	pub fn shrink_to_fit(&mut self)
 	{
-		let current_length = self.0.len();
+		let current_length = self.capacity();
 		let mut new_length = current_length;
 		for index in (0 ..current_length).rev()
+		{
+			if self.0[index] == 0
 			{
-				if self.0[index] == 0
-				{
-					new_length -= 1;
-				}
-				else
-				{
-					break
-				}
+				new_length -= 1;
 			}
+			else
+			{
+				break
+			}
+		}
 		if new_length != current_length
 		{
 			self.0.truncate(new_length)
@@ -130,8 +130,8 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	#[inline(always)]
 	pub fn intersection(&mut self, other: &Self)
 	{
-		let our_length = self.0.len();
-		let other_length = other.0.len();
+		let our_length = self.capacity();
+		let other_length = other.capacity();
 
 		for word_index in 0 .. other_length
 		{
@@ -197,7 +197,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 		let word_index = byte_index / size_of::<usize>();
 		debug_assert!(word_index < Self::MaximumNumberOfUsizeWords);
 
-		debug_assert!(word_index < self.0.len());
+		debug_assert!(word_index < self.capacity());
 
 		(self.0.as_mut_ptr() as *mut u8).offset(byte_index as isize).write(byte);
 	}
@@ -215,7 +215,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	{
 		debug_assert!(word_index < Self::MaximumNumberOfUsizeWords);
 
-		debug_assert!(word_index < self.0.len());
+		debug_assert!(word_index < self.capacity());
 
 		self.0.as_mut_ptr().write(bits);
 	}
@@ -224,14 +224,14 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	#[inline(always)]
 	pub(crate) fn to_raw_parts(&self) -> (*const usize, usize)
 	{
-		(self.0.as_ptr(), self.0.len())
+		(self.0.as_ptr(), self.capacity())
 	}
 
 	/// Provides a pointer and a length suitable for some Linux API calls.
 	#[inline(always)]
 	pub(crate) fn to_raw_parts_mut(&mut self) -> (*mut usize, usize)
 	{
-		(self.0.as_mut_ptr(), self.0.len())
+		(self.0.as_mut_ptr(), self.capacity())
 	}
 
 	#[inline(always)]
@@ -282,6 +282,37 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	}
 
 	#[inline(always)]
+	pub(crate) fn capacity(&self) -> usize
+	{
+		self.0.len()
+	}
+
+	#[inline(always)]
+	pub(crate) fn extend_clone_to(&self, new_length: usize) -> Self
+	{
+		let current_length = self.capacity();
+		debug_assert!(current_length <= new_length);
+
+		let mut uninitialized = Self::new_set_length(new_length);
+		unsafe { copy_nonoverlapping(self.0.as_ptr(), uninitialized.0.as_mut_ptr(), current_length) }
+
+		let extend_size = new_length - current_length;
+		unsafe { write_bytes(uninitialized.0.as_mut_ptr().offset(current_length as isize), 0x00, extend_size) };
+
+		uninitialized
+	}
+
+	#[inline(always)]
+	fn extend(&mut self, new_length: usize)
+	{
+		let current_length = self.capacity();
+		let extend_size = new_length - current_length;
+		self.0.reserve(extend_size);
+		unsafe { write_bytes(self.0.as_mut_ptr().offset(current_length as isize), 0x00, extend_size) };
+		unsafe { self.0.set_len(new_length) };
+	}
+
+	#[inline(always)]
 	fn word_index_and_relative_bit_index_within_word(element: BSA) -> (usize, usize)
 	{
 		let value: u16 = element.into();
@@ -302,15 +333,5 @@ impl<BSA: BitSetAware> BitSet<BSA>
 			let word = *pointer;
 			*pointer = word | (1 << relative_bit_index_within_word)
 		}
-	}
-
-	#[inline(always)]
-	fn extend(&mut self, new_length: usize)
-	{
-		let current_length = self.0.len();
-		let extend_size = new_length - current_length;
-		self.0.reserve(extend_size);
-		unsafe { write_bytes(self.0.as_mut_ptr().offset(current_length as isize), 0x00, extend_size) };
-		unsafe { self.0.set_len(new_length) };
 	}
 }

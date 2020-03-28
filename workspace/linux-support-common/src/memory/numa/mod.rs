@@ -28,6 +28,7 @@ use libc::ESRCH;
 use libc::pid_t;
 use likely::*;
 use std::borrow::Cow;
+use std::cmp::Ordering;
 use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::convert::TryFrom;
@@ -45,7 +46,6 @@ use std::ptr::null_mut;
 
 
 include!("GetMemoryPolicyFlags.rs");
-include!("move_pages.rs");
 include!("NumaNode.rs");
 include!("PageMoveError.rs");
 include!("PageMoveStatus.rs");
@@ -56,14 +56,3 @@ include!("SetMemoryPolicy.rs");
 
 
 mod syscall;
-
-
-/*
-	xxx;
-	// TODO: Explore hugepages per NUMA node, and check if all files are psent - only:-
-		&nr_hugepages_attr.attr,
-		&free_hugepages_attr.attr,
-		&surplus_hugepages_attr.attr,
-
-	// TODO: Use mmap with the new flags to mmap huge pages
-*/

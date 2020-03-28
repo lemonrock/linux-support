@@ -45,3 +45,12 @@ include!("VirtualPageFrameNumber.rs");
 
 
 const DirectMemoyAccessMemoryAlignment: usize = 128;
+/*
+	xxx;
+	// TODO: Explore hugepages per NUMA node, and check if all files are psent - only:-
+		&nr_hugepages_attr.attr,
+		&free_hugepages_attr.attr,
+		&surplus_hugepages_attr.attr,
+
+	// TODO: Use mmap with the new flags to mmap huge pages
+*/
