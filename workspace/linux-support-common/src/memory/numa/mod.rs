@@ -14,16 +14,28 @@ use crate::user_and_groups::assert_effective_user_id_is_root;
 use bitflags::bitflags;
 use errno::errno;
 use libc::c_void;
+use libc::E2BIG;
+use libc::EACCES;
+use libc::EBUSY;
+use libc::ENODEV;
 use libc::EFAULT;
 use libc::EINVAL;
 use libc::EIO;
+use libc::ENOENT;
 use libc::ENOMEM;
 use libc::EPERM;
+use libc::ESRCH;
+use libc::pid_t;
 use likely::*;
 use std::borrow::Cow;
 use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::convert::TryFrom;
+use std::error;
+use std::fmt;
+use std::fmt::Debug;
+use std::fmt::Display;
+use std::fmt::Formatter;
 use std::io;
 use std::mem::transmute;
 #[allow(deprecated)] use std::mem::uninitialized;
@@ -33,7 +45,11 @@ use std::ptr::null_mut;
 
 
 include!("GetMemoryPolicyFlags.rs");
+include!("move_pages.rs");
 include!("NumaNode.rs");
+include!("PageMoveError.rs");
+include!("PageMoveStatus.rs");
+include!("PerPageMoveError.rs");
 include!("MemoryPolicy.rs");
 include!("MemoryPolicyDynamism.rs");
 include!("SetMemoryPolicy.rs");
@@ -41,10 +57,8 @@ include!("SetMemoryPolicy.rs");
 
 mod syscall;
 
-/*
-	xxx;
-	// TODO: Explore hugepages global mempolicy
 
+/*
 	xxx;
 	// TODO: Explore hugepages per NUMA node, and check if all files are psent - only:-
 		&nr_hugepages_attr.attr,

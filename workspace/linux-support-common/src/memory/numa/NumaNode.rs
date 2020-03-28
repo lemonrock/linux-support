@@ -77,6 +77,15 @@ impl Into<usize> for NumaNode
 	}
 }
 
+impl Into<i32> for NumaNode
+{
+	#[inline(always)]
+	fn into(self) -> i32
+	{
+		self.0 as i32
+	}
+}
+
 impl<'a> IntoLineFeedTerminatedByteString<'a> for NumaNode
 {
 	/// Converts data to a byte string terminated with a new line (`\n`).
@@ -151,6 +160,65 @@ impl NumaNode
 			.filter(|numa_node| numa_node.is_a_numa_node(sys_path))
 			.collect()
 		)
+	}
+
+	// nodes can
+	//       also be NULL, in which case move_pages() does not move any pages but
+	//       instead will return the node where each page currently resides, in
+	//       the status array.  Obtaining the status of each page may be necessary
+	//       to determine pages that need to be moved.
+
+	/// Move pages to another NUMA node.
+	///
+	/// See also `move_pages()`.
+	///
+	/// `PageMoveError` `TargetNodeNotAllowed`, `OneOrMoreTargetNodesIsNotOnline` and `CallerNeedsToHaveSysNiceCapabilityForMoveAll` do not occur.
+	#[inline(always)]
+	pub fn status_of_pages(process_identifier: pid_t, pages: &[NonNull<u8>]) -> Result<Box<[Self]>, PageMoveError>
+	{
+		let count = pages.len();
+		if unlikely!(count == 0)
+		{
+			return Ok(Vec::new().into_boxed_slice())
+		}
+
+		let mut status: Vec<Self> = Vec::with_capacity(count);
+
+		let result = syscall::move_pages(process_identifier, count, pages.as_ptr() as *const *const c_void, null(), status.as_mut_ptr() as *mut i32, MemoryBindFlags::empty());
+
+		if likely!(result == 0)
+		{
+			unsafe { status.set_len(count) }
+			Ok(status.into_boxed_slice())
+		}
+		else if likely!(result == -1)
+		{
+			use self::PageMoveError::*;
+
+			match errno().0
+			{
+				EACCES => panic!("TargetNodeNotAllowed"),
+				ENODEV => panic!("OneOrMoreTargetNodesIsNotOnline"),
+				ESRCH => Err(ProcessDoesNotExist(process_identifier)),
+				EPERM => if process_identifier == 0
+				{
+					panic!("We need to have CAP_SYS_NICE for ourselves?!")
+				}
+				else
+				{
+					Err(CallerNeedsToHaveSysNiceCapabilityToMoveAnotherPagesOfAnotherProcess(process_identifier))
+				},
+
+				EINVAL => panic!("Flags other than MPOL_MF_MOVE and MPOL_MF_MOVE_ALL was specified or an attempt was made to migrate pages of a kernel thread"),
+				E2BIG => panic!("Kernel should not generate E2BIG"),
+
+				unexpected @ _ => panic!("Unexpected error number '{}'", unexpected),
+			}
+		}
+		else
+		{
+			panic!("Unknown result '{}'", result)
+		}
 	}
 
 	/// NUMA nodes that have a CPU.

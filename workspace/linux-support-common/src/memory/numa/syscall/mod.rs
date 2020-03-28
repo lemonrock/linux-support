@@ -6,6 +6,7 @@ use crate::syscall::SYS;
 use super::GetMemoryPolicyFlags;
 use bitflags::bitflags;
 use libc::c_void;
+use libc::pid_t;
 
 
 include!("get_mempolicy.rs");
