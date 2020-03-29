@@ -4,27 +4,28 @@
 
 use crate::current_numa_node_and_hyper_thread;
 use crate::WarningsToSuppress;
-use crate::bit_set::BitSetAware;
-use crate::bit_set::BitSetAwareTryFromU16Error;
+use crate::bit_set::*;
 use crate::memory::numa::*;
 use crate::paths::*;
 use crate::status::ProcessStatusStatistics;
 use crate::user_and_groups::assert_effective_user_id_is_root;
+use errno::errno;
 use libc::*;
 use likely::*;
 use raw_cpuid::*;
 use std::collections::BTreeSet;
 use std::convert::TryFrom;
+use std::convert::TryInto;
 use std::cmp::min;
 use std::io;
 use std::io::ErrorKind;
 use std::mem::size_of;
-use std::mem::zeroed;
+#[allow(deprecated)] use std::mem::uninitialized;
 use std::path::PathBuf;
 use std::str::FromStr;
 
 
+include!("BitSetHyperThread.rs");
 include!("CpuFeatures.rs");
-include!("CpuSet.rs");
 include!("HyperThread.rs");
 include!("HyperThreadingStatus.rs");

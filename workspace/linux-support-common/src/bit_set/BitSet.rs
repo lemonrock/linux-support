@@ -94,7 +94,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 
 		debug_assert!(word_index < self.capacity());
 
-		let word = * unsafe { self.0.get_unchecked(word_index) };
+		let word = self.get_word(word_index);
 		word & (1 << relative_bit_index_within_word) != 0
 	}
 
@@ -106,9 +106,9 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	{
 		let current_length = self.capacity();
 		let mut new_length = current_length;
-		for index in (0 ..current_length).rev()
+		for word_index in (0 ..current_length).rev()
 		{
-			if self.0[index] == 0
+			if self.get_word(word_index) == 0
 			{
 				new_length -= 1;
 			}
@@ -135,10 +135,11 @@ impl<BSA: BitSetAware> BitSet<BSA>
 
 		for word_index in 0 .. other_length
 		{
-			let our_word = self.0[word_index];
-			let other_word = self.0[word_index];
+			let our_word_pointer = unsafe { self.word_mut(word_index) };
+			let our_word = *our_word_pointer;
+			let other_word = other.get_word(word_index);
 
-			self.0[word_index] = our_word | other_word
+			*our_word_pointer = our_word | other_word
 		}
 
 		use self::Ordering::*;
@@ -150,12 +151,11 @@ impl<BSA: BitSetAware> BitSet<BSA>
 
 			Greater =>
 			{
-				let extra = other_length - our_length;
-				self.0.reserve_exact(extra);
+				let extend_size = other_length - our_length;
 
-				unsafe { copy_nonoverlapping(other.0.as_ptr().offset(our_length as isize), self.0.as_mut_ptr().offset(our_length as isize), extra) };
-
-				unsafe { self.0.set_len(other_length) };
+				self.reserve_exact(extend_size);
+				unsafe { other.as_ptr_offset(our_length).copy_to_nonoverlapping(self.as_mut_ptr_end(), extend_size) };
+				self.set_length(other_length);
 			}
 		}
 	}
@@ -169,7 +169,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 
 	/// Creates a bit set from an u64 which is correctly set.
 	#[inline(always)]
-	pub(crate) fn from_u64(bits: u64) -> Self
+	pub(crate) fn new_from_u64(bits: u64) -> Self
 	{
 		let mut bit_set = Self::new_set_length(1);
 		unsafe { bit_set.set_u64_unchecked(0, bits) };
@@ -177,11 +177,19 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	}
 
 	#[inline(always)]
+	pub(crate) fn new_from_words(words: *const usize, length: usize) -> Self
+	{
+		let mut bit_set = Self::new_set_length(1);
+		unsafe { words.copy_to_nonoverlapping(bit_set.as_mut_ptr(), length) };
+		bit_set
+	}
+
+	#[inline(always)]
 	fn new_set_length(capacity: usize) -> Self
 	{
-		let mut vec = Vec::with_capacity(capacity);
-		unsafe { vec.set_len(capacity) };
-		Self::new_(vec)
+		let mut new = Self::new_(Vec::with_capacity(capacity));
+		new.set_length(capacity);
+		new
 	}
 
 	#[inline(always)]
@@ -199,7 +207,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 
 		debug_assert!(word_index < self.capacity());
 
-		(self.0.as_mut_ptr() as *mut u8).offset(byte_index as isize).write(byte);
+		(self.as_mut_ptr() as *mut u8).offset(byte_index as isize).write(byte);
 	}
 
 	/// Sets the byte at a byte (not bit) index to all bits in the byte.
@@ -207,31 +215,37 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	#[inline(always)]
 	pub(crate) unsafe fn set_u64_unchecked(&mut self, u64_index: usize, bits: u64)
 	{
-		self.set_usize_unchecked(u64_index, bits as usize)
+		self.set_word(u64_index, bits as usize)
 	}
 
 	#[inline(always)]
-	pub(crate) unsafe fn set_usize_unchecked(&mut self, word_index: usize, bits: usize)
+	pub(crate) unsafe fn set_word(&mut self, word_index: usize, bits: usize)
+	{
+		*self.word_mut(word_index) = bits
+	}
+
+	#[inline(always)]
+	pub(crate) unsafe fn word_mut(&mut self, word_index: usize) -> &mut usize
 	{
 		debug_assert!(word_index < Self::MaximumNumberOfUsizeWords);
 
 		debug_assert!(word_index < self.capacity());
 
-		self.0.as_mut_ptr().write(bits);
+		self.0.get_unchecked_mut(word_index)
 	}
 
 	/// Provides a pointer and a length suitable for some Linux API calls.
 	#[inline(always)]
 	pub(crate) fn to_raw_parts(&self) -> (*const usize, usize)
 	{
-		(self.0.as_ptr(), self.capacity())
+		(self.as_ptr(), self.capacity())
 	}
 
 	/// Provides a pointer and a length suitable for some Linux API calls.
 	#[inline(always)]
 	pub(crate) fn to_raw_parts_mut(&mut self) -> (*mut usize, usize)
 	{
-		(self.0.as_mut_ptr(), self.capacity())
+		(self.as_mut_ptr(), self.capacity())
 	}
 
 	#[inline(always)]
@@ -294,10 +308,8 @@ impl<BSA: BitSetAware> BitSet<BSA>
 		debug_assert!(current_length <= new_length);
 
 		let mut uninitialized = Self::new_set_length(new_length);
-		unsafe { copy_nonoverlapping(self.0.as_ptr(), uninitialized.0.as_mut_ptr(), current_length) }
-
-		let extend_size = new_length - current_length;
-		unsafe { write_bytes(uninitialized.0.as_mut_ptr().offset(current_length as isize), 0x00, extend_size) };
+		unsafe { self.as_ptr().copy_to_nonoverlapping(uninitialized.as_mut_ptr(), current_length) }
+		uninitialized.write_zeros(new_length);
 
 		uninitialized
 	}
@@ -307,9 +319,15 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	{
 		let current_length = self.capacity();
 		let extend_size = new_length - current_length;
-		self.0.reserve(extend_size);
-		unsafe { write_bytes(self.0.as_mut_ptr().offset(current_length as isize), 0x00, extend_size) };
-		unsafe { self.0.set_len(new_length) };
+		self.reserve_exact(extend_size);
+		self.write_zeros(new_length);
+		self.set_length(new_length);
+	}
+
+	#[inline(always)]
+	fn reserve_exact(&mut self, extend_size: usize)
+	{
+		self.0.reserve_exact(extend_size)
 	}
 
 	#[inline(always)]
@@ -327,11 +345,59 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	#[inline(always)]
 	fn add_internal(&mut self, word_index: usize, relative_bit_index_within_word: usize)
 	{
-		unsafe
-		{
-			let pointer = self.0.get_unchecked_mut(word_index);
-			let word = *pointer;
-			*pointer = word | (1 << relative_bit_index_within_word)
-		}
+		let pointer = unsafe { self.word_mut(word_index) };
+		let word = *pointer;
+		*pointer = word | (1 << relative_bit_index_within_word)
+	}
+
+	#[inline(always)]
+	fn get_word(&self, word_index: usize) -> usize
+	{
+		unsafe { *self.0.get_unchecked(word_index) }
+	}
+
+	#[inline(always)]
+	fn as_mut_ptr_end(&mut self) -> *mut usize
+	{
+		self.as_mut_ptr_offset(self.capacity())
+	}
+
+	#[inline(always)]
+	fn as_ptr_offset(&self, offset: usize) -> *const usize
+	{
+		unsafe { self.as_ptr().offset(offset as isize) }
+	}
+
+	#[inline(always)]
+	fn as_mut_ptr_offset(&mut self, offset: usize) -> *mut usize
+	{
+		unsafe { self.as_mut_ptr().offset(offset as isize) }
+	}
+
+	#[inline(always)]
+	fn as_ptr(&self) -> *const usize
+	{
+		self.0.as_ptr()
+	}
+
+	#[inline(always)]
+	fn as_mut_ptr(&mut self) -> *mut usize
+	{
+		self.0.as_mut_ptr()
+	}
+
+	#[inline(always)]
+	fn set_length(&mut self, length: usize)
+	{
+		unsafe { self.0.set_len(length) }
+	}
+
+	#[inline(always)]
+	fn write_zeros(&mut self, new_length: usize)
+	{
+		let current_length = self.capacity();
+		let extend_size = new_length - current_length;
+
+		unsafe { self.as_mut_ptr_end().write_bytes(0x00, extend_size) };
 	}
 }

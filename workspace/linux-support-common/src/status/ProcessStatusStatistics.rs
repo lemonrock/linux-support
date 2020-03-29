@@ -616,7 +616,7 @@ impl ProcessStatusStatistics
 		#[inline(always)]
 		fn parse_capability_mask_or_set(value: &[u8]) -> Result<BitSet<Capability>, ProcessStatusStatisticParseError>
 		{
-			Ok(BitSet::from_u64(parse_hexadecimal_u64(value)?))
+			Ok(BitSet::new_from_u64(parse_hexadecimal_u64(value)?))
 		}
 
 		#[inline(always)]

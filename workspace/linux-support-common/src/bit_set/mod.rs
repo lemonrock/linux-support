@@ -16,8 +16,6 @@ use std::fmt::Display;
 use std::fmt::Formatter;
 use std::marker::PhantomData;
 use std::mem::size_of;
-use std::ptr::copy_nonoverlapping;
-use std::ptr::write_bytes;
 
 
 include!("BitSet.rs");
