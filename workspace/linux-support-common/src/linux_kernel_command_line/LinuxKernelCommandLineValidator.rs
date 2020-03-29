@@ -17,7 +17,7 @@ impl LinuxKernelCommandLineValidator
 
 	/// Validate and find isolated hyper threads, ie those hyper threads not in general use for the Kernel or other applications.
 	#[inline(always)]
-	pub fn validate_and_find_isolated_hyper_threads<E: error::Error, F: FnOnce(&LinuxKernelCommandLineParameters) -> Result<(), E>>(&self, isolated_cpus_required: bool, warnings_to_suppress: &WarningsToSuppress, cpu_features: &CpuFeatures, additional_validations: F) -> Result<BTreeSet<HyperThread>, LinuxKernelCommandLineValidationError<E>>
+	pub fn validate_and_find_isolated_hyper_threads<E: error::Error, F: FnOnce(&LinuxKernelCommandLineParameters) -> Result<(), E>>(&self, isolated_cpus_required: bool, warnings_to_suppress: &WarningsToSuppress, cpu_features: &CpuFeatures, additional_validations: F) -> Result<BitSet<HyperThread>, LinuxKernelCommandLineValidationError<E>>
 	{
 		use self::LinuxKernelCommandLineValidationError::*;
 
@@ -31,7 +31,7 @@ impl LinuxKernelCommandLineValidator
 	}
 
 	#[inline(always)]
-	fn validate_cpus(&self, isolated_cpus_required: bool) -> Result<BTreeSet<HyperThread>, String>
+	fn validate_cpus(&self, isolated_cpus_required: bool) -> Result<BitSet<HyperThread>, String>
 	{
 		if let Some((isolated_cpu_flags, isolated_cpus)) = self.0.isolcpus()
 		{
@@ -51,13 +51,7 @@ impl LinuxKernelCommandLineValidator
 				return Err("Kernel parameters `isolcpus`, `rcu_nocbs` and `nohz_full` should all match".to_string())
 			}
 
-			let mut result = BTreeSet::new();
-			for &value in isolated_cpus.iter()
-			{
-				result.insert(HyperThread::try_from(value).map_err(|_| "Invalid integer".to_string())?);
-			}
-
-			Ok(result)
+			Ok(isolated_cpus)
 		}
 		else
 		{
@@ -67,7 +61,7 @@ impl LinuxKernelCommandLineValidator
 			}
 			else
 			{
-				Ok(BTreeSet::default())
+				Ok(BitSet::empty())
 			}
 		}
 	}

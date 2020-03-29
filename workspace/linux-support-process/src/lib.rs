@@ -63,6 +63,7 @@ use std::panic::catch_unwind;
 use std::panic::resume_unwind;
 use std::path::PathBuf;
 use std::thread;
+use linux_support_common::bit_set::BitSet;
 
 
 /// Daemon support.

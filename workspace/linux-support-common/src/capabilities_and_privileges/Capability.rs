@@ -74,23 +74,7 @@ pub enum Capability
 	WakeAlarm = capability::CAP_WAKE_ALARM as u8,
 }
 
-impl TryFrom<u16> for Capability
-{
-	type Error = BitSetAwareTryFromU16Error;
-
-	#[inline(always)]
-	fn try_from(value: u16) -> Result<Self, Self::Error>
-	{
-		if unlikely!(value >= Self::LinuxMaximum)
-		{
-			Err(BitSetAwareTryFromU16Error::default())
-		}
-		else
-		{
-			Ok(unsafe { transmute(value as u8) })
-		}
-	}
-}
+bit_set_aware!(Capability);
 
 impl Into<u16> for Capability
 {

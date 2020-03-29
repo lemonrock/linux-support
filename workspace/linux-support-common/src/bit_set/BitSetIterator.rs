@@ -3,6 +3,8 @@
 
 
 /// Iterator.
+//
+// TODO: Performance can be improved by using `std::arch::x86_64::_blsi_u64()` to reduce the number of loops.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct BitSetIterator<'a, BSA: BitSetAware>
 {

@@ -41,6 +41,7 @@ use std::mem::transmute;
 
 
 /// A set of types to support the use of bit sets in Linux APIs and files.
+#[macro_use]
 pub mod bit_set;
 
 

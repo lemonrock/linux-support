@@ -2,8 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::bit_set::BitSetAware;
-use crate::bit_set::BitSetAwareTryFromU16Error;
+use crate::bit_set::*;
+use crate::paths::IntoLineFeedTerminatedByteString;
 use errno::errno;
 use libc::*;
 use likely::unlikely;
@@ -19,6 +19,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
+use std::borrow::Cow;
 use std::collections::HashSet;
 use std::convert::TryFrom;
 use std::mem::transmute;

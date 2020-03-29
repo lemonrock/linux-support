@@ -10,6 +10,7 @@ use crate::current_numa_node_and_hyper_thread;
 use crate::bit_set::*;
 use crate::cpu::HyperThread;
 use crate::paths::*;
+use crate::status::ProcessStatusStatistics;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 use bitflags::bitflags;
 use errno::errno;
@@ -29,7 +30,6 @@ use libc::pid_t;
 use likely::*;
 use std::borrow::Cow;
 use std::cmp::Ordering;
-use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::error;
@@ -45,6 +45,7 @@ use std::ptr::null;
 use std::ptr::null_mut;
 
 
+include!("BitSetNumaNode.rs");
 include!("GetMemoryPolicyFlags.rs");
 include!("NumaNode.rs");
 include!("PageMoveError.rs");

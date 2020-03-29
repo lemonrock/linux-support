@@ -276,7 +276,7 @@ pub struct ProcessStatusStatistics
 	/// CPUs (actually, hyper threaded cores) allowed for the current process.
 	///
 	/// Known as `Cpus_allowed_list`.
-	pub cpus_allowed_list: Option<BTreeSet<HyperThread>>,
+	pub cpus_allowed_list: Option<BitSet<HyperThread>>,
 
 	/// NUMA nodes allowed for the current process.
 	///
@@ -292,7 +292,7 @@ pub struct ProcessStatusStatistics
 	/// Known as `Mems_allowed_list`.
 	///
 	/// If the Linux kernel wasn't configured with `CONFIG_NUMA`, defaults to 0.
-	pub numa_nodes_allowed_list: Option<BTreeSet<NumaNode>>,
+	pub numa_nodes_allowed_list: Option<BitSet<NumaNode>>,
 
 	/// Voluntary context switches.
 	///
@@ -684,15 +684,15 @@ impl ProcessStatusStatistics
 		}
 
 		#[inline(always)]
-		fn parse_cpus_allowed_list(value: &[u8]) -> Result<BTreeSet<HyperThread>, ProcessStatusStatisticParseError>
+		fn parse_cpus_allowed_list(value: &[u8]) -> Result<BitSet<HyperThread>, ProcessStatusStatisticParseError>
 		{
-			Ok(ListParseError::parse_linux_list_string(value, HyperThread::try_from)?)
+			Ok(BitSet::<HyperThread>::parse_linux_list_string(value)?)
 		}
 
 		#[inline(always)]
-		fn parse_numa_nodes_allowed_list(value: &[u8]) -> Result<BTreeSet<NumaNode>, ProcessStatusStatisticParseError>
+		fn parse_numa_nodes_allowed_list(value: &[u8]) -> Result<BitSet<NumaNode>, ProcessStatusStatisticParseError>
 		{
-			Ok(ListParseError::parse_linux_list_string(value, NumaNode::try_from)?)
+			Ok(BitSet::<NumaNode>::parse_linux_list_string(value)?)
 		}
 
 		macro_rules! parse

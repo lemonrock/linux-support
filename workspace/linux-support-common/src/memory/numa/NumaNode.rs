@@ -14,85 +14,14 @@
 #[repr(transparent)]
 pub struct NumaNode(u16);
 
-impl From<u8> for NumaNode
-{
-	#[inline(always)]
-	fn from(value: u8) -> Self
-	{
-		Self(value as u16)
-	}
-}
-
-impl TryFrom<u16> for NumaNode
-{
-	type Error = BitSetAwareTryFromU16Error;
-
-	#[inline(always)]
-	fn try_from(value: u16) -> Result<Self, Self::Error>
-	{
-		if unlikely!(value >= Self::LinuxMaximum)
-		{
-			Err(BitSetAwareTryFromU16Error::default())
-		}
-		else
-		{
-			Ok(Self(value))
-		}
-	}
-}
+bit_set_aware!(NumaNode);
 
 impl Into<u16> for NumaNode
 {
 	#[inline(always)]
 	fn into(self) -> u16
 	{
-		self.0 as u16
-	}
-}
-
-impl Into<u32> for NumaNode
-{
-	#[inline(always)]
-	fn into(self) -> u32
-	{
-		self.0 as u32
-	}
-}
-
-impl Into<u64> for NumaNode
-{
-	#[inline(always)]
-	fn into(self) -> u64
-	{
-		self.0 as u64
-	}
-}
-
-impl Into<usize> for NumaNode
-{
-	#[inline(always)]
-	fn into(self) -> usize
-	{
-		self.0 as usize
-	}
-}
-
-impl Into<i32> for NumaNode
-{
-	#[inline(always)]
-	fn into(self) -> i32
-	{
-		self.0 as i32
-	}
-}
-
-impl<'a> IntoLineFeedTerminatedByteString<'a> for NumaNode
-{
-	/// Converts data to a byte string terminated with a new line (`\n`).
-	#[inline(always)]
-	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
-	{
-		self.0.into_line_feed_terminated_byte_string()
+		self.0
 	}
 }
 
@@ -103,6 +32,8 @@ impl BitSetAware for NumaNode
 	const InclusiveMinimum: Self = Self(0);
 
 	const InclusiveMaximum: Self = Self(Self::LinuxMaximum - 1);
+
+	const Prefix: &'static [u8] = b"node";
 
 	#[inline(always)]
 	fn hydrate(value: u16) -> Self
@@ -124,42 +55,100 @@ impl NumaNode
 		current_numa_node_and_hyper_thread()
 	}
 
-	/// True if the Linux kernel was configured with `CONFIG_NUMA`
+	/// True if the Linux kernel was configured with `CONFIG_NUMA` and `/sys` is mounted.
 	#[inline(always)]
 	pub fn is_a_numa_machine(sys_path: &SysPath) -> bool
 	{
 		sys_path.numa_nodes_folder_path().exists()
 	}
 
-	/// Is this a NUMA node (assuming the Linux kernel wasn't configured with `CONFIG_NUMA`)?
+	/// Is this a NUMA node?
 	///
 	/// Note that this might be a fake NUMA node, ie one lacking any hyper threads.
+	///
+	/// Prefer `self.associated_hyper_threads().len() > 0`.
+	///
+	/// This will return false if the Linux kernel wasn't configured with `CONFIG_NUMA`.
+	///
 	#[inline(always)]
 	pub fn is_a_numa_node(self, sys_path: &SysPath) -> bool
 	{
 		sys_path.numa_node_folder_path(self).exists()
 	}
 
-	/// Returns the intersection of `have_at_least_one_cpu()`, `possible()`, `online()` and `have_normal_memory()` before then checking `is_a_numa_node()`.
+	/// Hyper threads associated with this NUMA node.
 	///
 	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`.
+	///
+	/// Hyper threads themselves have not been validated for being online, etc.
 	#[inline(always)]
-	pub fn valid(sys_path: &SysPath) -> Option<BTreeSet<Self>>
+	pub fn associated_hyper_threads(self, sys_path: &SysPath) -> Option<BitSet<HyperThread>>
 	{
-		let have_cpu = Self::have_at_least_one_cpu(sys_path)?;
-		let possible = Self::possible(sys_path).unwrap();
-		let online = Self::online(sys_path).unwrap();
-		let have_normal_memory = Self::have_normal_memory(sys_path).unwrap();
+		let cpu_map = self.cpu_map(sys_path);
+		let cpu_list = self.cpu_list(sys_path);
+		debug_assert_eq!(cpu_map, cpu_list);
 
-		Some
-		(
-			have_cpu.into_iter()
-			.filter(|numa_node| possible.contains(&numa_node))
-			.filter(|numa_node| online.contains(&numa_node))
-			.filter(|numa_node| have_normal_memory.contains(&numa_node))
-			.filter(|numa_node| numa_node.is_a_numa_node(sys_path))
-			.collect()
-		)
+		let mut valid = self.has_a_folder_path(sys_path)?;
+		valid.intersection(&cpu_map?);
+
+		Some(self.remove_hyper_threads_that_do_not_have_a_mapping_to_this_numa_node(valid, sys_path))
+	}
+
+	/// How many files match `Y` in `/sys/devices/system/node/node<Self>/cpu<Y>`?
+	#[inline(always)]
+	fn has_a_folder_path(self, sys_path: &SysPath) -> Option<BitSet<HyperThread>>
+	{
+		sys_path.numa_node_folder_path(self).entries_in_folder_path::<HyperThread>().unwrap()
+	}
+
+	#[inline(always)]
+	fn cpu_map(self, sys_path: &SysPath) -> Option<BitSet<HyperThread>>
+	{
+		let file_path = sys_path.numa_node_file_path(self, "cpumap");
+		if file_path.exists()
+		{
+			Some(file_path.parse_hyper_thread_or_numa_node_bit_set::<HyperThread>().unwrap())
+		}
+		else
+		{
+			None
+		}
+	}
+
+	#[inline(always)]
+	fn cpu_list(self, sys_path: &SysPath) -> Option<BitSet<HyperThread>>
+	{
+		let file_path = sys_path.numa_node_file_path(self, "cpulist");
+		if file_path.exists()
+		{
+			Some(file_path.read_hyper_thread_or_numa_node_list::<HyperThread>().unwrap())
+		}
+		else
+		{
+			None
+		}
+	}
+
+	#[inline(always)]
+	fn remove_hyper_threads_that_do_not_have_a_mapping_to_this_numa_node(self, mut valid: BitSet<HyperThread>, sys_path: &SysPath) -> BitSet<HyperThread>
+	{
+		let mut invalid_hyper_threads = BitSet::<HyperThread>::new();
+		for hyper_thread in valid.iterate()
+		{
+			if let Some(numa_node) = hyper_thread.numa_node(sys_path)
+			{
+				if numa_node != self
+				{
+					invalid_hyper_threads.add(hyper_thread)
+				}
+			}
+			else
+			{
+				invalid_hyper_threads.add(hyper_thread)
+			}
+		}
+		valid.remove_all(&invalid_hyper_threads);
+		valid
 	}
 
 	/// Migrates all pages from one set of NUMA nodes to another.
@@ -343,81 +332,6 @@ impl NumaNode
 		}
 	}
 
-	/// NUMA nodes that have a CPU.
-	///
-	/// NUMA nodes without a CPU are effectively fake NUMA nodes.
-	///
-	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`.
-	#[inline(always)]
-	fn have_at_least_one_cpu(sys_path: &SysPath) -> Option<BTreeSet<Self>>
-	{
-		Self::parse_list_mask(sys_path, "has_cpu")
-	}
-
-	/// NUMA nodes that could possibly be online at some point.
-	///
-	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`.
-	///
-	/// Not reliable, as includes NUMA nodes that can never be brought online; simply reports the number that could be used by the Linux kernel upto the `CONFIG_` number of NUMA nodes.
-	#[inline(always)]
-	pub fn possible(sys_path: &SysPath) -> Option<BTreeSet<Self>>
-	{
-		Self::parse_list_mask(sys_path, "possible")
-	}
-
-	/// NUMA nodes that are online at some point.
-	///
-	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`.
-	#[inline(always)]
-	pub fn online(sys_path: &SysPath) -> Option<BTreeSet<Self>>
-	{
-		Self::parse_list_mask(sys_path, "online")
-	}
-
-	/// NUMA nodes that have normal memory (as opposed to what was high memory, `has_high_memory`, which only exists if Linux is compiled with `CONFIG_HIGHMEM` which is an ancient setting).
-	///
-	/// I suspect this value is effectively useless.
-	///
-	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`.
-	#[inline(always)]
-	pub fn have_normal_memory(sys_path: &SysPath) -> Option<BTreeSet<Self>>
-	{
-		Self::parse_list_mask(sys_path, "has_normal_memory")
-	}
-
-	/// NUMA nodes that have hot-pluggable memory.
-	///
-	/// Intended to support hot-plugging of memory.
-	///
-	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`.
-	#[inline(always)]
-	pub fn have_movable_memory(sys_path: &SysPath) -> Option<BTreeSet<Self>>
-	{
-		Self::parse_list_mask(sys_path, "has_memory")
-	}
-
-	/// NUMA nodes that have high memory.
-	///
-	/// Obsolete.
-	///
-	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`.
-	#[inline(always)]
-	pub fn have_high_memory(sys_path: &SysPath) -> Option<BTreeSet<Self>>
-	{
-		Self::parse_list_mask(sys_path, "has_high_memory")
-	}
-
-	/// Huge page pool statistics.
-	///
-	/// This will panic if this the Linux kernel wasn't configured with `CONFIG_NUMA` or the NUMA node is not present.
-	///
-	/// This will also panic if the kernel was compiled without `CONFIG_HUGETLBFS` and the `hugepages` folder is missing under the `node<N>` folder.
-	#[inline(always)]
-	pub fn huge_page_pool_statistics(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> HugePagePoolStatistics
-	{
-		HugePagePoolStatistics::new(sys_path, huge_page_size, |sys_path, huge_page_size| sys_path.numa_node_hugepages_folder_path(huge_page_size, self))
-	}
-
 	/// Tries to compact pages for this NUMA node.
 	///
 	/// This will panic if this the Linux kernel wasn't configured with `CONFIG_NUMA` or the NUMA node is not present.
@@ -431,15 +345,34 @@ impl NumaNode
 		sys_path.numa_node_file_path(self.into(), "compact").write_value(1).unwrap();
 	}
 
-	/// ?Distance between NUMA nodes?
+	/// Huge page pool statistics.
 	///
 	/// This will panic if this the Linux kernel wasn't configured with `CONFIG_NUMA` or the NUMA node is not present.
 	///
+	/// This will also panic if the kernel was compiled without `CONFIG_HUGETLBFS` and the `hugepages` folder is missing under the `node<N>` folder.
+	#[inline(always)]
+	pub fn huge_page_pool_statistics(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> HugePagePoolStatistics
+	{
+		HugePagePoolStatistics::new(sys_path, huge_page_size, |sys_path, huge_page_size| sys_path.numa_node_hugepages_folder_path(huge_page_size, self))
+	}
+
+	/// Value used for distance calculations.
+	///
+	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`.
+	///
 	/// Minimum value seems to be 10.
 	#[inline(always)]
-	pub fn distance(self, sys_path: &SysPath) -> u8
+	pub fn distance(self, sys_path: &SysPath) -> Option<u8>
 	{
-		sys_path.numa_node_file_path(self.into(), "distance").read_value().unwrap()
+		let file_path = sys_path.numa_node_file_path(self.into(), "distance");
+		if file_path.exists()
+		{
+			Some(file_path.read_value().unwrap())
+		}
+		else
+		{
+			None
+		}
 	}
 
 	/// This is a subset of `self.zoned_virtual_memory_statistics()`.
@@ -475,19 +408,5 @@ impl NumaNode
 	{
 		let file_path = sys_path.numa_node_file_path(self.into(), "meminfo");
 		MemoryInformation::parse_memory_information_file(&file_path, memory_information_name_prefix)
-	}
-
-	#[inline(always)]
-	fn parse_list_mask(sys_path: &SysPath, file_name: &str) -> Option<BTreeSet<Self>>
-	{
-		let file_path = sys_path.numa_nodes_path(file_name);
-		if file_path.exists()
-		{
-			Some(file_path.read_hyper_thread_or_numa_node_list(Self::try_from).unwrap())
-		}
-		else
-		{
-			None
-		}
 	}
 }

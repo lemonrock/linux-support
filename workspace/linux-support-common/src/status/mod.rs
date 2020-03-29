@@ -4,8 +4,7 @@
 
 use crate::Kilobyte;
 use crate::cpu::*;
-use crate::bit_set::BitSet;
-use crate::bit_set::BitSetAware;
+use crate::bit_set::*;
 use crate::capabilities_and_privileges::Capability;
 use crate::memory::numa::*;
 use crate::paths::*;
@@ -15,7 +14,6 @@ use libc::*;
 use likely::*;
 use std::collections::BTreeSet;
 use std::collections::HashMap;
-use std::convert::TryFrom;
 use std::error;
 use std::fmt;
 use std::fmt::Debug;

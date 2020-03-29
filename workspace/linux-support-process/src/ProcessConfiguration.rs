@@ -246,12 +246,12 @@ impl ProcessConfiguration
 		result.map_err(ProcessConfigurationExecutionError::LinuxKernelCommandLineValidationFailed)
 	}
 
-	fn hyper_thread_sets<P: Process>(&self, isolated_hyper_threads_including_those_offline: BTreeSet<HyperThread>) -> (BTreeSet<HyperThread>, BTreeSet<HyperThread>, BTreeSet<HyperThread>, HyperThread)
+	fn hyper_thread_sets<P: Process>(&self, isolated_hyper_threads_including_those_offline: BTreeSet<HyperThread>) -> (BitSet<HyperThread>, BitSet<HyperThread>, BitSet<HyperThread>, HyperThread)
 	{
 		#[inline(always)]
-		fn find_master_logical_core(online_shared_hyper_threads: &BTreeSet<HyperThread>) -> HyperThread
+		fn find_master_logical_core(online_shared_hyper_threads: &BitSet<HyperThread>) -> HyperThread
 		{
-			let master_logical_core = HyperThread::last(online_shared_hyper_threads).unwrap();
+			let master_logical_core = online_shared_hyper_threads.last().unwrap();
 			*master_logical_core
 		}
 
@@ -269,7 +269,7 @@ impl ProcessConfiguration
 	}
 
 	#[inline(always)]
-	fn tell_linux_to_use_shared_hyper_threads_for_all_needs<P: Process>(&self, online_shared_hyper_threads: &BTreeSet<HyperThread>) -> Result<(), ProcessConfigurationExecutionError<P::LoadKernelModulesError, P::AdditionalLinuxKernelCommandLineValidationsError, P::MainError>>
+	fn tell_linux_to_use_shared_hyper_threads_for_all_needs<P: Process>(&self, online_shared_hyper_threads: &BitSet<HyperThread>) -> Result<(), ProcessConfigurationExecutionError<P::LoadKernelModulesError, P::AdditionalLinuxKernelCommandLineValidationsError, P::MainError>>
 	{
 		use self::ProcessConfigurationExecutionError::*;
 
@@ -279,7 +279,7 @@ impl ProcessConfiguration
 	}
 
 	#[inline(always)]
-	fn online_shared_and_isolated_hyper_threads(&self, isolated_hyper_threads_including_those_offline: BTreeSet<HyperThread>) -> (BTreeSet<HyperThread>, BTreeSet<HyperThread>)
+	fn online_shared_and_isolated_hyper_threads(&self, isolated_hyper_threads_including_those_offline: BitSet<HyperThread>) -> (BitSet<HyperThread>, BitSet<HyperThread>)
 	{
 		assert_ne!(isolated_hyper_threads_including_those_offline.len(), 0, "There must be at least one hyper thread in `isolated_hyper_threads_including_those_offline`");
 
@@ -296,7 +296,7 @@ impl ProcessConfiguration
 		self.warnings_to_suppress.miscellany_warn("too_few_shared_hyper_threads", "There is only 1 shared hyper thread (which will be shared with the master logical core and control threads)", || online_shared_hyper_threads.len() != 1);
 
 		{
-			let mut numa_nodes = BTreeSet::new();
+			let mut numa_nodes = BitSet::new();
 			if NumaNode::is_a_numa_machine(self.sys_path())
 			{
 				for online_shared_hyper_thread in online_shared_hyper_threads.iter()
@@ -306,6 +306,20 @@ impl ProcessConfiguration
 				}
 				self.warnings_to_suppress.miscellany_warn("too_many_numa_nodes_shared_hyper_threads", &format!("More than one (actually, {:?}) NUMA nodes are present in the shared hyper threads", numa_nodes), || numa_nodes.len() == 1);
 			}
+		}
+
+
+		/// Hyper threaded logical cores grouped as hyper thread groups (eg HT 0 and 1, 2 and 3, etc).
+		#[inline(always)]
+		fn hyper_thread_groups(hyper_threads: &BitSet<HyperThread>, sys_path: &SysPath) -> BTreeSet<BitSet<HyperThread>>
+		{
+			let mut hyper_thread_groups = BTreeSet::new();
+			for hyper_thread in hyper_threads.iter()
+			{
+				let hyper_thread_group = (*hyper_thread).level1_cache_hyper_thread_siblings_including_self(sys_path);
+				hyper_thread_groups.insert(hyper_thread_group);
+			}
+			hyper_thread_groups
 		}
 
 		{

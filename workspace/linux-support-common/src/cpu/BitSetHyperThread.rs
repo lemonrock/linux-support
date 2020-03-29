@@ -66,6 +66,26 @@ impl BitSet<HyperThread>
 		Self::with_capacity_in_words(Self::CpuSetTSizeInBytes / Self::UsizeSizeInBytes)
 	}
 
+	/// Valid `HyperThread`s.
+	///
+	/// Validated to make sure the result is not empty.
+	#[inline(always)]
+	pub fn valid(sys_path: &SysPath, proc_path: &ProcPath) -> Self
+	{
+		let mut valid = Self::has_a_folder_path(sys_path);
+		valid.intersection(&Self::is_in_proc_self_status(proc_path));
+		valid.intersection(&Self::present(sys_path));
+		valid.intersection(&Self::possible(sys_path));
+		valid.intersection(&Self::online(sys_path));
+		valid.remove_all(&Self::offline(sys_path));
+		valid.remove_any_that_are_actually_online(sys_path);
+		valid.remove_any_without_associated_numa_nodes(sys_path);
+
+		assert!(!valid.is_empty());
+
+		valid
+	}
+
 	/// Set process affinity for current process.
 	#[inline(always)]
 	pub fn set_current_process_affinity(&self) -> Result<(), String>
@@ -159,6 +179,120 @@ impl BitSet<HyperThread>
 		}
 	}
 
+	/// Sets work queue hyper thread affinity.
+	#[inline(always)]
+	pub fn set_work_queue_hyper_thread_affinity(&self, sys_path: &SysPath) -> io::Result<()>
+	{
+		let mask = IntoBitMask(self).into_line_feed_terminated_byte_string();
+		sys_path.hyper_thread_work_queue_file_path("cpumask").write_value(mask.as_ref())?;
+		sys_path.hyper_thread_work_queue_file_path("writeback/cpumask").write_value(mask)
+	}
+
+	/// Should not be needed if `nohz_full` was specified on the Linux command line.
+	#[inline(always)]
+	pub fn force_watchdog_to_just_these_hyper_threads(&self, proc_path: &ProcPath) -> io::Result<()>
+	{
+		proc_path.sys_kernel_file_path("watchdog_cpumask").write_value(IntoList(self))
+	}
+
+	/// CPU nodes that exist in the file system.
+	#[inline(always)]
+	fn has_a_folder_path(sys_path: &SysPath) -> Self
+	{
+		sys_path.cpu_system_devices_folder_path().entries_in_folder_path().unwrap().unwrap()
+	}
+
+	/// NUMA nodes that could possibly be online at some point.
+	#[inline(always)]
+	fn is_in_proc_self_status(proc_path: &ProcPath) -> Self
+	{
+		let process_status_statistics = ProcessStatusStatistics::self_status(proc_path).unwrap();
+		let allowed = process_status_statistics.cpus_allowed;
+		debug_assert_eq!(allowed, process_status_statistics.cpus_allowed_list);
+		allowed.unwrap()
+	}
+
+	/// CPUs (hyper threaded logical cores) that are present and that could become online.
+	///
+	/// See <https://www.kernel.org/doc/Documentation/cputopology.txt>.
+	#[inline(always)]
+	fn present(sys_path: &SysPath) -> Self
+	{
+		Self::read_hyper_thread_list(sys_path, "present")
+	}
+
+	/// Hyper threaded logical cores that could possibly be online at some point.
+	///
+	/// Close to very useless.
+	///
+	/// See <https://www.kernel.org/doc/Documentation/cputopology.txt>.
+	#[inline(always)]
+	fn possible(sys_path: &SysPath) -> Self
+	{
+		Self::read_hyper_thread_list(sys_path, "possible")
+	}
+
+	/// Hyper threaded logical cores that are online at some point.
+	///
+	/// See <https://www.kernel.org/doc/Documentation/cputopology.txt>.
+	#[inline(always)]
+	fn online(sys_path: &SysPath) -> Self
+	{
+		Self::read_hyper_thread_list(sys_path, "online")
+	}
+
+	/// Hyper threaded logical cores that are offline.
+	///
+	/// Close to useless.
+	///
+	/// See <https://www.kernel.org/doc/Documentation/cputopology.txt>.
+	#[inline(always)]
+	fn offline(sys_path: &SysPath) -> Self
+	{
+		Self::read_hyper_thread_list(sys_path, "offline")
+	}
+
+	#[inline(always)]
+	fn remove_any_that_are_actually_online(&mut self, sys_path: &SysPath)
+	{
+		let mut invalid_hyper_threads = Self::empty();
+		for hyper_thread in self.iterate()
+		{
+			if !hyper_thread.is_online(sys_path)
+			{
+				invalid_hyper_threads.add(hyper_thread)
+			}
+		}
+		self.remove_all(&invalid_hyper_threads)
+	}
+
+	#[inline(always)]
+	fn remove_any_without_associated_numa_nodes(&mut self, sys_path: &SysPath)
+	{
+		let is_a_numa_machine = NumaNode::is_a_numa_machine(sys_path);
+
+		let mut invalid_hyper_threads = BitSet::empty();
+		for hyper_thread in self.iterate()
+		{
+			if let Some(numa_node) = hyper_thread.numa_node(sys_path)
+			{
+				match numa_node.associated_hyper_threads(sys_path)
+				{
+					None => invalid_hyper_threads.add(hyper_thread),
+					Some(associated_hyper_threads) => if !associated_hyper_threads.contains(hyper_thread)
+					{
+						invalid_hyper_threads.add(hyper_thread)
+					}
+				}
+			}
+			else if is_a_numa_machine
+			{
+				invalid_hyper_threads.add(hyper_thread)
+			}
+		}
+		self.remove_all(&invalid_hyper_threads);
+	}
+
 	#[inline(always)]
 	fn cpu_set_t_pointer(&self) -> *const cpu_set_t
 	{
@@ -169,5 +303,11 @@ impl BitSet<HyperThread>
 	fn cpu_set_t_size_in_bytes(&self) -> usize
 	{
 		self.capacity() * Self::UsizeSizeInBytes
+	}
+	
+	#[inline(always)]
+	fn read_hyper_thread_list(sys_path: &SysPath, file_name: &str) -> Self
+	{
+		sys_path.hyper_threads_folder_path(file_name).read_hyper_thread_or_numa_node_list().unwrap()
 	}
 }

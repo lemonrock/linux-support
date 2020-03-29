@@ -51,8 +51,9 @@ pub trait PathExt
 
 	/// Reads and parses a linux core or numa list string from a file.
 	///
-	/// Returns a BTreeSet with the zero-based indices found in the string. For example, "2,4-31,32-63" would return a set with all values between 0 to 63 except 0, 1 and 3.
-	fn read_hyper_thread_or_numa_node_list<Mapper: Fn(u16) -> Result<R, BitSetAwareTryFromU16Error>, R: Ord>(&self, mapper: Mapper) -> Result<BTreeSet<R>, ListParseError>;
+	/// Returns a set with the zero-based indices found in the string.
+	/// For example, "2,4-31,32-63" would return a set with all values between 0 to 63 except 0, 1 and 3.
+	fn read_hyper_thread_or_numa_node_list<BSA: BitSetAware>(&self) -> Result<BitSet<BSA>, io::Error>;
 
 	/// Reads and parses a HyperThread or NumaNode bit set from a file.
 	///
@@ -64,6 +65,11 @@ pub trait PathExt
 	///
 	/// Elements are 32-bit words.
 	fn parse_hyper_thread_or_numa_node_bit_set<BSA: BitSetAware>(&self) -> Result<BitSet<BSA>, io::Error>;
+
+	/// HyperThread or NumaNode present in a folder path.
+	///
+	/// This will return `None` if the path `self` does not exist.
+	fn entries_in_folder_path<BSA: BitSetAware>(&self) -> Result<Option<BitSet<BSA>>, io::Error>;
 
 	/// Memory map a file.
 	fn memory_map<'a>(&self) -> Result<MemoryMappedFile, io::Error>;
@@ -224,11 +230,11 @@ impl PathExt for Path
 	}
 
 	#[inline(always)]
-	fn read_hyper_thread_or_numa_node_list<Mapper: Fn(u16) -> Result<R, BitSetAwareTryFromU16Error>, R: Ord>(&self, mapper: Mapper) -> Result<BTreeSet<R>, ListParseError>
+	fn read_hyper_thread_or_numa_node_list<BSA: BitSetAware>(&self) -> Result<BitSet<BSA>, io::Error>
 	{
 		let without_line_feed = self.read_raw_without_line_feed()?;
 
-		ListParseError::parse_linux_list_string::<Mapper, R>(&without_line_feed, mapper)
+		BitSet::<BSA>::parse_linux_list_string(&without_line_feed).map_err(|error| io::Error::new(ErrorKind::Other, error))
 	}
 
 	#[inline(always)]
@@ -236,6 +242,30 @@ impl PathExt for Path
 	{
 		let without_line_feed = self.read_raw_without_line_feed()?;
 		Ok(BitSet::parse_hyper_thread_or_numa_node_bit_set(&without_line_feed))
+	}
+
+	fn entries_in_folder_path<BSA: BitSetAware>(&self) -> Result<Option<BitSet<BSA>>, io::Error>
+	{
+		if !self.exists()
+		{
+			return Ok(None)
+		}
+
+		let mut bit_set = BitSet::<BSA>::new();
+		for entry in self.read_dir()?
+		{
+			let entry = entry?;
+			let file_type = entry.file_type()?;
+			if file_type.is_dir() || file_type.is_symlink()
+			{
+				if let Some(bsa) = BSA::parse_file_name(&entry.file_name())?
+				{
+					bit_set.add(bsa)
+				}
+			}
+		}
+
+		Ok(Some(bit_set))
 	}
 
 	#[inline(always)]

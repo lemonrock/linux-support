@@ -49,6 +49,126 @@ impl<BSA: BitSetAware> BitSet<BSA>
 		Self(Vec::new(), PhantomData)
 	}
 
+	/// Parses a Linux list string used for cpu sets, core masks and NUMA nodes such as "2,4-31,32-63" and "1,2,10-20,100-2000:2/25" (see <https://www.kernel.org/doc/html/latest/admin-guide/kernel-parameters.html> for an awful description of this mad syntax).
+	///
+	/// Returns a BitSet with the zero-based indices found in the string.
+	/// For example, "2,4-31,32-63" would return a set with all values between 0 to 63 except 0, 1 and 3.
+	///
+	/// `linux_list_string` does not have a terminating line feed (LF).
+	pub fn parse_linux_list_string(linux_list_string: &[u8]) -> Result<BitSet<BSA>, ListParseError>
+	{
+		#[inline(always)]
+		fn parse_index(index_string: &[u8], description: &'static str) -> Result<u16, ListParseError>
+		{
+			use self::ListParseError::*;
+
+			let index_string = match from_utf8(index_string)
+			{
+				Ok(index_string) => index_string,
+				Err(cause) => return Err(CouldNotParseIndexAsNotAString { description, unparsable_index: index_string.to_vec().into_boxed_slice(), cause }),
+			};
+
+			match index_string.parse()
+			{
+				Ok(index) => Ok(index),
+				Err(cause) => Err(CouldNotParseIndex { description, unparsable_index: index_string.to_owned(), cause }),
+			}
+		}
+
+		let mut result = Self::new();
+
+		use self::ListParseError::*;
+
+		// Prevents mis-sorted strings
+		let mut next_minimum_index_expected = 0;
+		for index_or_range in split(linux_list_string, b',')
+		{
+			if index_or_range.is_empty()
+			{
+				return Err(ContainsAnEmptyIndexOrRange);
+			}
+
+			let mut range_iterator = splitn(index_or_range, 2, b'-');
+
+			let first =
+			{
+				let index = parse_index(range_iterator.next().unwrap(), "first")?;
+				if index < next_minimum_index_expected
+				{
+					return Err(ContainsMisSortedIndices { first: index, next_minimum_index_expected });
+				}
+				index
+			};
+
+			if let Some(second) = range_iterator.last()
+			{
+				// There is a weird, but rare, syntax used of `100-2000:2/25` for some ranges.
+				let mut range_or_range_with_groups = splitn(second, 2, b':');
+
+				let second =
+				{
+					let index = parse_index(range_or_range_with_groups.next().unwrap(), "second")?;
+					if first >= index
+					{
+						return Err(RangeIsNotAnAscendingRangeWithMoreThanOneElement { first, second: index });
+					}
+					index
+				};
+
+				match range_or_range_with_groups.last()
+				{
+					None =>
+					{
+						for index in first .. (second + 1)
+						{
+							result.map_and_add(index)?;
+						}
+
+						next_minimum_index_expected = second;
+					}
+
+					Some(weird_but_rare_group_syntax) =>
+					{
+						let mut weird_but_rare_group_syntax = splitn(weird_but_rare_group_syntax, 2, b'/');
+						let used_size = parse_index(weird_but_rare_group_syntax.next().unwrap(), "used_size")?;
+						let group_size = parse_index(weird_but_rare_group_syntax.last().expect("a group does not have group_size"), "group_size")?;
+
+						assert_ne!(used_size, 0, "used_size is zero");
+						assert_ne!(group_size, 0, "group_size is zero");
+
+						let mut base_cpu_index = first;
+						while base_cpu_index < second
+						{
+							for cpu_index_increment in 0 .. used_size
+							{
+								let cpu_index = base_cpu_index + cpu_index_increment;
+								result.map_and_add(cpu_index)?;
+							}
+
+							base_cpu_index += group_size;
+						}
+					}
+				}
+			}
+			else
+			{
+				let sole = first;
+				result.map_and_add(sole)?;
+				next_minimum_index_expected = sole;
+			}
+		}
+
+		Ok(result)
+	}
+
+	/// Adds.
+	#[inline(always)]
+	fn map_and_add(&mut self, index: u16) -> Result<(), ListParseError>
+	{
+		self.add(BSA::try_from(index)?);
+		Ok(())
+	}
+
 	/// Iterate.
 	#[inline(always)]
 	pub fn iterate<'a>(&'a self) -> BitSetIterator<'a, BSA>
@@ -59,6 +179,39 @@ impl<BSA: BitSetAware> BitSet<BSA>
 			word_index: 0,
 			relative_bit_index_within_word: 0,
 		}
+	}
+
+	/// Number of bits set.
+	///
+	/// This operation is a little expensive, but less expensive than `self.len()`.
+	#[inline(always)]
+	pub fn is_empty(&self) -> bool
+	{
+		for word_index in 0 .. self.capacity()
+		{
+			if self.get_word(word_index) != 0
+			{
+				return false
+			}
+		}
+		true
+	}
+
+	/// Number of bits set.
+	///
+	/// This operation is relatively expensive.
+	///
+	/// For an emptiness check, prefer `self.is_empty()` which is slightly less expensive.
+	#[cfg(all(target_arch = "x86_64", target_feature = "popcnt"))]
+	#[inline(always)]
+	pub fn len(&self) -> usize
+	{
+		let mut count = 0;
+		for word_index in 0 .. self.capacity()
+		{
+			count += unsafe { _mm_popcnt_u64(self.get_word(word_index)) };
+		}
+		count as usize
 	}
 
 	/// Adds.
@@ -96,6 +249,22 @@ impl<BSA: BitSetAware> BitSet<BSA>
 
 		let word = self.get_word(word_index);
 		word & (1 << relative_bit_index_within_word) != 0
+	}
+
+	/// Removes.
+	#[inline(always)]
+	pub fn remove(&mut self, element: BSA)
+	{
+		let (word_index, relative_bit_index_within_word) = Self::word_index_and_relative_bit_index_within_word(element);
+
+		if word_index >= self.capacity()
+		{
+			return
+		}
+
+		let word_pointer = unsafe { self.word_mut(word_index) };
+		let current = *word_pointer;
+		*word_pointer = current & !(1 << relative_bit_index_within_word)
 	}
 
 	/// Removes top bits that are zero and tries to shrink underlying storage.
@@ -157,6 +326,23 @@ impl<BSA: BitSetAware> BitSet<BSA>
 				unsafe { other.as_ptr_offset(our_length).copy_to_nonoverlapping(self.as_mut_ptr_end(), extend_size) };
 				self.set_length(other_length);
 			}
+		}
+	}
+
+	/// Removes bits in `other`.
+	#[inline(always)]
+	pub fn remove_all(&mut self, other: &Self)
+	{
+		let our_length = self.capacity();
+		let other_length = other.capacity();
+
+		for word_index in 0 .. min(our_length, other_length)
+		{
+			let our_word_pointer = unsafe { self.word_mut(word_index) };
+			let our_word = *our_word_pointer;
+			let other_word = other.get_word(word_index);
+
+			*our_word_pointer = our_word & !other_word
 		}
 	}
 

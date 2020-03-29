@@ -128,7 +128,7 @@ impl SysPath
 
 	/// `/sys/devices/system/cpu`.
 	#[inline(always)]
-	fn cpu_system_devices_folder_path(&self) -> PathBuf
+	pub(crate) fn cpu_system_devices_folder_path(&self) -> PathBuf
 	{
 		self.system_devices_folder_path().append("cpu")
 	}

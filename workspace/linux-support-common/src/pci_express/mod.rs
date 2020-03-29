@@ -40,7 +40,6 @@ use libc_extra::android_linux::net::if_::ifreq;
 use likely::likely;
 use serde::Deserialize;
 use serde::Serialize;
-use std::collections::BTreeSet;
 use std::convert::TryFrom;
 use std::error;
 use std::io;

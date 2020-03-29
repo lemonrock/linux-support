@@ -131,7 +131,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// eg "0-9,10-20:2/5" and "nohz,domain,0-9,10-20:2/5". Note in the latter example there isn't a separate delimiter separating the flags from the list, so one either has to be know all possible flags (unlikely and subject to change) or have some truly revolting parsing code, which is what we do below (`Self::split_flags_and_cpu_list`). For extra brownie points the Linux kernel treats the values as ASCII not UTF-8.
 	#[inline(always)]
-	pub fn isolcpus(&self) -> Option<(HashSet<&[u8]>, BTreeSet<u16>)>
+	pub fn isolcpus(&self) -> Option<(HashSet<&[u8]>, BitSet<HyperThread>)>
 	{
 		self.get_value(b"isolcpus").map(|value|
 		{
@@ -209,16 +209,16 @@ impl LinuxKernelCommandLineParameters
 	}
 
 	#[inline(always)]
-	fn parse_cpu_list(list: &[u8]) -> BTreeSet<u16>
+	fn parse_cpu_list(list: &[u8]) -> BitSet<HyperThread>
 	{
-		ListParseError::parse_linux_list_string(list, |value| Ok(value)).unwrap()
+		BitSet::<HyperThread>::parse_linux_list_string(list).unwrap()
 	}
 
 	/// CPUs isolated from the Linux scheduler.
 	///
 	/// Ordinarily should match `isolcpus`.
 	#[inline(always)]
-	pub fn rcu_nocbs(&self) -> Option<BTreeSet<u16>>
+	pub fn rcu_nocbs(&self) -> Option<BitSet<HyperThread>>
 	{
 		self.get_value(b"rcu_nocbs").map(Self::parse_cpu_list)
 	}
@@ -227,7 +227,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Ordinarily should match `rcu_nocbs`.
 	#[inline(always)]
-	pub fn nohz_full(&self) -> Option<BTreeSet<u16>>
+	pub fn nohz_full(&self) -> Option<BitSet<HyperThread>>
 	{
 		self.get_value(b"nohz_full").map(Self::parse_cpu_list)
 	}
@@ -236,7 +236,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// This should probably not be set.
 	#[inline(always)]
-	pub fn irqaffinity(&self) -> Option<BTreeSet<u16>>
+	pub fn irqaffinity(&self) -> Option<BitSet<HyperThread>>
 	{
 		self.get_value(b"irqaffinity").map(Self::parse_cpu_list)
 	}

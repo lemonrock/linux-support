@@ -19,7 +19,7 @@ pub struct PciDeviceDetails
 
 	pub associated_numa_node: Option<NumaNode>,
 
-	pub associated_hyper_threads: BTreeSet<HyperThread>,
+	pub associated_hyper_threads_bit_set: BitSet<HyperThread>,
 
 	pub associated_hyper_threads_bitmask: BitSet<HyperThread>,
 

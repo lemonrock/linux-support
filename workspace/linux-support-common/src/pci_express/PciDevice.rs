@@ -101,7 +101,7 @@ impl<'a> PciDevice<'a>
 			class: self.class(),
 			revision: self.revision(),
 			associated_numa_node: self.associated_numa_node(),
-			associated_hyper_threads: self.associated_hyper_threads(),
+			associated_hyper_threads_bit_set: self.associated_hyper_threads_bit_set(),
 			associated_hyper_threads_bitmask: self.associated_hyper_threads_bitmask(),
 			d3cold_allowed: self.d3cold_allowed(),
 			interrupt_request_line: self.interrupt_request_line(),
@@ -264,16 +264,16 @@ impl<'a> PciDevice<'a>
 	///
 	/// Panics if file unreadable.
 	#[inline(always)]
-	fn associated_hyper_threads(&self) -> BTreeSet<HyperThread>
+	fn associated_hyper_threads_bit_set(&self) -> BitSet<HyperThread>
 	{
-		self.device_file_or_folder_path("local_cpulist").read_hyper_thread_or_numa_node_list(HyperThread::try_from).expect("Could not parse local_cpulist")
+		self.device_file_or_folder_path("local_cpulist").read_hyper_thread_or_numa_node_list().expect("Could not parse local_cpulist")
 	}
 
 	/// PCI device hyper threads that are permitted to use this device.
 	///
 	/// May report CPUs that don't actually exist; refine list against that known for a NUMA node.
 	///
-	/// Should be identical to `associated_hyper_threads()`.
+	/// Should be identical to `associated_hyper_threads_bit_set()`.
 	///
 	/// Panics if file unreadable.
 	#[inline(always)]
