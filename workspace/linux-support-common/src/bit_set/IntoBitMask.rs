@@ -23,7 +23,7 @@ impl<'a, BSA: BitSetAware> IntoLineFeedTerminatedByteString<'a> for IntoBitMask<
 		bytes[number_of_bytes - 1] = b'\n';
 		let mut bytes_index = number_of_bytes - 2;
 
-		for word_index in 0 ..capacity
+		for word_index in (0 .. capacity).rev()
 		{
 			if likely!(word_index > 0)
 			{
@@ -31,28 +31,7 @@ impl<'a, BSA: BitSetAware> IntoLineFeedTerminatedByteString<'a> for IntoBitMask<
 				bytes_index -= 1;
 			}
 
-			let mut x = self.0.get_word(word_index);
-			loop
-			{
-				const Radix: usize = 16;
-				let remainder = x % Radix;
-				x = x / Radix;
-
-				bytes[bytes_index] = if remainder < 10
-				{
-					b'0' + (remainder as u8)
-				}
-				else
-				{
-					b'a' + ((remainder - 10) as u8)
-				};
-
-				bytes_index -= 1;
-				if x == 0
-				{
-					break
-				}
-			}
+			bytes_index = self.0.get_word(word_index).lowercase_hexadecimal(bytes_index, &mut bytes[..]);
 		}
 
 		Cow::from(bytes)

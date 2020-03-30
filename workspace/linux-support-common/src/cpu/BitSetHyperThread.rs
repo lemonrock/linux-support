@@ -83,6 +83,8 @@ impl BitSet<HyperThread>
 
 		assert!(!valid.is_empty());
 
+		valid.shrink_to_fit();
+
 		valid
 	}
 

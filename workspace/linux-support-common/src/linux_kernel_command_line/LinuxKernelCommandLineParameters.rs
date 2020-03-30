@@ -129,89 +129,32 @@ impl LinuxKernelCommandLineParameters
 
 	/// CPUs isolated from the Linux scheduler.
 	///
-	/// eg "0-9,10-20:2/5" and "nohz,domain,0-9,10-20:2/5". Note in the latter example there isn't a separate delimiter separating the flags from the list, so one either has to be know all possible flags (unlikely and subject to change) or have some truly revolting parsing code, which is what we do below (`Self::split_flags_and_cpu_list`). For extra brownie points the Linux kernel treats the values as ASCII not UTF-8.
+	/// eg "0-9,10-20:2/5" and "nohz,domain,0-9,10-20:2/5".
+	/// Note in the latter example there isn't a separate delimiter separating the flags from the list, so one has to be have some truly revolting parsing code, which is what we do (`IsolatedCpuFlags::split_flags_and_cpu_list`).
+	/// If no flags are specified then `domain` is implied.
 	#[inline(always)]
-	pub fn isolcpus(&self) -> Option<(HashSet<&[u8]>, BitSet<HyperThread>)>
+	pub fn isolcpus(&self) -> Option<(HashSet<IsolatedCpuFlags>, BitSet<HyperThread>)>
 	{
 		self.get_value(b"isolcpus").map(|value|
 		{
-			let (flags_to_split, cpu_list) = Self::split_flags_and_cpu_list(value);
+			let (flags_to_split, cpu_list) = IsolatedCpuFlags::split_flags_and_cpu_list(value);
 
-			let mut flags: HashSet<&[u8]> = HashSet::with_capacity(2);
+			let mut flags = HashSet::with_capacity(2);
 			match flags_to_split
 			{
 				None =>
 				{
-					flags.insert(b"domain");
-				}
+					flags.insert(IsolatedCpuFlags::Domain);
+				},
 
-				Some(flags_to_split) =>
+				Some(flags_to_split) => for flag in split(flags_to_split, b',')
 				{
-					for flag in split(flags_to_split, b',')
-					{
-						flags.insert(flag);
-					}
-				}
+					flags.insert(IsolatedCpuFlags::parse(flag).unwrap());
+				},
 			}
 
-			(flags, Self::parse_cpu_list(cpu_list))
+			(flags, Self::parse_hyper_thread_list(cpu_list))
 		})
-	}
-
-	#[inline(always)]
-	fn split_flags_and_cpu_list(value: &[u8]) -> (Option<&[u8]>, &[u8])
-	{
-		#[inline(always)]
-		fn index_of_split_between_flags_and_cpu_list(value: &[u8]) -> Option<usize>
-		{
-			#[inline(always)]
-			fn is_ascii_alpha(character: u8) -> bool
-			{
-				character.is_ascii_uppercase() || character.is_ascii_lowercase()
-			}
-
-			let mut index = 0;
-			let mut previous_previous_character = b'\0';
-			let mut previous_character = b'\0';
-			for character in value.iter()
-			{
-				let character = *character;
-				if character.is_ascii_digit() && previous_character == b',' && is_ascii_alpha(previous_previous_character)
-				{
-					return Some(index)
-				}
-				previous_previous_character = previous_character;
-				previous_character = character;
-				index += 1;
-			}
-			None
-		}
-
-		match index_of_split_between_flags_and_cpu_list(value)
-		{
-			None =>
-			{
-				let flags = None;
-				let list = value;
-
-				(flags, list)
-			}
-
-			Some(index_after_comma) =>
-			{
-				let split = value.split_at(index_after_comma);
-				let flags = Some(&split.0[ .. (split.0.len() - 1)]);
-				let list = split.1;
-
-				(flags, list)
-			}
-		}
-	}
-
-	#[inline(always)]
-	fn parse_cpu_list(list: &[u8]) -> BitSet<HyperThread>
-	{
-		BitSet::<HyperThread>::parse_linux_list_string(list).unwrap()
 	}
 
 	/// CPUs isolated from the Linux scheduler.
@@ -220,7 +163,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn rcu_nocbs(&self) -> Option<BitSet<HyperThread>>
 	{
-		self.get_value(b"rcu_nocbs").map(Self::parse_cpu_list)
+		self.get_value(b"rcu_nocbs").map(Self::parse_hyper_thread_list)
 	}
 
 	/// CPUs isolated from the Linux scheduler.
@@ -229,7 +172,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn nohz_full(&self) -> Option<BitSet<HyperThread>>
 	{
-		self.get_value(b"nohz_full").map(Self::parse_cpu_list)
+		self.get_value(b"nohz_full").map(Self::parse_hyper_thread_list)
 	}
 
 	/// CPUs in the default IRQ affinity mask.
@@ -238,7 +181,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn irqaffinity(&self) -> Option<BitSet<HyperThread>>
 	{
-		self.get_value(b"irqaffinity").map(Self::parse_cpu_list)
+		self.get_value(b"irqaffinity").map(Self::parse_hyper_thread_list)
 	}
 
 	/// `nosmp`.
@@ -904,5 +847,11 @@ impl LinuxKernelCommandLineParameters
 	fn get<'a>(&self, parameter_name: &'a [u8]) -> Option<&Vec<Option<Box<[u8]>>>>
 	{
 		self.0.get(parameter_name)
+	}
+
+	#[inline(always)]
+	fn parse_hyper_thread_list(list: &[u8]) -> BitSet<HyperThread>
+	{
+		BitSet::<HyperThread>::parse_linux_list_string(list).unwrap()
 	}
 }

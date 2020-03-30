@@ -2,14 +2,17 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use self::to_number::NumberAsBytes;
 use libc::*;
 use likely::unlikely;
+use std::borrow::Cow;
 use std::ffi::CStr;
 use std::ffi::CString;
 use std::ffi::OsStr;
 use std::fmt;
 use std::fmt::Display;
 use std::fmt::Formatter;
+#[allow(deprecated)] use std::mem::uninitialized;
 use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
 use std::path::PathBuf;
@@ -23,3 +26,8 @@ include!("replace.rs");
 include!("split.rs");
 include!("splitn.rs");
 include!("to_c_string_robustly.rs");
+include!("IntoLineFeedTerminatedByteString.rs");
+
+
+/// Conversions to numbers.
+pub mod to_number;

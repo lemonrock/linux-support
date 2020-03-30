@@ -6,6 +6,17 @@
 #[derive(Debug)]
 pub struct LinuxKernelCommandLineValidator(LinuxKernelCommandLineParameters);
 
+impl Deref for LinuxKernelCommandLineValidator
+{
+	type Target = LinuxKernelCommandLineParameters;
+	
+	#[inline(always)]
+	fn deref(&self) -> &Self::Target
+	{
+		&self.0
+	}
+}
+
 impl LinuxKernelCommandLineValidator
 {
 	/// New.
@@ -25,7 +36,7 @@ impl LinuxKernelCommandLineValidator
 		self.validate_huge_page_sizes(cpu_features.has_1gb_huge_pages).map_err(|explanation| HugePageSizesInvalid(explanation))?;
 		self.incompatible_settings(cpu_features.has_1gb_huge_pages, warnings_to_suppress).map_err(|explanation| IncompatibleValidations(explanation))?;
 		self.warnings(warnings_to_suppress);
-		additional_validations(&self.0).map_err(|error| AdditionalLinuxKernelCommandLineValidationFailed(error))?;
+		additional_validations(&self).map_err(|error| AdditionalLinuxKernelCommandLineValidationFailed(error))?;
 
 		Ok(isolated_hyper_threads)
 	}
@@ -33,22 +44,27 @@ impl LinuxKernelCommandLineValidator
 	#[inline(always)]
 	fn validate_cpus(&self, isolated_cpus_required: bool) -> Result<BitSet<HyperThread>, String>
 	{
-		if let Some((isolated_cpu_flags, isolated_cpus)) = self.0.isolcpus()
+		if let Some((isolated_cpu_flags, isolated_cpus)) = self.isolcpus()
 		{
-			if !isolated_cpu_flags.contains(&b"domain"[..])
+			if !isolated_cpu_flags.contains(&IsolatedCpuFlags::Domain)
 			{
-				return Err("Kernel parameter `isolcpus` does not contain or imply domain flag".to_string())
+				fail!("Kernel parameter `isolcpus` does not contain (or imply) the domain flag")
 			}
 
-			let rcu_nocbs = self.0.rcu_nocbs().ok_or("Kernel parameter `rcu_nocbs` should be specified because isolcpus was specified".to_string())?;
+			let rcu_nocbs = self.rcu_nocbs().ok_or("Kernel parameter `rcu_nocbs` should be specified because isolcpus was specified".to_string())?;
 
-			let nohz_full = self.0.nohz_full().ok_or("Kernel parameter `nohz_full` should be specified because isolcpus was specified".to_string())?;
+			let nohz_full = self.nohz_full().ok_or("Kernel parameter `nohz_full` should be specified because isolcpus was specified".to_string())?;
 
-			// let irqaffinity = self.0.irqaffinity().ok_or("Kernel parameter `irqaffinity` should be specified because isolcpus was specified".to_string())?;
+			// let irqaffinity = self.irqaffinity().ok_or("Kernel parameter `irqaffinity` should be specified because isolcpus was specified".to_string())?;
 
-			if isolated_cpus != rcu_nocbs || rcu_nocbs != nohz_full
+			if isolated_cpus != rcu_nocbs
 			{
-				return Err("Kernel parameters `isolcpus`, `rcu_nocbs` and `nohz_full` should all match".to_string())
+				fail!("Kernel parameters `isolcpus` and `rcu_nocbs` should match")
+			}
+
+			if isolated_cpus != nohz_full
+			{
+				fail!("Kernel parameters `isolcpus` and `nohz_full` should match")
 			}
 
 			Ok(isolated_cpus)
@@ -57,7 +73,7 @@ impl LinuxKernelCommandLineValidator
 		{
 			if isolated_cpus_required
 			{
-				Err("Kernel parameter `isolcpus` should be specified".to_string())
+				fail!("Kernel parameter `isolcpus` should be specified")
 			}
 			else
 			{
@@ -71,19 +87,19 @@ impl LinuxKernelCommandLineValidator
 	{
 		if cpu_supports_1gb_pages
 		{
-			match self.0.default_hugepagesz()
+			match self.default_hugepagesz()
 			{
 				Some(b"1G") => (),
-				_ => return Err("Kernel should have `default_hugepagesz=1G` for this CPU".to_string()),
+				_ => fail!("Kernel should have `default_hugepagesz=1G` for this CPU"),
 			}
 
-			let huge_page_sizes = self.0.hugepagesz().ok_or("Kernel should have `hugepagesz` for this CPU".to_string())?;
+			let huge_page_sizes = self.hugepagesz().ok_or("Kernel should have `hugepagesz` for this CPU".to_string())?;
 
-			let hugepages = self.0.hugepages().ok_or("Kernel should have `hugepages` for this CPU".to_string())?;
+			let hugepages = self.hugepages().ok_or("Kernel should have `hugepages` for this CPU".to_string())?;
 
 			if huge_page_sizes.len() != hugepages.len()
 			{
-				return Err("Kernel should have equal numbers of definitions of `hugepagesz` and `hugepages`".to_string())
+				fail!("Kernel should have equal numbers of definitions of `hugepagesz` and `hugepages`")
 			}
 
 			for huge_page_size in huge_page_sizes.iter()
@@ -96,19 +112,19 @@ impl LinuxKernelCommandLineValidator
 		}
 		else
 		{
-			match self.0.default_hugepagesz()
+			match self.default_hugepagesz()
 			{
 				None | Some(b"2M") => (),
 
-				_ => return Err("Kernel should have `default_hugepagesz=2M` for this CPU".to_string()),
+				_ => fail!("Kernel should have `default_hugepagesz=2M` for this CPU"),
 			}
 
-			let huge_page_sizes_option = self.0.hugepagesz();
-			let hugepages_option = self.0.hugepages();
+			let huge_page_sizes_option = self.hugepagesz();
+			let hugepages_option = self.hugepages();
 
 			if huge_page_sizes_option.is_none() && hugepages_option.is_some() || huge_page_sizes_option.is_none() && hugepages_option.is_some()
 			{
-				return Err("Define either both of `hugepagesz` or `hugepage` or neither".to_string())
+				fail!("Define either both of `hugepagesz` or `hugepage` or neither")
 			}
 
 			if huge_page_sizes_option.is_some() && hugepages_option.is_some()
@@ -116,7 +132,7 @@ impl LinuxKernelCommandLineValidator
 				let unwrapped = huge_page_sizes_option.unwrap();
 				if unwrapped.len() != hugepages_option.unwrap().len()
 				{
-					return Err("Kernel should have equal numbers of definitions of `hugepagesz` and `hugepages`".to_string())
+					fail!("Kernel should have equal numbers of definitions of `hugepagesz` and `hugepages`")
 				}
 			}
 		}
@@ -127,42 +143,34 @@ impl LinuxKernelCommandLineValidator
 	#[inline(always)]
 	fn incompatible_settings(&self, cpu_supports_1gb_pages: bool, warnings_to_suppress: &WarningsToSuppress) -> Result<(), String>
 	{
-		macro_rules! fail
-		{
-			($message: literal) =>
-			{
-				return Err($message.to_string())
-			}
-		}
-
-		if self.0.norandmaps()
+		if self.norandmaps()
 		{
 			fail!("Kernel has `norandmaps` enabled; this isn't secure")
 		}
 
-		if self.0.nokaslr()
+		if self.nokaslr()
 		{
 			fail!("Kernel has `nokaslr` enabled; this isn't secure")
 		}
 
-		if self.0.movable_node()
+		if self.movable_node()
 		{
 			fail!("Kernel has `movable_node` enabled; this isn't compatible with this application")
 		}
 
-		if self.0.nosmp()
+		if self.nosmp()
 		{
 			fail!("Kernel has `nosmp` enabled; this disables support for parallel CPUs")
 		}
 
-		if self.0.maxcpus() == Some(0)
+		if self.maxcpus() == Some(0)
 		{
 			fail!("Kernel has `maxcpus=0`; this disables support for parallel CPUs")
 		}
 
 		#[cfg(any(target_arch = "aarch64", target_arch = "x86", target_arch = "x86_64"))]
 		{
-			match self.0.acpi()
+			match self.acpi()
 			{
 				Some(b"off") => fail!("Kernel has `acpi=off`"),
 
@@ -172,32 +180,32 @@ impl LinuxKernelCommandLineValidator
 
 		#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 		{
-			if self.0.noapic()
+			if self.noapic()
 			{
 				fail!("Kernel has `noapic` enabled")
 			}
 
-			if self.0.disableapic()
+			if self.disableapic()
 			{
 				fail!("Kernel has `disableapic` enabled")
 			}
 
-			if self.0.nolapic()
+			if self.nolapic()
 			{
 				fail!("Kernel has `nolapic` enabled")
 			}
 
-			if self.0.noapictimer()
+			if self.noapictimer()
 			{
 				fail!("Kernel has `noapictimer` enabled")
 			}
 
-			if self.0.nospectre_v2()
+			if self.nospectre_v2()
 			{
 				fail!("Kernel has `nospectre_v2` enabled; this is wrong")
 			}
 
-			if let Some(mitigation) = self.0.spectre_v2()
+			if let Some(mitigation) = self.spectre_v2()
 			{
 				match mitigation
 				{
@@ -211,7 +219,7 @@ impl LinuxKernelCommandLineValidator
 				}
 			}
 
-			if let Some(pci_parameters) = self.0.pci()
+			if let Some(pci_parameters) = self.pci()
 			{
 				if pci_parameters.contains(&b"off"[..])
 				{
@@ -224,7 +232,7 @@ impl LinuxKernelCommandLineValidator
 				}
 			}
 
-			match self.0.numa()
+			match self.numa()
 			{
 				None => (),
 
@@ -237,27 +245,27 @@ impl LinuxKernelCommandLineValidator
 				unrecognised @ _ => return Err(format!("Unrecognised Kernel NUMA options '{:?}", unrecognised)),
 			}
 
-			if self.0.nogbpages()
+			if self.nogbpages()
 			{
 				fail!("Kernel should not have `nogbpages`; on older systems, simply do not specify this flag")
 			}
 
-			if self.0.nohugeiomap()
+			if self.nohugeiomap()
 			{
 				fail!("Kernel has `nohugeiomap` enabled; this disables huge pages for IO")
 			}
 
-			if self.0.notsc()
+			if self.notsc()
 			{
 				fail!("Kernel has `notsc` enabled; this disables support for the Time Stamp Counter, TSC")
 			}
 
-			if self.0.nohpet()
+			if self.nohpet()
 			{
 				fail!("Kernel has `nohpet` enabled; this disables support for the High Precision Event Timer, HPET")
 			}
 
-			if let Some(hpet_mmap_enabled) = self.0.hpet_mmap()
+			if let Some(hpet_mmap_enabled) = self.hpet_mmap()
 			{
 				if !hpet_mmap_enabled
 				{
@@ -265,12 +273,12 @@ impl LinuxKernelCommandLineValidator
 				}
 			}
 
-			if self.0.nopat()
+			if self.nopat()
 			{
 				fail!("Kernel has `nopat` enabled; this isn't useful")
 			}
 
-			if let Some(noexec_enabled) = self.0.noexec()
+			if let Some(noexec_enabled) = self.noexec()
 			{
 				if !noexec_enabled
 				{
@@ -278,7 +286,7 @@ impl LinuxKernelCommandLineValidator
 				}
 			}
 
-			if let Some(vdso_enabled) = self.0.vdso()
+			if let Some(vdso_enabled) = self.vdso()
 			{
 				if !vdso_enabled
 				{
@@ -286,7 +294,7 @@ impl LinuxKernelCommandLineValidator
 				}
 			}
 
-			if let Some(vdso32_enabled) = self.0.vdso32()
+			if let Some(vdso32_enabled) = self.vdso32()
 			{
 				if !vdso32_enabled
 				{
@@ -294,7 +302,7 @@ impl LinuxKernelCommandLineValidator
 				}
 			}
 
-			if self.0.noinvpcid()
+			if self.noinvpcid()
 			{
 				fail!("Kernel has `noinvpcid` enabled; this isn't useful")
 			}
@@ -302,12 +310,12 @@ impl LinuxKernelCommandLineValidator
 
 		#[cfg(target_arch = "x86_64")]
 		{
-			if self.0.nopti()
+			if self.nopti()
 			{
 				fail!("Kernel has `nopti` enabled; this is wrong and also useless, as DPDK-based applications make very few syscalls")
 			}
 
-			if let Some(mitigation) = self.0.pti()
+			if let Some(mitigation) = self.pti()
 			{
 				match mitigation
 				{
@@ -319,7 +327,7 @@ impl LinuxKernelCommandLineValidator
 				}
 			}
 
-			match self.0.vsyscall()
+			match self.vsyscall()
 			{
 				None => fail!("Kernel vsyscall mitigation should be disabled with `vsycall=none`"),
 
@@ -332,23 +340,23 @@ impl LinuxKernelCommandLineValidator
 				unknown @ _ => return Err(format!("Kernel vsyscall mitigation '{:?}' not recognised; double-check this is intended", unknown.unwrap())),
 			}
 
-			if self.0.nopcid()
+			if self.nopcid()
 			{
 				fail!("Kernel has `nopcid` enabled; this isn't useful")
 			}
 
-			match self.0.numa_balancing()
+			match self.numa_balancing()
 			{
 				None | Some(true) => fail!("Kernel has NUMA balancing enabled"),
 				_ => (),
 			}
 
-			if self.0.nox2apic()
+			if self.nox2apic()
 			{
 				fail!("Kernel has `nox2apic` enabled")
 			}
 
-			if let Some(noexec32_enabled) = self.0.noexec32()
+			if let Some(noexec32_enabled) = self.noexec32()
 			{
 				if !noexec32_enabled
 				{
@@ -358,12 +366,12 @@ impl LinuxKernelCommandLineValidator
 
 			if cpu_supports_1gb_pages
 			{
-				if !self.0.gbpages()
+				if !self.gbpages()
 				{
 					fail!("Kernel should have `gbpages`")
 				}
 
-				if self.0.nogbpages()
+				if self.nogbpages()
 				{
 					fail!("Kernel should not have `nogbpages`")
 				}
@@ -376,7 +384,7 @@ impl LinuxKernelCommandLineValidator
 	#[inline(always)]
 	fn warnings(&self, warnings_to_suppress: &WarningsToSuppress)
 	{
-		match self.0.hashdist()
+		match self.hashdist()
 		{
 			None => warnings_to_suppress.kernel_warn_without_check("hashdist", "Kernel should be booted with `hashdist=0` to disable NUMA hash distribution"),
 
@@ -385,11 +393,11 @@ impl LinuxKernelCommandLineValidator
 			_ => (),
 		}
 
-		warnings_to_suppress.kernel_warn("noaliencache", "Kernel has `noaliencache` enabled; this is likely to hurt performance", || !self.0.noaliencache());
+		warnings_to_suppress.kernel_warn("noaliencache", "Kernel has `noaliencache` enabled; this is likely to hurt performance", || !self.noaliencache());
 
-		warnings_to_suppress.kernel_warn("numa_zonelist_order", "Kernel has `noaliencache` enabled; this is likely to hurt performance", || self.0.numa_zonelist_order().is_none());
+		warnings_to_suppress.kernel_warn("numa_zonelist_order", "Kernel has `numa_zonelist_order` enabled; this is likely to hurt performance", || self.numa_zonelist_order().is_none());
 
-		match self.0.skew_tick()
+		match self.skew_tick()
 		{
 			None | Some(false) => warnings_to_suppress.kernel_warn_without_check("skew_tick", "Kernel should have `skew_tick=1` for maximum performance at the cost of power consumption"),
 			Some(true) => (),
@@ -397,7 +405,7 @@ impl LinuxKernelCommandLineValidator
 
 		#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 		{
-			match self.0.idle()
+			match self.idle()
 			{
 				None => warnings_to_suppress.kernel_warn_without_check("idle_poll", "Kernel should be booted with `idle=poll` for maximum performance at the cost of power consumption"),
 
@@ -411,7 +419,7 @@ impl LinuxKernelCommandLineValidator
 				},
 			}
 
-			warnings_to_suppress.kernel_warn("noxsaveopt", "Kernel has `noxsaveopt` enabled; this is likely to hurt performance", || !self.0.noxsaveopt());
+			warnings_to_suppress.kernel_warn("noxsaveopt", "Kernel has `noxsaveopt` enabled; this is likely to hurt performance", || !self.noxsaveopt());
 		}
 	}
 }

@@ -6,6 +6,7 @@ use crate::paths::*;
 use crate::cpu::*;
 use crate::linux_kernel_modules::*;
 use crate::memory::numa::NumaNode;
+use crate::strings::IntoLineFeedTerminatedByteString;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 use self::classification::*;
 use self::classification::subclasses::NetworkController;

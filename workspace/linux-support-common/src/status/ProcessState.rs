@@ -6,30 +6,51 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ProcessState
 {
-	/// Also known as `R (running)`.
+	/// Running.
 	Running,
 
-	/// Also known as `S (sleeping)`.
+	/// Sleeping in an interruptible wait.
 	Sleeping,
 
-	/// Also known as `D (disk sleep)`, or disk sleep.
+	/// Waiting in uninterruptible disk sleep.
 	SleepingInAnUninterruptibleWait,
 
-	/// Also known as `T (stopped)`.
-	TracedOrStopped,
+	/// Stopped.
+	///
+	/// Before Linux 2.6.33, this also covered `TracingStop` below.
+	Stopped,
 
-	/// Also known as `t (tracing stop)`.
+	/// Stopped while Traching.
+	///
+	/// Linux 2.6.33 onward.
 	TracingStop,
 
-	/// Also known as `X (dead)`.
+	/// Dead.
 	Dead,
 
-	/// Also known as `Z (zombie)`.
+	/// Zombie.
 	Zombie,
 
-	/// Also known as `P (parked)`.
+	/// Idle.
+	///
+	/// Not documented in manpage for `/proc/<N>/stat`.
+	Idle,
+
+	/// WakeKill.
+	///
+	/// Linux 3.9 to 3.13 only.
+	#[deprecated]
+	WakeKill,
+
+	/// Parked.
+	///
+	/// Linux 3.9 to 3.13 only.
+	#[deprecated]
 	Parked,
 
-	/// Also known as `I (idle)`.
-	Idle,
+	/// Paging before Linux 2.6.0.
+	///
+	/// Waking for Linux 2.6.33 to 3.13 only.
+	#[deprecated]
+	PagingOrWaking,
 }

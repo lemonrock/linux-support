@@ -2,6 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use crate::paths::PathBufExt;
+use crate::strings::IntoLineFeedTerminatedByteString;
 use super::inode::Inode;
 use super::paths::PathExt;
 use super::paths::ProcPath;
@@ -27,7 +29,6 @@ use std::os::unix::io::IntoRawFd;
 use std::os::unix::io::RawFd;
 use std::path::Path;
 use std::path::PathBuf;
-use crate::paths::{IntoLineFeedTerminatedByteString, PathBufExt};
 use std::borrow::Cow;
 
 

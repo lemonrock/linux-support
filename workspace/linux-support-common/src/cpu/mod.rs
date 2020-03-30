@@ -8,6 +8,7 @@ use crate::bit_set::*;
 use crate::memory::numa::*;
 use crate::paths::*;
 use crate::status::ProcessStatusStatistics;
+use crate::strings::IntoLineFeedTerminatedByteString;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 use errno::errno;
 use libc::*;

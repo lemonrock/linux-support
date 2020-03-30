@@ -3,7 +3,7 @@
 
 
 use crate::paths::*;
-use crate::strings::splitn;
+use crate::strings::*;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 use errno::errno;
 use lazy_static::lazy_static;

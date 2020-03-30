@@ -424,12 +424,26 @@ impl ProcessStatusStatistics
 				b'R' => Running,
 				b'S' => Sleeping,
 				b'D' => SleepingInAnUninterruptibleWait,
-				b'T' => TracedOrStopped,
-				b't' => TracingStop,
-				b'X' => Dead,
 				b'Z' => Zombie,
-				b'P' => Parked,
+				b'T' => Stopped,
+				b'X' => Dead,
 				b'I' => Idle,
+
+				// Linux 2.6.33 onward.
+				b't' => TracingStop,
+
+				// Linux 2.6.33 to 3.13 only.
+				b'x' => Dead,
+
+				// Only before Linux 2.6.0, when it was used for Paging, and Linux Linux 2.6.33 to 3.13 only.
+				#[allow(deprecated)] b'W' => PagingOrWaking,
+
+				// Linux 3.9 to 3.13 only.
+				#[allow(deprecated)] b'K' => WakeKill,
+
+				// Linux 3.9 to 3.13 only.
+				#[allow(deprecated)] b'P' => Parked,
+
 				_ => return Err(ProcessStatusStatisticParseError::OutOfRange)
 			};
 

@@ -17,6 +17,10 @@ impl BitSet<NumaNode>
 		valid.intersection(&Self::online(sys_path).unwrap());
 		valid.intersection(&Self::have_normal_memory(sys_path).unwrap());
 
+		assert!(!valid.is_empty());
+
+		valid.shrink_to_fit();
+
 		Some(valid)
 	}
 

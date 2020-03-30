@@ -3,6 +3,7 @@
 
 
 use crate::paths::*;
+use crate::strings::IntoLineFeedTerminatedByteString;
 use likely::unlikely;
 use serde::Deserialize;
 use serde::Serialize;

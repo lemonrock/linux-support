@@ -25,8 +25,11 @@ use std::os::unix::ffi::OsStringExt;
 use std::path::PathBuf;
 use std::str::from_utf8;
 use std::str::FromStr;
+use std::ops::Deref;
 
 
+include!("fail.rs");
+include!("IsolatedCpuFlags.rs");
 include!("LinuxKernelCommandLineParameters.rs");
 include!("LinuxKernelCommandLineValidationError.rs");
 include!("LinuxKernelCommandLineValidator.rs");

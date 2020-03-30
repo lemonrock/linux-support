@@ -3,7 +3,6 @@
 
 
 use crate::bit_set::*;
-use crate::paths::IntoLineFeedTerminatedByteString;
 use errno::errno;
 use libc::*;
 use likely::unlikely;
@@ -21,7 +20,6 @@ use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 use std::borrow::Cow;
 use std::collections::HashSet;
-use std::convert::TryFrom;
 use std::mem::transmute;
 
 

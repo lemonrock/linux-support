@@ -80,16 +80,6 @@ impl<'a> PciDevice<'a>
 		self.device_file_or_folder_path("config").memory_map().map(|memory_mapped_file| MemoryMappedConfigurationSpace(memory_mapped_file))
 	}
 
-//	#[inline(always)]
-//	pub fn enable_bus_mastering_for_direct_memory_access(&self, _sys_path: &SysPath)
-//	{
-//	// TODO: How does the 'config' file work?
-//	https://www.mjmwired.net/kernel/Documentation/ABI/testing/sysfs-bus-pci
-//	https://www.kernel.org/doc/html/v4.12/driver-api/uio-howto.html
-//	https://raw.githubusercontent.com/pciutils/pciutils/master/pci.ids - Look up Intel IDs!
-//	https://www.kernel.org/doc/Documentation/
-//	}
-
 	/// Details.
 	#[inline(always)]
 	pub fn details(&self) -> PciDeviceDetails

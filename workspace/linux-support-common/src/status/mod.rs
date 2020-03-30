@@ -34,6 +34,7 @@ include!("ProcessStatusFileParseError.rs");
 include!("ProcessStatusStatistics.rs");
 include!("ProcessStatusStatisticParseError.rs");
 include!("ProcessUserIdentifiers.rs");
+//include!("ProcStat.rs");
 include!("SeccompMode.rs");
 include!("SignalQueueStatus.rs");
 include!("SpeculationStoreBypassStatus.rs");

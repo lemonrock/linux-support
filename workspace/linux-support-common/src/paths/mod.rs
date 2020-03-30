@@ -7,6 +7,7 @@ use crate::cpu::*;
 use crate::memory::numa::NumaNode;
 use crate::memory::huge_pages::HugePageSize;
 use crate::pci_express::PciDeviceAddress;
+use crate::strings::IntoLineFeedTerminatedByteString;
 use errno::errno;
 use libc::c_void;
 use libc::MAP_FAILED;
@@ -29,7 +30,6 @@ use std::io;
 use std::io::ErrorKind;
 use std::io::Write;
 use std::mem::align_of;
-#[allow(deprecated)] use std::mem::uninitialized;
 use std::num::NonZeroI32;
 use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::PermissionsExt;
@@ -43,12 +43,9 @@ use std::str::*;
 
 
 include!("DevPath.rs");
-include!("IntoLineFeedTerminatedByteString.rs");
 include!("MemoryMappedFile.rs");
 include!("PathBufExt.rs");
 include!("PathExt.rs");
 include!("ProcessIdentifier.rs");
 include!("ProcPath.rs");
-include!("signed_into_line_feed_terminated_byte_string.rs");
 include!("SysPath.rs");
-include!("unsigned_into_line_feed_terminated_byte_string.rs.rs");
