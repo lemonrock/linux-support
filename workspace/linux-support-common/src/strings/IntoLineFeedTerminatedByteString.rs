@@ -79,7 +79,7 @@ macro_rules! number_into_line_feed_terminated_byte_string
 				let mut buffer: [u8; Maximum] = unsafe { uninitialized() };
 				buffer[LastIndex] = b'\n';
 
-				let index = self.lowercase_hexadecimal(LastIndex - SizeOfLineFeed, &mut buffer[..]);
+				let index = self.lower_case_hexadecimal(LastIndex - SizeOfLineFeed, &mut buffer[..]);
 
 				Cow::from((&buffer[index .. ]).to_vec())
 			}
@@ -102,3 +102,30 @@ number_into_line_feed_terminated_byte_string!(i128, 39, 1);
 #[cfg(target_pointer_width = "16")] number_into_line_feed_terminated_byte_string!(isize, 5, 1);
 #[cfg(target_pointer_width = "32")] number_into_line_feed_terminated_byte_string!(isize, 10, 1);
 #[cfg(target_pointer_width = "64")] number_into_line_feed_terminated_byte_string!(isize, 19, 1);
+
+macro_rules! non_zero_number_into_line_feed_terminated_byte_string
+{
+    ($non_zero_type: ty) =>
+    {
+		impl<'a> IntoLineFeedTerminatedByteString<'a> for $non_zero_type
+		{
+			#[inline(always)]
+			fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
+			{
+				self.get().into_line_feed_terminated_byte_string()
+			}
+		}
+    };
+}
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroU8);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroU16);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroU32);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroU64);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroU128);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroUsize);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroI8);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroI16);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroI32);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroI64);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroI128);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroIsize);

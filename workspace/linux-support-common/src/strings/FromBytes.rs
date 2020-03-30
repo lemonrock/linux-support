@@ -2,14 +2,22 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Use upper case (eg `A` to `F`) or lower case (eg `a` to `f`) for digits above 9.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(u8)]
-pub enum NonNumericDigitCase
+/// From bytes.
+pub trait FromBytes: Sized
 {
-	/// Upper.
-	Upper = b'A',
+	type Error: error::Error;
 
-	/// Lower.
-	Lower = b'a',
+	/// From bytes.
+	fn from_bytes(bytes: &[u8]) -> Result<Self, Self::Error>;
+}
+
+impl<P: ParseNumber> FromBytes for P
+{
+	type Error = ParseNumberError;
+
+	#[inline(always)]
+	fn from_bytes(bytes: &[u8]) -> Result<Self, Self::Error>
+	{
+		Self::parse_decimal_number(bytes)
+	}
 }

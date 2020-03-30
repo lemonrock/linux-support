@@ -31,7 +31,7 @@ impl<'a, BSA: BitSetAware> IntoLineFeedTerminatedByteString<'a> for IntoBitMask<
 				bytes_index -= 1;
 			}
 
-			bytes_index = self.0.get_word(word_index).lowercase_hexadecimal(bytes_index, &mut bytes[..]);
+			bytes_index = self.0.get_word(word_index).lower_case_hexadecimal(bytes_index, &mut bytes[..]);
 		}
 
 		Cow::from(bytes)

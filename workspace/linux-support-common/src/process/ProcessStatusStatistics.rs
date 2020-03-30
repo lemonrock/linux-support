@@ -19,14 +19,12 @@ pub struct ProcessStatusStatistics
 	/// State.
 	///
 	/// Known as `State`.
-	///
-	/// Note that <> ***does not*** document all possible states.
 	pub state: Option<ProcessState>,
 
 	/// Thread group identifier.
 	///
 	/// Known as `Tgid`.
-	pub thread_group_identifier: Option<pid_t>,
+	pub thread_group_identifier: Option<ProcessIdentifier>,
 
 	/// NUMA group identifier.
 	///
@@ -38,17 +36,19 @@ pub struct ProcessStatusStatistics
 	/// Process identifier.
 	///
 	/// Known as `Pid`.
-	pub process_identifier: Option<pid_t>,
+	pub process_identifier: Option<ProcessIdentifier>,
 
 	/// Parent process identifier.
 	///
+	/// Can be zero if this is the `init` process (process `1`).
+	///
 	/// Known as `PPid`.
-	pub parent_process_identifier: Option<pid_t>,
+	pub parent_process_identifier: Option<Option<ProcessIdentifier>>,
 
 	/// Usually zero, implying no tracer process.
 	///
 	/// Known as `TracerPid`.
-	pub tracer_process_identifier: Option<pid_t>,
+	pub tracer_process_identifier: Option<Option<ProcessIdentifier>>,
 
 	/// User identifiers.
 	///
@@ -77,22 +77,22 @@ pub struct ProcessStatusStatistics
 	/// Descendant namespace thread group identifiers.
 	///
 	/// Known as `NStgid`.
-	pub descendant_namespace_thread_group_identifier: Option<BTreeSet<pid_t>>,
+	pub descendant_namespace_thread_group_identifier: Option<BTreeSet<ProcessIdentifier>>,
 
 	/// Descendant namespace process identifiers.
 	///
 	/// Known as `NSpid`.
-	pub descendant_namespace_process_identifier: Option<BTreeSet<pid_t>>,
+	pub descendant_namespace_process_identifier: Option<BTreeSet<ProcessIdentifier>>,
 
 	/// Descendant namespace process group identifiers.
 	///
 	/// Known as `NSpgid`.
-	pub descendant_namespace_process_group_identifier: Option<BTreeSet<pid_t>>,
+	pub descendant_namespace_process_group_identifier: Option<BTreeSet<ProcessIdentifier>>,
 
 	/// Descendant namespace session identifiers.
 	///
 	/// Known as `NSsid`.
-	pub descendant_namespace_session_identifier: Option<BTreeSet<pid_t>>,
+	pub descendant_namespace_session_identifier: Option<BTreeSet<ProcessIdentifier>>,
 
 	/// Peak virtual memory size.
 	///
@@ -320,14 +320,14 @@ impl ProcessStatusStatistics
 	#[inline(always)]
 	pub fn self_status(proc_path: &ProcPath) -> Result<Self, ProcessStatusFileParseError>
 	{
-		Self::process_status(proc_path, 0)
+		Self::process_status(proc_path, None)
 	}
 
 	/// Status information from `/proc/<IDENTIFIER>/status` where `<IDENTIFIER>` is `identifier`.
 	#[inline(always)]
-	pub fn process_status(proc_path: &ProcPath, identifier: pid_t) -> Result<Self, ProcessStatusFileParseError>
+	pub fn process_status(proc_path: &ProcPath, process_identifier: Option<ProcessIdentifier>) -> Result<Self, ProcessStatusFileParseError>
 	{
-		let file = File::open(proc_path.process_file_path(identifier, "status"))?;
+		let file = File::open(proc_path.process_file_path(process_identifier, "status"))?;
 		let reader = BufReader::with_capacity(4096, file);
 
 		use self::ProcessStatusFileParseError::*;
@@ -344,7 +344,7 @@ impl ProcessStatusStatistics
 			};
 
 			{
-				let mut split = splitn(&line, 2, b':');
+				let mut split = line.splitn(2, |byte| *byte == b':');
 
 				let statistic_name = split.next().unwrap();
 
@@ -398,14 +398,7 @@ impl ProcessStatusStatistics
 		#[inline(always)]
 		fn parse_mode(value: &[u8]) -> Result<mode_t, ProcessStatusStatisticParseError>
 		{
-			if likely!(value.len() == 4)
-			{
-				Ok(mode_t::from_str_radix(from_utf8(value)?, 8)?)
-			}
-			else
-			{
-				Err(ProcessStatusStatisticParseError::InvalidLength)
-			}
+			Ok(mode_t::parse_octal_number_fixed_width(value, 4)?)
 		}
 
 		#[inline(always)]
@@ -451,27 +444,27 @@ impl ProcessStatusStatistics
 		}
 
 		#[inline(always)]
-		fn parse_pid(value: &[u8]) -> Result<pid_t, ProcessStatusStatisticParseError>
+		fn parse_pid(value: &[u8]) -> Result<NonZeroI32, ProcessStatusStatisticParseError>
 		{
-			Ok(pid_t::from_str_radix(from_utf8(value)?, 10)?)
+			Ok(NonZeroI32::parse_decimal_number(value)?)
 		}
 
 		#[inline(always)]
 		fn parse_numa_node(value: &[u8]) -> Result<NumaNode, ProcessStatusStatisticParseError>
 		{
-			Ok(NumaNode::from(u8::from_str_radix(from_utf8(value)?, 10)?))
+			Ok(NumaNode::try_from(u16::parse_decimal_number(value)?)?)
 		}
 
 		#[inline(always)]
 		fn parse_uid(value: &[u8]) -> Result<uid_t, ProcessStatusStatisticParseError>
 		{
-			Ok(uid_t::from_str_radix(from_utf8(value)?, 10)?)
+			Ok(uid_t::parse_decimal_number(value)?)
 		}
 
 		#[inline(always)]
 		fn parse_gid(value: &[u8]) -> Result<gid_t, ProcessStatusStatisticParseError>
 		{
-			Ok(gid_t::from_str_radix(from_utf8(value)?, 10)?)
+			Ok(gid_t::parse_decimal_number(value)?)
 		}
 
 		#[inline(always)]
@@ -490,7 +483,7 @@ impl ProcessStatusStatistics
 				}
 			}
 
-			let mut iterator = splitn(value, 4, b'\t');
+			let mut iterator = value.splitn(4, |byte| *byte == b'\t');
 
 			Ok
 			(
@@ -520,7 +513,7 @@ impl ProcessStatusStatistics
 				}
 			}
 
-			let mut iterator = splitn(value, 4, b'\t');
+			let mut iterator = value.splitn(4, |byte| *byte == b'\t');
 
 			Ok
 			(
@@ -538,7 +531,7 @@ impl ProcessStatusStatistics
 		fn parse_groups(value: &[u8]) -> Result<BTreeSet<gid_t>, ProcessStatusStatisticParseError>
 		{
 			let mut groups = BTreeSet::new();
-			for value in split(value, b' ')
+			for value in value.split(|byte| *byte == b' ')
 			{
 				let was_added_for_the_first_time = groups.insert(parse_gid(value)?);
 				if unlikely!(!was_added_for_the_first_time)
@@ -550,10 +543,10 @@ impl ProcessStatusStatistics
 		}
 
 		#[inline(always)]
-		fn parse_pids(value: &[u8]) -> Result<BTreeSet<pid_t>, ProcessStatusStatisticParseError>
+		fn parse_pids(value: &[u8]) -> Result<BTreeSet<ProcessIdentifier>, ProcessStatusStatisticParseError>
 		{
 			let mut pids = BTreeSet::new();
-			for value in split(value, b'\t')
+			for value in value.split(|byte| *byte == b'\t')
 			{
 				let was_added_for_the_first_time = pids.insert(parse_pid(value)?);
 				if unlikely!(!was_added_for_the_first_time)
@@ -567,7 +560,7 @@ impl ProcessStatusStatistics
 		#[inline(always)]
 		fn parse_u64(value: &[u8]) -> Result<u64, ProcessStatusStatisticParseError>
 		{
-			Ok(u64::from_str_radix(from_utf8(value)?, 10)?)
+			Ok(u64::parse_decimal_number(value)?)
 		}
 
 		#[inline(always)]
@@ -589,7 +582,7 @@ impl ProcessStatusStatistics
 		fn parse_signal_queue(value: &[u8]) -> Result<SignalQueueStatus, ProcessStatusStatisticParseError>
 		{
 			// number of signals queued/max. number for queue
-			let mut iterator = splitn(value, 2, b'/');
+			let mut iterator = value.splitn(2, |byte| *byte == b'/');
 			let number_of_signals_queued = parse_u64(iterator.next().unwrap())?;
 			let maximum_number_of_signals_that_can_be_queued = match iterator.next()
 			{
@@ -611,14 +604,7 @@ impl ProcessStatusStatistics
 		#[inline(always)]
 		fn parse_hexadecimal_u64(value: &[u8]) -> Result<u64, ProcessStatusStatisticParseError>
 		{
-			if likely!(value.len() == 16)
-			{
-				Ok(u64::from_str_radix(from_utf8(value)?, 16)?)
-			}
-			else
-			{
-				Err(ProcessStatusStatisticParseError::InvalidLength)
-			}
+			Ok(u64::parse_hexadecimal_number_lower_case(value)?)
 		}
 		
 		#[inline(always)]

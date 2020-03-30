@@ -21,10 +21,10 @@ pub enum PciDeviceAddressStringParseError
 	CouldNotParseDomain
 	{
 		/// Value.
-		value: String,
+		value: Vec<u8>,
 
 		/// Cause.
-		cause: ParseIntError,
+		cause: ParseNumberError,
 	},
 
 	#[allow(missing_docs)]
@@ -35,10 +35,10 @@ pub enum PciDeviceAddressStringParseError
 	CouldNotParseBus
 	{
 		/// Value.
-		value: String,
+		value: Vec<u8>,
 
 		/// Cause.
-		cause: ParseIntError,
+		cause: ParseNumberError,
 	},
 
 	#[allow(missing_docs)]
@@ -48,10 +48,10 @@ pub enum PciDeviceAddressStringParseError
 	CouldNotParseDeviceIdentifier
 	{
 		/// Value.
-		value: String,
+		value: Vec<u8>,
 
 		/// Cause.
-		cause: ParseIntError,
+		cause: ParseNumberError,
 	},
 
 	/// Parsed device number exceeds 5-bit value (ie is 32 or more)
@@ -69,10 +69,10 @@ pub enum PciDeviceAddressStringParseError
 	CouldNotParseFunction
 	{
 		/// Value.
-		value: String,
+		value: Vec<u8>,
 
 		/// Cause.
-		cause: ParseIntError,
+		cause: ParseNumberError,
 	},
 
 	/// Parsed function exceeds 4-bit value (ie is 16 or more).

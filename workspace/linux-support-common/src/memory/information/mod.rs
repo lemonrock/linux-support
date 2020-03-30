@@ -4,7 +4,6 @@
 
 use crate::paths::*;
 use std::collections::HashMap;
-use crate::strings::splitn;
 use std::error;
 use std::fmt;
 use std::fmt::Debug;

@@ -7,8 +7,6 @@ use crate::paths::PathExt;
 use crate::paths::ProcPath;
 use crate::strings::c_string_pointer_to_path_buf;
 use crate::strings::ConstCStr;
-use crate::strings::split;
-use crate::strings::splitn;
 use bitflags::bitflags;
 use errno::errno;
 use libc::*;
@@ -26,6 +24,7 @@ use std::io;
 use std::io::ErrorKind;
 use std::path::Path;
 use std::path::PathBuf;
+use crate::process::ProcessIdentifier;
 
 
 include!("Mount.rs");

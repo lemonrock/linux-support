@@ -9,11 +9,8 @@ pub enum MaximumNumberParseError
 	/// Input error.
 	Input(io::Error),
 
-	/// Did not end with a line feed.
-	DoesNotEndWithLineFeed,
-
 	/// Could not parse value.
-	WasNotMaximumOrAFiniteInteger(ParseIntError),
+	WasNotMaximumOrAFiniteInteger(ParseNumberError),
 }
 
 impl Display for MaximumNumberParseError
@@ -36,8 +33,6 @@ impl Error for MaximumNumberParseError
 		{
 			&Input(ref source) => Some(source),
 
-			&DoesNotEndWithLineFeed => None,
-
 			&WasNotMaximumOrAFiniteInteger(ref source) => Some(source),
 		}
 	}
@@ -52,10 +47,10 @@ impl From<io::Error> for MaximumNumberParseError
 	}
 }
 
-impl From<ParseIntError> for MaximumNumberParseError
+impl From<ParseNumberError> for MaximumNumberParseError
 {
 	#[inline(always)]
-	fn from(value: ParseIntError) -> Self
+	fn from(value: ParseNumberError) -> Self
 	{
 		MaximumNumberParseError::WasNotMaximumOrAFiniteInteger(value)
 	}

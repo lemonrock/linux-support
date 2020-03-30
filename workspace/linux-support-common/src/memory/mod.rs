@@ -3,7 +3,6 @@
 
 
 use crate::paths::ProcPath;
-use libc::pid_t;
 use libc_extra::unix::unistd::getpagesize;
 use std::fs::File;
 use std::io;
@@ -18,6 +17,7 @@ use std::ops::Sub;
 use std::ops::SubAssign;
 use std::path::Path;
 use std::ptr::NonNull;
+use crate::process::ProcessIdentifier;
 
 
 /// Huge Pages.

@@ -81,14 +81,14 @@ impl<BSA: BitSetAware> BitSet<BSA>
 
 		// Prevents mis-sorted strings
 		let mut next_minimum_index_expected = 0;
-		for index_or_range in split(linux_list_string, b',')
+		for index_or_range in linux_list_string.split(|byte| *byte == b',')
 		{
 			if index_or_range.is_empty()
 			{
 				return Err(ContainsAnEmptyIndexOrRange);
 			}
 
-			let mut range_iterator = splitn(index_or_range, 2, b'-');
+			let mut range_iterator = index_or_range.splitn(2, |byte| *byte == b'-');
 
 			let first =
 			{
@@ -103,7 +103,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 			if let Some(second) = range_iterator.last()
 			{
 				// There is a weird, but rare, syntax used of `100-2000:2/25` for some ranges.
-				let mut range_or_range_with_groups = splitn(second, 2, b':');
+				let mut range_or_range_with_groups = second.splitn(2, |byte| *byte == b':');
 
 				let second =
 				{
@@ -129,7 +129,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 
 					Some(weird_but_rare_group_syntax) =>
 					{
-						let mut weird_but_rare_group_syntax = splitn(weird_but_rare_group_syntax, 2, b'/');
+						let mut weird_but_rare_group_syntax = weird_but_rare_group_syntax.splitn(2, |byte| *byte == b'/');
 						let used_size = parse_index(weird_but_rare_group_syntax.next().unwrap(), "used_size")?;
 						let group_size = parse_index(weird_but_rare_group_syntax.last().expect("a group does not have group_size"), "group_size")?;
 
@@ -458,7 +458,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 
 		let mut bit_set = Self::with_capacity_in_32bit_tuples(number_of_tuples);
 
-		let iterator = split(&without_line_feed, b',').rev();
+		let iterator = without_line_feed.split(|byte| *byte == b',').rev();
 
 		let mut byte_index: usize = 0;
 		for raw_tuple_value in iterator

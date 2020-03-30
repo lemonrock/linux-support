@@ -2,56 +2,33 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A parse error.
-#[derive(Debug)]
-pub enum NonRootCgroupTypeParseError
+/// Link speed parse error.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum ParseLinkSpeedError
 {
-	/// Input error.
-	Input(io::Error),
-
-	/// Does not end with line feed.
-	DoesNotEndWithLineFeed,
-
-	/// Invalid type name.
-	InvalidTypeName
-	{
-		/// Name.
-		name: String,
-	},
+	/// Unrecognised link speed value..
+	Unrecognised(Vec<u8>),
 }
 
-impl Display for NonRootCgroupTypeParseError
+impl Display for ParseLinkSpeedError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
 	{
-		Debug::fmt(self, f)
+		<ParseLinkSpeedError as Debug>::fmt(self, f)
 	}
 }
 
-impl Error for NonRootCgroupTypeParseError
+impl error::Error for ParseLinkSpeedError
 {
 	#[inline(always)]
-	fn source(&self) -> Option<&(dyn Error + 'static)>
+	fn source(&self) -> Option<&(dyn error::Error + 'static)>
 	{
-		use self::NonRootCgroupTypeParseError::*;
+		use self::ParseLinkSpeedError::*;
 
 		match self
 		{
-			&Input(ref source) => Some(source),
-
-			&DoesNotEndWithLineFeed => None,
-
-			&InvalidTypeName { .. } => None,
+			&Unrecognised(_) => None,
 		}
-	}
-}
-
-impl From<io::Error> for NonRootCgroupTypeParseError
-{
-	#[inline(always)]
-	fn from(value: io::Error) -> Self
-	{
-		NonRootCgroupTypeParseError::Input(value)
 	}
 }

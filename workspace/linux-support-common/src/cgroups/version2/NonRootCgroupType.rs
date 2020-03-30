@@ -21,22 +21,22 @@ pub enum NonRootCgroupType
 	Threaded,
 }
 
-impl FromStr for NonRootCgroupType
+impl FromBytes for NonRootCgroupType
 {
-	type Err = ();
+	type Error = ParseNonRootCgroupTypeError;
 
 	#[inline(always)]
-	fn from_str(s: &str) -> Result<Self, Self::Err>
+	fn from_bytes(bytes: &[u8]) -> Result<Self, Self::Error>
 	{
 		use self::NonRootCgroupType::*;
-		let variant = match s
+		let variant = match bytes
 		{
-			"domain" => Domain,
-			"domain_threaded" => ThreadedDomain,
-			"domain_invalid" => InvalidDomain,
-			"threaded" => Threaded,
+			b"domain" => Domain,
+			b"domain_threaded" => ThreadedDomain,
+			b"domain_invalid" => InvalidDomain,
+			b"threaded" => Threaded,
 
-			_ => return Err(())
+			_ => return Err(ParseNonRootCgroupTypeError::UnknownVariant(bytes.to_vec()))
 		};
 		Ok(variant)
 	}
@@ -44,28 +44,6 @@ impl FromStr for NonRootCgroupType
 
 impl NonRootCgroupType
 {
-	#[inline(always)]
-	fn from_file(file_path: &Path) -> Result<Self, NonRootCgroupTypeParseError>
-	{
-		let contents = read_to_string(file_path)?;
-		Self::from_file_contents(contents)
-	}
-
-	#[inline(always)]
-	fn from_file_contents(mut contents: String) -> Result<Self, NonRootCgroupTypeParseError>
-	{
-		use self::NonRootCgroupTypeParseError::*;
-
-		if unlikely!(!contents.ends_with('\n'))
-		{
-			return Err(DoesNotEndWithLineFeed)
-		}
-		contents.truncate(contents.len() - 1);
-		let name = contents;
-
-		Self::from_str(&name).map_err(|_: ()| InvalidTypeName { name })
-	}
-
 	/// String description that matches that used by Linux.
 	#[inline(always)]
 	pub fn to_str(self) -> &'static str

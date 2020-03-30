@@ -15,7 +15,7 @@ pub trait PathExt
 	fn make_folder_searchable_to_all(&self) -> io::Result<()>;
 
 	/// Reads a value from a file which is line-feed terminated and is hexadecimal using a parser.
-	fn read_hexadecimal_value_with_prefix<T: Num>(&self, size: usize) -> io::Result<T>;
+	fn read_hexadecimal_value_with_prefix<Number: ParseNumber>(&self, size: usize) -> io::Result<Number>;
 
 	/// Reads a file as bytes.
 	///
@@ -38,7 +38,7 @@ pub trait PathExt
 	fn read_string_without_line_feed(&self) -> io::Result<String>;
 
 	/// Reads a value from a file which is line-feed terminated.
-	fn read_value<F>(&self) -> io::Result<F> where F: FromStr, <F as FromStr>::Err: 'static + Send + Sync + error::Error;
+	fn read_value<F>(&self) -> io::Result<F> where F: FromBytes, <F as FromBytes>::Error: 'static + Send + Sync + error::Error;
 
 	/// Reads a 0 or 1 bool from a file which is line-feed terminated.
 	fn read_zero_or_one_bool(&self) -> io::Result<bool>;
@@ -108,26 +108,10 @@ impl PathExt for Path
 	}
 
 	#[inline(always)]
-	fn read_hexadecimal_value_with_prefix<T: Num>(&self, size: usize) -> io::Result<T>
+	fn read_hexadecimal_value_with_prefix<Number: ParseNumber>(&self, size: usize) -> io::Result<Number>
 	{
-		use self::ErrorKind::InvalidData;
-
-		let raw_string = self.read_string_without_line_feed()?;
-
-		// '0x' eg '0x1af4'.
-		let size_wih_0x_prefix = 2 + size;
-		if unlikely!(raw_string.len() != size_wih_0x_prefix)
-		{
-			return Err(io::Error::new(InvalidData, format!("{} bytes not read", size_wih_0x_prefix)));
-		}
-
-		match &raw_string[..2]
-		{
-			"0x" => (),
-			_ => return Err(io::Error::new(InvalidData, "value does not start '0x'")),
-		}
-
-		T::from_str_radix(&raw_string[2..], 16).map_err(|_| io::Error::new(InvalidData, "Could not parse hexadecimal value"))
+		let bytes = self.read_raw_without_line_feed()?;
+		Number::parse_hexadecimal_number_lower_case_with_0x_prefix_fixed_width(&bytes, size_of::<Number>()).map_err(|_| io::Error::new(ErrorKind::InvalidData, "Could not parse hexadecimal value"))
 	}
 
 	#[inline(always)]
@@ -187,11 +171,11 @@ impl PathExt for Path
 	}
 
 	#[inline(always)]
-	fn read_value<F>(&self) -> io::Result<F> where F: FromStr, <F as FromStr>::Err: 'static + Send + Sync + error::Error
+	fn read_value<F>(&self) -> io::Result<F> where F: FromBytes, <F as FromBytes>::Error: 'static + Send + Sync + error::Error
 	{
-		let string = self.read_string_without_line_feed()?;
+		let bytes = self.read_raw_without_line_feed()?;
 
-		match string.parse::<F>()
+		match F::from_bytes(&bytes)
 		{
 			Err(error) => Err(io::Error::new(ErrorKind::InvalidData, error)),
 			Ok(value) => Ok(value),

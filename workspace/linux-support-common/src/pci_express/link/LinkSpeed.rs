@@ -27,24 +27,25 @@ pub enum LinkSpeed
 	Unknown,
 }
 
-impl FromStr for LinkSpeed
+impl FromBytes for LinkSpeed
 {
-	type Err = LinkSpeedFromStrError;
+	type Error = ParseLinkSpeedError;
 
 	#[inline(always)]
-	fn from_str(s: &str) -> Result<Self, Self::Err>
+	fn from_bytes(bytes: &[u8]) -> Result<Self, Self::Error>
 	{
 		use self::LinkSpeed::*;
 
-		match s
+		match bytes
 		{
-			"32 GT/s" => Ok(_32),
-			"16 GT/s" => Ok(_16),
-			"8 GT/s" => Ok(_8),
-			"5 GT/s" => Ok(_5),
-			"2.5 GT/s" => Ok(_2dot5),
-			"Unknown speed" => Ok(Unknown),
-			_ => Err(LinkSpeedFromStrError::Unrecognised(s.to_string()))
+			b"32 GT/s" => Ok(_32),
+			b"16 GT/s" => Ok(_16),
+			b"8 GT/s" => Ok(_8),
+			b"5 GT/s" => Ok(_5),
+			b"2.5 GT/s" => Ok(_2dot5),
+			b"Unknown speed" => Ok(Unknown),
+
+			_ => Err(ParseLinkSpeedError::Unrecognised(bytes.to_vec()))
 		}
 	}
 }

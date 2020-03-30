@@ -13,27 +13,27 @@ pub enum StatisticsParseError
 	InvalidStatisticName
 	{
 		/// Name.
-		name: String,
+		name: Vec<u8>,
 	},
 
 	/// Missing statistic value.
 	MissingStatisticValue
 	{
 		/// Name.
-		name: String,
+		name: &'static [u8],
 	},
 
 	/// Invalid statistic value.
 	InvalidStatisticValue
 	{
 		/// Name.
-		name: String,
+		name: &'static [u8],
 
 		/// Value.
-		value: String,
+		value: Vec<u8>,
 
 		/// Cause.
-		cause: ParseIntError,
+		cause: ParseNumberError,
 	},
 
 	/// Missing statistic for number of living descendants.

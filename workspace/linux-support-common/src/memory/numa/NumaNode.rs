@@ -157,7 +157,7 @@ impl NumaNode
 	/// If they aren't, then one of them is cloned.
 	///
 	/// `PageMoveError` `TargetNodeNotAllowed`, `OneOrMoreTargetNodesIsNotOnline` and `CallerNeedsToHaveSysNiceCapabilityForMoveAll` do not occur.
-	pub fn migrate_all_pages(process_identifier: pid_t, from: &BitSet<Self>, to: &BitSet<Self>) -> Result<(), PageMoveError>
+	pub fn migrate_all_pages(process_identifier: Option<ProcessIdentifier>, from: &BitSet<Self>, to: &BitSet<Self>) -> Result<(), PageMoveError>
 	{
 		let from_length = from.capacity();
 		let to_length = to.capacity();
@@ -172,7 +172,7 @@ impl NumaNode
 			Greater => (Cow::Borrowed(from), Cow::Owned(from.extend_clone_to(from_length))),
 		};
 
-		let result = migrate_pages(process_identifier, from_length, from.as_ref().to_raw_parts().0, to.as_ref().to_raw_parts().0);
+		let result = migrate_pages(ProcessIdentifier::into_pid_t(process_identifier), from_length, from.as_ref().to_raw_parts().0, to.as_ref().to_raw_parts().0);
 
 		if likely!(result == 0)
 		{
@@ -185,18 +185,29 @@ impl NumaNode
 			match errno().0
 			{
 				EACCES => Err(TargetNodeNotAllowed),
+
 				ENODEV => Err(OneOrMoreTargetNodesIsNotOnline),
-				ESRCH => Err(ProcessDoesNotExist(process_identifier)),
-				EPERM => if process_identifier == 0
+
+				ESRCH => if let Some(process_identifier) = process_identifier
 				{
-					panic!("We need to have CAP_SYS_NICE for ourselves?!")
+					Err(ProcessDoesNotExist(process_identifier))
 				}
 				else
 				{
+					panic!("We got ESRCH for ourselves?!")
+				},
+
+				EPERM => if let Some(process_identifier) = process_identifier
+				{
 					Err(CallerNeedsToHaveSysNiceCapabilityToMoveAnotherPagesOfAnotherProcess(process_identifier))
+				}
+				else
+				{
+					panic!("We need to have CAP_SYS_NICE for ourselves?!")
 				},
 
 				EINVAL => panic!("Flags other than MPOL_MF_MOVE and MPOL_MF_MOVE_ALL was specified or an attempt was made to migrate pages of a kernel thread"),
+
 				E2BIG => panic!("Kernel should not generate E2BIG"),
 
 				unexpected @ _ => panic!("Unexpected error number '{}'", unexpected),
@@ -214,7 +225,7 @@ impl NumaNode
 	///
 	/// `PageMoveError` `TargetNodeNotAllowed`, `OneOrMoreTargetNodesIsNotOnline` and `CallerNeedsToHaveSysNiceCapabilityForMoveAll` do not occur.
 	#[inline(always)]
-	pub fn status_of_pages(process_identifier: pid_t, pages: &[NonNull<u8>]) -> Result<Box<[Self]>, PageMoveError>
+	pub fn status_of_pages(process_identifier: Option<ProcessIdentifier>, pages: &[NonNull<u8>]) -> Result<Box<[Self]>, PageMoveError>
 	{
 		let count = pages.len();
 		if unlikely!(count == 0)
@@ -224,7 +235,7 @@ impl NumaNode
 
 		let mut status: Vec<Self> = Vec::with_capacity(count);
 
-		let result = syscall::move_pages(process_identifier, count, pages.as_ptr() as *const *const c_void, null(), status.as_mut_ptr() as *mut i32, MemoryBindFlags::empty());
+		let result = syscall::move_pages(ProcessIdentifier::into_pid_t(process_identifier), count, pages.as_ptr() as *const *const c_void, null(), status.as_mut_ptr() as *mut i32, MemoryBindFlags::empty());
 
 		if likely!(result == 0)
 		{
@@ -238,18 +249,29 @@ impl NumaNode
 			match errno().0
 			{
 				EACCES => panic!("TargetNodeNotAllowed"),
+
 				ENODEV => panic!("OneOrMoreTargetNodesIsNotOnline"),
-				ESRCH => Err(ProcessDoesNotExist(process_identifier)),
-				EPERM => if process_identifier == 0
+
+				ESRCH => if let Some(process_identifier) = process_identifier
 				{
-					panic!("We need to have CAP_SYS_NICE for ourselves?!")
+					Err(ProcessDoesNotExist(process_identifier))
 				}
 				else
 				{
+					panic!("We got ESRCH for ourselves?!")
+				},
+
+				EPERM => if let Some(process_identifier) = process_identifier
+				{
 					Err(CallerNeedsToHaveSysNiceCapabilityToMoveAnotherPagesOfAnotherProcess(process_identifier))
+				}
+				else
+				{
+					panic!("We need to have CAP_SYS_NICE for ourselves?!")
 				},
 
 				EINVAL => panic!("Flags other than MPOL_MF_MOVE and MPOL_MF_MOVE_ALL was specified or an attempt was made to migrate pages of a kernel thread"),
+
 				E2BIG => panic!("Kernel should not generate E2BIG"),
 
 				unexpected @ _ => panic!("Unexpected error number '{}'", unexpected),
@@ -265,7 +287,7 @@ impl NumaNode
 	///
 	/// See also `NumaNode::status_of_pages()`.
 	#[inline(always)]
-	pub fn move_pages(process_identifier: pid_t, pages_to_move: &[(NonNull<u8>, NumaNode)], move_all: bool) -> Result<Box<[PageMoveStatus]>, PageMoveError>
+	pub fn move_pages(process_identifier: Option<ProcessIdentifier>, pages_to_move: &[(NonNull<u8>, NumaNode)], move_all: bool) -> Result<Box<[PageMoveStatus]>, PageMoveError>
 	{
 		let count = pages_to_move.len();
 		if unlikely!(count == 0)
@@ -291,7 +313,7 @@ impl NumaNode
 		{
 			MemoryBindFlags::MPOL_MF_MOVE
 		};
-		let result = syscall::move_pages(process_identifier, count, pages.as_ptr() as *const *const c_void, nodes.as_ptr(), status.as_mut_ptr() as *mut i32, flags);
+		let result = syscall::move_pages(ProcessIdentifier::into_pid_t(process_identifier), count, pages.as_ptr() as *const *const c_void, nodes.as_ptr(), status.as_mut_ptr() as *mut i32, flags);
 
 		if likely!(result == 0)
 		{
@@ -305,22 +327,33 @@ impl NumaNode
 			match errno().0
 			{
 				EACCES => Err(TargetNodeNotAllowed),
+
 				ENODEV => Err(OneOrMoreTargetNodesIsNotOnline),
-				ESRCH => Err(ProcessDoesNotExist(process_identifier)),
+
+				ESRCH => if let Some(process_identifier) = process_identifier
+				{
+					Err(ProcessDoesNotExist(process_identifier))
+				}
+				else
+				{
+					panic!("We got ESRCH for ourselves?!")
+				},
+
 				EPERM => match move_all
 				{
 					true => Err(CallerNeedsToHaveSysNiceCapabilityForMoveAll),
-					false => if process_identifier == 0
+					false => if let Some(process_identifier) = process_identifier
 					{
-						panic!("We need to have CAP_SYS_NICE for ourselves?!")
+						Err(CallerNeedsToHaveSysNiceCapabilityToMoveAnotherPagesOfAnotherProcess(process_identifier))
 					}
 					else
 					{
-						Err(CallerNeedsToHaveSysNiceCapabilityToMoveAnotherPagesOfAnotherProcess(process_identifier))
+						panic!("We need to have CAP_SYS_NICE for ourselves?!")
 					},
 				},
 
 				EINVAL => panic!("Flags other than MPOL_MF_MOVE and MPOL_MF_MOVE_ALL was specified or an attempt was made to migrate pages of a kernel thread"),
+
 				E2BIG => panic!("Kernel should not generate E2BIG"),
 
 				unexpected @ _ => panic!("Unexpected error number '{}'", unexpected),

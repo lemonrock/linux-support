@@ -10,6 +10,7 @@ use crate::memory::numa::*;
 use crate::paths::*;
 use crate::signals::SignalBitSet;
 use crate::strings::*;
+use crate::strings::parse_number::*;
 use libc::*;
 use likely::*;
 use std::collections::BTreeSet;
@@ -20,15 +21,17 @@ use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fs::File;
-use std::num::ParseIntError;
+use std::num::NonZeroI32;
 use std::io;
 use std::io::BufRead;
 use std::io::BufReader;
-use std::str::from_utf8;
-use std::str::Utf8Error;
+use std::mem::transmute;
+use std::borrow::Cow;
+use std::convert::TryFrom;
 
 
 include!("ProcessGroupIdentifiers.rs");
+include!("ProcessIdentifier.rs");
 include!("ProcessState.rs");
 include!("ProcessStatusFileParseError.rs");
 include!("ProcessStatusStatistics.rs");

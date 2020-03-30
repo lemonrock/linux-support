@@ -22,23 +22,24 @@ pub enum HyperThreadingStatus
 	NotImplemented,
 }
 
-impl FromStr for HyperThreadingStatus
+impl FromBytes for HyperThreadingStatus
 {
-	type Err = io::Error;
+	type Error = ParseHyperThreadingStatusError;
 
 	#[inline(always)]
-	fn from_str(s: &str) -> Result<Self, Self::Err>
+	fn from_bytes(bytes: &[u8]) -> Result<Self, Self::Error>
 	{
 		use self::HyperThreadingStatus::*;
 
-		let value = match s
+		let value = match bytes
 		{
-			"on" => On,
-			"off" => Off,
-			"forceoff" => ForceOff,
-			"notsupported" => ForceOff,
-			"notimplemented" => ForceOff,
-			_ => return Err(io::Error::new(ErrorKind::Other, "Unknown value")),
+			b"on" => On,
+			b"off" => Off,
+			b"forceoff" => ForceOff,
+			b"notsupported" => ForceOff,
+			b"notimplemented" => ForceOff,
+
+			_ => return Err(ParseHyperThreadingStatusError::UnknownVariant(bytes.to_vec())),
 		};
 		Ok(value)
 	}

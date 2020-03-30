@@ -7,11 +7,11 @@ use std::fmt;
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Formatter;
-use std::str::FromStr;
+use crate::strings::FromBytes;
 
 
 include!("LinkSpeed.rs");
 include!("LinkSpeedAndWidth.rs");
-include!("LinkSpeedFromStrError.rs");
 include!("LinkWidth.rs");
-include!("LinkWidthFromStrError.rs");
+include!("ParseLinkSpeedError.rs");
+include!("ParseLinkWidthError.rs");

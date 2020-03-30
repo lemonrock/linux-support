@@ -27,24 +27,25 @@ pub enum LinkWidth
 	x32,
 }
 
-impl FromStr for LinkWidth
+impl FromBytes for LinkWidth
 {
-	type Err = LinkWidthFromStrError;
+	type Error = ParseLinkWidthError;
 
 	#[inline(always)]
-	fn from_str(s: &str) -> Result<Self, Self::Err>
+	fn from_bytes(bytes: &[u8]) -> Result<Self, Self::Error>
 	{
 		use self::LinkWidth::*;
 
-		match s
+		match bytes
 		{
-			"1" => Ok(x1),
-			"2" => Ok(x2),
-			"4" => Ok(x4),
-			"8" => Ok(x8),
-			"16" => Ok(x16),
-			"32" => Ok(x32),
-			_ => Err(LinkWidthFromStrError::Unrecognised(s.to_string()))
+			b"1" => Ok(x1),
+			b"2" => Ok(x2),
+			b"4" => Ok(x4),
+			b"8" => Ok(x8),
+			b"16" => Ok(x16),
+			b"32" => Ok(x32),
+
+			_ => Err(ParseLinkWidthError::Unrecognised(bytes.to_vec()))
 		}
 	}
 }

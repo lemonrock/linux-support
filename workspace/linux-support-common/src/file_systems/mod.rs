@@ -3,7 +3,6 @@
 
 
 use crate::paths::ProcPath;
-use crate::strings::splitn;
 use std::collections::HashMap;
 use std::error;
 use std::ffi::CStr;

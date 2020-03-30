@@ -34,25 +34,24 @@ pub enum Controller
 	cpu,
 }
 
-impl FromStr for Controller
+impl FromBytes for Controller
 {
-	type Err = ();
+	type Error = ParseControllerError;
 
-	// ***TODO: Adjust this match when changing the number of variants above***.
 	#[inline(always)]
-	fn from_str(s: &str) -> Result<Self, Self::Err>
+	fn from_bytes(bytes: &[u8]) -> Result<Self, Self::Error>
 	{
 		use self::Controller::*;
-		let variant = match s
+		let variant = match bytes
 		{
-			"io" => io,
-			"memory" => memory,
-			"pids" => pids,
-			"perf_event" => perf_event,
-			"rdma" => rdma,
-			"cpu" => cpu,
+			b"io" => io,
+			b"memory" => memory,
+			b"pids" => pids,
+			b"perf_event" => perf_event,
+			b"rdma" => rdma,
+			b"cpu" => cpu,
 
-			_ => return Err(())
+			_ => return Err(ParseControllerError::UnknownVariant(bytes.to_vec()))
 		};
 		Ok(variant)
 	}
@@ -70,6 +69,7 @@ impl Controller
 		line.extend_from_slice(self.to_bytes())
 	}
 
+	// ***Adjust this match when changing the number of variants above***.
 	#[inline(always)]
 	fn to_bytes(self) -> &'static [u8]
 	{

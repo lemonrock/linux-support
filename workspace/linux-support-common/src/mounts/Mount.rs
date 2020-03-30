@@ -87,9 +87,9 @@ impl Mount
 		let mount_options_string = unsafe { CStr::from_ptr((*raw).mnt_opts) };
 
 		let mut mount_options = HashMap::with_capacity(16);
-		for mount_option_string in split(mount_options_string.to_bytes(), b',')
+		for mount_option_string in mount_options_string.to_bytes().split(|byte| *byte == b',')
 		{
-			let mut split = splitn(mount_option_string, 2, b'=');
+			let mut split = mount_option_string.splitn(2, |byte| *byte == b'=');
 			let name = split.next().unwrap().to_vec().into_boxed_slice();
 			let value_if_any = split.next().map(|value| value.to_vec().into_boxed_slice());
 			assert!(mount_options.insert(name, value_if_any).is_none(), "Duplicate key in mount options for mount_point '{:?}'", mount_point);

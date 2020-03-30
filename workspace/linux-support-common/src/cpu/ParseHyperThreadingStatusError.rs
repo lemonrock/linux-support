@@ -2,9 +2,28 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// split.
-#[inline(always)]
-pub fn split<'a>(slice: &'a [u8], predicate: u8) -> ::std::slice::Split<'a, u8, impl FnMut(&u8) -> bool>
+/// Parse HyperThread error.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum ParseHyperThreadingStatusError
 {
-	slice.split(move |value| *value == predicate)
+	/// Unknown variant.
+	UnknownVariant(Vec<u8>),
+}
+
+impl Display for ParseHyperThreadingStatusError
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
+impl error::Error for ParseHyperThreadingStatusError
+{
+	#[inline(always)]
+	fn source(&self) -> Option<&(dyn error::Error + 'static)>
+	{
+		None
+	}
 }

@@ -13,13 +13,13 @@ pub enum PageMoveError
 	OneOrMoreTargetNodesIsNotOnline,
 
 	/// Process does not exist.
-	ProcessDoesNotExist(pid_t),
+	ProcessDoesNotExist(ProcessIdentifier),
 
 	/// The caller specified MPOL_MF_MOVE_ALL without sufficient privileges (CAP_SYS_NICE).
 	CallerNeedsToHaveSysNiceCapabilityForMoveAll,
 
 	/// The caller attempted to move pages of a process belonging to another user but did not have privilege to do so (CAP_SYS_NICE).
-	CallerNeedsToHaveSysNiceCapabilityToMoveAnotherPagesOfAnotherProcess(pid_t),
+	CallerNeedsToHaveSysNiceCapabilityToMoveAnotherPagesOfAnotherProcess(ProcessIdentifier),
 }
 
 impl Display for PageMoveError

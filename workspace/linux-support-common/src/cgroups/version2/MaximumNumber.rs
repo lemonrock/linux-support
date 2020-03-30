@@ -78,28 +78,20 @@ impl MaximumNumber
 	#[inline(always)]
 	fn from_file(file_path: &Path) -> Result<Self, MaximumNumberParseError>
 	{
-		let contents = read_to_string(file_path)?;
-		Self::from_file_contents(contents)
+		Self::from_file_contents(file_path.read_raw_without_line_feed()?)
 	}
 
 	#[inline(always)]
-	fn from_file_contents(mut contents: String) -> Result<Self, MaximumNumberParseError>
+	fn from_file_contents(contents: Box<[u8]>) -> Result<Self, MaximumNumberParseError>
 	{
-		if unlikely!(!contents.ends_with('\n'))
-		{
-			return Err(MaximumNumberParseError::DoesNotEndWithLineFeed)
-		}
-		contents.truncate(contents.len() - 1);
-
 		use self::MaximumNumber::*;
-		if &contents == "max"
+		if &contents[..] == b"max"
 		{
 			Ok(Maximum)
 		}
 		else
 		{
-			let value: usize = contents.parse()?;
-			Ok(Finite(value))
+			Ok(Finite(usize::parse_decimal_number(&contents)?))
 		}
 	}
 }

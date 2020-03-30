@@ -2,18 +2,21 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Parse error of a process identifier.
+/// Errors when parsing a maximum number.
 #[derive(Debug)]
-pub enum ProcessIdentifiersIteratorParseError
+pub enum ControllersFileError
 {
 	/// Input error.
 	Input(io::Error),
 
-	/// Could not parse process identifier.
-	CouldNotParseProcessIdentifier(ParseNumberError),
+	/// Invalid controller.
+	Parse(ParseControllerError),
+
+	/// Duplicate controller.
+	DuplicateController(Controller),
 }
 
-impl Display for ProcessIdentifiersIteratorParseError
+impl Display for ControllersFileError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -22,27 +25,38 @@ impl Display for ProcessIdentifiersIteratorParseError
 	}
 }
 
-impl Error for ProcessIdentifiersIteratorParseError
+impl Error for ControllersFileError
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn Error + 'static)>
 	{
-		use self::ProcessIdentifiersIteratorParseError::*;
+		use self::ControllersFileError::*;
 
 		match self
 		{
 			&Input(ref source) => Some(source),
 
-			&CouldNotParseProcessIdentifier(ref source) => Some(source),
+			&Parse(..) => None,
+
+			&DuplicateController(..) => None,
 		}
 	}
 }
 
-impl From<io::Error> for ProcessIdentifiersIteratorParseError
+impl From<io::Error> for ControllersFileError
 {
 	#[inline(always)]
-	fn from(error: io::Error) -> Self
+	fn from(value: io::Error) -> Self
 	{
-		ProcessIdentifiersIteratorParseError::Input(error)
+		ControllersFileError::Input(value)
+	}
+}
+
+impl From<ParseControllerError> for ControllersFileError
+{
+	#[inline(always)]
+	fn from(value: ParseControllerError) -> Self
+	{
+		ControllersFileError::Parse(value)
 	}
 }

@@ -21,7 +21,6 @@ use std::fs::File;
 use std::io;
 use std::io::BufWriter;
 use std::io::Write;
-use std::num::NonZeroI32;
 use std::num::NonZeroU32;
 use std::num::ParseIntError;
 use std::ops::Deref;
@@ -30,6 +29,7 @@ use std::os::unix::io::RawFd;
 use std::path::Path;
 use std::path::PathBuf;
 use std::borrow::Cow;
+use crate::process::ProcessIdentifier;
 
 
 include!("GroupIdentifier.rs");

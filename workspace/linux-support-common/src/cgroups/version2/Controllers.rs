@@ -65,33 +65,25 @@ impl Controllers
 	}
 
 	#[inline(always)]
-	fn from_file(file_path: &Path) -> Result<Self, ControllersParseError>
+	fn from_file(file_path: &Path) -> Result<Self, ControllersFileError>
 	{
-		let contents = read_to_string(file_path)?;
-		Self::from_file_contents(contents)
+		Self::from_file_contents(file_path.read_raw_without_line_feed()?)
 	}
 
 	#[inline(always)]
-	fn from_file_contents(mut contents: String) -> Result<Self, ControllersParseError>
+	fn from_file_contents(contents: Box<[u8]>) -> Result<Self, ControllersFileError>
 	{
-		use self::ControllersParseError::*;
+		use self::ControllersFileError::*;
 
 		if unlikely!(contents.is_empty())
 		{
 			return Ok(Self::empty())
 		}
 
-		let last = contents.remove(contents.len() - 1);
-		if unlikely!(last != '\n')
-		{
-			return Err(DoesNotEndWithLineFeed)
-		}
-
 		let mut controllers = Self::default();
-		const AsciiSpace: char = ' ';
-		for potential_controller in contents.splitn(Controller::MaximumNumberOfControllers, AsciiSpace)
+		for potential_controller in contents.splitn(Controller::MaximumNumberOfControllers, |byte| *byte == b' ')
 		{
-			let controller = potential_controller.parse().map_err(|_: ()| InvalidControllerName(potential_controller.to_string()))?;
+			let controller = Controller::from_bytes(potential_controller)?;
 			let added_first_time = controllers.insert(controller);
 			if unlikely!(!added_first_time)
 			{

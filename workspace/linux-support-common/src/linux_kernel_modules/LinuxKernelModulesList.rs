@@ -106,7 +106,7 @@ impl LinuxKernelModulesList
 		{
 			{
 				let line = line?;
-				let mut split = splitn(&line, 2, b' ');
+				let mut split = line.splitn(2, |byte| *byte == b' ');
 
 				let linux_kernel_module_name_bytes = split.next().unwrap();
 

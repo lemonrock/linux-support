@@ -57,7 +57,7 @@ impl<'a> Cgroup<'a>
 
 	/// The set of controllers match the set of controllers in the parents' cgroup's `subtree_control()`.
 	#[inline(always)]
-	pub fn read_available_controllers(&self, mount_point: &CgroupMountPoint) -> Result<Controllers, ControllersParseError>
+	pub fn read_available_controllers(&self, mount_point: &CgroupMountPoint) -> Result<Controllers, ControllersFileError>
 	{
 		self.read_controllers(mount_point, "cgroup.controllers")
 	}
@@ -107,7 +107,7 @@ impl<'a> Cgroup<'a>
 
 	/// Migrate process to this cgroup.
 	#[inline(always)]
-	pub fn migrate_process_to_this_cgroup(&self, mount_point: &CgroupMountPoint, process_identifier: ProcessIdentifierKind) -> io::Result<()>
+	pub fn migrate_process_to_this_cgroup(&self, mount_point: &CgroupMountPoint, process_identifier: Option<ProcessIdentifier>) -> io::Result<()>
 	{
 		self.write_process_identifier(mount_point, "cgroup.procs", process_identifier)
 	}
@@ -116,15 +116,14 @@ impl<'a> Cgroup<'a>
 	fn read_process_identifiers(&self, mount_point: &CgroupMountPoint, file_name: &str) -> Result<ProcessIdentifiersIterator, ProcessIdentifiersIteratorParseError>
 	{
 		let path = self.file_path(mount_point, file_name);
-		Ok(ProcessIdentifiersIterator(BufReader::new(File::open(path)?).lines()))
+		Ok(ProcessIdentifiersIterator(BufReader::new(File::open(path)?).split(b'\n')))
 	}
 
 	#[inline(always)]
-	fn write_process_identifier(&self, mount_point: &CgroupMountPoint, file_name: &str, process_identifier: ProcessIdentifierKind) -> io::Result<()>
+	fn write_process_identifier(&self, mount_point: &CgroupMountPoint, file_name: &str, process_identifier: Option<ProcessIdentifier>) -> io::Result<()>
 	{
 		let path = self.file_path(mount_point, file_name);
-		let x: u32 = process_identifier.into();
-		path.write_value(x)
+		path.write_value(process_identifier)
 	}
 
 	/// Statistics.
@@ -139,7 +138,7 @@ impl<'a> Cgroup<'a>
 
 	/// Reads enabled controllers.
 	#[inline(always)]
-	pub fn read_enabled_controllers(&self, mount_point: &CgroupMountPoint) -> Result<Controllers, ControllersParseError>
+	pub fn read_enabled_controllers(&self, mount_point: &CgroupMountPoint) -> Result<Controllers, ControllersFileError>
 	{
 		self.read_controllers(mount_point, "cgroup.subtree_control")
 	}
@@ -166,13 +165,13 @@ impl<'a> Cgroup<'a>
 
 	/// Migrate thread to this cgroup.
 	#[inline(always)]
-	pub fn migrate_thread_to_this_cgroup(&self, mount_point: &CgroupMountPoint, thread_identifier: ProcessIdentifierKind) -> io::Result<()>
+	pub fn migrate_thread_to_this_cgroup(&self, mount_point: &CgroupMountPoint, thread_identifier: Option<ProcessIdentifier>) -> io::Result<()>
 	{
 		self.write_process_identifier(mount_point, "cgroup.threads", thread_identifier)
 	}
 
 	#[inline(always)]
-	fn read_controllers(&self, mount_point: &CgroupMountPoint, file_name: &str) -> Result<Controllers, ControllersParseError>
+	fn read_controllers(&self, mount_point: &CgroupMountPoint, file_name: &str) -> Result<Controllers, ControllersFileError>
 	{
 		let path = self.file_path(mount_point, file_name);
 		Controllers::from_file(&path)

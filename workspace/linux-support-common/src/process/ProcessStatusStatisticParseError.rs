@@ -30,14 +30,14 @@ pub enum ProcessStatusStatisticParseError
 	/// Statistic value sub-set had a duplicated entry.
 	DuplicatedStatisticValue,
 
-	/// Value was not a valid UTF-8 string.
-	NotAUtf8String(Utf8Error),
-
-	/// Value was not a valid integer.
-	NotAValidInteger(ParseIntError),
-
 	/// Value was not a valid CPU or NUMA node list.
 	NotAValidListOfCpusOrNumaNodes(ListParseError),
+
+	/// Value was not a valid number.
+	NotAValidNumber(ParseNumberError),
+
+	/// Value was not a valid number.
+	NotAValidBitSerAware(BitSetAwareTryFromU16Error),
 }
 
 impl Display for ProcessStatusStatisticParseError
@@ -74,30 +74,12 @@ impl error::Error for ProcessStatusStatisticParseError
 
 			&DuplicatedStatisticValue => None,
 
-			&NotAUtf8String(ref error) => Some(error),
-
-			&NotAValidInteger(ref error) => Some(error),
+			&NotAValidNumber(ref error) => Some(error),
 
 			&NotAValidListOfCpusOrNumaNodes(ref error) => Some(error),
+
+			&NotAValidBitSerAware(ref error) => Some(error),
 		}
-	}
-}
-
-impl From<Utf8Error> for ProcessStatusStatisticParseError
-{
-	#[inline(always)]
-	fn from(error: Utf8Error) -> Self
-	{
-		ProcessStatusStatisticParseError::NotAUtf8String(error)
-	}
-}
-
-impl From<ParseIntError> for ProcessStatusStatisticParseError
-{
-	#[inline(always)]
-	fn from(error: ParseIntError) -> Self
-	{
-		ProcessStatusStatisticParseError::NotAValidInteger(error)
 	}
 }
 
@@ -107,5 +89,23 @@ impl From<ListParseError> for ProcessStatusStatisticParseError
 	fn from(error: ListParseError) -> Self
 	{
 		ProcessStatusStatisticParseError::NotAValidListOfCpusOrNumaNodes(error)
+	}
+}
+
+impl From<ParseNumberError> for ProcessStatusStatisticParseError
+{
+	#[inline(always)]
+	fn from(error: ParseNumberError) -> Self
+	{
+		ProcessStatusStatisticParseError::NotAValidNumber(error)
+	}
+}
+
+impl From<BitSetAwareTryFromU16Error> for ProcessStatusStatisticParseError
+{
+	#[inline(always)]
+	fn from(error: BitSetAwareTryFromU16Error) -> Self
+	{
+		ProcessStatusStatisticParseError::NotAValidNumber(error)
 	}
 }

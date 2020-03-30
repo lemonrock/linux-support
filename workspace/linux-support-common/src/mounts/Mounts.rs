@@ -8,11 +8,11 @@ pub struct Mounts(HashMap<PathBuf, Mount>);
 
 impl Mounts
 {
-	/// Current mounts (from `/proc/self/mounts`).
+	/// Current mounts (from `/proc/<X>/mounts`).
 	#[inline(always)]
-	pub fn parse(proc_path: &ProcPath) -> Result<Mounts, io::Error>
+	pub fn parse(proc_path: &ProcPath, process_identifier: Option<ProcessIdentifier>) -> Result<Mounts, io::Error>
 	{
-		let mounts_wrapper = MountsWrapper::new(&proc_path.process_file_path(0, "mounts"), true)?;
+		let mounts_wrapper = MountsWrapper::new(&proc_path.process_file_path(process_identifier, "mounts"), true)?;
 
 		let mut map = HashMap::with_capacity(64);
 

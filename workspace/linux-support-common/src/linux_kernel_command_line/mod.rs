@@ -10,8 +10,6 @@ use super::file_systems::FileSystemType;
 use super::paths::PathExt;
 use super::paths::ProcPath;
 use super::strings::replace;
-use super::strings::split;
-use super::strings::splitn;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::error;

@@ -37,10 +37,9 @@ impl<'a> NonRootCgroup<'a>
 
 	/// Read type.
 	#[inline(always)]
-	pub fn read_type(&self, mount_point: &CgroupMountPoint) -> Result<NonRootCgroupType, NonRootCgroupTypeParseError>
+	pub fn read_type(&self, mount_point: &CgroupMountPoint) -> Result<NonRootCgroupType, io::Error>
 	{
-		let path = self.type_file_path(mount_point);
-		NonRootCgroupType::from_file(&path)
+		self.type_file_path(mount_point).read_value()
 	}
 
 	/// Write type.

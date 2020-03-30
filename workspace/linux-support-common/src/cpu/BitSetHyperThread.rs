@@ -92,14 +92,14 @@ impl BitSet<HyperThread>
 	#[inline(always)]
 	pub fn set_current_process_affinity(&self) -> Result<(), String>
 	{
-		self.set_process_affinity(0)
+		self.set_process_affinity(None)
 	}
 
 	/// Set process affinity.
 	#[inline(always)]
-	pub fn set_process_affinity(&self, process_identifier: pid_t) -> Result<(), String>
+	pub fn set_process_affinity(&self, process_identifier: Option<ProcessIdentifier>) -> Result<(), String>
 	{
-		let result = unsafe { sched_setaffinity(process_identifier, self.cpu_set_t_size_in_bytes(), self.cpu_set_t_pointer()) };
+		let result = unsafe { sched_setaffinity(ProcessIdentifier::into_pid_t(process_identifier), self.cpu_set_t_size_in_bytes(), self.cpu_set_t_pointer()) };
 		if likely!(result == 0)
 		{
 			Ok(())
@@ -110,22 +110,22 @@ impl BitSet<HyperThread>
 			{
 				EINVAL => Err("The affinity bit mask mask contains no processors that are currently physically on the system and permitted to the process according to any restrictions that may be imposed by the cpuset mechanism described in cpuset(7)".to_string()),
 
-				EPERM => if unlikely!(process_identifier == 0)
+				EPERM => if let Some(process_identifier) = process_identifier
+				{
+					Err(format!("The calling process does not have appropriate privileges. The caller needs an effective user ID equal to the real user ID or effective user ID of the process identified by process_identifier {:?}, or it must possess the CAP_SYS_NICE capability", process_identifier).to_string())
+				}
+				else
 				{
 					panic!("Can not set our own affinity")
-				}
-				else
-				{
-					Err(format!("The calling process does not have appropriate privileges. The caller needs an effective user ID equal to the real user ID or effective user ID of the process identified by process_identifier {}, or it must possess the CAP_SYS_NICE capability", process_identifier).to_string())
 				},
 
-				ESRCH => if unlikely!(process_identifier == 0)
+				ESRCH =>  if let Some(process_identifier) = process_identifier
 				{
-					panic!("Can not set our own process affinity")
+					Err(format!("The thread whose ID is process_identifier '{:?}' could not be found", process_identifier).to_string())
 				}
 				else
 				{
-					Err(format!("The thread whose ID is process_identifier '{}' could not be found", process_identifier).to_string())
+					panic!("Can not set our own process affinity")
 				},
 
 				EFAULT => panic!("A supplied memory address was invalid"),

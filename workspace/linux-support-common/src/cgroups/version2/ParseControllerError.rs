@@ -2,33 +2,28 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Link speed parse error.
+/// Parse Controller error.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum LinkSpeedFromStrError
+pub enum ParseControllerError
 {
-	/// Unrecognised link speed value..
-	Unrecognised(String),
+	/// Unknown variant.
+	UnknownVariant(Vec<u8>),
 }
 
-impl Display for LinkSpeedFromStrError
+impl Display for ParseControllerError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
 	{
-		<LinkSpeedFromStrError as Debug>::fmt(self, f)
+		Debug::fmt(self, f)
 	}
 }
 
-impl error::Error for LinkSpeedFromStrError
+impl Error for ParseControllerError
 {
 	#[inline(always)]
-	fn source(&self) -> Option<&(dyn error::Error + 'static)>
+	fn source(&self) -> Option<&(dyn Error + 'static)>
 	{
-		use self::LinkSpeedFromStrError::*;
-
-		match self
-		{
-			&Unrecognised(_) => None,
-		}
+		None
 	}
 }

@@ -2,9 +2,31 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// splitn.
-#[inline(always)]
-pub fn splitn<'a>(slice: &'a [u8], n: usize, predicate: u8) -> ::std::slice::SplitN<'a, u8, impl FnMut(&u8) -> bool>
+/// Use upper case (eg `A` to `F`) or lower case (eg `a` to `f`) for digits above 9.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(u8)]
+pub enum NonNumericDigitCase
 {
-	slice.splitn(n, move |value| *value == predicate)
+	/// Upper.
+	Upper = b'A',
+
+	/// Lower.
+	Lower = b'a',
+}
+
+impl NonNumericDigitCase
+{
+	#[inline(always)]
+	fn contains(self, byte: u8, radix: Radix) -> Option<u8>
+	{
+		let lowest_alphabetic_digit = self as u8;
+		if byte >= lowest_alphabetic_digit && byte < (lowest_alphabetic_digit + (radix as u8))
+		{
+			Some(byte - lowest_alphabetic_digit)
+		}
+		else
+		{
+			None
+		}
+	}
 }

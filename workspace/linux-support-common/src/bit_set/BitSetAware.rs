@@ -41,15 +41,10 @@ pub trait BitSetAware: Sized + Into<u16> + TryFrom<u16, Error=BitSetAwareTryFrom
 			return Ok(None)
 		}
 
-		let mut parsed_number: u16 = 0;
-		for &byte in &file_name[Self::Prefix.len() .. ]
-		{
-			parsed_number = parsed_number * 10 + match byte
-			{
-				b'0' ..= b'9' => (byte - b'0') as u16,
-				_ => return Err(io::Error::new(Other, format!("invalid byte 0x{:02X}", byte))),
-			}
-		}
+		let bytes = &file_name[Self::Prefix.len() .. ];
+
+		let parsed_number = u16::parse_decimal_number(bytes).map_err(|error| io::Error::new(Other, error))?;
+
 		Ok(Some(Self::try_from(parsed_number).map_err(|error| io::Error::new(Other, error))?))
 	}
 }

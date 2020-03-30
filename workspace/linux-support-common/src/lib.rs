@@ -123,8 +123,8 @@ pub mod seccomp;
 pub mod signals;
 
 
-/// Status.
-pub mod status;
+/// Process.
+pub mod process;
 
 
 /// Strings.

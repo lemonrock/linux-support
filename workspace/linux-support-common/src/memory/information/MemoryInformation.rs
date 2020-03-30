@@ -97,7 +97,7 @@ impl MemoryInformation
 			let mut line = line?;
 
 			{
-				let mut split = splitn(&line, 2, b':');
+				let mut split = line.splitn(2, |byte| *byte == b':');
 
 				let memory_information_name = MemoryInformationName::parse(split.next().unwrap(), memory_information_name_prefix);
 

@@ -28,6 +28,7 @@ use std::num::ParseIntError;
 use std::os::unix::ffi::OsStrExt;
 use std::str::from_utf8;
 use std::str::Utf8Error;
+use crate::strings::parse_number::ParseNumber;
 
 
 include!("bit_set_aware.rs");

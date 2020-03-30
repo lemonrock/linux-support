@@ -83,7 +83,7 @@ impl VirtualMemoryStatisticName
 			{
 				use self::ErrorKind::InvalidData;
 
-				let mut split = splitn(&line, 2, b' ');
+				let mut split = line.splitn(2, |byte| *byte == b' ');
 
 				let statistic_name = VirtualMemoryStatisticName::parse(split.next().unwrap());
 

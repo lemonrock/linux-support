@@ -116,11 +116,11 @@ impl TryFrom<NetworkInterfaceIndex> for PciDeviceAddress
 			{
 				result.close();
 
-				// Technically incorrect, as the length can be ETHTOOL_BUSINFO_LEN with no terminating NUL; too bad.
-				let bytes: &[u8] = unsafe { transmute(&command.bus_info[..]) };
-				let c_string = CStr::from_bytes_with_nul(bytes)?;
-				let string = c_string.to_str()?;
-				Ok(PciDeviceAddress::try_from(string)?)
+				let bus_info_length = unsafe { strnlen(command.bus_info.as_ptr(), ETHTOOL_BUSINFO_LEN) };
+				let bus_info: [u8; ETHTOOL_BUSINFO_LEN] = unsafe { transmute(command.bus_info) };
+				let bytes = &bus_info[0 .. bus_info_length];
+
+				Ok(PciDeviceAddress::try_from(bytes)?)
 			}
 		}
 	}
@@ -133,122 +133,116 @@ impl TryFrom<String> for PciDeviceAddress
 	#[inline(always)]
 	fn try_from(value: String) -> Result<Self, Self::Error>
 	{
-		let x: &str = &value;
-		Self::try_from(x)
+		Self::try_from(value.into_bytes())
 	}
 }
 
-impl TryFrom<&str> for PciDeviceAddress
+impl<'a> TryFrom<&'a str> for PciDeviceAddress
 {
 	type Error = PciDeviceAddressStringParseError;
 
-	fn try_from(value: &str) -> Result<Self, Self::Error>
+	#[inline(always)]
+	fn try_from(value: &'a str) -> Result<Self, Self::Error>
+	{
+		Self::try_from(value.as_bytes())
+	}
+}
+
+impl TryFrom<Box<[u8]>> for PciDeviceAddress
+{
+	type Error = PciDeviceAddressStringParseError;
+
+	#[inline(always)]
+	fn try_from(value: Box<[u8]>) -> Result<Self, Self::Error>
+	{
+		Self::try_from(&value[..])
+	}
+}
+
+impl TryFrom<Vec<u8>> for PciDeviceAddress
+{
+	type Error = PciDeviceAddressStringParseError;
+
+	#[inline(always)]
+	fn try_from(value: Vec<u8>) -> Result<Self, Self::Error>
+	{
+		Self::try_from(&value[..])
+	}
+}
+
+impl<'a> TryFrom<&'a [u8]> for PciDeviceAddress
+{
+	type Error = PciDeviceAddressStringParseError;
+
+	#[inline(always)]
+	fn try_from(value: &'a [u8]) -> Result<Self, Self::Error>
 	{
 		// Number of bytes in a PCI address string formatted as `XXXX:XX:XX.XX`.
 		const NumberOfBytesInPciAddressString: usize = 13;
-
-		let mut match_count = 0;
-
 		let length = value.len();
 		if length != NumberOfBytesInPciAddressString
 		{
 			return Err(PciDeviceAddressStringParseError::LengthIsWrong { length });
 		}
 
-		let mut split = value.split(|character|
+		let mut match_count = 0;
+		let mut split = value.splitn(4, |character|
 		{
 			match match_count
 			{
 				0 | 1 =>
 				{
 					match_count += 1;
-					character == ':'
+					*character == b':'
 				},
 
 				2 =>
 				{
 					match_count += 1;
-					character == '.'
+					*character == b'.'
 				},
 
-				_ => false,
+				_ => unreachable!("Should not be possible"),
 			}
 		});
 
-		let domain = match split.next()
-		{
-			None => return Err(PciDeviceAddressStringParseError::NoDomain),
-			Some(value) =>
-			{
-				match u16::from_str_radix(value, 16)
-				{
-					Err(cause) => return Err(PciDeviceAddressStringParseError::CouldNotParseDomain { value: value.to_owned(), cause }),
-					Ok(value) => value,
-				}
-			}
-		};
-
-		let bus = match split.next()
-		{
-			None => return Err(PciDeviceAddressStringParseError::NoBus),
-			Some(value) =>
-			{
-				match u8::from_str_radix(value, 16)
-				{
-					Err(cause) => return Err(PciDeviceAddressStringParseError::CouldNotParseBus { value: value.to_owned(), cause }),
-					Ok(value) => value,
-				}
-			}
-		};
-
-		let devid = match split.next()
-		{
-			None => return Err(PciDeviceAddressStringParseError::NoDeviceIdentifier),
-			Some(value) =>
-			{
-				match u8::from_str_radix(value, 16)
-				{
-					Err(cause) => return Err(PciDeviceAddressStringParseError::CouldNotParseDeviceIdentifier { value: value.to_owned(), cause }),
-					Ok(value) => if value > 31
-					{
-						return Err(PciDeviceAddressStringParseError::DeviceNumberExceeds5BitValue { value })
-					}
-					else
-					{
-						value
-					},
-				}
-			}
-		};
-
-		let function = match split.next()
-		{
-			None => return Err(PciDeviceAddressStringParseError::NoFunction),
-			Some(value) =>
-			{
-				match u8::from_str_radix(value, 16)
-				{
-					Err(cause) => return Err(PciDeviceAddressStringParseError::CouldNotParseFunction { value: value.to_owned(), cause }),
-					Ok(value) => if value > 15
-					{
-						return Err(PciDeviceAddressStringParseError::FunctionExceeds4BitValue { value })
-					}
-					else
-					{
-						value
-					},
-				}
-			}
-		};
+		use self::PciDeviceAddressStringParseError::*;
 
 		Ok
 		(
 			Self
 			{
-				domain,
-				bus,
-				devid,
-				function
+				domain:
+				{
+					let value = split.next().ok_or(NoDomain)?;
+					u16::parse_hexadecimal_number_upper_or_lower_case(value).map_err(|cause| CouldNotParseDomain { value: value.to_owned(), cause})?
+				},
+				bus:
+				{
+					let value = split.next().ok_or(NoDeviceIdentifier)?;
+					u8::parse_hexadecimal_number_upper_or_lower_case(value).map_err(|cause| CouldNotParseBus { value: value.to_owned(), cause})?
+				},
+				devid:
+				{
+					let value = split.next().ok_or(NoDeviceIdentifier)?;
+					let value = u8::parse_hexadecimal_number_upper_or_lower_case(value).map_err(|cause| CouldNotParseDeviceIdentifier { value: value.to_owned(), cause})?;
+					if unlikely!(value > 31)
+					{
+						return Err(DeviceNumberExceeds5BitValue { value })
+					}
+					value
+				},
+				function:
+				{
+
+					let value = split.next().ok_or(NoFunction)?;
+					let value = u8::parse_hexadecimal_number_upper_or_lower_case(value).map_err(|cause| CouldNotParseFunction { value: value.to_owned(), cause})?;
+					if unlikely!(value > 15)
+					{
+						return Err(FunctionExceeds4BitValue { value })
+					}
+					value
+				},
 			}
 		)
 	}

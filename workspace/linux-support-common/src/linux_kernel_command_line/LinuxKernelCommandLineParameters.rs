@@ -147,7 +147,7 @@ impl LinuxKernelCommandLineParameters
 					flags.insert(IsolatedCpuFlags::Domain);
 				},
 
-				Some(flags_to_split) => for flag in split(flags_to_split, b',')
+				Some(flags_to_split) => for flag in flags_to_split.split(|byte| *byte == b',')
 				{
 					flags.insert(IsolatedCpuFlags::parse(flag).unwrap());
 				},
@@ -273,7 +273,7 @@ impl LinuxKernelCommandLineParameters
 	{
 		self.get_value(b"pci").map(|value|
 		{
-			split(value, b',').collect()
+			value.split(|byte| *byte == b',').collect()
 		})
 	}
 
@@ -324,7 +324,7 @@ impl LinuxKernelCommandLineParameters
 	{
 		self.get_value(b"numa").map(|value|
 		{
-			let mut split = splitn(value, 2, b'=');
+			let mut split = value.splitn(2, |byte| *byte == b'=');
 			(split.next().unwrap(), split.last())
 		})
 	}
@@ -562,7 +562,7 @@ impl LinuxKernelCommandLineParameters
 	{
 		self.get_value(b"root").map(|root|
 		{
-			let mut key_value = splitn(root, 2, b'=');
+			let mut key_value = root.splitn(2, |byte| *byte == b'=');
 			let key_or_value = key_value.next().unwrap();
 			match key_value.next()
 			{
@@ -617,7 +617,7 @@ impl LinuxKernelCommandLineParameters
 		self.get_value(b"modules").map(|modules|
 		{
 			let mut set = Vec::new();
-			for module in split(modules, b',')
+			for module in modules.split(|byte| *byte == b',')
 			{
 				set.push(module)
 			}
@@ -802,9 +802,9 @@ impl LinuxKernelCommandLineParameters
 
 		let mut map = HashMap::with_capacity(32);
 
-		for parameter in split(&line_of_parameters, b' ')
+		for parameter in line_of_parameters.split(|byte| *byte == b' ')
 		{
-			let mut key_value = splitn(parameter, 2, b'=');
+			let mut key_value = parameter.splitn(2, |byte| *byte == b'=');
 			let key = key_value.next().expect("There is no key");
 			if key.is_empty()
 			{

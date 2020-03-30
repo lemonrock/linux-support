@@ -62,8 +62,8 @@ impl<'a> Resources<'a>
 		for line in BufReader::new(file).split(b'\n')
 		{
 			let vec = line?;
-			let line_string = from_utf8(vec.as_slice()).map_err(|error| io::Error::new(ErrorKind::Other, error))?;
-			if let Some(resource_entry) = ResourceEntry::parse_line(line_string).map_err(|message| io::Error::new(ErrorKind::Other, message))?
+			let line = vec.as_slice();
+			if let Some(resource_entry) = ResourceEntry::parse_line(line).map_err(|message| io::Error::new(ErrorKind::Other, message))?
 			{
 				resources.insert(index, resource_entry);
 			}

@@ -32,28 +32,16 @@ impl ResourceEntry
 	}
 
 	/// A typical line might be `0x0000000000008200 0x000000000000823f 0x0000000000040101`.
-	fn parse_line(line: &str) -> Result<Option<Self>, &'static str>
+	fn parse_line(line: &[u8]) -> Result<Option<Self>, &'static str>
 	{
 		#[inline(always)]
-		fn parse_u64_hexadecimal_value<'a>(iterator: &mut impl Iterator<Item=&'a str>) -> Result<u64, &'static str>
+		fn parse_u64_hexadecimal_value<'a>(iterator: &mut impl Iterator<Item=&'a [u8]>) -> Result<u64, &'static str>
 		{
-			// eg `0x0000000000008200`.
-			const Prefix: &'static str = "0x";
-			const HexadecimalDigits: usize = 16;
-
-			let hexadecimal_prefixed_string = iterator.next().ok_or("Missing expected field")?;
-			if unlikely!(hexadecimal_prefixed_string.len() != (Prefix.len() + HexadecimalDigits))
-			{
-				return Err("Invalid length")
-			}
-			if unlikely!(!hexadecimal_prefixed_string.starts_with("0x"))
-			{
-				return Err("Does not start with '0x' prefix")
-			}
-			(&hexadecimal_prefixed_string[Prefix.len() .. ]).parse().map_err(|_| "Invalid hexadecimal string")
+			let next = iterator.next().ok_or("Missing expected field")?;
+			u64::parse_hexadecimal_number_lower_case_with_0x_prefix_fixed_width(next, size_of::<u64>()).map_err(|_| "Invalid hexadecimal string")
 		}
 
-		let mut iterator = line.splitn(3, ' ');
+		let mut iterator = line.splitn(3, |byte | *byte == b' ');
 		let start = parse_u64_hexadecimal_value(&mut iterator)?;
 		let end = parse_u64_hexadecimal_value(&mut iterator)?;
 		let flags = parse_u64_hexadecimal_value(&mut iterator)?;

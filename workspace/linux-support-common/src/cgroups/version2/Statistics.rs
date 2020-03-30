@@ -32,35 +32,32 @@ impl Statistics
 		let mut number_of_living_descendants = None;
 		let mut number_of_dying_descendants = None;
 
-		let file = File::open(file_path)?;
-		let reader = BufReader::new(file);
-		for line in reader.lines()
+		for line in BufReader::new(File::open(file_path)?).split(b'\n')
 		{
 			let line = line?;
-			let mut name_and_value = line.splitn(2, ' ');
+			let mut name_and_value = line.splitn(2, |byte| *byte == b' ');
 			let name = name_and_value.next().expect("Split always should produce at least one item");
 
 			#[inline(always)]
-			fn parse_value<'a>(name: &str, mut name_and_value: impl Iterator<Item=&'a str>) -> Result<usize, StatisticsParseError>
+			fn parse_value<'a>(name: &'static [u8], mut name_and_value: impl Iterator<Item=&'a [u8]>) -> Result<usize, StatisticsParseError>
 			{
-				let string_value = name_and_value.next().ok_or(MissingStatisticValue { name: name.to_string() })?;
-				let value: Result<usize, ParseIntError> = string_value.parse();
-				value.map_err(|cause| InvalidStatisticValue { name: name.to_string(), value: string_value.to_string(), cause })
+				let bytes_value = name_and_value.next().ok_or(MissingStatisticValue { name })?;
+				usize::parse_decimal_number(bytes_value).map_err(|cause| InvalidStatisticValue { name, value: bytes_value.to_vec(), cause })
 			}
 
 			match name
 			{
-				"nr_descendants" =>
+				b"nr_descendants" =>
 				{
-					number_of_living_descendants = Some(parse_value(name, name_and_value)?);
+					number_of_living_descendants = Some(parse_value(b"nr_descendants", name_and_value)?);
 				}
 
-				"nr_dying_descendants" =>
+				b"nr_dying_descendants" =>
 				{
-					number_of_dying_descendants = Some(parse_value(name, name_and_value)?);
+					number_of_dying_descendants = Some(parse_value(b"nr_dying_descendants", name_and_value)?);
 				}
 
-				_ => return Err(InvalidStatisticName { name: name.to_string() }),
+				_ => return Err(InvalidStatisticName { name: name.to_vec() }),
 			}
 		}
 

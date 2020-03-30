@@ -12,22 +12,30 @@ use std::ffi::OsStr;
 use std::fmt;
 use std::fmt::Display;
 use std::fmt::Formatter;
+use std::error;
 #[allow(deprecated)] use std::mem::uninitialized;
 use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
 use std::path::PathBuf;
+use crate::strings::parse_number::{ParseNumberError, ParseNumber};
+use std::cmp::min;
 
 
 include!("c_string_pointer_to_path_buf.rs");
 include!("ConstCStr.rs");
+include!("FromBytes.rs");
+include!("IntoLineFeedTerminatedByteString.rs");
+include!("NonNumericDigitCase.rs");
 include!("OsStrExtMore.rs");
 include!("path_to_cstring.rs");
+include!("Radix.rs");
 include!("replace.rs");
-include!("split.rs");
-include!("splitn.rs");
 include!("to_c_string_robustly.rs");
-include!("IntoLineFeedTerminatedByteString.rs");
 
 
 /// Conversions to numbers.
 pub mod to_number;
+
+
+/// Conversions from numbers.
+pub mod parse_number;

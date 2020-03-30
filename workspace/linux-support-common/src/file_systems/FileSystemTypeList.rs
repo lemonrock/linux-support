@@ -44,7 +44,7 @@ impl FileSystemTypeList
 		{
 			{
 				let line = line?;
-				let mut split = splitn(&line, 2, b'\t');
+				let mut split = line.splitn(2, |byte| *byte == b'\t');
 
 				let has_no_associated_device = match split.next().unwrap()
 				{

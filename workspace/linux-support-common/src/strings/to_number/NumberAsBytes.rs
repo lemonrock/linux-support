@@ -21,16 +21,16 @@ pub trait NumberAsBytes: Sized
 
 	/// Hexadecimal using lower case alphabetic digits.
 	#[inline(always)]
-	fn lowercase_hexadecimal(self, bytes_index: usize, bytes: &mut [u8]) -> usize
+	fn lower_case_hexadecimal(self, bytes_index: usize, bytes: &mut [u8]) -> usize
 	{
 		self.number_as_bytes(bytes_index, bytes, Radix::Hexdecimal, NonNumericDigitCase::Upper)
 	}
 
 	/// Hexadecimal using upper case alphabetic digits.
 	#[inline(always)]
-	fn uppercase_hexadecimal(self, bytes_index: usize, bytes: &mut [u8]) -> usize
+	fn upper_case_hexadecimal(self, bytes_index: usize, bytes: &mut [u8]) -> usize
 	{
-		self.number_as_bytes(bytes_index, bytes, Radix::Hexdecimal, NonNumericDigitCase::Lower)
+		self.number_as_bytes(bytes_index, bytes, Radix::Hexdecimal, NonNumericDigitCase::Upper)
 	}
 
 	/// Number as bytes.
@@ -107,3 +107,30 @@ signed_number_as_bytes!(i32, u32);
 signed_number_as_bytes!(i64, u64);
 signed_number_as_bytes!(i128, u128);
 signed_number_as_bytes!(isize, usize);
+
+macro_rules! non_zero_number_as_bytes
+{
+	($non_zero_type: ty) =>
+	{
+		impl NumberAsBytes for $non_zero_type
+		{
+			#[inline(always)]
+			fn number_as_bytes(self, mut bytes_index: usize, bytes: &mut [u8], radix: Radix, non_numeric_digit_case: NonNumericDigitCase) -> usize
+			{
+				self.get().number_as_bytes(bytes_index, bytes, radix, non_numeric_digit_case)
+			}
+		}
+	}
+}
+non_zero_number_as_bytes!(std::num::NonZeroU8);
+non_zero_number_as_bytes!(std::num::NonZeroU16);
+non_zero_number_as_bytes!(std::num::NonZeroU32);
+non_zero_number_as_bytes!(std::num::NonZeroU64);
+non_zero_number_as_bytes!(std::num::NonZeroU128);
+non_zero_number_as_bytes!(std::num::NonZeroUsize);
+non_zero_number_as_bytes!(std::num::NonZeroI8);
+non_zero_number_as_bytes!(std::num::NonZeroI16);
+non_zero_number_as_bytes!(std::num::NonZeroI32);
+non_zero_number_as_bytes!(std::num::NonZeroI64);
+non_zero_number_as_bytes!(std::num::NonZeroI128);
+non_zero_number_as_bytes!(std::num::NonZeroIsize);
