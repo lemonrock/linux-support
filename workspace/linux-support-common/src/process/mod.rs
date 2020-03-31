@@ -2,7 +2,6 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::Kilobyte;
 use crate::cpu::*;
 use crate::bit_set::*;
 use crate::capabilities_and_privileges::Capability;
@@ -32,6 +31,7 @@ use std::ops::Deref;
 
 include!("GroupIdentifier.rs");
 include!("Groups.rs");
+include!("Kilobyte.rs");
 include!("ProcessGroupIdentifiers.rs");
 include!("ProcessIdentifier.rs");
 include!("ProcessIdentifierChoice.rs");

@@ -141,6 +141,5 @@ pub mod user_and_groups;
 
 include!("current_numa_node_and_hyper_thread.rs");
 include!("get_program_name.rs");
-include!("Kilobyte.rs");
 include!("move_to_front_of_vec.rs");
 include!("WarningsToSuppress.rs");
