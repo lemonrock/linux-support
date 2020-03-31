@@ -13,9 +13,9 @@ pub struct PciDeviceDetails
 	/// Typically this is the 'Card Manufacturer'.
 	pub subsystem_vendor_and_subsystem_device: PciVendorAndDevice,
 
-	pub class: Option<PciDeviceClass>,
+	pub class: Either<PciDeviceClass, (u8, u8, u8)>,
 
-	pub revision: u8,
+	pub revision: Revision,
 
 	pub associated_numa_node: Option<NumaNode>,
 
@@ -46,6 +46,6 @@ impl PciDeviceDetails
 	#[inline(always)]
 	pub fn is_ethernet(&self) -> bool
 	{
-		self.class == Some(PciDeviceClass::NetworkController(NetworkController::Ethernet))
+		self.class == Left(PciDeviceClass::NetworkController(NetworkController::Ethernet))
 	}
 }

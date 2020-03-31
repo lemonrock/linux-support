@@ -90,20 +90,7 @@ impl VirtualMemoryStatisticName
 				let statistic_value = match split.next()
 				{
 					None => return Err(io::Error::new(InvalidData, format!("Zero based line '{}' does not have a value second column", zero_based_line_number))),
-					Some(value) =>
-					{
-						let str_value = match from_utf8(value)
-						{
-							Err(utf8_error) => return Err(io::Error::new(InvalidData, utf8_error)),
-							Ok(str_value) => str_value,
-						};
-
-						match str_value.parse::<u64>()
-						{
-							Err(parse_error) => return Err(io::Error::new(InvalidData, parse_error)),
-							Ok(value) => value,
-						}
-					}
+					Some(value) => u64::parse_decimal_number(value).map_err(|parse_number_error| io::Error::new(InvalidData, parse_number_error))?,
 				};
 
 				if let Some(previous) = statistics.insert(statistic_name, statistic_value)

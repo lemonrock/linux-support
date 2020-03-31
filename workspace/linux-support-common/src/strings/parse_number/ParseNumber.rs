@@ -134,7 +134,7 @@ pub trait ParseNumber: Sized
 	}
 
 	#[doc(hidden)]
-	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<Self, ParseNumberError>) -> Result<Self, ParseNumberError>;
+	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>;
 }
 
 macro_rules! unsigned_parse_number
@@ -143,7 +143,7 @@ macro_rules! unsigned_parse_number
 	{
 		impl ParseNumber for $type
 		{
-			fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<Self, ParseNumberError>) -> Result<Self, ParseNumberError>
+			fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
 			{
 				use self::ParseNumberError::*;
 
@@ -157,7 +157,7 @@ macro_rules! unsigned_parse_number
 				for &byte in bytes
 				{
 					let scaled = parsed_number.checked_mul(scalar).ok_or(ScalingOverflow)?;
-					parsed_number = scaled.checked_add(parse_byte(radix, byte)?).ok_or(AddOverflow)?;
+					parsed_number = scaled.checked_add(parse_byte(radix, byte)? as Self).ok_or(AddOverflow)?;
 				}
 				Ok(parsed_number)
 			}
@@ -177,7 +177,7 @@ macro_rules! signed_parse_number
 	{
 		impl ParseNumber for $type
 		{
-			fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<Self, ParseNumberError>) -> Result<Self, ParseNumberError>
+			fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
 			{
 				use self::ParseNumberError::*;
 
@@ -206,7 +206,7 @@ macro_rules! signed_parse_number
 				for &byte in bytes
 				{
 					let scaled = parsed_number.checked_mul(scalar).ok_or(ScalingOverflow)?;
-					parsed_number = scaled.checked_add(parse_byte(radix, byte)?).ok_or(AddOverflow)?;
+					parsed_number = scaled.checked_add(parse_byte(radix, byte)? as Self).ok_or(AddOverflow)?;
 				}
 				Ok(parsed_number * sign)
 			}
@@ -227,9 +227,9 @@ macro_rules! parse_non_zero_number
 		impl ParseNumber for $non_zero_type
 		{
 			#[inline(always)]
-			fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<Self, ParseNumberError>) -> Result<Self, ParseNumberError>
+			fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
 			{
-				let value: $type = $type::parse_number(bytes, radix, parse_byte)?;
+				let value = $type::parse_number(bytes, radix, parse_byte)?;
 				if unlikely!(value == 0)
 				{
 					return Err(ParseNumberError::WasZero)

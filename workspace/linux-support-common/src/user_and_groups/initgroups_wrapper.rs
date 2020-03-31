@@ -4,19 +4,13 @@
 
 /// Requires `/etc/group` to exist.
 #[inline(always)]
-fn initgroups_wrapper(effective_user_name: &CStr, effective_group_identifier: gid_t)
+fn initgroups_wrapper(effective_user_name: &CStr, effective_group_identifier: GroupIdentifier)
 {
 	// Uses `getgrouplist()` and `setgroups()` under the covers.
-	let result = if cfg!(any(target_os = "ios", target_os = "macos"))
-	{
-		unsafe { initgroups(effective_user_name.as_ptr(), effective_group_identifier.try_into().unwrap()) }
-	}
-	else
-	{
-		unsafe { initgroups(effective_user_name.as_ptr(), effective_group_identifier) }
-	};
+	let result = unsafe { initgroups(effective_user_name.as_ptr(), effective_group_identifier.into()) };
 	if likely!(result == 0)
 	{
+		return
 	}
 	else if likely!(result == -1)
 	{

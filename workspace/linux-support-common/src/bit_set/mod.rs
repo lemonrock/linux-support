@@ -3,6 +3,8 @@
 
 
 use crate::strings::*;
+use crate::strings::parse_number::ParseNumber;
+use crate::strings::parse_number::ParseNumberError;
 use crate::strings::to_number::NumberAsBytes;
 use likely::*;
 use std::alloc::AllocRef;
@@ -24,15 +26,10 @@ use std::io;
 use std::io::ErrorKind;
 use std::marker::PhantomData;
 use std::mem::size_of;
-use std::num::ParseIntError;
 use std::os::unix::ffi::OsStrExt;
-use std::str::from_utf8;
-use std::str::Utf8Error;
-use crate::strings::parse_number::ParseNumber;
 
 
-include!("bit_set_aware.rs");
-include!("BitSet.rs");
+include!("bit_set_aware.rs");include!("BitSet.rs");
 include!("BitSetAware.rs");
 include!("BitSetAwareTryFromU16Error.rs");
 include!("BitSetIterator.rs");

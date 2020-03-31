@@ -7,14 +7,49 @@
 pub struct ProcessUserIdentifiers
 {
 	/// Real user identifier (UID).
-	pub real: uid_t,
+	pub real: UserIdentifier,
 
 	/// Effective user identifier (UID).
-	pub effective: uid_t,
+	pub effective: UserIdentifier,
 
 	/// Saved set user identifier (UID).
-	pub saved_set: uid_t,
+	pub saved_set: UserIdentifier,
 
 	/// File system user identifier (UID).
-	pub file_system: uid_t,
+	pub file_system: UserIdentifier,
+}
+
+impl FromBytes for ProcessUserIdentifiers
+{
+	type Error = ProcessStatusStatisticParseError;
+
+	#[inline(always)]
+	fn from_bytes(value: &[u8]) -> Result<Self, Self::Error>
+	{
+		#[inline(always)]
+		fn parse_subsequent<'a>(iterator: &mut impl Iterator<Item=&'a [u8]>) -> Result<UserIdentifier, ProcessStatusStatisticParseError>
+		{
+			if let Some(effective) = iterator.next()
+			{
+				Ok(UserIdentifier::from_bytes(effective)?)
+			}
+			else
+			{
+				Err(ProcessStatusStatisticParseError::InvalidSeparator)
+			}
+		}
+
+		let mut iterator = value.splitn(4, |byte| *byte == b'\t');
+
+		Ok
+		(
+			Self
+			{
+				real: UserIdentifier::from_bytes(iterator.next().unwrap())?,
+				effective: parse_subsequent(&mut iterator)?,
+				saved_set: parse_subsequent(&mut iterator)?,
+				file_system: parse_subsequent(&mut iterator)?,
+			}
+		)
+	}
 }

@@ -41,13 +41,13 @@ impl<'a> NamespacesProcPath<'a>
 	#[inline(always)]
 	pub fn write_setgroups_permission(&self, child_process_identifier: ProcessIdentifier, set_groups_permission: SetGroupsPermission) -> io::Result<()>
 	{
-		self.0.process_file_path(Some(child_process_identifier), "setgroups").write_value(set_groups_permission)
+		self.0.process_file_path(ProcessIdentifierChoice::Other(child_process_identifier), "setgroups").write_value(set_groups_permission)
 	}
 
 	#[inline(always)]
 	pub fn write_user_or_group_identifiers_map<U: UserOrGroupIdentifier>(&self, child_process_identifier: ProcessIdentifier, user_or_group_identifiers_map: &UserOrGroupIdentifierMap<U>) -> io::Result<()>
 	{
-		user_or_group_identifiers_map.write_to_map_file(&self.0.process_file_path(Some(child_process_identifier), U::FileName))
+		user_or_group_identifiers_map.write_to_map_file(&self.0.process_file_path(ProcessIdentifierChoice::Other(child_process_identifier), U::FileName))
 	}
 
 	#[inline(always)]
@@ -285,6 +285,6 @@ impl<'a> NamespacesProcPath<'a>
 	#[inline(always)]
 	fn namespace_file_path(&self, process_identifier: ProcessIdentifier, namespace: &str) -> PathBuf
 	{
-		self.0.process_file_path(Some(process_identifier), "ns").append(namespace)
+		self.0.process_file_path(ProcessIdentifierChoice::Other(process_identifier), "ns").append(namespace)
 	}
 }

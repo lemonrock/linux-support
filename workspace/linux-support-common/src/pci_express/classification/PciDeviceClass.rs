@@ -35,10 +35,23 @@ pub enum PciDeviceClass
 	Unassigned(Unassigned),
 }
 
+impl FromBytes for Either<PciDeviceClass, (u8, u8, u8)>
+{
+	type Error = ParseNumberError;
+
+	#[inline(always)]
+	fn from_bytes(bytes: &[u8]) -> Result<Self, Self::Error>
+	{
+		let u24 = u32::parse_hexadecimal_number_lower_case_with_0x_prefix_fixed_width(bytes, 6)?;
+		Ok(PciDeviceClass::parse(u24))
+	}
+}
+
 impl PciDeviceClass
 {
+	/// Returns a recognised, valid combination or 'major, minor, programming_interface'.
 	#[inline(always)]
-	pub(crate) fn parse(u24: u32) -> Option<Self>
+	pub(crate) fn parse(u24: u32) -> Either<Self, (u8, u8, u8)>
 	{
 		#[inline(always)]
 		const fn extract_u8(u24: u32, byte_index: u32) -> u8
@@ -49,49 +62,49 @@ impl PciDeviceClass
 
 		macro_rules! parse
 		{
-			($class: ident, $u24: ident) =>
+			($type: ident, $class: ident, $subclass: ident, $programming_interface: ident) =>
 			{
 				{
-					let subclass = extract_u8($u24, 1);
-					let program_interface = extract_u8($u24, 0);
-					if let Some(subclass) = $class::parse(subclass, program_interface)
+					if let Some(subclass) = $type::parse($subclass, $programming_interface)
 					{
-						Some(PciDeviceClass::$class(subclass))
+						Either::Left(PciDeviceClass::$type(subclass))
 					}
 					else
 					{
-						None
+						Either::Right(($class, $subclass, $programming_interface))
 					}
 				}
 			}
 		}
 
 		let class = extract_u8(u24, 2);
+		let subclass = extract_u8(u24, 1);
+		let programming_interface = extract_u8(u24, 0);
 		match class
 		{
-			0x00 => parse!(Legacy, u24),
-			0x01 => parse!(MassStorageController, u24),
-			0x02 => parse!(NetworkController, u24),
-			0x03 => parse!(DisplayController, u24),
-			0x04 => parse!(MultimediaController, u24),
-			0x05 => parse!(MemoryController, u24),
-			0x06 => parse!(Bridge, u24),
-			0x07 => parse!(CommunicationController, u24),
-			0x08 => parse!(GenericSystemPeripheral, u24),
-			0x09 => parse!(InputDeviceController, u24),
-			0x0A => parse!(DockingStation, u24),
-			0x0B => parse!(Processor, u24),
-			0x0C => parse!(SerialBusController, u24),
-			0x0D => parse!(WirelessController, u24),
-			0x0E => parse!(IntelligentInputOutputController, u24),
-			0x0F => parse!(SatelliteCommunicationsController, u24),
-			0x10 => parse!(EncryptionController, u24),
-			0x11 => parse!(SignalProcessingController, u24),
-			0x12 => parse!(ProcessingAccelerators, u24),
-			0x13 => parse!(NonEssentialInstrumentation, u24),
-			0xFF => parse!(Unassigned, u24),
+			0x00 => parse!(Legacy, class, subclass, programming_interface),
+			0x01 => parse!(MassStorageController, class, subclass, programming_interface),
+			0x02 => parse!(NetworkController, class, subclass, programming_interface),
+			0x03 => parse!(DisplayController, class, subclass, programming_interface),
+			0x04 => parse!(MultimediaController, class, subclass, programming_interface),
+			0x05 => parse!(MemoryController, class, subclass, programming_interface),
+			0x06 => parse!(Bridge, class, subclass, programming_interface),
+			0x07 => parse!(CommunicationController, class, subclass, programming_interface),
+			0x08 => parse!(GenericSystemPeripheral, class, subclass, programming_interface),
+			0x09 => parse!(InputDeviceController, class, subclass, programming_interface),
+			0x0A => parse!(DockingStation, class, subclass, programming_interface),
+			0x0B => parse!(Processor, class, subclass, programming_interface),
+			0x0C => parse!(SerialBusController, class, subclass, programming_interface),
+			0x0D => parse!(WirelessController, class, subclass, programming_interface),
+			0x0E => parse!(IntelligentInputOutputController, class, subclass, programming_interface),
+			0x0F => parse!(SatelliteCommunicationsController, class, subclass, programming_interface),
+			0x10 => parse!(EncryptionController, class, subclass, programming_interface),
+			0x11 => parse!(SignalProcessingController, class, subclass, programming_interface),
+			0x12 => parse!(ProcessingAccelerators, class, subclass, programming_interface),
+			0x13 => parse!(NonEssentialInstrumentation, class, subclass, programming_interface),
+			0xFF => parse!(Unassigned, class, subclass, programming_interface),
 
-			_ => None,
+			_ => Either::Right((class, subclass, programming_interface)),
 		}
 	}
 	

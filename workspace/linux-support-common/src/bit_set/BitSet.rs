@@ -58,21 +58,9 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	pub fn parse_linux_list_string(linux_list_string: &[u8]) -> Result<BitSet<BSA>, ListParseError>
 	{
 		#[inline(always)]
-		fn parse_index(index_string: &[u8], description: &'static str) -> Result<u16, ListParseError>
+		fn parse_index(index_string: &[u8]) -> Result<u16, ListParseError>
 		{
-			use self::ListParseError::*;
-
-			let index_string = match from_utf8(index_string)
-			{
-				Ok(index_string) => index_string,
-				Err(cause) => return Err(CouldNotParseIndexAsNotAString { description, unparsable_index: index_string.to_vec().into_boxed_slice(), cause }),
-			};
-
-			match index_string.parse()
-			{
-				Ok(index) => Ok(index),
-				Err(cause) => Err(CouldNotParseIndex { description, unparsable_index: index_string.to_owned(), cause }),
-			}
+			Ok(u16::parse_decimal_number(index_string)?)
 		}
 
 		let mut result = Self::new();
@@ -92,7 +80,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 
 			let first =
 			{
-				let index = parse_index(range_iterator.next().unwrap(), "first")?;
+				let index = parse_index(range_iterator.next().unwrap())?;
 				if index < next_minimum_index_expected
 				{
 					return Err(ContainsMisSortedIndices { first: index, next_minimum_index_expected });
@@ -107,7 +95,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 
 				let second =
 				{
-					let index = parse_index(range_or_range_with_groups.next().unwrap(), "second")?;
+					let index = parse_index(range_or_range_with_groups.next().unwrap())?;
 					if first >= index
 					{
 						return Err(RangeIsNotAnAscendingRangeWithMoreThanOneElement { first, second: index });
@@ -130,8 +118,8 @@ impl<BSA: BitSetAware> BitSet<BSA>
 					Some(weird_but_rare_group_syntax) =>
 					{
 						let mut weird_but_rare_group_syntax = weird_but_rare_group_syntax.splitn(2, |byte| *byte == b'/');
-						let used_size = parse_index(weird_but_rare_group_syntax.next().unwrap(), "used_size")?;
-						let group_size = parse_index(weird_but_rare_group_syntax.last().expect("a group does not have group_size"), "group_size")?;
+						let used_size = parse_index(weird_but_rare_group_syntax.next().unwrap())?;
+						let group_size = parse_index(weird_but_rare_group_syntax.last().expect("a group does not have group_size"))?;
 
 						assert_ne!(used_size, 0, "used_size is zero");
 						assert_ne!(group_size, 0, "group_size is zero");

@@ -86,8 +86,8 @@ impl<'a> PciDevice<'a>
 	{
 		PciDeviceDetails
 		{
-			vendor_and_device: self.vendor_and_device(),
-			subsystem_vendor_and_subsystem_device: self.subsystem_vendor_and_subsystem_device(),
+			vendor_and_device: self.vendor_and_device("vendor", "device"),
+			subsystem_vendor_and_subsystem_device: self.vendor_and_device("subsystem_vendor", "subsystem_device"),
 			class: self.class(),
 			revision: self.revision(),
 			associated_numa_node: self.associated_numa_node(),
@@ -195,37 +195,25 @@ impl<'a> PciDevice<'a>
 	}
 
 	#[inline(always)]
-	fn vendor_and_device(&self) -> PciVendorAndDevice
+	fn vendor_and_device(&self, vendor_file_name: &str, device_file_name: &str) -> PciVendorAndDevice
 	{
 		PciVendorAndDevice
 		{
-			vendor: self.new_from_file("vendor", PciVendorIdentifier::new),
-			device: self.new_from_file("device", PciDeviceIdentifier::new),
+			vendor: self.read_value(vendor_file_name),
+			device: self.read_value(device_file_name),
 		}
 	}
 
 	#[inline(always)]
-	fn subsystem_vendor_and_subsystem_device(&self) -> PciVendorAndDevice
+	fn class(&self) -> Either<PciDeviceClass, (u8, u8, u8)>
 	{
-		PciVendorAndDevice
-		{
-			vendor: self.new_from_file("subsystem_vendor", PciVendorIdentifier::new),
-			device: self.new_from_file("subsystem_device", PciDeviceIdentifier::new),
-		}
+		self.read_value("class")
 	}
 
 	#[inline(always)]
-	fn class(&self) -> Option<PciDeviceClass>
+	fn revision(&self) -> Revision
 	{
-		let u24 = self.device_file_or_folder_path("class").read_hexadecimal_value_with_prefix::<u32>(6).expect("Could not parse PCI class identifier");
-
-		PciDeviceClass::parse(u24)
-	}
-
-	#[inline(always)]
-	fn revision(&self) -> u8
-	{
-		self.device_file_or_folder_path("revision").read_hexadecimal_value_with_prefix::<u8>(2).expect("Could not parse PCI revision")
+		self.read_value("revision")
 	}
 
 	/// PCI device's associated NUMA node.
@@ -346,21 +334,10 @@ impl<'a> PciDevice<'a>
 	}
 
 	#[inline(always)]
-	fn new_from_file<P: Sized>(&self, file_name: &str, constructor: impl FnOnce(u16) -> Option<P>) -> P
+	fn read_value<F: FromBytes>(&self, file_name: &str) -> F
+	where <F as FromBytes>::Error: 'static + Send + Sync + error::Error
 	{
-		let file_path = self.device_file_or_folder_path(file_name);
-
-		let identifier = match file_path.read_hexadecimal_value_with_prefix::<u16>(4)
-		{
-			Ok(value) => value,
-			Err(error) => panic!("PCI {:?} identifier is missing or invalid: {:?}", file_name, error),
-		};
-
-		match constructor(identifier)
-		{
-			Some(identifier) => identifier,
-			None => panic!("PCI {:?} identifier is Any"),
-		}
+		self.device_file_or_folder_path(file_name).read_value().unwrap()
 	}
 	
 	#[inline(always)]

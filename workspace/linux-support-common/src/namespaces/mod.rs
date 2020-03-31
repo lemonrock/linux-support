@@ -7,10 +7,9 @@ use crate::strings::IntoLineFeedTerminatedByteString;
 use super::inode::Inode;
 use super::paths::PathExt;
 use super::paths::ProcPath;
+use crate::process::*;
 use libc::*;
 use likely::unlikely;
-use serde::Deserialize;
-use serde::Serialize;
 use std::collections::BTreeMap;
 use std::error;
 use std::fmt;
@@ -29,15 +28,11 @@ use std::os::unix::io::RawFd;
 use std::path::Path;
 use std::path::PathBuf;
 use std::borrow::Cow;
-use crate::process::ProcessIdentifier;
 
 
-include!("GroupIdentifier.rs");
 include!("Intervals.rs");
 include!("NamespaceInodeParseError.rs");
 include!("NamespacesProcPath.rs");
 include!("setup_uts_namespace.rs");
-include!("UserIdentifier.rs");
-include!("UserOrGroupIdentifier.rs");
 include!("UserOrGroupIdentifierMap.rs");
 include!("write_uid_and_gid_maps.rs");

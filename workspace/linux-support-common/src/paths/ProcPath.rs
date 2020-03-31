@@ -23,9 +23,9 @@ impl ProcPath
 {
 	/// Get a folder path for the current process or another process.
 	#[inline(always)]
-	pub fn process_file_path(&self, process_identifier: Option<ProcessIdentifier>, relative_path: &str) -> PathBuf
+	pub fn process_file_path(&self, process_identifier: ProcessIdentifierChoice, relative_path: &str) -> PathBuf
 	{
-		self.file_path(&ProcessIdentifier::to_file_name(process_identifier)).append(relative_path)
+		self.file_path(&process_identifier.to_file_name()).append(relative_path)
 	}
 
 	/// Get a file path within the ProcPath, `/proc/sys/fs/<file_name>`.

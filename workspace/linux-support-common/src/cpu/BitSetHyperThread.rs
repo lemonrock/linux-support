@@ -92,14 +92,14 @@ impl BitSet<HyperThread>
 	#[inline(always)]
 	pub fn set_current_process_affinity(&self) -> Result<(), String>
 	{
-		self.set_process_affinity(None)
+		self.set_process_affinity(ProcessIdentifierChoice::Current)
 	}
 
 	/// Set process affinity.
 	#[inline(always)]
-	pub fn set_process_affinity(&self, process_identifier: Option<ProcessIdentifier>) -> Result<(), String>
+	pub fn set_process_affinity(&self, process_identifier: ProcessIdentifierChoice) -> Result<(), String>
 	{
-		let result = unsafe { sched_setaffinity(ProcessIdentifier::into_pid_t(process_identifier), self.cpu_set_t_size_in_bytes(), self.cpu_set_t_pointer()) };
+		let result = unsafe { sched_setaffinity(process_identifier.into(), self.cpu_set_t_size_in_bytes(), self.cpu_set_t_pointer()) };
 		if likely!(result == 0)
 		{
 			Ok(())
@@ -110,7 +110,7 @@ impl BitSet<HyperThread>
 			{
 				EINVAL => Err("The affinity bit mask mask contains no processors that are currently physically on the system and permitted to the process according to any restrictions that may be imposed by the cpuset mechanism described in cpuset(7)".to_string()),
 
-				EPERM => if let Some(process_identifier) = process_identifier
+				EPERM => if let ProcessIdentifierChoice::Other(process_identifier) = process_identifier
 				{
 					Err(format!("The calling process does not have appropriate privileges. The caller needs an effective user ID equal to the real user ID or effective user ID of the process identified by process_identifier {:?}, or it must possess the CAP_SYS_NICE capability", process_identifier).to_string())
 				}
@@ -119,7 +119,7 @@ impl BitSet<HyperThread>
 					panic!("Can not set our own affinity")
 				},
 
-				ESRCH =>  if let Some(process_identifier) = process_identifier
+				ESRCH =>  if let ProcessIdentifierChoice::Other(process_identifier) = process_identifier
 				{
 					Err(format!("The thread whose ID is process_identifier '{:?}' could not be found", process_identifier).to_string())
 				}
@@ -204,14 +204,12 @@ impl BitSet<HyperThread>
 		sys_path.cpu_system_devices_folder_path().entries_in_folder_path().unwrap().unwrap()
 	}
 
-	/// NUMA nodes that could possibly be online at some point.
+	/// CPU nodes that could possibly be online at some point.
 	#[inline(always)]
 	fn is_in_proc_self_status(proc_path: &ProcPath) -> Self
 	{
 		let process_status_statistics = ProcessStatusStatistics::self_status(proc_path).unwrap();
-		let allowed = process_status_statistics.cpus_allowed;
-		debug_assert_eq!(allowed, process_status_statistics.cpus_allowed_list);
-		allowed.unwrap()
+		process_status_statistics.cpus_allowed
 	}
 
 	/// CPUs (hyper threaded logical cores) that are present and that could become online.

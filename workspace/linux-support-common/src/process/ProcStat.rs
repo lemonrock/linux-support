@@ -23,9 +23,9 @@ impl ProcStat
 	///
 	/// Assumes at least Linux 3.5 is in use.
 	#[inline(always)]
-	pub fn process_stat(proc_path: &ProcPath, process_identifier: Option<ProcessIdentifier>) -> Result<Self, ProcessStatusFileParseError>
+	pub fn process_stat(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> Result<Self, ProcessStatusFileParseError>
 	{
-		let line = proc_path.process_file_path(identifier, "stat").read_raw_without_line_feed()?;
+		let line = proc_path.process_file_path(process_identifier, "stat").read_raw_without_line_feed()?;
 
 		let mut byte_index = 0;
 

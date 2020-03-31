@@ -8,10 +8,10 @@ use likely::unlikely;
 use libc::*;
 use serde::Deserialize;
 use serde::Serialize;
-use std::convert::TryInto;
 use std::ffi::CStr;
 use std::ffi::CString;
 use std::ptr::NonNull;
+use crate::process::{GroupIdentifier, UserIdentifier};
 
 
 include!("assert_effective_user_id_is_root.rs");

@@ -27,3 +27,27 @@ pub enum SpeculationStoreBypassStatus
 	/// `prctl(PR_SPEC_STORE_BYPASS)` is any other value to those above.
 	Vulnerable,
 }
+
+impl FromBytes for SpeculationStoreBypassStatus
+{
+	type Error = ProcessStatusStatisticParseError;
+
+	#[inline(always)]
+	fn from_bytes(value: &[u8]) -> Result<SpeculationStoreBypassStatus, Self::Error>
+	{
+		use self::SpeculationStoreBypassStatus::*;
+
+		let value = match value
+		{
+			b"unknown" => SpeculationStoreBypassStatus::Unknown,
+			b"not vulnerable" => NotVulnerable,
+			b"thread force mitigated" => ThreadForceMitigated,
+			b"thread mitigated" => ThreadMitigated,
+			b"thread vulnerable" => ThreadVulnerable,
+			b"globally mitigated" => GloballyMitigated,
+			b"vulnerable" => Vulnerable,
+			_ => return Err(ProcessStatusStatisticParseError::OutOfRange),
+		};
+		Ok(value)
+	}
+}

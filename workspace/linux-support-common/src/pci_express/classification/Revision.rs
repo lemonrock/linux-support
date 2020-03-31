@@ -2,23 +2,36 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::paths::*;
-use errno::errno;
-use libc::*;
-use likely::likely;
-use serde::Deserialize;
-use serde::Serialize;
-use std::error;
-use std::fmt;
-use std::fmt::Debug;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::io;
-use std::io::ErrorKind;
-use std::path::PathBuf;
-use crate::process::ProcessIdentifierChoice;
+/// Revision.
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
+pub struct Revision(u8);
 
+impl From<u8> for Revision
+{
+	#[inline(always)]
+	fn from(value: u8) -> Self
+	{
+		Self(value)
+	}
+}
 
-include!("Nice.rs");
-include!("ProcessNiceness.rs");
-include!("ProcessNicenessAdjustmentError.rs");
+impl Into<u8> for Revision
+{
+	#[inline(always)]
+	fn into(self) -> u8
+	{
+		self.0
+	}
+}
+
+impl FromBytes for Revision
+{
+	type Error = ParseNumberError;
+
+	#[inline(always)]
+	fn from_bytes(bytes: &[u8]) -> Result<Self, Self::Error>
+	{
+		Ok(Self(u8::parse_hexadecimal_number_lower_case_with_0x_prefix_fixed_width(bytes, size_of::<u8>() * 2)?))
+	}
+}

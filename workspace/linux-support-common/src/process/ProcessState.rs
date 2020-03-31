@@ -54,3 +54,50 @@ pub enum ProcessState
 	#[deprecated]
 	PagingOrWaking,
 }
+
+impl FromBytes for ProcessState
+{
+	type Error = ProcessStatusStatisticParseError;
+
+	#[inline(always)]
+	fn from_bytes(value: &[u8]) -> Result<Self, Self::Error>
+	{
+		// Values are like `R (running)`.
+		if unlikely!(value.len() < 1)
+		{
+			return Err(ProcessStatusStatisticParseError::InvalidLength)
+		}
+
+		use self::ProcessState::*;
+
+		let value = match value[0]
+		{
+			b'R' => Running,
+			b'S' => Sleeping,
+			b'D' => SleepingInAnUninterruptibleWait,
+			b'Z' => Zombie,
+			b'T' => Stopped,
+			b'X' => Dead,
+			b'I' => Idle,
+
+			// Linux 2.6.33 onward.
+			b't' => TracingStop,
+
+			// Linux 2.6.33 to 3.13 only.
+			b'x' => Dead,
+
+			// Only before Linux 2.6.0, when it was used for Paging, and Linux Linux 2.6.33 to 3.13 only.
+			#[allow(deprecated)] b'W' => PagingOrWaking,
+
+			// Linux 3.9 to 3.13 only.
+			#[allow(deprecated)] b'K' => WakeKill,
+
+			// Linux 3.9 to 3.13 only.
+			#[allow(deprecated)] b'P' => Parked,
+
+			_ => return Err(ProcessStatusStatisticParseError::OutOfRange)
+		};
+
+		Ok(value)
+	}
+}

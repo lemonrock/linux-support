@@ -92,53 +92,40 @@ impl MemoryInformation
 
 		use self::MemoryInformationParseError::*;
 
+		// Lines such as:-
+		// * `SwapTotal:       2021372 kB`
+		// * `VmallocTotal:   34359738367 kB`
 		for line in reader.split(b'\n')
 		{
-			let mut line = line?;
+			let line = line?;
 
+			let mut split = line.splitn(2, |byte| *byte == b':');
+
+			let memory_information_name = MemoryInformationName::parse(split.next().unwrap(), memory_information_name_prefix);
+
+			if map.contains_key(&memory_information_name)
 			{
-				let mut split = line.splitn(2, |byte| *byte == b':');
-
-				let memory_information_name = MemoryInformationName::parse(split.next().unwrap(), memory_information_name_prefix);
-
-				let memory_information_value = match split.next()
-				{
-					None => return Err(MemoryInformationParseError::CouldNotParseMemoryInformationValue { zero_based_line_number, memory_information_name }),
-					Some(raw_value) =>
-					{
-						let str_value = match from_utf8(raw_value)
-						{
-							Err(utf8_error) => return Err(CouldNotParseAsUtf8 { zero_based_line_number, memory_information_name, bad_value: raw_value.to_vec().into_boxed_slice(), cause: utf8_error }),
-							Ok(str_value) => str_value,
-						};
-
-						let trimmed_str_value = str_value.trim();
-						let ends_with = memory_information_name.unit().ends_with();
-
-						if !trimmed_str_value.ends_with(ends_with)
-						{
-							return Err(CouldNotParseMemoryInformationValueTrimmed { zero_based_line_number, memory_information_name, bad_value: trimmed_str_value.to_owned() });
-						}
-
-						let trimmed = &trimmed_str_value[0 .. trimmed_str_value.len() - ends_with.len()];
-
-						match trimmed.parse::<u64>()
-						{
-							Ok(value) => value,
-							Err(int_parse_error) => return Err(CouldNotParseMemoryInformationValueAsU64 { zero_based_line_number, memory_information_name, bad_value: trimmed.to_owned(), cause: int_parse_error })
-						}
-					}
-				};
-
-				if map.contains_key(&memory_information_name)
-				{
-					return Err(DuplicateMemoryInformation { zero_based_line_number, memory_information_name, new_value: memory_information_value });
-				}
-
-				map.insert(memory_information_name, memory_information_value);
+				return Err(DuplicateMemoryInformation { zero_based_line_number });
 			}
 
-			line.clear();
+			let raw_value = split.next().ok_or(NoValue { zero_based_line_number })?;
+			let bytes = memory_information_name.validate_unit(raw_value, zero_based_line_number)?;
+
+			let mut after_whitespace_index = 0;
+			while bytes[after_whitespace_index] == b' '
+			{
+				after_whitespace_index += 1;
+				if unlikely!(after_whitespace_index == raw_value.len())
+				{
+					return Err(TooMuchWhitespace { zero_based_line_number })
+				}
+			}
+			let bytes = &bytes[after_whitespace_index .. ];
+
+			let memory_information_value = u64::parse_decimal_number(bytes).map_err(|cause| BadValue { zero_based_line_number, cause })?;
+
+			map.insert(memory_information_name, memory_information_value);
+
 			zero_based_line_number += 1;
 		}
 

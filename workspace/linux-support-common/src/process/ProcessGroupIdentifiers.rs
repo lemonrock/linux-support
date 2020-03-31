@@ -7,14 +7,49 @@
 pub struct ProcessGroupIdentifiers
 {
 	/// Real group identifier (GID).
-	pub real: gid_t,
+	pub real: GroupIdentifier,
 
 	/// Effective group identifier (GID).
-	pub effective: gid_t,
+	pub effective: GroupIdentifier,
 
 	/// Saved set group identifier (GID).
-	pub saved_set: gid_t,
+	pub saved_set: GroupIdentifier,
 
 	/// File system group identifier (GID).
-	pub file_system: gid_t,
+	pub file_system: GroupIdentifier,
+}
+
+impl FromBytes for ProcessGroupIdentifiers
+{
+	type Error = ProcessStatusStatisticParseError;
+
+	#[inline(always)]
+	fn from_bytes(value: &[u8]) -> Result<Self, Self::Error>
+	{
+		#[inline(always)]
+		fn parse_subsequent<'a>(iterator: &mut impl Iterator<Item=&'a [u8]>) -> Result<GroupIdentifier, ProcessStatusStatisticParseError>
+		{
+			if let Some(effective) = iterator.next()
+			{
+				Ok(GroupIdentifier::from_bytes(effective)?)
+			}
+			else
+			{
+				Err(ProcessStatusStatisticParseError::InvalidSeparator)
+			}
+		}
+
+		let mut iterator = value.splitn(4, |byte| *byte == b'\t');
+
+		Ok
+		(
+			Self
+			{
+				real: GroupIdentifier::from_bytes(iterator.next().unwrap())?,
+				effective: parse_subsequent(&mut iterator)?,
+				saved_set: parse_subsequent(&mut iterator)?,
+				file_system: parse_subsequent(&mut iterator)?,
+			}
+		)
+	}
 }

@@ -14,9 +14,6 @@ pub trait PathExt
 	/// Makes a folder searchable to all (ie gives it read and execute permissions).
 	fn make_folder_searchable_to_all(&self) -> io::Result<()>;
 
-	/// Reads a value from a file which is line-feed terminated and is hexadecimal using a parser.
-	fn read_hexadecimal_value_with_prefix<Number: ParseNumber>(&self, size: usize) -> io::Result<Number>;
-
 	/// Reads a file as bytes.
 	///
 	/// Fails if empty.
@@ -26,16 +23,6 @@ pub trait PathExt
 	///
 	/// The returned bytes lack a final line feed.
 	fn read_raw_without_line_feed(&self) -> io::Result<Box<[u8]>>;
-
-	/// Reads a file as a string.
-	///
-	/// Fails if empty.
-	fn read_raw_string(&self) -> io::Result<String>;
-
-	/// Reads a file as a string, expecting a final line feed.
-	///
-	/// The returned string lacks a final line feed.
-	fn read_string_without_line_feed(&self) -> io::Result<String>;
 
 	/// Reads a value from a file which is line-feed terminated.
 	fn read_value<F>(&self) -> io::Result<F> where F: FromBytes, <F as FromBytes>::Error: 'static + Send + Sync + error::Error;
@@ -108,13 +95,6 @@ impl PathExt for Path
 	}
 
 	#[inline(always)]
-	fn read_hexadecimal_value_with_prefix<Number: ParseNumber>(&self, size: usize) -> io::Result<Number>
-	{
-		let bytes = self.read_raw_without_line_feed()?;
-		Number::parse_hexadecimal_number_lower_case_with_0x_prefix_fixed_width(&bytes, size_of::<Number>()).map_err(|_| io::Error::new(ErrorKind::InvalidData, "Could not parse hexadecimal value"))
-	}
-
-	#[inline(always)]
 	fn read_raw(&self) -> io::Result<Box<[u8]>>
 	{
 		let raw = std::fs::read(self)?.into_boxed_slice();
@@ -140,34 +120,6 @@ impl PathExt for Path
 			return Err(io::Error::new(ErrorKind::InvalidData, "File lacks terminating line feed"));
 		}
 		Ok(raw.into_boxed_slice())
-	}
-
-	#[inline(always)]
-	fn read_raw_string(&self) -> io::Result<String>
-	{
-		let raw_string = read_to_string(self)?;
-
-		if unlikely!(raw_string.is_empty())
-		{
-			Err(io::Error::new(ErrorKind::InvalidData, "Empty file"))
-		}
-		else
-		{
-			Ok(raw_string)
-		}
-	}
-
-	#[inline(always)]
-	fn read_string_without_line_feed(&self) -> io::Result<String>
-	{
-		let mut raw_string = self.read_raw_string()?;
-		let length = raw_string.len();
-		let should_be_line_feed = raw_string.remove(length - 1);
-		if unlikely!(should_be_line_feed != '\n')
-		{
-			return Err(io::Error::new(ErrorKind::InvalidData, "File lacks terminating line feed"));
-		}
-		Ok(raw_string)
 	}
 
 	#[inline(always)]

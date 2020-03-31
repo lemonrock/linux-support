@@ -9,6 +9,7 @@ pub struct ProcessIdentifier(NonZeroI32);
 
 impl Default for ProcessIdentifier
 {
+	#[inline(always)]
 	fn default() -> Self
 	{
 		Self(unsafe { NonZeroI32::new_unchecked(1) })
@@ -18,9 +19,18 @@ impl Default for ProcessIdentifier
 impl From<NonZeroI32> for ProcessIdentifier
 {
 	#[inline(always)]
-	fn from(value: NonZeroI32) -> ProcessIdentifier
+	fn from(value: NonZeroI32) -> Self
 	{
 		Self(value)
+	}
+}
+
+impl Into<NonZeroI32> for ProcessIdentifier
+{
+	#[inline(always)]
+	fn into(self) -> NonZeroI32
+	{
+		self.0
 	}
 }
 
@@ -42,53 +52,28 @@ impl<'a> IntoLineFeedTerminatedByteString<'a> for ProcessIdentifier
 	}
 }
 
-impl<'a> IntoLineFeedTerminatedByteString<'a> for Option<ProcessIdentifier>
-{
-	#[inline(always)]
-	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
-	{
-		ProcessIdentifier::into_pid_t(self).into_line_feed_terminated_byte_string()
-	}
-}
-
 impl ParseNumber for ProcessIdentifier
 {
 	#[inline(always)]
-	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<Self, ParseNumberError>) -> Result<Self, ParseNumberError>
+	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
 	{
-		let x: NonZeroI32 = NonZeroI32::parse_number(bytes, radix, parse_byte)?;
-		Ok(Self(x))
+		Ok(Self(NonZeroI32::parse_number(bytes, radix, parse_byte)?))
 	}
 }
 
-impl ProcessIdentifier
+impl ParseNumber for Option<ProcessIdentifier>
 {
-	/// Current.
-	pub const Current: Option<Self> = None;
-
-	/// From pid_t.
 	#[inline(always)]
-	pub fn from_pid_t(process_identifier: pid_t) -> Option<Self>
+	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
 	{
-		unsafe { transmute(process_identifier) }
-	}
-
-	/// Into pid_t.
-	#[inline(always)]
-	pub fn into_pid_t(value: Option<Self>) -> pid_t
-	{
-		unsafe { transmute(value) }
-	}
-
-	#[inline(always)]
-	pub(crate) fn to_file_name(value: Option<Self>) -> Cow<'static, str>
-	{
-		const Current: Cow<'static, str> = Cow::Borrowed("self");
-
-		match value
+		let pid = pid_t::parse_number(bytes, radix, parse_byte)?;
+		if pid == 0
 		{
-			None => Current,
-			Some(value) => Cow::from(format!("{}", value.0.get())),
+			Ok(None)
+		}
+		else
+		{
+			Ok(Some(ProcessIdentifier(unsafe { NonZeroI32::new_unchecked(pid) })))
 		}
 	}
 }

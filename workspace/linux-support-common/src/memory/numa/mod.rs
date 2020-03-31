@@ -10,7 +10,7 @@ use crate::current_numa_node_and_hyper_thread;
 use crate::bit_set::*;
 use crate::cpu::HyperThread;
 use crate::paths::*;
-use crate::process::{ProcessStatusStatistics, ProcessIdentifier};
+use crate::process::{ProcessStatusStatistics, ProcessIdentifier, ProcessIdentifierChoice};
 use crate::user_and_groups::assert_effective_user_id_is_root;
 use bitflags::bitflags;
 use errno::errno;

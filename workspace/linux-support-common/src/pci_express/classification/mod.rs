@@ -3,9 +3,15 @@
 
 
 use self::subclasses::*;
+use crate::strings::FromBytes;
+use crate::strings::parse_number::*;
 use const_fn_assert::cfn_assert_ne;
+use either::Either;
+use likely::unlikely;
 use serde::Deserialize;
 use serde::Serialize;
+use std::mem::size_of;
+
 
 /// Subclass definitions.
 pub mod subclasses;
@@ -16,3 +22,4 @@ include!("PciDeviceIdentifier.rs");
 include!("PciDeviceType.rs");
 include!("PciVendorAndDevice.rs");
 include!("PciVendorIdentifier.rs");
+include!("Revision.rs");

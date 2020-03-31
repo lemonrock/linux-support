@@ -10,58 +10,34 @@ pub enum MemoryInformationParseError
 	CouldNotOpenFile(io::Error),
 
 	/// Could not parse a memory statistic.
-	CouldNotParseMemoryInformationValue
+	NoValue
 	{
 		/// Zero-based line number in the file the error occurred at.
 		zero_based_line_number: usize,
-
-		/// Memory item it occurred for.
-		memory_information_name: MemoryInformationName,
 	},
 
-	/// Could not parse a memory statistic as a UTF-8 string.
-	CouldNotParseAsUtf8
+	/// Invalid unit.
+	InvalidUnit
 	{
 		/// Zero-based line number in the file the error occurred at.
 		zero_based_line_number: usize,
-
-		/// Memory item it occurred for.
-		memory_information_name: MemoryInformationName,
-
-		/// Bad value.
-		bad_value: Box<[u8]>,
-
-		/// Cause.
-		cause: Utf8Error,
 	},
 
-	/// Could not parse a memory statistic (trimmed).
-	CouldNotParseMemoryInformationValueTrimmed
+	/// Could not parse a memory statistic.
+	TooMuchWhitespace
 	{
 		/// Zero-based line number in the file the error occurred at.
 		zero_based_line_number: usize,
-
-		/// Memory item it occurred for.
-		memory_information_name: MemoryInformationName,
-
-		/// Bad value.
-		bad_value: String,
 	},
 
-	/// Could not parse a memory statistic as a u64 value.
-	CouldNotParseMemoryInformationValueAsU64
+	/// Could not parse a memory statistic.
+	BadValue
 	{
 		/// Zero-based line number in the file the error occurred at.
 		zero_based_line_number: usize,
 
-		/// Memory item it occurred for.
-		memory_information_name: MemoryInformationName,
-
-		/// Bad value.
-		bad_value: String,
-
-		/// Underlying parse error.
-		cause: ParseIntError,
+		/// Value.
+		cause: ParseNumberError,
 	},
 
 	/// Could not parse a memory statistic because it was a duplicate.
@@ -69,12 +45,6 @@ pub enum MemoryInformationParseError
 	{
 		/// Zero-based line number in the file the error occurred at.
 		zero_based_line_number: usize,
-
-		/// Memory item it occurred for.
-		memory_information_name: MemoryInformationName,
-
-		/// New value.
-		new_value: u64,
 	},
 }
 
@@ -96,15 +66,15 @@ impl error::Error for MemoryInformationParseError
 
 		match self
 		{
-			&CouldNotOpenFile(ref error) => Some(error),
+			&CouldNotOpenFile(ref cause) => Some(cause),
 
-			&CouldNotParseMemoryInformationValue { .. } => None,
+			&NoValue { .. } => None,
 
-			&CouldNotParseAsUtf8 { ref cause, .. } => Some(cause),
+			&InvalidUnit { .. } => None,
 
-			&CouldNotParseMemoryInformationValueTrimmed { .. } => None,
+			&TooMuchWhitespace { .. } => None,
 
-			&CouldNotParseMemoryInformationValueAsU64 { ref cause, .. } => Some(cause),
+			&BadValue { ref cause, .. } => Some(cause),
 
 			&DuplicateMemoryInformation { .. } => None,
 		}

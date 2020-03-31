@@ -38,7 +38,7 @@ impl ResourceEntry
 		fn parse_u64_hexadecimal_value<'a>(iterator: &mut impl Iterator<Item=&'a [u8]>) -> Result<u64, &'static str>
 		{
 			let next = iterator.next().ok_or("Missing expected field")?;
-			u64::parse_hexadecimal_number_lower_case_with_0x_prefix_fixed_width(next, size_of::<u64>()).map_err(|_| "Invalid hexadecimal string")
+			u64::parse_hexadecimal_number_lower_case_with_0x_prefix_fixed_width(next, size_of::<u64>() * 2).map_err(|_| "Invalid hexadecimal string")
 		}
 
 		let mut iterator = line.splitn(3, |byte | *byte == b' ');

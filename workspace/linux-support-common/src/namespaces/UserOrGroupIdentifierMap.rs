@@ -3,7 +3,7 @@
 
 
 /// NOTE: This requires a custom Serde implementation.
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct UserOrGroupIdentifierMap<U: UserOrGroupIdentifier>
 {
 	inside_namespace_to_outside_namespace_user_or_group_identifiers: Intervals<U>,
@@ -29,8 +29,11 @@ impl<U: UserOrGroupIdentifier> UserOrGroupIdentifierMap<U>
 	#[inline(always)]
 	pub fn add_mapping(&mut self, inside_namespace_user_or_group_identifier: U, outside_namespace_user_or_group_identifier: U, length: NonZeroU32)
 	{
-		self.inside_namespace_to_outside_namespace_user_or_group_identifiers.add_interval(inside_namespace_user_or_group_identifier.get(), length, outside_namespace_user_or_group_identifier);
-		self.reverse_mapping_does_not_overlap_check.add_interval(outside_namespace_user_or_group_identifier.get(), length, ());
+		let inside_namespace_user_or_group_identifier: u32 = inside_namespace_user_or_group_identifier.into();
+		self.inside_namespace_to_outside_namespace_user_or_group_identifiers.add_interval(inside_namespace_user_or_group_identifier, length, outside_namespace_user_or_group_identifier);
+
+		let outside_namespace_user_or_group_identifier: u32 = outside_namespace_user_or_group_identifier.into();
+		self.reverse_mapping_does_not_overlap_check.add_interval(outside_namespace_user_or_group_identifier, length, ());
 	}
 
 	/// For writing `U: UserIdentifier`, the writing process must have the capability `CAP_SETUID` in the user namespace of the process's map file and in the outside_namespace namespace.
@@ -39,10 +42,9 @@ impl<U: UserOrGroupIdentifier> UserOrGroupIdentifierMap<U>
 	{
 		let file = path.open_file_for_writing()?;
 		let mut buf_writer = BufWriter::new(file);
-		for (&inside_namespace_user_or_group_identifier, length_and_outside_namespace_user_or_group_identifier) in self.inside_namespace_to_outside_namespace_user_or_group_identifiers.iter()
+		for (&inside_namespace_user_or_group_identifier, &(length, outside_namespace_user_or_group_identifier)) in self.inside_namespace_to_outside_namespace_user_or_group_identifiers.iter()
 		{
-			let outside_namespace_user_or_group_identifier: u32 = length_and_outside_namespace_user_or_group_identifier.1.into();
-			let length = length_and_outside_namespace_user_or_group_identifier.0.get();
+			let outside_namespace_user_or_group_identifier: u32 = outside_namespace_user_or_group_identifier.into();
 			writeln!(buf_writer, "{} {} {}", inside_namespace_user_or_group_identifier, outside_namespace_user_or_group_identifier, length)?;
 		}
 		Ok(())

@@ -3,9 +3,9 @@
 
 
 #[inline(always)]
-fn setresgid_wrapper(real_group_identifier: gid_t, effective_group_identifier: gid_t, saved_set_group_identifier: gid_t)
+fn setresgid_wrapper(real_group_identifier: GroupIdentifier, effective_group_identifier: GroupIdentifier, saved_set_group_identifier: GroupIdentifier)
 {
-	let result = unsafe { setresgid(real_group_identifier, effective_group_identifier, saved_set_group_identifier) };
+	let result = unsafe { setresgid(real_group_identifier.into(), effective_group_identifier.into(), saved_set_group_identifier.into()) };
 	if likely!(result == 0)
 	{
 	}

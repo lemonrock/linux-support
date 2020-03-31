@@ -12,3 +12,33 @@ pub struct SignalQueueStatus
 	/// Maximum number of signals that can be queued (maximum queue depth).
 	pub maximum_number_of_signals_that_can_be_queued: u64,
 }
+
+impl FromBytes for SignalQueueStatus
+{
+	type Error = ProcessStatusStatisticParseError;
+
+	#[inline(always)]
+	fn from_bytes(value: &[u8]) -> Result<Self, Self::Error>
+	{
+		// number of signals queued/max. number for queue
+		let mut iterator = value.splitn(2, |byte| *byte == b'/');
+
+		let number_of_signals_queued = u64::parse_decimal_number(iterator.next().unwrap())?;
+
+		let maximum_number_of_signals_that_can_be_queued = match iterator.next()
+		{
+			None => return Err(ProcessStatusStatisticParseError::InvalidSeparator),
+
+			Some(maximum_number_of_signals_that_can_be_queued) => u64::parse_decimal_number(maximum_number_of_signals_that_can_be_queued)?,
+		};
+
+		Ok
+		(
+			Self
+			{
+				number_of_signals_queued,
+				maximum_number_of_signals_that_can_be_queued
+			}
+		)
+	}
+}

@@ -3,266 +3,263 @@
 
 
 /// Status statistics for `/proc/self/status` or `/proc/<identifier>/status`
-#[derive(Default, Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProcessStatusStatistics
 {
 	/// Process name.
 	///
 	/// Known as `Name`.
-	pub process_name: Option<Box<[u8]>>,
+	pub process_name: Box<[u8]>,
 
 	/// File creation mode mask (`umask`).
 	///
 	/// Known as `Umask`.
-	pub file_mode_creation_mask: Option<mode_t>,
+	///
+	/// Since Linux 4.7.
+	pub file_mode_creation_mask: mode_t,
 
 	/// State.
 	///
 	/// Known as `State`.
-	pub state: Option<ProcessState>,
+	pub state: ProcessState,
 
 	/// Thread group identifier.
 	///
 	/// Known as `Tgid`.
-	pub thread_group_identifier: Option<ProcessIdentifier>,
+	pub thread_group_identifier: ProcessIdentifier,
 
 	/// NUMA group identifier.
 	///
 	/// Known as `Ngid`.
 	///
-	/// Zero if the Linux kernel wasn't configured with `CONFIG_NUMA`.
-	pub numa_group_identifier: Option<NumaNode>,
+	/// None if the Linux kernel wasn't configured with `CONFIG_NUMA_BALANCING`.
+	///
+	/// Sincee Linux 3.13.
+	pub numa_group_identifier: Option<ProcessIdentifier>,
 
 	/// Process identifier.
 	///
 	/// Known as `Pid`.
-	pub process_identifier: Option<ProcessIdentifier>,
+	pub process_identifier: ProcessIdentifier,
 
 	/// Parent process identifier.
 	///
 	/// Can be zero if this is the `init` process (process `1`).
 	///
 	/// Known as `PPid`.
-	pub parent_process_identifier: Option<Option<ProcessIdentifier>>,
+	pub parent_process_identifier: Option<ProcessIdentifier>,
 
 	/// Usually zero, implying no tracer process.
 	///
 	/// Known as `TracerPid`.
-	pub tracer_process_identifier: Option<Option<ProcessIdentifier>>,
+	pub tracer_process_identifier: Option<ProcessIdentifier>,
 
 	/// User identifiers.
 	///
 	/// Known as `Uid`.
-	pub user_identifiers: Option<ProcessUserIdentifiers>,
+	pub user_identifiers: ProcessUserIdentifiers,
 
 	/// Group identifiers.
 	///
 	/// Known as `Gid`.
-	pub group_identifiers: Option<ProcessGroupIdentifiers>,
+	pub group_identifiers: ProcessGroupIdentifiers,
 
 	/// Number of file descriptor slots currently allocated.
 	///
 	/// Known as `FDSize`.
 	///
 	/// eg `64`.
-	pub number_of_file_descriptor_slots_currently_allocated: Option<u64>,
+	pub number_of_file_descriptor_slots_currently_allocated: u64,
 
 	/// Other group memberships.
 	///
 	/// Known as `Groups`.
 	///
 	/// Seems to always contain at least one member, which is the same as the primary group of the user.
-	pub groups: Option<BTreeSet<gid_t>>,
+	pub groups: Groups,
 
 	/// Descendant namespace thread group identifiers.
 	///
 	/// Known as `NStgid`.
-	pub descendant_namespace_thread_group_identifier: Option<BTreeSet<ProcessIdentifier>>,
+	pub descendant_namespace_thread_group_identifier: ProcessIdentifiers,
 
 	/// Descendant namespace process identifiers.
 	///
 	/// Known as `NSpid`.
-	pub descendant_namespace_process_identifier: Option<BTreeSet<ProcessIdentifier>>,
+	pub descendant_namespace_process_identifier: ProcessIdentifiers,
 
 	/// Descendant namespace process group identifiers.
 	///
 	/// Known as `NSpgid`.
-	pub descendant_namespace_process_group_identifier: Option<BTreeSet<ProcessIdentifier>>,
+	pub descendant_namespace_process_group_identifier: ProcessIdentifiers,
 
 	/// Descendant namespace session identifiers.
 	///
 	/// Known as `NSsid`.
-	pub descendant_namespace_session_identifier: Option<BTreeSet<ProcessIdentifier>>,
+	pub descendant_namespace_session_identifier: ProcessIdentifiers,
 
 	/// Peak virtual memory size.
 	///
 	/// Known as `VmPeak`.
-	pub peak_virtual_memory_size: Option<Kilobyte>,
+	pub peak_virtual_memory_size: Kilobyte,
 
 	/// Total program size.
 	///
 	/// Known as `VmSize`.
-	pub total_program_size: Option<Kilobyte>,
+	pub total_program_size: Kilobyte,
 
 	/// Locked memory size.
 	///
 	/// Known as `VmLck`.
 	///
 	/// See `man 3 lock`.
-	pub locked_memory_size: Option<Kilobyte>,
+	pub locked_memory_size: Kilobyte,
 
 	/// Pinned memory size (since Linux 3.2).
 	///
 	/// Known as `VmPin`.
 	///
 	/// These are pages that can't be moved because something needs to directly access physical memory.
-	pub pinned_memory_size: Option<Kilobyte>,
+	pub pinned_memory_size: Kilobyte,
 
 	/// Peak resident set size ("High Water Mark").
 	///
 	/// Known as `VmHWM`.
-	pub peak_resident_set_size: Option<Kilobyte>,
+	pub peak_resident_set_size: Kilobyte,
 
 	/// The sum of `anonymous_resident_set_memory_size`, `resident_set_file_mappings_memory_size` and `resident_set_shared_memory_size`.
 	///
 	/// Known as `VmRSS`.
-	pub resident_set_memory_size: Option<Kilobyte>,
+	pub resident_set_memory_size: Kilobyte,
 
 	/// Size of resident set anonymous memory (since Linux 4.5).
 	///
 	/// Known as `RssAnon`.
-	pub anonymous_resident_set_memory_size: Option<Kilobyte>,
+	pub anonymous_resident_set_memory_size: Kilobyte,
 
 	/// Size of resident set file mappings (since Linux 4.5).
 	///
 	/// Known as `RssFile`.
-	pub resident_set_file_mappings_memory_size: Option<Kilobyte>,
+	pub resident_set_file_mappings_memory_size: Kilobyte,
 
 	/// Size of resident set shared memory (`shmem`) (since Linux 4.5).
 	///
 	/// Known as `RssShmem`.
 	///
 	/// Includes Sys_v `shm`, any mappings from `tmpfs` and shared anonymous mappings.
-	pub resident_set_shared_memory_size: Option<Kilobyte>,
+	pub resident_set_shared_memory_size: Kilobyte,
 
 	/// Size of private data segments.
 	///
 	/// Known as `VmData`.
-	pub private_data_segments_size: Option<Kilobyte>,
+	pub private_data_segments_size: Kilobyte,
 
 	/// Size of stack segments.
 	///
 	/// Known as `VmStk`.
-	pub stack_segments_size: Option<Kilobyte>,
+	pub stack_segments_size: Kilobyte,
 
 	/// Size of text segment.
 	///
 	/// Known as `VmExe`.
-	pub text_segment_size: Option<Kilobyte>,
+	pub text_segment_size: Kilobyte,
 
 	/// Size of shared library code.
 	///
 	/// Known as `VmLib`.
-	pub dynamically_loaded_shared_library_size: Option<Kilobyte>,
+	pub dynamically_loaded_shared_library_size: Kilobyte,
 
 	/// Size of page table entries (since Linux 2.6.10).
 	///
 	/// Known as `VmPTE`.
-	pub page_table_entries_size: Option<Kilobyte>,
-
-	/// Size of second-level page tables (since Linux 4.0).
-	///
-	/// Known as `VmPMD`.
-	///
-	/// Undocumented in <https://github.com/torvalds/linux/blob/master/Documentation/filesystems/proc.txt>.
-	pub vm_pmd: Option<Kilobyte>,
+	pub page_table_entries_size: Kilobyte,
 
 	/// The amount of swap used by anonymous private data (since Linux 2.6.34).
 	///
 	/// Known as `VmSwap`.
 	///
 	/// Shared memory `shmem` swap usage is not included.
-	pub swap_memory_size: Option<Kilobyte>,
+	pub swap_memory_size: Kilobyte,
 
 	/// Size of `hugetlb` memory portions.
 	///
 	/// Known as `HugetlbPages`.
-	pub huge_tlb_pages_memory_size: Option<Kilobyte>,
+	pub huge_tlb_pages_memory_size: Kilobyte,
 
 	/// Number of threads.
 	///
 	/// Known as `Threads`.
-	pub threads: Option<u64>,
+	pub threads: u64,
 
 	/// Signal queue status.
 	///
 	/// Known as `SigQ`.
-	pub signal_queue: Option<SignalQueueStatus>,
+	pub signal_queue: SignalQueueStatus,
 
 	/// Pending signals for the thread.
 	///
 	/// Known as `SigPnd`.
-	pub thread_pending_signals: Option<SignalBitSet>,
+	pub thread_pending_signals: SignalBitSet,
 
 	/// Shared pending signals for the process.
 	///
 	/// Known as `ShdPnd`.
-	pub process_shared_pending_signals: Option<SignalBitSet>,
+	pub process_shared_pending_signals: SignalBitSet,
 
 	/// Blocked signals.
 	///
 	/// Known as `SigBlk`.
-	pub blocked_signals: Option<SignalBitSet>,
+	pub blocked_signals: SignalBitSet,
 
 	/// Ignored signals.
 	///
 	/// Known as `SigIgn`.
-	pub ignored_signals: Option<SignalBitSet>,
+	pub ignored_signals: SignalBitSet,
 
 	/// Caught signals.
 	///
 	/// Known as `SigCgt`.
-	pub caught_signals: Option<SignalBitSet>,
+	pub caught_signals: SignalBitSet,
 
 	/// Inheritable capabilities.
 	///
 	/// Known as `CapInh`.
-	pub inheritable_capabilities_mask: Option<BitSet<Capability>>,
+	pub inheritable_capabilities_mask: BitSet<Capability>,
 
 	/// Permitted capabilities.
 	///
 	/// Known as `CapPrm`.
-	pub permitted_capabilities_mask: Option<BitSet<Capability>>,
+	pub permitted_capabilities_mask: BitSet<Capability>,
 
 	/// Effective capabilities.
 	///
 	/// Known as `CapEff`.
-	pub effective_capabilities_mask: Option<BitSet<Capability>>,
+	pub effective_capabilities_mask: BitSet<Capability>,
 
 	/// Capabilities bounding set.
 	///
 	/// Known as `CapBnd`.
-	pub capabilities_bounding_set: Option<BitSet<Capability>>,
+	pub capabilities_bounding_set: BitSet<Capability>,
 
 	/// Ambient capabilities.
 	///
 	/// Known as `CapAmb`.
-	pub ambient_capabilities_set: Option<BitSet<Capability>>,
+	pub ambient_capabilities_set: BitSet<Capability>,
 
 	/// Thread's `no_new_privs` bit (see `man 2 prctl` description for `PR_GET_NO_NEW_PRIVS`).
 	///
 	/// Known as `NoNewPrivs`.
-	pub thread_no_new_privileges_bit: Option<bool>,
+	pub thread_no_new_privileges_bit: bool,
 
 	/// Seccomp mode.
 	///
 	/// Known as `Seccomp`.
-	pub seccomp_mode: Option<SeccompMode>,
+	pub seccomp_mode: SeccompMode,
 
 	/// Speculation store ('Spectre' vulnerability) bypass status.
 	///
 	/// Known as `Speculation_Store_Bypass`.
-	pub speculation_store_bypass: Option<SpeculationStoreBypassStatus>,
+	pub speculation_store_bypass: SpeculationStoreBypassStatus,
 
 	/// CPUs (actually, hyper threaded cores) allowed for the current process.
 	///
@@ -271,12 +268,12 @@ pub struct ProcessStatusStatistics
 	/// May have bits set well beyond those than the number of cores on the system.
 	///
 	/// Tuples of 32-bit, LSB to the far right, eg `ffffffff,ffffffff,ffffffff,ffffffff`.
-	pub cpus_allowed: Option<BitSet<HyperThread>>,
+	pub cpus_allowed: BitSet<HyperThread>,
 
 	/// CPUs (actually, hyper threaded cores) allowed for the current process.
 	///
 	/// Known as `Cpus_allowed_list`.
-	pub cpus_allowed_list: Option<BitSet<HyperThread>>,
+	pub cpus_allowed_list: BitSet<HyperThread>,
 
 	/// NUMA nodes allowed for the current process.
 	///
@@ -285,25 +282,28 @@ pub struct ProcessStatusStatistics
 	/// Linux defines the config option `NODES_SHIFT` (aka `CONFIG_NODES_SHIFT`) to be 1 to 10 if defined and 0 if not defined, giving a maximum of 2^10 (1024) NUMA nodes, if defaults to 6 (ie 64 NUMA nodes) on x86-64.
 	///
 	/// Tuples of 32-bit, LSB to the far right, eg `00000000,00000001`.
-	pub numa_nodes_allowed: Option<BitSet<NumaNode>>,
+	pub numa_nodes_allowed: BitSet<NumaNode>,
 
 	/// NUMA nodes allowed for the current process.
 	///
 	/// Known as `Mems_allowed_list`.
 	///
 	/// If the Linux kernel wasn't configured with `CONFIG_NUMA`, defaults to 0.
-	pub numa_nodes_allowed_list: Option<BitSet<NumaNode>>,
+	pub numa_nodes_allowed_list: BitSet<NumaNode>,
 
 	/// Voluntary context switches.
 	///
 	/// Known as `voluntary_ctxt_switches`.
-	pub voluntary_context_switches: Option<u64>,
+	pub voluntary_context_switches: u64,
 
 	/// Involuntary context switches.
 	///
 	/// Known as `nonvoluntary_ctxt_switches`.
-	pub involuntary_context_switches: Option<u64>,
+	pub involuntary_context_switches: u64,
 
+	/// May include:-
+	///
+	/// * `VmPMD`: Size of second-level page tables (added in Linux 4.0; removed in Linux 4.15).
 	unrecognised: HashMap<Box<[u8]>, Box<[u8]>>, // eg b"CoreDumping:" b"THP_enabled:" (which seem to exist in Linux source code but aren't documented).
 }
 
@@ -320,438 +320,105 @@ impl ProcessStatusStatistics
 	#[inline(always)]
 	pub fn self_status(proc_path: &ProcPath) -> Result<Self, ProcessStatusFileParseError>
 	{
-		Self::process_status(proc_path, None)
+		Self::process_status(proc_path, ProcessIdentifierChoice::Current)
 	}
 
 	/// Status information from `/proc/<IDENTIFIER>/status` where `<IDENTIFIER>` is `identifier`.
+	///
+	/// When in doubt, check the source code for status files at <https://github.com/torvalds/linux/blob/f346b0becb1bc62e45495f9cdbae3eef35d0b635/fs/proc/array.c> and the documentation at <http://man7.org/linux/man-pages/man5/proc.5.html>.
 	#[inline(always)]
-	pub fn process_status(proc_path: &ProcPath, process_identifier: Option<ProcessIdentifier>) -> Result<Self, ProcessStatusFileParseError>
+	pub fn process_status(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> Result<Self, ProcessStatusFileParseError>
 	{
-		let file = File::open(proc_path.process_file_path(process_identifier, "status"))?;
-		let reader = BufReader::with_capacity(4096, file);
-
-		use self::ProcessStatusFileParseError::*;
-
-		let mut this = Self::default();
-
-		let mut zero_based_line_number = 0;
-		for line in reader.split(b'\n')
-		{
-			let line = match line
-			{
-				Err(cause) => return Err(CouldNotReadLine { zero_based_line_number, cause }),
-				Ok(line) => line,
-			};
-
-			{
-				let mut split = line.splitn(2, |byte| *byte == b':');
-
-				let statistic_name = split.next().unwrap();
-
-				match split.next()
-				{
-					None => return Err(CouldNotParseLine { zero_based_line_number, cause: ProcessStatusStatisticParseError::NoValue }),
-
-					Some(tab_then_statistic_value) =>
-					{
-						if unlikely!(!tab_then_statistic_value.starts_with(b"\t"))
-						{
-							return Err(CouldNotParseLine { zero_based_line_number, cause: ProcessStatusStatisticParseError::ValueNotPreceededByHorizontalTab })
-						}
-
-						let statistic_value = &tab_then_statistic_value[1 ..];
-
-						match this.parse_line(statistic_name, statistic_value)
-						{
-							Err(cause) => return Err(CouldNotParseLine { zero_based_line_number, cause }),
-
-							Ok(()) => (),
-						}
-					}
-				};
-			}
-
-			zero_based_line_number += 1;
-		}
-
-		this.unrecognised.shrink_to_fit();
-
-		Ok(this)
-	}
-
-	/// When in doubt, check the source code for status files at <https://github.com/torvalds/linux/blob/f346b0becb1bc62e45495f9cdbae3eef35d0b635/fs/proc/array.c>.
-	#[inline]
-	fn parse_line(&mut self, statistic_name: &[u8], statistic_value: &[u8]) -> Result<(), ProcessStatusStatisticParseError>
-	{
-		#[inline(always)]
-		fn to_box(value: &[u8]) -> Box<[u8]>
-		{
-			value.to_vec().into_boxed_slice()
-		}
-
-		#[inline(always)]
-		fn parse_token(value: &[u8]) -> Result<Box<[u8]>, ProcessStatusStatisticParseError>
-		{
-			Ok(to_box(value))
-		}
-
-		#[inline(always)]
-		fn parse_mode(value: &[u8]) -> Result<mode_t, ProcessStatusStatisticParseError>
-		{
-			Ok(mode_t::parse_octal_number_fixed_width(value, 4)?)
-		}
-
-		#[inline(always)]
-		fn parse_process_state(value: &[u8]) -> Result<ProcessState, ProcessStatusStatisticParseError>
-		{
-			// Values are like `R (running)`.
-			if unlikely!(value.len() == 0)
-			{
-				return Err(ProcessStatusStatisticParseError::InvalidLength)
-			}
-
-			use self::ProcessState::*;
-
-			let value = match value[0]
-			{
-				b'R' => Running,
-				b'S' => Sleeping,
-				b'D' => SleepingInAnUninterruptibleWait,
-				b'Z' => Zombie,
-				b'T' => Stopped,
-				b'X' => Dead,
-				b'I' => Idle,
-
-				// Linux 2.6.33 onward.
-				b't' => TracingStop,
-
-				// Linux 2.6.33 to 3.13 only.
-				b'x' => Dead,
-
-				// Only before Linux 2.6.0, when it was used for Paging, and Linux Linux 2.6.33 to 3.13 only.
-				#[allow(deprecated)] b'W' => PagingOrWaking,
-
-				// Linux 3.9 to 3.13 only.
-				#[allow(deprecated)] b'K' => WakeKill,
-
-				// Linux 3.9 to 3.13 only.
-				#[allow(deprecated)] b'P' => Parked,
-
-				_ => return Err(ProcessStatusStatisticParseError::OutOfRange)
-			};
-
-			Ok(value)
-		}
-
-		#[inline(always)]
-		fn parse_pid(value: &[u8]) -> Result<NonZeroI32, ProcessStatusStatisticParseError>
-		{
-			Ok(NonZeroI32::parse_decimal_number(value)?)
-		}
-
-		#[inline(always)]
-		fn parse_numa_node(value: &[u8]) -> Result<NumaNode, ProcessStatusStatisticParseError>
-		{
-			Ok(NumaNode::try_from(u16::parse_decimal_number(value)?)?)
-		}
-
-		#[inline(always)]
-		fn parse_uid(value: &[u8]) -> Result<uid_t, ProcessStatusStatisticParseError>
-		{
-			Ok(uid_t::parse_decimal_number(value)?)
-		}
-
-		#[inline(always)]
-		fn parse_gid(value: &[u8]) -> Result<gid_t, ProcessStatusStatisticParseError>
-		{
-			Ok(gid_t::parse_decimal_number(value)?)
-		}
-
-		#[inline(always)]
-		fn parse_user_identifiers(value: &[u8]) -> Result<ProcessUserIdentifiers, ProcessStatusStatisticParseError>
-		{
-			#[inline(always)]
-			fn parse_subsequent<'a>(iterator: &mut impl Iterator<Item=&'a [u8]>) -> Result<uid_t, ProcessStatusStatisticParseError>
-			{
-				if let Some(effective) = iterator.next()
-				{
-					parse_uid(effective)
-				}
-				else
-				{
-					Err(ProcessStatusStatisticParseError::InvalidSeparator)
-				}
-			}
-
-			let mut iterator = value.splitn(4, |byte| *byte == b'\t');
-
-			Ok
-			(
-				ProcessUserIdentifiers
-				{
-					real: parse_uid(iterator.next().unwrap())?,
-					effective: parse_subsequent(&mut iterator)?,
-					saved_set: parse_subsequent(&mut iterator)?,
-					file_system: parse_subsequent(&mut iterator)?,
-				}
-			)
-		}
-
-		#[inline(always)]
-		fn parse_group_identifiers(value: &[u8]) -> Result<ProcessGroupIdentifiers, ProcessStatusStatisticParseError>
-		{
-			#[inline(always)]
-			fn parse_subsequent<'a>(iterator: &mut impl Iterator<Item=&'a [u8]>) -> Result<gid_t, ProcessStatusStatisticParseError>
-			{
-				if let Some(effective) = iterator.next()
-				{
-					parse_gid(effective)
-				}
-				else
-				{
-					Err(ProcessStatusStatisticParseError::InvalidSeparator)
-				}
-			}
-
-			let mut iterator = value.splitn(4, |byte| *byte == b'\t');
-
-			Ok
-			(
-				ProcessGroupIdentifiers
-				{
-					real: parse_gid(iterator.next().unwrap())?,
-					effective: parse_subsequent(&mut iterator)?,
-					saved_set: parse_subsequent(&mut iterator)?,
-					file_system: parse_subsequent(&mut iterator)?,
-				}
-			)
-		}
-
-		#[inline(always)]
-		fn parse_groups(value: &[u8]) -> Result<BTreeSet<gid_t>, ProcessStatusStatisticParseError>
-		{
-			let mut groups = BTreeSet::new();
-			for value in value.split(|byte| *byte == b' ')
-			{
-				let was_added_for_the_first_time = groups.insert(parse_gid(value)?);
-				if unlikely!(!was_added_for_the_first_time)
-				{
-					return Err(ProcessStatusStatisticParseError::DuplicatedStatisticValue)
-				}
-			}
-			Ok(groups)
-		}
-
-		#[inline(always)]
-		fn parse_pids(value: &[u8]) -> Result<BTreeSet<ProcessIdentifier>, ProcessStatusStatisticParseError>
-		{
-			let mut pids = BTreeSet::new();
-			for value in value.split(|byte| *byte == b'\t')
-			{
-				let was_added_for_the_first_time = pids.insert(parse_pid(value)?);
-				if unlikely!(!was_added_for_the_first_time)
-				{
-					return Err(ProcessStatusStatisticParseError::DuplicatedStatisticValue)
-				}
-			}
-			Ok(pids)
-		}
-
-		#[inline(always)]
-		fn parse_u64(value: &[u8]) -> Result<u64, ProcessStatusStatisticParseError>
-		{
-			Ok(u64::parse_decimal_number(value)?)
-		}
-
-		#[inline(always)]
-		fn parse_kb(value: &[u8]) -> Result<Kilobyte, ProcessStatusStatisticParseError>
-		{
-			const Ending: &'static [u8] = b" kB";
-
-			if likely!(value.ends_with(b" kB"))
-			{
-				parse_u64(&value[0 .. value.len() - Ending.len()])
-			}
-			else
-			{
-				Err(ProcessStatusStatisticParseError::InvalidEnding)
-			}
-		}
-
-		#[inline(always)]
-		fn parse_signal_queue(value: &[u8]) -> Result<SignalQueueStatus, ProcessStatusStatisticParseError>
-		{
-			// number of signals queued/max. number for queue
-			let mut iterator = value.splitn(2, |byte| *byte == b'/');
-			let number_of_signals_queued = parse_u64(iterator.next().unwrap())?;
-			let maximum_number_of_signals_that_can_be_queued = match iterator.next()
-			{
-				None => return Err(ProcessStatusStatisticParseError::InvalidSeparator),
-
-				Some(maximum_number_of_signals_that_can_be_queued) => parse_u64(maximum_number_of_signals_that_can_be_queued)?,
-			};
-
-			Ok
-			(
-				SignalQueueStatus
-				{
-					number_of_signals_queued,
-					maximum_number_of_signals_that_can_be_queued
-				}
-			)
-		}
-
-		#[inline(always)]
-		fn parse_hexadecimal_u64(value: &[u8]) -> Result<u64, ProcessStatusStatisticParseError>
-		{
-			Ok(u64::parse_hexadecimal_number_lower_case(value)?)
-		}
-		
-		#[inline(always)]
-		fn parse_signal_bitset(value: &[u8]) -> Result<SignalBitSet, ProcessStatusStatisticParseError>
-		{
-			Ok(SignalBitSet(parse_hexadecimal_u64(value)?))
-		}
-
-		#[inline(always)]
-		fn parse_capability_mask_or_set(value: &[u8]) -> Result<BitSet<Capability>, ProcessStatusStatisticParseError>
-		{
-			Ok(BitSet::new_from_u64(parse_hexadecimal_u64(value)?))
-		}
-
-		#[inline(always)]
-		fn parse_bool(value: &[u8]) -> Result<bool, ProcessStatusStatisticParseError>
-		{
-			if likely!(value.len() == 1)
-			{
-				match value[0]
-				{
-					b'0' => Ok(false),
-					b'1' => Ok(true),
-					_ => Err(ProcessStatusStatisticParseError::OutOfRange)
-				}
-			}
-			else
-			{
-				Err(ProcessStatusStatisticParseError::InvalidLength)
-			}
-		}
-
-		#[inline(always)]
-		fn parse_seccomp_mode(value: &[u8]) -> Result<SeccompMode, ProcessStatusStatisticParseError>
-		{
-			if likely!(value.len() == 1)
-			{
-				use self::SeccompMode::*;
-
-				match value[0]
-				{
-					b'0' => Ok(Off),
-					b'1' => Ok(Strict),
-					b'2' => Ok(Filter),
-					_ => Err(ProcessStatusStatisticParseError::OutOfRange)
-				}
-			}
-			else
-			{
-				Err(ProcessStatusStatisticParseError::InvalidLength)
-			}
-		}
-
-		#[inline(always)]
-		fn parse_speculation_store_bypass(value: &[u8]) -> Result<SpeculationStoreBypassStatus, ProcessStatusStatisticParseError>
-		{
-			use self::SpeculationStoreBypassStatus::*;
-
-			let value = match value
-			{
-				b"unknown" => SpeculationStoreBypassStatus::Unknown,
-				b"not vulnerable" => NotVulnerable,
-				b"thread force mitigated" => ThreadForceMitigated,
-				b"thread mitigated" => ThreadMitigated,
-				b"thread vulnerable" => ThreadVulnerable,
-				b"globally mitigated" => GloballyMitigated,
-				b"vulnerable" => Vulnerable,
-				_ => return Err(ProcessStatusStatisticParseError::OutOfRange),
-			};
-			Ok(value)
-		}
-
-		#[inline(always)]
-		fn parse_cpus_or_numa_nodes_allowed<BSA: BitSetAware>(value: &[u8]) -> Result<BitSet<BSA>, ProcessStatusStatisticParseError>
-		{
-			Ok(BitSet::parse_hyper_thread_or_numa_node_bit_set(&value))
-		}
-
-		#[inline(always)]
-		fn parse_cpus_allowed_list(value: &[u8]) -> Result<BitSet<HyperThread>, ProcessStatusStatisticParseError>
-		{
-			Ok(BitSet::<HyperThread>::parse_linux_list_string(value)?)
-		}
-
-		#[inline(always)]
-		fn parse_numa_nodes_allowed_list(value: &[u8]) -> Result<BitSet<NumaNode>, ProcessStatusStatisticParseError>
-		{
-			Ok(BitSet::<NumaNode>::parse_linux_list_string(value)?)
-		}
-
 		macro_rules! parse
 		{
-			($statistic_name: ident, $statistic_value: ident, $($proc_status_name: literal => $struct_field: ident @ $parse_expr: ident,)*) =>
+			($reader: ident, $this: ident, $($proc_status_name: literal => $struct_field: ident @ $parse: ident,)*) =>
 			{
-				match $statistic_name
-				{
-					$(
-						$proc_status_name => if unlikely!(self.$struct_field.is_some())
-						{
-							Err(ProcessStatusStatisticParseError::DuplicatedStatistic)
-						}
-						else
-						{
-							let result = $parse_expr($statistic_value);
-							let parsed_value = result?;
-							let some = Some(parsed_value);
-							self.$struct_field = some;
-							Ok(())
-						},
-					)*
+				use self::ProcessStatusFileParseError::*;
+				use self::ProcessStatusStatisticParseError::*;
 
-					_ =>
+				$(
+					let mut $struct_field: bool = false;
+				)*
+
+				let mut zero_based_line_number = 0;
+				for line in $reader.split(b'\n')
+				{
+					let line = line.map_err(|cause| CouldNotReadLine { zero_based_line_number, cause })?;
+					let mut split = line.splitn(2, |byte| *byte == b':');
+
+					let statistic_name = split.next().unwrap();
+					let tab_then_statistic_value = split.next().ok_or(CouldNotParseLine { zero_based_line_number, cause: NoValue })?;
+					let statistic_value = if likely!(tab_then_statistic_value.starts_with(b"\t"))
 					{
-						let previous = self.unrecognised.insert(to_box($statistic_name), to_box($statistic_value));
-						return if unlikely!(previous.is_some())
+						&tab_then_statistic_value[1 .. ]
+					}
+					else
+					{
+						return Err(CouldNotParseLine { zero_based_line_number, cause: ValueNotPreceededByHorizontalTab })
+					};
+
+					match statistic_name
+					{
+						$(
+							$proc_status_name => if unlikely!($struct_field)
+							{
+								return Err(CouldNotParseLine { zero_based_line_number, cause: DuplicatedStatistic })
+							}
+							else
+							{
+								$struct_field = true;
+
+								let result = Self::$parse(statistic_value).map_err(|cause| CouldNotParseLine { zero_based_line_number, cause})?;
+								unsafe { std::ptr::write(&mut $this.$struct_field, result) };
+							},
+						)*
+
+						_ =>
 						{
-							Err(ProcessStatusStatisticParseError::DuplicatedStatistic)
-						}
-						else
-						{
-							Ok(())
+							let previous = $this.unrecognised.insert(Self::to_box(statistic_name), Self::to_box(statistic_value));
+							if unlikely!(previous.is_some())
+							{
+								return Err(CouldNotParseLine { zero_based_line_number, cause: DuplicatedStatistic })
+							}
 						}
 					}
+
+					$(
+						if unlikely!(!$struct_field)
+						{
+							return Err(MissingRequiredField)
+						}
+					)*
+
+					zero_based_line_number += 1;
 				}
 			}
 		}
 
+		let file_path = proc_path.process_file_path(process_identifier, "status");
+		let reader = BufReader::with_capacity(4096, File::open(file_path)?);
+		#[allow(deprecated, invalid_value)] let mut this: Self = unsafe { uninitialized() };
+		unsafe { std::ptr::write(&mut this.unrecognised, HashMap::default())}
 		parse!
 		(
-			statistic_name, statistic_value,
+			reader, this,
 
 			b"Name" => process_name @ parse_token,
 			b"Umask" => file_mode_creation_mask @ parse_mode,
 			b"State" => state @ parse_process_state,
-			b"Tgid" => thread_group_identifier @ parse_pid,
-			b"Ngid" => numa_group_identifier @ parse_numa_node,
-			b"Pid" => process_identifier @ parse_pid,
-			b"PPid" => parent_process_identifier @ parse_pid,
-			b"TracerPid" => tracer_process_identifier @ parse_pid,
+			b"Tgid" => thread_group_identifier @ parse_process_identifier,
+			b"Ngid" => numa_group_identifier @ parse_maybe_zero_process_identifier,
+			b"Pid" => process_identifier @ parse_process_identifier,
+			b"PPid" => parent_process_identifier @ parse_maybe_zero_process_identifier,
+			b"TracerPid" => tracer_process_identifier @ parse_maybe_zero_process_identifier,
 			b"Uid" => user_identifiers @ parse_user_identifiers,
 			b"Gid" => group_identifiers @ parse_group_identifiers,
 			b"FDSize" => number_of_file_descriptor_slots_currently_allocated @ parse_u64,
 			b"Groups" => groups @ parse_groups,
-			b"NStgid" => descendant_namespace_thread_group_identifier @ parse_pids,
-			b"NSpid" => descendant_namespace_process_identifier @ parse_pids,
-			b"NSpgid" => descendant_namespace_process_group_identifier @ parse_pids,
-			b"NSsid" => descendant_namespace_session_identifier @ parse_pids,
+			b"NStgid" => descendant_namespace_thread_group_identifier @ parse_process_identifiers,
+			b"NSpid" => descendant_namespace_process_identifier @ parse_process_identifiers,
+			b"NSpgid" => descendant_namespace_process_group_identifier @ parse_process_identifiers,
+			b"NSsid" => descendant_namespace_session_identifier @ parse_process_identifiers,
 			b"VmPeak" => peak_virtual_memory_size @ parse_kb,
 			b"VmSize" => total_program_size @ parse_kb,
 			b"VmLck" => locked_memory_size @ parse_kb,
@@ -766,7 +433,6 @@ impl ProcessStatusStatistics
 			b"VmExe" => text_segment_size @ parse_kb,
 			b"VmLi" => dynamically_loaded_shared_library_size @ parse_kb,
 			b"VmPTE" => page_table_entries_size @ parse_kb,
-			b"VmPMD" => vm_pmd @ parse_kb,
 			b"VmSwap" => swap_memory_size @ parse_kb,
 			b"HugetlbPages" => huge_tlb_pages_memory_size @ parse_kb,
 			b"Threads" => threads @ parse_u64,
@@ -790,6 +456,167 @@ impl ProcessStatusStatistics
 			b"Mems_allowed_list" => numa_nodes_allowed_list @ parse_numa_nodes_allowed_list,
 			b"voluntary_ctxt_switches" => voluntary_context_switches @ parse_u64,
 			b"nonvoluntary_ctxt_switches" => involuntary_context_switches @ parse_u64,
-		)
+		);
+
+		debug_assert!(!this.cpus_allowed.is_empty());
+		debug_assert_eq!(this.cpus_allowed, this.cpus_allowed_list);
+		debug_assert_eq!(this.numa_nodes_allowed, this.numa_nodes_allowed_list);
+
+		this.unrecognised.shrink_to_fit();
+		Ok(this)
 	}
+
+	#[inline(always)]
+	fn to_box(value: &[u8]) -> Box<[u8]>
+	{
+		value.to_vec().into_boxed_slice()
+	}
+
+	#[inline(always)]
+	fn parse_token(value: &[u8]) -> Result<Box<[u8]>, ProcessStatusStatisticParseError>
+	{
+		Ok(Self::to_box(value))
+	}
+
+	#[inline(always)]
+	fn parse_mode(value: &[u8]) -> Result<mode_t, ProcessStatusStatisticParseError>
+	{
+		Ok(mode_t::parse_octal_number_fixed_width(value, 4)?)
+	}
+
+	#[inline(always)]
+	fn parse_process_state(value: &[u8]) -> Result<ProcessState, ProcessStatusStatisticParseError>
+	{
+		ProcessState::from_bytes(value)
+	}
+
+	#[inline(always)]
+	fn parse_process_identifier(value: &[u8]) -> Result<ProcessIdentifier, ProcessStatusStatisticParseError>
+	{
+		Ok(ProcessIdentifier::parse_decimal_number(value)?)
+	}
+
+	#[inline(always)]
+	fn parse_maybe_zero_process_identifier(value: &[u8]) -> Result<Option<ProcessIdentifier>, ProcessStatusStatisticParseError>
+	{
+		Ok(Option::<ProcessIdentifier>::parse_decimal_number(value)?)
+	}
+
+	#[inline(always)]
+	fn parse_user_identifiers(value: &[u8]) -> Result<ProcessUserIdentifiers, ProcessStatusStatisticParseError>
+	{
+		ProcessUserIdentifiers::from_bytes(value)
+	}
+
+	#[inline(always)]
+	fn parse_group_identifiers(value: &[u8]) -> Result<ProcessGroupIdentifiers, ProcessStatusStatisticParseError>
+	{
+		ProcessGroupIdentifiers::from_bytes(value)
+	}
+
+	#[inline(always)]
+	fn parse_groups(value: &[u8]) -> Result<Groups, ProcessStatusStatisticParseError>
+	{
+		Groups::from_bytes(value)
+	}
+
+	#[inline(always)]
+	fn parse_process_identifiers(value: &[u8]) -> Result<ProcessIdentifiers, ProcessStatusStatisticParseError>
+	{
+		ProcessIdentifiers::from_bytes(value)
+	}
+
+	#[inline(always)]
+	fn parse_u64(value: &[u8]) -> Result<u64, ProcessStatusStatisticParseError>
+	{
+		Ok(u64::parse_decimal_number(value)?)
+	}
+
+	#[inline(always)]
+	fn parse_kb(value: &[u8]) -> Result<Kilobyte, ProcessStatusStatisticParseError>
+	{
+		const Ending: &'static [u8] = b" kB";
+
+		if likely!(value.ends_with(b" kB"))
+		{
+			Self::parse_u64(&value[0 .. value.len() - Ending.len()])
+		}
+		else
+		{
+			Err(ProcessStatusStatisticParseError::InvalidEnding)
+		}
+	}
+
+	#[inline(always)]
+	fn parse_signal_queue(value: &[u8]) -> Result<SignalQueueStatus, ProcessStatusStatisticParseError>
+	{
+		SignalQueueStatus::from_bytes(value)
+	}
+
+	#[inline(always)]
+	fn parse_hexadecimal_u64(value: &[u8]) -> Result<u64, ProcessStatusStatisticParseError>
+	{
+		Ok(u64::parse_hexadecimal_number_lower_case(value)?)
+	}
+
+	#[inline(always)]
+	fn parse_signal_bitset(value: &[u8]) -> Result<SignalBitSet, ProcessStatusStatisticParseError>
+	{
+		Ok(SignalBitSet(Self::parse_hexadecimal_u64(value)?))
+	}
+
+	#[inline(always)]
+	fn parse_capability_mask_or_set(value: &[u8]) -> Result<BitSet<Capability>, ProcessStatusStatisticParseError>
+	{
+		Ok(BitSet::new_from_u64(Self::parse_hexadecimal_u64(value)?))
+	}
+
+	#[inline(always)]
+	fn parse_bool(value: &[u8]) -> Result<bool, ProcessStatusStatisticParseError>
+	{
+		if likely!(value.len() == 1)
+		{
+			match value[0]
+			{
+				b'0' => Ok(false),
+				b'1' => Ok(true),
+				_ => Err(ProcessStatusStatisticParseError::OutOfRange)
+			}
+		}
+		else
+		{
+			Err(ProcessStatusStatisticParseError::InvalidLength)
+		}
+	}
+
+	#[inline(always)]
+	fn parse_seccomp_mode(value: &[u8]) -> Result<SeccompMode, ProcessStatusStatisticParseError>
+	{
+		SeccompMode::from_bytes(value)
+	}
+
+	#[inline(always)]
+	fn parse_speculation_store_bypass(value: &[u8]) -> Result<SpeculationStoreBypassStatus, ProcessStatusStatisticParseError>
+	{
+		SpeculationStoreBypassStatus::from_bytes(value)
+	}
+
+	#[inline(always)]
+	fn parse_cpus_or_numa_nodes_allowed<BSA: BitSetAware>(value: &[u8]) -> Result<BitSet<BSA>, ProcessStatusStatisticParseError>
+	{
+		Ok(BitSet::parse_hyper_thread_or_numa_node_bit_set(&value))
+	}
+
+	#[inline(always)]
+	fn parse_cpus_allowed_list(value: &[u8]) -> Result<BitSet<HyperThread>, ProcessStatusStatisticParseError>
+	{
+		Ok(BitSet::<HyperThread>::parse_linux_list_string(value)?)
+	}
+
+	#[inline(always)]
+	fn parse_numa_nodes_allowed_list(value: &[u8]) -> Result<BitSet<NumaNode>, ProcessStatusStatisticParseError>
+	{
+		Ok(BitSet::<NumaNode>::parse_linux_list_string(value)?)
+	}
+
 }

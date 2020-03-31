@@ -22,6 +22,7 @@ use std::os::unix::io::AsRawFd;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process;
+use linux_support_common::process::{UserIdentifier, GroupIdentifier};
 
 
 include!("Daemonize.rs");

@@ -3,6 +3,8 @@
 
 
 use crate::paths::*;
+use crate::strings::parse_number::*;
+use likely::*;
 use std::collections::HashMap;
 use std::error;
 use std::fmt;
@@ -14,10 +16,7 @@ use std::io;
 use std::io::BufRead;
 use std::io::BufReader;
 use std::io::ErrorKind;
-use std::num::ParseIntError;
 use std::path::Path;
-use std::str::from_utf8;
-use std::str::Utf8Error;
 
 
 include!("MemoryInformation.rs");

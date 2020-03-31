@@ -3,9 +3,9 @@
 
 
 #[inline(always)]
-fn setresuid_wrapper(real_user_identifier: uid_t, effective_user_identifier: uid_t, saved_set_user_identifier: uid_t)
+fn setresuid_wrapper(real_user_identifier: UserIdentifier, effective_user_identifier: UserIdentifier, saved_set_user_identifier: UserIdentifier)
 {
-	let result = unsafe { setresuid(real_user_identifier, effective_user_identifier, saved_set_user_identifier) };
+	let result = unsafe { setresuid(real_user_identifier.into(), effective_user_identifier.into(), saved_set_user_identifier.into()) };
 	if likely!(result == 0)
 	{
 	}

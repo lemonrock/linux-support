@@ -26,12 +26,14 @@ pub enum ParseNumberError
 	/// A fixed width hexadecimal number has the wrong number of bytes.
 	HexadecimalFixedWidthNumberHasWrongNumberOfBytes
 	{
+		/// Fixed width.
 		fixed_width: usize,
 	},
 
 	/// A fixed width octal number has the wrong number of bytes.
 	OctalFixedWidthNumberHasWrongNumberOfBytes
 	{
+		/// Fixed width.
 		fixed_width: usize,
 	},
 
@@ -56,6 +58,9 @@ pub enum ParseNumberError
 
 	/// Non-zero numbers are not allowed to be zero.
 	WasZero,
+
+	/// eg 0xFFFF or 0xFFFFFFFF; for example, PCI vendor and device numbers are not allowed to be 0xFFFF.
+	WasMaximum,
 }
 
 impl Display for ParseNumberError

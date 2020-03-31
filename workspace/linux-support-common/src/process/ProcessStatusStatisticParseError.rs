@@ -37,7 +37,7 @@ pub enum ProcessStatusStatisticParseError
 	NotAValidNumber(ParseNumberError),
 
 	/// Value was not a valid number.
-	NotAValidBitSerAware(BitSetAwareTryFromU16Error),
+	NotAValidBitSetAware(BitSetAwareTryFromU16Error),
 }
 
 impl Display for ProcessStatusStatisticParseError
@@ -78,7 +78,7 @@ impl error::Error for ProcessStatusStatisticParseError
 
 			&NotAValidListOfCpusOrNumaNodes(ref error) => Some(error),
 
-			&NotAValidBitSerAware(ref error) => Some(error),
+			&NotAValidBitSetAware(ref error) => Some(error),
 		}
 	}
 }
@@ -106,6 +106,6 @@ impl From<BitSetAwareTryFromU16Error> for ProcessStatusStatisticParseError
 	#[inline(always)]
 	fn from(error: BitSetAwareTryFromU16Error) -> Self
 	{
-		ProcessStatusStatisticParseError::NotAValidNumber(error)
+		ProcessStatusStatisticParseError::NotAValidBitSetAware(error)
 	}
 }

@@ -24,6 +24,25 @@ impl Into<u16> for PciVendorIdentifier
 	}
 }
 
+impl FromBytes for PciVendorIdentifier
+{
+	type Error = ParseNumberError;
+
+	#[inline(always)]
+	fn from_bytes(bytes: &[u8]) -> Result<Self, Self::Error>
+	{
+		let raw_value = u16::parse_hexadecimal_number_lower_case_with_0x_prefix_fixed_width(bytes, size_of::<u16>() * 2)?;
+		if unlikely!(raw_value == Self::AnyOrInvalidRaw)
+		{
+			Err(ParseNumberError::WasMaximum)
+		}
+		else
+		{
+			Ok(Self(raw_value))
+		}
+	}
+}
+
 impl PciVendorIdentifier
 {
 	#[allow(missing_docs)]

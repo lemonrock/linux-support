@@ -2,29 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A user identifier.
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-#[derive(Deserialize, Serialize)]
+/// An user identifier.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct UserIdentifier(uid_t);
-
-impl UserOrGroupIdentifier for UserIdentifier
-{
-	const Zero: Self = UserIdentifier(0);
-
-	const FileName: &'static str = "uid_map";
-
-	#[inline(always)]
-	fn current() -> Self
-	{
-		Self(unsafe { getuid() })
-	}
-
-	#[inline(always)]
-	fn get(self) -> u32
-	{
-		self.0
-	}
-}
 
 impl From<uid_t> for UserIdentifier
 {
@@ -41,5 +22,38 @@ impl Into<uid_t> for UserIdentifier
 	fn into(self) -> uid_t
 	{
 		self.0
+	}
+}
+
+impl FromBytes for UserIdentifier
+{
+	type Error = ParseNumberError;
+
+	#[inline(always)]
+	fn from_bytes(value: &[u8]) -> Result<Self, Self::Error>
+	{
+		Ok(Self(uid_t::parse_decimal_number(value)?))
+	}
+}
+
+impl Default for UserIdentifier
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self::current()
+	}
+}
+
+impl UserOrGroupIdentifier for UserIdentifier
+{
+	const Zero: Self = UserIdentifier(0);
+
+	const FileName: &'static str = "uid_map";
+
+	#[inline(always)]
+	fn current() -> Self
+	{
+		Self(unsafe { getuid() })
 	}
 }

@@ -2,10 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::paths::*;
-use crate::cpu::*;
+use crate::bit_set::BitSet;
 use crate::linux_kernel_modules::*;
+use crate::cpu::*;
 use crate::memory::numa::NumaNode;
+use crate::paths::*;
+use crate::strings::FromBytes;
 use crate::strings::IntoLineFeedTerminatedByteString;
 use crate::strings::parse_number::*;
 use crate::user_and_groups::assert_effective_user_id_is_root;
@@ -14,6 +16,8 @@ use self::classification::subclasses::NetworkController;
 use self::configuration_space::MemoryMappedConfigurationSpace;
 use self::link::*;
 use self::resources::Resources;
+use either::Either;
+use either::Either::Left;
 use errno::errno;
 use file_descriptors::RawFdExt;
 use libc::c_void;
@@ -58,7 +62,6 @@ use std::os::unix::io::*;
 use std::path::PathBuf;
 use std::str::Utf8Error;
 use std::borrow::Cow;
-use crate::bit_set::BitSet;
 
 
 /// Classifications.

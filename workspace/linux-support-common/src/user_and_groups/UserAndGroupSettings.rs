@@ -71,8 +71,8 @@ impl UserAndGroupSettings
 
 		setresuid_wrapper(real_user_identifier, effective_user_identifier, saved_set_user_identifier);
 		setresgid_wrapper(real_group_identifier, effective_group_identifier, saved_set_group_identifier);
-		unsafe { setfsuid(file_system_user_identifier) };
-		unsafe { setfsgid(file_system_group_identifier) };
+		unsafe { setfsuid(file_system_user_identifier.into()) };
+		unsafe { setfsgid(file_system_group_identifier.into()) };
 
 		if unlikely!(self.initialize_groups)
 		{
@@ -83,13 +83,13 @@ impl UserAndGroupSettings
 	}
 
 	#[inline(always)]
-	fn get_and_parse_user_entry(&self, user_name: &CStr) -> (uid_t, gid_t, NonNull<c_char>)
+	fn get_and_parse_user_entry(&self, user_name: &CStr) -> (UserIdentifier, GroupIdentifier, NonNull<c_char>)
 	{
 		let entry = self.get_user_entry(user_name);
 		let entry = unsafe { entry.as_ref() };
 		(
-			entry.pw_uid,
-			entry.pw_gid,
+			UserIdentifier::from(entry.pw_uid),
+			GroupIdentifier::from(entry.pw_gid),
 			NonNull::new(entry.pw_dir).expect("pw_dir was null"),
 		)
 	}

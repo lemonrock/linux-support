@@ -242,14 +242,9 @@ impl LinuxKernelCommandLineParameters
 
 	/// Gets a value and parses it.
 	#[inline(always)]
-	pub fn get_value_parsed<F: FromStr>(&self, name: &'static [u8]) -> Option<F>
-	where F::Err: Debug
+	pub fn get_value_parsed<F: FromBytes>(&self, name: &'static [u8]) -> Option<F>
 	{
-		self.get_value(name).map(|value|
-		{
-			let str_value = from_utf8(value).unwrap();
-			str_value.parse::<F>().unwrap()
-		})
+		self.get_value(name).map(|bytes| F::from_bytes(bytes).unwrap())
 	}
 
 	/// NUMA `hashdist`.

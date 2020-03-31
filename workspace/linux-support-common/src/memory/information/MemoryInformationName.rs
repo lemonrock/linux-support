@@ -211,4 +211,18 @@ impl MemoryInformationName
 			_ => KiloByte,
 		}
 	}
+
+	#[inline(always)]
+	pub(crate) fn validate_unit<'a>(&self, bytes: &'a [u8], zero_based_line_number: usize) -> Result<&'a [u8], MemoryInformationParseError>
+	{
+		let ends_with = self.unit().ends_with();
+		if likely!(bytes.ends_with(ends_with))
+		{
+			Ok(&bytes[0 .. bytes.len() - ends_with.len()])
+		}
+		else
+		{
+			Err(MemoryInformationParseError::InvalidUnit { zero_based_line_number })
+		}
+	}
 }

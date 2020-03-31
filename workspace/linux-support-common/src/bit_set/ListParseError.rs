@@ -9,31 +9,8 @@ pub enum ListParseError
 	/// Contains an empty index or range.
 	ContainsAnEmptyIndexOrRange,
 
-	/// Could not parse index (not a string).
-	CouldNotParseIndexAsNotAString
-	{
-		/// Description.
-		description: &'static str,
-
-		/// Unparsable index.
-		unparsable_index: Box<[u8]>,
-
-		/// Cause.
-		cause: Utf8Error,
-	},
-
 	/// Could not parse index.
-	CouldNotParseIndex
-	{
-		/// Description.
-		description: &'static str,
-
-		/// Unparsable index.
-		unparsable_index: String,
-
-		/// Cause.
-		cause: ParseIntError,
-	},
+	CouldNotParseIndex(ParseNumberError),
 
 	/// Index out of range (eg only an u8 is acceptable but a value larger than 255 was parsed).
 	IndexOutOfRange(BitSetAwareTryFromU16Error),
@@ -79,9 +56,7 @@ impl error::Error for ListParseError
 		{
 			&ContainsAnEmptyIndexOrRange => None,
 
-			&CouldNotParseIndexAsNotAString { ref cause, .. } => Some(cause),
-
-			&CouldNotParseIndex { ref cause, .. } => Some(cause),
+			&CouldNotParseIndex(ref cause) => Some(cause),
 
 			&IndexOutOfRange(ref cause) => Some(cause),
 
@@ -92,6 +67,15 @@ impl error::Error for ListParseError
 	}
 }
 
+impl From<ParseNumberError> for ListParseError
+{
+	#[inline(always)]
+	fn from(error: ParseNumberError) -> Self
+	{
+		ListParseError::CouldNotParseIndex(error)
+	}
+}
+
 impl From<BitSetAwareTryFromU16Error> for ListParseError
 {
 	#[inline(always)]
@@ -99,8 +83,4 @@ impl From<BitSetAwareTryFromU16Error> for ListParseError
 	{
 		ListParseError::IndexOutOfRange(error)
 	}
-}
-
-impl ListParseError
-{
 }

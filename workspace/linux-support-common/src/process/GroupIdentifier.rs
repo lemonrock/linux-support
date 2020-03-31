@@ -3,28 +3,9 @@
 
 
 /// A group identifier.
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-#[derive(Deserialize, Serialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct GroupIdentifier(gid_t);
-
-impl UserOrGroupIdentifier for GroupIdentifier
-{
-	const Zero: Self = GroupIdentifier(0);
-
-	const FileName: &'static str = "gid_map";
-
-	#[inline(always)]
-	fn current() -> Self
-	{
-		Self(unsafe { getgid() })
-	}
-
-	#[inline(always)]
-	fn get(self) -> u32
-	{
-		self.0
-	}
-}
 
 impl From<gid_t> for GroupIdentifier
 {
@@ -41,5 +22,38 @@ impl Into<gid_t> for GroupIdentifier
 	fn into(self) -> gid_t
 	{
 		self.0
+	}
+}
+
+impl FromBytes for GroupIdentifier
+{
+	type Error = ParseNumberError;
+
+	#[inline(always)]
+	fn from_bytes(value: &[u8]) -> Result<Self, Self::Error>
+	{
+		Ok(Self(gid_t::parse_decimal_number(value)?))
+	}
+}
+
+impl Default for GroupIdentifier
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self::current()
+	}
+}
+
+impl UserOrGroupIdentifier for GroupIdentifier
+{
+	const Zero: Self = GroupIdentifier(0);
+
+	const FileName: &'static str = "gid_map";
+
+	#[inline(always)]
+	fn current() -> Self
+	{
+		Self(unsafe { getgid() })
 	}
 }

@@ -5,6 +5,7 @@
 use crate::file_systems::FileSystemType;
 use crate::paths::PathExt;
 use crate::paths::ProcPath;
+use crate::process::ProcessIdentifierChoice;
 use crate::strings::c_string_pointer_to_path_buf;
 use crate::strings::ConstCStr;
 use bitflags::bitflags;
@@ -24,7 +25,6 @@ use std::io;
 use std::io::ErrorKind;
 use std::path::Path;
 use std::path::PathBuf;
-use crate::process::ProcessIdentifier;
 
 
 include!("Mount.rs");

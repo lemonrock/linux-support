@@ -16,14 +16,14 @@ pub enum MemoryInformationUnit
 impl MemoryInformationUnit
 {
 	#[inline(always)]
-	pub(crate) fn ends_with(&self) -> &'static str
+	pub(crate) fn ends_with(self) -> &'static [u8]
 	{
 		use self::MemoryInformationUnit::*;
 
-		match *self
+		match self
 		{
-			KiloByte => " kB",
-			Count => "",
+			KiloByte => b" kB",
+			Count => b"",
 		}
 	}
 }

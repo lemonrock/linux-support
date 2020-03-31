@@ -7,8 +7,9 @@ use crate::cpu::*;
 use crate::memory::numa::NumaNode;
 use crate::memory::huge_pages::HugePageSize;
 use crate::pci_express::PciDeviceAddress;
-use crate::strings::{IntoLineFeedTerminatedByteString, FromBytes};
-use crate::strings::parse_number::ParseNumber;
+use crate::process::ProcessIdentifierChoice;
+use crate::strings::FromBytes;
+use crate::strings::IntoLineFeedTerminatedByteString;
 use errno::errno;
 use libc::c_void;
 use libc::MAP_FAILED;
@@ -27,7 +28,7 @@ use std::fs::*;
 use std::io;
 use std::io::ErrorKind;
 use std::io::Write;
-use std::mem::{align_of, size_of};
+use std::mem::align_of;
 use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::PermissionsExt;
 use std::os::unix::io::AsRawFd;
@@ -36,7 +37,6 @@ use std::ptr::NonNull;
 use std::ptr::null_mut;
 use std::ptr::read_volatile;
 use std::ptr::write_volatile;
-use crate::process::ProcessIdentifier;
 
 
 include!("DevPath.rs");

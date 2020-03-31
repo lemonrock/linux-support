@@ -21,9 +21,8 @@ use std::fmt::Formatter;
 use std::io;
 use std::os::unix::ffi::OsStringExt;
 use std::path::PathBuf;
-use std::str::from_utf8;
-use std::str::FromStr;
 use std::ops::Deref;
+use crate::strings::FromBytes;
 
 
 include!("fail.rs");

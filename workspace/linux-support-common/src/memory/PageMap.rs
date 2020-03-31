@@ -12,12 +12,12 @@ impl PageMap
 	#[inline(always)]
 	pub fn read_our_pagemap<HVA: HasVirtualAddress>(proc_path: &ProcPath, have_virtual_addresses: impl Iterator<Item=HVA>, page_map_entry_user: impl FnMut(HVA, VirtualAddress, PageMapEntry)) -> io::Result<()>
 	{
-		Self::read_process_pagemap(proc_path, None, have_virtual_addresses, page_map_entry_user)
+		Self::read_process_pagemap(proc_path, ProcessIdentifierChoice::Current, have_virtual_addresses, page_map_entry_user)
 	}
 
 	/// Read a process' pagemap file.
 	#[inline(always)]
-	pub fn read_process_pagemap<HVA: HasVirtualAddress>(proc_path: &ProcPath, process_identifier: Option<ProcessIdentifier>, have_virtual_addresses: impl Iterator<Item=HVA>, page_map_entry_user: impl FnMut(HVA, VirtualAddress, PageMapEntry)) -> io::Result<()>
+	pub fn read_process_pagemap<HVA: HasVirtualAddress>(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice, have_virtual_addresses: impl Iterator<Item=HVA>, page_map_entry_user: impl FnMut(HVA, VirtualAddress, PageMapEntry)) -> io::Result<()>
 	{
 		Self::read_pagemap_file(have_virtual_addresses, page_map_entry_user, &proc_path.process_file_path(process_identifier, "pagemap"))
 	}

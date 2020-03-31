@@ -10,7 +10,7 @@ impl Mounts
 {
 	/// Current mounts (from `/proc/<X>/mounts`).
 	#[inline(always)]
-	pub fn parse(proc_path: &ProcPath, process_identifier: Option<ProcessIdentifier>) -> Result<Mounts, io::Error>
+	pub fn parse(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> Result<Mounts, io::Error>
 	{
 		let mounts_wrapper = MountsWrapper::new(&proc_path.process_file_path(process_identifier, "mounts"), true)?;
 

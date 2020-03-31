@@ -54,11 +54,11 @@ impl<'a> NonRootCgroup<'a>
 	#[inline(always)]
 	pub fn read_events_is_populated(&self, mount_point: &CgroupMountPoint) -> io::Result<bool>
 	{
-		let path = self.events_file_path(mount_point);
-		match path.read_string_without_line_feed()?.as_str()
+		let bytes = self.events_file_path(mount_point).read_raw_without_line_feed()?;
+		match &bytes[..]
 		{
-			"populated 0" => Ok(false),
-			"populated 1" => Ok(true),
+			b"populated 0" => Ok(false),
+			b"populated 1" => Ok(true),
 			_ => Err(io::Error::from(ErrorKind::InvalidData)),
 		}
 	}

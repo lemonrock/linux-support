@@ -28,6 +28,9 @@ pub enum ProcessStatusFileParseError
 		/// Cause.
 		cause: ProcessStatusStatisticParseError,
 	},
+
+	/// Missing a required field.
+	MissingRequiredField,
 }
 
 impl Display for ProcessStatusFileParseError
@@ -53,6 +56,8 @@ impl error::Error for ProcessStatusFileParseError
 			&CouldNotReadLine { ref cause, .. } => Some(cause),
 
 			&CouldNotParseLine { ref cause, .. } => Some(cause),
+
+			&MissingRequiredField => None,
 		}
 	}
 }

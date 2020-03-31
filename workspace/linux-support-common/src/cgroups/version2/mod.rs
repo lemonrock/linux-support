@@ -3,7 +3,7 @@
 
 
 use crate::paths::*;
-use crate::process::ProcessIdentifier;
+use crate::process::{ProcessIdentifier, ProcessIdentifierChoice};
 use crate::strings::FromBytes;
 use crate::strings::IntoLineFeedTerminatedByteString;
 use crate::strings::parse_number::ParseNumberError;

@@ -53,14 +53,14 @@ impl Default for Daemonize
 
 impl OriginalRealUserAndGroupIdentifierUser for Daemonize
 {
-	fn create_pid_file_before_switching_user_and_group(&self, effective_user_identifier: uid_t, effective_group_identifier: gid_t)
+	fn create_pid_file_before_switching_user_and_group(&self, effective_user_identifier: UserIdentifier, effective_group_identifier: GroupIdentifier)
 	{
 		let pid_file_path = self.pid_file_path();
 		let pid_file_path_string = pid_file_path.to_c_string();
 
 		let file_descriptor = unsafe { open(pid_file_path_string.as_ptr(), O_CREAT | O_WRONLY, (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) as u32) };
 		assert!(file_descriptor >= 0, "Could not create PID file '{:?}' because '{}'", &pid_file_path_string, Self::os_error());
-		assert_eq!(unsafe { fchown(file_descriptor, effective_user_identifier, effective_group_identifier) }, 0, "Could not change ownership of PID file '{:?}' because '{}'", &pid_file_path_string, Self::os_error());
+		assert_eq!(unsafe { fchown(file_descriptor, effective_user_identifier.into(), effective_group_identifier.into()) }, 0, "Could not change ownership of PID file '{:?}' because '{}'", &pid_file_path_string, Self::os_error());
 		unsafe { close(file_descriptor) };
 	}
 }

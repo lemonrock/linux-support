@@ -3,7 +3,9 @@
 
 
 /// An User Identifier or a Group Identifier.
-pub trait UserOrGroupIdentifier: Into<u32> + Sized + Default + Copy
+///
+/// Linux uid and gid values can never be negative (unlike, say HP-UX).
+pub trait UserOrGroupIdentifier: Sized + Copy + Into<u32> + Default
 {
 	/// Zero.
 	const Zero: Self;
@@ -11,9 +13,6 @@ pub trait UserOrGroupIdentifier: Into<u32> + Sized + Default + Copy
 	/// File name.
 	const FileName: &'static str;
 
-	/// Current value.
+	/// Current value (also default).
 	fn current() -> Self;
-
-	/// Get inner value.
-	fn get(self) -> u32;
 }

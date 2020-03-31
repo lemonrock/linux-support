@@ -5,6 +5,7 @@
 /// From bytes.
 pub trait FromBytes: Sized
 {
+	/// Error.
 	type Error: error::Error;
 
 	/// From bytes.

@@ -115,7 +115,7 @@ macro_rules! non_zero_number_as_bytes
 		impl NumberAsBytes for $non_zero_type
 		{
 			#[inline(always)]
-			fn number_as_bytes(self, mut bytes_index: usize, bytes: &mut [u8], radix: Radix, non_numeric_digit_case: NonNumericDigitCase) -> usize
+			fn number_as_bytes(self, bytes_index: usize, bytes: &mut [u8], radix: Radix, non_numeric_digit_case: NonNumericDigitCase) -> usize
 			{
 				self.get().number_as_bytes(bytes_index, bytes, radix, non_numeric_digit_case)
 			}

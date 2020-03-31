@@ -11,7 +11,7 @@ impl BitSet<NumaNode>
 	pub fn valid(sys_path: &SysPath, proc_path: &ProcPath) -> Option<Self>
 	{
 		let mut valid = Self::has_a_folder_path(sys_path)?;
-		valid.intersection(&Self::is_in_proc_self_status(proc_path).unwrap());
+		valid.intersection(&Self::is_in_proc_self_status(proc_path));
 		valid.intersection(&Self::have_at_least_one_cpu(sys_path).unwrap());
 		valid.intersection(&Self::possible(sys_path).unwrap());
 		valid.intersection(&Self::online(sys_path).unwrap());
@@ -35,14 +35,12 @@ impl BitSet<NumaNode>
 
 	/// NUMA nodes that could possibly be online at some point.
 	///
-	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`.
+	/// This will be empty if the Linux kernel wasn't configured with `CONFIG_NUMA`.
 	#[inline(always)]
-	fn is_in_proc_self_status(proc_path: &ProcPath) -> Option<Self>
+	fn is_in_proc_self_status(proc_path: &ProcPath) -> Self
 	{
 		let process_status_statistics = ProcessStatusStatistics::self_status(proc_path).unwrap();
-		let allowed = process_status_statistics.numa_nodes_allowed;
-		debug_assert_eq!(allowed, process_status_statistics.numa_nodes_allowed_list);
-		allowed
+		process_status_statistics.numa_nodes_allowed
 	}
 
 	/// NUMA nodes that have a CPU.

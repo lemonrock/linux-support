@@ -107,7 +107,7 @@ impl<'a> Cgroup<'a>
 
 	/// Migrate process to this cgroup.
 	#[inline(always)]
-	pub fn migrate_process_to_this_cgroup(&self, mount_point: &CgroupMountPoint, process_identifier: Option<ProcessIdentifier>) -> io::Result<()>
+	pub fn migrate_process_to_this_cgroup(&self, mount_point: &CgroupMountPoint, process_identifier: ProcessIdentifierChoice) -> io::Result<()>
 	{
 		self.write_process_identifier(mount_point, "cgroup.procs", process_identifier)
 	}
@@ -120,7 +120,7 @@ impl<'a> Cgroup<'a>
 	}
 
 	#[inline(always)]
-	fn write_process_identifier(&self, mount_point: &CgroupMountPoint, file_name: &str, process_identifier: Option<ProcessIdentifier>) -> io::Result<()>
+	fn write_process_identifier(&self, mount_point: &CgroupMountPoint, file_name: &str, process_identifier: ProcessIdentifierChoice) -> io::Result<()>
 	{
 		let path = self.file_path(mount_point, file_name);
 		path.write_value(process_identifier)
@@ -165,7 +165,7 @@ impl<'a> Cgroup<'a>
 
 	/// Migrate thread to this cgroup.
 	#[inline(always)]
-	pub fn migrate_thread_to_this_cgroup(&self, mount_point: &CgroupMountPoint, thread_identifier: Option<ProcessIdentifier>) -> io::Result<()>
+	pub fn migrate_thread_to_this_cgroup(&self, mount_point: &CgroupMountPoint, thread_identifier: ProcessIdentifierChoice) -> io::Result<()>
 	{
 		self.write_process_identifier(mount_point, "cgroup.threads", thread_identifier)
 	}

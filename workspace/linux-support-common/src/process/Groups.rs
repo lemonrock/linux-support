@@ -2,43 +2,38 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// `seccomp` mode.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(u32)]
-pub enum SeccompMode
+/// Groups.
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[repr(transparent)]
+pub struct Groups(BTreeSet<GroupIdentifier>);
+
+impl Deref for Groups
 {
-	/// Off.
-	Off = 0,
+	type Target = BTreeSet<GroupIdentifier>;
 
-	/// Strict.
-	Strict = 1,
-
-	/// Filter.
-	Filter = 2,
+	#[inline(always)]
+	fn deref(&self) -> &Self::Target
+	{
+		&self.0
+	}
 }
 
-impl FromBytes for SeccompMode
+impl FromBytes for Groups
 {
 	type Error = ProcessStatusStatisticParseError;
 
 	#[inline(always)]
 	fn from_bytes(value: &[u8]) -> Result<Self, Self::Error>
 	{
-		if likely!(value.len() == 1)
+		let mut groups = BTreeSet::new();
+		for value in value.split(|byte| *byte == b' ')
 		{
-			use self::SeccompMode::*;
-
-			match value[0]
+			let was_added_for_the_first_time = groups.insert(GroupIdentifier::from_bytes(value)?);
+			if unlikely!(!was_added_for_the_first_time)
 			{
-				b'0' => Ok(Off),
-				b'1' => Ok(Strict),
-				b'2' => Ok(Filter),
-				_ => Err(ProcessStatusStatisticParseError::OutOfRange)
+				return Err(ProcessStatusStatisticParseError::DuplicatedStatisticValue)
 			}
 		}
-		else
-		{
-			Err(ProcessStatusStatisticParseError::InvalidLength)
-		}
+		Ok(Self(groups))
 	}
 }

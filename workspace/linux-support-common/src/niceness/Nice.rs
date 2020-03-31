@@ -163,7 +163,7 @@ impl Nice
 	#[inline(always)]
 	pub fn set_autogroup_for_current_process(self, proc_path: &ProcPath) -> Result<(), io::Error>
 	{
-		proc_path.process_file_path(None, "autogroup").write_value(self as i32)
+		proc_path.process_file_path(ProcessIdentifierChoice::Current, "autogroup").write_value(self as i32)
 	}
 
 	/// Set the autogroup for the current process.
