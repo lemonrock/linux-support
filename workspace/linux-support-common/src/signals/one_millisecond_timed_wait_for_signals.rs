@@ -22,7 +22,9 @@ pub fn one_millisecond_timed_wait_for_signals(signals_to_wait_for: &sigset_t) ->
 
 	match result
 	{
-		signal if signal >= 0 => Signalled(signal),
+		// MIPS64 is believed to have a range of 1 - 127.
+		// This logic uses (NSIG - 1).
+		#[cfg(any(target_arch = "aarch64", target_arch = "riscv64", target_arch = "powerpc64", target_arch = "x86_64"))] 1 ..= 64 => Signalled(unsafe { transmute(signal as u8) }),
 
 		-1 => match errno().0
 		{

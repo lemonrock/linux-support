@@ -4,7 +4,7 @@
 
 use super::get_program_name;
 use super::cpu::HyperThread;
-use super::signals::SignalNumber;
+use super::signals::Signal;
 use super::strings::ConstCStr;
 use super::strings::to_c_string_robustly;
 use libc::*;
@@ -14,7 +14,6 @@ use libc_extra::android_linux::stdio::fopencookie;
 use libc_extra::linux::errno::program_invocation_short_name;
 use libc_extra::unix::stdio::stderr;
 use libc_extra::unix::stdio::stdout;
-use libc_extra::unix::string::strsignal;
 use serde::Deserialize;
 use serde::Serialize;
 use std::any::Any;

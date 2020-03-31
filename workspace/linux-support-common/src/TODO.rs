@@ -1,12 +1,41 @@
 
 // TODO: Rework kernel validator into sections for numa, memory, etc.
 // TODO: kernel validator proper errors.
-// TODO: SignalNumber as BitSet; two kinds of bit sets.
 // TODO: ProcStat parsing (has extra information).
-// TODO: Check /proc/x/status parsing for [PT] restricted values.
 // TODO: Numa Nodes and hyper threads validation (below)
 // TODO: kernel validator huge pages - make generic for powerpc, aarch64 and riscv64.
-// TODO: u8 - u64, i8 - i64, usize, isize byte string parsing and writing.
+// TODO: /proc/<N>/oom* files and stuff in /proc/sys
+// TODO: Adjust CommitLimit to prevent future out-of-memory.
+
+/*
+	// TODO: NumaNode / HyperThread BTree to BitSet and vice versa; prefer use of BitSet for operations as it is faster.
+
+	xxx;
+	// TODO: Explore hugepages per NUMA node, and check if all files are psent - only:-
+		&nr_hugepages_attr.attr,
+		&free_hugepages_attr.attr,
+		&surplus_hugepages_attr.attr,
+
+	// TODO: Use mmap with the new flags to mmap huge pages
+*/
+
+// TODO:  Automatic NUMA balancing can be enabled or disabled for the current session by writing 1 or 0 to /proc/sys/kernel/numa_balancing which will enable or disable the feature respectively. To permanently enable or disable it, use the kernel command line option numa_balancing=[enable|disable].
+//
+//If Automatic NUMA Balancing is enabled, the task scanner behavior can be configured. The task scanner balances the overhead of Automatic NUMA Balancing with the amount of time it takes to identify the best placement of data.
+//
+//numa_balancing_scan_delay_ms
+//
+//    The amount of CPU time a thread must consume before its data is scanned. This prevents creating overhead because of short-lived processes.
+//numa_balancing_scan_period_min_ms and numa_balancing_scan_period_max_ms
+//
+//    Controls how frequently a task's data is scanned. Depending on the locality of the faults the scan rate will increase or decrease. These settings control the min and max scan rates.
+//numa_balancing_scan_size_mb
+//
+//    Controls how much address space is scanned when the task scanner is active.
+
+
+
+const DirectMemoyAccessMemoryAlignment: usize = 128;
 
 
 pub struct ValidatedNumaNodeToHyperThreadMap

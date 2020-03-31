@@ -3,7 +3,7 @@
 
 
 /// A structure that can be stored in a bit set.
-pub trait BitSetAware: Sized + Into<u16> + TryFrom<u16, Error=BitSetAwareTryFromU16Error> + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash + From<u8> + Into<u32> + Into<u64> + Into<usize> + Into<i32> + Into<i64> + Into<isize>
+pub trait BitSetAware: Sized + Into<u16> + TryFrom<u16, Error=BitSetAwareTryFromU16Error> + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash + Into<u32> + Into<u64> + Into<usize> + Into<i32> + Into<i64> + Into<isize>
 {
 	#[doc(hidden)]
 	const LinuxMaximum: u16;
@@ -17,6 +17,10 @@ pub trait BitSetAware: Sized + Into<u16> + TryFrom<u16, Error=BitSetAwareTryFrom
 	#[doc(hidden)]
 	const Prefix: &'static [u8] = b"";
 
+	/// Mostly exists to support `Signal`.
+	#[doc(hidden)]
+	const OneBasedCorrection: u16 = 0;
+
 	/// Converts item into set of item.
 	#[inline(always)]
 	fn into_bit_set(self) -> BitSet<Self>
@@ -27,7 +31,23 @@ pub trait BitSetAware: Sized + Into<u16> + TryFrom<u16, Error=BitSetAwareTryFrom
 	}
 
 	#[doc(hidden)]
-	fn hydrate(value: u16) -> Self;
+	#[inline(always)]
+	fn dehydrate(self) -> u16
+	{
+		let value: u16 = self.into();
+		value - Self::OneBasedCorrection
+	}
+
+	#[doc(hidden)]
+	#[inline(always)]
+	fn hydrate(value: u16) -> Self
+	{
+		Self::from_validated_u16(value + Self::OneBasedCorrection)
+	}
+
+	// `value` will have had any OneBasedCorrection already applied.
+	#[doc(hidden)]
+	fn from_validated_u16(value: u16) -> Self;
 
 	#[doc(hidden)]
 	#[inline(always)]

@@ -82,10 +82,10 @@ impl MemoryPolicy
 	pub fn get_numa_node_for_memory(address: NonNull<u8>) -> NumaNode
 	{
 		#[allow(deprecated)]
-		let mut mode: i32 = unsafe { uninitialized() };
+		let mut mode = unsafe { uninitialized() };
 		Self::guard_result(get_mempolicy(&mut mode, null_mut(), 0, address.as_ptr() as *mut c_void, GetMemoryPolicyFlags::MPOL_F_NODE | GetMemoryPolicyFlags::MPOL_F_ADDR));
 
-		NumaNode::from(mode as u8)
+		NumaNode::try_from(mode).unwrap()
 	}
 
 	/// Valid policy and NUMA nodes for memory if the current thread's policy is interleaved.
@@ -101,10 +101,10 @@ impl MemoryPolicy
 		}
 
 		#[allow(deprecated)]
-		let mut mode: i32 = unsafe { uninitialized() };
+		let mut mode = unsafe { uninitialized() };
 		Self::guard_result(get_mempolicy(&mut mode, null_mut(), 0, null(), GetMemoryPolicyFlags::MPOL_F_NODE));
 
-		Some(NumaNode::from(mode as u8))
+		Some(NumaNode::try_from(mode).unwrap())
 	}
 
 	#[inline(always)]

@@ -2,18 +2,18 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Converts a hash set of signals to a libc `sigset_t`.
-#[inline(always)]
-pub fn hash_set_to_signal_set(signals: &HashSet<i32>) -> sigset_t
+/// Creates a BitSet.
+#[macro_export]
+macro_rules! bit_set
 {
-	unsafe
-	{
-		#[allow(deprecated)] let mut signal_set: sigset_t = uninitialized();
-		sigemptyset(&mut signal_set);
-		for signal in signals.iter()
-		{
-			sigaddset(&mut signal_set, *signal);
-		}
-		signal_set
-	}
+    ($($element: expr),*) =>
+    {
+        {
+            let mut _set = $crate::bit_set::BitSet::empty();
+            $(
+                _set.add($element);
+            )*
+            _set
+        }
+    };
 }

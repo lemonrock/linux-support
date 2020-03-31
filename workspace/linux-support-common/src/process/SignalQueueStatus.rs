@@ -9,7 +9,7 @@ pub struct SignalQueueStatus
 	/// Number of signals queued.
 	pub number_of_signals_queued: u64,
 
-	/// Maximum number of signals that can be queued (maximum queue depth).
+	/// Maximum number of signals that can be queued (maximum queue depth); see the description of `RLIMIT_SIGPENDING` in the manpage for `getrlimit`.
 	pub maximum_number_of_signals_that_can_be_queued: u64,
 }
 

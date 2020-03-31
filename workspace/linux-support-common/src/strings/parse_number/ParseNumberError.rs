@@ -61,6 +61,12 @@ pub enum ParseNumberError
 
 	/// eg 0xFFFF or 0xFFFFFFFF; for example, PCI vendor and device numbers are not allowed to be 0xFFFF.
 	WasMaximum,
+
+	/// Too small.
+	TooSmall,
+
+	/// Too large.
+	TooLarge,
 }
 
 impl Display for ParseNumberError

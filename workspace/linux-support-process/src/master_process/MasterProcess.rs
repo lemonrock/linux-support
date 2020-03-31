@@ -33,7 +33,7 @@ impl Process for MasterProcess
 
 	type MainError = MasterProcessError;
 
-	fn main(self, _online_shared_hyper_threads_for_os: BTreeSet<HyperThread>, _online_shared_hyper_threads_for_process: BTreeSet<HyperThread>, _online_isolated_hyper_threads_for_process: BTreeSet<HyperThread>, _master_logical_core: HyperThread, proc_path: &ProcPath)-> Result<Option<SignalNumber>, Self::MainError>
+	fn main(self, _online_shared_hyper_threads_for_os: BTreeSet<HyperThread>, _online_shared_hyper_threads_for_process: BTreeSet<HyperThread>, _online_isolated_hyper_threads_for_process: BTreeSet<HyperThread>, _master_logical_core: HyperThread, proc_path: &ProcPath)-> Result<Option<Signal>, Self::MainError>
 	{
 		let maximum_namespaces = self.maximum_children + 1;
 

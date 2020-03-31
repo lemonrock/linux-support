@@ -40,7 +40,7 @@ use linux_support_common::mounts::UnmountFlags;
 use linux_support_common::namespaces::setup_uts_namespace;
 use linux_support_common::namespaces::write_uid_and_gid_maps;
 use linux_support_common::paths::ProcPath;
-use linux_support_common::signals::SignalNumber;
+use linux_support_common::signals::Signal;
 use linux_support_common::strings::ConstCStr;
 use linux_support_common::strings::path_to_cstring;
 use serde::Deserialize;

@@ -9,6 +9,15 @@
 #[repr(transparent)]
 pub struct BitSet<BSA: BitSetAware>(Vec<usize>, PhantomData<BSA>);
 
+impl<BSA: BitSetAware> Default for BitSet<BSA>
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self::empty()
+	}
+}
+
 impl<BSA: BitSetAware> BitSet<BSA>
 {
 	const BitsInAWord: usize = BitsInAByte * size_of::<usize>();
@@ -507,7 +516,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	#[inline(always)]
 	fn word_index_and_relative_bit_index_within_word(element: BSA) -> (usize, usize)
 	{
-		let value: u16 = element.into();
+		let value: u16 = element.dehydrate();
 		let bit_index = value as usize;
 
 		let word_index = bit_index / Self::BitsInAWord;

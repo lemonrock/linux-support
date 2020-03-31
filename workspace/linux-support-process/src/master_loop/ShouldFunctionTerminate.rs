@@ -58,7 +58,7 @@ impl ShouldFunctionTerminate
 
 	/// The master loop was signalled (caught a signal) that was interpreted as meaning 'exit'.
 	#[inline(always)]
-	pub fn exit_signalled(&self, signal_number: Option<SignalNumber>)
+	pub fn exit_signalled(&self, signal_number: Option<Signal>)
 	{
 		log_exit_signalled_to_syslog(signal_number);
 

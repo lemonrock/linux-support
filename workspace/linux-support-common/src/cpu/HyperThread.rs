@@ -29,7 +29,7 @@ impl BitSetAware for HyperThread
 	const Prefix: &'static [u8] = b"cpu";
 
 	#[inline(always)]
-	fn hydrate(value: u16) -> Self
+	fn from_validated_u16(value: u16) -> Self
 	{
 		debug_assert!(value < Self::LinuxMaximum);
 

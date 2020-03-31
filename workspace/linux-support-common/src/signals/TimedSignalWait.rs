@@ -10,7 +10,7 @@ pub enum TimedSignalWait
 	TimedOut,
 
 	/// Signalled.
-	Signalled(SignalNumber),
+	Signalled(Signal),
 
 	/// Other signal interrupted.
 	OtherSignalInterrupted,

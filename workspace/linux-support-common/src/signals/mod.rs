@@ -2,18 +2,22 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use crate::bit_set::*;
 use errno::errno;
 use libc::*;
-use std::collections::HashSet;
-use std::mem::size_of;
+use libc_extra::unix::string::strsignal;
+use likely::unlikely;
+use serde::Deserialize;
+use serde::Serialize;
+use strum_macros::EnumIter;
+use std::borrow::Cow;
+use std::ffi::CStr;
+use std::mem::transmute;
 #[allow(deprecated)] use std::mem::uninitialized;
 use std::ptr::null_mut;
 
 
-include!("block_all_signals_on_current_thread.rs");
-include!("block_all_signals_on_current_thread_bar.rs");
-include!("hash_set_to_signal_set.rs");
+include!("BitSetSignal.rs");
 include!("one_millisecond_timed_wait_for_signals.rs");
-include!("SignalBitSet.rs");
-include!("SignalNumber.rs");
+include!("Signal.rs");
 include!("TimedSignalWait.rs");

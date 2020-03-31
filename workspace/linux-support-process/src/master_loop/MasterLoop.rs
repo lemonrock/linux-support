@@ -33,7 +33,7 @@ macro_rules! wait_for_signals
 							SIGINT => Some(SIGINT),
 							SIGQUIT => Some(SIGQUIT),
 
-							_ => panic!("Blocked signal '{}' received", signal_number),
+							_ => panic!("Blocked signal '{:?}' received", signal_number),
 						}
 					}
 					else
@@ -42,7 +42,7 @@ macro_rules! wait_for_signals
 						{
 							SIGTERM => None,
 
-							_ => panic!("Blocked signal '{}' received", signal_number),
+							_ => panic!("Blocked signal '{:?}' received", signal_number),
 						}
 					}
 				}
@@ -60,9 +60,8 @@ pub struct MasterLoop
 impl MasterLoop
 {
 	/// Main loop.
-	pub fn main_loop(&self, running_interactively: bool) -> Option<SignalNumber>
+	pub fn main_loop(&self, running_interactively: bool) -> Option<Signal>
 	{
-
 		let success_or_failure = catch_unwind(AssertUnwindSafe(||
 		{
 			self.progress_busy_loop_with_signal_handling(running_interactively)
@@ -84,30 +83,32 @@ impl MasterLoop
 		}
 	}
 
-	fn progress_busy_loop_with_signal_handling(&self, running_interactively: bool) -> Option<SignalNumber>
+	fn progress_busy_loop_with_signal_handling(&self, running_interactively: bool) -> Option<Signal>
 	{
-		let signals_to_accept = if running_interactively
+		use self::Signal::*;
+
+		let signals_to_accept: BitSet<Signal> = if running_interactively
 		{
-			hashset!
+			bit_set!
 			{
 				SIGTERM,
 				SIGHUP,
 				SIGINT,
-				SIGQUIT,
+				SIGQUIT
 			}
 		}
 		else
 		{
-			hashset!
+			bit_set!
 			{
-				SIGTERM,
+				SIGTERM
 				// NOTE: `SIGHUP` has been used conventionally to force a daemon to re-read its configuration; we're probably better off using `SIGUSR1` or `SIGUSR2`.
 				// `SIGUSR1` / `SIGUSR2` can also be used, with `sigqueue`, to send a 32-bit value to a process using `SI_QUEUE` `si_code`.
 			}
 		};
 
-		block_all_signals_on_current_thread_bar(&signals_to_accept);
-		let signals_to_wait_for = hash_set_to_signal_set(&signals_to_accept);
+		signals_to_accept.block_all_signals_on_current_thread_bar();
+		let signals_to_wait_for = signals_to_accept.to_sigset_t();
 
 		while self.should_function_terminate.should_continue()
 		{

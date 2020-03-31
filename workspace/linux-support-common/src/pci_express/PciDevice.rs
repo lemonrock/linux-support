@@ -226,7 +226,7 @@ impl<'a> PciDevice<'a>
 
 		if numa_node_file_path.exists()
 		{
-			Some(numa_node_file_path.read_value::<u8>().map(NumaNode::from).expect("Could not parse numa_node"))
+			Some(numa_node_file_path.read_value::<NumaNode>().unwrap())
 		}
 		else
 		{

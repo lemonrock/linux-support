@@ -29,7 +29,9 @@ use std::mem::size_of;
 use std::os::unix::ffi::OsStrExt;
 
 
-include!("bit_set_aware.rs");include!("BitSet.rs");
+include!("bit_set.rs");
+include!("bit_set_aware.rs");
+include!("BitSet.rs");
 include!("BitSetAware.rs");
 include!("BitSetAwareTryFromU16Error.rs");
 include!("BitSetIterator.rs");

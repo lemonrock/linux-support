@@ -99,7 +99,7 @@ impl ProcessConfiguration
 	{
 		use self::ProcessConfigurationExecutionError::*;
 
-		block_all_signals_on_current_thread();
+		BitSet::<Signal>::block_all_signals_on_current_thread();
 
 		self.set_locale();
 
@@ -140,7 +140,7 @@ impl ProcessConfiguration
 	}
 
 	#[inline(always)]
-	fn daemonize_if_required<P: Process>(&self, process: P, online_shared_hyper_threads_for_os: BTreeSet<HyperThread>, online_shared_hyper_threads_for_process: BTreeSet<HyperThread>, online_isolated_hyper_threads_for_process: BTreeSet<HyperThread>, master_logical_core: HyperThread) -> Result<Option<SignalNumber>, P::MainError>
+	fn daemonize_if_required<P: Process>(&self, process: P, online_shared_hyper_threads_for_os: BTreeSet<HyperThread>, online_shared_hyper_threads_for_process: BTreeSet<HyperThread>, online_isolated_hyper_threads_for_process: BTreeSet<HyperThread>, master_logical_core: HyperThread) -> Result<Option<Signal>, P::MainError>
 	{
 		let main_loop = AssertUnwindSafe(|| process.main(online_shared_hyper_threads_for_os, online_shared_hyper_threads_for_process, online_isolated_hyper_threads_for_process, master_logical_core, self.proc_path()));
 
@@ -302,7 +302,7 @@ impl ProcessConfiguration
 				for online_shared_hyper_thread in online_shared_hyper_threads.iter()
 				{
 					let insert = (*online_shared_hyper_thread).numa_node(self.sys_path()).unwrap();
-					numa_nodes.insert(insert);
+					numa_nodes.add(insert);
 				}
 				self.warnings_to_suppress.miscellany_warn("too_many_numa_nodes_shared_hyper_threads", &format!("More than one (actually, {:?}) NUMA nodes are present in the shared hyper threads", numa_nodes), || numa_nodes.len() == 1);
 			}
@@ -314,7 +314,7 @@ impl ProcessConfiguration
 		fn hyper_thread_groups(hyper_threads: &BitSet<HyperThread>, sys_path: &SysPath) -> BTreeSet<BitSet<HyperThread>>
 		{
 			let mut hyper_thread_groups = BTreeSet::new();
-			for hyper_thread in hyper_threads.iter()
+			for hyper_thread in hyper_threads.iterate()
 			{
 				let hyper_thread_group = (*hyper_thread).level1_cache_hyper_thread_siblings_including_self(sys_path);
 				hyper_thread_groups.insert(hyper_thread_group);

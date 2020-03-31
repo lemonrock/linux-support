@@ -94,7 +94,7 @@ impl BitSetAware for Capability
 	const InclusiveMaximum: Self = unsafe { transmute(Self::LinuxMaximum as u8) };
 
 	#[inline(always)]
-	fn hydrate(value: u16) -> Self
+	fn from_validated_u16(value: u16) -> Self
 	{
 		debug_assert!(value < Self::LinuxMaximum);
 

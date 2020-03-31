@@ -25,7 +25,11 @@ macro_rules! bit_set_aware
 			#[inline(always)]
 			fn try_from(value: u16) -> Result<Self, Self::Error>
 			{
-				if unlikely!(value >= Self::LinuxMaximum)
+				if unlikely!(value < Self::OneBasedCorrection)
+				{
+					Err(BitSetAwareTryFromU16Error::default())
+				}
+				else if unlikely!(value >= Self::LinuxMaximum)
 				{
 					Err(BitSetAwareTryFromU16Error::default())
 				}
@@ -33,15 +37,6 @@ macro_rules! bit_set_aware
 				{
 					Ok(Self::hydrate(value))
 				}
-			}
-		}
-
-		impl From<u8> for $type
-		{
-			#[inline(always)]
-			fn from(value: u8) -> Self
-			{
-				Self::hydrate(value as u16)
 			}
 		}
 

@@ -42,19 +42,3 @@ include!("PhysicalAddress.rs");
 include!("PhysicalPageFrameNumber.rs");
 include!("VirtualAddress.rs");
 include!("VirtualPageFrameNumber.rs");
-
-
-const DirectMemoyAccessMemoryAlignment: usize = 128;
-/*
-	// TODO: Wrap SignalNumber and realtime SignalNumber in their own types a la Capability with BitSet.
-
-	// TODO: NumaNode / HyperThread BTree to BitSet and vice versa; prefer use of BitSet for operations as it is faster.
-
-	xxx;
-	// TODO: Explore hugepages per NUMA node, and check if all files are psent - only:-
-		&nr_hugepages_attr.attr,
-		&free_hugepages_attr.attr,
-		&surplus_hugepages_attr.attr,
-
-	// TODO: Use mmap with the new flags to mmap huge pages
-*/

@@ -28,5 +28,5 @@ pub trait Process
 	type MainError: error::Error;
 
 	/// Main method, daemonized, etc.
-	fn main(self, online_shared_hyper_threads_for_os: BTreeSet<HyperThread>, online_shared_hyper_threads_for_process: BTreeSet<HyperThread>, online_isolated_hyper_threads_for_process: BTreeSet<HyperThread>, master_logical_core: HyperThread, proc_path: &ProcPath)-> Result<Option<SignalNumber>, Self::MainError>;
+	fn main(self, online_shared_hyper_threads_for_os: BTreeSet<HyperThread>, online_shared_hyper_threads_for_process: BTreeSet<HyperThread>, online_isolated_hyper_threads_for_process: BTreeSet<HyperThread>, master_logical_core: HyperThread, proc_path: &ProcPath)-> Result<Option<Signal>, Self::MainError>;
 }

@@ -36,11 +36,47 @@ impl BitSetAware for NumaNode
 	const Prefix: &'static [u8] = b"node";
 
 	#[inline(always)]
-	fn hydrate(value: u16) -> Self
+	fn from_validated_u16(value: u16) -> Self
 	{
 		debug_assert!(value < Self::LinuxMaximum);
 
 		Self(value)
+	}
+}
+
+impl FromBytes for NumaNode
+{
+	type Error = BitSetAwareTryFromU16Error;
+
+	#[inline(always)]
+	fn from_bytes(bytes: &[u8]) -> Result<Self, <Self as FromBytes>::Error>
+	{
+		let value = u16::parse_decimal_number(bytes)?;
+		<Self as TryFrom<u16>>::try_from(value)
+	}
+}
+
+impl TryFrom<i32> for NumaNode
+{
+	type Error = ParseNumberError;
+
+	#[inline(always)]
+	fn try_from(value: i32) -> Result<Self, <Self as TryFrom<i32>>::Error>
+	{
+		use self::ParseNumberError::*;
+
+		if unlikely!(value < 0)
+		{
+			Err(TooSmall)
+		}
+		else if unlikely!(value >= Self::LinuxMaximum as i32)
+		{
+			Err(TooLarge)
+		}
+		else
+		{
+			Ok(Self(value as u16))
+		}
 	}
 }
 

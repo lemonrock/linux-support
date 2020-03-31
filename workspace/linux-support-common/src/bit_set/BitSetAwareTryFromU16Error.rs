@@ -8,6 +8,9 @@ pub enum BitSetAwareTryFromU16Error
 {
 	/// Value out of range.
 	ValueOutOfRange,
+
+	/// Parse number.
+	ParseNumber(ParseNumberError),
 }
 
 impl Default for BitSetAwareTryFromU16Error
@@ -38,6 +41,16 @@ impl error::Error for BitSetAwareTryFromU16Error
 		match self
 		{
 			&ValueOutOfRange => None,
+			&ParseNumber(ref cause) => Some(cause),
 		}
+	}
+}
+
+impl From<ParseNumberError> for BitSetAwareTryFromU16Error
+{
+	#[inline(always)]
+	fn from(value: ParseNumberError) -> Self
+	{
+		BitSetAwareTryFromU16Error::ParseNumber(value)
 	}
 }
