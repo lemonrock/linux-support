@@ -57,6 +57,7 @@ use std::fs::remove_file;
 use std::fs::set_permissions;
 use std::os::unix::fs::DirBuilderExt;
 use std::os::unix::fs::PermissionsExt;
+use crate::process::{ProcessIdentifier, UserIdentifier, GroupIdentifier};
 
 
 /// Contains essential data structures.

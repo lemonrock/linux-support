@@ -7,25 +7,19 @@
 pub struct ChildData
 {
 	/// Child process identifier.
-	pid: pid_t,
+	pid: ProcessIdentifier,
 
 	/// Child user identifier.
-	uid: uid_t,
+	uid: UserIdentifier,
 
 	///  The child's exit code or exit code with signal code; use `status & 0x7F` to separate.
 	status: i32,
 
 	/// User CPU time consumed in 'clock ticks'.
-	///
-	/// The number of 'clock ticks' per second can be found by calling `sysconf(_SC_CLK_TCK)`.
-	/// This is always `100` for the musl libc.
-	user_cpu_time_consumed_in_clock_ticks: u64,
+	user_cpu_time_consumed_in_clock_ticks: ClockTicks,
 
 	/// System CPU time consumed in 'clock ticks'.
-	///
-	/// The number of 'clock ticks' per second can be found by calling `sysconf(_SC_CLK_TCK)`.
-	/// This is always `100` for the musl libc.
-	system_cpu_time_consumed_in_clock_ticks: u64,
+	system_cpu_time_consumed_in_clock_ticks: ClockTicks,
 }
 
 impl ChildData
@@ -35,11 +29,11 @@ impl ChildData
 	{
 		Self
 		{
-			pid: ssi.ssi_pid,
-			uid: ssi.ssi_uid,
+			pid: ProcessIdentifier::try_from(ssi.ssi_pid).unwrap(),
+			uid: UserIdentifier::from(ssi.ssi_uid),
 			status: ssi.ssi_status,
-			user_cpu_time_consumed_in_clock_ticks: ssi.ssi_utime,
-			system_cpu_time_consumed_in_clock_ticks: ssi.ssi_stime,
+			user_cpu_time_consumed_in_clock_ticks: ClockTicks::from(ssi.ssi_utime),
+			system_cpu_time_consumed_in_clock_ticks: ClockTicks::from(ssi.ssi_stime),
 		}
 	}
 }

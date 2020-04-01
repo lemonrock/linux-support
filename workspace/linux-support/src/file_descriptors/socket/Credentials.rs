@@ -8,11 +8,11 @@
 pub struct Credentials
 {
 	/// Process identifier (`pid`).
-	pub process_identifier: pid_t,
+	pub process_identifier: ProcessIdentifier,
 
 	/// User identifier (`uid`).
-	pub user_identifier: uid_t,
+	pub user_identifier: UserIdentifier,
 
 	/// Group identifier (`gid`).
-	pub group_identifier: gid_t
+	pub group_identifier: GroupIdentifier,
 }

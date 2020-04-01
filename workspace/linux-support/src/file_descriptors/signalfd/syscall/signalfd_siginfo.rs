@@ -169,9 +169,9 @@ impl signalfd_siginfo
 		{
 			SI_KERNEL => Private,
 
-			SI_USER => User { pid: self.ssi_pid, uid: self.ssi_uid },
+			SI_USER => User { pid: ProcessIdentifier::try_from(self.ssi_pid).unwrap(), uid: UserIdentifier::from(self.ssi_uid) },
 
-			SI_TKILL => TKill { pid: self.ssi_pid, uid: self.ssi_uid, },
+			SI_TKILL => TKill { pid: ProcessIdentifier::try_from(self.ssi_pid).unwrap(), uid: UserIdentifier::from(self.ssi_uid), },
 
 			userspace if userspace < 0 => Userspace(UserspaceSignalCode::from_ssi_code(userspace)),
 

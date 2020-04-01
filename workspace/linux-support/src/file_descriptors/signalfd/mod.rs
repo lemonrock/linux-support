@@ -38,9 +38,10 @@ use libc::SIGVTALRM;
 use libc::SIGWINCH;
 use libc::SIGXCPU;
 use libc::SIGXFSZ;
-use libc::uid_t;
 use std::process::abort;
 use std::process::exit;
+use crate::process::{ProcessIdentifier, UserIdentifier};
+use crate::process::stat::ClockTicks;
 
 
 /// System call and libc wrapping of system call specific details.

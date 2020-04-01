@@ -18,6 +18,24 @@ impl Default for ProcessIdentifier
 	}
 }
 
+impl TryFrom<pid_t> for ProcessIdentifier
+{
+	type Error = ParseNumberError;
+
+	#[inline(always)]
+	fn try_from(value: pid_t) -> Result<Self, Self::Error>
+	{
+		if likely!(value > 0)
+		{
+			Ok(Self(unsafe { NonZeroI32::new_unchecked(value)}))
+		}
+		else
+		{
+			Err(ParseNumberError::TooSmall)
+		}
+	}
+}
+
 impl From<NonZeroI32> for ProcessIdentifier
 {
 	#[inline(always)]

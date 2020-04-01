@@ -70,6 +70,8 @@ impl ClockTicks
 	/// A value of `100` here means `100Hz`.
 	///
 	/// The number of times the Linux timer interrupts the CPU for scheduling and other tasks.
+	///
+	/// This value is always `100` in the musl libc.
 	#[inline(always)]
 	fn clock_ticks_per_second() -> u64
 	{

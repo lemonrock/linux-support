@@ -16,6 +16,7 @@ use likely::*;
 use std::borrow::Cow;
 use std::collections::BTreeSet;
 use std::collections::HashMap;
+use std::convert::TryFrom;
 use std::error;
 use std::fmt;
 use std::fmt::Debug;
