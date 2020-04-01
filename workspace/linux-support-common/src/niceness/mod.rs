@@ -3,9 +3,12 @@
 
 
 use crate::paths::*;
+use crate::process::ProcessIdentifierChoice;
+use crate::strings::Radix;
+use crate::strings::parse_number::*;
 use errno::errno;
 use libc::*;
-use likely::likely;
+use likely::*;
 use serde::Deserialize;
 use serde::Serialize;
 use std::error;
@@ -15,8 +18,8 @@ use std::fmt::Display;
 use std::fmt::Formatter;
 use std::io;
 use std::io::ErrorKind;
+use std::mem::transmute;
 use std::path::PathBuf;
-use crate::process::ProcessIdentifierChoice;
 
 
 include!("Nice.rs");

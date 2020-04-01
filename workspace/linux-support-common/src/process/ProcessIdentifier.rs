@@ -12,7 +12,9 @@ impl Default for ProcessIdentifier
 	#[inline(always)]
 	fn default() -> Self
 	{
-		Self(unsafe { NonZeroI32::new_unchecked(1) })
+		let pid = unsafe { getpid() };
+		debug_assert!(pid > 0);
+		Self(unsafe { NonZeroI32::new_unchecked(pid)})
 	}
 }
 
@@ -57,7 +59,19 @@ impl ParseNumber for ProcessIdentifier
 	#[inline(always)]
 	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
 	{
-		Ok(Self(NonZeroI32::parse_number(bytes, radix, parse_byte)?))
+		let pid = pid_t::parse_number(bytes, radix, parse_byte)?;
+		if unlikely!(pid < 0)
+		{
+			Err(ParseNumberError::TooShort)
+		}
+		else if unlikely!(pid == 0)
+		{
+			Err(ParseNumberError::WasZero)
+		}
+		else
+		{
+			Ok(Self(unsafe { NonZeroI32::new_unchecked(pid) }))
+		}
 	}
 }
 
@@ -67,7 +81,11 @@ impl ParseNumber for Option<ProcessIdentifier>
 	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
 	{
 		let pid = pid_t::parse_number(bytes, radix, parse_byte)?;
-		if pid == 0
+		if unlikely!(pid < 0)
+		{
+			Err(ParseNumberError::TooShort)
+		}
+		else if pid == 0
 		{
 			Ok(None)
 		}
@@ -75,5 +93,18 @@ impl ParseNumber for Option<ProcessIdentifier>
 		{
 			Ok(Some(ProcessIdentifier(unsafe { NonZeroI32::new_unchecked(pid) })))
 		}
+	}
+}
+
+impl ProcessIdentifier
+{
+	/// Init process.
+	pub const Init: Self = Self(unsafe { NonZeroI32::new_unchecked(1) });
+
+	/// Should have a parent process?
+	#[inline(always)]
+	pub fn should_have_parent(self) -> bool
+	{
+		self != Self::Init
 	}
 }

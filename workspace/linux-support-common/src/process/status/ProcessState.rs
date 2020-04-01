@@ -62,10 +62,12 @@ impl FromBytes for ProcessState
 	#[inline(always)]
 	fn from_bytes(value: &[u8]) -> Result<Self, Self::Error>
 	{
+		use self::ProcessStatusStatisticParseError::*;
+
 		// Values are like `R (running)`.
 		if unlikely!(value.len() < 1)
 		{
-			return Err(ProcessStatusStatisticParseError::InvalidLength)
+			return Err(InvalidLength)
 		}
 
 		use self::ProcessState::*;
@@ -95,7 +97,7 @@ impl FromBytes for ProcessState
 			// Linux 3.9 to 3.13 only.
 			#[allow(deprecated)] b'P' => Parked,
 
-			_ => return Err(ProcessStatusStatisticParseError::OutOfRange)
+			_ => return Err(OutOfRange)
 		};
 
 		Ok(value)

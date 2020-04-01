@@ -519,6 +519,17 @@ impl ProcessStatusStatistics
 			b"nonvoluntary_ctxt_switches" => involuntary_context_switches @ parse_u64,
 		);
 
+		if cfg!(debug_assertions)
+		{
+			if this.parent_process_identifier.is_none()
+			{
+				debug_assert!(!this.process_identifier.should_have_parent())
+			}
+			else
+			{
+				debug_assert!(this.process_identifier.should_have_parent())
+			}
+		}
 		debug_assert!(!this.cpus_allowed.is_empty());
 		debug_assert_eq!(this.cpus_allowed, this.cpus_allowed_list);
 		debug_assert_eq!(this.numa_nodes_allowed, this.numa_nodes_allowed_list);

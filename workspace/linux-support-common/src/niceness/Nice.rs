@@ -157,6 +157,29 @@ impl Into<isize> for Nice
 	}
 }
 
+impl ParseNumber for Nice
+{
+	#[inline(always)]
+	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
+	{
+		use self::ParseNumberError::*;
+
+		let value = i32::parse_number(bytes, radix, parse_byte)?;
+		if unlikely!(value < 20)
+		{
+			Err(TooSmall)
+		}
+		else if unlikely!(value > 19)
+		{
+			Err(TooLarge)
+		}
+		else
+		{
+			Ok(unsafe { transmute(value) })
+		}
+	}
+}
+
 impl Nice
 {
 	/// Set the autogroup for the current process.
