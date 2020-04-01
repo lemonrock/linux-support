@@ -28,7 +28,7 @@ file-descriptors = "^0.9"
 libc = "^0.2"
 libc-extra = "^0.3.2"
 linux-support-clone = { version = "0.0.0", path = "../linux-support-clone", optional = true }
-linux-support-common = { version = "0.0.0", path = "../linux-support-common" }
+linux-support = { version = "0.0.0", path = "../linux-support" }
 likely = "^0.1"
 maplit = "^1.0"
 raw-cpuid = "^5.0"

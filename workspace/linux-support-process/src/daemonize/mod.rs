@@ -6,12 +6,12 @@ use errno::errno;
 use libc::*;
 use likely::likely;
 use likely::unlikely;
-use linux_support_common::get_program_name;
-use linux_support_common::logging::redirect_standard_out_and_standard_error_to_syslog;
-use linux_support_common::paths::{DevPath, PathBufExt};
-use linux_support_common::paths::PathExt;
-use linux_support_common::strings::OsStrExtMore;
-use linux_support_common::user_and_groups::OriginalRealUserAndGroupIdentifierUser;
+use linux_support::get_program_name;
+use linux_support::logging::redirect_standard_out_and_standard_error_to_syslog;
+use linux_support::paths::{DevPath, PathBufExt};
+use linux_support::paths::PathExt;
+use linux_support::strings::OsStrExtMore;
+use linux_support::user_and_groups::OriginalRealUserAndGroupIdentifierUser;
 use serde::Deserialize;
 use serde::Serialize;
 use std::cell::UnsafeCell;
@@ -22,7 +22,7 @@ use std::os::unix::io::AsRawFd;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process;
-use linux_support_common::process::{UserIdentifier, GroupIdentifier};
+use linux_support::process::{UserIdentifier, GroupIdentifier};
 
 
 include!("Daemonize.rs");

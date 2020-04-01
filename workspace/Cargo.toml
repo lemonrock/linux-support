@@ -4,7 +4,7 @@
 
 [workspace]
 members = [
+    "linux-support",
     "linux-support-clone",
-    "linux-support-common",
     "linux-support-process",
 ]

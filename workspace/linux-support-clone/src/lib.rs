@@ -11,14 +11,13 @@
 #![feature(core_intrinsics)]
 
 
-//! #linux-support-common
+//! #linux-support-clone
 //! 
-//! This library provides wrappers and additional functionality to make use of a panoply of miscellaneous Linux (and, sometimes, POSIX) features.
+//! This library provides support for cloned processes in Linux.
 
 
 use static_assertions::assert_cfg;
 assert_cfg!(target_os = "linux");
-assert_cfg!(target_arch = "x86_64");
 assert_cfg!(target_pointer_width = "64");
 
 
@@ -30,19 +29,16 @@ use file_descriptors::pipes_and_fifos::PipeFileDescriptor;
 use file_descriptors::pipes_and_fifos::ReceivePipeFileDescriptor;
 use file_descriptors::pipes_and_fifos::SendPipeFileDescriptor;
 use libc::*;
-use likely::likely;
-use likely::unlikely;
-use linux_support_common::file_systems::FileSystemType;
-use linux_support_common::mounts::Mount;
-use linux_support_common::mounts::mount_wrapper;
-use linux_support_common::mounts::MountFlags;
-use linux_support_common::mounts::UnmountFlags;
-use linux_support_common::namespaces::setup_uts_namespace;
-use linux_support_common::namespaces::write_uid_and_gid_maps;
-use linux_support_common::paths::ProcPath;
-use linux_support_common::signals::Signal;
-use linux_support_common::strings::ConstCStr;
-use linux_support_common::strings::path_to_cstring;
+use likely::*;
+use linux_support::file_systems::FileSystemType;
+use linux_support::mounts::*;
+use linux_support::mounts::mount_wrapper;
+use linux_support::namespaces::setup_uts_namespace;
+use linux_support::namespaces::write_uid_and_gid_maps;
+use linux_support::paths::ProcPath;
+use linux_support::signals::Signal;
+use linux_support::strings::ConstCStr;
+use linux_support::strings::path_to_cstring;
 use serde::Deserialize;
 use serde::Serialize;
 use std::alloc::Layout;

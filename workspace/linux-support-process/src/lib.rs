@@ -19,29 +19,28 @@ use static_assertions::assert_cfg;
 
 
 assert_cfg!(target_os = "linux");
-assert_cfg!(target_arch = "x86_64");
 assert_cfg!(target_pointer_width = "64");
 
 
 use self::daemonize::Daemonize;
 use libc::*;
 use likely::unlikely;
-use linux_support_common::*;
-use linux_support_common::capabilities_and_privileges::*;
-use linux_support_common::cpu::*;
-use linux_support_common::environment::*;
-use linux_support_common::linux_kernel_command_line::*;
-use linux_support_common::logging::*;
-use linux_support_common::memory::huge_pages::*;
-use linux_support_common::memory::numa::*;
-use linux_support_common::niceness::*;
-use linux_support_common::paths::*;
-use linux_support_common::personality::PersonalityFlags;
-use linux_support_common::pci_express::PciDevice;
-use linux_support_common::resource_limits::*;
-use linux_support_common::seccomp::*;
-use linux_support_common::signals::*;
-use linux_support_common::user_and_groups::*;
+use linux_support::*;
+use linux_support::capabilities_and_privileges::*;
+use linux_support::cpu::*;
+use linux_support::environment::*;
+use linux_support::linux_kernel_command_line::*;
+use linux_support::logging::*;
+use linux_support::memory::huge_pages::*;
+use linux_support::memory::numa::*;
+use linux_support::niceness::*;
+use linux_support::paths::*;
+use linux_support::personality::PersonalityFlags;
+use linux_support::pci_express::PciDevice;
+use linux_support::resource_limits::*;
+use linux_support::seccomp::*;
+use linux_support::signals::*;
+use linux_support::user_and_groups::*;
 use maplit::btreeset;
 use maplit::hashmap;
 use serde::Deserialize;
@@ -63,7 +62,7 @@ use std::panic::catch_unwind;
 use std::panic::resume_unwind;
 use std::path::PathBuf;
 use std::thread;
-use linux_support_common::bit_set::BitSet;
+use linux_support::bit_set::BitSet;
 
 
 /// Daemon support.

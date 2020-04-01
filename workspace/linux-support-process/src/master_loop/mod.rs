@@ -2,9 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use linux_support_common::bit_set;
-use linux_support_common::logging::*;
-use linux_support_common::signals::*;
+use linux_support::bit_set;
+use linux_support::logging::*;
+use linux_support::signals::*;
 use std::any::Any;
 use std::panic::AssertUnwindSafe;
 use std::panic::catch_unwind;
@@ -14,7 +14,7 @@ use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering::Relaxed;
 use std::sync::atomic::Ordering::SeqCst;
 use std::time::Duration;
-use linux_support_common::bit_set::BitSet;
+use linux_support::bit_set::BitSet;
 
 
 include!("MasterLoop.rs");
