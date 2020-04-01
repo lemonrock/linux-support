@@ -11,6 +11,7 @@ use crate::bit_set::*;
 use crate::cpu::HyperThread;
 use crate::paths::*;
 use crate::process::*;
+use crate::process::status::ProcessStatusStatistics;
 use crate::strings::parse_number::ParseNumber;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 use bitflags::bitflags;

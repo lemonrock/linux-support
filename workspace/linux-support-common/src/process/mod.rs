@@ -10,7 +10,7 @@ use crate::paths::*;
 use crate::signals::Signal;
 use crate::strings::*;
 use crate::strings::parse_number::*;
-use indexmap::set::IndexSet;
+use self::status::*;
 use libc::*;
 use likely::*;
 use std::borrow::Cow;
@@ -30,21 +30,14 @@ use std::io::BufReader;
 use std::ops::Deref;
 
 
+/// Status.
+pub mod status;
+
+
 include!("GroupIdentifier.rs");
 include!("Groups.rs");
-include!("Kilobyte.rs");
-include!("NestedProcessIdentifiers.rs");
-include!("ProcessGroupIdentifiers.rs");
 include!("ProcessIdentifier.rs");
 include!("ProcessIdentifierChoice.rs");
-include!("ProcessState.rs");
-include!("ProcessStatusFileParseError.rs");
-include!("ProcessStatusStatistics.rs");
-include!("ProcessStatusStatisticParseError.rs");
-include!("ProcessUserIdentifiers.rs");
 //include!("ProcStat.rs");
-include!("SeccompMode.rs");
-include!("SignalQueueStatus.rs");
-include!("SpeculationStoreBypassStatus.rs");
 include!("UserOrGroupIdentifier.rs");
 include!("UserIdentifier.rs");
