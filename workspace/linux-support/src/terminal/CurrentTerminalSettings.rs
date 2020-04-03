@@ -4,7 +4,7 @@
 
 /// Current terminal settings.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct CurrentTerminalSettings(termios);
+pub struct CurrentTerminalSettings(pub(crate) termios);
 
 impl CurrentTerminalSettings
 {

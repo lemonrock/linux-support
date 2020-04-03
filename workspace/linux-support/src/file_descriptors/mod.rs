@@ -61,7 +61,7 @@
 //! * canbus (SocketCAN sockets and can4linux <http://can-wiki.info/can4linux/man/can4linux_8h_source.html> character device drivers).
 
 
-use self::terminal::TerminalSettingsError;
+use crate::terminal::TerminalSettingsError;
 #[allow(deprecated)] use std::mem::uninitialized;
 use arrayvec::Array;
 use arrayvec::ArrayVec;
@@ -185,7 +185,6 @@ use std::borrow::Borrow;
 use std::borrow::BorrowMut;
 use std::cmp::max;
 use std::cmp::Ordering;
-use std::collections::BTreeMap;
 use std::convert::TryFrom;
 use std::error;
 use std::ffi::CStr;
@@ -234,8 +233,6 @@ use std::rc::Weak;
 use std::slice::from_raw_parts;
 use std::slice::from_raw_parts_mut;
 use std::str::from_utf8;
-use strum::IntoEnumIterator;
-use strum_macros::EnumIter;
 
 
 /// Character device file descriptors.

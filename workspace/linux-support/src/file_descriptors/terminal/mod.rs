@@ -2,49 +2,27 @@
 // Copyright © 2019 The developers of file-descriptors. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/file-descriptors/master/COPYRIGHT.
 
 
-use self::c::*;
-use super::*;
-use super::character_device::CharacterDeviceFileDescriptor;
-use super::pipes_and_fifos::SpliceRecipient;
-use super::pipes_and_fifos::SpliceSender;
+use crate::file_descriptors::character_device::CharacterDeviceFileDescriptor;
+use crate::file_descriptors::pipes_and_fifos::SpliceRecipient;
+use crate::file_descriptors::pipes_and_fifos::SpliceSender;
 use crate::process::ProcessIdentifier;
+use crate::terminal::*;
+use crate::terminal::c::tcdrain;
+use crate::terminal::c::tcflow;
+use crate::terminal::c::tcflush;
+use crate::terminal::c::TCIFLUSH;
+use crate::terminal::c::TCIOFF;
+use crate::terminal::c::TCIOFLUSH;
+use crate::terminal::c::TCION;
+use crate::terminal::c::tcgetattr;
+use crate::terminal::c::tcgetsid;
+use crate::terminal::c::TCOFLUSH;
+use crate::terminal::c::TCOOFF;
+use crate::terminal::c::TCOON;
+use crate::terminal::c::tcsendbreak;
+use crate::terminal::c::tcsetattr;
+use crate::terminal::c::termios;
+use super::*;
 
 
-mod c;
-
-
-include!("BackspaceDelay.rs");
-include!("BaudRate.rs");
-include!("BitsPerByte.rs");
-include!("CanonicalEchoKillCharacter.rs");
-include!("CanonicalSettings.rs");
-include!("CarriageReturnDelay.rs");
-include!("Character.rs");
-include!("CharacterSettings.rs");
-include!("ControlModeFlagSettings.rs");
-include!("CurrentTerminalSettings.rs");
-include!("Echo.rs");
-include!("FlagSetting.rs");
-include!("FormFeedDelay.rs");
-include!("HorizontalTabDelay.rs");
-include!("InputModeFlag.rs");
-include!("InputModeFlagSettings.rs");
-include!("LocalModeFlagSettings.rs");
-include!("MiscellaneousControlModeFlag.rs");
-include!("MiscellaneousControlModeFlagSettings.rs");
-include!("MiscellaneousLocalModeFlag.rs");
-include!("MiscellaneousLocalModeFlagSettings.rs");
-include!("MiscellaneousOutputModeFlag.rs");
-include!("MiscellaneousOutputModeFlagSettings.rs");
-include!("MultipleBits.rs");
-include!("NewLineDelay.rs");
-include!("OutputModeFlagSettings.rs");
-include!("Parity.rs");
-include!("SignalRaising.rs");
-include!("StopBits.rs");
 include!("TerminalFileDescriptor.rs");
-include!("TerminalMode.rs");
-include!("TerminalSettings.rs");
-include!("TerminalSettingsError.rs");
-include!("VerticalTabDelay.rs");
-include!("WhenToChangeTerminalAttributes.rs");

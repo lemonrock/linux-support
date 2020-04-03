@@ -140,6 +140,10 @@ pub mod strings;
 pub mod syscall;
 
 
+/// Support for terminals.
+pub mod terminal;
+
+
 /// User and groups.
 pub mod user_and_groups;
 
