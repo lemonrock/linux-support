@@ -2,22 +2,54 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[allow(deprecated)] use std::mem::uninitialized;
 use crate::bit_set::*;
+use crate::memory::VirtualAddress;
+use crate::process::ProcessIdentifier;
+use crate::process::stat::ClockTicks;
+use crate::process::UserIdentifier;
+use crate::strings::parse_number::ParseNumberError;
+use crate::syscall::UnconstrainedSystemCallNumber;
+use self::codes::*;
+use self::syscall::*;
 use errno::errno;
 use libc::*;
 use libc_extra::unix::string::strsignal;
-use likely::unlikely;
+use likely::*;
 use serde::Deserialize;
 use serde::Serialize;
-use strum_macros::EnumIter;
 use std::borrow::Cow;
+use std::convert::TryFrom;
+use std::error;
 use std::ffi::CStr;
+use std::fmt::Debug;
+use std::fmt::Display;
+use std::fmt::Formatter;
+use std::fmt;
 use std::mem::transmute;
-#[allow(deprecated)] use std::mem::uninitialized;
+use std::num::NonZeroI32;
+use std::num::NonZeroU32;
+use std::num::NonZeroU8;
+use std::os::unix::io::RawFd;
 use std::ptr::null_mut;
+use strum_macros::EnumIter;
 
 
+/// `si_code` ranges of values.
+pub mod codes;
+
+
+/// System call and libc wrapping of system call specific details.
+pub mod syscall;
+
+
+include!("AuditArchitecture.rs");
 include!("BitSetSignal.rs");
+include!("ChildStatus.rs");
+include!("ElfMachine.rs");
+include!("FaultCode.rs");
 include!("one_millisecond_timed_wait_for_signals.rs");
+include!("OutOfRangeSignalNumberError.rs");
+include!("ParsedSignal.rs");
 include!("Signal.rs");
 include!("TimedSignalWait.rs");

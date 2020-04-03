@@ -3,7 +3,14 @@
 
 
 use super::*;
-use libc::sendfile;
+use super::pipes_and_fifos::SpliceRecipient;
+use super::pipes_and_fifos::SpliceSender;
+use crate::file_descriptors::memfd::MemoryFileDescriptor;
 
 
+include!("File.AsRawFdExt.rs");
+include!("File.MemoryFileDescriptor.rs");
+include!("File.SpliceRecipient.rs");
+include!("File.SpliceSender.rs");
+include!("File.SendFile.rs");
 include!("SendFile.rs");

@@ -4,7 +4,6 @@
 
 use super::*;
 use self::syscall::*;
-use libc::timespec;
 
 
 mod syscall;

@@ -8,7 +8,3 @@
 pub trait SpliceSender: AsRawFd
 {
 }
-
-impl SpliceSender for File
-{
-}

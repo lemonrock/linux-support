@@ -4,16 +4,6 @@
 
 use super::*;
 use self::syscall::*;
-use libc::AT_FDCWD;
-use libc::c_uchar;
-use libc::c_ushort;
-use libc::c_ulonglong;
-use libc::c_uint;
-use libc::O_APPEND;
-use libc::O_DSYNC;
-use libc::O_LARGEFILE;
-use libc::O_NOATIME;
-use libc::O_SYNC;
 
 
 mod syscall;

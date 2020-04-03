@@ -136,9 +136,9 @@ impl Daemonize
 	{
 		let dev_null = dev_path.null().as_os_str().os_str_to_c_string();
 
-		Self::redirect_to_dev_null(&io::stdin(), &dev_null);
-		Self::redirect_to_dev_null(&io::stdout(), &dev_null);
-		Self::redirect_to_dev_null(&io::stderr(), &dev_null);
+		Self::redirect_to_dev_null(&iostdin(), &dev_null);
+		Self::redirect_to_dev_null(&iostdout(), &dev_null);
+		Self::redirect_to_dev_null(&iostderr(), &dev_null);
 
 		redirect_standard_out_and_standard_error_to_syslog()
 	}

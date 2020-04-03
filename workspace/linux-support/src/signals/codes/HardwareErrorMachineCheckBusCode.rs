@@ -5,25 +5,12 @@
 /// Represents a code that can be associated with a kernel-raised `SIGBUS` signal.
 ///
 /// Definitions valid as of Linux v4.20-rc5.
+///
+/// Note that the definitions for `BUS_MCEERR_AR` and `BUS_MCEERR_AO` are deliberately *NOT* present in this enum, as they require special handling.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(i32)]
-pub enum BusCode
+pub enum HardwareErrorMachineCheckBusCode
 {
-	/// Invalid address alignment.
-	///
-	/// Known as `BUS_ADRALN` in Linux sources.
-	InvalidAddressAlignment = 1,
-
-	/// Nonexistent physical address.
-	///
-	/// Known as `BUS_ADRERR` in Linux sources.
-	NonexistentPhysicalAddress = 2,
-
-	/// Object-specific hardware error.
-	///
-	/// Known as `BUS_OBJERR` in Linux sources.
-	ObjectSpecificHardwareError = 3,
-
 	/// Hardware memory error consumed on a machine check; action required.
 	///
 	/// Known as `BUS_MCEERR_AR` in Linux sources.
@@ -31,7 +18,7 @@ pub enum BusCode
 	/// Since Linux 2.6.32.
 	///
 	/// Since Linux 2.6.37, the presence of this code indicates that the `address_least_significant_bit` argument is populated in `SignalHandler::kernel_raised_sigbus()`.
-	HardwareErrorMachineCheckActionRequired = 4,
+	ActionRequired = 4,
 
 	/// Hardware memory error detected in process but not consumed; action optional.
 	///
@@ -40,10 +27,10 @@ pub enum BusCode
 	/// Since Linux 2.6.32.
 	///
 	/// Since Linux 2.6.37, the presence of this code indicates that the `address_least_significant_bit` argument is populated in `SignalHandler::kernel_raised_sigbus()`.
-	HardwareErrorMachineCheckActionOptional = 5,
+	ActionOptional = 5,
 }
 
-impl Into<i32> for BusCode
+impl Into<i32> for HardwareErrorMachineCheckBusCode
 {
 	#[inline(always)]
 	fn into(self) -> i32
@@ -52,15 +39,14 @@ impl Into<i32> for BusCode
 	}
 }
 
-impl Code for BusCode
+impl Code for HardwareErrorMachineCheckBusCode
 {
-	type Data = BusFaultData;
-
-	const InclusiveMaximum: Self = BusCode::HardwareErrorMachineCheckActionOptional;
+	/// Known as `NSIGBUS` in Linux sources.
+	const InclusiveMaximum: Self = HardwareErrorMachineCheckBusCode::ActionOptional;
 
 	#[inline(always)]
-	fn convert(code: i32) -> Self
+	fn rehydrate(validated_si_code: i32) -> Self
 	{
-		unsafe { transmute(code) }
+		unsafe { transmute(validated_si_code)}
 	}
 }

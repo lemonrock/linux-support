@@ -55,13 +55,12 @@ impl Into<i32> for ChildCode
 
 impl Code for ChildCode
 {
-	type Data = ChildData;
-
+	/// Known as `NSIGCHLD` in Linux sources.
 	const InclusiveMaximum: Self = ChildCode::Continued;
 
 	#[inline(always)]
-	fn convert(code: i32) -> Self
+	fn rehydrate(validated_si_code: i32) -> Self
 	{
-		unsafe { transmute(code) }
+		unsafe { transmute(validated_si_code)}
 	}
 }

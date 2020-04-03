@@ -4,8 +4,6 @@
 
 use super::*;
 use crate::strings::FromBytes;
-use indexmap::set::IndexSet;
-use std::ops::Deref;
 
 
 include!("Kilobyte.rs");

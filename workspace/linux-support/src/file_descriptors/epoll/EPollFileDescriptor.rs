@@ -96,7 +96,7 @@ impl EPollFileDescriptor
 		let length = events.len();
 
 		debug_assert_ne!(length, 0, "events.len() can not be zero");
-		debug_assert!(length <= ::std::i32::MAX as usize, "events.len() can not exceed ::std::i32::MAX");
+		debug_assert!(length <= std::i32::MAX as usize, "events.len() can not exceed std::i32::MAX");
 
 		let result = unsafe { epoll_wait(self.0, events.as_mut_ptr(), length as i32, time_out.into()) };
 		if likely!(result >= 0)
@@ -129,7 +129,7 @@ impl EPollFileDescriptor
 		let length = events.len();
 
 		debug_assert_ne!(length, 0, "events.len() can not be zero");
-		debug_assert!(length <= ::std::i32::MAX as usize, "events.len() can not exceed ::std::i32::MAX");
+		debug_assert!(length <= std::i32::MAX as usize, "events.len() can not exceed std::i32::MAX");
 
 		let result = unsafe { epoll_pwait(self.0, events.as_mut_ptr(), length as i32, time_out.into(), signal_mask) };
 		if likely!(result >= 0)

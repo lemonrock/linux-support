@@ -3,8 +3,6 @@
 
 
 use super::*;
-use libc::ssize_t;
-use libc::timespec;
 
 
 include!("mq_attr.rs");

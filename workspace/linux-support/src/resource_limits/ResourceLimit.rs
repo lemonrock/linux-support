@@ -37,7 +37,7 @@ impl ResourceLimit
 		match *self
 		{
 			Finite(limit) => limit,
-			Infinite => ::std::u64::MAX,
+			Infinite => std::u64::MAX,
 		}
 	}
 

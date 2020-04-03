@@ -58,13 +58,12 @@ impl Into<i32> for SegmentationFaultCode
 
 impl Code for SegmentationFaultCode
 {
-	type Data = FaultData;
-
+	/// Known as `NSIGSEGV` in Linux sources.
 	const InclusiveMaximum: Self = SegmentationFaultCode::AdiMismatchPreciseException;
 
 	#[inline(always)]
-	fn convert(code: i32) -> Self
+	fn rehydrate(validated_si_code: i32) -> Self
 	{
-		unsafe { transmute(code) }
+		unsafe { transmute(validated_si_code)}
 	}
 }

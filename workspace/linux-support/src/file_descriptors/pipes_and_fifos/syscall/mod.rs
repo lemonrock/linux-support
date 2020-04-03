@@ -3,8 +3,6 @@
 
 
 use super::*;
-use libc::loff_t;
-use libc::ssize_t;
 
 
 include!("open.rs");

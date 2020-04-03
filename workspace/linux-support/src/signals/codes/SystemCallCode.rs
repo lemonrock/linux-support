@@ -2,28 +2,36 @@
 // Copyright © 2018-2019 The developers of file-descriptors. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/file-descriptors/master/COPYRIGHT.
 
 
-/// Contains fault data relevant to certain signals.
+/// Represents a code that can be associated with a kernel-raised `SIGSYS` signal.
+///
+/// Definitions valid as of Linux v4.20-rc5.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct FaultData
+#[repr(i32)]
+pub enum SystemCallCode
 {
-	/// The address of the fault.
-	pub address: u64,
-
-	/// The trap number of the fault (only supported on the Alpha, MIPS and SPARC architectures; Rust does not support the Alpha architecture).
+	/// `seccomp` triggered.
 	///
-	/// Where not supported the value is zero.
-	pub trap_number: u32,
+	/// Known as `SYS_SECCOMP` in Linux sources.
+	SeccompTriggered = 1,
 }
 
-impl FaultData
+impl Into<i32> for SystemCallCode
 {
 	#[inline(always)]
-	pub(crate) fn new(ssi: &signalfd_siginfo) -> Self
+	fn into(self) -> i32
 	{
-		Self
-		{
-			address: ssi.ssi_addr,
-			trap_number: ssi.ssi_trapno,
-		}
+		self as i32
+	}
+}
+
+impl Code for SystemCallCode
+{
+	/// Known as `NSIGSYS` in Linux sources.
+	const InclusiveMaximum: Self = SystemCallCode::SeccompTriggered;
+
+	#[inline(always)]
+	fn rehydrate(validated_si_code: i32) -> Self
+	{
+		unsafe { transmute(validated_si_code)}
 	}
 }

@@ -11,19 +11,11 @@ pub enum UserspaceSignalCode
 	/// Typically used for realtime signals, and indicates (indirectly) that this signal is from a queue, ie multiple signals of the same number are not made idempotent.
 	Queue,
 
-	/// Caused by libc & kernel implementations of POSIX timers.
-	///
-	// In theory, `ssi_tid`, `ssi_overrun`, `ssi_ptr` and `ssi_in`t should all be valid values... in practice, there is no g'tee of this.
-	PosixTimer,
-
 	/// Caused by libc implementations of POSIX message queues.
 	PosixMessageQueue,
 
 	/// Caused by libc implementations of POSIX AIO.
 	PosixAsynchronousIo,
-
-	/// Obsolete; not used by the Linux kernel.
-	SigIo,
 
 	/// Obsolete; not used by the Linux kernel.
 	///
@@ -38,7 +30,7 @@ pub enum UserspaceSignalCode
 	/// Any other negative value (can never be zero or positive).
 	///
 	/// This should be rarely encountered unless an application is using system calls directly.
-	Other(i32),
+	Other(NonZeroI32),
 }
 
 impl Into<i32> for UserspaceSignalCode
@@ -51,13 +43,11 @@ impl Into<i32> for UserspaceSignalCode
 		match self
 		{
 			Queue => SI_QUEUE,
-			PosixTimer => SI_TIMER,
 			PosixMessageQueue => SI_MESGQ,
 			PosixAsynchronousIo => SI_ASYNCIO,
-			SigIo => SI_SIGIO,
 			Dethread => SI_DETHREAD,
 			AsynchronousNameLookUp => SI_ASYNCNL,
-			Other(code) => code,
+			Other(code) => code.get(),
 		}
 	}
 }
@@ -65,22 +55,20 @@ impl Into<i32> for UserspaceSignalCode
 impl UserspaceSignalCode
 {
 	#[inline(always)]
-	pub(crate) fn from_ssi_code(ssi_code: i32) -> Self
+	pub(crate) fn from_si_code(si_code: i32) -> Self
 	{
-		debug_assert!(ssi_code < 0, "ssi_code is not negative");
+		debug_assert!(si_code < 0, "si_code is not negative");
 
 		use self::UserspaceSignalCode::*;
 
-		match ssi_code
+		match si_code
 		{
 			SI_QUEUE => Queue,
-			SI_TIMER => PosixTimer,
 			SI_MESGQ => PosixMessageQueue,
 			SI_ASYNCIO => PosixAsynchronousIo,
-			SI_SIGIO => SigIo,
 			SI_DETHREAD => Dethread,
 			SI_ASYNCNL => AsynchronousNameLookUp,
-			other @ _ => Other(other),
+			other @ _ => Other(unsafe { NonZeroI32::new_unchecked(other) }),
 		}
 	}
 }

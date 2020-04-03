@@ -11,97 +11,102 @@
 #[repr(u8)]
 pub enum Signal
 {
-	#[allow(missing_docs)] SIGABRT = 6,
+	#[allow(missing_docs)]
+	SIGABRT = Self::SIGABRT_,
 
-	#[allow(missing_docs)] SIGALRM = 14,
+	#[allow(missing_docs)]
+	SIGALRM = Self::SIGALRM_,
 
-	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "sparc64", target_arch = "x86_64"))] SIGBUS = 7,
-	#[allow(missing_docs)] #[cfg(target_arch = "mips64")] SIGBUS = 10,
+	#[allow(missing_docs)]
+	SIGBUS = Self::SIGBUS_,
 
-	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] SIGCHLD = 17,
-	#[allow(missing_docs)] #[cfg(target_arch = "mips64")] SIGCHLD = 18,
-	#[allow(missing_docs)] #[cfg(target_arch = "sparc64")] SIGCHLD = 20,
+	#[allow(missing_docs)]
+	SIGCHLD = Self::SIGCHLD_,
 
-	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] SIGCONT = 18,
-	#[allow(missing_docs)] #[cfg(target_arch = "mips64")] SIGCONT = 25,
-	#[allow(missing_docs)] #[cfg(target_arch = "sparc64")] SIGCONT = 19,
+	#[allow(missing_docs)]
+	SIGCONT = Self::SIGCONT_,
 
-	#[allow(missing_docs)] #[cfg(any(target_arch = "mips64", target_arch = "sparc64"))] SIGEMT = 7,
+	#[allow(missing_docs)]
+	#[cfg(any(target_arch = "mips64", target_arch = "sparc64"))]
+	SIGEMT = Self::SIGEMT_,
 
-	#[allow(missing_docs)] SIGFPE = 8,
+	#[allow(missing_docs)]
+	SIGFPE = Self::SIGFPE_,
 
-	#[allow(missing_docs)] SIGHUP = 1,
+	#[allow(missing_docs)]
+	SIGHUP = Self::SIGHUP_,
 
-	#[allow(missing_docs)] SIGILL = 4,
+	#[allow(missing_docs)]
+	SIGILL = Self::SIGILL_,
 
-	#[allow(missing_docs)] SIGINT = 2,
+	#[allow(missing_docs)]
+	SIGINT = Self::SIGINT_,
 
-	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] SIGIO = 29,
-	#[allow(missing_docs)] #[cfg(target_arch = "mips64")] SIGIO = 22,
-	#[allow(missing_docs)] #[cfg(target_arch = "sparc64")] SIGIO = 23,
+	#[allow(missing_docs)]
+	SIGIO = Self::SIGIO_,
 
-	#[allow(missing_docs)] SIGKILL = 9,
+	#[allow(missing_docs)]
+	SIGKILL = Self::SIGKILL_,
 
-	#[allow(missing_docs)] SIGPIPE = 13,
+	#[allow(missing_docs)]
+	SIGPIPE = Self::SIGPIPE_,
 
-	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "sparc64", target_arch = "x86_64"))] SIGPROF = 27,
-	#[allow(missing_docs)] #[cfg(target_arch = "mips64")] SIGPROF = 29,
+	#[allow(missing_docs)]
+	SIGPROF = Self::SIGPROF_,
 
-	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] SIGPWR = 30,
-	#[allow(missing_docs)] #[cfg(target_arch = "mips64")] SIGPWR = 19,
-	#[allow(missing_docs)] #[cfg(target_arch = "sparc64")] SIGPWR = 29,
+	#[allow(missing_docs)]
+	SIGPWR = Self::SIGPWR_,
 
-	#[allow(missing_docs)] SIGQUIT = 3,
+	#[allow(missing_docs)]
+	SIGQUIT = Self::SIGQUIT_,
 
-	#[allow(missing_docs)] SIGSEGV = 11,
+	#[allow(missing_docs)]
+	SIGSEGV = Self::SIGSEGV_,
 
-	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "sparc64", target_arch = "x86_64"))] SIGSTKFLT = 16,
-	#[allow(missing_docs)] #[cfg(target_arch = "mips64")] SIGSTKFLT = 7,
+	#[allow(missing_docs)]
+	SIGSTKFLT = Self::SIGSTKFLT_,
 
-	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] SIGSTOP = 19,
-	#[allow(missing_docs)] #[cfg(target_arch = "mips64")] SIGSTOP = 23,
-	#[allow(missing_docs)] #[cfg(target_arch = "sparc64")] SIGSTOP = 17,
+	#[allow(missing_docs)]
+	SIGSTOP = Self::SIGSTOP_,
 
-	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] SIGSYS = 31,
-	#[allow(missing_docs)] #[cfg(any(target_arch = "mips64", target_arch = "sparc64"))] SIGSYS = 12,
+	#[allow(missing_docs)]
+	SIGSYS = Self::SIGSYS_,
 
-	#[allow(missing_docs)] SIGTERM = 15,
+	#[allow(missing_docs)]
+	SIGTERM = Self::SIGTERM_,
 
-	#[allow(missing_docs)] SIGTRAP = 5,
+	#[allow(missing_docs)]
+	SIGTRAP = Self::SIGTRAP_,
 
-	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] SIGTSTP = 20,
-	#[allow(missing_docs)] #[cfg(target_arch = "mips64")] SIGTSTP = 24,
-	#[allow(missing_docs)] #[cfg(target_arch = "sparc64")] SIGTSTP = 18,
+	#[allow(missing_docs)]
+	SIGTSTP = Self::SIGTSTP_,
 
-	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "sparc64", target_arch = "x86_64"))] SIGTTIN = 21,
-	#[allow(missing_docs)] #[cfg(target_arch = "mips64")] SIGTTIN = 26,
+	#[allow(missing_docs)]
+	SIGTTIN = Self::SIGTTIN_,
 
-	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "sparc64", target_arch = "x86_64"))] SIGTTOU = 22,
-	#[allow(missing_docs)] #[cfg(target_arch = "mips64")] SIGTTOU = 27,
+	#[allow(missing_docs)]
+	SIGTTOU = Self::SIGTTOU_,
 
-	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] SIGURG = 23,
-	#[allow(missing_docs)] #[cfg(target_arch = "mips64")] SIGURG = 21,
-	#[allow(missing_docs)] #[cfg(target_arch = "sparc64")] SIGURG = 16,
+	#[allow(missing_docs)]
+	SIGURG = Self::SIGURG_,
 
-	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] SIGUSR1 = 10,
-	#[allow(missing_docs)] #[cfg(target_arch = "mips64")] SIGUSR1 = 16,
-	#[allow(missing_docs)] #[cfg(target_arch = "sparc64")] SIGUSR1 = 30,
+	#[allow(missing_docs)]
+	SIGUSR1 = Self::SIGUSR1_,
 
-	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] SIGUSR2 = 12,
-	#[allow(missing_docs)] #[cfg(target_arch = "mips64")] SIGUSR2 = 17,
-	#[allow(missing_docs)] #[cfg(target_arch = "sparc64")] SIGUSR2 = 31,
+	#[allow(missing_docs)]
+	SIGUSR2 = Self::SIGUSR2_,
 
-	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "sparc64", target_arch = "x86_64"))] SIGVTALRM = 26,
-	#[allow(missing_docs)] #[cfg(target_arch = "mips64")] SIGVTALRM = 28,
+	#[allow(missing_docs)]
+	SIGVTALRM = Self::SIGVTALRM_,
 
-	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "sparc64", target_arch = "x86_64"))] SIGWINCH = 28,
-	#[allow(missing_docs)] #[cfg(target_arch = "mips64")] SIGWINCH = 20,
+	#[allow(missing_docs)]
+	SIGWINCH = Self::SIGWINCH_,
 
-	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "sparc64", target_arch = "x86_64"))] SIGXCPU = 24,
-	#[allow(missing_docs)] #[cfg(target_arch = "mips64")] SIGXCPU = 30,
+	#[allow(missing_docs)]
+	SIGXCPU = Self::SIGXCPU_,
 
-	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "sparc64", target_arch = "x86_64"))] SIGXFSZ = 25,
-	#[allow(missing_docs)] #[cfg(target_arch = "mips64")] SIGXFSZ = 31,
+	#[allow(missing_docs)]
+	SIGXFSZ = Self::SIGXFSZ_,
 
 	#[allow(missing_docs)] LinuxThreadsRealTimeSignal0 = 32,
 	#[allow(missing_docs)] LinuxThreadsRealTimeSignal1 = 33,
@@ -200,7 +205,6 @@ pub enum Signal
 	#[cfg(any(target_arch = "mips64", target_arch = "sparc64"))] #[allow(missing_docs)] RealTimeSignal125 = 125,
 	#[cfg(any(target_arch = "mips64", target_arch = "sparc64"))] #[allow(missing_docs)] RealTimeSignal126 = 126,
 	#[cfg(any(target_arch = "mips64", target_arch = "sparc64"))] #[allow(missing_docs)] RealTimeSignal127 = 127,
-	#[cfg(any(target_arch = "mips64", target_arch = "sparc64"))] #[allow(missing_docs)] RealTimeSignal128 = 128,
 }
 
 bit_set_aware!(Signal);
@@ -251,7 +255,11 @@ impl Signal
 
 	/// This is an inclusive maximum.
 	#[cfg(any(target_arch = "aarch64", target_arch = "riscv64", target_arch = "powerpc64", target_arch = "s390x", target_arch = "sparc64", target_arch = "x86_64"))] pub const SIGRTMAX: Self = Self::RealTimeSignal64;
-	#[cfg(target_arch = "mips64")] pub const SIGRTMAX: Self = Self::RealTimeSignal128;
+	#[cfg(target_arch = "mips64")] pub const SIGRTMAX: Self = Self::RealTimeSignal127;
+
+	const InclusiveMinimum: u8 = Self::LinuxThreadsRealTimeSignal0 as u8;
+
+	const InclusiveMaximum: u8 = Self::SIGRTMAX as u8;
 
 	/// C library name.
 	#[inline(always)]
@@ -259,4 +267,257 @@ impl Signal
 	{
 		unsafe { CStr::from_ptr(strsignal(self.into()) as *const _) }
 	}
+
+	#[inline(always)]
+	pub(crate) fn parse_raw_signal_number_non_zero_u7(raw_signal_number_non_zero_u7: NonZeroU8) -> Result<Self, OutOfRangeSignalNumberError>
+	{
+		use self::OutOfRangeSignalNumberError::*;
+
+		const MaxU7: u8 = 0x7F;
+
+		let raw_signal_number = raw_signal_number_non_zero_u7.get();
+		debug_assert!(raw_signal_number <= MaxU7);
+
+		use self::Signal::*;
+		match raw_signal_number
+		{
+			0 => Err(SignalNumberWasZero),
+
+			Self::SIGABRT_ => Ok(SIGABRT),
+			Self::SIGALRM_ => Ok(SIGALRM),
+			Self::SIGBUS_ => Ok(SIGBUS),
+			Self::SIGCHLD_ => Ok(SIGCHLD),
+			Self::SIGCONT_ => Ok(SIGCONT),
+			#[cfg(any(target_arch = "mips64", target_arch = "sparc64"))] Self::SIGEMT_ => Ok(SIGEMT),
+			Self::SIGFPE_ => Ok(SIGFPE),
+			Self::SIGHUP_ => Ok(SIGHUP),
+			Self::SIGILL_ => Ok(SIGILL),
+			Self::SIGINT_ => Ok(SIGINT),
+			Self::SIGIO_ => Ok(SIGIO),
+			Self::SIGKILL_ => Ok(SIGKILL),
+			Self::SIGPIPE_ => Ok(SIGPIPE),
+			Self::SIGPROF_ => Ok(SIGPROF),
+			Self::SIGPWR_ => Ok(SIGPWR),
+			Self::SIGQUIT_ => Ok(SIGQUIT),
+			Self::SIGSEGV_ => Ok(SIGSEGV),
+			Self::SIGSTKFLT_ => Ok(SIGSTKFLT),
+			Self::SIGSTOP_ => Ok(SIGSTOP),
+			Self::SIGSYS_ => Ok(SIGSYS),
+			Self::SIGTERM_ => Ok(SIGTERM),
+			Self::SIGTRAP_ => Ok(SIGTRAP),
+			Self::SIGTSTP_ => Ok(SIGTSTP),
+			Self::SIGTTIN_ => Ok(SIGTTIN),
+			Self::SIGTTOU_ => Ok(SIGTTOU),
+			Self::SIGURG_ => Ok(SIGURG),
+			Self::SIGUSR1_ => Ok(SIGUSR1),
+			Self::SIGUSR2_ => Ok(SIGUSR2),
+			Self::SIGVTALRM_ => Ok(SIGVTALRM),
+			Self::SIGWINCH_ => Ok(SIGWINCH),
+			Self::SIGXCPU_ => Ok(SIGXCPU),
+			Self::SIGXFSZ_ => Ok(SIGXFSZ),
+
+			Self::InclusiveMinimum ..= Self::InclusiveMaximum => Ok(unsafe { transmute(raw_signal_number) }),
+
+			_ => Err(U7SignalNumberWasOutOfRange { raw_signal_number: raw_signal_number_non_zero_u7 }),
+		}
+	}
+
+	#[inline(always)]
+	pub(crate) fn parse_raw_signal_number_u8(raw_signal_number_u8: u8) -> Result<Self, OutOfRangeSignalNumberError>
+	{
+		use self::OutOfRangeSignalNumberError::*;
+
+		use self::Signal::*;
+		match raw_signal_number_u8
+		{
+			0 => Err(SignalNumberWasZero),
+
+			Self::SIGABRT_ => Ok(SIGABRT),
+			Self::SIGALRM_ => Ok(SIGALRM),
+			Self::SIGBUS_ => Ok(SIGBUS),
+			Self::SIGCHLD_ => Ok(SIGCHLD),
+			Self::SIGCONT_ => Ok(SIGCONT),
+			#[cfg(any(target_arch = "mips64", target_arch = "sparc64"))] Self::SIGEMT_ => Ok(SIGEMT),
+			Self::SIGFPE_ => Ok(SIGFPE),
+			Self::SIGHUP_ => Ok(SIGHUP),
+			Self::SIGILL_ => Ok(SIGILL),
+			Self::SIGINT_ => Ok(SIGINT),
+			Self::SIGIO_ => Ok(SIGIO),
+			Self::SIGKILL_ => Ok(SIGKILL),
+			Self::SIGPIPE_ => Ok(SIGPIPE),
+			Self::SIGPROF_ => Ok(SIGPROF),
+			Self::SIGPWR_ => Ok(SIGPWR),
+			Self::SIGQUIT_ => Ok(SIGQUIT),
+			Self::SIGSEGV_ => Ok(SIGSEGV),
+			Self::SIGSTKFLT_ => Ok(SIGSTKFLT),
+			Self::SIGSTOP_ => Ok(SIGSTOP),
+			Self::SIGSYS_ => Ok(SIGSYS),
+			Self::SIGTERM_ => Ok(SIGTERM),
+			Self::SIGTRAP_ => Ok(SIGTRAP),
+			Self::SIGTSTP_ => Ok(SIGTSTP),
+			Self::SIGTTIN_ => Ok(SIGTTIN),
+			Self::SIGTTOU_ => Ok(SIGTTOU),
+			Self::SIGURG_ => Ok(SIGURG),
+			Self::SIGUSR1_ => Ok(SIGUSR1),
+			Self::SIGUSR2_ => Ok(SIGUSR2),
+			Self::SIGVTALRM_ => Ok(SIGVTALRM),
+			Self::SIGWINCH_ => Ok(SIGWINCH),
+			Self::SIGXCPU_ => Ok(SIGXCPU),
+			Self::SIGXFSZ_ => Ok(SIGXFSZ),
+
+			Self::InclusiveMinimum ..= Self::InclusiveMaximum => Ok(unsafe { transmute(raw_signal_number_u8) }),
+
+			_ => Err(U8SignalNumberWasOutOfRange { raw_signal_number: unsafe { NonZeroU8::new_unchecked(raw_signal_number_u8) } }),
+		}
+	}
+
+	#[inline(always)]
+	pub(crate) fn parse_raw_signal_number_u32(raw_signal_number_u32: u32) -> Result<Self, OutOfRangeSignalNumberError>
+	{
+		use self::OutOfRangeSignalNumberError::*;
+
+		if likely!(raw_signal_number_u32 < u8::MAX as u32)
+		{
+			use self::Signal::*;
+
+			let raw_signal_number_u8 = raw_signal_number_u32 as u8;
+			match raw_signal_number_u8
+			{
+				0 => Err(SignalNumberWasZero),
+
+				Self::SIGABRT_ => Ok(SIGABRT),
+				Self::SIGALRM_ => Ok(SIGALRM),
+				Self::SIGBUS_ => Ok(SIGBUS),
+				Self::SIGCHLD_ => Ok(SIGCHLD),
+				Self::SIGCONT_ => Ok(SIGCONT),
+				#[cfg(any(target_arch = "mips64", target_arch = "sparc64"))] Self::SIGEMT_ => Ok(SIGEMT),
+				Self::SIGFPE_ => Ok(SIGFPE),
+				Self::SIGHUP_ => Ok(SIGHUP),
+				Self::SIGILL_ => Ok(SIGILL),
+				Self::SIGINT_ => Ok(SIGINT),
+				Self::SIGIO_ => Ok(SIGIO),
+				Self::SIGKILL_ => Ok(SIGKILL),
+				Self::SIGPIPE_ => Ok(SIGPIPE),
+				Self::SIGPROF_ => Ok(SIGPROF),
+				Self::SIGPWR_ => Ok(SIGPWR),
+				Self::SIGQUIT_ => Ok(SIGQUIT),
+				Self::SIGSEGV_ => Ok(SIGSEGV),
+				Self::SIGSTKFLT_ => Ok(SIGSTKFLT),
+				Self::SIGSTOP_ => Ok(SIGSTOP),
+				Self::SIGSYS_ => Ok(SIGSYS),
+				Self::SIGTERM_ => Ok(SIGTERM),
+				Self::SIGTRAP_ => Ok(SIGTRAP),
+				Self::SIGTSTP_ => Ok(SIGTSTP),
+				Self::SIGTTIN_ => Ok(SIGTTIN),
+				Self::SIGTTOU_ => Ok(SIGTTOU),
+				Self::SIGURG_ => Ok(SIGURG),
+				Self::SIGUSR1_ => Ok(SIGUSR1),
+				Self::SIGUSR2_ => Ok(SIGUSR2),
+				Self::SIGVTALRM_ => Ok(SIGVTALRM),
+				Self::SIGWINCH_ => Ok(SIGWINCH),
+				Self::SIGXCPU_ => Ok(SIGXCPU),
+				Self::SIGXFSZ_ => Ok(SIGXFSZ),
+
+				Self::InclusiveMinimum ..= Self::InclusiveMaximum => Ok(unsafe { transmute(raw_signal_number_u8) }),
+
+				_ => Err(U32SignalNumberWasOutOfRange { raw_signal_number: unsafe { NonZeroU32::new_unchecked(raw_signal_number_u32) } }),
+			}
+		}
+		else
+		{
+			Err(U32SignalNumberWasOutOfRange { raw_signal_number: unsafe { NonZeroU32::new_unchecked(raw_signal_number_u32) } })
+		}
+	}
+
+	const SIGABRT_: u8 = 6;
+
+	const SIGALRM_: u8 = 14;
+
+	#[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "sparc64", target_arch = "x86_64"))] const SIGBUS_: u8 = 7;
+	#[cfg(target_arch = "mips64")] const SIGBUS_: u8 = 10;
+
+	#[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] const SIGCHLD_: u8 = 17;
+	#[cfg(target_arch = "mips64")] const SIGCHLD_: u8 = 18;
+	#[cfg(target_arch = "sparc64")] const SIGCHLD_: u8 = 20;
+
+	#[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] const SIGCONT_: u8 = 18;
+	#[cfg(target_arch = "mips64")] const SIGCONT_: u8 = 25;
+	#[cfg(target_arch = "sparc64")] const SIGCONT_: u8 = 19;
+
+	#[cfg(any(target_arch = "mips64", target_arch = "sparc64"))] const SIGEMT_: u8 = 7;
+
+	const SIGFPE_: u8 = 8;
+
+	const SIGHUP_: u8 = 1;
+
+	const SIGILL_: u8 = 4;
+
+	const SIGINT_: u8 = 2;
+
+	#[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] const SIGIO_: u8 = 29;
+	#[cfg(target_arch = "mips64")] const SIGIO_: u8 = 22;
+	#[cfg(target_arch = "sparc64")] const SIGIO_: u8 = 23;
+
+	const SIGKILL_: u8 = 9;
+
+	const SIGPIPE_: u8 = 13;
+
+	#[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "sparc64", target_arch = "x86_64"))] const SIGPROF_: u8 = 27;
+	#[cfg(target_arch = "mips64")] const SIGPROF_: u8 = 29;
+
+	#[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] const SIGPWR_: u8 = 30;
+	#[cfg(target_arch = "mips64")] const SIGPWR_: u8 = 19;
+	#[cfg(target_arch = "sparc64")] const SIGPWR_: u8 = 29;
+
+	const SIGQUIT_: u8 = 3;
+
+	const SIGSEGV_: u8 = 11;
+
+	#[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "sparc64", target_arch = "x86_64"))] const SIGSTKFLT_: u8 = 16;
+	#[cfg(target_arch = "mips64")] const SIGSTKFLT_: u8 = 7;
+
+	#[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] const SIGSTOP_: u8 = 19;
+	#[cfg(target_arch = "mips64")] const SIGSTOP_: u8 = 23;
+	#[cfg(target_arch = "sparc64")] const SIGSTOP_: u8 = 17;
+
+	#[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] const SIGSYS_: u8 = 31;
+	#[cfg(any(target_arch = "mips64", target_arch = "sparc64"))] const SIGSYS_: u8 = 12;
+
+	const SIGTERM_: u8 = 15;
+
+	const SIGTRAP_: u8 = 5;
+
+	#[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] const SIGTSTP_: u8 = 20;
+	#[cfg(target_arch = "mips64")] const SIGTSTP_: u8 = 24;
+	#[cfg(target_arch = "sparc64")] const SIGTSTP_: u8 = 18;
+
+	#[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "sparc64", target_arch = "x86_64"))] const SIGTTIN_: u8 = 21;
+	#[cfg(target_arch = "mips64")] const SIGTTIN_: u8 = 26;
+
+	#[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "sparc64", target_arch = "x86_64"))] const SIGTTOU_: u8 = 22;
+	#[cfg(target_arch = "mips64")] const SIGTTOU_: u8 = 27;
+
+	#[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] const SIGURG_: u8 = 23;
+	#[cfg(target_arch = "mips64")] const SIGURG_: u8 = 21;
+	#[cfg(target_arch = "sparc64")] const SIGURG_: u8 = 16;
+
+	#[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] const SIGUSR1_: u8 = 10;
+	#[cfg(target_arch = "mips64")] const SIGUSR1_: u8 = 16;
+	#[cfg(target_arch = "sparc64")] const SIGUSR1_: u8 = 30;
+
+	#[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] const SIGUSR2_: u8 = 12;
+	#[cfg(target_arch = "mips64")] const SIGUSR2_: u8 = 17;
+	#[cfg(target_arch = "sparc64")] const SIGUSR2_: u8 = 31;
+
+	#[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "sparc64", target_arch = "x86_64"))] const SIGVTALRM_: u8 = 26;
+	#[cfg(target_arch = "mips64")] const SIGVTALRM_: u8 = 28;
+
+	#[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "sparc64", target_arch = "x86_64"))] const SIGWINCH_: u8 = 28;
+	#[cfg(target_arch = "mips64")] const SIGWINCH_: u8 = 20;
+
+	#[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "sparc64", target_arch = "x86_64"))] const SIGXCPU_: u8 = 24;
+	#[cfg(target_arch = "mips64")] const SIGXCPU_: u8 = 30;
+
+	#[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "sparc64", target_arch = "x86_64"))] const SIGXFSZ_: u8 = 25;
+	#[cfg(target_arch = "mips64")] const SIGXFSZ_: u8 = 31;
 }

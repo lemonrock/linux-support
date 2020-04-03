@@ -11,6 +11,12 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum HugePageSize
 {
+	/// 64Kb.
+	_64KB = 64,
+
+	/// 512Kb.
+	_512KB = 512,
+
 	/// 1MB.
 	_1MB = 1024,
 	
@@ -19,9 +25,15 @@ pub enum HugePageSize
 	
 	/// 4MB.
 	_4MB = 4096,
+
+	/// 8MB.
+	_8MB = 8192,
 	
 	/// 16MB.
 	_16MB = 16_384,
+
+	/// 32MB.
+	_32MB = 32_768,
 	
 	/// 256MB.
 	_256MB = 262_144,
@@ -44,18 +56,59 @@ pub enum HugePageSize
 impl HugePageSize
 {
 	/// Potentially supported huge page sizes.
-	pub const PotentiallySupportedHugePageSizesLargestFirst: [HugePageSize; 9] =
+	///
+	/// Range based on defined constants `MAP_HUGE_*`.
+	pub const PotentiallySupportedHugePageSizesLargestFirst: [HugePageSize; 13] =
 	[
 		HugePageSize::_16GB,
 		HugePageSize::_2GB,
 		HugePageSize::_1GB,
 		HugePageSize::_512MB,
 		HugePageSize::_256MB,
+		HugePageSize::_32MB,
 		HugePageSize::_16MB,
+		HugePageSize::_8MB,
 		HugePageSize::_4MB,
 		HugePageSize::_2MB,
 		HugePageSize::_1MB,
+		HugePageSize::_512KB,
+		HugePageSize::_64KB,
 	];
+
+	/// What value, N, gives `Self == 1 << N`.
+	const fn log_base_2_of_bytes(self) -> u64
+	{
+		(self as u64).trailing_zeros() as u64
+	}
+
+	/// Value for use with `flags` in `mmap()` (`MAP_HUGE_*`, eg `MAP_HUGE_2MB`) and `memfd_create()` (`MFD_HUGE_*` eg MFD_HUGE_2MB).
+	///
+	/// Note that the `mmap()` and `memfd_create()` calls can not accept huge page sizes over 2Gb as they use an unsigned integer!
+	///
+	/// The 6 bits `[26:31]` of the flag arguments encode the log2 of the huge page size in kilobytes.
+	#[inline(always)]
+	pub const fn mmap_and_memfd_flags_bits(self) -> u64
+	{
+		/*
+			                    self.log_base_2()
+			                    ^
+			 1*        =>       0
+			 2*        =>       1
+			 4*        =>       2
+			 8*        =>       3
+			16*        =>       4
+			32*        =>       5
+			64         => 16 -  6 = 10
+			128*       =>       7
+			256*       =>       8
+			512        => 19 -  9 = 10
+			1024       => 20 - 10 = 10
+			16_777_216 => 34 - 24 = 10
+		*/
+		const Log2OfBytesInAKilobyte: u64 = 10;
+		const MAP_HUGE_SHIFT: u64 = 26;
+		(self.log_base_2_of_bytes() - Log2OfBytesInAKilobyte) << MAP_HUGE_SHIFT
+	}
 
 	/// Is this considered a gigantic huge page?
 	#[inline(always)]
@@ -118,15 +171,19 @@ impl HugePageSize
 		
 		match value
 		{
-			1024 => Some(_1MB),
-			2048 => Some(_2MB),
-			4096 => Some(_4MB),
-			16384 => Some(_16MB),
-			262144 => Some(_256MB),
-			524288 => Some(_512MB),
-			1048576 => Some(_1GB),
-			2097152 => Some(_2GB),
-			16777216 => Some(_16GB),
+			64 => Some(_64KB),
+			512 => Some(_512KB),
+			1_024 => Some(_1MB),
+			2_048 => Some(_2MB),
+			4_096 => Some(_4MB),
+			8_192 => Some(_8MB),
+			16_384 => Some(_16MB),
+			32_768 => Some(_32MB),
+			262_144 => Some(_256MB),
+			524_288 => Some(_512MB),
+			1_048_576 => Some(_1GB),
+			2_097_152 => Some(_2GB),
+			16_777_216 => Some(_16GB),
 			
 			_ => None,
 		}
@@ -140,10 +197,14 @@ impl HugePageSize
 		
 		match *self
 		{
+			_64KB => "64KB",
+			_512KB => "512KB",
 			_1MB => "1MB",
 			_2MB => "2MB",
 			_4MB => "4MB",
+			_8MB => "8MB",
 			_16MB => "16MB",
+			_32MB => "32MB",
 			_256MB => "256MB",
 			_512MB => "512MB",
 			_1GB => "1GB",
@@ -160,10 +221,14 @@ impl HugePageSize
 		
 		match *self
 		{
+			_64KB => b"64KB",
+			_512KB => b"512KB",
 			_1MB => b"1MB",
 			_2MB => b"2MB",
 			_4MB => b"4MB",
+			_8MB => b"8MB",
 			_16MB => b"16MB",
+			_32MB => b"32MB",
 			_256MB => b"256MB",
 			_512MB => b"512MB",
 			_1GB => b"1GB",

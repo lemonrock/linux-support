@@ -78,6 +78,13 @@ impl<'a> IntoLineFeedTerminatedByteString<'a> for ProcessIdentifierChoice
 
 impl ProcessIdentifierChoice
 {
+	/// Opens a process identifier file descriptor.
+	#[inline(always)]
+	pub fn open_file_descriptor(self) -> Result<ProcessIdentifierFileDescriptor, CreationError>
+	{
+		ProcessIdentifierFileDescriptor::open(self)
+	}
+
 	#[inline(always)]
 	pub(crate) fn to_file_name(self) -> Cow<'static, str>
 	{

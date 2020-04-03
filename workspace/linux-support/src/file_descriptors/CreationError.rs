@@ -25,6 +25,9 @@ pub enum CreationError
 	///
 	/// Occurs for the opening or creation of POSIX message queues, either because of file mode permissions or because the settings for creation (eg maximum message size) are too large (or, on Linux before 3.5, too small).
 	PermissionDenied,
+
+	/// Occurs for pidfd if the pid does not exist.
+	ProcessForProcessIdentifierDoesNotExist,
 }
 
 impl Display for CreationError

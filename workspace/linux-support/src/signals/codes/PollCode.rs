@@ -51,13 +51,12 @@ impl Into<i32> for PollCode
 
 impl Code for PollCode
 {
-	type Data = PollData;
-
+	/// Known as `NSIGPOLL` in Linux sources.
 	const InclusiveMaximum: Self = PollCode::HungUp;
 
 	#[inline(always)]
-	fn convert(code: i32) -> Self
+	fn rehydrate(validated_si_code: i32) -> Self
 	{
-		unsafe { transmute(code) }
+		unsafe { transmute(validated_si_code)}
 	}
 }

@@ -2,28 +2,38 @@
 // Copyright © 2018-2019 The developers of file-descriptors. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/file-descriptors/master/COPYRIGHT.
 
 
-/// Contains data relevant to the `SIGIO` signal (also known as the `SIGPOLL` signal).
+/// Represents a code that can be associated with a kernel-raised `SIGEMT` signal.
+///
+/// This signal only occurs for the Alpha, MIPS and SPARC architectures.
+///
+/// Definitions valid as of Linux v4.20-rc5.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct PollData
+#[repr(i32)]
+pub enum EmulatorTrapCode
 {
-	/// Equivalent to the `revents` field in the struct `pollfd` (see `man 2 poll`).
+	/// Tag overflow.
 	///
-	/// Also known as `ssi_band` and `si_band`.
-	pub revents: u32,
-
-	/// The file descriptor for which the events are appropriate.
-	pub file_descriptor: RawFd,
+	/// Known as `EMT_TAGOVF` in Linux sources.
+	TagOverflow = 1,
 }
 
-impl PollData
+impl Into<i32> for EmulatorTrapCode
 {
 	#[inline(always)]
-	pub(crate) fn new(ssi: &signalfd_siginfo) -> Self
+	fn into(self) -> i32
 	{
-		Self
-		{
-			revents: ssi.ssi_band,
-			file_descriptor: ssi.ssi_fd as RawFd,
-		}
+		self as i32
+	}
+}
+
+impl Code for EmulatorTrapCode
+{
+	/// Known as `NSIGEMT` in Linux sources.
+	const InclusiveMaximum: Self = EmulatorTrapCode::TagOverflow;
+
+	#[inline(always)]
+	fn rehydrate(validated_si_code: i32) -> Self
+	{
+		unsafe { transmute(validated_si_code)}
 	}
 }

@@ -125,4 +125,11 @@ impl ProcessIdentifier
 	{
 		self != Self::Init
 	}
+
+	/// Opens a process identifier file descriptor.
+	#[inline(always)]
+	pub fn open_file_descriptor(self) -> Result<ProcessIdentifierFileDescriptor, CreationError>
+	{
+		ProcessIdentifierChoice::Other(self).open_file_descriptor()
+	}
 }

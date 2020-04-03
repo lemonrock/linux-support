@@ -4,9 +4,6 @@
 
 use super::*;
 use self::syscall::*;
-use std::ffi::CString;
-use std::rc::Rc;
-use std::rc::Weak;
 
 
 mod syscall;

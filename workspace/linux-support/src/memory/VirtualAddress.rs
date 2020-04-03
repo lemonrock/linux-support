@@ -105,6 +105,15 @@ impl From<usize> for VirtualAddress
 	}
 }
 
+impl From<u64> for VirtualAddress
+{
+	#[inline(always)]
+	fn from(value: u64) -> Self
+	{
+		VirtualAddress(value as usize)
+	}
+}
+
 impl Into<usize> for VirtualAddress
 {
 	#[inline(always)]

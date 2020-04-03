@@ -50,11 +50,11 @@ impl EventFileDescriptor
 {
 	/// Creates a new instance.
 	///
-	/// The `initial_value` can not be `::std::u64::MAX`.
+	/// The `initial_value` can not be `std::u64::MAX`.
 	#[inline(always)]
 	pub fn new(initial_value: u64, use_as_a_semaphore: bool) -> Result<Self, CreationError>
 	{
-		debug_assert_ne!(initial_value, ::std::u64::MAX, "initial_value can not be ::std::u64::MAX");
+		debug_assert_ne!(initial_value, std::u64::MAX, "initial_value can not be std::u64::MAX");
 
 		const CommonFlags: c_int = EFD_NONBLOCK | EFD_CLOEXEC;
 
@@ -152,7 +152,7 @@ impl EventFileDescriptor
 	#[inline(always)]
 	pub fn write(&self, increment: &u64) -> Result<(), StructWriteError>
 	{
-		debug_assert_ne!(*increment, ::std::u64::MAX, "increment may not be ::std::u64::MAX");
+		debug_assert_ne!(*increment, std::u64::MAX, "increment may not be std::u64::MAX");
 
 		use self::StructWriteError::*;
 

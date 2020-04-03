@@ -3,14 +3,6 @@
 
 
 use super::*;
-use libc::c_char;
-use libc::c_uchar;
-use libc::c_uint;
-use libc::in_addr_t;
-use libc::in_port_t;
-use libc::ssize_t;
-use libc::timespec;
-use libc::unlink;
 
 
 include!("accept4.rs");

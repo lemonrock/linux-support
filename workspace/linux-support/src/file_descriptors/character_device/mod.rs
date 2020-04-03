@@ -6,12 +6,6 @@ use super::*;
 use super::pipes_and_fifos::SpliceRecipient;
 use super::pipes_and_fifos::SpliceSender;
 use super::pipes_and_fifos::syscall::open;
-use libc::ENAMETOOLONG;
-use libc::ENXIO;
-use libc::EOVERFLOW;
-use libc::EROFS;
-use libc::ETXTBSY;
-use std::ffi::CString;
 
 
 include!("CharacterDeviceFileDescriptor.rs");

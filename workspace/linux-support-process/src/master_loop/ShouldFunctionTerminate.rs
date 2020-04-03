@@ -43,7 +43,7 @@ impl ShouldFunctionTerminate
 	#[inline(always)]
 	pub fn sleep_and_check_should_terminate(&self) -> bool
 	{
-		::std::thread::sleep(Self::Sleepiness);
+		std::thread::sleep(Self::Sleepiness);
 		self.should_terminate()
 	}
 

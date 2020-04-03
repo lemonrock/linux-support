@@ -57,33 +57,16 @@ impl SignalFileDescriptor
 	#[inline(always)]
 	pub fn new_with_filled_signal_mask() -> Result<(Self, sigset_t), CreationError>
 	{
-		let signal_mask = Self::filled_signal_mask();
+		let signal_mask = BitSet::<Signal>::filled_signal_mask();
 		Self::new(&signal_mask).map(|this|
 		{
-			Self::block_signals(&signal_mask);
+			BitSet::<Signal>::block_signals(&signal_mask);
 
 			(this, signal_mask)
 		})
 	}
 
-	#[inline(always)]
-	fn block_signals(signal_mask: &sigset_t)
-	{
-		let result = unsafe { pthread_sigmask(SIG_BLOCK, signal_mask, null_mut()) };
-		if unlikely!(result != 0)
-		{
-			match result
-			{
-				EFAULT => panic!("The `set` or `oldset` argument points outside the process's allocated address space"),
-				EINVAL => panic!("Either the value specified in `how` was invalid or the kernel does not support the size passed in `sigsetsize`"),
-				_ => unreachable!(),
-			}
-		}
-	}
-
 	/// Creates a new instance.
-	///
-	/// The `initial_value` can not be `::std::u64::MAX`.
 	#[inline(always)]
 	pub fn new(signal_mask: &sigset_t) -> Result<Self, CreationError>
 	{
@@ -111,33 +94,9 @@ impl SignalFileDescriptor
 		}
 	}
 
-	#[inline(always)]
-	fn filled_signal_mask() -> sigset_t
-	{
-		#[allow(deprecated)]
-		let mut signal_mask = unsafe { uninitialized() };
-		let result = unsafe {  sigfillset(&mut signal_mask) };
-		if likely!(result == 0)
-		{
-			signal_mask
-		}
-		else if likely!(result == -1)
-		{
-			match errno().0
-			{
-				EINVAL => panic!("Invalid arguments"),
-				_ => unreachable!(),
-			}
-		}
-		else
-		{
-			unreachable!();
-		}
-	}
-
 	/// Updates the signal mask
 	///
-	/// The `initial_value` can not be `::std::u64::MAX`.
+	/// The `initial_value` can not be `std::u64::MAX`.
 	#[inline(always)]
 	pub fn update_mask(&self, signal_mask: &sigset_t) -> Result<(), CreationError>
 	{
@@ -170,19 +129,33 @@ impl SignalFileDescriptor
 	///
 	/// Use this only after a read-ready event notification is received (using edge-triggered events).
 	#[inline(always)]
-	pub fn read<'a>(&self, signals: &'a mut [signalfd_siginfo]) -> Result<&'a [signalfd_siginfo], StructReadError>
+	pub fn read_signals(&self, uninitialized_buffer: (NonNull<signalfd_siginfo>, usize), mut signal_handler: impl FnMut(ParsedSignal)) -> Result<(), StructReadError>
+	{
+		let structures = self.read_internal(uninitialized_buffer)?;
+		for index in 0 .. structures
+		{
+			let siginfo = unsafe { & * (uninitialized_buffer.0.as_ptr().offset(index as isize)) };
+			signal_handler(siginfo.parse_signal())
+		}
+		Ok(())
+	}
+
+	#[inline(always)]
+	fn read_internal(&self, uninitialized_buffer: (NonNull<signalfd_siginfo>, usize)) -> Result<usize, StructReadError>
 	{
 		use self::StructReadError::*;
 
 		const SizeOfRead: usize = size_of::<signalfd_siginfo>();
 
-		let result = unsafe { read(self.0, signals.as_mut_ptr() as *mut _ as *mut _, SizeOfRead * signals.len()) };
+		let result = unsafe { read(self.0, uninitialized_buffer.0.as_ptr() as *mut _, SizeOfRead * uninitialized_buffer.1) };
 
 		let structures = result / result % (SizeOfRead as isize);
 
 		if likely!(structures != 0)
 		{
-			Ok(&signals[0 .. (structures as usize)])
+			let structures = structures as usize;
+			debug_assert!(structures <= uninitialized_buffer.1);
+			Ok(structures)
 		}
 		else
 		{

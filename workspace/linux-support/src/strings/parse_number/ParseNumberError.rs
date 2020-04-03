@@ -67,6 +67,9 @@ pub enum ParseNumberError
 
 	/// Too large.
 	TooLarge,
+
+	/// Out of range without being zero, maximum, too small or too large.
+	OutOfRange,
 }
 
 impl Display for ParseNumberError

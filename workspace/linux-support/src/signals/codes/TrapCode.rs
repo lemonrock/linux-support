@@ -46,13 +46,12 @@ impl Into<i32> for TrapCode
 
 impl Code for TrapCode
 {
-	type Data = FaultData;
-
+	/// Known as `NSIGTRAP` in Linux sources.
 	const InclusiveMaximum: Self = TrapCode::Undiagnosed;
 
 	#[inline(always)]
-	fn convert(code: i32) -> Self
+	fn rehydrate(validated_si_code: i32) -> Self
 	{
-		unsafe { transmute(code) }
+		unsafe { transmute(validated_si_code)}
 	}
 }

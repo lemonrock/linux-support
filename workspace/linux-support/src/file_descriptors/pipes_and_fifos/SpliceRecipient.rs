@@ -8,7 +8,3 @@
 pub trait SpliceRecipient: AsRawFd
 {
 }
-
-impl SpliceRecipient for File
-{
-}

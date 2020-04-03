@@ -16,7 +16,7 @@ impl<FilePath: AsRef<Path>> SocketAddress<FilePath>
 {
 	/// New streaming server listener.
 	///
-	/// `back_log` can not exceed `::std::i32::MAX` and is capped by the Operating System to the value in `/proc/sys/net/core/somaxconn`.
+	/// `back_log` can not exceed `std::i32::MAX` and is capped by the Operating System to the value in `/proc/sys/net/core/somaxconn`.
 	///
 	/// The default value in `/proc/sys/net/core/somaxconn` is `128`.
 	///

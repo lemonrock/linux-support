@@ -7,6 +7,17 @@
 use errno::Errno;
 use errno::set_errno;
 use likely::unlikely;
+use std::cmp::Eq;
+use std::cmp::Ord;
+use std::cmp::Ordering;
+use std::cmp::PartialEq;
+use std::cmp::PartialOrd;
+use std::fmt;
+use std::fmt::Debug;
+use std::fmt::Formatter;
+use std::hash::Hash;
+use std::hash::Hasher;
 
 
 include!("SYS.rs");
+include!("UnconstrainedSystemCallNumber.rs");

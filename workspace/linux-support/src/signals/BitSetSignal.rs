@@ -60,4 +60,44 @@ impl BitSet<Signal>
 			set
 		}
 	}
+
+	/// Block signals.
+	#[inline(always)]
+	pub fn block_signals(signal_mask: &sigset_t)
+	{
+		let result = unsafe { pthread_sigmask(SIG_BLOCK, signal_mask, null_mut()) };
+		if unlikely!(result != 0)
+		{
+			match result
+			{
+				EFAULT => panic!("The `set` or `oldset` argument points outside the process's allocated address space"),
+				EINVAL => panic!("Either the value specified in `how` was invalid or the kernel does not support the size passed in `sigsetsize`"),
+				_ => unreachable!(),
+			}
+		}
+	}
+
+	#[inline(always)]
+	pub(crate) fn filled_signal_mask() -> sigset_t
+	{
+		#[allow(deprecated)]
+		let mut signal_mask = unsafe { uninitialized() };
+		let result = unsafe {  sigfillset(&mut signal_mask) };
+		if likely!(result == 0)
+		{
+			signal_mask
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				EINVAL => panic!("Invalid arguments"),
+				_ => unreachable!(),
+			}
+		}
+		else
+		{
+			unreachable!();
+		}
+	}
 }

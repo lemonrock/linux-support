@@ -4,17 +4,6 @@
 
 use super::*;
 use self::syscall::*;
-use libc::c_uint;
-use libc::ENAMETOOLONG;
-use libc::EEXIST;
-use libc::EMSGSIZE;
-use libc::ETIMEDOUT;
-use libc::mode_t;
-use libc::O_CREAT;
-use libc::O_EXCL;
-use libc::S_IRUSR;
-use libc::S_IWUSR;
-use std::convert::TryFrom;
 
 
 mod syscall;

@@ -34,9 +34,9 @@ impl cmsghdr
 
 		unsafe
 		{
-			::std::ptr::write(&mut self.cmsg_level, cmsg_level);
-			::std::ptr::write(&mut self.cmsg_type, cmsg_type);
-			::std::ptr::write(&mut self.cmsg_len, cmsg_len as u32);
+			std::ptr::write(&mut self.cmsg_level, cmsg_level);
+			std::ptr::write(&mut self.cmsg_type, cmsg_type);
+			std::ptr::write(&mut self.cmsg_len, cmsg_len as u32);
 		}
 	}
 

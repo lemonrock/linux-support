@@ -5,24 +5,11 @@
 use crate::niceness::Nice;
 use crate::paths::PathExt;
 use crate::paths::ProcPath;
-use super::ProcessIdentifier;
-use super::ProcessIdentifierChoice;
+use super::*;
 use super::status::ProcessState;
 use super::status::ProcessStatusStatisticParseError;
 use crate::strings::FromBytes;
 use crate::strings::Radix;
-use crate::strings::parse_number::*;
-use libc::_SC_CLK_TCK;
-use libc::clock_t;
-use libc::sysconf;
-use likely::unlikely;
-use std::error;
-use std::fmt;
-use std::fmt::Debug;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::io;
-use std::num::NonZeroUsize;
 
 
 include!("ClockTicks.rs");

@@ -4,17 +4,6 @@
 
 use super::*;
 use self::syscall::*;
-use libc::c_uint;
-use libc::c_ulong;
-use libc::ENAMETOOLONG;
-use libc::ENXIO;
-use libc::EOVERFLOW;
-use libc::EROFS;
-use libc::ESPIPE;
-use libc::ETXTBSY;
-use libc::iovec;
-use std::ffi::CString;
-use std::mem::transmute_copy;
 
 
 pub(crate) mod syscall;

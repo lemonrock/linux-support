@@ -3,8 +3,6 @@
 
 
 use super::*;
-use libc::c_uchar;
-use libc::c_uint;
 
 
 include!("_POSIX_VDISABLE.rs");

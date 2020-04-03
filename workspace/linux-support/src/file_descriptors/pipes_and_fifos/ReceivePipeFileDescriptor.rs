@@ -79,7 +79,7 @@ impl Read for ReceivePipeFileDescriptor
 	{
 		let length = buf.len();
 
-		debug_assert!(length < ::std::isize::MAX as usize, "length can not exceed SSIZE_MAX for read()");
+		debug_assert!(length < std::isize::MAX as usize, "length can not exceed SSIZE_MAX for read()");
 
 		if unlikely!(length == 0)
 		{

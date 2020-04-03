@@ -61,11 +61,19 @@ There is a particularly extensive and safe wrapper for signals and terminals.
 * eventfd.
 * fanotify.
 * inotify.
+* memfd (anonymous memory backed files).
+    * See `file` module.
 * POSIX message queues (<https://linux.die.net/man/7/mq_overview>).
 * pipes and FIFOs (anonymous and named FIFOs), including support for splice, vmsplice and tee.
-* sockets (TCP, UDP and the equivalent over Unix Domain Sockets; sendfile supported).
+* Process File Descriptors (pidfd, new in Linux 5.2).
+* sockets (TCP, UDP and the equivalent over Unix Domain Sockets; `sendfile()` with Rust's `std::file::File` supported).
 * terminals (serial ports and modems).
 * timerfd.
+* Extensions for `std::fs::File`:-
+    * `SendFile`
+    * `SpliceRecipient`
+    * `SpliceSender`
+    * `memfd`
 
 Additionally, extensions (`SendFile`, `SpliceRecipient` and `SpliceSender`) are implemented for Rust's `File`.
 

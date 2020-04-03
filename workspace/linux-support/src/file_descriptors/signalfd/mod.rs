@@ -2,69 +2,14 @@
 // Copyright © 2018-2019 The developers of file-descriptors. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/file-descriptors/master/COPYRIGHT.
 
 
+use crate::bit_set::BitSet;
+use crate::signals::Signal;
+use crate::signals::ParsedSignal;
+use crate::signals::syscall::signalfd;
+use crate::signals::syscall::signalfd_siginfo;
+use crate::signals::syscall::SFD_CLOEXEC;
+use crate::signals::syscall::SFD_NONBLOCK;
 use super::*;
-use self::syscall::*;
-use libc::pthread_sigmask;
-use libc::raise;
-use libc::SIG_BLOCK;
-use libc::SIGABRT;
-use libc::SIGALRM;
-use libc::SIGBUS;
-use libc::SIGCHLD;
-use libc::SIGCONT;
-use libc::sigfillset;
-use libc::SIGFPE;
-use libc::SIGHUP;
-use libc::SIGILL;
-use libc::SIGINT;
-use libc::SIGIO;
-use libc::SIGKILL;
-use libc::SIGPIPE;
-use libc::SIGPROF;
-use libc::SIGPWR;
-use libc::SIGQUIT;
-use libc::SIGSEGV;
-use libc::SIGSTKFLT;
-use libc::SIGSYS;
-use libc::SIGTERM;
-use libc::SIGTRAP;
-use libc::SIGTSTP;
-use libc::SIGTTIN;
-use libc::SIGTTOU;
-use libc::SIGURG;
-use libc::SIGUSR1;
-use libc::SIGUSR2;
-use libc::SIGVTALRM;
-use libc::SIGWINCH;
-use libc::SIGXCPU;
-use libc::SIGXFSZ;
-use std::process::abort;
-use std::process::exit;
-use crate::process::{ProcessIdentifier, UserIdentifier};
-use crate::process::stat::ClockTicks;
 
 
-/// System call and libc wrapping of system call specific details.
-pub mod syscall;
-
-
-include!("ArithmeticErrorCode.rs");
-include!("BusCode.rs");
-include!("BusFaultData.rs");
-include!("ChildCode.rs");
-include!("ChildData.rs");
-include!("Code.rs");
-include!("EmulatorTrapCode.rs");
-include!("FaultData.rs");
-include!("GenericSignalData.rs");
-include!("IllegalInstructionCode.rs");
-include!("PollCode.rs");
-include!("PollData.rs");
-include!("SegmentationFaultCode.rs");
 include!("SignalFileDescriptor.rs");
-include!("SignalHandler.rs");
-include!("SpecificSignalData.rs");
-include!("SystemCallCode.rs");
-include!("SystemCallData.rs");
-include!("TrapCode.rs");
-include!("UserspaceSignalCode.rs");
