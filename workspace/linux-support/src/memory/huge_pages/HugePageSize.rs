@@ -12,44 +12,88 @@
 pub enum HugePageSize
 {
 	/// 64Kb.
+	///
+	/// Not used on x86_64.
+	/// Used on powerpc64.
+	/// Used on sparc64.
+	///
+	/// (Used on aarch64 as just a page size with the 64Kb translation granule).
 	_64KB = 64,
 
 	/// 512Kb.
+	///
+	/// Not used on x86_64.
+	/// Used on sparc64.
 	_512KB = 512,
 
 	/// 1MB.
+	///
+	/// Not used on x86_64.
 	_1MB = 1024,
 	
 	/// 2MB.
+	///
+	/// Used on x86_64.
+	/// Used on aarch64 as with the 4Kb translation granule.
 	_2MB = 2048,
 	
 	/// 4MB.
+	///
+	/// Not used on x86_64.
+	/// Used on sparc64.
 	_4MB = 4096,
 
 	/// 8MB.
+	///
+	/// Not used on x86_64.
+	/// Used on sparc64.
 	_8MB = 8192,
 	
 	/// 16MB.
+	///
+	/// Not used on x86_64.
+	/// Used on powerpc64.
 	_16MB = 16_384,
 
 	/// 32MB.
+	///
+	/// Not used on x86_64.
+	/// Used on sparc64.
+	/// Used on aarch64 as with the 16Kb translation granule.
 	_32MB = 32_768,
 	
 	/// 256MB.
+	///
+	/// Not used on x86_64.
+	/// Used on sparc64.
 	_256MB = 262_144,
 	
 	/// 512MB.
 	///
-	/// aarch64 alternative.
+	/// Not used on x86_64.
+	///
+	/// Used on aarch64 as with the 16Kb translation granule.
 	_512MB = 524_288,
 
 	/// 1GB.
+	///
+	/// Used on x86_64.
+	/// Used on aarch64 as with the 4Kb translation granule.
 	_1GB = 1_048_576,
 	
 	/// 2GB.
+	///
+	/// Not used on x86_64.
+	/// Used on sparc64.
 	_2GB = 2_097_152,
 	
 	/// 16GB.
+	///
+	/// Impossible to specify as a huge page size to `mmap()` or `memfd_create()`.
+	///
+	/// Not used on x86_64.
+	/// Used on powerpc64.
+	/// Used on sparc64.
 	_16GB = 16_777_216,
 }
 
@@ -239,7 +283,9 @@ impl HugePageSize
 
 	/// Default huge page size.
 	///
-	/// Usually 2Mb on x86-64 (but controlled by kernel command line options).
+	/// Usually 2Mb on x86_64 (but controlled by kernel command line options).
+	///
+	/// This will return `None` if `memory_information` is lacking the essential statistic used.
 	#[inline(always)]
 	pub fn default_huge_page_size(memory_information: &MemoryInformation) -> Option<Self>
 	{
@@ -253,7 +299,7 @@ impl HugePageSize
 		}
 	}
 
-	/// May be absent on some Kernels.
+	/// This will return `None` if the kernel was compiled without ?`CONFIG_TRANSPARENT_HUGEPAGE` or `sys_path` is not mounted.
 	#[inline(always)]
 	pub fn transparent_huge_page_size(sys_path: &SysPath) -> Option<Self>
 	{
@@ -269,13 +315,6 @@ impl HugePageSize
 		}
 	}
 
-	/// Largest supported huge page size.
-	#[inline(always)]
-	pub fn largest_supported_huge_page_size(sys_path: &SysPath) -> Self
-	{
-		*Self::supported_huge_page_sizes(sys_path).iter().rev().next().expect("Huge pages are not supported")
-	}
-	
 	/// Supported huge page sizes, sorted smallest to largest.
 	///
 	/// There may be no huge pages because:-
@@ -284,7 +323,9 @@ impl HugePageSize
 	/// * The architecture only has huge pages we do not support (extremely unlikely).
 	/// * We are on an ancient CPU that does not have huge pages (extremely unlikely).
 	///
-	/// On modern x86-64 from Sandy Bridge onwards, will contain 1Gb and 2Mb huge page sizes.
+	/// On modern x86_64 from Sandy Bridge onwards, will contain 1Gb gigantic huge page and 2Mb huge page sizes.
+	///
+	/// This will return an empty set if the kernel was compiled without `CONFIG_HUGETLBFS` or `sys_path` is not mounted.
 	#[inline(always)]
 	pub fn supported_huge_page_sizes(sys_path: &SysPath) -> BTreeSet<Self>
 	{
@@ -306,16 +347,27 @@ impl HugePageSize
 	///
 	/// For per-NUMA Node statistics, see `NumaNode.huge_page_pool_statistics()`.
 	///
-	/// This will panic if the kernel was compiled without `CONFIG_HUGETLBFS` and the `hugepages` folder is missing under the `node<N>` folder.
+	/// This will return `None` if the kernel was compiled without `CONFIG_HUGETLBFS` or `sys_path` is not mounted.
 	#[inline(always)]
-	pub fn global_huge_page_pool_statistics(self, sys_path: &SysPath) -> HugePagePoolStatistics
+	pub fn global_huge_page_pool_size(self, sys_path: &SysPath) -> Option<GlobalHugePagePoolSize>
+	{
+		GlobalHugePagePoolSize::new(sys_path, self, SysPath::global_hugepages_folder_path)
+	}
+
+	/// Huge page pool statistics.
+	///
+	/// For per-NUMA Node statistics, see `NumaNode.huge_page_pool_statistics()`.
+	///
+	/// This will return `None` if the kernel was compiled without `CONFIG_HUGETLBFS` or `sys_path` is not mounted.
+	#[inline(always)]
+	pub fn global_huge_page_pool_statistics(self, sys_path: &SysPath) -> Option<HugePagePoolStatistics>
 	{
 		HugePagePoolStatistics::new(sys_path, self, SysPath::global_hugepages_folder_path)
 	}
 
 	/// Read number of memory policy global huge pages of `self` size.
 	///
-	/// This file is missing if the Linux kernel wasn't configured with `CONFIG_NUMA`.
+	/// This will return `None` if the kernel was compiled without `CONFIG_NUMA` or `sys_path` is not mounted.
 	#[inline(always)]
 	pub fn memory_policy_global_huge_pages(self, sys_path: &SysPath) -> Option<u64>
 	{

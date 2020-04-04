@@ -91,7 +91,7 @@ impl NumaNode
 		current_numa_node_and_hyper_thread()
 	}
 
-	/// True if the Linux kernel was configured with `CONFIG_NUMA` and `/sys` is mounted.
+	/// This will be false if the Linux kernel wasn't configured with `CONFIG_NUMA` or `sys_path` is not mounted.
 	#[inline(always)]
 	pub fn is_a_numa_machine(sys_path: &SysPath) -> bool
 	{
@@ -104,8 +104,7 @@ impl NumaNode
 	///
 	/// Prefer `self.associated_hyper_threads().len() > 0`.
 	///
-	/// This will return false if the Linux kernel wasn't configured with `CONFIG_NUMA`.
-	///
+	/// This will be false if the Linux kernel wasn't configured with `CONFIG_NUMA` or `sys_path` is not mounted.
 	#[inline(always)]
 	pub fn is_a_numa_node(self, sys_path: &SysPath) -> bool
 	{
@@ -114,7 +113,7 @@ impl NumaNode
 
 	/// Hyper threads associated with this NUMA node.
 	///
-	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`.
+	/// This will do nothing if the Linux kernel wasn't configured with `CONFIG_NUMA`, the NUMA node is not present or `sys_path` is not mounted.
 	///
 	/// Hyper threads themselves have not been validated for being online, etc.
 	#[inline(always)]
@@ -140,29 +139,13 @@ impl NumaNode
 	#[inline(always)]
 	fn cpu_map(self, sys_path: &SysPath) -> Option<BitSet<HyperThread>>
 	{
-		let file_path = sys_path.numa_node_file_path(self, "cpumap");
-		if file_path.exists()
-		{
-			Some(file_path.parse_hyper_thread_or_numa_node_bit_set::<HyperThread>().unwrap())
-		}
-		else
-		{
-			None
-		}
+		self.only_if_path_exists(sys_path, "cpumap", |file_path | file_path.parse_hyper_thread_or_numa_node_bit_set::<HyperThread>().unwrap())
 	}
 
 	#[inline(always)]
 	fn cpu_list(self, sys_path: &SysPath) -> Option<BitSet<HyperThread>>
 	{
-		let file_path = sys_path.numa_node_file_path(self, "cpulist");
-		if file_path.exists()
-		{
-			Some(file_path.read_hyper_thread_or_numa_node_list::<HyperThread>().unwrap())
-		}
-		else
-		{
-			None
-		}
+		self.only_if_path_exists(sys_path, "cpulist", |file_path | file_path.read_hyper_thread_or_numa_node_list::<HyperThread>().unwrap())
 	}
 
 	#[inline(always)]
@@ -403,79 +386,82 @@ impl NumaNode
 
 	/// Tries to compact pages for this NUMA node.
 	///
-	/// This will panic if this the Linux kernel wasn't configured with `CONFIG_NUMA` or the NUMA node is not present.
+	/// This will do nothing if the Linux kernel wasn't configured with `CONFIG_NUMA`, the NUMA node is not present or `sys_path` is not mounted.
 	///
-	/// Will only work as root.
+	/// Will panic if the current user is not root.
 	#[inline(always)]
 	pub fn compact_pages(self, sys_path: &SysPath)
 	{
 		assert_effective_user_id_is_root(&format!("Compact pages in NUMA node '{}'", self.0));
-
-		sys_path.numa_node_file_path(self.into(), "compact").write_value(1).unwrap();
+		
+		self.only_if_path_exists(sys_path, "compact", |file_path| file_path.write_value(true).unwrap());
 	}
 
 	/// Huge page pool statistics.
 	///
-	/// This will panic if this the Linux kernel wasn't configured with `CONFIG_NUMA` or the NUMA node is not present.
+	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`, the NUMA node is not present or `sys_path` is not mounted.
 	///
-	/// This will also panic if the kernel was compiled without `CONFIG_HUGETLBFS` and the `hugepages` folder is missing under the `node<N>` folder.
+	/// This will panic if the kernel was compiled without `CONFIG_HUGETLBFS` and the `hugepages` folder is missing under the `node<N>` folder.
 	#[inline(always)]
-	pub fn huge_page_pool_statistics(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> HugePagePoolStatistics
+	pub fn huge_page_pool_statistics(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> Option<HugePagePoolStatistics>
 	{
 		HugePagePoolStatistics::new(sys_path, huge_page_size, |sys_path, huge_page_size| sys_path.numa_node_hugepages_folder_path(huge_page_size, self))
 	}
 
 	/// Value used for distance calculations.
 	///
-	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`.
+	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`, the NUMA node is not present or `sys_path` is not mounted.
 	///
 	/// Minimum value seems to be 10.
 	#[inline(always)]
 	pub fn distance(self, sys_path: &SysPath) -> Option<u8>
 	{
-		let file_path = sys_path.numa_node_file_path(self.into(), "distance");
-		if file_path.exists()
+		self.only_if_path_exists(sys_path, "distance", |file_path| file_path.read_value().unwrap())
+	}
+
+	/// This is a subset of `self.zoned_virtual_memory_statistics()`.
+	///
+	/// This will return `None` if this the Linux kernel wasn't configured with `CONFIG_NUMA`, the NUMA node is not present or `sys_path` is not mounted.
+	///
+	/// Interpret this by multiplying counts by page size.
+	#[deprecated]
+	#[inline(always)]
+	pub fn numa_memory_statistics(self, sys_path: &SysPath) -> Option<HashMap<VirtualMemoryStatisticName, u64>>
+	{
+		self.only_if_path_exists(sys_path, "numastat", |file_path| VirtualMemoryStatisticName::parse_virtual_memory_statistics_file(file_path).unwrap())
+	}
+
+	/// Memory statistics.
+	///
+	/// This will return `None` if this the Linux kernel wasn't configured with `CONFIG_NUMA`, the NUMA node is not present or `sys_path` is not mounted.
+	///
+	/// Interpret this by multiplying counts by page size.
+	#[inline(always)]
+	pub fn zoned_virtual_memory_statistics(self, sys_path: &SysPath) -> Option<HashMap<VirtualMemoryStatisticName, u64>>
+	{
+		self.only_if_path_exists(sys_path, "vmstat", |file_path| VirtualMemoryStatisticName::parse_virtual_memory_statistics_file(file_path).unwrap())
+	}
+
+	/// Memory information.
+	///
+	/// This will return `None` if this the Linux kernel wasn't configured with `CONFIG_NUMA`, the NUMA node is not present or `sys_path` is not mounted.
+	#[inline(always)]
+	pub fn memory_information(self, sys_path: &SysPath, memory_information_name_prefix: &[u8]) -> Option<MemoryInformation>
+	{
+		self.only_if_path_exists(sys_path, "meminfo", |file_path| MemoryInformation::parse_memory_information_file(&file_path, memory_information_name_prefix).unwrap())
+	}
+
+	#[inline(always)]
+	fn only_if_path_exists<R>(self, sys_path: &SysPath, file_name: &str, parser: impl FnOnce(&Path) -> R) -> Option<R>
+	{
+		let file_path = sys_path.numa_node_file_path(self.into(), file_name);
+		if likely!(file_path.exists())
 		{
-			Some(file_path.read_value().unwrap())
+			Some(parser(&file_path))
 		}
 		else
 		{
 			None
 		}
-	}
-
-	/// This is a subset of `self.zoned_virtual_memory_statistics()`.
-	///
-	/// This will return `Err()` if this the Linux kernel wasn't configured with `CONFIG_NUMA` or the NUMA node is not present.
-	///
-	/// Interpret this by multiplying counts by page size.
-	#[deprecated]
-	#[inline(always)]
-	pub fn numa_memory_statistics(self, sys_path: &SysPath) -> io::Result<HashMap<VirtualMemoryStatisticName, u64>>
-	{
-		let file_path = sys_path.numa_node_file_path(self.into(), "numastat");
-		VirtualMemoryStatisticName::parse_virtual_memory_statistics_file(&file_path)
-	}
-
-	/// Memory statistics.
-	///
-	/// This will return `Err()` if this the Linux kernel wasn't configured with `CONFIG_NUMA` or the NUMA node is not present.
-	///
-	/// Interpret this by multiplying counts by page size.
-	#[inline(always)]
-	pub fn zoned_virtual_memory_statistics(self, sys_path: &SysPath) -> io::Result<HashMap<VirtualMemoryStatisticName, u64>>
-	{
-		let file_path = sys_path.numa_node_file_path(self.into(), "vmstat");
-		VirtualMemoryStatisticName::parse_virtual_memory_statistics_file(&file_path)
-	}
-
-	/// Memory information.
-	///
-	/// This will return `Err()` if this the Linux kernel wasn't configured with `CONFIG_NUMA` or the NUMA node is not present.
-	#[inline(always)]
-	pub fn memory_information(self, sys_path: &SysPath, memory_information_name_prefix: &[u8]) -> Result<MemoryInformation, MemoryInformationParseError>
-	{
-		let file_path = sys_path.numa_node_file_path(self.into(), "meminfo");
-		MemoryInformation::parse_memory_information_file(&file_path, memory_information_name_prefix)
 	}
 }

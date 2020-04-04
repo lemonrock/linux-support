@@ -4,7 +4,7 @@
 
 use crate::paths::ProcPath;
 use crate::process::ProcessIdentifierChoice;
-use libc_extra::unix::unistd::getpagesize;
+#[cfg(not(any(target_arch = "powerpc64", target_arch = "riscv64", target_arch = "sparc64", target_arch = "x86_64")))] use libc_extra::unix::unistd::getpagesize;
 use std::fs::File;
 use std::io;
 use std::io::Read;
