@@ -6,6 +6,7 @@
 use crate::bit_set::*;
 use crate::capabilities_and_privileges::Capability;
 use crate::cpu::*;
+use crate::file_descriptors::CreationError;
 use crate::file_descriptors::process_identifier::ProcessIdentifierFileDescriptor;
 use crate::memory::numa::*;
 use crate::paths::*;
@@ -13,10 +14,16 @@ use crate::signals::Signal;
 use crate::strings::*;
 use crate::strings::parse_number::*;
 use indexmap::set::IndexSet;
-use libc::*;
-use libc::clock_t;
-use libc::sysconf;
 use libc::_SC_CLK_TCK;
+use libc::clock_t;
+use libc::getgid;
+use libc::getpid;
+use libc::getuid;
+use libc::gid_t;
+use libc::mode_t;
+use libc::pid_t;
+use libc::sysconf;
+use libc::uid_t;
 use likely::*;
 use likely::unlikely;
 use self::status::*;
@@ -36,7 +43,7 @@ use std::io;
 use std::num::NonZeroI32;
 use std::num::NonZeroUsize;
 use std::ops::Deref;
-use crate::file_descriptors::CreationError;
+use std::ptr::write;
 
 
 /// Stat.

@@ -1,16 +1,5 @@
 // TODO: userfaultfd: http://man7.org/linux/man-pages/man2/userfaultfd.2.html
 
-// TODO: Check the following in ProcessStatistics for Linux version:-
-         thread_no_new_privileges_bit
-         CoreDumping
-         seccomp_mode
-         speculation_store_bypass
-
-// TODO: New Alpine Linux kernel. Check on what NUMA huge page files exist per-NUMA Node; suspected that not all files are present.
-&nr_hugepages_attr.attr,
-&free_hugepages_attr.attr,
-surplus_hugepages_attr.attr,
-
 // TODO: Rework kernel validator into sections for numa, memory, etc.
 
 // TODO: kernel validator proper errors.

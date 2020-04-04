@@ -218,11 +218,15 @@ pub struct ProcessStatusStatistics
 	/// Since Linux 4.4.
 	pub huge_tlb_pages_memory_size: Kilobyte,
 
-	// CoreDumping: Contains the value 1 if the process is cur‐
-	//                rently dumping core, and 0 if it is not (since Linux 4.15).
-	//                This information can be used by a monitoring process to
-	//                avoid killing a process that is currently dumping core,
-	//                which could result in a corrupted core dump file.
+	/// Is the process currently dumping core?
+	///
+	/// Known as `CoreDumping`.
+	///
+	/// This information can be used by a monitoring process to avoid killing a process that is currently dumping core.
+	/// Killing a process whilst it is dumping core could result in a corrupted core dump file.
+	///
+	/// Since Linux 4.15.
+	pub currently_dumping_core: Option<bool>,
 
 	/// Number of threads.
 	///
@@ -293,13 +297,15 @@ pub struct ProcessStatusStatistics
 	/// Known as `NoNewPrivs`.
 	///
 	/// Since Linux 4.10.
-	pub thread_no_new_privileges_bit: bool,
+	pub thread_no_new_privileges_bit: Option<bool>,
 
 	/// Seccomp mode.
 	///
 	/// Known as `Seccomp`.
 	///
 	/// This field is provided only if the kernel was built with the `CONFIG_SECCOMP` kernel configuration option enabled.
+	///
+	/// Since Linux 3.8.
 	pub seccomp_mode: SeccompMode,
 
 	/// Speculation store ('Spectre' vulnerability) bypass status.
@@ -307,7 +313,9 @@ pub struct ProcessStatusStatistics
 	/// Known as `Speculation_Store_Bypass`.
 	///
 	/// Since Linux 4.17.
-	pub speculation_store_bypass: SpeculationStoreBypassStatus,
+	///
+	/// Problematic for Ubuntu Server LTS 18.04, which uses Linux 4.15.
+	pub speculation_store_bypass: Option<SpeculationStoreBypassStatus>,
 
 	/// CPUs (actually, hyper threaded cores) allowed for the current process.
 	///
@@ -430,24 +438,17 @@ impl ProcessStatusStatistics
 								$struct_field = true;
 
 								let result = Self::$parse(statistic_value).map_err(|cause| CouldNotParseLine { zero_based_line_number, cause})?;
-								unsafe { std::ptr::write(&mut $this.$struct_field, result) };
+								unsafe { write(&mut $this.$struct_field, result) };
 							},
 						)*
 
-						_ =>
-						{
-							let previous = $this.unrecognised.insert(Self::to_box(statistic_name), Self::to_box(statistic_value));
-							if unlikely!(previous.is_some())
-							{
-								return Err(CouldNotParseLine { zero_based_line_number, cause: DuplicatedStatistic })
-							}
-						}
+						_ => $this.parse_optional_statistics_and_future_statistics(statistic_name, statistic_value, zero_based_line_number)?,
 					}
 
 					$(
 						if unlikely!(!$struct_field)
 						{
-							return Err(MissingRequiredField)
+							return Err(MissingRequiredField(stringify!($struct_field)))
 						}
 					)*
 
@@ -458,8 +459,13 @@ impl ProcessStatusStatistics
 
 		let file_path = proc_path.process_file_path(process_identifier, "status");
 		let reader = BufReader::with_capacity(4096, File::open(file_path)?);
+
 		#[allow(deprecated, invalid_value)] let mut this: Self = unsafe { uninitialized() };
-		unsafe { std::ptr::write(&mut this.unrecognised, HashMap::default())}
+		unsafe { write(&mut this.currently_dumping_core, None) };
+		unsafe { write(&mut this.thread_no_new_privileges_bit, None) };
+		unsafe { write(&mut this.speculation_store_bypass, None) };
+		unsafe { write(&mut this.unrecognised, HashMap::default())};
+
 		parse!
 		(
 			reader, this,
@@ -508,9 +514,7 @@ impl ProcessStatusStatistics
 			b"CapEff" => effective_capabilities_mask @ parse_capability_mask_or_set,
 			b"CapBnd" => capabilities_bounding_set @ parse_capability_mask_or_set,
 			b"CapAm" => ambient_capabilities_set @ parse_capability_mask_or_set,
-			b"NoNewPrivs" => thread_no_new_privileges_bit @ parse_bool,
 			b"Seccomp" => seccomp_mode @ parse_seccomp_mode,
-			b"Speculation_Store_Bypass" => speculation_store_bypass @ parse_speculation_store_bypass,
 			b"Cpus_allowed" => cpus_allowed @ parse_cpus_or_numa_nodes_allowed,
 			b"Cpus_allowed_list" => cpus_allowed_list @ parse_cpus_allowed_list,
 			b"Mems_allowed" => numa_nodes_allowed @ parse_cpus_or_numa_nodes_allowed,
@@ -536,6 +540,50 @@ impl ProcessStatusStatistics
 
 		this.unrecognised.shrink_to_fit();
 		Ok(this)
+	}
+
+	#[inline(always)]
+	fn parse_optional_statistics_and_future_statistics(&mut self, statistic_name: &[u8], statistic_value: &[u8], zero_based_line_number: usize) -> Result<(), ProcessStatusFileParseError>
+	{
+		use self::ProcessStatusFileParseError::*;
+		use self::ProcessStatusStatisticParseError::DuplicatedStatistic;;
+
+		#[inline(always)]
+		fn parse_optional_statistic<S>(statistic: &mut Option<S>, statistic_value: &[u8], zero_based_line_number: usize, parse: impl FnOnce(&[u8]) -> Result<S, ProcessStatusStatisticParseError>) -> Result<(), ProcessStatusFileParseError>
+		{
+			if unlikely!(statistic.is_some())
+			{
+				Err(CouldNotParseLine { zero_based_line_number, cause: DuplicatedStatistic })
+			}
+			else
+			{
+				let result = parse(statistic_value).map_err(|cause| CouldNotParseLine { zero_based_line_number, cause})?;
+				*statistic = Some(result);
+				Ok(())
+			}
+		}
+
+		match statistic_name
+		{
+			b"CoreDumping" => parse_optional_statistic(&mut self.currently_dumping_core, statistic_value, zero_based_line_number, Self::parse_bool),
+
+			b"NoNewPrivs" => parse_optional_statistic(&mut self.thread_no_new_privileges_bit, statistic_value, zero_based_line_number, Self::parse_bool),
+
+			b"Speculation_Store_Bypass" => parse_optional_statistic(&mut self.speculation_store_bypass, statistic_value, zero_based_line_number, Self::parse_speculation_store_bypass),
+
+			_ => self.insert_unrecognised(statistic_name, statistic_value, zero_based_line_number),
+		}
+	}
+
+	#[inline(always)]
+	fn insert_unrecognised(&mut self, statistic_name: &[u8], statistic_value: &[u8], zero_based_line_number: usize) -> Result<(), ProcessStatusFileParseError>
+	{
+		let previous = self.unrecognised.insert(Self::to_box(statistic_name), Self::to_box(statistic_value));
+		if unlikely!(previous.is_some())
+		{
+			return Err(ProcessStatusFileParseError::CouldNotParseLine { zero_based_line_number, cause: ProcessStatusStatisticParseError::DuplicatedStatistic })
+		}
+		Ok(())
 	}
 
 	#[inline(always)]
