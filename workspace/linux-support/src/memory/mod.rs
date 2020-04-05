@@ -28,7 +28,7 @@ pub mod huge_pages;
 /// Memory information.
 pub mod information;
 
-/// NUMA.
+/// Non-Uniform Memory Architecture (NUMA).
 ///
 /// Functionality in here replaces the need to use `libnuma`.
 pub mod numa;

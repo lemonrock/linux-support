@@ -8,8 +8,6 @@
 ///
 /// * most Linux systems have very NUMA nodes;
 /// * most never change `CONFIG_NODES_SHIFT` from its default of 6 (which gives a maximum of 64 nodes).
-///
-/// Indeed, the trend in modern x86-64 systems with CPUs such as AMD's Zen2 is to have just 2 NUMA nodes for 128 cores.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct NumaNode(u16);
@@ -27,6 +25,9 @@ impl Into<u16> for NumaNode
 
 impl BitSetAware for NumaNode
 {
+	/// Internally, code in Linux checks that `number of nodes x 4 <= page size`.
+	/// This is to handle writing the `distance` files in sysfs (see `node_read_distance()` in `drivers/base/node.c`).
+	/// This logic, on x86_64, caps the maximum number of nodes to 1024, which is also the maximum here.
 	const LinuxMaximum: u16 = 1 << Self::LinuxMaximumFor_CONFIG_NUMA_SHIFT;
 
 	const InclusiveMinimum: Self = Self(0);
@@ -139,13 +140,13 @@ impl NumaNode
 	#[inline(always)]
 	fn cpu_map(self, sys_path: &SysPath) -> Option<BitSet<HyperThread>>
 	{
-		self.only_if_path_exists(sys_path, "cpumap", |file_path | file_path.parse_hyper_thread_or_numa_node_bit_set::<HyperThread>().unwrap())
+		self.only_if_path_exists(sys_path, "cpumap", |file_path | file_path.parse_hyper_thread_or_numa_node_bit_set::<HyperThread>())
 	}
 
 	#[inline(always)]
 	fn cpu_list(self, sys_path: &SysPath) -> Option<BitSet<HyperThread>>
 	{
-		self.only_if_path_exists(sys_path, "cpulist", |file_path | file_path.read_hyper_thread_or_numa_node_list::<HyperThread>().unwrap())
+		self.only_if_path_exists(sys_path, "cpulist", |file_path | file_path.read_hyper_thread_or_numa_node_list::<HyperThread>())
 	}
 
 	#[inline(always)]
@@ -394,7 +395,7 @@ impl NumaNode
 	{
 		assert_effective_user_id_is_root(&format!("Compact pages in NUMA node '{}'", self.0));
 		
-		self.only_if_path_exists(sys_path, "compact", |file_path| file_path.write_value(true).unwrap());
+		self.only_if_path_exists(sys_path, "compact", |file_path| file_path.write_value(true));
 	}
 
 	/// Huge page pool statistics.
@@ -408,15 +409,56 @@ impl NumaNode
 		HugePagePoolStatistics::new(sys_path, huge_page_size, |sys_path, huge_page_size| sys_path.numa_node_hugepages_folder_path(huge_page_size, self))
 	}
 
-	/// Value used for distance calculations.
+	/// Memory latency costs to other nodes relative to this node.
+	///
+	/// Only nodes Linux considers 'online' will be included.
 	///
 	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`, the NUMA node is not present or `sys_path` is not mounted.
 	///
-	/// Minimum value seems to be 10.
+	/// The relative memory latency for 'self' will be present.
 	#[inline(always)]
-	pub fn distance(self, sys_path: &SysPath) -> Option<u8>
+	fn distances(self, sys_path: &SysPath) -> Option<HashMap<NumaNode, MemoryLatencyRelativeCost>>
 	{
-		self.only_if_path_exists(sys_path, "distance", |file_path| file_path.read_value().unwrap())
+		const LinuxMaximum: usize = NumaNode::LinuxMaximum as usize;
+
+		fn parser(file_path: &Path, mut online_numa_nodes: BitSetIterator<NumaNode>) -> io::Result<HashMap<NumaNode, MemoryLatencyRelativeCost>>
+		{
+			let line = file_path.read_raw_without_line_feed()?;
+
+			let mut raw_distances = line.splitn(LinuxMaximum, |byte| *byte == b' ').peekable();
+
+			// NOTE: We do not use `Iterator.zip()`.
+			// This is because there is a very slight chance the `online_numa_nodes` list we have may have diverged from that used internally in Linux to generate the distances.
+			// By not using `zip()`, we can detect this and fail.
+
+			// NOTE: It is legitimate for there to be no distances at all, because this NUMA node is not online.
+			if raw_distances.peek().is_none()
+			{
+				return Ok(HashMap::new())
+			}
+
+			let mut map = HashMap::with_capacity(LinuxMaximum);
+
+			for raw_distance in raw_distances
+			{
+				let online_numa_node = online_numa_nodes.next().ok_or_else(|| io::Error::new(ErrorKind::Other, "There should be an online NUMA node if there is a distance"))?;
+				let distance = MemoryLatencyRelativeCost::from_bytes(raw_distance).map_err(|parse_number_error| io::Error::new(ErrorKind::Other, parse_number_error))?;
+				map.insert(online_numa_node, distance);
+			}
+
+			if unlikely!(online_numa_nodes.next().is_some())
+			{
+				return Err(io::Error::new(ErrorKind::Other, "There are more online NUMA nodes than there are distances; this is possible if the online list is stale"))
+			}
+
+			map.shrink_to_fit();
+			Ok(map)
+		}
+
+		let online = BitSet::<NumaNode>::online(sys_path)?;
+		let mut online = online.iterate();
+
+		self.only_if_path_exists(sys_path, "distance", |file_path| parser(file_path, online))
 	}
 
 	/// This is a subset of `self.zoned_virtual_memory_statistics()`.
@@ -428,7 +470,7 @@ impl NumaNode
 	#[inline(always)]
 	pub fn numa_memory_statistics(self, sys_path: &SysPath) -> Option<HashMap<VirtualMemoryStatisticName, u64>>
 	{
-		self.only_if_path_exists(sys_path, "numastat", |file_path| VirtualMemoryStatisticName::parse_virtual_memory_statistics_file(file_path).unwrap())
+		self.only_if_path_exists(sys_path, "numastat", |file_path| VirtualMemoryStatisticName::parse_virtual_memory_statistics_file(file_path))
 	}
 
 	/// Memory statistics.
@@ -439,7 +481,7 @@ impl NumaNode
 	#[inline(always)]
 	pub fn zoned_virtual_memory_statistics(self, sys_path: &SysPath) -> Option<HashMap<VirtualMemoryStatisticName, u64>>
 	{
-		self.only_if_path_exists(sys_path, "vmstat", |file_path| VirtualMemoryStatisticName::parse_virtual_memory_statistics_file(file_path).unwrap())
+		self.only_if_path_exists(sys_path, "vmstat", |file_path| VirtualMemoryStatisticName::parse_virtual_memory_statistics_file(file_path))
 	}
 
 	/// Memory information.
@@ -448,16 +490,16 @@ impl NumaNode
 	#[inline(always)]
 	pub fn memory_information(self, sys_path: &SysPath, memory_information_name_prefix: &[u8]) -> Option<MemoryInformation>
 	{
-		self.only_if_path_exists(sys_path, "meminfo", |file_path| MemoryInformation::parse_memory_information_file(&file_path, memory_information_name_prefix).unwrap())
+		self.only_if_path_exists(sys_path, "meminfo", |file_path| MemoryInformation::parse_memory_information_file(&file_path, memory_information_name_prefix))
 	}
 
 	#[inline(always)]
-	fn only_if_path_exists<R>(self, sys_path: &SysPath, file_name: &str, parser: impl FnOnce(&Path) -> R) -> Option<R>
+	fn only_if_path_exists<R, E: error::Error>(self, sys_path: &SysPath, file_name: &str, parser: impl FnOnce(&Path) -> Result<R, E>) -> Option<R>
 	{
 		let file_path = sys_path.numa_node_file_path(self.into(), file_name);
 		if likely!(file_path.exists())
 		{
-			Some(parser(&file_path))
+			Some(parser(&file_path).unwrap())
 		}
 		else
 		{
