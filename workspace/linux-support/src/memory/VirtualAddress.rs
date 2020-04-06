@@ -114,6 +114,15 @@ impl From<u64> for VirtualAddress
 	}
 }
 
+impl Into<u64> for VirtualAddress
+{
+	#[inline(always)]
+	fn into(self) -> u64
+	{
+		self.0 as u64
+	}
+}
+
 impl Into<usize> for VirtualAddress
 {
 	#[inline(always)]
@@ -171,7 +180,7 @@ impl VirtualAddress
 	#[inline(always)]
 	pub fn offset_from_start_of_page(self) -> usize
 	{
-		self.0 % page_size()
+		self.0 % PageSize::current() as usize
 	}
 	
 	/// The address of the page which contains this physical address.
@@ -179,7 +188,7 @@ impl VirtualAddress
 	#[inline(always)]
 	pub fn first_address_in_page(self) -> Self
 	{
-		VirtualAddress(self.0 & !(page_size() - 1))
+		VirtualAddress(self.0 & !(PageSize::current() as usize - 1))
 	}
 	
 	/// This function will translate virtual addresses to physical addresses.
@@ -195,5 +204,21 @@ impl VirtualAddress
 			let physical_address = physical_address_of_physical_page.add(virtual_address.offset_from_start_of_page());
 			physical_address_user(has_virtual_address, virtual_address, physical_address)
 		}).expect("could not read pagemap");
+	}
+
+	/// Pointer to value.
+	#[inline(always)]
+	pub fn pointer_to<T>(self, offset: usize) -> NonNull<T>
+	{
+		debug_assert_eq!(offset % align_of::<T>(), 0, "misaligned access");
+		debug_assert_ne!(self.0 + offset, 0, "A zero address and zero offset is not permitted");
+
+		unsafe { NonNull::new_unchecked((self.0 as *mut T).offset(offset as isize)) }
+	}
+
+	#[inline(always)]
+	pub(crate) fn offset_in_bytes(self, offset_in_bytes: usize) -> Self
+	{
+		Self(self.0 + offset_in_bytes)
 	}
 }

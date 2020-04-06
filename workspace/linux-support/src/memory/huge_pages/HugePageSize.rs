@@ -6,9 +6,10 @@
 ///
 /// See also <https://en.wikipedia.org/wiki/Page_(computer_memory)#Huge_pages>.
 ///
-/// `repr(u64)` values are in KiloBytes.
+/// `repr(u64)` values are in bytes.
 #[repr(u64)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(EnumIter)]
 pub enum HugePageSize
 {
 	/// 64Kb.
@@ -18,74 +19,74 @@ pub enum HugePageSize
 	/// Used on sparc64.
 	///
 	/// (Used on aarch64 as just a page size with the 64Kb translation granule).
-	_64KB = 64,
+	_64KB = 64 * 1_024,
 
 	/// 512Kb.
 	///
 	/// Not used on x86_64.
 	/// Used on sparc64.
-	_512KB = 512,
+	_512KB = 512 * 1_024,
 
 	/// 1MB.
 	///
 	/// Not used on x86_64.
-	_1MB = 1024,
+	_1MB = 1_024 * 1_024,
 	
 	/// 2MB.
 	///
 	/// Used on x86_64.
 	/// Used on aarch64 as with the 4Kb translation granule.
-	_2MB = 2048,
+	_2MB = 2_048 * 1_024,
 	
 	/// 4MB.
 	///
 	/// Not used on x86_64.
 	/// Used on sparc64.
-	_4MB = 4096,
+	_4MB = 4_096 * 1_024,
 
 	/// 8MB.
 	///
 	/// Not used on x86_64.
 	/// Used on sparc64.
-	_8MB = 8192,
+	_8MB = 8_192 * 1_024,
 	
 	/// 16MB.
 	///
 	/// Not used on x86_64.
 	/// Used on powerpc64.
-	_16MB = 16_384,
+	_16MB = 16_384 * 1_024,
 
 	/// 32MB.
 	///
 	/// Not used on x86_64.
 	/// Used on sparc64.
 	/// Used on aarch64 as with the 16Kb translation granule.
-	_32MB = 32_768,
+	_32MB = 32_768 * 1_024,
 	
 	/// 256MB.
 	///
 	/// Not used on x86_64.
 	/// Used on sparc64.
-	_256MB = 262_144,
+	_256MB = 262_144 * 1_024,
 	
 	/// 512MB.
 	///
 	/// Not used on x86_64.
 	///
 	/// Used on aarch64 as with the 16Kb translation granule.
-	_512MB = 524_288,
+	_512MB = 524_288 * 1_024,
 
 	/// 1GB.
 	///
 	/// Used on x86_64.
 	/// Used on aarch64 as with the 4Kb translation granule.
-	_1GB = 1_048_576,
+	_1GB = 1_048_576 * 1_024,
 	
 	/// 2GB.
 	///
 	/// Not used on x86_64.
 	/// Used on sparc64.
-	_2GB = 2_097_152,
+	_2GB = 2_097_152 * 1_024,
 	
 	/// 16GB.
 	///
@@ -94,64 +95,53 @@ pub enum HugePageSize
 	/// Not used on x86_64.
 	/// Used on powerpc64.
 	/// Used on sparc64.
-	_16GB = 16_777_216,
+	_16GB = 16_777_216 * 1_024,
 }
 
 impl HugePageSize
 {
-	/// Potentially supported huge page sizes.
-	///
-	/// Range based on defined constants `MAP_HUGE_*`.
-	pub const PotentiallySupportedHugePageSizesLargestFirst: [HugePageSize; 13] =
-	[
-		HugePageSize::_16GB,
-		HugePageSize::_2GB,
-		HugePageSize::_1GB,
-		HugePageSize::_512MB,
-		HugePageSize::_256MB,
-		HugePageSize::_32MB,
-		HugePageSize::_16MB,
-		HugePageSize::_8MB,
-		HugePageSize::_4MB,
-		HugePageSize::_2MB,
-		HugePageSize::_1MB,
-		HugePageSize::_512KB,
-		HugePageSize::_64KB,
-	];
-
-	/// What value, N, gives `Self == 1 << N`.
-	const fn log_base_2_of_bytes(self) -> u64
+	/// Size in kilobytes.
+	#[inline(always)]
+	pub const fn size_in_kilobytes(self) -> NonZeroKilobyte
 	{
-		(self as u64).trailing_zeros() as u64
+		unsafe { NonZeroU64::new_unchecked((self as u64) / 1_024) }
 	}
 
-	/// Value for use with `flags` in `mmap()` (`MAP_HUGE_*`, eg `MAP_HUGE_2MB`) and `memfd_create()` (`MFD_HUGE_*` eg MFD_HUGE_2MB).
-	///
-	/// Note that the `mmap()` and `memfd_create()` calls can not accept huge page sizes over 2Gb as they use an unsigned integer!
-	///
-	/// The 6 bits `[26:31]` of the flag arguments encode the log2 of the huge page size in kilobytes.
+	/// Size in bytes.
 	#[inline(always)]
-	pub const fn mmap_and_memfd_flags_bits(self) -> u64
+	pub const fn size_in_bytes(self) -> NonZeroU64
 	{
-		/*
-			                    self.log_base_2()
-			                    ^
-			 1*        =>       0
-			 2*        =>       1
-			 4*        =>       2
-			 8*        =>       3
-			16*        =>       4
-			32*        =>       5
-			64         => 16 -  6 = 10
-			128*       =>       7
-			256*       =>       8
-			512        => 19 -  9 = 10
-			1024       => 20 - 10 = 10
-			16_777_216 => 34 - 24 = 10
-		*/
-		const Log2OfBytesInAKilobyte: u64 = 10;
-		const MAP_HUGE_SHIFT: u64 = 26;
-		(self.log_base_2_of_bytes() - Log2OfBytesInAKilobyte) << MAP_HUGE_SHIFT
+		unsafe { NonZeroU64::new_unchecked(self as u64) }
+	}
+
+	/// Non-zero number of pages from non-zero number of bytes, rounded up.
+	#[inline(always)]
+	pub fn non_zero_number_of_pages_from_non_zero_number_of_bytes_rounded_up(self, number_of_bytes: NonZeroU64) -> NonZeroNumberOfPages
+	{
+		unsafe { NonZeroU64::new_unchecked(self.number_of_pages_from_number_of_bytes_rounded_up(number_of_bytes.get())) }
+	}
+
+	/// Number of pages from number of bytes, rounded up.
+	#[inline(always)]
+	pub fn number_of_pages_from_number_of_bytes_rounded_up(self, number_of_bytes: u64) -> NumberOfPages
+	{
+		let size_in_bytes = self.size_in_bytes().get();
+		(number_of_bytes + size_in_bytes - 1) / size_in_bytes
+	}
+
+	/// Non-zero number of bytes rounded up to number of pages.
+	#[inline(always)]
+	pub fn non_zero_number_of_bytes_rounded_up_to_multiple_of_page_size(self, number_of_bytes: NonZeroU64) -> NonZeroU64
+	{
+		unsafe { NonZeroU64::new_unchecked(self.number_of_bytes_rounded_up_to_multiple_of_page_size(number_of_bytes.get())) }
+	}
+
+	/// Number of bytes rounded up to number of pages.
+	#[inline(always)]
+	pub fn number_of_bytes_rounded_up_to_multiple_of_page_size(self, number_of_bytes: u64) -> u64
+	{
+		let size_in_bytes = self.size_in_bytes().get();
+		((number_of_bytes + size_in_bytes - 1) / size_in_bytes) * size_in_bytes
 	}
 
 	/// Is this considered a gigantic huge page?
@@ -167,180 +157,8 @@ impl HugePageSize
 	{
 		const Scalar: u64 = 2048;
 
-		let minimum_gigantic_huge_page = (page_size() as u64) * Scalar;
-		self.size_in_bytes() >= minimum_gigantic_huge_page
-	}
-	
-	/// Size in mega bytes.
-	#[inline(always)]
-	pub fn size_in_mega_bytes(self) -> u64
-	{
-		self.size_in_kilo_bytes() / 1024
-	}
-	
-	/// Size in kilo bytes.
-	#[inline(always)]
-	pub fn size_in_kilo_bytes(self) -> u64
-	{
-		self as u64
-	}
-	
-	/// Size in bytes.
-	#[inline(always)]
-	pub fn size_in_bytes(self) -> u64
-	{
-		self.size_in_kilo_bytes() * 1024
-	}
-	
-	/// Calculate number of huge pages.
-	#[inline(always)]
-	pub fn calculate_number_of_huge_pages(&self, desired_number_of_kilo_bytes: u64) -> u64
-	{
-		let size_in_kilo_bytes = self.size_in_kilo_bytes();
-		if size_in_kilo_bytes < desired_number_of_kilo_bytes
-		{
-			1
-		}
-		else
-		{
-			size_in_kilo_bytes / desired_number_of_kilo_bytes
-		}
-	}
-	
-	/// Converts a value from Linux's `/proc/mem` pseudo-file into a `HugePageSize`.
-	#[inline(always)]
-	pub fn from_proc_mem_info_value(value: u64) -> Option<Self>
-	{
-		use self::HugePageSize::*;
-		
-		match value
-		{
-			64 => Some(_64KB),
-			512 => Some(_512KB),
-			1_024 => Some(_1MB),
-			2_048 => Some(_2MB),
-			4_096 => Some(_4MB),
-			8_192 => Some(_8MB),
-			16_384 => Some(_16MB),
-			32_768 => Some(_32MB),
-			262_144 => Some(_256MB),
-			524_288 => Some(_512MB),
-			1_048_576 => Some(_1GB),
-			2_097_152 => Some(_2GB),
-			16_777_216 => Some(_16GB),
-			
-			_ => None,
-		}
-	}
-	
-	/// String description including unit.
-	#[inline(always)]
-	pub fn to_str(&self) -> &'static str
-	{
-		use self::HugePageSize::*;
-		
-		match *self
-		{
-			_64KB => "64KB",
-			_512KB => "512KB",
-			_1MB => "1MB",
-			_2MB => "2MB",
-			_4MB => "4MB",
-			_8MB => "8MB",
-			_16MB => "16MB",
-			_32MB => "32MB",
-			_256MB => "256MB",
-			_512MB => "512MB",
-			_1GB => "1GB",
-			_2GB => "2GB",
-			_16GB => "16GB",
-		}
-	}
-	
-	/// String description including unit.
-	#[inline(always)]
-	pub fn to_bytes(&self) -> &'static [u8]
-	{
-		use self::HugePageSize::*;
-		
-		match *self
-		{
-			_64KB => b"64KB",
-			_512KB => b"512KB",
-			_1MB => b"1MB",
-			_2MB => b"2MB",
-			_4MB => b"4MB",
-			_8MB => b"8MB",
-			_16MB => b"16MB",
-			_32MB => b"32MB",
-			_256MB => b"256MB",
-			_512MB => b"512MB",
-			_1GB => b"1GB",
-			_2GB => b"2GB",
-			_16GB => b"16GB",
-		}
-	}
-
-	/// Default huge page size.
-	///
-	/// Usually 2Mb on x86_64 (but controlled by kernel command line options).
-	///
-	/// This will return `None` if `memory_information` is lacking the essential statistic used.
-	#[inline(always)]
-	pub fn default_huge_page_size(memory_information: &MemoryInformation) -> Option<Self>
-	{
-		if let Some(size_in_bytes) = memory_information.get_statistic(&MemoryInformationName::SizeOfDefaultHugePage)
-		{
-			Self::from_proc_mem_info_value(size_in_bytes)
-		}
-		else
-		{
-			None
-		}
-	}
-
-	/// This will return `None` if the kernel was compiled without ?`CONFIG_TRANSPARENT_HUGEPAGE` or `sys_path` is not mounted.
-	#[inline(always)]
-	pub fn transparent_huge_page_size(sys_path: &SysPath) -> Option<Self>
-	{
-		let file_path = sys_path.transparent_huge_memory_file_path("hpage_pmd_size");
-		if file_path.exists()
-		{
-			let value: u64 = file_path.read_value().unwrap();
-			Self::from_proc_mem_info_value(value)
-		}
-		else
-		{
-			None
-		}
-	}
-
-	/// Supported huge page sizes, sorted smallest to largest.
-	///
-	/// There may be no huge pages because:-
-	///
-	/// * The folder `/sys/kernel/mm/hugepages` does not exist (I have seen this on Alpine Linux 3.11 running the 'linux-lts' kernel on a Parallels Hypervisor).
-	/// * The architecture only has huge pages we do not support (extremely unlikely).
-	/// * We are on an ancient CPU that does not have huge pages (extremely unlikely).
-	///
-	/// On modern x86_64 from Sandy Bridge onwards, will contain 1Gb gigantic huge page and 2Mb huge page sizes.
-	///
-	/// This will return an empty set if the kernel was compiled without `CONFIG_HUGETLBFS` or `sys_path` is not mounted.
-	#[inline(always)]
-	pub fn supported_huge_page_sizes(sys_path: &SysPath) -> BTreeSet<Self>
-	{
-		let mut supported = BTreeSet::new();
-		
-		for huge_page_size in Self::PotentiallySupportedHugePageSizesLargestFirst.iter()
-		{
-			let huge_page_size = *huge_page_size;
-			if sys_path.global_hugepages_folder_path(huge_page_size).exists()
-			{
-				supported.insert(huge_page_size);
-			}
-		}
-		
-		supported
+		let minimum_gigantic_huge_page = (PageSize::current() as u64) * Scalar;
+		self.size_in_bytes().get() >= minimum_gigantic_huge_page
 	}
 
 	/// Huge page pool statistics.
@@ -381,5 +199,144 @@ impl HugePageSize
 		{
 			return None
 		}
+	}
+
+	#[inline(always)]
+	pub(crate) fn mmap_or_memfd_flag_bits_and_page_size(hugetlb_flag: i32, setting: Option<Option<Self>>, defaults: &DefaultPageSizeAndHugePageSizes) -> (i32, PageSizeOrHugePageSize)
+	{
+		use self::PageSizeOrHugePageSize::*;
+
+		#[inline(always)]
+		fn no_huge_page(defaults: &DefaultPageSizeAndHugePageSizes) -> (i32, PageSizeOrHugePageSize)
+		{
+			(0, PageSize(defaults.default_page_size()))
+		}
+
+		match setting
+		{
+			None => no_huge_page(defaults),
+
+			Some(None) => match defaults.default_huge_page_size()
+			{
+				Some(huge_page_size) => (hugetlb_flag, HugePageSize(huge_page_size)),
+				None => no_huge_page(defaults)
+			},
+
+			Some(Some(huge_page_size)) => match defaults.this_or_next_smaller_supported_huge_page_size(huge_page_size)
+			{
+				Some(huge_page_size) => (hugetlb_flag | huge_page_size.mmap_and_memfd_flags_bits(), HugePageSize(huge_page_size)),
+				None => no_huge_page(defaults)
+			},
+		}
+	}
+
+	/// Default huge page size.
+	///
+	/// Usually 2Mb on x86_64 (but controlled by kernel command line options).
+	///
+	/// This will return `None` if `memory_information` is lacking the essential statistic used.
+	#[inline(always)]
+	fn default_huge_page_size(memory_information: &MemoryInformation) -> Option<Self>
+	{
+		if let Some(size_in_bytes) = memory_information.get_statistic(&MemoryInformationName::SizeOfDefaultHugePage)
+		{
+			Self::from_kilobytes(size_in_bytes)
+		}
+		else
+		{
+			None
+		}
+	}
+
+	/// This will return `None` if the kernel was compiled without ?`CONFIG_TRANSPARENT_HUGEPAGE` or `sys_path` is not mounted.
+	#[inline(always)]
+	fn transparent_huge_page_size(sys_path: &SysPath) -> Option<Self>
+	{
+		let file_path = sys_path.transparent_huge_memory_file_path("hpage_pmd_size");
+		if file_path.exists()
+		{
+			let value: NonZeroU64 = file_path.read_value().unwrap();
+			Self::from_non_zero_kilobytes(value)
+		}
+		else
+		{
+			None
+		}
+	}
+
+	/// Supported huge page sizes, sorted smallest to largest.
+	///
+	/// There may be no huge pages because:-
+	///
+	/// * The folder `/sys/kernel/mm/hugepages` does not exist (I have seen this on Alpine Linux 3.11 running the 'linux-lts' kernel on a Parallels Hypervisor).
+	/// * The architecture only has huge pages we do not support (extremely unlikely).
+	/// * We are on an ancient CPU that does not have huge pages (extremely unlikely).
+	///
+	/// On modern x86_64 from Sandy Bridge onwards, will contain 1Gb gigantic huge page and 2Mb huge page sizes.
+	///
+	/// This will return an empty set if the kernel was compiled without `CONFIG_HUGETLBFS` or `sys_path` is not mounted.
+	#[inline(always)]
+	fn supported_huge_page_sizes(sys_path: &SysPath) -> BTreeSet<Self>
+	{
+		let mut supported = BTreeSet::new();
+
+		for huge_page_size in Self::iter()
+		{
+			if sys_path.global_hugepages_folder_path(huge_page_size).exists()
+			{
+				supported.insert(huge_page_size);
+			}
+		}
+		
+		supported
+	}
+
+	#[inline(always)]
+	fn from_non_zero_kilobytes(value: NonZeroU64) -> Option<Self>
+	{
+		Self::from_kilobytes(value.get())
+	}
+
+	#[inline(always)]
+	fn from_kilobytes(value: u64) -> Option<Self>
+	{
+		use self::HugePageSize::*;
+
+		match value
+		{
+			64 => Some(_64KB),
+			512 => Some(_512KB),
+			1_024 => Some(_1MB),
+			2_048 => Some(_2MB),
+			4_096 => Some(_4MB),
+			8_192 => Some(_8MB),
+			16_384 => Some(_16MB),
+			32_768 => Some(_32MB),
+			262_144 => Some(_256MB),
+			524_288 => Some(_512MB),
+			1_048_576 => Some(_1GB),
+			2_097_152 => Some(_2GB),
+			16_777_216 => Some(_16GB),
+
+			_ => None,
+		}
+	}
+
+	/// Value for use with `flags` in `mmap()` (`MAP_HUGE_*`, eg `MAP_HUGE_2MB`) and `memfd_create()` (`MFD_HUGE_*` eg `MFD_HUGE_2MB`).
+	///
+	/// Note that the `mmap()` and `memfd_create()` calls can not accept huge page sizes over 2Gb as they use a 32-bit integer!
+	#[inline(always)]
+	fn mmap_and_memfd_flags_bits(self) -> i32
+	{
+		const MAP_HUGE_SHIFT: u64 = 26;
+		let value: u64 = self.log_base_2_of_bytes() << MAP_HUGE_SHIFT;
+		let value: u32 = value.try_into().expect("Gigantic huge pages more than 2Gb are not supported by mmap or memfd");
+		value as i32
+	}
+
+	/// What value, N, gives `Self == 1 << N`.
+	const fn log_base_2_of_bytes(self) -> u64
+	{
+		(self as u64).trailing_zeros() as u64
 	}
 }

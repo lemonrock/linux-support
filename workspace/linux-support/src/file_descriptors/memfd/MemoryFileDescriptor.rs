@@ -30,42 +30,42 @@ pub trait MemoryFileDescriptor: Sized + AsRawFd + AsRawFdExt + IntoRawFd + FromR
 	/// * `Some(None)`: Use the system default huge page size.
 	/// * `Some(Some(huge_page_size))`: Use the specific `huge_page_size` huge page size.
 	///
+	/// If the defaults indicate `huge_page_size` `Some(Some(huge_page_size))` is not supported, they will try to find a smaller supported huge page size; if there are not supported huge pages, then the MemoryFileDescriptor will not use huge pages.
+	/// If the defaults indicate `huge_page_size` `Some(None)` is not supported, they then the MemoryFileDescriptor will not use huge pages.
+	///
 	/// The resultant file descriptor will have the close-on-exec flag set (as do all file descriptors created in the super module, `file_descriptors`).
 	///
 	/// Supported since Linux 3.17.
 	/// However, support for `allow_sealing_operations` with `huge_page_size` has only existed since Linux 4.16.
-	fn open_anonymous_memory_as_file(non_unique_name_for_debugging_purposes: &CStr, allow_sealing_operations: bool, huge_page_size: Option<Option<HugePageSize>>) -> Result<Self, CreationError>
+	fn open_anonymous_memory_as_file(non_unique_name_for_debugging_purposes: &CStr, allow_sealing_operations: bool, huge_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<(Self, PageSizeOrHugePageSize), CreationError>
 	{
-		const MFD_CLOEXEC: u64 = 0x0001;
-		const MFD_ALLOW_SEALING: u64 = 0x0002;
-		const MFD_HUGETLB: u64 = 0x0004;
+		const MFD_CLOEXEC: u32 = 0x0001;
+		const MFD_ALLOW_SEALING: u32 = 0x0002;
+		const MFD_HUGETLB: i32 = 0x0004;
 
 		extern "C"
 		{
 			fn memfd_create(name: *const c_char, flags: c_uint) -> c_int;
 		}
 
-		let flags: u64 = MFD_CLOEXEC
-		| if allow_sealing_operations
+		let sealing_flags = if allow_sealing_operations
 		{
 			MFD_ALLOW_SEALING
 		}
 		else
 		{
 			0
-		}
-		| match huge_page_size
-		{
-			None => 0,
-			Some(None) => MFD_HUGETLB,
-			Some(Some(huge_page_size)) => MFD_HUGETLB | huge_page_size.mmap_and_memfd_flags_bits(),
 		};
+
+		let (huge_page_size_flags, page_size) = HugePageSize::mmap_or_memfd_flag_bits_and_page_size(MFD_HUGETLB, huge_page_size, defaults);
+
+		let flags = MFD_CLOEXEC | sealing_flags | huge_page_size_flags as u32;
 
 		let result = unsafe { memfd_create(non_unique_name_for_debugging_purposes.as_ptr() as *const _, flags as u32) };
 
 		if likely!(result == 0)
 		{
-			return Ok(unsafe { Self::from_raw_fd(result) })
+			return Ok((unsafe { Self::from_raw_fd(result) }, page_size))
 		}
 		else if likely!(result == -1)
 		{

@@ -34,6 +34,8 @@ pub trait NumberAsBytes: Sized
 	}
 
 	/// Number as bytes.
+	///
+	/// Returns a `bytes_index` which is the position of the last, lefthand byte written by this method; it could be zero.
 	fn number_as_bytes(self, bytes_index: usize, bytes: &mut [u8], radix: Radix, non_numeric_digit_case: NonNumericDigitCase) -> usize;
 }
 
@@ -61,11 +63,11 @@ macro_rules! unsigned_number_as_bytes
 						(non_numeric_digit_case as u8) + ((remainder - 10) as u8)
 					};
 
-					bytes_index -= 1;
 					if x == 0
 					{
 						return bytes_index
 					}
+					bytes_index -= 1;
 				}
 			}
 		}
@@ -90,8 +92,9 @@ macro_rules! signed_number_as_bytes
 				if self < 0
 				{
 					let bytes_index = ((-self) as $unsigned_type).number_as_bytes(bytes_index, bytes, radix, non_numeric_digit_case);
+					let bytes_index = bytes_index - 1;
 					bytes[bytes_index] = b'-';
-					bytes_index - 1
+					bytes_index
 				}
 				else
 				{

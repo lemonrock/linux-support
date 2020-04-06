@@ -109,7 +109,7 @@ pub enum ElfMachine
 	/// `EM_IA_64`.
 	IA_64 = 50,
 
-	/// AMD x86-64.
+	/// AMD x86_64.
 	///
 	/// `EM_X86_64`.
 	X86_64 = 62,

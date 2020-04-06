@@ -6,7 +6,7 @@
 
 // TODO: Numa / hyper thread valid threads, master loops, allocating kernel and other processes (including forcibly moving them), etc
 
-// TODO: ProcStat parsing (has extra information).
+// TODO: ProcStat parsing (has extra information). (http://man7.org/linux/man-pages/man5/proc.5.html)
 
 // TODO: kernel validator huge pages - make generic for powerpc, aarch64 and riscv64.
 
@@ -16,11 +16,11 @@
 
 // TODO: libcpuset and /dev/cpuset and cpusetfs (which has several useful details)
 
-// TODO: Numa node distance calculation, look at libnuma
+// TODO: Finish NUMA distances.
 
-// TODO: mmap wrappers
-    - to support huge pages and huge page size
-    - generic mmap'd resource that can be dropped (we have at least two, one of which is a PCI resource)
+// TODO: mmap to physicalling contig.
+
+// TODO: memfd seals (https://lwn.net/Articles/591108/ http://man7.org/linux/man-pages/man2/userfaultfd.2.html https://github.com/lucab/memfd-rs)
 
 // TODO: Allocate physically contiguous memory (using huge / gigantic pages; using page map to finding virt to phys mappings)
 

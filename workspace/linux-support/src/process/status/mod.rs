@@ -3,10 +3,10 @@
 
 
 use super::*;
+use crate::memory::Kilobyte;
 use crate::strings::FromBytes;
 
 
-include!("Kilobyte.rs");
 include!("NestedProcessIdentifiers.rs");
 include!("ProcessGroupIdentifiers.rs");
 include!("ProcessState.rs");

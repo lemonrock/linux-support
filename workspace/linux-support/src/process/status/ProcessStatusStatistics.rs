@@ -339,7 +339,7 @@ pub struct ProcessStatusStatistics
 	///
 	/// Known as `Mems_allowed`.
 	///
-	/// Linux defines the config option `NODES_SHIFT` (aka `CONFIG_NODES_SHIFT`) to be 1 to 10 if defined and 0 if not defined, giving a maximum of 2^10 (1024) NUMA nodes, if defaults to 6 (ie 64 NUMA nodes) on x86-64.
+	/// Linux defines the config option `NODES_SHIFT` (aka `CONFIG_NODES_SHIFT`) to be 1 to 10 if defined and 0 if not defined, giving a maximum of 2^10 (1024) NUMA nodes, if defaults to 6 (ie 64 NUMA nodes) on x86_64.
 	///
 	/// Tuples of 32-bit, LSB to the far right, eg `00000000,00000001`.
 	///
@@ -486,22 +486,22 @@ impl ProcessStatusStatistics
 			b"NSpid" => descendant_namespace_process_identifier @ parse_process_identifiers,
 			b"NSpgid" => descendant_namespace_process_group_identifier @ parse_process_identifiers,
 			b"NSsid" => descendant_namespace_session_identifier @ parse_process_identifiers,
-			b"VmPeak" => peak_virtual_memory_size @ parse_kb,
-			b"VmSize" => total_program_size @ parse_kb,
-			b"VmLck" => locked_memory_size @ parse_kb,
-			b"VmPin" => pinned_memory_size @ parse_kb,
-			b"VmHWM" => peak_resident_set_size @ parse_kb,
-			b"VmRSS" => resident_set_memory_size @ parse_kb,
-			b"RssAnon" => anonymous_resident_set_memory_size @ parse_kb,
-			b"RssFile" => resident_set_file_mappings_memory_size @ parse_kb,
-			b"RssShmem" => resident_set_shared_memory_size @ parse_kb,
-			b"VmData" => private_data_segments_size @ parse_kb,
-			b"VmStk" => stack_segments_size @ parse_kb,
-			b"VmExe" => text_segment_size @ parse_kb,
-			b"VmLi" => dynamically_loaded_shared_library_size @ parse_kb,
-			b"VmPTE" => page_table_entries_size @ parse_kb,
-			b"VmSwap" => swap_memory_size @ parse_kb,
-			b"HugetlbPages" => huge_tlb_pages_memory_size @ parse_kb,
+			b"VmPeak" => peak_virtual_memory_size @ parse_kilobyte,
+			b"VmSize" => total_program_size @ parse_kilobyte,
+			b"VmLck" => locked_memory_size @ parse_kilobyte,
+			b"VmPin" => pinned_memory_size @ parse_kilobyte,
+			b"VmHWM" => peak_resident_set_size @ parse_kilobyte,
+			b"VmRSS" => resident_set_memory_size @ parse_kilobyte,
+			b"RssAnon" => anonymous_resident_set_memory_size @ parse_kilobyte,
+			b"RssFile" => resident_set_file_mappings_memory_size @ parse_kilobyte,
+			b"RssShmem" => resident_set_shared_memory_size @ parse_kilobyte,
+			b"VmData" => private_data_segments_size @ parse_kilobyte,
+			b"VmStk" => stack_segments_size @ parse_kilobyte,
+			b"VmExe" => text_segment_size @ parse_kilobyte,
+			b"VmLi" => dynamically_loaded_shared_library_size @ parse_kilobyte,
+			b"VmPTE" => page_table_entries_size @ parse_kilobyte,
+			b"VmSwap" => swap_memory_size @ parse_kilobyte,
+			b"HugetlbPages" => huge_tlb_pages_memory_size @ parse_kilobyte,
 			b"Threads" => threads @ parse_u64,
 			b"SigQ" => signal_queue @ parse_signal_queue,
 			b"SigPnd" => thread_pending_signals @ parse_signal_bit_set,
@@ -653,7 +653,7 @@ impl ProcessStatusStatistics
 	}
 
 	#[inline(always)]
-	fn parse_kb(value: &[u8]) -> Result<Kilobyte, ProcessStatusStatisticParseError>
+	fn parse_kilobyte(value: &[u8]) -> Result<Kilobyte, ProcessStatusStatisticParseError>
 	{
 		const Ending: &'static [u8] = b" kB";
 

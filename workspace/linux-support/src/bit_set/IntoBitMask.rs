@@ -16,6 +16,12 @@ impl<'a, BSA: BitSetAware> IntoLineFeedTerminatedByteString<'a> for IntoBitMask<
 		const SizeOfLineFeed: usize = 1;
 
 		let capacity = self.0.capacity();
+		if unlikely!(capacity == 0)
+		{
+			return Cow::from(b"00000000\n" as &[u8])
+		}
+
+
 		let number_of_bytes = (capacity * SizeOf8ByteHexadecimalTuple) + (capacity - 1) + SizeOfLineFeed;
 		let mut bytes = Vec::with_capacity(number_of_bytes);
 		unsafe { bytes.set_len(number_of_bytes) };
@@ -23,15 +29,27 @@ impl<'a, BSA: BitSetAware> IntoLineFeedTerminatedByteString<'a> for IntoBitMask<
 		bytes[number_of_bytes - 1] = b'\n';
 		let mut bytes_index = number_of_bytes - 2;
 
-		for word_index in (0 .. capacity).rev()
+		let mut word_index = 0;
+		let last_word_index = capacity - 1;
+
+		// This logic writes out from right-to-left.
+		loop
 		{
 			if likely!(word_index > 0)
 			{
-				bytes[bytes_index] = b',';
+				unsafe { * bytes.get_unchecked_mut(bytes_index) = b',' };
 				bytes_index -= 1;
 			}
 
-			bytes_index = self.0.get_word(word_index).lower_case_hexadecimal(bytes_index, &mut bytes[..]);
+			let bytes_index_of_lefthand_digit = self.0.get_word(word_index).lower_case_hexadecimal(bytes_index, &mut bytes[..]);
+
+			if unlikely!(word_index == last_word_index)
+			{
+				debug_assert_eq!(bytes_index_of_lefthand_digit, 0);
+				break;
+			}
+			word_index += 1;
+			bytes_index = bytes_index_of_lefthand_digit - 1;
 		}
 
 		Cow::from(bytes)

@@ -178,7 +178,7 @@ bitflags!
 		/// The TLS (Thread Local Storage) descriptor is set to `newtls`.
 		///
 		/// The interpretation of `newtls` and the resulting effect is architecture dependent.
-		/// On x86-64 it is the new value to be set for the %fs base register (see the `ARCH_SET_FS` argument to `man 2 arch_prctl()`).
+		/// On x86_64 it is the new value to be set for the %fs base register (see the `ARCH_SET_FS` argument to `man 2 arch_prctl()`).
 		///
 		/// Since Linux 2.5.32.
 		const SetThreadLocalStorageDescriptor = CLONE_SETTLS;

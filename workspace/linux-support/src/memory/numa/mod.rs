@@ -3,17 +3,19 @@
 
 
 use self::syscall::*;
-use super::page_size;
+use super::PageSize;
 use super::huge_pages::*;
 use super::information::*;
-use crate::current_numa_node_and_hyper_thread;
 use crate::bit_set::*;
 use crate::cpu::HyperThread;
+use crate::current_numa_node_and_hyper_thread;
 use crate::paths::*;
 use crate::process::*;
 use crate::process::status::ProcessStatusStatistics;
-use crate::strings::{FromBytes, Radix};
+use crate::strings::FromBytes;
+use crate::strings::Radix;
 use crate::strings::parse_number::*;
+use crate::strings::to_number::NumberAsBytes;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 use bitflags::bitflags;
 use errno::errno;

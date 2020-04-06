@@ -58,8 +58,8 @@ pub trait PathExt
 	/// This will return `None` if the path `self` does not exist.
 	fn entries_in_folder_path<BSA: BitSetAware>(&self) -> Result<Option<BitSet<BSA>>, io::Error>;
 
-	/// Memory map a file.
-	fn memory_map<'a>(&self) -> Result<MemoryMappedFile, io::Error>;
+	/// Memory map a file read-write.
+	fn memory_map_read_write<'a>(&self, offset: u64, address_hint: AddressHint, sharing: Sharing, huge_memory_page_size: Option<Option<HugePageSize>>, prefault: bool, reserve_swap_space: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<MappedMemory, io::Error>;
 }
 
 impl PathExt for Path
@@ -205,33 +205,25 @@ impl PathExt for Path
 	}
 
 	#[inline(always)]
-	fn memory_map<'a>(&self) -> Result<MemoryMappedFile, io::Error>
+	fn memory_map_read_write<'a>(&self, offset: u64, address_hint: AddressHint, sharing: Sharing, huge_memory_page_size: Option<Option<HugePageSize>>, prefault: bool, reserve_swap_space: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<MappedMemory, io::Error>
 	{
-		let file = OpenOptions::new().read(true).write(true).open(self)?;
+		const protection: Protection = Protection::ReadWrite;
+		let file = protection.adjust_open_options_to_match(&mut OpenOptions::new()).open(self)?;
 
-		let size =
+		let length =
 		{
 			let metadata = file.metadata()?;
 			if !metadata.is_file()
 			{
-				return Err(io::Error::from(ErrorKind::Other))
+				return Err(io::Error::new(ErrorKind::Other, "Not a file"))
 			}
-			metadata.len() as usize
+			metadata.len()
 		};
-
-		let result = unsafe { mmap(null_mut(), size, PROT_READ | PROT_WRITE, MAP_SHARED, file.as_raw_fd(), 0) };
-		if unlikely!(result == MAP_FAILED)
+		if length == 0
 		{
-			return Err(io::Error::last_os_error())
+			return Err(io::Error::new(ErrorKind::Other, "Empty files can not be memory-mapped"))
 		}
 
-		Ok
-		(
-			MemoryMappedFile
-			{
-				pointer: unsafe { NonNull::new_unchecked(result as *mut u8) },
-				size,
-			}
-		)
+		MappedMemory::from_file(&file, offset, unsafe { NonZeroU64::new_unchecked(length) }, address_hint, protection, sharing, huge_memory_page_size, prefault, reserve_swap_space, defaults).map_err(|creation_error| io::Error::new(ErrorKind::Other, creation_error))
 	}
 }

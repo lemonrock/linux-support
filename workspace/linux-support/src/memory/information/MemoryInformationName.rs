@@ -407,7 +407,7 @@ impl MemoryInformationName
 			ContiguousMemoryAllocatorTotal => Count,
 			ContiguousMemoryAllocatorFree => Count,
 
-			_ => KiloByte,
+			_ => Kilobyte,
 		}
 	}
 

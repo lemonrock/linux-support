@@ -75,7 +75,7 @@ impl GlobalHugePagePoolSize
 
 	/// Maximum number of `surplus` (ie dynamic) huge pages, ie these are the number of pages that *could be* in the Kernel's huge page size pool for the associated Huge Page Size.
 	///
-	/// `surplus` pages are created by coalescing (defragmenting) memory in the Kernel's ordinary (eg 4Kb on x86-64) page pool.
+	/// `surplus` pages are created by coalescing (defragmenting) memory in the Kernel's ordinary (eg 4Kb on x86_64) page pool.
 	///
 	/// Can be thought of as 'capacity'.
 	///

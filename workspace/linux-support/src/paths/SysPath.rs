@@ -242,6 +242,6 @@ impl SysPath
 	#[inline(always)]
 	fn hugepages_folder_path(folder_path: PathBuf, huge_page_size: HugePageSize) -> PathBuf
 	{
-		folder_path.append("hugepages").append(format!("hugepages-{}kB", huge_page_size.size_in_kilo_bytes()))
+		folder_path.append("hugepages").append(format!("hugepages-{}kB", huge_page_size.size_in_kilobytes()))
 	}
 }

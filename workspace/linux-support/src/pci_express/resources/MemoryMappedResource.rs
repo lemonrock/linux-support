@@ -4,11 +4,11 @@
 
 /// A memory-mapped PCI resource.
 #[derive(Debug)]
-pub struct MemoryMappedResource(MemoryMappedFile);
+pub struct MemoryMappedResource(MappedMemory);
 
 impl Deref for MemoryMappedResource
 {
-	type Target = MemoryMappedFile;
+	type Target = MappedMemory;
 
 	#[inline(always)]
 	fn deref(&self) -> &Self::Target

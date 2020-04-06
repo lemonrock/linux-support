@@ -13,7 +13,7 @@ bitflags!
 		///
 		/// Failing to set this flag will result in an `EOVERFLOW` error when trying to open a large file which is monitored by an fanotify group on a 32-bit system.
 		///
-		/// Note that this value differs widely across architectures, and even is the same as `ReadOnly` on x86-64.
+		/// Note that this value differs widely across architectures, and even is the same as `ReadOnly` on x86_64.
 		const LargeFile = O_LARGEFILE as u32;
 
 		/// Enable append.

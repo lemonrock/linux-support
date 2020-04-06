@@ -8,7 +8,7 @@
 ///
 /// The following files are not parsed or used as they are not properly documented and seem to be of very limited value:-
 ///
-/// * `consistent_dma_mask_bits` (Used on x86-64 only, but present on other architectures
+/// * `consistent_dma_mask_bits` (Used on x86_64 only, but present on other architectures
 /// * `dma_mask_bits`
 /// * `broken_parity_status`
 /// * `modalias`
@@ -75,9 +75,9 @@ impl<'a> PciDevice<'a>
 
 	/// Configuration space.
 	#[inline(always)]
-	pub fn configuration_space(&self) -> Result<MemoryMappedConfigurationSpace, io::Error>
+	pub fn configuration_space(&self, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<MemoryMappedConfigurationSpace, io::Error>
 	{
-		self.device_file_or_folder_path("config").memory_map().map(|memory_mapped_file| MemoryMappedConfigurationSpace(memory_mapped_file))
+		self.device_file_or_folder_path("config").memory_map_read_write(0, AddressHint::any(), Sharing::Private, None, false, false, defaults).map(|memory_mapped_file| MemoryMappedConfigurationSpace(memory_mapped_file))
 	}
 
 	/// Details.

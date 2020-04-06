@@ -10,8 +10,10 @@ use std::io;
 use std::io::Read;
 use std::io::Seek;
 use std::io::SeekFrom;
+use std::mem::align_of;
 use std::mem::size_of;
 #[allow(deprecated)] use std::mem::uninitialized;
+use std::num::NonZeroU64;
 use std::ops::Add;
 use std::ops::AddAssign;
 use std::ops::Sub;
@@ -25,8 +27,14 @@ use std::ptr::NonNull;
 /// Functionality in here replaces the need to use `libhugetlbfs`.
 pub mod huge_pages;
 
+
 /// Memory information.
 pub mod information;
+
+
+/// Memory mapped files (`mmap()`).
+pub mod mapping;
+
 
 /// Non-Uniform Memory Architecture (NUMA).
 ///
@@ -35,9 +43,13 @@ pub mod numa;
 
 
 include!("HasVirtualAddress.rs");
-include!("page_size.rs");
+include!("Kilobyte.rs");
+include!("NonZeroKilobyte.rs");
+include!("NonZeroNumberOfPages.rs");
+include!("NumberOfPages.rs");
 include!("PageMap.rs");
 include!("PageMapEntry.rs");
+include!("PageSize.rs");
 include!("PhysicalAddress.rs");
 include!("PhysicalPageFrameNumber.rs");
 include!("VirtualAddress.rs");

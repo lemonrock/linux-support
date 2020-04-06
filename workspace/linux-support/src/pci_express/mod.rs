@@ -61,6 +61,8 @@ use std::os::unix::io::*;
 use std::path::PathBuf;
 use std::str::Utf8Error;
 use std::borrow::Cow;
+use crate::memory::mapping::{AddressHint, Sharing};
+use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 
 
 /// Classifications.

@@ -8,11 +8,11 @@
 ///
 /// Size is either `linux/pci.h:PCI_CFG_SPACE_SIZE` or `linux/pci.h:PCI_HEADER_TYPE_CARDBUS` (although it can be overridden for broken chips to be much smaller).
 #[derive(Debug)]
-pub struct MemoryMappedConfigurationSpace(pub(crate) MemoryMappedFile);
+pub struct MemoryMappedConfigurationSpace(pub(crate) MappedMemory);
 
 impl Deref for MemoryMappedConfigurationSpace
 {
-	type Target = MemoryMappedFile;
+	type Target = MappedMemory;
 
 	#[inline(always)]
 	fn deref(&self) -> &Self::Target
@@ -43,13 +43,13 @@ impl MemoryMappedConfigurationSpace
 	#[inline(always)]
 	pub fn read_command_register(&self) -> Command
 	{
-		self.get(Self::CommandRegister)
+		self.get_volatile(Self::CommandRegister)
 	}
 
 	/// Write command register.
 	#[inline(always)]
 	pub fn write_command_register(&self, command: Command)
 	{
-		self.set(Self::CommandRegister, command)
+		self.set_volatile(Self::CommandRegister, command)
 	}
 }

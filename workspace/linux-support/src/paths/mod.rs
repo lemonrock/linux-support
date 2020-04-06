@@ -4,20 +4,14 @@
 
 use crate::bit_set::*;
 use crate::cpu::*;
+use crate::memory::mapping::*;
 use crate::memory::numa::NumaNode;
 use crate::memory::huge_pages::HugePageSize;
+use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use crate::pci_express::PciDeviceAddress;
 use crate::process::ProcessIdentifierChoice;
 use crate::strings::FromBytes;
 use crate::strings::IntoLineFeedTerminatedByteString;
-use errno::errno;
-use libc::c_void;
-use libc::MAP_FAILED;
-use libc::MAP_SHARED;
-use libc::mmap;
-use libc::munmap;
-use libc::PROT_READ;
-use libc::PROT_WRITE;
 use likely::*;
 use serde::Deserialize;
 use serde::Serialize;
@@ -28,20 +22,13 @@ use std::fs::*;
 use std::io;
 use std::io::ErrorKind;
 use std::io::Write;
-use std::mem::align_of;
 use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::PermissionsExt;
-use std::os::unix::io::AsRawFd;
+use std::num::NonZeroU64;
 use std::path::*;
-use std::ptr::NonNull;
-use std::ptr::null_mut;
-use std::ptr::read_volatile;
-use std::ptr::write_volatile;
 
 
-include!("DevPath.rs");
-include!("MemoryMappedFile.rs");
-include!("PathBufExt.rs");
+include!("DevPath.rs");include!("PathBufExt.rs");
 include!("PathExt.rs");
 include!("ProcPath.rs");
 include!("SysPath.rs");

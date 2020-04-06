@@ -178,7 +178,7 @@ impl SetMemoryPolicy
 	#[inline(always)]
 	fn set_address_policy_(&self, address: NonNull<u8>, length: usize, memory_bind_flags: MemoryBindFlags) -> Result<(), i32>
 	{
-		debug_assert_eq!((address.as_ptr() as usize) % page_size(), 0, "address is not a multiple of the system page size");
+		debug_assert_eq!((address.as_ptr() as u64) % PageSize::current() as u64, 0, "address is not a multiple of the system page size");
 
 		let mut preferred_numa_node_bitmask: Option<BitSet<NumaNode>> = None;
 

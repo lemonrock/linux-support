@@ -6,8 +6,8 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum MemoryInformationUnit
 {
-	/// KiloByte.
-	KiloByte,
+	/// Kilobyte.
+	Kilobyte,
 	
 	/// Numeric count.
 	Count,
@@ -22,7 +22,7 @@ impl MemoryInformationUnit
 
 		match self
 		{
-			KiloByte => b" kB",
+			Kilobyte => b" kB",
 			Count => b"",
 		}
 	}

@@ -2,10 +2,5 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::memory::mapping::MappedMemory;
-use bitflags::bitflags;
-use std::ops::Deref;
-
-
-include!("Command.rs");
-include!("MemoryMappedConfigurationSpace.rs");
+/// A number of pages or huge pages.
+pub type NumberOfPages = u64;

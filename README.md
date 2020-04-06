@@ -24,6 +24,7 @@ Features supported are:-
 * File system mounts and mounting
 * File descriptors
 	* Including epoll, signalfd, eventfd and others
+	* Memory mapping.
 * Namespaces
 * Nice and autogroups
 * PCI Express
@@ -74,6 +75,7 @@ There is a particularly extensive and safe wrapper for signals and terminals.
     * `SpliceRecipient`
     * `SpliceSender`
     * `memfd`
+        * Memory mapping files.
 
 Additionally, extensions (`SendFile`, `SpliceRecipient` and `SpliceSender`) are implemented for Rust's `File`.
 

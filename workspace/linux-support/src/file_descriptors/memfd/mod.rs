@@ -5,6 +5,8 @@
 use crate::file_descriptors::AsRawFdExt;
 use super::*;
 use crate::memory::huge_pages::HugePageSize;
+use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
+use crate::memory::huge_pages::PageSizeOrHugePageSize;
 
 
 include!("MemoryFileDescriptor.rs");

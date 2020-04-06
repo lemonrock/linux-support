@@ -456,7 +456,7 @@ impl NumaNode
 		}
 
 		let online = BitSet::<NumaNode>::online(sys_path)?;
-		let mut online = online.iterate();
+		let online = online.iterate();
 
 		self.only_if_path_exists(sys_path, "distance", |file_path| parser(file_path, online))
 	}
@@ -488,8 +488,28 @@ impl NumaNode
 	///
 	/// This will return `None` if this the Linux kernel wasn't configured with `CONFIG_NUMA`, the NUMA node is not present or `sys_path` is not mounted.
 	#[inline(always)]
-	pub fn memory_information(self, sys_path: &SysPath, memory_information_name_prefix: &[u8]) -> Option<MemoryInformation>
+	pub fn memory_information(self, sys_path: &SysPath) -> Option<MemoryInformation>
 	{
+		#[allow(deprecated)] let mut buffer: [u8; 11] = unsafe { uninitialized() };
+
+		let memory_information_name_prefix =
+		{
+			unsafe { *buffer.get_unchecked_mut(10) = b' ' };
+
+			let last_decimal_digit_index = self.0.decimal(9, &mut buffer);
+
+			unsafe
+			{
+				*buffer.get_unchecked_mut(last_decimal_digit_index - 5) = b'N';
+				*buffer.get_unchecked_mut(last_decimal_digit_index - 4) = b'o';
+				*buffer.get_unchecked_mut(last_decimal_digit_index - 3) = b'd';
+				*buffer.get_unchecked_mut(last_decimal_digit_index - 2) = b'e';
+				*buffer.get_unchecked_mut(last_decimal_digit_index - 1) = b' ';
+			}
+
+			&buffer[last_decimal_digit_index - 5 .. ]
+		};
+
 		self.only_if_path_exists(sys_path, "meminfo", |file_path| MemoryInformation::parse_memory_information_file(&file_path, memory_information_name_prefix))
 	}
 

@@ -24,6 +24,8 @@ pub enum CreationError
 	/// Occurs for fanotify if the caller lacks the `CAP_SYS_ADMIN` capability.
 	///
 	/// Occurs for the opening or creation of POSIX message queues, either because of file mode permissions or because the settings for creation (eg maximum message size) are too large (or, on Linux before 3.5, too small).
+	///
+	/// For memory mappings, an executable mapping is desired for a file opened on a file system mounted noexec or prevented by a file seal.
 	PermissionDenied,
 
 	/// Occurs for pidfd if the pid does not exist.
