@@ -143,6 +143,20 @@ impl FromBytes for PersonalityFlags
 
 impl PersonalityFlags
 {
+	/// Checks that Linux does not support any other execution domains.
+	///
+	/// Panics if it does not.
+	#[inline(always)]
+	pub fn validate_only_one_execution_domain(proc_path: &ProcPath)
+	{
+		let file_path = proc_path.file_path("execdomains");
+		if file_path.exists()
+		{
+			let value = file_path.read_raw_without_line_feed().unwrap();
+			assert_eq!(&value[..], b"0-0\tLinux           \t[kernel]" as &[u8], "Linux supported multiple execution domains");
+		}
+	}
+
 	/// Checks if the personality is standard linux.
 	#[inline(always)]
 	pub fn is_standard_linux(self) -> bool

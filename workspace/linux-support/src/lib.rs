@@ -75,12 +75,16 @@ pub mod file_systems;
 pub mod inode;
 
 
-/// Linux Kernel command line.
+/// Linux kernel command line.
 pub mod linux_kernel_command_line;
 
 
-/// Linux Kernel modules.
+/// Linux kernel modules.
 pub mod linux_kernel_modules;
+
+
+/// Linux kernel version.
+pub mod linux_kernel_version;
 
 
 /// Logging.

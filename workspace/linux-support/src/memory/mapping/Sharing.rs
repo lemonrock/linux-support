@@ -7,7 +7,7 @@
 #[repr(i32)]
 pub enum Sharing
 {
-	/// Visible only to this process.
+	/// Visible only to this process (copy on write for file-backed memory).
 	Private = MAP_PRIVATE,
 
 	/// Visible to other processes, either to those that are cloned (forked) or use the same file (if file backed).
