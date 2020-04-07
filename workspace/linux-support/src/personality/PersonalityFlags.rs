@@ -130,6 +130,17 @@ bitflags!
     }
 }
 
+impl FromBytes for PersonalityFlags
+{
+	type Error = ParseNumberError;
+
+	#[inline(always)]
+	fn from_bytes(bytes: &[u8]) -> Result<Self, Self::Error>
+	{
+		Ok(Self::from_bits(i32::parse_hexadecimal_number_lower_case(bytes)?).expect("Invalid bits in previous personality flags"))
+	}
+}
+
 impl PersonalityFlags
 {
 	/// Checks if the personality is standard linux.
@@ -141,10 +152,17 @@ impl PersonalityFlags
 
 	/// Gets the current process domain exection model.
 	#[inline(always)]
-	pub fn get_process_domain_execution_model() -> Result<Self, ()>
+	pub fn current() -> Result<Self, ()>
 	{
 		const SpecialFlagPattern: c_ulong = 0xFFFF_FFFF;
 		Self::personality(SpecialFlagPattern)
+	}
+
+	/// Gets a process' current process domain exection model.
+	#[inline(always)]
+	pub fn for_process(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> io::Result<Self>
+	{
+		proc_path.process_file_path(process_identifier, "personality").read_value()
 	}
 
 	/// Tries to set the process domain execution model to the current set of flags.
