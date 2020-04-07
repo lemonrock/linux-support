@@ -7,7 +7,7 @@
 pub enum ProcessNicenessAdjustmentError
 {
 	/// Could not set current real effective user priority niceness (permission was denied in some way).
-	CouldNotSetCurrentRealEffectiveUserPriorityNiceness,
+	CouldNotSetCurrentUserPriorityNiceness,
 
 	/// Could not set current process group user priority niceness (permission was denied in some way).
 	CouldNotSetCurrentProcessGroupPriorityNiceness,
@@ -37,7 +37,7 @@ impl error::Error for ProcessNicenessAdjustmentError
 
 		match self
 		{
-			&CouldNotSetCurrentRealEffectiveUserPriorityNiceness => None,
+			&CouldNotSetCurrentUserPriorityNiceness => None,
 
 			&CouldNotSetCurrentProcessGroupPriorityNiceness => None,
 

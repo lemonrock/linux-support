@@ -40,6 +40,27 @@ macro_rules! bit_set_aware
 			}
 		}
 
+		impl $crate::strings::parse_number::ParseNumber for $type
+		{
+			#[inline(always)]
+			fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
+			{
+				let value = u16::parse_number(bytes, radix, parse_byte)?;
+				if unlikely!(value < Self::OneBasedCorrection)
+				{
+					Err(ParseNumberError::TooSmall)
+				}
+				else if unlikely!(value >= Self::LinuxMaximum)
+				{
+					Err(ParseNumberError::TooLarge)
+				}
+				else
+				{
+					Ok(Self::hydrate(value))
+				}
+			}
+		}
+
 		impl Into<u32> for $type
 		{
 			#[inline(always)]

@@ -5,7 +5,7 @@
 use crate::file_descriptors::character_device::CharacterDeviceFileDescriptor;
 use crate::file_descriptors::pipes_and_fifos::SpliceRecipient;
 use crate::file_descriptors::pipes_and_fifos::SpliceSender;
-use crate::process::ProcessIdentifier;
+use crate::process::ProcessGroupIdentifier;
 use crate::terminal::*;
 use crate::terminal::c::tcdrain;
 use crate::terminal::c::tcflow;

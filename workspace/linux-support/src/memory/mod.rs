@@ -4,7 +4,11 @@
 
 use crate::paths::ProcPath;
 use crate::process::ProcessIdentifierChoice;
+use crate::strings::Radix;
+use crate::strings::parse_number::ParseNumber;
+use crate::strings::parse_number::ParseNumberError;
 #[cfg(not(any(target_arch = "powerpc64", target_arch = "riscv64", target_arch = "sparc64", target_arch = "x86_64")))] use libc_extra::unix::unistd::getpagesize;
+use likely::unlikely;
 use std::fs::File;
 use std::io;
 use std::io::Read;

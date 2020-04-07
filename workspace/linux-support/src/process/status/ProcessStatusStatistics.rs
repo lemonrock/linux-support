@@ -105,7 +105,7 @@ pub struct ProcessStatusStatistics
 	/// The leftmost entry shows the value with respect to the PID namespace of the process that mounted this procfs (or the root namespace if mounted by the kernel), followed by the value in successively nested inner namespaces.
 	///
 	/// Since Linux 4.1.
-	pub descendant_namespace_process_group_identifier: NestedProcessIdentifiers,
+	pub descendant_namespace_process_group_identifier: NestedProcessGroupIdentifiers,
 
 	/// Descendant namespace session identifiers.
 	///
@@ -114,7 +114,7 @@ pub struct ProcessStatusStatistics
 	/// The leftmost entry shows the value with respect to the PID namespace of the process that mounted this procfs (or the root namespace if mounted by the kernel), followed by the value in successively nested inner namespaces.
 	///
 	/// Since Linux 4.1.
-	pub descendant_namespace_session_identifier: NestedProcessIdentifiers,
+	pub descendant_namespace_session_identifier: NestedProcessGroupIdentifiers,
 
 	/// Peak virtual memory size.
 	///
@@ -498,8 +498,8 @@ impl ProcessStatusStatistics
 			b"Groups" => groups @ parse_groups,
 			b"NStgid" => descendant_namespace_thread_group_identifier @ parse_process_identifiers,
 			b"NSpid" => descendant_namespace_process_identifier @ parse_process_identifiers,
-			b"NSpgid" => descendant_namespace_process_group_identifier @ parse_process_identifiers,
-			b"NSsid" => descendant_namespace_session_identifier @ parse_process_identifiers,
+			b"NSpgid" => descendant_namespace_process_group_identifier @ parse_process_group_identifiers,
+			b"NSsid" => descendant_namespace_session_identifier @ parse_process_group_identifiers,
 			b"VmPeak" => peak_virtual_memory_size @ parse_kilobyte,
 			b"VmSize" => total_program_size @ parse_kilobyte,
 			b"VmLck" => locked_memory_size @ parse_kilobyte,
@@ -661,6 +661,12 @@ impl ProcessStatusStatistics
 	}
 
 	#[inline(always)]
+	fn parse_process_group_identifiers(value: &[u8]) -> Result<NestedProcessGroupIdentifiers, ProcessStatusStatisticParseError>
+	{
+		NestedProcessGroupIdentifiers::from_bytes(value)
+	}
+
+	#[inline(always)]
 	fn parse_u64(value: &[u8]) -> Result<u64, ProcessStatusStatisticParseError>
 	{
 		Ok(u64::parse_decimal_number(value)?)
@@ -752,5 +758,4 @@ impl ProcessStatusStatistics
 	{
 		Ok(BitSet::<NumaNode>::parse_linux_list_string(value)?)
 	}
-
 }

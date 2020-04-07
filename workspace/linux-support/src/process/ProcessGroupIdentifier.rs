@@ -2,23 +2,23 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A process identifier.
+/// A process group identifier.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub struct ProcessIdentifier(NonZeroI32);
+pub struct ProcessGroupIdentifier(NonZeroI32);
 
-impl Default for ProcessIdentifier
+impl Default for ProcessGroupIdentifier
 {
 	#[inline(always)]
 	fn default() -> Self
 	{
-		let pid = unsafe { getpid() };
+		let pid = unsafe { getpgid(0) };
 		debug_assert!(pid > 0);
 		Self(unsafe { NonZeroI32::new_unchecked(pid)})
 	}
 }
 
-impl TryFrom<pid_t> for ProcessIdentifier
+impl TryFrom<pid_t> for ProcessGroupIdentifier
 {
 	type Error = ParseNumberError;
 
@@ -36,7 +36,7 @@ impl TryFrom<pid_t> for ProcessIdentifier
 	}
 }
 
-impl From<NonZeroI32> for ProcessIdentifier
+impl From<NonZeroI32> for ProcessGroupIdentifier
 {
 	#[inline(always)]
 	fn from(value: NonZeroI32) -> Self
@@ -45,7 +45,7 @@ impl From<NonZeroI32> for ProcessIdentifier
 	}
 }
 
-impl Into<NonZeroI32> for ProcessIdentifier
+impl Into<NonZeroI32> for ProcessGroupIdentifier
 {
 	#[inline(always)]
 	fn into(self) -> NonZeroI32
@@ -54,7 +54,7 @@ impl Into<NonZeroI32> for ProcessIdentifier
 	}
 }
 
-impl Into<pid_t> for ProcessIdentifier
+impl Into<pid_t> for ProcessGroupIdentifier
 {
 	#[inline(always)]
 	fn into(self) -> pid_t
@@ -63,16 +63,7 @@ impl Into<pid_t> for ProcessIdentifier
 	}
 }
 
-impl<'a> IntoLineFeedTerminatedByteString<'a> for ProcessIdentifier
-{
-	#[inline(always)]
-	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
-	{
-		self.0.into_line_feed_terminated_byte_string()
-	}
-}
-
-impl ParseNumber for ProcessIdentifier
+impl ParseNumber for ProcessGroupIdentifier
 {
 	#[inline(always)]
 	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
@@ -93,59 +84,81 @@ impl ParseNumber for ProcessIdentifier
 	}
 }
 
-impl ParseNumber for Option<ProcessIdentifier>
+impl ParseNumber for Option<ProcessGroupIdentifier>
 {
 	#[inline(always)]
 	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
 	{
 		let pid = pid_t::parse_number(bytes, radix, parse_byte)?;
-		if unlikely!(pid < 0)
+		if unlikely!(pid < -1)
 		{
 			Err(ParseNumberError::TooShort)
 		}
-		else if pid == 0
+		// eg as in `/proc/<N>/stat`.
+		else if unlikely!(pid == -1)
 		{
 			Ok(None)
 		}
+		else if unlikely!(pid == 0)
+		{
+			Err(ParseNumberError::WasZero)
+		}
 		else
 		{
-			Ok(Some(ProcessIdentifier(unsafe { NonZeroI32::new_unchecked(pid) })))
+			Ok(Some(ProcessGroupIdentifier(unsafe { NonZeroI32::new_unchecked(pid) })))
 		}
 	}
 }
 
-impl ProcessIdentifier
+impl ProcessGroupIdentifier
 {
-	/// Init process.
-	pub const Init: Self = Self(unsafe { NonZeroI32::new_unchecked(1) });
-
-	/// Should have a parent process?
+	/// Get the process group identifier (pgid) for a process identifier.
 	#[inline(always)]
-	pub fn should_have_parent(self) -> bool
+	pub fn process_group_identifier(process_identifier: ProcessIdentifierChoice) -> Result<Self, ()>
 	{
-		self != Self::Init
+		let result = unsafe { getpgid(process_identifier.into()) };
+		if likely!(result == 0)
+		{
+			Ok(Self(unsafe { NonZeroI32::new_unchecked(result)}))
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				ESRCH | EPERM => Err(()),
+
+				_ => unreachable!(),
+			}
+		}
+		else
+		{
+			unreachable!()
+		}
 	}
 
-	/// Opens a process identifier file descriptor.
-	#[inline(always)]
-	pub fn open_file_descriptor(self) -> Result<ProcessIdentifierFileDescriptor, CreationError>
-	{
-		ProcessIdentifierChoice::Other(self).open_file_descriptor()
-	}
-
-	/// Gets the process group identifier (pgid) for this process.
-	#[inline(always)]
-	pub fn process_group_identifier(self) -> Result<ProcessGroupIdentifier, ()>
-	{
-		ProcessGroupIdentifier::process_group_identifier(ProcessIdentifierChoice::Other(self))
-	}
-
-	/// Gets the session identifier (sid) for this process.
+	/// Get session identifier (sid) for a process identifier.
 	///
-	/// The session identifier of a process is the process group identifier of the session leader
+	/// The session identifier of a process is the process group identifier of the session leader.
 	#[inline(always)]
-	pub fn session_identifer(self) -> Result<ProcessGroupIdentifier, ()>
+	pub fn session_identifier(process_identifier: ProcessIdentifierChoice) -> Result<Self, ()>
 	{
-		ProcessGroupIdentifier::session_identifier(ProcessIdentifierChoice::Other(self))
+		let result = unsafe { getsid(process_identifier.into()) };
+		if likely!(result == 0)
+		{
+			Ok(Self(unsafe { NonZeroI32::new_unchecked(result)}))
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				ESRCH | EPERM => Err(()),
+
+				_ => unreachable!(),
+			}
+		}
+		else
+		{
+			unreachable!()
+		}
 	}
 }

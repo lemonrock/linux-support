@@ -4,19 +4,47 @@
 
 /// A parse error.
 #[derive(Debug)]
-pub enum ProcStatParseError
+pub enum StatParseError
 {
 	/// Could not open file.
 	CouldNotOpenFile(io::Error),
 
 	/// Not enough fields.
-	NotEnoughFields,
+	NotEnoughFields
+	{
+		/// Field index.
+		index: NonZeroU8,
+
+		/// Field name.
+		name: &'static str,
+	},
 
 	/// Invalid number.
-	ParseNumber(ParseNumberError),
+	ParseNumber
+	{
+		/// Field index.
+		index: NonZeroU8,
+
+		/// Field name.
+		name: &'static str,
+
+		/// Cause.
+		cause: ParseNumberError,
+	},
 
 	/// Invalid statistic.
-	InvalidStatistic(ProcessStatusStatisticParseError),
+	InvalidStatistic
+	{
+		/// Field index.
+		index: NonZeroU8,
+
+		/// Field name.
+		name: &'static str,
+
+
+		/// Cause.
+		cause: ProcessStatusStatisticParseError,
+	},
 
 	/// Not enough bytes.
 	NotEnoughBytesForExecutabeName,
@@ -27,11 +55,22 @@ pub enum ProcStatParseError
 	/// Executable name is empty.
 	ExecutableNameIsEmpty,
 
-	/// Executable name is not terminated with `( `.
+	/// Executable name is not terminated with `) `.
 	ExecutableNameIsUnterminated,
+
+	/// The time in jiffies before the next SIGALRM is sent to the process due to an interval timer.
+	///
+	/// Since Linux 2.6.17, this field is no longer maintained, and is hard coded as 0.
+	///
+	/// Known as `itrealvalue`.
+	IntervalTimerRealValueWasNotZero
+	{
+		/// Non-zero value.
+		value: NonZeroU64,
+	}
 }
 
-impl Display for ProcStatParseError
+impl Display for StatParseError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -40,22 +79,22 @@ impl Display for ProcStatParseError
 	}
 }
 
-impl error::Error for ProcStatParseError
+impl error::Error for StatParseError
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>
 	{
-		use self::ProcStatParseError::*;
+		use self::StatParseError::*;
 
 		match self
 		{
-			&CouldNotOpenFile(ref error) => Some(error),
+			&CouldNotOpenFile(ref cause) => Some(cause),
 
-			&NotEnoughFields => None,
+			&NotEnoughFields { .. } => None,
 
-			&ParseNumber(ref error) => Some(error),
+			&ParseNumber { ref cause, .. } => Some(cause),
 
-			&InvalidStatistic(ref error) => Some(error),
+			&InvalidStatistic { ref cause, .. } => Some(cause),
 
 			&NotEnoughBytesForExecutabeName => None,
 
@@ -64,33 +103,17 @@ impl error::Error for ProcStatParseError
 			&ExecutableNameIsEmpty => None,
 
 			&ExecutableNameIsUnterminated => None,
+
+			&IntervalTimerRealValueWasNotZero { .. }=> None,
 		}
 	}
 }
 
-impl From<io::Error> for ProcStatParseError
+impl From<io::Error> for StatParseError
 {
 	#[inline(always)]
 	fn from(error: io::Error) -> Self
 	{
-		ProcStatParseError::CouldNotOpenFile(error)
-	}
-}
-
-impl From<ParseNumberError> for ProcStatParseError
-{
-	#[inline(always)]
-	fn from(error: ParseNumberError) -> Self
-	{
-		ProcStatParseError::ParseNumber(error)
-	}
-}
-
-impl From<ProcessStatusStatisticParseError> for ProcStatParseError
-{
-	#[inline(always)]
-	fn from(error: ProcessStatusStatisticParseError) -> Self
-	{
-		ProcStatParseError::InvalidStatistic(error)
+		StatParseError::CouldNotOpenFile(error)
 	}
 }

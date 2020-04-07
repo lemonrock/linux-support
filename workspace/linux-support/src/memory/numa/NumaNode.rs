@@ -45,18 +45,6 @@ impl BitSetAware for NumaNode
 	}
 }
 
-impl FromBytes for NumaNode
-{
-	type Error = BitSetAwareTryFromU16Error;
-
-	#[inline(always)]
-	fn from_bytes(bytes: &[u8]) -> Result<Self, <Self as FromBytes>::Error>
-	{
-		let value = u16::parse_decimal_number(bytes)?;
-		<Self as TryFrom<u16>>::try_from(value)
-	}
-}
-
 impl TryFrom<i32> for NumaNode
 {
 	type Error = ParseNumberError;

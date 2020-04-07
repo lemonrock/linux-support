@@ -221,7 +221,7 @@ impl TerminalFileDescriptor
 
 	/// Obtains the session identifier ('sid'); not normally available for serial ports.
 	#[inline(always)]
-	pub fn session_identifier(&self) -> io::Result<ProcessIdentifier>
+	pub fn session_identifier(&self) -> io::Result<ProcessGroupIdentifier>
 	{
 		let result = unsafe { tcgetsid(self.0.as_raw_fd()) };
 		if unlikely!(result == -1)
@@ -230,7 +230,7 @@ impl TerminalFileDescriptor
 		}
 		else
 		{
-			ProcessIdentifier::try_from(result).map_err(|error| io::Error::new(ErrorKind::Other, error))
+			ProcessGroupIdentifier::try_from(result).map_err(|error| io::Error::new(ErrorKind::Other, error))
 		}
 	}
 

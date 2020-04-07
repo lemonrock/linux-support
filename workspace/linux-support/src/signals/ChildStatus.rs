@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Child status.
+/// Child status, as might be set by `waitpid()` or returned in a `siginfo_t`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ChildStatus
 {
@@ -48,6 +48,33 @@ pub enum ChildStatus
 		/// Did a core dump occur?
 		core_dump: bool,
 	},
+}
+
+impl ParseNumber for ChildStatus
+{
+	#[inline(always)]
+	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
+	{
+		let value = i32::parse_number(bytes, radix, parse_byte)?;
+		Self::parse(value).map_err(|_| ParseNumberError::OutOfRange)
+	}
+}
+
+impl ParseNumber for Option<ChildStatus>
+{
+	#[inline(always)]
+	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
+	{
+		let value = i32::parse_number(bytes, radix, parse_byte)?;
+		if unlikely!(value == 0)
+		{
+			Ok(None)
+		}
+		else
+		{
+			Ok(Some(ChildStatus::parse(value).map_err(|_| ParseNumberError::OutOfRange)?))
+		}
+	}
 }
 
 impl ChildStatus

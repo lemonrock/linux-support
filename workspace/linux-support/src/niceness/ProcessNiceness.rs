@@ -61,9 +61,9 @@ impl ProcessNiceness
 	{
 		use self::ProcessNicenessAdjustmentError::*;
 
-		if let Err(_) = self.all_other_processes_for_current_user.set_current_real_effective_user_priority()
+		if let Err(_) = self.all_other_processes_for_current_user.set_current_user_priority()
 		{
-			return Err(CouldNotSetCurrentRealEffectiveUserPriorityNiceness)
+			return Err(CouldNotSetCurrentUserPriorityNiceness)
 		}
 
 		if let Some(all_other_processes_in_process_group) = self.all_other_processes_in_process_group

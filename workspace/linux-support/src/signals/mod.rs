@@ -9,7 +9,7 @@ use crate::process::ProcessIdentifier;
 use crate::process::stat::ClockTicks;
 use crate::process::UserIdentifier;
 use crate::process::status::ProcessStatusStatisticParseError;
-use crate::strings::FromBytes;
+use crate::strings::{FromBytes, Radix};
 use crate::strings::parse_number::*;
 use crate::syscall::UnconstrainedSystemCallNumber;
 use self::codes::*;

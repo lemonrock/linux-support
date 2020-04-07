@@ -13,6 +13,15 @@ pub trait UserOrGroupIdentifier: Sized + Copy + Into<u32> + Default
 	/// File name.
 	const FileName: &'static str;
 
-	/// Current value (also default).
-	fn current() -> Self;
+	/// Root.
+	const Root: Self;
+
+	/// Current real value (also default).
+	fn current_real() -> Self;
+
+	/// Current effective value.
+	fn current_effective() -> Self;
+
+	/// Current real, effective and saved-set values.
+	fn current_real_effective_and_saved_set() -> (Self, Self, Self);
 }

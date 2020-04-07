@@ -41,7 +41,7 @@ impl Default for GroupIdentifier
 	#[inline(always)]
 	fn default() -> Self
 	{
-		Self::current()
+		Self::current_real()
 	}
 }
 
@@ -51,9 +51,43 @@ impl UserOrGroupIdentifier for GroupIdentifier
 
 	const FileName: &'static str = "gid_map";
 
+	const Root: Self = Self(0);
+
 	#[inline(always)]
-	fn current() -> Self
+	fn current_real() -> Self
 	{
 		Self(unsafe { getgid() })
+	}
+
+	#[inline(always)]
+	fn current_effective() -> Self
+	{
+		Self(unsafe { getegid() })
+	}
+
+	#[allow(deprecated)]
+	#[inline(always)]
+	fn current_real_effective_and_saved_set() -> (Self, Self, Self)
+	{
+		let mut real: gid_t = unsafe { uninitialized() };
+		let mut effective: gid_t = unsafe { uninitialized() };
+		let mut saved_set: gid_t = unsafe { uninitialized() };
+		let result = unsafe { getresgid(&mut real, &mut effective, &mut saved_set) };
+		if likely!(result == 0)
+		{
+			(Self(real), Self(effective), Self(saved_set))
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				EFAULT => panic!("Invalid address for real, effective or saved_set argument pointer"),
+				unexpected @ _ => panic!("Unexpected error `{}` from `getresgid()`", unexpected),
+			}
+		}
+		else
+		{
+			panic!("Unexpectec result `{}` from `getresgid()`", result)
+		}
 	}
 }

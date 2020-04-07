@@ -3,6 +3,8 @@
 
 
 use crate::bit_set::*;
+use crate::strings::Radix;
+use crate::strings::parse_number::ParseNumberError;
 use errno::errno;
 use libc::*;
 use likely::unlikely;

@@ -3,7 +3,7 @@
 
 
 /// A structure that can be stored in a bit set.
-pub trait BitSetAware: Sized + Into<u16> + TryFrom<u16, Error=BitSetAwareTryFromU16Error> + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash + Into<u32> + Into<u64> + Into<usize> + Into<i32> + Into<i64> + Into<isize>
+pub trait BitSetAware: Sized + Into<u16> + TryFrom<u16, Error=BitSetAwareTryFromU16Error> + ParseNumber + FromBytes<Error=ParseNumberError> + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash + Into<u32> + Into<u64> + Into<usize> + Into<i32> + Into<i64> + Into<isize>
 {
 	#[doc(hidden)]
 	const LinuxMaximum: u16;

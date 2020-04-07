@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Process Identifier choice.
+/// A process identifier choice.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ProcessIdentifierChoice
 {
@@ -83,6 +83,22 @@ impl ProcessIdentifierChoice
 	pub fn open_file_descriptor(self) -> Result<ProcessIdentifierFileDescriptor, CreationError>
 	{
 		ProcessIdentifierFileDescriptor::open(self)
+	}
+
+	/// Gets the process group identifier (pgid) for this process.
+	#[inline(always)]
+	pub fn process_group_identifier(self) -> Result<ProcessGroupIdentifier, ()>
+	{
+		ProcessGroupIdentifier::process_group_identifier(self)
+	}
+
+	/// Gets the session identifier (sid) for this process.
+	///
+	/// The session identifier of a process is the process group identifier of the session leader
+	#[inline(always)]
+	pub fn session_identifer(self) -> Result<ProcessGroupIdentifier, ()>
+	{
+		ProcessGroupIdentifier::session_identifier(self)
 	}
 
 	#[inline(always)]

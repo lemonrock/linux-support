@@ -172,6 +172,32 @@ impl SubAssign<usize> for VirtualAddress
 	}
 }
 
+impl ParseNumber for VirtualAddress
+{
+	#[inline(always)]
+	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
+	{
+		Ok(Self(usize::parse_number(bytes, radix, parse_byte)?))
+	}
+}
+
+impl ParseNumber for Option<VirtualAddress>
+{
+	#[inline(always)]
+	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
+	{
+		let value = usize::parse_number(bytes, radix, parse_byte)?;
+		if unlikely!(value == 0)
+		{
+			Ok(None)
+		}
+		else
+		{
+			Ok(Some(VirtualAddress(value)))
+		}
+	}
+}
+
 impl VirtualAddress
 {
 	/// Relative offset from the start of the system page containing this virtual address.

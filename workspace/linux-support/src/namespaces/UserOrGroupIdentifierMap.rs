@@ -21,7 +21,7 @@ impl<U: UserOrGroupIdentifier> UserOrGroupIdentifierMap<U>
 			inside_namespace_to_outside_namespace_user_or_group_identifiers: Intervals::default(),
 			reverse_mapping_does_not_overlap_check: Intervals::default(),
 		};
-		this.add_mapping(U::Zero, U::current(), unsafe { NonZeroU32::new_unchecked(1) });
+		this.add_mapping(U::Zero, U::current_real(), unsafe { NonZeroU32::new_unchecked(1) });
 		this
 	}
 
