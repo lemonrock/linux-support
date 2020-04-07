@@ -2,11 +2,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::get_program_name;
 use super::cpu::HyperThread;
 use super::signals::Signal;
 use super::strings::ConstCStr;
 use super::strings::to_c_string_robustly;
+use crate::process::get_program_name;
 use libc::*;
 use libc_extra::android_linux::stdio::cookie_io_functions_t;
 use libc_extra::android_linux::stdio::cookie_write_function_t;

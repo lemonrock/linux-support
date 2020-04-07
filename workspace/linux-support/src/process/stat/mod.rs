@@ -5,6 +5,7 @@
 use super::*;
 use super::status::ProcessState;
 use super::status::ProcessStatusStatisticParseError;
+use crate::ClockTicks;
 use crate::memory::NumberOfPages;
 use crate::memory::VirtualAddress;
 use crate::niceness::Nice;
@@ -13,12 +14,10 @@ use crate::paths::PathExt;
 use crate::paths::ProcPath;
 use crate::signals::ChildStatus;
 use crate::strings::FromBytes;
-use crate::strings::Radix;
+use crate::terminal::ControllingTerminal;
 use std::num::NonZeroU8;
 use std::num::NonZeroU64;
 
 
-include!("ClockTicks.rs");
-include!("ControllingTerminal.rs");
 include!("Stat.rs");
 include!("StatParseError.rs");

@@ -3,10 +3,10 @@
 
 
 #[allow(deprecated)] use std::mem::uninitialized;
+use crate::ClockTicks;
 use crate::bit_set::*;
 use crate::memory::VirtualAddress;
 use crate::process::ProcessIdentifier;
-use crate::process::stat::ClockTicks;
 use crate::process::UserIdentifier;
 use crate::process::status::ProcessStatusStatisticParseError;
 use crate::strings::{FromBytes, Radix};

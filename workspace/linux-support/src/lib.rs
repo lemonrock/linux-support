@@ -32,12 +32,13 @@ use crate::bit_set::BitSetAware;
 use crate::cpu::HyperThread;
 use crate::logging::LoggingConfiguration;
 use crate::memory::numa::NumaNode;
-use libc_extra::linux::errno::program_invocation_short_name;
+use crate::strings::Radix;
+use crate::strings::parse_number::*;
+use libc::clock_t;
 use raw_cpuid::*;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashSet;
-use std::ffi::CStr;
 use std::fmt::Debug;
 use std::mem::transmute;
 
@@ -148,7 +149,7 @@ pub mod terminal;
 pub mod user_and_groups;
 
 
+include!("ClockTicks.rs");
 include!("current_numa_node_and_hyper_thread.rs");
-include!("get_program_name.rs");
 include!("move_to_front_of_vec.rs");
 include!("WarningsToSuppress.rs");

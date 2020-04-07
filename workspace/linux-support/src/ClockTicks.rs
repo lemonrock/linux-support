@@ -62,7 +62,7 @@ impl ClockTicks
 
 	/// To seconds.
 	#[inline(always)]
-	pub fn to_seconds(self) -> u64
+	pub const fn to_seconds(self) -> u64
 	{
 		self.0 / Self::clock_ticks_per_second()
 	}
@@ -71,10 +71,10 @@ impl ClockTicks
 	///
 	/// The number of times the Linux timer interrupts the CPU for scheduling and other tasks.
 	///
-	/// This value is always `100` in the musl libc.
+	/// This value is always `100` in the musl libc, although we can make it portable but non-constant with `(unsafe { sysconf(_SC_CLK_TCK) }) as u64`.
 	#[inline(always)]
-	fn clock_ticks_per_second() -> u64
+	const fn clock_ticks_per_second() -> u64
 	{
-		(unsafe { sysconf(_SC_CLK_TCK) }) as u64
+		100
 	}
 }
