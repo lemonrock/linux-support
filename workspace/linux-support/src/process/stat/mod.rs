@@ -3,7 +3,6 @@
 
 
 use super::*;
-use super::status::ProcessState;
 use super::status::ProcessStatusStatisticParseError;
 use crate::ClockTicks;
 use crate::memory::NumberOfPages;

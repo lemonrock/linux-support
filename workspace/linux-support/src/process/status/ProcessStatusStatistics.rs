@@ -621,7 +621,7 @@ impl ProcessStatusStatistics
 	#[inline(always)]
 	fn parse_process_state(value: &[u8]) -> Result<ProcessState, ProcessStatusStatisticParseError>
 	{
-		ProcessState::from_bytes(value)
+		Ok(ProcessState::from_bytes(value)?)
 	}
 
 	#[inline(always)]

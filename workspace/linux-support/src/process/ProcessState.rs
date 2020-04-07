@@ -57,17 +57,17 @@ pub enum ProcessState
 
 impl FromBytes for ProcessState
 {
-	type Error = ProcessStatusStatisticParseError;
+	type Error = ParseNumberError;
 
 	#[inline(always)]
 	fn from_bytes(value: &[u8]) -> Result<Self, Self::Error>
 	{
-		use self::ProcessStatusStatisticParseError::*;
+		use self::ParseNumberError::*;
 
 		// Values are like `R (running)`.
 		if unlikely!(value.len() < 1)
 		{
-			return Err(InvalidLength)
+			return Err(TooShort)
 		}
 
 		use self::ProcessState::*;

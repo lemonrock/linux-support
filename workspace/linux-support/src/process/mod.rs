@@ -74,5 +74,6 @@ include!("ProcessGroupIdentifier.rs");
 include!("ProcessGroupIdentifierChoice.rs");
 include!("ProcessIdentifier.rs");
 include!("ProcessIdentifierChoice.rs");
+include!("ProcessState.rs");
 include!("UserOrGroupIdentifier.rs");
 include!("UserIdentifier.rs");

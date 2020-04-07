@@ -312,13 +312,6 @@ impl Stat
 		}
 
 		#[inline(always)]
-		fn statistic_from_bytes<F: FromBytes<Error=ProcessStatusStatisticParseError>>(start_index: &mut usize, bytes: &[u8], index: u8, name: &'static str) -> Result<F, StatParseError>
-		{
-			let next_bytes = value_bytes(start_index, bytes, index, name)?;
-			F::from_bytes(next_bytes).map_err(|cause| InvalidStatistic { index: unsafe { NonZeroU8::new_unchecked(index)}, name, cause})
-		}
-
-		#[inline(always)]
 		fn obsolete_signal_bit_set_from_bytes(start_index: &mut usize, bytes: &[u8], index: u8, name: &'static str) -> Result<BitSet<Signal>, StatParseError>
 		{
 			let next_bytes = value_bytes(start_index, bytes, index, name)?;
@@ -355,7 +348,7 @@ impl Stat
 				let name_bytes = executable_name_bytes(&mut start_index, bytes)?;
 				name_bytes.to_vec().into_boxed_slice()
 			},
-			state: statistic_from_bytes(&mut start_index, bytes, 3, "state")?,
+			state: from_bytes(&mut start_index, bytes, 3, "state")?,
 			parent_process_identifier: from_bytes(&mut start_index, bytes, 4, "ppid")?,
 			process_group_identifier: from_bytes(&mut start_index, bytes, 5, "pgrp")?,
 			session_identifier: from_bytes(&mut start_index, bytes, 6, "session")?,
