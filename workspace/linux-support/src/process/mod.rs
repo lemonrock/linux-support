@@ -46,11 +46,15 @@ use std::ops::Deref;
 use std::ptr::write;
 
 
-/// Stat.
+/// `/proc/<N>/stat`.
 pub mod stat;
 
 
-/// Status.
+/// `/proc/<N>/statm`.
+pub mod statm;
+
+
+/// `/proc/<N>/status`.
 pub mod status;
 
 

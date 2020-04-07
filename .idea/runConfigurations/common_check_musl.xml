@@ -6,7 +6,7 @@
     <option name="nocapture" value="false" />
     <option name="emulateTerminal" value="false" />
     <option name="backtrace" value="SHORT" />
-    <option name="workingDirectory" value="file://$PROJECT_DIR$/workspace/linux-support-common" />
+    <option name="workingDirectory" value="file://$PROJECT_DIR$/workspace/linux-support" />
     <envs>
       <env name="CROSS_COMPILE" value="x86_64-linux-musl-" />
     </envs>

@@ -124,6 +124,8 @@ pub struct ProcessStatusStatistics
 	/// Total program size.
 	///
 	/// Known as `VmSize`.
+	///
+	/// Also present as first column in `/proc/<N>/statm` where it is measured in number of pages.
 	pub total_program_size: Kilobyte,
 
 	/// Locked memory size.
@@ -150,6 +152,8 @@ pub struct ProcessStatusStatistics
 	/// The sum of `anonymous_resident_set_memory_size`, `resident_set_file_mappings_memory_size` and `resident_set_shared_memory_size`.
 	///
 	/// Known as `VmRSS`.
+	///
+	/// Also present as second column in `/proc/<N>/statm` where it is measured in number of pages.
 	pub resident_set_memory_size: Kilobyte,
 
 	/// Size of resident set anonymous memory.
@@ -164,6 +168,8 @@ pub struct ProcessStatusStatistics
 	/// Known as `RssFile`.
 	///
 	/// Since Linux 4.5.
+	///
+	/// This plus `RssShmem` is also present as the third column in `/proc/<N>/statm` where it is measured in number of pages.
 	pub resident_set_file_mappings_memory_size: Kilobyte,
 
 	/// Size of resident set shared memory (`shmem`).
@@ -173,21 +179,29 @@ pub struct ProcessStatusStatistics
 	/// Includes Sys_v `shm`, any mappings from `tmpfs` and shared anonymous mappings.
 	///
 	/// Since Linux 4.5.
+	///
+	/// This plus `RssFile` is also present as the third column in `/proc/<N>/statm` where it is measured in number of pages.
 	pub resident_set_shared_memory_size: Kilobyte,
 
 	/// Size of private data segments.
 	///
 	/// Known as `VmData`.
+	///
+	/// This plus `VmStk` is also present as the fifth column in `/proc/<N>/statm` where it is measured in number of pages.
 	pub private_data_segments_size: Kilobyte,
 
 	/// Size of stack segments.
 	///
 	/// Known as `VmStk`.
+	///
+	/// This plus `VmData` is also present as the fifth column in `/proc/<N>/statm` where it is measured in number of pages.
 	pub stack_segments_size: Kilobyte,
 
-	/// Size of text segment.
+	/// Size of text (program code) segment.
 	///
 	/// Known as `VmExe`.
+	///
+	/// Also present as fourth column in `/proc/<N>/statm` where it is measured in number of pages.
 	pub text_segment_size: Kilobyte,
 
 	/// Size of shared library code.
@@ -392,7 +406,7 @@ impl ProcessStatusStatistics
 		Self::process_status(proc_path, ProcessIdentifierChoice::Current)
 	}
 
-	/// Status information from `/proc/<IDENTIFIER>/status` where `<IDENTIFIER>` is `identifier`.
+	/// Status information from `/proc/<IDENTIFIER>/status` where `<IDENTIFIER>` is `process_identifier`.
 	///
 	/// When in doubt, check the source code for status files at <https://github.com/torvalds/linux/blob/f346b0becb1bc62e45495f9cdbae3eef35d0b635/fs/proc/array.c> and the documentation at <http://man7.org/linux/man-pages/man5/proc.5.html>.
 	#[inline(always)]

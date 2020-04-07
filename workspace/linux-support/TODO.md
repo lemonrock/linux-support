@@ -19,6 +19,7 @@
 // TODO: Finish NUMA distances.
 
 // TODO: mmap to physicalling contig.
+    // TODO: mlock, sync and ?mremap additions first.
 
 // TODO: memfd seals (https://lwn.net/Articles/591108/ http://man7.org/linux/man-pages/man2/userfaultfd.2.html https://github.com/lucab/memfd-rs)
 
