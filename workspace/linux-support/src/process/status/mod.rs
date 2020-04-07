@@ -5,6 +5,7 @@
 use super::*;
 use crate::memory::Kilobyte;
 use crate::strings::FromBytes;
+use crate::signals::SignalQueueStatus;
 
 
 include!("NestedProcessIdentifiers.rs");
@@ -15,5 +16,4 @@ include!("ProcessStatusStatistics.rs");
 include!("ProcessStatusStatisticParseError.rs");
 include!("ProcessUserIdentifiers.rs");
 include!("SeccompMode.rs");
-include!("SignalQueueStatus.rs");
 include!("SpeculationStoreBypassStatus.rs");
