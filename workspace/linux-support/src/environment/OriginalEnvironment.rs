@@ -46,6 +46,21 @@ impl FromBytes for OriginalEnvironment
 
 impl OriginalEnvironment
 {
+	/// For self.
+	#[inline(always)]
+	pub fn for_self(proc_path: &ProcPath) -> io::Result<Self>
+	{
+		Self::for_process(proc_path, ProcessIdentifierChoice::Current)
+	}
+
+	/// For process.
+	#[inline(always)]
+	pub fn for_process(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> io::Result<Self>
+	{
+		let bytes = proc_path.process_file_path(process_identifier, "environ").read_raw()?;
+		Self::from_bytes(&bytes)
+	}
+
 	/// Contains a specific environment variable?
 	#[inline(always)]
 	pub fn contains_environment_variable(&self, variable_name: &[u8]) -> bool

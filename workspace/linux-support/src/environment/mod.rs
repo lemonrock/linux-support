@@ -16,6 +16,8 @@ use std::path::PathBuf;
 use crate::strings::FromBytes;
 use std::io;
 use std::io::ErrorKind;
+use crate::process::ProcessIdentifierChoice;
+use crate::paths::{ProcPath, PathExt};
 
 
 include!("clearenv_wrapper.rs");
