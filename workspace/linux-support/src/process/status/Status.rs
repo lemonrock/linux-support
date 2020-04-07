@@ -6,7 +6,7 @@
 ///
 /// `VmPMD` is not tested for (it was removed in Linux 4.15).
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ProcessStatusStatistics
+pub struct Status
 {
 	/// Process name.
 	///
@@ -59,12 +59,12 @@ pub struct ProcessStatusStatistics
 	/// User identifiers.
 	///
 	/// Known as `Uid`.
-	pub user_identifiers: ProcessUserIdentifiers,
+	pub user_identifiers: UserIdentifiers,
 
 	/// Group identifiers.
 	///
 	/// Known as `Gid`.
-	pub group_identifiers: ProcessGroupIdentifiers,
+	pub group_identifiers: GroupIdentifiers,
 
 	/// Number of file descriptor slots currently allocated.
 	///
@@ -390,7 +390,7 @@ pub struct ProcessStatusStatistics
 	unrecognised: HashMap<Box<[u8]>, Box<[u8]>>,
 }
 
-impl ProcessStatusStatistics
+impl Status
 {
 	/// Get an unrecognised static's value using a `statistic_name` byte string.
 	#[inline(always)]
@@ -401,7 +401,7 @@ impl ProcessStatusStatistics
 
 	/// Status information from `/proc/self/status`.
 	#[inline(always)]
-	pub fn self_status(proc_path: &ProcPath) -> Result<Self, ProcessStatusFileParseError>
+	pub fn self_status(proc_path: &ProcPath) -> Result<Self, StatusFileParseError>
 	{
 		Self::process_status(proc_path, ProcessIdentifierChoice::Current)
 	}
@@ -410,14 +410,14 @@ impl ProcessStatusStatistics
 	///
 	/// When in doubt, check the source code for status files at <https://github.com/torvalds/linux/blob/f346b0becb1bc62e45495f9cdbae3eef35d0b635/fs/proc/array.c> and the documentation at <http://man7.org/linux/man-pages/man5/proc.5.html>.
 	#[inline(always)]
-	pub fn process_status(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> Result<Self, ProcessStatusFileParseError>
+	pub fn process_status(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> Result<Self, StatusFileParseError>
 	{
 		macro_rules! parse
 		{
 			($reader: ident, $this: ident, $($proc_status_name: literal => $struct_field: ident @ $parse: ident,)*) =>
 			{
-				use self::ProcessStatusFileParseError::*;
-				use self::ProcessStatusStatisticParseError::*;
+				use self::StatusFileParseError::*;
+				use self::StatusStatisticParseError::*;
 
 				$(
 					let mut $struct_field: bool = false;
@@ -557,13 +557,13 @@ impl ProcessStatusStatistics
 	}
 
 	#[inline(always)]
-	fn parse_optional_statistics_and_future_statistics(&mut self, statistic_name: &[u8], statistic_value: &[u8], zero_based_line_number: usize) -> Result<(), ProcessStatusFileParseError>
+	fn parse_optional_statistics_and_future_statistics(&mut self, statistic_name: &[u8], statistic_value: &[u8], zero_based_line_number: usize) -> Result<(), StatusFileParseError>
 	{
-		use self::ProcessStatusFileParseError::*;
-		use self::ProcessStatusStatisticParseError::DuplicatedStatistic;;
+		use self::StatusFileParseError::*;
+		use self::StatusStatisticParseError::DuplicatedStatistic;;
 
 		#[inline(always)]
-		fn parse_optional_statistic<S>(statistic: &mut Option<S>, statistic_value: &[u8], zero_based_line_number: usize, parse: impl FnOnce(&[u8]) -> Result<S, ProcessStatusStatisticParseError>) -> Result<(), ProcessStatusFileParseError>
+		fn parse_optional_statistic<S>(statistic: &mut Option<S>, statistic_value: &[u8], zero_based_line_number: usize, parse: impl FnOnce(&[u8]) -> Result<S, StatusStatisticParseError>) -> Result<(), StatusFileParseError>
 		{
 			if unlikely!(statistic.is_some())
 			{
@@ -590,12 +590,12 @@ impl ProcessStatusStatistics
 	}
 
 	#[inline(always)]
-	fn insert_unrecognised(&mut self, statistic_name: &[u8], statistic_value: &[u8], zero_based_line_number: usize) -> Result<(), ProcessStatusFileParseError>
+	fn insert_unrecognised(&mut self, statistic_name: &[u8], statistic_value: &[u8], zero_based_line_number: usize) -> Result<(), StatusFileParseError>
 	{
 		let previous = self.unrecognised.insert(Self::to_box(statistic_name), Self::to_box(statistic_value));
 		if unlikely!(previous.is_some())
 		{
-			return Err(ProcessStatusFileParseError::CouldNotParseLine { zero_based_line_number, cause: ProcessStatusStatisticParseError::DuplicatedStatistic })
+			return Err(StatusFileParseError::CouldNotParseLine { zero_based_line_number, cause: StatusStatisticParseError::DuplicatedStatistic })
 		}
 		Ok(())
 	}
@@ -607,73 +607,73 @@ impl ProcessStatusStatistics
 	}
 
 	#[inline(always)]
-	fn parse_token(value: &[u8]) -> Result<Box<[u8]>, ProcessStatusStatisticParseError>
+	fn parse_token(value: &[u8]) -> Result<Box<[u8]>, StatusStatisticParseError>
 	{
 		Ok(Self::to_box(value))
 	}
 
 	#[inline(always)]
-	fn parse_mode(value: &[u8]) -> Result<mode_t, ProcessStatusStatisticParseError>
+	fn parse_mode(value: &[u8]) -> Result<mode_t, StatusStatisticParseError>
 	{
 		Ok(mode_t::parse_octal_number_fixed_width(value, 4)?)
 	}
 
 	#[inline(always)]
-	fn parse_process_state(value: &[u8]) -> Result<ProcessState, ProcessStatusStatisticParseError>
+	fn parse_process_state(value: &[u8]) -> Result<ProcessState, StatusStatisticParseError>
 	{
 		Ok(ProcessState::from_bytes(value)?)
 	}
 
 	#[inline(always)]
-	fn parse_process_identifier(value: &[u8]) -> Result<ProcessIdentifier, ProcessStatusStatisticParseError>
+	fn parse_process_identifier(value: &[u8]) -> Result<ProcessIdentifier, StatusStatisticParseError>
 	{
 		Ok(ProcessIdentifier::parse_decimal_number(value)?)
 	}
 
 	#[inline(always)]
-	fn parse_maybe_zero_process_identifier(value: &[u8]) -> Result<Option<ProcessIdentifier>, ProcessStatusStatisticParseError>
+	fn parse_maybe_zero_process_identifier(value: &[u8]) -> Result<Option<ProcessIdentifier>, StatusStatisticParseError>
 	{
 		Ok(Option::<ProcessIdentifier>::parse_decimal_number(value)?)
 	}
 
 	#[inline(always)]
-	fn parse_user_identifiers(value: &[u8]) -> Result<ProcessUserIdentifiers, ProcessStatusStatisticParseError>
+	fn parse_user_identifiers(value: &[u8]) -> Result<UserIdentifiers, StatusStatisticParseError>
 	{
-		ProcessUserIdentifiers::from_bytes(value)
+		UserIdentifiers::from_bytes(value)
 	}
 
 	#[inline(always)]
-	fn parse_group_identifiers(value: &[u8]) -> Result<ProcessGroupIdentifiers, ProcessStatusStatisticParseError>
+	fn parse_group_identifiers(value: &[u8]) -> Result<GroupIdentifiers, StatusStatisticParseError>
 	{
-		ProcessGroupIdentifiers::from_bytes(value)
+		GroupIdentifiers::from_bytes(value)
 	}
 
 	#[inline(always)]
-	fn parse_groups(value: &[u8]) -> Result<Groups, ProcessStatusStatisticParseError>
+	fn parse_groups(value: &[u8]) -> Result<Groups, StatusStatisticParseError>
 	{
 		Groups::from_bytes(value)
 	}
 
 	#[inline(always)]
-	fn parse_process_identifiers(value: &[u8]) -> Result<NestedProcessIdentifiers, ProcessStatusStatisticParseError>
+	fn parse_process_identifiers(value: &[u8]) -> Result<NestedProcessIdentifiers, StatusStatisticParseError>
 	{
 		NestedProcessIdentifiers::from_bytes(value)
 	}
 
 	#[inline(always)]
-	fn parse_process_group_identifiers(value: &[u8]) -> Result<NestedProcessGroupIdentifiers, ProcessStatusStatisticParseError>
+	fn parse_process_group_identifiers(value: &[u8]) -> Result<NestedProcessGroupIdentifiers, StatusStatisticParseError>
 	{
 		NestedProcessGroupIdentifiers::from_bytes(value)
 	}
 
 	#[inline(always)]
-	fn parse_u64(value: &[u8]) -> Result<u64, ProcessStatusStatisticParseError>
+	fn parse_u64(value: &[u8]) -> Result<u64, StatusStatisticParseError>
 	{
 		Ok(u64::parse_decimal_number(value)?)
 	}
 
 	#[inline(always)]
-	fn parse_kilobyte(value: &[u8]) -> Result<Kilobyte, ProcessStatusStatisticParseError>
+	fn parse_kilobyte(value: &[u8]) -> Result<Kilobyte, StatusStatisticParseError>
 	{
 		const Ending: &'static [u8] = b" kB";
 
@@ -683,36 +683,36 @@ impl ProcessStatusStatistics
 		}
 		else
 		{
-			Err(ProcessStatusStatisticParseError::InvalidEnding)
+			Err(StatusStatisticParseError::InvalidEnding)
 		}
 	}
 
 	#[inline(always)]
-	fn parse_signal_queue(value: &[u8]) -> Result<SignalQueueStatus, ProcessStatusStatisticParseError>
+	fn parse_signal_queue(value: &[u8]) -> Result<SignalQueueStatus, StatusStatisticParseError>
 	{
 		SignalQueueStatus::from_bytes(value)
 	}
 
 	#[inline(always)]
-	fn parse_hexadecimal_u64(value: &[u8]) -> Result<u64, ProcessStatusStatisticParseError>
+	fn parse_hexadecimal_u64(value: &[u8]) -> Result<u64, StatusStatisticParseError>
 	{
 		Ok(u64::parse_hexadecimal_number_lower_case(value)?)
 	}
 
 	#[inline(always)]
-	fn parse_signal_bit_set(value: &[u8]) -> Result<BitSet<Signal>, ProcessStatusStatisticParseError>
+	fn parse_signal_bit_set(value: &[u8]) -> Result<BitSet<Signal>, StatusStatisticParseError>
 	{
 		Ok(BitSet::new_from_u64(Self::parse_hexadecimal_u64(value)?))
 	}
 
 	#[inline(always)]
-	fn parse_capability_mask_or_set(value: &[u8]) -> Result<BitSet<Capability>, ProcessStatusStatisticParseError>
+	fn parse_capability_mask_or_set(value: &[u8]) -> Result<BitSet<Capability>, StatusStatisticParseError>
 	{
 		Ok(BitSet::new_from_u64(Self::parse_hexadecimal_u64(value)?))
 	}
 
 	#[inline(always)]
-	fn parse_bool(value: &[u8]) -> Result<bool, ProcessStatusStatisticParseError>
+	fn parse_bool(value: &[u8]) -> Result<bool, StatusStatisticParseError>
 	{
 		if likely!(value.len() == 1)
 		{
@@ -720,41 +720,41 @@ impl ProcessStatusStatistics
 			{
 				b'0' => Ok(false),
 				b'1' => Ok(true),
-				_ => Err(ProcessStatusStatisticParseError::OutOfRange)
+				_ => Err(StatusStatisticParseError::OutOfRange)
 			}
 		}
 		else
 		{
-			Err(ProcessStatusStatisticParseError::InvalidLength)
+			Err(StatusStatisticParseError::InvalidLength)
 		}
 	}
 
 	#[inline(always)]
-	fn parse_seccomp_mode(value: &[u8]) -> Result<SeccompMode, ProcessStatusStatisticParseError>
+	fn parse_seccomp_mode(value: &[u8]) -> Result<SeccompMode, StatusStatisticParseError>
 	{
 		SeccompMode::from_bytes(value)
 	}
 
 	#[inline(always)]
-	fn parse_speculation_store_bypass(value: &[u8]) -> Result<SpeculationStoreBypassStatus, ProcessStatusStatisticParseError>
+	fn parse_speculation_store_bypass(value: &[u8]) -> Result<SpeculationStoreBypassStatus, StatusStatisticParseError>
 	{
 		SpeculationStoreBypassStatus::from_bytes(value)
 	}
 
 	#[inline(always)]
-	fn parse_cpus_or_numa_nodes_allowed<BSA: BitSetAware>(value: &[u8]) -> Result<BitSet<BSA>, ProcessStatusStatisticParseError>
+	fn parse_cpus_or_numa_nodes_allowed<BSA: BitSetAware>(value: &[u8]) -> Result<BitSet<BSA>, StatusStatisticParseError>
 	{
 		Ok(BitSet::parse_hyper_thread_or_numa_node_bit_set(&value))
 	}
 
 	#[inline(always)]
-	fn parse_cpus_allowed_list(value: &[u8]) -> Result<BitSet<HyperThread>, ProcessStatusStatisticParseError>
+	fn parse_cpus_allowed_list(value: &[u8]) -> Result<BitSet<HyperThread>, StatusStatisticParseError>
 	{
 		Ok(BitSet::<HyperThread>::parse_linux_list_string(value)?)
 	}
 
 	#[inline(always)]
-	fn parse_numa_nodes_allowed_list(value: &[u8]) -> Result<BitSet<NumaNode>, ProcessStatusStatisticParseError>
+	fn parse_numa_nodes_allowed_list(value: &[u8]) -> Result<BitSet<NumaNode>, StatusStatisticParseError>
 	{
 		Ok(BitSet::<NumaNode>::parse_linux_list_string(value)?)
 	}

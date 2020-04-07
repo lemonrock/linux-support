@@ -2,40 +2,40 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// User identifiers (UIDs).
+/// Group identifiers (`gid`s).
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct ProcessUserIdentifiers
+pub struct GroupIdentifiers
 {
-	/// Real user identifier (UID).
-	pub real: UserIdentifier,
+	/// Real group identifier (`gid`).
+	pub real: GroupIdentifier,
 
-	/// Effective user identifier (UID).
-	pub effective: UserIdentifier,
+	/// Effective group identifier (`gid`).
+	pub effective: GroupIdentifier,
 
-	/// Saved set user identifier (UID).
-	pub saved_set: UserIdentifier,
+	/// Saved set group identifier (`gid`).
+	pub saved_set: GroupIdentifier,
 
-	/// File system user identifier (UID).
-	pub file_system: UserIdentifier,
+	/// File system group identifier (`gid`).
+	pub file_system: GroupIdentifier,
 }
 
-impl FromBytes for ProcessUserIdentifiers
+impl FromBytes for GroupIdentifiers
 {
-	type Error = ProcessStatusStatisticParseError;
+	type Error = StatusStatisticParseError;
 
 	#[inline(always)]
 	fn from_bytes(value: &[u8]) -> Result<Self, Self::Error>
 	{
 		#[inline(always)]
-		fn parse_subsequent<'a>(iterator: &mut impl Iterator<Item=&'a [u8]>) -> Result<UserIdentifier, ProcessStatusStatisticParseError>
+		fn parse_subsequent<'a>(iterator: &mut impl Iterator<Item=&'a [u8]>) -> Result<GroupIdentifier, StatusStatisticParseError>
 		{
 			if let Some(effective) = iterator.next()
 			{
-				Ok(UserIdentifier::from_bytes(effective)?)
+				Ok(GroupIdentifier::from_bytes(effective)?)
 			}
 			else
 			{
-				Err(ProcessStatusStatisticParseError::InvalidSeparator)
+				Err(StatusStatisticParseError::InvalidSeparator)
 			}
 		}
 
@@ -45,7 +45,7 @@ impl FromBytes for ProcessUserIdentifiers
 		(
 			Self
 			{
-				real: UserIdentifier::from_bytes(iterator.next().unwrap())?,
+				real: GroupIdentifier::from_bytes(iterator.next().unwrap())?,
 				effective: parse_subsequent(&mut iterator)?,
 				saved_set: parse_subsequent(&mut iterator)?,
 				file_system: parse_subsequent(&mut iterator)?,

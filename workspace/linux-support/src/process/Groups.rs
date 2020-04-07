@@ -20,7 +20,7 @@ impl Deref for Groups
 
 impl FromBytes for Groups
 {
-	type Error = ProcessStatusStatisticParseError;
+	type Error = StatusStatisticParseError;
 
 	#[inline(always)]
 	fn from_bytes(value: &[u8]) -> Result<Self, Self::Error>
@@ -31,7 +31,7 @@ impl FromBytes for Groups
 			let was_added_for_the_first_time = groups.insert(GroupIdentifier::from_bytes(value)?);
 			if unlikely!(!was_added_for_the_first_time)
 			{
-				return Err(ProcessStatusStatisticParseError::DuplicatedStatisticValue)
+				return Err(StatusStatisticParseError::DuplicatedStatisticValue)
 			}
 		}
 		Ok(Self(groups))

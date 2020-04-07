@@ -43,7 +43,7 @@ pub enum StatParseError
 
 
 		/// Cause.
-		cause: ProcessStatusStatisticParseError,
+		cause: StatusStatisticParseError,
 	},
 
 	/// Not enough bytes.

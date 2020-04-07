@@ -15,7 +15,7 @@ pub struct SignalQueueStatus
 
 impl FromBytes for SignalQueueStatus
 {
-	type Error = ProcessStatusStatisticParseError;
+	type Error = StatusStatisticParseError;
 
 	#[inline(always)]
 	fn from_bytes(value: &[u8]) -> Result<Self, Self::Error>
@@ -27,7 +27,7 @@ impl FromBytes for SignalQueueStatus
 
 		let maximum_number_of_signals_that_can_be_queued = match iterator.next()
 		{
-			None => return Err(ProcessStatusStatisticParseError::InvalidSeparator),
+			None => return Err(StatusStatisticParseError::InvalidSeparator),
 
 			Some(maximum_number_of_signals_that_can_be_queued) => u64::parse_decimal_number(maximum_number_of_signals_that_can_be_queued)?,
 		};

@@ -4,7 +4,7 @@
 
 /// Parsing of a process status file failed.
 #[derive(Debug)]
-pub enum ProcessStatusFileParseError
+pub enum StatusFileParseError
 {
 	/// Could not open a file.
 	CouldNotOpenFile(io::Error),
@@ -26,14 +26,14 @@ pub enum ProcessStatusFileParseError
 		zero_based_line_number: usize,
 
 		/// Cause.
-		cause: ProcessStatusStatisticParseError,
+		cause: StatusStatisticParseError,
 	},
 
 	/// Missing a required field (field name is tuple value).
 	MissingRequiredField(&'static str),
 }
 
-impl Display for ProcessStatusFileParseError
+impl Display for StatusFileParseError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -42,12 +42,12 @@ impl Display for ProcessStatusFileParseError
 	}
 }
 
-impl error::Error for ProcessStatusFileParseError
+impl error::Error for StatusFileParseError
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>
 	{
-		use self::ProcessStatusFileParseError::*;
+		use self::StatusFileParseError::*;
 
 		match self
 		{
@@ -62,11 +62,11 @@ impl error::Error for ProcessStatusFileParseError
 	}
 }
 
-impl From<io::Error> for ProcessStatusFileParseError
+impl From<io::Error> for StatusFileParseError
 {
 	#[inline(always)]
 	fn from(error: io::Error) -> Self
 	{
-		ProcessStatusFileParseError::CouldNotOpenFile(error)
+		StatusFileParseError::CouldNotOpenFile(error)
 	}
 }

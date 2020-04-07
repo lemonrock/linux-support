@@ -69,6 +69,7 @@ pub mod status;
 
 include!("get_program_name.rs");
 include!("GroupIdentifier.rs");
+include!("GroupIdentifiers.rs");
 include!("Groups.rs");
 include!("ProcessGroupIdentifier.rs");
 include!("ProcessGroupIdentifierChoice.rs");
@@ -77,3 +78,4 @@ include!("ProcessIdentifierChoice.rs");
 include!("ProcessState.rs");
 include!("UserOrGroupIdentifier.rs");
 include!("UserIdentifier.rs");
+include!("UserIdentifiers.rs");

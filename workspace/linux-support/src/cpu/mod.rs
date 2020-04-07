@@ -8,7 +8,7 @@ use crate::bit_set::*;
 use crate::memory::numa::*;
 use crate::paths::*;
 use crate::process::ProcessIdentifierChoice;
-use crate::process::status::ProcessStatusStatistics;
+use crate::process::status::Status;
 use crate::strings::*;
 use crate::strings::parse_number::ParseNumberError;
 use crate::user_and_groups::assert_effective_user_id_is_root;

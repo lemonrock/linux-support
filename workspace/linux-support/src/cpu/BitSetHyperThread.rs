@@ -208,7 +208,7 @@ impl BitSet<HyperThread>
 	#[inline(always)]
 	fn is_in_proc_self_status(proc_path: &ProcPath) -> Self
 	{
-		let process_status_statistics = ProcessStatusStatistics::self_status(proc_path).unwrap();
+		let process_status_statistics = Status::self_status(proc_path).unwrap();
 		process_status_statistics.cpus_allowed
 	}
 

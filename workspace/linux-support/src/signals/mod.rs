@@ -8,7 +8,7 @@ use crate::bit_set::*;
 use crate::memory::VirtualAddress;
 use crate::process::ProcessIdentifier;
 use crate::process::UserIdentifier;
-use crate::process::status::ProcessStatusStatisticParseError;
+use crate::process::status::StatusStatisticParseError;
 use crate::strings::{FromBytes, Radix};
 use crate::strings::parse_number::*;
 use crate::syscall::UnconstrainedSystemCallNumber;

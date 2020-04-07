@@ -2,16 +2,16 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Most uses of this are better provided for by `ProcessStatus`.
+/// Most uses of this are better provided for by `Status`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct StatM
 {
 	/// Total program size.
 	///
-	/// Equivalent to `total_program_size` converted into a number of pages in `ProcessStatusStatistics`.
+	/// Equivalent to `total_program_size` converted into a number of pages in `Status`.
 	pub total_program_size: NumberOfPages,
 
-	/// Equivalent to the following in `ProcessStatusStatistics`:-
+	/// Equivalent to the following in `Status`:-
 	///
 	/// * `resident_set_memory_size` converted into a number of pages.
 	/// * the sum of `anonymous_resident_set_memory_size`, `resident_set_file_mappings_memory_size` and `resident_set_shared_memory_size` converted into a number of pages.
@@ -19,15 +19,15 @@ pub struct StatM
 
 	/// Total program size.
 	///
-	/// Equivalent to the sum of `resident_set_file_mappings_memory_size` and `resident_set_shared_memory_size` converted into a number of pages in `ProcessStatusStatistics`.
+	/// Equivalent to the sum of `resident_set_file_mappings_memory_size` and `resident_set_shared_memory_size` converted into a number of pages in `Status`.
 	pub resident_shared_pages: NumberOfPages,
 
 	/// Text (program code) segment size.
 	///
-	/// Equivalent to `text_segment_size` converted into a number of pages in `ProcessStatusStatistics`.
+	/// Equivalent to `text_segment_size` converted into a number of pages in `Status`.
 	pub text_segment_size: NumberOfPages,
 
-	/// Equivalent to the sum of `private_data_segments_size` and `stack_segments_size` converted into a number of pages in `ProcessStatusStatistics`.
+	/// Equivalent to the sum of `private_data_segments_size` and `stack_segments_size` converted into a number of pages in `Status`.
 	pub data: NumberOfPages,
 }
 

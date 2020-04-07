@@ -19,7 +19,7 @@ pub enum SeccompMode
 
 impl FromBytes for SeccompMode
 {
-	type Error = ProcessStatusStatisticParseError;
+	type Error = StatusStatisticParseError;
 
 	#[inline(always)]
 	fn from_bytes(value: &[u8]) -> Result<Self, Self::Error>
@@ -33,12 +33,12 @@ impl FromBytes for SeccompMode
 				b'0' => Ok(Off),
 				b'1' => Ok(Strict),
 				b'2' => Ok(Filter),
-				_ => Err(ProcessStatusStatisticParseError::OutOfRange)
+				_ => Err(StatusStatisticParseError::OutOfRange)
 			}
 		}
 		else
 		{
-			Err(ProcessStatusStatisticParseError::InvalidLength)
+			Err(StatusStatisticParseError::InvalidLength)
 		}
 	}
 }

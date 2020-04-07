@@ -20,7 +20,7 @@ impl Deref for NestedProcessGroupIdentifiers
 
 impl FromBytes for NestedProcessGroupIdentifiers
 {
-	type Error = ProcessStatusStatisticParseError;
+	type Error = StatusStatisticParseError;
 	
 	#[inline(always)]
 	fn from_bytes(value: &[u8]) -> Result<Self, Self::Error>
@@ -31,7 +31,7 @@ impl FromBytes for NestedProcessGroupIdentifiers
 			let was_added_for_the_first_time = process_group_identifiers.insert(ProcessGroupIdentifier::parse_decimal_number(value)?);
 			if unlikely!(!was_added_for_the_first_time)
 			{
-				return Err(ProcessStatusStatisticParseError::DuplicatedStatisticValue)
+				return Err(StatusStatisticParseError::DuplicatedStatisticValue)
 			}
 		}
 		Ok(Self(process_group_identifiers))

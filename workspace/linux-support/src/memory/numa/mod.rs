@@ -11,7 +11,7 @@ use crate::cpu::HyperThread;
 use crate::current_numa_node_and_hyper_thread;
 use crate::paths::*;
 use crate::process::*;
-use crate::process::status::ProcessStatusStatistics;
+use crate::process::status::Status;
 use crate::strings::FromBytes;
 use crate::strings::Radix;
 use crate::strings::parse_number::*;

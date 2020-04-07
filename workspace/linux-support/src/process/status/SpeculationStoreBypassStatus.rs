@@ -30,7 +30,7 @@ pub enum SpeculationStoreBypassStatus
 
 impl FromBytes for SpeculationStoreBypassStatus
 {
-	type Error = ProcessStatusStatisticParseError;
+	type Error = StatusStatisticParseError;
 
 	#[inline(always)]
 	fn from_bytes(value: &[u8]) -> Result<SpeculationStoreBypassStatus, Self::Error>
@@ -46,7 +46,7 @@ impl FromBytes for SpeculationStoreBypassStatus
 			b"thread vulnerable" => ThreadVulnerable,
 			b"globally mitigated" => GloballyMitigated,
 			b"vulnerable" => Vulnerable,
-			_ => return Err(ProcessStatusStatisticParseError::OutOfRange),
+			_ => return Err(StatusStatisticParseError::OutOfRange),
 		};
 		Ok(value)
 	}

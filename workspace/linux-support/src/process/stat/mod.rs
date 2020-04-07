@@ -3,7 +3,7 @@
 
 
 use super::*;
-use super::status::ProcessStatusStatisticParseError;
+use super::status::StatusStatisticParseError;
 use crate::ClockTicks;
 use crate::memory::NumberOfPages;
 use crate::memory::VirtualAddress;

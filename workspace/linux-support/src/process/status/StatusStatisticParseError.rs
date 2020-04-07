@@ -4,7 +4,7 @@
 
 /// A parse error.
 #[derive(Debug)]
-pub enum ProcessStatusStatisticParseError
+pub enum StatusStatisticParseError
 {
 	/// No value.
 	NoValue,
@@ -40,7 +40,7 @@ pub enum ProcessStatusStatisticParseError
 	NotAValidBitSetAware(BitSetAwareTryFromU16Error),
 }
 
-impl Display for ProcessStatusStatisticParseError
+impl Display for StatusStatisticParseError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -49,12 +49,12 @@ impl Display for ProcessStatusStatisticParseError
 	}
 }
 
-impl error::Error for ProcessStatusStatisticParseError
+impl error::Error for StatusStatisticParseError
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>
 	{
-		use self::ProcessStatusStatisticParseError::*;
+		use self::StatusStatisticParseError::*;
 
 		match self
 		{
@@ -83,29 +83,29 @@ impl error::Error for ProcessStatusStatisticParseError
 	}
 }
 
-impl From<ListParseError> for ProcessStatusStatisticParseError
+impl From<ListParseError> for StatusStatisticParseError
 {
 	#[inline(always)]
 	fn from(error: ListParseError) -> Self
 	{
-		ProcessStatusStatisticParseError::NotAValidListOfCpusOrNumaNodes(error)
+		StatusStatisticParseError::NotAValidListOfCpusOrNumaNodes(error)
 	}
 }
 
-impl From<ParseNumberError> for ProcessStatusStatisticParseError
+impl From<ParseNumberError> for StatusStatisticParseError
 {
 	#[inline(always)]
 	fn from(error: ParseNumberError) -> Self
 	{
-		ProcessStatusStatisticParseError::NotAValidNumber(error)
+		StatusStatisticParseError::NotAValidNumber(error)
 	}
 }
 
-impl From<BitSetAwareTryFromU16Error> for ProcessStatusStatisticParseError
+impl From<BitSetAwareTryFromU16Error> for StatusStatisticParseError
 {
 	#[inline(always)]
 	fn from(error: BitSetAwareTryFromU16Error) -> Self
 	{
-		ProcessStatusStatisticParseError::NotAValidBitSetAware(error)
+		StatusStatisticParseError::NotAValidBitSetAware(error)
 	}
 }

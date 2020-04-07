@@ -10,10 +10,8 @@ use crate::signals::SignalQueueStatus;
 
 include!("NestedProcessGroupIdentifiers.rs");
 include!("NestedProcessIdentifiers.rs");
-include!("ProcessGroupIdentifiers.rs");
-include!("ProcessStatusFileParseError.rs");
-include!("ProcessStatusStatistics.rs");
-include!("ProcessStatusStatisticParseError.rs");
-include!("ProcessUserIdentifiers.rs");
 include!("SeccompMode.rs");
 include!("SpeculationStoreBypassStatus.rs");
+include!("Status.rs");
+include!("StatusFileParseError.rs");
+include!("StatusStatisticParseError.rs");
