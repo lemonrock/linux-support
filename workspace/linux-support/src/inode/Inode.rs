@@ -23,3 +23,18 @@ impl Into<u64> for Inode
 		self.0
 	}
 }
+
+impl ParseNumber for Inode
+{
+	#[inline(always)]
+	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
+	{
+		Ok(Self(u64::parse_number(bytes, radix, parse_byte)?))
+	}
+}
+
+impl Inode
+{
+	/// Zero.
+	pub const Zero: Self = Self(0);
+}

@@ -2,9 +2,27 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use std::fmt::Debug;
-use crate::strings::parse_number::{ParseNumber, ParseNumberError};
-use crate::strings::Radix;
+/// What kind of special entry is this?
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum MemoryMapEntryKindSpecial
+{
+	/// A heap mapping.
+	///
+	/// A process has a maximum of one of these (it may be absent).
+	Heap,
 
+	/// A stack mapping.
+	///
+	/// A process has exactly one of these.
+	Stack,
 
-include!("Inode.rs");
+	/// A `vdso` mapping.
+	///
+	/// A process has exactly one of these.
+	vDSO,
+
+	/// A `vvar` mapping.
+	///
+	/// A process has exactly one of these.
+	VVAR,
+}

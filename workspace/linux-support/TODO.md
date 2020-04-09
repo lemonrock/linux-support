@@ -148,9 +148,25 @@ A mapping under /proc/<N>/map_files/symlink will exist.
 Mappings also exist here for MAP_ANON | MAPSHARED
 
 
-/proc/pid/numa_map
+/proc/pid/numa_maps
+file=
+    - one of
+        - mapped= mapmax=, OR
+        - anon= dirty=
+    - always have NX= kernelpagesize_kB=
+heap
+    - anon= dirty=
+    - always have NX= kernelpagesize_kB=
+    Does not have to present (eg missing for init)
+stack
+    - anon= dirty=
+    - always have NX= kernelpagesize_kB=
+private (starts anon=)
+    - anon= dirty=
+    - always have NX= kernelpagesize_kB=
+blank (probably vdso / vddr; no value of N<X>=)
 
-eg
+alpine:/proc$ cat /proc/2442/numa_maps
 55c0f5fd4000 default file=/bin/busybox mapped=12 mapmax=10 N0=12 kernelpagesize_kB=4
 55c0f5fe0000 default file=/bin/busybox mapped=90 mapmax=14 N0=90 kernelpagesize_kB=4
 55c0f607c000 default file=/bin/busybox mapped=33 mapmax=14 N0=33 kernelpagesize_kB=4
@@ -166,6 +182,27 @@ eg
 7ffc4c759000 default stack anon=17 dirty=17 N0=17 kernelpagesize_kB=4
 7ffc4c796000 default
 7ffc4c799000 default
+alpine:/proc$ cat /proc/2442/maps
+
+
+
+From-To Perms Offset Maj:Min Inode FilePath/Psuedo/Blank
+55c0f5fd4000-55c0f5fe0000 r--p 00000000 08:03 1048666                    /bin/busybox
+55c0f5fe0000-55c0f607c000 r-xp 0000c000 08:03 1048666                    /bin/busybox
+55c0f607c000-55c0f609d000 r--p 000a8000 08:03 1048666                    /bin/busybox
+55c0f609e000-55c0f60a2000 r--p 000c9000 08:03 1048666                    /bin/busybox
+55c0f60a2000-55c0f60a3000 rw-p 000cd000 08:03 1048666                    /bin/busybox
+55c0f6864000-55c0f6887000 rw-p 00000000 00:00 0                          [heap]
+7f0951b20000-7f0951b35000 r--p 00000000 08:03 2097277                    /lib/ld-musl-x86_64.so.1
+7f0951b35000-7f0951b7c000 r-xp 00015000 08:03 2097277                    /lib/ld-musl-x86_64.so.1
+7f0951b7c000-7f0951bb0000 r--p 0005c000 08:03 2097277                    /lib/ld-musl-x86_64.so.1
+7f0951bb1000-7f0951bb2000 r--p 00090000 08:03 2097277                    /lib/ld-musl-x86_64.so.1
+7f0951bb2000-7f0951bb3000 rw-p 00091000 08:03 2097277                    /lib/ld-musl-x86_64.so.1
+7f0951bb3000-7f0951bb6000 rw-p 00000000 00:00 0 
+7ffc4c759000-7ffc4c77a000 rw-p 00000000 00:00 0                          [stack]
+7ffc4c796000-7ffc4c799000 r--p 00000000 00:00 0                          [vvar]
+7ffc4c799000-7ffc4c79a000 r-xp 00000000 00:00 0                          [vdso]
+
 
 // The /proc/[pid]/pagemap file is present only if the CON‐
 //              FIG_PROC_PAGE_MONITOR kernel configuration option is enabled.
@@ -173,6 +210,15 @@ eg
 //              Permission to access this file is governed by a ptrace access
 //              mode PTRACE_MODE_READ_FSCREDS check; see ptrace(2).
 /proc/pid/pagemap
+
+/proc/kpagecount (since Linux 2.6.25)
+              This file contains a 64-bit count of the number of times each
+              physical page frame is mapped, indexed by page frame number
+              (see the discussion of /proc/[pid]/pagemap).
+
+              The /proc/kpagecount file is present only if the CON‐
+              FIG_PROC_PAGE_MONITOR kernel configuration option is enabled.
+
 
 /proc/kpageflags (since Linux 2.6.25)
               This file contains 64-bit masks corresponding to each physical
@@ -215,6 +261,7 @@ eg
 
 
 NOTE: There is also /proc/[pid]/smaps_rollup, with a similar but only-one-entry structure to /proc/[pid]/smaps , with slightly different entries.
+
 
 /proc/[pid]/smaps (since Linux 2.6.14)
               This file shows memory consumption for each of the process's

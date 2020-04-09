@@ -5,6 +5,18 @@
 /// Parse a number from bytes.
 pub trait ParseNumber: Sized
 {
+	/// Parses a lower-case hexadecimal number which should be of fixed width.
+	#[inline(always)]
+	fn parse_hexadecimal_number_lower_case_fixed_width(bytes: &[u8], fixed_width: usize) -> Result<Self, ParseNumberError>
+	{
+		if unlikely!(bytes.len() != fixed_width)
+		{
+			return Err(ParseNumberError::HexadecimalFixedWidthNumberHasWrongNumberOfBytes { fixed_width })
+		}
+
+		Self::parse_hexadecimal_number_lower_case(bytes)
+	}
+
 	/// Parses a lower-case hexadecimal number which should be of fixed width and should start `0x`.
 	#[inline(always)]
 	fn parse_hexadecimal_number_lower_case_with_0x_prefix_fixed_width(bytes: &[u8], fixed_width: usize) -> Result<Self, ParseNumberError>

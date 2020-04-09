@@ -2,9 +2,22 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use std::fmt::Debug;
-use crate::strings::parse_number::{ParseNumber, ParseNumberError};
-use crate::strings::Radix;
+/// NUMA details for a memory map entry.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MemoryMapEntryNumaDetails
+{
+	/// NUMA memory policy.
+	pub memory_policy: (),
 
+	/// Number of anonymous pages.
+	pub number_of_anonymous_pages: NumberOfPages,
 
-include!("Inode.rs");
+	/// Number of dirty pages.
+	pub number_of_dirty_pages: NumberOfPages,
+
+	/// Number of pages by NUMA node.
+	pub number_of_pages_by_numa_node: HashMap<NumaNode, NumberOfPages>,
+
+	/// Kernel page size.
+	pub kernel_page_size: PageSize,
+}

@@ -12,6 +12,9 @@ pub struct LinuxKernelVersion
 	pub release: Box<[u8]>,
 
 	/// Contents of `/proc/sys/kernel/version`.
+	///
+	/// A string such as `#5 Wed Feb 25 21:49:24 MET 1998`.
+	/// The `#5` means that this is the fifth kernel built from this source base and the date following it indicates the time the kernel was built.
 	pub timestamp: Box<[u8]>,
 
 	/// Contents of `/proc/version`.

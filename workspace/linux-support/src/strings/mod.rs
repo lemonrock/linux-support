@@ -33,6 +33,7 @@ include!("path_to_cstring.rs");
 include!("Radix.rs");
 include!("replace.rs");
 include!("to_c_string_robustly.rs");
+include!("without_suffix.rs");
 
 
 /// Conversions to numbers.

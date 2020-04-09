@@ -403,13 +403,15 @@ impl NumaNode
 	///
 	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`, the NUMA node is not present or `sys_path` is not mounted.
 	///
+	/// This will return `Some(None)` if the list of online NUMA nodes differs to the list of distances; this can happen if the list of online nodes changes whilst being used.
+	///
 	/// The relative memory latency for 'self' will be present.
 	#[inline(always)]
-	fn distances(self, sys_path: &SysPath) -> Option<HashMap<NumaNode, MemoryLatencyRelativeCost>>
+	fn distances(self, sys_path: &SysPath) -> Option<Option<HashMap<NumaNode, MemoryLatencyRelativeCost>>>
 	{
 		const LinuxMaximum: usize = NumaNode::LinuxMaximum as usize;
 
-		fn parser(file_path: &Path, mut online_numa_nodes: BitSetIterator<NumaNode>) -> io::Result<HashMap<NumaNode, MemoryLatencyRelativeCost>>
+		fn parser(file_path: &Path, mut online_numa_nodes: BitSetIterator<NumaNode>) -> io::Result<Option<HashMap<NumaNode, MemoryLatencyRelativeCost>>>
 		{
 			let line = file_path.read_raw_without_line_feed()?;
 
@@ -422,25 +424,29 @@ impl NumaNode
 			// NOTE: It is legitimate for there to be no distances at all, because this NUMA node is not online.
 			if raw_distances.peek().is_none()
 			{
-				return Ok(HashMap::new())
+				return Ok(Some(HashMap::new()))
 			}
 
 			let mut map = HashMap::with_capacity(LinuxMaximum);
 
 			for raw_distance in raw_distances
 			{
-				let online_numa_node = online_numa_nodes.next().ok_or_else(|| io::Error::new(ErrorKind::Other, "There should be an online NUMA node if there is a distance"))?;
+				let online_numa_node = match online_numa_nodes.next()
+				{
+					None => return Ok(None),
+					Some(online_numa_node) => online_numa_node,
+				};
 				let distance = MemoryLatencyRelativeCost::from_bytes(raw_distance).map_err(|parse_number_error| io::Error::new(ErrorKind::Other, parse_number_error))?;
 				map.insert(online_numa_node, distance);
 			}
 
 			if unlikely!(online_numa_nodes.next().is_some())
 			{
-				return Err(io::Error::new(ErrorKind::Other, "There are more online NUMA nodes than there are distances; this is possible if the online list is stale"))
+				return Ok(None)
 			}
 
 			map.shrink_to_fit();
-			Ok(map)
+			Ok(Some(map))
 		}
 
 		let online = BitSet::<NumaNode>::online(sys_path)?;

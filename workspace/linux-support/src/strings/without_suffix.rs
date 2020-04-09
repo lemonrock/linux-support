@@ -2,9 +2,16 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use std::fmt::Debug;
-use crate::strings::parse_number::{ParseNumber, ParseNumberError};
-use crate::strings::Radix;
-
-
-include!("Inode.rs");
+#[inline(always)]
+pub(crate) fn without_suffix<'a>(name: &'a [u8], suffix: &'static [u8]) -> (&'a [u8], bool)
+{
+	let suffix_starts_at = name.len() - suffix.len();
+	if &name[suffix_starts_at .. ] == suffix
+	{
+		(&name[0 .. suffix_starts_at], true)
+	}
+	else
+	{
+		(name, false)
+	}
+}
