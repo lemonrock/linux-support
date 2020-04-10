@@ -6,6 +6,7 @@
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
 #![deny(missing_docs)]
+#![deny(unconditional_recursion)]
 #![deny(unreachable_patterns)]
 #![feature(alloc_layout_extra)]
 #![feature(allocator_api)]

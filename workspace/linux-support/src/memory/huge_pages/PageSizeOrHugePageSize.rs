@@ -96,4 +96,21 @@ impl PageSizeOrHugePageSize
 			HugePageSize(huge_page_size) => huge_page_size.is_a_gigantic_huge_page(),
 		}
 	}
+
+	#[inline(always)]
+	pub(crate) fn from_kilobytes(value: u64) -> Option<Self>
+	{
+		if let Some(page_size) = PageSize::from_kilobytes(value)
+		{
+			Some(PageSizeOrHugePageSize::PageSize(page_size))
+		}
+		else if let Some(huge_page_size) = HugePageSize::from_kilobytes(value)
+		{
+			Some(PageSizeOrHugePageSize::HugePageSize(huge_page_size))
+		}
+		else
+		{
+			None
+		}
+	}
 }

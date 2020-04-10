@@ -172,6 +172,17 @@ impl SubAssign<usize> for VirtualAddress
 	}
 }
 
+impl Sub<Self> for VirtualAddress
+{
+	type Output = usize;
+
+	#[inline(always)]
+	fn sub(self, rhs: Self) -> Self::Output
+	{
+		self.0 - rhs.0
+	}
+}
+
 impl ParseNumber for VirtualAddress
 {
 	#[inline(always)]

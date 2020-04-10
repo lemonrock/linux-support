@@ -236,6 +236,106 @@ pub enum MemoryMapParseError
 
 	/// Missing `[vvar]` mapping.
 	MissingVvarMapping,
+
+	/// Expected a `/proc/pid/smaps` or `/proc/pid/smaps_rollup` statistic line.
+	ExpectedStatisticLine,
+
+	/// Statistic missing colon.
+	StatisticMissingColon
+	{
+		/// Zero-based field index.
+		zero_based_line_number: usize,
+	},
+
+	/// Statistic missing space after colon.
+	StatisticMissingSpaceAfterColon
+	{
+		/// Zero-based field index.
+		zero_based_line_number: usize,
+	},
+
+	/// Statistic was not a page size.
+	StatisticWasNotAPageSize
+	{
+		/// Zero-based field index.
+		zero_based_line_number: usize,
+	},
+
+	/// Statistic was not a page size.
+	StatisticWasNotABoolean
+	{
+		/// Zero-based field index.
+		zero_based_line_number: usize,
+
+		/// Value that was not 0 or 1.
+		number: u64,
+	},
+
+	/// Duplicate statistic.
+	DuplicateStatistic
+	{
+		/// Zero-based field index.
+		zero_based_line_number: usize,
+
+		/// Name.
+		statistic_name: Box<[u8]>,
+	},
+
+	/// Statistic should have been in kB.
+	StatisticWasNotKilobyte
+	{
+		/// Zero-based field index.
+		zero_based_line_number: usize,
+
+		/// Name.
+		statistic_name: Box<[u8]>,
+	},
+
+	/// Statistic should have been a count.
+	StatisticWasNotCount
+	{
+		/// Zero-based field index.
+		zero_based_line_number: usize,
+
+		/// Name.
+		statistic_name: Box<[u8]>,
+	},
+
+	/// Missing statistic.
+	MissingStatistic(&'static str),
+
+	/// Size of statistic exceeds size of memory region.
+	ExceedsSize(&'static str),
+
+	/// Kernel page size and memory management unit (MMU) page size differ.
+	#[cfg(not(target_arch = "powerpc64"))] KernelPageSizeAndMemoryManagementUnitPageSizeDiffer,
+
+	/// Kernel page size should never be less than memory management unit (MMU) page size.
+	#[cfg(target_arch = "powerpc64")] KernelPageSizeLessThanMemoryManagementUnitPageSize,
+
+	/// Size does not match memory range.
+	SizeDoesMatchMemoryRange,
+
+	#[allow(missing_docs)]
+	VmFlagsByteLengthNotAMultipleOfThree,
+
+	#[allow(missing_docs)]
+	UnrecognisedVmFlag([u8; 2]),
+
+	#[allow(missing_docs)]
+	DuplicateVmFlagPermission,
+
+	#[allow(missing_docs)]
+	DuplicateVmFlag(VmFlag),
+
+	#[allow(missing_docs)]
+	IllegalCombinationOfVmFlagPermissions,
+
+	#[allow(missing_docs)]
+	InvalidVmFlagProtection,
+
+	#[allow(missing_docs)]
+	InvalidVmFlagSharing,
 }
 
 impl Display for MemoryMapParseError
@@ -299,6 +399,44 @@ impl error::Error for MemoryMapParseError
 			&MissingVdsoMapping => None,
 
 			&MissingVvarMapping => None,
+
+			&ExpectedStatisticLine => None,
+
+			&StatisticMissingColon { .. } => None,
+
+			&StatisticMissingSpaceAfterColon { .. } => None,
+
+			&StatisticWasNotAPageSize { .. } => None,
+
+			&StatisticWasNotABoolean { .. } => None,
+
+			&DuplicateStatistic { .. } => None,
+
+			&StatisticWasNotKilobyte { .. } => None,
+
+			&StatisticWasNotCount { .. } => None,
+
+			&MissingStatistic(..) => None,
+
+			&ExceedsSize(..) => None,
+
+			#[cfg(not(target_arch = "powerpc64"))] &KernelPageSizeAndMemoryManagementUnitPageSizeDiffer => None,
+
+			&SizeDoesMatchMemoryRange => None,
+
+			&VmFlagsByteLengthNotAMultipleOfThree => None,
+
+			&UnrecognisedVmFlag( .. ) => None,
+
+			&DuplicateVmFlagPermission => None,
+
+			&DuplicateVmFlag( .. ) => None,
+
+			&IllegalCombinationOfVmFlagPermissions => None,
+
+			&InvalidVmFlagProtection => None,
+
+			&InvalidVmFlagSharing => None,
 		}
 	}
 }

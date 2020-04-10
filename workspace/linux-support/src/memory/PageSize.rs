@@ -142,4 +142,25 @@ impl PageSize
 		unsafe { transmute(getpagesize() as usize) }
 	}
 
+	#[inline(always)]
+	pub(crate) fn from_kilobytes(value: u64) -> Option<Self>
+	{
+		use self::PageSize::*;
+
+		match value
+		{
+			4_096 => Some(_4Kb),
+
+			#[cfg(any(target_arch = "mips64", target_arch = "sparc64"))] 8_192 => Some(_8Kb),
+
+			#[cfg(any(target_arch = "aarch64", target_arch = "mips64"))] 16_384 => Some(_16Kb),
+
+			#[cfg(target_arch = "mips64")] 32_768 => Some(_32Kb),
+
+			#[cfg(any(target_arch = "aarch64", target_arch = "mips64"))] 65_536 => Some(_64Kb),
+
+			_ => None,
+		}
+	}
+
 }

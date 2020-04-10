@@ -40,6 +40,12 @@ pub mod information;
 pub mod mapping;
 
 
+/// Memory maps from `mmap()` and the like.
+///
+/// Use by looking at `MemoryMaps`.
+pub mod maps;
+
+
 /// Non-Uniform Memory Architecture (NUMA).
 ///
 /// Functionality in here replaces the need to use `libnuma`.
