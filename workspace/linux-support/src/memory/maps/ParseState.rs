@@ -137,7 +137,7 @@ impl ParseState
 			return Err(InodeWasNotZeroForAnonymous { zero_based_line_number: self.zero_based_line_number, inode })
 		}
 
-		Ok(MemoryMapEntryKind::Anonymous)
+		Ok(MemoryMapEntryKind::Anonymous { page_counts: None })
 	}
 
 	#[inline(always)]
@@ -148,8 +148,8 @@ impl ParseState
 
 		let (present, special_file_name, expected_protection) = match special_file_name
 		{
-			b"[heap]" => (&mut self.heap, Heap, ReadWrite),
-			b"[stack]" => (&mut self.stack, Stack, ReadWrite),
+			b"[heap]" => (&mut self.heap, Heap { page_counts: None }, ReadWrite),
+			b"[stack]" => (&mut self.stack, Stack { page_counts: None }, ReadWrite),
 			b"[vdso]" => (&mut self.vdso, vDSO, Read),
 			b"[vvar]" => (&mut self.vvar, VVAR, ReadExecutable),
 
@@ -202,6 +202,7 @@ impl ParseState
 				inode,
 				file_path: PathBuf::from(OsString::from_vec(unescaped_file_path_bytes)),
 				deleted,
+				page_counts: None,
 			}
 		)
 	}

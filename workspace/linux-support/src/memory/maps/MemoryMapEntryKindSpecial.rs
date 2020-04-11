@@ -3,26 +3,38 @@
 
 
 /// What kind of special entry is this?
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MemoryMapEntryKindSpecial
 {
 	/// A heap mapping.
 	///
 	/// A process has a maximum of one of these (it may be absent).
-	Heap,
+	Heap
+	{
+		/// Only `Some` if the kernel has been built with `CONFIG_NUMA`.
+		page_counts: Option<PageCounts>,
+	},
 
 	/// A stack mapping.
 	///
 	/// A process has exactly one of these.
-	Stack,
+	Stack
+	{
+		/// Only `Some` if the kernel has been built with `CONFIG_NUMA`.
+		page_counts: Option<PageCounts>,
+	},
 
 	/// A `vdso` mapping.
 	///
 	/// A process has exactly one of these.
+	///
+	/// Does not have `page_counts`.
 	vDSO,
 
 	/// A `vvar` mapping.
 	///
 	/// A process has exactly one of these.
+	///
+	/// Does not have `page_counts`.
 	VVAR,
 }

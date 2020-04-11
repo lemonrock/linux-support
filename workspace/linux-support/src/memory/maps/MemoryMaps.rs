@@ -6,6 +6,7 @@
 ///
 /// * `/proc/<pid>/maps`, and,
 /// * `/proc/<pid>/smaps_rollup`.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MemoryMaps
 {
 	maps: Vec<(MemoryMapEntry, MemoryMapEntryStatistics)>,
@@ -17,7 +18,7 @@ impl MemoryMaps
 	///
 	/// Does not include the `Pss_Anon`, `Pss_File` or `Pss_Shmem` fields.
 	#[inline(always)]
-	pub fn roll_up(&self) -> Option<(Range<VirtualAddress>, MemoryMapEntryKilobyteStatistics)>
+	pub fn smaps_roll_up(&self) -> Option<(Range<VirtualAddress>, MemoryMapEntryKilobyteStatistics)>
 	{
 		if unlikely!(self.maps.is_empty())
 		{
@@ -38,14 +39,14 @@ impl MemoryMaps
 
 	/// Details for this process of `/proc/self/smaps` (which is more detailed than `/proc/self/maps`).
 	#[inline(always)]
-	pub fn maps_for_self(proc_path: &ProcPath, have_movable_memory: Option<&BitSet<NumaNode>>) -> Result<Self, MemoryMapParseError>
+	pub fn smaps_for_self(proc_path: &ProcPath, have_movable_memory: Option<&BitSet<NumaNode>>) -> Result<Self, MemoryMapParseError>
 	{
-		Self::maps_for_process(proc_path, ProcessIdentifierChoice::Current, have_movable_memory)
+		Self::smaps_for_process(proc_path, ProcessIdentifierChoice::Current, have_movable_memory)
 	}
 
 	/// Details for a particular process of `/proc/<process_identifier>/smaps` (which is more detailed than `/proc/<process_identifier>/maps`).
 	#[inline(always)]
-	pub fn maps_for_process(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice, have_movable_memory: Option<&BitSet<NumaNode>>) -> Result<Self, MemoryMapParseError>
+	pub fn smaps_for_process(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice, have_movable_memory: Option<&BitSet<NumaNode>>) -> Result<Self, MemoryMapParseError>
 	{
 		let mut numa_maps_lines = match have_movable_memory
 		{

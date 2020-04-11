@@ -19,9 +19,7 @@ pub struct MemoryMapEntry
 	pub kind: MemoryMapEntryKind,
 
 	/// Only `Some` if the kernel has been built with `CONFIG_NUMA`.
-	///
-	/// We have to use the files `/proc/<pid>/smaps`, `/proc/<pid>/numa_maps` and `/sys/devices/system/node/online` to get this data which can diverge.
-	pub memory_details: Option<(MemoryPolicyDetails, Option<PageCounts>)>
+	pub memory_policy_details: Option<MemoryPolicyDetails>,
 }
 
 impl MemoryMapEntry
@@ -66,21 +64,42 @@ impl MemoryMapEntry
 			minor: parse_state.next_number_field(&mut fields, "block_device_minor", Self::parse_major_or_minor)?,
 		};
 		let inode = parse_state.next_number_field(&mut fields, "inode", Inode::parse_decimal_number)?;
-		let kind =
+		let mut kind =
 		{
 			let field_bytes = parse_state.last_field(fields, "file_name", |field_bytes, _zero_based_line_number, _zero_based_field_index| Ok(field_bytes))?;
 			parse_state.parse_kind(field_bytes, offset, block_device, inode, protection, sharing)?
 		};
 
+		let memory_policy_details = if let Some((memory_policy_details, numa_page_counts)) = memory_details(&memory_range, &kind)?
+		{
+			use self::MemoryMapEntryKind::*;
+			use self::MemoryMapEntryKindSpecial::*;
+
+			match kind
+			{
+				File { ref mut page_counts, .. } => *page_counts = numa_page_counts,
+				Anonymous { ref mut page_counts, .. } => *page_counts = numa_page_counts,
+				Special(Heap { ref mut page_counts }) => *page_counts = numa_page_counts,
+				Special(Stack { ref mut page_counts }) => *page_counts = numa_page_counts,
+				Special(vDSO) => debug_assert!(numa_page_counts.is_none()),
+				Special(VVAR) => debug_assert!(numa_page_counts.is_none()),
+			}
+
+			Some(memory_policy_details)
+		}
+		else
+		{
+			None
+		};
 		Ok
 		(
 			Self
 			{
-				memory_details: memory_details(&memory_range, &kind)?,
 				memory_range,
 				protection,
 				sharing,
 				kind,
+				memory_policy_details,
 			}
 		)
 	}
@@ -247,17 +266,6 @@ impl MemoryMapEntry
 	}
 
 	#[inline(always)]
-	fn default_by_numa_node(have_movable_memory: BitSet<NumaNode>) -> HashMap<NumaNode, Option<u64>>
-	{
-		let mut map = HashMap::with_capacity(have_movable_memory.len());
-		for numa_node in have_movable_memory.iterate()
-		{
-			map.insert(numa_node, None);
-		}
-		map
-	}
-
-	#[inline(always)]
 	fn parse_from<'a>(fields: &mut impl Iterator<Item=&'a [u8]>, zero_based_line_number: usize) -> Result<VirtualAddress, MemoryMapParseError>
 	{
 		let from_bytes = fields.next().unwrap();
@@ -387,11 +395,11 @@ impl MemoryMapEntry
 		use self::MemoryMapEntryKindSpecial::*;
 		match expected_kind
 		{
-			&Anonymous => Ok(false),
+			&Anonymous { .. } => Ok(false),
 
-			&Special(Heap) => Self::validate_special_heap_or_stack(fields, b"heap"),
+			&Special(Heap { .. }) => Self::validate_special_heap_or_stack(fields, b"heap"),
 
-			&Special(Stack) => Self::validate_special_heap_or_stack(fields, b"stack"),
+			&Special(Stack { .. }) => Self::validate_special_heap_or_stack(fields, b"stack"),
 
 			&Special(vDSO) | &Special(VVAR) => match fields.next()
 			{

@@ -3,7 +3,7 @@
 
 
 /// What kind of entry is this?
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MemoryMapEntryKind
 {
 	/// A mapped file.
@@ -26,10 +26,17 @@ pub enum MemoryMapEntryKind
 
 		/// Is the associated file believed to have been deleted?
 		deleted: bool,
+
+		/// Only `Some` if the kernel has been built with `CONFIG_NUMA`.
+		page_counts: Option<PageCounts>,
 	},
 
 	/// An anonymous mapping.
-	Anonymous,
+	Anonymous
+	{
+		/// Only `Some` if the kernel has been built with `CONFIG_NUMA`.
+		page_counts: Option<PageCounts>,
+	},
 
 	/// Special
 	Special(MemoryMapEntryKindSpecial),
