@@ -19,7 +19,7 @@ pub struct MemoryMapEntry
 	pub kind: MemoryMapEntryKind,
 
 	/// Only `Some` if the kernel has been built with `CONFIG_NUMA`.
-	pub memory_policy_details: Option<MemoryPolicyDetails>,
+	pub numa_memory_policy_details: Option<NumaMemoryPolicyDetails>,
 }
 
 impl MemoryMapEntry
@@ -45,7 +45,7 @@ impl MemoryMapEntry
 	*/
 	/// This parse can be used for lines in`/proc/<pid>/maps` and `/proc/<pid>/smaps` but not `/proc/<pid>/smaps_rollup` (as in the last case there is a special type of `[rollup]`).
 	#[inline(always)]
-	fn parse_maps_line(parse_state: &mut ParseState, (zero_based_line_number, map_line): (usize, Vec<u8>), memory_details: &mut impl FnMut(&Range<VirtualAddress>, &MemoryMapEntryKind) -> Result<Option<(MemoryPolicyDetails, Option<PageCounts>)>, MemoryMapParseError>) -> Result<Self, MemoryMapParseError>
+	fn parse_maps_line(parse_state: &mut ParseState, (zero_based_line_number, map_line): (usize, Vec<u8>), memory_details: &mut impl FnMut(&Range<VirtualAddress>, &MemoryMapEntryKind) -> Result<Option<(NumaMemoryPolicyDetails, Option<PageCounts>)>, MemoryMapParseError>) -> Result<Self, MemoryMapParseError>
 	{
 		parse_state.new_line(zero_based_line_number);
 		let mut fields = ParseState::map_line_split_fields(&map_line[..]);
@@ -70,7 +70,7 @@ impl MemoryMapEntry
 			parse_state.parse_kind(field_bytes, offset, block_device, inode, protection, sharing)?
 		};
 
-		let memory_policy_details = if let Some((memory_policy_details, numa_page_counts)) = memory_details(&memory_range, &kind)?
+		let numa_memory_policy_details = if let Some((numa_memory_policy_details, numa_page_counts)) = memory_details(&memory_range, &kind)?
 		{
 			use self::MemoryMapEntryKind::*;
 			use self::MemoryMapEntryKindSpecial::*;
@@ -85,7 +85,7 @@ impl MemoryMapEntry
 				Special(VVAR) => debug_assert!(numa_page_counts.is_none()),
 			}
 
-			Some(memory_policy_details)
+			Some(numa_memory_policy_details)
 		}
 		else
 		{
@@ -99,7 +99,7 @@ impl MemoryMapEntry
 				protection,
 				sharing,
 				kind,
-				memory_policy_details,
+				numa_memory_policy_details,
 			}
 		)
 	}
@@ -126,7 +126,7 @@ impl MemoryMapEntry
 	/// Returns `Ok(None)` if it appears that the `numa_maps` line does not match its associated `smaps` (or `maps`) line.
 	///
 	/// Very rarely returns `Ok(Some((None, None)))` or `Ok(Some((None, Some())))` if Linux has a bug and returns an `unknown` memory policy.
-	fn parse_numa_maps_line((zero_based_line_number, numa_map_line): (usize, Vec<u8>), expected_from: VirtualAddress, expected_kind: &MemoryMapEntryKind, have_movable_memory: &BitSet<NumaNode>) -> Result<(MemoryPolicyDetails, Option<PageCounts>), MemoryMapParseError>
+	fn parse_numa_maps_line((zero_based_line_number, numa_map_line): (usize, Vec<u8>), expected_from: VirtualAddress, expected_kind: &MemoryMapEntryKind, have_movable_memory: &BitSet<NumaNode>) -> Result<(NumaMemoryPolicyDetails, Option<PageCounts>), MemoryMapParseError>
 	{
 		let mut fields = numa_map_line.split(|byte| *byte == b' ');
 
@@ -135,11 +135,11 @@ impl MemoryMapEntry
 			return Self::mismatched("Line had different 'From' virtual address. Lines in maps, smaps and numa_maps are sorted in ascending order and each line should refer to the same mapping.")
 		}
 
-		let memory_policy_details = Self::parse_memory_policy_details(&mut fields, zero_based_line_number)?;
+		let numa_memory_policy_details = Self::parse_numa_memory_policy_details(&mut fields, zero_based_line_number)?;
 
 		match Self::validate_kind(&mut fields, expected_kind)?
 		{
-			true => return Ok((memory_policy_details, None)),
+			true => return Ok((numa_memory_policy_details, None)),
 			false => (),
 		};
 
@@ -170,7 +170,7 @@ impl MemoryMapEntry
 
 					return Ok
 					((
-						memory_policy_details,
+						numa_memory_policy_details,
 						Some
 						(
 							PageCounts
@@ -274,7 +274,7 @@ impl MemoryMapEntry
 
 	/// Can be `None` in the vary rare circumstance Linux returns `unknown` (which is a Linux bug that can occur because of the lack of storng typing inside the Linux code base).
 	#[inline(always)]
-	fn parse_memory_policy_details<'a>(fields: &mut impl Iterator<Item=&'a [u8]>, zero_based_line_number: usize) -> Result<MemoryPolicyDetails, MemoryMapParseError>
+	fn parse_numa_memory_policy_details<'a>(fields: &mut impl Iterator<Item=&'a [u8]>, zero_based_line_number: usize) -> Result<NumaMemoryPolicyDetails, MemoryMapParseError>
 	{
 		let (set_memory_policy_bytes, memory_policy_dynamism_bytes, numa_node_bit_mask_bytes) =
 		{
@@ -317,11 +317,11 @@ impl MemoryMapEntry
 	}
 
 	#[inline(always)]
-	fn default_or_local(set_memory_policy: SetMemoryPolicy, memory_policy_dynamism: MemoryPolicyDynamism, numa_node_bit_mask_bytes: &[u8]) -> Result<MemoryPolicyDetails, MemoryMapParseError>
+	fn default_or_local(set_memory_policy: SetMemoryPolicy, memory_policy_dynamism: MemoryPolicyDynamism, numa_node_bit_mask_bytes: &[u8]) -> Result<NumaMemoryPolicyDetails, MemoryMapParseError>
 	{
 		if likely!(numa_node_bit_mask_bytes.is_empty())
 		{
-			Ok(MemoryPolicyDetails::new(set_memory_policy, memory_policy_dynamism))
+			Ok(NumaMemoryPolicyDetails::new(set_memory_policy, memory_policy_dynamism))
 		}
 		else
 		{
@@ -330,14 +330,14 @@ impl MemoryMapEntry
 	}
 
 	#[inline(always)]
-	fn bind_or_interleave(constructor: impl FnOnce(BitSet<NumaNode>) -> SetMemoryPolicy, memory_policy_dynamism: MemoryPolicyDynamism, numa_node_bit_mask_bytes: &[u8]) -> Result<MemoryPolicyDetails, MemoryMapParseError>
+	fn bind_or_interleave(constructor: impl FnOnce(BitSet<NumaNode>) -> SetMemoryPolicy, memory_policy_dynamism: MemoryPolicyDynamism, numa_node_bit_mask_bytes: &[u8]) -> Result<NumaMemoryPolicyDetails, MemoryMapParseError>
 	{
 		let numa_node_bit_set = BitSet::parse_linux_list_string(numa_node_bit_mask_bytes)?;
-		Ok(MemoryPolicyDetails::new(constructor(numa_node_bit_set), memory_policy_dynamism))
+		Ok(NumaMemoryPolicyDetails::new(constructor(numa_node_bit_set), memory_policy_dynamism))
 	}
 
 	#[inline(always)]
-	fn prefer(memory_policy_dynamism: MemoryPolicyDynamism, numa_node_bit_mask_bytes: &[u8]) -> Result<MemoryPolicyDetails, MemoryMapParseError>
+	fn prefer(memory_policy_dynamism: MemoryPolicyDynamism, numa_node_bit_mask_bytes: &[u8]) -> Result<NumaMemoryPolicyDetails, MemoryMapParseError>
 	{
 		let numa_node_bit_set = BitSet::<NumaNode>::parse_linux_list_string(numa_node_bit_mask_bytes)?;
 		let mut iterator = numa_node_bit_set.iterate();
@@ -351,7 +351,7 @@ impl MemoryMapEntry
 		{
 			return Err(PreferredMemoryPolicyHasMoreThanOneNumaNode)
 		}
-		Ok(MemoryPolicyDetails::new(SetMemoryPolicy::Preferred(first.unwrap()), memory_policy_dynamism))
+		Ok(NumaMemoryPolicyDetails::new(SetMemoryPolicy::Preferred(first.unwrap()), memory_policy_dynamism))
 	}
 
 	#[inline(always)]

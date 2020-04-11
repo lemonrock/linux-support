@@ -43,7 +43,7 @@ pub mod mapping;
 /// Memory maps from `mmap()` and the like.
 ///
 /// Use by looking at `MemoryMaps`.
-pub mod maps;
+pub mod memory_maps;
 
 
 /// Non-Uniform Memory Architecture (NUMA).

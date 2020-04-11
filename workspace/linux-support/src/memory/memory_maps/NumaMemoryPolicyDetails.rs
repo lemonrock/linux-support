@@ -4,7 +4,7 @@
 
 /// Memory policy details.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct MemoryPolicyDetails
+pub struct NumaMemoryPolicyDetails
 {
 	/// Memory policy.
 	pub set_memory_policy: SetMemoryPolicy,
@@ -15,7 +15,7 @@ pub struct MemoryPolicyDetails
 	pub memory_policy_dynamism: MemoryPolicyDynamism,
 }
 
-impl MemoryPolicyDetails
+impl NumaMemoryPolicyDetails
 {
 	#[inline(always)]
 	const fn new(set_memory_policy: SetMemoryPolicy, memory_policy_dynamism: MemoryPolicyDynamism) -> Self

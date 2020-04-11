@@ -97,7 +97,7 @@ impl MemoryMaps
 	}
 
 	#[inline(always)]
-	fn maps_for_process_loop(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice, mut with_numa_data: impl FnMut(&Range<VirtualAddress>, &MemoryMapEntryKind) -> Result<Option<(MemoryPolicyDetails, Option<PageCounts>)>, MemoryMapParseError>) -> Result<(ParseState, Vec<(MemoryMapEntry, MemoryMapEntryStatistics)>), MemoryMapParseError>
+	fn maps_for_process_loop(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice, mut with_numa_data: impl FnMut(&Range<VirtualAddress>, &MemoryMapEntryKind) -> Result<Option<(NumaMemoryPolicyDetails, Option<PageCounts>)>, MemoryMapParseError>) -> Result<(ParseState, Vec<(MemoryMapEntry, MemoryMapEntryStatistics)>), MemoryMapParseError>
 	{
 		let mut smaps_lines = Self::open_file(proc_path, process_identifier, "smaps")?.ok_or(SmapsFileDoesNotExist)?;
 		let mut parse_state = ParseState::default();

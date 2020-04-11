@@ -43,7 +43,7 @@ include!("MemoryMapEntryKindSpecial.rs");
 include!("MemoryMapEntryStatistics.rs");
 include!("MemoryMapParseError.rs");
 include!("MemoryMaps.rs");
-include!("MemoryPolicyDetails.rs");
+include!("NumaMemoryPolicyDetails.rs");
 include!("PageCounts.rs");
 include!("ParseState.rs");
 include!("SizeAndProcessShareOfSize.rs");
