@@ -6,7 +6,7 @@
 use crate::strings::parse_number::ParseNumber;
 use crate::strings::parse_number::ParseNumberError;
 use libc::*;
-use likely::unlikely;
+use likely::*;
 use self::to_number::NumberAsBytes;
 use std::borrow::Cow;
 use std::cmp::min;
@@ -21,11 +21,14 @@ use std::fmt;
 use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
 use std::path::PathBuf;
+use memchr::memrchr;
+use std::convert::TryInto;
 
 
 include!("c_string_pointer_to_path_buf.rs");
 include!("ConstCStr.rs");
 include!("FromBytes.rs");
+include!("LinuxStringEscapeSequence.rs");
 include!("IntoLineFeedTerminatedByteString.rs");
 include!("NonNumericDigitCase.rs");
 include!("OsStrExtMore.rs");

@@ -11,8 +11,6 @@ pub struct MemoryMaps
 	maps: Vec<(MemoryMapEntry, MemoryMapEntryStatistics)>,
 }
 
-//		TODO: let numa_maps_lines = Self::open_file("numa_maps")?; - only reason to include this is per-NUMA node details.
-
 impl MemoryMaps
 {
 	/// Calculated replacement for the parsing of `/proc/<pid>/smaps_rollup`.
@@ -40,41 +38,89 @@ impl MemoryMaps
 
 	/// Details for this process of `/proc/self/smaps` (which is more detailed than `/proc/self/maps`).
 	#[inline(always)]
-	pub fn maps_for_self(proc_path: &ProcPath) -> Result<Self, MemoryMapParseError>
+	pub fn maps_for_self(proc_path: &ProcPath, have_movable_memory: Option<&BitSet<NumaNode>>) -> Result<Self, MemoryMapParseError>
 	{
-		Self::maps_for_process(proc_path, ProcessIdentifierChoice::Current)
+		Self::maps_for_process(proc_path, ProcessIdentifierChoice::Current, have_movable_memory)
 	}
 
 	/// Details for a particular process of `/proc/<process_identifier>/smaps` (which is more detailed than `/proc/<process_identifier>/maps`).
 	#[inline(always)]
-	pub fn maps_for_process(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> Result<Self, MemoryMapParseError>
+	pub fn maps_for_process(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice, have_movable_memory: Option<&BitSet<NumaNode>>) -> Result<Self, MemoryMapParseError>
 	{
-		let mut lines = Self::open_file(proc_path, process_identifier, "smaps")?.unwrap();
+		let mut numa_maps_lines = match have_movable_memory
+		{
+			None => None,
+			Some(have_movable_memory) =>
+			{
+				match Self::open_file(proc_path, process_identifier, "numa_maps")?
+				{
+					None => None,
+					Some(numa_maps_lines) => Some((numa_maps_lines, have_movable_memory)),
+				}
+			}
+		};
 
+		let (parse_state, maps) = match numa_maps_lines
+		{
+			None => Self::maps_for_process_loop(proc_path, process_identifier, |_, _| Ok(None))?,
+
+			Some((ref mut numa_maps_lines, have_movable_memory)) => Self::maps_for_process_loop(proc_path, process_identifier, |memory_range, kind|
+			{
+				Ok
+				(
+					Some
+					(
+						MemoryMapEntry::parse_numa_maps_line
+						(
+							numa_maps_lines.next().ok_or(Mismatched { explanation: "Not enough lines in numa_maps" })??,
+							memory_range.start,
+							kind,
+							have_movable_memory
+						)?
+					)
+				)
+			})?,
+		};
+
+		parse_state.validate()?;
+
+		if let Some((mut numa_maps_lines, _)) = numa_maps_lines
+		{
+			if unlikely!(numa_maps_lines.next().is_some())
+			{
+				return Err(Mismatched { explanation: "Too many lines in numa_maps" })
+			}
+		}
+
+		Ok(Self { maps })
+	}
+
+	#[inline(always)]
+	fn maps_for_process_loop(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice, mut with_numa_data: impl FnMut(&Range<VirtualAddress>, &MemoryMapEntryKind) -> Result<Option<(MemoryPolicyDetails, Option<PageCounts>)>, MemoryMapParseError>) -> Result<(ParseState, Vec<(MemoryMapEntry, MemoryMapEntryStatistics)>), MemoryMapParseError>
+	{
+		let mut smaps_lines = Self::open_file(proc_path, process_identifier, "smaps")?.ok_or(SmapsFileDoesNotExist)?;
 		let mut parse_state = ParseState::default();
 		let mut maps = Vec::new();
 
 		loop
 		{
-			let map_line = lines.next();
-			if map_line.is_none()
+			let (zero_based_line_number, map_line) =
 			{
-				break
-			}
+				match smaps_lines.next()
+				{
+					None => break,
+					Some(value) => value?,
+				}
+			};
 
-			let memory_map_entry = MemoryMapEntry::parse_maps_line(&mut parse_state, map_line.unwrap()?)?;
-			let memory_map_entry_statistics = MemoryMapEntryStatistics::parse_statistics_lines(&mut lines, memory_map_entry.memory_range.clone(), memory_map_entry.protection, memory_map_entry.sharing)?;
+			let memory_map_entry = MemoryMapEntry::parse_maps_line(&mut parse_state, (zero_based_line_number, map_line), &mut with_numa_data)?;
+
+			let memory_map_entry_statistics = MemoryMapEntryStatistics::parse_statistics_lines(&mut smaps_lines, memory_map_entry.memory_range.clone(), memory_map_entry.protection, memory_map_entry.sharing)?;
+
 			maps.push((memory_map_entry, memory_map_entry_statistics))
 		}
 
-		parse_state.validate()?;
-		Ok
-		(
-			Self
-			{
-				maps,
-			}
-		)
+		Ok((parse_state, maps))
 	}
 
 	#[inline(always)]

@@ -2,22 +2,28 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// NUMA details for a memory map entry.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct MemoryMapEntryNumaDetails
+/// Memory policy details.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct MemoryPolicyDetails
 {
-	/// NUMA memory policy.
-	pub memory_policy: (),
+	/// Memory policy.
+	pub set_memory_policy: SetMemoryPolicy,
 
-	/// Number of anonymous pages.
-	pub number_of_anonymous_pages: NumberOfPages,
+	/// Dynamism.
+	///
+	/// Any `NumaNode` or `BitSet<NumaNode>` in `SetMemoryPolicy` has a different meaning to what might be expected!
+	pub memory_policy_dynamism: MemoryPolicyDynamism,
+}
 
-	/// Number of dirty pages.
-	pub number_of_dirty_pages: NumberOfPages,
-
-	/// Number of pages by NUMA node.
-	pub number_of_pages_by_numa_node: HashMap<NumaNode, NumberOfPages>,
-
-	/// Kernel page size.
-	pub kernel_page_size: PageSize,
+impl MemoryPolicyDetails
+{
+	#[inline(always)]
+	const fn new(set_memory_policy: SetMemoryPolicy, memory_policy_dynamism: MemoryPolicyDynamism) -> Self
+	{
+		Self
+		{
+			set_memory_policy,
+			memory_policy_dynamism,
+		}
+	}
 }

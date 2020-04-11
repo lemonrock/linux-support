@@ -43,7 +43,7 @@ pub struct MemoryMapEntryStatistics
 impl MemoryMapEntryStatistics
 {
 	/*
-		Example for /proc/pid/smaps:-
+		Example for /proc/<pid>/smaps:-
 
 		7f0951bb2000-7f0951bb3000 rw-p 00091000 08:03 2097277                    /lib/ld-musl-x86_64.so.1
 		Size:                  4 kB
@@ -69,7 +69,7 @@ impl MemoryMapEntryStatistics
 		THPeligible:		0
 		VmFlags: rd wr mr mw me dw ac
 
-		First line is identical to /proc/pid/maps, and is not handled below.
+		First line is identical to /proc/<pid>/maps, and is not handled below.
 		It is assumed that the lines are pointing to a statistic name; statistics are assumed to always end with `VmFlags`.
 	*/
 	fn parse_statistics_lines(lines: &mut impl Iterator<Item=Result<(usize, Vec<u8>), MemoryMapParseError>>, memory_range: Range<VirtualAddress>, our_protection: Protection, our_sharing: Sharing) -> Result<Self, MemoryMapParseError>

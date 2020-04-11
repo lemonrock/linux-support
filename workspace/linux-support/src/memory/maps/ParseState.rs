@@ -24,10 +24,10 @@ impl ParseState
 	}
 
 	#[inline(always)]
-	fn maps_line_split_fields(maps_line: &[u8]) -> impl Iterator<Item=&[u8]>
+	fn map_line_split_fields(map_line: &[u8]) -> impl Iterator<Item=&[u8]>
 	{
 		let mut index = 0;
-		maps_line.splitn(8, move |byte|
+		map_line.splitn(8, move |byte|
 		{
 			let separator = match index
 			{
@@ -202,52 +202,14 @@ impl ParseState
 				inode,
 				file_path: PathBuf::from(OsString::from_vec(unescaped_file_path_bytes)),
 				deleted,
-				numa_details: None
 			}
 		)
 	}
 
-	// Works backwards as that requires copy operations to move fewer bytes.
-	fn unescape_file_path(mut path_with_escaped_new_lines: Vec<u8>) -> Vec<u8>
+	#[inline(always)]
+	fn unescape_file_path(path_with_escaped_new_lines: Vec<u8>) -> Vec<u8>
 	{
-		const StartOfEscapeSequence: u8 = b'\\';
-		const StartOfEscapeSequenceLength: usize = 1;
-
-		const RemainingEscapeSequence: &'static [u8] = b"012";
-		const RemainingEscapeSequenceLength: usize = 3;
-
-		const EscapeSequenceLength: usize = StartOfEscapeSequenceLength + RemainingEscapeSequenceLength;
-
-		let mut unescaped_length = path_with_escaped_new_lines.len();
-		{
-			let mut remaining_bytes = &mut path_with_escaped_new_lines[..];
-			while likely!(remaining_bytes.len() >= EscapeSequenceLength)
-			{
-				let index = match memrchr(StartOfEscapeSequence, &remaining_bytes[ .. remaining_bytes.len() - RemainingEscapeSequenceLength])
-				{
-					None => break,
-					Some(index) => index,
-				};
-
-				let inclusive_start_index = index + 1;
-				let exclusive_end_index = inclusive_start_index + RemainingEscapeSequenceLength;
-				if &remaining_bytes[inclusive_start_index .. exclusive_end_index] == RemainingEscapeSequence
-				{
-					unsafe
-					{
-						*remaining_bytes.get_unchecked_mut(index) = b'\n';
-						let from = remaining_bytes.as_ptr().offset(exclusive_end_index as isize);
-						let to = remaining_bytes.as_mut_ptr().offset(inclusive_start_index as isize);
-						from.copy_to(to, remaining_bytes.len() - exclusive_end_index);
-						unescaped_length -= RemainingEscapeSequenceLength;
-					}
-				}
-				remaining_bytes = &mut remaining_bytes[ .. index]
-			}
-		}
-		unsafe { path_with_escaped_new_lines.set_len(unescaped_length) };
-		path_with_escaped_new_lines.shrink_to_fit();
-		path_with_escaped_new_lines
+		LinuxStringEscapeSequence::unescape_linux_string(path_with_escaped_new_lines, &[LinuxStringEscapeSequence::LineFeed])
 	}
 
 	#[inline(always)]

@@ -2,12 +2,31 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Parsing of a `/proc/pid/maps` or `/proc/pid/numa_maps` file failed.
+/// Parsing of a `/proc/<pid>/smaps` or `/proc/<pid>/numa_maps` file failed.
 #[derive(Debug)]
 pub enum MemoryMapParseError
 {
+	/// Mismatched lines in `/proc/<pid>/smaps` (or `/proc/<pid>/maps`), `/proc/<pid>/numa_maps` and`/sys/devices/system/online` .
+	///
+	/// This can occur legitimately in rare occassions where:-
+	///
+	/// * the list of maps has changed in reading one file and then another;
+	/// * the list of online NUMA nodes has changed between reading it from `/sys/devices/system/online` and reading `/proc/<pid>/numa_maps`.
+	///
+	/// This is the ***ONLY*** recoverable error defined in `MemoryMapParseError`.
+	///
+	/// Only occurs if the kernel is build with `CONFIG_NUMA`.
+	Mismatched
+	{
+		/// Explanation.
+		explanation: &'static str,
+	},
+
 	/// Could not open a file.
 	CouldNotOpenFile(io::Error),
+
+	/// `/proc/<pid>/smaps` file does not exist.
+	SmapsFileDoesNotExist,
 
 	/// Could not read a line of data.
 	CouldNotReadLine
@@ -46,6 +65,16 @@ pub enum MemoryMapParseError
 
 		/// Cause
 		cause: ParseNumberError
+	},
+
+	/// Could not parse a memory policy field.
+	MemoryPolicyUnrecognised
+	{
+		/// Zero-based line number.
+		zero_based_line_number: usize,
+
+		/// Cause
+		unrecognised_memory_policy: Box<[u8]>,
 	},
 
 	/// Could not parse permissions field.
@@ -237,7 +266,7 @@ pub enum MemoryMapParseError
 	/// Missing `[vvar]` mapping.
 	MissingVvarMapping,
 
-	/// Expected a `/proc/pid/smaps` or `/proc/pid/smaps_rollup` statistic line.
+	/// Expected a `/proc/<pid>/smaps` or `/proc/<pid>/smaps_rollup` statistic line.
 	ExpectedStatisticLine,
 
 	/// Statistic missing colon.
@@ -336,6 +365,59 @@ pub enum MemoryMapParseError
 
 	#[allow(missing_docs)]
 	InvalidVmFlagSharing,
+
+	#[allow(missing_docs)]
+	NumaMapKeyValueDidNotHaveEqualsSign,
+
+	/// The mapmax value is only written by Linux if it exceeds 1.
+	NumaMapMaxValueWasZeroOrOne,
+
+	/// The active value is only written by Linux if it exceeds 0 and huge pages are not present.
+	ActiveWasPresentWhenHugePagesArePresent,
+
+	#[allow(missing_docs)]
+	NumaMapMissingKernelPageSize,
+
+	#[allow(missing_docs)]
+	CouldNotParseNumaMapsKeyValueField
+	{
+		/// Cause
+		cause: ParseNumberError
+	},
+
+	#[allow(missing_docs)]
+	NumaMapKeyRepeated { name: &'static str },
+
+	#[allow(missing_docs)]
+	NumaMapNodeKeyRepeated { numa_node: NumaNode },
+
+	#[allow(missing_docs)]
+	UnknownSetMemoryPolicyHasDetails,
+
+	#[allow(missing_docs)]
+	UnknownSetMemoryPolicyReportedByLinuxIndicatesABugInLinux,
+
+	#[allow(missing_docs)]
+	DefaultOrLocalMemoryPolicyHasNumaNodes,
+
+	#[allow(missing_docs)]
+	PreferredMemoryPolicyHasNoNumaNodes,
+
+	#[allow(missing_docs)]
+	PreferredMemoryPolicyHasMoreThanOneNumaNode,
+
+	#[allow(missing_docs)]
+	UnrecognisedMemoryPolicyDynamism { value: Box<[u8]> },
+
+	#[allow(missing_docs)]
+	CouldNotParseMemoryPolicyNumaNodesList
+	{
+		/// Cause.
+		cause: ListParseError
+	},
+
+	/// This code path might be possible in `show_numa_map()` in `task_mmu.c` as of Linux 5.4 but it seems that huge pages are never used for vDSO and VVAR maps.
+	HugePagesForVdsoOrVvarMapping,
 }
 
 impl Display for MemoryMapParseError
@@ -344,6 +426,15 @@ impl Display for MemoryMapParseError
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
 	{
 		Debug::fmt(self, f)
+	}
+}
+
+impl From<ListParseError> for MemoryMapParseError
+{
+	#[inline(always)]
+	fn from(cause: ListParseError) -> Self
+	{
+		MemoryMapParseError::CouldNotParseMemoryPolicyNumaNodesList { cause }
 	}
 }
 
@@ -356,13 +447,19 @@ impl error::Error for MemoryMapParseError
 
 		match self
 		{
+			&Mismatched { .. } => None,
+
 			&CouldNotOpenFile(ref error) => Some(error),
+
+			&SmapsFileDoesNotExist => None,
 
 			&CouldNotReadLine { ref cause, .. } => Some(cause),
 
 			&MissingRequiredField { .. } => None,
 
 			&CouldNotParseNumberField { ref cause, .. } => Some(cause),
+
+			&MemoryPolicyUnrecognised { .. } => None,
 
 			&PermissionsFieldIsWrongLength { .. } => None,
 
@@ -437,6 +534,36 @@ impl error::Error for MemoryMapParseError
 			&InvalidVmFlagProtection => None,
 
 			&InvalidVmFlagSharing => None,
+
+			&NumaMapKeyValueDidNotHaveEqualsSign => None,
+
+			&NumaMapMaxValueWasZeroOrOne => None,
+
+			&ActiveWasPresentWhenHugePagesArePresent => None,
+
+			&NumaMapMissingKernelPageSize => None,
+
+			&CouldNotParseNumaMapsKeyValueField { ref cause, .. } => Some(cause),
+
+			&NumaMapKeyRepeated { .. } => None,
+
+			&NumaMapNodeKeyRepeated { .. } => None,
+
+			&UnknownSetMemoryPolicyHasDetails => None,
+
+			&UnknownSetMemoryPolicyReportedByLinuxIndicatesABugInLinux => None,
+
+			&DefaultOrLocalMemoryPolicyHasNumaNodes => None,
+
+			&PreferredMemoryPolicyHasNoNumaNodes => None,
+
+			&PreferredMemoryPolicyHasMoreThanOneNumaNode => None,
+
+			&UnrecognisedMemoryPolicyDynamism { .. } => None,
+
+			&CouldNotParseMemoryPolicyNumaNodesList { ref cause } => Some(cause),
+
+			&HugePagesForVdsoOrVvarMapping => None,
 		}
 	}
 }

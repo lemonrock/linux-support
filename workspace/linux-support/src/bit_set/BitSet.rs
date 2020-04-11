@@ -199,14 +199,14 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	/// This operation is relatively expensive.
 	///
 	/// For an emptiness check, prefer `self.is_empty()` which is slightly less expensive.
-	#[cfg(all(target_arch = "x86_64", target_feature = "popcnt"))]
 	#[inline(always)]
 	pub fn len(&self) -> usize
 	{
 		let mut count = 0;
 		for word_index in 0 .. self.capacity()
 		{
-			count += unsafe { _mm_popcnt_u64(self.get_word(word_index)) };
+			let word = self.get_word(word_index);
+			count += word.count_ones();
 		}
 		count as usize
 	}

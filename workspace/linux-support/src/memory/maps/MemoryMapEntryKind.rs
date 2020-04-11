@@ -26,9 +26,6 @@ pub enum MemoryMapEntryKind
 
 		/// Is the associated file believed to have been deleted?
 		deleted: bool,
-
-		/// Only if the kernel has been built with `CONFIG_NUMA`.
-		numa_details: Option<MemoryMapEntryKindFileNumaDetails>
 	},
 
 	/// An anonymous mapping.
