@@ -31,6 +31,8 @@
 
 
 /*
+/proc/[pid]/smaps_rollup with 2 extra Pss statistics
+
 /proc/zoneinfo
     - more detailed view of /proc/buddyinfo
 
@@ -73,42 +75,6 @@
               Further information about the zones can be found in
               /proc/zoneinfo.
 
-/proc/pid/numa_maps
-file=
-    - one of
-        - mapped= mapmax=, OR
-        - anon= dirty=
-    - always have NX= kernelpagesize_kB=
-heap
-    - anon= dirty=
-    - always have NX= kernelpagesize_kB=
-    Does not have to present (eg missing for init)
-stack
-    - anon= dirty=
-    - always have NX= kernelpagesize_kB=
-private (starts anon=)
-    - anon= dirty=
-    - always have NX= kernelpagesize_kB=
-blank (probably vdso / vddr; no value of N<X>=)
-
-alpine:/proc$ cat /proc/2442/numa_maps
-55c0f5fd4000 default file=/bin/busybox mapped=12 mapmax=10 N0=12 kernelpagesize_kB=4
-55c0f5fe0000 default file=/bin/busybox mapped=90 mapmax=14 N0=90 kernelpagesize_kB=4
-55c0f607c000 default file=/bin/busybox mapped=33 mapmax=14 N0=33 kernelpagesize_kB=4
-55c0f609e000 default file=/bin/busybox anon=4 dirty=4 N0=4 kernelpagesize_kB=4
-55c0f60a2000 default file=/bin/busybox anon=1 dirty=1 N0=1 kernelpagesize_kB=4
-55c0f6864000 default heap anon=35 dirty=35 N0=35 kernelpagesize_kB=4
-7f0951b20000 default file=/lib/ld-musl-x86_64.so.1 mapped=20 mapmax=11 N0=20 kernelpagesize_kB=4
-7f0951b35000 default file=/lib/ld-musl-x86_64.so.1 mapped=60 mapmax=18 N0=60 kernelpagesize_kB=4
-7f0951b7c000 default file=/lib/ld-musl-x86_64.so.1 mapped=32 mapmax=18 N0=32 kernelpagesize_kB=4
-7f0951bb1000 default file=/lib/ld-musl-x86_64.so.1 anon=1 dirty=1 N0=1 kernelpagesize_kB=4
-7f0951bb2000 default file=/lib/ld-musl-x86_64.so.1 anon=1 dirty=1 N0=1 kernelpagesize_kB=4
-7f0951bb3000 default anon=3 dirty=3 N0=3 kernelpagesize_kB=4
-7ffc4c759000 default stack anon=17 dirty=17 N0=17 kernelpagesize_kB=4
-7ffc4c796000 default
-7ffc4c799000 default
-
-
 // The /proc/[pid]/pagemap file is present only if the CON‐
 //              FIG_PROC_PAGE_MONITOR kernel configuration option is enabled.
 //
@@ -123,7 +89,6 @@ alpine:/proc$ cat /proc/2442/numa_maps
 
               The /proc/kpagecount file is present only if the CON‐
               FIG_PROC_PAGE_MONITOR kernel configuration option is enabled.
-
 
 /proc/kpageflags (since Linux 2.6.25)
               This file contains 64-bit masks corresponding to each physical
@@ -163,10 +128,6 @@ alpine:/proc$ cat /proc/2442/numa_maps
 
               The /proc/kpageflags file is present only if the CON‐
               FIG_PROC_PAGE_MONITOR kernel configuration option is enabled.
-
-
-NOTE: There is also /proc/[pid]/smaps_rollup, with a similar but only-one-entry structure to /proc/[pid]/smaps , with slightly different entries.
-
 
 Automatic NUMA balancing notes:-
 If Automatic NUMA Balancing is enabled, the task scanner behavior can be configured. The task scanner balances the overhead of Automatic NUMA Balancing with the amount of time it takes to identify the best placement of data.

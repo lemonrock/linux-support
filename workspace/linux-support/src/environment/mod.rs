@@ -13,14 +13,16 @@ use std::env::set_var;
 use std::ffi::CStr;
 use std::ffi::CString;
 use std::path::PathBuf;
-use crate::strings::FromBytes;
+use crate::strings::{FromBytes, parse_ascii_nul_string_values};
 use std::io;
 use std::io::ErrorKind;
 use crate::process::ProcessIdentifierChoice;
 use crate::paths::{ProcPath, PathExt};
+use std::ops::Deref;
 
 
 include!("clearenv_wrapper.rs");
+include!("CommandLine.rs");
 include!("OriginalEnvironment.rs");
 include!("populate_clean_environment.rs");
 include!("setenv_wrapper.rs");

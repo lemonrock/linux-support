@@ -32,6 +32,7 @@ include!("LinuxStringEscapeSequence.rs");
 include!("IntoLineFeedTerminatedByteString.rs");
 include!("NonNumericDigitCase.rs");
 include!("OsStrExtMore.rs");
+include!("parse_ascii_nul_string_values.rs");
 include!("path_to_cstring.rs");
 include!("Radix.rs");
 include!("replace.rs");
