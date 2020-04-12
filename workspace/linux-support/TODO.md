@@ -11,6 +11,12 @@
 // TODO: kernel validator huge pages - make generic for powerpc, aarch64 and riscv64.
 
 // TODO: /proc/<N>/oom* files and stuff in /proc/sys
+    * /proc/sys/vm/oom_dump_tasks
+    * /proc/sys/vm/oom_kill_allocating_task
+    * /proc/sys/vm/overcommit_kbytes
+    * /proc/sys/vm/overcommit_memory
+    * /proc/sys/vm/overcommit_ratio
+    * /proc/sys/vm/panic_on_oom
 
 // TODO: Adjust CommitLimit to prevent future out-of-memory.
 
@@ -27,8 +33,39 @@
 
 // TODO: replace use of bytes.split<n>() with use of memchr()
 
+// TODO: Re-introduce process scheduling which we seem to have lost (?in http server)
+    and then add:-
+        * /proc/sys/kernel/sched_rr_timeslice_ms
+        * /proc/sys/kernel/sched_rt_period_us
+        * /proc/sys/kernel/sched_rt_runtime_us
+
 // TODO:  Automatic NUMA balancing can be enabled or disabled for the current session by writing 1 or 0 to /proc/sys/kernel/numa_balancing which will enable or disable the feature respectively. To permanently enable or disable it, use the kernel command line option numa_balancing=[enable|disable].
 
+// TODO: Security changes in process:-
+    * /proc/sys/fs/protected_hardlinks
+    * /proc/sys/fs/protected_symlinks
+    * /proc/sys/fs/suid_dumpable
+    * /proc/sys/kernel/dmesg_restrict
+    * /proc/sys/kernel/kptr_restrict
+    * /proc/sys/kernel/modules_disabled
+    * /proc/sys/kernel/randomize_va_space
+    * /proc/sys/kernel/sysrq
+    * /proc/sys/vm/unprivileged_userfaultfd
+    * Disable dnotify using  /proc/sys/fs/dir-notify-enable
+// TODO: Near security:-
+    * /proc/sys/kernel/panic
+    * /proc/sys/kernel/panic_on_oops
+    * /proc/sys/kernel/pid_max
+// TODO: More memory compaction
+    * /proc/sys/vm/compact_memory
+    * /proc/sys/vm/drop_caches
+    * /proc/sys/vm/swappiness
+    * ?/proc/sys/vm/user_reserve_kbytes
+    * ?/proc/sys/vm/admin_reserve_kbytes
+// TODO: Memory has gone bad
+    * /proc/sys/vm/memory_failure_early_kill
+    * /proc/sys/vm/memory_failure_recovery
+    
 
 /*
 /proc/[pid]/smaps_rollup with 2 extra Pss statistics

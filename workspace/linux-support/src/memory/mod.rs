@@ -52,6 +52,10 @@ pub mod memory_maps;
 pub mod numa;
 
 
+/// Page map, for mapping physical to virtual addresses.
+pub mod page_map;
+
+
 include!("HasVirtualAddress.rs");
 include!("Kilobyte.rs");
 include!("NonZeroKilobyte.rs");

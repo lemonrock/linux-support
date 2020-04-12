@@ -1,10 +1,28 @@
 # linux-support
 
-[linux-support] is a Rust crate for comprehensive Linux support for namespaces, cgroups, processes, scheduling, parsing /proc, parsing /sys, signals, hyper threads, CPUS, NUMA nodes, unusual file descriptors, PCI devices and much, much more
+[linux-support] is a Rust crate for comprehensive Linux support for namespaces, cgroups, processes, scheduling, parsing a vast number of files in `/proc` and `/sys`, signals, hyper threads, CPUS, NUMA nodes, unusual file descriptors (including pid descriptors and userfaultfd), PCI devices and much, much more.
 
-Includes a pure Rust replacement of libnuma and libhugetlbfs, and a Rust pure-Linux replacement for [file-descriptors](https://github.com/lemonrock/file-descriptors).
+It is intended to be a holistic, very strongly typed and properly modelled library for working with Linux's non-POSIX features, with a particular focus on being a support library for a secure root daemon running a userspace networking stack that I'm developing.
 
-Features supported are:-
+It replaces several C and Rust libraries including:-
+
+* From C, the horrid and effectively legacy libraries:-
+    * `libnuma`.
+    * `libhugetlbfs`.
+    * `libcpuset` (planned).
+* From Rust:-
+    * [cpu-affinity](https://crates.io/crates/cpu-affinity).
+    * [dpdk-unix](https://crates.io/crates/dpdk-unix).
+    * [file-descriptors](https://github.com/lemonrock/file-descriptors).
+    * [libc-extra](https://crates.io/crates/libc-extra) (partly).
+    * [linux-personality](https://crates.io/crates/linux-personality).
+    * [memfd](https://crates.io/crates/memfd) (in progress).
+    * [num_cpus](https://crates.io/crates/num_cpus).
+    * [term-handler](https://crates.io/crates/term-handler).
+    * [vm-info](https://crates.io/crates/vm-info).
+
+
+## Features supported
 
 * Capabilities and Privileges
 * Cgroups version 2
@@ -17,6 +35,7 @@ Features supported are:-
 * Working with Linux kernel modules
 * Logging with Syslog
 * Memory
+    * Fast and const-friendly logic to get page size, ie not `_SC_PAGE_SIZE`!
 	* Comprehensive huge and gigantic page support
 	* NUMA, including a replacement for libnuma and comprehensive NUMA information and manipulation
 	* vmstat, numastat and meminfo file parsing
@@ -36,6 +55,8 @@ Features supported are:-
 * Resource Limits
 * SecComp
 * Signals
+    * Including a robust, well thought out signal handler that actually accommodates the weaknesses in Linux's design.
+* A comprehensive terminal wrapper.
 * Users and groups
 	* Including support for working with all 4 user identifiers and all 4 group identifiers a process can have
 

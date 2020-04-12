@@ -50,6 +50,10 @@ pub mod bit_set;
 
 
 /// Capabilities and privileges.
+///
+/// * Manage capability sets for security.
+/// * Disable the 'dumpable' flag for security.
+/// * Lock down a process to remove privileges.
 pub mod capabilities_and_privileges;
 
 
@@ -58,10 +62,21 @@ pub mod cgroups;
 
 
 /// CPU.
+///
+/// * Cpu features wrapper.
+/// * A proper CPU count that takes into account NUMA nodes, hotplugs, etc.
+/// * Hyper thread (SMT) insight, status, usage, etc.
+/// 	* Turn off and on
+/// 	* Mappings to NUMA nodes
+/// 	* And lots more
 pub mod cpu;
 
 
 /// Environment variables.
+///
+/// * Find the original environment of a process.
+/// * Find the command line of a process.
+/// * Create a clean environment for a process with just essential variables set (a security and reproducibility protection).
 pub mod environment;
 
 
@@ -73,6 +88,8 @@ pub mod file_systems;
 
 
 /// Inode.
+///
+/// A wrapper type for Inodes.
 pub mod inode;
 
 
@@ -89,10 +106,27 @@ pub mod linux_kernel_version;
 
 
 /// Logging.
+///
+/// Miscellany support for using syslog with a Rust process, including:-
+///
+/// * Redirecting standard out and standard error to syslog;
+/// * Logging process terminating signals to syslog.
+/// * Logging panics to syslog.
+/// * Configuring syslog.
 pub mod logging;
 
 
-/// Memory
+/// Memory.
+///
+/// * Detailed, comprehensive and insightful NUMA node level information.
+/// * Proper, modern Linux support for huge pages and mapping huge pages into memory.
+/// * Memory usage and insight.
+/// * A Linux-specific wrapper for mmap and related functionality that makes it *much* harder to misconfigure.
+/// * Wrapper types for virtual and physical addreses.
+/// * Wrapper types for number of pages.
+/// * Efficient enums for page size and huge page sizes.
+/// * Insight into memory maps
+/// 	* For finding physical addresses from virtual memory addresses
 pub mod memory;
 
 
