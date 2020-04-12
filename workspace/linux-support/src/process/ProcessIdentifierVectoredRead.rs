@@ -21,3 +21,24 @@ impl<'a> VectoredRead for ProcessIdentifierVectoredRead<'a>
 		self.process_identifier.vectored_read(to_local, self.from_remote).map_err(|creation_error| io::Error::from_raw_os_error(creation_error as i32))
 	}
 }
+
+impl<'a> Read for ProcessIdentifierVectoredRead<'a>
+{
+	#[inline(always)]
+	fn read(&mut self, buf: &mut [u8]) -> io::Result<usize>
+	{
+		VectoredRead::read_vectored(self, &[buf])
+	}
+
+	#[inline(always)]
+	fn read_vectored(&mut self, bufs: &mut [IoSliceMut<'_>]) -> io::Result<usize>
+	{
+		VectoredRead::read_vectored(self, unsafe { transmute(bufs) })
+	}
+
+	#[inline(always)]
+	unsafe fn initializer(&self) -> Initializer
+	{
+		Initializer::nop()
+	}
+}

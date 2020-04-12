@@ -42,13 +42,14 @@ use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fmt;
 use std::fs::File;
-use std::io::BufRead;
+use std::io::{BufRead, Read, Initializer, IoSliceMut, Write, IoSlice};
 use std::io::BufReader;
 use std::io;
 use std::num::NonZeroI32;
 use std::num::NonZeroUsize;
 use std::ops::Deref;
 use std::ptr::write;
+use std::mem::transmute;
 
 
 /// `/proc/<N>/stat`.

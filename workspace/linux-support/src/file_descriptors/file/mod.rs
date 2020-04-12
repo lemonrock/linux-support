@@ -5,13 +5,11 @@
 use super::*;
 use super::pipes_and_fifos::SpliceRecipient;
 use super::pipes_and_fifos::SpliceSender;
-use crate::file_descriptors::memfd::MemoryFileDescriptor;
-use crate::vectors::{VectoredWrite, VectoredRead};
+use crate::vectors::VectoredWrite;
+use crate::vectors::VectoredRead;
 
 
-include!("File.AsRawFdExt.rs");
-include!("File.MemoryFileDescriptor.rs");
-include!("File.SpliceRecipient.rs");
+include!("File.AsRawFdExt.rs");include!("File.SpliceRecipient.rs");
 include!("File.SpliceSender.rs");
 include!("File.SendFile.rs");
 include!("File.VectoredRead.rs");

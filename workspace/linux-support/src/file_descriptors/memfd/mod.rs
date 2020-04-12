@@ -4,9 +4,18 @@
 
 use crate::file_descriptors::AsRawFdExt;
 use super::*;
+use super::file::SendFile;
+use super::pipes_and_fifos::SpliceRecipient;
+use super::pipes_and_fifos::SpliceSender;
 use crate::memory::huge_pages::HugePageSize;
 use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use crate::memory::huge_pages::PageSizeOrHugePageSize;
+use crate::vectors::VectoredRead;
+use crate::vectors::VectoredWrite;
+use std::fmt::Arguments;
+use std::io::IoSlice;
+use std::io::IoSliceMut;
+use std::io::SeekFrom;
 
 
-include!("MemoryFileDescriptor.rs");
+include!("FileSeals.rs");include!("MemoryFileDescriptor.rs");

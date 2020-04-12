@@ -122,13 +122,13 @@ impl MappedMemory
 	/// As for `anonymous()`, but `offset` will be rounded up to page size.
 	/// If `rounded_up(offset) + rounded_up(length)` exceeds the length of the underlying file, then the resultant memory after the end of the file will be filled with `0x00`.
 	#[inline(always)]
-	pub fn from_file<F: MemoryFileDescriptor>(file_descriptor: &F, offset: u64, length: NonZeroU64, address_hint: AddressHint, protection: Protection, sharing: Sharing, huge_memory_page_size: Option<Option<HugePageSize>>, prefault: bool, reserve_swap_space: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, CreationError>
+	pub fn from_file<F: Borrow<File>>(file_descriptor: &F, offset: u64, length: NonZeroU64, address_hint: AddressHint, protection: Protection, sharing: Sharing, huge_memory_page_size: Option<Option<HugePageSize>>, prefault: bool, reserve_swap_space: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, CreationError>
 	{
 		Self::new(Some((file_descriptor, offset)), length, address_hint, protection, sharing, huge_memory_page_size, prefault, reserve_swap_space, defaults)
 	}
 
 	#[inline(always)]
-	fn new<F: MemoryFileDescriptor>(anonymous_or_file_descriptor: Option<(&F, u64)>, length: NonZeroU64, address_hint: AddressHint, protection: Protection, sharing: Sharing, huge_page_size: Option<Option<HugePageSize>>, prefault: bool, reserve_swap_space: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, CreationError>
+	fn new<F: Borrow<File>>(anonymous_or_file_descriptor: Option<(&F, u64)>, length: NonZeroU64, address_hint: AddressHint, protection: Protection, sharing: Sharing, huge_page_size: Option<Option<HugePageSize>>, prefault: bool, reserve_swap_space: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, CreationError>
 	{
 		let (huge_page_size_flags, page_size) = HugePageSize::mmap_or_memfd_flag_bits_and_page_size(MAP_HUGETLB, huge_page_size, defaults);
 
@@ -139,7 +139,7 @@ impl MappedMemory
 		let (file_descriptor, anonymous_flags, offset_in_bytes) = match anonymous_or_file_descriptor
 		{
 			None => (-1, MAP_ANONYMOUS, 0),
-			Some((memory_file_descriptor, offset_in_bytes)) => (memory_file_descriptor.as_raw_fd(), 0, page_size.number_of_bytes_rounded_up_to_multiple_of_page_size(offset_in_bytes)),
+			Some((file, offset_in_bytes)) => (file.borrow().as_raw_fd(), 0, page_size.number_of_bytes_rounded_up_to_multiple_of_page_size(offset_in_bytes)),
 		};
 
 		let prefault_flags = if prefault

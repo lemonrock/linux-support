@@ -84,14 +84,14 @@ impl<SD: SocketData> SpliceSender for StreamingSocketFileDescriptor<SD>
 impl<SD: SocketData> SendFile for StreamingSocketFileDescriptor<SD>
 {
 	#[inline(always)]
-	fn write_output_from_file(&self, from_file: &File, maximum_number_of_bytes_to_transfer: usize) -> Result<usize, StructWriteError>
+	fn write_output_from_file<F: AsRef<File>>(&self, from_file: &F, maximum_number_of_bytes_to_transfer: usize) -> Result<usize, StructWriteError>
 	{
 		if unlikely!(maximum_number_of_bytes_to_transfer == 0)
 		{
 			return Ok(0)
 		}
 
-		let result = unsafe { sendfile(self.as_raw_fd(), from_file.as_raw_fd(), null_mut(), maximum_number_of_bytes_to_transfer) };
+		let result = unsafe { sendfile(self.as_raw_fd(), from_file.as_ref().as_raw_fd(), null_mut(), maximum_number_of_bytes_to_transfer) };
 		if likely!(result >= 0)
 		{
 			Ok(result as usize)
@@ -123,14 +123,14 @@ impl<SD: SocketData> SendFile for StreamingSocketFileDescriptor<SD>
 	}
 
 	#[inline(always)]
-	fn write_output_from_file_with_offset(&self, from_file: &File, mut offset: i64, maximum_number_of_bytes_to_transfer: usize) -> Result<(usize, i64), StructWriteError>
+	fn write_output_from_file_with_offset<F: AsRef<File>>(&self, from_file: &F, mut offset: i64, maximum_number_of_bytes_to_transfer: usize) -> Result<(usize, i64), StructWriteError>
 	{
 		if unlikely!(maximum_number_of_bytes_to_transfer == 0)
 		{
 			return Ok((0, offset))
 		}
 
-		let result = unsafe { sendfile(self.as_raw_fd(), from_file.as_raw_fd(), &mut offset, maximum_number_of_bytes_to_transfer) };
+		let result = unsafe { sendfile(self.as_raw_fd(), from_file.as_ref().as_raw_fd(), &mut offset, maximum_number_of_bytes_to_transfer) };
 		if likely!(result >= 0)
 		{
 			Ok((result as usize, offset))
@@ -174,6 +174,12 @@ impl<SD: SocketData> Read for StreamingSocketFileDescriptor<SD>
 	}
 
 	#[inline(always)]
+	fn read_vectored(&mut self, bufs: &mut [IoSliceMut<'_>]) -> io::Result<usize>
+	{
+		VectoredRead::read_vectored(self, unsafe { transmute(bufs) })
+	}
+
+	#[inline(always)]
 	unsafe fn initializer(&self) -> Initializer
 	{
 		Initializer::nop()
@@ -189,6 +195,12 @@ impl<SD: SocketData> Write for StreamingSocketFileDescriptor<SD>
 	fn write(&mut self, buf: &[u8]) -> io::Result<usize>
 	{
 		self.send_to(buf)
+	}
+
+	#[inline(always)]
+	fn write_vectored(&mut self, bufs: &[IoSlice<'_>]) -> io::Result<usize>
+	{
+		VectoredWrite::write_vectored(self, unsafe { transmute(bufs) })
 	}
 
 	#[inline(always)]

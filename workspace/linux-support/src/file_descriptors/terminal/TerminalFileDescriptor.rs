@@ -72,6 +72,12 @@ impl Read for TerminalFileDescriptor
 	}
 
 	#[inline(always)]
+	fn read_vectored(&mut self, bufs: &mut [IoSliceMut<'_>]) -> io::Result<usize>
+	{
+		VectoredRead::read_vectored(self, unsafe { transmute(bufs) })
+	}
+
+	#[inline(always)]
 	unsafe fn initializer(&self) -> Initializer
 	{
 		self.0.initializer()
@@ -90,6 +96,12 @@ impl Write for TerminalFileDescriptor
 	fn write(&mut self, buf: &[u8]) -> io::Result<usize>
 	{
 		self.0.write(buf)
+	}
+
+	#[inline(always)]
+	fn write_vectored(&mut self, bufs: &[IoSlice<'_>]) -> io::Result<usize>
+	{
+		VectoredWrite::write_vectored(self, unsafe { transmute(bufs) })
 	}
 
 	#[inline(always)]

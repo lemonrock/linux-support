@@ -128,6 +128,12 @@ impl Read for CharacterDeviceFileDescriptor
 	}
 
 	#[inline(always)]
+	fn read_vectored(&mut self, bufs: &mut [IoSliceMut<'_>]) -> io::Result<usize>
+	{
+		VectoredRead::read_vectored(self, unsafe { transmute(bufs) })
+	}
+
+	#[inline(always)]
 	unsafe fn initializer(&self) -> Initializer
 	{
 		Initializer::nop()
@@ -192,6 +198,12 @@ impl Write for CharacterDeviceFileDescriptor
 				)
 			)
 		}
+	}
+
+	#[inline(always)]
+	fn write_vectored(&mut self, bufs: &[IoSlice<'_>]) -> io::Result<usize>
+	{
+		VectoredWrite::write_vectored(self, unsafe { transmute(bufs) })
 	}
 
 	#[inline(always)]

@@ -60,6 +60,19 @@ impl Read for StreamingSocketFileDescriptorEnum
 	}
 
 	#[inline(always)]
+	fn read_vectored(&mut self, bufs: &mut [IoSliceMut<'_>]) -> io::Result<usize>
+	{
+		use self::StreamingSocketFileDescriptorEnum::*;
+
+		match self
+		{
+			&mut InternetProtocolVersion4(ref mut streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.read_vectored(bufs),
+			&mut InternetProtocolVersion6(ref mut streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.read_vectored(bufs),
+			&mut UnixDomain(ref mut streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.read_vectored(bufs),
+		}
+	}
+
+	#[inline(always)]
 	unsafe fn initializer(&self) -> Initializer
 	{
 		Initializer::nop()
@@ -87,6 +100,19 @@ impl Write for StreamingSocketFileDescriptorEnum
 			&mut InternetProtocolVersion4(ref mut streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.write(buf),
 			&mut InternetProtocolVersion6(ref mut streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.write(buf),
 			&mut UnixDomain(ref mut streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.write(buf),
+		}
+	}
+
+	#[inline(always)]
+	fn write_vectored(&mut self, bufs: &[IoSlice<'_>]) -> io::Result<usize>
+	{
+		use self::StreamingSocketFileDescriptorEnum::*;
+
+		match self
+		{
+			&mut InternetProtocolVersion4(ref mut streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.write_vectored(bufs),
+			&mut InternetProtocolVersion6(ref mut streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.write_vectored(bufs),
+			&mut UnixDomain(ref mut streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.write_vectored(bufs),
 		}
 	}
 

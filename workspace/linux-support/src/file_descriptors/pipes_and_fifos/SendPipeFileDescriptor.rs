@@ -129,6 +129,12 @@ impl Write for SendPipeFileDescriptor
 	}
 
 	#[inline(always)]
+	fn write_vectored(&mut self, bufs: &[IoSlice<'_>]) -> io::Result<usize>
+	{
+		VectoredWrite::write_vectored(self, unsafe { transmute(bufs) })
+	}
+
+	#[inline(always)]
 	fn flush(&mut self) -> io::Result<()>
 	{
 		Ok(())

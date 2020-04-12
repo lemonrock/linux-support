@@ -12,7 +12,7 @@ pub trait SendFile
 	/// Returns the number of bytes transferred.
 	///
 	/// Can return `Cancelled` for general I/O errors.
-	fn write_output_from_file(&self, from_file: &File, maximum_number_of_bytes_to_transfer: usize) -> Result<usize, StructWriteError>;
+	fn write_output_from_file<F: AsRef<File>>(&self, from_file: &F, maximum_number_of_bytes_to_transfer: usize) -> Result<usize, StructWriteError>;
 
 	/// Reads from file at given offset.
 	///
@@ -21,5 +21,5 @@ pub trait SendFile
 	/// Returns the number of bytes transferred and the updated offset.
 	///
 	/// Can return `Cancelled` for general I/O errors.
-	fn write_output_from_file_with_offset(&self, from_file: &File, offset: i64, maximum_number_of_bytes_to_transfer: usize) -> Result<(usize, i64), StructWriteError>;
+	fn write_output_from_file_with_offset<F: AsRef<File>>(&self, from_file: &F, offset: i64, maximum_number_of_bytes_to_transfer: usize) -> Result<(usize, i64), StructWriteError>;
 }

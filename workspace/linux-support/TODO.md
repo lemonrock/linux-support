@@ -1,5 +1,7 @@
 // TODO: userfaultfd: http://man7.org/linux/man-pages/man2/userfaultfd.2.html
 
+// TODO: memfd seals (https://lwn.net/Articles/591108/ http://man7.org/linux/man-pages/man2/userfaultfd.2.html https://github.com/lucab/memfd-rs)
+
 // TODO: Rework kernel validator into sections for numa, memory, etc.
 
 // TODO: kernel validator proper errors.
@@ -26,8 +28,6 @@
 
 // TODO: mmap to physicalling contig.
     // TODO: mlock, sync and ?mremap additions first.
-
-// TODO: memfd seals (https://lwn.net/Articles/591108/ http://man7.org/linux/man-pages/man2/userfaultfd.2.html https://github.com/lucab/memfd-rs)
 
 // TODO: Allocate physically contiguous memory (using huge / gigantic pages; using page map to finding virt to phys mappings)
 

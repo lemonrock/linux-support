@@ -21,3 +21,24 @@ impl<'a> VectoredWrite for ProcessIdentifierVectoredWrite<'a>
 		self.process_identifier.vectored_write(from_local, self.to_remote).map_err(|creation_error| io::Error::from_raw_os_error(creation_error as i32))
 	}
 }
+
+impl<'a> Write for ProcessIdentifierVectoredWrite<'a>
+{
+	#[inline(always)]
+	fn write(&mut self, buf: &[u8]) -> io::Result<usize>
+	{
+		VectoredWrite::write_vectored(self, &[buf])
+	}
+
+	#[inline(always)]
+	fn write_vectored(&mut self, bufs: &[IoSlice<'_>]) -> io::Result<usize>
+	{
+		VectoredWrite::write_vectored(self, unsafe { transmute(bufs) })
+	}
+
+	#[inline(always)]
+	fn flush(&mut self) -> io::Result<()>
+	{
+		Ok(())
+	}
+}

@@ -3,7 +3,6 @@
 
 
 use crate::file_descriptors::CreationError;
-use crate::file_descriptors::memfd::MemoryFileDescriptor;
 use super::*;
 use super::huge_pages::*;
 use errno::errno;
@@ -33,6 +32,7 @@ use libc::PROT_NONE;
 use libc::PROT_READ;
 use libc::PROT_WRITE;
 use likely::*;
+use std::borrow::Borrow;
 use std::convert::TryInto;
 use std::fs::OpenOptions;
 use std::fs::File;
@@ -40,6 +40,7 @@ use std::fmt::Debug;
 use std::num::NonZeroU64;
 use std::ops::Deref;
 use std::ops::DerefMut;
+use std::os::unix::io::AsRawFd;
 use std::ptr::null_mut;
 use std::ptr::read_volatile;
 use std::ptr::write_volatile;

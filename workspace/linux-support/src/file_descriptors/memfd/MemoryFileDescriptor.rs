@@ -2,8 +2,238 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A memfd; only works on files.
-pub trait MemoryFileDescriptor: Sized + AsRawFd + AsRawFdExt + IntoRawFd + FromRawFd
+/// A memfd, which wraps a File but supports sealing.
+#[derive(Debug)]
+pub struct MemoryFileDescriptor(File);
+
+impl IntoRawFd for MemoryFileDescriptor
+{
+	#[inline(always)]
+	fn into_raw_fd(self) -> RawFd
+	{
+		self.0.into_raw_fd()
+	}
+}
+
+impl FromRawFd for MemoryFileDescriptor
+{
+	#[inline(always)]
+	unsafe fn from_raw_fd(fd: RawFd) -> Self
+	{
+		Self(File::from_raw_fd(fd))
+	}
+}
+
+impl AsRawFd for MemoryFileDescriptor
+{
+	#[inline(always)]
+	fn as_raw_fd(&self) -> RawFd
+	{
+		self.0.as_raw_fd()
+	}
+}
+
+impl Read for MemoryFileDescriptor
+{
+	#[inline(always)]
+	fn read(&mut self, buf: &mut [u8]) -> io::Result<usize>
+	{
+		self.0.read(buf)
+	}
+
+	#[inline(always)]
+	fn read_vectored(&mut self, bufs: &mut [IoSliceMut<'_>]) -> io::Result<usize>
+	{
+		Read::read_vectored(&mut self.0, bufs)
+	}
+
+	#[inline(always)]
+	unsafe fn initializer(&self) -> Initializer
+	{
+		self.0.initializer()
+	}
+}
+
+impl Seek for MemoryFileDescriptor
+{
+	#[inline(always)]
+	fn seek(&mut self, pos: SeekFrom) -> io::Result<u64>
+	{
+		self.0.seek(pos)
+	}
+}
+
+impl Write for MemoryFileDescriptor
+{
+	#[inline(always)]
+	fn write(&mut self, buf: &[u8]) -> io::Result<usize>
+	{
+		self.0.write(buf)
+	}
+
+	#[inline(always)]
+	fn write_vectored(&mut self, bufs: &[IoSlice]) -> io::Result<usize>
+	{
+		Write::write_vectored(&mut self.0, bufs)
+	}
+
+	#[inline(always)]
+	fn flush(&mut self) -> io::Result<()>
+	{
+		Ok(())
+	}
+
+	#[inline(always)]
+	fn write_all(&mut self, buf: &[u8]) -> io::Result<()>
+	{
+		self.0.write_all(buf)
+	}
+
+	#[inline(always)]
+	fn write_fmt(&mut self, fmt: Arguments) -> io::Result<()>
+	{
+		self.0.write_fmt(fmt)
+	}
+}
+
+impl FileExt for MemoryFileDescriptor
+{
+	#[inline(always)]
+	fn read_at(&self, buf: &mut [u8], offset: u64) -> io::Result<usize>
+	{
+		self.0.read_at(buf, offset)
+	}
+
+	#[inline(always)]
+	fn read_exact_at(&self, buf: &mut [u8], offset: u64) -> io::Result<()>
+	{
+		self.0.read_exact_at(buf, offset)
+	}
+
+	#[inline(always)]
+	fn write_at(&self, buf: &[u8], offset: u64) -> io::Result<usize>
+	{
+		self.0.write_at(buf, offset)
+	}
+
+	#[inline(always)]
+	fn write_all_at(&self, buf: &[u8], offset: u64) -> io::Result<()>
+	{
+		self.0.write_all_at(buf, offset)
+	}
+}
+
+impl Into<File> for MemoryFileDescriptor
+{
+	#[inline(always)]
+	fn into(self) -> File
+	{
+		self.0
+	}
+}
+
+impl Deref for MemoryFileDescriptor
+{
+	type Target = File;
+
+	#[inline(always)]
+	fn deref(&self) -> &Self::Target
+	{
+		&self.0
+	}
+}
+
+impl DerefMut for MemoryFileDescriptor
+{
+	#[inline(always)]
+	fn deref_mut(&mut self) -> &mut Self::Target
+	{
+		&mut self.0
+	}
+}
+
+impl AsRef<File> for MemoryFileDescriptor
+{
+	#[inline(always)]
+	fn as_ref(&self) -> &File
+	{
+		&self.0
+	}
+}
+
+impl AsMut<File> for MemoryFileDescriptor
+{
+	#[inline(always)]
+	fn as_mut(&mut self) -> &mut File
+	{
+		&mut self.0
+	}
+}
+
+impl Borrow<File> for MemoryFileDescriptor
+{
+	#[inline(always)]
+	fn borrow(&self) -> &File
+	{
+		&self.0
+	}
+}
+
+impl BorrowMut<File> for MemoryFileDescriptor
+{
+	#[inline(always)]
+	fn borrow_mut(&mut self) -> &mut File
+	{
+		&mut self.0
+	}
+}
+
+impl AsRawFdExt for MemoryFileDescriptor
+{
+}
+
+impl SpliceRecipient for MemoryFileDescriptor
+{
+}
+
+impl SpliceSender for MemoryFileDescriptor
+{
+}
+
+impl VectoredRead for MemoryFileDescriptor
+{
+	#[inline(always)]
+	fn read_vectored(&self, buffers: &[&mut [u8]]) -> io::Result<usize>
+	{
+		self.0.read_vectored(buffers)
+	}
+}
+
+impl VectoredWrite for MemoryFileDescriptor
+{
+	#[inline(always)]
+	fn write_vectored(&self, buffers: &[&[u8]]) -> io::Result<usize>
+	{
+		self.0.write_vectored(buffers)
+	}
+}
+
+impl SendFile for MemoryFileDescriptor
+{
+	#[inline(always)]
+	fn write_output_from_file<F: AsRef<File>>(&self, from_file: &F, maximum_number_of_bytes_to_transfer: usize) -> Result<usize, StructWriteError>
+	{
+		self.0.write_output_from_file(from_file, maximum_number_of_bytes_to_transfer)
+	}
+
+	#[inline(always)]
+	fn write_output_from_file_with_offset<F: AsRef<File>>(&self, from_file: &F, offset: i64, maximum_number_of_bytes_to_transfer: usize) -> Result<(usize, i64), StructWriteError>
+	{
+		self.0.write_output_from_file_with_offset(from_file, offset, maximum_number_of_bytes_to_transfer)
+	}
+}
+
+impl MemoryFileDescriptor
 {
 	/// Opens a memfd.
 	///
@@ -37,7 +267,7 @@ pub trait MemoryFileDescriptor: Sized + AsRawFd + AsRawFdExt + IntoRawFd + FromR
 	///
 	/// Supported since Linux 3.17.
 	/// However, support for `allow_sealing_operations` with `huge_page_size` has only existed since Linux 4.16.
-	fn open_anonymous_memory_as_file(non_unique_name_for_debugging_purposes: &CStr, allow_sealing_operations: bool, huge_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<(Self, PageSizeOrHugePageSize), CreationError>
+	pub fn open_anonymous_memory_as_file(non_unique_name_for_debugging_purposes: &CStr, allow_sealing_operations: bool, huge_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<(Self, PageSizeOrHugePageSize), CreationError>
 	{
 		const MFD_CLOEXEC: u32 = 0x0001;
 		const MFD_ALLOW_SEALING: u32 = 0x0002;
@@ -90,6 +320,56 @@ pub trait MemoryFileDescriptor: Sized + AsRawFd + AsRawFdExt + IntoRawFd + FromR
 		else
 		{
 			panic!("Unexpected result {}", result)
+		}
+	}
+
+	/// Return `Err(())` if permission is denied.
+	#[inline(always)]
+	pub fn add_file_seals(&self, file_seals: FileSeals) -> Result<(), ()>
+	{
+		let result = unsafe { fcntl(self.as_raw_fd(), F_ADD_SEALS, file_seals.bits) };
+		if likely!(result == 0)
+		{
+			Ok(())
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				EPERM => Err(()),
+
+				EINVAL => panic!("This is not a memfd"),
+
+				unexpected @ _ => panic!("Unexpected error `{:?}`", unexpected)
+			}
+		}
+		else
+		{
+			unreachable!("Unexpected result from fcntl F_ADD_SEALS of `{}`", result)
+		}
+	}
+
+	/// Get seals.
+	#[inline(always)]
+	pub fn get_file_seals(&self) -> FileSeals
+	{
+		let result = unsafe { fcntl(self.as_raw_fd(), F_GET_SEALS) };
+		if likely!(result == 0)
+		{
+			FileSeals::from_bits_truncate(result)
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				EINVAL => panic!("This is not a memfd"),
+
+				unexpected @ _ => panic!("Unexpected error `{:?}`", unexpected)
+			}
+		}
+		else
+		{
+			unreachable!("Unexpected result from fcntl F_ADD_SEALS of `{}`", result)
 		}
 	}
 }
