@@ -2,7 +2,7 @@
 
 [linux-support] is a Rust crate for comprehensive Linux support for namespaces, cgroups, processes, scheduling, parsing a vast number of files in `/proc` and `/sys`, signals, hyper threads, CPUS, NUMA nodes, unusual file descriptors (including pid descriptors and userfaultfd), PCI devices and much, much more.
 
-It is intended to be a holistic, very strongly typed and properly modelled library for working with Linux's non-POSIX features, with a particular focus on being a support library for a secure root daemon running a userspace networking stack that I'm developing.
+It is intended to be a holistic, very strongly typed and properly modelled library for working with Linux's non-POSIX features, with a particular focus on being a support library for a secure root daemon running a userspace networking stack that I'm developing. As a result, it's highly opionated; it happily makes use of unsafe code, nightly features and `uninitialized()`.
 
 It replaces several C and Rust libraries including:-
 
@@ -20,6 +20,8 @@ It replaces several C and Rust libraries including:-
     * [num_cpus](https://crates.io/crates/num_cpus).
     * [term-handler](https://crates.io/crates/term-handler).
     * [vm-info](https://crates.io/crates/vm-info).
+
+It is not intended to replace [nix](https://crates.io/crates/nix), but as a partial complement.
 
 
 ## Features supported
