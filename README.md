@@ -21,46 +21,64 @@ It replaces several C and Rust libraries including:-
     * [term-handler](https://crates.io/crates/term-handler).
     * [vm-info](https://crates.io/crates/vm-info).
 
-It is not intended to replace [nix](https://crates.io/crates/nix), but as a partial complement.
+It is not intended to replace [nix](https://crates.io/crates/nix), but as an alternative complement for Linux-specific applications.
 
 
 ## Features supported
 
+* Assembly code to get current NUMA node and Hyper Thread.
 * Capabilities and Privileges
 * Cgroups version 2
 * CPU and HyperThreads, including parsing of files in `/proc` and `/sys` to work out what's available
 	* Getting the current HyperThread and NUMA node
 * Clean environment variables
+	* Parsing of `/proc/<N>/cmdline` and `/proc/<N>/environ`.
 * File systems
 * Inodes
 * Parsing and validating the Linux kernel command line (boot command line)
 * Working with Linux kernel modules
 * Logging with Syslog
+    * eg Redirecting standard error to syslog!
 * Memory
-    * Fast and const-friendly logic to get page size, ie not `_SC_PAGE_SIZE`!
-	* Comprehensive huge and gigantic page support
 	* NUMA, including a replacement for libnuma and comprehensive NUMA information and manipulation
+	* Comprehensive huge and gigantic page support
+    * Fast and `const`-friendly logic to get page size, ie not `sysconf(_SC_PAGE_SIZE)`!
 	* vmstat, numastat and meminfo file parsing
+	* Page map insight
+	* Memory map insight
 	* Virtual to Physical mapping and parsing of the page map
 * File system mounts and mounting
 * File descriptors
-	* Including epoll, signalfd, eventfd and others
+	* Including epoll, signalfd, eventfd, userfaultfd, pidfd, timerfd, inotify, memfd, POSIX message queues, pipes, sockets, terminals and others
 	* Memory mapping.
+* Linux Personality.
+    * Get for any process as well as current.
+    * Execution domains (legacy feature).
 * Namespaces
 * Nice and autogroups
 * PCI Express
 	* Finding devices
 	* Even working with registers
-* Process statistics
-	* Parsing of `/proc/<N>/stat` and `/proc/<N>/status`.
-* Linux Personality
+* Process, process groups, etc
+	* Parsing of `/proc/<N>/stat`, `/proc/<N>/statm` and `/proc/<N>/status`.
+	* Linux specific `get_program_name`.
 * Resource Limits
 * SecComp
 * Signals
-    * Including a robust, well thought out signal handler that actually accommodates the weaknesses in Linux's design.
+    * Including a robust, well thought out signal handler that actually accommodates the weaknesses in Linux's design and converts to strongly-typed, properly enumerated variants.
+    * Support for machine check exceptions.
+* Strings
+    * Intended to make working with non-UTF8, byte (possibly ASCII) strings easier.
+    * Support for Linux quirks, such as oddly escaped strings.
+    * Support for Linux string arrays as found in `/proc/<N>/environ`.
+    * Mostly intended for library internal use.
+    * Support for parsing and formatting Linux's diverse ways of representing numbers in files in `/proc` and `/sys`.
+* As strongly-typed as possible syscall wrappers.
 * A comprehensive terminal wrapper.
 * Users and groups
-	* Including support for working with all 4 user identifiers and all 4 group identifiers a process can have
+	* Including support for working with all 4 user identifiers and all 4 group identifiers a process can have (ie the legacy file system user and group ids)
+	* Init groups
+	* Checks for root where necessary with documented assertions.
 
 Currently only Linux using the musl libc has been tested, but support should be possible with minor changes for Android, Fuschia and Emscripten.
 
