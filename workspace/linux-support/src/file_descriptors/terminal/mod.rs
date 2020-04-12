@@ -23,6 +23,7 @@ use crate::terminal::c::tcsendbreak;
 use crate::terminal::c::tcsetattr;
 use crate::terminal::c::termios;
 use super::*;
+use crate::vectors::{VectoredRead, VectoredWrite};
 
 
 include!("TerminalFileDescriptor.rs");

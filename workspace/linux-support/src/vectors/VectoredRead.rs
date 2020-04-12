@@ -2,18 +2,13 @@
 // Copyright © 2019 The developers of file-descriptors. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/file-descriptors/master/COPYRIGHT.
 
 
-use super::*;
-use super::pipes_and_fifos::SpliceRecipient;
-use super::pipes_and_fifos::SpliceSender;
-use crate::file_descriptors::memfd::MemoryFileDescriptor;
-use crate::vectors::{VectoredWrite, VectoredRead};
-
-
-include!("File.AsRawFdExt.rs");
-include!("File.MemoryFileDescriptor.rs");
-include!("File.SpliceRecipient.rs");
-include!("File.SpliceSender.rs");
-include!("File.SendFile.rs");
-include!("File.VectoredRead.rs");
-include!("File.VectoredWrite.rs");
-include!("SendFile.rs");
+/// Implementors support vectored reads.
+pub trait VectoredRead
+{
+	/// Performs a vectored read.
+	///
+	/// All buffers should be non-zero sized otherwise the results are ambiguous (ie was nothing read or is this end-of-file).
+	///
+	/// For processes, see `ProcessIdentifier::to_vectored_read()`.
+	fn read_vectored(&self, buffers: &[&mut [u8]]) -> io::Result<usize>;
+}

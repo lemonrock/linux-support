@@ -55,6 +55,7 @@ impl SpliceSender for ReceivePipeFileDescriptor
 
 impl VectoredRead for ReceivePipeFileDescriptor
 {
+	vectored_read!();
 }
 
 impl PipeFileDescriptor for ReceivePipeFileDescriptor

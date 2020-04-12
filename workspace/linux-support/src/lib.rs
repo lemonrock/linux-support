@@ -49,6 +49,11 @@ use std::mem::transmute;
 pub mod bit_set;
 
 
+/// Vectored reads and writes.
+#[macro_use]
+pub mod vectors;
+
+
 /// Capabilities and privileges.
 ///
 /// * Manage capability sets for security.

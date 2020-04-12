@@ -4,6 +4,7 @@
 
 use super::*;
 use self::syscall::*;
+use crate::vectors::{VectoredRead, VectoredWrite};
 
 
 pub(crate) mod syscall;

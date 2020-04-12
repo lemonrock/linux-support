@@ -49,10 +49,12 @@ impl SpliceSender for TerminalFileDescriptor
 
 impl VectoredRead for TerminalFileDescriptor
 {
+	vectored_read!();
 }
 
 impl VectoredWrite for TerminalFileDescriptor
 {
+	vectored_write!();
 }
 
 impl Read for TerminalFileDescriptor

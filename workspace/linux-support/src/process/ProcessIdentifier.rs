@@ -142,10 +142,128 @@ impl ProcessIdentifier
 
 	/// Gets the session identifier (sid) for this process.
 	///
-	/// The session identifier of a process is the process group identifier of the session leader
+	/// The session identifier of a process is the process group identifier of the session leader.
 	#[inline(always)]
 	pub fn session_identifer(self) -> Result<ProcessGroupIdentifier, ()>
 	{
 		ProcessGroupIdentifier::session_identifier(ProcessIdentifierChoice::Other(self))
+	}
+
+	/// Use this wherever a specific process identifier is read from repeatedly.
+	#[inline(always)]
+	pub fn to_vectored_read<'a>(self, from_remote: &'a [&'a [u8]]) -> ProcessIdentifierVectoredRead<'a>
+	{
+		ProcessIdentifierVectoredRead
+		{
+			process_identifier: self,
+			from_remote,
+		}
+	}
+
+	/// Only ever returns a `CreationError` of `KernelWouldBeOutOfMemory`, `PermissionDenied` or `ProcessForProcessIdentifierDoesNotExist`.
+	///
+	/// Even if an error is returned, a partial read can have occurred but there is no way of identifying how much was read.
+	///
+	/// The `Ok` value returned is the number of bytes read in total.
+	/// It is a quantum number; it can never include part of a buffer.
+	/// There is no requirement for the length and sizes of `to_local` and `from_remote` to match.
+	///
+	/// It is not clear what the behaviour is if the process if `self` refers to the current process.
+	#[inline(always)]
+	pub fn vectored_read(self, to_local: &[&mut [u8]], from_remote: &[&[u8]]) -> Result<usize, CreationError>
+	{
+		let to_local_length = to_local.len();
+		let from_remote_length = from_remote.len();
+
+		debug_assert!(to_local_length < MaximumNumberOfBuffers, "to_local length '{}' equals or exceeds MaximumNumberOfBuffers {}", to_local_length, MaximumNumberOfBuffers);
+		debug_assert!(from_remote_length < MaximumNumberOfBuffers, "from_remote length '{}' equals or exceeds MaximumNumberOfBuffers {}", from_remote_length, MaximumNumberOfBuffers);
+
+		const FlagsArgumentIsUnused: u64 = 0;
+
+		// NOTE: Relies on iovec having the same layout as a Rust slice.
+		let result = unsafe { process_vm_readv(self.0.get(), to_local.as_ptr() as *const iovec, to_local_length as u64, from_remote.as_ptr() as *const iovec, from_remote_length as u64, FlagsArgumentIsUnused) };
+		if likely!(result >= 0)
+		{
+			Ok(result as usize)
+		}
+		else if likely!(result == -1)
+		{
+			use self::CreationError::*;
+
+			match errno().0
+			{
+				ENOMEM => Err(KernelWouldBeOutOfMemory),
+				EPERM => Err(PermissionDenied),
+				ESRCH => Err(ProcessForProcessIdentifierDoesNotExist),
+
+				EFAULT => panic!("The memory described by local_iov is outside the caller's accessible address space. Or the memory described by remote_iov is outside the accessible address space of the process pid."),
+				EINVAL => panic!("The sum of the iov_len values of either local_iov or remote_iov overflows a ssize_t value. Or flags is not 0. Or liovcnt or riovcnt is too large."),
+
+				_ => unreachable!(),
+			}
+		}
+		else
+		{
+			unreachable!()
+		}
+	}
+
+	/// Use this wherever a specific process identifier is written to repeatedly.
+	#[inline(always)]
+	pub fn to_vectored_write<'a>(self, to_remote: &'a [&'a mut [u8]]) -> ProcessIdentifierVectoredWrite<'a>
+	{
+		ProcessIdentifierVectoredWrite
+		{
+			process_identifier: self,
+			to_remote,
+		}
+	}
+
+	/// Only ever returns a `CreationError` of `KernelWouldBeOutOfMemory`, `PermissionDenied` or `ProcessForProcessIdentifierDoesNotExist`.
+	///
+	/// Even if an error is returned, a partial write can have occurred but there is no way of identifying how much was written.
+	///
+	/// The `Ok` value returned is the number of bytes written in total.
+	/// It is a quantum number; it can never include part of a buffer.
+	/// There is no requirement for the length and sizes of `from_local` and `to_remote` to match.
+	///
+	/// It is not clear what the behaviour is if the process if `self` refers to the current process.
+	#[inline(always)]
+	pub fn vectored_write(self, from_local: &[&[u8]], to_remote: &[&mut [u8]]) -> Result<usize, CreationError>
+	{
+		let from_local_length = from_local.len();
+		let to_remote_length = to_remote.len();
+
+		debug_assert!(from_local_length < MaximumNumberOfBuffers, "to_local length '{}' equals or exceeds MaximumNumberOfBuffers {}", from_local_length, MaximumNumberOfBuffers);
+		debug_assert!(to_remote_length < MaximumNumberOfBuffers, "from_remote length '{}' equals or exceeds MaximumNumberOfBuffers {}", to_remote_length, MaximumNumberOfBuffers);
+
+		const FlagsArgumentIsUnused: u64 = 0;
+
+		// NOTE: Relies on iovec having the same layout as a Rust slice.
+		let result = unsafe { process_vm_writev(self.0.get(), from_local.as_ptr() as *const iovec, from_local_length as u64, to_remote.as_ptr() as *const iovec, to_remote_length as u64, FlagsArgumentIsUnused) };
+		if likely!(result >= 0)
+		{
+			Ok(result as usize)
+		}
+		else if likely!(result == -1)
+		{
+			use self::CreationError::*;
+
+			match errno().0
+			{
+				ENOMEM => Err(KernelWouldBeOutOfMemory),
+				EPERM => Err(PermissionDenied),
+				ESRCH => Err(ProcessForProcessIdentifierDoesNotExist),
+
+				EFAULT => panic!("The memory described by local_iov is outside the caller's accessible address space. Or the memory described by remote_iov is outside the accessible address space of the process pid."),
+				EINVAL => panic!("The sum of the iov_len values of either local_iov or remote_iov overflows a ssize_t value. Or flags is not 0. Or liovcnt or riovcnt is too large."),
+
+				_ => unreachable!(),
+			}
+		}
+		else
+		{
+			unreachable!()
+		}
 	}
 }

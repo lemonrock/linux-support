@@ -4,6 +4,8 @@
 
 It is intended to be a holistic, very strongly typed and properly modelled library for working with Linux's non-POSIX features, with a particular focus on being a support library for a secure root daemon running a userspace networking stack that I'm developing. As a result, it's highly opionated; it happily makes use of unsafe code, nightly features and `uninitialized()`.
 
+File descriptors, process and vectored-io are tightly integrated.
+
 It replaces several C and Rust libraries including:-
 
 * From C, the horrid and effectively legacy libraries:-
@@ -16,8 +18,10 @@ It replaces several C and Rust libraries including:-
     * [file-descriptors](https://github.com/lemonrock/file-descriptors).
     * [libc-extra](https://crates.io/crates/libc-extra) (partly).
     * [linux-personality](https://crates.io/crates/linux-personality).
+    * [iovec](https://crates.io/crates/iovec).
     * [memfd](https://crates.io/crates/memfd) (in progress).
     * [num_cpus](https://crates.io/crates/num_cpus).
+    * [process_vm_io](https://crates.io/crates/process_vm_io).
     * [term-handler](https://crates.io/crates/term-handler).
     * [vm-info](https://crates.io/crates/vm-info).
 
@@ -47,6 +51,7 @@ It is not intended to replace [nix](https://crates.io/crates/nix), but as an alt
 	* Page map insight
 	* Memory map insight
 	* Virtual to Physical mapping and parsing of the page map
+	* Read and Write process virtual memory (see Process below).
 * File system mounts and mounting
 * File descriptors
 	* Including epoll, signalfd, eventfd, userfaultfd, pidfd, timerfd, inotify, memfd, POSIX message queues, pipes, sockets, terminals and others
@@ -62,6 +67,9 @@ It is not intended to replace [nix](https://crates.io/crates/nix), but as an alt
 * Process, process groups, etc
 	* Parsing of `/proc/<N>/stat`, `/proc/<N>/statm` and `/proc/<N>/status`.
 	* Linux specific `get_program_name`.
+	* Getting session identifier.
+	* Getting process group identifier.
+	* Reading and writing a process' memory.
 * Resource Limits
 * SecComp
 * Signals
@@ -79,10 +87,12 @@ It is not intended to replace [nix](https://crates.io/crates/nix), but as an alt
 	* Including support for working with all 4 user identifiers and all 4 group identifiers a process can have (ie the legacy file system user and group ids)
 	* Init groups
 	* Checks for root where necessary with documented assertions.
+* Vectors
+    * Proper vector IO, including for File.
 
 Currently only Linux using the musl libc has been tested, but support should be possible with minor changes for Android, Fuschia and Emscripten.
 
-The primary architecture of the crate is 64-bit systems, with x86-64 a first tier architecture. Support is then secondary for aarch64 and riscv64 and 'best efforts' for powerpc64. mips64 is a mess, rare in the developers' use cases and so not supported. sparc64 is increasingly obscure with Oracle's discontinuance of development and frustrating in its subtle differences to x86-64, aarch64 and riscv64.
+The primary architecture of the crate is 64-bit systems, with x86-64 a first tier architecture. Support is then secondary for aarch64 and riscv64 and 'best efforts' for powerpc64, mips64 and sparc64.
 
 No support is planned for any 32-bit system.
 

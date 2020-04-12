@@ -58,10 +58,12 @@ impl SpliceSender for CharacterDeviceFileDescriptor
 
 impl VectoredRead for CharacterDeviceFileDescriptor
 {
+	vectored_read!();
 }
 
 impl VectoredWrite for CharacterDeviceFileDescriptor
 {
+	vectored_write!();
 }
 
 impl Read for CharacterDeviceFileDescriptor

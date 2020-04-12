@@ -94,7 +94,7 @@ impl ProcessIdentifierChoice
 
 	/// Gets the session identifier (sid) for this process.
 	///
-	/// The session identifier of a process is the process group identifier of the session leader
+	/// The session identifier of a process is the process group identifier of the session leader.
 	#[inline(always)]
 	pub fn session_identifer(self) -> Result<ProcessGroupIdentifier, ()>
 	{
