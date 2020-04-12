@@ -8,6 +8,7 @@ use super::*;
 use super::pipes_and_fifos::SpliceRecipient;
 use super::pipes_and_fifos::SpliceSender;
 use super::file::SendFile;
+use crate::user_and_groups::{UserIdentifier, GroupIdentifier};
 
 
 /// Contains essential data structures.

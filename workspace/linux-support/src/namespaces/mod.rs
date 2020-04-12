@@ -28,6 +28,7 @@ use std::os::unix::io::RawFd;
 use std::path::Path;
 use std::path::PathBuf;
 use std::borrow::Cow;
+use crate::user_and_groups::{UserOrGroupIdentifier, UserIdentifier, GroupIdentifier};
 
 
 include!("Intervals.rs");

@@ -22,6 +22,7 @@ use std::mem::transmute;
 use std::num::NonZeroU8;
 use std::path::PathBuf;
 use std::convert::TryFrom;
+use crate::user_and_groups::UserIdentifier;
 
 
 include!("Nice.rs");

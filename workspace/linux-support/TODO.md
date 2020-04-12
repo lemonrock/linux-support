@@ -33,6 +33,8 @@
 
 // TODO: replace use of bytes.split<n>() with use of memchr()
 
+// TODO: Add http://man7.org/linux/man-pages/man2/process_vm_readv.2.html and take over https://github.com/mdcssw/process_vm_io/blob/master/src/lib.rs
+
 // TODO: Re-introduce process scheduling which we seem to have lost (?in http server)
     and then add:-
         * /proc/sys/kernel/sched_rr_timeslice_ms

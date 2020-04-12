@@ -6,6 +6,7 @@ use super::*;
 use crate::memory::Kilobyte;
 use crate::strings::FromBytes;
 use crate::signals::SignalQueueStatus;
+use crate::user_and_groups::{UserIdentifiers, GroupIdentifiers, Groups};
 
 
 include!("NestedProcessGroupIdentifiers.rs");

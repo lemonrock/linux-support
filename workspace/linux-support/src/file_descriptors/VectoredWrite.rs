@@ -32,8 +32,6 @@ pub trait VectoredWrite: AsRawFd
 				(
 					if likely!(result == 0)
 					{
-
-
 						WriteZero
 					}
 					else if likely!(result == -1)
