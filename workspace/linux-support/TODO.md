@@ -1,6 +1,26 @@
 // TODO: userfaultfd: http://man7.org/linux/man-pages/man2/userfaultfd.2.html
 
-// TODO: memfd seals (https://lwn.net/Articles/591108/ http://man7.org/linux/man-pages/man2/userfaultfd.2.html https://github.com/lucab/memfd-rs)
+// TODO: file read/write hints http://man7.org/linux/man-pages/man2/fcntl.2.html  F_GET_RW_HINT
+
+    Also, consider get sig calls for files using fcntl
+
+All in fcntl:-
+?Leases
+?Record locks
+?File locks
+?Mandatory locks (now nearly dead)
+
+// TODO: Review http://man7.org/linux/man-pages/man2/ioctl_list.2.html
+    sockios.h
+    netrom.h?
+    fs.h?
+    
+    http://man7.org/linux/man-pages/man2/ioctl_getfsmap.2.html
+    http://man7.org/linux/man-pages/man2/ioctl_ns.2.html
+    http://man7.org/linux/man-pages/man2/ioctl_userfaultfd.2.html
+    
+    timerfd.h: TFD_IOC_SET_TICKS
+    
 
 // TODO: Rework kernel validator into sections for numa, memory, etc.
 

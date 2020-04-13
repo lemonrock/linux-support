@@ -89,6 +89,7 @@ It is not intended to replace [nix](https://crates.io/crates/nix), but as an alt
 	* Checks for root where necessary with documented assertions.
 * Vectors
     * Proper vector IO, including for File.
+    * Integrates Vector I/O for process memory.
 
 Currently only Linux using the musl libc has been tested, but support should be possible with minor changes for Android, Fuschia and Emscripten.
 

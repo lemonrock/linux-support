@@ -6,11 +6,14 @@ use super::*;
 use self::syscall::*;
 use crate::vectors::VectoredRead;
 use crate::vectors::VectoredWrite;
+use crate::paths::{ProcPath, PathExt};
+use crate::user_and_groups::assert_effective_user_id_is_root;
 
 
 pub(crate) mod syscall;
 
 
+include!("ChangeCapacityError.rs");
 include!("PipeFileDescriptor.rs");
 include!("ReceivePipeFileDescriptor.rs");
 include!("SendPipeFileDescriptor.rs");
