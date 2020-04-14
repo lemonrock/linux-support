@@ -3,6 +3,8 @@
 
 
 /// A wrapper for vectored writes.
+///
+/// DOES NOT ADJUST `to_remote` for bytes read.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ProcessIdentifierVectoredWrite<'a>
 {

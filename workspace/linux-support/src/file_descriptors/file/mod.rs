@@ -2,6 +2,7 @@
 // Copyright © 2019 The developers of file-descriptors. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/file-descriptors/master/COPYRIGHT.
 
 
+use self::c::lockf;
 use super::*;
 use super::pipes_and_fifos::SpliceRecipient;
 use super::pipes_and_fifos::SpliceSender;
@@ -9,9 +10,16 @@ use crate::vectors::VectoredWrite;
 use crate::vectors::VectoredRead;
 
 
-include!("File.AsRawFdExt.rs");include!("File.SpliceRecipient.rs");
+mod c;
+
+
+include!("AdvisoryLock.rs");
+include!("File.AsRawFdExt.rs");
+include!("File.FileLock.rs");
+include!("File.SpliceRecipient.rs");
 include!("File.SpliceSender.rs");
 include!("File.SendFile.rs");
 include!("File.VectoredRead.rs");
 include!("File.VectoredWrite.rs");
+include!("FileLock.rs");
 include!("SendFile.rs");

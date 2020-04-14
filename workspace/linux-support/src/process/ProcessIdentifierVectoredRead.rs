@@ -3,6 +3,8 @@
 
 
 /// A wrapper for vectored reads.
+///
+/// DOES NOT ADJUST `from_remote` for bytes read.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ProcessIdentifierVectoredRead<'a>
 {

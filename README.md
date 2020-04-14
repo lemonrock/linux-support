@@ -16,16 +16,17 @@ It replaces several C and Rust libraries including:-
     * [cpu-affinity](https://crates.io/crates/cpu-affinity).
     * [dpdk-unix](https://crates.io/crates/dpdk-unix).
     * [file-descriptors](https://github.com/lemonrock/file-descriptors).
+    * [fs2](https://github.com/danburkert/fs2-rs).
     * [libc-extra](https://crates.io/crates/libc-extra) (partly).
     * [linux-personality](https://crates.io/crates/linux-personality).
     * [iovec](https://crates.io/crates/iovec).
-    * [memfd](https://crates.io/crates/memfd) (in progress).
+    * [memfd](https://crates.io/crates/memfd).
     * [num_cpus](https://crates.io/crates/num_cpus).
     * [process_vm_io](https://crates.io/crates/process_vm_io).
     * [term-handler](https://crates.io/crates/term-handler).
     * [vm-info](https://crates.io/crates/vm-info).
 
-It is not intended to replace [nix](https://crates.io/crates/nix), but as an alternative complement for Linux-specific applications.
+It is not intended to replace [nix](https://crates.io/crates/nix), but as an alternative for Linux-specific applications.
 
 
 ## Features supported
