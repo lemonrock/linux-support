@@ -14,9 +14,72 @@
     http://man7.org/linux/man-pages/man2/ioctl_userfaultfd.2.html
 
 int openat(int, const char *, int, ...);
-int posix_fadvise(int, off_t, off_t, int);
-int posix_fallocate(int, off_t, off_t);
+
+
+
+/*
 dirfd et al
+statvfs
+*/
+
+
+    pub fn getxattr(
+        path: *const c_char,
+        name: *const c_char,
+        value: *mut ::c_void,
+        size: ::size_t,
+    ) -> ::ssize_t;
+    pub fn lgetxattr(
+        path: *const c_char,
+        name: *const c_char,
+        value: *mut ::c_void,
+        size: ::size_t,
+    ) -> ::ssize_t;
+    pub fn fgetxattr(
+        filedes: ::c_int,
+        name: *const c_char,
+        value: *mut ::c_void,
+        size: ::size_t,
+    ) -> ::ssize_t;
+    pub fn setxattr(
+        path: *const c_char,
+        name: *const c_char,
+        value: *const ::c_void,
+        size: ::size_t,
+        flags: ::c_int,
+    ) -> ::c_int;
+    pub fn lsetxattr(
+        path: *const c_char,
+        name: *const c_char,
+        value: *const ::c_void,
+        size: ::size_t,
+        flags: ::c_int,
+    ) -> ::c_int;
+    pub fn fsetxattr(
+        filedes: ::c_int,
+        name: *const c_char,
+        value: *const ::c_void,
+        size: ::size_t,
+        flags: ::c_int,
+    ) -> ::c_int;
+    pub fn listxattr(
+        path: *const c_char,
+        list: *mut c_char,
+        size: ::size_t,
+    ) -> ::ssize_t;
+    pub fn llistxattr(
+        path: *const c_char,
+        list: *mut c_char,
+        size: ::size_t,
+    ) -> ::ssize_t;
+    pub fn flistxattr(
+        filedes: ::c_int,
+        list: *mut c_char,
+        size: ::size_t,
+    ) -> ::ssize_t;
+    pub fn removexattr(path: *const c_char, name: *const c_char) -> ::c_int;
+    pub fn lremovexattr(path: *const c_char, name: *const c_char) -> ::c_int;
+    pub fn fremovexattr(filedes: ::c_int, name: *const c_char) -> ::c_int;
 
 TODO: timerfd.h: TFD_IOC_SET_TICKS
     

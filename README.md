@@ -62,6 +62,7 @@ It is not intended to replace [nix](https://crates.io/crates/nix), but as an alt
 	* Three different kinds of advisory file locks (whole file, per-proces record and the newer and better per open file description record).
 	* `copy_file_range`.
 	* File leases.
+	* Comprehensive range of file sychronizations, from just a range to every filesystem.
 * Linux Personality.
     * Get for any process as well as current.
     * Execution domains (legacy feature).

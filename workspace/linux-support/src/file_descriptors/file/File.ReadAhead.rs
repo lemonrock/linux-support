@@ -2,11 +2,6 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-
-
-include!("copy_file_range.rs");
-include!("flock.rs");
-include!("SEEK_DATA.rs");
-include!("SEEK_HOLE.rs");
-include!("syncfs.rs");
+impl ReadAhead for File
+{
+}
