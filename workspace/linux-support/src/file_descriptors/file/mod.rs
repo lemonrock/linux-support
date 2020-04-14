@@ -17,10 +17,12 @@ mod c;
 
 include!("AdvisoryWholeFileLock.rs");
 include!("AdvisoryWholeFileLocking.rs");
+include!("CopyFileRange.rs");
 include!("ExtendedSeek.rs");
 include!("ExtendedSeekFrom.rs");
 include!("File.AsRawFdExt.rs");
 include!("File.AdvisoryWholeFileLocking.rs");
+include!("File.CopyFileRange.rs");
 include!("File.OpenFileDescriptionAdvisoryFileRecordLocking.rs");
 include!("File.PerProcessAdvisoryFileRecordLocking.rs");
 include!("File.SpliceRecipient.rs");

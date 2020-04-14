@@ -2,10 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-
-
-include!("copy_file_range.rs");
-include!("flock.rs");
-include!("SEEK_DATA.rs");
-include!("SEEK_HOLE.rs");
+extern "C"
+{
+	pub(super) fn copy_file_range(fd_in: c_int, off_in: *mut loff_t, fd_out: c_int, off_out: *mut loff_t, len: size_t, flags: c_uint) -> ssize_t;
+}

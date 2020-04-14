@@ -123,6 +123,28 @@ impl FileExt for MemoryFileDescriptor
 	}
 }
 
+impl ExtendedSeek for MemoryFileDescriptor
+{
+}
+
+#[allow(deprecated)]
+impl AdvisoryWholeFileLocking for MemoryFileDescriptor
+{
+}
+
+#[allow(deprecated)]
+impl PerProcessAdvisoryFileRecordLocking for MemoryFileDescriptor
+{
+}
+
+impl OpenFileDescriptionAdvisoryFileRecordLocking for MemoryFileDescriptor
+{
+}
+
+impl CopyFileRange for MemoryFileDescriptor
+{
+}
+
 impl Into<File> for MemoryFileDescriptor
 {
 	#[inline(always)]

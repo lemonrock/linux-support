@@ -25,7 +25,7 @@
 /// * If a process closes *any* file descriptor referring to a file, then all of the process's locks on that file are released, regardless  of the file descriptor(s) on which the locks were obtained. This is *bad*: it means that a process can lose its locks on a file such as `/etc/passwd` or `/etc/mtab` when for some reason a library function decides to open, read, and close the same file.
 /// *  The threads in a process share locks. In other words, a multithreaded program can't use record locking to ensure that threads don't simultaneously access the same region of a file.
 #[deprecated(since="0.0.0", note="Prefer the use of OpenFileDescriptionAdvisoryFileRecordLocking")]
-pub trait PerProcessAdvisoryFileRecordLocking: AsRawFd + Seek
+pub trait PerProcessAdvisoryFileRecordLocking: AsRawFd + Seek + FileExt
 {
 	/// Acquire a per-process record lock (non-blocking).
 	///

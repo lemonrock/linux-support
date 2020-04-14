@@ -139,6 +139,7 @@ use libc::ESRCH;
 use libc::ETIMEDOUT;
 use libc::ETXTBSY;
 use libc::EWOULDBLOCK;
+use libc::EXDEV;
 use libc::fcntl;
 use libc::F_ADD_SEALS;
 use libc::F_RDLCK;

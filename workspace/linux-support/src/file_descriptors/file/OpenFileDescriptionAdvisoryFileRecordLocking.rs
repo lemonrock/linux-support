@@ -19,7 +19,7 @@
 /// * byte-range lock
 /// * file-segment lock
 /// * file-region lock
-pub trait OpenFileDescriptionAdvisoryFileRecordLocking: AsRawFd + Seek
+pub trait OpenFileDescriptionAdvisoryFileRecordLocking: AsRawFd + Seek + FileExt
 {
 	/// Acquire a open file description record lock (non-blocking).
 	///

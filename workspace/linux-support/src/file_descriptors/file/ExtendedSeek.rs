@@ -11,7 +11,7 @@
 /// However, a filesystem is not obliged to report holes, so these operations are not a guaranteed mechanism for mapping the storage space actually allocated to a file.
 /// (Furthermore, a sequence of zeros that actually has been written to the underlying storage may not be reported as a hole).
 /// In the simplest implementation, a filesystem can support the operations by making `ExtendedSeekFrom::Hole` always return the offset of the end of the file, and making `ExtendedSeekFrom::Data` always return offset (ie, even if the location referred to by offset is a hole, it can be considered to consist of data that is a sequence of zeros).
-pub trait ExtendedSeek: AsRawFd + Seek
+pub trait ExtendedSeek: AsRawFd + Seek + FileExt
 {
 	/// Seek to an offset, in bytes, in a stream.
 	///

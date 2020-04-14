@@ -4,7 +4,7 @@
 
 /// Per-process, legacy whole file record locking.
 #[deprecated(since="0.0.0", note="Prefer the use of OpenFileDescriptionAdvisoryFileRecordLocking")]
-pub trait AdvisoryWholeFileLocking: AsRawFd + Seek
+pub trait AdvisoryWholeFileLocking: AsRawFd + Seek + FileExt
 {
 	/// Uses `flock()` system call.
 	///
