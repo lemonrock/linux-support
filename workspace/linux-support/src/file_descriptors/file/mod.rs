@@ -2,10 +2,12 @@
 // Copyright © 2019 The developers of file-descriptors. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/file-descriptors/master/COPYRIGHT.
 
 
-use self::c::lockf;
+use self::c::*;
 use super::*;
 use super::pipes_and_fifos::SpliceRecipient;
 use super::pipes_and_fifos::SpliceSender;
+use crate::process::ProcessIdentifierChoice;
+use crate::process::ProcessIdentifier;
 use crate::vectors::VectoredWrite;
 use crate::vectors::VectoredRead;
 
@@ -13,13 +15,20 @@ use crate::vectors::VectoredRead;
 mod c;
 
 
-include!("AdvisoryLock.rs");
+include!("AdvisoryWholeFileLock.rs");
+include!("AdvisoryWholeFileLocking.rs");
+include!("ExtendedSeek.rs");
+include!("ExtendedSeekFrom.rs");
 include!("File.AsRawFdExt.rs");
-include!("File.FileLock.rs");
+include!("File.AdvisoryWholeFileLocking.rs");
+include!("File.OpenFileDescriptionAdvisoryFileRecordLocking.rs");
+include!("File.PerProcessAdvisoryFileRecordLocking.rs");
 include!("File.SpliceRecipient.rs");
 include!("File.SpliceSender.rs");
 include!("File.SendFile.rs");
 include!("File.VectoredRead.rs");
 include!("File.VectoredWrite.rs");
-include!("FileLock.rs");
+include!("OpenFileDescriptionAdvisoryFileRecordLocking.rs");
+include!("PerProcessAdvisoryFileRecordLocking.rs");
+include!("AdvisoryFileRecordLock.rs");
 include!("SendFile.rs");

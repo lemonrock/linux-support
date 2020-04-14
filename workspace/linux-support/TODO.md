@@ -4,12 +4,6 @@
 
     Also, consider get sig calls for files using fcntl
 
-All in fcntl:-
-?Leases
-?Record locks
-?File locks
-?Mandatory locks (now nearly dead)
-
 // TODO: Review http://man7.org/linux/man-pages/man2/ioctl_list.2.html
     sockios.h
     netrom.h?
@@ -19,8 +13,15 @@ All in fcntl:-
     http://man7.org/linux/man-pages/man2/ioctl_ns.2.html
     http://man7.org/linux/man-pages/man2/ioctl_userfaultfd.2.html
     
-    timerfd.h: TFD_IOC_SET_TICKS
+TODO: timerfd.h: TFD_IOC_SET_TICKS
     
+
+
+	/*
+Seeking file data and holes
+Since version 3.1, Linux supports the following additional values for whence:
+
+	*/
 
 // TODO: Rework kernel validator into sections for numa, memory, etc.
 

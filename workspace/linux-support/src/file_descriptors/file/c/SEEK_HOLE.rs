@@ -2,9 +2,4 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-
-
-include!("flock.rs");
-include!("SEEK_DATA.rs");
-include!("SEEK_HOLE.rs");
+pub(super) const SEEK_HOLE: i32 = 4;

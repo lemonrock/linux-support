@@ -17,6 +17,7 @@ It replaces several C and Rust libraries including:-
     * [dpdk-unix](https://crates.io/crates/dpdk-unix).
     * [file-descriptors](https://github.com/lemonrock/file-descriptors).
     * [fs2](https://github.com/danburkert/fs2-rs).
+        * Adding support for 3 kinds of file locks available since Linux 3.1.
     * [libc-extra](https://crates.io/crates/libc-extra) (partly).
     * [linux-personality](https://crates.io/crates/linux-personality).
     * [iovec](https://crates.io/crates/iovec).
@@ -57,6 +58,8 @@ It is not intended to replace [nix](https://crates.io/crates/nix), but as an alt
 * File descriptors
 	* Including epoll, signalfd, eventfd, userfaultfd, pidfd, timerfd, inotify, memfd, POSIX message queues, pipes, sockets, terminals and others
 	* Memory mapping.
+	* Adding extended seeks for data and holes.
+	* Three different kinds of advisory file locks (whole file, per-proces record and the newer and better per open file description record).
 * Linux Personality.
     * Get for any process as well as current.
     * Execution domains (legacy feature).

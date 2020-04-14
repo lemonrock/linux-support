@@ -2,7 +2,26 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-extern "C"
+/// An advisory record lock kind.
+///
+/// A record lock is also known as a:-
+///
+/// * byte-range lock
+/// * file-segment lock
+/// * file-region lock
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(i32)]
+pub enum AdvisoryFileRecordLock
 {
-	pub(super) fn lockf(fd: c_int, cmd: c_int, len: off_t) -> c_int;
+	/// A read lock.
+	///
+	/// Also known as a shared lock.
+	///
+	/// The file so-locked must be open for reading.
+	Read = F_RDLCK,
+
+	/// A write lock.
+	///
+	/// Also known as an exclusive lock.
+	Write = F_WRLCK,
 }
