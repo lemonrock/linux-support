@@ -15,14 +15,6 @@
     
 TODO: timerfd.h: TFD_IOC_SET_TICKS
     
-
-
-	/*
-Seeking file data and holes
-Since version 3.1, Linux supports the following additional values for whence:
-
-	*/
-
 // TODO: Rework kernel validator into sections for numa, memory, etc.
 
 // TODO: kernel validator proper errors.
