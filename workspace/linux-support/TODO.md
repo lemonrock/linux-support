@@ -12,7 +12,12 @@
     http://man7.org/linux/man-pages/man2/ioctl_getfsmap.2.html
     http://man7.org/linux/man-pages/man2/ioctl_ns.2.html
     http://man7.org/linux/man-pages/man2/ioctl_userfaultfd.2.html
-    
+
+int openat(int, const char *, int, ...);
+int posix_fadvise(int, off_t, off_t, int);
+int posix_fallocate(int, off_t, off_t);
+dirfd et al
+
 TODO: timerfd.h: TFD_IOC_SET_TICKS
     
 // TODO: Rework kernel validator into sections for numa, memory, etc.

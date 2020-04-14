@@ -145,6 +145,10 @@ impl CopyFileRange for MemoryFileDescriptor
 {
 }
 
+impl Leasing for MemoryFileDescriptor
+{
+}
+
 impl Into<File> for MemoryFileDescriptor
 {
 	#[inline(always)]
