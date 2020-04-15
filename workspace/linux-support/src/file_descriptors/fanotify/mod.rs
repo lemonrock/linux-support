@@ -3,6 +3,7 @@
 
 
 use super::*;
+use super::directory::DirectoryFileDescriptor;
 use self::syscall::*;
 
 

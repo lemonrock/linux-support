@@ -2,21 +2,4 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use super::status::StatusStatisticParseError;
-use crate::ClockTicks;
-use crate::devices::CharacterDevice;
-use crate::memory::NumberOfPages;
-use crate::memory::VirtualAddress;
-use crate::niceness::Nice;
-use crate::niceness::RealTimePriority;
-use crate::paths::PathExt;
-use crate::paths::ProcPath;
-use crate::signals::ChildStatus;
-use crate::strings::FromBytes;
-use std::num::NonZeroU8;
-use std::num::NonZeroU64;
-
-
-include!("Stat.rs");
-include!("StatParseError.rs");
+block_or_character_device!(CharacterDevice);

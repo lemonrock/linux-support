@@ -56,7 +56,7 @@ It is not intended to replace [nix](https://crates.io/crates/nix), but as an alt
 	* Read and Write process virtual memory (see Process below).
 * File system mounts and mounting
 * File descriptors
-	* Including epoll, signalfd, eventfd, userfaultfd, pidfd, timerfd, inotify, memfd, POSIX message queues, pipes, sockets, terminals and others.
+	* Including character device, directory, epoll, signalfd, eventfd, userfaultfd, pidfd, timerfd, inotify, memfd, POSIX message queues, pipes, sockets, terminals and others.
 	* Memory mapping.
 	* Adding extended seeks for data and holes.
 	* Three different kinds of advisory file locks (whole file, per-proces record and the newer and better per open file description record).
@@ -117,9 +117,22 @@ There is a particularly extensive and safe wrapper for signals and terminals.
 ### Supported File Descriptors
 
 * character devices.
+* directory
+    * creating FIFOs, unix domain sockets, character devices and block devices.
 * epoll.
 * eventfd.
 * fanotify.
+* file extensions for
+    * posix and non-posix allocate
+    * file leases
+    * advisory whole file locks
+    * advisory per-process file record locks
+    * advisory open file description file record locks
+    * synchronizing file ranges
+    * copying file ranges
+    * synchronizing data only
+    * synchronizing filesystems
+    * read ahead
 * inotify.
 * memfd (anonymous memory backed files).
     * See `file` module.

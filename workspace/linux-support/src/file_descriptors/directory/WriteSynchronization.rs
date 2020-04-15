@@ -2,21 +2,17 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use super::status::StatusStatisticParseError;
-use crate::ClockTicks;
-use crate::devices::CharacterDevice;
-use crate::memory::NumberOfPages;
-use crate::memory::VirtualAddress;
-use crate::niceness::Nice;
-use crate::niceness::RealTimePriority;
-use crate::paths::PathExt;
-use crate::paths::ProcPath;
-use crate::signals::ChildStatus;
-use crate::strings::FromBytes;
-use std::num::NonZeroU8;
-use std::num::NonZeroU64;
+/// Write synchronization.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(i32)]
+pub enum WriteSynchronization
+{
+	/// Do no synchronization.
+	DoNone,
 
+	/// Equivalent to calling `Synchronize::synchronize_data_only()` after every `write()`.
+	DataOnly,
 
-include!("Stat.rs");
-include!("StatParseError.rs");
+	/// Equivalent to calling `Synchronize::synchronize_data_and_metadata()` after every `write()`.
+	MetaDataAndData,
+}

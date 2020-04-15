@@ -570,8 +570,8 @@ impl MemoryMapEntry
 	}
 
 	#[inline(always)]
-	fn parse_major_or_minor(field_bytes: &[u8]) -> Result<u8, ParseNumberError>
+	fn parse_major_or_minor(field_bytes: &[u8]) -> Result<u32, ParseNumberError>
 	{
-		u8::parse_hexadecimal_number_lower_case_fixed_width(field_bytes, size_of::<u8>() * 2)
+		u32::parse_hexadecimal_number_lower_case_fixed_width(field_bytes, size_of::<u8>() * 2)
 	}
 }

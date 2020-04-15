@@ -1,3 +1,7 @@
+BUG: Stat parsing of `comm`:-
+- Can have embedded ')' in it legitimately
+- Maximum of 255 characters, might be limited to 16 characters by kernel?
+
 // TODO: userfaultfd: http://man7.org/linux/man-pages/man2/userfaultfd.2.html
 
 // TODO: file read/write hints http://man7.org/linux/man-pages/man2/fcntl.2.html  F_GET_RW_HINT
@@ -18,6 +22,8 @@ int openat(int, const char *, int, ...);
 
 
 /*
+DirectoryFileDescriptor.
+
 dirfd et al
 statvfs
 */

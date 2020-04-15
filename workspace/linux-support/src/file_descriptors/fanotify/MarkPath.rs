@@ -10,11 +10,10 @@ pub enum MarkPath<'a>
 	ByDirectoryFileDescriptor
 	{
 		/// Directory.
-		directory: &'a File,
+		///
+		/// Use DirectoryFileDescriptor::AlwaysCurrentWorkingDirectory to use the current working directory.
+		directory: &'a DirectoryFileDescriptor,
 	},
-
-	/// Use the path of the current working directory.
-	CurrentWorkingDirectory,
 
 	/// Use an absolute path.
 	AbsolutePath
@@ -30,14 +29,9 @@ pub enum MarkPath<'a>
 		relative_path: &'a CStr,
 
 		/// Directory.
-		directory: &'a File,
-	},
-
-	/// Use a path relative to the current working directory.
-	RelativeToCurrentWorkingDirectory
-	{
-		/// Path relative to current working directory.
-		relative_path: &'a CStr,
+		///
+		/// Use DirectoryFileDescriptor::AlwaysCurrentWorkingDirectory to be relative to the current working directory.
+		directory: &'a DirectoryFileDescriptor,
 	},
 }
 
@@ -51,10 +45,8 @@ impl<'a> MarkPath<'a>
 		match self
 		{
 			&ByDirectoryFileDescriptor { directory } => (directory.as_raw_fd(), null()),
-			&CurrentWorkingDirectory => (AT_FDCWD, null()),
 			&AbsolutePath { absolute_path } => (-1, absolute_path.as_ptr()),
 			&RelativeToDirectoryFileDescriptor { directory, relative_path } => (directory.as_raw_fd(), relative_path.as_ptr()),
-			&RelativeToCurrentWorkingDirectory { relative_path } => (AT_FDCWD, relative_path.as_ptr()),
 		}
 	}
 }

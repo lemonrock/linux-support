@@ -83,6 +83,7 @@ use libc::c_ulong;
 use libc::c_ulonglong;
 use libc::c_ushort;
 use libc::c_void;
+use libc::dev_t;
 use libc::EACCES;
 use libc::EADDRINUSE;
 use libc::EADDRNOTAVAIL;
@@ -180,20 +181,26 @@ use libc::LOCK_UN;
 use libc::loff_t;
 use libc::lseek;
 use libc::mode_t;
+use libc::mknodat;
 use libc::O_APPEND;
 use libc::O_CLOEXEC;
 use libc::O_CREAT;
+use libc::O_DIRECT;
 use libc::O_DSYNC;
 use libc::O_EXCL;
 use libc::O_LARGEFILE;
 use libc::O_NOATIME;
 use libc::O_NOCTTY;
+use libc::O_NOFOLLOW;
 use libc::O_NONBLOCK;
 use libc::O_RDONLY;
 use libc::O_RDWR;
 use libc::O_SYNC;
+use libc::O_TMPFILE;
+use libc::O_TRUNC;
 use libc::O_WRONLY;
 use libc::off_t;
+use libc::openat;
 use libc::pid_t;
 use libc::POSIX_FADV_DONTNEED;
 use libc::POSIX_FADV_NOREUSE;
@@ -202,8 +209,14 @@ use libc::POSIX_FADV_RANDOM;
 use libc::POSIX_FADV_SEQUENTIAL;
 use libc::POSIX_FADV_WILLNEED;
 use libc::posix_fadvise;
+use libc::pread;
+use libc::pwrite;
 use libc::read;
 use libc::readahead;
+use libc::S_IFBLK;
+use libc::S_IFCHR;
+use libc::S_IFIFO;
+use libc::S_IFSOCK;
 use libc::S_IRUSR;
 use libc::S_IWUSR;
 use libc::sa_family_t; // Typically u16.
@@ -293,8 +306,16 @@ use std::slice::from_raw_parts_mut;
 use std::str::from_utf8;
 
 
+/// Block device file descriptors.
+pub mod block_device;
+
+
 /// Character device file descriptors.
 pub mod character_device;
+
+
+/// Directory file descriptors.
+pub mod directory;
 
 
 /// EPoll file descriptors.

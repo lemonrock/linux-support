@@ -10,6 +10,7 @@ use super::pipes_and_fifos::SpliceSender;
 use super::file::SendFile;
 use crate::user_and_groups::{UserIdentifier, GroupIdentifier};
 use crate::vectors::{VectoredRead, VectoredWrite};
+use crate::cpu::HyperThread;
 
 
 /// Contains essential data structures.

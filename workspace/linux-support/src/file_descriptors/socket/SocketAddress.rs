@@ -19,10 +19,8 @@ impl<FilePath: AsRef<Path>> SocketAddress<FilePath>
 	/// `back_log` can not exceed `std::i32::MAX` and is capped by the Operating System to the value in `/proc/sys/net/core/somaxconn`.
 	///
 	/// The default value in `/proc/sys/net/core/somaxconn` is `128`.
-	///
-	/// `logical_core_identifier` for the CPU the current thread is executing on can be obtained by using `unsafe { ::libc::sched_getcpu() }` on Linux.
 	#[inline(always)]
-	pub fn new_streaming_server_listener(&self, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16, back_log: u32, logical_core_identifier: u16) -> Result<StreamingServerListenerSocketFileDescriptorEnum, NewSocketServerListenerError>
+	pub fn new_streaming_server_listener(&self, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16, back_log: u32, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketFileDescriptorEnum, NewSocketServerListenerError>
 	{
 		use self::StreamingServerListenerSocketFileDescriptorEnum::*;
 		use self::SocketAddr::*;
@@ -32,9 +30,9 @@ impl<FilePath: AsRef<Path>> SocketAddress<FilePath>
 		(
 			match self
 			{
-				&InternetProtocol(V4(socket_address)) => InternetProtocolVersion4(SocketFileDescriptor::new_transmission_control_protocol_over_internet_protocol_version_4_server_listener(socket_address, send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, linger_seconds, linger_in_FIN_WAIT2_seconds, maximum_SYN_transmits, back_log, logical_core_identifier)?),
-				&InternetProtocol(V6(socket_address)) => InternetProtocolVersion6(SocketFileDescriptor::new_transmission_control_protocol_over_internet_protocol_version_6_server_listener(socket_address, send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, linger_seconds, linger_in_FIN_WAIT2_seconds, maximum_SYN_transmits, back_log, logical_core_identifier)?),
-				&Unix(ref unix_socket_address) => UnixDomain(SocketFileDescriptor::new_streaming_unix_domain_socket_server_listener(unix_socket_address, send_buffer_size_in_bytes, back_log, logical_core_identifier)?),
+				&InternetProtocol(V4(socket_address)) => InternetProtocolVersion4(SocketFileDescriptor::new_transmission_control_protocol_over_internet_protocol_version_4_server_listener(socket_address, send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, linger_seconds, linger_in_FIN_WAIT2_seconds, maximum_SYN_transmits, back_log, hyper_thread)?),
+				&InternetProtocol(V6(socket_address)) => InternetProtocolVersion6(SocketFileDescriptor::new_transmission_control_protocol_over_internet_protocol_version_6_server_listener(socket_address, send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, linger_seconds, linger_in_FIN_WAIT2_seconds, maximum_SYN_transmits, back_log, hyper_thread)?),
+				&Unix(ref unix_socket_address) => UnixDomain(SocketFileDescriptor::new_streaming_unix_domain_socket_server_listener(unix_socket_address, send_buffer_size_in_bytes, back_log, hyper_thread)?),
 			}
 		)
 	}

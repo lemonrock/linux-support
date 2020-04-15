@@ -3,8 +3,6 @@
 
 
 use self::c::*;
-use crate::strings::Radix;
-use crate::strings::parse_number::*;
 use errno::errno;
 use errno::Errno;
 use libc::c_int;
@@ -39,7 +37,6 @@ include!("Character.rs");
 include!("CharacterSettings.rs");
 include!("ControlModeFlagSettings.rs");
 include!("CurrentTerminalSettings.rs");
-include!("ControllingTerminal.rs");
 include!("Echo.rs");
 include!("FlagSetting.rs");
 include!("FormFeedDelay.rs");

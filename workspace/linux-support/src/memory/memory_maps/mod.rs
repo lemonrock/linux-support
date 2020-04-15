@@ -2,10 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::BlockDevice;
-use crate::bit_set::{BitSet, ListParseError};
+use crate::devices::BlockDevice;
+use crate::bit_set::BitSet;
+use crate::bit_set::ListParseError;
 use crate::inode::Inode;
-use crate::strings::{without_suffix, LinuxStringEscapeSequence};
+use crate::strings::LinuxStringEscapeSequence;
+use crate::strings::without_suffix;
 use crate::strings::parse_number::*;
 use self::MemoryMapParseError::*;
 use super::numa::*;

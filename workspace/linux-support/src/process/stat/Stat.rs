@@ -27,7 +27,7 @@ pub struct Stat
 	pub session_identifier: ProcessGroupIdentifier,
 
 	/// Controlling terminal.
-	pub controlling_terminal: ControllingTerminal,
+	pub controlling_terminal: CharacterDevice,
 
 	/// Controlling terminal foreground process group.
 	///
@@ -312,6 +312,14 @@ impl Stat
 		}
 
 		#[inline(always)]
+		fn controlling_terminal_from_bytes(start_index: &mut usize, bytes: &[u8], index: u8, name: &'static str) -> Result<CharacterDevice, StatParseError>
+		{
+			let next_bytes = value_bytes(start_index, bytes, index, name)?;
+			let dev = u32::from_bytes(next_bytes).map_err(|cause| ParseNumber { index: unsafe { NonZeroU8::new_unchecked(index)}, name, cause})?;
+			Ok(CharacterDevice::from(dev))
+		}
+
+		#[inline(always)]
 		fn obsolete_signal_bit_set_from_bytes(start_index: &mut usize, bytes: &[u8], index: u8, name: &'static str) -> Result<BitSet<Signal>, StatParseError>
 		{
 			let next_bytes = value_bytes(start_index, bytes, index, name)?;
@@ -352,7 +360,7 @@ impl Stat
 			parent_process_identifier: from_bytes(&mut start_index, bytes, 4, "ppid")?,
 			process_group_identifier: from_bytes(&mut start_index, bytes, 5, "pgrp")?,
 			session_identifier: from_bytes(&mut start_index, bytes, 6, "session")?,
-			controlling_terminal: from_bytes(&mut start_index, bytes, 7, "tty_nr")?,
+			controlling_terminal: controlling_terminal_from_bytes(&mut start_index, bytes, 7, "tty_nr")?,
 			controlling_terminal_foreground_process_group: from_bytes(&mut start_index, bytes, 8, "tpgid")?,
 			kernel_flags_word: from_bytes(&mut start_index, bytes, 9, "flags")?,
 			number_of_minor_page_faults: from_bytes(&mut start_index, bytes, 10, "minflt")?,
