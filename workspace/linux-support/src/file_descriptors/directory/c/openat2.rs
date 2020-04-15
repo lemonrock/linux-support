@@ -4,7 +4,7 @@
 
 #[allow(unused_variables)]
 #[inline(always)]
-pub(super) fn openat2(dirfd: c_int, pathname: *const c_char, how: *mut open_how, size: size_t) -> c_int
+pub(super) fn openat2(dirfd: c_int, pathname: *const c_char, how: *mut open_how, size: size_t) -> isize
 {
-	unimplemented!("Not yet implemented by musl and syscall number is unknown")
+	SYS::openat2.syscall4(dirfd as usize, pathname as usize, how as usize, size as usize)
 }

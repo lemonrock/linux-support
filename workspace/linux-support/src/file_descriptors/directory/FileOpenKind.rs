@@ -104,7 +104,7 @@ impl<'a> FileOpenKind<'a>
 				{
 					o_flags
 				};
-				(o_flags, mode & 0xFFF, path.as_ptr())
+				(o_flags, DirectoryFileDescriptor::mask_mode(mode), path.as_ptr())
 			}
 
 			&MakeATemporaryFile { access, exclusive, mode } =>
@@ -117,7 +117,7 @@ impl<'a> FileOpenKind<'a>
 				{
 					access.to_oflag() | O_TMPFILE
 				};
-				(o_flags, mode & 0xFFF, null())
+				(o_flags, DirectoryFileDescriptor::mask_mode(mode), null())
 			}
 		}
 	}

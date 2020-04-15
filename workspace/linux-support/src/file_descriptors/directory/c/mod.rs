@@ -3,6 +3,7 @@
 
 
 use super::*;
+use crate::syscall::SYS;
 
 
 include!("open_how.rs");

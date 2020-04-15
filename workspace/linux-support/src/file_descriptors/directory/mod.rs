@@ -5,6 +5,7 @@
 use crate::devices::*;
 use self::c::*;
 use super::*;
+use crate::user_and_groups::{UserIdentifier, GroupIdentifier};
 
 
 mod c;

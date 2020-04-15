@@ -1279,6 +1279,13 @@ pub enum SYS
 	#[cfg(target_arch = "s390x")] #[allow(missing_docs)] openat = 288,
 	#[cfg(target_arch = "x86_64")] #[allow(missing_docs)] openat = 257,
 
+	#[cfg(target_arch = "aarch64")] #[allow(missing_docs)] openat2 = 437,
+	#[cfg(target_arch = "mips64")] #[allow(missing_docs)] openat2 = 5437,
+	#[cfg(target_arch = "powerpc64")] #[allow(missing_docs)] openat2 = 437,
+	#[cfg(target_arch = "riscv64")] #[allow(missing_docs)] openat2 = 437,
+	#[cfg(target_arch = "s390x")] #[allow(missing_docs)] openat2 = 437,
+	#[cfg(target_arch = "x86_64")] #[allow(missing_docs)] openat2 = 437,
+
 	#[cfg(target_arch = "mips64")] #[allow(missing_docs)] pause = 5033,
 	#[cfg(target_arch = "powerpc64")] #[allow(missing_docs)] pause = 29,
 	#[cfg(target_arch = "s390x")] #[allow(missing_docs)] pause = 29,
@@ -1310,6 +1317,13 @@ pub enum SYS
 	#[cfg(target_arch = "riscv64")] #[allow(missing_docs)] pidfd_open = 434,
 	#[cfg(target_arch = "s390x")] #[allow(missing_docs)] pidfd_open = 434,
 	#[cfg(target_arch = "x86_64")] #[allow(missing_docs)] pidfd_open = 434,
+
+	#[cfg(target_arch = "aarch64")] #[allow(missing_docs)] pidfd_getfd = 438,
+	#[cfg(target_arch = "mips64")] #[allow(missing_docs)] pidfd_getfd = 5438,
+	#[cfg(target_arch = "powerpc64")] #[allow(missing_docs)] pidfd_getfd = 438,
+	#[cfg(target_arch = "riscv64")] #[allow(missing_docs)] pidfd_getfd = 438,
+	#[cfg(target_arch = "s390x")] #[allow(missing_docs)] pidfd_getfd = 438,
+	#[cfg(target_arch = "x86_64")] #[allow(missing_docs)] pidfd_getfd = 438,
 
 	#[cfg(target_arch = "aarch64")] #[allow(missing_docs)] pidfd_send_signal = 424,
 	#[cfg(target_arch = "mips64")] #[allow(missing_docs)] pidfd_send_signal = 5424,
