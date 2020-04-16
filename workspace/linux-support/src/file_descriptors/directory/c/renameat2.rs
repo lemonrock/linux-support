@@ -2,10 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use crate::syscall::SYS;
-
-
-include!("open_how.rs");
-include!("openat2.rs");
-include!("renameat2.rs");
+// int oldfd, const char *old, int newfd, const char *new
+#[inline(always)]
+pub(super) fn renameat2(oldfd: c_int, old: *const c_char, newfd: c_int, new: *const c_char, flags: c_int) -> c_int
+{
+	SYS::renameat2.syscall5(oldfd as usize, old as usize, newfd as usize, new as usize, flags as usize) as c_int
+}

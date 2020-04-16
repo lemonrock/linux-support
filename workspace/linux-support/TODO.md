@@ -1,94 +1,39 @@
-BUG: Stat parsing of `comm`:-
+/proc/x/stat parsing bug in `comm`:-
 - Can have embedded ')' in it legitimately
-- Maximum of 255 characters, might be limited to 16 characters by kernel?
+- Maximum of 255 characters,
+- Might actually only be 16 characters, due to kernel task struct limit
+- Also get this from /proc/x/comm (which doubles as thread name)
 
-// TODO: userfaultfd: http://man7.org/linux/man-pages/man2/userfaultfd.2.html
+FIND ALL `*at()` functions that can take an empty path.
+Directory iteration eg getdents
+statx
 
-// TODO: file read/write hints http://man7.org/linux/man-pages/man2/fcntl.2.html  F_GET_RW_HINT
+fstatvfs (files, directories, fifos, character/block)
+futimens (files, directories, fifos, character/block)
+fgetxattr
+fsetxattr
+flistxattr
+fremovexattr
+open_by_handle_at
+http://man7.org/linux/man-pages/man2/ioctl_ficlonerange.2.html
+http://man7.org/linux/man-pages/man2/ioctl_fideduperange.2.html
+timerfd.h: TFD_IOC_SET_TICKS
+userfaultfd: http://man7.org/linux/man-pages/man2/userfaultfd.2.html
+F_GET_RW_HINT: read-write hints http://man7.org/linux/man-pages/man2/fcntl.2.html
+PathFileDescriptor (O_PATH)
+Review http://man7.org/linux/man-pages/man2/ioctl_list.2.html
+- sockios.h
+- netrom.h?
+- fs.h?
+pidfd_getfd: http://man7.org/linux/man-pages/man2/pidfd_getfd.2.html
+/// Permission to duplicate another process's file descriptor is governed by a ptrace access mode `PTRACE_MODE_ATTACH_REALCREDS` check.
+///
+/// Since Linux 5.6.
+#[inline(always)]
+pub fn duplicate_file_descriptor_from_other_process(file_descriptor: RawFd) -> Result<RawFD, CreationError>
+{
+}
 
-    Also, consider get sig calls for files using fcntl
-
-// TODO: Review http://man7.org/linux/man-pages/man2/ioctl_list.2.html
-    sockios.h
-    netrom.h?
-    fs.h?
-    
-    http://man7.org/linux/man-pages/man2/ioctl_getfsmap.2.html
-    http://man7.org/linux/man-pages/man2/ioctl_ns.2.html
-    http://man7.org/linux/man-pages/man2/ioctl_userfaultfd.2.html
-
-int openat(int, const char *, int, ...);
-
-
-
-/*
-DirectoryFileDescriptor.
-
-dirfd et al
-statvfs
-*/
-
-
-    pub fn getxattr(
-        path: *const c_char,
-        name: *const c_char,
-        value: *mut ::c_void,
-        size: ::size_t,
-    ) -> ::ssize_t;
-    pub fn lgetxattr(
-        path: *const c_char,
-        name: *const c_char,
-        value: *mut ::c_void,
-        size: ::size_t,
-    ) -> ::ssize_t;
-    pub fn fgetxattr(
-        filedes: ::c_int,
-        name: *const c_char,
-        value: *mut ::c_void,
-        size: ::size_t,
-    ) -> ::ssize_t;
-    pub fn setxattr(
-        path: *const c_char,
-        name: *const c_char,
-        value: *const ::c_void,
-        size: ::size_t,
-        flags: ::c_int,
-    ) -> ::c_int;
-    pub fn lsetxattr(
-        path: *const c_char,
-        name: *const c_char,
-        value: *const ::c_void,
-        size: ::size_t,
-        flags: ::c_int,
-    ) -> ::c_int;
-    pub fn fsetxattr(
-        filedes: ::c_int,
-        name: *const c_char,
-        value: *const ::c_void,
-        size: ::size_t,
-        flags: ::c_int,
-    ) -> ::c_int;
-    pub fn listxattr(
-        path: *const c_char,
-        list: *mut c_char,
-        size: ::size_t,
-    ) -> ::ssize_t;
-    pub fn llistxattr(
-        path: *const c_char,
-        list: *mut c_char,
-        size: ::size_t,
-    ) -> ::ssize_t;
-    pub fn flistxattr(
-        filedes: ::c_int,
-        list: *mut c_char,
-        size: ::size_t,
-    ) -> ::ssize_t;
-    pub fn removexattr(path: *const c_char, name: *const c_char) -> ::c_int;
-    pub fn lremovexattr(path: *const c_char, name: *const c_char) -> ::c_int;
-    pub fn fremovexattr(filedes: ::c_int, name: *const c_char) -> ::c_int;
-
-TODO: timerfd.h: TFD_IOC_SET_TICKS
-    
 // TODO: Rework kernel validator into sections for numa, memory, etc.
 
 // TODO: kernel validator proper errors.

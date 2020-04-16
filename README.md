@@ -1,6 +1,6 @@
 # linux-support
 
-[linux-support] is a Rust crate for comprehensive Linux support for namespaces, cgroups, processes, scheduling, parsing a vast number of files in `/proc` and `/sys`, signals, hyper threads, CPUS, NUMA nodes, unusual file descriptors (including pid descriptors and userfaultfd), PCI devices and much, much more.
+[linux-support] is a Rust crate for comprehensive Linux support for namespaces, cgroups, processes, scheduling, parsing a vast number of files in `/proc` and `/sys`, signals, hyper threads, CPUS, NUMA nodes, unusual file descriptors (including pid descriptors and userfaultfd), PCI devices, atomic file renames, and much, much more.
 
 It is intended to be a holistic, very strongly typed and properly modelled library for working with Linux's non-POSIX features, with a particular focus on being a support library for a secure root daemon running a userspace networking stack that I'm developing. As a result, it's highly opionated; it happily makes use of unsafe code, nightly features and `uninitialized()`.
 

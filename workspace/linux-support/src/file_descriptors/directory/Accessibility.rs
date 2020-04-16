@@ -2,10 +2,21 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use crate::syscall::SYS;
+bitflags!
+{
+	/// File accessibility.
+	pub struct Accessibility: i32
+	{
+		/// File exists (equivalent to `Self::empty()`).
+		const Exists = F_OK;
 
+		/// Process can read.
+		const Read = R_OK;
 
-include!("open_how.rs");
-include!("openat2.rs");
-include!("renameat2.rs");
+		/// Process can write.
+		const Write = W_OK;
+
+		/// Process can execute.
+		const Execute = X_OK;
+	}
+}
