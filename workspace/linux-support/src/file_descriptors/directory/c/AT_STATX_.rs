@@ -2,22 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-bitflags!
-{
-	/// File accessibility.
-	#[repr(transparent)]
-	pub struct Accessibility: u8
-	{
-		/// File exists (equivalent to `Self::empty()`).
-		const Exists = F_OK as u8;
-
-		/// Process can read.
-		const Read = R_OK as u8;
-
-		/// Process can write.
-		const Write = W_OK as u8;
-
-		/// Process can execute.
-		const Execute = X_OK as u8;
-	}
-}
+pub(super) const AT_STATX_SYNC_AS_STAT: c_int = 0x0000;
+pub(super) const AT_STATX_FORCE_SYNC: c_int = 0x2000;
+pub(super) const AT_STATX_DONT_SYNC: c_int = 0x4000;
+pub(super) const AT_STATX_SYNC_TYPE: c_int = 0x6000;

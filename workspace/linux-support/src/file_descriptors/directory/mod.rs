@@ -7,6 +7,7 @@ use super::*;
 use crate::devices::*;
 use crate::user_and_groups::UserIdentifier;
 use crate::user_and_groups::GroupIdentifier;
+use crate::inode::Inode;
 
 
 mod c;
@@ -14,10 +15,17 @@ mod c;
 
 include!("Access.rs");
 include!("Accessibility.rs");
+include!("AccessPermissions.rs");
 include!("DirectoryFileDescriptor.rs");
+include!("ExtendedMetadata.rs");
+include!("ExtendedMetadataWanted.rs");
+include!("FileAttributesSubset.rs");
 include!("FileOpenKind.rs");
+include!("FileType.rs");
+include!("FileTypeAndAccessPermissions.rs");
 include!("PathResolution.rs");
 include!("ReadAccessTimeUpdating.rs");
 include!("RenameFlags.rs");
+include!("SpecialPermissions.rs");
 include!("TemporaryFileAccess.rs");
 include!("WriteSynchronization.rs");

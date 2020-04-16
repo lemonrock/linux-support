@@ -329,7 +329,7 @@ impl DirectoryFileDescriptor
 			0
 		};
 
-		let result = unsafe { faccessat(self.as_raw_fd(), path.as_ptr(), accessibility.bits, flags) };
+		let result = unsafe { faccessat(self.as_raw_fd(), path.as_ptr(), accessibility.bits as i32, flags) };
 		if likely!(result == 0)
 		{
 			Ok(true)
@@ -424,13 +424,72 @@ impl DirectoryFileDescriptor
 		}
 	}
 
-	// AT_EMPTY_PATH
-	// AT_NO_AUTOMOUNT
-	// AT_SYMLINK_NOFOLLOW
+	/// Extended metadata.
+	///
+	/// `do_not_automount_basename_of_path` uses the flag `AT_NO_AUTOMOUNT`.
+	/// `force_synchronization` can be made to control synchronization so that timestamps and the like are accurate; if `None`, it mirrors whatever `self.metadata()` might do.
+	#[inline(always)]
+	pub fn extended_metadata(&self, path: &CStr, force_synchronization: Option<bool>, extended_metadata_wanted: ExtendedMetadataWanted, do_not_dereference_path_if_it_is_a_symlink: bool, do_not_automount_basename_of_path: bool) -> io::Result<ExtendedMetadata>
+	{
+		self.extended_metadata_internal(Self::non_empty_path(path), force_synchronization, extended_metadata_wanted, do_not_dereference_path_if_it_is_a_symlink, do_not_automount_basename_of_path, 0)
+	}
+
+	/// Metadata.
+	#[inline(always)]
+	pub fn extended_metadata_of_self(&self, force_synchronization: Option<bool>, extended_metadata_wanted: ExtendedMetadataWanted) -> io::Result<ExtendedMetadata>
+	{
+		self.extended_metadata_internal(Self::empty_path(), force_synchronization, extended_metadata_wanted, false, false, AT_EMPTY_PATH)
+	}
+
+	#[inline(always)]
+	fn extended_metadata_internal(&self, path: NonNull<c_char>, force_synchronization: Option<bool>, extended_metadata_wanted: ExtendedMetadataWanted, do_not_dereference_path_if_it_is_a_symlink: bool, do_not_automount_basename_of_path: bool, flags: i32) -> io::Result<ExtendedMetadata>
+	{
+		let flags = flags
+		| match force_synchronization
+		{
+			None => AT_STATX_SYNC_AS_STAT,
+			Some(true) => AT_STATX_FORCE_SYNC,
+			Some(false) => AT_STATX_DONT_SYNC,
+		}
+		| if unlikely!(do_not_dereference_path_if_it_is_a_symlink)
+		{
+			AT_SYMLINK_NOFOLLOW
+		}
+		else
+		{
+			0
+		}
+		| if unlikely!(do_not_automount_basename_of_path)
+		{
+			AT_NO_AUTOMOUNT
+		}
+		else
+		{
+			0
+		};
+
+		#[allow(deprecated)]
+		let mut statx: statx = unsafe { uninitialized() };
+
+		let result = statx_(self.as_raw_fd(), path.as_ptr(), flags as u32, extended_metadata_wanted.bits, &mut statx);
+		if likely!(result == 0)
+		{
+			statx.zero_padding();
+			Ok(ExtendedMetadata(statx))
+		}
+		else if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("unlinkat() returned unexpected result {}", result)
+		}
+	}
 
 	/// Metadata.
 	///
-	/// `do_not_automount_basename_of_path` uses the flag `AT_NO_AUTOMOUNT` - see <>.
+	/// `do_not_automount_basename_of_path` uses the flag `AT_NO_AUTOMOUNT`.
 	#[inline(always)]
 	pub fn metadata(&self, path: &CStr, do_not_dereference_path_if_it_is_a_symlink: bool, do_not_automount_basename_of_path: bool) -> io::Result<stat>
 	{

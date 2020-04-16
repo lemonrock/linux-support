@@ -6,6 +6,11 @@ use super::*;
 use crate::syscall::SYS;
 
 
+include!("AT_STATX_.rs");
 include!("open_how.rs");
 include!("openat2.rs");
 include!("renameat2.rs");
+include!("statx.rs");
+include!("STATX_.rs");
+include!("STATX_ATTR_.rs");
+include!("statx_timestamp.rs");

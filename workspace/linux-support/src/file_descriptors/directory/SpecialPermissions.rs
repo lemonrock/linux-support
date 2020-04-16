@@ -4,20 +4,17 @@
 
 bitflags!
 {
-	/// File accessibility.
+	/// File special permissions.
 	#[repr(transparent)]
-	pub struct Accessibility: u8
+	pub struct SpecialPermissions: u8
 	{
-		/// File exists (equivalent to `Self::empty()`).
-		const Exists = F_OK as u8;
+		/// Also known as `svtx`.
+		const StickyBit = R_OK as u8;
 
-		/// Process can read.
-		const Read = R_OK as u8;
+		/// `sgid`
+		const SetGroupIdentifier = W_OK as u8;
 
-		/// Process can write.
-		const Write = W_OK as u8;
-
-		/// Process can execute.
-		const Execute = X_OK as u8;
+		/// `suid`
+		const SetUserIdentifier = X_OK as u8;
 	}
 }

@@ -232,9 +232,16 @@ use libc::RENAME_NOREPLACE;
 use libc::RENAME_WHITEOUT;
 use libc::S_IFBLK;
 use libc::S_IFCHR;
+use libc::S_IFDIR;
+use libc::S_IFMT;
 use libc::S_IFIFO;
+use libc::S_IFLNK;
+use libc::S_IFREG;
 use libc::S_IFSOCK;
 use libc::S_IRUSR;
+use libc::S_IRWXU;
+use libc::S_IRWXG;
+use libc::S_IRWXO;
 use libc::S_IWUSR;
 use libc::sa_family_t; // Typically u16.
 use libc::SEEK_CUR;
@@ -329,7 +336,9 @@ use std::rc::Weak;
 use std::slice::from_raw_parts;
 use std::slice::from_raw_parts_mut;
 use std::str::from_utf8;
-use std::time::{SystemTime, UNIX_EPOCH, Duration};
+use std::time::Duration;
+use std::time::SystemTime;
+use std::time::UNIX_EPOCH;
 
 
 /// Block device file descriptors.
@@ -419,8 +428,7 @@ pub mod terminal;
 pub mod timerfd;
 
 
-include!("AsRawFdExt.rs");
-include!("CreationError.rs");
+include!("AsRawFdExt.rs");include!("CreationError.rs");
 include!("InvalidPathReason.rs");
 include!("path_bytes_without_trailing_nul.rs");
 include!("RawFdExt.rs");

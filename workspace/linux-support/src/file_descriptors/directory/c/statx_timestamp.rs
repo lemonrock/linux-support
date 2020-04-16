@@ -2,22 +2,19 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-bitflags!
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub(super) struct statx_timestamp
 {
-	/// File accessibility.
-	#[repr(transparent)]
-	pub struct Accessibility: u8
+	pub(super) tv_sec: i64,
+	pub(super) tv_nsec: u32,
+	__statx_timestamp_pad1: i32,
+}
+
+impl statx_timestamp
+{
+	#[inline(always)]
+	fn zero_padding(&mut self)
 	{
-		/// File exists (equivalent to `Self::empty()`).
-		const Exists = F_OK as u8;
-
-		/// Process can read.
-		const Read = R_OK as u8;
-
-		/// Process can write.
-		const Write = W_OK as u8;
-
-		/// Process can execute.
-		const Execute = X_OK as u8;
+		self.__statx_timestamp_pad1 = 0;
 	}
 }

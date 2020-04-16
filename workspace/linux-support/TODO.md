@@ -5,15 +5,24 @@
 - Also get this from /proc/x/comm (which doubles as thread name)
 
 FIND ALL `*at()` functions that can take an empty path.
+    * statx()
+    * renameat2()
 Directory iteration eg getdents
 statx
-
-fstatvfs (files, directories, fifos, character/block)
-futimens (files, directories, fifos, character/block)
-fgetxattr
-fsetxattr
-flistxattr
-fremovexattr
+*  (files, directories, fifos, character/block, path file descriptors but not unix socket file descriptors?)
+    * fstatvfs
+    * fgetxattr
+    * fsetxattr
+    * flistxattr
+    * fremovexattr
+        * Extended attributes are name:value pairs; can be zero length; can find length but can change between calls
+        * Names can be namespaced (`security.`, `system.`, `trusted.`, and `user.`)
+        * The VFS imposes limitations that an attribute names is limited to 255
+                 bytes and an attribute value is limited to 64 kB.  The list of
+                 attribute names that can be returned is also limited to 64 kB (see
+                 BUGS in listxattr(2)).
+    * Inode Flags, sometimes known as attributes.
+        * http://man7.org/linux/man-pages/man2/ioctl_iflags.2.html (eg immutable, append only, etc)
 open_by_handle_at
 http://man7.org/linux/man-pages/man2/ioctl_ficlonerange.2.html
 http://man7.org/linux/man-pages/man2/ioctl_fideduperange.2.html
