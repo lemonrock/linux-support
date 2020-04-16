@@ -15,6 +15,8 @@ pub enum TimestampUpdate
 	Now,
 
 	/// At a specific time.
+	///
+	/// Construct using `TimestampUpdate::from(SystemTime)`.
 	At
 	{
 		/// Can not exceed `std::i64::MAX as u64`.
@@ -35,8 +37,63 @@ impl Default for TimestampUpdate
 	}
 }
 
+impl From<SystemTime> for TimestampUpdate
+{
+	#[inline(always)]
+	fn from(value: SystemTime) -> Self
+	{
+		let duration_since_the_unix_epoch = value.duration_since(UNIX_EPOCH).unwrap();
+		TimestampUpdate::At
+		{
+			absolute_seconds_since_unix_epoch: duration_since_the_unix_epoch.as_secs(),
+			relative_nanoseconds: duration_since_the_unix_epoch.subsec_nanos(),
+		}
+	}
+}
+
+impl From<Option<SystemTime>> for TimestampUpdate
+{
+	#[inline(always)]
+	fn from(value: Option<SystemTime>) -> Self
+	{
+		match value
+		{
+			None => TimestampUpdate::DoNotChange,
+			Some(value) => Self::from(value)
+		}
+	}
+}
+
+impl Into<Option<SystemTime>> for TimestampUpdate
+{
+	#[inline(always)]
+	fn into(self) -> Option<SystemTime>
+	{
+		use self::TimestampUpdate::*;
+
+		match self
+		{
+			DoNotChange => None,
+			Now => Some(SystemTime::now()),
+			At { absolute_seconds_since_unix_epoch, relative_nanoseconds } => Some(UNIX_EPOCH + Duration::new(absolute_seconds_since_unix_epoch, relative_nanoseconds)),
+		}
+	}
+}
+
 impl TimestampUpdate
 {
+	/// Converts `TimestampUpdate::Now` to `TimestampUpdate::At`.
+	#[inline(always)]
+	pub fn resolve_now(&mut self)
+	{
+		if unlikely!(*self != TimestampUpdate::Now)
+		{
+			return
+		}
+
+		*self = SystemTime::now().into()
+	}
+
 	#[allow(deprecated)]
 	#[inline(always)]
 	fn to_timespec(&self) -> timespec
