@@ -16,4 +16,4 @@ pub(super) const STATX_BLOCKS: c_uint = 0x0400;
 pub(super) const STATX_BASIC_STATS: c_uint = 0x07FF;
 pub(super) const STATX_BTIME: c_uint = 0x0800;
 pub(super) const STATX_ALL: c_uint = 0x0FFF;
-pub(super) const STATX__RESERVED: c_uint = 0x80000000;
+#[allow(dead_code)] pub(super) const STATX__RESERVED: c_uint = 0x80000000;

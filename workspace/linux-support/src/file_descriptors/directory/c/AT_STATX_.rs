@@ -5,4 +5,6 @@
 pub(super) const AT_STATX_SYNC_AS_STAT: c_int = 0x0000;
 pub(super) const AT_STATX_FORCE_SYNC: c_int = 0x2000;
 pub(super) const AT_STATX_DONT_SYNC: c_int = 0x4000;
-pub(super) const AT_STATX_SYNC_TYPE: c_int = 0x6000;
+
+/// Used as a mask for the above values.
+#[allow(dead_code)] pub(super) const AT_STATX_SYNC_TYPE: c_int = 0x6000;

@@ -56,6 +56,87 @@ impl DirectoryFileDescriptor
 	/// A special file descriptor that always refers to the current working directory.
 	pub const AlwaysCurrentWorkingDirectory: Self = Self(AT_FDCWD);
 
+	/// A new directory file descriptor.
+	///
+	/// Unlike a regular open, the file descriptor is set to be close-on-exec.
+	///
+	/// Uses `open()` under the covers.
+	#[inline(always)]
+	pub fn new(path: &CStr) -> io::Result<Self>
+	{
+		let result = unsafe { open(path.as_ptr(), O_RDONLY | O_DIRECTORY | O_CLOEXEC) };
+		if likely!(result >= 0)
+		{
+			Ok(Self(result))
+		}
+		else if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("Unexpected result {} from open()", result)
+		}
+	}
+
+	/// A new directory file descriptor.
+	///
+	/// Unlike a regular open, the file descriptor is set to be close-on-exec.
+	///
+	/// Uses `openat()` under the covers.
+	///
+	/// `path` can be absolute.
+	#[inline(always)]
+	pub fn new_relative_to_self(&self, path: &CStr) -> io::Result<Self>
+	{
+		let result = unsafe { openat(self.as_raw_fd(), path.as_ptr(), O_RDONLY | O_DIRECTORY | O_CLOEXEC) };
+		if likely!(result >= 0)
+		{
+			Ok(Self(result))
+		}
+		else if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("Unexpected result {} from openat()", result)
+		}
+	}
+
+	/// A new directory file descriptor.
+	///
+	/// Unlike a regular open, the file descriptor is set to be close-on-exec.
+	///
+	/// Uses `openat2()` under the covers.
+	///
+	/// `path` can be absolute.
+	#[inline(always)]
+	pub fn new_relative_to_self2(&self, path: &CStr, path_resolution: PathResolution) -> io::Result<Self>
+	{
+		let result = unsafe { openat(self.as_raw_fd(), path.as_ptr(), O_RDONLY | O_DIRECTORY | O_CLOEXEC) };
+
+		let mut how = open_how
+		{
+			flags: (O_RDONLY | O_DIRECTORY | O_CLOEXEC) as u64,
+			mode: 0,
+			resolve: path_resolution.bits,
+		};
+		let result = openat2(self.as_raw_fd(), path.as_ptr(), &mut how, size_of::<open_how>());
+		if likely!(result >= 0)
+		{
+			Ok(Self(result as RawFd))
+		}
+		else if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("Unexpected result {} from openat2()", result)
+		}
+	}
+
 	// TODO: O_PATH
 	/// TODO: Detect BLOCK, CHARACTER, FIFO, SOCKET, ?DIRECTORY and return a suitable type.
 	/// NOTE: Not much we can do with SOCKET.

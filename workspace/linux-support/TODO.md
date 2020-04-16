@@ -7,8 +7,6 @@
 FIND ALL `*at()` functions that can take an empty path.
     * statx()
     * renameat2()
-Directory iteration eg getdents
-statx
 *  (files, directories, fifos, character/block, path file descriptors but not unix socket file descriptors?)
     * fstatvfs
     * fgetxattr
@@ -23,6 +21,7 @@ statx
                  BUGS in listxattr(2)).
     * Inode Flags, sometimes known as attributes.
         * http://man7.org/linux/man-pages/man2/ioctl_iflags.2.html (eg immutable, append only, etc)
+Directory iteration eg getdents
 open_by_handle_at
 http://man7.org/linux/man-pages/man2/ioctl_ficlonerange.2.html
 http://man7.org/linux/man-pages/man2/ioctl_fideduperange.2.html
