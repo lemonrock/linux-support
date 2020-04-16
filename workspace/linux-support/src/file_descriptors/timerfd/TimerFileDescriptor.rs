@@ -221,6 +221,30 @@ impl TimerFileDescriptor
 		)
 	}
 
+	/// Once the number is set, any waiter on the timer is woken up.
+	///
+	/// The only purpose of this command is to restore the expirations for the purpose of checkpoint-restore.
+	///
+	/// This operation is available only if the	kernel was built with `CONFIG_CHECKPOINT_RESTORE`.
+	///
+	/// Since Linux 3.17
+	pub fn set_ticks(&self, number_of_expirations: u64) -> io::Result<()>
+	{
+		let result = unsafe { ioctl(self.0, TFD_IOC_SET_TICKS, &number_of_expirations) };
+		if likely!(result == 0)
+		{
+			Ok(())
+		}
+		else if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("ioctl() returned unexpected result {}", result)
+		}
+	}
+
 	/// Arms or disarms the timer.
 	///
 	/// Set both fields of `new_value.it_value to disarm the timer`.

@@ -6,6 +6,7 @@ use super::*;
 
 
 include!("itimerspec.rs");
+include!("TFD_IOC_SET_TICKS.rs");
 include!("timerfd_create.rs");
 include!("timerfd_settime.rs");
 include!("timerfd_gettime.rs");

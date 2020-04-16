@@ -24,7 +24,6 @@ FIND ALL `*at()` functions that can take an empty path.
 open_by_handle_at
 http://man7.org/linux/man-pages/man2/ioctl_ficlonerange.2.html
 http://man7.org/linux/man-pages/man2/ioctl_fideduperange.2.html
-timerfd.h: TFD_IOC_SET_TICKS
 userfaultfd: http://man7.org/linux/man-pages/man2/userfaultfd.2.html
 F_GET_RW_HINT: read-write hints http://man7.org/linux/man-pages/man2/fcntl.2.html
 PathFileDescriptor (O_PATH)
