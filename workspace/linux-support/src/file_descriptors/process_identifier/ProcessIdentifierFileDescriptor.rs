@@ -144,7 +144,7 @@ impl ProcessIdentifierFileDescriptor
 	pub fn duplicate_file_descriptor_from_other_process<FD: AsRawFd + FromRawFd>(&self, other_process_file_descriptor: &FD) -> Result<FD, CreationError>
 	{
 		const Flags: u32 = 0;
-		let result = SYS::pidfd_getfd.syscall3(self.as_raw_fd() as usize, other_process_file_descriptor.as_raw_fd() as usize, Flags as usize) as i32;
+		let result = pidfd_getfd.syscall3(self.as_raw_fd() as usize, other_process_file_descriptor.as_raw_fd() as usize, Flags as usize) as i32;
 		if likely!(result >= 0)
 		{
 			Ok(unsafe { FD::from_raw_fd(result) })
