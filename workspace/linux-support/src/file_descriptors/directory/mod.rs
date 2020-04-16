@@ -8,6 +8,7 @@ use crate::devices::*;
 use crate::user_and_groups::UserIdentifier;
 use crate::user_and_groups::GroupIdentifier;
 use crate::inode::Inode;
+use streaming_iterator::StreamingIterator;
 
 
 mod c;
@@ -16,6 +17,9 @@ mod c;
 include!("Access.rs");
 include!("Accessibility.rs");
 include!("AccessPermissions.rs");
+include!("DirectoryEntry.rs");
+include!("DirectoryEntryIterator.rs");
+include!("DirectoryEntryRewindPosition.rs");
 include!("DirectoryFileDescriptor.rs");
 include!("ExtendedMetadata.rs");
 include!("ExtendedMetadataWanted.rs");

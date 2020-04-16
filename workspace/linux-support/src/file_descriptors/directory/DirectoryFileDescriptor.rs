@@ -114,8 +114,6 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	pub fn new_relative_to_self2(&self, path: &CStr, path_resolution: PathResolution) -> io::Result<Self>
 	{
-		let result = unsafe { openat(self.as_raw_fd(), path.as_ptr(), O_RDONLY | O_DIRECTORY | O_CLOEXEC) };
-
 		let mut how = open_how
 		{
 			flags: (O_RDONLY | O_DIRECTORY | O_CLOEXEC) as u64,
@@ -214,6 +212,13 @@ impl DirectoryFileDescriptor
 		{
 			unreachable!("result of openat2() was unexpected value {}", result)
 		}
+	}
+
+	/// Iterate over entries in directory.
+	#[inline(always)]
+	pub fn iterate(&self) -> DirectoryEntryIterator
+	{
+		DirectoryEntryIterator::new(self)
 	}
 
 	/// Only a process with the `CAP_CHOWN` capability may change the owner of a file.

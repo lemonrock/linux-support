@@ -30,6 +30,9 @@ pub enum FileType
 
 	#[allow(missing_docs)]
 	UnixDomainSocket = S_IFSOCK,
+
+	/// Documented in the Code file system.
+	BsdStyleWhiteout = 14 << 12,
 }
 
 impl From<u16> for FileType
@@ -65,5 +68,11 @@ impl FileType
 	const fn const_from(value: mode_t) -> Self
 	{
 		unsafe { transmute(value & S_IFMT) }
+	}
+
+	#[inline(always)]
+	fn from_dtype(d_type: c_uchar) -> Self
+	{
+		unsafe { transmute((d_type as u32) << 12) }
 	}
 }

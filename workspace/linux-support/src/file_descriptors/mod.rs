@@ -182,6 +182,7 @@ use libc::getpid;
 use libc::gid_t;
 use libc::in_addr_t;
 use libc::in_port_t;
+use libc::ino_t;
 use libc::iovec;
 use libc::IPPROTO_TCP;
 use libc::IPPROTO_UDP;

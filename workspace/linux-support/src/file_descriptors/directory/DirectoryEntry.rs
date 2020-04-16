@@ -2,40 +2,37 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// An inode
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+/// A directory entry.
 #[repr(transparent)]
-pub struct Inode(u64);
+pub struct DirectoryEntry<'a>(dirent, PhantomData<&'a ()>);
 
-impl From<u64> for Inode
+impl<'a> DirectoryEntry<'a>
 {
+	/// Inode.
 	#[inline(always)]
-	fn from(value: u64) -> Self
+	pub fn inode(&self) -> Inode
 	{
-		Self(value)
+		self.0.inode()
 	}
-}
 
-impl Into<u64> for Inode
-{
+	/// File type.
 	#[inline(always)]
-	fn into(self) -> u64
+	pub fn file_type(&self) -> FileType
 	{
-		self.0
+		self.0.file_type()
 	}
-}
 
-impl ParseNumber for Inode
-{
+	/// Name.
 	#[inline(always)]
-	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
+	pub fn name(&self) -> &CStr
 	{
-		Ok(Self(u64::parse_number(bytes, radix, parse_byte)?))
+		self.0.name()
 	}
-}
 
-impl Inode
-{
-	/// Zero.
-	pub const Zero: Self = Self(0);
+	/// A position that can be rewinded to.
+	#[inline(always)]
+	pub fn DirectoryEntryRewindPosition(&self) -> DirectoryEntryRewindPosition<'a>
+	{
+		DirectoryEntryRewindPosition(self.0.d_off, PhantomData)
+	}
 }

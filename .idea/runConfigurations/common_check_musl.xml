@@ -5,7 +5,7 @@
     <option name="allFeatures" value="false" />
     <option name="nocapture" value="false" />
     <option name="emulateTerminal" value="false" />
-    <option name="backtrace" value="SHORT" />
+    <option name="backtrace" value="FULL" />
     <option name="workingDirectory" value="file://$PROJECT_DIR$/workspace/linux-support" />
     <envs>
       <env name="CROSS_COMPILE" value="x86_64-linux-musl-" />

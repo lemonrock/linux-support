@@ -2,17 +2,35 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use crate::syscall::SYS;
+#[repr(C)]
+pub(super) struct dirent
+{
+	pub(super) d_ino: ino_t,
+	pub(super) d_off: off_t,
+	pub(super) d_reclen: c_ushort,
+	pub(super) d_type: c_uchar,
 
+	/// Note: This isn't necessarily 256 bytes long; it can be shorter or longer, but is NUL-terminated.
+	d_name: [c_char; 256],
+}
 
-include!("AT_STATX_.rs");
-include!("dirent.rs");
-include!("getdents.rs");
-include!("open_how.rs");
-include!("openat2.rs");
-include!("renameat2.rs");
-include!("statx.rs");
-include!("STATX_.rs");
-include!("STATX_ATTR_.rs");
-include!("statx_timestamp.rs");
+impl dirent
+{
+	#[inline(always)]
+	pub(super) fn inode(&self) -> Inode
+	{
+		Inode::from(self.d_ino)
+	}
+
+	#[inline(always)]
+	pub(super) fn file_type(&self) -> FileType
+	{
+		FileType::from_dtype(self.d_type)
+	}
+
+	#[inline(always)]
+	pub(super) fn name(&self) -> &CStr
+	{
+		unsafe { CStr::from_ptr(self.d_name.as_ptr()) }
+	}
+}
