@@ -21,7 +21,6 @@ FIND ALL `*at()` functions that can take an empty path.
                  BUGS in listxattr(2)).
     * Inode Flags, sometimes known as attributes.
         * http://man7.org/linux/man-pages/man2/ioctl_iflags.2.html (eg immutable, append only, etc)
-Directory iteration eg getdents
 open_by_handle_at
 http://man7.org/linux/man-pages/man2/ioctl_ficlonerange.2.html
 http://man7.org/linux/man-pages/man2/ioctl_fideduperange.2.html
@@ -33,14 +32,7 @@ Review http://man7.org/linux/man-pages/man2/ioctl_list.2.html
 - sockios.h
 - netrom.h?
 - fs.h?
-pidfd_getfd: http://man7.org/linux/man-pages/man2/pidfd_getfd.2.html
-/// Permission to duplicate another process's file descriptor is governed by a ptrace access mode `PTRACE_MODE_ATTACH_REALCREDS` check.
-///
-/// Since Linux 5.6.
-#[inline(always)]
-pub fn duplicate_file_descriptor_from_other_process(file_descriptor: RawFd) -> Result<RawFD, CreationError>
-{
-}
+
 
 // TODO: Rework kernel validator into sections for numa, memory, etc.
 

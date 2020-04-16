@@ -135,5 +135,40 @@ impl ProcessIdentifierFileDescriptor
 		}
 	}
 
+	/// Permission to duplicate another process's file descriptor is governed by a ptrace access mode `PTRACE_MODE_ATTACH_REALCREDS` check.
+	///
+	/// See <http://man7.org/linux/man-pages/man2/pidfd_getfd.2.html>.
+	///
+	/// Since Linux 5.6.
+	#[inline(always)]
+	pub fn duplicate_file_descriptor_from_other_process<FD: AsRawFd + FromRawFd>(&self, other_process_file_descriptor: &FD) -> Result<FD, CreationError>
+	{
+		const Flags: u32 = 0;
+		let result = SYS::pidfd_getfd.syscall3(self.as_raw_fd() as usize, other_process_file_descriptor.as_raw_fd() as usize, Flags as usize) as i32;
+		if likely!(result >= 0)
+		{
+			Ok(unsafe { FD::from_raw_fd(result) })
+		}
+		else if likely!(result == -1)
+		{
+			use self::CreationError::*;
 
+			match errno().0
+			{
+				EMFILE => Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
+				ENFILE => Err(SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded),
+				EPERM => Err(PermissionDenied),
+				ESRCH => Err(ProcessForProcessIdentifierDoesNotExist),
+
+				EBADF => panic!("pidfd is not a valid PID file descriptor, or targetfd is not an open file descriptor in the process referred to by pidfd"),
+				EINVAL => panic!("flags is not 0"),
+
+				unexpected @ _ => panic!("Unexpected error {} from pidfd_getfd()", unexpected)
+			}
+		}
+		else
+		{
+			unreachable!("Unexpected result {} from pidfd_getfd()", result)
+		}
+	}
 }
