@@ -28,7 +28,7 @@ impl LinuxFileHandle
 	pub unsafe fn open<MountFileDescriptor: AsRawFdExt, OpenedFileDescriptor: FromRawFd>(&mut self, file_descriptor_on_file_system_indicated_by_file_system_mount_identifier: MountFileDescriptor, o_flags: i32) -> io::Result<OpenedFileDescriptor>
 	{
 		let fd = file_descriptor_on_file_system_indicated_by_file_system_mount_identifier.as_raw_fd();
-		let result = unsafe { open_by_handle_at(fd, &mut self.file_handle, o_flags) };
+		let result = open_by_handle_at(fd, &mut self.file_handle, o_flags);
 		if likely!(result == 0)
 		{
 			Ok(OpenedFileDescriptor::from_raw_fd(result))

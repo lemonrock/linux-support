@@ -25,7 +25,7 @@ impl file_handle
 {
 	#[allow(deprecated)]
 	#[inline(always)]
-	pub(super) const fn new() -> Self
+	pub(super) fn new() -> Self
 	{
 		Self
 		{
