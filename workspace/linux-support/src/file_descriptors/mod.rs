@@ -79,9 +79,12 @@ use libc::AT_FDCWD;
 use libc::AT_NO_AUTOMOUNT;
 use libc::AT_REMOVEDIR;
 use libc::AT_SYMLINK_NOFOLLOW;
+use libc::blkcnt_t;
+use libc::blksize_t;
 use libc::close;
 use libc::c_char;
 use libc::c_int;
+use libc::c_long;
 use libc::c_short;
 use libc::c_uchar;
 use libc::c_uint;
@@ -197,6 +200,7 @@ use libc::lseek;
 use libc::mode_t;
 use libc::mkdirat;
 use libc::mknodat;
+use libc::nlink_t;
 use libc::O_APPEND;
 use libc::O_CLOEXEC;
 use libc::O_CREAT;
@@ -267,6 +271,7 @@ use libc::SYNC_FILE_RANGE_WAIT_AFTER;
 use libc::SYNC_FILE_RANGE_WAIT_BEFORE;
 use libc::SYNC_FILE_RANGE_WRITE;
 use libc::sync_file_range;
+use libc::time_t;
 use libc::timespec;
 use libc::uid_t;
 use libc::unlink;
@@ -382,12 +387,16 @@ pub mod file;
 pub mod file_descriptor_information;
 
 
-/// inotify file descriptors.
+/// inotify file descriptor.
 pub mod inotify;
 
 
-/// Memory file descriptor trait.
+/// Memory file descriptor.
 pub mod memfd;
+
+
+/// Path file descriptor (created using `O_PATH`).
+pub mod path;
 
 
 /// POSIX message queue file descriptors.

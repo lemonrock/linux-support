@@ -5,21 +5,21 @@
 /// An inode
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[repr(transparent)]
-pub struct Inode(u64);
+pub struct Inode(ino_t);
 
-impl From<u64> for Inode
+impl From<ino_t> for Inode
 {
 	#[inline(always)]
-	fn from(value: u64) -> Self
+	fn from(value: ino_t) -> Self
 	{
 		Self(value)
 	}
 }
 
-impl Into<u64> for Inode
+impl Into<ino_t> for Inode
 {
 	#[inline(always)]
-	fn into(self) -> u64
+	fn into(self) -> ino_t
 	{
 		self.0
 	}

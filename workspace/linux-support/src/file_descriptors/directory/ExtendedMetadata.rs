@@ -39,9 +39,9 @@ impl ExtendedMetadata
 
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn filesystem_block_size(&self) -> u32
+	pub fn filesystem_block_size(&self) -> blksize_t
 	{
-		self.0.stx_blksize
+		self.0.stx_blksize as blksize_t
 	}
 
 	#[allow(missing_docs)]
@@ -58,19 +58,19 @@ impl ExtendedMetadata
 		self.0.stx_attributes_mask
 	}
 
-	///  The number of blocks allocated to the file on the medium, in 512-byte units.
+	/// The number of blocks allocated to the file on the medium, in 512-byte units.
 	/// (This may be smaller than `self.size() / 512` when the file has holes).
 	#[inline(always)]
-	pub fn size_in_512_byte_blocks(&self) -> Option<u64>
+	pub fn size_in_512_byte_blocks(&self) -> Option<blkcnt_t>
 	{
-		extended_metadata_field!(self, stx_blocks, SizeIn512ByteBlocks)
+		extended_metadata_field!(self, stx_blocks, SizeIn512ByteBlocks, |n| n as blkcnt_t)
 	}
 
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn number_of_hard_links(&self) -> Option<u32>
+	pub fn number_of_hard_links(&self) -> Option<nlink_t>
 	{
-		extended_metadata_field!(self, stx_nlink, NumberOfHardLinks)
+		extended_metadata_field!(self, stx_nlink, NumberOfHardLinks, |n| n as nlink_t)
 	}
 
 	#[allow(missing_docs)]
@@ -84,7 +84,7 @@ impl ExtendedMetadata
 	#[inline(always)]
 	pub fn group_identifier(&self) -> Option<GroupIdentifier>
 	{
-		extended_metadata_field!(self, stx_uid, GroupIdentifier, GroupIdentifier::from)
+		extended_metadata_field!(self, stx_gid, GroupIdentifier, GroupIdentifier::from)
 	}
 
 	#[allow(missing_docs)]

@@ -629,24 +629,37 @@ impl DirectoryFileDescriptor
 		}
 	}
 
+
+	/*
+
+struct stat {
+
+	struct timespec st_atim;
+	struct timespec st_mtim;
+	struct timespec st_ctim;
+};
+
+
+	*/
+
 	/// Metadata.
 	///
 	/// `do_not_automount_basename_of_path` uses the flag `AT_NO_AUTOMOUNT`.
 	#[inline(always)]
-	pub fn metadata(&self, path: &CStr, do_not_dereference_path_if_it_is_a_symlink: bool, do_not_automount_basename_of_path: bool) -> io::Result<stat>
+	pub fn metadata(&self, path: &CStr, do_not_dereference_path_if_it_is_a_symlink: bool, do_not_automount_basename_of_path: bool) -> io::Result<Metadata>
 	{
 		self.metadata_internal(Self::non_empty_path(path), do_not_dereference_path_if_it_is_a_symlink, do_not_automount_basename_of_path, 0)
 	}
 
 	/// Metadata.
 	#[inline(always)]
-	pub fn metadata_of_self(&self) -> io::Result<stat>
+	pub fn metadata_of_self(&self) -> io::Result<Metadata>
 	{
 		self.metadata_internal(Self::empty_path(), false, false, AT_EMPTY_PATH)
 	}
 
 	#[inline(always)]
-	fn metadata_internal(&self, path: NonNull<c_char>, do_not_dereference_path_if_it_is_a_symlink: bool, do_not_automount_basename_of_path: bool, flags: i32) -> io::Result<stat>
+	fn metadata_internal(&self, path: NonNull<c_char>, do_not_dereference_path_if_it_is_a_symlink: bool, do_not_automount_basename_of_path: bool, flags: i32) -> io::Result<Metadata>
 	{
 		let flags = flags| if unlikely!(do_not_dereference_path_if_it_is_a_symlink)
 		{
@@ -669,7 +682,7 @@ impl DirectoryFileDescriptor
 		let result = unsafe { fstatat(self.as_raw_fd(), path.as_ptr(), &mut buffer, flags) };
 		if likely!(result == 0)
 		{
-			Ok(buffer)
+			Ok(Metadata(buffer))
 		}
 		else if likely!(result == -1)
 		{
