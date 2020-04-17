@@ -56,7 +56,9 @@ It is not intended to replace [nix](https://crates.io/crates/nix), but as an alt
 	* Read and Write process virtual memory (see Process below).
 * File system mounts and mounting
 * File descriptors
-	* Including character device, directory, epoll, signalfd, eventfd, userfaultfd, pidfd, timerfd, inotify, memfd, POSIX message queues, pipes, sockets, terminals and others.
+	* Including character device, directory, epoll, signalfd, eventfd, userfaultfd, path, pidfd, timerfd, inotify, memfd, POSIX message queues, pipes, sockets, terminals and others.
+	* Extensive directory operations using dirfd and `at()` system calls. 
+	* Atomic renames
 	* Memory mapping.
 	* Adding extended seeks for data and holes.
 	* Three different kinds of advisory file locks (whole file, per-proces record and the newer and better per open file description record).

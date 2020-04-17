@@ -5,10 +5,10 @@
 use crate::bit_set::BitSet;
 use crate::signals::Signal;
 use crate::signals::ParsedSignal;
-use crate::signals::syscall::signalfd;
-use crate::signals::syscall::signalfd_siginfo;
-use crate::signals::syscall::SFD_CLOEXEC;
-use crate::signals::syscall::SFD_NONBLOCK;
+use crate::signals::c::signalfd;
+use crate::signals::c::signalfd_siginfo;
+use crate::signals::c::SFD_CLOEXEC;
+use crate::signals::c::SFD_NONBLOCK;
 use super::*;
 
 

@@ -4,11 +4,11 @@
 
 use super::*;
 use super::file_descriptor_information::*;
-use self::syscall::*;
+use self::c::*;
 
 
 /// System call and libc wrapping of system call specific details.
-pub mod syscall;
+pub mod c;
 
 
 include!("EPollAddError.rs");

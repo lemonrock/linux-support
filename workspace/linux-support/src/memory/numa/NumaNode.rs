@@ -243,7 +243,7 @@ impl NumaNode
 
 		let mut status: Vec<Self> = Vec::with_capacity(count);
 
-		let result = syscall::move_pages(process_identifier.into(), count, pages.as_ptr() as *const *const c_void, null(), status.as_mut_ptr() as *mut i32, MemoryBindFlags::empty());
+		let result = c::move_pages(process_identifier.into(), count, pages.as_ptr() as *const *const c_void, null(), status.as_mut_ptr() as *mut i32, MemoryBindFlags::empty());
 
 		if likely!(result == 0)
 		{
@@ -321,7 +321,7 @@ impl NumaNode
 		{
 			MemoryBindFlags::MPOL_MF_MOVE
 		};
-		let result = syscall::move_pages(process_identifier.into(), count, pages.as_ptr() as *const *const c_void, nodes.as_ptr(), status.as_mut_ptr() as *mut i32, flags);
+		let result = c::move_pages(process_identifier.into(), count, pages.as_ptr() as *const *const c_void, nodes.as_ptr(), status.as_mut_ptr() as *mut i32, flags);
 
 		if likely!(result == 0)
 		{

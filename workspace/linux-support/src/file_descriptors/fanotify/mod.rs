@@ -4,10 +4,10 @@
 
 use super::*;
 use super::directory::DirectoryFileDescriptor;
-use self::syscall::*;
+use self::c::*;
 
 
-mod syscall;
+mod c;
 
 
 include!("EventFlags.rs");

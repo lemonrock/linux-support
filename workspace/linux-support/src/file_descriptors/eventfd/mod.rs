@@ -3,10 +3,10 @@
 
 
 use super::*;
-use self::syscall::*;
+use self::c::*;
 
 
-mod syscall;
+mod c;
 
 
 include!("EventFileDescriptor.rs");

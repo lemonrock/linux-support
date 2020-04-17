@@ -2,4 +2,4 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-const MAP_FIXED_NOREPLACE: i32 = 0x100000;
+pub(super) const MAP_SHARED_VALIDATE: i32 = 0x03;

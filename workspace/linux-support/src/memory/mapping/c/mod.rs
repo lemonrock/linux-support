@@ -2,4 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-const MAP_SHARED_VALIDATE: i32 = 0x03;
+include!("MAP_32BIT.rs");
+include!("MAP_FIXED_NOREPLACE.rs");
+include!("MAP_SHARED_VALIDATE.rs");
+include!("MAP_SYNC.rs");

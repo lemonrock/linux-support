@@ -6,7 +6,12 @@
 
 FIND ALL `*at()` functions that can take an empty path.
     * statx()
+    * fstatat()
     * renameat2()
+    * name_to_handle_at()
+    * fchownat()
+    * linkat()  - needs CAP_DAC_READ_SEARCH capability.
+    * execveat()
 *  (files, directories, fifos, character/block, path file descriptors but not unix socket file descriptors?)
     * fstatvfs
     * fgetxattr
@@ -21,7 +26,7 @@ FIND ALL `*at()` functions that can take an empty path.
                  BUGS in listxattr(2)).
     * Inode Flags, sometimes known as attributes.
         * http://man7.org/linux/man-pages/man2/ioctl_iflags.2.html (eg immutable, append only, etc)
-open_by_handle_at
+* execveat() for directories
 http://man7.org/linux/man-pages/man2/ioctl_ficlonerange.2.html
 http://man7.org/linux/man-pages/man2/ioctl_fideduperange.2.html
 userfaultfd: http://man7.org/linux/man-pages/man2/userfaultfd.2.html

@@ -3,14 +3,14 @@
 
 
 use super::*;
-use self::syscall::*;
+use self::c::*;
 use crate::vectors::VectoredRead;
 use crate::vectors::VectoredWrite;
 use crate::paths::{ProcPath, PathExt};
 use crate::user_and_groups::assert_effective_user_id_is_root;
 
 
-pub(crate) mod syscall;
+pub(crate) mod c;
 
 
 include!("ChangeCapacityError.rs");

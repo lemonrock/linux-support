@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use self::c::*;
 use crate::file_descriptors::CreationError;
 use super::*;
 use super::huge_pages::*;
@@ -48,11 +49,10 @@ use std::slice::from_raw_parts;
 use std::slice::from_raw_parts_mut;
 
 
+mod c;
+
+
 include!("AddressHint.rs");
-include!("MAP_32BIT.rs");
-include!("MAP_FIXED_NOREPLACE.rs");
-include!("MAP_SHARED_VALIDATE.rs");
-include!("MAP_SYNC.rs");
 include!("MappedMemory.rs");
 include!("Protection.rs");
 include!("Sharing.rs");

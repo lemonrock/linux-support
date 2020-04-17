@@ -3,7 +3,7 @@
 
 
 use crate::process::*;
-use self::syscall::*;
+use self::c::*;
 use super::*;
 use super::pipes_and_fifos::SpliceRecipient;
 use super::pipes_and_fifos::SpliceSender;
@@ -14,7 +14,7 @@ use crate::cpu::HyperThread;
 
 
 /// Contains essential data structures.
-pub mod syscall;
+pub mod c;
 
 
 include!("AcceptedConnection.rs");include!("AcceptedConnectionEnum.rs");

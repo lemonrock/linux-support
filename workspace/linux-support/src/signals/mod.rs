@@ -14,7 +14,7 @@ use crate::strings::parse_number::*;
 use crate::syscall::UnconstrainedSystemCallNumber;
 use crate::user_and_groups::UserIdentifier;
 use self::codes::*;
-use self::syscall::*;
+use self::c::*;
 use errno::errno;
 use libc::*;
 use libc_extra::unix::string::strsignal;
@@ -43,7 +43,7 @@ pub mod codes;
 
 
 /// System call and libc wrapping of system call specific details.
-pub mod syscall;
+pub mod c;
 
 
 include!("AuditArchitecture.rs");
