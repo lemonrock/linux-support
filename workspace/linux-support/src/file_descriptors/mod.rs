@@ -178,6 +178,7 @@ use libc::F_WRLCK;
 use libc::F_UNLCK;
 use libc::faccessat;
 use libc::fallocate;
+use libc::fchdir;
 use libc::fchmodat;
 use libc::fchownat;
 use libc::fcntl;

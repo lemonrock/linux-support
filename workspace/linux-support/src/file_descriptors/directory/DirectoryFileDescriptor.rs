@@ -277,6 +277,25 @@ impl DirectoryFileDescriptor
 		DirectoryEntryIterator::new(self)
 	}
 
+	/// Change directory (`cd`).
+	#[inline(always)]
+	pub fn change_current_working_directory_to_self(&self) -> io::Result<()>
+	{
+		let result = unsafe { fchdir(self.as_raw_fd()) };
+		if likely!(result == 0)
+		{
+			Ok(())
+		}
+		else if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("Unexpected result {} from fchdir()", result)
+		}
+	}
+
 	/// Only a process with the `CAP_CHOWN` capability may change the owner of a file.
 	///
 	/// The owner of a file may change the group of the file to any group of which that owner is a member.
