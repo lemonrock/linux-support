@@ -2,21 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use crate::syscall::SYS;
-
-
-include!("AT_STATX_.rs");
-include!("dirent.rs");
-include!("getdents.rs");
-include!("MAX_HANDLE_SZ.rs");
-include!("file_handle.rs");
-include!("name_to_handle_at.rs");
-include!("open_by_handle_at.rs");
-include!("open_how.rs");
-include!("openat2.rs");
-include!("renameat2.rs");
-include!("statx.rs");
-include!("STATX_.rs");
-include!("STATX_ATTR_.rs");
-include!("statx_timestamp.rs");
+extern "C"
+{
+	pub(super) fn open_by_handle_at(mount_fd: c_int, handle: *mut file_handle, flags: c_int) -> c_int;
+}

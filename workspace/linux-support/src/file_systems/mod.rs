@@ -17,6 +17,8 @@ use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Formatter;
 
+
+include!("FileSystemMountIdentifier.rs");
 include!("FileSystemSupportedError.rs");
 include!("FileSystemType.rs");
 include!("FileSystemTypeList.rs");

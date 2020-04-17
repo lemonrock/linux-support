@@ -9,6 +9,7 @@ use crate::user_and_groups::UserIdentifier;
 use crate::user_and_groups::GroupIdentifier;
 use crate::inode::Inode;
 use streaming_iterator::StreamingIterator;
+use crate::file_systems::FileSystemMountIdentifier;
 
 
 mod c;
@@ -27,6 +28,7 @@ include!("FileAttributesSubset.rs");
 include!("FileOpenKind.rs");
 include!("FileType.rs");
 include!("FileTypeAndAccessPermissions.rs");
+include!("LinuxFileHandle.rs");
 include!("PathResolution.rs");
 include!("ReadAccessTimeUpdating.rs");
 include!("RenameFlags.rs");

@@ -214,6 +214,62 @@ impl DirectoryFileDescriptor
 		}
 	}
 
+	/// Name to file handle.
+	///
+	/// Not supported by `/sys` and /proc` and possibly other file systems.
+	#[inline(always)]
+	pub fn name_to_handle(&self, path: &CStr, do_not_dereference_path_if_it_is_a_symlink: bool) -> io::Result<LinuxFileHandle>
+	{
+		self.name_to_handle_internal(Self::non_empty_path(path), do_not_dereference_path_if_it_is_a_symlink, 0)
+	}
+
+	/// Name to file handle for self.
+	///
+	/// Not supported by `/sys` and /proc` and possibly other file systems.
+	#[inline(always)]
+	pub fn name_to_handle_for_self(&self) -> io::Result<LinuxFileHandle>
+	{
+		self.name_to_handle_internal(Self::empty_path(), false, AT_EMPTY_PATH)
+	}
+
+	#[inline(always)]
+	fn name_to_handle_internal(&self, path: NonNull<c_char>, do_not_dereference_path_if_it_is_a_symlink: bool, flags: i32) -> io::Result<LinuxFileHandle>
+	{
+		let mut file_handle = file_handle::new();
+
+		#[allow(deprecated)]
+		let mut mount_id = unsafe { uninitialized() };
+		let flags = flags | if unlikely!(do_not_dereference_path_if_it_is_a_symlink)
+		{
+			AT_SYMLINK_NOFOLLOW
+		}
+		else
+		{
+			0
+		};
+
+		let result = unsafe { name_to_handle_at(self.as_raw_fd(), path.as_ptr(), &mut file_handle, &mut mount_id, flags) };
+		if likely!(result == 0)
+		{
+			Ok
+			(
+				LinuxFileHandle
+				{
+					file_system_mount_identifier: FileSystemMountIdentifier(mount_id),
+					file_handle
+				}
+			)
+		}
+		else if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("result {} was unexpected for name_to_handle_at()", result)
+		}
+	}
+
 	/// Iterate over entries in directory.
 	#[inline(always)]
 	pub fn iterate(&self) -> DirectoryEntryIterator

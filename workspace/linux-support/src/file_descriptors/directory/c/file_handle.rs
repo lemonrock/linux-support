@@ -3,36 +3,35 @@
 
 
 #[repr(C)]
-pub(super) struct dirent
+pub(super) struct file_handle
 {
-	pub(super) d_ino: ino_t,
-	pub(super) d_off: off_t,
-	pub(super) d_reclen: c_ushort,
-	pub(super) d_type: c_uchar,
+	/// Set by caller to indicate maximum size of `f_handle`.
+	/// Set by callee to indicate actual size of `f_handle`.
+	/// Can not exceed `MAX_HANDLE_SZ`.
+	pub(super) handle_bytes: c_uint,
 
-	/// Note: This isn't necessarily 256 bytes long; it can be shorter or longer, but is NUL-terminated.
+	/// Set by callee.
+	pub(super) handle_type: c_int,
+
+	/// File identifier.
 	///
-	/// It is a variable-sized array.
-	d_name: [c_char; 256],
+	/// Set by callee.
+	///
+	/// Technically a variable sized array.
+	f_handle: [c_char; MAX_HANDLE_SZ],
 }
 
-impl dirent
+impl file_handle
 {
+	#[allow(deprecated)]
 	#[inline(always)]
-	pub(super) fn inode(&self) -> Inode
+	pub(super) const fn new() -> Self
 	{
-		Inode::from(self.d_ino)
-	}
-
-	#[inline(always)]
-	pub(super) fn file_type(&self) -> FileType
-	{
-		FileType::from_dtype(self.d_type)
-	}
-
-	#[inline(always)]
-	pub(super) fn name(&self) -> &CStr
-	{
-		unsafe { CStr::from_ptr(self.d_name.as_ptr()) }
+		Self
+		{
+			handle_bytes: MAX_HANDLE_SZ as u32,
+			handle_type: unsafe { uninitialized() },
+			f_handle: unsafe { uninitialized() },
+		}
 	}
 }
