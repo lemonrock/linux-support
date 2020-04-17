@@ -17,10 +17,6 @@ impl AsRawFd for TerminalFileDescriptor
 	}
 }
 
-impl AsRawFdExt for TerminalFileDescriptor
-{
-}
-
 impl IntoRawFd for TerminalFileDescriptor
 {
 	#[inline(always)]
@@ -37,6 +33,10 @@ impl FromRawFd for TerminalFileDescriptor
 	{
 		Self(CharacterDeviceFileDescriptor::from_raw_fd(fd))
 	}
+}
+
+impl FileDescriptor for TerminalFileDescriptor
+{
 }
 
 impl SpliceRecipient for TerminalFileDescriptor

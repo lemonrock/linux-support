@@ -27,7 +27,7 @@ impl LinuxFileHandle
 	///
 	/// Caller needs the `CAP_DAC_READ_SEARCH` capability.
 	#[inline(always)]
-	pub unsafe fn open<MountFileDescriptor: AsRawFdExt, OpenedFileDescriptor: FromRawFd>(&mut self, file_descriptor_on_file_system_indicated_by_file_system_mount_identifier: MountFileDescriptor, o_flags: i32) -> io::Result<OpenedFileDescriptor>
+	pub unsafe fn open<MountFileDescriptor: FileDescriptor, OpenedFileDescriptor: FileDescriptor>(&mut self, file_descriptor_on_file_system_indicated_by_file_system_mount_identifier: MountFileDescriptor, o_flags: i32) -> io::Result<OpenedFileDescriptor>
 	{
 		let fd = file_descriptor_on_file_system_indicated_by_file_system_mount_identifier.as_raw_fd();
 		let result = open_by_handle_at(fd, &mut self.file_handle, o_flags);

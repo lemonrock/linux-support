@@ -32,8 +32,40 @@ impl AsRawFd for StreamingSocketFileDescriptorEnum
 	}
 }
 
-impl AsRawFdExt for StreamingSocketFileDescriptorEnum
+impl IntoRawFd for StreamingSocketFileDescriptorEnum
 {
+	#[inline(always)]
+	fn into_raw_fd(self) -> RawFd
+	{
+		use self::StreamingSocketFileDescriptorEnum::*;
+
+		match self
+		{
+			InternetProtocolVersion4(streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.into_raw_fd(),
+			InternetProtocolVersion6(streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.into_raw_fd(),
+			UnixDomain(streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.into_raw_fd(),
+		}
+	}
+}
+
+impl FileDescriptor for StreamingSocketFileDescriptorEnum
+{
+}
+
+impl FromRawFd for StreamingSocketFileDescriptorEnum
+{
+	#[inline(always)]
+	unsafe fn from_raw_fd(socket_file_descriptor: RawFd) -> Self
+	{
+		use self::StreamingSocketFileDescriptorEnum::*;
+		from_raw_socket_file_descriptor
+		(
+			socket_file_descriptor,
+			|socket_file_descriptor| InternetProtocolVersion4(StreamingSocketFileDescriptor(socket_file_descriptor)),
+			|socket_file_descriptor| InternetProtocolVersion6(StreamingSocketFileDescriptor(socket_file_descriptor)),
+			|socket_file_descriptor| UnixDomain(StreamingSocketFileDescriptor(socket_file_descriptor))
+		)
+	}
 }
 
 impl Read for StreamingSocketFileDescriptorEnum
@@ -120,5 +152,24 @@ impl Write for StreamingSocketFileDescriptorEnum
 	fn flush(&mut self) -> io::Result<()>
 	{
 		Ok(())
+	}
+}
+
+impl StreamingSocketFileDescriptorEnum
+{
+	/// Sends a TCP `FIN` for TCP sockets.
+	///
+	/// Should be done prior to drop(), ideally.
+	#[inline(always)]
+	pub fn shutdown(&self)
+	{
+		use self::StreamingSocketFileDescriptorEnum::*;
+
+		match self
+		{
+			&InternetProtocolVersion4(ref streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.shutdown(),
+			&InternetProtocolVersion6(ref streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.shutdown(),
+			&UnixDomain(ref streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.shutdown(),
+		}
 	}
 }

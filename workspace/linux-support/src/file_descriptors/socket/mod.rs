@@ -17,7 +17,8 @@ use crate::cpu::HyperThread;
 pub mod c;
 
 
-include!("AcceptedConnection.rs");include!("AcceptedConnectionEnum.rs");
+include!("AcceptedConnection.rs");
+include!("AcceptedConnectionEnum.rs");
 include!("ConnectionFailedReason.rs");
 include!("Credentials.rs");
 include!("DatagramClientSocketFileDescriptor.rs");
@@ -32,6 +33,7 @@ include!("DatagramServerListenerSocketInternetProtocolVersion6FileDescriptor.rs"
 include!("DatagramServerListenerSocketUnixDomainFileDescriptor.rs");
 include!("ErrorFlags.rs");
 include!("FilePathInvalidReason.rs");
+include!("from_raw_socket_file_descriptor.rs");
 include!("InfinibandSocketAddress.rs");
 include!("MessageHeadersIterator.rs");
 include!("NewSocketClientError.rs");

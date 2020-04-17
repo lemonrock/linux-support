@@ -35,10 +35,6 @@ impl AsRawFd for ProcessIdentifierFileDescriptor
 	}
 }
 
-impl AsRawFdExt for ProcessIdentifierFileDescriptor
-{
-}
-
 impl IntoRawFd for ProcessIdentifierFileDescriptor
 {
 	#[inline(always)]
@@ -55,6 +51,10 @@ impl FromRawFd for ProcessIdentifierFileDescriptor
 	{
 		Self(fd)
 	}
+}
+
+impl FileDescriptor for ProcessIdentifierFileDescriptor
+{
 }
 
 impl ProcessIdentifierFileDescriptor

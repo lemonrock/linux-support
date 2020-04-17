@@ -24,10 +24,6 @@ impl AsRawFd for PathFileDescriptor
 	}
 }
 
-impl AsRawFdExt for PathFileDescriptor
-{
-}
-
 impl IntoRawFd for PathFileDescriptor
 {
 	#[inline(always)]
@@ -46,10 +42,20 @@ impl FromRawFd for PathFileDescriptor
 	}
 }
 
+impl FileDescriptor for PathFileDescriptor
+{
+}
+
 impl PathFileDescriptor
 {
 
 }
+
+///// Represents a file descriptor backed by real storage.
+//pub trait OnDiskFileDescriptor: FileDescriptor
+//{
+//
+//}
 
 /*
 The following operations can be performed on the resulting

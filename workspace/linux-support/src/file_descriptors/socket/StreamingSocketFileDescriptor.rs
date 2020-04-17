@@ -6,34 +6,6 @@
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct StreamingSocketFileDescriptor<SD: SocketData>(SocketFileDescriptor<SD>);
 
-impl<SD: SocketData> Drop for StreamingSocketFileDescriptor<SD>
-{
-	#[inline(always)]
-	fn drop(&mut self)
-	{
-		let result = unsafe { shutdown(self.as_raw_fd(), SHUT_RDWR) };
-		if likely!(result == 0)
-		{
-			return
-		}
-		else if likely!(result != -1)
-		{
-			match errno().0
-			{
-				EBADF => panic!("The argument `sockfd` is an invalid descriptor"),
-				EINVAL => panic!("An invalid value was specified in `how`"),
-				ENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
-				ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
-				_ => unreachable!(),
-			}
-		}
-		else
-		{
-			unreachable!()
-		}
-	}
-}
-
 impl<SD: SocketData> AsRawFd for StreamingSocketFileDescriptor<SD>
 {
 	#[inline(always)]
@@ -50,6 +22,19 @@ impl<SD: SocketData> FromRawFd for StreamingSocketFileDescriptor<SD>
 	{
 		Self(SocketFileDescriptor::from_raw_fd(fd))
 	}
+}
+
+impl<SD: SocketData> IntoRawFd for StreamingSocketFileDescriptor<SD>
+{
+	#[inline(always)]
+	fn into_raw_fd(self) -> RawFd
+	{
+		self.0.into_raw_fd()
+	}
+}
+
+impl<SD: SocketData> FileDescriptor for StreamingSocketFileDescriptor<SD>
+{
 }
 
 impl<SD: SocketData> Deref for StreamingSocketFileDescriptor<SD>
@@ -212,6 +197,34 @@ impl<SD: SocketData> Write for StreamingSocketFileDescriptor<SD>
 
 impl<SD: SocketData> StreamingSocketFileDescriptor<SD>
 {
+	/// Sends a TCP `FIN` for TCP sockets.
+	///
+	/// Should be done prior to drop(), ideally.
+	#[inline(always)]
+	pub fn shutdown(&self)
+	{
+		let result = unsafe { shutdown(self.as_raw_fd(), SHUT_RDWR) };
+		if likely!(result == 0)
+		{
+			return
+		}
+		else if likely!(result != -1)
+		{
+			match errno().0
+			{
+				EBADF => panic!("The argument `sockfd` is an invalid descriptor"),
+				EINVAL => panic!("An invalid value was specified in `how`"),
+				ENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
+				ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
+				_ => unreachable!(),
+			}
+		}
+		else
+		{
+			unreachable!()
+		}
+	}
+
 	/// This is wrapped by `io::Read::read()` but is exposed as it does not require a mutable reference.
 	///
 	/// This particular implementation can only return an `io::ErrorKind` of:-

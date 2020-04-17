@@ -23,7 +23,7 @@ assert_cfg!(target_pointer_width = "64");
 
 use bitflags::bitflags;
 use errno::errno;
-use file_descriptors::AsRawFdExt;
+use file_descriptors::FileDescriptor;
 use file_descriptors::CreationError;
 use file_descriptors::pipes_and_fifos::PipeFileDescriptor;
 use file_descriptors::pipes_and_fifos::ReceivePipeFileDescriptor;

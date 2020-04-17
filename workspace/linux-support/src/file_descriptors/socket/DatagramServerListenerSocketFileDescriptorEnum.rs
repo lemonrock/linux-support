@@ -32,6 +32,38 @@ impl AsRawFd for DatagramServerListenerSocketFileDescriptorEnum
 	}
 }
 
-impl AsRawFdExt for DatagramServerListenerSocketFileDescriptorEnum
+impl IntoRawFd for DatagramServerListenerSocketFileDescriptorEnum
+{
+	#[inline(always)]
+	fn into_raw_fd(self) -> RawFd
+	{
+		use self::DatagramServerListenerSocketFileDescriptorEnum::*;
+
+		match self
+		{
+			InternetProtocolVersion4(datagram_client_socket_file_descriptor) => datagram_client_socket_file_descriptor.into_raw_fd(),
+			InternetProtocolVersion6(datagram_client_socket_file_descriptor) => datagram_client_socket_file_descriptor.into_raw_fd(),
+			UnixDomain(datagram_client_socket_file_descriptor) => datagram_client_socket_file_descriptor.into_raw_fd(),
+		}
+	}
+}
+
+impl FromRawFd for DatagramServerListenerSocketFileDescriptorEnum
+{
+	#[inline(always)]
+	unsafe fn from_raw_fd(socket_file_descriptor: RawFd) -> Self
+	{
+		use self::DatagramServerListenerSocketFileDescriptorEnum::*;
+		from_raw_socket_file_descriptor
+		(
+			socket_file_descriptor,
+			|socket_file_descriptor| InternetProtocolVersion4(DatagramServerListenerSocketFileDescriptor(socket_file_descriptor)),
+			|socket_file_descriptor| InternetProtocolVersion6(DatagramServerListenerSocketFileDescriptor(socket_file_descriptor)),
+			|socket_file_descriptor| UnixDomain(DatagramServerListenerSocketFileDescriptor(socket_file_descriptor))
+		)
+	}
+}
+
+impl FileDescriptor for DatagramServerListenerSocketFileDescriptorEnum
 {
 }

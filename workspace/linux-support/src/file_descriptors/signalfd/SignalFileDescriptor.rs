@@ -29,10 +29,6 @@ impl AsRawFd for SignalFileDescriptor
 	}
 }
 
-impl AsRawFdExt for SignalFileDescriptor
-{
-}
-
 impl IntoRawFd for SignalFileDescriptor
 {
 	#[inline(always)]
@@ -49,6 +45,10 @@ impl FromRawFd for SignalFileDescriptor
 	{
 		Self(fd)
 	}
+}
+
+impl FileDescriptor for SignalFileDescriptor
+{
 }
 
 impl SignalFileDescriptor

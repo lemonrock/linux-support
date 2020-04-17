@@ -29,10 +29,6 @@ impl AsRawFd for DirectoryFileDescriptor
 	}
 }
 
-impl AsRawFdExt for DirectoryFileDescriptor
-{
-}
-
 impl IntoRawFd for DirectoryFileDescriptor
 {
 	#[inline(always)]
@@ -49,6 +45,10 @@ impl FromRawFd for DirectoryFileDescriptor
 	{
 		Self(fd)
 	}
+}
+
+impl FileDescriptor for DirectoryFileDescriptor
+{
 }
 
 impl DirectoryFileDescriptor

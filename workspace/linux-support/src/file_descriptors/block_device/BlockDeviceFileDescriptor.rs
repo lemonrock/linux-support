@@ -24,10 +24,6 @@ impl AsRawFd for BlockDeviceFileDescriptor
 	}
 }
 
-impl AsRawFdExt for BlockDeviceFileDescriptor
-{
-}
-
 impl IntoRawFd for BlockDeviceFileDescriptor
 {
 	#[inline(always)]
@@ -44,6 +40,10 @@ impl FromRawFd for BlockDeviceFileDescriptor
 	{
 		Self(fd)
 	}
+}
+
+impl FileDescriptor for BlockDeviceFileDescriptor
+{
 }
 
 impl SpliceRecipient for BlockDeviceFileDescriptor

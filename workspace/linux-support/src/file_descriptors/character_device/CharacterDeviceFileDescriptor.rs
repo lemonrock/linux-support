@@ -26,10 +26,6 @@ impl AsRawFd for CharacterDeviceFileDescriptor
 	}
 }
 
-impl AsRawFdExt for CharacterDeviceFileDescriptor
-{
-}
-
 impl IntoRawFd for CharacterDeviceFileDescriptor
 {
 	#[inline(always)]
@@ -46,6 +42,10 @@ impl FromRawFd for CharacterDeviceFileDescriptor
 	{
 		Self(fd)
 	}
+}
+
+impl FileDescriptor for CharacterDeviceFileDescriptor
+{
 }
 
 impl SpliceRecipient for CharacterDeviceFileDescriptor

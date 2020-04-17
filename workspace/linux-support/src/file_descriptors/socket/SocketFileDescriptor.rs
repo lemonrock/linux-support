@@ -6,6 +6,15 @@
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct SocketFileDescriptor<SD: SocketData>(RawFd, PhantomData<SD>);
 
+impl<SD: SocketData> Drop for SocketFileDescriptor<SD>
+{
+	#[inline(always)]
+	fn drop(&mut self)
+	{
+		SD::specialized_drop(self)
+	}
+}
+
 impl<SD: SocketData> AsRawFd for SocketFileDescriptor<SD>
 {
 	#[inline(always)]
@@ -24,15 +33,6 @@ impl<SD: SocketData> IntoRawFd for SocketFileDescriptor<SD>
 	}
 }
 
-impl<SD: SocketData> Drop for SocketFileDescriptor<SD>
-{
-	#[inline(always)]
-	fn drop(&mut self)
-	{
-		SD::specialized_drop(self)
-	}
-}
-
 impl<SD: SocketData> FromRawFd for SocketFileDescriptor<SD>
 {
 	#[inline(always)]
@@ -40,6 +40,10 @@ impl<SD: SocketData> FromRawFd for SocketFileDescriptor<SD>
 	{
 		Self(fd, PhantomData)
 	}
+}
+
+impl<SD: SocketData> FileDescriptor for SocketFileDescriptor<SD>
+{
 }
 
 impl SocketFileDescriptor<sockaddr_in>

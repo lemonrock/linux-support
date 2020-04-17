@@ -9,6 +9,6 @@ extern "C"
 	///
 	/// For `getsockopt()`, `optlen` is a value-result argument, initially containing the size of the buffer pointed to by `optval`, and modified on return to indicate the actual size of the value returned.
 	///
-	/// If no option value is to be supplied or returned, `optva`l may be `NULL`.
+	/// If no option value is to be supplied or returned, `optval` may be `NULL`.
 	pub(crate) fn getsockopt(sockfd: RawFd, level: c_int, optname: c_int, optval: *mut c_void, optlen: *mut socklen_t) -> c_int;
 }

@@ -6,40 +6,21 @@
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct DatagramClientSocketFileDescriptor<SD: SocketData>(SocketFileDescriptor<SD>);
 
-impl<SD: SocketData> Drop for DatagramClientSocketFileDescriptor<SD>
-{
-	#[inline(always)]
-	fn drop(&mut self)
-	{
-		let result = unsafe { shutdown(self.as_raw_fd(), SHUT_RDWR) };
-		if likely!(result == 0)
-		{
-			return
-		}
-		else if likely!(result != -1)
-		{
-			match errno().0
-			{
-				EBADF => panic!("The argument `sockfd` is an invalid descriptor"),
-				EINVAL => panic!("An invalid value was specified in `how`"),
-				ENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
-				ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
-				_ => unreachable!(),
-			}
-		}
-		else
-		{
-			unreachable!()
-		}
-	}
-}
-
 impl<SD: SocketData> AsRawFd for DatagramClientSocketFileDescriptor<SD>
 {
 	#[inline(always)]
 	fn as_raw_fd(&self) -> RawFd
 	{
 		self.0.as_raw_fd()
+	}
+}
+
+impl<SD: SocketData> IntoRawFd for DatagramClientSocketFileDescriptor<SD>
+{
+	#[inline(always)]
+	fn into_raw_fd(self) -> RawFd
+	{
+		self.0.into_raw_fd()
 	}
 }
 
@@ -50,6 +31,10 @@ impl<SD: SocketData> FromRawFd for DatagramClientSocketFileDescriptor<SD>
 	{
 		Self(SocketFileDescriptor::from_raw_fd(fd))
 	}
+}
+
+impl<SD: SocketData> FileDescriptor for DatagramClientSocketFileDescriptor<SD>
+{
 }
 
 impl<SD: SocketData> Deref for DatagramClientSocketFileDescriptor<SD>

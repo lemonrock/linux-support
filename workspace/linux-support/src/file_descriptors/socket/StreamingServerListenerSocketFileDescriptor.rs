@@ -33,6 +33,10 @@ impl<SD: SocketData> FromRawFd for StreamingServerListenerSocketFileDescriptor<S
 	}
 }
 
+impl<SD: SocketData> FileDescriptor for StreamingServerListenerSocketFileDescriptor<SD>
+{
+}
+
 impl<SD: SocketData> Deref for StreamingServerListenerSocketFileDescriptor<SD>
 {
 	type Target = SocketFileDescriptor<SD>;

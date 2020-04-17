@@ -32,10 +32,6 @@ impl AsRawFd for StreamingServerListenerSocketFileDescriptorEnum
 	}
 }
 
-impl AsRawFdExt for StreamingServerListenerSocketFileDescriptorEnum
-{
-}
-
 impl IntoRawFd for StreamingServerListenerSocketFileDescriptorEnum
 {
 	#[inline(always)]
@@ -49,6 +45,26 @@ impl IntoRawFd for StreamingServerListenerSocketFileDescriptorEnum
 			InternetProtocolVersion6(streaming_server_listener_socket_file_descriptor) => streaming_server_listener_socket_file_descriptor.into_raw_fd(),
 			UnixDomain(streaming_server_listener_socket_file_descriptor) => streaming_server_listener_socket_file_descriptor.into_raw_fd(),
 		}
+	}
+}
+
+impl FileDescriptor for StreamingServerListenerSocketFileDescriptorEnum
+{
+}
+
+impl FromRawFd for StreamingServerListenerSocketFileDescriptorEnum
+{
+	#[inline(always)]
+	unsafe fn from_raw_fd(socket_file_descriptor: RawFd) -> Self
+	{
+		use self::StreamingServerListenerSocketFileDescriptorEnum::*;
+		from_raw_socket_file_descriptor
+		(
+			socket_file_descriptor,
+			|socket_file_descriptor| InternetProtocolVersion4(StreamingServerListenerSocketFileDescriptor(socket_file_descriptor)),
+			|socket_file_descriptor| InternetProtocolVersion6(StreamingServerListenerSocketFileDescriptor(socket_file_descriptor)),
+			|socket_file_descriptor| UnixDomain(StreamingServerListenerSocketFileDescriptor(socket_file_descriptor))
+		)
 	}
 }
 

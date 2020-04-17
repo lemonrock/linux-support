@@ -24,10 +24,6 @@ impl AsRawFd for EPollFileDescriptor
 	}
 }
 
-impl AsRawFdExt for EPollFileDescriptor
-{
-}
-
 impl IntoRawFd for EPollFileDescriptor
 {
 	#[inline(always)]
@@ -44,6 +40,10 @@ impl FromRawFd for EPollFileDescriptor
 	{
 		Self(fd)
 	}
+}
+
+impl FileDescriptor for EPollFileDescriptor
+{
 }
 
 impl EPollFileDescriptor

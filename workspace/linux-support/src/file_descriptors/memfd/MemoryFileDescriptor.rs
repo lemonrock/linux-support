@@ -33,6 +33,10 @@ impl AsRawFd for MemoryFileDescriptor
 	}
 }
 
+impl FileDescriptor for MemoryFileDescriptor
+{
+}
+
 impl Read for MemoryFileDescriptor
 {
 	#[inline(always)]
@@ -212,10 +216,6 @@ impl BorrowMut<File> for MemoryFileDescriptor
 	{
 		&mut self.0
 	}
-}
-
-impl AsRawFdExt for MemoryFileDescriptor
-{
 }
 
 impl SpliceRecipient for MemoryFileDescriptor

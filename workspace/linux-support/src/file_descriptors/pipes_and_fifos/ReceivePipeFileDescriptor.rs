@@ -27,10 +27,6 @@ impl AsRawFd for ReceivePipeFileDescriptor
 	}
 }
 
-impl AsRawFdExt for ReceivePipeFileDescriptor
-{
-}
-
 impl IntoRawFd for ReceivePipeFileDescriptor
 {
 	#[inline(always)]
@@ -47,6 +43,10 @@ impl FromRawFd for ReceivePipeFileDescriptor
 	{
 		Self(fd)
 	}
+}
+
+impl FileDescriptor for ReceivePipeFileDescriptor
+{
 }
 
 impl SpliceSender for ReceivePipeFileDescriptor

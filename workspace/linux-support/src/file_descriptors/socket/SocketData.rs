@@ -8,7 +8,7 @@ use std::path::Path;
 
 
 /// Represents socket data.
-pub trait SocketData: Sized + Default
+pub trait SocketData: Sized + Default + Debug
 {
 	/// Socket family (eg `AF_UNIX`).
 	fn family(&self) -> sa_family_t;

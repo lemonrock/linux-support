@@ -28,10 +28,6 @@ impl AsRawFd for SendPipeFileDescriptor
 	}
 }
 
-impl AsRawFdExt for SendPipeFileDescriptor
-{
-}
-
 impl IntoRawFd for SendPipeFileDescriptor
 {
 	#[inline(always)]
@@ -48,6 +44,10 @@ impl FromRawFd for SendPipeFileDescriptor
 	{
 		Self(fd)
 	}
+}
+
+impl FileDescriptor for SendPipeFileDescriptor
+{
 }
 
 impl VectoredWrite for SendPipeFileDescriptor

@@ -26,10 +26,6 @@ impl AsRawFd for FanotifyFileDescriptor
 	}
 }
 
-impl AsRawFdExt for FanotifyFileDescriptor
-{
-}
-
 impl IntoRawFd for FanotifyFileDescriptor
 {
 	#[inline(always)]
@@ -46,6 +42,10 @@ impl FromRawFd for FanotifyFileDescriptor
 	{
 		Self(fd)
 	}
+}
+
+impl FileDescriptor for FanotifyFileDescriptor
+{
 }
 
 impl FanotifyFileDescriptor

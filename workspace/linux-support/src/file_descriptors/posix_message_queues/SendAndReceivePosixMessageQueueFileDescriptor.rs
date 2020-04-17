@@ -15,10 +15,6 @@ impl AsRawFd for SendAndReceivePosixMessageQueueFileDescriptor
 	}
 }
 
-impl AsRawFdExt for SendAndReceivePosixMessageQueueFileDescriptor
-{
-}
-
 impl IntoRawFd for SendAndReceivePosixMessageQueueFileDescriptor
 {
 	#[inline(always)]
@@ -35,6 +31,10 @@ impl FromRawFd for SendAndReceivePosixMessageQueueFileDescriptor
 	{
 		Self(PosixMessageQueueFileDescriptor::from_raw_fd(fd))
 	}
+}
+
+impl FileDescriptor for SendAndReceivePosixMessageQueueFileDescriptor
+{
 }
 
 impl PosixMessageQueue for SendAndReceivePosixMessageQueueFileDescriptor
