@@ -109,6 +109,13 @@ impl PathFileDescriptor
 		self.use_as_directory(|directory| directory.metadata_of_self())
 	}
 
+	/// Metadata.
+	#[inline(always)]
+	pub fn extended_metadata_of_self(&self, force_synchronization: Option<bool>, extended_metadata_wanted: ExtendedMetadataWanted) -> io::Result<ExtendedMetadata>
+	{
+		self.use_as_directory(|directory| directory.extended_metadata_of_self(force_synchronization, extended_metadata_wanted))
+	}
+
 	/// Change directory (`cd`).
 	///
 	/// debug_asserts this is a directory.
@@ -120,7 +127,52 @@ impl PathFileDescriptor
 		self.use_as_directory(|directory| directory.change_current_working_directory_to_self())
 	}
 
+	/// Only a process with the `CAP_CHOWN` capability may change the owner of a file.
+	///
+	/// The owner of a file may change the group of the file to any group of which that owner is a member.
+	///
+	/// A process with the `CAP_CHOWN` capability may change the group arbitrarily.
+	///
+	/// When the owner or group of an executable file is changed by an unprivileged user the `S_ISUID` (suid) and `S_ISGID` (sgid) mode bits are cleared.
+	/// In case of a  non-group-executable file (ie, one for which the `S_IXGRP` bit is not set) the `S_ISGID` bit indicates mandatory locking (which is not usually used by Linux in any event), and is not cleared.
+	///
+	/// When the owner or group of an executable file is changed (by any user), all capability sets for the path are cleared.
+	///
+	/// If `owner` is `None` no changes are made.
+	/// If `group` is `None` no changes are made.
+	///
+	/// Since Linux 2.6.39.
+	#[inline(always)]
+	pub fn change_ownership_of_self(&self, owner: Option<UserIdentifier>, group: Option<GroupIdentifier>) -> io::Result<()>
+	{
+		self.use_as_directory(|directory| directory.change_ownership_of_self(owner, group, false))
+	}
+
+	/// Name to file handle.
+	///
+	/// Not supported by `/sys` and /proc` and possibly other file systems.
+	#[inline(always)]
+	pub fn name_to_handle_for_self(&self) -> io::Result<LinuxFileHandle>
+	{
+		self.use_as_directory(|directory| directory.name_to_handle_for_self())
+	}
+
+	/// Create a hard link.
+	///
+	/// If `to` and `to_path` exists, it will *NOT* be overwritten.
+	///
+	/// `to_path` can be absolute.
+	///
+	/// Process must have the `CAP_DAC_READ_SEARCH` capability.
+	#[inline(always)]
+	pub fn make_hard_link_for_self(&self, to: &DirectoryFileDescriptor, to_path: &CStr) -> io::Result<()>
+	{
+		self.use_as_directory(|directory| directory.make_hard_link_for_self(to, to_path))
+	}
+
 	/// Execute a command with a new environment but keep the current process identifier, any file descriptors not set to close-on-exec, etc.
+	///
+	/// This is useful if one has execute permission but NOT read permission.
 	///
 	/// `arguments[0]` should ideally be the same path as `self` represents.
 	///
@@ -142,29 +194,3 @@ impl PathFileDescriptor
 		result
 	}
 }
-
-///// Represents a file descriptor backed by real storage.
-//pub trait OnDiskFileDescriptor: FileDescriptor
-//{
-//
-//}
-
-/*
-The following operations can be performed on the resulting
-              file descriptor:
-
-              *  fstatfs(2) (since Linux 3.12).
-
-              *  Passing the file descriptor as the dirfd argument of
-                 openat() and the other "*at()" system calls.  This includes
-                 linkat(2) with AT_EMPTY_PATH (or via procfs using
-                 AT_SYMLINK_FOLLOW) even if the file is not a directory.
-
-FIND ALL `*at()` functions that can take an empty path.
-    * statx()
-    * fstatat()
-    * renameat2()
-    * name_to_handle_at()
-    * fchownat()
-    * linkat()  - needs CAP_DAC_READ_SEARCH capability.
-*/

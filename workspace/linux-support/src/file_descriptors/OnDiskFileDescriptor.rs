@@ -2,12 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use super::directory::*;
-use crate::environment::Environment;
-use crate::strings::NulTerminatedCStringArray;
-use crate::user_and_groups::GroupIdentifier;
-use crate::user_and_groups::UserIdentifier;
-
-
-include!("PathFileDescriptor.rs");
+///// Represents a file descriptor backed by real storage.
+//pub trait OnDiskFileDescriptor: FileDescriptor
+//{
+//
+//}

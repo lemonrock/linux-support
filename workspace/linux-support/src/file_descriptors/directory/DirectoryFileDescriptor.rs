@@ -236,7 +236,7 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	pub fn name_to_handle_for_self(&self) -> io::Result<LinuxFileHandle>
 	{
-		self.name_to_handle_internal(Self::empty_path(), false, AT_EMPTY_PATH)
+		self.name_to_handle_internal(Self::empty_path(), true, AT_EMPTY_PATH)
 	}
 
 	#[inline(always)]
@@ -248,11 +248,11 @@ impl DirectoryFileDescriptor
 		let mut mount_id = unsafe { uninitialized() };
 		let flags = flags | if unlikely!(do_not_dereference_path_if_it_is_a_symlink)
 		{
-			AT_SYMLINK_NOFOLLOW
+			0
 		}
 		else
 		{
-			0
+			AT_SYMLINK_FOLLOW
 		};
 
 		let result = unsafe { name_to_handle_at(self.as_raw_fd(), path.as_ptr(), &mut file_handle, &mut mount_id, flags) };
@@ -532,16 +532,27 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	pub fn make_hard_link(&self, from_path: &CStr, to: &Self, to_path: &CStr, do_not_dereference_path_if_it_is_a_symlink: bool) -> io::Result<()>
 	{
-		debug_assert!(!from_path.to_bytes().is_empty(), "Empty from_path is not permitted");
+		self.make_hard_link_internal(Self::non_empty_path(from_path), to, to_path, do_not_dereference_path_if_it_is_a_symlink)
+	}
+
+	#[inline(always)]
+	pub(crate) fn make_hard_link_for_self(&self, to: &Self, to_path: &CStr) -> io::Result<()>
+	{
+		self.make_hard_link_internal(Self::empty_path(), to, to_path, true)
+	}
+
+	#[inline(always)]
+	fn make_hard_link_internal(&self, from_path: NonNull<c_char>, to: &Self, to_path: &CStr, do_not_dereference_path_if_it_is_a_symlink: bool) -> io::Result<()>
+	{
 		debug_assert!(!to_path.to_bytes().is_empty(), "Empty to_path is not permitted");
 
 		let flags = if unlikely!(do_not_dereference_path_if_it_is_a_symlink)
 		{
-			AT_SYMLINK_NOFOLLOW
+			0
 		}
 		else
 		{
-			0
+			AT_SYMLINK_FOLLOW
 		};
 
 		let result = unsafe { linkat(self.as_raw_fd(), from_path.as_ptr(), to.as_raw_fd(), to_path.as_ptr(), flags) };

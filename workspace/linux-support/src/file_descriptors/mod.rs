@@ -78,6 +78,7 @@ use libc::AT_EMPTY_PATH;
 use libc::AT_FDCWD;
 use libc::AT_NO_AUTOMOUNT;
 use libc::AT_REMOVEDIR;
+use libc::AT_SYMLINK_FOLLOW;
 use libc::AT_SYMLINK_NOFOLLOW;
 use libc::blkcnt_t;
 use libc::blksize_t;
