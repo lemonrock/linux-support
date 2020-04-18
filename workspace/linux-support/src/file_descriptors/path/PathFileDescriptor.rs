@@ -4,14 +4,18 @@
 
 /// Represents a path in a file system.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct PathFileDescriptor(RawFd);
+pub struct PathFileDescriptor
+{
+	raw_fd: RawFd,
+	is_directory: bool,
+}
 
 impl Drop for PathFileDescriptor
 {
 	#[inline(always)]
 	fn drop(&mut self)
 	{
-		self.0.close()
+		self.raw_fd.close()
 	}
 }
 
@@ -20,7 +24,7 @@ impl AsRawFd for PathFileDescriptor
 	#[inline(always)]
 	fn as_raw_fd(&self) -> RawFd
 	{
-		self.0
+		self.raw_fd
 	}
 }
 
@@ -29,7 +33,7 @@ impl IntoRawFd for PathFileDescriptor
 	#[inline(always)]
 	fn into_raw_fd(self) -> RawFd
 	{
-		self.0
+		self.raw_fd
 	}
 }
 
@@ -38,7 +42,14 @@ impl FromRawFd for PathFileDescriptor
 	#[inline(always)]
 	unsafe fn from_raw_fd(fd: RawFd) -> Self
 	{
-		Self(fd)
+		let o_flags = Self::get_o_flags_raw_fd(fd);
+		debug_assert_ne!(o_flags & O_PATH, 0, "Not a path");
+
+		Self
+		{
+			raw_fd: fd,
+			is_directory: o_flags & O_DIRECTORY != 0,
+		}
 	}
 }
 
@@ -48,8 +59,86 @@ impl FileDescriptor for PathFileDescriptor
 
 impl PathFileDescriptor
 {
+	/// Open a new path file descriptor.
+	#[inline(always)]
+	pub fn open(path: &CStr, is_directory: bool, no_follow: bool) -> io::Result<Self>
+	{
+		let flags = O_PATH | O_CLOEXEC | if is_directory
+		{
+			O_DIRECTORY
+		}
+		else
+		{
+			0
+		}
+		| if no_follow
+		{
+			O_NOFOLLOW
+		}
+		else
+		{
+			0
+		};
 
+		let result = unsafe { open(path.as_ptr(), flags) };
+		if likely!(result >= 0)
+		{
+			Ok
+			(
+				Self
+				{
+					raw_fd: result,
+					is_directory,
+				}
+			)
+		}
+		else if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("open() returned unexpected result {}", result)
+		}
+	}
+
+	/// Change directory (`cd`).
+	///
+	/// Returns `Ok(false)` if this is not a directory.
+	#[inline(always)]
+	pub fn change_current_working_directory_to_self(&self) -> io::Result<bool>
+	{
+		if unlikely!(self.is_directory)
+		{
+			return Ok(false)
+		}
+		let result = unsafe { fchdir(self.as_raw_fd()) };
+		if likely!(result == 0)
+		{
+			Ok(true)
+		}
+		else if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("Unexpected result {} from fchdir()", result)
+		}
+	}
+
+	/// Metadata.
+	#[inline(always)]
+	pub fn metadata_of_self(&self) -> io::Result<Metadata>
+	{
+		let directory = DirectoryFileDescriptor(self.raw_fd);
+		let result = directory.metadata_of_self();
+		forget(directory);
+		result
+	}
 }
+
+// TODO: execveat() for Directory.
 
 ///// Represents a file descriptor backed by real storage.
 //pub trait OnDiskFileDescriptor: FileDescriptor
@@ -61,33 +150,19 @@ impl PathFileDescriptor
 The following operations can be performed on the resulting
               file descriptor:
 
-              *  close(2).
-
-              *  fchdir(2), if the file descriptor refers to a directory
-                 (since Linux 3.5).
-
-              *  fstat(2) (since Linux 3.6).
-
               *  fstatfs(2) (since Linux 3.12).
-
-              *  Duplicating the file descriptor (dup(2), fcntl(2) F_DUPFD,
-                 etc.).
-
-              *  Getting and setting file descriptor flags (fcntl(2) F_GETFD
-                 and F_SETFD).
-
-              *  Retrieving open file status flags using the fcntl(2)
-                 F_GETFL operation: the returned flags will include the bit
-                 O_PATH.
 
               *  Passing the file descriptor as the dirfd argument of
                  openat() and the other "*at()" system calls.  This includes
                  linkat(2) with AT_EMPTY_PATH (or via procfs using
                  AT_SYMLINK_FOLLOW) even if the file is not a directory.
 
-              *  Passing the file descriptor to another process via a UNIX
-                 domain socket (see SCM_RIGHTS in unix(7)).
-
-              When O_PATH is specified in flags, flag bits other than
-              O_CLOEXEC, O_DIRECTORY, and O_NOFOLLOW are ignored.
+FIND ALL `*at()` functions that can take an empty path.
+    * statx()
+    * fstatat()
+    * renameat2()
+    * name_to_handle_at()
+    * fchownat()
+    * linkat()  - needs CAP_DAC_READ_SEARCH capability.
+    * execveat()
 */

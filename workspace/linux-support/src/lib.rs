@@ -14,6 +14,7 @@
 #![feature(const_fn)]
 #![feature(core_intrinsics)]
 #![feature(const_transmute)]
+#![feature(never_type)]
 #![feature(read_initializer)]
 
 

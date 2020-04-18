@@ -2,16 +2,13 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Forcing the constraint of `T: Copy` ensures that we do not need to drop the discarded values (Copy is incompatible with Drop).
-#[inline(always)]
-pub(crate) fn move_to_front_of_vec<T: Copy>(mut vec: Vec<T>, from_inclusive_index: usize) -> Vec<T>
+/// C string fragments.
+///
+/// Must not include a trailing NULL.
+///
+/// Used by `NulTerminatedCStringArray::new()`.
+pub trait CStringFragments
 {
-	let pointer = vec.as_mut_ptr();
-	let bytes_to_move = vec.len() - from_inclusive_index;
-	unsafe
-	{
-		pointer.copy_from(pointer.add(from_inclusive_index), bytes_to_move);
-		vec.set_len(bytes_to_move)
-	}
-	vec
+	/// Specialized iteration as general iterators are too difficult to use with the various lifetimes and variable size of collections of fragments (which would require heap allocation).
+	fn iterate(self, provide_fragment: &mut impl FnMut(&[u8]) -> ());
 }

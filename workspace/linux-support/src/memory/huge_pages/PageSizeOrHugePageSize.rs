@@ -13,6 +13,36 @@ pub enum PageSizeOrHugePageSize
 	HugePageSize(HugePageSize),
 }
 
+impl Into<u64> for PageSizeOrHugePageSize
+{
+	#[inline(always)]
+	fn into(self) -> u64
+	{
+		use self::PageSizeOrHugePageSize::*;
+
+		match self
+		{
+			PageSize(page_size) => page_size.into(),
+			HugePageSize(huge_page_size) => huge_page_size.into(),
+		}
+	}
+}
+
+impl Into<usize> for PageSizeOrHugePageSize
+{
+	#[inline(always)]
+	fn into(self) -> usize
+	{
+		use self::PageSizeOrHugePageSize::*;
+
+		match self
+		{
+			PageSize(page_size) => page_size.into(),
+			HugePageSize(huge_page_size) => huge_page_size.into(),
+		}
+	}
+}
+
 impl PageSizeOrHugePageSize
 {
 	/// Size in kilobytes.

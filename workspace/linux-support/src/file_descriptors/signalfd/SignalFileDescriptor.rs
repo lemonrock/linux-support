@@ -134,7 +134,7 @@ impl SignalFileDescriptor
 		let structures = self.read_internal(uninitialized_buffer)?;
 		for index in 0 .. structures
 		{
-			let siginfo = unsafe { & * (uninitialized_buffer.0.as_ptr().offset(index as isize)) };
+			let siginfo = unsafe { & * (uninitialized_buffer.0.as_ptr().add(index)) };
 			signal_handler(siginfo.parse_signal())
 		}
 		Ok(())

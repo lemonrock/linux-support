@@ -6,7 +6,7 @@
 ///
 /// Defaults to the current working directory (and updates as that changes).
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct DirectoryFileDescriptor(RawFd);
+pub struct DirectoryFileDescriptor(pub(crate) RawFd);
 
 impl Drop for DirectoryFileDescriptor
 {
@@ -135,7 +135,6 @@ impl DirectoryFileDescriptor
 		}
 	}
 
-	// TODO: O_PATH
 	/// TODO: Detect BLOCK, CHARACTER, FIFO, SOCKET, ?DIRECTORY and return a suitable type.
 	/// NOTE: Not much we can do with SOCKET.
 	/// `disable_linux_page_cache` is used to specify `O_DIRECT`.
@@ -585,6 +584,42 @@ impl DirectoryFileDescriptor
 		}
 	}
 
+	/// Execute a command with a new environment but keep the current process identifier, in any file descriptors not set to close-on-exec, etc.
+	#[inline(always)]
+	pub fn execve(&self, path: &CStr, do_not_dereference_path_if_it_is_a_symlink: bool, mut arguments: Vec<&CStr>, environment: &Environment) -> io::Result<!>
+	{
+		if cfg!(debug_assertions)
+		{
+			for argument in arguments.iter()
+			{
+				debug_assert!(!argument.to_bytes().is_empty(), "An argument can not be an empty string");
+			}
+		}
+
+		const EndOfArray: ConstCStr = ConstCStr(b"\0");
+		arguments.push(EndOfArray.as_cstr());
+
+		let environment = environment.to_environment_c_string_array();
+
+		let flags = if unlikely!(do_not_dereference_path_if_it_is_a_symlink)
+		{
+			AT_SYMLINK_NOFOLLOW
+		}
+		else
+		{
+			0
+		};
+		let result = unsafe { execveat(self.as_raw_fd(), path.as_ptr(), arguments.as_ptr() as *const *const c_char, environment.as_ptr(), flags) };
+		if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("execveat returned a value of `{}`", result)
+		}
+	}
+
 	/// Extended metadata.
 	///
 	/// `do_not_automount_basename_of_path` uses the flag `AT_NO_AUTOMOUNT`.
@@ -648,19 +683,6 @@ impl DirectoryFileDescriptor
 		}
 	}
 
-
-	/*
-
-struct stat {
-
-	struct timespec st_atim;
-	struct timespec st_mtim;
-	struct timespec st_ctim;
-};
-
-
-	*/
-
 	/// Metadata.
 	///
 	/// `do_not_automount_basename_of_path` uses the flag `AT_NO_AUTOMOUNT`.
@@ -680,7 +702,7 @@ struct stat {
 	#[inline(always)]
 	fn metadata_internal(&self, path: NonNull<c_char>, do_not_dereference_path_if_it_is_a_symlink: bool, do_not_automount_basename_of_path: bool, flags: i32) -> io::Result<Metadata>
 	{
-		let flags = flags| if unlikely!(do_not_dereference_path_if_it_is_a_symlink)
+		let flags = flags | if unlikely!(do_not_dereference_path_if_it_is_a_symlink)
 		{
 			AT_SYMLINK_NOFOLLOW
 		}
@@ -709,7 +731,7 @@ struct stat {
 		}
 		else
 		{
-			unreachable!("unlinkat() returned unexpected result {}", result)
+			unreachable!("fstatat() returned unexpected result {}", result)
 		}
 	}
 

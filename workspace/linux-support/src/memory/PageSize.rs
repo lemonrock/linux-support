@@ -42,6 +42,24 @@ pub enum PageSize
 	_64Kb = 65_536,
 }
 
+impl Into<u64> for PageSize
+{
+	#[inline(always)]
+	fn into(self) -> u64
+	{
+		self as u64
+	}
+}
+
+impl Into<usize> for PageSize
+{
+	#[inline(always)]
+	fn into(self) -> usize
+	{
+		self as u64 as usize
+	}
+}
+
 impl Default for PageSize
 {
 	#[inline(always)]

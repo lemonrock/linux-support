@@ -8,6 +8,7 @@ use crate::syscall::SYS;
 
 include!("AT_STATX_.rs");
 include!("dirent.rs");
+include!("execveat.rs");
 include!("getdents.rs");
 include!("MAX_HANDLE_SZ.rs");
 include!("file_handle.rs");

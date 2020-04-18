@@ -50,14 +50,10 @@ pub trait FileDescriptor: Sized + Debug + AsRawFd + FromRawFd + IntoRawFd
 	#[inline(always)]
 	fn remove_close_on_exec(&self)
 	{
-		let old_flags = unsafe { fcntl (self.as_raw_fd(), F_GETFD) };
-		if unlikely!(old_flags < 0)
-		{
-			panic!("Error getting file descriptor flags `{}`", errno())
-		}
-		let new_flags = old_flags & !FD_CLOEXEC;
+		let flags = self.get_file_descriptor_flags();
+		let flags_without_close_on_exec = flags & !FD_CLOEXEC;
 
-		let result = unsafe { fcntl (self.as_raw_fd(), F_SETFD, new_flags) };
+		let result = unsafe { fcntl (self.as_raw_fd(), F_SETFD, flags_without_close_on_exec) };
 		if likely!(result == 0)
 		{
 			return
@@ -76,25 +72,10 @@ pub trait FileDescriptor: Sized + Debug + AsRawFd + FromRawFd + IntoRawFd
 	#[inline(always)]
 	fn make_blocking(&self)
 	{
-		let raw_file_descriptor = self.as_raw_fd();
-
-		let result = unsafe { fcntl(raw_file_descriptor, F_GETFL, 0) };
-		let flags = if likely!(result >= 0)
-		{
-			result
-		}
-		else if likely!(result == -1)
-		{
-			panic!("Error from fcntl F_GETFL with `{}`", errno())
-		}
-		else
-		{
-			panic!("Unexpected result from fcntl F_GETFL of `{}`", result)
-		};
-
+		let flags = self.get_o_flags();
 		let flags_without_non_block = flags & !O_NONBLOCK;
 
-		let result = unsafe { fcntl(raw_file_descriptor, F_SETFL, flags_without_non_block) };
+		let result = unsafe { fcntl(self.as_raw_fd(), F_SETFL, flags_without_non_block) };
 		if likely!(result == 0)
 		{
 			()
@@ -107,5 +88,44 @@ pub trait FileDescriptor: Sized + Debug + AsRawFd + FromRawFd + IntoRawFd
 		{
 			panic!("Unexpected result from fcntl F_SETFL of `{}`", result)
 		}
+	}
+
+	#[doc(hidden)]
+	#[inline(always)]
+	fn get_o_flags(&self) -> i32
+	{
+		Self::get_o_flags_raw_fd(self.as_raw_fd())
+	}
+
+
+	#[doc(hidden)]
+	#[inline(always)]
+	fn get_o_flags_raw_fd(raw_fd: RawFd) -> i32
+	{
+		let result = unsafe { fcntl(raw_fd, F_GETFL) };
+		if likely!(result >= 0)
+		{
+			result
+		}
+		else if likely!(result == -1)
+		{
+			panic!("Error from fcntl F_GETFL with `{}`", errno())
+		}
+		else
+		{
+			panic!("Unexpected result from fcntl F_GETFL of `{}`", result)
+		}
+	}
+
+	#[doc(hidden)]
+	#[inline(always)]
+	fn get_file_descriptor_flags(&self) -> i32
+	{
+		let file_descriptor_flags = unsafe { fcntl (self.as_raw_fd(), F_GETFD) };
+		if unlikely!(file_descriptor_flags < 0)
+		{
+			panic!("Error getting file descriptor flags `{}`", errno())
+		}
+		file_descriptor_flags
 	}
 }

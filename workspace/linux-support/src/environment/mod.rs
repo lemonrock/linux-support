@@ -2,27 +2,38 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use self::c::*;
 use super::strings::ConstCStr;
+use crate::process::ProcessIdentifierChoice;
+use crate::paths::PathExt;
+use crate::paths::ProcPath;
+use crate::strings::{FromBytes, NulTerminatedCStringArray, CStringFragments};
+use crate::strings::parse_ascii_nul_string_values;
 use errno::errno;
-use libc::*;
+use libc::c_char;
+use libc::EINVAL;
+use libc::ENOMEM;
+use libc::clearenv;
+use libc::setenv;
 use likely::likely;
 use likely::unlikely;
-use std::collections::{BTreeSet, HashMap};
+use std::collections::BTreeSet;
+use std::collections::HashMap;
 use std::env::join_paths;
 use std::env::set_var;
 use std::ffi::CStr;
 use std::ffi::CString;
-use std::path::PathBuf;
-use crate::strings::{FromBytes, parse_ascii_nul_string_values};
 use std::io;
 use std::io::ErrorKind;
-use crate::process::ProcessIdentifierChoice;
-use crate::paths::{ProcPath, PathExt};
 use std::ops::Deref;
+use std::path::PathBuf;
+
+
+mod c;
 
 
 include!("clearenv_wrapper.rs");
 include!("CommandLine.rs");
-include!("OriginalEnvironment.rs");
+include!("Environment.rs");
 include!("populate_clean_environment.rs");
 include!("setenv_wrapper.rs");

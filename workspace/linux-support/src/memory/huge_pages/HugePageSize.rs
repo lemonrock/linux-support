@@ -98,6 +98,24 @@ pub enum HugePageSize
 	_16GB = 16_777_216 * 1_024,
 }
 
+impl Into<u64> for HugePageSize
+{
+	#[inline(always)]
+	fn into(self) -> u64
+	{
+		self as u64
+	}
+}
+
+impl Into<usize> for HugePageSize
+{
+	#[inline(always)]
+	fn into(self) -> usize
+	{
+		self as u64 as usize
+	}
+}
+
 impl HugePageSize
 {
 	/// Size in kilobytes.

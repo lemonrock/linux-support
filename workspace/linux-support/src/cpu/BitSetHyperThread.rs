@@ -40,7 +40,7 @@ impl TryInto<(cpu_set_t, usize)> for BitSet<HyperThread>
 			let (pointer, length) = self.to_raw_parts();
 			let cpu_set_usize_pointer = &mut cpu_set as *mut cpu_set_t as *mut usize;
 			unsafe { pointer.copy_to_nonoverlapping(cpu_set_usize_pointer, length) };
-			unsafe { cpu_set_usize_pointer.offset(Self::CpuSetTSizeInWords as isize).write_bytes(0x00, length - Self::CpuSetTSizeInWords) };
+			unsafe { cpu_set_usize_pointer.add(Self::CpuSetTSizeInWords).write_bytes(0x00, length - Self::CpuSetTSizeInWords) };
 			cpu_set
 		};
 

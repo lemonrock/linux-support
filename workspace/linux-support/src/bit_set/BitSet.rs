@@ -390,7 +390,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 
 		debug_assert!(word_index < self.capacity());
 
-		(self.as_mut_ptr() as *mut u8).offset(byte_index as isize).write(byte);
+		(self.as_mut_ptr() as *mut u8).add(byte_index).write(byte);
 	}
 
 	/// Sets the byte at a byte (not bit) index to all bits in the byte.
@@ -548,13 +548,13 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	#[inline(always)]
 	fn as_ptr_offset(&self, offset: usize) -> *const usize
 	{
-		unsafe { self.as_ptr().offset(offset as isize) }
+		unsafe { self.as_ptr().add(offset) }
 	}
 
 	#[inline(always)]
 	fn as_mut_ptr_offset(&mut self, offset: usize) -> *mut usize
 	{
-		unsafe { self.as_mut_ptr().offset(offset as isize) }
+		unsafe { self.as_mut_ptr().add(offset) }
 	}
 
 	#[inline(always)]

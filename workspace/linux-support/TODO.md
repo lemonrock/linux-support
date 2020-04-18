@@ -4,14 +4,6 @@
 - Might actually only be 16 characters, due to kernel task struct limit
 - Also get this from /proc/x/comm (which doubles as thread name)
 
-FIND ALL `*at()` functions that can take an empty path.
-    * statx()
-    * fstatat()
-    * renameat2()
-    * name_to_handle_at()
-    * fchownat()
-    * linkat()  - needs CAP_DAC_READ_SEARCH capability.
-    * execveat()
 *  (files, directories, fifos, character/block, path file descriptors but not unix socket file descriptors?)
     * fstatvfs
     * fgetxattr
@@ -31,7 +23,6 @@ http://man7.org/linux/man-pages/man2/ioctl_ficlonerange.2.html
 http://man7.org/linux/man-pages/man2/ioctl_fideduperange.2.html
 userfaultfd: http://man7.org/linux/man-pages/man2/userfaultfd.2.html
 F_GET_RW_HINT: read-write hints http://man7.org/linux/man-pages/man2/fcntl.2.html
-PathFileDescriptor (O_PATH)
 Review http://man7.org/linux/man-pages/man2/ioctl_list.2.html
 - sockios.h
 - netrom.h?

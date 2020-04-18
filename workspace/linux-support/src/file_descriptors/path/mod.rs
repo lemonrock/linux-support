@@ -3,6 +3,8 @@
 
 
 use super::*;
+use crate::file_descriptors::directory::Metadata;
+use crate::file_descriptors::directory::DirectoryFileDescriptor;
 
 
 include!("PathFileDescriptor.rs");

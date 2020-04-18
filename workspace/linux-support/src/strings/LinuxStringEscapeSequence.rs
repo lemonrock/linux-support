@@ -68,7 +68,7 @@ impl LinuxStringEscapeSequence
 			while likely!(remaining_bytes.len() >= Self::EscapeSequenceLength)
 			{
 				const StartOfEscapeSequence: u8 = b'\\';
-				let index = match memrchr(StartOfEscapeSequence, &remaining_bytes[ .. remaining_bytes.len() - Self::RemainingEscapeSequenceLength])
+				let index = match memchr(StartOfEscapeSequence, &remaining_bytes[ .. remaining_bytes.len() - Self::RemainingEscapeSequenceLength])
 				{
 					None => break,
 					Some(index) => index,
@@ -99,8 +99,8 @@ impl LinuxStringEscapeSequence
 				unsafe
 				{
 					*remaining_bytes.get_unchecked_mut(index) = escape_sequence.unescaped_byte;
-					let from = remaining_bytes.as_ptr().offset(exclusive_end_index as isize);
-					let to = remaining_bytes.as_mut_ptr().offset(inclusive_start_index as isize);
+					let from = remaining_bytes.as_ptr().add(exclusive_end_index);
+					let to = remaining_bytes.as_mut_ptr().add(inclusive_start_index);
 					from.copy_to(to, remaining_bytes.len() - exclusive_end_index);
 					*unescaped_length = *unescaped_length - Self::RemainingEscapeSequenceLength;
 				}

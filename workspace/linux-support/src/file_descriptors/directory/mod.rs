@@ -10,6 +10,8 @@ use crate::inode::Inode;
 use crate::user_and_groups::UserIdentifier;
 use crate::user_and_groups::GroupIdentifier;
 use streaming_iterator::StreamingIterator;
+use crate::environment::Environment;
+use crate::strings::ConstCStr;
 
 
 mod c;

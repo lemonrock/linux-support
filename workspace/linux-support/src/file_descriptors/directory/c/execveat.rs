@@ -2,16 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Forcing the constraint of `T: Copy` ensures that we do not need to drop the discarded values (Copy is incompatible with Drop).
-#[inline(always)]
-pub(crate) fn move_to_front_of_vec<T: Copy>(mut vec: Vec<T>, from_inclusive_index: usize) -> Vec<T>
+extern "C"
 {
-	let pointer = vec.as_mut_ptr();
-	let bytes_to_move = vec.len() - from_inclusive_index;
-	unsafe
-	{
-		pointer.copy_from(pointer.add(from_inclusive_index), bytes_to_move);
-		vec.set_len(bytes_to_move)
-	}
-	vec
+	pub(super) fn execveat(dirfd: c_int, pathname: *const c_char, argv: *const *const c_char, envp: *const *const c_char, flags: c_int) -> c_int;
 }

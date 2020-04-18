@@ -11,7 +11,7 @@ pub fn populate_clean_environment(binary_paths: &BTreeSet<PathBuf>, effective_us
 	#[inline(always)]
 	fn preserve_value_of_RUST_BACKTRACE() -> Option<CString>
 	{
-		let value = unsafe { getenv(RUST_BACKTRACE.as_ptr()) };
+		let value = unsafe { secure_getenv(RUST_BACKTRACE.as_ptr()) };
 		if likely!(!value.is_null())
 		{
 			None

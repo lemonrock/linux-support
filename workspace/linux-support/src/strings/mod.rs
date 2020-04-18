@@ -5,11 +5,13 @@
 #[allow(deprecated)] use std::mem::uninitialized;
 use crate::strings::parse_number::ParseNumber;
 use crate::strings::parse_number::ParseNumberError;
-use libc::*;
-use likely::*;
 use self::to_number::NumberAsBytes;
+use libc::c_char;
+use likely::*;
+use memchr::memchr;
 use std::borrow::Cow;
 use std::cmp::min;
+use std::convert::TryInto;
 use std::error;
 use std::ffi::CStr;
 use std::ffi::CString;
@@ -21,16 +23,17 @@ use std::fmt;
 use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
 use std::path::PathBuf;
-use memchr::memrchr;
-use std::convert::TryInto;
+use crate::memory::PageSize;
 
 
 include!("c_string_pointer_to_path_buf.rs");
 include!("ConstCStr.rs");
+include!("CStringFragments.rs");
 include!("FromBytes.rs");
 include!("LinuxStringEscapeSequence.rs");
 include!("IntoLineFeedTerminatedByteString.rs");
 include!("NonNumericDigitCase.rs");
+include!("NulTerminatedCStringArray.rs");
 include!("OsStrExtMore.rs");
 include!("parse_ascii_nul_string_values.rs");
 include!("path_to_cstring.rs");

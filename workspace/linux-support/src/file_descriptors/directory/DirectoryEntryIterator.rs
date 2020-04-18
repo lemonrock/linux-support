@@ -64,7 +64,7 @@ impl<'a> StreamingIterator for DirectoryEntryIterator<'a>
 			}
 		}
 
-		let current = unsafe { NonNull::new_unchecked(self.buffer.as_mut_ptr().offset(self.buffer_offset as isize) as *mut dirent) };
+		let current = unsafe { NonNull::new_unchecked(self.buffer.as_mut_ptr().add(self.buffer_offset) as *mut dirent) };
 
 		self.buffer_offset += unsafe { current.as_ref().d_reclen as usize };
 		self.last_item = Some(current);

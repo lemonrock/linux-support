@@ -250,7 +250,7 @@ impl VirtualAddress
 		debug_assert_eq!(offset % align_of::<T>(), 0, "misaligned access");
 		debug_assert_ne!(self.0 + offset, 0, "A zero address and zero offset is not permitted");
 
-		unsafe { NonNull::new_unchecked((self.0 as *mut T).offset(offset as isize)) }
+		unsafe { NonNull::new_unchecked((self.0 as *mut T).add(offset)) }
 	}
 
 	#[inline(always)]

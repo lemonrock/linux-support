@@ -39,6 +39,7 @@ It is not intended to replace [nix](https://crates.io/crates/nix), but as an alt
 	* Getting the current HyperThread and NUMA node
 * Clean environment variables
 	* Parsing of `/proc/<N>/cmdline` and `/proc/<N>/environ`.
+	* Support for environments with duplicate names, and environment variables with no equals sign.
 * File systems
 * Inodes
 * Parsing and validating the Linux kernel command line (boot command line)
