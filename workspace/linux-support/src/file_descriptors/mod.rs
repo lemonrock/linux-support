@@ -52,16 +52,15 @@
 //! ## Unsupported for now
 //!
 //! * Linux zero copy send (`MSG_ZEROCOPY`) and receive (`SO_ZEROCOPY`), mostly because they have a horrible, hacky API.
-//! * `SO_BUSY_POLL` and `SO_INCOMING_CPU`.
+//! * `SO_BUSY_POLL`.
 //! * Unix Domain Sockets using `autobind`; setting of the `SO_PASSCRED` socket option.
 //! * Receiving credentials over Unix Domain Sockets using `recvmsg()`.
-//! * `mkfifo()`.
-//! * `mknod()`.
-//! * `copy_file_range()`.
 //! * infiniband sockets.
 //! * canbus (SocketCAN sockets and can4linux <http://can-wiki.info/can4linux/man/can4linux_8h_source.html> character device drivers).
 
 
+use crate::extended_attributes::*;
+use crate::file_systems::FileSystemMetadata;
 use crate::terminal::TerminalSettingsError;
 #[allow(deprecated)] use std::mem::uninitialized;
 use arrayvec::Array;
@@ -123,6 +122,7 @@ use libc::ENAMETOOLONG;
 use libc::ENETUNREACH;
 use libc::ENFILE;
 use libc::ENOBUFS;
+use libc::ENODATA;
 use libc::ENODEV;
 use libc::ENOENT;
 use libc::ENOLCK;
@@ -183,6 +183,10 @@ use libc::fchownat;
 use libc::fcntl;
 use libc::FD_CLOEXEC;
 use libc::fdatasync;
+use libc::fgetxattr;
+use libc::flistxattr;
+use libc::fremovexattr;
+use libc::fsetxattr;
 use libc::fstatat;
 use libc::fstatvfs;
 use libc::fsync;
@@ -288,6 +292,8 @@ use libc::UTIME_OMIT;
 use libc::utimensat;
 use libc::W_OK;
 use libc::write;
+use libc::XATTR_CREATE;
+use libc::XATTR_REPLACE;
 use libc::X_OK;
 use likely::*;
 use memchr::memchr;
@@ -356,7 +362,6 @@ use std::str::from_utf8;
 use std::time::Duration;
 use std::time::SystemTime;
 use std::time::UNIX_EPOCH;
-use crate::file_systems::FileSystemMetadata;
 
 
 /// Block device file descriptors.

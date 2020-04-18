@@ -5,6 +5,8 @@
 pub trait OnDiskFileDescriptor: FileDescriptor
 {
 	/// Gets the metadata of the underlying file system.
+	///
+	/// This may work on epoll, signal and event file descriptors but Linux as usual doesn't make this clear.
 	#[inline(always)]
 	fn underlying_file_system_metadata(&self) -> io::Result<FileSystemMetadata>
 	{
@@ -24,21 +26,147 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 			unreachable!("Unexpected result {} from fstatvfs()", result)
 		}
 	}
+
+	/// Get an extended attribute.
+	///
+	/// Limited to 64Kb.
+	///
+	/// Returns `Ok(None)` if the attribute is not present.
+	#[inline(always)]
+	fn get_extended_attribute(&self, extended_attribute_name: ExtendedAttributeName) -> io::Result<Option<Vec<u8>>>
+	{
+		let SixtyFourKb = 64 * 1024;
+		let mut value = Vec::with_capacity(SixtyFourKb);
+		let result = unsafe { fgetxattr(self.as_raw_fd(), extended_attribute_name.as_ptr(), value.as_mut_ptr() as *mut c_void, SixtyFourKb) };
+		if likely!(result >= 0)
+		{
+			unsafe { value.set_len(result as usize) };
+			value.shrink_to_fit();
+			Ok(Some(value))
+		}
+		else if likely!(result == 0)
+		{
+			match errno().0
+			{
+				ENODATA => Ok(None),
+				_ => Err(io::Error::last_os_error()),
+			}
+		}
+		else
+		{
+			unreachable!("fgetxattr() returned unexpected result {}", result)
+		}
+	}
+
+	/// Set an extended attribute, creating or replacing it as necessary.
+	#[inline(always)]
+	fn set_extended_attribute(&self, extended_attribute_name: ExtendedAttributeName, value: &[u8]) -> io::Result<()>
+	{
+		self.set_extended_attribute_internal(extended_attribute_name, value, 0).map(|_| ())
+	}
+
+	/// Create an extended attribute or fail.
+	///
+	/// Return `Ok(false)` if could not create because it exists.
+	#[inline(always)]
+	fn create_extended_attribute(&self, extended_attribute_name: ExtendedAttributeName, value: &[u8]) -> io::Result<bool>
+	{
+		self.set_extended_attribute_internal(extended_attribute_name, value, XATTR_CREATE)
+	}
+
+	/// Replace an extended attribute or fail.
+	///
+	/// Return `Ok(false)` if could not replace because it does not exist.
+	#[inline(always)]
+	fn replace_extended_attribute(&self, extended_attribute_name: ExtendedAttributeName, value: &[u8]) -> io::Result<bool>
+	{
+		self.set_extended_attribute_internal(extended_attribute_name, value, XATTR_REPLACE)
+	}
+
+	#[doc(hidden)]
+	#[inline(always)]
+	fn set_extended_attribute_internal(&self, extended_attribute_name: ExtendedAttributeName, value: &[u8], flags: i32) -> io::Result<bool>
+	{
+		let result = unsafe { fsetxattr(self.as_raw_fd(), extended_attribute_name.as_ptr(), value.as_ptr() as *const c_void, value.len(), flags) };
+		if likely!(result == 0)
+		{
+			Ok(true)
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				ENODATA if flags == XATTR_REPLACE =>
+				{
+					Ok(false)
+				},
+
+				EEXIST if flags == XATTR_CREATE =>
+				{
+					Ok(false)
+				},
+
+				_ => Err(io::Error::last_os_error()),
+			}
+		}
+		else
+		{
+			unreachable!("fremovexattr() returned unexpected result {}", result)
+		}
+	}
+
+	/// Remove an extended attribute.
+	///
+	/// Returns `Ok(true)` if removed and `Ok(false)` if the attribute wasn't present.
+	#[inline(always)]
+	fn remove_extended_attribute(&self, extended_attribute_name: ExtendedAttributeName) -> io::Result<bool>
+	{
+		let result = unsafe { fremovexattr(self.as_raw_fd(), extended_attribute_name.as_ptr()) };
+		if likely!(result == 0)
+		{
+			Ok(true)
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				ENODATA => Ok(false),
+				_ => Err(io::Error::last_os_error()),
+			}
+		}
+		else
+		{
+			unreachable!("fremovexattr() returned unexpected result {}", result)
+		}
+	}
+
+	/// List extended attributes.
+	///
+	/// Requires 64Kb of free memory.
+	#[inline(always)]
+	fn list_extended_attributes(&self) -> io::Result<ExtendedAttributeNames>
+	{
+		const SixtyFourKb: usize = 64 * 1024;
+		let mut buffer = Vec::with_capacity(SixtyFourKb);
+		let result = unsafe { flistxattr(self.as_raw_fd(), buffer.as_mut_ptr() as *mut c_char, SixtyFourKb) };
+		if likely!(result >= 0)
+		{
+			unsafe { buffer.set_len(result as usize) };
+			buffer.shrink_to_fit();
+			Ok(ExtendedAttributeNames::new(buffer))
+		}
+		else if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("flistxattr() returned unexpected result {}", result)
+		}
+	}
 }
 
 /*
-*  (files, directories, fifos, character/block, path file descriptors but not unix socket file descriptors and not memory file descriptors)
-    * fstatvfs
-    * fgetxattr
-    * fsetxattr
-    * flistxattr
-    * fremovexattr
-        * Extended attributes are name:value pairs; can be zero length; can find length but can change between calls
-        * Names can be namespaced (`security.`, `system.`, `trusted.`, and `user.`)
-        * The VFS imposes limitations that an attribute names is limited to 255
-                 bytes and an attribute value is limited to 64 kB.  The list of
-                 attribute names that can be returned is also limited to 64 kB (see
-                 BUGS in listxattr(2)).
     * Inode Flags, sometimes known as attributes.
         * http://man7.org/linux/man-pages/man2/ioctl_iflags.2.html (eg immutable, append only, etc)
 */

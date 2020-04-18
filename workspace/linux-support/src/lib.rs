@@ -90,6 +90,10 @@ pub mod devices;
 pub mod environment;
 
 
+/// Extended file attributes.
+pub mod extended_attributes;
+
+
 pub mod file_descriptors;
 
 
