@@ -6,6 +6,7 @@
 #[allow(missing_docs)]
 #[allow(non_camel_case_types)]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(u32)]
 pub enum FileSystemType
 {
 	bdev,

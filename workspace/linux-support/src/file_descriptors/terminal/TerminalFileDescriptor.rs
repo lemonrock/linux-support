@@ -39,6 +39,10 @@ impl FileDescriptor for TerminalFileDescriptor
 {
 }
 
+impl OnDiskFileDescriptor for TerminalFileDescriptor
+{
+}
+
 impl SpliceRecipient for TerminalFileDescriptor
 {
 }

@@ -3,7 +3,7 @@
 
 
 /// Extensions for a pipe file descriptor to make it useful for clone'd processes.
-pub trait PipeFileDescriptor: FileDescriptor
+pub trait PipeFileDescriptor: FileDescriptor + OnDiskFileDescriptor
 {
 	/// Clones a pipe file descriptor so the pipe is accessible in a child process.
 	fn clone_for_child_process(&self) -> Self;

@@ -51,6 +51,10 @@ impl FileDescriptor for DirectoryFileDescriptor
 {
 }
 
+impl OnDiskFileDescriptor for DirectoryFileDescriptor
+{
+}
+
 impl DirectoryFileDescriptor
 {
 	/// A special file descriptor that always refers to the current working directory.

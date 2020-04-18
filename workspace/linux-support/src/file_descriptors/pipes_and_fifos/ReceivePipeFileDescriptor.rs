@@ -49,6 +49,10 @@ impl FileDescriptor for ReceivePipeFileDescriptor
 {
 }
 
+impl OnDiskFileDescriptor for ReceivePipeFileDescriptor
+{
+}
+
 impl SpliceSender for ReceivePipeFileDescriptor
 {
 }

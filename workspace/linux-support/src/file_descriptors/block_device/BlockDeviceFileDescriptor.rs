@@ -46,6 +46,10 @@ impl FileDescriptor for BlockDeviceFileDescriptor
 {
 }
 
+impl OnDiskFileDescriptor for BlockDeviceFileDescriptor
+{
+}
+
 impl SpliceRecipient for BlockDeviceFileDescriptor
 {
 }

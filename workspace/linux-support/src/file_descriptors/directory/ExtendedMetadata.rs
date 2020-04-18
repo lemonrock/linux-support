@@ -37,11 +37,11 @@ impl ExtendedMetadata
 		BlockDevice::from((self.0.stx_dev_major, self.0.stx_dev_minor))
 	}
 
-	#[allow(missing_docs)]
+	/// Equivalent to `Metadata::filesystem_block_size()` and `FileSystemMetadata::filesystem_preferred_block_size()`.
 	#[inline(always)]
-	pub fn filesystem_block_size(&self) -> blksize_t
+	pub fn filesystem_block_size(&self) -> u64
 	{
-		self.0.stx_blksize as blksize_t
+		self.0.stx_blksize as u64
 	}
 
 	#[allow(missing_docs)]
@@ -61,9 +61,9 @@ impl ExtendedMetadata
 	/// The number of blocks allocated to the file on the medium, in 512-byte units.
 	/// (This may be smaller than `self.size() / 512` when the file has holes).
 	#[inline(always)]
-	pub fn size_in_512_byte_blocks(&self) -> Option<blkcnt_t>
+	pub fn size_in_512_byte_blocks(&self) -> Option<u64>
 	{
-		extended_metadata_field!(self, stx_blocks, SizeIn512ByteBlocks, |n| n as blkcnt_t)
+		extended_metadata_field!(self, stx_blocks, SizeIn512ByteBlocks, |n| n as u64)
 	}
 
 	#[allow(missing_docs)]

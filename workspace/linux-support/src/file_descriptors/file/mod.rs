@@ -32,6 +32,7 @@ include!("File.AdvisoryWholeFileLocking.rs");
 include!("File.CopyFileRange.rs");
 include!("File.FileDescriptor.rs");
 include!("File.Leasing.rs");
+include!("File.OnDiskFileDescriptor.rs");
 include!("File.OpenFileDescriptionAdvisoryFileRecordLocking.rs");
 include!("File.PerProcessAdvisoryFileRecordLocking.rs");
 include!("File.SpliceRecipient.rs");

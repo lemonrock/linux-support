@@ -4,20 +4,6 @@
 - Might actually only be 16 characters, due to kernel task struct limit
 - Also get this from /proc/x/comm (which doubles as thread name)
 
-*  (files, directories, fifos, character/block, path file descriptors but not unix socket file descriptors?)
-    * fstatvfs
-    * fgetxattr
-    * fsetxattr
-    * flistxattr
-    * fremovexattr
-        * Extended attributes are name:value pairs; can be zero length; can find length but can change between calls
-        * Names can be namespaced (`security.`, `system.`, `trusted.`, and `user.`)
-        * The VFS imposes limitations that an attribute names is limited to 255
-                 bytes and an attribute value is limited to 64 kB.  The list of
-                 attribute names that can be returned is also limited to 64 kB (see
-                 BUGS in listxattr(2)).
-    * Inode Flags, sometimes known as attributes.
-        * http://man7.org/linux/man-pages/man2/ioctl_iflags.2.html (eg immutable, append only, etc)
 http://man7.org/linux/man-pages/man2/ioctl_ficlonerange.2.html
 http://man7.org/linux/man-pages/man2/ioctl_fideduperange.2.html
 userfaultfd: http://man7.org/linux/man-pages/man2/userfaultfd.2.html

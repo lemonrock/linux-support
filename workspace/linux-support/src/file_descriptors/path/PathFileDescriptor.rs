@@ -57,6 +57,10 @@ impl FileDescriptor for PathFileDescriptor
 {
 }
 
+impl OnDiskFileDescriptor for PathFileDescriptor
+{
+}
+
 impl PathFileDescriptor
 {
 	/// Open a new path file descriptor.

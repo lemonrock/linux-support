@@ -48,6 +48,10 @@ impl FileDescriptor for CharacterDeviceFileDescriptor
 {
 }
 
+impl OnDiskFileDescriptor for CharacterDeviceFileDescriptor
+{
+}
+
 impl SpliceRecipient for CharacterDeviceFileDescriptor
 {
 }

@@ -50,6 +50,10 @@ impl FileDescriptor for SendPipeFileDescriptor
 {
 }
 
+impl OnDiskFileDescriptor for SendPipeFileDescriptor
+{
+}
+
 impl VectoredWrite for SendPipeFileDescriptor
 {
 	vectored_write!();
