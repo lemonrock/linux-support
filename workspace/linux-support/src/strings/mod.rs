@@ -10,10 +10,10 @@ use libc::c_char;
 use likely::*;
 use memchr::memchr;
 use std::borrow::Cow;
-use std::cmp::min;
+use std::cmp::{min, max};
 use std::convert::TryInto;
 use std::error;
-use std::ffi::CStr;
+use std::ffi::{CStr, OsString};
 use std::ffi::CString;
 use std::ffi::OsStr;
 use std::fmt::Debug;
@@ -24,6 +24,7 @@ use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
 use std::path::PathBuf;
 use crate::memory::PageSize;
+use std::ptr::null;
 
 
 include!("c_string_pointer_to_path_buf.rs");

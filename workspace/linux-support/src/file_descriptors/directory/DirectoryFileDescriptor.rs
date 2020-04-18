@@ -64,6 +64,8 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	pub fn new(path: &CStr) -> io::Result<Self>
 	{
+		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
+
 		let result = unsafe { open(path.as_ptr(), O_RDONLY | O_DIRECTORY | O_CLOEXEC) };
 		if likely!(result >= 0)
 		{
@@ -89,6 +91,8 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	pub fn new_relative_to_self(&self, path: &CStr) -> io::Result<Self>
 	{
+		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
+
 		let result = unsafe { openat(self.as_raw_fd(), path.as_ptr(), O_RDONLY | O_DIRECTORY | O_CLOEXEC) };
 		if likely!(result >= 0)
 		{
@@ -114,6 +118,8 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	pub fn new_relative_to_self2(&self, path: &CStr, path_resolution: PathResolution) -> io::Result<Self>
 	{
+		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
+
 		let mut how = open_how
 		{
 			flags: (O_RDONLY | O_DIRECTORY | O_CLOEXEC) as u64,
@@ -219,6 +225,8 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	pub fn name_to_handle(&self, path: &CStr, do_not_dereference_path_if_it_is_a_symlink: bool) -> io::Result<LinuxFileHandle>
 	{
+		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
+
 		self.name_to_handle_internal(Self::non_empty_path(path), do_not_dereference_path_if_it_is_a_symlink, 0)
 	}
 
@@ -313,6 +321,8 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	pub fn change_ownership(&self, path: &CStr, owner: Option<UserIdentifier>, group: Option<GroupIdentifier>, do_not_dereference_path_if_it_is_a_symlink: bool) -> io::Result<()>
 	{
+		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
+
 		self.change_ownership_internal(Self::non_empty_path(path), owner, group, do_not_dereference_path_if_it_is_a_symlink, 0)
 	}
 
@@ -388,6 +398,8 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	pub fn change_mode(&self, path: &CStr, mode: mode_t, do_not_dereference_path_if_it_is_a_symlink: bool) -> io::Result<()>
 	{
+		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
+
 		let flags = if unlikely!(do_not_dereference_path_if_it_is_a_symlink)
 		{
 			AT_SYMLINK_NOFOLLOW
@@ -429,6 +441,8 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	pub fn change_timestamps(&self, path: &CStr, last_access_time: &TimestampUpdate, last_modification_time: &TimestampUpdate, do_not_dereference_path_if_it_is_a_symlink: bool) -> io::Result<()>
 	{
+		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
+
 		let times =
 		[
 			last_access_time.to_timespec(),
@@ -480,6 +494,8 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	fn accessible_internal(&self, path: &CStr, accessibility: Accessibility, do_not_dereference_path_if_it_is_a_symlink: bool, flags: i32) -> io::Result<bool>
 	{
+		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
+
 		let flags = flags | if unlikely!(do_not_dereference_path_if_it_is_a_symlink)
 		{
 			AT_SYMLINK_NOFOLLOW
@@ -516,6 +532,9 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	pub fn make_hard_link(&self, from_path: &CStr, to: &Self, to_path: &CStr, do_not_dereference_path_if_it_is_a_symlink: bool) -> io::Result<()>
 	{
+		debug_assert!(!from_path.to_bytes().is_empty(), "Empty from_path is not permitted");
+		debug_assert!(!to_path.to_bytes().is_empty(), "Empty to_path is not permitted");
+
 		let flags = if unlikely!(do_not_dereference_path_if_it_is_a_symlink)
 		{
 			AT_SYMLINK_NOFOLLOW
@@ -546,6 +565,8 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	pub fn make_symbolic_link(&self, path: &CStr, target: &CStr) -> io::Result<()>
 	{
+		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
+
 		let result = unsafe { symlinkat(target.as_ptr(), self.as_raw_fd(), path.as_ptr()) };
 		if likely!(result == 0)
 		{
@@ -569,6 +590,9 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	pub fn rename(&self, from_path: &CStr, to: &Self, to_path: &CStr, rename_flags: RenameFlags) -> io::Result<()>
 	{
+		debug_assert!(!from_path.to_bytes().is_empty(), "Empty from_path is not permitted");
+		debug_assert!(!to_path.to_bytes().is_empty(), "Empty to_path is not permitted");
+
 		let result = renameat2(self.as_raw_fd(), from_path.as_ptr(), to.as_raw_fd(), to_path.as_ptr(), rename_flags as i32);
 		if likely!(result == 0)
 		{
@@ -584,24 +608,28 @@ impl DirectoryFileDescriptor
 		}
 	}
 
-	/// Execute a command with a new environment but keep the current process identifier, in any file descriptors not set to close-on-exec, etc.
+	/// Execute a command with a new environment but keep the current process identifier, any file descriptors not set to close-on-exec, etc.
+	///
+	/// `arguments[0]` should ideally be the same as `path`.
 	#[inline(always)]
-	pub fn execve(&self, path: &CStr, do_not_dereference_path_if_it_is_a_symlink: bool, mut arguments: Vec<&CStr>, environment: &Environment) -> io::Result<!>
+	pub fn execve(&self, path: &CStr, do_not_dereference_path_if_it_is_a_symlink: bool, arguments: &NulTerminatedCStringArray, environment: &Environment) -> io::Result<!>
 	{
-		if cfg!(debug_assertions)
-		{
-			for argument in arguments.iter()
-			{
-				debug_assert!(!argument.to_bytes().is_empty(), "An argument can not be an empty string");
-			}
-		}
+		self.execve_internal(Self::non_empty_path(path), do_not_dereference_path_if_it_is_a_symlink, arguments, environment, 0)
+	}
 
-		const EndOfArray: ConstCStr = ConstCStr(b"\0");
-		arguments.push(EndOfArray.as_cstr());
+	#[inline(always)]
+	pub(crate) fn execve_for_self(&self, do_not_dereference_path_if_it_is_a_symlink: bool, arguments: &NulTerminatedCStringArray, environment: &Environment) -> io::Result<!>
+	{
+		self.execve_internal(Self::empty_path(), do_not_dereference_path_if_it_is_a_symlink, arguments, environment, AT_EMPTY_PATH)
+	}
 
+	/// Execute a command with a new environment but keep the current process identifier, any file descriptors not set to close-on-exec, etc.
+	#[inline(always)]
+	fn execve_internal(&self, path: NonNull<c_char>, do_not_dereference_path_if_it_is_a_symlink: bool, arguments: &NulTerminatedCStringArray, environment: &Environment, flags: i32) -> io::Result<!>
+	{
 		let environment = environment.to_environment_c_string_array();
 
-		let flags = if unlikely!(do_not_dereference_path_if_it_is_a_symlink)
+		let flags = flags | if unlikely!(do_not_dereference_path_if_it_is_a_symlink)
 		{
 			AT_SYMLINK_NOFOLLOW
 		}
@@ -609,7 +637,7 @@ impl DirectoryFileDescriptor
 		{
 			0
 		};
-		let result = unsafe { execveat(self.as_raw_fd(), path.as_ptr(), arguments.as_ptr() as *const *const c_char, environment.as_ptr(), flags) };
+		let result = unsafe { execveat(self.as_raw_fd(), path.as_ptr(), arguments.as_array_of_pointers(), environment.as_array_of_pointers(), flags) };
 		if likely!(result == -1)
 		{
 			Err(io::Error::last_os_error())
@@ -627,6 +655,8 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	pub fn extended_metadata(&self, path: &CStr, force_synchronization: Option<bool>, extended_metadata_wanted: ExtendedMetadataWanted, do_not_dereference_path_if_it_is_a_symlink: bool, do_not_automount_basename_of_path: bool) -> io::Result<ExtendedMetadata>
 	{
+		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
+
 		self.extended_metadata_internal(Self::non_empty_path(path), force_synchronization, extended_metadata_wanted, do_not_dereference_path_if_it_is_a_symlink, do_not_automount_basename_of_path, 0)
 	}
 
@@ -689,6 +719,8 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	pub fn metadata(&self, path: &CStr, do_not_dereference_path_if_it_is_a_symlink: bool, do_not_automount_basename_of_path: bool) -> io::Result<Metadata>
 	{
+		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
+
 		self.metadata_internal(Self::non_empty_path(path), do_not_dereference_path_if_it_is_a_symlink, do_not_automount_basename_of_path, 0)
 	}
 
@@ -756,6 +788,8 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	fn unlink(&self, path: &CStr, flags: i32) -> io::Result<()>
 	{
+		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
+
 		let result = unsafe { unlinkat(self.as_raw_fd(), path.as_ptr(), flags) };
 		if likely!(result == 0)
 		{
@@ -777,6 +811,8 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	pub fn make_directory(&self, path: &CStr, mode: mode_t) -> io::Result<()>
 	{
+		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
+
 		let result = unsafe { mkdirat(self.0, path.as_ptr(), Self::mask_mode(mode)) };
 		if likely!(result == 0)
 		{
@@ -800,6 +836,8 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	pub fn make_character_device(&self, path: &CStr, mode: mode_t, device: CharacterDevice) -> io::Result<()>
 	{
+		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
+
 		self.make_node_at(path, mode, S_IFCHR, device.into())
 	}
 
@@ -811,6 +849,8 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	pub fn make_block_device(&self, path: &CStr, mode: mode_t, device: BlockDevice) -> io::Result<()>
 	{
+		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
+
 		self.make_node_at(path, mode, S_IFBLK, device.into())
 	}
 
@@ -822,6 +862,8 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	pub fn make_unix_domain_socket(&self, path: &CStr, mode: mode_t) -> io::Result<()>
 	{
+		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
+
 		self.make_node_at(path, mode, S_IFSOCK, 0u64)
 	}
 
@@ -831,12 +873,16 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	pub fn make_fifo(&self, path: &CStr, mode: mode_t) -> io::Result<()>
 	{
+		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
+
 		self.make_node_at(path, mode, S_IFIFO, 0u64)
 	}
 
 	#[inline(always)]
 	fn make_node_at(&self, path: &CStr, mode: mode_t, top_bits: mode_t, device: dev_t) -> io::Result<()>
 	{
+		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
+
 		let result = unsafe { mknodat(self.0, path.as_ptr(), Self::mask_mode_and_apply(mode, top_bits), device) };
 		if likely!(result == 0)
 		{
@@ -867,6 +913,8 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	fn non_empty_path(path: &CStr) -> NonNull<c_char>
 	{
+		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
+
 		unsafe { NonNull::new_unchecked(path.as_ptr() as *mut _) }
 	}
 

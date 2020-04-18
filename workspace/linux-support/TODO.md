@@ -18,7 +18,6 @@
                  BUGS in listxattr(2)).
     * Inode Flags, sometimes known as attributes.
         * http://man7.org/linux/man-pages/man2/ioctl_iflags.2.html (eg immutable, append only, etc)
-* execveat() for directories
 http://man7.org/linux/man-pages/man2/ioctl_ficlonerange.2.html
 http://man7.org/linux/man-pages/man2/ioctl_fideduperange.2.html
 userfaultfd: http://man7.org/linux/man-pages/man2/userfaultfd.2.html

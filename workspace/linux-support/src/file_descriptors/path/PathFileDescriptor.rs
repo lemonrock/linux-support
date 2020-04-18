@@ -102,43 +102,46 @@ impl PathFileDescriptor
 		}
 	}
 
-	/// Change directory (`cd`).
-	///
-	/// Returns `Ok(false)` if this is not a directory.
-	#[inline(always)]
-	pub fn change_current_working_directory_to_self(&self) -> io::Result<bool>
-	{
-		if unlikely!(self.is_directory)
-		{
-			return Ok(false)
-		}
-		let result = unsafe { fchdir(self.as_raw_fd()) };
-		if likely!(result == 0)
-		{
-			Ok(true)
-		}
-		else if likely!(result == -1)
-		{
-			Err(io::Error::last_os_error())
-		}
-		else
-		{
-			unreachable!("Unexpected result {} from fchdir()", result)
-		}
-	}
-
 	/// Metadata.
 	#[inline(always)]
 	pub fn metadata_of_self(&self) -> io::Result<Metadata>
 	{
+		self.use_as_directory(|directory| directory.metadata_of_self())
+	}
+
+	/// Change directory (`cd`).
+	///
+	/// debug_asserts this is a directory.
+	#[inline(always)]
+	pub fn change_current_working_directory_to_self(&self) -> io::Result<()>
+	{
+		debug_assert!(self.is_directory, "is not a directory");
+
+		self.use_as_directory(|directory| directory.change_current_working_directory_to_self())
+	}
+
+	/// Execute a command with a new environment but keep the current process identifier, any file descriptors not set to close-on-exec, etc.
+	///
+	/// `arguments[0]` should ideally be the same path as `self` represents.
+	///
+	/// debug_asserts this is not a directory.
+	#[inline(always)]
+	pub fn execve(&self, arguments: &NulTerminatedCStringArray, environment: &Environment) -> io::Result<!>
+	{
+		debug_assert!(!self.is_directory, "is a directory");
+
+		self.use_as_directory(|directory| directory.execve_for_self(false, arguments, environment))
+	}
+
+	#[inline(always)]
+	fn use_as_directory<R>(&self, callback: impl FnOnce(&DirectoryFileDescriptor) -> R) -> R
+	{
 		let directory = DirectoryFileDescriptor(self.raw_fd);
-		let result = directory.metadata_of_self();
+		let result = callback(&directory);
 		forget(directory);
 		result
 	}
 }
-
-// TODO: execveat() for Directory.
 
 ///// Represents a file descriptor backed by real storage.
 //pub trait OnDiskFileDescriptor: FileDescriptor
@@ -164,5 +167,4 @@ FIND ALL `*at()` functions that can take an empty path.
     * name_to_handle_at()
     * fchownat()
     * linkat()  - needs CAP_DAC_READ_SEARCH capability.
-    * execveat()
 */

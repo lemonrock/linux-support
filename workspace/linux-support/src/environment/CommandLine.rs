@@ -49,7 +49,7 @@ impl CommandLine
 	#[inline(always)]
 	pub fn for_process(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> io::Result<Self>
 	{
-		let bytes = proc_path.process_file_path(process_identifier, "environ").read_raw()?;
+		let bytes = proc_path.process_file_path(process_identifier, "cmdline").read_raw()?;
 		Self::from_bytes(&bytes)
 	}
 }

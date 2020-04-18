@@ -12,3 +12,120 @@ pub trait CStringFragments
 	/// Specialized iteration as general iterators are too difficult to use with the various lifetimes and variable size of collections of fragments (which would require heap allocation).
 	fn iterate(self, provide_fragment: &mut impl FnMut(&[u8]) -> ());
 }
+
+impl CStringFragments for &[u8]
+{
+	#[inline(always)]
+	fn iterate(self, provide_fragment: &mut impl FnMut(&[u8]) -> ())
+	{
+		provide_fragment(self)
+	}
+}
+
+impl CStringFragments for Box<[u8]>
+{
+	#[inline(always)]
+	fn iterate(self, provide_fragment: &mut impl FnMut(&[u8]) -> ())
+	{
+		provide_fragment(&self[..])
+	}
+}
+
+impl CStringFragments for &Box<[u8]>
+{
+	#[inline(always)]
+	fn iterate(self, provide_fragment: &mut impl FnMut(&[u8]) -> ())
+	{
+		provide_fragment(&self[..])
+	}
+}
+
+impl CStringFragments for Vec<u8>
+{
+	#[inline(always)]
+	fn iterate(self, provide_fragment: &mut impl FnMut(&[u8]) -> ())
+	{
+		provide_fragment(&self[..])
+	}
+}
+
+impl CStringFragments for &Vec<u8>
+{
+	#[inline(always)]
+	fn iterate(self, provide_fragment: &mut impl FnMut(&[u8]) -> ())
+	{
+		provide_fragment(&self[..])
+	}
+}
+
+impl CStringFragments for CString
+{
+	#[inline(always)]
+	fn iterate(self, provide_fragment: &mut impl FnMut(&[u8]) -> ())
+	{
+		provide_fragment(self.to_bytes())
+	}
+}
+
+impl CStringFragments for &CStr
+{
+	#[inline(always)]
+	fn iterate(self, provide_fragment: &mut impl FnMut(&[u8]) -> ())
+	{
+		provide_fragment(self.to_bytes())
+	}
+}
+
+impl CStringFragments for OsString
+{
+	#[inline(always)]
+	fn iterate(self, provide_fragment: &mut impl FnMut(&[u8]) -> ())
+	{
+		provide_fragment(self.as_bytes())
+	}
+}
+
+impl CStringFragments for &OsStr
+{
+	#[inline(always)]
+	fn iterate(self, provide_fragment: &mut impl FnMut(&[u8]) -> ())
+	{
+		provide_fragment(self.as_bytes())
+	}
+}
+
+impl CStringFragments for PathBuf
+{
+	#[inline(always)]
+	fn iterate(self, provide_fragment: &mut impl FnMut(&[u8]) -> ())
+	{
+		provide_fragment(self.as_os_str().as_bytes())
+	}
+}
+
+impl CStringFragments for &Path
+{
+	#[inline(always)]
+	fn iterate(self, provide_fragment: &mut impl FnMut(&[u8]) -> ())
+	{
+		provide_fragment(self.as_os_str().as_bytes())
+	}
+}
+
+impl CStringFragments for String
+{
+	#[inline(always)]
+	fn iterate(self, provide_fragment: &mut impl FnMut(&[u8]) -> ())
+	{
+		provide_fragment(self.as_bytes())
+	}
+}
+
+impl CStringFragments for &str
+{
+	#[inline(always)]
+	fn iterate(self, provide_fragment: &mut impl FnMut(&[u8]) -> ())
+	{
+		provide_fragment(self.as_bytes())
+	}
+}

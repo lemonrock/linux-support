@@ -5,6 +5,8 @@
 use super::*;
 use crate::file_descriptors::directory::Metadata;
 use crate::file_descriptors::directory::DirectoryFileDescriptor;
+use crate::strings::NulTerminatedCStringArray;
+use crate::environment::Environment;
 
 
 include!("PathFileDescriptor.rs");
