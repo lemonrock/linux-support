@@ -97,7 +97,6 @@ pub trait FileDescriptor: Sized + Debug + AsRawFd + FromRawFd + IntoRawFd
 		Self::get_o_flags_raw_fd(self.as_raw_fd())
 	}
 
-
 	#[doc(hidden)]
 	#[inline(always)]
 	fn get_o_flags_raw_fd(raw_fd: RawFd) -> i32

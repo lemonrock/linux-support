@@ -27,6 +27,51 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 	}
 
+	/// Also known as 'attributes'.
+	///
+	/// See the `lsattr` and the `chattr` programs.
+	#[inline(always)]
+	fn get_inode_flags(&self) -> io::Result<InodeFlags>
+	{
+		#[allow(deprecated)]
+		let mut attributes = unsafe { uninitialized() };
+		let result = unsafe { ioctl (self.as_raw_fd(), FS_IOC_GETFLAGS, &mut attributes) };
+		if likely!(result == 0)
+		{
+			Ok(InodeFlags::from_bits(attributes).unwrap())
+		}
+		else if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("ioctl() returned unexpected result {}", result)
+		}
+	}
+
+	/// Also known as 'attributes'.
+	///
+	/// See the `lsattr` and the `chattr` programs.
+	#[inline(always)]
+	fn set_inode_flags(&self, inode_flags: InodeFlags) -> io::Result<()>
+	{
+		let attributes = inode_flags.bits();
+		let result = unsafe { ioctl (self.as_raw_fd(), FS_IOC_SETFLAGS, &attributes) };
+		if likely!(result == 0)
+		{
+			Ok(())
+		}
+		else if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("ioctl() returned unexpected result {}", result)
+		}
+	}
+
 	/// Get an extended attribute.
 	///
 	/// Limited to 64Kb.
@@ -165,8 +210,3 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 	}
 }
-
-/*
-    * Inode Flags, sometimes known as attributes.
-        * http://man7.org/linux/man-pages/man2/ioctl_iflags.2.html (eg immutable, append only, etc)
-*/

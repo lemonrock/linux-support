@@ -2,11 +2,19 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::strings::parse_number::ParseNumber;
-use crate::strings::parse_number::ParseNumberError;
+use self::c::*;
 use crate::strings::Radix;
+use crate::strings::parse_number::*;
+use bitflags::bitflags;
 use libc::ino_t;
+use likely::*;
 use std::fmt::Debug;
+use std::convert::TryInto;
 
 
+pub(crate) mod c;
+
+
+include!("FileAttributesSubset.rs");
 include!("Inode.rs");
+include!("InodeFlags.rs");

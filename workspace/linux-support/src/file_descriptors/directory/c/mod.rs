@@ -19,5 +19,4 @@ include!("openat2.rs");
 include!("renameat2.rs");
 include!("statx.rs");
 include!("STATX_.rs");
-include!("STATX_ATTR_.rs");
 include!("statx_timestamp.rs");

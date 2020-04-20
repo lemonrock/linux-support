@@ -61,6 +61,9 @@
 
 use crate::extended_attributes::*;
 use crate::file_systems::FileSystemMetadata;
+use crate::inode::InodeFlags;
+use crate::inode::c::FS_IOC_GETFLAGS;
+use crate::inode::c::FS_IOC_SETFLAGS;
 use crate::terminal::TerminalSettingsError;
 #[allow(deprecated)] use std::mem::uninitialized;
 use arrayvec::Array;

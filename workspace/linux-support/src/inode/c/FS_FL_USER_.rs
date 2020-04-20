@@ -2,17 +2,16 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Write synchronization.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(i32)]
-pub enum WriteSynchronization
-{
-	/// Do no synchronization.
-	DoNone = 0,
+/// User visible flags.
+///
+/// Only supported it seems by `cifs`, `jfs` and `nilfs2`.
+///
+/// For `ext2`, an internal constant, `EXT2_FL_USER_VISIBLE`, with a different value, `0x004BDFFF`, is used.
+#[allow(unused)]
+pub(super) const FS_FL_USER_VISIBLE: i32 = 0x0003DFFF;
 
-	/// Equivalent to calling `Synchronize::synchronize_data_only()` after every `write()`.
-	DataOnly = O_DSYNC,
-
-	/// Equivalent to calling `Synchronize::synchronize_data_and_metadata()` after every `write()`.
-	MetaDataAndData = O_SYNC,
-}
+/// User modifiable flags.
+///
+/// Only supported it seems by `ext2`, `jfs`, `nilfs2` and `ocfs2`.
+#[allow(unused)]
+pub(super) const FS_FL_USER_MODIFIABLE: i32 = 0x000380FF;
