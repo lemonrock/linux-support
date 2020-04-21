@@ -27,6 +27,12 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 	}
 
+	/*
+https://www.spinics.net/lists/linux-api/msg27357.html
+#define FS_IOC_GETFSLABEL		_IOR(0x94, 49, char[FSLABEL_MAX])
+#define FS_IOC_SETFSLABEL		_IOW(0x94, 50, char[FSLABEL_MAX])
+	*/
+
 	/// Also known as 'version number'.
 	///
 	/// Can legitimately fail if the file system does not support generation numbers.

@@ -16,7 +16,7 @@ pub trait Sparseness: AsRawFd + Seek + FileExt
 	/// If successeful, `Ok(Left(FileExtents))` is returned.
 	/// If the choice of flags in `retrieve_file_extents_flags` is not supported, `Ok(Right(RetrieveFileExtentsFlags))` with supported flags is returned.
 	#[inline(always)]
-	fn get_file_extents(&self, logical_range_in_bytes: Range<u64>, retrieve_file_extents_flags: RetrieveFileExtentsFlags) -> io::Result<Either<FileExtents, RetrieveFileExtentsFlags>>
+	fn get_file_extents(&self, logical_range_in_bytes: RangeInclusive<u64>, retrieve_file_extents_flags: RetrieveFileExtentsFlags) -> io::Result<Either<FileExtents, RetrieveFileExtentsFlags>>
 	{
 		match self.get_extents(logical_range_in_bytes, retrieve_file_extents_flags, 0)?
 		{
@@ -38,7 +38,7 @@ pub trait Sparseness: AsRawFd + Seek + FileExt
 	/// If successeful, `Ok(Left(FileExtents))` is returned.
 	/// If the choice of flags in `retrieve_file_extents_flags` is not supported, `Ok(Right(RetrieveFileExtentsFlags))` with supported flags is returned.
 	#[inline(always)]
-	fn get_extended_attribute_extents(&self, logical_range_in_bytes: Range<u64>, retrieve_file_extents_flags: RetrieveFileExtentsFlags) -> io::Result<Either<FileExtents, RetrieveFileExtentsFlags>>
+	fn get_extended_attribute_extents(&self, logical_range_in_bytes: RangeInclusive<u64>, retrieve_file_extents_flags: RetrieveFileExtentsFlags) -> io::Result<Either<FileExtents, RetrieveFileExtentsFlags>>
 	{
 		match self.get_extents(logical_range_in_bytes, retrieve_file_extents_flags, FIEMAP_FLAG_XATTR)?
 		{
@@ -56,7 +56,7 @@ pub trait Sparseness: AsRawFd + Seek + FileExt
 
 	#[doc(hidden)]
 	#[inline(always)]
-	fn get_extents(&self, logical_range_in_bytes: Range<u64>, retrieve_file_extents_flags: RetrieveFileExtentsFlags, flags: u32) -> io::Result<Either<FileExtents, u32>>
+	fn get_extents(&self, logical_range_in_bytes: RangeInclusive<u64>, retrieve_file_extents_flags: RetrieveFileExtentsFlags, flags: u32) -> io::Result<Either<FileExtents, u32>>
 	{
 		const InitialGuessOfNumberOfExtents: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(4) };
 		let mut file_extents = FileExtents::new(InitialGuessOfNumberOfExtents, logical_range_in_bytes, retrieve_file_extents_flags, flags);

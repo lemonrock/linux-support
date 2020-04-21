@@ -2,16 +2,15 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+#[repr(C)]
+pub(super) struct file_dedupe_range
+{
+	pub(super) src_offset: u64,
+	pub(super) src_length: u64,
+	pub(super) dest_count: u16,
+	pub(super) reserved1: u16,
+	pub(super) reserved2: u32,
 
-
-include!("copy_file_range.rs");
-include!("FI.rs");
-include!("file_clone_range.rs");
-include!("file_dedupe_range.rs");
-include!("FILE_DEDUPE_RANGE_.rs");
-include!("file_dedupe_range_info.rs");
-include!("flock.rs");
-include!("SEEK_DATA.rs");
-include!("SEEK_HOLE.rs");
-include!("syncfs.rs");
+	/// Actually a variable-length end-of-struct array field.
+	pub(super) info: [file_dedupe_range_info; 0],
+}

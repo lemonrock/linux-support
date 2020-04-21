@@ -2,16 +2,17 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+/// Outcome of deduplication.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum DeduplicationOutcome
+{
+	/// Deduplicated.
+	Deduplicated
+	{
+		/// Number of bytes deduplicated.
+		number_of_bytes_deduplicated: u64
+	},
 
-
-include!("copy_file_range.rs");
-include!("FI.rs");
-include!("file_clone_range.rs");
-include!("file_dedupe_range.rs");
-include!("FILE_DEDUPE_RANGE_.rs");
-include!("file_dedupe_range_info.rs");
-include!("flock.rs");
-include!("SEEK_DATA.rs");
-include!("SEEK_HOLE.rs");
-include!("syncfs.rs");
+	/// Range differs, even by one byte.
+	RangeDiffers,
+}

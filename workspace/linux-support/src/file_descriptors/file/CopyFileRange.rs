@@ -5,20 +5,22 @@
 /// Fast logic that avoids memory copies inside the Linux kernel to copy from one file to another.
 ///
 /// Use this trait in conjunction with `Sparseness` to efficiently copy files from one location to another (by finding out where there are zero-byte holes, and so not copying them).
+///
+/// If the underlying file system supports Copy-on-Write, see the `CopyOnWrite` trait for more efficient copying still.
 pub trait CopyFileRange: AsRawFd + Seek + FileExt
 {
-	/// Panics (with more useful information if debugging) if `from_offset + length` exceeds` usize::MAX`.
-	/// Panics (with more useful information if debugging) if `to_offset + length` exceeds` usize::MAX`.
-	/// Panics (with more useful information if debugging) if `from` and `to` are the same and `from_offset + length` overlaps with `to_offset + length`.
+	/// Panics if `from_offset + length` exceeds `usize::MAX`.
+	/// Panics if `to_offset + length` exceeds `usize::MAX`.
+	/// Panics if `from` and `to` refer to the same file and `from_offset + length` overlaps with `to_offset + length`.
 	///
 	/// `from_offset`, if `None`, causes reads to start from the current (seek) position in the file read from (`self`).
-	/// After a copy, the offset of `self` will have changed by the numbers of bytes `Ok(number of bytes copied)`.
+	/// After a copy, the seek position of `self` will have changed by the numbers of bytes `Ok(number of bytes copied)`.
 	///
-	/// `to_offset`, if `Some(offset)`, causes reads to start from the position in the file read from `offset`.
+	/// `from_offset`, if `Some(offset)`, causes reads to start from the position in the file read from `offset`.
 	/// It will be updated by `Ok(number of bytes copied)` after a copy, but the file read from's current (seek) position will be unchanged.
 	///
 	/// `to_offset`, if `None`, causes writes to start from the current (seek) position in the file written `to`.
-	/// After a copy, the offset of `self` will have changed by the numbers of bytes `Ok(number of bytes copied)`.
+	/// After a copy, the seek position of `self` will have changed by the numbers of bytes `Ok(number of bytes copied)`.
 	///
 	/// `to_offset`, if `Some(offset)`, causes writes to start from the position in the file written to `offset`.
 	/// It will be updated by `Ok(number of bytes copied)` after a copy, but the file written to's current (seek) position will be unchanged.
@@ -29,6 +31,11 @@ pub trait CopyFileRange: AsRawFd + Seek + FileExt
 	#[inline(always)]
 	fn copy_file_range_to<CFR: CopyFileRange>(&self, from_offset: Option<&mut i64>, to: &CFR, to_offset: Option<&mut i64>, length: usize) -> Result<usize, bool>
 	{
+		if unlikely!(length == 0)
+		{
+			return Ok(0)
+		}
+
 		const FlagsAreUnused: u32 = 0;
 		let off_in = from_offset.map(|offset| offset as *mut i64).unwrap_or(null_mut());
 		let off_out = to_offset.map(|offset| offset as *mut i64).unwrap_or(null_mut());

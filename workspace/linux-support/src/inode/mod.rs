@@ -14,14 +14,16 @@ use std::mem::size_of;
 #[allow(deprecated)] use std::mem::uninitialized;
 use std::num::NonZeroU32;
 use std::ops::Deref;
-use std::ops::Range;
+use std::ops::RangeInclusive;
 use std::slice::from_raw_parts;
 
 
-pub(crate) mod c;
+/// C data structures.
+pub mod c;
 
 
-include!("FileAttributesSubset.rs");include!("FileExtentFlags.rs");
+include!("FileAttributesSubset.rs");
+include!("FileExtentFlags.rs");
 include!("FileExtents.rs");
 include!("Inode.rs");
 include!("InodeFlags.rs");

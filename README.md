@@ -61,6 +61,7 @@ It is not intended to replace [nix](https://crates.io/crates/nix), but as an alt
 	* Extensive directory operations using dirfd and `at()` system calls. 
 	* Atomic renames
 	* Memory mapping.
+	* Copy-on-write clones and deduplication.
 	* Adding extended seeks for data and holes.
 	* Finding file extents and sparseness (for efficient copies, say)
 	* Three different kinds of advisory file locks (whole file, per-proces record and the newer and better per open file description record).

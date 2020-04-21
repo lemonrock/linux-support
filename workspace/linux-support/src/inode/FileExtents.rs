@@ -3,6 +3,7 @@
 
 
 /// File extents, ie non-sparse parts of a file.
+// NOTE: Very similar to `Deduplicate`.
 #[derive(Debug)]
 pub struct FileExtents
 {
@@ -28,14 +29,14 @@ impl FileExtents
 
 	#[allow(deprecated)]
 	#[inline(always)]
-	pub(crate) fn new(initial_number_of_extents_to_retrieve: NonZeroU32, logical_range_in_bytes: Range<u64>, retrieve_file_extents_flags: RetrieveFileExtentsFlags, flags: u32) -> Self
+	pub(crate) fn new(initial_number_of_extents_to_retrieve: NonZeroU32, logical_range_in_bytes: RangeInclusive<u64>, retrieve_file_extents_flags: RetrieveFileExtentsFlags, flags: u32) -> Self
 	{
-		let length = logical_range_in_bytes.end - logical_range_in_bytes.start;
-		debug_assert_ne!(length, 0, "range can not be empty");
+		let (start, end) = logical_range_in_bytes.into_inner();
+		let length = end - start + 1;
 
 		let number_of_extents_to_retrieve = initial_number_of_extents_to_retrieve.get();
 		let mut buffer = Vec::with_capacity(Self::size(number_of_extents_to_retrieve));
-		unsafe { buffer.set_len(FileExtents::Offset) };
+		unsafe { buffer.set_len(Self::Offset) };
 		let mut file_extents = Self
 		{
 			buffer
@@ -47,7 +48,7 @@ impl FileExtents
 			(
 				fiemap
 				{
-					fm_start: logical_range_in_bytes.start,
+					fm_start: start,
 					fm_length: length,
 					fm_flags: retrieve_file_extents_flags.bits() | flags,
 					fm_mapped_extents: uninitialized(),

@@ -6,6 +6,7 @@ use self::c::*;
 use super::*;
 use super::pipes_and_fifos::SpliceRecipient;
 use super::pipes_and_fifos::SpliceSender;
+use crate::memory::PageSize;
 use crate::paths::PathExt;
 use crate::paths::ProcPath;
 use crate::process::ProcessIdentifierChoice;
@@ -14,13 +15,14 @@ use crate::vectors::VectoredWrite;
 use crate::vectors::VectoredRead;
 use crate::inode::*;
 use crate::inode::c::*;
-use std::ops::Range;
 use either::Either;
 use either::Either::Left;
 use either::Either::Right;
+use std::ops::RangeInclusive;
 
 
-mod c;
+/// C data structures.
+pub mod c;
 
 
 include!("Advice.rs");
@@ -31,11 +33,15 @@ include!("AdvisoryWholeFileLocking.rs");
 include!("Allocate.rs");
 include!("AllocationMode.rs");
 include!("CopyFileRange.rs");
+include!("CopyOnWrite.rs");
+include!("Deduplicate.rs");
+include!("DeduplicationOutcome.rs");
 include!("ExtendedSeek.rs");
 include!("ExtendedSeekFrom.rs");
 include!("File.Allocate.rs");
 include!("File.AdvisoryWholeFileLocking.rs");
 include!("File.CopyFileRange.rs");
+include!("File.CopyOnWrite.rs");
 include!("File.FileDescriptor.rs");
 include!("File.Leasing.rs");
 include!("File.OnDiskFileDescriptor.rs");
