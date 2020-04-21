@@ -29,6 +29,8 @@ use std::fmt;
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Formatter;
+use crate::file_descriptors::directory::DirectoryFileDescriptor;
+use std::ops::Deref;
 
 
 mod c;
@@ -40,4 +42,5 @@ include!("FileSystemMountIdentifier.rs");
 include!("FileSystemSupportedError.rs");
 include!("FileSystemType.rs");
 include!("FileSystemTypeList.rs");
+include!("FrozenFileSystem.rs");
 include!("HasNoAssociatedDevice.rs");

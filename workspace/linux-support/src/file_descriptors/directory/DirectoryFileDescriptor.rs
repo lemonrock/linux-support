@@ -288,6 +288,52 @@ impl DirectoryFileDescriptor
 		DirectoryEntryIterator::new(self)
 	}
 
+	/// Freezing a file system ensures that it is in a stable state to back up or duplicate at a byte level.
+	///
+	/// Writes will be blocked.
+	///
+	/// `drop()` the resulting `FrozenFileSystem` to thaw the file system.
+	///
+	/// Read-only operations are still permitted on a frozen file system.
+	pub fn freeze_file_system<'a>(&'a self) -> io::Result<FrozenFileSystem<'a>>
+	{
+		const FIFREEZE: i32 = 3221510263u32 as i32;
+
+		let result = unsafe { ioctl(self.as_raw_fd(), FIFREEZE, 0) };
+		if likely!(result == 0)
+		{
+			Ok(FrozenFileSystem(self))
+		}
+		else if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("Unexpected result {} from ioctl()", result)
+		}
+	}
+
+	#[inline(always)]
+	pub(crate) fn thaw_file_system(&self) -> io::Result<()>
+	{
+		const FITHAW: i32 = 3221510264u32 as i32;
+
+		let result = unsafe { ioctl(self.as_raw_fd(), FITHAW, 0) };
+		if likely!(result == 0)
+		{
+			Ok(())
+		}
+		else if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("Unexpected result {} from ioctl()", result)
+		}
+	}
+
 	/// Change directory (`cd`).
 	#[inline(always)]
 	pub fn change_current_working_directory_to_self(&self) -> io::Result<()>

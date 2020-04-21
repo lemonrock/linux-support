@@ -6,7 +6,7 @@ use self::c::*;
 use super::*;
 use crate::devices::*;
 use crate::environment::Environment;
-use crate::file_systems::FileSystemMountIdentifier;
+use crate::file_systems::{FileSystemMountIdentifier, FrozenFileSystem};
 use crate::inode::*;
 use crate::strings::NulTerminatedCStringArray;
 use crate::user_and_groups::UserIdentifier;
