@@ -295,10 +295,10 @@ impl DirectoryFileDescriptor
 	/// `drop()` the resulting `FrozenFileSystem` to thaw the file system.
 	///
 	/// Read-only operations are still permitted on a frozen file system.
+	///
+	/// `self` should be a mount point.
 	pub fn freeze_file_system<'a>(&'a self) -> io::Result<FrozenFileSystem<'a>>
 	{
-		const FIFREEZE: i32 = 3221510263u32 as i32;
-
 		let result = unsafe { ioctl(self.as_raw_fd(), FIFREEZE, 0) };
 		if likely!(result == 0)
 		{
@@ -317,8 +317,6 @@ impl DirectoryFileDescriptor
 	#[inline(always)]
 	pub(crate) fn thaw_file_system(&self) -> io::Result<()>
 	{
-		const FITHAW: i32 = 3221510264u32 as i32;
-
 		let result = unsafe { ioctl(self.as_raw_fd(), FITHAW, 0) };
 		if likely!(result == 0)
 		{
@@ -327,6 +325,59 @@ impl DirectoryFileDescriptor
 		else if likely!(result == -1)
 		{
 			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("Unexpected result {} from ioctl()", result)
+		}
+	}
+
+	/// Do a TRIM to discard extents on a SSD or thin storage, effectively defragmenting them.
+	///
+	/// TRIMs should be done no more than once a week on most SSDs to preserve their life.
+	///
+	/// Logic derived from `fstrim` in `util-linux`.
+	///
+	/// Returns `Ok(true)` if trim succeeded and `Ok(false)` if the file system does not support it in some way.
+	///
+	/// `self` should be a mount point.
+	///
+	/// # `physical_range`
+	///
+	/// This is the range within the file system to search.
+	///
+	/// It can be set to `0 ..= u64::MAX`.
+	///
+	/// # `minimum_size_of_extend_to_discard`
+	/// Minimum contiguous free range to discard, in bytes. (This value is internally rounded up to a multiple of the filesystem block size.)
+	/// Free ranges smaller than this will be ignored; this is a device-specific minimum.
+	///
+	/// By increasing this value, the `trim()` operation will complete more quickly for filesystems with badly fragmented free space, although not all blocks will be discarded.
+	/// A value of zero will discard every free block.
+	#[inline(always)]
+	pub fn trim_file_system(&self, physical_range: RangeInclusive<u64>, minimum_size_of_extend_to_discard: u64) -> io::Result<bool>
+	{
+		let (start, end) = physical_range.into_inner();
+		let length = end - start + 1;
+		let trim = fstrim_range
+		{
+			start,
+			len: length,
+			minlin: minimum_size_of_extend_to_discard,
+		};
+
+		let result = unsafe { ioctl(self.as_raw_fd(), FITRIM, &trim) };
+		if likely!(result == 0)
+		{
+			Ok(true)
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				EBADF | ENOTTY | EOPNOTSUPP => Ok(false),
+				_ => Err(io::Error::last_os_error()),
+			}
 		}
 		else
 		{

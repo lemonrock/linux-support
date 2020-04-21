@@ -142,6 +142,7 @@ use libc::ENOSYS;
 use libc::ENOTCONN;
 use libc::ENOTDIR;
 use libc::ENOTSOCK;
+use libc::ENOTTY;
 use libc::ENXIO;
 use libc::EOPNOTSUPP;
 use libc::EOVERFLOW;

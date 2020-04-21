@@ -55,7 +55,11 @@ It is not intended to replace [nix](https://crates.io/crates/nix), but as an alt
 	* Memory map insight
 	* Virtual to Physical mapping and parsing of the page map
 	* Read and Write process virtual memory (see Process below).
-* File system mounts and mounting
+* File systems
+    * Mounts and mounting
+    * Freeze and thaw
+    * Trim
+    * Metadata
 * File descriptors
 	* Including character device, directory, epoll, signalfd, eventfd, userfaultfd, path, pidfd, timerfd, inotify, memfd, POSIX message queues, pipes, sockets, terminals and others.
 	* Extensive directory operations using dirfd and `at()` system calls. 

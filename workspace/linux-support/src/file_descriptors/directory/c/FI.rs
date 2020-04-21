@@ -2,23 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use crate::syscall::SYS;
+pub(super) const FIFREEZE: i32 = 3221510263u32 as i32;
 
+pub(super) const FITHAW: i32 = 3221510264u32 as i32;
 
-include!("AT_STATX_.rs");
-include!("dirent.rs");
-include!("execveat.rs");
-include!("FI.rs");
-include!("getdents.rs");
-include!("MAX_HANDLE_SZ.rs");
-include!("file_handle.rs");
-include!("fstrim_range.rs");
-include!("name_to_handle_at.rs");
-include!("open_by_handle_at.rs");
-include!("open_how.rs");
-include!("openat2.rs");
-include!("renameat2.rs");
-include!("statx.rs");
-include!("STATX_.rs");
-include!("statx_timestamp.rs");
+pub(super) const FITRIM: i32 = 3222820985u32 as i32;

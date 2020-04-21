@@ -12,6 +12,7 @@ use crate::strings::NulTerminatedCStringArray;
 use crate::user_and_groups::UserIdentifier;
 use crate::user_and_groups::GroupIdentifier;
 use streaming_iterator::StreamingIterator;
+use std::ops::RangeInclusive;
 
 
 mod c;

@@ -2,23 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use crate::syscall::SYS;
-
-
-include!("AT_STATX_.rs");
-include!("dirent.rs");
-include!("execveat.rs");
-include!("FI.rs");
-include!("getdents.rs");
-include!("MAX_HANDLE_SZ.rs");
-include!("file_handle.rs");
-include!("fstrim_range.rs");
-include!("name_to_handle_at.rs");
-include!("open_by_handle_at.rs");
-include!("open_how.rs");
-include!("openat2.rs");
-include!("renameat2.rs");
-include!("statx.rs");
-include!("STATX_.rs");
-include!("statx_timestamp.rs");
+#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub(super) struct fstrim_range
+{
+	pub(super) start: u64,
+	pub(super) len: u64,
+	pub(super) minlin: u64,
+}
