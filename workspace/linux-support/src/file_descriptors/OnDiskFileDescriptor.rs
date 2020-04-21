@@ -27,11 +27,63 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 	}
 
-	/*
-https://www.spinics.net/lists/linux-api/msg27357.html
-#define FS_IOC_GETFSLABEL		_IOR(0x94, 49, char[FSLABEL_MAX])
-#define FS_IOC_SETFSLABEL		_IOW(0x94, 50, char[FSLABEL_MAX])
-	*/
+	#[doc(hidden)]
+	const FSLABEL_MAX: usize = 256;
+
+	/// Only supported for `btrfs`, `f2fs` and `xfs`.
+	///
+	/// Errors shouldn't be treated too harshly by the caller.
+	/// Like many such Linux APIs, everything is poorly documented and file systems pretty much interpret what's wanted as they wish.
+	///
+	/// Since Linux 4.18.
+	#[inline(always)]
+	fn get_file_system_label(&self) -> io::Result<CString>
+	{
+		const FS_IOC_GETFSLABEL: i32 = 2164298801u32 as i32;
+
+		let mut buffer = Vec::with_capacity(Self::FSLABEL_MAX);
+		let result = unsafe { ioctl(self.as_raw_fd(), FS_IOC_GETFSLABEL, buffer.as_mut_ptr()) };
+		if likely!(result == 0)
+		{
+			Ok(CString::from_fixed_length_buffer_ascii_nul_terminated(buffer))
+		}
+		else if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("Unexpected result {} from ioctl()", result)
+		}
+	}
+
+	/// Only supported for `btrfs`, `f2fs` and `xfs`.
+	///
+	/// Errors shouldn't be treated too harshly by the caller.
+	/// Like many such Linux APIs, everything is poorly documented and file systems pretty much interpret what's wanted as they wish.
+	///
+	/// `label` should have a length (without trailing NUL) of 255 bytes or less.
+	///
+	/// Since Linux 4.18.
+	#[inline(always)]
+	fn set_file_system_label(&self, label: &CStr) -> io::Result<()>
+	{
+		const FS_IOC_SETFSLABEL: i32 = 1090556978;
+
+		let result = unsafe { ioctl(self.as_raw_fd(), FS_IOC_SETFSLABEL, label.as_ptr()) };
+		if likely!(result == 0)
+		{
+			Ok(())
+		}
+		else if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("Unexpected result {} from ioctl()", result)
+		}
+	}
 
 	/// Also known as 'version number'.
 	///

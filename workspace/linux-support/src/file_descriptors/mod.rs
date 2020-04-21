@@ -67,6 +67,7 @@ use crate::inode::c::FS_IOC_GETFLAGS;
 use crate::inode::c::FS_IOC_SETFLAGS;
 use crate::inode::c::FS_IOC_GETVERSION;
 use crate::inode::c::FS_IOC_SETVERSION;
+use crate::strings::CStringExt;
 use crate::terminal::TerminalSettingsError;
 #[allow(deprecated)] use std::mem::uninitialized;
 use arrayvec::Array;

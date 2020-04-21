@@ -25,10 +25,12 @@ use std::path::Path;
 use std::path::PathBuf;
 use crate::memory::PageSize;
 use std::ptr::null;
+use std::mem::transmute;
 
 
 include!("c_string_pointer_to_path_buf.rs");
 include!("ConstCStr.rs");
+include!("CStringExt.rs");
 include!("CStringFragments.rs");
 include!("FromBytes.rs");
 include!("LinuxStringEscapeSequence.rs");
