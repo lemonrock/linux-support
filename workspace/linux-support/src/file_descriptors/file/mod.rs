@@ -12,6 +12,12 @@ use crate::process::ProcessIdentifierChoice;
 use crate::process::ProcessIdentifier;
 use crate::vectors::VectoredWrite;
 use crate::vectors::VectoredRead;
+use crate::inode::*;
+use crate::inode::c::*;
+use std::ops::Range;
+use either::Either;
+use either::Either::Left;
+use either::Either::Right;
 
 
 mod c;
@@ -38,6 +44,7 @@ include!("File.PerProcessAdvisoryFileRecordLocking.rs");
 include!("File.SpliceRecipient.rs");
 include!("File.SpliceSender.rs");
 include!("File.SendFile.rs");
+include!("File.Sparseness.rs");
 include!("File.Synchronize.rs");
 include!("File.VectoredRead.rs");
 include!("File.VectoredWrite.rs");
@@ -47,5 +54,6 @@ include!("OpenFileDescriptionAdvisoryFileRecordLocking.rs");
 include!("PerProcessAdvisoryFileRecordLocking.rs");
 include!("ReadAhead.rs");
 include!("SendFile.rs");
+include!("Sparseness.rs");
 include!("Synchronize.rs");
 include!("SynchronizeFileRangeFlags.rs");

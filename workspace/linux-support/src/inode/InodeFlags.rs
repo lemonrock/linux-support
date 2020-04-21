@@ -9,6 +9,8 @@ bitflags!
 	/// Also known as 'attributes'.
 	///
 	/// See the `lsattr` and the `chattr` programs and <http://man7.org/linux/man-pages/man2/ioctl_iflags.2.html>.
+	///
+	/// Obtain these using `OnDiskFileDescriptor`.
 	pub struct InodeFlags: i32
 	{
 		/// Allow the file to be undeleted if it is deleted.

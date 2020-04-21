@@ -171,6 +171,8 @@ impl PathFileDescriptor
 	#[inline(always)]
 	pub fn make_hard_link_for_self(&self, to: &DirectoryFileDescriptor, to_path: &CStr) -> io::Result<()>
 	{
+		debug_assert!(!self.is_directory, "is a directory");
+
 		self.use_as_directory(|directory| directory.make_hard_link_for_self(to, to_path))
 	}
 

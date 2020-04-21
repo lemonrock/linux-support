@@ -2,15 +2,16 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) const FS_IOC_GETFLAGS: i32 = 2148034049u32 as i32;
-pub(crate) const FS_IOC_SETFLAGS: i32 = 1074292226u32 as i32;
-pub(crate) const FS_IOC_GETVERSION: i32 = 2148038145u32 as i32;
-pub(crate) const FS_IOC_SETVERSION: i32 = 1074296322u32 as i32;
-pub(crate) const FS_IOC_FIEMAP: i32 = 3223348747u32 as i32;
+#[repr(C)]
+pub(crate) struct fiemap
+{
+	pub(crate) fm_start: u64,
+	pub(crate) fm_length: u64,
+	pub(crate) fm_flags: u32,
+	pub(crate) fm_mapped_extents: u32,
+	pub(crate) fm_extent_count: u32,
+	pub(crate) fm_reserved: u32,
 
-/*
-#define FS_IOC_FSGETXATTR		_IOR('X', 31, struct fsxattr)
-#define FS_IOC_FSSETXATTR		_IOW('X', 32, struct fsxattr)
-#define FS_IOC_GETFSLABEL		_IOR(0x94, 49, char[FSLABEL_MAX])
-#define FS_IOC_SETFSLABEL		_IOW(0x94, 50, char[FSLABEL_MAX])
-*/
+	/// Actually a variable-length end-of-struct array field.
+	pub(crate) fm_extents: [fiemap_extent; 0],
+}

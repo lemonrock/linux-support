@@ -8,13 +8,22 @@ use crate::strings::parse_number::*;
 use bitflags::bitflags;
 use libc::ino_t;
 use likely::*;
-use std::fmt::Debug;
 use std::convert::TryInto;
+use std::fmt::Debug;
+use std::mem::size_of;
+#[allow(deprecated)] use std::mem::uninitialized;
+use std::num::NonZeroU32;
+use std::ops::Deref;
+use std::ops::Range;
+use std::slice::from_raw_parts;
 
 
 pub(crate) mod c;
 
 
-include!("FileAttributesSubset.rs");
+include!("FileAttributesSubset.rs");include!("FileExtentFlags.rs");
+include!("FileExtents.rs");
 include!("Inode.rs");
 include!("InodeFlags.rs");
+include!("InodeGenerationNumber.rs");
+include!("RetrieveFileExtentsFlags.rs");

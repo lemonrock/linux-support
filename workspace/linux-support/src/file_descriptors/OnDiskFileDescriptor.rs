@@ -27,6 +27,51 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 	}
 
+	/// Also known as 'version number'.
+	///
+	/// Can legitimately fail if the file system does not support generation numbers.
+	#[inline(always)]
+	fn get_inode_generation_number(&self) -> io::Result<InodeGenerationNumber>
+	{
+		#[allow(deprecated)]
+		let mut inode_generation_number = unsafe { uninitialized() };
+		let result = unsafe { ioctl (self.as_raw_fd(), FS_IOC_GETVERSION, &mut inode_generation_number) };
+		if likely!(result == 0)
+		{
+			Ok(InodeGenerationNumber::from_i32(inode_generation_number))
+		}
+		else if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("ioctl() returned unexpected result {}", result)
+		}
+	}
+
+	/// Also known as 'version number'.
+	///
+	/// Can legitimately fail if the file system does not support generation numbers.
+	#[inline(always)]
+	fn set_inode_generation_number(&self, inode_generation_number: InodeGenerationNumber) -> io::Result<()>
+	{
+		let inode_generation_number: i32 = inode_generation_number.into();
+		let result = unsafe { ioctl (self.as_raw_fd(), FS_IOC_SETVERSION, &inode_generation_number) };
+		if likely!(result == 0)
+		{
+			Ok(())
+		}
+		else if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("ioctl() returned unexpected result {}", result)
+		}
+	}
+
 	/// Also known as 'attributes'.
 	///
 	/// See the `lsattr` and the `chattr` programs.

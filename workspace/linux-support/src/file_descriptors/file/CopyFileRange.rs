@@ -3,6 +3,8 @@
 
 
 /// Fast logic that avoids memory copies inside the Linux kernel to copy from one file to another.
+///
+/// Use this trait in conjunction with `Sparseness` to efficiently copy files from one location to another (by finding out where there are zero-byte holes, and so not copying them).
 pub trait CopyFileRange: AsRawFd + Seek + FileExt
 {
 	/// Panics (with more useful information if debugging) if `from_offset + length` exceeds` usize::MAX`.

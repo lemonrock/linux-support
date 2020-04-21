@@ -9,6 +9,8 @@ bitflags!
 	/// See <http://man7.org/linux/man-pages/man2/ioctl_iflags.2.html>.
 	///
 	/// See also the `chattr` and `lsattr` programs.
+	///
+	/// Obtain these for files and folders methods such as `extended_metadata()` on `DirectoryFileDescriptor` or `PathFileDescriptor`.
 	pub struct FileAttributesSubset: u64
 	{
 		/// Overlaps with `FS_IOC_FLAGS`.
