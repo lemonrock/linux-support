@@ -7,7 +7,6 @@
 userfaultfd: http://man7.org/linux/man-pages/man2/userfaultfd.2.html
 F_GET_RW_HINT: read-write hints http://man7.org/linux/man-pages/man2/fcntl.2.html
 
-#define FITRIM		_IOWR('X', 121, struct fstrim_range)	/* Trim */
 
 #define FS_IOC_FSGETXATTR		_IOR('X', 31, struct fsxattr)
 #define FS_IOC_FSSETXATTR		_IOW('X', 32, struct fsxattr)

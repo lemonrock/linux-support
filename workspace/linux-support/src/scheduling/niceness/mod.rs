@@ -6,6 +6,7 @@ use crate::paths::*;
 use crate::process::*;
 use crate::strings::Radix;
 use crate::strings::parse_number::*;
+use crate::user_and_groups::UserIdentifier;
 use errno::errno;
 use libc::*;
 use likely::*;
@@ -19,13 +20,9 @@ use std::fmt::Formatter;
 use std::io;
 use std::io::ErrorKind;
 use std::mem::transmute;
-use std::num::NonZeroU8;
 use std::path::PathBuf;
-use std::convert::TryFrom;
-use crate::user_and_groups::UserIdentifier;
 
 
 include!("Nice.rs");
 include!("ProcessNiceness.rs");
 include!("ProcessNicenessAdjustmentError.rs");
-include!("RealTimePriority.rs");

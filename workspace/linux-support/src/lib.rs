@@ -153,7 +153,7 @@ pub mod namespaces;
 
 
 /// Niceness.
-pub mod niceness;
+pub mod scheduling;
 
 
 /// Paths.
