@@ -10,37 +10,6 @@ pub struct LinuxKernelModulesList(HashSet<LinuxKernelModuleName>);
 
 impl LinuxKernelModulesList
 {
-	/// Unloads a Linux kernel module.
-	///
-	/// Does not use `modprobe`.
-	///
-	/// true if unloaded.
-	/// false if does not exist.
-	pub fn unload_linux_kernel_module(linux_kernel_module_name: &LinuxKernelModuleName) -> Result<bool, io::Error>
-	{
-		use self::ErrorKind::*;
-
-		let name: CString = linux_kernel_module_name.into();
-		const flags: c_long = O_NONBLOCK as c_long;
-
-		match unsafe { syscall(SYS_delete_module as i64, name.as_ptr(), flags) }
-		{
-			0 => Ok(true),
-			-1 => match errno().0
-			{
-				EPERM => Err(io::Error::new(PermissionDenied, "permission denied")),
-				EBUSY => Err(io::Error::new(PermissionDenied, "busy")),
-				ENOENT => Ok(false),
-				EWOULDBLOCK => Err(io::Error::new(PermissionDenied, "In use")),
-
-				EFAULT => panic!("EFAULT should not occur"),
-
-				unknown @ _ => panic!("syscall(SYS_delete_module) failed with illegal error code '{}'", unknown),
-			},
-			illegal @ _ => panic!("syscall(SYS_delete_module) returned illegal value '{}'", illegal),
-		}
-	}
-
 	/// Loads a Linux Kernel Module.
 	///
 	/// `module_file_base_name` excludes the `.ko` file extension.
@@ -55,7 +24,7 @@ impl LinuxKernelModulesList
 	{
 		let linux_kernel_module_name = linux_kernel_module.linux_kernel_module_name();
 
-		if self.is_linux_kernel_module_is_loaded(linux_kernel_module_name)
+		if self.is_linux_kernel_module_loaded(linux_kernel_module_name)
 		{
 			return Ok(false)
 		}
@@ -70,25 +39,72 @@ impl LinuxKernelModulesList
 	/// Uses `modprobe`.
 	///
 	/// Updates the list of loaded modules.
-	pub fn load_linux_kernel_module_if_absent_using_modprobe(&mut self, linux_kernel_module: &LinuxKernelModule) -> Result<bool, ModProbeError>
+	pub fn load_linux_kernel_module_if_absent_using_modprobe(&mut self, proc_path: &ProcPath, linux_kernel_module_name: &LinuxKernelModuleName) -> Result<bool, ModProbeError>
 	{
-		let linux_kernel_module_name = linux_kernel_module.linux_kernel_module_name();
-
-		if self.is_linux_kernel_module_is_loaded(linux_kernel_module_name)
+		if self.is_linux_kernel_module_loaded(linux_kernel_module_name)
 		{
 			return Ok(false)
 		}
 
-		linux_kernel_module.load_linux_kernel_module_using_modprobe()?;
+		linux_kernel_module_name.load_linux_kernel_module_using_modprobe(proc_path)?;
 		self.0.insert(linux_kernel_module_name.clone());
 		Ok(true)
 	}
 
+	/// Unloads a Linux kernel module.
+	///
+	/// Does not use `modprobe`.
+	///
+	/// true if unloaded.
+	/// false if does not exist.
+	pub fn unload_linux_kernel_module(&self, linux_kernel_module_name: &LinuxKernelModuleName) -> Result<(), io::Error>
+	{
+		if !self.is_linux_kernel_module_loaded(linux_kernel_module_name)
+		{
+			return Ok(())
+		}
+
+		let unloaded = linux_kernel_module_name.unload_linux_kernel_module();
+		if likely!(unloaded)
+		{
+			self.0.remove(linux_kernel_module_name);
+		}
+		Ok(())
+	}
+
 	/// Is the Linux kernel module loaded?
 	#[inline(always)]
-	pub fn is_linux_kernel_module_is_loaded(&self, linux_kernel_module_name: &LinuxKernelModuleName) -> bool
+	pub fn is_linux_kernel_module_loaded(&self, linux_kernel_module_name: &LinuxKernelModuleName) -> bool
 	{
 		self.0.contains(linux_kernel_module_name)
+	}
+
+	/// Contains any of.
+	#[inline(always)]
+	pub fn contains_any_of(&self, linux_kernel_modules: &mut impl Iterator<Item=&LinuxKernelModuleName>) -> bool
+	{
+		for linux_kernel_module in linux_kernel_modules
+		{
+			if self.is_linux_kernel_module_loaded(linux_kernel_module)
+			{
+				return true
+			}
+		}
+		false
+	}
+
+	/// Does not contain all of.
+	#[inline(always)]
+	pub fn does_not_contain_all_of(&self, linux_kernel_modules: &mut impl Iterator<Item=&LinuxKernelModuleName>) -> bool
+	{
+		for linux_kernel_module in linux_kernel_modules
+		{
+			if !self.is_linux_kernel_module_loaded(linux_kernel_module)
+			{
+				return false
+			}
+		}
+		true
 	}
 
 	/// Current loaded Linux kernel modules (from `/proc/modules`).

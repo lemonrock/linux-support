@@ -17,6 +17,7 @@ use std::ffi::CString;
 #[allow(deprecated)] use std::mem::uninitialized;
 use std::ops::Deref;
 use std::ptr::NonNull;
+use std::hash::Hash;
 
 
 include!("assert_effective_user_id_is_root.rs");

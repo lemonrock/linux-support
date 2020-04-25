@@ -62,6 +62,15 @@ impl<'a> IntoLineFeedTerminatedByteString<'a> for bool
 	}
 }
 
+impl<'a> IntoLineFeedTerminatedByteString<'a> for &'a Path
+{
+	#[inline(always)]
+	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
+	{
+		self.as_os_str().as_bytes().into_line_feed_terminated_byte_string()
+	}
+}
+
 macro_rules! number_into_line_feed_terminated_byte_string
 {
     ($unsigned_integer: ty, $Maximum: expr, $MaximumAdjustmentForSign: expr) =>

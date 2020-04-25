@@ -31,7 +31,7 @@ pub enum FileType
 	#[allow(missing_docs)]
 	UnixDomainSocket = S_IFSOCK,
 
-	/// Documented in the Code file system.
+	/// Documented in the Coda file system.
 	BsdStyleWhiteout = 14 << 12,
 }
 
@@ -64,6 +64,69 @@ impl Into<mode_t> for FileType
 
 impl FileType
 {
+	#[allow(missing_docs)]
+	#[inline(always)]
+	pub const fn is_unknown(self) -> bool
+	{
+		self == FileType::Unknown
+	}
+
+	#[allow(missing_docs)]
+	#[inline(always)]
+	pub const fn is_regular_file(self) -> bool
+	{
+		self == FileType::RegularFile
+	}
+
+	#[allow(missing_docs)]
+	#[inline(always)]
+	pub const fn is_directory(self) -> bool
+	{
+		self == FileType::Directory
+	}
+
+	#[allow(missing_docs)]
+	#[inline(always)]
+	pub const fn is_symbolic_link(self) -> bool
+	{
+		self == FileType::SymbolicLink
+	}
+
+	#[allow(missing_docs)]
+	#[inline(always)]
+	pub const fn is_block_device(self) -> bool
+	{
+		self == FileType::BlockDevice
+	}
+
+	#[allow(missing_docs)]
+	#[inline(always)]
+	pub const fn is_character_device(self) -> bool
+	{
+		self == FileType::CharacterDevice
+	}
+
+	#[allow(missing_docs)]
+	#[inline(always)]
+	pub const fn is_fifo(self) -> bool
+	{
+		self == FileType::Fifo
+	}
+
+	#[allow(missing_docs)]
+	#[inline(always)]
+	pub const fn is_unix_domain_socket(self) -> bool
+	{
+		self == FileType::UnixDomainSocket
+	}
+
+	#[allow(missing_docs)]
+	#[inline(always)]
+	pub const fn is_bsd_style_whiteout(self) -> bool
+	{
+		self == FileType::BsdStyleWhiteout
+	}
+
 	#[inline(always)]
 	const fn const_from(value: mode_t) -> Self
 	{

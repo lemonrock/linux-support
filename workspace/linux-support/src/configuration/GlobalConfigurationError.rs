@@ -35,6 +35,12 @@ pub enum GlobalConfigurationError
 
 	#[allow(missing_docs)]
 	GlobalFileDescriptorConfiguration(GlobalFileDescriptorConfigurationError),
+
+	#[allow(missing_docs)]
+	GlobalLinuxModuleConfiguration(GlobalLinuxModuleConfigurationError),
+
+	#[allow(missing_docs)]
+	GlobalKernelPanicConfiguration(GlobalKernelPanicConfigurationError),
 }
 
 impl Display for GlobalConfigurationError
@@ -74,6 +80,10 @@ impl error::Error for GlobalConfigurationError
 			&GlobalFileHandleConfiguration(ref cause) => Some(error),
 
 			&GlobalFileDescriptorConfiguration(ref cause) => Some(error),
+
+			&GlobalLinuxModuleConfiguration(ref cause) => Some(error),
+
+			&GlobalKernelPanicConfiguration(ref cause) => Some(error),
 		}
 	}
 }
@@ -165,5 +175,23 @@ impl From<GlobalFileDescriptorConfigurationError> for GlobalConfigurationError
 	fn from(cause: GlobalFileDescriptorConfigurationError) -> Self
 	{
 		GlobalConfigurationError::GlobalFileDescriptorConfiguration(cause)
+	}
+}
+
+impl From<GlobalLinuxModuleConfigurationError> for GlobalConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: GlobalLinuxModuleConfigurationError) -> Self
+	{
+		GlobalConfigurationError::GlobalLinuxModuleConfiguration(cause)
+	}
+}
+
+impl From<GlobalKernelPanicConfigurationError> for GlobalConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: GlobalKernelPanicConfigurationError) -> Self
+	{
+		GlobalConfigurationError::GlobalKernelPanicConfiguration(cause)
 	}
 }

@@ -131,6 +131,10 @@ pub mod linux_kernel_asynchronous_io;
 pub mod linux_kernel_modules;
 
 
+/// Linux kernel panic.
+pub mod linux_kernel_panic;
+
+
 /// Linux kernel version.
 pub mod linux_kernel_version;
 

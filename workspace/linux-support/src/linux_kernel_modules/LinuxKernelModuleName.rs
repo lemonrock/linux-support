@@ -92,10 +92,112 @@ impl<'a> IntoLineFeedTerminatedByteString<'a> for &'a LinuxKernelModuleName
 
 impl LinuxKernelModuleName
 {
+	/// If module loading is supported then the default is `/sbin/modprobe`.
+	///
+	/// Reads `/proc/sys/kernel/modprobe`.
+	#[inline(always)]
+	pub fn modprobe_executable_path(proc_path: &ProcPath) -> Option<PathBuf>
+	{
+		let file_path = Self::modprobe_file_path(proc_path);
+		if file_path.exists()
+		{
+			let bytes = file_path.read_raw_without_line_feed().unwrap();
+
+			let mut path = PathBuf::new();
+			path.push(bytes);
+			Some(path)
+		}
+		else
+		{
+			None
+		}
+	}
+
+	/// If module loading is supported then the default is `/sbin/modprobe`.
+	///
+	/// Does not write (and does not error) if module loading is not supported.
+	///
+	/// Verifies `modprobe_executable_path` is valid (extant, readable, executable, owned by root and a regular file) before setting it.
+	#[inline(always)]
+	pub fn set_modprobe_executable_path(proc_path: &ProcPath, modprobe_executable_path: &AsRef<Path>) -> io::Result<()>
+	{
+		let file_path = Self::modprobe_file_path(proc_path);
+		if file_path.exists()
+		{
+			fn validate_modprobe_path(modprobe_executable_path: &AsRef<Path>) -> io::Result<&Path>
+			{
+				let modprobe_executable_path = modprobe_executable_path.as_ref();
+
+				let path_file_descriptor = PathFileDescriptor::open(&path_to_cstring(modprobe_executable_path), false, false)?;
+				let metadata = path_file_descriptor.metadata_of_self()?;
+				use self::ErrorKind::Other;
+				if unlikely!(!metadata.user_identifier().is_root())
+				{
+					return Err(io::Error::new(Other, "Not owned by root"))
+				}
+				if unlikely!(!metadata.file_type().is_regular_file())
+				{
+					return Err(io::Error::new(Other, "Not a regular file"))
+				}
+				if unlikely!(!metadata.access_permissions().user().is_readable_and_executable())
+				{
+					return Err(io::Error::new(Other, "Not a readable, executable file"))
+				}
+				Ok(modprobe_executable_path)
+			}
+
+			file_path.write_value(validate_modprobe_path(modprobe_executable_path)?)
+		}
+		else
+		{
+			Ok(())
+		}
+	}
+
+	/// Usually `false` but not necessarily so.
+	#[inline(always)]
+	pub fn is_module_loading_and_unloading_disabled(proc_path: &ProcPath) -> bool
+	{
+		let file_path = Self::modules_disabled_file_path(proc_path);
+		if file_path.exists()
+		{
+			file_path.read_value().unwrap()
+		}
+		else
+		{
+			true
+		}
+	}
+
+	/// Disables if not already disabled.
+	///
+	/// Does not error if already disabled.
+	#[inline(always)]
+	pub fn disable_module_loading_and_unloading_until_reboot(proc_path: &ProcPath) -> io::Result<()>
+	{
+		if Self::is_module_loading_and_unloading_disabled(proc_path)
+		{
+			return Ok(())
+		}
+		Self::modules_disabled_file_path(proc_path).write_value(true)
+	}
+
+	#[inline(always)]
+	fn modprobe_file_path(proc_path: &ProcPath) -> PathBuf
+	{
+		proc_path.sys_kernel_file_path("modprobe")
+	}
+
+	#[inline(always)]
+	fn modules_disabled_file_path(proc_path: &ProcPath) -> PathBuf
+	{
+		proc_path.sys_kernel_file_path("modules_disabled")
+	}
+
 	/// Loads a Linux Kernel Module.
 	///
 	/// Uses the `modprobe` binary.
-	pub fn load_linux_kernel_module_using_modprobe(&self) -> Result<(), ModProbeError>
+	pub fn load_linux_kernel_module_using_modprobe(&self, proc_path: &ProcPath) -> Result<(), ModProbeError>
 	{
 		assert!(!self.0.starts_with(b"-"), "{:?} starts with a hyphen. This confuses some modprobe implementations (and some don't support `--` parsing it seems)", self);
 
@@ -127,6 +229,37 @@ impl LinuxKernelModuleName
 
 				_ => Err(NonZeroExitCode { linux_kernel_module_name: self.clone(), exit_code }),
 			}
+		}
+	}
+
+	/// Unloads a Linux kernel module.
+	///
+	/// Does not use `modprobe`.
+	///
+	/// true if unloaded.
+	/// false if does not exist.
+	pub fn unload_linux_kernel_module(&self) -> Result<bool, io::Error>
+	{
+		use self::ErrorKind::*;
+
+		let name: CString = self.into();
+		const flags: c_long = O_NONBLOCK as c_long;
+
+		match unsafe { syscall(SYS_delete_module as i64, name.as_ptr(), flags) }
+		{
+			0 => Ok(true),
+			-1 => match errno().0
+			{
+				EPERM => Err(io::Error::new(PermissionDenied, "permission denied")),
+				EBUSY => Err(io::Error::new(PermissionDenied, "busy")),
+				ENOENT => Ok(false),
+				EWOULDBLOCK => Err(io::Error::new(PermissionDenied, "In use")),
+
+				EFAULT => panic!("EFAULT should not occur"),
+
+				unknown @ _ => panic!("syscall(SYS_delete_module) failed with illegal error code '{}'", unknown),
+			},
+			illegal @ _ => panic!("syscall(SYS_delete_module) returned illegal value '{}'", illegal),
 		}
 	}
 }

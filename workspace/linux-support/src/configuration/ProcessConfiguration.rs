@@ -54,7 +54,6 @@ impl ProcessConfiguration
 		// TODO: Linux modules to load
 		// TODO: umask
 		// TODO: personality verification
-		// TODO: LinuxKernelCommandLineValidator (a mess currently)
 		// TODO: Resource limits
 		// TODO: Mounts (hugetlbfs, cpusets; really need to mount them in /dev)
 

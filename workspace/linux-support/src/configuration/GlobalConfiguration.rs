@@ -37,6 +37,12 @@ pub struct GlobalConfiguration
 
 	/// Requires root.
 	pub file_descriptor: GlobalFileDescriptorConfiguration,
+
+	/// Requires root.
+	pub linux_module: GlobalLinuxModuleConfiguration,
+
+	/// Requires root.
+	pub kernel_panic: GlobalKernelPanicConfiguration,
 }
 
 impl GlobalConfiguration
@@ -65,6 +71,10 @@ impl GlobalConfiguration
 
 		self.file_descriptor.configure(proc_path)?;
 
+		self.linux_module.configure(proc_path)?;
+
+		self.kernel_panic.configure(proc_path)?;
+
 		Ok(())
 	}
 }
@@ -72,13 +82,17 @@ impl GlobalConfiguration
 // Global configuration:-
 /*
 
-Resource Limits
-	/proc/sys/fs/nr_open
 
+		// TODO: LinuxKernelCommandLineValidator (a mess currently)
+
+Mounts
+	/dev/mqueue
+	/dev/cpuset
+	/dev/hugetlbfs
+Security: Mounts
+   /proc/sys/fs/mount-max
 
 Security
- /proc/sys/kernel/panic
- /proc/sys/kernel/panic_on_oops
  /proc/sys/kernel/randomize_va_space
  /proc/sys/kernel/sysrq
   /proc/sys/kernel/kptr_restrict
@@ -92,20 +106,17 @@ protected_symlinks
 
 
    /proc/sys/fs/suid_dumpable
+
 Security: Process identifiers
  /proc/sys/kernel/pid_max
-Security: userfaultfs
+Security: userfaultfd
  /proc/sys/vm/unprivileged_userfaultfd
-Security: Modules
- /proc/sys/kernel/modules_disabled
-Security: Mounts
-   /proc/sys/fs/mount-max
 
 Memory
 	/proc/sys/vm/admin_reserve_kbytes
+	/proc/sys/vm/user_reserve_kbytes
 	/proc/sys/vm/compact_memory
 	/proc/sys/vm/drop_caches
-	/proc/sys/vm/user_reserve_kbytes
 	/proc/sys/vm/swappiness
 
 Memory / Machine Checks
@@ -119,5 +130,11 @@ OOM
 	/proc/sys/vm/overcommit_memory
 	/proc/sys/vm/overcommit_ratio
 	/proc/sys/vm/panic_on_oom
+
+Watchdog
+	/proc/sys/kernel/soft_watchdog
+	/proc/sys/kernel/watchdog_cpumask
+	/proc/sys/kernel/watchdog
+	/proc/sys/kernel/watchdog_thresh
 
 */

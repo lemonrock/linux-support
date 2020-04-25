@@ -21,3 +21,41 @@ bitflags!
 		const Execute = X_OK as u8;
 	}
 }
+
+impl Accessibility
+{
+	#[allow(missing_docs)]
+	#[inline(always)]
+	pub fn is_readable(self) -> bool
+	{
+		self.contains(Accessibility::Read)
+	}
+
+	#[allow(missing_docs)]
+	#[inline(always)]
+	pub fn is_writable(self) -> bool
+	{
+		self.contains(Accessibility::Write)
+	}
+
+	#[allow(missing_docs)]
+	#[inline(always)]
+	pub fn is_readable_and_writable(self) -> bool
+	{
+		self.contains(Accessibility::Read | Accessibility::Write)
+	}
+
+	#[allow(missing_docs)]
+	#[inline(always)]
+	pub fn is_readable_and_executable(self) -> bool
+	{
+		self.contains(Accessibility::Read | Accessibility::Write)
+	}
+
+	#[allow(missing_docs)]
+	#[inline(always)]
+	pub fn is_executable(self) -> bool
+	{
+		self.contains(Accessibility::Execute)
+	}
+}

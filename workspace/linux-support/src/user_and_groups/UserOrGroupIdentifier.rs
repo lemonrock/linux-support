@@ -5,7 +5,7 @@
 /// An User Identifier or a Group Identifier.
 ///
 /// Linux uid and gid values can never be negative (unlike, say HP-UX).
-pub trait UserOrGroupIdentifier: Sized + Copy + Into<u32> + Default
+pub trait UserOrGroupIdentifier: Sized + Copy + Into<u32> + Default + PartialEq + Eq + PartialOrd + Ord + Hash
 {
 	/// Zero.
 	const Zero: Self;
@@ -24,4 +24,11 @@ pub trait UserOrGroupIdentifier: Sized + Copy + Into<u32> + Default
 
 	/// Current real, effective and saved-set values.
 	fn current_real_effective_and_saved_set() -> (Self, Self, Self);
+
+	/// Is root user (or group).
+	#[inline(always)]
+	fn is_root(self) -> bool
+	{
+		self == Self::Root
+	}
 }

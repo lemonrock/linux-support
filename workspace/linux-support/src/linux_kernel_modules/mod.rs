@@ -33,6 +33,7 @@ use std::process::Stdio;
 use std::str::from_utf8_unchecked;
 use crate::pci_express::PciDeviceAddress;
 use crate::move_to_front_of_vec;
+use crate::file_descriptors::path::PathFileDescriptor;
 
 
 include!("DriverName.rs");
