@@ -101,6 +101,49 @@ impl ProcessIdentifierChoice
 		ProcessGroupIdentifier::session_identifier(self)
 	}
 
+	/// Gets the thread identifier (tid) for the first thread created in this process.
+	///
+	/// This thread may no longer exist.
+	#[inline(always)]
+	pub fn thread_identifer(self) -> ThreadIdentifier
+	{
+		use self::ProcessIdentifierChoice::*;
+
+		let process_identifier = match self
+		{
+			Current => ProcessIdentifier::default(),
+			Other(process_identifier) => process_identifier,
+		};
+		ThreadIdentifier::from(process_identifier)
+	}
+
+	/// Process round robin scheduler interval.
+	///
+	/// This process may not exist.
+	#[inline(always)]
+	pub fn round_robin_scheduler_interval(self) -> Option<RoundRobinInterval>
+	{
+		RoundRobinInterval::for_process(self)
+	}
+
+	/// Process name.
+	///
+	/// This process may not exist.
+	#[inline(always)]
+	pub fn process_name(self, proc_path: &ProcPath) -> io::Result<ProcessName>
+	{
+		ProcessName::get_process_name(self, proc_path)
+	}
+
+	/// Set process name.
+	///
+	/// This process may not exist.
+	#[inline(always)]
+	pub fn set_process_name(self, process_name: ProcessName, proc_path: &ProcPath) -> io::Result<()>
+	{
+		process_name.set_process_name(self, proc_path)
+	}
+
 	#[inline(always)]
 	pub(crate) fn to_file_name(self) -> Cow<'static, str>
 	{

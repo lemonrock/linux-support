@@ -7,6 +7,7 @@
 /// One-based.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[derive(EnumIter)]
 #[repr(u8)]
 pub enum Signal

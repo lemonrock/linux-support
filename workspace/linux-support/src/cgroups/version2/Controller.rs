@@ -7,6 +7,7 @@
 // ***TODO: If changing the number of variants, remember to change `from_str` below***.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum Controller
 {
 	/// Equivalent to cgroups version 1 controller `blkio`.

@@ -8,6 +8,7 @@
 #[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(i32)]
 pub enum Nice
 {
@@ -165,11 +166,11 @@ impl ParseNumber for Nice
 		use self::ParseNumberError::*;
 
 		let value = i32::parse_number(bytes, radix, parse_byte)?;
-		if unlikely!(value < 20)
+		if unlikely!(value < Self::InclusiveMinimum)
 		{
 			Err(TooSmall)
 		}
-		else if unlikely!(value > 19)
+		else if unlikely!(value > Self::InclusiveMaximum)
 		{
 			Err(TooLarge)
 		}
@@ -182,32 +183,22 @@ impl ParseNumber for Nice
 
 impl Nice
 {
+	pub(super) const InclusiveMinimum: i32 = -20;
+
+	pub(super) const InclusiveMaximum: i32 = 19;
+
 	/// Set the autogroup for the current process.
 	#[inline(always)]
 	pub fn set_autogroup_for_current_process(self, proc_path: &ProcPath) -> Result<(), io::Error>
 	{
-		proc_path.process_file_path(ProcessIdentifierChoice::Current, "autogroup").write_value(self as i32)
+		self.set_autogroup_for_process(ProcessIdentifierChoice::Current, proc_path)
 	}
 
-	/// Set the autogroup for the current process.
+	/// Set the autogroup for a process.
 	#[inline(always)]
-	pub fn set_autogroup_for_current_process_if_desired(only_set_if_is_some: Option<Self>, proc_path: &ProcPath) -> Result<(), io::Error>
+	pub fn set_autogroup_for_process(self, process_identifier: ProcessIdentifierChoice, proc_path: &ProcPath) -> Result<(), io::Error>
 	{
-		if let Some(nice) = only_set_if_is_some
-		{
-			if ProcessNiceness::is_autogroup_active(proc_path)?
-			{
-				nice.set_autogroup_for_current_process(proc_path)
-			}
-			else
-			{
-				Ok(())
-			}
-		}
-		else
-		{
-			Ok(())
-		}
+		proc_path.process_file_path(process_identifier, "autogroup").write_value(self as i32)
 	}
 
 	#[allow(missing_docs)]

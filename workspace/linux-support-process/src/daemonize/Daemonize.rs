@@ -20,6 +20,7 @@
 /// * User environment variables are overwritten (`HOME`, `LOGNAME`, `USER`).
 #[derive(Debug)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Daemonize
 {
 	/// A folder path in which to put a PID file.

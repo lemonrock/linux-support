@@ -4,11 +4,17 @@
 
 use super::*;
 use self::c::*;
+use crate::paths::*;
 
 
 mod c;
 
 
+include!("default_maximum_message_size.rs");
+include!("default_maximum_number_of_messages_in_a_queue.rs");
+include!("maximum_maximum_maximum_message_size.rs");
+include!("maximum_maximum_number_of_messages_in_a_queue.rs");
+include!("maximum_number_of_queues.rs");
 include!("PosixMessagePriority.rs");
 include!("PosixMessageQueue.rs");
 include!("PosixMessageQueueConstraints.rs");
@@ -23,3 +29,8 @@ include!("ReceivePosixMessageQueueFileDescriptor.rs");
 include!("Send.rs");
 include!("SendAndReceivePosixMessageQueueFileDescriptor.rs");
 include!("SendPosixMessageQueueFileDescriptor.rs");
+include!("set_default_maximum_message_size.rs");
+include!("set_maximum_maximum_message_size.rs");
+include!("set_default_maximum_number_of_messages_in_a_queue.rs");
+include!("set_maximum_maximum_number_of_messages_in_a_queue.rs");
+include!("set_maximum_number_of_queues.rs");

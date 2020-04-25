@@ -5,6 +5,7 @@
 /// Represents a finite quantity or infinite (ie no) limit for a resource.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum ResourceLimit
 {
 	/// A finite limit; may be zero.

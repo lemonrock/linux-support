@@ -7,7 +7,7 @@
 pub enum DetailedProcessConfigurationError
 {
 	/// Process niceness adjustment failed.
-	ProcessNicenessAdjustmentFailed(ProcessNicenessAdjustmentError),
+	ProcessNiceAdjustmentFailed(ProcessNiceConfigurationError),
 
 	/// Process affinity setting failed.
 	CouldNotSetCurrentProcessAffinity(io::Error),
@@ -34,7 +34,7 @@ impl error::Error for DetailedProcessConfigurationError
 
 		match self
 		{
-			&ProcessNicenessAdjustmentFailed(ref error) => Some(error),
+			&ProcessNiceAdjustmentFailed(ref error) => Some(error),
 
 			&CouldNotSetCurrentProcessAffinity(ref error) => Some(error),
 
@@ -43,12 +43,12 @@ impl error::Error for DetailedProcessConfigurationError
 	}
 }
 
-impl From<ProcessNicenessAdjustmentError> for DetailedProcessConfigurationError
+impl From<ProcessNiceConfigurationError> for DetailedProcessConfigurationError
 {
 	#[inline(always)]
-	fn from(error: ProcessNicenessAdjustmentError) -> Self
+	fn from(error: ProcessNiceConfigurationError) -> Self
 	{
-		DetailedProcessConfigurationError::ProcessNicenessAdjustmentFailed(error)
+		DetailedProcessConfigurationError::ProcessNiceAdjustmentFailed(error)
 	}
 }
 

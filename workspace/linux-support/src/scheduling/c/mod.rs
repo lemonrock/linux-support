@@ -2,27 +2,16 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::paths::*;
-use crate::process::*;
-use crate::strings::Radix;
-use crate::strings::parse_number::*;
-use crate::user_and_groups::UserIdentifier;
-use errno::errno;
-use libc::*;
-use likely::*;
-use serde::Deserialize;
-use serde::Serialize;
-use std::error;
-use std::fmt;
-use std::fmt::Debug;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::io;
-use std::io::ErrorKind;
-use std::mem::transmute;
-use std::path::PathBuf;
+use crate::syscall::SYS;
+use libc::c_int;
+use libc::c_uint;
+use libc::pid_t;
+use std::mem::size_of;
 
 
-include!("Nice.rs");
-include!("ProcessNiceness.rs");
-include!("ProcessNicenessAdjustmentError.rs");
+include!("sched_attr.rs");
+include!("SCHED_.rs");
+include!("SCHED_ATTR_SIZE_VER0.rs");
+include!("SCHED_FLAG_.rs");
+include!("sched_getattr.rs");
+include!("sched_setattr.rs");

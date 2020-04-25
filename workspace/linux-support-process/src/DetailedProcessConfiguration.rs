@@ -5,6 +5,7 @@
 /// Common process configuration.
 #[derive(Debug)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct DetailedProcessConfiguration
 {
 	/// Paths to add to `PATH`.
@@ -14,7 +15,7 @@ pub struct DetailedProcessConfiguration
 	#[serde(default)] pub adjust_autogroup: Option<bool>,
 
 	/// Process niceness.
-	#[serde(default)] pub process_niceness: ProcessNiceness,
+	#[serde(default)] pub process_niceness: ProcessNice,
 
 	/// Soft and hard resource limits.
 	#[serde(default = "DetailedProcessConfiguration::resource_limits_default")] pub resource_limits: ResourceLimitsSet,
@@ -64,7 +65,7 @@ impl Default for DetailedProcessConfiguration
 
 			adjust_autogroup: None,
 
-			process_niceness: ProcessNiceness::default(),
+			process_niceness: ProcessNice::default(),
 
 			resource_limits: Self::resource_limits_default(),
 
@@ -122,7 +123,7 @@ impl DetailedProcessConfiguration
 	{
 		if let Some(adjustment) = self.adjust_autogroup
 		{
-			ProcessNiceness::adjust_autogroup(self.proc_path(), adjustment)?
+			ProcessNice::adjust_autogroup(self.proc_path(), adjustment)?
 		}
 		Ok(())
 	}

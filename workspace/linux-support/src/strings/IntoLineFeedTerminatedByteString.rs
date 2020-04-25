@@ -105,7 +105,7 @@ number_into_line_feed_terminated_byte_string!(i128, 39, 1);
 
 macro_rules! non_zero_number_into_line_feed_terminated_byte_string
 {
-    ($non_zero_type: ty) =>
+    ($non_zero_type: ty, $zero: expr) =>
     {
 		impl<'a> IntoLineFeedTerminatedByteString<'a> for $non_zero_type
 		{
@@ -115,17 +115,30 @@ macro_rules! non_zero_number_into_line_feed_terminated_byte_string
 				self.get().into_line_feed_terminated_byte_string()
 			}
 		}
+
+		impl<'a> IntoLineFeedTerminatedByteString<'a> for Option<$non_zero_type>
+		{
+			#[inline(always)]
+			fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
+			{
+				match self
+				{
+					None => $zero.into_line_feed_terminated_byte_string(),
+					Some(value) => value.get().into_line_feed_terminated_byte_string()
+				}
+			}
+		}
     };
 }
-non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroU8);
-non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroU16);
-non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroU32);
-non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroU64);
-non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroU128);
-non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroUsize);
-non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroI8);
-non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroI16);
-non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroI32);
-non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroI64);
-non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroI128);
-non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroIsize);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroU8, 0u8);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroU16, 0u16);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroU32, 0u32);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroU64, 0u64);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroU128, 0u128);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroUsize, 0usize);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroI8, 0i8);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroI16, 0i16);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroI32, 0i32);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroI64, 0i64);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroI128, 0i128);
+non_zero_number_into_line_feed_terminated_byte_string!(std::num::NonZeroIsize, 0isize);

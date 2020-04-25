@@ -11,7 +11,7 @@ pub struct Status
 	/// Process name.
 	///
 	/// Known as `Name`.
-	pub process_name: Box<[u8]>,
+	pub command_name: CommandName,
 
 	/// File creation mode mask (`umask`).
 	///
@@ -484,7 +484,7 @@ impl Status
 		(
 			reader, this,
 
-			b"Name" => process_name @ parse_token,
+			b"Name" => command_name @ parse_command_name,
 			b"Umask" => file_mode_creation_mask @ parse_mode,
 			b"State" => state @ parse_process_state,
 			b"Tgid" => thread_group_identifier @ parse_process_identifier,
@@ -607,15 +607,15 @@ impl Status
 	}
 
 	#[inline(always)]
-	fn parse_token(value: &[u8]) -> Result<Box<[u8]>, StatusStatisticParseError>
-	{
-		Ok(Self::to_box(value))
-	}
-
-	#[inline(always)]
 	fn parse_mode(value: &[u8]) -> Result<mode_t, StatusStatisticParseError>
 	{
 		Ok(mode_t::parse_octal_number_fixed_width(value, 4)?)
+	}
+
+	#[inline(always)]
+	fn parse_command_name(value: &[u8]) -> Result<CommandName, StatusStatisticParseError>
+	{
+		Ok(CommandName::from_bytes(value)?)
 	}
 
 	#[inline(always)]

@@ -95,22 +95,4 @@ pub trait Leasing: AsRawFd + Seek + FileExt
 			result @ _ => panic!("Unexpected result {} from fcntl()", result)
 		}
 	}
-
-	/// Gets the current grace time in seconds from `/proc/sys/fs/lease-break-time`.
-	///
-	/// Default is 45 seconds.
-	#[inline(always)]
-	fn get_number_of_seconds_a_lease_holder_has_to_release_a_lease(proc_path: &ProcPath) -> usize
-	{
-		proc_path.sys_fs_file_path("lease-break-time").read_value().unwrap()
-	}
-
-	/// Sets the current grace time in seconds in `/proc/sys/fs/lease-break-time`.
-	///
-	/// Default is 45 seconds.
-	#[inline(always)]
-	fn set_number_of_seconds_a_lease_holder_has_to_release_a_lease(proc_path: &ProcPath, number_of_seconds: usize)
-	{
-		proc_path.sys_fs_file_path("lease-break-time").write_value(number_of_seconds).unwrap()
-	}
 }

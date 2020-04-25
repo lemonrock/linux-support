@@ -5,6 +5,7 @@
 /// Comparison.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Comparison
 {
 	/// Zero based argument number, typically between 0 to 5.

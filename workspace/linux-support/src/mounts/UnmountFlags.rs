@@ -7,6 +7,7 @@ bitflags!
 	/// Unmount flags.
 	#[allow(missing_docs)]
 	#[derive(Deserialize, Serialize)]
+	#[serde(deny_unknown_fields)]
 	pub struct UnmountFlags: i32
 	{
 		/// Force.

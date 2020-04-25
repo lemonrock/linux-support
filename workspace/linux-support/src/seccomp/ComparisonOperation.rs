@@ -8,6 +8,7 @@
 #[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum ComparisonOperation
 {
 	/// Matches when the system call argument when masked by `mask` is equal to `value`.

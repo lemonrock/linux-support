@@ -67,6 +67,10 @@ pub mod capabilities_and_privileges;
 pub mod cgroups;
 
 
+/// Configuration.
+pub mod configuration;
+
+
 /// CPU.
 ///
 /// * Cpu features wrapper.
@@ -152,7 +156,7 @@ pub mod mounts;
 pub mod namespaces;
 
 
-/// Niceness.
+/// Nice.
 pub mod scheduling;
 
 
@@ -196,6 +200,10 @@ pub mod syscall;
 
 /// Support for terminals.
 pub mod terminal;
+
+
+/// Support for threads.
+pub mod thread;
 
 
 /// User and groups.

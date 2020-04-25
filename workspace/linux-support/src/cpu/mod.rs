@@ -28,9 +28,12 @@ use std::fmt::Formatter;
 use std::mem::size_of;
 #[allow(deprecated)] use std::mem::uninitialized;
 use std::path::PathBuf;
+use crate::configuration::FailedChecks;
+use std::collections::HashSet;
 
 
 include!("BitSetHyperThread.rs");
+include!("CpuFeatureChecksToSuppress.rs");
 include!("CpuFeatures.rs");
 include!("HyperThread.rs");
 include!("HyperThreadingStatus.rs");

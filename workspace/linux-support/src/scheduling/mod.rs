@@ -2,16 +2,49 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use self::c::*;
+use crate::paths::ProcPath;
+use crate::paths::PathExt;
+use crate::process::{ProcessIdentifierChoice, ProcessGroupIdentifierChoice};
 use crate::strings::Radix;
 use crate::strings::parse_number::*;
+use crate::thread::ThreadIdentifierChoice;
+use bitflags::bitflags;
+use errno::errno;
+use libc::E2BIG;
+use libc::EBUSY;
+use libc::EFAULT;
+use libc::EINVAL;
+use libc::ENOSYS;
+use libc::EPERM;
+use libc::ESRCH;
+use libc::setpriority;
+use libc::sched_rr_get_interval;
 use likely::*;
-use std::fmt::Debug;
-use std::num::NonZeroU8;
+use serde::Deserialize;
+use serde::Serialize;
 use std::convert::TryFrom;
+use std::fmt::{Debug, Display, Formatter};
+use std::{io, fmt};
+#[allow(deprecated)] use std::mem::uninitialized;
+use std::mem::transmute;
+use std::num::NonZeroU8;
+use std::num::NonZeroU32;
+use std::num::NonZeroU64;
+use std::path::PathBuf;
+use std::time::Duration;
+use std::io::ErrorKind;
+use crate::user_and_groups::UserIdentifier;
 
 
-/// Niceness.
-pub mod niceness;
+mod c;
 
 
+include!("Nice.rs");
+include!("PerThreadSchedulerPolicyAndFlags.rs");
 include!("RealTimePriority.rs");
+include!("ReservedCpuTimeForNonRealTimeSchedulerPolicies.rs");
+include!("RoundRobinInterval.rs");
+include!("RoundRobinQuantumMilliseconds.rs");
+include!("SchedulerPolicy.rs");
+include!("SchedulerPolicyFlags.rs");

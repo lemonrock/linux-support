@@ -25,11 +25,16 @@ use std::ops::RangeInclusive;
 pub mod c;
 
 
+/// Leasing.
+pub mod leasing;
+
+
+/// Locking.
+pub mod locking;
+
+
 include!("Advice.rs");
 include!("Advise.rs");
-include!("AdvisoryFileRecordLock.rs");
-include!("AdvisoryWholeFileLock.rs");
-include!("AdvisoryWholeFileLocking.rs");
 include!("Allocate.rs");
 include!("AllocationMode.rs");
 include!("CopyFileRange.rs");
@@ -39,14 +44,10 @@ include!("DeduplicationOutcome.rs");
 include!("ExtendedSeek.rs");
 include!("ExtendedSeekFrom.rs");
 include!("File.Allocate.rs");
-include!("File.AdvisoryWholeFileLocking.rs");
 include!("File.CopyFileRange.rs");
 include!("File.CopyOnWrite.rs");
 include!("File.FileDescriptor.rs");
-include!("File.Leasing.rs");
 include!("File.OnDiskFileDescriptor.rs");
-include!("File.OpenFileDescriptionAdvisoryFileRecordLocking.rs");
-include!("File.PerProcessAdvisoryFileRecordLocking.rs");
 include!("File.SpliceRecipient.rs");
 include!("File.SpliceSender.rs");
 include!("File.SendFile.rs");
@@ -54,10 +55,6 @@ include!("File.Sparseness.rs");
 include!("File.Synchronize.rs");
 include!("File.VectoredRead.rs");
 include!("File.VectoredWrite.rs");
-include!("Lease.rs");
-include!("Leasing.rs");
-include!("OpenFileDescriptionAdvisoryFileRecordLocking.rs");
-include!("PerProcessAdvisoryFileRecordLocking.rs");
 include!("ReadAhead.rs");
 include!("SendFile.rs");
 include!("Sparseness.rs");

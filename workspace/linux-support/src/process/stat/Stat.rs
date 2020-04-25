@@ -9,8 +9,8 @@ pub struct Stat
 	/// Process identifier.
 	pub process_identifier: ProcessIdentifier,
 
-	/// Executable filename without parentheses.
-	pub executable_filename: Box<[u8]>,
+	/// Command name (without parentheses).
+	pub command_name: CommandName,
 
 	/// State.
 	pub state: ProcessState,
@@ -79,7 +79,7 @@ pub struct Stat
 	#[allow(missing_docs)]
 	pub priority: i8,
 
-	/// Process Niceness.
+	/// Process Nice.
 	pub nice: Nice,
 
 	/// Number of threads.
@@ -244,7 +244,7 @@ impl Stat
 
 		use self::StatParseError::*;
 
-		// NOTE: Won't work for last field or executable name (`comm`) field.
+		// NOTE: Won't work for last field or command name (`comm`) field.
 		#[inline(always)]
 		fn value_bytes<'a>(start_index: &mut usize, bytes: &'a [u8], index_u8: u8, name: &'static str) -> Result<&'a [u8], StatParseError>
 		{
@@ -278,7 +278,7 @@ impl Stat
 		}
 
 		#[inline(always)]
-		fn executable_name_bytes<'a>(start_index: &mut usize, bytes: &'a [u8]) -> Result<&'a [u8], StatParseError>
+		fn command_name_bytes<'a>(start_index: &mut usize, bytes: &'a [u8]) -> Result<&'a [u8], StatParseError>
 		{
 			let name_starts_at_index = *start_index;
 			let mut index = name_starts_at_index + AtLeastOneByteOfValue;
@@ -336,7 +336,7 @@ impl Stat
 		let this = Self
 		{
 			process_identifier: from_bytes(&mut start_index, bytes, 1, "pid")?,
-			executable_filename:
+			command_name:
 			{
 				if unlikely!(bytes.len() < (LengthOfOpenParenthesis + AtLeastOneByteOfValue + LengthOfCloseParenthesis + LengthOfSpace))
 				{
@@ -353,8 +353,7 @@ impl Stat
 					return Err(ExecutableNameIsEmpty)
 				}
 
-				let name_bytes = executable_name_bytes(&mut start_index, bytes)?;
-				name_bytes.to_vec().into_boxed_slice()
+				CommandName::from_bytes(command_name_bytes(&mut start_index, bytes)?)?
 			},
 			state: from_bytes(&mut start_index, bytes, 3, "state")?,
 			parent_process_identifier: from_bytes(&mut start_index, bytes, 4, "ppid")?,

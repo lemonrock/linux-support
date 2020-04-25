@@ -20,7 +20,7 @@ impl CpuFeatures
 {
 	/// Validate minimal CPU features.
 	#[inline(always)]
-	pub fn validate_minimal_cpu_features(warnings_to_suppress: &WarningsToSuppress, uses_enhanced_intel_speed_step_technology: bool) -> Result<Self, String>
+	pub fn validate_minimal_cpu_features(cpu_feature_checks_to_suppress: &CpuFeatureChecksToSuppress) -> Result<Self, String>
 	{
 		macro_rules! check
 		{
@@ -43,7 +43,7 @@ impl CpuFeatures
 
 			// As of 2019 it is very reasonable to expect the lowest featured CPU to be an Intel Ivy Bridge CPU (as used on the current range of MacPro trash cans).
 			#[inline(always)]
-			fn instructions_modes_and_features_it_is_safe_to_assume_for_all_x86_64_cpu_architectures_as_of_q2_2018(feature_information: &FeatureInfo, extended_function_information: &ExtendedFunctionInfo, extended_features: &ExtendedFeatures, uses_enhanced_intel_speed_step_technology: bool) -> Result<(), String>
+			fn instructions_modes_and_features_it_is_safe_to_assume_for_all_x86_64_cpu_architectures_as_of_q2_2018(feature_information: &FeatureInfo, extended_function_information: &ExtendedFunctionInfo, extended_features: &ExtendedFeatures) -> Result<(), String>
 			{
 				check!(extended_function_information.has_64bit_mode(), "CPU architecture does not support 64-bit");
 				check!(feature_information.has_cmpxchg8b(), "CPU architecture does not support 64-bit CAS");
@@ -91,12 +91,6 @@ impl CpuFeatures
 				check!(extended_function_information.has_rdtscp(), "CPU architecture does not support (or does not have enabled) Read Time Stamp Counter and Processor ID (RDTSCP)");
 				check!(extended_function_information.has_invariant_tsc(), "CPU architecture does not support (or does not have enabled) invariant Time Stamp Counter (TSC)");
 				//check!(extended_feature_information.has_tsc_adjust_msr(), "CPU architecture does not support Time Stamp Counter (TSC) adjust Model Specific Registers (MSR)");
-
-				// Power management.
-				if uses_enhanced_intel_speed_step_technology
-				{
-					check!(feature_information.has_eist(), "Enhanced Intel SpeedStep® Technology must be enabled in the platform BIOS if the power management feature of DPDK is to be used")
-				}
 
 				Ok(())
 			}
@@ -182,15 +176,17 @@ impl CpuFeatures
 				Ok(())
 			}
 
-			instructions_modes_and_features_it_is_safe_to_assume_for_all_x86_64_cpu_architectures_as_of_q2_2018(&feature_information, &extended_function_information, &extended_feature_information, uses_enhanced_intel_speed_step_technology)?;
+			instructions_modes_and_features_it_is_safe_to_assume_for_all_x86_64_cpu_architectures_as_of_q2_2018(&feature_information, &extended_function_information, &extended_feature_information)?;
 
 			compiled_target_features_are_available_at_runtime(&feature_information, &extended_function_information, &extended_feature_information)?;
 
-			warnings_to_suppress.performance_warnings_it_is_safe_to_assume_for_all_x86_64_cpu_architectures_as_of_q2_2018(&feature_information, &extended_function_information, &extended_feature_information);
-
-			warnings_to_suppress.performance_warnings_for_new_features(&feature_information, &extended_function_information, &extended_feature_information);
-
-			warnings_to_suppress.security_warnings_for_new_features(&feature_information, &extended_function_information, &extended_feature_information);
+			{
+				let mut failed_checks = FailedChecks::default();
+				cpu_feature_checks_to_suppress.performance_warnings_it_is_safe_to_assume_for_all_x86_64_cpu_architectures_as_of_q2_2018(&mut failed_checks, &feature_information, &extended_function_information, &extended_feature_information);
+				cpu_feature_checks_to_suppress.performance_warnings_for_new_features(&mut failed_checks, &feature_information, &extended_feature_information);
+				cpu_feature_checks_to_suppress.security_warnings_for_new_features(&mut failed_checks, &extended_feature_information);
+				failed_checks.to_message("CpuFeatures")?;
+			}
 
 			Ok
 			(

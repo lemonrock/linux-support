@@ -7,6 +7,7 @@
 /// Frankly, there are files in `/proc` that really belong in `/sys`.
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(transparent)]
 pub struct ProcPath(PathBuf);
 
@@ -28,6 +29,13 @@ impl ProcPath
 		self.file_path(&process_identifier.to_file_name()).append(relative_path)
 	}
 
+	/// Get a folder path for the current process or another process' thread.
+	#[inline(always)]
+	pub fn process_thread_file_path(&self, process_identifier: ProcessIdentifierChoice, thread_identifier: ThreadIdentifier, relative_path: &str) -> PathBuf
+	{
+		self.process_file_path(process_identifier, "task").append(&thread_identifier.to_file_name()).append(relative_path)
+	}
+
 	/// Get a file path within the ProcPath, `/proc/sys/fs/<file_name>`.
 	#[inline(always)]
 	pub fn sys_fs_file_path(&self, file_name: &str) -> PathBuf
@@ -40,6 +48,13 @@ impl ProcPath
 	pub fn sys_user_file_path(&self, file_name: &str) -> PathBuf
 	{
 		self.sys_file_path("user").append(file_name)
+	}
+
+	/// Get a file path within the ProcPath, `/proc/sys/mqueue/<file_name>`.
+	#[inline(always)]
+	pub fn sys_mqueue_file_path(&self, file_name: &str) -> PathBuf
+	{
+		self.sys_file_path("mqueue").append(file_name)
 	}
 
 	/// Get a file path within the ProcPath, `/proc/sys/kernel/<file_name>`.

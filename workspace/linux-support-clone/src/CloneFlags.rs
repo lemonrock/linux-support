@@ -7,6 +7,7 @@ bitflags!
 	/// Clone flags.
 	#[allow(missing_docs)]
 	#[derive(Deserialize, Serialize)]
+	#[serde(deny_unknown_fields)]
 	pub struct CloneFlags: i32
 	{
 		/// Clear (zero) the child thread ID at the location `ctid` in child memory when the child exits, and do a wakeup on the futex at that address.

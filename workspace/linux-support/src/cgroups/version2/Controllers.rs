@@ -5,6 +5,7 @@
 /// Controllers.
 #[derive(Debug)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Controllers(HashSet<Controller>);
 
 impl Default for Controllers

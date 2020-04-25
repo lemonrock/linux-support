@@ -5,6 +5,7 @@
 /// Rule.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Rule
 {
 	/// Action to take.

@@ -5,6 +5,7 @@
 /// Seccomp configuration.
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct SeccompConfiguration
 {
 	/// Default action.

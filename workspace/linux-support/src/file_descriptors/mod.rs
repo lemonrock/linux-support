@@ -193,6 +193,7 @@ use libc::fcntl;
 use libc::FD_CLOEXEC;
 use libc::fdatasync;
 use libc::fgetxattr;
+use libc::FIONREAD;
 use libc::flistxattr;
 use libc::fremovexattr;
 use libc::fsetxattr;
@@ -427,10 +428,6 @@ pub mod posix_message_queues;
 
 
 /// Anonymous and named, connected unidirectional pipes_and_fifos (act like TCP connected sockets).
-///
-/// Since Linux 2.6.35, the default pipe capacity is 16 pages (which are 4096 bytes on x86_64), but the capacity can be queried and set using the `fcntl()` `F_GETPIPE_SZ` and `F_SETPIPE_SZ` operations.
-///
-/// The unread bytes in a pipe can be obtained using the `fcntl()` operation `FIONREAD`.
 ///
 /// The maximum capacity that can be set for a non-privileged process (one without the `CAP_SYS_RESOURCE` capability) is specified in the file `/proc/sys/fs/pipe-max-size`; it defaults to 1Mb.
 ///

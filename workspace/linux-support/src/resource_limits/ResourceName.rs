@@ -6,6 +6,7 @@
 #[allow(missing_docs)]
 #[repr(i32)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ResourceName
 {

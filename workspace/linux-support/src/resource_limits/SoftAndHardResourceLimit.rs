@@ -5,6 +5,7 @@
 /// Represents a combined soft and hard resource limit value.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct SoftAndHardResourceLimit
 {
 	soft: ResourceLimit,

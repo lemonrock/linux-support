@@ -8,6 +8,7 @@
 ///
 /// * Ashmem
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub enum TransparentHugePageRegularMemoryChoice
 {

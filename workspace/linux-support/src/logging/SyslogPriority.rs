@@ -5,6 +5,7 @@
 /// Defaults to `debug` for debug builds and `warning` for production builds.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[allow(missing_docs)]
 #[repr(i32)]
 pub enum SyslogPriority

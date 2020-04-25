@@ -10,13 +10,13 @@ pub trait PipeFileDescriptor: FileDescriptor + OnDiskFileDescriptor
 
 	/// Changes the pipe capacity.
 	///
-	/// Proceses with the capability `CAP_SYS_RESOURCE` may not set the capacity to greater than `Self::maximum_capacity()`.
+	/// Proceses with the capability `CAP_SYS_RESOURCE` may not set the capacity to greater than `maximum_pipe_capacity()`.
 	///
 	/// The value used may be rounded up by the Linux kernel (currently, the allocation is the next higher power-of-two page-size multiple of the requested size).
 	///
 	/// Returns an error if:-
 	///
-	/// * the caller tries to use a value greater than `Self::maximum_capacity()` without having the capability `CAP_SYS_RESOURCE`;
+	/// * the caller tries to use a value greater than `maximum_pipe_capacity()` without having the capability `CAP_SYS_RESOURCE`;
 	/// * the caller tries to set a capacity lower than the number of bytes currently in the pipe.
 	fn change_capacity(&self, new_capacity: NonZeroU32) -> Result<NonZeroU32, ChangeCapacityError>
 	{
@@ -25,7 +25,7 @@ pub trait PipeFileDescriptor: FileDescriptor + OnDiskFileDescriptor
 		{
 			Ok(unsafe { NonZeroU32::new_unchecked(result as u32) })
 		}
-		else if likely!(result == 1)
+		else if likely!(result == -1)
 		{
 			use self::ChangeCapacityError::*;
 			match errno().0
@@ -50,7 +50,7 @@ pub trait PipeFileDescriptor: FileDescriptor + OnDiskFileDescriptor
 		{
 			unsafe { NonZeroU32::new_unchecked(result as u32) }
 		}
-		else if likely!(result == 1)
+		else if likely!(result == -1)
 		{
 			panic!("Unexpected error {}", errno());
 		}
@@ -60,23 +60,24 @@ pub trait PipeFileDescriptor: FileDescriptor + OnDiskFileDescriptor
 		}
 	}
 
-	/// Value of `/proc/sys/fs/pipe-max-size`.
-	///
-	/// The default is 1Mb.
+	/// Will never exceed `i32::MAX as usize`.
+	#[allow(deprecated)]
 	#[inline(always)]
-	fn maximum_capacity(proc_path: &ProcPath) -> usize
+	fn get_number_of_unread_bytes(&self) -> usize
 	{
-		proc_path.sys_fs_file_path("pipe-max-size").read_value().unwrap()
-	}
-
-	/// Value of `/proc/sys/fs/pipe-max-size`.
-	///
-	/// The default is 1Mb.
-	#[inline(always)]
-	fn set_maximum_capacity(proc_path: &ProcPath, maximum_capacity: u32)
-	{
-		assert_effective_user_id_is_root("Change /proc/sys/fs/pipe-max-size");
-
-		proc_path.sys_fs_file_path("pipe-max-size").write_value(maximum_capacity).unwrap()
+		let mut count = unsafe { uninitialized() };
+		let result = unsafe { ioctl(self.as_raw_fd(), FIONREAD, &mut count) };
+		if likely!(result == 0)
+		{
+			count as usize
+		}
+		else if likely!(result == -1)
+		{
+			panic!("Unexpected error {}", errno());
+		}
+		else
+		{
+			unreachable!("Unexpected result {} from ioctl(_, FIONREAD)", result)
+		}
 	}
 }

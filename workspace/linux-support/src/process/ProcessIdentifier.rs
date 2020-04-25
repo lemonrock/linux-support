@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A process identifier.
+/// A process identifier (`pid`).
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct ProcessIdentifier(NonZeroI32);
@@ -147,6 +147,42 @@ impl ProcessIdentifier
 	pub fn session_identifer(self) -> Result<ProcessGroupIdentifier, ()>
 	{
 		ProcessGroupIdentifier::session_identifier(ProcessIdentifierChoice::Other(self))
+	}
+
+	/// Gets the thread identifier (tid) for the first thread created in this process.
+	///
+	/// This thread may no longer exist.
+	#[inline(always)]
+	pub fn thread_identifer(self) -> ThreadIdentifier
+	{
+		ThreadIdentifier::from(self)
+	}
+
+	/// Process round robin scheduler interval.
+	///
+	/// This process may not exist.
+	#[inline(always)]
+	pub fn round_robin_scheduler_interval(self) -> Option<RoundRobinInterval>
+	{
+		RoundRobinInterval::for_process(ProcessIdentifierChoice::Other(self))
+	}
+
+	/// Process name.
+	///
+	/// This process may not exist.
+	#[inline(always)]
+	pub fn process_name(self, proc_path: &ProcPath) -> io::Result<ProcessName>
+	{
+		ProcessName::get_process_name(ProcessIdentifierChoice::Other(self), proc_path)
+	}
+
+	/// Set process name.
+	///
+	/// This process may not exist.
+	#[inline(always)]
+	pub fn set_process_name(self, process_name: ProcessName, proc_path: &ProcPath) -> io::Result<()>
+	{
+		process_name.set_process_name(ProcessIdentifierChoice::Other(self), proc_path)
 	}
 
 	/// Use this wherever a specific process identifier is read from repeatedly.

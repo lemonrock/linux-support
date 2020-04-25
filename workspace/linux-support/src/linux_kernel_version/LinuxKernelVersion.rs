@@ -9,6 +9,8 @@ pub struct LinuxKernelVersion
 	/// Contents of `/proc/sys/kernel/osrelease`.
 	///
 	/// Equivalent to `uname -r`.
+	///
+	/// Contains something like `5.4.27-0-virt`.
 	pub release: Box<[u8]>,
 
 	/// Contents of `/proc/sys/kernel/version`.
@@ -25,6 +27,26 @@ pub struct LinuxKernelVersion
 
 impl LinuxKernelVersion
 {
+	/// Version.
+	#[inline(always)]
+	pub fn major_minor_revision(&self) -> LinuxKernelVersionNumber
+	{
+		/// eg `5.4.27`.
+		let left = self.release.splitn(2, '-').next().unwrap();
+
+		let mut parts = left.splitn(3);
+		let major = u16::parse_decimal_number(parts.next().unwrap()).unwrap();
+		let minor = u16::parse_decimal_number(parts.next().unwrap()).unwrap();
+		let revision = u16::parse_decimal_number(parts.next().unwrap()).unwrap();
+
+		LinuxKernelVersionNumber
+		{
+			major,
+			minor,
+			revision,
+		}
+	}
+
 	/// Parse.
 	///
 	/// Panics if not Linux.

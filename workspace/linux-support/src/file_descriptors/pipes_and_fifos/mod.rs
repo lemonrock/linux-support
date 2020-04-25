@@ -6,16 +6,24 @@ use super::*;
 use self::c::*;
 use crate::vectors::VectoredRead;
 use crate::vectors::VectoredWrite;
-use crate::paths::{ProcPath, PathExt};
+use crate::paths::ProcPath;
+use crate::paths::PathExt;
 use crate::user_and_groups::assert_effective_user_id_is_root;
+use crate::memory::{PageSize, NonZeroNumberOfPages};
 
 
 pub(crate) mod c;
 
 
 include!("ChangeCapacityError.rs");
+include!("maximum_pipe_capacity.rs");
+include!("pipe_user_pages_hard_limit.rs");
+include!("pipe_user_pages_soft_limit.rs");
 include!("PipeFileDescriptor.rs");
 include!("ReceivePipeFileDescriptor.rs");
 include!("SendPipeFileDescriptor.rs");
+include!("set_maximum_pipe_capacity.rs");
+include!("set_pipe_user_pages_hard_limit.rs");
+include!("set_pipe_user_pages_soft_limit.rs");
 include!("SpliceRecipient.rs");
 include!("SpliceSender.rs");

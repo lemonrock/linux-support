@@ -249,6 +249,23 @@ macro_rules! parse_non_zero_number
 				Ok(unsafe { <$non_zero_type>::new_unchecked(value) })
 			}
 		}
+
+		impl ParseNumber for Option<$non_zero_type>
+		{
+			#[inline(always)]
+			fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
+			{
+				let value = $type::parse_number(bytes, radix, parse_byte)?;
+				if unlikely!(value == 0)
+				{
+					None
+				}
+				else
+				{
+					Some(unsafe { <$non_zero_type>::new_unchecked(value) })
+				}
+			}
+		}
 	}
 }
 parse_non_zero_number!(std::num::NonZeroU8, u8);

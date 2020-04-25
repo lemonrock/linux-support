@@ -4,7 +4,9 @@
 
 use crate::paths::PathExt;
 use crate::paths::ProcPath;
+use crate::strings::parse_number::*;
 use std::io;
 
 
 include!("LinuxKernelVersion.rs");
+include!("LinuxKernelVersionNumber.rs");

@@ -9,6 +9,9 @@ pub enum StatParseError
 	/// Could not open file.
 	CouldNotOpenFile(io::Error),
 
+	/// Could not parse command name.
+	CouldNotParseCommandName(CommandNameFromBytesError),
+
 	/// Not enough fields.
 	NotEnoughFields
 	{
@@ -90,6 +93,8 @@ impl error::Error for StatParseError
 		{
 			&CouldNotOpenFile(ref cause) => Some(cause),
 
+			&CouldNotParseCommandName(ref cause) => Some(cause),
+
 			&NotEnoughFields { .. } => None,
 
 			&ParseNumber { ref cause, .. } => Some(cause),
@@ -115,5 +120,14 @@ impl From<io::Error> for StatParseError
 	fn from(error: io::Error) -> Self
 	{
 		StatParseError::CouldNotOpenFile(error)
+	}
+}
+
+impl From<CommandNameFromBytesError> for StatParseError
+{
+	#[inline(always)]
+	fn from(error: CommandNameFromBytesError) -> Self
+	{
+		StatParseError::CouldNotParseCommandName(error)
 	}
 }

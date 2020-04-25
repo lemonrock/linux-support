@@ -4,22 +4,22 @@
 
 /// Process niceness error.
 #[derive(Debug)]
-pub enum ProcessNicenessAdjustmentError
+pub enum ProcessNiceConfigurationError
 {
 	/// Could not set current real effective user priority niceness (permission was denied in some way).
-	CouldNotSetCurrentUserPriorityNiceness,
+	CouldNotSetCurrentUserPriorityNice,
 
 	/// Could not set current process group user priority niceness (permission was denied in some way).
-	CouldNotSetCurrentProcessGroupPriorityNiceness,
+	CouldNotSetCurrentProcessGroupPriorityNice,
 
 	/// Could not set current process user priority niceness (permission was denied in some way).
-	CouldNotSetCurrentProcessPriorityNiceness,
+	CouldNotSetCurrentProcessPriorityNice,
 
 	/// Could not set current process user autogroup priority niceness.
-	CouldNotSetCurrentProcessAutogroupPriorityNiceness(io::Error),
+	CouldNotSetCurrentProcessAutogroupPriorityNice(io::Error),
 }
 
-impl Display for ProcessNicenessAdjustmentError
+impl Display for ProcessNiceConfigurationError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -28,31 +28,31 @@ impl Display for ProcessNicenessAdjustmentError
 	}
 }
 
-impl error::Error for ProcessNicenessAdjustmentError
+impl error::Error for ProcessNiceConfigurationError
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>
 	{
-		use self::ProcessNicenessAdjustmentError::*;
+		use self::ProcessNiceConfigurationError::*;
 
 		match self
 		{
-			&CouldNotSetCurrentUserPriorityNiceness => None,
+			&CouldNotSetCurrentUserPriorityNice => None,
 
-			&CouldNotSetCurrentProcessGroupPriorityNiceness => None,
+			&CouldNotSetCurrentProcessGroupPriorityNice => None,
 
-			&CouldNotSetCurrentProcessPriorityNiceness => None,
+			&CouldNotSetCurrentProcessPriorityNice => None,
 
-			&CouldNotSetCurrentProcessAutogroupPriorityNiceness(ref error) => Some(error),
+			&CouldNotSetCurrentProcessAutogroupPriorityNice(ref error) => Some(error),
 		}
 	}
 }
 
-impl From<io::Error> for ProcessNicenessAdjustmentError
+impl From<io::Error> for ProcessNiceConfigurationError
 {
 	#[inline(always)]
 	fn from(error: io::Error) -> Self
 	{
-		ProcessNicenessAdjustmentError::CouldNotSetCurrentProcessAutogroupPriorityNiceness(error)
+		ProcessNiceConfigurationError::CouldNotSetCurrentProcessAutogroupPriorityNice(error)
 	}
 }
