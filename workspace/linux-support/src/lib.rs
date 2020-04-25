@@ -101,6 +101,10 @@ pub mod extended_attributes;
 pub mod file_descriptors;
 
 
+/// File handles.
+pub mod file_handles;
+
+
 /// File systems.
 pub mod file_systems;
 
@@ -113,6 +117,14 @@ pub mod inode;
 
 /// Linux kernel command line.
 pub mod linux_kernel_command_line;
+
+
+/// Also known as `KAIO`.
+///
+/// Support for functions such as `io_submit()` in `linuxaio.h`.
+///
+/// This is *NOT* POSIX AIO.
+pub mod linux_kernel_asynchronous_io;
 
 
 /// Linux kernel modules.

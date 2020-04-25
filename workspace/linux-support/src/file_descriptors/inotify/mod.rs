@@ -4,6 +4,7 @@
 
 use super::*;
 use self::c::*;
+use crate::paths::*;
 
 
 mod c;
@@ -14,3 +15,9 @@ include!("InotifyAddWatchFlags.rs");
 include!("InotifyEventFlags.rs");
 include!("InotifyFileDescriptor.rs");
 include!("InotifyWatchDescriptor.rs");
+include!("maximum_number_of_events_that_can_be_queued.rs");
+include!("maximum_number_of_inotify_instances_per_user.rs");
+include!("maximum_number_of_watches_per_user.rs");
+include!("set_maximum_number_of_events_that_can_be_queued.rs");
+include!("set_maximum_number_of_inotify_instances_per_user.rs");
+include!("set_maximum_number_of_watches_per_user.rs");

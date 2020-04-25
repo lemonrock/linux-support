@@ -2,15 +2,13 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Does not exceed 65,536 (`HARD_MSGMAX`).
+/// Gets the current number of kernel asynchronous IO events (KAIO).
 ///
-/// Default is 10.
+/// Reads from `/proc/sys/fs/aio-nr`.
 ///
-/// Reads from `/proc/sys/fs/mqueue/msg_max`.
-///
-/// Revised in Linux 3.5.
+/// On a quiet system this is 0.
 #[inline(always)]
-pub fn maximum_maximum_number_of_messages_in_a_queue(proc_path: &ProcPath) -> NonZeroU32
+pub fn current_number_of_kernel_asynchronous_io_events_per_user(proc_path: &ProcPath) -> u32
 {
-	proc_path.sys_fs_mqueue_file_path("msg_max").read_value().unwrap()
+	proc_path.sys_fs_file_path("aio-nr").read_value().unwrap()
 }

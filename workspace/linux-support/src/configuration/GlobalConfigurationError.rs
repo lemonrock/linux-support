@@ -17,6 +17,21 @@ pub enum GlobalConfigurationError
 
 	#[allow(missing_docs)]
 	GlobalPosixMessageQueueConfiguration(GlobalPosixMessageQueueConfigurationError),
+
+	#[allow(missing_docs)]
+	GlobalSystemVMessageQueueConfiguration(GlobalSystemVMessageQueueConfigurationError),
+
+	#[allow(missing_docs)]
+	GlobalInotifyConfiguration(GlobalInotifyConfigurationError),
+
+	#[allow(missing_docs)]
+	GlobalEPollConfiguration(GlobalEPollConfigurationError),
+
+	#[allow(missing_docs)]
+	GlobalLinuxKernelAsynchronousIoConfiguration(GlobalLinuxKernelAsynchronousIoConfigurationError),
+
+	#[allow(missing_docs)]
+	GlobalFileHandleConfiguration(GlobalFileHandleConfigurationError),
 }
 
 impl Display for GlobalConfigurationError
@@ -44,6 +59,16 @@ impl error::Error for GlobalConfigurationError
 			&GlobalFileLeasingConfiguration(ref cause) => Some(error),
 
 			&GlobalPosixMessageQueueConfiguration(ref cause) => Some(error),
+
+			&GlobalSystemVMessageQueueConfiguration(ref cause) => Some(error),
+
+			&GlobalInotifyConfiguration(ref cause) => Some(error),
+
+			&GlobalEPollConfiguration(ref cause) => Some(error),
+
+			&GlobalLinuxKernelAsynchronousIoConfiguration(ref cause) => Some(error),
+
+			&GlobalFileHandleConfiguration(ref cause) => Some(error),
 		}
 	}
 }
@@ -81,5 +106,50 @@ impl From<GlobalPosixMessageQueueConfigurationError> for GlobalConfigurationErro
 	fn from(cause: GlobalPosixMessageQueueConfigurationError) -> Self
 	{
 		GlobalConfigurationError::GlobalPosixMessageQueueConfiguration(cause)
+	}
+}
+
+impl From<GlobalSystemVMessageQueueConfigurationError> for GlobalConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: GlobalSystemVMessageQueueConfigurationError) -> Self
+	{
+		GlobalConfigurationError::GlobalSystemVMessageQueueConfiguration(cause)
+	}
+}
+
+impl From<GlobalInotifyConfigurationError> for GlobalConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: GlobalInotifyConfigurationError) -> Self
+	{
+		GlobalConfigurationError::GlobalInotifyConfiguration(cause)
+	}
+}
+
+impl From<GlobalEPollConfiguration> for GlobalConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: GlobalEPollConfigurationError) -> Self
+	{
+		GlobalConfigurationError::GlobalEPollConfiguration(cause)
+	}
+}
+
+impl From<GlobalLinuxKernelAsynchronousIoConfigurationError> for GlobalConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: GlobalLinuxKernelAsynchronousIoConfigurationError) -> Self
+	{
+		GlobalConfigurationError::GlobalLinuxKernelAsynchronousIoConfiguration(cause)
+	}
+}
+
+impl From<GlobalFileHandleConfigurationError> for GlobalConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: GlobalFileHandleConfigurationError) -> Self
+	{
+		GlobalConfigurationError::GlobalFileHandleConfiguration(cause)
 	}
 }

@@ -3,6 +3,7 @@
 
 
 use self::c::*;
+use crate::paths::*;
 use crate::strings::Radix;
 use crate::strings::parse_number::*;
 use bitflags::bitflags;
@@ -28,4 +29,5 @@ include!("FileExtents.rs");
 include!("Inode.rs");
 include!("InodeFlags.rs");
 include!("InodeGenerationNumber.rs");
+include!("NumberOfInodes.rs");
 include!("RetrieveFileExtentsFlags.rs");

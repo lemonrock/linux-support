@@ -24,7 +24,7 @@ pub struct GlobalPosixMessageQueueConfiguration
 
 	/// Can not exceed 16,777,216 (`HARD_MSGSIZEMAX`).
 	///
-	/// Default is 8192.
+	/// Default is 8,192.
 	/// Minimum is 128.
 	///
 	/// Requires root.
@@ -32,7 +32,7 @@ pub struct GlobalPosixMessageQueueConfiguration
 
 	/// Can not exceed 16,777,216 (`HARD_MSGSIZEMAX`).
 	///
-	/// Default is 8192.
+	/// Default is 8,192.
 	/// Minimum is 128.
 	///
 	/// Requires root.

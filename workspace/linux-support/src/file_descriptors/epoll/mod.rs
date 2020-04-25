@@ -5,6 +5,7 @@
 use super::*;
 use super::file_descriptor_information::*;
 use self::c::*;
+use crate::paths::*;
 
 
 /// System call and libc wrapping of system call specific details.
@@ -20,3 +21,5 @@ include!("EPollModifyError.rs");
 include!("EPollModifyFlags.rs");
 include!("EPollTimeOut.rs");
 include!("EPollWaitError.rs");
+include!("maximum_number_of_watched_file_descriptors_per_user.rs");
+include!("set_maximum_number_of_watched_file_descriptors_per_user.rs");

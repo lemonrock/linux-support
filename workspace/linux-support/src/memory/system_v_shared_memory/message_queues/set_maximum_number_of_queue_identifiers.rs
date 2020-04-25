@@ -2,15 +2,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Does not exceed 65,536 (`HARD_MSGMAX`).
+/// Default is 32,000.
 ///
-/// Default is 10.
-///
-/// Reads from `/proc/sys/fs/mqueue/msg_max`.
-///
-/// Revised in Linux 3.5.
+/// Writes to `/proc/sys/kernel/msgmni`.
 #[inline(always)]
-pub fn maximum_maximum_number_of_messages_in_a_queue(proc_path: &ProcPath) -> NonZeroU32
+pub fn set_maximum_number_of_queue_identifiers(proc_path: &ProcPath, maximum_number_of_queue_identifiers: NonZeroU32) -> io::Result<()>
 {
-	proc_path.sys_fs_mqueue_file_path("msg_max").read_value().unwrap()
+	proc_path.sys_kernel_file_path("msgmni").write_value(maximum_number_of_queue_identifiers)
 }

@@ -15,5 +15,5 @@ pub fn set_maximum_maximum_number_of_messages_in_a_queue(proc_path: &ProcPath, m
 {
 	debug_assert!(value.get() <= 65536);
 
-	proc_path.sys_mqueue_file_path("msg_max").write_value(maximum_maximum_number_of_messages_in_a_queue)
+	proc_path.sys_fs_mqueue_file_path("msg_max").write_value(maximum_maximum_number_of_messages_in_a_queue)
 }

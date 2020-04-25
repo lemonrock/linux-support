@@ -19,6 +19,21 @@ pub struct GlobalConfiguration
 
 	/// Requires root.
 	pub posix_message_queue: GlobalPosixMessageQueueConfiguration,
+
+	/// Requires root.
+	pub system_v_message_queue: GlobalSystemVMessageQueueConfiguration,
+
+	/// Requires root.
+	pub inotify: GlobalInotifyConfiguration,
+
+	/// Requires root.
+	pub epoll: GlobalEPollConfiguration,
+
+	/// Requires root.
+	pub linux_kernel_asynchronous_io: GlobalLinuxKernelAsynchronousIoConfiguration,
+
+	/// Requires root.
+	pub file_handle: GlobalFileHandleConfiguration,
 }
 
 impl GlobalConfiguration
@@ -35,6 +50,16 @@ impl GlobalConfiguration
 
 		self.posix_message_queue.configure(proc_path)?;
 
+		self.system_v_message_queue.configure(proc_path)?;
+
+		self.inotify.configure(proc_path)?;
+
+		self.epoll.configure(proc_path)?;
+
+		self.linux_kernel_asynchronous_io.configure(proc_path)?;
+
+		self.file_handle.configure(proc_path)?;
+
 		Ok(())
 	}
 }
@@ -42,42 +67,34 @@ impl GlobalConfiguration
 // Global configuration:-
 /*
 
-MQs
-	Modify message queue code to allow the following to be changed:-
-		/proc/sys/fs/mqueue (since Linux 2.6.6)
-	  This directory contains files msg_max, msgsize_max, and
-	  queues_max, controlling the resources used by POSIX message
-	  queues.  See mq_overview(7) for details.
-
-
-Inotify
-	/proc/sys/fs/inotify (since Linux 2.6.13)
-	  This directory contains files max_queued_events,
-	  max_user_instances, and max_user_watches, that can be used to
-	  limit the amount of kernel memory consumed by the inotify
-	  interface.  For further details, see inotify(7).
-
 Resource Limits
 	/proc/sys/fs/nr_open
-	/proc/sys/fs/file-max
 
-EPoll
-	/proc/sys/fs/epoll/max_user_watches
 
 Security
  /proc/sys/kernel/panic
  /proc/sys/kernel/panic_on_oops
- /proc/sys/kernel/pid_max
  /proc/sys/kernel/randomize_va_space
  /proc/sys/kernel/sysrq
- /proc/sys/vm/unprivileged_userfaultfd
- /proc/sys/kernel/modules_disabled
   /proc/sys/kernel/kptr_restrict
   /proc/sys/kernel/dmesg_restrict
    /proc/sys/fs/protected_symlinks
    /proc/sys/fs/protected_hardlinks
+protected_fifos
+protected_hardlinks
+protected_regular
+protected_symlinks
+
+
+   /proc/sys/fs/suid_dumpable
+Security: Process identifiers
+ /proc/sys/kernel/pid_max
+Security: userfaultfs
+ /proc/sys/vm/unprivileged_userfaultfd
+Security: Modules
+ /proc/sys/kernel/modules_disabled
+Security: Mounts
    /proc/sys/fs/mount-max
-   /proc/sys/fs/dir-notify-enable
 
 Memory
 	/proc/sys/vm/admin_reserve_kbytes
@@ -85,11 +102,6 @@ Memory
 	/proc/sys/vm/drop_caches
 	/proc/sys/vm/user_reserve_kbytes
 	/proc/sys/vm/swappiness
-
-SysV chared memory
-	/proc/sys/kernel/msgmax
-	/proc/sys/kernel/msgmni
-	/proc/sys/kernel/msgmnb
 
 Memory / Machine Checks
 	/proc/sys/vm/memory_failure_early_kill

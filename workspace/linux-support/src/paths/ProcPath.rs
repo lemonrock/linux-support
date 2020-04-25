@@ -36,6 +36,27 @@ impl ProcPath
 		self.process_file_path(process_identifier, "task").append(&thread_identifier.to_file_name()).append(relative_path)
 	}
 
+	/// Get a file path within the ProcPath, `/proc/sys/fs/mqueue/<file_name>`.
+	#[inline(always)]
+	pub fn sys_fs_mqueue_file_path(&self, file_name: &str) -> PathBuf
+	{
+		self.sys_fs_file_path("mqueue").append(file_name)
+	}
+
+	/// Get a file path within the ProcPath, `/proc/sys/fs/inotify/<file_name>`.
+	#[inline(always)]
+	pub fn sys_fs_inotify_file_path(&self, file_name: &str) -> PathBuf
+	{
+		self.sys_fs_file_path("inotify").append(file_name)
+	}
+
+	/// Get a file path within the ProcPath, `/proc/sys/fs/epoll/<file_name>`.
+	#[inline(always)]
+	pub fn sys_fs_epoll_file_path(&self, file_name: &str) -> PathBuf
+	{
+		self.sys_fs_file_path("epoll").append(file_name)
+	}
+
 	/// Get a file path within the ProcPath, `/proc/sys/fs/<file_name>`.
 	#[inline(always)]
 	pub fn sys_fs_file_path(&self, file_name: &str) -> PathBuf
@@ -48,13 +69,6 @@ impl ProcPath
 	pub fn sys_user_file_path(&self, file_name: &str) -> PathBuf
 	{
 		self.sys_file_path("user").append(file_name)
-	}
-
-	/// Get a file path within the ProcPath, `/proc/sys/mqueue/<file_name>`.
-	#[inline(always)]
-	pub fn sys_mqueue_file_path(&self, file_name: &str) -> PathBuf
-	{
-		self.sys_file_path("mqueue").append(file_name)
 	}
 
 	/// Get a file path within the ProcPath, `/proc/sys/kernel/<file_name>`.

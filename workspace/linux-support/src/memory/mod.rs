@@ -56,6 +56,10 @@ pub mod numa;
 pub mod page_map;
 
 
+/// Legacy System V (SysV) shared memory.
+pub mod system_v_shared_memory;
+
+
 include!("HasVirtualAddress.rs");
 include!("Kilobyte.rs");
 include!("NonZeroKilobyte.rs");

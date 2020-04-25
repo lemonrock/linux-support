@@ -4,7 +4,7 @@
 
 /// Does not exceed 16,777,216 (`HARD_MSGSIZEMAX`).
 ///
-/// Default is 8192.
+/// Default is 8,192.
 /// Minimum is 128.
 ///
 /// Reads from `/proc/sys/fs/mqueue/msgsize_max`.
@@ -13,5 +13,5 @@
 #[inline(always)]
 pub fn maximum_maximum_message_size(proc_path: &ProcPath) -> NonZeroU32
 {
-	proc_path.sys_mqueue_file_path("msgsize_max").read_value().unwrap()
+	proc_path.sys_fs_mqueue_file_path("msgsize_max").read_value().unwrap()
 }

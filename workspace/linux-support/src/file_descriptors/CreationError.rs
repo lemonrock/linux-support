@@ -9,7 +9,7 @@ pub enum CreationError
 {
 	/// The per-process limit on the number of open file descriptors would be exceeded.
 	///
-	/// For epoll creation, this can also be because the per-user limit on the number of epoll instances imposed by `/proc/sys/fs/epoll/max_user_instances` would be exceeded.
+	/// For epoll creation, this can also be because the per-user limit on the number of epoll instances imposed by `/proc/sys/fs/epoll/max_user_watches` would be exceeded.
 	///
 	/// For inotify creation, this can also be because the per-user limit on the number of epoll instances imposed by `/proc/sys/fs/inotify/max_user_instances` would be exceeded.
 	PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded = EMFILE,

@@ -10,5 +10,5 @@
 #[inline(always)]
 pub fn maximum_number_of_queues(proc_path: &ProcPath) -> NonZeroU32
 {
-	proc_path.sys_mqueue_file_path("queues_max").read_value().unwrap()
+	proc_path.sys_fs_mqueue_file_path("queues_max").read_value().unwrap()
 }

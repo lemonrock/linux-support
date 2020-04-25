@@ -12,5 +12,5 @@
 #[inline(always)]
 pub fn default_maximum_number_of_messages_in_a_queue(proc_path: &ProcPath) -> NonZeroU32
 {
-	proc_path.sys_mqueue_file_path("msg_default").read_value().unwrap()
+	proc_path.sys_fs_mqueue_file_path("msg_default").read_value().unwrap()
 }
