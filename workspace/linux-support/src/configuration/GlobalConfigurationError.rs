@@ -32,6 +32,9 @@ pub enum GlobalConfigurationError
 
 	#[allow(missing_docs)]
 	GlobalFileHandleConfiguration(GlobalFileHandleConfigurationError),
+
+	#[allow(missing_docs)]
+	GlobalFileDescriptorConfiguration(GlobalFileDescriptorConfigurationError),
 }
 
 impl Display for GlobalConfigurationError
@@ -69,6 +72,8 @@ impl error::Error for GlobalConfigurationError
 			&GlobalLinuxKernelAsynchronousIoConfiguration(ref cause) => Some(error),
 
 			&GlobalFileHandleConfiguration(ref cause) => Some(error),
+
+			&GlobalFileDescriptorConfiguration(ref cause) => Some(error),
 		}
 	}
 }
@@ -151,5 +156,14 @@ impl From<GlobalFileHandleConfigurationError> for GlobalConfigurationError
 	fn from(cause: GlobalFileHandleConfigurationError) -> Self
 	{
 		GlobalConfigurationError::GlobalFileHandleConfiguration(cause)
+	}
+}
+
+impl From<GlobalFileDescriptorConfigurationError> for GlobalConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: GlobalFileDescriptorConfigurationError) -> Self
+	{
+		GlobalConfigurationError::GlobalFileDescriptorConfiguration(cause)
 	}
 }

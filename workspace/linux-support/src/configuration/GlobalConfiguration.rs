@@ -34,6 +34,9 @@ pub struct GlobalConfiguration
 
 	/// Requires root.
 	pub file_handle: GlobalFileHandleConfiguration,
+
+	/// Requires root.
+	pub file_descriptor: GlobalFileDescriptorConfiguration,
 }
 
 impl GlobalConfiguration
@@ -59,6 +62,8 @@ impl GlobalConfiguration
 		self.linux_kernel_asynchronous_io.configure(proc_path)?;
 
 		self.file_handle.configure(proc_path)?;
+
+		self.file_descriptor.configure(proc_path)?;
 
 		Ok(())
 	}

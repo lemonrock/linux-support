@@ -23,10 +23,29 @@ impl ResourceLimit
 {
 	const Infinity: rlim_t = RLIM_INFINITY as rlim_t;
 
-	/// Obtains the maximum number of file descriptors as a finite resource limit.
+	/// Obtains the maximum number of file descriptors (`/proc/sys/fs/nr_open`) as a finite resource limit.
+	///
+	/// Default is 1,048,576.
 	pub fn maximum_number_of_open_file_descriptors(proc_path: &ProcPath) -> Result<ResourceLimit, io::Error>
 	{
-		proc_path.sys_fs_file_path("nr_open").read_value().map(ResourceLimit::Finite)
+		Self::nr_open_file_path(proc_path).read_value().map(ResourceLimit::Finite)
+	}
+
+	/// Sets the maximum number of file descriptors (`/proc/sys/fs/nr_open`).
+	///
+	/// Default is 1,048,576.
+	#[inline(always)]
+	pub fn set_maximum_number_of_open_file_descriptors(proc_path: &ProcPath, value: u64) -> io::Result<()>
+	{
+		assert_effective_user_id_is_root(&format!("Write /proc/sys/fs/nr_open {:?}", value));
+
+		Self::nr_open_file_path(proc_path).write_value(value)
+	}
+
+	#[inline(always)]
+	fn nr_open_file_path(proc_path: &ProcPath) -> PathBuf
+	{
+		proc_path.sys_fs_file_path("nr_open")
 	}
 
 	/// Value.

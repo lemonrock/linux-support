@@ -33,6 +33,7 @@ use std::path::PathBuf;
 use std::thread::Builder;
 use std::thread::JoinHandle;
 use crate::file_handles::NumberOfFileHandles;
+use crate::resource_limits::ResourceLimit;
 
 
 include!("FailedChecks.rs");
@@ -40,6 +41,8 @@ include!("GlobalConfiguration.rs");
 include!("GlobalConfigurationError.rs");
 include!("GlobalEPollConfiguration.rs");
 include!("GlobalEPollConfigurationError.rs");
+include!("GlobalFileDescriptorConfiguration.rs");
+include!("GlobalFileDescriptorConfigurationError.rs");
 include!("GlobalFileHandleConfiguration.rs");
 include!("GlobalFileHandleConfigurationError.rs");
 include!("GlobalFileLeasingConfiguration.rs");

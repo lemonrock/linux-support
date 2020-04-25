@@ -9,6 +9,8 @@ use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::io;
+use std::path::PathBuf;
+use crate::user_and_groups::assert_effective_user_id_is_root;
 
 
 include!("ResourceName.rs");
