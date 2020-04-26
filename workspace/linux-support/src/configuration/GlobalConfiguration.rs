@@ -43,6 +43,9 @@ pub struct GlobalConfiguration
 
 	/// Requires root.
 	pub kernel_panic: GlobalKernelPanicConfiguration,
+
+	/// Requires root.
+	pub security: GlobalSecurityConfiguration,
 }
 
 impl GlobalConfiguration
@@ -74,6 +77,8 @@ impl GlobalConfiguration
 		self.linux_module.configure(proc_path)?;
 
 		self.kernel_panic.configure(proc_path)?;
+
+		self.security.configure(proc_path)?;
 
 		Ok(())
 	}

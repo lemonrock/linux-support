@@ -41,6 +41,9 @@ pub enum GlobalConfigurationError
 
 	#[allow(missing_docs)]
 	GlobalKernelPanicConfiguration(GlobalKernelPanicConfigurationError),
+
+	#[allow(missing_docs)]
+	GlobalSecurityConfiguration(GlobalSecurityConfigurationError),
 }
 
 impl Display for GlobalConfigurationError
@@ -84,6 +87,8 @@ impl error::Error for GlobalConfigurationError
 			&GlobalLinuxModuleConfiguration(ref cause) => Some(cause),
 
 			&GlobalKernelPanicConfiguration(ref cause) => Some(cause),
+
+			&GlobalSecurityConfiguration(ref cause) => Some(cause),
 		}
 	}
 }
@@ -193,5 +198,14 @@ impl From<GlobalKernelPanicConfigurationError> for GlobalConfigurationError
 	fn from(cause: GlobalKernelPanicConfigurationError) -> Self
 	{
 		GlobalConfigurationError::GlobalKernelPanicConfiguration(cause)
+	}
+}
+
+impl From<GlobalSecurityConfigurationError> for GlobalConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: GlobalSecurityConfigurationError) -> Self
+	{
+		GlobalConfigurationError::GlobalSecurityConfiguration(cause)
 	}
 }
