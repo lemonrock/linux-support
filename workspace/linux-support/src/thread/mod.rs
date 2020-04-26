@@ -14,6 +14,8 @@ use libc::PR_SET_NAME;
 use libc::prctl;
 use likely::likely;
 use memchr::memchr;
+use serde::Deserialize;
+use serde::Serialize;
 use std::convert::TryFrom;
 use std::io;
 use std::num::NonZeroI32;

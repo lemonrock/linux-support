@@ -8,7 +8,9 @@
 ///
 /// Deref includes trailing ASCII NUL.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct CommandName(pub(crate) ArrayVec<[u8; Self::MaximumCommandNameLengthIncludingAsciiNul]>);
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct CommandName(pub(crate) ArrayVec<[u8; CommandName::MaximumCommandNameLengthIncludingAsciiNul]>);
 
 impl Deref for CommandName
 {

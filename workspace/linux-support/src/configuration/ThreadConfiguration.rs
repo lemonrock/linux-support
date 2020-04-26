@@ -24,25 +24,31 @@ impl ThreadConfiguration
 {
 	/// Spawns and configures a new thread.
 	#[inline(always)]
-	pub fn spawn<F: FnOnce() -> T + Send + 'static, T: Send + 'static>(&self, proc_path: &ProcPath, thread_function: F) -> io::Result<JoinHandle<Result<T, ThreadConfigurationError>>>
+	pub fn spawn<F, T>(self, f: F) -> io::Result<JoinHandle<T>>
+	where
+		F: FnOnce() -> T,
+		F: std::marker::Send + 'static,
+		T: std::marker::Send + 'static,
 	{
+		// TODO: Alternative design: make the thread block on a lock, grab its thread-id then configure it from main thread; can release it whenever we are ready to.
+
 		const page_size: usize = PageSize::current() as u64 as usize;
 		Builder::new().name(self.name.to_string()).stack_size(self.stack_size as usize * page_size).spawn(move ||
 		{
-			self.configure(proc_path)?;
-			thread_function
+			self.configure().unwrap();
+			f()
 		})
 	}
 
 	/// Configure.
 	#[inline(always)]
-	fn configure(&self, proc_path: &ProcPath) -> Result<(), ThreadConfigurationError>
+	fn configure(&self) -> Result<(), ThreadConfigurationError>
 	{
 		use self::ThreadConfigurationError::*;
 
-		self.name.set_current_thread_name()?;
+		self.name.set_current_thread_name().map_err(|cause| CouldNotSetThreadName(cause))?;
 
-		self.thread_scheduler.set_for_thread(ProcessIdentifierChoice::Current.thread_identifier()).map_err(|reason| CouldNotSetSchedulerPolicyAndFlags(reason))?;
+		self.thread_scheduler.set_for_thread(ThreadIdentifierChoice::Current).map_err(|reason| CouldNotSetSchedulerPolicyAndFlags(reason))?;
 
 		no_new_privileges();
 

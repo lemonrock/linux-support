@@ -7,6 +7,8 @@ use crate::strings::parse_number::ParseNumber;
 use crate::strings::parse_number::ParseNumberError;
 use crate::strings::to_number::NumberAsBytes;
 use likely::*;
+use serde::Deserialize;
+use serde::Serialize;
 use std::alloc::AllocRef;
 use std::alloc::Global;
 use std::alloc::Layout;

@@ -4,11 +4,13 @@
 
 use crate::paths::*;
 use crate::strings::*;
-use crate::user_and_groups::assert_effective_user_id_is_root;
+use crate::user_and_groups::*;
 use errno::errno;
 use lazy_static::lazy_static;
 use libc::*;
 use likely::*;
+use serde::Deserialize;
+use serde::Serialize;
 use std::borrow::Cow;
 use std::collections::HashSet;
 use std::env::var_os;

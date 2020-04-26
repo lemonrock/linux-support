@@ -105,7 +105,7 @@ impl ProcessIdentifierChoice
 	///
 	/// This thread may no longer exist.
 	#[inline(always)]
-	pub fn thread_identifer(self) -> ThreadIdentifier
+	pub fn thread_identifier(self) -> ThreadIdentifier
 	{
 		use self::ProcessIdentifierChoice::*;
 

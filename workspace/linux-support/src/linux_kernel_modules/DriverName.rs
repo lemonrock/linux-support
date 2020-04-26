@@ -4,6 +4,7 @@
 
 /// A driver name.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 pub struct DriverName(Box<[u8]>);
 
 impl<'a> From<&'a OsStr> for DriverName

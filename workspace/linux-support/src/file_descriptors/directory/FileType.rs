@@ -66,63 +66,63 @@ impl FileType
 {
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub const fn is_unknown(self) -> bool
+	pub fn is_unknown(self) -> bool
 	{
 		self == FileType::Unknown
 	}
 
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub const fn is_regular_file(self) -> bool
+	pub fn is_regular_file(self) -> bool
 	{
 		self == FileType::RegularFile
 	}
 
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub const fn is_directory(self) -> bool
+	pub fn is_directory(self) -> bool
 	{
 		self == FileType::Directory
 	}
 
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub const fn is_symbolic_link(self) -> bool
+	pub fn is_symbolic_link(self) -> bool
 	{
 		self == FileType::SymbolicLink
 	}
 
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub const fn is_block_device(self) -> bool
+	pub fn is_block_device(self) -> bool
 	{
 		self == FileType::BlockDevice
 	}
 
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub const fn is_character_device(self) -> bool
+	pub fn is_character_device(self) -> bool
 	{
 		self == FileType::CharacterDevice
 	}
 
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub const fn is_fifo(self) -> bool
+	pub fn is_fifo(self) -> bool
 	{
 		self == FileType::Fifo
 	}
 
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub const fn is_unix_domain_socket(self) -> bool
+	pub fn is_unix_domain_socket(self) -> bool
 	{
 		self == FileType::UnixDomainSocket
 	}
 
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub const fn is_bsd_style_whiteout(self) -> bool
+	pub fn is_bsd_style_whiteout(self) -> bool
 	{
 		self == FileType::BsdStyleWhiteout
 	}

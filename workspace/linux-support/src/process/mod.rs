@@ -35,6 +35,8 @@ use libc::strnlen;
 use libc_extra::linux::errno::program_invocation_short_name;
 use likely::*;
 use likely::unlikely;
+use serde::Deserialize;
+use serde::Serialize;
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::convert::TryFrom;

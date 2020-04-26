@@ -5,7 +5,7 @@
 /// Time reserved for threads not using real-time or deadline SchedulerPolicy (ie using `Idle`, `Batch` and `Normal` (`Other`)).
 ///
 /// Reserving CPU time in this fashion allows some CPU time to be allocated to (say) a root shell that can be used to kill a runaway process.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 pub struct ReservedCpuTimeForNonRealTimeSchedulerPolicies
 {

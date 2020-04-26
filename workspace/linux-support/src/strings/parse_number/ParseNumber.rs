@@ -258,11 +258,11 @@ macro_rules! parse_non_zero_number
 				let value = $type::parse_number(bytes, radix, parse_byte)?;
 				if unlikely!(value == 0)
 				{
-					None
+					Ok(None)
 				}
 				else
 				{
-					Some(unsafe { <$non_zero_type>::new_unchecked(value) })
+					Ok(Some(unsafe { <$non_zero_type>::new_unchecked(value) }))
 				}
 			}
 		}

@@ -4,6 +4,8 @@
 
 /// Process (`comm`) name.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct ProcessName(CommandName);
 
 impl Deref for ProcessName

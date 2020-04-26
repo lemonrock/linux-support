@@ -4,6 +4,8 @@
 
 /// Thread (`comm`) name.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct ThreadName(CommandName);
 
 impl Deref for ThreadName
@@ -75,12 +77,13 @@ impl ThreadName
 	///
 	/// Uses `prctl()`.
 	#[inline(always)]
-	pub fn set_current_thread_name(&self)
+	pub fn set_current_thread_name(&self) -> io::Result<()>
 	{
 		let pointer = (self.0).0.as_ptr() as *const c_char;
 		let result = unsafe { prctl(PR_SET_NAME, pointer, 0, 0, 0) };
 		if likely!(result == 0)
 		{
+			Ok(())
 		}
 		else if likely!(result == -1)
 		{

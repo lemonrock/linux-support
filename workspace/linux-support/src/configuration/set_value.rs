@@ -3,7 +3,7 @@
 
 
 #[inline(always)]
-fn set_value<'a, Value: IntoLineFeedTerminatedByteString<'a>, Error: error::Error>(proc_path: &ProcPath, function: impl FnOnce(&ProcPath, Value) -> io::Result<()>, value: Option<Value>, error: impl FnOnce(io::Error) -> Error) -> Result<(), Error>
+fn set_value<'a, Value, Error: error::Error>(proc_path: &ProcPath, function: impl FnOnce(&ProcPath, Value) -> io::Result<()>, value: Option<Value>, error: impl FnOnce(io::Error) -> Error) -> Result<(), Error>
 {
 	if let Some(value) = value
 	{

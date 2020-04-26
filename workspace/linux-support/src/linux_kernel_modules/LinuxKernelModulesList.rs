@@ -6,6 +6,7 @@
 ///
 /// Is *not* updated if a module is loaded or unloaded.
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize)]
 pub struct LinuxKernelModulesList(HashSet<LinuxKernelModuleName>);
 
 impl LinuxKernelModulesList
@@ -39,14 +40,14 @@ impl LinuxKernelModulesList
 	/// Uses `modprobe`.
 	///
 	/// Updates the list of loaded modules.
-	pub fn load_linux_kernel_module_if_absent_using_modprobe(&mut self, proc_path: &ProcPath, linux_kernel_module_name: &LinuxKernelModuleName) -> Result<bool, ModProbeError>
+	pub fn load_linux_kernel_module_if_absent_using_modprobe(&mut self, modprobe_path: &Path, linux_kernel_module_name: &LinuxKernelModuleName) -> Result<bool, ModProbeError>
 	{
 		if self.is_linux_kernel_module_loaded(linux_kernel_module_name)
 		{
 			return Ok(false)
 		}
 
-		linux_kernel_module_name.load_linux_kernel_module_using_modprobe(proc_path)?;
+		linux_kernel_module_name.load_linux_kernel_module_using_modprobe(modprobe_path)?;
 		self.0.insert(linux_kernel_module_name.clone());
 		Ok(true)
 	}
@@ -57,14 +58,14 @@ impl LinuxKernelModulesList
 	///
 	/// true if unloaded.
 	/// false if does not exist.
-	pub fn unload_linux_kernel_module(&self, linux_kernel_module_name: &LinuxKernelModuleName) -> Result<(), io::Error>
+	pub fn unload_linux_kernel_module(&mut self, linux_kernel_module_name: &LinuxKernelModuleName) -> Result<(), io::Error>
 	{
 		if !self.is_linux_kernel_module_loaded(linux_kernel_module_name)
 		{
 			return Ok(())
 		}
 
-		let unloaded = linux_kernel_module_name.unload_linux_kernel_module();
+		let unloaded = linux_kernel_module_name.unload_linux_kernel_module()?;
 		if likely!(unloaded)
 		{
 			self.0.remove(linux_kernel_module_name);
@@ -81,7 +82,7 @@ impl LinuxKernelModulesList
 
 	/// Contains any of.
 	#[inline(always)]
-	pub fn contains_any_of<'a>(&self, linux_kernel_modules: &mut impl Iterator<Item=&'a LinuxKernelModuleName>) -> bool
+	pub fn contains_any_of<'a>(&self, linux_kernel_modules: impl Iterator<Item=&'a LinuxKernelModuleName>) -> bool
 	{
 		for linux_kernel_module in linux_kernel_modules
 		{
@@ -95,7 +96,7 @@ impl LinuxKernelModulesList
 
 	/// Does not contain all of.
 	#[inline(always)]
-	pub fn does_not_contain_all_of<'a>(&self, linux_kernel_modules: &mut impl Iterator<Item=&'a LinuxKernelModuleName>) -> bool
+	pub fn does_not_contain_all_of<'a>(&self, linux_kernel_modules: impl Iterator<Item=&'a LinuxKernelModuleName>) -> bool
 	{
 		for linux_kernel_module in linux_kernel_modules
 		{

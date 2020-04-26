@@ -44,7 +44,7 @@ impl GlobalSecurityConfiguration
 				let file_path = proc_path.sys_kernel_file_path("kexec_load_disabled");
 				if file_path.exists()
 				{
-					let enabled: bool = file_path.read_value().unwrap();
+					let enabled: bool = file_path.read_zero_or_one_bool().unwrap();
 					if !enabled
 					{
 						return file_path.write_value(true)
@@ -52,7 +52,7 @@ impl GlobalSecurityConfiguration
 				}
 				Ok(())
 			},
-			self.disable_module_loading_and_unloading_until_reboot,
+			self.disable_kexec_loading_of_new_kernel_images_until_reboot,
 			CouldNotDisableKexecLoadingUntilNextReboot
 		)
 	}

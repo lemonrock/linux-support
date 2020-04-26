@@ -2,10 +2,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use self::checks::*;
 use crate::bit_set::BitSet;
 use crate::capabilities_and_privileges::*;
 use crate::cpu::*;
-use crate::thread::ThreadName;
+use crate::thread::{ThreadName, ThreadIdentifierChoice};
 use crate::file_descriptors::epoll::set_maximum_number_of_watched_file_descriptors_per_user;
 use crate::file_descriptors::file::leasing::*;
 use crate::file_descriptors::inotify::*;
@@ -25,10 +26,11 @@ use crate::resource_limits::ResourceLimit;
 use crate::scheduling::*;
 use crate::strings::IntoLineFeedTerminatedByteString;
 use indexmap::set::IndexSet;
+use maplit::hashset;
+#[cfg(target_arch = "x86_64")] use raw_cpuid::*;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashSet;
-use std::collections::HashMap;
 use std::error;
 use std::fmt;
 use std::fmt::Display;
@@ -39,12 +41,13 @@ use std::num::NonZeroU32;
 use std::path::PathBuf;
 use std::thread::Builder;
 use std::thread::JoinHandle;
-use std::borrow::Cow;
 
 
-include!("FailedChecks.rs");
-include!("GlobalConfiguration.rs");
-include!("GlobalConfigurationError.rs");
+/// Checks.
+pub mod checks;
+
+
+include!("GlobalConfiguration.rs");include!("GlobalConfigurationError.rs");
 include!("GlobalEPollConfiguration.rs");
 include!("GlobalEPollConfigurationError.rs");
 include!("GlobalFileDescriptorConfiguration.rs");

@@ -34,14 +34,14 @@ impl NumberOfInodes
 	#[inline(always)]
 	pub fn allocated_and_free(proc_path: &ProcPath) -> (Self, Self)
 	{
-		let bytes = proc_path.sys_fs_file_path("inode-nr").read_raw_without_line_feed();
-		let mut fields = bytes.splitn(2, |byte| *byte == '\t');
+		let bytes = proc_path.sys_fs_file_path("inode-nr").read_raw_without_line_feed().unwrap();
+		let mut fields = bytes.splitn(2, |byte| *byte == b'\t');
 
 		#[inline(always)]
 		fn next<'a>(fields: &mut impl Iterator<Item=&'a [u8]>) -> NumberOfInodes
 		{
 			NumberOfInodes(usize::parse_decimal_number(fields.next().unwrap()).unwrap())
 		}
-		(next(fields), next(fields))
+		(next(&mut fields), next(&mut fields))
 	}
 }

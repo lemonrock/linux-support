@@ -4,6 +4,7 @@
 
 use crate::current_numa_node_and_hyper_thread;
 use crate::bit_set::*;
+use crate::configuration::checks::*;
 use crate::memory::numa::*;
 use crate::paths::*;
 use crate::process::ProcessIdentifierChoice;
@@ -14,7 +15,7 @@ use crate::user_and_groups::assert_effective_user_id_is_root;
 use errno::errno;
 use libc::*;
 use likely::*;
-use raw_cpuid::*;
+#[cfg(target_arch = "x86_64")] use raw_cpuid::*;
 use serde::Deserialize;
 use serde::Serialize;
 use std::borrow::Cow;
@@ -29,13 +30,14 @@ use std::fmt::Formatter;
 use std::mem::size_of;
 #[allow(deprecated)] use std::mem::uninitialized;
 use std::path::PathBuf;
-use crate::configuration::FailedChecks;
-use std::collections::HashSet;
+use strum_macros::*;
 
 
 include!("BitSetHyperThread.rs");
-include!("CpuFeatureChecksToSuppress.rs");
+include!("CompiledCpuFeatureCheck.rs");
 include!("CpuFeatures.rs");
 include!("HyperThread.rs");
 include!("HyperThreadingStatus.rs");
+include!("MandatoryCpuFeatureCheck.rs");
+include!("OptionalCpuFeatureCheck.rs");
 include!("ParseHyperThreadingStatusError.rs");

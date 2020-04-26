@@ -6,6 +6,7 @@
 ///
 /// Internally uses `usize` to match what Linux uses.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct BitSet<BSA: BitSetAware>(Vec<usize>, PhantomData<BSA>);
 

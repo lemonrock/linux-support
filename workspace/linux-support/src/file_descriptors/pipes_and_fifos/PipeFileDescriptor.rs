@@ -65,7 +65,7 @@ pub trait PipeFileDescriptor: FileDescriptor + OnDiskFileDescriptor
 	#[inline(always)]
 	fn get_number_of_unread_bytes(&self) -> usize
 	{
-		let mut count = unsafe { uninitialized() };
+		let mut count: i32 = unsafe { uninitialized() };
 		let result = unsafe { ioctl(self.as_raw_fd(), FIONREAD, &mut count) };
 		if likely!(result == 0)
 		{

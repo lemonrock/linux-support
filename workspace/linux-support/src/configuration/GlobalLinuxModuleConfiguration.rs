@@ -3,7 +3,7 @@
 
 
 /// Global linux module configuration.
-#[derive(Default, Debug, Clone, Eq, PartialEq, Hash)]
+#[derive(Default, Debug, Clone, Eq, PartialEq)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct GlobalLinuxModuleConfiguration
@@ -43,7 +43,7 @@ impl GlobalLinuxModuleConfiguration
 	{
 		use self::GlobalLinuxModuleConfigurationError::*;
 
-		set_value(proc_path, LinuxKernelModuleName::set_modprobe_executable_path, self.modprobe_executable_path, CouldNotChangeModprobeExecutablePath)?;
+		set_value(proc_path, LinuxKernelModuleName::set_modprobe_executable_path, self.modprobe_executable_path.as_ref(), CouldNotChangeModprobeExecutablePath)?;
 
 		let potentially_have_modules_to_unload = !self.linux_kernel_modules_to_unload.is_empty();
 		let potentially_have_modules_to_load = !self.linux_kernel_modules_to_load.is_empty();
@@ -79,7 +79,7 @@ impl GlobalLinuxModuleConfiguration
 				{
 					for linux_kernel_module_to_load in self.linux_kernel_modules_to_load.iter()
 					{
-						linux_kernel_module_to_load.load_linux_kernel_module_using_modprobe()?
+						linux_kernel_module_to_load.load_linux_kernel_module_using_modprobe(&modprobe_path)?
 					}
 				}
 			}

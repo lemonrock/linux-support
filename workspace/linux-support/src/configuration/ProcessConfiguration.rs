@@ -3,7 +3,7 @@
 
 
 /// Process configuration.
-#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ProcessConfiguration
@@ -11,8 +11,11 @@ pub struct ProcessConfiguration
 	/// Inclusive minimum.
 	pub minimum_linux_kernel_version: LinuxKernelVersionNumber,
 
-	/// CPU feature checks to suppress.
-	#[serde(default)] pub cpu_feature_checks_to_suppress: CpuFeatureChecksToSuppress,
+	/// Mandatory CPU feature checks to suppress.
+	#[serde(default)] pub mandatory_cpu_feature_checks_to_suppress: HashSet<MandatoryCpuFeatureCheck>,
+
+	/// Optional CPU feature checks to suppress.
+	#[serde(default = "ProcessConfiguration::optional_cpu_feature_checks_to_suppress_default")] pub optional_cpu_feature_checks_to_suppress: HashSet<OptionalCpuFeatureCheck>,
 
 	/// Process name.
 	#[serde(default)] pub name: ProcessName,
@@ -29,12 +32,12 @@ impl ProcessConfiguration
 	{
 		use self::ProcessConfigurationError::*;
 
-		if LinuxKernelVersion::parse(proc_path).map_err(|cause| CouldNotParseLinuxKernelVersion(cause)) < self.minimum_linux_kernel_version
+		if LinuxKernelVersion::parse(proc_path).map_err(|cause| CouldNotParseLinuxKernelVersion(cause))?.major_minor_revision() < self.minimum_linux_kernel_version
 		{
 			return Err(LinuxKernelVersionIsTooOld)
 		}
 
-		let cpu_features = CpuFeatures::validate_minimal_cpu_features(&self.cpu_feature_checks_to_suppress).map_err(|string| CpuFeatureChecksFailed(string))?;
+		self.cpu_feature_checks()?;
 
 		self.name.set_process_name(ProcessIdentifierChoice::Current, proc_path).map_err(|cause| CouldNotSetProcessName(cause))?;
 
@@ -49,12 +52,52 @@ impl ProcessConfiguration
 
 		// TODO: SecComp
 		// TODO: Minimum capabilities to launch with.
-		// TODO: Linux modules to load
 		// TODO: umask
 		// TODO: personality verification
 		// TODO: Resource limits
-		// TODO: Mounts (hugetlbfs, cpusets; really need to mount them in /dev)
 
 		Ok(())
+	}
+
+	#[inline(always)]
+	fn cpu_feature_checks(&self) -> Result<(), ProcessConfigurationError>
+	{
+		let check_arguments;
+		#[cfg(target_arch = "x86_64")]
+		{
+			let cpu_id = CpuId::new();
+			check_arguments =
+			(
+				cpu_id.get_feature_info().unwrap(),
+				cpu_id.get_extended_function_info().unwrap(),
+				cpu_id.get_extended_feature_info().unwrap(),
+			);
+		}
+		#[cfg(not(target_arch = "x86_64"))]
+		{
+			check_arguments = ();
+		}
+
+		use self::ProcessConfigurationError::*;
+
+		let empty: HashSet<CompiledCpuFeatureCheck> = HashSet::new();
+		Self::cpu_feature_check(&empty, &check_arguments, CompiledCpuFeatureChecksFailed)?;
+		Self::cpu_feature_check(&self.mandatory_cpu_feature_checks_to_suppress, &check_arguments, MandatoryCpuFeatureChecksFailed)?;
+		Self::cpu_feature_check(&self.optional_cpu_feature_checks_to_suppress, &check_arguments, OptionalCpuFeatureChecksFailed)
+	}
+
+	#[inline(always)]
+	fn cpu_feature_check<C: Check>(cpu_feature_checks_to_suppress: &HashSet<C>, check_arguments: &C::CheckArguments, error: impl FnOnce(FailedChecks<C>) -> ProcessConfigurationError) -> Result<(), ProcessConfigurationError>
+	{
+		C::run_all_checks(cpu_feature_checks_to_suppress, check_arguments).map_err(error)
+	}
+
+	#[inline(always)]
+	fn optional_cpu_feature_checks_to_suppress_default() -> HashSet<OptionalCpuFeatureCheck>
+	{
+		hashset!
+		{
+			OptionalCpuFeatureCheck::has_tsc_adjust_msr,
+		}
 	}
 }

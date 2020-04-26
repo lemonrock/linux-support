@@ -4,6 +4,8 @@
 
 /// Linux kernel version information.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct LinuxKernelVersionNumber
 {
 	/// eg `5`.
@@ -13,5 +15,5 @@ pub struct LinuxKernelVersionNumber
 	pub minor: u16,
 
 	/// eg `27`.
-	pub revision: u16,
+	#[serde(default)] pub revision: u16,
 }

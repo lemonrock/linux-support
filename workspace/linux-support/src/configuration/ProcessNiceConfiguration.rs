@@ -44,27 +44,25 @@ impl ProcessNiceConfiguration
 	#[inline(always)]
 	pub fn configure(&self, proc_path: &ProcPath) -> Result<(), ProcessNiceConfigurationError>
 	{
+		#[inline(always)]
+		fn set_nice_value<Error>(nice_value: Option<Nice>, function: impl FnOnce(Nice) -> Result<(), Error>, error: impl FnOnce(Error) -> ProcessNiceConfigurationError) -> Result<(), ProcessNiceConfigurationError>
+		{
+			if let Some(nice_value) = nice_value
+			{
+				function(nice_value).map_err(|cause| error(cause))
+			}
+			else
+			{
+				Ok(())
+			}
+		}
+
 		use self::ProcessNiceConfigurationError::*;
 
-		if let Some(share_of_cpu_cycles_in_autogroup) = self.share_of_cpu_cycles_in_autogroup
-		{
-			Self::set_autogroup_for_current_process_if_desired(share_of_cpu_cycles_in_autogroup, proc_path)?;
-		}
-
-		if let Some(all_other_processes_for_current_user) = self.all_other_processes_for_current_user
-		{
-			all_other_processes_for_current_user.set_current_user_priority().map_err(|_: ()| CouldNotSetCurrentUserPriorityNice)
-		}
-
-		if let Some(all_other_processes_in_process_group) = self.all_other_processes_in_process_group
-		{
-			all_other_processes_in_process_group.set_current_process_group_priority().map_err(|_: ()| CouldNotSetCurrentProcessGroupPriorityNice)
-		}
-
-		if let Some(current_process_priority) = self.current_process_priority
-		{
-			current_process_priority.current_process_priority().map_err(|_: ()| CouldNotSetCurrentProcessPriorityNice)
-		}
+		set_nice_value(self.share_of_cpu_cycles_in_autogroup, |nice| Self::set_autogroup_for_current_process_if_desired(nice, proc_path), CouldNotSetCurrentProcessAutogroupPriorityNice)?;
+		set_nice_value(self.all_other_processes_for_current_user, Nice::set_current_user_priority, |_: ()| CouldNotSetCurrentUserPriorityNice)?;
+		set_nice_value(self.all_other_processes_in_process_group, Nice::set_current_process_group_priority, |_: ()| CouldNotSetCurrentProcessGroupPriorityNice)?;
+		set_nice_value(self.current_process_priority, Nice::set_current_process_priority, |_: ()| CouldNotSetCurrentProcessPriorityNice)?;
 
 		Ok(())
 	}
@@ -85,7 +83,7 @@ impl ProcessNiceConfiguration
 	#[inline(always)]
 	fn is_autogroup_active(proc_path: &ProcPath) -> Result<bool, io::Error>
 	{
-		Self::sched_autogroup_enabled_file_path(proc_path).read_value()
+		Self::sched_autogroup_enabled_file_path(proc_path).read_zero_or_one_bool()
 	}
 
 	#[inline(always)]

@@ -13,7 +13,13 @@ pub enum ProcessConfigurationError
 	LinuxKernelVersionIsTooOld,
 
 	#[allow(missing_docs)]
-	CpuFeatureChecksFailed(String),
+	CompiledCpuFeatureChecksFailed(FailedChecks<CompiledCpuFeatureCheck>),
+
+	#[allow(missing_docs)]
+	MandatoryCpuFeatureChecksFailed(FailedChecks<MandatoryCpuFeatureCheck>),
+
+	#[allow(missing_docs)]
+	OptionalCpuFeatureChecksFailed(FailedChecks<OptionalCpuFeatureCheck>),
 
 	#[allow(missing_docs)]
 	CouldNotSetProcessName(io::Error),
@@ -44,12 +50,34 @@ impl error::Error for ProcessConfigurationError
 
 			&LinuxKernelVersionIsTooOld => None,
 
-			&CpuFeatureChecksFailed(..) => None,
+			&CompiledCpuFeatureChecksFailed(ref cause) => Some(cause),
+
+			&MandatoryCpuFeatureChecksFailed(ref cause) => Some(cause),
+
+			&OptionalCpuFeatureChecksFailed(ref cause) => Some(cause),
 
 			&CouldNotSetProcessName(ref cause) => Some(cause),
 
 			&ProcessSchedulingConfiguration(ref cause) => Some(cause),
 		}
+	}
+}
+
+impl From<FailedChecks<MandatoryCpuFeatureCheck>> for ProcessConfigurationError
+{
+	#[inline(always)]
+	fn from(error: FailedChecks<MandatoryCpuFeatureCheck>) -> Self
+	{
+		ProcessConfigurationError::MandatoryCpuFeatureChecksFailed(error)
+	}
+}
+
+impl From<FailedChecks<OptionalCpuFeatureCheck>> for ProcessConfigurationError
+{
+	#[inline(always)]
+	fn from(error: FailedChecks<OptionalCpuFeatureCheck>) -> Self
+	{
+		ProcessConfigurationError::OptionalCpuFeatureChecksFailed(error)
 	}
 }
 

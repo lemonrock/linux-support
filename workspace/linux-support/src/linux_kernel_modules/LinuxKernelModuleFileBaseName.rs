@@ -4,6 +4,7 @@
 
 /// A Linux kernel module file base name.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 pub struct LinuxKernelModuleFileBaseName(Box<[u8]>);
 
 impl From<&[u8]> for LinuxKernelModuleFileBaseName

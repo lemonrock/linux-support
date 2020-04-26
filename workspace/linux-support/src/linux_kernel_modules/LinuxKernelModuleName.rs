@@ -4,6 +4,7 @@
 
 /// A Linux kernel module name.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 pub struct LinuxKernelModuleName(Box<[u8]>);
 
 impl From<&[u8]> for LinuxKernelModuleName
@@ -102,10 +103,7 @@ impl LinuxKernelModuleName
 		if file_path.exists()
 		{
 			let bytes = file_path.read_raw_without_line_feed().unwrap();
-
-			let mut path = PathBuf::new();
-			path.push(bytes);
-			Some(path)
+			Some(PathBuf::from(OsString::from_vec(bytes.into_vec())))
 		}
 		else
 		{
@@ -163,7 +161,7 @@ impl LinuxKernelModuleName
 		let file_path = Self::modules_disabled_file_path(proc_path);
 		if file_path.exists()
 		{
-			file_path.read_value().unwrap()
+			file_path.read_zero_or_one_bool().unwrap()
 		}
 		else
 		{
@@ -201,16 +199,16 @@ impl LinuxKernelModuleName
 	/// Loads a Linux Kernel Module.
 	///
 	/// Uses the `modprobe` binary.
-	pub fn load_linux_kernel_module_using_modprobe(&self, proc_path: &ProcPath) -> Result<(), ModProbeError>
+	pub fn load_linux_kernel_module_using_modprobe(&self, modprobe_path: &Path) -> Result<(), ModProbeError>
 	{
 		assert!(!self.0.starts_with(b"-"), "{:?} starts with a hyphen. This confuses some modprobe implementations (and some don't support `--` parsing it seems)", self);
 
 		assert_effective_user_id_is_root(&format!("modprobe of {:?}", self));
 
 		#[inline(always)]
-		fn new_command_in_clean_environment(command: &str) -> Command
+		fn new_command_in_clean_environment(modprobe_path: &Path) -> Command
 		{
-			let mut command = Command::new(command);
+			let mut command = Command::new(modprobe_path);
 			command.stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null()).env_clear();
 			if let Some(path) = var_os("PATH")
 			{
@@ -220,7 +218,7 @@ impl LinuxKernelModuleName
 		}
 
 		let os_str = OsStr::from_bytes(&self.0[..]);
-		let exit_code = new_command_in_clean_environment("modprobe").arg("-s").arg("-b").arg(os_str).status()?;
+		let exit_code = new_command_in_clean_environment(modprobe_path).arg("-s").arg("-b").arg(os_str).status()?;
 
 		use self::ModProbeError::*;
 		match exit_code.code()

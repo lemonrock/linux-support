@@ -6,6 +6,9 @@
 #[derive(Debug)]
 pub enum ProcessNiceConfigurationError
 {
+	/// Could not set current process user autogroup priority niceness.
+	CouldNotSetCurrentProcessAutogroupPriorityNice(io::Error),
+
 	/// Could not set current real effective user priority niceness (permission was denied in some way).
 	CouldNotSetCurrentUserPriorityNice,
 
@@ -14,9 +17,6 @@ pub enum ProcessNiceConfigurationError
 
 	/// Could not set current process user priority niceness (permission was denied in some way).
 	CouldNotSetCurrentProcessPriorityNice,
-
-	/// Could not set current process user autogroup priority niceness.
-	CouldNotSetCurrentProcessAutogroupPriorityNice(io::Error),
 }
 
 impl Display for ProcessNiceConfigurationError
@@ -45,14 +45,5 @@ impl error::Error for ProcessNiceConfigurationError
 
 			&CouldNotSetCurrentProcessAutogroupPriorityNice(ref error) => Some(error),
 		}
-	}
-}
-
-impl From<io::Error> for ProcessNiceConfigurationError
-{
-	#[inline(always)]
-	fn from(error: io::Error) -> Self
-	{
-		ProcessNiceConfigurationError::CouldNotSetCurrentProcessAutogroupPriorityNice(error)
 	}
 }

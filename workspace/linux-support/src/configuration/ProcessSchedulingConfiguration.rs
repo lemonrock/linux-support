@@ -17,14 +17,12 @@ pub struct ProcessSchedulingConfiguration
 
 impl ProcessSchedulingConfiguration
 {
-	// Configure
+	/// Configures.
 	#[inline(always)]
 	pub fn configure(&self, proc_path: &ProcPath) -> Result<(), ProcessSchedulingConfigurationError>
 	{
 		self.process_nice_configuration.configure(proc_path)?;
 
-		self.process_scheduler.set_for_thread(ProcessIdentifierChoice::Current.thread_identifier()).map_err(|reason| ProcessSchedulingConfigurationError::CouldNotSetSchedulerPolicyAndFlags(reason));
-
-		Ok(())
+		self.process_scheduler.set_for_thread(ThreadIdentifierChoice::Other(ProcessIdentifierChoice::Current.thread_identifier())).map_err(|reason| ProcessSchedulingConfigurationError::CouldNotSetSchedulerPolicyAndFlags(reason))
 	}
 }

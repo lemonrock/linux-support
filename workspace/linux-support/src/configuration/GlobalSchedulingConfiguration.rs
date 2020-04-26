@@ -72,10 +72,26 @@ impl GlobalSchedulingConfiguration
 	{
 		use self::GlobalSchedulingConfigurationError::*;
 
-		let current_hyper_threading_status = if let Some(current_status) = HyperThread::hyper_threading_control(sys_path)
+		let _current_hyper_threading_status = self.adjust_hyperthreading(sys_path);
+
+		set_proc_sys_kernel_value(proc_path, "sched_autogroup_enabled", self.globally_enable_autogroup_if_true_disable_if_false, CouldNotChangeAutogroup)?;
+		set_value(proc_path, |proc_path, value| value.write(proc_path), self.round_robin_quantum, CouldNotChangeRoundRobinQuantum)?;
+		set_value(proc_path, |proc_path, value| value.write(proc_path), self.reserved_cpu_time_for_non_real_time_scheduler_policies, CouldNotChangeReservedCpuTimeForNonRealTimeSchedulerPolicies)?;
+		set_proc_sys_kernel_value(proc_path, "software_watchdog", self.enable_software_watchdog_lockup_detection, CouldNotChangeSoftwareWatchdog)?;
+		set_proc_sys_kernel_value(proc_path, "nmi_watchdog", self.enable_hardware_watchdog_lockup_detection, CouldNotChangeHardwareWatchdog)?;
+		set_proc_sys_kernel_value(proc_path, "watchdog_thresh", self.hardware_watchdog_threshold_in_seconds, CouldNotChangeHardwareWatchdogThreshold)?;
+		set_value(proc_path, |proc_path, value| value.force_watchdog_to_just_these_hyper_threads(proc_path), self.software_and_hardware_watchdog_runs_on_which_kernel_cpus.as_ref(), CouldNotChangeSoftwareAndHardwareWatchdogCpus)?;
+		set_value(proc_path, |_proc_path, value| value.set_work_queue_hyper_thread_affinity(sys_path), self.work_queue_runs_on_which_kernel_cpus.as_ref(), CouldNotChangeWorkQueueCpus)
+	}
+
+	#[inline(always)]
+	fn adjust_hyperthreading(&self, sys_path: &SysPath) -> HyperThreadingStatus
+	{
+		use self::HyperThreadingStatus::*;
+		if Self::has_hyper_threading()
 		{
-			Some
-			(
+			if let Some(current_status) = HyperThread::hyper_threading_control(sys_path)
+			{
 				if let Some(enable_or_disable_hyperthreading) = self.enable_or_disable_hyperthreading
 				{
 					match enable_or_disable_hyperthreading
@@ -88,20 +104,27 @@ impl GlobalSchedulingConfiguration
 				{
 					current_status
 				}
-			)
+			}
+			else
+			{
+				NotSupported
+			}
 		}
 		else
 		{
-			None
-		};
+			NotImplemented
+		}
+	}
 
-		set_proc_sys_kernel_value(proc_path, "sched_autogroup_enabled", self.globally_enable_autogroup_if_true_disable_if_false, CouldNotChangeAutogroup)?;
-		set_value(proc_path, |proc_path, value| value.write(proc_path), self.round_robin_quantum, CouldNotChangeRoundRobinQuantum)?;
-		set_value(proc_path, |proc_path, value| value.write(proc_path), self.reserved_cpu_time_for_non_real_time_scheduler_policies, CouldNotChangeReservedCpuTimeForNonRealTimeSchedulerPolicies)?;
-		set_proc_sys_kernel_value(proc_path, "software_watchdog", self.enable_software_watchdog_lockup_detection, CouldNotChangeSoftwareWatchdog)?;
-		set_proc_sys_kernel_value(proc_path, "nmi_watchdog", self.enable_hardware_watchdog_lockup_detection, CouldNotChangeHardwareWatchdog)?;
-		set_proc_sys_kernel_value(proc_path, "watchdog_thresh", self.hardware_watchdog_threshold_in_seconds, CouldNotChangeHardwareWatchdogThreshold)?;
-		set_value(proc_path, |proc_path, value| value.force_watchdog_to_just_these_hyper_threads(proc_path), self.software_and_hardware_watchdog_runs_on_which_kernel_cpus, CouldNotChangeSoftwareAndHardwareWatchdogCpus)?;
-		set_value(proc_path, |proc_path, value| value.set_work_queue_hyper_thread_affinity(proc_path), self.set_work_queue_hyper_thread_affinity, CouldNotChangeWorkQueueCpus)
+	#[cfg(target_arch = "x86_64")]
+	fn has_hyper_threading() -> bool
+	{
+		CpuId::new().get_feature_info().unwrap().has_htt()
+	}
+
+	#[cfg(not(target_arch = "x86_64"))]
+	fn has_hyper_threading() -> bool
+	{
+		true
 	}
 }

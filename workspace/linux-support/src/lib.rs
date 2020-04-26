@@ -37,7 +37,6 @@ use crate::memory::numa::NumaNode;
 use crate::strings::Radix;
 use crate::strings::parse_number::*;
 use libc::clock_t;
-use raw_cpuid::*;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashSet;

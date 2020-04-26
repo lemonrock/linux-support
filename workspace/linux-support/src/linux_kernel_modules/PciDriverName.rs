@@ -4,6 +4,7 @@
 
 /// A PCI driver name.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 pub struct PciDriverName(DriverName);
 
 impl From<DriverName> for PciDriverName

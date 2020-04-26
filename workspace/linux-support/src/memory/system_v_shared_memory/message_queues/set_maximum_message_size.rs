@@ -23,6 +23,6 @@ pub fn set_maximum_message_size(proc_path: &ProcPath, maximum_message_size: NonZ
 	}
 	else
 	{
-		Ok()
+		Ok(())
 	}
 }

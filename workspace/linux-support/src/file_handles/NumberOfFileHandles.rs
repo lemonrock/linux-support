@@ -36,15 +36,15 @@ impl NumberOfFileHandles
 	#[inline(always)]
 	pub fn allocated_free_and_maximum(proc_path: &ProcPath) -> (Self, Self, Self)
 	{
-		let bytes = proc_path.sys_fs_file_path("file-nr").read_raw_without_line_feed();
-		let mut fields = bytes.splitn(3, |byte| *byte == '\t');
+		let bytes = proc_path.sys_fs_file_path("file-nr").read_raw_without_line_feed().unwrap();
+		let mut fields = bytes.splitn(3, |byte| *byte == b'\t');
 
 		#[inline(always)]
 		fn next<'a>(fields: &mut impl Iterator<Item=&'a [u8]>) -> NumberOfFileHandles
 		{
 			NumberOfFileHandles(usize::parse_decimal_number(fields.next().unwrap()).unwrap())
 		}
-		(next(fields), next(fields), next(fields))
+		(next(&mut fields), next(&mut fields), next(&mut fields))
 	}
 
 	/// Maximum as reported by `/proc/sys/fs/file-max`.

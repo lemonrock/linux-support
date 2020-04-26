@@ -107,9 +107,9 @@ impl<'depends> LinuxKernelModule<'depends>
 	/// Loads a Linux Kernel Module.
 	///
 	/// Uses the `modprobe` binary.
-	pub fn load_linux_kernel_module_using_modprobe(&self, proc_path: &ProcPath) -> Result<(), ModProbeError>
+	pub fn load_linux_kernel_module_using_modprobe(&self, modprobe_path: &Path) -> Result<(), ModProbeError>
 	{
-		self.linux_kernel_module_name.load_linux_kernel_module_using_modprobe(proc_path)
+		self.linux_kernel_module_name.load_linux_kernel_module_using_modprobe(modprobe_path)
 	}
 
 	/// Name.
