@@ -57,6 +57,13 @@ impl ProcPath
 		self.sys_fs_file_path("epoll").append(file_name)
 	}
 
+	/// Get a file path within the ProcPath, `/proc/sys/vm/<file_name>`.
+	#[inline(always)]
+	pub fn sys_vm_file_path(&self, file_name: &str) -> PathBuf
+	{
+		self.sys_file_path("vm").append(file_name)
+	}
+
 	/// Get a file path within the ProcPath, `/proc/sys/fs/<file_name>`.
 	#[inline(always)]
 	pub fn sys_fs_file_path(&self, file_name: &str) -> PathBuf

@@ -27,6 +27,10 @@ pub struct GlobalSecurityConfiguration
 	/// * `protected_regular`
 	/// * `protected_hardlinks`
 	/// * `protected_fifos`
+	///
+	/// And the following in `/proc/sys/vm` are hardened if present:-
+	///
+	/// * `unprivileged_userfaultfd`.
 	pub harden: bool,
 
 	/// Disables kexec loading of new kernel images until reboot.
@@ -66,6 +70,7 @@ impl GlobalSecurityConfiguration
 			harden_value(proc_path, ProcPath::sys_fs_file_path, "protected_regular", 2u8)?;
 			harden_value(proc_path, ProcPath::sys_fs_file_path, "protected_hardlinks", 1u8)?;
 			harden_value(proc_path, ProcPath::sys_fs_file_path, "protected_fifos", 2u8)?;
+			harden_value(proc_path, ProcPath::sys_vm_file_path, "unprivileged_userfaultfd", 0u8)?;
 		}
 
 
