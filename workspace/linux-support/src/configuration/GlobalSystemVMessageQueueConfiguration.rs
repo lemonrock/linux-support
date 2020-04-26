@@ -34,21 +34,8 @@ impl GlobalSystemVMessageQueueConfiguration
 	{
 		use self::GlobalSystemVMessageQueueConfigurationError::*;
 
-		if let Some(maximum_message_size) = self.default_maximum_number_of_messages_in_a_queue
-		{
-			set_maximum_message_size(proc_path, maximum_message_size).map_err(|cause| CouldNotChangeMaximumMessageSize(cause))
-		}
-
-		if let Some(maximum_number_of_queue_identifiers) = self.maximum_maximum_number_of_messages_in_a_queue
-		{
-			set_maximum_number_of_queue_identifiers(proc_path, maximum_number_of_queue_identifiers).map_err(|cause| CouldNotChangeMaximumNumberOfQueueIdentifiers(cause))
-		}
-
-		if let Some(maximum_queue_size_in_bytes) = self.default_maximum_message_size
-		{
-			set_maximum_queue_size_in_bytes(proc_path, maximum_queue_size_in_bytes).map_err(|cause| CouldNotChangeMaximumQueueSizeInBytes(cause))
-		}
-
-		Ok(())
+		set_value(proc_path, set_maximum_message_size, self.maximum_message_size, CouldNotChangeMaximumMessageSize)?;
+		set_value(proc_path, set_maximum_number_of_queue_identifiers, self.maximum_number_of_queue_identifiers, CouldNotChangeMaximumNumberOfQueueIdentifiers)?;
+		set_value(proc_path, set_maximum_queue_size_in_bytes, self.maximum_queue_size_in_bytes, CouldNotChangeMaximumQueueSizeInBytes)
 	}
 }

@@ -2,35 +2,33 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Represents a network interface name, such as `eth0`.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Deserialize, Serialize)]
-#[repr(transparent)]
-pub struct NetworkInterfaceName(String);
-
-impl From<String> for NetworkInterfaceName
+/// Global security configuration error kind.
+#[derive(Debug)]
+pub enum GlobalSecurityConfigurationError
 {
-	fn from(value: String) -> Self
-	{
-		Self(value)
-	}
+	#[allow(missing_docs)]
+	CouldNotDisableKexecLoadingUntilNextReboot(io::Error),
 }
 
-impl<'a> From<&'a str> for NetworkInterfaceName
+impl Display for GlobalSecurityConfigurationError
 {
-	fn from(value: &'a str) -> Self
-	{
-		Self(value.to_string())
-	}
-}
-
-impl Deref for NetworkInterfaceName
-{
-	type Target = str;
-
 	#[inline(always)]
-	fn deref(&self) -> &Self::Target
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
 	{
-		self.0.deref()
+		Debug::fmt(self, f)
+	}
+}
+
+impl error::Error for GlobalSecurityConfigurationError
+{
+	#[inline(always)]
+	fn source(&self) -> Option<&(dyn error::Error + 'static)>
+	{
+		use self::GlobalSecurityConfigurationError::*;
+
+		match self
+		{
+			&CouldNotDisableKexecLoadingUntilNextReboot(ref cause) => Some(cause),
+		}
 	}
 }

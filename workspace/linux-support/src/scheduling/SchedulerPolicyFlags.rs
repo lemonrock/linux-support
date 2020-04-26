@@ -5,7 +5,7 @@
 bitflags!
 {
 	/// Scheduler policy flags.
-	#[derive(Serialize, Deserialize)]
+	#[derive(Deserialize, Serialize)]
 	pub struct SchedulerPolicyFlags: u64
 	{
 		/// This is called the 'reset-on-fork' flag.
@@ -59,5 +59,14 @@ bitflags!
 
 		/// All flags.
 		const All = SCHED_FLAG_ALL;
+	}
+}
+
+impl Default for SchedulerPolicyFlags
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		SchedulerPolicyFlags::ResetOnFork | SchedulerPolicyFlags::DeadlineReclaim
 	}
 }

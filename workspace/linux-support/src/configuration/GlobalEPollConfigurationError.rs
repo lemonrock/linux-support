@@ -28,7 +28,7 @@ impl error::Error for GlobalEPollConfigurationError
 
 		match self
 		{
-			&CouldNotChangeMaximumNumberOfWatchedFileDescriptorsPerUser(ref cause) => Some(error),
+			&CouldNotChangeMaximumNumberOfWatchedFileDescriptorsPerUser(ref cause) => Some(cause),
 		}
 	}
 }

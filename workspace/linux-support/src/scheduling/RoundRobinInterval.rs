@@ -4,7 +4,7 @@
 
 /// Round robin interval for a process.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct RoundRobinInterval(Duration);
 

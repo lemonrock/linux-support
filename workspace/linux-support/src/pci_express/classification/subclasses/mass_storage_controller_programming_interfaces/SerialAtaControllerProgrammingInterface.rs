@@ -4,7 +4,7 @@
 
 /// Serial ATA Controller Programming Interface.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[repr(u8)]
 pub enum SerialAtaControllerProgrammingInterface
 {

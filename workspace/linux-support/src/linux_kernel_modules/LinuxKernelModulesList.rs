@@ -81,7 +81,7 @@ impl LinuxKernelModulesList
 
 	/// Contains any of.
 	#[inline(always)]
-	pub fn contains_any_of(&self, linux_kernel_modules: &mut impl Iterator<Item=&LinuxKernelModuleName>) -> bool
+	pub fn contains_any_of<'a>(&self, linux_kernel_modules: &mut impl Iterator<Item=&'a LinuxKernelModuleName>) -> bool
 	{
 		for linux_kernel_module in linux_kernel_modules
 		{
@@ -95,7 +95,7 @@ impl LinuxKernelModulesList
 
 	/// Does not contain all of.
 	#[inline(always)]
-	pub fn does_not_contain_all_of(&self, linux_kernel_modules: &mut impl Iterator<Item=&LinuxKernelModuleName>) -> bool
+	pub fn does_not_contain_all_of<'a>(&self, linux_kernel_modules: &mut impl Iterator<Item=&'a LinuxKernelModuleName>) -> bool
 	{
 		for linux_kernel_module in linux_kernel_modules
 		{

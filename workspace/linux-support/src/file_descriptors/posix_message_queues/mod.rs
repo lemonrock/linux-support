@@ -5,6 +5,7 @@
 use super::*;
 use self::c::*;
 use crate::paths::*;
+use crate::user_and_groups::assert_effective_user_id_is_root;
 
 
 mod c;
@@ -12,7 +13,7 @@ mod c;
 
 include!("default_maximum_message_size.rs");
 include!("default_maximum_number_of_messages_in_a_queue.rs");
-include!("maximum_maximum_maximum_message_size.rs");
+include!("maximum_maximum_message_size.rs");
 include!("maximum_maximum_number_of_messages_in_a_queue.rs");
 include!("maximum_number_of_queues.rs");
 include!("PosixMessagePriority.rs");

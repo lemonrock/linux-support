@@ -16,5 +16,15 @@
 #[inline(always)]
 pub fn set_pipe_user_pages_hard_limit(proc_path: &ProcPath, hard_limit: Option<NonZeroNumberOfPages>) -> io::Result<()>
 {
-	proc_path.sys_fs_file_path("pipe-user-pages-hard").write_value(hard_limit)
+	assert_effective_user_id_is_root("write /proc/sys/fs/pipe-user-pages-hard");
+
+	let file_path = proc_path.sys_fs_file_path("pipe-user-pages-hard");
+	if file_path.exists()
+	{
+		file_path.write_value(hard_limit)
+	}
+	else
+	{
+		Ok(())
+	}
 }

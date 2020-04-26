@@ -28,7 +28,7 @@ impl error::Error for GlobalLinuxKernelAsynchronousIoConfigurationError
 
 		match self
 		{
-			&CouldNotChangeMaximumNumberOfKernelAsynchronousIoEventsPerUser(ref cause) => Some(error),
+			&CouldNotChangeMaximumNumberOfKernelAsynchronousIoEventsPerUser(ref cause) => Some(cause),
 		}
 	}
 }

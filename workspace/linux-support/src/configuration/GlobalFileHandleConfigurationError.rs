@@ -28,7 +28,7 @@ impl error::Error for GlobalFileHandleConfigurationError
 
 		match self
 		{
-			&CouldNotChangeMaximumNumberOfFileHandles(ref cause) => Some(error),
+			&CouldNotChangeMaximumNumberOfFileHandles(ref cause) => Some(cause),
 		}
 	}
 }

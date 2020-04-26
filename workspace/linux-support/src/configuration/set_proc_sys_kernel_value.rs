@@ -2,15 +2,17 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::paths::*;
-use crate::user_and_groups::assert_effective_user_id_is_root;
-use std::io;
-use std::num::NonZeroU32;
+#[inline(always)]
+fn set_proc_sys_kernel_value<'a, E: error::Error>(proc_path: &ProcPath, file_name: &'static str, value: Option<impl IntoLineFeedTerminatedByteString<'a>>, error: impl FnOnce(io::Error) -> E) -> Result<(), E>
+{
+	if let Some(value) = value
+	{
+		let file_path = proc_path.sys_kernel_file_path(file_name);
+		if file_path.exists()
+		{
+			return file_path.write_value(value).map_err(error)
+		}
+	}
 
-
-include!("maximum_message_size.rs");
-include!("maximum_number_of_queue_identifiers.rs");
-include!("maximum_queue_size_in_bytes.rs");
-include!("set_maximum_message_size.rs");
-include!("set_maximum_number_of_queue_identifiers.rs");
-include!("set_maximum_queue_size_in_bytes.rs");
+	Ok(())
+}

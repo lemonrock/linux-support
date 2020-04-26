@@ -4,7 +4,7 @@
 
 /// RACEway is an ANSI standard (ANSI/VITA 5-1994) switching fabric.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[repr(u8)]
 pub enum RacewayBridgeProgrammingInterface
 {

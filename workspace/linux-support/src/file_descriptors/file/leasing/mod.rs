@@ -3,6 +3,7 @@
 
 
 use super::*;
+use crate::user_and_groups::assert_effective_user_id_is_root;
 
 
 include!("change_leases_enabled.rs");

@@ -34,11 +34,11 @@ impl error::Error for GlobalSystemVMessageQueueConfigurationError
 
 		match self
 		{
-			&CouldNotChangeMaximumMessageSize(ref cause) => Some(error),
+			&CouldNotChangeMaximumMessageSize(ref cause) => Some(cause),
 
-			&CouldNotChangeMaximumNumberOfQueueIdentifiers(ref cause) => Some(error),
+			&CouldNotChangeMaximumNumberOfQueueIdentifiers(ref cause) => Some(cause),
 
-			&CouldNotChangeMaximumQueueSizeInBytes(ref cause) => Some(error),
+			&CouldNotChangeMaximumQueueSizeInBytes(ref cause) => Some(cause),
 		}
 	}
 }

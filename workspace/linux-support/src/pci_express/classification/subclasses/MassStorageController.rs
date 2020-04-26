@@ -4,7 +4,7 @@
 
 /// Mass storage controllers.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub enum MassStorageController
 {
 	/// SCSI.

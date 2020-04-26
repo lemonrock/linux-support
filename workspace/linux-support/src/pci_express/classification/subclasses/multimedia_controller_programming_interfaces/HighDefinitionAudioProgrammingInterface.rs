@@ -4,7 +4,7 @@
 
 /// High Definition Audio (HD-A) 1.0 Programming Interface.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub enum HighDefinitionAudioProgrammingInterface
 {
 	/// High Definition Audio (HD-A) 1.0 compatible.

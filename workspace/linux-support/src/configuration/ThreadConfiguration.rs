@@ -5,7 +5,7 @@
 /// Thread configuration.
 ///
 /// Used to create a thread and within a thread.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Default, Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct ThreadConfiguration
@@ -26,8 +26,8 @@ impl ThreadConfiguration
 	#[inline(always)]
 	pub fn spawn<F: FnOnce() -> T + Send + 'static, T: Send + 'static>(&self, proc_path: &ProcPath, thread_function: F) -> io::Result<JoinHandle<Result<T, ThreadConfigurationError>>>
 	{
-		const page_size: usize = (PageSize::current() as u64 as usize);
-		Builder::new().name(name.to_string()).stack_size(self.stack_size as usize * page_size).spawn(move ||
+		const page_size: usize = PageSize::current() as u64 as usize;
+		Builder::new().name(self.name.to_string()).stack_size(self.stack_size as usize * page_size).spawn(move ||
 		{
 			self.configure(proc_path)?;
 			thread_function

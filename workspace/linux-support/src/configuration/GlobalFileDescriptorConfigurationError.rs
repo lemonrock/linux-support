@@ -28,7 +28,7 @@ impl error::Error for GlobalFileDescriptorConfigurationError
 
 		match self
 		{
-			&CouldNotChangeMaximumNumberOfOpenFileDescriptors(ref cause) => Some(error),
+			&CouldNotChangeMaximumNumberOfOpenFileDescriptors(ref cause) => Some(cause),
 		}
 	}
 }

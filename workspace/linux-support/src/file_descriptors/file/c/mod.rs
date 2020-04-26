@@ -3,6 +3,7 @@
 
 
 use super::*;
+use super::locking::*;
 
 
 include!("copy_file_range.rs");

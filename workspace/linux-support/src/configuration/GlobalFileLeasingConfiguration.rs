@@ -27,16 +27,7 @@ impl GlobalFileLeasingConfiguration
 	{
 		use self::GlobalFileLeasingConfigurationError::*;
 
-		if let Some(leases_enabled) = self.leases_enabled
-		{
-			change_leases_enabled(proc_path, leases_enabled).map_err(|cause| CouldNotChangeLeasesEnabled(cause))
-		}
-
-		if let Some(number_of_seconds_a_lease_holder_has_to_release_a_lease) = self.number_of_seconds_a_lease_holder_has_to_release_a_lease
-		{
-			set_number_of_seconds_a_lease_holder_has_to_release_a_lease(proc_path, number_of_seconds_a_lease_holder_has_to_release_a_lease).map_err(|cause| CouldNotChangeNumberOfSecondsALeaseHolderHasToReleaseALease(cause))
-		}
-
-		Ok(())
+		set_value(proc_path, change_leases_enabled, self.leases_enabled, CouldNotChangeLeasesEnabled)?;
+		set_value(proc_path, set_number_of_seconds_a_lease_holder_has_to_release_a_lease, self.number_of_seconds_a_lease_holder_has_to_release_a_lease, CouldNotChangeNumberOfSecondsALeaseHolderHasToReleaseALease)
 	}
 }

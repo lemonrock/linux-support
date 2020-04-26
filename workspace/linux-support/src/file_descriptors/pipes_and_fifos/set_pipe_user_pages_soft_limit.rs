@@ -16,5 +16,15 @@
 #[inline(always)]
 pub fn set_pipe_user_pages_soft_limit(proc_path: &ProcPath, soft_limit: Option<NonZeroNumberOfPages>) -> io::Result<()>
 {
-	proc_path.sys_fs_file_path("pipe-user-pages-soft").write_value(soft_limit)
+	assert_effective_user_id_is_root("write /proc/sys/fs/pipe-user-pages-soft");
+	let file_path = proc_path.sys_fs_file_path("pipe-user-pages-soft");
+
+	if file_path.exists()
+	{
+		file_path.write_value(soft_limit)
+	}
+	else
+	{
+		Ok(())
+	}
 }

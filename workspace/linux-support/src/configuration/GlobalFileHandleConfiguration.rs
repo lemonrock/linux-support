@@ -21,11 +21,6 @@ impl GlobalFileHandleConfiguration
 	{
 		use self::GlobalFileHandleConfigurationError::*;
 
-		if let Some(maximum_number_of_file_handles) = self.maximum_number_of_file_handles
-		{
-			maximum_number_of_file_handles.set_maximum().map_err(|cause| CouldNotChangeMaximumNumberOfFileHandles(cause))
-		}
-
-		Ok(())
+		set_value(proc_path, |proc_path, value| value.set_maximum(proc_path), self.maximum_number_of_file_handles, CouldNotChangeMaximumNumberOfFileHandles)
 	}
 }

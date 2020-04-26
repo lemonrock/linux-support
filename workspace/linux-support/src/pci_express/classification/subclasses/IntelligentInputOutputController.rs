@@ -4,7 +4,7 @@
 
 /// Intelligent Input-Output (I²0) Controller.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub enum IntelligentInputOutputController
 {
 	/// Intelligent Input-Output (I²0) Controller.

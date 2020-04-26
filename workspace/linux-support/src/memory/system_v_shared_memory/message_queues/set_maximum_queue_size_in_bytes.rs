@@ -4,9 +4,19 @@
 
 /// Default is 16,384.
 ///
-/// Writes to `/proc/sys/kernel/msgmnb`.
+/// Writes to `/proc/sys/kernel/msgmni`.
 #[inline(always)]
 pub fn set_maximum_queue_size_in_bytes(proc_path: &ProcPath, maximum_queue_size_in_bytes: NonZeroU32) -> io::Result<()>
 {
-	proc_path.sys_kernel_file_path("msgmni").write_value(maximum_queue_size_in_bytes)
+	assert_effective_user_id_is_root("write /proc/sys/kernel/msgmni");
+
+	let file_path = proc_path.sys_kernel_file_path("msgmni");
+	if file_path.exists()
+	{
+		file_path.write_value(maximum_queue_size_in_bytes)
+	}
+	else
+	{
+		Ok(())
+	}
 }

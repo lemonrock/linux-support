@@ -4,7 +4,7 @@
 
 /// Number of inodes.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct NumberOfInodes(pub usize);
 
@@ -38,10 +38,10 @@ impl NumberOfInodes
 		let mut fields = bytes.splitn(2, |byte| *byte == '\t');
 
 		#[inline(always)]
-		fn next(iterator: &mut impl Iterator<Item=&[u8]>) -> NumberOfInodes
+		fn next<'a>(fields: &mut impl Iterator<Item=&'a [u8]>) -> NumberOfInodes
 		{
 			NumberOfInodes(usize::parse_decimal_number(fields.next().unwrap()).unwrap())
 		}
-		(next(iterator), next(iterator))
+		(next(fields), next(fields))
 	}
 }

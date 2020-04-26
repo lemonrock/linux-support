@@ -4,6 +4,8 @@
 
 use crate::paths::*;
 use std::io;
+use std::num::NonZeroU32;
+use crate::user_and_groups::assert_effective_user_id_is_root;
 
 
 include!("current_number_of_kernel_asynchronous_io_events_per_user.rs");

@@ -14,6 +14,21 @@ pub enum GlobalSchedulingConfigurationError
 
 	/// Could not reserved CPU time for non-real time scheduler policies.
 	CouldNotChangeReservedCpuTimeForNonRealTimeSchedulerPolicies(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotChangeSoftwareWatchdog(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotChangeHardwareWatchdog(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotChangeHardwareWatchdogThreshold(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotChangeSoftwareAndHardwareWatchdogCpus(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotChangeWorkQueueCpus(io::Error),
 }
 
 impl Display for GlobalSchedulingConfigurationError
@@ -34,11 +49,21 @@ impl error::Error for GlobalSchedulingConfigurationError
 
 		match self
 		{
-			&CouldNotChangeAutogroup(ref cause) => Some(error),
+			&CouldNotChangeAutogroup(ref cause) => Some(cause),
 
-			&CouldNotChangeRoundRobinQuantum(ref cause) => Some(error),
+			&CouldNotChangeRoundRobinQuantum(ref cause) => Some(cause),
 
-			&CouldNotChangeReservedCpuTimeForNonRealTimeSchedulerPolicies(ref cause) => Some(error),
+			&CouldNotChangeReservedCpuTimeForNonRealTimeSchedulerPolicies(ref cause) => Some(cause),
+
+			&CouldNotChangeSoftwareWatchdog(ref cause) => Some(cause),
+
+			&CouldNotChangeHardwareWatchdog(ref cause) => Some(cause),
+
+			&CouldNotChangeHardwareWatchdogThreshold(ref cause) => Some(cause),
+
+			&CouldNotChangeSoftwareAndHardwareWatchdogCpus(ref cause) => Some(cause),
+
+			&CouldNotChangeWorkQueueCpus(ref cause) => Some(cause),
 		}
 	}
 }

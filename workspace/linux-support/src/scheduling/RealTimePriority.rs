@@ -6,7 +6,7 @@
 ///
 /// All non-real-time `SchedulerPolicy`s (`Idle`, `Batch` and `Normal`) are considered to have an equivalent real-time priority of `0`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[repr(u8)]
 #[allow(missing_docs)]
 pub enum RealTimePriority

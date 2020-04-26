@@ -3,8 +3,8 @@
 
 
 /// Scheduler policy and flags per thread.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 pub struct PerThreadSchedulerPolicyAndFlags
 {
 	/// Policy.

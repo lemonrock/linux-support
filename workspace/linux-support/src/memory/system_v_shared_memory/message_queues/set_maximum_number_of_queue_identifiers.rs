@@ -8,5 +8,15 @@
 #[inline(always)]
 pub fn set_maximum_number_of_queue_identifiers(proc_path: &ProcPath, maximum_number_of_queue_identifiers: NonZeroU32) -> io::Result<()>
 {
-	proc_path.sys_kernel_file_path("msgmni").write_value(maximum_number_of_queue_identifiers)
+	assert_effective_user_id_is_root("write /proc/sys/kernel/msgmni");
+
+	let file_path = proc_path.sys_kernel_file_path("msgmni");
+	if file_path.exists()
+	{
+		file_path.write_value(maximum_number_of_queue_identifiers)
+	}
+	else
+	{
+		Ok(())
+	}
 }

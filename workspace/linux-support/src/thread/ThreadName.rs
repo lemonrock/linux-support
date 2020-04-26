@@ -35,6 +35,15 @@ impl ToString for ThreadName
 	}
 }
 
+impl Default for ThreadName
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self(CommandName::new_from_bytes_excluding_ascii_nul(b"unnammed"))
+	}
+}
+
 impl ThreadName
 {
 	/// This should not fail under ordinary circumstances.

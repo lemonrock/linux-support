@@ -21,11 +21,6 @@ impl GlobalEPollConfiguration
 	{
 		use self::GlobalEPollConfigurationError::*;
 
-		if let Some(maximum_number_of_watched_file_descriptors_per_user) = self.maximum_number_of_watches_per_user
-		{
-			set_maximum_number_of_watched_file_descriptors_per_user(proc_path, maximum_number_of_watched_file_descriptors_per_user).map_err(|cause| CouldNotChangeMaximumNumberOfWatchedFileDescriptorsPerUser(cause))
-		}
-
-		Ok(())
+		set_value(proc_path, set_maximum_number_of_watched_file_descriptors_per_user, self.maximum_number_of_watched_file_descriptors_per_user, CouldNotChangeMaximumNumberOfWatchedFileDescriptorsPerUser)
 	}
 }

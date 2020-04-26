@@ -53,31 +53,10 @@ impl GlobalPosixMessageQueueConfiguration
 	{
 		use self::GlobalPosixMessageQueueConfigurationError::*;
 
-		if let Some(default_maximum_number_of_messages_in_a_queue) = self.default_maximum_number_of_messages_in_a_queue
-		{
-			set_default_maximum_number_of_messages_in_a_queue(proc_path, default_maximum_number_of_messages_in_a_queue).map_err(|cause| CouldNotChangeDefaultMaximumNumberOfMessagesInAQueue(cause))
-		}
-
-		if let Some(maximum_maximum_number_of_messages_in_a_queue) = self.maximum_maximum_number_of_messages_in_a_queue
-		{
-			set_maximum_maximum_number_of_messages_in_a_queue(proc_path, maximum_maximum_number_of_messages_in_a_queue).map_err(|cause| CouldNotChangeMaximumMaximumNumberOfMessagesInAQueue(cause))
-		}
-
-		if let Some(default_maximum_message_size) = self.default_maximum_message_size
-		{
-			set_default_maximum_message_size(proc_path, default_maximum_message_size).map_err(|cause| CouldNotChangeDefaultMaximumMessageSize(cause))
-		}
-
-		if let Some(maximum_maximum_message_size) = self.maximum_maximum_message_size
-		{
-			set_maximum_maximum_message_size(proc_path, maximum_maximum_message_size).map_err(|cause| CouldNotChangeMaximumMaximumMessageSize(cause))
-		}
-
-		if let Some(maximum_number_of_queues) = self.maximum_number_of_queues
-		{
-			set_maximum_number_of_queues(proc_path, maximum_number_of_queues).map_err(|cause| CouldNotChangeMaximumNumberOfQueues(cause))
-		}
-
-		Ok(())
+		set_value(proc_path, set_default_maximum_number_of_messages_in_a_queue, self.default_maximum_number_of_messages_in_a_queue, CouldNotChangeDefaultMaximumNumberOfMessagesInAQueue)?;
+		set_value(proc_path, set_maximum_maximum_number_of_messages_in_a_queue, self.maximum_maximum_number_of_messages_in_a_queue, CouldNotChangeMaximumMaximumNumberOfMessagesInAQueue)?;
+		set_value(proc_path, set_default_maximum_message_size, self.default_maximum_message_size, CouldNotChangeDefaultMaximumMessageSize)?;
+		set_value(proc_path, set_maximum_maximum_message_size, self.maximum_maximum_message_size, CouldNotChangeMaximumMaximumMessageSize)?;
+		set_value(proc_path, set_maximum_number_of_queues, self.maximum_number_of_queues, CouldNotChangeMaximumNumberOfQueues)
 	}
 }

@@ -9,6 +9,8 @@ use crate::strings::parse_number::*;
 use bitflags::bitflags;
 use libc::ino_t;
 use likely::*;
+use serde::Deserialize;
+use serde::Serialize;
 use std::convert::TryInto;
 use std::fmt::Debug;
 use std::mem::size_of;

@@ -3,22 +3,22 @@
 
 
 /// Process configuration.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
-#[serde(default, deny_unknown_fields)]
+#[serde(deny_unknown_fields)]
 pub struct ProcessConfiguration
 {
 	/// Inclusive minimum.
 	pub minimum_linux_kernel_version: LinuxKernelVersionNumber,
 
 	/// CPU feature checks to suppress.
-	pub cpu_feature_checks_to_suppress: CpuFeatureChecksToSuppress,
+	#[serde(default)] pub cpu_feature_checks_to_suppress: CpuFeatureChecksToSuppress,
 
 	/// Process name.
-	pub name: ProcessName,
+	#[serde(default)] pub name: ProcessName,
 
 	/// Process scheduling.
-	pub process_scheduling_configuration: ProcessSchedulingConfiguration,
+	#[serde(default)] pub process_scheduling_configuration: ProcessSchedulingConfiguration,
 }
 
 impl ProcessConfiguration
@@ -44,10 +44,8 @@ impl ProcessConfiguration
 
 		lock_secure_bits_and_remove_ambient_capability_raise_and_keep_capabilities();
 
-		/// Current thread can use this instead of gettid()
-		TODO: /proc/thread-self
-
-		TODO: /proc/sys/kernel/cap_last_cap
+		// Current thread can use this instead of gettid()
+		// TODO: /proc/thread-self
 
 		// TODO: SecComp
 		// TODO: Minimum capabilities to launch with.

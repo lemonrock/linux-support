@@ -10,5 +10,15 @@
 #[inline(always)]
 pub fn change_leases_enabled(proc_path: &ProcPath, enable_if_true_disable_if_false: bool) -> io::Result<()>
 {
-	proc_path.sys_fs_file_path("leases-enable").write_value(enable_if_true_disable_if_false)
+	assert_effective_user_id_is_root("write /proc/sys/fs/leases-enable");
+
+	let file_path = proc_path.sys_fs_file_path("leases-enable");
+	if file_path.exists()
+	{
+		file_path.write_value(enable_if_true_disable_if_false)
+	}
+	else
+	{
+		Ok(())
+	}
 }

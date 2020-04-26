@@ -21,11 +21,6 @@ pub struct GlobalKernelPanicConfiguration
 	/// Defaults to false.
 	///
 	/// Requires root.
-	pub panic_on_io_non_maskable_interupt: Option<bool>,
-
-	/// Defaults to false.
-	///
-	/// Requires root.
 	pub panic_on_rcu_stall: Option<bool>,
 
 	/// Defaults to false.
@@ -33,8 +28,54 @@ pub struct GlobalKernelPanicConfiguration
 	/// Requires root.
 	pub panic_on_warn: Option<bool>,
 
+	/// Defaults to false.
+	///
+	/// Requires root.
+	pub panic_on_io_non_maskable_interupt: Option<bool>,
+
+	/// Defaults to true but for security should be set to false.
+	///
+	/// Requires root.
+	pub panic_on_unknown_non_maskable_interupt: Option<bool>,
+
+	/// Defaults to true but for security should be set to false.
+	///
+	/// Requires root.
+	pub panic_on_unrecovered_non_maskable_interupt: Option<bool>,
+
+	/// Defaults to false and only usually available if the kernel has been compiled for debugging.
+	///
+	/// Requires root.
+	pub panic_on_stack_overflow: Option<bool>,
+
+	/// ?Kernel only tasks?
+	///
+	/// Requires root.
+	pub panic_on_hung_task: Option<bool>,
+
+	/// If the software watchdog lockup detector is running, panic on a detected soft lockup.
+	pub panic_on_software_watchdog_lockup: Option<bool>,
+
+	/// Tries to capture debug information on software watchdog lockup.
+	///
+	/// See also `GlobalSchedulingConfiguration::enable_software_watchdog_lockup_detection`.
+	pub capture_debug_information_on_software_watchdog_lockup: Option<bool>,
+
+	/// If the software watchdog lockup detector is running, panic on a detected soft lockup.
+	pub panic_on_hardware_watchdog_lockup: Option<bool>,
+
+	/// Tries to capture debug information on software watchdog lockup.
+	///
+	/// See also `GlobalSchedulingConfiguration::enable_software_watchdog_lockup_detection`.
+	pub capture_debug_information_on_hardware_watchdog_lockup: Option<bool>,
+
 	/// What to print on panic.
-	pub what_to_print_on_panic: Option<WhatToPrintOnAKernelPanic>
+	pub what_to_print_on_panic: Option<WhatToPrintOnAKernelPanic>,
+
+	/// Reports panic data to Hyper-V.
+	///
+	/// Defaults to `true` if running under Hyper-V.
+	pub report_panic_data_to_hyper_v: Option<bool>,
 }
 
 impl GlobalKernelPanicConfiguration
@@ -45,25 +86,21 @@ impl GlobalKernelPanicConfiguration
 	{
 		use self::GlobalKernelPanicConfigurationError::*;
 
-		#[inline(always)]
-		fn configure_value<'a>(proc_path: &ProcPath, file_name: &'static str, value: Option<impl IntoLineFeedTerminatedByteString<'a>>, error: impl FnOnce(io::Error) -> GlobalPanicConfigurationError) -> Result<(), GlobalKernelPanicConfigurationError>
-		{
-			if let Some(value) = value
-			{
-				proc_path.sys_kernel_file_path(file_name).write_value(value).map_err(error)
-			}
-			else
-			{
-				Ok(())
-			}
-		}
-
-		configure_value(proc_path, "panic", self.panic_timout_in_seconds, CouldNotChangePanicTimeout)?;
-		configure_value(proc_path, "panic_on_oops", self.panic_timout_in_seconds, CouldNotChangePanicOnOops)?;
-		configure_value(proc_path, "panic_on_io_nmi", self.panic_on_io_non_maskable_interupt, CouldNotChangePanicOnNonMaskableInterrupt)?;
-		configure_value(proc_path, "panic_on_rcu_stall", self.panic_on_rcu_stall, CouldNotChangePanicOnRcuStall)?;
-		configure_value(proc_path, "panic_on_warn", self.panic_on_warn, CouldNotChangePanicOnWarn)?;
-		configure_value(proc_path, "panic_print", self.what_to_print_on_panic, CouldNotChangePanicPrint)?;
+		set_proc_sys_kernel_value(proc_path, "panic", self.panic_timout_in_seconds, CouldNotChangePanicTimeout)?;
+		set_proc_sys_kernel_value(proc_path, "panic_on_oops", self.panic_timout_in_seconds, CouldNotChangePanicOnOops)?;
+		set_proc_sys_kernel_value(proc_path, "panic_on_rcu_stall", self.panic_on_rcu_stall, CouldNotChangePanicOnRcuStall)?;
+		set_proc_sys_kernel_value(proc_path, "panic_on_warn", self.panic_on_warn, CouldNotChangePanicOnWarn)?;
+		set_proc_sys_kernel_value(proc_path, "panic_on_io_nmi", self.panic_on_io_non_maskable_interupt, CouldNotChangePanicOnIoNonMaskableInterrupt)?;
+		set_proc_sys_kernel_value(proc_path, "unknown_nmi_panic", self.panic_on_unknown_non_maskable_interupt, CouldNotChangePanicOnUnknownNonMaskableInterrupt)?;
+		set_proc_sys_kernel_value(proc_path, "panic_on_unrecovered_nmi", self.panic_on_unrecovered_non_maskable_interupt, CouldNotChangePanicOnUnrecoverableNonMaskableInterrupt)?;
+		set_proc_sys_kernel_value(proc_path, "panic_on_stackoverflow", self.panic_on_stack_overflow, CouldNotChangePanicOnStackOverflow)?;
+		set_proc_sys_kernel_value(proc_path, "panic_on_hung_task", self.panic_on_stack_overflow, CouldNotChangePanicOnHungTask)?;
+		set_proc_sys_kernel_value(proc_path, "softlockup_panic", self.panic_on_software_watchdog_lockup, CouldNotChangePanicOnSoftwareWatchdogLockup)?;
+		set_proc_sys_kernel_value(proc_path, "softlockup_all_cpu_backtrace", self.capture_debug_information_on_software_watchdog_lockup, CouldNotChangeSoftwareWatchdogLockupDebugInformation)?;
+		set_proc_sys_kernel_value(proc_path, "hardlockup_panic", self.panic_on_hardware_watchdog_lockup, CouldNotChangePanicOnHardwareWatchdogLockup)?;
+		set_proc_sys_kernel_value(proc_path, "hardlockup_all_cpu_backtrace", self.capture_debug_information_on_hardware_watchdog_lockup, CouldNotChangeHardwareWatchdogLockupDebugInformation)?;
+		set_proc_sys_kernel_value(proc_path, "panic_print", self.what_to_print_on_panic, CouldNotChangePanicPrint)?;
+		set_proc_sys_kernel_value(proc_path, "hyperv_record_panic_msg", self.report_panic_data_to_hyper_v, CouldNotChangeReportPanicDataToHyperV)?;
 
 		Ok(())
 	}

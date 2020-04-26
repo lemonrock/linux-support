@@ -31,9 +31,9 @@ impl error::Error for GlobalFileLeasingConfigurationError
 
 		match self
 		{
-			&CouldNotChangeLeasesEnabled(ref cause) => Some(error),
+			&CouldNotChangeLeasesEnabled(ref cause) => Some(cause),
 
-			&CouldNotChangeNumberOfSecondsALeaseHolderHasToReleaseALease(ref cause) => Some(error),
+			&CouldNotChangeNumberOfSecondsALeaseHolderHasToReleaseALease(ref cause) => Some(cause),
 		}
 	}
 }

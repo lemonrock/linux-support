@@ -31,21 +31,8 @@ impl GlobalInotifyConfiguration
 	{
 		use self::GlobalInotifyConfigurationError::*;
 
-		if let Some(maximum_number_of_events_that_can_be_queued) = self.maximum_number_of_events_that_can_be_queued
-		{
-			set_maximum_number_of_events_that_can_be_queued(proc_path, maximum_number_of_events_that_can_be_queued).map_err(|cause| CouldNotChangeMaximumNumberOfEventsThatCanBeQueued(cause))
-		}
-
-		if let Some(maximum_number_of_inotify_instances_per_user) = self.maximum_number_of_inotify_instances_per_user
-		{
-			set_maximum_number_of_inotify_instances_per_user(proc_path, maximum_number_of_inotify_instances_per_user).map_err(|cause| CouldNotChangeMaximumNumberOfInotifyInstancesPerUser(cause))
-		}
-
-		if let Some(maximum_number_of_watches_per_user) = self.maximum_number_of_watches_per_user
-		{
-			set_maximum_number_of_watches_per_user(proc_path, maximum_number_of_watches_per_user).map_err(|cause| CouldNotChangeMaximumNumberOfWatchesPerUser(cause))
-		}
-
-		Ok(())
+		set_value(proc_path, set_maximum_number_of_events_that_can_be_queued, self.maximum_number_of_events_that_can_be_queued, CouldNotChangeMaximumNumberOfEventsThatCanBeQueued)?;
+		set_value(proc_path, set_maximum_number_of_inotify_instances_per_user, self.maximum_number_of_inotify_instances_per_user, CouldNotChangeMaximumNumberOfInotifyInstancesPerUser)?;
+		set_value(proc_path, set_maximum_number_of_watches_per_user, self.maximum_number_of_watches_per_user, CouldNotChangeMaximumNumberOfWatchesPerUser)
 	}
 }

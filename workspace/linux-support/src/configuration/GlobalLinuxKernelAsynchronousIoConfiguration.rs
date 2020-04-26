@@ -21,11 +21,6 @@ impl GlobalLinuxKernelAsynchronousIoConfiguration
 	{
 		use self::GlobalLinuxKernelAsynchronousIoConfigurationError::*;
 
-		if let Some(maximum_number_of_kernel_asynchronous_io_events_per_user) = self.maximum_number_of_kernel_asynchronous_io_events_per_user
-		{
-			set_maximum_number_of_kernel_asynchronous_io_events_per_user(proc_path, maximum_number_of_kernel_asynchronous_io_events_per_user).map_err(|cause| CouldNotChangeMaximumNumberOfKernelAsynchronousIoEventsPerUser(cause))
-		}
-
-		Ok(())
+		set_value(proc_path, set_maximum_number_of_kernel_asynchronous_io_events_per_user, self.maximum_number_of_kernel_asynchronous_io_events_per_user, CouldNotChangeMaximumNumberOfKernelAsynchronousIoEventsPerUser)
 	}
 }

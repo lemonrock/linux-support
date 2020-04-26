@@ -11,8 +11,18 @@
 #[inline(always)]
 pub fn set_maximum_message_size(proc_path: &ProcPath, maximum_message_size: NonZeroU32) -> io::Result<()>
 {
-	debug_assert!(value.get() >= 128);
-	debug_assert!(value.get() <= 16777216);
+	debug_assert!(maximum_message_size.get() >= 128);
+	debug_assert!(maximum_message_size.get() <= 16777216);
 
-	proc_path.sys_kernel_file_path("msgmax").write_value(maximum_message_size)
+	assert_effective_user_id_is_root("write /proc/sys/kernel/msgmax");
+
+	let file_path = proc_path.sys_kernel_file_path("msgmax");
+	if file_path.exists()
+	{
+		file_path.write_value(maximum_message_size)
+	}
+	else
+	{
+		Ok()
+	}
 }

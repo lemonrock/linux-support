@@ -3,7 +3,7 @@
 
 
 /// Global linux module configuration.
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Default, Debug, Clone, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct GlobalLinuxModuleConfiguration
@@ -43,10 +43,7 @@ impl GlobalLinuxModuleConfiguration
 	{
 		use self::GlobalLinuxModuleConfigurationError::*;
 
-		if let Some(ref modprobe_executable_path) = self.modprobe_executable_path
-		{
-			LinuxKernelModuleName::set_modprobe_executable_path(proc_path, modprobe_executable_path).map_err(|cause| CouldNotChangeModprobeExecutablePath(cause))
-		}
+		set_value(proc_path, LinuxKernelModuleName::set_modprobe_executable_path, self.modprobe_executable_path, CouldNotChangeModprobeExecutablePath)?;
 
 		let potentially_have_modules_to_unload = !self.linux_kernel_modules_to_unload.is_empty();
 		let potentially_have_modules_to_load = !self.linux_kernel_modules_to_load.is_empty();
@@ -88,11 +85,6 @@ impl GlobalLinuxModuleConfiguration
 			}
 		}
 
-		if self.disable_module_loading_and_unloading_until_reboot
-		{
-			LinuxKernelModuleName::disable_module_loading_and_unloading_until_reboot(proc_path).map_err(|cause| CouldNotDisableModuleLoadingAndUnloadingUntilNextReboot(cause))
-		}
-
-		Ok(())
+		set_value_once(proc_path, LinuxKernelModuleName::disable_module_loading_and_unloading_until_reboot, self.disable_module_loading_and_unloading_until_reboot, CouldNotDisableModuleLoadingAndUnloadingUntilNextReboot)
 	}
 }

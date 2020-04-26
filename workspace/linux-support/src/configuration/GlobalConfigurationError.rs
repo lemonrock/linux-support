@@ -61,29 +61,29 @@ impl error::Error for GlobalConfigurationError
 
 		match self
 		{
-			&GlobalSchedulingConfiguration(ref cause) => Some(error),
+			&GlobalSchedulingConfiguration(ref cause) => Some(cause),
 
-			&GlobalPipeConfiguration(ref cause) => Some(error),
+			&GlobalPipeConfiguration(ref cause) => Some(cause),
 
-			&GlobalFileLeasingConfiguration(ref cause) => Some(error),
+			&GlobalFileLeasingConfiguration(ref cause) => Some(cause),
 
-			&GlobalPosixMessageQueueConfiguration(ref cause) => Some(error),
+			&GlobalPosixMessageQueueConfiguration(ref cause) => Some(cause),
 
-			&GlobalSystemVMessageQueueConfiguration(ref cause) => Some(error),
+			&GlobalSystemVMessageQueueConfiguration(ref cause) => Some(cause),
 
-			&GlobalInotifyConfiguration(ref cause) => Some(error),
+			&GlobalInotifyConfiguration(ref cause) => Some(cause),
 
-			&GlobalEPollConfiguration(ref cause) => Some(error),
+			&GlobalEPollConfiguration(ref cause) => Some(cause),
 
-			&GlobalLinuxKernelAsynchronousIoConfiguration(ref cause) => Some(error),
+			&GlobalLinuxKernelAsynchronousIoConfiguration(ref cause) => Some(cause),
 
-			&GlobalFileHandleConfiguration(ref cause) => Some(error),
+			&GlobalFileHandleConfiguration(ref cause) => Some(cause),
 
-			&GlobalFileDescriptorConfiguration(ref cause) => Some(error),
+			&GlobalFileDescriptorConfiguration(ref cause) => Some(cause),
 
-			&GlobalLinuxModuleConfiguration(ref cause) => Some(error),
+			&GlobalLinuxModuleConfiguration(ref cause) => Some(cause),
 
-			&GlobalKernelPanicConfiguration(ref cause) => Some(error),
+			&GlobalKernelPanicConfiguration(ref cause) => Some(cause),
 		}
 	}
 }
@@ -142,7 +142,7 @@ impl From<GlobalInotifyConfigurationError> for GlobalConfigurationError
 	}
 }
 
-impl From<GlobalEPollConfiguration> for GlobalConfigurationError
+impl From<GlobalEPollConfigurationError> for GlobalConfigurationError
 {
 	#[inline(always)]
 	fn from(cause: GlobalEPollConfigurationError) -> Self

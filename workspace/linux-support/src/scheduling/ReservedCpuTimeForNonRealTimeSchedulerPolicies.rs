@@ -6,7 +6,7 @@
 ///
 /// Reserving CPU time in this fashion allows some CPU time to be allocated to (say) a root shell that can be used to kill a runaway process.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct ReservedCpuTimeForNonRealTimeSchedulerPolicies
 {
 	period_microseconds: NonZeroU32,
@@ -51,12 +51,23 @@ impl ReservedCpuTimeForNonRealTimeSchedulerPolicies
 	#[inline(always)]
 	pub fn write(&self, proc_path: &ProcPath) -> io::Result<()>
 	{
-		Self::period_file_path(proc_path).write_value(self.period_microseconds)?;
-		Self::runtime_file_path(proc_path).write_value(match self.runtime_microseconds
+		assert_effective_user_id_is_root("write /proc/sys/kernel/sched_rt_period_us and /proc/sys/kernel/sched_rt_runtime_us");
+
+		let period_file_path = Self::period_file_path(proc_path);
+		let runtime_file_path = Self::runtime_file_path(proc_path);
+		if period_file_path.exists() && runtime_file_path.exists()
 		{
-			None => -1i32,
-			Some(runtime_microseconds) => (runtime_microseconds.get() - 1) as i32
-		})
+			period_file_path.write_value(self.period_microseconds)?;
+			runtime_file_path.write_value(match self.runtime_microseconds
+			{
+				None => -1i32,
+				Some(runtime_microseconds) => (runtime_microseconds.get() - 1) as i32
+			})
+		}
+		else
+		{
+			Ok(())
+		}
 	}
 
 	/// This is not atomic.

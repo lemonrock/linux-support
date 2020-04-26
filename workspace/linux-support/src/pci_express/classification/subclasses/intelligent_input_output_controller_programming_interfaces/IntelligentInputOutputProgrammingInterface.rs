@@ -4,7 +4,7 @@
 
 /// Intelligent Input-Output (I²0) Programming Interface.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub enum IntelligentInputOutputProgrammingInterface
 {
 	/// ?

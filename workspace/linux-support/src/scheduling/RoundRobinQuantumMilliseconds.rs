@@ -8,7 +8,7 @@
 ///
 /// Only applies to `Scheduler::RoundRobin`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct RoundRobinQuantumMilliseconds(NonZeroU64);
 
@@ -26,7 +26,18 @@ impl RoundRobinQuantumMilliseconds
 	#[inline(always)]
 	pub fn write(&self, proc_path: &ProcPath) -> io::Result<()>
 	{
-		Self::file_path(proc_path).write_value(self.0)
+		assert_effective_user_id_is_root("write /proc/sys/kernel/sched_rr_timeslice_ms");
+
+		let file_path = Self::file_path(proc_path);
+
+		if file_path.exists()
+		{
+			file_path.write_value(self.0)
+		}
+		else
+		{
+			Ok(())
+		}
 	}
 
 	/// Reset.

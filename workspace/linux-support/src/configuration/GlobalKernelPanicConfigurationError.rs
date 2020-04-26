@@ -13,16 +13,43 @@ pub enum GlobalKernelPanicConfigurationError
 	CouldNotChangePanicOnOops(io::Error),
 
 	#[allow(missing_docs)]
-	CouldNotChangePanicOnNonMaskableInterrupt(io::Error),
-
-	#[allow(missing_docs)]
 	CouldNotChangePanicOnRcuStall(io::Error),
 
 	#[allow(missing_docs)]
 	CouldNotChangePanicOnWarn(io::Error),
 
 	#[allow(missing_docs)]
+	CouldNotChangePanicOnIoNonMaskableInterrupt(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotChangePanicOnUnknownNonMaskableInterrupt(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotChangePanicOnUnrecoverableNonMaskableInterrupt(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotChangePanicOnStackOverflow(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotChangePanicOnHungTask(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotChangePanicOnSoftwareWatchdogLockup(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotChangeSoftwareWatchdogLockupDebugInformation(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotChangePanicOnHardwareWatchdogLockup(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotChangeHardwareWatchdogLockupDebugInformation(io::Error),
+
+	#[allow(missing_docs)]
 	CouldNotChangePanicPrint(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotChangeReportPanicDataToHyperV(io::Error),
 }
 
 impl Display for GlobalKernelPanicConfigurationError
@@ -43,17 +70,35 @@ impl error::Error for GlobalKernelPanicConfigurationError
 
 		match self
 		{
-			&CouldNotChangePanicTimeout(ref cause) => Some(error),
+			&CouldNotChangePanicTimeout(ref cause) => Some(cause),
 
-			&CouldNotChangePanicOnOops(ref cause) => Some(error),
+			&CouldNotChangePanicOnOops(ref cause) => Some(cause),
 
-			&CouldNotChangePanicOnNonMaskableInterrupt(ref cause) => Some(error),
+			&CouldNotChangePanicOnRcuStall(ref cause) => Some(cause),
 
-			&CouldNotChangePanicOnRcuStall(ref cause) => Some(error),
+			&CouldNotChangePanicOnWarn(ref cause) => Some(cause),
 
-			&CouldNotChangePanicOnWarn(ref cause) => Some(error),
+			&CouldNotChangePanicOnIoNonMaskableInterrupt(ref cause) => Some(cause),
 
-			&CouldNotChangePanicPrint(ref cause) => Some(error),
+			&CouldNotChangePanicOnUnknownNonMaskableInterrupt(ref cause) => Some(cause),
+
+			&CouldNotChangePanicOnUnrecoverableNonMaskableInterrupt(ref cause) => Some(cause),
+
+			&CouldNotChangePanicOnStackOverflow(ref cause) => Some(cause),
+
+			&CouldNotChangePanicOnHungTask(ref cause) => Some(cause),
+
+			&CouldNotChangePanicOnSoftwareWatchdogLockup(ref cause) => Some(cause),
+
+			&CouldNotChangeSoftwareWatchdogLockupDebugInformation(ref cause) => Some(cause),
+
+			&CouldNotChangePanicOnHardwareWatchdogLockup(ref cause) => Some(cause),
+
+			&CouldNotChangeHardwareWatchdogLockupDebugInformation(ref cause) => Some(cause),
+
+			&CouldNotChangePanicPrint(ref cause) => Some(cause),
+
+			&CouldNotChangeReportPanicDataToHyperV(ref cause) => Some(cause),
 		}
 	}
 }

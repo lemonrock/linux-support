@@ -4,6 +4,8 @@
 
 use super::*;
 use super::file::*;
+use super::file::leasing::Leasing;
+use super::file::locking::*;
 use super::pipes_and_fifos::SpliceRecipient;
 use super::pipes_and_fifos::SpliceSender;
 use crate::memory::huge_pages::HugePageSize;
@@ -17,4 +19,5 @@ use std::io::IoSliceMut;
 use std::io::SeekFrom;
 
 
-include!("FileSeals.rs");include!("MemoryFileDescriptor.rs");
+include!("FileSeals.rs");
+include!("MemoryFileDescriptor.rs");

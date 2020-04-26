@@ -6,6 +6,7 @@ use super::*;
 use super::file_descriptor_information::*;
 use self::c::*;
 use crate::paths::*;
+use crate::user_and_groups::assert_effective_user_id_is_root;
 
 
 /// System call and libc wrapping of system call specific details.

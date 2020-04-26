@@ -34,11 +34,11 @@ impl error::Error for GlobalPipeConfigurationError
 
 		match self
 		{
-			&CouldNotChangeMaximumPipeCapacity(ref cause) => Some(error),
+			&CouldNotChangeMaximumPipeCapacity(ref cause) => Some(cause),
 
-			&CouldNotChangePipeSoftLimit(ref cause) => Some(error),
+			&CouldNotChangePipeSoftLimit(ref cause) => Some(cause),
 
-			&CouldNotChangePipeHardLimit(ref cause) => Some(error),
+			&CouldNotChangePipeHardLimit(ref cause) => Some(cause),
 		}
 	}
 }

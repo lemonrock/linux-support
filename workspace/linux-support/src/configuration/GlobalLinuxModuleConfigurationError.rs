@@ -49,21 +49,21 @@ impl error::Error for GlobalLinuxModuleConfigurationError
 
 		match self
 		{
-			&CouldNotChangeModprobeExecutablePath(ref cause) => Some(error),
+			&CouldNotChangeModprobeExecutablePath(ref cause) => Some(cause),
 
 			&ReloadingLinuxKernelModulesIsUnsupported => None,
 
-			&LinuxKernelModulesListParse(ref cause) => Some(error),
+			&LinuxKernelModulesListParse(ref cause) => Some(cause),
 
 			&CouldNotUnloadLinuxKernelModuleBecauseModuleUnloadingIsDisabled => None,
 
-			&CouldNotUnloadLinuxKernelModule(ref cause) => Some(error),
+			&CouldNotUnloadLinuxKernelModule(ref cause) => Some(cause),
 
-			&CouldNotLoadLinuxKernelModuleUsingModprobe(ref cause) => Some(error),
+			&CouldNotLoadLinuxKernelModuleUsingModprobe(ref cause) => Some(cause),
 
 			&CouldNotLoadLinuxKernelModuleBecauseModuleLoadingIsDisabled => None,
 
-			&CouldNotDisableModuleLoadingAndUnloadingUntilNextReboot(ref cause) => Some(error),
+			&CouldNotDisableModuleLoadingAndUnloadingUntilNextReboot(ref cause) => Some(cause),
 		}
 	}
 }

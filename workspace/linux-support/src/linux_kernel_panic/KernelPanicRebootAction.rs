@@ -6,6 +6,7 @@
 ///
 /// Defaults to 120 seconds.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
 pub enum KernelPanicRebootAction
 {
 	/// Reboot immediately
@@ -29,7 +30,7 @@ impl Default for KernelPanicRebootAction
 	#[inline(always)]
 	fn default() -> Self
 	{
-		PanicRebootAction::AfterSomeSeconds { seconds: unsafe { NonZeroU32::new_unchecked(120) } }
+		KernelPanicRebootAction::AfterSomeSeconds { seconds: unsafe { NonZeroU32::new_unchecked(120) } }
 	}
 }
 

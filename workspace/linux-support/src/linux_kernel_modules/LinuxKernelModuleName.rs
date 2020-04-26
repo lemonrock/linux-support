@@ -119,12 +119,14 @@ impl LinuxKernelModuleName
 	///
 	/// Verifies `modprobe_executable_path` is valid (extant, readable, executable, owned by root and a regular file) before setting it.
 	#[inline(always)]
-	pub fn set_modprobe_executable_path(proc_path: &ProcPath, modprobe_executable_path: &AsRef<Path>) -> io::Result<()>
+	pub fn set_modprobe_executable_path(proc_path: &ProcPath, modprobe_executable_path: &impl AsRef<Path>) -> io::Result<()>
 	{
+		assert_effective_user_id_is_root("write /proc/sys/kernel/modprobe");
+
 		let file_path = Self::modprobe_file_path(proc_path);
 		if file_path.exists()
 		{
-			fn validate_modprobe_path(modprobe_executable_path: &AsRef<Path>) -> io::Result<&Path>
+			fn validate_modprobe_path(modprobe_executable_path: &impl AsRef<Path>) -> io::Result<&Path>
 			{
 				let modprobe_executable_path = modprobe_executable_path.as_ref();
 
@@ -175,6 +177,8 @@ impl LinuxKernelModuleName
 	#[inline(always)]
 	pub fn disable_module_loading_and_unloading_until_reboot(proc_path: &ProcPath) -> io::Result<()>
 	{
+		assert_effective_user_id_is_root("write /proc/sys/kernel/modules_disabled");
+
 		if Self::is_module_loading_and_unloading_disabled(proc_path)
 		{
 			return Ok(())

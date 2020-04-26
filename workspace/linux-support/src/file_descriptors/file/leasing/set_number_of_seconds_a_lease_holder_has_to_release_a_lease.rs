@@ -8,5 +8,15 @@
 #[inline(always)]
 pub fn set_number_of_seconds_a_lease_holder_has_to_release_a_lease(proc_path: &ProcPath, number_of_seconds: usize) -> io::Result<()>
 {
-	proc_path.sys_fs_file_path("lease-break-time").write_value(number_of_seconds)
+	assert_effective_user_id_is_root("write /proc/sys/fs/lease-break-time");
+
+	let file_path = proc_path.sys_fs_file_path("lease-break-time");
+	if file_path.exists()
+	{
+		file_path.write_value(number_of_seconds)
+	}
+	else
+	{
+		Ok(())
+	}
 }

@@ -5,7 +5,7 @@
 
 /// Processor.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub enum Processor
 {
 	/// 80386.

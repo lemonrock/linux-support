@@ -2,15 +2,13 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::paths::*;
-use crate::user_and_groups::assert_effective_user_id_is_root;
-use std::io;
-use std::num::NonZeroU32;
+#[inline(always)]
+fn set_value<'a, Value: IntoLineFeedTerminatedByteString<'a>, Error: error::Error>(proc_path: &ProcPath, function: impl FnOnce(&ProcPath, Value) -> io::Result<()>, value: Option<Value>, error: impl FnOnce(io::Error) -> Error) -> Result<(), Error>
+{
+	if let Some(value) = value
+	{
+		return function(proc_path, value).map_err(error)
+	}
 
-
-include!("maximum_message_size.rs");
-include!("maximum_number_of_queue_identifiers.rs");
-include!("maximum_queue_size_in_bytes.rs");
-include!("set_maximum_message_size.rs");
-include!("set_maximum_number_of_queue_identifiers.rs");
-include!("set_maximum_queue_size_in_bytes.rs");
+	Ok(())
+}

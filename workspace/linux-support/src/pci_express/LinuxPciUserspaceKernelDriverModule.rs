@@ -5,7 +5,7 @@
 /// Linux PCI userspace kernel driver module.
 ///
 /// Defaults to `uio_pci_generic`.
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum LinuxPciUserspaceKernelDriverModule
 {

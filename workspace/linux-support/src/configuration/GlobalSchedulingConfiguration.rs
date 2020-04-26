@@ -3,7 +3,7 @@
 
 
 /// Global scheduling configuration.
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Default, Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct GlobalSchedulingConfiguration
@@ -25,6 +25,43 @@ pub struct GlobalSchedulingConfiguration
 	///
 	/// Requires root.
 	pub reserved_cpu_time_for_non_real_time_scheduler_policies: Option<ReservedCpuTimeForNonRealTimeSchedulerPolicies>,
+
+	/// Enables soft watchdog lockup detection.
+	///
+	/// Not advisable if we're taking over the entire machine.
+	///
+	/// See also `GlobalKernelPanicConfiguration::panic_on_software_watchdog_lockup` and `GlobalKernelPanicConfiguration::capture_debug_information_on_software_watchdog_lockup`.
+	///
+	/// Requires root.
+	pub enable_software_watchdog_lockup_detection: Option<bool>,
+
+	/// Enables hard watchdog lockup detection.
+	///
+	/// Not advisable if we're taking over the entire machine.
+	///
+	/// See also `GlobalKernelPanicConfiguration::panic_on_hardware_watchdog_lockup` and `GlobalKernelPanicConfiguration::capture_debug_information_on_hardware_watchdog_lockup`.
+	///
+	/// Requires root.
+	pub enable_hardware_watchdog_lockup_detection: Option<bool>,
+
+	/// This controls the frequency of checks.
+	///
+	/// The software watchdog threshold is double this value.
+	///
+	/// Requires root.
+	pub hardware_watchdog_threshold_in_seconds: Option<u32>,
+
+	/// It is recommended that this value be computed.
+	///
+	/// If the watchdogs are disabled, then this value does not need to change.
+	///
+	/// Requires root.
+	pub software_and_hardware_watchdog_runs_on_which_kernel_cpus: Option<BitSet<HyperThread>>,
+
+	/// It is recommended that this value be computed.
+	///
+	/// Requires root.
+	pub work_queue_runs_on_which_kernel_cpus: Option<BitSet<HyperThread>>,
 }
 
 impl GlobalSchedulingConfiguration
@@ -58,22 +95,13 @@ impl GlobalSchedulingConfiguration
 			None
 		};
 
-		if let Some(globally_enable_autogroup_if_true_disable_if_false) = self.globally_enable_autogroup_if_true_disable_if_false
-		{
-			assert_effective_user_id_is_root(&format!("change_autogroup '{:?}'", globally_enable_autogroup_if_true_disable_if_false));
-			ProcessNiceConfiguration::sched_autogroup_enabled_file_path(proc_path).write_value(globally_enable_autogroup_if_true_disable_if_false).map_err(|cause| CouldNotChangeAutogroup(cause))?
-		}
-
-		if let Some(round_robin_quantum) = self.round_robin_quantum
-		{
-			round_robin_quantum.write(proc_path).map_err(|cause| CouldNotChangeRoundRobinQuantum(cause))?
-		}
-
-		if let Some(reserved_cpu_time_for_non_real_time_scheduler_policies) = self.reserved_cpu_time_for_non_real_time_scheduler_policies
-		{
-			reserved_cpu_time_for_non_real_time_scheduler_policies.write(proc_path).map_err(|cause| CouldNotChangeReservedCpuTimeForNonRealTimeSchedulerPolicies(cause))?
-		}
-
-		Ok(())
+		set_proc_sys_kernel_value(proc_path, "sched_autogroup_enabled", self.globally_enable_autogroup_if_true_disable_if_false, CouldNotChangeAutogroup)?;
+		set_value(proc_path, |proc_path, value| value.write(proc_path), self.round_robin_quantum, CouldNotChangeRoundRobinQuantum)?;
+		set_value(proc_path, |proc_path, value| value.write(proc_path), self.reserved_cpu_time_for_non_real_time_scheduler_policies, CouldNotChangeReservedCpuTimeForNonRealTimeSchedulerPolicies)?;
+		set_proc_sys_kernel_value(proc_path, "software_watchdog", self.enable_software_watchdog_lockup_detection, CouldNotChangeSoftwareWatchdog)?;
+		set_proc_sys_kernel_value(proc_path, "nmi_watchdog", self.enable_hardware_watchdog_lockup_detection, CouldNotChangeHardwareWatchdog)?;
+		set_proc_sys_kernel_value(proc_path, "watchdog_thresh", self.hardware_watchdog_threshold_in_seconds, CouldNotChangeHardwareWatchdogThreshold)?;
+		set_value(proc_path, |proc_path, value| value.force_watchdog_to_just_these_hyper_threads(proc_path), self.software_and_hardware_watchdog_runs_on_which_kernel_cpus, CouldNotChangeSoftwareAndHardwareWatchdogCpus)?;
+		set_value(proc_path, |proc_path, value| value.set_work_queue_hyper_thread_affinity(proc_path), self.set_work_queue_hyper_thread_affinity, CouldNotChangeWorkQueueCpus)
 	}
 }

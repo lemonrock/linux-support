@@ -40,15 +40,15 @@ impl error::Error for ProcessConfigurationError
 
 		match self
 		{
-			&CouldNotParseLinuxKernelVersion(ref cause) => Some(error),
+			&CouldNotParseLinuxKernelVersion(ref cause) => Some(cause),
 
 			&LinuxKernelVersionIsTooOld => None,
 
 			&CpuFeatureChecksFailed(..) => None,
 
-			&CouldNotSetProcessName(ref cause) => Some(error),
+			&CouldNotSetProcessName(ref cause) => Some(cause),
 
-			&ProcessSchedulingConfiguration(ref cause) => Some(error),
+			&ProcessSchedulingConfiguration(ref cause) => Some(cause),
 		}
 	}
 }

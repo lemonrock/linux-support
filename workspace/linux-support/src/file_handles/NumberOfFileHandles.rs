@@ -4,7 +4,7 @@
 
 /// Number of file handles.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct NumberOfFileHandles(pub usize);
 
@@ -40,11 +40,11 @@ impl NumberOfFileHandles
 		let mut fields = bytes.splitn(3, |byte| *byte == '\t');
 
 		#[inline(always)]
-		fn next(iterator: &mut impl Iterator<Item=&[u8]>) -> NumberOfFileHandles
+		fn next<'a>(fields: &mut impl Iterator<Item=&'a [u8]>) -> NumberOfFileHandles
 		{
 			NumberOfFileHandles(usize::parse_decimal_number(fields.next().unwrap()).unwrap())
 		}
-		(next(iterator), next(iterator), next(iterator))
+		(next(fields), next(fields), next(fields))
 	}
 
 	/// Maximum as reported by `/proc/sys/fs/file-max`.
@@ -61,9 +61,16 @@ impl NumberOfFileHandles
 	#[inline(always)]
 	pub fn set_maximum(&self, proc_path: &ProcPath) -> io::Result<()>
 	{
-		assert_effective_user_id_is_root(&format!("Write /proc/sys/fs/file-max {:?}", self));
-
-		Self::file_max_file_path(proc_path).write_value(self.0)
+		assert_effective_user_id_is_root("write /proc/sys/fs/file-max");
+		let file_path = Self::file_max_file_path(proc_path);
+		if file_path.exists()
+		{
+			file_path.write_value(self.0)
+		}
+		else
+		{
+			Ok(())
+		}
 	}
 
 	#[inline(always)]

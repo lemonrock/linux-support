@@ -6,7 +6,7 @@
 ///
 /// See <https://pcisig.com/sites/default/files/files/PCI_Code-ID_r_1_10__v8_Nov_2017.pdf>.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[allow(missing_docs)]
 pub enum PciDeviceClass
 {

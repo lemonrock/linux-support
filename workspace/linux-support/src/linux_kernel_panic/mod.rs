@@ -4,7 +4,10 @@
 
 use crate::strings::IntoLineFeedTerminatedByteString;
 use bitflags::bitflags;
+use serde::Deserialize;
+use serde::Serialize;
 use std::borrow::Cow;
+use std::num::NonZeroU32;
 
 
 include!("KernelPanicRebootAction.rs");

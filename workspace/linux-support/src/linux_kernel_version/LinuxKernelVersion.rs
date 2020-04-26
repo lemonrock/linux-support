@@ -31,7 +31,7 @@ impl LinuxKernelVersion
 	#[inline(always)]
 	pub fn major_minor_revision(&self) -> LinuxKernelVersionNumber
 	{
-		/// eg `5.4.27`.
+		// eg `5.4.27`.
 		let left = self.release.splitn(2, '-').next().unwrap();
 
 		let mut parts = left.splitn(3);

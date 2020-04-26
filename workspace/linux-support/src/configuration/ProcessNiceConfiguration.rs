@@ -75,7 +75,7 @@ impl ProcessNiceConfiguration
 	{
 		if Self::is_autogroup_active(proc_path)?
 		{
-			nice.set_autogroup_for_current_process(proc_path)
+			share_of_cpu_cycles_in_autogroup.set_autogroup_for_current_process(proc_path)
 		}
 		else
 		{

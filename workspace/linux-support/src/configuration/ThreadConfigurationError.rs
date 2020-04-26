@@ -9,7 +9,7 @@ pub enum ThreadConfigurationError
 	#[allow(missing_docs)]
 	ProcessSchedulingConfiguration(ProcessSchedulingConfigurationError),
 
-	#[allow(missing(docs))]
+	#[allow(missing_docs)]
 	CouldNotSetSchedulerPolicyAndFlags(&'static str),
 }
 
@@ -31,7 +31,7 @@ impl error::Error for ThreadConfigurationError
 
 		match self
 		{
-			&ProcessSchedulingConfiguration(ref cause) => Some(error),
+			&ProcessSchedulingConfiguration(ref cause) => Some(cause),
 
 			&CouldNotSetSchedulerPolicyAndFlags(..) => None,
 		}

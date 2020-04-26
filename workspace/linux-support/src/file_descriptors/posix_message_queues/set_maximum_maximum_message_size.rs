@@ -13,8 +13,18 @@
 #[inline(always)]
 pub fn set_maximum_maximum_message_size(proc_path: &ProcPath, maximum_maximum_message_size: NonZeroU32) -> io::Result<()>
 {
-	debug_assert!(value.get() >= 128);
-	debug_assert!(value.get() <= 16777216);
+	debug_assert!(maximum_maximum_message_size.get() >= 128);
+	debug_assert!(maximum_maximum_message_size.get() <= 16777216);
 
-	proc_path.sys_fs_mqueue_file_path("msgsize_max").write_value(maximum_maximum_message_size)
+	assert_effective_user_id_is_root("write /proc/sys/fs/mqueue/msgsize_max");
+
+	let file_path = proc_path.sys_fs_mqueue_file_path("msgsize_max");
+	if file_path.exists()
+	{
+		file_path.write_value(maximum_maximum_message_size)
+	}
+	else
+	{
+		Ok(())
+	}
 }

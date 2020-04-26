@@ -8,6 +8,7 @@ use crate::user_and_groups::assert_effective_user_id_is_root;
 use errno::errno;
 use lazy_static::lazy_static;
 use libc::*;
+use likely::*;
 use std::borrow::Cow;
 use std::collections::HashSet;
 use std::env::var_os;

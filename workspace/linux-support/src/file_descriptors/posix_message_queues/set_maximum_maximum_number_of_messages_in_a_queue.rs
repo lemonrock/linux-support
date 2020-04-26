@@ -13,7 +13,17 @@
 #[inline(always)]
 pub fn set_maximum_maximum_number_of_messages_in_a_queue(proc_path: &ProcPath, maximum_maximum_number_of_messages_in_a_queue: NonZeroU32) -> io::Result<()>
 {
-	debug_assert!(value.get() <= 65536);
+	debug_assert!(maximum_maximum_number_of_messages_in_a_queue.get() <= 65536);
 
-	proc_path.sys_fs_mqueue_file_path("msg_max").write_value(maximum_maximum_number_of_messages_in_a_queue)
+	assert_effective_user_id_is_root("write /proc/sys/fs/mqueue/msg_max");
+
+	let file_path = proc_path.sys_fs_mqueue_file_path("msg_max");
+	if file_path.exists()
+	{
+		file_path.write_value(maximum_maximum_number_of_messages_in_a_queue)
+	}
+	else
+	{
+		Ok(())
+	}
 }

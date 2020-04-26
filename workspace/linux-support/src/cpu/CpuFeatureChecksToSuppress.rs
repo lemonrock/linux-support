@@ -13,9 +13,8 @@
 /// * `has_working_xsave`: "CPU architecture either lacks XSAVE support or the Linux kernel has disabled XSAVE support".
 /// * `has_invpcid`: "Your CPU does not support the INVPCID instruction, which is important for efficient mitigation of the Meltdown and Spectre security vulnerabilities".
 /// * `has_smap`: "Your CPU does not support the Supervisor-Mode Access Prevention (SMAP) instructions CLAC and STAC, which are important for securing modern Linux systems".
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
 #[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields, default)]
 #[repr(transparent)]
 pub struct CpuFeatureChecksToSuppress(HashSet<&'static str>);
 

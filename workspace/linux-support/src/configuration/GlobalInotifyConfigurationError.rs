@@ -34,11 +34,11 @@ impl error::Error for GlobalInotifyConfigurationError
 
 		match self
 		{
-			&CouldNotChangeMaximumNumberOfEventsThatCanBeQueued(ref cause) => Some(error),
+			&CouldNotChangeMaximumNumberOfEventsThatCanBeQueued(ref cause) => Some(cause),
 
-			&CouldNotChangeMaximumNumberOfInotifyInstancesPerUser(ref cause) => Some(error),
+			&CouldNotChangeMaximumNumberOfInotifyInstancesPerUser(ref cause) => Some(cause),
 
-			&CouldNotChangeMaximumNumberOfWatchesPerUser(ref cause) => Some(error),
+			&CouldNotChangeMaximumNumberOfWatchesPerUser(ref cause) => Some(cause),
 		}
 	}
 }

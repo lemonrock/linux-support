@@ -40,15 +40,15 @@ impl error::Error for GlobalPosixMessageQueueConfigurationError
 
 		match self
 		{
-			&CouldNotChangeDefaultMaximumNumberOfMessagesInAQueue(ref cause) => Some(error),
+			&CouldNotChangeDefaultMaximumNumberOfMessagesInAQueue(ref cause) => Some(cause),
 
-			&CouldNotChangeMaximumMaximumNumberOfMessagesInAQueue(ref cause) => Some(error),
+			&CouldNotChangeMaximumMaximumNumberOfMessagesInAQueue(ref cause) => Some(cause),
 
-			&CouldNotChangeDefaultMaximumMessageSize(ref cause) => Some(error),
+			&CouldNotChangeDefaultMaximumMessageSize(ref cause) => Some(cause),
 
-			&CouldNotChangeMaximumMaximumMessageSize(ref cause) => Some(error),
+			&CouldNotChangeMaximumMaximumMessageSize(ref cause) => Some(cause),
 
-			&CouldNotChangeMaximumNumberOfQueues(ref cause) => Some(error),
+			&CouldNotChangeMaximumNumberOfQueues(ref cause) => Some(cause),
 		}
 	}
 }

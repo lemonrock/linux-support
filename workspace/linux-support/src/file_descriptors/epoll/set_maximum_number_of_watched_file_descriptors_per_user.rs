@@ -10,5 +10,15 @@
 #[inline(always)]
 pub fn set_maximum_number_of_watched_file_descriptors_per_user(proc_path: &ProcPath, maximum_number_of_watched_file_descriptors_per_user: NonZeroU32) -> io::Result<()>
 {
-	proc_path.sys_fs_epoll_file_path("max_user_watches").write_value(maximum_number_of_watched_file_descriptors_per_user)
+	assert_effective_user_id_is_root("write to /proc/sys/fs/epoll/max_user_watches");
+
+	let file_path = proc_path.sys_fs_epoll_file_path("max_user_watches");
+	if file_path.exists()
+	{
+		file_path.write_value(maximum_number_of_watched_file_descriptors_per_user)
+	}
+	else
+	{
+		Ok(())
+	}
 }

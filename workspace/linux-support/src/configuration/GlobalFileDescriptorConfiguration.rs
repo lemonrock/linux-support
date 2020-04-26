@@ -11,7 +11,7 @@ pub struct GlobalFileDescriptorConfiguration
 	/// Default is 1,048,576.
 	///
 	/// Requires root.
-	pub maximum_number_of_open_file_descriptors: Option<usize>,
+	pub maximum_number_of_open_file_descriptors: Option<u64>,
 }
 
 impl GlobalFileDescriptorConfiguration
@@ -21,10 +21,7 @@ impl GlobalFileDescriptorConfiguration
 	{
 		use self::GlobalFileDescriptorConfigurationError::*;
 
-		if let Some(maximum_number_of_watched_file_descriptors_per_user) = self.maximum_number_of_watched_file_descriptors_per_user
-		{
-			ResourceLimit::set_maximum_number_of_open_file_descriptors(proc_path, maximum_number_of_open_file_descriptors).map_err(|cause| CouldNotChangeMaximumNumberOfOpenFileDescriptors(cause))
-		}
+		set_value(proc_path, ResourceLimit::set_maximum_number_of_open_file_descriptors, self.maximum_number_of_open_file_descriptors, CouldNotChangeMaximumNumberOfOpenFileDescriptors)?;
 
 		Ok(())
 	}

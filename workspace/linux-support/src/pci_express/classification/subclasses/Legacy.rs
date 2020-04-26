@@ -7,7 +7,7 @@
 /// No new devices should use this value and existing devices should switch to a more appropriate value if possible.
 #[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[repr(u8)]
 pub enum Legacy
 {

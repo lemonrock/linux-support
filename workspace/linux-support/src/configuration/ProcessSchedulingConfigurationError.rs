@@ -2,14 +2,14 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[allow(missing(docs))]
+#[allow(missing_docs)]
 #[derive(Debug)]
 pub enum ProcessSchedulingConfigurationError
 {
-	#[allow(missing(docs))]
+	#[allow(missing_docs)]
 	ProcessNiceConfiguration(ProcessNiceConfigurationError),
 
-	#[allow(missing(docs))]
+	#[allow(missing_docs)]
 	CouldNotSetSchedulerPolicyAndFlags(&'static str),
 }
 

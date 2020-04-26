@@ -13,7 +13,7 @@ use crate::paths::*;
 use crate::signals::Signal;
 use crate::strings::*;
 use crate::strings::parse_number::*;
-use crate::thread::{ThreadIdentifier, ThreadIdentifierChoice};
+use crate::thread::ThreadIdentifier;
 use crate::vectors::*;
 use arrayvec::ArrayVec;
 use errno::errno;
@@ -31,6 +31,7 @@ use libc::mode_t;
 use libc::pid_t;
 use libc::process_vm_readv;
 use libc::process_vm_writev;
+use libc::strnlen;
 use libc_extra::linux::errno::program_invocation_short_name;
 use likely::*;
 use likely::unlikely;
@@ -58,6 +59,7 @@ use std::num::NonZeroUsize;
 use std::ops::Deref;
 use std::ptr::write;
 use crate::scheduling::RoundRobinInterval;
+use static_assertions::_core::slice::from_raw_parts;
 
 
 /// `/proc/<N>/stat`.

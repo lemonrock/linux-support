@@ -37,9 +37,17 @@ impl ResourceLimit
 	#[inline(always)]
 	pub fn set_maximum_number_of_open_file_descriptors(proc_path: &ProcPath, value: u64) -> io::Result<()>
 	{
-		assert_effective_user_id_is_root(&format!("Write /proc/sys/fs/nr_open {:?}", value));
+		assert_effective_user_id_is_root("write to /proc/sys/fs/nr_open");
+		let file_path = Self::nr_open_file_path(proc_path);
 
-		Self::nr_open_file_path(proc_path).write_value(value)
+		if file_path.exists()
+		{
+			file_path.write_value(value)
+		}
+		else
+		{
+			Ok(())
+		}
 	}
 
 	#[inline(always)]

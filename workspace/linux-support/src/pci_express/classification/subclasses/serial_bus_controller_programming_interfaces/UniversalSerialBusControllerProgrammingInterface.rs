@@ -4,7 +4,7 @@
 
 /// Universal Serial Bus (USB).
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub enum UniveralSerialBusControllerProgrammingInterface
 {
 	/// Universal Host Controller Specification (UHCI).

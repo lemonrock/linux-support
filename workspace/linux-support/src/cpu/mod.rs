@@ -3,7 +3,6 @@
 
 
 use crate::current_numa_node_and_hyper_thread;
-use crate::WarningsToSuppress;
 use crate::bit_set::*;
 use crate::memory::numa::*;
 use crate::paths::*;
@@ -16,6 +15,8 @@ use errno::errno;
 use libc::*;
 use likely::*;
 use raw_cpuid::*;
+use serde::Deserialize;
+use serde::Serialize;
 use std::borrow::Cow;
 use std::convert::TryFrom;
 use std::convert::TryInto;

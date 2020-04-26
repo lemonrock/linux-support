@@ -25,7 +25,7 @@ impl FailedChecks
 	}
 
 	#[inline(always)]
-	pub(crate) fn check(&mut self, suppress: &HashSet<&'static str>, check_name: &str, message: &str, true_if_should_not_warn: impl FnOnce() -> bool)
+	pub(crate) fn check(&mut self, suppress: &HashSet<&'static str>, check_name: &'static str, message: Cow<'_, str>, true_if_should_not_warn: impl FnOnce() -> bool)
 	{
 		if true_if_should_not_warn()
 		{
@@ -37,7 +37,7 @@ impl FailedChecks
 			return
 		}
 
-		let previously_inserted = self.0.insert(check_name, message);
+		let previously_inserted = self.0.insert(check_name, message.into_owned());
 		debug_assert!(previously_inserted.is_none())
 	}
 }
