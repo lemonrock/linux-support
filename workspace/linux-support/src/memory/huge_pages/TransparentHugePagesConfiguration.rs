@@ -5,9 +5,9 @@
 /// Transparent Huge Pages Configuration.
 ///
 /// Default implementation disables transparent huge pages entirely.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct TransparentHugePagesConfiguration
 {
 	#[allow(missing_docs)]

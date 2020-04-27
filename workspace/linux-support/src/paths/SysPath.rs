@@ -5,7 +5,6 @@
 /// Represents `/sys`.
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
 #[repr(transparent)]
 pub struct SysPath(PathBuf);
 

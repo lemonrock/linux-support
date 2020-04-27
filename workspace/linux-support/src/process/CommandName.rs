@@ -6,11 +6,56 @@
 ///
 /// Also known as `comm`.
 ///
-/// Deref includes trailing ASCII NUL.
+/// Deref excludes trailing ASCII NUL.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct CommandName(pub(crate) ArrayVec<[u8; CommandName::MaximumCommandNameLengthIncludingAsciiNul]>);
+
+impl<'de> Deserialize<'de> for CommandName
+{
+	#[inline(always)]
+	fn deserialize<D:  Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error>
+	{
+		struct CommandNameVisitor;
+
+		impl<'de> Visitor<'de> for CommandNameVisitor
+		{
+			type Value = CommandName;
+
+			#[inline(always)]
+			fn expecting(&self, formatter: &mut Formatter) -> fmt::Result
+			{
+				formatter.write_str("A C-like string with a length between 0 and 15 inclusive without a trailing NUL")
+			}
+
+			#[inline(always)]
+			fn visit_str<E: de::Error>(self, v: &str) -> Result<Self::Value, E>
+			{
+				self.visit_bytes(v.as_ref())
+			}
+
+			#[inline(always)]
+			fn visit_bytes<E: de::Error>(self, v: &[u8]) -> Result<Self::Value, E>
+			{
+				CommandName::new_from_bytes_excluding_ascii_nul(v).map_err(|cause| match cause
+				{
+					CommandNameFromBytesError::TooLong(length) => E::invalid_length(length, &"bytes with a length between 0 and 15 inclusive without a trailing NUL"),
+				})
+			}
+		}
+
+		deserializer.deserialize_bytes(CommandNameVisitor)
+	}
+}
+
+impl Serialize for CommandName
+{
+	#[inline(always)]
+	fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	{
+		serializer.serialize_bytes(self.deref())
+	}
+}
 
 impl Deref for CommandName
 {
@@ -31,27 +76,7 @@ impl FromBytes for CommandName
 	#[inline(always)]
 	fn from_bytes(bytes: &[u8]) -> Result<Self, Self::Error>
 	{
-		use self::CommandNameFromBytesError::*;
-
-		if unlikely!(bytes.len() > Self::MaximumCommandNameLengthIncludingAsciiNul)
-		{
-			return Err(TooLong)
-		}
-
-		let length = bytes.len();
-		if unlikely!(* bytes.get_unchecked(length - 1) != b'\0')
-		{
-			return Err(NoTrailingNul)
-		}
-
-		let mut array_vec = ArrayVec::new();
-		unsafe
-		{
-			let pointer: *mut u8 = array_vec.as_mut_ptr();
-			pointer.copy_from_nonoverlapping(bytes.as_ptr(), length);
-			array_vec.set_len(length)
-		}
-		Ok(Self(array_vec))
+		Self::new_from_bytes_excluding_ascii_nul(bytes)
 	}
 }
 
@@ -85,11 +110,17 @@ impl CommandName
 
 	/// New instance.
 	#[inline(always)]
-	pub fn new_from_bytes_excluding_ascii_nul(bytes: &[u8]) -> Self
+	pub fn new_from_bytes_excluding_ascii_nul(bytes: &[u8]) -> Result<Self, CommandNameFromBytesError>
 	{
-		let mut array_vec = ArrayVec::new();
 		let length = bytes.len();
-		debug_assert!(length <= Self::MaximumCommandNameLengthExcludingAsciiNul);
+
+		if unlikely!(length > Self::MaximumCommandNameLengthExcludingAsciiNul)
+		{
+			return Err(CommandNameFromBytesError::TooLong(length))
+		}
+
+		let mut array_vec = ArrayVec::new();
+
 		unsafe
 		{
 			let pointer: *mut u8 = array_vec.as_mut_ptr();
@@ -97,6 +128,6 @@ impl CommandName
 			array_vec.set_len(length)
 		}
 		array_vec.push(b'\0');
-		Self(array_vec)
+		Ok(Self(array_vec))
 	}
 }

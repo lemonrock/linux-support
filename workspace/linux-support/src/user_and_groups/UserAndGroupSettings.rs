@@ -9,23 +9,29 @@
 pub struct UserAndGroupSettings
 {
 	/// Used for the user identifier and home folder path.
+	///
 	/// Must exist in `/etc/passwd`.
 	#[serde(default = "UserAndGroupSettings::user_name_default")] pub user_name: CString,
 
 	/// Used to set the effective user identifier.
+	///
 	/// Must exist in `/etc/passwd`.
 	#[serde(default = "UserAndGroupSettings::user_name_default")] pub effective_user_name: CString,
 
 	/// Used to set the saved-set user identifier.
+	///
 	/// Must exist in `/etc/passwd`.
 	#[serde(default = "UserAndGroupSettings::user_name_default")] pub saved_set_user_name: CString,
 
 	/// Used to set the file system user identifier.
+	///
 	/// Must exist in `/etc/passwd`.
+	///
 	/// A deprecated concept but included for completeness.
 	#[serde(default = "UserAndGroupSettings::user_name_default")] pub file_system_user_name: CString,
 
 	/// Initialize additional groups.
+	///
 	/// Requires `/etc/passwd` to exist and for namespace permissions to have been granted.
 	#[serde(default = "UserAndGroupSettings::initialize_groups_default")] pub initialize_groups: bool,
 }

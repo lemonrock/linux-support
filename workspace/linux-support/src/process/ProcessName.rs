@@ -44,7 +44,7 @@ impl Default for ProcessName
 	{
 		let length = unsafe { strnlen(program_invocation_short_name, CommandName::MaximumCommandNameLengthExcludingAsciiNul) };
 
-		Self(CommandName::new_from_bytes_excluding_ascii_nul(unsafe { from_raw_parts(program_invocation_short_name as *const u8, length) }))
+		Self(CommandName::new_from_bytes_excluding_ascii_nul(unsafe { from_raw_parts(program_invocation_short_name as *const u8, length) }).unwrap())
 	}
 }
 

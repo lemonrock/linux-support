@@ -3,9 +3,9 @@
 
 
 /// Transparent Huge Page (THP) defragmentation choice.
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub enum TransparentHugePageDefragmentationChoice
 {
 	/// Never defragment.

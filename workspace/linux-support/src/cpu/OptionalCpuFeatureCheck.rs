@@ -6,6 +6,7 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[derive(EnumMessage, EnumIter, IntoStaticStr)]
+#[serde(deny_unknown_fields)]
 pub enum OptionalCpuFeatureCheck
 {
 	#[cfg(target_arch = "x86_64")]

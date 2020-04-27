@@ -5,6 +5,7 @@
 /// Scheduler policy and flags per thread.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct PerThreadSchedulerPolicyAndFlags
 {
 	/// Policy.

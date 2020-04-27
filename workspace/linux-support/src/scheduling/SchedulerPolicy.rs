@@ -15,6 +15,7 @@
 /// 	* if it it has a zero `RLIMIT_RTPRIO` soft limit: the only permitted changes are to lower the priority, or to switch to a non-real-time policy.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum SchedulerPolicy
 {
 	/// For running very low priority background jobs.

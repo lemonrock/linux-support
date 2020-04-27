@@ -4,10 +4,10 @@
 
 /// Name for a resource which has a soft and a hard limit.
 #[allow(missing_docs)]
-#[repr(i32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(i32)]
 pub enum ResourceName
 {
 	MaximumSizeOfVirtualMemoryAddressSpaceInBytes = RLIMIT_AS,

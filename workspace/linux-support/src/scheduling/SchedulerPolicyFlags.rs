@@ -6,6 +6,7 @@ bitflags!
 {
 	/// Scheduler policy flags.
 	#[derive(Deserialize, Serialize)]
+	#[serde(deny_unknown_fields)]
 	pub struct SchedulerPolicyFlags: u64
 	{
 		/// This is called the 'reset-on-fork' flag.

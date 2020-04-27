@@ -1,8 +1,4 @@
-/proc/x/stat parsing bug in `comm`:-
-- Can have embedded ')' in it legitimately
-- Maximum of 255 characters,
-- Might actually only be 16 characters, due to kernel task struct limit
-- Also get this from /proc/x/comm (which doubles as thread name)
+/proc/x/stat parsing bug in `comm`: Can have embedded ')' in it legitimately
 
 userfaultfd: http://man7.org/linux/man-pages/man2/userfaultfd.2.html
 F_GET_RW_HINT: read-write hints http://man7.org/linux/man-pages/man2/fcntl.2.html

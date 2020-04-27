@@ -5,7 +5,8 @@
 /// A driver name.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-pub struct DriverName(Box<[u8]>);
+#[repr(transparent)]
+pub struct DriverName(#[serde(with = "serde_bytes")] Box<[u8]>);
 
 impl<'a> From<&'a OsStr> for DriverName
 {

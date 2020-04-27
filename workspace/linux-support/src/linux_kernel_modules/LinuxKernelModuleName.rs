@@ -5,7 +5,8 @@
 /// A Linux kernel module name.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-pub struct LinuxKernelModuleName(Box<[u8]>);
+#[repr(transparent)]
+pub struct LinuxKernelModuleName(#[serde(with = "serde_bytes")] Box<[u8]>);
 
 impl From<&[u8]> for LinuxKernelModuleName
 {

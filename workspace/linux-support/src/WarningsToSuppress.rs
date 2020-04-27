@@ -5,8 +5,7 @@
 /// CPU and Kernel missing feature warnings to suppress.
 #[derive(Default, Debug, Clone)]
 #[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct WarningsToSuppress
 {
 	/// Missing Kernel features whose warnings should be supressed.

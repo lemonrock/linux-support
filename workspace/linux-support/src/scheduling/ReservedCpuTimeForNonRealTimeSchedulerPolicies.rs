@@ -7,6 +7,7 @@
 /// Reserving CPU time in this fashion allows some CPU time to be allocated to (say) a root shell that can be used to kill a runaway process.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct ReservedCpuTimeForNonRealTimeSchedulerPolicies
 {
 	period_microseconds: NonZeroU32,

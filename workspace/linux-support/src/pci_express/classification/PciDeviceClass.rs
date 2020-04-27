@@ -5,9 +5,10 @@
 /// A PCI device class.
 ///
 /// See <https://pcisig.com/sites/default/files/files/PCI_Code-ID_r_1_10__v8_Nov_2017.pdf>.
+#[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
-#[allow(missing_docs)]
+#[serde(deny_unknown_fields)]
 pub enum PciDeviceClass
 {
 	Legacy(Legacy),

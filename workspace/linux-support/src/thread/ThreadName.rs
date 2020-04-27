@@ -42,7 +42,7 @@ impl Default for ThreadName
 	#[inline(always)]
 	fn default() -> Self
 	{
-		Self(CommandName::new_from_bytes_excluding_ascii_nul(b"unnammed"))
+		Self(CommandName::new_from_bytes_excluding_ascii_nul(b"unnamed").unwrap())
 	}
 }
 

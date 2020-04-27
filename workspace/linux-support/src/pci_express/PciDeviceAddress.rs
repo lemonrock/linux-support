@@ -5,6 +5,7 @@
 /// Represents the unique address of a PCI device in a system, such as an individual ethernet port (connector).
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct PciDeviceAddress
 {
 	domain: u16,

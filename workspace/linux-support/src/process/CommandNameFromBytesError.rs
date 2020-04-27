@@ -6,11 +6,8 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum CommandNameFromBytesError
 {
-	/// More than `CommandName::MaximumCommandNameLengthIncludingAsciiNul` bytes.
-	TooLong,
-
-	/// No trailing NUL.
-	NoTrailingNul,
+	/// More than `CommandName::MaximumCommandNameLengthExcludingAsciiNul` bytes.
+	TooLong(usize),
 }
 
 impl Display for CommandNameFromBytesError

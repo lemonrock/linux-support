@@ -6,6 +6,7 @@ bitflags!
 {
 	/// What to print on a kernel panic.
 	#[derive(Deserialize, Serialize)]
+	#[serde(deny_unknown_fields)]
 	pub struct WhatToPrintOnAKernelPanic: u8
 	{
 		#[allow(missing_docs)]

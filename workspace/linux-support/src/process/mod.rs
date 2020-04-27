@@ -35,7 +35,7 @@ use libc::strnlen;
 use libc_extra::linux::errno::program_invocation_short_name;
 use likely::*;
 use likely::unlikely;
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer, de, Serializer};
 use serde::Serialize;
 use std::borrow::Cow;
 use std::collections::HashMap;
@@ -62,6 +62,7 @@ use std::ops::Deref;
 use std::ptr::write;
 use crate::scheduling::RoundRobinInterval;
 use static_assertions::_core::slice::from_raw_parts;
+use serde::de::Visitor;
 
 
 /// `/proc/<N>/stat`.

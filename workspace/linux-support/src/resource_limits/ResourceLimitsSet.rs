@@ -5,7 +5,7 @@
 /// Represents a set of resource limits.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
+#[repr(transparent)]
 pub struct ResourceLimitsSet(HashMap<ResourceName, SoftAndHardResourceLimit>);
 
 impl Default for ResourceLimitsSet

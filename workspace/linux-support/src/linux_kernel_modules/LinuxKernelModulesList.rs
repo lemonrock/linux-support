@@ -7,6 +7,7 @@
 /// Is *not* updated if a module is loaded or unloaded.
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
 #[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct LinuxKernelModulesList(HashSet<LinuxKernelModuleName>);
 
 impl LinuxKernelModulesList

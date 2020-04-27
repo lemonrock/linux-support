@@ -12,9 +12,9 @@
 /// * shared anonymous mmaps (of /dev/zero or `MAP_ANONYMOUS`)
 /// * GPU drivers' DRM objects
 /// * Ashmem
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub enum TransparentHugePageSharedMemoryChoice
 {
 	/// Never allocate.

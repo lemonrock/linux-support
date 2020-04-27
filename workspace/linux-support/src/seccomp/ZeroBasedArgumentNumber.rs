@@ -3,10 +3,10 @@
 
 
 /// Zero-based argument number.
+#[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-#[allow(missing_docs)]
 #[repr(u32)]
 pub enum ZeroBasedArgumentNumber
 {

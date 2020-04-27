@@ -5,10 +5,11 @@
 /// Real-time priority, from 1 to 99 inclusive.
 ///
 /// All non-real-time `SchedulerPolicy`s (`Idle`, `Batch` and `Normal`) are considered to have an equivalent real-time priority of `0`.
+#[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(u8)]
-#[allow(missing_docs)]
 pub enum RealTimePriority
 {
 	#[serde(rename = "1")] _1 = 1,

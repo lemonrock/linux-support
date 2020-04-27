@@ -7,8 +7,8 @@
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
 #[derive(EnumIter)]
+#[serde(deny_unknown_fields)]
 pub enum Capability
 {
 	AuditControl = capability::CAP_AUDIT_CONTROL as u8,
