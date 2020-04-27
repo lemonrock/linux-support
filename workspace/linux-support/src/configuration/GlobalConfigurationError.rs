@@ -44,6 +44,9 @@ pub enum GlobalConfigurationError
 
 	#[allow(missing_docs)]
 	GlobalSecurityConfiguration(GlobalSecurityConfigurationError),
+
+	#[allow(missing_docs)]
+	GlobalTransparentHugePagesConfiguration(GlobalTransparentHugePagesConfigurationError),
 }
 
 impl Display for GlobalConfigurationError
@@ -89,6 +92,8 @@ impl error::Error for GlobalConfigurationError
 			&GlobalKernelPanicConfiguration(ref cause) => Some(cause),
 
 			&GlobalSecurityConfiguration(ref cause) => Some(cause),
+
+			&GlobalTransparentHugePagesConfiguration(ref cause) => Some(cause),
 		}
 	}
 }
@@ -207,5 +212,14 @@ impl From<GlobalSecurityConfigurationError> for GlobalConfigurationError
 	fn from(cause: GlobalSecurityConfigurationError) -> Self
 	{
 		GlobalConfigurationError::GlobalSecurityConfiguration(cause)
+	}
+}
+
+impl From<GlobalTransparentHugePagesConfigurationError> for GlobalConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: GlobalTransparentHugePagesConfigurationError) -> Self
+	{
+		GlobalConfigurationError::GlobalTransparentHugePagesConfiguration(cause)
 	}
 }

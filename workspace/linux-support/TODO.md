@@ -4,6 +4,10 @@ userfaultfd: http://man7.org/linux/man-pages/man2/userfaultfd.2.html
 F_GET_RW_HINT: read-write hints http://man7.org/linux/man-pages/man2/fcntl.2.html
 
 
+POSIX ACLs: http://man7.org/linux/man-pages/man5/acl.5.html
+
+
+
 #define FS_IOC_FSGETXATTR		_IOR('X', 31, struct fsxattr)
 #define FS_IOC_FSSETXATTR		_IOW('X', 32, struct fsxattr)
 /*

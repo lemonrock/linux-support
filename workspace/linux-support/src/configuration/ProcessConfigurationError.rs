@@ -7,10 +7,10 @@
 pub enum ProcessConfigurationError
 {
 	#[allow(missing_docs)]
-	CouldNotParseLinuxKernelVersion(io::Error),
+	CouldNotObtainPersonality,
 
 	#[allow(missing_docs)]
-	LinuxKernelVersionIsTooOld,
+	CurrentPersonalityIsNotLinux(PersonalityFlags),
 
 	#[allow(missing_docs)]
 	CompiledCpuFeatureChecksFailed(FailedChecks<CompiledCpuFeatureCheck>),
@@ -22,10 +22,25 @@ pub enum ProcessConfigurationError
 	OptionalCpuFeatureChecksFailed(FailedChecks<OptionalCpuFeatureCheck>),
 
 	#[allow(missing_docs)]
+	LinuxKernelVersionIsTooOld,
+
+	#[allow(missing_docs)]
+	CouldNotParseLinuxKernelVersion(io::Error),
+
+	#[allow(missing_docs)]
 	CouldNotSetProcessName(io::Error),
 
 	#[allow(missing_docs)]
+	CouldNotSetLocale(LocaleName),
+
+	#[allow(missing_docs)]
 	ProcessSchedulingConfiguration(ProcessSchedulingConfigurationError),
+
+	#[allow(missing_docs)]
+	RunningSetUid,
+
+	#[allow(missing_docs)]
+	RunningSetGid,
 }
 
 impl Display for ProcessConfigurationError
@@ -46,9 +61,7 @@ impl error::Error for ProcessConfigurationError
 
 		match self
 		{
-			&CouldNotParseLinuxKernelVersion(ref cause) => Some(cause),
-
-			&LinuxKernelVersionIsTooOld => None,
+			&CouldNotObtainPersonality => None,
 
 			&CompiledCpuFeatureChecksFailed(ref cause) => Some(cause),
 
@@ -56,9 +69,21 @@ impl error::Error for ProcessConfigurationError
 
 			&OptionalCpuFeatureChecksFailed(ref cause) => Some(cause),
 
+			&CurrentPersonalityIsNotLinux(..) => None,
+
+			&CouldNotParseLinuxKernelVersion(ref cause) => Some(cause),
+
+			&LinuxKernelVersionIsTooOld => None,
+
 			&CouldNotSetProcessName(ref cause) => Some(cause),
 
+			&CouldNotSetLocale(..) => None,
+
 			&ProcessSchedulingConfiguration(ref cause) => Some(cause),
+
+			&RunningSetUid => None,
+
+			&RunningSetGid => None,
 		}
 	}
 }

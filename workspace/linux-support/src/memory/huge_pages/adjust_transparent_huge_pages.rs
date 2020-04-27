@@ -4,7 +4,7 @@
 
 /// Enable or disable transparent huge pages.
 #[inline(always)]
-fn adjust_transparent_huge_pages(enable_transparent_huge_pages: bool)
+pub fn adjust_transparent_huge_pages(enable_transparent_huge_pages: bool)
 {
 	let value = if enable_transparent_huge_pages
 	{

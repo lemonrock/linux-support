@@ -8,25 +8,25 @@
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct TransparentHugePagesConfiguration
+pub struct GlobalTransparentHugePagesConfiguration
 {
 	#[allow(missing_docs)]
 	#[serde(default)] pub defragmentation_choice: TransparentHugePageDefragmentationChoice,
 
 	#[allow(missing_docs)]
-	#[serde(default = "TransparentHugePagesConfiguration::defragmentation_pages_to_scan_default")] pub defragmentation_pages_to_scan: u16,
+	#[serde(default = "GlobalTransparentHugePagesConfiguration::defragmentation_pages_to_scan_default")] pub defragmentation_pages_to_scan: u16,
 
 	#[allow(missing_docs)]
-	#[serde(default = "TransparentHugePagesConfiguration::defragmentation_scan_sleep_in_milliseconds_default")] pub defragmentation_scan_sleep_in_milliseconds: usize,
+	#[serde(default = "GlobalTransparentHugePagesConfiguration::defragmentation_scan_sleep_in_milliseconds_default")] pub defragmentation_scan_sleep_in_milliseconds: usize,
 
 	#[allow(missing_docs)]
-	#[serde(default = "TransparentHugePagesConfiguration::defragmentation_allocation_sleep_in_milliseconds_default")] pub defragmentation_allocation_sleep_in_milliseconds: usize,
+	#[serde(default = "GlobalTransparentHugePagesConfiguration::defragmentation_allocation_sleep_in_milliseconds_default")] pub defragmentation_allocation_sleep_in_milliseconds: usize,
 
 	#[allow(missing_docs)]
-	#[serde(default = "TransparentHugePagesConfiguration::defragmentation_how_many_extra_small_pages_not_already_mapped_can_be_allocated_when_collapsing_small_pages_default")] pub defragmentation_how_many_extra_small_pages_not_already_mapped_can_be_allocated_when_collapsing_small_pages: u16,
+	#[serde(default = "GlobalTransparentHugePagesConfiguration::defragmentation_how_many_extra_small_pages_not_already_mapped_can_be_allocated_when_collapsing_small_pages_default")] pub defragmentation_how_many_extra_small_pages_not_already_mapped_can_be_allocated_when_collapsing_small_pages: u16,
 
 	#[allow(missing_docs)]
-	#[serde(default = "TransparentHugePagesConfiguration::defragmentation_how_many_extra_small_pages_not_already_mapped_can_be_swapped_when_collapsing_small_pages_default")] pub defragmentation_how_many_extra_small_pages_not_already_mapped_can_be_swapped_when_collapsing_small_pages: u16,
+	#[serde(default = "GlobalTransparentHugePagesConfiguration::defragmentation_how_many_extra_small_pages_not_already_mapped_can_be_swapped_when_collapsing_small_pages_default")] pub defragmentation_how_many_extra_small_pages_not_already_mapped_can_be_swapped_when_collapsing_small_pages: u16,
 
 	#[allow(missing_docs)]
 	#[serde(default)] pub regular_memory_choice: TransparentHugePageRegularMemoryChoice,
@@ -35,13 +35,13 @@ pub struct TransparentHugePagesConfiguration
 	#[serde(default)] pub shared_memory_choice: TransparentHugePageSharedMemoryChoice,
 
 	#[allow(missing_docs)]
-	#[serde(default = "TransparentHugePagesConfiguration::use_zero_page_default")] pub use_zero_page: bool,
+	#[serde(default = "GlobalTransparentHugePagesConfiguration::use_zero_page_default")] pub use_zero_page: bool,
 
 	#[allow(missing_docs)]
 	#[serde(default)] pub enable: bool,
 }
 
-impl Default for TransparentHugePagesConfiguration
+impl Default for GlobalTransparentHugePagesConfiguration
 {
 	#[inline(always)]
 	fn default() -> Self
@@ -62,15 +62,15 @@ impl Default for TransparentHugePagesConfiguration
 	}
 }
 
-impl TransparentHugePagesConfiguration
+impl GlobalTransparentHugePagesConfiguration
 {
 	/// Configure.
 	#[inline(always)]
-	pub fn configure(&self, sys_path: &SysPath) -> Result<(), DisableTransparentHugePagesError>
+	pub fn configure(&self, sys_path: &SysPath) -> Result<(), GlobalTransparentHugePagesConfigurationError>
 	{
-		use self::DisableTransparentHugePagesError::*;
+		use self::GlobalTransparentHugePagesConfigurationError::*;
 
-		TransparentHugePageDefragmentationChoice::Never.change_transparent_huge_pages_defragmentation(sys_path, 4096, 60_000, 10_000, 511, 64).map_err(|io_error| Defragmentation(io_error))?;
+		TransparentHugePageDefragmentationChoice::Never.change_transparent_huge_pages_defragmentation(sys_path, self.defragmentation_pages_to_scan, self.defragmentation_scan_sleep_in_milliseconds, self.defragmentation_allocation_sleep_in_milliseconds, self.defragmentation_how_many_extra_small_pages_not_already_mapped_can_be_allocated_when_collapsing_small_pages, self.defragmentation_how_many_extra_small_pages_not_already_mapped_can_be_swapped_when_collapsing_small_pages).map_err(|io_error| Defragmentation(io_error))?;
 
 		self.regular_memory_choice.change_transparent_huge_pages_usage(sys_path, self.shared_memory_choice, self.use_zero_page).map_err(|io_error| Usage(io_error))?;
 

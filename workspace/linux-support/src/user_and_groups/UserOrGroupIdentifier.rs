@@ -22,6 +22,13 @@ pub trait UserOrGroupIdentifier: Sized + Copy + Into<u32> + Default + PartialEq 
 	/// Current effective value.
 	fn current_effective() -> Self;
 
+	/// `Self::current_real()` will return the uid/gid of the user/group who invoked the program and `Self::current_effective(0` will return the uid/gid of the user/group that owns the executable.
+	#[inline(always)]
+	fn running_setuid() -> bool
+	{
+		Self::current_real() != Self::current_effective()
+	}
+
 	/// Current real, effective and saved-set values.
 	fn current_real_effective_and_saved_set() -> (Self, Self, Self);
 

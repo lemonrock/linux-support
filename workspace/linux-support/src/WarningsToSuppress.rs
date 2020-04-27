@@ -36,7 +36,7 @@ impl WarningsToSuppress
 			return
 		}
 
-		LoggingConfiguration::warn(name, format!("{}", message))
+		ProcessLoggingConfiguration::warn(name, format!("{}", message))
 	}
 
 	#[inline(always)]
@@ -47,6 +47,6 @@ impl WarningsToSuppress
 			return
 		}
 
-		LoggingConfiguration::warn(name, format!("{}", message))
+		ProcessLoggingConfiguration::warn(name, format!("{}", message))
 	}
 }

@@ -6,7 +6,6 @@ use super::cpu::HyperThread;
 use super::signals::Signal;
 use super::strings::ConstCStr;
 use super::strings::to_c_string_robustly;
-use crate::process::get_program_name;
 use libc::*;
 use libc_extra::android_linux::stdio::cookie_io_functions_t;
 use libc_extra::android_linux::stdio::cookie_write_function_t;
@@ -17,16 +16,11 @@ use libc_extra::unix::stdio::stdout;
 use serde::Deserialize;
 use serde::Serialize;
 use std::any::Any;
-use std::env::set_var;
-use std::ffi::CString;
-use std::panic::set_hook;
-use std::panic::take_hook;
 use std::ptr::null_mut;
 
 
 include!("caught_unwind_and_log_it_to_syslog.rs");
 include!("log_exit_signalled_to_syslog.rs");
-include!("LoggingConfiguration.rs");
 include!("panic_payload_to_cause.rs");
 include!("redirect_to_syslog.rs");
 include!("SyslogFacility.rs");

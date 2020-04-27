@@ -295,6 +295,7 @@ use libc::sync_file_range;
 use libc::time_t;
 use libc::timespec;
 use libc::uid_t;
+use libc::umask;
 use libc::unlink;
 use libc::unlinkat;
 use libc::UTIME_NOW;

@@ -32,7 +32,6 @@ assert_cfg!(target_pointer_width = "64");
 
 use crate::bit_set::BitSetAware;
 use crate::cpu::HyperThread;
-use crate::logging::LoggingConfiguration;
 use crate::memory::numa::NumaNode;
 use crate::strings::Radix;
 use crate::strings::parse_number::*;
@@ -42,6 +41,7 @@ use serde::Serialize;
 use std::collections::HashSet;
 use std::fmt::Debug;
 use std::mem::transmute;
+use crate::configuration::ProcessLoggingConfiguration;
 
 
 /// A set of types to support the use of bit sets in Linux APIs and files.

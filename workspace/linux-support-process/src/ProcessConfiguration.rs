@@ -8,18 +8,6 @@
 #[serde(deny_unknown_fields)]
 pub struct ProcessConfiguration
 {
-	/// Logging configuration.
-	#[serde(default)] pub logging_configuration: LoggingConfiguration,
-
-	/// Locale.
-	#[serde(default = "ProcessConfiguration::locale_default")] pub locale: CString,
-
-	/// Disable hyper threading.
-	#[serde(default)] pub disable_hyper_threading: bool,
-
-	/// Configure transparent huge pages?
-	#[serde(default)] pub transparent_huge_pages_configuration: Option<TransparentHugePagesConfiguration>,
-
 	/// System control settings (`sysctl`).
 	///
 	/// By default turns off swapping.
@@ -42,14 +30,6 @@ impl Default for ProcessConfiguration
 	{
 		Self
 		{
-			logging_configuration: LoggingConfiguration::default(),
-
-			locale: Self::locale_default(),
-
-			disable_hyper_threading: false,
-
-			transparent_huge_pages_configuration: Default::default(),
-
 			system_control_settings: Self::system_control_settings_default(),
 
 			warnings_to_suppress: WarningsToSuppress::default(),
@@ -81,14 +61,6 @@ impl ProcessConfiguration
 	#[cold]
 	pub fn execute<P: Process>(&self, process: P) -> Result<(), ProcessConfigurationExecutionError<P::LoadKernelModulesError, P::AdditionalLinuxKernelCommandLineValidationsError, P::MainError>>
 	{
-		self.start_logging();
-
-		Self::verify_not_running_with_set_uid_bit_set();
-
-		Self::verify_personality_is_standard_linux();
-
-		Self::restrict_umask_to_current_user();
-
 		let result: thread::Result<Result<(), ProcessConfigurationExecutionError<P::LoadKernelModulesError, P::AdditionalLinuxKernelCommandLineValidationsError, P::MainError>>> = catch_unwind(AssertUnwindSafe(|| self.inner_execute(process)));
 
 		self.stop_logging();
@@ -100,28 +72,12 @@ impl ProcessConfiguration
 	{
 		use self::ProcessConfigurationExecutionError::*;
 
-		BitSet::<Signal>::block_all_signals_on_current_thread();
-
-		self.set_locale();
-
-		self.enable_or_disable_hyper_threading();
-
-		let valid_hyper_threads_for_the_current_process = self.valid_hyper_threads_for_the_current_process();
-
-		process.load_kernel_modules().map_err(CouldNotLoadKernelModules)?;
-
-		self.write_system_control_values::<P>()?;
-
 		self.rescan_all_pci_buses_and_devices::<P>()?;
-
-		let cpu_features = self.validate_minimal_cpu_features::<P>()?;
 
 		let isolated_hyper_threads_including_those_offline = self.validate_kernel_command_line(&cpu_features, &process)?;
 		let (online_shared_hyper_threads_for_os, online_shared_hyper_threads_for_process, online_isolated_hyper_threads_for_process, master_logical_core) = self.hyper_thread_sets::<P>(isolated_hyper_threads_including_those_offline);
 
 		self.tell_linux_to_use_shared_hyper_threads_for_all_needs::<P>(&online_shared_hyper_threads_for_os)?;
-
-		self.disable_transparent_huge_pages_if_requested::<P>()?;
 
 		self.detailed_process_configuration.configure(&valid_hyper_threads_for_the_current_process, self.daemonize.as_ref())?;
 
@@ -176,38 +132,15 @@ impl ProcessConfiguration
 	}
 
 	#[inline(always)]
-	fn set_locale(&self)
+	fn stop_logging(&self)
 	{
-		let result = unsafe { setlocale(LC_ALL, self.locale.as_ptr() as *const _) };
-		assert!(!result.is_null(), "Could not set locale to `{:?}`", self.locale)
-	}
-
-	#[inline(always)]
-	fn enable_or_disable_hyper_threading(&self)
-	{
-		HyperThread::hyper_threading_control(self.sys_path()).map(|current_status|
-		{
-		   if self.disable_hyper_threading
-		   {
-			   HyperThread::try_to_disable_hyper_threading(self.sys_path(), current_status)
-		   }
-		   else
-		   {
-			   HyperThread::try_to_enable_hyper_threading(self.sys_path(), current_status)
-		   }
-		});
+		self.logging_configuration.stop_logging()
 	}
 
 	#[inline(always)]
 	fn valid_hyper_threads_for_the_current_process(&self) -> BTreeSet<HyperThread>
 	{
 		HyperThread::valid_hyper_threads_for_the_current_process(self.proc_path())
-	}
-
-	#[inline(always)]
-	fn stop_logging(&self)
-	{
-		self.logging_configuration.stop_logging()
 	}
 
 	#[inline(always)]
@@ -225,12 +158,6 @@ impl ProcessConfiguration
 	fn rescan_all_pci_buses_and_devices<P: Process>(&self) -> Result<(), ProcessConfigurationExecutionError<P::LoadKernelModulesError, P::AdditionalLinuxKernelCommandLineValidationsError, P::MainError>>
 	{
 		PciDevice::rescan_all_pci_buses_and_devices(self.sys_path()).map_err(ProcessConfigurationExecutionError::RescanOfAllPciBusesAndDevices)
-	}
-
-	#[inline(always)]
-	fn validate_minimal_cpu_features<P: Process>(&self) -> Result<CpuFeatures, ProcessConfigurationExecutionError<P::LoadKernelModulesError, P::AdditionalLinuxKernelCommandLineValidationsError, P::MainError>>
-	{
-		CpuFeatures::validate_minimal_cpu_features(&self.warnings_to_suppress, P::UseEnhancedIntelSpeedStepTechnology).map_err(ProcessConfigurationExecutionError::CpuFeaturesValidationFailed)
 	}
 
 	#[inline(always)]
@@ -346,63 +273,6 @@ impl ProcessConfiguration
 	pub(crate) fn running_interactively(&self) -> bool
 	{
 		self.daemonize.is_none()
-	}
-
-	/// Disable transparent huge pages (THP).
-	#[inline(always)]
-	pub(crate) fn disable_transparent_huge_pages_if_requested<P: Process>(&self) -> Result<(), ProcessConfigurationExecutionError<P::LoadKernelModulesError, P::AdditionalLinuxKernelCommandLineValidationsError, P::MainError>>
-	{
-		if let Some(ref transparent_huge_pages_configuration) = self.transparent_huge_pages_configuration
-		{
-			transparent_huge_pages_configuration.configure(self.sys_path())?;
-		}
-		Ok(())
-	}
-
-	/// `/proc`
-	#[inline(always)]
-	pub(crate) fn proc_path(&self) -> &ProcPath
-	{
-		&self.detailed_process_configuration.proc_path()
-	}
-
-	/// `/sys`
-	#[inline(always)]
-	pub(crate) fn sys_path(&self) -> &SysPath
-	{
-		&self.detailed_process_configuration.sys_path()
-	}
-
-	/// `/dev`
-	#[inline(always)]
-	pub(crate) fn dev_path(&self) -> &DevPath
-	{
-		&self.detailed_process_configuration.dev_path()
-	}
-
-	#[inline(always)]
-	fn verify_not_running_with_set_uid_bit_set()
-	{
-		assert_eq!(unsafe { geteuid() }, unsafe { getuid() }, "Can not be run with set uid bit set ('setuid')");
-	}
-
-	#[inline(always)]
-	fn verify_personality_is_standard_linux()
-	{
-		let current_personality = PersonalityFlags::get_process_domain_execution_model();
-		assert!(current_personality.expect("Can not get personality").is_standard_linux(), "Personality is not standard Linux but '{:?}'", current_personality);
-	}
-
-	#[inline(always)]
-	fn restrict_umask_to_current_user()
-	{
-		unsafe { umask(0o0077) };
-	}
-
-	#[inline(always)]
-	fn locale_default() -> CString
-	{
-		unsafe { CString::from_vec_unchecked(b"en_US.UTF-8".to_vec()) }
 	}
 
 	#[inline(always)]

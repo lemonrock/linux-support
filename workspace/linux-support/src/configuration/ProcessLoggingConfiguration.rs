@@ -6,41 +6,37 @@
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct LoggingConfiguration
+pub struct ProcessLoggingConfiguration
 {
 	/// Defaults to `auth`.
-	pub syslog_facility: SyslogFacility,
+	#[serde(default)] pub syslog_facility: SyslogFacility,
 
 	/// Defaults to `debug` for debug builds and `warning` for production builds.
-	pub syslog_priority: SyslogPriority,
+	#[serde(default)] pub syslog_priority: SyslogPriority,
 
-	/// Up to 31 bytes (more are ignored) identifying the source of log messages.
-	///
-	/// Defaults to program name.
-	pub identity: String,
-
-	/// When a panic occurs that isn't caught (or if the error-chain crate is in use), capture a full stack back trace.
-	pub enable_full_rust_stack_back_traces: bool,
+	/// When a panic occurs that isn't caught capture a full stack back trace.
+	#[serde(default = "ProcessLoggingConfiguration::enable_full_rust_stack_back_traces_default")] pub enable_full_rust_stack_back_traces: bool,
 }
 
-impl Default for LoggingConfiguration
+impl Default for ProcessLoggingConfiguration
 {
 	#[inline(always)]
 	fn default() -> Self
 	{
 		Self
 		{
-			syslog_facility: Default::default(),
-			syslog_priority: Default::default(),
-			identity: get_program_name(),
-			enable_full_rust_stack_back_traces: true,
+			syslog_facility: SyslogFacility::default(),
+			syslog_priority: SyslogPriority::default(),
+			enable_full_rust_stack_back_traces: Self::enable_full_rust_stack_back_traces_default(),
 		}
 	}
 }
 
-impl LoggingConfiguration
+impl ProcessLoggingConfiguration
 {
 	/// Issues a warning (currently to syslog).
+	///
+	/// NOTE: Using `syslog()` takes a hit of calling the `getpid()` system call and then the `send()` system call for every log message.
 	#[inline(always)]
 	pub fn warn(name: &str, message: String)
 	{
@@ -49,28 +45,22 @@ impl LoggingConfiguration
 		unsafe { syslog(LOG_WARNING, b"%s:%s\0".as_ptr() as *const _ as *const _, name.as_ptr(), message.as_ptr()) };
 	}
 
-	#[inline(always)]
-	fn caught_panic(source_file: &str, line_number: u32, column_number: u32, cause: &str)
-	{
-		let source_file = to_c_string_robustly(source_file);
-		let cause = to_c_string_robustly(cause);
-		unsafe { syslog(LOG_CRIT, b"File:%s:Line:%u:Column:%u:Cause:%s\0".as_ptr() as *const _ as *const _, source_file, line_number, column_number, cause) }
-	}
-
 	/// Start logging.
+	///
+	/// Strictly speaking `identity` can be 31 characters excluding any trailing NUL.
 	#[inline(always)]
-	pub fn start_logging(&self, running_interactively: bool)
+	pub fn start_logging(&self, running_interactively_so_also_log_to_standard_error: bool, identity: &ProcessName)
 	{
 		self.configure_rust_stack_back_traces();
-		self.configure_syslog(running_interactively);
-		self.configure_panic_hook()
+		self.configure_syslog(running_interactively_so_also_log_to_standard_error, identity);
 	}
 
 	/// Stop logging.
+	///
+	/// Not really very important; just closes a file descriptor.
 	#[inline(always)]
 	pub fn stop_logging(&self)
 	{
-		drop(take_hook());
 		unsafe { closelog() }
 	}
 
@@ -85,11 +75,11 @@ impl LoggingConfiguration
 		{
 			"0"
 		};
-		set_var("RUST_BACKTRACE", setting);
+		set_var("RUST_BACKTRACE", setting)
 	}
 
 	#[inline(always)]
-	fn configure_syslog(&self, running_interactively_so_also_log_to_standard_error: bool)
+	fn configure_syslog(&self, running_interactively_so_also_log_to_standard_error: bool, identity: &ProcessName)
 	{
 		unsafe { setlogmask(self.syslog_priority.log_upto()) };
 
@@ -100,24 +90,22 @@ impl LoggingConfiguration
 			log_options |= LOG_PERROR;
 		}
 
-		let identity = CString::new(self.identity.as_str()).unwrap();
+		let identity = identity.as_ref();
 		unsafe { openlog(identity.as_ptr(), log_options, self.syslog_facility as i32) }
 	}
 
+	/// NOTE: Using `syslog()` takes a hit of calling the `getpid()` system call and then the `send()` system call for every log message.
 	#[inline(always)]
-	fn configure_panic_hook(&self)
+	fn caught_panic(source_file: &str, line_number: u32, column_number: u32, cause: &str)
 	{
-		set_hook(Box::new(|panic_info|
-		{
-			let (source_file, line_number, column_number) = match panic_info.location()
-			{
-				None => ("(unknown source file)", 0, 0),
-				Some(location) => (location.file(), location.line(), location.column())
-			};
+		let source_file = to_c_string_robustly(source_file);
+		let cause = to_c_string_robustly(cause);
+		unsafe { syslog(LOG_CRIT, b"File:%s:Line:%u:Column:%u:Cause:%s\0".as_ptr() as *const _ as *const _, source_file, line_number, column_number, cause) }
+	}
 
-			let cause = panic_payload_to_cause(panic_info.payload());
-
-			Self::caught_panic(source_file, line_number, column_number, &cause)
-		}));
+	#[inline(always)]
+	const fn enable_full_rust_stack_back_traces_default() -> bool
+	{
+		true
 	}
 }

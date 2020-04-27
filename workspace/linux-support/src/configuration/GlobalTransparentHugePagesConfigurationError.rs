@@ -2,9 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Disable Transparent Huge Pages (THP) error.
+/// Global Transparent Huge Pages (THP) configuration error.
 #[derive(Debug)]
-pub enum DisableTransparentHugePagesError
+pub enum GlobalTransparentHugePagesConfigurationError
 {
 	/// Could not disable defragmentation.
 	Defragmentation(io::Error),
@@ -13,7 +13,7 @@ pub enum DisableTransparentHugePagesError
 	Usage(io::Error),
 }
 
-impl Display for DisableTransparentHugePagesError
+impl Display for GlobalTransparentHugePagesConfigurationError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -22,12 +22,12 @@ impl Display for DisableTransparentHugePagesError
 	}
 }
 
-impl error::Error for DisableTransparentHugePagesError
+impl error::Error for GlobalTransparentHugePagesConfigurationError
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>
 	{
-		use self::DisableTransparentHugePagesError::*;
+		use self::GlobalTransparentHugePagesConfigurationError::*;
 
 		match self
 		{

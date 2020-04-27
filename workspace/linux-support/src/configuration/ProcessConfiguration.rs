@@ -20,26 +20,45 @@ pub struct ProcessConfiguration
 	/// Process name.
 	#[serde(default)] pub name: ProcessName,
 
+	/// Locale.
+	#[serde(default)] pub locale: LocaleName,
+
+	/// Permissions bit mask for new files.
+	#[serde(default)] pub umask: AccessPermissions,
+
 	/// Process scheduling.
 	#[serde(default)] pub process_scheduling_configuration: ProcessSchedulingConfiguration,
+
+	/// Logging configuration.
+	#[serde(default)] pub logging_configuration: ProcessLoggingConfiguration,
 }
 
 impl ProcessConfiguration
 {
 	/// Configure.
 	#[inline(always)]
-	pub fn configure(&self, proc_path: &ProcPath) -> Result<(), ProcessConfigurationError>
+	pub fn configure(&self, proc_path: &ProcPath, running_interactively_so_also_log_to_standard_error: bool) -> Result<(), ProcessConfigurationError>
 	{
 		use self::ProcessConfigurationError::*;
+
+		Self::block_all_signals_on_current_thread();
+
+		Self::validate_not_running_setuid_or_setgid()?;
+
+		Self::validate_current_personality(proc_path)?;
+
+		self.cpu_feature_checks()?;
 
 		if LinuxKernelVersion::parse(proc_path).map_err(|cause| CouldNotParseLinuxKernelVersion(cause))?.major_minor_revision() < self.minimum_linux_kernel_version
 		{
 			return Err(LinuxKernelVersionIsTooOld)
 		}
 
-		self.cpu_feature_checks()?;
-
 		self.name.set_process_name(ProcessIdentifierChoice::Current, proc_path).map_err(|cause| CouldNotSetProcessName(cause))?;
+
+		self.locale.set_all().map_err(|_: ()| CouldNotSetLocale(self.locale.clone()));
+
+		self.umask.set_umask();
 
 		self.process_scheduling_configuration.configure(proc_path)?;
 
@@ -47,16 +66,54 @@ impl ProcessConfiguration
 
 		lock_secure_bits_and_remove_ambient_capability_raise_and_keep_capabilities();
 
-		// Current thread can use this instead of gettid()
-		// TODO: /proc/thread-self
+		self.logging_configuration.start_logging(running_interactively_so_also_log_to_standard_error, &self.name);
 
 		// TODO: SecComp
 		// TODO: Minimum capabilities to launch with.
-		// TODO: umask
-		// TODO: personality verification
 		// TODO: Resource limits
 
 		Ok(())
+	}
+
+	#[inline(always)]
+	fn block_all_signals_on_current_thread()
+	{
+		BitSet::<Signal>::block_all_signals_on_current_thread();
+	}
+
+	#[inline(always)]
+	fn validate_not_running_setuid_or_setgid() -> Result<(), ProcessConfigurationError>
+	{
+		use self::ProcessConfigurationError::*;
+
+		if unlikely!(UserIdentifier::running_setuid())
+		{
+			return Err(RunningSetUid)
+		}
+
+		if unlikely!(GroupIdentifier::running_setuid())
+		{
+			return Err(RunningSetGid)
+		}
+
+		Ok(())
+	}
+
+	#[inline(always)]
+	fn validate_current_personality(proc_path: &ProcPath) -> Result<(), ProcessConfigurationError>
+	{
+		use self::ProcessConfigurationError::*;
+
+		PersonalityFlags::validate_only_one_execution_domain(proc_path);
+		let current_personality = PersonalityFlags::current().map_err(|_ :()| CouldNotObtainPersonality)?;
+		if likely!(current_personality.is_standard_linux())
+		{
+			Ok(())
+		}
+		else
+		{
+			Err(CurrentPersonalityIsNotLinux(current_personality))
+		}
 	}
 
 	#[inline(always)]
@@ -95,9 +152,20 @@ impl ProcessConfiguration
 	#[inline(always)]
 	fn optional_cpu_feature_checks_to_suppress_default() -> HashSet<OptionalCpuFeatureCheck>
 	{
-		hashset!
+		#[cfg(target_arch = "x86_64")] use self::OptionalCpuFeatureCheck::*;
+		#[cfg(target_arch = "x86_64")] return hashset!
 		{
-			OptionalCpuFeatureCheck::has_tsc_adjust_msr,
-		}
+			has_rep_movsb_stosb,
+			has_prefetchw,
+			has_ss,
+			has_working_xsave,
+			has_tsc_adjust_msr,
+			has_invpcid,
+			has_smap,
+		};
+
+		#[cfg(not(target_arch = "x86_64"))] return hashset!
+		{
+		};
 	}
 }

@@ -46,6 +46,9 @@ pub struct GlobalConfiguration
 
 	/// Requires root.
 	pub security: GlobalSecurityConfiguration,
+
+	/// Requires root.
+	pub transparent_huge_pages: Option<GlobalTransparentHugePagesConfiguration>,
 }
 
 impl GlobalConfiguration
@@ -79,6 +82,11 @@ impl GlobalConfiguration
 		self.kernel_panic.configure(proc_path)?;
 
 		self.security.configure(proc_path)?;
+
+		if let Some(ref transparent_huge_pages) = self.transparent_huge_pages
+		{
+			transparent_huge_pages.configure(sys_path)?;
+		}
 
 		Ok(())
 	}
