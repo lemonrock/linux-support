@@ -56,7 +56,7 @@ impl ProcessConfiguration
 
 		self.name.set_process_name(ProcessIdentifierChoice::Current, proc_path).map_err(|cause| CouldNotSetProcessName(cause))?;
 
-		self.locale.set_all().map_err(|_: ()| CouldNotSetLocale(self.locale.clone()));
+		self.locale.set_all().map_err(|_: ()| CouldNotSetLocale(self.locale.clone()))?;
 
 		self.umask.set_umask();
 

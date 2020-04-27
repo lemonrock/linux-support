@@ -65,7 +65,7 @@ impl LocaleName
 			Right(ref c_string) => c_string.as_ptr(),
 		};
 
-		let result = unsafe { setlocale(LC_ALL, pointer) };
+		let result = unsafe { setlocale(category, pointer) };
 		if unlikely!(result.is_null())
 		{
 			Err(())
