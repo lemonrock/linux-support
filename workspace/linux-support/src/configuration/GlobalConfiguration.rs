@@ -49,6 +49,9 @@ pub struct GlobalConfiguration
 
 	/// Requires root.
 	pub transparent_huge_pages: Option<GlobalTransparentHugePagesConfiguration>,
+
+	/// Validation-only checks.
+	pub linux_kernel_command_line: GlobalLinuxKernelCommandLineConfiguration,
 }
 
 impl GlobalConfiguration
@@ -87,6 +90,8 @@ impl GlobalConfiguration
 		{
 			transparent_huge_pages.configure(sys_path)?;
 		}
+
+		self.linux_kernel_command_line.configure(proc_path)?;
 
 		Ok(())
 	}

@@ -15,9 +15,10 @@ use crate::file_descriptors::pipes_and_fifos::*;
 use crate::file_descriptors::posix_message_queues::*;
 use crate::file_handles::NumberOfFileHandles;
 use crate::linux_kernel_asynchronous_io::set_maximum_number_of_kernel_asynchronous_io_events_per_user;
-use crate::linux_kernel_version::*;
+use crate::linux_kernel_command_line::*;
 use crate::linux_kernel_modules::*;
 use crate::linux_kernel_panic::*;
+use crate::linux_kernel_version::*;
 use crate::logging::*;
 use crate::memory::*;
 use crate::memory::huge_pages::*;
@@ -25,7 +26,7 @@ use crate::memory::system_v_shared_memory::message_queues::*;
 use crate::paths::*;
 use crate::personality::*;
 use crate::process::*;
-use crate::resource_limits::ResourceLimit;
+use crate::resource_limits::*;
 use crate::scheduling::*;
 use crate::signals::Signal;
 use crate::strings::*;
@@ -46,8 +47,8 @@ use likely::*;
 use maplit::hashset;
 #[cfg(target_arch = "x86_64")] use raw_cpuid::*;
 use serde::*;
-use std::collections::HashSet;
-use std::env::set_var;
+use std::collections::*;
+use std::env::*;
 use std::error;
 use std::ffi::CStr;
 use std::ffi::CString;
@@ -65,13 +66,15 @@ use std::thread::JoinHandle;
 use either::Either;
 use either::Either::Right;
 use either::Either::Left;
+use crate::seccomp::SeccompConfiguration;
 
 
 /// Checks.
 pub mod checks;
 
 
-include!("GlobalConfiguration.rs");include!("GlobalConfigurationError.rs");
+include!("GlobalConfiguration.rs");
+include!("GlobalConfigurationError.rs");
 include!("GlobalEPollConfiguration.rs");
 include!("GlobalEPollConfigurationError.rs");
 include!("GlobalFileDescriptorConfiguration.rs");
@@ -86,6 +89,8 @@ include!("GlobalKernelPanicConfiguration.rs");
 include!("GlobalKernelPanicConfigurationError.rs");
 include!("GlobalLinuxKernelAsynchronousIoConfiguration.rs");
 include!("GlobalLinuxKernelAsynchronousIoConfigurationError.rs");
+include!("GlobalLinuxKernelCommandLineConfiguration.rs");
+include!("GlobalLinuxKernelCommandLineConfigurationError.rs");
 include!("GlobalLinuxModuleConfiguration.rs");
 include!("GlobalLinuxModuleConfigurationError.rs");
 include!("GlobalPipeConfiguration.rs");

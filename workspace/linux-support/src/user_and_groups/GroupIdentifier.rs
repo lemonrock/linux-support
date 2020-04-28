@@ -25,6 +25,15 @@ impl Into<gid_t> for GroupIdentifier
 	}
 }
 
+impl Into<i32> for GroupIdentifier
+{
+	#[inline(always)]
+	fn into(self) -> i32
+	{
+		self.0 as i32
+	}
+}
+
 impl FromBytes for GroupIdentifier
 {
 	type Error = ParseNumberError;
@@ -89,5 +98,40 @@ impl UserOrGroupIdentifier for GroupIdentifier
 		{
 			panic!("Unexpectec result `{}` from `getresgid()`", result)
 		}
+	}
+
+	#[inline(always)]
+	fn set_real_effective_and_saved_set(real: Option<Self>, effective: Option<Self>, saved_set: Option<Self>)
+	{
+		#[inline(always)]
+		fn into_i32(value: Option<GroupIdentifier>) -> i32
+		{
+			value.map_or(-1i32, |value| value.into())
+		}
+
+		let result = unsafe { setresgid(into_i32(real), into_i32(effective), into_i32(saved_set)) };
+		if likely!(result == 0)
+		{
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				EAGAIN => panic!("uid does not match the current UID and this call would bring that user ID over its `RLIMIT_NPROC` resource limit"),
+				EPERM => panic!("The calling process is not privileged (did not have the `CAP_SETGID` capability) and tried to change the IDs to values that are not permitted."),
+
+				unknown @ _ => panic!("Unknown error `{}` from `setresgid()`", unknown),
+			}
+		}
+		else
+		{
+			panic!("Invalid result `{}` from setresgid()", result)
+		}
+	}
+
+	#[inline(always)]
+	fn set_file_system(self)
+	{
+		unsafe { setfsgid(self.0) }
 	}
 }

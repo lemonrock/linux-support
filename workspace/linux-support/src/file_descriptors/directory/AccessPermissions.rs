@@ -104,7 +104,7 @@ impl AccessPermissions
 	#[inline(always)]
 	pub fn set_umask(self) -> Self
 	{
-		Self(unsafe { umask(self.0) })
+		Self(unsafe { umask(DirectoryFileDescriptor::mask_mode(self.0)) })
 	}
 
 	/// Special permissions.

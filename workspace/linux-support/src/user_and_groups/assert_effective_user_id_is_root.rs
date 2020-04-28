@@ -8,6 +8,5 @@
 #[inline(always)]
 pub fn assert_effective_user_id_is_root(necessity: &str)
 {
-	let effective_user_id = unsafe { geteuid() };
-	assert_eq!(effective_user_id, 0, "Effective User Id (euid) is not root (0). Necessity: {}", necessity);
+	assert_eq!(UserIdentifier::current_effective(), UserIdentifier::root, "Effective User Id (euid) is not root (0). Necessity: {}", necessity);
 }

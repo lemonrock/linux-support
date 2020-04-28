@@ -2,9 +2,40 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Typically used to create a PID file in `/var/run` before switching user and group.
-pub trait OriginalRealUserAndGroupIdentifierUser
+/// An user name.
+///
+/// Defaults to `root`.
+#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct UserName(CString);
+
+impl Deref for UserName
 {
-	/// Do something with the effective user and effective group identifiers before switching user and group.
-	fn create_pid_file_before_switching_user_and_group(&self, effective_user_identifier: UserIdentifier, effective_group_identifier: GroupIdentifier);
+	type Target = CStr;
+
+	#[inline(always)]
+	fn deref(&self) -> &Self::Target
+	{
+		self.0.as_c_str()
+	}
+}
+
+impl Default for UserName
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self(CString::new(b"root").unwrap())
+	}
+}
+
+impl UserName
+{
+	/// Equals raw name?
+	#[inline(always)]
+	pub fn equals_raw_name(&self, raw_name: &[u8]) -> bool
+	{
+		self.0.as_bytes() == raw_name
+	}
 }

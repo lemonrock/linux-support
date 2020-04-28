@@ -7,7 +7,7 @@ use super::strings::ConstCStr;
 use crate::process::ProcessIdentifierChoice;
 use crate::paths::PathExt;
 use crate::paths::ProcPath;
-use crate::strings::{FromBytes, NulTerminatedCStringArray, CStringFragments};
+use crate::strings::{FromBytes, NulTerminatedCStringArray, CStringFragments, path_to_cstring};
 use crate::strings::parse_ascii_nul_string_values;
 use errno::errno;
 use libc::c_char;
@@ -19,14 +19,15 @@ use likely::likely;
 use likely::unlikely;
 use std::collections::BTreeSet;
 use std::collections::HashMap;
-use std::env::join_paths;
+use std::env::{join_paths, JoinPathsError};
 use std::env::set_var;
 use std::ffi::CStr;
 use std::ffi::CString;
 use std::io;
 use std::io::ErrorKind;
 use std::ops::Deref;
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
+use crate::user_and_groups::UserName;
 
 
 mod c;

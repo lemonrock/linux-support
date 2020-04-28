@@ -161,6 +161,49 @@ impl HyperThread
 		}
 	}
 
+	/// Isolated HyperThreads.
+	///
+	/// These are hyper threads isolated from use by Linux itself and normal process (and thread) schedulers.
+	#[inline(always)]
+	pub fn isolated(&self, linux_kernel_command_line: LinuxKernelCommandLine, isolated_cpus_required: bool) -> Result<BitSet<HyperThread>, &'static str>
+	{
+		if let Some((isolated_cpu_flags, isolated_cpus)) = linux_kernel_command_line.isolcpus()
+		{
+			if !isolated_cpu_flags.contains(&IsolatedCpuFlags::Domain)
+			{
+				return Err("Kernel parameter `isolcpus` does not contain (or imply) the domain flag")
+			}
+
+			let rcu_nocbs = linux_kernel_command_line.rcu_nocbs().ok_or("Kernel parameter `rcu_nocbs` should be specified because isolcpus was specified")?;
+
+			let nohz_full = linux_kernel_command_line.nohz_full().ok_or("Kernel parameter `nohz_full` should be specified because isolcpus was specified")?;
+
+			// let irqaffinity = linux_kernel_command_line.irqaffinity().ok_or("Kernel parameter `irqaffinity` should be specified because isolcpus was specified")?;
+
+			if isolated_cpus != rcu_nocbs
+			{
+				return Err("Kernel parameters `isolcpus` and `rcu_nocbs` should match")
+			}
+
+			if isolated_cpus != nohz_full
+			{
+				return Err("Kernel parameters `isolcpus` and `nohz_full` should match")
+			}
+
+			Ok(isolated_cpus)
+		}
+		else
+		{
+			if isolated_cpus_required
+			{
+				return Err("Kernel parameter `isolcpus` should be specified")
+			}
+			else
+			{
+				Ok(BitSet::empty())
+			}
+		}
+	}
 
 	/// Finds this hyper thread's NUMA node.
 	///

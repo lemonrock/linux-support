@@ -194,6 +194,7 @@ pub mod resource_limits;
 
 
 /// Seccomp.
+#[cfg(feature = "seccomp")]
 pub mod seccomp;
 
 

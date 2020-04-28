@@ -32,6 +32,12 @@ pub trait UserOrGroupIdentifier: Sized + Copy + Into<u32> + Default + PartialEq 
 	/// Current real, effective and saved-set values.
 	fn current_real_effective_and_saved_set() -> (Self, Self, Self);
 
+	/// Sets the real, effective and saved-set.
+	fn set_real_effective_and_saved_set(real: Option<Self>, effective: Option<Self>, saved_set: Option<Self>);
+
+	/// Sets the file system (fs) user or group.
+	fn set_file_system(self);
+
 	/// Is root user (or group).
 	#[inline(always)]
 	fn is_root(self) -> bool

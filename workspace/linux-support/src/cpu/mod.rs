@@ -5,6 +5,7 @@
 use crate::current_numa_node_and_hyper_thread;
 use crate::bit_set::*;
 use crate::configuration::checks::*;
+use crate::linux_kernel_command_line::*;
 use crate::memory::numa::*;
 use crate::paths::*;
 use crate::process::ProcessIdentifierChoice;
@@ -35,9 +36,10 @@ use strum_macros::*;
 
 include!("BitSetHyperThread.rs");
 include!("CompiledCpuFeatureCheck.rs");
-include!("CpuFeatures.rs");
+include!("cpu_supports_1gb_pages.rs");
 include!("HyperThread.rs");
 include!("HyperThreadingStatus.rs");
+include!("maximum_logical_processor_identifiers_per_package.rs");
 include!("MandatoryCpuFeatureCheck.rs");
 include!("OptionalCpuFeatureCheck.rs");
 include!("ParseHyperThreadingStatusError.rs");

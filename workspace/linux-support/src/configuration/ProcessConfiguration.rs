@@ -26,11 +26,43 @@ pub struct ProcessConfiguration
 	/// Permissions bit mask for new files.
 	#[serde(default)] pub umask: AccessPermissions,
 
+	/// Resource limits.
+	#[serde(default = "ProcessConfiguration::resource_limits_default")] pub resource_limits: ResourceLimitsSet,
+
 	/// Process scheduling.
 	#[serde(default)] pub process_scheduling_configuration: ProcessSchedulingConfiguration,
 
 	/// Logging configuration.
 	#[serde(default)] pub logging_configuration: ProcessLoggingConfiguration,
+
+	/// User and group settings.
+	#[serde(default)] pub user_and_group_settings: UserAndGroupSettings,
+
+	/// Paths to use for `PATH`.
+	#[serde(default = "ProcessConfiguration::binary_paths_default")] pub binary_paths: BTreeSet<PathBuf>,
+
+	/// The folder path to use as the 'current working directory' (CWD).
+	///
+	/// Equivalent functionality to the shell command `chdir`.
+	///
+	/// Defaults to `/`, which is appropriate for a daemon to allow for unmounts to happen.
+	#[serde(default = "ProcessConfiguration::working_directory_default")] pub working_directory: PathBuf,
+
+	/// Seccomp configuration.
+	///
+	/// SecComp filtering adds a 5% to 10% overhead.
+	#[cfg(feature = "seccomp")] #[serde(default)] pub seccomp: SeccompConfiguration,
+
+	/// Whitelist of capabilities to retain.
+	///
+	/// eg:-
+	/// * `SystemAdministration`.
+	/// * `LockMemory`.
+	/// * `BindPortsBelow1024`.
+	/// * `SetUid`.
+	/// * `SetGid`.
+	/// * `Nice`.
+	#[serde(default)] pub capabilities_to_retain: HashSet<Capability>,
 }
 
 impl ProcessConfiguration
@@ -60,17 +92,54 @@ impl ProcessConfiguration
 
 		self.umask.set_umask();
 
+		self.resource_limits.change().map_err(|cause| CouldNotChangeResourceLimit(cause));
+
 		self.process_scheduling_configuration.configure(proc_path)?;
-
-		disable_dumpable();
-
-		lock_secure_bits_and_remove_ambient_capability_raise_and_keep_capabilities();
 
 		self.logging_configuration.start_logging(running_interactively_so_also_log_to_standard_error, &self.name);
 
-		// TODO: SecComp
+		self.user_and_group_settings.change_user_and_groups(etc_path)?;
+
+		populate_clean_environment(&self.binary_paths, UserIdentifier::current_real().user_name_home_directory_and_shell(etc_path))?;
+
+		set_current_dir(&self.working_directory).map_err(|cause| CouldNotChangeWorkingDirectory(cause))?;
+
+		// TODO:
+			// prctl per thread
+		// capabilities per thread
+		// drop capabilities at start
+		// store thread configuration, start all threads at start, set signal handlers for them, get them to pause before continuing.
+
+		// TODO: Simple seccomp filters: https://outflux.net/teach-seccomp/
+
+		// TODO: Get my head round capabilities.
+
+		// TODO: Revised daemon code: https://chaoticlab.io/c/c++/unix/2018/10/01/daemonize.html
+
+
+
+
+		#[cfg(feature = "seccomp")] self.seccomp.load().map_err(|_: ()| CouldNotLoadSeccompFilters)?;
+
+		disable_dumpable();
+
+
+
 		// TODO: Minimum capabilities to launch with.
-		// TODO: Resource limits
+		xxxx;
+//		Capability::drop_all_capabilities_except(&self.capabilities_to_retain);
+
+		#[inline(always)]
+		fn set_current_process_affinity(valid_hyper_threads_for_the_current_process: &BTreeSet<HyperThread>) -> Result<(), DetailedProcessConfigurationError>
+		{
+			let cpu_set = CpuSet::from(valid_hyper_threads_for_the_current_process);
+			cpu_set.set_current_process_affinity().map_err(DetailedProcessConfigurationError::CouldNotSetCurrentProcessAffinity)
+		}
+
+		// Is this per thread or per process.
+		Capability::clear_all_ambient_capabilities();
+
+		lock_secure_bits_and_remove_ambient_capability_raise_and_keep_capabilities();
 
 		Ok(())
 	}
@@ -167,5 +236,27 @@ impl ProcessConfiguration
 		#[cfg(not(target_arch = "x86_64"))] return hashset!
 		{
 		};
+	}
+
+	#[inline(always)]
+	fn resource_limits_default() -> ResourceLimitsSet
+	{
+		ResourceLimitsSet::defaultish(ResourceLimit::maximum_number_of_open_file_descriptors(&ProcPath::default()).expect("Could not read maximum number of file descriptors"))
+	}
+
+	#[inline(always)]
+	fn binary_paths_default() -> BTreeSet<PathBuf>
+	{
+		btreeset!
+		{
+			PathBuf::from("/usr/bin"),
+			PathBuf::from("/bin"),
+		}
+	}
+
+	#[inline(always)]
+	fn working_directory_default() -> PathBuf
+	{
+		PathBuf::from("/")
 	}
 }

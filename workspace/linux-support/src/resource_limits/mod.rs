@@ -15,5 +15,6 @@ use crate::user_and_groups::assert_effective_user_id_is_root;
 
 include!("ResourceName.rs");
 include!("ResourceLimit.rs");
+include!("ResourceLimitError.rs");
 include!("ResourceLimitsSet.rs");
 include!("SoftAndHardResourceLimit.rs");

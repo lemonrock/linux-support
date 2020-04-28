@@ -37,12 +37,13 @@ impl ResourceLimitsSet
 
 	/// Applies the resource limits.
 	#[inline(always)]
-	pub fn change(&self)
+	pub fn change(&self) -> Result<(), ResourceLimitError>
 	{
 		for (resource_name, soft_and_hard_resource_limit) in &self.0
 		{
-			resource_name.set(soft_and_hard_resource_limit);
+			resource_name.set(soft_and_hard_resource_limit)?;
 		}
+		Ok(())
 	}
 
 	#[inline(always)]

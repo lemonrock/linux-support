@@ -2,22 +2,29 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use errno::Errno;
-use errno::set_errno;
-use likely::unlikely;
-use serde::Deserialize;
-use serde::Serialize;
-use std::cmp::Eq;
-use std::cmp::Ord;
-use std::cmp::Ordering;
-use std::cmp::PartialEq;
-use std::cmp::PartialOrd;
-use std::fmt;
-use std::fmt::Debug;
-use std::fmt::Formatter;
-use std::hash::Hash;
-use std::hash::Hasher;
+/// A group name.
+///
+/// Defaults to `root`.
+#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct GroupName(CString);
 
+impl Default for UserName
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self(CString::new(b"root").unwrap())
+	}
+}
 
-include!("SYS.rs");
-include!("UnconstrainedSystemCallNumber.rs");
+impl GroupName
+{
+	/// Equals raw name?
+	#[inline(always)]
+	pub fn equals_raw_name(&self, raw_name: &[u8]) -> bool
+	{
+		self.0.as_bytes() == raw_name
+	}
+}

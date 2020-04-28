@@ -4,6 +4,8 @@
 
 /// System calls wrapper.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(usize)]
 pub enum SYS
 {

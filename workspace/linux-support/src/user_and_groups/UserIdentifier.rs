@@ -25,6 +25,15 @@ impl Into<uid_t> for UserIdentifier
 	}
 }
 
+impl Into<i32> for UserIdentifier
+{
+	#[inline(always)]
+	fn into(self) -> i32
+	{
+		self.0 as i32
+	}
+}
+
 impl FromBytes for UserIdentifier
 {
 	type Error = ParseNumberError;
@@ -89,5 +98,57 @@ impl UserOrGroupIdentifier for UserIdentifier
 		{
 			panic!("Unexpectec result `{}` from `getresuid()`", result)
 		}
+	}
+
+	#[inline(always)]
+	fn set_real_effective_and_saved_set(real: Option<Self>, effective: Option<Self>, saved_set: Option<Self>)
+	{
+		#[inline(always)]
+		fn into_i32(value: Option<UserIdentifier>) -> i32
+		{
+			value.map_or(-1i32, |value| value.into())
+		}
+
+		let result = unsafe { setresuid(into_i32(real), into_i32(effective), into_i32(saved_set)) };
+		if likely!(result == 0)
+		{
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				EAGAIN => panic!("uid does not match the current UID and this call would bring that user ID over its `RLIMIT_NPROC` resource limit"),
+				EPERM => panic!("The calling process is not privileged (did not have the `CAP_SETUID` capability) and tried to change the IDs to values that are not permitted."),
+
+				unknown @ _ => panic!("Unknown error `{}` from `setresuid()`", unknown),
+			}
+		}
+		else
+		{
+			panic!("Invalid result `{}` from setresuid()", result)
+		}
+	}
+
+	#[inline(always)]
+	fn set_file_system(self)
+	{
+		unsafe { setfsuid(self.0) }
+	}
+}
+
+impl UserIdentifier
+{
+	/// Gets the user name, home directory and shell from `/etc/passwd`, or nothing if `/etc/passwd` does not exist, can not be parsed or doesn't have a relevant entry.
+	///
+	/// If user name contained an interior nul, returns `None` for user name.
+	#[inline(always)]
+	pub fn user_name_home_directory_and_shell(self, etc_path: &EtcPath) -> Option<(Option<UserName>, PathBuf, PathBuf)>
+	{
+		UserAndGroupChoice::etc_passwd_record_for_user_identifier(etc_path, self, |etc_passwd_record| Ok(
+		(
+			etc_passwd_record.user_name().ok(),
+			etc_passwd_record.home_directory(),
+			etc_passwd_record.shell(),
+		))).ok()
 	}
 }

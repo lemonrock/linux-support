@@ -23,10 +23,12 @@ use std::os::unix::ffi::OsStringExt;
 use std::path::PathBuf;
 use std::ops::Deref;
 use crate::strings::FromBytes;
+use raw_cpuid::FeatureInfo;
+use crate::configuration::checks::Check;
 
 
-include!("fail.rs");
 include!("IsolatedCpuFlags.rs");
 include!("LinuxKernelCommandLineParameters.rs");
-include!("LinuxKernelCommandLineValidationError.rs");
-include!("LinuxKernelCommandLineValidator.rs");
+include!("OptionalKernelCommandLineSettingCheck.rs");
+include!("validate_huge_page_sizes.rs");
+include!("incompatible_settings.rs");

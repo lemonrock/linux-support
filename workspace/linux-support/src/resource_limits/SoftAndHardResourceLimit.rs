@@ -68,7 +68,7 @@ impl SoftAndHardResourceLimit
 		&self.hard
 	}
 
-	fn set(&self, resource_identifier: i32)
+	fn set(&self, resource_identifier: i32) -> Result<(), ResourceLimitError>
 	{
 		let value = rlimit
 		{
@@ -76,21 +76,23 @@ impl SoftAndHardResourceLimit
 			rlim_max: self.hard.unwrap(),
 		};
 
+		use self::ResourceLimitError::*;
+
 		match unsafe { setrlimit(resource_identifier, &value) }
 		{
-			0 => (),
+			0 => Ok(()),
 
 			-1 => match errno().0
 			{
-				EPERM => panic!("Permission denied or tried to increase MaximumNumberOfFileDescriptors above /proc/sys/fs/nr_open"),
+				EPERM => Err(PermissionDeniedOrTriedToIncreaseAboveMaximumNumberOfFileDescriptors),
+				EINVAL => Err(LimitWasTooLarge),
 
-				EINVAL => panic!("Limit was too large or bad resource id"),
 				EFAULT => panic!("Bad pointer"),
 
-				illegal @ _ => panic!("Illegal error number '{}' from setrlimit64()", illegal),
+				illegal @ _ => panic!("Illegal error number '{}' from setrlimit()", illegal),
 			},
 
-			illegal @ _ => panic!("Illegal result '{}' from setrlimit64()", illegal),
+			illegal @ _ => panic!("Illegal result '{}' from setrlimit()", illegal),
 		}
 	}
 
@@ -113,10 +115,10 @@ impl SoftAndHardResourceLimit
 				EINVAL => panic!("Bad resource id"),
 				EFAULT => panic!("Bad pointer"),
 
-				illegal @ _ => panic!("Illegal error number '{}' from setrlimit64()", illegal),
+				illegal @ _ => panic!("Illegal error number '{}' from setrlimit()", illegal),
 			},
 
-			illegal @ _ => panic!("Illegal result '{}' from setrlimit64()", illegal),
+			illegal @ _ => panic!("Illegal result '{}' from setrlimit()", illegal),
 		};
 
 		Self

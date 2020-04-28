@@ -48,7 +48,7 @@ impl ResourceName
 	///
 	/// Panics if it can not be set.
 	#[inline(always)]
-	pub fn set(&self, soft_and_hard_resource_limit: &SoftAndHardResourceLimit)
+	pub fn set(&self, soft_and_hard_resource_limit: &SoftAndHardResourceLimit) -> Result<(), ResourceLimitError>
 	{
 		soft_and_hard_resource_limit.set(*self as i32)
 	}

@@ -29,7 +29,9 @@ use std::path::*;
 use crate::thread::ThreadIdentifier;
 
 
-include!("DevPath.rs");include!("PathBufExt.rs");
+include!("DevPath.rs");
+include!("EtcPath.rs");
+include!("PathBufExt.rs");
 include!("PathExt.rs");
 include!("ProcPath.rs");
 include!("SysPath.rs");

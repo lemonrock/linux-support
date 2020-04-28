@@ -12,6 +12,7 @@ use std::collections::HashMap;
 use std::convert::TryInto;
 use std::ffi::CString;
 use std::ptr::NonNull;
+use crate::syscall::SYS;
 
 
 #[doc(hidden)]

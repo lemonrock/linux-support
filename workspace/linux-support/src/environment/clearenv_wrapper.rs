@@ -15,6 +15,6 @@ fn clearenv_wrapper()
 	}
 	else
 	{
-		panic!("`clearenv()` failed with an unexpecte result `{}`", result)
+		panic!("`clearenv()` failed with an unexpected result `{}`", result)
 	}
 }

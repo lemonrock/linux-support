@@ -2,9 +2,17 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Populate a new set of environment variables, ensuring all previous variables have been removed.
+/// Populates a clean environment:-
+///
+/// * `RUST_BACKTRACE` (if already present in the environment; this is the only value taken from the existing environment).
+/// * `IFS`
+/// * `PATH`
+/// * `USER` (if not None)
+/// * `LOGNAME` (to the same value as `USER`).
+/// * `HOME` (if not None)
+/// * `SHELL` (if not None)
 #[inline(always)]
-pub fn populate_clean_environment(binary_paths: &BTreeSet<PathBuf>, effective_user_name: &CStr, effective_user_home_folder_path: &CStr)
+fn populate_clean_environment(binary_paths: &BTreeSet<PathBuf>, user_name_home_directory_and_shell: Option<(Option<UserName>, PathBuf, PathBuf)>) -> Result<(), JoinPathsError>
 {
 	const RUST_BACKTRACE: ConstCStr = ConstCStr(b"RUST_BACKTRACE\0");
 
@@ -21,28 +29,48 @@ pub fn populate_clean_environment(binary_paths: &BTreeSet<PathBuf>, effective_us
 			Some(CString::from(unsafe { CStr::from_ptr(value) }))
 		}
 	}
-
 	let rust_backtrace = preserve_value_of_RUST_BACKTRACE();
 
 	clearenv_wrapper();
+
+	const IFS: ConstCStr = ConstCStr(b"IFS\0");
+	setenv_wrapper(IFS, ConstCStr(b"\t\n\0").as_cstr(), true);
 
 	if let Some(ref rust_backtrace) = rust_backtrace
 	{
 		setenv_wrapper(RUST_BACKTRACE, rust_backtrace, true);
 	}
 
-	const IFS: ConstCStr = ConstCStr(b"IFS\0");
-	setenv_wrapper(IFS, ConstCStr(b"\t\n\0").as_cstr(), true);
+	if binary_paths.is_empty()
+	{
+		const PATH: ConstCStr = ConstCStr(b"PATH\0");
+		setenv_wrapper(PATH, ConstCStr(b"\0").as_cstr(), true)
+	}
+	else
+	{
+		let path = join_paths(binary_paths.iter())?;
+		set_var("PATH", &path);
+	}
 
-	let path = join_paths(binary_paths.iter()).expect("Could not join paths because `binary_paths` contained a path with a colon in it");
-	set_var("PATH", &path);
+	if let Some((user_name, user_home_folder_path, shell)) = populate_clean_environment
+	{
+		if let Some(user_name) = user_name
+		{
+			const USER: ConstCStr = ConstCStr(b"USER\0");
+			setenv_wrapper(USER, user_name, true);
 
-	const USER: ConstCStr = ConstCStr(b"USER\0");
-	setenv_wrapper(USER, effective_user_name, true);
+			const LOGNAME: ConstCStr = ConstCStr(b"LOGNAME\0");
+			setenv_wrapper(LOGNAME, user_name, true);
+		}
 
-	const LOGNAME: ConstCStr = ConstCStr(b"USER\0");
-	setenv_wrapper(LOGNAME, effective_user_name, true);
+		const HOME: ConstCStr = ConstCStr(b"HOME\0");
+		let user_home_folder_path = path_to_cstring(user_home_folder_path);
+		setenv_wrapper(HOME, user_home_folder_path.as_c_str(), true);
 
-	const HOME: ConstCStr = ConstCStr(b"HOME\0");
-	setenv_wrapper(HOME, effective_user_home_folder_path, true);
+		const SHELL: ConstCStr = ConstCStr(b"SHELL\0");
+		let shell = path_to_cstring(shell);
+		setenv_wrapper(SHELL, shell.as_c_str(), true);
+	}
+
+	Ok(())
 }

@@ -47,6 +47,9 @@ pub enum GlobalConfigurationError
 
 	#[allow(missing_docs)]
 	GlobalTransparentHugePagesConfiguration(GlobalTransparentHugePagesConfigurationError),
+
+	#[allow(missing_docs)]
+	GlobalLinuxKernelCommandLineConfiguration(GlobalLinuxKernelCommandLineConfigurationError),
 }
 
 impl Display for GlobalConfigurationError
@@ -94,6 +97,8 @@ impl error::Error for GlobalConfigurationError
 			&GlobalSecurityConfiguration(ref cause) => Some(cause),
 
 			&GlobalTransparentHugePagesConfiguration(ref cause) => Some(cause),
+
+			&GlobalLinuxKernelCommandLineConfiguration(ref cause) => Some(cause),
 		}
 	}
 }
@@ -221,5 +226,14 @@ impl From<GlobalTransparentHugePagesConfigurationError> for GlobalConfigurationE
 	fn from(cause: GlobalTransparentHugePagesConfigurationError) -> Self
 	{
 		GlobalConfigurationError::GlobalTransparentHugePagesConfiguration(cause)
+	}
+}
+
+impl From<GlobalLinuxKernelCommandLineConfigurationError> for GlobalConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: GlobalLinuxKernelCommandLineConfigurationError) -> Self
+	{
+		GlobalConfigurationError::GlobalLinuxKernelCommandLineConfiguration(cause)
 	}
 }

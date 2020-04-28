@@ -497,7 +497,7 @@ impl DirectoryFileDescriptor
 	///
 	/// Only the bottom 12 bits of mode are kept and the call masks them using the process' current `umask()`.
 	#[inline(always)]
-	pub fn change_mode(&self, path: &CStr, mode: mode_t, do_not_dereference_path_if_it_is_a_symlink: bool) -> io::Result<()>
+	pub fn change_mode(&self, path: &CStr, access_permissions: AccessPermissions, do_not_dereference_path_if_it_is_a_symlink: bool) -> io::Result<()>
 	{
 		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
 
@@ -509,7 +509,7 @@ impl DirectoryFileDescriptor
 		{
 			0
 		};
-		let result = unsafe { fchmodat(self.as_raw_fd(), path.as_ptr(), Self::mask_mode(mode), flags) };
+		let result = unsafe { fchmodat(self.as_raw_fd(), path.as_ptr(), Self::mask_mode(access_permissions), flags) };
 		if likely!(result >= 0)
 		{
 			Ok(())
@@ -921,11 +921,11 @@ impl DirectoryFileDescriptor
 	///
 	/// Only the bottom 12 bits of mode are kept and the call masks them using the process' current `umask()`.
 	#[inline(always)]
-	pub fn make_directory(&self, path: &CStr, mode: mode_t) -> io::Result<()>
+	pub fn make_directory(&self, path: &CStr, access_permissions: AccessPermissions) -> io::Result<()>
 	{
 		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
 
-		let result = unsafe { mkdirat(self.0, path.as_ptr(), Self::mask_mode(mode)) };
+		let result = unsafe { mkdirat(self.0, path.as_ptr(), Self::mask_mode(access_permissions)) };
 		if likely!(result == 0)
 		{
 			Ok(())
@@ -946,11 +946,11 @@ impl DirectoryFileDescriptor
 	///
 	/// Only the bottom 12 bits of mode are kept and the call masks them using the process' current `umask()`.
 	#[inline(always)]
-	pub fn make_character_device(&self, path: &CStr, mode: mode_t, device: CharacterDevice) -> io::Result<()>
+	pub fn make_character_device(&self, path: &CStr, access_permissions: AccessPermissions, device: CharacterDevice) -> io::Result<()>
 	{
 		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
 
-		self.make_node_at(path, mode, S_IFCHR, device.into())
+		self.make_node_at(path, access_permissions, S_IFCHR, device.into())
 	}
 
 	/// The caller must have the capability `CAP_MKNOD`.
@@ -959,11 +959,11 @@ impl DirectoryFileDescriptor
 	///
 	/// Only the bottom 12 bits of mode are kept and the call masks them using the process' current `umask()`.
 	#[inline(always)]
-	pub fn make_block_device(&self, path: &CStr, mode: mode_t, device: BlockDevice) -> io::Result<()>
+	pub fn make_block_device(&self, path: &CStr, access_permissions: AccessPermissions, device: BlockDevice) -> io::Result<()>
 	{
 		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
 
-		self.make_node_at(path, mode, S_IFBLK, device.into())
+		self.make_node_at(path, access_permissions, S_IFBLK, device.into())
 	}
 
 	/// The caller must have the capability `CAP_MKNOD`.
@@ -972,30 +972,30 @@ impl DirectoryFileDescriptor
 	///
 	/// Only the bottom 12 bits of mode are kept and the call masks them using the process' current `umask()`.
 	#[inline(always)]
-	pub fn make_unix_domain_socket(&self, path: &CStr, mode: mode_t) -> io::Result<()>
+	pub fn make_unix_domain_socket(&self, path: &CStr, access_permissions: AccessPermissions) -> io::Result<()>
 	{
 		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
 
-		self.make_node_at(path, mode, S_IFSOCK, 0u64)
+		self.make_node_at(path, access_permissions, S_IFSOCK, 0u64)
 	}
 
 	/// `path` can be absolute.
 	///
 	/// Only the bottom 12 bits of mode are kept and the call masks them using the process' current `umask()`.
 	#[inline(always)]
-	pub fn make_fifo(&self, path: &CStr, mode: mode_t) -> io::Result<()>
+	pub fn make_fifo(&self, path: &CStr, access_permissions: AccessPermissions) -> io::Result<()>
 	{
 		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
 
-		self.make_node_at(path, mode, S_IFIFO, 0u64)
+		self.make_node_at(path, access_permissions, S_IFIFO, 0u64)
 	}
 
 	#[inline(always)]
-	fn make_node_at(&self, path: &CStr, mode: mode_t, top_bits: mode_t, device: dev_t) -> io::Result<()>
+	fn make_node_at(&self, path: &CStr, access_permissions: AccessPermissions, top_bits: mode_t, device: dev_t) -> io::Result<()>
 	{
 		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
 
-		let result = unsafe { mknodat(self.0, path.as_ptr(), Self::mask_mode_and_apply(mode, top_bits), device) };
+		let result = unsafe { mknodat(self.0, path.as_ptr(), Self::mask_mode_and_apply(access_permissions, top_bits), device) };
 		if likely!(result == 0)
 		{
 			Ok(())
@@ -1011,15 +1011,15 @@ impl DirectoryFileDescriptor
 	}
 
 	#[inline(always)]
-	const fn mask_mode_and_apply(mode: mode_t, top_bits: mode_t) -> mode_t
+	const fn mask_mode_and_apply(access_permissions: AccessPermissions, top_bits: mode_t) -> mode_t
 	{
-		Self::mask_mode(mode) | top_bits
+		Self::mask_mode(access_permissions) | top_bits
 	}
 
 	#[inline(always)]
 	const fn mask_mode(mode: mode_t) -> mode_t
 	{
-		mode & 0xFFF
+		access_permissions.0 & 0xFFF
 	}
 
 	#[inline(always)]

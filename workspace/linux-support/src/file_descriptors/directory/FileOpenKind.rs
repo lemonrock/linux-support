@@ -37,8 +37,8 @@ pub enum FileOpenKind<'a>
 		/// `O_NOFOLLOW`.
 		fail_if_base_name_is_a_symbolic_link: bool,
 
-		/// Only the bottom 4 octal digits are used.
-		mode: mode_t,
+		/// Access permissions.
+		access_permissions: AccessPermissions,
 	},
 
 	/// Requires the file system to support this (most do).
@@ -50,8 +50,8 @@ pub enum FileOpenKind<'a>
 		/// Specifying this prevents a temporary file from being linked into the filesystem and so makes it more secure.
 		exclusive: bool,
 
-		/// Only the bottom 4 octal digits are used.
-		mode: mode_t,
+		/// Access permissions.
+		access_permissions: AccessPermissions,
 	}
 }
 
@@ -86,7 +86,7 @@ impl<'a> FileOpenKind<'a>
 				(o_flags, 0, path.as_ptr())
 			}
 
-			&CreateIfDoesNotExist { path, access, exclusive, fail_if_base_name_is_a_symbolic_link, mode } =>
+			&CreateIfDoesNotExist { path, access, exclusive, fail_if_base_name_is_a_symbolic_link, access_permissions } =>
 			{
 				let o_flags = if exclusive
 				{
@@ -104,10 +104,10 @@ impl<'a> FileOpenKind<'a>
 				{
 					o_flags
 				};
-				(o_flags, DirectoryFileDescriptor::mask_mode(mode), path.as_ptr())
+				(o_flags, DirectoryFileDescriptor::mask_mode(access_permissions), path.as_ptr())
 			}
 
-			&MakeATemporaryFile { access, exclusive, mode } =>
+			&MakeATemporaryFile { access, exclusive, access_permissions } =>
 			{
 				let o_flags = if exclusive
 				{
@@ -117,7 +117,7 @@ impl<'a> FileOpenKind<'a>
 				{
 					access.to_oflag() | O_TMPFILE
 				};
-				(o_flags, DirectoryFileDescriptor::mask_mode(mode), null())
+				(o_flags, DirectoryFileDescriptor::mask_mode(access_permissions), null())
 			}
 		}
 	}

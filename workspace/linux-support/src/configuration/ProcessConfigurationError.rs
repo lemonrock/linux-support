@@ -41,6 +41,22 @@ pub enum ProcessConfigurationError
 
 	#[allow(missing_docs)]
 	RunningSetGid,
+
+	#[allow(missing_docs)]
+	CouldNotChangeResourceLimit(ResourceLimitError),
+
+	#[allow(missing_docs)]
+	#[cfg(feature = "seccomp")]
+	CouldNotLoadSeccompFilters,
+
+	#[allow(missing_docs)]
+	UserAndGroupChoice(UserAndGroupChoiceError),
+
+	#[allow(missing_docs)]
+	JoinPaths(JoinPathsError),
+
+	#[allow(missing_docs)]
+	CouldNotChangeWorkingDirectory(io::Error),
 }
 
 impl Display for ProcessConfigurationError
@@ -84,6 +100,16 @@ impl error::Error for ProcessConfigurationError
 			&RunningSetUid => None,
 
 			&RunningSetGid => None,
+
+			&CouldNotChangeResourceLimit(ref cause) => Some(cause),
+
+			#[cfg(feature = "seccomp")] &CouldNotLoadSeccompFilters => None,
+
+			&UserAndGroupChoice(ref cause) => Some(cause),
+
+			&JoinPaths(ref cause) => Some(cause),
+
+			&CouldNotChangeWorkingDirectory(ref cause) => Some(cause),
 		}
 	}
 }
@@ -112,5 +138,23 @@ impl From<ProcessSchedulingConfigurationError> for ProcessConfigurationError
 	fn from(error: ProcessSchedulingConfigurationError) -> Self
 	{
 		ProcessConfigurationError::ProcessSchedulingConfiguration(error)
+	}
+}
+
+impl From<UserAndGroupChoiceError> for ProcessConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: UserAndGroupChoiceError) -> Self
+	{
+		ProcessConfigurationError::UserAndGroupChoice(cause)
+	}
+}
+
+impl From<JoinPathsError> for ProcessConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: JoinPathsError) -> Self
+	{
+		ProcessConfigurationError::JoinPaths(cause)
 	}
 }
