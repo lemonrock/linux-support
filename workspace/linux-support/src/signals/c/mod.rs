@@ -5,6 +5,7 @@
 use super::*;
 
 
+include!("_NSIG.rs");
 include!("SI_.rs");
 include!("signalfd.rs");
 include!("signalfd_siginfo.rs");

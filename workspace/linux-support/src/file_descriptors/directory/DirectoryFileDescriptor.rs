@@ -1017,7 +1017,7 @@ impl DirectoryFileDescriptor
 	}
 
 	#[inline(always)]
-	const fn mask_mode(mode: mode_t) -> mode_t
+	const fn mask_mode(access_permissions: AccessPermissions) -> mode_t
 	{
 		access_permissions.0 & 0xFFF
 	}

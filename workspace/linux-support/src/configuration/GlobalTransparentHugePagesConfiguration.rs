@@ -36,9 +36,6 @@ pub struct GlobalTransparentHugePagesConfiguration
 
 	#[allow(missing_docs)]
 	#[serde(default = "GlobalTransparentHugePagesConfiguration::use_zero_page_default")] pub use_zero_page: bool,
-
-	#[allow(missing_docs)]
-	#[serde(default)] pub enable: bool,
 }
 
 impl Default for GlobalTransparentHugePagesConfiguration
@@ -57,7 +54,6 @@ impl Default for GlobalTransparentHugePagesConfiguration
 			regular_memory_choice: TransparentHugePageRegularMemoryChoice::Never,
 			shared_memory_choice: TransparentHugePageSharedMemoryChoice::Never,
 			use_zero_page: Self::use_zero_page_default(),
-			enable: false,
 		}
 	}
 }
@@ -73,8 +69,6 @@ impl GlobalTransparentHugePagesConfiguration
 		TransparentHugePageDefragmentationChoice::Never.change_transparent_huge_pages_defragmentation(sys_path, self.defragmentation_pages_to_scan, self.defragmentation_scan_sleep_in_milliseconds, self.defragmentation_allocation_sleep_in_milliseconds, self.defragmentation_how_many_extra_small_pages_not_already_mapped_can_be_allocated_when_collapsing_small_pages, self.defragmentation_how_many_extra_small_pages_not_already_mapped_can_be_swapped_when_collapsing_small_pages).map_err(|io_error| Defragmentation(io_error))?;
 
 		self.regular_memory_choice.change_transparent_huge_pages_usage(sys_path, self.shared_memory_choice, self.use_zero_page).map_err(|io_error| Usage(io_error))?;
-
-		adjust_transparent_huge_pages(self.enable);
 
 		Ok(())
 	}

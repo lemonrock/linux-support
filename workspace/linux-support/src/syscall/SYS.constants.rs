@@ -4,6 +4,7 @@
 
 /// System calls wrapper.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(EnumIter)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 #[repr(usize)]
@@ -2448,4 +2449,101 @@ pub enum SYS
 	#[cfg(target_arch = "riscv64")] #[allow(missing_docs)] writev = 66,
 	#[cfg(target_arch = "s390x")] #[allow(missing_docs)] writev = 146,
 	#[cfg(target_arch = "x86_64")] #[allow(missing_docs)] writev = 20,
+}
+
+impl SYS
+{
+	#[cfg(target_arch = "aarch64")] #[allow(missing_docs)] pub const InclusiveMinimum: Self = SYS::io_setup;
+	#[cfg(target_arch = "mips64")] #[allow(missing_docs)] pub const InclusiveMinimum: Self = SYS::read;
+	#[cfg(target_arch = "powerpc64")] #[allow(missing_docs)] pub const InclusiveMinimum: Self = SYS::restart_syscall;
+	#[cfg(target_arch = "riscv64")] #[allow(missing_docs)] pub const InclusiveMinimum: Self = SYS::io_setup;
+	#[cfg(target_arch = "s390x")] #[allow(missing_docs)] pub const InclusiveMinimum: Self = SYS::exit;
+	#[cfg(target_arch = "x86_64")] #[allow(missing_docs)] pub const InclusiveMinimum: Self = SYS::read;
+
+	#[cfg(target_arch = "aarch64")] #[allow(missing_docs)] pub const InclusiveMaximum: Self = SYS::pidfd_getfd;
+	#[cfg(target_arch = "mips64")] #[allow(missing_docs)] pub const InclusiveMaximum: Self = SYS::pidfd_getfd;
+	#[cfg(target_arch = "powerpc64")] #[allow(missing_docs)] pub const InclusiveMaximum: Self = SYS::pidfd_getfd;
+	#[cfg(target_arch = "riscv64")] #[allow(missing_docs)] pub const InclusiveMaximum: Self = SYS::pidfd_getfd;
+	#[cfg(target_arch = "s390x")] #[allow(missing_docs)] pub const InclusiveMaximum: Self = SYS::pidfd_getfd;
+	#[cfg(target_arch = "x86_64")] #[allow(missing_docs)] pub const InclusiveMaximum: Self = SYS::pidfd_getfd;
+
+	#[cfg(target_arch = "aarch64")] #[allow(missing_docs)] pub const Undefined: [Range<u32>; 3] =
+	[
+		244 .. 260,
+		295 .. 424,
+		436 .. 437,
+	];
+
+	#[cfg(target_arch = "mips64")] #[allow(missing_docs)] pub const Undefined: [Range<u32>; 3] =
+	[
+		5238 .. 5239,
+		5329 .. 5424,
+		5436 .. 5437,
+	];
+
+	#[cfg(target_arch = "powerpc64")] #[allow(missing_docs)] pub const Undefined: [Range<u32>; 10] =
+	[
+		192 .. 198,
+		204 .. 205,
+		224 .. 225,
+		226 .. 227,
+		254 .. 255,
+		257 .. 258,
+		366 .. 378,
+		389 .. 392,
+		403 .. 424,
+		436 .. 437,
+	];
+
+	#[cfg(target_arch = "riscv64")] #[allow(missing_docs)] pub const Undefined: [Range<u32>; 4] =
+	[
+		38 .. 39,
+		245 .. 260,
+		295 .. 424,
+		436 .. 437,
+	];
+
+	#[cfg(target_arch = "s390x")] #[allow(missing_docs)] pub const Undefined: [Range<u32>; 34] =
+	[
+		13 .. 14,
+		16 .. 19,
+		23 .. 26,
+		28 .. 29,
+		31 .. 33,
+		35 .. 36,
+		44 .. 45,
+		46 .. 48,
+		49 .. 51,
+		53 .. 54,
+		56 .. 57,
+		58 .. 60,
+		68 .. 72,
+		76 .. 77,
+		80 .. 83,
+		84 .. 85,
+		95 .. 96,
+		98 .. 99,
+		101 .. 102,
+		109 .. 110,
+		113 .. 114,
+		123 .. 124,
+		138 .. 141,
+		164 .. 167,
+		170 .. 172,
+		182 .. 183,
+		192 .. 198,
+		221 .. 222,
+		223 .. 224,
+		242 .. 243,
+		263 .. 265,
+		387 .. 392,
+		403 .. 424,
+		436 .. 437,
+	];
+
+	#[cfg(target_arch = "x86_64")] #[allow(missing_docs)] pub const Undefined: [Range<u32>; 2] =
+	[
+		335 .. 424,
+		436 .. 437,
+	];
 }

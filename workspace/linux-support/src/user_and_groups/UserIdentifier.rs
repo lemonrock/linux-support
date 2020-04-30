@@ -4,6 +4,7 @@
 
 /// An user identifier.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct UserIdentifier(uid_t);
 
@@ -60,7 +61,7 @@ impl UserOrGroupIdentifier for UserIdentifier
 
 	const FileName: &'static str = "uid_map";
 
-	const Root: Self = Self(0);
+	const root: Self = Self(0);
 
 	#[inline(always)]
 	fn current_real() -> Self
@@ -104,9 +105,9 @@ impl UserOrGroupIdentifier for UserIdentifier
 	fn set_real_effective_and_saved_set(real: Option<Self>, effective: Option<Self>, saved_set: Option<Self>)
 	{
 		#[inline(always)]
-		fn into_i32(value: Option<UserIdentifier>) -> i32
+		fn into_i32(value: Option<UserIdentifier>) -> u32
 		{
-			value.map_or(-1i32, |value| value.into())
+			value.map_or(-1i32 as u32, |value| value.into())
 		}
 
 		let result = unsafe { setresuid(into_i32(real), into_i32(effective), into_i32(saved_set)) };
@@ -130,9 +131,9 @@ impl UserOrGroupIdentifier for UserIdentifier
 	}
 
 	#[inline(always)]
-	fn set_file_system(self)
+	fn set_file_system(self) -> Self
 	{
-		unsafe { setfsuid(self.0) }
+		Self((unsafe { setfsuid(self.0) }) as uid_t)
 	}
 }
 

@@ -2,10 +2,6 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Redirect standard out and standard error to syslog.
-#[inline(always)]
-pub fn redirect_standard_out_and_standard_error_to_syslog()
-{
-	redirect_to_syslog(unsafe { &mut stdout }, write_standard_out_to_syslog);
-	redirect_to_syslog(unsafe { &mut stderr }, write_standard_error_to_syslog);
-}
+// Sourced from `linux/filter.h`.
+
+pub(crate) const BPF_LL_OFF: i32 = SKF_LL_OFF;

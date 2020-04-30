@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::paths::EtcPath;
+use crate::paths::*;
 use crate::process::status::StatusStatisticParseError;
 use crate::strings::FromBytes;
 use crate::strings::parse_number::*;
@@ -13,22 +13,21 @@ use memchr::memchr_iter;
 use memchr::Memchr;
 use serde::Deserialize;
 use serde::Serialize;
-use std::collections::{BTreeSet, HashSet};
-use std::ffi::*;
-#[allow(deprecated)] use std::mem::uninitialized;
-use std::ops::Deref;
-use std::ptr::{NonNull, null};
-use std::hash::Hash;
+use std::collections::BTreeSet;
+use std::collections::HashSet;
 use std::error;
+use std::ffi::*;
 use std::fmt;
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Formatter;
-use std::fs::File;
+use std::hash::Hash;
 use std::io;
+#[allow(deprecated)] use std::mem::uninitialized;
+use std::ops::Deref;
+use std::os::unix::ffi::OsStringExt;
 use std::path::PathBuf;
-use streaming_iterator::StreamingIterator;
-use crate::logging::SyslogFacility::user;
+use std::ptr::null;
 
 
 include!("assert_effective_user_id_is_root.rs");

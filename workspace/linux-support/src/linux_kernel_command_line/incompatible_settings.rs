@@ -77,7 +77,7 @@ pub(crate) fn incompatible_settings(linux_kernel_command_line_parameters: &Linux
 
 				b"off" => return Err("Kernel spectre_v2 mitigation has been disabled; this is wrong"),
 
-				_ => return return Err("Kernel spectre_v2 mitigation not recognised"),
+				_ => return Err("Kernel spectre_v2 mitigation not recognised"),
 			}
 		}
 
@@ -104,7 +104,7 @@ pub(crate) fn incompatible_settings(linux_kernel_command_line_parameters: &Linux
 
 			Some((b"fake", Some(_))) => return Err("Kernel should not have fake NUMA nodes; they do not have correctly assigned CPUs"),
 
-			unrecognised @ _ => return Err("Unrecognised Kernel NUMA options"),
+			_ => return Err("Unrecognised Kernel NUMA options"),
 		}
 
 		if linux_kernel_command_line_parameters.nohugeiomap()
@@ -194,7 +194,7 @@ pub(crate) fn incompatible_settings(linux_kernel_command_line_parameters: &Linux
 
 			Some(b"native") => return Err("Kernel vsyscall mitigration has been disabled; this is wrong"),
 
-			unknown @ _ => return Err("Kernel vsyscall mitigation not recognised"),
+			_ => return Err("Kernel vsyscall mitigation not recognised"),
 		}
 
 		if linux_kernel_command_line_parameters.nopcid()

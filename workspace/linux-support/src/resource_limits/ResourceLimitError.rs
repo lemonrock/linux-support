@@ -12,3 +12,28 @@ pub enum ResourceLimitError
 	/// Limit was too large (or bad resource id).
 	LimitWasTooLarge,
 }
+
+impl Display for ResourceLimitError
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
+impl error::Error for ResourceLimitError
+{
+	#[inline(always)]
+	fn source(&self) -> Option<&(dyn error::Error + 'static)>
+	{
+		use self::ResourceLimitError::*;
+
+		match self
+		{
+			&PermissionDeniedOrTriedToIncreaseAboveMaximumNumberOfFileDescriptors => None,
+
+			&LimitWasTooLarge => None,
+		}
+	}
+}

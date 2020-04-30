@@ -25,7 +25,7 @@ include!("panic_payload_to_cause.rs");
 include!("redirect_to_syslog.rs");
 include!("SyslogFacility.rs");
 include!("SyslogPriority.rs");
-include!("redirect_standard_out_and_standard_error_to_syslog.rs");
+include!("redirect_file_standard_out_and_file_standard_error_to_syslog.rs");
 include!("write_standard_error_to_syslog.rs");
 include!("write_standard_out_to_syslog.rs");
 include!("write_to_syslog.rs");

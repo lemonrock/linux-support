@@ -5,19 +5,22 @@
 /// Thread configuration.
 ///
 /// Used to create a thread and within a thread.
-#[derive(Default, Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
-#[serde(default, deny_unknown_fields)]
+#[serde(deny_unknown_fields)]
 pub struct ThreadConfiguration
 {
 	/// Thread name.
-	pub name: ThreadName,
+	#[serde(default)] pub name: ThreadName,
 
 	/// Thread stack size.
-	pub stack_size: NumberOfPages,
+	#[serde(default)] pub stack_size: NumberOfPages,
 
 	/// Sets the scheduler policy for the thread.
-	pub thread_scheduler: PerThreadSchedulerPolicyAndFlags,
+	#[serde(default)] pub thread_scheduler: PerThreadSchedulerPolicyAndFlags,
+
+	#[allow(missing_docs)]
+	#[serde(default)] pub disable_transparent_huge_pages: bool,
 }
 
 impl ThreadConfiguration
@@ -60,7 +63,7 @@ impl ThreadConfiguration
 
 		self.thread_scheduler.set_for_thread(ThreadIdentifierChoice::Current).map_err(|reason| CouldNotSetSchedulerPolicyAndFlags(reason))?;
 
-		no_new_privileges();
+		adjust_transparent_huge_pages(!self.disable_transparent_huge_pages);
 
 		Ok(())
 	}

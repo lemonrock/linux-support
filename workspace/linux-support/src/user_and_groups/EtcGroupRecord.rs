@@ -25,21 +25,21 @@ impl<'a> EtcGroupRecord<'a>
 	#[inline(always)]
 	pub fn has_group_name(&self, group_name: &GroupName) -> bool
 	{
-		group_name.equals_raw_name(self.raw_user_name)
+		group_name.equals_raw_name(self.raw_group_name)
 	}
 
 	/// Clones data.
 	#[inline(always)]
 	pub fn group_name(&self) -> Result<GroupName, NulError>
 	{
-		Ok(GroupName(CString::new(self.raw_user_name)?))
+		Ok(GroupName(CString::new(self.raw_group_name)?))
 	}
 
 	/// User names.
 	///
 	/// Clones data.
 	#[inline(always)]
-	pub fn user_names(&self) -> impl Iterator<Item=Result<UserName, NulError>>
+	pub fn user_names(&self) -> impl Iterator<Item=Result<UserName, NulError>> + 'a
 	{
 		self.raw_user_names().map(|raw_user_name| Ok(UserName(CString::new(raw_user_name)?)))
 	}

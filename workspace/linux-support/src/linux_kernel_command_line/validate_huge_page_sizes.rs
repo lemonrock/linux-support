@@ -4,14 +4,14 @@
 
 #[cfg(not(target_arch = "x86_64"))]
 #[inline(always)]
-pub(crate) fn validate_huge_page_sizes(_linux_kernel_command_line_parameters: &LinuxKernelCommandLine, _cpu_supports_1gb_pages: bool) -> Result<(), &'static str>
+pub(crate) fn validate_huge_page_sizes(_linux_kernel_command_line_parameters: &LinuxKernelCommandLineParameters, _cpu_supports_1gb_pages: bool) -> Result<(), &'static str>
 {
 	Ok(())
 }
 
 #[cfg(target_arch = "x86_64")]
 #[inline(always)]
-pub(crate) fn validate_huge_page_sizes(linux_kernel_command_line_parameters: &LinuxKernelCommandLine, cpu_supports_1gb_pages: bool) -> Result<(), &'static str>
+pub(crate) fn validate_huge_page_sizes(linux_kernel_command_line_parameters: &LinuxKernelCommandLineParameters, cpu_supports_1gb_pages: bool) -> Result<(), &'static str>
 {
 	if cpu_supports_1gb_pages
 	{

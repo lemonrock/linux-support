@@ -47,15 +47,15 @@ impl SupplementaryGroupSetting
 			&ChangeTo(ref supplementary_group_choices) =>
 			{
 				let list = Self::supplementary_group_identifiers(etc_path, supplementary_group_choices)?;
-				let length = list.length();
-				let pointer = if length == 0
+				let length = list.len();
+				if unlikely!(length == 0)
 				{
 					Self::drop_all_supplementary_groups()
 				}
 				else
 				{
 					unsafe { setgroups(length, list.as_ptr()) }
-				};
+				}
 			}
 		};
 
@@ -101,15 +101,15 @@ impl SupplementaryGroupSetting
 
 		let mut check = HashSet::with_capacity(length);
 		let mut list = Vec::with_capacity(length);
-		let iterator = supplementary_group_choices.iter().map(|supplementary_group_choice| supplementary_group_choice.to_group_identifier(etc_path).0);
+		let iterator = supplementary_group_choices.iter().map(|supplementary_group_choice| supplementary_group_choice.to_group_identifier(etc_path));
 		for result in iterator
 		{
 			let group_identifier = result?;
-			if unlikely(!check.insert(group_identifier))
+			if unlikely!(!check.insert(group_identifier))
 			{
 				return Err(DuplicateGroupIdentifier(group_identifier))
 			}
-			list.push(group_identifier)
+			list.push(group_identifier.0)
 		}
 		Ok(list)
 	}

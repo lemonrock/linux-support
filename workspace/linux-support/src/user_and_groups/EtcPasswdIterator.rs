@@ -34,10 +34,10 @@ impl<'a> EtcPasswdIterator<'a>
 
 		let next_needle = self.memchr.next().ok_or(MissingLastLineFeed)?;
 
-		let line = bytes[self.last_end_of_line .. next_needle];
+		let line = &self.bytes[self.last_end_of_line .. next_needle];
 		self.last_end_of_line = next_needle + 1;
 
-		let fields = line.splitn(7, |byte| *byte == b':');
+		let mut fields = line.splitn(7, |byte| *byte == b':');
 
 		Ok
 		(

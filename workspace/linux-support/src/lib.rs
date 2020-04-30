@@ -13,8 +13,11 @@
 #![feature(asm)]
 #![feature(const_fn)]
 #![feature(core_intrinsics)]
+#![feature(const_ptr_offset_from)]
+#![feature(const_raw_ptr_deref)]
 #![feature(const_transmute)]
 #![feature(never_type)]
+#![feature(ptr_offset_from)]
 #![feature(read_initializer)]
 
 
@@ -36,12 +39,8 @@ use crate::memory::numa::NumaNode;
 use crate::strings::Radix;
 use crate::strings::parse_number::*;
 use libc::clock_t;
-use serde::Deserialize;
-use serde::Serialize;
-use std::collections::HashSet;
 use std::fmt::Debug;
 use std::mem::transmute;
-use crate::configuration::ProcessLoggingConfiguration;
 
 
 /// A set of types to support the use of bit sets in Linux APIs and files.
@@ -52,6 +51,10 @@ pub mod bit_set;
 /// Vectored reads and writes.
 #[macro_use]
 pub mod vectors;
+
+
+/// Berkeley Packet Filter (BPF) and Extended Berkeley Packet Filter (eBPF).
+pub mod bpf;
 
 
 /// Capabilities and privileges.
@@ -194,7 +197,6 @@ pub mod resource_limits;
 
 
 /// Seccomp.
-#[cfg(feature = "seccomp")]
 pub mod seccomp;
 
 
@@ -204,6 +206,10 @@ pub mod signals;
 
 /// Process.
 pub mod process;
+
+
+/// Swap.
+pub mod swap;
 
 
 /// Strings.
@@ -229,4 +235,3 @@ pub mod user_and_groups;
 include!("ClockTicks.rs");
 include!("current_numa_node_and_hyper_thread.rs");
 include!("move_to_front_of_vec.rs");
-include!("WarningsToSuppress.rs");

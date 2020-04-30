@@ -50,6 +50,9 @@ pub enum GlobalConfigurationError
 
 	#[allow(missing_docs)]
 	GlobalLinuxKernelCommandLineConfiguration(GlobalLinuxKernelCommandLineConfigurationError),
+
+	#[allow(missing_docs)]
+	GlobalSwapConfiguration(GlobalSwapConfigurationError),
 }
 
 impl Display for GlobalConfigurationError
@@ -99,6 +102,8 @@ impl error::Error for GlobalConfigurationError
 			&GlobalTransparentHugePagesConfiguration(ref cause) => Some(cause),
 
 			&GlobalLinuxKernelCommandLineConfiguration(ref cause) => Some(cause),
+
+			&GlobalSwapConfiguration(ref cause) => Some(cause),
 		}
 	}
 }
@@ -235,5 +240,14 @@ impl From<GlobalLinuxKernelCommandLineConfigurationError> for GlobalConfiguratio
 	fn from(cause: GlobalLinuxKernelCommandLineConfigurationError) -> Self
 	{
 		GlobalConfigurationError::GlobalLinuxKernelCommandLineConfiguration(cause)
+	}
+}
+
+impl From<GlobalSwapConfigurationError> for GlobalConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: GlobalSwapConfigurationError) -> Self
+	{
+		GlobalConfigurationError::GlobalSwapConfiguration(cause)
 	}
 }

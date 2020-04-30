@@ -33,8 +33,9 @@ impl DevPath
 		self.file_path("zero")
 	}
 
+	/// File path.
 	#[inline(always)]
-	fn file_path(&self, file_name: &str) -> PathBuf
+	pub fn file_path(&self, file_name: &str) -> PathBuf
 	{
 		self.path().append(file_name)
 	}

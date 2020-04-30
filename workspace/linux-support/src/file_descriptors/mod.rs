@@ -67,7 +67,7 @@ use crate::inode::c::FS_IOC_GETFLAGS;
 use crate::inode::c::FS_IOC_SETFLAGS;
 use crate::inode::c::FS_IOC_GETVERSION;
 use crate::inode::c::FS_IOC_SETVERSION;
-use crate::strings::CStringExt;
+use crate::strings::{CStringExt, FromBytes};
 use crate::terminal::TerminalSettingsError;
 #[allow(deprecated)] use std::mem::uninitialized;
 use arrayvec::Array;
@@ -98,6 +98,7 @@ use libc::c_ulonglong;
 use libc::c_ushort;
 use libc::c_void;
 use libc::dev_t;
+use libc::dup2;
 use libc::EACCES;
 use libc::EADDRINUSE;
 use libc::EADDRNOTAVAIL;
@@ -373,6 +374,8 @@ use std::str::from_utf8;
 use std::time::Duration;
 use std::time::SystemTime;
 use std::time::UNIX_EPOCH;
+use crate::process::ProcessIdentifierChoice;
+use crate::paths::ProcPath;
 
 
 /// Block device file descriptors.
@@ -452,6 +455,10 @@ pub mod signalfd;
 pub mod socket;
 
 
+/// Standard (eg standard in) file descriptors.
+pub mod standard;
+
+
 /// Terminal (serial port and modem) file descriptors.
 ///
 /// Create an instance of `TerminalFileDescriptor` to get started with a terminal or serial port.
@@ -462,6 +469,7 @@ pub mod terminal;
 pub mod timerfd;
 
 
+include!("close_all_open_file_descriptors_apart_from_standard.rs");
 include!("CreationError.rs");
 include!("FileDescriptor.rs");
 include!("InvalidPathReason.rs");

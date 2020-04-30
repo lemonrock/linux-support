@@ -4,13 +4,23 @@
 
 /// Capability protection.
 #[inline(always)]
-pub fn lock_secure_bits_and_remove_ambient_capability_raise_and_keep_capabilities()
+pub fn lock_secure_bits_and_remove_ambient_capability_raise_and_keep_capabilities() -> Result<(), io::Error>
 {
 	//noinspection SpellCheckingInspection
 	const SECBIT_KEEP_CAPS_LOCKED_off: c_ulong = 0;
 
-	unsafe
+	let result = unsafe { prctl(PR_SET_SECUREBITS, SECBIT_NOROOT | SECBIT_NOROOT_LOCKED | SECBIT_NO_SETUID_FIXUP | SECBIT_NO_SETUID_FIXUP_LOCKED | SECBIT_KEEP_CAPS_LOCKED_off | SECBIT_KEEP_CAPS_LOCKED | SECBIT_NO_CAP_AMBIENT_RAISE | SECBIT_NO_CAP_AMBIENT_RAISE_LOCKED) };
+
+	if likely!(result == 0)
 	{
-		prctl(PR_SET_SECUREBITS, SECBIT_NOROOT | SECBIT_NOROOT_LOCKED | SECBIT_NO_SETUID_FIXUP | SECBIT_NO_SETUID_FIXUP_LOCKED | SECBIT_KEEP_CAPS_LOCKED_off | SECBIT_KEEP_CAPS_LOCKED | SECBIT_NO_CAP_AMBIENT_RAISE | SECBIT_NO_CAP_AMBIENT_RAISE_LOCKED);
+		Ok(())
+	}
+	else if likely!(result == -1)
+	{
+		Err(io::Error::last_os_error())
+	}
+	else
+	{
+		unreachable!("Unexpected result {} from prctl()", result)
 	}
 }

@@ -45,9 +45,9 @@ impl SupplementaryGroupChoice
 
 				&FromCurrentReal => GroupIdentifier::current_real(),
 
-				&FromCurrentReal => GroupIdentifier::current_effective(),
+				&FromCurrentEffective => GroupIdentifier::current_effective(),
 
-				&FromCurrentReal => GroupIdentifier::current_real_effective_and_saved_set().2,
+				&FromCurrentSavedSet => GroupIdentifier::current_real_effective_and_saved_set().2,
 			}
 		)
 	}

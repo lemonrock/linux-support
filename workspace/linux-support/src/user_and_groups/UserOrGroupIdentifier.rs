@@ -14,7 +14,7 @@ pub trait UserOrGroupIdentifier: Sized + Copy + Into<u32> + Default + PartialEq 
 	const FileName: &'static str;
 
 	/// Root.
-	const Root: Self;
+	const root: Self;
 
 	/// Current real value (also default).
 	fn current_real() -> Self;
@@ -36,12 +36,14 @@ pub trait UserOrGroupIdentifier: Sized + Copy + Into<u32> + Default + PartialEq 
 	fn set_real_effective_and_saved_set(real: Option<Self>, effective: Option<Self>, saved_set: Option<Self>);
 
 	/// Sets the file system (fs) user or group.
-	fn set_file_system(self);
+	///
+	/// Returns the previous value.
+	fn set_file_system(self) -> Self;
 
 	/// Is root user (or group).
 	#[inline(always)]
 	fn is_root(self) -> bool
 	{
-		self == Self::Root
+		self == Self::root
 	}
 }

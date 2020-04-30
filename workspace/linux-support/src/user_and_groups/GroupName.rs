@@ -10,12 +10,12 @@
 #[repr(transparent)]
 pub struct GroupName(CString);
 
-impl Default for UserName
+impl Default for GroupName
 {
 	#[inline(always)]
 	fn default() -> Self
 	{
-		Self(CString::new(b"root").unwrap())
+		Self(CString::new(b"root".to_vec()).unwrap())
 	}
 }
 

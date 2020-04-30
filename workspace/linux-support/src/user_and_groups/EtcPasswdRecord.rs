@@ -70,7 +70,7 @@ impl<'a> EtcPasswdRecord<'a>
 	#[inline(always)]
 	pub fn shell(&self) ->  PathBuf
 	{
-		Self::to_path_buf(self.raw_shel)
+		Self::to_path_buf(self.raw_shell)
 	}
 
 	#[inline(always)]

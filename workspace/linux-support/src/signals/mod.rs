@@ -53,6 +53,7 @@ include!("ElfMachine.rs");
 include!("FaultCode.rs");
 include!("one_millisecond_timed_wait_for_signals.rs");
 include!("OutOfRangeSignalNumberError.rs");
+include!("reset_all_signal_handlers_to_default.rs");
 include!("ParsedSignal.rs");
 include!("Signal.rs");
 include!("SignalQueueStatus.rs");

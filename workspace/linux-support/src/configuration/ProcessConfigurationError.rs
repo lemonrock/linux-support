@@ -37,6 +37,15 @@ pub enum ProcessConfigurationError
 	ProcessSchedulingConfiguration(ProcessSchedulingConfigurationError),
 
 	#[allow(missing_docs)]
+	IoFlusher(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotDisableDumpable(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotCloseAllOpenFileDescriptorsApartFromStandard(io::Error),
+
+	#[allow(missing_docs)]
 	RunningSetUid,
 
 	#[allow(missing_docs)]
@@ -46,8 +55,10 @@ pub enum ProcessConfigurationError
 	CouldNotChangeResourceLimit(ResourceLimitError),
 
 	#[allow(missing_docs)]
-	#[cfg(feature = "seccomp")]
-	CouldNotLoadSeccompFilters,
+	CouldNotLoadSeccompFilters(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotSynchronizeSeccompFiltersOnThread(ThreadIdentifier),
 
 	#[allow(missing_docs)]
 	UserAndGroupChoice(UserAndGroupChoiceError),
@@ -57,6 +68,9 @@ pub enum ProcessConfigurationError
 
 	#[allow(missing_docs)]
 	CouldNotChangeWorkingDirectory(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotSetSecureBits(io::Error),
 }
 
 impl Display for ProcessConfigurationError
@@ -97,19 +111,29 @@ impl error::Error for ProcessConfigurationError
 
 			&ProcessSchedulingConfiguration(ref cause) => Some(cause),
 
+			&IoFlusher(ref cause) => Some(cause),
+
+			&CouldNotDisableDumpable(ref cause) => Some(cause),
+
+			&CouldNotCloseAllOpenFileDescriptorsApartFromStandard(ref cause) => Some(cause),
+
 			&RunningSetUid => None,
 
 			&RunningSetGid => None,
 
 			&CouldNotChangeResourceLimit(ref cause) => Some(cause),
 
-			#[cfg(feature = "seccomp")] &CouldNotLoadSeccompFilters => None,
+			&CouldNotLoadSeccompFilters(ref cause) => Some(cause),
+
+			&CouldNotSynchronizeSeccompFiltersOnThread(..) => None,
 
 			&UserAndGroupChoice(ref cause) => Some(cause),
 
 			&JoinPaths(ref cause) => Some(cause),
 
 			&CouldNotChangeWorkingDirectory(ref cause) => Some(cause),
+
+			&CouldNotSetSecureBits(ref cause) => Some(cause),
 		}
 	}
 }

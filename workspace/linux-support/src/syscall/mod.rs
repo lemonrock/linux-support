@@ -17,6 +17,8 @@ use std::fmt::Debug;
 use std::fmt::Formatter;
 use std::hash::Hash;
 use std::hash::Hasher;
+use strum_macros::EnumIter;
+use std::ops::Range;
 
 
 include!("SYS.rs");

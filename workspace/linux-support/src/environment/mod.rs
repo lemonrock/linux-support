@@ -26,7 +26,7 @@ use std::ffi::CString;
 use std::io;
 use std::io::ErrorKind;
 use std::ops::Deref;
-use std::path::{PathBuf, Path};
+use std::path::PathBuf;
 use crate::user_and_groups::UserName;
 
 

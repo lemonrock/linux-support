@@ -42,7 +42,6 @@ impl UserAndGroupChoice
 	pub fn to_user_and_group_identifiers(&self, etc_path: &EtcPath) -> Result<(UserIdentifier, GroupIdentifier), UserAndGroupChoiceError>
 	{
 		use self::UserAndGroupChoice::*;
-		use self::UserAndGroupChoiceError::*;
 		match self
 		{
 			&FromUserNameInEtcPasswd(ref user_name) => Self::etc_passwd_record_for_user_name(etc_path, user_name),
@@ -56,21 +55,21 @@ impl UserAndGroupChoice
 
 			&FromUserIdentifierInEtcPasswd(user_identifier) =>
 			{
-				Self::etc_passwd_record_for_user_identifier::<(UserIdentifier, GroupIdentifier), UserAndGroupChoiceError>(etc_path, user_identifier, |etc_passwd_record| Ok((etc_passwd_record.user_identifier, etc_passwd_record.group_identifier)))
+				Self::etc_passwd_record_for_user_identifier::<(UserIdentifier, GroupIdentifier), _>(etc_path, user_identifier, |etc_passwd_record| Ok((etc_passwd_record.user_identifier, etc_passwd_record.group_identifier)))
 			}
 
 			&FromUserIdentifierAndGroupIdentifier(user_identifier, group_identifier) => Ok((user_identifier, group_identifier)),
 
-			&FromCurrentReal => (UserIdentifier::current_real(), GroupIdentifier::current_real()),
+			&FromCurrentReal => Ok((UserIdentifier::current_real(), GroupIdentifier::current_real())),
 
-			&FromCurrentEffective => (UserIdentifier::current_effective(), GroupIdentifier::current_effective()),
+			&FromCurrentEffective => Ok((UserIdentifier::current_effective(), GroupIdentifier::current_effective())),
 
-			&FromCurrentEffective => (UserIdentifier::current_effective(), GroupIdentifier::current_effective()),
+			&FromCurrentSavedSet => Ok((UserIdentifier::current_effective(), GroupIdentifier::current_effective())),
 		}
 	}
 
 	#[inline(always)]
-	fn etc_passwd_record_for_user_identifier<A, B, F: FnOnce(EtcPasswdRecord) -> Result<A, B>>(etc_path: &EtcPath, user_identifier: UserIdentifier, etc_passwd_record_user: F) -> Result<A, B>
+	fn etc_passwd_record_for_user_identifier<A, F: FnOnce(EtcPasswdRecord) -> Result<A, UserAndGroupChoiceError>>(etc_path: &EtcPath, user_identifier: UserIdentifier, etc_passwd_record_user: F) -> Result<A, UserAndGroupChoiceError>
 	{
 		let etc_passwd = EtcPasswd::open(etc_path)?;
 		let etc_passwd_record = Self::try_find_etc_passwd(etc_passwd.iter(), |etc_passwd_record| etc_passwd_record.user_identifier == user_identifier)?.ok_or(UserAndGroupChoiceError::UserIdentifierNotPresentInEtcPasswd)?;
@@ -92,13 +91,13 @@ impl UserAndGroupChoice
 		match Self::try_find_etc_group(etc_group.iter(), |etc_group_record| etc_group_record.has_group_name(group_name))?
 		{
 			None => Err(UserAndGroupChoiceError::GroupNameNotPresentInEtcGroup),
-			Some(etc_group_record) => etc_group_record.group_identifier
+			Some(etc_group_record) => Ok(etc_group_record.group_identifier),
 		}
 	}
 
 	/// `Iterator::try_find()` is unstable, hence the logic here.
 	#[inline(always)]
-	fn try_find_etc_passwd(iterator: EtcPasswdIterator, predicate: impl FnOnce(&EtcPasswdRecord) -> bool) -> Result<Option<EtcPasswdRecord>, EtcPasswdParseError>
+	fn try_find_etc_passwd<'a>(iterator: EtcPasswdIterator<'a>, predicate: impl FnOnce(&EtcPasswdRecord<'a>) -> bool + Copy) -> Result<Option<EtcPasswdRecord<'a>>, EtcPasswdParseError>
 	{
 		for etc_passwd_record in iterator
 		{
@@ -113,7 +112,7 @@ impl UserAndGroupChoice
 
 	/// `Iterator::try_find()` is unstable, hence the logic here.
 	#[inline(always)]
-	fn try_find_etc_group(iterator: EtcPasswdGroup, predicate: impl FnOnce(&EtcGroupRecord) -> bool) -> Result<Option<EtcGroupRecord>, EtcGroupParseError>
+	fn try_find_etc_group<'a>(iterator: EtcGroupIterator<'a>, predicate: impl FnOnce(&EtcGroupRecord<'a>) -> bool + Copy) -> Result<Option<EtcGroupRecord<'a>>, EtcGroupParseError>
 	{
 		for etc_group_record in iterator
 		{

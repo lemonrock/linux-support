@@ -3,26 +3,41 @@
 
 
 use self::c::*;
-use libc::*;
-use likely::likely;
-use likely::unlikely;
+use crate::bpf::BpfProgram;
+use crate::bpf::c::*;
+use crate::capabilities_and_privileges::no_new_privileges;
+use crate::configuration::ProcessLoggingConfiguration;
+use crate::signals::AuditArchitecture;
+use crate::syscall::SYS;
+use crate::thread::ThreadIdentifier;
+use bitflags::bitflags;
+use errno::errno;
+use indexmap::indexset;
+use indexmap::set::IndexSet;
+use libc::EOPNOTSUPP;
+use libc::prctl;
+use likely::*;
+use memoffset::offset_of;
 use serde::Deserialize;
 use serde::Serialize;
-use std::collections::HashMap;
-use std::convert::TryInto;
-use std::ffi::CString;
-use std::ptr::NonNull;
-use crate::syscall::SYS;
+use std::io;
+use std::ptr::null_mut;
+use std::num::NonZeroI32;
+use std::ops::*;
 
 
-#[doc(hidden)]
-pub mod c;
+mod c;
 
 
-include!("Action.rs");
-include!("Comparison.rs");
-include!("ComparisonOperation.rs");
-include!("Rule.rs");
-include!("SeccompContext.rs");
-include!("SeccompConfiguration.rs");
-include!("ZeroBasedArgumentNumber.rs");
+/// libseccomp backed filtering.
+#[cfg(feature = "libseccomp")]
+pub mod libseccomp;
+
+
+include!("disabled_seccomp.rs");
+include!("PermittedSyscalls.rs");
+include!("SeccompFilterFlags.rs");
+include!("SeccompProgram.rs");
+include!("strict_seccomp.rs");
+include!("SyscallOutcome.rs");
+include!("UserNotificationFlags.rs");

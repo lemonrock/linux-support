@@ -8,9 +8,13 @@ use libc::*;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
-use std::io;
+use std::{io, error};
 use std::path::PathBuf;
 use crate::user_and_groups::assert_effective_user_id_is_root;
+use std::fmt;
+use std::fmt::Debug;
+use std::fmt::Display;
+use std::fmt::Formatter;
 
 
 include!("ResourceName.rs");

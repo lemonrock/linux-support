@@ -3,28 +3,22 @@
 
 
 use crate::bit_set::*;
-use super::WarningsToSuppress;
-use super::cpu::CpuFeatures;
+use crate::configuration::checks::Check;
 use super::cpu::HyperThread;
 use super::file_systems::FileSystemType;
 use super::paths::PathExt;
 use super::paths::ProcPath;
-use super::strings::replace;
+use crate::strings::*;
+use serde::Deserialize;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::collections::HashSet;
-use std::error;
 use std::ffi::OsString;
-use std::fmt;
-use std::fmt::Display;
 use std::fmt::Debug;
-use std::fmt::Formatter;
 use std::io;
 use std::os::unix::ffi::OsStringExt;
 use std::path::PathBuf;
-use std::ops::Deref;
-use crate::strings::FromBytes;
-use raw_cpuid::FeatureInfo;
-use crate::configuration::checks::Check;
+use strum_macros::*;
 
 
 include!("IsolatedCpuFlags.rs");

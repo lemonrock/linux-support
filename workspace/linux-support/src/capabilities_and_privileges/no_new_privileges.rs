@@ -3,8 +3,22 @@
 
 
 /// Privilege protection.
+///
+/// This MUST be called prior to `seccomp(SECCOMP_SET_MODE_FILTER)` if the current thread does not the `CAP_SYS_ADMIN` capability.
 #[inline(always)]
-pub fn no_new_privileges()
+pub fn no_new_privileges() -> Result<(), io::Error>
 {
-	unsafe { prctl(PR_SET_NO_NEW_PRIVS, 1 as c_ulong, 0 as c_ulong, 0 as c_ulong, 0 as c_ulong) };
+	let result = unsafe { prctl(PR_SET_NO_NEW_PRIVS, 1 as c_ulong, 0 as c_ulong, 0 as c_ulong, 0 as c_ulong) };
+	if likely!(result == 0)
+	{
+		Ok(())
+	}
+	else if likely!(result == -1)
+	{
+		Err(io::Error::last_os_error())
+	}
+	else
+	{
+		unreachable!("Unexpected result {} from prctl()", result)
+	}
 }
