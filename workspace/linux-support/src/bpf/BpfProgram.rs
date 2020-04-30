@@ -249,6 +249,13 @@ impl BpfProgram
 		self.BPF_STMT(BPF_ST, scratch_memory_index.into())
 	}
 
+	/// `ScratchMemory[scratch_memory_index] <- IndexRegister`.
+	#[inline(always)]
+	pub fn store_index_register_in_scratch_memory(&mut self, scratch_memory_index: ScratchMemoryIndex)
+	{
+		self.BPF_STMT(BPF_STX, scratch_memory_index.into())
+	}
+
 	/// `Accumulator <- IndexRegister`.
 	#[inline(always)]
 	pub fn copy_index_register_to_accumulator(&mut self)
