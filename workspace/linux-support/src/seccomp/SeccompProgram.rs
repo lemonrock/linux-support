@@ -103,9 +103,13 @@ impl SeccompProgram
 
 	/// Not efficient.
 	#[inline(always)]
-	pub fn disallow_only_these_syscalls(&mut self, syscalls: &IndexSet<SYS>)
+	pub fn disallow_only_these_syscalls(&mut self, syscalls: &IndexSet<SYS>, undefined: &Vec<Range<u32>>)
 	{
 		self.load_syscall_number();
+
+		self.disallow_lower();
+		self.disallow_upper();
+		self.disallow_undefined(undefined);
 
 		for sys in syscalls.iter()
 		{
@@ -119,9 +123,13 @@ impl SeccompProgram
 
 	/// Higher code density than `disallow_only_these_syscalls()`.
 	#[inline(always)]
-	pub fn disallow_only_these_syscalls_256_or_fewer(&mut self, syscalls: &IndexSet<SYS>)
+	pub fn disallow_only_these_syscalls_256_or_fewer(&mut self, syscalls: &IndexSet<SYS>, undefined: &Vec<Range<u32>>)
 	{
 		self.load_syscall_number();
+
+		self.disallow_lower();
+		self.disallow_upper();
+		self.disallow_undefined(undefined);
 
 		let mut jump_statements_until_get_to_return_kill_the_process = syscalls.len();
 		debug_assert!(jump_statements_until_get_to_return_kill_the_process <= 256, "This approach only supports 256 or fewer syscalls at a time");
@@ -142,6 +150,58 @@ impl SeccompProgram
 
 		self.return_kill_the_process();
 		self.return_allow()
+	}
+
+	#[inline(always)]
+	fn disallow_undefined(&mut self, undefined: &Vec<Range<u32>>)
+	{
+		for range in undefined
+		{
+			self.disallow_undefined_range(range)
+		}
+	}
+
+	#[inline(always)]
+	fn disallow_undefined_range(&mut self, range: &Range<u32>)
+	{
+		let inclusive_undefined: u32 = range.start;
+		let exclusive_undefined: u32 = range.end;
+		debug_assert!(inclusive_undefined < exclusive_undefined);
+
+//		if system_call >= inclusive_undefined
+//		{
+//			if system_call >= exclusive_undefined
+//			{
+//				continue
+//			}
+//			else
+//			{
+//				return self.return_kill_the_process()
+//			}
+//		}
+//		else
+//		{
+//			continue
+//		}
+
+		const ContinueAfterStatements: u8 = 2;
+		self.jump_if_greater_than_or_equal_to_constant(inclusive_undefined, 0, ContinueAfterStatements);
+		self.jump_if_greater_than_or_equal_to_constant(exclusive_undefined, ContinueAfterStatements - 1, 0);
+		self.return_kill_the_process()
+	}
+
+	#[inline(always)]
+	fn disallow_lower(&mut self)
+	{
+		self.jump_if_greater_than_or_equal_to_constant(SYS::InclusiveMinimum as usize as u32, 1, 0);
+		self.return_kill_the_process()
+	}
+
+	#[inline(always)]
+	fn disallow_upper(&mut self)
+	{
+		self.jump_if_greater_than_constant(SYS::InclusiveMaximum as usize as u32, 0, 1);
+		self.return_kill_the_process()
 	}
 
 	/// Not efficient.

@@ -18,16 +18,17 @@ pub enum PermittedSyscalls
 	/// Only these syscalls will be allowed.
 	Allow(IndexSet<SYS>),
 
-	/// Only these syscalls will be disallowed; all others will be allowed.
+	/// Disallows all `known` syscalls, all `undefined` syscalls and any syscalls below `SYS::InclusiveMinimum` and above `SYS::InclusiveMaximum`.
 	Disallow
 	{
-		/// 'Undefined' syscalls.
+		/// Known syscalls to disallow.
+		known: IndexSet<SYS>,
+
+		/// 'Undefined' syscalls to disallow.
 		///
 		/// See `SYS::Undefined`.
 		undefined: Vec<Range<u32>>,
 
-		/// Known syscalls to disallow.
-		known: IndexSet<SYS>,
 	},
 }
 
@@ -283,17 +284,15 @@ impl PermittedSyscalls
 				}
 			}
 
-			&Disallow { ref undefined, ref known } =>
+			&Disallow { ref known, ref undefined } =>
 			{
-				ProcessLoggingConfiguration::warn("seccomp", "TODO: Any syscalls below the minimum or above the maximum defined will be disallowed".to_string());
-				ProcessLoggingConfiguration::warn("seccomp", "TODO: Actually support enforcement of 'Undefined'".to_string());
 				if known.len() <= 256
 				{
-					seccomp_program.disallow_only_these_syscalls_256_or_fewer(known)
+					seccomp_program.disallow_only_these_syscalls_256_or_fewer(known, undefined)
 				}
 				else
 				{
-					seccomp_program.disallow_only_these_syscalls(known)
+					seccomp_program.disallow_only_these_syscalls(known, undefined)
 				}
 			},
 		}

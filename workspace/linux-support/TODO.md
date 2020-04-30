@@ -4,7 +4,7 @@ userfaultfd: http://man7.org/linux/man-pages/man2/userfaultfd.2.html
 F_GET_RW_HINT: read-write hints http://man7.org/linux/man-pages/man2/fcntl.2.html
 
 
-SecComp: Need access to libseccomp!
+SecComp: Identify ranges in syscalls for more efficiency.
 
 
 POSIX ACLs: http://man7.org/linux/man-pages/man5/acl.5.html
@@ -47,14 +47,7 @@ struct fsxattr {
 #define FS_XFLAG_HASATTR	0x80000000	/* no DIFLAG for this	*/
 
 
-
-// TODO: Rework kernel validator into sections for numa, memory, etc.
-
-// TODO: kernel validator proper errors.
-
 // TODO: Numa / hyper thread valid threads, master loops, allocating kernel and other processes (including forcibly moving them), etc
-
-// TODO: kernel validator huge pages - make generic for powerpc, aarch64 and riscv64.
 
 // TODO: /proc/<N>/oom* files and stuff in /proc/sys
     * /proc/sys/vm/oom_dump_tasks
@@ -77,17 +70,7 @@ struct fsxattr {
 
 // TODO: replace use of bytes.split<n>() with use of memchr()
 
-// TODO: Re-introduce process scheduling which we seem to have lost (?in http server)
-    and then add:-
-        * /proc/sys/kernel/sched_rr_timeslice_ms
-        * /proc/sys/kernel/sched_rt_period_us
-        * /proc/sys/kernel/sched_rt_runtime_us
-
 // TODO:  Automatic NUMA balancing can be enabled or disabled for the current session by writing 1 or 0 to /proc/sys/kernel/numa_balancing which will enable or disable the feature respectively. To permanently enable or disable it, use the kernel command line option numa_balancing=[enable|disable].
-
-// TODO: Security changes in process:-
-    * Disable dnotify using  /proc/sys/fs/dir-notify-enable  if present
-
 
 // Global configuration:-
 /*
@@ -105,7 +88,6 @@ Security: Mounts
 NUMA
 
 numa_balancing
-zone_reclaim_mode
 
 Enables/disables automatic page fault based NUMA memory balancing. Memory is moved automatically to nodes that access it often.
 
@@ -155,55 +137,7 @@ OOM
     
 
 /*
-/proc/[pid]/smaps_rollup with 2 extra Pss statistics
 
-/proc/zoneinfo
-    - more detailed view of /proc/buddyinfo
-
-/proc/buddyinfo
-              This file contains information which is used for diagnosing
-              memory fragmentation issues.  Each line starts with the iden‐
-              tification of the node and the name of the zone which together
-              identify a memory region This is then followed by the count of
-              available chunks of a certain order in which these zones are
-              split.  The size in bytes of a certain order is given by the
-              formula:
-
-                  (2^order) * PAGE_SIZE
-
-              The binary buddy allocator algorithm inside the kernel will
-              split one chunk into two chunks of a smaller order (thus with
-              half the size) or combine two contiguous chunks into one
-              larger chunk of a higher order (thus with double the size) to
-              satisfy allocation requests and to counter memory fragmenta‐
-              tion.  The order matches the column number, when starting to
-              count at zero.
-
-              For example on an x86-64 system:
-
-  Node 0, zone     DMA     1    1    1    0    2    1    1    0    1    1    3
-  Node 0, zone   DMA32    65   47    4   81   52   28   13   10    5    1  404
-  Node 0, zone  Normal   216   55  189  101   84   38   37   27    5    3  587
-
-              In this example, there is one node containing three zones and
-              there are 11 different chunk sizes.  If the page size is 4
-              kilobytes, then the first zone called DMA (on x86 the first 16
-              megabyte of memory) has 1 chunk of 4 kilobytes (order 0)
-              available and has 3 chunks of 4 megabytes (order 10) avail‐
-              able.
-
-              If the memory is heavily fragmented, the counters for higher
-              order chunks will be zero and allocation of large contiguous
-              areas will fail.
-
-              Further information about the zones can be found in
-              /proc/zoneinfo.
-
-// The /proc/[pid]/pagemap file is present only if the CON‐
-//              FIG_PROC_PAGE_MONITOR kernel configuration option is enabled.
-//
-//              Permission to access this file is governed by a ptrace access
-//              mode PTRACE_MODE_READ_FSCREDS check; see ptrace(2).
 /proc/pid/pagemap
 
 /proc/kpagecount (since Linux 2.6.25)
