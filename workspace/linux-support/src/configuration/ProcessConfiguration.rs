@@ -208,8 +208,7 @@ impl ProcessConfiguration
 
 		if let Some(ref seccomp) = self.seccomp
 		{
-			let flags = SeccompFilterFlags::SynchronizeAllThreads | SeccompFilterFlags::Log;
-			seccomp.seccomp_program().load(flags).map_err(|cause| CouldNotLoadSeccompFilters(cause))?.map_err(|thread_identifier| CouldNotSynchronizeSeccompFiltersOnThread(thread_identifier))
+			seccomp.seccomp_program().load_and_synchronize_all_threads(true, false).map_err(|cause| CouldNotLoadSeccompFilters(cause))?.map_err(|thread_identifier| CouldNotSynchronizeSeccompFiltersOnThread(thread_identifier))
 		}
 		else
 		{

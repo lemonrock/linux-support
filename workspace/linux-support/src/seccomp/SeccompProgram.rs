@@ -28,16 +28,132 @@ impl DerefMut for SeccompProgram
 
 impl SeccompProgram
 {
+	/// # `log`
+	///
+	/// All filter return actions except `SECCOMP_RET_ALLOW` should be logged in the kernel audit log (available if the kernel booted with `audit=1`).
+	///
+	/// An administrator may override this filter flag by preventing specific actions from being logged via the `/proc/sys/kernel/seccomp/actions_logged` file.
+	///
+	/// Since Linux 4.14.
+	///
+	///
+	/// # `disable_speculative_store_bypass_mitigation`
+	///
+	/// Disable Speculative Store Bypass mitigation.
+	///
+	/// Since Linux 4.17.
+	#[inline(always)]
+	pub fn load(self, log: bool, disable_speculative_store_bypass_mitigation: bool) -> io::Result<()>
+	{
+		self.load_internal(log, disable_speculative_store_bypass_mitigation, true, false).map(|outcome| if unlikely!(outcome != 0)
+		{
+			unreachable!("outcome non-zero")
+		})
+	}
+
 	/// The calling thread must either have the `CAP_SYS_ADMIN` capability or the call to `no_new_privileges()` (inside this logic) must succeed.
 	///
 	/// The Linux kernel must have been compiled with `CONFIG_SECCOMP_FILTER`.
 	///
-	/// Returns `Ok(Err(ThreadIdentifier))` if using `SeccompFilterFlags::SynchronizeAllThreads` and another thread could not be synchronized.
+	///
+	/// # `log`
+	///
+	/// All filter return actions except `SECCOMP_RET_ALLOW` should be logged in the kernel audit log (available if the kernel booted with `audit=1`).
+	///
+	/// An administrator may override this filter flag by preventing specific actions from being logged via the `/proc/sys/kernel/seccomp/actions_logged` file.
+	///
+	/// Since Linux 4.14.
+	///
+	///
+	/// # `disable_speculative_store_bypass_mitigation`
+	///
+	/// Disable Speculative Store Bypass mitigation.
+	///
+	/// Since Linux 4.17.
+	///
+	///
+	/// When adding a new filter, all other threads of the calling process are synchronized to the same seccomp filter tree.
+	///
+	/// A "filter tree" is the ordered list of filters attached to a thread.
+	/// (Attaching identical filters in separate `seccomp()` calls results in different filters from this perspective).
+	///
+	/// If any thread cannot synchronize to the same filter tree, the call will not attach the new seccomp filter, and will fail, returning the first thread ID found that cannot synchronize.
+	/// Synchronization will fail if another thread in the same process is in `SECCOMP_MODE_STRICT` or if it has attached new seccomp filters to itself, diverging from the calling thread's filter tree.
+	///
+	///
+	/// Returns `Ok(Err(ThreadIdentifier))` and another thread could not be synchronized.
 	/// Returns `Ok(Ok(())` if everything succeeded.
-	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn load(mut self, flags: SeccompFilterFlags) -> io::Result<Result<(), ThreadIdentifier>>
+	pub fn load_and_synchronize_all_threads(self, log: bool, disable_speculative_store_bypass_mitigation: bool) -> io::Result<Result<(), ThreadIdentifier>>
 	{
+		self.load_internal(log, disable_speculative_store_bypass_mitigation, true, false).map(|outcome| if likely!(outcome == 0)
+		{
+			Ok(())
+		}
+		else
+		{
+			Err(ThreadIdentifier::from(unsafe { NonZeroI32::new_unchecked(outcome) }))
+		})
+	}
+
+	/// # `log`
+	///
+	/// All filter return actions except `SECCOMP_RET_ALLOW` should be logged in the kernel audit log (available if the kernel booted with `audit=1`).
+	///
+	/// An administrator may override this filter flag by preventing specific actions from being logged via the `/proc/sys/kernel/seccomp/actions_logged` file.
+	///
+	/// Since Linux 4.14.
+	///
+	///
+	/// # `disable_speculative_store_bypass_mitigation`
+	///
+	/// Disable Speculative Store Bypass mitigation.
+	///
+	/// Since Linux 4.17.
+	#[inline(always)]
+	pub fn load_and_accept_user_notification(self, log: bool, disable_speculative_store_bypass_mitigation: bool) -> io::Result<SeccompUserNotificationFileDescriptor>
+	{
+		self.load_internal(log, disable_speculative_store_bypass_mitigation, true, false).map(|outcome| SeccompUserNotificationFileDescriptor(outcome))
+	}
+
+	#[inline(always)]
+	fn load_internal(mut self, log: bool, disable_speculative_store_bypass_mitigation: bool, synchronize_all_threads: bool, new_listener: bool) -> io::Result<i32>
+	{
+		debug_assert!(synchronize_all_threads != new_listener && new_listener != true);
+
+		let flags = if log
+		{
+			SECCOMP_FILTER_FLAG_LOG
+		}
+		else
+		{
+			0
+		}
+		| if disable_speculative_store_bypass_mitigation
+		{
+			SECCOMP_FILTER_FLAG_SPEC_ALLOW
+		}
+		else
+		{
+			0
+		}
+		| if synchronize_all_threads
+		{
+			SECCOMP_FILTER_FLAG_TSYNC
+		}
+		else
+		{
+			0
+		}
+		| if new_listener
+		{
+			SECCOMP_FILTER_FLAG_NEW_LISTENER
+		}
+		else
+		{
+			0
+		};
+
 		let length = self.len();
 		debug_assert!(length <= BPF_MAXINSNS as usize, "seccomp programs are limited to a maximum of BPF_MAXINSNS ({}) instructions; this program is {} instructions", BPF_MAXINSNS, length);
 		let mut program = sock_fprog
@@ -48,32 +164,10 @@ impl SeccompProgram
 
 		no_new_privileges()?;
 
-		// If `flags.bits == 0` we prefer the older `prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &program)` system call as it is more likely to be supported.
-		let result = if flags.bits == 0
-		{
-			unsafe { prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &program) }
-		}
-		else
-		{
-			seccomp(SECCOMP_SET_MODE_FILTER, flags.bits, &mut program as *mut sock_fprog as *mut _)
-		};
+		let result = seccomp(SECCOMP_SET_MODE_FILTER, flags, &mut program as *mut sock_fprog as *mut _);
 		if likely!(result >= 0)
 		{
-			if result > 0
-			{
-				if flags.contains(SeccompFilterFlags::SynchronizeAllThreads)
-				{
-					Ok(Err(ThreadIdentifier::from(unsafe { NonZeroI32::new_unchecked(result) })))
-				}
-				else
-				{
-					unreachable!("Unexpected result {} from seccomp()", result)
-				}
-			}
-			else
-			{
-				Ok(Ok(()))
-			}
+			Ok(result)
 		}
 		else if likely!(result == -1)
 		{
@@ -81,14 +175,7 @@ impl SeccompProgram
 		}
 		else
 		{
-			if flags == SeccompFilterFlags::empty()
-			{
-				unreachable!("Unexpected result {} from prctl()", result)
-			}
-			else
-			{
-				unreachable!("Unexpected result {} from seccomp()", result)
-			}
+			unreachable!("Unexpected result {} from seccomp()", result)
 		}
 	}
 

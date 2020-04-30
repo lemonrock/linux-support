@@ -4,7 +4,7 @@
 
 /// Represents a seccomp user notification identifier.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct SeccompUserNotificationFileDescriptor(RawFd);
+pub struct SeccompUserNotificationFileDescriptor(pub(crate) RawFd);
 
 impl Drop for SeccompUserNotificationFileDescriptor
 {
@@ -44,11 +44,17 @@ impl FromRawFd for SeccompUserNotificationFileDescriptor
 
 impl FileDescriptor for SeccompUserNotificationFileDescriptor
 {
-
 }
 
 impl SeccompUserNotificationFileDescriptor
 {
+	/// New instance.
+	#[inline(always)]
+	pub fn new(seccomp_program: SeccompProgram, log: bool, disable_speculative_store_bypass_mitigation: bool) -> io::Result<Self>
+	{
+		seccomp_program.load_and_accept_user_notification(log, disable_speculative_store_bypass_mitigation)
+	}
+
 	/// Allocates on the heap.
 	#[inline(always)]
 	pub fn new_request() -> VariablySized<seccomp_notif>

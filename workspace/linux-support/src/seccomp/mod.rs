@@ -6,7 +6,6 @@ use self::c::*;
 use crate::bpf::BpfProgram;
 use crate::bpf::c::*;
 use crate::capabilities_and_privileges::no_new_privileges;
-use crate::configuration::ProcessLoggingConfiguration;
 use crate::signals::AuditArchitecture;
 use crate::syscall::SYS;
 use crate::thread::ThreadIdentifier;
@@ -24,6 +23,7 @@ use std::io;
 use std::ptr::null_mut;
 use std::num::NonZeroI32;
 use std::ops::*;
+use crate::file_descriptors::seccomp_user_notification::SeccompUserNotificationFileDescriptor;
 
 
 /// C definitions.
@@ -37,7 +37,6 @@ pub mod libseccomp;
 
 include!("disabled_seccomp.rs");
 include!("PermittedSyscalls.rs");
-include!("SeccompFilterFlags.rs");
 include!("SeccompProgram.rs");
 include!("strict_seccomp.rs");
 include!("SyscallOutcome.rs");

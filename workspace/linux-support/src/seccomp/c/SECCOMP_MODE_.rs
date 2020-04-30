@@ -8,8 +8,9 @@
 pub(crate) const SECCOMP_MODE_DISABLED: u32 = 0;
 
 /// uses hard-coded filter.
-#[allow(unused)]
+#[allow(dead_code)]
 pub(crate) const SECCOMP_MODE_STRICT: u32 = 1;
 
 /// uses user-supplied filter.
+#[allow(dead_code)]
 pub(crate) const SECCOMP_MODE_FILTER: u32 = 2;
