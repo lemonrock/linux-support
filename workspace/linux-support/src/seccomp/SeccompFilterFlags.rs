@@ -28,7 +28,7 @@ bitflags!
 		/// Since Linux 4.17.
 		const DisableSpeculativeStoreBypassMitigation = SECCOMP_FILTER_FLAG_SPEC_ALLOW;
 
-		/// ?
+		/// Returns a new file descriptor which can receive events when a BPF program executes return instructions with `SyscallOutcome::NotifyUserspace`.
 		const NewListener = SECCOMP_FILTER_FLAG_NEW_LISTENER;
 
 		/// ?

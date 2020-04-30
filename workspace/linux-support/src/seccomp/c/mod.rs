@@ -16,6 +16,8 @@ use std::alloc::Layout;
 use std::ptr::NonNull;
 use std::ops::Deref;
 use std::ops::DerefMut;
+use static_assertions::_core::intrinsics::write_bytes;
+use crate::process::ProcessIdentifier;
 
 
 include!("PR_SET_SECCOMP.rs");

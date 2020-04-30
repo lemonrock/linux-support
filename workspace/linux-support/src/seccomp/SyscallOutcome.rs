@@ -23,7 +23,7 @@ bitflags!
 		/// Bottom bits specify error number.
 		const ReturnErrorNumber = SECCOMP_RET_ERRNO;
 
-		/// Notify userspace.
+		/// Notify userspace on a file descriptor returned from `seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_NEW_LISTENER)`.
 		const NotifyUserspace = SECCOMP_RET_USER_NOTIF;
 
 		#[allow(missing_docs)]

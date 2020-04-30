@@ -15,6 +15,7 @@ pub(crate) const SECCOMP_RET_KILL_PROCESS: u32 = 0x80000000;
 /// kill the thread.
 pub(crate) const SECCOMP_RET_KILL_THREAD: u32 = 0x00000000;
 
+#[allow(dead_code)]
 pub(crate) const SECCOMP_RET_KILL: u32 = SECCOMP_RET_KILL_THREAD;
 
 /// disallow and force a `SIGSYS`.

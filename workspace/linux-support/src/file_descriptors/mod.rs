@@ -455,6 +455,10 @@ pub mod signalfd;
 pub mod socket;
 
 
+/// Seccomp user notifications.
+pub mod seccomp_user_notification;
+
+
 /// Standard (eg standard in) file descriptors.
 pub mod standard;
 

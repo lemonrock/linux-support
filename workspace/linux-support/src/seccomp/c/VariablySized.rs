@@ -45,4 +45,11 @@ impl<T> VariablySized<T>
 		let pointer = unsafe { alloc_zeroed(layout.clone()) };
 		Self(unsafe { NonNull::new_unchecked(pointer as *mut T) }, layout)
 	}
+
+	#[inline(always)]
+	pub(crate) fn zero(&mut self)
+	{
+		let pointer = self.0.as_ptr();
+		unsafe { write_bytes(pointer, 0x00, self.1.size()) }
+	}
 }

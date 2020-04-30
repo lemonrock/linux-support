@@ -14,18 +14,21 @@
 /// Size is actually `seccomp_notif_sizes.seccomp_data as usize`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(C)]
-pub(crate) struct seccomp_data
+pub struct seccomp_data
 {
-	/// System call number.
-	pub(crate) nr: i32,
+	/// System call number; usually 0 or greater but can be -1 for some ptrace scenarios.
+	///
+	/// Often a value in the `SYS` enumeration but not necessarily.
+	pub nr: i32,
 
 	/// System call architecture.
-	pub(crate) arch: AuditArchitecture,
+	pub arch: AuditArchitecture,
 
-	pub(crate) instruction_pointer: u64,
+	/// Instruction pointer.
+	pub instruction_pointer: u64,
 
 	/// Up to 6 system call arguments; if the system call does not use all 6 arguments, then unused arguments can be set to garbage *under the control of userspace*!
-	pub(crate) args: [u64; 6],
+	pub args: [u64; 6],
 
 	variable_size: (),
 }

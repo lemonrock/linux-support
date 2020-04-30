@@ -7,7 +7,7 @@
 /// Size is actually `seccomp_notif_sizes.seccomp_notif_resp as usize`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(C)]
-pub(crate) struct seccomp_notif_resp
+pub struct seccomp_notif_resp
 {
 	pub(crate) id: u64,
 

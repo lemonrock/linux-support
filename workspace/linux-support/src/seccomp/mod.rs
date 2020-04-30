@@ -26,7 +26,8 @@ use std::num::NonZeroI32;
 use std::ops::*;
 
 
-mod c;
+/// C definitions.
+pub mod c;
 
 
 /// libseccomp backed filtering.

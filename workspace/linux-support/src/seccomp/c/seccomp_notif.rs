@@ -7,18 +7,22 @@
 /// Size is actually `seccomp_notif_sizes.seccomp_notif as usize`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(C)]
-pub(crate) struct seccomp_notif
+pub struct seccomp_notif
 {
 	pub(crate) id: u64,
 
-	pub(crate) pid: u32,
+	/// `None` if the task causing the request is not visible (eg in a different namespace).
+	pub process_identifier: Option<ProcessIdentifier>,
 
-	pub(crate) flags: u32,
+	/// Currently zero.
+	///
+	/// Linux documents a flag, `SECCOMP_NOTIF_FLAG_SIGNALED`, but provides no definition of it.
+	flags: u32,
 
 	/// Size may not actually be `size_of::<seccomp_data>()`!
 	///
 	/// Size is actually `seccomp_notif_sizes.seccomp_data as usize`.
-	pub(crate) data: seccomp_data,
+	pub data: seccomp_data,
 
 	variable_size: (),
 }
