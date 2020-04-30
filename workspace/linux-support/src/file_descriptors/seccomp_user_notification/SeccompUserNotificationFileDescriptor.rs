@@ -96,7 +96,7 @@ impl SeccompUserNotificationFileDescriptor
 	#[inline(always)]
 	pub fn request_is_still_valid(&self, request: &seccomp_notif) -> bool
 	{
-		let result = unsafe { ioctl(self.as_raw_fd(), SECCOMP_IOCTL_NOTIF_SEND, &request.id as *const u64 as *mut u64 as *mut _) };
+		let result = unsafe { ioctl(self.as_raw_fd(), SECCOMP_IOCTL_NOTIF_ID_VALID, &request.id as *const u64 as *mut u64 as *mut _) };
 		if likely!(result == 0)
 		{
 			true
