@@ -12,33 +12,6 @@ pub struct ProcessConfiguration
 	///
 	/// By default turns off swapping.
 	#[serde(default = "ProcessConfiguration::system_control_settings_default")] pub system_control_settings: HashMap<String, u64>,
-
-	/// Suppress any unwanted warnings about ideal CPU features or the Linux Kernel command line parameters.
-	#[serde(default)] pub warnings_to_suppress: WarningsToSuppress,
-
-	/// Detailed process configuration.
-	#[serde(default)] pub detailed_process_configuration: DetailedProcessConfiguration,
-
-	/// Should we daemonize? (Default, yes).
-	#[serde(default)] pub daemonize: Option<Daemonize>,
-}
-
-impl Default for ProcessConfiguration
-{
-	#[inline(always)]
-	fn default() -> Self
-	{
-		Self
-		{
-			system_control_settings: Self::system_control_settings_default(),
-
-			warnings_to_suppress: WarningsToSuppress::default(),
-
-			detailed_process_configuration: DetailedProcessConfiguration::default(),
-
-			daemonize: Some(Daemonize::default()),
-		}
-	}
 }
 
 impl ProcessConfiguration
@@ -56,122 +29,28 @@ impl ProcessConfiguration
 	///
 	/// * The daemon `irqbalance` should not really be run when this program is running. It isn't incompatible per se, but it isn't useful.
 	/// * It is recommended to boot the kernel with the command line parameter `irqaffinity` set to the inverse of `isolcpus`.
-	/// * If running causes Linux Kernel modules to load, these are **not** unloaded at process exit as we no longer have the permissions to do so.
-	/// * Likewise, if we mount `hugeltbfs` it is not unmounted (and, if we created its mount point folder, this is not deleted) at process exit.
 	#[cold]
 	pub fn execute<P: Process>(&self, process: P) -> Result<(), ProcessConfigurationExecutionError<P::LoadKernelModulesError, P::AdditionalLinuxKernelCommandLineValidationsError, P::MainError>>
 	{
-		let result: thread::Result<Result<(), ProcessConfigurationExecutionError<P::LoadKernelModulesError, P::AdditionalLinuxKernelCommandLineValidationsError, P::MainError>>> = catch_unwind(AssertUnwindSafe(|| self.inner_execute(process)));
-
-		self.stop_logging();
-
-		result?
 	}
 
-	fn inner_execute<P: Process>(&self, process: P) -> Result<(), ProcessConfigurationExecutionError<P::LoadKernelModulesError, P::AdditionalLinuxKernelCommandLineValidationsError, P::MainError>>
+	#[inline(always)]
+	fn system_control_settings_default() -> HashMap<String, u64>
 	{
-		use self::ProcessConfigurationExecutionError::*;
-
-		self.rescan_all_pci_buses_and_devices::<P>()?;
-
-		let isolated_hyper_threads_including_those_offline = self.validate_kernel_command_line(&cpu_features, &process)?;
-		let (online_shared_hyper_threads_for_os, online_shared_hyper_threads_for_process, online_isolated_hyper_threads_for_process, master_logical_core) = self.hyper_thread_sets::<P>(isolated_hyper_threads_including_those_offline);
-
-		self.tell_linux_to_use_shared_hyper_threads_for_all_needs::<P>(&online_shared_hyper_threads_for_os)?;
-
-		self.detailed_process_configuration.configure(&valid_hyper_threads_for_the_current_process, self.daemonize.as_ref())?;
-
-		let reraise_signal = self.daemonize_if_required(process, online_shared_hyper_threads_for_os, online_shared_hyper_threads_for_process, online_isolated_hyper_threads_for_process, master_logical_core).map_err(ExecutionFailed)?;
-
-		match reraise_signal
+		hashmap!
 		{
-			Some(reraise_signal_number) =>
-			{
-				self.stop_logging();
-				unsafe { raise(reraise_signal_number) };
-				Ok(())
-			}
-
-			None => Ok(()),
+			"vm.zone_reclaim_mode".to_string() => 0,
+			"vm.dirty_ratio".to_string() => 10,
+			"vm.dirty_background_ratio".to_string() => 5,
 		}
 	}
 
-	#[inline(always)]
-	fn daemonize_if_required<P: Process>(&self, process: P, online_shared_hyper_threads_for_os: BTreeSet<HyperThread>, online_shared_hyper_threads_for_process: BTreeSet<HyperThread>, online_isolated_hyper_threads_for_process: BTreeSet<HyperThread>, master_logical_core: HyperThread) -> Result<Option<Signal>, P::MainError>
-	{
-		let main_loop = AssertUnwindSafe(|| process.main(online_shared_hyper_threads_for_os, online_shared_hyper_threads_for_process, online_isolated_hyper_threads_for_process, master_logical_core, self.proc_path()));
 
-		let success_or_failure = match self.daemonize.as_ref()
-		{
-			None => catch_unwind(main_loop),
-
-			Some(daemonize) =>
-			{
-				let daemonize_clean_up_on_exit = daemonize.daemonize(self.dev_path());
-
-				let success_or_failure = catch_unwind(main_loop);
-
-				daemonize_clean_up_on_exit.clean_up();
-
-				success_or_failure
-			}
-		};
-
-		match success_or_failure
-		{
-			Err(failure) => resume_unwind(failure),
-
-			Ok(reraise_signal_or_failure_explanation) => reraise_signal_or_failure_explanation,
-		}
-	}
-
-	#[inline(always)]
-	fn start_logging(&self)
-	{
-		self.logging_configuration.start_logging(self.running_interactively())
-	}
-
-	#[inline(always)]
-	fn stop_logging(&self)
-	{
-		self.logging_configuration.stop_logging()
-	}
-
-	#[inline(always)]
-	fn valid_hyper_threads_for_the_current_process(&self) -> BTreeSet<HyperThread>
-	{
-		HyperThread::valid_hyper_threads_for_the_current_process(self.proc_path())
-	}
-
-	#[inline(always)]
-	fn write_system_control_values<P: Process>(&self) -> Result<(), ProcessConfigurationExecutionError<P::LoadKernelModulesError, P::AdditionalLinuxKernelCommandLineValidationsError, P::MainError>>
-	{
-		for (setting_name, setting_value) in self.system_control_settings.iter()
-		{
-			let file_path = self.proc_path().sys_file_path(setting_name);
-			file_path.write_value(*setting_value).map_err(ProcessConfigurationExecutionError::CouldNotWriteSystemControlValues)?;
-		}
-		Ok(())
-	}
 
 	#[inline(always)]
 	fn rescan_all_pci_buses_and_devices<P: Process>(&self) -> Result<(), ProcessConfigurationExecutionError<P::LoadKernelModulesError, P::AdditionalLinuxKernelCommandLineValidationsError, P::MainError>>
 	{
 		PciDevice::rescan_all_pci_buses_and_devices(self.sys_path()).map_err(ProcessConfigurationExecutionError::RescanOfAllPciBusesAndDevices)
-	}
-
-	#[inline(always)]
-	fn validate_kernel_command_line<P: Process>(&self, cpu_features: &CpuFeatures, process: &P) -> Result<BTreeSet<HyperThread>, ProcessConfigurationExecutionError<P::LoadKernelModulesError, P::AdditionalLinuxKernelCommandLineValidationsError, P::MainError>>
-	{
-		let linux_kernel_command_line_validator = LinuxKernelCommandLineValidator::new(self.proc_path());
-		let result = linux_kernel_command_line_validator.validate_and_find_isolated_hyper_threads::<P::AdditionalLinuxKernelCommandLineValidationsError, _>
-		(
-			P::IsolatedCpusRequired,
-			&self.warnings_to_suppress,
-			cpu_features,
-			|linux_kernel_command_line_parameters| process.additional_linux_kernel_command_line_validations(linux_kernel_command_line_parameters, self.proc_path())
-		);
-		result.map_err(ProcessConfigurationExecutionError::LinuxKernelCommandLineValidationFailed)
 	}
 
 	fn hyper_thread_sets<P: Process>(&self, isolated_hyper_threads_including_those_offline: BTreeSet<HyperThread>) -> (BitSet<HyperThread>, BitSet<HyperThread>, BitSet<HyperThread>, HyperThread)
@@ -194,16 +73,6 @@ impl ProcessConfiguration
 		let master_logical_core = find_master_logical_core(&online_shared_hyper_threads_for_process);
 
 		(online_shared_hyper_threads_for_os, online_shared_hyper_threads_for_process, online_isolated_hyper_threads_for_process, master_logical_core)
-	}
-
-	#[inline(always)]
-	fn tell_linux_to_use_shared_hyper_threads_for_all_needs<P: Process>(&self, online_shared_hyper_threads: &BitSet<HyperThread>) -> Result<(), ProcessConfigurationExecutionError<P::LoadKernelModulesError, P::AdditionalLinuxKernelCommandLineValidationsError, P::MainError>>
-	{
-		use self::ProcessConfigurationExecutionError::*;
-
-		HyperThread::set_work_queue_hyper_thread_affinity(online_shared_hyper_threads, self.sys_path()).map_err(CouldNotSetWorkQueueHyperThreadAffinityToOnlineSharedHyperThreads)?;
-
-		HyperThread::force_watchdog_to_just_these_hyper_threads(online_shared_hyper_threads, self.proc_path()).map_err(CouldNotSetWorkQueueHyperThreadAffinityToOnlineSharedHyperThreads)
 	}
 
 	#[inline(always)]
@@ -266,24 +135,5 @@ impl ProcessConfiguration
 		}
 
 		(online_shared_hyper_threads, online_isolated_hyper_threads)
-	}
-
-	/// Are we running interactively?
-	#[inline(always)]
-	pub(crate) fn running_interactively(&self) -> bool
-	{
-		self.daemonize.is_none()
-	}
-
-	#[inline(always)]
-	fn system_control_settings_default() -> HashMap<String, u64>
-	{
-		hashmap!
-		{
-			"vm.swappiness".to_string() => 0,
-			"vm.zone_reclaim_mode".to_string() => 0,
-			"vm.dirty_ratio".to_string() => 10,
-			"vm.dirty_background_ratio".to_string() => 5,
-		}
 	}
 }

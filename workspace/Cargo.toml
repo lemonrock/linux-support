@@ -6,5 +6,4 @@
 members = [
     "linux-support",
     "linux-support-clone",
-    "linux-support-process",
 ]
