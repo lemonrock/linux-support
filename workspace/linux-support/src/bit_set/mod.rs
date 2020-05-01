@@ -28,16 +28,21 @@ use std::io;
 use std::io::ErrorKind;
 use std::marker::PhantomData;
 use std::mem::size_of;
+use std::ops::Deref;
+use std::ops::DerefMut;
+use std::ops::Index;
+use std::ops::IndexMut;
 use std::os::unix::ffi::OsStrExt;
 
 
-include!("bit_set.rs");
-include!("bit_set_aware.rs");
+include!("bit_set.rs");include!("bit_set_aware.rs");
 include!("BitSet.rs");
 include!("BitSetAware.rs");
 include!("BitSetAwareTryFromU16Error.rs");
+include!("BitSetIncludingEmptyIterator.rs");
 include!("BitSetIterator.rs");
 include!("BitsInAByte.rs");
 include!("IntoBitMask.rs");
 include!("IntoList.rs");
 include!("ListParseError.rs");
+include!("PerBitSetAwareData.rs");

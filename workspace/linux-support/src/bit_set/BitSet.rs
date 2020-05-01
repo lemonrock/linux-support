@@ -179,13 +179,34 @@ impl<BSA: BitSetAware> BitSet<BSA>
 		}
 	}
 
+	/// Iterate.
+	#[inline(always)]
+	pub fn iterate_including_empty<'a>(&'a self) -> BitSetIncludingEmptyIterator<'a, BSA>
+	{
+		BitSetIncludingEmptyIterator
+		{
+			bit_set: self,
+			word_index: 0,
+			relative_bit_index_within_word: 0,
+		}
+	}
+
+	/// Capacity assuming one byte per HyperThread represented.
+	///
+	/// Suitable for use as the size of a `Vec`, say, which will hold HyperThread items, one per HyperThread.
+	#[inline(always)]
+	pub fn capacity(&self) -> usize
+	{
+		self.capacity_in_words() * size_of::<usize>()
+	}
+
 	/// Number of bits set.
 	///
 	/// This operation is a little expensive, but less expensive than `self.len()`.
 	#[inline(always)]
 	pub fn is_empty(&self) -> bool
 	{
-		for word_index in 0 .. self.capacity()
+		for word_index in 0 .. self.capacity_in_words()
 		{
 			if self.get_word(word_index) != 0
 			{
@@ -204,7 +225,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	pub fn len(&self) -> usize
 	{
 		let mut count = 0;
-		for word_index in 0 .. self.capacity()
+		for word_index in 0 .. self.capacity_in_words()
 		{
 			let word = self.get_word(word_index);
 			count += word.count_ones();
@@ -218,7 +239,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	{
 		let (word_index, relative_bit_index_within_word) = Self::word_index_and_relative_bit_index_within_word(element);
 
-		if word_index >= self.capacity()
+		if word_index >= self.capacity_in_words()
 		{
 			self.extend(word_index + 1)
 		}
@@ -232,7 +253,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	{
 		let (word_index, relative_bit_index_within_word) = Self::word_index_and_relative_bit_index_within_word(element);
 
-		debug_assert!(word_index < self.capacity());
+		debug_assert!(word_index < self.capacity_in_words());
 
 		self.add_internal(word_index, relative_bit_index_within_word)
 	}
@@ -243,7 +264,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	{
 		let (word_index, relative_bit_index_within_word) = Self::word_index_and_relative_bit_index_within_word(element);
 
-		debug_assert!(word_index < self.capacity());
+		debug_assert!(word_index < self.capacity_in_words());
 
 		let word = self.get_word(word_index);
 		word & (1 << relative_bit_index_within_word) != 0
@@ -255,7 +276,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	{
 		let (word_index, relative_bit_index_within_word) = Self::word_index_and_relative_bit_index_within_word(element);
 
-		if word_index >= self.capacity()
+		if word_index >= self.capacity_in_words()
 		{
 			return
 		}
@@ -271,7 +292,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	#[inline(always)]
 	pub fn shrink_to_fit(&mut self)
 	{
-		let current_length = self.capacity();
+		let current_length = self.capacity_in_words();
 		let mut new_length = current_length;
 		for word_index in (0 ..current_length).rev()
 		{
@@ -297,8 +318,8 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	#[inline(always)]
 	pub fn intersection(&mut self, other: &Self)
 	{
-		let our_length = self.capacity();
-		let other_length = other.capacity();
+		let our_length = self.capacity_in_words();
+		let other_length = other.capacity_in_words();
 
 		for word_index in 0 .. other_length
 		{
@@ -331,8 +352,8 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	#[inline(always)]
 	pub fn remove_all(&mut self, other: &Self)
 	{
-		let our_length = self.capacity();
-		let other_length = other.capacity();
+		let our_length = self.capacity_in_words();
+		let other_length = other.capacity_in_words();
 
 		for word_index in 0 .. min(our_length, other_length)
 		{
@@ -389,7 +410,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 		let word_index = byte_index / size_of::<usize>();
 		debug_assert!(word_index < Self::MaximumNumberOfUsizeWords);
 
-		debug_assert!(word_index < self.capacity());
+		debug_assert!(word_index < self.capacity_in_words());
 
 		(self.as_mut_ptr() as *mut u8).add(byte_index).write(byte);
 	}
@@ -413,7 +434,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	{
 		debug_assert!(word_index < Self::MaximumNumberOfUsizeWords);
 
-		debug_assert!(word_index < self.capacity());
+		debug_assert!(word_index < self.capacity_in_words());
 
 		self.0.get_unchecked_mut(word_index)
 	}
@@ -422,14 +443,14 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	#[inline(always)]
 	pub(crate) fn to_raw_parts(&self) -> (*const usize, usize)
 	{
-		(self.as_ptr(), self.capacity())
+		(self.as_ptr(), self.capacity_in_words())
 	}
 
 	/// Provides a pointer and a length suitable for some Linux API calls.
 	#[inline(always)]
 	pub(crate) fn to_raw_parts_mut(&mut self) -> (*mut usize, usize)
 	{
-		(self.as_mut_ptr(), self.capacity())
+		(self.as_mut_ptr(), self.capacity_in_words())
 	}
 
 	#[inline(always)]
@@ -480,7 +501,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	}
 
 	#[inline(always)]
-	pub(crate) fn capacity(&self) -> usize
+	pub(crate) fn capacity_in_words(&self) -> usize
 	{
 		self.0.len()
 	}
@@ -488,7 +509,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	#[inline(always)]
 	pub(crate) fn extend_clone_to(&self, new_length: usize) -> Self
 	{
-		let current_length = self.capacity();
+		let current_length = self.capacity_in_words();
 		debug_assert!(current_length <= new_length);
 
 		let mut uninitialized = Self::new_set_length(new_length);
@@ -501,7 +522,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	#[inline(always)]
 	fn extend(&mut self, new_length: usize)
 	{
-		let current_length = self.capacity();
+		let current_length = self.capacity_in_words();
 		let extend_size = new_length - current_length;
 		self.reserve_exact(extend_size);
 		self.write_zeros(new_length);
@@ -543,7 +564,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	#[inline(always)]
 	fn as_mut_ptr_end(&mut self) -> *mut usize
 	{
-		self.as_mut_ptr_offset(self.capacity())
+		self.as_mut_ptr_offset(self.capacity_in_words())
 	}
 
 	#[inline(always)]
@@ -579,7 +600,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	#[inline(always)]
 	fn write_zeros(&mut self, new_length: usize)
 	{
-		let current_length = self.capacity();
+		let current_length = self.capacity_in_words();
 		let extend_size = new_length - current_length;
 
 		unsafe { self.as_mut_ptr_end().write_bytes(0x00, extend_size) };

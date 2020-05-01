@@ -29,7 +29,7 @@ impl TryInto<(cpu_set_t, usize)> for BitSet<HyperThread>
 	{
 		let size_in_words = Self::CpuSetTSizeInBytes / Self::UsizeSizeInBytes;
 
-		if unlikely!(self.capacity() > size_in_words)
+		if unlikely!(self.capacity_in_words() > size_in_words)
 		{
 			return Err(())
 		}
@@ -302,7 +302,7 @@ impl BitSet<HyperThread>
 	#[inline(always)]
 	fn cpu_set_t_size_in_bytes(&self) -> usize
 	{
-		self.capacity() * Self::UsizeSizeInBytes
+		self.capacity_in_words() * Self::UsizeSizeInBytes
 	}
 	
 	#[inline(always)]

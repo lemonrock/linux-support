@@ -3,17 +3,17 @@
 
 
 include!("BPF_.rs");
-include!("BPF_MAJOR_VERSION.rs");
+//include!("BPF_MAJOR_VERSION.rs");
 include!("BPF_MEMWORDS.rs");
 include!("BPF_JUMP.rs");
-include!("BPF_LL_OFF.rs");
-include!("BPF_NET_OFF.rs");
+//include!("BPF_LL_OFF.rs");
+//include!("BPF_NET_OFF.rs");
 include!("BPF_MAXINSNS.rs");
-include!("BPF_MINOR_VERSION.rs");
+//include!("BPF_MINOR_VERSION.rs");
 include!("BPF_STMT.rs");
-include!("SKF_AD_.rs");
-include!("SKF_LL_OFF.rs");
-include!("SKF_NET_OFF.rs");
+//include!("SKF_AD_.rs");
+//include!("SKF_LL_OFF.rs");
+//include!("SKF_NET_OFF.rs");
 include!("sock_filter.rs");
 include!("sock_fprog.rs");
 

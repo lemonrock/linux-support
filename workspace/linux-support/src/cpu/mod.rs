@@ -43,3 +43,4 @@ include!("maximum_logical_processor_identifiers_per_package.rs");
 include!("MandatoryCpuFeatureCheck.rs");
 include!("OptionalCpuFeatureCheck.rs");
 include!("ParseHyperThreadingStatusError.rs");
+include!("PerBitSetAwareDataHyperThread.rs");

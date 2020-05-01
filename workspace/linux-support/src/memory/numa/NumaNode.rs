@@ -167,8 +167,8 @@ impl NumaNode
 	/// `PageMoveError` `TargetNodeNotAllowed`, `OneOrMoreTargetNodesIsNotOnline` and `CallerNeedsToHaveSysNiceCapabilityForMoveAll` do not occur.
 	pub fn migrate_all_pages(process_identifier: ProcessIdentifierChoice, from: &BitSet<Self>, to: &BitSet<Self>) -> Result<(), PageMoveError>
 	{
-		let from_length = from.capacity();
-		let to_length = to.capacity();
+		let from_length = from.capacity_in_words();
+		let to_length = to.capacity_in_words();
 
 		use self::Ordering::*;
 		let (from, to) = match from_length.cmp(&to_length)

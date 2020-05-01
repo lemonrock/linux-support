@@ -15,7 +15,7 @@ impl<'a, BSA: BitSetAware> IntoLineFeedTerminatedByteString<'a> for IntoBitMask<
 		const SizeOf8ByteHexadecimalTuple: usize = 8;
 		const SizeOfLineFeed: usize = 1;
 
-		let capacity = self.0.capacity();
+		let capacity = self.0.capacity_in_words();
 		if unlikely!(capacity == 0)
 		{
 			return Cow::from(b"00000000\n" as &[u8])
