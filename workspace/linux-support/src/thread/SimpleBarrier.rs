@@ -44,7 +44,7 @@ impl SimpleBarrier
 	}
 
 	#[inline(always)]
-	pub(crate) fn release_one<'a, T>(self, thread: Thread)
+	pub(crate) fn release_one(self, thread: Thread)
 	{
 		self.0.store(true, Release);
 

@@ -94,7 +94,7 @@ impl MappedMemory
 			0
 		};
 
-		let result = unsafe { mlock2(address, self.mapped_size_in_bytes, flags) };
+		let result = unsafe { mlock2(address, self.size, flags) };
 		if likely!(result == 0)
 		{
 			Ok(true)
@@ -124,7 +124,7 @@ impl MappedMemory
 	pub fn unlock(&self) -> io::Result<bool>
 	{
 		let address: *const c_void = self.virtual_address.into();
-		let result = unsafe { munlock(address, self.mapped_size_in_bytes) };
+		let result = unsafe { munlock(address, self.size) };
 		if likely!(result == 0)
 		{
 			Ok(true)

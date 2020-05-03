@@ -11,8 +11,8 @@
 #[inline(always)]
 fn set_ioport_permissions(range: RangeInclusive<u16>, enable: bool) -> Result<(), &'static str>
 {
-	let start = *range.start();
-	let end = *range.end();
+	let start = *range.start() as u64;
+	let end = *range.end() as u64;
 	let result = unsafe { ioperm(start, end - start + 1, enable as i32) };
 	if likely!(result == 0)
 	{

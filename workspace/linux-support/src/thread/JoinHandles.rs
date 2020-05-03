@@ -45,9 +45,9 @@ impl JoinHandles
 
 	fn add_thread(&mut self, thread_identifiers: &ThreadIdentifiers, terminate: &Arc<impl Terminate>, thread_configuration: &ThreadConfiguration, thread_loop_body_function: &impl ThreadLoopBodyFunction, proc_path: &ProcPath) -> Result<(), ThreadConfigurationError>
 	{
-		let join_handle = self.spawn(thread_identifiers, terminate, thread_configuration, *thread_loop_body_function).map_err(ThreadConfigurationError::CouldNotCreateThread);
+		let join_handle = self.spawn(thread_identifiers, terminate, thread_configuration, *thread_loop_body_function).map_err(ThreadConfigurationError::CouldNotCreateThread)?;
 		let (thread_identifier, pthread_t) = thread_identifiers.get_and_reuse();
-		self.0.push((join_handle, thread_identifier, pthread_t));
+		self.join_handles.push((join_handle, thread_identifier, pthread_t));
 
 		// Now configure the thread.
 		thread_configuration.configure_from_main_thread(thread_identifier, pthread_t, proc_path)?;
@@ -55,7 +55,7 @@ impl JoinHandles
 		Ok(())
 	}
 
-	fn spawn(&self, thread_identifiers: &ThreadIdentifiers, terminate: &Arc<impl Terminate>, thread_configuration: &ThreadConfiguration, thread_loop_body_function: impl ThreadLoopBodyFunction) -> io::Result<JoinHandle<()>>
+	fn spawn(&self, thread_identifiers: &ThreadIdentifiers, terminate: &Arc<impl Terminate + 'static>, thread_configuration: &ThreadConfiguration, thread_loop_body_function: impl ThreadLoopBodyFunction) -> io::Result<JoinHandle<()>>
 	{
 		let thread_identifiers = thread_identifiers.clone();
 		let wait_until_configured = self.clone_barrier();
@@ -84,7 +84,7 @@ impl JoinHandles
 
 				if let Err(payload) = result
 				{
-					terminate.begin_termination_due_to_irrecoverable_error(payload);
+					terminate.begin_termination_due_to_irrecoverable_error(&payload);
 					resume_unwind(payload)
 				}
 			}
@@ -94,7 +94,7 @@ impl JoinHandles
 	#[inline(always)]
 	pub fn thread_identifiers_for_thread(&self, relative_thread_identifier: usize) -> Option<(ThreadId, ThreadIdentifier, pthread_t)>
 	{
-		self.join_handles.get(relative_thread_identifier).map(|join_handle, thread_identifier, pthread_t| (join_handle.thread().id(), thread_identifier, pthread_t))
+		self.join_handles.get(relative_thread_identifier).map(|&(ref join_handle, thread_identifier, pthread_t)| (join_handle.thread().id(), thread_identifier, pthread_t))
 	}
 
 	/// Join on join handles.
@@ -106,14 +106,14 @@ impl JoinHandles
 
 		for (join_handle, _, _) in self.join_handles.drain(..)
 		{
-			join_handle.join()
+			let _ = join_handle.join();
 		}
 	}
 
 	#[inline(always)]
 	pub(crate) fn release(&mut self)
 	{
-		self.barrier.release(self.join_handles.iter().map(|join_handle, _, _| join_handle))
+		self.barrier.release(self.join_handles.iter().map(|(join_handle, _, _)| join_handle))
 	}
 
 	#[inline(always)]

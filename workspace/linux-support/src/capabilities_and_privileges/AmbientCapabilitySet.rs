@@ -15,7 +15,7 @@ impl AmbientCapabilitySet
 		let mut set = BitSet::new();
 		for capability in Capability::iter()
 		{
-			if capability.is_in_current_thread_ambient_set()
+			if capability.is_in_current_thread_ambient_set().unwrap_or(false)
 			{
 				set.add(capability)
 			}

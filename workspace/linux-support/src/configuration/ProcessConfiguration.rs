@@ -147,7 +147,7 @@ impl ProcessConfiguration
 		self.resource_limits.change().map_err(CouldNotChangeResourceLimit)?;
 
 		// This *MUST* be called after changing resource limits.
-		self.lock_all_memory()?;
+		self.lock_all_memory();
 
 		// This *MUST* be called before creating new threads.
 		self.configure_process_affinity(proc_path)?;
@@ -182,7 +182,7 @@ impl ProcessConfiguration
 		// This *MUST* be called before creating new threads.
 		// This *MUST* be called before executing programs that might be setuid/setgid or have file capabilities.
 		// This prevents `execve()` granting additional capabilities.
-		no_new_privileges().map_err(|cause| CouldNotPreventTheGrantingOfNoNewPrivileges)?;
+		no_new_privileges().map_err(CouldNotPreventTheGrantingOfNoNewPrivileges)?;
 
 		self.threads_exist_from_now_on(thread_configurations, terminate, proc_path)
 	}
@@ -265,7 +265,7 @@ impl ProcessConfiguration
 	#[inline(always)]
 	fn configure_process_affinity(&self, proc_path: &ProcPath) -> Result<(), ProcessConfigurationError>
 	{
-		set_value(proc_path, |_proc_path, value| value.set_affinity(), self.affinity.as_ref(), ProcessConfigurationError::CouldNotChangeProcessAffinity)
+		set_value(proc_path, |_proc_path, value| value.set_current_process_affinity(), self.affinity.as_ref(), ProcessConfigurationError::CouldNotChangeProcessAffinity)
 	}
 
 	#[inline(always)]

@@ -3,7 +3,7 @@
 
 
 /// The body of a while loop which checks that the thread should continue running.
-pub trait ThreadLoopBodyFunction: std::marker::Send + 'static + Copy
+pub trait ThreadLoopBodyFunction: std::marker::Send + std::marker::Sync + 'static + Copy
 {
 	fn invoke(self) -> ();
 }

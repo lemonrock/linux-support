@@ -55,9 +55,10 @@ impl ThreadConfiguration
 		T: std::marker::Send + 'static,
 	{
 		let stack_size = self.stack_size.get() * PageSize::current().size_in_bytes().get();
+		let disable_transparent_huge_pages = self.disable_transparent_huge_pages;
 		Builder::new().name(self.name.to_string()).stack_size(stack_size as usize).spawn(move ||
 		{
-			adjust_transparent_huge_pages(!self.disable_transparent_huge_pages);
+			adjust_transparent_huge_pages(!disable_transparent_huge_pages);
 			f()
 		})
 	}
@@ -97,6 +98,7 @@ impl ThreadConfiguration
 	#[inline(always)]
 	fn stack_size_default() -> NonZeroNumberOfPages
 	{
-		unsafe { NonZeroNumberOfPages::new_unchecked(2_048 * 1_024 / PageSize::current().size_in_bytes()) }
+		const _2MB: u64 = 2_048 * 1_024;
+		unsafe { NonZeroNumberOfPages::new_unchecked(_2MB / PageSize::current().size_in_bytes().get()) }
 	}
 }

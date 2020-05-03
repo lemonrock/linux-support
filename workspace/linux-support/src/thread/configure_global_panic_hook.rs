@@ -6,13 +6,12 @@
 ///
 /// Does not terminate the process unless the panic hook itself panicked (a double panic), in which case the exit code is `71` (BSD exit code `EX_OSERR`).
 #[inline(always)]
-pub fn configure_global_panic_hook(terminate: &Arc<impl Terminate>)
+pub fn configure_global_panic_hook(terminate: &Arc<impl Terminate + 'static>)
 {
 	const EX_OSERR: i32 = 71;
 
 	let terminate = terminate.clone();
-
-	set_hook(Box::new(|panic_info|
+	set_hook(Box::new(move |panic_info|
 	{
 		if thread::panicking()
 		{

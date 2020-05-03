@@ -57,7 +57,7 @@ impl ThreadIdentifiers
 		self.thread_identifier_and_pthread_t_available_barrier.wait_on_parked();
 		let values =
 		(
-			ThreadIdentifier::from(self.thread_identifier.load(Acquire)),
+			unsafe { transmute(self.thread_identifier.load(Acquire)) },
 			unsafe { transmute(self.pthread_t.load(Acquire)) }
 		);
 		self.reuse();
