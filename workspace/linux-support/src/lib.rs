@@ -11,6 +11,7 @@
 #![feature(alloc_layout_extra)]
 #![feature(allocator_api)]
 #![feature(asm)]
+#![feature(backtrace)]
 #![feature(const_fn)]
 #![feature(core_intrinsics)]
 #![feature(const_ptr_offset_from)]

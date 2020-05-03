@@ -4,6 +4,7 @@
 
 use self::c::*;
 use errno::errno;
+use likely::likely;
 use libc::EINVAL;
 use libc::ENOSYS;
 use libc::EPERM;

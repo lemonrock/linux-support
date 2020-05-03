@@ -79,7 +79,7 @@ pub enum ProcessConfigurationError
 	CouldNotPreventTheGrantingOfNoNewPrivileges(io::Error),
 
 	#[allow(missing_docs)]
-	Capabilities(ProcessCapabilitiesError),
+	Capabilities(ProcessCapabilitiesConfigurationError),
 
 	#[allow(missing_docs)]
 	CouldNotConfigureMainThread(ThreadConfigurationError),
@@ -226,10 +226,10 @@ impl From<ThreadConfigurationError> for ProcessConfigurationError
 	}
 }
 
-impl From<ProcessCapabilitiesError> for ProcessConfigurationError
+impl From<ProcessCapabilitiesConfigurationError> for ProcessConfigurationError
 {
 	#[inline(always)]
-	fn from(cause: ProcessCapabilitiesError) -> Self
+	fn from(cause: ProcessCapabilitiesConfigurationError) -> Self
 	{
 		ProcessConfigurationError::Capabilities(cause)
 	}

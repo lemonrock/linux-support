@@ -289,14 +289,14 @@ impl Capability
 	#[inline(always)]
 	pub fn remove_from_current_thread_bounding_set(self) -> Result<(), ()>
 	{
-		match unsafe { prctl(PR_CAPBSET_DROP, *elf as c_ulong) }
+		match unsafe { prctl(PR_CAPBSET_DROP, self as c_ulong) }
 		{
 			0 => Ok(()),
 
 			-1 => match errno().0
 			{
 				EPERM => Err(()),
-				EINVAL => panic!("Kernel does not support 'file' capabilities. Or capability `{}` is not a valid capability on this kernel", self),
+				EINVAL => panic!("Kernel does not support 'file' capabilities. Or capability `{:?}` is not a valid capability on this kernel", self),
 
 				illegal @ _ => panic!("Illegal error code '{}' from prctl()", illegal),
 			},

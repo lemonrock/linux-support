@@ -33,7 +33,7 @@ impl SimpleBarrier
 	}
 
 	#[inline(always)]
-	pub(crate) fn release<'a, T>(self, mut join_handles: impl Iterator<Item=&'a JoinHandle<T>>)
+	pub(crate) fn release<'a, T: 'a>(self, mut join_handles: impl Iterator<Item=&'a JoinHandle<T>>)
 	{
 		self.0.store(true, Release);
 

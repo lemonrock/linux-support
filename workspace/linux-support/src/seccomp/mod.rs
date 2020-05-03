@@ -5,7 +5,6 @@
 use self::c::*;
 use crate::bpf::BpfProgram;
 use crate::bpf::c::*;
-use crate::capabilities_and_privileges::no_new_privileges;
 use crate::signals::AuditArchitecture;
 use crate::syscall::SYS;
 use crate::thread::ThreadIdentifier;

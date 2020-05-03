@@ -43,6 +43,6 @@ pub fn configure_global_panic_hook(terminate: &Arc<impl Terminate>)
 			"(missing backtrace)".to_string()
 		};
 
-		ProcessLoggingConfiguration::caught_panic(thread_name, thread_identifier, source_file, line_number, column_number, &cause, backtrace);
+		ProcessLoggingConfiguration::caught_panic(thread_name, thread_id, source_file, line_number, column_number, &cause, backtrace);
 	}));
 }

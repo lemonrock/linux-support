@@ -196,9 +196,6 @@ impl ProcessConfiguration
 
 	fn threads_exist_from_now_on(&self, thread_configurations: &[(ThreadConfiguration, XXX)], terminate: &Arc<impl Terminate>, proc_path: &ProcPath) -> Result<(), ProcessConfigurationError>
 	{
-		use self::ProcessConfigurationError::*;
-
-
 		let (join_handles, result) = JoinHandles::main_thread_spawn_configured_child_threads(thread_configurations, terminate, proc_path);
 		if let Err(error) = result
 		{
@@ -219,7 +216,6 @@ impl ProcessConfiguration
 		// TODO: Then strip capabilities and set up syscalls.
 		// TODO: A NUMA-aware malloc.
 
-		//
 		self.seccomp_for_all_threads()?;
 
 		// Capabilities are dropped when an user transitions to a non-root user unless we set the securebit to keep capabilities.

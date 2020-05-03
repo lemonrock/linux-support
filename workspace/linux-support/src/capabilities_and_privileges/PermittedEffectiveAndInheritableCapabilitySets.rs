@@ -8,7 +8,7 @@
 ///
 /// Set <http://man7.org/linux/man-pages/man7/capabilities.7.html>.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Deserialze, Serialize)]
+#[derive(Deserialize, Serialize)]
 pub struct PermittedEffectiveAndInheritableCapabilitySets
 {
 	#[allow(missing_docs)]
@@ -28,22 +28,22 @@ impl PermittedEffectiveAndInheritableCapabilitySets
 	{
 		let mut header = __user_cap_header_struct::new(thread_identifier);
 		let mut data: [__user_cap_data_struct; 2] = unsafe { zeroed() };
-		let result = unsafe { capget(&mut header, &mut data) };
+		let result = unsafe { capget(&mut header as *mut _ as *mut _, &mut data as *mut _ as *mut _) };
 		if likely!(result == 0)
 		{
 			#[inline(always)]
 			fn new_set(index0: u32, index1: u32) -> BitSet<Capability>
 			{
-				BitSet::new_from_u64((data.permitted[1] as u64) << 32 | (data.permitted[0] as u64))
+				BitSet::new_from_u64((index0 as u64) << 32 | (index1 as u64))
 			}
 
 			Ok
 			(
 				Self
 				{
-					permitted: new_set(data.permitted[0], data.permitted[1]),
-					effective: new_set(data.effective[0], data.effective[1]),
-					inheritable: new_set(data.inheritable[0], data.inheritable[1])
+					permitted: new_set(data[0].permitted, data[1].permitted),
+					effective: new_set(data[0].effective, data[1].effective),
+					inheritable: new_set(data[0].inheritable, data[1].inheritable)
 				}
 			)
 		}
@@ -79,23 +79,23 @@ impl PermittedEffectiveAndInheritableCapabilitySets
 		for capability in self.permitted.iterate()
 		{
 			let (index, bit) = capability_to_index_and_bit(capability);
-			data.permitted[index] |= bit
+			data[index].permitted |= bit
 		}
 
 		for capability in self.effective.iterate()
 		{
 			let (index, bit) = capability_to_index_and_bit(capability);
-			data.effective[index] |= bit
+			data[index].effective |= bit
 		}
 
 		for capability in self.inheritable.iterate()
 		{
 			let (index, bit) = capability_to_index_and_bit(capability);
-			data.inheritable[index] |= bit
+			data[index].inheritable |= bit
 		}
 
 		let mut header = __user_cap_header_struct::new(thread_identifier);
-		let result = unsafe { capset(&mut header, &mut data) };
+		let result = unsafe { capset(&mut header as *mut _ as *mut _, &mut data as *mut _ as *mut _) };
 		if likely!(result == 0)
 		{
 			Ok(())

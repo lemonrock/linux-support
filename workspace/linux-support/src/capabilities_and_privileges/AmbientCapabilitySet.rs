@@ -4,7 +4,7 @@
 
 /// Ambient capability set.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Deserialze, Serialize)]
+#[derive(Deserialize, Serialize)]
 pub struct AmbientCapabilitySet(pub BitSet<Capability>);
 
 impl AmbientCapabilitySet
@@ -13,7 +13,7 @@ impl AmbientCapabilitySet
 	pub fn get_for_current_thread() -> Self
 	{
 		let mut set = BitSet::new();
-		for capability in Self::iter()
+		for capability in Capability::iter()
 		{
 			if capability.is_in_current_thread_ambient_set()
 			{
@@ -33,7 +33,7 @@ impl AmbientCapabilitySet
 			let new = self.0.contains(capability);
 			match (old, new)
 			{
-				(true, false) => continue.remove_from_current_thread_ambient_set()?,
+				(true, false) => capability.remove_from_current_thread_ambient_set()?,
 				(false, true) => capability.add_to_current_thread_ambient_set()?,
 				(true, true) | (false, false) => continue,
 			}

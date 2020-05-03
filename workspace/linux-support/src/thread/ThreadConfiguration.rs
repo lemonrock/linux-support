@@ -26,6 +26,22 @@ pub struct ThreadConfiguration
 	#[serde(default)] pub disable_transparent_huge_pages: bool,
 }
 
+impl Default for ThreadConfiguration
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self
+		{
+			name: Default::default(),
+			stack_size: Self::stack_size_default(),
+			affinity: Default::default(),
+			thread_scheduler: Default::default(),
+			disable_transparent_huge_pages: false
+		}
+	}
+}
+
 impl ThreadConfiguration
 {
 	/// Spawns and configures a new thread.
@@ -38,11 +54,11 @@ impl ThreadConfiguration
 		F: std::marker::Send + 'static,
 		T: std::marker::Send + 'static,
 	{
-		const page_size: usize = PageSize::current().size_in_bytes() as usize;
-		Builder::new().name(self.name.to_string()).stack_size(self.stack_size.get() as usize * page_size).spawn(move ||
+		let stack_size = self.stack_size.get() * PageSize::current().size_in_bytes().get();
+		Builder::new().name(self.name.to_string()).stack_size(stack_size as usize).spawn(move ||
 		{
 			adjust_transparent_huge_pages(!self.disable_transparent_huge_pages);
-			t
+			f()
 		})
 	}
 

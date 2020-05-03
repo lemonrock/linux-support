@@ -10,7 +10,7 @@ pub enum ProcessCapabilitiesConfigurationError
 	CouldNotConfigureBoundingSet,
 
 	#[allow(missing_docs)]
-	CouldNotConfigurePermittedEffectiveAndInheritableSets,
+	CouldNotConfigurePermittedEffectiveAndInheritableSets(io::Error),
 
 	#[allow(missing_docs)]
 	CouldNotConfigureAmbient(AmbientCapabilityError),
@@ -39,7 +39,7 @@ impl error::Error for ProcessCapabilitiesConfigurationError
 		{
 			&CouldNotConfigureBoundingSet => None,
 
-			&CouldNotConfigurePermittedEffectiveAndInheritableSets => None,
+			&CouldNotConfigurePermittedEffectiveAndInheritableSets(ref cause) => Some(cause),
 
 			&CouldNotConfigureAmbient(ref cause) => Some(cause),
 

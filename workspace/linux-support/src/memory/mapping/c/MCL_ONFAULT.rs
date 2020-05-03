@@ -2,16 +2,5 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::thread::ThreadIdentifier;
-use libc::c_void;
-use libc::pid_t;
-
-
-include!("__user_cap_data_struct.rs");
-include!("__user_cap_header_struct.rs");
-include!("_LINUX_CAPABILITY.rs");
-include!("PR_SET_IO_FLUSHER.rs");
-include!("cap_user_data_t.rs");
-include!("cap_user_header_t.rs");
-include!("capget.rs");
-include!("capset.rs");
+#[cfg(not(target_arch = "powerpc64"))] pub(super) const MCL_ONFAULT: i32 = 4;
+#[cfg(target_arch = "powerpc64")] pub(super) const MCL_ONFAULT: i32 = 0x8000;

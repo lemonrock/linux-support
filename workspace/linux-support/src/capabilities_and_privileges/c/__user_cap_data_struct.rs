@@ -6,7 +6,7 @@
 #[repr(C)]
 pub(super) struct __user_cap_data_struct
 {
-	effective: u32,
-	permitted: u32,
-	inheritable: u32,
+	pub(super) effective: u32,
+	pub(super) permitted: u32,
+	pub(super) inheritable: u32,
 }

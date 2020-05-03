@@ -3,7 +3,8 @@
 
 
 /// Process capabilities.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct ProcessCapabilitiesConfiguration
 {
@@ -24,8 +25,8 @@ impl ProcessCapabilitiesConfiguration
 		use self::ProcessCapabilitiesConfigurationError::*;
 
 		self.bounding_set_to_retain.retain().map_err(|_ :()| CouldNotConfigureBoundingSet)?;
-		self.permitted_effective_and_inheritable_capability_sets.set(ThreadIdentifier::default()).map_err(|_ :()| CouldNotConfigurePermittedEffectiveAndInheritableSets)?;
-		self.ambient_capabilities.set_for_current_thread().map_err(|cause| CouldNotConfigureAmbient(cause))?;
+		self.permitted_effective_and_inheritable_capability_sets.set(ThreadIdentifier::default()).map_err(CouldNotConfigurePermittedEffectiveAndInheritableSets)?;
+		self.ambient_capabilities.set_for_current_thread().map_err(CouldNotConfigureAmbient)?;
 
 		lock_secure_bits_so_capabilities_are_always_enforced(true).map_err(|cause| CouldNotLockSecureBits(cause))
 	}

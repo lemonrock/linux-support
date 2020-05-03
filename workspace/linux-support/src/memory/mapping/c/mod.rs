@@ -2,7 +2,16 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use libc::c_int;
+use libc::c_uint;
+use libc::c_void;
+use libc::size_t;
+
+
 include!("MAP_32BIT.rs");
 include!("MAP_FIXED_NOREPLACE.rs");
 include!("MAP_SHARED_VALIDATE.rs");
 include!("MAP_SYNC.rs");
+include!("MCL_ONFAULT.rs");
+include!("mlock2.rs");
+include!("MLOCK_ONFAULT.rs");

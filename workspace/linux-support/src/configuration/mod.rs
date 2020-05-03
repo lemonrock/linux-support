@@ -24,6 +24,7 @@ use crate::linux_kernel_version::*;
 use crate::logging::*;
 use crate::memory::*;
 use crate::memory::huge_pages::*;
+use crate::memory::mapping::LockAllMemory;
 use crate::memory::system_v_shared_memory::message_queues::*;
 use crate::paths::*;
 use crate::personality::*;
@@ -36,6 +37,8 @@ use crate::signals::*;
 use crate::strings::*;
 use crate::thread::*;
 use crate::user_and_groups::*;
+use either::Either;
+use either::Either::*;
 use indexmap::set::IndexSet;
 use libc::closelog;
 use libc::LC_ALL;
@@ -64,16 +67,12 @@ use std::fmt::Debug;
 use std::fmt::Formatter;
 use std::io;
 use std::num::NonZeroU32;
-use std::panic::set_hook;
-use std::panic::take_hook;
 use std::path::PathBuf;
-use std::thread::{Builder, ThreadId, sleep};
-use std::thread::JoinHandle;
-use either::Either;
-use either::Either::*;
-use crate::memory::mapping::LockAllMemory;
+use std::thread::sleep;
+use std::thread::ThreadId;
 use std::sync::Arc;
 use std::time::Duration;
+use terminate::Terminate;
 
 
 /// Checks.

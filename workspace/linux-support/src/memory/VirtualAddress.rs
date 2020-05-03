@@ -132,24 +132,6 @@ impl Into<usize> for VirtualAddress
 	}
 }
 
-impl<T> Into<*const T> for VirtualAddress
-{
-	#[inline(always)]
-	fn into(self) -> *const T
-	{
-		self.0 as *const T
-	}
-}
-
-impl<T> Into<*mut T> for VirtualAddress
-{
-	#[inline(always)]
-	fn into(self) -> *const T
-	{
-		self.0 as *mut T
-	}
-}
-
 impl<T> Into<NonNull<T>> for VirtualAddress
 {
 	#[inline(always)]

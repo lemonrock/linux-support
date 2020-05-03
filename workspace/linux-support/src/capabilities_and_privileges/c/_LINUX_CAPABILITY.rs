@@ -17,9 +17,7 @@ pub(super) const _LINUX_CAPABILITY_VERSION_2: u32 = 0x20071026;
 pub(super) const _LINUX_CAPABILITY_U32S_2: u32 = 2;
 
 /// Added in Linux 2.6.26.
-#[deprecated]
 pub(super) const _LINUX_CAPABILITY_VERSION_3: u32 = 0x20080522;
 
 /// Added in Linux 2.6.26.
-#[deprecated]
 pub(super) const _LINUX_CAPABILITY_U32S_3: u32 = 2;

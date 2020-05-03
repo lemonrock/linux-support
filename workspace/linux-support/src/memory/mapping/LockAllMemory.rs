@@ -13,19 +13,19 @@ pub enum LockAllMemory
 	AllCurrentMemory = MCL_CURRENT,
 
 	/// All current memory on fault.
-	AllCurrentMemoryOnFault = MCL_CURRENT | MCL_FAULT,
+	AllCurrentMemoryOnFault = MCL_CURRENT | MCL_ONFAULT,
 
 	/// All future memory.
 	AllFutureMemory = MCL_FUTURE,
 
 	/// All future memory on fault.
-	AllFutureMemoryOnFault = MCL_FUTURE | MCL_FAULT,
+	AllFutureMemoryOnFault = MCL_FUTURE | MCL_ONFAULT,
 
 	/// All current and future memory.
 	AllCurrentAndFutureMemory = MCL_CURRENT | MCL_FUTURE,
 
 	/// All current and future memory on fault.
-	AllCurrentAndFutureMemoryOnFault = MCL_CURRENT | MCL_FUTURE | MCL_FAULT,
+	AllCurrentAndFutureMemoryOnFault = MCL_CURRENT | MCL_FUTURE | MCL_ONFAULT,
 }
 
 impl LockAllMemory

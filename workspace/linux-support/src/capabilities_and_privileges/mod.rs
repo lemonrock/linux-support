@@ -6,6 +6,7 @@ use self::c::*;
 use crate::bit_set::*;
 use crate::strings::Radix;
 use crate::strings::parse_number::ParseNumberError;
+use crate::thread::ThreadIdentifier;
 use errno::errno;
 use libc::*;
 use likely::*;
@@ -23,11 +24,14 @@ use serde::Serialize;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 use std::borrow::Cow;
-use std::collections::HashSet;
-use std::mem::{transmute, zeroed};
-use std::{io, error};
-use std::fmt::{Formatter, Debug, Display};
-use crate::thread::ThreadIdentifier;
+use std::error;
+use std::fmt;
+use std::fmt::Debug;
+use std::fmt::Display;
+use std::fmt::Formatter;
+use std::io;
+use std::mem::transmute;
+use std::mem::zeroed;
 
 
 mod c;

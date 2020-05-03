@@ -3,7 +3,7 @@
 
 
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Deserialze, Serialize)]
+#[derive(Deserialize, Serialize)]
 pub struct BoundingCapabilitySet(pub BitSet<Capability>);
 
 impl BoundingCapabilitySet
@@ -12,7 +12,7 @@ impl BoundingCapabilitySet
 	pub fn get_for_current_thread() -> Self
 	{
 		let mut set = BitSet::new();
-		for capability in Self::iter()
+		for capability in Capability::iter()
 		{
 			if capability.is_in_current_thread_bounding_set().unwrap_or(false)
 			{
@@ -37,7 +37,7 @@ impl BoundingCapabilitySet
 			{
 				continue
 			}
-			if !current_thread.contains(capability)
+			if !current_thread.0.contains(capability)
 			{
 				continue
 			}
