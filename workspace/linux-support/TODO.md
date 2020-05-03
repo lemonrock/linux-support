@@ -8,6 +8,10 @@ POSIX ACLs: http://man7.org/linux/man-pages/man5/acl.5.html
 
 prctl PR_TASK_PERF_EVENTS_DISABLE / PR_TASK_PERF_EVENTS_ENABLE
 
+int getrusage(int who, struct rusage *usage) / times();
+
+Control prctl deathsig
+
 configure_global_panic_hook() needs to use the crate backtraces-rs which depends on libunwind
 
 #define FS_IOC_FSGETXATTR		_IOR('X', 31, struct fsxattr)

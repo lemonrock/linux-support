@@ -11,8 +11,9 @@
 /// * `LOGNAME` (to the same value as `USER`).
 /// * `HOME` (if not None)
 /// * `SHELL` (if not None)
+/// * `TZ` to `:/etc/zoneinfo/UTC` (actually `time_zone_file_path`); this is done to (a) make sure any hard compiled search paths in libc are not searched (b) to ensure the timezone is always UTC irrespective of the system and (c) in some cases, to reduce the number of syscalls that the libc might make.
 #[inline(always)]
-pub(crate) fn populate_clean_environment(binary_paths: &BTreeSet<PathBuf>, user_name_home_directory_and_shell: Option<(Option<UserName>, PathBuf, PathBuf)>) -> Result<(), JoinPathsError>
+pub(crate) fn populate_clean_environment(binary_paths: &BTreeSet<PathBuf>, user_name_home_directory_and_shell: Option<(Option<UserName>, PathBuf, PathBuf)>, time_zone_file_path: PathBuf) -> Result<(), JoinPathsError>
 {
 	const RUST_BACKTRACE: ConstCStr = ConstCStr(b"RUST_BACKTRACE\0");
 
@@ -70,6 +71,14 @@ pub(crate) fn populate_clean_environment(binary_paths: &BTreeSet<PathBuf>, user_
 		const SHELL: ConstCStr = ConstCStr(b"SHELL\0");
 		let shell = path_to_cstring(shell.as_ref());
 		setenv_wrapper(SHELL, shell.as_c_str(), true);
+	}
+
+	{
+		const TZ: ConstCStr = ConstCStr(b"TZ\0");
+		let mut bytes = time_zone_file_path.to_c_string().into_bytes();
+		bytes.insert(0, b':');
+		let time_zone_file_path = unsafe { CString::from_vec_unchecked(bytes) };
+		setenv_wrapper(TZ, time_zone_file_path.as_c_str(), true);
 	}
 
 	Ok(())

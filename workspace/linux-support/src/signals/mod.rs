@@ -3,7 +3,6 @@
 
 
 #[allow(deprecated)] use std::mem::uninitialized;
-use crate::ClockTicks;
 use crate::bit_set::*;
 use crate::memory::VirtualAddress;
 use crate::process::ProcessIdentifier;
@@ -12,6 +11,7 @@ use crate::strings::FromBytes;
 use crate::strings::Radix;
 use crate::strings::parse_number::*;
 use crate::syscall::UnconstrainedSystemCallNumber;
+use crate::time::ClockTicks;
 use crate::user_and_groups::UserIdentifier;
 use self::codes::*;
 use self::c::*;

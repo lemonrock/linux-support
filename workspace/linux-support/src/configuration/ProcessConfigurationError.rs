@@ -86,6 +86,9 @@ pub enum ProcessConfigurationError
 
 	#[allow(missing_docs)]
 	TerminatedDueToPanicOrIrrecoverableError,
+
+	#[allow(missing_docs)]
+	UtcFilePathDoesNotExistOrIsNotReadable(io::Error),
 }
 
 impl Display for ProcessConfigurationError
@@ -159,6 +162,8 @@ impl error::Error for ProcessConfigurationError
 			&CouldNotConfigureMainThread(ref cause) => Some(cause),
 
 			&TerminatedDueToPanicOrIrrecoverableError => None,
+
+			&UtcFilePathDoesNotExistOrIsNotReadable(ref cause) => Some(cause),
 		}
 	}
 }

@@ -129,24 +129,34 @@ impl ProcessConfiguration
 		set_current_dir(&self.working_directory).map_err(CouldNotChangeWorkingDirectory)?;
 
 		// This *SHOULD* be called before enabling logging.
+		// This *SHOULD* be called before using any libc functions that format strings.
 		self.set_locale()?;
+
+		// This *SHOULD* be called before enabling logging.
+		self.set_process_name(proc_path)?;
+
+		// This *SHOULD* be called before daemonizing (forking).
+		// This *MUST* be called before locking memory.
+		// This *MUST* be called before creating new threads.
+		// This *MUST* be called before changing process scheduling.
+		// This *MUST* be called opening any significant number of file descriptors.
+		self.resource_limits.change().map_err(CouldNotChangeResourceLimit)?;
+
+		// This *SHOULD* be configured before configuring logging.
+		// This *MUST* be called before `configure_global_panic_hook()` which uses backtraces depedant on environment variable settings.
+		self.set_environment_variables_to_minimum_required(etc_path)?;
 
 		if run_as_daemon
 		{
 			daemonize(dev_path)
 		}
 
-		// This *SHOULD* be called before enabling logging.
-		self.set_process_name(proc_path)?;
-
-		// This *COULD* be called before daemonizing.
-		// This *MUST* be called before locking memory.
-		// This *MUST* be called before creating new threads.
-		// This *MUST* be called before changing process scheduling.
-		// This *MUST* be called opening file descriptors.
-		self.resource_limits.change().map_err(CouldNotChangeResourceLimit)?;
+		// This *MUST* be called before `configure_global_panic_hook()`.
+		self.logging_configuration.start_logging(!run_as_daemon, &self.name);
+		configure_global_panic_hook(terminate);
 
 		// This *MUST* be called after changing resource limits.
+		// This *MUST* be called after daemonizing (forking) s memory locks aren't preserved across a fork.
 		self.lock_all_memory();
 
 		// This *MUST* be called before creating new threads.
@@ -157,13 +167,9 @@ impl ProcessConfiguration
 
 		self.set_io_flusher()?;
 
-		// This *SHOULD* be configured before configuring logging.
-		// This *MUST* be called before `configure_global_panic_hook()` which uses backtraces depedant on environment variable settings.
-		self.set_environment_variables_to_minimum_required(etc_path)?;
-
-		// This *MUST* be called before `configure_global_panic_hook()`.
-		self.logging_configuration.start_logging(!run_as_daemon, &self.name);
-		configure_global_panic_hook(terminate);
+		// This *MUST* be called after daemonizing (forking).
+		// This *MUST* be called before creating new threads.
+		Self::secure_io_ports();
 
 		// This *MUST* be called before creating new threads.
 		// This *MUST* be called before dropping root.
@@ -175,9 +181,6 @@ impl ProcessConfiguration
 		{
 			ProcessCapabilitiesConfiguration::configure_if_unwanted()?
 		}
-
-		// This *MUST* be called before creating new threads.
-		Self::secure_io_ports();
 
 		// This *MUST* be called before creating new threads.
 		// This *MUST* be called before executing programs that might be setuid/setgid or have file capabilities.
@@ -243,10 +246,20 @@ impl ProcessConfiguration
 	}
 
 	/// This is a security defence to prevent propagation of unknown environment variables to potential child processes.
+	///
+	/// This also correctly sets:-
+	///
+	/// * rust backtrace logging;
+	/// * ensures that the UTC time zone exists and is readable;
+	/// * ensures that the libc timezone global static fields are correctly set.
 	#[inline(always)]
-	fn set_environment_variables_to_minimum_required(&self, etc_path: &EtcPath) -> Result<(), JoinPathsError>
+	fn set_environment_variables_to_minimum_required(&self, etc_path: &EtcPath) -> Result<(), ProcessConfigurationError>
 	{
-		populate_clean_environment(&self.binary_paths, UserIdentifier::current_real().user_name_home_directory_and_shell(etc_path))
+		let utc_file_path = etc_path.file_path("zoneinfo").append("UTC");
+		utc_file_path.read_raw().map_err(ProcessConfigurationError::UtcFilePathDoesNotExistOrIsNotReadable)?;
+		populate_clean_environment(&self.binary_paths, UserIdentifier::current_real().user_name_home_directory_and_shell(etc_path), utc_file_path)?;
+		unsafe { tzset() };
+		Ok(())
 	}
 
 	// This needs to be called after any changes to the process' user identifiers: the process' dumpable bit is reset after the effective user changes.

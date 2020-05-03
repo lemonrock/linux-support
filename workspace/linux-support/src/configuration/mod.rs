@@ -36,6 +36,7 @@ use crate::swap::*;
 use crate::signals::*;
 use crate::strings::*;
 use crate::thread::*;
+use crate::time::c::tzset;
 use crate::user_and_groups::*;
 use either::Either;
 use either::Either::*;

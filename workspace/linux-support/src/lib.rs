@@ -37,10 +37,6 @@ assert_cfg!(target_pointer_width = "64");
 use crate::bit_set::BitSetAware;
 use crate::cpu::HyperThread;
 use crate::memory::numa::NumaNode;
-use crate::strings::Radix;
-use crate::strings::parse_number::*;
-use libc::clock_t;
-use std::fmt::Debug;
 use std::mem::transmute;
 
 
@@ -197,6 +193,10 @@ pub mod personality;
 pub mod pci_express;
 
 
+/// Process.
+pub mod process;
+
+
 /// Resource limits.
 pub mod resource_limits;
 
@@ -207,10 +207,6 @@ pub mod seccomp;
 
 /// Signals.
 pub mod signals;
-
-
-/// Process.
-pub mod process;
 
 
 /// Swap.
@@ -229,6 +225,10 @@ pub mod syscall;
 pub mod terminal;
 
 
+/// Support for time and clocks.
+pub mod time;
+
+
 /// Support for threads.
 pub mod thread;
 
@@ -237,6 +237,5 @@ pub mod thread;
 pub mod user_and_groups;
 
 
-include!("ClockTicks.rs");
 include!("current_numa_node_and_hyper_thread.rs");
 include!("move_to_front_of_vec.rs");

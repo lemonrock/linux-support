@@ -50,9 +50,17 @@ pub fn daemonize(dev_path: &DevPath)
 
 	redirect_file_standard_out_and_file_standard_error_to_syslog();
 
+	// This first fork causes the process to be reparented to `init` (process 1).
+	//
+	// The first fork creates a child that is a session leader without a controlling terminal, so it's possible for it to acquire one by opening a terminal in the future.
+	// Hence the need for the second fork below.
 	fork_process();
 
 	create_a_new_process_group_and_session_detach_controlling_terminal();
 
+	// This second fork guarantees that the child is no longer a session leader, preventing the daemon from ever acquiring a controlling terminal.
+	// A controlling terminal allows `Ctrl-C` et al to be sent as signals to the process.
+	//
+	// This matters so that a daemon doesn't need to specify `O_NOCTTY` to `open()` everywhere where it might be opening a console (a terminal character file device).
 	fork_process();
 }
