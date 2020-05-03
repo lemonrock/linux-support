@@ -69,10 +69,8 @@ use std::fmt::Formatter;
 use std::io;
 use std::num::NonZeroU32;
 use std::path::PathBuf;
-use std::thread::sleep;
 use std::thread::ThreadId;
 use std::sync::Arc;
-use std::time::Duration;
 use terminate::Terminate;
 
 

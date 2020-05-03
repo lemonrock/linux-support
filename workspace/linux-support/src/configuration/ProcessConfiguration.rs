@@ -72,19 +72,17 @@ pub struct ProcessConfiguration
 	/// SecComp filtering adds a 5% to 10% overhead.
 	#[serde(default)] pub seccomp: Option<PermittedSyscalls>,
 
-	#[serde(default)] pub capabilities: Option<ProcessCapabilitiesConfiguration>,
-
-	/// Main thread sleeps for this long before checking for events.
+	/// Capabilities to apply before forking new threads.
 	///
-	/// Default is 1ms.
-	#[serde(default = "ProcessConfiguration::main_thread_sleep_default")] pub main_thread_sleep: Duration,
+	/// If capabilities are used the `keep capabilities` securebit is also set and locked.
+	#[serde(default)] pub capabilities: Option<ProcessCapabilitiesConfiguration>,
 }
 
 impl ProcessConfiguration
 {
 	/// Configure, then run the process.
 	#[inline(always)]
-	pub fn configure_and_run_assume_linux_standard_base(&self, run_as_daemon: bool, main_thread: (&ThreadConfiguration, impl ThreadLoopBodyFunction), child_threads: Vec<(&ThreadConfiguration, impl ThreadLoopBodyFunction)>) -> Result<(), ProcessConfigurationError>
+	pub fn configure_and_run_assume_linux_standard_base(&self, run_as_daemon: bool, main_thread: (&ThreadConfiguration, impl ThreadFunction), child_threads: Vec<(&ThreadConfiguration, impl ThreadFunction)>) -> Result<(), ProcessConfigurationError>
 	{
 		let sys_path = SysPath::default();
 		let proc_path = ProcPath::default();
@@ -95,7 +93,7 @@ impl ProcessConfiguration
 
 	/// Configure, then run the process.
 	#[inline(always)]
-	pub fn configure_then_run(&self, run_as_daemon: bool, main_thread: (&ThreadConfiguration, impl ThreadLoopBodyFunction), child_threads: Vec<(&ThreadConfiguration, impl ThreadLoopBodyFunction)>, sys_path: &SysPath, proc_path: &ProcPath, dev_path: &DevPath, etc_path: &EtcPath) -> Result<(), ProcessConfigurationError>
+	pub fn configure_then_run(&self, run_as_daemon: bool, main_thread: (&ThreadConfiguration, impl ThreadFunction), child_threads: Vec<(&ThreadConfiguration, impl ThreadFunction)>, sys_path: &SysPath, proc_path: &ProcPath, dev_path: &DevPath, etc_path: &EtcPath) -> Result<(), ProcessConfigurationError>
 	{
 		use self::ProcessConfigurationError::*;
 
@@ -189,44 +187,44 @@ impl ProcessConfiguration
 		self.threads_exist_from_now_on(main_thread, child_threads, &terminate, proc_path, etc_path)
 	}
 
-	fn threads_exist_from_now_on(&self, main_thread: (&ThreadConfiguration, impl ThreadLoopBodyFunction), child_threads: Vec<(&ThreadConfiguration, impl ThreadLoopBodyFunction)>, terminate: &Arc<impl Terminate + 'static>, proc_path: &ProcPath, etc_path: &EtcPath) -> Result<(), ProcessConfigurationError>
+	fn threads_exist_from_now_on(&self, (main_thread_configuration, main_thread_function): (&ThreadConfiguration, impl ThreadFunction), child_threads: Vec<(&ThreadConfiguration, impl ThreadFunction)>, terminate: &Arc<impl Terminate + 'static>, proc_path: &ProcPath, etc_path: &EtcPath) -> Result<(), ProcessConfigurationError>
 	{
 		let (mut join_handles, result) = JoinHandles::main_thread_spawn_child_threads(child_threads, terminate, proc_path);
 		if let Err(error) = result
 		{
 			terminate.clone().begin_termination();
-			join_handles.release();
+			join_handles.error_join();
 			return Err(error)?
 		}
 
-		let result = main_thread.0.configure_main_thread();
+		let result = main_thread_configuration.configure_main_thread();
 		if let Err(error) = result
 		{
 			terminate.clone().begin_termination();
-			join_handles.release();
+			join_handles.error_join();
 			return Err(error)?
 		}
 
-		// TODO: Let threads initialize before applying seccomp (eg to open sockets, etc).
-		// TODO: Then strip capabilities and set up syscalls.
-		// TODO: A NUMA-aware malloc.
+		join_handles.release_configured();
 
-		self.seccomp_for_all_threads()?;
-
-		// Capabilities are dropped when an user transitions to a non-root user unless we set the securebit to keep capabilities.
-		self.user_and_group_settings.change_user_and_groups(etc_path)?;
-
-		Self::protect_access_to_proc_self_and_disable_core_dumps()?;
-
-		join_handles.release();
-
-		let terminate = terminate.clone();
-		while terminate.should_continue()
+		if let Err(error) = self.apply_security(etc_path)
 		{
-			// TODO: Enter the main loop; need to run a signal handler.
-			// If we are not a daemon, then we need to return.
-			sleep(self.main_thread_sleep)
+			terminate.clone().begin_termination();
+			join_handles.error_join();
+			return Err(error)
 		}
+
+		join_handles.release_seccomp_applied_and_setuid_et_al_done();
+
+		let mut main_thread_loop_function = main_thread_function.configure(terminate);
+		let terminate = terminate.clone();
+		while likely!(terminate.should_continue())
+		{
+			main_thread_loop_function.invoke();
+		}
+		drop(main_thread_loop_function);
+
+		join_handles.join();
 
 		if terminate.terminated_due_to_panic_or_irrecoverable_error()
 		{
@@ -236,6 +234,13 @@ impl ProcessConfiguration
 		{
 			Ok(())
 		}
+	}
+
+	fn apply_security(&self, etc_path: &EtcPath) -> Result<(), ProcessConfigurationError>
+	{
+		self.seccomp_for_all_threads()?;
+		self.user_and_group_settings.change_user_and_groups(etc_path)?;
+		Self::protect_access_to_proc_self_and_disable_core_dumps()
 	}
 
 	#[cfg(any(target_arch = "mips64", target_arch = "powerpc64", target_arch = "x86_64"))]
@@ -461,8 +466,8 @@ impl ProcessConfiguration
 	}
 
 	#[inline(always)]
-	fn main_thread_sleep_default() -> Duration
+	fn main_thread_sleep_default() -> usize
 	{
-		Duration::new(0, 1_000_000)
+		1_000_000
 	}
 }

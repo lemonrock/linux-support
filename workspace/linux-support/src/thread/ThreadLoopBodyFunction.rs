@@ -3,8 +3,10 @@
 
 
 /// The body of a while loop which checks that the thread should continue running.
-pub trait ThreadLoopBodyFunction: std::marker::Send + std::marker::Sync + 'static
+pub trait ThreadLoopBodyFunction
 {
 	/// Invoke.
-	fn invoke(&mut self) -> ();
+	///
+	/// If a pause is desired to avoid busy loops, then the implementor is responsible for calling `libc::nanosleep()` or `thread::yield()`.
+	fn invoke(&mut self);
 }

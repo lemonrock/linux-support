@@ -33,10 +33,14 @@ impl SimpleBarrier
 	}
 
 	#[inline(always)]
-	pub(crate) fn release<'a, T: 'a>(&self, join_handles: impl Iterator<Item=&'a JoinHandle<T>>)
+	pub(crate) fn set_release(&self)
 	{
 		self.0.store(true, Release);
+	}
 
+	#[inline(always)]
+	pub(crate) fn unpark_all<'a, T: 'a>(join_handles: impl Iterator<Item=&'a JoinHandle<T>>)
+	{
 		for join_handle in join_handles
 		{
 			join_handle.thread().unpark()
@@ -46,7 +50,7 @@ impl SimpleBarrier
 	#[inline(always)]
 	pub(crate) fn release_one(&self, thread: Thread)
 	{
-		self.0.store(true, Release);
+		self.set_release();
 
 		thread.unpark()
 	}
