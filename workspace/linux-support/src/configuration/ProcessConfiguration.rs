@@ -184,17 +184,10 @@ impl ProcessConfiguration
 		// This prevents `execve()` granting additional capabilities.
 		no_new_privileges().map_err(CouldNotPreventTheGrantingOfNoNewPrivileges)?;
 
-		self.threads_exist_from_now_on(thread_configurations, terminate, proc_path)
+		self.threads_exist_from_now_on(thread_configurations, terminate, proc_path, etc_path)
 	}
 
-	#[cfg(any(target_arch = "mips64", target_arch = "powerpc64", target_arch = "x86_64"))]
-	fn secure_io_ports()
-	{
-		remove_ioport_permissions();
-		remove_ioport_privileges();
-	}
-
-	fn threads_exist_from_now_on(&self, thread_configurations: &[(ThreadConfiguration, XXX)], terminate: &Arc<impl Terminate>, proc_path: &ProcPath) -> Result<(), ProcessConfigurationError>
+	fn threads_exist_from_now_on(&self, thread_configurations: &[(ThreadConfiguration, XXX)], terminate: &Arc<impl Terminate>, proc_path: &ProcPath, etc_path: &EtcPath) -> Result<(), ProcessConfigurationError>
 	{
 		let (join_handles, result) = JoinHandles::main_thread_spawn_configured_child_threads(thread_configurations, terminate, proc_path);
 		if let Err(error) = result
@@ -240,6 +233,13 @@ impl ProcessConfiguration
 		{
 			Ok(())
 		}
+	}
+
+	#[cfg(any(target_arch = "mips64", target_arch = "powerpc64", target_arch = "x86_64"))]
+	fn secure_io_ports()
+	{
+		remove_ioport_permissions();
+		remove_ioport_privileges();
 	}
 
 	/// This is a security defence to prevent propagation of unknown environment variables to potential child processes.

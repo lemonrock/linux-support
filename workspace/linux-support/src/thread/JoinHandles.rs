@@ -23,7 +23,7 @@ impl JoinHandles
 	/// Spawn threads but configure them from the main (spawning) thread.
 	///
 	/// On error any threads created are told to run to stop as soon as possible and `terminate` becomes true.
-	pub fn main_thread_spawn_configured_child_threads<TLBF: ThreadLoopBodyFunction, T: Terminate>(thread_configurations: &[(ThreadConfiguration, TLBF)], terminate: &Arc<T>, proc_path: &ProcPath) -> (Self, Result<(), ThreadConfigurationError>)
+	pub fn main_thread_spawn_configured_child_threads<TLBF: ThreadLoopBodyFunction, T: Terminate + 'static>(thread_configurations: &[(ThreadConfiguration, TLBF)], terminate: &Arc<T>, proc_path: &ProcPath) -> (Self, Result<(), ThreadConfigurationError>)
 	{
 		let mut this = Self
 		{
@@ -43,7 +43,7 @@ impl JoinHandles
 		(this, Ok(()))
 	}
 
-	fn add_thread(&mut self, thread_identifiers: &ThreadIdentifiers, terminate: &Arc<impl Terminate>, thread_configuration: &ThreadConfiguration, thread_loop_body_function: &impl ThreadLoopBodyFunction, proc_path: &ProcPath) -> Result<(), ThreadConfigurationError>
+	fn add_thread(&mut self, thread_identifiers: &ThreadIdentifiers, terminate: &Arc<impl Terminate + 'static>, thread_configuration: &ThreadConfiguration, thread_loop_body_function: &impl ThreadLoopBodyFunction, proc_path: &ProcPath) -> Result<(), ThreadConfigurationError>
 	{
 		let join_handle = self.spawn(thread_identifiers, terminate, thread_configuration, *thread_loop_body_function).map_err(ThreadConfigurationError::CouldNotCreateThread)?;
 		let (thread_identifier, pthread_t) = thread_identifiers.get_and_reuse();
