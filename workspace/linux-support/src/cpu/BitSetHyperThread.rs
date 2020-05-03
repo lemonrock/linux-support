@@ -108,7 +108,7 @@ impl BitSet<HyperThread>
 		{
 			match errno().0
 			{
-				EINVAL => Err("The affinity bit mask mask contains no processors that are currently physically on the system and permitted to the process according to any restrictions that may be imposed by the cpuset mechanism described in cpuset(7)".to_string()),
+				EINVAL => Err("The affinity bit mask mask contains no processors that are currently physically on the system and permitted to the process according to any restrictions that may be imposed by the cpuset mechanism described in man cpuset(7)".to_string()),
 
 				EPERM => if let ProcessIdentifierChoice::Other(process_identifier) = process_identifier
 				{

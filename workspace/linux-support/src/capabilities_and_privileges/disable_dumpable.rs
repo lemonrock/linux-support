@@ -3,6 +3,14 @@
 
 
 /// Needs to be called after process change.
+///
+/// Needs to be called after:-
+///
+/// * Changing effective user identifier;
+/// * Changing effective group identifier;
+/// * Changing file system user identifier;
+/// * Changing file system group identifier;
+/// * After `execve()`
 #[inline(always)]
 pub fn disable_dumpable() -> Result<(), io::Error>
 {

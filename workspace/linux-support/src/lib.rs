@@ -117,6 +117,10 @@ pub mod file_systems;
 pub mod inode;
 
 
+/// Basic (for security) access io I/O ports on mip64, powerpc64 and x86_64.
+#[cfg(any(target_arch = "mips64", target_arch = "powerpc64", target_arch = "x86_64"))] pub mod ioports;
+
+
 /// Linux kernel command line.
 pub mod linux_kernel_command_line;
 

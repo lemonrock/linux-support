@@ -26,7 +26,15 @@ use libc::MAP_HUGETLB;
 use libc::MAP_NORESERVE;
 use libc::MAP_POPULATE;
 use libc::MAP_PRIVATE;
+use libc::MCL_CURRENT;
+use libc::MCL_FUTURE;
+use libc::MCL_ONFAULT;
+use libc::MLOCK_ONFAULT;
+use libc::mlock2;
+use libc::mlockall;
 use libc::mmap;
+use libc::munlock;
+use libc::munlockall;
 use libc::munmap;
 use libc::PROT_EXEC;
 use libc::PROT_NONE;
@@ -53,6 +61,7 @@ mod c;
 
 
 include!("AddressHint.rs");
+include!("LockAllMemory.rs");
 include!("MappedMemory.rs");
 include!("Protection.rs");
 include!("Sharing.rs");

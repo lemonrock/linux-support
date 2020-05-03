@@ -2,18 +2,18 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Thread configuration error kind.
+/// Ambient capability setting error.
 #[derive(Debug)]
-pub enum ThreadConfigurationError
+pub enum AmbientCapabilityError
 {
 	#[allow(missing_docs)]
-	CouldNotSetThreadName(io::Error),
+	PermissionDenied,
 
 	#[allow(missing_docs)]
-	CouldNotSetSchedulerPolicyAndFlags(&'static str),
+	CapabilityNotKnownByThisLinuxKernel,
 }
 
-impl Display for ThreadConfigurationError
+impl Display for AmbientCapabilityError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -22,18 +22,17 @@ impl Display for ThreadConfigurationError
 	}
 }
 
-impl error::Error for ThreadConfigurationError
+impl error::Error for AmbientCapabilityError
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>
 	{
-		use self::ThreadConfigurationError::*;
+		use self::AmbientCapabilityError::*;
 
 		match self
 		{
-			&CouldNotSetThreadName(ref cause) => Some(cause),
-
-			&CouldNotSetSchedulerPolicyAndFlags(..) => None,
+			&PermissionDenied => None,
+			&CapabilityNotKnownByThisLinuxKernel => None,
 		}
 	}
 }

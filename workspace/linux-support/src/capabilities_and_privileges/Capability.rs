@@ -3,6 +3,80 @@
 
 
 /// Linux Security Capabilities.
+///
+/// These are per-thread and per-file.
+///
+/// Any thread created inherits the Thread capability sets.
+///
+/// File capabilities and thread capabilities intertwine in a very complex way, but, in essence, are only of interest if executing third-party programs that need file capabilities (eg `ping`).
+///
+/// Get bounding sets by parsing `/proc/<pid>/status` (or the equivalent for a thread).
+///
+/// # File capability sets
+///
+/// Used when `execve()` is used.
+///
+///
+/// ## Permitted
+///
+/// * These capabilities are automatically permitted to the thread, regardless of the thread's `Inheritable` set.
+/// * Formerly known as `forced`.
+///
+///
+/// ## Inheritable
+///
+/// * These capabilities are `ANDed` with the thread's `Inheritable` set then this set is `ORed` with the file's `Permitted` set to create the thread's `Permitted` set after `execve()`.
+/// * Formerly known as `allowed`.
+///
+///
+/// ## Effective Bit.
+///
+/// * If set, then any capabilities acquired on `execve()` are added to the `Effective` set.
+///
+///
+/// # Thread capability sets
+///
+///
+/// ## Permitted
+///
+/// * This is the superset for the effective capabilities that the thread may assume.
+/// * This is the superset for the inheritable capabilities that the thread may have *unless* it has the `CAP_SETPCAP` capability in its effective set.
+/// * Once a thread drops a capabilities from its permitted set, it can never regain it *unless* it `execve()`s a program with either:-
+///		* file capabilities set
+/// 	* setuid/segid bits set.
+///
+///
+/// ## Effective
+///
+/// * This is the set of capabilities used by the kernel to perform permission checks for the thread.
+/// * It is a subset of `Permitted`.
+///
+///
+/// ## Inheritable
+///
+/// * This is a set of capabilities it is deseired to be preserved across an `execve()`.
+/// * They are `ANDed` with the file capability's `Inheritable` set then `ORed` with the file capability's `Permitted` set to create the resultant `Permitted` set for a thread after `execve()`.
+/// * Ordinarily, non-root programs lose their capabilities on `execve()` unless using `Ambient` capabilities.
+///
+///
+/// ## Bounding
+///
+/// * The capability bounding set is a mechanism that can be used to limit the capabilities that are gained during `execve()`.
+/// * Before Linux 2.6.25, this was a system-wide and not thread-specific set.
+///
+///
+/// ## Ambient
+///
+/// * This is a set of capabilities that are preserved across an `execve()` of a program *unless* it `execve()`s a program with either:-
+///		* file capabilities set
+/// 	* setuid/segid bits set.
+/// * In which case the new capabilities are applied.
+/// * No capability can never be ambient if it is not both:-
+///		* `Permitted`
+///		* `Inheritable`.
+/// * A capability is automatically removed this set if it is removed:-
+/// 	* `Permitted`
+/// 	* `Inheritable`
 #[allow(missing_docs)]
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -105,51 +179,94 @@ impl BitSetAware for Capability
 
 impl Capability
 {
-	/// Clears all ambient capabilities from the current process.
-	#[inline(always)]
-	pub fn clear_all_ambient_capabilities()
-	{
-		unsafe { prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_CLEAR_ALL, 0) };
-	}
-
-	/// Drops all capabilities except those in the whitelist.
-	pub fn drop_all_capabilities_except(capabilities_whitelist: &HashSet<Self>)
-	{
-		for capability_to_drop in Self::iter()
-		{
-			if unlikely!(capabilities_whitelist.contains(&capability_to_drop))
-			{
-				continue
-			}
-
-			if capability_to_drop.current_process_has().unwrap_or(false)
-			{
-				capability_to_drop.drop_from_current_process().unwrap_or(());
-			}
-		}
-	}
-
-	/// Ensures the given capabilities are dropped from the current process.
+	/// Adds capability to current thread's ambient set.
 	///
-	/// Tries to drop each capability separately, ie not all or nothing.
-	pub fn ensure_capabilities_dropped(drop_these_capabilities_if_current_process_has_them: &[Self])
+	/// The specified capability must already be present in both the permitted and the inheritable sets of the current thread.
+	/// Not permitted if the thread has the securebit `SECBIT_NO_CAP_AMBIENT_RAISE`.
+	#[inline(always)]
+	pub fn add_to_current_thread_ambient_set(self) -> Result<(), AmbientCapabilityError>
 	{
-		for capability_to_drop in drop_these_capabilities_if_current_process_has_them
+		let result = unsafe { prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_RAISE, self as c_ulong, 0, 0) };
+		if likely!(result == 0)
 		{
-			if capability_to_drop.current_process_has().unwrap_or(false)
+			Ok(())
+		}
+		else if likely!(result == -1)
+		{
+			use self::AmbientCapabilityError::*;
+			match errno().0
 			{
-				capability_to_drop.drop_from_current_process().unwrap_or(());
+				EPERM => Err(PermissionDenied),
+				EINVAL => Err(CapabilityNotKnownByThisLinuxKernel),
+
+				unexpected @ _ => panic!("Unexpected error code '{}' from prctl()", unexpected),
 			}
+		}
+		else
+		{
+			unreachable!("prctl() failed with unexpected result {}", result)
 		}
 	}
 
-	/// Does the current process have this capability?
+	/// Removes capability from current thread's ambient set.
+	///
+	/// The specified capability must already be present in both the permitted and the inheritable sets of the current thread.
+	/// Not permitted if the thread has the securebit `SECBIT_NO_CAP_AMBIENT_RAISE`.
+	#[inline(always)]
+	pub fn remove_from_current_thread_ambient_set(self) -> Result<(), AmbientCapabilityError>
+	{
+		let result = unsafe { prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_LOWER, self as c_ulong, 0, 0) };
+		if likely!(result == 0)
+		{
+			Ok(())
+		}
+		else if likely!(result == -1)
+		{
+			use self::AmbientCapabilityError::*;
+			match errno().0
+			{
+				EPERM => Err(PermissionDenied),
+				EINVAL => Err(CapabilityNotKnownByThisLinuxKernel),
+
+				unexpected @ _ => panic!("Unexpected error code '{}' from prctl()", unexpected),
+			}
+		}
+		else
+		{
+			unreachable!("prctl() failed with unexpected result {}", result)
+		}
+	}
+
+	/// Does the current thread have this capability in its ambient set?
+	///
+	/// Error can only ever be `AmbientCapabilityError::CapabilityNotKnownByThisLinuxKernel`.
+	#[inline(always)]
+	pub fn is_in_current_thread_ambient_set(self) -> Result<bool, AmbientCapabilityError>
+	{
+		match unsafe { prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_IS_SET, self as c_ulong, 0, 0) }
+		{
+			1 => Ok(true),
+
+			0 => Ok(false),
+
+			-1 => match errno().0
+			{
+				EINVAL => Err(AmbientCapabilityError::CapabilityNotKnownByThisLinuxKernel),
+
+				illegal @ _ => panic!("Illegal error code '{}' from prctl()", illegal),
+			},
+
+			illegal @ _ => panic!("prctl() returned illegal result '{}'", illegal),
+		}
+	}
+
+	/// Does the current thread have this capability in its bounding set?
 	///
 	/// Returns None if this capability isn't recognised by the Linux kernel.
 	#[inline(always)]
-	pub fn current_process_has(&self) -> Option<bool>
+	pub fn is_in_current_thread_bounding_set(self) -> Option<bool>
 	{
-		match unsafe { prctl(PR_CAPBSET_READ, *self as c_ulong) }
+		match unsafe { prctl(PR_CAPBSET_READ, self as c_ulong) }
 		{
 			1 => Some(true),
 
@@ -166,18 +283,20 @@ impl Capability
 		}
 	}
 
-	/// Returns Err if a lack-of-permissions error occurred.
+	/// Returns `Err` if a lack-of-permissions error occurred.
+	///
+	/// This is because the current thread does not have the capability `CAP_SETPCAP` in its `Bounding` set.
 	#[inline(always)]
-	pub fn drop_from_current_process(&self) -> Result<(), ()>
+	pub fn remove_from_current_thread_bounding_set(self) -> Result<(), ()>
 	{
-		match unsafe { prctl(PR_CAPBSET_DROP, *self as c_ulong) }
+		match unsafe { prctl(PR_CAPBSET_DROP, *elf as c_ulong) }
 		{
 			0 => Ok(()),
 
 			-1 => match errno().0
 			{
 				EPERM => Err(()),
-				EINVAL => panic!("Kernel does not support 'file' capabilities"),
+				EINVAL => panic!("Kernel does not support 'file' capabilities. Or capability `{}` is not a valid capability on this kernel", self),
 
 				illegal @ _ => panic!("Illegal error code '{}' from prctl()", illegal),
 			},

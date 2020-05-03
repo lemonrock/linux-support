@@ -2,21 +2,17 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::process::ProcessIdentifierChoice;
-use crate::thread::ThreadIdentifierChoice;
-use crate::thread::ThreadIdentifier;
-use libc::c_void;
-use std::mem::zeroed;
-use std::io;
-use crate::capabilities_and_privileges::Capability;
-use crate::bit_set::BitSet;
+use self::c::*;
+use errno::errno;
+use libc::EINVAL;
+use libc::ENOSYS;
+use libc::EPERM;
+use std::ops::RangeInclusive;
 
 
-include!("__user_cap_data_struct.rs");
-include!("__user_cap_header_struct.rs");
-include!("_LINUX_CAPABILITY.rs");
-include!("PR_SET_IO_FLUSHER.rs");
-include!("cap_user_data_t.rs");
-include!("cap_user_header_t.rs");
-include!("capget.rs");
-include!("capset.rs");
+mod c;
+
+
+include!("remove_ioport_privileges.rs");
+include!("remove_ioport_permissions.rs");
+include!("set_ioport_permissions.rs");

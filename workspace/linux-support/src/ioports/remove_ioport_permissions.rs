@@ -2,21 +2,18 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::process::ProcessIdentifierChoice;
-use crate::thread::ThreadIdentifierChoice;
-use crate::thread::ThreadIdentifier;
-use libc::c_void;
-use std::mem::zeroed;
-use std::io;
-use crate::capabilities_and_privileges::Capability;
-use crate::bit_set::BitSet;
+/// Remove I/O port permissions.
+#[cfg(not(target_arch = "powerpc64"))]
+#[inline(always)]
+pub fn remove_ioport_permissions()
+{
+	let _ = set_ioport_permissions(0 ..= 0x3FF, false);
+	let _ = set_ioport_permissions(0 ..= u16::MAX, false);
+}
 
-
-include!("__user_cap_data_struct.rs");
-include!("__user_cap_header_struct.rs");
-include!("_LINUX_CAPABILITY.rs");
-include!("PR_SET_IO_FLUSHER.rs");
-include!("cap_user_data_t.rs");
-include!("cap_user_header_t.rs");
-include!("capget.rs");
-include!("capset.rs");
+/// Remove I/O port permissions (does nothing for PowerPC).
+#[cfg(target_arch = "powerpc64")]
+#[inline(always)]
+pub fn remove_ioport_permissions()
+{
+}

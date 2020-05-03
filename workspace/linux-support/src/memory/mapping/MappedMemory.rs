@@ -46,55 +46,6 @@ impl DerefMut for MappedMemory
 
 impl MappedMemory
 {
-	/// Removes page of `self.page_size` (which might be huge pages) from the end of this mapping.
-	#[inline(always)]
-	pub fn remove_from_end(&mut self, pages_to_remove: NonZeroNumberOfPages)
-	{
-		let length_to_remove = self.length_to_remove(pages_to_remove);
-
-		self.unmap(length_to_remove)
-	}
-
-	/// Removes page of `self.page_size` (which might be huge pages) from the front of this mapping.
-	#[inline(always)]
-	pub fn remove_from_front(&mut self, pages_to_remove: NonZeroNumberOfPages)
-	{
-		let length_to_remove = self.length_to_remove(pages_to_remove);
-
-		drop
-		(
-			Self
-			{
-				virtual_address: self.virtual_address,
-				size: length_to_remove,
-				page_size: self.page_size,
-			}
-		);
-		self.virtual_address = self.virtual_address.offset_in_bytes(length_to_remove);
-		self.size -= length_to_remove;
-	}
-
-	/// Mapped page size used.
-	#[inline(always)]
-	pub fn page_size(&self) -> PageSizeOrHugePageSize
-	{
-		self.page_size
-	}
-
-	/// Mapped size in bytes.
-	#[inline(always)]
-	pub fn mapped_size_in_bytes(&self) -> usize
-	{
-		self.size
-	}
-
-	/// Mapped size in number of pages.
-	#[inline(always)]
-	pub fn number_of_pages(&self) -> usize
-	{
-		self.size / (self.page_size_in_bytes().get() as usize)
-	}
-
 	/// Creates a new mapping.
 	///
 	/// If `huge_memory_page_size` is `Some(None)`, then it uses the default huge page size (a boot time option for the kernel).
@@ -125,6 +76,132 @@ impl MappedMemory
 	pub fn from_file<F: Borrow<File>>(file_descriptor: &F, offset: u64, length: NonZeroU64, address_hint: AddressHint, protection: Protection, sharing: Sharing, huge_memory_page_size: Option<Option<HugePageSize>>, prefault: bool, reserve_swap_space: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, CreationError>
 	{
 		Self::new(Some((file_descriptor, offset)), length, address_hint, protection, sharing, huge_memory_page_size, prefault, reserve_swap_space, defaults)
+	}
+
+	/// Returns `Ok(true)` if memory was locked.
+	/// Returns `Ok(false)` if only some (or none) of memory was locked but locking can be retried.
+	#[inline(always)]
+	pub fn lock(&self, on_fault: bool) -> io::Result<bool>
+	{
+		let address: *const c_void = self.virtual_address.into();
+
+		let flags = if on_fault
+		{
+			MLOCK_ONFAULT
+		}
+		else
+		{
+			0
+		};
+
+		let result = unsafe { mlock2(address, self.mapped_size_in_bytes, flags) };
+		if likely!(result == 0)
+		{
+			Ok(true)
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				EAGAIN => Ok(false),
+
+				ENOMEM => panic!("the caller had a nonzero RLIMIT_MEMLOCK soft resource limit, but tried to lock more memory than the limit permitted. This limit is not enforced if the process is privileged (CAP_IPC_LOCK). Or, Some of the specified address range does not correspond to mapped pages in the address space of the process. Or, Locking or unlocking a region would result in the total number of mappings with distinct attributes (eg, locked versus unlocked) exceeding the allowed maximum.  (For example, unlocking a range in the middle of a currently locked mapping would result in three mappings: two locked mappings at each end and an unlocked mapping in the middle)"),
+				EPERM => panic!("The caller is not privileged, but needs privilege (CAP_IPC_LOCK) to perform the requested operation."),
+				EINVAL => panic!("The result of the addition addr+len was less than addr (eg, the addition may have resulted in an overflow). Or, Unknown flags were specified"),
+
+				unexpected @ _ => panic!("Unexpected error {} from mlock2()", unexpected)
+			}
+		}
+		else
+		{
+			unreachable!("Unexpected result {} from mlock2()", result)
+		}
+	}
+
+	/// Returns `Ok(true)` if memory was unlocked.
+	/// Returns `Ok(false)` if only some (or none) of memory was unlocked but unlocking can be retried.
+	#[inline(always)]
+	pub fn unlock(&self) -> io::Result<bool>
+	{
+		let address: *const c_void = self.virtual_address.into();
+		let result = unsafe { munlock(address, self.mapped_size_in_bytes) };
+		if likely!(result == 0)
+		{
+			Ok(true)
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				EAGAIN => Ok(false),
+
+				ENOMEM => panic!("the caller had a nonzero RLIMIT_MEMLOCK soft resource limit, but tried to lock more memory than the limit permitted. This limit is not enforced if the process is privileged (CAP_IPC_LOCK). Or, Some of the specified address range does not correspond to mapped pages in the address space of the process. Or, Locking or unlocking a region would result in the total number of mappings with distinct attributes (eg, locked versus unlocked) exceeding the allowed maximum.  (For example, unlocking a range in the middle of a currently locked mapping would result in three mappings: two locked mappings at each end and an unlocked mapping in the middle)"),
+				EPERM => panic!("The caller is not privileged, but needs privilege (CAP_IPC_LOCK) to perform the requested operation."),
+				EINVAL => panic!("The result of the addition addr+len was less than addr (eg, the addition may have resulted in an overflow)."),
+
+				unexpected @ _ => panic!("Unexpected error {} from munlock()", unexpected)
+			}
+		}
+		else
+		{
+			unreachable!("Unexpected result {} from mlock2()", result)
+		}
+	}
+
+	/// Virtual address.
+	#[inline(always)]
+	pub fn virtual_address(&self) -> VirtualAddress
+	{
+		self.virtual_address
+	}
+
+	/// Mapped page size used.
+	#[inline(always)]
+	pub fn page_size(&self) -> PageSizeOrHugePageSize
+	{
+		self.page_size
+	}
+
+	/// Mapped size in bytes.
+	#[inline(always)]
+	pub fn mapped_size_in_bytes(&self) -> usize
+	{
+		self.size
+	}
+
+	/// Mapped size in number of pages.
+	#[inline(always)]
+	pub fn number_of_pages(&self) -> usize
+	{
+		self.size / (self.page_size_in_bytes().get() as usize)
+	}
+
+	/// Removes page of `self.page_size` (which might be huge pages) from the end of this mapping.
+	#[inline(always)]
+	pub fn remove_from_end(&mut self, pages_to_remove: NonZeroNumberOfPages)
+	{
+		let length_to_remove = self.length_to_remove(pages_to_remove);
+
+		self.unmap(length_to_remove)
+	}
+
+	/// Removes page of `self.page_size` (which might be huge pages) from the front of this mapping.
+	#[inline(always)]
+	pub fn remove_from_front(&mut self, pages_to_remove: NonZeroNumberOfPages)
+	{
+		let length_to_remove = self.length_to_remove(pages_to_remove);
+
+		drop
+		(
+			Self
+			{
+				virtual_address: self.virtual_address,
+				size: length_to_remove,
+				page_size: self.page_size,
+			}
+		);
+		self.virtual_address = self.virtual_address.offset_in_bytes(length_to_remove);
+		self.size -= length_to_remove;
 	}
 
 	#[inline(always)]

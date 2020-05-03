@@ -23,6 +23,8 @@ impl<'a> Deref for ExtendedAttributeName<'a>
 impl<'a> ExtendedAttributeName<'a>
 {
 	/// Namespace and relative name.
+	///
+	/// An example might be `(Some(security), capability)` for file capabilities.
 	#[inline(always)]
 	pub fn namespace_and_relative_name(&self) -> (Option<ExtendedAttributeNamespace<'a>>, &[u8])
 	{

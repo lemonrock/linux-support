@@ -18,6 +18,7 @@ use std::mem::align_of;
 use std::mem::size_of;
 #[allow(deprecated)] use std::mem::uninitialized;
 use std::num::NonZeroU64;
+use std::num::NonZeroUsize;
 use std::ops::Add;
 use std::ops::AddAssign;
 use std::ops::Sub;

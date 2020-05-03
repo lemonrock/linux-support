@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A seccomp eBPF program.
+/// A seccomp BPF program.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct SeccompProgram(BpfProgram);
 
@@ -161,8 +161,6 @@ impl SeccompProgram
 			len: length as u16,
 			filter: self.as_mut_ptr(),
 		};
-
-		no_new_privileges()?;
 
 		let result = seccomp(SECCOMP_SET_MODE_FILTER, flags, &mut program as *mut sock_fprog as *mut _);
 		if likely!(result >= 0)

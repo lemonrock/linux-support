@@ -9,7 +9,7 @@ pub struct ExtendedAttributeNamespace<'a>(pub &'a [u8]);
 
 impl ExtendedAttributeNamespace<'static>
 {
-	#[allow(missing_docs)]
+	/// Includes `security.capability` which is used to store file capabilities.
 	pub const Security: Self = Self(b"security");
 
 	#[allow(missing_docs)]

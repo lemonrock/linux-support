@@ -4,12 +4,11 @@ userfaultfd: http://man7.org/linux/man-pages/man2/userfaultfd.2.html
 F_GET_RW_HINT: read-write hints http://man7.org/linux/man-pages/man2/fcntl.2.html
 
 
-SecComp: Identify ranges in syscalls for more efficiency.
-
-
 POSIX ACLs: http://man7.org/linux/man-pages/man5/acl.5.html
 
+prctl PR_TASK_PERF_EVENTS_DISABLE / PR_TASK_PERF_EVENTS_ENABLE
 
+configure_global_panic_hook() needs to use the crate backtraces-rs which depends on libunwind
 
 #define FS_IOC_FSGETXATTR		_IOR('X', 31, struct fsxattr)
 #define FS_IOC_FSSETXATTR		_IOW('X', 32, struct fsxattr)

@@ -4,6 +4,8 @@
 
 /// Privilege protection.
 ///
+/// Prevents a thread, when executing, `clone()`, `fork()` and particularly `execve()` from gaining additional capabilities from, say setuid/setgid programs or programs with file capabilities.
+///
 /// This MUST be called prior to `seccomp(SECCOMP_SET_MODE_FILTER)` if the current thread does not the `CAP_SYS_ADMIN` capability.
 #[inline(always)]
 pub fn no_new_privileges() -> Result<(), io::Error>

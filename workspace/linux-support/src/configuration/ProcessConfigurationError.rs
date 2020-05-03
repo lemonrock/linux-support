@@ -28,6 +28,9 @@ pub enum ProcessConfigurationError
 	CouldNotParseLinuxKernelVersion(io::Error),
 
 	#[allow(missing_docs)]
+	CouldNotChangeGlobalConfiguration(GlobalConfigurationError),
+
+	#[allow(missing_docs)]
 	CouldNotSetProcessName(io::Error),
 
 	#[allow(missing_docs)]
@@ -55,6 +58,9 @@ pub enum ProcessConfigurationError
 	CouldNotChangeResourceLimit(ResourceLimitError),
 
 	#[allow(missing_docs)]
+	CouldNotChangeProcessAffinity(String),
+
+	#[allow(missing_docs)]
 	CouldNotLoadSeccompFilters(io::Error),
 
 	#[allow(missing_docs)]
@@ -70,7 +76,16 @@ pub enum ProcessConfigurationError
 	CouldNotChangeWorkingDirectory(io::Error),
 
 	#[allow(missing_docs)]
-	CouldNotSetSecureBits(io::Error),
+	CouldNotPreventTheGrantingOfNoNewPrivileges(io::Error),
+
+	#[allow(missing_docs)]
+	Capabilities(ProcessCapabilitiesError),
+
+	#[allow(missing_docs)]
+	CouldNotConfigureMainThread(ThreadConfigurationError),
+
+	#[allow(missing_docs)]
+	TerminatedDueToPanicOrIrrecoverableError,
 }
 
 impl Display for ProcessConfigurationError
@@ -105,6 +120,8 @@ impl error::Error for ProcessConfigurationError
 
 			&LinuxKernelVersionIsTooOld => None,
 
+			&CouldNotChangeGlobalConfiguration(ref cause) => Some(cause),
+
 			&CouldNotSetProcessName(ref cause) => Some(cause),
 
 			&CouldNotSetLocale(..) => None,
@@ -123,6 +140,8 @@ impl error::Error for ProcessConfigurationError
 
 			&CouldNotChangeResourceLimit(ref cause) => Some(cause),
 
+			&CouldNotChangeProcessAffinity(..) => None,
+
 			&CouldNotLoadSeccompFilters(ref cause) => Some(cause),
 
 			&CouldNotSynchronizeSeccompFiltersOnThread(..) => None,
@@ -133,7 +152,13 @@ impl error::Error for ProcessConfigurationError
 
 			&CouldNotChangeWorkingDirectory(ref cause) => Some(cause),
 
-			&CouldNotSetSecureBits(ref cause) => Some(cause),
+			&CouldNotPreventTheGrantingOfNoNewPrivileges(ref cause) => Some(cause),
+
+			&Capabilities(ref cause) => Some(cause),
+
+			&CouldNotConfigureMainThread(ref cause) => Some(cause),
+
+			&TerminatedDueToPanicOrIrrecoverableError => None,
 		}
 	}
 }
@@ -153,6 +178,15 @@ impl From<FailedChecks<OptionalCpuFeatureCheck>> for ProcessConfigurationError
 	fn from(error: FailedChecks<OptionalCpuFeatureCheck>) -> Self
 	{
 		ProcessConfigurationError::OptionalCpuFeatureChecksFailed(error)
+	}
+}
+
+impl From<GlobalConfigurationError> for ProcessConfigurationError
+{
+	#[inline(always)]
+	fn from(error: GlobalConfigurationError) -> Self
+	{
+		ProcessConfigurationError::CouldNotChangeGlobalConfiguration(error)
 	}
 }
 
@@ -180,5 +214,23 @@ impl From<JoinPathsError> for ProcessConfigurationError
 	fn from(cause: JoinPathsError) -> Self
 	{
 		ProcessConfigurationError::JoinPaths(cause)
+	}
+}
+
+impl From<ThreadConfigurationError> for ProcessConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: ThreadConfigurationError) -> Self
+	{
+		ProcessConfigurationError::CouldNotConfigureMainThread(cause)
+	}
+}
+
+impl From<ProcessCapabilitiesError> for ProcessConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: ProcessCapabilitiesError) -> Self
+	{
+		ProcessConfigurationError::Capabilities(cause)
 	}
 }

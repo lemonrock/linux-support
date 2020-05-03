@@ -16,7 +16,7 @@ include = ["README.md", "LICENSE", "COPYRIGHT", "src/**/*.rs", "Cargo.toml", "ru
 readme = "README.md"
 publish = true
 edition = '2018'
-version = "0.0.1"
+version = "0.0.2"
 
 [dependencies]
 const_fn_assert = "^0.1.2"
@@ -46,3 +46,4 @@ serde_bytes = "^0.11.3"
 streaming-iterator = "^0.1.5"
 strum = "^0.18.0"
 strum_macros = "^0.18.0"
+terminate = "^0.1.0"

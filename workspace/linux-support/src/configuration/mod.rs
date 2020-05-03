@@ -15,6 +15,7 @@ use crate::file_descriptors::inotify::*;
 use crate::file_descriptors::pipes_and_fifos::*;
 use crate::file_descriptors::posix_message_queues::*;
 use crate::file_handles::NumberOfFileHandles;
+#[cfg(any(target_arch = "mips64", target_arch = "powerpc64", target_arch = "x86_64"))] use crate::ioports::*;
 use crate::linux_kernel_asynchronous_io::set_maximum_number_of_kernel_asynchronous_io_events_per_user;
 use crate::linux_kernel_command_line::*;
 use crate::linux_kernel_modules::*;
@@ -66,17 +67,21 @@ use std::num::NonZeroU32;
 use std::panic::set_hook;
 use std::panic::take_hook;
 use std::path::PathBuf;
-use std::thread::Builder;
+use std::thread::{Builder, ThreadId, sleep};
 use std::thread::JoinHandle;
 use either::Either;
 use either::Either::*;
+use crate::memory::mapping::LockAllMemory;
+use std::sync::Arc;
+use std::time::Duration;
 
 
 /// Checks.
 pub mod checks;
 
 
-include!("GlobalConfiguration.rs");include!("GlobalConfigurationError.rs");
+include!("GlobalConfiguration.rs");
+include!("GlobalConfigurationError.rs");
 include!("GlobalEPollConfiguration.rs");
 include!("GlobalEPollConfigurationError.rs");
 include!("GlobalFileDescriptorConfiguration.rs");
@@ -110,6 +115,8 @@ include!("GlobalSystemVMessageQueueConfigurationError.rs");
 include!("GlobalTransparentHugePagesConfiguration.rs");
 include!("GlobalTransparentHugePagesConfigurationError.rs");
 include!("LocaleName.rs");
+include!("ProcessCapabilitiesConfiguration.rs");
+include!("ProcessCapabilitiesConfigurationError.rs");
 include!("ProcessLoggingConfiguration.rs");
 include!("ProcessNiceConfiguration.rs");
 include!("ProcessNiceConfigurationError.rs");
@@ -120,5 +127,3 @@ include!("ProcessSchedulingConfigurationError.rs");
 include!("set_proc_sys_kernel_value.rs");
 include!("set_value.rs");
 include!("set_value_once.rs");
-include!("ThreadConfiguration.rs");
-include!("ThreadConfigurationError.rs");

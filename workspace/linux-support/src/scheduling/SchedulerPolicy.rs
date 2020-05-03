@@ -84,7 +84,7 @@ pub enum SchedulerPolicy
 	///
 	/// Using a Deadline scheduler is impossible if a thread has an affinity to less than the total CPUs on the system (or in the current cgroup).
 	///
-	/// A thread must have the `CAP_SYS_NICE` capability in order to set or modify a `Deadling` policy
+	/// A thread must have the `CAP_SYS_NICE` capability in order to set or modify a `Deadline` policy
 	Deadline
 	{
 		/// Runtime parameter.

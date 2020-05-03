@@ -11,6 +11,9 @@ pub struct ProcessConfiguration
 	/// Inclusive minimum.
 	pub minimum_linux_kernel_version: LinuxKernelVersionNumber,
 
+	/// Change global (root) settings to maximize use of machine resources and security.
+	#[serde(default)] pub global: Option<GlobalConfiguration>,
+
 	/// Mandatory CPU feature checks to suppress.
 	#[serde(default)] pub mandatory_cpu_feature_checks_to_suppress: HashSet<MandatoryCpuFeatureCheck>,
 
@@ -28,6 +31,17 @@ pub struct ProcessConfiguration
 
 	/// Resource limits.
 	#[serde(default = "ProcessConfiguration::resource_limits_default")] pub resource_limits: ResourceLimitsSet,
+
+	/// Pevent all memory in the process' virtual address space from being swapped.
+	///
+	/// Memory locking has two main applications: real-time algorithms and high-security data processing.
+	/// Real-time applications require deterministic timing, and, like scheduling, paging is one major cause of unexpected program execution delays.
+	///
+	/// Memory locks are not inherited by a child created via `fork()` and are automatically removed (unlocked) during an `execve()`.
+	#[serde(default)] pub lock_all_memory: Option<LockAllMemory>,
+
+	/// Process HyperThread affinity.
+	#[serde(default)] pub affinity: Option<BitSet<HyperThread>>,
 
 	/// Process scheduling.
 	#[serde(default)] pub process_scheduling_configuration: ProcessSchedulingConfiguration,
@@ -58,93 +72,225 @@ pub struct ProcessConfiguration
 	/// SecComp filtering adds a 5% to 10% overhead.
 	#[serde(default)] pub seccomp: Option<PermittedSyscalls>,
 
-	/// Whitelist of capabilities to retain.
+	#[serde(default)] pub capabilities: Option<ProcessCapabilitiesConfiguration>,
+
+	/// Main thread configuration.
+	#[serde(default)] pub main_thread_configuration: ThreadConfiguration,
+
+	/// Main thread sleeps for this long before checking for events.
 	///
-	/// eg:-
-	/// * `SystemAdministration`.
-	/// * `LockMemory`.
-	/// * `BindPortsBelow1024`.
-	/// * `SetUid`.
-	/// * `SetGid`.
-	/// * `Nice`.
-	#[serde(default)] pub capabilities_to_retain: HashSet<Capability>,
+	/// Default is 1ms.
+	#[serde(default = "ProcessConfiguration::main_thread_sleep_default")] pub main_thread_sleep: Duration,
 }
 
 impl ProcessConfiguration
 {
-	/// Configure.
+	/// Configure, then run the process.
 	#[inline(always)]
-	pub fn configure(&self, proc_path: &ProcPath, dev_path: &DevPath, etc_path: &EtcPath, run_as_daemon: bool) -> Result<(), ProcessConfigurationError>
+	pub fn configure_and_run_assume_linux_standard_base(&self, run_as_daemon: bool, terminate: &Arc<impl Terminate>) -> Result<(), ProcessConfigurationError>
+	{
+		let sys_path = SysPath::default();
+		let proc_path = ProcPath::default();
+		let dev_path = DevPath::default();
+		let etc_path = EtcPath::default();
+		self.configure_then_run(&sys_path, &proc_path, &dev_path, &etc_path, run_as_daemon, terminate)
+	}
+
+	/// Configure, then run the process.
+	#[inline(always)]
+	pub fn configure_then_run(&self, sys_path: &SysPath, proc_path: &ProcPath, dev_path: &DevPath, etc_path: &EtcPath, run_as_daemon: bool, terminate: &Arc<impl Terminate>) -> Result<(), ProcessConfigurationError>
 	{
 		use self::ProcessConfigurationError::*;
 
+		// This *MUST* be called before daemonizing.
 		Self::block_all_signals_on_current_thread();
 
+		// This *MUST* be called before daemonizing.
 		reset_all_signal_handlers_to_default();
 
 		Self::validate_not_running_setuid_or_setgid()?;
 
-		disable_dumpable().map_err(CouldNotDisableDumpable)?;
-
-		close_all_open_file_descriptors_apart_from_standard(proc_path).map_err(CouldNotCloseAllOpenFileDescriptorsApartFromStandard)?;
-
-		Self::validate_current_personality(proc_path)?;
+		Self::protect_access_to_proc_self_and_disable_core_dumps()?;
 
 		self.cpu_feature_checks()?;
 
-		if LinuxKernelVersion::parse(proc_path).map_err(|cause| CouldNotParseLinuxKernelVersion(cause))?.major_minor_revision() < self.minimum_linux_kernel_version
-		{
-			return Err(LinuxKernelVersionIsTooOld)
-		}
+		Self::validate_current_personality(proc_path)?;
 
-		self.name.set_process_name(ProcessIdentifierChoice::Current, proc_path).map_err(CouldNotSetProcessName)?;
+		self.validate_linux_kernel_version_is_recent_enough(proc_path)?;
 
-		self.locale.set_all().map_err(|_: ()| CouldNotSetLocale(self.locale.clone()))?;
+		// This *MUST* be called before daemonizing.
+		close_all_open_file_descriptors_apart_from_standard(proc_path).map_err(CouldNotCloseAllOpenFileDescriptorsApartFromStandard)?;
 
+		// This *MUST* be called before creating PID files (eg when daemonizing) or log files not managed by syslog.
 		self.umask.set_umask();
 
-		self.resource_limits.change().map_err(CouldNotChangeResourceLimit)?;
-
-		self.process_scheduling_configuration.configure(proc_path)?;
-
-		self.set_io_flusher()?;
-
-		self.logging_configuration.start_logging(!run_as_daemon, &self.name);
-
-		self.user_and_group_settings.change_user_and_groups(etc_path)?;
-
-		populate_clean_environment(&self.binary_paths, UserIdentifier::current_real().user_name_home_directory_and_shell(etc_path))?;
+		self.set_global_configuration(sys_path, proc_path)?;
 
 		set_current_dir(&self.working_directory).map_err(CouldNotChangeWorkingDirectory)?;
 
-		self.seccomp()?;
+		// This *SHOULD* be called before enabling logging.
+		self.set_locale()?;
 
 		if run_as_daemon
 		{
 			daemonize(dev_path)
 		}
 
-		// TODO: Get my head round capabilities.
-		// TODO: Minimum capabilities to launch with.
-//		Capability::drop_all_capabilities_except(&self.capabilities_to_retain);
+		// This *SHOULD* be called before enabling logging.
+		self.set_process_name(proc_path)?;
 
-//		#[inline(always)]
-//		fn set_current_process_affinity(valid_hyper_threads_for_the_current_process: &BTreeSet<HyperThread>) -> Result<(), DetailedProcessConfigurationError>
-//		{
-//			let cpu_set = CpuSet::from(valid_hyper_threads_for_the_current_process);
-//			cpu_set.set_current_process_affinity().map_err(DetailedProcessConfigurationError::CouldNotSetCurrentProcessAffinity)
-//		}
+		// This *COULD* be called before daemonizing.
+		// This *MUST* be called before locking memory.
+		// This *MUST* be called before creating new threads.
+		// This *MUST* be called before changing process scheduling.
+		// This *MUST* be called opening file descriptors.
+		self.resource_limits.change().map_err(CouldNotChangeResourceLimit)?;
 
-		// Is this per thread or per process.
-		Capability::clear_all_ambient_capabilities();
+		// This *MUST* be called after changing resource limits.
+		self.lock_all_memory()?;
 
-		lock_secure_bits_and_remove_ambient_capability_raise_and_keep_capabilities().map_err(CouldNotSetSecureBits)?;
+		// This *MUST* be called before creating new threads.
+		self.configure_process_affinity(proc_path)?;
 
-		// TODO: Create all required threads then pause them once they have got beyond their initialization (eg opening sockets below 1024).
-		// Then strip capabilities and set up syscalls.
+		// This *MUST* be called before creating new threads.
+		self.process_scheduling_configuration.configure(proc_path)?;
+
+		self.set_io_flusher()?;
+
+		// This *SHOULD* be configured before configuring logging.
+		// This *MUST* be called before `configure_global_panic_hook()` which uses backtraces depedant on environment variable settings.
+		self.set_environment_variables_to_minimum_required(etc_path)?;
+
+		// This *MUST* be called before `configure_global_panic_hook()`.
+		self.logging_configuration.start_logging(!run_as_daemon, &self.name);
+		configure_global_panic_hook(terminate);
+
+		// This *MUST* be called before creating new threads.
+		// This *MUST* be called before dropping root.
+		if let Some(capabilities) = self.capabilities.as_ref()
+		{
+			capabilities.configure_if_wanted()?
+		}
+		else
+		{
+			ProcessCapabilitiesConfiguration::configure_if_unwanted()?
+		}
+
+		// This *MUST* be called before creating new threads.
+		Self::secure_io_ports();
+
+		// This *MUST* be called before creating new threads.
+		// This *MUST* be called before executing programs that might be setuid/setgid or have file capabilities.
+		// This prevents `execve()` granting additional capabilities.
+		no_new_privileges().map_err(|cause| CouldNotPreventTheGrantingOfNoNewPrivileges)?;
+
+		self.threads_exist_from_now_on(thread_configurations, terminate, proc_path)
+	}
+
+	#[cfg(any(target_arch = "mips64", target_arch = "powerpc64", target_arch = "x86_64"))]
+	fn secure_io_ports()
+	{
+		remove_ioport_permissions();
+		remove_ioport_privileges();
+	}
+
+	fn threads_exist_from_now_on(&self, thread_configurations: &[(ThreadConfiguration, XXX)], terminate: &Arc<impl Terminate>, proc_path: &ProcPath) -> Result<(), ProcessConfigurationError>
+	{
+		use self::ProcessConfigurationError::*;
 
 
-		Ok(())
+		let (join_handles, result) = JoinHandles::main_thread_spawn_configured_child_threads(thread_configurations, terminate, proc_path);
+		if let Err(error) = result
+		{
+			terminate.clone().begin_termination();
+			join_handles.release();
+			return Err(error)?
+		}
+
+		let result = self.main_thread_configuration.configure_main_thread();
+		if let Err(error) = result
+		{
+			terminate.clone().begin_termination();
+			join_handles.release();
+			return Err(error)?
+		}
+
+		// TODO: Let threads initialize before applying seccomp (eg to open sockets, etc).
+		// TODO: Then strip capabilities and set up syscalls.
+		// TODO: A NUMA-aware malloc.
+
+		//
+		self.seccomp_for_all_threads()?;
+
+		// Capabilities are dropped when an user transitions to a non-root user unless we set the securebit to keep capabilities.
+		self.user_and_group_settings.change_user_and_groups(etc_path)?;
+
+		Self::protect_access_to_proc_self_and_disable_core_dumps()?;
+
+		join_handles.release();
+
+		let terminate = terminate.clone();
+		while terminate.should_continue()
+		{
+			// TODO: Enter the main loop; need to run a signal handler.
+			sleep(self.main_thread_sleep)
+		}
+
+		if terminate.terminated_due_to_panic_or_irrecoverable_error()
+		{
+			Err(ProcessConfigurationError::TerminatedDueToPanicOrIrrecoverableError)
+		}
+		else
+		{
+			Ok(())
+		}
+	}
+
+	/// This is a security defence to prevent propagation of unknown environment variables to potential child processes.
+	#[inline(always)]
+	fn set_environment_variables_to_minimum_required(&self, etc_path: &EtcPath) -> Result<(), JoinPathsError>
+	{
+		populate_clean_environment(&self.binary_paths, UserIdentifier::current_real().user_name_home_directory_and_shell(etc_path))
+	}
+
+	// This needs to be called after any changes to the process' user identifiers: the process' dumpable bit is reset after the effective user changes.
+	#[inline(always)]
+	fn protect_access_to_proc_self_and_disable_core_dumps() -> Result<(), ProcessConfigurationError>
+	{
+		disable_dumpable().map_err(ProcessConfigurationError::CouldNotDisableDumpable)
+	}
+
+	#[inline(always)]
+	fn set_process_name(&self, proc_path: &ProcPath) -> Result<(), ProcessConfigurationError>
+	{
+		self.name.set_process_name(ProcessIdentifierChoice::Current, proc_path).map_err(ProcessConfigurationError::CouldNotSetProcessName)
+	}
+
+	#[inline(always)]
+	fn configure_process_affinity(&self, proc_path: &ProcPath) -> Result<(), ProcessConfigurationError>
+	{
+		set_value(proc_path, |_proc_path, value| value.set_affinity(), self.affinity.as_ref(), ProcessConfigurationError::CouldNotChangeProcessAffinity)
+	}
+
+	#[inline(always)]
+	fn set_locale(&self) -> Result<LocaleName, ProcessConfigurationError>
+	{
+		self.locale.set_all().map_err(|_: ()| ProcessConfigurationError::CouldNotSetLocale(self.locale.clone()))
+	}
+
+	#[inline(always)]
+	fn lock_all_memory(&self)
+	{
+		if let Some(lock_all_memory) = self.lock_all_memory
+		{
+			lock_all_memory.lock()
+		}
+	}
+
+	#[inline(always)]
+	fn set_global_configuration(&self, sys_path: &SysPath, proc_path: &ProcPath) -> Result<(), ProcessConfigurationError>
+	{
+		set_value(proc_path, |proc_path, global| global.configure(sys_path, proc_path), self.global.as_ref(), ProcessConfigurationError::CouldNotChangeGlobalConfiguration)
 	}
 
 	#[inline(always)]
@@ -202,7 +348,21 @@ impl ProcessConfiguration
 	}
 
 	#[inline(always)]
-	fn seccomp(&self) -> Result<(), ProcessConfigurationError>
+	fn validate_linux_kernel_version_is_recent_enough(&self, proc_path: &ProcPath) -> Result<(), ProcessConfigurationError>
+	{
+		use self::ProcessConfigurationError::*;
+		if LinuxKernelVersion::parse(proc_path).map_err(CouldNotParseLinuxKernelVersion)?.major_minor_revision() < self.minimum_linux_kernel_version
+		{
+			Err(LinuxKernelVersionIsTooOld)
+		}
+		else
+		{
+			Ok(())
+		}
+	}
+
+	#[inline(always)]
+	fn seccomp_for_all_threads(&self) -> Result<(), ProcessConfigurationError>
 	{
 		use self::ProcessConfigurationError::*;
 
@@ -291,4 +451,9 @@ impl ProcessConfiguration
 		PathBuf::from("/")
 	}
 
+	#[inline(always)]
+	fn main_thread_sleep_default() -> Duration
+	{
+		Duration::new(0, 1_000_000)
+	}
 }

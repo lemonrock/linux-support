@@ -2,25 +2,27 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Capability protection.
+/// Remove I/O port privileges.
 #[inline(always)]
-pub fn lock_secure_bits_and_remove_ambient_capability_raise_and_keep_capabilities() -> Result<(), io::Error>
+pub fn remove_ioport_privileges()
 {
-	//noinspection SpellCheckingInspection
-	const SECBIT_KEEP_CAPS_LOCKED_off: c_ulong = 0;
-
-	let result = unsafe { prctl(PR_SET_SECUREBITS, SECBIT_NOROOT | SECBIT_NOROOT_LOCKED | SECBIT_NO_SETUID_FIXUP | SECBIT_NO_SETUID_FIXUP_LOCKED | SECBIT_KEEP_CAPS_LOCKED_off | SECBIT_KEEP_CAPS_LOCKED | SECBIT_NO_CAP_AMBIENT_RAISE | SECBIT_NO_CAP_AMBIENT_RAISE_LOCKED) };
-
+	let result = unsafe { iopl(0) };
 	if likely!(result == 0)
 	{
-		Ok(())
 	}
 	else if likely!(result == -1)
 	{
-		Err(io::Error::last_os_error())
+		match errno().0
+		{
+			EINVAL => panic!("level is greater than 3"),
+			ENOSYS => panic!("This call is unimplemented (it should be)"),
+			EPERM => panic!("The calling process has insufficient privilege to call iopl(); the CAP_SYS_RAWIO capability is required to raise the I/O privilege level above its current value."),
+
+			unexpected @ _ => panic!("Unexpected error {} from iopl()", unexpected),
+		}
 	}
 	else
 	{
-		unreachable!("Unexpected result {} from prctl()", result)
+		unreachable!("Unexpected result {} from iopl()", result)
 	}
 }

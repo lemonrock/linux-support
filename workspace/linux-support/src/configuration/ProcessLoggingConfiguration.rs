@@ -96,11 +96,13 @@ impl ProcessLoggingConfiguration
 
 	/// NOTE: Using `syslog()` takes a hit of calling the `getpid()` system call and then the `send()` system call for every log message.
 	#[inline(always)]
-	fn caught_panic(source_file: &str, line_number: u32, column_number: u32, cause: &str)
+	pub(crate) fn caught_panic(thread_name: &str, thread_id: ThreadId, source_file: &str, line_number: u32, column_number: u32, cause: &str, backtrace: String)
 	{
+		let thread_name = to_c_string_robustly(thread_name);
 		let source_file = to_c_string_robustly(source_file);
 		let cause = to_c_string_robustly(cause);
-		unsafe { syslog(LOG_CRIT, b"File:%s:Line:%u:Column:%u:Cause:%s\0".as_ptr() as *const _ as *const _, source_file, line_number, column_number, cause) }
+		let backtrace = to_c_string_robustly(&backtrace);
+		unsafe { syslog(LOG_CRIT, b"ThreadName:%s:ThreadId:%llu:File:%s:Line:%u:Column:%u:Cause:%sBacktrace:%s\0".as_ptr() as *const _ as *const _, thread_name.as_ptr(), thread_id, source_file.as_ptr(), line_number, column_number, cause.as_ptr(), backtrace.as_ptr()) }
 	}
 
 	#[inline(always)]

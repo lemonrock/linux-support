@@ -132,6 +132,33 @@ impl Into<usize> for VirtualAddress
 	}
 }
 
+impl<T> Into<*const T> for VirtualAddress
+{
+	#[inline(always)]
+	fn into(self) -> *const T
+	{
+		self.0 as *const T
+	}
+}
+
+impl<T> Into<*mut T> for VirtualAddress
+{
+	#[inline(always)]
+	fn into(self) -> *const T
+	{
+		self.0 as *mut T
+	}
+}
+
+impl<T> Into<NonNull<T>> for VirtualAddress
+{
+	#[inline(always)]
+	fn into(self) -> NonNull<T>
+	{
+		unsafe { NonNull::new_unchecked(self.0 as *mut T) }
+	}
+}
+
 impl Add<usize> for VirtualAddress
 {
 	type Output = Self;
@@ -169,6 +196,86 @@ impl SubAssign<usize> for VirtualAddress
 	fn sub_assign(&mut self, rhs: usize)
 	{
 		self.0 -= rhs
+	}
+}
+
+impl Add<NonZeroUsize> for VirtualAddress
+{
+	type Output = Self;
+	
+	#[inline(always)]
+	fn add(self, rhs: NonZeroUsize) -> Self::Output
+	{
+		VirtualAddress(self.0 + rhs.get())
+	}
+}
+
+impl AddAssign<NonZeroUsize> for VirtualAddress
+{
+	#[inline(always)]
+	fn add_assign(&mut self, rhs: NonZeroUsize)
+	{
+		self.0 += rhs.get()
+	}
+}
+
+impl Sub<NonZeroUsize> for VirtualAddress
+{
+	type Output = Self;
+	
+	#[inline(always)]
+	fn sub(self, rhs: NonZeroUsize) -> Self::Output
+	{
+		VirtualAddress(self.0 - rhs.get())
+	}
+}
+
+impl SubAssign<NonZeroUsize> for VirtualAddress
+{
+	#[inline(always)]
+	fn sub_assign(&mut self, rhs: NonZeroUsize)
+	{
+		self.0 -= rhs.get()
+	}
+}
+
+impl Add<NonZeroU64> for VirtualAddress
+{
+	type Output = Self;
+
+	#[inline(always)]
+	fn add(self, rhs: NonZeroU64) -> Self::Output
+	{
+		VirtualAddress(self.0 + rhs.get() as usize)
+	}
+}
+
+impl AddAssign<NonZeroU64> for VirtualAddress
+{
+	#[inline(always)]
+	fn add_assign(&mut self, rhs: NonZeroU64)
+	{
+		self.0 += rhs.get() as usize
+	}
+}
+
+impl Sub<NonZeroU64> for VirtualAddress
+{
+	type Output = Self;
+
+	#[inline(always)]
+	fn sub(self, rhs: NonZeroU64) -> Self::Output
+	{
+		VirtualAddress(self.0 - rhs.get() as usize)
+	}
+}
+
+impl SubAssign<NonZeroU64> for VirtualAddress
+{
+	#[inline(always)]
+	fn sub_assign(&mut self, rhs: NonZeroU64)
+	{
+		self.0 -= rhs.get() as usize
 	}
 }
 

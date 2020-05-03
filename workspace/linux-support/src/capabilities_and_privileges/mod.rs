@@ -14,6 +14,7 @@ use libc_extra::android_linux::linux::securebits::SECBIT_NOROOT;
 use libc_extra::android_linux::linux::securebits::SECBIT_NOROOT_LOCKED;
 use libc_extra::android_linux::linux::securebits::SECBIT_NO_SETUID_FIXUP;
 use libc_extra::android_linux::linux::securebits::SECBIT_NO_SETUID_FIXUP_LOCKED;
+use libc_extra::android_linux::linux::securebits::SECBIT_KEEP_CAPS;
 use libc_extra::android_linux::linux::securebits::SECBIT_KEEP_CAPS_LOCKED;
 use libc_extra::android_linux::linux::securebits::SECBIT_NO_CAP_AMBIENT_RAISE;
 use libc_extra::android_linux::linux::securebits::SECBIT_NO_CAP_AMBIENT_RAISE_LOCKED;
@@ -23,15 +24,21 @@ use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 use std::borrow::Cow;
 use std::collections::HashSet;
-use std::mem::transmute;
-use std::io;
+use std::mem::{transmute, zeroed};
+use std::{io, error};
+use std::fmt::{Formatter, Debug, Display};
+use crate::thread::ThreadIdentifier;
 
 
 mod c;
 
 
+include!("AmbientCapabilityError.rs");
+include!("AmbientCapabilitySet.rs");
+include!("BoundingCapabilitySet.rs");
 include!("Capability.rs");
 include!("disable_dumpable.rs");
-include!("lock_secure_bits_and_remove_ambient_capability_raise_and_keep_capabilities.rs");
+include!("lock_secure_bits_so_capabilities_are_always_enforced.rs");
 include!("no_new_privileges.rs");
+include!("PermittedEffectiveAndInheritableCapabilitySets.rs");
 include!("set_io_flusher.rs");
