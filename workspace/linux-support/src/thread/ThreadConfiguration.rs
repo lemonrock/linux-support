@@ -14,6 +14,8 @@ pub struct ThreadConfiguration
 	#[serde(default)] pub name: ThreadName,
 
 	/// Thread stack size.
+	///
+	/// This can not be changed for the main thread.
 	#[serde(default = "ThreadConfiguration::stack_size_default")] pub stack_size: NonZeroNumberOfPages,
 
 	/// Thread HyperThread affinity.

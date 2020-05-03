@@ -43,8 +43,8 @@ pub struct ProcessConfiguration
 	/// Process HyperThread affinity.
 	#[serde(default)] pub affinity: Option<BitSet<HyperThread>>,
 
-	/// Process scheduling.
-	#[serde(default)] pub process_scheduling_configuration: ProcessSchedulingConfiguration,
+	/// Process nice.
+	#[serde(default)] pub process_nice_configuration: ProcessNiceConfiguration,
 
 	/// Mostly for things like block device daemons and FUSE daemons.
 	///
@@ -74,9 +74,6 @@ pub struct ProcessConfiguration
 
 	#[serde(default)] pub capabilities: Option<ProcessCapabilitiesConfiguration>,
 
-	/// Main thread configuration.
-	#[serde(default)] pub main_thread_configuration: ThreadConfiguration,
-
 	/// Main thread sleeps for this long before checking for events.
 	///
 	/// Default is 1ms.
@@ -87,18 +84,18 @@ impl ProcessConfiguration
 {
 	/// Configure, then run the process.
 	#[inline(always)]
-	pub fn configure_and_run_assume_linux_standard_base(&self, run_as_daemon: bool, terminate: &Arc<impl Terminate>) -> Result<(), ProcessConfigurationError>
+	pub fn configure_and_run_assume_linux_standard_base(&self, run_as_daemon: bool, main_thread: (&ThreadConfiguration, impl ThreadLoopBodyFunction), child_threads: Vec<(&ThreadConfiguration, impl ThreadLoopBodyFunction)>) -> Result<(), ProcessConfigurationError>
 	{
 		let sys_path = SysPath::default();
 		let proc_path = ProcPath::default();
 		let dev_path = DevPath::default();
 		let etc_path = EtcPath::default();
-		self.configure_then_run(&sys_path, &proc_path, &dev_path, &etc_path, run_as_daemon, terminate)
+		self.configure_then_run(run_as_daemon, main_thread, child_threads, &sys_path, &proc_path, &dev_path, &etc_path)
 	}
 
 	/// Configure, then run the process.
 	#[inline(always)]
-	pub fn configure_then_run(&self, sys_path: &SysPath, proc_path: &ProcPath, dev_path: &DevPath, etc_path: &EtcPath, run_as_daemon: bool, terminate: &Arc<impl Terminate>) -> Result<(), ProcessConfigurationError>
+	pub fn configure_then_run(&self, run_as_daemon: bool, main_thread: (&ThreadConfiguration, impl ThreadLoopBodyFunction), child_threads: Vec<(&ThreadConfiguration, impl ThreadLoopBodyFunction)>, sys_path: &SysPath, proc_path: &ProcPath, dev_path: &DevPath, etc_path: &EtcPath) -> Result<(), ProcessConfigurationError>
 	{
 		use self::ProcessConfigurationError::*;
 
@@ -151,9 +148,11 @@ impl ProcessConfiguration
 			daemonize(dev_path)
 		}
 
+		let terminate = SimpleTerminate::new();
+
 		// This *MUST* be called before `configure_global_panic_hook()`.
 		self.logging_configuration.start_logging(!run_as_daemon, &self.name);
-		configure_global_panic_hook(terminate);
+		configure_global_panic_hook(&terminate);
 
 		// This *MUST* be called after changing resource limits.
 		// This *MUST* be called after daemonizing (forking) s memory locks aren't preserved across a fork.
@@ -163,7 +162,7 @@ impl ProcessConfiguration
 		self.configure_process_affinity(proc_path)?;
 
 		// This *MUST* be called before creating new threads.
-		self.process_scheduling_configuration.configure(proc_path)?;
+		self.process_nice_configuration.configure(proc_path)?;
 
 		self.set_io_flusher()?;
 
@@ -187,12 +186,12 @@ impl ProcessConfiguration
 		// This prevents `execve()` granting additional capabilities.
 		no_new_privileges().map_err(CouldNotPreventTheGrantingOfNoNewPrivileges)?;
 
-		self.threads_exist_from_now_on(thread_configurations, terminate, proc_path, etc_path)
+		self.threads_exist_from_now_on(main_thread, child_threads, &terminate, proc_path, etc_path)
 	}
 
-	fn threads_exist_from_now_on(&self, thread_configurations: &[(ThreadConfiguration, XXX)], terminate: &Arc<impl Terminate>, proc_path: &ProcPath, etc_path: &EtcPath) -> Result<(), ProcessConfigurationError>
+	fn threads_exist_from_now_on(&self, main_thread: (&ThreadConfiguration, impl ThreadLoopBodyFunction), child_threads: Vec<(&ThreadConfiguration, impl ThreadLoopBodyFunction)>, terminate: &Arc<impl Terminate + 'static>, proc_path: &ProcPath, etc_path: &EtcPath) -> Result<(), ProcessConfigurationError>
 	{
-		let (join_handles, result) = JoinHandles::main_thread_spawn_configured_child_threads(thread_configurations, terminate, proc_path);
+		let (mut join_handles, result) = JoinHandles::main_thread_spawn_child_threads(child_threads, terminate, proc_path);
 		if let Err(error) = result
 		{
 			terminate.clone().begin_termination();
@@ -200,7 +199,7 @@ impl ProcessConfiguration
 			return Err(error)?
 		}
 
-		let result = self.main_thread_configuration.configure_main_thread();
+		let result = main_thread.0.configure_main_thread();
 		if let Err(error) = result
 		{
 			terminate.clone().begin_termination();
@@ -225,6 +224,7 @@ impl ProcessConfiguration
 		while terminate.should_continue()
 		{
 			// TODO: Enter the main loop; need to run a signal handler.
+			// If we are not a daemon, then we need to return.
 			sleep(self.main_thread_sleep)
 		}
 

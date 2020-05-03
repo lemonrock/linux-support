@@ -45,6 +45,7 @@ use std::sync::atomic::AtomicBool;
 use std::sync::atomic::AtomicI32;
 use std::sync::atomic::AtomicU64;
 use std::sync::atomic::Ordering::Acquire;
+use std::sync::atomic::Ordering::AcqRel;
 use std::sync::atomic::Ordering::Release;
 use std::thread;
 use std::thread::Builder;
@@ -55,11 +56,13 @@ use std::thread::ThreadId;
 use std::mem::transmute;
 #[allow(deprecated)] use std::mem::uninitialized;
 use terminate::Terminate;
+use std::any::Any;
 
 
 include!("configure_global_panic_hook.rs");
 include!("JoinHandles.rs");
 include!("SimpleBarrier.rs");
+include!("SimpleTerminate.rs");
 include!("ThreadConfiguration.rs");
 include!("ThreadConfigurationError.rs");
 include!("ThreadIdentifier.rs");

@@ -37,7 +37,7 @@ pub enum ProcessConfigurationError
 	CouldNotSetLocale(LocaleName),
 
 	#[allow(missing_docs)]
-	ProcessSchedulingConfiguration(ProcessSchedulingConfigurationError),
+	ProcessNiceConfiguration(ProcessNiceConfigurationError),
 
 	#[allow(missing_docs)]
 	IoFlusher(io::Error),
@@ -129,7 +129,7 @@ impl error::Error for ProcessConfigurationError
 
 			&CouldNotSetLocale(..) => None,
 
-			&ProcessSchedulingConfiguration(ref cause) => Some(cause),
+			&ProcessNiceConfiguration(ref cause) => Some(cause),
 
 			&IoFlusher(ref cause) => Some(cause),
 
@@ -195,12 +195,12 @@ impl From<GlobalConfigurationError> for ProcessConfigurationError
 	}
 }
 
-impl From<ProcessSchedulingConfigurationError> for ProcessConfigurationError
+impl From<ProcessNiceConfigurationError> for ProcessConfigurationError
 {
 	#[inline(always)]
-	fn from(error: ProcessSchedulingConfigurationError) -> Self
+	fn from(error: ProcessNiceConfigurationError) -> Self
 	{
-		ProcessConfigurationError::ProcessSchedulingConfiguration(error)
+		ProcessConfigurationError::ProcessNiceConfiguration(error)
 	}
 }
 

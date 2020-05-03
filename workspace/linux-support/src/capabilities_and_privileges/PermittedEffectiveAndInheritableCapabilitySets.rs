@@ -57,6 +57,7 @@ impl PermittedEffectiveAndInheritableCapabilitySets
 		}
 	}
 
+	#[allow(missing_docs)]
 	#[inline(always)]
 	pub fn set(&self, thread_identifier: ThreadIdentifier) -> io::Result<()>
 	{

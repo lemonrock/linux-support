@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[allow(missing_docs)]
 #[derive(Debug)]
 pub struct JoinHandles
 {
@@ -23,16 +24,16 @@ impl JoinHandles
 	/// Spawn threads but configure them from the main (spawning) thread.
 	///
 	/// On error any threads created are told to run to stop as soon as possible and `terminate` becomes true.
-	pub fn main_thread_spawn_configured_child_threads<TLBF: ThreadLoopBodyFunction, T: Terminate + 'static>(thread_configurations: &[(ThreadConfiguration, TLBF)], terminate: &Arc<T>, proc_path: &ProcPath) -> (Self, Result<(), ThreadConfigurationError>)
+	pub fn main_thread_spawn_child_threads(mut child_threads: Vec<(&ThreadConfiguration, impl ThreadLoopBodyFunction)>, terminate: &Arc<impl Terminate + 'static>, proc_path: &ProcPath) -> (Self, Result<(), ThreadConfigurationError>)
 	{
 		let mut this = Self
 		{
 			barrier: SimpleBarrier::new(),
-			join_handles: Vec::with_capacity(thread_configurations.len()),
+			join_handles: Vec::with_capacity(child_threads.len()),
 		};
 
 		let thread_identifiers = ThreadIdentifiers::new();
-		for (thread_configuration, thread_loop_body_function) in thread_configurations.iter()
+		for (thread_configuration, thread_loop_body_function) in child_threads.drain(..)
 		{
 			if let Err(error) = this.add_thread(&thread_identifiers, terminate, thread_configuration, thread_loop_body_function, proc_path)
 			{
@@ -43,9 +44,9 @@ impl JoinHandles
 		(this, Ok(()))
 	}
 
-	fn add_thread(&mut self, thread_identifiers: &ThreadIdentifiers, terminate: &Arc<impl Terminate + 'static>, thread_configuration: &ThreadConfiguration, thread_loop_body_function: &impl ThreadLoopBodyFunction, proc_path: &ProcPath) -> Result<(), ThreadConfigurationError>
+	fn add_thread(&mut self, thread_identifiers: &ThreadIdentifiers, terminate: &Arc<impl Terminate + 'static>, thread_configuration: &ThreadConfiguration, thread_loop_body_function: impl ThreadLoopBodyFunction, proc_path: &ProcPath) -> Result<(), ThreadConfigurationError>
 	{
-		let join_handle = self.spawn(thread_identifiers, terminate, thread_configuration, *thread_loop_body_function).map_err(ThreadConfigurationError::CouldNotCreateThread)?;
+		let join_handle = self.spawn(thread_identifiers, terminate, thread_configuration, thread_loop_body_function).map_err(ThreadConfigurationError::CouldNotCreateThread)?;
 		let (thread_identifier, pthread_t) = thread_identifiers.get_and_reuse();
 		self.join_handles.push((join_handle, thread_identifier, pthread_t));
 
@@ -55,14 +56,15 @@ impl JoinHandles
 		Ok(())
 	}
 
-	fn spawn(&self, thread_identifiers: &ThreadIdentifiers, terminate: &Arc<impl Terminate + 'static>, thread_configuration: &ThreadConfiguration, thread_loop_body_function: impl ThreadLoopBodyFunction) -> io::Result<JoinHandle<()>>
+	fn spawn(&self, thread_identifiers: &ThreadIdentifiers, terminate: &Arc<impl Terminate + 'static>, thread_configuration: &ThreadConfiguration, mut thread_loop_body_function: impl ThreadLoopBodyFunction) -> io::Result<JoinHandle<()>>
 	{
 		let thread_identifiers = thread_identifiers.clone();
 		let wait_until_configured = self.clone_barrier();
-		let terminate = terminate.clone();
+		let terminate_catch_unwind = terminate.clone();
+		let terminate_error = terminate.clone();
 		thread_configuration.spawn
 		(
-			||
+			move ||
 			{
 				let result = catch_unwind
 				(
@@ -74,7 +76,7 @@ impl JoinHandles
 
 							wait_until_configured.wait_on_parked();
 
-							while likely!(terminate.should_continue())
+							while likely!(terminate_catch_unwind.should_continue())
 							{
 								thread_loop_body_function.invoke()
 							}
@@ -84,13 +86,14 @@ impl JoinHandles
 
 				if let Err(payload) = result
 				{
-					terminate.begin_termination_due_to_irrecoverable_error(&payload);
+					terminate_error.begin_termination_due_to_irrecoverable_error(&payload);
 					resume_unwind(payload)
 				}
 			}
 		)
 	}
 
+	#[allow(missing_docs)]
 	#[inline(always)]
 	pub fn thread_identifiers_for_thread(&self, relative_thread_identifier: usize) -> Option<(ThreadId, ThreadIdentifier, pthread_t)>
 	{
@@ -99,7 +102,7 @@ impl JoinHandles
 
 	/// Join on join handles.
 	#[inline(always)]
-	pub fn join(mut self)
+	pub fn join(&mut self)
 	{
 		// Belt-and-braces.
 		self.release();

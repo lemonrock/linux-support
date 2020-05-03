@@ -9,6 +9,7 @@ pub struct AmbientCapabilitySet(pub BitSet<Capability>);
 
 impl AmbientCapabilitySet
 {
+	#[allow(missing_docs)]
 	#[inline(always)]
 	pub fn get_for_current_thread() -> Self
 	{
@@ -23,6 +24,7 @@ impl AmbientCapabilitySet
 		Self(set)
 	}
 
+	#[allow(missing_docs)]
 	#[inline(always)]
 	pub fn set_for_current_thread(&self) -> Result<(), AmbientCapabilityError>
 	{

@@ -122,8 +122,6 @@ include!("ProcessNiceConfiguration.rs");
 include!("ProcessNiceConfigurationError.rs");
 include!("ProcessConfiguration.rs");
 include!("ProcessConfigurationError.rs");
-include!("ProcessSchedulingConfiguration.rs");
-include!("ProcessSchedulingConfigurationError.rs");
 include!("set_proc_sys_kernel_value.rs");
 include!("set_value.rs");
 include!("set_value_once.rs");
