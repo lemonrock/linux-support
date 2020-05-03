@@ -2,4 +2,5 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[allow(dead_code)]
 pub(super) type cap_user_data_t = *mut __user_cap_data_struct;

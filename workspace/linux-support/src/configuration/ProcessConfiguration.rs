@@ -464,10 +464,4 @@ impl ProcessConfiguration
 	{
 		PathBuf::from("/")
 	}
-
-	#[inline(always)]
-	fn main_thread_sleep_default() -> usize
-	{
-		1_000_000
-	}
 }

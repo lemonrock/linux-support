@@ -5,6 +5,7 @@
 /// The constructor of the body of a while loop which checks that the thread should continue running.
 pub trait ThreadFunction: std::marker::Send + std::marker::Sync + 'static
 {
+	/// Configured type.
 	type TLBF: ThreadLoopBodyFunction;
 
 	/// Configure this thread.

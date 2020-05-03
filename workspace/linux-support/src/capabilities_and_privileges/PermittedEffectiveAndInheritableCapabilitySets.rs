@@ -23,8 +23,9 @@ pub struct PermittedEffectiveAndInheritableCapabilitySets
 
 impl PermittedEffectiveAndInheritableCapabilitySets
 {
+	/// Get for thread.
 	#[inline(always)]
-	pub(super) fn get(thread_identifier: ThreadIdentifier) -> io::Result<Self>
+	pub fn get(thread_identifier: ThreadIdentifier) -> io::Result<Self>
 	{
 		let mut header = __user_cap_header_struct::new(thread_identifier);
 		let mut data: [__user_cap_data_struct; 2] = unsafe { zeroed() };
