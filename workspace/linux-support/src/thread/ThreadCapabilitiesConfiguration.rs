@@ -6,7 +6,7 @@
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
-pub struct ProcessCapabilitiesConfiguration
+pub struct ThreadCapabilitiesConfiguration
 {
 	#[allow(missing_docs)]
 	pub bounding_set_to_retain: BoundingCapabilitySet,
@@ -18,24 +18,26 @@ pub struct ProcessCapabilitiesConfiguration
 	pub ambient_capabilities: AmbientCapabilitySet,
 }
 
-impl ProcessCapabilitiesConfiguration
+impl ThreadCapabilitiesConfiguration
 {
-	fn configure_if_wanted(&self) -> Result<(), ProcessCapabilitiesConfigurationError>
+	pub(crate) fn configure_just_capabilities(&self) -> Result<(), ThreadCapabilitiesConfigurationError>
 	{
-		use self::ProcessCapabilitiesConfigurationError::*;
+		use self::ThreadCapabilitiesConfigurationError::*;
 
 		self.bounding_set_to_retain.retain().map_err(|_ :()| CouldNotConfigureBoundingSet)?;
 		self.permitted_effective_and_inheritable_capability_sets.set(ThreadIdentifier::default()).map_err(CouldNotConfigurePermittedEffectiveAndInheritableSets)?;
-		self.ambient_capabilities.set_for_current_thread().map_err(CouldNotConfigureAmbient)?;
-
-		lock_secure_bits_so_capabilities_are_always_enforced(true).map_err(|cause| CouldNotLockSecureBits(cause))
+		self.ambient_capabilities.set_for_current_thread().map_err(CouldNotConfigureAmbient)
 	}
 
-	fn configure_if_unwanted() -> Result<(), ProcessCapabilitiesConfigurationError>
+	fn configure_if_wanted(&self) -> Result<(), ThreadCapabilitiesConfigurationError>
 	{
-		use self::ProcessCapabilitiesConfigurationError::*;
+		self.configure_just_capabilities()?;
+		lock_secure_bits_so_capabilities_are_always_enforced(true).map_err(ThreadCapabilitiesConfigurationError::CouldNotLockSecureBits)
+	}
 
+	fn configure_if_unwanted() -> Result<(), ThreadCapabilitiesConfigurationError>
+	{
 		AmbientCapabilitySet::clear_current_thread_ambient_set();
-		lock_secure_bits_so_capabilities_are_always_enforced(false).map_err(|cause| CouldNotLockSecureBits(cause))
+		lock_secure_bits_so_capabilities_are_always_enforced(false).map_err(ThreadCapabilitiesConfigurationError::CouldNotLockSecureBits)
 	}
 }

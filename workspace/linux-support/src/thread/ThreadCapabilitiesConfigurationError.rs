@@ -4,7 +4,7 @@
 
 /// Process capabilities configuration error kind.
 #[derive(Debug)]
-pub enum ProcessCapabilitiesConfigurationError
+pub enum ThreadCapabilitiesConfigurationError
 {
 	#[allow(missing_docs)]
 	CouldNotConfigureBoundingSet,
@@ -19,7 +19,7 @@ pub enum ProcessCapabilitiesConfigurationError
 	CouldNotLockSecureBits(io::Error),
 }
 
-impl Display for ProcessCapabilitiesConfigurationError
+impl Display for ThreadCapabilitiesConfigurationError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -28,12 +28,12 @@ impl Display for ProcessCapabilitiesConfigurationError
 	}
 }
 
-impl error::Error for ProcessCapabilitiesConfigurationError
+impl error::Error for ThreadCapabilitiesConfigurationError
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>
 	{
-		use self::ProcessCapabilitiesConfigurationError::*;
+		use self::ThreadCapabilitiesConfigurationError::*;
 
 		match self
 		{

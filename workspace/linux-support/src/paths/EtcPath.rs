@@ -19,6 +19,27 @@ impl Default for EtcPath
 
 impl EtcPath
 {
+	/// `/etc/zoneinfo/<timezone_file_name>`.
+	#[inline(always)]
+	pub fn zoneinfo(&self, timezone_file_name: &str) -> PathBuf
+	{
+		self.file_path("zoneinfo").append(timezone_file_name)
+	}
+
+	/// `/etc/passwd`.
+	#[inline(always)]
+	pub fn passwd(&self) -> PathBuf
+	{
+		self.file_path("passwd")
+	}
+
+	/// `/etc/group`.
+	#[inline(always)]
+	pub fn group(&self) -> PathBuf
+	{
+		self.file_path("group")
+	}
+
 	/// File path.
 	#[inline(always)]
 	pub fn file_path(&self, file_name: &str) -> PathBuf

@@ -29,6 +29,10 @@ pub struct ProcessConfiguration
 	/// Permissions bit mask for new files.
 	#[serde(default)] pub umask: AccessPermissions,
 
+	/// Capabilities to retain in the process before opening network sockets.
+	/// This allows an application to, say, use `CAP_SYS_NICE` and open raw I/O network sockets without running the application with root-like vulnerabilities or require file capabilities.
+	#[serde(default)] pub initial_capabilities: Option<ThreadCapabilitiesConfiguration>,
+
 	/// Resource limits.
 	#[serde(default = "ProcessConfiguration::resource_limits_default")] pub resource_limits: ResourceLimitsSet,
 
@@ -54,9 +58,6 @@ pub struct ProcessConfiguration
 	/// Logging configuration.
 	#[serde(default)] pub logging_configuration: ProcessLoggingConfiguration,
 
-	/// User and group settings.
-	#[serde(default)] pub user_and_group_settings: UserAndGroupSettings,
-
 	/// Paths to use for `PATH`.
 	#[serde(default = "ProcessConfiguration::binary_paths_default")] pub binary_paths: BTreeSet<PathBuf>,
 
@@ -66,34 +67,32 @@ pub struct ProcessConfiguration
 	///
 	/// Defaults to `/`, which is appropriate for a daemon to allow for unmounts to happen.
 	#[serde(default = "ProcessConfiguration::working_directory_default")] pub working_directory: PathBuf,
-
-	/// Seccomp configuration.
-	///
-	/// SecComp filtering adds a 5% to 10% overhead.
-	#[serde(default)] pub seccomp: Option<PermittedSyscalls>,
-
-	/// Capabilities to apply before forking new threads.
-	///
-	/// If capabilities are used the `keep capabilities` securebit is also set and locked.
-	#[serde(default)] pub capabilities: Option<ProcessCapabilitiesConfiguration>,
 }
 
 impl ProcessConfiguration
 {
-	/// Configure, then run the process.
+	/// Configure.
+	///
+	/// Assumes a file hierarchy standard (FHS) file system layout of `/sys`, `/proc`, `/dev` and `/etc`
+	///
+	/// Use `ProcessExecutor::execute_securely()` after this.
+	/// Until this is used, the returned `SimpleTerminate` does not affect any thread behaviour.
 	#[inline(always)]
-	pub fn configure_and_run_assume_linux_standard_base(&self, run_as_daemon: bool, main_thread: (&ThreadConfiguration, impl ThreadFunction), child_threads: Vec<(&ThreadConfiguration, impl ThreadFunction)>) -> Result<(), ProcessConfigurationError>
+	pub fn configure_assuming_file_hierarchy_standard_file_system_layout(&self, run_as_daemon: bool) -> Result<Arc<SimpleTerminate>, ProcessConfigurationError>
 	{
 		let sys_path = SysPath::default();
 		let proc_path = ProcPath::default();
 		let dev_path = DevPath::default();
 		let etc_path = EtcPath::default();
-		self.configure_then_run(run_as_daemon, main_thread, child_threads, &sys_path, &proc_path, &dev_path, &etc_path)
+		self.configure(run_as_daemon, &sys_path, &proc_path, &dev_path, &etc_path)
 	}
 
-	/// Configure, then run the process.
+	/// Configure.
+	///
+	/// Use `ProcessExecutor::execute_securely()` after this.
+	/// Until this is used, the returned `SimpleTerminate` does not affect any thread behaviour.
 	#[inline(always)]
-	pub fn configure_then_run(&self, run_as_daemon: bool, main_thread: (&ThreadConfiguration, impl ThreadFunction), child_threads: Vec<(&ThreadConfiguration, impl ThreadFunction)>, sys_path: &SysPath, proc_path: &ProcPath, dev_path: &DevPath, etc_path: &EtcPath) -> Result<(), ProcessConfigurationError>
+	pub fn configure(&self, run_as_daemon: bool, sys_path: &SysPath, proc_path: &ProcPath, dev_path: &DevPath, etc_path: &EtcPath) -> Result<Arc<SimpleTerminate>, ProcessConfigurationError>
 	{
 		use self::ProcessConfigurationError::*;
 
@@ -109,17 +108,23 @@ impl ProcessConfiguration
 
 		self.cpu_feature_checks()?;
 
-		Self::validate_current_personality(proc_path)?;
-
+		// This *MUST* be called before `set_global_configuration()` otherwise we will try to configure files in `/proc` that don't exist.
 		self.validate_linux_kernel_version_is_recent_enough(proc_path)?;
+
+		// This *MUST* be called after `validate_linux_kernel_version_is_recent_enough()`.
+		self.set_global_configuration(sys_path, proc_path)?;
+
+		// This *SHOULD* be called as soon as possible so that when threads open network sockets, say, we are already running with as few capabilities as possible.
+		// This *SHOULD* be called after `set_global_configuration()` so that the former can load Linux kernel modules if needed.
+		self.reduce_initial_capabilities_to_minimum_set()?;
+
+		Self::validate_current_personality(proc_path)?;
 
 		// This *MUST* be called before daemonizing.
 		close_all_open_file_descriptors_apart_from_standard(proc_path).map_err(CouldNotCloseAllOpenFileDescriptorsApartFromStandard)?;
 
 		// This *MUST* be called before creating PID files (eg when daemonizing) or log files not managed by syslog.
 		self.umask.set_umask();
-
-		self.set_global_configuration(sys_path, proc_path)?;
 
 		set_current_dir(&self.working_directory).map_err(CouldNotChangeWorkingDirectory)?;
 
@@ -139,7 +144,7 @@ impl ProcessConfiguration
 
 		// This *SHOULD* be configured before configuring logging.
 		// This *MUST* be called before `configure_global_panic_hook()` which uses backtraces depedant on environment variable settings.
-		self.set_environment_variables_to_minimum_required(etc_path)?;
+		self.set_environment_variables_to_minimum_required_and_force_time_zone_to_utc(etc_path)?;
 
 		if run_as_daemon
 		{
@@ -166,69 +171,23 @@ impl ProcessConfiguration
 
 		// This *MUST* be called after daemonizing (forking).
 		// This *MUST* be called before creating new threads.
-		Self::secure_io_ports();
+		#[cfg(any(target_arch = "mips64", target_arch = "powerpc64", target_arch = "x86_64"))] Self::secure_io_ports();
 
 		// This *MUST* be called before creating new threads.
-		// This *MUST* be called before dropping root.
-		if let Some(capabilities) = self.capabilities.as_ref()
-		{
-			capabilities.configure_if_wanted()?
-		}
-		else
-		{
-			ProcessCapabilitiesConfiguration::configure_if_unwanted()?
-		}
-
-		// This *MUST* be called before creating new threads.
+		// This *MUST* be called before loading Seccomp filters for uprivileged processes.
 		// This *MUST* be called before executing programs that might be setuid/setgid or have file capabilities.
 		// This prevents `execve()` granting additional capabilities.
 		no_new_privileges().map_err(CouldNotPreventTheGrantingOfNoNewPrivileges)?;
 
-		self.threads_exist_from_now_on(main_thread, child_threads, &terminate, proc_path, etc_path)
+		Ok(terminate)
 	}
 
-	fn threads_exist_from_now_on(&self, (main_thread_configuration, main_thread_function): (&ThreadConfiguration, impl ThreadFunction), child_threads: Vec<(&ThreadConfiguration, impl ThreadFunction)>, terminate: &Arc<impl Terminate + 'static>, proc_path: &ProcPath, etc_path: &EtcPath) -> Result<(), ProcessConfigurationError>
+	#[inline(always)]
+	fn reduce_initial_capabilities_to_minimum_set(&self) -> Result<(), ProcessConfigurationError>
 	{
-		let (mut join_handles, result) = JoinHandles::main_thread_spawn_child_threads(child_threads, terminate, proc_path);
-		if let Err(error) = result
+		if let Some(ref initial_capabilities) = self.initial_capabilities.as_ref()
 		{
-			terminate.clone().begin_termination();
-			join_handles.error_join();
-			return Err(error)?
-		}
-
-		let result = main_thread_configuration.configure_main_thread();
-		if let Err(error) = result
-		{
-			terminate.clone().begin_termination();
-			join_handles.error_join();
-			return Err(error)?
-		}
-
-		join_handles.release_configured();
-
-		if let Err(error) = self.apply_security(etc_path)
-		{
-			terminate.clone().begin_termination();
-			join_handles.error_join();
-			return Err(error)
-		}
-
-		join_handles.release_seccomp_applied_and_setuid_et_al_done();
-
-		let mut main_thread_loop_function = main_thread_function.configure(terminate);
-		let terminate = terminate.clone();
-		while likely!(terminate.should_continue())
-		{
-			main_thread_loop_function.invoke();
-		}
-		drop(main_thread_loop_function);
-
-		join_handles.join();
-
-		if terminate.terminated_due_to_panic_or_irrecoverable_error()
-		{
-			Err(ProcessConfigurationError::TerminatedDueToPanicOrIrrecoverableError)
+			initial_capabilities.configure_just_capabilities().map_err(ProcessConfigurationError::CouldNotChangeInitialCapabilities)
 		}
 		else
 		{
@@ -236,14 +195,8 @@ impl ProcessConfiguration
 		}
 	}
 
-	fn apply_security(&self, etc_path: &EtcPath) -> Result<(), ProcessConfigurationError>
-	{
-		self.seccomp_for_all_threads()?;
-		self.user_and_group_settings.change_user_and_groups(etc_path)?;
-		Self::protect_access_to_proc_self_and_disable_core_dumps()
-	}
-
 	#[cfg(any(target_arch = "mips64", target_arch = "powerpc64", target_arch = "x86_64"))]
+	#[inline(always)]
 	fn secure_io_ports()
 	{
 		remove_ioport_permissions();
@@ -256,14 +209,17 @@ impl ProcessConfiguration
 	///
 	/// * rust backtrace logging;
 	/// * ensures that the UTC time zone exists and is readable;
-	/// * ensures that the libc timezone global static fields are correctly set.
+	/// * ensures that the libc time zone global static fields are correctly set (not doing this was a bug in rsyslog, for instance).
 	#[inline(always)]
-	fn set_environment_variables_to_minimum_required(&self, etc_path: &EtcPath) -> Result<(), ProcessConfigurationError>
+	fn set_environment_variables_to_minimum_required_and_force_time_zone_to_utc(&self, etc_path: &EtcPath) -> Result<(), ProcessConfigurationError>
 	{
-		let utc_file_path = etc_path.file_path("zoneinfo").append("UTC");
+		let utc_file_path = etc_path.zoneinfo("UTC");
 		utc_file_path.read_raw().map_err(ProcessConfigurationError::UtcFilePathDoesNotExistOrIsNotReadable)?;
+
 		populate_clean_environment(&self.binary_paths, UserIdentifier::current_real().user_name_home_directory_and_shell(etc_path), utc_file_path)?;
+
 		unsafe { tzset() };
+
 		Ok(())
 	}
 
@@ -368,21 +324,6 @@ impl ProcessConfiguration
 		if LinuxKernelVersion::parse(proc_path).map_err(CouldNotParseLinuxKernelVersion)?.major_minor_revision() < self.minimum_linux_kernel_version
 		{
 			Err(LinuxKernelVersionIsTooOld)
-		}
-		else
-		{
-			Ok(())
-		}
-	}
-
-	#[inline(always)]
-	fn seccomp_for_all_threads(&self) -> Result<(), ProcessConfigurationError>
-	{
-		use self::ProcessConfigurationError::*;
-
-		if let Some(ref seccomp) = self.seccomp
-		{
-			seccomp.seccomp_program().load_and_synchronize_all_threads(true, false).map_err(|cause| CouldNotLoadSeccompFilters(cause))?.map_err(|thread_identifier| CouldNotSynchronizeSeccompFiltersOnThread(thread_identifier))
 		}
 		else
 		{

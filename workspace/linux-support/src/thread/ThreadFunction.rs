@@ -8,7 +8,7 @@ pub trait ThreadFunction: std::marker::Send + std::marker::Sync + 'static
 	/// Configured type.
 	type TLBF: ThreadLoopBodyFunction;
 
-	/// Configure this thread.
+	/// Initialize.
 	///
 	/// Runs on the thread itself.
 	///
@@ -17,5 +17,5 @@ pub trait ThreadFunction: std::marker::Send + std::marker::Sync + 'static
 	/// It will not yet have a final seccomp profile applied.
 	///
 	/// Use `terminate` if implementing a signal handler, say.
-	fn configure(self, terminate: &Arc<impl Terminate>) -> Self::TLBF;
+	fn initialize(self, terminate: &Arc<impl Terminate>) -> Self::TLBF;
 }

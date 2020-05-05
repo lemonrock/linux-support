@@ -41,7 +41,7 @@ use std::ops::Deref;
 use std::panic::*;
 use std::slice::from_raw_parts;
 use std::sync::Arc;
-use std::sync::atomic::AtomicBool;
+use std::sync::atomic::{AtomicBool, spin_loop_hint};
 use std::sync::atomic::AtomicI32;
 use std::sync::atomic::AtomicU64;
 use std::sync::atomic::Ordering::Acquire;
@@ -57,12 +57,15 @@ use std::mem::transmute;
 #[allow(deprecated)] use std::mem::uninitialized;
 use terminate::Terminate;
 use std::any::Any;
+use crate::capabilities_and_privileges::{BoundingCapabilitySet, PermittedEffectiveAndInheritableCapabilitySets, AmbientCapabilitySet, lock_secure_bits_so_capabilities_are_always_enforced, AmbientCapabilityError};
 
 
 include!("configure_global_panic_hook.rs");
 include!("JoinHandles.rs");
 include!("SimpleBarrier.rs");
 include!("SimpleTerminate.rs");
+include!("ThreadCapabilitiesConfiguration.rs");
+include!("ThreadCapabilitiesConfigurationError.rs");
 include!("ThreadConfiguration.rs");
 include!("ThreadConfigurationError.rs");
 include!("ThreadFunction.rs");

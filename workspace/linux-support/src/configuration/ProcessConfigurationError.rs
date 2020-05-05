@@ -7,6 +7,9 @@
 pub enum ProcessConfigurationError
 {
 	#[allow(missing_docs)]
+	CouldNotChangeInitialCapabilities(ThreadCapabilitiesConfigurationError),
+
+	#[allow(missing_docs)]
 	CouldNotObtainPersonality,
 
 	#[allow(missing_docs)]
@@ -61,34 +64,16 @@ pub enum ProcessConfigurationError
 	CouldNotChangeProcessAffinity(String),
 
 	#[allow(missing_docs)]
-	CouldNotLoadSeccompFilters(io::Error),
-
-	#[allow(missing_docs)]
-	CouldNotSynchronizeSeccompFiltersOnThread(ThreadIdentifier),
-
-	#[allow(missing_docs)]
-	UserAndGroupChoice(UserAndGroupChoiceError),
-
-	#[allow(missing_docs)]
 	JoinPaths(JoinPathsError),
 
 	#[allow(missing_docs)]
 	CouldNotChangeWorkingDirectory(io::Error),
 
 	#[allow(missing_docs)]
-	CouldNotPreventTheGrantingOfNoNewPrivileges(io::Error),
-
-	#[allow(missing_docs)]
-	Capabilities(ProcessCapabilitiesConfigurationError),
-
-	#[allow(missing_docs)]
-	CouldNotConfigureMainThread(ThreadConfigurationError),
-
-	#[allow(missing_docs)]
-	TerminatedDueToPanicOrIrrecoverableError,
-
-	#[allow(missing_docs)]
 	UtcFilePathDoesNotExistOrIsNotReadable(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotPreventTheGrantingOfNoNewPrivileges(io::Error),
 }
 
 impl Display for ProcessConfigurationError
@@ -109,6 +94,8 @@ impl error::Error for ProcessConfigurationError
 
 		match self
 		{
+			&CouldNotChangeInitialCapabilities(ref cause) => Some(cause),
+
 			&CouldNotObtainPersonality => None,
 
 			&CompiledCpuFeatureChecksFailed(ref cause) => Some(cause),
@@ -145,23 +132,11 @@ impl error::Error for ProcessConfigurationError
 
 			&CouldNotChangeProcessAffinity(..) => None,
 
-			&CouldNotLoadSeccompFilters(ref cause) => Some(cause),
-
-			&CouldNotSynchronizeSeccompFiltersOnThread(..) => None,
-
-			&UserAndGroupChoice(ref cause) => Some(cause),
-
 			&JoinPaths(ref cause) => Some(cause),
 
 			&CouldNotChangeWorkingDirectory(ref cause) => Some(cause),
 
 			&CouldNotPreventTheGrantingOfNoNewPrivileges(ref cause) => Some(cause),
-
-			&Capabilities(ref cause) => Some(cause),
-
-			&CouldNotConfigureMainThread(ref cause) => Some(cause),
-
-			&TerminatedDueToPanicOrIrrecoverableError => None,
 
 			&UtcFilePathDoesNotExistOrIsNotReadable(ref cause) => Some(cause),
 		}
@@ -204,38 +179,11 @@ impl From<ProcessNiceConfigurationError> for ProcessConfigurationError
 	}
 }
 
-impl From<UserAndGroupChoiceError> for ProcessConfigurationError
-{
-	#[inline(always)]
-	fn from(cause: UserAndGroupChoiceError) -> Self
-	{
-		ProcessConfigurationError::UserAndGroupChoice(cause)
-	}
-}
-
 impl From<JoinPathsError> for ProcessConfigurationError
 {
 	#[inline(always)]
 	fn from(cause: JoinPathsError) -> Self
 	{
 		ProcessConfigurationError::JoinPaths(cause)
-	}
-}
-
-impl From<ThreadConfigurationError> for ProcessConfigurationError
-{
-	#[inline(always)]
-	fn from(cause: ThreadConfigurationError) -> Self
-	{
-		ProcessConfigurationError::CouldNotConfigureMainThread(cause)
-	}
-}
-
-impl From<ProcessCapabilitiesConfigurationError> for ProcessConfigurationError
-{
-	#[inline(always)]
-	fn from(cause: ProcessCapabilitiesConfigurationError) -> Self
-	{
-		ProcessConfigurationError::Capabilities(cause)
 	}
 }

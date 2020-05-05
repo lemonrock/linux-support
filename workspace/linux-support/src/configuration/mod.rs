@@ -72,6 +72,7 @@ use std::path::PathBuf;
 use std::thread::ThreadId;
 use std::sync::Arc;
 use terminate::Terminate;
+use std::sync::atomic::spin_loop_hint;
 
 
 /// Checks.
@@ -113,13 +114,13 @@ include!("GlobalSystemVMessageQueueConfigurationError.rs");
 include!("GlobalTransparentHugePagesConfiguration.rs");
 include!("GlobalTransparentHugePagesConfigurationError.rs");
 include!("LocaleName.rs");
-include!("ProcessCapabilitiesConfiguration.rs");
-include!("ProcessCapabilitiesConfigurationError.rs");
 include!("ProcessLoggingConfiguration.rs");
 include!("ProcessNiceConfiguration.rs");
 include!("ProcessNiceConfigurationError.rs");
 include!("ProcessConfiguration.rs");
 include!("ProcessConfigurationError.rs");
+include!("ProcessExecutor.rs");
+include!("ProcessExecutorError.rs");
 include!("set_proc_sys_kernel_value.rs");
 include!("set_value.rs");
 include!("set_value_once.rs");

@@ -26,6 +26,11 @@ pub struct ThreadConfiguration
 
 	#[allow(missing_docs)]
 	#[serde(default)] pub disable_transparent_huge_pages: bool,
+
+	/// Capabilities to apply after configuring the thread but before executing the thread loop.
+	///
+	/// If capabilities are used the `keep capabilities` securebit is also set and locked.
+	#[serde(default)] pub capabilities: Option<Arc<ThreadCapabilitiesConfiguration>>,
 }
 
 impl Default for ThreadConfiguration
@@ -39,7 +44,8 @@ impl Default for ThreadConfiguration
 			stack_size: Self::stack_size_default(),
 			affinity: Default::default(),
 			thread_scheduler: Default::default(),
-			disable_transparent_huge_pages: false
+			disable_transparent_huge_pages: false,
+			capabilities: None,
 		}
 	}
 }

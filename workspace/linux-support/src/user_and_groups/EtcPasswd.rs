@@ -14,7 +14,7 @@ impl EtcPasswd
 	#[inline(always)]
 	pub fn open<'a>(etc_path: &EtcPath) -> Result<EtcPasswd, EtcPasswdParseError>
 	{
-		Ok(Self(etc_path.file_path("passwd").read_raw()?))
+		Ok(Self(etc_path.passwd().read_raw()?))
 	}
 
 	/// Exists because the `IntoIterator` trait does not support a lifetime on the `into_iter()` function.

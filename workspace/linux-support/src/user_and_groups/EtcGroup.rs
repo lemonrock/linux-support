@@ -14,7 +14,7 @@ impl EtcGroup
 	#[inline(always)]
 	pub fn open<'a>(etc_path: &EtcPath) -> Result<EtcGroup, EtcGroupParseError>
 	{
-		Ok(Self(etc_path.file_path("group").read_raw()?))
+		Ok(Self(etc_path.group().read_raw()?))
 	}
 
 	/// Exists because the `IntoIterator` trait does not support a lifetime on the `into_iter()` function.

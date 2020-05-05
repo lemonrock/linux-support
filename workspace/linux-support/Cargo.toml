@@ -41,7 +41,7 @@ maplit = "^1.0.2"
 memchr = "^2.1.2"
 memoffset = { version = "0.5", features = ["unstable_const"] }
 raw-cpuid = "^5.0"
-serde = { version = "^1.0", features = ["derive"] }
+serde = { version = "^1.0", features = ["derive", "rc"] }
 serde_bytes = "^0.11.3"
 streaming-iterator = "^0.1.5"
 strum = "^0.18.0"

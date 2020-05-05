@@ -8,5 +8,7 @@ pub trait ThreadLoopBodyFunction
 	/// Invoke.
 	///
 	/// If a pause is desired to avoid busy loops, then the implementor is responsible for calling `libc::nanosleep()` or `thread::yield()`.
+	///
+	/// `spin_loop_hint()` is called by the runtime after invoke to support execution on HyperThreads.
 	fn invoke(&mut self);
 }

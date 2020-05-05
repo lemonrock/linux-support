@@ -55,6 +55,7 @@ impl JoinHandles
 		let (wait_until_configured, wait_until_seccomp_applied_and_setuid_et_al_done) = self.clone_barriers();
 		let terminate_catch_unwind = terminate.clone();
 		let terminate_error = terminate.clone();
+		let thread_capabilities = thread_configuration.capabilities.clone();
 		thread_configuration.spawn
 		(
 			move ||
@@ -79,7 +80,21 @@ impl JoinHandles
 								return
 							}
 
-							let mut thread_loop_body_function = thread_function.configure(&terminate_catch_unwind);
+							let mut thread_loop_body_function = thread_function.initialize(&terminate_catch_unwind);
+
+							if unlikely!(terminate_catch_unwind.should_finish())
+							{
+								return
+							}
+
+							if let Some(capabilities) = thread_capabilities
+							{
+								capabilities.configure_if_wanted()
+							}
+							else
+							{
+								ThreadCapabilitiesConfiguration::configure_if_unwanted()
+							}.unwrap();
 
 							if unlikely!(terminate_catch_unwind.should_finish())
 							{
@@ -90,7 +105,8 @@ impl JoinHandles
 
 							while likely!(terminate_catch_unwind.should_continue())
 							{
-								thread_loop_body_function.invoke()
+								thread_loop_body_function.invoke();
+								spin_loop_hint()
 							}
 						}
 					)
