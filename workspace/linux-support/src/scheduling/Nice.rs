@@ -201,11 +201,12 @@ impl Nice
 		proc_path.process_file_path(process_identifier, "autogroup").write_value(self as i32)
 	}
 
-	#[allow(missing_docs)]
+	/// Returns an `Err()` if the user did not have permission to adjust the priority (eg was not privileged or had the capability `CAP_SYS_NICE`).
 	#[inline(always)]
-	pub fn set_current_process_priority(self) -> Result<(), ()>
+	pub fn set_process_group_priority(self, process_group_identifier: ProcessGroupIdentifierChoice) -> Result<(), ()>
 	{
-		self.set_process_priority(ProcessIdentifierChoice::Current)
+		let pgid: pid_t = process_group_identifier.into();
+		self.set_priority(PRIO_PGRP, pgid as u32)
 	}
 
 	/// Returns an `Err()` if the user did not have permission to adjust the priority (eg was not privileged or had the capability `CAP_SYS_NICE`).
@@ -216,27 +217,12 @@ impl Nice
 		self.set_priority(PRIO_PROCESS, pid as u32)
 	}
 
-	#[allow(missing_docs)]
-	#[inline(always)]
-	pub fn set_current_process_group_priority(self) -> Result<(), ()>
-	{
-		self.set_process_group_priority(ProcessGroupIdentifierChoice::Current)
-	}
-
 	/// Returns an `Err()` if the user did not have permission to adjust the priority (eg was not privileged or had the capability `CAP_SYS_NICE`).
 	#[inline(always)]
-	pub fn set_process_group_priority(self, process_group_identifier: ProcessGroupIdentifierChoice) -> Result<(), ()>
+	pub fn set_thread_priority(self, thread_identifier: ThreadIdentifier) -> Result<(), ()>
 	{
-		let pgid: pid_t = process_group_identifier.into();
-		self.set_priority(PRIO_PGRP, pgid as u32)
-	}
-
-	#[allow(missing_docs)]
-	#[inline(always)]
-	pub fn set_current_user_priority(self) -> Result<(), ()>
-	{
-		const CurrentNotRoot: u32 = 0;
-		self.set_priority(PRIO_USER, CurrentNotRoot)
+		let tid: pid_t = thread_identifier.into();
+		self.set_priority(PRIO_PROCESS, tid as u32)
 	}
 
 	/// Returns an `Err()` if the user did not have permission to adjust the priority (eg was not privileged or had the capability `CAP_SYS_NICE`).

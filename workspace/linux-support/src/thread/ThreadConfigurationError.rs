@@ -16,10 +16,13 @@ pub enum ThreadConfigurationError
 	CouldNotSetThreadAffinity(String),
 
 	#[allow(missing_docs)]
-	CouldNotSetSchedulerPolicyAndFlags(&'static str),
+	CouldNotSetNice,
 
 	#[allow(missing_docs)]
 	CouldNotSetIoPriority(bool),
+
+	#[allow(missing_docs)]
+	CouldNotSetSchedulerPolicyAndFlags(&'static str),
 }
 
 impl Display for ThreadConfigurationError
@@ -46,9 +49,11 @@ impl error::Error for ThreadConfigurationError
 
 			&CouldNotSetThreadAffinity(..) => None,
 
-			&CouldNotSetSchedulerPolicyAndFlags(..) => None,
+			&CouldNotSetNice => None,
 
 			&CouldNotSetIoPriority(..) => None,
+
+			&CouldNotSetSchedulerPolicyAndFlags(..) => None,
 		}
 	}
 }

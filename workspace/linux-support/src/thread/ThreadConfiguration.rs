@@ -21,11 +21,14 @@ pub struct ThreadConfiguration
 	/// Thread HyperThread affinity.
 	#[serde(default)] pub affinity: BitSet<HyperThread>,
 
-	/// Sets the scheduler policy for the thread.
-	#[serde(default)] pub thread_scheduler: PerThreadSchedulerPolicyAndFlags,
+	/// Sets the nice value for the thread.
+	#[serde(default)] pub nice: Option<Nice>,
 
 	/// Sets the IO priority (ionice or ioprio) for the thread.
 	#[serde(default)] pub io_priority: Option<IoPriority>,
+
+	/// Sets the scheduler policy for the thread.
+	#[serde(default)] pub thread_scheduler: PerThreadSchedulerPolicyAndFlags,
 
 	#[allow(missing_docs)]
 	#[serde(default)] pub disable_transparent_huge_pages: bool,
@@ -46,8 +49,9 @@ impl Default for ThreadConfiguration
 			name: Default::default(),
 			stack_size: ThreadConfiguration::stack_size_default(),
 			affinity: Default::default(),
-			thread_scheduler: Default::default(),
+			nice: None,
 			io_priority: None,
+			thread_scheduler: Default::default(),
 			disable_transparent_huge_pages: false,
 			capabilities: None,
 		}
@@ -85,12 +89,17 @@ impl ThreadConfiguration
 
 		self.affinity.set_thread_affinity(pthread_t).map_err(CouldNotSetThreadAffinity)?;
 
-		self.thread_scheduler.set_for_thread(ThreadIdentifierChoice::Other(thread_identifier)).map_err(CouldNotSetSchedulerPolicyAndFlags)?;
+		if let Some(nice) = self.nice
+		{
+			nice.set_thread_priority(thread_identifier).map_err(|_: ()| CouldNotSetNice)?
+		}
 
 		if let Some(io_priority) = self.io_priority
 		{
 			io_priority.set_for_thread(thread_identifier).map_err(CouldNotSetIoPriority)?
 		}
+
+		self.thread_scheduler.set_for_thread(ThreadIdentifierChoice::Other(thread_identifier)).map_err(CouldNotSetSchedulerPolicyAndFlags)?;
 
 		Ok(())
 	}
@@ -107,12 +116,17 @@ impl ThreadConfiguration
 
 		self.affinity.set_current_thread_affinity().map_err(CouldNotSetThreadAffinity)?;
 
-		self.thread_scheduler.set_for_thread(ThreadIdentifierChoice::Current).map_err(CouldNotSetSchedulerPolicyAndFlags)?;
+		if let Some(nice) = self.nice
+		{
+			nice.set_thread_priority(ThreadIdentifier::default()).map_err(|_: ()| CouldNotSetNice)?
+		}
 
 		if let Some(io_priority) = self.io_priority
 		{
 			io_priority.set_for_thread(ThreadIdentifier::default()).map_err(CouldNotSetIoPriority)?
 		}
+
+		self.thread_scheduler.set_for_thread(ThreadIdentifierChoice::Current).map_err(CouldNotSetSchedulerPolicyAndFlags)?;
 
 		Ok(())
 	}

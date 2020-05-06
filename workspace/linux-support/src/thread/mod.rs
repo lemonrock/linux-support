@@ -10,7 +10,7 @@ use crate::memory::*;
 use crate::memory::huge_pages::adjust_transparent_huge_pages;
 use crate::paths::*;
 use crate::process::*;
-use crate::scheduling::PerThreadSchedulerPolicyAndFlags;
+use crate::scheduling::{PerThreadSchedulerPolicyAndFlags, Nice};
 use crate::strings::parse_number::*;
 use crate::syscall::SYS::gettid;
 use arrayvec::ArrayVec;

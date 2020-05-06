@@ -60,9 +60,9 @@ impl ProcessNiceConfiguration
 		use self::ProcessNiceConfigurationError::*;
 
 		set_nice_value(self.share_of_cpu_cycles_in_autogroup, |nice| Self::set_autogroup_for_current_process_if_desired(nice, proc_path), CouldNotSetCurrentProcessAutogroupPriorityNice)?;
-		set_nice_value(self.all_other_processes_for_current_user, Nice::set_current_user_priority, |_: ()| CouldNotSetCurrentUserPriorityNice)?;
-		set_nice_value(self.all_other_processes_in_process_group, Nice::set_current_process_group_priority, |_: ()| CouldNotSetCurrentProcessGroupPriorityNice)?;
-		set_nice_value(self.current_process_priority, Nice::set_current_process_priority, |_: ()| CouldNotSetCurrentProcessPriorityNice)?;
+		set_nice_value(self.all_other_processes_for_current_user, |nice| nice.set_user_priority(UserIdentifier::default()), |_: ()| CouldNotSetCurrentUserPriorityNice)?;
+		set_nice_value(self.all_other_processes_in_process_group, |nice| nice.set_process_group_priority(ProcessGroupIdentifierChoice::Current), |_: ()| CouldNotSetCurrentProcessGroupPriorityNice)?;
+		set_nice_value(self.current_process_priority, |nice| nice.set_process_priority(ProcessIdentifierChoice::Current), |_: ()| CouldNotSetCurrentProcessPriorityNice)?;
 
 		Ok(())
 	}

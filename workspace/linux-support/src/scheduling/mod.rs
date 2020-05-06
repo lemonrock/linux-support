@@ -8,7 +8,7 @@ use crate::paths::PathExt;
 use crate::process::{ProcessIdentifierChoice, ProcessGroupIdentifierChoice};
 use crate::strings::Radix;
 use crate::strings::parse_number::*;
-use crate::thread::ThreadIdentifierChoice;
+use crate::thread::{ThreadIdentifierChoice, ThreadIdentifier};
 use bitflags::bitflags;
 use errno::errno;
 use libc::E2BIG;
