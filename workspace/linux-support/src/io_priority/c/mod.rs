@@ -2,5 +2,17 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[cfg(not(target_arch = "mips64"))] pub(crate) const _NSIG: u32 = 65;
-#[cfg(target_arch = "mips64")] pub(crate) const _NSIG: u32 = 128;
+use libc::c_int;
+use std::cmp::Ord;
+use std::cmp::Ordering;
+use std::cmp::PartialOrd;
+use crate::syscall::SYS;
+
+
+include!("IOPRIO_.BestEffort.rs");
+include!("IOPRIO_.rs");
+include!("IOPRIO_CLASS.rs");
+include!("ioprio_get.rs");
+include!("ioprio_set.rs");
+include!("ioprio_valid.rs");
+include!("IOPRIO_WHO.rs");

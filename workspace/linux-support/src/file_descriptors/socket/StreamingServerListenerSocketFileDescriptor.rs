@@ -4,6 +4,7 @@
 
 /// Represents a server listener socket instance.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct StreamingServerListenerSocketFileDescriptor<SD: SocketData>(SocketFileDescriptor<SD>);
 
 impl<SD: SocketData> AsRawFd for StreamingServerListenerSocketFileDescriptor<SD>

@@ -4,6 +4,7 @@
 
 /// Represents a datagram socket instance server listener.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct DatagramServerListenerSocketFileDescriptor<SD: SocketData>(SocketFileDescriptor<SD>);
 
 impl<SD: SocketData> AsRawFd for DatagramServerListenerSocketFileDescriptor<SD>

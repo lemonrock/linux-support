@@ -2,5 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[cfg(not(target_arch = "mips64"))] pub(crate) const _NSIG: u32 = 65;
-#[cfg(target_arch = "mips64")] pub(crate) const _NSIG: u32 = 128;
+bitflags!
+{
+	pub(super) struct EnterFlags: u32
+	{
+		const GetEvents = IORING_ENTER_GETEVENTS;
+
+		const SubmissionQueueWakeUp = IORING_ENTER_SQ_WAKEUP;
+	}
+}

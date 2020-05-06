@@ -4,6 +4,7 @@
 
 /// Represents a streaming socket instance between a local peer and a remote peer.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct StreamingSocketFileDescriptor<SD: SocketData>(SocketFileDescriptor<SD>);
 
 impl<SD: SocketData> AsRawFd for StreamingSocketFileDescriptor<SD>

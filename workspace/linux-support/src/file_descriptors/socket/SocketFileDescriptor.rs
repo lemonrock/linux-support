@@ -4,6 +4,7 @@
 
 /// Represents a socket instance.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct SocketFileDescriptor<SD: SocketData>(RawFd, PhantomData<SD>);
 
 impl<SD: SocketData> Drop for SocketFileDescriptor<SD>

@@ -2,5 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[cfg(not(target_arch = "mips64"))] pub(crate) const _NSIG: u32 = 65;
-#[cfg(target_arch = "mips64")] pub(crate) const _NSIG: u32 = 128;
+#[inline(always)]
+pub(super) fn ioprio_get(which: c_int, who: IOPRIO_WHO) -> c_int
+{
+	let who = who as i32;
+	SYS::ioprio_get.syscall2(which as usize, who as usize) as i32
+}

@@ -2,5 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[cfg(not(target_arch = "mips64"))] pub(crate) const _NSIG: u32 = 65;
-#[cfg(target_arch = "mips64")] pub(crate) const _NSIG: u32 = 128;
+/// 8 best effort (BE) priority levels are supported.
+#[allow(dead_code)]
+pub(super) const IOPRIO_BE_NR: u32 = 8;
+
+/// Fallback best effort (BE) priority.
+#[allow(dead_code)]
+pub(super) const IOPRIO_NORM: u32 = 4;

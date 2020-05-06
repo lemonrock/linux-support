@@ -2,5 +2,14 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[cfg(not(target_arch = "mips64"))] pub(crate) const _NSIG: u32 = 65;
-#[cfg(target_arch = "mips64")] pub(crate) const _NSIG: u32 = 128;
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(u8)]
+enum IOSQE
+{
+	IOSQE_FIXED_FILE_BIT = 0,
+	IOSQE_IO_DRAIN_BIT = 1,
+	IOSQE_IO_LINK_BIT = 2,
+	IOSQE_IO_HARDLINK_BIT = 3,
+	IOSQE_ASYNC_BIT = 4,
+	IOSQE_BUFFER_SELECT_BIT = 5,
+}
