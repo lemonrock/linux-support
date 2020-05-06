@@ -48,7 +48,10 @@ pub struct ProcessConfiguration
 	#[serde(default)] pub affinity: Option<BitSet<HyperThread>>,
 
 	/// Process nice.
-	#[serde(default)] pub process_nice_configuration: ProcessNiceConfiguration,
+	#[serde(default)] pub process_nice_configuration: Option<ProcessNiceConfiguration>,
+
+	/// IO Priority (ionice / ioprio).
+	#[serde(default)] pub process_io_priority_configuration: Option<ProcessIoPriorityConfiguration>,
 
 	/// Mostly for things like block device daemons and FUSE daemons.
 	///
@@ -165,7 +168,10 @@ impl ProcessConfiguration
 		self.configure_process_affinity(proc_path)?;
 
 		// This *MUST* be called before creating new threads.
-		self.process_nice_configuration.configure(proc_path)?;
+		set_value(proc_path, |proc_path, process_nice_configuration| process_nice_configuration.configure(proc_path),self.process_nice_configuration.as_ref(), ProcessNiceConfiguration)?;
+
+		// This *MUST* be called before creating new threads.
+		set_value(proc_path, |_, process_io_priority_configuration| process_io_priority_configuration.configure(), self.process_io_priority_configuration.as_ref(), ProcessIoPriorityConfiguration)?;
 
 		self.set_io_flusher()?;
 

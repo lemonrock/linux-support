@@ -73,6 +73,7 @@ use std::thread::ThreadId;
 use std::sync::Arc;
 use terminate::Terminate;
 use std::sync::atomic::spin_loop_hint;
+use crate::io_priority::{IoPriority, RealTimeOrBestEffortIoPriorityLevel};
 
 
 /// Checks.
@@ -121,6 +122,8 @@ include!("ProcessConfiguration.rs");
 include!("ProcessConfigurationError.rs");
 include!("ProcessExecutor.rs");
 include!("ProcessExecutorError.rs");
+include!("ProcessIoPriorityConfiguration.rs");
+include!("ProcessIoPriorityConfigurationError.rs");
 include!("set_proc_sys_kernel_value.rs");
 include!("set_value.rs");
 include!("set_value_once.rs");

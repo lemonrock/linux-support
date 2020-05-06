@@ -43,6 +43,9 @@ pub enum ProcessConfigurationError
 	ProcessNiceConfiguration(ProcessNiceConfigurationError),
 
 	#[allow(missing_docs)]
+	ProcessIoPriorityConfiguration(ProcessIoPriorityConfigurationError),
+
+	#[allow(missing_docs)]
 	IoFlusher(io::Error),
 
 	#[allow(missing_docs)]
@@ -118,6 +121,8 @@ impl error::Error for ProcessConfigurationError
 
 			&ProcessNiceConfiguration(ref cause) => Some(cause),
 
+			&ProcessIoPriorityConfiguration(ref cause) => Some(cause),
+
 			&IoFlusher(ref cause) => Some(cause),
 
 			&CouldNotDisableDumpable(ref cause) => Some(cause),
@@ -176,6 +181,15 @@ impl From<ProcessNiceConfigurationError> for ProcessConfigurationError
 	fn from(error: ProcessNiceConfigurationError) -> Self
 	{
 		ProcessConfigurationError::ProcessNiceConfiguration(error)
+	}
+}
+
+impl From<ProcessIoPriorityConfigurationError> for ProcessConfigurationError
+{
+	#[inline(always)]
+	fn from(error: ProcessIoPriorityConfigurationError) -> Self
+	{
+		ProcessConfigurationError::ProcessIoPriorityConfiguration(error)
 	}
 }
 

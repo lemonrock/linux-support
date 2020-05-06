@@ -9,7 +9,7 @@ pub enum ProcessNiceConfigurationError
 	/// Could not set current process user autogroup priority niceness.
 	CouldNotSetCurrentProcessAutogroupPriorityNice(io::Error),
 
-	/// Could not set current real effective user priority niceness (permission was denied in some way).
+	/// Could not set current real user priority niceness (permission was denied in some way).
 	CouldNotSetCurrentUserPriorityNice,
 
 	/// Could not set current process group user priority niceness (permission was denied in some way).

@@ -5,7 +5,7 @@
 /// I/O priorities are supported for reads and for synchronous (`O_DIRECT` or `O_SYNC`) writes.
 ///
 /// Sometimes called I/O nice levels.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub enum IoPriority
@@ -17,7 +17,7 @@ pub enum IoPriority
 	/// Attention is required when assigning this priority class to a process, since it may become starved if higher priority processes are constantly accessing the disk.
 	Idle,
 
-	///	This is the best-effort scheduling class, which is the default for any process that hasn't set a specific I/O priority
+	///	This is the best-effort scheduling class, which is the default for any process that hasn't set a specific I/O priority.
 	///
 	/// The class data (priority) determines how much I/O bandwidth the process will get.
 	/// Best-effort priority levels are analogous to CPU nice values (see getpriority(2)).
