@@ -58,6 +58,7 @@ use std::mem::transmute;
 use terminate::Terminate;
 use std::any::Any;
 use crate::capabilities_and_privileges::{BoundingCapabilitySet, PermittedEffectiveAndInheritableCapabilitySets, AmbientCapabilitySet, lock_secure_bits_so_capabilities_are_always_enforced, AmbientCapabilityError};
+use crate::io_priority::IoPriority;
 
 
 include!("configure_global_panic_hook.rs");

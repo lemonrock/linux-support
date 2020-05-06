@@ -24,6 +24,9 @@ pub struct ThreadConfiguration
 	/// Sets the scheduler policy for the thread.
 	#[serde(default)] pub thread_scheduler: PerThreadSchedulerPolicyAndFlags,
 
+	/// Sets the IO priority (ionice or ioprio) for the thread.
+	#[serde(default)] pub io_priority: Option<IoPriority>,
+
 	#[allow(missing_docs)]
 	#[serde(default)] pub disable_transparent_huge_pages: bool,
 
@@ -41,9 +44,10 @@ impl Default for ThreadConfiguration
 		Self
 		{
 			name: Default::default(),
-			stack_size: Self::stack_size_default(),
+			stack_size: ThreadConfiguration::stack_size_default(),
 			affinity: Default::default(),
 			thread_scheduler: Default::default(),
+			io_priority: None,
 			disable_transparent_huge_pages: false,
 			capabilities: None,
 		}
@@ -83,6 +87,11 @@ impl ThreadConfiguration
 
 		self.thread_scheduler.set_for_thread(ThreadIdentifierChoice::Other(thread_identifier)).map_err(CouldNotSetSchedulerPolicyAndFlags)?;
 
+		if let Some(io_priority) = self.io_priority
+		{
+			io_priority.set_for_thread(thread_identifier).map_err(CouldNotSetIoPriority)?
+		}
+
 		Ok(())
 	}
 
@@ -99,6 +108,11 @@ impl ThreadConfiguration
 		self.affinity.set_current_thread_affinity().map_err(CouldNotSetThreadAffinity)?;
 
 		self.thread_scheduler.set_for_thread(ThreadIdentifierChoice::Current).map_err(CouldNotSetSchedulerPolicyAndFlags)?;
+
+		if let Some(io_priority) = self.io_priority
+		{
+			io_priority.set_for_thread(ThreadIdentifier::default()).map_err(CouldNotSetIoPriority)?
+		}
 
 		Ok(())
 	}

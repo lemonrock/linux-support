@@ -118,6 +118,14 @@ impl IoPriority
 	/// Returns `Err(true)` if no matching process or processes found.
 	/// Returns `Err(false)` if permission denied.
 	#[inline(always)]
+	pub fn get_for_thread(thread_identifier: ThreadIdentifier) -> Result<Self, bool>
+	{
+		Self::get(thread_identifier, IOPRIO_WHO::IOPRIO_WHO_PROCESS)
+	}
+
+	/// Returns `Err(true)` if no matching process or processes found.
+	/// Returns `Err(false)` if permission denied.
+	#[inline(always)]
 	pub fn get_for_user(user_identifier: UserIdentifier) -> Result<Self, bool>
 	{
 		Self::get(user_identifier, IOPRIO_WHO::IOPRIO_WHO_USER)
@@ -167,6 +175,14 @@ impl IoPriority
 	/// Returns `Err(true)` if no matching process or processes found.
 	/// Returns `Err(false)` if permission denied.
 	#[inline(always)]
+	pub fn set_for_thread(self, thread_identifier: ThreadIdentifier) -> Result<(), bool>
+	{
+		self.set(thread_identifier, IOPRIO_WHO::IOPRIO_WHO_PROCESS)
+	}
+
+	/// Returns `Err(true)` if no matching process or processes found.
+	/// Returns `Err(false)` if permission denied.
+	#[inline(always)]
 	pub fn set_for_user(self, user_identifier: UserIdentifier) -> Result<(), bool>
 	{
 		self.set(user_identifier, IOPRIO_WHO::IOPRIO_WHO_USER)
@@ -193,6 +209,14 @@ impl IoPriority
 	pub fn reset_to_default_for_process(process_identifier: ProcessIdentifierChoice) -> Result<(), bool>
 	{
 		Self::reset_to_default(process_identifier, IOPRIO_WHO::IOPRIO_WHO_PROCESS)
+	}
+
+	/// Returns `Err(true)` if no matching process or processes found.
+	/// Returns `Err(false)` if permission denied.
+	#[inline(always)]
+	pub fn reset_to_default_for_thread(thread_identifier: ThreadIdentifier) -> Result<(), bool>
+	{
+		Self::reset_to_default(thread_identifier, IOPRIO_WHO::IOPRIO_WHO_PROCESS)
 	}
 
 	/// Returns `Err(true)` if no matching process or processes found.

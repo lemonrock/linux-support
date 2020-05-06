@@ -57,7 +57,7 @@ impl Into<pid_t> for ThreadIdentifierChoice
 		match self
 		{
 			Current => 0,
-			Other(process_identifier) => process_identifier.into(),
+			Other(thread_identifier) => thread_identifier.into(),
 		}
 	}
 }
