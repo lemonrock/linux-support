@@ -4,7 +4,7 @@
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(C)]
-pub(super) struct __kernel_timespec
+pub(crate) struct __kernel_timespec
 {
 	/// Seconds.
 	pub(super) tv_sec: __kernel_time64_t,

@@ -4,5 +4,8 @@
 
 // Magic offsets for the application to `mmap()` the data it needs.
 pub(super) const IORING_OFF_SQ_RING: u64 = 0;
+
+#[allow(dead_code)]
 pub(super) const IORING_OFF_CQ_RING: u64 = 0x8000000;
+
 pub(super) const IORING_OFF_SQES: u64 = 0x10000000;

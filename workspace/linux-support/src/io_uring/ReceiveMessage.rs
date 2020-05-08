@@ -20,6 +20,7 @@ pub struct ReceiveMessage<'a, SD: 'a + SocketData>
 
 impl<'a, SD: 'a + SocketData> ReceiveMessage<'a, SD>
 {
+	/// New.
 	#[allow(deprecated)]
 	#[inline(always)]
 	pub fn new(pending_accept_connection: &'a mut PendingAcceptConnection<SD>, buffers: &'a [&'a mut [u8]], message_control: &'a mut [u8]) -> Self

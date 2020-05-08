@@ -2,4 +2,4 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(super) type __kernel_time64_t = c_longlong;
+pub(crate) type __kernel_time64_t = c_longlong;

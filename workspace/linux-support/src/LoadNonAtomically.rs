@@ -5,6 +5,7 @@
 /// Loads an `Atomic*` (eg `AtomicU8`) non-atomically without any synchronization.
 pub trait LoadNonAtomically
 {
+	/// Non-atomic type.
 	type NonAtomic: Sized + Copy;
 
 	/// Loads from, say, an AtomicU32 non-atomically

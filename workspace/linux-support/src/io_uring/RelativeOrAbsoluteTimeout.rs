@@ -7,7 +7,9 @@
 #[repr(u32)]
 pub enum RelativeOrAbsoluteTimeout
 {
+	/// Relative timeout.
 	Relative = 0,
 
+	/// Absolute timeout.
 	Absolute = IORING_TIMEOUT_ABS,
 }

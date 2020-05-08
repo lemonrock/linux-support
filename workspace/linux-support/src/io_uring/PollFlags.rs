@@ -7,40 +7,40 @@ bitflags!
 	/// Poll flags.
 	pub struct PollFlags: u16
 	{
-		// .
+		/// .
 		const In = POLLIN as u16;
 
-		// .
+		/// .
 		const Priority = POLLPRI as u16;
 
-		// .
+		/// .
 		const Out = POLLOUT as u16;
 
-		// .
+		/// .
 		const Error = POLLERR as u16;
 
-		// .
+		/// .
 		const HangUp = POLLHUP as u16;
 
-		// .
+		/// .
 		const NoValue = POLLNVAL as u16;
 
-		// .
+		/// .
 		const ReadNormal = POLLRDNORM as u16;
 
-		// .
+		/// .
 		const ReadBand = POLLRDBAND as u16;
 
-		// .
+		/// .
 		const WriteNormal = Self::POLLWRNORM;
 
-		// .
+		/// .
 		const WriteBand = Self::POLLWRBAND;
 
-		// .
+		/// .
 		const Message = Self::POLLMSG;
 
-		// .
+		/// .
 		const ReadHangUp = Self::POLLRDHUP;
 	}
 }

@@ -6,6 +6,7 @@
 #[repr(C)]
 pub(super) union FileOrMemoryAdvice
 {
-	file: Advice,
-	memory: MemoryAdvice,
+	pub(super) file: Advice,
+
+	pub(super) memory: MemoryAdvice,
 }

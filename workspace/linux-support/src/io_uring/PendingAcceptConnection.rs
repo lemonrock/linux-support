@@ -12,6 +12,7 @@ pub struct PendingAcceptConnection<SD: SocketData>
 
 impl<SD: SocketData> PendingAcceptConnection<SD>
 {
+	/// New.
 	#[allow(deprecated)]
 	#[inline(always)]
 	pub fn new() -> Self
