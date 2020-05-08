@@ -2,22 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// `SQE`.
+/// Submission queue entry, `SQE`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct SubmissionQueueEntry(NonNull<io_uring_sqe>);
 
 impl SubmissionQueueEntry
 {
-	/*
-		If using the registered file descriptors, there are substantive advantages
-			- they are owned solely by the Linux kernel - this is the definitive list
-			- if we use some bits in user data, we can rehydrate the kind of file descriptor.
-				- further, we can use this as an index to a specify Arena of pre-allocated memory that contains the file descriptor and all its associated stuff.
-	*/
-
-
-
-
 	#[inline(always)]
 	pub(crate) fn prepare_splice<'a>(self, user_data: u64, options: SubmissionQueueEntryOptions, io_priority: CompressedIoPriority, personality: Option<PersonalityCredentialsIdentifier>, file_descriptor_in: FileDescriptorOrigin<'a, impl SpliceSender + FileDescriptor>, offset_in: u64, file_descriptor_out: FileDescriptorOrigin<'a, impl SpliceRecipient + FileDescriptor>, offset_out: u64, number_of_bytes: u32, splice_flags: SpliceFlags)
 	{

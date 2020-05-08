@@ -82,6 +82,7 @@ mod c;
 mod non_null;
 
 
+include!("CompletionQueueEntry.rs");
 include!("CompletionQueueRing.rs");
 include!("CompletionQueueRingIterator.rs");
 include!("FileDescriptorOrigin.rs");

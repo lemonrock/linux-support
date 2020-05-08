@@ -24,7 +24,7 @@ impl ExactSizeIterator for CompletionQueueRingIterator<'_>
 
 impl<'a> Iterator for CompletionQueueRingIterator<'a>
 {
-	type Item = &'a io_uring_cqe;
+	type Item = CompletionQueueEntry<'a>;
 
 	#[inline(always)]
 	fn next(&mut self) -> Option<Self::Item>
@@ -41,7 +41,7 @@ impl<'a> Iterator for CompletionQueueRingIterator<'a>
 
 			self.head = self.head.wrapping_add(1);
 
-			Some(completion_queue_entry)
+			Some(CompletionQueueEntry(completion_queue_entry))
 		}
 	}
 }
