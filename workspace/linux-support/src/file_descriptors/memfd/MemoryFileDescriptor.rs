@@ -37,6 +37,14 @@ impl FileDescriptor for MemoryFileDescriptor
 {
 }
 
+impl MemoryMappableFileDescriptor for MemoryFileDescriptor
+{
+}
+
+impl SeekableFileDescriptor for MemoryFileDescriptor
+{
+}
+
 impl Read for MemoryFileDescriptor
 {
 	#[inline(always)]

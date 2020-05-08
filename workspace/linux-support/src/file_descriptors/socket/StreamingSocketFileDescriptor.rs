@@ -361,6 +361,15 @@ impl<SD: SocketData> StreamingSocketFileDescriptor<SD>
 	}
 }
 
+impl<SD: SocketData> SocketConnect for StreamingSocketFileDescriptor<SD>
+{
+
+}
+
+impl<SD: SocketData> NonServerSocket for StreamingSocketFileDescriptor<SD>
+{
+}
+
 impl StreamingSocketFileDescriptor<sockaddr_un>
 {
 	/// Tries to obtain remote peer credentials.

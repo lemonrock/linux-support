@@ -6,4 +6,4 @@
 // `sqe->splice_flags` extend `splice()` flags.
 
 /// the last bit of `u32`.
-const SPLICE_F_FD_IN_FIXED: u32 = 1 << 31;
+pub(super) const SPLICE_F_FD_IN_FIXED: u32 = 1 << 31;

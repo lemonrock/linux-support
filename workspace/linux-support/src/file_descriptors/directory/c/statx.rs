@@ -9,7 +9,7 @@ pub(super) fn statx_(dirfd: c_int, filename: *const c_char, flags: c_uint, mask:
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(super) struct statx
+pub(crate) struct statx
 {
 	pub(super) stx_mask: ExtendedMetadataWanted,
 	pub(super) stx_blksize: u32,

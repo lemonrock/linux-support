@@ -52,6 +52,10 @@ impl FileDescriptor for StreamingServerListenerSocketFileDescriptorEnum
 {
 }
 
+impl SocketAccept for StreamingServerListenerSocketFileDescriptorEnum
+{
+}
+
 impl FromRawFd for StreamingServerListenerSocketFileDescriptorEnum
 {
 	#[inline(always)]

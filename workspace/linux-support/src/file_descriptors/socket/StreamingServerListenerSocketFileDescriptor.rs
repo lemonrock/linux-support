@@ -38,6 +38,10 @@ impl<SD: SocketData> FileDescriptor for StreamingServerListenerSocketFileDescrip
 {
 }
 
+impl<SD: SocketData> SocketAccept for StreamingServerListenerSocketFileDescriptor<SD>
+{
+}
+
 impl<SD: SocketData> Deref for StreamingServerListenerSocketFileDescriptor<SD>
 {
 	type Target = SocketFileDescriptor<SD>;

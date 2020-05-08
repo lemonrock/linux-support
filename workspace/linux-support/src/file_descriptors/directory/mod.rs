@@ -16,7 +16,7 @@ use std::ops::RangeInclusive;
 use streaming_iterator::StreamingIterator;
 
 
-mod c;
+pub(crate) mod c;
 
 
 include!("Access.rs");

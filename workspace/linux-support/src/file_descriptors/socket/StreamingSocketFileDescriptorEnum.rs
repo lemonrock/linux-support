@@ -25,9 +25,9 @@ impl AsRawFd for StreamingSocketFileDescriptorEnum
 
 		match self
 		{
-			&InternetProtocolVersion4(ref streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.as_raw_fd(),
-			&InternetProtocolVersion6(ref streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.as_raw_fd(),
-			&UnixDomain(ref streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.as_raw_fd(),
+			&InternetProtocolVersion4(ref streaming_socket_file_descriptor) => streaming_socket_file_descriptor.as_raw_fd(),
+			&InternetProtocolVersion6(ref streaming_socket_file_descriptor) => streaming_socket_file_descriptor.as_raw_fd(),
+			&UnixDomain(ref streaming_socket_file_descriptor) => streaming_socket_file_descriptor.as_raw_fd(),
 		}
 	}
 }
@@ -41,14 +41,22 @@ impl IntoRawFd for StreamingSocketFileDescriptorEnum
 
 		match self
 		{
-			InternetProtocolVersion4(streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.into_raw_fd(),
-			InternetProtocolVersion6(streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.into_raw_fd(),
-			UnixDomain(streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.into_raw_fd(),
+			InternetProtocolVersion4(streaming_socket_file_descriptor) => streaming_socket_file_descriptor.into_raw_fd(),
+			InternetProtocolVersion6(streaming_socket_file_descriptor) => streaming_socket_file_descriptor.into_raw_fd(),
+			UnixDomain(streaming_socket_file_descriptor) => streaming_socket_file_descriptor.into_raw_fd(),
 		}
 	}
 }
 
 impl FileDescriptor for StreamingSocketFileDescriptorEnum
+{
+}
+
+impl SocketConnect for StreamingSocketFileDescriptorEnum
+{
+}
+
+impl NonServerSocket for StreamingSocketFileDescriptorEnum
 {
 }
 
@@ -85,9 +93,9 @@ impl Read for StreamingSocketFileDescriptorEnum
 
 		match self
 		{
-			&mut InternetProtocolVersion4(ref mut streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.read(buf),
-			&mut InternetProtocolVersion6(ref mut streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.read(buf),
-			&mut UnixDomain(ref mut streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.read(buf),
+			&mut InternetProtocolVersion4(ref mut streaming_socket_file_descriptor) => streaming_socket_file_descriptor.read(buf),
+			&mut InternetProtocolVersion6(ref mut streaming_socket_file_descriptor) => streaming_socket_file_descriptor.read(buf),
+			&mut UnixDomain(ref mut streaming_socket_file_descriptor) => streaming_socket_file_descriptor.read(buf),
 		}
 	}
 
@@ -98,9 +106,9 @@ impl Read for StreamingSocketFileDescriptorEnum
 
 		match self
 		{
-			&mut InternetProtocolVersion4(ref mut streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.read_vectored(bufs),
-			&mut InternetProtocolVersion6(ref mut streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.read_vectored(bufs),
-			&mut UnixDomain(ref mut streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.read_vectored(bufs),
+			&mut InternetProtocolVersion4(ref mut streaming_socket_file_descriptor) => streaming_socket_file_descriptor.read_vectored(bufs),
+			&mut InternetProtocolVersion6(ref mut streaming_socket_file_descriptor) => streaming_socket_file_descriptor.read_vectored(bufs),
+			&mut UnixDomain(ref mut streaming_socket_file_descriptor) => streaming_socket_file_descriptor.read_vectored(bufs),
 		}
 	}
 
@@ -129,9 +137,9 @@ impl Write for StreamingSocketFileDescriptorEnum
 
 		match self
 		{
-			&mut InternetProtocolVersion4(ref mut streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.write(buf),
-			&mut InternetProtocolVersion6(ref mut streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.write(buf),
-			&mut UnixDomain(ref mut streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.write(buf),
+			&mut InternetProtocolVersion4(ref mut streaming_socket_file_descriptor) => streaming_socket_file_descriptor.write(buf),
+			&mut InternetProtocolVersion6(ref mut streaming_socket_file_descriptor) => streaming_socket_file_descriptor.write(buf),
+			&mut UnixDomain(ref mut streaming_socket_file_descriptor) => streaming_socket_file_descriptor.write(buf),
 		}
 	}
 
@@ -142,9 +150,9 @@ impl Write for StreamingSocketFileDescriptorEnum
 
 		match self
 		{
-			&mut InternetProtocolVersion4(ref mut streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.write_vectored(bufs),
-			&mut InternetProtocolVersion6(ref mut streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.write_vectored(bufs),
-			&mut UnixDomain(ref mut streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.write_vectored(bufs),
+			&mut InternetProtocolVersion4(ref mut streaming_socket_file_descriptor) => streaming_socket_file_descriptor.write_vectored(bufs),
+			&mut InternetProtocolVersion6(ref mut streaming_socket_file_descriptor) => streaming_socket_file_descriptor.write_vectored(bufs),
+			&mut UnixDomain(ref mut streaming_socket_file_descriptor) => streaming_socket_file_descriptor.write_vectored(bufs),
 		}
 	}
 
@@ -167,9 +175,9 @@ impl StreamingSocketFileDescriptorEnum
 
 		match self
 		{
-			&InternetProtocolVersion4(ref streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.shutdown(),
-			&InternetProtocolVersion6(ref streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.shutdown(),
-			&UnixDomain(ref streaming_listener_socket_file_descriptor) => streaming_listener_socket_file_descriptor.shutdown(),
+			&InternetProtocolVersion4(ref streaming_socket_file_descriptor) => streaming_socket_file_descriptor.shutdown(),
+			&InternetProtocolVersion6(ref streaming_socket_file_descriptor) => streaming_socket_file_descriptor.shutdown(),
+			&UnixDomain(ref streaming_socket_file_descriptor) => streaming_socket_file_descriptor.shutdown(),
 		}
 	}
 }

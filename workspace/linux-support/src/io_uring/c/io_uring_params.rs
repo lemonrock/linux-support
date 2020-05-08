@@ -20,6 +20,7 @@ pub(super) struct io_uring_params
 
 	pub(super) features: ParametersFeatureFlags,
 
+	/// This is the file descriptor of another io_uring.
 	pub(super) wq_fd: RawFd,
 
 	pub(super) resv: [u32; 3],

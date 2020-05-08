@@ -14,5 +14,5 @@ pub(super) struct io_uring_sqe_anonymous_4_anonymous_1
 	/// `0` is interpreted as the current personality of the submitting task.
 	pub(super) personality: Option<PersonalityCredentialsIdentifier>,
 
-	pub(super) split_fd_in: RawFd,
+	pub(super) splice_fd_in: FileDescriptorKind,
 }

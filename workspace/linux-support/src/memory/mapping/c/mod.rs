@@ -8,6 +8,7 @@ use libc::c_void;
 use libc::size_t;
 
 
+include!("MADV_.rs");
 include!("MAP_32BIT.rs");
 include!("MAP_FIXED_NOREPLACE.rs");
 include!("MAP_SHARED_VALIDATE.rs");

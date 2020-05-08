@@ -22,7 +22,7 @@ bitflags!
 		const Clamp = IORING_SETUP_CLAMP;
 
 		#[allow(missing_docs)]
-		const AttachWQueue = IORING_SETUP_ATTACH_WQ;
+		const AttachWorkQueue = IORING_SETUP_ATTACH_WQ;
 	}
 }
 

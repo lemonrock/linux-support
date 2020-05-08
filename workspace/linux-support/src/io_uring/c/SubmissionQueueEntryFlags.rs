@@ -41,7 +41,7 @@ bitflags!
 		/// Implies `Link`.
 		///
 		/// Since Linux 5.5.
-		const StrongerLink = IOSQE_IO_HARDLINK;
+		const HardLink = IOSQE_IO_HARDLINK;
 
 		/// Normal operation for io_uring is to try and issue an `SubmissionQueueEntry` as non-blocking first, and if that fails, execute it in an async manner.
 		///
@@ -50,7 +50,9 @@ bitflags!
 		/// Since Linux 5.6.
 		const AlwaysGoAsynchronous = IOSQE_ASYNC;
 
-		#[allow(missing_doscs)]
+		/// Select a buffer for a read-like operation using `buf_group`.
+		///
+		/// Since Linux 5.7.
 		const SelectBufferUsingBufferGroup = IOSQE_BUFFER_SELECT;
 	}
 }

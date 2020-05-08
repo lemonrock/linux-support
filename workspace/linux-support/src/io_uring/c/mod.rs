@@ -2,11 +2,14 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::PersonalityCredentialsIdentifier;
+use super::*;
+use crate::file_descriptors::FileDescriptor;
+use crate::memory::mapping::MemoryAdvice;
 use crate::signals::c::_NSIG;
 use crate::syscall::SYS;
 use bitflags::bitflags;
 use libc::c_int;
+use libc::c_longlong;
 use libc::c_uint;
 use libc::c_void;
 use libc::sigset_t;
@@ -23,12 +26,17 @@ use std::fmt::Formatter;
 #[allow(deprecated)] use std::mem::uninitialized;
 use std::mem::zeroed;
 use std::os::unix::io::RawFd;
+use std::time::Duration;
+use crate::io_priority::CompressedIoPriority;
 
 
 include!("__kernel_rwf_t.rs");
+include!("__kernel_time64_t.rs");
+include!("__kernel_timespec.rs");
 include!("CompletionQueueEntryFlags.rs");
 include!("EnterFlags.rs");
-include!("fsync_flags.rs");
+include!("FileDescriptorKind.rs");
+include!("FileOrMemoryAdvice.rs");
 include!("io_cqring_offsets.rs");
 include!("io_sqring_offsets.rs");
 include!("io_uring_cqe.rs");
@@ -64,64 +72,6 @@ include!("ParametersFeatureFlags.rs");
 include!("ProbeFlags.rs");
 include!("RegisterOperation.rs");
 include!("SPLICE_F_.rs");
-include!("splice_flags.rs");
 include!("SetupFlags.rs");
 include!("SubmissionQueueEntryFlags.rs");
-include!("timeout_flags.rs");
-
-
-#[repr(transparent)]
-pub(super) struct SubmissionQueueEntry(io_uring_sqe);
-
-#[repr(transparent)]
-pub(super) struct CompletionQueueEntry(io_uring_cqe);
-
-
-bitflags!
-{
-	/// `sq_ring->flags`.
-	pub(super) struct SubmissionQueueRingFlags: u32
-	{
-		const NeedsIoUringEnterWakeUp = IORING_SQ_NEED_WAKEUP;
-	}
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(C)]
-pub(super) struct io_sq_ring
-{
-	pub(super) head: *mut c_int,
-
-	pub(super) tail: *mut c_int,
-
-	pub(super) ring_mask: *mut c_int,
-
-	pub(super) ring_entries: *mut c_int,
-
-	pub(super) flags: *mut SubmissionQueueRingFlags,
-
-	pub(super) array: *mut c_int,
-}
-
-impl io_sq_ring
-{
-	#[inline(always)]
-	pub(super) fn needs_submission_queue_wake_up(&self) -> bool
-	{
-		(unsafe { *self.flags }).contains(SubmissionQueueRingFlags::NeedsIoUringEnterWakeUp)
-	}
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(super) struct io_cq_ring
-{
-	pub(super) head: *mut c_int,
-
-	pub(super) tail: *mut c_int,
-
-	pub(super) ring_mask: *mut c_int,
-
-	pub(super) ring_entries: *mut c_int,
-
-	pub(super) cqes: *mut io_uring_cqe,
-}
+include!("SubmissionQueueRingFlags.rs");

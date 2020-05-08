@@ -205,8 +205,7 @@ impl SocketFileDescriptor<sockaddr_un>
 			iov_len: NothingLength,
 		};
 
-		let mut message = msghdr::new(null_mut(), 0, &mut nothing_ptr, NothingLength as u32, ancillary_data_buffer.as_mut_ptr() as *mut _, ancillary_data_buffer.len() as u32, 0);
-
+		let mut message = msghdr::new(null_mut(), 0, &mut nothing_ptr, NothingLength as i32, ancillary_data_buffer.as_mut_ptr() as *mut _, ancillary_data_buffer.len() as u32, 0);
 
 		const InvalidFileDescriptorSentinel: RawFd = -1;
 

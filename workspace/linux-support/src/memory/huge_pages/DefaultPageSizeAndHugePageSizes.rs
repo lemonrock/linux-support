@@ -86,6 +86,32 @@ impl DefaultPageSizeAndHugePageSizes
 		&self.supported_huge_page_sizes
 	}
 
+	/// Best fit.
+	///
+	/// Best fit is defined by choosing the largest huge page size that could contain `size` as long as it doesn't waste more than `inclusive_maximum_bytes_wasted`.
+	///
+	/// So, if size is `1.5Gb` and `inclusive_maximum_bytes_wasted` was, say, 1024, this would prevent a 1Gb huge page size being selected.
+	#[inline(always)]
+	pub fn best_fit_huge_page_size_if_any(&self, size: usize, inclusive_maximum_bytes_wasted: usize) -> Option<HugePageSize>
+	{
+		let size = size as u64;
+		let inclusive_maximum_bytes_wasted = inclusive_maximum_bytes_wasted as u64;
+		let mut best_fit = None;
+		for &huge_page_size in self.supported_huge_page_sizes.iter()
+		{
+			let huge_page_size_in_bytes = huge_page_size.size_in_bytes();
+
+			let bytes_wasted = size % huge_page_size_in_bytes.get();
+			if bytes_wasted > inclusive_maximum_bytes_wasted
+			{
+				continue
+			}
+
+			best_fit = Some(huge_page_size)
+		}
+		best_fit
+	}
+
 	/// Supported?
 	#[inline(always)]
 	pub fn this_or_next_smaller_supported_huge_page_size(&self, huge_page_size: HugePageSize) -> Option<HugePageSize>

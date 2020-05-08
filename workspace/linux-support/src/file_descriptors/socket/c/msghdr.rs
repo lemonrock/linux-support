@@ -10,7 +10,7 @@ pub(crate) struct msghdr
 	pub(crate) msg_name: *mut c_void,
 	pub(crate) msg_namelen: socklen_t,
 	pub(crate) msg_iov: *mut iovec,
-	pub(crate) msg_iovlen: socklen_t,
+	pub(crate) msg_iovlen: i32,
 	pub(crate) msg_control: *mut c_void,
 	pub(crate) msg_controllen: socklen_t,
 	pub(crate) msg_flags: c_int,
@@ -24,7 +24,7 @@ pub(crate) struct msghdr
 	pub(crate) msg_name: *mut c_void,
 	pub(crate) msg_namelen: socklen_t,
 	pub(crate) msg_iov: *mut iovec,
-	#[cfg(target_endian = "little")] pub(crate) msg_iovlen: socklen_t,
+	#[cfg(target_endian = "little")] pub(crate) msg_iovlen: i32,
 	#[cfg(target_endian = "little")] __pad1: u32,
 	#[cfg(target_endian = "big")] __pad1: u32,
 	#[cfg(target_endian = "big")] pub(crate) msg_iovlen: socklen_t,
@@ -48,7 +48,7 @@ impl Default for msghdr
 impl msghdr
 {
 	#[cfg(target_pointer_width = "32")]
-	pub(crate) fn new(msg_name: *mut c_void, msg_namelen: socklen_t, msg_iov: *mut iovec, msg_iovlen: socklen_t, msg_control: *mut c_void, msg_controllen: socklen_t, msg_flags: c_int) -> Self
+	pub(crate) fn new(msg_name: *mut c_void, msg_namelen: socklen_t, msg_iov: *mut iovec, msg_iovlen: i32, msg_control: *mut c_void, msg_controllen: socklen_t, msg_flags: c_int) -> Self
 	{
 		Self
 		{
@@ -63,7 +63,7 @@ impl msghdr
 	}
 
 	#[cfg(target_pointer_width = "64")]
-	pub(crate) fn new(msg_name: *mut c_void, msg_namelen: socklen_t, msg_iov: *mut iovec, msg_iovlen: socklen_t, msg_control: *mut c_void, msg_controllen: socklen_t, msg_flags: c_int) -> Self
+	pub(crate) fn new(msg_name: *mut c_void, msg_namelen: socklen_t, msg_iov: *mut iovec, msg_iovlen: i32, msg_control: *mut c_void, msg_controllen: socklen_t, msg_flags: c_int) -> Self
 	{
 		#[allow(deprecated)]
 		Self

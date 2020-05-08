@@ -67,7 +67,10 @@ use crate::inode::c::FS_IOC_GETFLAGS;
 use crate::inode::c::FS_IOC_SETFLAGS;
 use crate::inode::c::FS_IOC_GETVERSION;
 use crate::inode::c::FS_IOC_SETVERSION;
-use crate::strings::{CStringExt, FromBytes};
+use crate::paths::ProcPath;
+use crate::process::ProcessIdentifierChoice;
+use crate::strings::CStringExt;
+use crate::strings::FromBytes;
 use crate::terminal::TerminalSettingsError;
 #[allow(deprecated)] use std::mem::uninitialized;
 use arrayvec::Array;
@@ -374,8 +377,6 @@ use std::str::from_utf8;
 use std::time::Duration;
 use std::time::SystemTime;
 use std::time::UNIX_EPOCH;
-use crate::process::ProcessIdentifierChoice;
-use crate::paths::ProcPath;
 
 
 /// Block device file descriptors.
@@ -476,10 +477,12 @@ pub mod timerfd;
 include!("close_all_open_file_descriptors_apart_from_standard.rs");
 include!("CreationError.rs");
 include!("FileDescriptor.rs");
+include!("MemoryMappableFileDescriptor.rs");
 include!("InvalidPathReason.rs");
 include!("OnDiskFileDescriptor.rs");
 include!("path_bytes_without_trailing_nul.rs");
 include!("RawFdExt.rs");
+include!("SeekableFileDescriptor.rs");
 include!("SpecialFileOpenError.rs");
 include!("StructReadError.rs");
 include!("StructWriteError.rs");

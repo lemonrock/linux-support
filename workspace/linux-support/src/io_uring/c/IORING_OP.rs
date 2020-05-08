@@ -17,7 +17,8 @@ pub(super) enum IORING_OP
 
 	/// File sync.
 	///
-	/// See also fsync(2).
+	/// See also `fsync(2)`.
+	///
 	/// Note that, while I/O is initiated in the order in which it appears in the submission queue, completions are unordered.
 	/// For example, an application which places a write I/O followed by an fsync in the submission queue cannot expect the fsync to apply to the write.
 	/// The two operations execute in parallel, so the fsync may complete before the write is issued to the storage.
@@ -35,7 +36,7 @@ pub(super) enum IORING_OP
 	IORING_OP_WRITE_FIXED = 5,
 
 	/// Poll the fd specified in the submission queue entry for the events specified in the poll_events field.
-	/// Unlike poll or epoll without EPOLLONESHOT, this interface always works in one shot mode.
+	/// Unlike poll or epoll without `EPOLLONESHOT`, this interface always works in one shot mode.
 	/// That is, once the poll operation is completed, it will have to be resubmitted.
 	IORING_OP_POLL_ADD = 6,
 
@@ -111,7 +112,7 @@ pub(super) enum IORING_OP
 	///
 	/// The cancellation request will complete with one of the following results codes:-
 	///
-	/// * If found, the `res` field of the cqe will contain 0.
+	/// * If found, the `res` field of the CQE will contain 0.
 	/// * If not found, res will contain `-ENOENT`.
 	/// * If found and attempted cancelled, the res field will contain `-EALREADY`: in this case, the request may or may not terminate.
 	///
@@ -120,7 +121,16 @@ pub(super) enum IORING_OP
 	/// Since Linux 5.5.
 	IORING_OP_ASYNC_CANCEL = 14,
 
-	/// This request must be linked with another request through IOSQE_IO_LINK which is described below. Unlike IORING_OP_TIMEOUT, IORING_OP_LINK_TIMEOUT acts on the linked request, not the completion queue. The format of the command is otherwise like IORING_OP_TIMEOUT, except there's no completion event count as it's tied to a specific request. If used, the timeout specified in the command will cancel the linked command, unless the linked command completes before the timeout. The timeout will complete with -ETIME if the timer expired and the linked request was attempted cancelled, or -ECANCELED if the timer got cancelled because of completion of the linked request. Like IORING_OP_TIMEOUT the clock source used is CLOCK_MONOTONIC Available since 5.5.
+	/// This request must be linked with another request through IOSQE_IO_LINK which is described below.
+	///
+	/// Unlike IORING_OP_TIMEOUT, IORING_OP_LINK_TIMEOUT acts on the linked request, not the completion queue.
+	/// The format of the command is otherwise like IORING_OP_TIMEOUT, except there's no completion event count as it's tied to a specific request.
+	/// If used, the timeout specified in the command will cancel the linked command, unless the linked command completes before the timeout.
+	/// The timeout will complete with -ETIME if the timer expired and the linked request was attempted cancelled, or -ECANCELED if the timer got cancelled because of completion of the linked request
+	///
+	/// Like IORING_OP_TIMEOUT the clock source used is `CLOCK_MONOTONIC`.
+	///
+	/// Since Linux 5.5.
 	IORING_OP_LINK_TIMEOUT = 15,
 
 	/// Issue the equivalent of a connect(2) system call.
@@ -136,7 +146,9 @@ pub(super) enum IORING_OP
 	///
 	/// `fd` must be set to the file descriptor, `off` must contain the offset on which to operate, and `len` must contain the length.
 	///
-	/// See also fallocate(2) for the general description of the related system call.
+	/// `addr` is `AllocationMode`.
+	///
+	/// See also `fallocate(2)` for the general description of the related system call.
 	///
 	/// Since Linux 5.6.
 	IORING_OP_FALLOCATE = 17,
@@ -145,7 +157,7 @@ pub(super) enum IORING_OP
 	///
 	/// `fd` is the dirfd argument, `addr` must contain a pointer to the `*pathname` argument, `open_flags` should contain any flags passed in, and `mode` is access mode of the file.
 	///
-	/// See also openat(2) for the general description of the related system call.
+	/// See also `openat(2)` for the general description of the related system call.
 	///
 	/// Since Linux 5.6.
 	IORING_OP_OPENAT = 18,
@@ -154,7 +166,7 @@ pub(super) enum IORING_OP
 	///
 	/// `fd` is the file descriptor to be closed.
 	///
-	/// See also close(2) for the general description of the related system call.
+	/// See also `close(2)` for the general description of the related system call.
 	///
 	/// Since Linux 5.6.
 	IORING_OP_CLOSE = 19,
@@ -231,10 +243,35 @@ pub(super) enum IORING_OP
 	/// Since Linux 5.6.
 	IORING_OP_RECV = 27,
 
+	/// Issue the equivalent of a `openat2(2)` system call.
+	/// 
+	/// `fd` is the `dirfd` argument, `addr` must contain a pointer to the `*pathname` argument, `len` should contain the size of the open_how structure, and `off` should be set to the address of the open_how structure.
+	/// 
+	/// See also `openat2(2)` for the general description of the related system call.
+	///
+	/// Since Linux 5.6.
 	IORING_OP_OPENAT2 = 28,
 
+	/// Add, remove or modify entries in the interest list of `epoll()`.
+	///
+	/// See `epoll_ctl()` for details of the system call.
+	///
+	/// `fd` holds the file descriptor that represents the epoll instance, `addr` holds the file descriptor to add, remove or modify, `len` holds the operation (`EPOLL_CTL_ADD`, `EPOLL_CTL_DEL`, or `EPOLL_CTL_MOD`) to perform and, `off` holds a pointer to the `epoll_events` structure.
+	///
+	/// Since Linux 5.6.
 	IORING_OP_EPOLL_CTL = 29,
 
+	/// Issue the equivalent of a `splice(2)` system call.
+	///
+	/// `splice_fd_in` is the file descriptor to read from, `splice_off_in` is a pointer to an offset to read from, `fd` is the file descriptor to write to, `off` is a pointer to an offset to from which to start writing to.
+	/// `len` contains the number of bytes to copy.
+	/// `splice_flags` contains a bit mask for the flag field associated with the system call.
+	///
+	/// Please note that one of the file descriptors must refer to a pipe.
+	///
+	/// See also `splice(2)` for the general description of the related system call.
+	///
+	/// Since Linux 5.7.
 	IORING_OP_SPLICE = 30,
 
 	IORING_OP_PROVIDE_BUFFERS = 31,

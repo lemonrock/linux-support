@@ -2,11 +2,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-bitflags!
-{
-	pub(super) struct fsync_flags: u32
-	{
-		#[allow(missing)]
-		const DataSync = IORING_FSYNC_DATASYNC;
-	}
-}
+pub(crate) const RWF_HIPRI: u32 = 0x00000001;
+pub(crate) const RWF_DSYNC: u32 = 0x00000002;
+pub(crate) const RWF_SYNC: u32 = 0x00000004;
+pub(crate) const RWF_NOWAIT: u32 = 0x00000008;
+pub(crate) const RWF_APPEND: u32 = 0x00000010;
+
+#[allow(dead_code)]
+pub(crate) const RWF_SUPPORTED: u32 = RWF_HIPRI | RWF_DSYNC | RWF_SYNC | RWF_NOWAIT | RWF_APPEND;

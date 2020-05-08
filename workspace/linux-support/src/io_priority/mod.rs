@@ -22,5 +22,6 @@ use crate::thread::ThreadIdentifier;
 mod c;
 
 
+include!("CompressedIoPriority.rs");
 include!("IoPriority.rs");
 include!("RealTimeOrBestEffortIoPriorityLevel.rs");

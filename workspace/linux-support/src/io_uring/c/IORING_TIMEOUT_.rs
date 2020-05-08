@@ -4,4 +4,4 @@
 
 // `sqe->timeout_flags`.
 
-const IORING_TIMEOUT_ABS: u32 = 1 << 0;
+pub(super) const IORING_TIMEOUT_ABS: u32 = 1 << 0;

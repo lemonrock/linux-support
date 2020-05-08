@@ -2,11 +2,6 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-bitflags!
+impl SeekableFileDescriptor for File
 {
-	pub(super) struct timeout_flags: u32
-	{
-		#[allow(missing)]
-		const Absolute = IORING_TIMEOUT_ABS;
-	}
 }

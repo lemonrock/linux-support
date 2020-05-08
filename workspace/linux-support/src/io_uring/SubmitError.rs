@@ -2,9 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Enter error.
+/// Error submitting I/O requests.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum EnterError
+pub enum SubmitError
 {
 	/// The kernel was unable to allocate memory for the request, or otherwise ran out of resources to handle it.
 	///
@@ -15,11 +15,11 @@ pub enum EnterError
 	///
 	/// The application should wait for some completions and try again.
 	///
-	/// May occur if the application tries to queue more requests than we have room for in the Completion Queue (CQ) ring.
+	/// May occur if the application tries to queue more requests than there is room for in the Completion Queue (CQ) ring.
 	Busy,
 }
 
-impl Display for EnterError
+impl Display for SubmitError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -28,12 +28,12 @@ impl Display for EnterError
 	}
 }
 
-impl error::Error for EnterError
+impl error::Error for SubmitError
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>
 	{
-		use self::EnterError::*;
+		use self::SubmitError::*;
 
 		match self
 		{

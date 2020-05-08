@@ -4,4 +4,4 @@
 
 // `sqe->fsync_flags`.
 
-const IORING_FSYNC_DATASYNC: u32 = 1 << 0;
+pub(super) const IORING_FSYNC_DATASYNC: u32 = 1 << 0;

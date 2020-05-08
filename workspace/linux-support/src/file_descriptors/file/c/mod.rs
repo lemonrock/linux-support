@@ -13,6 +13,7 @@ include!("file_dedupe_range.rs");
 include!("FILE_DEDUPE_RANGE_.rs");
 include!("file_dedupe_range_info.rs");
 include!("flock.rs");
+include!("RWF_.rs");
 include!("SEEK_DATA.rs");
 include!("SEEK_HOLE.rs");
 include!("syncfs.rs");

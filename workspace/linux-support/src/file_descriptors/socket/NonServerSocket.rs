@@ -2,11 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-bitflags!
+// Marker trait.
+pub trait NonServerSocket: FileDescriptor
 {
-	pub(super) struct splice_flags: u32
-	{
-		#[allow(missing)]
-		const InFileDescriptorFixed = SPLICE_F_FD_IN_FIXED;
-	}
 }

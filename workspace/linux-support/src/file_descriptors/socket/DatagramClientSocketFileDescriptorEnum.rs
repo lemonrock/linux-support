@@ -67,3 +67,7 @@ impl FromRawFd for DatagramClientSocketFileDescriptorEnum
 impl FileDescriptor for DatagramClientSocketFileDescriptorEnum
 {
 }
+
+impl NonServerSocket for DatagramClientSocketFileDescriptorEnum
+{
+}

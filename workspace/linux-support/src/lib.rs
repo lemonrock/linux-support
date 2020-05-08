@@ -16,6 +16,7 @@
 #![feature(core_intrinsics)]
 #![feature(const_ptr_offset_from)]
 #![feature(const_raw_ptr_deref)]
+#![feature(const_raw_ptr_to_usize_cast)]
 #![feature(const_transmute)]
 #![feature(never_type)]
 #![feature(ptr_offset_from)]
@@ -48,6 +49,9 @@ pub mod bit_set;
 /// Vectored reads and writes.
 #[macro_use]
 pub mod vectors;
+
+
+include!("LoadNonAtomically.rs");
 
 
 /// Berkeley Packet Filter (BPF) and Extended Berkeley Packet Filter (eBPF).

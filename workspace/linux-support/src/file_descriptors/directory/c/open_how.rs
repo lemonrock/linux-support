@@ -3,7 +3,7 @@
 
 
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(super) struct open_how
+pub(crate) struct open_how
 {
 	/// `O_*` flags.
 	pub(super) flags: u64,

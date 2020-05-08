@@ -25,9 +25,9 @@ impl AsRawFd for DatagramServerListenerSocketFileDescriptorEnum
 
 		match self
 		{
-			&InternetProtocolVersion4(ref datagram_client_socket_file_descriptor) => datagram_client_socket_file_descriptor.as_raw_fd(),
-			&InternetProtocolVersion6(ref datagram_client_socket_file_descriptor) => datagram_client_socket_file_descriptor.as_raw_fd(),
-			&UnixDomain(ref datagram_client_socket_file_descriptor) => datagram_client_socket_file_descriptor.as_raw_fd(),
+			&InternetProtocolVersion4(ref datagram_server_socket_file_descriptor) => datagram_server_socket_file_descriptor.as_raw_fd(),
+			&InternetProtocolVersion6(ref datagram_server_socket_file_descriptor) => datagram_server_socket_file_descriptor.as_raw_fd(),
+			&UnixDomain(ref datagram_server_socket_file_descriptor) => datagram_server_socket_file_descriptor.as_raw_fd(),
 		}
 	}
 }
@@ -41,9 +41,9 @@ impl IntoRawFd for DatagramServerListenerSocketFileDescriptorEnum
 
 		match self
 		{
-			InternetProtocolVersion4(datagram_client_socket_file_descriptor) => datagram_client_socket_file_descriptor.into_raw_fd(),
-			InternetProtocolVersion6(datagram_client_socket_file_descriptor) => datagram_client_socket_file_descriptor.into_raw_fd(),
-			UnixDomain(datagram_client_socket_file_descriptor) => datagram_client_socket_file_descriptor.into_raw_fd(),
+			InternetProtocolVersion4(datagram_server_socket_file_descriptor) => datagram_server_socket_file_descriptor.into_raw_fd(),
+			InternetProtocolVersion6(datagram_server_socket_file_descriptor) => datagram_server_socket_file_descriptor.into_raw_fd(),
+			UnixDomain(datagram_server_socket_file_descriptor) => datagram_server_socket_file_descriptor.into_raw_fd(),
 		}
 	}
 }

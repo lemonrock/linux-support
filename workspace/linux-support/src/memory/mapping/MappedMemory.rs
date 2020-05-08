@@ -3,7 +3,7 @@
 
 
 /// A memory mapped using `mmap()`.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct MappedMemory
 {
 	virtual_address: VirtualAddress,
@@ -73,7 +73,7 @@ impl MappedMemory
 	/// As for `anonymous()`, but `offset` will be rounded up to page size.
 	/// If `rounded_up(offset) + rounded_up(length)` exceeds the length of the underlying file, then the resultant memory after the end of the file will be filled with `0x00`.
 	#[inline(always)]
-	pub fn from_file<F: Borrow<File>>(file_descriptor: &F, offset: u64, length: NonZeroU64, address_hint: AddressHint, protection: Protection, sharing: Sharing, huge_memory_page_size: Option<Option<HugePageSize>>, prefault: bool, reserve_swap_space: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, CreationError>
+	pub fn from_file<F: MemoryMappableFileDescriptor>(file_descriptor: &F, offset: u64, length: NonZeroU64, address_hint: AddressHint, protection: Protection, sharing: Sharing, huge_memory_page_size: Option<Option<HugePageSize>>, prefault: bool, reserve_swap_space: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, CreationError>
 	{
 		Self::new(Some((file_descriptor, offset)), length, address_hint, protection, sharing, huge_memory_page_size, prefault, reserve_swap_space, defaults)
 	}
@@ -148,6 +148,51 @@ impl MappedMemory
 		}
 	}
 
+	/// Advise Linux kernel of usage of this memory.
+	///
+	/// If the Linux kernel wasn't compiled with `CONFIG_ADVISE_SYSCALLS`, this system call will fail.
+	#[inline(always)]
+	pub fn advise(&self, advice: MemoryAdvice) -> io::Result<()>
+	{
+		let result = unsafe { madvise(self.virtual_address.into(), self.size, advice as i32) };
+		if likely!(result == 0)
+		{
+			Ok(())
+		}
+		else if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("madvise() returned unexpected result {}", result)
+		}
+	}
+
+	/// Does not support the following flags:-
+	///
+	/// * `PROT_SEM`: obsolete.
+	/// * `PROT_SAO`: PowerPC only support for strong access ordering.
+	/// * `PROT_GROWSUP`.
+	/// * `PROT_GROWSDOWN`.
+	#[inline(always)]
+	pub fn change_protection(&self, protection: Protection) -> io::Result<()>
+	{
+		let result = unsafe { mprotect(self.virtual_address.into(), self.size, protection as i32) };
+		if likely!(result == 0)
+		{
+			Ok(())
+		}
+		else if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("mprotect() returned unexpected result {}", result)
+		}
+	}
+
 	/// Virtual address.
 	#[inline(always)]
 	pub fn virtual_address(&self) -> VirtualAddress
@@ -205,7 +250,7 @@ impl MappedMemory
 	}
 
 	#[inline(always)]
-	fn new<F: Borrow<File>>(anonymous_or_file_descriptor: Option<(&F, u64)>, length: NonZeroU64, address_hint: AddressHint, protection: Protection, sharing: Sharing, huge_page_size: Option<Option<HugePageSize>>, prefault: bool, reserve_swap_space: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, CreationError>
+	fn new<F: MemoryMappableFileDescriptor>(anonymous_or_file_descriptor: Option<(&F, u64)>, length: NonZeroU64, address_hint: AddressHint, protection: Protection, sharing: Sharing, huge_page_size: Option<Option<HugePageSize>>, prefault: bool, reserve_swap_space: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, CreationError>
 	{
 		let (huge_page_size_flags, page_size) = HugePageSize::mmap_or_memfd_flag_bits_and_page_size(MAP_HUGETLB, huge_page_size, defaults);
 
@@ -216,7 +261,7 @@ impl MappedMemory
 		let (file_descriptor, anonymous_flags, offset_in_bytes) = match anonymous_or_file_descriptor
 		{
 			None => (-1, MAP_ANONYMOUS, 0),
-			Some((file, offset_in_bytes)) => (file.borrow().as_raw_fd(), 0, page_size.number_of_bytes_rounded_up_to_multiple_of_page_size(offset_in_bytes)),
+			Some((file, offset_in_bytes)) => (file.as_raw_fd(), 0, page_size.number_of_bytes_rounded_up_to_multiple_of_page_size(offset_in_bytes)),
 		};
 
 		let prefault_flags = if prefault

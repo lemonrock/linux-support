@@ -36,7 +36,7 @@ bitflags!
 		/// If this flag isn't set, then requests are issued with the credentials of the task that originally registered the io_uring.
 		/// If only one task is using a ring, then this flag doesn't matter as the credentials will always be the same.
 		/// Note that this is the default behavior, tasks can still register different personalities through io_uring_register(2) with IORING_REGISTER_PERSONALITY and specify the personality to use in the sqe.
-		const Personlity = IORING_FEAT_CUR_PERSONALITY;
+		const Personality = IORING_FEAT_CUR_PERSONALITY;
 
 		#[allow(missing_docs)]
 		const FastPoll = IORING_FEAT_FAST_POLL;
