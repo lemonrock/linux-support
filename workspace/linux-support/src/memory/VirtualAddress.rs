@@ -344,8 +344,9 @@ impl VirtualAddress
 		unsafe { NonNull::new_unchecked((self.0 as *mut T).add(offset)) }
 	}
 
+	/// Pointer.
 	#[inline(always)]
-	pub(crate) fn offset_in_bytes(self, offset_in_bytes: usize) -> Self
+	pub fn offset_in_bytes(self, offset_in_bytes: usize) -> Self
 	{
 		Self(self.0 + offset_in_bytes)
 	}
