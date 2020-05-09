@@ -1,6 +1,6 @@
 # linux-support
 
-[linux-support] is a Rust crate for comprehensive Linux support for namespaces, cgroups, processes, scheduling, parsing a vast number of files in `/proc` and `/sys`, signals, hyper threads, CPUS, NUMA nodes, unusual file descriptors (including pid descriptors and userfaultfd), seccomp BPF filters (including a Rust abstraction), PCI devices, atomic file renames, and much, much more.
+[linux-support] is a Rust crate for comprehensive Linux support for namespaces, cgroups, processes, scheduling, parsing a vast number of files in `/proc` and `/sys`, signals, hyper threads, CPUS, NUMA nodes, io-uring, io scheduling priority, unusual file descriptors (including pid descriptors and userfaultfd), seccomp BPF filters (including a Rust abstraction), PCI devices, atomic file renames, and much, much more.
 
 It is intended to be a holistic, very strongly typed and properly modelled library for working with Linux's non-POSIX features, with a particular focus on being a support library for a secure root daemon running a userspace networking stack that I'm developing. As a result, it's highly opionated; it happily makes use of unsafe code, nightly features and `uninitialized()`.
 
@@ -197,6 +197,6 @@ The above features may not work correctly after the use of `seccomp` to lock dow
 
 ## Licensing
 
-The license for this project is MIT.
+The license for this project is AGPL-3.0.
 
 [linux-support]: https://github.com/lemonrock/linux-support "linux-support GitHub page"

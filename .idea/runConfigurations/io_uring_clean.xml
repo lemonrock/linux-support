@@ -1,12 +1,12 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="clean" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+  <configuration default="false" name="io-uring clean" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
     <option name="channel" value="NIGHTLY" />
     <option name="command" value="clean" />
     <option name="allFeatures" value="false" />
     <option name="nocapture" value="false" />
     <option name="emulateTerminal" value="false" />
     <option name="backtrace" value="SHORT" />
-    <option name="workingDirectory" value="file://$PROJECT_DIR$/workspace/linux-support" />
+    <option name="workingDirectory" value="file://$PROJECT_DIR$/workspace/linux-io-uring" />
     <envs />
     <method v="2">
       <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
