@@ -9,6 +9,7 @@
 /// * most Linux systems have very NUMA nodes;
 /// * most never change `CONFIG_NODES_SHIFT` from its default of 6 (which gives a maximum of 64 nodes).
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct NumaNode(u16);
 

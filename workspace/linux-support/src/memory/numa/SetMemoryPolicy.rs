@@ -4,6 +4,8 @@
 
 /// Used to set a memory policy.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum SetMemoryPolicy
 {
 	/// Default.
@@ -130,7 +132,7 @@ impl SetMemoryPolicy
 	///
 	/// Does not attempt to move pages shared with other processes.
 	#[inline(always)]
-	pub fn set_address_policy_and_moves_pages(&self, address: NonNull<u8>, length: usize) -> Result<(), ()>
+	pub fn set_address_policy_and_move_pages(&self, address: NonNull<u8>, length: usize) -> Result<(), ()>
 	{
 		match self.set_address_policy_(address, length, MemoryBindFlags::MPOL_MF_MOVE | MemoryBindFlags::MPOL_MF_STRICT)
 		{

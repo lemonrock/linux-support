@@ -81,18 +81,11 @@ impl MappedMemory
 	/// Returns `Ok(true)` if memory was locked.
 	/// Returns `Ok(false)` if only some (or none) of memory was locked but locking can be retried.
 	#[inline(always)]
-	pub fn lock(&self, on_fault: bool) -> io::Result<bool>
+	pub fn lock(&self, memory_lock_settings: MemoryLockSettings) -> io::Result<bool>
 	{
 		let address: *const c_void = self.virtual_address.into();
 
-		let flags = if on_fault
-		{
-			MLOCK_ONFAULT
-		}
-		else
-		{
-			0
-		};
+		let flags = memory_lock_settings as u32;
 
 		let result = unsafe { mlock2(address, self.size, flags) };
 		if likely!(result == 0)
@@ -191,6 +184,29 @@ impl MappedMemory
 		{
 			unreachable!("mprotect() returned unexpected result {}", result)
 		}
+	}
+
+	/// Remap memory.
+	///
+	/// `new_size` is rounded up to the mapping's page size.
+	#[inline(always)]
+	pub fn remap(&mut self, new_size: NonZeroU64, hints: RemapMemoryHints) -> Result<(), ()>
+	{
+		let old_size = self.size;
+		let new_size = self.page_size.number_of_bytes_rounded_up_to_multiple_of_page_size(new_size.get()) as usize;
+
+		let (to_address, flags, new_virtual_address) = hints.to_address_and_flags(self.page_size, self.virtual_address);
+
+		let result = unsafe { mremap(self.virtual_address.into(), old_size, new_size, flags, to_address) };
+		if unlikely!(result == MAP_FAILED)
+		{
+			return Err(())
+		}
+
+		self.size = new_size;
+		self.virtual_address = new_virtual_address;
+
+		Ok(())
 	}
 
 	/// Virtual address.

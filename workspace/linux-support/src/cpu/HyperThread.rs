@@ -4,6 +4,8 @@
 
 /// Represents a logical hyper thread, which in Operating System terms is usually a logical CPU (core).
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct HyperThread(u16);
 
 bit_set_aware!(HyperThread);

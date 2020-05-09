@@ -4,6 +4,8 @@
 
 /// Address hint.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum AddressHint
 {
 	/// Let the Linux kernel choose any location.
@@ -45,6 +47,15 @@ pub enum AddressHint
 		/// Must be a multiple of the regular or huge page sized used.
 		virtual_address_required: VirtualAddress,
 	},
+}
+
+impl Default for AddressHint
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self::any()
+	}
 }
 
 impl AddressHint

@@ -4,6 +4,8 @@
 
 /// Sharing.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(i32)]
 pub enum Sharing
 {
@@ -26,4 +28,13 @@ pub enum Sharing
 	///
 	/// Internally, this uses `MAP_SHARED_VALIDATE` with `MAP_SYNC`.
 	Persistent = MAP_SHARED_VALIDATE | MAP_SYNC,
+}
+
+impl Default for Sharing
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Sharing::Private
+	}
 }

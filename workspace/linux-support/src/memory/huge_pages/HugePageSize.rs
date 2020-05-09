@@ -9,6 +9,8 @@
 /// `repr(u64)` values are in bytes.
 #[repr(u64)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[derive(EnumIter)]
 pub enum HugePageSize
 {

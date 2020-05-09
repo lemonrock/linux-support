@@ -8,6 +8,8 @@
 ///
 /// No checks are made for its validity.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct VirtualAddress(usize);
 
 impl<T> From<NonNull<T>> for VirtualAddress

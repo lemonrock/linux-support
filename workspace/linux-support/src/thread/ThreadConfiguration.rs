@@ -30,6 +30,9 @@ pub struct ThreadConfiguration
 	/// Sets the scheduler policy for the thread.
 	#[serde(default)] pub thread_scheduler: PerThreadSchedulerPolicyAndFlags,
 
+	/// NUMA memory policy.
+	#[serde(default)] numa_memory_policy: Option<SetMemoryPolicy>,
+
 	#[allow(missing_docs)]
 	#[serde(default)] pub disable_transparent_huge_pages: bool,
 
@@ -52,6 +55,7 @@ impl Default for ThreadConfiguration
 			nice: None,
 			io_priority: None,
 			thread_scheduler: Default::default(),
+			numa_memory_policy: None,
 			disable_transparent_huge_pages: false,
 			capabilities: None,
 		}
@@ -71,10 +75,17 @@ impl ThreadConfiguration
 		T: std::marker::Send + 'static,
 	{
 		let stack_size = self.stack_size.get() * PageSize::current().size_in_bytes().get();
+		let numa_memory_policy = self.numa_memory_policy.clone();
 		let disable_transparent_huge_pages = self.disable_transparent_huge_pages;
 		Builder::new().name(self.name.to_string()).stack_size(stack_size as usize).spawn(move ||
 		{
+			if let Some(ref numa_memory_policy) = numa_memory_policy
+			{
+				numa_memory_policy.set_thread_policy()
+			}
+
 			adjust_transparent_huge_pages(!disable_transparent_huge_pages);
+
 			f()
 		})
 	}
@@ -109,6 +120,11 @@ impl ThreadConfiguration
 	pub fn configure_main_thread(&self) -> Result<(), ThreadConfigurationError>
 	{
 		use self::ThreadConfigurationError::*;
+
+		if let Some(ref numa_memory_policy) = self.numa_memory_policy
+		{
+			numa_memory_policy.set_thread_policy()
+		}
 
 		adjust_transparent_huge_pages(!self.disable_transparent_huge_pages);
 

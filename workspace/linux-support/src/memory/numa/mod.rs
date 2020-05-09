@@ -32,6 +32,8 @@ use libc::ENOMEM;
 use libc::EPERM;
 use libc::ESRCH;
 use likely::*;
+use serde::Deserialize;
+use serde::Serialize;
 use std::borrow::Cow;
 use std::cmp::Ordering;
 use std::collections::HashMap;
@@ -62,6 +64,7 @@ include!("PerPageMoveError.rs");
 include!("MemoryPolicy.rs");
 include!("MemoryPolicyDynamism.rs");
 include!("SetMemoryPolicy.rs");
+include!("SetMemoryPolicyStrictness.rs");
 
 
 mod c;

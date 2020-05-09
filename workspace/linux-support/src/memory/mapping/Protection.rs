@@ -4,6 +4,8 @@
 
 /// Memory protection.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(i32)]
 pub enum Protection
 {
@@ -21,6 +23,15 @@ pub enum Protection
 
 	/// Readable, Writable and Executable (eg for generated machine code).
 	ReadWriteExecutable = PROT_READ | PROT_WRITE | PROT_EXEC,
+}
+
+impl Default for Protection
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Protection::ReadWrite
+	}
 }
 
 impl Protection
