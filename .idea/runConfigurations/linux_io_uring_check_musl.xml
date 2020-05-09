@@ -1,12 +1,12 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="support check musl" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+  <configuration default="false" name="linux-io-uring check musl" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
     <option name="channel" value="NIGHTLY" />
     <option name="command" value="check --target x86_64-unknown-linux-musl" />
     <option name="allFeatures" value="false" />
     <option name="nocapture" value="false" />
     <option name="emulateTerminal" value="false" />
     <option name="backtrace" value="FULL" />
-    <option name="workingDirectory" value="file://$PROJECT_DIR$/workspace/linux-support" />
+    <option name="workingDirectory" value="file://$PROJECT_DIR$/workspace/linux-io-uring" />
     <envs>
       <env name="CROSS_COMPILE" value="x86_64-linux-musl-" />
     </envs>

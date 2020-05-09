@@ -28,12 +28,16 @@ impl CompletionQueueEntry<'_>
 		self.0.res
 	}
 
+	/// Has buffer identifier.
 	#[inline(always)]
 	pub fn has_buffer_identifier(self) -> bool
 	{
 		self.0.has_buffer_identifier()
 	}
 
+	/// Buffer identifier.
+	///
+	/// Check `has_buffer_identifier()` first.
 	#[inline(always)]
 	pub fn buffer_identifier(self) -> u16
 	{

@@ -1,12 +1,12 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="io-uring check musl" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+  <configuration default="false" name="context-allocator build musl" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
     <option name="channel" value="NIGHTLY" />
-    <option name="command" value="check --target x86_64-unknown-linux-musl" />
+    <option name="command" value="build --target x86_64-unknown-linux-musl" />
     <option name="allFeatures" value="false" />
     <option name="nocapture" value="false" />
     <option name="emulateTerminal" value="false" />
-    <option name="backtrace" value="FULL" />
-    <option name="workingDirectory" value="file://$PROJECT_DIR$/workspace/linux-io-uring" />
+    <option name="backtrace" value="SHORT" />
+    <option name="workingDirectory" value="file://$PROJECT_DIR$/workspace/context-allocator" />
     <envs>
       <env name="CROSS_COMPILE" value="x86_64-linux-musl-" />
     </envs>

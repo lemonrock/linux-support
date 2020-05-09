@@ -4,7 +4,11 @@
 
 [workspace]
 members = [
+	"context-allocator",
+	"context-coroutine",
     "linux-io-uring",
     "linux-support",
     "linux-support-clone",
+    "magic-ring-buffer",
+    "message-dispatch",
 ]

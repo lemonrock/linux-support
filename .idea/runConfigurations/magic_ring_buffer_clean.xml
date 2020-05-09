@@ -1,15 +1,13 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="clone build musl" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+  <configuration default="false" name="magic-ring-buffer clean" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
     <option name="channel" value="NIGHTLY" />
-    <option name="command" value="build --target x86_64-unknown-linux-musl" />
+    <option name="command" value="clean" />
     <option name="allFeatures" value="false" />
     <option name="nocapture" value="false" />
     <option name="emulateTerminal" value="false" />
     <option name="backtrace" value="SHORT" />
-    <option name="workingDirectory" value="file://$PROJECT_DIR$/workspace/linux-support-clone" />
-    <envs>
-      <env name="CROSS_COMPILE" value="x86_64-linux-musl-" />
-    </envs>
+    <option name="workingDirectory" value="file://$PROJECT_DIR$/workspace/magic-ring-buffer" />
+    <envs />
     <method v="2">
       <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
     </method>

@@ -1,3 +1,15 @@
 [submodule ".cargo"]
 	path = .cargo
 	url = https://github.com/lemonrock/.cargo.git
+[submodule "workspace/magic-ring-buffer"]
+	path = workspace/magic-ring-buffer
+	url = https://github.com/lemonrock/magic-ring-buffer
+[submodule "workspace/message-dispatch"]
+	path = workspace/message-dispatch
+	url = https://github.com/lemonrock/message-dispatch
+[submodule "workspace/context-allocator"]
+	path = workspace/context-allocator
+	url = https://github.com/lemonrock/context-allocator
+[submodule "workspace/context-coroutine"]
+	path = workspace/context-coroutine
+	url = https://github.com/lemonrock/context-coroutine

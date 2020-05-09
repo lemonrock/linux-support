@@ -2,10 +2,14 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/workspace/context-allocator/context-allocator.iml" filepath="$PROJECT_DIR$/workspace/context-allocator/context-allocator.iml" />
+      <module fileurl="file://$PROJECT_DIR$/workspace/context-coroutine/context-coroutine.iml" filepath="$PROJECT_DIR$/workspace/context-coroutine/context-coroutine.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/linux-io-uring/linux-io-uring.iml" filepath="$PROJECT_DIR$/workspace/linux-io-uring/linux-io-uring.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/linux-support/linux-support.iml" filepath="$PROJECT_DIR$/workspace/linux-support/linux-support.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/linux-support-clone/linux-support-clone.iml" filepath="$PROJECT_DIR$/workspace/linux-support-clone/linux-support-clone.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/linux-support-process/linux-support-process.iml" filepath="$PROJECT_DIR$/workspace/linux-support-process/linux-support-process.iml" />
+      <module fileurl="file://$PROJECT_DIR$/workspace/magic-ring-buffer/magic-ring-buffer.iml" filepath="$PROJECT_DIR$/workspace/magic-ring-buffer/magic-ring-buffer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/workspace/message-dispatch/message-dispatch.iml" filepath="$PROJECT_DIR$/workspace/message-dispatch/message-dispatch.iml" />
     </modules>
   </component>
 </project>

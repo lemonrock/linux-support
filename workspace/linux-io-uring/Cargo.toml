@@ -23,4 +23,6 @@ const_fn_assert = "^0.1.2"
 static_assertions = "^1.1"
 
 [target.'cfg(target_os = "linux")'.dependencies]
+context-coroutine = { path = "../context-coroutine", version = "3.2.0" }
+message-dispatch = { path = "../message-dispatch", version = "0.2.0" }
 terminate = "^0.1.0"
