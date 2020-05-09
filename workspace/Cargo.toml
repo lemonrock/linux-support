@@ -4,6 +4,7 @@
 
 [workspace]
 members = [
+    "linux-io-uring",
     "linux-support",
     "linux-support-clone",
 ]
