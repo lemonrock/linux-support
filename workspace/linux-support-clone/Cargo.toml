@@ -27,5 +27,5 @@ errno = "^0.2"
 file-descriptors = "^0.9.1"
 libc = "^0.2"
 likely = "^0.1"
-linux-support = { version = "0.0.1", path = "../linux-support" }
+linux-support = { version = "0.0.2", path = "../linux-support" }
 serde = { version = "1.0", features = ["derive"] }
