@@ -51,7 +51,7 @@ impl SocketFileDescriptor<sockaddr_in>
 {
 	/// Creates a new instance of a Transmission Control Protocol (TCP) socket over Internet Protocol (IP) version 4 server listener.
 	///
-	/// `back_log` can not exceed `std::i32::MAX` and is capped by the Operating System to the value in `/proc/sys/net/core/somaxconn`.
+	/// `back_log` can not exceed `i32::MAX` and is capped by the Operating System to the value in `/proc/sys/net/core/somaxconn`.
 	///
 	/// The default value in `/proc/sys/net/core/somaxconn` is `128`.
 	#[inline(always)]
@@ -115,7 +115,7 @@ impl SocketFileDescriptor<sockaddr_in6>
 {
 	/// Creates a new instance of a Transmission Control Protocol (TCP) socket over Internet Protocol (IP) version 6 server listener.
 	///
-	/// `back_log` can not exceed `std::i32::MAX` and is capped by the Operating System to the value in `/proc/sys/net/core/somaxconn`.
+	/// `back_log` can not exceed `i32::MAX` and is capped by the Operating System to the value in `/proc/sys/net/core/somaxconn`.
 	///
 	/// The default value in `/proc/sys/net/core/somaxconn` is `128`.
 	#[inline(always)]
@@ -394,7 +394,7 @@ impl SocketFileDescriptor<sockaddr_un>
 	///
 	/// This is local socket akin to a Transmission Control Protocol (TCP) socket.
 	///
-	/// `back_log` can not exceed `std::i32::MAX` and is capped by the Operating System to the value in `/proc/sys/net/core/somaxconn`.
+	/// `back_log` can not exceed `i32::MAX` and is capped by the Operating System to the value in `/proc/sys/net/core/somaxconn`.
 	///
 	/// The default value in `/proc/sys/net/core/somaxconn` is `128`.
 	#[inline(always)]
@@ -617,7 +617,7 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 	#[inline(always)]
 	fn listen(self, back_log: u32, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketFileDescriptor<SD>, SocketListenError>
 	{
-		debug_assert!(back_log <= std::i32::MAX as u32, "back_log can not be greater than std::i32::MAX");
+		debug_assert!(back_log <= i32::MAX as u32, "back_log can not be greater than i32::MAX");
 
 		let result = unsafe { listen(self.0, back_log as i32) };
 		if likely!(result == 0)

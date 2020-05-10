@@ -539,7 +539,7 @@ impl MemoryMapEntry
 
 		let protection = match three_bytes
 		{
-			b"---" => Unaccessible,
+			b"---" => Inaccessible,
 			b"r--" => Read,
 			b"rw-" => ReadWrite,
 			b"r-x" => ReadExecutable,

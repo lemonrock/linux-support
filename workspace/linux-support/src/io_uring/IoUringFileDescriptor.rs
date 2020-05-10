@@ -554,7 +554,7 @@ impl IoUringFileDescriptor
 	pub fn register_personality(&self) -> Result<PersonalityCredentialsIdentifier, ()>
 	{
 		let result = self.register::<()>(RegisterOperation::RegisterPersonality, null_mut(), 0);
-		if likely!(result > 0 && result <= (std::u16::MAX as i32))
+		if likely!(result > 0 && result <= (u16::MAX as i32))
 		{
 			Ok(PersonalityCredentialsIdentifier(unsafe { NonZeroU16::new_unchecked(result as u16) }))
 		}

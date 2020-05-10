@@ -12,8 +12,6 @@ int getrusage(int who, struct rusage *usage) / times();
 
 Control prctl deathsig
 
-configure_global_panic_hook() needs to use the crate backtraces-rs which depends on libunwind
-
 #define FS_IOC_FSGETXATTR		_IOR('X', 31, struct fsxattr)
 #define FS_IOC_FSSETXATTR		_IOW('X', 32, struct fsxattr)
 /*

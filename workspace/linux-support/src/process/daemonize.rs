@@ -48,7 +48,7 @@ pub fn daemonize(dev_path: &DevPath)
 	stdout().redirect_to_dev_null(dev_path);
 	stderr().redirect_to_dev_null(dev_path);
 
-	redirect_file_standard_out_and_file_standard_error_to_syslog();
+	ProcessLoggingConfiguration::redirect_file_standard_out_and_file_standard_error_to_syslog();
 
 	// This first fork causes the process to be reparented to `init` (process 1).
 	//

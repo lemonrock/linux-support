@@ -71,6 +71,20 @@ impl Default for PageSize
 
 impl PageSize
 {
+	/// Exact page size multiple?
+	#[inline(always)]
+	pub fn is_an_exact_page_size_multiple_of_current_usize(value: usize) -> bool
+	{
+		Self::current().is_an_exact_page_size_multiple_usize(value)
+	}
+
+	/// Exact page size multiple?
+	#[inline(always)]
+	pub fn is_an_exact_page_size_multiple_usize(self, value: usize) -> bool
+	{
+		value % self.size_in_bytes().get() as usize == 0
+	}
+
 	/// Size in kilobytes.
 	#[inline(always)]
 	pub const fn size_in_kilobytes(self) -> NonZeroKilobyte

@@ -4,7 +4,7 @@
 
 /// Should only ever be invoked *once* from the main thread that started the process.
 ///
-/// Does not terminate the process unless the panic hook itself panicked (a double panic), in which case the exit code is `71` (BSD exit code `EX_OSERR`).
+/// Does not terminate the process unless the panic hook itself panicked (a double panic), in which case the exit code is `71` (BSD exit code `EX_OSERR`) and the proces *immediately exits* without clean up.
 #[inline(always)]
 pub fn configure_global_panic_hook(terminate: &Arc<impl Terminate + 'static>)
 {
@@ -18,30 +18,6 @@ pub fn configure_global_panic_hook(terminate: &Arc<impl Terminate + 'static>)
 			process::exit(EX_OSERR)
 		}
 
-		terminate.begin_termination_due_to_panic(panic_info);
-
-		let thread_causing_panic = thread::current();
-		let thread_name = thread_causing_panic.name().unwrap_or("(unknown thread)");
-		let thread_id = thread_causing_panic.id();
-
-		let (source_file, line_number, column_number) = match panic_info.location()
-		{
-			None => ("(unknown source file)", 0, 0),
-			Some(location) => (location.file(), location.line(), location.column())
-		};
-
-		let cause = panic_payload_to_cause(panic_info.payload());
-
-		let backtrace = Backtrace::capture();
-		let backtrace = if backtrace.status() == BacktraceStatus::Captured
-		{
-			format!("{}", backtrace).replace('\n', "|")
-		}
-		else
-		{
-			"(missing backtrace)".to_string()
-		};
-
-		ProcessLoggingConfiguration::caught_panic(thread_name, thread_id, source_file, line_number, column_number, &cause, backtrace);
+		terminate.begin_termination_due_to_panic(panic_info)
 	}));
 }

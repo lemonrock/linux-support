@@ -8,7 +8,6 @@ use crate::capabilities_and_privileges::Capability;
 use crate::cpu::*;
 use crate::file_descriptors::CreationError;
 use crate::file_descriptors::process_identifier::ProcessIdentifierFileDescriptor;
-use crate::logging::redirect_file_standard_out_and_file_standard_error_to_syslog;
 use crate::memory::numa::*;
 use crate::paths::*;
 use crate::scheduling::RoundRobinInterval;
@@ -74,6 +73,7 @@ use std::process;
 use std::ptr::write;
 use std::slice::from_raw_parts;
 use crate::file_descriptors::standard::StandardFileDescriptor;
+use crate::logging::ProcessLoggingConfiguration;
 
 
 /// `/proc/<N>/stat`.

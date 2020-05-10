@@ -177,7 +177,7 @@ The above features may not work correctly after the use of `seccomp` to lock dow
 
 ### Pipes
 
-* The use of `splice()`, `vmsplice()` and `tee()` are supported for all file descriptors where possible (including Rust's `::std::fs::File`).
+* The use of `splice()`, `vmsplice()` and `tee()` are supported for all file descriptors where possible (including Rust's `std::fs::File`).
 * To be able to use epoll with standard in (`stdin`), use `pipes_and_fifos::ReceivePipeFileDescriptor::standard_in()`.
 * To be able to use epoll with standard out (`stdout`), use `pipes_and_fifos::SendPipeFileDescriptor::standard_out()`.
 * To be able to use epoll with standard error (`stderr`), use `pipes_and_fifos::SendPipeFileDescriptor::standard_error()`.

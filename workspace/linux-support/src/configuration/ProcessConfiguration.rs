@@ -81,7 +81,7 @@ impl ProcessConfiguration
 	/// Use `ProcessExecutor::execute_securely()` after this.
 	/// Until this is used, the returned `SimpleTerminate` does not affect any thread behaviour.
 	#[inline(always)]
-	pub fn configure_assuming_file_hierarchy_standard_file_system_layout(&self, run_as_daemon: bool) -> Result<Arc<SimpleTerminate>, ProcessConfigurationError>
+	pub fn configure_assuming_file_hierarchy_standard_file_system_layout(&self, run_as_daemon: bool) -> Result<Arc<impl Terminate>, ProcessConfigurationError>
 	{
 		let sys_path = SysPath::default();
 		let proc_path = ProcPath::default();
@@ -95,7 +95,7 @@ impl ProcessConfiguration
 	/// Use `ProcessExecutor::execute_securely()` after this.
 	/// Until this is used, the returned `SimpleTerminate` does not affect any thread behaviour.
 	#[inline(always)]
-	pub fn configure(&self, run_as_daemon: bool, sys_path: &SysPath, proc_path: &ProcPath, dev_path: &DevPath, etc_path: &EtcPath) -> Result<Arc<SimpleTerminate>, ProcessConfigurationError>
+	pub fn configure(&self, run_as_daemon: bool, sys_path: &SysPath, proc_path: &ProcPath, dev_path: &DevPath, etc_path: &EtcPath) -> Result<Arc<impl Terminate>, ProcessConfigurationError>
 	{
 		use self::ProcessConfigurationError::*;
 
@@ -154,10 +154,10 @@ impl ProcessConfiguration
 			daemonize(dev_path)
 		}
 
-		let terminate = SimpleTerminate::new();
-
-		// This *MUST* be called before `configure_global_panic_hook()`.
+		// This *MUST* be called before creating `terminate`.
 		self.logging_configuration.start_logging(!run_as_daemon, &self.name);
+		let terminate = SimpleTerminate::new(ParsedPanicErrorLoggerProcessLoggingConfiguration);
+
 		configure_global_panic_hook(&terminate);
 
 		// This *MUST* be called after changing resource limits.

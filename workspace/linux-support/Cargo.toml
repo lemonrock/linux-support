@@ -33,7 +33,7 @@ bit-vec = "^0.6.1"
 either = { version = "^1.5.3", features = ["serde"] }
 errno = "^0.2"
 lazy_static = "^1.4.0"
-libc = { version = "^0.2.65", features = ["const-extern-fn", "extra_traits", "std"] }
+libc = { version = "^0.2.69", features = ["const-extern-fn", "extra_traits", "std"] }
 libc-extra = "^0.3.2"
 likely = "^0.1"
 indexmap = { version = "^1.3.2", features = ["serde-1"] }

@@ -19,7 +19,7 @@ pub enum TimestampUpdate
 	/// Construct using `TimestampUpdate::from(SystemTime)`.
 	At
 	{
-		/// Can not exceed `std::i64::MAX as u64`.
+		/// Can not exceed `i64::MAX as u64`.
 		absolute_seconds_since_unix_epoch: u64,
 
 		/// Relative to `absolute_seconds_since_unix_epoch`.
@@ -104,7 +104,7 @@ impl TimestampUpdate
 		{
 			&DoNotChange => timespec { tv_sec: unsafe { uninitialized() }, tv_nsec: UTIME_OMIT },
 			&Now => timespec { tv_sec: unsafe { uninitialized() }, tv_nsec: UTIME_NOW },
-			&At { absolute_seconds_since_unix_epoch, relative_nanoseconds } => timespec { tv_sec: absolute_seconds_since_unix_epoch.try_into().expect("We can not support times greater than std::i64::MAX"), tv_nsec: relative_nanoseconds as i64 },
+			&At { absolute_seconds_since_unix_epoch, relative_nanoseconds } => timespec { tv_sec: absolute_seconds_since_unix_epoch.try_into().expect("We can not support times greater than i64::MAX"), tv_nsec: relative_nanoseconds as i64 },
 		}
 	}
 }

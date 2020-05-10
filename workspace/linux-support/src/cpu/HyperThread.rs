@@ -125,7 +125,7 @@ impl HyperThread
 		let result = unsafe { sched_getcpu() };
 		debug_assert!(result >= 0, "sched_getcpu() was negative");
 
-		debug_assert!(result <= std::u16::MAX as i32, "sched_getcpu() was too large");
+		debug_assert!(result <= u16::MAX as i32, "sched_getcpu() was too large");
 		let result = result as u16;
 
 		debug_assert!(result < Self::LinuxMaximum);

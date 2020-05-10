@@ -22,7 +22,7 @@ impl<V> Intervals<V>
 	pub fn add_interval(&mut self, inclusive_start: u32, length: NonZeroU32, value: V)
 	{
 		let length_u64 = length.get() as u64;
-		const MaximumInclusiveIdentifierExcludingNoUser: u64 = (std::i32::MAX - 1) as u64;
+		const MaximumInclusiveIdentifierExcludingNoUser: u64 = (i32::MAX - 1) as u64;
 
 		debug_assert!((inclusive_start as u64 + length_u64) <= MaximumInclusiveIdentifierExcludingNoUser, "length is too long for inclusive_start");
 

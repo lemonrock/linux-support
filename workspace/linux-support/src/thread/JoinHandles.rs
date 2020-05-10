@@ -114,7 +114,7 @@ impl JoinHandles
 
 				if let Err(payload) = result
 				{
-					terminate_error.begin_termination_due_to_irrecoverable_error(&payload);
+					terminate_error.begin_termination_due_to_irrecoverable_error(&payload, None);
 					resume_unwind(payload)
 				}
 			}

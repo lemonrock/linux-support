@@ -21,7 +21,7 @@ impl ArrayIndexing
 	{
 		cfn_assert_eq!(step % 4, 0);
 		cfn_assert!(inclusive_maximum > inclusive_minimum);
-		cfn_assert!(inclusive_maximum < std::usize::MAX);
+		cfn_assert!(inclusive_maximum < usize::MAX);
 
 		Self
 		{

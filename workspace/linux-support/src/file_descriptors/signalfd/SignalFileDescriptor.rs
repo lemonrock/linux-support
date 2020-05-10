@@ -96,7 +96,7 @@ impl SignalFileDescriptor
 
 	/// Updates the signal mask
 	///
-	/// The `initial_value` can not be `std::u64::MAX`.
+	/// The `initial_value` can not be `u64::MAX`.
 	#[inline(always)]
 	pub fn update_mask(&self, signal_mask: &sigset_t) -> Result<(), CreationError>
 	{

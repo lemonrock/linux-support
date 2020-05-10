@@ -10,7 +10,7 @@
 pub enum Protection
 {
 	/// No access allowed.
-	Unaccessible = PROT_NONE,
+	Inaccessible = PROT_NONE,
 
 	/// Readable.
 	Read = PROT_READ,
@@ -46,7 +46,7 @@ impl Protection
 
 		match self
 		{
-			Unaccessible => open_options,
+			Inaccessible => open_options,
 			Read | ReadExecutable => open_options.read(true),
 			ReadWrite | ReadWriteExecutable=> open_options.read(true).write(true),
 		}

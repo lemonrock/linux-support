@@ -407,7 +407,7 @@ impl MemoryMapEntryStatistics
 		use self::Protection::*;
 		let our_protection = match (our_read, our_write, our_executable)
 		{
-			(None, None, None) => Unaccessible,
+			(None, None, None) => Inaccessible,
 
 			(Some(true), None, None) => Read,
 
