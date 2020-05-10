@@ -13,3 +13,6 @@
 [submodule "workspace/context-coroutine"]
 	path = workspace/context-coroutine
 	url = https://github.com/lemonrock/context-coroutine
+[submodule "workspace/terminate"]
+	path = workspace/terminate
+	url = https://github.com/lemonrock/terminate

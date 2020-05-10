@@ -43,6 +43,7 @@ use either::Either::*;
 use indexmap::set::IndexSet;
 use libc::closelog;
 use libc::LC_ALL;
+use libc::LOG_EMERG;
 use libc::LOG_CRIT;
 use libc::LOG_NDELAY;
 use libc::LOG_PERROR;

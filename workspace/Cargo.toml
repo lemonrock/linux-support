@@ -11,4 +11,5 @@ members = [
     "linux-support-clone",
     "magic-ring-buffer",
     "message-dispatch",
+    "terminate",
 ]

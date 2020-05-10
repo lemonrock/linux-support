@@ -38,6 +38,17 @@ impl ProcessLoggingConfiguration
 	///
 	/// NOTE: Using `syslog()` takes a hit of calling the `getpid()` system call and then the `send()` system call for every log message.
 	#[inline(always)]
+	pub fn fatal(name: &str, message: String)
+	{
+		let name = to_c_string_robustly(name);
+		let message = to_c_string_robustly(message);
+		unsafe { syslog(LOG_CRIT, b"%s:%s\0".as_ptr() as *const _ as *const _, name.as_ptr(), message.as_ptr()) };
+	}
+
+	/// Issues a warning (currently to syslog).
+	///
+	/// NOTE: Using `syslog()` takes a hit of calling the `getpid()` system call and then the `send()` system call for every log message.
+	#[inline(always)]
 	pub fn warn(name: &str, message: String)
 	{
 		let name = to_c_string_robustly(name);
@@ -102,7 +113,7 @@ impl ProcessLoggingConfiguration
 		let source_file = to_c_string_robustly(source_file);
 		let cause = to_c_string_robustly(cause);
 		let backtrace = to_c_string_robustly(backtrace.as_str());
-		unsafe { syslog(LOG_CRIT, b"ThreadName:%s:ThreadId:%llu:File:%s:Line:%u:Column:%u:Cause:%sBacktrace:%s\0".as_ptr() as *const _ as *const _, thread_name.as_ptr(), thread_id, source_file.as_ptr(), line_number, column_number, cause.as_ptr(), backtrace.as_ptr()) }
+		unsafe { syslog(LOG_EMERG, b"ThreadName:%s:ThreadId:%llu:File:%s:Line:%u:Column:%u:Cause:%sBacktrace:%s\0".as_ptr() as *const _ as *const _, thread_name.as_ptr(), thread_id, source_file.as_ptr(), line_number, column_number, cause.as_ptr(), backtrace.as_ptr()) }
 	}
 
 	#[inline(always)]
