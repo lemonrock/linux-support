@@ -27,6 +27,10 @@
       <sourceFolder url="file://$MODULE_DIR$/../magic-ring-buffer/examples" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../magic-ring-buffer/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/../magic-ring-buffer/benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/../terminate/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../terminate/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../terminate/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/../terminate/benches" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/../context-allocator/target" />
       <excludeFolder url="file://$MODULE_DIR$/../context-coroutine/target" />
       <excludeFolder url="file://$MODULE_DIR$/.cargo" />
@@ -34,6 +38,7 @@
       <excludeFolder url="file://$MODULE_DIR$/../linux-support/target" />
       <excludeFolder url="file://$MODULE_DIR$/../magic-ring-buffer/target" />
       <excludeFolder url="file://$MODULE_DIR$/../message-dispatch/target" />
+      <excludeFolder url="file://$MODULE_DIR$/../terminate/target" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
