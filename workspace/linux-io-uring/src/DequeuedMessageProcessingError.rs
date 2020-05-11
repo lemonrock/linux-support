@@ -2,33 +2,36 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Pending connection.
+/// Error kind.
 #[derive(Debug)]
-pub struct PendingAcceptConnection<SD: SocketData>
+pub enum DequeuedMessageProcessingError
 {
-	peer_address: SD,
-	peer_address_length: socklen_t,
+	Fatal(Box<dyn error::Error>),
+
+	CarryOn(Box<dyn error::Error>),
 }
 
-impl<SD: SocketData> PendingAcceptConnection<SD>
+impl Display for DequeuedMessageProcessingError
 {
-	/// New.
-	#[allow(deprecated)]
 	#[inline(always)]
-	pub fn new() -> Self
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
 	{
-
-		Self
-		{
-			peer_address: unsafe { uninitialized() },
-			peer_address_length: Self::SocketDataLength(),
-		}
+		Debug::fmt(self, f)
 	}
-	
-	// Rust bug (as of 1.30) prevents this being a constant.
+}
+
+impl error::Error for DequeuedMessageProcessingError
+{
 	#[inline(always)]
-	pub(crate) fn SocketDataLength() -> socklen_t
+	fn source(&self) -> Option<&(dyn error::Error + 'static)>
 	{
-		size_of::<SD>() as socklen_t
+		use self::DequeuedMessageProcessingError::*;
+
+		match self
+		{
+			&Fatal(ref cause) => Some(&cause),
+
+			&CarryOn(ref cause) => Some(&cause),
+		}
 	}
 }

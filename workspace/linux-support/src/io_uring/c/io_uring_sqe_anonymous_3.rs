@@ -17,9 +17,9 @@ pub(super) union io_uring_sqe_anonymous_3
 	pub(super) fsync_flags: FSyncFlags,
 
 	/// The bits that may be set are defined in `<poll.h>`, and documented in `poll()`.
-	pub(super) poll_events: PollFlags,
+	pub(super) poll_events: PollRequestFlags,
 
-	pub(super) sync_range_flags: u32,
+	pub(super) sync_range_flags: SynchronizeFileRangeFlags,
 
 	/// Can be either of:-
 	///

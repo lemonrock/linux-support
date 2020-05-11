@@ -230,9 +230,9 @@ impl<SD: SocketData> StreamingSocketFileDescriptor<SD>
 	///
 	/// This particular implementation can only return an `io::ErrorKind` of:-
 	///
-	/// * `UnexpectedEof`
-	/// * `WouldBlock`
-	/// * `Interrupted`
+	/// * `UnexpectedEof`.
+	/// * `WouldBlock`.
+	/// * `Interrupted`.
 	/// * `Other` (which is for when the kernel reports `ENOMEM`, ie it is out of memory).
 	/// * `ConnectionReset` (seems to be posible in some circumstances for Unix domain sockets).
 	/// * `ConnectionRefused` (only can happen for TCP client sockets; can not happen for sockets `accept()`ed by a server listener).
@@ -294,13 +294,13 @@ impl<SD: SocketData> StreamingSocketFileDescriptor<SD>
 	///
 	/// This particular implementation can only return an `io::ErrorKind` of:-
 	///
-	/// * `WriteZero`
-	/// * `WouldBlock`
-	/// * `Interrupted`
+	/// * `WriteZero`.
+	/// * `WouldBlock`.
+	/// * `Interrupted`.
 	/// * `Other` (which is for when the kernel reports `ENOMEM` or `ENOBUFS`, ie it is out of memory).
-	/// * `BrokenPipe`
+	/// * `BrokenPipe`.
 	/// * `PermissionDenied` (only for Unix domain sockets).
-	/// * `ConnectionReset`
+	/// * `ConnectionReset`.
 	#[inline(always)]
 	pub fn send_to(&self, buf: &[u8]) -> io::Result<usize>
 	{

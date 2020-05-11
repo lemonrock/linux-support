@@ -140,6 +140,8 @@ pub mod linux_kernel_command_line;
 /// Support for functions such as `io_submit()` in `linuxaio.h`.
 ///
 /// This is *NOT* POSIX AIO.
+///
+/// Very basic support.
 pub mod linux_kernel_asynchronous_io;
 
 
@@ -186,6 +188,10 @@ pub mod mounts;
 
 /// Namespaces.
 pub mod namespaces;
+
+
+/// Very basic `poll` support.
+pub mod poll;
 
 
 /// Nice.

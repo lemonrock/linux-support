@@ -62,18 +62,15 @@ impl<SD: SocketData> StreamingServerListenerSocketFileDescriptor<SD>
 		use self::SocketAcceptError::*;
 		use self::ConnectionFailedReason::*;
 
-		// Rust bug (as of 1.30) prevents this being a constant.
-		let SocketDataLength: socklen_t = size_of::<SD>() as socklen_t;
-
 		#[allow(deprecated)]
 		let mut peer_address: SD = unsafe { uninitialized() };
-		let mut peer_address_length = SocketDataLength;
+		let mut peer_address_length = PendingAcceptConnection::SocketDataLength();
 
 		let result = unsafe { accept4(self.as_raw_fd(), &mut peer_address as *mut _ as *mut _, &mut peer_address_length, SOCK_NONBLOCK | SOCK_CLOEXEC) };
 
 		if likely!(result == 0)
 		{
-			debug_assert_eq!(peer_address_length, SocketDataLength, "peer_address was truncated");
+			debug_assert_eq!(peer_address_length, PendingAcceptConnection::SocketDataLength(), "peer_address was truncated");
 
 			Ok
 			(

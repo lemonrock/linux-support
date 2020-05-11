@@ -2,33 +2,20 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Pending connection.
-#[derive(Debug)]
-pub struct PendingAcceptConnection<SD: SocketData>
-{
-	peer_address: SD,
-	peer_address_length: socklen_t,
-}
+use self::c::*;
+use libc::POLLERR;
+use libc::POLLHUP;
+use libc::POLLIN;
+use libc::POLLNVAL;
+use libc::POLLOUT;
+use libc::POLLPRI;
+use libc::POLLRDBAND;
+use libc::POLLRDNORM;
+use std::mem::transmute;
 
-impl<SD: SocketData> PendingAcceptConnection<SD>
-{
-	/// New.
-	#[allow(deprecated)]
-	#[inline(always)]
-	pub fn new() -> Self
-	{
 
-		Self
-		{
-			peer_address: unsafe { uninitialized() },
-			peer_address_length: Self::SocketDataLength(),
-		}
-	}
-	
-	// Rust bug (as of 1.30) prevents this being a constant.
-	#[inline(always)]
-	pub(crate) fn SocketDataLength() -> socklen_t
-	{
-		size_of::<SD>() as socklen_t
-	}
-}
+mod c;
+
+
+include!("PollRequestFlags.rs");
+include!("PollResponseFlags.rs");

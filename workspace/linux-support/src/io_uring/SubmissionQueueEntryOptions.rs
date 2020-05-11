@@ -13,12 +13,12 @@ bitflags!
 		const FlushPrevious = IOSQE_IO_DRAIN;
 
 		/// This submission, along with any immediately subsequent or future forms a chain which should complete together.
-		const Chain = IOSQE_IO_LINK;
+		const Link = IOSQE_IO_LINK;
 
 		/// This submission, along with any immediately subsequent or future forms a chain which should complete together.
 		///
-		/// Implies `Chain`.
-		const StrongChain = IOSQE_IO_LINK | IOSQE_IO_HARDLINK;
+		/// Implies `Link`.
+		const StrongLink = IOSQE_IO_LINK | IOSQE_IO_HARDLINK;
 
 		/// Force completion to not be undertaken non-blocking but using asynchronous internal Linux kernel threads.
 		const ForceAsynchronous = IOSQE_ASYNC;

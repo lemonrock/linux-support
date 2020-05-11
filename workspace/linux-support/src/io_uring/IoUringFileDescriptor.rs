@@ -228,14 +228,14 @@ impl IoUringFileDescriptor
 	///
 	/// An application can increase or decrease the size or number of registered buffers by first unregistering the existing buffers, and then issuing a new call to `io_uring_register()` with the new buffers.
 	///
-	/// Note that registering buffers will wait for the ring to idle. If the application currently has requests in-flight, the registration will wait for those to finish before proceeding.
+	/// Note that registering buffers will wait for the ring to idle.
+	/// If the application currently has requests in-flight, the registration will wait for those to finish before proceeding.
 	///
 	/// An application need not unregister buffers explicitly before shutting down the io_uring instance.
 	///
 	/// This is a system call.
 	///
 	/// Since Linux 5.1.
-	// TODO: Lifetime of passed buffers.
 	#[inline(always)]
 	pub fn register_buffers(&self, buffers: &[&mut [u8]]) -> io::Result<()>
 	{
@@ -297,7 +297,6 @@ impl IoUringFileDescriptor
 	/// This is a system call.
 	///
 	/// Since Linux 5.1.
-	// TODO: Lifetime of passed file descriptors.
 	#[inline(always)]
 	pub fn register_file_descriptors(&self, files_descriptors: &[SupportedFileDescriptor]) -> io::Result<()>
 	{
@@ -391,7 +390,7 @@ impl IoUringFileDescriptor
 		}
 	}
 
-	/// It's possible to use an EventFileDescriptor to get notified of completion events on an io_uring instance.
+	/// It's possible to use an `EventFileDescriptor` to get notified of completion events on an io_uring instance.
 	///
 	/// The event file descriptor is automatically released on drop.
 	///
@@ -425,7 +424,7 @@ impl IoUringFileDescriptor
 		}
 	}
 
-	/// It's possible to use an EventFileDescriptor to get notified of completion events on an io_uring instance.
+	/// It's possible to use an `EventFileDescriptor` to get notified of completion events on an io_uring instance.
 	///
 	/// The event file descriptor is automatically released on drop.
 	///

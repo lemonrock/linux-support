@@ -13,6 +13,7 @@ use crate::user_and_groups::GroupIdentifier;
 use crate::vectors::VectoredRead;
 use crate::vectors::VectoredWrite;
 use crate::cpu::HyperThread;
+use crate::io_uring::PendingAcceptConnection;
 
 
 /// Contains essential data structures.

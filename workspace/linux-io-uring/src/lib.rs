@@ -22,45 +22,21 @@ assert_cfg!(target_os = "linux");
 assert_cfg!(target_pointer_width = "64");
 
 
-
+use linux_support::logging::ProcessLoggingConfiguration;
+use linux_support::logging::SyslogPriority;
+use linux_support::thread::ThreadFunction;
+use linux_support::thread::ThreadLoopBodyFunction;
 use message_dispatch::PerThreadQueueSubscriber;
-use std::fmt::Debug;
-use terminate::Terminate;
 use std::error;
+use std::fmt;
+use std::fmt::Debug;
+use std::fmt::Display;
+use std::fmt::Formatter;
 use std::sync::Arc;
+use terminate::Terminate;
+use std::mem::{size_of, zeroed, transmute};
+use linux_support::io_uring::IoUring;
 
-// These arg
-type MessageHandlerArgumentsWhichMustBeCommonToAllPossibleMessageTypes = ();
-type DequeuedMessageProcessingErrorWhichMustBeCommonToAllPossibleMessageTypes = DequeuedMessageProcessingError;
 
-pub struct ThreadLoop<T: Terminate>
-{
-	terminate: Arc<T>,
-	incoming_messages_queue: PerThreadQueueSubscriber<T, MessageHandlerArgumentsWhichMustBeCommonToAllPossibleMessageTypes, DequeuedMessageProcessingErrorWhichMustBeCommonToAllPossibleMessageTypes>,
-}
-
-impl<T: Terminate> ThreadLoopBodyFunction for ThreadLoop<T>
-{
-	fn invoke(&mut self)
-	{
-		use self::DequeuedMessageProcessingError::*;
-
-		let message_handler_arguments = ();
-		let result = self.incoming_messages_queue.receive_and_handle_messages(message_handler_arguments);
-		match result
-		{
-			Err(Fatal(ref cause)) => self.terminate.begin_termination_due_to_irrecoverable_error(cause),
-
-			Err(CarryOn(ref cause)) => ProcessLoggingConfiguration::warn("CarryOn", format!("{}", cause)),
-
-			Ok(()) => (),
-		}
-	}
-}
-
-pub enum DequeuedMessageProcessingError
-{
-	Fatal(Box<error::Error>),
-
-	CarryOn(Box<error::Error>),
-}
+include!("DequeuedMessageProcessingError.rs");
+include!("ThreadLoop.rs");

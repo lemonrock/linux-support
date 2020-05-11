@@ -46,12 +46,14 @@ pub trait Synchronize: AsRawFd + Seek + FileExt
 		{
 			match errno().0
 			{
-				EBADF => panic!("fd is not a valid file descriptor"),
-				EINVAL => panic!("flags specifies an invalid bit; or offset or nbytes is invalid"),
 				EIO => Err(true),
 				ENOMEM => Err(false),
 				ENOSPC => Err(true),
+				
+				EBADF => panic!("fd is not a valid file descriptor"),
+				EINVAL => panic!("flags specifies an invalid bit; or offset or nbytes is invalid"),
 				ESPIPE => panic!("fd refers to something other than a regular file, a block device, a directory, or a symbolic link"),
+				
 				unexpected @ _ => panic!("Unexpected error {} for sync_file_range()", unexpected)
 			}
 
