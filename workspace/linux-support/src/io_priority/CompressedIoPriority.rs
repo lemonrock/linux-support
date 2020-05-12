@@ -23,7 +23,7 @@ impl From<Option<IoPriority>> for CompressedIoPriority
 	{
 		match value
 		{
-			None => Self(0),
+			None => Self::Irrelevant,
 			Some(value) => Self::from(value)
 		}
 	}
@@ -36,4 +36,10 @@ impl Into<Option<IoPriority>> for CompressedIoPriority
 	{
 		IoPriority::parse_ioprio(self.0).unwrap()
 	}
+}
+
+impl CompressedIoPriority
+{
+	/// Irrelevant.
+	pub const Irrelevant: Self = Self(0);
 }

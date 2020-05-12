@@ -11,6 +11,9 @@ pub enum EPollAddError
 
 	/// The limit imposed by `/proc/sys/fs/epoll/max_user_watches` would be exceeded.
 	LimitOnWatchesWouldBeExceeded,
+
+	/// `EINTR` or `EAGAIN` in io_uring.
+	TryAgain,
 }
 
 impl Display for EPollAddError

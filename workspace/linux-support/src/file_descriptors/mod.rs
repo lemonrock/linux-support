@@ -481,6 +481,7 @@ include!("MemoryMappableFileDescriptor.rs");
 include!("InvalidPathReason.rs");
 include!("OnDiskFileDescriptor.rs");
 include!("path_bytes_without_trailing_nul.rs");
+include!("PipeLikeFileDescriptor.rs");
 include!("RawFdExt.rs");
 include!("SeekableFileDescriptor.rs");
 include!("SpecialFileOpenError.rs");

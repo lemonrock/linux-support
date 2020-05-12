@@ -50,9 +50,9 @@ pub(super) struct io_uring_sqe
 impl io_uring_sqe
 {
 	#[inline(always)]
-	pub(super) fn prepare(&mut self, ioring_operation: IORING_OP, file_descriptor: FileDescriptorOrigin<impl FileDescriptor>, address: u64, length: u32, offset: u64, flags: SubmissionQueueEntryFlags, personality: Option<PersonalityCredentialsIdentifier>, io_priority: CompressedIoPriority, user_data: u64)
+	pub(super) fn prepare(&mut self, ioring_operation: IORING_OP, file_descriptor: FileDescriptorOrigin<impl FileDescriptor>, address: u64, length: u32, offset: u64, flags: SubmissionQueueEntryFlags, personality: Option<PersonalityCredentialsIdentifier>, io_priority: CompressedIoPriority, user_data: u64, using_kernel_submission_queue_poll: bool)
 	{
-		let (fd, flags) = file_descriptor.into_and_adjust_flags(flags);
+		let (fd, flags) = file_descriptor.into_and_adjust_flags(flags, using_kernel_submission_queue_poll);
 
 		self.opcode = ioring_operation;
 		self.flags = flags;

@@ -6,10 +6,10 @@ bitflags!
 {
 	pub(super) struct SetupFlags: u32
 	{
-		#[allow(missing_docs)]
+		/// Using this causes many, many kinds of io_uring operations to be unusable.
 		const IoPoll = IORING_SETUP_IOPOLL;
 
-		#[allow(missing_docs)]
+		/// Using this requires a kernel thread and to *only* use registered file descriptors.
 		const SubmissionQueuePoll = IORING_SETUP_SQPOLL;
 
 		/// Requires `SubmissionQueuePoll` to be specified.

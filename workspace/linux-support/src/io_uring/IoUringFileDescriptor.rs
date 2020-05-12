@@ -4,23 +4,28 @@
 
 /// An io_uring file descriptor.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct IoUringFileDescriptor(RawFd);
+pub(crate) struct IoUringFileDescriptor
+{
+	raw_file_descriptor: RawFd,
+	using_kernel_submission_queue_poll: bool,
+	using_io_poll: bool,
+}
 
 impl Drop for IoUringFileDescriptor
 {
 	#[inline(always)]
 	fn drop(&mut self)
 	{
-		self.0.close()
+		self.raw_file_descriptor.close()
 	}
 }
 
 impl FromRawFd for IoUringFileDescriptor
 {
 	#[inline(always)]
-	unsafe fn from_raw_fd(fd: RawFd) -> Self
+	unsafe fn from_raw_fd(_raw_file_descriptor: RawFd) -> Self
 	{
-		Self(fd)
+		unimplemented!("Can not be implemented")
 	}
 }
 
@@ -29,7 +34,7 @@ impl IntoRawFd for IoUringFileDescriptor
 	#[inline(always)]
 	fn into_raw_fd(self) -> RawFd
 	{
-		self.0
+		self.raw_file_descriptor
 	}
 }
 
@@ -38,7 +43,7 @@ impl AsRawFd for IoUringFileDescriptor
 	#[inline(always)]
 	fn as_raw_fd(&self) -> RawFd
 	{
-		self.0
+		self.raw_file_descriptor
 	}
 }
 
@@ -52,19 +57,20 @@ impl MemoryMappableFileDescriptor for IoUringFileDescriptor
 
 impl IoUringFileDescriptor
 {
-	/// `kernel_submission_queue_thread_runs_on` must be online.
+	/// Using a kernel thread requires the `CAP_SYS_ADMIN` capability.
 	/// `number_of_submission_queue_entries` can be thought of as the submission queue depth; it is clamped to a maximum of 32,768.
 	/// `number_of_completion_queue_entries` can be thought of as the completion queue depth; if unspecified, it defaults to double the `number_of_submission_queue_entries` up to a maximum of 65,536.
+	///
 	#[allow(deprecated)]
-	fn new(number_of_submission_queue_entries: NonZeroU16, number_of_completion_queue_entries: Option<NonZeroU32>, put_kernel_submission_queue_thread_to_sleep_after_milliseconds: u32, kernel_submission_queue_thread_runs_on: HyperThread, shared_work_queue: Option<&Self>) -> io::Result<(Self, io_uring_params)>
+	fn new(number_of_submission_queue_entries: NonZeroU16, number_of_completion_queue_entries: Option<NonZeroU32>, kernel_submission_queue_thread_configuration: Option<&LinuxKernelSubmissionQueuePollingThreadConfiguration>, shared_work_queue: Option<&Self>) -> io::Result<(Self, io_uring_params)>
 	{
 		const IORING_MAX_ENTRIES: u32 = 32768;
 		const IORING_MAX_CQ_ENTRIES: u32 = 2 * IORING_MAX_ENTRIES;
 
 		let number_of_submission_queue_entries = number_of_submission_queue_entries.get() as u32;
 		debug_assert!(number_of_submission_queue_entries < IORING_MAX_ENTRIES);
-
-		let mut setup_flags = SetupFlags::SubmissionQueuePoll | SetupFlags::SubmissionQueueAffinity | SetupFlags::Clamp;
+		
+		let (sq_thread_cpu, sq_thread_idle, mut flags) = LinuxKernelSubmissionQueuePollingThreadConfiguration::configure(kernel_submission_queue_thread_configuration, SetupFlags::Clamp);
 
 		let mut parameters = io_uring_params
 		{
@@ -74,22 +80,20 @@ impl IoUringFileDescriptor
 				None => unsafe { uninitialized() },
 				Some(number_of_completion_queue_entries) =>
 				{
-					setup_flags |= SetupFlags::CompletionQueueSize;
+					flags |= SetupFlags::CompletionQueueSize;
 					let number_of_completion_queue_entries = number_of_completion_queue_entries.get();
 					debug_assert!(number_of_completion_queue_entries <= IORING_MAX_CQ_ENTRIES, "number_of_completion_queue_entries {} exceeds IORING_MAX_CQ_ENTRIES {}", number_of_completion_queue_entries, IORING_MAX_CQ_ENTRIES);
 					number_of_completion_queue_entries
 				}
 			},
 
-			// Specified if `flags` contains `SetupFlags::SubmissionQueueAffinity`.
-			sq_thread_cpu: kernel_submission_queue_thread_runs_on.into(),
+			sq_thread_cpu,
 
-			// Specified if `flags` contains `SetupFlags::SubmissionQueuePoll`.
-			sq_thread_idle: put_kernel_submission_queue_thread_to_sleep_after_milliseconds,
-
+			sq_thread_idle,
+			
 			wq_fd: if let Some(shared_work_queue) = shared_work_queue
 			{
-				setup_flags |= SetupFlags::AttachWorkQueue;
+				flags |= SetupFlags::AttachWorkQueue;
 				shared_work_queue.as_raw_fd()
 			}
 			else
@@ -97,7 +101,7 @@ impl IoUringFileDescriptor
 				unsafe { zeroed() }
 			},
 
-			flags: setup_flags,
+			flags,
 
 			features: unsafe { zeroed() },
 			resv: unsafe { zeroed() },
@@ -116,7 +120,14 @@ impl IoUringFileDescriptor
 				panic!("Essential features coded for not supported (instead {:?} is supported", features)
 			}
 
-			Ok((Self(result), parameters))
+			let this = Self
+			{
+				raw_file_descriptor: result,
+				using_kernel_submission_queue_poll: flags.contains(SetupFlags::SubmissionQueuePoll),
+				using_io_poll: flags.contains(SetupFlags::IoPoll),
+			};
+			
+			Ok((this, parameters))
 		}
 		else if likely!(result == -1)
 		{
@@ -149,7 +160,6 @@ impl IoUringFileDescriptor
 	fn enter(&self, minimum_wanted_to_complete: Option<NonZeroU32>, submission_queue_ring: &SubmissionQueueRing, temporary_thread_signal_mask: Option<NonNull<sigset_t>>) -> Result<u32, SubmitError>
 	{
 		let to_submit = submission_queue_ring.length();
-		let wake_up_kernel_submission_queue_poll_thread = submission_queue_ring.needs_to_wake_up_kernel_submission_queue_poll_thread();
 
 		let (mut flags, minimum_wanted_to_complete) = match minimum_wanted_to_complete
 		{
@@ -157,11 +167,9 @@ impl IoUringFileDescriptor
 			Some(minimum_wanted_to_complete) => (EnterFlags::GetEvents, minimum_wanted_to_complete.get()),
 		};
 
-		// This logic is broken if *NOT* using a kernel thread for submission queue polling.
-		const AssumeUsingKernelThreadForSubmissionQueuePolling: bool = true;
-		if likely!(AssumeUsingKernelThreadForSubmissionQueuePolling)
+		if self.using_kernel_submission_queue_poll
 		{
-			if wake_up_kernel_submission_queue_poll_thread
+			if submission_queue_ring.needs_to_wake_up_kernel_submission_queue_poll_thread()
 			{
 				flags |= EnterFlags::SubmissionQueueWakeUp
 			}
@@ -171,12 +179,8 @@ impl IoUringFileDescriptor
 				return Ok(to_submit)
 			}
 		}
-		else
-		{
-			debug_assert_eq!(wake_up_kernel_submission_queue_poll_thread, false)
-		}
 
-		let result = io_uring_enter(self.0, to_submit, minimum_wanted_to_complete, flags, unsafe { transmute(temporary_thread_signal_mask) });
+		let result = io_uring_enter(self.raw_file_descriptor, to_submit, minimum_wanted_to_complete, flags, unsafe { transmute(temporary_thread_signal_mask) });
 		if likely!(result >= 0)
 		{
 			Ok(result as u32)
@@ -620,6 +624,6 @@ impl IoUringFileDescriptor
 	#[inline(always)]
 	fn register<Argument>(&self, register_operation: RegisterOperation, arguments: *mut Argument, length: u32) -> i32
 	{
-		io_uring_register(self.0, register_operation, arguments as *mut c_void, length)
+		io_uring_register(self.raw_file_descriptor, register_operation, arguments as *mut c_void, length)
 	}
 }

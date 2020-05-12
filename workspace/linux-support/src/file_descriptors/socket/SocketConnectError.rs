@@ -32,6 +32,11 @@ pub enum SocketConnectError
 
 	/// The system call was interrupted by a signal that was caught.
 	Interrupted,
+
+	/// Out of kernel memory.
+	///
+	/// io_uring specific.
+	OutOfKernelMemory,
 }
 
 impl Display for SocketConnectError

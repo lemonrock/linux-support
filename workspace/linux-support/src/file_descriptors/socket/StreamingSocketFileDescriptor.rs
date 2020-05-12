@@ -59,6 +59,11 @@ impl<SD: SocketData> VectoredWrite for StreamingSocketFileDescriptor<SD>
 	vectored_write!();
 }
 
+impl<SD: SocketData> PipeLikeFileDescriptor for StreamingSocketFileDescriptor<SD>
+{
+
+}
+
 impl<SD: SocketData> SpliceRecipient for StreamingSocketFileDescriptor<SD>
 {
 }

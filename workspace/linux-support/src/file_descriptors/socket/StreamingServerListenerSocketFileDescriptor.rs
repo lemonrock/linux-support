@@ -64,13 +64,13 @@ impl<SD: SocketData> StreamingServerListenerSocketFileDescriptor<SD>
 
 		#[allow(deprecated)]
 		let mut peer_address: SD = unsafe { uninitialized() };
-		let mut peer_address_length = PendingAcceptConnection::SocketDataLength();
+		let mut peer_address_length = PendingAcceptConnection::<SD>::SocketDataLength();
 
 		let result = unsafe { accept4(self.as_raw_fd(), &mut peer_address as *mut _ as *mut _, &mut peer_address_length, SOCK_NONBLOCK | SOCK_CLOEXEC) };
 
 		if likely!(result == 0)
 		{
-			debug_assert_eq!(peer_address_length, PendingAcceptConnection::SocketDataLength(), "peer_address was truncated");
+			debug_assert_eq!(peer_address_length, PendingAcceptConnection::<SD>::SocketDataLength(), "peer_address was truncated");
 
 			Ok
 			(

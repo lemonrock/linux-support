@@ -4,13 +4,13 @@
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(C)]
-pub(crate) struct __kernel_timespec
+pub struct __kernel_timespec
 {
 	/// Seconds.
-	pub(super) tv_sec: __kernel_time64_t,
+	tv_sec: __kernel_time64_t,
 
 	/// Nanoseconds (but 1 less than the value in a second).
-	pub(super) tv_nsec: c_longlong,
+	tv_nsec: c_longlong,
 }
 
 impl From<Duration> for __kernel_timespec

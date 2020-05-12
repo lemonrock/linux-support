@@ -43,6 +43,10 @@ impl OnDiskFileDescriptor for TerminalFileDescriptor
 {
 }
 
+impl PipeLikeFileDescriptor for TerminalFileDescriptor
+{
+}
+
 impl SpliceRecipient for TerminalFileDescriptor
 {
 }

@@ -19,10 +19,10 @@ impl<'a> IoUring<'a>
 	///
 	/// This is an expensive operation involving several system calls.
 	#[inline(always)]
-	pub fn new(defaults: &DefaultPageSizeAndHugePageSizes, number_of_submission_queue_entries: NonZeroU16, number_of_completion_queue_entries: Option<NonZeroU32>, put_kernel_submission_queue_thread_to_sleep_after_milliseconds: u32, kernel_submission_queue_thread_runs_on: HyperThread, shared_work_queue: Option<&'a IoUring>) -> Result<Self, IoUringCreationError>
+	pub fn new(defaults: &DefaultPageSizeAndHugePageSizes, number_of_submission_queue_entries: NonZeroU16, number_of_completion_queue_entries: Option<NonZeroU32>, kernel_submission_queue_thread_configuration: Option<&LinuxKernelSubmissionQueuePollingThreadConfiguration>, shared_work_queue: Option<&'a IoUring>) -> Result<Self, IoUringCreationError>
 	{
 		let shared_work_queue = shared_work_queue.map(|io_uring| &io_uring.io_uring_file_descriptor);
-		let (io_uring_file_descriptor, parameters) = IoUringFileDescriptor::new(number_of_submission_queue_entries, number_of_completion_queue_entries, put_kernel_submission_queue_thread_to_sleep_after_milliseconds, kernel_submission_queue_thread_runs_on, shared_work_queue).map_err(IoUringCreationError::CouldNotCreateIoUringFileDescriptor)?;
+		let (io_uring_file_descriptor, parameters) = IoUringFileDescriptor::new(number_of_submission_queue_entries, number_of_completion_queue_entries, kernel_submission_queue_thread_configuration, shared_work_queue).map_err(IoUringCreationError::CouldNotCreateIoUringFileDescriptor)?;
 
 		Self::construct(io_uring_file_descriptor, &parameters, defaults, shared_work_queue)
 	}
@@ -57,7 +57,7 @@ impl<'a> IoUring<'a>
 	#[inline(always)]
 	pub fn push_submission_queue_entries<'add_entries, AddEntries: FnMut(SubmissionQueueEntry) -> bool>(&self, add_entries: &'add_entries mut AddEntries) -> Result<(), &'add_entries mut AddEntries>
 	{
-		self.submission_queue_ring.push_submission_queue_entries(add_entries)
+		self.submission_queue_ring.push_submission_queue_entries(add_entries, self.io_uring_file_descriptor.using_kernel_submission_queue_poll, self.io_uring_file_descriptor.using_io_poll)
 	}
 
 	/// Call this regularly to clear down the completion queue.

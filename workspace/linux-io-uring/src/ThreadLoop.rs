@@ -18,14 +18,48 @@ impl<T: Terminate> ThreadLoopBodyFunction for ThreadLoop<T>
 
 		// TODO: every thread probably needs a thread-specific signal handler.
 		// If this is signalfd, does it work with io-uring?
+		
+		// TODO: Why use poll?
+		
+		// TODO: IDEA:-
+		/*
+			For a read or write (or send / recv or sendmsg / recvmsg or connect())
+			
+			- register a read op
+			- register a linked timeout op
+				- we can then automatically kill most kinds of coroutine
+				
+			For a close
+				- need to wait for close to complete so we can release file descriptor
+		 */
+		
+		/*
+			TODO: Registering file descriptors
+		 */
+		
+		Submission polling requires us to always register file descriptors. This can be expensive if not thought about. Inevitably we will have holes in our index necessitating the use of an arena linked list.
+		
+		Coroutines will need to co-operate.
+		
+		Closing a file descriptor will require calling a sqe to update the file descriptor entries.
+		
+		// SQE kernel poll patch: https://patchwork.kernel.org/patch/10803509/
+		
+		// TODO: Iouring / signalfd: previously bugs when using poll: https://lwn.net/ml/linux-kernel/1a5b156a-fde5-507b-d5cf-f42ba3eacf1a@kernel.dk/
+		
+		// TODO: Registered buffers allow us to avoid kernel to userspace copies
+		
+		// TODO: Registered file descriptors allow us to use a kernel SQ thread.
 
-		// TODO: How many file handles can be registered at once with io-uring?
-			// Won't be more than i32::MAX + 1 (ie 2.2bn).
-		// TODO: Can we remove a file handle after a close using a linked event?
-
-		// TODO: Do we let io-uring manage file descriptors?
-		// In which case, we need some sort of count so as to when to close.
-
+		// TODO: Need to change file descriptor to NOT CLOSE ON drop() if using non-syscall close!!!
+		
+		// TODO: IDEA:-
+		/*
+			For coroutines starting several operations in parallel
+				- link them
+				- use a linked timeout
+		 */
+		
 		// TODO: call .enter() occassionally.
 
 		if self.io_uring.submission_queue_ring_is_full()

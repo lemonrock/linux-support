@@ -65,7 +65,7 @@ impl CompletionResponse
 			match -self.0
 			{
 				ECANCELED => Ok(None),
-				EAGAIN => Err(WouldBlock),
+				EAGAIN | ENOMEM => Err(WouldBlock),
 				EINTR => Err(Interrupted),
 				EIO => Err(Cancelled),
 				
@@ -107,7 +107,7 @@ impl CompletionResponse
 			match -self.0
 			{
 				ECANCELED => Ok(None),
-				EAGAIN => Err(WouldBlock),
+				EAGAIN | ENOMEM => Err(WouldBlock),
 				EINTR => Err(Interrupted),
 				EIO => Err(Cancelled),
 				
@@ -151,7 +151,7 @@ impl CompletionResponse
 			match -self.0
 			{
 				ECANCELED => Ok(None),
-				EAGAIN => Err(WouldBlock),
+				EAGAIN | ENOMEM => Err(WouldBlock),
 				EINTR => Err(Interrupted),
 				EIO => Err(Cancelled),
 				
@@ -191,7 +191,7 @@ impl CompletionResponse
 			match -self.0
 			{
 				ECANCELED => Ok(None),
-				EAGAIN => Err(WouldBlock),
+				EAGAIN | ENOMEM => Err(WouldBlock),
 				EINTR => Err(Interrupted),
 				EIO | EDQUOT | ENOSPC => Err(Cancelled),
 				
@@ -236,7 +236,7 @@ impl CompletionResponse
 			match -self.0
 			{
 				ECANCELED => Ok(None),
-				EAGAIN => Err(WouldBlock),
+				EAGAIN | ENOMEM => Err(WouldBlock),
 				EINTR => Err(Interrupted),
 				EIO | EDQUOT | ENOSPC => Err(Cancelled),
 				
@@ -283,7 +283,7 @@ impl CompletionResponse
 			match -self.0
 			{
 				ECANCELED => Ok(None),
-				EAGAIN => Err(WouldBlock),
+				EAGAIN | ENOMEM => Err(WouldBlock),
 				EINTR => Err(Interrupted),
 				EIO | EDQUOT | ENOSPC => Err(Cancelled),
 				
@@ -315,18 +315,18 @@ impl CompletionResponse
 		
 		match self.0
 		{
-			error @ -4095 .. 0 => match -error
+			error @ -4095 ..= -1 => match -error
 			{
 				ECANCELED => Ok(None),
-				EINTR => Err(()),
-				ENOMEM => Err(()),
+				EINTR | EAGAIN | ENOMEM => Err(()),
+				
 				EFAULT => panic!("The array given as argument was not contained in the calling program's address space."),
 				EINVAL => panic!("The nfds value exceeds the RLIMIT_NOFILE value."),
 				
 				unexpected @ _ => unreachable!("Unexpected error code from poll_add completion of {}", unexpected),
 			}
 			
-			value @ 0 ..= U16Maximum => match PollResponseFlags::from_bits(value)
+			value @ 0 ..= U16Maximum => match PollResponseFlags::from_bits(value as u16)
 			{
 				Some(poll_response_flags) => Ok(Some(poll_response_flags)),
 				None => unreachable!("Invalid PollResponse flags from poll_add completion of {}", value),
@@ -344,9 +344,11 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 .. 0 => match -error
+			error @ -4095 ..= -1 => match -error
 			{
 				ECANCELED => Ok(None),
+				
+				EINTR | EAGAIN | ENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
 				
 				EALREADY => Err(true),
 				
@@ -369,13 +371,18 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 .. 0 => match -error
+			error @ -4095 ..= -1 => match -error
 			{
 				ECANCELED => Ok(None),
 				
-				EBADF=> panic!("fd is not a valid open file descriptor."),
-				EIO=> Err(true),
+				EINTR | EAGAIN | ENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
+				
+				EIO => Err(true),
+				
 				EROFS | EINVAL => Err(false),
+				
+				EBADF=> panic!("fd is not a valid open file descriptor."),
+				
 				
 				unexpected @ _ => unreachable!("Unexpected error code from file_synchronize completion of {}", unexpected),
 			}
@@ -392,11 +399,11 @@ impl CompletionResponse
 	///
 	/// Returns `Ok(None)` if cancelled.
 	#[inline(always)]
-	pub fn accept<SD: SocketData>(self, pending_accept_connection: &PendingAcceptConnection<SD>) -> Result<Option<AcceptedConnection<SD>>, SocketAcceptError>
+	pub fn accept<SD: SocketData>(self, pending_accept_connection: PendingAcceptConnection<SD>) -> Result<Option<AcceptedConnection<SD>>, SocketAcceptError>
 	{
 		match self.0
 		{
-			error @ -4095..0 =>
+			error @ -4095 ..= -1 =>
 			{
 				use self::ConnectionFailedReason::*;
 				use self::SocketAcceptError::*;
@@ -433,7 +440,7 @@ impl CompletionResponse
 			
 			file_descriptor if file_descriptor >= 0 =>
 			{
-				debug_assert_eq!(pending_accept_connection.peer_address_length, PendingAcceptConnection::SocketDataLength(), "peer_address was truncated");
+				debug_assert_eq!(pending_accept_connection.peer_address_length, PendingAcceptConnection::<SD>::SocketDataLength(), "peer_address was truncated");
 				
 				Ok
 				(
@@ -441,7 +448,7 @@ impl CompletionResponse
 					(
 						AcceptedConnection
 						{
-							streaming_socket_file_descriptor: StreamingSocketFileDescriptor(SocketFileDescriptor(file_descriptor, PhantomData)),
+							streaming_socket_file_descriptor: unsafe { StreamingSocketFileDescriptor::from_raw_fd(file_descriptor) },
 							peer_address: pending_accept_connection.peer_address,
 						}
 					)
@@ -462,13 +469,15 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095..0 =>
+			error @ -4095 ..= -1 =>
 			{
 				use self::SocketConnectError::*;
 				
 				let error = match -error
 				{
 					ECANCELED => return Ok(None),
+					
+					ENOMEM => OutOfKernelMemory,
 					
 					EACCES | EPERM => PermissionDenied,
 					EADDRINUSE => AddressInUse,
@@ -514,13 +523,13 @@ impl CompletionResponse
 	///
 	/// Can not return `Ok(Some(value))` with `value` greater than `i32::MAX as u32`.
 	#[inline(always)]
-	pub fn receive(self, buffer: &[u8]) -> io::Result<Option<NonZeroU32>>
+	pub fn receive(self, buffer: &[u8]) -> io::Result<Option<u32>>
 	{
 		use self::ErrorKind::*;
 		
 		match self.0
 		{
-			error @ -4095..0 =>
+			error @ -4095 ..= -1 =>
 			{
 				let error = match -error
 				{
@@ -582,7 +591,7 @@ impl CompletionResponse
 		
 		match self.0
 		{
-			error @ -4095..0 =>
+			error @ -4095 ..= -1 =>
 			{
 				let error = match -error
 				{
@@ -642,7 +651,7 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095..0 =>
+			error @ -4095 ..= -1 =>
 			{
 				use self::StructReadError::*;
 				
@@ -693,7 +702,7 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095..0 =>
+			error @ -4095 ..= -1 =>
 			{
 				use self::ErrorKind::*;
 				
@@ -738,13 +747,15 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095..0 =>
+			error @ -4095 ..= -1 =>
 			{
 				use self::EPollAddError::*;
 				
 				match -error
 				{
-					ECANCELLED => Ok(None),
+					ECANCELED => Ok(None),
+					
+					EINTR | EAGAIN => Err(TryAgain),
 					
 					ENOMEM => Err(ThereWasInsufficientKernelMemory),
 					
@@ -776,15 +787,17 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095..0 =>
+			error @ -4095 ..= -1 =>
 			{
 				use self::EPollModifyError::*;
 				
 				match -error
 				{
-					ECANCELLED => Ok(None),
+					ECANCELED => Ok(None),
 					
-					ENOMEM => Err(EPollModifyError::ThereWasInsufficientKernelMemory),
+					EINTR | EAGAIN => Err(TryAgain),
+					
+					ENOMEM => Err(ThereWasInsufficientKernelMemory),
 					
 					EBADF => panic!("The supplied file descriptor was not a valid file descriptor"),
 					EINVAL => panic!("Supplied file descriptor was not usable or there was the presence or absence of `Exclusive` when required"),
@@ -803,20 +816,19 @@ impl CompletionResponse
 	
 	/// Returns `Ok(None)` if cancelled.
 	///
-	/// Returns `Err(true)` if the request to cancel was already cancelled.
-	/// Returns `Err(false)` if could not find the request to cancel.
+	/// Returns `Err(())` if the interupted or out of kernel memory.
 	#[inline(always)]
-	pub fn epoll_control_delete(self) -> Option<()>
+	pub fn epoll_control_delete(self) -> Result<Option<()>, ()>
 	{
 		match self.0
 		{
-			error @ -4095..0 =>
+			error @ -4095 ..= -1 =>
 			{
-				use self::EPollModifyError::*;
-				
 				match -error
 				{
-					ECANCELLED => None,
+					ECANCELED => Ok(None),
+					
+					EINTR | EAGAIN => Err(()),
 					
 					ENOMEM => panic!("Examination of the Linux source code fs/eventpoll.c suggests `ENOMEM` should not occur for `EPOLL_CTL_DEL`"),
 					
@@ -829,7 +841,7 @@ impl CompletionResponse
 				}
 			}
 			
-			0 => Some(()),
+			0 => Ok(Some(())),
 			
 			unexpected @ _ => unreachable!("Unexpected result from epoll_control_delete completion of {}", unexpected)
 		}
@@ -843,13 +855,15 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 .. 0 => match -error
+			error @ -4095 ..= -1 => match -error
 			{
 				ECANCELED => Ok(None),
 				
 				EALREADY => Err(true),
 				
 				ENOENT => Err(false),
+				
+				EINTR | EAGAIN | ENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
 				
 				unexpected @ _ => unreachable!("Unexpected error code from cancel completion of {}", unexpected),
 			}
@@ -866,9 +880,11 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 .. 0 => match -error
+			error @ -4095 ..= -1 => match -error
 			{
 				ECANCELED => None,
+				
+				EINTR | EAGAIN | ENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
 				
 				unexpected @ _ => unreachable!("Unexpected error code from nop completion of {}", unexpected),
 			}
@@ -883,24 +899,27 @@ impl CompletionResponse
 	///
 	/// It can be freed after this call.
 	///
-	/// Returns `None` if cancelled.
-	/// Returns `Err(true)` if the timeout completed without the timeout firing (because enough completions occurred).
-	/// Returns `Err(false)` if the timeout expired without enough completions occurring.
+	/// Returns `Ok(None)` if cancelled.
+	/// Returns `Ok(Some(true))` if the timeout completed without the timeout firing (because enough completions occurred).
+	/// Returns `Ok(Some(false))` if the timeout expired without enough completions occurring.
+	/// Returns `Err(())` if kernel ran out of memory or failed in some other way.
 	#[inline(always)]
-	pub fn timeout(self, _timeout: &__kernel_timespec) -> Option<bool>
+	pub fn timeout(self, _timeout: &__kernel_timespec) -> Result<Option<bool>, ()>
 	{
 		match self.0
 		{
-			error @ -4095 .. 0 => match -error
+			error @ -4095 ..= -1 => match -error
 			{
-				ECANCELED => None,
+				ECANCELED => Ok(None),
 				
-				ETIME => Some(false),
+				ETIME => Ok(Some(false)),
+				
+				EINTR | EAGAIN | ENOMEM => Err(()),
 				
 				unexpected @ _ => unreachable!("Unexpected error code from timeout completion of {}", unexpected),
 			}
 			
-			0 => Some(true),
+			0 => Ok(Some(true)),
 			
 			unexpected @ _ => unreachable!("Unexpected result from timeout completion of {}", unexpected)
 		}
@@ -917,11 +936,13 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 .. 0 => match -error
+			error @ -4095 ..= -1 => match -error
 			{
 				ECANCELED => None,
 				
 				ETIME => Some(false),
+				
+				EINTR | EAGAIN | ENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
 				
 				unexpected @ _ => unreachable!("Unexpected error code from linked_timeout completion of {}", unexpected),
 			}
@@ -933,20 +954,25 @@ impl CompletionResponse
 	}
 	
 	/// Returns `Ok(None)` if cancelled (not sure this is possible).
-	/// Returns `Err(true)` if the request to cancel was not possible as the timeout expiration was already in progress.
-	/// Returns `Err(false)` if could not find the request to cancel.
+	/// Returns `Err(None)` if the request to cancel was not possible as the timeout expiration was already in progress.
+	/// Returns `Err(Some(true))` if the request to cancel was already cancelled (not sure this is possible).
+	/// Returns `Err(Some(false))` if could not find the request to cancel.
 	#[inline(always)]
-	pub fn cancel_timeout(self) -> Result<Option<()>, bool>
+	pub fn cancel_timeout(self) -> Result<Option<()>, Option<bool>>
 	{
 		match self.0
 		{
-			error @ -4095 .. 0 => match -error
+			error @ -4095 ..= -1 => match -error
 			{
 				ECANCELED => Ok(None),
 				
-				EBUSY => Err(true),
+				EALREADY => Err(Some(true)),
 				
-				ENOENT => Err(false),
+				ENOENT => Err(Some(false)),
+				
+				EBUSY => Err(None),
+				
+				EINTR | EAGAIN | ENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
 				
 				unexpected @ _ => unreachable!("Unexpected error code from cancel_timeout completion of {}", unexpected),
 			}
@@ -965,11 +991,11 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 .. 0 => match -error
+			error @ -4095 ..= -1 => match -error
 			{
 				ECANCELED => Ok(None),
 				
-				EINTR => Err(true),
+				EINTR | EAGAIN| ENOMEM => Err(true),
 				ENOSPC => Err(false),
 				
 				// mode specifies FALLOC_FL_COLLAPSE_RANGE or FALLOC_FL_INSERT_RANGE, but the file referred to by fd is currently being executed.
@@ -1000,9 +1026,11 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 .. 0 => match -error
+			error @ -4095 ..= -1 => match -error
 			{
 				ECANCELED => None,
+				
+				EINTR | EAGAIN | ENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
 				
 				EINVAL => panic!("An invalid value was specified for advice"),
 				EBADF => panic!("fd is not a valid file descriptor"),
@@ -1025,13 +1053,14 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 .. 0 => match -error
+			error @ -4095 ..= -1 => match -error
 			{
 				ECANCELED => Ok(None),
 				
 				EIO => Err(true),
-				ENOMEM => Err(false),
-				ENOSPC => Err(true),
+				ENOMEM | ENOSPC => Err(false),
+				
+				EINTR | EAGAIN => panic!("EINTR / EAGAIN - are these possible?"),
 				
 				EBADF => panic!("fd is not a valid file descriptor"),
 				EINVAL => panic!("flags specifies an invalid bit; or offset or nbytes is invalid"),
@@ -1054,14 +1083,16 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 .. 0 => match -error
+			error @ -4095 ..= -1 => match -error
 			{
 				ECANCELED => Ok(None),
+				
+				EINTR | EAGAIN | ENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
 				
 				code @ _ => Err(io::Error::from_raw_os_error(code)),
 			}
 			
-			0 => Some(()),
+			0 => Ok(Some(())),
 			
 			unexpected @ _ => unreachable!("Unexpected result from memory_advise completion of {}", unexpected)
 		}
@@ -1071,26 +1102,24 @@ impl CompletionResponse
 	/// Returns an `Err(true)` if `EIO` or `EINTR`.
 	/// Returns an `Err(false)` if out-of-disk space (`ENOMEM` or `ENOSPC`).
 	///
-	/// Regardless of the outcome, the caller should consider the underlying file descriptor unusable at this point.
+	/// Regardless of the outcome, the caller should consider the underlying file descriptor unusable.
 	#[inline(always)]
-	pub fn close(self) -> Result<Option<()>, bool>
+	pub fn close(self) -> Option<()>
 	{
 		match self.0
 		{
-			error @ -4095 .. 0 => match -error
+			error @ -4095 ..= -1 => match -error
 			{
-				ECANCELED => Ok(None),
+				ECANCELED => None,
 				
-				EIO | EINTR => Err(true),
-				ENOMEM => Err(false),
-				ENOSPC => Err(true),
+				EIO | EINTR | EAGAIN | ENOMEM | ENOSPC => Some(()),
 				
 				EBADF=> panic!("fd isn't a valid open file descriptor."),
 				
 				unexpected @ _ => unreachable!("Unexpected error code from close completion of {}", unexpected),
 			}
 			
-			0 => Ok(Some(())),
+			0 => Some(()),
 			
 			unexpected @ _ => unreachable!("Unexpected result from close completion of {}", unexpected)
 		}
@@ -1109,5 +1138,5 @@ impl CompletionResponse
 		Self::ErrorResponseRange.contains(&self.0)
 	}
 	
-	const ErrorResponseRange: Range<i32> = -4095 .. 0;
+	const ErrorResponseRange: RangeInclusive<i32> = -4095 ..= -1;
 }

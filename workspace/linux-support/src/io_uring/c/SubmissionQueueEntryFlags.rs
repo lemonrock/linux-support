@@ -20,6 +20,8 @@ bitflags!
 
 		/// When this flag is specified, it forms a link with the next `SubmissionQueueEntry` in the submission ring.
 		///
+		/// *DO NOT* specify this flag on the final `SubmissionQueueEntry`.
+		///
 		/// That next `SubmissionQueueEntry` will not be started before this one completes.
 		/// This, in effect, forms a chain of `SubmissionQueueEntry`s, which can be arbitrarily long.
 		/// The tail of the chain is denoted by the first `SubmissionQueueEntry` that does not have this flag set.

@@ -18,6 +18,15 @@ impl<'a, FD: 'a + FileDescriptor> From<&'a FD> for FileDescriptorKind
 	}
 }
 
+impl From<RawFd> for FileDescriptorKind
+{
+	#[inline(always)]
+	fn from(fd: RawFd) -> Self
+	{
+		Self::Absolute(fd)
+	}
+}
+
 impl Default for FileDescriptorKind
 {
 	#[inline(always)]

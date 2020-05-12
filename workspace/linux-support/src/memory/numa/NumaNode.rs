@@ -408,7 +408,7 @@ impl NumaNode
 	///
 	/// The relative memory latency for 'self' will be present.
 	#[inline(always)]
-	fn distances(self, sys_path: &SysPath) -> Option<Option<HashMap<NumaNode, MemoryLatencyRelativeCost>>>
+	pub fn distances(self, sys_path: &SysPath) -> Option<Option<HashMap<NumaNode, MemoryLatencyRelativeCost>>>
 	{
 		const LinuxMaximum: usize = NumaNode::LinuxMaximum as usize;
 

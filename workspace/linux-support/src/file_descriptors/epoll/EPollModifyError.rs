@@ -8,6 +8,9 @@ pub enum EPollModifyError
 {
 	/// There was insufficient kernel memory to complete the operation.
 	ThereWasInsufficientKernelMemory,
+	
+	/// `EINTR` or `EAGAIN` in io_uring.
+	TryAgain,
 }
 
 impl Display for EPollModifyError

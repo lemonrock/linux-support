@@ -508,7 +508,7 @@ impl MappedMemory
 	}
 
 	#[inline(always)]
-	fn guard_range(&self, range: &Range<usize>)
+	pub(crate) fn guard_range(&self, range: &Range<usize>)
 	{
 		debug_assert!(range.end <= self.size);
 		debug_assert!(PageSize::is_an_exact_page_size_multiple_of_current_usize(range.start))

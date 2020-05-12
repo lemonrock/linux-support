@@ -4,12 +4,14 @@
 
 use super::*;
 use self::c::*;
-use crate::vectors::VectoredRead;
-use crate::vectors::VectoredWrite;
+use crate::io_uring::FileDescriptorOrigin;
+use crate::memory::NonZeroNumberOfPages;
+use crate::memory::PageSize;
 use crate::paths::ProcPath;
 use crate::paths::PathExt;
 use crate::user_and_groups::assert_effective_user_id_is_root;
-use crate::memory::{PageSize, NonZeroNumberOfPages};
+use crate::vectors::VectoredRead;
+use crate::vectors::VectoredWrite;
 
 
 pub(crate) mod c;
@@ -27,3 +29,5 @@ include!("set_pipe_user_pages_hard_limit.rs");
 include!("set_pipe_user_pages_soft_limit.rs");
 include!("SpliceRecipient.rs");
 include!("SpliceSender.rs");
+include!("SpliceWithOffset.rs");
+include!("SpliceWithoutOffset.rs");

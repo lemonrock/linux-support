@@ -2,21 +2,13 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use self::c::*;
-use bitflags::bitflags;
-use libc::POLLERR;
-use libc::POLLHUP;
-use libc::POLLIN;
-use libc::POLLNVAL;
-use libc::POLLOUT;
-use libc::POLLPRI;
-use libc::POLLRDBAND;
-use libc::POLLRDNORM;
-use std::mem::transmute;
-
-
-mod c;
-
-
-include!("PollRequestFlags.rs");
-include!("PollResponseFlags.rs");
+/// Splice offset.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct SpliceWithOffset<'a, FD: 'a + Seek + FileDescriptor>
+{
+	/// Origin.
+	pub file_descriptor_origin: FileDescriptorOrigin<'a, FD>,
+	
+	/// Offset.
+	pub offset: u64,
+}

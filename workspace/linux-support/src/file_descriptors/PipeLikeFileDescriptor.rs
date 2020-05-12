@@ -2,21 +2,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use self::c::*;
-use bitflags::bitflags;
-use libc::POLLERR;
-use libc::POLLHUP;
-use libc::POLLIN;
-use libc::POLLNVAL;
-use libc::POLLOUT;
-use libc::POLLPRI;
-use libc::POLLRDBAND;
-use libc::POLLRDNORM;
-use std::mem::transmute;
-
-
-mod c;
-
-
-include!("PollRequestFlags.rs");
-include!("PollResponseFlags.rs");
+/// A marker trait to bring together all the properties of a pipe-like file descriptor (ie a pipe or character device).
+///
+/// Use this in conjunction with the marker traits `SpliceSender` and `SpliceRecipient` to distinguish whether a splice-like method supports the use of input or output offets.
+///
+/// Implementors are not allowed to implement `Seek`.
+pub trait PipeLikeFileDescriptor: FileDescriptor
+{
+}

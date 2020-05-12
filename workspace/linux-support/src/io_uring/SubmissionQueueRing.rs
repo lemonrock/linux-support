@@ -67,7 +67,7 @@ impl SubmissionQueueRing
 	/// Returns an error if full but `add_entries` had more entries to push.
 	/// In this case, one can immediately retry this method as the Linux kernel may have updated `head` is using a kernel thread for submission queue polling.
 	#[inline(always)]
-	pub(crate) fn push_submission_queue_entries<'add_entries, AddEntries: FnMut(SubmissionQueueEntry) -> bool>(&self, add_entries: &'add_entries mut AddEntries) -> Result<(), &'add_entries mut AddEntries>
+	pub(crate) fn push_submission_queue_entries<'add_entries, AddEntries: FnMut(SubmissionQueueEntry) -> bool>(&self, add_entries: &'add_entries mut AddEntries, using_kernel_submission_queue_poll: bool, using_io_poll: bool) -> Result<(), &'add_entries mut AddEntries>
 	{
 		let head = self.head_atomically();
 		let mut tail = self.tail_non_atomically();
@@ -81,7 +81,7 @@ impl SubmissionQueueRing
 				return Err(add_entries)
 			}
 
-			stop_pushing_entries = add_entries(self.next_submission_queue_entry(tail, ring_mask));
+			stop_pushing_entries = add_entries(self.next_submission_queue_entry(tail, ring_mask, using_kernel_submission_queue_poll, using_io_poll));
 			tail = tail.wrapping_add(1);
 
 			if stop_pushing_entries
@@ -95,9 +95,15 @@ impl SubmissionQueueRing
 	}
 
 	#[inline(always)]
-	fn next_submission_queue_entry(&self, tail: u32, ring_mask: u32) -> SubmissionQueueEntry
+	fn next_submission_queue_entry(&self, tail: u32, ring_mask: u32, using_kernel_submission_queue_poll: bool, using_io_poll: bool) -> SubmissionQueueEntry
 	{
-		SubmissionQueueEntry(self.submission_queue_entries.virtual_address().pointer_to((tail & ring_mask) as usize))
+		let pointer = self.submission_queue_entries.virtual_address().pointer_to((tail & ring_mask) as usize);
+		SubmissionQueueEntry
+		{
+			pointer,
+			#[cfg(debug_assertions)] using_kernel_submission_queue_poll,
+			#[cfg(debug_assertions)] using_io_poll,
+		}
 	}
 
 	#[inline(always)]

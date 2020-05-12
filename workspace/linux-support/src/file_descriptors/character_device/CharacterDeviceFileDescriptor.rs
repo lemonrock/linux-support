@@ -52,6 +52,10 @@ impl OnDiskFileDescriptor for CharacterDeviceFileDescriptor
 {
 }
 
+impl PipeLikeFileDescriptor for CharacterDeviceFileDescriptor
+{
+}
+
 impl SpliceRecipient for CharacterDeviceFileDescriptor
 {
 }

@@ -59,7 +59,7 @@ impl VectoredWrite for SendPipeFileDescriptor
 	vectored_write!();
 }
 
-impl SpliceRecipient for SendPipeFileDescriptor
+impl PipeLikeFileDescriptor for SendPipeFileDescriptor
 {
 }
 
@@ -70,6 +70,10 @@ impl PipeFileDescriptor for SendPipeFileDescriptor
 	{
 		unsafe { transmute_copy(self) }
 	}
+}
+
+impl SpliceRecipient for SendPipeFileDescriptor
+{
 }
 
 impl Write for SendPipeFileDescriptor
@@ -293,17 +297,18 @@ impl SendPipeFileDescriptor
 	///
 	/// `more_is_coming_hint` is used to hint that more data may be sent to `splice_to` soon.
 	#[inline(always)]
-	pub fn splice_to(&self, splice_from: &impl SpliceSender, maximum_number_of_bytes_to_transfer: usize, more_is_coming_hint: bool) -> Result<usize, StructWriteError>
+	pub fn splice_from(&self, splice_to: &impl SpliceRecipient, maximum_number_of_bytes_to_transfer: usize, more_is_coming_hint: bool) -> Result<usize, StructWriteError>
 	{
 		if unlikely!(maximum_number_of_bytes_to_transfer == 0)
 		{
 			return Ok(0)
 		}
 
-		let fd_in = splice_from.as_raw_fd();
+		let fd_out = splice_to.as_raw_fd();
+		debug_assert_ne!(fd_out, self.0, "Can not splice to self");
 
-		debug_assert_ne!(fd_in, self.0, "Can not splice to self");
-
+		let fd_in = self.0;
+		
 		const CommonFlags: c_uint = SPLICE_F_MOVE | SPLICE_F_NONBLOCK;
 
 		let flags = if unlikely!(more_is_coming_hint)
@@ -315,7 +320,7 @@ impl SendPipeFileDescriptor
 			CommonFlags
 		};
 
-		let result = unsafe { splice(fd_in, null_mut(), self.0, null_mut(), maximum_number_of_bytes_to_transfer, flags) };
+		let result = unsafe { splice(fd_in, null_mut(), fd_out, null_mut(), maximum_number_of_bytes_to_transfer, flags) };
 
 		if likely!(result >= 0)
 		{
@@ -359,16 +364,17 @@ impl SendPipeFileDescriptor
 	///
 	/// `more_is_coming_hint` is used to hint that more data may be sent to `splice_to` soon.
 	#[inline(always)]
-	pub fn splice_to_from_file_offset(&self, splice_from: &File, mut offset: i64, maximum_number_of_bytes_to_transfer: usize, more_is_coming_hint: bool) -> Result<(usize, i64), StructWriteError>
+	pub fn splice_to_file_offset(&self, splice_to: &File, mut splice_to_offset: i64, maximum_number_of_bytes_to_transfer: usize, more_is_coming_hint: bool) -> Result<(usize, i64), StructWriteError>
 	{
 		if unlikely!(maximum_number_of_bytes_to_transfer == 0)
 		{
-			return Ok((0, offset))
+			return Ok((0, splice_to_offset))
 		}
-
-		let fd_in = splice_from.as_raw_fd();
-
-		debug_assert_ne!(fd_in, self.0, "Can not splice to self");
+		
+		let fd_out = splice_to.as_raw_fd();
+		debug_assert_ne!(fd_out, self.0, "Can not splice to self");
+		
+		let fd_in = self.0;
 
 		const CommonFlags: c_uint = SPLICE_F_MOVE | SPLICE_F_NONBLOCK;
 
@@ -381,11 +387,11 @@ impl SendPipeFileDescriptor
 			CommonFlags
 		};
 
-		let result = unsafe { splice(fd_in, null_mut(), self.0, &mut offset, maximum_number_of_bytes_to_transfer, flags) };
+		let result = unsafe { splice(fd_in, null_mut(), fd_out, &mut splice_to_offset, maximum_number_of_bytes_to_transfer, flags) };
 
 		if likely!(result >= 0)
 		{
-			Ok((result as usize, offset))
+			Ok((result as usize, splice_to_offset))
 		}
 		else if likely!(result == -1)
 		{
@@ -421,16 +427,17 @@ impl SendPipeFileDescriptor
 	///
 	/// `more_is_coming_hint` is used to hint that more data may be sent to `tee_from` soon.
 	#[inline(always)]
-	pub fn tee_to(&self, tee_from: &impl SpliceRecipient, maximum_number_of_bytes_to_transfer: usize, more_is_coming_hint: bool) -> Result<usize, StructWriteError>
+	pub fn tee_to(&self, tee_to: &impl SpliceRecipient, maximum_number_of_bytes_to_transfer: usize, more_is_coming_hint: bool) -> Result<usize, StructWriteError>
 	{
 		if unlikely!(maximum_number_of_bytes_to_transfer == 0)
 		{
 			return Ok(0)
 		}
-
-		let fd_in = tee_from.as_raw_fd();
-
-		debug_assert_ne!(fd_in, self.0, "Can not tee to self");
+		
+		let fd_out = tee_to.as_raw_fd();
+		debug_assert_ne!(fd_out, self.0, "Can not splice to self");
+		
+		let fd_in = self.0;
 
 		const CommonFlags: c_uint = SPLICE_F_NONBLOCK;
 
@@ -443,7 +450,7 @@ impl SendPipeFileDescriptor
 			CommonFlags
 		};
 
-		let result = unsafe { tee(fd_in, self.0, maximum_number_of_bytes_to_transfer, flags) };
+		let result = unsafe { tee(fd_in, fd_out, maximum_number_of_bytes_to_transfer, flags) };
 
 		if likely!(result >= 0)
 		{
