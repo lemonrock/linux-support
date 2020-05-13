@@ -288,12 +288,15 @@ impl IoUringFileDescriptor
 		}
 	}
 
+	/// `replace_with_files_descriptors.len()` must be less than or equal to `i32::MAX as usize`.
+	///
+	/// Returns the number of file descriptors replaced.
 	#[deprecated]
 	#[inline(always)]
-	fn replace_some_registered_file_descriptors(&self, replace_with_files_descriptors: &[SupportedFileDescriptor], starting_from_index_inclusive: u32) -> Result<(), ()>
+	fn replace_some_registered_file_descriptors(&self, replace_with_files_descriptors: &[SupportedFileDescriptor], starting_from_index_inclusive: u32) -> Result<u32, ()>
 	{
 		let length = replace_with_files_descriptors.len();
-		debug_assert!(length <= u32::MAX as usize);
+		debug_assert!(length <= i32::MAX as usize);
 
 		let mut argument = io_uring_files_update
 		{
@@ -304,9 +307,10 @@ impl IoUringFileDescriptor
 
 		let result = self.register(RegisterOperation::RegisterFilesUpdate, &mut argument, length as u32);
 
-		if likely!(result == 0)
+		if likely!(result >= 0)
 		{
-			Ok(())
+			debug_assert!(result <= length as i32);
+			Ok(result as u32)
 		}
 		else if likely!(result == -1)
 		{

@@ -123,7 +123,7 @@ impl<'a> IoUring<'a>
 	#[allow(deprecated)]
 	#[deprecated]
 	#[inline(always)]
-	pub fn replace_some_registered_file_descriptors(&self, replace_with_files_descriptors: &[SupportedFileDescriptor], starting_from_index_inclusive: u32) -> Result<(), ()>
+	pub fn replace_some_registered_file_descriptors(&self, replace_with_files_descriptors: &[SupportedFileDescriptor], starting_from_index_inclusive: u32) -> Result<u32, ()>
 	{
 		self.io_uring_file_descriptor.replace_some_registered_file_descriptors(replace_with_files_descriptors, starting_from_index_inclusive)
 	}

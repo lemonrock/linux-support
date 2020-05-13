@@ -1222,11 +1222,32 @@ impl CompletionResponse
 		}
 	}
 	
-	// TODO: openat
-	// openat2
-	// files_update
-	// provide_buffers
-	// release_buffers
+	/// Registered file descriptors update.
+	///
+	/// `replace_with_files_descriptors` must be pinned to the same location as used in the `prepare_registered_file_descriptors_update()` call.
+	#[inline(always)]
+	pub fn registered_file_descriptors_update(self, replace_with_files_descriptors: &[SupportedFileDescriptor]) -> Option<u32>
+	{
+		match self.0
+		{
+			error @ -4095 ..= -1 => match -error
+			{
+				ECANCELED => None,
+				
+				EINVAL => panic!("Unsupported"),
+				
+				unexpected @ _ => unreachable!("Unexpected error code from registered_file_descriptors_update completion of {}", unexpected),
+			}
+			
+			count if count >= 0 =>
+			{
+				debug_assert!(count <= replace_with_files_descriptors.len() as i32);
+				Some(count as u32)
+			}
+			
+			unexpected @ _ => unreachable!("Unexpected result from registered_file_descriptors_update completion of {}", unexpected)
+		}
+	}
 	
 	#[inline(always)]
 	fn is_error(self) -> bool

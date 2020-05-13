@@ -554,13 +554,13 @@ impl SubmissionQueueEntry
 	/// Caller must hold onto, and not move, `replace_with_files_descriptors` until completion, or, if the parameters features flag `ParametersFeatureFlags::SubmitStable` is set, until the `SubmissionQueueEntry` has been consumed.
 	///
 	/// `replace_with_files_descriptors` must contain at least one element (it can not be empty).
-	/// `replace_with_files_descriptors.len()` must be less than `u32::MAX as usize`.
+	/// `replace_with_files_descriptors.len()` must be less than `i32::MAX as usize`.
 	#[inline(always)]
-	pub(crate) fn prepare_files_update(self, user_data: impl UserData, personality: Option<PersonalityCredentialsIdentifier>, replace_with_files_descriptors: &[SupportedFileDescriptor], starting_from_index_inclusive: u32)
+	pub fn prepare_registered_file_descriptors_update(self, user_data: impl UserData, personality: Option<PersonalityCredentialsIdentifier>, replace_with_files_descriptors: &[SupportedFileDescriptor], starting_from_index_inclusive: u32)
 	{
 		let length = replace_with_files_descriptors.len();
 		debug_assert_ne!(length, 0);
-		debug_assert!(length < u32::MAX as usize);
+		debug_assert!(length < i32::MAX as usize);
 		
 		self.prepare(user_data, SubmissionQueueEntryFlags::empty(), personality, CompressedIoPriority::Irrelevant, IORING_OP_FILES_UPDATE, FileDescriptorKind::Irrelevant, replace_with_files_descriptors.as_ptr() as usize as u64, length as u32, starting_from_index_inclusive as u64);
 		self.zero_rw_flags()
