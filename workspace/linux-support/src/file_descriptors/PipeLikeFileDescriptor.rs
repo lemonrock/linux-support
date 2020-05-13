@@ -6,7 +6,7 @@
 ///
 /// Use this in conjunction with the marker traits `SpliceSender` and `SpliceRecipient` to distinguish whether a splice-like method supports the use of input or output offets.
 ///
-/// Implementors are not allowed to implement `Seek`.
+/// Implementors are not allowed to implement `SeekableFileDescriptor`.
 pub trait PipeLikeFileDescriptor: FileDescriptor
 {
 }

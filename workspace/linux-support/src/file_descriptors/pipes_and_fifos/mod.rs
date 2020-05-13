@@ -4,7 +4,6 @@
 
 use super::*;
 use self::c::*;
-use crate::io_uring::FileDescriptorOrigin;
 use crate::memory::NonZeroNumberOfPages;
 use crate::memory::PageSize;
 use crate::paths::ProcPath;
@@ -30,5 +29,3 @@ include!("set_pipe_user_pages_soft_limit.rs");
 include!("SpliceFlags.rs");
 include!("SpliceRecipient.rs");
 include!("SpliceSender.rs");
-include!("SpliceWithOffset.rs");
-include!("SpliceWithoutOffset.rs");

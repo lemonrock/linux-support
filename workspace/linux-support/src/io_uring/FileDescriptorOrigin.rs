@@ -13,70 +13,31 @@ pub enum FileDescriptorOrigin<'a, FD: 'a + FileDescriptor>
 	///
 	/// Not permitted if using an IoUring created with `SetupFlags::SubmissionQueuePoll`.
 	Absolute(&'a FD),
-
-	/// A raw file descriptor.
-	///
-	/// Not permitted if using an IoUring created with `SetupFlags::SubmissionQueuePoll`.
-	Raw(RawFd),
-
-	#[doc(hidden)]
-	Irrelevant,
 }
 
 impl<'a, FD: 'a + FileDescriptor> FileDescriptorOrigin<'a, FD>
 {
 	#[inline(always)]
-	fn into_raw(self, using_kernel_submission_queue_poll: bool) -> FileDescriptorOrigin<'a, File>
+	fn into_and_adjust_flags(&self, options: SubmissionQueueEntryOptions, using_kernel_submission_queue_poll: bool) -> (FileDescriptorKind, SubmissionQueueEntryFlags)
 	{
 		use self::FileDescriptorOrigin::*;
+
+		let flags = options.into_flags();
 		
 		match self
 		{
-			Index(index) => Index(index),
+			&Index(index) => (FileDescriptorKind::Index(index), flags | SubmissionQueueEntryFlags::FixedFile),
 			
-			Absolute(file_descriptor) =>
-			{
-				Self::guard(using_kernel_submission_queue_poll);
-				Raw(file_descriptor.as_raw_fd())
-			}
-			
-			Raw(file_descriptor) =>
-			{
-				Self::guard(using_kernel_submission_queue_poll);
-				Raw(file_descriptor)
-			}
-			
-			Irrelevant => Irrelevant
-		}
-	}
-	
-	#[inline(always)]
-	fn into_and_adjust_flags(self, flags: SubmissionQueueEntryFlags, using_kernel_submission_queue_poll: bool) -> (FileDescriptorKind, SubmissionQueueEntryFlags)
-	{
-		use self::FileDescriptorOrigin::*;
-
-		match self
-		{
-			Index(index) => (FileDescriptorKind::Index(index), flags | SubmissionQueueEntryFlags::FixedFile),
-
-			Absolute(file_descriptor) =>
+			&Absolute(file_descriptor) =>
 			{
 				Self::guard(using_kernel_submission_queue_poll);
 				(FileDescriptorKind::from(file_descriptor), flags)
 			}
-			
-			Raw(file_descriptor) =>
-			{
-				Self::guard(using_kernel_submission_queue_poll);
-				(FileDescriptorKind::from(file_descriptor), flags)
-			}
-
-			Irrelevant => (FileDescriptorKind::Irrelevant, flags)
 		}
 	}
 	
 	#[inline(always)]
-	fn into_raw_splice_flags(self, flags: SpliceFlags, using_kernel_submission_queue_poll: bool) -> (FileDescriptorKind, u32)
+	fn into_and_adjust_splice_flags(&self, flags: SpliceFlags, using_kernel_submission_queue_poll: bool) -> (FileDescriptorKind, u32)
 	{
 		use self::FileDescriptorOrigin::*;
 		
@@ -84,21 +45,13 @@ impl<'a, FD: 'a + FileDescriptor> FileDescriptorOrigin<'a, FD>
 		
 		match self
 		{
-			Index(index) => (FileDescriptorKind::Index(index), flags | SPLICE_F_FD_IN_FIXED),
+			&Index(index) => (FileDescriptorKind::Index(index), flags | SPLICE_F_FD_IN_FIXED),
 			
-			Absolute(file_descriptor) =>
+			&Absolute(file_descriptor) =>
 			{
 				Self::guard(using_kernel_submission_queue_poll);
 				(FileDescriptorKind::from(file_descriptor), flags)
 			}
-			
-			Raw(file_descriptor) =>
-			{
-				Self::guard(using_kernel_submission_queue_poll);
-				(FileDescriptorKind::from(file_descriptor), flags)
-			}
-			
-			Irrelevant => panic!("Unsupported for Splice"),
 		}
 	}
 	

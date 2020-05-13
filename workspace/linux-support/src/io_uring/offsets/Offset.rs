@@ -2,13 +2,15 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Splice offset.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct SpliceWithOffset<'a, FD: 'a + Seek + FileDescriptor>
+/// See `WithOffset` and `WithoutOffset`.
+pub trait Offset<'a, FD: 'a + FileDescriptor>
 {
-	/// Origin.
-	pub file_descriptor_origin: FileDescriptorOrigin<'a, FD>,
+	#[doc(hidden)]
+	fn into_raw_for_splice_in(&self, splice_flags: SpliceFlags, using_kernel_submission_queue_poll: bool) -> ((FileDescriptorKind, u32), u64);
 	
-	/// Offset.
-	pub offset: u64,
+	#[doc(hidden)]
+	fn into_raw_for_splice_out(&self, options: SubmissionQueueEntryOptions, using_kernel_submission_queue_poll: bool) -> ((FileDescriptorKind, SubmissionQueueEntryFlags), u64);
+	
+	#[doc(hidden)]
+	fn into_raw(&self, options: SubmissionQueueEntryOptions, using_kernel_submission_queue_poll: bool) -> ((FileDescriptorKind, SubmissionQueueEntryFlags), u64);
 }

@@ -3,7 +3,6 @@
 
 
 use super::*;
-use crate::file_descriptors::FileDescriptor;
 use crate::memory::mapping::MemoryAdvice;
 use crate::signals::c::_NSIG;
 use crate::syscall::SYS;
@@ -35,7 +34,6 @@ include!("__kernel_time64_t.rs");
 include!("__kernel_timespec.rs");
 include!("CompletionQueueEntryFlags.rs");
 include!("EnterFlags.rs");
-include!("FileDescriptorKind.rs");
 include!("FileOrMemoryAdvice.rs");
 include!("io_cqring_offsets.rs");
 include!("io_sqring_offsets.rs");
@@ -72,5 +70,4 @@ include!("ProbeFlags.rs");
 include!("RegisterOperation.rs");
 include!("SPLICE_F_.rs");
 include!("SetupFlags.rs");
-include!("SubmissionQueueEntryFlags.rs");
 include!("SubmissionQueueRingFlags.rs");

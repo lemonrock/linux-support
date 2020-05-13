@@ -5,6 +5,7 @@
 use self::IORING_OP::*;
 use self::c::*;
 use self::non_null::*;
+use self::offsets::*;
 use super::LoadNonAtomically;
 use crate::cpu::HyperThread;
 use crate::file_descriptors::*;
@@ -23,7 +24,6 @@ use crate::memory::mapping::*;
 use crate::poll::*;
 use crate::io_priority::CompressedIoPriority;
 use bitflags::bitflags;
-use either::Either;
 use errno::errno;
 use libc::AT_EMPTY_PATH;
 use libc::AT_NO_AUTOMOUNT;
@@ -100,7 +100,7 @@ use libc::sigset_t;
 use likely::*;
 use serde::Deserialize;
 use serde::Serialize;
-use std::cmp::max;
+use std::cmp::{max, Ordering};
 use std::collections::BTreeSet;
 use std::error;
 use std::ffi::CStr;
@@ -111,7 +111,6 @@ use std::fmt::Formatter;
 use std::fs::File;
 use std::io;
 use std::io::ErrorKind;
-use std::io::Seek;
 use std::mem::size_of;
 use std::mem::transmute;
 #[allow(deprecated)] use std::mem::uninitialized;
@@ -134,6 +133,7 @@ use crate::file_descriptors::path::PathFileDescriptor;
 use crate::file_descriptors::block_device::BlockDeviceFileDescriptor;
 use crate::file_descriptors::character_device::CharacterDeviceFileDescriptor;
 use crate::file_descriptors::terminal::TerminalFileDescriptor;
+use std::hash::{Hash, Hasher};
 
 
 mod c;
@@ -142,11 +142,16 @@ mod c;
 mod non_null;
 
 
+/// Offsets.
+pub mod offsets;
+
+
 include!("BufferGroup.rs");
 include!("CompletionResponse.rs");
 include!("CompletionQueueEntry.rs");
 include!("CompletionQueueRing.rs");
 include!("CompletionQueueRingIterator.rs");
+include!("FileDescriptorKind.rs");
 include!("FileDescriptorOrigin.rs");
 include!("FileSynchronize.rs");
 include!("IORING_OP.rs");
@@ -161,6 +166,7 @@ include!("RelativeOrAbsoluteTimeout.rs");
 include!("SendOrReceiveFlags.rs");
 include!("SubmissionQueueRing.rs");
 include!("SubmissionQueueEntry.rs");
+include!("SubmissionQueueEntryFlags.rs");
 include!("SubmissionQueueEntryOptions.rs");
 include!("SubmitError.rs");
 include!("SupportedFileDescriptor.rs");

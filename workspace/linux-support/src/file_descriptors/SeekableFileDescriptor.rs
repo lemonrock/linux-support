@@ -3,6 +3,8 @@
 
 
 /// Marker trait for file descriptors that can be used with io-uring read, read fixed, read vectored, write, write fixed and write vectored.
+///
+/// Implementors are not allowed to implement `PipeLikeFileDescriptor`.
 pub trait SeekableFileDescriptor: FileDescriptor + Seek
 {
 }

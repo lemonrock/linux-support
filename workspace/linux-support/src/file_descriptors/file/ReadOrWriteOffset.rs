@@ -31,10 +31,10 @@ impl Into<i64> for ReadOrWriteOffset
 		match self
 		{
 			Fixed(value) =>
-				{
-					debug_assert!(value <= i32::MAX as u64);
-					value as i64
-				}
+			{
+				debug_assert!(value <= i32::MAX as u64);
+				value as i64
+			}
 
 			CurrentFilePosition => -1,
 		}

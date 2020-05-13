@@ -2,10 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Splice without offset.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct SpliceWithoutOffset<'a, FD: 'a + PipeLikeFileDescriptor>
-{
-	/// Origin.
-	pub file_descriptor_origin: FileDescriptorOrigin<'a, FD>,
-}
+use super::*;
+
+
+include!("Offset.rs");
+include!("WithOffset.rs");
+include!("WithoutOffset.rs");

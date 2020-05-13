@@ -4,7 +4,8 @@
 
 bitflags!
 {
-	pub(super) struct SubmissionQueueEntryFlags: u8
+	#[doc(hidden)]
+	pub struct SubmissionQueueEntryFlags: u8
 	{
 		/// When this flag is specified, `fd` is an index into the files array registered with the `io_uring` instance (see the `IORING_REGISTER_FILES` section of the `io_uring_register()` man page).
 		///

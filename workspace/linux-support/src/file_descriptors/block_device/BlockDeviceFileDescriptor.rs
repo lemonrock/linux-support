@@ -50,6 +50,10 @@ impl OnDiskFileDescriptor for BlockDeviceFileDescriptor
 {
 }
 
+impl SeekableFileDescriptor for BlockDeviceFileDescriptor
+{
+}
+
 impl SpliceRecipient for BlockDeviceFileDescriptor
 {
 }
