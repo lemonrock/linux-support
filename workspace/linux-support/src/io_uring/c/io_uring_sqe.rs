@@ -50,7 +50,7 @@ pub(super) struct io_uring_sqe
 impl io_uring_sqe
 {
 	#[inline(always)]
-	pub(super) fn prepare(&mut self, ioring_operation: IORING_OP, file_descriptor: FileDescriptorOrigin<impl FileDescriptor>, address: u64, length: u32, offset: u64, flags: SubmissionQueueEntryFlags, personality: Option<PersonalityCredentialsIdentifier>, io_priority: CompressedIoPriority, user_data: u64, using_kernel_submission_queue_poll: bool)
+	pub(super) fn prepare(&mut self, ioring_operation: IORING_OP, file_descriptor: FileDescriptorOrigin<impl FileDescriptor>, address: u64, length: u32, offset: u64, flags: SubmissionQueueEntryFlags, personality: Option<PersonalityCredentialsIdentifier>, io_priority: CompressedIoPriority, user_data: impl UserData, using_kernel_submission_queue_poll: bool)
 	{
 		let (fd, flags) = file_descriptor.into_and_adjust_flags(flags, using_kernel_submission_queue_poll);
 
@@ -61,7 +61,7 @@ impl io_uring_sqe
 		self.anonymous_1.off = offset;
 		self.anonymous_2.addr = address;
 		self.len = length;
-		self.user_data = user_data;
+		self.user_data = user_data.into_u64();
 		self.anonymous_4.anonymous_1.personality = unsafe { transmute(personality) };
 		unsafe { self.anonymous_4.__pad2 = zeroed() }
 	}

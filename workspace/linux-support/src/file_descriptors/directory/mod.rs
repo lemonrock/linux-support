@@ -11,7 +11,8 @@ use crate::inode::*;
 use crate::strings::NulTerminatedCStringArray;
 use crate::user_and_groups::*;
 use serde::*;
-use serde::de::{Visitor, Unexpected};
+use serde::de::Unexpected;
+use serde::de::Visitor;
 use std::ops::RangeInclusive;
 use streaming_iterator::StreamingIterator;
 

@@ -14,7 +14,7 @@ pub(super) union io_uring_sqe_anonymous_3
 	/// See the descriptions of `O_SYNC` and `O_DSYNC` in the `open()` manual page for more information.
 	///
 	/// May be empty, in which case a normal `O_SYNC` is performed.
-	pub(super) fsync_flags: FSyncFlags,
+	pub(super) fsync_flags: FileSynchronize,
 
 	/// The bits that may be set are defined in `<poll.h>`, and documented in `poll()`.
 	pub(super) poll_events: PollRequestFlags,

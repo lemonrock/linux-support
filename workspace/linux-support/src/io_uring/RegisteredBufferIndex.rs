@@ -2,15 +2,6 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct open_how
-{
-	/// `O_*` flags.
-	pub(crate) flags: u64,
-
-	/// Mode for either `O_CREAT` or `O_TMPFILE`, otherwise zero.
-	pub(crate) mode: u64,
-
-	/// `RESOLVE_*` flags.
-	pub(crate) resolve: u64,
-}
+/// Registered buffer index.
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct RegisteredBufferIndex(pub u16);

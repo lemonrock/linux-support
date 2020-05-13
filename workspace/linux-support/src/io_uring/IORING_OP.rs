@@ -2,9 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// Supported operations.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u8)]
-pub(super) enum IORING_OP
+pub enum IORING_OP
 {
 	/// Does nothing.
 	IORING_OP_NOP = 0,
@@ -274,12 +275,15 @@ pub(super) enum IORING_OP
 	/// Since Linux 5.7.
 	IORING_OP_SPLICE = 30,
 
+	#[allow(missing_docs)]
 	IORING_OP_PROVIDE_BUFFERS = 31,
-
+	
+	#[allow(missing_docs)]
 	IORING_OP_REMOVE_BUFFERS = 32,
 }
 
 impl IORING_OP
 {
-	pub const IORING_OP_LAST: usize = 33;
+	#[allow(dead_code)]
+	const IORING_OP_LAST: usize = 33;
 }

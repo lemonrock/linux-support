@@ -80,7 +80,7 @@ impl<'a, FD: 'a + FileDescriptor> FileDescriptorOrigin<'a, FD>
 	{
 		use self::FileDescriptorOrigin::*;
 		
-		let flags = flags.bits;
+		let flags = flags.bits();
 		
 		match self
 		{

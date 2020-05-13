@@ -211,37 +211,9 @@ impl IoUringFileDescriptor
 			unreachable!("io_uring_enter() returned unexpected result {}", result)
 		}
 	}
-
-	/// The buffers associated with the iovecs will be locked in memory and charged against the user's `RLIMIT_MEMLOCK` resource limit.
-	///
-	/// See `getrlimit(2)` for more information.
-	/// Additionally, there is a size limit of 1GiB per buffer.
-	/// Currently, the buffers must be anonymous, non-file-backed memory, such as that returned by `malloc(3)` or `mmap(2)` with the `MAP_ANONYMOUS` flag set.
-	/// It is expected that this limitation will be lifted in the future.
-	/// Huge pages are supported as well.
-	/// Note that the entire huge page will be pinned in the kernel, even if only a portion of it is used.
-	/// NOTE: Relies on `iovec` having the same layout as a Rust slice.
-	/// `buffers` needs to be anonymous memory from either `mmap()`, `malloc()` or a memory file descriptor.
-	/// It lives until unregistered.
-	///
-	/// After a successful call, the supplied buffers are mapped into the kernel and eligible for I/O.
-	/// To make use of them, the application must specify the `IORING_OP_READ_FIXED` or `IORING_OP_WRITE_FIXED` opcodes in the submission queue entry (see the `struct io_uring_sqe` definition in `io_uring_enter(2)`), and set the `buf_index` field to the desired buffer index.
-	/// The memory range described by the submission queue entry's `addr` and `len` fields must fall within the indexed buffer.
-	///
-	/// It is perfectly valid to setup a large buffer and then only use part of it for an I/O, as long as the range is within the originally mapped region.
-	///
-	/// An application can increase or decrease the size or number of registered buffers by first unregistering the existing buffers, and then issuing a new call to `io_uring_register()` with the new buffers.
-	///
-	/// Note that registering buffers will wait for the ring to idle.
-	/// If the application currently has requests in-flight, the registration will wait for those to finish before proceeding.
-	///
-	/// An application need not unregister buffers explicitly before shutting down the io_uring instance.
-	///
-	/// This is a system call.
-	///
-	/// Since Linux 5.1.
+	
 	#[inline(always)]
-	pub fn register_buffers(&self, buffers: &[&mut [u8]]) -> io::Result<()>
+	fn register_buffers(&self, buffers: &[&mut [u8]]) -> io::Result<()>
 	{
 		let result = self.register_array(RegisterOperation::RegisterBuffers, buffers);
 
@@ -259,15 +231,8 @@ impl IoUringFileDescriptor
 		}
 	}
 
-	/// Unregisters all buffers.
-	///
-	/// All previously registered buffers associated with the io_uring instance will be released.
-	///
-	/// This is a system call.
-	///
-	/// Since Linux 5.1.
 	#[inline(always)]
-	pub fn unregister_all_buffers(&self) -> io::Result<()>
+	fn unregister_all_buffers(&self) -> io::Result<()>
 	{
 		let result = self.unregister(RegisterOperation::UnregisterBuffers);
 
@@ -285,26 +250,10 @@ impl IoUringFileDescriptor
 		}
 	}
 
-	/// Register files for I/O.
-	///
-	/// To make use of the registered files, the `IOSQE_FIXED_FILE` flag must be set in the `flags` member of the struct `io_uring_sqe`, and the `fd` member is set to the index of the file in the file descriptor array.
-	///
-	/// The `files_descriptors` set may be sparse (ie not all file descriptors need to be valid, open files or the like).
-	/// See `IORING_REGISTER_FILES_UPDATE` for how to update files in place.
-	///
-	/// Note that registering files will wait for the ring to idle.
-	/// If the application currently has requests in-flight, the registration will wait for those to finish before proceeding.
-	/// See `IORING_REGISTER_FILES_UPDATE` for how to update an existing set without that limitation.
-	///
-	/// Files are automatically unregistered when the io_uring instance is torn down.
-	///
-	/// This is a system call.
-	///
-	/// Since Linux 5.1.
 	#[inline(always)]
-	pub fn register_file_descriptors(&self, files_descriptors: &[SupportedFileDescriptor]) -> io::Result<()>
+	fn register_file_descriptors(&self, file_descriptors: &[SupportedFileDescriptor]) -> io::Result<()>
 	{
-		let result = self.register_array(RegisterOperation::RegisterFiles, files_descriptors);
+		let result = self.register_array(RegisterOperation::RegisterFiles, file_descriptors);
 
 		if likely!(result == 0)
 		{
@@ -320,17 +269,8 @@ impl IoUringFileDescriptor
 		}
 	}
 
-	/// Unregisters all file descriptors.
-	///
-	/// All previously registered file descriptors associated with the io_uring instance will be released.
-	///
-	/// All registered file descriptors are automatically released on drop.
-	///
-	/// This is a system call.
-	///
-	/// Since Linux 5.1.
 	#[inline(always)]
-	pub fn unregister_all_file_descriptors(&self) -> io::Result<()>
+	fn unregister_all_file_descriptors(&self) -> io::Result<()>
 	{
 		let result = self.unregister(RegisterOperation::UnregisterFiles);
 
@@ -348,18 +288,9 @@ impl IoUringFileDescriptor
 		}
 	}
 
-	/// Update registered file descriptors in-place.
-	///
-	/// All registered file descriptors are automatically released on drop.
-	///
-	/// Prefer `IORING_OP::IORING_OP_FILES_UPDATE` as this can eliminate a system call.
-	///
-	/// This is a system call.
-	///
-	/// Since Linux 5.5.
 	#[deprecated]
 	#[inline(always)]
-	pub fn replace_some_registered_file_descriptors(&self, replace_with_files_descriptors: &[SupportedFileDescriptor], starting_from_index_inclusive: u32) -> Result<(), ()>
+	fn replace_some_registered_file_descriptors(&self, replace_with_files_descriptors: &[SupportedFileDescriptor], starting_from_index_inclusive: u32) -> Result<(), ()>
 	{
 		let length = replace_with_files_descriptors.len();
 		debug_assert!(length <= u32::MAX as usize);
@@ -394,15 +325,8 @@ impl IoUringFileDescriptor
 		}
 	}
 
-	/// It's possible to use an `EventFileDescriptor` to get notified of completion events on an io_uring instance.
-	///
-	/// The event file descriptor is automatically released on drop.
-	///
-	/// This is a system call.
-	///
-	/// Since Linux 5.2.
 	#[inline(always)]
-	pub fn register_event_file_descriptor_for_all_notifications(&self, event_file_descriptor: &EventFileDescriptor) -> Result<(), bool>
+	fn register_event_file_descriptor_for_all_notifications(&self, event_file_descriptor: &EventFileDescriptor) -> Result<(), bool>
 	{
 		let result = self.register_array(RegisterOperation::RegisterEventFileDescriptor, &[event_file_descriptor.as_raw_fd()]);
 
@@ -428,17 +352,8 @@ impl IoUringFileDescriptor
 		}
 	}
 
-	/// It's possible to use an `EventFileDescriptor` to get notified of completion events on an io_uring instance.
-	///
-	/// The event file descriptor is automatically released on drop.
-	///
-	/// In this case, notifications are only received for completion events that didn't complete immediately (ie those that didn't complete inline when being submitted).
-	///
-	/// This is a system call.
-	///
-	/// Since Linux 5.6.
 	#[inline(always)]
-	pub fn register_event_file_descriptor_for_only_asynchronous_notifications(&self, event_file_descriptor: &EventFileDescriptor) -> Result<(), bool>
+	fn register_event_file_descriptor_for_only_asynchronous_notifications(&self, event_file_descriptor: &EventFileDescriptor) -> Result<(), bool>
 	{
 		let result = self.register_array(RegisterOperation::RegisterEventFileDescriptorAsynchronous, &[event_file_descriptor.as_raw_fd()]);
 
@@ -464,15 +379,8 @@ impl IoUringFileDescriptor
 		}
 	}
 
-	/// Unregister an event file desscriptor.
-	///
-	/// The event file descriptor is automatically released on drop.
-	///
-	/// This is a system call.
-	///
-	/// Since Linux 5.2.
 	#[inline(always)]
-	pub fn unregister_event_file_descriptor_for_notifications(&self) -> Result<(), bool>
+	fn unregister_event_file_descriptor_for_notifications(&self) -> Result<(), bool>
 	{
 		let result = self.unregister(RegisterOperation::UnregisterEventFileDescriptor);
 
@@ -498,13 +406,6 @@ impl IoUringFileDescriptor
 		}
 	}
 
-	/// Probes for supported operations.
-	///
-	/// Fails if Linux kernel is out-of-memory.
-	///
-	/// This is a system call.
-	///
-	/// Since Linux 5.6.
 	#[inline(always)]
 	fn probe_for_supported_operations(&self) -> Result<BTreeSet<IORING_OP>, ()>
 	{
@@ -543,18 +444,8 @@ impl IoUringFileDescriptor
 		}
 	}
 
-	/// This operation registers credentials of the running application with io_uring, and returns a credential identifier associated with these credentials.
-	///
-	/// Applications wishing to share a ring between separate users or processes can pass in this credential identifier in the `SubmissionQueueEntry` `personality` field.
-	/// If set, that particular `SubmissionQueueEntry` will be issued with these credentials.
-	///
-	/// Returns `Err(())` if Linux kernel is out of memory (try again).
-	///
-	/// This is a system call.
-	///
-	/// Since Linux 5.6.
 	#[inline(always)]
-	pub fn register_personality(&self) -> Result<PersonalityCredentialsIdentifier, ()>
+	fn register_personality(&self) -> Result<PersonalityCredentialsIdentifier, ()>
 	{
 		let result = self.register::<()>(RegisterOperation::RegisterPersonality, null_mut(), 0);
 		if likely!(result > 0 && result <= (u16::MAX as i32))
@@ -578,14 +469,9 @@ impl IoUringFileDescriptor
 			unreachable!("Unexpected result {} from io_uring_register()", result)
 		}
 	}
-
-	/// Unregisters a previously registered personality with io_uring.
-	///
-	/// This is a system call.
-	///
-	/// Since Linux 5.6.
+	
 	#[inline(always)]
-	pub fn unregister_personality(&self, personality_credentials_identifier: PersonalityCredentialsIdentifier)
+	fn unregister_personality(&self, personality_credentials_identifier: PersonalityCredentialsIdentifier)
 	{
 		let result = self.register::<()>(RegisterOperation::UnregisterPersonality, null_mut(), personality_credentials_identifier.0.get() as u32);
 		if likely!(result == 0)

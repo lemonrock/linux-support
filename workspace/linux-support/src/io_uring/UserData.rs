@@ -2,15 +2,27 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct open_how
+/// Simple trait for user data.
+pub trait UserData
 {
-	/// `O_*` flags.
-	pub(crate) flags: u64,
+	/// Convert.
+	fn into_u64(self) -> u64;
+	
+	/// Convert.
+	fn from_u64(value: u64) -> Self;
+}
 
-	/// Mode for either `O_CREAT` or `O_TMPFILE`, otherwise zero.
-	pub(crate) mode: u64,
-
-	/// `RESOLVE_*` flags.
-	pub(crate) resolve: u64,
+impl UserData for u64
+{
+	#[inline(always)]
+	fn into_u64(self) -> u64
+	{
+		self
+	}
+	
+	#[inline(always)]
+	fn from_u64(value: u64) -> Self
+	{
+		value
+	}
 }

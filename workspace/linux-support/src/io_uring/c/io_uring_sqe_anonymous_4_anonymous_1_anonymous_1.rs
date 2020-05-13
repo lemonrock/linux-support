@@ -9,10 +9,10 @@ pub(super) union io_uring_sqe_anonymous_4_anonymous_1_anonymous_1
 	/// Index into an array of fixed buffers.
 	///
 	/// Only valid if fixed buffers were registered.
-	pub(super) buf_index: u16,
+	pub(super) buf_index: RegisteredBufferIndex,
 
 	/// for grouped buffer selection.
-	pub(super) buf_group: u16,
+	pub(super) buf_group: BufferGroup,
 }
 
 impl Default for io_uring_sqe_anonymous_4_anonymous_1_anonymous_1

@@ -53,7 +53,7 @@ pub enum Access
 impl Access
 {
 	#[inline(always)]
-	fn to_oflag(self) -> i32
+	pub(crate) fn to_oflag(self) -> i32
 	{
 		use self::Access::*;
 

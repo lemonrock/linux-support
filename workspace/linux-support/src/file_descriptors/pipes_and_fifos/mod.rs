@@ -27,6 +27,7 @@ include!("SendPipeFileDescriptor.rs");
 include!("set_maximum_pipe_capacity.rs");
 include!("set_pipe_user_pages_hard_limit.rs");
 include!("set_pipe_user_pages_soft_limit.rs");
+include!("SpliceFlags.rs");
 include!("SpliceRecipient.rs");
 include!("SpliceSender.rs");
 include!("SpliceWithOffset.rs");

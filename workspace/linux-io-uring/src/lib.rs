@@ -35,7 +35,7 @@ use std::fmt::Formatter;
 use std::sync::Arc;
 use terminate::Terminate;
 use std::mem::{size_of, zeroed, transmute};
-use linux_support::io_uring::IoUring;
+use linux_support::io_uring::{IoUring, UserData};
 
 
 include!("DequeuedMessageProcessingError.rs");

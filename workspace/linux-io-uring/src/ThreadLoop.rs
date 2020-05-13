@@ -70,7 +70,7 @@ impl<T: Terminate> ThreadLoopBodyFunction for ThreadLoop<T>
 		let iterator = self.io_uring.current_completion_queue_entries();
 		for completion_queue_entry in iterator
 		{
-			let user_data = UserData(completion_queue_entry.user_data());
+			let user_data = CoroutineUserData(completion_queue_entry.user_data());
 			let result = completion_queue_entry.result_or_error();
 
 			xxx(user_data, result)
@@ -140,7 +140,7 @@ struct CoroutineParallelOperationSlots
 union Operation
 {
 	completion_queue_entry_result: i32,
-	user_data: UserData,
+	user_data: CoroutineUserData,
 }
 
 #[repr(u8)]
@@ -156,7 +156,7 @@ enum OriginalRequestCancelationKind
 }
 
 // TODO: Revisit design to allow cancel of timeouts and SQEs (and possibly poll adds).
-// TODO: We can now get to UserData which we can use to cancel a request.
+// TODO: We can now get to CoroutineUserData which we can use to cancel a request.
 
 impl CoroutineParallelOperationSlots
 {
@@ -165,7 +165,7 @@ impl CoroutineParallelOperationSlots
 	#[inline(always)]
 	fn new(coroutine_index: usize) -> Self
 	{
-		debug_assert!(coroutine_index < UserData::ExclusiveMaximumCoroutineIndex);
+		debug_assert!(coroutine_index < CoroutineUserData::ExclusiveMaximumCoroutineIndex);
 		Self
 		{
 			operation_slots: unsafe { zeroed() },
@@ -188,7 +188,7 @@ impl CoroutineParallelOperationSlots
 			Err(())
 		}
 
-		let user_data = UserData::from_coroutine_operation_slot_index(original_request_cancelation_kind, self.coroutine_index, next_operation_slot_index);
+		let user_data = CoroutineUserData::from_coroutine_operation_slot_index(original_request_cancelation_kind, self.coroutine_index, next_operation_slot_index);
 		unsafe { *self.operation_slots.get_unchecked_mut(next_operation_slot_index) = Operation { user_data } };
 		self.operations_submitted += 1;
 		Ok(next_operation_slot_index)
@@ -236,18 +236,24 @@ impl CoroutineParallelOperationSlots
 
 /// User data.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-struct UserData(u64);
+struct CoroutineUserData(u64);
 
-impl Into<u64> for UserData
+impl UserData for CoroutineUserData
 {
 	#[inline(always)]
-	fn into(self) -> u64
+	fn into_u64(self) -> u64
 	{
 		self.0
 	}
+	
+	#[inline(always)]
+	fn from_u64(value: u64) -> Self
+	{
+		Self(value)
+	}
 }
 
-impl UserData
+impl CoroutineUserData
 {
 	const IsCoroutineBit: u64 = 0x8000_0000_0000_0000;
 

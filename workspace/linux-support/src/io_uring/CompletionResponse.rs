@@ -1125,9 +1125,105 @@ impl CompletionResponse
 		}
 	}
 	
+	/// Returns `Ok(None)` if cancelled.
+	#[deprecated(since = "0.0.0", note = "Only use this if previously used the deprecated SubmissionQueueEntry::prepare_openat()")]
+	#[inline(always)]
+	pub fn openat<Open: OnDiskFileDescriptor>(self) -> io::Result<Option<Open>>
+	{
+		match self.0
+		{
+			error @ -4095 ..= -1 => match -error
+			{
+				ECANCELED => Ok(None),
+				
+				code @ _ => Err(io::Error::from_raw_os_error(code)),
+			}
+			
+			raw_file_descriptor if raw_file_descriptor >= 0 => Ok(Some(unsafe { Open::from_raw_fd(raw_file_descriptor) })),
+			
+			unexpected @ _ => unreachable!("Unexpected result from openat completion of {}", unexpected)
+		}
+	}
+	
+	/// `_open_on_disk` must be pinned to the same location as used in the `prepare_openat2()` call.
+	///
+	/// Returns `Ok(None)` if cancelled.
+	#[inline(always)]
+	pub fn openat2<Open: OnDiskFileDescriptor>(self, _open_on_disk: &OpenOnDisk<Open>) -> io::Result<Option<Open>>
+	{
+		match self.0
+		{
+			error @ -4095 ..= -1 => match -error
+			{
+				ECANCELED => Ok(None),
+				
+				code @ _ => Err(io::Error::from_raw_os_error(code)),
+			}
+			
+			raw_file_descriptor if raw_file_descriptor >= 0 => Ok(Some(unsafe { Open::from_raw_fd(raw_file_descriptor) })),
+			
+			unexpected @ _ => unreachable!("Unexpected result from openat2 completion of {}", unexpected)
+		}
+	}
+	
+	/// Extended metadata.
+	#[inline(always)]
+	pub fn extended_metadata_for_path(self, _path: &CStr) -> io::Result<Option<()>>
+	{
+		match self.0
+		{
+			error @ -4095 ..= -1 => match -error
+			{
+				ECANCELED => Ok(None),
+				
+				EINTR | EAGAIN => panic!("EINTR / EAGAIN - are these possible?"),
+				
+				EACCES | ELOOP | ENAMETOOLONG | ENOMEM | ENOTDIR | ENOENT => Err(io::Error::from_raw_os_error(-error)),
+				
+				EBADF => panic!("dirfd is not a valid open file descriptor"),
+				EFAULT => panic!("pathname or statxbuf is NULL or points to a location outside the process's accessible address space"),
+				EINVAL => panic!("Invalid flag specified in flags. Or, reserved flag specified in mask. (Currently, there is one such flag, designated by the constant STATX__RESERVED, with the value 0x80000000U)."),
+				
+				unexpected @ _ => unreachable!("Unexpected error code from extended_metadata_for_path completion of {}", unexpected),
+			}
+			
+			0 => Ok(Some(())),
+			
+			unexpected @ _ => unreachable!("Unexpected result from extended_metadata_for_path completion of {}", unexpected)
+		}
+	}
+	
+	/// Extended metadata.
+	#[inline(always)]
+	pub fn extended_metadata_for_directory(self) -> io::Result<Option<()>>
+	{
+		match self.0
+		{
+			error @ -4095 ..= -1 => match -error
+			{
+				ECANCELED => Ok(None),
+				
+				EINTR | EAGAIN => panic!("EINTR / EAGAIN - are these possible?"),
+				
+				EACCES | ELOOP | ENAMETOOLONG | ENOMEM => Err(io::Error::from_raw_os_error(-error)),
+				
+				EBADF => panic!("dirfd is not a valid open file descriptor"),
+				EFAULT => panic!("pathname or statxbuf is NULL or points to a location outside the process's accessible address space"),
+				EINVAL => panic!("Invalid flag specified in flags. Or, reserved flag specified in mask. (Currently, there is one such flag, designated by the constant STATX__RESERVED, with the value 0x80000000U)."),
+				ENOENT => panic!("ENOENT A component of pathname does not exist, or pathname is an empty string and AT_EMPTY_PATH was not specified in flags."),
+				ENOTDIR => panic!("A component of the path prefix of pathname is not a directory or pathname is relative and dirfd is a file descriptor referring to a file other than a directory"),
+				
+				unexpected @ _ => unreachable!("Unexpected error code from extended_metadata_for_directory completion of {}", unexpected),
+			}
+			
+			0 => Ok(Some(())),
+			
+			unexpected @ _ => unreachable!("Unexpected result from extended_metadata_for_directory completion of {}", unexpected)
+		}
+	}
+	
 	// TODO: openat
 	// openat2
-	// statx
 	// files_update
 	// provide_buffers
 	// release_buffers

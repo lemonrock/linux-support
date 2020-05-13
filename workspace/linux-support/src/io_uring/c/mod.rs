@@ -61,7 +61,6 @@ include!("IORING_ENTER_.rs");
 include!("IORING_FEAT_.rs");
 include!("IORING_FSYNC_.rs");
 include!("IORING_OFF_.rs");
-include!("IORING_OP.rs");
 include!("IORING_REGISTER_.rs");
 include!("IORING_SETUP_.rs");
 include!("IORING_SQ_.rs");

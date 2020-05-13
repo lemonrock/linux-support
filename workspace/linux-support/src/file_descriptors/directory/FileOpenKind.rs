@@ -19,7 +19,7 @@ pub enum FileOpenKind<'a>
 		fail_if_path_name_is_a_block_device_and_is_in_use: bool,
 
 		/// `O_NOFOLLOW`.
-		fail_if_base_name_is_a_symbolic_link: bool,
+		no_follow: bool,
 	},
 
 	/// Create if it does not exist.
@@ -35,7 +35,7 @@ pub enum FileOpenKind<'a>
 		exclusive: bool,
 
 		/// `O_NOFOLLOW`.
-		fail_if_base_name_is_a_symbolic_link: bool,
+		no_follow: bool,
 
 		/// Access permissions.
 		access_permissions: AccessPermissions,
@@ -64,7 +64,7 @@ impl<'a> FileOpenKind<'a>
 
 		match self
 		{
-			&FailIfDoesNotExist { path, access, fail_if_path_name_is_a_block_device_and_is_in_use, fail_if_base_name_is_a_symbolic_link } =>
+			&FailIfDoesNotExist { path, access, fail_if_path_name_is_a_block_device_and_is_in_use, no_follow } =>
 			{
 				let o_flags = if fail_if_path_name_is_a_block_device_and_is_in_use
 				{
@@ -74,7 +74,7 @@ impl<'a> FileOpenKind<'a>
 				{
 					access.to_oflag() | O_NOCTTY
 				};
-				let o_flags = if fail_if_base_name_is_a_symbolic_link
+				let o_flags = if no_follow
 				{
 					o_flags | O_NOFOLLOW
 				}
@@ -86,7 +86,7 @@ impl<'a> FileOpenKind<'a>
 				(o_flags, 0, path.as_ptr())
 			}
 
-			&CreateIfDoesNotExist { path, access, exclusive, fail_if_base_name_is_a_symbolic_link, access_permissions } =>
+			&CreateIfDoesNotExist { path, access, exclusive, no_follow, access_permissions } =>
 			{
 				let o_flags = if exclusive
 				{
@@ -96,7 +96,7 @@ impl<'a> FileOpenKind<'a>
 				{
 					access.to_oflag() | O_NOCTTY | O_CREAT
 				};
-				let o_flags = if fail_if_base_name_is_a_symbolic_link
+				let o_flags = if no_follow
 				{
 					o_flags | O_NOFOLLOW
 				}
