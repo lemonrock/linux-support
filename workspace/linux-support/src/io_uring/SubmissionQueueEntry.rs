@@ -556,13 +556,13 @@ impl SubmissionQueueEntry
 	/// `replace_with_files_descriptors` must contain at least one element (it can not be empty).
 	/// `replace_with_files_descriptors.len()` must be less than `i32::MAX as usize`.
 	#[inline(always)]
-	pub fn prepare_registered_file_descriptors_update(self, user_data: impl UserData, personality: Option<PersonalityCredentialsIdentifier>, replace_with_files_descriptors: &[SupportedFileDescriptor], starting_from_index_inclusive: u32)
+	pub fn prepare_registered_file_descriptors_update(self, user_data: impl UserData, personality: Option<PersonalityCredentialsIdentifier>, replace_with_files_descriptors: &[SupportedFileDescriptor], starting_from_index_inclusive: RegisteredFileDescriptorIndex)
 	{
 		let length = replace_with_files_descriptors.len();
 		debug_assert_ne!(length, 0);
 		debug_assert!(length < i32::MAX as usize);
 		
-		self.prepare(user_data, SubmissionQueueEntryFlags::empty(), personality, CompressedIoPriority::Irrelevant, IORING_OP_FILES_UPDATE, FileDescriptorKind::Irrelevant, replace_with_files_descriptors.as_ptr() as usize as u64, length as u32, starting_from_index_inclusive as u64);
+		self.prepare(user_data, SubmissionQueueEntryFlags::empty(), personality, CompressedIoPriority::Irrelevant, IORING_OP_FILES_UPDATE, FileDescriptorKind::Irrelevant, replace_with_files_descriptors.as_ptr() as usize as u64, length as u32, starting_from_index_inclusive.0 as u64);
 		self.zero_rw_flags()
 	}
 
@@ -579,14 +579,15 @@ impl SubmissionQueueEntry
 	/// `buffer_identifier` is namespaced by `buffer_group_identifier`.
 	/// ?`buffer_group_identifier` can be zero?
 	#[inline(always)]
-	pub(crate) fn prepare_provide_buffers(self, user_data: impl UserData, options: SubmissionQueueEntryOptions, personality: Option<PersonalityCredentialsIdentifier>, buffers: &mut [u8], number_of_buffers: u32, buffer_group: BufferGroup, registered_buffer_index: RegisteredBufferIndex)
+	pub(crate) fn prepare_provide_buffers(self, user_data: impl UserData, options: SubmissionQueueEntryOptions, personality: Option<PersonalityCredentialsIdentifier>, buffers: &mut [u8], number_of_buffers: NonZeroU32, buffer_group: BufferGroup, registered_buffer_index: RegisteredBufferIndex)
 	{
 		let number_of_bytes = buffers.len();
-		debug_assert_eq!(number_of_bytes % (number_of_buffers as usize), 0);
-		let every_buffer_length = number_of_bytes / (number_of_buffers as usize);
+		let number_of_buffers_usize = number_of_buffers.get() as usize;
+		debug_assert_eq!(number_of_bytes % (number_of_buffers_usize), 0);
+		let every_buffer_length = number_of_bytes / (number_of_buffers_usize);
 		debug_assert!(every_buffer_length <= u32::MAX as usize);
 
-		self.prepare(user_data, options.into_flags(), personality, CompressedIoPriority::Irrelevant, IORING_OP_PROVIDE_BUFFERS, FileDescriptorKind::Index(number_of_buffers), Self::to_u64_buffer_mut(buffers), every_buffer_length as u32, registered_buffer_index.0 as u64);
+		self.prepare(user_data, options.into_flags(), personality, CompressedIoPriority::Irrelevant, IORING_OP_PROVIDE_BUFFERS, FileDescriptorKind::NumberOfBuffers(number_of_buffers), Self::to_u64_buffer_mut(buffers), every_buffer_length as u32, registered_buffer_index.0 as u64);
 		self.zero_rw_flags();
 		self.set_buffer_group(buffer_group)
 	}
@@ -595,7 +596,7 @@ impl SubmissionQueueEntry
 	#[inline(always)]
 	pub(crate) fn prepare_remove_buffers(self, user_data: impl UserData, options: SubmissionQueueEntryOptions, personality: Option<PersonalityCredentialsIdentifier>, number_of_buffers: NonZeroU32, buffer_group: BufferGroup)
 	{
-		self.prepare(user_data, options.into_flags(), personality, CompressedIoPriority::Irrelevant, IORING_OP_REMOVE_BUFFERS, FileDescriptorKind::Index(number_of_buffers.get()), Self::Null, 0, 0);
+		self.prepare(user_data, options.into_flags(), personality, CompressedIoPriority::Irrelevant, IORING_OP_REMOVE_BUFFERS, FileDescriptorKind::NumberOfBuffers(number_of_buffers), Self::Null, 0, 0);
 		self.zero_rw_flags();
 		self.set_buffer_group(buffer_group)
 	}

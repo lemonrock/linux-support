@@ -13,7 +13,7 @@ impl BitSet<Signal>
 
 	/// Block all signals except those in `self` specified on the current thread.
 	#[inline(always)]
-	pub fn block_all_signals_on_current_thread_bar(self)
+	pub fn block_all_signals_on_current_thread_bar(&self)
 	{
 		let result = unsafe
 		{
@@ -31,7 +31,7 @@ impl BitSet<Signal>
 
 	/// Converts a BitSet of signals to a libc `sigset_t` which does not contain them.
 	#[inline(always)]
-	pub fn to_complement_sigset_t(self) -> sigset_t
+	pub fn to_complement_sigset_t(&self) -> sigset_t
 	{
 		unsafe
 		{
@@ -47,7 +47,7 @@ impl BitSet<Signal>
 
 	/// Converts a BitSet of signals to a libc `sigset_t`.
 	#[inline(always)]
-	pub fn to_sigset_t(self) -> sigset_t
+	pub fn to_sigset_t(&self) -> sigset_t
 	{
 		unsafe
 		{

@@ -406,4 +406,11 @@ impl MemoryFileDescriptor
 			unreachable!("Unexpected result from fcntl F_ADD_SEALS of `{}`", result)
 		}
 	}
+	
+	/// Set length to a non-zero amount.
+	#[inline(always)]
+	pub fn set_non_zero_length(&self, length: NonZeroU64) -> io::Result<()>
+	{
+		self.deref().set_len(length.get())
+	}
 }

@@ -293,14 +293,14 @@ impl IoUringFileDescriptor
 	/// Returns the number of file descriptors replaced.
 	#[deprecated]
 	#[inline(always)]
-	fn replace_some_registered_file_descriptors(&self, replace_with_files_descriptors: &[SupportedFileDescriptor], starting_from_index_inclusive: u32) -> Result<u32, ()>
+	fn replace_some_registered_file_descriptors(&self, replace_with_files_descriptors: &[SupportedFileDescriptor], starting_from_index_inclusive: RegisteredFileDescriptorIndex) -> Result<u32, ()>
 	{
 		let length = replace_with_files_descriptors.len();
 		debug_assert!(length <= i32::MAX as usize);
 
 		let mut argument = io_uring_files_update
 		{
-			offset: starting_from_index_inclusive,
+			offset: starting_from_index_inclusive.0,
 			resv: 0,
 			fds: replace_with_files_descriptors.as_ptr() as *const RawFd,
 		};

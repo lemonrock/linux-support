@@ -263,6 +263,126 @@ impl SubAssign<NonZeroU64> for VirtualAddress
 	}
 }
 
+impl Add<u64> for VirtualAddress
+{
+	type Output = Self;
+
+	#[inline(always)]
+	fn add(self, rhs: u64) -> Self::Output
+	{
+		VirtualAddress(self.0 + rhs as usize)
+	}
+}
+
+impl AddAssign<u64> for VirtualAddress
+{
+	#[inline(always)]
+	fn add_assign(&mut self, rhs: u64)
+	{
+		self.0 += rhs as usize
+	}
+}
+
+impl Sub<u64> for VirtualAddress
+{
+	type Output = Self;
+
+	#[inline(always)]
+	fn sub(self, rhs: u64) -> Self::Output
+	{
+		VirtualAddress(self.0 - rhs as usize)
+	}
+}
+
+impl SubAssign<u64> for VirtualAddress
+{
+	#[inline(always)]
+	fn sub_assign(&mut self, rhs: u64)
+	{
+		self.0 -= rhs as usize
+	}
+}
+
+impl Add<NonZeroU32> for VirtualAddress
+{
+	type Output = Self;
+	
+	#[inline(always)]
+	fn add(self, rhs: NonZeroU32) -> Self::Output
+	{
+		VirtualAddress(self.0 + rhs.get() as usize)
+	}
+}
+
+impl AddAssign<NonZeroU32> for VirtualAddress
+{
+	#[inline(always)]
+	fn add_assign(&mut self, rhs: NonZeroU32)
+	{
+		self.0 += rhs.get() as usize
+	}
+}
+
+impl Sub<NonZeroU32> for VirtualAddress
+{
+	type Output = Self;
+	
+	#[inline(always)]
+	fn sub(self, rhs: NonZeroU32) -> Self::Output
+	{
+		VirtualAddress(self.0 - rhs.get() as usize)
+	}
+}
+
+impl SubAssign<NonZeroU32> for VirtualAddress
+{
+	#[inline(always)]
+	fn sub_assign(&mut self, rhs: NonZeroU32)
+	{
+		self.0 -= rhs.get() as usize
+	}
+}
+
+impl Add<u32> for VirtualAddress
+{
+	type Output = Self;
+	
+	#[inline(always)]
+	fn add(self, rhs: u32) -> Self::Output
+	{
+		VirtualAddress(self.0 + rhs as usize)
+	}
+}
+
+impl AddAssign<u32> for VirtualAddress
+{
+	#[inline(always)]
+	fn add_assign(&mut self, rhs: u32)
+	{
+		self.0 += rhs as usize
+	}
+}
+
+impl Sub<u32> for VirtualAddress
+{
+	type Output = Self;
+	
+	#[inline(always)]
+	fn sub(self, rhs: u32) -> Self::Output
+	{
+		VirtualAddress(self.0 - rhs as usize)
+	}
+}
+
+impl SubAssign<u32> for VirtualAddress
+{
+	#[inline(always)]
+	fn sub_assign(&mut self, rhs: u32)
+	{
+		self.0 -= rhs as usize
+	}
+}
+
 impl Sub<Self> for VirtualAddress
 {
 	type Output = usize;
@@ -322,7 +442,6 @@ impl VirtualAddress
 	/// This function will translate virtual addresses to physical addresses.
 	///
 	/// Before using this function, the memory reference by a virtual address should have been `mlock()`'d.
-	#[cfg(any(target_os = "android", target_os = "linux"))]
 	#[inline(always)]
 	pub fn virtual_addresses_to_physical_addresses<HVA: HasVirtualAddress>(proc_path: &ProcPath, have_virtual_addresses: impl Iterator<Item=HVA>, mut physical_address_user: impl FnMut(HVA, Self, PhysicalAddress))
 	{
@@ -348,6 +467,6 @@ impl VirtualAddress
 	#[inline(always)]
 	pub fn offset_in_bytes(self, offset_in_bytes: usize) -> Self
 	{
-		Self(self.0 + offset_in_bytes)
+		self + offset_in_bytes
 	}
 }

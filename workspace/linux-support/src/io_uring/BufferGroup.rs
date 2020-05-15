@@ -4,4 +4,5 @@
 
 /// Buffer group.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct BufferGroup(pub u16);

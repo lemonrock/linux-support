@@ -92,10 +92,8 @@ impl DefaultPageSizeAndHugePageSizes
 	///
 	/// So, if size is `1.5Gb` and `inclusive_maximum_bytes_wasted` was, say, 1024, this would prevent a 1Gb huge page size being selected.
 	#[inline(always)]
-	pub fn best_fit_huge_page_size_if_any(&self, size: usize, inclusive_maximum_bytes_wasted: usize) -> Option<HugePageSize>
+	pub fn best_fit_huge_page_size_if_any(&self, size: u64, inclusive_maximum_bytes_wasted: u64) -> Option<HugePageSize>
 	{
-		let size = size as u64;
-		let inclusive_maximum_bytes_wasted = inclusive_maximum_bytes_wasted as u64;
 		let mut best_fit = None;
 		for &huge_page_size in self.supported_huge_page_sizes.iter()
 		{

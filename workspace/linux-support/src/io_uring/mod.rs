@@ -162,6 +162,7 @@ include!("LinuxKernelSubmissionQueuePollingThreadConfiguration.rs");
 include!("OpenOnDisk.rs");
 include!("PersonalityCredentialsIdentifier.rs");
 include!("RegisteredBufferIndex.rs");
+include!("RegisteredFileDescriptorIndex.rs");
 include!("RelativeOrAbsoluteTimeout.rs");
 include!("SendOrReceiveFlags.rs");
 include!("SubmissionQueueRing.rs");

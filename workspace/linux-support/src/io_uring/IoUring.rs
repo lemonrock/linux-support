@@ -123,7 +123,7 @@ impl<'a> IoUring<'a>
 	#[allow(deprecated)]
 	#[deprecated]
 	#[inline(always)]
-	pub fn replace_some_registered_file_descriptors(&self, replace_with_files_descriptors: &[SupportedFileDescriptor], starting_from_index_inclusive: u32) -> Result<u32, ()>
+	pub fn replace_some_registered_file_descriptors(&self, replace_with_files_descriptors: &[SupportedFileDescriptor], starting_from_index_inclusive: RegisteredFileDescriptorIndex) -> Result<u32, ()>
 	{
 		self.io_uring_file_descriptor.replace_some_registered_file_descriptors(replace_with_files_descriptors, starting_from_index_inclusive)
 	}
@@ -366,8 +366,8 @@ impl<'a> IoUring<'a>
 	#[inline(always)]
 	fn map_memory(io_uring_file_descriptor: &IoUringFileDescriptor, size: NonZeroU64, offset: u64, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<MappedMemory, IoUringCreationError>
 	{
-		const OneMegabyte: usize = 1024 * 1024;
-		let huge_memory_page_size = defaults.best_fit_huge_page_size_if_any(size.get() as usize, OneMegabyte).map(|huge_page_size| Some(huge_page_size));
+		const OneMegabyte: u64 = 1024 * 1024;
+		let huge_memory_page_size = defaults.best_fit_huge_page_size_if_any(size.get(), OneMegabyte).map(|huge_page_size| Some(huge_page_size));
 		let mapped_memory = MappedMemory::from_file(io_uring_file_descriptor, offset, size, AddressHint::any(), Protection::ReadWrite, Sharing::Shared, huge_memory_page_size, true, false, defaults)?;
 
 		mapped_memory.advise(MemoryAdvice::DontFork).map_err(IoUringCreationError::CouldNotAdviseDontFork)?;

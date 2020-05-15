@@ -7,7 +7,7 @@
 pub enum FileDescriptorOrigin<'a, FD: 'a + FileDescriptor>
 {
 	/// An index into the file descriptors previously registered with the `IoUring`.
-	Index(u32),
+	Index(RegisteredFileDescriptorIndex),
 
 	/// A file descriptor reference.
 	///

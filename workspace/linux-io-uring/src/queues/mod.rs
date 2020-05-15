@@ -2,16 +2,21 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Registered buffer index.
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(transparent)]
-pub struct RegisteredBufferIndex(pub u16);
+use context_coroutine::stacks::Stack;
+use context_coroutine::stacks::StackPointer;
+use linux_support::file_descriptors::CreationError;
+use linux_support::io_uring::RegisteredFileDescriptorIndex;
+use linux_support::memory::mapping::*;
+use linux_support::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
+use std::error;
+use std::fmt;
+use std::fmt::Debug;
+use std::fmt::Display;
+use std::fmt::Formatter;
+use std::io;
+use std::marker::PhantomData;
+use std::mem::size_of;
+use std::ptr::NonNull;
 
-impl RegisteredBufferIndex
-{
-	/// Inclusive maximum.
-	pub const InclusiveMaximum: Self = Self(Self::ExclusiveMaximum.get() - 1);
-	
-	/// Exclusive maximum.
-	pub const ExclusiveMaximum: NonZeroU16 = unsafe { NonZeroU16::new_unchecked(1024) };
-}
+
+include!("RegisteredFileDescriptorIndicesQueue.rs");

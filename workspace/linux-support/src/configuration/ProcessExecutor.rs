@@ -30,7 +30,7 @@ impl ProcessExecutor
 	/// Should *ALWAYS* be called after `ProcessConfiguration.configure*()`.
 	///
 	/// `terminate` should be the value returned from `ProcessConfiguration.configure*()`.
-	pub fn execute_securely(&self, proc_path: &ProcPath, etc_path: &EtcPath, terminate: &Arc<impl Terminate + 'static>, main_thread: (&ThreadConfiguration, impl ThreadFunction), child_threads: Vec<(&ThreadConfiguration, impl ThreadFunction)>) -> Result<(), ProcessExecutorError>
+	pub fn execute_securely<T: Terminate + 'static, MTF: ThreadFunction, CTF: ThreadFunction>(&self, proc_path: &ProcPath, etc_path: &EtcPath, terminate: &Arc<T>, main_thread: (&ThreadConfiguration, MTF), child_threads: Vec<(&ThreadConfiguration, CTF)>) -> Result<(), ProcessExecutorError>
 	{
 		let (join_handles, main_thread_loop_function) = self.prepare_and_secure_threads(proc_path, etc_path, terminate, main_thread, child_threads)?;
 
@@ -44,7 +44,7 @@ impl ProcessExecutor
 
 		while likely!(terminate.should_continue())
 		{
-			main_thread_loop_function.invoke();
+			main_thread_loop_function.invoke(&terminate);
 			spin_loop_hint()
 		}
 
@@ -87,7 +87,7 @@ impl ProcessExecutor
 		let mut join_handles = ok_or(main_thread_configuration.configure_main_thread(), terminate, join_handles, CouldNotConfigureMainThread)?;
 		join_handles.release_configured();
 
-		let main_thread_loop_function = main_thread_function.initialize(terminate);
+		let main_thread_loop_function = main_thread_function.initialize();
 		let mut join_handles = ok_or(self.apply_security(etc_path), terminate, join_handles, |error| error)?;
 		join_handles.release_seccomp_applied_and_setuid_et_al_done();
 

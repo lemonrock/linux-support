@@ -2,24 +2,103 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[derive(Debug)]
-pub struct ThreadLoop<T: Terminate>
+pub struct ThreadLoopInitiation
 {
-	terminate: Arc<T>,
-	incoming_messages_queue: PerThreadQueueSubscriber<T, (), DequeuedMessageProcessingError>,
-	io_uring: IoUring,
+	number_of_submission_queue_entries: NonZeroU16,
+	number_of_completion_queue_entries: Option<NonZeroU32>,
+	kernel_submission_queue_thread_configuration: Option<LinuxKernelSubmissionQueuePollingThreadConfiguration>,
+	registered_buffer_settings: RegisteredBufferSettings,
+	defaults: DefaultPageSizeAndHugePageSizes,
+	signal_mask: BitSet<Signal>,
 }
+
+impl<T: Terminate> ThreadFunction for ThreadLoopInitiation
+{
+	/// Configured type.
+	type TLBF = ThreadLoop<T>;
+	
+	fn initialize(self) -> Self::TLBF
+	{
+		XXX: Set up thread-local memory allocator as soon as possible;
+		
+		let io_uring = IoUring::new(&self.defaults, self.number_of_submission_queue_entries, self.number_of_completion_queue_entries, self.kernel_submission_queue_thread_configuration.as_ref(), None).expect("Could not create IoUring");
+		
+		let registered_buffers = RegisteredBuffers::new(&self.registered_buffer_settings, &self.defaults).expect("Could not create registered buffers");
+		registered_buffers.register(&io_uring);
+		
+		self.signal_mask.block_all_signals_on_current_thread_bar();
+		let signal_file_descriptor = SignalFileDescriptor::new(&self.signal_mask.to_sigset_t()).expect("Could not create signal file descriptor");
+		
+		ThreadLoop
+		{
+			incoming_messages_queue: XXXX,
+			io_uring,
+			registered_buffers,
+			signal_file_descriptor,
+		}
+	}
+}
+
+#[derive(Debug)]
+pub struct ThreadLoop<T: Terminate, HeapSize: Sized, StackSize: Sized>
+{
+	incoming_messages_queue: PerThreadQueueSubscriber<T, (), DequeuedMessageProcessingError>,
+	io_uring: IoUring<'static>,
+	registered_buffers: RegisteredBuffers,
+	signal_file_descriptor: SignalFileDescriptor,
+	coroutine_memory_warehouse: CoroutineMemoryWarehouse<HeapSize, StackSize, GTACSA, CLAC>,
+
+}
+
+/*
+	Coroutine Operations supported
+		Read Fixed Linked to Timeout
+		Write Fixed Linked to Timeout
+		Accept
+		Connect Linked to Timeout
+		Close
+		Open ?Linked to Timeout?
+		
+		By linking to a timeout we can kill coroutine operations
+	
+	Coroutine panics or dies in someway we need to clean up
+		Need to cancel all outstanding SQEs
+			Need to know user data for
+				Read Fixed (x) + Linked to Timeout (x) so we can kill them
+				All other operation kinds above
+			If we are using fixed buffers, we have to clean up extremely quickly or we'll run out of buffer identifiers
+	
+	Fixed buffers
+		We can have upto 1024
+		They can be 1Gb
+		We can use them for different size 'buffers'.
+		
+	Thread Operations supported
+		Read (SignalFd)
+
+	Question to answer
+		Should sockets now be opened blocking? (some hints that is the better case)
+ */
+
+
 
 impl<T: Terminate> ThreadLoopBodyFunction for ThreadLoop<T>
 {
 	#[inline(always)]
 	fn invoke(&mut self)
 	{
-
-		// TODO: every thread probably needs a thread-specific signal handler.
-		// If this is signalfd, does it work with io-uring?
+		// TODO: Each coroutine is allocated a fixed number of buffers which we (pre-register) on its behalf unless we find a way to use the register / unregister buffer group functionality.
+			// The list of buffers we initially register can be all sorts of sizes.
+		
+		// TODO: Each coroutine is given a block of 16 file descriptor indices into the registered list.
+			// TODO: Not sure how that works for accept() coroutines.
 		
 		// TODO: Why use poll?
+			// TODO: Use it for eventfd readiness
+				// eg with `POLLIN`
+			// TODO: Use it for signalfd readiness
+				// eg `SignalFileDescriptor::read_signals()` with `POLLIN`.
+				// There was bug using signalfd with poll_add
 		
 		// TODO: IDEA:-
 		/*
@@ -31,6 +110,27 @@ impl<T: Terminate> ThreadLoopBodyFunction for ThreadLoop<T>
 				
 			For a close
 				- need to wait for close to complete so we can release file descriptor
+				
+			Registered file descriptor add
+				- when receiving a connection with accept()
+				- after calling openat2()
+				
+			Registered file descriptor release
+				- after calling close
+			
+			If doing registerations updates asynchronously we need to impose some-sort of total ordering
+				- we can use drain but I suspect that could be expensive
+				- we need to track which file descriptor to register next
+			
+			Supporting 2^32 file descriptors would require a 16Gb array
+				- We only need to support half this, so 8Gb.
+				- file descriptors are per-process, so the array in theory could be smaller per thread.
+				
+				- We need a way to allocate and relinquish indices using links
+			
+			We should track how many completions are outstanding so that we can submit_and_wait() appropriately?
+			
+			
 		 */
 		
 		/*
@@ -43,14 +143,9 @@ impl<T: Terminate> ThreadLoopBodyFunction for ThreadLoop<T>
 		
 		Closing a file descriptor will require calling a sqe to update the file descriptor entries.
 		
-		// SQE kernel poll patch: https://patchwork.kernel.org/patch/10803509/
-		
-		// TODO: Iouring / signalfd: previously bugs when using poll: https://lwn.net/ml/linux-kernel/1a5b156a-fde5-507b-d5cf-f42ba3eacf1a@kernel.dk/
-		
 		// TODO: Registered buffers allow us to avoid kernel to userspace copies
-		
 		// TODO: Registered file descriptors allow us to use a kernel SQ thread.
-
+		
 		// TODO: Need to change file descriptor to NOT CLOSE ON drop() if using non-syscall close!!!
 		
 		// TODO: IDEA:-
@@ -108,205 +203,8 @@ impl<T: Terminate> ThreadLoopBodyFunction for ThreadLoop<T>
 	}
 }
 
-/// This is shared between a thread and a coroutine.
-///
-/// It probably should be owned by the coroutine and on its stack as a 'coroutine local'.
-struct CoroutineParallelOperationSlots
-{
-	/// Each value is the result of `CQE`.
-	///
-	/// Up to 16 CQEs can be in-flight at once.
-	///
-	/// All CQEs must complete before the coroutine is woken up.
-	/// This design does not let us:-
-	///
-	/// * Cancel timeouts.
-	/// * Cancel SQEs.
-	/// * Remove poll add requests.
-	///
-	///
-	/// Requires a 2-part design:-
-	/// - Part (a) creates the SQE
-	/// - Part (b) handles the CQE res code put in this slot.
-	operation_slots: [Operation; 16],
-
-	operations_submitted: usize,
-
-	operations_completed_bit_set: usize,
-
-	coroutine_index: usize
-}
-
-union Operation
-{
-	completion_queue_entry_result: i32,
-	user_data: CoroutineUserData,
-}
-
-#[repr(u8)]
-enum OriginalRequestCancelationKind
-{
-	Poll = 0,
-
-	TimeoutRelative = 1,
-
-	TimeoutAbsolute = 2,
-
-	AnythingElse = 3,
-}
-
 // TODO: Revisit design to allow cancel of timeouts and SQEs (and possibly poll adds).
 // TODO: We can now get to CoroutineUserData which we can use to cancel a request.
-
-impl CoroutineParallelOperationSlots
-{
-	const ExclusiveMaximumOperationSlots: usize = 16;
-
-	#[inline(always)]
-	fn new(coroutine_index: usize) -> Self
-	{
-		debug_assert!(coroutine_index < CoroutineUserData::ExclusiveMaximumCoroutineIndex);
-		Self
-		{
-			operation_slots: unsafe { zeroed() },
-			operations_submitted: 0,
-			operations_completed_bit_set: 0,
-			coroutine_index,
-		}
-	}
-
-	#[inline(always)]
-	fn coroutine_next_operation_slot_index(&mut self, original_request_cancelation_kind: OriginalRequestCancelationKind) -> Result<usize, ()>
-	{
-		debug_assert_eq!(self.operations_completed_bit_set, 0, "Not all operations have been completed, ie coroutine_was_woken_up_complete() should have been called another {} time(s)!", self.operations_completed_bit_set.count_ones());
-
-		let next_operation_slot_index = self.operations_submitted;
-
-		debug_assert!(next_operation_slot_index <= Self::MaximumSlots);
-		if unlikely!(next_operation_slot_index == Self::MaximumSlots)
-		{
-			Err(())
-		}
-
-		let user_data = CoroutineUserData::from_coroutine_operation_slot_index(original_request_cancelation_kind, self.coroutine_index, next_operation_slot_index);
-		unsafe { *self.operation_slots.get_unchecked_mut(next_operation_slot_index) = Operation { user_data } };
-		self.operations_submitted += 1;
-		Ok(next_operation_slot_index)
-	}
-
-	#[inline(always)]
-	fn coroutine_just_before_yield(&mut self)
-	{
-		debug_assert_eq!(self.operations_completed_bit_set, 0, "Not all operations have been completed, ie coroutine_was_woken_up_complete() should have been called another {} time(s)!", self.operations_completed_bit_set.count_ones());
-		debug_assert_ne!(self.operations_submitted, 0, "No operations have been submitted!");
-	}
-
-	#[inline(always)]
-	fn thread_update_results_return_true_if_coroutine_should_be_woken_up(&mut self, result_now_available_for_operation_slot_index: usize, completion_queue_entry_result: i32) -> bool
-	{
-		let bit = (1 << result_now_available_for_operation_slot_index);
-
-		debug_assert!(result_now_available_for_operation_slot_index < Self::MaximumSlots);
-
-		debug_assert_eq!(self.operations_completed_bit_set & bit, 0, "Already completed once");
-		unsafe { *self.operation_slots.get_unchecked_mut(result_now_available_for_operation_slot_index) = Operation { completion_queue_entry_result } };
-		self.operations_completed_bit_set |= bit;
-
-		let wake_up_coroutine = self.operations_completed_bit_set.count_ones() == self.operations_submitted;
-		wake_up_coroutine
-	}
-
-	#[inline(always)]
-	fn coroutine_was_woken_up_complete<R, Error>(&mut self, operation_slot_index: usize, complete: impl FnOnce(i32) -> Result<R, Error>) -> Result<R, Error>
-	{
-		let bit = (1 << operation_slot_index);
-
-		debug_assert!(operation_slot_index < Self::MaximumSlots);
-
-		debug_assert_ne!(self.operations_completed_bit_set & bit, 0, "Already completed once");
-		self.operations_completed_bit_set &= !bit;
-
-		debug_assert_ne!(self.operations_submitted, 0);
-		self.operations_submitted -= 1;
-
-		let operation = unsafe { *self.operation_slots.get_unchecked(operation_slot_index) };
-		complete(unsafe { operation.completion_queue_entry_result })
-	}
-}
-
-/// User data.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-struct CoroutineUserData(u64);
-
-impl UserData for CoroutineUserData
-{
-	#[inline(always)]
-	fn into_u64(self) -> u64
-	{
-		self.0
-	}
-	
-	#[inline(always)]
-	fn from_u64(value: u64) -> Self
-	{
-		Self(value)
-	}
-}
-
-impl CoroutineUserData
-{
-	const IsCoroutineBit: u64 = 0x8000_0000_0000_0000;
-
-	const OriginalRequestCancelationKindMask: u64 = 0x6000_0000_0000_0000;
-
-	const OriginalRequestCancelationKindMaskShift: u64 = 61;
-
-	const CoroutineIndexMask: u64 = 0x0000_0000_FFFF_FFF0;
-
-	const CoroutineIndexShift: u64 = 4;
-
-	const ExclusiveMaximumCoroutineIndex: usize = ((Self::CoroutineIndexMask >> Self::CoroutineIndexShift) + 1) as usize;
-
-	#[inline(always)]
-	pub fn from_coroutine_operation_slot_index(original_request_cancelation_kind: OriginalRequestCancelationKind, coroutine_index: usize, operation_slot_index: usize) -> Self
-	{
-		debug_assert!(coroutine_index < Self::ExclusiveMaximumCoroutineIndex);
-		debug_assert!(operation_slot_index < CoroutineParallelOperationSlots::ExclusiveMaximumOperationSlots);
-
-		Self(Self::IsCoroutineBit | ((original_request_cancelation_kind as u8 as u64) << Self::OriginalRequestCancelationKindMaskShift) | ((operation_slot_index as u64) << Self::CoroutineIndexShift) | (operation_slot_index as u64))
-	}
-
-	#[inline(always)]
-	pub const fn is_for_coroutine(self) -> bool
-	{
-		(self.0 & Self::IsCoroutineBit) != 0
-	}
-
-	/// `0 .. 3`.
-	#[inline(always)]
-	pub const fn original_request_cancelation_kind(self) -> OriginalRequestCancelationKind
-	{
-		unsafe { transmute(((self.0 & Self::OriginalRequestCancelationKindMask) >> Self::OriginalRequestCancelationKindMaskShift) as u8) }
-	}
-
-	/// Check `is_for_coroutine()` first.
-	///
-	/// `0 .. (2 ^ 28)`.
-	#[inline(always)]
-	pub const fn coroutine_index(self) -> usize
-	{
-		((self.0 & Self::CoroutineIndexMask) >> Self::CoroutineIndexShift) as usize
-	}
-
-	/// Check `is_for_coroutine()` first.
-	///
-	/// `0 .. CoroutineParallelOperationSlots::ExclusiveMaximumOperationSlots` (where `CoroutineParallelOperationSlots::ExclusiveMaximumOperationSlots` is currently 16).
-	#[inline(always)]
-	pub const fn coroutine_operation_slot_index(self) -> usize
-	{
-		(self.0 & 0x0000_0000_0000_000F) as usize
-	}
-}
 
 /*
 	user_data =>
@@ -336,79 +234,42 @@ impl CoroutineUserData
 			- If we want to enable coroutines that can start multiple operations in parallel, we need to provide a way so they know which of their operations has completed
 			- we could do this by using, say, 4 bits of the user_data to give 16 parallel operations per coroutine.
 
-	Operation and File Descriptor permutations
 
-			splice 9 in file descriptors, 9 out file descriptor types
-				81
+https://github.com/CarterLi/liburing4cpp
+Performance suggestions:
 
-			read_vectored File, MemoryFileDescriptor
-			read_fixed File, MemoryFileDescriptor
-			read File, MemoryFileDescriptor
-			write_vectored File, MemoryFileDescriptor
-			write_fixed File, MemoryFileDescriptor
-			write File, MemoryFileDescriptor
-				12
-
-			fsync_synchronize_all & fsync_synchronize_data_only File
-				1
-
-			accept4 3 kinds of socket
-				3
-
-			connect 3 kinds of socket
-				3
-
-			recv 6 kinds of socket
-				6
-
-			send 6 kinds of socket
-				6
-
-			recvmsg 1 if restricted to Unix domain socket.
-				1
-
-			sendmsg 1 if restricted to Unix domain socket.
-				1
-
-			epoll_ctl_add / epoll_ctl_modify / epoll_ctl_delete 1 epoll type + ANY being acted upon (for which we need to reference count)
-				1 + ?
-
-			fallocate File
-				1
-
-			fadvise File
-				1
-
-			synchronize_file_range File
-				1
-
-			openat Directory
-				- Directories have a special value for CWD, so there are 2 PERMUTATIONS!
-				2
-
-			openat2 Directory
-				- Directories have a special value for CWD, so there are 2 PERMUTATIONS!
-				2
-
-			statx Directory
-				- Directories have a special value for CWD, so there are 2 PERMUTATIONS!
-				2
-
-			= 124
-
-			poll_add ANY (including those not otherwise supported by io-uring) [could be modelled as if only one choice]
-			close ANY (including those not otherwise supported by io-uring) [could be modelled as if only one choice]
-
-			poll_remove (None)
-			files_update (None)
-			cancel (None but original user_data)
-			timeout (None)
-			link_timeout (None)
-			timeout_remove (None but original user_data)
-			madvise (None)
-			provide_buffers (None)
-			remove_buffers (None)
+Until Linux 5.6 at least
 
 
-			nop (exclude as useless)
+
+Batch syscalls
+
+Use io_uring_for_each_cqe to peek multiple cqes once, handle them and enqueue multiple sqes. After all cqes are handled, submit all sqes.
+
+Handle multiple (cqes), submit (sqes) once
+For non-disk I/O, always POLL before READ/RECV
+
+For operations that may block, kernel will punt them into a kernel worker called io-wq, which turns out to have high overhead cost. Always make sure that the fd to read is ready to read.
+
+This will change in Linux 5.7
+
+
+
+Don't use IOSQE_IO_LINK
+
+As for Linux 5.6, IOSQE_IO_LINK has an issue that force operations after poll be executed async, that makes POLL_ADD mostly useless.
+
+See: https://lore.kernel.org/io-uring/5f09d89a-0c6d-47c2-465c-993af0c7ae71@kernel.dk/
+
+Note: For READ-WRITE chain, be sure to check -ECANCELED result of WRITE operation ( a short read is considered an error in a link chain which will cancel operations after the operation ). Never use IOSQE_IO_LINK for RECV-SEND chain because you can't control the number of bytes to send (a short read for RECV is NOT considered an error. I don't know why).
+
+This will change in Linux 5.7
+
+
+Don't use FIXED_FILE & FIXED_BUFFER
+
+They have little performace boost but increase much code complexity. Because the number of files and buffers can be registered has limitation, you almost always have to write fallbacks. In addition, you have to reuse the old file slots and buffers. See example: https://github.com/CarterLi/liburing4cpp/blob/daf6261419f39aae9a6624f0a271242b1e228744/demo/echo_server.cpp#L37
+
+Note RECV/SEND have no _fixed variant.
+
 */

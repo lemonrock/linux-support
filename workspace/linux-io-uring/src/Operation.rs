@@ -2,16 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Registered buffer index.
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(transparent)]
-pub struct RegisteredBufferIndex(pub u16);
-
-impl RegisteredBufferIndex
+union Operation
 {
-	/// Inclusive maximum.
-	pub const InclusiveMaximum: Self = Self(Self::ExclusiveMaximum.get() - 1);
-	
-	/// Exclusive maximum.
-	pub const ExclusiveMaximum: NonZeroU16 = unsafe { NonZeroU16::new_unchecked(1024) };
+	completion_queue_entry_result: i32,
+	user_data: CoroutineUserData,
 }

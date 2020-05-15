@@ -69,6 +69,16 @@ impl AddressHint
 			#[cfg(target_arch = "x86_64")] constrain_to_first_2Gb: false,
 		}
 	}
+	
+	/// Convenience constructor for `Fixed`.
+	#[inline(always)]
+	pub fn fixed(virtual_address_base: VirtualAddress, virtal_address_offset: u64) -> Self
+	{
+		AddressHint::Fixed
+		{
+			virtual_address_required: virtual_address_base + virtal_address_offset,
+		}
+	}
 
 	/// Convenience constructor for `Prefer`.
 	#[inline(always)]

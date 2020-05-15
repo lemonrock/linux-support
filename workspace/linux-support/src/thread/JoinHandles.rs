@@ -16,7 +16,7 @@ impl JoinHandles
 	/// Spawn threads but configure them from the main (spawning) thread.
 	///
 	/// On error any threads created are told to run to stop as soon as possible and `terminate` becomes true.
-	pub fn main_thread_spawn_child_threads(mut child_threads: Vec<(&ThreadConfiguration, impl ThreadFunction)>, terminate: &Arc<impl Terminate + 'static>, proc_path: &ProcPath) -> (Self, Result<(), ThreadConfigurationError>)
+	pub fn main_thread_spawn_child_threads<T: Terminate + 'static, CTF: ThreadFunction>(mut child_threads: Vec<(&ThreadConfiguration, CTF)>, terminate: &Arc<T>, proc_path: &ProcPath) -> (Self, Result<(), ThreadConfigurationError>)
 	{
 		let mut this = Self
 		{
@@ -37,7 +37,7 @@ impl JoinHandles
 		(this, Ok(()))
 	}
 
-	fn add_thread(&mut self, thread_identifiers: &ThreadIdentifiers, terminate: &Arc<impl Terminate + 'static>, thread_configuration: &ThreadConfiguration, thread_function: impl ThreadFunction, proc_path: &ProcPath) -> Result<(), ThreadConfigurationError>
+	fn add_thread<T: Terminate + 'static, CTF: ThreadFunction>(&mut self, thread_identifiers: &ThreadIdentifiers, terminate: &Arc<T>, thread_configuration: &ThreadConfiguration, thread_function: CTF, proc_path: &ProcPath) -> Result<(), ThreadConfigurationError>
 	{
 		let join_handle = self.spawn(thread_identifiers, terminate, thread_configuration, thread_function).map_err(ThreadConfigurationError::CouldNotCreateThread)?;
 		let (thread_identifier, pthread_t) = thread_identifiers.get_and_reuse();
@@ -49,7 +49,7 @@ impl JoinHandles
 		Ok(())
 	}
 
-	fn spawn(&self, thread_identifiers: &ThreadIdentifiers, terminate: &Arc<impl Terminate + 'static>, thread_configuration: &ThreadConfiguration, thread_function: impl ThreadFunction) -> io::Result<JoinHandle<()>>
+	fn spawn<T: Terminate + 'static, CTF: ThreadFunction>(&self, thread_identifiers: &ThreadIdentifiers, terminate: &Arc<T>, thread_configuration: &ThreadConfiguration, thread_function: CTF) -> io::Result<JoinHandle<()>>
 	{
 		let thread_identifiers = thread_identifiers.clone();
 		let (wait_until_configured, wait_until_seccomp_applied_and_setuid_et_al_done) = self.clone_barriers();
@@ -80,7 +80,7 @@ impl JoinHandles
 								return
 							}
 
-							let mut thread_loop_body_function = thread_function.initialize(&terminate_catch_unwind);
+							let mut thread_loop_body_function = thread_function.initialize();
 
 							if unlikely!(terminate_catch_unwind.should_finish())
 							{
@@ -105,7 +105,7 @@ impl JoinHandles
 
 							while likely!(terminate_catch_unwind.should_continue())
 							{
-								thread_loop_body_function.invoke();
+								thread_loop_body_function.invoke(&terminate_catch_unwind);
 								spin_loop_hint()
 							}
 						}
