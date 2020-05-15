@@ -3,18 +3,18 @@
 
 
 #[derive(Debug)]
-struct RegisteredBuffer<ReplaceWithConstGenericsWhenStable: Sized>
+struct RegisteredBuffer<BufferSize: Sized>
 {
-	memory_queue: Rc<LargeRingQueue<ReplaceWithConstGenericsWhenStable>>,
+	memory_queue: ReferenceCountedLargeRingQueue<BufferSize>,
 	registered_buffer_index: RegisteredBufferIndex,
 }
 
-impl<ReplaceWithConstGenericsWhenStable: Sized> RegisteredBuffer<ReplaceWithConstGenericsWhenStable>
+impl<BufferSize: Sized> RegisteredBuffer<BufferSize>
 {
 	#[allow(missing_docs)]
 	#[inline(always)]
-	fn next_buffer(&mut self) -> Option<RegisteredBufferSource<T>>
+	fn next_buffer(&mut self) -> Result<RegisteredBufferSource<BufferSize>, ()>
 	{
-		RegisteredBufferSource::new(&self.memory_queue, self.registered_buffer_index)
+		self.memory_queue.obtain_and_map(|element| RegisteredBufferSource { element, registered_buffer_index: self.registered_buffer_index }, || ())
 	}
 }

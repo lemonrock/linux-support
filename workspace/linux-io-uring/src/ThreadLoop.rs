@@ -2,8 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub struct ThreadLoopInitiation
+pub struct ThreadLoopInitiation<HeapSize: Sized, StackSize: Sized, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>>
 {
+	global_allocator: &'static GTACSA,
+	ideal_maximum_number_of_coroutines: NonZeroU64,
 	number_of_submission_queue_entries: NonZeroU16,
 	number_of_completion_queue_entries: Option<NonZeroU32>,
 	kernel_submission_queue_thread_configuration: Option<LinuxKernelSubmissionQueuePollingThreadConfiguration>,
@@ -12,14 +14,15 @@ pub struct ThreadLoopInitiation
 	signal_mask: BitSet<Signal>,
 }
 
-impl<T: Terminate> ThreadFunction for ThreadLoopInitiation
+impl<HeapSize: Sized, StackSize: Sized, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>> ThreadFunction for ThreadLoopInitiation<HeapSize, StackSize, GTACSA>
 {
-	/// Configured type.
-	type TLBF = ThreadLoop<T>;
+	type TLBF = ThreadLoop<HeapSize, StackSize, GTACSA>;
 	
 	fn initialize(self) -> Self::TLBF
 	{
-		XXX: Set up thread-local memory allocator as soon as possible;
+		self.global_allocator.initialize_thread_local_allocator(thread_local_allocator);
+		
+		let coroutine_memory_warehouse = CoroutineMemoryWarehouse::new(global_allocator, self.ideal_maximum_number_of_coroutines, &self.defaults).expect("Could not create coroutine memory warehouse");
 		
 		let io_uring = IoUring::new(&self.defaults, self.number_of_submission_queue_entries, self.number_of_completion_queue_entries, self.kernel_submission_queue_thread_configuration.as_ref(), None).expect("Could not create IoUring");
 		
@@ -35,18 +38,19 @@ impl<T: Terminate> ThreadFunction for ThreadLoopInitiation
 			io_uring,
 			registered_buffers,
 			signal_file_descriptor,
+			coroutine_memory_warehouse,
 		}
 	}
 }
 
 #[derive(Debug)]
-pub struct ThreadLoop<T: Terminate, HeapSize: Sized, StackSize: Sized>
+pub struct ThreadLoop<HeapSize: Sized, StackSize: Sized, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>>
 {
 	incoming_messages_queue: PerThreadQueueSubscriber<T, (), DequeuedMessageProcessingError>,
 	io_uring: IoUring<'static>,
 	registered_buffers: RegisteredBuffers,
 	signal_file_descriptor: SignalFileDescriptor,
-	coroutine_memory_warehouse: CoroutineMemoryWarehouse<HeapSize, StackSize, GTACSA, CLAC>,
+	coroutine_memory_warehouse: CoroutineMemoryWarehouse<HeapSize, StackSize, GTACSA>,
 
 }
 

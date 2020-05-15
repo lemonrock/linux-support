@@ -15,11 +15,12 @@ use std::fmt::Display;
 use std::fmt::Debug;
 use std::io;
 use linux_support::io_uring::{RegisteredBufferIndex, IoUring};
-use magic_ring_buffer::LargeRingQueue;
+use magic_ring_buffer::{LargeRingQueue, ReferenceCountedLargeRingQueueElement, ReferenceCountedLargeRingQueue};
 use std::ptr::NonNull;
 use std::rc::Rc;
 use std::ops::{Deref, DerefMut};
 use std::marker::PhantomData;
+use std::alloc::AllocErr;
 
 
 include!("RegisteredBuffer.rs");

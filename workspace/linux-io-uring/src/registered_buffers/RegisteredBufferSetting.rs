@@ -6,18 +6,18 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Ord, PartialOrd, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct RegisteredBufferSetting<ReplaceWithConstGenericsWhenStable: Sized>
+pub struct RegisteredBufferSetting<BufferSize: Sized>
 {
 	pub number_of_subdivisions_per_buffer: NonZeroU32,
 	
 	pub number_of_buffers: NonZeroU16,
 
-	marker: PhantomData<ReplaceWithConstGenericsWhenStable>,
+	marker: PhantomData<BufferSize>,
 }
 
-impl<ReplaceWithConstGenericsWhenStable: Sized> RegisteredBufferSetting<ReplaceWithConstGenericsWhenStable>
+impl<BufferSize: Sized> RegisteredBufferSetting<BufferSize>
 {
-	fn create_buffers(&self, buffers_count: &mut u16) -> Result<Box<[RegisteredBuffer<ReplaceWithConstGenericsWhenStable>]>, RegisteredBuffersCreationError>
+	fn create_buffers(&self, buffers_count: &mut u16) -> Result<Box<[RegisteredBuffer<BufferSize>]>, RegisteredBuffersCreationError>
 	{
 		let number_of_buffers = self.number_of_buffers.get();
 		let mut buffers = Vec::with_capacity(number_of_buffers as usize);
@@ -42,7 +42,7 @@ impl<ReplaceWithConstGenericsWhenStable: Sized> RegisteredBufferSetting<ReplaceW
 	}
 	
 	#[inline(always)]
-	fn create_ring_queue(subdivision_size: u64, number_of_subdivisions_per_buffer: NonZeroU32, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<LargeRingQueue<ReplaceWithConstGenericsWhenStable>, RegisteredBuffersCreationError>
+	fn create_ring_queue(subdivision_size: u64, number_of_subdivisions_per_buffer: NonZeroU32, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<LargeRingQueue<BufferSize>, RegisteredBuffersCreationError>
 	{
 		const OneMegabyte: u64 = 1024 * 1024;
 		const MaximumBufferSize: u64 = 1024 * OneMegabyte;

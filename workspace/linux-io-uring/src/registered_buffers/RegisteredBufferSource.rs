@@ -4,23 +4,13 @@
 
 /// A registered buffer suitable for use.
 #[derive(Debug)]
-pub struct RegisteredBufferSource<T>
+pub struct RegisteredBufferSource<BufferSize: Sized>
 {
-	memory: NonNull<T>,
-	memory_queue: Rc<LargeRingQueue<T>>,
+	element: ReferenceCountedLargeRingQueueElement<BufferSize>,
 	registered_buffer_index: RegisteredBufferIndex,
 }
 
-impl<T> Drop for RegisteredBufferSource<T>
-{
-	#[inline(always)]
-	fn drop(&mut self)
-	{
-		self.memory_queue.relinquish(self.memory)
-	}
-}
-
-impl<T> Deref for RegisteredBufferSource<T>
+impl<BufferSize: Sized> Deref for RegisteredBufferSource<BufferSize>
 {
 	type Target = T;
 	
@@ -31,7 +21,7 @@ impl<T> Deref for RegisteredBufferSource<T>
 	}
 }
 
-impl<T> DerefMut for RegisteredBufferSource<T>
+impl<BufferSize: Sized> DerefMut for RegisteredBufferSource<BufferSize>
 {
 	#[inline(always)]
 	fn deref_mut(&mut self) -> &mut Self::Target
@@ -40,27 +30,6 @@ impl<T> DerefMut for RegisteredBufferSource<T>
 	}
 }
 
-impl<T> RegisteredBufferSource<T>
+impl<BufferSize: Sized> RegisteredBufferSource<BufferSize>
 {
-	#[inline(always)]
-	pub fn new(memory_queue: &Rc<LargeRingQueue<T>>, registered_buffer_index: RegisteredBufferIndex) -> Option<Self>
-	{
-		match memory_queue.obtain()
-		{
-			None => None,
-			
-			Some(memory) =>
-			{
-				Some
-				(
-					Self
-					{
-						memory,
-						memory_queue: memory_queue.clone(),
-						registered_buffer_index,
-					}
-				)
-			}
-		}
-	}
 }

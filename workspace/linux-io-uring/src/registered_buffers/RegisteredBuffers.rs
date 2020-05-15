@@ -68,86 +68,86 @@ impl RegisteredBuffers
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn next_buffer_4Kb(&self) -> Option<RegisteredBufferSource<[u8; Self::_4Kb]>>
+	pub fn next_buffer_4Kb(&self) -> Result<RegisteredBufferSource<[u8; Self::_4Kb]>, ()>
 	{
 		Self::next_buffer(&self._4Kb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn next_buffer_16Kb(&self) -> Option<RegisteredBufferSource<[u8; Self::_16Kb]>>
+	pub fn next_buffer_16Kb(&self) -> Result<RegisteredBufferSource<[u8; Self::_16Kb]>, ()>
 	{
 		Self::next_buffer(&self._16Kb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn next_buffer_64Kb(&self) -> Option<RegisteredBufferSource<[u8; Self::_64Kb]>>
+	pub fn next_buffer_64Kb(&self) -> Result<RegisteredBufferSource<[u8; Self::_64Kb]>, ()>
 	{
 		Self::next_buffer(&self._64Kb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn next_buffer_256Kb(&self) -> Option<RegisteredBufferSource<[u8; Self::_256Kb]>>
+	pub fn next_buffer_256Kb(&self) -> Result<RegisteredBufferSource<[u8; Self::_256Kb]>, ()>
 	{
 		Self::next_buffer(&self._256Kb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn next_buffer_1Mb(&self) -> Option<RegisteredBufferSource<[u8; Self::_1Mb]>>
+	pub fn next_buffer_1Mb(&self) -> Result<RegisteredBufferSource<[u8; Self::_1Mb]>, ()>
 	{
 		Self::next_buffer(&self._1Mb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn next_buffer_4Mb(&self) -> Option<RegisteredBufferSource<[u8; Self::_4Mb]>>
+	pub fn next_buffer_4Mb(&self) -> Result<RegisteredBufferSource<[u8; Self::_4Mb]>, ()>
 	{
 		Self::next_buffer(&self._4Mb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn next_buffer_16Mb(&self) -> Option<RegisteredBufferSource<[u8; Self::_16Mb]>>
+	pub fn next_buffer_16Mb(&self) -> Result<RegisteredBufferSource<[u8; Self::_16Mb]>, ()>
 	{
 		Self::next_buffer(&self._16Mb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn next_buffer_64Mb(&self) -> Option<RegisteredBufferSource<[u8; Self::_64Mb]>>
+	pub fn next_buffer_64Mb(&self) -> Result<RegisteredBufferSource<[u8; Self::_64Mb]>, ()>
 	{
 		Self::next_buffer(&self._64Mb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn next_buffer_256Mb(&self) -> Option<RegisteredBufferSource<[u8; Self::_256Mb]>>
+	pub fn next_buffer_256Mb(&self) -> Result<RegisteredBufferSource<[u8; Self::_256Mb]>, ()>
 	{
 		Self::next_buffer(&self._256Mb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn next_buffer_1Gb(&self) -> Option<RegisteredBufferSource<[u8; Self::_1Gb]>>
+	pub fn next_buffer_1Gb(&self) -> Result<RegisteredBufferSource<[u8; Self::_1Gb]>, ()>
 	{
 		Self::next_buffer(&self._1Gb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	fn next_buffer<ReplaceWithConstGenericsWhenStable: Sized>(field: &Box<[RegisteredBuffer<ReplaceWithConstGenericsWhenStable>]>) -> Option<RegisteredBufferSource<ReplaceWithConstGenericsWhenStable>>
+	fn next_buffer<BufferSize: Sized>(field: &Box<[RegisteredBuffer<BufferSize>]>) -> Result<RegisteredBufferSource<BufferSize>, ()>
 	{
 		for buffer in field.iter()
 		{
-			if let Some(has) = buffer.next_buffer()
+			if let Ok(has) = buffer.next_buffer()
 			{
-				return Some(has)
+				return Ok(has)
 			}
 		}
-		None
+		Err(())
 	}
 	
 	#[inline(always)]
@@ -170,7 +170,7 @@ impl RegisteredBuffers
 	}
 	
 	#[inline(always)]
-	fn register_buffers<ReplaceWithConstGenericsWhenStable: Sized>(buffers: &Box<[RegisteredBuffer<ReplaceWithConstGenericsWhenStable>]>, buffers_to_register: &mut Vec<&mut [u8]>)
+	fn register_buffers<BufferSize: Sized>(buffers: &Box<[RegisteredBuffer<BufferSize>]>, buffers_to_register: &mut Vec<&mut [u8]>)
 	{
 		for buffer in buffers
 		{
