@@ -86,7 +86,7 @@ impl<BSA: BitSetAware, PerBitSetAware> PerBitSetAwareData<BSA, PerBitSetAware>
 
 	/// Gets the data for a particular BitSetAware.
 	///
-	/// If the BitSetAware does not exist (or does not have assigned data), returns None; this can happen on Linux if using the SO_INCOMING_CPU socket option, which can map to a CPU not assigned to the process.
+	/// If the BitSetAware does not exist (or does not have assigned data), returns None; this can happen on Linux if using the `SO_INCOMING_CPU` socket option, which can map to a CPU not assigned to the process.
 	#[inline(always)]
 	pub fn get(&self, bit_set_aware: BSA) -> Option<&PerBitSetAware>
 	{

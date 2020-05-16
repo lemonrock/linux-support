@@ -27,6 +27,7 @@ context-allocator = { path = "../context-allocator", version = "^0.3.0" }
 context-coroutine = { path = "../context-coroutine", version = "3.2.0" }
 linux-support = { path = "../linux-support", version = "^0.0.2" }
 magic-ring-buffer = { path = "../magic-ring-buffer", version = "^0.2.0" }
+maplit = "^1.0.2"
 message-dispatch = { path = "../message-dispatch", version = "0.2.0" }
 serde = { version = "^1.0", features = ["derive", "rc"] }
 terminate = { version = "^0.2.0", path = "../terminate" }

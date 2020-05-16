@@ -27,7 +27,7 @@ pub struct MappedMemorySettings
 	#[serde(default)] pub reserve_swap_space: bool,
 
 	/// NUMA memory policy.
-	#[serde(default)] numa_memory_policy: Option<(SetMemoryPolicy, SetMemoryPolicyStrictness)>,
+	#[serde(default)] pub numa_memory_policy: Option<(SetMemoryPolicy, SetMemoryPolicyStrictness)>,
 
 	/// Lock memory so it can't be swapped out?
 	///

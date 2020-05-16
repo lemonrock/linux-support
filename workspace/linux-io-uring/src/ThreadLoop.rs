@@ -4,15 +4,63 @@
 
 pub struct ThreadLoopInitiation<HeapSize: Sized, StackSize: Sized, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>>
 {
-	global_allocator: &'static GTACSA,
-	ideal_maximum_number_of_coroutines: NonZeroU64,
-	number_of_submission_queue_entries: NonZeroU16,
-	number_of_completion_queue_entries: Option<NonZeroU32>,
-	kernel_submission_queue_thread_configuration: Option<LinuxKernelSubmissionQueuePollingThreadConfiguration>,
-	registered_buffer_settings: RegisteredBufferSettings,
 	defaults: DefaultPageSizeAndHugePageSizes,
+	global_allocator: &'static GTACSA,
+	thread_local_allocator_settings: ThreadLocalAllocatorSettings,
+	io_uring_settings: IoUringSettings,
 	signal_mask: BitSet<Signal>,
 }
+
+pub fn x(hyper_threads: &BitSet<HyperThread>, defaults: &DefaultPageSizeAndHugePageSizes)
+{
+	// TODO: WHAT ABOUT message handlers????
+	
+	Queue::queues(&hyper_threads, defaults, preferred_buffer_size, inclusive_maximum_bytes_wasted);
+}
+
+
+type MessageHandlerArguments = ();
+
+type MessageHandlersRegisterationArguments = ();
+
+struct SimpleMessageHandlersRegistration
+{
+}
+
+impl MessageHandlersRegistration for SimpleMessageHandlersRegistration
+{
+	/// Message handler arguments type.
+	type MessageHandlerArguments = MessageHandlerArguments;
+	
+	/// Error type.
+	type Error = DequeuedMessageProcessingError;
+	
+	/// Arguments passed when registering.
+	type Arguments = MessageHandlersRegisterationArguments;
+	
+	/// Register all messages handlers.
+	///
+	/// Useful extension: return set of registrations?
+	///
+	/// This design is overly complicated, partly because `Mutable...CompressedMap` uses an ArrayVec and a HashMap.
+	/// We want something that is much easier to share across threads.
+	fn register_all_message_handlers(&self, register: &mut impl Register<Self::MessageHandlerArguments, Result<(), Self::Error>>, arguments: &Self::Arguments)
+	{
+		type MessageType0 = ();
+		fn handler_for_function_compressed_type_identifier_0(receive: &mut MessageType0, message_handler_arguments: MessageHandlerArguments)
+		{
+		}
+		
+		// To publish a message, do the following:-
+		
+		// (1) Once only: Find the CompressedTypeIdentifier for a Receiver using MutableTypeErasedBoxedFunctionCompressedMap.find_compressed_type_identifier().
+		// (2) Publish the message using the compressed type identifier and the receive kind
+		// Note: One possible option might be try to create a PHF at runtime once all registrations are done.
+		
+		let compressed_type_identifier = register.enter_into_the_register(handler_for_function_compressed_type_identifier_0);
+	}
+}
+
 
 impl<HeapSize: Sized, StackSize: Sized, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>> ThreadFunction for ThreadLoopInitiation<HeapSize, StackSize, GTACSA>
 {
@@ -20,21 +68,24 @@ impl<HeapSize: Sized, StackSize: Sized, GTACSA: 'static + GlobalThreadAndCorouti
 	
 	fn initialize(self) -> Self::TLBF
 	{
-		self.global_allocator.initialize_thread_local_allocator(thread_local_allocator);
+		self.thread_local_allocator_settings.setup(&self.defaults, self.global_allocator).expect("Could not create thread local allocator memory map source");
 		
-		let coroutine_memory_warehouse = CoroutineMemoryWarehouse::new(global_allocator, self.ideal_maximum_number_of_coroutines, &self.defaults).expect("Could not create coroutine memory warehouse");
+		let coroutine_memory_warehouse = CoroutineMemoryWarehouse::new(self.global_allocator, self.ideal_maximum_number_of_coroutines, &self.defaults).expect("Could not create coroutine memory warehouse");
 		
-		let io_uring = IoUring::new(&self.defaults, self.number_of_submission_queue_entries, self.number_of_completion_queue_entries, self.kernel_submission_queue_thread_configuration.as_ref(), None).expect("Could not create IoUring");
-		
-		let registered_buffers = RegisteredBuffers::new(&self.registered_buffer_settings, &self.defaults).expect("Could not create registered buffers");
-		registered_buffers.register(&io_uring);
+		self.io_uring_settings.setup(&self.defaults).expect("Could not setup IoUring");
 		
 		self.signal_mask.block_all_signals_on_current_thread_bar();
 		let signal_file_descriptor = SignalFileDescriptor::new(&self.signal_mask.to_sigset_t()).expect("Could not create signal file descriptor");
 		
+		// TODO: ???
+		let queue_per_threads_publisher = XXXXXX;
+		let message_handlers_registration = SimpleMessageHandlersRegistration {};
+		let message_handlers_registration_arguments = MessageHandlersRegisterationArguments;
+		
+		
 		ThreadLoop
 		{
-			incoming_messages_queue: XXXX,
+			incoming_messages: PerThreadQueueSubscriber::new(queue_per_threads_publisher, &message_handlers_registration, &message_handlers_registration_arguments),
 			io_uring,
 			registered_buffers,
 			signal_file_descriptor,
@@ -43,14 +94,50 @@ impl<HeapSize: Sized, StackSize: Sized, GTACSA: 'static + GlobalThreadAndCorouti
 	}
 }
 
+impl<HeapSize: Sized, StackSize: Sized, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>> ThreadLoopInitiation<HeapSize, StackSize, GTACSA>
+{
+	#[inline(always)]
+	fn initialize_internal(self) -> Result<Self::TLBF, ThreadLoopInitializationError>
+	{
+		use self::ThreadLoopInitializationError::*;
+		
+		self.thread_local_allocator_settings.setup(&self.defaults, self.global_allocator).map_err(ThreadLocalAllocator)?;
+		
+		let coroutine_memory_warehouse = CoroutineMemoryWarehouse::new(self.global_allocator, self.ideal_maximum_number_of_coroutines, &self.defaults).map_err(CoroutineMemoryWarehouse)?;
+		
+		let (io_uring, registered_buffers) = self.io_uring_settings.setup(&self.defaults)?;
+		
+		let signal_file_descriptor = self.signals()?;
+		
+		Ok
+		(
+			ThreadLoop
+			{
+				incoming_messages: XXXX,
+				coroutine_memory_warehouse,
+				io_uring,
+				registered_buffers,
+				signal_file_descriptor,
+			}
+		)
+	}
+	
+	#[inline(always)]
+	fn signals(self) -> Result<SignalFileDescriptor, ThreadLoopInitializationError>
+	{
+		self.signal_mask.block_all_signals_on_current_thread_bar();
+		Ok(SignalFileDescriptor::new(&self.signal_mask.to_sigset_t()).map_err(ThreadLoopInitializationError::SignalFileDescriptor)?)
+	}
+}
+
 #[derive(Debug)]
 pub struct ThreadLoop<HeapSize: Sized, StackSize: Sized, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>>
 {
-	incoming_messages_queue: PerThreadQueueSubscriber<T, (), DequeuedMessageProcessingError>,
+	incoming_messages: PerThreadQueueSubscriber<MessageHandlerArguments, DequeuedMessageProcessingError>,
+	coroutine_memory_warehouse: CoroutineMemoryWarehouse<HeapSize, StackSize, GTACSA>,
 	io_uring: IoUring<'static>,
 	registered_buffers: RegisteredBuffers,
 	signal_file_descriptor: SignalFileDescriptor,
-	coroutine_memory_warehouse: CoroutineMemoryWarehouse<HeapSize, StackSize, GTACSA>,
 
 }
 
@@ -189,7 +276,7 @@ impl<T: Terminate> ThreadLoopBodyFunction for ThreadLoop<T>
 		use self::DequeuedMessageProcessingError::*;
 
 		let message_handler_arguments = ();
-		let result = self.incoming_messages_queue.receive_and_handle_messages(());
+		let result = self.incoming_messages.receive_and_handle_messages(());
 		match result
 		{
 			Err(Fatal(ref cause)) =>

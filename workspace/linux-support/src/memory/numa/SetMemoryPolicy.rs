@@ -34,6 +34,13 @@ pub enum SetMemoryPolicy
 
 impl SetMemoryPolicy
 {
+	/// A `Bind` policy for the current NumaNode.
+	#[inline(always)]
+	pub fn BindCurrent() -> Self
+	{
+		SetMemoryPolicy::Bind { numa_node_bit_set: NumaNode::current().0.into_bit_set() }
+	}
+	
 	/// Set thread policy.
 	#[inline(always)]
 	pub fn set_thread_policy(&self)
