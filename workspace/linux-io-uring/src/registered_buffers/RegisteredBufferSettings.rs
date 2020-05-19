@@ -8,14 +8,14 @@
 #[repr(transparent)]
 pub struct RegisteredBufferSettings
 {
-	pub _4Kb: RegisteredBufferSetting<[u8; RegisteredBuffers::_4Kb]>,
-	pub _16Kb: RegisteredBufferSetting<[u8; RegisteredBuffers::_16Kb]>,
-	pub _64Kb: RegisteredBufferSetting<[u8; RegisteredBuffers::_64Kb]>,
-	pub _256Kb: RegisteredBufferSetting<[u8; RegisteredBuffers::_256Kb]>,
-	pub _1Mb: RegisteredBufferSetting<[u8; RegisteredBuffers::_1Mb]>,
-	pub _4Mb: RegisteredBufferSetting<[u8; RegisteredBuffers::_4Mb]>,
-	pub _16Mb: RegisteredBufferSetting<[u8; RegisteredBuffers::_16Mb]>,
-	pub _64Mb: RegisteredBufferSetting<[u8; RegisteredBuffers::_64Mb]>,
-	pub _256Mb: RegisteredBufferSetting<[u8; RegisteredBuffers::_256Mb]>,
-	pub _1Gb: RegisteredBufferSetting<[u8; RegisteredBuffers::_1Gb]>,
+	pub _4Kb: RegisteredBufferSetting<MemorySize4Kb>,
+	pub _16Kb: RegisteredBufferSetting<MemorySize16Kb>,
+	pub _64Kb: RegisteredBufferSetting<MemorySize64Kb>,
+	pub _256Kb: RegisteredBufferSetting<MemorySize256Kb>,
+	pub _1Mb: RegisteredBufferSetting<MemorySize1Mb>,
+	pub _4Mb: RegisteredBufferSetting<MemorySize4Mb>,
+	pub _16Mb: RegisteredBufferSetting<MemorySize16Mb>,
+	pub _64Mb: RegisteredBufferSetting<MemorySize64Mb>,
+	pub _256Mb: RegisteredBufferSetting<MemorySize256Mb>,
+	pub _1Gb: RegisteredBufferSetting<MemorySize1Gb>,
 }

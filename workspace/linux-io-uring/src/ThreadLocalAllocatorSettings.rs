@@ -14,7 +14,7 @@ pub struct ThreadLocalAllocatorSettings
 
 impl ThreadLocalAllocatorSettings
 {
-	fn setup<HeapSize: Sized, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>>(&self, defaults: &DefaultPageSizeAndHugePageSizes, global_allocator: &'static GTACSA) -> Result<(), MemoryMapError>
+	fn setup<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>>(&self, defaults: &DefaultPageSizeAndHugePageSizes, global_allocator: &'static GTACSA) -> Result<(), MemoryMapError>
 	{
 		let huge_memory_page_size = defaults.best_fit_huge_page_size_if_any(self.heap_size.get(), self.inclusive_maximum_bytes_wasted).map(|huge_page_size| Some(huge_page_size));
 		

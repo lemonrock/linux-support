@@ -10,7 +10,7 @@ pub enum ThreadLoopInitializationError
 	ThreadLocalAllocator(MemoryMapError),
 	
 	#[allow(missing_docs)]
-	CoroutineMemoryWarehouse(LargeRingQueueCreationError),
+	CoroutineInstanceAllocator(LargeRingQueueCreationError),
 	
 	#[allow(missing_docs)]
 	IoUringSetup(IoUringSetupError),
@@ -39,7 +39,7 @@ impl error::Error for ThreadLoopInitializationError
 		{
 			&ThreadLocalAllocator(ref error) => Some(error),
 			
-			&CoroutineMemoryWarehouse(ref error) => Some(error),
+			&CoroutineInstanceAllocator(ref error) => Some(error),
 			
 			&IoUringSetup(ref error) => Some(error),
 			

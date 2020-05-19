@@ -6,41 +6,21 @@
 #[derive(Debug)]
 pub struct RegisteredBuffers
 {
-	_4Kb: Box<[RegisteredBuffer<[u8; RegisteredBuffers::_4Kb]>]>,
-	_16Kb: Box<[RegisteredBuffer<[u8; RegisteredBuffers::_16Kb]>]>,
-	_64Kb: Box<[RegisteredBuffer<[u8; RegisteredBuffers::_64Kb]>]>,
-	_256Kb: Box<[RegisteredBuffer<[u8; RegisteredBuffers::_256Kb]>]>,
-	_1Mb: Box<[RegisteredBuffer<[u8; RegisteredBuffers::_1Mb]>]>,
-	_4Mb: Box<[RegisteredBuffer<[u8; RegisteredBuffers::_4Mb]>]>,
-	_16Mb: Box<[RegisteredBuffer<[u8; RegisteredBuffers::_16Mb]>]>,
-	_64Mb: Box<[RegisteredBuffer<[u8; RegisteredBuffers::_64Mb]>]>,
-	_256Mb: Box<[RegisteredBuffer<[u8; RegisteredBuffers::_256Mb]>]>,
-	_1Gb: Box<[RegisteredBuffer<[u8; RegisteredBuffers::_1Gb]>]>,
+	_4Kb: Box<[RegisteredBuffer<MemorySize4Kb>]>,
+	_16Kb: Box<[RegisteredBuffer<MemorySize16Kb>]>,
+	_64Kb: Box<[RegisteredBuffer<MemorySize64Kb>]>,
+	_256Kb: Box<[RegisteredBuffer<MemorySize256Kb>]>,
+	_1Mb: Box<[RegisteredBuffer<MemorySize1Mb>]>,
+	_4Mb: Box<[RegisteredBuffer<MemorySize4Mb>]>,
+	_16Mb: Box<[RegisteredBuffer<MemorySize16Mb>]>,
+	_64Mb: Box<[RegisteredBuffer<MemorySize64Mb>]>,
+	_256Mb: Box<[RegisteredBuffer<MemorySize256Mb>]>,
+	_1Gb: Box<[RegisteredBuffer<MemorySize1Gb>]>,
 	buffers_count: u16,
 }
 
 impl RegisteredBuffers
 {
-	const _4Kb: usize = 4 * 1024;
-	
-	const _16Kb: usize = 16 * 1024;
-	
-	const _64Kb: usize = 64 * 1024;
-	
-	const _256Kb: usize = 256 * 1024;
-	
-	const _1Mb: usize = 1024 * 1024;
-	
-	const _4Mb: usize = 4 * 1024 * 1024;
-	
-	const _16Mb: usize = 16 * 1024 * 1024;
-	
-	const _64Mb: usize = 64 * 1024 * 1024;
-	
-	const _256Mb: usize = 256 * 1024 * 1024;
-	
-	const _1Gb: usize = 1024 * 1024 * 1024;
-	
 	/// New instance.
 	#[inline(always)]
 	pub fn new(settings: &RegisteredBufferSettings, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, RegisteredBuffersCreationError>
@@ -68,77 +48,77 @@ impl RegisteredBuffers
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn next_buffer_4Kb(&self) -> Result<RegisteredBufferSource<[u8; Self::_4Kb]>, ()>
+	pub fn next_buffer_4Kb(&self) -> Result<RegisteredBufferSource<MemorySize4Kb>, ()>
 	{
 		Self::next_buffer(&self._4Kb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn next_buffer_16Kb(&self) -> Result<RegisteredBufferSource<[u8; Self::_16Kb]>, ()>
+	pub fn next_buffer_16Kb(&self) -> Result<RegisteredBufferSource<MemorySize16Kb>, ()>
 	{
 		Self::next_buffer(&self._16Kb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn next_buffer_64Kb(&self) -> Result<RegisteredBufferSource<[u8; Self::_64Kb]>, ()>
+	pub fn next_buffer_64Kb(&self) -> Result<RegisteredBufferSource<MemorySize64Kb>, ()>
 	{
 		Self::next_buffer(&self._64Kb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn next_buffer_256Kb(&self) -> Result<RegisteredBufferSource<[u8; Self::_256Kb]>, ()>
+	pub fn next_buffer_256Kb(&self) -> Result<RegisteredBufferSource<MemorySize256Kb>, ()>
 	{
 		Self::next_buffer(&self._256Kb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn next_buffer_1Mb(&self) -> Result<RegisteredBufferSource<[u8; Self::_1Mb]>, ()>
+	pub fn next_buffer_1Mb(&self) -> Result<RegisteredBufferSource<MemorySize1Mb>, ()>
 	{
 		Self::next_buffer(&self._1Mb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn next_buffer_4Mb(&self) -> Result<RegisteredBufferSource<[u8; Self::_4Mb]>, ()>
+	pub fn next_buffer_4Mb(&self) -> Result<RegisteredBufferSource<MemorySize4Mb>, ()>
 	{
 		Self::next_buffer(&self._4Mb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn next_buffer_16Mb(&self) -> Result<RegisteredBufferSource<[u8; Self::_16Mb]>, ()>
+	pub fn next_buffer_16Mb(&self) -> Result<RegisteredBufferSource<MemorySize16Mb>, ()>
 	{
 		Self::next_buffer(&self._16Mb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn next_buffer_64Mb(&self) -> Result<RegisteredBufferSource<[u8; Self::_64Mb]>, ()>
+	pub fn next_buffer_64Mb(&self) -> Result<RegisteredBufferSource<MemorySize64Mb>, ()>
 	{
 		Self::next_buffer(&self._64Mb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn next_buffer_256Mb(&self) -> Result<RegisteredBufferSource<[u8; Self::_256Mb]>, ()>
+	pub fn next_buffer_256Mb(&self) -> Result<RegisteredBufferSource<MemorySize256Mb>, ()>
 	{
 		Self::next_buffer(&self._256Mb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn next_buffer_1Gb(&self) -> Result<RegisteredBufferSource<[u8; Self::_1Gb]>, ()>
+	pub fn next_buffer_1Gb(&self) -> Result<RegisteredBufferSource<MemorySize1Gb>, ()>
 	{
 		Self::next_buffer(&self._1Gb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	fn next_buffer<BufferSize: Sized>(field: &Box<[RegisteredBuffer<BufferSize>]>) -> Result<RegisteredBufferSource<BufferSize>, ()>
+	fn next_buffer<BufferSize: MemorySize>(field: &Box<[RegisteredBuffer<BufferSize>]>) -> Result<RegisteredBufferSource<BufferSize>, ()>
 	{
 		for buffer in field.iter()
 		{

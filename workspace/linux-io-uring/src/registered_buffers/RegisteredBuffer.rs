@@ -3,13 +3,13 @@
 
 
 #[derive(Debug)]
-struct RegisteredBuffer<BufferSize: Sized>
+struct RegisteredBuffer<BufferSize: MemorySize>
 {
 	memory_queue: ReferenceCountedLargeRingQueue<BufferSize>,
 	registered_buffer_index: RegisteredBufferIndex,
 }
 
-impl<BufferSize: Sized> RegisteredBuffer<BufferSize>
+impl<BufferSize: MemorySize> RegisteredBuffer<BufferSize>
 {
 	#[allow(missing_docs)]
 	#[inline(always)]

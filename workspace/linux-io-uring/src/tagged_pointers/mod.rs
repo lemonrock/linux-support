@@ -2,14 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[repr(u8)]
-enum OriginalRequestCancelationKind
-{
-	Poll = 0,
-	
-	TimeoutRelative = 1,
-	
-	TimeoutAbsolute = 2,
-	
-	AnythingElse = 3,
-}
+use super::*;
+use context_coroutine::Coroutine;
+use context_coroutine::StartOutcome;
+use magic_ring_buffer::LargeRingQueue;
+use std::alloc::AllocErr;
+use std::ops::AddAssign;
+use std::ptr::drop_in_place;
+
+

@@ -23,7 +23,7 @@ impl CompletionQueueEntry<'_>
 	///
 	/// If negative, and between -1 and -4095 inclusive, should represent a Linux error code negated such as `-EINVAL`.
 	#[inline(always)]
-	pub fn result_or_error(self) -> CompletionResponse
+	pub fn completion_response(self) -> CompletionResponse
 	{
 		CompletionResponse(self.0.res)
 	}

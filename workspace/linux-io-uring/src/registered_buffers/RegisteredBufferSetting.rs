@@ -6,7 +6,7 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Ord, PartialOrd, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct RegisteredBufferSetting<BufferSize: Sized>
+pub struct RegisteredBufferSetting<BufferSize: MemorySize>
 {
 	pub number_of_subdivisions_per_buffer: NonZeroU32,
 	
@@ -15,7 +15,7 @@ pub struct RegisteredBufferSetting<BufferSize: Sized>
 	marker: PhantomData<BufferSize>,
 }
 
-impl<BufferSize: Sized> RegisteredBufferSetting<BufferSize>
+impl<BufferSize: MemorySize> RegisteredBufferSetting<BufferSize>
 {
 	fn create_buffers(&self, buffers_count: &mut u16) -> Result<Box<[RegisteredBuffer<BufferSize>]>, RegisteredBuffersCreationError>
 	{
@@ -31,7 +31,7 @@ impl<BufferSize: Sized> RegisteredBufferSetting<BufferSize>
 			
 			buffers.push(RegisteredBuffer
 			{
-				memory_queue: Rc::new(Self::create_ring_queue(subdivision, setting.number_of_subdivisions_per_buffer, defaults)?),
+				memory_queue: Self::create_ring_queue(subdivision, setting.number_of_subdivisions_per_buffer, defaults)?,
 				registered_buffer_index: RegisteredBufferIndex(count),
 			})
 			
@@ -42,12 +42,12 @@ impl<BufferSize: Sized> RegisteredBufferSetting<BufferSize>
 	}
 	
 	#[inline(always)]
-	fn create_ring_queue(subdivision_size: u64, number_of_subdivisions_per_buffer: NonZeroU32, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<LargeRingQueue<BufferSize>, RegisteredBuffersCreationError>
+	fn create_ring_queue(subdivision_size: u64, number_of_subdivisions_per_buffer: NonZeroU32, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<ReferenceCountedLargeRingQueue<BufferSize>, RegisteredBuffersCreationError>
 	{
 		const OneMegabyte: u64 = 1024 * 1024;
 		const MaximumBufferSize: u64 = 1024 * OneMegabyte;
 		
-		let large_ring_queue = LargeRingQueue::new(number_of_subdivisions_per_buffer, defaults, OneMegabyte, true)?;
+		let large_ring_queue = ReferenceCountedLargeRingQueue::new(number_of_subdivisions_per_buffer, defaults, OneMegabyte, true)?;
 		if unlikely!(large_ring_queue.size_in_bytes() > MaximumBufferSize)
 		{
 			Err(RegisteredBuffersCreationError::BufferSizeExceeded1GbMaximumSize)

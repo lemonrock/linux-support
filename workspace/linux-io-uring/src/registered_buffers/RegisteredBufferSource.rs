@@ -4,13 +4,13 @@
 
 /// A registered buffer suitable for use.
 #[derive(Debug)]
-pub struct RegisteredBufferSource<BufferSize: Sized>
+pub struct RegisteredBufferSource<BufferSize: MemorySize>
 {
 	element: ReferenceCountedLargeRingQueueElement<BufferSize>,
 	registered_buffer_index: RegisteredBufferIndex,
 }
 
-impl<BufferSize: Sized> Deref for RegisteredBufferSource<BufferSize>
+impl<BufferSize: MemorySize> Deref for RegisteredBufferSource<BufferSize>
 {
 	type Target = T;
 	
@@ -21,7 +21,7 @@ impl<BufferSize: Sized> Deref for RegisteredBufferSource<BufferSize>
 	}
 }
 
-impl<BufferSize: Sized> DerefMut for RegisteredBufferSource<BufferSize>
+impl<BufferSize: MemorySize> DerefMut for RegisteredBufferSource<BufferSize>
 {
 	#[inline(always)]
 	fn deref_mut(&mut self) -> &mut Self::Target
@@ -30,6 +30,6 @@ impl<BufferSize: Sized> DerefMut for RegisteredBufferSource<BufferSize>
 	}
 }
 
-impl<BufferSize: Sized> RegisteredBufferSource<BufferSize>
+impl<BufferSize: MemorySize> RegisteredBufferSource<BufferSize>
 {
 }

@@ -3,8 +3,12 @@
 
 
 use linux_support::file_descriptors::CreationError;
+use linux_support::io_uring::IoUring;
+use linux_support::io_uring::RegisteredBufferIndex;
 use linux_support::memory::huge_pages::*;
 use linux_support::memory::mapping::*;
+use magic_ring_buffer::*;
+use magic_ring_buffer::memory_sizes::MemorySize;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::BTreeMap;
@@ -14,13 +18,12 @@ use std::fmt::Formatter;
 use std::fmt::Display;
 use std::fmt::Debug;
 use std::io;
-use linux_support::io_uring::{RegisteredBufferIndex, IoUring};
-use magic_ring_buffer::{LargeRingQueue, ReferenceCountedLargeRingQueueElement, ReferenceCountedLargeRingQueue};
+use std::alloc::AllocErr;
+use std::ops::Deref;
+use std::ops::DerefMut;
+use std::marker::PhantomData;
 use std::ptr::NonNull;
 use std::rc::Rc;
-use std::ops::{Deref, DerefMut};
-use std::marker::PhantomData;
-use std::alloc::AllocErr;
 
 
 include!("RegisteredBuffer.rs");
@@ -29,4 +32,3 @@ include!("RegisteredBuffersCreationError.rs");
 include!("RegisteredBufferSetting.rs");
 include!("RegisteredBufferSettings.rs");
 include!("RegisteredBufferSource.rs");
-include!("RegisteredBufferSubdivision.rs");

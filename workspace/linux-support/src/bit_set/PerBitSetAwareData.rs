@@ -98,6 +98,14 @@ impl<BSA: BitSetAware, PerBitSetAware> PerBitSetAwareData<BSA, PerBitSetAware>
 		unsafe { self.data.get_unchecked(i).as_ref() }
 	}
 
+	/// Gets the data for a particular BitSetAware.
+	#[inline(always)]
+	pub unsafe fn get_unchecked(&self, bit_set_aware: BSA) -> &PerBitSetAware
+	{
+		let i: usize = bit_set_aware.into();
+		unsafe { self.data.get_unchecked(i).as_ref().unwrap() }
+	}
+
 	/// Gets the data for a particular BitSetAware; if no data for that core, gets it for the `default_bit_set_aware`.
 	///
 	/// If the BitSetAware does not exist (or does not have assigned data), returns None; this can happen on Linux if using the` SO_INCOMING_CPU` socket option, which can return an index for a CPU not assigned to the process.
@@ -192,7 +200,7 @@ impl<BSA: BitSetAware, PerBitSetAware> PerBitSetAwareData<BSA, PerBitSetAware>
 		self.bit_set.iterate().map(move |bit_set_aware|
 		{
 			let i: usize = bit_set_aware.into();
-			let element = unsafe { self.get_unchecked(i) };
+			let element = unsafe { self.data.get_unchecked(i) };
 			(bit_set_aware, element.as_ref().unwrap())
 		})
 	}
