@@ -26,7 +26,7 @@ assert_cfg!(target_pointer_width = "64");
 use self::registered_buffers::*;
 use context_allocator::allocators::global::*;
 use context_allocator::memory_sources::MemoryMapSource;
-use context_coroutine::CoroutineInstanceAllocator;
+use context_coroutine::{CoroutineInstanceAllocator, CoroutineManager};
 use linux_support::bit_set::*;
 use linux_support::cpu::HyperThread;
 use linux_support::file_descriptors::CreationError;

@@ -43,12 +43,12 @@ impl<HeapSize: MemorySize, StackSize: MemorySize, GTACSA: 'static + GlobalThread
 			ThreadLoop
 			{
 				global_allocator,
-				coroutine_memory_warehouse,
 				io_uring,
 				registered_buffers,
 				signal_file_descriptor,
 				our_hyper_thread: HyperThread::current().1,
 				queues: self.queues,
+				accept_connections_coroutine_manager: CoroutineManager::new(),
 			}
 		)
 	}
@@ -65,12 +65,12 @@ impl<HeapSize: MemorySize, StackSize: MemorySize, GTACSA: 'static + GlobalThread
 pub struct ThreadLoop<HeapSize: MemorySize, StackSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>>
 {
 	global_allocator: &'static GTACSA,
-	coroutine_memory_warehouse: CoroutineMemoryWarehouse<HeapSize, StackSize, GTACSA>,
 	io_uring: IoUring<'static>,
 	registered_buffers: RegisteredBuffers,
 	signal_file_descriptor: SignalFileDescriptor,
 	our_hyper_thread: HyperThread,
 	queues: Queues<(), DequeuedMessageProcessingError>,
+	accept_connections_coroutine_manager: CoroutineManager<HeapSize, StackSize, GTACSA, C, ()>,
 
 }
 
