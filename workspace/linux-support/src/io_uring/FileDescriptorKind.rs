@@ -7,6 +7,7 @@
 pub union FileDescriptorKind
 {
 	index: RegisteredFileDescriptorIndex,
+	number_of_buffers: NonZeroU32,
 	absolute: RawFd,
 }
 
@@ -89,12 +90,6 @@ impl Hash for FileDescriptorKind
 impl FileDescriptorKind
 {
 	#[inline(always)]
-	pub(super) const fn NumberOfBuffers(number_of_buffers: NonZeroU32) -> Self
-	{
-		Self::Index(RegisteredFileDescriptorIndex(number_of_buffers.get()))
-	}
-	
-	#[inline(always)]
 	pub(super) const fn Index(index: RegisteredFileDescriptorIndex) -> Self
 	{
 		Self
@@ -102,7 +97,16 @@ impl FileDescriptorKind
 			index
 		}
 	}
-
+	
+	#[inline(always)]
+	pub(super) const fn NumberOfBuffers(number_of_buffers: NonZeroU32) -> Self
+	{
+		Self
+		{
+			number_of_buffers
+		}
+	}
+	
 	#[inline(always)]
 	pub(super) const fn Absolute(absolute: RawFd) -> Self
 	{

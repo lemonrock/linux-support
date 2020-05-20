@@ -1,0 +1,17 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="socket-access-control check musl" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+    <option name="channel" value="NIGHTLY" />
+    <option name="command" value="check --target x86_64-unknown-linux-musl" />
+    <option name="allFeatures" value="false" />
+    <option name="nocapture" value="false" />
+    <option name="emulateTerminal" value="false" />
+    <option name="backtrace" value="FULL" />
+    <option name="workingDirectory" value="file://$PROJECT_DIR$/workspace/socket-access-control" />
+    <envs>
+      <env name="CROSS_COMPILE" value="x86_64-linux-musl-" />
+    </envs>
+    <method v="2">
+      <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+    </method>
+  </configuration>
+</component>

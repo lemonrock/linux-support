@@ -4,6 +4,7 @@
 
 [workspace]
 members = [
+	"socket-access-control",
 	"context-allocator",
 	"context-coroutine",
     "linux-io-uring",

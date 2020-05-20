@@ -233,9 +233,25 @@ impl<'a> IoUring<'a>
 		self.io_uring_file_descriptor.enter(Some(minimum_wanted_to_complete), &self.submission_queue_ring, None)
 	}
 
+	/// This returns an error if the submission queue filled up.
+	///
+	/// Retry after calling `self.initiate_asynchronous_io()`.
+	#[inline(always)]
+	pub fn push_submission_queue_entry(&self, mut add_entry: impl FnMut(SubmissionQueueEntry)) -> Result<(), ()>
+	{
+		let mut add_entries = |submission_queue_entry|
+		{
+			add_entry(submission_queue_entry);
+			true
+		};
+		self.push_submission_queue_entries(&mut add_entries).map_err(|_| ())
+	}
+	
 	/// This returns the functor if the submission queue filled up.
 	///
 	/// Retry after calling `self.initiate_asynchronous_io()`.
+	///
+	/// `add_entries` should return `true` when there are no more entries to push.
 	#[inline(always)]
 	pub fn push_submission_queue_entries<'add_entries, AddEntries: FnMut(SubmissionQueueEntry) -> bool>(&self, add_entries: &'add_entries mut AddEntries) -> Result<(), &'add_entries mut AddEntries>
 	{

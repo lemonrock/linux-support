@@ -579,7 +579,7 @@ impl SubmissionQueueEntry
 	/// `buffer_identifier` is namespaced by `buffer_group_identifier`.
 	/// ?`buffer_group_identifier` can be zero?
 	#[inline(always)]
-	pub(crate) fn prepare_provide_buffers(self, user_data: impl UserData, options: SubmissionQueueEntryOptions, personality: Option<PersonalityCredentialsIdentifier>, buffers: &mut [u8], number_of_buffers: NonZeroU32, buffer_group: BufferGroup, registered_buffer_index: RegisteredBufferIndex)
+	pub fn prepare_provide_buffers(self, user_data: impl UserData, options: SubmissionQueueEntryOptions, personality: Option<PersonalityCredentialsIdentifier>, buffers: &mut [u8], number_of_buffers: NonZeroU32, buffer_group: BufferGroup, registered_buffer_index: RegisteredBufferIndex)
 	{
 		let number_of_bytes = buffers.len();
 		let number_of_buffers_usize = number_of_buffers.get() as usize;
@@ -594,7 +594,7 @@ impl SubmissionQueueEntry
 
 	/// Take back a contiguous array of buffers given for read-like operations to the Linux kernel.
 	#[inline(always)]
-	pub(crate) fn prepare_remove_buffers(self, user_data: impl UserData, options: SubmissionQueueEntryOptions, personality: Option<PersonalityCredentialsIdentifier>, number_of_buffers: NonZeroU32, buffer_group: BufferGroup)
+	pub fn prepare_remove_buffers(self, user_data: impl UserData, options: SubmissionQueueEntryOptions, personality: Option<PersonalityCredentialsIdentifier>, number_of_buffers: NonZeroU32, buffer_group: BufferGroup)
 	{
 		self.prepare(user_data, options.into_flags(), personality, CompressedIoPriority::Irrelevant, IORING_OP_REMOVE_BUFFERS, FileDescriptorKind::NumberOfBuffers(number_of_buffers), Self::Null, 0, 0);
 		self.zero_rw_flags();

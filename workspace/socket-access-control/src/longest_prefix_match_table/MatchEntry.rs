@@ -2,32 +2,21 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Pending connection.
-#[derive(Debug)]
-pub struct PendingAcceptConnection<SD: SocketData>
+struct MatchEntry<Value>
 {
-	pub(crate) peer_address: SD,
-	pub(crate) peer_address_length: socklen_t,
+	more_specific: Option<Box<Point<Value>>>,
+	partial: Option<Rc<Value>>,
 }
 
-impl<SD: SocketData> PendingAcceptConnection<SD>
+impl<Value> Default for MatchEntry<Value>
 {
-	/// New.
-	#[allow(deprecated)]
 	#[inline(always)]
-	pub fn new() -> Self
+	fn default() -> Self
 	{
 		Self
 		{
-			peer_address: unsafe { uninitialized() },
-			peer_address_length: Self::SocketDataLength(),
+			more_specific: None,
+			partial: None,
 		}
-	}
-	
-	// Rust bug (as of 1.30) prevents this being a constant.
-	#[inline(always)]
-	pub(crate) fn SocketDataLength() -> socklen_t
-	{
-		size_of::<SD>() as socklen_t
 	}
 }

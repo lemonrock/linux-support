@@ -103,7 +103,7 @@ impl<BSA: BitSetAware, PerBitSetAware> PerBitSetAwareData<BSA, PerBitSetAware>
 	pub unsafe fn get_unchecked(&self, bit_set_aware: BSA) -> &PerBitSetAware
 	{
 		let i: usize = bit_set_aware.into();
-		unsafe { self.data.get_unchecked(i).as_ref().unwrap() }
+		self.data.get_unchecked(i).as_ref().unwrap()
 	}
 
 	/// Gets the data for a particular BitSetAware; if no data for that core, gets it for the `default_bit_set_aware`.

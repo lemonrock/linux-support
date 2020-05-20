@@ -393,7 +393,7 @@ impl CompletionResponse
 		}
 	}
 	
-	/// `_pending_accept_connection` must be pinned to the same location as used in the `prepare_accept()` call.
+	/// `pending_accept_connection` must be pinned to the same location as used in the `prepare_accept()` call.
 	///
 	/// It can be freed after this call.
 	///

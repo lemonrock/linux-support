@@ -31,6 +31,7 @@
       <sourceFolder url="file://$MODULE_DIR$/../terminate/examples" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../terminate/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/../terminate/benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/../socket-access-control/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/../context-allocator/target" />
       <excludeFolder url="file://$MODULE_DIR$/../context-coroutine/target" />
       <excludeFolder url="file://$MODULE_DIR$/.cargo" />

@@ -2,32 +2,31 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Pending connection.
-#[derive(Debug)]
-pub struct PendingAcceptConnection<SD: SocketData>
+/// An Internet Protocol (IP) version 4 or version 6 address.
+pub trait InternetProtocolAddress: PartialEq + Eq + PartialOrd + Ord
 {
-	pub(crate) peer_address: SD,
-	pub(crate) peer_address_length: socklen_t,
+	/// Bytes.
+	///
+	/// If const generics were operational in Rust, could return `&[u8; Size]`.
+	fn bytes(&self) -> &[u8];
 }
 
-impl<SD: SocketData> PendingAcceptConnection<SD>
+impl InternetProtocolAddress for in_addr
 {
-	/// New.
-	#[allow(deprecated)]
 	#[inline(always)]
-	pub fn new() -> Self
+	fn bytes(&self) -> &[u8]
 	{
-		Self
-		{
-			peer_address: unsafe { uninitialized() },
-			peer_address_length: Self::SocketDataLength(),
-		}
+		let bytes: &[u8; 4] = unsafe { transmute(self) };
+		&bytes[..]
 	}
-	
-	// Rust bug (as of 1.30) prevents this being a constant.
+}
+
+impl InternetProtocolAddress for in6_addr
+{
 	#[inline(always)]
-	pub(crate) fn SocketDataLength() -> socklen_t
+	fn bytes(&self) -> &[u8]
 	{
-		size_of::<SD>() as socklen_t
+		let bytes: &[u8; 16] = unsafe { transmute(self) };
+		&bytes[..]
 	}
 }
