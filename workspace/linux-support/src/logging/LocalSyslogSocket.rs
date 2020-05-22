@@ -7,7 +7,7 @@
 pub struct LocalSyslogSocket
 {
 	socket_file_descriptor: DatagramClientSocketUnixDomainFileDescriptor,
-	is_connected: bool,
+	is_connected: Cell<bool>,
 	socket_file_path: PathBuf,
 	buffer: Vec<u8>,
 }
@@ -24,7 +24,7 @@ impl LocalSyslogSocket
 			Self
 			{
 				socket_file_descriptor: Self::open(&socket_file_path)?,
-				is_connected: true,
+				is_connected: Cell::new(true),
 				socket_file_path,
 				buffer:
 				{
@@ -40,7 +40,7 @@ impl LocalSyslogSocket
 	/// Log.
 	pub fn log(&mut self, message_template: &impl MessageTemplate, timestamp: DateTime<Utc>, message: &str) -> Result<(), &'static str>
 	{
-		if !self.is_connected
+		if !self.is_connected.get()
 		{
 			if self.reconnect().is_err()
 			{
@@ -120,7 +120,7 @@ impl LocalSyslogSocket
 	}
 	
 	#[inline(always)]
-	fn reconnect(&mut self) -> Result<(), ()>
+	fn reconnect(&self) -> Result<(), ()>
 	{
 		self.sleep_for_one_second();
 		
@@ -128,13 +128,13 @@ impl LocalSyslogSocket
 		{
 			Ok(()) =>
 			{
-				self.is_connected = true;
+				self.is_connected.set(true);
 				Ok(())
 			}
 			
 			Err(_) =>
 			{
-				self.is_connected = false;
+				self.is_connected.set(false);
 				Err(())
 			}
 		}

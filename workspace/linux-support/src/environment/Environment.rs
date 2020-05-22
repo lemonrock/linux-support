@@ -38,6 +38,21 @@ impl FromBytes for Environment
 
 impl Environment
 {
+	/// Get a value, securely (returns `None` if this is a setuid/setgid binary).
+	#[inline(always)]
+	pub fn get_value_securely<'a>(name: &CStr) -> Option<&'a CStr>
+	{
+		let pointer = unsafe { secure_getenv(name.as_ptr()) };
+		if pointer.is_null()
+		{
+			None
+		}
+		else
+		{
+			Some(unsafe { CStr::from_ptr(pointer) })
+		}
+	}
+	
 	/// As passed to `main()` and held in the libc global static `environ`.
 	///
 	/// Returns `None` if this pointer is `NULL`.

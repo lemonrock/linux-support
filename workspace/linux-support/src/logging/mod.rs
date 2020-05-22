@@ -38,6 +38,7 @@ use std::ptr::null_mut;
 use std::slice::from_raw_parts;
 use terminate::*;
 use crate::file_descriptors::directory::AccessPermissions;
+use std::cell::Cell;
 
 
 /// RFC 5424 syslog.
