@@ -152,4 +152,43 @@ impl UserIdentifier
 			etc_passwd_record.shell(),
 		))).ok()
 	}
+	
+	
+	/// ?May be `None` if audit is not running?
+	///
+	/// Also known as audit user id.
+	#[inline(always)]
+	pub fn audit_login(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> io::Result<Option<Self>>
+	{
+		let value: u32 = proc_path.process_file_path(process_identifier, "loginuid").read_value()?;
+		if value == u32::MAX
+		{
+			Ok(None)
+		}
+		else if value <= (i32::MAX as u32)
+		{
+			Ok(Some(Self(value)))
+		}
+		else
+		{
+			unreachable!("Invalid value `{}` in /proc/{:?}/loginuid", value, process_identifier)
+		}
+	}
+	
+	/// ?May be `None` if audit is not running?
+	///
+	/// Also known as audit user id.
+	///
+	/// Typically set by a `PAM` module or login-like daemon such as `SSH`.
+	#[inline(always)]
+	pub fn set_audit_login(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice, value: Option<Self>) -> io::Result<()>
+	{
+		let value: u32 = match value
+		{
+			None => u32::MAX,
+			Some(value) => value.into(),
+		};
+		
+		proc_path.process_file_path(process_identifier, "loginuid").write_value(UnpaddedDecimalInteger(value))
+	}
 }

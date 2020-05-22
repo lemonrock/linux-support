@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A process group identifier.
+/// A process group (or session) identifier.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct ProcessGroupIdentifier(NonZeroI32);
@@ -159,6 +159,25 @@ impl ProcessGroupIdentifier
 		else
 		{
 			unreachable!()
+		}
+	}
+	
+	/// ?May be `None` if audit is not running?
+	#[inline(always)]
+	pub fn audit_session_identifier(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> io::Result<Option<Self>>
+	{
+		let value: u32 = proc_path.process_file_path(process_identifier, "sessionid").read_value()?;
+		if value == u32::MAX
+		{
+			Ok(None)
+		}
+		else if value > 0 && value <= (i32::MAX as u32)
+		{
+			Ok(Some(Self(unsafe { NonZeroI32::new_unchecked(value as i32)})))
+		}
+		else
+		{
+			unreachable!("Invalid value `{}` in /proc/{:?}/sessionid", value, process_identifier)
 		}
 	}
 }

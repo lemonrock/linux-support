@@ -12,6 +12,9 @@ pub enum GlobalSecurityConfigurationError
 		proc_sys_kernel_file: &'static str,
 		cause: io::Error,
 	},
+	
+	#[allow(missing_docs)]
+	CouldNotSetMaximumProcessIdentifiersToMaximum(io::Error),
 
 	#[allow(missing_docs)]
 	CouldNotDisableKexecLoadingUntilNextReboot(io::Error),
@@ -36,6 +39,9 @@ impl error::Error for GlobalSecurityConfigurationError
 		match self
 		{
 			&CouldNotHarden { ref cause, .. } => Some(cause),
+			
+			&CouldNotSetMaximumProcessIdentifiersToMaximum(ref cause) => Some(cause),
+			
 			&CouldNotDisableKexecLoadingUntilNextReboot(ref cause) => Some(cause),
 		}
 	}

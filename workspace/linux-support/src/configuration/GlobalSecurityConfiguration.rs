@@ -31,6 +31,8 @@ pub struct GlobalSecurityConfiguration
 	/// And the following in `/proc/sys/vm` are hardened if present:-
 	///
 	/// * `unprivileged_userfaultfd`.
+	///
+	/// And the maximum number of process identifiers is set to 2^22 in `/proc/sys/kernel/pid_max` to reduce the impact of races and process identifier wrap-around (Frankly, they should just be an UUID and be done with it).
 	pub harden: bool,
 
 	/// Disables kexec loading of new kernel images until reboot.
@@ -71,8 +73,8 @@ impl GlobalSecurityConfiguration
 			harden_value(proc_path, ProcPath::sys_fs_file_path, "protected_hardlinks", 1)?;
 			harden_value(proc_path, ProcPath::sys_fs_file_path, "protected_fifos", 2)?;
 			harden_value(proc_path, ProcPath::sys_vm_file_path, "unprivileged_userfaultfd", 0)?;
+			ProcessIdentifier::set_maximum_value_to_maximum(proc_path).map_err(CouldNotSetMaximumProcessIdentifiersToMaximum)?;
 		}
-
 
 		set_value_once
 		(

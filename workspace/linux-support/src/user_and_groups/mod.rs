@@ -3,8 +3,10 @@
 
 
 use crate::paths::*;
+use crate::process::ProcessIdentifierChoice;
 use crate::process::status::StatusStatisticParseError;
 use crate::strings::FromBytes;
+use crate::strings::into_line_feed_terminated_byte_string::UnpaddedDecimalInteger;
 use crate::strings::parse_number::*;
 use errno::errno;
 use likely::*;

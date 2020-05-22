@@ -118,7 +118,7 @@ impl ProcessIdentifier
 {
 	/// Init process.
 	pub const Init: Self = Self(unsafe { NonZeroI32::new_unchecked(1) });
-
+	
 	/// Should have a parent process?
 	#[inline(always)]
 	pub fn should_have_parent(self) -> bool
@@ -157,7 +157,25 @@ impl ProcessIdentifier
 	{
 		ThreadIdentifier::from(self)
 	}
-
+	
+	/// The default is 32,768 but the maximum on a 64-bit system is `PID_MAX_LIMIT`, 2²² (4,194,304).
+	pub fn set_maximum_value_to_maximum(proc_path: &ProcPath) -> io::Result<()>
+	{
+		#[cfg(target_pointer_width = "64")] const PID_MAX_LIMIT: u32 = 4_194_304;
+		#[cfg(target_pointer_width = "32")] const PID_MAX_LIMIT: u32 = 32_768;
+		
+		// /proc/sys/kernel/pid_max
+		let file_path = proc_path.sys_kernel_file_path("pid_max");
+		if file_path.exists()
+		{
+			file_path.write_value(UnpaddedDecimalInteger(PID_MAX_LIMIT))
+		}
+		else
+		{
+			Ok(())
+		}
+	}
+	
 	/// Process round robin scheduler interval.
 	///
 	/// This process may not exist.
