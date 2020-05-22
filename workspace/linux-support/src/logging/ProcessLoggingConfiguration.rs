@@ -8,133 +8,104 @@
 #[serde(default, deny_unknown_fields)]
 pub struct ProcessLoggingConfiguration
 {
+	/// Used as the default value for third-party libraries that use the libc syslog or `FILE*` interface.
+	///
 	/// Defaults to `auth`.
 	pub facility: KnownFacility,
-
+	
+	/// Used as the default level for third-party libraries that use the libc syslog interface.
+	///
 	/// Defaults to `debug` for debug builds and `warning` for production builds.
-	pub severity: Severity,
+	pub level: Severity,
+	
+	/// Used as the default level for third-party libraries that use writes to standard out via `FILE*` pointers.
+	///
+	/// Defaults to `debug` for debug builds and `warning` for production builds.
+	pub redirect_FILE_standard_out: Severity,
+	
+	/// Used as the default level for third-party libraries that use writes to standard error via `FILE*` pointers.
+	///
+	/// Defaults to `debug` for debug builds and `warning` for production builds.
+	pub redirect_FILE_standard_error: Severity,
 }
 
 impl ProcessLoggingConfiguration
 {
 	/// Start logging.
-	///
-	/// Strictly speaking `identity` can be 31 characters excluding any trailing NUL.
-	///
-	/// Under the covers opens the `/dev/log` Unix socket.
-	///
-	/// A better technique is to probably send modern syslog datagrams (RFC 5424 / 5426) to localhost:514 and use rsyslog.
-	/// This would allow us to control the `/dev` path as we do elsewhere.
-	/// It would also allow us to send messages >1024 bytes.
-	///
-	/// It would require per-thread loggers as socket writes are not atomic for large messages.
 	#[inline(always)]
-	pub fn start_logging(&self, running_interactively_so_also_log_to_standard_error: bool, identity: &ProcessName)
+	pub fn configure_logging(&self, dev_path: &DevPath, running_interactively_so_also_log_to_standard_error: bool, process_name: &ProcessName)
 	{
-		self.configure_syslog(running_interactively_so_also_log_to_standard_error, identity);
+		unsafe { LocalSyslogSocketConfiguration::configure(dev_path) };
+		self.configure_syslog_for_legacy_third_party_libraries_that_use_syslog_interface(running_interactively_so_also_log_to_standard_error, process_name);
 	}
 	
-	/// Stop logging.
+	/// Legacy `syslog()` is problematic:-
 	///
-	/// Not really very important; just closes a file descriptor.
+	/// * It makes two syscalls, `getpid()` and `send()` for every message logged;
+	/// * It is dubious as to whether it is trully thread safe;
+	/// * It does not support re-trying in some circumstances which are recoverable;
+	/// * It is hardcoded to `/dev/log`.
 	#[inline(always)]
-	pub fn stop_logging()
+	fn configure_syslog_for_legacy_third_party_libraries_that_use_syslog_interface(&self, running_interactively_so_also_log_to_standard_error: bool, identity: &ProcessName)
 	{
-		unsafe { closelog() }
+		unsafe { setlogmask(self.level.log_upto()) };
+		
+		let mut log_options = LOG_PID | LOG_NDELAY;
+		
+		if running_interactively_so_also_log_to_standard_error
+		{
+			log_options |= LOG_PERROR;
+		}
+		
+		let identity = identity.as_ref();
+		unsafe { openlog(identity.as_ptr(), log_options, self.facility as u8 as i32) }
 	}
-
-	/// NOTE: Using `syslog()` takes a hit of calling the `getpid()` system call and then the `send()` system call for every log message.
-	///
-	/// `severity` is, say `warning`.
-	///
-	/// `self.start_logging()` must have been called before this method.
-	pub fn syslog(severity: Severity, message: String)
-	{
-		Self::syslog_c_string_message(severity, unsafe { CString::from_vec_unchecked(message.into_bytes()) })
-	}
-
-	/// NOTE: Using `syslog()` takes a hit of calling the `getpid()` system call and then the `send()` system call for every log message.
-	///
-	/// `severity` is, say `warning`.
-	///
-	/// `self.start_logging()` must have been called before this method.
-	pub fn syslog_c_string_message(severity: Severity, message: CString)
-	{
-		unsafe { syslog(severity as u8 as i32, b"%s\0".as_ptr() as *const c_char, message.as_ptr()) };
-	}
-
-	/// Redirect `FILE*` standard out and `FILE*` standard error to syslog.
-	///
-	/// NOTE: Using `syslog()` takes a hit of calling the `getpid()` system call and then the `send()` system call for every log message.
-	///
-	/// `self.start_logging()` must have been called before this method.
+	
+	/// `self.configure_logging()` must have been called before this method.
 	#[inline(always)]
-	pub fn redirect_file_standard_out_and_file_standard_error_to_syslog()
+	pub fn redirect_FILE_standard_out_and_file_standard_error_to_log(&self, host_name: Option<&LinuxKernelHostName>, process_name: &ProcessName)
 	{
 		#[inline(always)]
-		fn redirect_to_syslog(original: &mut *const FILE, callback: cookie_write_function_t)
+		fn redirect_to_log<MT: MessageTemplate>(original: &mut *const FILE, message_template: MT, callback: unsafe extern "C" fn(&MT, data: *const c_char, length: size_t) -> ssize_t)
 		{
+			let message_template = Rc::new(message_template);
+			
 			let mut functions = cookie_io_functions_t::default();
-			functions.write = callback;
+			functions.write = unsafe { transmute(callback) };
 
-			let file = unsafe { fopencookie(null_mut(), b"w\0".as_ptr() as *const c_char, functions) };
+			let cookie = message_template.deref();
+			
+			let file = unsafe { fopencookie(cookie as *const MT as *mut MT as *mut c_void, b"w\0".as_ptr() as *const c_char, functions) };
 			assert!(!file.is_null(), "file is null from `fopencookie()`");
 			*original = file;
 			let result = unsafe { setvbuf(*original as *mut _, null_mut(), _IOLBF, 0) };
-			assert_eq!(result, 0, "`setvbuf()` returned `{}`", result)
+			assert_eq!(result, 0, "`setvbuf()` returned `{}`", result);
+			
+			forget(message_template);
 		}
-
-		redirect_to_syslog(unsafe { &mut stdout }, Self::write_standard_out_to_syslog);
-		redirect_to_syslog(unsafe { &mut stderr }, Self::write_standard_error_to_syslog);
+		
+		redirect_to_log(unsafe { &mut stdout }, Rfc3164MessageTemplate::new(self.facility, self.redirect_FILE_standard_out, host_name, process_name), Self::write_file_pointer_data_to_log);
+		redirect_to_log(unsafe { &mut stderr }, Rfc3164MessageTemplate::new(self.facility, self.redirect_FILE_standard_error, host_name, process_name), Self::write_file_pointer_data_to_log);
 	}
-
+	
 	/// Used to support redirecting lib c `FILE*` pointer to standard out to syslog.
 	///
 	/// Only used if a linked C library uses it.
 	#[inline(always)]
-	unsafe extern "C" fn write_standard_out_to_syslog(_cookie: *mut c_void, data: *const c_char, length: size_t) -> ssize_t
-	{
-		Self::write_file_pointer_data_to_syslog(Severity::Notice, data, length)
-	}
-
-	/// Used to support redirecting lib c `FILE*` pointer to standard error to syslog.
-	///
-	/// Only used if a linked C library uses it.
-	#[inline(always)]
-	unsafe extern "C" fn write_standard_error_to_syslog(_cookie: *mut c_void, data: *const c_char, length: size_t) -> ssize_t
-	{
-		Self::write_file_pointer_data_to_syslog(Severity::Error, data, length)
-	}
-
-	#[inline(always)]
-	fn write_file_pointer_data_to_syslog(severity: Severity, data: *const c_char, length: size_t) -> ssize_t
+	unsafe extern "C" fn write_file_pointer_data_to_log<MT: MessageTemplate + RefUnwindSafe>(message_template: &MT, data: *const c_char, length: size_t) -> ssize_t
 	{
 		// Calling code is from C, and it is undefined behaviour to pass a Rust panic across to C.
 		let result = catch_unwind
 		(||
 			 {
-				 let message = unsafe { CString::from_vec_unchecked(from_raw_parts(data as *const u8, length).to_vec()) };
-				 Self::syslog_c_string_message(severity, message);
+				 let bytes = unsafe { from_raw_parts(data as *const u8, length) };
+				 let message = String::from_utf8_lossy(bytes);
+				 
+				 LocalSyslogSocket::syslog(message_template, &message)
 			 }
 		);
 		forget(result);
 
 		length as ssize_t
-	}
-
-	#[inline(always)]
-	fn configure_syslog(&self, running_interactively_so_also_log_to_standard_error: bool, identity: &ProcessName)
-	{
-		unsafe { setlogmask(self.severity.log_upto()) };
-
-		let mut log_options = LOG_PID | LOG_NDELAY;
-
-		if running_interactively_so_also_log_to_standard_error
-		{
-			log_options |= LOG_PERROR;
-		}
-
-		let identity = identity.as_ref();
-		unsafe { openlog(identity.as_ptr(), log_options, self.facility as u8 as i32) }
 	}
 }

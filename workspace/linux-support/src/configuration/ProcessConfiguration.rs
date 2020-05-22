@@ -126,6 +126,7 @@ impl ProcessConfiguration
 		self.set_global_configuration(sys_path, proc_path)?;
 
 		// This *SHOULD* be called as soon as possible so that when threads open network sockets, say, we are already running with as few capabilities as possible.
+		//	Thus is *SHOULD be called before configuring logging which *DOES* open a network connection to a log (or syslog) socket.
 		// This *SHOULD* be called after `set_global_configuration()` so that the former can load Linux kernel modules if needed.
 		self.reduce_initial_capabilities_to_minimum_set()?;
 
@@ -141,11 +142,9 @@ impl ProcessConfiguration
 
 		set_current_dir(&self.working_directory).map_err(CouldNotChangeWorkingDirectory)?;
 
-		// This *SHOULD* be called before enabling logging.
 		// This *SHOULD* be called before using any libc functions that format strings.
 		self.set_locale()?;
 
-		// This *SHOULD* be called before enabling logging.
 		self.set_process_name(proc_path)?;
 
 		// This *SHOULD* be called before daemonizing (forking).
@@ -158,14 +157,23 @@ impl ProcessConfiguration
 		// This *SHOULD* be configured before configuring logging.
 		// This *MUST* be called before `configure_global_panic_hook()` which uses backtraces depedant on environment variable settings.
 		self.set_environment_variables_to_minimum_required_and_force_time_zone_to_utc(etc_path)?;
-
+		
+		// This *MUST* be called before `configure_logging` as `configure_logging` opens a socket that is closed-on-exec.
 		if run_as_daemon
 		{
 			daemonize(dev_path)
 		}
 
 		// This *MUST* be called before creating `ParsedPanicErrorLoggerProcessLoggingConfiguration` and thus `SimpleTerminate`.
-		self.logging_configuration.start_logging(!run_as_daemon, &self.name);
+		self.logging_configuration.configure_logging(dev_path, !run_as_daemon, &self.name);
+		
+		let host_name = LinuxKernelHostName::new(proc_path).map_err(CouldNotParseLinuxKernelHostName)?;
+		
+		if run_as_daemon
+		{
+			self.logging_configuration.redirect_FILE_standard_out_and_file_standard_error_to_log(host_name.as_ref(), &self.name);
+		}
+		
 		let terminate = SimpleTerminate::new(ParsedPanicErrorLoggerProcessLoggingConfiguration);
 
 		configure_global_panic_hook(&terminate);

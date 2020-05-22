@@ -9,7 +9,6 @@ use crate::cpu::*;
 use crate::file_descriptors::CreationError;
 use crate::file_descriptors::process_identifier::ProcessIdentifierFileDescriptor;
 use crate::file_descriptors::standard::StandardFileDescriptor;
-use crate::logging::ProcessLoggingConfiguration;
 use crate::memory::numa::*;
 use crate::paths::*;
 use crate::scheduling::RoundRobinInterval;

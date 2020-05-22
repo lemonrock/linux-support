@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Represents a RFC 5524 message template, which just needs a timestamp and message.
+/// Represents a RFC 5424 message template, which just needs a timestamp and message.
 pub struct Rfc5424MessageTemplate
 {
 	before_timestamp: ArrayVec<[u8; 7]>,

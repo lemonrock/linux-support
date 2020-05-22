@@ -2,30 +2,61 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[thread_local] static mut PerThreadLocalSyslogSocket: LocalSyslogSocket = unsafe { zeroed() };
+
 /// This is a blocking socket.
 #[derive(Debug)]
 pub struct LocalSyslogSocket
 {
+	#[cfg(debug_assertions)] initialization_pattern: u8,
 	socket_file_descriptor: DatagramClientSocketUnixDomainFileDescriptor,
 	is_connected: Cell<bool>,
-	socket_file_path: PathBuf,
 	buffer: Vec<u8>,
+	socket_file_path: PathBuf,
 }
 
 impl LocalSyslogSocket
 {
-	/// New.
-	pub fn new(dev_path: &DevPath) -> Result<Self, NewSocketClientError>
+	#[cfg(debug_assertions)] const Initialized: u8 = 0xFF;
+	
+	#[inline(always)]
+	pub(crate) unsafe fn configure_per_thread_local_syslog_socket()
 	{
-		let socket_file_path = dev_path.file_path("/dev/log");
+		debug_assert_ne!(PerThreadLocalSyslogSocket.initialization_pattern, Self::Initialized);
 		
+		((&mut PerThreadLocalSyslogSocket) as *mut LocalSyslogSocket).write
+		(
+			LocalSyslogSocket::new(LocalSyslogSocketConfiguration::instance())
+		);
+	}
+	
+	#[inline(always)]
+	pub fn syslog(message_template: &impl MessageTemplate, message: &str) -> Result<(), &'static str>
+	{
+		Self::instance_mut().log(message_template, message)
+	}
+	
+	#[inline(always)]
+	fn instance_mut() -> &'static mut Self
+	{
+		let this = unsafe { &mut PerThreadLocalSyslogSocket };
+		
+		debug_assert_eq!(this.initialization_pattern, Self::Initialized);
+		
+		this
+	}
+	
+	/// New.
+	fn new(configuration: &LocalSyslogSocketConfiguration) -> Result<Self, NewSocketClientError>
+	{
+		let socket_file_path = configuration.dev_path.file_path("/dev/log");
 		Ok
 		(
 			Self
 			{
+				#[cfg(debug_assertions)] initialization_pattern: Self::Initialized,
 				socket_file_descriptor: Self::open(&socket_file_path)?,
 				is_connected: Cell::new(true),
-				socket_file_path,
 				buffer:
 				{
 					const Size: usize = 4096;
@@ -33,12 +64,13 @@ impl LocalSyslogSocket
 					unsafe { buffer.set_len(Size) };
 					buffer
 				},
+				socket_file_path,
 			}
 		)
 	}
 	
 	/// Log.
-	pub fn log(&mut self, message_template: &impl MessageTemplate, timestamp: DateTime<Utc>, message: &str) -> Result<(), &'static str>
+	fn log(&mut self, message_template: &impl MessageTemplate, message: &str) -> Result<(), &'static str>
 	{
 		if !self.is_connected.get()
 		{
@@ -48,6 +80,7 @@ impl LocalSyslogSocket
 			}
 		}
 		
+		let timestamp = Utc::now();
 		let length = message_template.format(&mut self.buffer[..], timestamp, message);
 		
 		self.buffer[length] = b'\n';

@@ -55,6 +55,7 @@ use std::thread::ThreadId;
 use std::mem::transmute;
 #[allow(deprecated)] use std::mem::uninitialized;
 use terminate::Terminate;
+use crate::logging::LocalSyslogSocket;
 
 
 include!("configure_global_panic_hook.rs");

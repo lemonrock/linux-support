@@ -79,6 +79,8 @@ impl ThreadConfiguration
 		let disable_transparent_huge_pages = self.disable_transparent_huge_pages;
 		Builder::new().name(self.name.to_string()).stack_size(stack_size as usize).spawn(move ||
 		{
+			unsafe { LocalSyslogSocket::configure_per_thread_local_syslog_socket() };
+			
 			if let Some(ref numa_memory_policy) = numa_memory_policy
 			{
 				numa_memory_policy.set_thread_policy()
@@ -96,6 +98,8 @@ impl ThreadConfiguration
 	{
 		use self::ThreadConfigurationError::*;
 
+		// `unsafe { LocalSyslogSocket::configure_per_thread_local_syslog_socket() };` is not required as it is done in `LocalSyslogSocketConfiguration::configure()`.
+		
 		self.name.set_thread_name(ProcessIdentifierChoice::Current, thread_identifier, proc_path).map_err(CouldNotSetThreadName)?;
 
 		self.affinity.set_thread_affinity(pthread_t).map_err(CouldNotSetThreadAffinity)?;

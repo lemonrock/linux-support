@@ -36,7 +36,7 @@ use linux_support::file_descriptors::CreationError;
 use linux_support::file_descriptors::signalfd::SignalFileDescriptor;
 use linux_support::file_descriptors::socket::*;
 use linux_support::io_uring::*;
-use linux_support::logging::KnownFacility;
+use linux_support::logging::{KnownFacility, LocalSyslogSocket};
 use linux_support::logging::ProcessLoggingConfiguration;
 use linux_support::logging::Severity;
 use linux_support::memory::huge_pages::*;

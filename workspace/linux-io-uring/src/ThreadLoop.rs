@@ -171,7 +171,7 @@ impl<HeapSize: MemorySize, StackSize: MemorySize, GTACSA: 'static + GlobalThread
 					true
 				},
 				
-				Err(CarryOn(ref cause)) => ProcessLoggingConfiguration::syslog(Severity::Warning, format!("CarryOn:{}", cause)),
+				Err(CarryOn(ref cause)) => LocalSyslogSocket::syslog(Severity::Warning, format!("CarryOn:{}", cause)),
 				
 				Ok(()) => false,
 			}

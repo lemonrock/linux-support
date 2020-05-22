@@ -21,6 +21,7 @@
 #![feature(never_type)]
 #![feature(ptr_offset_from)]
 #![feature(read_initializer)]
+#![feature(thread_local)]
 
 
 //! #linux-support

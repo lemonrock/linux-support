@@ -80,6 +80,9 @@ pub enum ProcessConfigurationError
 
 	#[allow(missing_docs)]
 	CouldNotPreventTheGrantingOfNoNewPrivileges(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotParseLinuxKernelHostName(io::Error),
 }
 
 impl Display for ProcessConfigurationError
@@ -149,6 +152,8 @@ impl error::Error for ProcessConfigurationError
 			&CouldNotPreventTheGrantingOfNoNewPrivileges(ref cause) => Some(cause),
 
 			&UtcFilePathDoesNotExistOrIsNotReadable(ref cause) => Some(cause),
+
+			&CouldNotParseLinuxKernelHostName(ref cause) => Some(cause),
 		}
 	}
 }
