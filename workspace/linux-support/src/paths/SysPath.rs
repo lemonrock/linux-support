@@ -98,6 +98,13 @@ impl SysPath
 		self.numa_nodes_folder_path().append(file_name)
 	}
 
+	/// `/sys/kernel/mm/ksm/<file_name>`
+	#[inline(always)]
+	pub(crate) fn ksm_file_path(&self, file_name: &str) -> PathBuf
+	{
+		self.transparent_huge_memory_file_path("ksm").append(file_name)
+	}
+	
 	/// `/sys/kernel/mm/khugepaged/<file_name>`
 	#[inline(always)]
 	pub(crate) fn khugepaged_file_path(&self, file_name: &str) -> PathBuf

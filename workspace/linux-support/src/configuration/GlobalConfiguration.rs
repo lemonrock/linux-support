@@ -30,6 +30,9 @@ pub struct GlobalConfiguration
 	pub epoll: GlobalEPollConfiguration,
 
 	/// Requires root.
+	pub same_page_merging: GlobalLinuxKernelSamePageMergingConfiguration,
+
+	/// Requires root.
 	pub linux_kernel_asynchronous_io: GlobalLinuxKernelAsynchronousIoConfiguration,
 
 	/// Requires root.
@@ -73,6 +76,8 @@ impl GlobalConfiguration
 		self.inotify.configure(proc_path)?;
 
 		self.epoll.configure(proc_path)?;
+
+		self.same_page_merging.configure(sys_path)?;
 
 		self.linux_kernel_asynchronous_io.configure(proc_path)?;
 

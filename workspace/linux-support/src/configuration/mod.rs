@@ -16,6 +16,8 @@ use crate::file_descriptors::inotify::*;
 use crate::file_descriptors::pipes_and_fifos::*;
 use crate::file_descriptors::posix_message_queues::*;
 use crate::file_handles::NumberOfFileHandles;
+use crate::io_priority::IoPriority;
+use crate::io_priority::RealTimeOrBestEffortIoPriorityLevel;
 #[cfg(any(target_arch = "mips64", target_arch = "powerpc64", target_arch = "x86_64"))] use crate::ioports::*;
 use crate::linux_kernel_asynchronous_io::set_maximum_number_of_kernel_asynchronous_io_events_per_user;
 use crate::linux_kernel_command_line::*;
@@ -35,6 +37,7 @@ use crate::seccomp::*;
 use crate::scheduling::*;
 use crate::swap::*;
 use crate::signals::*;
+use crate::strings::into_line_feed_terminated_byte_string::*;
 use crate::thread::*;
 use crate::time::c::tzset;
 use crate::user_and_groups::*;
@@ -61,11 +64,9 @@ use std::io;
 use std::num::NonZeroU32;
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::sync::atomic::spin_loop_hint;
 use terminate::SimpleTerminate;
 use terminate::Terminate;
-use std::sync::atomic::spin_loop_hint;
-use crate::io_priority::{IoPriority, RealTimeOrBestEffortIoPriorityLevel};
-use crate::strings::into_line_feed_terminated_byte_string::*;
 
 
 /// Checks.
@@ -90,6 +91,8 @@ include!("GlobalLinuxKernelAsynchronousIoConfiguration.rs");
 include!("GlobalLinuxKernelAsynchronousIoConfigurationError.rs");
 include!("GlobalLinuxKernelCommandLineConfiguration.rs");
 include!("GlobalLinuxKernelCommandLineConfigurationError.rs");
+include!("GlobalLinuxKernelSamePageMergingConfiguration.rs");
+include!("GlobalLinuxKernelSamePageMergingConfigurationError.rs");
 include!("GlobalLinuxModuleConfiguration.rs");
 include!("GlobalLinuxModuleConfigurationError.rs");
 include!("GlobalPipeConfiguration.rs");

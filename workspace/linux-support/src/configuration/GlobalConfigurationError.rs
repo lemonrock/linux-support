@@ -28,6 +28,9 @@ pub enum GlobalConfigurationError
 	GlobalEPollConfiguration(GlobalEPollConfigurationError),
 
 	#[allow(missing_docs)]
+	GlobalLinuxKernelSamePageMergingConfiguration(GlobalLinuxKernelSamePageMergingConfigurationError),
+
+	#[allow(missing_docs)]
 	GlobalLinuxKernelAsynchronousIoConfiguration(GlobalLinuxKernelAsynchronousIoConfigurationError),
 
 	#[allow(missing_docs)]
@@ -86,6 +89,8 @@ impl error::Error for GlobalConfigurationError
 			&GlobalInotifyConfiguration(ref cause) => Some(cause),
 
 			&GlobalEPollConfiguration(ref cause) => Some(cause),
+
+			&GlobalLinuxKernelSamePageMergingConfiguration(ref cause) => Some(cause),
 
 			&GlobalLinuxKernelAsynchronousIoConfiguration(ref cause) => Some(cause),
 
@@ -168,6 +173,15 @@ impl From<GlobalEPollConfigurationError> for GlobalConfigurationError
 	fn from(cause: GlobalEPollConfigurationError) -> Self
 	{
 		GlobalConfigurationError::GlobalEPollConfiguration(cause)
+	}
+}
+
+impl From<GlobalLinuxKernelSamePageMergingConfigurationError> for GlobalConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: GlobalLinuxKernelSamePageMergingConfigurationError) -> Self
+	{
+		GlobalConfigurationError::GlobalLinuxKernelSamePageMergingConfiguration(cause)
 	}
 }
 
