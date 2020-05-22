@@ -58,12 +58,12 @@ impl ReservedCpuTimeForNonRealTimeSchedulerPolicies
 		let runtime_file_path = Self::runtime_file_path(proc_path);
 		if period_file_path.exists() && runtime_file_path.exists()
 		{
-			period_file_path.write_value(self.period_microseconds)?;
-			runtime_file_path.write_value(match self.runtime_microseconds
+			period_file_path.write_value(UnpaddedDecimalInteger(self.period_microseconds))?;
+			runtime_file_path.write_value(UnpaddedDecimalInteger(match self.runtime_microseconds
 			{
 				None => -1i32,
 				Some(runtime_microseconds) => (runtime_microseconds.get() - 1) as i32
-			})
+			}))
 		}
 		else
 		{

@@ -60,15 +60,15 @@ impl TransparentHugePageDefragmentationChoice
 	#[inline(always)]
 	pub fn change_transparent_huge_pages_defragmentation(&self, sys_path: &SysPath, pages_to_scan: u16, scan_sleep_in_milliseconds: usize, allocation_sleep_in_milliseconds: usize, how_many_extra_small_pages_not_already_mapped_can_be_allocated_when_collapsing_small_pages: u16, how_many_extra_small_pages_not_already_mapped_can_be_swapped_when_collapsing_small_pages: u16) -> io::Result<()>
 	{
-		sys_path.khugepaged_file_path("pages_to_scan").write_value(pages_to_scan)?;
-		sys_path.khugepaged_file_path("alloc_sleep_millisecs").write_value(scan_sleep_in_milliseconds)?;
-		sys_path.khugepaged_file_path("scan_sleep_millisecs").write_value(allocation_sleep_in_milliseconds)?;
-		sys_path.khugepaged_file_path("max_ptes_none").write_value(how_many_extra_small_pages_not_already_mapped_can_be_allocated_when_collapsing_small_pages)?;
-		sys_path.khugepaged_file_path("max_ptes_swap").write_value(how_many_extra_small_pages_not_already_mapped_can_be_swapped_when_collapsing_small_pages)?;
+		sys_path.khugepaged_file_path("pages_to_scan").write_value(UnpaddedDecimalInteger(pages_to_scan))?;
+		sys_path.khugepaged_file_path("alloc_sleep_millisecs").write_value(UnpaddedDecimalInteger(scan_sleep_in_milliseconds))?;
+		sys_path.khugepaged_file_path("scan_sleep_millisecs").write_value(UnpaddedDecimalInteger(allocation_sleep_in_milliseconds))?;
+		sys_path.khugepaged_file_path("max_ptes_none").write_value(UnpaddedDecimalInteger(how_many_extra_small_pages_not_already_mapped_can_be_allocated_when_collapsing_small_pages))?;
+		sys_path.khugepaged_file_path("max_ptes_swap").write_value(UnpaddedDecimalInteger(how_many_extra_small_pages_not_already_mapped_can_be_swapped_when_collapsing_small_pages))?;
 
-		let (ransparent_huge_memory_defrag, khugepaged_defrag) = self.to_value();
+		let (transparent_huge_memory_defrag, khugepaged_defrag) = self.to_value();
 		sys_path.khugepaged_file_path("defrag").write_value(khugepaged_defrag)?;
-		sys_path.transparent_huge_memory_file_path("defrag").write_value(ransparent_huge_memory_defrag)?;
+		sys_path.transparent_huge_memory_file_path("defrag").write_value(transparent_huge_memory_defrag)?;
 
 		Ok(())
 	}

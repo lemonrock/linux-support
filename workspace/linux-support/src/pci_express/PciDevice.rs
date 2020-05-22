@@ -56,7 +56,7 @@ impl<'a> PciDevice<'a>
 	#[inline(always)]
 	pub fn rescan_all_pci_buses_and_devices(sys_path: &SysPath) -> io::Result<()>
 	{
-		sys_path.pci_bus_file_path("rescan").write_value(1)
+		sys_path.pci_bus_file_path("rescan").write_value(true)
 	}
 
 	/// Is this a PCI bus?
@@ -110,8 +110,10 @@ impl<'a> PciDevice<'a>
 	#[inline(always)]
 	pub fn set_numa_node_swallowing_errors_as_this_is_brittle(&self, numa_node: NumaNode)
 	{
+		let numa_node: u16 = numa_node.into();
+		
 		// Strictly speaking, we should read a value of -1 first before attempting to set.
-		self.numa_node_file_path().write_value(numa_node);
+		self.numa_node_file_path().write_value(UnpaddedDecimalInteger(numa_node));
 	}
 
 	/// This value does not exist if the Kernel does not support ACPI.

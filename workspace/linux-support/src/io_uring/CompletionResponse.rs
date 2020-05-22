@@ -582,6 +582,7 @@ impl CompletionResponse
 	/// * `BrokenPipe`.
 	/// * `PermissionDenied` (only for Unix domain sockets).
 	/// * `ConnectionReset`.
+	/// * `ConnectionRefused`.
 	///
 	/// Can not return `Ok(Some(value))` with `value` greater than `i32::MAX as u32`.
 	#[inline(always)]
@@ -603,6 +604,7 @@ impl CompletionResponse
 					EPIPE => BrokenPipe,
 					EACCES => PermissionDenied,
 					ECONNRESET => ConnectionReset,
+					ECONNREFUSED => ConnectionRefused,
 					EBADF => panic!("The argument `sockfd` is an invalid descriptor"),
 					EFAULT => panic!("The receive buffer pointer(s) point outside the process's address space"),
 					EINVAL => panic!("Invalid argument passed"),

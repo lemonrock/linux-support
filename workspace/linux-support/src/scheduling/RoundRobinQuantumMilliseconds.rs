@@ -32,7 +32,7 @@ impl RoundRobinQuantumMilliseconds
 
 		if file_path.exists()
 		{
-			file_path.write_value(self.0)
+			file_path.write_value(UnpaddedDecimalInteger(self.0))
 		}
 		else
 		{
@@ -44,7 +44,7 @@ impl RoundRobinQuantumMilliseconds
 	#[inline(always)]
 	pub fn reset_to_default(&self, proc_path: &ProcPath) -> io::Result<()>
 	{
-		Self::file_path(proc_path).write_value(0u64)
+		Self::file_path(proc_path).write_value(UnpaddedDecimalInteger(0u64))
 	}
 
 	#[inline(always)]

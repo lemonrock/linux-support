@@ -251,7 +251,7 @@ impl Swappiness
 		let file_path = Self::swappiness_file_path(proc_path);
 		if file_path.exists()
 		{
-			file_path.write_value(self as u8)
+			file_path.write_value(UnpaddedDecimalInteger(self as u8))
 		}
 		else
 		{

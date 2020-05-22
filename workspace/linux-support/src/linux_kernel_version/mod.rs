@@ -5,10 +5,14 @@
 use crate::paths::PathExt;
 use crate::paths::ProcPath;
 use crate::strings::parse_number::*;
+use likely::*;
 use serde::Deserialize;
 use serde::Serialize;
 use std::io;
+use std::ops::Deref;
 
 
+include!("LinuxKernelDomainName.rs");
+include!("LinuxKernelHostName.rs");
 include!("LinuxKernelVersion.rs");
 include!("LinuxKernelVersionNumber.rs");

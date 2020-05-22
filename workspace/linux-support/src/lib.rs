@@ -12,6 +12,7 @@
 #![feature(allocator_api)]
 #![feature(asm)]
 #![feature(const_fn)]
+#![feature(const_fn_union)]
 #![feature(core_intrinsics)]
 #![feature(const_ptr_offset_from)]
 #![feature(const_raw_ptr_deref)]
@@ -63,6 +64,10 @@ pub mod bpf;
 /// * Disable the 'dumpable' flag for security.
 /// * Lock down a process to remove privileges.
 pub mod capabilities_and_privileges;
+
+
+/// Coredump settings.
+pub mod coredump;
 
 
 /// Cgroups (containers).

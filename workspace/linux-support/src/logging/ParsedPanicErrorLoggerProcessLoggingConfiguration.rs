@@ -15,6 +15,6 @@ impl ParsedPanicErrorLogger for ParsedPanicErrorLoggerProcessLoggingConfiguratio
 
 		let message = format!("ThreadName:{}:ThreadId:{:?}:CurrentHyperThread:{}:File:{}:Line:{}:Column:{}:Cause:{}:Backtrace:{}", parsed_panic.thread_name(), parsed_panic.thread_id(), current_hyper_thread, parsed_panic.source_file, parsed_panic.line_number, parsed_panic.column_number, parsed_panic.cause, parsed_panic.backtrace);
 
-		ProcessLoggingConfiguration::syslog(SyslogPriority::emergency, message)
+		ProcessLoggingConfiguration::syslog(Severity::Emergency, message)
 	}
 }

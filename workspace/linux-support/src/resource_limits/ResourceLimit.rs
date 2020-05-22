@@ -42,7 +42,7 @@ impl ResourceLimit
 
 		if file_path.exists()
 		{
-			file_path.write_value(value)
+			file_path.write_value(UnpaddedDecimalInteger(value))
 		}
 		else
 		{

@@ -3,6 +3,7 @@
 
 
 use crate::paths::*;
+use crate::strings::into_line_feed_terminated_byte_string::UnpaddedDecimalInteger;
 use crate::strings::parse_number::*;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 use serde::Deserialize;

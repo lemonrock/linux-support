@@ -12,8 +12,8 @@ pub enum UnixSocketAddress<FilePath: AsRef<Path>>
 		/// An Unix Domain Socket file path of up to 107 bytes.
 		socket_file_path: FilePath,
 
-		/// `u32` is the permissions of the parent folder of the file path; it is only used by listeners.
-		parent_folder_mode: u32,
+		/// Only used by listeners.
+		parent_folder_mode: AccessPermissions,
 	},
 
 	/// A Linux-specific abstractly named socket.

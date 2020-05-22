@@ -198,7 +198,35 @@ impl Nice
 	#[inline(always)]
 	pub fn set_autogroup_for_process(self, process_identifier: ProcessIdentifierChoice, proc_path: &ProcPath) -> Result<(), io::Error>
 	{
-		proc_path.process_file_path(process_identifier, "autogroup").write_value(self as i32)
+		// Reads are different to writes!
+		// A read might contain the value `/autogroup-25 nice 0`.
+		proc_path.process_file_path(process_identifier, "autogroup").write_value(UnpaddedDecimalInteger(self as i32))
+	}
+	
+	/// Get the autogroup for a process.
+	///
+	/// Name might be `/autogroup-25`.
+	#[inline(always)]
+	pub fn get_autogroup_name_and_nice_value(self, process_identifier: ProcessIdentifierChoice, proc_path: &ProcPath) -> Result<(Box<[u8]>, Self), io::Error>
+	{
+		// Reads are different to writes!
+		// A read might contain the value `/autogroup-25 nice 0`.
+		let line = proc_path.process_file_path(process_identifier, "autogroup").read_raw_without_line_feed()?;
+		let mut parts = (&line[..]).splitn(3, |byte| *byte == b' ');
+		
+		let name = parts.next().unwrap();
+		
+		let nice_string = parts.next().ok_or(io::Error::new(ErrorKind::Other, "Missing `nice` string"))?;
+		if nice_string != b"nice"
+		{
+			return Err(io::Error::new(ErrorKind::Other, "`nice` string was not 'nice'"))
+		}
+		
+		let raw_nice_value = parts.next().ok_or(io::Error::new(ErrorKind::Other, "Missing `nice` value"))?;
+		
+		let nice = Self::parse_decimal_number(raw_nice_value).map_err(|cause| io::Error::new(ErrorKind::Other, cause))?;
+		
+		Ok((name.to_vec().into_boxed_slice(), nice))
 	}
 
 	/// Returns an `Err()` if the user did not have permission to adjust the priority (eg was not privileged or had the capability `CAP_SYS_NICE`).

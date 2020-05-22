@@ -19,7 +19,7 @@ pub fn set_maximum_message_size(proc_path: &ProcPath, maximum_message_size: NonZ
 	let file_path = proc_path.sys_kernel_file_path("msgmax");
 	if file_path.exists()
 	{
-		file_path.write_value(maximum_message_size)
+		file_path.write_value(UnpaddedDecimalInteger(maximum_message_size))
 	}
 	else
 	{

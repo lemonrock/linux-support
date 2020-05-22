@@ -33,6 +33,7 @@ use std::ops::DerefMut;
 use std::ops::Index;
 use std::ops::IndexMut;
 use std::os::unix::ffi::OsStrExt;
+use crate::strings::into_line_feed_terminated_byte_string::*;
 
 
 include!("bit_set.rs");include!("bit_set_aware.rs");

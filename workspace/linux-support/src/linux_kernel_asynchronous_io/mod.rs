@@ -5,6 +5,7 @@
 use crate::paths::*;
 use std::io;
 use std::num::NonZeroU32;
+use crate::strings::into_line_feed_terminated_byte_string::UnpaddedDecimalInteger;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 
 

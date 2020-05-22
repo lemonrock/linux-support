@@ -17,7 +17,7 @@ pub fn set_maximum_pipe_capacity(proc_path: &ProcPath, maximum_pipe_capacity: No
 	let file_path = proc_path.sys_fs_file_path("pipe-max-size");
 	if file_path.exists()
 	{
-		file_path.write_value(maximum_pipe_capacity)
+		file_path.write_value(UnpaddedDecimalInteger(maximum_pipe_capacity))
 	}
 	else
 	{

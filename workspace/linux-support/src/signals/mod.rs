@@ -21,7 +21,6 @@ use libc_extra::unix::string::strsignal;
 use likely::*;
 use serde::Deserialize;
 use serde::Serialize;
-use std::borrow::Cow;
 use std::convert::TryFrom;
 use std::error;
 use std::ffi::CStr;

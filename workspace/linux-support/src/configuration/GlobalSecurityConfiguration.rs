@@ -48,29 +48,29 @@ impl GlobalSecurityConfiguration
 		use self::GlobalSecurityConfigurationError::*;
 
 		#[inline(always)]
-		fn harden_value<'a>(proc_path: &ProcPath, file_function: impl FnOnce(&ProcPath, &str) -> PathBuf, file_name: &'static str, value: impl IntoLineFeedTerminatedByteString<'a>) -> Result<(), GlobalSecurityConfigurationError>
+		fn harden_value<'a>(proc_path: &ProcPath, file_function: impl FnOnce(&ProcPath, &str) -> PathBuf, file_name: &'static str, value: u8) -> Result<(), GlobalSecurityConfigurationError>
 		{
 			let file_path = file_function(proc_path, file_name);
 			if file_path.exists()
 			{
-				return file_path.write_value(value).map_err(|cause| CouldNotHarden { cause, proc_sys_kernel_file: file_name })
+				return file_path.write_value(UnpaddedDecimalInteger(value)).map_err(|cause| CouldNotHarden { cause, proc_sys_kernel_file: file_name })
 			}
 			Ok(())
 		}
 
 		if self.harden
 		{
-			harden_value(proc_path, ProcPath::sys_kernel_file_path, "randomize_va_space", 2u8)?;
-			harden_value(proc_path, ProcPath::sys_kernel_file_path, "sysrq", 0u8)?;
-			harden_value(proc_path, ProcPath::sys_kernel_file_path, "stack_erasing", 1u8)?;
-			harden_value(proc_path, ProcPath::sys_kernel_file_path, "kptr_restrict", 2u8)?;
-			harden_value(proc_path, ProcPath::sys_kernel_file_path, "dmesg_restrict", 1u8)?;
-			harden_value(proc_path, ProcPath::sys_fs_file_path, "suid_dumpable", 0u8)?;
-			harden_value(proc_path, ProcPath::sys_fs_file_path, "protected_symlinks", 1u8)?;
-			harden_value(proc_path, ProcPath::sys_fs_file_path, "protected_regular", 2u8)?;
-			harden_value(proc_path, ProcPath::sys_fs_file_path, "protected_hardlinks", 1u8)?;
-			harden_value(proc_path, ProcPath::sys_fs_file_path, "protected_fifos", 2u8)?;
-			harden_value(proc_path, ProcPath::sys_vm_file_path, "unprivileged_userfaultfd", 0u8)?;
+			harden_value(proc_path, ProcPath::sys_kernel_file_path, "randomize_va_space", 2)?;
+			harden_value(proc_path, ProcPath::sys_kernel_file_path, "sysrq", 0)?;
+			harden_value(proc_path, ProcPath::sys_kernel_file_path, "stack_erasing", 1)?;
+			harden_value(proc_path, ProcPath::sys_kernel_file_path, "kptr_restrict", 2)?;
+			harden_value(proc_path, ProcPath::sys_kernel_file_path, "dmesg_restrict", 1)?;
+			harden_value(proc_path, ProcPath::sys_fs_file_path, "suid_dumpable", 0)?;
+			harden_value(proc_path, ProcPath::sys_fs_file_path, "protected_symlinks", 1)?;
+			harden_value(proc_path, ProcPath::sys_fs_file_path, "protected_regular", 2)?;
+			harden_value(proc_path, ProcPath::sys_fs_file_path, "protected_hardlinks", 1)?;
+			harden_value(proc_path, ProcPath::sys_fs_file_path, "protected_fifos", 2)?;
+			harden_value(proc_path, ProcPath::sys_vm_file_path, "unprivileged_userfaultfd", 0)?;
 		}
 
 

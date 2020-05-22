@@ -48,7 +48,7 @@ impl<'a> IntoLineFeedTerminatedByteString<'a> for KernelPanicRebootAction
 
 			Never => Cow::from(b"0\n" as &[u8]),
 
-			AfterSomeSeconds { seconds } => seconds.into_line_feed_terminated_byte_string()
+			AfterSomeSeconds { seconds } => UnpaddedDecimalInteger(seconds).into_line_feed_terminated_byte_string()
 		}
 	}
 }

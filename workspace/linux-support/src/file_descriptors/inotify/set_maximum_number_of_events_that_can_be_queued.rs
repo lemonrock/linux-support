@@ -15,7 +15,7 @@ pub fn set_maximum_number_of_events_that_can_be_queued(proc_path: &ProcPath, max
 	let file_path = proc_path.sys_fs_inotify_file_path("max_queued_events");
 	if file_path.exists()
 	{
-		file_path.write_value(maximum_number_of_events_that_can_be_queued)
+		file_path.write_value(UnpaddedDecimalInteger(maximum_number_of_events_that_can_be_queued))
 	}
 	else
 	{

@@ -8,16 +8,6 @@ macro_rules! bit_set_aware
 {
 	($type: ty) =>
 	{
-		impl<'a> crate::strings::IntoLineFeedTerminatedByteString<'a> for $type
-		{
-			#[inline(always)]
-			fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
-			{
-				let value: u16 = self.into();
-				value.into_line_feed_terminated_byte_string()
-			}
-		}
-
 		impl std::convert::TryFrom<u16> for $type
 		{
 			type Error = BitSetAwareTryFromU16Error;

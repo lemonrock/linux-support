@@ -15,7 +15,7 @@ pub fn set_maximum_number_of_watched_file_descriptors_per_user(proc_path: &ProcP
 	let file_path = proc_path.sys_fs_epoll_file_path("max_user_watches");
 	if file_path.exists()
 	{
-		file_path.write_value(maximum_number_of_watched_file_descriptors_per_user)
+		file_path.write_value(UnpaddedDecimalInteger(maximum_number_of_watched_file_descriptors_per_user))
 	}
 	else
 	{

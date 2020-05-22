@@ -5,6 +5,7 @@
 use crate::process::*;
 use self::c::*;
 use super::*;
+use super::directory::AccessPermissions;
 use crate::cpu::HyperThread;
 use super::file::SendFile;
 use super::pipes_and_fifos::SpliceRecipient;

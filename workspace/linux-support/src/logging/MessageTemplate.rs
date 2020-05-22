@@ -2,9 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Gets the program name.
-#[inline(always)]
-pub fn get_program_name() -> String
+pub trait MessageTemplate
 {
-	unsafe { CStr::from_ptr(program_invocation_short_name).to_string_lossy().into_owned() }
+	/// Writes a message to a `buffer` with the `timestamp` and `message`.
+	///
+	/// Returns the length written.
+	fn format(&self, buffer: &mut [u8], timestamp: DateTime<Utc>, message: &str) -> usize;
 }

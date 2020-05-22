@@ -21,7 +21,7 @@ pub fn set_pipe_user_pages_hard_limit(proc_path: &ProcPath, hard_limit: Option<N
 	let file_path = proc_path.sys_fs_file_path("pipe-user-pages-hard");
 	if file_path.exists()
 	{
-		file_path.write_value(hard_limit)
+		file_path.write_value(UnpaddedDecimalInteger(hard_limit))
 	}
 	else
 	{

@@ -11,7 +11,7 @@ use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use crate::pci_express::PciDeviceAddress;
 use crate::process::ProcessIdentifierChoice;
 use crate::strings::FromBytes;
-use crate::strings::IntoLineFeedTerminatedByteString;
+use crate::strings::into_line_feed_terminated_byte_string::*;
 use likely::*;
 use serde::Deserialize;
 use serde::Serialize;

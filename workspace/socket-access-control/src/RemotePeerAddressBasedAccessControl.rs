@@ -41,27 +41,27 @@ impl<Value> RemotePeerAddressBasedAccessControl<Value>
 impl<Value> AccessControl<sockaddr_in, Value> for RemotePeerAddressBasedAccessControl<Value>
 {
 	#[inline(always)]
-	fn is_remote_peer_allowed(&self, remote_peer_address: sockaddr_in, _streaming_socket_file_descriptor: &StreamingSocketFileDescriptor<sockaddr_in>) -> Option<&Value>
+	fn is_remote_peer_allowed(&self, remote_peer: &AcceptedConnection<sockaddr_in>) -> Option<&Value>
 	{
-		self.permitted_protocol_version_4_subnets.longest_match(&remote_peer_address.sin_addr)
+		self.permitted_protocol_version_4_subnets.longest_match(&remote_peer.peer_address.sin_addr)
 	}
 }
 
 impl<Value> AccessControl<sockaddr_in6, Value> for RemotePeerAddressBasedAccessControl<Value>
 {
 	#[inline(always)]
-	fn is_remote_peer_allowed(&self, remote_peer_address: sockaddr_in6, _streaming_socket_file_descriptor: &StreamingSocketFileDescriptor<sockaddr_in6>) -> Option<&Value>
+	fn is_remote_peer_allowed(&self, remote_peer: &AcceptedConnection<sockaddr_in6>) -> Option<&Value>
 	{
-		self.permitted_protocol_version_6_subnets.longest_match(&remote_peer_address.sin6_addr)
+		self.permitted_protocol_version_6_subnets.longest_match(&remote_peer.peer_address.sin6_addr)
 	}
 }
 
 impl<Value> AccessControl<sockaddr_un, Value> for RemotePeerAddressBasedAccessControl<Value>
 {
 	#[inline(always)]
-	fn is_remote_peer_allowed(&self, _remote_peer_address: sockaddr_un, streaming_socket_file_descriptor: &StreamingSocketFileDescriptor<sockaddr_un>) -> Option<&Value>
+	fn is_remote_peer_allowed(&self, remote_peer: &AcceptedConnection<sockaddr_un>) -> Option<&Value>
 	{
-		let credentials = streaming_socket_file_descriptor.remote_peer_credentials();
+		let credentials = remote_peer.streaming_socket_file_descriptor.remote_peer_credentials();
 		
 		if let Some(value) = self.permitted_unix_domain_group_identifiers.get(&credentials.group_identifier)
 		{

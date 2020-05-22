@@ -155,7 +155,7 @@ impl<'a> NamespacesProcPath<'a>
 	#[inline(always)]
 	pub fn write_maximum_cgroup_namespaces(&self, maximum: u64) -> io::Result<()>
 	{
-		self.maximum_namespaces_file_path("max_cgroup_namespaces").write_value(maximum)
+		self.maximum_namespaces_file_path("max_cgroup_namespaces").write_value(UnpaddedDecimalInteger(maximum))
 	}
 
 	#[inline(always)]
@@ -167,7 +167,7 @@ impl<'a> NamespacesProcPath<'a>
 	#[inline(always)]
 	pub fn write_maximum_inter_process_communication_namespaces(&self, maximum: u64) -> io::Result<()>
 	{
-		self.maximum_namespaces_file_path("max_ipc_namespaces").write_value(maximum)
+		self.maximum_namespaces_file_path("max_ipc_namespaces").write_value(UnpaddedDecimalInteger(maximum))
 	}
 
 	#[inline(always)]
@@ -179,7 +179,7 @@ impl<'a> NamespacesProcPath<'a>
 	#[inline(always)]
 	pub fn write_maximum_mount_namespaces(&self, maximum: u64) -> io::Result<()>
 	{
-		self.maximum_namespaces_file_path("max_mnt_namespaces").write_value(maximum)
+		self.maximum_namespaces_file_path("max_mnt_namespaces").write_value(UnpaddedDecimalInteger(maximum))
 	}
 
 	#[inline(always)]
@@ -191,7 +191,7 @@ impl<'a> NamespacesProcPath<'a>
 	#[inline(always)]
 	pub fn write_maximum_net_namespaces(&self, maximum: u64) -> io::Result<()>
 	{
-		self.maximum_namespaces_file_path("max_net_namespaces").write_value(maximum)
+		self.maximum_namespaces_file_path("max_net_namespaces").write_value(UnpaddedDecimalInteger(maximum))
 	}
 
 	#[inline(always)]
@@ -203,7 +203,7 @@ impl<'a> NamespacesProcPath<'a>
 	#[inline(always)]
 	pub fn write_maximum_process_identifier_namespaces(&self, maximum: u64) -> io::Result<()>
 	{
-		self.maximum_namespaces_file_path("max_pid_namespaces").write_value(maximum)
+		self.maximum_namespaces_file_path("max_pid_namespaces").write_value(UnpaddedDecimalInteger(maximum))
 	}
 
 	#[inline(always)]
@@ -215,7 +215,7 @@ impl<'a> NamespacesProcPath<'a>
 	#[inline(always)]
 	pub fn write_maximum_user_namespaces(&self, maximum: u64) -> io::Result<()>
 	{
-		self.maximum_namespaces_file_path("max_user_namespaces").write_value(maximum)
+		self.maximum_namespaces_file_path("max_user_namespaces").write_value(UnpaddedDecimalInteger(maximum))
 	}
 
 	#[inline(always)]
@@ -227,7 +227,7 @@ impl<'a> NamespacesProcPath<'a>
 	#[inline(always)]
 	pub fn write_maximum_uts_namespaces(&self, maximum: u64) -> io::Result<()>
 	{
-		self.maximum_namespaces_file_path("max_uts_namespaces").write_value(maximum)
+		self.maximum_namespaces_file_path("max_uts_namespaces").write_value(UnpaddedDecimalInteger(maximum))
 	}
 
 	#[inline(always)]

@@ -20,7 +20,7 @@ pub fn set_maximum_maximum_number_of_messages_in_a_queue(proc_path: &ProcPath, m
 	let file_path = proc_path.sys_fs_mqueue_file_path("msg_max");
 	if file_path.exists()
 	{
-		file_path.write_value(maximum_maximum_number_of_messages_in_a_queue)
+		file_path.write_value(UnpaddedDecimalInteger(maximum_maximum_number_of_messages_in_a_queue))
 	}
 	else
 	{

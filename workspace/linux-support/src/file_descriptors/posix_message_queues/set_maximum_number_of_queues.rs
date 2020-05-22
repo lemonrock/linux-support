@@ -15,7 +15,7 @@ pub fn set_maximum_number_of_queues(proc_path: &ProcPath, maximum_number_of_queu
 	let file_path = proc_path.sys_fs_mqueue_file_path("queues_max");
 	if file_path.exists()
 	{
-		file_path.write_value(maximum_number_of_queues)
+		file_path.write_value(UnpaddedDecimalInteger(maximum_number_of_queues))
 	}
 	else
 	{

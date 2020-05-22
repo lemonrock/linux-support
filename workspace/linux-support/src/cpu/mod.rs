@@ -19,7 +19,6 @@ use likely::*;
 #[cfg(target_arch = "x86_64")] use raw_cpuid::*;
 use serde::Deserialize;
 use serde::Serialize;
-use std::borrow::Cow;
 use std::convert::TryFrom;
 use std::convert::TryInto;
 use std::error;
@@ -32,6 +31,7 @@ use std::mem::size_of;
 #[allow(deprecated)] use std::mem::uninitialized;
 use std::path::PathBuf;
 use strum_macros::*;
+use crate::strings::into_line_feed_terminated_byte_string::IntoLineFeedTerminatedByteString;
 
 
 include!("BitSetHyperThread.rs");

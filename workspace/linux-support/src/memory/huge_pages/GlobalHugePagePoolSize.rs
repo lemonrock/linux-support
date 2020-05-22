@@ -119,6 +119,6 @@ impl GlobalHugePagePoolSize
 	#[inline(always)]
 	fn write(self, file_name: &str, number: u64)
 	{
-		self.base_path.append(file_name).write_value(number).unwrap()
+		self.base_path.append(file_name).write_value(UnpaddedDecimalInteger(number)).unwrap()
 	}
 }

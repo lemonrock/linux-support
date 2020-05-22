@@ -13,7 +13,7 @@ pub fn set_maximum_queue_size_in_bytes(proc_path: &ProcPath, maximum_queue_size_
 	let file_path = proc_path.sys_kernel_file_path("msgmni");
 	if file_path.exists()
 	{
-		file_path.write_value(maximum_queue_size_in_bytes)
+		file_path.write_value(UnpaddedDecimalInteger(maximum_queue_size_in_bytes))
 	}
 	else
 	{

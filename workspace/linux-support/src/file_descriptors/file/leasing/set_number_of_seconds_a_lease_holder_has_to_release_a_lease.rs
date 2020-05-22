@@ -13,7 +13,7 @@ pub fn set_number_of_seconds_a_lease_holder_has_to_release_a_lease(proc_path: &P
 	let file_path = proc_path.sys_fs_file_path("lease-break-time");
 	if file_path.exists()
 	{
-		file_path.write_value(number_of_seconds)
+		file_path.write_value(UnpaddedDecimalInteger(number_of_seconds))
 	}
 	else
 	{

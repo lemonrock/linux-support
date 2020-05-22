@@ -5,10 +5,13 @@
 use self::c::*;
 use crate::paths::ProcPath;
 use crate::paths::PathExt;
-use crate::process::{ProcessIdentifierChoice, ProcessGroupIdentifierChoice};
+use crate::process::ProcessIdentifierChoice;
+use crate::process::ProcessGroupIdentifierChoice;
 use crate::strings::Radix;
+use crate::strings::into_line_feed_terminated_byte_string::UnpaddedDecimalInteger;
 use crate::strings::parse_number::*;
-use crate::thread::{ThreadIdentifierChoice, ThreadIdentifier};
+use crate::thread::ThreadIdentifierChoice;
+use crate::thread::ThreadIdentifier;
 use bitflags::bitflags;
 use errno::errno;
 use libc::E2BIG;

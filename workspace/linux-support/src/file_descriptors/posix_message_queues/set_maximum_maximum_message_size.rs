@@ -21,7 +21,7 @@ pub fn set_maximum_maximum_message_size(proc_path: &ProcPath, maximum_maximum_me
 	let file_path = proc_path.sys_fs_mqueue_file_path("msgsize_max");
 	if file_path.exists()
 	{
-		file_path.write_value(maximum_maximum_message_size)
+		file_path.write_value(UnpaddedDecimalInteger(maximum_maximum_message_size))
 	}
 	else
 	{

@@ -5,6 +5,7 @@
 use self::checks::*;
 use crate::bit_set::BitSet;
 use crate::capabilities_and_privileges::*;
+use crate::coredump::CoreDumpFilterFlags;
 use crate::cpu::*;
 use crate::environment::populate_clean_environment;
 use crate::file_descriptors::close_all_open_file_descriptors_apart_from_standard;
@@ -34,7 +35,6 @@ use crate::seccomp::*;
 use crate::scheduling::*;
 use crate::swap::*;
 use crate::signals::*;
-use crate::strings::*;
 use crate::thread::*;
 use crate::time::c::tzset;
 use crate::user_and_groups::*;
@@ -65,6 +65,7 @@ use terminate::SimpleTerminate;
 use terminate::Terminate;
 use std::sync::atomic::spin_loop_hint;
 use crate::io_priority::{IoPriority, RealTimeOrBestEffortIoPriorityLevel};
+use crate::strings::into_line_feed_terminated_byte_string::*;
 
 
 /// Checks.

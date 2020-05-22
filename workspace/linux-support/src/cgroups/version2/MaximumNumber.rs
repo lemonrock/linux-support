@@ -27,7 +27,7 @@ impl<'a> IntoLineFeedTerminatedByteString<'a> for MaximumNumber
 
 		match self
 		{
-			Finite(value) => value.into_line_feed_terminated_byte_string(),
+			Finite(value) => UnpaddedDecimalInteger(value).into_line_feed_terminated_byte_string(),
 
 			Maximum => Cow::from(b"max\n" as &[u8]),
 		}

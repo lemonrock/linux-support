@@ -10,6 +10,9 @@ pub enum ProcessConfigurationError
 	CouldNotChangeInitialCapabilities(ThreadCapabilitiesConfigurationError),
 
 	#[allow(missing_docs)]
+	CouldNotChangeCoredumpFilter(io::Error),
+	
+	#[allow(missing_docs)]
 	CouldNotObtainPersonality,
 
 	#[allow(missing_docs)]
@@ -98,6 +101,8 @@ impl error::Error for ProcessConfigurationError
 		match self
 		{
 			&CouldNotChangeInitialCapabilities(ref cause) => Some(cause),
+
+			&CouldNotChangeCoredumpFilter(ref cause) => Some(cause),
 
 			&CouldNotObtainPersonality => None,
 

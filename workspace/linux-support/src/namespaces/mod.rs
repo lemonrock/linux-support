@@ -3,7 +3,7 @@
 
 
 use crate::paths::PathBufExt;
-use crate::strings::IntoLineFeedTerminatedByteString;
+use crate::strings::into_line_feed_terminated_byte_string::*;
 use super::inode::Inode;
 use super::paths::PathExt;
 use super::paths::ProcPath;

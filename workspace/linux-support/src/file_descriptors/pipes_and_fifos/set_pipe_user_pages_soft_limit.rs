@@ -21,7 +21,7 @@ pub fn set_pipe_user_pages_soft_limit(proc_path: &ProcPath, soft_limit: Option<N
 
 	if file_path.exists()
 	{
-		file_path.write_value(soft_limit)
+		file_path.write_value(UnpaddedDecimalInteger(soft_limit))
 	}
 	else
 	{

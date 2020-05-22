@@ -35,6 +35,7 @@ impl AcceptConnectionsCoroutineStartArguments
 			self.linger_in_FIN_WAIT2_seconds,
 			self.maximum_SYN_transmits,
 			self.back_log,
+			false,
 			hyper_thread
 		)
 	}
@@ -71,11 +72,13 @@ impl Coroutine for AcceptConnectionsCoroutine
 impl AcceptConnectionsCoroutine
 {
 	#[inline(always)]
-	fn main_loop(coroutine_instance_handle: CoroutineInstanceHandle, yielder: Yielder<Self::ResumeArguments, Self::Yields, Self::Complete>, socket_file_descriptor: StreamingServerListenerSocketInternetProtocolVersion4FileDescriptor, remote_peer_based_access_control: &Rc<RemotePeerAddressBasedAccessControl>)
+	fn main_loop(coroutine_instance_handle: CoroutineInstanceHandle, yielder: Yielder<Self::ResumeArguments, Self::Yields, Self::Complete>, socket_file_descriptor: StreamingServerListenerSocketInternetProtocolVersion4FileDescriptor, remote_peer_based_access_control: &Rc<RemotePeerAddressBasedAccessControl<()>>)
 	{
 		// TODO: The coroutine_instance_handle approach doesnt distinguish the wake up cause; we need more information if (a) using multiple events or (b) using timeouts.
 			// TODO: We can steal 1 - 4 bits w/o overly making generation useless.
 			// Alternatively we can steal 1 - 4 bits from relative_index; 4.2 bn coroutines aren't needed.
+			// IORING_MAX_ENTRIES is 32,768 and completions is double that.
+			// Thus we need 15 bits if we were to encode SQE no.
 		
 		loop
 		{
@@ -90,26 +93,31 @@ impl AcceptConnectionsCoroutine
 				submission_queue_entry.prepare_accept(coroutine_instance_handle, SubmissionQueueEntryOptions::empty(), None, FileDescriptorOrigin::Absolute(&socket_file_descriptor), &mut pending_accept_connection)
 			});
 			
+			use self::SocketAcceptError::*;
+			
 			match yielder.yields((), ())
 			{
 				Ok(completion_response) =>
 				{
 					match completion_response.accept(pending_accept_connection)
 					{
-						Ok(Some(accepted_connection)) =>
+						Ok(Some(accepted_connection)) => match remote_peer_based_access_control.is_remote_peer_allowed(&accepted_connection)
 						{
-							if likely!(remote_peer_based_access_control.is_remote_peer_allowed(accepted_connection.peer_address, accepted_connection.streaming_socket_file_descriptor))
+							None => (),
+							Some(value) =>
 							{
-							
+								self.publisher.publish_message::<AcceptedStreamingSocketMessage<SD>, _>(logical_core_identifier, self.accepted_streaming_socket_message_compressed_type_identifier, |receiver| AcceptedStreamingSocketMessage::<SD>::initialize(receiver, streaming_socket_file_descriptor, self.streaming_socket_service_identifier));
 							}
-							
-							self.publisher.publish_message::<AcceptedStreamingSocketMessage<SD>, _>(logical_core_identifier, self.accepted_streaming_socket_message_compressed_type_identifier, |receiver| AcceptedStreamingSocketMessage::<SD>::initialize(receiver, streaming_socket_file_descriptor, self.streaming_socket_service_identifier));
 						}
 						
-						// TODO: Log error if not interrupted or again
-						Err(socket_accept_error) => (),
-						
 						Ok(None) => panic!("Who cancelled our accept?"),
+						
+						Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded | SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded | KernelWouldBeOutOfMemory) => (),
+						Err(Interrupted) => (),
+						Err(Again) => panic!("Our socket is supposed to be blocking"),
+						ConnectionFailed(_) => panic!("Our socket is supposed to be blocking"),
+						
+						// TODO: Log error if not interrupted or again - we should use structured logging.
 					}
 				}
 				

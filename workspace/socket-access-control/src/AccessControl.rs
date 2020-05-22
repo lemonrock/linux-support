@@ -6,5 +6,5 @@
 pub trait AccessControl<SD: SocketData, Value>
 {
 	/// Is the remote peer allowed based on its address or credentials?
-	fn is_remote_peer_allowed(&self, remote_peer_address: SD, streaming_socket_file_descriptor: &StreamingSocketFileDescriptor<SD>) -> Option<&Value>;
+	fn is_remote_peer_allowed(&self, remote_peer: &AcceptedConnection<SD>) -> Option<&Value>;
 }

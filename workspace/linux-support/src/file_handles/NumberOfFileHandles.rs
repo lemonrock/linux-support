@@ -65,7 +65,7 @@ impl NumberOfFileHandles
 		let file_path = Self::file_max_file_path(proc_path);
 		if file_path.exists()
 		{
-			file_path.write_value(self.0)
+			file_path.write_value(UnpaddedDecimalInteger(self.0))
 		}
 		else
 		{

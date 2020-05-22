@@ -70,7 +70,7 @@ impl<'a> IntoLineFeedTerminatedByteString<'a> for ProcessIdentifierChoice
 		use self::ProcessIdentifierChoice::*;
 		match self
 		{
-			Current => 0i32.into_line_feed_terminated_byte_string(),
+			Current => UnpaddedDecimalInteger(0i32).into_line_feed_terminated_byte_string(),
 			Other(process_identifier) => process_identifier.into_line_feed_terminated_byte_string(),
 		}
 	}

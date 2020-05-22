@@ -22,10 +22,9 @@ impl<Value> Point<Value>
 		{
 			debug_assert!(remaining_bytes.len() > 1);
 			
-			let result = more_specific.longest_match_next(&remaining_bytes[1 .. ]);
-			if result.is_some()
+			if let Some(result) = more_specific.longest_match_next(&remaining_bytes[1 .. ])
 			{
-				return result
+				return Some(result)
 			}
 		}
 		

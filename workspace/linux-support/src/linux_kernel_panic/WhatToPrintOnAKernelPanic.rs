@@ -31,6 +31,6 @@ impl<'a> IntoLineFeedTerminatedByteString<'a> for WhatToPrintOnAKernelPanic
 	#[inline(always)]
 	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
 	{
-		self.bits.into_line_feed_terminated_byte_string()
+		UnpaddedDecimalInteger(self.bits).into_line_feed_terminated_byte_string()
 	}
 }

@@ -55,6 +55,139 @@ impl<SD: SocketData> Deref for DatagramClientSocketFileDescriptor<SD>
 
 impl<SD: SocketData> DatagramClientSocketFileDescriptor<SD>
 {
+	/// This particular implementation can only return an `io::ErrorKind` of:-
+	///
+	/// * `UnexpectedEof`.
+	/// * `WouldBlock`.
+	/// * `Interrupted`.
+	/// * `Other` (which is for when the kernel reports `ENOMEM`, ie it is out of memory).
+	/// * `ConnectionReset` (seems to be posible in some circumstances for Unix domain sockets).
+	/// * `ConnectionRefused` (only can happen for TCP client sockets; can not happen for sockets `accept()`ed by a server listener).
+	#[inline(always)]
+	pub fn receive(&self, buf: &mut [u8], receive_flags: ReceiveFlags) -> io::Result<usize>
+	{
+		let length = buf.len();
+		if unlikely!(length == 0)
+		{
+			return Ok(0)
+		}
+
+		let result = unsafe { recv(self.as_raw_fd(), buf.as_mut_ptr() as *mut c_void, length, receive_flags.bits) };
+
+		if likely!(result > 0)
+		{
+			Ok(result as usize)
+		}
+		else
+		{
+			use self::ErrorKind::*;
+
+			Err
+			(
+				io::Error::from
+				(
+					if likely!(result == 0)
+					{
+						UnexpectedEof
+					}
+					else if likely!(result == -1)
+					{
+						match errno().0
+						{
+							EAGAIN => WouldBlock,
+							EINTR => Interrupted,
+							ENOMEM => Other,
+							ECONNRESET => ConnectionReset,
+							ECONNREFUSED => ConnectionRefused,
+							EBADF => panic!("The argument `sockfd` is an invalid descriptor"),
+							EFAULT => panic!("The receive buffer pointer(s) point outside the process's address space"),
+							EINVAL => panic!("Invalid argument passed"),
+							ENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
+							ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
+							EOPNOTSUPP => panic!("Some flags in the `flags` argument are inappropriate for the socket type"),
+							_ => unreachable!(),
+						}
+					}
+					else
+					{
+						unreachable!()
+					}
+				)
+			)
+		}
+	}
+	
+	/// This particular implementation can only return an `io::ErrorKind` of:-
+	///
+	/// * `WriteZero`.
+	/// * `WouldBlock`.
+	/// * `Interrupted`.
+	/// * `Other` (which is for when the kernel reports `ENOMEM` or `ENOBUFS`, ie it is out of memory).
+	/// * `BrokenPipe`.
+	/// * `PermissionDenied` (only for Unix domain sockets).
+	/// * `ConnectionReset`.
+	#[inline(always)]
+	pub fn send(&self, buf: &[u8], send_flags: SendFlags) -> io::Result<usize>
+	{
+		let length = buf.len();
+
+		if unlikely!(length == 0)
+		{
+			return Ok(0)
+		}
+
+		let result = unsafe { send(self.as_raw_fd(), buf.as_ptr() as *const c_void, buf.len(), send_flags.bits) };
+
+		if likely!(result > 0)
+		{
+			Ok(result as usize)
+		}
+		else
+		{
+			use self::ErrorKind::*;
+
+			Err
+			(
+				io::Error::from
+				(
+					if likely!(result == 0)
+					{
+						WriteZero
+					}
+					else if likely!(result == -1)
+					{
+						match errno().0
+						{
+							EAGAIN => WouldBlock,
+							EINTR => Interrupted,
+							ENOMEM | ENOBUFS => Other,
+							EPIPE => BrokenPipe,
+							EACCES => PermissionDenied,
+							ECONNRESET => ConnectionReset,
+							EBADF => panic!("The argument `sockfd` is an invalid descriptor"),
+							EFAULT => panic!("The receive buffer pointer(s) point outside the process's address space"),
+							EINVAL => panic!("Invalid argument passed"),
+							ENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
+							ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
+							EOPNOTSUPP => panic!("Some flags in the `flags` argument are inappropriate for the socket type"),
+							EMSGSIZE => panic!("The socket type requires that message be sent atomically, and the size of the message to be sent made this impossible"),
+							EISCONN => panic!("The connection-mode socket was connected already but a recipient was specified"),
+							EDESTADDRREQ => panic!("The socket is not connection-mode, and no peer address is set"),
+							_ => unreachable!(),
+						}
+					}
+					else
+					{
+						unreachable!()
+					}
+				)
+			)
+		}
+	}
+}
+
+impl<SD: SocketData> DatagramClientSocketFileDescriptor<SD>
+{
 	/// Receive messages up to the maximum capacity of `received_messages`.
 	///
 	/// Returns the number of messages received; access received messages by calling `received_messages.received_message_unchecked(index)` where `index` is less than the returned number of messages.

@@ -8,11 +8,14 @@ use crate::capabilities_and_privileges::Capability;
 use crate::cpu::*;
 use crate::file_descriptors::CreationError;
 use crate::file_descriptors::process_identifier::ProcessIdentifierFileDescriptor;
+use crate::file_descriptors::standard::StandardFileDescriptor;
+use crate::logging::ProcessLoggingConfiguration;
 use crate::memory::numa::*;
 use crate::paths::*;
 use crate::scheduling::RoundRobinInterval;
 use crate::signals::Signal;
 use crate::strings::*;
+use crate::strings::into_line_feed_terminated_byte_string::*;
 use crate::strings::parse_number::*;
 use crate::thread::ThreadIdentifier;
 use crate::vectors::*;
@@ -72,8 +75,6 @@ use std::ops::Deref;
 use std::process;
 use std::ptr::write;
 use std::slice::from_raw_parts;
-use crate::file_descriptors::standard::StandardFileDescriptor;
-use crate::logging::ProcessLoggingConfiguration;
 
 
 /// `/proc/<N>/stat`.
@@ -91,7 +92,7 @@ pub mod status;
 include!("CommandName.rs");
 include!("CommandNameFromBytesError.rs");
 include!("daemonize.rs");
-include!("get_program_name.rs");
+include!("get_program_invocation_short_name.rs");
 include!("ProcessGroupIdentifier.rs");
 include!("ProcessGroupIdentifierChoice.rs");
 include!("ProcessIdentifier.rs");

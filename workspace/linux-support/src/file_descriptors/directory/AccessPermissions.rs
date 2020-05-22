@@ -98,6 +98,15 @@ impl From<mode_t> for AccessPermissions
 	}
 }
 
+impl Into<mode_t> for AccessPermissions
+{
+	#[inline(always)]
+	fn into(self) -> mode_t
+	{
+		self.0
+	}
+}
+
 impl AccessPermissions
 {
 	/// Sets the process' umask and returns the process' previous umask.

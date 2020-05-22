@@ -60,7 +60,10 @@ pub struct ProcessConfiguration
 
 	/// Logging configuration.
 	#[serde(default)] pub logging_configuration: ProcessLoggingConfiguration,
-
+	
+	/// When a panic occurs that isn't caught try to capture a full stack back trace.
+	#[serde(default = "ProcessConfiguration::enable_full_rust_stack_back_traces_default")] pub enable_full_rust_stack_back_traces: bool,
+	
 	/// Paths to use for `PATH`.
 	#[serde(default = "ProcessConfiguration::binary_paths_default")] pub binary_paths: BTreeSet<PathBuf>,
 
@@ -70,6 +73,11 @@ pub struct ProcessConfiguration
 	///
 	/// Defaults to `/`, which is appropriate for a daemon to allow for unmounts to happen.
 	#[serde(default = "ProcessConfiguration::working_directory_default")] pub working_directory: PathBuf,
+
+	/// Flags to restrict data emitted during core dumps.
+	///
+	/// Defaults to `empty()`, which *does not* prevent core dumps but does restrict the data dumped.
+	#[serde(default = "ProcessConfiguration::core_dump_filter_default")] pub core_dump_filter: CoreDumpFilterFlags,
 }
 
 impl ProcessConfiguration
@@ -121,6 +129,8 @@ impl ProcessConfiguration
 		// This *SHOULD* be called after `set_global_configuration()` so that the former can load Linux kernel modules if needed.
 		self.reduce_initial_capabilities_to_minimum_set()?;
 
+		self.apply_core_dump_filter(proc_path)?;
+		
 		Self::validate_current_personality(proc_path)?;
 
 		// This *MUST* be called before daemonizing.
@@ -154,14 +164,14 @@ impl ProcessConfiguration
 			daemonize(dev_path)
 		}
 
-		// This *MUST* be called before creating `terminate`.
+		// This *MUST* be called before creating `ParsedPanicErrorLoggerProcessLoggingConfiguration` and thus `SimpleTerminate`.
 		self.logging_configuration.start_logging(!run_as_daemon, &self.name);
 		let terminate = SimpleTerminate::new(ParsedPanicErrorLoggerProcessLoggingConfiguration);
 
 		configure_global_panic_hook(&terminate);
 
 		// This *MUST* be called after changing resource limits.
-		// This *MUST* be called after daemonizing (forking) s memory locks aren't preserved across a fork.
+		// This *MUST* be called after daemonizing (forking) as memory locks aren't preserved across a fork.
 		self.lock_all_memory();
 
 		// This *MUST* be called before creating new threads.
@@ -200,6 +210,12 @@ impl ProcessConfiguration
 			Ok(())
 		}
 	}
+	
+	#[inline(always)]
+	fn apply_core_dump_filter(&self, proc_path: &ProcPath) -> Result<(), ProcessConfigurationError>
+	{
+		self.core_dump_filter.change_core_dump_filter(proc_path, ProcessIdentifierChoice::Current).map_err(ProcessConfigurationError::CouldNotChangeCoredumpFilter)
+	}
 
 	#[cfg(any(target_arch = "mips64", target_arch = "powerpc64", target_arch = "x86_64"))]
 	#[inline(always)]
@@ -222,7 +238,7 @@ impl ProcessConfiguration
 		let utc_file_path = etc_path.zoneinfo("UTC");
 		utc_file_path.read_raw().map_err(ProcessConfigurationError::UtcFilePathDoesNotExistOrIsNotReadable)?;
 
-		populate_clean_environment(&self.binary_paths, UserIdentifier::current_real().user_name_home_directory_and_shell(etc_path), utc_file_path)?;
+		populate_clean_environment(self.enable_full_rust_stack_back_traces, &self.binary_paths, UserIdentifier::current_real().user_name_home_directory_and_shell(etc_path), utc_file_path)?;
 
 		unsafe { tzset() };
 
@@ -395,6 +411,12 @@ impl ProcessConfiguration
 	{
 		ResourceLimitsSet::defaultish(ResourceLimit::maximum_number_of_open_file_descriptors(&ProcPath::default()).expect("Could not read maximum number of file descriptors"))
 	}
+	
+	#[inline(always)]
+	const fn enable_full_rust_stack_back_traces_default() -> bool
+	{
+		true
+	}
 
 	#[inline(always)]
 	fn binary_paths_default() -> BTreeSet<PathBuf>
@@ -410,5 +432,11 @@ impl ProcessConfiguration
 	fn working_directory_default() -> PathBuf
 	{
 		PathBuf::from("/")
+	}
+
+	#[inline(always)]
+	fn core_dump_filter_default() -> CoreDumpFilterFlags
+	{
+		CoreDumpFilterFlags::empty()
 	}
 }

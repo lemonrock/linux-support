@@ -3,33 +3,16 @@
 
 
 /// Logging configuration.
-#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Default, Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
+#[serde(default, deny_unknown_fields)]
 pub struct ProcessLoggingConfiguration
 {
 	/// Defaults to `auth`.
-	#[serde(default)] pub syslog_facility: SyslogFacility,
+	pub facility: KnownFacility,
 
 	/// Defaults to `debug` for debug builds and `warning` for production builds.
-	#[serde(default)] pub syslog_priority: SyslogPriority,
-
-	/// When a panic occurs that isn't caught capture a full stack back trace.
-	#[serde(default = "ProcessLoggingConfiguration::enable_full_rust_stack_back_traces_default")] pub enable_full_rust_stack_back_traces: bool,
-}
-
-impl Default for ProcessLoggingConfiguration
-{
-	#[inline(always)]
-	fn default() -> Self
-	{
-		Self
-		{
-			syslog_facility: SyslogFacility::default(),
-			syslog_priority: SyslogPriority::default(),
-			enable_full_rust_stack_back_traces: Self::enable_full_rust_stack_back_traces_default(),
-		}
-	}
+	pub severity: Severity,
 }
 
 impl ProcessLoggingConfiguration
@@ -48,10 +31,9 @@ impl ProcessLoggingConfiguration
 	#[inline(always)]
 	pub fn start_logging(&self, running_interactively_so_also_log_to_standard_error: bool, identity: &ProcessName)
 	{
-		self.configure_rust_stack_back_traces();
 		self.configure_syslog(running_interactively_so_also_log_to_standard_error, identity);
 	}
-
+	
 	/// Stop logging.
 	///
 	/// Not really very important; just closes a file descriptor.
@@ -63,22 +45,22 @@ impl ProcessLoggingConfiguration
 
 	/// NOTE: Using `syslog()` takes a hit of calling the `getpid()` system call and then the `send()` system call for every log message.
 	///
-	/// `priority` is, say `warning`.
+	/// `severity` is, say `warning`.
 	///
 	/// `self.start_logging()` must have been called before this method.
-	pub fn syslog(priority: SyslogPriority, message: String)
+	pub fn syslog(severity: Severity, message: String)
 	{
-		Self::syslog_c_string_message(priority, unsafe { CString::from_vec_unchecked(message.into_bytes()) })
+		Self::syslog_c_string_message(severity, unsafe { CString::from_vec_unchecked(message.into_bytes()) })
 	}
 
 	/// NOTE: Using `syslog()` takes a hit of calling the `getpid()` system call and then the `send()` system call for every log message.
 	///
-	/// `priority` is, say `warning`.
+	/// `severity` is, say `warning`.
 	///
 	/// `self.start_logging()` must have been called before this method.
-	pub fn syslog_c_string_message(priority: SyslogPriority, message: CString)
+	pub fn syslog_c_string_message(severity: Severity, message: CString)
 	{
-		unsafe { syslog(priority as i32, b"%s\0".as_ptr() as *const c_char, message.as_ptr()) };
+		unsafe { syslog(severity as u8 as i32, b"%s\0".as_ptr() as *const c_char, message.as_ptr()) };
 	}
 
 	/// Redirect `FILE*` standard out and `FILE*` standard error to syslog.
@@ -107,28 +89,32 @@ impl ProcessLoggingConfiguration
 	}
 
 	/// Used to support redirecting lib c `FILE*` pointer to standard out to syslog.
+	///
+	/// Only used if a linked C library uses it.
 	#[inline(always)]
 	unsafe extern "C" fn write_standard_out_to_syslog(_cookie: *mut c_void, data: *const c_char, length: size_t) -> ssize_t
 	{
-		Self::write_file_pointer_data_to_syslog(SyslogPriority::notice, data, length)
+		Self::write_file_pointer_data_to_syslog(Severity::Notice, data, length)
 	}
 
 	/// Used to support redirecting lib c `FILE*` pointer to standard error to syslog.
+	///
+	/// Only used if a linked C library uses it.
 	#[inline(always)]
 	unsafe extern "C" fn write_standard_error_to_syslog(_cookie: *mut c_void, data: *const c_char, length: size_t) -> ssize_t
 	{
-		Self::write_file_pointer_data_to_syslog(SyslogPriority::error, data, length)
+		Self::write_file_pointer_data_to_syslog(Severity::Error, data, length)
 	}
 
 	#[inline(always)]
-	fn write_file_pointer_data_to_syslog(priority: SyslogPriority, data: *const c_char, length: size_t) -> ssize_t
+	fn write_file_pointer_data_to_syslog(severity: Severity, data: *const c_char, length: size_t) -> ssize_t
 	{
 		// Calling code is from C, and it is undefined behaviour to pass a Rust panic across to C.
 		let result = catch_unwind
 		(||
 			 {
 				 let message = unsafe { CString::from_vec_unchecked(from_raw_parts(data as *const u8, length).to_vec()) };
-				 Self::syslog_c_string_message(priority, message);
+				 Self::syslog_c_string_message(severity, message);
 			 }
 		);
 		forget(result);
@@ -137,23 +123,9 @@ impl ProcessLoggingConfiguration
 	}
 
 	#[inline(always)]
-	fn configure_rust_stack_back_traces(&self)
-	{
-		let setting = if self.enable_full_rust_stack_back_traces
-		{
-			"1"
-		}
-		else
-		{
-			"0"
-		};
-		set_var("RUST_BACKTRACE", setting)
-	}
-
-	#[inline(always)]
 	fn configure_syslog(&self, running_interactively_so_also_log_to_standard_error: bool, identity: &ProcessName)
 	{
-		unsafe { setlogmask(self.syslog_priority.log_upto()) };
+		unsafe { setlogmask(self.severity.log_upto()) };
 
 		let mut log_options = LOG_PID | LOG_NDELAY;
 
@@ -163,12 +135,6 @@ impl ProcessLoggingConfiguration
 		}
 
 		let identity = identity.as_ref();
-		unsafe { openlog(identity.as_ptr(), log_options, self.syslog_facility as i32) }
-	}
-
-	#[inline(always)]
-	const fn enable_full_rust_stack_back_traces_default() -> bool
-	{
-		true
+		unsafe { openlog(identity.as_ptr(), log_options, self.facility as u8 as i32) }
 	}
 }
