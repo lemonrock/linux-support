@@ -533,7 +533,6 @@ use libc::siginfo_t;
 use libc::sigtimedwait;
 use libc::sigset_t;
 use libc::size_t;
-use libc::socket;
 use libc::socklen_t;
 use libc::ssize_t;
 use libc::stat;

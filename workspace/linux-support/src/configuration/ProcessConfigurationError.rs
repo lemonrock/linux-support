@@ -89,6 +89,9 @@ pub enum ProcessConfigurationError
 
 	#[allow(missing_docs)]
 	CouldNotParseLinuxKernelDomainName(io::Error),
+
+	#[allow(missing_docs)]
+	ProcessLoggingConfiguration(ProcessLoggingConfigurationError),
 }
 
 impl Display for ProcessConfigurationError
@@ -164,6 +167,8 @@ impl error::Error for ProcessConfigurationError
 			&CouldNotParseLinuxKernelHostName(ref cause) => Some(cause),
 
 			&CouldNotParseLinuxKernelDomainName(ref cause) => Some(cause),
+
+			&ProcessLoggingConfiguration(ref cause) => Some(cause),
 		}
 	}
 }
@@ -219,5 +224,14 @@ impl From<JoinPathsError> for ProcessConfigurationError
 	fn from(cause: JoinPathsError) -> Self
 	{
 		ProcessConfigurationError::JoinPaths(cause)
+	}
+}
+
+impl From<ProcessLoggingConfigurationError> for ProcessConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: ProcessLoggingConfigurationError) -> Self
+	{
+		ProcessConfigurationError::ProcessLoggingConfiguration(cause)
 	}
 }

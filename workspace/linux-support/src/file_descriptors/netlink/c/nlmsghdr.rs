@@ -32,12 +32,6 @@ impl nlmsghdr
 	}
 	
 	#[inline(always)]
-	fn data_mut(&mut self) -> &[u8]
-	{
-		unsafe { from_raw_parts_mut(self.NLMSG_DATA() as *mut u8, self.NLMSG_PAYLOAD()) }
-	}
-	
-	#[inline(always)]
 	pub(crate) fn NLMSG_OK(remaining_length: usize, might_be_invalid_pointer: *const Self) -> bool
 	{
 		if remaining_length < Self::NLMSG_HDRLEN

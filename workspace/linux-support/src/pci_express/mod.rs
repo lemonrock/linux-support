@@ -12,6 +12,7 @@ use crate::bit_set::BitSet;
 use crate::cpu::*;
 use crate::linux_kernel_modules::*;
 use crate::file_descriptors::RawFdExt;
+use crate::file_descriptors::socket::c::socket;
 use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use crate::memory::mapping::*;
 use crate::memory::numa::NumaNode;

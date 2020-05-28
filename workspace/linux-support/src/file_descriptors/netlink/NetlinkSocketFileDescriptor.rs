@@ -293,12 +293,6 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 				}
 				assert!(!flags.acknowledgment_required(), "Acknowledgments are not supported");
 				
-				#[inline(always)]
-				fn dump_was_interrupted_error() -> io::Result<()>
-				{
-					Err(io::Error::new(ErrorKind::Interrupted, "Dump was interrupted"))
-				}
-				
 				match unsafe { reply_message.nlmsg_type.control }
 				{
 					ControlNetlinkMessageType::Done =>

@@ -48,6 +48,7 @@ pub struct rtattr
 /// See Linux header `if_link.h`.
 impl rtattr
 {
+	/// Unspecified data.
 	#[inline(always)]
 	pub fn get_attribute_value_link_unspecified(&self) -> &[u8]
 	{
@@ -56,6 +57,7 @@ impl rtattr
 		self.get_attribute_value_unspecified()
 	}
 	
+	/// Layer 2 address (eg Ethernet MAC).
 	#[inline(always)]
 	pub fn get_attribute_value_layer_2_address(&self) -> &[u8]
 	{
@@ -64,6 +66,7 @@ impl rtattr
 		self.get_attribute_value_hardware_address()
 	}
 	
+	/// Layer 2 broadcast address (eg Ethernet MAC).
 	#[inline(always)]
 	pub fn get_attribute_value_layer_2_broadcast_address(&self) -> &[u8]
 	{
@@ -108,6 +111,7 @@ impl rtattr
 		self.get_attribute_value_asciiz_string()
 	}
 	
+	/// Interface statistics.
 	#[inline(always)]
 	pub fn get_attribute_value_interface_statistics(&self) -> Result<&rtnl_link_stats64, &'static str>
 	{

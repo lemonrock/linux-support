@@ -206,7 +206,7 @@ impl ProcessConfiguration
 		let internet_protocol_addresses = Self::get_internet_protocol_addresses_using_netlink().map_err(|cause| CouldNotGetInternetProtocolAddressesUsingNetlink(cause))?;
 		let host_name = LinuxKernelHostName::new(proc_path).map_err(CouldNotParseLinuxKernelHostName)?;
 		let domain_name = LinuxKernelDomainName::new(proc_path).map_err(CouldNotParseLinuxKernelDomainName)?;
-		self.logging_configuration.configure_logging(dev_path, !run_as_daemon, &internet_protocol_addresses, host_name.as_ref(), domain_name.as_ref(), &self.name);
+		self.logging_configuration.configure_logging(dev_path, !run_as_daemon, &internet_protocol_addresses, host_name.as_ref(), domain_name.as_ref(), &self.name)?;
 		
 		if run_as_daemon
 		{

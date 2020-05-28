@@ -36,6 +36,12 @@ impl StaticLoggingConfiguration
 	}
 	
 	#[inline(always)]
+	unsafe fn configure(self)
+	{
+		StaticLoggingConfiguration.initialize_once(self);
+	}
+	
+	#[inline(always)]
 	fn new_rfc_3164_message_template(&self, facility: KnownFacility, severity: Severity) -> Rfc3164MessageTemplate
 	{
 		Rfc3164MessageTemplate::new(facility, severity, self.linux_kernel_host_name.as_ref(), &self.process_name)
@@ -45,12 +51,6 @@ impl StaticLoggingConfiguration
 	fn new_rfc_5424_message_template(&self, facility: KnownFacility, severity: Severity, message_identifier: &MessageIdentifier) -> Rfc5424MessageTemplate
 	{
 		Rfc5424MessageTemplate::new(facility, severity, &self.host_name, &self.application_name, message_identifier, &self.internet_protocol_addresses, &self.private_enterprise_number)
-	}
-	
-	#[inline(always)]
-	unsafe fn configure(self)
-	{
-		StaticLoggingConfiguration.initialize_once(self);
 	}
 	
 	#[inline(always)]

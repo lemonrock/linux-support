@@ -23,7 +23,7 @@ pub struct GetAddressMessageData<IPA: InternetProtocolAddress>
 	/// This is the index of the interface with the associated address(es).
 	///
 	/// Only relevant to IPv6 if the `IN6_IS_ADDR_LINKLOCAL()` or `IN6_IS_ADDR_MC_LINKLOCAL()` macros are true.
-	interface_index: u32,
+	interface_index: Option<NetworkInterfaceIndex>,
 	
 	scope: rt_scope,
 	
@@ -63,9 +63,9 @@ impl<IPA: InternetProtocolAddress> GetAddressMessageData<IPA>
 	
 	/// ?Use this for an IPv6 link-local address zone identifier?
 	#[inline(always)]
-	pub fn interface_index(&self) -> u32
+	pub fn interface_index(&self) -> NetworkInterfaceIndex
 	{
-		self.interface_index
+		self.interface_index.unwrap()
 	}
 	
 	/// Scope.

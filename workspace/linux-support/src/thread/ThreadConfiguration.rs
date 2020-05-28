@@ -79,7 +79,7 @@ impl ThreadConfiguration
 		let disable_transparent_huge_pages = self.disable_transparent_huge_pages;
 		Builder::new().name(self.name.to_string()).stack_size(stack_size as usize).spawn(move ||
 		{
-			unsafe { LocalSyslogSocket::configure_per_thread_local_syslog_socket() };
+			(unsafe { LocalSyslogSocket::configure_per_thread_local_syslog_socket() }).expect("Could not start logging");
 			
 			if let Some(ref numa_memory_policy) = numa_memory_policy
 			{

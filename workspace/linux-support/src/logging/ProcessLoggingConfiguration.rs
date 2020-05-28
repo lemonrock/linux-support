@@ -44,7 +44,8 @@ impl ProcessLoggingConfiguration
 	#[inline(always)]
 	pub fn configure_logging(&self, dev_path: &DevPath, running_interactively_so_also_log_to_standard_error: bool, internet_protocol_addresses: &[IpAddr], host_name: Option<&LinuxKernelHostName>, domain_name: Option<&LinuxKernelDomainName>, process_name: &ProcessName) -> Result<(), ProcessLoggingConfigurationError>
 	{
-		StaticLoggingConfiguration::new(dev_path, host_name, domain_name, internet_protocol_addresses, &self.private_enterprise_number, process_name)?;
+		let configuration = StaticLoggingConfiguration::new(dev_path, host_name, domain_name, internet_protocol_addresses, &self.private_enterprise_number, process_name)?;
+		unsafe { configuration.configure() };
 		
 		unsafe { LocalSyslogSocket::configure_per_thread_local_syslog_socket()? }
 		

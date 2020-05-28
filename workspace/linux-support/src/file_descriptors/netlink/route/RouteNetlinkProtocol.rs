@@ -108,7 +108,7 @@ impl RouteNetlinkProtocol
 			ifa_family: address_family,
 			
 			// Dump Filter field is non-zero index.
-			ifa_index: 0,
+			ifa_index: None,
 			
 			// Must all be zero (seems mad that the same struct is used for both requests and replies).
 			ifa_prefixlen: unsafe { zeroed() },

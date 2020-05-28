@@ -15,7 +15,7 @@ pub struct ifinfomsg
 	pub ifi_type: u16,
 	
 	/// `0` for unspecified.
-	pub ifi_index: i32,
+	pub ifi_index: Option<NetworkInterfaceIndex>,
 	
 	/// Device flags.
 	///

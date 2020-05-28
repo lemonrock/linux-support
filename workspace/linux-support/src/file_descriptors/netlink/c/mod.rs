@@ -3,6 +3,7 @@
 
 
 use super::*;
+use crate::pci_express::NetworkInterfaceIndex;
 
 
 include!("ControlNetlinkMessageType.rs");

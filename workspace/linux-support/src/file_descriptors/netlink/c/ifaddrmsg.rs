@@ -23,7 +23,7 @@ pub(crate) struct ifaddrmsg
 	pub(crate) ifa_scope: rt_scope,
 	
 	/// Interface index.
-	pub(crate) ifa_index: u32,
+	pub(crate) ifa_index: Option<NetworkInterfaceIndex>,
 }
 
 impl NetlinkRequestMessageBody for ifaddrmsg
