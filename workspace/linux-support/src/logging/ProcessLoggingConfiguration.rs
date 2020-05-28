@@ -27,16 +27,30 @@ pub struct ProcessLoggingConfiguration
 	///
 	/// Defaults to `debug` for debug builds and `warning` for production builds.
 	pub redirect_FILE_standard_error: Severity,
+
+	/// Private Enterprise Numbers (PEN).
+	///
+	/// See <https://www.iana.org/assignments/enterprise-numbers/enterprise-numbers> for the full list.
+	///
+	/// Used for RFC 5424 syslog.
+	///
+	/// Defaults to `Reserved` (0).
+	pub private_enterprise_number: PrivateEnterpriseNumber,
 }
 
 impl ProcessLoggingConfiguration
 {
-	/// Start logging.
+	/// Configure logging.
 	#[inline(always)]
-	pub fn configure_logging(&self, dev_path: &DevPath, running_interactively_so_also_log_to_standard_error: bool, process_name: &ProcessName)
+	pub fn configure_logging(&self, dev_path: &DevPath, running_interactively_so_also_log_to_standard_error: bool, internet_protocol_addresses: &[IpAddr], host_name: Option<&LinuxKernelHostName>, domain_name: Option<&LinuxKernelDomainName>, process_name: &ProcessName) -> Result<(), ProcessLoggingConfigurationError>
 	{
-		unsafe { LocalSyslogSocketConfiguration::configure(dev_path) };
+		StaticLoggingConfiguration::new(dev_path, host_name, domain_name, internet_protocol_addresses, &self.private_enterprise_number, process_name)?;
+		
+		unsafe { LocalSyslogSocket::configure_per_thread_local_syslog_socket()? }
+		
 		self.configure_syslog_for_legacy_third_party_libraries_that_use_syslog_interface(running_interactively_so_also_log_to_standard_error, process_name);
+		
+		Ok(())
 	}
 	
 	/// Legacy `syslog()` is problematic:-
@@ -84,8 +98,8 @@ impl ProcessLoggingConfiguration
 			forget(message_template);
 		}
 		
-		redirect_to_log(unsafe { &mut stdout }, Rfc3164MessageTemplate::new(self.facility, self.redirect_FILE_standard_out, host_name, process_name), Self::write_file_pointer_data_to_log);
-		redirect_to_log(unsafe { &mut stderr }, Rfc3164MessageTemplate::new(self.facility, self.redirect_FILE_standard_error, host_name, process_name), Self::write_file_pointer_data_to_log);
+		redirect_to_log(unsafe { &mut stdio::stdout }, Rfc3164MessageTemplate::new(self.facility, self.redirect_FILE_standard_out, host_name, process_name), Self::write_file_pointer_data_to_log);
+		redirect_to_log(unsafe { &mut stdio::stderr }, Rfc3164MessageTemplate::new(self.facility, self.redirect_FILE_standard_error, host_name, process_name), Self::write_file_pointer_data_to_log);
 	}
 	
 	/// Used to support redirecting lib c `FILE*` pointer to standard out to syslog.

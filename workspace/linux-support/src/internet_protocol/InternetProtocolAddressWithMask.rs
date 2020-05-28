@@ -10,7 +10,7 @@ pub struct InternetProtocolAddressWithMask<IPA: InternetProtocolAddress>
 	pub internet_protocol_address: IPA,
 
 	/// * From 1 inclusive to 32 inclusive for an inclusive for an Internet Protocol version 4 address.
-	/// * From 1 inclusive to 128 inclusive for an inclusive for an Internet Protocol version 4 address.
+	/// * From 1 inclusive to 128 inclusive for an inclusive for an Internet Protocol version 6 address.
 	pub mask_length_in_bits: NonZeroU8,
 }
 

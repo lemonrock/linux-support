@@ -94,7 +94,7 @@ impl Read for CharacterDeviceFileDescriptor
 			return Ok(0)
 		}
 
-		let result = unsafe { read(self.as_raw_fd(), buf.as_mut_ptr() as *mut c_void, length) };
+		let result = unsafe { libc::read(self.as_raw_fd(), buf.as_mut_ptr() as *mut c_void, length) };
 
 		if likely!(result > 0)
 		{
@@ -102,7 +102,7 @@ impl Read for CharacterDeviceFileDescriptor
 		}
 		else
 		{
-			use self::ErrorKind::*;
+			use crate::ErrorKind::*;
 
 			Err
 			(
@@ -166,7 +166,7 @@ impl Write for CharacterDeviceFileDescriptor
 			return Ok(0)
 		}
 
-		let result = unsafe { write(self.as_raw_fd(), buf.as_ptr() as *const c_void, buf.len()) };
+		let result = unsafe { libc::write(self.as_raw_fd(), buf.as_ptr() as *const c_void, buf.len()) };
 
 		if likely!(result > 0)
 		{
@@ -174,7 +174,7 @@ impl Write for CharacterDeviceFileDescriptor
 		}
 		else
 		{
-			use self::ErrorKind::*;
+			use crate::ErrorKind::*;
 
 			Err
 			(

@@ -15,26 +15,6 @@ use super::*;
 use super::huge_pages::*;
 use super::information::MemoryInformationUnit;
 use super::mapping::*;
-use likely::*;
-use memchr::memchr;
-use memchr::memchr2;
-use memchr::memrchr;
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::convert::TryInto;
-use std::error;
-use std::fs::File;
-use std::ffi::OsString;
-use std::fmt::Debug;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::fmt;
-use std::io::BufRead;
-use std::io::BufReader;
-use std::ops::AddAssign;
-use std::ops::Range;
-use std::os::unix::ffi::OsStringExt;
-use std::path::PathBuf;
 
 
 include!("CleanDirtyAndHuge.rs");

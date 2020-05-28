@@ -3,7 +3,6 @@
 
 
 use super::*;
-use std::ops::Range;
 
 
 include!("fiemap.rs");

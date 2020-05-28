@@ -2,17 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use super::*;
 use self::c::*;
-use bitflags::bitflags;
-use libc::POLLERR;
-use libc::POLLHUP;
-use libc::POLLIN;
-use libc::POLLNVAL;
-use libc::POLLOUT;
-use libc::POLLPRI;
-use libc::POLLRDBAND;
-use libc::POLLRDNORM;
-use std::mem::transmute;
 
 
 mod c;

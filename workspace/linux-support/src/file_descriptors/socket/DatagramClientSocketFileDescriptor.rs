@@ -80,7 +80,7 @@ impl<SD: SocketData> DatagramClientSocketFileDescriptor<SD>
 		}
 		else
 		{
-			use self::ErrorKind::*;
+			use crate::ErrorKind::*;
 
 			Err
 			(
@@ -144,7 +144,7 @@ impl<SD: SocketData> DatagramClientSocketFileDescriptor<SD>
 		}
 		else
 		{
-			use self::ErrorKind::*;
+			use crate::ErrorKind::*;
 
 			Err
 			(

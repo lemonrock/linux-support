@@ -2,34 +2,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use super::*;
 use crate::memory::PageSize;
 use crate::strings::parse_number::ParseNumber;
 use crate::strings::parse_number::ParseNumberError;
 use self::to_number::NumberAsBytes;
-use libc::c_char;
-use likely::*;
-use memchr::memchr;
-use serde::Deserialize;
-use serde::Serialize;
-use std::borrow::Cow;
-use std::cmp::max;
-use std::cmp::min;
-use std::convert::TryInto;
-use std::error;
-use std::ffi::CStr;
-use std::ffi::CString;
-use std::ffi::OsStr;
-use std::ffi::OsString;
-use std::fmt::Debug;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::fmt;
-use std::mem::transmute;
-#[allow(deprecated)] use std::mem::uninitialized;
-use std::os::unix::ffi::OsStrExt;
-use std::path::Path;
-use std::path::PathBuf;
-use std::ptr::null;
 
 
 include!("c_string_pointer_to_path_buf.rs");

@@ -13,9 +13,9 @@ pub fn configure_global_panic_hook(terminate: &Arc<impl Terminate + 'static>)
 	let terminate = terminate.clone();
 	set_hook(Box::new(move |panic_info|
 	{
-		if thread::panicking()
+		if panicking()
 		{
-			process::exit(EX_OSERR)
+			exit(EX_OSERR)
 		}
 
 		terminate.begin_termination_due_to_panic(panic_info)

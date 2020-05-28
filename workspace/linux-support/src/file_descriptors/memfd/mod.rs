@@ -13,10 +13,6 @@ use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use crate::memory::huge_pages::PageSizeOrHugePageSize;
 use crate::vectors::VectoredRead;
 use crate::vectors::VectoredWrite;
-use std::fmt::Arguments;
-use std::io::IoSlice;
-use std::io::IoSliceMut;
-use std::io::SeekFrom;
 
 
 include!("FileSeals.rs");

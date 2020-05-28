@@ -65,8 +65,9 @@ impl LinuxKernelModuleFileBaseName
     	}
 		const flags: i32 = 0;
 
-		use self::ErrorKind::*;
-		match unsafe { syscall(SYS_finit_module as i64, file_descriptor, options.as_ptr(), flags) }
+		use crate::ErrorKind::*;
+		
+		match unsafe { SYS::finit_module.syscall3( file_descriptor as usize, options.as_ptr() as usize, flags as usize) }
 		{
 			0 => Ok(true),
 

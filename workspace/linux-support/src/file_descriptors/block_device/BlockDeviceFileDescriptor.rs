@@ -92,7 +92,7 @@ impl Read for BlockDeviceFileDescriptor
 			return Ok(0)
 		}
 
-		let result = unsafe { read(self.as_raw_fd(), buf.as_mut_ptr() as *mut c_void, length) };
+		let result = unsafe { libc::read(self.as_raw_fd(), buf.as_mut_ptr() as *mut c_void, length) };
 
 		if likely!(result > 0)
 		{
@@ -100,7 +100,7 @@ impl Read for BlockDeviceFileDescriptor
 		}
 		else
 		{
-			use self::ErrorKind::*;
+			use crate::ErrorKind::*;
 
 			Err
 			(
@@ -164,7 +164,7 @@ impl Write for BlockDeviceFileDescriptor
 			return Ok(0)
 		}
 
-		let result = unsafe { write(self.as_raw_fd(), buf.as_ptr() as *const c_void, buf.len()) };
+		let result = unsafe { libc::write(self.as_raw_fd(), buf.as_ptr() as *const c_void, buf.len()) };
 
 		if likely!(result > 0)
 		{
@@ -172,7 +172,7 @@ impl Write for BlockDeviceFileDescriptor
 		}
 		else
 		{
-			use self::ErrorKind::*;
+			use crate::ErrorKind::*;
 
 			Err
 			(
@@ -236,7 +236,7 @@ impl Seek for BlockDeviceFileDescriptor
 	#[inline(always)]
 	fn seek(&mut self, pos: SeekFrom) -> io::Result<u64>
 	{
-		use self::SeekFrom::*;
+		use crate::SeekFrom::*;
 
 		let (whence, start) = match pos
 		{

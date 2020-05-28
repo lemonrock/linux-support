@@ -2,6 +2,7 @@
 // Copyright © 2018-2019 The developers of file-descriptors. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/file-descriptors/master/COPYRIGHT.
 
 
+use super::*;
 use crate::bit_set::BitSet;
 use crate::signals::Signal;
 use crate::signals::ParsedSignal;
@@ -9,7 +10,6 @@ use crate::signals::c::signalfd;
 use crate::signals::c::signalfd_siginfo;
 use crate::signals::c::SFD_CLOEXEC;
 use crate::signals::c::SFD_NONBLOCK;
-use super::*;
 
 
 include!("SignalFileDescriptor.rs");

@@ -6,27 +6,6 @@ use super::*;
 use crate::memory::mapping::MemoryAdvice;
 use crate::signals::c::_NSIG;
 use crate::syscall::SYS;
-use bitflags::bitflags;
-use libc::c_int;
-use libc::c_longlong;
-use libc::c_uint;
-use libc::c_void;
-use libc::sigset_t;
-use std::cmp::Ordering;
-use std::cmp::Eq;
-use std::cmp::Ord;
-use std::cmp::PartialEq;
-use std::cmp::PartialOrd;
-use std::hash::Hash;
-use std::hash::Hasher;
-use std::fmt;
-use std::fmt::Debug;
-use std::fmt::Formatter;
-#[allow(deprecated)] use std::mem::uninitialized;
-use std::mem::zeroed;
-use std::os::unix::io::RawFd;
-use std::time::Duration;
-use crate::io_priority::CompressedIoPriority;
 
 
 include!("__kernel_rwf_t.rs");

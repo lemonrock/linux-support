@@ -95,7 +95,7 @@ impl Read for ReceivePipeFileDescriptor
 			return Ok(0)
 		}
 
-		let result = unsafe { read(self.as_raw_fd(), buf.as_mut_ptr() as *mut c_void, length) };
+		let result = unsafe { libc::read(self.as_raw_fd(), buf.as_mut_ptr() as *mut c_void, length) };
 
 		if likely!(result > 0)
 		{
@@ -103,7 +103,7 @@ impl Read for ReceivePipeFileDescriptor
 		}
 		else
 		{
-			use self::ErrorKind::*;
+			use crate::ErrorKind::*;
 
 			Err
 			(

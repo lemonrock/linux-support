@@ -37,7 +37,7 @@ impl ThreadIdentifiers
 			thread_identifier_and_pthread_t_available_barrier: SimpleBarrier::new(),
 			thread_identifier: Arc::new(AtomicI32::new(unsafe { uninitialized() })),
 			pthread_t: Arc::new(AtomicU64::new(unsafe { uninitialized() })),
-			current_thread: thread::current(),
+			current_thread: current(),
 		}
 	}
 

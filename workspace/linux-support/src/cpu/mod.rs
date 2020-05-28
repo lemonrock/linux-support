@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use super::*;
 use crate::current_numa_node_and_hyper_thread;
 use crate::bit_set::*;
 use crate::configuration::checks::*;
@@ -11,27 +12,9 @@ use crate::paths::*;
 use crate::process::ProcessIdentifierChoice;
 use crate::process::status::Status;
 use crate::strings::*;
+use crate::strings::into_line_feed_terminated_byte_string::IntoLineFeedTerminatedByteString;
 use crate::strings::parse_number::ParseNumberError;
 use crate::user_and_groups::assert_effective_user_id_is_root;
-use errno::errno;
-use libc::*;
-use likely::*;
-#[cfg(target_arch = "x86_64")] use raw_cpuid::*;
-use serde::Deserialize;
-use serde::Serialize;
-use std::convert::TryFrom;
-use std::convert::TryInto;
-use std::error;
-use std::io;
-use std::fmt;
-use std::fmt::Debug;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::mem::size_of;
-#[allow(deprecated)] use std::mem::uninitialized;
-use std::path::PathBuf;
-use strum_macros::*;
-use crate::strings::into_line_feed_terminated_byte_string::IntoLineFeedTerminatedByteString;
 
 
 include!("BitSetHyperThread.rs");

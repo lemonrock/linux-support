@@ -112,7 +112,7 @@ impl EventFileDescriptor
 
 		const SizeOfRead: usize = size_of::<u64>();
 
-		let result = unsafe { read(self.0, &mut value as *mut _ as *mut _, SizeOfRead) };
+		let result = unsafe { libc::read(self.as_raw_fd(), &mut value as *mut _ as *mut _, SizeOfRead) };
 
 		if likely!(result == SizeOfRead as isize)
 		{
@@ -158,7 +158,7 @@ impl EventFileDescriptor
 
 		const SizeOfWrite: usize = size_of::<u64>();
 
-		let result = unsafe { write(self.0, increment as *const _ as *const _, SizeOfWrite) };
+		let result = unsafe { libc::write(self.0, increment as *const _ as *const _, SizeOfWrite) };
 
 		if likely!(result == SizeOfWrite as isize)
 		{

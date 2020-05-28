@@ -3,6 +3,7 @@
 
 
 use super::*;
+use super::netlink::PortIdentifier;
 
 
 include!("accept4.rs");
@@ -30,6 +31,7 @@ include!("SO_.rs");
 include!("sockaddr_ib.rs");
 include!("sockaddr_in.rs");
 include!("sockaddr_in6.rs");
+include!("sockaddr_nl.rs");
 include!("sockaddr_un.rs");
 include!("sockaddr_storage.rs");
 include!("socket.rs");

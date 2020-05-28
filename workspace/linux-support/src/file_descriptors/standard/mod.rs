@@ -5,9 +5,6 @@
 use super::*;
 use crate::paths::DevPath;
 use crate::strings::OsStrExtMore;
-use std::io::Stderr;
-use std::io::Stdin;
-use std::io::Stdout;
 
 
 include!("StandardFileDescriptor.rs");

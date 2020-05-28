@@ -2,26 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use super::*;
 use self::c::*;
-use errno::errno;
-use errno::Errno;
-use libc::c_int;
-use libc::c_uchar;
-use libc::c_uint;
-use libc::EINVAL;
-use libc::pid_t;
-use likely::*;
-use std::collections::BTreeMap;
-use std::error;
-use std::fmt;
-use std::fmt::Debug;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::mem::transmute;
-use std::ops::Deref;
-use std::ops::DerefMut;
-use strum::IntoEnumIterator;
-use strum_macros::EnumIter;
 
 
 pub(crate) mod c;

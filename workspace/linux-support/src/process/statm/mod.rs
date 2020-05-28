@@ -2,20 +2,13 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use super::*;
 use crate::memory::NumberOfPages;
 use crate::paths::ProcPath;
 use crate::paths::PathExt;
 use crate::process::ProcessIdentifierChoice;
 use crate::strings::FromBytes;
 use crate::strings::parse_number::ParseNumberError;
-use likely::likely;
-use std::error;
-use std::fmt;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::fmt::Debug;
-use std::io;
-use std::num::NonZeroU8;
 
 
 include!("StatM.rs");

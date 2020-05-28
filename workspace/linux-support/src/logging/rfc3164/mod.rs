@@ -4,7 +4,6 @@
 
 
 use super::*;
-use chrono::*;
 
 
 include!("Rfc3164MessageTemplate.rs");

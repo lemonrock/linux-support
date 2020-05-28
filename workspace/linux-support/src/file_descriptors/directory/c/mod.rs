@@ -3,7 +3,6 @@
 
 
 use super::*;
-use crate::syscall::SYS;
 
 
 include!("AT_STATX_.rs");

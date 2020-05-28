@@ -14,8 +14,6 @@ use crate::paths::ProcPath;
 use crate::signals::ChildStatus;
 use crate::strings::FromBytes;
 use crate::time::ClockTicks;
-use std::num::NonZeroU8;
-use std::num::NonZeroU64;
 
 
 include!("Stat.rs");

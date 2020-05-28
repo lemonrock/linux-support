@@ -20,14 +20,16 @@ impl LocalSyslogSocket
 	#[cfg(debug_assertions)] const Initialized: u8 = 0xFF;
 	
 	#[inline(always)]
-	pub(crate) unsafe fn configure_per_thread_local_syslog_socket()
+	pub(crate) unsafe fn configure_per_thread_local_syslog_socket() -> Result<(), NewSocketClientError>
 	{
 		debug_assert_ne!(PerThreadLocalSyslogSocket.initialization_pattern, Self::Initialized);
 		
 		((&mut PerThreadLocalSyslogSocket) as *mut LocalSyslogSocket).write
 		(
-			LocalSyslogSocket::new(LocalSyslogSocketConfiguration::instance())
+			LocalSyslogSocket::new(StaticLoggingConfiguration::instance())?
 		);
+		
+		Ok(())
 	}
 	
 	#[inline(always)]
@@ -47,7 +49,7 @@ impl LocalSyslogSocket
 	}
 	
 	/// New.
-	fn new(configuration: &LocalSyslogSocketConfiguration) -> Result<Self, NewSocketClientError>
+	fn new(configuration: &StaticLoggingConfiguration) -> Result<Self, NewSocketClientError>
 	{
 		let socket_file_path = configuration.dev_path.file_path("/dev/log");
 		Ok
@@ -89,7 +91,7 @@ impl LocalSyslogSocket
 		let mut buffer = &self.buffer[ .. original_length];
 		loop
 		{
-			use self::ErrorKind::*;
+			use crate::ErrorKind::*;
 			
 			match self.socket_file_descriptor.send(buffer, SendFlags::empty())
 			{
@@ -149,7 +151,8 @@ impl LocalSyslogSocket
 	#[inline(always)]
 	fn sleep_for_one_second(&self)
 	{
-		unsafe { sleep(1) };
+		const OneSecond: Duration = Duration::new(1, 0);
+		sleep(OneSecond);
 	}
 	
 	#[inline(always)]

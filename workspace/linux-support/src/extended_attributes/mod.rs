@@ -2,11 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use likely::*;
-use memchr::memchr;
-use std::ffi::CStr;
-use std::marker::PhantomData;
-use std::ops::Deref;
+use super::*;
 
 
 include!("ExtendedAttributeName.rs");

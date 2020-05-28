@@ -5,7 +5,7 @@
 /// Mount wrapper function.
 pub fn mount_wrapper(source: &CStr, mount_point: &Path, file_system_type: &FileSystemType, mount_options: &HashMap<Box<[u8]>, Option<Box<[u8]>>>, mount_flags: MountFlags) -> io::Result<()>
 {
-	use self::ErrorKind::*;
+	use crate::ErrorKind::*;
 
 	fn to_mount_options_c_string(mount_options: &HashMap<Box<[u8]>, Option<Box<[u8]>>>) -> CString
 	{

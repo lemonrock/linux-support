@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[allow(deprecated)] use std::mem::uninitialized;
+use super::*;
 use crate::bit_set::*;
 use crate::memory::VirtualAddress;
 use crate::process::ProcessIdentifier;
@@ -15,26 +15,6 @@ use crate::time::ClockTicks;
 use crate::user_and_groups::UserIdentifier;
 use self::codes::*;
 use self::c::*;
-use errno::errno;
-use libc::*;
-use libc_extra::unix::string::strsignal;
-use likely::*;
-use serde::Deserialize;
-use serde::Serialize;
-use std::convert::TryFrom;
-use std::error;
-use std::ffi::CStr;
-use std::fmt::Debug;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::fmt;
-use std::mem::transmute;
-use std::num::NonZeroI32;
-use std::num::NonZeroU32;
-use std::num::NonZeroU8;
-use std::os::unix::io::RawFd;
-use std::ptr::null_mut;
-use strum_macros::EnumIter;
 
 
 /// `si_code` ranges of values.

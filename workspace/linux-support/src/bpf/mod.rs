@@ -2,14 +2,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use super::*;
 use self::c::*;
-use likely::*;
-use std::convert::TryFrom;
-use std::ops::{Deref, DerefMut};
 
 
 pub(crate) mod c;
 
 
-include!("BpfProgram.rs");
-include!("ScratchMemoryIndex.rs");
+include!("BpfProgram.rs");include!("ScratchMemoryIndex.rs");

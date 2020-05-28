@@ -2,60 +2,21 @@
 // Copyright © 2016-2019 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use super::*;
 use crate::bit_set::BitSet;
-use crate::memory::numa::SetMemoryPolicy;
 use crate::cpu::HyperThread;
+use crate::capabilities_and_privileges::*;
 use crate::io_priority::IoPriority;
+use crate::logging::LocalSyslogSocket;
 use crate::memory::*;
 use crate::memory::huge_pages::adjust_transparent_huge_pages;
-use crate::capabilities_and_privileges::*;
+use crate::memory::numa::SetMemoryPolicy;
 use crate::paths::*;
 use crate::process::*;
 use crate::scheduling::Nice;
 use crate::scheduling::PerThreadSchedulerPolicyAndFlags;
 use crate::strings::parse_number::*;
 use crate::syscall::SYS::gettid;
-use arrayvec::ArrayVec;
-use libc::c_char;
-use libc::pid_t;
-use libc::PR_GET_NAME;
-use libc::PR_SET_NAME;
-use libc::prctl;
-use libc::pthread_self;
-use libc::pthread_t;
-use likely::*;
-use memchr::memchr;
-use serde::Deserialize;
-use serde::Serialize;
-use std::convert::TryFrom;
-use std::error;
-use std::ffi::CStr;
-use std::fmt;
-use std::fmt::Debug;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::io;
-use std::process;
-use std::num::NonZeroI32;
-use std::ops::Deref;
-use std::panic::*;
-use std::slice::from_raw_parts;
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, spin_loop_hint};
-use std::sync::atomic::AtomicI32;
-use std::sync::atomic::AtomicU64;
-use std::sync::atomic::Ordering::Acquire;
-use std::sync::atomic::Ordering::Release;
-use std::thread;
-use std::thread::Builder;
-use std::thread::JoinHandle;
-use std::thread::park;
-use std::thread::Thread;
-use std::thread::ThreadId;
-use std::mem::transmute;
-#[allow(deprecated)] use std::mem::uninitialized;
-use terminate::Terminate;
-use crate::logging::LocalSyslogSocket;
 
 
 include!("configure_global_panic_hook.rs");

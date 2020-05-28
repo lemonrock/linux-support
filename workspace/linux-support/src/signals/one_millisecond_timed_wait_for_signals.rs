@@ -22,8 +22,8 @@ pub fn one_millisecond_timed_wait_for_signals(signals_to_wait_for: &sigset_t) ->
 
 	match result
 	{
-		#[cfg(any(target_arch = "aarch64", target_arch = "riscv64", target_arch = "powerpc64", target_arch = "s390x", target_arch = "x86_64"))] 1 ..= 64 => Signalled(unsafe { transmute(signal as u8) }),
-		#[cfg(any(target_arch = "mips64"))] 1 ..= 128 => Signalled(unsafe { transmute(signal as u8) }),
+		#[cfg(any(target_arch = "aarch64", target_arch = "riscv64", target_arch = "powerpc64", target_arch = "s390x", target_arch = "x86_64"))] 1 ..= 64 => Signalled(unsafe { transmute(result as u8) }),
+		#[cfg(any(target_arch = "mips64"))] 1 ..= 128 => Signalled(unsafe { transmute(result as u8) }),
 
 		-1 => match errno().0
 		{

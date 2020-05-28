@@ -94,7 +94,7 @@ impl Write for SendPipeFileDescriptor
 			return Ok(0)
 		}
 
-		let result = unsafe { write(self.as_raw_fd(), buf.as_ptr() as *const c_void, buf.len()) };
+		let result = unsafe { libc::write(self.as_raw_fd(), buf.as_ptr() as *const c_void, buf.len()) };
 
 		if likely!(result > 0)
 		{
@@ -102,7 +102,7 @@ impl Write for SendPipeFileDescriptor
 		}
 		else
 		{
-			use self::ErrorKind::*;
+			use crate::ErrorKind::*;
 
 			Err
 			(

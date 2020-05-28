@@ -2,23 +2,13 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use super::*;
 use crate::bit_set::*;
 use crate::configuration::checks::Check;
-use super::cpu::HyperThread;
-use super::file_systems::FileSystemType;
-use super::paths::PathExt;
-use super::paths::ProcPath;
+use crate::cpu::HyperThread;
+use crate::file_systems::FileSystemType;
+use crate::paths::*;
 use crate::strings::*;
-use serde::Deserialize;
-use serde::Serialize;
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::ffi::OsString;
-use std::fmt::Debug;
-use std::io;
-use std::os::unix::ffi::OsStringExt;
-use std::path::PathBuf;
-use strum_macros::*;
 
 
 include!("IsolatedCpuFlags.rs");

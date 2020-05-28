@@ -349,7 +349,7 @@ impl SocketFileDescriptor<sockaddr_un>
 		}
 		else
 		{
-			use self::ErrorKind::*;
+			use crate::ErrorKind::*;
 
 			Err
 			(

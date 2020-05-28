@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use super::*;
 use self::bridge_programming_interfaces::*;
 use self::communication_controller_programming_interfaces::*;
 use self::display_controller_programming_interfaces::*;
@@ -12,9 +13,6 @@ use self::mass_storage_controller_programming_interfaces::*;
 use self::multimedia_controller_programming_interfaces::*;
 use self::serial_bus_controller_programming_interfaces::*;
 use self::wireless_controller_programming_interfaces::*;
-use likely::likely;
-use serde::Deserialize;
-use serde::Serialize;
 
 
 include!("programming_interface.rs");

@@ -15,10 +15,6 @@ use crate::vectors::VectoredWrite;
 use crate::vectors::VectoredRead;
 use crate::inode::*;
 use crate::inode::c::*;
-use either::Either;
-use either::Either::Left;
-use either::Either::Right;
-use std::ops::RangeInclusive;
 
 
 /// C data structures.

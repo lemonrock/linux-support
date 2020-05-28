@@ -2,9 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::thread::ThreadIdentifier;
-use libc::c_void;
-use libc::pid_t;
+use super::*;
 
 
 include!("__user_cap_data_struct.rs");

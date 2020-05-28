@@ -156,7 +156,7 @@ impl InotifyFileDescriptor
 
 		const SizeOfRead: usize = size_of::<inotify_event>();
 
-		let result = unsafe { read(self.0, &mut value as *mut _ as *mut _, SizeOfRead) };
+		let result = unsafe { libc::read(self.as_raw_fd(), &mut value as *mut _ as *mut _, SizeOfRead) };
 
 		if likely!(result == SizeOfRead as isize)
 		{

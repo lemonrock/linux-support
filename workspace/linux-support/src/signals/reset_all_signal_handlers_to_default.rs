@@ -9,7 +9,7 @@ pub fn reset_all_signal_handlers_to_default()
 	let mut index = 0;
 	while index < _NSIG
 	{
-		unsafe { signal(index as i32, SIG_DFL) };
+		unsafe { libc::signal(index as i32, SIG_DFL) };
 		index += 1;
 	}
 }

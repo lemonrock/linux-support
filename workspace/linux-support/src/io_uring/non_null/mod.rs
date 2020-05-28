@@ -2,10 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use std::ptr::NonNull;
-use std::sync::atomic::AtomicU32;
-use std::sync::atomic::Ordering::Acquire;
-use std::sync::atomic::Ordering::Release;
+use super::*;
 
 
 include!("NonNullAtomicU32Ext.rs");

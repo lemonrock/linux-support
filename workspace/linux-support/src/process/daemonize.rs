@@ -17,7 +17,7 @@ pub fn daemonize(dev_path: &DevPath)
 
 			-1 => panic!("Fork failed with {}", io::Error::last_os_error()),
 
-			_child_process_id_returned_to_parent @ _ => process::exit(0),
+			_child_process_id_returned_to_parent @ _ => exit(0),
 		}
 	}
 

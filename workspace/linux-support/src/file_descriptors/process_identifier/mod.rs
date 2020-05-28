@@ -2,12 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use super::*;
 use crate::process::ProcessIdentifierChoice;
 use crate::syscall::SYS::pidfd_open;
 use crate::syscall::SYS::pidfd_getfd;
 use crate::syscall::SYS::pidfd_send_signal;
 use crate::signals::Signal;
-use super::*;
 
 
 include!("ProcessIdentifierFileDescriptor.rs");

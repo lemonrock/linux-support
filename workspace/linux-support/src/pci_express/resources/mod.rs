@@ -2,23 +2,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::memory::mapping::MappedMemory;
-use crate::memory::mapping::AddressHint;
-use crate::memory::mapping::Sharing;
+use super::*;
+use super::PciDevice;
+use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use crate::paths::PathExt;
 use crate::strings::parse_number::ParseNumber;
-use super::PciDevice;
-use likely::*;
-use std::collections::BTreeMap;
-use std::fs::File;
-use std::io;
-use std::io::ErrorKind;
-use std::io::BufReader;
-use std::io::BufRead;
-use std::ops::Deref;
-use std::ptr::NonNull;
-use std::mem::size_of;
-use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 
 
 include!("MemoryMappedResource.rs");

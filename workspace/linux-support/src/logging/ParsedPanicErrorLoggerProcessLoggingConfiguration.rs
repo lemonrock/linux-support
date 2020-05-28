@@ -15,15 +15,11 @@ impl ParsedPanicErrorLogger for ParsedPanicErrorLoggerProcessLoggingConfiguratio
 
 		let message = format!("ThreadName:{}:ThreadId:{:?}:CurrentHyperThread:{}:File:{}:Line:{}:Column:{}:Cause:{}:Backtrace:{}", parsed_panic.thread_name(), parsed_panic.thread_id(), current_hyper_thread, parsed_panic.source_file, parsed_panic.line_number, parsed_panic.column_number, parsed_panic.cause, parsed_panic.backtrace);
 		
-		// TODO: We need to keep essential RFC 3164 / RFC 5424 parameter values in static variables so we can populate these lazy ref templates as-needed.
-		xxxx;
-		
-		
 		lazy_static!
 		{
-			static ref Template: Rfc3164MessageTemplate = Rfc3164MessageTemplate::new(KnownFacility::security_or_authorization_messages_0, Severity::critical, host_name, process_name);
+			static ref Template: Rfc3164MessageTemplate = StaticLoggingConfiguration::rfc_3164_message_template(KnownFacility::security_or_authorization_messages_0, Severity::Critical);
 		}
 		
-		LocalSyslogSocket::syslog(&Template, &message);
+		LocalSyslogSocket::syslog(Template.deref(), &message);
 	}
 }

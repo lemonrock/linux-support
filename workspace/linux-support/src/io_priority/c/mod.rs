@@ -2,10 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use libc::c_int;
-use std::cmp::Ord;
-use std::cmp::Ordering;
-use std::cmp::PartialOrd;
+use super::*;
 use crate::syscall::SYS;
 
 

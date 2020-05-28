@@ -2,7 +2,6 @@
 // Copyright © 2018-2019 The developers of file-descriptors. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/file-descriptors/master/COPYRIGHT.
 
 
-use crate::process::*;
 use self::c::*;
 use super::*;
 use super::directory::AccessPermissions;
@@ -10,6 +9,7 @@ use crate::cpu::HyperThread;
 use super::file::SendFile;
 use super::pipes_and_fifos::SpliceRecipient;
 use super::pipes_and_fifos::SpliceSender;
+use crate::process::*;
 use crate::user_and_groups::UserIdentifier;
 use crate::user_and_groups::GroupIdentifier;
 use crate::vectors::VectoredRead;

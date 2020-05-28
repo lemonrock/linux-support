@@ -83,6 +83,9 @@ pub enum ProcessConfigurationError
 
 	#[allow(missing_docs)]
 	CouldNotParseLinuxKernelHostName(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotParseLinuxKernelDomainName(io::Error),
 }
 
 impl Display for ProcessConfigurationError
@@ -154,6 +157,8 @@ impl error::Error for ProcessConfigurationError
 			&UtcFilePathDoesNotExistOrIsNotReadable(ref cause) => Some(cause),
 
 			&CouldNotParseLinuxKernelHostName(ref cause) => Some(cause),
+
+			&CouldNotParseLinuxKernelDomainName(ref cause) => Some(cause),
 		}
 	}
 }

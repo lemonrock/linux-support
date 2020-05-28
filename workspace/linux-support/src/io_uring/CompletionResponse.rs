@@ -525,7 +525,7 @@ impl CompletionResponse
 	#[inline(always)]
 	pub fn receive(self, buffer: &[u8]) -> io::Result<Option<u32>>
 	{
-		use self::ErrorKind::*;
+		use crate::ErrorKind::*;
 		
 		match self.0
 		{
@@ -588,7 +588,7 @@ impl CompletionResponse
 	#[inline(always)]
 	pub fn send(self, buffer: &[u8]) -> io::Result<Option<u32>>
 	{
-		use self::ErrorKind::*;
+		use crate::ErrorKind::*;
 		
 		match self.0
 		{
@@ -706,7 +706,7 @@ impl CompletionResponse
 		{
 			error @ -4095 ..= -1 =>
 			{
-				use self::ErrorKind::*;
+				use crate::ErrorKind::*;
 				
 				let error = match -error
 				{

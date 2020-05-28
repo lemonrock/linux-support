@@ -34,6 +34,6 @@ impl seccomp_notif
 	#[allow(unused)]
 	pub(crate) fn allocate_zeroed() -> VariablySized<Self>
 	{
-		VariablySized::allocate_zeroed(seccomp_notif_sizes::get_listener_notification_sizes().seccomp_notif)
+		VariablySized::allocate_zeroed(seccomp_notif_sizes::get_listener_notification_sizes().seccomp_notif as usize)
 	}
 }

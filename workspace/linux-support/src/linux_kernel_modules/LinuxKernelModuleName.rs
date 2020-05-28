@@ -243,12 +243,12 @@ impl LinuxKernelModuleName
 	/// false if does not exist.
 	pub fn unload_linux_kernel_module(&self) -> Result<bool, io::Error>
 	{
-		use self::ErrorKind::*;
+		use crate::ErrorKind::*;
 
 		let name: CString = self.into();
 		const flags: c_long = O_NONBLOCK as c_long;
 
-		match unsafe { syscall(SYS_delete_module as i64, name.as_ptr(), flags) }
+		match unsafe { SYS::delete_module.syscall2(name.as_ptr() as usize, flags as usize) }
 		{
 			0 => Ok(true),
 			-1 => match errno().0

@@ -158,20 +158,29 @@ impl ProcessConfiguration
 		// This *MUST* be called before `configure_global_panic_hook()` which uses backtraces depedant on environment variable settings.
 		self.set_environment_variables_to_minimum_required_and_force_time_zone_to_utc(etc_path)?;
 		
-		// This *MUST* be called before `configure_logging` as `configure_logging` opens a socket that is closed-on-exec.
+		// This *MUST* be called before `configure_logging` as `configure_logging` opens sockets (eg to `/dev/log`) that are closed-on-exec.
 		if run_as_daemon
 		{
 			daemonize(dev_path)
 		}
-
+		
 		// This *MUST* be called before creating `ParsedPanicErrorLoggerProcessLoggingConfiguration` and thus `SimpleTerminate`.
-		self.logging_configuration.configure_logging(dev_path, !run_as_daemon, &self.name);
-		
-		let host_name = LinuxKernelHostName::new(proc_path).map_err(CouldNotParseLinuxKernelHostName)?;
-		
-		if run_as_daemon
 		{
-			self.logging_configuration.redirect_FILE_standard_out_and_file_standard_error_to_log(host_name.as_ref(), &self.name);
+			// This
+			// TODO: getnameinfo()
+			// TODO: getifaddrs()
+			
+			// Interesting problem
+			let internet_protocol_addresses = xxxx;
+			
+			let host_name = LinuxKernelHostName::new(proc_path).map_err(CouldNotParseLinuxKernelHostName)?;
+			let domain_name = LinuxKernelDomainName::new(proc_path).map_err(CouldNotParseLinuxKernelDomainName)?;
+			self.logging_configuration.configure_logging(dev_path, !run_as_daemon, &internet_protocol_addresses, host_name.as_ref(), domain_name.as_ref(), &self.name);
+			
+			if run_as_daemon
+			{
+				self.logging_configuration.redirect_FILE_standard_out_and_file_standard_error_to_log(host_name.as_ref(), &self.name);
+			}
 		}
 		
 		let terminate = SimpleTerminate::new(ParsedPanicErrorLoggerProcessLoggingConfiguration);

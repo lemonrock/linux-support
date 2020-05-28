@@ -2,21 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use super::*;
 use self::c::*;
 use crate::process::ProcessIdentifierChoice;
 use crate::process::ProcessGroupIdentifierChoice;
-use crate::user_and_groups::UserIdentifier;
-use errno::errno;
-use libc::EINVAL;
-use libc::EPERM;
-use libc::ESRCH;
-use likely::*;
-use serde::Deserialize;
-use serde::Serialize;
-use std::cmp::Ordering;
-use std::convert::TryFrom;
-use std::mem::transmute;
 use crate::thread::ThreadIdentifier;
+use crate::user_and_groups::UserIdentifier;
 
 
 mod c;

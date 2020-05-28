@@ -236,7 +236,7 @@ impl FanotifyFileDescriptor
 			return Ok(0)
 		}
 
-		let result = unsafe { read(self.0, starting_at as *mut _, extra_items * SizeOfRead) };
+		let result = unsafe { libc::read(self.as_raw_fd(), starting_at as *mut _, extra_items * SizeOfRead) };
 
 		if likely!(result > 0)
 		{
@@ -285,7 +285,7 @@ impl FanotifyFileDescriptor
 
 		const SizeOfWrite: usize = size_of::<fanotify_response>();
 
-		let result = unsafe { write(self.0, responses.as_ptr() as *const _, responses.len() * SizeOfWrite) };
+		let result = unsafe { libc::write(self.0, responses.as_ptr() as *const _, responses.len() * SizeOfWrite) };
 
 		if likely!(result > 0)
 		{

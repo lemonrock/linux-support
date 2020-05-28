@@ -2,15 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use likely::unlikely;
-use std::collections::HashSet;
-use std::error;
-use std::fmt;
-use std::fmt::Debug;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::hash::Hash;
-use strum::*;
+use super::*;
 
 
-include!("Check.rs");include!("FailedChecks.rs");
+include!("Check.rs");
+include!("FailedChecks.rs");

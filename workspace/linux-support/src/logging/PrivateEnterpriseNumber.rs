@@ -3,7 +3,11 @@
 
 
 /// Private Enterprise Number, registered with IANA.
+///
+/// Defaults to `Reserved`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields, default)]
 pub struct PrivateEnterpriseNumber
 {
 	/// Private Enterprise Number, registered with IANA.
@@ -22,8 +26,28 @@ impl Display for PrivateEnterpriseNumber
 	}
 }
 
+impl Default for PrivateEnterpriseNumber
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self::Reserved()
+	}
+}
+
 impl PrivateEnterpriseNumber
 {
+	/// Reserved.
+	#[inline(always)]
+	pub fn Reserved() -> Self
+	{
+		Self
+		{
+			private_enterprise_number: 0,
+			sub_domain: ArrayVec::new(),
+		}
+	}
+	
 	/// Prefix of `iso.org.dod.internet.private.enterprise.`.
 	const Prefix: &'static str = "1.3.6.1.4.1.";
 	

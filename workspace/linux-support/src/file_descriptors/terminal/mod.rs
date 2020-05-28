@@ -2,9 +2,10 @@
 // Copyright © 2019 The developers of file-descriptors. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/file-descriptors/master/COPYRIGHT.
 
 
-use crate::file_descriptors::character_device::CharacterDeviceFileDescriptor;
-use crate::file_descriptors::pipes_and_fifos::SpliceRecipient;
-use crate::file_descriptors::pipes_and_fifos::SpliceSender;
+use super::*;
+use super::character_device::CharacterDeviceFileDescriptor;
+use super::pipes_and_fifos::SpliceRecipient;
+use super::pipes_and_fifos::SpliceSender;
 use crate::process::ProcessGroupIdentifier;
 use crate::terminal::*;
 use crate::terminal::c::tcdrain;
@@ -22,8 +23,8 @@ use crate::terminal::c::TCOON;
 use crate::terminal::c::tcsendbreak;
 use crate::terminal::c::tcsetattr;
 use crate::terminal::c::termios;
-use super::*;
-use crate::vectors::{VectoredRead, VectoredWrite};
+use crate::vectors::VectoredRead;
+use crate::vectors::VectoredWrite;
 
 
 include!("TerminalFileDescriptor.rs");

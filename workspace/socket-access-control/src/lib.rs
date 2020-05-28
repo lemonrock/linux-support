@@ -25,6 +25,7 @@ assert_cfg!(target_pointer_width = "64");
 use self::longest_prefix_match_table::*;
 use linux_support::file_descriptors::socket::*;
 use linux_support::file_descriptors::socket::c::*;
+use linux_support::internet_protocol::*;
 use linux_support::user_and_groups::*;
 use std::cmp::Ord;
 use std::cmp::Ordering;
@@ -33,6 +34,7 @@ use std::collections::HashMap;
 use std::marker::PhantomData;
 use std::mem::transmute;
 use std::num::NonZeroU8;
+use std::ops::Deref;
 use std::rc::Rc;
 
 

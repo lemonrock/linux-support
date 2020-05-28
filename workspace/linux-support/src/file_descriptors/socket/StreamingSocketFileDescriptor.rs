@@ -258,7 +258,7 @@ impl<SD: SocketData> StreamingSocketFileDescriptor<SD>
 		}
 		else
 		{
-			use self::ErrorKind::*;
+			use crate::ErrorKind::*;
 
 			Err
 			(
@@ -324,7 +324,7 @@ impl<SD: SocketData> StreamingSocketFileDescriptor<SD>
 		}
 		else
 		{
-			use self::ErrorKind::*;
+			use crate::ErrorKind::*;
 
 			Err
 			(

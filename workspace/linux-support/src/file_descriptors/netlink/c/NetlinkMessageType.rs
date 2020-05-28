@@ -2,31 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// An Internet Protocol (IP) version 4 or version 6 address.
-pub trait InternetProtocolAddress: PartialEq + Eq + PartialOrd + Ord
+#[derive(Copy, Clone)]
+#[doc(hidden)]
+#[repr(C)]
+pub union NetlinkMessageType
 {
-	/// Bytes.
-	///
-	/// If const generics were operational in Rust, could return `&[u8; Size]`.
-	fn bytes(&self) -> &[u8];
-}
-
-impl InternetProtocolAddress for in_addr
-{
-	#[inline(always)]
-	fn bytes(&self) -> &[u8]
-	{
-		let bytes: &[u8; 4] = unsafe { transmute(self) };
-		&bytes[..]
-	}
-}
-
-impl InternetProtocolAddress for in6_addr
-{
-	#[inline(always)]
-	fn bytes(&self) -> &[u8]
-	{
-		let bytes: &[u8; 16] = unsafe { transmute(self) };
-		&bytes[..]
-	}
+	pub(super) control: ControlNetlinkMessageType,
+	
+	pub(super) route: RouteNetlinkMessageType,
 }

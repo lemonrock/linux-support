@@ -34,7 +34,7 @@ impl Mount
 	/// Unmounts.
 	pub fn unmount(mount_point: &Path, unmount_flags: UnmountFlags) -> io::Result<()>
 	{
-		use self::ErrorKind::*;
+		use crate::ErrorKind::*;
 
 		let target = mount_point.to_c_string();
 		match unsafe { umount2(target.as_ptr(), unmount_flags.bits()) }

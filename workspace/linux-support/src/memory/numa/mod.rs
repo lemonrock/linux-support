@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use super::*;
 use self::c::*;
 use super::PageSize;
 use super::huge_pages::*;
@@ -17,41 +18,6 @@ use crate::strings::Radix;
 use crate::strings::parse_number::*;
 use crate::strings::to_number::NumberAsBytes;
 use crate::user_and_groups::assert_effective_user_id_is_root;
-use bitflags::bitflags;
-use errno::errno;
-use libc::c_void;
-use libc::E2BIG;
-use libc::EACCES;
-use libc::EBUSY;
-use libc::ENODEV;
-use libc::EFAULT;
-use libc::EINVAL;
-use libc::EIO;
-use libc::ENOENT;
-use libc::ENOMEM;
-use libc::EPERM;
-use libc::ESRCH;
-use likely::*;
-use serde::Deserialize;
-use serde::Serialize;
-use std::borrow::Cow;
-use std::cmp::Ordering;
-use std::collections::HashMap;
-use std::convert::TryFrom;
-use std::error;
-use std::io;
-use std::fmt;
-use std::fmt::Debug;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::mem::transmute;
-#[allow(deprecated)] use std::mem::uninitialized;
-use std::num::NonZeroU8;
-use std::path::Path;
-use std::ptr::NonNull;
-use std::ptr::null;
-use std::ptr::null_mut;
-use std::io::ErrorKind;
 
 
 include!("BitSetNumaNode.rs");

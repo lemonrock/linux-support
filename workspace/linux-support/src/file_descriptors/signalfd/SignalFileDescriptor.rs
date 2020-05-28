@@ -147,7 +147,7 @@ impl SignalFileDescriptor
 
 		const SizeOfRead: usize = size_of::<signalfd_siginfo>();
 
-		let result = unsafe { read(self.0, uninitialized_buffer.0.as_ptr() as *mut _, SizeOfRead * uninitialized_buffer.1) };
+		let result = unsafe { libc::read(self.as_raw_fd(), uninitialized_buffer.0.as_ptr() as *mut _, SizeOfRead * uninitialized_buffer.1) };
 
 		let structures = result / result % (SizeOfRead as isize);
 

@@ -3,12 +3,9 @@
 
 
 use super::*;
-use std::ops::Deref;
 
 
 include!("BitsInAByte.rs");
-include!("InternetProtocolAddress.rs");
-include!("InternetProtocolAddressWithMask.rs");
 include!("LongestPrefixMatchTable.rs");
 include!("MatchEntry.rs");
 include!("PermutationsOfAByte.rs");

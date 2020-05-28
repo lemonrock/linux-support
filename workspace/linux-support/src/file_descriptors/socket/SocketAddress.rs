@@ -23,7 +23,7 @@ impl<FilePath: AsRef<Path>> SocketAddress<FilePath>
 	pub fn new_streaming_server_listener(&self, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16, back_log: u32, non_blocking: bool, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketFileDescriptorEnum, NewSocketServerListenerError>
 	{
 		use self::StreamingServerListenerSocketFileDescriptorEnum::*;
-		use self::SocketAddr::*;
+		use crate::SocketAddr::*;
 		use self::SocketAddress::*;
 
 		Ok
@@ -42,7 +42,7 @@ impl<FilePath: AsRef<Path>> SocketAddress<FilePath>
 	pub fn new_streaming_client(&self, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16, non_blocking: bool) -> Result<StreamingSocketFileDescriptorEnum, NewSocketClientError>
 	{
 		use self::StreamingSocketFileDescriptorEnum::*;
-		use self::SocketAddr::*;
+		use crate::SocketAddr::*;
 		use self::SocketAddress::*;
 
 		Ok
@@ -61,7 +61,7 @@ impl<FilePath: AsRef<Path>> SocketAddress<FilePath>
 	pub fn new_datagram_server_listener(&self, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<DatagramServerListenerSocketFileDescriptorEnum, NewSocketServerListenerError>
 	{
 		use self::DatagramServerListenerSocketFileDescriptorEnum::*;
-		use self::SocketAddr::*;
+		use crate::SocketAddr::*;
 		use self::SocketAddress::*;
 
 		Ok
@@ -80,7 +80,7 @@ impl<FilePath: AsRef<Path>> SocketAddress<FilePath>
 	pub fn new_datagram_client(&self, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<DatagramClientSocketFileDescriptorEnum, NewSocketClientError>
 	{
 		use self::DatagramClientSocketFileDescriptorEnum::*;
-		use self::SocketAddr::*;
+		use crate::SocketAddr::*;
 		use self::SocketAddress::*;
 
 		Ok
