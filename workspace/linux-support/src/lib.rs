@@ -18,10 +18,12 @@
 #![feature(const_raw_ptr_deref)]
 #![feature(const_raw_ptr_to_usize_cast)]
 #![feature(const_transmute)]
+#![feature(internal_uninit_const)]
 #![feature(never_type)]
 #![feature(ptr_offset_from)]
 #![feature(read_initializer)]
 #![feature(thread_local)]
+#![feature(maybe_uninit_extra)]
 
 
 //! #linux-support
@@ -118,6 +120,7 @@ use libc::ENOPROTOOPT;
 use libc::ENOSPC;
 use libc::ENOSR;
 use libc::ENOSYS;
+use libc::ENOTBLK;
 use libc::ENOTCONN;
 use libc::ENOTDIR;
 use libc::ENOTSOCK;
@@ -589,7 +592,6 @@ use serde::Serializer;
 use serde::de;
 use serde::de::Unexpected;
 use serde::de::Visitor;
-use std::alloc::alloc;
 use std::alloc::alloc_zeroed;
 use std::alloc::dealloc;
 use std::alloc::AllocRef;
@@ -612,7 +614,6 @@ use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::collections::HashSet;
-use std::convert::Infallible;
 use std::convert::TryFrom;
 use std::convert::TryInto;
 use std::env::JoinPathsError;
@@ -662,6 +663,7 @@ use std::io::stderr;
 use std::io::stdin;
 use std::io::stdout;
 use std::marker::PhantomData;
+use std::mem::MaybeUninit;
 use std::mem::align_of;
 use std::mem::forget;
 use std::mem::size_of;
@@ -669,6 +671,8 @@ use std::mem::transmute;
 use std::mem::transmute_copy;
 use std::mem::zeroed;
 use std::net::IpAddr;
+use std::net::Ipv4Addr;
+use std::net::Ipv6Addr;
 use std::net::SocketAddr;
 use std::net::SocketAddrV4;
 use std::net::SocketAddrV6;
@@ -987,4 +991,5 @@ pub mod user_and_groups;
 
 include!("current_numa_node_and_hyper_thread.rs");
 include!("move_to_front_of_vec.rs");
+include!("StaticInitializedOnce.rs");
 include!("VariablySized.rs");

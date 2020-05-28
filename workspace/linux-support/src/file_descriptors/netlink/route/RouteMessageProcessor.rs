@@ -5,12 +5,16 @@
 /// A message processor for route messages.
 pub trait RouteMessageProcessor
 {
+	/// Expected reply header.
 	type Header: Sized;
 	
+	/// Expected message type.
 	const ExpectedMessageType: RouteNetlinkMessageType;
 	
+	/// Type of state used when processing a message.
 	type ProcessingMessageState: Sized;
 	
+	/// Type of processed message.
 	type ProcessedMessage: Sized;
 	
 	#[doc(hidden)]

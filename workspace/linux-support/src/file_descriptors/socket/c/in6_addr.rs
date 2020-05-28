@@ -17,6 +17,24 @@ pub union in6_addr
 	pub s6_addr32: [u32; 4],
 }
 
+impl Into<Ipv6Addr> for in6_addr
+{
+	#[inline(always)]
+	fn into(self) -> Ipv6Addr
+	{
+		unsafe { transmute(self) }
+	}
+}
+
+impl Into<IpAddr> for in6_addr
+{
+	#[inline(always)]
+	fn into(self) -> IpAddr
+	{
+		IpAddr::V6(self.into())
+	}
+}
+
 impl Default for in6_addr
 {
 	#[inline(always)]

@@ -112,7 +112,7 @@ impl ProcessLoggingConfiguration
 		let result = catch_unwind
 		(||
 			 {
-				 let bytes = unsafe { from_raw_parts(data as *const u8, length) };
+				 let bytes = from_raw_parts(data as *const u8, length);
 				 let message = String::from_utf8_lossy(bytes);
 				 
 				 LocalSyslogSocket::syslog(message_template, &message)

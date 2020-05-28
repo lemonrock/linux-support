@@ -5,7 +5,7 @@
 bitflags!
 {
 	/// Netlink acknowledge message flags.
-	pub(super) struct NetlinkAcknowledgeMessageFlags: u16
+	pub struct NetlinkAcknowledgeMessageFlags: u16
 	{
 		/// Request was capped.
 		const DoNotDeleteRecursively = NLM_F_CAPPED as u16;

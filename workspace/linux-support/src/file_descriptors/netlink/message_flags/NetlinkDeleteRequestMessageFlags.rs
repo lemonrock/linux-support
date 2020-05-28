@@ -5,7 +5,7 @@
 bitflags!
 {
 	/// Netlink delete request message flags.
-	pub(super) struct NetlinkDeleteRequestMessageFlags: u16
+	pub struct NetlinkDeleteRequestMessageFlags: u16
 	{
 		/// Do not delete recursively.
 		const DoNotDeleteRecursively = NLM_F_NONREC as u16;

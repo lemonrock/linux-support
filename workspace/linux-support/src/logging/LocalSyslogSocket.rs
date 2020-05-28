@@ -2,13 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[thread_local] static mut PerThreadLocalSyslogSocket: LocalSyslogSocket = unsafe { zeroed() };
+#[thread_local] static mut PerThreadLocalSyslogSocket: StaticInitializedOnce<LocalSyslogSocket> = StaticInitializedOnce::uninitialized();
 
 /// This is a blocking socket.
 #[derive(Debug)]
 pub struct LocalSyslogSocket
 {
-	#[cfg(debug_assertions)] initialization_pattern: u8,
 	socket_file_descriptor: DatagramClientSocketUnixDomainFileDescriptor,
 	is_connected: Cell<bool>,
 	buffer: Vec<u8>,
@@ -17,21 +16,14 @@ pub struct LocalSyslogSocket
 
 impl LocalSyslogSocket
 {
-	#[cfg(debug_assertions)] const Initialized: u8 = 0xFF;
-	
 	#[inline(always)]
 	pub(crate) unsafe fn configure_per_thread_local_syslog_socket() -> Result<(), NewSocketClientError>
 	{
-		debug_assert_ne!(PerThreadLocalSyslogSocket.initialization_pattern, Self::Initialized);
-		
-		((&mut PerThreadLocalSyslogSocket) as *mut LocalSyslogSocket).write
-		(
-			LocalSyslogSocket::new(StaticLoggingConfiguration::instance())?
-		);
-		
+		PerThreadLocalSyslogSocket.initialize_once(LocalSyslogSocket::new(StaticLoggingConfiguration::instance())?);
 		Ok(())
 	}
 	
+	/// Syslog.
 	#[inline(always)]
 	pub fn syslog(message_template: &impl MessageTemplate, message: &str) -> Result<(), &'static str>
 	{
@@ -41,11 +33,7 @@ impl LocalSyslogSocket
 	#[inline(always)]
 	fn instance_mut() -> &'static mut Self
 	{
-		let this = unsafe { &mut PerThreadLocalSyslogSocket };
-		
-		debug_assert_eq!(this.initialization_pattern, Self::Initialized);
-		
-		this
+		unsafe { PerThreadLocalSyslogSocket.value_mut() }
 	}
 	
 	/// New.
@@ -56,7 +44,6 @@ impl LocalSyslogSocket
 		(
 			Self
 			{
-				#[cfg(debug_assertions)] initialization_pattern: Self::Initialized,
 				socket_file_descriptor: Self::open(&socket_file_path)?,
 				is_connected: Cell::new(true),
 				buffer:
@@ -151,7 +138,7 @@ impl LocalSyslogSocket
 	#[inline(always)]
 	fn sleep_for_one_second(&self)
 	{
-		const OneSecond: Duration = Duration::new(1, 0);
+		let OneSecond = Duration::new(1, 0);
 		sleep(OneSecond);
 	}
 	

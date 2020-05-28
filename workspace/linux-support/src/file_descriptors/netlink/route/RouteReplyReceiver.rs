@@ -14,12 +14,12 @@ pub struct RouteReplyReceiver<'a, RMP: 'a + RouteMessageProcessor>
 impl<'a, RMP: 'a + RouteMessageProcessor> ReplyReceiver<RouteNetlinkProtocol> for RouteReplyReceiver<'a, RMP>
 {
 	#[inline(always)]
-	fn start_of_set_of_messages(&mut self, message_identification: MultipartMessagePartIdentification)
+	fn start_of_set_of_messages(&mut self, message_identification: &MultipartMessagePartIdentification)
 	{
 		debug_assert!(self.current_message_set.is_none());
-		debug_assert_eq!(self.message_sets.contains_key(&message_identification), false);
+		debug_assert_eq!(self.message_sets.contains_key(message_identification), false);
 		
-		self.current_message_set = Some((message_identification, Vec::new(), Vec::new()));
+		self.current_message_set = Some((message_identification.clone(), Vec::new(), Vec::new()));
 	}
 	
 	#[inline(always)]
@@ -83,27 +83,35 @@ impl<'a, RMP: 'a + RouteMessageProcessor> RouteReplyReceiver<'a, RMP>
 		}
 	}
 	
+	/// Messages.
 	#[inline(always)]
-	pub fn messages(&self, message_identification: &MultipartMessagePartIdentification) -> Option<Result<Option<&Vec<RMP::ProcessedMessage>>, Either<&Vec<String>, &io::Error>>>
+	pub fn messages(mut self, message_identification: &MultipartMessagePartIdentification) -> Result<Result<Option<Vec<RMP::ProcessedMessage>>, Either<Vec<String>, io::Error>>, Self>
 	{
-		self.message_sets.get(message_identification).map(|(messages, message_parsing_errors, completion_result)|
+		match self.message_sets.remove(message_identification)
 		{
-			let has_message_parsing_errors = !message_parsing_errors.is_empty();
-			if has_message_parsing_errors
-			{
-				return Err(Left(message_parsing_errors))
-			}
+			None => Err(self),
 			
-			const DumpWasInterrupted: bool = true;
-			
-			match completion_result
-			{
-				&Ok(DumpWasInterrupted) => Ok(None),
-				
-				&Ok(false) => Ok(Some(messages)),
-				
-				&Err(ref error) => Err(Right(error)),
-			}
-		})
+			Some((processed_messages, message_parsing_errors, end_of_set_of_messages_result)) => Ok
+			(
+				{
+					let has_message_parsing_errors = !message_parsing_errors.is_empty();
+					if has_message_parsing_errors
+					{
+						Err(Left(message_parsing_errors))
+					}
+					else
+					{
+						match end_of_set_of_messages_result
+						{
+							Ok(DumpWasInterrupted) => Ok(None),
+							
+							Ok(DumpCompleted) => Ok(Some(processed_messages)),
+							
+							Err(error) => Err(Right(error)),
+						}
+					}
+				}
+			)
+		}
 	}
 }

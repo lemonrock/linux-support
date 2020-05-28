@@ -14,18 +14,24 @@ use crate::internet_protocol::*;
 use crate::process::ProcessIdentifier;
 
 
+/// libc support structures.
 pub mod c;
 
 
+/// Message flags.
 pub mod message_flags;
 
 
+/// Request.
 pub mod request;
 
 
+/// Route.
 pub mod route;
 
 
+include!("DumpCompleted.rs");
+include!("DumpWasInterrupted.rs");
 include!("MultipartMessagePartIdentification.rs");
 include!("NETLINK_ALIGN.rs");
 include!("NetlinkProtocol.rs");

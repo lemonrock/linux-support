@@ -42,6 +42,8 @@ use crate::strings::into_line_feed_terminated_byte_string::*;
 use crate::thread::*;
 use crate::time::c::tzset;
 use crate::user_and_groups::*;
+use crate::file_descriptors::netlink::NetlinkSocketFileDescriptor;
+use crate::file_descriptors::netlink::route::RouteNetlinkProtocol;
 
 
 /// Checks.

@@ -10,3 +10,21 @@ pub struct in_addr
 	/// Must a 32-bit integer in Network Endian form, not Native Endian form.
 	pub s_addr: in_addr_t,
 }
+
+impl Into<Ipv4Addr> for in_addr
+{
+	#[inline(always)]
+	fn into(self) -> Ipv4Addr
+	{
+		unsafe { transmute(self) }
+	}
+}
+
+impl Into<IpAddr> for in_addr
+{
+	#[inline(always)]
+	fn into(self) -> IpAddr
+	{
+		IpAddr::V4(self.into())
+	}
+}

@@ -6,7 +6,7 @@
 pub trait ReplyReceiver<Protocol: NetlinkProtocol>
 {
 	/// Starts of a message or messages (if multipart).
-	fn start_of_set_of_messages(&mut self, message_identification: MultipartMessagePartIdentification);
+	fn start_of_set_of_messages(&mut self, message_identification: &MultipartMessagePartIdentification);
 	
 	/// Could not start to retrieve messages (usually due to an error with recv).
 	fn could_not_start_messages(&mut self, error: io::Error);

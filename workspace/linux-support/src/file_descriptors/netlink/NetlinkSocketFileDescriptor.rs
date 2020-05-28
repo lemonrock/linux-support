@@ -46,9 +46,9 @@ impl<Protocol: NetlinkProtocol> FromRawFd for NetlinkSocketFileDescriptor<Protoc
 	#[inline(always)]
 	unsafe fn from_raw_fd(fd: RawFd) -> Self
 	{
-		let protocol: c_int = unsafe { uninitialized() };
+		let mut protocol: c_int = uninitialized();
 		let mut size = size_of::<c_int>() as u32;
-		let result = unsafe { getsockopt(fd, SOL_SOCKET, SO_PROTOCOL, &mut protocol as *mut i32 as *mut c_void, &mut size) };
+		let result = getsockopt(fd, SOL_SOCKET, SO_PROTOCOL, &mut protocol as *mut i32 as *mut c_void, &mut size);
 		if likely!(result == 0)
 		{
 			assert_eq!(protocol, Protocol::Protocol, "Protocol mismatch");
@@ -163,11 +163,10 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 		const InitialBufferSize: usize = (4 * PageSize::current().size_in_bytes().get()) as usize;
 		let mut buffer = Vec::with_capacity(InitialBufferSize);
 		
+		let mut multipart_message_identifier: Option<MultipartMessagePartIdentification> = None;
+		let mut dump_was_interrupted = DumpCompleted;
 		loop
 		{
-			let mut multipart_message_identifier: Option<MultipartMessagePartIdentification> = None;
-			let mut dump_was_interrupted = false;
-			
 			let actual_length = loop
 			{
 				let result = unsafe { recvfrom(self.as_raw_fd(), null_mut(), 0, MSG_PEEK | MSG_TRUNC, null(), null_mut()) };
@@ -268,12 +267,12 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 			let mut message_pointer = buffer.as_ptr() as *const nlmsghdr;
 			while nlmsghdr::NLMSG_OK(remaining_length, message_pointer)
 			{
-				let mut reply_message = unsafe { & * message_pointer };
+				let reply_message = unsafe { & * message_pointer };
 				
 				let multipart_message_part_identification = MultipartMessagePartIdentification::new(reply_message);
 				if multipart_message_identifier.is_none()
 				{
-					reply_receiver.start_of_set_of_messages(multipart_message_part_identification);
+					reply_receiver.start_of_set_of_messages(&multipart_message_part_identification);
 					multipart_message_identifier = Some(multipart_message_part_identification)
 				}
 				else
@@ -290,9 +289,9 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 				let is_multipart = flags.is_multipart();
 				if unlikely!(flags.was_dump_interrupted())
 				{
-					dump_was_interrupted = true;
+					dump_was_interrupted = DumpWasInterrupted;
 				}
-				let acknowledgment_required = flags.acknowledgment_required();
+				assert!(!flags.acknowledgment_required(), "Acknowledgments are not supported");
 				
 				#[inline(always)]
 				fn dump_was_interrupted_error() -> io::Result<()>
@@ -308,6 +307,7 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 						
 						reply_receiver.end_of_set_of_messages(Ok(dump_was_interrupted));
 						multipart_message_identifier = None;
+						dump_was_interrupted = DumpCompleted;
 					}
 					
 					ControlNetlinkMessageType::Error | ControlNetlinkMessageType::OverRun =>
@@ -320,16 +320,18 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 					{
 						reply_receiver.end_of_set_of_messages(Ok(dump_was_interrupted));
 						multipart_message_identifier = None;
+						dump_was_interrupted = DumpCompleted;
 					}
 					
 					_ =>
 					{
-						reply_receiver.message(Protocol::message_type(unsafe { reply_message.nlmsg_type }), reply_message.data());
+						reply_receiver.message(Protocol::message_type(reply_message.nlmsg_type), reply_message.data());
 						
 						if !is_multipart
 						{
 							reply_receiver.end_of_set_of_messages(Ok(dump_was_interrupted));
 							multipart_message_identifier = None;
+							dump_was_interrupted = DumpCompleted;
 						}
 					},
 				}

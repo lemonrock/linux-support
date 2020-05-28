@@ -82,6 +82,9 @@ pub enum ProcessConfigurationError
 	CouldNotPreventTheGrantingOfNoNewPrivileges(io::Error),
 
 	#[allow(missing_docs)]
+	CouldNotGetInternetProtocolAddressesUsingNetlink(String),
+
+	#[allow(missing_docs)]
 	CouldNotParseLinuxKernelHostName(io::Error),
 
 	#[allow(missing_docs)]
@@ -155,6 +158,8 @@ impl error::Error for ProcessConfigurationError
 			&CouldNotPreventTheGrantingOfNoNewPrivileges(ref cause) => Some(cause),
 
 			&UtcFilePathDoesNotExistOrIsNotReadable(ref cause) => Some(cause),
+
+			&CouldNotGetInternetProtocolAddressesUsingNetlink(..) => None,
 
 			&CouldNotParseLinuxKernelHostName(ref cause) => Some(cause),
 

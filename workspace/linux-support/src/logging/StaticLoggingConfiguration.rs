@@ -2,12 +2,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-static mut StaticLoggingConfiguration: StaticLoggingConfiguration = unsafe { zeroed() };
+static mut StaticLoggingConfiguration: StaticInitializedOnce<StaticLoggingConfiguration> = StaticInitializedOnce::uninitialized();
 
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 struct StaticLoggingConfiguration
 {
-	#[cfg(debug_assertions)] initialization_pattern: u8,
 	dev_path: DevPath,
 	linux_kernel_host_name: Option<LinuxKernelHostName>,
 	process_name: ProcessName,
@@ -19,15 +18,12 @@ struct StaticLoggingConfiguration
 
 impl StaticLoggingConfiguration
 {
-	#[cfg(debug_assertions)] const Initialized: u8 = 0xFF;
-	
 	fn new(dev_path: &DevPath, host_name: Option<&LinuxKernelHostName>, domain_name: Option<&LinuxKernelDomainName>, internet_protocol_addresses: &[IpAddr], private_enterprise_number: &PrivateEnterpriseNumber, process_name: &ProcessName) -> Result<Self, PrintableAsciiCharacterPushError>
 	{
 		Ok
 		(
 			Self
 			{
-				#[cfg(debug_assertions)] initialization_pattern: Self::Initialized,
 				dev_path: dev_path.clone(),
 				linux_kernel_host_name: host_name.cloned(),
 				process_name: process_name.clone(),
@@ -54,9 +50,7 @@ impl StaticLoggingConfiguration
 	#[inline(always)]
 	unsafe fn configure(self)
 	{
-		debug_assert_ne!(StaticLoggingConfiguration.initialization_pattern, Self::Initialized);
-		
-		((&mut StaticLoggingConfiguration) as *mut StaticLoggingConfiguration).write(self);
+		StaticLoggingConfiguration.initialize_once(self);
 	}
 	
 	#[inline(always)]
@@ -76,8 +70,6 @@ impl StaticLoggingConfiguration
 	#[inline(always)]
 	unsafe fn instance() -> &'static Self
 	{
-		debug_assert_eq!(StaticLoggingConfiguration.initialization_pattern, Self::Initialized);
-		
-		&StaticLoggingConfiguration
+		StaticLoggingConfiguration.value()
 	}
 }

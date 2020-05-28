@@ -4,30 +4,30 @@
 
 /// Used for `RTM_NEWLINK`, `RTM_DELLINK` and `RTM_GETLINK`.
 #[repr(C)]
-pub(crate) struct ifinfomsg
+pub struct ifinfomsg
 {
-	/// Usually `AF_UNSPEC`.
-	pub(crate) ifi_family: u8,
+	/// Often `AF_UNSPEC`.
+	pub ifi_family: u8,
 	
 	__ifi_pad: u8,
 	
 	/// Device type.
-	pub(crate) ifi_type: u16,
+	pub ifi_type: u16,
 	
 	/// `0` for unspecified.
-	pub(crate) ifi_index: i32,
+	pub ifi_index: i32,
 	
 	/// Device flags.
 	///
 	/// Flags start `IFF_*`.
-	pub(crate) ifi_flags: u32,
+	pub ifi_flags: u32,
 	
 	/// Change bit mask; currently always `0xFFFF_FFFF` (officially).
 	///
 	/// However, seems to change on interface state change: "If there is a state change it gives a finite value else it is zero".
 	///
 	/// See <https://stackoverflow.com/questions/27700208/how-to-suppress-multiple-netlink-events>.
-	pub(crate) ifi_change: u32,
+	pub ifi_change: u32,
 }
 
 impl NetlinkRequestMessageBody for ifinfomsg

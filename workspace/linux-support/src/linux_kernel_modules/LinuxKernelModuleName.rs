@@ -248,7 +248,7 @@ impl LinuxKernelModuleName
 		let name: CString = self.into();
 		const flags: c_long = O_NONBLOCK as c_long;
 
-		match unsafe { SYS::delete_module.syscall2(name.as_ptr() as usize, flags as usize) }
+		match SYS::delete_module.syscall2(name.as_ptr() as usize, flags as usize)
 		{
 			0 => Ok(true),
 			-1 => match errno().0

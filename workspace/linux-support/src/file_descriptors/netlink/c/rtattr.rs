@@ -6,7 +6,7 @@
 ///
 /// Followed by attribute value.
 #[repr(C)]
-pub(crate) struct rtattr
+pub struct rtattr
 {
 	rta_len: u16,
 	
@@ -49,7 +49,7 @@ pub(crate) struct rtattr
 impl rtattr
 {
 	#[inline(always)]
-	pub(super) fn get_attribute_value_link_unspecified(&self) -> &[u8]
+	pub fn get_attribute_value_link_unspecified(&self) -> &[u8]
 	{
 		debug_assert_eq!(self.rta_type, IFLA_UNSPEC);
 		
@@ -57,7 +57,7 @@ impl rtattr
 	}
 	
 	#[inline(always)]
-	pub(super) fn get_attribute_value_layer_2_address(&self) -> &[u8]
+	pub fn get_attribute_value_layer_2_address(&self) -> &[u8]
 	{
 		debug_assert_eq!(self.rta_type, IFLA_ADDRESS);
 		
@@ -65,7 +65,7 @@ impl rtattr
 	}
 	
 	#[inline(always)]
-	pub(super) fn get_attribute_value_layer_2_broadcast_address(&self) -> &[u8]
+	pub fn get_attribute_value_layer_2_broadcast_address(&self) -> &[u8]
 	{
 		debug_assert_eq!(self.rta_type, IFLA_BROADCAST);
 		
@@ -74,7 +74,7 @@ impl rtattr
 	
 	/// Maximum Transmission Unit (MTU).
 	#[inline(always)]
-	pub(super) fn get_attribute_value_maximum_transmission_unit(&self) -> Result<u32, TryFromSliceError>
+	pub fn get_attribute_value_maximum_transmission_unit(&self) -> Result<u32, TryFromSliceError>
 	{
 		debug_assert_eq!(self.rta_type, IFLA_MTU);
 		
@@ -83,7 +83,7 @@ impl rtattr
 	
 	/// Device name (interface name).
 	#[inline(always)]
-	pub(super) fn get_attribute_value_device_name(&self) -> Result<InterfaceName, String>
+	pub fn get_attribute_value_device_name(&self) -> Result<InterfaceName, String>
 	{
 		debug_assert_eq!(self.rta_type, IFLA_IFNAME);
 		
@@ -92,7 +92,7 @@ impl rtattr
 	
 	/// Link type.
 	#[inline(always)]
-	pub(super) fn get_attribute_value_link_type(&self) -> Result<i32, TryFromSliceError>
+	pub fn get_attribute_value_link_type(&self) -> Result<i32, TryFromSliceError>
 	{
 		debug_assert_eq!(self.rta_type, IFLA_LINK);
 		
@@ -101,7 +101,7 @@ impl rtattr
 	
 	/// Queueing discipline.
 	#[inline(always)]
-	pub(super) fn get_attribute_value_queueing_discipline(&self) -> Result<&CStr, FromBytesWithNulError>
+	pub fn get_attribute_value_queueing_discipline(&self) -> Result<&CStr, FromBytesWithNulError>
 	{
 		debug_assert_eq!(self.rta_type, IFLA_QDISC);
 		
@@ -109,7 +109,7 @@ impl rtattr
 	}
 	
 	#[inline(always)]
-	pub(super) fn get_attribute_value_interface_statistics(&self) -> Result<&rtnl_link_stats64, &'static str>
+	pub fn get_attribute_value_interface_statistics(&self) -> Result<&rtnl_link_stats64, &'static str>
 	{
 		debug_assert_eq!(self.rta_type, IFLA_STATS);
 		
@@ -145,6 +145,7 @@ impl rtattr
 /// See Linux header `if_addr.h`.
 impl rtattr
 {
+	#[allow(dead_code)]
 	#[inline(always)]
 	pub(super) fn get_attribute_value_address_unspecified(&self) -> &[u8]
 	{
@@ -305,12 +306,6 @@ impl rtattr
 		unsafe { from_raw_parts(self.RTA_DATA(), self.RTA_PAYLOAD()) }
 	}
 	
-	#[inline(always)]
-	pub(super) fn attribute_value_mut(&mut self) -> &[u8]
-	{
-		unsafe { from_raw_parts_mut(self.RTA_DATA() as *mut u8, self.RTA_PAYLOAD()) }
-	}
-	
 	const RTA_ALIGNTO: usize = 4;
 	
 	const RTA_HDRLEN: usize = size_of::<Self>();
@@ -328,6 +323,7 @@ impl rtattr
 	}
 	
 	#[inline(always)]
+	#[allow(dead_code)]
 	const fn RTA_SPACE(length: usize) -> usize
 	{
 		Self::RTA_ALIGN(Self::RTA_LENGTH(length))
@@ -335,18 +331,20 @@ impl rtattr
 	
 	/// Pointer to start of payload.
 	#[inline(always)]
-	const fn RTA_DATA(&self) -> *const u8
+	fn RTA_DATA(&self) -> *const u8
 	{
 		unsafe { (self as *const Self as *const u8).add(Self::RTA_LENGTH(0)) }
 	}
 	
 	#[inline(always)]
+	#[allow(dead_code)]
 	fn RTA_DATALEN(&self) -> usize
 	{
 		self.length() - Self::RTA_HDRLEN
 	}
 	
 	#[inline(always)]
+	#[allow(dead_code)]
 	fn RTA_DATAEND(&self) -> *const u8
 	{
 		unsafe { (self as *const Self as *const u8).add(self.length()) }
@@ -360,6 +358,7 @@ impl rtattr
 	}
 	
 	#[inline(always)]
+	#[allow(dead_code)]
 	fn RTA_OK(remaining_length: usize, might_be_invalid_pointer: *const Self) -> bool
 	{
 		if remaining_length < Self::RTA_HDRLEN
@@ -373,6 +372,7 @@ impl rtattr
 	}
 	
 	#[inline(always)]
+	#[allow(dead_code)]
 	fn RTA_NEXT(&self, remaining_length: &mut usize) -> *const Self
 	{
 		let length = Self::RTA_ALIGN(self.length());
@@ -394,11 +394,12 @@ impl rtattr
 	#[inline(always)]
 	pub(crate) const fn ok(this: *const Self, end: usize) -> bool
 	{
-		(end - (this as usize)) >= Self::RTA_HDRLEN
+		(end - (unsafe { this as usize })) >= Self::RTA_HDRLEN
 	}
 	
 	/// `NLMSG_RTAOK` in `musl`.
 	#[inline(always)]
+	#[allow(dead_code)]
 	pub(crate) fn NLMSG_RTAOK(this: *const Self, header: &nlmsghdr) -> bool
 	{
 		Self::ok(this, header.NLMSG_DATALEN())

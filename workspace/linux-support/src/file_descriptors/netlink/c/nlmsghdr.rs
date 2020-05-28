@@ -4,7 +4,7 @@
 
 /// See also <https://linux-hacks.blogspot.com/2009/01/sample-code-to-learn-netlink.html>.
 #[repr(C)]
-pub(super) struct nlmsghdr
+pub(crate) struct nlmsghdr
 {
 	pub(super) nlmsg_len: u32,
 	
@@ -88,12 +88,14 @@ impl nlmsghdr
 		unsafe { (self as *const Self as *const u8).add(Self::NLMSG_LENGTH(0)) }
 	}
 	
+	#[allow(dead_code)]
 	#[inline(always)]
 	fn NLMSG_DATALEN(&self) -> usize
 	{
 		self.length() - Self::NLMSG_HDRLEN
 	}
 	
+	#[allow(dead_code)]
 	#[inline(always)]
 	fn NLMSG_DATAEND(&self) -> *const u8
 	{
@@ -106,6 +108,7 @@ impl nlmsghdr
 		self.length() - Self::NLMSG_SPACE(0)
 	}
 	
+	#[allow(dead_code)]
 	#[inline(always)]
 	pub(crate) fn NLMSG_RTA(&self, length: usize) -> *const rtattr
 	{

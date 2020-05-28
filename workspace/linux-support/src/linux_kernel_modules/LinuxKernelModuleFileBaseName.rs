@@ -67,7 +67,7 @@ impl LinuxKernelModuleFileBaseName
 
 		use crate::ErrorKind::*;
 		
-		match unsafe { SYS::finit_module.syscall3( file_descriptor as usize, options.as_ptr() as usize, flags as usize) }
+		match SYS::finit_module.syscall3( file_descriptor as usize, options.as_ptr() as usize, flags as usize)
 		{
 			0 => Ok(true),
 

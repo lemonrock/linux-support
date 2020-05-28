@@ -35,12 +35,6 @@ impl<IPA: InternetProtocolAddress> RouteMessageProcessor for GetAddressRouteMess
 		}
 		
 		#[inline(always)]
-		fn set_field<Field, F: FnOnce(&rtattr) -> Field>(field: &mut Option<Field>, message_attribute: &rtattr, attribute: F) -> Result<(), String>
-		{
-			set_field_error::<Field, Infallible, _>(field, message_attribute, |message_attribute| Ok(attribute(message_attribute)))
-		}
-		
-		#[inline(always)]
 		fn set_field_error<Field, Error: ToString, F: FnOnce(&rtattr) -> Result<Field, Error>>(field: &mut Option<Field>, message_attribute: &rtattr, attribute: F) -> Result<(), String>
 		{
 			if field.is_some()

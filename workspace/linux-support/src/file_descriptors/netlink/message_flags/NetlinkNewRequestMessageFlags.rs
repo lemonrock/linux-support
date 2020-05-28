@@ -5,7 +5,7 @@
 bitflags!
 {
 	/// Netlink new (or set) request message flags.
-	pub(super) struct NetlinkNewRequestMessageFlags: u16
+	pub struct NetlinkNewRequestMessageFlags: u16
 	{
 		/// New Request: Override existing.
 		const Replace = NLM_F_REPLACE as u16;

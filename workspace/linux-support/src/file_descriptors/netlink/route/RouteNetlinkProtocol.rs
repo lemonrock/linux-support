@@ -45,19 +45,45 @@ impl NetlinkProtocol for RouteNetlinkProtocol
 
 impl RouteNetlinkProtocol
 {
-	/// Get internet protocol addresses.
+	/// Get Internet Protocol version 4 addresses.
 	///
 	/// This is ***SLOW***.
-	pub fn get_internet_protocol_addresses<IPA: InternetProtocolAddress>(socket: &NetlinkSocketFileDescriptor<Self>) -> Option<Result<Option<&Vec<GetAddressMessageData<IPA>>>, Either<&Vec<String>, &io::Error>>>
+	pub fn get_internet_protocol_version_4_addresses(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>) -> Result<Vec<GetAddressMessageData<in_addr>>, String>
 	{
-		let mut request = RouteNetlinkProtocol::new_route_get_internet_protocol_addresses_message::<IPA>();
-		let sequence_number = socket.send_request(&mut request).expect("Send a request");
-		
-		static RouteMessageProcessor: GetAddressRouteMessageProcessor<IPA> = GetAddressRouteMessageProcessor::<IPA>(PhantomData);
-		
-		let mut reply_receiver = RouteReplyReceiver::new(&RouteMessageProcessor);
-		socket.receive_replies(&mut reply_receiver);
-		reply_receiver.messages(&MultipartMessagePartIdentification::from_linux_kernel(sequence_number))
+		static RouteMessageProcessor: GetAddressRouteMessageProcessor<in_addr> = GetAddressRouteMessageProcessor(PhantomData);
+		Self::get_internet_protocol_addresses(netlink_socket_file_descriptor, &RouteMessageProcessor)
+	}
+	
+	/// Get Internet Protocol version 6 addresses.
+	///
+	/// This is ***SLOW***.
+	pub fn get_internet_protocol_version_6_addresses(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>) -> Result<Vec<GetAddressMessageData<in6_addr>>, String>
+	{
+		static RouteMessageProcessor: GetAddressRouteMessageProcessor<in6_addr> = GetAddressRouteMessageProcessor(PhantomData);
+		Self::get_internet_protocol_addresses(netlink_socket_file_descriptor, &RouteMessageProcessor)
+	}
+	
+	#[inline(always)]
+	fn get_internet_protocol_addresses<IPA: InternetProtocolAddress>(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, route_message_processor: &'static GetAddressRouteMessageProcessor<IPA>) -> Result<Vec<GetAddressMessageData<IPA>>, String>
+	{
+		loop
+		{
+			let mut request = RouteNetlinkProtocol::new_route_get_internet_protocol_addresses_message::<IPA>();
+			let sequence_number = netlink_socket_file_descriptor.send_request(&mut request).expect("Send a request");
+			
+			let message_identification = MultipartMessagePartIdentification::from_linux_kernel(sequence_number);
+			
+			match Self::try_receiving_until_get_something(netlink_socket_file_descriptor, route_message_processor, &message_identification)
+			{
+				Ok(None) => continue,
+				
+				Ok(Some(processed_messages)) => return Ok(processed_messages),
+				
+				Err(Left(messaging_parsing_errors)) => return Err(format!("Message parsing errors {:?}", messaging_parsing_errors)),
+				
+				Err(Right(end_of_set_of_messages_error)) => return Err(format!("End of set of messages errors {:?}", end_of_set_of_messages_error)),
+			}
+		}
 	}
 	
 	#[inline(always)]
@@ -67,6 +93,7 @@ impl RouteNetlinkProtocol
 	}
 	
 	#[inline(always)]
+	#[allow(dead_code)]
 	fn new_route_get_all_addresses_message() -> NetlinkRequestMessage<ifaddrmsg>
 	{
 		Self::new_route_get_addresses_message(AF_UNSPEC as u8)
@@ -89,5 +116,29 @@ impl RouteNetlinkProtocol
 			ifa_scope: unsafe { zeroed() },
 		};
 		Self::new_get_request_message(RouteNetlinkMessageType::GETADDR, NetlinkGetRequestMessageFlags::Dump, body)
+	}
+	
+	
+	// TODO: Not sure we need to try receiving more than once but nothing about netlink seems obvious.
+	fn try_receiving_until_get_something<IPA: InternetProtocolAddress>(netlink_socket_file_descriptor: &NetlinkSocketFileDescriptor<Self>, route_message_processor: &'static GetAddressRouteMessageProcessor<IPA>, message_identification: &MultipartMessagePartIdentification) -> Result<Option<Vec<GetAddressMessageData<IPA>>>, Either<Vec<String>, io::Error>>
+	{
+		let mut reply_receiver = RouteReplyReceiver::new(route_message_processor);
+		 loop
+		{
+			netlink_socket_file_descriptor.receive_replies(&mut reply_receiver);
+			
+			reply_receiver.panic_if_has_could_not_start_messages_errors();
+			
+			match reply_receiver.messages(message_identification)
+			{
+				Err(reply_receiver_again) =>
+				{
+					reply_receiver = reply_receiver_again;
+					continue
+				}
+				
+				Ok(something) => return something,
+			}
+		}
 	}
 }

@@ -7,7 +7,7 @@
 /// Documentation is as per Linux header `if_link.h`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(C)]
-struct rtnl_link_stats64
+pub struct rtnl_link_stats64
 {
 	/// total packets received.
 	pub rx_packets: u64,

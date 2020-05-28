@@ -8,5 +8,6 @@ pub struct InterfaceName(pub ArrayVec<[u8; Self::InterfaceNameSize]>);
 
 impl InterfaceName
 {
+	/// Maximum inclusive interface name size.
 	pub const InterfaceNameSize: usize = IF_NAMESIZE - 1;
 }

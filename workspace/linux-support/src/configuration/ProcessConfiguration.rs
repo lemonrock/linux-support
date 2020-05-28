@@ -165,23 +165,7 @@ impl ProcessConfiguration
 		}
 		
 		// This *MUST* be called before creating `ParsedPanicErrorLoggerProcessLoggingConfiguration` and thus `SimpleTerminate`.
-		{
-			// This
-			// TODO: getnameinfo()
-			// TODO: getifaddrs()
-			
-			// Interesting problem
-			let internet_protocol_addresses = xxxx;
-			
-			let host_name = LinuxKernelHostName::new(proc_path).map_err(CouldNotParseLinuxKernelHostName)?;
-			let domain_name = LinuxKernelDomainName::new(proc_path).map_err(CouldNotParseLinuxKernelDomainName)?;
-			self.logging_configuration.configure_logging(dev_path, !run_as_daemon, &internet_protocol_addresses, host_name.as_ref(), domain_name.as_ref(), &self.name);
-			
-			if run_as_daemon
-			{
-				self.logging_configuration.redirect_FILE_standard_out_and_file_standard_error_to_log(host_name.as_ref(), &self.name);
-			}
-		}
+		self.configure_logging(dev_path, proc_path, run_as_daemon)?;
 		
 		let terminate = SimpleTerminate::new(ParsedPanicErrorLoggerProcessLoggingConfiguration);
 
@@ -213,6 +197,52 @@ impl ProcessConfiguration
 		no_new_privileges().map_err(CouldNotPreventTheGrantingOfNoNewPrivileges)?;
 
 		Ok(terminate)
+	}
+	
+	fn configure_logging(&self, dev_path: &DevPath, proc_path: &ProcPath, run_as_daemon: bool) -> Result<(), ProcessConfigurationError>
+	{
+		use self::ProcessConfigurationError::*;
+		
+		let internet_protocol_addresses = Self::get_internet_protocol_addresses_using_netlink().map_err(|cause| CouldNotGetInternetProtocolAddressesUsingNetlink(cause))?;
+		let host_name = LinuxKernelHostName::new(proc_path).map_err(CouldNotParseLinuxKernelHostName)?;
+		let domain_name = LinuxKernelDomainName::new(proc_path).map_err(CouldNotParseLinuxKernelDomainName)?;
+		self.logging_configuration.configure_logging(dev_path, !run_as_daemon, &internet_protocol_addresses, host_name.as_ref(), domain_name.as_ref(), &self.name);
+		
+		if run_as_daemon
+		{
+			self.logging_configuration.redirect_FILE_standard_out_and_file_standard_error_to_log(host_name.as_ref(), &self.name);
+		}
+		
+		Ok(())
+	}
+	
+	fn get_internet_protocol_addresses_using_netlink() -> Result<Vec<IpAddr>, String>
+	{
+		let mut internet_protocol_addresses = Vec::new();
+		
+		let mut netlink_socket_file_descriptor = NetlinkSocketFileDescriptor::open().map_err(|cause| cause.to_string())?;
+		
+		for entry in RouteNetlinkProtocol::get_internet_protocol_version_4_addresses(&mut netlink_socket_file_descriptor)?
+		{
+			match entry.local_address_and_destination_address_for_point_to_point()
+			{
+				None => (),
+				Some((Left(address), _)) => internet_protocol_addresses.push((*address).into()),
+				Some((Right(address), _)) => internet_protocol_addresses.push(address.into()),
+			}
+		}
+		
+		for entry in RouteNetlinkProtocol::get_internet_protocol_version_6_addresses(&mut netlink_socket_file_descriptor)?
+		{
+			match entry.local_address_and_destination_address_for_point_to_point()
+			{
+				None => (),
+				Some((Left(address), _)) => internet_protocol_addresses.push((*address).into()),
+				Some((Right(address), _)) => internet_protocol_addresses.push(address.into()),
+			}
+		}
+		
+		Ok(internet_protocol_addresses)
 	}
 
 	#[inline(always)]

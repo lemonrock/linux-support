@@ -5,7 +5,7 @@
 bitflags!
 {
 	/// Netlink get request message flags.
-	pub(super) struct NetlinkGetRequestMessageFlags: u16
+	pub struct NetlinkGetRequestMessageFlags: u16
 	{
 		/// Get Request: specify tree root.
 		const Root = NLM_F_ROOT as u16;
