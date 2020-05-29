@@ -30,15 +30,15 @@ impl ProcessExecutor
 	/// Should *ALWAYS* be called after `ProcessConfiguration.configure*()`.
 	///
 	/// `terminate` should be the value returned from `ProcessConfiguration.configure*()`.
-	pub fn execute_securely<T: Terminate + 'static, MTF: ThreadFunction, CTF: ThreadFunction>(&self, proc_path: &ProcPath, etc_path: &EtcPath, terminate: &Arc<T>, main_thread: (&ThreadConfiguration, MTF), child_threads: Vec<(&ThreadConfiguration, CTF)>) -> Result<(), ProcessExecutorError>
+	pub fn execute_securely<T: Terminate + 'static, MTF: ThreadFunction, CTF: ThreadFunction, PTMAI: PerThreadMemoryAllocatorInstantiator>(&self, proc_path: &ProcPath, etc_path: &EtcPath, terminate: &Arc<T>, main_thread: (&ThreadConfiguration<PTMAI>, MTF), child_threads: Vec<(&ThreadConfiguration<PTMAI>, CTF)>, instantiation_arguments: Arc<PTMAI::InstantiationArguments>) -> Result<(), ProcessExecutorError>
 	{
-		let (join_handles, main_thread_loop_function) = self.prepare_and_secure_threads(proc_path, etc_path, terminate, main_thread, child_threads)?;
-
-		Self::execute(join_handles, main_thread_loop_function, terminate)
+		let (join_handles, main_thread_loop_function, thread_local_allocator) = self.prepare_and_secure_threads(proc_path, etc_path, terminate, main_thread, child_threads, instantiation_arguments)?;
+		
+		Self::execute(join_handles, main_thread_loop_function, terminate, thread_local_allocator)
 	}
 
 	#[inline(always)]
-	fn execute(join_handles: JoinHandles, mut main_thread_loop_function: impl ThreadLoopBodyFunction, terminate: &Arc<impl Terminate + 'static>) -> Result<(), ProcessExecutorError>
+	fn execute<TLA: Sized>(join_handles: JoinHandles, mut main_thread_loop_function: impl ThreadLoopBodyFunction, terminate: &Arc<impl Terminate + 'static>, thread_local_allocator: TLA) -> Result<(), ProcessExecutorError>
 	{
 		let terminate = terminate.clone();
 
@@ -51,6 +51,8 @@ impl ProcessExecutor
 		drop(main_thread_loop_function);
 		join_handles.join();
 
+		drop(thread_local_allocator);
+		
 		if terminate.terminated_due_to_panic_or_irrecoverable_error()
 		{
 			Err(ProcessExecutorError::TerminatedDueToPanicOrIrrecoverableError)
@@ -62,14 +64,14 @@ impl ProcessExecutor
 	}
 
 	#[inline(always)]
-	fn prepare_and_secure_threads<T: Terminate + 'static, MTF: ThreadFunction, CTF: ThreadFunction>(&self, proc_path: &ProcPath, etc_path: &EtcPath, terminate: &Arc<T>, (main_thread_configuration, main_thread_function): (&ThreadConfiguration, MTF), child_threads: Vec<(&ThreadConfiguration, CTF)>) -> Result<(JoinHandles, MTF::TLBF), ProcessExecutorError>
+	fn prepare_and_secure_threads<T: Terminate + 'static, MTF: ThreadFunction, CTF: ThreadFunction, PTMAI: PerThreadMemoryAllocatorInstantiator>(&self, proc_path: &ProcPath, etc_path: &EtcPath, terminate: &Arc<T>, (main_thread_configuration, main_thread_function): (&ThreadConfiguration<PTMAI>, MTF), child_threads: Vec<(&ThreadConfiguration<PTMAI>, CTF)>, instantiation_arguments: Arc<PTMAI::InstantiationArguments>) -> Result<(JoinHandles, MTF::TLBF, PTMAI::ThreadDropGuard), ProcessExecutorError>
 	{
 		#[inline(always)]
-		fn ok_or<T: Terminate + 'static, Error>(result: Result<(), Error>, terminate: &Arc<T>, join_handles: JoinHandles, map_err: impl FnOnce(Error) -> ProcessExecutorError) -> Result<JoinHandles, ProcessExecutorError>
+		fn ok_or<T: Terminate + 'static, A, Error>(result: Result<A, Error>, terminate: &Arc<T>, join_handles: JoinHandles, map_err: impl FnOnce(Error) -> ProcessExecutorError) -> Result<(JoinHandles, A), ProcessExecutorError>
 		{
 			match result
 			{
-				Ok(()) => Ok(join_handles),
+				Ok(a) => Ok((join_handles, a)),
 				Err(error) =>
 				{
 					terminate.clone().begin_termination();
@@ -81,17 +83,17 @@ impl ProcessExecutor
 
 		use self::ProcessExecutorError::*;
 
-		let (join_handles, result) = JoinHandles::main_thread_spawn_child_threads(child_threads, terminate, proc_path);
-		let join_handles = ok_or(result, terminate, join_handles, CouldNotConfigureChildThreads)?;
+		let (join_handles, result) = JoinHandles::main_thread_spawn_child_threads(child_threads, terminate, &instantiation_arguments, proc_path);
+		let (join_handles, _) = ok_or(result, terminate, join_handles, CouldNotConfigureChildThreads)?;
 
-		let mut join_handles = ok_or(main_thread_configuration.configure_main_thread(), terminate, join_handles, CouldNotConfigureMainThread)?;
+		let (mut join_handles, thread_local_allocator) = ok_or(main_thread_configuration.configure_main_thread(instantiation_arguments, proc_path), terminate, join_handles, CouldNotConfigureMainThread)?;
 		join_handles.release_configured();
 
 		let main_thread_loop_function = main_thread_function.initialize();
-		let mut join_handles = ok_or(self.apply_security(etc_path), terminate, join_handles, |error| error)?;
+		let (mut join_handles, _) = ok_or(self.apply_security(etc_path), terminate, join_handles, |error| error)?;
 		join_handles.release_seccomp_applied_and_setuid_et_al_done();
 
-		Ok((join_handles, main_thread_loop_function))
+		Ok((join_handles, main_thread_loop_function, thread_local_allocator))
 	}
 
 	#[inline(always)]

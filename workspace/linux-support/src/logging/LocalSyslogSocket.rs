@@ -12,6 +12,7 @@ pub struct LocalSyslogSocket
 	is_connected: Cell<bool>,
 	buffer: Vec<u8>,
 	socket_file_path: PathBuf,
+	log_messages_have_been_truncated: bool,
 }
 
 impl LocalSyslogSocket
@@ -39,7 +40,7 @@ impl LocalSyslogSocket
 	/// New.
 	fn new(configuration: &StaticLoggingConfiguration) -> Result<Self, NewSocketClientError>
 	{
-		let socket_file_path = configuration.dev_path.file_path("/dev/log");
+		let socket_file_path = configuration.dev_path.file_path("log");
 		Ok
 		(
 			Self
@@ -48,12 +49,12 @@ impl LocalSyslogSocket
 				is_connected: Cell::new(true),
 				buffer:
 				{
-					const Size: usize = 4096;
-					let mut buffer = Vec::with_capacity(Size);
-					unsafe { buffer.set_len(Size) };
+					let mut buffer = Vec::with_capacity(configuration.logging_buffer_size.get());
+					unsafe { buffer.set_len(buffer.capacity()) };
 					buffer
 				},
 				socket_file_path,
+				log_messages_have_been_truncated: false,
 			}
 		)
 	}
@@ -69,26 +70,22 @@ impl LocalSyslogSocket
 			}
 		}
 		
-		let timestamp = Utc::now();
-		let length = message_template.format(&mut self.buffer[..], timestamp, message);
+		let buffer_length = self.write_message_to_buffer(message_template, message);
 		
-		self.buffer[length] = b'\n';
-		let original_length = length + 1;
-		
-		let mut buffer = &self.buffer[ .. original_length];
+		let mut buffer = &self.buffer[ ..buffer_length];
 		loop
 		{
 			use crate::ErrorKind::*;
 			
 			match self.socket_file_descriptor.send(buffer, SendFlags::empty())
 			{
-				Ok(length_sent) => if likely!(length == length_sent)
+				Ok(length_sent) => if likely!(buffer_length == length_sent)
 				{
 					return Ok(())
 				}
 				else
 				{
-					debug_assert!(length_sent < original_length);
+					debug_assert!(length_sent < buffer_length);
 					buffer = &buffer[length_sent .. ];
 					continue
 				},
@@ -109,7 +106,7 @@ impl LocalSyslogSocket
 						{
 							return Err("PermissionDenied and could not reconnect")
 						}
-						if buffer.len() != original_length
+						if buffer.len() != buffer_length
 						{
 							return Err("PermissionDenied, reconnected but partial log message send has occurred")
 						}
@@ -124,7 +121,7 @@ impl LocalSyslogSocket
 						{
 							return Err("Errored and could not reconnect")
 						}
-						if buffer.len() != original_length
+						if buffer.len() != buffer_length
 						{
 							return Err("Errored, reconnected but partial log message send has occurred")
 						}
@@ -133,6 +130,33 @@ impl LocalSyslogSocket
 				}
 			}
 		}
+	}
+	
+	#[inline(always)]
+	fn write_message_to_buffer(&mut self, message_template: &impl MessageTemplate, message: &str) -> usize
+	{
+		let timestamp = Utc::now();
+		
+		let written_length =
+		{
+			let reserve_space_for_terminal_line_feed = self.buffer.len() - 1;
+			let (written_length, truncated) = message_template.format(&mut self.buffer[..reserve_space_for_terminal_line_feed], timestamp, message);
+			if unlikely!(truncated)
+			{
+				self.log_messages_have_been_truncated = truncated;
+			}
+			written_length
+		};
+		
+		self.write_terminal_line_feed_to_buffer(written_length)
+	}
+	
+	#[inline(always)]
+	fn write_terminal_line_feed_to_buffer(&mut self, written_length: usize) -> usize
+	{
+		const LineFeed: u8 = b'\n';
+		unsafe { * self.buffer.get_unchecked_mut(written_length) = LineFeed };
+		written_length + 1
 	}
 	
 	#[inline(always)]

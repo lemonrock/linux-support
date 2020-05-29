@@ -17,10 +17,12 @@ use crate::scheduling::Nice;
 use crate::scheduling::PerThreadSchedulerPolicyAndFlags;
 use crate::strings::parse_number::*;
 use crate::syscall::SYS::gettid;
+use crate::memory::mapping::MemoryMapError;
 
 
 include!("configure_global_panic_hook.rs");
 include!("JoinHandles.rs");
+include!("PerThreadMemoryAllocatorInstantiator.rs");
 include!("SimpleBarrier.rs");
 include!("ThreadCapabilitiesConfiguration.rs");
 include!("ThreadCapabilitiesConfigurationError.rs");

@@ -12,7 +12,7 @@ pub struct Rfc3164MessageTemplate
 impl MessageTemplate for Rfc3164MessageTemplate
 {
 	#[inline(always)]
-	fn format(&self, buffer: &mut [u8], timestamp: DateTime<Utc>, message: &str) -> usize
+	fn format(&self, buffer: &mut [u8], timestamp: DateTime<Utc>, message: &str) -> (usize, bool)
 	{
 		let timestamp_month = match timestamp.month()
 		{
@@ -37,16 +37,16 @@ impl MessageTemplate for Rfc3164MessageTemplate
 		
 		let start_pointer = buffer.as_mut_ptr();
 		let mut write_to = start_pointer;
-		let written_length = unsafe
+		unsafe
 		{
 			let end_pointer = write_to.add(buffer.len());
 			write_to = write_slice_unchecked(write_to, &self.before_timestamp[..], end_pointer);
 			write_to = write_slice_unchecked(write_to, &timestamp_bytes[..], end_pointer);
 			write_to = write_slice_unchecked(write_to, &self.after_timestamp[..], end_pointer);
-			write_to = write_slice_truncated(write_to, message.as_bytes(), end_pointer);
-			(write_to as usize) - (start_pointer as usize)
-		};
-		written_length
+			let (write_to, truncated) = write_message_with_line_feed_escaped_truncated(write_to, message, end_pointer);
+			let written_length = (write_to as usize) - (start_pointer as usize);
+			(written_length, truncated)
+		}
 	}
 }
 

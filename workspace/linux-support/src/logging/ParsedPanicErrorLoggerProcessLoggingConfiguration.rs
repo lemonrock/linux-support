@@ -7,7 +7,6 @@ pub(crate) struct ParsedPanicErrorLoggerProcessLoggingConfiguration;
 
 impl ParsedPanicErrorLogger for ParsedPanicErrorLoggerProcessLoggingConfiguration
 {
-	/// NOTE: Using `syslog()` takes a hit of calling the `getpid()` system call and then the `send()` system call for every log message.
 	#[inline(always)]
 	fn log(&self, parsed_panic: ParsedPanic)
 	{

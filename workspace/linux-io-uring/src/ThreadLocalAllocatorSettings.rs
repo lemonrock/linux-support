@@ -4,35 +4,61 @@
 
 /// Thread local allocator settings.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct ThreadLocalAllocatorSettings
+#[derive(Deserialize, Serialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct ThreadLocalAllocatorSettings<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>>
 {
 	heap_size: NonZeroU64,
 	inclusive_maximum_bytes_wasted: u64,
 	strict_numa_memory_policy: bool,
 	block_size_hint: NonZeroUsize,
+	#[serde(skip)] marker: PhantomData<(HeapSize, GTACSA)>,
 }
 
-impl ThreadLocalAllocatorSettings
+impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>> Default for ThreadLocalAllocatorSettings<HeapSize, GTACSA>
 {
-	fn setup<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>>(&self, defaults: &DefaultPageSizeAndHugePageSizes, global_allocator: &'static GTACSA) -> Result<(), MemoryMapError>
+	#[inline(always)]
+	fn default() -> Self
 	{
+		Self
+		{
+			heap_size: unsafe { NonZeroU64::new_unchecked(1024 * 1024 * 1024) },
+			inclusive_maximum_bytes_wasted: 0,
+			strict_numa_memory_policy: false,
+			block_size_hint: unsafe { NonZeroU64::new_unchecked(64) },
+			marker: PhantomData,
+		}
+	}
+}
+
+impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>> PerThreadMemoryAllocatorInstantiator for ThreadLocalAllocatorSettings<HeapSize, GTACSA>
+{
+	type InstantiationArguments = (DefaultPageSizeAndHugePageSizes, &'static GTACSA);
+	
+	type ThreadDropGuard = ThreadLocalAllocatorSettingsDropGuard<HeapSize, GTACSA>;
+	
+	/// Instantiate.
+	fn instantiate(&self, instantiation_arguments: Arc<Self::InstantiationArguments>) -> Result<Self::ThreadDropGuard, MemoryMapError>
+	{
+		let (defaults, global_allocator) = instantiation_arguments.as_ref();
+		let global_allocator = *global_allocator;
+		
 		let huge_memory_page_size = defaults.best_fit_huge_page_size_if_any(self.heap_size.get(), self.inclusive_maximum_bytes_wasted).map(|huge_page_size| Some(huge_page_size));
 		
 		let numa_memory_policy =
+		{
+			use self::MemoryAdvice::*;
+			use self::SetMemoryPolicyStrictness::*;
+			
+			if self.strict_numa_memory_policy
 			{
-				use self::MemoryAdvice::*;
-				use self::SetMemoryPolicyStrictness::*;
-				
-				if self.strict_numa_memory_policy
-				{
-					Some((SetMemoryPolicy::Local, JustSetPolicy))
-				}
-				else
-				{
-					Some((SetMemoryPolicy::BindCurrent(), SetPolicyAndMovePagesOrFail))
-				}
-			};
-		
+				Some((SetMemoryPolicy::BindCurrent(), SetPolicyAndMovePagesOrFail))
+			}
+			else
+			{
+				Some((SetMemoryPolicy::Local, JustSetPolicy))
+			}
+		};
 		
 		let thread_allocator_memory_settings = MappedMemorySettings
 		{
@@ -53,6 +79,7 @@ impl ThreadLocalAllocatorSettings
 		let memory_source = MemoryMapSource::new(self.heap_size, thread_allocator_memory_settings, defaults)?;
 		let thread_local_allocator = GTACSA::ThreadLocalAllocator::new_local_allocator(memory_source, LifetimeHint::LongLived, self.block_size_hint);
 		global_allocator.initialize_thread_local_allocator(thread_local_allocator);
-		Ok(())
+		
+		Ok(ThreadLocalAllocatorSettingsDropGuard(global_allocator))
 	}
 }

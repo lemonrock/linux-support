@@ -7,6 +7,6 @@ pub trait MessageTemplate
 {
 	/// Writes a message to a `buffer` with the `timestamp` and `message`.
 	///
-	/// Returns the length written.
-	fn format(&self, buffer: &mut [u8], timestamp: DateTime<Utc>, message: &str) -> usize;
+	/// Returns the length written and whether the message was truncated.
+	fn format(&self, buffer: &mut [u8], timestamp: DateTime<Utc>, message: &str) -> (usize, bool);
 }

@@ -7,6 +7,7 @@ static mut StaticLoggingConfiguration: StaticInitializedOnce<StaticLoggingConfig
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 struct StaticLoggingConfiguration
 {
+	logging_buffer_size: NonZeroUsize,
 	dev_path: DevPath,
 	linux_kernel_host_name: Option<LinuxKernelHostName>,
 	process_name: ProcessName,
@@ -18,12 +19,13 @@ struct StaticLoggingConfiguration
 
 impl StaticLoggingConfiguration
 {
-	fn new(dev_path: &DevPath, host_name: Option<&LinuxKernelHostName>, domain_name: Option<&LinuxKernelDomainName>, internet_protocol_addresses: &[IpAddr], private_enterprise_number: &PrivateEnterpriseNumber, process_name: &ProcessName) -> Result<Self, PrintableAsciiCharacterPushError>
+	fn new(logging_buffer_size: NonZeroUsize, dev_path: &DevPath, host_name: Option<&LinuxKernelHostName>, domain_name: Option<&LinuxKernelDomainName>, internet_protocol_addresses: &[IpAddr], private_enterprise_number: &PrivateEnterpriseNumber, process_name: &ProcessName) -> Result<Self, PrintableAsciiCharacterPushError>
 	{
 		Ok
 		(
 			Self
 			{
+				logging_buffer_size,
 				dev_path: dev_path.clone(),
 				linux_kernel_host_name: host_name.cloned(),
 				process_name: process_name.clone(),

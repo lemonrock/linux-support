@@ -80,4 +80,5 @@ include!("IoUringSetupError.rs");
 include!("ThreadLoopInitiation.rs");
 include!("ThreadLoopInitializationError.rs");
 include!("ThreadLocalAllocatorSettings.rs");
+include!("ThreadLocalAllocatorSettingsDropGuard.rs");
 include!("ThreadLoop.rs");

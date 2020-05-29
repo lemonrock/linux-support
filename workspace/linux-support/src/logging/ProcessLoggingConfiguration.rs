@@ -3,31 +3,34 @@
 
 
 /// Logging configuration.
-#[derive(Default, Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
-#[serde(default, deny_unknown_fields)]
+#[serde(deny_unknown_fields)]
 pub struct ProcessLoggingConfiguration
 {
 	/// Used as the default value for third-party libraries that use the libc syslog or `FILE*` interface.
 	///
 	/// Defaults to `auth`.
-	pub facility: KnownFacility,
+	#[serde(default)] pub libc_syslog_facility: KnownFacility,
 	
 	/// Used as the default level for third-party libraries that use the libc syslog interface.
 	///
 	/// Defaults to `debug` for debug builds and `warning` for production builds.
-	pub level: Severity,
+	#[serde(default)] pub libc_syslog_level: Severity,
 	
 	/// Used as the default level for third-party libraries that use writes to standard out via `FILE*` pointers.
 	///
 	/// Defaults to `debug` for debug builds and `warning` for production builds.
-	pub redirect_FILE_standard_out: Severity,
+	#[serde(default)] pub redirect_FILE_standard_out: Severity,
 	
 	/// Used as the default level for third-party libraries that use writes to standard error via `FILE*` pointers.
 	///
 	/// Defaults to `debug` for debug builds and `warning` for production builds.
-	pub redirect_FILE_standard_error: Severity,
+	#[serde(default)] pub redirect_FILE_standard_error: Severity,
 
+	/// Size of per-thread logging buffer.
+	#[serde(default = "ProcessLoggingConfiguration::logging_buffer_size_default")] pub logging_buffer_size: NonZeroUsize,
+	
 	/// Private Enterprise Numbers (PEN).
 	///
 	/// See <https://www.iana.org/assignments/enterprise-numbers/enterprise-numbers> for the full list.
@@ -35,7 +38,24 @@ pub struct ProcessLoggingConfiguration
 	/// Used for RFC 5424 syslog.
 	///
 	/// Defaults to `Reserved` (0).
-	pub private_enterprise_number: PrivateEnterpriseNumber,
+	#[serde(default)] pub private_enterprise_number: PrivateEnterpriseNumber,
+}
+
+impl Default for ProcessLoggingConfiguration
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self
+		{
+			libc_syslog_facility: Default::default(),
+			libc_syslog_level: Default::default(),
+			redirect_FILE_standard_out: Default::default(),
+			redirect_FILE_standard_error: Default::default(),
+			logging_buffer_size: ProcessLoggingConfiguration::logging_buffer_size_default(),
+			private_enterprise_number: Default::default(),
+		}
+	}
 }
 
 impl ProcessLoggingConfiguration
@@ -44,7 +64,7 @@ impl ProcessLoggingConfiguration
 	#[inline(always)]
 	pub fn configure_logging(&self, dev_path: &DevPath, running_interactively_so_also_log_to_standard_error: bool, internet_protocol_addresses: &[IpAddr], host_name: Option<&LinuxKernelHostName>, domain_name: Option<&LinuxKernelDomainName>, process_name: &ProcessName) -> Result<(), ProcessLoggingConfigurationError>
 	{
-		let configuration = StaticLoggingConfiguration::new(dev_path, host_name, domain_name, internet_protocol_addresses, &self.private_enterprise_number, process_name)?;
+		let configuration = StaticLoggingConfiguration::new(self.logging_buffer_size, dev_path, host_name, domain_name, internet_protocol_addresses, &self.private_enterprise_number, process_name)?;
 		unsafe { configuration.configure() };
 		
 		unsafe { LocalSyslogSocket::configure_per_thread_local_syslog_socket()? }
@@ -63,7 +83,7 @@ impl ProcessLoggingConfiguration
 	#[inline(always)]
 	fn configure_syslog_for_legacy_third_party_libraries_that_use_syslog_interface(&self, running_interactively_so_also_log_to_standard_error: bool, identity: &ProcessName)
 	{
-		unsafe { setlogmask(self.level.log_upto()) };
+		unsafe { setlogmask(self.libc_syslog_level.log_upto()) };
 		
 		let mut log_options = LOG_PID | LOG_NDELAY;
 		
@@ -73,7 +93,7 @@ impl ProcessLoggingConfiguration
 		}
 		
 		let identity = identity.as_ref();
-		unsafe { openlog(identity.as_ptr(), log_options, self.facility as u8 as i32) }
+		unsafe { openlog(identity.as_ptr(), log_options, self.libc_syslog_facility as u8 as i32) }
 	}
 	
 	/// `self.configure_logging()` must have been called before this method.
@@ -99,14 +119,13 @@ impl ProcessLoggingConfiguration
 			forget(message_template);
 		}
 		
-		redirect_to_log(unsafe { &mut stdio::stdout }, Rfc3164MessageTemplate::new(self.facility, self.redirect_FILE_standard_out, host_name, process_name), Self::write_file_pointer_data_to_log);
-		redirect_to_log(unsafe { &mut stdio::stderr }, Rfc3164MessageTemplate::new(self.facility, self.redirect_FILE_standard_error, host_name, process_name), Self::write_file_pointer_data_to_log);
+		redirect_to_log(unsafe { &mut stdio::stdout }, Rfc3164MessageTemplate::new(self.libc_syslog_facility, self.redirect_FILE_standard_out, host_name, process_name), Self::write_file_pointer_data_to_log);
+		redirect_to_log(unsafe { &mut stdio::stderr }, Rfc3164MessageTemplate::new(self.libc_syslog_facility, self.redirect_FILE_standard_error, host_name, process_name), Self::write_file_pointer_data_to_log);
 	}
 	
 	/// Used to support redirecting lib c `FILE*` pointer to standard out to syslog.
 	///
 	/// Only used if a linked C library uses it.
-	#[inline(always)]
 	unsafe extern "C" fn write_file_pointer_data_to_log<MT: MessageTemplate + RefUnwindSafe>(message_template: &MT, data: *const c_char, length: size_t) -> ssize_t
 	{
 		// Calling code is from C, and it is undefined behaviour to pass a Rust panic across to C.
@@ -122,5 +141,11 @@ impl ProcessLoggingConfiguration
 		forget(result);
 
 		length as ssize_t
+	}
+	
+	#[inline(always)]
+	const fn logging_buffer_size_default() -> NonZeroUsize
+	{
+		unsafe { NonZeroUsize::new_unchecked(8192) }
 	}
 }

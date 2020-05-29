@@ -2,18 +2,14 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[inline(always)]
-unsafe fn write_slice_truncated(write_to: *mut u8, slice: &[u8], end_pointer: *mut u8) -> (*mut u8, bool)
+/// A drop guard.
+pub struct ThreadLocalAllocatorSettingsDropGuard<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>>(&'static GTACSA);
+
+impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>> Drop for ThreadLocalAllocatorSettingsDropGuard<HeapSize, GTACSA>
 {
-	let length = slice.len();
-	let (slice, truncated) = if write_to.add(length) > end_pointer
+	#[inline(always)]
+	fn drop(&mut self)
 	{
-		(&slice[0 .. (end_pointer as usize) - (write_to as usize)], true)
+		self.0.drop_thread_local_allocator()
 	}
-	else
-	{
-		(slice, false)
-	};
-	let end_pointer = write_slice_unchecked(write_to, slice, end_pointer);
-	(end_pointer, truncated)
 }

@@ -36,5 +36,6 @@ include!("Severity.rs");
 include!("StaticLoggingConfiguration.rs");
 include!("system_information.rs");
 include!("UnknownFacility.rs");
+include!("write_message_with_line_feed_escaped_truncated.rs");
 include!("write_slice_truncated.rs");
 include!("write_slice_unchecked.rs");

@@ -2,18 +2,17 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[inline(always)]
-unsafe fn write_slice_truncated(write_to: *mut u8, slice: &[u8], end_pointer: *mut u8) -> (*mut u8, bool)
+/// A per-thread memory allocator instantiator.
+pub trait PerThreadMemoryAllocatorInstantiator: Default + std::marker::Sync + std::marker::Send
 {
-	let length = slice.len();
-	let (slice, truncated) = if write_to.add(length) > end_pointer
-	{
-		(&slice[0 .. (end_pointer as usize) - (write_to as usize)], true)
-	}
-	else
-	{
-		(slice, false)
-	};
-	let end_pointer = write_slice_unchecked(write_to, slice, end_pointer);
-	(end_pointer, truncated)
+	/// Arguments to pass to instantiate.
+	type InstantiationArguments: std::marker::Sync + std::marker::Send;
+	
+	/// Dropped when the thead is finished, even after a panic.
+	///
+	/// Ensures that any thread local memory is then dropped.
+	type ThreadDropGuard: Sized;
+	
+	/// Instantiate.
+	fn instantiate(&self, instantiation_arguments: Arc<Self::InstantiationArguments>) -> Result<Self::ThreadDropGuard, MemoryMapError>;
 }
