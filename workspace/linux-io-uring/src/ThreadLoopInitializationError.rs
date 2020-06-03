@@ -7,9 +7,6 @@
 pub enum ThreadLoopInitializationError
 {
 	#[allow(missing_docs)]
-	ThreadLocalAllocator(MemoryMapError),
-	
-	#[allow(missing_docs)]
 	AcceptConnectionsCoroutineManager(LargeRingQueueCreationError),
 	
 	#[allow(missing_docs)]
@@ -37,8 +34,6 @@ impl error::Error for ThreadLoopInitializationError
 
 		match self
 		{
-			&ThreadLocalAllocator(ref error) => Some(error),
-			
 			&AcceptConnectionsCoroutineManager(ref error) => Some(error),
 			
 			&IoUringSetup(ref error) => Some(error),

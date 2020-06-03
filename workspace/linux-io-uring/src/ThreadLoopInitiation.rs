@@ -7,7 +7,6 @@ pub struct ThreadLoopInitiation<HeapSize: MemorySize, StackSize: MemorySize, GTA
 {
 	defaults: DefaultPageSizeAndHugePageSizes,
 	global_allocator: &'static GTACSA,
-	thread_local_allocator_settings: ThreadLocalAllocatorSettings,
 	queues: Queues<(), DequeuedMessageProcessingError>,
 	io_uring_settings: IoUringSettings,
 	signal_mask: BitSet<Signal>,
@@ -29,8 +28,6 @@ impl<HeapSize: MemorySize, StackSize: MemorySize, GTACSA: 'static + GlobalThread
 	fn initialize_internal(self) -> Result<Self::TLBF, ThreadLoopInitializationError>
 	{
 		use self::ThreadLoopInitializationError::*;
-		
-		self.thread_local_allocator_settings.setup(&self.defaults, self.global_allocator).map_err(ThreadLocalAllocator)?;
 		
 		let (io_uring, registered_buffers) = self.io_uring_settings.setup(&self.defaults)?;
 		

@@ -80,6 +80,13 @@ impl AcceptConnectionsCoroutine
 			// IORING_MAX_ENTRIES is 32,768 and completions is double that.
 			// Thus we need 15 bits if we were to encode SQE no.
 		
+		
+		
+		xxxxx;
+		
+		
+		
+		
 		loop
 		{
 			let mut pending_accept_connection = PendingAcceptConnection::new();
@@ -89,6 +96,8 @@ impl AcceptConnectionsCoroutine
 				// TODO: Do we want to do accept4() with non-blocking or not?
 				// TODO: We have a full submission queue - now what?
 					// TODO: We want to be woken up again WITHOUT any completions due - this might be needed in other coroutines.
+				
+				xxx; coroutine_instance_handle - now has user bits we can use so we can identify what to wake-up with.
 				
 				submission_queue_entry.prepare_accept(coroutine_instance_handle, SubmissionQueueEntryOptions::empty(), None, FileDescriptorOrigin::Absolute(&socket_file_descriptor), &mut pending_accept_connection)
 			});
