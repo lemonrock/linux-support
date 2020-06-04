@@ -100,6 +100,15 @@ impl From<SocketAddrV4> for sockaddr_in
 	}
 }
 
+impl<'a> From<&'a SocketAddrV4> for &'a sockaddr_in
+{
+	#[inline(always)]
+	fn from(value: &'a SocketAddrV4) -> Self
+	{
+		unsafe { transmute(value) }
+	}
+}
+
 impl Into<SocketAddrV4> for sockaddr_in
 {
 	#[inline(always)]
@@ -109,11 +118,49 @@ impl Into<SocketAddrV4> for sockaddr_in
 	}
 }
 
+impl Into<SocketAddr> for sockaddr_in
+{
+	#[inline(always)]
+	fn into(self) -> SocketAddr
+	{
+		SocketAddr::V4(self.into())
+	}
+}
+
 impl SocketData for sockaddr_in
 {
 	#[inline(always)]
 	fn family(&self) -> sa_family_t
 	{
 		self.sin_family
+	}
+}
+
+impl SocketAddress for sockaddr_in
+{
+	type SD = Self;
+	
+	#[inline(always)]
+	fn new_transmission_control_protocol_server_listener(&self, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16, back_log: u32, non_blocking: bool, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketFileDescriptor<Self::SD>, NewSocketServerListenerError>
+	{
+		SocketFileDescriptor::<Self::SD>::new_transmission_control_protocol_over_internet_protocol_version_4_server_listener(self, send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, linger_seconds, linger_in_FIN_WAIT2_seconds, maximum_SYN_transmits, back_log, non_blocking, hyper_thread)
+	}
+	
+	#[inline(always)]
+	fn new_transmission_control_protocol_client(&self, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16, non_blocking: bool) -> Result<StreamingSocketFileDescriptor<Self::SD>, NewSocketClientError>
+	{
+		SocketFileDescriptor::<Self::SD>::new_transmission_control_protocol_over_internet_protocol_version_4_client(self, send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, linger_seconds, linger_in_FIN_WAIT2_seconds, maximum_SYN_transmits, non_blocking)
+	}
+	
+	#[inline(always)]
+	fn new_user_datagram_protocol_server_listener(&self, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<DatagramServerListenerSocketFileDescriptor<Self::SD>, NewSocketServerListenerError>
+	{
+		SocketFileDescriptor::<Self::SD>::new_user_datagram_protocol_over_internet_protocol_version_4_server_listener(self, send_buffer_size_in_bytes, receive_buffer_size_in_bytes, non_blocking)
+	}
+	
+	#[inline(always)]
+	fn new_user_datagram_protocol_client(&self, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<DatagramClientSocketFileDescriptor<Self::SD>, NewSocketClientError>
+	{
+		SocketFileDescriptor::<Self::SD>::new_user_datagram_protocol_over_internet_protocol_version_4_client(self, send_buffer_size_in_bytes, receive_buffer_size_in_bytes, non_blocking)
 	}
 }

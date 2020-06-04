@@ -2,49 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[allow(missing_docs)]
-#[derive(Debug)]
-struct AcceptConnectionsCoroutineStartArguments
-{
-	pub socket_address: SocketAddrV4,
-	pub send_buffer_size_in_bytes: usize,
-	pub receive_buffer_size_in_bytes: usize,
-	pub idles_before_keep_alive_seconds: u16,
-	pub keep_alive_interval_seconds: u16,
-	pub maximum_keep_alive_probes: u16,
-	pub linger_seconds: u16,
-	pub linger_in_FIN_WAIT2_seconds: u16,
-	pub maximum_SYN_transmits: u16,
-	pub back_log: u32,
-}
-
-impl AcceptConnectionsCoroutineStartArguments
-{
-	#[inline(always)]
-	fn new_socket(self, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketInternetProtocolVersion4FileDescriptor, NewSocketServerListenerError>
-	{
-		SocketFileDescriptor::new_transmission_control_protocol_over_internet_protocol_version_4_server_listener
-		(
-			self.socket_address,
-			self.send_buffer_size_in_bytes,
-			self.receive_buffer_size_in_bytes,
-			self.idles_before_keep_alive_seconds,
-			self.keep_alive_interval_seconds,
-			self.maximum_keep_alive_probes,
-			self.linger_seconds,
-			self.linger_in_FIN_WAIT2_seconds,
-			self.maximum_SYN_transmits,
-			self.back_log,
-			false,
-			hyper_thread
-		)
-	}
-}
-
-impl Coroutine for AcceptConnectionsCoroutine
+impl<SA: SocketAddress> Coroutine for AcceptConnectionsCoroutine<SA>
 {
 	/// Type of the arguments the coroutine is initially called with, eg `(usize, String)`.
-	type StartArguments = (Rc<IoUring<'static>>, AcceptConnectionsCoroutineStartArguments);
+	type StartArguments = (Rc<IoUring<'static>>, ServerSocketSettings<SA>);
 
 	type ResumeArguments = CompletionResponse;
 
@@ -59,17 +20,15 @@ impl Coroutine for AcceptConnectionsCoroutine
 	#[inline(always)]
 	fn coroutine(coroutine_instance_handle: CoroutineInstanceHandle, start_arguments: Self::StartArguments, yielder: Yielder<Self::ResumeArguments, Self::Yields, Self::Complete>) -> Self::Complete
 	{
-		let (io_uring, connection_details) = start_arguments;
+		let (io_uring, server_socket_settings) = start_arguments;
 		
-		// TODO: This logic NEEDS TO happen before the coroutine starts.
-			// This allows us to drop capabilities on the thread for binding to ports below 1024.
-		let socket_file_descriptor = connection_details.new_socket(HyperThread::current_hyper_thread())?;
+		let socket_file_descriptor = server_socket_settings.new_socket(HyperThread::current_hyper_thread())?;
 		
 		Self::main_loop(coroutine_instance_handle, yielder)
 	}
 }
 
-impl AcceptConnectionsCoroutine
+impl<SA: SocketAddress> AcceptConnectionsCoroutine<SA>
 {
 	#[inline(always)]
 	fn main_loop(coroutine_instance_handle: CoroutineInstanceHandle, yielder: Yielder<Self::ResumeArguments, Self::Yields, Self::Complete>, socket_file_descriptor: StreamingServerListenerSocketInternetProtocolVersion4FileDescriptor, remote_peer_based_access_control: &Rc<RemotePeerAddressBasedAccessControl<()>>)
@@ -121,9 +80,14 @@ impl AcceptConnectionsCoroutine
 						
 						Ok(None) => panic!("Who cancelled our accept?"),
 						
-						Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded | SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded | KernelWouldBeOutOfMemory) => (),
+						Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded) => (),
+						Err(SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded) => (),
+						Err(KernelWouldBeOutOfMemory) => (),
+						
 						Err(Interrupted) => (),
+						
 						Err(Again) => panic!("Our socket is supposed to be blocking"),
+						
 						ConnectionFailed(_) => panic!("Our socket is supposed to be blocking"),
 						
 						// TODO: Log error if not interrupted or again - we should use structured logging.

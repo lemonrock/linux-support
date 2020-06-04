@@ -34,6 +34,7 @@ include!("DatagramServerListenerSocketFileDescriptorEnum.rs");
 include!("DatagramServerListenerSocketInternetProtocolVersion4FileDescriptor.rs");
 include!("DatagramServerListenerSocketInternetProtocolVersion6FileDescriptor.rs");
 include!("DatagramServerListenerSocketUnixDomainFileDescriptor.rs");
+include!("EnumSocketAddress.rs");
 include!("ErrorFlags.rs");
 include!("FilePathInvalidReason.rs");
 include!("from_raw_socket_file_descriptor.rs");

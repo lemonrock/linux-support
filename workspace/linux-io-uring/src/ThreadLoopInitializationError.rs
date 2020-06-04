@@ -14,6 +14,9 @@ pub enum ThreadLoopInitializationError
 	
 	#[allow(missing_docs)]
 	SignalFileDescriptor(CreationError),
+	
+	#[allow(missing_docs)]
+	NewSocketServerListener(NewSocketServerListenerError),
 }
 
 impl Display for ThreadLoopInitializationError
@@ -39,6 +42,8 @@ impl error::Error for ThreadLoopInitializationError
 			&IoUringSetup(ref error) => Some(error),
 			
 			&SignalFileDescriptor(ref error) => Some(error),
+			
+			&NewSocketServerListener(ref error) => Some(error),
 		}
 	}
 }
@@ -49,5 +54,14 @@ impl From<IoUringSetupError> for ThreadLoopInitializationError
 	fn from(error: IoUringSetupError) -> Self
 	{
 		ThreadLoopInitializationError::IoUringSetup(error)
+	}
+}
+
+impl From<NewSocketServerListenerError> for ThreadLoopInitializationError
+{
+	#[inline(always)]
+	fn from(error: NewSocketServerListenerError) -> Self
+	{
+		ThreadLoopInitializationError::NewSocketServerListener(error)
 	}
 }

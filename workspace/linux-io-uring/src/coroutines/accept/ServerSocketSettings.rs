@@ -4,7 +4,7 @@
 
 #[allow(missing_docs)]
 #[derive(Debug)]
-struct ServerSocketSettings<SA: SocketAddress>
+pub(super) struct ServerSocketSettings<SA: SocketAddress>
 {
 	pub socket_address: SA,
 	pub send_buffer_size_in_bytes: usize,
@@ -25,7 +25,7 @@ impl<SA: SocketAddress> ServerSocketSettings<SA>
 	// TODO: This logic NEEDS TO happen before the coroutine starts.
 	// This allows us to drop capabilities on the thread for binding to ports below 1024.
 	#[inline(always)]
-	fn new_socket(self) -> Result<StreamingServerListenerSocketFileDescriptor<SA::SD>, NewSocketServerListenerError>
+	pub(super) fn new_socket(self) -> Result<StreamingServerListenerSocketFileDescriptor<SA::SD>, NewSocketServerListenerError>
 	{
 		self.socket_address.new_transmission_control_protocol_server_listener
 		(

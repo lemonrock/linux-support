@@ -55,7 +55,7 @@ impl SocketFileDescriptor<sockaddr_in>
 	///
 	/// The default value in `/proc/sys/net/core/somaxconn` is `128`.
 	#[inline(always)]
-	pub fn new_transmission_control_protocol_over_internet_protocol_version_4_server_listener(socket_address: SocketAddrV4, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16, back_log: u32, non_blocking: bool, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketInternetProtocolVersion4FileDescriptor, NewSocketServerListenerError>
+	pub fn new_transmission_control_protocol_over_internet_protocol_version_4_server_listener(socket_address: &sockaddr_in, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16, back_log: u32, non_blocking: bool, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketInternetProtocolVersion4FileDescriptor, NewSocketServerListenerError>
 	{
 		let this = SocketFileDescriptor::<sockaddr_in>::new_transmission_control_protocol_over_internet_protocol_version_4(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, linger_seconds, linger_in_FIN_WAIT2_seconds, maximum_SYN_transmits, non_blocking)?;
 		this.set_internet_protocol_server_listener_socket_options();
@@ -66,7 +66,7 @@ impl SocketFileDescriptor<sockaddr_in>
 
 	/// Creates a new instance of a Transmission Control Protocol (TCP) socket over Internet Protocol (IP) version 4 client.
 	#[inline(always)]
-	pub fn new_transmission_control_protocol_over_internet_protocol_version_4_client(socket_address: SocketAddrV4, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16, non_blocking: bool) -> Result<StreamingSocketInternetProtocolVersion4FileDescriptor, NewSocketClientError>
+	pub fn new_transmission_control_protocol_over_internet_protocol_version_4_client(socket_address: &sockaddr_in, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16, non_blocking: bool) -> Result<StreamingSocketInternetProtocolVersion4FileDescriptor, NewSocketClientError>
 	{
 		let this = SocketFileDescriptor::<sockaddr_in>::new_transmission_control_protocol_over_internet_protocol_version_4(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, linger_seconds, linger_in_FIN_WAIT2_seconds, maximum_SYN_transmits, non_blocking)?;
 		this.connect_internet_protocol_version_4_socket(socket_address)?;
@@ -75,7 +75,7 @@ impl SocketFileDescriptor<sockaddr_in>
 
 	/// Creates a new instance of a User Datagram Protocol (UDP) socket over Internet Protocol (IP) version 4 server listener.
 	#[inline(always)]
-	pub fn new_user_datagram_protocol_over_internet_protocol_version_4_server_listener(socket_address: SocketAddrV4, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<DatagramServerListenerSocketInternetProtocolVersion4FileDescriptor, NewSocketServerListenerError>
+	pub fn new_user_datagram_protocol_over_internet_protocol_version_4_server_listener(socket_address: &sockaddr_in, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<DatagramServerListenerSocketInternetProtocolVersion4FileDescriptor, NewSocketServerListenerError>
 	{
 		let this = SocketFileDescriptor::<sockaddr_in>::new_user_datagram_protocol_over_internet_protocol_version_4(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, non_blocking)?;
 		this.set_internet_protocol_server_listener_socket_options();
@@ -85,7 +85,7 @@ impl SocketFileDescriptor<sockaddr_in>
 
 	/// Creates a new instance of a User Datagram Protocol (UDP) socket over Internet Protocol (IP) version 4 client.
 	#[inline(always)]
-	pub fn new_user_datagram_protocol_over_internet_protocol_version_4_client(socket_address: SocketAddrV4, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<DatagramClientSocketInternetProtocolVersion4FileDescriptor, NewSocketClientError>
+	pub fn new_user_datagram_protocol_over_internet_protocol_version_4_client(socket_address: &sockaddr_in, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<DatagramClientSocketInternetProtocolVersion4FileDescriptor, NewSocketClientError>
 	{
 		let this = SocketFileDescriptor::<sockaddr_in>::new_user_datagram_protocol_over_internet_protocol_version_4(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, non_blocking)?;
 		this.connect_internet_protocol_version_4_socket(socket_address)?;
@@ -93,21 +93,15 @@ impl SocketFileDescriptor<sockaddr_in>
 	}
 
 	#[inline(always)]
-	fn connect_internet_protocol_version_4_socket(&self, socket_address: SocketAddrV4) -> Result<(), SocketConnectError>
+	fn connect_internet_protocol_version_4_socket(&self, socket_address: &sockaddr_in) -> Result<(), SocketConnectError>
 	{
-		self.connect(&Self::internet_protocol_version_4_socket_data(socket_address), size_of::<sockaddr_in>())
+		self.connect(socket_address, size_of::<sockaddr_in>())
 	}
 
 	#[inline(always)]
-	fn bind_internet_protocol_version_4_socket(&self, socket_address: SocketAddrV4) -> Result<(), SocketBindError>
+	fn bind_internet_protocol_version_4_socket(&self, socket_address: &sockaddr_in) -> Result<(), SocketBindError>
 	{
-		self.bind(&Self::internet_protocol_version_4_socket_data(socket_address), size_of::<sockaddr_in>())
-	}
-
-	#[inline(always)]
-	fn internet_protocol_version_4_socket_data(socket_address: SocketAddrV4) -> sockaddr_in
-	{
-		unsafe { transmute(socket_address) }
+		self.bind(socket_address, size_of::<sockaddr_in>())
 	}
 }
 
@@ -119,7 +113,7 @@ impl SocketFileDescriptor<sockaddr_in6>
 	///
 	/// The default value in `/proc/sys/net/core/somaxconn` is `128`.
 	#[inline(always)]
-	pub fn new_transmission_control_protocol_over_internet_protocol_version_6_server_listener(socket_address: SocketAddrV6, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16, back_log: u32, non_blocking: bool, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketInternetProtocolVersion6FileDescriptor, NewSocketServerListenerError>
+	pub fn new_transmission_control_protocol_over_internet_protocol_version_6_server_listener(socket_address: &sockaddr_in6, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16, back_log: u32, non_blocking: bool, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketInternetProtocolVersion6FileDescriptor, NewSocketServerListenerError>
 	{
 		let this = SocketFileDescriptor::<sockaddr_in6>::new_transmission_control_protocol_over_internet_protocol_version_6(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, linger_seconds, linger_in_FIN_WAIT2_seconds, maximum_SYN_transmits, non_blocking)?;
 		this.set_internet_protocol_server_listener_socket_options();
@@ -130,7 +124,7 @@ impl SocketFileDescriptor<sockaddr_in6>
 
 	/// Creates a new instance of a Transmission Control Protocol (TCP) socket over Internet Protocol (IP) version 6 client.
 	#[inline(always)]
-	pub fn new_transmission_control_protocol_over_internet_protocol_version_6_client(socket_address: SocketAddrV6, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16, non_blocking: bool) -> Result<StreamingSocketInternetProtocolVersion6FileDescriptor, NewSocketClientError>
+	pub fn new_transmission_control_protocol_over_internet_protocol_version_6_client(socket_address: &sockaddr_in6, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16, non_blocking: bool) -> Result<StreamingSocketInternetProtocolVersion6FileDescriptor, NewSocketClientError>
 	{
 		let this = SocketFileDescriptor::<sockaddr_in6>::new_transmission_control_protocol_over_internet_protocol_version_6(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, linger_seconds, linger_in_FIN_WAIT2_seconds, maximum_SYN_transmits, non_blocking)?;
 		this.connect_internet_protocol_version_6_socket(socket_address)?;
@@ -139,7 +133,7 @@ impl SocketFileDescriptor<sockaddr_in6>
 
 	/// Creates a new instance of a User Datagram Protocol (UDP) socket over Internet Protocol (IP) version 6 server listener.
 	#[inline(always)]
-	pub fn new_user_datagram_protocol_over_internet_protocol_version_6_server_listener(socket_address: SocketAddrV6, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<DatagramServerListenerSocketInternetProtocolVersion6FileDescriptor, NewSocketServerListenerError>
+	pub fn new_user_datagram_protocol_over_internet_protocol_version_6_server_listener(socket_address: &sockaddr_in6, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<DatagramServerListenerSocketInternetProtocolVersion6FileDescriptor, NewSocketServerListenerError>
 	{
 		let this = SocketFileDescriptor::<sockaddr_in6>::new_user_datagram_protocol_over_internet_protocol_version_6(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, non_blocking)?;
 		this.set_internet_protocol_server_listener_socket_options();
@@ -149,7 +143,7 @@ impl SocketFileDescriptor<sockaddr_in6>
 
 	/// Creates a new instance of a User Datagram Protocol (UDP) socket over Internet Protocol (IP) version 6 client.
 	#[inline(always)]
-	pub fn new_user_datagram_protocol_over_internet_protocol_version_6_client(socket_address: SocketAddrV6, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<DatagramClientSocketInternetProtocolVersion6FileDescriptor, NewSocketClientError>
+	pub fn new_user_datagram_protocol_over_internet_protocol_version_6_client(socket_address: &sockaddr_in6, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<DatagramClientSocketInternetProtocolVersion6FileDescriptor, NewSocketClientError>
 	{
 		let this = SocketFileDescriptor::<sockaddr_in6>::new_user_datagram_protocol_over_internet_protocol_version_6(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, non_blocking)?;
 		this.connect_internet_protocol_version_6_socket(socket_address)?;
@@ -157,21 +151,15 @@ impl SocketFileDescriptor<sockaddr_in6>
 	}
 
 	#[inline(always)]
-	fn connect_internet_protocol_version_6_socket(&self, socket_address: SocketAddrV6) -> Result<(), SocketConnectError>
+	fn connect_internet_protocol_version_6_socket(&self, socket_address: &sockaddr_in6) -> Result<(), SocketConnectError>
 	{
-		self.connect(&Self::internet_protocol_version_6_socket_data(socket_address), size_of::<sockaddr_in6>())
+		self.connect(socket_address, size_of::<sockaddr_in6>())
 	}
 
 	#[inline(always)]
-	fn bind_internet_protocol_version_6_socket(&self, socket_address: SocketAddrV6) -> Result<(), SocketBindError>
+	fn bind_internet_protocol_version_6_socket(&self, socket_address: &sockaddr_in6) -> Result<(), SocketBindError>
 	{
-		self.bind(&Self::internet_protocol_version_6_socket_data(socket_address), size_of::<sockaddr_in6>())
-	}
-
-	#[inline(always)]
-	fn internet_protocol_version_6_socket_data(socket_address: SocketAddrV6) -> sockaddr_in6
-	{
-		unsafe { transmute(socket_address) }
+		self.bind(socket_address, size_of::<sockaddr_in6>())
 	}
 }
 

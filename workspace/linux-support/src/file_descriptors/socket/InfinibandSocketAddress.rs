@@ -6,6 +6,33 @@
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct InfinibandSocketAddress(ib_addr);
 
+impl SocketAddress for InfinibandSocketAddress
+{
+	#[inline(always)]
+	fn new_transmission_control_protocol_server_listener(&self, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16, back_log: u32, non_blocking: bool, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketFileDescriptor<Self>, NewSocketServerListenerError>
+	{
+		unimplemented!("Not yet needed")
+	}
+	
+	#[inline(always)]
+	fn new_transmission_control_protocol_client(&self, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16, non_blocking: bool) -> Result<StreamingSocketFileDescriptor<Self>, NewSocketClientError>
+	{
+		unimplemented!("Not yet needed")
+	}
+	
+	#[inline(always)]
+	fn new_user_datagram_protocol_server_listener(&self, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<DatagramServerListenerSocketFileDescriptor<Self>, NewSocketServerListenerError>
+	{
+		unimplemented!("Not yet needed")
+	}
+	
+	#[inline(always)]
+	fn new_user_datagram_protocol_client(&self, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<DatagramClientSocketFileDescriptor<Self>, NewSocketClientError>
+	{
+		unimplemented!("Not yet needed")
+	}
+}
+
 impl InfinibandSocketAddress
 {
 	/// `sib_subnet_prefix` and `sib_interface_id` must be a 64-bit integer in Network Endian form, not Native Endian form.

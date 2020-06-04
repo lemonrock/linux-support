@@ -47,7 +47,6 @@ impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableA
 		
 		let numa_memory_policy =
 		{
-			use self::MemoryAdvice::*;
 			use self::SetMemoryPolicyStrictness::*;
 			
 			if self.strict_numa_memory_policy
@@ -72,7 +71,7 @@ impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableA
 			lock: Some(MemoryLockSettings::Normal),
 			advice: hashset!
 			{
-				DontFork
+				MemoryAdvice::DontFork
 			}
 		};
 		

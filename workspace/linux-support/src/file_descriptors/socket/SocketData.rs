@@ -3,10 +3,6 @@
 
 
 
-use std::convert::AsRef;
-use std::path::Path;
-
-
 /// Represents socket data.
 pub trait SocketData: Sized + Default + Debug
 {
