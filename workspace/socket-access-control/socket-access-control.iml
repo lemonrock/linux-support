@@ -11,6 +11,7 @@
       <sourceFolder url="file://$MODULE_DIR$/../terminate/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/.cargo" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
+      <excludeFolder url="file://$MODULE_DIR$/../terminate/target" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
   </component>

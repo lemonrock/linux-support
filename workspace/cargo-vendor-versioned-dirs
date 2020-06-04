@@ -1,0 +1,109 @@
+#!/usr/bin/env sh
+# This file is part of linux-process. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-process/master/COPYRIGHT. No part of linux-process, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+# Copyright © 2020 The developers of linux-process. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-process/master/COPYRIGHT.
+
+
+set -e
+set -u
+set -f
+
+program_name="prepare-sample-configuration"
+
+_program_path_find()
+{
+	if [ "${0%/*}" = "$0" ]; then
+
+		# We've been invoked by the interpreter as, say, bash program
+		if [ -r "$0" ]; then
+			pwd -P
+		# Clutching at straws; probably run via a download, anonymous script, etc, weird execve, etc
+		else
+			printf '\n'
+		fi
+
+	else
+
+		# We've been invoked with a relative or absolute path (also when invoked via PATH in a shell)
+
+		_program_path_find_parentPath()
+		{
+			parentPath="${scriptPath%/*}"
+			if [ -z "$parentPath" ]; then
+				parentPath='/'
+			fi
+			cd "$parentPath" 1>/dev/null
+		}
+
+		# pdksh / mksh have problems with unsetting a variable that was never set...
+		if [ "${CDPATH+set}" = 'set' ]; then
+			unset CDPATH
+		fi
+
+		if command -v realpath 1>/dev/null 2>/dev/null; then
+			(
+				scriptPath="$(realpath "$0")"
+
+				_program_path_find_parentPath
+				pwd -P
+			)
+		elif command -v readlink 1>/dev/null 2>/dev/null; then
+			(
+				local recursionDepth=0
+				_program_path_resolve_symlinks_recursively()
+				{
+					local unresolvedPath="$1"
+					
+					recursionDepth=$((recursionDepth + 1))
+					
+					if [ $recursionDepth -gt 10 ]; then
+						printf '%s\n' 'Recursion to depths greater than 10 is not allowed when resolving links.'
+						return 1
+					fi
+					
+					local potentialLinkDestination="$(readlink -- "$unresolvedPath")"
+					
+					if [ -z "$potentialLinkDestination" ]; then
+						scriptPath="$unresolvedPath"
+						return 0
+					fi
+					local linkDestination="$potentialLinkDestination"
+					local parentFolderPath="${unresolvedPath%/*}"
+					
+					if [ "$parentFolderPath" = "$unresolvedPath" ]; then
+						_program_path_resolve_symlinks_recursively "$linkDestination"
+					else
+						case "$linkDestination" in
+														
+							/*)
+								_program_path_resolve_symlinks_recursively "$linkDestination"
+							;;
+							
+							*)
+								_program_path_resolve_symlinks_recursively "$parentFolderPath"/"$linkDestination"
+							;;
+							
+						esac
+					fi
+				}
+
+				scriptPath="$0"
+				_program_path_resolve_symlinks_recursively "$scriptPath"
+
+				_program_path_find_parentPath
+				pwd -P
+			)
+		else
+			# This approach will fail in corner cases where the script itself is a symlink in a path not parallel with the concrete script
+			(
+				scriptPath="$0"
+
+				_program_path_find_parentPath
+				pwd -P
+			)
+		fi
+
+	fi
+}
+
+cd "$(_program_path_find)" 1>/dev/null 2>/dev/null
+exec cargo vendor --versioned-dirs --quiet
