@@ -8,7 +8,7 @@
 ///
 /// Returns the process identifier (PID) of the child process.
 #[inline(always)]
-pub(crate) fn clone_wrapper<T>(child_process: extern "C" fn(Box<T>) -> (), top_of_child_stack_pointer: NonNull<u8>, child_termination_signal_number: Signal, flags: CloneFlags, mut argument_to_child_process: Box<T>, ptid: *mut pid_t, newtls: *mut c_void, ctid: *mut pid_t) -> Result<NonZeroU32, CloneError>
+pub(crate) fn clone_wrapper<T>(child_process: extern "C" fn(Box<T>) -> (), top_of_child_stack_pointer: NonNull<u8>, child_termination_signal_number: Signal, flags: CloneFlags, mut argument_to_child_process: Box<T>, ptid: *mut pid_t, newtls: *mut c_void, ctid: *mut pid_t) -> Result<ProcessIdentifier, CloneError>
 {
 	let child_stack_pointer = top_of_child_stack_pointer.as_ptr() as *mut c_void;
 
@@ -78,7 +78,7 @@ pub(crate) fn clone_wrapper<T>(child_process: extern "C" fn(Box<T>) -> (), top_o
 
 	if likely!(result_code > 0)
 	{
-		Ok(unsafe { NonZeroU32::new_unchecked(result_code as u32) })
+		Ok(ProcessIdentifier::from(unsafe { NonZeroI32::new_unchecked(result_code) }))
 	}
 	else if likely!(result_code == -1)
 	{

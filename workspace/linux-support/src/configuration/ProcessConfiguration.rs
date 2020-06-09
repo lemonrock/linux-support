@@ -45,7 +45,7 @@ pub struct ProcessConfiguration
 	#[serde(default)] pub lock_all_memory: Option<LockAllMemory>,
 
 	/// Process HyperThread affinity.
-	#[serde(default)] pub affinity: Option<BitSet<HyperThread>>,
+	#[serde(default)] pub affinity: Option<HyperThreads>,
 
 	/// Process nice.
 	#[serde(default)] pub process_nice_configuration: Option<ProcessNiceConfiguration>,
@@ -348,7 +348,7 @@ impl ProcessConfiguration
 	#[inline(always)]
 	fn block_all_signals_on_current_thread()
 	{
-		BitSet::<Signal>::block_all_signals_on_current_thread();
+		Signals::block_all_signals_on_current_thread();
 	}
 
 	#[inline(always)]

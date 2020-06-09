@@ -3,9 +3,7 @@
 
 
 use super::*;
-use crate::memory::PageSize;
-use crate::strings::parse_number::ParseNumber;
-use crate::strings::parse_number::ParseNumberError;
+use self::parse_number::*;
 use self::to_number::NumberAsBytes;
 
 

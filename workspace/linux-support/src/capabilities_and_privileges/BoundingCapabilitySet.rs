@@ -5,7 +5,7 @@
 /// Bounding capability set.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-pub struct BoundingCapabilitySet(pub BitSet<Capability>);
+pub struct BoundingCapabilitySet(pub Capabilities);
 
 impl BoundingCapabilitySet
 {
@@ -21,7 +21,7 @@ impl BoundingCapabilitySet
 				set.add(capability)
 			}
 		}
-		Self(set)
+		Self(Capabilities(set))
 	}
 
 	/// Will fail if the thread doesn't have `Capability::SetProcessCapabilities`.

@@ -5,10 +5,6 @@
 use super::*;
 use self::c::*;
 use crate::paths::*;
-use crate::strings::Radix;
-use crate::strings::parse_number::*;
-
-
 /// C data structures.
 pub mod c;
 

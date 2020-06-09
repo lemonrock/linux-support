@@ -5,11 +5,6 @@
 use super::*;
 use crate::paths::ProcPath;
 use crate::process::ProcessIdentifierChoice;
-use crate::strings::Radix;
-use crate::strings::parse_number::ParseNumber;
-use crate::strings::parse_number::ParseNumberError;
-
-
 /// Huge Pages.
 ///
 /// Functionality in here replaces the need to use `libhugetlbfs`.

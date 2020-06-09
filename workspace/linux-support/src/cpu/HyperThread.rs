@@ -167,7 +167,7 @@ impl HyperThread
 	///
 	/// These are hyper threads isolated from use by Linux itself and normal process (and thread) schedulers.
 	#[inline(always)]
-	pub fn isolated(&self, linux_kernel_command_line: &LinuxKernelCommandLineParameters, isolated_cpus_required: bool) -> Result<BitSet<HyperThread>, &'static str>
+	pub fn isolated(&self, linux_kernel_command_line: &LinuxKernelCommandLineParameters, isolated_cpus_required: bool) -> Result<HyperThreads, &'static str>
 	{
 		if let Some((isolated_cpu_flags, isolated_cpus)) = linux_kernel_command_line.isolcpus()
 		{
@@ -202,7 +202,7 @@ impl HyperThread
 			}
 			else
 			{
-				Ok(BitSet::empty())
+				Ok(HyperThreads(BitSet::empty()))
 			}
 		}
 	}

@@ -129,3 +129,29 @@ impl CStringFragments for &str
 		provide_fragment(self.as_bytes())
 	}
 }
+
+/// This implementation supports Environment.
+impl CStringFragments for (&Box<[u8]>, &Option<Box<[u8]>>)
+{
+	#[inline(always)]
+	fn iterate(self, provide_fragment: &mut impl FnMut(&[u8]) -> ())
+	{
+		let name = self.0;
+		let value = self.1;
+		match value
+		{
+			&None =>
+			{
+				debug_assert!(!name.is_empty(), "An environment variable name can not be an empty string if it has no value");
+				provide_fragment(&name[..])
+			}
+
+			&Some(ref value) =>
+			{
+				provide_fragment(&name[..]);
+				provide_fragment(b"=");
+				provide_fragment(&value[..])
+			}
+		}
+	}
+}

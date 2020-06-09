@@ -56,12 +56,12 @@ pub struct GlobalSchedulingConfiguration
 	/// If the watchdogs are disabled, then this value does not need to change.
 	///
 	/// Requires root.
-	pub software_and_hardware_watchdog_runs_on_which_kernel_cpus: Option<BitSet<HyperThread>>,
+	pub software_and_hardware_watchdog_runs_on_which_kernel_cpus: Option<HyperThreads>,
 
 	/// It is recommended that this value be computed.
 	///
 	/// Requires root.
-	pub work_queue_runs_on_which_kernel_cpus: Option<BitSet<HyperThread>>,
+	pub work_queue_runs_on_which_kernel_cpus: Option<HyperThreads>,
 }
 
 impl GlobalSchedulingConfiguration

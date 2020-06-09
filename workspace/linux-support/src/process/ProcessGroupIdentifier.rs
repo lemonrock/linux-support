@@ -84,10 +84,10 @@ impl ParseNumber for ProcessGroupIdentifier
 	}
 }
 
-impl ParseNumber for Option<ProcessGroupIdentifier>
+impl ParseNumberOption for ProcessGroupIdentifier
 {
 	#[inline(always)]
-	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
+	fn parse_number_option(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Option<Self>, ParseNumberError>
 	{
 		let pid = pid_t::parse_number(bytes, radix, parse_byte)?;
 		if unlikely!(pid < -1)

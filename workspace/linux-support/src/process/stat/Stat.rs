@@ -132,25 +132,25 @@ pub struct Stat
 	///
 	/// Obsolete as does not include real-time signals.
 	#[deprecated]
-	pub pending_non_real_time_signals: BitSet<Signal>,
+	pub pending_non_real_time_signals: Signals,
 
 	/// Blocked signals.
 	///
 	/// Obsolete as does not include real-time signals.
 	#[deprecated]
-	pub blocked_non_real_time_signals: BitSet<Signal>,
+	pub blocked_non_real_time_signals: Signals,
 
 	/// Ignored signals.
 	///
 	/// Obsolete as does not include real-time signals.
 	#[deprecated]
-	pub ignored_non_real_time_signals: BitSet<Signal>,
+	pub ignored_non_real_time_signals: Signals,
 
 	/// Caught signals.
 	///
 	/// Obsolete as does not include real-time signals.
 	#[deprecated]
-	pub caught_non_real_time_signals: BitSet<Signal>,
+	pub caught_non_real_time_signals: Signals,
 
 	/// Address of a location in the kernel where a proces is sleeping.
 	///
@@ -320,11 +320,11 @@ impl Stat
 		}
 
 		#[inline(always)]
-		fn obsolete_signal_bit_set_from_bytes(start_index: &mut usize, bytes: &[u8], index: u8, name: &'static str) -> Result<BitSet<Signal>, StatParseError>
+		fn obsolete_signal_bit_set_from_bytes(start_index: &mut usize, bytes: &[u8], index: u8, name: &'static str) -> Result<Signals, StatParseError>
 		{
 			let next_bytes = value_bytes(start_index, bytes, index, name)?;
 			let bits = u64::from_bytes(next_bytes).map_err(|cause| ParseNumber { index: unsafe { NonZeroU8::new_unchecked(index)}, name, cause})?;
-			Ok(BitSet::new_from_u64(bits))
+			Ok(Signals(BitSet::new_from_u64(bits)))
 		}
 
 		let bytes = proc_path.process_file_path(process_identifier, "stat").read_raw_without_line_feed()?;

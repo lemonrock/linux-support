@@ -38,16 +38,18 @@ impl<T> DerefMut for VariablySized<T>
 
 impl<T> VariablySized<T>
 {
+	/// Allocate zeroed.
 	#[inline(always)]
-	fn allocate_zeroed(size: usize) -> Self
+	pub fn allocate_zeroed(size: usize) -> Self
 	{
 		let layout = unsafe { Layout::from_size_align_unchecked(size, 8) };
 		let pointer = unsafe { alloc_zeroed(layout.clone()) };
 		Self(unsafe { NonNull::new_unchecked(pointer as *mut T) }, layout)
 	}
 
+	/// Zero (uninitialize).
 	#[inline(always)]
-	pub(crate) fn zero(&mut self)
+	pub fn zero(&mut self)
 	{
 		let pointer = self.0.as_ptr();
 		unsafe { write_bytes(pointer, 0x00, self.1.size()) }

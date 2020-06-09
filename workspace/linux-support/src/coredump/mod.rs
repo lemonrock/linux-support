@@ -6,7 +6,6 @@ use super::*;
 use crate::paths::ProcPath;
 use crate::paths::PathExt;
 use crate::process::ProcessIdentifierChoice;
-use crate::strings::into_line_feed_terminated_byte_string::*;
 
 
 include!("CoreDumpFilterFlags.rs");

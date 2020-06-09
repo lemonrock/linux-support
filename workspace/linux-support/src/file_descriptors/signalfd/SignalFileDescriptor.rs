@@ -57,10 +57,10 @@ impl SignalFileDescriptor
 	#[inline(always)]
 	pub fn new_with_filled_signal_mask() -> Result<(Self, sigset_t), CreationError>
 	{
-		let signal_mask = BitSet::<Signal>::filled_signal_mask();
+		let signal_mask = Signals::filled_signal_mask();
 		Self::new(&signal_mask).map(|this|
 		{
-			BitSet::<Signal>::block_signals(&signal_mask);
+			Signals::block_signals(&signal_mask);
 
 			(this, signal_mask)
 		})

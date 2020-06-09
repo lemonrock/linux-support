@@ -60,10 +60,10 @@ impl ParseNumber for ChildStatus
 	}
 }
 
-impl ParseNumber for Option<ChildStatus>
+impl ParseNumberOption for ChildStatus
 {
 	#[inline(always)]
-	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
+	fn parse_number_option(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Option<Self>, ParseNumberError>
 	{
 		let value = i32::parse_number(bytes, radix, parse_byte)?;
 		if unlikely!(value == 0)

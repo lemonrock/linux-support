@@ -6,9 +6,5 @@ use super::*;
 use crate::paths::PathExt;
 use crate::paths::ProcPath;
 use crate::process::ProcessIdentifierChoice;
-use crate::strings::FromBytes;
-use crate::strings::parse_number::*;
-
-
 include!("personality.rs");
 include!("PersonalityFlags.rs");

@@ -9,7 +9,7 @@ pub struct ThreadLoopInitiation<HeapSize: MemorySize, GTACSA: 'static + GlobalTh
 	global_allocator: &'static GTACSA,
 	queues: Queues<(), DequeuedMessageProcessingError>,
 	io_uring_settings: IoUringSettings,
-	signal_mask: BitSet<Signal>,
+	signal_mask: Signals,
 	
 	transmission_control_protocol_over_internet_protocol_version_4_server_listeners: Vec<AcceptConnectionsCoroutineSettings<sockaddr_in>>,
 	transmission_control_protocol_over_internet_protocol_version_6_server_listeners: Vec<AcceptConnectionsCoroutineSettings<sockaddr_in6>>,

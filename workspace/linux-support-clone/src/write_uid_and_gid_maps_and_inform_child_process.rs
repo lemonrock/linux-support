@@ -3,7 +3,7 @@
 
 
 #[inline(always)]
-fn write_uid_and_gid_maps_and_inform_child_process(proc_path: &ProcPath, child_process_identifier: NonZeroU32, send_pipe_file_descriptor: &mut SendPipeFileDescriptor) -> Result<(), CouldNotStartChildProcessError>
+fn write_uid_and_gid_maps_and_inform_child_process(proc_path: &ProcPath, child_process_identifier: ProcessIdentifier, send_pipe_file_descriptor: &mut SendPipeFileDescriptor) -> Result<(), CouldNotStartChildProcessError>
 {
 	write_uid_and_gid_maps(proc_path, child_process_identifier)?;
 

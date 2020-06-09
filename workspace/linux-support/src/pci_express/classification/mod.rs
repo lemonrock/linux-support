@@ -4,13 +4,13 @@
 
 use super::*;
 use self::subclasses::*;
-use crate::strings::FromBytes;
 
 
 /// Subclass definitions.
 pub mod subclasses;
 
 
+include!("EitherPciDeviceClass.rs");
 include!("PciDeviceClass.rs");
 include!("PciDeviceIdentifier.rs");
 include!("PciDeviceType.rs");

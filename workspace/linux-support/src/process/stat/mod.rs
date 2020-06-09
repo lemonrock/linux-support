@@ -12,7 +12,7 @@ use crate::scheduling::Nice;
 use crate::paths::PathExt;
 use crate::paths::ProcPath;
 use crate::signals::ChildStatus;
-use crate::strings::FromBytes;
+use crate::signals::Signals;
 use crate::time::ClockTicks;
 
 

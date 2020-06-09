@@ -7,23 +7,21 @@ use self::c::*;
 use super::PageSize;
 use super::huge_pages::*;
 use super::information::*;
-use crate::bit_set::*;
-use crate::cpu::HyperThread;
+use crate::cpu::{HyperThread, HyperThreads};
 use crate::current_numa_node_and_hyper_thread;
 use crate::paths::*;
 use crate::process::*;
 use crate::process::status::Status;
-use crate::strings::FromBytes;
-use crate::strings::Radix;
-use crate::strings::parse_number::*;
-use crate::strings::to_number::NumberAsBytes;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 
 
-include!("BitSetNumaNode.rs");
+mod c;
+
+
 include!("GetMemoryPolicyFlags.rs");
 include!("MemoryLatencyRelativeCost.rs");
 include!("NumaNode.rs");
+include!("NumaNodes.rs");
 include!("PageMoveError.rs");
 include!("PageMoveStatus.rs");
 include!("PerPageMoveError.rs");
@@ -31,6 +29,3 @@ include!("MemoryPolicy.rs");
 include!("MemoryPolicyDynamism.rs");
 include!("SetMemoryPolicy.rs");
 include!("SetMemoryPolicyStrictness.rs");
-
-
-mod c;

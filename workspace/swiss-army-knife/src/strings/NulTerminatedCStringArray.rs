@@ -19,7 +19,7 @@ impl NulTerminatedCStringArray
 {
 	/// `c_string_components` provides the pieces that are to create a CString.
 	#[inline(always)]
-	pub fn new<'a>(c_strings_as_fragments_to_combine: impl Iterator<Item=impl CStringFragments>) -> Self
+	pub fn new<'a>(c_strings_as_fragments_to_combine: impl Iterator<Item=impl CStringFragments>, page_size: impl Into<usize>) -> Self
 	{
 		let estimated_number_of_strings =
 		{
@@ -36,7 +36,7 @@ impl NulTerminatedCStringArray
 
 		let mut this = Self
 		{
-			buffer: Vec::with_capacity(PageSize::current().into()),
+			buffer: Vec::with_capacity(page_size.into()),
 			pointers: Vec::with_capacity(estimated_number_of_strings),
 		};
 

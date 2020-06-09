@@ -13,15 +13,15 @@ pub struct PciDeviceDetails
 	/// Typically this is the 'Card Manufacturer'.
 	pub subsystem_vendor_and_subsystem_device: PciVendorAndDevice,
 
-	pub class: Either<PciDeviceClass, (u8, u8, u8)>,
+	pub class: EitherPciDeviceClass,
 
 	pub revision: Revision,
 
 	pub associated_numa_node: Option<NumaNode>,
 
-	pub associated_hyper_threads_bit_set: BitSet<HyperThread>,
+	pub associated_hyper_threads_bit_set: HyperThreads,
 
-	pub associated_hyper_threads_bitmask: BitSet<HyperThread>,
+	pub associated_hyper_threads_bitmask: HyperThreads,
 
 	pub d3cold_allowed: Option<bool>,
 
@@ -46,6 +46,6 @@ impl PciDeviceDetails
 	#[inline(always)]
 	pub fn is_ethernet(&self) -> bool
 	{
-		self.class == Left(PciDeviceClass::NetworkController(NetworkController::Ethernet))
+		self.class == EitherPciDeviceClass(Left(PciDeviceClass::NetworkController(NetworkController::Ethernet)))
 	}
 }

@@ -2,9 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// Into a list.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub(crate) struct IntoList<'a, BSA: BitSetAware>(pub(crate) &'a BitSet<BSA>);
+pub struct IntoList<'a, BSA: BitSetAware>(pub &'a BitSet<BSA>);
 
 impl<'a, BSA: BitSetAware> IntoLineFeedTerminatedByteString<'a> for IntoList<'a, BSA>
 {

@@ -76,7 +76,7 @@ impl ProcessConfiguration
 	}
 
 	#[inline(always)]
-	fn online_shared_and_isolated_hyper_threads(&self, isolated_hyper_threads_including_those_offline: BitSet<HyperThread>) -> (BitSet<HyperThread>, BitSet<HyperThread>)
+	fn online_shared_and_isolated_hyper_threads(&self, isolated_hyper_threads_including_those_offline: HyperThreads) -> (HyperThreads, HyperThreads)
 	{
 		assert_ne!(isolated_hyper_threads_including_those_offline.len(), 0, "There must be at least one hyper thread in `isolated_hyper_threads_including_those_offline`");
 

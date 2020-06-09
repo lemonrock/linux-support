@@ -10,7 +10,6 @@ use super::PageSize;
 use crate::memory::information::MemoryInformation;
 use crate::memory::information::MemoryInformationName;
 use crate::paths::*;
-use crate::strings::into_line_feed_terminated_byte_string::*;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 
 

@@ -207,7 +207,7 @@ impl<'a> PciDevice<'a>
 	}
 
 	#[inline(always)]
-	fn class(&self) -> Either<PciDeviceClass, (u8, u8, u8)>
+	fn class(&self) -> EitherPciDeviceClass
 	{
 		self.read_value("class")
 	}
@@ -244,9 +244,9 @@ impl<'a> PciDevice<'a>
 	///
 	/// Panics if file unreadable.
 	#[inline(always)]
-	fn associated_hyper_threads_bit_set(&self) -> BitSet<HyperThread>
+	fn associated_hyper_threads_bit_set(&self) -> HyperThreads
 	{
-		self.device_file_or_folder_path("local_cpulist").read_hyper_thread_or_numa_node_list().expect("Could not parse local_cpulist")
+		HyperThreads(self.device_file_or_folder_path("local_cpulist").read_hyper_thread_or_numa_node_list().expect("Could not parse local_cpulist"))
 	}
 
 	/// PCI device hyper threads that are permitted to use this device.
@@ -257,9 +257,9 @@ impl<'a> PciDevice<'a>
 	///
 	/// Panics if file unreadable.
 	#[inline(always)]
-	fn associated_hyper_threads_bitmask(&self) -> BitSet<HyperThread>
+	fn associated_hyper_threads_bitmask(&self) -> HyperThreads
 	{
-		self.device_file_or_folder_path("local_cpus").parse_hyper_thread_or_numa_node_bit_set().expect("Could not parse local_cpulist")
+		HyperThreads(self.device_file_or_folder_path("local_cpus").parse_hyper_thread_or_numa_node_bit_set().expect("Could not parse local_cpulist"))
 	}
 
 	#[inline(always)]

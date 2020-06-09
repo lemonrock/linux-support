@@ -11,8 +11,6 @@ use super::pipes_and_fifos::SpliceSender;
 use crate::memory::huge_pages::HugePageSize;
 use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use crate::memory::huge_pages::PageSizeOrHugePageSize;
-use crate::vectors::VectoredRead;
-use crate::vectors::VectoredWrite;
 
 
 include!("FileSeals.rs");

@@ -293,10 +293,10 @@ impl ParseNumber for RealTimePriority
 	}
 }
 
-impl ParseNumber for Option<RealTimePriority>
+impl ParseNumberOption for RealTimePriority
 {
 	#[inline(always)]
-	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
+	fn parse_number_option(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Option<Self>, ParseNumberError>
 	{
 		let value = u8::parse_number(bytes, radix, parse_byte)?;
 		if value == 0

@@ -7,8 +7,6 @@ use super::file::*;
 use super::pipes_and_fifos::SpliceRecipient;
 use super::pipes_and_fifos::SpliceSender;
 use super::pipes_and_fifos::c::open;
-use crate::vectors::VectoredRead;
-use crate::vectors::VectoredWrite;
 
 
 include!("BlockDeviceFileDescriptor.rs");

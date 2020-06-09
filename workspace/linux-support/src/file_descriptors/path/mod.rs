@@ -5,7 +5,6 @@
 use super::*;
 use super::directory::*;
 use crate::environment::Environment;
-use crate::strings::NulTerminatedCStringArray;
 use crate::user_and_groups::GroupIdentifier;
 use crate::user_and_groups::UserIdentifier;
 

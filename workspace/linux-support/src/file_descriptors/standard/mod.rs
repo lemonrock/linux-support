@@ -4,9 +4,6 @@
 
 use super::*;
 use crate::paths::DevPath;
-use crate::strings::OsStrExtMore;
-
-
 include!("StandardFileDescriptor.rs");
 include!("Stderr.StandardFileDescriptor.rs");
 include!("Stdin.StandardFileDescriptor.rs");

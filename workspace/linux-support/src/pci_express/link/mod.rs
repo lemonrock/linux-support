@@ -3,9 +3,6 @@
 
 
 use super::*;
-use crate::strings::FromBytes;
-
-
 include!("LinkSpeed.rs");
 include!("LinkSpeedAndWidth.rs");
 include!("LinkWidth.rs");

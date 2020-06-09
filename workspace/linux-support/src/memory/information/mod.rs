@@ -4,9 +4,6 @@
 
 use super::*;
 use crate::paths::*;
-use crate::strings::parse_number::*;
-
-
 include!("MemoryInformation.rs");
 include!("MemoryInformationName.rs");
 include!("MemoryInformationParseError.rs");

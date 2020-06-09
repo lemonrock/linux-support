@@ -4,7 +4,6 @@
 
 use super::*;
 use self::checks::*;
-use crate::bit_set::BitSet;
 use crate::capabilities_and_privileges::*;
 use crate::coredump::CoreDumpFilterFlags;
 use crate::cpu::*;
@@ -38,7 +37,6 @@ use crate::seccomp::*;
 use crate::scheduling::*;
 use crate::swap::*;
 use crate::signals::*;
-use crate::strings::into_line_feed_terminated_byte_string::*;
 use crate::thread::*;
 use crate::time::c::tzset;
 use crate::user_and_groups::*;

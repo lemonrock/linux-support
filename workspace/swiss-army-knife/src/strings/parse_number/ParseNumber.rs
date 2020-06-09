@@ -280,3 +280,12 @@ parse_non_zero_number!(std::num::NonZeroI32, i32);
 parse_non_zero_number!(std::num::NonZeroI64, i64);
 parse_non_zero_number!(std::num::NonZeroI128, i128);
 parse_non_zero_number!(std::num::NonZeroIsize, isize);
+
+impl<P: ParseNumberOption> ParseNumber for Option<P>
+{
+	#[inline(always)]
+	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
+	{
+		P::parse_number_option(bytes, radix, parse_byte)
+	}
+}

@@ -3,8 +3,5 @@
 
 
 use super::*;
-use crate::strings::into_line_feed_terminated_byte_string::*;
-
-
 include!("KernelPanicRebootAction.rs");
 include!("WhatToPrintOnAKernelPanic.rs");

@@ -7,9 +7,5 @@ use crate::memory::NumberOfPages;
 use crate::paths::ProcPath;
 use crate::paths::PathExt;
 use crate::process::ProcessIdentifierChoice;
-use crate::strings::FromBytes;
-use crate::strings::parse_number::ParseNumberError;
-
-
 include!("StatM.rs");
 include!("StatMParseError.rs");

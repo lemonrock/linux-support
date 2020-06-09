@@ -19,7 +19,7 @@ pub struct ThreadConfiguration<PTMAI: 'static + PerThreadMemoryAllocatorInstanti
 	#[serde(default = "ThreadConfiguration::<PTMAI>::stack_size_default")] pub stack_size: NonZeroNumberOfPages,
 
 	/// Thread HyperThread affinity.
-	#[serde(default)] pub affinity: BitSet<HyperThread>,
+	#[serde(default)] pub affinity: HyperThreads,
 
 	/// Sets the nice value for the thread.
 	#[serde(default)] pub nice: Option<Nice>,

@@ -2,7 +2,33 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-impl BitSet<NumaNode>
+/// `BitSet` of `NumaNode`.
+#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct NumaNodes(pub BitSet<NumaNode>);
+
+impl Deref for NumaNodes
+{
+	type Target = BitSet<NumaNode>;
+	
+	#[inline(always)]
+	fn deref(&self) -> &Self::Target
+	{
+		&self.0
+	}
+}
+
+impl DerefMut for NumaNodes
+{
+	#[inline(always)]
+	fn deref_mut(&mut self) -> &mut Self::Target
+	{
+		&mut self.0
+	}
+}
+
+impl NumaNodes
 {
 	/// Returns an intersection to best calculate the valid set.
 	///
@@ -30,7 +56,7 @@ impl BitSet<NumaNode>
 	#[inline(always)]
 	fn has_a_folder_path(sys_path: &SysPath) -> Option<Self>
 	{
-		sys_path.numa_nodes_folder_path().entries_in_folder_path().unwrap()
+		sys_path.numa_nodes_folder_path().entries_in_folder_path().unwrap().map(|bit_set| Self(bit_set))
 	}
 
 	/// NUMA nodes that could possibly be online at some point.
@@ -113,7 +139,7 @@ impl BitSet<NumaNode>
 		let file_path = sys_path.numa_nodes_path(file_name);
 		if file_path.exists()
 		{
-			Some(file_path.read_hyper_thread_or_numa_node_list().unwrap())
+			Some(Self(file_path.read_hyper_thread_or_numa_node_list().unwrap()))
 		}
 		else
 		{

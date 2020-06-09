@@ -133,7 +133,7 @@ impl LinuxKernelCommandLineParameters
 	/// Note in the latter example there isn't a separate delimiter separating the flags from the list, so one has to be have some truly revolting parsing code, which is what we do (`IsolatedCpuFlags::split_flags_and_cpu_list`).
 	/// If no flags are specified then `domain` is implied.
 	#[inline(always)]
-	pub fn isolcpus(&self) -> Option<(HashSet<IsolatedCpuFlags>, BitSet<HyperThread>)>
+	pub fn isolcpus(&self) -> Option<(HashSet<IsolatedCpuFlags>, HyperThreads)>
 	{
 		self.get_value(b"isolcpus").map(|value|
 		{
@@ -161,7 +161,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Ordinarily should match `isolcpus`.
 	#[inline(always)]
-	pub fn rcu_nocbs(&self) -> Option<BitSet<HyperThread>>
+	pub fn rcu_nocbs(&self) -> Option<HyperThreads>
 	{
 		self.get_value(b"rcu_nocbs").map(Self::parse_hyper_thread_list)
 	}
@@ -170,7 +170,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Ordinarily should match `rcu_nocbs`.
 	#[inline(always)]
-	pub fn nohz_full(&self) -> Option<BitSet<HyperThread>>
+	pub fn nohz_full(&self) -> Option<HyperThreads>
 	{
 		self.get_value(b"nohz_full").map(Self::parse_hyper_thread_list)
 	}
@@ -179,7 +179,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// This should probably not be set.
 	#[inline(always)]
-	pub fn irqaffinity(&self) -> Option<BitSet<HyperThread>>
+	pub fn irqaffinity(&self) -> Option<HyperThreads>
 	{
 		self.get_value(b"irqaffinity").map(Self::parse_hyper_thread_list)
 	}
@@ -845,8 +845,8 @@ impl LinuxKernelCommandLineParameters
 	}
 
 	#[inline(always)]
-	fn parse_hyper_thread_list(list: &[u8]) -> BitSet<HyperThread>
+	fn parse_hyper_thread_list(list: &[u8]) -> HyperThreads
 	{
-		BitSet::<HyperThread>::parse_linux_list_string(list).unwrap()
+		HyperThreads(BitSet::<HyperThread>::parse_linux_list_string(list).unwrap())
 	}
 }

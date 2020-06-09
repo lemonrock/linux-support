@@ -11,10 +11,6 @@ use crate::linux_kernel_version::*;
 use crate::logging::rfc3164::Rfc3164MessageTemplate;
 use crate::paths::DevPath;
 use crate::process::ProcessName;
-use crate::strings::*;
-use crate::strings::to_number::NumberAsBytes;
-
-
 /// RFC 5424 syslog.
 pub mod rfc3164;
 

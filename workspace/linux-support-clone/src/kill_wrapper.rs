@@ -3,9 +3,9 @@
 
 
 #[inline(always)]
-fn kill_wrapper(child_process_identifier: NonZeroU32)
+fn kill_wrapper(child_process_identifier: ProcessIdentifier)
 {
-	let result = unsafe { kill(child_process_identifier.get().try_into().unwrap(), SIGKILL) };
+	let result = unsafe { kill(child_process_identifier.into(), SIGKILL) };
 	if likely!(result == 0)
 	{
 		return

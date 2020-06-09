@@ -3,14 +3,11 @@
 
 
 use super::*;
-use crate::bit_set::*;
 use crate::configuration::checks::Check;
 use crate::cpu::HyperThread;
+use crate::cpu::HyperThreads;
 use crate::file_systems::FileSystemType;
 use crate::paths::*;
-use crate::strings::*;
-
-
 include!("IsolatedCpuFlags.rs");
 include!("LinuxKernelCommandLineParameters.rs");
 include!("OptionalKernelCommandLineSettingCheck.rs");

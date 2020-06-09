@@ -8,7 +8,6 @@ use self::classification::subclasses::NetworkController;
 use self::configuration_space::MemoryMappedConfigurationSpace;
 use self::link::*;
 use self::resources::Resources;
-use crate::bit_set::BitSet;
 use crate::cpu::*;
 use crate::linux_kernel_modules::*;
 use crate::file_descriptors::RawFdExt;
@@ -17,9 +16,6 @@ use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use crate::memory::mapping::*;
 use crate::memory::numa::NumaNode;
 use crate::paths::*;
-use crate::strings::*;
-use crate::strings::into_line_feed_terminated_byte_string::*;
-use crate::strings::parse_number::*;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 
 

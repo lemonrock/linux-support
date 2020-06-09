@@ -12,8 +12,6 @@ use super::pipes_and_fifos::SpliceSender;
 use crate::process::*;
 use crate::user_and_groups::UserIdentifier;
 use crate::user_and_groups::GroupIdentifier;
-use crate::vectors::VectoredRead;
-use crate::vectors::VectoredWrite;
 
 
 /// Contains essential data structures.

@@ -47,4 +47,5 @@ serde_bytes = "^0.11.3"
 streaming-iterator = "^0.1.5"
 strum = "^0.18.0"
 strum_macros = "^0.18.0"
+swiss-army-knife = { version = "0.0.0", path = "../swiss-army-knife" }
 terminate = { version = "^0.2.0", path = "../terminate" }

@@ -36,18 +36,6 @@ pub enum PciDeviceClass
 	Unassigned(Unassigned),
 }
 
-impl FromBytes for Either<PciDeviceClass, (u8, u8, u8)>
-{
-	type Error = ParseNumberError;
-
-	#[inline(always)]
-	fn from_bytes(bytes: &[u8]) -> Result<Self, Self::Error>
-	{
-		let u24 = u32::parse_hexadecimal_number_lower_case_with_0x_prefix_fixed_width(bytes, 6)?;
-		Ok(PciDeviceClass::parse(u24))
-	}
-}
-
 impl PciDeviceClass
 {
 	/// Returns a recognised, valid combination or 'major, minor, programming_interface'.

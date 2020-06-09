@@ -366,23 +366,26 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	}
 
 	/// Creates a new, uninitialized bit set for use with Linux API calls.
+	#[doc(hidden)]
 	#[inline(always)]
-	pub(crate) unsafe fn new_uninitialized() -> Self
+	pub unsafe fn new_uninitialized() -> Self
 	{
 		Self::new_set_length(Self::MaximumNumberOfUsizeWords)
 	}
 
 	/// Creates a bit set from an u64 which is correctly set.
+	#[doc(hidden)]
 	#[inline(always)]
-	pub(crate) fn new_from_u64(bits: u64) -> Self
+	pub fn new_from_u64(bits: u64) -> Self
 	{
 		let mut bit_set = Self::new_set_length(1);
 		unsafe { bit_set.set_u64_unchecked(0, bits) };
 		bit_set
 	}
 
+	#[doc(hidden)]
 	#[inline(always)]
-	pub(crate) fn new_from_words(words: *const usize, length: usize) -> Self
+	pub fn new_from_words(words: *const usize, length: usize) -> Self
 	{
 		let mut bit_set = Self::new_set_length(1);
 		unsafe { words.copy_to_nonoverlapping(bit_set.as_mut_ptr(), length) };
@@ -440,21 +443,24 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	}
 
 	/// Provides a pointer and a length suitable for some Linux API calls.
+	#[doc(hidden)]
 	#[inline(always)]
-	pub(crate) fn to_raw_parts(&self) -> (*const usize, usize)
+	pub fn to_raw_parts(&self) -> (*const usize, usize)
 	{
 		(self.as_ptr(), self.capacity_in_words())
 	}
 
 	/// Provides a pointer and a length suitable for some Linux API calls.
+	#[doc(hidden)]
 	#[inline(always)]
-	pub(crate) fn to_raw_parts_mut(&mut self) -> (*mut usize, usize)
+	pub fn to_raw_parts_mut(&mut self) -> (*mut usize, usize)
 	{
 		(self.as_mut_ptr(), self.capacity_in_words())
 	}
 
+	#[doc(hidden)]
 	#[inline(always)]
-	pub(crate) fn parse_hyper_thread_or_numa_node_bit_set(without_line_feed: &[u8]) -> Self
+	pub fn parse_hyper_thread_or_numa_node_bit_set(without_line_feed: &[u8]) -> Self
 	{
 		// n is number of tuples of 32-bits.
 		// LENGTH is value.len()
@@ -500,14 +506,16 @@ impl<BSA: BitSetAware> BitSet<BSA>
 		bit_set
 	}
 
+	#[doc(hidden)]
 	#[inline(always)]
-	pub(crate) fn capacity_in_words(&self) -> usize
+	pub fn capacity_in_words(&self) -> usize
 	{
 		self.0.len()
 	}
 
+	#[doc(hidden)]
 	#[inline(always)]
-	pub(crate) fn extend_clone_to(&self, new_length: usize) -> Self
+	pub fn extend_clone_to(&self, new_length: usize) -> Self
 	{
 		let current_length = self.capacity_in_words();
 		debug_assert!(current_length <= new_length);

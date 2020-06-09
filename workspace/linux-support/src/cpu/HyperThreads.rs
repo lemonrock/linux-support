@@ -2,13 +2,38 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-impl<'a> From<&'a cpu_set_t> for BitSet<HyperThread>
+/// `BitSet` of `HyperThread`.
+#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct HyperThreads(pub BitSet<HyperThread>);
+
+impl Deref for HyperThreads
+{
+	type Target = BitSet<HyperThread>;
+	
+	#[inline(always)]
+	fn deref(&self) -> &Self::Target
+	{
+		&self.0
+	}
+}
+
+impl DerefMut for HyperThreads
+{
+	#[inline(always)]
+	fn deref_mut(&mut self) -> &mut Self::Target
+	{
+		&mut self.0
+	}
+}
+
+impl<'a> From<&'a cpu_set_t> for HyperThreads
 {
 	#[inline(always)]
 	fn from(value: &'a cpu_set_t) -> Self
 	{
-		
-		BitSet::new_from_words(value as *const cpu_set_t as *const usize, Self::CpuSetTSizeInWords)
+		HyperThreads(BitSet::new_from_words(value as *const cpu_set_t as *const usize, Self::CpuSetTSizeInWords))
 	}
 }
 
@@ -17,7 +42,7 @@ impl<'a> From<&'a cpu_set_t> for BitSet<HyperThread>
 /// HyperThreads outside of this range will be `0`, ie not in the `cpu_set_t`.
 ///
 /// This seconds value is `<= size_of::<cpu_set_t>()`.
-impl TryInto<(cpu_set_t, usize)> for BitSet<HyperThread>
+impl TryInto<(cpu_set_t, usize)> for HyperThreads
 {
 	type Error = ();
 
@@ -48,7 +73,7 @@ impl TryInto<(cpu_set_t, usize)> for BitSet<HyperThread>
 	}
 }
 
-impl BitSet<HyperThread>
+impl HyperThreads
 {
 	const CpuSetTSizeInBytes: usize = size_of::<cpu_set_t>();
 
@@ -63,7 +88,7 @@ impl BitSet<HyperThread>
 	#[inline(always)]
 	pub fn new_for_cpu_set_t() -> Self
 	{
-		Self::with_capacity_in_words(Self::CpuSetTSizeInBytes / Self::UsizeSizeInBytes)
+		Self(BitSet::<HyperThread>::with_capacity_in_words(Self::CpuSetTSizeInBytes / Self::UsizeSizeInBytes))
 	}
 
 	/// Valid `HyperThread`s.
@@ -194,14 +219,15 @@ impl BitSet<HyperThread>
 	#[inline(always)]
 	pub fn force_watchdog_to_just_these_hyper_threads(&self, proc_path: &ProcPath) -> io::Result<()>
 	{
-		proc_path.sys_kernel_file_path("watchdog_cpumask").write_value(IntoList(self))
+		let value = IntoList(&self.0);
+		proc_path.sys_kernel_file_path("watchdog_cpumask").write_value(value)
 	}
 
 	/// CPU nodes that exist in the file system.
 	#[inline(always)]
 	fn has_a_folder_path(sys_path: &SysPath) -> Self
 	{
-		sys_path.cpu_system_devices_folder_path().entries_in_folder_path().unwrap().unwrap()
+		Self(sys_path.cpu_system_devices_folder_path().entries_in_folder_path().unwrap().unwrap())
 	}
 
 	/// CPU nodes that could possibly be online at some point.
@@ -255,7 +281,7 @@ impl BitSet<HyperThread>
 	#[inline(always)]
 	fn remove_any_that_are_actually_online(&mut self, sys_path: &SysPath)
 	{
-		let mut invalid_hyper_threads = Self::empty();
+		let mut invalid_hyper_threads = Self(BitSet::<HyperThread>::empty());
 		for hyper_thread in self.iterate()
 		{
 			if !hyper_thread.is_online(sys_path)
@@ -308,6 +334,6 @@ impl BitSet<HyperThread>
 	#[inline(always)]
 	fn read_hyper_thread_list(sys_path: &SysPath, file_name: &str) -> Self
 	{
-		sys_path.hyper_threads_folder_path(file_name).read_hyper_thread_or_numa_node_list().unwrap()
+		Self(sys_path.hyper_threads_folder_path(file_name).read_hyper_thread_or_numa_node_list().unwrap())
 	}
 }

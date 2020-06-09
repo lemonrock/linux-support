@@ -142,35 +142,9 @@ impl Environment
 	#[inline(always)]
 	pub(crate) fn to_environment_c_string_array(&self) -> NulTerminatedCStringArray
 	{
-		/// This implementation supports Environment.
-		impl CStringFragments for (&Box<[u8]>, &Option<Box<[u8]>>)
-		{
-			#[inline(always)]
-			fn iterate(self, provide_fragment: &mut impl FnMut(&[u8]) -> ())
-			{
-				let name = self.0;
-				let value = self.1;
-				match value
-				{
-					&None =>
-					{
-						debug_assert!(!name.is_empty(), "An environment variable name can not be an empty string if it has no value");
-						provide_fragment(&name[..])
-					}
-
-					&Some(ref value) =>
-					{
-						provide_fragment(&name[..]);
-						provide_fragment(b"=");
-						provide_fragment(&value[..])
-					}
-				}
-			}
-		}
-
 		let c_strings_as_fragments_to_combine = self.iter().flat_map(|(name, list_of_values)| list_of_values.iter().map(move |value| (name, value)));
 
-		NulTerminatedCStringArray::new(c_strings_as_fragments_to_combine)
+		NulTerminatedCStringArray::new(c_strings_as_fragments_to_combine, PageSize::current())
 	}
 
 	#[inline(always)]

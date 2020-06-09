@@ -199,8 +199,8 @@ numa_balancing_scan_size_mb: Controls how much address space is scanned when the
 
 pub struct ValidatedNumaNodeToHyperThreadMap
 {
-	all_valid_hyper_threads: BitSet<HyperThread>,
-	map: HashMap<NumaNode, BitSet<HyperThread>>,
+	all_valid_hyper_threads: HyperThreads,
+	map: HashMap<NumaNode, HyperThreads>,
 }
 
 impl ValidatedNumaNodeToHyperThreadMap
@@ -233,9 +233,9 @@ impl ValidatedNumaNodeToHyperThreadMap
 		 TODO: PCI device, check that (a) associated_hyper_threads_bit_set == associated_hyper_threads_bitmask and (b), for associated_numa_node == associated_hyper_threads_bitmask
 	pub associated_numa_node: Option<NumaNode>,
 
-	pub associated_hyper_threads_bit_set: BitSet<HyperThread>,
+	pub associated_hyper_threads_bit_set: HyperThreads,
 
-	pub associated_hyper_threads_bitmask: BitSet<HyperThread>,
+	pub associated_hyper_threads_bitmask: HyperThreads,
 		*/
 	}
 

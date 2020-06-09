@@ -3,8 +3,6 @@
 
 
 use super::*;
-use crate::bit_set::*;
-use crate::capabilities_and_privileges::Capability;
 use crate::cpu::*;
 use crate::file_descriptors::CreationError;
 use crate::file_descriptors::process_identifier::ProcessIdentifierFileDescriptor;
@@ -13,11 +11,10 @@ use crate::memory::numa::*;
 use crate::paths::*;
 use crate::scheduling::RoundRobinInterval;
 use crate::signals::Signal;
-use crate::strings::*;
-use crate::strings::into_line_feed_terminated_byte_string::*;
-use crate::strings::parse_number::*;
 use crate::thread::ThreadIdentifier;
-use crate::vectors::*;
+use crate::vectors::MaximumNumberOfBuffers;
+use crate::vectors::VectoredRead;
+use crate::vectors::VectoredWrite;
 
 
 /// `/proc/<N>/stat`.

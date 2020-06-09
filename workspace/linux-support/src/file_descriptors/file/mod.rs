@@ -11,8 +11,6 @@ use crate::paths::PathExt;
 use crate::paths::ProcPath;
 use crate::process::ProcessIdentifierChoice;
 use crate::process::ProcessIdentifier;
-use crate::vectors::VectoredWrite;
-use crate::vectors::VectoredRead;
 use crate::inode::*;
 use crate::inode::c::*;
 

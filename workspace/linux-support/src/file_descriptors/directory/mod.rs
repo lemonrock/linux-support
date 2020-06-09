@@ -8,7 +8,6 @@ use crate::devices::*;
 use crate::environment::Environment;
 use crate::file_systems::*;
 use crate::inode::*;
-use crate::strings::NulTerminatedCStringArray;
 use crate::syscall::SYS;
 use crate::user_and_groups::*;
 

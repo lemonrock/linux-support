@@ -3,8 +3,7 @@
 
 
 use super::*;
-use crate::bit_set::BitSet;
-use crate::cpu::HyperThread;
+use crate::cpu::HyperThreads;
 use crate::capabilities_and_privileges::*;
 use crate::io_priority::IoPriority;
 use crate::logging::LocalSyslogSocket;
@@ -15,7 +14,6 @@ use crate::paths::*;
 use crate::process::*;
 use crate::scheduling::Nice;
 use crate::scheduling::PerThreadSchedulerPolicyAndFlags;
-use crate::strings::parse_number::*;
 use crate::syscall::SYS::gettid;
 use crate::memory::mapping::MemoryMapError;
 

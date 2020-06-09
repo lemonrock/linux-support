@@ -3,18 +3,14 @@
 
 
 use super::*;
-use crate::bit_set::*;
+use self::codes::*;
+use self::c::*;
 use crate::memory::VirtualAddress;
 use crate::process::ProcessIdentifier;
 use crate::process::status::StatusStatisticParseError;
-use crate::strings::FromBytes;
-use crate::strings::Radix;
-use crate::strings::parse_number::*;
 use crate::syscall::UnconstrainedSystemCallNumber;
 use crate::time::ClockTicks;
 use crate::user_and_groups::UserIdentifier;
-use self::codes::*;
-use self::c::*;
 
 
 /// `si_code` ranges of values.
@@ -26,7 +22,6 @@ pub mod c;
 
 
 include!("AuditArchitecture.rs");
-include!("BitSetSignal.rs");
 include!("ChildStatus.rs");
 include!("ElfMachine.rs");
 include!("FaultCode.rs");
@@ -36,4 +31,5 @@ include!("reset_all_signal_handlers_to_default.rs");
 include!("ParsedSignal.rs");
 include!("Signal.rs");
 include!("SignalQueueStatus.rs");
+include!("Signals.rs");
 include!("TimedSignalWait.rs");

@@ -4,9 +4,9 @@
 
 use super::*;
 use self::c::*;
+use crate::memory::PageSize;
 use crate::process::ProcessIdentifierChoice;
 use crate::paths::*;
-use crate::strings::*;
 use crate::user_and_groups::UserName;
 
 

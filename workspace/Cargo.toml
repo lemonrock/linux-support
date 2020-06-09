@@ -4,7 +4,6 @@
 
 [workspace]
 members = [
-	"socket-access-control",
 	"context-allocator",
 	"context-coroutine",
     "linux-io-uring",
@@ -13,5 +12,7 @@ members = [
     "magic-ring-buffer",
     "message-dispatch",
     "message-dispatch-datadog",
+	"socket-access-control",
+	"swiss-army-knife",
     "terminate",
 ]

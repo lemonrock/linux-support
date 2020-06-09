@@ -12,13 +12,13 @@
 pub struct PermittedEffectiveAndInheritableCapabilitySets
 {
 	#[allow(missing_docs)]
-	pub permitted: BitSet<Capability>,
+	pub permitted: Capabilities,
 
 	#[allow(missing_docs)]
-	pub effective: BitSet<Capability>,
+	pub effective: Capabilities,
 
 	#[allow(missing_docs)]
-	pub inheritable: BitSet<Capability>
+	pub inheritable: Capabilities
 }
 
 impl PermittedEffectiveAndInheritableCapabilitySets
@@ -33,9 +33,9 @@ impl PermittedEffectiveAndInheritableCapabilitySets
 		if likely!(result == 0)
 		{
 			#[inline(always)]
-			fn new_set(index0: u32, index1: u32) -> BitSet<Capability>
+			fn new_set(index0: u32, index1: u32) -> Capabilities
 			{
-				BitSet::new_from_u64((index0 as u64) << 32 | (index1 as u64))
+				Capabilities(BitSet::new_from_u64((index0 as u64) << 32 | (index1 as u64)))
 			}
 
 			Ok

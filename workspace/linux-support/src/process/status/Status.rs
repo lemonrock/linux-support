@@ -255,56 +255,56 @@ pub struct Status
 	/// Pending signals for the thread.
 	///
 	/// Known as `SigPnd`.
-	pub thread_pending_signals: BitSet<Signal>,
+	pub thread_pending_signals: Signals,
 
 	/// Shared pending signals for the process.
 	///
 	/// Known as `ShdPnd`.
-	pub process_shared_pending_signals: BitSet<Signal>,
+	pub process_shared_pending_signals: Signals,
 
 	/// Blocked signals.
 	///
 	/// Known as `SigBlk`.
-	pub blocked_signals: BitSet<Signal>,
+	pub blocked_signals: Signals,
 
 	/// Ignored signals.
 	///
 	/// Known as `SigIgn`.
-	pub ignored_signals: BitSet<Signal>,
+	pub ignored_signals: Signals,
 
 	/// Caught signals.
 	///
 	/// Known as `SigCgt`.
-	pub caught_signals: BitSet<Signal>,
+	pub caught_signals: Signals,
 
 	/// Inheritable capabilities.
 	///
 	/// Known as `CapInh`.
-	pub inheritable_capabilities_mask: BitSet<Capability>,
+	pub inheritable_capabilities_mask: Capabilities,
 
 	/// Permitted capabilities.
 	///
 	/// Known as `CapPrm`.
-	pub permitted_capabilities_mask: BitSet<Capability>,
+	pub permitted_capabilities_mask: Capabilities,
 
 	/// Effective capabilities.
 	///
 	/// Known as `CapEff`.
-	pub effective_capabilities_mask: BitSet<Capability>,
+	pub effective_capabilities_mask: Capabilities,
 
 	/// Capabilities bounding set.
 	///
 	/// Known as `CapBnd`.
 	///
 	/// Since Linux 2.6.26.
-	pub capabilities_bounding_set: BitSet<Capability>,
+	pub capabilities_bounding_set: Capabilities,
 
 	/// Ambient capabilities.
 	///
 	/// Known as `CapAmb`.
 	///
 	/// Since Linux 4.3.
-	pub ambient_capabilities_set: BitSet<Capability>,
+	pub ambient_capabilities_set: Capabilities,
 
 	/// Thread's `no_new_privs` bit (see `man 2 prctl` description for `PR_GET_NO_NEW_PRIVS`).
 	///
@@ -340,14 +340,14 @@ pub struct Status
 	/// Tuples of 32-bit, LSB to the far right, eg `ffffffff,ffffffff,ffffffff,ffffffff`.
 	///
 	/// Since Linux 2.6.24.
-	pub cpus_allowed: BitSet<HyperThread>,
+	pub cpus_allowed: HyperThreads,
 
 	/// CPUs (actually, hyper threaded cores) allowed for the current process.
 	///
 	/// Known as `Cpus_allowed_list`.
 	///
 	/// Since Linux 2.6.26.
-	pub cpus_allowed_list: BitSet<HyperThread>,
+	pub cpus_allowed_list: HyperThreads,
 
 	/// NUMA nodes allowed for the current process.
 	///
@@ -358,7 +358,7 @@ pub struct Status
 	/// Tuples of 32-bit, LSB to the far right, eg `00000000,00000001`.
 	///
 	/// Since Linux 2.6.24.
-	pub numa_nodes_allowed: BitSet<NumaNode>,
+	pub numa_nodes_allowed: NumaNodes,
 
 	/// NUMA nodes allowed for the current process.
 	///
@@ -367,7 +367,7 @@ pub struct Status
 	/// If the Linux kernel wasn't configured with `CONFIG_NUMA`, defaults to 0.
 	///
 	/// Since Linux 2.6.26.
-	pub numa_nodes_allowed_list: BitSet<NumaNode>,
+	pub numa_nodes_allowed_list: NumaNodes,
 
 	/// Voluntary context switches.
 	///
@@ -529,9 +529,9 @@ impl Status
 			b"CapBnd" => capabilities_bounding_set @ parse_capability_mask_or_set,
 			b"CapAm" => ambient_capabilities_set @ parse_capability_mask_or_set,
 			b"Seccomp" => seccomp_mode @ parse_seccomp_mode,
-			b"Cpus_allowed" => cpus_allowed @ parse_cpus_or_numa_nodes_allowed,
+			b"Cpus_allowed" => cpus_allowed @ parse_cpus_allowed,
 			b"Cpus_allowed_list" => cpus_allowed_list @ parse_cpus_allowed_list,
-			b"Mems_allowed" => numa_nodes_allowed @ parse_cpus_or_numa_nodes_allowed,
+			b"Mems_allowed" => numa_nodes_allowed @ parse_numa_nodes_allowed,
 			b"Mems_allowed_list" => numa_nodes_allowed_list @ parse_numa_nodes_allowed_list,
 			b"voluntary_ctxt_switches" => voluntary_context_switches @ parse_u64,
 			b"nonvoluntary_ctxt_switches" => involuntary_context_switches @ parse_u64,
@@ -700,15 +700,15 @@ impl Status
 	}
 
 	#[inline(always)]
-	fn parse_signal_bit_set(value: &[u8]) -> Result<BitSet<Signal>, StatusStatisticParseError>
+	fn parse_signal_bit_set(value: &[u8]) -> Result<Signals, StatusStatisticParseError>
 	{
-		Ok(BitSet::new_from_u64(Self::parse_hexadecimal_u64(value)?))
+		Ok(Signals(BitSet::new_from_u64(Self::parse_hexadecimal_u64(value)?)))
 	}
 
 	#[inline(always)]
-	fn parse_capability_mask_or_set(value: &[u8]) -> Result<BitSet<Capability>, StatusStatisticParseError>
+	fn parse_capability_mask_or_set(value: &[u8]) -> Result<Capabilities, StatusStatisticParseError>
 	{
-		Ok(BitSet::new_from_u64(Self::parse_hexadecimal_u64(value)?))
+		Ok(Capabilities(BitSet::new_from_u64(Self::parse_hexadecimal_u64(value)?)))
 	}
 
 	#[inline(always)]
@@ -742,20 +742,26 @@ impl Status
 	}
 
 	#[inline(always)]
-	fn parse_cpus_or_numa_nodes_allowed<BSA: BitSetAware>(value: &[u8]) -> Result<BitSet<BSA>, StatusStatisticParseError>
+	fn parse_cpus_allowed(value: &[u8]) -> Result<HyperThreads, StatusStatisticParseError>
 	{
-		Ok(BitSet::parse_hyper_thread_or_numa_node_bit_set(&value))
+		Ok(HyperThreads(BitSet::parse_hyper_thread_or_numa_node_bit_set(&value)))
+	}
+	
+	#[inline(always)]
+	fn parse_numa_nodes_allowed(value: &[u8]) -> Result<NumaNodes, StatusStatisticParseError>
+	{
+		Ok(NumaNodes(BitSet::parse_hyper_thread_or_numa_node_bit_set(&value)))
 	}
 
 	#[inline(always)]
-	fn parse_cpus_allowed_list(value: &[u8]) -> Result<BitSet<HyperThread>, StatusStatisticParseError>
+	fn parse_cpus_allowed_list(value: &[u8]) -> Result<HyperThreads, StatusStatisticParseError>
 	{
-		Ok(BitSet::<HyperThread>::parse_linux_list_string(value)?)
+		Ok(HyperThreads(BitSet::<HyperThread>::parse_linux_list_string(value)?))
 	}
 
 	#[inline(always)]
-	fn parse_numa_nodes_allowed_list(value: &[u8]) -> Result<BitSet<NumaNode>, StatusStatisticParseError>
+	fn parse_numa_nodes_allowed_list(value: &[u8]) -> Result<NumaNodes, StatusStatisticParseError>
 	{
-		Ok(BitSet::<NumaNode>::parse_linux_list_string(value)?)
+		Ok(NumaNodes(BitSet::<NumaNode>::parse_linux_list_string(value)?))
 	}
 }

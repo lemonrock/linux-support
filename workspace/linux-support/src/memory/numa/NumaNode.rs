@@ -107,41 +107,41 @@ impl NumaNode
 	///
 	/// Hyper threads themselves have not been validated for being online, etc.
 	#[inline(always)]
-	pub fn associated_hyper_threads(self, sys_path: &SysPath) -> Option<BitSet<HyperThread>>
+	pub fn associated_hyper_threads(self, sys_path: &SysPath) -> Option<HyperThreads>
 	{
 		let cpu_map = self.cpu_map(sys_path);
 		let cpu_list = self.cpu_list(sys_path);
 		debug_assert_eq!(cpu_map, cpu_list);
 
 		let mut valid = self.has_a_folder_path(sys_path)?;
-		valid.intersection(&cpu_map?);
+		valid.intersection(&(&cpu_map?).0);
 
 		Some(self.remove_hyper_threads_that_do_not_have_a_mapping_to_this_numa_node(valid, sys_path))
 	}
 
 	/// How many files match `Y` in `/sys/devices/system/node/node<Self>/cpu<Y>`?
 	#[inline(always)]
-	fn has_a_folder_path(self, sys_path: &SysPath) -> Option<BitSet<HyperThread>>
+	fn has_a_folder_path(self, sys_path: &SysPath) -> Option<HyperThreads>
 	{
-		sys_path.numa_node_folder_path(self).entries_in_folder_path::<HyperThread>().unwrap()
+		sys_path.numa_node_folder_path(self).entries_in_folder_path::<HyperThread>().unwrap().map(|bit_set| HyperThreads(bit_set))
 	}
 
 	#[inline(always)]
-	fn cpu_map(self, sys_path: &SysPath) -> Option<BitSet<HyperThread>>
+	fn cpu_map(self, sys_path: &SysPath) -> Option<HyperThreads>
 	{
-		self.only_if_path_exists(sys_path, "cpumap", |file_path | file_path.parse_hyper_thread_or_numa_node_bit_set::<HyperThread>())
+		self.only_if_path_exists(sys_path, "cpumap", |file_path | file_path.parse_hyper_thread_or_numa_node_bit_set::<HyperThread>().map(|bit_set| HyperThreads(bit_set)))
 	}
 
 	#[inline(always)]
-	fn cpu_list(self, sys_path: &SysPath) -> Option<BitSet<HyperThread>>
+	fn cpu_list(self, sys_path: &SysPath) -> Option<HyperThreads>
 	{
-		self.only_if_path_exists(sys_path, "cpulist", |file_path | file_path.read_hyper_thread_or_numa_node_list::<HyperThread>())
+		self.only_if_path_exists(sys_path, "cpulist", |file_path | file_path.read_hyper_thread_or_numa_node_list::<HyperThread>().map(|bit_set| HyperThreads(bit_set)))
 	}
 
 	#[inline(always)]
-	fn remove_hyper_threads_that_do_not_have_a_mapping_to_this_numa_node(self, mut valid: BitSet<HyperThread>, sys_path: &SysPath) -> BitSet<HyperThread>
+	fn remove_hyper_threads_that_do_not_have_a_mapping_to_this_numa_node(self, mut valid: HyperThreads, sys_path: &SysPath) -> HyperThreads
 	{
-		let mut invalid_hyper_threads = BitSet::<HyperThread>::new();
+		let mut invalid_hyper_threads = HyperThreads(BitSet::<HyperThread>::new());
 		for hyper_thread in valid.iterate()
 		{
 			if let Some(numa_node) = hyper_thread.numa_node(sys_path)
@@ -450,7 +450,7 @@ impl NumaNode
 			Ok(Some(map))
 		}
 
-		let online = BitSet::<NumaNode>::online(sys_path)?;
+		let online = NumaNodes::online(sys_path)?;
 		let online = online.iterate();
 
 		self.only_if_path_exists(sys_path, "distance", |file_path| parser(file_path, online))

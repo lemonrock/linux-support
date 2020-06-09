@@ -87,7 +87,7 @@ impl MasterLoop
 	{
 		use self::Signal::*;
 
-		let signals_to_accept: BitSet<Signal> = if running_interactively
+		let signals_to_accept: Signals = if running_interactively
 		{
 			bit_set!
 			{

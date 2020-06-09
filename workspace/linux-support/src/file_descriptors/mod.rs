@@ -70,9 +70,8 @@ use crate::inode::c::FS_IOC_GETVERSION;
 use crate::inode::c::FS_IOC_SETVERSION;
 use crate::paths::ProcPath;
 use crate::process::ProcessIdentifierChoice;
-use crate::strings::CStringExt;
-use crate::strings::FromBytes;
-use crate::strings::into_line_feed_terminated_byte_string::*;
+use crate::vectors::VectoredRead;
+use crate::vectors::VectoredWrite;
 use crate::terminal::TerminalSettingsError;
 
 
@@ -181,7 +180,6 @@ include!("FileDescriptor.rs");
 include!("MemoryMappableFileDescriptor.rs");
 include!("InvalidPathReason.rs");
 include!("OnDiskFileDescriptor.rs");
-include!("path_bytes_without_trailing_nul.rs");
 include!("PipeLikeFileDescriptor.rs");
 include!("RawFdExt.rs");
 include!("SeekableFileDescriptor.rs");

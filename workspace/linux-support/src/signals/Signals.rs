@@ -2,7 +2,33 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-impl BitSet<Signal>
+/// `BitSet` of `Signal`.
+#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct Signals(pub BitSet<Signal>);
+
+impl Deref for Signals
+{
+	type Target = BitSet<Signal>;
+	
+	#[inline(always)]
+	fn deref(&self) -> &Self::Target
+	{
+		&self.0
+	}
+}
+
+impl DerefMut for Signals
+{
+	#[inline(always)]
+	fn deref_mut(&mut self) -> &mut Self::Target
+	{
+		&mut self.0
+	}
+}
+
+impl Signals
 {
 	/// Block all signals on the current thread.
 	#[inline(always)]

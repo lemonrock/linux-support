@@ -9,8 +9,6 @@ use crate::memory::PageSize;
 use crate::paths::ProcPath;
 use crate::paths::PathExt;
 use crate::user_and_groups::assert_effective_user_id_is_root;
-use crate::vectors::VectoredRead;
-use crate::vectors::VectoredWrite;
 
 
 pub(crate) mod c;

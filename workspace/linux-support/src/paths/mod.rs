@@ -3,22 +3,18 @@
 
 
 use super::*;
-use crate::bit_set::*;
 use crate::cpu::*;
 use crate::memory::mapping::*;
 use crate::memory::numa::NumaNode;
 use crate::memory::huge_pages::*;
 use crate::pci_express::PciDeviceAddress;
 use crate::process::ProcessIdentifierChoice;
-use crate::strings::FromBytes;
-use crate::strings::into_line_feed_terminated_byte_string::*;
 use crate::thread::ThreadIdentifier;
 use std::fs::Permissions;
 
 
 include!("DevPath.rs");
 include!("EtcPath.rs");
-include!("PathBufExt.rs");
 include!("PathExt.rs");
 include!("ProcPath.rs");
 include!("SysPath.rs");

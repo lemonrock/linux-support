@@ -5,7 +5,7 @@
 /// Ambient capability set.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-pub struct AmbientCapabilitySet(pub BitSet<Capability>);
+pub struct AmbientCapabilitySet(pub Capabilities);
 
 impl AmbientCapabilitySet
 {
@@ -21,7 +21,7 @@ impl AmbientCapabilitySet
 				set.add(capability)
 			}
 		}
-		Self(set)
+		Self(Capabilities(set))
 	}
 
 	#[allow(missing_docs)]

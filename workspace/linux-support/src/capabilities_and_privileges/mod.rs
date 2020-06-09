@@ -4,9 +4,6 @@
 
 use super::*;
 use self::c::*;
-use crate::bit_set::*;
-use crate::strings::Radix;
-use crate::strings::parse_number::ParseNumberError;
 use crate::thread::ThreadIdentifier;
 
 
@@ -16,6 +13,7 @@ mod c;
 include!("AmbientCapabilityError.rs");
 include!("AmbientCapabilitySet.rs");
 include!("BoundingCapabilitySet.rs");
+include!("Capabilities.rs");
 include!("Capability.rs");
 include!("disable_dumpable.rs");
 include!("lock_secure_bits_so_capabilities_are_always_enforced.rs");

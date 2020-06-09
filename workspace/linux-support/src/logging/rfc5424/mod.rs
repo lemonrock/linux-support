@@ -5,9 +5,6 @@
 use super::*;
 use super::system_information;
 use crate::process::*;
-use crate::strings::into_line_feed_terminated_byte_string::*;
-
-
 include!("ApplicationName.rs");
 include!("HostName.rs");
 include!("MessageIdentifier.rs");

@@ -38,7 +38,6 @@ assert_cfg!(target_os = "linux");
 assert_cfg!(target_pointer_width = "64");
 
 
-use crate::bit_set::BitSetAware;
 use crate::cpu::HyperThread;
 use crate::memory::numa::NumaNode;#[cfg(target_arch = "x86_64")] use raw_cpuid::*;
 use arrayvec::Array;
@@ -591,11 +590,6 @@ use serde::Serializer;
 use serde::de;
 use serde::de::Unexpected;
 use serde::de::Visitor;
-use std::alloc::alloc_zeroed;
-use std::alloc::dealloc;
-use std::alloc::AllocRef;
-use std::alloc::Global;
-use std::alloc::Layout;
 #[cfg(all(target_arch = "x86_64", target_feature = "popcnt"))] use std::arch::x86_64::_mm_popcnt_u64;
 use std::array::TryFromSliceError;
 use std::borrow::Borrow;
@@ -608,7 +602,6 @@ use std::cmp::Ordering;
 use std::cmp::PartialEq;
 use std::cmp::PartialOrd;
 use std::cmp::max;
-use std::cmp::min;
 use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 use std::collections::HashMap;
@@ -663,7 +656,6 @@ use std::io::stderr;
 use std::io::stdin;
 use std::io::stdout;
 use std::marker::PhantomData;
-use std::mem::MaybeUninit;
 use std::mem::align_of;
 use std::mem::forget;
 use std::mem::size_of;
@@ -689,8 +681,6 @@ use std::ops::BitAnd;
 use std::ops::BitOr;
 use std::ops::Deref;
 use std::ops::DerefMut;
-use std::ops::Index;
-use std::ops::IndexMut;
 use std::ops::Mul;
 use std::ops::Not;
 use std::ops::Range;
@@ -724,7 +714,6 @@ use std::ptr::null_mut;
 use std::ptr::read;
 use std::ptr::read_volatile;
 use std::ptr::write;
-use std::ptr::write_bytes;
 use std::ptr::write_volatile;
 use std::rc::Rc;
 use std::rc::Weak;
@@ -758,24 +747,52 @@ use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 use strum_macros::EnumMessage;
 use strum_macros::IntoStaticStr;
+use swiss_army_knife::bit_set_aware;
+use swiss_army_knife::LoadNonAtomically;
+use swiss_army_knife::move_to_front_of_vec;
+use swiss_army_knife::StaticInitializedOnce;
+use swiss_army_knife::VariablySized;
+use swiss_army_knife::bit_set::BitsInAByte;
+use swiss_army_knife::bit_set::BitSet;
+use swiss_army_knife::bit_set::BitSetAware;
+use swiss_army_knife::bit_set::BitSetAwareTryFromU16Error;
+use swiss_army_knife::bit_set::BitSetIterator;
+use swiss_army_knife::bit_set::IntoBitMask;
+use swiss_army_knife::bit_set::IntoList;
+use swiss_army_knife::bit_set::ListParseError;
+use swiss_army_knife::bit_set::PerBitSetAwareData;
+use swiss_army_knife::path::path_bytes_without_trailing_nul;
+use swiss_army_knife::path::PathBufExt;
+use swiss_army_knife::strings::c_string_pointer_to_path_buf;
+use swiss_army_knife::strings::ConstCStr;
+use swiss_army_knife::strings::CStringExt;
+use swiss_army_knife::strings::FromBytes;
+use swiss_army_knife::strings::LinuxStringEscapeSequence;
+use swiss_army_knife::strings::NonNumericDigitCase;
+use swiss_army_knife::strings::NulTerminatedCStringArray;
+use swiss_army_knife::strings::OsStrExtMore;
+use swiss_army_knife::strings::parse_ascii_nul_string_values;
+use swiss_army_knife::strings::path_to_cstring;
+use swiss_army_knife::strings::Radix;
+use swiss_army_knife::strings::replace;
+use swiss_army_knife::strings::without_suffix;
+use swiss_army_knife::strings::into_line_feed_terminated_byte_string::IntegerIntoLineFeedTerminatedByteString;
+use swiss_army_knife::strings::into_line_feed_terminated_byte_string::IntoLineFeedTerminatedByteString;
+use swiss_army_knife::strings::into_line_feed_terminated_byte_string::UnpaddedDecimalInteger;
+use swiss_army_knife::strings::into_line_feed_terminated_byte_string::ZeroPaddedLowerCaseHexadecimalInteger;
+use swiss_army_knife::strings::parse_number::ParseNumber;
+use swiss_army_knife::strings::parse_number::ParseNumberError;
+use swiss_army_knife::strings::parse_number::ParseNumberOption;
+use swiss_army_knife::strings::to_number::NumberAsBytes;
 use terminate::ParsedPanic;
 use terminate::ParsedPanicErrorLogger;
 use terminate::SimpleTerminate;
 use terminate::Terminate;
 
 
-
-/// A set of types to support the use of bit sets in Linux APIs and files.
-#[macro_use]
-pub mod bit_set;
-
-
 /// Vectored reads and writes.
 #[macro_use]
 pub mod vectors;
-
-
-include!("LoadNonAtomically.rs");
 
 
 /// Berkeley Packet Filter (BPF) and Extended Berkeley Packet Filter (eBPF).
@@ -965,10 +982,6 @@ pub mod signals;
 pub mod swap;
 
 
-/// Strings.
-pub mod strings;
-
-
 /// Support for raw syscalls.
 pub mod syscall;
 
@@ -990,6 +1003,3 @@ pub mod user_and_groups;
 
 
 include!("current_numa_node_and_hyper_thread.rs");
-include!("move_to_front_of_vec.rs");
-include!("StaticInitializedOnce.rs");
-include!("VariablySized.rs");

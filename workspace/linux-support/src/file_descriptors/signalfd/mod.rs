@@ -3,8 +3,7 @@
 
 
 use super::*;
-use crate::bit_set::BitSet;
-use crate::signals::Signal;
+use crate::signals::Signals;
 use crate::signals::ParsedSignal;
 use crate::signals::c::signalfd;
 use crate::signals::c::signalfd_siginfo;

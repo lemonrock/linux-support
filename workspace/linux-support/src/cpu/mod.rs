@@ -4,26 +4,22 @@
 
 use super::*;
 use crate::current_numa_node_and_hyper_thread;
-use crate::bit_set::*;
 use crate::configuration::checks::*;
 use crate::linux_kernel_command_line::*;
 use crate::memory::numa::*;
 use crate::paths::*;
 use crate::process::ProcessIdentifierChoice;
 use crate::process::status::Status;
-use crate::strings::*;
-use crate::strings::into_line_feed_terminated_byte_string::IntoLineFeedTerminatedByteString;
-use crate::strings::parse_number::ParseNumberError;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 
 
-include!("BitSetHyperThread.rs");
 include!("CompiledCpuFeatureCheck.rs");
 include!("cpu_supports_1gb_pages.rs");
 include!("HyperThread.rs");
 include!("HyperThreadingStatus.rs");
+include!("HyperThreads.rs");
+include!("HyperThreadPerBitSetAwareData.rs");
 include!("maximum_logical_processor_identifiers_per_package.rs");
 include!("MandatoryCpuFeatureCheck.rs");
 include!("OptionalCpuFeatureCheck.rs");
 include!("ParseHyperThreadingStatusError.rs");
-include!("PerBitSetAwareDataHyperThread.rs");

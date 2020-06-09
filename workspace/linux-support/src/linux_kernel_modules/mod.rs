@@ -7,8 +7,6 @@ use crate::move_to_front_of_vec;
 use crate::file_descriptors::path::PathFileDescriptor;
 use crate::paths::*;
 use crate::pci_express::PciDeviceAddress;
-use crate::strings::*;
-use crate::strings::into_line_feed_terminated_byte_string::*;
 use crate::user_and_groups::*;
 use crate::syscall::SYS;
 
