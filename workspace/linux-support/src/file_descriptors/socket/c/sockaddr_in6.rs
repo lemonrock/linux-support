@@ -113,6 +113,15 @@ impl<'a> From<&'a SocketAddrV6> for &'a sockaddr_in6
 	}
 }
 
+impl<'a> Into<&'a SocketAddrV6> for &'a sockaddr_in6
+{
+	#[inline(always)]
+	fn into(self) -> &'a SocketAddrV6
+	{
+		unsafe { transmute(self) }
+	}
+}
+
 impl Into<SocketAddrV6> for sockaddr_in6
 {
 	#[inline(always)]
@@ -133,10 +142,18 @@ impl Into<SocketAddr> for sockaddr_in6
 
 impl SocketData for sockaddr_in6
 {
+	type Address = in6_addr;
+	
 	#[inline(always)]
 	fn family(&self) -> sa_family_t
 	{
 		self.sin6_family
+	}
+	
+	#[inline(always)]
+	fn address(&self) -> &Self::Address
+	{
+		&self.sin6_addr
 	}
 }
 

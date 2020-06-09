@@ -571,10 +571,10 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 {
 	/// This is mostly useful for `StreamingSocketFileDescriptors` after `connect()` or created by `accept()`, to identify an appropriate CPU to most efficiently handle the network traffic.
 	#[inline(always)]
-	pub fn hyper_thread(&self) -> u16
+	pub fn hyper_thread(&self) -> HyperThread
 	{
 		let result: i32 = self.get_socket_option(SOL_SOCKET, SO_INCOMING_CPU);
-		result as u32 as u16
+		HyperThread::try_from(result as u32 as u16).unwrap()
 	}
 
 	/// Obtain our local address and its length; the length is essential when interpreting Unix Domain Sockets.

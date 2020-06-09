@@ -14,8 +14,8 @@ pub struct sockaddr_un
 	///
 	/// ***Caution!***
 	///
-	/// If the string is exactly `sockaddr_un::PathLength` bytes, it is not ASCII NUL terminated.
-	pub sun_path: [c_char; sockaddr_un::PathLength]
+	/// If the string is exactly `Self::PathLength` bytes, it is not ASCII NUL terminated.
+	pub sun_path: [c_char; Self::PathLength]
 }
 
 impl Default for sockaddr_un
@@ -83,12 +83,20 @@ impl Hash for sockaddr_un
 
 impl SocketData for sockaddr_un
 {
+	type Address = [c_char; Self::PathLength];
+	
 	#[inline(always)]
 	fn family(&self) -> sa_family_t
 	{
 		self.sun_family
 	}
-
+	
+	#[inline(always)]
+	fn address(&self) -> &Self::Address
+	{
+		&self.sun_path
+	}
+	
 	#[inline(always)]
 	fn specialized_drop(socket_file_descriptor: &mut SocketFileDescriptor<Self>)
 	{

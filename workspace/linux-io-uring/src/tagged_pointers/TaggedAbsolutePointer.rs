@@ -13,6 +13,8 @@
 /// 	* 64-byte aligned data has 6 lowest bits available.
 /// * In the future, Intel will support 52-bit points and Arm 56-bit pointers, but these will be opt-in.
 /// * Further bits are available if a pointer is relative to some base.
+///
+/// However, if we are integrating with `CoroutineInstanceHandle`, the topmost bit can never be set.
 #[cfg(target_pointer_width = "64")]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
@@ -26,5 +28,11 @@ impl<T: Sized> TaggedAbsolutePointer<T>
 	const fn into_absolute_pointer(self) -> NonNull<T>
 	{
 		unsafe { NonNull::new_unchecked((self.0 & Self::AbsolutePointerBitMask) as usize as *mut T) }
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn low_three_bits(self) -> u8
+	{
+		(self.0 & b111) as u8
 	}
 }

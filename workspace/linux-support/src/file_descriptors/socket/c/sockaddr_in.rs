@@ -118,6 +118,15 @@ impl Into<SocketAddrV4> for sockaddr_in
 	}
 }
 
+impl<'a> Into<&'a SocketAddrV4> for &'a sockaddr_in
+{
+	#[inline(always)]
+	fn into(self) -> &'a SocketAddrV4
+	{
+		unsafe { transmute(self) }
+	}
+}
+
 impl Into<SocketAddr> for sockaddr_in
 {
 	#[inline(always)]
@@ -129,10 +138,18 @@ impl Into<SocketAddr> for sockaddr_in
 
 impl SocketData for sockaddr_in
 {
+	type Address = in_addr;
+	
 	#[inline(always)]
 	fn family(&self) -> sa_family_t
 	{
 		self.sin_family
+	}
+	
+	#[inline(always)]
+	fn address(&self) -> &Self::Address
+	{
+		&self.sin_addr
 	}
 }
 

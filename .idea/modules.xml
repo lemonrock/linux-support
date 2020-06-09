@@ -10,6 +10,7 @@
       <module fileurl="file://$PROJECT_DIR$/workspace/linux-support-process/linux-support-process.iml" filepath="$PROJECT_DIR$/workspace/linux-support-process/linux-support-process.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/magic-ring-buffer/magic-ring-buffer.iml" filepath="$PROJECT_DIR$/workspace/magic-ring-buffer/magic-ring-buffer.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/message-dispatch/message-dispatch.iml" filepath="$PROJECT_DIR$/workspace/message-dispatch/message-dispatch.iml" />
+      <module fileurl="file://$PROJECT_DIR$/workspace/message-dispatch-datadog/message-dispatch-datadog.iml" filepath="$PROJECT_DIR$/workspace/message-dispatch-datadog/message-dispatch-datadog.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/socket-access-control/socket-access-control.iml" filepath="$PROJECT_DIR$/workspace/socket-access-control/socket-access-control.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/terminate/terminate.iml" filepath="$PROJECT_DIR$/workspace/terminate/terminate.iml" />
     </modules>

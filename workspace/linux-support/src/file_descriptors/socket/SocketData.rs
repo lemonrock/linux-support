@@ -6,8 +6,14 @@
 /// Represents socket data.
 pub trait SocketData: Sized + Default + Debug
 {
+	/// Address type, eg `in6_addr`.
+	type Address: Sized;
+	
 	/// Socket family (eg `AF_UNIX`).
 	fn family(&self) -> sa_family_t;
+	
+	/// Address.
+	fn address(&self) -> &Self::Address;
 
 	#[doc(hidden)]
 	#[inline(always)]

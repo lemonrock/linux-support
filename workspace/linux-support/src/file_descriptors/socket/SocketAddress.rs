@@ -5,6 +5,7 @@
 /// Can also be `SocketData` but not necessarily.
 pub trait SocketAddress
 {
+	/// Socket data associated with this address.
 	type SD: SocketData;
 	
 	/// Creates a new instance of a Transmission Control Protocol (TCP) socket server listener.

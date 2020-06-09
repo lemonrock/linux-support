@@ -3,7 +3,7 @@
 
 
 /// Initiation.
-pub struct ThreadLoopInitiation<HeapSize: MemorySize, StackSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>>
+pub struct ThreadLoopInitiation<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>>
 {
 	defaults: DefaultPageSizeAndHugePageSizes,
 	global_allocator: &'static GTACSA,
@@ -16,7 +16,7 @@ pub struct ThreadLoopInitiation<HeapSize: MemorySize, StackSize: MemorySize, GTA
 	streaming_unix_domain_socket_server_listener_server_listeners: Vec<AcceptConnectionsCoroutineSettings<UnixSocketAddress<PathBuf>>>,
 }
 
-impl<HeapSize: MemorySize, StackSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>> ThreadFunction for ThreadLoopInitiation<HeapSize, StackSize, GTACSA>
+impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>> ThreadFunction for ThreadLoopInitiation<HeapSize, GTACSA>
 {
 	type TLBF = ThreadLoop<HeapSize, StackSize, GTACSA>;
 	
@@ -26,7 +26,7 @@ impl<HeapSize: MemorySize, StackSize: MemorySize, GTACSA: 'static + GlobalThread
 	}
 }
 
-impl<HeapSize: MemorySize, StackSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>> ThreadLoopInitiation<HeapSize, StackSize, GTACSA>
+impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>> ThreadLoopInitiation<HeapSize, GTACSA>
 {
 	#[inline(always)]
 	fn initialize_internal(self) -> Result<Self::TLBF, ThreadLoopInitializationError>
@@ -37,23 +37,27 @@ impl<HeapSize: MemorySize, StackSize: MemorySize, GTACSA: 'static + GlobalThread
 		
 		let signal_file_descriptor = self.signals()?;
 		
-		let transmission_control_protocol_over_internet_protocol_version_4_server_listener_coroutine_manager = self.new_server_listener_coroutine_manager(&mut self.transmission_control_protocol_over_internet_protocol_version_4_server_listeners)?;
-		let transmission_control_protocol_over_internet_protocol_version_6_server_listener_coroutine_manager = self.new_server_listener_coroutine_manager(&mut self.transmission_control_protocol_over_internet_protocol_version_6_server_listeners)?;
-		let streaming_unix_domain_socket_server_listener_coroutine_manager = self.new_server_listener_coroutine_manager(&mut self.streaming_unix_domain_socket_server_listener_server_listeners)?;
+		let coroutine_managers = CoroutineManagers::new
+		(
+			self.global_allocator,
+			&self.defaults,
+			&io_uring,
+			&self.queues,
+			self.transmission_control_protocol_over_internet_protocol_version_4_server_listeners,
+			self.transmission_control_protocol_over_internet_protocol_version_6_server_listeners,
+			self.streaming_unix_domain_socket_server_listener_server_listeners,
+		)?;
 		
 		Ok
 		(
 			ThreadLoop
 			{
-				global_allocator: self.global_allocator,
 				io_uring,
 				registered_buffers,
 				signal_file_descriptor,
 				our_hyper_thread: HyperThread::current().1,
 				queues: self.queues,
-				transmission_control_protocol_over_internet_protocol_version_4_server_listener_coroutine_manager,
-				transmission_control_protocol_over_internet_protocol_version_6_server_listener_coroutine_manager,
-				streaming_unix_domain_socket_server_listener_coroutine_manager,
+				coroutine_managers,
 			}
 		)
 	}
@@ -63,37 +67,5 @@ impl<HeapSize: MemorySize, StackSize: MemorySize, GTACSA: 'static + GlobalThread
 	{
 		self.signal_mask.block_all_signals_on_current_thread_bar();
 		Ok(SignalFileDescriptor::new(&self.signal_mask.to_sigset_t()).map_err(ThreadLoopInitializationError::SignalFileDescriptor)?)
-	}
-	
-	#[inline(always)]
-	fn new_server_listener_coroutine_manager<C: Coroutine, CoroutineInformation: Sized, SA: SocketAddress>(&self, server_sockets_settings: &mut Vec<AcceptConnectionsCoroutineSettings<SA>>) -> Result<Option<(CoroutineManager<HeapSize, StackSize, GTACSA, C, CoroutineInformation>, Vec<StreamingServerListenerSocketFileDescriptor<SA::SD>>)>, ThreadLoopInitializationError>
-	{
-		use self::ThreadLoopInitializationError::*;
-		
-		let length = server_sockets_settings.len();
-		if length == 0
-		{
-			Ok(None)
-		}
-		else
-		{
-			match CoroutineManager::new(self.global_allocator, unsafe { NonZeroU64::new_unchecked(length as usize) }, &self.defaults)
-			{
-				Err(error) => Err(AcceptConnectionsCoroutineManager(error)),
-				
-				Ok(coroutine_manager) =>
-				{
-					let mut server_sockets = Vec::with_capacity(length);
-					for server_socket_settings in server_sockets_settings.drain(..)
-					{
-						// TODO: These are going to become coroutines
-						xxxx;
-						server_sockets.push(server_socket_settings.new_socket()?)
-					}
-					
-					Ok(Some((coroutine_manager, server_sockets)))
-				},
-			}
-		}
 	}
 }

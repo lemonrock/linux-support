@@ -3,15 +3,123 @@
 
 
 #[derive(Debug)]
-pub struct ThreadLoop<HeapSize: MemorySize, StackSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>>
+pub struct ThreadLoop<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>, AcceptStackSize: MemorySize>
 {
-	global_allocator: &'static GTACSA,
-	io_uring: IoUring<'static>,
+	io_uring: Rc<IoUring<'static>>,
 	registered_buffers: RegisteredBuffers,
 	signal_file_descriptor: SignalFileDescriptor,
 	our_hyper_thread: HyperThread,
 	queues: Queues<(), DequeuedMessageProcessingError>,
-	accept_connections_coroutine_manager: CoroutineManager<HeapSize, StackSize, GTACSA, C, AcceptConnectionsCoroutine>,
+	coroutine_managers: CoroutineManagers<HeapSize, GTACSA, AcceptStackSize>,
+}
+
+impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>, AcceptStackSize: MemorySize> ThreadLoopBodyFunction for ThreadLoop<HeapSize, GTACSA, AcceptStackSize>
+{
+	#[inline(always)]
+	fn invoke(&mut self, terminate: &Arc<impl Terminate>)
+	{
+		debug_assert!(terminate.should_continue());
+		
+		let exit = self.process_all_outstanding_completions();
+		if unlikely!(exit)
+		{
+			return
+		}
+
+		let exit = self.process_thread_control_messages(terminate);
+		if unlikely!(exit)
+		{
+			return
+		}
+		
+		match self.io_uring.initiate_asynchronous_io()
+		{
+			Ok(n) => (),
+			
+			Err(submit_error) =>
+			{
+				let message = format!("IoUringAsynchronousIoSubmissionDelayed:{}", submit_error);
+				
+				lazy_static!
+				{
+					static ref Template: Rfc3164MessageTemplate = StaticLoggingConfiguration::rfc_3164_message_template(KnownFacility::security_or_authorization_messages_0, Severity::Notice);
+				}
+				
+				LocalSyslogSocket::syslog(Template.deref(), &message);
+			}
+		}
+	}
+}
+
+impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>, AcceptStackSize: MemorySize> ThreadLoop<HeapSize, GTACSA, AcceptStackSize>
+{
+	#[inline(always)]
+	fn process_all_outstanding_completions(&mut self) -> bool
+	{
+		let mut non_coroutine_handler = |u64, completion_response| self.non_coroutine_handler(u64, completion_response);
+		
+		let iterator = self.io_uring.current_completion_queue_entries();
+		for completion_queue_entry in iterator
+		{
+			// TODO: We need a new code to signal re-entry to a coroutine immediately required (we should use this to do a forcible sync on the completion queue iterator to free up space).
+			
+			if let Err(cause) = self.coroutine_managers.dispatch_io_uring(completion_queue_entry, &mut non_coroutine_handler)
+			{
+				terminate.begin_termination_due_to_irrecoverable_error(cause, None);
+				return true
+			}
+		}
+		
+		false
+	}
+	
+	#[inline(always)]
+	fn non_coroutine_handler(&mut self, user_data: u64, completion_response: CompletionResponse) -> Result<(), DispatchIoUringError<Box<dyn error::Error>>>
+	{
+		// We have 63-bits of user data available, eg as a tagged pointer.
+		
+		Ok(())
+	}
+	
+	#[inline(always)]
+	fn process_thread_control_messages(&mut self, terminate: &Arc<impl Terminate>) -> bool
+	{
+		match self.queues.subscriber(self.our_hyper_thread).receive_and_handle_messages(terminate, &())
+		{
+			Ok(()) => false,
+			
+			Err(dequeued_message_processing_error) =>
+			{
+				use self::DequeuedMessageProcessingError::*;
+				
+				let message_handler_arguments = ();
+				let result = self.incoming_messages.receive_and_handle_messages(());
+				match result
+				{
+					Err(Fatal(ref cause)) =>
+					{
+						terminate.begin_termination_due_to_irrecoverable_error(cause, None);
+						true
+					},
+					
+					Err(CarryOn(ref cause)) =>
+					{
+						let message = format!("DequeuedMessageErrorCarryOn:{}", cause);
+						
+						lazy_static!
+						{
+							static ref Template: Rfc3164MessageTemplate = StaticLoggingConfiguration::rfc_3164_message_template(KnownFacility::security_or_authorization_messages_0, Severity::Warning);
+						}
+						
+						LocalSyslogSocket::syslog(Template.deref(), &message);
+						false
+					},
+					
+					Ok(()) => false,
+				}
+			}
+		}
+	}
 }
 
 /*
@@ -114,71 +222,3 @@ pub struct ThreadLoop<HeapSize: MemorySize, StackSize: MemorySize, GTACSA: 'stat
 		
 		Fixed file descriptors have very little performance boost for a lot of complexity and a *very* limited resource.
  */
-
-impl<HeapSize: MemorySize, StackSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>> ThreadLoopBodyFunction for ThreadLoop<HeapSize, StackSize, GTACSA>
-{
-	#[inline(always)]
-	fn invoke(&mut self, terminate: &Arc<impl Terminate>)
-	{
-		debug_assert!(terminate.should_continue());
-		
-		self.process_all_outstanding_completions();
-
-		let exit = self.process_thread_control_messages(terminate);
-		if unlikely!(exit)
-		{
-			return
-		}
-		
-		match self.io_uring.initiate_asynchronous_io()
-		{
-			Ok(n) => (),
-			Err(submit_error) => xxx,
-		}
-	}
-}
-
-impl<HeapSize: MemorySize, StackSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>> ThreadLoop<HeapSize, StackSize, GTACSA>
-{
-	#[inline(always)]
-	fn process_all_outstanding_completions(&mut self)
-	{
-		let iterator = self.io_uring.current_completion_queue_entries();
-		for completion_queue_entry in iterator
-		{
-			let user_data = TaggedAbsolutePointer(completion_queue_entry.user_data());
-			let completion_response = completion_queue_entry.completion_response();
-			
-			xxx(user_data, completion_response)
-		}
-		drop(iterator)
-	}
-	
-	#[inline(always)]
-	fn process_thread_control_messages(&mut self, terminate: &Arc<impl Terminate>) -> bool
-	{
-		if Err(dequeued_message_processing_error) = self.queues.subscriber(self.our_hyper_thread).receive_and_handle_messages(terminate, &())
-		{
-			use self::DequeuedMessageProcessingError::*;
-			
-			let message_handler_arguments = ();
-			let result = self.incoming_messages.receive_and_handle_messages(());
-			match result
-			{
-				Err(Fatal(ref cause)) =>
-				{
-					terminate.begin_termination_due_to_irrecoverable_error(cause, None);
-					true
-				},
-				
-				Err(CarryOn(ref cause)) => LocalSyslogSocket::syslog(Severity::Warning, format!("CarryOn:{}", cause)),
-				
-				Ok(()) => false,
-			}
-		}
-		else
-		{
-			false
-		}
-	}
-}

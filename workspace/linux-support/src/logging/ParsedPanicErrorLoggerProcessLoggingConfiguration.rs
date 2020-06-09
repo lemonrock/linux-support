@@ -18,7 +18,6 @@ impl ParsedPanicErrorLogger for ParsedPanicErrorLoggerProcessLoggingConfiguratio
 		{
 			static ref Template: Rfc3164MessageTemplate = StaticLoggingConfiguration::rfc_3164_message_template(KnownFacility::security_or_authorization_messages_0, Severity::Critical);
 		}
-		
-		let _nothing_to_be_done_if_failed_to_log = LocalSyslogSocket::syslog(Template.deref(), &message);
+		LocalSyslogSocket::syslog_falling_back_to_standard_error(Template.deref(), &message)
 	}
 }

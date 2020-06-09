@@ -39,3 +39,6 @@ include!("UnknownFacility.rs");
 include!("write_message_with_line_feed_escaped_truncated.rs");
 include!("write_slice_truncated.rs");
 include!("write_slice_unchecked.rs");
+include!("write_to_standard_error_ignoring_failure.rs");
+include!("write_to_standard_out_ignoring_failure.rs");
+include!("write_to_standard_stream_ignoring_failure.rs");

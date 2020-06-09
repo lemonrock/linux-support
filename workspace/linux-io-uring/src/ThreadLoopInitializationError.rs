@@ -17,6 +17,9 @@ pub enum ThreadLoopInitializationError
 	
 	#[allow(missing_docs)]
 	NewSocketServerListener(NewSocketServerListenerError),
+	
+	#[allow(missing_docs)]
+	CouldNotAllocateAcceptCoroutine(AllocErr),
 }
 
 impl Display for ThreadLoopInitializationError
@@ -44,6 +47,8 @@ impl error::Error for ThreadLoopInitializationError
 			&SignalFileDescriptor(ref error) => Some(error),
 			
 			&NewSocketServerListener(ref error) => Some(error),
+			
+			&CouldNotAllocateAcceptCoroutine(ref error) => Some(error),
 		}
 	}
 }

@@ -1,0 +1,34 @@
+# This file is part of linux-support. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT. No part of linux-support, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+# Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
+
+
+[package]
+name = "message-dispatch-datadog"
+description = "Unofficial datadog library that makes uses of message dispatch and io_uring"
+keywords = ["datadog", "io_uring"]
+categories = ["api-bindings"]
+license = "AGPL-3.0"
+authors = ["Raphael Cohn <raphael.cohn@stormmq.com>"]
+homepage = "https://github.com/lemonrock/linux-support"
+repository = "https://github.com/lemonrock/linux-support.git"
+exclude = ["*"]
+include = ["README.md", "LICENSE", "COPYRIGHT", "src/**/*.rs", "Cargo.toml", "rustfmt.toml", "clippy.toml"]
+readme = "README.md"
+publish = true
+edition = '2018'
+version = "0.0.0"
+
+[dependencies]
+static_assertions = "^1.1"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+arrayvec = { version = "^0.5.1", features = ["array-sizes-33-128", "array-sizes-129-255", "serde"] }
+context-allocator = { path = "../context-allocator", version = "0.3.0" }
+either = { version = "^1.5.3", features = ["serde"] }
+lazy_static = "^1.4.0"
+likely = "^0.1"
+linux-support = { path = "../linux-support", version = "0.0.2" }
+magic-ring-buffer = { path = "../magic-ring-buffer", version = "0.2.0" }
+memchr = "^2.1.2"
+message-dispatch = { path = "../message-dispatch", version = "0.2.0" }
+serde = { version = "^1.0", features = ["derive", "rc"] }

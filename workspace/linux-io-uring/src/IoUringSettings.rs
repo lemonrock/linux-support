@@ -15,11 +15,11 @@ pub struct IoUringSettings
 
 impl IoUringSettings
 {
-	fn setup(&self, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<(IoUring, RegisteredBuffers), IoUringSetupError>
+	fn setup(&self, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<(Rc<IoUring>, RegisteredBuffers), IoUringSetupError>
 	{
 		let io_uring = IoUring::new(&defaults, self.number_of_submission_queue_entries, self.number_of_completion_queue_entries, self.kernel_submission_queue_thread_configuration.as_ref(), None)?;
 		let registered_buffers = RegisteredBuffers::new(&self.registered_buffer_settings, defaults)?;
 		registered_buffers.register(&io_uring).map_err(IoUringSetupError::RegisteringBuffers);
-		Ok((io_uring, registered_buffers))
+		Ok((Rc::new(io_uring), registered_buffers))
 	}
 }

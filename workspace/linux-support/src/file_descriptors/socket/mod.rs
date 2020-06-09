@@ -38,7 +38,6 @@ include!("EnumSocketAddress.rs");
 include!("ErrorFlags.rs");
 include!("FilePathInvalidReason.rs");
 include!("from_raw_socket_file_descriptor.rs");
-include!("InfinibandSocketAddress.rs");
 include!("MessageHeadersIterator.rs");
 include!("NewSocketClientError.rs");
 include!("NewSocketServerListenerError.rs");

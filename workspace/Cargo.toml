@@ -12,5 +12,6 @@ members = [
     "linux-support-clone",
     "magic-ring-buffer",
     "message-dispatch",
+    "message-dispatch-datadog",
     "terminate",
 ]

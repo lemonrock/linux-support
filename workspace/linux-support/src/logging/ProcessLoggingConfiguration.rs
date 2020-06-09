@@ -130,13 +130,13 @@ impl ProcessLoggingConfiguration
 	{
 		// Calling code is from C, and it is undefined behaviour to pass a Rust panic across to C.
 		let result = catch_unwind
-		(||
-			 {
-				 let bytes = from_raw_parts(data as *const u8, length);
-				 let message = String::from_utf8_lossy(bytes);
-				 
-				 LocalSyslogSocket::syslog(message_template, &message)
-			 }
+		(
+		||
+			{
+				let bytes = from_raw_parts(data as *const u8, length);
+				let message = String::from_utf8_lossy(bytes);
+				LocalSyslogSocket::syslog_falling_back_to_standard_error(message_template, &message)
+			}
 		);
 		forget(result);
 

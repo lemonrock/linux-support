@@ -49,9 +49,46 @@ impl Default for sockaddr_ib
 
 impl SocketData for sockaddr_ib
 {
+	type Address = ib_addr;
+	
 	#[inline(always)]
 	fn family(&self) -> sa_family_t
 	{
 		self.sib_family
+	}
+	
+	#[inline(always)]
+	fn address(&self) -> &Self::Address
+	{
+		&self.sib_addr
+	}
+}
+
+impl SocketAddress for sockaddr_ib
+{
+	type SD = Self;
+	
+	#[inline(always)]
+	fn new_transmission_control_protocol_server_listener(&self, _send_buffer_size_in_bytes: usize, _receive_buffer_size_in_bytes: usize, _idles_before_keep_alive_seconds: u16, _keep_alive_interval_seconds: u16, _maximum_keep_alive_probes: u16, _linger_seconds: u16, _linger_in_FIN_WAIT2_seconds: u16, _maximum_SYN_transmits: u16, _back_log: u32, _non_blocking: bool, _hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketFileDescriptor<Self::SD>, NewSocketServerListenerError>
+	{
+		unimplemented!("Not yet needed")
+	}
+	
+	#[inline(always)]
+	fn new_transmission_control_protocol_client(&self, _send_buffer_size_in_bytes: usize, _receive_buffer_size_in_bytes: usize, _idles_before_keep_alive_seconds: u16, _keep_alive_interval_seconds: u16, _maximum_keep_alive_probes: u16, _linger_seconds: u16, _linger_in_FIN_WAIT2_seconds: u16, _maximum_SYN_transmits: u16, _non_blocking: bool) -> Result<StreamingSocketFileDescriptor<Self::SD>, NewSocketClientError>
+	{
+		unimplemented!("Not yet needed")
+	}
+	
+	#[inline(always)]
+	fn new_user_datagram_protocol_server_listener(&self, _send_buffer_size_in_bytes: usize, _receive_buffer_size_in_bytes: usize, _non_blocking: bool) -> Result<DatagramServerListenerSocketFileDescriptor<Self::SD>, NewSocketServerListenerError>
+	{
+		unimplemented!("Not yet needed")
+	}
+	
+	#[inline(always)]
+	fn new_user_datagram_protocol_client(&self, _send_buffer_size_in_bytes: usize, _receive_buffer_size_in_bytes: usize, _non_blocking: bool) -> Result<DatagramClientSocketFileDescriptor<Self::SD>, NewSocketClientError>
+	{
+		unimplemented!("Not yet needed")
 	}
 }

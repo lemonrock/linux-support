@@ -87,8 +87,8 @@ impl<FilePath: AsRef<Path>> EnumSocketAddress<FilePath>
 		(
 			match self
 			{
-				&InternetProtocol(V4(socket_address)) => InternetProtocolVersion4(SocketFileDescriptor::new_user_datagram_protocol_over_internet_protocol_version_4_client(socket_address.into(), send_buffer_size_in_bytes, receive_buffer_size_in_bytes, non_blocking)?),
-				&InternetProtocol(V6(socket_address)) => InternetProtocolVersion6(SocketFileDescriptor::new_user_datagram_protocol_over_internet_protocol_version_6_client(socket_address.into(), send_buffer_size_in_bytes, receive_buffer_size_in_bytes, non_blocking)?),
+				&InternetProtocol(V4(ref socket_address)) => InternetProtocolVersion4(SocketFileDescriptor::new_user_datagram_protocol_over_internet_protocol_version_4_client(socket_address.into(), send_buffer_size_in_bytes, receive_buffer_size_in_bytes, non_blocking)?),
+				&InternetProtocol(V6(ref socket_address)) => InternetProtocolVersion6(SocketFileDescriptor::new_user_datagram_protocol_over_internet_protocol_version_6_client(socket_address.into(), send_buffer_size_in_bytes, receive_buffer_size_in_bytes, non_blocking)?),
 				&Unix(ref unix_socket_address) => UnixDomain(SocketFileDescriptor::new_datagram_unix_domain_socket_client(unix_socket_address, send_buffer_size_in_bytes, non_blocking)?),
 			}
 		)

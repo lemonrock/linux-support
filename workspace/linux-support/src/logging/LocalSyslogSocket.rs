@@ -26,7 +26,16 @@ impl LocalSyslogSocket
 	
 	/// Syslog.
 	#[inline(always)]
-	pub fn syslog(message_template: &impl MessageTemplate, message: &str) -> Result<(), &'static str>
+	pub fn syslog_falling_back_to_standard_error(message_template: &impl MessageTemplate, message: &str)
+	{
+		if let Err(error_message) = Self::syslog(message_template, message)
+		{
+			write_to_standard_error_ignoring_failure(format_args!("Could not syslog: `{}` message `{}`", error_message, message))
+		}
+	}
+	
+	#[inline(always)]
+	fn syslog(message_template: &impl MessageTemplate, message: &str) -> Result<(), &'static str>
 	{
 		Self::instance_mut().log(message_template, message)
 	}

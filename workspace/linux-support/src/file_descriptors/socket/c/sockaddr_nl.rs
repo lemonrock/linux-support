@@ -38,3 +38,20 @@ impl Default for sockaddr_nl
 		}
 	}
 }
+
+impl SocketData for sockaddr_nl
+{
+	type Address = PortIdentifier;
+	
+	#[inline(always)]
+	fn family(&self) -> sa_family_t
+	{
+		self.nl_family
+	}
+	
+	#[inline(always)]
+	fn address(&self) -> &Self::Address
+	{
+		&self.nl_pid
+	}
+}
