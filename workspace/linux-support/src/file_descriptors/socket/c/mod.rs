@@ -6,6 +6,7 @@ use super::*;
 use super::netlink::PortIdentifier;
 
 
+include!("__BindgenBitfieldUnit.rs");
 include!("accept4.rs");
 include!("bind.rs");
 include!("cmsghdr.rs");
@@ -37,4 +38,5 @@ include!("sockaddr_storage.rs");
 include!("socket.rs");
 include!("SOL_.rs");
 include!("TCP_.rs");
+include!("tcp_info.rs");
 include!("ucred.rs");

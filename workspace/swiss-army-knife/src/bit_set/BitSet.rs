@@ -178,6 +178,16 @@ impl<BSA: BitSetAware> BitSet<BSA>
 			relative_bit_index_within_word: 0,
 		}
 	}
+	
+	/// Iterate infinitely.
+	#[inline(always)]
+	pub fn iterate_infinitely<'a>(&'a self) -> InfiniteBitSetIterator<'a, BSA>
+	{
+		InfiniteBitSetIterator
+		{
+			iterator: self.iterate(),
+		}
+	}
 
 	/// Iterate.
 	#[inline(always)]

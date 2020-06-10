@@ -8,7 +8,7 @@ pub(crate) struct AcceptCoroutine<SA: SocketAddress>(PhantomData<SA>);
 impl<SA: SocketAddress> Coroutine for AcceptCoroutine<SA>
 {
 	/// Type of the arguments the coroutine is initially called with, eg `(usize, String)`.
-	type StartArguments = (Rc<IoUring<'static>>, Queues<(), DequeuedMessageProcessingError>, StreamingServerListenerSocketFileDescriptor<SA::SD>, RemotePeerAddressBasedAccessControl<RemotePeerAddressBasedAccessControlValue>, ServiceProtocolIdentifier);
+	type StartArguments = (Rc<IoUring<'static>>, Queues<(), DequeuedMessageProcessingError>, StreamingServerListenerSocketFileDescriptor<SA::SD>, RemotePeerAddressBasedAccessControl<RemotePeerAddressBasedAccessControlValue>, ServiceProtocolIdentifier, DogStatsDMessageSubscribers);
 
 	type ResumeArguments = AcceptResumeArguments;
 
@@ -23,7 +23,13 @@ impl<SA: SocketAddress> Coroutine for AcceptCoroutine<SA>
 	#[inline(always)]
 	fn coroutine(coroutine_instance_handle: CoroutineInstanceHandle, start_arguments: Self::StartArguments, yielder: Yielder<Self::ResumeArguments, Self::Yields, Self::Complete>) -> Self::Complete
 	{
-		let (io_uring, queues, socket_file_descriptor, remote_peer_based_access_control, service_protocol_identifier) = start_arguments;
+		let (io_uring, queues, socket_file_descriptor, remote_peer_based_access_control, service_protocol_identifier, dog_stats_d_message_subscribers) = start_arguments;
+		
+		let default_hyper_thread = HyperThread::current().1;
+		
+		let accept_publisher = queues.publisher(default_hyper_thread);
+		
+		let dog_stats_d_publisher = queues.round_robin_publisher(dog_stats_d_message_subscribers);
 		
 		let mut accept = Accept
 		{
@@ -33,8 +39,9 @@ impl<SA: SocketAddress> Coroutine for AcceptCoroutine<SA>
 			io_uring,
 			socket_file_descriptor,
 			remote_peer_based_access_control,
-			queues,
 			service_protocol_identifier,
+			accept_publisher,
+			dog_stats_d_publisher,
 		};
 		
 		loop

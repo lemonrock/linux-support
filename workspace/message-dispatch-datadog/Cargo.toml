@@ -16,7 +16,7 @@ include = ["README.md", "LICENSE", "COPYRIGHT", "src/**/*.rs", "Cargo.toml", "ru
 readme = "README.md"
 publish = true
 edition = '2018'
-version = "0.0.0"
+version = "0.2.0"
 
 [dependencies]
 static_assertions = "^1.1"

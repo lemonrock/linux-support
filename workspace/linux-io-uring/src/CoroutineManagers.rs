@@ -3,14 +3,14 @@
 
 
 /// Coroutine managers partial abstraction.
-pub struct CoroutineManagers<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>, StackSizeAccept: MemorySize>
+pub struct CoroutineManagers<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, StackSizeAccept: MemorySize>
 (
-	CoroutineManager<HeapSize, StackSizeAccept, GTACSA, AcceptCoroutine<sockaddr_in>, AcceptCoroutineInformation>,
-	CoroutineManager<HeapSize, StackSizeAccept, GTACSA, AcceptCoroutine<sockaddr_in6>, AcceptCoroutineInformation>,
-	CoroutineManager<HeapSize, StackSizeAccept, GTACSA, AcceptCoroutine<UnixSocketAddress<PathBuf>>, AcceptCoroutineInformation>,
+	CoroutineManager<CoroutineHeapSize, StackSizeAccept, GTACSA, AcceptCoroutine<sockaddr_in>, AcceptCoroutineInformation>,
+	CoroutineManager<CoroutineHeapSize, StackSizeAccept, GTACSA, AcceptCoroutine<sockaddr_in6>, AcceptCoroutineInformation>,
+	CoroutineManager<CoroutineHeapSize, StackSizeAccept, GTACSA, AcceptCoroutine<UnixSocketAddress<PathBuf>>, AcceptCoroutineInformation>,
 );
 
-impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>, StackSizeAccept: MemorySize> CoroutineManagers<HeapSize, GTACSA, StackSizeAccept>
+impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, StackSizeAccept: MemorySize> CoroutineManagers<CoroutineHeapSize, GTACSA, StackSizeAccept>
 {
 	pub fn new
 	(
@@ -58,7 +58,7 @@ impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableA
 	}
 	
 	#[inline(always)]
-	fn new_accept_coroutine_manager<SA: SocketAddress>(coroutine_manager_index: u8, global_allocator: &'static GTACSA, defaults: &DefaultPageSizeAndHugePageSizes, io_uring: &Rc<IoUring<'static>>, remote_peer_adddress_based_access_control: &Rc<RemotePeerAddressBasedAccessControl<RemotePeerAddressBasedAccessControlValue>>, queues: &Queues<(), DequeuedMessageProcessingError>, mut transmission_control_protocol_server_listener_settings: Vec<TransmissionControlProtocolServerListenerSettings<SA>>) -> Result<CoroutineManager<HeapSize, StackSize, GTACSA, AcceptCoroutine<SA>, AcceptCoroutineInformation>, ThreadLoopInitializationError>
+	fn new_accept_coroutine_manager<SA: SocketAddress>(coroutine_manager_index: u8, global_allocator: &'static GTACSA, defaults: &DefaultPageSizeAndHugePageSizes, io_uring: &Rc<IoUring<'static>>, remote_peer_adddress_based_access_control: &Rc<RemotePeerAddressBasedAccessControl<RemotePeerAddressBasedAccessControlValue>>, queues: &Queues<(), DequeuedMessageProcessingError>, mut transmission_control_protocol_server_listener_settings: Vec<TransmissionControlProtocolServerListenerSettings<SA>>) -> Result<CoroutineManager<CoroutineHeapSize, StackSize, GTACSA, AcceptCoroutine<SA>, AcceptCoroutineInformation>, ThreadLoopInitializationError>
 	{
 		let length = transmission_control_protocol_server_listener_settings.len();
 		let ideal_maximum_number_of_coroutines = if length == 0
@@ -96,9 +96,9 @@ impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableA
 	}
 	
 	#[inline(always)]
-	fn dispatch_transmission_control_protocol_over_internet_protocol_server_listener<NonCoroutineHandlerError: error::Error + Into<DispatchIoUringError<NonCoroutineHandlerError>>, SA: SocketAddress>(coroutine_manager: &mut CoroutineManager<HeapSize, StackSizeAccept, GTACSA, AcceptCoroutine<SA>, AcceptCoroutineInformation>, (coroutine_instance_handle, completion_response): (CoroutineInstanceHandle, CompletionResponse)) -> Result<(), DispatchIoUringError<NonCoroutineHandlerError>>
+	fn dispatch_transmission_control_protocol_over_internet_protocol_server_listener<NonCoroutineHandlerError: error::Error + Into<DispatchIoUringError<NonCoroutineHandlerError>>, SA: SocketAddress>(coroutine_manager: &mut CoroutineManager<CoroutineHeapSize, StackSizeAccept, GTACSA, AcceptCoroutine<SA>, AcceptCoroutineInformation>, (coroutine_instance_handle, completion_response): (CoroutineInstanceHandle, CompletionResponse)) -> Result<(), DispatchIoUringError<NonCoroutineHandlerError>>
 	{
-		let coroutine_instance_pointer = unsafe { CoroutineInstancePointer::<HeapSize, StackSizeAccept, GTACSA, AcceptCoroutine<SA>, AcceptCoroutineInformation>::from_handle(coroutine_instance_handle) };
+		let coroutine_instance_pointer = unsafe { CoroutineInstancePointer::<CoroutineHeapSize, StackSizeAccept, GTACSA, AcceptCoroutine<SA>, AcceptCoroutineInformation>::from_handle(coroutine_instance_handle) };
 		
 		use self::ResumeOutcome::*;
 		use self::AcceptYields::*;

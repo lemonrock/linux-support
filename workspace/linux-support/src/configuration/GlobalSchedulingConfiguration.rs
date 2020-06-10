@@ -3,7 +3,7 @@
 
 
 /// Global scheduling configuration.
-#[derive(Default, Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Default, Debug, Clone, Eq, PartialEq)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct GlobalSchedulingConfiguration
@@ -62,6 +62,16 @@ pub struct GlobalSchedulingConfiguration
 	///
 	/// Requires root.
 	pub work_queue_runs_on_which_kernel_cpus: Option<HyperThreads>,
+	
+	/// It is recommended that this value be computed.
+	///
+	/// Requires root.
+	pub default_interrupt_request_affinity: Option<HyperThreads>,
+
+	/// It is recommended that this value be computed.
+	///
+	/// Requires root.
+	pub interrupt_request_affinity: HashMap<InterruptRequest, HyperThreads>,
 }
 
 impl GlobalSchedulingConfiguration
@@ -81,7 +91,16 @@ impl GlobalSchedulingConfiguration
 		set_proc_sys_kernel_value(proc_path, "nmi_watchdog", self.enable_hardware_watchdog_lockup_detection, CouldNotChangeHardwareWatchdog)?;
 		set_proc_sys_kernel_value(proc_path, "watchdog_thresh", self.hardware_watchdog_threshold_in_seconds.map(UnpaddedDecimalInteger), CouldNotChangeHardwareWatchdogThreshold)?;
 		set_value(proc_path, |proc_path, value| value.force_watchdog_to_just_these_hyper_threads(proc_path), self.software_and_hardware_watchdog_runs_on_which_kernel_cpus.as_ref(), CouldNotChangeSoftwareAndHardwareWatchdogCpus)?;
-		set_value(proc_path, |_proc_path, value| value.set_work_queue_hyper_thread_affinity(sys_path), self.work_queue_runs_on_which_kernel_cpus.as_ref(), CouldNotChangeWorkQueueCpus)
+		set_value(proc_path, |_proc_path, value| value.set_work_queue_hyper_thread_affinity(sys_path), self.work_queue_runs_on_which_kernel_cpus.as_ref(), CouldNotChangeWorkQueueCpus)?;
+		set_value(proc_path, |proc_path, value| InterruptRequest::set_default_smp_affinity(proc_path, value), self.default_interrupt_request_affinity.as_ref(), CouldNotChangeInterruptRequestDefaultAffinity)?;
+		
+		for (interrupt_request, hyper_threads) in self.interrupt_request_affinity.iter()
+		{
+			let interrupt_request = *interrupt_request;
+			interrupt_request.set_smp_affinity(proc_path, hyper_threads).map_err(|cause| CouldNotChangeInterruptRequestAffinity(cause, interrupt_request))?;
+		}
+		
+		Ok(())
 	}
 
 	#[inline(always)]

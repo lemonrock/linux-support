@@ -13,8 +13,11 @@ use crate::file_descriptors::directory::AccessPermissions;
 use crate::file_descriptors::epoll::set_maximum_number_of_watched_file_descriptors_per_user;
 use crate::file_descriptors::file::leasing::*;
 use crate::file_descriptors::inotify::*;
+use crate::file_descriptors::netlink::NetlinkSocketFileDescriptor;
+use crate::file_descriptors::netlink::route::RouteNetlinkProtocol;
 use crate::file_descriptors::pipes_and_fifos::*;
 use crate::file_descriptors::posix_message_queues::*;
+use crate::file_descriptors::socket::*;
 use crate::file_handles::NumberOfFileHandles;
 use crate::io_priority::IoPriority;
 use crate::io_priority::RealTimeOrBestEffortIoPriorityLevel;
@@ -40,8 +43,7 @@ use crate::signals::*;
 use crate::thread::*;
 use crate::time::c::tzset;
 use crate::user_and_groups::*;
-use crate::file_descriptors::netlink::NetlinkSocketFileDescriptor;
-use crate::file_descriptors::netlink::route::RouteNetlinkProtocol;
+use crate::interrupt_request::InterruptRequest;
 
 
 /// Checks.
@@ -70,6 +72,8 @@ include!("GlobalLinuxKernelSamePageMergingConfiguration.rs");
 include!("GlobalLinuxKernelSamePageMergingConfigurationError.rs");
 include!("GlobalLinuxModuleConfiguration.rs");
 include!("GlobalLinuxModuleConfigurationError.rs");
+include!("GlobalNetworkConfiguration.rs");
+include!("GlobalNetworkConfigurationError.rs");
 include!("GlobalPipeConfiguration.rs");
 include!("GlobalPipeConfigurationError.rs");
 include!("GlobalPosixMessageQueueConfiguration.rs");

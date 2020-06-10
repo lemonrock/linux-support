@@ -8,14 +8,15 @@ use crate::capabilities_and_privileges::*;
 use crate::io_priority::IoPriority;
 use crate::logging::LocalSyslogSocket;
 use crate::memory::*;
-use crate::memory::huge_pages::adjust_transparent_huge_pages;
+use crate::memory::huge_pages::{adjust_transparent_huge_pages, HugePageSize, DefaultPageSizeAndHugePageSizes};
 use crate::memory::numa::SetMemoryPolicy;
+use crate::memory::numa::SetMemoryPolicyStrictness;
 use crate::paths::*;
 use crate::process::*;
 use crate::scheduling::Nice;
 use crate::scheduling::PerThreadSchedulerPolicyAndFlags;
 use crate::syscall::SYS::gettid;
-use crate::memory::mapping::MemoryMapError;
+use crate::memory::mapping::{MemoryMapError, MappedMemorySettings, AddressHint, Protection, Sharing, MemoryLockSettings, MemoryAdvice};
 
 
 include!("configure_global_panic_hook.rs");
@@ -30,5 +31,7 @@ include!("ThreadFunction.rs");
 include!("ThreadIdentifier.rs");
 include!("ThreadIdentifierChoice.rs");
 include!("ThreadIdentifiers.rs");
+include!("ThreadLocalAllocatorConfiguration.rs");
 include!("ThreadLoopBodyFunction.rs");
 include!("ThreadName.rs");
+include!("ThreadSettings.rs");

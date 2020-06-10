@@ -27,6 +27,15 @@ impl<'a> IntoLineFeedTerminatedByteString<'a> for Vec<u8>
 	}
 }
 
+impl<'a> IntoLineFeedTerminatedByteString<'a> for String
+{
+	#[inline(always)]
+	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
+	{
+		self.into_bytes().into_line_feed_terminated_byte_string()
+	}
+}
+
 impl<'a> IntoLineFeedTerminatedByteString<'a> for &'a Vec<u8>
 {
 	#[inline(always)]

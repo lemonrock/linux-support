@@ -106,58 +106,40 @@ impl<BSA: BitSetAware, PerBitSetAware> PerBitSetAwareData<BSA, PerBitSetAware>
 		self.data.get_unchecked(i).as_ref().unwrap()
 	}
 
-	/// Gets the data for a particular BitSetAware; if no data for that core, gets it for the `default_bit_set_aware`.
+	/// Gets the data for a particular BitSetAware; if no datum for that gets a datum for `default_bit_set_aware`.
 	///
-	/// If the BitSetAware does not exist (or does not have assigned data), returns None; this can happen on Linux if using the` SO_INCOMING_CPU` socket option, which can return an index for a CPU not assigned to the process.
-	#[inline(always)]
-	pub fn get_or(&self, bit_set_aware: BSA, default_bit_set_aware: impl FnOnce() -> BSA) -> &PerBitSetAware
-	{
-		let bit_set_aware = if unlikely!(self.get(bit_set_aware).is_none())
-		{
-			default_bit_set_aware()
-		}
-		else
-		{
-			bit_set_aware
-		};
-
-		let i: usize = bit_set_aware.into();
-		unsafe { self.data.get_unchecked(i).as_ref().unwrap() }
-	}
-
-	/// Gets the mutable data for a particular BitSetAware.
+	/// If the BitSetAware does not exist (or does not have assigned data), returns None; this can happen on Linux if using the` SO_INCOMING_CPU` socket option with `HyperThreads`, which can return an index for a CPU not assigned to the process.
 	///
-	/// If the BitSetAware does not exist (or does not have assigned data), returns None; this can happen on Linux if using the` SO_INCOMING_CPU` socket option, which can return an index for a CPU not assigned to the process.
+	/// Does not validate `default_bit_set_aware` has a datum unless compiled as a debug build.
 	#[inline(always)]
-	pub fn get_mut(&mut self, bit_set_aware: BSA) -> Option<&mut PerBitSetAware>
+	pub fn get_or(&self, bit_set_aware: BSA, default_bit_set_aware: BSA) -> (&PerBitSetAware, BSA)
 	{
 		let i: usize = bit_set_aware.into();
 		if unlikely!(i >= self.data.len())
 		{
-			return None
+			return self.get_or_default_bit_set_aware(default_bit_set_aware)
 		}
-		unsafe { self.data.get_unchecked_mut(i).as_mut() }
-	}
-
-	/// Gets the mutable data for a particular BitSetAware; if no data for that core, gets it for the `default_bit_set_aware`.
-	///
-	/// If the BitSetAware does not exist (or does not have assigned data), returns None; this can happen on Linux if using the` SO_INCOMING_CPU` socket option with `PerBitSetAwareData<HyperThread>`, which can return an index for a HyperThread not assigned to the process.
-	#[inline(always)]
-	pub fn get_mut_or(&mut self, bit_set_aware: BSA, default_bit_set_aware: impl FnOnce() -> BSA) -> &mut PerBitSetAware
-	{
-		let bit_set_aware = if unlikely!(self.get(bit_set_aware).is_none())
+		
+		if let Some(datum) = unsafe { self.data.get_unchecked(i).as_ref() }
 		{
-			default_bit_set_aware()
+			return (datum, bit_set_aware)
+		}
+		
+		self.get_or_default_bit_set_aware(default_bit_set_aware)
+	}
+	
+	#[inline(always)]
+	fn get_or_default_bit_set_aware(&self, default_bit_set_aware: BSA) -> (&PerBitSetAware, BSA)
+	{
+		let datum = if cfg!(debug_assertions)
+		{
+			self.get(default_bit_set_aware).unwrap()
 		}
 		else
 		{
-			bit_set_aware
+			unsafe { self.get_unchecked(default_bit_set_aware) }
 		};
-
-		let i: usize = bit_set_aware.into();
-		unsafe
-		{
-			self.data.get_unchecked_mut(i).as_mut().unwrap() }
+		(datum, default_bit_set_aware)
 	}
 
 	/// Sets the current value, discarding the old one.
@@ -203,6 +185,33 @@ impl<BSA: BitSetAware, PerBitSetAware> PerBitSetAwareData<BSA, PerBitSetAware>
 			let element = unsafe { self.data.get_unchecked(i) };
 			(bit_set_aware, element.as_ref().unwrap())
 		})
+	}
+
+	/// Maps from `PerBitSetAware` to `NewPerBitSetAware`.
+	#[inline(always)]
+	pub fn map_ref<'a, NewPerBitSetAware: 'a>(&'a self, mut mapper: impl FnMut(BSA, &'a PerBitSetAware) -> NewPerBitSetAware) -> PerBitSetAwareData<BSA, NewPerBitSetAware>
+	{
+		let mut mapped_data = Vec::with_capacity(self.data.len());
+
+		for bit_set_aware in self.bit_set.iterate_including_empty()
+		{
+			let new_per_bit_set_aware = match bit_set_aware
+			{
+				None => None,
+				Some(bit_set_aware) =>
+				{
+					Some(mapper(bit_set_aware, unsafe { self.get_unchecked(bit_set_aware) }))
+				}
+			};
+			mapped_data.push(new_per_bit_set_aware);
+		}
+
+		PerBitSetAwareData
+		{
+			data: mapped_data.into_boxed_slice(),
+			bit_set: self.bit_set.clone(),
+			marker: PhantomData,
+		}
 	}
 
 	/// Maps from `PerBitSetAware` to `NewPerBitSetAware`.

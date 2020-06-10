@@ -2,14 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A drop guard.
-pub struct ThreadLocalAllocatorSettingsDropGuard<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>>(&'static GTACSA);
+use super::*;
+use crate::paths::{ProcPath, PathExt};
+use crate::cpu::HyperThreads;
 
-impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>> Drop for ThreadLocalAllocatorSettingsDropGuard<HeapSize, GTACSA>
-{
-	#[inline(always)]
-	fn drop(&mut self)
-	{
-		self.0.drop_thread_local_allocator()
-	}
-}
+
+include!("InterruptRequest.rs");

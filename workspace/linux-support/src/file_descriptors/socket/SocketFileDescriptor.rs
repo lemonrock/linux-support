@@ -47,17 +47,542 @@ impl<SD: SocketData> FileDescriptor for SocketFileDescriptor<SD>
 {
 }
 
+impl<SD: SocketData> SocketFileDescriptor<SD>
+{
+	/// This is mostly useful for `StreamingSocketFileDescriptors` after `connect()` or created by `accept()`, to identify an appropriate CPU to most efficiently handle the network traffic.
+	#[inline(always)]
+	pub fn hyper_thread(&self) -> HyperThread
+	{
+		let result: i32 = self.get_socket_option(SOL_SOCKET, SO_INCOMING_CPU);
+		HyperThread::try_from(result as u32 as u16).unwrap()
+	}
+	
+	/// ***SLOW***.
+	///
+	/// Use a system call.
+	#[allow(deprecated)]
+	#[inline(always)]
+	pub fn information(&self) -> tcp_info
+	{
+		self.get_socket_option(SOL_TCP, TCP_INFO)
+	}
+
+	/// Obtain our local address and its length; the length is essential when interpreting Unix Domain Sockets.
+	#[inline(always)]
+	pub fn local_address(&self) -> Result<(SD, usize), ()>
+	{
+		let mut socket_address = SD::default();
+		let mut socket_address_length = size_of::<SD>() as u32;
+		let result = unsafe { getsockname(self.0, &mut socket_address as *mut _ as *mut _, &mut socket_address_length) };
+
+		if likely!(result == 0)
+		{
+			Ok((socket_address, socket_address_length as usize))
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				ENOBUFS => Err(()),
+
+				EBADF => panic!("The argument `sockfd` is not a valid file descriptor"),
+				EFAULT => panic!("The `addr` argument points to memory not in a valid part of the process address space"),
+				EINVAL => panic!("`addrlen` is invalid"),
+				ENOTSOCK => panic!("The file descriptor `sockfd` does not refer to a socket"),
+
+				_ => unreachable!(),
+			}
+		}
+		else
+		{
+			unreachable!();
+		}
+	}
+
+	#[inline(always)]
+	fn listen(self, back_log: BackLog, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketFileDescriptor<SD>, SocketListenError>
+	{
+		let result = unsafe { listen(self.0, back_log.0 as i32) };
+		if likely!(result == 0)
+		{
+			let hyper_thread: i32 = hyper_thread.into();
+			self.set_socket_option(SOL_SOCKET, SO_INCOMING_CPU, &hyper_thread);
+			Ok(StreamingServerListenerSocketFileDescriptor(self))
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				EADDRINUSE => Err(SocketListenError::AddressInUse),
+				EBADF => panic!("`sockfd` is not a valid descriptor"),
+				ENOTSOCK => panic!("`sockfd` is not a socket file descriptor"),
+				EOPNOTSUPP => panic!("The socket is not of a type that supports the `listen()` operation"),
+
+				_ => unreachable!(),
+			}
+		}
+		else
+		{
+			unreachable!()
+		}
+	}
+
+	#[inline(always)]
+	fn bind(&self, socket_data: &SD, length: usize) -> Result<(), SocketBindError>
+	{
+		use self::SocketBindError::*;
+		use self::FilePathInvalidReason::*;
+
+		let result = unsafe { bind(self.0, &socket_data as *const _ as *const sockaddr_storage, length as socklen_t) };
+		if likely!(result == 0)
+		{
+			Ok(())
+		}
+		else if likely!(result == -1)
+		{
+			Err
+			(
+				match errno().0
+				{
+					EACCES => PermissionDenied,
+					EADDRINUSE => AddressInUse,
+					ENOMEM => KernelWouldBeOutOfMemory,
+					EBADF => panic!("`sockfd` is not a valid descriptor"),
+					EINVAL => panic!("already bound, or the `addrlen` is wrong, or the socket was not in the `AF_UNIX` family"),
+					ENOTSOCK => panic!("`sockfd` is not a socket file descriptor"),
+
+					EADDRNOTAVAIL => FilePathInvalid(AddressUnavailable),
+					EFAULT => panic!("`addr` points outside the user's accessible address space"),
+					ELOOP => FilePathInvalid(TooManySymbolicLinksInFilePath),
+					ENOENT => FilePathInvalid(DoesNotExist),
+					ENOTDIR => FilePathInvalid(FilePathPrefixComponentIsNotADirectory),
+					EROFS => FilePathInvalid(FilePathIsReadOnly),
+
+					EAFNOSUPPORT => panic!("Invalid `sa_family_t` value"),
+
+					_ => unreachable!(),
+				}
+			)
+		}
+		else
+		{
+			unreachable!()
+		}
+	}
+
+	#[inline(always)]
+	fn connect(&self, socket_data: &SD, length: usize, writes_before_reading: bool) -> Result<(), SocketConnectError>
+	{
+		if writes_before_reading
+		{
+			self.set_socket_option_true(SOL_TCP, TCP_DEFER_ACCEPT);
+			self.set_socket_option_true(SOL_TCP, TCP_FASTOPEN_CONNECT);
+		}
+		
+		use self::SocketConnectError::*;
+
+		let result = unsafe { connect(self.0, &socket_data as *const _ as *const sockaddr_storage, length as socklen_t) };
+		if likely!(result == 0)
+		{
+			Ok(())
+		}
+		else if likely!(result == -1)
+		{
+			Err
+			(
+				match errno().0
+				{
+					EACCES | EPERM => PermissionDenied,
+					EADDRINUSE => AddressInUse,
+					EAGAIN => NoMoreFreeLocalPorts,
+					ECONNREFUSED => ConnectionRefused,
+					EINPROGRESS => InProgress,
+					EINTR => Interrupted,
+					ETIMEDOUT => TimedOut,
+					ENETUNREACH => NetworkUnreachable,
+					EISCONN => panic!("The socket is already connected."),
+					EALREADY => panic!("The socket is nonblocking and a previous connection attempt has not yet been completed."),
+					EBADF => panic!("`sockfd` is not a valid descriptor"),
+					EINVAL => panic!("already bound, or the `addrlen` is wrong, or the socket was not in the `AF_UNIX` family"),
+					ENOTSOCK => panic!("`sockfd` is not a socket file descriptor"),
+					EFAULT => panic!("`addr` points outside the user's accessible address space"),
+					EAFNOSUPPORT => panic!("Invalid `sa_family_t` value"),
+
+					_ => unreachable!(),
+				}
+			)
+		}
+		else
+		{
+			unreachable!()
+		}
+	}
+
+	#[inline(always)]
+	fn get_socket_option<T>(&self, level: c_int, optname: c_int) -> T
+	{
+		#[allow(deprecated)]
+		let mut value: T = unsafe { uninitialized() };
+		let mut value_length = size_of::<T>() as u32;
+		let result = unsafe { getsockopt(self.0, level, optname, &mut value as *mut _ as *mut _, &mut value_length) };
+
+		if likely!(result == 0)
+		{
+			return value
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				EBADF => panic!("The argument `sockfd` is not a valid descriptor"),
+				EFAULT => panic!("The address pointed to by `optval` is not in a valid part of the process address space"),
+				EINVAL => panic!("`optlen` is invalid, or there is an invalid value in `optval`"),
+				ENOPROTOOPT => panic!("The option is unknown at the level indicated"),
+				ENOTSOCK => panic!("The argument `sockfd` is a file, not a socket"),
+
+				_ => unreachable!(),
+			}
+		}
+		else
+		{
+			unreachable!();
+		}
+	}
+
+	#[inline(always)]
+	fn set_socket_option<T>(&self, level: c_int, optname: c_int, value: &T)
+	{
+		let result = unsafe { setsockopt(self.0, level, optname, value as *const _ as *const _, size_of::<T>() as socklen_t) };
+
+		if likely!(result == 0)
+		{
+			return
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				EBADF => panic!("The argument `sockfd` is not a valid descriptor"),
+				EFAULT => panic!("The address pointed to by `optval` is not in a valid part of the process address space"),
+				EINVAL => panic!("`optlen` is invalid, or there is an invalid value in `optval`"),
+				ENOPROTOOPT => panic!("The option is unknown at the level indicated"),
+				ENOTSOCK => panic!("The argument `sockfd` is a file, not a socket"),
+
+				_ => unreachable!(),
+			}
+		}
+		else
+		{
+			unreachable!();
+		}
+	}
+
+	#[inline(always)]
+	fn set_socket_option_true(&self, level: c_int, optname: c_int)
+	{
+		static is_true: c_int = 1;
+		self.set_socket_option(level, optname, &is_true);
+	}
+
+	#[inline(always)]
+	fn set_socket_option_false(&self, level: c_int, optname: c_int)
+	{
+		static is_false: c_int = 0;
+		self.set_socket_option(level, optname, &is_false);
+	}
+
+	#[inline(always)]
+	fn set_send_buffer_size_unix_domain_socket(&self, send_buffer_size_in_bytes: SendBufferSizeInBytes)
+	{
+		let send_buffer_adjusted = send_buffer_size_in_bytes.adjust_for_unix_set_sock_opt() as c_int;
+		self.set_socket_option(SOL_SOCKET, SO_SNDBUF, &send_buffer_adjusted);
+	}
+
+	#[inline(always)]
+	fn set_send_buffer_size(&self, send_buffer_size_in_bytes: SendBufferSizeInBytes)
+	{
+		let send_buffer_halved = send_buffer_size_in_bytes.adjust_for_tcp_set_sock_opt() as c_int;
+		self.set_socket_option(SOL_SOCKET, SO_SNDBUF, &send_buffer_halved);
+	}
+
+	#[inline(always)]
+	fn set_receive_buffer_size(&self, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes)
+	{
+		let receive_buffer_halved = receive_buffer_size_in_bytes.adjust_for_tcp_set_sock_opt() as c_int;
+		self.set_socket_option(SOL_SOCKET, SO_RCVBUF, &receive_buffer_halved);
+	}
+
+	#[inline(always)]
+	fn set_broadcast(&self)
+	{
+		self.set_socket_option_true(SOL_SOCKET, SO_BROADCAST)
+	}
+
+	#[inline(always)]
+	fn set_out_of_band_inline(&self)
+	{
+		self.set_socket_option_true(SOL_SOCKET, SO_OOBINLINE)
+	}
+
+	/// This is a send-side option.
+	#[inline(always)]
+	fn disable_nagle_algorithm(&self)
+	{
+		self.set_socket_option_true(SOL_TCP, TCP_NODELAY)
+	}
+
+	#[inline(always)]
+	fn set_tcp_max_SYN_transmits(&self, maximum_syn_retransmits: MaximumSynRetransmits)
+	{
+		let maximum_syn_retransmits = maximum_syn_retransmits.0.get() as i32;
+		self.set_socket_option(SOL_TCP, TCP_SYNCNT, &maximum_syn_retransmits);
+	}
+
+	#[inline(always)]
+	fn set_tcp_linger(&self, socket_linger_seconds: SocketLingerSeconds)
+	{
+		#[repr(C)]
+		struct linger
+		{
+			l_onoff: c_int,
+			l_linger: c_int,
+		}
+		
+		use self::SocketLingerSeconds::*;
+		let linger = match socket_linger_seconds
+		{
+			Off => linger
+			{
+				l_onoff: 0,
+				l_linger: 0,
+			},
+			
+			On(seconds) => linger
+			{
+				l_onoff: 1,
+				l_linger: seconds as i32
+			}
+		};
+		
+		self.set_socket_option(SOL_SOCKET, SO_LINGER, &linger);
+	}
+
+	#[inline(always)]
+	fn set_internet_protocol_socket_options(&self, send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes)
+	{
+		self.set_send_buffer_size(send_buffer_size_in_bytes);
+		self.set_receive_buffer_size(receive_buffer_size_in_bytes);
+	}
+
+	#[inline(always)]
+	fn set_tcp_socket_options(&self, idles_before_keep_alive_seconds: IdlesBeforeKeepAliveSeconds, keep_alive_interval_seconds: KeepAliveIntervalSeconds, maximum_keep_alive_probes: MaximumKeepAliveProbes, socket_linger_seconds: SocketLingerSeconds, finish_timeout_seconds: FinishTimeoutSeconds, maximum_syn_retransmits: MaximumSynRetransmits, not_sent_low_water_in_bytes: NotSentLowWaterInBytes)
+	{
+		self.set_socket_option_true(SOL_SOCKET, SO_KEEPALIVE);
+
+		self.set_out_of_band_inline();
+
+		self.disable_nagle_algorithm();
+
+		let idles_before_keep_alive_seconds = idles_before_keep_alive_seconds.0 as i32;
+		self.set_socket_option(SOL_TCP, TCP_KEEPIDLE, &idles_before_keep_alive_seconds);
+
+		let keep_alive_interval_seconds = keep_alive_interval_seconds.0 as i32;
+		self.set_socket_option(SOL_TCP, TCP_KEEPINTVL, &keep_alive_interval_seconds);
+
+		let maximum_keep_alive_probes = maximum_keep_alive_probes.0 as i32;
+		self.set_socket_option(SOL_TCP, TCP_KEEPCNT, &maximum_keep_alive_probes);
+
+		self.set_tcp_linger(socket_linger_seconds);
+
+		let finish_timeout_seconds = finish_timeout_seconds.0 as i32;
+		self.set_socket_option(SOL_TCP, TCP_LINGER2, &finish_timeout_seconds);
+
+		self.set_tcp_max_SYN_transmits(maximum_syn_retransmits);
+		
+		let not_sent_low_water_in_bytes: i32 = not_sent_low_water_in_bytes.into();
+		self.set_socket_option(SOL_TCP, TCP_NOTSENT_LOWAT, &not_sent_low_water_in_bytes);
+	}
+
+	#[inline(always)]
+	fn set_udp_socket_options(&self)
+	{
+		self.set_broadcast();
+	}
+
+	#[inline(always)]
+	fn set_internet_protocol_server_listener_socket_options(&self)
+	{
+		self.set_socket_option_true(SOL_SOCKET, SO_REUSEPORT);
+	}
+
+	#[inline(always)]
+	fn set_tcp_server_listener_socket_options(&self)
+	{
+		self.set_socket_option_true(SOL_SOCKET, SO_REUSEADDR);
+		self.set_socket_option_true(SOL_TCP, TCP_DEFER_ACCEPT);
+		self.set_socket_option_true(SOL_TCP, TCP_FASTOPEN);
+	}
+
+	#[inline(always)]
+	fn new_transmission_control_protocol_over_internet_protocol_version_4(send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, idles_before_keep_alive_seconds: IdlesBeforeKeepAliveSeconds, keep_alive_interval_seconds: KeepAliveIntervalSeconds, maximum_keep_alive_probes: MaximumKeepAliveProbes, socket_linger_seconds: SocketLingerSeconds, finish_timeout_seconds: FinishTimeoutSeconds, maximum_syn_retransmits: MaximumSynRetransmits, not_sent_low_water_in_bytes: NotSentLowWaterInBytes, non_blocking: bool) -> Result<Self, CreationError>
+	{
+		Self::new(AF_INET, SOCK_STREAM, IPPROTO_TCP, non_blocking).map(|this|
+		{
+			this.set_internet_protocol_socket_options(send_buffer_size_in_bytes, receive_buffer_size_in_bytes);
+			this.set_tcp_socket_options(idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, socket_linger_seconds, finish_timeout_seconds, maximum_syn_retransmits, not_sent_low_water_in_bytes);
+			this
+		})
+	}
+
+	#[inline(always)]
+	fn new_transmission_control_protocol_over_internet_protocol_version_6(send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, idles_before_keep_alive_seconds: IdlesBeforeKeepAliveSeconds, keep_alive_interval_seconds: KeepAliveIntervalSeconds, maximum_keep_alive_probes: MaximumKeepAliveProbes, socket_linger_seconds: SocketLingerSeconds, finish_timeout_seconds: FinishTimeoutSeconds, maximum_syn_retransmits: MaximumSynRetransmits, not_sent_low_water_in_bytes: NotSentLowWaterInBytes, non_blocking: bool) -> Result<Self, CreationError>
+	{
+		Self::new(AF_INET6, SOCK_STREAM, IPPROTO_TCP, non_blocking).map(|this|
+		{
+			this.set_internet_protocol_socket_options(send_buffer_size_in_bytes, receive_buffer_size_in_bytes);
+			this.set_tcp_socket_options(idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, socket_linger_seconds, finish_timeout_seconds, maximum_syn_retransmits, not_sent_low_water_in_bytes);
+			this
+		})
+	}
+
+	#[inline(always)]
+	fn new_user_datagram_protocol_over_internet_protocol_version_4(send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, non_blocking: bool) -> Result<Self, CreationError>
+	{
+		Self::new(AF_INET, SOCK_DGRAM, IPPROTO_UDP, non_blocking).map(|this|
+		{
+			this.set_internet_protocol_socket_options(send_buffer_size_in_bytes, receive_buffer_size_in_bytes);
+			this.set_udp_socket_options();
+			this
+		})
+	}
+
+	#[inline(always)]
+	fn new_user_datagram_protocol_over_internet_protocol_version_6(send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, non_blocking: bool) -> Result<Self, CreationError>
+	{
+		Self::new(AF_INET6, SOCK_DGRAM, IPPROTO_UDP, non_blocking).map(|this|
+		{
+			this.set_internet_protocol_socket_options(send_buffer_size_in_bytes, receive_buffer_size_in_bytes);
+			this.set_udp_socket_options();
+			this
+		})
+	}
+
+	#[inline(always)]
+	fn new_streaming_unix_domain_socket(send_buffer_size_in_bytes: SendBufferSizeInBytes, non_blocking: bool) -> Result<Self, CreationError>
+	{
+		Self::new(AF_UNIX, SOCK_STREAM, 0, non_blocking).map(|this|
+		{
+			this.set_send_buffer_size_unix_domain_socket(send_buffer_size_in_bytes);
+			this
+		})
+	}
+
+	#[inline(always)]
+	fn new_datagram_unix_domain_socket(send_buffer_size_in_bytes: SendBufferSizeInBytes, non_blocking: bool) -> Result<Self, CreationError>
+	{
+		Self::new(AF_UNIX, SOCK_DGRAM, 0, non_blocking).map(|this|
+		{
+			this.set_send_buffer_size_unix_domain_socket(send_buffer_size_in_bytes);
+			this
+		})
+	}
+
+	#[inline(always)]
+	fn type_and_flags(type_: c_int, non_blocking: bool) -> c_int
+	{
+		let flags = type_ | SOCK_CLOEXEC;
+		if non_blocking
+		{
+			flags | SOCK_NONBLOCK
+		}
+		else
+		{
+			flags
+		}
+	}
+
+	#[inline(always)]
+	fn socketpair(type_: c_int, lefthand_send_buffer_size_in_bytes: SendBufferSizeInBytes, righthand_send_buffer_size_in_bytes: SendBufferSizeInBytes, non_blocking: bool) -> Result<(Self, Self), CreationError>
+	{
+		const domain: c_int = AF_UNIX;
+		const ethernet_protocol: c_int = 0;
+
+		#[allow(deprecated)]
+		let mut sv = unsafe { uninitialized() };
+		let result = unsafe { socketpair(domain, Self::type_and_flags(type_, non_blocking), ethernet_protocol, &mut sv) };
+
+		if likely!(result == 0)
+		{
+			let lefthand = SocketFileDescriptor(unsafe { *sv.get_unchecked(0) }, PhantomData);
+			lefthand.set_send_buffer_size_unix_domain_socket(lefthand_send_buffer_size_in_bytes);
+
+			let righthand = SocketFileDescriptor(unsafe { *sv.get_unchecked(1) }, PhantomData);
+			righthand.set_send_buffer_size_unix_domain_socket(righthand_send_buffer_size_in_bytes);
+
+			Ok((lefthand, righthand))
+		}
+		else if likely!(result == -1)
+		{
+			use self::CreationError::*;
+
+			Err
+			(
+				match errno().0
+				{
+					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
+					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
+					EAFNOSUPPORT => panic!("The specified address family is not supported on this machine"),
+					EFAULT => panic!("The address `sv` does not specify a valid part of the process address space"),
+					EOPNOTSUPP => panic!("The specified `protocol` does not support creation of socket pairs"),
+					EPROTONOSUPPORT => panic!("TThe specified `protocol` is not supported on this machine"),
+
+					_ => unreachable!(),
+				}
+			)
+		}
+		else
+		{
+			unreachable!();
+		}
+	}
+
+	#[inline(always)]
+	fn new(domain: c_int, type_: c_int, ethernet_protocol: c_int, non_blocking: bool) -> Result<Self, CreationError>
+	{
+		let result = unsafe { socket(domain, Self::type_and_flags(type_, non_blocking), ethernet_protocol) };
+		if likely!(result != -1)
+		{
+			Ok(SocketFileDescriptor(result, PhantomData))
+		}
+		else
+		{
+			use self::CreationError::*;
+
+			Err
+			(
+				match errno().0
+				{
+					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
+					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
+					ENOBUFS | ENOMEM => KernelWouldBeOutOfMemory,
+					EINVAL => panic!("Invalid arguments"),
+					EACCES => panic!("Permission denined"),
+					EAFNOSUPPORT => panic!("The implementation does not support the specified address family"),
+					EPROTONOSUPPORT => panic!("The protocol type or the specified protocol is not supported within this domain"),
+					_ => unreachable!(),
+				}
+			)
+		}
+	}
+}
+
 impl SocketFileDescriptor<sockaddr_in>
 {
 	/// Creates a new instance of a Transmission Control Protocol (TCP) socket over Internet Protocol (IP) version 4 server listener.
-	///
-	/// `back_log` can not exceed `i32::MAX` and is capped by the Operating System to the value in `/proc/sys/net/core/somaxconn`.
-	///
-	/// The default value in `/proc/sys/net/core/somaxconn` is `128`.
 	#[inline(always)]
-	pub fn new_transmission_control_protocol_over_internet_protocol_version_4_server_listener(socket_address: &sockaddr_in, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16, back_log: u32, non_blocking: bool, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketInternetProtocolVersion4FileDescriptor, NewSocketServerListenerError>
+	pub fn new_transmission_control_protocol_over_internet_protocol_version_4_server_listener(socket_address: &sockaddr_in, send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, idles_before_keep_alive_seconds: IdlesBeforeKeepAliveSeconds, keep_alive_interval_seconds: KeepAliveIntervalSeconds, maximum_keep_alive_probes: MaximumKeepAliveProbes, socket_linger_seconds: SocketLingerSeconds, finish_timeout_seconds: FinishTimeoutSeconds, maximum_syn_retransmits: MaximumSynRetransmits, not_sent_low_water_in_bytes: NotSentLowWaterInBytes, back_log: BackLog, non_blocking: bool, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketInternetProtocolVersion4FileDescriptor, NewSocketServerListenerError>
 	{
-		let this = SocketFileDescriptor::<sockaddr_in>::new_transmission_control_protocol_over_internet_protocol_version_4(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, linger_seconds, linger_in_FIN_WAIT2_seconds, maximum_SYN_transmits, non_blocking)?;
+		let this = SocketFileDescriptor::<sockaddr_in>::new_transmission_control_protocol_over_internet_protocol_version_4(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, socket_linger_seconds, finish_timeout_seconds, maximum_syn_retransmits, not_sent_low_water_in_bytes, non_blocking)?;
 		this.set_internet_protocol_server_listener_socket_options();
 		this.set_tcp_server_listener_socket_options();
 		this.bind_internet_protocol_version_4_socket(socket_address)?;
@@ -66,16 +591,16 @@ impl SocketFileDescriptor<sockaddr_in>
 
 	/// Creates a new instance of a Transmission Control Protocol (TCP) socket over Internet Protocol (IP) version 4 client.
 	#[inline(always)]
-	pub fn new_transmission_control_protocol_over_internet_protocol_version_4_client(socket_address: &sockaddr_in, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16, non_blocking: bool) -> Result<StreamingSocketInternetProtocolVersion4FileDescriptor, NewSocketClientError>
+	pub fn new_transmission_control_protocol_over_internet_protocol_version_4_client(socket_address: &sockaddr_in, send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, idles_before_keep_alive_seconds: IdlesBeforeKeepAliveSeconds, keep_alive_interval_seconds: KeepAliveIntervalSeconds, maximum_keep_alive_probes: MaximumKeepAliveProbes, socket_linger_seconds: SocketLingerSeconds, finish_timeout_seconds: FinishTimeoutSeconds, maximum_syn_retransmits: MaximumSynRetransmits, not_sent_low_water_in_bytes: NotSentLowWaterInBytes, writes_before_reading: bool, non_blocking: bool) -> Result<StreamingSocketInternetProtocolVersion4FileDescriptor, NewSocketClientError>
 	{
-		let this = SocketFileDescriptor::<sockaddr_in>::new_transmission_control_protocol_over_internet_protocol_version_4(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, linger_seconds, linger_in_FIN_WAIT2_seconds, maximum_SYN_transmits, non_blocking)?;
-		this.connect_internet_protocol_version_4_socket(socket_address)?;
+		let this = SocketFileDescriptor::<sockaddr_in>::new_transmission_control_protocol_over_internet_protocol_version_4(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, socket_linger_seconds, finish_timeout_seconds, maximum_syn_retransmits, not_sent_low_water_in_bytes, non_blocking)?;
+		this.connect_internet_protocol_version_4_socket(socket_address, writes_before_reading)?;
 		Ok(StreamingSocketFileDescriptor(this))
 	}
 
 	/// Creates a new instance of a User Datagram Protocol (UDP) socket over Internet Protocol (IP) version 4 server listener.
 	#[inline(always)]
-	pub fn new_user_datagram_protocol_over_internet_protocol_version_4_server_listener(socket_address: &sockaddr_in, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<DatagramServerListenerSocketInternetProtocolVersion4FileDescriptor, NewSocketServerListenerError>
+	pub fn new_user_datagram_protocol_over_internet_protocol_version_4_server_listener(socket_address: &sockaddr_in, send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, non_blocking: bool) -> Result<DatagramServerListenerSocketInternetProtocolVersion4FileDescriptor, NewSocketServerListenerError>
 	{
 		let this = SocketFileDescriptor::<sockaddr_in>::new_user_datagram_protocol_over_internet_protocol_version_4(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, non_blocking)?;
 		this.set_internet_protocol_server_listener_socket_options();
@@ -85,17 +610,17 @@ impl SocketFileDescriptor<sockaddr_in>
 
 	/// Creates a new instance of a User Datagram Protocol (UDP) socket over Internet Protocol (IP) version 4 client.
 	#[inline(always)]
-	pub fn new_user_datagram_protocol_over_internet_protocol_version_4_client(socket_address: &sockaddr_in, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<DatagramClientSocketInternetProtocolVersion4FileDescriptor, NewSocketClientError>
+	pub fn new_user_datagram_protocol_over_internet_protocol_version_4_client(socket_address: &sockaddr_in, send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, non_blocking: bool) -> Result<DatagramClientSocketInternetProtocolVersion4FileDescriptor, NewSocketClientError>
 	{
 		let this = SocketFileDescriptor::<sockaddr_in>::new_user_datagram_protocol_over_internet_protocol_version_4(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, non_blocking)?;
-		this.connect_internet_protocol_version_4_socket(socket_address)?;
+		this.connect_internet_protocol_version_4_socket(socket_address, false)?;
 		Ok(DatagramClientSocketFileDescriptor(this))
 	}
 
 	#[inline(always)]
-	fn connect_internet_protocol_version_4_socket(&self, socket_address: &sockaddr_in) -> Result<(), SocketConnectError>
+	fn connect_internet_protocol_version_4_socket(&self, socket_address: &sockaddr_in, writes_before_reading: bool) -> Result<(), SocketConnectError>
 	{
-		self.connect(socket_address, size_of::<sockaddr_in>())
+		self.connect(socket_address, size_of::<sockaddr_in>(), writes_before_reading)
 	}
 
 	#[inline(always)]
@@ -108,14 +633,10 @@ impl SocketFileDescriptor<sockaddr_in>
 impl SocketFileDescriptor<sockaddr_in6>
 {
 	/// Creates a new instance of a Transmission Control Protocol (TCP) socket over Internet Protocol (IP) version 6 server listener.
-	///
-	/// `back_log` can not exceed `i32::MAX` and is capped by the Operating System to the value in `/proc/sys/net/core/somaxconn`.
-	///
-	/// The default value in `/proc/sys/net/core/somaxconn` is `128`.
 	#[inline(always)]
-	pub fn new_transmission_control_protocol_over_internet_protocol_version_6_server_listener(socket_address: &sockaddr_in6, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16, back_log: u32, non_blocking: bool, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketInternetProtocolVersion6FileDescriptor, NewSocketServerListenerError>
+	pub fn new_transmission_control_protocol_over_internet_protocol_version_6_server_listener(socket_address: &sockaddr_in6, send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, idles_before_keep_alive_seconds: IdlesBeforeKeepAliveSeconds, keep_alive_interval_seconds: KeepAliveIntervalSeconds, maximum_keep_alive_probes: MaximumKeepAliveProbes, socket_linger_seconds: SocketLingerSeconds, finish_timeout_seconds: FinishTimeoutSeconds, maximum_syn_retransmits: MaximumSynRetransmits, not_sent_low_water_in_bytes: NotSentLowWaterInBytes, back_log: BackLog, non_blocking: bool, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketInternetProtocolVersion6FileDescriptor, NewSocketServerListenerError>
 	{
-		let this = SocketFileDescriptor::<sockaddr_in6>::new_transmission_control_protocol_over_internet_protocol_version_6(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, linger_seconds, linger_in_FIN_WAIT2_seconds, maximum_SYN_transmits, non_blocking)?;
+		let this = SocketFileDescriptor::<sockaddr_in6>::new_transmission_control_protocol_over_internet_protocol_version_6(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, socket_linger_seconds, finish_timeout_seconds, maximum_syn_retransmits, not_sent_low_water_in_bytes, non_blocking)?;
 		this.set_internet_protocol_server_listener_socket_options();
 		this.set_tcp_server_listener_socket_options();
 		this.bind_internet_protocol_version_6_socket(socket_address)?;
@@ -124,16 +645,16 @@ impl SocketFileDescriptor<sockaddr_in6>
 
 	/// Creates a new instance of a Transmission Control Protocol (TCP) socket over Internet Protocol (IP) version 6 client.
 	#[inline(always)]
-	pub fn new_transmission_control_protocol_over_internet_protocol_version_6_client(socket_address: &sockaddr_in6, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16, non_blocking: bool) -> Result<StreamingSocketInternetProtocolVersion6FileDescriptor, NewSocketClientError>
+	pub fn new_transmission_control_protocol_over_internet_protocol_version_6_client(socket_address: &sockaddr_in6, send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, idles_before_keep_alive_seconds: IdlesBeforeKeepAliveSeconds, keep_alive_interval_seconds: KeepAliveIntervalSeconds, maximum_keep_alive_probes: MaximumKeepAliveProbes, socket_linger_seconds: SocketLingerSeconds, finish_timeout_seconds: FinishTimeoutSeconds, maximum_syn_retransmits: MaximumSynRetransmits, not_sent_low_water_in_bytes: NotSentLowWaterInBytes, writes_before_reading: bool, non_blocking: bool) -> Result<StreamingSocketInternetProtocolVersion6FileDescriptor, NewSocketClientError>
 	{
-		let this = SocketFileDescriptor::<sockaddr_in6>::new_transmission_control_protocol_over_internet_protocol_version_6(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, linger_seconds, linger_in_FIN_WAIT2_seconds, maximum_SYN_transmits, non_blocking)?;
-		this.connect_internet_protocol_version_6_socket(socket_address)?;
+		let this = SocketFileDescriptor::<sockaddr_in6>::new_transmission_control_protocol_over_internet_protocol_version_6(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, socket_linger_seconds, finish_timeout_seconds, maximum_syn_retransmits, not_sent_low_water_in_bytes, non_blocking)?;
+		this.connect_internet_protocol_version_6_socket(socket_address, writes_before_reading)?;
 		Ok(StreamingSocketFileDescriptor(this))
 	}
 
 	/// Creates a new instance of a User Datagram Protocol (UDP) socket over Internet Protocol (IP) version 6 server listener.
 	#[inline(always)]
-	pub fn new_user_datagram_protocol_over_internet_protocol_version_6_server_listener(socket_address: &sockaddr_in6, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<DatagramServerListenerSocketInternetProtocolVersion6FileDescriptor, NewSocketServerListenerError>
+	pub fn new_user_datagram_protocol_over_internet_protocol_version_6_server_listener(socket_address: &sockaddr_in6, send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, non_blocking: bool) -> Result<DatagramServerListenerSocketInternetProtocolVersion6FileDescriptor, NewSocketServerListenerError>
 	{
 		let this = SocketFileDescriptor::<sockaddr_in6>::new_user_datagram_protocol_over_internet_protocol_version_6(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, non_blocking)?;
 		this.set_internet_protocol_server_listener_socket_options();
@@ -143,17 +664,17 @@ impl SocketFileDescriptor<sockaddr_in6>
 
 	/// Creates a new instance of a User Datagram Protocol (UDP) socket over Internet Protocol (IP) version 6 client.
 	#[inline(always)]
-	pub fn new_user_datagram_protocol_over_internet_protocol_version_6_client(socket_address: &sockaddr_in6, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<DatagramClientSocketInternetProtocolVersion6FileDescriptor, NewSocketClientError>
+	pub fn new_user_datagram_protocol_over_internet_protocol_version_6_client(socket_address: &sockaddr_in6, send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, non_blocking: bool) -> Result<DatagramClientSocketInternetProtocolVersion6FileDescriptor, NewSocketClientError>
 	{
 		let this = SocketFileDescriptor::<sockaddr_in6>::new_user_datagram_protocol_over_internet_protocol_version_6(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, non_blocking)?;
-		this.connect_internet_protocol_version_6_socket(socket_address)?;
+		this.connect_internet_protocol_version_6_socket(socket_address, false)?;
 		Ok(DatagramClientSocketFileDescriptor(this))
 	}
 
 	#[inline(always)]
-	fn connect_internet_protocol_version_6_socket(&self, socket_address: &sockaddr_in6) -> Result<(), SocketConnectError>
+	fn connect_internet_protocol_version_6_socket(&self, socket_address: &sockaddr_in6, writes_before_reading: bool) -> Result<(), SocketConnectError>
 	{
-		self.connect(socket_address, size_of::<sockaddr_in6>())
+		self.connect(socket_address, size_of::<sockaddr_in6>(), writes_before_reading)
 	}
 
 	#[inline(always)]
@@ -381,12 +902,8 @@ impl SocketFileDescriptor<sockaddr_un>
 	/// Creates a new streaming Unix Domain server listener socket.
 	///
 	/// This is local socket akin to a Transmission Control Protocol (TCP) socket.
-	///
-	/// `back_log` can not exceed `i32::MAX` and is capped by the Operating System to the value in `/proc/sys/net/core/somaxconn`.
-	///
-	/// The default value in `/proc/sys/net/core/somaxconn` is `128`.
 	#[inline(always)]
-	pub fn new_streaming_unix_domain_socket_server_listener(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_in_bytes: usize, back_log: u32, non_blocking: bool, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketUnixDomainFileDescriptor, NewSocketServerListenerError>
+	pub fn new_streaming_unix_domain_socket_server_listener(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_in_bytes: SendBufferSizeInBytes, back_log: BackLog, non_blocking: bool, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketUnixDomainFileDescriptor, NewSocketServerListenerError>
 	{
 		let this = SocketFileDescriptor::<sockaddr_un>::new_streaming_unix_domain_socket(send_buffer_size_in_bytes, non_blocking)?;
 		this.bind_unix_domain_socket(unix_socket_address)?;
@@ -397,7 +914,7 @@ impl SocketFileDescriptor<sockaddr_un>
 	///
 	/// This is local socket akin to a Transmission Control Protocol (TCP) socket.
 	#[inline(always)]
-	pub fn new_streaming_unix_domain_socket_client(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<StreamingSocketUnixDomainFileDescriptor, NewSocketClientError>
+	pub fn new_streaming_unix_domain_socket_client(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_in_bytes: SendBufferSizeInBytes, non_blocking: bool) -> Result<StreamingSocketUnixDomainFileDescriptor, NewSocketClientError>
 	{
 		let this = SocketFileDescriptor::<sockaddr_un>::new_streaming_unix_domain_socket(send_buffer_size_in_bytes, non_blocking)?;
 		this.connect_unix_domain_socket(unix_socket_address)?;
@@ -408,7 +925,7 @@ impl SocketFileDescriptor<sockaddr_un>
 	///
 	/// This is local socket akin to an User Datagram Protocol (UDP) socket.
 	#[inline(always)]
-	pub fn new_datagram_unix_domain_socket_server_listener(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<DatagramServerListenerSocketUnixDomainFileDescriptor, NewSocketServerListenerError>
+	pub fn new_datagram_unix_domain_socket_server_listener(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_in_bytes: SendBufferSizeInBytes, non_blocking: bool) -> Result<DatagramServerListenerSocketUnixDomainFileDescriptor, NewSocketServerListenerError>
 	{
 		let this = SocketFileDescriptor::<sockaddr_un>::new_datagram_unix_domain_socket(send_buffer_size_in_bytes, non_blocking)?;
 		this.bind_unix_domain_socket(unix_socket_address)?;
@@ -419,7 +936,7 @@ impl SocketFileDescriptor<sockaddr_un>
 	///
 	/// This is local socket akin to an User Datagram Protocol (UDP) socket.
 	#[inline(always)]
-	pub fn new_datagram_unix_domain_socket_client(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<DatagramClientSocketUnixDomainFileDescriptor, NewSocketClientError>
+	pub fn new_datagram_unix_domain_socket_client(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_in_bytes: SendBufferSizeInBytes, non_blocking: bool) -> Result<DatagramClientSocketUnixDomainFileDescriptor, NewSocketClientError>
 	{
 		let this = SocketFileDescriptor::<sockaddr_un>::new_datagram_unix_domain_socket(send_buffer_size_in_bytes, non_blocking)?;
 		this.connect_unix_domain_socket(unix_socket_address)?;
@@ -430,7 +947,7 @@ impl SocketFileDescriptor<sockaddr_un>
 	///
 	/// This is a pair of local sockets akin to Transmission Control Protocol (TCP) sockets.
 	#[inline(always)]
-	pub fn new_streaming_unix_domain_socket_pair(lefthand_send_buffer_size_in_bytes: usize, righthand_send_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<(StreamingSocketUnixDomainFileDescriptor, StreamingSocketUnixDomainFileDescriptor), NewSocketClientError>
+	pub fn new_streaming_unix_domain_socket_pair(lefthand_send_buffer_size_in_bytes: SendBufferSizeInBytes, righthand_send_buffer_size_in_bytes: SendBufferSizeInBytes, non_blocking: bool) -> Result<(StreamingSocketUnixDomainFileDescriptor, StreamingSocketUnixDomainFileDescriptor), NewSocketClientError>
 	{
 		let (lefthand, righthand) = Self::socketpair(SOCK_STREAM, lefthand_send_buffer_size_in_bytes, righthand_send_buffer_size_in_bytes, non_blocking)?;
 
@@ -441,7 +958,7 @@ impl SocketFileDescriptor<sockaddr_un>
 	///
 	/// This is a pair of local sockets akin to User Datagram Protocol (UDP) sockets.
 	#[inline(always)]
-	pub fn new_datagram_unix_domain_socket_pair(lefthand_send_buffer_size_in_bytes: usize, righthand_send_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<(DatagramClientSocketUnixDomainFileDescriptor, DatagramClientSocketUnixDomainFileDescriptor), NewSocketClientError>
+	pub fn new_datagram_unix_domain_socket_pair(lefthand_send_buffer_size_in_bytes: SendBufferSizeInBytes, righthand_send_buffer_size_in_bytes: SendBufferSizeInBytes, non_blocking: bool) -> Result<(DatagramClientSocketUnixDomainFileDescriptor, DatagramClientSocketUnixDomainFileDescriptor), NewSocketClientError>
 	{
 		let (lefthand, righthand) = Self::socketpair(SOCK_DGRAM, lefthand_send_buffer_size_in_bytes, righthand_send_buffer_size_in_bytes, non_blocking)?;
 
@@ -467,7 +984,7 @@ impl SocketFileDescriptor<sockaddr_un>
 			&Abstract { ref abstract_name } => Self::unix_domain_socket_data_from_abstract_name(&abstract_name[..]),
 		};
 
-		self.connect(&local_address, length)
+		self.connect(&local_address, length, false)
 	}
 
 	/// `parent_folder_mode` is a octal mode, eg 0o0755.
@@ -564,504 +1081,5 @@ impl SocketFileDescriptor<sockaddr_un>
 
 		// length is offsetof(struct sockaddr_un, sun_path) + strlen(sun_path) + 1
 		(socket_data, size_of::<sa_family_t>() + path_bytes_length + 1)
-	}
-}
-
-impl<SD: SocketData> SocketFileDescriptor<SD>
-{
-	/// This is mostly useful for `StreamingSocketFileDescriptors` after `connect()` or created by `accept()`, to identify an appropriate CPU to most efficiently handle the network traffic.
-	#[inline(always)]
-	pub fn hyper_thread(&self) -> HyperThread
-	{
-		let result: i32 = self.get_socket_option(SOL_SOCKET, SO_INCOMING_CPU);
-		HyperThread::try_from(result as u32 as u16).unwrap()
-	}
-
-	/// Obtain our local address and its length; the length is essential when interpreting Unix Domain Sockets.
-	#[inline(always)]
-	pub fn local_address(&self) -> Result<(SD, usize), ()>
-	{
-		let mut socket_address = SD::default();
-		let mut socket_address_length = size_of::<SD>() as u32;
-		let result = unsafe { getsockname(self.0, &mut socket_address as *mut _ as *mut _, &mut socket_address_length) };
-
-		if likely!(result == 0)
-		{
-			Ok((socket_address, socket_address_length as usize))
-		}
-		else if likely!(result == -1)
-		{
-			match errno().0
-			{
-				ENOBUFS => Err(()),
-
-				EBADF => panic!("The argument `sockfd` is not a valid file descriptor"),
-				EFAULT => panic!("The `addr` argument points to memory not in a valid part of the process address space"),
-				EINVAL => panic!("`addrlen` is invalid"),
-				ENOTSOCK => panic!("The file descriptor `sockfd` does not refer to a socket"),
-
-				_ => unreachable!(),
-			}
-		}
-		else
-		{
-			unreachable!();
-		}
-	}
-
-	#[inline(always)]
-	fn listen(self, back_log: u32, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketFileDescriptor<SD>, SocketListenError>
-	{
-		debug_assert!(back_log <= i32::MAX as u32, "back_log can not be greater than i32::MAX");
-
-		let result = unsafe { listen(self.0, back_log as i32) };
-		if likely!(result == 0)
-		{
-			let hyper_thread: i32 = hyper_thread.into();
-			self.set_socket_option(SOL_SOCKET, SO_INCOMING_CPU, &hyper_thread);
-			Ok(StreamingServerListenerSocketFileDescriptor(self))
-		}
-		else if likely!(result == -1)
-		{
-			match errno().0
-			{
-				EADDRINUSE => Err(SocketListenError::AddressInUse),
-				EBADF => panic!("`sockfd` is not a valid descriptor"),
-				ENOTSOCK => panic!("`sockfd` is not a socket file descriptor"),
-				EOPNOTSUPP => panic!("The socket is not of a type that supports the `listen()` operation"),
-
-				_ => unreachable!(),
-			}
-		}
-		else
-		{
-			unreachable!()
-		}
-	}
-
-	#[inline(always)]
-	fn bind(&self, socket_data: &SD, length: usize) -> Result<(), SocketBindError>
-	{
-		use self::SocketBindError::*;
-		use self::FilePathInvalidReason::*;
-
-		let result = unsafe { bind(self.0, &socket_data as *const _ as *const sockaddr_storage, length as socklen_t) };
-		if likely!(result == 0)
-		{
-			Ok(())
-		}
-		else if likely!(result == -1)
-		{
-			Err
-			(
-				match errno().0
-				{
-					EACCES => PermissionDenied,
-					EADDRINUSE => AddressInUse,
-					ENOMEM => KernelWouldBeOutOfMemory,
-					EBADF => panic!("`sockfd` is not a valid descriptor"),
-					EINVAL => panic!("already bound, or the `addrlen` is wrong, or the socket was not in the `AF_UNIX` family"),
-					ENOTSOCK => panic!("`sockfd` is not a socket file descriptor"),
-
-					EADDRNOTAVAIL => FilePathInvalid(AddressUnavailable),
-					EFAULT => panic!("`addr` points outside the user's accessible address space"),
-					ELOOP => FilePathInvalid(TooManySymbolicLinksInFilePath),
-					ENOENT => FilePathInvalid(DoesNotExist),
-					ENOTDIR => FilePathInvalid(FilePathPrefixComponentIsNotADirectory),
-					EROFS => FilePathInvalid(FilePathIsReadOnly),
-
-					EAFNOSUPPORT => panic!("Invalid `sa_family_t` value"),
-
-					_ => unreachable!(),
-				}
-			)
-		}
-		else
-		{
-			unreachable!()
-		}
-	}
-
-	#[inline(always)]
-	fn connect(&self, socket_data: &SD, length: usize) -> Result<(), SocketConnectError>
-	{
-		use self::SocketConnectError::*;
-
-		let result = unsafe { connect(self.0, &socket_data as *const _ as *const sockaddr_storage, length as socklen_t) };
-		if likely!(result == 0)
-		{
-			Ok(())
-		}
-		else if likely!(result == -1)
-		{
-			Err
-			(
-				match errno().0
-				{
-					EACCES | EPERM => PermissionDenied,
-					EADDRINUSE => AddressInUse,
-					EAGAIN => NoMoreFreeLocalPorts,
-					ECONNREFUSED => ConnectionRefused,
-					EINPROGRESS => InProgress,
-					EINTR => Interrupted,
-					ETIMEDOUT => TimedOut,
-					ENETUNREACH => NetworkUnreachable,
-					EISCONN => panic!("The socket is already connected."),
-					EALREADY => panic!("The socket is nonblocking and a previous connection attempt has not yet been completed."),
-					EBADF => panic!("`sockfd` is not a valid descriptor"),
-					EINVAL => panic!("already bound, or the `addrlen` is wrong, or the socket was not in the `AF_UNIX` family"),
-					ENOTSOCK => panic!("`sockfd` is not a socket file descriptor"),
-					EFAULT => panic!("`addr` points outside the user's accessible address space"),
-					EAFNOSUPPORT => panic!("Invalid `sa_family_t` value"),
-
-					_ => unreachable!(),
-				}
-			)
-		}
-		else
-		{
-			unreachable!()
-		}
-	}
-
-	#[inline(always)]
-	fn get_socket_option<T>(&self, level: c_int, optname: c_int) -> T
-	{
-		#[allow(deprecated)]
-		let mut value: T = unsafe { uninitialized() };
-		let mut value_length = size_of::<T>() as u32;
-		let result = unsafe { getsockopt(self.0, level, optname, &mut value as *mut _ as *mut _, &mut value_length) };
-
-		if likely!(result == 0)
-		{
-			return value
-		}
-		else if likely!(result == -1)
-		{
-			match errno().0
-			{
-				EBADF => panic!("The argument `sockfd` is not a valid descriptor"),
-				EFAULT => panic!("The address pointed to by `optval` is not in a valid part of the process address space"),
-				EINVAL => panic!("`optlen` is invalid, or there is an invalid value in `optval`"),
-				ENOPROTOOPT => panic!("The option is unknown at the level indicated"),
-				ENOTSOCK => panic!("The argument `sockfd` is a file, not a socket"),
-
-				_ => unreachable!(),
-			}
-		}
-		else
-		{
-			unreachable!();
-		}
-	}
-
-	#[inline(always)]
-	fn set_socket_option<T>(&self, level: c_int, optname: c_int, value: &T)
-	{
-		let result = unsafe { setsockopt(self.0, level, optname, value as *const _ as *const _, size_of::<T>() as socklen_t) };
-
-		if likely!(result == 0)
-		{
-			return
-		}
-		else if likely!(result == -1)
-		{
-			match errno().0
-			{
-				EBADF => panic!("The argument `sockfd` is not a valid descriptor"),
-				EFAULT => panic!("The address pointed to by `optval` is not in a valid part of the process address space"),
-				EINVAL => panic!("`optlen` is invalid, or there is an invalid value in `optval`"),
-				ENOPROTOOPT => panic!("The option is unknown at the level indicated"),
-				ENOTSOCK => panic!("The argument `sockfd` is a file, not a socket"),
-
-				_ => unreachable!(),
-			}
-		}
-		else
-		{
-			unreachable!();
-		}
-	}
-
-	#[inline(always)]
-	fn set_socket_option_true(&self, level: c_int, optname: c_int)
-	{
-		static is_true: c_int = 1;
-		self.set_socket_option(level, optname, &is_true);
-	}
-
-	#[inline(always)]
-	fn set_send_buffer_size_unix_domain_socket(&self, send_buffer_size_in_bytes: usize)
-	{
-		debug_assert!(send_buffer_size_in_bytes >= 2048, "receive_buffer_size_in_bytes must be at least 2048 bytes; maximum is in `/proc/sys/net/core/wmem_max`");
-
-		let send_buffer_adjusted: c_int = ((send_buffer_size_in_bytes + 32) / 2) as c_int;
-		self.set_socket_option(SOL_SOCKET, SO_SNDBUF, &send_buffer_adjusted);
-	}
-
-	#[inline(always)]
-	fn set_send_buffer_size(&self, send_buffer_size_in_bytes: usize)
-	{
-		debug_assert!(send_buffer_size_in_bytes >= 2048, "receive_buffer_size_in_bytes must be at least 2048 bytes; maximum is in `/proc/sys/net/core/wmem_max`");
-
-		let send_buffer_halved: c_int = (send_buffer_size_in_bytes / 2) as c_int;
-		self.set_socket_option(SOL_SOCKET, SO_SNDBUF, &send_buffer_halved);
-	}
-
-	#[inline(always)]
-	fn set_receive_buffer_size(&self, receive_buffer_size_in_bytes: usize)
-	{
-		debug_assert!(receive_buffer_size_in_bytes >= 256, "receive_buffer_size_in_bytes must be at least 256 bytess; maximum is in `/proc/sys/net/core/rmem_max`");
-
-		let receive_buffer_halved: c_int = (receive_buffer_size_in_bytes / 2) as c_int;
-		self.set_socket_option(SOL_SOCKET, SO_RCVBUF, &receive_buffer_halved);
-	}
-
-	#[inline(always)]
-	fn set_broadcast(&self)
-	{
-		self.set_socket_option_true(SOL_SOCKET, SO_BROADCAST)
-	}
-
-	#[inline(always)]
-	fn set_out_of_band_inline(&self)
-	{
-		self.set_socket_option_true(SOL_SOCKET, SO_OOBINLINE)
-	}
-
-	#[inline(always)]
-	fn disable_nagle_algorithm(&self)
-	{
-		self.set_socket_option_true(SOL_TCP, TCP_NODELAY)
-	}
-
-	#[inline(always)]
-	fn set_tcp_max_SYN_transmits(&self, maximum_SYN_transmits: u16)
-	{
-		let maximum_SYN_transmits: i32 = max(1, maximum_SYN_transmits) as i32;
-		self.set_socket_option(SOL_TCP, TCP_SYNCNT, &maximum_SYN_transmits);
-	}
-
-	#[inline(always)]
-	fn set_tcp_linger(&self, linger_seconds: u16)
-	{
-		#[repr(C)]
-		struct linger
-		{
-			l_onoff: c_int,
-			l_linger: c_int,
-		}
-
-		let linger = linger
-		{
-			l_onoff: 1,
-			l_linger: linger_seconds as i32,
-		};
-		self.set_socket_option(SOL_SOCKET, SO_LINGER, &linger);
-	}
-
-	#[inline(always)]
-	fn set_internet_protocol_socket_options(&self, send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize)
-	{
-		self.set_send_buffer_size(send_buffer_size_in_bytes);
-		self.set_receive_buffer_size(receive_buffer_size_in_bytes);
-	}
-
-	#[inline(always)]
-	fn set_tcp_socket_options(&self, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16)
-	{
-		self.set_socket_option_true(SOL_SOCKET, SO_KEEPALIVE);
-
-		self.set_out_of_band_inline();
-
-		self.disable_nagle_algorithm();
-
-		let idles_before_keep_alive_seconds: i32 = idles_before_keep_alive_seconds as i32;
-		self.set_socket_option(SOL_TCP, TCP_KEEPIDLE, &idles_before_keep_alive_seconds);
-
-		let keep_alive_interval_seconds: i32 = keep_alive_interval_seconds as i32;
-		self.set_socket_option(SOL_TCP, TCP_KEEPINTVL, &keep_alive_interval_seconds);
-
-		let maximum_keep_alive_probes: i32 = maximum_keep_alive_probes as i32;
-		self.set_socket_option(SOL_TCP, TCP_KEEPCNT, &maximum_keep_alive_probes);
-
-		self.set_tcp_linger(linger_seconds);
-
-		let linger_in_FIN_WAIT2_seconds: i32 = linger_in_FIN_WAIT2_seconds as i32;
-		self.set_socket_option(SOL_TCP, TCP_LINGER2, &linger_in_FIN_WAIT2_seconds);
-
-		self.set_tcp_max_SYN_transmits(maximum_SYN_transmits);
-	}
-
-	#[inline(always)]
-	fn set_udp_socket_options(&self)
-	{
-		self.set_broadcast();
-	}
-
-	#[inline(always)]
-	fn set_internet_protocol_server_listener_socket_options(&self)
-	{
-		self.set_socket_option_true(SOL_SOCKET, SO_REUSEPORT);
-	}
-
-	#[inline(always)]
-	fn set_tcp_server_listener_socket_options(&self)
-	{
-		self.set_socket_option_true(SOL_SOCKET, SO_REUSEADDR);
-		self.set_socket_option_true(SOL_TCP, TCP_DEFER_ACCEPT);
-		self.set_socket_option_true(SOL_TCP, TCP_FASTOPEN);
-	}
-
-	#[inline(always)]
-	fn new_transmission_control_protocol_over_internet_protocol_version_4(send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16, non_blocking: bool) -> Result<Self, CreationError>
-	{
-		Self::new(AF_INET, SOCK_STREAM, IPPROTO_TCP, non_blocking).map(|this|
-		{
-			this.set_internet_protocol_socket_options(send_buffer_size_in_bytes, receive_buffer_size_in_bytes);
-			this.set_tcp_socket_options(idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, linger_seconds, linger_in_FIN_WAIT2_seconds, maximum_SYN_transmits);
-			this
-		})
-	}
-
-	#[inline(always)]
-	fn new_transmission_control_protocol_over_internet_protocol_version_6(send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, idles_before_keep_alive_seconds: u16, keep_alive_interval_seconds: u16, maximum_keep_alive_probes: u16, linger_seconds: u16, linger_in_FIN_WAIT2_seconds: u16, maximum_SYN_transmits: u16, non_blocking: bool) -> Result<Self, CreationError>
-	{
-		Self::new(AF_INET6, SOCK_STREAM, IPPROTO_TCP, non_blocking).map(|this|
-		{
-			this.set_internet_protocol_socket_options(send_buffer_size_in_bytes, receive_buffer_size_in_bytes);
-			this.set_tcp_socket_options(idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, linger_seconds, linger_in_FIN_WAIT2_seconds, maximum_SYN_transmits);
-			this
-		})
-	}
-
-	#[inline(always)]
-	fn new_user_datagram_protocol_over_internet_protocol_version_4(send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<Self, CreationError>
-	{
-		Self::new(AF_INET, SOCK_DGRAM, IPPROTO_UDP, non_blocking).map(|this|
-		{
-			this.set_internet_protocol_socket_options(send_buffer_size_in_bytes, receive_buffer_size_in_bytes);
-			this.set_udp_socket_options();
-			this
-		})
-	}
-
-	#[inline(always)]
-	fn new_user_datagram_protocol_over_internet_protocol_version_6(send_buffer_size_in_bytes: usize, receive_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<Self, CreationError>
-	{
-		Self::new(AF_INET6, SOCK_DGRAM, IPPROTO_UDP, non_blocking).map(|this|
-		{
-			this.set_internet_protocol_socket_options(send_buffer_size_in_bytes, receive_buffer_size_in_bytes);
-			this.set_udp_socket_options();
-			this
-		})
-	}
-
-	#[inline(always)]
-	fn new_streaming_unix_domain_socket(send_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<Self, CreationError>
-	{
-		Self::new(AF_UNIX, SOCK_STREAM, 0, non_blocking).map(|this|
-		{
-			this.set_send_buffer_size_unix_domain_socket(send_buffer_size_in_bytes);
-			this
-		})
-	}
-
-	#[inline(always)]
-	fn new_datagram_unix_domain_socket(send_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<Self, CreationError>
-	{
-		Self::new(AF_UNIX, SOCK_DGRAM, 0, non_blocking).map(|this|
-		{
-			this.set_send_buffer_size_unix_domain_socket(send_buffer_size_in_bytes);
-			this
-		})
-	}
-
-	#[inline(always)]
-	fn type_and_flags(type_: c_int, non_blocking: bool) -> c_int
-	{
-		let flags = type_ | SOCK_CLOEXEC;
-		if non_blocking
-		{
-			flags | SOCK_NONBLOCK
-		}
-		else
-		{
-			flags
-		}
-	}
-
-	#[inline(always)]
-	fn socketpair(type_: c_int, lefthand_send_buffer_size_in_bytes: usize, righthand_send_buffer_size_in_bytes: usize, non_blocking: bool) -> Result<(Self, Self), CreationError>
-	{
-		const domain: c_int = AF_UNIX;
-		const ethernet_protocol: c_int = 0;
-
-		#[allow(deprecated)]
-		let mut sv = unsafe { uninitialized() };
-		let result = unsafe { socketpair(domain, Self::type_and_flags(type_, non_blocking), ethernet_protocol, &mut sv) };
-
-		if likely!(result == 0)
-		{
-			let lefthand = SocketFileDescriptor(unsafe { *sv.get_unchecked(0) }, PhantomData);
-			lefthand.set_send_buffer_size_unix_domain_socket(lefthand_send_buffer_size_in_bytes);
-
-			let righthand = SocketFileDescriptor(unsafe { *sv.get_unchecked(1) }, PhantomData);
-			righthand.set_send_buffer_size_unix_domain_socket(righthand_send_buffer_size_in_bytes);
-
-			Ok((lefthand, righthand))
-		}
-		else if likely!(result == -1)
-		{
-			use self::CreationError::*;
-
-			Err
-			(
-				match errno().0
-				{
-					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
-					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
-					EAFNOSUPPORT => panic!("The specified address family is not supported on this machine"),
-					EFAULT => panic!("The address `sv` does not specify a valid part of the process address space"),
-					EOPNOTSUPP => panic!("The specified `protocol` does not support creation of socket pairs"),
-					EPROTONOSUPPORT => panic!("TThe specified `protocol` is not supported on this machine"),
-
-					_ => unreachable!(),
-				}
-			)
-		}
-		else
-		{
-			unreachable!();
-		}
-	}
-
-	#[inline(always)]
-	fn new(domain: c_int, type_: c_int, ethernet_protocol: c_int, non_blocking: bool) -> Result<Self, CreationError>
-	{
-		let result = unsafe { socket(domain, Self::type_and_flags(type_, non_blocking), ethernet_protocol) };
-		if likely!(result != -1)
-		{
-			Ok(SocketFileDescriptor(result, PhantomData))
-		}
-		else
-		{
-			use self::CreationError::*;
-
-			Err
-			(
-				match errno().0
-				{
-					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
-					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
-					ENOBUFS | ENOMEM => KernelWouldBeOutOfMemory,
-					EINVAL => panic!("Invalid arguments"),
-					EACCES => panic!("Permission denined"),
-					EAFNOSUPPORT => panic!("The implementation does not support the specified address family"),
-					EPROTONOSUPPORT => panic!("The protocol type or the specified protocol is not supported within this domain"),
-					_ => unreachable!(),
-				}
-			)
-		}
 	}
 }

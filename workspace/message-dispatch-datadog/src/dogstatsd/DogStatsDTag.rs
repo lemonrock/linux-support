@@ -19,9 +19,43 @@
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct DogStatsDTag(ArrayString<[u8; Self::Length]>);
 
+static mut environment: Option<DogStatsDTag> = None;
+
 impl DogStatsDTag
 {
 	const Length: usize = 200;
+	
+	/// Environment name based on Linux kernel domain name; uses first (least specific) label.
+	#[inline(always)]
+	pub fn initialize_environment(linux_kernel_domain_name: &LinuxKernelDomainName)
+	{
+		unsafe
+		{
+			if environment.is_none()
+			{
+				environment = Some
+				(
+					{
+						let bytes = &linux_kernel_domain_name[..];
+						let least_specific_label_iterator = bytes.split(|byte| *byte == b'.');
+						let least_specific_label = least_specific_label_iterator.next().unwrap();
+						
+						let array_vec = HostNameLabel::from_bytes_to_array_vec(least_specific_label).expect("Invalid label");
+						Self(array_vec)
+					}
+				);
+			}
+		}
+	}
+	
+	/// Environment name based on domain name.
+	///
+	/// Panics if not initialized.
+	#[inline(always)]
+	pub fn environment() -> &'static Self
+	{
+		(unsafe { environment }).as_ref().unwrap()
+	}
 	
 	/// Thread name; initialized once per thread.
 	#[inline(always)]
@@ -90,7 +124,7 @@ impl DogStatsDTag
 	
 	/// Tag-value `env:<value>`.
 	#[inline(always)]
-	pub fn env(value: &str) -> Result<Self, String>
+	fn env(value: &str) -> Result<Self, String>
 	{
 		Self::from_name_and_value("env", value)
 	}

@@ -6,7 +6,7 @@
 ///
 /// Implements `Message`.
 #[derive(Debug)]
-pub struct EventTemplate<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>>
+pub struct EventTemplate<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>
 {
 	/// Name.
 	pub title: Name,
@@ -21,7 +21,7 @@ pub struct EventTemplate<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAnd
 	pub global_allocator: &'static GTACSA,
 	
 	/// Pointless.
-	pub global_allocator_marker: PhantomData<HeapSize>,
+	pub global_allocator_marker: PhantomData<CoroutineHeapSize>,
 	
 	/// If omitted, defaults to `Normal`.
 	pub priority: EventPriority,
@@ -36,13 +36,13 @@ pub struct EventTemplate<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAnd
 	pub source_type_name: Option<SourceTypeName>,
 }
 
-impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>> EventTemplate<HeapSize, GTACSA>
+impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>> EventTemplate<CoroutineHeapSize, GTACSA>
 {
 	/// Creates an event.
 	///
 	/// The message is escaped and truncated to 4000 characters.
 	#[inline(always)]
-	pub fn with(&self, message: Arguments) -> Event<HeapSize, GTACSA>
+	pub fn with(&self, message: Arguments) -> Event<CoroutineHeapSize, GTACSA>
 	{
 		let timestamp = Some(SystemTime::now());
 		

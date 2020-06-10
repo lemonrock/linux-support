@@ -29,6 +29,12 @@ pub enum GlobalSchedulingConfigurationError
 
 	#[allow(missing_docs)]
 	CouldNotChangeWorkQueueCpus(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotChangeInterruptRequestDefaultAffinity(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotChangeInterruptRequestAffinity(io::Error, InterruptRequest),
 }
 
 impl Display for GlobalSchedulingConfigurationError
@@ -64,6 +70,10 @@ impl error::Error for GlobalSchedulingConfigurationError
 			&CouldNotChangeSoftwareAndHardwareWatchdogCpus(ref cause) => Some(cause),
 
 			&CouldNotChangeWorkQueueCpus(ref cause) => Some(cause),
+
+			&CouldNotChangeInterruptRequestDefaultAffinity(ref cause) => Some(cause),
+
+			&CouldNotChangeInterruptRequestAffinity(ref cause, ..) => Some(cause),
 		}
 	}
 }

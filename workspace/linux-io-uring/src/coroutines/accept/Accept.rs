@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-struct Accept<'yielder, SA: SocketAddress>
+struct Accept<'yielder, 'a, SA: SocketAddress, HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>, MessageHandlerArguments>
 {
 	coroutine_instance_handle: CoroutineInstanceHandle,
 	yielder: Yielder<'yielder, AcceptResumeArguments, AcceptYields, AcceptComplete>,
@@ -10,11 +10,12 @@ struct Accept<'yielder, SA: SocketAddress>
 	io_uring: Rc<IoUring<'static>>,
 	socket_file_descriptor: StreamingServerListenerSocketFileDescriptor<SA::SD>,
 	remote_peer_based_access_control: RemotePeerAddressBasedAccessControl<RemotePeerAddressBasedAccessControlValue>,
-	queues: Queues<(), DequeuedMessageProcessingError>,
 	service_protocol_identifier: ServiceProtocolIdentifier,
+	accept_publisher: Publisher<'a, AcceptedConnectionMessage<SA::SD>, MessageHandlerArguments, DequeuedMessageProcessingError>,
+	dog_stats_d_publisher: RounbRobinPublisher<'a, DogStatsDMessage<HeapSize, GTACSA>, MessageHandlerArguments, DequeuedMessageProcessingError>,
 }
 
-impl<'yielder, SA: SocketAddress> Accept<'yielder, SA>
+impl<'yielder, 'a, SA: SocketAddress, HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>, MessageHandlerArguments> Accept<'yielder, 'a, SA, HeapSize, GTACSA, MessageHandlerArguments>
 {
 	const KillError: () = ();
 	
@@ -23,6 +24,7 @@ impl<'yielder, SA: SocketAddress> Accept<'yielder, SA>
 	{
 		// TODO: We have a full submission queue - now what?
 		// TODO: We want to be woken up again WITHOUT any completions due - this might be needed in other coroutines.
+		xxxx;
 		
 		let empty1 = SubmissionQueueEntryOptions::empty();
 		let origin = FileDescriptorOrigin::Absolute(&self.socket_file_descriptor);
@@ -80,27 +82,21 @@ impl<'yielder, SA: SocketAddress> Accept<'yielder, SA>
 				{
 					xxxx; // we need a different yield to close an unwanted file descriptor!!!
 					// TODO: We need to integrate with Linux firewall iptables to directly allow or deny a connection for an ip address. Oh F--k if we have to use netlink
+					// Can use setsockopt(sock, SOL_SOCKET, SO_ATTACH_BPF, &prog_fd, sizeof(prog_fd)) to attach eBPF.
+					//where prog_fd was received from syscall bpf(BPF_PROG_LOAD, attr, ...)
+					// and attr->prog_type == BPF_PROG_TYPE_SOCKET_FILTER
+					// See <https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=89aa075832b0da4402acebd698d0411dcc82d03e>
 					
 					self.log(AcceptLogEvent { peer_address: accepted_connection.peer_address })
 				}
 				
 				// TODO: CLose file descriptor
+				xxx;
 				
 				Some(value) =>
 				{
-					
-					// NOTE: Slow as it incurs a system call.
 					let to_hyper_thread = accepted_connection.streaming_socket_file_descriptor.hyper_thread();
-					
-					// TODO: THis is very slow - it uses a hashmap when we could cache the compressed type identifier.
-					xxxx;
-					// TODO: Use `value`.
-					self.queues.publish_safe_but_slow(to_hyper_thread, arguments)
-					
-						// TODO: Forget file descriptor!
-					
-					
-					self.publisher.publish_message::<AcceptedStreamingSocketMessage<SD>, _>(logical_core_identifier, self.accepted_streaming_socket_message_compressed_type_identifier, |receiver| AcceptedStreamingSocketMessage::<SD>::initialize(receiver, streaming_socket_file_descriptor, self.streaming_socket_service_identifier));
+					let _actual_hyper_thread = self.publisher.publish(to_hyper_thread, (accepted_connection, self.service_protocol_identifier));
 				}
 			}
 
@@ -131,5 +127,36 @@ impl<'yielder, SA: SocketAddress> Accept<'yielder, SA>
 		// IDEA: Alternative to DataDog insecure DogStatsD agent is to use code to forward over TLS eg <https://github.com/dirk/metrics_distributor/blob/master/src/forwarders/datadog.rs>
 			// See <http://docs.datadoghq.com/api/>
 		xxx;
+		
+		static event_template: EventTemplate<HeapSize, GTACSA> = EventTemplate
+		{
+			title: Name::new(),
+			tags: dog_stats_d_tags!
+			{
+				DogStatsDTag::name_cargo(),
+				DogStatsDTag::cargo_version(),
+				DogStatsDTag::hyper_thread(),
+				DogStatsDTag::thread_name(),
+				DogStatsDTag::env(),
+			},
+			host_name: Option<HostNameLabel>,
+			global_allocator: &'static GTACSA,
+			global_allocator_marker: PhantomData>,
+			priority: EventPriority,
+			alert_type: EventAlertType,
+			aggregation_key:
+			aggregation_key: Option<ArrayString<[u8; 100]>>,
+			source_type_name: Option<SourceTypeName>,
+			
+		}
+		
+		DogStatsDMessage::Event
+		(
+		
+		)
+		
+		
+		self.dog_stats_d_publisher.publish(construct_message_arguments: M::ConstructMessageArguments)
+		// TODO: Publish statsd messages over unix domain socket
 	}
 }

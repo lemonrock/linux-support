@@ -8,7 +8,7 @@
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct ThreadConfiguration<PTMAI: 'static + PerThreadMemoryAllocatorInstantiator>
+pub struct ThreadConfiguration
 {
 	/// Thread name.
 	#[serde(default)] pub name: ThreadName,
@@ -16,7 +16,7 @@ pub struct ThreadConfiguration<PTMAI: 'static + PerThreadMemoryAllocatorInstanti
 	/// Thread stack size.
 	///
 	/// This can not be changed for the main thread.
-	#[serde(default = "ThreadConfiguration::<PTMAI>::stack_size_default")] pub stack_size: NonZeroNumberOfPages,
+	#[serde(default = "ThreadConfiguration::stack_size_default")] pub stack_size: NonZeroNumberOfPages,
 
 	/// Thread HyperThread affinity.
 	#[serde(default)] pub affinity: HyperThreads,
@@ -41,11 +41,11 @@ pub struct ThreadConfiguration<PTMAI: 'static + PerThreadMemoryAllocatorInstanti
 	/// If capabilities are used the `keep capabilities` securebit is also set and locked.
 	#[serde(default)] pub capabilities: Option<Arc<ThreadCapabilitiesConfiguration>>,
 	
-	#[allow(missing_docs)]
-	#[serde(default)] pub per_thread_memory_allocator_instantiator: Arc<PTMAI>,
+	/// Memory choices for thread-local allocator.
+	#[serde(default)] pub thread_local_allocator_configuration: Arc<ThreadLocalAllocatorConfiguration>,
 }
 
-impl<PTMAI: 'static + PerThreadMemoryAllocatorInstantiator> Default for ThreadConfiguration<PTMAI>
+impl Default for ThreadConfiguration
 {
 	#[inline(always)]
 	fn default() -> Self
@@ -61,18 +61,18 @@ impl<PTMAI: 'static + PerThreadMemoryAllocatorInstantiator> Default for ThreadCo
 			numa_memory_policy: None,
 			disable_transparent_huge_pages: false,
 			capabilities: None,
-			per_thread_memory_allocator_instantiator: Arc::new(Default::default())
+			thread_local_allocator_configuration: Default::default()
 		}
 	}
 }
 
-impl<PTMAI: 'static + PerThreadMemoryAllocatorInstantiator> ThreadConfiguration<PTMAI>
+impl ThreadConfiguration
 {
 	/// Spawns and configures a new thread.
 	///
 	/// The new thread inherits copies of the calling thread's capability sets and CPU affinity mask (see `sched_setaffinity()`).
 	#[inline(always)]
-	pub(crate) fn spawn<F, T>(&self, instantiation_arguments: &Arc<PTMAI::InstantiationArguments>, f: F) -> io::Result<JoinHandle<T>>
+	pub(crate) fn spawn<PTMAI: PerThreadMemoryAllocatorInstantiator, F, T>(&self, instantiation_arguments: &Arc<PTMAI::InstantiationArguments>, f: F) -> io::Result<JoinHandle<T>>
 	where
 		F: FnOnce() -> T,
 		F: std::marker::Send + 'static,
@@ -81,7 +81,7 @@ impl<PTMAI: 'static + PerThreadMemoryAllocatorInstantiator> ThreadConfiguration<
 		let stack_size = self.stack_size.get() * PageSize::current().size_in_bytes().get();
 		let numa_memory_policy = self.numa_memory_policy.clone();
 		let disable_transparent_huge_pages = self.disable_transparent_huge_pages;
-		let per_thread_memory_allocator_instantiator = self.per_thread_memory_allocator_instantiator.clone();
+		let thread_local_allocator_configuration = self.thread_local_allocator_configuration.clone();
 		let instantiation_arguments = instantiation_arguments.clone();
 		Builder::new().name(self.name.to_string()).stack_size(stack_size as usize).spawn(move ||
 		{
@@ -92,13 +92,13 @@ impl<PTMAI: 'static + PerThreadMemoryAllocatorInstantiator> ThreadConfiguration<
 
 			adjust_transparent_huge_pages(!disable_transparent_huge_pages);
 			
-			let thread_local_allocator = per_thread_memory_allocator_instantiator.instantiate(instantiation_arguments).expect("Could not allocate an allocator");
+			let thread_local_allocator_drop_guard = PTMAI::instantiate(thread_local_allocator_configuration, instantiation_arguments).expect("Could not allocate a thread-local allocator");
 			
 			(unsafe { LocalSyslogSocket::configure_per_thread_local_syslog_socket() }).expect("Could not start logging");
 			
 			let t = f();
 			
-			drop(thread_local_allocator);
+			drop(thread_local_allocator_drop_guard);
 			
 			t
 		})
@@ -106,14 +106,14 @@ impl<PTMAI: 'static + PerThreadMemoryAllocatorInstantiator> ThreadConfiguration<
 
 	/// Configure.
 	#[inline(always)]
-	pub(crate) fn configure_from_main_thread(&self, thread_identifier: ThreadIdentifier, pthread_t: pthread_t, proc_path: &ProcPath) -> Result<(), ThreadConfigurationError>
+	pub(crate) fn configure_from_main_thread(&self, thread_identifier: ThreadIdentifier, pthread_t: pthread_t, proc_path: &ProcPath, affinity: &HyperThreads) -> Result<(), ThreadConfigurationError>
 	{
-		self.configure_thread(pthread_t, thread_identifier, proc_path)
+		self.configure_thread(pthread_t, thread_identifier, proc_path, affinity)
 	}
 	
 	/// Configure.
 	#[inline(always)]
-	pub fn configure_main_thread(&self, instantiation_arguments: Arc<PTMAI::InstantiationArguments>, proc_path: &ProcPath) -> Result<PTMAI::ThreadDropGuard, ThreadConfigurationError>
+	pub fn configure_main_thread<PTMAI: PerThreadMemoryAllocatorInstantiator>(&self, instantiation_arguments: Arc<PTMAI::InstantiationArguments>, proc_path: &ProcPath, affinity: &HyperThreads) -> Result<PTMAI::ThreadDropGuard, ThreadConfigurationError>
 	{
 		if let Some(ref numa_memory_policy) = self.numa_memory_policy
 		{
@@ -122,23 +122,23 @@ impl<PTMAI: 'static + PerThreadMemoryAllocatorInstantiator> ThreadConfiguration<
 		
 		adjust_transparent_huge_pages(!self.disable_transparent_huge_pages);
 		
-		let thread_local_allocator = self.per_thread_memory_allocator_instantiator.instantiate(instantiation_arguments).expect("Could not allocate an allocator");
+		let thread_local_allocator_drop_guard = PTMAI::instantiate(self.thread_local_allocator_configuration.clone(), instantiation_arguments).expect("Could not allocate a thread-local allocator");
 		
 		// `(unsafe { LocalSyslogSocket::configure_per_thread_local_syslog_socket() }).expect("Could not start logging");` is not required as it is done in `LocalSyslogSocketConfiguration::configure()`.
 		
-		self.configure_thread(unsafe { pthread_self() }, ThreadIdentifier::default(), proc_path)?;
+		self.configure_thread(unsafe { pthread_self() }, ThreadIdentifier::default(), proc_path, affinity)?;
 		
-		Ok(thread_local_allocator)
+		Ok(thread_local_allocator_drop_guard)
 	}
 	
 	#[inline(always)]
-	fn configure_thread(&self, pthread_t: pthread_t, thread_identifier: ThreadIdentifier, proc_path: &ProcPath) -> Result<(), ThreadConfigurationError>
+	fn configure_thread(&self, pthread_t: pthread_t, thread_identifier: ThreadIdentifier, proc_path: &ProcPath, affinity: &HyperThreads) -> Result<(), ThreadConfigurationError>
 	{
 		use self::ThreadConfigurationError::*;
 		
 		self.name.set_thread_name(ProcessIdentifierChoice::Current, thread_identifier, proc_path).map_err(CouldNotSetThreadName)?;
 		
-		self.affinity.set_thread_affinity(pthread_t).map_err(CouldNotSetThreadAffinity)?;
+		affinity.set_thread_affinity(pthread_t).map_err(CouldNotSetThreadAffinity)?;
 		
 		if let Some(nice) = self.nice
 		{

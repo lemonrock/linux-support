@@ -17,3 +17,14 @@ pub struct LinuxKernelVersionNumber
 	/// eg `27`.
 	#[serde(default)] pub revision: u16,
 }
+
+impl LinuxKernelVersionNumber
+{
+	/// Minimum for io_uring support as coded in this crate.
+	pub const MinimumForIoUringSupport: Self = Self
+	{
+		major: 5,
+		minor: 7,
+		revision: 1,
+	};
+}

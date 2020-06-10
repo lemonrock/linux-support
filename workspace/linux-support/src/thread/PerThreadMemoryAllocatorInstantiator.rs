@@ -14,5 +14,5 @@ pub trait PerThreadMemoryAllocatorInstantiator: Default + std::marker::Sync + st
 	type ThreadDropGuard: Sized;
 	
 	/// Instantiate.
-	fn instantiate(&self, instantiation_arguments: Arc<Self::InstantiationArguments>) -> Result<Self::ThreadDropGuard, MemoryMapError>;
+	fn instantiate(thread_local_allocator_configuration: Arc<ThreadLocalAllocatorConfiguration>, instantiation_arguments: Arc<Self::InstantiationArguments>) -> Result<Self::ThreadDropGuard, MemoryMapError>;
 }

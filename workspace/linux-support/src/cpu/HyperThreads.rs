@@ -205,7 +205,43 @@ impl HyperThreads
 			panic!("Unexpected result {}", result)
 		}
 	}
+	
+	/// Sets affinity.
+	#[inline(always)]
+	pub fn set_affinity(&self, path: impl AsRef<Path>) -> io::Result<()>
+	{
+		assert_effective_user_id_is_root("write affinity to path");
+		
+		let path = path.as_ref();
+		if path.exists()
+		{
+			let mask = IntoBitMask(self);
+			path.write_value(mask)
+		}
+		else
+		{
+			Ok(())
+		}
+	}
 
+	/// Sets affinity
+	#[inline(always)]
+	pub fn set_affinity_list(&self, path: impl AsRef<Path>) -> io::Result<()>
+	{
+		assert_effective_user_id_is_root("write affinity to path");
+		
+		let path = path.as_ref();
+		if path.exists()
+		{
+			let list = IntoList(&self.0);
+			path.write_value(list)
+		}
+		else
+		{
+			Ok(())
+		}
+	}
+	
 	/// Sets work queue hyper thread affinity.
 	#[inline(always)]
 	pub fn set_work_queue_hyper_thread_affinity(&self, sys_path: &SysPath) -> io::Result<()>
@@ -214,13 +250,12 @@ impl HyperThreads
 		sys_path.hyper_thread_work_queue_file_path("cpumask").write_value(mask.as_ref())?;
 		sys_path.hyper_thread_work_queue_file_path("writeback/cpumask").write_value(mask)
 	}
-
+	
 	/// Should not be needed if `nohz_full` was specified on the Linux command line.
 	#[inline(always)]
 	pub fn force_watchdog_to_just_these_hyper_threads(&self, proc_path: &ProcPath) -> io::Result<()>
 	{
-		let value = IntoList(&self.0);
-		proc_path.sys_kernel_file_path("watchdog_cpumask").write_value(value)
+		self.set_affinity_list(proc_path.sys_kernel_file_path("watchdog_cpumask"))
 	}
 
 	/// CPU nodes that exist in the file system.

@@ -63,6 +63,27 @@ impl ProcPath
 		self.sys_file_path("vm").append(file_name)
 	}
 
+	/// Get a file path within the ProcPath, `/proc/sys/net/ipv4/<file_name>`.
+	#[inline(always)]
+	pub fn sys_net_ipv4_file_path(&self, file_name: &str) -> PathBuf
+	{
+		self.sys_net_file_path("ipv4").append(file_name)
+	}
+	
+	/// Get a file path within the ProcPath, `/proc/sys/net/core/<file_name>`.
+	#[inline(always)]
+	pub fn sys_net_core_file_path(&self, file_name: &str) -> PathBuf
+	{
+		self.sys_net_file_path("core").append(file_name)
+	}
+
+	/// Get a file path within the ProcPath, `/proc/sys/net/<file_name>`.
+	#[inline(always)]
+	pub fn sys_net_file_path(&self, file_name: &str) -> PathBuf
+	{
+		self.sys_file_path("net").append(file_name)
+	}
+
 	/// Get a file path within the ProcPath, `/proc/sys/fs/<file_name>`.
 	#[inline(always)]
 	pub fn sys_fs_file_path(&self, file_name: &str) -> PathBuf
@@ -89,6 +110,20 @@ impl ProcPath
 	pub fn sys_file_path(&self, file_name: &str) -> PathBuf
 	{
 		self.file_path("sys").append(file_name)
+	}
+
+	/// Get a file path within the ProcPath, `/proc/irq/<number>/<file_name>`.
+	#[inline(always)]
+	pub fn irq_number_file_path(&self, interrupt_request: InterruptRequest, file_name: &str) -> PathBuf
+	{
+		self.irq_file_path(&interrupt_request.file_name()).append(file_name)
+	}
+	
+	/// Get a file path within the ProcPath, `/proc/irq/<file_name>`.
+	#[inline(always)]
+	pub fn irq_file_path(&self, file_name: &str) -> PathBuf
+	{
+		self.file_path("irq").append(file_name)
 	}
 
 	/// Get a file path within the ProcPath, `/proc`.

@@ -4,9 +4,9 @@
 
 /// Text.
 #[derive(Debug)]
-pub struct Text<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>>(GloballyAllocated<Vec<u8>, HeapSize, GTACSA>);
+pub struct Text<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>(GloballyAllocated<Vec<u8>, CoroutineHeapSize, GTACSA>);
 
-impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>> Deref for Text<HeapSize, GTACSA>
+impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>> Deref for Text<CoroutineHeapSize, GTACSA>
 {
 	type Target = Vec<u8>;
 	
@@ -17,7 +17,7 @@ impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableA
 	}
 }
 
-impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>> Text<HeapSize, GTACSA>
+impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>> Text<CoroutineHeapSize, GTACSA>
 {
 	/// The message is escaped and truncated to 500 characters.
 	#[inline(always)]

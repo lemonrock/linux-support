@@ -10,16 +10,27 @@ struct AcceptedConnectionMessage<SD: SocketData>
 
 impl<SD: SocketData> Message for AcceptedConnectionMessage<SD>
 {
-	type ConstructMessageArguments;
+	type ConstructMessageArguments = (AcceptedConnection<SD>, ServiceProtocolIdentifier);
 	
 	#[inline(always)]
-	fn construct_message(uninitialized_memory: NonNull<Self>, construct_message_arguments: ConstructMessageArguments)
+	unsafe fn construct_message(uninitialized_memory: NonNull<Self>, construct_message_arguments: ConstructMessageArguments)
 	{
+		let (accepted_connection, service_protocol_identifier) = construct_message_arguments;
+		
+		let pointer = uninitialized_memory.as_ptr();
+		pointer.write
+		(
+			Self
+			{
+				accepted_connection,
+				service_protocol_identifier,
+			}
+		);
 	}
 	
-	type MessageHandlerArguments;
+	type MessageHandlerArguments = ();
 	
-	type DequeuedMessageProcessingError: error::Error;
+	type DequeuedMessageProcessingError = DequeuedMessageProcessingError;
 	
 	#[inline(always)]
 	fn handle_message(&mut self, message_handler_arguments: &Self::MessageHandlerArguments) -> Result<(), Self::DequeuedMessageProcessingError>

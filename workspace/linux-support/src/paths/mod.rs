@@ -11,10 +11,12 @@ use crate::pci_express::PciDeviceAddress;
 use crate::process::ProcessIdentifierChoice;
 use crate::thread::ThreadIdentifier;
 use std::fs::Permissions;
+use crate::interrupt_request::InterruptRequest;
 
 
 include!("DevPath.rs");
 include!("EtcPath.rs");
+include!("FileSystemLayout.rs");
 include!("PathExt.rs");
 include!("ProcPath.rs");
 include!("SysPath.rs");

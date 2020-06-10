@@ -56,6 +56,9 @@ pub enum GlobalConfigurationError
 
 	#[allow(missing_docs)]
 	GlobalSwapConfiguration(GlobalSwapConfigurationError),
+
+	#[allow(missing_docs)]
+	GlobalNetworkConfiguration(GlobalNetworkConfigurationError),
 }
 
 impl Display for GlobalConfigurationError
@@ -109,6 +112,8 @@ impl error::Error for GlobalConfigurationError
 			&GlobalLinuxKernelCommandLineConfiguration(ref cause) => Some(cause),
 
 			&GlobalSwapConfiguration(ref cause) => Some(cause),
+
+			&GlobalNetworkConfiguration(ref cause) => Some(cause),
 		}
 	}
 }
@@ -263,5 +268,14 @@ impl From<GlobalSwapConfigurationError> for GlobalConfigurationError
 	fn from(cause: GlobalSwapConfigurationError) -> Self
 	{
 		GlobalConfigurationError::GlobalSwapConfiguration(cause)
+	}
+}
+
+impl From<GlobalNetworkConfigurationError> for GlobalConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: GlobalNetworkConfigurationError) -> Self
+	{
+		GlobalConfigurationError::GlobalNetworkConfiguration(cause)
 	}
 }

@@ -9,7 +9,7 @@
 pub struct ProcessConfiguration
 {
 	/// Inclusive minimum.
-	pub minimum_linux_kernel_version: LinuxKernelVersionNumber,
+	#[serde(default ="ProcessConfiguration::minimum_linux_kernel_version_default" )] pub minimum_linux_kernel_version: LinuxKernelVersionNumber,
 
 	/// Change global (root) settings to maximize use of machine resources and security.
 	#[serde(default)] pub global: Option<GlobalConfiguration>,
@@ -80,33 +80,49 @@ pub struct ProcessConfiguration
 	#[serde(default = "ProcessConfiguration::core_dump_filter_default")] pub core_dump_filter: CoreDumpFilterFlags,
 }
 
+impl Default for ProcessConfiguration
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self
+		{
+			minimum_linux_kernel_version: Self::minimum_linux_kernel_version_default(),
+			global: None,
+			mandatory_cpu_feature_checks_to_suppress: Default::default(),
+			optional_cpu_feature_checks_to_suppress: Self::optional_cpu_feature_checks_to_suppress_default(),
+			name: Default::default(),
+			locale: Default::default(),
+			umask: Default::default(),
+			initial_capabilities: None,
+			resource_limits: Self::resource_limits_default(),
+			lock_all_memory: None,
+			affinity: None,
+			process_nice_configuration: None,
+			process_io_priority_configuration: None,
+			enable_io_flusher: None,
+			logging_configuration: Default::default(),
+			enable_full_rust_stack_back_traces: Self::enable_full_rust_stack_back_traces_default(),
+			binary_paths: Self::binary_paths_default(),
+			working_directory: Self::working_directory_default(),
+			core_dump_filter: Self::core_dump_filter_default()
+		}
+	}
+}
+
 impl ProcessConfiguration
 {
 	/// Configure.
 	///
-	/// Assumes a file hierarchy standard (FHS) file system layout of `/sys`, `/proc`, `/dev` and `/etc`
-	///
 	/// Use `ProcessExecutor::execute_securely()` after this.
 	/// Until this is used, the returned `SimpleTerminate` does not affect any thread behaviour.
 	#[inline(always)]
-	pub fn configure_assuming_file_hierarchy_standard_file_system_layout(&self, run_as_daemon: bool) -> Result<Arc<impl Terminate>, ProcessConfigurationError>
-	{
-		let sys_path = SysPath::default();
-		let proc_path = ProcPath::default();
-		let dev_path = DevPath::default();
-		let etc_path = EtcPath::default();
-		self.configure(run_as_daemon, &sys_path, &proc_path, &dev_path, &etc_path)
-	}
-
-	/// Configure.
-	///
-	/// Use `ProcessExecutor::execute_securely()` after this.
-	/// Until this is used, the returned `SimpleTerminate` does not affect any thread behaviour.
-	#[inline(always)]
-	pub fn configure(&self, run_as_daemon: bool, sys_path: &SysPath, proc_path: &ProcPath, dev_path: &DevPath, etc_path: &EtcPath) -> Result<Arc<impl Terminate>, ProcessConfigurationError>
+	pub fn configure(&self, run_as_daemon: bool, file_system_layout: &FileSystemLayout) -> Result<(Arc<impl Terminate>, DefaultPageSizeAndHugePageSizes), ProcessConfigurationError>
 	{
 		use self::ProcessConfigurationError::*;
-
+		
+		let (sys_path, proc_path, dev_path, etc_path) = file_system_layout.paths();
+		
 		// This *MUST* be called before daemonizing.
 		Self::block_all_signals_on_current_thread();
 
@@ -195,8 +211,10 @@ impl ProcessConfiguration
 		// This *MUST* be called before executing programs that might be setuid/setgid or have file capabilities.
 		// This prevents `execve()` granting additional capabilities.
 		no_new_privileges().map_err(CouldNotPreventTheGrantingOfNoNewPrivileges)?;
-
-		Ok(terminate)
+		
+		let defaults = DefaultPageSizeAndHugePageSizes::new(sys_path, proc_path);
+		
+		Ok((terminate, defaults))
 	}
 	
 	fn configure_logging(&self, dev_path: &DevPath, proc_path: &ProcPath, run_as_daemon: bool) -> Result<(), ProcessConfigurationError>
@@ -432,7 +450,13 @@ impl ProcessConfiguration
 	{
 		C::run_all_checks(cpu_feature_checks_to_suppress, check_arguments).map_err(error)
 	}
-
+	
+	#[inline(always)]
+	const fn minimum_linux_kernel_version_default() -> LinuxKernelVersionNumber
+	{
+		LinuxKernelVersionNumber::MinimumForIoUringSupport
+	}
+	
 	#[inline(always)]
 	fn optional_cpu_feature_checks_to_suppress_default() -> HashSet<OptionalCpuFeatureCheck>
 	{

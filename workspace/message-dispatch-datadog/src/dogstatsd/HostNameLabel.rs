@@ -14,10 +14,30 @@ impl HostNameLabel
 	#[inline(always)]
 	pub fn from_linux_kernel_host_name(label: &LinuxKernelHostName) -> Result<Self, String>
 	{
-		// ASCII letters a through z (in a case-insensitive manner), the digits 0 through 9, and the hyphen-minus character ('-').
+		let host_name_label = Self::from_bytes_to_array_vec(&label[..])?;
+		Ok(Self(host_name_label))
+	}
+	
+	/// New instance.
+	#[inline(always)]
+	pub fn from_bytes_to_array_vec<A: Array<Item=u8>>(bytes: &[u8]) -> Result<ArrayVec<A>, String>
+	{
+		let length = Self::validate(bytes)?;
 		
-		let bytes = &label[..];
-		
+		let mut label = ArrayVec::new();
+		let pointer: *mut u8 = label.as_mut_ptr();
+		unsafe
+		{
+			pointer.copy_from_nonoverlapping(bytes.as_ptr(), length);
+			label.set_len(length)
+		}
+		Ok(label)
+	}
+	
+	/// New instance.
+	#[inline(always)]
+	fn validate(label: &[u8]) -> Result<usize, String>
+	{
 		let length = bytes.len();
 		
 		if unlikely!(length == 0)
@@ -27,7 +47,7 @@ impl HostNameLabel
 		
 		if unlikely!(length > Self::Length)
 		{
-			return Err(format!("Can not be more than `{}` bytes long (`{:?}` is invalid)", Self::Length, label))
+			return Err(format!("Can not be more than `{}` bytes long (`{:?}` is invalid)", Self::Length, bytes))
 		}
 		
 		let mut digits_count = 0;
@@ -37,7 +57,7 @@ impl HostNameLabel
 			b'0' ..= b'9' => digits_count += 1,
 			b'A' ..= b'Z' => (),
 			b'a' ..= b'z' => (),
-			first_byte @ _ => return Err(format!("First byte can not be '0x{:02X}' in `{:?}`", first_byte, label))
+			first_byte @ _ => return Err(format!("First byte can not be '0x{:02X}' in `{:?}`", first_byte, bytes))
 		}
 		
 		let final_byte_index = length - 1;
@@ -51,7 +71,7 @@ impl HostNameLabel
 				b'A' ..= b'Z' => (),
 				b'a' ..= b'z' => (),
 				b'-' => (),
-				subsequent_byte @ _ => return Err(format!("Subsequent byte can not be '0x{:02X}' in `{:?}`", subsequent_byte, label))
+				subsequent_byte @ _ => return Err(format!("Subsequent byte can not be '0x{:02X}' in `{:?}`", subsequent_byte, bytes))
 			}
 		}
 		
@@ -60,27 +80,15 @@ impl HostNameLabel
 			b'0' ..= b'9' => digits_count += 1,
 			b'A' ..= b'Z' => (),
 			b'a' ..= b'z' => (),
-			final_byte @ _ => return Err(format!("Final byte can not be '0x{:02X}' in `{:?}`", final_byte, label))
+			final_byte @ _ => return Err(format!("Final byte can not be '0x{:02X}' in `{:?}`", final_byte, bytes))
 		}
 		
 		if unlikely!(digits_count == length)
 		{
-			return Err(format!("Label `{:?}` can not be all digits", label))
+			return Err(format!("Label `{:?}` can not be all digits", bytes))
 		}
 		
-		let host_name_label =
-		{
-			let mut host_name_label = ArrayVec::new();
-			let pointer: *mut u8 = host_name_label.as_mut_ptr();
-			unsafe
-			{
-				pointer.copy_from_nonoverlapping(bytes.as_ptr(), length);
-				host_name_label.set_len(length)
-			}
-			host_name_label
-		};
-		
-		Ok(Self(host_name_label))
+		Ok(length)
 	}
 	
 	#[inline(always)]

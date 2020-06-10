@@ -33,6 +33,7 @@
       <sourceFolder url="file://$MODULE_DIR$/../terminate/benches" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/../socket-access-control/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../swiss-army-knife/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../message-dispatch-datadog/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/../context-allocator/target" />
       <excludeFolder url="file://$MODULE_DIR$/../context-coroutine/target" />
       <excludeFolder url="file://$MODULE_DIR$/.cargo" />

@@ -199,8 +199,7 @@ impl LocalSyslogSocket
 	#[inline(always)]
 	fn open(socket_file_path: &Path) -> Result<DatagramClientSocketUnixDomainFileDescriptor, NewSocketClientError>
 	{
-		const send_buffer_size_in_bytes: usize = 4096;
-		SocketFileDescriptor::new_datagram_unix_domain_socket_client(&Self::dev_log(socket_file_path), send_buffer_size_in_bytes, false)
+		SocketFileDescriptor::new_datagram_unix_domain_socket_client(&Self::dev_log(socket_file_path), SendBufferSizeInBytes::UsualGlobalDefault, false)
 	}
 	
 	#[inline(always)]

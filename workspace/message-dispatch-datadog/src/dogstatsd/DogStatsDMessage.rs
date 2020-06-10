@@ -33,6 +33,5 @@ impl<'a, HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitcha
 	#[inline(always)]
 	fn handle_message(&mut self, message_handler_arguments: &Self::MessageHandlerArguments) -> Result<(), Self::DequeuedMessageProcessingError>
 	{
-		unimplemented!("TODO: Finish me");
 	}
 }

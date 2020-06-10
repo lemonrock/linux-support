@@ -3,17 +3,17 @@
 
 
 #[derive(Debug)]
-pub struct ThreadLoop<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>, AcceptStackSize: MemorySize>
+pub struct ThreadLoop<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: MemorySize>
 {
 	io_uring: Rc<IoUring<'static>>,
 	registered_buffers: RegisteredBuffers,
 	signal_file_descriptor: SignalFileDescriptor,
 	our_hyper_thread: HyperThread,
 	queues: Queues<(), DequeuedMessageProcessingError>,
-	coroutine_managers: CoroutineManagers<HeapSize, GTACSA, AcceptStackSize>,
+	coroutine_managers: CoroutineManagers<CoroutineHeapSize, GTACSA, AcceptStackSize>,
 }
 
-impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>, AcceptStackSize: MemorySize> ThreadLoopBodyFunction for ThreadLoop<HeapSize, GTACSA, AcceptStackSize>
+impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: MemorySize> ThreadLoopBodyFunction for ThreadLoop<CoroutineHeapSize, GTACSA, AcceptStackSize>
 {
 	#[inline(always)]
 	fn invoke(&mut self, terminate: &Arc<impl Terminate>)
@@ -45,13 +45,13 @@ impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableA
 					static ref Template: Rfc3164MessageTemplate = StaticLoggingConfiguration::rfc_3164_message_template(KnownFacility::security_or_authorization_messages_0, Severity::Notice);
 				}
 				
-				LocalSyslogSocket::syslog(Template.deref(), &message);
+				LocalSyslogSocket::syslog_falling_back_to_standard_error(Template.deref(), &message);
 			}
 		}
 	}
 }
 
-impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>, AcceptStackSize: MemorySize> ThreadLoop<HeapSize, GTACSA, AcceptStackSize>
+impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: MemorySize> ThreadLoop<CoroutineHeapSize, GTACSA, AcceptStackSize>
 {
 	#[inline(always)]
 	fn process_all_outstanding_completions(&mut self) -> bool
@@ -111,7 +111,7 @@ impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableA
 							static ref Template: Rfc3164MessageTemplate = StaticLoggingConfiguration::rfc_3164_message_template(KnownFacility::security_or_authorization_messages_0, Severity::Warning);
 						}
 						
-						LocalSyslogSocket::syslog(Template.deref(), &message);
+						LocalSyslogSocket::syslog_falling_back_to_standard_error(Template.deref(), &message);
 						false
 					},
 					

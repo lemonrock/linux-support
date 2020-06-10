@@ -18,7 +18,6 @@ include!("cpu_supports_1gb_pages.rs");
 include!("HyperThread.rs");
 include!("HyperThreadingStatus.rs");
 include!("HyperThreads.rs");
-include!("HyperThreadPerBitSetAwareData.rs");
 include!("maximum_logical_processor_identifiers_per_package.rs");
 include!("MandatoryCpuFeatureCheck.rs");
 include!("OptionalCpuFeatureCheck.rs");

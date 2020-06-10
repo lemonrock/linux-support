@@ -4,7 +4,7 @@
 
 /// A DogStatsD service check template, intending for use with `lazy_static!` initialization.
 #[derive(Debug)]
-pub struct ServiceCheckTemplate<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>>
+pub struct ServiceCheckTemplate<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>
 {
 	/// Name.
 	pub name: Name,
@@ -19,16 +19,16 @@ pub struct ServiceCheckTemplate<HeapSize: MemorySize, GTACSA: 'static + GlobalTh
 	pub global_allocator: &'static GTACSA,
 	
 	/// Pointless.
-	pub global_allocator_marker: PhantomData<HeapSize>,
+	pub global_allocator_marker: PhantomData<CoroutineHeapSize>,
 }
 
-impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>> ServiceCheckTemplate<HeapSize, GTACSA>
+impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>> ServiceCheckTemplate<CoroutineHeapSize, GTACSA>
 {
 	/// Creates a service check.
 	///
 	/// The message is escaped and truncated to 500 characters.
 	#[inline(always)]
-	pub fn with(&self, status: ServiceCheckStatus, message: Arguments) -> ServiceCheck<HeapSize, GTACSA>
+	pub fn with(&self, status: ServiceCheckStatus, message: Arguments) -> ServiceCheck<CoroutineHeapSize, GTACSA>
 	{
 		let timestamp = Some(SystemTime::now());
 		

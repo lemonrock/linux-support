@@ -49,6 +49,7 @@ impl CompletionResponse
 	///
 	/// Returns `Err(Cancelled)` for `EIO`.
 	/// Returns `Ok(None)` if cancelled.
+	/// Returns `Err(WouldBlock)` if in progress with the `TCP_FASTOPEN_CONNECT` socket option which expects the client to write-first (if connect() is called but write() is not called yet OR if connection is established but no message is received yet).
 	#[inline(always)]
 	pub fn read_vectored(self) -> Result<Option<u32>, StructReadError>
 	{
@@ -91,6 +92,7 @@ impl CompletionResponse
 	///
 	/// Returns `Err(Cancelled)` for `EIO`.
 	/// Returns `Ok(None)` if cancelled.
+	/// Returns `Err(WouldBlock)` if in progress with the `TCP_FASTOPEN_CONNECT` socket option which expects the client to write-first (if connect() is called but write() is not called yet OR if connection is established but no message is received yet).
 	#[inline(always)]
 	pub fn read_fixed(self) -> Result<Option<u32>, StructReadError>
 	{
@@ -135,6 +137,8 @@ impl CompletionResponse
 	///
 	/// Returns `Err(Cancelled)` for `EIO`.
 	/// Returns `Ok(None)` if cancelled.
+	/// Returns `Err(WouldBlock)` if in progress with the `TCP_FASTOPEN_CONNECT` socket option which expects the client to write-first (if connect() is called but write() is not called yet OR if connection is established but no message is received yet).
+	/// Returns `Err(WouldBlock)` if `EAGAIN` or `ENOMEM`.
 	#[inline(always)]
 	pub fn read(self) -> Result<Option<u32>, StructReadError>
 	{
@@ -175,6 +179,8 @@ impl CompletionResponse
 	///
 	/// Returns `Err(Cancelled)` for `EIO`, `EDQUOT` and `ENOSPC`.
 	/// Returns `Ok(None)` if cancelled.
+	/// Returns `Err(WouldBlock)` if in progress with the `TCP_FASTOPEN_CONNECT` socket option which expects the client to write-first.
+	/// Returns `Err(WouldBlock)` if `EAGAIN` or `ENOMEM`.
 	#[inline(always)]
 	pub fn write_vectored(self) -> Result<Option<u32>, StructWriteError>
 	{
@@ -191,7 +197,7 @@ impl CompletionResponse
 			match -self.0
 			{
 				ECANCELED => Ok(None),
-				EAGAIN | ENOMEM => Err(WouldBlock),
+				EAGAIN | ENOMEM | EINPROGRESS => Err(WouldBlock),
 				EINTR => Err(Interrupted),
 				EIO | EDQUOT | ENOSPC => Err(Cancelled),
 				
@@ -220,6 +226,8 @@ impl CompletionResponse
 	///
 	/// Returns `Err(Cancelled)` for `EIO`, `EDQUOT` and `ENOSPC`.
 	/// Returns `Ok(None)` if cancelled.
+	/// Returns `Err(WouldBlock)` if in progress with the `TCP_FASTOPEN_CONNECT` socket option which expects the client to write-first.
+	/// Returns `Err(WouldBlock)` if `EAGAIN` or `ENOMEM`.
 	#[inline(always)]
 	pub fn write_fixed(self) -> Result<Option<u32>, StructWriteError>
 	{
@@ -236,7 +244,7 @@ impl CompletionResponse
 			match -self.0
 			{
 				ECANCELED => Ok(None),
-				EAGAIN | ENOMEM => Err(WouldBlock),
+				EAGAIN | ENOMEM | EINPROGRESS => Err(WouldBlock),
 				EINTR => Err(Interrupted),
 				EIO | EDQUOT | ENOSPC => Err(Cancelled),
 				
@@ -267,6 +275,8 @@ impl CompletionResponse
 	///
 	/// Returns `Err(Cancelled)` for `EIO`, `EDQUOT` and `ENOSPC`.
 	/// Returns `Ok(None)` if cancelled.
+	/// Returns `Err(WouldBlock)` if in progress with the `TCP_FASTOPEN_CONNECT` socket option which expects the client to write-first.
+	/// Returns `Err(WouldBlock)` if `EAGAIN` or `ENOMEM`.
 	#[inline(always)]
 	pub fn write(self) -> Result<Option<u32>, StructReadError>
 	{
@@ -283,7 +293,7 @@ impl CompletionResponse
 			match -self.0
 			{
 				ECANCELED => Ok(None),
-				EAGAIN | ENOMEM => Err(WouldBlock),
+				EAGAIN | ENOMEM | EINPROGRESS => Err(WouldBlock),
 				EINTR => Err(Interrupted),
 				EIO | EDQUOT | ENOSPC => Err(Cancelled),
 				
@@ -464,6 +474,8 @@ impl CompletionResponse
 	/// It can be freed after this call.
 	///
 	/// Returns `Ok(None)` if cancelled.
+	///
+	/// Returns `Err(InProgress)` if the `TCP_FASTOPEN_CONNECT` socket option was specified, see `https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=19f6d3f3`.
 	#[inline(always)]
 	pub fn connect<SD: SocketData>(self, _peer_address: &SD) -> Result<Option<()>, SocketConnectError>
 	{

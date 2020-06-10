@@ -17,6 +17,7 @@ include!("BitSetAwareTryFromU16Error.rs");
 include!("BitSetIncludingEmptyIterator.rs");
 include!("BitSetIterator.rs");
 include!("BitsInAByte.rs");
+include!("InfiniteBitSetIterator.rs");
 include!("IntoBitMask.rs");
 include!("IntoList.rs");
 include!("ListParseError.rs");

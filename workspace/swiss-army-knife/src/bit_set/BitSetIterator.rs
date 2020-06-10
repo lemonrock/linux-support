@@ -3,7 +3,6 @@
 
 
 /// Iterator.
-//
 // TODO: Performance can be improved by using `std::arch::x86_64::_blsi_u64()` to reduce the number of loops.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct BitSetIterator<'a, BSA: BitSetAware>
@@ -55,5 +54,16 @@ impl<'a, BSA: BitSetAware> Iterator for BitSetIterator<'a, BSA>
 			self.relative_bit_index_within_word = 0;
 		}
 		None
+	}
+}
+
+impl<'a, BSA: BitSetAware> BitSetIterator<'a, BSA>
+{
+	// TODO: We could cache the first non-zero `word_index` and `relative_bit_index_within_word`.
+	#[inline(always)]
+	fn reset(&mut self)
+	{
+		self.word_index = 0;
+		self.relative_bit_index_within_word = 0;
 	}
 }

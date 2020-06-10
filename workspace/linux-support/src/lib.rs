@@ -760,7 +760,6 @@ use swiss_army_knife::bit_set::BitSetIterator;
 use swiss_army_knife::bit_set::IntoBitMask;
 use swiss_army_knife::bit_set::IntoList;
 use swiss_army_knife::bit_set::ListParseError;
-use swiss_army_knife::bit_set::PerBitSetAwareData;
 use swiss_army_knife::path::path_bytes_without_trailing_nul;
 use swiss_army_knife::path::PathBufExt;
 use swiss_army_knife::strings::c_string_pointer_to_path_buf;
@@ -865,6 +864,9 @@ pub mod inode;
 
 /// Internet protocol.
 pub mod internet_protocol;
+
+
+pub mod interrupt_request;
 
 
 /// `ioprio` and scheduling.

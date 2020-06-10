@@ -8,15 +8,15 @@
 pub struct TransmissionControlProtocolServerListenerSettings<SA: SocketAddress>
 {
 	pub socket_address: SA,
-	pub send_buffer_size_in_bytes: usize,
-	pub receive_buffer_size_in_bytes: usize,
-	pub idles_before_keep_alive_seconds: u16,
-	pub keep_alive_interval_seconds: u16,
-	pub maximum_keep_alive_probes: u16,
-	pub linger_seconds: u16,
-	pub linger_in_FIN_WAIT2_seconds: u16,
-	pub maximum_SYN_transmits: u16,
-	pub back_log: u32,
+	pub send_buffer_size_in_bytes: SendBufferSizeInBytes,
+	pub receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes,
+	pub idles_before_keep_alive_seconds: IdlesBeforeKeepAliveSeconds,
+	pub keep_alive_interval_seconds: KeepAliveIntervalSeconds,
+	pub maximum_keep_alive_probes: MaximumKeepAliveProbes,
+	pub socket_linger_seconds: SocketLingerSeconds,
+	pub finish_timeout_seconds: FinishTimeoutSeconds,
+	pub maximum_syn_retransmits: MaximumSynRetransmits,
+	pub back_log: BackLog,
 }
 
 impl<SA: SocketAddress> TransmissionControlProtocolServerListenerSettings<SA>
@@ -35,9 +35,9 @@ impl<SA: SocketAddress> TransmissionControlProtocolServerListenerSettings<SA>
 			self.idles_before_keep_alive_seconds,
 			self.keep_alive_interval_seconds,
 			self.maximum_keep_alive_probes,
-			self.linger_seconds,
-			self.linger_in_FIN_WAIT2_seconds,
-			self.maximum_SYN_transmits,
+			self.socket_linger_seconds,
+			self.finish_timeout_seconds,
+			self.maximum_syn_retransmits,
 			self.back_log,
 			false,
 			HyperThread::current_hyper_thread(),

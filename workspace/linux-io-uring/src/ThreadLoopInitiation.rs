@@ -3,22 +3,24 @@
 
 
 /// Initiation.
-pub struct ThreadLoopInitiation<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>>
+#[allow(missing_docs)]
+#[derive(Clone)]
+pub struct ThreadLoopInitiation<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>
 {
-	defaults: DefaultPageSizeAndHugePageSizes,
-	global_allocator: &'static GTACSA,
-	queues: Queues<(), DequeuedMessageProcessingError>,
-	io_uring_settings: IoUringSettings,
-	signal_mask: Signals,
+	pub defaults: DefaultPageSizeAndHugePageSizes,
+	pub global_allocator: &'static GTACSA,
+	pub queues: Queues<(), DequeuedMessageProcessingError>,
+	pub io_uring_settings: IoUringSettings,
+	pub signal_mask: Signals,
 	
-	transmission_control_protocol_over_internet_protocol_version_4_server_listeners: Vec<AcceptConnectionsCoroutineSettings<sockaddr_in>>,
-	transmission_control_protocol_over_internet_protocol_version_6_server_listeners: Vec<AcceptConnectionsCoroutineSettings<sockaddr_in6>>,
-	streaming_unix_domain_socket_server_listener_server_listeners: Vec<AcceptConnectionsCoroutineSettings<UnixSocketAddress<PathBuf>>>,
+	pub transmission_control_protocol_over_internet_protocol_version_4_server_listeners: Vec<AcceptConnectionsCoroutineSettings<sockaddr_in>>,
+	pub transmission_control_protocol_over_internet_protocol_version_6_server_listeners: Vec<AcceptConnectionsCoroutineSettings<sockaddr_in6>>,
+	pub streaming_unix_domain_socket_server_listener_server_listeners: Vec<AcceptConnectionsCoroutineSettings<UnixSocketAddress<PathBuf>>>,
 }
 
-impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>> ThreadFunction for ThreadLoopInitiation<HeapSize, GTACSA>
+impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>> ThreadFunction for ThreadLoopInitiation<CoroutineHeapSize, GTACSA>
 {
-	type TLBF = ThreadLoop<HeapSize, StackSize, GTACSA>;
+	type TLBF = ThreadLoop<CoroutineHeapSize, StackSize, GTACSA>;
 	
 	fn initialize(self) -> Self::TLBF
 	{
@@ -26,7 +28,7 @@ impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableA
 	}
 }
 
-impl<HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>> ThreadLoopInitiation<HeapSize, GTACSA>
+impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>> ThreadLoopInitiation<CoroutineHeapSize, GTACSA>
 {
 	#[inline(always)]
 	fn initialize_internal(self) -> Result<Self::TLBF, ThreadLoopInitializationError>
