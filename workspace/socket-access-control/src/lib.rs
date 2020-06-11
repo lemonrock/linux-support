@@ -23,16 +23,23 @@ assert_cfg!(target_pointer_width = "64");
 
 
 use self::longest_prefix_match_table::*;
-use linux_support::file_descriptors::socket::*;
-use linux_support::file_descriptors::socket::c::*;
-use linux_support::internet_protocol::*;
-use linux_support::user_and_groups::*;
+use linux_support::file_descriptors::socket::AcceptedConnection;
+use linux_support::file_descriptors::socket::SocketData;
+use linux_support::file_descriptors::socket::c::in_addr;
+use linux_support::file_descriptors::socket::c::in6_addr;
+use linux_support::file_descriptors::socket::c::sockaddr_in;
+use linux_support::file_descriptors::socket::c::sockaddr_in6;
+use linux_support::file_descriptors::socket::c::sockaddr_un;
+use linux_support::user_and_groups::GroupIdentifier;
+use linux_support::user_and_groups::UserIdentifier;
 use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use std::num::NonZeroU8;
 use std::ops::Deref;
 use std::rc::Rc;
+use swiss_army_knife::internet_protocol::InternetProtocolAddress;
+use swiss_army_knife::internet_protocol::InternetProtocolAddressWithMask;
 
 
 /// A longest prefix match table.
