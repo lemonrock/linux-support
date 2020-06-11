@@ -245,8 +245,8 @@ impl ProcessConfiguration
 			match entry.local_address_and_destination_address_for_point_to_point()
 			{
 				None => (),
-				Some((Left(address), _)) => internet_protocol_addresses.push((*address).into()),
-				Some((Right(address), _)) => internet_protocol_addresses.push(address.into()),
+				Some((Left(local_address), _destination_address_for_point_to_point)) => internet_protocol_addresses.push((*local_address).into()),
+				Some((Right(local_address), _destination_address_for_point_to_point)) => internet_protocol_addresses.push(local_address.internet_protocol_address.into()),
 			}
 		}
 		
@@ -255,8 +255,8 @@ impl ProcessConfiguration
 			match entry.local_address_and_destination_address_for_point_to_point()
 			{
 				None => (),
-				Some((Left(address), _)) => internet_protocol_addresses.push((*address).into()),
-				Some((Right(address), _)) => internet_protocol_addresses.push(address.into()),
+				Some((Left(local_address), _destination_address_for_point_to_point)) => internet_protocol_addresses.push((*local_address).into()),
+				Some((Right(local_address), _destination_address_for_point_to_point)) => internet_protocol_addresses.push(local_address.internet_protocol_address.into()),
 			}
 		}
 		

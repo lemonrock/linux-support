@@ -31,39 +31,3 @@ impl<IPA: InternetProtocolAddress> Ord for InternetProtocolAddressWithMask<IPA>
 		self.mask_length_in_bits.cmp(&rhs.mask_length_in_bits).then(self.internet_protocol_address.cmp(&rhs.internet_protocol_address))
 	}
 }
-
-impl Into<IpAddr> for InternetProtocolAddressWithMask<in_addr>
-{
-	#[inline(always)]
-	fn into(self) -> IpAddr
-	{
-		IpAddr::V4(self.internet_protocol_address.into())
-	}
-}
-
-impl Into<Ipv4Addr> for InternetProtocolAddressWithMask<in_addr>
-{
-	#[inline(always)]
-	fn into(self) -> Ipv4Addr
-	{
-		self.internet_protocol_address.into()
-	}
-}
-
-impl Into<IpAddr> for InternetProtocolAddressWithMask<in6_addr>
-{
-	#[inline(always)]
-	fn into(self) -> IpAddr
-	{
-		IpAddr::V6(self.internet_protocol_address.into())
-	}
-}
-
-impl Into<Ipv6Addr> for InternetProtocolAddressWithMask<in6_addr>
-{
-	#[inline(always)]
-	fn into(self) -> Ipv6Addr
-	{
-		self.internet_protocol_address.into()
-	}
-}

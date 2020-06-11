@@ -761,6 +761,8 @@ use swiss_army_knife::bit_set::BitSetIterator;
 use swiss_army_knife::bit_set::IntoBitMask;
 use swiss_army_knife::bit_set::IntoList;
 use swiss_army_knife::bit_set::ListParseError;
+use swiss_army_knife::internet_protocol::InternetProtocolAddress;
+use swiss_army_knife::internet_protocol::InternetProtocolAddressWithMask;
 use swiss_army_knife::path::path_bytes_without_trailing_nul;
 use swiss_army_knife::path::PathBufExt;
 use swiss_army_knife::strings::c_string_pointer_to_path_buf;
@@ -861,10 +863,6 @@ pub mod file_systems;
 ///
 /// A wrapper type for Inodes.
 pub mod inode;
-
-
-/// Internet protocol.
-pub mod internet_protocol;
 
 
 /// Interrupt requests in `/proc`.

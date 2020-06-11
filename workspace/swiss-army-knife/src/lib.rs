@@ -38,6 +38,7 @@ use std::alloc::AllocRef;
 use std::alloc::dealloc;
 use std::alloc::Global;
 use std::alloc::Layout;
+use std::array::TryFromSliceError;
 use std::cmp::max;
 use std::cmp::min;
 use std::cmp::Ordering;
@@ -61,6 +62,7 @@ use std::mem::MaybeUninit;
 use std::mem::size_of;
 use std::mem::transmute;
 #[allow(deprecated)] use std::mem::uninitialized;
+use std::num::NonZeroU8;
 use std::ops::Deref;
 use std::ops::DerefMut;
 use std::ops::Index;
@@ -82,6 +84,10 @@ include!("VariablySized.rs");
 /// A set of types to support the use of bit sets in Linux APIs and files.
 #[macro_use]
 pub mod bit_set;
+
+
+/// Internet protocol.
+pub mod internet_protocol;
 
 
 /// Path utilities.

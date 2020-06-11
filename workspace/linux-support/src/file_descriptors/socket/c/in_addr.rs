@@ -11,6 +11,32 @@ pub struct in_addr
 	pub s_addr: in_addr_t,
 }
 
+impl From<Ipv4Addr> for in_addr
+{
+	#[inline(always)]
+	fn from(value: Ipv4Addr) -> Self
+	{
+		unsafe { transmute(value) }
+	}
+}
+
+impl TryFrom<IpAddr> for in_addr
+{
+	type Error = ();
+	
+	#[inline(always)]
+	fn try_from(value: IpAddr) -> Result<Self, Self::Error>
+	{
+		use self::IpAddr::*;
+		
+		match value
+		{
+			V4(address) => Ok(Self::from(address)),
+			V6(_) => Err(()),
+		}
+	}
+}
+
 impl Into<Ipv4Addr> for in_addr
 {
 	#[inline(always)]
@@ -26,5 +52,26 @@ impl Into<IpAddr> for in_addr
 	fn into(self) -> IpAddr
 	{
 		IpAddr::V4(self.into())
+	}
+}
+
+impl InternetProtocolAddress for in_addr
+{
+	const InclusiveMaximumPrefixLength: u8 = 32;
+	
+	const AddressFamily: u8 = AF_INET as u8;
+	
+	#[inline(always)]
+	fn bytes(&self) -> &[u8]
+	{
+		let bytes: &[u8; (Self::InclusiveMaximumPrefixLength as usize / 8)] = unsafe { transmute(self) };
+		&bytes[..]
+	}
+	
+	#[inline(always)]
+	fn from_bytes(bytes: &[u8]) -> Result<Self, TryFromSliceError>
+	{
+		let bytes: [u8; (Self::InclusiveMaximumPrefixLength as usize / 8)] = bytes.try_into()?;
+		Ok(unsafe { transmute(bytes) })
 	}
 }

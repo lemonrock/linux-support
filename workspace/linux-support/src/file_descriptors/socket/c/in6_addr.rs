@@ -17,24 +17,6 @@ pub union in6_addr
 	pub s6_addr32: [u32; 4],
 }
 
-impl Into<Ipv6Addr> for in6_addr
-{
-	#[inline(always)]
-	fn into(self) -> Ipv6Addr
-	{
-		unsafe { transmute(self) }
-	}
-}
-
-impl Into<IpAddr> for in6_addr
-{
-	#[inline(always)]
-	fn into(self) -> IpAddr
-	{
-		IpAddr::V6(self.into())
-	}
-}
-
 impl Default for in6_addr
 {
 	#[inline(always)]
@@ -86,5 +68,70 @@ impl Hash for in6_addr
 	fn hash<H: Hasher>(&self, hasher: &mut H)
 	{
 		unsafe { self.s6_addr.hash(hasher) }
+	}
+}
+
+impl From<Ipv6Addr> for in6_addr
+{
+	#[inline(always)]
+	fn from(value: Ipv6Addr) -> Self
+	{
+		unsafe { transmute(value) }
+	}
+}
+
+impl TryFrom<IpAddr> for in6_addr
+{
+	type Error = ();
+	
+	#[inline(always)]
+	fn try_from(value: IpAddr) -> Result<Self, Self::Error>
+	{
+		use self::IpAddr::*;
+		
+		match value
+		{
+			V4(_) => Err(()),
+			V6(address) => Ok(Self::from(address)),
+		}
+	}
+}
+
+impl Into<Ipv6Addr> for in6_addr
+{
+	#[inline(always)]
+	fn into(self) -> Ipv6Addr
+	{
+		unsafe { transmute(self) }
+	}
+}
+
+impl Into<IpAddr> for in6_addr
+{
+	#[inline(always)]
+	fn into(self) -> IpAddr
+	{
+		IpAddr::V6(self.into())
+	}
+}
+
+impl InternetProtocolAddress for in6_addr
+{
+	const InclusiveMaximumPrefixLength: u8 = 128;
+	
+	const AddressFamily: u8 = AF_INET6 as u8;
+	
+	#[inline(always)]
+	fn bytes(&self) -> &[u8]
+	{
+		let bytes: &[u8; (Self::InclusiveMaximumPrefixLength as usize / 8)] = unsafe { transmute(self) };
+		&bytes[..]
+	}
+	
+	#[inline(always)]
+	fn from_bytes(bytes: &[u8]) -> Result<Self, TryFromSliceError>
+	{
+		let bytes: [u8; (Self::InclusiveMaximumPrefixLength as usize / 8)] = bytes.try_into()?;
+		Ok(unsafe { transmute(bytes) })
 	}
 }
