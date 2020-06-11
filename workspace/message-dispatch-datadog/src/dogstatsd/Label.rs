@@ -4,9 +4,9 @@
 
 /// Based on the maximum label size in DNS of 63 bytes, not DataDog documentation.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct HostNameLabel(ArrayVec<[u8; Self::Length]>);
+pub struct Label(ArrayVec<[u8; Self::Length]>);
 
-impl HostNameLabel
+impl Label
 {
 	const Length: usize = 63;
 	
@@ -18,9 +18,8 @@ impl HostNameLabel
 		Ok(Self(host_name_label))
 	}
 	
-	/// New instance.
 	#[inline(always)]
-	pub fn from_bytes_to_array_vec<A: Array<Item=u8>>(bytes: &[u8]) -> Result<ArrayVec<A>, String>
+	fn from_bytes_to_array_vec<A: Array<Item=u8>>(bytes: &[u8]) -> Result<ArrayVec<A>, String>
 	{
 		let length = Self::validate(bytes)?;
 		
@@ -34,9 +33,9 @@ impl HostNameLabel
 		Ok(label)
 	}
 	
-	/// New instance.
+	/// Validate label returning length.
 	#[inline(always)]
-	fn validate(label: &[u8]) -> Result<usize, String>
+	pub fn validate(label: &[u8]) -> Result<usize, String>
 	{
 		let length = label.len();
 		

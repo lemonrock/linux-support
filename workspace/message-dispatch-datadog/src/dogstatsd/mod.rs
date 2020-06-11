@@ -26,6 +26,6 @@ include!("DogStatsDMessage.rs");
 include!("DogStatsDTag.rs");
 include!("DogStatsDTags.rs");
 include!("DogStatsDWriter.rs");
-include!("HostNameLabel.rs");
+include!("Label.rs");
 include!("Name.rs");
 include!("Text.rs");

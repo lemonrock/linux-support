@@ -13,7 +13,7 @@ pub struct ServiceCheckTemplate<CoroutineHeapSize: MemorySize, GTACSA: 'static +
 	pub tags: DogStatsDTags,
 	
 	/// Defaults to recipient's idea of host.
-	pub host_name: Option<HostNameLabel>,
+	pub host_name: Option<Label>,
 	
 	/// Global allocator.
 	pub global_allocator: &'static GTACSA,

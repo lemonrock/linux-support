@@ -17,7 +17,7 @@
 /// A tag can be a key-value pair, such as `my_tag:my_value` but is subject to the above rules; the value is considered to be the remainder of the tag after the first colon.
 /// Consquently values can not be empty or end with a colon.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct DogStatsDTag(ArrayString<[u8; Self::Length]>);
+pub struct DogStatsDTag(ArrayVec<[u8; Self::Length]>);
 
 static mut environment: Option<DogStatsDTag> = None;
 
@@ -37,11 +37,11 @@ impl DogStatsDTag
 				(
 					{
 						let bytes = &linux_kernel_domain_name[..];
-						let least_specific_label_iterator = bytes.split(|byte| *byte == b'.');
+						let mut least_specific_label_iterator = bytes.split(|byte| *byte == b'.');
 						let least_specific_label = least_specific_label_iterator.next().unwrap();
 						
-						let array_vec = HostNameLabel::from_bytes_to_array_vec(least_specific_label).expect("Invalid label");
-						Self(array_vec)
+						let _length = Label::validate(least_specific_label).expect("Invalid label");
+						Self::env(least_specific_label).expect("Invalid label for name")
 					}
 				);
 			}
@@ -54,7 +54,7 @@ impl DogStatsDTag
 	#[inline(always)]
 	pub fn environment() -> &'static Self
 	{
-		(unsafe { environment }).as_ref().unwrap()
+		(unsafe { &environment }).as_ref().expect("environment not initialized")
 	}
 	
 	/// Thread name; initialized once per thread.
@@ -102,7 +102,7 @@ impl DogStatsDTag
 	{
 		lazy_static!
 		{
-			static ref name_cargo: DogStatsDTag = DogStatsDTag::name(concat!("cargo", ":", env!("CARGO_PKG_NAME"))).unwrap();
+			static ref name_cargo: DogStatsDTag = DogStatsDTag::name(env!("CARGO_PKG_NAME")).unwrap();
 		}
 		
 		&name_cargo
@@ -116,7 +116,7 @@ impl DogStatsDTag
 	{
 		lazy_static!
 		{
-			static ref cargo_version: DogStatsDTag = DogStatsDTag::from_name_and_value("cargo:version", env!("CARGO_PKG_VERSION")).unwrap();
+			static ref cargo_version: DogStatsDTag = DogStatsDTag::from_name_and_value("version", env!("CARGO_PKG_VERSION")).unwrap();
 		}
 		
 		&cargo_version
@@ -124,21 +124,21 @@ impl DogStatsDTag
 	
 	/// Tag-value `env:<value>`.
 	#[inline(always)]
-	fn env(value: &str) -> Result<Self, String>
+	fn env(value: impl AsRef<[u8]>) -> Result<Self, String>
 	{
 		Self::from_name_and_value("env", value)
 	}
 	
 	/// Tag-value `instance:<value>`.
 	#[inline(always)]
-	pub fn instance(value: &str) -> Result<Self, String>
+	pub fn instance(value: impl AsRef<[u8]>) -> Result<Self, String>
 	{
 		Self::from_name_and_value("env", value)
 	}
 	
 	/// Tag-value `name:<value>`.
 	#[inline(always)]
-	pub fn name(value: &str) -> Result<Self, String>
+	pub fn name(value: impl AsRef<[u8]>) -> Result<Self, String>
 	{
 		Self::from_name_and_value("name", value)
 	}
@@ -146,27 +146,45 @@ impl DogStatsDTag
 	/// Name should not end with `:`.
 	/// Value must not end with `:` and must not be empty.
 	#[inline(always)]
-	pub fn from_name_and_value(name: &str, value: &str) -> Result<Self, String>
+	pub fn from_name_and_value(name: impl AsRef<[u8]>, value: impl AsRef<[u8]>) -> Result<Self, String>
 	{
-		if unlikely!(name.ends_with(':'))
+		const Colon: u8 = b':';
+		
+		#[inline(always)]
+		fn validate_then_push(name_and_value: &mut Vec<u8>, bytes: &[u8], description: &'static str) -> Result<(), String>
 		{
-			return Err(format!("name `{}` ends with colon", name))
+			let bytes = bytes.as_ref();
+			
+			if unlikely!(bytes.is_empty())
+			{
+				return Err(format!("{} is empty", description))
+			}
+			
+			if unlikely!((* bytes.get_unchecked(bytes.len() - 1)) == Colon)
+			{
+				return Err(format!("{} `{:?}` ends with colon", description, bytes))
+			}
+			
+			name_and_value.extend_from_slice(bytes);
+			
+			Ok(())
 		}
-		if unlikely!(value.is_empty())
-		{
-			return Err("value is empty".to_string())
-		}
-		if unlikely!(value.ends_with(':'))
-		{
-			return Err(format!("value `{}` ends with colon", value))
-		}
-		Self::from_name(&format!("{}:{}", name, value))
+		
+		let name = name.as_ref();
+		let value = value.as_ref();
+		
+		let mut name_and_value = Vec::with_capacity(name.len() + 1 + value.len());
+		validate_then_push(&mut name_and_value, name, "name")?;
+		name_and_value.push(Colon);
+		validate_then_push(&mut name_and_value, value, "value")?;
+		
+		Self::from_name(name_and_value)
 	}
 	
 	/// From name.
-	pub fn from_name(name: &str) -> Result<Self, String>
+	pub fn from_name(name: impl AsRef<[u8]>) -> Result<Self, String>
 	{
-		let bytes = name.as_bytes();
+		let bytes = name.as_ref();
 		
 		let length = bytes.len();
 		
@@ -177,14 +195,14 @@ impl DogStatsDTag
 		
 		if unlikely!(length > Self::Length)
 		{
-			return Err(format!("Length `{}` exceeds maximum of {} in `{}`", length, Self::Length, name))
+			return Err(format!("Length `{}` exceeds maximum of {} in `{:?}`", length, Self::Length, bytes))
 		}
 		
 		match unsafe { * bytes.get_unchecked(0) }
 		{
 			b'A' ..= b'Z' => (),
 			b'a' ..= b'z' => (),
-			first_byte @ _ => return Err(format!("First byte can not be '0x{:02X}' in `{}`", first_byte, name))
+			first_byte @ _ => return Err(format!("First byte can not be '0x{:02X}' in `{:?}`", first_byte, bytes))
 		}
 		
 		let final_byte_index = length - 1;
@@ -202,7 +220,7 @@ impl DogStatsDTag
 				b'-' => (),
 				b'/' => (),
 				b':' => (),
-				subsequent_byte @ _ => return Err(format!("Subsequent byte can not be '0x{:02X}' in `{}`", subsequent_byte, name))
+				subsequent_byte @ _ => return Err(format!("Subsequent byte can not be '0x{:02X}' in `{:?}`", subsequent_byte, bytes))
 			}
 		}
 		
@@ -215,19 +233,24 @@ impl DogStatsDTag
 			b'.' => (),
 			b'-' => (),
 			b'/' => (),
-			final_byte @ _ => return Err(format!("Final byte can not be '0x{:02X}' in `{}`", final_byte, name))
+			final_byte @ _ => return Err(format!("Final byte can not be '0x{:02X}' in `{:?}`", final_byte, bytes))
 		}
 		
-		match name
+		match bytes
 		{
-			"host" | "device" | "source" | "service" => Err(format!("Name can not be the reserved name `{}`", name)),
-			_ => Ok(Self(ArrayString::from(name).expect("Length check occurs above")))
+			b"host" | b"device" | b"source" | b"service" => Err(format!("Name can not be the reserved name `{:?}`", bytes)),
+			_ =>
+			{
+				let mut array_vec = ArrayVec::new();
+				array_vec.try_extend_from_slice(bytes).expect("Length check occurs above");
+				Ok(Self(array_vec))
+			}
 		}
 	}
 	
 	#[inline(always)]
 	fn dog_stats_d_write(&self, dog_stats_d_writer: &mut DogStatsDWriter) -> Result<(), ()>
 	{
-		dog_stats_d_writer.write_array_string(&self.0)
+		dog_stats_d_writer.write_array_vec(&self.0)
 	}
 }
