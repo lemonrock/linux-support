@@ -284,6 +284,7 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 		self.set_socket_option(level, optname, &is_true);
 	}
 
+	#[allow(dead_code)]
 	#[inline(always)]
 	fn set_socket_option_false(&self, level: c_int, optname: c_int)
 	{

@@ -90,15 +90,10 @@ impl InterruptRequest
 		let data = file_path.read_raw()?;
 		let mut lines = (&data[..]).splitn(3, |byte| *byte == b'\n');
 		
-		fn parse_unitless_value(field_value: &[u8]) -> io::Result<usize>
-		{
-			usize::from_bytes(field_value).map_err(|_| io::Error::new(ErrorKind::Other, "Invalid count field value"))
-		}
-		
 		fn parse_line<'a>(lines: &mut impl Iterator<Item=&'a [u8]>, expected_field_name: &'static [u8], ends_with: &'static [u8]) -> io::Result<usize>
 		{
 			let line = lines.next().unwrap();
-			let fields = line.splitn(2, |byte| *byte == b' ');
+			let mut fields = line.splitn(2, |byte| *byte == b' ');
 			let field_name = fields.next().unwrap();
 			if unlikely!(field_name != expected_field_name)
 			{

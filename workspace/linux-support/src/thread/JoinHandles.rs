@@ -17,6 +17,7 @@ impl JoinHandles
 	///
 	/// On error any threads created are told to run to stop as soon as possible and `terminate` becomes true.
 	pub(crate) fn main_thread_spawn_child_threads<T: Terminate + 'static, TF: ThreadFunction, PTMAI: PerThreadMemoryAllocatorInstantiator>(mut child_threads: Vec<ThreadSettings<TF>>, terminate: &Arc<T>, instantiation_arguments: &Arc<PTMAI::InstantiationArguments>, proc_path: &ProcPath) -> (Self, Result<(), ThreadConfigurationError>)
+		where PTMAI::InstantiationArguments: 'static
 	{
 		let mut this = Self
 		{
@@ -28,7 +29,7 @@ impl JoinHandles
 		let thread_identifiers = ThreadIdentifiers::new();
 		for thread_settings in child_threads.drain(..)
 		{
-			if let Err(error) = this.add_thread(&thread_identifiers, terminate, thread_settings, instantiation_arguments, proc_path)
+			if let Err(error) = this.add_thread::<T, TF, PTMAI>(&thread_identifiers, terminate, thread_settings, instantiation_arguments, proc_path)
 			{
 				return (this, Err(error))
 			}
@@ -38,10 +39,11 @@ impl JoinHandles
 	}
 
 	fn add_thread<T: Terminate + 'static, TF: ThreadFunction, PTMAI: PerThreadMemoryAllocatorInstantiator>(&mut self, thread_identifiers: &ThreadIdentifiers, terminate: &Arc<T>, thread_settings: ThreadSettings<TF>, instantiation_arguments: &Arc<PTMAI::InstantiationArguments>, proc_path: &ProcPath) -> Result<(), ThreadConfigurationError>
+		where PTMAI::InstantiationArguments: 'static
 	{
 		let ThreadSettings { thread_configuration, ref affinity, thread_function } = thread_settings;
 		
-		let join_handle = self.spawn(thread_identifiers, terminate, thread_configuration, thread_function, instantiation_arguments).map_err(ThreadConfigurationError::CouldNotCreateThread)?;
+		let join_handle = self.spawn::<T, TF, PTMAI>(thread_identifiers, terminate, thread_configuration, thread_function, instantiation_arguments).map_err(ThreadConfigurationError::CouldNotCreateThread)?;
 		let (thread_identifier, pthread_t) = thread_identifiers.get_and_reuse();
 		self.join_handles.push((join_handle, thread_identifier, pthread_t));
 
@@ -52,13 +54,14 @@ impl JoinHandles
 	}
 
 	fn spawn<T: Terminate + 'static, TF: ThreadFunction, PTMAI: PerThreadMemoryAllocatorInstantiator>(&self, thread_identifiers: &ThreadIdentifiers, terminate: &Arc<T>, thread_configuration: &ThreadConfiguration, thread_function: TF, instantiation_arguments: &Arc<PTMAI::InstantiationArguments>) -> io::Result<JoinHandle<()>>
+	where PTMAI::InstantiationArguments: 'static
 	{
 		let thread_identifiers = thread_identifiers.clone();
 		let (wait_until_configured, wait_until_seccomp_applied_and_setuid_et_al_done) = self.clone_barriers();
 		let terminate_catch_unwind = terminate.clone();
 		let terminate_error = terminate.clone();
 		let thread_capabilities = thread_configuration.capabilities.clone();
-		thread_configuration.spawn
+		thread_configuration.spawn::<PTMAI, _, _>
 		(
 			instantiation_arguments,
 			move ||

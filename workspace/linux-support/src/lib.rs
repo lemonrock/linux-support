@@ -24,6 +24,7 @@
 #![feature(read_initializer)]
 #![feature(thread_local)]
 #![feature(maybe_uninit_extra)]
+#![feature(move_ref_pattern)]
 
 
 //! #linux-support
@@ -866,6 +867,7 @@ pub mod inode;
 pub mod internet_protocol;
 
 
+/// Interrupt requests in `/proc`.
 pub mod interrupt_request;
 
 

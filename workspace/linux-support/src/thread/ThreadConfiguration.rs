@@ -77,6 +77,7 @@ impl ThreadConfiguration
 		F: FnOnce() -> T,
 		F: std::marker::Send + 'static,
 		T: std::marker::Send + 'static,
+		PTMAI::InstantiationArguments: 'static,
 	{
 		let stack_size = self.stack_size.get() * PageSize::current().size_in_bytes().get();
 		let numa_memory_policy = self.numa_memory_policy.clone();

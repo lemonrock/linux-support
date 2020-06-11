@@ -31,6 +31,7 @@ impl ProcessExecutor
 	///
 	/// `terminate` should be the value returned from `ProcessConfiguration.configure*()`.
 	pub fn execute_securely<T: Terminate + 'static, MainThreadFunction: ThreadFunction, ChildThreadFunction: ThreadFunction, PTMAI: PerThreadMemoryAllocatorInstantiator>(&self, file_system_layout: &FileSystemLayout, terminate: Arc<T>, main_thread: ThreadSettings<MainThreadFunction>, child_threads: Vec<ThreadSettings<ChildThreadFunction>>, instantiation_arguments: Arc<PTMAI::InstantiationArguments>) -> Result<(), ProcessExecutorError>
+		where PTMAI::InstantiationArguments: 'static
 	{
 		let (join_handles, main_thread_loop_body_function, main_thread_local_allocator_drop_guard) = self.prepare_and_secure_threads::<T, MainThreadFunction, ChildThreadFunction, PTMAI>(file_system_layout, &terminate, main_thread, child_threads, instantiation_arguments)?;
 		
@@ -63,6 +64,7 @@ impl ProcessExecutor
 
 	#[inline(always)]
 	fn prepare_and_secure_threads<T: Terminate + 'static, MainThreadFunction: ThreadFunction, ChildThreadFunction: ThreadFunction, PTMAI: PerThreadMemoryAllocatorInstantiator>(&self, file_system_layout: &FileSystemLayout, terminate: &Arc<T>, main_thread: ThreadSettings<MainThreadFunction>, child_threads: Vec<ThreadSettings<ChildThreadFunction>>, instantiation_arguments: Arc<PTMAI::InstantiationArguments>) -> Result<(JoinHandles, MainThreadFunction::TLBF, PTMAI::ThreadDropGuard), ProcessExecutorError>
+		where PTMAI::InstantiationArguments: 'static
 	{
 		#[inline(always)]
 		fn ok_or<T: Terminate + 'static, A, Error>(result: Result<A, Error>, terminate: &Arc<T>, join_handles: JoinHandles, map_err: impl FnOnce(Error) -> ProcessExecutorError) -> Result<(JoinHandles, A), ProcessExecutorError>

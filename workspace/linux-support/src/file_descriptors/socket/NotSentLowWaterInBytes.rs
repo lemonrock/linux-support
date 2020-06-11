@@ -88,14 +88,14 @@ impl NotSentLowWaterInBytes
 {
 	/// Is off.
 	#[inline(always)]
-	pub const fn is_off(self) -> bool
+	pub fn is_off(self) -> bool
 	{
 		self.0.is_none()
 	}
 	
 	/// Is on.
 	#[inline(always)]
-	pub const fn is_on(self) -> bool
+	pub fn is_on(self) -> bool
 	{
 		self.0.is_some()
 	}

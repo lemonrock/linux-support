@@ -12,8 +12,10 @@
 #[serde(deny_unknown_fields)]
 pub enum SocketLingerSeconds
 {
+	/// Off.
 	Off,
 
+	/// On.
 	On(u16),
 }
 
