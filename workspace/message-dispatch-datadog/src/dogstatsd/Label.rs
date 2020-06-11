@@ -38,7 +38,7 @@ impl HostNameLabel
 	#[inline(always)]
 	fn validate(label: &[u8]) -> Result<usize, String>
 	{
-		let length = bytes.len();
+		let length = label.len();
 		
 		if unlikely!(length == 0)
 		{
@@ -47,22 +47,22 @@ impl HostNameLabel
 		
 		if unlikely!(length > Self::Length)
 		{
-			return Err(format!("Can not be more than `{}` bytes long (`{:?}` is invalid)", Self::Length, bytes))
+			return Err(format!("Can not be more than `{}` bytes long (`{:?}` is invalid)", Self::Length, label))
 		}
 		
 		let mut digits_count = 0;
 		
-		match unsafe { * bytes.get_unchecked(0) }
+		match unsafe { * label.get_unchecked(0) }
 		{
 			b'0' ..= b'9' => digits_count += 1,
 			b'A' ..= b'Z' => (),
 			b'a' ..= b'z' => (),
-			first_byte @ _ => return Err(format!("First byte can not be '0x{:02X}' in `{:?}`", first_byte, bytes))
+			first_byte @ _ => return Err(format!("First byte can not be '0x{:02X}' in `{:?}`", first_byte, label))
 		}
 		
 		let final_byte_index = length - 1;
 		
-		let subsequent_bytes = &bytes[1 ..final_byte_index];
+		let subsequent_bytes = &label[1 .. final_byte_index];
 		for subsequent_byte in subsequent_bytes
 		{
 			match *subsequent_byte
@@ -71,21 +71,21 @@ impl HostNameLabel
 				b'A' ..= b'Z' => (),
 				b'a' ..= b'z' => (),
 				b'-' => (),
-				subsequent_byte @ _ => return Err(format!("Subsequent byte can not be '0x{:02X}' in `{:?}`", subsequent_byte, bytes))
+				subsequent_byte @ _ => return Err(format!("Subsequent byte can not be '0x{:02X}' in `{:?}`", subsequent_byte, label))
 			}
 		}
 		
-		match unsafe { * bytes.get_unchecked(final_byte_index) }
+		match unsafe { * label.get_unchecked(final_byte_index) }
 		{
 			b'0' ..= b'9' => digits_count += 1,
 			b'A' ..= b'Z' => (),
 			b'a' ..= b'z' => (),
-			final_byte @ _ => return Err(format!("Final byte can not be '0x{:02X}' in `{:?}`", final_byte, bytes))
+			final_byte @ _ => return Err(format!("Final byte can not be '0x{:02X}' in `{:?}`", final_byte, label))
 		}
 		
 		if unlikely!(digits_count == length)
 		{
-			return Err(format!("Label `{:?}` can not be all digits", bytes))
+			return Err(format!("Label `{:?}` can not be all digits", label))
 		}
 		
 		Ok(length)
