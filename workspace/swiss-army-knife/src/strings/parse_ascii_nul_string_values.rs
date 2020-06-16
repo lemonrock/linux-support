@@ -22,7 +22,7 @@ pub fn parse_ascii_nul_string_values<D: Default, F: Fn(&mut D, &[u8]) -> Result<
 		return Err("bytes must end with an Ascii NUL");
 	}
 
-	for ascii_string in bytes[0 .. final_byte_index].split(|byte| *byte == AsciiNul)
+	for ascii_string in (&bytes[0 .. final_byte_index]).split_bytes(AsciiNul)
 	{
 		add_ascii_string(&mut collection, ascii_string)?
 	}

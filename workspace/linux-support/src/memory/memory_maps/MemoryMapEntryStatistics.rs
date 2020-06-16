@@ -72,7 +72,7 @@ impl MemoryMapEntryStatistics
 		First line is identical to /proc/<pid>/maps, and is not handled below.
 		It is assumed that the lines are pointing to a statistic name; statistics are assumed to always end with `VmFlags`.
 	*/
-	fn parse_statistics_lines(lines: &mut impl Iterator<Item=Result<(usize, Vec<u8>), MemoryMapParseError>>, memory_range: Range<VirtualAddress>, our_protection: Protection, our_sharing: Sharing) -> Result<Self, MemoryMapParseError>
+	fn parse_statistics_lines<'a>(lines: &mut impl Iterator<Item=(usize, &'a [u8])>, memory_range: Range<VirtualAddress>, our_protection: Protection, our_sharing: Sharing) -> Result<Self, MemoryMapParseError>
 	{
 		use self::MemoryMapParseError::*;
 
@@ -103,8 +103,7 @@ impl MemoryMapEntryStatistics
 
 		let vm_flags = loop
 		{
-			let line = lines.next().ok_or(ExpectedStatisticLine)?;
-			let (zero_based_line_number, line_bytes) = line?;
+			let (zero_based_line_number, line_bytes) = lines.next().ok_or(ExpectedStatisticLine)?;
 			let line_bytes = &line_bytes[..];
 
 			let (statistic_name, remaining_line_bytes) =

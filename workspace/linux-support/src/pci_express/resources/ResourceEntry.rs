@@ -41,7 +41,7 @@ impl ResourceEntry
 			u64::parse_hexadecimal_number_lower_case_with_0x_prefix_fixed_width(next, size_of::<u64>() * 2).map_err(|_| "Invalid hexadecimal string")
 		}
 
-		let mut iterator = line.splitn(3, |byte | *byte == b' ');
+		let mut iterator = line.split_bytes_n(3, b' ');
 		let start = parse_u64_hexadecimal_value(&mut iterator)?;
 		let end = parse_u64_hexadecimal_value(&mut iterator)?;
 		let flags = parse_u64_hexadecimal_value(&mut iterator)?;

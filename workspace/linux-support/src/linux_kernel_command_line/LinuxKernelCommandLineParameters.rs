@@ -147,7 +147,7 @@ impl LinuxKernelCommandLineParameters
 					flags.insert(IsolatedCpuFlags::Domain);
 				},
 
-				Some(flags_to_split) => for flag in flags_to_split.split(|byte| *byte == b',')
+				Some(flags_to_split) => for flag in flags_to_split.split_bytes(b',')
 				{
 					flags.insert(IsolatedCpuFlags::parse(flag).unwrap());
 				},
@@ -268,7 +268,7 @@ impl LinuxKernelCommandLineParameters
 	{
 		self.get_value(b"pci").map(|value|
 		{
-			value.split(|byte| *byte == b',').collect()
+			value.split_bytes(b',').collect()
 		})
 	}
 
@@ -319,7 +319,7 @@ impl LinuxKernelCommandLineParameters
 	{
 		self.get_value(b"numa").map(|value|
 		{
-			let mut split = value.splitn(2, |byte| *byte == b'=');
+			let mut split = value.split_bytes_n(2, b'=');
 			(split.next().unwrap(), split.last())
 		})
 	}
@@ -557,7 +557,7 @@ impl LinuxKernelCommandLineParameters
 	{
 		self.get_value(b"root").map(|root|
 		{
-			let mut key_value = root.splitn(2, |byte| *byte == b'=');
+			let mut key_value = root.split_bytes_n(2, b'=');
 			let key_or_value = key_value.next().unwrap();
 			match key_value.next()
 			{
@@ -612,7 +612,7 @@ impl LinuxKernelCommandLineParameters
 		self.get_value(b"modules").map(|modules|
 		{
 			let mut set = Vec::new();
-			for module in modules.split(|byte| *byte == b',')
+			for module in modules.split_bytes(b',')
 			{
 				set.push(module)
 			}
@@ -728,7 +728,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Panics if present with a value.
 	#[inline(always)]
-	pub fn is_present_with_no_value<'a>(&self, parameter_name: &'a [u8]) -> bool
+	pub fn is_present_with_no_value<'a, 'b>(&'b self, parameter_name: &'a [u8]) -> bool
 	{
 		match self.get(parameter_name)
 		{
@@ -748,7 +748,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Panics if present without a value or if multiple values are present.
 	#[inline(always)]
-	pub fn get_value<'a>(&self, parameter_name: &'a [u8]) -> Option<&[u8]>
+	pub fn get_value<'a, 'b>(&'b self, parameter_name: &'a [u8]) -> Option<&'b [u8]>
 	{
 		match self.get(parameter_name)
 		{
@@ -767,7 +767,7 @@ impl LinuxKernelCommandLineParameters
 
 	/// Gets the values of this parameter.
 	#[inline(always)]
-	pub fn get_values<'a>(&self, parameter_name: &'a [u8]) -> Option<Vec<&[u8]>>
+	pub fn get_values<'a, 'b>(&'b self, parameter_name: &'a [u8]) -> Option<Vec<&'b [u8]>>
 	{
 		match self.get(parameter_name)
 		{
@@ -797,9 +797,9 @@ impl LinuxKernelCommandLineParameters
 
 		let mut map = HashMap::with_capacity(32);
 
-		for parameter in line_of_parameters.split(|byte| *byte == b' ')
+		for parameter in line_of_parameters.split_bytes(b' ')
 		{
-			let mut key_value = parameter.splitn(2, |byte| *byte == b'=');
+			let mut key_value = parameter.split_bytes_n(2, b'=');
 			let key = key_value.next().expect("There is no key");
 			if key.is_empty()
 			{

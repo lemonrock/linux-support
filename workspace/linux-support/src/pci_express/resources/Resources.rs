@@ -53,16 +53,14 @@ impl<'a> Resources<'a>
 	*/
 	pub(crate) fn parse_lines(pci_device: &'a PciDevice<'a>) -> io::Result<Self>
 	{
-		let path = pci_device.device_file_or_folder_path("resource");
-		let file = File::open(path)?;
+		let file_path = pci_device.device_file_or_folder_path("resource");
+		let reader = file_path.read_raw()?;
 
 		let mut resources = BTreeMap::default();
 		let mut index = 0;
-		// `split()` preferred over `lines()` as the later also converts CRLF, which wouldn't be a valid sequence in this file.
-		for line in BufReader::new(file).split(b'\n')
+		
+		for line in reader.split_bytes(b'\n')
 		{
-			let vec = line?;
-			let line = vec.as_slice();
 			if let Some(resource_entry) = ResourceEntry::parse_line(line).map_err(|message| io::Error::new(ErrorKind::Other, message))?
 			{
 				resources.insert(index, resource_entry);

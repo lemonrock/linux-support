@@ -9,16 +9,6 @@ pub enum StatusFileParseError
 	/// Could not open a file.
 	CouldNotOpenFile(io::Error),
 
-	/// Could not read a line of data.
-	CouldNotReadLine
-	{
-		/// Zero-based line number.
-		zero_based_line_number: usize,
-
-		/// Cause.
-		cause: io::Error,
-	},
-
 	/// Could not parse a line of data.
 	CouldNotParseLine
 	{
@@ -52,8 +42,6 @@ impl error::Error for StatusFileParseError
 		match self
 		{
 			&CouldNotOpenFile(ref error) => Some(error),
-
-			&CouldNotReadLine { ref cause, .. } => Some(cause),
 
 			&CouldNotParseLine { ref cause, .. } => Some(cause),
 

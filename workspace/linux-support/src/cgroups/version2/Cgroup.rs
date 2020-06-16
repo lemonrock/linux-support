@@ -100,7 +100,7 @@ impl<'a> Cgroup<'a>
 
 	/// List of non-zero process identifiers.
 	#[inline(always)]
-	pub fn get_process_identifiers(&self, mount_point: &CgroupMountPoint) -> Result<ProcessIdentifiersIterator, ProcessIdentifiersIteratorParseError>
+	pub fn get_process_identifiers(&self, mount_point: &CgroupMountPoint) -> Result<Vec<ProcessIdentifier>, ProcessIdentifiersParseError>
 	{
 		self.read_process_identifiers(mount_point, "cgroup.procs")
 	}
@@ -113,10 +113,25 @@ impl<'a> Cgroup<'a>
 	}
 
 	#[inline(always)]
-	fn read_process_identifiers(&self, mount_point: &CgroupMountPoint, file_name: &str) -> Result<ProcessIdentifiersIterator, ProcessIdentifiersIteratorParseError>
+	fn read_process_identifiers(&self, mount_point: &CgroupMountPoint, file_name: &str) -> Result<Vec<ProcessIdentifier>, ProcessIdentifiersParseError>
 	{
-		let path = self.file_path(mount_point, file_name);
-		Ok(ProcessIdentifiersIterator(BufReader::new(File::open(path)?).split(b'\n')))
+		use self::ProcessIdentifiersParseError::*;
+		
+		let file_path = self.file_path(mount_point, file_name);
+		
+		let reader = file_path.read_raw().map_err(Input)?;
+		
+		const GuessOfRatioOfBytesToProcessIdentifiers: usize = 6;
+		let mut process_identifiers = Vec::with_capacity(reader.len() / GuessOfRatioOfBytesToProcessIdentifiers);
+		for line in reader.split_bytes(b'\n')
+		{
+			let process_identifier = ProcessIdentifier::parse_decimal_number(line).map_err(CouldNotParseProcessIdentifier)?;
+			process_identifiers.push(process_identifier);
+		}
+		
+		process_identifiers.shrink_to_fit();
+		
+		Ok(process_identifiers)
 	}
 
 	#[inline(always)]
@@ -158,7 +173,7 @@ impl<'a> Cgroup<'a>
 
 	/// List of non-zero process identifiers.
 	#[inline(always)]
-	pub fn get_thread_identifiers(&self, mount_point: &CgroupMountPoint) -> Result<ProcessIdentifiersIterator, ProcessIdentifiersIteratorParseError>
+	pub fn get_thread_identifiers(&self, mount_point: &CgroupMountPoint) -> Result<Vec<ProcessIdentifier>, ProcessIdentifiersParseError>
 	{
 		self.read_process_identifiers(mount_point, "cgroup.threads")
 	}

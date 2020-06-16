@@ -35,6 +35,7 @@ use either::Either::Right;
 use lazy_static::lazy_static;
 use likely::unlikely;
 use linux_support::cpu::HyperThread;
+use linux_support::linux_kernel_version::LinuxKernelDomainName;
 use linux_support::linux_kernel_version::LinuxKernelHostName;
 use linux_support::thread::ThreadName;
 use magic_ring_buffer::memory_sizes::MemorySize;
@@ -52,6 +53,7 @@ use std::panic::UnwindSafe;
 use std::ptr::NonNull;
 use std::time::Duration;
 use std::time::SystemTime;
+use swiss_army_knife::split::SplitBytes;
 
 
 /// DogStatsD support.

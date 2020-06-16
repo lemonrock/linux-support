@@ -4,6 +4,7 @@
 
 use crate::devices::BlockDevice;
 use crate::inode::Inode;
+use crate::paths::PathExt;
 use self::MemoryMapParseError::*;
 use super::numa::*;
 use super::*;

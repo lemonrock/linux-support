@@ -3,6 +3,7 @@
 
 
 use super::*;
+use super::split::SplitBytes;
 use super::strings::*;
 use super::strings::into_line_feed_terminated_byte_string::*;
 use super::strings::parse_number::*;

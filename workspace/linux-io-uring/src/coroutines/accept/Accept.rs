@@ -96,6 +96,10 @@ impl<'yielder, 'a, SA: SocketAddress, HeapSize: MemorySize, GTACSA: 'static + Gl
 				Some(value) =>
 				{
 					let to_hyper_thread = accepted_connection.streaming_socket_file_descriptor.hyper_thread();
+					
+					// TODO: Look up HyperThread to find NUMA node. Then round robin over online hyper threads in that NUMA node.
+					xxx;
+					
 					let _actual_hyper_thread = self.publisher.publish(to_hyper_thread, (accepted_connection, self.service_protocol_identifier));
 				}
 			}

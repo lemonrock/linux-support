@@ -5,6 +5,7 @@
 use super::*;
 use self::parse_number::*;
 use self::to_number::NumberAsBytes;
+use crate::split::SplitBytes;
 
 
 include!("c_string_pointer_to_path_buf.rs");

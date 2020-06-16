@@ -32,9 +32,9 @@ impl LinuxKernelVersion
 	pub fn major_minor_revision(&self) -> LinuxKernelVersionNumber
 	{
 		// eg `5.4.27`.
-		let left = self.release.splitn(2, |byte| *byte == b'-').next().unwrap();
+		let left = self.release.split_bytes_n(2, b'-').next().unwrap();
 
-		let mut parts = left.splitn(3, |byte| *byte == b'.');
+		let mut parts = left.split_bytes_n(3, b'.');
 		let major = u16::parse_decimal_number(parts.next().unwrap()).unwrap();
 		let minor = u16::parse_decimal_number(parts.next().unwrap()).unwrap();
 		let revision = u16::parse_decimal_number(parts.next().unwrap()).unwrap();

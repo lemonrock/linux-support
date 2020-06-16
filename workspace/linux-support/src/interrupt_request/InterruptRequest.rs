@@ -88,12 +88,12 @@ impl InterruptRequest
 		let file_path = self.file_path(proc_path, "spurious");
 		
 		let data = file_path.read_raw()?;
-		let mut lines = (&data[..]).splitn(3, |byte| *byte == b'\n');
+		let mut lines = data.split_bytes_n(3, b'\n');
 		
 		fn parse_line<'a>(lines: &mut impl Iterator<Item=&'a [u8]>, expected_field_name: &'static [u8], ends_with: &'static [u8]) -> io::Result<usize>
 		{
 			let line = lines.next().unwrap();
-			let mut fields = line.splitn(2, |byte| *byte == b' ');
+			let mut fields = line.split_bytes_n(2, b' ');
 			let field_name = fields.next().unwrap();
 			if unlikely!(field_name != expected_field_name)
 			{

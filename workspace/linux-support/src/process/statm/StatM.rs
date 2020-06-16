@@ -46,7 +46,7 @@ impl StatM
 	{
 		let file_path = proc_path.process_file_path(process_identifier, "statm");
 		let line = file_path.read_raw_without_line_feed()?;
-		let mut columns = line.splitn(7, |byte| *byte == b' ');
+		let mut columns = line.split_bytes_n(7, b' ');
 
 		#[inline(always)]
 		fn parse_field<'a>(columns: &mut impl Iterator<Item=&'a [u8]>, index: u8, name: &'static str) -> Result<NumberOfPages, StatMParseError>

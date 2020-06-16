@@ -21,7 +21,7 @@ impl FromBytes for SignalQueueStatus
 	fn from_bytes(value: &[u8]) -> Result<Self, Self::Error>
 	{
 		// number of signals queued/max. number for queue
-		let mut iterator = value.splitn(2, |byte| *byte == b'/');
+		let mut iterator = value.split_bytes_n(2, b'/');
 
 		let number_of_signals_queued = u64::parse_decimal_number(iterator.next().unwrap())?;
 

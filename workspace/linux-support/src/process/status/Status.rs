@@ -424,10 +424,9 @@ impl Status
 				)*
 
 				let mut zero_based_line_number = 0;
-				for line in $reader.split(b'\n')
+				for line in $reader.split_bytes(b'\n')
 				{
-					let line = line.map_err(|cause| CouldNotReadLine { zero_based_line_number, cause })?;
-					let mut split = line.splitn(2, |byte| *byte == b':');
+					let mut split = line.split_bytes_n(2, b':');
 
 					let statistic_name = split.next().unwrap();
 					let tab_then_statistic_value = split.next().ok_or(CouldNotParseLine { zero_based_line_number, cause: NoValue })?;
@@ -472,7 +471,7 @@ impl Status
 		}
 
 		let file_path = proc_path.process_file_path(process_identifier, "status");
-		let reader = BufReader::with_capacity(4096, File::open(file_path)?);
+		let reader = file_path.read_raw()?;
 
 		#[allow(deprecated, invalid_value)] let mut this: Self = unsafe { uninitialized() };
 		unsafe { write(&mut this.currently_dumping_core, None) };

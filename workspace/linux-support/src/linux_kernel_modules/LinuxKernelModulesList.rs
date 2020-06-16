@@ -114,17 +114,15 @@ impl LinuxKernelModulesList
 	pub fn parse(proc_path: &ProcPath) -> Result<Self, LinuxKernelModulesListParseError>
 	{
 		let file_path = proc_path.file_path("modules");
-
-		let reader = BufReader::with_capacity(4096, File::open(file_path)?);
+		let reader = file_path.read_raw()?;
 
 		let mut modules_list = HashSet::new();
 		let mut zero_based_line_number = 0;
 		use self::LinuxKernelModulesListParseError::*;
-		for line in reader.split(b'\n')
+		for line in reader.split_bytes(b'\n')
 		{
 			{
-				let line = line?;
-				let mut split = line.splitn(2, |byte| *byte == b' ');
+				let mut split = line.split_bytes_n(2, b' ');
 
 				let linux_kernel_module_name_bytes = split.next().unwrap();
 

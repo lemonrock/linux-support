@@ -28,16 +28,6 @@ pub enum MemoryMapParseError
 	/// `/proc/<pid>/smaps` file does not exist.
 	SmapsFileDoesNotExist,
 
-	/// Could not read a line of data.
-	CouldNotReadLine
-	{
-		/// Zero-based line number.
-		zero_based_line_number: usize,
-
-		/// Cause.
-		cause: io::Error,
-	},
-
 	/// Missing a required field.
 	MissingRequiredField
 	{
@@ -452,8 +442,6 @@ impl error::Error for MemoryMapParseError
 			&CouldNotOpenFile(ref error) => Some(error),
 
 			&SmapsFileDoesNotExist => None,
-
-			&CouldNotReadLine { ref cause, .. } => Some(cause),
 
 			&MissingRequiredField { .. } => None,
 

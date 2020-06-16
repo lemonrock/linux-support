@@ -39,7 +39,7 @@ impl FromBytes for GroupIdentifiers
 			}
 		}
 
-		let mut iterator = value.splitn(4, |byte| *byte == b'\t');
+		let mut iterator = value.split_bytes_n(4, b'\t');
 
 		Ok
 		(

@@ -69,15 +69,10 @@ struct fsxattr {
 
 // TODO: Allocate physically contiguous memory (using huge / gigantic pages; using page map to finding virt to phys mappings)
 
-// TODO: replace use of bytes.split<n>() with use of memchr()
-
 // TODO:  Automatic NUMA balancing can be enabled or disabled for the current session by writing 1 or 0 to /proc/sys/kernel/numa_balancing which will enable or disable the feature respectively. To permanently enable or disable it, use the kernel command line option numa_balancing=[enable|disable].
 
 // Global configuration:-
 /*
-
-
-		// TODO: LinuxKernelCommandLineValidator (a mess currently)
 
 Mounts
 	/dev/mqueue
@@ -110,9 +105,6 @@ hung_task_check_count
 hung_task_timeout_secs
 hung_task_check_interval_secs
 hung_task_warnings
-
-Security: Process identifiers
- /proc/sys/kernel/pid_max
 
 Memory
 	/proc/sys/vm/admin_reserve_kbytes
@@ -223,8 +215,6 @@ impl ValidatedNumaNodeToHyperThreadMap
 				/dev/cpuset allows for exlusive cpus and exclusive NUMA nodes (?how?)
 				cpuset.memory_spread_page and cpuset.memory_spread_slab override mbind and set_memory_policy (oh great)
 				Look at libcpuset
-
-			TODO: Parse /proc/self/stat, which contains last CPU a process ran on.
 
 			TODO: Modify li
 		*/

@@ -26,7 +26,7 @@ impl FromBytes for Groups
 	fn from_bytes(value: &[u8]) -> Result<Self, Self::Error>
 	{
 		let mut groups = BTreeSet::new();
-		for value in value.split(|byte| *byte == b' ')
+		for value in value.split_bytes(b' ')
 		{
 			let was_added_for_the_first_time = groups.insert(GroupIdentifier::from_bytes(value)?);
 			if unlikely!(!was_added_for_the_first_time)

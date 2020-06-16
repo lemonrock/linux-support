@@ -136,7 +136,7 @@ impl ReceiveBufferSizeInBytes
 	pub fn global_tcp_minimum_default_and_maximum(proc_path: &ProcPath) -> io::Result<(Self, Self, Self)>
 	{
 		let line = Self::sys_net_ipv4_tcp_rmem_file_path(proc_path).read_raw_without_line_feed()?;
-		let mut fields = line.splitn(3, |byte| *byte == b'\t');
+		let mut fields = line.split_bytes_n(3, b'\t');
 		
 		#[inline(always)]
 		fn parse_field<'a>(fields: &mut impl Iterator<Item=&'a [u8]>) -> io::Result<ReceiveBufferSizeInBytes>

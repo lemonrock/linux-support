@@ -6,7 +6,6 @@ use super::*;
 use self::event::Event;
 use self::metric::Metric;
 use self::service_check::ServiceCheck;
-use linux_support::linux_kernel_version::LinuxKernelDomainName;
 
 
 /// Event.

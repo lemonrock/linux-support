@@ -416,7 +416,7 @@ impl NumaNode
 		{
 			let line = file_path.read_raw_without_line_feed()?;
 
-			let mut raw_distances = line.splitn(LinuxMaximum, |byte| *byte == b' ').peekable();
+			let mut raw_distances = line.split_bytes_n(LinuxMaximum, b' ').peekable();
 
 			// NOTE: We do not use `Iterator.zip()`.
 			// This is because there is a very slight chance the `online_numa_nodes` list we have may have diverged from that used internally in Linux to generate the distances.

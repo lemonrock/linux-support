@@ -32,19 +32,18 @@ impl FileSystemTypeList
 	#[inline(always)]
 	pub fn parse(proc_path: &ProcPath) -> Result<FileSystemTypeList, io::Error>
 	{
-		let file_path = proc_path.file_path("filesystems");
 		use self::ErrorKind::InvalidData;
-
-		let reader = BufReader::with_capacity(4096, File::open(file_path)?);
+		
+		let file_path = proc_path.file_path("filesystems");
+		let reader = file_path.read_raw()?;
 
 		let mut file_systems_map = HashMap::new();
 		let mut line_number = 0;
 
-		for line in reader.split(b'\n')
+		for line in reader.split_bytes(b'\n')
 		{
 			{
-				let line = line?;
-				let mut split = line.splitn(2, |byte| *byte == b'\t');
+				let mut split = line.split_bytes_n(2, b'\t');
 
 				let has_no_associated_device = match split.next().unwrap()
 				{

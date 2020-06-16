@@ -39,7 +39,7 @@ impl<'a> EtcGroupRecord<'a>
 	///
 	/// Clones data.
 	#[inline(always)]
-	pub fn user_names(&self) -> impl Iterator<Item=Result<UserName, NulError>> + 'a
+	pub fn user_names(&'a self) -> impl Iterator<Item=Result<UserName, NulError>> + 'a
 	{
 		self.raw_user_names().map(|raw_user_name| Ok(UserName(CString::new(raw_user_name)?)))
 	}
@@ -50,6 +50,6 @@ impl<'a> EtcGroupRecord<'a>
 	#[inline(always)]
 	pub fn raw_user_names(&self) -> impl Iterator<Item=&'a [u8]>
 	{
-		self.raw_user_list.split(|byte| *byte == b',')
+		self.raw_user_list.split_bytes(b',')
 	}
 }

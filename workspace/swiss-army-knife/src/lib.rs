@@ -31,6 +31,7 @@ use libc::c_char;
 use likely::likely;
 use likely::unlikely;
 use memchr::memchr;
+use memchr::memrchr;
 use serde::Deserialize;
 use serde::Serialize;
 use std::alloc::alloc_zeroed;
@@ -92,6 +93,10 @@ pub mod internet_protocol;
 
 /// Path utilities.
 pub mod path;
+
+
+/// Split performance utilities.
+pub mod split;
 
 
 /// String utilities.

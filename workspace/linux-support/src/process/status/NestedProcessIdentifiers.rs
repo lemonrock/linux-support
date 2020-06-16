@@ -26,7 +26,7 @@ impl FromBytes for NestedProcessIdentifiers
 	fn from_bytes(value: &[u8]) -> Result<Self, Self::Error>
 	{
 		let mut process_identifiers = IndexSet::new();
-		for value in value.split(|byte| *byte == b'\t')
+		for value in value.split_bytes(b'\t')
 		{
 			let was_added_for_the_first_time = process_identifiers.insert(ProcessIdentifier::parse_decimal_number(value)?);
 			if unlikely!(!was_added_for_the_first_time)

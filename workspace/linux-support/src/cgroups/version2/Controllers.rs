@@ -82,7 +82,7 @@ impl Controllers
 		}
 
 		let mut controllers = Self::default();
-		for potential_controller in contents.splitn(Controller::MaximumNumberOfControllers, |byte| *byte == b' ')
+		for potential_controller in contents.split_bytes_n(Controller::MaximumNumberOfControllers, b' ')
 		{
 			let controller = Controller::from_bytes(potential_controller)?;
 			let added_first_time = controllers.insert(controller);

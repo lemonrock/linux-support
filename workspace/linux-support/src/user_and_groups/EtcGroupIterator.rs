@@ -36,8 +36,8 @@ impl<'a> EtcGroupIterator<'a>
 
 		let line = &self.bytes[self.last_end_of_line .. next_needle];
 		self.last_end_of_line = next_needle + 1;
-
-		let mut fields = line.splitn(7, |byte| *byte == b':');
+		
+		let mut fields = line.split_bytes_n(7, b':');
 
 		Ok
 		(

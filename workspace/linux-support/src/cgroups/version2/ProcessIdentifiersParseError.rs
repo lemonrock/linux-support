@@ -4,7 +4,7 @@
 
 /// Parse error of a process identifier.
 #[derive(Debug)]
-pub enum ProcessIdentifiersIteratorParseError
+pub enum ProcessIdentifiersParseError
 {
 	/// Input error.
 	Input(io::Error),
@@ -13,7 +13,7 @@ pub enum ProcessIdentifiersIteratorParseError
 	CouldNotParseProcessIdentifier(ParseNumberError),
 }
 
-impl Display for ProcessIdentifiersIteratorParseError
+impl Display for ProcessIdentifiersParseError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -22,12 +22,12 @@ impl Display for ProcessIdentifiersIteratorParseError
 	}
 }
 
-impl Error for ProcessIdentifiersIteratorParseError
+impl Error for ProcessIdentifiersParseError
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn Error + 'static)>
 	{
-		use self::ProcessIdentifiersIteratorParseError::*;
+		use self::ProcessIdentifiersParseError::*;
 
 		match self
 		{
@@ -38,11 +38,11 @@ impl Error for ProcessIdentifiersIteratorParseError
 	}
 }
 
-impl From<io::Error> for ProcessIdentifiersIteratorParseError
+impl From<io::Error> for ProcessIdentifiersParseError
 {
 	#[inline(always)]
 	fn from(error: io::Error) -> Self
 	{
-		ProcessIdentifiersIteratorParseError::Input(error)
+		ProcessIdentifiersParseError::Input(error)
 	}
 }

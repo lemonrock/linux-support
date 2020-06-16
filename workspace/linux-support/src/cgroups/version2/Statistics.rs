@@ -28,14 +28,15 @@ impl Statistics
 	fn from_file(file_path: &Path) -> Result<Self, StatisticsParseError>
 	{
 		use self::StatisticsParseError::*;
-
+		
+		let reader = file_path.read_raw()?;
+		
 		let mut number_of_living_descendants = None;
 		let mut number_of_dying_descendants = None;
-
-		for line in BufReader::new(File::open(file_path)?).split(b'\n')
+		
+		for line in reader.split_bytes(b'\n')
 		{
-			let line = line?;
-			let mut name_and_value = line.splitn(2, |byte| *byte == b' ');
+			let mut name_and_value = line.split_bytes_n(2, b' ');
 			let name = name_and_value.next().expect("Split always should produce at least one item");
 
 			#[inline(always)]

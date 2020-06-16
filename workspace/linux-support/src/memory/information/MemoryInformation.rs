@@ -85,7 +85,7 @@ impl MemoryInformation
 	/// Parses the `meminfo` file.
 	pub(crate) fn parse_memory_information_file(file_path: &Path, memory_information_name_prefix: &[u8]) -> Result<MemoryInformation, MemoryInformationParseError>
 	{
-		let reader = BufReader::with_capacity(4096, File::open(file_path)?);
+		let reader = file_path.read_raw()?;
 
 		let mut map = HashMap::new();
 		let mut zero_based_line_number = 0;
@@ -95,11 +95,9 @@ impl MemoryInformation
 		// Lines such as:-
 		// * `SwapTotal:       2021372 kB`
 		// * `VmallocTotal:   34359738367 kB`
-		for line in reader.split(b'\n')
+		for line in reader.split_bytes(b'\n')
 		{
-			let line = line?;
-
-			let mut split = line.splitn(2, |byte| *byte == b':');
+			let mut split = line.split_bytes_n(2, b':');
 
 			let memory_information_name = MemoryInformationName::parse(split.next().unwrap(), memory_information_name_prefix);
 

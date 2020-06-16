@@ -150,7 +150,7 @@ impl Environment
 	#[inline(always)]
 	fn parse_line(collection: &mut HashMap<Box<[u8]>, Vec<Option<Box<[u8]>>>>, byte_string: &[u8])
 	{
-		let mut iterator = byte_string.splitn(2, |byte| *byte == b'=');
+		let mut iterator = byte_string.split_bytes_n(2, b'=');
 		let environment_variable_name = iterator.next().unwrap().to_vec().into_boxed_slice();
 		let environment_variable_value = iterator.next().map(|value| value.to_vec().into_boxed_slice());
 

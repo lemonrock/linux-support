@@ -19,7 +19,6 @@ include!("NonRootCgroup.rs");
 include!("NonRootCgroupType.rs");
 include!("ParseControllerError.rs");
 include!("ParseNonRootCgroupTypeError.rs");
-include!("ProcessIdentifiersIterator.rs");
-include!("ProcessIdentifiersIteratorParseError.rs");
+include!("ProcessIdentifiersParseError.rs");
 include!("Statistics.rs");
 include!("StatisticsParseError.rs");

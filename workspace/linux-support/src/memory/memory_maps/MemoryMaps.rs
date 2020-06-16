@@ -38,6 +38,8 @@ impl MemoryMaps
 	}
 
 	/// Details for this process of `/proc/self/smaps` (which is more detailed than `/proc/self/maps`).
+	///
+	/// Use `NumaNodes::have_movable_memory()` for `have_movable_memory`; it will be `None` if the Linux kernel is not-NUMA aware.
 	#[inline(always)]
 	pub fn smaps_for_self(proc_path: &ProcPath, have_movable_memory: Option<&BitSet<NumaNode>>) -> Result<Self, MemoryMapParseError>
 	{
@@ -45,61 +47,71 @@ impl MemoryMaps
 	}
 
 	/// Details for a particular process of `/proc/<process_identifier>/smaps` (which is more detailed than `/proc/<process_identifier>/maps`).
+	///
+	/// Use `NumaNodes::have_movable_memory()` for `have_movable_memory`; it will be `None` if the Linux kernel is not-NUMA aware.
 	#[inline(always)]
 	pub fn smaps_for_process(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice, have_movable_memory: Option<&BitSet<NumaNode>>) -> Result<Self, MemoryMapParseError>
 	{
-		let mut numa_maps_lines = match have_movable_memory
+		match have_movable_memory
 		{
-			None => None,
-			Some(have_movable_memory) =>
+			None => Self::smaps_for_process_non_numa(proc_path, process_identifier),
+			
+			Some(have_movable_memory) => match Self::open_file(proc_path, process_identifier, "numa_maps")?
 			{
-				match Self::open_file(proc_path, process_identifier, "numa_maps")?
+				None => Self::smaps_for_process_non_numa(proc_path, process_identifier),
+				
+				Some(reader) =>
 				{
-					None => None,
-					Some(numa_maps_lines) => Some((numa_maps_lines, have_movable_memory)),
+					let split = reader.split_bytes(b'\n');
+					let mut numa_maps_lines = split.enumerate();
+					
+					let (parse_state, maps) = Self::maps_for_process_loop(proc_path, process_identifier, |memory_range, kind|
+					{
+						Ok
+						(
+							Some
+							(
+								MemoryMapEntry::parse_numa_maps_line
+								(
+									numa_maps_lines.next().ok_or(Mismatched { explanation: "Not enough lines in numa_maps" })?,
+									memory_range.start,
+									kind,
+									have_movable_memory
+								)?
+							)
+						)
+					})?;
+					
+					parse_state.validate()?;
+					
+					if unlikely!(numa_maps_lines.next().is_some())
+					{
+						return Err(Mismatched { explanation: "Too many lines in numa_maps" })
+					}
+					
+					Ok(Self { maps })
 				}
 			}
-		};
-
-		let (parse_state, maps) = match numa_maps_lines
-		{
-			None => Self::maps_for_process_loop(proc_path, process_identifier, |_, _| Ok(None))?,
-
-			Some((ref mut numa_maps_lines, have_movable_memory)) => Self::maps_for_process_loop(proc_path, process_identifier, |memory_range, kind|
-			{
-				Ok
-				(
-					Some
-					(
-						MemoryMapEntry::parse_numa_maps_line
-						(
-							numa_maps_lines.next().ok_or(Mismatched { explanation: "Not enough lines in numa_maps" })??,
-							memory_range.start,
-							kind,
-							have_movable_memory
-						)?
-					)
-				)
-			})?,
-		};
-
-		parse_state.validate()?;
-
-		if let Some((mut numa_maps_lines, _)) = numa_maps_lines
-		{
-			if unlikely!(numa_maps_lines.next().is_some())
-			{
-				return Err(Mismatched { explanation: "Too many lines in numa_maps" })
-			}
 		}
-
+	}
+	
+	#[inline(always)]
+	fn smaps_for_process_non_numa(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> Result<Self, MemoryMapParseError>
+	{
+		let (parse_state, maps) = Self::maps_for_process_loop(proc_path, process_identifier, |_, _| Ok(None))?;
+		
+		parse_state.validate()?;
+		
 		Ok(Self { maps })
 	}
 
 	#[inline(always)]
 	fn maps_for_process_loop(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice, mut with_numa_data: impl FnMut(&Range<VirtualAddress>, &MemoryMapEntryKind) -> Result<Option<(NumaMemoryPolicyDetails, Option<PageCounts>)>, MemoryMapParseError>) -> Result<(ParseState, Vec<(MemoryMapEntry, MemoryMapEntryStatistics)>), MemoryMapParseError>
 	{
-		let mut smaps_lines = Self::open_file(proc_path, process_identifier, "smaps")?.ok_or(SmapsFileDoesNotExist)?;
+		let reader = Self::open_file(proc_path, process_identifier, "smaps")?.ok_or(SmapsFileDoesNotExist)?;
+		let split = reader.split_bytes(b'\n');
+		let mut smaps_lines = split.enumerate();
+		
 		let mut parse_state = ParseState::default();
 		let mut maps = Vec::new();
 
@@ -110,7 +122,7 @@ impl MemoryMaps
 				match smaps_lines.next()
 				{
 					None => break,
-					Some(value) => value?,
+					Some(value) => value,
 				}
 			};
 
@@ -125,16 +137,12 @@ impl MemoryMaps
 	}
 
 	#[inline(always)]
-	fn open_file(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice, file_name: &str) -> Result<Option<impl Iterator<Item=Result<(usize, Vec<u8>), MemoryMapParseError>>>, MemoryMapParseError>
+	fn open_file(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice, file_name: &str) -> Result<Option<Box<[u8]>>, MemoryMapParseError>
 	{
 		let file_path = proc_path.process_file_path(process_identifier, file_name);
 		if file_path.exists()
 		{
-			let file = File::open(file_path).map_err(|error| CouldNotOpenFile(error))?;
-			let split = BufReader::new(file).split(b'\n');
-			let enumerate = split.enumerate();
-			let map = enumerate.map(|(zero_based_line_number, result)| result.map(|line| (zero_based_line_number, line)).map_err(|cause| CouldNotReadLine { zero_based_line_number, cause }));
-			Ok(Some(map))
+			Ok(Some(file_path.read_raw().map_err(CouldNotOpenFile)?))
 		}
 		else
 		{

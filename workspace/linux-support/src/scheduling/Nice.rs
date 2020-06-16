@@ -212,7 +212,7 @@ impl Nice
 		// Reads are different to writes!
 		// A read might contain the value `/autogroup-25 nice 0`.
 		let line = proc_path.process_file_path(process_identifier, "autogroup").read_raw_without_line_feed()?;
-		let mut parts = (&line[..]).splitn(3, |byte| *byte == b' ');
+		let mut parts = line.split_bytes_n(3, b' ');
 		
 		let name = parts.next().unwrap();
 		

@@ -201,44 +201,37 @@ impl VirtualMemoryStatisticName
 	#[inline(always)]
 	pub(crate) fn parse_virtual_memory_statistics_file(file_path: &Path) -> io::Result<HashMap<Self, u64>>
 	{
-		let file = File::open(file_path)?;
-
-		let reader = BufReader::with_capacity(4096, file);
+		let reader = file_path.read_raw()?;
 
 		let mut statistics = HashMap::with_capacity(6);
 		let mut zero_based_line_number = 0;
 
-		for line in reader.split(b'\n')
+		for line in reader.split_bytes(b'\n')
 		{
-			let mut line = line?;
+			use self::ErrorKind::InvalidData;
 
+			let mut split = line.split_bytes_n(2, b' ');
+
+			let statistic_name = VirtualMemoryStatisticName::parse(split.next().unwrap());
+
+			let statistic_value = match split.next()
 			{
-				use self::ErrorKind::InvalidData;
+				None => return Err(io::Error::new(InvalidData, format!("Zero based line '{}' does not have a value second column", zero_based_line_number))),
+				Some(value) => u64::parse_decimal_number(value).map_err(|parse_number_error| io::Error::new(InvalidData, parse_number_error))?,
+			};
 
-				let mut split = line.splitn(2, |byte| *byte == b' ');
-
-				let statistic_name = VirtualMemoryStatisticName::parse(split.next().unwrap());
-
-				let statistic_value = match split.next()
-				{
-					None => return Err(io::Error::new(InvalidData, format!("Zero based line '{}' does not have a value second column", zero_based_line_number))),
-					Some(value) => u64::parse_decimal_number(value).map_err(|parse_number_error| io::Error::new(InvalidData, parse_number_error))?,
-				};
-
-				if let Some(previous) = statistics.insert(statistic_name, statistic_value)
-				{
-					return Err(io::Error::new(InvalidData, format!("Zero based line '{}' has a duplicate statistic (was '{}')", zero_based_line_number, previous)))
-				}
+			if let Some(previous) = statistics.insert(statistic_name, statistic_value)
+			{
+				return Err(io::Error::new(InvalidData, format!("Zero based line '{}' has a duplicate statistic (was '{}')", zero_based_line_number, previous)))
 			}
 
-			line.clear();
 			zero_based_line_number += 1;
 		}
 
 		Ok(statistics)
 	}
-
-	#[inline]
+	
+	#[inline(always)]
 	pub(crate) fn parse(name: &[u8]) -> Self
 	{
 		use self::VirtualMemoryStatisticName::*;

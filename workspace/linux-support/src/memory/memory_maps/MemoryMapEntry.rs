@@ -45,7 +45,7 @@ impl MemoryMapEntry
 	*/
 	/// This parse can be used for lines in`/proc/<pid>/maps` and `/proc/<pid>/smaps` but not `/proc/<pid>/smaps_rollup` (as in the last case there is a special type of `[rollup]`).
 	#[inline(always)]
-	fn parse_maps_line(parse_state: &mut ParseState, (zero_based_line_number, map_line): (usize, Vec<u8>), memory_details: &mut impl FnMut(&Range<VirtualAddress>, &MemoryMapEntryKind) -> Result<Option<(NumaMemoryPolicyDetails, Option<PageCounts>)>, MemoryMapParseError>) -> Result<Self, MemoryMapParseError>
+	fn parse_maps_line(parse_state: &mut ParseState, (zero_based_line_number, map_line): (usize, &[u8]), memory_details: &mut impl FnMut(&Range<VirtualAddress>, &MemoryMapEntryKind) -> Result<Option<(NumaMemoryPolicyDetails, Option<PageCounts>)>, MemoryMapParseError>) -> Result<Self, MemoryMapParseError>
 	{
 		parse_state.new_line(zero_based_line_number);
 		let mut fields = ParseState::map_line_split_fields(&map_line[..]);
@@ -126,9 +126,9 @@ impl MemoryMapEntry
 	/// Returns `Ok(None)` if it appears that the `numa_maps` line does not match its associated `smaps` (or `maps`) line.
 	///
 	/// Very rarely returns `Ok(Some((None, None)))` or `Ok(Some((None, Some())))` if Linux has a bug and returns an `unknown` memory policy.
-	fn parse_numa_maps_line((zero_based_line_number, numa_map_line): (usize, Vec<u8>), expected_from: VirtualAddress, expected_kind: &MemoryMapEntryKind, have_movable_memory: &BitSet<NumaNode>) -> Result<(NumaMemoryPolicyDetails, Option<PageCounts>), MemoryMapParseError>
+	fn parse_numa_maps_line((zero_based_line_number, numa_map_line): (usize, &[u8]), expected_from: VirtualAddress, expected_kind: &MemoryMapEntryKind, have_movable_memory: &BitSet<NumaNode>) -> Result<(NumaMemoryPolicyDetails, Option<PageCounts>), MemoryMapParseError>
 	{
-		let mut fields = numa_map_line.split(|byte| *byte == b' ');
+		let mut fields = numa_map_line.split_bytes(b' ');
 
 		if unlikely!(Self::parse_from(&mut fields, zero_based_line_number)? != expected_from)
 		{

@@ -37,7 +37,7 @@ impl DogStatsDTag
 				(
 					{
 						let bytes = &linux_kernel_domain_name[..];
-						let mut least_specific_label_iterator = bytes.split(|byte| *byte == b'.');
+						let mut least_specific_label_iterator = bytes.split_bytes(b'.');
 						let least_specific_label = least_specific_label_iterator.next().unwrap();
 						
 						let _length = Label::validate(least_specific_label).expect("Invalid label");
