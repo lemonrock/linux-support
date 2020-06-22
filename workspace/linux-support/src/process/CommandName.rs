@@ -89,6 +89,15 @@ impl AsRef<CStr> for CommandName
 	}
 }
 
+impl AsRef<[u8]> for CommandName
+{
+	#[inline(always)]
+	fn as_ref(&self) -> &[u8]
+	{
+		self.deref()
+	}
+}
+
 impl ToString for CommandName
 {
 	#[inline(always)]

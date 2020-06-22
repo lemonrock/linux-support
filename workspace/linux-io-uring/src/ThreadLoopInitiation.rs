@@ -12,6 +12,7 @@ pub struct ThreadLoopInitiation<CoroutineHeapSize: MemorySize, GTACSA: 'static +
 	pub queues: Queues<(), DequeuedMessageProcessingError>,
 	pub io_uring_settings: IoUringSettings,
 	pub signal_mask: Signals,
+	pub dog_stats_d_message_subscribers: DogStatsDMessageSubscribers,
 	
 	pub transmission_control_protocol_over_internet_protocol_version_4_server_listeners: Vec<AcceptConnectionsCoroutineSettings<sockaddr_in>>,
 	pub transmission_control_protocol_over_internet_protocol_version_6_server_listeners: Vec<AcceptConnectionsCoroutineSettings<sockaddr_in6>>,
@@ -39,12 +40,24 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 		
 		let signal_file_descriptor = self.signals()?;
 		
+		let our_hyper_thread = HyperThread::current().1;
+		
+		let dog_stats_d_publisher = DogStatsDPublisher::new(&self.queues, self.dog_stats_d_message_subscribers, self.global_allocator);
+		let thread_local_socket_hyper_thread_additional_dog_stats_d_cache = ThreadLocalNumericAdditionalDogStatsDTagsCache::new("local_socket_hyper_thread", self.global_allocator);
+		let thread_local_processing_hyper_thread_additional_dog_stats_d_cache = ThreadLocalNumericAdditionalDogStatsDTagsCache::new("processing_socket_hyper_thread", self.global_allocator);
+		
+		let subscriber = self.queues.subscriber(our_hyper_thread);
+
 		let coroutine_managers = CoroutineManagers::new
 		(
 			self.global_allocator,
 			&self.defaults,
 			&io_uring,
 			&self.queues,
+			our_hyper_thread,
+			&dog_stats_d_publisher,
+			&thread_local_socket_hyper_thread_additional_dog_stats_d_cache,
+			&thread_local_processing_hyper_thread_additional_dog_stats_d_cache,
 			self.transmission_control_protocol_over_internet_protocol_version_4_server_listeners,
 			self.transmission_control_protocol_over_internet_protocol_version_6_server_listeners,
 			self.streaming_unix_domain_socket_server_listener_server_listeners,
@@ -57,9 +70,12 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 				io_uring,
 				registered_buffers,
 				signal_file_descriptor,
-				our_hyper_thread: HyperThread::current().1,
-				queues: self.queues,
+				our_hyper_thread,
 				coroutine_managers,
+				global_allocator,
+				retry_submission_queue_was_full_coroutine_instance_handle: None,
+				dog_stats_d_publisher,
+				subscriber,
 			}
 		)
 	}

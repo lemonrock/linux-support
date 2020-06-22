@@ -120,6 +120,7 @@ impl HyperThread
 	/// Unless this thread has been scheduled to only run on this hyper thread, then the result is close to useless.
 	///
 	/// Prefer `current()`.
+	#[deprecated]
 	pub fn current_hyper_thread() -> Self
 	{
 		let result = unsafe { sched_getcpu() };

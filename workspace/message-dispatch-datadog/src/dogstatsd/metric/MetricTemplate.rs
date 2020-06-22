@@ -15,13 +15,34 @@ pub struct MetricTemplate
 
 impl MetricTemplate
 {
+	/// Creates a new metric template.
+	#[inline(always)]
+	pub fn new_with_common_tags(name: &str) -> Self
+	{
+		Self
+		{
+			name: Name::new(name).unwrap(),
+			tags: DogStatsDTags::common_dog_stats_d_tags(),
+		}
+	}
+	
+	/// Creates a metric message.
+	///
+	/// The message is escaped and truncated to 4000 characters.
+	#[inline(always)]
+	pub fn message<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>(&self, additional_tags: AdditionalDogStatsDTags<CoroutineHeapSize, GTACSA>, metric_value: MetricValue) -> DogStatsDMessage<CoroutineHeapSize, GTACSA>
+	{
+		DogStatsDMessage::Metric(self.with(additional_tags, metric_value))
+	}
+	
 	/// Creates a metric.
 	#[inline(always)]
-	pub fn with(&self, metric_value: MetricValue) -> Metric
+	pub fn with<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>(&self, additional_tags: AdditionalDogStatsDTags<CoroutineHeapSize, GTACSA>, metric_value: MetricValue) -> Metric<CoroutineHeapSize, GTACSA>
 	{
 		Metric
 		{
 			template: self,
+			additional_tags,
 			metric_value,
 		}
 	}

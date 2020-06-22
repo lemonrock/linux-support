@@ -54,4 +54,10 @@ impl SocketData for sockaddr_nl
 	{
 		&self.nl_pid
 	}
+	
+	#[inline(always)]
+	fn display_format(&self, f: &mut Formatter, _address_length: usize) -> fmt::Result
+	{
+		write!(f, "netlink:{}", self.nl_pid)
+	}
 }

@@ -6,16 +6,17 @@ struct AcceptedConnectionMessage<SD: SocketData>
 {
 	accepted_connection: AcceptedConnection<SD>,
 	service_protocol_identifier: ServiceProtocolIdentifier,
+	value: Arc<RemotePeerAddressBasedAccessControlValue>,
 }
 
 impl<SD: SocketData> Message for AcceptedConnectionMessage<SD>
 {
-	type ConstructMessageArguments = (AcceptedConnection<SD>, ServiceProtocolIdentifier);
+	type ConstructMessageArguments = (AcceptedConnection<SD>, ServiceProtocolIdentifier, Arc<RemotePeerAddressBasedAccessControlValue>);
 	
 	#[inline(always)]
 	unsafe fn construct_message(uninitialized_memory: NonNull<Self>, construct_message_arguments: ConstructMessageArguments)
 	{
-		let (accepted_connection, service_protocol_identifier) = construct_message_arguments;
+		let (accepted_connection, service_protocol_identifier, value) = construct_message_arguments;
 		
 		let pointer = uninitialized_memory.as_ptr();
 		pointer.write
@@ -24,6 +25,7 @@ impl<SD: SocketData> Message for AcceptedConnectionMessage<SD>
 			{
 				accepted_connection,
 				service_protocol_identifier,
+				value,
 			}
 		);
 	}

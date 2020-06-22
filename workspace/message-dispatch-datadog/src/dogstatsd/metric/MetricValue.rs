@@ -10,7 +10,7 @@ pub enum MetricValue
 	COUNT
 	{
 		/// Value.
-		value: i64,
+		relative_change: i64,
 		
 		/// Sample rate.
 		sample_rate: Option<SampleRate>,
@@ -62,24 +62,30 @@ pub enum MetricValue
 
 impl MetricValue
 {
+	/// Increment (unsampled).
+	pub const IncrementUnsampled: Self = Self::increment(None);
+	
 	/// Increment.
 	#[inline(always)]
-	pub fn increment(sample_rate: Option<SampleRate>) -> Self
+	pub const fn increment(sample_rate: Option<SampleRate>) -> Self
 	{
 		MetricValue::COUNT
 		{
-			value: 1,
+			relative_change: 1,
 			sample_rate,
 		}
 	}
 	
+	/// Decrement (unsampled).
+	pub const DecrementUnsampled: Self = Self::decrement(None);
+	
 	/// Decrement.
 	#[inline(always)]
-	pub fn decrement(sample_rate: Option<SampleRate>) -> Self
+	pub const fn decrement(sample_rate: Option<SampleRate>) -> Self
 	{
 		MetricValue::COUNT
 		{
-			value: -1,
+			relative_change: -1,
 			sample_rate,
 		}
 	}
@@ -120,7 +126,7 @@ impl MetricValue
 		use self::MetricValue::*;
 		match self
 		{
-			&COUNT { value, sample_rate } => write_sampled_metric(dog_stats_d_writer, value.to_string(), b"|c", sample_rate),
+			&COUNT { relative_change, sample_rate } => write_sampled_metric(dog_stats_d_writer, relative_change.to_string(), b"|c", sample_rate),
 			
 			&GAUGE { value } => write_basic_metric(dog_stats_d_writer, either_value_to_string(value), b"|g"),
 			

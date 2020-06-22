@@ -5,6 +5,7 @@
 use super::*;
 
 
+include!("alert.rs");
 include!("EventAlertType.rs");
 include!("Event.rs");
 include!("EventPriority.rs");

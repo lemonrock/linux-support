@@ -4,41 +4,39 @@
 
 /// Tags.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct DogStatsDTags(ArrayVec<[Cow<'static, DogStatsDTag>; 8]>);
+pub struct DogStatsDTags(ArrayVec<[&'static DogStatsDTag; 16]>);
 
 impl DogStatsDTags
 {
-	/// Push a tag.
+	/// New instance.
 	#[inline(always)]
-	pub fn push(&mut self, tag: impl Into<Cow<'static, DogStatsDTag>>)
+	pub fn new() -> Self
 	{
-		self.0.push(tag.into())
+		Self(ArrayVec::new())
 	}
 	
+	/// Push a tag.
 	#[inline(always)]
-	fn dog_stats_d_write(&self, dog_stats_d_writer: &mut DogStatsDWriter) -> Result<(), ()>
+	pub fn push(&mut self, tag: &'static DogStatsDTag)
 	{
-		if self.0.is_empty()
-		{
-			return Ok(())
-		}
-		
-		dog_stats_d_writer.write_bytes(b"|#")?;
-		
-		let mut after_first = false;
-		for tag in self.0.iter()
-		{
-			if after_first
-			{
-				dog_stats_d_writer.write_comma()?
-			}
-			else
-			{
-				after_first = true
-			}
-			
-			tag.dog_stats_d_write(dog_stats_d_writer)?
-		}
-		Ok(())
+		self.0.push(tag)
+	}
+	
+	/// Common tags.
+	#[inline(always)]
+	pub fn common_dog_stats_d_tags() -> DogStatsDTags
+	{
+		dog_stats_d_tags!
+		[
+			DogStatsDTag::environment(),
+			DogStatsDTag::process_name(),
+			DogStatsDTag::process_identifier(),
+			DogStatsDTag::cargo_name(),
+			DogStatsDTag::cargo_version(),
+			DogStatsDTag::numa_node(),
+			DogStatsDTag::thread_name(),
+			DogStatsDTag::thread_identifier(),
+			DogStatsDTag::hyper_thread()
+		]
 	}
 }

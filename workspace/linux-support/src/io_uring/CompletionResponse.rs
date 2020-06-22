@@ -459,7 +459,11 @@ impl CompletionResponse
 						AcceptedConnection
 						{
 							streaming_socket_file_descriptor: unsafe { StreamingSocketFileDescriptor::from_raw_fd(file_descriptor) },
-							peer_address: pending_accept_connection.peer_address,
+							peer: SocketDataWithLength
+							{
+								address: pending_accept_connection.peer_address,
+								address_length: pending_accept_connection.peer_address_length as usize,
+							},
 						}
 					)
 				)
@@ -1113,12 +1117,12 @@ impl CompletionResponse
 	}
 	
 	/// Returns `None` if cancelled.
-	/// Returns an `Err(true)` if `EIO` or `EINTR`.
-	/// Returns an `Err(false)` if out-of-disk space (`ENOMEM` or `ENOSPC`).
+	/// Returns an `Some(true)` if successful.
+	/// Returns `Some(false)` for `EIO`, `EINTR`, `EAGAIN`, `ENOMEM` or `ENOSPC`.
 	///
 	/// Regardless of the outcome, the caller should consider the underlying file descriptor unusable.
 	#[inline(always)]
-	pub fn close(self) -> Option<()>
+	pub fn close(self) -> Option<bool>
 	{
 		match self.0
 		{
@@ -1126,14 +1130,14 @@ impl CompletionResponse
 			{
 				ECANCELED => None,
 				
-				EIO | EINTR | EAGAIN | ENOMEM | ENOSPC => Some(()),
+				EIO | EINTR | EAGAIN | ENOMEM | ENOSPC => Some(false),
 				
 				EBADF=> panic!("fd isn't a valid open file descriptor."),
 				
 				unexpected @ _ => unreachable!("Unexpected error code from close completion of {}", unexpected),
 			}
 			
-			0 => Some(()),
+			0 => Some(true),
 			
 			unexpected @ _ => unreachable!("Unexpected result from close completion of {}", unexpected)
 		}

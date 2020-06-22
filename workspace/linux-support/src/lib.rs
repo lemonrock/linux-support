@@ -768,6 +768,7 @@ use swiss_army_knife::split::SplitBytes;
 use swiss_army_knife::strings::c_string_pointer_to_path_buf;
 use swiss_army_knife::strings::ConstCStr;
 use swiss_army_knife::strings::CStringExt;
+use swiss_army_knife::strings::format_escaped_ascii_string;
 use swiss_army_knife::strings::FromBytes;
 use swiss_army_knife::strings::LinuxStringEscapeSequence;
 use swiss_army_knife::strings::NonNumericDigitCase;

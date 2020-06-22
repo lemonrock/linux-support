@@ -117,7 +117,7 @@ impl ProcessConfiguration
 	/// Use `ProcessExecutor::execute_securely()` after this.
 	/// Until this is used, the returned `SimpleTerminate` does not affect any thread behaviour.
 	#[inline(always)]
-	pub fn configure(&self, run_as_daemon: bool, file_system_layout: &FileSystemLayout) -> Result<(Arc<impl Terminate>, DefaultPageSizeAndHugePageSizes), ProcessConfigurationError>
+	pub fn configure(&self, run_as_daemon: bool, file_system_layout: &FileSystemLayout, additional_logging_configuration: &mut impl AdditionalLoggingConfiguration) -> Result<(Arc<impl Terminate>, DefaultPageSizeAndHugePageSizes), ProcessConfigurationError>
 	{
 		use self::ProcessConfigurationError::*;
 		
@@ -174,14 +174,14 @@ impl ProcessConfiguration
 		// This *MUST* be called before `configure_global_panic_hook()` which uses backtraces depedant on environment variable settings.
 		self.set_environment_variables_to_minimum_required_and_force_time_zone_to_utc(etc_path)?;
 		
-		// This *MUST* be called before `configure_logging` as `configure_logging` opens sockets (eg to `/dev/log`) that are closed-on-exec.
+		// This *MUST* be called before `configure_logging` as `configure_logging` opens sockets (eg to `/dev/log`) that are closed-on-exec and refers to process identifiers (pids).
 		if run_as_daemon
 		{
 			daemonize(dev_path)
 		}
 		
 		// This *MUST* be called before creating `ParsedPanicErrorLoggerProcessLoggingConfiguration` and thus `SimpleTerminate`.
-		self.configure_logging(dev_path, proc_path, run_as_daemon)?;
+		self.configure_logging(dev_path, proc_path, run_as_daemon, additional_logging_configuration)?;
 		
 		let terminate = SimpleTerminate::new(ParsedPanicErrorLoggerProcessLoggingConfiguration);
 
@@ -217,14 +217,14 @@ impl ProcessConfiguration
 		Ok((terminate, defaults))
 	}
 	
-	fn configure_logging(&self, dev_path: &DevPath, proc_path: &ProcPath, run_as_daemon: bool) -> Result<(), ProcessConfigurationError>
+	fn configure_logging(&self, dev_path: &DevPath, proc_path: &ProcPath, run_as_daemon: bool, additional_logging_configuration: &mut impl AdditionalLoggingConfiguration) -> Result<(), ProcessConfigurationError>
 	{
 		use self::ProcessConfigurationError::*;
 		
 		let internet_protocol_addresses = Self::get_internet_protocol_addresses_using_netlink().map_err(|cause| CouldNotGetInternetProtocolAddressesUsingNetlink(cause))?;
 		let host_name = LinuxKernelHostName::new(proc_path).map_err(CouldNotParseLinuxKernelHostName)?;
 		let domain_name = LinuxKernelDomainName::new(proc_path).map_err(CouldNotParseLinuxKernelDomainName)?;
-		self.logging_configuration.configure_logging(dev_path, !run_as_daemon, &internet_protocol_addresses, host_name.as_ref(), domain_name.as_ref(), &self.name)?;
+		self.logging_configuration.configure_logging(additional_logging_configuration, dev_path, !run_as_daemon, &internet_protocol_addresses, host_name.as_ref(), domain_name.as_ref(), &self.name)?;
 		
 		if run_as_daemon
 		{

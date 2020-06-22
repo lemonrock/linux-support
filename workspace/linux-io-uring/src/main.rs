@@ -4,7 +4,7 @@
 
 use linux_support::configuration::ProcessConfiguration;
 use linux_support::configuration::ProcessExecutor;
-use linux_support::linux_kernel_version::LinuxKernelVersionNumber;
+use linux_support::linux_kernel_version::{LinuxKernelVersionNumber, LinuxKernelHostName, LinuxKernelDomainName};
 use linux_support::paths::FileSystemLayout;
 use linux_support::thread::{ThreadConfiguration, ThreadFunction, ThreadSettings};
 use std::sync::Arc;
@@ -19,10 +19,15 @@ use context_allocator::allocators::binary_search_trees::MultipleBinarySearchTree
 use linux_io_uring::{SimplePerThreadMemoryAllocatorInstantiator, ThreadLoopInitiation, IoUringSettings};
 use linux_support::signals::Signals;
 use message_dispatch::Queues;
-use linux_io_uring::coroutines::accept::{AcceptConnectionsCoroutineSettings, TransmissionControlProtocolServerListenerSettings, ServiceProtocolIdentifier};
+use linux_io_uring::coroutines::accept::{AcceptConnectionsCoroutineSettings, TransmissionControlProtocolServerListenerSettings, ServiceProtocolIdentifier, RemotePeerAddressBasedAccessControlValue};
 use linux_support::file_descriptors::socket::c::{sockaddr_in, sockaddr_in6};
 use std::path::PathBuf;
 use socket_access_control::RemotePeerAddressBasedAccessControl;
+use message_dispatch_datadog::dogstatsd::{DogStatsDTag, Label};
+use linux_support::logging::AdditionalLoggingConfiguration;
+use std::net::IpAddr;
+use linux_support::process::ProcessName;
+use std::error;
 
 
 type CoroutineHeapSize = MemorySize64Kb;
@@ -61,7 +66,20 @@ pub fn main()
 	let main_thread_affinity = xxx;
 	let accept_child_thread_affinity = xxx;
 	
-	let (terminate, defaults) = process_configuration.configure(run_as_daemon, &file_system_layout).expect("Could not configure process");
+	struct ConfigureDataDog
+	{
+	}
+	
+	impl AdditionalLoggingConfiguration for ConfigureDataDog
+	{
+		fn configure(&mut self, host_name: Option<&LinuxKernelHostName>, domain_name: Option<&LinuxKernelDomainName>, internet_protocol_addresses: &[IpAddr], process_name: &ProcessName) -> Result<(), dyn error::Error + 'static>
+		{
+			Label::initialize_host_name(linux_kernel_host_name);
+			DogStatsDTag::initialize_environment(linux_kernel_domain_name);
+		}
+	}
+	
+	let (terminate, defaults) = process_configuration.configure(run_as_daemon, &file_system_layout, &mut configure_data_dog).expect("Could not configure process");
 	
 	{
 		let queues = Queues::one_queue_for_each_hyper_thread(&hyper_threads, message_handlers_and_preferred_maximum_number_of_elements_of_largest_possible_fixed_size_message_body_in_queue_for_hyper_thread, &defaults, inclusive_maximum_bytes_wasted);

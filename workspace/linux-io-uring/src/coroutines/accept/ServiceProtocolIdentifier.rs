@@ -5,3 +5,12 @@
 /// A service protocol identifier, eg SIP over TLS.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ServiceProtocolIdentifier(pub u8);
+
+impl Into<u8> for ServiceProtocolIdentifier
+{
+	#[inline(always)]
+	fn into(self) -> u8
+	{
+		self.0
+	}
+}

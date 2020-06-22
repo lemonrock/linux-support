@@ -5,6 +5,6 @@
 /// Holds data that determines if a connection is permitted.
 pub trait AccessControl<SD: SocketData, Value>
 {
-	/// Is the remote peer allowed based on its address or credentials?
-	fn is_remote_peer_allowed(&self, remote_peer: &AcceptedConnection<SD>) -> Option<&Value>;
+	/// Is the connection allowed based on the remote peer's address or credentials?
+	fn is_remote_peer_allowed(&self, accepted_connection: &AcceptedConnection<SD>) -> Option<&Arc<Value>>;
 }

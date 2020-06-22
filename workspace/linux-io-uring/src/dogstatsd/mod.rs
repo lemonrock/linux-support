@@ -2,20 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A log event.
-#[derive(Debug)]
-pub enum AcceptLogEvent<SD: SocketData>
-{
-	ConnectionDenied
-	{
-		peer_address: SD,
-	},
-	
-	ConnectionFailed(ConnectionFailedReason),
-	
-	PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
-	
-	SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
-	
-	KernelWouldBeOutOfMemory,
-}
+use super::*;
+
+
+include!("DogStatsDMessageSubscribers.rs");
+include!("DogStatsDPublisher.rs");

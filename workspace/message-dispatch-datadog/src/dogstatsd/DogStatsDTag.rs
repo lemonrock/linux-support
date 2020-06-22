@@ -19,13 +19,52 @@
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct DogStatsDTag(ArrayVec<[u8; Self::Length]>);
 
+static mut process_name: Option<DogStatsDTag> = None;
+
 static mut environment: Option<DogStatsDTag> = None;
 
 impl DogStatsDTag
 {
 	const Length: usize = 200;
 	
+	/// Into additional tag.
+	#[inline(always)]
+	pub fn into_additional_dog_stats_d_tag<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>(self, global_allocator: &'static GTACSA) -> AdditionalDogStatsDTag<CoroutineHeapSize, GTACSA>
+	{
+		AdditionalDogStatsDTag::from(self, global_allocator)
+	}
+	
+	/// Process name.
+	///
+	/// Panics if already initialized.
+	#[inline(always)]
+	pub fn initialize_process_name(name: &ProcessName)
+	{
+		unsafe
+		{
+			if process_name.is_none()
+			{
+				process_name = Some(Self::name(name).expect("Invalid name for process_name"));
+			}
+			else
+			{
+				panic!("Already initialized process_name")
+			}
+		}
+	}
+	
+	/// Process name.
+	///
+	/// Panics if not initialized.
+	#[inline(always)]
+	pub fn process_name() -> &'static Self
+	{
+		(unsafe { &process_name }).as_ref().expect("process_name not initialized")
+	}
+	
 	/// Environment name based on Linux kernel domain name; uses first (least specific) label.
+	///
+	/// Panics if already initialized.
 	#[inline(always)]
 	pub fn initialize_environment(linux_kernel_domain_name: &LinuxKernelDomainName)
 	{
@@ -40,10 +79,14 @@ impl DogStatsDTag
 						let mut least_specific_label_iterator = bytes.split_bytes(b'.');
 						let least_specific_label = least_specific_label_iterator.next().unwrap();
 						
-						let _length = Label::validate(least_specific_label).expect("Invalid label");
-						Self::env(least_specific_label).expect("Invalid label for name")
+						let _length = Label::validate(least_specific_label).expect("Invalid linux_kernel_domain_name");
+						Self::env(least_specific_label).expect("Invalid linux_kernel_domain_name for environment")
 					}
 				);
+			}
+			else
+			{
+				panic!("Already initialized environment")
 			}
 		}
 	}
@@ -85,12 +128,84 @@ impl DogStatsDTag
 		{
 			if unlikely!(hyper_thread.is_none())
 			{
-				let current_hyper_thread: u16 = HyperThread::current_hyper_thread().into();
-				let tag = Self::from_name_and_value("hyper_thread", &format!("{}", current_hyper_thread)).unwrap();
-				hyper_thread = Some(tag);
+				hyper_thread = Some(Self::from_u16("hyper_thread", NumaNode::current().1).unwrap());
 			}
 			
 			hyper_thread.as_ref().unwrap()
+		}
+	}
+	
+	/// NUMA node number; initialized once per thread.
+	#[inline(always)]
+	pub fn numa_node() -> &'static Self
+	{
+		#[thread_local] static mut numa_node: Option<DogStatsDTag> = None;
+		
+		unsafe
+		{
+			if unlikely!(numa_node.is_none())
+			{
+				numa_node = Some(Self::from_u16("numa_node", NumaNode::current().0).unwrap());
+			}
+			
+			numa_node.as_ref().unwrap()
+		}
+	}
+	
+	/// From an u8.
+	#[inline(always)]
+	pub fn from_u8(name: impl AsRef<[u8]>, value: impl Into<u8>) -> Result<Self, String>
+	{
+		Self::from_name_and_value(name, &format!("{}", value.into()))
+	}
+	
+	/// From an u16.
+	#[inline(always)]
+	pub fn from_u16(name: impl AsRef<[u8]>, value: impl Into<u16>) -> Result<Self, String>
+	{
+		Self::from_name_and_value(name, &format!("{}", value.into()))
+	}
+	
+	/// From an usize.
+	#[inline(always)]
+	pub fn from_usize(name: impl AsRef<[u8]>, value: impl Into<usize>) -> Result<Self, String>
+	{
+		Self::from_name_and_value(name, &format!("{}", value.into()))
+	}
+	
+	/// Process identifier; initialized once.
+	#[inline(always)]
+	pub fn process_identifier() -> &'static Self
+	{
+		lazy_static!
+		{
+			static ref process_identifier: DogStatsDTag =
+			{
+				let current_process_identifier: pid_t = ProcessIdentifier::default().into();
+				DogStatsDTag::from_name_and_value("process_identifier", &format!("{}", current_process_identifier)).unwrap()
+			};
+		}
+		
+		&process_identifier
+	}
+	
+	/// Thread identifier; initialized once per thread.
+	#[inline(always)]
+	pub fn thread_identifier() -> &'static Self
+	{
+		#[thread_local] static mut thread_identifier: Option<DogStatsDTag> = None;
+		
+		unsafe
+		{
+			if unlikely!(thread_identifier.is_none())
+			{
+				
+				let current_thread_identifier: pid_t = ThreadIdentifier::default().into();
+				let tag = Self::from_name_and_value("thread_identifier", &format!("{}", current_thread_identifier)).unwrap();
+				thread_identifier = Some(tag);
+			}
+			
+			thread_identifier.as_ref().unwrap()
 		}
 	}
 	
@@ -98,14 +213,14 @@ impl DogStatsDTag
 	///
 	/// Panics if package name far too long (exceedingly unlikely).
 	#[inline(always)]
-	pub fn name_cargo() -> &'static Self
+	pub fn cargo_name() -> &'static Self
 	{
 		lazy_static!
 		{
-			static ref name_cargo: DogStatsDTag = DogStatsDTag::name(env!("CARGO_PKG_NAME")).unwrap();
+			static ref cargo_name: DogStatsDTag = DogStatsDTag::from_name_and_value("cargo_name", env!("CARGO_PKG_NAME")).unwrap();
 		}
 		
-		&name_cargo
+		&cargo_name
 	}
 	
 	/// Value of `CARGO_PKG_VERSION`.
@@ -116,7 +231,7 @@ impl DogStatsDTag
 	{
 		lazy_static!
 		{
-			static ref cargo_version: DogStatsDTag = DogStatsDTag::from_name_and_value("version", env!("CARGO_PKG_VERSION")).unwrap();
+			static ref cargo_version: DogStatsDTag = DogStatsDTag::from_name_and_value("cargo_version", env!("CARGO_PKG_VERSION")).unwrap();
 		}
 		
 		&cargo_version
@@ -133,7 +248,7 @@ impl DogStatsDTag
 	#[inline(always)]
 	pub fn instance(value: impl AsRef<[u8]>) -> Result<Self, String>
 	{
-		Self::from_name_and_value("env", value)
+		Self::from_name_and_value("instance", value)
 	}
 	
 	/// Tag-value `name:<value>`.

@@ -4,14 +4,16 @@
 
 /// A DogStatsD metric.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub struct Metric<'a>
+pub struct Metric<'a, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>
 {
 	template: &'a MetricTemplate,
+	
+	additional_tags: AdditionalDogStatsDTags<CoroutineHeapSize, GTACSA>,
 
 	metric_value: MetricValue,
 }
 
-impl<'a> Metric<'a>
+impl<'a, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>> Metric<'a, CoroutineHeapSize, GTACSA>
 {
 	/// Write to a buffer.
 	///
@@ -25,7 +27,7 @@ impl<'a> Metric<'a>
 		dog_stats_d_writer.write_colon()?;
 		self.metric_value.dog_stats_d_write(&mut dog_stats_d_writer)?;
 		
-		self.template.tags.dog_stats_d_write(&mut dog_stats_d_writer)?;
+		self.additional_tags.dog_stats_d_write(&mut dog_stats_d_writer, &self.template.tags)?;
 		
 		dog_stats_d_writer.write_line_feed()?;
 		Ok(dog_stats_d_writer.written_length())

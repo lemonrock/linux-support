@@ -28,12 +28,28 @@ impl Default for EventAlertType
 	#[inline(always)]
 	fn default() -> Self
 	{
-		EventAlertType::Informational
+		Self::Default
 	}
 }
 
 impl EventAlertType
 {
+	const Default: Self = EventAlertType::Informational;
+	
+	/// Is default.
+	#[inline(always)]
+	pub fn is_default(self) -> bool
+	{
+		self == Self::Default
+	}
+	
+	/// Is not default.
+	#[inline(always)]
+	pub fn is_not_default(self) -> bool
+	{
+		self != Self::Default
+	}
+	
 	#[inline(always)]
 	fn to_bytes(self) -> &'static [u8]
 	{

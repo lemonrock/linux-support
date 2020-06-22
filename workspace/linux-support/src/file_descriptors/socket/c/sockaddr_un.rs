@@ -15,7 +15,7 @@ pub struct sockaddr_un
 	/// ***Caution!***
 	///
 	/// If the string is exactly `Self::PathLength` bytes, it is not ASCII NUL terminated.
-	pub sun_path: [c_char; Self::PathLength]
+	pub sun_path: [u8; Self::PathLength]
 }
 
 impl Default for sockaddr_un
@@ -83,7 +83,7 @@ impl Hash for sockaddr_un
 
 impl SocketData for sockaddr_un
 {
-	type Address = [c_char; Self::PathLength];
+	type Address = [u8; Self::PathLength];
 	
 	#[inline(always)]
 	fn family(&self) -> sa_family_t
@@ -98,57 +98,58 @@ impl SocketData for sockaddr_un
 	}
 	
 	#[inline(always)]
+	fn display_format(&self, f: &mut Formatter, address_length: usize) -> fmt::Result
+	{
+		#[inline(always)]
+		fn format_path_bytes(f: &mut Formatter, path_bytes_excluding_terminating_ascii_null: &[u8]) -> fmt::Result
+		{
+			write!(f, "unix:path:")?;
+			format_escaped_ascii_string(path_bytes_excluding_terminating_ascii_null, f)
+		}
+		
+		let borrow_check_hack_as_we_know_only_one_closure_is_executed_with_mutably_borrowed_formatter = f as *mut Formatter;
+		
+		self.use_bytes
+		(
+			address_length,
+			
+			||
+			{
+				let f = unsafe { &mut * borrow_check_hack_as_we_know_only_one_closure_is_executed_with_mutably_borrowed_formatter };
+				write!(f, "unix:unnamed")
+			},
+			
+			|abstract_name|
+			{
+				let f = unsafe { &mut * borrow_check_hack_as_we_know_only_one_closure_is_executed_with_mutably_borrowed_formatter };
+				write!(f, "unix:abstract:")?;
+				format_escaped_ascii_string(abstract_name, f)
+			},
+			
+			|path_bytes_excluding_terminating_ascii_null|
+			{
+				let f = unsafe { &mut * borrow_check_hack_as_we_know_only_one_closure_is_executed_with_mutably_borrowed_formatter };
+				format_path_bytes(f, path_bytes_excluding_terminating_ascii_null)
+			},
+			
+			|path_bytes_excluding_terminating_ascii_null|
+			{
+				let f = unsafe { &mut * borrow_check_hack_as_we_know_only_one_closure_is_executed_with_mutably_borrowed_formatter };
+				format_path_bytes(f, &path_bytes_excluding_terminating_ascii_null[..])
+			}
+		)
+	}
+	
+	#[inline(always)]
 	fn specialized_drop(socket_file_descriptor: &mut SocketFileDescriptor<Self>)
 	{
-		let local_address = socket_file_descriptor.local_address();
+		let address_and_length = socket_file_descriptor.local_address();
 
 		socket_file_descriptor.0.close();
 
-		fn unlink_socket_file_path(local_address: &sockaddr_un, length: usize)
+		if let Ok((address, address_length)) = address_and_length
 		{
-			let is_unnamed = length <= size_of::<sa_family_t>();
-			if unlikely!(is_unnamed)
-			{
-				return
-			}
-
-			const AsciiNull: i8 = 0;
-
-			let first_byte = unsafe { *local_address.sun_path.get_unchecked(0) };
-			let is_abstract = first_byte == AsciiNull;
-			if unlikely!(is_abstract)
-			{
-				return
-			}
-
-			let last_byte = unsafe { *local_address.sun_path.get_unchecked(sockaddr_un::PathLength - 1) };
-			let last_byte_is_zero_terminated = last_byte == AsciiNull;
-			if likely!(last_byte_is_zero_terminated)
-			{
-				unsafe
-				{
-					// NOTE: Result ignored; nothing we can do about it.
-					unlink(local_address.sun_path.as_ptr());
-				}
-			}
-			else
-			{
-				unsafe
-				{
-					#[allow(deprecated)]
-					let mut copy: [c_char; sockaddr_un::PathLength + 1] = uninitialized();
-					copy.as_mut_ptr().copy_from_nonoverlapping(local_address.sun_path.as_ptr(), sockaddr_un::PathLength);
-					*copy.get_unchecked_mut(sockaddr_un::PathLength) = AsciiNull;
-
-					// NOTE: Result ignored; nothing we can do about it.
-					unlink(copy.as_ptr());
-				}
-			}
-		}
-
-		if let Ok((local_address, length)) = local_address
-		{
-			unlink_socket_file_path(&local_address, length)
+			let _ignored_as_nothing_to_be_done_in_drop = address.unlink_socket_file_path(address_length);
 		}
 	}
 }
@@ -157,4 +158,150 @@ impl sockaddr_un
 {
 	/// Length of the `sun_path` entry.
 	pub const PathLength: usize = 108;
+	
+	const PathLengthWithTerminatingAsciiNull: usize = sockaddr_un::PathLength + Self::SizeOfAsciiNull;
+	
+	const AsciiNull: u8 = 0;
+	
+	const SizeOfAsciiNull: usize = 1;
+	
+	const SizeOfFamily: usize = size_of::<sa_family_t>();
+	
+	#[inline(always)]
+	fn unlink_socket_file_path(&self, address_length: usize) -> io::Result<()>
+	{
+		self.use_bytes
+		(
+			address_length,
+			
+			||
+			{
+				Ok(())
+			},
+			
+			|_abstract_name|
+			{
+				Ok(())
+			},
+			
+			|path_bytes_excluding_terminating_ascii_null|
+			{
+				let result = unsafe { unlink(path_bytes_excluding_terminating_ascii_null.as_ptr() as *const i8) };
+				if likely!(result == 0)
+				{
+					Ok(())
+				}
+				else if likely!(result == -1)
+				{
+					Err(io::Error::last_os_error())
+				}
+				else
+				{
+					unreachable!("Unexpected result {} from `unlink()`", result)
+				}
+			},
+			
+			|path_bytes_excluding_terminating_ascii_null|
+			{
+				#[allow(deprecated)]
+				let copy = unsafe
+				{
+					let mut copy: [u8; Self::PathLengthWithTerminatingAsciiNull] = uninitialized();
+					copy.as_mut_ptr().copy_from_nonoverlapping(path_bytes_excluding_terminating_ascii_null.as_ptr(), sockaddr_un::PathLength);
+					*copy.get_unchecked_mut(sockaddr_un::PathLength) = Self::AsciiNull;
+					copy
+				};
+				
+				let result = unsafe { unlink(copy.as_ptr() as *const i8) };
+				if likely!(result == 0)
+				{
+					Ok(())
+				}
+				else if likely!(result == -1)
+				{
+					Err(io::Error::last_os_error())
+				}
+				else
+				{
+					unreachable!("Unexpected result {} from `unlink()`", result)
+				}
+			}
+		)
+	}
+	
+	#[inline(always)]
+	fn use_bytes<R>(&self, address_length: usize, unnamed: impl FnOnce() -> R, abstract_: impl FnOnce(&[u8]) -> R, path_is_ascii_null_terminated: impl FnOnce(&[u8]) -> R, path_is_not_ascii_null_terminated: impl FnOnce(&[u8; Self::PathLength]) -> R) -> R
+	{
+		if Self::is_unnamed(address_length)
+		{
+			unnamed()
+		}
+		else if self.is_abstract()
+		{
+			abstract_(self.abstract_name_excluding_leading_ascii_null(address_length))
+		}
+		else
+		{
+			self.if_path_bytes_less_than_maximum
+			(
+				address_length,
+				path_is_ascii_null_terminated,
+				path_is_not_ascii_null_terminated,
+			)
+		}
+	}
+	
+	#[inline(always)]
+	fn if_path_bytes_less_than_maximum<R>(&self, address_length: usize, path_is_ascii_null_terminated: impl FnOnce(&[u8]) -> R, path_is_not_ascii_null_terminated: impl FnOnce(&[u8; Self::PathLength]) -> R) -> R
+	{
+		let actual_length_of_path_bytes_excluding_terminating_ascii_nul = Self::actual_length_of_path_bytes_excluding_terminating_ascii_nul(address_length);
+		if likely!(Self::path_bytes_less_than_maximum(actual_length_of_path_bytes_excluding_terminating_ascii_nul))
+		{
+			debug_assert_eq!(self.sun_path[actual_length_of_path_bytes_excluding_terminating_ascii_nul], Self::AsciiNull);
+			let path_bytes_excluding_terminating_ascii_null = &self.sun_path[0 .. actual_length_of_path_bytes_excluding_terminating_ascii_nul];
+			path_is_ascii_null_terminated(path_bytes_excluding_terminating_ascii_null)
+		}
+		else
+		{
+			let path_bytes_excluding_terminating_ascii_null = &self.sun_path;
+			path_is_not_ascii_null_terminated(path_bytes_excluding_terminating_ascii_null)
+		}
+	}
+	
+	#[inline(always)]
+	const fn is_unnamed(length: usize) -> bool
+	{
+		length <= Self::SizeOfFamily
+	}
+	
+	#[inline(always)]
+	fn is_abstract(&self) -> bool
+	{
+		let first_byte = unsafe { *self.sun_path.get_unchecked(0) };
+		first_byte == Self::AsciiNull
+	}
+	
+	#[inline(always)]
+	fn abstract_name_excluding_leading_ascii_null(&self, address_length: usize) -> &[u8]
+	{
+		&self.sun_path[Self::SizeOfAsciiNull .. (Self::SizeOfAsciiNull + Self::actual_length_of_abstract_name_bytes_excluding_leading_ascii_nul(address_length))]
+	}
+	
+	#[inline(always)]
+	const fn actual_length_of_abstract_name_bytes_excluding_leading_ascii_nul(address_length: usize) -> usize
+	{
+		address_length - (Self::SizeOfFamily + Self::SizeOfAsciiNull)
+	}
+	
+	#[inline(always)]
+	const fn actual_length_of_path_bytes_excluding_terminating_ascii_nul(address_length: usize) -> usize
+	{
+		address_length - (Self::SizeOfFamily + Self::SizeOfAsciiNull)
+	}
+	
+	#[inline(always)]
+	const fn path_bytes_less_than_maximum(actual_length_of_path_bytes_excluding_terminating_ascii_nul: usize) -> bool
+	{
+		actual_length_of_path_bytes_excluding_terminating_ascii_nul < Self::PathLength
+	}
 }

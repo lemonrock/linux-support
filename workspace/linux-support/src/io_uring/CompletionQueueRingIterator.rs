@@ -51,7 +51,7 @@ impl<'a> Drop for CompletionQueueRingIterator<'a>
 	#[inline(always)]
 	fn drop(&mut self)
 	{
-		self.store_head()
+		self.tell_linux_kernel_all_completion_entries_iterated_so_far_are_finished_with()
 	}
 }
 
@@ -69,13 +69,20 @@ impl<'a> CompletionQueueRingIterator<'a>
 			completion_queue_ring,
 		}
 	}
+	
+	/// Tells Linux kernel all completion entries iterated so far are finished with.
+	#[inline(always)]
+	pub fn tell_linux_kernel_all_completion_entries_iterated_so_far_are_finished_with(&mut self)
+	{
+		self.store_head();
+	}
 
-	/// Tells Linux kernel all completion entries iterated so far are no longer wanted.
+	/// Tells Linux kernel all completion entries iterated so far are finished with.
 	/// Updates to get new list of completion entries available.
 	#[inline(always)]
 	pub fn synchronize(&mut self)
 	{
-		self.store_head();
+		self.tell_linux_kernel_all_completion_entries_iterated_so_far_are_finished_with();
 		self.tail = self.completion_queue_ring.tail.load_acquire()
 	}
 

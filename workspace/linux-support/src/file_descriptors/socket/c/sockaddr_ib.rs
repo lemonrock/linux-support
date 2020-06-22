@@ -62,6 +62,12 @@ impl SocketData for sockaddr_ib
 	{
 		&self.sib_addr
 	}
+	
+	#[inline(always)]
+	fn display_format(&self, f: &mut Formatter, _address_length: usize) -> fmt::Result
+	{
+		write!(f, "infiniband:{}:{}", self.sib_addr, self.sib_sid)
+	}
 }
 
 impl SocketAddress for sockaddr_ib

@@ -28,6 +28,15 @@ impl AsRef<CStr> for ThreadName
 	}
 }
 
+impl AsRef<[u8]> for ThreadName
+{
+	#[inline(always)]
+	fn as_ref(&self) -> &[u8]
+	{
+		self.0.deref()
+	}
+}
+
 impl ToString for ThreadName
 {
 	#[inline(always)]

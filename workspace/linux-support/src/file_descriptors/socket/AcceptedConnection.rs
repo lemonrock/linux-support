@@ -10,5 +10,5 @@ pub struct AcceptedConnection<SD: SocketData>
 	pub streaming_socket_file_descriptor: StreamingSocketFileDescriptor<SD>,
 
 	/// Peer (remote) address.
-	pub peer_address: SD,
+	pub peer: SocketDataWithLength<SD>,
 }

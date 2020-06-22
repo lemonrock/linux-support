@@ -151,6 +151,12 @@ impl SocketData for sockaddr_in
 	{
 		&self.sin_addr
 	}
+	
+	#[inline(always)]
+	fn display_format(&self, f: &mut Formatter, _address_length: usize) -> fmt::Result
+	{
+		write!(f, "ipv4:{}:{}", self.sin_addr, self.sin_port)
+	}
 }
 
 impl SocketAddress for sockaddr_in

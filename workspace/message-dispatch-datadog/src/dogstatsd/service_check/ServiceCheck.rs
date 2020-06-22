@@ -3,9 +3,11 @@
 
 
 /// A DogStatsD service check.
-pub struct ServiceCheck<'a, HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>>
+pub struct ServiceCheck<'a, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>
 {
-	template: &'a ServiceCheckTemplate<HeapSize, GTACSA>,
+	template: &'a ServiceCheckTemplate,
+	
+	additional_tags: AdditionalDogStatsDTags<CoroutineHeapSize, GTACSA>,
 	
 	status: ServiceCheckStatus,
 	
@@ -15,10 +17,10 @@ pub struct ServiceCheck<'a, HeapSize: MemorySize, GTACSA: 'static + GlobalThread
 	/// Additional information or a description of why the status occurred.
 	///
 	/// Empty messages are omitted and not transmitted.
-	message: Text<HeapSize, GTACSA>,
+	message: Text<CoroutineHeapSize, GTACSA>,
 }
 
-impl<'a, HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>> ServiceCheck<'a, HeapSize, GTACSA>
+impl<'a, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>> ServiceCheck<'a, CoroutineHeapSize, GTACSA>
 {
 	/// Write to a buffer.
 	///
@@ -38,13 +40,13 @@ impl<'a, HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitcha
 			dog_stats_d_writer.write_system_time(timestamp)?;
 		}
 		
-		if let Some(ref host_name) = self.template.host_name
+		if let Some(label) = self.template.host_name
 		{
 			dog_stats_d_writer.write_bytes(b"|h:")?;
-			host_name.dog_stats_d_write(&mut dog_stats_d_writer)?;
+			label.dog_stats_d_write(&mut dog_stats_d_writer)?;
 		}
 		
-		self.template.tags.dog_stats_d_write(&mut dog_stats_d_writer)?;
+		self.additional_tags.dog_stats_d_write(&mut dog_stats_d_writer, &self.template.tags)?;
 		
 		if !self.message.is_empty()
 		{

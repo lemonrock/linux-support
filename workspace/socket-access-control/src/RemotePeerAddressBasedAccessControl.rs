@@ -9,8 +9,8 @@ pub struct RemotePeerAddressBasedAccessControl<Value>
 {
 	permitted_protocol_version_4_subnets: LongestPrefixMatchTable<in_addr, Value>,
 	permitted_protocol_version_6_subnets: LongestPrefixMatchTable<in6_addr, Value>,
-	permitted_unix_domain_group_identifiers: HashMap<GroupIdentifier, Value>,
-	permitted_unix_domain_user_identifiers: HashMap<UserIdentifier, Value>,
+	permitted_unix_domain_group_identifiers: HashMap<GroupIdentifier, Arc<Value>>,
+	permitted_unix_domain_user_identifiers: HashMap<UserIdentifier, Arc<Value>>,
 }
 
 impl<Value> RemotePeerAddressBasedAccessControl<Value>
@@ -22,10 +22,10 @@ impl<Value> RemotePeerAddressBasedAccessControl<Value>
 	#[inline(always)]
 	pub fn new
 	(
-		permitted_protocol_version_4_subnets: &BTreeMap<InternetProtocolAddressWithMask<in_addr>, Rc<Value>>,
-		permitted_protocol_version_6_subnets: &BTreeMap<InternetProtocolAddressWithMask<in6_addr>, Rc<Value>>,
-		permitted_unix_domain_group_identifiers: HashMap<GroupIdentifier, Value>,
-		permitted_unix_domain_user_identifiers: HashMap<UserIdentifier, Value>,
+		permitted_protocol_version_4_subnets: &BTreeMap<InternetProtocolAddressWithMask<in_addr>, Arc<Value>>,
+		permitted_protocol_version_6_subnets: &BTreeMap<InternetProtocolAddressWithMask<in6_addr>, Arc<Value>>,
+		permitted_unix_domain_group_identifiers: HashMap<GroupIdentifier, Arc<Value>>,
+		permitted_unix_domain_user_identifiers: HashMap<UserIdentifier, Arc<Value>>,
 	) -> Self
 	{
 		Self
@@ -41,27 +41,27 @@ impl<Value> RemotePeerAddressBasedAccessControl<Value>
 impl<Value> AccessControl<sockaddr_in, Value> for RemotePeerAddressBasedAccessControl<Value>
 {
 	#[inline(always)]
-	fn is_remote_peer_allowed(&self, remote_peer: &AcceptedConnection<sockaddr_in>) -> Option<&Value>
+	fn is_remote_peer_allowed(&self, accepted_connection: &AcceptedConnection<sockaddr_in>) -> Option<&Arc<Value>>
 	{
-		self.permitted_protocol_version_4_subnets.longest_match(&remote_peer.peer_address.sin_addr)
+		self.permitted_protocol_version_4_subnets.longest_match(&accepted_connection.peer.address.sin_addr)
 	}
 }
 
 impl<Value> AccessControl<sockaddr_in6, Value> for RemotePeerAddressBasedAccessControl<Value>
 {
 	#[inline(always)]
-	fn is_remote_peer_allowed(&self, remote_peer: &AcceptedConnection<sockaddr_in6>) -> Option<&Value>
+	fn is_remote_peer_allowed(&self, accepted_connection: &AcceptedConnection<sockaddr_in6>) -> Option<&Arc<Value>>
 	{
-		self.permitted_protocol_version_6_subnets.longest_match(&remote_peer.peer_address.sin6_addr)
+		self.permitted_protocol_version_6_subnets.longest_match(&accepted_connection.peer.address.sin6_addr)
 	}
 }
 
 impl<Value> AccessControl<sockaddr_un, Value> for RemotePeerAddressBasedAccessControl<Value>
 {
 	#[inline(always)]
-	fn is_remote_peer_allowed(&self, remote_peer: &AcceptedConnection<sockaddr_un>) -> Option<&Value>
+	fn is_remote_peer_allowed(&self, accepted_connection: &AcceptedConnection<sockaddr_un>) -> Option<&Arc<Value>>
 	{
-		let credentials = remote_peer.streaming_socket_file_descriptor.remote_peer_credentials();
+		let credentials = accepted_connection.streaming_socket_file_descriptor.remote_peer_credentials();
 		
 		if let Some(value) = self.permitted_unix_domain_group_identifiers.get(&credentials.group_identifier)
 		{

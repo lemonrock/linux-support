@@ -12,6 +12,7 @@ include!("c_string_pointer_to_path_buf.rs");
 include!("ConstCStr.rs");
 include!("CStringExt.rs");
 include!("CStringFragments.rs");
+include!("format_escaped_ascii_string.rs");
 include!("FromBytes.rs");
 include!("LinuxStringEscapeSequence.rs");
 include!("NonNumericDigitCase.rs");

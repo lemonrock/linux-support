@@ -6,9 +6,39 @@
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Label(ArrayVec<[u8; Self::Length]>);
 
+static mut host_name: Option<Label> = None;
+
 impl Label
 {
 	const Length: usize = 63;
+	
+	/// Initialize host name.
+	///
+	/// Panics if already initialized.
+	#[inline(always)]
+	pub fn initialize_host_name(label: &LinuxKernelHostName)
+	{
+		unsafe
+		{
+			if host_name.is_none()
+			{
+				host_name = Some(Self::from_linux_kernel_host_name(label).expect("Invalid label for host_name"));
+			}
+			else
+			{
+				panic!("Already initialized host_name")
+			}
+		}
+	}
+	
+	/// Host name.
+	///
+	/// Panics if not initialized.
+	#[inline(always)]
+	pub fn host_name() -> &'static Self
+	{
+		(unsafe { &host_name }).as_ref().expect("host_name not initialized")
+	}
 	
 	/// New instance.
 	#[inline(always)]

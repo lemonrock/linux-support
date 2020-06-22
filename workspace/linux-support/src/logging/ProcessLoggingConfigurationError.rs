@@ -11,6 +11,9 @@ pub enum ProcessLoggingConfigurationError
 	
 	#[allow(missing_docs)]
 	CouldNotConnectToLocalSyslog(NewSocketClientError),
+	
+	#[allow(missing_docs)]
+	AdditionalLoggingConfigurationFailed(Box<dyn error::Error + 'static>),
 }
 
 impl Display for ProcessLoggingConfigurationError
@@ -34,6 +37,8 @@ impl error::Error for ProcessLoggingConfigurationError
 			&StaticLoggingConfiguration(ref cause) => Some(cause),
 			
 			&CouldNotConnectToLocalSyslog(ref cause) => Some(cause),
+			
+			&AdditionalLoggingConfigurationFailed(ref cause) => Some(cause.as_ref()),
 		}
 	}
 }

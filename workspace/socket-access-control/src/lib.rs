@@ -36,10 +36,9 @@ use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use std::num::NonZeroU8;
-use std::ops::Deref;
-use std::rc::Rc;
 use swiss_army_knife::internet_protocol::InternetProtocolAddress;
 use swiss_army_knife::internet_protocol::InternetProtocolAddressWithMask;
+use std::sync::Arc;
 
 
 /// A longest prefix match table.

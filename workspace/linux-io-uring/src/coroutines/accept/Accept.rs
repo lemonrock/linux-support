@@ -2,165 +2,198 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-struct Accept<'yielder, 'a, SA: SocketAddress, HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>, MessageHandlerArguments>
+struct Accept<'yielder, SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>
 {
 	coroutine_instance_handle: CoroutineInstanceHandle,
 	yielder: Yielder<'yielder, AcceptResumeArguments, AcceptYields, AcceptComplete>,
-	
 	io_uring: Rc<IoUring<'static>>,
 	socket_file_descriptor: StreamingServerListenerSocketFileDescriptor<SA::SD>,
 	remote_peer_based_access_control: RemotePeerAddressBasedAccessControl<RemotePeerAddressBasedAccessControlValue>,
 	service_protocol_identifier: ServiceProtocolIdentifier,
-	accept_publisher: Publisher<'a, AcceptedConnectionMessage<SA::SD>, MessageHandlerArguments, DequeuedMessageProcessingError>,
-	dog_stats_d_publisher: RounbRobinPublisher<'a, DogStatsDMessage<HeapSize, GTACSA>, MessageHandlerArguments, DequeuedMessageProcessingError>,
+	accept_publisher: AcceptPublisher<SA>,
+	dog_stats_d_publisher: DogStatsDPublisher<CoroutineHeapSize, GTACSA>,
+	thread_local_socket_hyper_thread_additional_dog_stats_d_cache: Rc<ThreadLocalNumericAdditionalDogStatsDTagsCache<HyperThread, CoroutineHeapSize, GTACSA>>,
+	thread_local_processing_hyper_thread_additional_dog_stats_d_cache: Rc<ThreadLocalNumericAdditionalDogStatsDTagsCache<HyperThread, CoroutineHeapSize, GTACSA>>,
+	service_protocol_additional_dog_stats_d_tag: AdditionalDogStatsDTag<CoroutineHeapSize, GTACSA>,
 }
 
-impl<'yielder, 'a, SA: SocketAddress, HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>, MessageHandlerArguments> Accept<'yielder, 'a, SA, HeapSize, GTACSA, MessageHandlerArguments>
+impl<'yielder, SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>> Accept<'yielder, SA, CoroutineHeapSize, GTACSA>
 {
-	const KillError: () = ();
+	#[inline(always)]
+	fn new(coroutine_instance_handle: CoroutineInstanceHandle, start_arguments: AcceptStartArguments<SA, CoroutineHeapSize, GTACSA>, yielder: Yielder<AcceptResumeArguments, AcceptYields, AcceptComplete>) -> Self
+	{
+		let (io_uring, accept_publisher, socket_file_descriptor, remote_peer_based_access_control, service_protocol_identifier, dog_stats_d_publisher,  global_allocator, thread_local_socket_hyper_thread_additional_dog_stats_d_cache, thread_local_processing_hyper_thread_additional_dog_stats_d_cache, default_hyper_thread) = start_arguments;
+		
+		Self
+		{
+			coroutine_instance_handle,
+			yielder,
+			io_uring,
+			socket_file_descriptor,
+			remote_peer_based_access_control,
+			service_protocol_identifier,
+			accept_publisher,
+			dog_stats_d_publisher,
+			thread_local_socket_hyper_thread_additional_dog_stats_d_cache,
+			thread_local_processing_hyper_thread_additional_dog_stats_d_cache,
+			service_protocol_additional_dog_stats_d_tag: AdditionalDogStatsDTag::from(DogStatsDTag::from_u8("service_protocol", service_protocol_identifier).unwrap(), global_allocator),
+		}
+	}
 	
 	#[inline(always)]
-	fn submit_accept(&mut self, pending_accept_connection: &mut PendingAcceptConnection<SA::SD>) -> bool
+	fn yield_submit_accept(&mut self, pending_accept_connection: &mut PendingAcceptConnection<SA::SD>) -> bool
 	{
-		// TODO: We have a full submission queue - now what?
-		// TODO: We want to be woken up again WITHOUT any completions due - this might be needed in other coroutines.
-		xxxx;
-		
-		let empty1 = SubmissionQueueEntryOptions::empty();
-		let origin = FileDescriptorOrigin::Absolute(&self.socket_file_descriptor);
-		
-		const SubmissionSucceeded: Result<(), ()> = Ok(());
-		const SubmissionQueueIsFull: Result<(), ()> = Err(());
-		
-		loop
-		{
-			use self::AcceptResumeArguments::*;
-			
-			match io_uring.push_submission_queue_entry(|submission_queue_entry| submission_queue_entry.prepare_accept(self.coroutine_instance_handle, empty1, None, origin, &mut pending_accept_connection))
-			{
-				SubmissionSucceeded => return false,
-				
-				SubmissionQueueIsFull => match self.yielder.yields(AcceptYields::SubmissionQueueFull, Self::KillError)
-				{
-					Ok(TrySubmissionQueueAgain) => continue,
-					
-					Ok(Accepted(_, _)) => unreachable!("Logic design flaw"),
-					
-					Err(_kill_error) => return true
-				}
-			}
-		}
+		AcceptYields::yield_submit_io_uring(&self.yielder, &self.io_uring, |submission_queue_entry| submission_queue_entry.prepare_accept(self.coroutine_instance_handle, Self::NoSubmissionOptions, None, FileDescriptorOrigin::Absolute(&self.socket_file_descriptor), pending_accept_connection))
 	}
 	
 	#[inline(always)]
 	fn yield_awaiting_accept(&mut self) -> Result<CompletionResponse, ()>
 	{
-		use self::AcceptResumeArguments::*;
+		AcceptYields::yield_awaiting_io_uring(&self.yielder)
+	}
+	
+	#[inline(always)]
+	fn process_accept(&mut self, completion_response: CompletionResponse, pending_accept_connection: PendingAcceptConnection<SA::SD>) -> bool
+	{
+		use self::SocketAcceptError::*;
+		use self::ConnectionFailedReason::*;
 		
-		match self.yielder.yields(AcceptYields::AwaitingIoUring, Self::KillError)
+		macro_rules! log
 		{
-			Ok(Accepted(UserBits::Zero, completion_response)) => Ok(completion_response),
+			($self: ident, $title: literal, $aggregation_key: literal, $priority: ident, $alert_type: ident) =>
+			{
+				{
+					$self.log(alert!($title, $aggregation_key, $priority, $alert_type), format_args!(""))
+				}
+			}
+		}
+		
+		match completion_response.accept(pending_accept_connection)
+		{
+			Ok(Some(accepted_connection)) => match accept.remote_peer_based_access_control.is_remote_peer_allowed(&accepted_connection)
+			{
+				Some(value) => self.use_wanted_connection(accepted_connection, value),
+				
+				None => self.close_unwanted_connection(accepted_connection),
+			}
+
+			Ok(None) => unreachable!("Logic error: who cancelled our accept?"),
+
+			Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded) => log!(self, "PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded", "PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded", Normal, Error),
 			
-			Ok(Accepted(_, _)) => unreachable!("Logic design flaw"),
+			Err(SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded) => log!(self, "SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded", "SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded", Normal, Error),
 			
-			Ok(TrySubmissionQueueAgain) => unreachable!("Logic design flaw"),
+			Err(KernelWouldBeOutOfMemory) => log!(self, "KernelWouldBeOutOfMemory", "KernelWouldBeOutOfMemory", Normal, Error),
 			
-			Err(_kill_error) => Err(())
+			Err(Again) => unreachable!("Our socket is supposed to be blocking"),
+			
+			Err(Interrupted) => log!(self, "Interrupted", "Interrupted", Low, Informational),
+			
+			Err(ConnectionFailed(Aborted)) => log!(self, "ConnectionFailed::Aborted", "ConnectionFailed", Low, Informational),
+			
+			Err(ConnectionFailed(FirewallPermissionDenied)) => log!(self, "ConnectionFailed::FirewallPermissionDenied", "ConnectionFailed", Low, Informational),
+			
+			Err(ConnectionFailed(TimedOut)) => log!(self, "ConnectionFailed::TimedOut", "ConnectionFailed", Low, Informational),
+			
+			Err(ConnectionFailed(Protocol)) => log!(self, "ConnectionFailed::Protocol", "ConnectionFailed", Low, Informational),
 		}
 	}
 	
 	#[inline(always)]
-	fn process_accept(&mut self, completion_response: CompletionResponse, pending_accept_connection: PendingAcceptConnection<SA::SD>)
+	fn use_wanted_connection(&self, accepted_connection: AcceptedConnection<SA::SD>, value: &Arc<RemotePeerAddressBasedAccessControlValue>) -> bool
 	{
-		use self::SocketAcceptError::*;
-		
-		match completion_response.accept(pending_accept_connection)
-		{
-			Ok(Some(accepted_connection)) => match self.remote_peer_based_access_control.is_remote_peer_allowed(&accepted_connection)
-			{
-				None =>
-				{
-					xxxx; // we need a different yield to close an unwanted file descriptor!!!
-					// TODO: We need to integrate with Linux firewall iptables to directly allow or deny a connection for an ip address. Oh F--k if we have to use netlink
-					// Can use setsockopt(sock, SOL_SOCKET, SO_ATTACH_BPF, &prog_fd, sizeof(prog_fd)) to attach eBPF.
-					//where prog_fd was received from syscall bpf(BPF_PROG_LOAD, attr, ...)
-					// and attr->prog_type == BPF_PROG_TYPE_SOCKET_FILTER
-					// See <https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=89aa075832b0da4402acebd698d0411dcc82d03e>
-					
-					self.log(AcceptLogEvent { peer_address: accepted_connection.peer_address })
-				}
-				
-				// TODO: CLose file descriptor
-				xxx;
-				
-				Some(value) =>
-				{
-					let to_hyper_thread = accepted_connection.streaming_socket_file_descriptor.hyper_thread();
-					
-					// TODO: Look up HyperThread to find NUMA node. Then round robin over online hyper threads in that NUMA node.
-					xxx;
-					
-					let _actual_hyper_thread = self.publisher.publish(to_hyper_thread, (accepted_connection, self.service_protocol_identifier));
-				}
-			}
-
-			Ok(None) => unreachable!("Logic error: who cancelled our accept?"),
-			
-			Err(Again) => unreachable!("Our socket is supposed to be blocking"),
-			
-			ConnectionFailed(reason) => self.log(AcceptLogEvent::ConnectionFailed(reason)),
-
-			Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded) => self.log(AcceptLogEvent::PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
-			Err(SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded) => self.log(AcceptLogEvent::SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded),
-			Err(KernelWouldBeOutOfMemory) => self.log(AcceptLogEvent::KernelWouldBeOutOfMemory),
-
-			Err(Interrupted) => (),
-		}
+		let socket_hyper_thread = accepted_connection.streaming_socket_file_descriptor.hyper_thread();
+		let processing_hyper_thread = self.accept_publisher.publish(socket_hyper_thread, accepted_connection, self.service_protocol_identifier, value);
+		self.increment_connection_count(socket_hyper_thread, processing_hyper_thread);
+		false
 	}
 	
-	fn log(&mut self, log_event: AcceptLogEvent<SA::SD>)
+	#[inline(always)]
+	fn close_unwanted_connection(&self, accepted_connection: AcceptedConnection<SA::SD>) -> bool
 	{
-		// IDEA: Use our messages queue to get this off the critical path of this thread and use a logging thread.
+		self.log(alert!("ConnectionDenied", "ConnectionDenied", Low, Informational), format_args!("{}", accepted_connection.peer));
 		
-		// IDEA: it's really not that hard to send RawSpan messages to DataDog using OpenTracing: https://github.com/pipefy/datadog-apm-rust/blob/master/src/client.rs
+		let streaming_socket_file_descriptor = accepted_connection.streaming_socket_file_descriptor;
 		
-		// IDEA: Also for dogstatsd: https://github.com/mcasper/dogstatsd-rs (eg <https://github.com/mcasper/dogstatsd-rs/blob/master/src/metrics.rs#L3> for the guts of a formatted metric sent over UDP)
-			// Can also use Unix domain sockets: `statsd_socket_path` / <https://docs.datadoghq.com/developers/dogstatsd/?tab=hostagent#client-instantiation-parameters>
-			// Supports metrics, events, and service checks.
-			// * Service Check:  https://docs.datadoghq.com/developers/service_checks/dogstatsd_service_checks_submission/?tab=python#function
-		// IDEA: Alternative to DataDog insecure DogStatsD agent is to use code to forward over TLS eg <https://github.com/dirk/metrics_distributor/blob/master/src/forwarders/datadog.rs>
-			// See <http://docs.datadoghq.com/api/>
-		xxx;
-		
-		static event_template: EventTemplate<HeapSize, GTACSA> = EventTemplate
+		let killed = self.yield_submit_close(&streaming_socket_file_descriptor);
+		if unlikely!(killed)
 		{
-			title: Name::new(),
-			tags: dog_stats_d_tags!
-			{
-				DogStatsDTag::name_cargo(),
-				DogStatsDTag::cargo_version(),
-				DogStatsDTag::hyper_thread(),
-				DogStatsDTag::thread_name(),
-				DogStatsDTag::env(),
-			},
-			host_name: Option<HostNameLabel>,
-			global_allocator: &'static GTACSA,
-			global_allocator_marker: PhantomData>,
-			priority: EventPriority,
-			alert_type: EventAlertType,
-			aggregation_key:
-			aggregation_key: Option<ArrayString<[u8; 100]>>,
-			source_type_name: Option<SourceTypeName>,
-			
+			return true
 		}
 		
-		DogStatsDMessage::Event
-		(
+		let completion_response = match accept.yield_awaiting_close()
+		{
+			Ok(completion_response) => completion_response,
+			Err(()) => return true,
+		};
 		
-		)
-		
-		
-		self.dog_stats_d_publisher.publish(construct_message_arguments: M::ConstructMessageArguments)
-		// TODO: Publish statsd messages over unix domain socket
+		self.process_close(completion_response, streaming_socket_file_descriptor)
 	}
+	
+	#[inline(always)]
+	fn yield_submit_close(&mut self, streaming_socket_file_descriptor: &StreamingSocketFileDescriptor<SA::SD>) -> bool
+	{
+		AcceptYields::yield_submit_io_uring(&self.yielder, &self.io_uring, |submission_queue_entry| submission_queue_entry.prepare_close(self.coroutine_instance_handle, Self::NoSubmissionOptions, None, &accepted_connection.streaming_socket_file_descriptor))
+	}
+	
+	#[inline(always)]
+	fn yield_awaiting_close(&self) -> Result<CompletionResponse, ()>
+	{
+		AcceptYields::yield_awaiting_io_uring(&self.yielder)
+	}
+	
+	#[inline(always)]
+	fn process_close(&self, completion_response: CompletionResponse, streaming_socket_file_descriptor: StreamingSocketFileDescriptor<SD>) -> bool
+	{
+		forget(streaming_socket_file_descriptor);
+		
+		match completion_response.close()
+		{
+			Some(false) => (),
+			
+			Some(true) => self.log(alert!("ConnectionDenied::CloseError", "ConnectionDenied", Low, Informational), format_args!("")),
+			
+			None => unreachable!("Logic error: who cancelled our close?"),
+		}
+		
+		false
+	}
+	
+	#[inline(always)]
+	fn log(&mut self, alert: &'static EventTemplate, message: Arguments)
+	{
+		let additional_tags = additional_dog_stats_d_tags!
+		[
+			self.service_protocol_additional_dog_stats_d_tag()
+		];
+		self.dog_stats_d_publisher.log(alert, additional_tags, message)
+	}
+	
+	#[inline(always)]
+	fn increment_connection_count(&mut self, socket_hyper_thread: HyperThread, processing_hyper_thread: HyperThread)
+	{
+		#[thread_local] static IncrementConnectionCount: MetricTemplate = MetricTemplate::new_with_common_tags("connection.count");
+		
+		self.dog_stats_d_publisher.publish
+		(
+			IncrementConnectionCount.message
+			(
+				additional_dog_stats_d_tags!
+				[
+					self.service_protocol_additional_dog_stats_d_tag(),
+					self.thread_local_socket_hyper_thread_additional_dog_stats_d_cache.get(socket_hyper_thread),
+					self.thread_local_processing_hyper_thread_additional_dog_stats_d_cache.get(processing_hyper_thread)
+				],
+				MetricValue::IncrementUnsampled
+			)
+		)
+	}
+	
+	#[inline(always)]
+	fn service_protocol_additional_dog_stats_d_tag(&self) -> AdditionalDogStatsDTag<CoroutineHeapSize, GTACSA>
+	{
+		self.service_protocol_additional_dog_stats_d_tag.clone()
+	}
+	
+	const NoSubmissionOptions: SubmissionQueueEntryOptions = SubmissionQueueEntryOptions::empty();
 }

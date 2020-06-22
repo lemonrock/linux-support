@@ -8,9 +8,6 @@ pub enum DispatchIoUringError<NonCoroutineHandlerError: error::Error>
 {
 	#[allow(missing_docs)]
 	NonCoroutine(NonCoroutineHandlerError),
-	
-	#[allow(missing_docs)]
-	NewSocketServerListener(NewSocketServerListenerError),
 }
 
 impl<NonCoroutineHandlerError: error::Error> Display for DispatchIoUringError<NonCoroutineHandlerError>
@@ -32,8 +29,6 @@ impl<NonCoroutineHandlerError: error::Error> error::Error for DispatchIoUringErr
 		match self
 		{
 			&NonCoroutine(ref error) => Some(error),
-			
-			&NewSocketServerListener(ref error) => Some(error),
 		}
 	}
 }

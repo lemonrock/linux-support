@@ -7,6 +7,15 @@
 #[repr(transparent)]
 pub struct ProcessIdentifier(NonZeroI32);
 
+impl Display for ProcessIdentifier
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "{}", self.0)
+	}
+}
+
 impl Default for ProcessIdentifier
 {
 	#[inline(always)]

@@ -4,7 +4,7 @@
 
 /// A DogStatsD service check template, intending for use with `lazy_static!` initialization.
 #[derive(Debug)]
-pub struct ServiceCheckTemplate<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>
+pub struct ServiceCheckTemplate
 {
 	/// Name.
 	pub name: Name,
@@ -13,31 +13,35 @@ pub struct ServiceCheckTemplate<CoroutineHeapSize: MemorySize, GTACSA: 'static +
 	pub tags: DogStatsDTags,
 	
 	/// Defaults to recipient's idea of host.
-	pub host_name: Option<Label>,
-	
-	/// Global allocator.
-	pub global_allocator: &'static GTACSA,
-	
-	/// Pointless.
-	pub global_allocator_marker: PhantomData<CoroutineHeapSize>,
+	pub host_name: Option<&'static Label>,
 }
 
-impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>> ServiceCheckTemplate<CoroutineHeapSize, GTACSA>
+impl ServiceCheckTemplate
 {
+	/// Creates a service check message.
+	///
+	/// The message is escaped and truncated to 4000 characters.
+	#[inline(always)]
+	pub fn message<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>(&self, additional_tags: AdditionalDogStatsDTags<CoroutineHeapSize, GTACSA>, status: ServiceCheckStatus, message: Arguments, global_allocator: &'static GTACSA) -> DogStatsDMessage<CoroutineHeapSize, GTACSA>
+	{
+		DogStatsDMessage::ServiceCheck(self.with(additional_tags, status, message, global_allocator))
+	}
+	
 	/// Creates a service check.
 	///
 	/// The message is escaped and truncated to 500 characters.
 	#[inline(always)]
-	pub fn with(&self, status: ServiceCheckStatus, message: Arguments) -> ServiceCheck<CoroutineHeapSize, GTACSA>
+	pub fn with<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>(&self, additional_tags: AdditionalDogStatsDTags<CoroutineHeapSize, GTACSA>, status: ServiceCheckStatus, message: Arguments, global_allocator: &'static GTACSA) -> ServiceCheck<CoroutineHeapSize, GTACSA>
 	{
 		let timestamp = Some(SystemTime::now());
 		
 		ServiceCheck
 		{
 			template: self,
+			additional_tags,
 			status,
 			timestamp,
-			message: Text::escape_for_service_check(self.global_allocator, message),
+			message: Text::escape_for_service_check(global_allocator, message),
 		}
 	}
 }

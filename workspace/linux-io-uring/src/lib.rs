@@ -24,7 +24,9 @@ assert_cfg!(target_os = "linux");
 assert_cfg!(target_pointer_width = "64");
 
 
+use self::coroutines::*;
 use self::coroutines::accept::*;
+use self::dogstatsd::*;
 use self::registered_buffers::*;
 use arrayvec::Array;
 use arrayvec::ArrayString;
@@ -67,14 +69,28 @@ use magic_ring_buffer::memory_sizes::*;
 use maplit::hashset;
 use message_dispatch::Message;
 use message_dispatch::Publisher;
+use message_dispatch::RoundRobinPublisher;
 use message_dispatch::Queues;
+use message_dispatch::Subscriber;
+use message_dispatch_datadog::additional_dog_stats_d_tags;
+use message_dispatch_datadog::alert;
 use message_dispatch_datadog::dog_stats_d_tags;
+use message_dispatch_datadog::dogstatsd::AdditionalDogStatsDTag;
+use message_dispatch_datadog::dogstatsd::AdditionalDogStatsDTags;
 use message_dispatch_datadog::dogstatsd::DogStatsDMessage;
 use message_dispatch_datadog::dogstatsd::DogStatsDTag;
 use message_dispatch_datadog::dogstatsd::DogStatsDTags;
+use message_dispatch_datadog::dogstatsd::Label;
 use message_dispatch_datadog::dogstatsd::Name;
+use message_dispatch_datadog::dogstatsd::ThreadLocalNumericAdditionalDogStatsDTagsCache;
 use message_dispatch_datadog::dogstatsd::event::Event;
+use message_dispatch_datadog::dogstatsd::event::EventAlertType;
+use message_dispatch_datadog::dogstatsd::event::EventPriority;
 use message_dispatch_datadog::dogstatsd::event::EventTemplate;
+use message_dispatch_datadog::dogstatsd::event::SourceTypeName;
+use message_dispatch_datadog::dogstatsd::metric::Metric;
+use message_dispatch_datadog::dogstatsd::metric::MetricTemplate;
+use message_dispatch_datadog::dogstatsd::metric::MetricValue;
 use serde::Deserialize;
 use serde::Serialize;
 use std::alloc::AllocErr;
@@ -83,11 +99,13 @@ use std::cmp::min;
 use std::convert::Infallible;
 use std::error;
 use std::fmt;
+use std::fmt::Arguments;
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::io;
 use std::marker::PhantomData;
+use std::mem::forget;
 use std::net::SocketAddrV4;
 use std::num::NonZeroUsize;
 use std::num::NonZeroU16;
@@ -108,6 +126,9 @@ use terminate::Terminate;
 pub mod coroutines;
 
 
+mod dogstatsd;
+
+
 mod registered_buffers;
 
 
@@ -117,9 +138,9 @@ mod thread_local_allocator;
 include!("CoroutineManagers.rs");
 include!("DequeuedMessageProcessingError.rs");
 include!("DispatchIoUringError.rs");
-include!("DogStatsDMessageSubscribers.rs");
 include!("IoUringSettings.rs");
 include!("IoUringSetupError.rs");
+include!("MessageHandlerArguments.rs");
 include!("ThreadLoopInitiation.rs");
 include!("ThreadLoopInitializationError.rs");
 include!("ThreadLoop.rs");

@@ -28,6 +28,15 @@ impl AsRef<CStr> for ProcessName
 	}
 }
 
+impl AsRef<[u8]> for ProcessName
+{
+	#[inline(always)]
+	fn as_ref(&self) -> &[u8]
+	{
+		self.0.deref()
+	}
+}
+
 impl ToString for ProcessName
 {
 	#[inline(always)]

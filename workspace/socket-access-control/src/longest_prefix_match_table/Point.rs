@@ -10,7 +10,7 @@ struct Point<Value>
 
 impl<Value> Point<Value>
 {
-	fn longest_match_next<'a, 'b>(&'a self, remaining_bytes: &'b [u8]) -> Option<&'a Value>
+	fn longest_match_next<'a, 'b>(&'a self, remaining_bytes: &'b [u8]) -> Option<&'a Arc<Value>>
 	{
 		debug_assert_ne!(remaining_bytes.len(), 0);
 		
@@ -31,11 +31,11 @@ impl<Value> Point<Value>
 		match match_entry.partial
 		{
 			None => None,
-			Some(ref value) => Some(value.deref())
+			Some(ref value) => Some(value)
 		}
 	}
 	
-	fn add_from_root<'a, 'b, IPA: InternetProtocolAddress>(&'a mut self, internet_protocol_address_with_mask: &'b InternetProtocolAddressWithMask<IPA>, value: &'b Rc<Value>)
+	fn add_from_root<'a, 'b, IPA: InternetProtocolAddress>(&'a mut self, internet_protocol_address_with_mask: &'b InternetProtocolAddressWithMask<IPA>, value: &'b Arc<Value>)
 	{
 		let remaining_mask_length_in_bits = internet_protocol_address_with_mask.mask_length_in_bits;
 		
@@ -46,7 +46,7 @@ impl<Value> Point<Value>
 	
 	// We must add in sort order, with remaining_mask_bits from 1 to 32, say (least specific to most specific).
 	// Sort order is ordered by `remaining_mask_length_in_bits` then `remaining_bytes`.
-	fn add<'a, 'b>(&'a mut self, remaining_bytes: &[u8], remaining_mask_length_in_bits: NonZeroU8, value: &'b Rc<Value>)
+	fn add<'a, 'b>(&'a mut self, remaining_bytes: &[u8], remaining_mask_length_in_bits: NonZeroU8, value: &'b Arc<Value>)
 	{
 		debug_assert_ne!(remaining_bytes.len(), 0);
 		

@@ -3,19 +3,19 @@
 
 
 /// A message to send between threads.
-pub enum DogStatsDMessage<'a, HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>>
+pub enum DogStatsDMessage<'a, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>
 {
 	/// Metric.
-	Metric(Metric<'a>),
+	Metric(Metric<'a, CoroutineHeapSize, GTACSA>),
 	
 	/// Event.
-	Event(Event<'a, HeapSize, GTACSA>),
+	Event(Event<'a, CoroutineHeapSize, GTACSA>),
 	
 	/// Service check.
-	ServiceCheck(ServiceCheck<'a, HeapSize, GTACSA>),
+	ServiceCheck(ServiceCheck<'a, CoroutineHeapSize, GTACSA>),
 }
 
-impl<'a, HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>> Message for DogStatsDMessage<'a, HeapSize, GTACSA>
+impl<'a, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>> Message for DogStatsDMessage<'a, CoroutineHeapSize, GTACSA>
 {
 	type ConstructMessageArguments = Self;
 	

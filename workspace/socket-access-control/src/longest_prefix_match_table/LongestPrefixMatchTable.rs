@@ -11,7 +11,7 @@ impl<IPA: InternetProtocolAddress, Value> LongestPrefixMatchTable<IPA, Value>
 	/// Populates by sorting the entries from those with shortest mask length to those with the longest.
 	///
 	/// If exact matches are wanted, retain `subnets`.
-	pub fn new(subnets: &BTreeMap<InternetProtocolAddressWithMask<IPA>, Rc<Value>>) -> Self
+	pub fn new(subnets: &BTreeMap<InternetProtocolAddressWithMask<IPA>, Arc<Value>>) -> Self
 	{
 		let mut root = Point::new();
 		for (internet_protocol_address_with_mask, value) in subnets.iter()
@@ -23,7 +23,7 @@ impl<IPA: InternetProtocolAddress, Value> LongestPrefixMatchTable<IPA, Value>
 	
 	/// Longest match.
 	#[inline(always)]
-	pub fn longest_match<'a>(&'a self, internet_protocol_address: &IPA) -> Option<&'a Value>
+	pub fn longest_match<'a>(&'a self, internet_protocol_address: &IPA) -> Option<&'a Arc<Value>>
 	{
 		let remaining_bytes = internet_protocol_address.bytes();
 		self.0.longest_match_next(remaining_bytes)

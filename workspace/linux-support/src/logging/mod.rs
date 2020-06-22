@@ -19,6 +19,7 @@ pub mod rfc3164;
 pub mod rfc5424;
 
 
+include!("AdditionalLoggingConfiguration.rs");
 include!("Facility.rs");
 include!("KnownFacility.rs");
 include!("LocalSyslogSocket.rs");

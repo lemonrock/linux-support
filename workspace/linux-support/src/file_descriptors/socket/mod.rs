@@ -77,6 +77,7 @@ include!("SocketBindError.rs");
 include!("SocketConnect.rs");
 include!("SocketConnectError.rs");
 include!("SocketData.rs");
+include!("SocketDataWithLength.rs");
 include!("SocketFileDescriptor.rs");
 include!("SocketLingerSeconds.rs");
 include!("SocketListenError.rs");

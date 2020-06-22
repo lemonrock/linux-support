@@ -155,6 +155,12 @@ impl SocketData for sockaddr_in6
 	{
 		&self.sin6_addr
 	}
+	
+	#[inline(always)]
+	fn display_format(&self, f: &mut Formatter, _address_length: usize) -> fmt::Result
+	{
+		write!(f, "ipv6:[{}]:{}", self.sin6_addr, self.sin6_port)
+	}
 }
 
 impl SocketAddress for sockaddr_in6

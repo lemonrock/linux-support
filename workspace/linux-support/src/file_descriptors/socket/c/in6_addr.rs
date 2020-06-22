@@ -26,6 +26,16 @@ impl Default for in6_addr
 	}
 }
 
+impl Display for in6_addr
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		let ipv6: &Ipv6Addr = unsafe { transmute(self) };
+		Display::fmt(ipv6, f)
+	}
+}
+
 impl Debug for in6_addr
 {
 	#[inline(always)]

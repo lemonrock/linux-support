@@ -77,7 +77,11 @@ impl<SD: SocketData> StreamingServerListenerSocketFileDescriptor<SD>
 				AcceptedConnection
 				{
 					streaming_socket_file_descriptor: StreamingSocketFileDescriptor(SocketFileDescriptor(result, PhantomData)),
-					peer_address
+					peer: SocketDataWithLength
+					{
+						address: peer_address,
+						address_length: peer_address_length as usize,
+					},
 				}
 			)
 		}

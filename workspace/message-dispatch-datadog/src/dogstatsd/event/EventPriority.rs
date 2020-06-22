@@ -20,12 +20,28 @@ impl Default for EventPriority
 	#[inline(always)]
 	fn default() -> Self
 	{
-		EventPriority::Normal
+		Self::Default
 	}
 }
 
 impl EventPriority
 {
+	const Default: Self = EventPriority::Normal;
+	
+	/// Is default.
+	#[inline(always)]
+	pub fn is_default(self) -> bool
+	{
+		self == Self::Default
+	}
+	
+	/// Is not default.
+	#[inline(always)]
+	pub fn is_not_default(self) -> bool
+	{
+		self != Self::Default
+	}
+	
 	#[inline(always)]
 	fn to_bytes(self) -> &'static [u8]
 	{

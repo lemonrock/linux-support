@@ -39,6 +39,7 @@ use std::alloc::AllocRef;
 use std::alloc::dealloc;
 use std::alloc::Global;
 use std::alloc::Layout;
+use std::ascii::escape_default;
 use std::array::TryFromSliceError;
 use std::cmp::max;
 use std::cmp::min;

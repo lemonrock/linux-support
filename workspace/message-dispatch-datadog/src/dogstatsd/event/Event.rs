@@ -3,19 +3,26 @@
 
 
 /// A DogStatsD event.
+///
+/// When using the HTTP JSON based API events can have the additional fields:-
+///
+/// * `device_name`: a list of device name strings.
+/// * `related_event_id`: An integer to a related DataDog event.
 #[derive(Debug)]
-pub struct Event<'a, HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>>
+pub struct Event<'a, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>
 {
-	template: &'a EventTemplate<HeapSize, GTACSA>,
+	template: &'a EventTemplate,
+	
+	additional_tags: AdditionalDogStatsDTags<CoroutineHeapSize, GTACSA>,
 	
 	/// Defaults to UNIX epoch at recipient.
 	timestamp: Option<SystemTime>,
 	
 	/// Limited to 4000 bytes.
-	message: Text<HeapSize, GTACSA>,
+	message: Text<CoroutineHeapSize, GTACSA>,
 }
 
-impl<'a, HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<HeapSize>> Event<'a, HeapSize, GTACSA>
+impl<'a, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>> Event<'a, CoroutineHeapSize, GTACSA>
 {
 	/// Write to a buffer.
 	///
@@ -42,19 +49,19 @@ impl<'a, HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitcha
 			dog_stats_d_writer.write_system_time(timestamp)?;
 		}
 		
-		if let Some(ref host_name) = self.template.host_name
+		if let Some(label) = self.template.host_name
 		{
 			dog_stats_d_writer.write_bytes(b"|h:")?;
-			host_name.dog_stats_d_write(&mut dog_stats_d_writer)?;
+			label.dog_stats_d_write(&mut dog_stats_d_writer)?;
 		}
 		
-		if let Some(ref aggregation_key) = self.template.aggregation_key
+		if let Some(aggregation_key) = self.template.aggregation_key
 		{
 			dog_stats_d_writer.write_bytes(b"|k:")?;
 			dog_stats_d_writer.write_array_string(aggregation_key)?;
 		}
 		
-		if self.template.priority != EventPriority::default()
+		if self.template.priority.is_not_default()
 		{
 			dog_stats_d_writer.write_bytes(b"|p:")?;
 			dog_stats_d_writer.write_bytes(self.template.priority.to_bytes())?;
@@ -66,13 +73,13 @@ impl<'a, HeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitcha
 			dog_stats_d_writer.write_bytes(source_type_name.to_bytes())?;
 		}
 		
-		if self.template.alert_type != EventAlertType::default()
+		if self.template.alert_type.is_not_default()
 		{
 			dog_stats_d_writer.write_bytes(b"|t:")?;
 			dog_stats_d_writer.write_bytes(self.template.alert_type.to_bytes())?;
 		}
 		
-		self.template.tags.dog_stats_d_write(&mut dog_stats_d_writer)?;
+		self.additional_tags.dog_stats_d_write(&mut dog_stats_d_writer, &self.template.tags)?;
 		
 		dog_stats_d_writer.write_line_feed()?;
 		Ok(dog_stats_d_writer.written_length())

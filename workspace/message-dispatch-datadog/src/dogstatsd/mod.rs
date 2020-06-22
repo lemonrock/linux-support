@@ -3,9 +3,9 @@
 
 
 use super::*;
-use self::event::Event;
-use self::metric::Metric;
-use self::service_check::ServiceCheck;
+use self::event::*;
+use self::metric::*;
+use self::service_check::*;
 
 
 /// Event.
@@ -20,6 +20,9 @@ pub mod metric;
 pub mod service_check;
 
 
+include!("AdditionalDogStatsDTag.rs");
+include!("AdditionalDogStatsDTags.rs");
+include!("additional_dog_stats_d_tags.rs");
 include!("dog_stats_d_tags.rs");
 include!("DogStatsDMessage.rs");
 include!("DogStatsDTag.rs");
@@ -28,3 +31,4 @@ include!("DogStatsDWriter.rs");
 include!("Label.rs");
 include!("Name.rs");
 include!("Text.rs");
+include!("ThreadLocalNumericAdditionalDogStatsDTagsCache.rs");

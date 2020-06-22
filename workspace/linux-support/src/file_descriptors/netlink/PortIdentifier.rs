@@ -6,6 +6,19 @@
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PortIdentifier(Option<ProcessIdentifier>);
 
+impl Display for PortIdentifier
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		match self.0
+		{
+			None => write!(f, "0"),
+			Some(process_identifier) => write!(f, "{}", process_identifier)
+		}
+	}
+}
+
 impl PortIdentifier
 {
 	/// Kernel.

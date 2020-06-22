@@ -5,7 +5,7 @@
 struct MatchEntry<Value>
 {
 	more_specific: Option<Box<Point<Value>>>,
-	partial: Option<Rc<Value>>,
+	partial: Option<Arc<Value>>,
 }
 
 impl<Value> Default for MatchEntry<Value>

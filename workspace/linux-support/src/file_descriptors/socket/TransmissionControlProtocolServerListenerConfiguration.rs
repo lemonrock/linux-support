@@ -66,7 +66,7 @@ impl TransmissionControlProtocolServerListenerConfiguration
 			self.not_sent_low_water_in_bytes,
 			self.back_log,
 			false,
-			HyperThread::current_hyper_thread(),
+			HyperThread::current().1,
 		)
 	}
 }

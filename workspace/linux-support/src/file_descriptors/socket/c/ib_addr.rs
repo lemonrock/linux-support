@@ -14,6 +14,15 @@ pub struct ib_addr
 	pub sib_interface_id: u64,
 }
 
+impl Display for ib_addr
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "{}:{}", self.sib_subnet_prefix, self.sib_interface_id)
+	}
+}
+
 impl ib_addr
 {
 	/// The 'any' address.

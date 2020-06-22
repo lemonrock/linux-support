@@ -6,5 +6,5 @@ pub(crate) enum AcceptResumeArguments
 {
 	TrySubmissionQueueAgain,
 
-	Accepted(UserBits, CompletionResponse),
+	Submitted(UserBits, CompletionResponse),
 }

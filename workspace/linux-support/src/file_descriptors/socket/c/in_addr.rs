@@ -11,6 +11,16 @@ pub struct in_addr
 	pub s_addr: in_addr_t,
 }
 
+impl Display for in_addr
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		let ipv4: &Ipv4Addr = unsafe { transmute(self) };
+		Display::fmt(ipv4, f)
+	}
+}
+
 impl From<Ipv4Addr> for in_addr
 {
 	#[inline(always)]
