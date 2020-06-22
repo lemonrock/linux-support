@@ -9,7 +9,7 @@ pub struct SimplePerThreadMemoryAllocatorInstantiator<CoroutineHeapSize: MemoryS
 	marker: PhantomData<(CoroutineHeapSize, GTACSA)>,
 }
 
-impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>> PerThreadMemoryAllocatorInstantiator for SimplePerThreadMemoryAllocatorInstantiator<CoroutineHeapSize, GTACSA>
+impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize> + Send> PerThreadMemoryAllocatorInstantiator for SimplePerThreadMemoryAllocatorInstantiator<CoroutineHeapSize, GTACSA>
 {
 	type InstantiationArguments = (DefaultPageSizeAndHugePageSizes, &'static GTACSA);
 	
@@ -27,6 +27,6 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 		let global_allocator = *global_allocator;
 		global_allocator.initialize_thread_local_allocator(thread_local_allocator);
 		
-		Ok(SimplePerThreadMemoryAllocatorInstantiatorDropGuard(global_allocator))
+		Ok(SimplePerThreadMemoryAllocatorInstantiatorDropGuard::new(global_allocator))
 	}
 }

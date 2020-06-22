@@ -150,7 +150,7 @@ impl RegisteredBuffers
 	}
 	
 	#[inline(always)]
-	fn register_buffers<BufferSize: Sized>(buffers: &Box<[RegisteredBuffer<BufferSize>]>, buffers_to_register: &mut Vec<&mut [u8]>)
+	fn register_buffers<BufferSize: MemorySize>(buffers: &Box<[RegisteredBuffer<BufferSize>]>, buffers_to_register: &mut Vec<&mut [u8]>)
 	{
 		for buffer in buffers
 		{

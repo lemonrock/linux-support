@@ -5,7 +5,7 @@
 #[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 #[derive(Deserialize, Serialize)]
-#[repr(transparent)]
+#[serde(deny_unknown_fields)]
 pub struct RegisteredBufferSettings
 {
 	pub _4Kb: RegisteredBufferSetting<MemorySize4Kb>,

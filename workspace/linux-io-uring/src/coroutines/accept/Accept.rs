@@ -2,13 +2,13 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-struct Accept<'yielder, SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>
+struct Accept<'yielder, SA: SocketAddress, CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AC: AccessControl<SA::SD, AccessControlValue>>
 {
 	coroutine_instance_handle: CoroutineInstanceHandle,
 	yielder: Yielder<'yielder, AcceptResumeArguments, AcceptYields, AcceptComplete>,
 	io_uring: Rc<IoUring<'static>>,
 	socket_file_descriptor: StreamingServerListenerSocketFileDescriptor<SA::SD>,
-	remote_peer_based_access_control: RemotePeerAddressBasedAccessControl<RemotePeerAddressBasedAccessControlValue>,
+	access_control: AC,
 	service_protocol_identifier: ServiceProtocolIdentifier,
 	accept_publisher: AcceptPublisher<SA>,
 	dog_stats_d_publisher: DogStatsDPublisher<CoroutineHeapSize, GTACSA>,
@@ -17,12 +17,12 @@ struct Accept<'yielder, SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA
 	service_protocol_additional_dog_stats_d_tag: AdditionalDogStatsDTag<CoroutineHeapSize, GTACSA>,
 }
 
-impl<'yielder, SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>> Accept<'yielder, SA, CoroutineHeapSize, GTACSA>
+impl<'yielder, SA: SocketAddress, CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AC: AccessControl<SA::SD, AccessControlValue>> Accept<'yielder, SA, CoroutineHeapSize, GTACSA, AC>
 {
 	#[inline(always)]
-	fn new(coroutine_instance_handle: CoroutineInstanceHandle, start_arguments: AcceptStartArguments<SA, CoroutineHeapSize, GTACSA>, yielder: Yielder<AcceptResumeArguments, AcceptYields, AcceptComplete>) -> Self
+	fn new(coroutine_instance_handle: CoroutineInstanceHandle, start_arguments: AcceptStartArguments<SA, CoroutineHeapSize, GTACSA, AC>, yielder: Yielder<'yielder, AcceptResumeArguments, AcceptYields, AcceptComplete>) -> Self
 	{
-		let (io_uring, accept_publisher, socket_file_descriptor, remote_peer_based_access_control, service_protocol_identifier, dog_stats_d_publisher,  global_allocator, thread_local_socket_hyper_thread_additional_dog_stats_d_cache, thread_local_processing_hyper_thread_additional_dog_stats_d_cache, default_hyper_thread) = start_arguments;
+		let (io_uring, accept_publisher, socket_file_descriptor, access_control, service_protocol_identifier, dog_stats_d_publisher,  global_allocator, thread_local_socket_hyper_thread_additional_dog_stats_d_cache, thread_local_processing_hyper_thread_additional_dog_stats_d_cache, default_hyper_thread) = start_arguments;
 		
 		Self
 		{
@@ -30,7 +30,7 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static
 			yielder,
 			io_uring,
 			socket_file_descriptor,
-			remote_peer_based_access_control,
+			access_control,
 			service_protocol_identifier,
 			accept_publisher,
 			dog_stats_d_publisher,
@@ -43,7 +43,7 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static
 	#[inline(always)]
 	fn yield_submit_accept(&mut self, pending_accept_connection: &mut PendingAcceptConnection<SA::SD>) -> bool
 	{
-		AcceptYields::yield_submit_io_uring(&self.yielder, &self.io_uring, |submission_queue_entry| submission_queue_entry.prepare_accept(self.coroutine_instance_handle, Self::NoSubmissionOptions, None, FileDescriptorOrigin::Absolute(&self.socket_file_descriptor), pending_accept_connection))
+		AcceptYields::yield_submit_io_uring(&self.yielder, &self.io_uring, |submission_queue_entry| submission_queue_entry.prepare_accept(self.user_data_for_io_uring_operation_0(), Self::NoSubmissionOptions, None, FileDescriptorOrigin::Absolute(&self.socket_file_descriptor), pending_accept_connection))
 	}
 	
 	#[inline(always)]
@@ -63,14 +63,15 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static
 			($self: ident, $title: literal, $aggregation_key: literal, $priority: ident, $alert_type: ident) =>
 			{
 				{
-					$self.log(alert!($title, $aggregation_key, $priority, $alert_type), format_args!(""))
+					$self.log(alert!($title, $aggregation_key, $priority, $alert_type), format_args!(""));
+					false
 				}
 			}
 		}
 		
 		match completion_response.accept(pending_accept_connection)
 		{
-			Ok(Some(accepted_connection)) => match self.remote_peer_based_access_control.is_remote_peer_allowed(&accepted_connection)
+			Ok(Some(accepted_connection)) => match self.access_control.is_remote_peer_allowed(&accepted_connection)
 			{
 				Some(value) => self.use_wanted_connection(accepted_connection, value),
 				
@@ -100,7 +101,7 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static
 	}
 	
 	#[inline(always)]
-	fn use_wanted_connection(&self, accepted_connection: AcceptedConnection<SA::SD>, value: &Arc<RemotePeerAddressBasedAccessControlValue>) -> bool
+	fn use_wanted_connection(&self, accepted_connection: AcceptedConnection<SA::SD>, value: &Arc<AccessControlValue>) -> bool
 	{
 		let socket_hyper_thread = accepted_connection.streaming_socket_file_descriptor.hyper_thread();
 		let processing_hyper_thread = self.accept_publisher.publish(socket_hyper_thread, accepted_connection, self.service_protocol_identifier, value);
@@ -133,7 +134,7 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static
 	#[inline(always)]
 	fn yield_submit_close(&mut self, streaming_socket_file_descriptor: &StreamingSocketFileDescriptor<SA::SD>) -> bool
 	{
-		AcceptYields::yield_submit_io_uring(&self.yielder, &self.io_uring, |submission_queue_entry| submission_queue_entry.prepare_close(self.coroutine_instance_handle, Self::NoSubmissionOptions, None, streaming_socket_file_descriptor))
+		AcceptYields::yield_submit_io_uring(&self.yielder, &self.io_uring, |submission_queue_entry| submission_queue_entry.prepare_close(self.user_data_for_io_uring_operation_0(), Self::NoSubmissionOptions, None, streaming_socket_file_descriptor))
 	}
 	
 	#[inline(always)]
@@ -193,6 +194,12 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static
 	fn service_protocol_additional_dog_stats_d_tag(&self) -> AdditionalDogStatsDTag<CoroutineHeapSize, GTACSA>
 	{
 		self.service_protocol_additional_dog_stats_d_tag.clone()
+	}
+	
+	#[inline(always)]
+	fn user_data_for_io_uring_operation_0(&self) -> u64
+	{
+		self.coroutine_instance_handle.unwrap()
 	}
 	
 	const NoSubmissionOptions: SubmissionQueueEntryOptions = SubmissionQueueEntryOptions::empty();

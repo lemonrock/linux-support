@@ -22,17 +22,17 @@ use message_dispatch::Queues;
 use linux_io_uring::coroutines::accept::ServiceProtocolIdentifier;
 use linux_io_uring::coroutines::accept::TransmissionControlProtocolServerListenerSettings;
 use linux_io_uring::coroutines::accept::AcceptConnectionsCoroutineSettings;
-use linux_io_uring::coroutines::accept::RemotePeerAddressBasedAccessControlValue;
+use linux_io_uring::coroutines::accept::AccessControlValue;
 use linux_support::file_descriptors::socket::c::sockaddr_in;
 use linux_support::file_descriptors::socket::c::sockaddr_in6;
 use std::path::PathBuf;
-use socket_access_control::RemotePeerAddressBasedAccessControl;
 use message_dispatch_datadog::dogstatsd::{DogStatsDTag, Label};
 use linux_support::logging::AdditionalLoggingConfiguration;
 use std::net::IpAddr;
 use linux_support::process::ProcessName;
 use std::error;
 use std::marker::PhantomData;
+use socket_access_control::{InternetProtocolVersion4AccessControl, InternetProtocolVersion6AccessControl, UnixDomainSocketAccessControl};
 
 
 type CoroutineHeapSize = MemorySize64Kb;
@@ -119,7 +119,7 @@ pub fn main()
 						back_log: Default::default()
 					},
 					
-					remote_peer_address_based_access_control: RemotePeerAddressBasedAccessControl::new(),
+					remote_peer_address_based_access_control: InternetProtocolVersion4AccessControl::new(),
 					service_protocol_identifier: SipOverTls,
 				}
 			],
@@ -142,7 +142,7 @@ pub fn main()
 						back_log: Default::default()
 					},
 					
-					remote_peer_address_based_access_control: RemotePeerAddressBasedAccessControl::new(),
+					remote_peer_address_based_access_control: InternetProtocolVersion6AccessControl::new(),
 					service_protocol_identifier: SipOverTls,
 				}
 			],
@@ -165,7 +165,7 @@ pub fn main()
 						back_log: Default::default()
 					},
 					
-					remote_peer_address_based_access_control: RemotePeerAddressBasedAccessControl::new(),
+					remote_peer_address_based_access_control: UnixDomainSocketAccessControl::new(),
 					service_protocol_identifier: SipOverTls,
 				}
 			],

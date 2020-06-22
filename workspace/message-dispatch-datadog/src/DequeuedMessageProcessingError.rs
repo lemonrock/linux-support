@@ -6,9 +6,11 @@
 #[derive(Debug)]
 pub enum DequeuedMessageProcessingError
 {
-	Fatal(Box<dyn error::Error>),
-
-	CarryOn(Box<dyn error::Error>),
+	/// Carry on.
+	CarryOn(Box<dyn error::Error + 'static>),
+	
+	/// Fatal.
+	Fatal(Box<dyn error::Error + 'static>),
 }
 
 impl Display for DequeuedMessageProcessingError
@@ -29,9 +31,9 @@ impl error::Error for DequeuedMessageProcessingError
 
 		match self
 		{
-			&Fatal(ref cause) => Some(&cause),
+			&Fatal(ref cause) => Some(cause.deref()),
 
-			&CarryOn(ref cause) => Some(&cause),
+			&CarryOn(ref cause) => Some(cause.deref()),
 		}
 	}
 }

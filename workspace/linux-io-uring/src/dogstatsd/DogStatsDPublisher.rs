@@ -5,7 +5,8 @@
 /// Publisher.
 ///
 /// Can be cheaply cloned as is internally reference counted.
-pub(crate) struct DogStatsDPublisher<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>
+#[derive(Debug)]
+pub(crate) struct DogStatsDPublisher<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>
 {
 	publisher: Rc<RoundRobinPublisher<DogStatsDMessage<'static, CoroutineHeapSize, GTACSA>, MessageHandlerArguments, DequeuedMessageProcessingError>>,
 	global_allocator: &'static GTACSA,

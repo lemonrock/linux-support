@@ -22,7 +22,7 @@ impl<SA: SocketAddress> AcceptPublisher<SA>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn publish(&self, socket_hyper_thread: HyperThread, accepted_connection: AcceptedConnection<SA::SD>, service_protocol_identifier: ServiceProtocolIdentifier, value: &Arc<RemotePeerAddressBasedAccessControlValue>) -> HyperThread
+	pub(crate) fn publish(&self, socket_hyper_thread: HyperThread, accepted_connection: AcceptedConnection<SA::SD>, service_protocol_identifier: ServiceProtocolIdentifier, value: &Arc<AccessControlValue>) -> HyperThread
 	{
 		self.0.publish(socket_hyper_thread, (accepted_connection, service_protocol_identifier, value.clone()))
 	}

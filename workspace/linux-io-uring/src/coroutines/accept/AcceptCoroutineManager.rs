@@ -2,14 +2,14 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) type AcceptCoroutineManager<SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: MemorySize> = CoroutineManager<CoroutineHeapSize, AcceptStackSize, GTACSA, AcceptCoroutine<SA, CoroutineHeapSize, GTACSA>, AcceptCoroutineInformation>;
+pub(crate) type AcceptCoroutineManager<SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AC: AccessControl<SA::SD, AccessControlValue>, AcceptStackSize: MemorySize> = CoroutineManager<CoroutineHeapSize, AcceptStackSize, GTACSA, AcceptCoroutine<SA, CoroutineHeapSize, GTACSA, AC>, AcceptCoroutineInformation>;
 
-impl<SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: MemorySize, NonCoroutineHandlerError: error::Error> CoroutineDispatch<NonCoroutineHandlerError> for AcceptCoroutineManager<SA, CoroutineHeapSize, GTACSA, AcceptStackSize>
+impl<SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AC: AccessControl<SA::SD, AccessControlValue>, AcceptStackSize: MemorySize, NonCoroutineHandlerError: error::Error> CoroutineDispatch<NonCoroutineHandlerError> for AcceptCoroutineManager<SA, CoroutineHeapSize, GTACSA, AC, AcceptStackSize>
 {
 	#[inline(always)]
 	fn dispatch_retry_because_io_uring_submission_queue_was_full(&mut self, coroutine_instance_handle: CoroutineInstanceHandle) -> CoroutineRequiresReEntry
 	{
-		let coroutine_instance_pointer = unsafe { CoroutineInstancePointer::<CoroutineHeapSize, AcceptStackSize, GTACSA, AcceptCoroutine<SA, CoroutineHeapSize, GTACSA>, AcceptCoroutineInformation>::from_handle(coroutine_instance_handle) };
+		let coroutine_instance_pointer = unsafe { CoroutineInstancePointer::<CoroutineHeapSize, AcceptStackSize, GTACSA, AcceptCoroutine<SA, CoroutineHeapSize, GTACSA, AC>, AcceptCoroutineInformation>::from_handle(coroutine_instance_handle) };
 		
 		use self::ResumeOutcome::*;
 		use self::AcceptYields::*;
@@ -29,7 +29,7 @@ impl<SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalT
 	{
 		let (coroutine_instance_handle, completion_response) = coroutine_instance_handle_and_completion_response;
 		
-		let coroutine_instance_pointer = unsafe { CoroutineInstancePointer::<CoroutineHeapSize, AcceptStackSize, GTACSA, AcceptCoroutine<SA, CoroutineHeapSize, GTACSA>, AcceptCoroutineInformation>::from_handle(coroutine_instance_handle) };
+		let coroutine_instance_pointer = unsafe { CoroutineInstancePointer::<CoroutineHeapSize, AcceptStackSize, GTACSA, AcceptCoroutine<SA, CoroutineHeapSize, GTACSA, AC>, AcceptCoroutineInformation>::from_handle(coroutine_instance_handle) };
 		
 		use self::ResumeOutcome::*;
 		use self::AcceptYields::*;

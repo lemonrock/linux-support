@@ -28,7 +28,7 @@ impl<'a, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCorouti
 	
 	type MessageHandlerArguments = ();
 	
-	type DequeuedMessageProcessingError = std::io::Error;
+	type DequeuedMessageProcessingError = DequeuedMessageProcessingError;
 	
 	#[inline(always)]
 	fn handle_message(&mut self, _message_handler_arguments: &Self::MessageHandlerArguments) -> Result<(), Self::DequeuedMessageProcessingError>

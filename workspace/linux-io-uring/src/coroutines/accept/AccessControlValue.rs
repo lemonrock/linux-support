@@ -2,21 +2,5 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-
-
-include!("Accept.rs");
-include!("AcceptComplete.rs");
-include!("AcceptConnectionsCoroutineSettings.rs");
-include!("AcceptCoroutine.rs");
-include!("AcceptCoroutineInformation.rs");
-include!("AcceptCoroutineManager.rs");
-include!("AcceptCoroutineManagerFactory.rs");
-include!("AcceptedConnectionMessage.rs");
-include!("AcceptPublisher.rs");
-include!("AcceptResumeArguments.rs");
-include!("AcceptStartArguments.rs");
-include!("AcceptYields.rs");
-include!("AccessControlValue.rs");
-include!("ServiceProtocolIdentifier.rs");
-include!("TransmissionControlProtocolServerListenerSettings.rs");
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct AccessControlValue;

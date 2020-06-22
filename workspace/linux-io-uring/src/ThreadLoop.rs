@@ -6,7 +6,7 @@
 ///
 /// See <https://gist.github.com/tomaka/da8c374ce407e27d5dac> for some more information on why these are problematic in Rust.
 #[derive(Debug)]
-pub struct ThreadLoop<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: MemorySize>
+pub struct ThreadLoop<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: MemorySize>
 {
 	io_uring: Rc<IoUring<'static>>,
 	registered_buffers: RegisteredBuffers,
@@ -18,10 +18,10 @@ pub struct ThreadLoop<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThr
 	subscriber: Subscriber<MessageHandlerArguments, DequeuedMessageProcessingError>,
 }
 
-impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: MemorySize> ThreadLoopBodyFunction for ThreadLoop<CoroutineHeapSize, GTACSA, AcceptStackSize>
+impl<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: MemorySize> ThreadLoopBodyFunction for ThreadLoop<CoroutineHeapSize, GTACSA, AcceptStackSize>
 {
 	#[inline(always)]
-	fn invoke(&mut self, terminate: &Arc<impl Terminate>)
+	fn invoke<T: Terminate>(&mut self, terminate: &Arc<T>)
 	{
 		debug_assert!(terminate.should_continue());
 		
@@ -97,7 +97,7 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 				
 				Err(cause) =>
 				{
-					terminate.begin_termination_due_to_irrecoverable_error(cause, None);
+					terminate.begin_termination_due_to_irrecoverable_error(&cause, None);
 					return true
 				}
 			}
@@ -133,7 +133,7 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 			
 			Err(Fatal(ref cause)) =>
 			{
-				terminate.begin_termination_due_to_irrecoverable_error(cause, None);
+				terminate.begin_termination_due_to_irrecoverable_error(&cause, None);
 				true
 			}
 		}

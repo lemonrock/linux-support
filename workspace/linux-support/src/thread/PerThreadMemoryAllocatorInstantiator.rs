@@ -3,10 +3,10 @@
 
 
 /// A per-thread memory allocator instantiator.
-pub trait PerThreadMemoryAllocatorInstantiator: Default + std::marker::Sync + std::marker::Send
+pub trait PerThreadMemoryAllocatorInstantiator: Send + Sync
 {
 	/// Arguments to pass to instantiate.
-	type InstantiationArguments: std::marker::Sync + std::marker::Send;
+	type InstantiationArguments: Send + Sync;
 	
 	/// Dropped when the thead is finished, even after a panic.
 	///

@@ -3,14 +3,14 @@
 
 
 /// Coroutine managers partial abstraction.
-pub struct CoroutineManagers<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: MemorySize>
-(
-	CoroutineManager<CoroutineHeapSize, AcceptStackSize, GTACSA, AcceptCoroutine<sockaddr_in, CoroutineHeapSize, GTACSA>, AcceptCoroutineInformation>,
-	CoroutineManager<CoroutineHeapSize, AcceptStackSize, GTACSA, AcceptCoroutine<sockaddr_in6, CoroutineHeapSize, GTACSA>, AcceptCoroutineInformation>,
-	CoroutineManager<CoroutineHeapSize, AcceptStackSize, GTACSA, AcceptCoroutine<UnixSocketAddress<PathBuf>, CoroutineHeapSize, GTACSA>, AcceptCoroutineInformation>,
-);
+pub struct CoroutineManagers<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: MemorySize>
+{
+	_0: CoroutineManager<CoroutineHeapSize, AcceptStackSize, GTACSA, AcceptCoroutine<sockaddr_in, CoroutineHeapSize, GTACSA, InternetProtocolVersion4AccessControl<AccessControlValue>>, AcceptCoroutineInformation>,
+	_1: CoroutineManager<CoroutineHeapSize, AcceptStackSize, GTACSA, AcceptCoroutine<sockaddr_in6, CoroutineHeapSize, GTACSA, InternetProtocolVersion6AccessControl<AccessControlValue>>, AcceptCoroutineInformation>,
+	_2: CoroutineManager<CoroutineHeapSize, AcceptStackSize, GTACSA, AcceptCoroutine<UnixSocketAddress<PathBuf>, CoroutineHeapSize, GTACSA, UnixDomainSocketAccessControl<AccessControlValue>>, AcceptCoroutineInformation>,
+}
 
-impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: MemorySize> CoroutineManagers<CoroutineHeapSize, GTACSA, AcceptStackSize>
+impl<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: MemorySize> CoroutineManagers<CoroutineHeapSize, GTACSA, AcceptStackSize>
 {
 	pub fn new
 	(
@@ -22,9 +22,9 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 		dog_stats_d_publisher: &DogStatsDPublisher<CoroutineHeapSize, GTACSA>,
 		thread_local_socket_hyper_thread_additional_dog_stats_d_cache: &Rc<ThreadLocalNumericAdditionalDogStatsDTagsCache<HyperThread, CoroutineHeapSize, GTACSA>>,
 		thread_local_processing_hyper_thread_additional_dog_stats_d_cache: &Rc<ThreadLocalNumericAdditionalDogStatsDTagsCache<HyperThread, CoroutineHeapSize, GTACSA>>,
-		transmission_control_protocol_over_internet_protocol_version_4_server_listeners: Vec<AcceptConnectionsCoroutineSettings<sockaddr_in>>,
-		transmission_control_protocol_over_internet_protocol_version_6_server_listeners: Vec<AcceptConnectionsCoroutineSettings<sockaddr_in6>>,
-		streaming_unix_domain_socket_server_listener_server_listeners: Vec<AcceptConnectionsCoroutineSettings<UnixSocketAddress<PathBuf>>>,
+		transmission_control_protocol_over_internet_protocol_version_4_server_listeners: Vec<AcceptConnectionsCoroutineSettings<sockaddr_in, InternetProtocolVersion4AccessControl<AccessControlValue>>>,
+		transmission_control_protocol_over_internet_protocol_version_6_server_listeners: Vec<AcceptConnectionsCoroutineSettings<sockaddr_in6, InternetProtocolVersion6AccessControl<AccessControlValue>>>,
+		streaming_unix_domain_socket_server_listener_server_listeners: Vec<AcceptConnectionsCoroutineSettings<UnixSocketAddress<PathBuf>, UnixDomainSocketAccessControl<AccessControlValue>>>,
 	) -> Result<Self, ThreadLoopInitializationError>
 	{
 		let factory = AcceptCoroutineManagerFactory::new
@@ -42,11 +42,11 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 		Ok
 		(
 			Self
-			(
-				factory.create_and_start(0, transmission_control_protocol_over_internet_protocol_version_4_server_listeners)?,
-				factory.create_and_start(1, transmission_control_protocol_over_internet_protocol_version_6_server_listeners)?,
-				factory.create_and_start(2, streaming_unix_domain_socket_server_listener_server_listeners)?,
-			)
+			{
+				_0: factory.create_and_start(0, transmission_control_protocol_over_internet_protocol_version_4_server_listeners)?,
+				_1: factory.create_and_start(1, transmission_control_protocol_over_internet_protocol_version_6_server_listeners)?,
+				_2: factory.create_and_start(2, streaming_unix_domain_socket_server_listener_server_listeners)?,
+			}
 		)
 	}
 	
@@ -58,9 +58,9 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 			dispatch_retry_because_io_uring_submission_queue_was_full,
 			coroutine_instance_handle,
 			self,
-			0 => 0,
-			1 => 1,
-			2 => 2,
+			0 => _0,
+			1 => _1,
+			2 => _2,
 		}
 	}
 	
@@ -82,9 +82,9 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 			dispatch_io_uring,
 			(coroutine_instance_handle, completion_response),
 			self,
-			0 => 0,
-			1 => 1,
-			2 => 2,
+			0 => _0,
+			1 => _1,
+			2 => _2,
 		}
 	}
 }

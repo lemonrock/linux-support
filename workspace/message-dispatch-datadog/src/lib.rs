@@ -48,7 +48,12 @@ use memchr::memchr;
 use memchr::memchr2;
 use std::cell::UnsafeCell;
 use std::cmp::min;
+use std::error;
+use std::fmt;
 use std::fmt::Arguments;
+use std::fmt::Debug;
+use std::fmt::Display;
+use std::fmt::Formatter;
 use std::fmt::format;
 use std::marker::PhantomData;
 use std::ops::Deref;
@@ -66,3 +71,6 @@ use swiss_army_knife::split::SplitBytes;
 ///
 /// Datagram format is described in <https://docs.datadoghq.com/developers/dogstatsd/datagram_shell?tab=metrics>.
 pub mod dogstatsd;
+
+
+include!("DequeuedMessageProcessingError.rs");

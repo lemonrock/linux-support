@@ -3,11 +3,11 @@
 
 
 #[derive(Debug)]
-pub(crate) struct AcceptCoroutine<SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>(PhantomData<(SA, CoroutineHeapSize, GTACSA)>);
+pub(crate) struct AcceptCoroutine<SA: SocketAddress, CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AC: AccessControl<SA::SD, AccessControlValue>>(PhantomData<(SA, CoroutineHeapSize, GTACSA, AC)>);
 
-impl<SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>> Coroutine for AcceptCoroutine<SA, CoroutineHeapSize, GTACSA>
+impl<SA: SocketAddress, CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AC: AccessControl<SA::SD, AccessControlValue>> Coroutine for AcceptCoroutine<SA, CoroutineHeapSize, GTACSA, AC>
 {
-	type StartArguments = AcceptStartArguments<SA, CoroutineHeapSize, GTACSA>;
+	type StartArguments = AcceptStartArguments<SA, CoroutineHeapSize, GTACSA, AC>;
 
 	type ResumeArguments = AcceptResumeArguments;
 

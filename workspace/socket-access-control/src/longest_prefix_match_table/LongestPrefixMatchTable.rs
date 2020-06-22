@@ -6,6 +6,15 @@
 #[repr(transparent)]
 pub struct LongestPrefixMatchTable<IPA: InternetProtocolAddress, Value>(Point<Value>, PhantomData<IPA>);
 
+impl<IPA: InternetProtocolAddress, Value> Debug for LongestPrefixMatchTable<IPA, Value>
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "LongestPrefixMatchTable()")
+	}
+}
+
 impl<IPA: InternetProtocolAddress, Value> LongestPrefixMatchTable<IPA, Value>
 {
 	/// Populates by sorting the entries from those with shortest mask length to those with the longest.

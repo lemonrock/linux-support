@@ -29,7 +29,6 @@ use self::coroutines::*;
 use self::coroutines::accept::*;
 use self::dogstatsd::*;
 use self::registered_buffers::*;
-use arrayvec::Array;
 use arrayvec::ArrayString;
 use context_allocator::GlobalThreadAndCoroutineSwitchableAllocator;
 use context_allocator::LifetimeHint;
@@ -65,6 +64,7 @@ use message_dispatch::Queues;
 use message_dispatch::Subscriber;
 use message_dispatch_datadog::additional_dog_stats_d_tags;
 use message_dispatch_datadog::alert;
+use message_dispatch_datadog::DequeuedMessageProcessingError;
 use message_dispatch_datadog::dogstatsd::AdditionalDogStatsDTag;
 use message_dispatch_datadog::dogstatsd::AdditionalDogStatsDTags;
 use message_dispatch_datadog::dogstatsd::DogStatsDMessage;
@@ -116,7 +116,6 @@ mod thread_local_allocator;
 
 
 include!("CoroutineManagers.rs");
-include!("DequeuedMessageProcessingError.rs");
 include!("DispatchIoUringError.rs");
 include!("IoUringSettings.rs");
 include!("IoUringSetupError.rs");

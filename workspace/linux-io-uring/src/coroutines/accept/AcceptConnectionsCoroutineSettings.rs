@@ -5,16 +5,16 @@
 #[allow(missing_docs)]
 #[derive(Debug)]
 #[derive(Deserialize, Serialize)]
-pub struct AcceptConnectionsCoroutineSettings<SA: SocketAddress>
+pub struct AcceptConnectionsCoroutineSettings<SA: SocketAddress, AC: AccessControl<SA::SD, AccessControlValue>>
 {
 	pub transmission_control_protocol_service_listener_settings: TransmissionControlProtocolServerListenerSettings<SA>,
 	
-	pub remote_peer_address_based_access_control: RemotePeerAddressBasedAccessControl<RemotePeerAddressBasedAccessControlValue>,
+	pub remote_peer_address_based_access_control: AC,
 	
 	pub service_protocol_identifier: ServiceProtocolIdentifier,
 }
 
-impl<SA: SocketAddress> AcceptConnectionsCoroutineSettings<SA>
+impl<SA: SocketAddress, AC: AccessControl<SA::SD, AccessControlValue>> AcceptConnectionsCoroutineSettings<SA, AC>
 {
 	#[inline(always)]
 	pub(crate) fn new_socket(self) -> Result<StreamingServerListenerSocketFileDescriptor<SA::SD>, NewSocketServerListenerError>
@@ -23,7 +23,7 @@ impl<SA: SocketAddress> AcceptConnectionsCoroutineSettings<SA>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn remote_peer_adddress_based_access_control(self) -> RemotePeerAddressBasedAccessControl<RemotePeerAddressBasedAccessControlValue>
+	pub(crate) fn remote_peer_adddress_based_access_control(self) -> AC
 	{
 		self.remote_peer_address_based_access_control
 	}

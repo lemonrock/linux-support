@@ -3,7 +3,8 @@
 
 
 /// A drop guard.
-pub struct SimplePerThreadMemoryAllocatorInstantiatorDropGuard<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>(&'static GTACSA);
+#[repr(transparent)]
+pub struct SimplePerThreadMemoryAllocatorInstantiatorDropGuard<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>(&'static GTACSA, PhantomData<CoroutineHeapSize>);
 
 impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>> Drop for SimplePerThreadMemoryAllocatorInstantiatorDropGuard<CoroutineHeapSize, GTACSA>
 {
@@ -11,5 +12,14 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 	fn drop(&mut self)
 	{
 		self.0.drop_thread_local_allocator()
+	}
+}
+
+impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>> SimplePerThreadMemoryAllocatorInstantiatorDropGuard<CoroutineHeapSize, GTACSA>
+{
+	#[inline(always)]
+	fn new(global_allocator: &'static GTACSA) -> Self
+	{
+		Self(global_allocator, PhantomData)
 	}
 }
