@@ -77,7 +77,7 @@ impl<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndC
 		
 		let coroutine_instance_handle = CoroutineInstanceHandle::wrap(user_data);
 		
-		choose_coroutine_manager!
+		let coroutine_requires_re_entry = choose_coroutine_manager!
 		{
 			coroutine_instance_handle.coroutine_manager_index(),
 			dispatch_io_uring,
@@ -86,6 +86,8 @@ impl<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndC
 			0 => _0,
 			1 => _1,
 			2 => _2,
-		}
+		};
+		
+		Ok(coroutine_requires_re_entry)
 	}
 }

@@ -4,7 +4,7 @@
 
 pub(crate) type AcceptCoroutineManager<SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AC: AccessControl<SA::SD, AccessControlValue>, AcceptStackSize: MemorySize> = CoroutineManager<CoroutineHeapSize, AcceptStackSize, GTACSA, AcceptCoroutine<SA, CoroutineHeapSize, GTACSA, AC>, AcceptCoroutineInformation>;
 
-impl<SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AC: AccessControl<SA::SD, AccessControlValue>, AcceptStackSize: MemorySize, NonCoroutineHandlerError: error::Error> CoroutineDispatch<NonCoroutineHandlerError> for AcceptCoroutineManager<SA, CoroutineHeapSize, GTACSA, AC, AcceptStackSize>
+impl<SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AC: AccessControl<SA::SD, AccessControlValue>, AcceptStackSize: MemorySize> CoroutineDispatch for AcceptCoroutineManager<SA, CoroutineHeapSize, GTACSA, AC, AcceptStackSize>
 {
 	#[inline(always)]
 	fn dispatch_retry_because_io_uring_submission_queue_was_full(&mut self, coroutine_instance_handle: CoroutineInstanceHandle) -> CoroutineRequiresReEntry
@@ -25,7 +25,7 @@ impl<SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalT
 	}
 	
 	#[inline(always)]
-	fn dispatch_io_uring(self, coroutine_instance_handle_and_completion_response: (CoroutineInstanceHandle, CompletionResponse)) -> Result<CoroutineRequiresReEntry, DispatchIoUringError<NonCoroutineHandlerError>>
+	fn dispatch_io_uring(self, coroutine_instance_handle_and_completion_response: (CoroutineInstanceHandle, CompletionResponse)) -> CoroutineRequiresReEntry
 	{
 		let (coroutine_instance_handle, completion_response) = coroutine_instance_handle_and_completion_response;
 		
@@ -36,9 +36,9 @@ impl<SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalT
 		use self::CoroutineRequiresReEntry::*;
 		match self.resume_coroutine(coroutine_instance_pointer, AcceptResumeArguments::Submitted(coroutine_instance_handle.user_bits(), completion_response))
 		{
-			WouldLikeToResume(AwaitingIoUring) => Ok(CarryOn),
+			WouldLikeToResume(AwaitingIoUring) => CarryOn,
 			
-			WouldLikeToResume(SubmissionQueueFull) => Ok(IoUringSubmissionQueueWasFull(coroutine_instance_handle)),
+			WouldLikeToResume(SubmissionQueueFull) => IoUringSubmissionQueueWasFull(coroutine_instance_handle),
 			
 			Complete(()) => panic!("An accept loop should never complete"),
 		}
