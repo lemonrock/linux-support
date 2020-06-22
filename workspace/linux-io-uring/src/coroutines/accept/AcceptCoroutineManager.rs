@@ -25,7 +25,7 @@ impl<SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalT
 	}
 	
 	#[inline(always)]
-	fn dispatch_io_uring(self, coroutine_instance_handle_and_completion_response: (CoroutineInstanceHandle, CompletionResponse)) -> CoroutineRequiresReEntry
+	fn dispatch_io_uring(&mut self, coroutine_instance_handle_and_completion_response: (CoroutineInstanceHandle, CompletionResponse)) -> CoroutineRequiresReEntry
 	{
 		let (coroutine_instance_handle, completion_response) = coroutine_instance_handle_and_completion_response;
 		

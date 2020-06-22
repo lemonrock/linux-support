@@ -6,5 +6,5 @@ pub(crate) trait CoroutineDispatch
 {
 	fn dispatch_retry_because_io_uring_submission_queue_was_full(&mut self, coroutine_instance_handle: CoroutineInstanceHandle) -> CoroutineRequiresReEntry;
 	
-	fn dispatch_io_uring(self, coroutine_instance_handle_and_completion_response: (CoroutineInstanceHandle, CompletionResponse)) -> CoroutineRequiresReEntry;
+	fn dispatch_io_uring(&mut self, coroutine_instance_handle_and_completion_response: (CoroutineInstanceHandle, CompletionResponse)) -> CoroutineRequiresReEntry;
 }

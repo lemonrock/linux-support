@@ -31,7 +31,7 @@ impl AcceptYields
 	}
 	
 	#[inline(always)]
-	fn yield_submit_io_uring(yielder: &Yielder<AcceptResumeArguments, AcceptYields, AcceptComplete>, io_uring: &Rc<IoUring<'static>>, mut add_entry: impl FnMut(SubmissionQueueEntry) + Copy) -> bool
+	fn yield_submit_io_uring(yielder: &Yielder<AcceptResumeArguments, AcceptYields, AcceptComplete>, io_uring: &Rc<IoUring<'static>>, add_entry: &mut impl FnMut(SubmissionQueueEntry)) -> bool
 	{
 		const SubmissionSucceeded: Result<(), ()> = Ok(());
 		const SubmissionQueueIsFull: Result<(), ()> = Err(());

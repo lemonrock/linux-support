@@ -10,7 +10,7 @@ pub enum DequeuedMessageProcessingError
 	CarryOn(Box<dyn error::Error + 'static>),
 	
 	/// Fatal.
-	Fatal(Box<dyn error::Error + 'static>),
+	Fatal(Box<dyn error::Error + 'static + Send + Sync>),
 }
 
 impl Display for DequeuedMessageProcessingError

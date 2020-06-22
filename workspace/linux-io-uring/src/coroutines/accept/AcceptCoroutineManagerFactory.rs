@@ -56,18 +56,18 @@ impl<'a, CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThread
 			unsafe { NonZeroU64::new_unchecked(length as u64) }
 		};
 		
-		let coroutine_manager = CoroutineManager::new(CoroutineManagerIndex(coroutine_manager_index), self.global_allocator, ideal_maximum_number_of_coroutines, self.defaults).map_err(ThreadLoopInitializationError::AcceptConnectionsCoroutineManager)?;
+		let mut coroutine_manager = CoroutineManager::new(CoroutineManagerIndex(coroutine_manager_index), self.global_allocator, ideal_maximum_number_of_coroutines, self.defaults).map_err(ThreadLoopInitializationError::AcceptConnectionsCoroutineManager)?;
 		
 		let accept_publisher = AcceptPublisher::new(&self.queues, self.our_hyper_thread);
-		for settings in transmission_control_protocol_server_listener_settings
+		for AcceptConnectionsCoroutineSettings { transmission_control_protocol_service_listener_settings, access_control, service_protocol_identifier} in transmission_control_protocol_server_listener_settings
 		{
 			let start_arguments: AcceptStartArguments<SA, CoroutineHeapSize, GTACSA, AC> =
 			(
 				self.io_uring.clone(),
 				accept_publisher.clone(),
-				settings.new_socket(self.our_hyper_thread)?,
-				settings.remote_peer_adddress_based_access_control(),
-				settings.service_protocol_identifier(),
+				transmission_control_protocol_service_listener_settings.new_socket(self.our_hyper_thread)?,
+				access_control,
+				service_protocol_identifier,
 				self.dog_stats_d_publisher.clone(),
 				self.global_allocator,
 				self.thread_local_socket_hyper_thread_additional_dog_stats_d_cache.clone(),

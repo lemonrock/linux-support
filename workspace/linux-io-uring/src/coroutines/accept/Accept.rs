@@ -43,7 +43,8 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: 'static + MemorySize, GTACS
 	#[inline(always)]
 	fn yield_submit_accept(&mut self, pending_accept_connection: &mut PendingAcceptConnection<SA::SD>) -> bool
 	{
-		AcceptYields::yield_submit_io_uring(&self.yielder, &self.io_uring, |submission_queue_entry| submission_queue_entry.prepare_accept(self.user_data_for_io_uring_operation_0(), Self::NoSubmissionOptions, None, FileDescriptorOrigin::Absolute(&self.socket_file_descriptor), pending_accept_connection))
+		let entry = |submission_queue_entry: SubmissionQueueEntry| submission_queue_entry.prepare_accept(self.user_data_for_io_uring_operation_0(), Self::NoSubmissionOptions, None, FileDescriptorOrigin::Absolute(&self.socket_file_descriptor), pending_accept_connection);
+		AcceptYields::yield_submit_io_uring(&self.yielder, &self.io_uring, &mut entry)
 	}
 	
 	#[inline(always)]
@@ -134,7 +135,8 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: 'static + MemorySize, GTACS
 	#[inline(always)]
 	fn yield_submit_close(&mut self, streaming_socket_file_descriptor: &StreamingSocketFileDescriptor<SA::SD>) -> bool
 	{
-		AcceptYields::yield_submit_io_uring(&self.yielder, &self.io_uring, |submission_queue_entry| submission_queue_entry.prepare_close(self.user_data_for_io_uring_operation_0(), Self::NoSubmissionOptions, None, streaming_socket_file_descriptor))
+		let entry = |submission_queue_entry: SubmissionQueueEntry| submission_queue_entry.prepare_close(self.user_data_for_io_uring_operation_0(), Self::NoSubmissionOptions, None, streaming_socket_file_descriptor);
+		AcceptYields::yield_submit_io_uring(&self.yielder, &self.io_uring, &mut entry)
 	}
 	
 	#[inline(always)]

@@ -9,28 +9,7 @@ pub struct AcceptConnectionsCoroutineSettings<SA: SocketAddress, AC: AccessContr
 {
 	pub transmission_control_protocol_service_listener_settings: TransmissionControlProtocolServerListenerSettings<SA>,
 	
-	pub remote_peer_address_based_access_control: AC,
+	pub access_control: AC,
 	
 	pub service_protocol_identifier: ServiceProtocolIdentifier,
-}
-
-impl<SA: SocketAddress, AC: AccessControl<SA::SD, AccessControlValue>> AcceptConnectionsCoroutineSettings<SA, AC>
-{
-	#[inline(always)]
-	pub(crate) fn new_socket(self, our_hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketFileDescriptor<SA::SD>, NewSocketServerListenerError>
-	{
-		self.transmission_control_protocol_service_listener_settings.new_socket(our_hyper_thread)
-	}
-	
-	#[inline(always)]
-	pub(crate) fn remote_peer_adddress_based_access_control(self) -> AC
-	{
-		self.remote_peer_address_based_access_control
-	}
-	
-	#[inline(always)]
-	pub(crate) fn service_protocol_identifier(self) -> ServiceProtocolIdentifier
-	{
-		self.service_protocol_identifier
-	}
 }
