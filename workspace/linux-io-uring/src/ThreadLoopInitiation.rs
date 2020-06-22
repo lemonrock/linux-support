@@ -5,7 +5,7 @@
 /// Initiation.
 #[allow(missing_docs)]
 #[derive(Clone)]
-pub struct ThreadLoopInitiation<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>
+pub struct ThreadLoopInitiation<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: MemorySize>
 {
 	pub defaults: DefaultPageSizeAndHugePageSizes,
 	pub global_allocator: &'static GTACSA,
@@ -17,11 +17,13 @@ pub struct ThreadLoopInitiation<CoroutineHeapSize: MemorySize, GTACSA: 'static +
 	pub transmission_control_protocol_over_internet_protocol_version_4_server_listeners: Vec<AcceptConnectionsCoroutineSettings<sockaddr_in>>,
 	pub transmission_control_protocol_over_internet_protocol_version_6_server_listeners: Vec<AcceptConnectionsCoroutineSettings<sockaddr_in6>>,
 	pub streaming_unix_domain_socket_server_listener_server_listeners: Vec<AcceptConnectionsCoroutineSettings<UnixSocketAddress<PathBuf>>>,
+
+	pub marker: PhantomData<AcceptStackSize>,
 }
 
-impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>> ThreadFunction for ThreadLoopInitiation<CoroutineHeapSize, GTACSA>
+impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: MemorySize> ThreadFunction for ThreadLoopInitiation<CoroutineHeapSize, GTACSA, AcceptStackSize>
 {
-	type TLBF = ThreadLoop<CoroutineHeapSize, StackSize, GTACSA>;
+	type TLBF = ThreadLoop<CoroutineHeapSize, GTACSA, AcceptStackSize>;
 	
 	fn initialize(self) -> Self::TLBF
 	{
@@ -29,13 +31,11 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 	}
 }
 
-impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>> ThreadLoopInitiation<CoroutineHeapSize, GTACSA>
+impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: MemorySize> ThreadLoopInitiation<CoroutineHeapSize, GTACSA, AcceptStackSize>
 {
 	#[inline(always)]
-	fn initialize_internal(self) -> Result<Self::TLBF, ThreadLoopInitializationError>
+	fn initialize_internal(self) -> Result<ThreadLoop<CoroutineHeapSize, GTACSA, AcceptStackSize>, ThreadLoopInitializationError>
 	{
-		use self::ThreadLoopInitializationError::*;
-		
 		let (io_uring, registered_buffers) = self.io_uring_settings.setup(&self.defaults)?;
 		
 		let signal_file_descriptor = self.signals()?;
@@ -72,7 +72,6 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 				signal_file_descriptor,
 				our_hyper_thread,
 				coroutine_managers,
-				global_allocator,
 				retry_submission_queue_was_full_coroutine_instance_handle: None,
 				dog_stats_d_publisher,
 				subscriber,

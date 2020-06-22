@@ -17,8 +17,10 @@ pub struct RegisteredBufferSetting<BufferSize: MemorySize>
 
 impl<BufferSize: MemorySize> RegisteredBufferSetting<BufferSize>
 {
-	fn create_buffers(&self, buffers_count: &mut u16) -> Result<Box<[RegisteredBuffer<BufferSize>]>, RegisteredBuffersCreationError>
+	fn create_buffers(&self, buffers_count: &mut u16, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Box<[RegisteredBuffer<BufferSize>]>, RegisteredBuffersCreationError>
 	{
+		let subdivision_size = size_of::<BufferSize>() as u64;
+		
 		let number_of_buffers = self.number_of_buffers.get();
 		let mut buffers = Vec::with_capacity(number_of_buffers as usize);
 		for _index in 0 .. number_of_buffers
@@ -31,7 +33,7 @@ impl<BufferSize: MemorySize> RegisteredBufferSetting<BufferSize>
 			
 			buffers.push(RegisteredBuffer
 			{
-				memory_queue: Self::create_ring_queue(subdivision, setting.number_of_subdivisions_per_buffer, defaults)?,
+				memory_queue: Self::create_ring_queue(subdivision_size, self.number_of_subdivisions_per_buffer, defaults)?,
 				registered_buffer_index: RegisteredBufferIndex(count),
 			})
 			

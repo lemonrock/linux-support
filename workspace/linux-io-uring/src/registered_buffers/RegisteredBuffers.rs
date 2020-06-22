@@ -31,16 +31,16 @@ impl RegisteredBuffers
 		(
 			Self
 			{
-				_4Kb: settings._4Kb.create_buffers(&mut buffers_count)?,
-				_16Kb: settings._16Kb.create_buffers(&mut buffers_count)?,
-				_64Kb: settings._64Kb.create_buffers(&mut buffers_count)?,
-				_256Kb: settings._256Kb.create_buffers(&mut buffers_count)?,
-				_1Mb: settings._1Mb.create_buffers(&mut buffers_count)?,
-				_4Mb: settings._4Mb.create_buffers(&mut buffers_count)?,
-				_16Mb: settings._16Mb.create_buffers(&mut buffers_count)?,
-				_64Mb: settings._64Mb.create_buffers(&mut buffers_count)?,
-				_256Mb: settings._256Mb.create_buffers(&mut buffers_count)?,
-				_1Gb: settings._1Gb.create_buffers(&mut buffers_count)?,
+				_4Kb: settings._4Kb.create_buffers(&mut buffers_count, defaults)?,
+				_16Kb: settings._16Kb.create_buffers(&mut buffers_count, defaults)?,
+				_64Kb: settings._64Kb.create_buffers(&mut buffers_count, defaults)?,
+				_256Kb: settings._256Kb.create_buffers(&mut buffers_count, defaults)?,
+				_1Mb: settings._1Mb.create_buffers(&mut buffers_count, defaults)?,
+				_4Mb: settings._4Mb.create_buffers(&mut buffers_count, defaults)?,
+				_16Mb: settings._16Mb.create_buffers(&mut buffers_count, defaults)?,
+				_64Mb: settings._64Mb.create_buffers(&mut buffers_count, defaults)?,
+				_256Mb: settings._256Mb.create_buffers(&mut buffers_count, defaults)?,
+				_1Gb: settings._1Gb.create_buffers(&mut buffers_count, defaults)?,
 				buffers_count,
 			}
 		)

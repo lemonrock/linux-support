@@ -9,7 +9,7 @@ macro_rules! alert
 	($title: literal, $aggregation_key: literal, $priority: ident, $alert_type: ident) =>
 	{
 		{
-			use $crate::dogstatsd::event::EventTemplate::*;
+			use $crate::dogstatsd::event::EventTemplate;
 			use $crate::dogstatsd::event::EventPriority::*;
 			use $crate::dogstatsd::event::EventAlertType::*;
 			

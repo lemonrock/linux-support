@@ -70,7 +70,7 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static
 		
 		match completion_response.accept(pending_accept_connection)
 		{
-			Ok(Some(accepted_connection)) => match accept.remote_peer_based_access_control.is_remote_peer_allowed(&accepted_connection)
+			Ok(Some(accepted_connection)) => match self.remote_peer_based_access_control.is_remote_peer_allowed(&accepted_connection)
 			{
 				Some(value) => self.use_wanted_connection(accepted_connection, value),
 				
@@ -121,7 +121,7 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static
 			return true
 		}
 		
-		let completion_response = match accept.yield_awaiting_close()
+		let completion_response = match self.yield_awaiting_close()
 		{
 			Ok(completion_response) => completion_response,
 			Err(()) => return true,
@@ -133,7 +133,7 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static
 	#[inline(always)]
 	fn yield_submit_close(&mut self, streaming_socket_file_descriptor: &StreamingSocketFileDescriptor<SA::SD>) -> bool
 	{
-		AcceptYields::yield_submit_io_uring(&self.yielder, &self.io_uring, |submission_queue_entry| submission_queue_entry.prepare_close(self.coroutine_instance_handle, Self::NoSubmissionOptions, None, &accepted_connection.streaming_socket_file_descriptor))
+		AcceptYields::yield_submit_io_uring(&self.yielder, &self.io_uring, |submission_queue_entry| submission_queue_entry.prepare_close(self.coroutine_instance_handle, Self::NoSubmissionOptions, None, streaming_socket_file_descriptor))
 	}
 	
 	#[inline(always)]
@@ -143,7 +143,7 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static
 	}
 	
 	#[inline(always)]
-	fn process_close(&self, completion_response: CompletionResponse, streaming_socket_file_descriptor: StreamingSocketFileDescriptor<SD>) -> bool
+	fn process_close(&self, completion_response: CompletionResponse, streaming_socket_file_descriptor: StreamingSocketFileDescriptor<SA::SD>) -> bool
 	{
 		forget(streaming_socket_file_descriptor);
 		

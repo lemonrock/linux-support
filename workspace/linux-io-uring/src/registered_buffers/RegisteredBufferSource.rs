@@ -12,12 +12,16 @@ pub struct RegisteredBufferSource<BufferSize: MemorySize>
 
 impl<BufferSize: MemorySize> Deref for RegisteredBufferSource<BufferSize>
 {
-	type Target = T;
+	type Target = [u8];
 	
 	#[inline(always)]
 	fn deref(&self) -> &Self::Target
 	{
-		unsafe { & * self.memory.as_ptr() }
+		unsafe
+		{
+			let element = self.element.element();
+			from_raw_parts(element.as_ptr() as *const BufferSize as *const u8, size_of::<BufferSize>())
+		}
 	}
 }
 
@@ -26,10 +30,10 @@ impl<BufferSize: MemorySize> DerefMut for RegisteredBufferSource<BufferSize>
 	#[inline(always)]
 	fn deref_mut(&mut self) -> &mut Self::Target
 	{
-		unsafe { &mut * self.memory.as_ptr() }
+		unsafe
+		{
+			let element = self.element.element();
+			from_raw_parts_mut(element.as_ptr() as *mut u8, size_of::<BufferSize>())
+		}
 	}
-}
-
-impl<BufferSize: MemorySize> RegisteredBufferSource<BufferSize>
-{
 }

@@ -2,20 +2,20 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) struct AcceptCoroutineManagerFactory<'a, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, StackSizeAccept: MemorySize>
+pub(crate) struct AcceptCoroutineManagerFactory<'a, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: MemorySize>
 {
 	global_allocator: &'static GTACSA,
 	defaults: &'a DefaultPageSizeAndHugePageSizes,
 	io_uring: &'a Rc<IoUring<'static>>,
 	queues: &'a Queues<(), DequeuedMessageProcessingError>,
-	dog_stats_d_publisher: &'a DogStatsDPublisher<CoroutineHeapSize, GTACSA, MessageHandlerArguments>,
-	thread_local_socket_hyper_thread_additional_dog_stats_d_cache: &Rc<ThreadLocalNumericAdditionalDogStatsDTagsCache<HyperThread, CoroutineHeapSize, GTACSA>>,
-	thread_local_processing_hyper_thread_additional_dog_stats_d_cache: &Rc<ThreadLocalNumericAdditionalDogStatsDTagsCache<HyperThread, CoroutineHeapSize, GTACSA>>,
+	dog_stats_d_publisher: &'a DogStatsDPublisher<CoroutineHeapSize, GTACSA>,
+	thread_local_socket_hyper_thread_additional_dog_stats_d_cache: &'a Rc<ThreadLocalNumericAdditionalDogStatsDTagsCache<HyperThread, CoroutineHeapSize, GTACSA>>,
+	thread_local_processing_hyper_thread_additional_dog_stats_d_cache: &'a Rc<ThreadLocalNumericAdditionalDogStatsDTagsCache<HyperThread, CoroutineHeapSize, GTACSA>>,
 	our_hyper_thread: HyperThread,
-	marker: PhantomData<StackSizeAccept>,
+	marker: PhantomData<AcceptStackSize>,
 }
 
-impl<'a, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, StackSizeAccept: MemorySize> AcceptCoroutineManagerFactory<'a, CoroutineHeapSize, GTACSA, StackSizeAccept>
+impl<'a, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: MemorySize> AcceptCoroutineManagerFactory<'a, CoroutineHeapSize, GTACSA, AcceptStackSize>
 {
 	#[inline(always)]
 	pub(crate) fn new
@@ -24,7 +24,7 @@ impl<'a, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCorouti
 		defaults: &'a DefaultPageSizeAndHugePageSizes,
 		io_uring: &'a Rc<IoUring<'static>>,
 		queues: &'a Queues<(), DequeuedMessageProcessingError>,
-		dog_stats_d_publisher: &'a DogStatsDPublisher<CoroutineHeapSize, GTACSA, MessageHandlerArguments>,
+		dog_stats_d_publisher: &'a DogStatsDPublisher<CoroutineHeapSize, GTACSA>,
 		thread_local_socket_hyper_thread_additional_dog_stats_d_cache: &Rc<ThreadLocalNumericAdditionalDogStatsDTagsCache<HyperThread, CoroutineHeapSize, GTACSA>>,
 		thread_local_processing_hyper_thread_additional_dog_stats_d_cache: &Rc<ThreadLocalNumericAdditionalDogStatsDTagsCache<HyperThread, CoroutineHeapSize, GTACSA>>,
 		our_hyper_thread: HyperThread,
@@ -44,7 +44,7 @@ impl<'a, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCorouti
 		}
 	}
 	
-	pub(crate) fn create_and_start<SA: SocketAddress>(&self, coroutine_manager_index: u8, transmission_control_protocol_server_listener_settings: Vec<AcceptConnectionsCoroutineSettings<SA>>) -> Result<AcceptCoroutineManager<SA, CoroutineHeapSize, GTACSA, StackSizeAccept>, ThreadLoopInitializationError>
+	pub(crate) fn create_and_start<SA: SocketAddress>(&self, coroutine_manager_index: u8, transmission_control_protocol_server_listener_settings: Vec<AcceptConnectionsCoroutineSettings<SA>>) -> Result<AcceptCoroutineManager<SA, CoroutineHeapSize, GTACSA, AcceptStackSize>, ThreadLoopInitializationError>
 	{
 		let length = transmission_control_protocol_server_listener_settings.len();
 		let ideal_maximum_number_of_coroutines = if length == 0

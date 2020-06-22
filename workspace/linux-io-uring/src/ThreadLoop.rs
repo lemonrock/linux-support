@@ -13,7 +13,6 @@ pub struct ThreadLoop<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThr
 	signal_file_descriptor: SignalFileDescriptor,
 	our_hyper_thread: HyperThread,
 	coroutine_managers: CoroutineManagers<CoroutineHeapSize, GTACSA, AcceptStackSize>,
-	global_allocator: &'static GTACSA,
 	retry_submission_queue_was_full_coroutine_instance_handle: Option<CoroutineInstanceHandle>,
 	dog_stats_d_publisher: DogStatsDPublisher<CoroutineHeapSize, GTACSA>,
 	subscriber: Subscriber<MessageHandlerArguments, DequeuedMessageProcessingError>,
@@ -28,7 +27,7 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 		
 		self.retry_coroutines_who_found_the_submission_queue_full();
 		
-		let exit = self.process_all_outstanding_completions();
+		let exit = self.process_all_outstanding_completions(terminate);
 		if unlikely!(exit)
 		{
 			return
@@ -77,7 +76,7 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 	}
 	
 	#[inline(always)]
-	fn process_all_outstanding_completions(&mut self) -> bool
+	fn process_all_outstanding_completions(&mut self, terminate: &Arc<impl Terminate>) -> bool
 	{
 		let mut non_coroutine_handler = |u64, completion_response| self.non_coroutine_handler(u64, completion_response);
 		
@@ -108,7 +107,7 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 	}
 	
 	#[inline(always)]
-	fn non_coroutine_handler(&mut self, user_data: u64, completion_response: CompletionResponse) -> Result<(), DispatchIoUringError<Box<dyn error::Error>>>
+	fn non_coroutine_handler(&mut self, user_data: u64, completion_response: CompletionResponse) -> Result<(), DispatchIoUringError<io::Error>>
 	{
 		// We have 63-bits of user data available, eg as a tagged pointer.
 		

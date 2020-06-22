@@ -19,8 +19,12 @@ use context_allocator::allocators::binary_search_trees::MultipleBinarySearchTree
 use linux_io_uring::{SimplePerThreadMemoryAllocatorInstantiator, ThreadLoopInitiation, IoUringSettings};
 use linux_support::signals::Signals;
 use message_dispatch::Queues;
-use linux_io_uring::coroutines::accept::{AcceptConnectionsCoroutineSettings, TransmissionControlProtocolServerListenerSettings, ServiceProtocolIdentifier, RemotePeerAddressBasedAccessControlValue};
-use linux_support::file_descriptors::socket::c::{sockaddr_in, sockaddr_in6};
+use linux_io_uring::coroutines::accept::ServiceProtocolIdentifier;
+use linux_io_uring::coroutines::accept::TransmissionControlProtocolServerListenerSettings;
+use linux_io_uring::coroutines::accept::AcceptConnectionsCoroutineSettings;
+use linux_io_uring::coroutines::accept::RemotePeerAddressBasedAccessControlValue;
+use linux_support::file_descriptors::socket::c::sockaddr_in;
+use linux_support::file_descriptors::socket::c::sockaddr_in6;
 use std::path::PathBuf;
 use socket_access_control::RemotePeerAddressBasedAccessControl;
 use message_dispatch_datadog::dogstatsd::{DogStatsDTag, Label};
@@ -28,6 +32,7 @@ use linux_support::logging::AdditionalLoggingConfiguration;
 use std::net::IpAddr;
 use linux_support::process::ProcessName;
 use std::error;
+use std::marker::PhantomData;
 
 
 type CoroutineHeapSize = MemorySize64Kb;
@@ -94,23 +99,78 @@ pub fn main()
 			io_uring_settings: IoUringSettings,
 			signal_mask: Signals(),
 			
+			dog_stats_d_message_subscribers: Box::new([]),
+			
 			transmission_control_protocol_over_internet_protocol_version_4_server_listeners: vec!
 			[
 				AcceptConnectionsCoroutineSettings
 				{
 					transmission_control_protocol_service_listener_settings: TransmissionControlProtocolServerListenerSettings
 					{
-					
+						socket_address: (),
+						send_buffer_size_in_bytes: (),
+						receive_buffer_size_in_bytes: (),
+						idles_before_keep_alive_seconds: Default::default(),
+						keep_alive_interval_seconds: Default::default(),
+						maximum_keep_alive_probes: Default::default(),
+						socket_linger_seconds: Default::default(),
+						finish_timeout_seconds: Default::default(),
+						maximum_syn_retransmits: Default::default(),
+						back_log: Default::default()
 					},
 					
-					remote_peer_address_based_access_control: RemotePeerAddressBasedAccessControl<RemotePeerAddressBasedAccessControlValue>,
+					remote_peer_address_based_access_control: RemotePeerAddressBasedAccessControl::new(),
 					service_protocol_identifier: SipOverTls,
 				}
 			],
 			
-			//Vec<AcceptConnectionsCoroutineSettings<sockaddr_in>>,
-			transmission_control_protocol_over_internet_protocol_version_6_server_listeners: Vec<AcceptConnectionsCoroutineSettings<sockaddr_in6>>,
-			streaming_unix_domain_socket_server_listener_server_listeners: Vec<AcceptConnectionsCoroutineSettings<UnixSocketAddress<PathBuf>>>,
+			transmission_control_protocol_over_internet_protocol_version_6_server_listeners: vec!
+			[
+				AcceptConnectionsCoroutineSettings
+				{
+					transmission_control_protocol_service_listener_settings: TransmissionControlProtocolServerListenerSettings
+					{
+						socket_address: (),
+						send_buffer_size_in_bytes: (),
+						receive_buffer_size_in_bytes: (),
+						idles_before_keep_alive_seconds: Default::default(),
+						keep_alive_interval_seconds: Default::default(),
+						maximum_keep_alive_probes: Default::default(),
+						socket_linger_seconds: Default::default(),
+						finish_timeout_seconds: Default::default(),
+						maximum_syn_retransmits: Default::default(),
+						back_log: Default::default()
+					},
+					
+					remote_peer_address_based_access_control: RemotePeerAddressBasedAccessControl::new(),
+					service_protocol_identifier: SipOverTls,
+				}
+			],
+			
+			streaming_unix_domain_socket_server_listener_server_listeners: vec!
+			[
+				AcceptConnectionsCoroutineSettings
+				{
+					transmission_control_protocol_service_listener_settings: TransmissionControlProtocolServerListenerSettings
+					{
+						socket_address: (),
+						send_buffer_size_in_bytes: (),
+						receive_buffer_size_in_bytes: (),
+						idles_before_keep_alive_seconds: Default::default(),
+						keep_alive_interval_seconds: Default::default(),
+						maximum_keep_alive_probes: Default::default(),
+						socket_linger_seconds: Default::default(),
+						finish_timeout_seconds: Default::default(),
+						maximum_syn_retransmits: Default::default(),
+						back_log: Default::default()
+					},
+					
+					remote_peer_address_based_access_control: RemotePeerAddressBasedAccessControl::new(),
+					service_protocol_identifier: SipOverTls,
+				}
+			],
+			
+			marker: PhantomData,
 		};
 		
 		let main_thread = ThreadSettings

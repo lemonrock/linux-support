@@ -14,7 +14,7 @@ impl<SD: SocketData> Message for AcceptedConnectionMessage<SD>
 	type ConstructMessageArguments = (AcceptedConnection<SD>, ServiceProtocolIdentifier, Arc<RemotePeerAddressBasedAccessControlValue>);
 	
 	#[inline(always)]
-	unsafe fn construct_message(uninitialized_memory: NonNull<Self>, construct_message_arguments: ConstructMessageArguments)
+	unsafe fn construct_message(uninitialized_memory: NonNull<Self>, construct_message_arguments: Self::ConstructMessageArguments)
 	{
 		let (accepted_connection, service_protocol_identifier, value) = construct_message_arguments;
 		

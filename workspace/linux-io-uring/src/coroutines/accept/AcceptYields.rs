@@ -20,7 +20,7 @@ impl AcceptYields
 		
 		match result
 		{
-			Err(error) => return Err(ThreadLoopInitializationError:CouldNotAllocateAcceptCoroutine(error)),
+			Err(error) => return Err(ThreadLoopInitializationError::CouldNotAllocateAcceptCoroutine(error)),
 			
 			Ok(WouldLikeToResume(AwaitingIoUring)) => Ok(()),
 			
