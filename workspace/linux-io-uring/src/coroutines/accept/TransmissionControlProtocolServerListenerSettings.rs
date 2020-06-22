@@ -16,6 +16,7 @@ pub struct TransmissionControlProtocolServerListenerSettings<SA: SocketAddress>
 	pub socket_linger_seconds: SocketLingerSeconds,
 	pub finish_timeout_seconds: FinishTimeoutSeconds,
 	pub maximum_syn_retransmits: MaximumSynRetransmits,
+	pub not_sent_low_water_in_bytes: NotSentLowWaterInBytes,
 	pub back_log: BackLog,
 }
 
@@ -26,7 +27,7 @@ impl<SA: SocketAddress> TransmissionControlProtocolServerListenerSettings<SA>
 	// This logic NEEDS TO happen before the coroutine starts.
 	// This allows us to drop capabilities on the thread for binding to ports below 1024.
 	#[inline(always)]
-	pub(crate) fn new_socket(self) -> Result<StreamingServerListenerSocketFileDescriptor<SA::SD>, NewSocketServerListenerError>
+	pub(crate) fn new_socket(self, our_hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketFileDescriptor<SA::SD>, NewSocketServerListenerError>
 	{
 		self.socket_address.new_transmission_control_protocol_server_listener
 		(
@@ -38,9 +39,10 @@ impl<SA: SocketAddress> TransmissionControlProtocolServerListenerSettings<SA>
 			self.socket_linger_seconds,
 			self.finish_timeout_seconds,
 			self.maximum_syn_retransmits,
+			self.not_sent_low_water_in_bytes,
 			self.back_log,
 			false,
-			HyperThread::current_hyper_thread(),
+			our_hyper_thread,
 		)
 	}
 }

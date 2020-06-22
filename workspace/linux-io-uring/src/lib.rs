@@ -32,6 +32,7 @@ use self::registered_buffers::*;
 use arrayvec::ArrayString;
 use context_allocator::GlobalThreadAndCoroutineSwitchableAllocator;
 use context_allocator::LifetimeHint;
+use context_allocator::LocalAllocator;
 use context_allocator::memory_sources::MemoryMapSource;
 use context_coroutine::choose_coroutine_manager;
 use context_coroutine::CoroutineManager;

@@ -3,6 +3,7 @@
 
 
 /// Coroutine managers partial abstraction.
+#[derive(Debug)]
 pub struct CoroutineManagers<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: MemorySize>
 {
 	_0: CoroutineManager<CoroutineHeapSize, AcceptStackSize, GTACSA, AcceptCoroutine<sockaddr_in, CoroutineHeapSize, GTACSA, InternetProtocolVersion4AccessControl<AccessControlValue>>, AcceptCoroutineInformation>,

@@ -3,7 +3,7 @@
 
 
 #[allow(missing_docs)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct RegisteredBufferSettings

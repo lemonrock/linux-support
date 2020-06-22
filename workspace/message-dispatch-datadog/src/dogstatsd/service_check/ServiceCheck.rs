@@ -3,6 +3,7 @@
 
 
 /// A DogStatsD service check.
+#[derive(Debug)]
 pub struct ServiceCheck<'a, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>
 {
 	template: &'a ServiceCheckTemplate,

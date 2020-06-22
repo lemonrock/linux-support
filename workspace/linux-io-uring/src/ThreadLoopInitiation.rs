@@ -4,7 +4,6 @@
 
 /// Initiation.
 #[allow(missing_docs)]
-#[derive(Clone)]
 pub struct ThreadLoopInitiation<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: 'static + MemorySize>
 {
 	pub defaults: DefaultPageSizeAndHugePageSizes,

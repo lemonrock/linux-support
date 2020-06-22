@@ -25,8 +25,8 @@ impl<'a, CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThread
 		io_uring: &'a Rc<IoUring<'static>>,
 		queues: &'a Queues<(), DequeuedMessageProcessingError>,
 		dog_stats_d_publisher: &'a DogStatsDPublisher<CoroutineHeapSize, GTACSA>,
-		thread_local_socket_hyper_thread_additional_dog_stats_d_cache: &Rc<ThreadLocalNumericAdditionalDogStatsDTagsCache<HyperThread, CoroutineHeapSize, GTACSA>>,
-		thread_local_processing_hyper_thread_additional_dog_stats_d_cache: &Rc<ThreadLocalNumericAdditionalDogStatsDTagsCache<HyperThread, CoroutineHeapSize, GTACSA>>,
+		thread_local_socket_hyper_thread_additional_dog_stats_d_cache: &'a Rc<ThreadLocalNumericAdditionalDogStatsDTagsCache<HyperThread, CoroutineHeapSize, GTACSA>>,
+		thread_local_processing_hyper_thread_additional_dog_stats_d_cache: &'a Rc<ThreadLocalNumericAdditionalDogStatsDTagsCache<HyperThread, CoroutineHeapSize, GTACSA>>,
 		our_hyper_thread: HyperThread,
 	) -> Self
 	{
@@ -53,7 +53,7 @@ impl<'a, CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThread
 		}
 		else
 		{
-			unsafe { NonZeroU64::new_unchecked(length as usize) }
+			unsafe { NonZeroU64::new_unchecked(length as u64) }
 		};
 		
 		let coroutine_manager = CoroutineManager::new(CoroutineManagerIndex(coroutine_manager_index), self.global_allocator, ideal_maximum_number_of_coroutines, self.defaults).map_err(ThreadLoopInitializationError::AcceptConnectionsCoroutineManager)?;
@@ -65,7 +65,7 @@ impl<'a, CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThread
 			(
 				self.io_uring.clone(),
 				accept_publisher.clone(),
-				settings.new_socket()?,
+				settings.new_socket(self.our_hyper_thread)?,
 				settings.remote_peer_adddress_based_access_control(),
 				settings.service_protocol_identifier(),
 				self.dog_stats_d_publisher.clone(),

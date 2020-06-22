@@ -4,22 +4,22 @@
 
 /// Errors during dispatch of io-uring operations.
 #[derive(Debug)]
-pub enum DispatchIoUringError<NonCoroutineHandlerError: error::Error>
+pub enum DispatchIoUringError<NonCoroutineHandlerError: error::Error + 'static>
 {
 	#[allow(missing_docs)]
 	NonCoroutine(NonCoroutineHandlerError),
 }
 
-impl<NonCoroutineHandlerError: error::Error> Display for DispatchIoUringError<NonCoroutineHandlerError>
+impl<NonCoroutineHandlerError: error::Error + 'static> Display for DispatchIoUringError<NonCoroutineHandlerError>
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
 	{
-		<IoUringSetupError as Debug>::fmt(self, f)
+		Debug::fmt(self, f)
 	}
 }
 
-impl<NonCoroutineHandlerError: error::Error> error::Error for DispatchIoUringError<NonCoroutineHandlerError>
+impl<NonCoroutineHandlerError: error::Error + 'static> error::Error for DispatchIoUringError<NonCoroutineHandlerError>
 {
 	#[inline(always)]
 	fn source(&self) ->  Option<&(dyn error::Error + 'static)>

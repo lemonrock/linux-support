@@ -3,6 +3,7 @@
 
 
 /// A message to send between threads.
+#[derive(Debug)]
 pub enum DogStatsDMessage<'a, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>
 {
 	/// Metric.

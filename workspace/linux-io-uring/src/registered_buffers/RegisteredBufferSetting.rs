@@ -19,8 +19,6 @@ impl<BufferSize: MemorySize> RegisteredBufferSetting<BufferSize>
 {
 	fn create_buffers(&self, buffers_count: &mut u16, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Box<[RegisteredBuffer<BufferSize>]>, RegisteredBuffersCreationError>
 	{
-		let subdivision_size = size_of::<BufferSize>() as u64;
-		
 		let number_of_buffers = self.number_of_buffers.get();
 		let mut buffers = Vec::with_capacity(number_of_buffers as usize);
 		for _index in 0 .. number_of_buffers
@@ -33,9 +31,9 @@ impl<BufferSize: MemorySize> RegisteredBufferSetting<BufferSize>
 			
 			buffers.push(RegisteredBuffer
 			{
-				memory_queue: Self::create_ring_queue(subdivision_size, self.number_of_subdivisions_per_buffer, defaults)?,
+				memory_queue: self.create_ring_queue(defaults)?,
 				registered_buffer_index: RegisteredBufferIndex(count),
-			})
+			});
 			
 			*buffers_count = count + 1;
 		}
@@ -44,12 +42,12 @@ impl<BufferSize: MemorySize> RegisteredBufferSetting<BufferSize>
 	}
 	
 	#[inline(always)]
-	fn create_ring_queue(subdivision_size: u64, number_of_subdivisions_per_buffer: NonZeroU32, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<ReferenceCountedLargeRingQueue<BufferSize>, RegisteredBuffersCreationError>
+	fn create_ring_queue(&self, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<ReferenceCountedLargeRingQueue<BufferSize>, RegisteredBuffersCreationError>
 	{
 		const OneMegabyte: u64 = 1024 * 1024;
 		const MaximumBufferSize: u64 = 1024 * OneMegabyte;
 		
-		let large_ring_queue = ReferenceCountedLargeRingQueue::new(number_of_subdivisions_per_buffer, defaults, OneMegabyte, true)?;
+		let large_ring_queue = ReferenceCountedLargeRingQueue::new(self.ideal_maximum_number_of_elements(), defaults, OneMegabyte, true)?;
 		if unlikely!(large_ring_queue.size_in_bytes() > MaximumBufferSize)
 		{
 			Err(RegisteredBuffersCreationError::BufferSizeExceeded1GbMaximumSize)
@@ -58,5 +56,11 @@ impl<BufferSize: MemorySize> RegisteredBufferSetting<BufferSize>
 		{
 			Ok(large_ring_queue)
 		}
+	}
+	
+	#[inline(always)]
+	fn ideal_maximum_number_of_elements(&self) -> NonZeroU64
+	{
+		unsafe { NonZeroU64::new_unchecked(self.number_of_subdivisions_per_buffer.get() as u64) }
 	}
 }

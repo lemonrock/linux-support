@@ -50,81 +50,81 @@ impl RegisteredBuffers
 	#[inline(always)]
 	pub fn next_buffer_4Kb(&self) -> Result<RegisteredBufferSource<MemorySize4Kb>, ()>
 	{
-		Self::next_buffer(&self._4Kb)
+		Self::next_buffer_source(&self._4Kb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
 	pub fn next_buffer_16Kb(&self) -> Result<RegisteredBufferSource<MemorySize16Kb>, ()>
 	{
-		Self::next_buffer(&self._16Kb)
+		Self::next_buffer_source(&self._16Kb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
 	pub fn next_buffer_64Kb(&self) -> Result<RegisteredBufferSource<MemorySize64Kb>, ()>
 	{
-		Self::next_buffer(&self._64Kb)
+		Self::next_buffer_source(&self._64Kb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
 	pub fn next_buffer_256Kb(&self) -> Result<RegisteredBufferSource<MemorySize256Kb>, ()>
 	{
-		Self::next_buffer(&self._256Kb)
+		Self::next_buffer_source(&self._256Kb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
 	pub fn next_buffer_1Mb(&self) -> Result<RegisteredBufferSource<MemorySize1Mb>, ()>
 	{
-		Self::next_buffer(&self._1Mb)
+		Self::next_buffer_source(&self._1Mb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
 	pub fn next_buffer_4Mb(&self) -> Result<RegisteredBufferSource<MemorySize4Mb>, ()>
 	{
-		Self::next_buffer(&self._4Mb)
+		Self::next_buffer_source(&self._4Mb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
 	pub fn next_buffer_16Mb(&self) -> Result<RegisteredBufferSource<MemorySize16Mb>, ()>
 	{
-		Self::next_buffer(&self._16Mb)
+		Self::next_buffer_source(&self._16Mb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
 	pub fn next_buffer_64Mb(&self) -> Result<RegisteredBufferSource<MemorySize64Mb>, ()>
 	{
-		Self::next_buffer(&self._64Mb)
+		Self::next_buffer_source(&self._64Mb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
 	pub fn next_buffer_256Mb(&self) -> Result<RegisteredBufferSource<MemorySize256Mb>, ()>
 	{
-		Self::next_buffer(&self._256Mb)
+		Self::next_buffer_source(&self._256Mb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
 	pub fn next_buffer_1Gb(&self) -> Result<RegisteredBufferSource<MemorySize1Gb>, ()>
 	{
-		Self::next_buffer(&self._1Gb)
+		Self::next_buffer_source(&self._1Gb)
 	}
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	fn next_buffer<BufferSize: MemorySize>(field: &Box<[RegisteredBuffer<BufferSize>]>) -> Result<RegisteredBufferSource<BufferSize>, ()>
+	fn next_buffer_source<BufferSize: MemorySize>(field: &Box<[RegisteredBuffer<BufferSize>]>) -> Result<RegisteredBufferSource<BufferSize>, ()>
 	{
 		for buffer in field.iter()
 		{
-			if let Ok(has) = buffer.next_buffer()
+			if let Ok(buffer_source) = buffer.next_buffer_source()
 			{
-				return Ok(has)
+				return Ok(buffer_source)
 			}
 		}
 		Err(())
@@ -150,11 +150,11 @@ impl RegisteredBuffers
 	}
 	
 	#[inline(always)]
-	fn register_buffers<BufferSize: MemorySize>(buffers: &Box<[RegisteredBuffer<BufferSize>]>, buffers_to_register: &mut Vec<&mut [u8]>)
+	fn register_buffers<'a, BufferSize: MemorySize>(buffers: &'a Box<[RegisteredBuffer<BufferSize>]>, buffers_to_register: &'a mut Vec<&'a mut [u8]>)
 	{
-		for buffer in buffers
+		for buffer in buffers.iter()
 		{
-			buffers_to_register.push(buffers.ring_queue.raw_backing_memory_slice())
+			buffers_to_register.push(buffer.memory_queue.raw_backing_memory_slice())
 		}
 	}
 }

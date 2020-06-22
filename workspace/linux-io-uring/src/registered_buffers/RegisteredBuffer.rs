@@ -13,7 +13,7 @@ impl<BufferSize: MemorySize> RegisteredBuffer<BufferSize>
 {
 	#[allow(missing_docs)]
 	#[inline(always)]
-	fn next_buffer(&mut self) -> Result<RegisteredBufferSource<BufferSize>, ()>
+	fn next_buffer_source(&mut self) -> Result<RegisteredBufferSource<BufferSize>, ()>
 	{
 		self.memory_queue.obtain_and_map(|element| RegisteredBufferSource { element, registered_buffer_index: self.registered_buffer_index }, || ())
 	}

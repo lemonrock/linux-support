@@ -17,9 +17,9 @@ pub struct AcceptConnectionsCoroutineSettings<SA: SocketAddress, AC: AccessContr
 impl<SA: SocketAddress, AC: AccessControl<SA::SD, AccessControlValue>> AcceptConnectionsCoroutineSettings<SA, AC>
 {
 	#[inline(always)]
-	pub(crate) fn new_socket(self) -> Result<StreamingServerListenerSocketFileDescriptor<SA::SD>, NewSocketServerListenerError>
+	pub(crate) fn new_socket(self, our_hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketFileDescriptor<SA::SD>, NewSocketServerListenerError>
 	{
-		self.transmission_control_protocol_service_listener_settings.new_socket()
+		self.transmission_control_protocol_service_listener_settings.new_socket(our_hyper_thread)
 	}
 	
 	#[inline(always)]
