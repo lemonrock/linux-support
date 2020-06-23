@@ -22,7 +22,7 @@ impl<SA: SocketAddress, CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static
 	#[inline(always)]
 	fn coroutine(coroutine_instance_handle: CoroutineInstanceHandle, start_arguments: Self::StartArguments, yielder: Yielder<Self::ResumeArguments, Self::Yields, Self::Complete>) -> Self::Complete
 	{
-		let accept = Accept::new(coroutine_instance_handle, start_arguments, yielder);
+		let mut accept = Accept::new(coroutine_instance_handle, start_arguments, yielder);
 		
 		loop
 		{

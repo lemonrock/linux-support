@@ -41,20 +41,22 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: 'static + MemorySize, GTACS
 	}
 	
 	#[inline(always)]
-	fn yield_submit_accept(&self, pending_accept_connection: &mut PendingAcceptConnection<SA::SD>) -> bool
+	fn yield_submit_accept(&mut self, pending_accept_connection: &mut PendingAcceptConnection<SA::SD>) -> bool
 	{
-		let mut entry = |submission_queue_entry: SubmissionQueueEntry| submission_queue_entry.prepare_accept(self.user_data_for_io_uring_operation_0(), Self::NoSubmissionOptions, None, FileDescriptorOrigin::Absolute(&self.socket_file_descriptor), pending_accept_connection);
-		AcceptYields::yield_submit_io_uring(&self.yielder, &self.io_uring, &mut entry)
+		let user_data_for_io_uring_operation_0 = self.user_data_for_io_uring_operation_0();
+		let socket_file_descriptor = &self.socket_file_descriptor;
+		let mut entry = |submission_queue_entry: SubmissionQueueEntry| submission_queue_entry.prepare_accept(user_data_for_io_uring_operation_0, Self::NoSubmissionOptions, None, FileDescriptorOrigin::Absolute(socket_file_descriptor), pending_accept_connection);
+		AcceptYields::yield_submit_io_uring(&mut self.yielder, &self.io_uring, &mut entry)
 	}
 	
 	#[inline(always)]
-	fn yield_awaiting_accept(&self) -> Result<CompletionResponse, ()>
+	fn yield_awaiting_accept(&mut self) -> Result<CompletionResponse, ()>
 	{
-		AcceptYields::yield_awaiting_io_uring(&self.yielder)
+		AcceptYields::yield_awaiting_io_uring(&mut self.yielder)
 	}
 	
 	#[inline(always)]
-	fn process_accept(&self, completion_response: CompletionResponse, pending_accept_connection: PendingAcceptConnection<SA::SD>) -> bool
+	fn process_accept(&mut self, completion_response: CompletionResponse, pending_accept_connection: PendingAcceptConnection<SA::SD>) -> bool
 	{
 		use self::SocketAcceptError::*;
 		use self::ConnectionFailedReason::*;
@@ -111,7 +113,7 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: 'static + MemorySize, GTACS
 	}
 	
 	#[inline(always)]
-	fn close_unwanted_connection(&self, accepted_connection: AcceptedConnection<SA::SD>) -> bool
+	fn close_unwanted_connection(&mut self, accepted_connection: AcceptedConnection<SA::SD>) -> bool
 	{
 		self.log(alert!("ConnectionDenied", "ConnectionDenied", Low, Informational), format_args!("{}", accepted_connection.peer));
 		
@@ -133,16 +135,17 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: 'static + MemorySize, GTACS
 	}
 	
 	#[inline(always)]
-	fn yield_submit_close(&self, streaming_socket_file_descriptor: &StreamingSocketFileDescriptor<SA::SD>) -> bool
+	fn yield_submit_close(&mut self, streaming_socket_file_descriptor: &StreamingSocketFileDescriptor<SA::SD>) -> bool
 	{
-		let mut entry = |submission_queue_entry: SubmissionQueueEntry| submission_queue_entry.prepare_close(self.user_data_for_io_uring_operation_0(), Self::NoSubmissionOptions, None, streaming_socket_file_descriptor);
-		AcceptYields::yield_submit_io_uring(&self.yielder, &self.io_uring, &mut entry)
+		let user_data_for_io_uring_operation_0 = self.user_data_for_io_uring_operation_0();
+		let mut entry = |submission_queue_entry: SubmissionQueueEntry| submission_queue_entry.prepare_close(user_data_for_io_uring_operation_0, Self::NoSubmissionOptions, None, streaming_socket_file_descriptor);
+		AcceptYields::yield_submit_io_uring(&mut self.yielder, &self.io_uring, &mut entry)
 	}
 	
 	#[inline(always)]
-	fn yield_awaiting_close(&self) -> Result<CompletionResponse, ()>
+	fn yield_awaiting_close(&mut self) -> Result<CompletionResponse, ()>
 	{
-		AcceptYields::yield_awaiting_io_uring(&self.yielder)
+		AcceptYields::yield_awaiting_io_uring(&mut self.yielder)
 	}
 	
 	#[inline(always)]
@@ -175,11 +178,19 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: 'static + MemorySize, GTACS
 	#[inline(always)]
 	fn increment_connection_count(&self, socket_hyper_thread: HyperThread, processing_hyper_thread: HyperThread)
 	{
-		#[thread_local] static IncrementConnectionCount: MetricTemplate = MetricTemplate::new_with_common_tags("connection.count");
+		let increment_connection_count = unsafe
+		{
+			#[thread_local] static mut IncrementConnectionCount: Option<MetricTemplate> = None;
+			if unlikely!(IncrementConnectionCount.is_none())
+			{
+				IncrementConnectionCount = Some(MetricTemplate::new_with_common_tags("connection.count"))
+			}
+			IncrementConnectionCount.as_ref().unwrap()
+		};
 		
 		self.dog_stats_d_publisher.publish
 		(
-			IncrementConnectionCount.message
+			increment_connection_count.message
 			(
 				additional_dog_stats_d_tags!
 				[

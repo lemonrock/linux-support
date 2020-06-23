@@ -31,7 +31,7 @@ impl AcceptYields
 	}
 	
 	#[inline(always)]
-	fn yield_submit_io_uring(yielder: &Yielder<AcceptResumeArguments, AcceptYields, AcceptComplete>, io_uring: &Rc<IoUring<'static>>, add_entry: &mut impl FnMut(SubmissionQueueEntry)) -> bool
+	fn yield_submit_io_uring(yielder: &mut Yielder<AcceptResumeArguments, AcceptYields, AcceptComplete>, io_uring: &Rc<IoUring<'static>>, add_entry: &mut impl FnMut(SubmissionQueueEntry)) -> bool
 	{
 		const SubmissionSucceeded: Result<(), ()> = Ok(());
 		const SubmissionQueueIsFull: Result<(), ()> = Err(());
@@ -40,7 +40,7 @@ impl AcceptYields
 		{
 			use self::AcceptResumeArguments::*;
 			
-			match io_uring.push_submission_queue_entry(add_entry)
+			match io_uring.push_submission_queue_entry(|submission_queue_entry| add_entry(submission_queue_entry))
 			{
 				SubmissionSucceeded => return false,
 				
@@ -57,7 +57,7 @@ impl AcceptYields
 	}
 	
 	#[inline(always)]
-	fn yield_awaiting_io_uring(yielder: &Yielder<AcceptResumeArguments, AcceptYields, AcceptComplete>) -> Result<CompletionResponse, ()>
+	fn yield_awaiting_io_uring(yielder: &mut Yielder<AcceptResumeArguments, AcceptYields, AcceptComplete>) -> Result<CompletionResponse, ()>
 	{
 		use self::AcceptResumeArguments::*;
 		
