@@ -35,7 +35,7 @@ impl<SD: SocketData> Message for AcceptedConnectionMessage<SD>
 	type DequeuedMessageProcessingError = DequeuedMessageProcessingError;
 	
 	#[inline(always)]
-	fn handle_message(&mut self, message_handler_arguments: &Self::MessageHandlerArguments) -> Result<(), Self::DequeuedMessageProcessingError>
+	fn handle_message(&mut self, _message_handler_arguments: &Self::MessageHandlerArguments) -> Result<(), Self::DequeuedMessageProcessingError>
 	{
 		unimplemented!("TODO")
 	}

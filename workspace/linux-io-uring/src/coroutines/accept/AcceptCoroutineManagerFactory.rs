@@ -72,7 +72,6 @@ impl<'a, CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThread
 				self.global_allocator,
 				self.thread_local_socket_hyper_thread_additional_dog_stats_d_cache.clone(),
 				self.thread_local_processing_hyper_thread_additional_dog_stats_d_cache.clone(),
-				self.our_hyper_thread,
 			);
 			
 			let result = coroutine_manager.start_coroutine(AcceptCoroutineInformation, start_arguments);

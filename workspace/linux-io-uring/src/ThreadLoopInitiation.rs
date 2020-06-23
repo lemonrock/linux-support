@@ -79,7 +79,7 @@ impl<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndC
 	}
 	
 	#[inline(always)]
-	fn signals(self) -> Result<SignalFileDescriptor, ThreadLoopInitializationError>
+	fn signals(&self) -> Result<SignalFileDescriptor, ThreadLoopInitializationError>
 	{
 		self.signal_mask.block_all_signals_on_current_thread_bar();
 		Ok(SignalFileDescriptor::new(&self.signal_mask.to_sigset_t()).map_err(ThreadLoopInitializationError::SignalFileDescriptor)?)

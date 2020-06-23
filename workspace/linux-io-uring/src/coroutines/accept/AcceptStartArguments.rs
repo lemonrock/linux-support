@@ -14,5 +14,4 @@ pub(crate) type AcceptStartArguments<SA: SocketAddress, CoroutineHeapSize: Memor
 	&'static GTACSA,
 	Rc<ThreadLocalNumericAdditionalDogStatsDTagsCache<HyperThread, CoroutineHeapSize, GTACSA>>,
 	Rc<ThreadLocalNumericAdditionalDogStatsDTagsCache<HyperThread, CoroutineHeapSize, GTACSA>>,
-	HyperThread,
 );

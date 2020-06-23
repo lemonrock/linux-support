@@ -8,6 +8,7 @@
 #![deny(missing_docs)]
 #![deny(unconditional_recursion)]
 #![deny(unreachable_patterns)]
+#![feature(const_transmute)]
 #![feature(core_intrinsics)]
 #![feature(thread_local)]
 
@@ -56,6 +57,7 @@ use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fmt::format;
 use std::marker::PhantomData;
+use std::mem::transmute;
 use std::ops::Deref;
 use std::panic::AssertUnwindSafe;
 use std::panic::UnwindSafe;

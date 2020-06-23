@@ -133,7 +133,7 @@ impl RegisteredBuffers
 	#[inline(always)]
 	pub(crate) fn register(&self, io_uring: &IoUring) -> io::Result<()>
 	{
-		let buffers_to_register = Vec::with_capacity(self.buffers_count as usize);
+		let mut buffers_to_register = Vec::with_capacity(self.buffers_count as usize);
 		
 		Self::register_buffers(&self._4Kb, &mut buffers_to_register);
 		Self::register_buffers(&self._16Kb, &mut buffers_to_register);
@@ -150,7 +150,7 @@ impl RegisteredBuffers
 	}
 	
 	#[inline(always)]
-	fn register_buffers<'a, BufferSize: MemorySize>(buffers: &'a Box<[RegisteredBuffer<BufferSize>]>, buffers_to_register: &'a mut Vec<&'a mut [u8]>)
+	fn register_buffers<'a, BufferSize: MemorySize>(buffers: &'a Box<[RegisteredBuffer<BufferSize>]>, buffers_to_register: &mut Vec<&'a mut [u8]>)
 	{
 		for buffer in buffers.iter()
 		{

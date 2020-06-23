@@ -65,7 +65,7 @@ impl<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndC
 		}
 	}
 	
-	pub fn dispatch_io_uring<NonCoroutineHandler: FnMut(u64, CompletionResponse) -> Result<(), NonCoroutineHandlerError>, NonCoroutineHandlerError: error::Error + Into<DispatchIoUringError<NonCoroutineHandlerError>>>(&mut self, completion_queue_entry: CompletionQueueEntry, mut non_coroutine_handler: &mut NonCoroutineHandler) -> Result<CoroutineRequiresReEntry, DispatchIoUringError<NonCoroutineHandlerError>>
+	pub fn dispatch_io_uring<NonCoroutineHandler: FnMut(u64, CompletionResponse) -> Result<(), NonCoroutineHandlerError>, NonCoroutineHandlerError: error::Error + Into<DispatchIoUringError<NonCoroutineHandlerError>>>(&mut self, completion_queue_entry: CompletionQueueEntry, non_coroutine_handler: &mut NonCoroutineHandler) -> Result<CoroutineRequiresReEntry, DispatchIoUringError<NonCoroutineHandlerError>>
 	{
 		let completion_response = completion_queue_entry.completion_response();
 		let user_data = completion_queue_entry.user_data();

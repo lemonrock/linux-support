@@ -10,7 +10,7 @@ pub struct CompletionQueueRingIterator<'a>
 	tail: u32,
 	ring_mask: u32,
 	ring_entries: u32,
-	completion_queue_ring: &'a mut CompletionQueueRing,
+	completion_queue_ring: &'a CompletionQueueRing,
 }
 
 impl ExactSizeIterator for CompletionQueueRingIterator<'_>
@@ -58,7 +58,7 @@ impl<'a> Drop for CompletionQueueRingIterator<'a>
 impl<'a> CompletionQueueRingIterator<'a>
 {
 	#[inline(always)]
-	fn new(completion_queue_ring: &'a mut CompletionQueueRing) -> Self
+	fn new(completion_queue_ring: &'a CompletionQueueRing) -> Self
 	{
 		Self
 		{
@@ -72,7 +72,7 @@ impl<'a> CompletionQueueRingIterator<'a>
 	
 	/// Tells Linux kernel all completion entries iterated so far are finished with.
 	#[inline(always)]
-	pub fn tell_linux_kernel_all_completion_entries_iterated_so_far_are_finished_with(&mut self)
+	pub fn tell_linux_kernel_all_completion_entries_iterated_so_far_are_finished_with(&self)
 	{
 		self.store_head();
 	}

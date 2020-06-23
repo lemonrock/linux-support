@@ -20,10 +20,13 @@ pub mod metric;
 pub mod service_check;
 
 
-include!("AdditionalDogStatsDTag.rs");
-include!("AdditionalDogStatsDTags.rs");
 include!("additional_dog_stats_d_tags.rs");
 include!("dog_stats_d_tags.rs");
+
+
+include!("AdditionalDogStatsDTag.rs");
+include!("AdditionalDogStatsDTags.rs");
+include!("ConstArrayVec.rs");
 include!("DogStatsDMessage.rs");
 include!("DogStatsDTag.rs");
 include!("DogStatsDTags.rs");

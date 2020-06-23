@@ -38,7 +38,7 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 	}
 	
 	#[inline(always)]
-	pub(crate) fn log(&mut self, alert: &'static EventTemplate, additional_tags: AdditionalDogStatsDTags<CoroutineHeapSize, GTACSA>, message: Arguments)
+	pub(crate) fn log(&self, alert: &'static EventTemplate, additional_tags: AdditionalDogStatsDTags<CoroutineHeapSize, GTACSA>, message: Arguments)
 	{
 		self.publish
 		(

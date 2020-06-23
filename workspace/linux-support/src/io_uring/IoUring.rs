@@ -262,9 +262,9 @@ impl<'a> IoUring<'a>
 	///
 	/// Dropping the `CompletionQueueRingIterator` frees all completion queue entries.
 	#[inline(always)]
-	pub fn current_completion_queue_entries(&mut self) -> CompletionQueueRingIterator
+	pub fn current_completion_queue_entries(&self) -> CompletionQueueRingIterator
 	{
-		CompletionQueueRingIterator::new(&mut self.completion_queue_ring)
+		CompletionQueueRingIterator::new(&self.completion_queue_ring)
 	}
 
 	/// This is slightly expensive and can change immediately after being called for the case of `false` (ie can immediately become `true`).

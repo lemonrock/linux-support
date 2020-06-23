@@ -17,8 +17,16 @@ macro_rules! alert
 			{
 				static ref AggregationKey: ArrayString<[u8; 100]> = ArrayString::from($aggregation_key).unwrap();
 			}
-			#[thread_local] static Template: EventTemplate = EventTemplate::new_alert_with_common_tags($title, $priority, $alert_type, &AggregationKey);
-			(&Template)
+			
+			#[thread_local] static mut Template: Option<EventTemplate> = None;
+			unsafe
+			{
+				if unlikely!(Template.is_none())
+				{
+					Template = Some(EventTemplate::new_alert_with_common_tags($title, $priority, $alert_type, &AggregationKey));
+				}
+				Template.as_ref().unwrap()
+			}
 		}
 	}
 }

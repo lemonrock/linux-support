@@ -26,8 +26,8 @@ impl DogStatsDTags
 	#[inline(always)]
 	pub fn common_dog_stats_d_tags() -> DogStatsDTags
 	{
-		dog_stats_d_tags!
-		[
+		Self::from_9
+		([
 			DogStatsDTag::environment(),
 			DogStatsDTag::process_name(),
 			DogStatsDTag::process_identifier(),
@@ -37,6 +37,44 @@ impl DogStatsDTags
 			DogStatsDTag::thread_name(),
 			DogStatsDTag::thread_identifier(),
 			DogStatsDTag::hyper_thread()
-		]
+		])
+	}
+	
+	const Nine: u8 = 9;
+	
+	/// Static-friendly method.
+	#[inline(always)]
+	const fn from_9(tags: [&'static DogStatsDTag; Self::Nine as usize]) -> Self
+	{
+		let inner = ConstArrayVec
+		{
+			xs:
+			[
+				tags[0],
+				tags[1],
+				tags[2],
+				tags[3],
+				tags[4],
+				tags[5],
+				tags[6],
+				tags[7],
+				tags[8],
+				Self::uninitialized(),
+				Self::uninitialized(),
+				Self::uninitialized(),
+				Self::uninitialized(),
+				Self::uninitialized(),
+				Self::uninitialized(),
+				Self::uninitialized(),
+			],
+			len: Self::Nine,
+		};
+		
+		Self(unsafe { transmute(inner) })
+	}
+	
+	const fn uninitialized() -> &'static DogStatsDTag
+	{
+		unsafe { transmute(NonNull::<DogStatsDTag>::dangling()) }
 	}
 }

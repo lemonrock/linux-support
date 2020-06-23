@@ -39,15 +39,7 @@ impl<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndC
 			return
 		}
 		
-		match self.io_uring.initiate_asynchronous_io()
-		{
-			Ok(n) => (),
-			
-			Err(submit_error) =>
-			{
-				self.log_io_uring_submit_error(submit_error);
-			}
-		}
+		self.initiate_asynchronous_io()
 	}
 }
 
@@ -107,14 +99,6 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 	}
 	
 	#[inline(always)]
-	fn non_coroutine_handler(&mut self, user_data: u64, completion_response: CompletionResponse) -> Result<(), DispatchIoUringError<io::Error>>
-	{
-		// We have 63-bits of user data available, eg as a tagged pointer.
-		
-		Ok(())
-	}
-	
-	#[inline(always)]
 	fn process_thread_control_messages(&mut self, terminate: &Arc<impl Terminate>) -> bool
 	{
 		use self::DequeuedMessageProcessingError::*;
@@ -137,6 +121,23 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 				true
 			}
 		}
+	}
+	
+	#[inline(always)]
+	fn initiate_asynchronous_io(&mut self)
+	{
+		match self.io_uring.initiate_asynchronous_io()
+		{
+			Ok(number_of_submission_queue_entries_successfully_consumed) => (),
+			
+			Err(submit_error) => self.log_io_uring_submit_error(submit_error),
+		}
+	}
+	
+	#[inline(always)]
+	fn non_coroutine_handler(&self, _user_data: u64, _completion_response: CompletionResponse) -> Result<(), DispatchIoUringError<io::Error>>
+	{
+		unimplemented!("We have 63-bits of user data available, eg as a tagged pointer")
 	}
 	
 	#[inline(always)]

@@ -2,19 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[derive(Debug)]
-struct RegisteredBuffer<BufferSize: MemorySize>
+/// Layout-compatible with `ArrayVec`.
+#[allow(dead_code)]
+struct ConstArrayVec<A: Array>
 {
-	memory_queue: ReferenceCountedLargeRingQueue<BufferSize>,
-	registered_buffer_index: RegisteredBufferIndex,
-}
-
-impl<BufferSize: MemorySize> RegisteredBuffer<BufferSize>
-{
-	#[allow(missing_docs)]
-	#[inline(always)]
-	fn next_buffer_source(&self) -> Result<RegisteredBufferSource<BufferSize>, ()>
-	{
-		self.memory_queue.obtain_and_map(|element| RegisteredBufferSource { element, registered_buffer_index: self.registered_buffer_index }, || ())
-	}
+	xs: A,
+	len: A::Index,
 }
