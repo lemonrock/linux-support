@@ -3,13 +3,16 @@
 
 
 /// An Internet Protocol (IP) version 4 or version 6 address.
-pub trait InternetProtocolAddress: Clone + PartialEq + Eq + PartialOrd + Ord + Sized
+pub trait InternetProtocolAddress: Clone + PartialEq + Eq + PartialOrd + Ord + Sized + Default
 {
 	/// Inclusive aximum prefix (netmask / subnet) length.
 	const InclusiveMaximumPrefixLength: u8;
 	
 	/// Address family, eg `AF_INET`.
 	const AddressFamily: u8;
+	
+	/// Default value.
+	const Default: Self;
 	
 	/// Bytes.
 	///

@@ -70,31 +70,36 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 	#[inline(always)]
 	fn process_all_outstanding_completions(&mut self, terminate: &Arc<impl Terminate>) -> bool
 	{
-		let mut non_coroutine_handler = |u64, completion_response| self.non_coroutine_handler(u64, completion_response);
-		
 		let iterator = self.io_uring.current_completion_queue_entries();
 		for completion_queue_entry in iterator
 		{
-			use self::CoroutineRequiresReEntry::*;
-			match self.coroutine_managers.dispatch_io_uring(completion_queue_entry, &mut non_coroutine_handler)
+			let user_data = completion_queue_entry.user_data();
+			let completion_response = completion_queue_entry.completion_response();
+			
+			if CoroutineInstanceHandle::is_not_for_a_coroutine(user_data)
 			{
-				Ok(CarryOn) => (),
-				
-				Ok(IoUringSubmissionQueueWasFull(coroutine_instance_handle)) =>
-				{
-					debug_assert!(self.retry_submission_queue_was_full_coroutine_instance_handle.is_none());
-					self.retry_submission_queue_was_full_coroutine_instance_handle = Some(coroutine_instance_handle);
-					break
-				},
-				
-				Err(cause) =>
+				if let Err(cause) = self.non_coroutine_handler(user_data, completion_response)
 				{
 					terminate.begin_termination_due_to_irrecoverable_error(&cause, None);
 					return true
 				}
 			}
+			else
+			{
+				use self::CoroutineRequiresReEntry::*;
+				match self.coroutine_managers.dispatch_io_uring(user_data, completion_response)
+				{
+					CarryOn => (),
+					
+					IoUringSubmissionQueueWasFull(coroutine_instance_handle) =>
+					{
+						debug_assert!(self.retry_submission_queue_was_full_coroutine_instance_handle.is_none());
+						self.retry_submission_queue_was_full_coroutine_instance_handle = Some(coroutine_instance_handle);
+						break
+					}
+				}
+			}
 		}
-		
 		false
 	}
 	
@@ -105,7 +110,8 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 		
 		static message_handler_arguments: MessageHandlerArguments = ();
 		
-		match self.subscriber.receive_and_handle_messages(terminate, &message_handler_arguments)
+		let result = self.subscriber.receive_and_handle_messages(terminate, &message_handler_arguments);
+		match result
 		{
 			Ok(()) => false,
 			
@@ -115,7 +121,7 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 				false
 			}
 			
-			Err(Fatal(ref cause)) =>
+			Err(Fatal(cause)) =>
 			{
 				terminate.begin_termination_due_to_irrecoverable_error(&cause, None);
 				true
@@ -135,9 +141,9 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 	}
 	
 	#[inline(always)]
-	fn non_coroutine_handler(&self, _user_data: u64, _completion_response: CompletionResponse) -> Result<(), DispatchIoUringError<io::Error>>
+	fn non_coroutine_handler(&self, user_data: u64, completion_response: CompletionResponse) -> Result<(), DispatchIoUringError<io::Error>>
 	{
-		unimplemented!("We have 63-bits of user data available, eg as a tagged pointer")
+		unimplemented!("We have 63-bits of user data available, eg as a tagged pointer {} {:?}", user_data, completion_response)
 	}
 	
 	#[inline(always)]

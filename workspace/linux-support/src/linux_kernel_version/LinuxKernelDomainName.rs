@@ -19,6 +19,13 @@ impl Deref for LinuxKernelDomainName
 
 impl LinuxKernelDomainName
 {
+	/// A placeholder.
+	#[inline(always)]
+	pub fn placeholder() -> Self
+	{
+		Self(b"unknown".to_vec().into_boxed_slice())
+	}
+	
 	/// New instance.
 	#[inline(always)]
 	pub fn new(proc_path: &ProcPath) -> io::Result<Option<Self>>

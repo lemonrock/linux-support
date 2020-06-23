@@ -16,7 +16,7 @@ impl<'a, SD: SocketData> ReceivedMessageHelper<'a, SD>
 		Self
 		{
 			receive_buffer,
-			remote_peer_address: SD::default(),
+			remote_peer_address: unsafe { zeroed() },
 		}
 	}
 

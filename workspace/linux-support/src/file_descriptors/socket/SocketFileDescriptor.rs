@@ -71,7 +71,7 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 	#[inline(always)]
 	pub fn local_address(&self) -> Result<(SD, usize), ()>
 	{
-		let mut socket_address = SD::default();
+		let mut socket_address = unsafe { zeroed() };
 		let mut socket_address_length = size_of::<SD>() as u32;
 		let result = unsafe { getsockname(self.0, &mut socket_address as *mut _ as *mut _, &mut socket_address_length) };
 

@@ -3,12 +3,40 @@
 
 
 /// Whilst this is present in libc, it does not support useful derives.
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(C)]
 pub struct in_addr
 {
 	/// Must a 32-bit integer in Network Endian form, not Native Endian form.
 	pub s_addr: in_addr_t,
+}
+
+impl<'de> Deserialize<'de> for in_addr
+{
+	#[inline(always)]
+	fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error>
+	{
+		Ok(unsafe { transmute(Ipv4Addr::deserialize(deserializer)?) })
+	}
+}
+
+impl Serialize for in_addr
+{
+	#[inline(always)]
+	fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	{
+		let outer: &Ipv4Addr = self.into();
+		outer.serialize(serializer)
+	}
+}
+
+impl Default for in_addr
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self::Default
+	}
 }
 
 impl Display for in_addr
@@ -56,6 +84,15 @@ impl Into<Ipv4Addr> for in_addr
 	}
 }
 
+impl<'a> Into<&'a Ipv4Addr> for &'a in_addr
+{
+	#[inline(always)]
+	fn into(self) -> &'a Ipv4Addr
+	{
+		unsafe { transmute(self) }
+	}
+}
+
 impl Into<IpAddr> for in_addr
 {
 	#[inline(always)]
@@ -70,6 +107,8 @@ impl InternetProtocolAddress for in_addr
 	const InclusiveMaximumPrefixLength: u8 = 32;
 	
 	const AddressFamily: u8 = AF_INET as u8;
+	
+	const Default: Self = unsafe { transmute(Ipv4Addr::LOCALHOST) };
 	
 	#[inline(always)]
 	fn bytes(&self) -> &[u8]

@@ -50,7 +50,6 @@ use linux_support::cpu::HyperThread;
 use linux_support::file_descriptors::CreationError;
 use linux_support::file_descriptors::signalfd::SignalFileDescriptor;
 use linux_support::file_descriptors::socket::*;
-use linux_support::file_descriptors::socket::c::*;
 use linux_support::io_uring::*;
 use linux_support::memory::huge_pages::*;
 use linux_support::memory::mapping::*;
@@ -91,6 +90,8 @@ use std::num::NonZeroUsize;
 use std::num::NonZeroU16;
 use std::num::NonZeroU32;
 use std::num::NonZeroU64;
+use std::net::SocketAddrV4;
+use std::net::SocketAddrV6;
 use std::ops::Deref;
 use std::ops::DerefMut;
 use std::path::PathBuf;
@@ -110,7 +111,8 @@ pub mod coroutines;
 mod dogstatsd;
 
 
-mod registered_buffers;
+/// Registered buffers.
+pub mod registered_buffers;
 
 
 mod thread_local_allocator;

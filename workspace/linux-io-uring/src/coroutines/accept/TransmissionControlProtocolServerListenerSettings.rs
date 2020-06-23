@@ -5,19 +5,20 @@
 #[allow(missing_docs)]
 #[derive(Debug)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct TransmissionControlProtocolServerListenerSettings<SA: SocketAddress>
 {
 	pub socket_address: SA,
-	pub send_buffer_size_in_bytes: SendBufferSizeInBytes,
-	pub receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes,
-	pub idles_before_keep_alive_seconds: IdlesBeforeKeepAliveSeconds,
-	pub keep_alive_interval_seconds: KeepAliveIntervalSeconds,
-	pub maximum_keep_alive_probes: MaximumKeepAliveProbes,
-	pub socket_linger_seconds: SocketLingerSeconds,
-	pub finish_timeout_seconds: FinishTimeoutSeconds,
-	pub maximum_syn_retransmits: MaximumSynRetransmits,
-	pub not_sent_low_water_in_bytes: NotSentLowWaterInBytes,
-	pub back_log: BackLog,
+	#[serde(default = "TransmissionControlProtocolServerListenerSettings::<SA>::default_send_buffer_size_in_bytes")] pub send_buffer_size_in_bytes: SendBufferSizeInBytes,
+	#[serde(default = "TransmissionControlProtocolServerListenerSettings::<SA>::default_receive_buffer_size_in_bytes")] pub receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes,
+	#[serde(default)] pub idles_before_keep_alive_seconds: IdlesBeforeKeepAliveSeconds,
+	#[serde(default)] pub keep_alive_interval_seconds: KeepAliveIntervalSeconds,
+	#[serde(default)] pub maximum_keep_alive_probes: MaximumKeepAliveProbes,
+	#[serde(default)] pub socket_linger_seconds: SocketLingerSeconds,
+	#[serde(default)] pub finish_timeout_seconds: FinishTimeoutSeconds,
+	#[serde(default)] pub maximum_syn_retransmits: MaximumSynRetransmits,
+	#[serde(default)] pub not_sent_low_water_in_bytes: NotSentLowWaterInBytes,
+	#[serde(default)] pub back_log: BackLog,
 }
 
 impl<SA: SocketAddress> TransmissionControlProtocolServerListenerSettings<SA>
@@ -44,5 +45,17 @@ impl<SA: SocketAddress> TransmissionControlProtocolServerListenerSettings<SA>
 			false,
 			our_hyper_thread,
 		)
+	}
+	
+	#[inline(always)]
+	fn default_send_buffer_size_in_bytes() -> SendBufferSizeInBytes
+	{
+		SA::DefaultSendBufferSizeInBytes
+	}
+	
+	#[inline(always)]
+	fn default_receive_buffer_size_in_bytes() -> ReceiveBufferSizeInBytes
+	{
+		SA::DefaultReceiveBufferSizeInBytes
 	}
 }

@@ -3,6 +3,7 @@
 
 
 /// Start arguments.
+#[allow(type_alias_bounds)]
 pub(crate) type AcceptStartArguments<SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AC: AccessControl<SA::SD, AccessControlValue>> =
 (
 	Rc<IoUring<'static>>,

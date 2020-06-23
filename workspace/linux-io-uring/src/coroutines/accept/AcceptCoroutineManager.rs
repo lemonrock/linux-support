@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[allow(type_alias_bounds)]
 pub(crate) type AcceptCoroutineManager<SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AC: AccessControl<SA::SD, AccessControlValue>, AcceptStackSize: MemorySize> = CoroutineManager<CoroutineHeapSize, AcceptStackSize, GTACSA, AcceptCoroutine<SA, CoroutineHeapSize, GTACSA, AC>, AcceptCoroutineInformation>;
 
 impl<SA: SocketAddress, CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AC: AccessControl<SA::SD, AccessControlValue>, AcceptStackSize: MemorySize> CoroutineDispatch for AcceptCoroutineManager<SA, CoroutineHeapSize, GTACSA, AC, AcceptStackSize>

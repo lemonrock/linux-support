@@ -4,6 +4,8 @@
 
 /// An Unix socket address.
 #[derive(Debug)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum UnixSocketAddress<FilePath: AsRef<Path>>
 {
 	/// A file in a file system.
@@ -28,6 +30,10 @@ impl<FilePath: AsRef<Path>> SocketAddress for UnixSocketAddress<FilePath>
 {
 	type SD = sockaddr_un;
 	
+	const DefaultReceiveBufferSizeInBytes: ReceiveBufferSizeInBytes = ReceiveBufferSizeInBytes::UsualGlobalDefault;
+	
+	const DefaultSendBufferSizeInBytes: SendBufferSizeInBytes = SendBufferSizeInBytes::UsualGlobalDefault;
+	
 	#[inline(always)]
 	fn new_transmission_control_protocol_server_listener(&self, send_buffer_size_in_bytes: SendBufferSizeInBytes, _receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, _idles_before_keep_alive_seconds: IdlesBeforeKeepAliveSeconds, _keep_alive_interval_seconds: KeepAliveIntervalSeconds, _maximum_keep_alive_probes: MaximumKeepAliveProbes, _socket_linger_seconds: SocketLingerSeconds, _finish_timeout_seconds: FinishTimeoutSeconds, _maximum_syn_retransmits: MaximumSynRetransmits, _not_sent_low_water_in_bytes: NotSentLowWaterInBytes, back_log: BackLog, non_blocking: bool, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketFileDescriptor<Self::SD>, NewSocketServerListenerError>
 	{
@@ -50,5 +56,23 @@ impl<FilePath: AsRef<Path>> SocketAddress for UnixSocketAddress<FilePath>
 	fn new_user_datagram_protocol_client(&self, send_buffer_size_in_bytes: SendBufferSizeInBytes, _receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, non_blocking: bool) -> Result<DatagramClientSocketFileDescriptor<Self::SD>, NewSocketClientError>
 	{
 		SocketFileDescriptor::<Self::SD>::new_datagram_unix_domain_socket_client(self, send_buffer_size_in_bytes, non_blocking)
+	}
+}
+
+impl<FilePath: AsRef<Path>> UnixSocketAddress<FilePath>
+{
+	/// From an abstract name.
+	#[inline(always)]
+	pub fn from_abstract_name(name: &[u8]) -> Result<Self, CapacityError>
+	{
+		let mut abstract_name = ArrayVec::new();
+		abstract_name.try_extend_from_slice(name)?;
+		Ok
+		(
+			UnixSocketAddress::Abstract
+			{
+				abstract_name
+			}
+		)
 	}
 }

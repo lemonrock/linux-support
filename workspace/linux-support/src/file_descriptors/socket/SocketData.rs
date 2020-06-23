@@ -3,7 +3,7 @@
 
 
 /// Represents socket data.
-pub trait SocketData: Sized + Default + Debug
+pub trait SocketData: Sized + Debug
 {
 	/// Address type, eg `in6_addr`.
 	type Address: Sized;
@@ -22,5 +22,57 @@ pub trait SocketData: Sized + Default + Debug
 	fn specialized_drop(socket_file_descriptor: &mut SocketFileDescriptor<Self>)
 	{
 		socket_file_descriptor.0.close()
+	}
+}
+
+impl SocketData for SocketAddrV4
+{
+	type Address = in_addr;
+	
+	#[inline(always)]
+	fn family(&self) -> sa_family_t
+	{
+		let inner: &sockaddr_in = unsafe { transmute(self) };
+		inner.family()
+	}
+	
+	#[inline(always)]
+	fn address(&self) -> &Self::Address
+	{
+		let inner: &sockaddr_in = unsafe { transmute(self) };
+		inner.address()
+	}
+	
+	#[doc(hidden)]
+	fn display_format(&self, f: &mut Formatter, address_length: usize) -> fmt::Result
+	{
+		let inner: &sockaddr_in = unsafe { transmute(self) };
+		inner.display_format(f, address_length)
+	}
+}
+
+impl SocketData for SocketAddrV6
+{
+	type Address = in6_addr;
+	
+	#[inline(always)]
+	fn family(&self) -> sa_family_t
+	{
+		let inner: &sockaddr_in6 = unsafe { transmute(self) };
+		inner.family()
+	}
+	
+	#[inline(always)]
+	fn address(&self) -> &Self::Address
+	{
+		let inner: &sockaddr_in6 = unsafe { transmute(self) };
+		inner.address()
+	}
+	
+	#[doc(hidden)]
+	fn display_format(&self, f: &mut Formatter, address_length: usize) -> fmt::Result
+	{
+		let inner: &sockaddr_in6 = unsafe { transmute(self) };
+		inner.display_format(f, address_length)
 	}
 }

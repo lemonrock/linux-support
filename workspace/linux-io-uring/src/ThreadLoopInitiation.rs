@@ -13,8 +13,8 @@ pub struct ThreadLoopInitiation<CoroutineHeapSize: 'static + MemorySize, GTACSA:
 	pub signal_mask: Signals,
 	pub dog_stats_d_message_subscribers: DogStatsDMessageSubscribers,
 	
-	pub transmission_control_protocol_over_internet_protocol_version_4_server_listeners: Vec<AcceptConnectionsCoroutineSettings<sockaddr_in, InternetProtocolVersion4AccessControl<AccessControlValue>>>,
-	pub transmission_control_protocol_over_internet_protocol_version_6_server_listeners: Vec<AcceptConnectionsCoroutineSettings<sockaddr_in6, InternetProtocolVersion6AccessControl<AccessControlValue>>>,
+	pub transmission_control_protocol_over_internet_protocol_version_4_server_listeners: Vec<AcceptConnectionsCoroutineSettings<SocketAddrV4, InternetProtocolVersion4AccessControl<AccessControlValue>>>,
+	pub transmission_control_protocol_over_internet_protocol_version_6_server_listeners: Vec<AcceptConnectionsCoroutineSettings<SocketAddrV6, InternetProtocolVersion6AccessControl<AccessControlValue>>>,
 	pub streaming_unix_domain_socket_server_listener_server_listeners: Vec<AcceptConnectionsCoroutineSettings<UnixSocketAddress<PathBuf>, UnixDomainSocketAccessControl<AccessControlValue>>>,
 
 	pub marker: PhantomData<(CoroutineHeapSize, AcceptStackSize)>,
@@ -37,7 +37,7 @@ impl<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndC
 	{
 		let (io_uring, registered_buffers) = self.io_uring_settings.setup(&self.defaults)?;
 		
-		let signal_file_descriptor = self.signals()?;
+		let signal_file_descriptor = Self::signals(self.signal_mask)?;
 		
 		let our_hyper_thread = HyperThread::current().1;
 		
@@ -79,9 +79,9 @@ impl<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndC
 	}
 	
 	#[inline(always)]
-	fn signals(&self) -> Result<SignalFileDescriptor, ThreadLoopInitializationError>
+	fn signals(signal_mask: Signals) -> Result<SignalFileDescriptor, ThreadLoopInitializationError>
 	{
-		self.signal_mask.block_all_signals_on_current_thread_bar();
-		Ok(SignalFileDescriptor::new(&self.signal_mask.to_sigset_t()).map_err(ThreadLoopInitializationError::SignalFileDescriptor)?)
+		signal_mask.block_all_signals_on_current_thread_bar();
+		Ok(SignalFileDescriptor::new(&signal_mask.to_sigset_t()).map_err(ThreadLoopInitializationError::SignalFileDescriptor)?)
 	}
 }

@@ -17,12 +17,31 @@ pub union in6_addr
 	pub s6_addr32: [u32; 4],
 }
 
+impl<'de> Deserialize<'de> for in6_addr
+{
+	#[inline(always)]
+	fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error>
+	{
+		Ok(unsafe { transmute(Ipv6Addr::deserialize(deserializer)?) })
+	}
+}
+
+impl Serialize for in6_addr
+{
+	#[inline(always)]
+	fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	{
+		let outer: &Ipv6Addr = self.into();
+		outer.serialize(serializer)
+	}
+}
+
 impl Default for in6_addr
 {
 	#[inline(always)]
 	fn default() -> Self
 	{
-		unsafe { zeroed() }
+		Self::Default
 	}
 }
 
@@ -116,6 +135,15 @@ impl Into<Ipv6Addr> for in6_addr
 	}
 }
 
+impl<'a> Into<&'a Ipv6Addr> for &'a in6_addr
+{
+	#[inline(always)]
+	fn into(self) -> &'a Ipv6Addr
+	{
+		unsafe { transmute(self) }
+	}
+}
+
 impl Into<IpAddr> for in6_addr
 {
 	#[inline(always)]
@@ -130,6 +158,8 @@ impl InternetProtocolAddress for in6_addr
 	const InclusiveMaximumPrefixLength: u8 = 128;
 	
 	const AddressFamily: u8 = AF_INET6 as u8;
+	
+	const Default: Self = unsafe { transmute(Ipv6Addr::LOCALHOST) };
 	
 	#[inline(always)]
 	fn bytes(&self) -> &[u8]
