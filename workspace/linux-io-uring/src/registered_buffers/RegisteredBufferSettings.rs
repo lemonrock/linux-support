@@ -19,3 +19,27 @@ pub struct RegisteredBufferSettings
 	pub _256Mb: RegisteredBufferSetting<MemorySize256Mb>,
 	pub _1Gb: RegisteredBufferSetting<MemorySize1Gb>,
 }
+
+impl Clone for RegisteredBufferSettings
+{
+	#[inline(always)]
+	fn clone(&self) -> Self
+	{
+		let mut uninitialized: MaybeUninit<Self> = MaybeUninit::uninit();
+		unsafe
+		{
+			uninitialized.as_mut_ptr().copy_from_nonoverlapping(self, 1);
+			uninitialized.assume_init()
+		}
+	}
+}
+
+impl RegisteredBufferSettings
+{
+	pub(crate) fn create_and_register(&self, defaults: &DefaultPageSizeAndHugePageSizes, io_uring: &IoUring) -> Result<RegisteredBuffers, IoUringSetupError>
+	{
+		let registered_buffers = RegisteredBuffers::new(self, defaults)?;
+		registered_buffers.register(io_uring).map_err(IoUringSetupError::RegisteringBuffers)?;
+		Ok(registered_buffers)
+	}
+}

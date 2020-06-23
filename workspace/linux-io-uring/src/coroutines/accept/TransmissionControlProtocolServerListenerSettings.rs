@@ -3,7 +3,7 @@
 
 
 #[allow(missing_docs)]
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TransmissionControlProtocolServerListenerSettings<SA: SocketAddress>
@@ -23,6 +23,26 @@ pub struct TransmissionControlProtocolServerListenerSettings<SA: SocketAddress>
 
 impl<SA: SocketAddress> TransmissionControlProtocolServerListenerSettings<SA>
 {
+	/// Defaulti-ish
+	#[inline(always)]
+	pub fn defaultish(socket_address: SA) -> Self
+	{
+		Self
+		{
+			socket_address,
+			send_buffer_size_in_bytes: Self::default_send_buffer_size_in_bytes(),
+			receive_buffer_size_in_bytes: Self::default_receive_buffer_size_in_bytes(),
+			idles_before_keep_alive_seconds: Default::default(),
+			keep_alive_interval_seconds: Default::default(),
+			maximum_keep_alive_probes: Default::default(),
+			socket_linger_seconds: Default::default(),
+			finish_timeout_seconds: Default::default(),
+			maximum_syn_retransmits: Default::default(),
+			not_sent_low_water_in_bytes: Default::default(),
+			back_log: Default::default()
+		}
+	}
+	
 	/// Must be run on the thread the socket is to be created on.
 	///
 	// This logic NEEDS TO happen before the coroutine starts.

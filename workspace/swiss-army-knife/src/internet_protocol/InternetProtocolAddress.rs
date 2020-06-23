@@ -12,7 +12,7 @@ pub trait InternetProtocolAddress: Clone + PartialEq + Eq + PartialOrd + Ord + S
 	const AddressFamily: u8;
 	
 	/// Default value.
-	const Default: Self;
+	const LocalHost: Self;
 	
 	/// Bytes.
 	///

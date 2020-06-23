@@ -35,7 +35,7 @@ impl Default for in_addr
 	#[inline(always)]
 	fn default() -> Self
 	{
-		Self::Default
+		Self::LocalHost
 	}
 }
 
@@ -108,7 +108,7 @@ impl InternetProtocolAddress for in_addr
 	
 	const AddressFamily: u8 = AF_INET as u8;
 	
-	const Default: Self = unsafe { transmute(Ipv4Addr::LOCALHOST) };
+	const LocalHost: Self = unsafe { transmute(Ipv4Addr::LOCALHOST) };
 	
 	#[inline(always)]
 	fn bytes(&self) -> &[u8]

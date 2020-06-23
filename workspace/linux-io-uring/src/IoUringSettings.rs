@@ -3,14 +3,27 @@
 
 
 /// io_uring settings.
-#[derive(Debug)]
+#[allow(missing_docs)]
+#[derive(Debug, Clone)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct IoUringSettings
 {
-	ideal_maximum_number_of_coroutines: NonZeroU64,
-	number_of_submission_queue_entries: NonZeroU16,
-	number_of_completion_queue_entries: Option<NonZeroU32>,
-	kernel_submission_queue_thread_configuration: Option<LinuxKernelSubmissionQueuePollingThreadConfiguration>,
-	registered_buffer_settings: RegisteredBufferSettings,
+	/// Maximum value is `IORING_MAX_ENTRIES`, 32768.
+	#[serde(default = "IoUringSettings::number_of_submission_queue_entries_default")] pub number_of_submission_queue_entries: NonZeroU16,
+	
+	/// Maximum value is `IORING_MAX_CQ_ENTRIES`, `2 * IORING_MAX_ENTRIES`.
+	///
+	/// Defaults to double `number_of_submission_queue_entries`.
+	///
+	/// Should usually be `None`.
+	#[serde(default)] pub number_of_completion_queue_entries: Option<NonZeroU32>,
+	
+	/// Should nearly always be `None`.
+	#[serde(default)] pub kernel_submission_queue_thread_configuration: Option<LinuxKernelSubmissionQueuePollingThreadConfiguration>,
+	
+	/// Sizings of registered buffers.
+	pub registered_buffer_settings: RegisteredBufferSettings,
 }
 
 impl IoUringSettings
@@ -18,8 +31,28 @@ impl IoUringSettings
 	fn setup(self, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<(Rc<IoUring<'static>>, RegisteredBuffers), IoUringSetupError>
 	{
 		let io_uring = IoUring::new(defaults, self.number_of_submission_queue_entries, self.number_of_completion_queue_entries, self.kernel_submission_queue_thread_configuration.as_ref(), None)?;
-		let registered_buffers = RegisteredBuffers::new(&self.registered_buffer_settings, defaults)?;
-		registered_buffers.register(&io_uring).map_err(IoUringSetupError::RegisteringBuffers)?;
+		
+		let registered_buffers = self.registered_buffer_settings.create_and_register(defaults, &io_uring)?;
+		
 		Ok((Rc::new(io_uring), registered_buffers))
+	}
+	
+	/// Default-ish.
+	#[inline(always)]
+	pub const fn defaultish(registered_buffer_settings: RegisteredBufferSettings) -> Self
+	{
+		Self
+		{
+			number_of_submission_queue_entries: Self::number_of_submission_queue_entries_default(),
+			number_of_completion_queue_entries: None,
+			kernel_submission_queue_thread_configuration: None,
+			registered_buffer_settings
+		}
+	}
+	
+	#[inline(always)]
+	const fn number_of_submission_queue_entries_default() -> NonZeroU16
+	{
+		unsafe { NonZeroU16::new_unchecked(32768) }
 	}
 }

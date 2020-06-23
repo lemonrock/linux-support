@@ -41,7 +41,7 @@ impl Default for in6_addr
 	#[inline(always)]
 	fn default() -> Self
 	{
-		Self::Default
+		Self::LocalHost
 	}
 }
 
@@ -159,7 +159,7 @@ impl InternetProtocolAddress for in6_addr
 	
 	const AddressFamily: u8 = AF_INET6 as u8;
 	
-	const Default: Self = unsafe { transmute(Ipv6Addr::LOCALHOST) };
+	const LocalHost: Self = unsafe { transmute(Ipv6Addr::LOCALHOST) };
 	
 	#[inline(always)]
 	fn bytes(&self) -> &[u8]

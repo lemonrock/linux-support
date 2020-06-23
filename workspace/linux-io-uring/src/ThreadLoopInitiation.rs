@@ -4,20 +4,21 @@
 
 /// Initiation.
 #[allow(missing_docs)]
+#[derive(Debug, Clone)]
 pub struct ThreadLoopInitiation<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: 'static + MemorySize>
 {
 	pub defaults: DefaultPageSizeAndHugePageSizes,
 	pub global_allocator: &'static GTACSA,
 	pub queues: Queues<(), DequeuedMessageProcessingError>,
-	pub io_uring_settings: IoUringSettings,
 	pub signal_mask: Signals,
 	pub dog_stats_d_message_subscribers: DogStatsDMessageSubscribers,
 	
+	pub io_uring_settings: IoUringSettings,
 	pub transmission_control_protocol_over_internet_protocol_version_4_server_listeners: Vec<AcceptConnectionsCoroutineSettings<SocketAddrV4, InternetProtocolVersion4AccessControl<AccessControlValue>>>,
 	pub transmission_control_protocol_over_internet_protocol_version_6_server_listeners: Vec<AcceptConnectionsCoroutineSettings<SocketAddrV6, InternetProtocolVersion6AccessControl<AccessControlValue>>>,
 	pub streaming_unix_domain_socket_server_listener_server_listeners: Vec<AcceptConnectionsCoroutineSettings<UnixSocketAddress<PathBuf>, UnixDomainSocketAccessControl<AccessControlValue>>>,
 
-	pub marker: PhantomData<(CoroutineHeapSize, AcceptStackSize)>,
+	marker: PhantomData<(CoroutineHeapSize, AcceptStackSize)>,
 }
 
 impl<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: 'static + MemorySize> ThreadFunction for ThreadLoopInitiation<CoroutineHeapSize, GTACSA, AcceptStackSize>
@@ -32,6 +33,38 @@ impl<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndC
 
 impl<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: 'static + MemorySize> ThreadLoopInitiation<CoroutineHeapSize, GTACSA, AcceptStackSize>
 {
+	#[inline(always)]
+	pub fn new
+	(
+		defaults: DefaultPageSizeAndHugePageSizes,
+		global_allocator: &'static GTACSA,
+		queues: Queues<(), DequeuedMessageProcessingError>,
+		signal_mask: Signals,
+		dog_stats_d_message_subscribers: DogStatsDMessageSubscribers,
+		
+		io_uring_settings: IoUringSettings,
+		transmission_control_protocol_over_internet_protocol_version_4_server_listeners: Vec<AcceptConnectionsCoroutineSettings<SocketAddrV4, InternetProtocolVersion4AccessControl<AccessControlValue>>>,
+		transmission_control_protocol_over_internet_protocol_version_6_server_listeners: Vec<AcceptConnectionsCoroutineSettings<SocketAddrV6, InternetProtocolVersion6AccessControl<AccessControlValue>>>,
+		streaming_unix_domain_socket_server_listener_server_listeners: Vec<AcceptConnectionsCoroutineSettings<UnixSocketAddress<PathBuf>, UnixDomainSocketAccessControl<AccessControlValue>>>,
+	) -> Self
+	{
+		Self
+		{
+			defaults,
+			global_allocator,
+			queues,
+			signal_mask,
+			dog_stats_d_message_subscribers,
+			
+			io_uring_settings,
+			transmission_control_protocol_over_internet_protocol_version_4_server_listeners,
+			transmission_control_protocol_over_internet_protocol_version_6_server_listeners,
+			streaming_unix_domain_socket_server_listener_server_listeners,
+		
+			marker: PhantomData,
+		}
+	}
+	
 	#[inline(always)]
 	fn initialize_internal(self) -> Result<ThreadLoop<CoroutineHeapSize, GTACSA, AcceptStackSize>, ThreadLoopInitializationError>
 	{

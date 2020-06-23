@@ -7,3 +7,4 @@ use super::*;
 
 include!("DogStatsDMessageSubscribers.rs");
 include!("DogStatsDPublisher.rs");
+include!("DogStatsDStaticInitialization.rs");

@@ -3,7 +3,7 @@
 
 
 /// An Unix socket address.
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub enum UnixSocketAddress<FilePath: AsRef<Path>>

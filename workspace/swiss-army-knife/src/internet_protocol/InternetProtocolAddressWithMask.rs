@@ -4,6 +4,8 @@
 
 /// An Internet Protocol (IP) version 4 or version 4 address with a mask.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct InternetProtocolAddressWithMask<IPA: InternetProtocolAddress>
 {
 	/// An Internet Protocol (IP) version 4 or version 4 address.
@@ -29,5 +31,39 @@ impl<IPA: InternetProtocolAddress> Ord for InternetProtocolAddressWithMask<IPA>
 	fn cmp(&self, rhs: &Self) -> Ordering
 	{
 		self.mask_length_in_bits.cmp(&rhs.mask_length_in_bits).then(self.internet_protocol_address.cmp(&rhs.internet_protocol_address))
+	}
+}
+
+impl<IPA: InternetProtocolAddress> Default for InternetProtocolAddressWithMask<IPA>
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self::local_host()
+	}
+}
+
+impl<IPA: InternetProtocolAddress> InternetProtocolAddressWithMask<IPA>
+{
+	/// New instance.
+	#[inline(always)]
+	pub fn new(internet_protocol_address: IPA, mask_length_in_bits: NonZeroU8) -> Self
+	{
+		assert!(IPA::InclusiveMaximumPrefixLength <= mask_length_in_bits.get(), "mask_length_in_bits {} exceeds InclusiveMaximumPrefixLength {}", mask_length_in_bits, IPA::InclusiveMaximumPrefixLength);
+		Self
+		{
+			internet_protocol_address,
+			mask_length_in_bits,
+		}
+	}
+	
+	/// Local host.
+	pub fn local_host() -> Self
+	{
+		Self
+		{
+			internet_protocol_address: IPA::LocalHost,
+			mask_length_in_bits: unsafe { NonZeroU8::new_unchecked(IPA::InclusiveMaximumPrefixLength) },
+		}
 	}
 }
