@@ -24,9 +24,16 @@ pub struct Configuration
 	#[serde(default)] pub accept_services: HashMap<ServiceProtocolIdentifier, AcceptServiceConfiguration>,
 }
 
-#[allow(missing_docs)]
 impl Configuration
 {
+	/// From JSON file.
+	pub fn from_json_file(configuration_file_path: impl AsRef<Path>) -> Result<Self, Box<dyn error::Error>>
+	{
+    	let reader = BufReader::new(File::open(configuration_file_path)?);
+    	let configuration = from_reader(reader)?;
+		Ok(configuration)
+	}
+	
 	/// Default-ish
 	pub fn defaultish(registered_buffer_settings: RegisteredBufferSettings, port_number: u16) -> Self
 	{
@@ -92,6 +99,7 @@ impl Configuration
 		}
 	}
 	
+	/// Server listeners.
 	pub fn server_listeners(&mut self) ->
 	(
 		Vec<AcceptConnectionsCoroutineSettings<SocketAddrV4, InternetProtocolVersion4AccessControl<AccessControlValue>>>,
@@ -120,12 +128,14 @@ impl Configuration
 		)
 	}
 	
+	/// Configure.
 	#[inline(always)]
 	pub fn configure(&self, run_as_daemon: bool) -> (Arc<impl Terminate>, DefaultPageSizeAndHugePageSizes)
 	{
 		self.process_configuration.configure(run_as_daemon, &self.file_system_layout, &mut DogStatsDStaticInitialization).expect("Could not configure process")
 	}
 	
+	/// Execute.
 	#[inline(always)]
 	pub fn execute<T: Terminate + 'static, MainThreadFunction: ThreadFunction, ChildThreadFunction: ThreadFunction>(self, terminate: Arc<T>, main_thread: ThreadSettings<MainThreadFunction>, child_threads: Vec<ThreadSettings<ChildThreadFunction>>, defaults: DefaultPageSizeAndHugePageSizes)
 	{

@@ -8,7 +8,7 @@ description = "Comprehensive Linux support for io-uring"
 keywords = ["linux", "namespaces", "sysfs", "pci", "numa"]
 categories = ["external-ffi-bindings", "filesystem", "hardware-support", "os::unix-apis"]
 license = "AGPL-3.0"
-authors = ["Raphael Cohn <raphael.cohn@stormmq.com>"]
+authors = ["Raphael Cohn <raphael@dialogx.com>"]
 homepage = "https://github.com/lemonrock/linux-support"
 repository = "https://github.com/lemonrock/linux-support.git"
 exclude = ["*"]
@@ -38,4 +38,6 @@ swiss-army-knife = { version = "0.0.0", path = "../swiss-army-knife" }
 terminate = { path = "../terminate", version = "^0.2.0" }
 
 # main.rs
+clap = "^2.33.1"
 maplit = "^1.0.2"
+serde_json = "^1.0.55"
