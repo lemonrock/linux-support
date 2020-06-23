@@ -111,18 +111,21 @@ use std::rc::Rc;
 use socket_access_control::*;
 use terminate::Terminate;
 
-/// Coroutines
+
+/// Coroutines.
 pub mod coroutines;
 
 
-mod dogstatsd;
+/// DogStatsD.
+pub mod dogstatsd;
 
 
 /// Registered buffers.
 pub mod registered_buffers;
 
 
-mod thread_local_allocator;
+/// Thread local allocator.
+pub mod thread_local_allocator;
 
 
 include!("CoroutineManagers.rs");

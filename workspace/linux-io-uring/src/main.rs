@@ -19,59 +19,52 @@ use context_allocator::GlobalThreadAndCoroutineSwitchableAllocatorInstance;
 use context_allocator::memory_sources::CoroutineHeapMemorySource;
 use context_allocator::memory_sources::MemoryMapSource;
 use context_allocator::PerThreadState;
-use linux_io_uring::coroutines::accept::{AcceptConnectionsCoroutineSettings, AccessControlValue};
-use linux_io_uring::coroutines::accept::ServiceProtocolIdentifier;
-use linux_io_uring::coroutines::accept::TransmissionControlProtocolServerListenerSettings;
 use linux_io_uring::IoUringSettings;
 use linux_io_uring::ThreadLoopInitiation;
+use linux_io_uring::coroutines::accept::AcceptConnectionsCoroutineSettings;
+use linux_io_uring::coroutines::accept::AccessControlValue;
+use linux_io_uring::coroutines::accept::ServiceProtocolIdentifier;
+use linux_io_uring::coroutines::accept::TransmissionControlProtocolServerListenerSettings;
+use linux_io_uring::dogstatsd::DogStatsDStaticInitialization;
+use linux_io_uring::registered_buffers::RegisteredBufferSettings;
+use linux_io_uring::registered_buffers::RegisteredBufferSetting;
+use linux_io_uring::thread_local_allocator::SimplePerThreadMemoryAllocatorInstantiator;
 use linux_support::configuration::ProcessConfiguration;
 use linux_support::configuration::ProcessExecutor;
-use linux_support::file_descriptors::socket::SendBufferSizeInBytes;
+use linux_support::cpu::HyperThread;
 use linux_support::file_descriptors::socket::UnixSocketAddress;
-use linux_support::file_descriptors::socket::ReceiveBufferSizeInBytes;
-use linux_support::linux_kernel_version::LinuxKernelDomainName;
-use linux_support::linux_kernel_version::LinuxKernelHostName;
-use linux_support::logging::AdditionalLoggingConfiguration;
+use linux_support::file_descriptors::socket::c::in_addr;
+use linux_support::file_descriptors::socket::c::in6_addr;
+use linux_support::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use linux_support::paths::FileSystemLayout;
-use linux_support::process::ProcessName;
 use linux_support::signals::Signals;
 use linux_support::thread::ThreadConfiguration;
+use linux_support::thread::ThreadFunction;
 use linux_support::thread::ThreadSettings;
+use linux_support::user_and_groups::GroupIdentifier;
+use linux_support::user_and_groups::UserIdentifier;
+use maplit::btreemap;
+use maplit::hashmap;
 use magic_ring_buffer::memory_sizes::MemorySize64Kb;
 use message_dispatch::Queues;
-use message_dispatch_datadog::dogstatsd::DogStatsDTag;
-use message_dispatch_datadog::dogstatsd::Label;
+use serde::Deserialize;
+use serde::Serialize;
 use socket_access_control::InternetProtocolVersion4AccessControl;
 use socket_access_control::InternetProtocolVersion6AccessControl;
 use socket_access_control::UnixDomainSocketAccessControl;
 use std::alloc::System;
-use std::error;
-use std::marker::PhantomData;
+use std::collections::BTreeMap;
+use std::collections::HashMap;
 use std::net::SocketAddrV4;
 use std::net::SocketAddrV6;
 use std::net::Ipv6Addr;
-use std::net::IpAddr;
 use std::net::Ipv4Addr;
+use std::num::NonZeroU32;
+use std::path::PathBuf;
 use std::ptr::NonNull;
 use std::sync::Arc;
 use swiss_army_knife::bit_set::BitSet;
-use std::collections::BTreeMap;
-use std::collections::HashMap;
 use swiss_army_knife::internet_protocol::InternetProtocolAddressWithMask;
-use linux_io_uring::registered_buffers::RegisteredBufferSettings;
-use linux_io_uring::registered_buffers::RegisteredBufferSetting;
-use maplit::btreemap;
-use maplit::hashmap;
-use linux_support::cpu::HyperThread;
-use linux_support::user_and_groups::GroupIdentifier;
-use linux_support::user_and_groups::UserIdentifier;
-use linux_support::file_descriptors::socket::c::in_addr;
-use linux_support::file_descriptors::socket::c::sockaddr_in;
-use linux_support::file_descriptors::socket::c::sockaddr_in6;
-use linux_support::file_descriptors::socket::c::in6_addr;
-use linux_support::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
-use linux_support::thread::ThreadFunction;
-use std::path::PathBuf;
 use terminate::Terminate;
 
 
@@ -134,10 +127,10 @@ fn configure_and_execute(run_as_daemon: bool, configuration: Configuration)
 	let accept_child_thread_function = ThreadLoopInitiation::new
 	(
 		defaults,
-		global_allocator: &SwitchableGlobalAllocator,
+		&SwitchableGlobalAllocator,
 		queues,
-		signal_mask: Signals(BitSet::empty()),
-		dog_stats_d_message_subscribers: dog_stats_d_message_subscribers.into_boxed_slice(),
+		Signals(BitSet::empty()),
+		dog_stats_d_message_subscribers.into_boxed_slice(),
 		
 		configuration.io_uring_settings.clone(),
 		transmission_control_protocol_over_internet_protocol_version_4_server_listeners,

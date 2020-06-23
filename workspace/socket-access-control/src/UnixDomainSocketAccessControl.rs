@@ -5,7 +5,7 @@
 /// Remote peer address-based access control.
 ///
 /// Holds whitelists.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UnixDomainSocketAccessControl<Value>
 {
 	permitted_unix_domain_group_identifiers: HashMap<GroupIdentifier, Arc<Value>>,

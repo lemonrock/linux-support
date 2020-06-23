@@ -4,7 +4,7 @@
 
 /// Initiation.
 #[allow(missing_docs)]
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct ThreadLoopInitiation<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: 'static + MemorySize>
 {
 	pub defaults: DefaultPageSizeAndHugePageSizes,
@@ -21,6 +21,27 @@ pub struct ThreadLoopInitiation<CoroutineHeapSize: 'static + MemorySize, GTACSA:
 	marker: PhantomData<(CoroutineHeapSize, AcceptStackSize)>,
 }
 
+impl<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: 'static + MemorySize> Clone for ThreadLoopInitiation<CoroutineHeapSize, GTACSA, AcceptStackSize>
+{
+	#[inline(always)]
+	fn clone(&self) -> Self
+	{
+		Self
+		{
+			defaults: self.defaults.clone(),
+			global_allocator: self.global_allocator,
+			queues: self.queues.clone(),
+			signal_mask: self.signal_mask.clone(),
+			dog_stats_d_message_subscribers: self.dog_stats_d_message_subscribers.clone(),
+			io_uring_settings: self.io_uring_settings.clone(),
+			transmission_control_protocol_over_internet_protocol_version_4_server_listeners: self.transmission_control_protocol_over_internet_protocol_version_4_server_listeners.clone(),
+			transmission_control_protocol_over_internet_protocol_version_6_server_listeners: self.transmission_control_protocol_over_internet_protocol_version_6_server_listeners.clone(),
+			streaming_unix_domain_socket_server_listener_server_listeners: self.streaming_unix_domain_socket_server_listener_server_listeners.clone(),
+			marker: PhantomData,
+		}
+	}
+}
+
 impl<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: 'static + MemorySize> ThreadFunction for ThreadLoopInitiation<CoroutineHeapSize, GTACSA, AcceptStackSize>
 {
 	type TLBF = ThreadLoop<CoroutineHeapSize, GTACSA, AcceptStackSize>;
@@ -33,6 +54,7 @@ impl<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndC
 
 impl<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: 'static + MemorySize> ThreadLoopInitiation<CoroutineHeapSize, GTACSA, AcceptStackSize>
 {
+	/// New instance.
 	#[inline(always)]
 	pub fn new
 	(

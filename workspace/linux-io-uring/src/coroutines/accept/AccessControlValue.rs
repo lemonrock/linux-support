@@ -4,4 +4,5 @@
 
 /// An access control value placeholder.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 pub struct AccessControlValue;

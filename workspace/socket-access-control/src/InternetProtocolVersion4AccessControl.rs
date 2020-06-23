@@ -5,7 +5,7 @@
 /// Remote peer address-based access control for Internet Protocol (IP) version 4.
 ///
 /// Holds whitelists.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct InternetProtocolVersion4AccessControl<Value>(LongestPrefixMatchTable<in_addr, Value>);
 
 impl<Value> AccessControl<sockaddr_in, Value> for InternetProtocolVersion4AccessControl<Value>

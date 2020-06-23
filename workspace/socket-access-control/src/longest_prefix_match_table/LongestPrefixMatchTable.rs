@@ -3,6 +3,7 @@
 
 
 /// A longest prefix match table.
+#[derive(Clone)]
 #[repr(transparent)]
 pub struct LongestPrefixMatchTable<IPA: InternetProtocolAddress, Value>(Point<Value>, PhantomData<IPA>);
 

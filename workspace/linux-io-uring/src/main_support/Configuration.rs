@@ -63,7 +63,7 @@ impl Configuration
 					],
 					permitted_internet_protocol_version_4_subnets: btreemap!
 					[
-						InternetProtocolAddressWithMask::<in6_addr>::local_host() => Arc::new(AccessControlValue),
+						InternetProtocolAddressWithMask::<in_addr>::local_host() => Arc::new(AccessControlValue),
 					],
 					
 					internet_protocol_version_6: vec!
@@ -73,7 +73,7 @@ impl Configuration
 					permitted_internet_protocol_version_6_subnets: btreemap!
 					{
 						InternetProtocolAddressWithMask::<in6_addr>::local_host() => Arc::new(AccessControlValue),
-					}
+					},
 					
 					unix_domain_socket: vec!
 					[
@@ -130,6 +130,6 @@ impl Configuration
 	pub fn execute<T: Terminate + 'static, MainThreadFunction: ThreadFunction, ChildThreadFunction: ThreadFunction>(self, terminate: Arc<T>, main_thread: ThreadSettings<MainThreadFunction>, child_threads: Vec<ThreadSettings<ChildThreadFunction>>, defaults: DefaultPageSizeAndHugePageSizes)
 	{
 		let instantiation_arguments = Arc::new((defaults, &SwitchableGlobalAllocator));
-		self.process_executor.execute_securely(&self.file_system_layout, terminate, main_thread, child_threads, instantiation_arguments).expect("Could not execute process")
+		self.process_executor.execute_securely::<T, MainThreadFunction, ChildThreadFunction, SimplePerThreadMemoryAllocatorInstantiator<CoroutineHeapSize, GTACSA>>(&self.file_system_layout, terminate, main_thread, child_threads, instantiation_arguments).expect("Could not execute process")
 	}
 }

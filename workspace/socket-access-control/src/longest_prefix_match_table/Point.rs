@@ -8,6 +8,20 @@ struct Point<Value>
 	matches: [MatchEntry<Value>; PermutationsOfAByte],
 }
 
+impl<Value> Clone for Point<Value>
+{
+	#[inline(always)]
+	fn clone(&self) -> Self
+	{
+		let mut uninitialized: MaybeUninit<Self> = MaybeUninit::uninit();
+		unsafe
+		{
+			uninitialized.as_mut_ptr().copy_from_nonoverlapping(self, 1);
+			uninitialized.assume_init()
+		}
+	}
+}
+
 impl<Value> Point<Value>
 {
 	fn longest_match_next<'a, 'b>(&'a self, remaining_bytes: &'b [u8]) -> Option<&'a Arc<Value>>

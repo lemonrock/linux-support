@@ -38,6 +38,7 @@ use std::fmt;
 use std::fmt::Debug;
 use std::fmt::Formatter;
 use std::marker::PhantomData;
+use std::mem::MaybeUninit;
 use std::num::NonZeroU8;
 use swiss_army_knife::internet_protocol::InternetProtocolAddress;
 use swiss_army_knife::internet_protocol::InternetProtocolAddressWithMask;
