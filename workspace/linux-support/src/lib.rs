@@ -546,6 +546,7 @@ use libc::sysconf;
 use libc::sysinfo;
 use libc::time_t;
 use libc::timespec;
+use libc::timeval;
 use libc::uid_t;
 use libc::umask;
 use libc::umount2;

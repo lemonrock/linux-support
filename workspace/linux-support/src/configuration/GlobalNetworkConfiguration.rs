@@ -38,6 +38,11 @@ pub struct GlobalNetworkConfiguration
 	/// Requires root.
 	pub global_tcp_minimum_default_and_maximum_receive_buffer_size_in_bytes: Option<(ReceiveBufferSizeInBytes, ReceiveBufferSizeInBytes, ReceiveBufferSizeInBytes)>,
 	
+	/// Global maximum control (ancillary) message buffer size.
+	///
+	/// Requires root.
+	pub global_maximum_control_message_buffer_size_in_bytes: Option<ControlMessageBufferSizeInBytes>,
+	
 	/// Default is 75.
 	///
 	/// Requires root.
@@ -146,21 +151,24 @@ pub struct GlobalNetworkConfiguration
 	///
 	/// Requires root.
 	pub adjust_auto_corking: Option<bool>,
+
+	/// Equivalent to socket option `SO_BUSY_POLL`.
+	///
+	/// If set, the Linux documentation recommends a value of `50` microseconds.
+	///
+	/// Only exists if the Linux kernel has been configured with `CONFIG_NET_RX_BUSY_POLL`.
+	///
+	/// Requires root.
+	pub socket_busy_read: Option<BusyPollMicroseconds>,
+	
+	/// Only exists if the Linux kernel has been configured with `CONFIG_NET_RX_BUSY_POLL`.
+	///
+	/// Requires root.
+	pub socket_busy_select_and_poll: Option<BusyPollMicroseconds>,
+	
+	/// Requires root.
+	pub maximum_unix_domain_socket_datagram_queue_length: Option<MaximumUnixDomainSocketDatagramQueueLength>,
 }
-
-/*
-
-https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/
-
-RPS:
-TODO: Modify file /sys/class/net/eth0/queues/rx-0/rps_cpus  and insert a CPU bitmask
-
-RFS:
-TODO: Modify file  /sys/class/net/eth0/queues/rx-0/rps_flow_cnt
-echo 2048 > /sys/class/net/eth0/queues/rx-0/rps_flow_cnt
-
- */
-
 
 impl GlobalNetworkConfiguration
 {
@@ -180,7 +188,6 @@ impl GlobalNetworkConfiguration
 			Ok(())
 		}
 		
-		
 		instance_set_value(proc_path, SendBufferSizeInBytes::set_global_maximum, self.global_maximum_send_buffer_size_in_bytes, CouldNotChangeGlobalMaximumSendBufferSize)?;
 		instance_set_value(proc_path, SendBufferSizeInBytes::set_global_default, self.global_default_send_buffer_size_in_bytes, CouldNotChangeGlobalDefaultSendBufferSize)?;
 		set_value(proc_path, SendBufferSizeInBytes::set_global_tcp_minimum_default_and_maximum, self.global_tcp_minimum_default_and_maximum_send_buffer_size_in_bytes, CouldNotChangeGlobalTcpMinimumDefaultAndMaximumSendBufferSize)?;
@@ -188,6 +195,8 @@ impl GlobalNetworkConfiguration
 		instance_set_value(proc_path, ReceiveBufferSizeInBytes::set_global_maximum, self.global_maximum_receive_buffer_size_in_bytes, CouldNotChangeGlobalMaximumReceiveBufferSize)?;
 		instance_set_value(proc_path, ReceiveBufferSizeInBytes::set_global_default, self.global_default_receive_buffer_size_in_bytes, CouldNotChangeGlobalDefaultReceiveBufferSize)?;
 		set_value(proc_path, ReceiveBufferSizeInBytes::set_global_tcp_minimum_default_and_maximum, self.global_tcp_minimum_default_and_maximum_receive_buffer_size_in_bytes, CouldNotChangeGlobalTcpMinimumDefaultAndMaximumReceiveBufferSize)?;
+		
+		instance_set_value(proc_path, ControlMessageBufferSizeInBytes::set_global_maximum, self.global_maximum_control_message_buffer_size_in_bytes, CouldNotChangeGlobalMaximumControlMessageBufferSize)?;
 		
 		instance_set_value(proc_path, KeepAliveIntervalSeconds::set_global_default, self.keep_alive_interval_seconds, CouldNotChangeGlobalDefaultKeepAliveIntervalSeconds)?;
 		instance_set_value(proc_path, IdlesBeforeKeepAliveSeconds::set_global_default, self.idles_before_keep_alive_seconds, CouldNotChangeGlobalDefaultIdlesBeforeKeepAliveSeconds)?;
@@ -220,6 +229,11 @@ impl GlobalNetworkConfiguration
 		instance_set_value(proc_path, ReceivePacketSteeringFlowsPerHyperThread::set_global_maximum, self.maximum_receive_packet_steering_flows_per_hyper_thread, CouldNotChangeGlobalDefaultReceivePacketSteeringFlowsPerCpu)?;
 		
 		set_value(proc_path, set_auto_corking, self.adjust_auto_corking, CouldNotChangeAutoCorking)?;
+		
+		instance_set_value(proc_path, BusyPollMicroseconds::set_global_default, self.socket_busy_read, CouldNotChangeGlobalDefaultSocketBusyRead)?;
+		instance_set_value(proc_path, BusyPollMicroseconds::set_global_select_and_poll_default, self.socket_busy_select_and_poll, CouldNotChangeGlobalDefaultSocketBusySelectAndPoll)?;
+		
+		instance_set_value(proc_path, MaximumUnixDomainSocketDatagramQueueLength::set_global_default, self.maximum_unix_domain_socket_datagram_queue_length, CouldNotChangeMaximumUnixDomainSocketDatagramQueueLength)?;
 		
 		Ok(())
 	}

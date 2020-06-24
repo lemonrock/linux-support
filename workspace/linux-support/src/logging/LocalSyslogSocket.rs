@@ -8,7 +8,7 @@
 #[derive(Debug)]
 pub struct LocalSyslogSocket
 {
-	socket_file_descriptor: DatagramClientSocketUnixDomainFileDescriptor,
+	socket_file_descriptor: DatagramClientSocketFileDescriptor<sockaddr_un>,
 	is_connected: Cell<bool>,
 	buffer: Vec<u8>,
 	socket_file_path: PathBuf,
@@ -197,9 +197,14 @@ impl LocalSyslogSocket
 	}
 	
 	#[inline(always)]
-	fn open(socket_file_path: &Path) -> Result<DatagramClientSocketUnixDomainFileDescriptor, NewSocketClientError>
+	fn open(socket_file_path: &Path) -> Result<DatagramClientSocketFileDescriptor<sockaddr_un>, NewSocketClientError>
 	{
-		SocketFileDescriptor::new_datagram_unix_domain_socket_client(&Self::dev_log(socket_file_path), SendBufferSizeInBytes::UsualGlobalDefault, false)
+		const send_buffer_size_socket_option: SendBufferSizeSocketOption = SendBufferSizeSocketOption
+		{
+			size: SendBufferSizeInBytes::UsualGlobalDefault,
+			force: false,
+		};
+		SocketFileDescriptor::new_datagram_unix_domain_socket_client(&Self::dev_log(socket_file_path), send_buffer_size_socket_option, &Blocking::default())
 	}
 	
 	#[inline(always)]

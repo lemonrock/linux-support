@@ -1,3 +1,19 @@
+
+/*
+
+https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/
+
+RPS:
+TODO: Modify file /sys/class/net/eth0/queues/rx-0/rps_cpus  and insert a CPU bitmask
+
+RFS:
+TODO: Modify file  /sys/class/net/eth0/queues/rx-0/rps_flow_cnt
+echo 2048 > /sys/class/net/eth0/queues/rx-0/rps_flow_cnt
+
+ */
+
+
+
 /proc/x/stat parsing bug in `comm`: Can have embedded ')' in it legitimately
 
 userfaultfd: http://man7.org/linux/man-pages/man2/userfaultfd.2.html

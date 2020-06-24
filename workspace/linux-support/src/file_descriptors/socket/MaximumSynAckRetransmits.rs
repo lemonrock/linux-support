@@ -78,6 +78,6 @@ impl MaximumSynAckRetransmits
 	#[inline(always)]
 	fn sys_net_ipv4_tcp_synack_retries_file_path(proc_path: &ProcPath) -> PathBuf
 	{
-		proc_path.sys_net_core_file_path("tcp_synack_retries")
+		proc_path.sys_net_ipv4_file_path("tcp_synack_retries")
 	}
 }

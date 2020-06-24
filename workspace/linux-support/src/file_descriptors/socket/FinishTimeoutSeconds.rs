@@ -4,7 +4,7 @@
 
 /// Can not exceed `u16::MAX`.
 ///
-/// Amount of time to linger in the TCP stae FIN-WAIT2.
+/// Amount of time to linger in the TCP state FIN-WAIT2.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
@@ -58,6 +58,6 @@ impl FinishTimeoutSeconds
 	#[inline(always)]
 	fn sys_net_ipv4_tcp_fin_timeout_file_path(proc_path: &ProcPath) -> PathBuf
 	{
-		proc_path.sys_net_core_file_path("tcp_fin_timeout")
+		proc_path.sys_net_ipv4_file_path("tcp_fin_timeout")
 	}
 }

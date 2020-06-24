@@ -164,26 +164,26 @@ impl SocketAddress for sockaddr_in
 	type SD = Self;
 	
 	#[inline(always)]
-	fn new_transmission_control_protocol_server_listener(&self, send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, idles_before_keep_alive_seconds: IdlesBeforeKeepAliveSeconds, keep_alive_interval_seconds: KeepAliveIntervalSeconds, maximum_keep_alive_probes: MaximumKeepAliveProbes, socket_linger_seconds: SocketLingerSeconds, finish_timeout_seconds: FinishTimeoutSeconds, maximum_syn_retransmits: MaximumSynRetransmits, not_sent_low_water_in_bytes: NotSentLowWaterInBytes, back_log: BackLog, non_blocking: bool, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketFileDescriptor<Self::SD>, NewSocketServerListenerError>
+	fn new_transmission_control_protocol_server_listener(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings, transmission_control_protocol_socket_settings: &TransmissionControlProtocolSocketSettings, back_log: BackLog, blocking: &Blocking, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketFileDescriptor<Self::SD>, NewSocketServerListenerError>
 	{
-		SocketFileDescriptor::<Self::SD>::new_transmission_control_protocol_over_internet_protocol_version_4_server_listener(self, send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, socket_linger_seconds, finish_timeout_seconds, maximum_syn_retransmits, not_sent_low_water_in_bytes, back_log, non_blocking, hyper_thread)
+		SocketFileDescriptor::<Self::SD>::new_transmission_control_protocol_over_internet_protocol_version_4_server_listener(self, internet_protocol_socket_settings, transmission_control_protocol_socket_settings, back_log, blocking, hyper_thread)
 	}
 	
 	#[inline(always)]
-	fn new_transmission_control_protocol_client(&self, send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, idles_before_keep_alive_seconds: IdlesBeforeKeepAliveSeconds, keep_alive_interval_seconds: KeepAliveIntervalSeconds, maximum_keep_alive_probes: MaximumKeepAliveProbes, socket_linger_seconds: SocketLingerSeconds, finish_timeout_seconds: FinishTimeoutSeconds, maximum_syn_retransmits: MaximumSynRetransmits, writes_before_reading: bool, not_sent_low_water_in_bytes: NotSentLowWaterInBytes, non_blocking: bool) -> Result<StreamingSocketFileDescriptor<Self::SD>, NewSocketClientError>
+	fn new_transmission_control_protocol_client(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings, transmission_control_protocol_socket_settings: &TransmissionControlProtocolSocketSettings, writes_before_reading: bool, blocking: &Blocking) -> Result<StreamingSocketFileDescriptor<Self::SD>, NewSocketClientError>
 	{
-		SocketFileDescriptor::<Self::SD>::new_transmission_control_protocol_over_internet_protocol_version_4_client(self, send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, socket_linger_seconds, finish_timeout_seconds, maximum_syn_retransmits, not_sent_low_water_in_bytes, writes_before_reading, non_blocking)
+		SocketFileDescriptor::<Self::SD>::new_transmission_control_protocol_over_internet_protocol_version_4_client(self, internet_protocol_socket_settings, transmission_control_protocol_socket_settings, writes_before_reading, blocking)
 	}
 	
 	#[inline(always)]
-	fn new_user_datagram_protocol_server_listener(&self, send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, non_blocking: bool) -> Result<DatagramServerListenerSocketFileDescriptor<Self::SD>, NewSocketServerListenerError>
+	fn new_user_datagram_protocol_server_listener(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking) -> Result<DatagramServerListenerSocketFileDescriptor<Self::SD>, NewSocketServerListenerError>
 	{
-		SocketFileDescriptor::<Self::SD>::new_user_datagram_protocol_over_internet_protocol_version_4_server_listener(self, send_buffer_size_in_bytes, receive_buffer_size_in_bytes, non_blocking)
+		SocketFileDescriptor::<Self::SD>::new_user_datagram_protocol_over_internet_protocol_version_4_server_listener(self, internet_protocol_socket_settings, blocking)
 	}
 	
 	#[inline(always)]
-	fn new_user_datagram_protocol_client(&self, send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, non_blocking: bool) -> Result<DatagramClientSocketFileDescriptor<Self::SD>, NewSocketClientError>
+	fn new_user_datagram_protocol_client(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking) -> Result<DatagramClientSocketFileDescriptor<Self::SD>, NewSocketClientError>
 	{
-		SocketFileDescriptor::<Self::SD>::new_user_datagram_protocol_over_internet_protocol_version_4_client(self, send_buffer_size_in_bytes, receive_buffer_size_in_bytes, non_blocking)
+		SocketFileDescriptor::<Self::SD>::new_user_datagram_protocol_over_internet_protocol_version_4_client(self, internet_protocol_socket_settings, blocking)
 	}
 }

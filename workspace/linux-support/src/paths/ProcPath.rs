@@ -63,6 +63,13 @@ impl ProcPath
 		self.sys_file_path("vm").append(file_name)
 	}
 
+	/// Get a file path within the ProcPath, `/proc/sys/net/unix/<file_name>`.
+	#[inline(always)]
+	pub fn sys_net_unix_file_path(&self, file_name: &str) -> PathBuf
+	{
+		self.sys_net_file_path("unix").append(file_name)
+	}
+
 	/// Get a file path within the ProcPath, `/proc/sys/net/ipv4/<file_name>`.
 	#[inline(always)]
 	pub fn sys_net_ipv4_file_path(&self, file_name: &str) -> PathBuf

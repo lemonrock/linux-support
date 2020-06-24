@@ -53,7 +53,7 @@ impl MaximumKeepAliveProbes
 		Self(Self::sys_net_ipv4_tcp_keepalive_probes_file_path(proc_path).read_value().unwrap())
 	}
 	
-	/// Set value of `/proc/sys/net/ipv4/tcp_keepalive_probes_intvl` if it exists.
+	/// Set value of `/proc/sys/net/ipv4/tcp_keepalive_probes` if it exists.
 	#[inline(always)]
 	pub fn set_global_default(self, proc_path: &ProcPath) -> io::Result<()>
 	{
@@ -74,6 +74,6 @@ impl MaximumKeepAliveProbes
 	#[inline(always)]
 	fn sys_net_ipv4_tcp_keepalive_probes_file_path(proc_path: &ProcPath) -> PathBuf
 	{
-		proc_path.sys_net_core_file_path("tcp_keepalive_probes")
+		proc_path.sys_net_ipv4_file_path("tcp_keepalive_probes")
 	}
 }

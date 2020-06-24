@@ -90,6 +90,6 @@ impl IdlesBeforeKeepAliveSeconds
 	#[inline(always)]
 	fn sys_net_ipv4_tcp_keepalive_time_file_path(proc_path: &ProcPath) -> PathBuf
 	{
-		proc_path.sys_net_core_file_path("tcp_keepalive_time")
+		proc_path.sys_net_ipv4_file_path("tcp_keepalive_time")
 	}
 }

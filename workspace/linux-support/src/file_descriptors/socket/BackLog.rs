@@ -164,6 +164,6 @@ impl BackLog
 	#[inline(always)]
 	fn sys_net_ipv4_tcp_max_syn_backlog_file_path(proc_path: &ProcPath) -> PathBuf
 	{
-		proc_path.sys_net_core_file_path("tcp_max_syn_backlog")
+		proc_path.sys_net_ipv4_file_path("tcp_max_syn_backlog")
 	}
 }

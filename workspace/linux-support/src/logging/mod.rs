@@ -7,6 +7,7 @@ use self::rfc5424::*;
 use super::cpu::HyperThread;
 use crate::file_descriptors::directory::AccessPermissions;
 use crate::file_descriptors::socket::*;
+use crate::file_descriptors::socket::c::sockaddr_un;
 use crate::linux_kernel_version::*;
 use crate::logging::rfc3164::Rfc3164MessageTemplate;
 use crate::paths::DevPath;

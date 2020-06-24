@@ -25,6 +25,9 @@ pub enum GlobalNetworkConfigurationError
 	CouldNotChangeGlobalTcpMinimumDefaultAndMaximumReceiveBufferSize(io::Error),
 	
 	#[allow(missing_docs)]
+	CouldNotChangeGlobalMaximumControlMessageBufferSize(io::Error),
+	
+	#[allow(missing_docs)]
 	CouldNotChangeGlobalDefaultKeepAliveIntervalSeconds(io::Error),
 	
 	#[allow(missing_docs)]
@@ -83,6 +86,15 @@ pub enum GlobalNetworkConfigurationError
 	
 	#[allow(missing_docs)]
 	CouldNotChangeAutoCorking(io::Error),
+	
+	#[allow(missing_docs)]
+	CouldNotChangeGlobalDefaultSocketBusyRead(io::Error),
+	
+	#[allow(missing_docs)]
+	CouldNotChangeGlobalDefaultSocketBusySelectAndPoll(io::Error),
+	
+	#[allow(missing_docs)]
+	CouldNotChangeMaximumUnixDomainSocketDatagramQueueLength(io::Error),
 }
 
 impl Display for GlobalNetworkConfigurationError
@@ -114,6 +126,8 @@ impl error::Error for GlobalNetworkConfigurationError
 			&CouldNotChangeGlobalDefaultReceiveBufferSize(ref cause) => Some(cause),
 			
 			&CouldNotChangeGlobalTcpMinimumDefaultAndMaximumReceiveBufferSize(ref cause) => Some(cause),
+			
+			&CouldNotChangeGlobalMaximumControlMessageBufferSize(ref cause) => Some(cause),
 			
 			&CouldNotChangeGlobalDefaultKeepAliveIntervalSeconds(ref cause) => Some(cause),
 			
@@ -154,6 +168,12 @@ impl error::Error for GlobalNetworkConfigurationError
 			&CouldNotChangeGlobalDefaultReceivePacketSteeringFlowsPerCpu(ref cause) => Some(cause),
 			
 			&CouldNotChangeAutoCorking(ref cause) => Some(cause),
+			
+			&CouldNotChangeGlobalDefaultSocketBusyRead(ref cause) => Some(cause),
+			
+			&CouldNotChangeGlobalDefaultSocketBusySelectAndPoll(ref cause) => Some(cause),
+			
+			&CouldNotChangeMaximumUnixDomainSocketDatagramQueueLength(ref cause) => Some(cause),
 		}
 	}
 }

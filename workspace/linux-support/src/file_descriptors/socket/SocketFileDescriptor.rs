@@ -293,24 +293,44 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 	}
 
 	#[inline(always)]
-	fn set_send_buffer_size_unix_domain_socket(&self, send_buffer_size_in_bytes: SendBufferSizeInBytes)
+	fn set_send_buffer_size_unix_domain_socket(&self, send_buffer_size_socket_option: SendBufferSizeSocketOption)
 	{
-		let send_buffer_adjusted = send_buffer_size_in_bytes.adjust_for_unix_set_sock_opt() as c_int;
-		self.set_socket_option(SOL_SOCKET, SO_SNDBUF, &send_buffer_adjusted);
+		let send_buffer_adjusted = send_buffer_size_socket_option.adjusted_unix_domain_socket_buffer_size();
+		let socket_option_name = send_buffer_size_socket_option.socket_option_name();
+		self.set_socket_option(SOL_SOCKET, socket_option_name, &send_buffer_adjusted);
 	}
 
 	#[inline(always)]
-	fn set_send_buffer_size(&self, send_buffer_size_in_bytes: SendBufferSizeInBytes)
+	fn set_send_buffer_size(&self, send_buffer_size_socket_option: &SendBufferSizeSocketOption)
 	{
-		let send_buffer_halved = send_buffer_size_in_bytes.adjust_for_tcp_set_sock_opt() as c_int;
-		self.set_socket_option(SOL_SOCKET, SO_SNDBUF, &send_buffer_halved);
+		let send_buffer_halved = send_buffer_size_socket_option.adjusted_tcp_buffer_size();
+		let socket_option_name = send_buffer_size_socket_option.socket_option_name();
+		self.set_socket_option(SOL_SOCKET, socket_option_name, &send_buffer_halved);
 	}
 
 	#[inline(always)]
-	fn set_receive_buffer_size(&self, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes)
+	fn set_receive_buffer_size(&self, receive_buffer_size_socket_option: &ReceiveBufferSizeSocketOption)
 	{
-		let receive_buffer_halved = receive_buffer_size_in_bytes.adjust_for_tcp_set_sock_opt() as c_int;
-		self.set_socket_option(SOL_SOCKET, SO_RCVBUF, &receive_buffer_halved);
+		let receive_buffer_halved = receive_buffer_size_socket_option.adjusted_tcp_buffer_size();
+		let socket_option_name = receive_buffer_size_socket_option.socket_option_name();
+		self.set_socket_option(SOL_SOCKET, socket_option_name, &receive_buffer_halved);
+	}
+
+	#[inline(always)]
+	fn set_queuing_discipline_send_priority(&self, queuing_discipline_send_priority: QueuingDisciplineSendPriority)
+	{
+		let value = queuing_discipline_send_priority as i32;
+		self.set_socket_option(SOL_SOCKET, SO_PRIORITY, &value);
+	}
+
+	#[inline(always)]
+	fn set_busy_poll_microseconds(&self, busy_poll_microseconds: Option<BusyPollMicroseconds>)
+	{
+		if let Some(busy_poll_microseconds) = busy_poll_microseconds
+		{
+			let value = busy_poll_microseconds.to_socket_option_value();
+			self.set_socket_option(SOL_SOCKET, SO_BUSY_POLL, &value);
+		}
 	}
 
 	#[inline(always)]
@@ -369,14 +389,16 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 	}
 
 	#[inline(always)]
-	fn set_internet_protocol_socket_options(&self, send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes)
+	fn set_internet_protocol_socket_options(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings)
 	{
-		self.set_send_buffer_size(send_buffer_size_in_bytes);
-		self.set_receive_buffer_size(receive_buffer_size_in_bytes);
+		self.set_send_buffer_size(&internet_protocol_socket_settings.send_buffer_size);
+		self.set_receive_buffer_size(&internet_protocol_socket_settings.receive_buffer_size);
+		self.set_queuing_discipline_send_priority(internet_protocol_socket_settings.queuing_discipline_send_priority);
+		self.set_busy_poll_microseconds(internet_protocol_socket_settings.busy_poll_microseconds);
 	}
 
 	#[inline(always)]
-	fn set_tcp_socket_options(&self, idles_before_keep_alive_seconds: IdlesBeforeKeepAliveSeconds, keep_alive_interval_seconds: KeepAliveIntervalSeconds, maximum_keep_alive_probes: MaximumKeepAliveProbes, socket_linger_seconds: SocketLingerSeconds, finish_timeout_seconds: FinishTimeoutSeconds, maximum_syn_retransmits: MaximumSynRetransmits, not_sent_low_water_in_bytes: NotSentLowWaterInBytes)
+	fn set_tcp_socket_options(&self, transmission_control_protocol_socket_settings: &TransmissionControlProtocolSocketSettings)
 	{
 		self.set_socket_option_true(SOL_SOCKET, SO_KEEPALIVE);
 
@@ -384,23 +406,23 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 
 		self.disable_nagle_algorithm();
 
-		let idles_before_keep_alive_seconds = idles_before_keep_alive_seconds.0 as i32;
+		let idles_before_keep_alive_seconds = transmission_control_protocol_socket_settings.idles_before_keep_alive_seconds.0 as i32;
 		self.set_socket_option(SOL_TCP, TCP_KEEPIDLE, &idles_before_keep_alive_seconds);
 
-		let keep_alive_interval_seconds = keep_alive_interval_seconds.0 as i32;
+		let keep_alive_interval_seconds = transmission_control_protocol_socket_settings.keep_alive_interval_seconds.0 as i32;
 		self.set_socket_option(SOL_TCP, TCP_KEEPINTVL, &keep_alive_interval_seconds);
 
-		let maximum_keep_alive_probes = maximum_keep_alive_probes.0 as i32;
+		let maximum_keep_alive_probes = transmission_control_protocol_socket_settings.maximum_keep_alive_probes.0 as i32;
 		self.set_socket_option(SOL_TCP, TCP_KEEPCNT, &maximum_keep_alive_probes);
 
-		self.set_tcp_linger(socket_linger_seconds);
+		self.set_tcp_linger(transmission_control_protocol_socket_settings.socket_linger_seconds);
 
-		let finish_timeout_seconds = finish_timeout_seconds.0 as i32;
+		let finish_timeout_seconds = transmission_control_protocol_socket_settings.finish_timeout_seconds.0 as i32;
 		self.set_socket_option(SOL_TCP, TCP_LINGER2, &finish_timeout_seconds);
 
-		self.set_tcp_max_SYN_transmits(maximum_syn_retransmits);
+		self.set_tcp_max_SYN_transmits(transmission_control_protocol_socket_settings.maximum_syn_retransmits);
 		
-		let not_sent_low_water_in_bytes: i32 = not_sent_low_water_in_bytes.into();
+		let not_sent_low_water_in_bytes: i32 = transmission_control_protocol_socket_settings.not_sent_low_water_in_bytes.into();
 		self.set_socket_option(SOL_TCP, TCP_NOTSENT_LOWAT, &not_sent_low_water_in_bytes);
 	}
 
@@ -413,86 +435,86 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 	#[inline(always)]
 	fn set_internet_protocol_server_listener_socket_options(&self)
 	{
+		self.set_socket_option_true(SOL_SOCKET, SO_REUSEADDR);
 		self.set_socket_option_true(SOL_SOCKET, SO_REUSEPORT);
 	}
 
 	#[inline(always)]
 	fn set_tcp_server_listener_socket_options(&self)
 	{
-		self.set_socket_option_true(SOL_SOCKET, SO_REUSEADDR);
 		self.set_socket_option_true(SOL_TCP, TCP_DEFER_ACCEPT);
 		self.set_socket_option_true(SOL_TCP, TCP_FASTOPEN);
 	}
 
 	#[inline(always)]
-	fn new_transmission_control_protocol_over_internet_protocol_version_4(send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, idles_before_keep_alive_seconds: IdlesBeforeKeepAliveSeconds, keep_alive_interval_seconds: KeepAliveIntervalSeconds, maximum_keep_alive_probes: MaximumKeepAliveProbes, socket_linger_seconds: SocketLingerSeconds, finish_timeout_seconds: FinishTimeoutSeconds, maximum_syn_retransmits: MaximumSynRetransmits, not_sent_low_water_in_bytes: NotSentLowWaterInBytes, non_blocking: bool) -> Result<Self, CreationError>
+	fn new_transmission_control_protocol_over_internet_protocol_version_4(internet_protocol_socket_settings: &InternetProtocolSocketSettings, transmission_control_protocol_socket_settings: &TransmissionControlProtocolSocketSettings, blocking: &Blocking) -> Result<Self, CreationError>
 	{
-		Self::new(AF_INET, SOCK_STREAM, IPPROTO_TCP, non_blocking).map(|this|
+		Self::new(AF_INET, SOCK_STREAM, IPPROTO_TCP, blocking).map(|this|
 		{
-			this.set_internet_protocol_socket_options(send_buffer_size_in_bytes, receive_buffer_size_in_bytes);
-			this.set_tcp_socket_options(idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, socket_linger_seconds, finish_timeout_seconds, maximum_syn_retransmits, not_sent_low_water_in_bytes);
+			this.set_internet_protocol_socket_options(internet_protocol_socket_settings);
+			this.set_tcp_socket_options(transmission_control_protocol_socket_settings);
 			this
 		})
 	}
 
 	#[inline(always)]
-	fn new_transmission_control_protocol_over_internet_protocol_version_6(send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, idles_before_keep_alive_seconds: IdlesBeforeKeepAliveSeconds, keep_alive_interval_seconds: KeepAliveIntervalSeconds, maximum_keep_alive_probes: MaximumKeepAliveProbes, socket_linger_seconds: SocketLingerSeconds, finish_timeout_seconds: FinishTimeoutSeconds, maximum_syn_retransmits: MaximumSynRetransmits, not_sent_low_water_in_bytes: NotSentLowWaterInBytes, non_blocking: bool) -> Result<Self, CreationError>
+	fn new_transmission_control_protocol_over_internet_protocol_version_6(internet_protocol_socket_settings: &InternetProtocolSocketSettings, transmission_control_protocol_socket_settings: &TransmissionControlProtocolSocketSettings, blocking: &Blocking) -> Result<Self, CreationError>
 	{
-		Self::new(AF_INET6, SOCK_STREAM, IPPROTO_TCP, non_blocking).map(|this|
+		Self::new(AF_INET6, SOCK_STREAM, IPPROTO_TCP, blocking).map(|this|
 		{
-			this.set_internet_protocol_socket_options(send_buffer_size_in_bytes, receive_buffer_size_in_bytes);
-			this.set_tcp_socket_options(idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, socket_linger_seconds, finish_timeout_seconds, maximum_syn_retransmits, not_sent_low_water_in_bytes);
+			this.set_internet_protocol_socket_options(internet_protocol_socket_settings);
+			this.set_tcp_socket_options(transmission_control_protocol_socket_settings);
 			this
 		})
 	}
 
 	#[inline(always)]
-	fn new_user_datagram_protocol_over_internet_protocol_version_4(send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, non_blocking: bool) -> Result<Self, CreationError>
+	fn new_user_datagram_protocol_over_internet_protocol_version_4(internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking) -> Result<Self, CreationError>
 	{
-		Self::new(AF_INET, SOCK_DGRAM, IPPROTO_UDP, non_blocking).map(|this|
+		Self::new(AF_INET, SOCK_DGRAM, IPPROTO_UDP, blocking).map(|this|
 		{
-			this.set_internet_protocol_socket_options(send_buffer_size_in_bytes, receive_buffer_size_in_bytes);
+			this.set_internet_protocol_socket_options(internet_protocol_socket_settings);
 			this.set_udp_socket_options();
 			this
 		})
 	}
 
 	#[inline(always)]
-	fn new_user_datagram_protocol_over_internet_protocol_version_6(send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, non_blocking: bool) -> Result<Self, CreationError>
+	fn new_user_datagram_protocol_over_internet_protocol_version_6(internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking) -> Result<Self, CreationError>
 	{
-		Self::new(AF_INET6, SOCK_DGRAM, IPPROTO_UDP, non_blocking).map(|this|
+		Self::new(AF_INET6, SOCK_DGRAM, IPPROTO_UDP, blocking).map(|this|
 		{
-			this.set_internet_protocol_socket_options(send_buffer_size_in_bytes, receive_buffer_size_in_bytes);
+			this.set_internet_protocol_socket_options(internet_protocol_socket_settings);
 			this.set_udp_socket_options();
 			this
 		})
 	}
 
 	#[inline(always)]
-	fn new_streaming_unix_domain_socket(send_buffer_size_in_bytes: SendBufferSizeInBytes, non_blocking: bool) -> Result<Self, CreationError>
+	fn new_streaming_unix_domain_socket(send_buffer_size: SendBufferSizeSocketOption, blocking: &Blocking) -> Result<Self, CreationError>
 	{
-		Self::new(AF_UNIX, SOCK_STREAM, 0, non_blocking).map(|this|
+		Self::new(AF_UNIX, SOCK_STREAM, 0, blocking).map(|this|
 		{
-			this.set_send_buffer_size_unix_domain_socket(send_buffer_size_in_bytes);
+			this.set_send_buffer_size_unix_domain_socket(send_buffer_size);
 			this
 		})
 	}
 
 	#[inline(always)]
-	fn new_datagram_unix_domain_socket(send_buffer_size_in_bytes: SendBufferSizeInBytes, non_blocking: bool) -> Result<Self, CreationError>
+	fn new_datagram_unix_domain_socket(send_buffer_size: SendBufferSizeSocketOption, blocking: &Blocking) -> Result<Self, CreationError>
 	{
-		Self::new(AF_UNIX, SOCK_DGRAM, 0, non_blocking).map(|this|
+		Self::new(AF_UNIX, SOCK_DGRAM, 0, blocking).map(|this|
 		{
-			this.set_send_buffer_size_unix_domain_socket(send_buffer_size_in_bytes);
+			this.set_send_buffer_size_unix_domain_socket(send_buffer_size);
 			this
 		})
 	}
 
 	#[inline(always)]
-	fn type_and_flags(type_: c_int, non_blocking: bool) -> c_int
+	fn type_and_flags(type_: c_int, blocking: &Blocking) -> c_int
 	{
 		let flags = type_ | SOCK_CLOEXEC;
-		if non_blocking
+		if blocking.is_non_blocking()
 		{
 			flags | SOCK_NONBLOCK
 		}
@@ -503,14 +525,14 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 	}
 
 	#[inline(always)]
-	fn socketpair(type_: c_int, lefthand_send_buffer_size_in_bytes: SendBufferSizeInBytes, righthand_send_buffer_size_in_bytes: SendBufferSizeInBytes, non_blocking: bool) -> Result<(Self, Self), CreationError>
+	fn socketpair(type_: c_int, lefthand_send_buffer_size_in_bytes: SendBufferSizeSocketOption, righthand_send_buffer_size_in_bytes: SendBufferSizeSocketOption, blocking: &Blocking) -> Result<(Self, Self), CreationError>
 	{
 		const domain: c_int = AF_UNIX;
 		const ethernet_protocol: c_int = 0;
 
 		#[allow(deprecated)]
 		let mut sv = unsafe { uninitialized() };
-		let result = unsafe { socketpair(domain, Self::type_and_flags(type_, non_blocking), ethernet_protocol, &mut sv) };
+		let result = unsafe { socketpair(domain, Self::type_and_flags(type_, blocking), ethernet_protocol, &mut sv) };
 
 		if likely!(result == 0)
 		{
@@ -548,12 +570,14 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 	}
 
 	#[inline(always)]
-	fn new(domain: c_int, type_: c_int, ethernet_protocol: c_int, non_blocking: bool) -> Result<Self, CreationError>
+	fn new(domain: c_int, type_: c_int, ethernet_protocol: c_int, blocking: &Blocking) -> Result<Self, CreationError>
 	{
-		let result = unsafe { socket(domain, Self::type_and_flags(type_, non_blocking), ethernet_protocol) };
+		let result = unsafe { socket(domain, Self::type_and_flags(type_, blocking), ethernet_protocol) };
 		if likely!(result != -1)
 		{
-			Ok(SocketFileDescriptor(result, PhantomData))
+			let socket_file_descriptor = SocketFileDescriptor(result, PhantomData);
+			blocking.set_time_outs(&socket_file_descriptor);
+			Ok(socket_file_descriptor)
 		}
 		else
 		{
@@ -581,9 +605,9 @@ impl SocketFileDescriptor<sockaddr_in>
 {
 	/// Creates a new instance of a Transmission Control Protocol (TCP) socket over Internet Protocol (IP) version 4 server listener.
 	#[inline(always)]
-	pub fn new_transmission_control_protocol_over_internet_protocol_version_4_server_listener(socket_address: &sockaddr_in, send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, idles_before_keep_alive_seconds: IdlesBeforeKeepAliveSeconds, keep_alive_interval_seconds: KeepAliveIntervalSeconds, maximum_keep_alive_probes: MaximumKeepAliveProbes, socket_linger_seconds: SocketLingerSeconds, finish_timeout_seconds: FinishTimeoutSeconds, maximum_syn_retransmits: MaximumSynRetransmits, not_sent_low_water_in_bytes: NotSentLowWaterInBytes, back_log: BackLog, non_blocking: bool, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketInternetProtocolVersion4FileDescriptor, NewSocketServerListenerError>
+	pub fn new_transmission_control_protocol_over_internet_protocol_version_4_server_listener(socket_address: &sockaddr_in, internet_protocol_socket_settings: &InternetProtocolSocketSettings, transmission_control_protocol_socket_settings: &TransmissionControlProtocolSocketSettings, back_log: BackLog, blocking: &Blocking, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketFileDescriptor<sockaddr_in>, NewSocketServerListenerError>
 	{
-		let this = SocketFileDescriptor::<sockaddr_in>::new_transmission_control_protocol_over_internet_protocol_version_4(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, socket_linger_seconds, finish_timeout_seconds, maximum_syn_retransmits, not_sent_low_water_in_bytes, non_blocking)?;
+		let this = SocketFileDescriptor::<sockaddr_in>::new_transmission_control_protocol_over_internet_protocol_version_4(internet_protocol_socket_settings, transmission_control_protocol_socket_settings, blocking)?;
 		this.set_internet_protocol_server_listener_socket_options();
 		this.set_tcp_server_listener_socket_options();
 		this.bind_internet_protocol_version_4_socket(socket_address)?;
@@ -592,18 +616,18 @@ impl SocketFileDescriptor<sockaddr_in>
 
 	/// Creates a new instance of a Transmission Control Protocol (TCP) socket over Internet Protocol (IP) version 4 client.
 	#[inline(always)]
-	pub fn new_transmission_control_protocol_over_internet_protocol_version_4_client(socket_address: &sockaddr_in, send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, idles_before_keep_alive_seconds: IdlesBeforeKeepAliveSeconds, keep_alive_interval_seconds: KeepAliveIntervalSeconds, maximum_keep_alive_probes: MaximumKeepAliveProbes, socket_linger_seconds: SocketLingerSeconds, finish_timeout_seconds: FinishTimeoutSeconds, maximum_syn_retransmits: MaximumSynRetransmits, not_sent_low_water_in_bytes: NotSentLowWaterInBytes, writes_before_reading: bool, non_blocking: bool) -> Result<StreamingSocketInternetProtocolVersion4FileDescriptor, NewSocketClientError>
+	pub fn new_transmission_control_protocol_over_internet_protocol_version_4_client(socket_address: &sockaddr_in, internet_protocol_socket_settings: &InternetProtocolSocketSettings, transmission_control_protocol_socket_settings: &TransmissionControlProtocolSocketSettings, writes_before_reading: bool, blocking: &Blocking) -> Result<StreamingSocketFileDescriptor<sockaddr_in>, NewSocketClientError>
 	{
-		let this = SocketFileDescriptor::<sockaddr_in>::new_transmission_control_protocol_over_internet_protocol_version_4(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, socket_linger_seconds, finish_timeout_seconds, maximum_syn_retransmits, not_sent_low_water_in_bytes, non_blocking)?;
+		let this = SocketFileDescriptor::<sockaddr_in>::new_transmission_control_protocol_over_internet_protocol_version_4(internet_protocol_socket_settings, transmission_control_protocol_socket_settings, blocking)?;
 		this.connect_internet_protocol_version_4_socket(socket_address, writes_before_reading)?;
 		Ok(StreamingSocketFileDescriptor(this))
 	}
 
 	/// Creates a new instance of a User Datagram Protocol (UDP) socket over Internet Protocol (IP) version 4 server listener.
 	#[inline(always)]
-	pub fn new_user_datagram_protocol_over_internet_protocol_version_4_server_listener(socket_address: &sockaddr_in, send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, non_blocking: bool) -> Result<DatagramServerListenerSocketInternetProtocolVersion4FileDescriptor, NewSocketServerListenerError>
+	pub fn new_user_datagram_protocol_over_internet_protocol_version_4_server_listener(socket_address: &sockaddr_in, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking) -> Result<DatagramServerListenerSocketFileDescriptor<sockaddr_in>, NewSocketServerListenerError>
 	{
-		let this = SocketFileDescriptor::<sockaddr_in>::new_user_datagram_protocol_over_internet_protocol_version_4(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, non_blocking)?;
+		let this = SocketFileDescriptor::<sockaddr_in>::new_user_datagram_protocol_over_internet_protocol_version_4(internet_protocol_socket_settings, blocking)?;
 		this.set_internet_protocol_server_listener_socket_options();
 		this.bind_internet_protocol_version_4_socket(socket_address)?;
 		Ok(DatagramServerListenerSocketFileDescriptor(this))
@@ -611,9 +635,9 @@ impl SocketFileDescriptor<sockaddr_in>
 
 	/// Creates a new instance of a User Datagram Protocol (UDP) socket over Internet Protocol (IP) version 4 client.
 	#[inline(always)]
-	pub fn new_user_datagram_protocol_over_internet_protocol_version_4_client(socket_address: &sockaddr_in, send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, non_blocking: bool) -> Result<DatagramClientSocketInternetProtocolVersion4FileDescriptor, NewSocketClientError>
+	pub fn new_user_datagram_protocol_over_internet_protocol_version_4_client(socket_address: &sockaddr_in, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking) -> Result<DatagramClientSocketFileDescriptor<sockaddr_in>, NewSocketClientError>
 	{
-		let this = SocketFileDescriptor::<sockaddr_in>::new_user_datagram_protocol_over_internet_protocol_version_4(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, non_blocking)?;
+		let this = SocketFileDescriptor::<sockaddr_in>::new_user_datagram_protocol_over_internet_protocol_version_4(internet_protocol_socket_settings, blocking)?;
 		this.connect_internet_protocol_version_4_socket(socket_address, false)?;
 		Ok(DatagramClientSocketFileDescriptor(this))
 	}
@@ -635,9 +659,9 @@ impl SocketFileDescriptor<sockaddr_in6>
 {
 	/// Creates a new instance of a Transmission Control Protocol (TCP) socket over Internet Protocol (IP) version 6 server listener.
 	#[inline(always)]
-	pub fn new_transmission_control_protocol_over_internet_protocol_version_6_server_listener(socket_address: &sockaddr_in6, send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, idles_before_keep_alive_seconds: IdlesBeforeKeepAliveSeconds, keep_alive_interval_seconds: KeepAliveIntervalSeconds, maximum_keep_alive_probes: MaximumKeepAliveProbes, socket_linger_seconds: SocketLingerSeconds, finish_timeout_seconds: FinishTimeoutSeconds, maximum_syn_retransmits: MaximumSynRetransmits, not_sent_low_water_in_bytes: NotSentLowWaterInBytes, back_log: BackLog, non_blocking: bool, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketInternetProtocolVersion6FileDescriptor, NewSocketServerListenerError>
+	pub fn new_transmission_control_protocol_over_internet_protocol_version_6_server_listener(socket_address: &sockaddr_in6, internet_protocol_socket_settings: &InternetProtocolSocketSettings, transmission_control_protocol_socket_settings: &TransmissionControlProtocolSocketSettings, back_log: BackLog, blocking: &Blocking, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketFileDescriptor<sockaddr_in6>, NewSocketServerListenerError>
 	{
-		let this = SocketFileDescriptor::<sockaddr_in6>::new_transmission_control_protocol_over_internet_protocol_version_6(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, socket_linger_seconds, finish_timeout_seconds, maximum_syn_retransmits, not_sent_low_water_in_bytes, non_blocking)?;
+		let this = SocketFileDescriptor::<sockaddr_in6>::new_transmission_control_protocol_over_internet_protocol_version_6(internet_protocol_socket_settings, transmission_control_protocol_socket_settings, blocking)?;
 		this.set_internet_protocol_server_listener_socket_options();
 		this.set_tcp_server_listener_socket_options();
 		this.bind_internet_protocol_version_6_socket(socket_address)?;
@@ -646,18 +670,18 @@ impl SocketFileDescriptor<sockaddr_in6>
 
 	/// Creates a new instance of a Transmission Control Protocol (TCP) socket over Internet Protocol (IP) version 6 client.
 	#[inline(always)]
-	pub fn new_transmission_control_protocol_over_internet_protocol_version_6_client(socket_address: &sockaddr_in6, send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, idles_before_keep_alive_seconds: IdlesBeforeKeepAliveSeconds, keep_alive_interval_seconds: KeepAliveIntervalSeconds, maximum_keep_alive_probes: MaximumKeepAliveProbes, socket_linger_seconds: SocketLingerSeconds, finish_timeout_seconds: FinishTimeoutSeconds, maximum_syn_retransmits: MaximumSynRetransmits, not_sent_low_water_in_bytes: NotSentLowWaterInBytes, writes_before_reading: bool, non_blocking: bool) -> Result<StreamingSocketInternetProtocolVersion6FileDescriptor, NewSocketClientError>
+	pub fn new_transmission_control_protocol_over_internet_protocol_version_6_client(socket_address: &sockaddr_in6, internet_protocol_socket_settings: &InternetProtocolSocketSettings, transmission_control_protocol_socket_settings: &TransmissionControlProtocolSocketSettings, writes_before_reading: bool, blocking: &Blocking) -> Result<StreamingSocketFileDescriptor<sockaddr_in6>, NewSocketClientError>
 	{
-		let this = SocketFileDescriptor::<sockaddr_in6>::new_transmission_control_protocol_over_internet_protocol_version_6(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, idles_before_keep_alive_seconds, keep_alive_interval_seconds, maximum_keep_alive_probes, socket_linger_seconds, finish_timeout_seconds, maximum_syn_retransmits, not_sent_low_water_in_bytes, non_blocking)?;
+		let this = SocketFileDescriptor::<sockaddr_in6>::new_transmission_control_protocol_over_internet_protocol_version_6(internet_protocol_socket_settings, transmission_control_protocol_socket_settings, blocking)?;
 		this.connect_internet_protocol_version_6_socket(socket_address, writes_before_reading)?;
 		Ok(StreamingSocketFileDescriptor(this))
 	}
 
 	/// Creates a new instance of a User Datagram Protocol (UDP) socket over Internet Protocol (IP) version 6 server listener.
 	#[inline(always)]
-	pub fn new_user_datagram_protocol_over_internet_protocol_version_6_server_listener(socket_address: &sockaddr_in6, send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, non_blocking: bool) -> Result<DatagramServerListenerSocketInternetProtocolVersion6FileDescriptor, NewSocketServerListenerError>
+	pub fn new_user_datagram_protocol_over_internet_protocol_version_6_server_listener(socket_address: &sockaddr_in6, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking) -> Result<DatagramServerListenerSocketFileDescriptor<sockaddr_in6>, NewSocketServerListenerError>
 	{
-		let this = SocketFileDescriptor::<sockaddr_in6>::new_user_datagram_protocol_over_internet_protocol_version_6(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, non_blocking)?;
+		let this = SocketFileDescriptor::<sockaddr_in6>::new_user_datagram_protocol_over_internet_protocol_version_6(internet_protocol_socket_settings, blocking)?;
 		this.set_internet_protocol_server_listener_socket_options();
 		this.bind_internet_protocol_version_6_socket(socket_address)?;
 		Ok(DatagramServerListenerSocketFileDescriptor(this))
@@ -665,9 +689,9 @@ impl SocketFileDescriptor<sockaddr_in6>
 
 	/// Creates a new instance of a User Datagram Protocol (UDP) socket over Internet Protocol (IP) version 6 client.
 	#[inline(always)]
-	pub fn new_user_datagram_protocol_over_internet_protocol_version_6_client(socket_address: &sockaddr_in6, send_buffer_size_in_bytes: SendBufferSizeInBytes, receive_buffer_size_in_bytes: ReceiveBufferSizeInBytes, non_blocking: bool) -> Result<DatagramClientSocketInternetProtocolVersion6FileDescriptor, NewSocketClientError>
+	pub fn new_user_datagram_protocol_over_internet_protocol_version_6_client(socket_address: &sockaddr_in6, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking) -> Result<DatagramClientSocketFileDescriptor<sockaddr_in6>, NewSocketClientError>
 	{
-		let this = SocketFileDescriptor::<sockaddr_in6>::new_user_datagram_protocol_over_internet_protocol_version_6(send_buffer_size_in_bytes, receive_buffer_size_in_bytes, non_blocking)?;
+		let this = SocketFileDescriptor::<sockaddr_in6>::new_user_datagram_protocol_over_internet_protocol_version_6(internet_protocol_socket_settings, blocking)?;
 		this.connect_internet_protocol_version_6_socket(socket_address, false)?;
 		Ok(DatagramClientSocketFileDescriptor(this))
 	}
@@ -904,9 +928,9 @@ impl SocketFileDescriptor<sockaddr_un>
 	///
 	/// This is local socket akin to a Transmission Control Protocol (TCP) socket.
 	#[inline(always)]
-	pub fn new_streaming_unix_domain_socket_server_listener(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_in_bytes: SendBufferSizeInBytes, back_log: BackLog, non_blocking: bool, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketUnixDomainFileDescriptor, NewSocketServerListenerError>
+	pub fn new_streaming_unix_domain_socket_server_listener(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_socket_option: SendBufferSizeSocketOption, back_log: BackLog, blocking: &Blocking, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketFileDescriptor<sockaddr_un>, NewSocketServerListenerError>
 	{
-		let this = SocketFileDescriptor::<sockaddr_un>::new_streaming_unix_domain_socket(send_buffer_size_in_bytes, non_blocking)?;
+		let this = SocketFileDescriptor::<sockaddr_un>::new_streaming_unix_domain_socket(send_buffer_size_socket_option, blocking)?;
 		this.bind_unix_domain_socket(unix_socket_address)?;
 		Ok(this.listen(back_log, hyper_thread)?)
 	}
@@ -915,9 +939,9 @@ impl SocketFileDescriptor<sockaddr_un>
 	///
 	/// This is local socket akin to a Transmission Control Protocol (TCP) socket.
 	#[inline(always)]
-	pub fn new_streaming_unix_domain_socket_client(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_in_bytes: SendBufferSizeInBytes, non_blocking: bool) -> Result<StreamingSocketUnixDomainFileDescriptor, NewSocketClientError>
+	pub fn new_streaming_unix_domain_socket_client(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_socket_option: SendBufferSizeSocketOption, blocking: &Blocking) -> Result<StreamingSocketFileDescriptor<sockaddr_un>, NewSocketClientError>
 	{
-		let this = SocketFileDescriptor::<sockaddr_un>::new_streaming_unix_domain_socket(send_buffer_size_in_bytes, non_blocking)?;
+		let this = SocketFileDescriptor::<sockaddr_un>::new_streaming_unix_domain_socket(send_buffer_size_socket_option, blocking)?;
 		this.connect_unix_domain_socket(unix_socket_address)?;
 		Ok(StreamingSocketFileDescriptor(this))
 	}
@@ -926,9 +950,9 @@ impl SocketFileDescriptor<sockaddr_un>
 	///
 	/// This is local socket akin to an User Datagram Protocol (UDP) socket.
 	#[inline(always)]
-	pub fn new_datagram_unix_domain_socket_server_listener(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_in_bytes: SendBufferSizeInBytes, non_blocking: bool) -> Result<DatagramServerListenerSocketUnixDomainFileDescriptor, NewSocketServerListenerError>
+	pub fn new_datagram_unix_domain_socket_server_listener(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_socket_option: SendBufferSizeSocketOption, blocking: &Blocking) -> Result<DatagramServerListenerSocketFileDescriptor<sockaddr_un>, NewSocketServerListenerError>
 	{
-		let this = SocketFileDescriptor::<sockaddr_un>::new_datagram_unix_domain_socket(send_buffer_size_in_bytes, non_blocking)?;
+		let this = SocketFileDescriptor::<sockaddr_un>::new_datagram_unix_domain_socket(send_buffer_size_socket_option, blocking)?;
 		this.bind_unix_domain_socket(unix_socket_address)?;
 		Ok(DatagramServerListenerSocketFileDescriptor(this))
 	}
@@ -937,9 +961,9 @@ impl SocketFileDescriptor<sockaddr_un>
 	///
 	/// This is local socket akin to an User Datagram Protocol (UDP) socket.
 	#[inline(always)]
-	pub fn new_datagram_unix_domain_socket_client(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_in_bytes: SendBufferSizeInBytes, non_blocking: bool) -> Result<DatagramClientSocketUnixDomainFileDescriptor, NewSocketClientError>
+	pub fn new_datagram_unix_domain_socket_client(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_socket_option: SendBufferSizeSocketOption, blocking: &Blocking) -> Result<DatagramClientSocketFileDescriptor<sockaddr_un>, NewSocketClientError>
 	{
-		let this = SocketFileDescriptor::<sockaddr_un>::new_datagram_unix_domain_socket(send_buffer_size_in_bytes, non_blocking)?;
+		let this = SocketFileDescriptor::<sockaddr_un>::new_datagram_unix_domain_socket(send_buffer_size_socket_option, blocking)?;
 		this.connect_unix_domain_socket(unix_socket_address)?;
 		Ok(DatagramClientSocketFileDescriptor(this))
 	}
@@ -948,9 +972,9 @@ impl SocketFileDescriptor<sockaddr_un>
 	///
 	/// This is a pair of local sockets akin to Transmission Control Protocol (TCP) sockets.
 	#[inline(always)]
-	pub fn new_streaming_unix_domain_socket_pair(lefthand_send_buffer_size_in_bytes: SendBufferSizeInBytes, righthand_send_buffer_size_in_bytes: SendBufferSizeInBytes, non_blocking: bool) -> Result<(StreamingSocketUnixDomainFileDescriptor, StreamingSocketUnixDomainFileDescriptor), NewSocketClientError>
+	pub fn new_streaming_unix_domain_socket_pair(lefthand_send_buffer_size_socket_option: SendBufferSizeSocketOption, righthand_send_buffer_size_socket_option: SendBufferSizeSocketOption, blocking: &Blocking) -> Result<(StreamingSocketFileDescriptor<sockaddr_un>, StreamingSocketFileDescriptor<sockaddr_un>), NewSocketClientError>
 	{
-		let (lefthand, righthand) = Self::socketpair(SOCK_STREAM, lefthand_send_buffer_size_in_bytes, righthand_send_buffer_size_in_bytes, non_blocking)?;
+		let (lefthand, righthand) = Self::socketpair(SOCK_STREAM, lefthand_send_buffer_size_socket_option, righthand_send_buffer_size_socket_option, blocking)?;
 
 		Ok((StreamingSocketFileDescriptor(lefthand), StreamingSocketFileDescriptor(righthand)))
 	}
@@ -959,9 +983,9 @@ impl SocketFileDescriptor<sockaddr_un>
 	///
 	/// This is a pair of local sockets akin to User Datagram Protocol (UDP) sockets.
 	#[inline(always)]
-	pub fn new_datagram_unix_domain_socket_pair(lefthand_send_buffer_size_in_bytes: SendBufferSizeInBytes, righthand_send_buffer_size_in_bytes: SendBufferSizeInBytes, non_blocking: bool) -> Result<(DatagramClientSocketUnixDomainFileDescriptor, DatagramClientSocketUnixDomainFileDescriptor), NewSocketClientError>
+	pub fn new_datagram_unix_domain_socket_pair(lefthand_send_buffer_size_socket_option: SendBufferSizeSocketOption, righthand_send_buffer_size_socket_option: SendBufferSizeSocketOption, blocking: &Blocking) -> Result<(DatagramClientSocketFileDescriptor<sockaddr_un>, DatagramClientSocketFileDescriptor<sockaddr_un>), NewSocketClientError>
 	{
-		let (lefthand, righthand) = Self::socketpair(SOCK_DGRAM, lefthand_send_buffer_size_in_bytes, righthand_send_buffer_size_in_bytes, non_blocking)?;
+		let (lefthand, righthand) = Self::socketpair(SOCK_DGRAM, lefthand_send_buffer_size_socket_option, righthand_send_buffer_size_socket_option, blocking)?;
 
 		Ok((DatagramClientSocketFileDescriptor(lefthand), DatagramClientSocketFileDescriptor(righthand)))
 	}
