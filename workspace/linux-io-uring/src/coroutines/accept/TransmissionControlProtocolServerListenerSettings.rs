@@ -23,6 +23,19 @@ pub struct TransmissionControlProtocolServerListenerSettings<SA: SocketAddress>
 
 impl<SA: SocketAddress> TransmissionControlProtocolServerListenerSettings<SA>
 {
+	/// Default-ish.
+	#[inline(always)]
+	pub fn defaultish(socket_address: SA) -> Self
+	{
+		Self
+		{
+			socket_address,
+			internet_protocol: InternetProtocolSocketSettings::default(),
+			transmission_control_protocol: TransmissionControlProtocolSocketSettings::default(),
+			back_log: BackLog::default(),
+		}
+	}
+	
 	/// Must be run on the thread the socket is to be created on.
 	#[inline(always)]
 	pub(crate) fn new_socket(self, our_hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketFileDescriptor<SA::SD>, NewSocketServerListenerError>
