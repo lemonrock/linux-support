@@ -4,8 +4,6 @@
 
 /// Not-sent low-water size.
 ///
-/// See <>.
-///
 /// Set to 16Kb for HTTP/2 prioritization to be effective.
 ///
 /// See <https://lwn.net/Articles/560082/>.

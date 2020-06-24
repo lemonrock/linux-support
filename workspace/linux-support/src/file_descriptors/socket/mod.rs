@@ -53,6 +53,7 @@ include!("PendingAcceptConnection.rs");
 include!("QueuingDisciplineAlgorithm.rs");
 include!("QueuingDisciplineSendPriority.rs");
 include!("ReceiveBufferSizeInBytes.rs");
+include!("ReceiveLowWaterMarkInBytes.rs");
 include!("ReceivedMessageHelper.rs");
 include!("ReceivedMessages.rs");
 include!("ReceiveBufferSizeSocketOption.rs");

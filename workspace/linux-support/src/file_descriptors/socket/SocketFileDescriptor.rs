@@ -293,6 +293,13 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 	}
 
 	#[inline(always)]
+	fn set_receive_low_water_mark_in_bytes(&self, receive_low_water_mark_in_bytes: ReceiveLowWaterMarkInBytes)
+	{
+		let value = receive_low_water_mark_in_bytes.0.get() as i32;
+		self.set_socket_option(SOL_SOCKET, SO_RCVLOWAT, &value);
+	}
+
+	#[inline(always)]
 	fn set_send_buffer_size_unix_domain_socket(&self, send_buffer_size_socket_option: SendBufferSizeSocketOption)
 	{
 		let send_buffer_adjusted = send_buffer_size_socket_option.adjusted_unix_domain_socket_buffer_size();
@@ -424,6 +431,8 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 		
 		let not_sent_low_water_in_bytes: i32 = transmission_control_protocol_socket_settings.not_sent_low_water_in_bytes.into();
 		self.set_socket_option(SOL_TCP, TCP_NOTSENT_LOWAT, &not_sent_low_water_in_bytes);
+		
+		self.set_receive_low_water_mark_in_bytes(transmission_control_protocol_socket_settings.receive_low_water_mark_in_bytes);
 	}
 
 	#[inline(always)]
@@ -491,11 +500,12 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 	}
 
 	#[inline(always)]
-	fn new_streaming_unix_domain_socket(send_buffer_size: SendBufferSizeSocketOption, blocking: &Blocking) -> Result<Self, CreationError>
+	fn new_streaming_unix_domain_socket(send_buffer_size: SendBufferSizeSocketOption, receive_low_water_mark_in_bytes: ReceiveLowWaterMarkInBytes, blocking: &Blocking) -> Result<Self, CreationError>
 	{
 		Self::new(AF_UNIX, SOCK_STREAM, 0, blocking).map(|this|
 		{
 			this.set_send_buffer_size_unix_domain_socket(send_buffer_size);
+			this.set_receive_low_water_mark_in_bytes(receive_low_water_mark_in_bytes);
 			this
 		})
 	}
@@ -928,9 +938,9 @@ impl SocketFileDescriptor<sockaddr_un>
 	///
 	/// This is local socket akin to a Transmission Control Protocol (TCP) socket.
 	#[inline(always)]
-	pub fn new_streaming_unix_domain_socket_server_listener(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_socket_option: SendBufferSizeSocketOption, back_log: BackLog, blocking: &Blocking, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketFileDescriptor<sockaddr_un>, NewSocketServerListenerError>
+	pub fn new_streaming_unix_domain_socket_server_listener(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_socket_option: SendBufferSizeSocketOption, receive_low_water_mark_in_bytes: ReceiveLowWaterMarkInBytes, back_log: BackLog, blocking: &Blocking, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketFileDescriptor<sockaddr_un>, NewSocketServerListenerError>
 	{
-		let this = SocketFileDescriptor::<sockaddr_un>::new_streaming_unix_domain_socket(send_buffer_size_socket_option, blocking)?;
+		let this = SocketFileDescriptor::<sockaddr_un>::new_streaming_unix_domain_socket(send_buffer_size_socket_option, receive_low_water_mark_in_bytes, blocking)?;
 		this.bind_unix_domain_socket(unix_socket_address)?;
 		Ok(this.listen(back_log, hyper_thread)?)
 	}
@@ -939,9 +949,9 @@ impl SocketFileDescriptor<sockaddr_un>
 	///
 	/// This is local socket akin to a Transmission Control Protocol (TCP) socket.
 	#[inline(always)]
-	pub fn new_streaming_unix_domain_socket_client(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_socket_option: SendBufferSizeSocketOption, blocking: &Blocking) -> Result<StreamingSocketFileDescriptor<sockaddr_un>, NewSocketClientError>
+	pub fn new_streaming_unix_domain_socket_client(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_socket_option: SendBufferSizeSocketOption, receive_low_water_mark_in_bytes: ReceiveLowWaterMarkInBytes, blocking: &Blocking) -> Result<StreamingSocketFileDescriptor<sockaddr_un>, NewSocketClientError>
 	{
-		let this = SocketFileDescriptor::<sockaddr_un>::new_streaming_unix_domain_socket(send_buffer_size_socket_option, blocking)?;
+		let this = SocketFileDescriptor::<sockaddr_un>::new_streaming_unix_domain_socket(send_buffer_size_socket_option, receive_low_water_mark_in_bytes, blocking)?;
 		this.connect_unix_domain_socket(unix_socket_address)?;
 		Ok(StreamingSocketFileDescriptor(this))
 	}

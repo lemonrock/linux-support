@@ -23,4 +23,7 @@ pub struct TransmissionControlProtocolSocketSettings
 	
 	/// Set this to 16KB for HTTP/2 prioritization to work reliably.
 	pub not_sent_low_water_in_bytes: NotSentLowWaterInBytes,
+
+	/// Defaults to 1.
+	pub receive_low_water_mark_in_bytes: ReceiveLowWaterMarkInBytes,
 }
