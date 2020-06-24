@@ -43,9 +43,9 @@ impl<FilePath: AsRef<Path>> SocketAddress for UnixSocketAddress<FilePath>
 	}
 	
 	#[inline(always)]
-	fn new_user_datagram_protocol_server_listener(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking) -> Result<DatagramServerListenerSocketFileDescriptor<Self::SD>, NewSocketServerListenerError>
+	fn new_user_datagram_protocol_server_listener(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking, hyper_thread: HyperThread) -> Result<DatagramServerListenerSocketFileDescriptor<Self::SD>, NewSocketServerListenerError>
 	{
-		SocketFileDescriptor::<Self::SD>::new_datagram_unix_domain_socket_server_listener(self, internet_protocol_socket_settings.send_buffer_size, blocking)
+		SocketFileDescriptor::<Self::SD>::new_datagram_unix_domain_socket_server_listener(self, internet_protocol_socket_settings.send_buffer_size, blocking, hyper_thread)
 	}
 	
 	#[inline(always)]

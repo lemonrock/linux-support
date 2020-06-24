@@ -180,9 +180,9 @@ impl SocketAddress for sockaddr_in6
 	}
 	
 	#[inline(always)]
-	fn new_user_datagram_protocol_server_listener(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking) -> Result<DatagramServerListenerSocketFileDescriptor<Self::SD>, NewSocketServerListenerError>
+	fn new_user_datagram_protocol_server_listener(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking, hyper_thread: HyperThread) -> Result<DatagramServerListenerSocketFileDescriptor<Self::SD>, NewSocketServerListenerError>
 	{
-		SocketFileDescriptor::<Self::SD>::new_user_datagram_protocol_over_internet_protocol_version_6_server_listener(self, internet_protocol_socket_settings, blocking)
+		SocketFileDescriptor::<Self::SD>::new_user_datagram_protocol_over_internet_protocol_version_6_server_listener(self, internet_protocol_socket_settings, blocking, hyper_thread)
 	}
 	
 	#[inline(always)]

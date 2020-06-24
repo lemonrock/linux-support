@@ -11,6 +11,7 @@ struct Accept<'yielder, SA: SocketAddress, CoroutineHeapSize: 'static + MemorySi
 	access_control: AC,
 	service_protocol_identifier: ServiceProtocolIdentifier,
 	accept_publisher: AcceptPublisher<SA>,
+	socket_hyper_thread: HyperThread,
 	dog_stats_d_publisher: DogStatsDPublisher<CoroutineHeapSize, GTACSA>,
 	thread_local_socket_hyper_thread_additional_dog_stats_d_cache: Rc<ThreadLocalNumericAdditionalDogStatsDTagsCache<HyperThread, CoroutineHeapSize, GTACSA>>,
 	thread_local_processing_hyper_thread_additional_dog_stats_d_cache: Rc<ThreadLocalNumericAdditionalDogStatsDTagsCache<HyperThread, CoroutineHeapSize, GTACSA>>,
@@ -24,6 +25,7 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: 'static + MemorySize, GTACS
 	{
 		let (io_uring, accept_publisher, socket_file_descriptor, access_control, service_protocol_identifier, dog_stats_d_publisher,  global_allocator, thread_local_socket_hyper_thread_additional_dog_stats_d_cache, thread_local_processing_hyper_thread_additional_dog_stats_d_cache) = start_arguments;
 		
+		let socket_hyper_thread = socket_file_descriptor.hyper_thread().expect("Socket option for incoming CPU not set (?Is this is an Unix domain socket - not sure implementation works)?");
 		Self
 		{
 			coroutine_instance_handle,
@@ -33,6 +35,7 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: 'static + MemorySize, GTACS
 			access_control,
 			service_protocol_identifier,
 			accept_publisher,
+			socket_hyper_thread: socket_hyper_thread,
 			dog_stats_d_publisher,
 			thread_local_socket_hyper_thread_additional_dog_stats_d_cache,
 			thread_local_processing_hyper_thread_additional_dog_stats_d_cache,
@@ -106,9 +109,8 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: 'static + MemorySize, GTACS
 	#[inline(always)]
 	fn use_wanted_connection(&self, accepted_connection: AcceptedConnection<SA::SD>, value: &Arc<AccessControlValue>) -> bool
 	{
-		let socket_hyper_thread = accepted_connection.streaming_socket_file_descriptor.hyper_thread();
-		let processing_hyper_thread = self.accept_publisher.publish(socket_hyper_thread, accepted_connection, self.service_protocol_identifier, value);
-		self.increment_connection_count(socket_hyper_thread, processing_hyper_thread);
+		let processing_hyper_thread = self.accept_publisher.publish(self.socket_hyper_thread, accepted_connection, self.service_protocol_identifier, value);
+		self.increment_connection_count(processing_hyper_thread);
 		false
 	}
 	
@@ -176,7 +178,7 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: 'static + MemorySize, GTACS
 	}
 	
 	#[inline(always)]
-	fn increment_connection_count(&self, socket_hyper_thread: HyperThread, processing_hyper_thread: HyperThread)
+	fn increment_connection_count(&self, processing_hyper_thread: HyperThread)
 	{
 		let increment_connection_count = unsafe
 		{
@@ -195,7 +197,7 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: 'static + MemorySize, GTACS
 				additional_dog_stats_d_tags!
 				[
 					self.service_protocol_additional_dog_stats_d_tag(),
-					self.thread_local_socket_hyper_thread_additional_dog_stats_d_cache.get(socket_hyper_thread),
+					self.thread_local_socket_hyper_thread_additional_dog_stats_d_cache.get(self.socket_hyper_thread),
 					self.thread_local_processing_hyper_thread_additional_dog_stats_d_cache.get(processing_hyper_thread)
 				],
 				MetricValue::IncrementUnsampled

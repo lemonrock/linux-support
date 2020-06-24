@@ -10,15 +10,11 @@
 
 	// TODO: Do we want to turn the socket's CPU into actual a CPU chosen from the same NUMA node the socket's CPU is on? A round-robin load balancer?
 
-	// TODO: We have a full submission queue - now what?
-	// TODO: We want to be woken up again WITHOUT any completions due - this might be needed in other coroutines.
-		See AcceptYields
-
-	// TODO: No longer use LocalSyslog but DataDog in ThreadLoop
-
 	// TODO: Actually send messages to DataDog in batches (outbound batches Unix domain socket packets w/o a coroutine potentially)
 
-	// TODO: Fix code in CoroutineManagers to (a) compile and (b) reflect actualy set up of AcceptCoroutine!
+	// TODO: Review how to do RX queues and tie them to CPUs using https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/#preparing-to-receive-data-from-the-network
+
+	// TODO: SO_INCOMING_CPU might actually be broken: https://blog.cloudflare.com/perfect-locality-and-three-epic-systemtap-scripts/
 
 /*
 	Operation combinations

@@ -17,7 +17,7 @@ pub trait SocketAddress
 	fn new_transmission_control_protocol_client(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings, transmission_control_protocol_socket_settings: &TransmissionControlProtocolSocketSettings, writes_before_reading: bool, blocking: &Blocking) -> Result<StreamingSocketFileDescriptor<Self::SD>, NewSocketClientError>;
 	
 	/// Creates a new instance of a User Datagram Protocol (UDP) socket server listener.
-	fn new_user_datagram_protocol_server_listener(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking) -> Result<DatagramServerListenerSocketFileDescriptor<Self::SD>, NewSocketServerListenerError>;
+	fn new_user_datagram_protocol_server_listener(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking, hyper_thread: HyperThread) -> Result<DatagramServerListenerSocketFileDescriptor<Self::SD>, NewSocketServerListenerError>;
 	
 	/// Creates a new instance of a User Datagram Protocol (UDP) socket client.
 	fn new_user_datagram_protocol_client(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking) -> Result<DatagramClientSocketFileDescriptor<Self::SD>, NewSocketClientError>;
@@ -42,10 +42,10 @@ impl SocketAddress for SocketAddrV4
 	}
 	
 	#[inline(always)]
-	fn new_user_datagram_protocol_server_listener(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking) -> Result<DatagramServerListenerSocketFileDescriptor<Self::SD>, NewSocketServerListenerError>
+	fn new_user_datagram_protocol_server_listener(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking, hyper_thread: HyperThread) -> Result<DatagramServerListenerSocketFileDescriptor<Self::SD>, NewSocketServerListenerError>
 	{
 		let inner: &sockaddr_in = unsafe { transmute(self) };
-		inner.new_user_datagram_protocol_server_listener(internet_protocol_socket_settings, blocking)
+		inner.new_user_datagram_protocol_server_listener(internet_protocol_socket_settings, blocking, hyper_thread)
 	}
 	
 	#[inline(always)]
@@ -75,10 +75,10 @@ impl SocketAddress for SocketAddrV6
 	}
 	
 	#[inline(always)]
-	fn new_user_datagram_protocol_server_listener(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking) -> Result<DatagramServerListenerSocketFileDescriptor<Self::SD>, NewSocketServerListenerError>
+	fn new_user_datagram_protocol_server_listener(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking, hyper_thread: HyperThread) -> Result<DatagramServerListenerSocketFileDescriptor<Self::SD>, NewSocketServerListenerError>
 	{
 		let inner: &sockaddr_in6 = unsafe { transmute(self) };
-		inner.new_user_datagram_protocol_server_listener(internet_protocol_socket_settings, blocking)
+		inner.new_user_datagram_protocol_server_listener(internet_protocol_socket_settings, blocking, hyper_thread)
 	}
 	
 	#[inline(always)]

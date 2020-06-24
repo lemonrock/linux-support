@@ -51,10 +51,21 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 {
 	/// This is mostly useful for `StreamingSocketFileDescriptors` after `connect()` or created by `accept()`, to identify an appropriate CPU to most efficiently handle the network traffic.
 	#[inline(always)]
-	pub fn hyper_thread(&self) -> HyperThread
+	pub fn hyper_thread(&self) -> Option<HyperThread>
 	{
 		let result: i32 = self.get_socket_option(SOL_SOCKET, SO_INCOMING_CPU);
-		HyperThread::try_from(result as u32 as u16).unwrap()
+		if likely!(result >= 0 && result <= (u16::MAX as i32))
+		{
+			Some(HyperThread::try_from(result as u32 as u16).unwrap())
+		}
+		else if likely!(result == -1)
+		{
+			None
+		}
+		else
+		{
+			unreachable!("Invalid result {} for get SO_INCOMING_CPU socket option", result)
+		}
 	}
 	
 	/// ***SLOW***.
@@ -98,15 +109,21 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 			unreachable!();
 		}
 	}
-
+	
+	#[inline(always)]
+	fn set_incoming_cpu(&self, hyper_thread: HyperThread)
+	{
+		let hyper_thread: i32 = hyper_thread.into();
+		self.set_socket_option(SOL_SOCKET, SO_INCOMING_CPU, &hyper_thread);
+	}
+	
 	#[inline(always)]
 	fn listen(self, back_log: BackLog, hyper_thread: HyperThread) -> Result<StreamingServerListenerSocketFileDescriptor<SD>, SocketListenError>
 	{
 		let result = unsafe { listen(self.0, back_log.0 as i32) };
 		if likely!(result == 0)
 		{
-			let hyper_thread: i32 = hyper_thread.into();
-			self.set_socket_option(SOL_SOCKET, SO_INCOMING_CPU, &hyper_thread);
+			self.set_incoming_cpu(hyper_thread);
 			Ok(StreamingServerListenerSocketFileDescriptor(self))
 		}
 		else if likely!(result == -1)
@@ -635,9 +652,10 @@ impl SocketFileDescriptor<sockaddr_in>
 
 	/// Creates a new instance of a User Datagram Protocol (UDP) socket over Internet Protocol (IP) version 4 server listener.
 	#[inline(always)]
-	pub fn new_user_datagram_protocol_over_internet_protocol_version_4_server_listener(socket_address: &sockaddr_in, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking) -> Result<DatagramServerListenerSocketFileDescriptor<sockaddr_in>, NewSocketServerListenerError>
+	pub fn new_user_datagram_protocol_over_internet_protocol_version_4_server_listener(socket_address: &sockaddr_in, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking, hyper_thread: HyperThread) -> Result<DatagramServerListenerSocketFileDescriptor<sockaddr_in>, NewSocketServerListenerError>
 	{
 		let this = SocketFileDescriptor::<sockaddr_in>::new_user_datagram_protocol_over_internet_protocol_version_4(internet_protocol_socket_settings, blocking)?;
+		this.set_incoming_cpu(hyper_thread);
 		this.set_internet_protocol_server_listener_socket_options();
 		this.bind_internet_protocol_version_4_socket(socket_address)?;
 		Ok(DatagramServerListenerSocketFileDescriptor(this))
@@ -689,9 +707,10 @@ impl SocketFileDescriptor<sockaddr_in6>
 
 	/// Creates a new instance of a User Datagram Protocol (UDP) socket over Internet Protocol (IP) version 6 server listener.
 	#[inline(always)]
-	pub fn new_user_datagram_protocol_over_internet_protocol_version_6_server_listener(socket_address: &sockaddr_in6, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking) -> Result<DatagramServerListenerSocketFileDescriptor<sockaddr_in6>, NewSocketServerListenerError>
+	pub fn new_user_datagram_protocol_over_internet_protocol_version_6_server_listener(socket_address: &sockaddr_in6, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking, hyper_thread: HyperThread) -> Result<DatagramServerListenerSocketFileDescriptor<sockaddr_in6>, NewSocketServerListenerError>
 	{
 		let this = SocketFileDescriptor::<sockaddr_in6>::new_user_datagram_protocol_over_internet_protocol_version_6(internet_protocol_socket_settings, blocking)?;
+		this.set_incoming_cpu(hyper_thread);
 		this.set_internet_protocol_server_listener_socket_options();
 		this.bind_internet_protocol_version_6_socket(socket_address)?;
 		Ok(DatagramServerListenerSocketFileDescriptor(this))
@@ -960,9 +979,10 @@ impl SocketFileDescriptor<sockaddr_un>
 	///
 	/// This is local socket akin to an User Datagram Protocol (UDP) socket.
 	#[inline(always)]
-	pub fn new_datagram_unix_domain_socket_server_listener(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_socket_option: SendBufferSizeSocketOption, blocking: &Blocking) -> Result<DatagramServerListenerSocketFileDescriptor<sockaddr_un>, NewSocketServerListenerError>
+	pub fn new_datagram_unix_domain_socket_server_listener(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_socket_option: SendBufferSizeSocketOption, blocking: &Blocking, hyper_thread: HyperThread) -> Result<DatagramServerListenerSocketFileDescriptor<sockaddr_un>, NewSocketServerListenerError>
 	{
 		let this = SocketFileDescriptor::<sockaddr_un>::new_datagram_unix_domain_socket(send_buffer_size_socket_option, blocking)?;
+		this.set_incoming_cpu(hyper_thread);
 		this.bind_unix_domain_socket(unix_socket_address)?;
 		Ok(DatagramServerListenerSocketFileDescriptor(this))
 	}

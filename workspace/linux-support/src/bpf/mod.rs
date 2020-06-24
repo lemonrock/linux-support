@@ -12,4 +12,5 @@ pub(crate) mod c;
 pub(crate) mod maps;
 
 
-include!("BpfProgram.rs");include!("ScratchMemoryIndex.rs");
+include!("BpfProgram.rs");
+include!("ScratchMemoryIndex.rs");
