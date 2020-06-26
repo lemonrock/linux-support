@@ -13,8 +13,18 @@
 	// TODO: Actually send messages to DataDog in batches (outbound batches Unix domain socket packets w/o a coroutine potentially)
 
 	// TODO: Review how to do RX queues and tie them to CPUs using https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/#preparing-to-receive-data-from-the-network
-
+		// TODO: https://blog.cloudflare.com/how-to-achieve-low-latency/
 	// TODO: SO_INCOMING_CPU might actually be broken: https://blog.cloudflare.com/perfect-locality-and-three-epic-systemtap-scripts/
+	// TODO: Review the locality examples in https://lwn.net/Articles/675043/
+	"We performed a bit of tuning, which included inspecting:
+
+         number of RSS queues and their interrupts being pinned to right CPUs
+         the indirection table
+         correct XPS settings on the TX path"
+
+	// TODO: "SO_INCOMING_NAPI_ID"
+
+	// TODO: /proc/net/softnet_stat file with the softnet.sh script: https://github.com/majek/dump/blob/master/how-to-receive-a-packet/softnet.sh
 
 /*
 	Operation combinations

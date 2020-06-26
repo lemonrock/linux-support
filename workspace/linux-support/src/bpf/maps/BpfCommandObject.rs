@@ -2,15 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use self::c::*;
-
-
-pub(crate) mod c;
-
-
-//pub(crate) mod maps;
-
-
-include!("BpfProgram.rs");
-include!("ScratchMemoryIndex.rs");
+/// Used for the commands `BPF_OBJ_PIN` and `BPF_OBJ_GET`.
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+pub(crate) struct BpfCommandObject
+{
+	pub(crate) pathname: AlignedU64,
+	pub(crate) bpf_fd: u32,
+	pub(crate) file_flags: u32,
+}

@@ -2,15 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use self::c::*;
-
-
-pub(crate) mod c;
-
-
-//pub(crate) mod maps;
-
-
-include!("BpfProgram.rs");
-include!("ScratchMemoryIndex.rs");
+#[repr(C)]
+#[derive(Debug, Default)]
+pub(crate) struct bpf_lpm_trie_key
+{
+	pub(crate) prefixlen: u32,
+	pub(crate) data: __IncompleteArrayField<u8>,
+}

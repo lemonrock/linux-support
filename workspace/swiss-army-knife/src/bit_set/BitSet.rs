@@ -48,8 +48,8 @@ impl<BSA: BitSetAware> BitSet<BSA>
 		debug_assert!(size_in_words <= Self::MaximumNumberOfUsizeWords);
 
 		let array_layout = Layout::array::<usize>(size_in_words).unwrap();
-		let (pointer, _allocated_size) = Global.alloc_zeroed(array_layout).unwrap();
-		Self(unsafe { Vec::from_raw_parts(pointer.as_ptr() as *mut usize, size_in_words, size_in_words) }, PhantomData)
+		let pointer = unsafe { alloc_zeroed(array_layout) };
+		Self(unsafe { Vec::from_raw_parts(pointer as *mut usize, size_in_words, size_in_words) }, PhantomData)
 	}
 
 	/// Creates a new empty bit set with no bits at all.

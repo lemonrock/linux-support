@@ -2,15 +2,30 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use self::c::*;
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub(crate) union BpfCommandGetIdentifierValueOfIdentifier
+{
+	pub(crate) start_id: u32,
+	pub(crate) prog_id: u32,
+	pub(crate) map_id: u32,
+	pub(crate) btf_id: u32,
+}
 
+impl Default for BpfCommandGetIdentifierValueOfIdentifier
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		unsafe { zeroed() }
+	}
+}
 
-pub(crate) mod c;
-
-
-//pub(crate) mod maps;
-
-
-include!("BpfProgram.rs");
-include!("ScratchMemoryIndex.rs");
+impl Debug for BpfCommandGetIdentifierValueOfIdentifier
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "BpfCommandGetIdentifierValueOfIdentifier {{ {} }}", unsafe { self.start_id })
+	}
+}

@@ -2,15 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use self::c::*;
-
-
-pub(crate) mod c;
-
-
-//pub(crate) mod maps;
-
-
-include!("BpfProgram.rs");
-include!("ScratchMemoryIndex.rs");
+#[inline(always)]
+pub(crate) fn bpf(cmd: bpf_cmd, attr: &mut bpf_attr, size: u32) -> i32
+{
+	SYS::bpf.syscall3(cmd as i32 as usize, attr as *mut bpf_attr as usize, size as usize) as i32
+}

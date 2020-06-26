@@ -2,15 +2,15 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use self::c::*;
+#[repr(C, align(8))]
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub(crate) struct AlignedU64(pub u64);
 
-
-pub(crate) mod c;
-
-
-//pub(crate) mod maps;
-
-
-include!("BpfProgram.rs");
-include!("ScratchMemoryIndex.rs");
+impl Display for AlignedU64
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Display::fmt(&self.0, f)
+	}
+}

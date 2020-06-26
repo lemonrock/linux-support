@@ -186,11 +186,8 @@ The above features may not work correctly after the use of `seccomp` to lock dow
 ### Unsupported for now
 
 * Linux zero copy send (`MSG_ZEROCOPY`) and receive (`SO_ZEROCOPY`), mostly because they have a horrible, hacky API.
-* `SO_BUSY_POLL` and `SO_INCOMING_CPU`.
 * Unix Domain Sockets using `autobind`; setting of the `SO_PASSCRED` socket option.
 * Receiving credentials over Unix Domain Sockets using `recvmsg()`.
-* `mkfifo()`.
-* `mknod()`.
 * infiniband sockets.
 * canbus (SocketCAN sockets and can4linux <http://can-wiki.info/can4linux/man/can4linux_8h_source.html> character device drivers).
 

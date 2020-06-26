@@ -2,15 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use self::c::*;
 
+/// When bpf_call->src_reg == BPF_PSEUDO_CALL, bpf_call->imm == pc-relative offset to another bpf function.
+pub(crate) const BPF_PSEUDO_CALL: u32 = 1;
 
-pub(crate) mod c;
-
-
-//pub(crate) mod maps;
-
-
-include!("BpfProgram.rs");
-include!("ScratchMemoryIndex.rs");

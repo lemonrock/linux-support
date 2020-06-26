@@ -2,15 +2,21 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use self::c::*;
-
-
-pub(crate) mod c;
-
-
-//pub(crate) mod maps;
-
-
-include!("BpfProgram.rs");
-include!("ScratchMemoryIndex.rs");
+/// Used for the commands `BPF_PROG_ATTACH` and `BPF_PROG_DETACH`.
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+pub(crate) struct BpfCommandProgramAttachOrDetach
+{
+	/// container object to attach to.
+	pub(crate) target_fd: u32,
+	
+	/// eBPF program to attach.
+	pub(crate) attach_bpf_fd: u32,
+	
+	pub(crate) attach_type: u32,
+	
+	pub(crate) attach_flags: u32,
+	
+	/// previously attached eBPF program to replace if `BPF_F_REPLACE` is used.
+	pub(crate) replace_bpf_fd: u32,
+}

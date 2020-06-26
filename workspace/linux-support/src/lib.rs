@@ -19,12 +19,13 @@
 #![feature(const_raw_ptr_to_usize_cast)]
 #![feature(const_transmute)]
 #![feature(internal_uninit_const)]
+#![feature(llvm_asm)]
+#![feature(maybe_uninit_extra)]
+#![feature(move_ref_pattern)]
 #![feature(never_type)]
 #![feature(ptr_offset_from)]
 #![feature(read_initializer)]
 #![feature(thread_local)]
-#![feature(maybe_uninit_extra)]
-#![feature(move_ref_pattern)]
 
 
 //! #linux-support

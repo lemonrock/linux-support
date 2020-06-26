@@ -2,15 +2,15 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use self::c::*;
-
-
-pub(crate) mod c;
-
-
-//pub(crate) mod maps;
-
-
-include!("BpfProgram.rs");
-include!("ScratchMemoryIndex.rs");
+bitflags!
+{
+	/// Flags for `BPF_MAP_UPDATE_ELEM` command.
+	#[allow(missing_docs)]
+	pub(crate) struct _bindgen_ty_1: u32
+	{
+		const BPF_ANY = 0;
+		const BPF_NOEXIST = 1;
+		const BPF_EXIST = 2;
+		const BPF_F_LOCK = 4;
+	}
+}

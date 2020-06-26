@@ -18,7 +18,7 @@ pub fn current_numa_node_and_hyper_thread() -> (NumaNode, HyperThread)
 		let _rdx: u64;
 		let rcx: u64;
 
-		asm!
+		llvm_asm!
 		(
 			"rdtscp"
 			:

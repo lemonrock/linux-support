@@ -9,7 +9,7 @@ impl SYS
 	pub unsafe fn raw_syscall0(self) -> usize
 	{
 		let mut rax: usize = self as usize;
-		asm!
+		llvm_asm!
 		(
 			"syscall"
 			:
@@ -30,7 +30,7 @@ impl SYS
 	pub unsafe fn raw_syscall1(self, a: usize) -> usize
 	{
 		let mut rax = self as usize;
-		asm!
+		llvm_asm!
 		(
         	"syscall"
         	:
@@ -52,7 +52,7 @@ impl SYS
 	pub unsafe fn raw_syscall2(self, a: usize, b: usize) -> usize
 	{
 		let mut rax = self as usize;
-		asm!
+		llvm_asm!
 		(
 			"syscall"
 			:
@@ -75,7 +75,7 @@ impl SYS
 	pub unsafe fn raw_syscall3(self, a: usize, b: usize, c: usize) -> usize
 	{
 		let mut rax = self as usize;
-		asm!
+		llvm_asm!
 		(
 			"syscall"
 			:
@@ -99,7 +99,7 @@ impl SYS
 	pub unsafe fn raw_syscall4(self, a: usize, b: usize, c: usize, d: usize) -> usize
 	{
 		let mut rax = self as usize;
-		asm!
+		llvm_asm!
 		(
 			"syscall"
 			:
@@ -124,7 +124,7 @@ impl SYS
 	pub unsafe fn raw_syscall5(self, a: usize, b: usize, c: usize, d: usize, e: usize) -> usize
 	{
 		let mut rax = self as usize;
-		asm!
+		llvm_asm!
 		(
 			"syscall"
 			:
@@ -150,7 +150,7 @@ impl SYS
 	pub unsafe fn raw_syscall6(self, a: usize, b: usize, c: usize, d: usize, e: usize, f: usize) -> usize
 	{
 		let mut rax = self as usize;
-		asm!
+		llvm_asm!
 		(
 			"syscall"
 			:

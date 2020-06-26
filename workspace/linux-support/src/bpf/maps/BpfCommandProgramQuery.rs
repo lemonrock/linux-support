@@ -2,15 +2,21 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use self::c::*;
-
-
-pub(crate) mod c;
-
-
-//pub(crate) mod maps;
-
-
-include!("BpfProgram.rs");
-include!("ScratchMemoryIndex.rs");
+/// Used for the command `BPF_PROG_QUERY`.
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+pub(crate) struct BpfCommandProgramQuery
+{
+	/// container object to query.
+	pub(crate) target_fd: u32,
+	
+	pub(crate) attach_type: u32,
+	
+	pub(crate) query_flags: u32,
+	
+	pub(crate) attach_flags: u32,
+	
+	pub(crate) prog_ids: AlignedU64,
+	
+	pub(crate) prog_cnt: u32,
+}

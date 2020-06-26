@@ -2,15 +2,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use self::c::*;
-
-
-pub(crate) mod c;
-
-
-//pub(crate) mod maps;
-
-
-include!("BpfProgram.rs");
-include!("ScratchMemoryIndex.rs");
+#[repr(i32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub(crate) enum bpf_stack_build_id_status
+{
+	BPF_STACK_BUILD_ID_EMPTY = 0,
+	BPF_STACK_BUILD_ID_VALID = 1,
+	BPF_STACK_BUILD_ID_IP = 2,
+}

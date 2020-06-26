@@ -2,15 +2,29 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use self::c::*;
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub(crate) union OffsetOrInternetProtocol
+{
+	pub(crate) offset: u64,
+	pub(crate) ip: u64,
+	_bindgen_union_align: u64,
+}
 
+impl Default for OffsetOrInternetProtocol
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		unsafe { zeroed() }
+	}
+}
 
-pub(crate) mod c;
-
-
-//pub(crate) mod maps;
-
-
-include!("BpfProgram.rs");
-include!("ScratchMemoryIndex.rs");
+impl Debug for OffsetOrInternetProtocol
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "OffsetOrInternetProtocol {{ {} }}", unsafe { self.offset })
+	}
+}

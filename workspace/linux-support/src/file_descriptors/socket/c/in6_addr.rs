@@ -164,14 +164,14 @@ impl InternetProtocolAddress for in6_addr
 	#[inline(always)]
 	fn bytes(&self) -> &[u8]
 	{
-		let bytes: &[u8; (Self::InclusiveMaximumPrefixLength as usize / 8)] = unsafe { transmute(self) };
+		let bytes: &[u8; Self::InclusiveMaximumPrefixLength as usize / 8] = unsafe { transmute(self) };
 		&bytes[..]
 	}
 	
 	#[inline(always)]
 	fn from_bytes(bytes: &[u8]) -> Result<Self, TryFromSliceError>
 	{
-		let bytes: [u8; (Self::InclusiveMaximumPrefixLength as usize / 8)] = bytes.try_into()?;
+		let bytes: [u8; Self::InclusiveMaximumPrefixLength as usize / 8] = bytes.try_into()?;
 		Ok(unsafe { transmute(bytes) })
 	}
 }
