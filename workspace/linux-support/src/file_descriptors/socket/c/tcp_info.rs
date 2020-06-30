@@ -131,32 +131,51 @@ impl tcp_info
 	}
 	
 	#[inline(always)]
-	pub fn new_bitfield_1(
+	pub fn new_bitfield_1
+	(
 		tcpi_snd_wscale: u8,
 		tcpi_rcv_wscale: u8,
 		tcpi_delivery_rate_app_limited: u8,
 		tcpi_fastopen_client_fail: u8,
-	) -> __BindgenBitfieldUnit<[u8; 2usize], u8> {
-		let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 2usize], u8> =
-			Default::default();
-		__bindgen_bitfield_unit.set(0usize, 4u8, {
-			let tcpi_snd_wscale: u8 = unsafe { transmute(tcpi_snd_wscale) };
-			tcpi_snd_wscale as u64
-		});
-		__bindgen_bitfield_unit.set(4usize, 4u8, {
-			let tcpi_rcv_wscale: u8 = unsafe { transmute(tcpi_rcv_wscale) };
-			tcpi_rcv_wscale as u64
-		});
-		__bindgen_bitfield_unit.set(8usize, 1u8, {
-			let tcpi_delivery_rate_app_limited: u8 =
-				unsafe { transmute(tcpi_delivery_rate_app_limited) };
-			tcpi_delivery_rate_app_limited as u64
-		});
-		__bindgen_bitfield_unit.set(9usize, 2u8, {
-			let tcpi_fastopen_client_fail: u8 =
-				unsafe { transmute(tcpi_fastopen_client_fail) };
-			tcpi_fastopen_client_fail as u64
-		});
+	) -> __BindgenBitfieldUnit<[u8; 2], u8>
+	{
+		let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 2], u8> = Default::default();
+		__bindgen_bitfield_unit.set
+		(
+			0,
+			4,
+		{
+				let tcpi_snd_wscale: u8 = unsafe { transmute(tcpi_snd_wscale) };
+				tcpi_snd_wscale as u64
+			}
+		);
+		__bindgen_bitfield_unit.set
+		(
+			4,
+			4,
+			{
+				let tcpi_rcv_wscale: u8 = unsafe { transmute(tcpi_rcv_wscale) };
+				tcpi_rcv_wscale as u64
+			}
+		);
+		__bindgen_bitfield_unit.set
+		(
+			8,
+			1,
+			{
+				let tcpi_delivery_rate_app_limited: u8 = unsafe { transmute(tcpi_delivery_rate_app_limited) };
+				tcpi_delivery_rate_app_limited as u64
+			}
+		);
+		__bindgen_bitfield_unit.set
+		(
+			9,
+			2,
+			{
+				let tcpi_fastopen_client_fail: u8 = unsafe { transmute(tcpi_fastopen_client_fail) };
+				tcpi_fastopen_client_fail as u64
+			}
+		);
 		__bindgen_bitfield_unit
 	}
 }

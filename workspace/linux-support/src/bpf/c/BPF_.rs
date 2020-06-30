@@ -37,7 +37,6 @@ pub(crate) const BPF_RET: u16 = 0x06;
 pub(crate) const BPF_MISC: u16 = 0x07;
 
 /// ld/ldx field (size).
-#[allow(dead_code)]
 #[inline(always)]
 pub(crate)const fn BPF_SIZE(code: u16) -> u16
 {
@@ -59,13 +58,7 @@ pub(crate) const BPF_H: u16 = 0x08;
 /// 8-bit.
 pub(crate) const BPF_B: u16 = 0x10;
 
-///// eBPF ld/ldx field (size).
-/////
-///// 64-bit.
-//pub(crate) const BPF_DW: u16 = 0x18;
-
 /// ld/ldx field (addressing mode).
-#[allow(dead_code)]
 #[inline(always)]
 pub(crate)const fn BPF_MODE(code: u16) -> u16
 {
@@ -105,7 +98,7 @@ pub(crate) const BPF_MSH: u16 = 0xA0;
 /// alu/jmp field (op).
 #[allow(dead_code)]
 #[inline(always)]
-pub(crate)const fn BPF_OP(code: u16) -> u16
+pub(crate) const fn BPF_OP(code: u16) -> u16
 {
 	code & 0xF0
 }
@@ -159,7 +152,6 @@ pub(crate) const BPF_JGE: u16 = 0x30;
 pub(crate) const BPF_JSET: u16 = 0x40;
 
 /// alu/jmp field source.
-#[allow(dead_code)]
 #[inline(always)]
 pub(crate)const fn BPF_SRC(code: u16) -> u16
 {

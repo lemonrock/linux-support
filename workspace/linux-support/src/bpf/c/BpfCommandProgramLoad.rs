@@ -9,11 +9,14 @@ pub(crate) struct BpfCommandProgramLoad
 {
 	pub(crate) prog_type: bpf_prog_type,
 	
+	/// An array of `bpf_insn` instructions.
 	pub(crate) insn_cnt: u32,
 	
-	pub(crate) insns: u64,
+	/// An array of `bpf_insn` instructions.
+	pub(crate) insns: AlignedU64,
 	
-	pub(crate) license: u64,
+	/// Pointer to a C string (ASCII NULL terminated string) such as `"GPL\0"`
+	pub(crate) license: AlignedU64,
 	
 	/// verbosity level of verifier.
 	pub(crate) log_level: u32,
@@ -24,10 +27,11 @@ pub(crate) struct BpfCommandProgramLoad
 	/// pointer to user-supplied buffer.
 	pub(crate) log_buf: AlignedU64,
 	
-	/// Unused.
+	/// Unused unless `prog_type == bpf_prog_type::BPF_PROG_TYPE_KPROBE`.
 	pub(crate) kern_version: u32,
 	
-	pub(crate) prog_flags: u32,
+	/// eg `BPF_F_TEST_RND_HI32`.
+	pub(crate) prog_flags: BPF_PROG_LOAD_flags,
 	
 	pub(crate) prog_name: [c_char; BPF_OBJ_NAME_LEN],
 	
@@ -36,7 +40,7 @@ pub(crate) struct BpfCommandProgramLoad
 	/// For some prog types expected attach type must be known at load time to verify attach type specific parts of prog (eg context accesses, allowed helpers, etc).
 	pub(crate) prog_ifindex: u32,
 	
-	pub(crate) expected_attach_type: u32,
+	pub(crate) expected_attach_type: bpf_attach_type,
 	
 	/// File descriptor pointing to BTF type data.
 	pub(crate) prog_btf_fd: u32,

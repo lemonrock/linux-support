@@ -33,15 +33,15 @@ pub(crate) struct BpfCommandMapCreate
 	/// ifindex of netdev to create on.
 	pub(crate) map_ifindex: u32,
 	
-	/// File descriptor pointing to a BTF type data.
+	/// File descriptor pointing to a BTF (BPF Type Format) type data.
 	pub(crate) btf_fd: u32,
 	
-	/// BTF type_id of the key.
+	/// BTF (BPF Type Format) type_id of the key.
 	pub(crate) btf_key_type_id: u32,
 	
-	/// BTF type_id of the value.
+	/// BTF (BPF Type Format) type_id of the value.
 	pub(crate) btf_value_type_id: u32,
 	
-	/// BTF type_id of a kernel-struct stored as the map value.
+	/// BTF (BPF Type Format) type_id of a kernel-struct stored as the map value.
 	pub(crate) btf_vmlinux_value_type_id: u32,
 }

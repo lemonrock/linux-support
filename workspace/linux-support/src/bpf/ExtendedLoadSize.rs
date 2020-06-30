@@ -2,22 +2,20 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Used for the command `BPF_BTF_LOAD`.
-#[repr(C)]
-#[derive(Debug, Default, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
-pub(crate) struct BpfCommandBtfLoad
+/// Size of .
+#[derive(Debug, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+#[repr(u8)]
+pub enum ExtendedLoadSize
 {
-	/// Pointer to data.
-	pub(crate) btf: AlignedU64,
+	/// 8-bit.
+	_8 = BPF_SIZE(BPF_B) as u8,
 	
-	/// Pointer to data.
-	pub(crate) btf_log_buf: AlignedU64,
+	/// 16-bit.
+	_16 = BPF_SIZE(BPF_H) as u8,
 	
-	/// Size of data pointed to by `btf`.
-	pub(crate) btf_size: u32,
+	/// 32-bit.
+	_32 = BPF_SIZE(BPF_W) as u8,
 	
-	/// Size of data pointed to by `btf_log_buf`.
-	pub(crate) btf_log_size: u32,
-	
-	pub(crate) btf_log_level: u32,
+	/// 64-bit.
+	_64 = BPF_SIZE(BPF_DW as u16) as u8,
 }
