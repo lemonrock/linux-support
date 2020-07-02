@@ -435,6 +435,11 @@ pub enum Instruction<'de>
 	///
 	/// Registers `r1` through to `r5` inclusive are used to pass function arguments and are clobbered.
 	/// The function result will be returned in `r0`.
+	///
+	///
+	/// # Fields
+	///
+	/// * `0`: `program_counter_offset`.
 	RelativeCall(ProgramCounterOffset<'de, i32>),
 	
 	/// Program exit.
@@ -446,6 +451,8 @@ pub enum Instruction<'de>
 impl<'de> Instruction<'de>
 {
 	/// Represents a label used for conditional and non-conditional jumps.
+	///
+	/// ***CAUTION***: emits ***NO*** instructions - be aware when manually counting jump offsets!
 	#[inline(always)]
 	pub fn label(name: impl Into<Name<'de>>) -> Self
 	{
@@ -455,12 +462,6 @@ impl<'de> Instruction<'de>
 	/// Load a true 64-bit value.
 	///
 	/// `destination_register = immediate`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `destination_register`.
-	/// * `1`: `immediate`.
 	///
 	/// ***CAUTION***: emits ***2*** instructions - be aware when manually counting jump offsets!
 	#[inline(always)]
@@ -473,12 +474,6 @@ impl<'de> Instruction<'de>
 	///
 	/// `destination_register = map_file_descriptor`.
 	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `destination_register`.
-	/// * `1`: `map_file_descriptor`.
-	///
 	/// ***CAUTION***: emits ***2*** instructions - be aware when manually counting jump offsets!
 	#[inline(always)]
 	pub fn load_map_file_descriptor(destination_register: Register, map_file_descriptor_label: impl Into<MapFileDescriptorLabel<'de>>) -> Self
@@ -490,13 +485,6 @@ impl<'de> Instruction<'de>
 	///
 	/// `destination_register = map_file_descriptor`.
 	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `destination_register`.
-	/// * `1`: `map_file_descriptor`.
-	/// * `2`: `offset_into_value`.
-	///
 	/// ***CAUTION***: emits ***2*** instructions - be aware when manually counting jump offsets!
 	#[inline(always)]
 	pub fn load_map_value(destination_register: Register, map_file_descriptor_label: impl Into<MapFileDescriptorLabel<'de>>, offset_into_value: impl Into<Immediate<'de, i32>>) -> Self
@@ -507,12 +495,6 @@ impl<'de> Instruction<'de>
 	/// Operation on 32-bits of values.
 	///
 	/// `destination_register = destination_register operation source`.
-	///
-	/// # Fields
-	///
-	/// * `0`: `operation`.
-	/// * `1`: `destination_register`.
-	/// * `2`: `source`.
 	#[inline(always)]
 	pub fn alu_32(operation: AluOperation, destination_register: Register, source: impl Into<RegisterOrImmediate<'de, i32>>) -> Self
 	{
@@ -522,13 +504,6 @@ impl<'de> Instruction<'de>
 	/// Operation on all 64-bits of values.
 	///
 	/// `destination_register = destination_register operation source`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `operation`.
-	/// * `1`: `destination_register`.
-	/// * `2`: `source`.
 	#[inline(always)]
 	pub fn alu_64(operation: AluOperation, destination_register: Register, source: impl Into<RegisterOrImmediate<'de, i32>>) -> Self
 	{
@@ -536,11 +511,6 @@ impl<'de> Instruction<'de>
 	}
 	
 	/// ?Uncertain of Encoding?
-	///
-	/// # Fields
-	///
-	/// * `0`: `destination_register`.
-	/// * `1`: `length` (eg `16` or `32`).
 	#[inline(always)]
 	pub fn to_little_endian(destination_register: Register, length: impl Into<Immediate<'de, i32>>) -> Self
 	{
@@ -548,11 +518,6 @@ impl<'de> Instruction<'de>
 	}
 	
 	/// ?Uncertain of Encoding?
-	///
-	/// # Fields
-	///
-	/// * `0`: `destination_register`.
-	/// * `1`: `length` (eg `16` or `32`).
 	#[inline(always)]
 	pub fn to_big_endian(destination_register: Register, length: impl Into<Immediate<'de, i32>>) -> Self
 	{
@@ -562,12 +527,6 @@ impl<'de> Instruction<'de>
 	/// Move of lower 32 bits.
 	///
 	/// `destination_register = source`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `destination_register`.
-	/// * `1`: `source`.
 	#[inline(always)]
 	pub fn move_32(destination_register: Register, source: impl Into<RegisterOrImmediate<'de, i32>>) -> Self
 	{
@@ -577,12 +536,6 @@ impl<'de> Instruction<'de>
 	/// Move of all 64 bits.
 	///
 	/// `destination_register = source`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `destination_register`.
-	/// * `1`: `source`.
 	#[inline(always)]
 	pub fn move_64(destination_register: Register, source: impl Into<RegisterOrImmediate<'de, i32>>) -> Self
 	{
@@ -594,11 +547,6 @@ impl<'de> Instruction<'de>
 	/// Uses a constant offset (`immediate`).
 	///
 	/// `r0 = *((skb.data as *const u8).add(immediate))`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `immediate`.
 	#[inline(always)]
 	pub fn load_r0_direct_8(immediate: impl Into<Immediate<'de, i32>>) -> Self
 	{
@@ -610,11 +558,6 @@ impl<'de> Instruction<'de>
 	/// Uses a constant offset (`immediate`).
 	///
 	/// `r0 = *((skb.data as *const u16).add(immediate))`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `immediate`.
 	#[inline(always)]
 	pub fn load_r0_direct_16(immediate: impl Into<Immediate<'de, i32>>) -> Self
 	{
@@ -626,11 +569,6 @@ impl<'de> Instruction<'de>
 	/// Uses a constant offset (`immediate`).
 	///
 	/// `r0 = *((skb.data as *const u32).add(immediate))`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `immediate`.
 	#[inline(always)]
 	pub fn load_r0_direct_32(immediate: impl Into<Immediate<'de, i32>>) -> Self
 	{
@@ -642,11 +580,6 @@ impl<'de> Instruction<'de>
 	/// Uses a constant offset (`immediate`).
 	///
 	/// `r0 = *((skb.data as *const u64).add(immediate))`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `immediate`.
 	#[inline(always)]
 	pub fn load_r0_direct_64(immediate: impl Into<Immediate<'de, i32>>) -> Self
 	{
@@ -658,12 +591,6 @@ impl<'de> Instruction<'de>
 	/// Uses a variable offset (`source_register`) with a constant offset (`immediate`).
 	///
 	/// `r0 = *((skb.data as *const u8).add(source_register + immediate))`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `source_register`.
-	/// * `1`: `immediate`.
 	#[inline(always)]
 	pub fn load_r0_indirect_8(source_register: Register, immediate: impl Into<Immediate<'de, i32>>) -> Self
 	{
@@ -675,12 +602,6 @@ impl<'de> Instruction<'de>
 	/// Uses a variable offset (`source_register`) with a constant offset (`immediate`).
 	///
 	/// `r0 = *((skb.data as *const u16).add(source_register + immediate))`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `source_register`.
-	/// * `1`: `immediate`.
 	#[inline(always)]
 	pub fn load_r0_indirect_16(source_register: Register, immediate: impl Into<Immediate<'de, i32>>) -> Self
 	{
@@ -692,12 +613,6 @@ impl<'de> Instruction<'de>
 	/// Uses a variable offset (`source_register`) with a constant offset (`immediate`).
 	///
 	/// `r0 = *((skb.data as *const u32).add(source_register + immediate))`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `source_register`.
-	/// * `1`: `immediate`.
 	#[inline(always)]
 	pub fn load_r0_indirect_32(source_register: Register, immediate: impl Into<Immediate<'de, i32>>) -> Self
 	{
@@ -709,12 +624,6 @@ impl<'de> Instruction<'de>
 	/// Uses a variable offset (`source_register`) with a constant offset (`immediate`).
 	///
 	/// `r0 = *((skb.data as *const u64).add(source_register + immediate))`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `source_register`.
-	/// * `1`: `immediate`.
 	#[inline(always)]
 	pub fn load_r0_indirect_64(source_register: Register, immediate: impl Into<Immediate<'de, i32>>) -> Self
 	{
@@ -726,13 +635,6 @@ impl<'de> Instruction<'de>
 	/// Uses a variable memory location (`source_register`) with a constant offset (`memory_offset`).
 	///
 	/// `destination_register = *((source_register as *const u8).add(memory_offset))`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `destination_register`.
-	/// * `1`: `source_register`.
-	/// * `2`: `memory_offset`.
 	#[inline(always)]
 	pub fn load_from_memory_8(destination_register: Register, source_register: Register, memory_offset: impl Into<MemoryOffset<'de>>) -> Self
 	{
@@ -744,13 +646,6 @@ impl<'de> Instruction<'de>
 	/// Uses a variable memory location (`source_register`) with a constant offset (`memory_offset`).
 	///
 	/// `destination_register = *((source_register as *const u16).add(memory_offset))`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `destination_register`.
-	/// * `1`: `source_register`.
-	/// * `2`: `memory_offset`.
 	#[inline(always)]
 	pub fn load_from_memory_16(destination_register: Register, source_register: Register, memory_offset: impl Into<MemoryOffset<'de>>) -> Self
 	{
@@ -762,13 +657,6 @@ impl<'de> Instruction<'de>
 	/// Uses a variable memory location (`source_register`) with a constant offset (`memory_offset`).
 	///
 	/// `destination_register = *((source_register as *const u32).add(memory_offset))`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `destination_register`.
-	/// * `1`: `source_register`.
-	/// * `2`: `memory_offset`.
 	#[inline(always)]
 	pub fn load_from_memory_32(destination_register: Register, source_register: Register, memory_offset: impl Into<MemoryOffset<'de>>) -> Self
 	{
@@ -780,13 +668,6 @@ impl<'de> Instruction<'de>
 	/// Uses a variable memory location (`source_register`) with a constant offset (`memory_offset`).
 	///
 	/// `destination_register = *((source_register as *const u64).add(memory_offset))`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `destination_register`.
-	/// * `1`: `source_register`.
-	/// * `2`: `memory_offset`.
 	#[inline(always)]
 	pub fn load_from_memory_64(destination_register: Register, source_register: Register, memory_offset: impl Into<MemoryOffset<'de>>) -> Self
 	{
@@ -796,13 +677,6 @@ impl<'de> Instruction<'de>
 	/// Memory store.
 	///
 	/// `*((destination_register as *mut u8).add(memory_offset)) = source`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `destination_register`.
-	/// * `1`: `source`.
-	/// * `2`: `memory_offset`.
 	#[inline(always)]
 	pub fn store_to_memory_8(destination_register: Register, source: impl Into<RegisterOrImmediate<'de, i32>>, memory_offset: impl Into<MemoryOffset<'de>>) -> Self
 	{
@@ -812,13 +686,6 @@ impl<'de> Instruction<'de>
 	/// Memory store.
 	///
 	/// `*((destination_register as *mut u16).add(memory_offset)) = source`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `destination_register`.
-	/// * `1`: `source`.
-	/// * `2`: `memory_offset`.
 	#[inline(always)]
 	pub fn store_to_memory_16(destination_register: Register, source: impl Into<RegisterOrImmediate<'de, i32>>, memory_offset: impl Into<MemoryOffset<'de>>) -> Self
 	{
@@ -828,13 +695,6 @@ impl<'de> Instruction<'de>
 	/// Memory store.
 	///
 	/// `*((destination_register as *mut u32).add(memory_offset)) = source`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `destination_register`.
-	/// * `1`: `source`.
-	/// * `2`: `memory_offset`.
 	#[inline(always)]
 	pub fn store_to_memory_32(destination_register: Register, source: impl Into<RegisterOrImmediate<'de, i32>>, memory_offset: impl Into<MemoryOffset<'de>>) -> Self
 	{
@@ -844,13 +704,6 @@ impl<'de> Instruction<'de>
 	/// Memory store.
 	///
 	/// `*((destination_register as *mut u64).add(memory_offset)) = source`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `destination_register`.
-	/// * `1`: `source`.
-	/// * `2`: `memory_offset`.
 	#[inline(always)]
 	pub fn store_to_memory_64(destination_register: Register, source: impl Into<RegisterOrImmediate<'de, i32>>, memory_offset: impl Into<MemoryOffset<'de>>) -> Self
 	{
@@ -860,13 +713,6 @@ impl<'de> Instruction<'de>
 	/// Memory store using an atomic add.
 	///
 	/// `*((destination_register as *mut u8).add(memory_offset)) += source_register`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `destination_register`.
-	/// * `1`: `source_register`
-	/// * `2`: `memory_offset`.
 	#[inline(always)]
 	pub fn store_to_memory_atomic_add_8(destination_register: Register, source: Register, memory_offset: impl Into<MemoryOffset<'de>>) -> Self
 	{
@@ -876,13 +722,6 @@ impl<'de> Instruction<'de>
 	/// Memory store using an atomic add.
 	///
 	/// `*((destination_register as *mut u16).add(memory_offset)) += source_register`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `destination_register`.
-	/// * `1`: `source_register`
-	/// * `2`: `memory_offset`.
 	#[inline(always)]
 	pub fn store_to_memory_atomic_add_16(destination_register: Register, source: Register, memory_offset: impl Into<MemoryOffset<'de>>) -> Self
 	{
@@ -892,13 +731,6 @@ impl<'de> Instruction<'de>
 	/// Memory store using an atomic add.
 	///
 	/// `*((destination_register as *mut u32).add(memory_offset)) += source_register`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `destination_register`.
-	/// * `1`: `source_register`
-	/// * `2`: `memory_offset`.
 	#[inline(always)]
 	pub fn store_to_memory_atomic_add_32(destination_register: Register, source: Register, memory_offset: impl Into<MemoryOffset<'de>>) -> Self
 	{
@@ -908,13 +740,6 @@ impl<'de> Instruction<'de>
 	/// Memory store using an atomic add.
 	///
 	/// `*((destination_register as *mut u64).add(memory_offset)) += source_register`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `destination_register`.
-	/// * `1`: `source_register`
-	/// * `2`: `memory_offset`.
 	#[inline(always)]
 	pub fn store_to_memory_atomic_add_64(destination_register: Register, source: Register, memory_offset: impl Into<MemoryOffset<'de>>) -> Self
 	{
@@ -931,13 +756,6 @@ impl<'de> Instruction<'de>
 	/// ```
 	///
 	/// `program_counter` is also known as `pc`.
-	///
-	/// # Fields
-	///
-	/// * `0`: `jump_operation`.
-	/// * `1`: `destination_register`.
-	/// * `2`: `source`.
-	/// * `3`: `program_counter_offset`.
 	#[inline(always)]
 	pub fn conditional_jump_32(jump_operation: JumpOperation, destination_register: Register, source: impl Into<RegisterOrImmediate<'de, i32>>, program_counter_offset: impl Into<ProgramCounterOffset<'de, i16>>) -> Self
 	{
@@ -954,14 +772,6 @@ impl<'de> Instruction<'de>
 	/// ```
 	///
 	/// `program_counter` is also known as `pc`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `jump_operation`.
-	/// * `1`: `destination_register`.
-	/// * `2`: `source`.
-	/// * `3`: `program_counter_offset`.
 	#[inline(always)]
 	pub fn conditional_jump_64(jump_operation: JumpOperation, destination_register: Register, source: impl Into<RegisterOrImmediate<'de, i32>>, program_counter_offset: impl Into<ProgramCounterOffset<'de, i16>>) -> Self
 	{
@@ -973,11 +783,6 @@ impl<'de> Instruction<'de>
 	/// `goto program_counter + program_counter_offset`.
 	///
 	/// `program_counter` is also known as `pc`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `program_counter_offset`.
 	#[inline(always)]
 	pub fn unconditional_jump(program_counter_offset: impl Into<ProgramCounterOffset<'de, i16>>) -> Self
 	{
@@ -991,11 +796,6 @@ impl<'de> Instruction<'de>
 	/// The function `bpf_tail_call()` never returns if successfully invoked.
 	///
 	/// `call function_identifier`.
-	///
-	///
-	/// # Fields
-	///
-	/// * `0`: `function_identifier`.
 	#[inline(always)]
 	pub fn function_call(function_identifier: bpf_func_id) -> Self
 	{
@@ -1111,7 +911,7 @@ impl<'de> Instruction<'de>
 			
 			&FunctionCall(function_identifier) => bpf_insn::function_call(function_identifier),
 			
-			&RelativeCall(ref larger_program_counter_offset) => bpf_insn::relative_call(program_counter_offsets_map.resolve_larger(larger_program_counter_offset)?),
+			&RelativeCall(ref program_counter_offset) => bpf_insn::relative_call(program_counter_offsets_map.resolve_larger(program_counter_offset)?),
 			
 			&ProgramExit => bpf_insn::program_exit(),
 		};
