@@ -25,11 +25,11 @@ impl<'de> From<Register> for RegisterOrImmediate<'de>
 	}
 }
 
-impl<'de> From<Immediate<'de>> for RegisterOrImmediate<'de>
+impl<'de, V: Into<Immediate<'de>>> From<V> for RegisterOrImmediate<'de>
 {
 	#[inline(always)]
-	fn from(value: Immediate<'de>) -> Self
+	fn from(value: V) -> Self
 	{
-		RegisterOrImmediate::Immediate(value)
+		RegisterOrImmediate::Immediate(value.into())
 	}
 }
