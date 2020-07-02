@@ -445,111 +445,6 @@ pub enum Instruction<'de>
 
 impl<'de> Instruction<'de>
 {
-	/// Add to instruction(s).
-	#[inline(always)]
-	pub(crate) fn add_to_instructions(&self, instructions: &mut Instructions, i32_immediates_map: &OffsetsMap<i32>, u64_immediates_map: &OffsetsMap<u64>, memory_offsets_map: &MemoryOffsetsMap, map_file_descriptor_labels_map: &MapFileDescriptorLabelsMap) -> Result<(), InstructionError>
-	{
-		use self::Instruction::*;
-		use self::RegisterOrImmediate::*;
-		
-		let instruction = match self
-		{
-			&Label(ref label) => return instructions.register_label(label),
-			
-			&LoadImmediate64(destination_register, ref immediate) => return instructions.two_instructions(bpf_insn::load64_immediate(destination_register, u64_immediates_map.resolve(immediate)?)),
-			
-			&LoadMapFileDescriptor(destination_register, ref map_file_descriptor_label) => return instructions.two_instructions(bpf_insn::load_map_file_descriptor(destination_register, map_file_descriptor_labels_map.resolve(map_file_descriptor_label)?)),
-			
-			&LoadMapValue(destination_register, ref map_file_descriptor_label, ref offset_into_value) => return instructions.two_instructions(bpf_insn::load_map_value(destination_register, map_file_descriptor_labels_map.resolve(map_file_descriptor_label)?, i32_immediates_map.resolve(offset_into_value)?)),
-			
-			&Alu32(operation, destination_register, Register(source_register)) => bpf_insn::alu32(operation, destination_register, source_register),
-			
-			&Alu32(operation, destination_register, Immediate(ref immediate)) => bpf_insn::alu32_immediate(operation, destination_register, i32_immediates_map.resolve(immediate)?),
-			
-			&Alu64(operation, destination_register, Register(source_register)) => bpf_insn::alu64(operation, destination_register, source_register),
-			
-			&Alu64(operation, destination_register, Immediate(ref immediate)) => bpf_insn::alu64_immediate(operation, destination_register, i32_immediates_map.resolve(immediate)?),
-			
-			&ToLittleEndian(destination_register, ref immediate) => bpf_insn::endian(EndiannessOperation::ToLittleEndian, destination_register, i32_immediates_map.resolve(immediate)?),
-			
-			&ToBigEndian(destination_register, ref immediate) => bpf_insn::endian(EndiannessOperation::ToBigEndian, destination_register, i32_immediates_map.resolve(immediate)?),
-			
-			&Move32(destination_register, Register(source_register)) => bpf_insn::move32(destination_register, source_register),
-			
-			&Move32(destination_register, Immediate(ref immediate)) => bpf_insn::move32_immediate(destination_register, i32_immediates_map.resolve(immediate)?),
-			
-			&Move64(destination_register, Register(source_register)) => bpf_insn::move64(destination_register, source_register),
-			
-			&Move64(destination_register, Immediate(ref immediate)) => bpf_insn::move64_immediate(destination_register, i32_immediates_map.resolve(immediate)?),
-			
-			&LoadR0Direct8(ref immediate) => bpf_insn::load8_r0_direct(i32_immediates_map.resolve(immediate)?),
-			
-			&LoadR0Direct16(ref immediate) => bpf_insn::load16_r0_direct(i32_immediates_map.resolve(immediate)?),
-			
-			&LoadR0Direct32(ref immediate) => bpf_insn::load32_r0_direct(i32_immediates_map.resolve(immediate)?),
-			
-			&LoadR0Direct64(ref immediate) => bpf_insn::load64_r0_direct(i32_immediates_map.resolve(immediate)?),
-			
-			&LoadR0Indirect8(source_register, ref immediate) => bpf_insn::load8_r0_indirect(source_register, i32_immediates_map.resolve(immediate)?),
-			
-			&LoadR0Indirect16(source_register, ref immediate) => bpf_insn::load16_r0_indirect(source_register, i32_immediates_map.resolve(immediate)?),
-			
-			&LoadR0Indirect32(source_register, ref immediate) => bpf_insn::load32_r0_indirect(source_register, i32_immediates_map.resolve(immediate)?),
-			
-			&LoadR0Indirect64(source_register, ref immediate) => bpf_insn::load64_r0_indirect(source_register, i32_immediates_map.resolve(immediate)?),
-			
-			&LoadFromMemory8(destination_register, source_register, ref memory_offset) => bpf_insn::load8_memory(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
-			
-			&LoadFromMemory16(destination_register, source_register, ref memory_offset) => bpf_insn::load16_memory(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
-			
-			&LoadFromMemory32(destination_register, source_register, ref memory_offset) => bpf_insn::load32_memory(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
-			
-			&LoadFromMemory64(destination_register, source_register, ref memory_offset) => bpf_insn::load64_memory(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
-			
-			&StoreToMemory8(destination_register, Register(source_register), ref memory_offset) => bpf_insn::store8_memory(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
-			
-			&StoreToMemory8(destination_register, Immediate(ref immediate), ref memory_offset) => bpf_insn::store8_memory_immediate(destination_register, memory_offsets_map.resolve(memory_offset)?, i32_immediates_map.resolve(immediate)?),
-			
-			&StoreToMemory16(destination_register, Register(source_register), ref memory_offset) => bpf_insn::store16_memory(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
-			
-			&StoreToMemory16(destination_register, Immediate(ref immediate), ref memory_offset) => bpf_insn::store16_memory_immediate(destination_register, memory_offsets_map.resolve(memory_offset)?, i32_immediates_map.resolve(immediate)?),
-			
-			&StoreToMemory32(destination_register, Register(source_register), ref memory_offset) => bpf_insn::store32_memory(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
-			
-			&StoreToMemory32(destination_register, Immediate(ref immediate), ref memory_offset) => bpf_insn::store32_memory_immediate(destination_register, memory_offsets_map.resolve(memory_offset)?, i32_immediates_map.resolve(immediate)?),
-			
-			&StoreToMemory64(destination_register, Register(source_register), ref memory_offset) => bpf_insn::store64_memory(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
-			
-			&StoreToMemory64(destination_register, Immediate(ref immediate), ref memory_offset) => bpf_insn::store64_memory_immediate(destination_register, memory_offsets_map.resolve(memory_offset)?, i32_immediates_map.resolve(immediate)?),
-			
-			&StoreToMemoryAtomicAdd8(destination_register, source_register, ref memory_offset) => bpf_insn::store8_memory_atomic_add(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
-			
-			&StoreToMemoryAtomicAdd16(destination_register, source_register, ref memory_offset) => bpf_insn::store16_memory_atomic_add(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
-			
-			&StoreToMemoryAtomicAdd32(destination_register, source_register, ref memory_offset) => bpf_insn::store32_memory_atomic_add(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
-			
-			&StoreToMemoryAtomicAdd64(destination_register, source_register, ref memory_offset) => bpf_insn::store64_memory_atomic_add(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
-			
-			&ConditionalJump32(jump_operation, destination_register, Register(source_register), ref program_counter_offset) => bpf_insn::conditional_jump32(jump_operation, destination_register, source_register, instructions.resolve_label(program_counter_offset)?),
-			
-			&ConditionalJump32(jump_operation, destination_register, Immediate(ref immediate), ref program_counter_offset) => bpf_insn::conditional_jump32_immediate(jump_operation, destination_register, i32_immediates_map.resolve(immediate)?, instructions.resolve_label(program_counter_offset)?),
-			
-			&ConditionalJump64(jump_operation, destination_register, Register(source_register), ref program_counter_offset) => bpf_insn::conditional_jump64(jump_operation, destination_register, source_register, instructions.resolve_label(program_counter_offset)?),
-			
-			&ConditionalJump64(jump_operation, destination_register, Immediate(ref immediate), ref program_counter_offset) => bpf_insn::conditional_jump64_immediate(jump_operation, destination_register, i32_immediates_map.resolve(immediate)?, instructions.resolve_label(program_counter_offset)?),
-			
-			&UnconditionalJump(ref program_counter_offset) => bpf_insn::unconditional_jump(instructions.resolve_label(program_counter_offset)?),
-			
-			&FunctionCall(function_identifier) => bpf_insn::function_call(function_identifier),
-			
-			&RelativeCall(ref larger_program_counter_offset) => bpf_insn::relative_call(program_counter_offsets_map.resolve_larger(larger_program_counter_offset)?),
-			
-			&ProgramExit => bpf_insn::program_exit(),
-		};
-		
-		instructions.one_instruction(instruction)
-	}
-	
 	/// Represents a label used for conditional and non-conditional jumps.
 	#[inline(always)]
 	pub fn label(name: impl Into<Name<'de>>) -> Self
@@ -1117,5 +1012,110 @@ impl<'de> Instruction<'de>
 	pub fn relative_call(program_counter_offset: impl Into<ProgramCounterOffset<'de, i32>>) -> Self
 	{
 		Instruction::RelativeCall(program_counter_offset.into())
+	}
+	
+	/// Add to instruction(s).
+	#[inline(always)]
+	pub(crate) fn add_to_instructions(&self, instructions: &mut Instructions, i32_immediates_map: &OffsetsMap<i32>, u64_immediates_map: &OffsetsMap<u64>, memory_offsets_map: &MemoryOffsetsMap, map_file_descriptor_labels_map: &MapFileDescriptorLabelsMap) -> Result<(), InstructionError>
+	{
+		use self::Instruction::*;
+		use self::RegisterOrImmediate::*;
+		
+		let instruction = match self
+		{
+			&Label(ref label) => return instructions.register_label(label),
+			
+			&LoadImmediate64(destination_register, ref immediate) => return instructions.two_instructions(bpf_insn::load64_immediate(destination_register, u64_immediates_map.resolve(immediate)?)),
+			
+			&LoadMapFileDescriptor(destination_register, ref map_file_descriptor_label) => return instructions.two_instructions(bpf_insn::load_map_file_descriptor(destination_register, map_file_descriptor_labels_map.resolve(map_file_descriptor_label)?)),
+			
+			&LoadMapValue(destination_register, ref map_file_descriptor_label, ref offset_into_value) => return instructions.two_instructions(bpf_insn::load_map_value(destination_register, map_file_descriptor_labels_map.resolve(map_file_descriptor_label)?, i32_immediates_map.resolve(offset_into_value)?)),
+			
+			&Alu32(operation, destination_register, Register(source_register)) => bpf_insn::alu32(operation, destination_register, source_register),
+			
+			&Alu32(operation, destination_register, Immediate(ref immediate)) => bpf_insn::alu32_immediate(operation, destination_register, i32_immediates_map.resolve(immediate)?),
+			
+			&Alu64(operation, destination_register, Register(source_register)) => bpf_insn::alu64(operation, destination_register, source_register),
+			
+			&Alu64(operation, destination_register, Immediate(ref immediate)) => bpf_insn::alu64_immediate(operation, destination_register, i32_immediates_map.resolve(immediate)?),
+			
+			&ToLittleEndian(destination_register, ref immediate) => bpf_insn::endian(EndiannessOperation::ToLittleEndian, destination_register, i32_immediates_map.resolve(immediate)?),
+			
+			&ToBigEndian(destination_register, ref immediate) => bpf_insn::endian(EndiannessOperation::ToBigEndian, destination_register, i32_immediates_map.resolve(immediate)?),
+			
+			&Move32(destination_register, Register(source_register)) => bpf_insn::move32(destination_register, source_register),
+			
+			&Move32(destination_register, Immediate(ref immediate)) => bpf_insn::move32_immediate(destination_register, i32_immediates_map.resolve(immediate)?),
+			
+			&Move64(destination_register, Register(source_register)) => bpf_insn::move64(destination_register, source_register),
+			
+			&Move64(destination_register, Immediate(ref immediate)) => bpf_insn::move64_immediate(destination_register, i32_immediates_map.resolve(immediate)?),
+			
+			&LoadR0Direct8(ref immediate) => bpf_insn::load8_r0_direct(i32_immediates_map.resolve(immediate)?),
+			
+			&LoadR0Direct16(ref immediate) => bpf_insn::load16_r0_direct(i32_immediates_map.resolve(immediate)?),
+			
+			&LoadR0Direct32(ref immediate) => bpf_insn::load32_r0_direct(i32_immediates_map.resolve(immediate)?),
+			
+			&LoadR0Direct64(ref immediate) => bpf_insn::load64_r0_direct(i32_immediates_map.resolve(immediate)?),
+			
+			&LoadR0Indirect8(source_register, ref immediate) => bpf_insn::load8_r0_indirect(source_register, i32_immediates_map.resolve(immediate)?),
+			
+			&LoadR0Indirect16(source_register, ref immediate) => bpf_insn::load16_r0_indirect(source_register, i32_immediates_map.resolve(immediate)?),
+			
+			&LoadR0Indirect32(source_register, ref immediate) => bpf_insn::load32_r0_indirect(source_register, i32_immediates_map.resolve(immediate)?),
+			
+			&LoadR0Indirect64(source_register, ref immediate) => bpf_insn::load64_r0_indirect(source_register, i32_immediates_map.resolve(immediate)?),
+			
+			&LoadFromMemory8(destination_register, source_register, ref memory_offset) => bpf_insn::load8_memory(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
+			
+			&LoadFromMemory16(destination_register, source_register, ref memory_offset) => bpf_insn::load16_memory(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
+			
+			&LoadFromMemory32(destination_register, source_register, ref memory_offset) => bpf_insn::load32_memory(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
+			
+			&LoadFromMemory64(destination_register, source_register, ref memory_offset) => bpf_insn::load64_memory(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
+			
+			&StoreToMemory8(destination_register, Register(source_register), ref memory_offset) => bpf_insn::store8_memory(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
+			
+			&StoreToMemory8(destination_register, Immediate(ref immediate), ref memory_offset) => bpf_insn::store8_memory_immediate(destination_register, memory_offsets_map.resolve(memory_offset)?, i32_immediates_map.resolve(immediate)?),
+			
+			&StoreToMemory16(destination_register, Register(source_register), ref memory_offset) => bpf_insn::store16_memory(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
+			
+			&StoreToMemory16(destination_register, Immediate(ref immediate), ref memory_offset) => bpf_insn::store16_memory_immediate(destination_register, memory_offsets_map.resolve(memory_offset)?, i32_immediates_map.resolve(immediate)?),
+			
+			&StoreToMemory32(destination_register, Register(source_register), ref memory_offset) => bpf_insn::store32_memory(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
+			
+			&StoreToMemory32(destination_register, Immediate(ref immediate), ref memory_offset) => bpf_insn::store32_memory_immediate(destination_register, memory_offsets_map.resolve(memory_offset)?, i32_immediates_map.resolve(immediate)?),
+			
+			&StoreToMemory64(destination_register, Register(source_register), ref memory_offset) => bpf_insn::store64_memory(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
+			
+			&StoreToMemory64(destination_register, Immediate(ref immediate), ref memory_offset) => bpf_insn::store64_memory_immediate(destination_register, memory_offsets_map.resolve(memory_offset)?, i32_immediates_map.resolve(immediate)?),
+			
+			&StoreToMemoryAtomicAdd8(destination_register, source_register, ref memory_offset) => bpf_insn::store8_memory_atomic_add(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
+			
+			&StoreToMemoryAtomicAdd16(destination_register, source_register, ref memory_offset) => bpf_insn::store16_memory_atomic_add(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
+			
+			&StoreToMemoryAtomicAdd32(destination_register, source_register, ref memory_offset) => bpf_insn::store32_memory_atomic_add(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
+			
+			&StoreToMemoryAtomicAdd64(destination_register, source_register, ref memory_offset) => bpf_insn::store64_memory_atomic_add(destination_register, source_register, memory_offsets_map.resolve(memory_offset)?),
+			
+			&ConditionalJump32(jump_operation, destination_register, Register(source_register), ref program_counter_offset) => bpf_insn::conditional_jump32(jump_operation, destination_register, source_register, instructions.resolve_label(program_counter_offset)?),
+			
+			&ConditionalJump32(jump_operation, destination_register, Immediate(ref immediate), ref program_counter_offset) => bpf_insn::conditional_jump32_immediate(jump_operation, destination_register, i32_immediates_map.resolve(immediate)?, instructions.resolve_label(program_counter_offset)?),
+			
+			&ConditionalJump64(jump_operation, destination_register, Register(source_register), ref program_counter_offset) => bpf_insn::conditional_jump64(jump_operation, destination_register, source_register, instructions.resolve_label(program_counter_offset)?),
+			
+			&ConditionalJump64(jump_operation, destination_register, Immediate(ref immediate), ref program_counter_offset) => bpf_insn::conditional_jump64_immediate(jump_operation, destination_register, i32_immediates_map.resolve(immediate)?, instructions.resolve_label(program_counter_offset)?),
+			
+			&UnconditionalJump(ref program_counter_offset) => bpf_insn::unconditional_jump(instructions.resolve_label(program_counter_offset)?),
+			
+			&FunctionCall(function_identifier) => bpf_insn::function_call(function_identifier),
+			
+			&RelativeCall(ref larger_program_counter_offset) => bpf_insn::relative_call(program_counter_offsets_map.resolve_larger(larger_program_counter_offset)?),
+			
+			&ProgramExit => bpf_insn::program_exit(),
+		};
+		
+		instructions.one_instruction(instruction)
 	}
 }
