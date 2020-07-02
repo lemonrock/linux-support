@@ -4,8 +4,10 @@
 
 /// A register.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(u8)]
-pub enum ExtendedRegister
+pub enum Register
 {
 	/// `r0`.
 	///
@@ -18,37 +20,44 @@ pub enum ExtendedRegister
 	
 	/// `r1`.
 	///
-	/// Upon program start contains the "context" argument pointer.
+	/// Upon program start contains the `ctx` argument pointer of type `struct __sk_buff`, ie a pointer to `struct __sk_buff` unless the program has
+	/// To access the `protocol` field in this struct one might do:-
 	///
-	/// First argument passed to a function or eBPF program.
+	/// ```
+	/// use self::SerializableExtendedInstruction::*;
+	/// use self::Register::*;
+	/// load16_from_memory(r0, r1, MemoryOffset::Known(16))
+	/// ```
+	///
+	/// First argument passed to a function.
 	///
 	/// `BPF_REG_1` and `BPF_ARG_1`.
 	r1 = 1,
 	
 	/// `r2`.
 	///
-	/// Second argument passed to a function or eBPF program.
+	/// Second argument passed to a function.
 	///
 	/// `BPF_REG_2` and `BPF_ARG_2`.
 	r2 = 2,
 	
 	/// `r3`.
 	///
-	/// Third argument passed to a function or eBPF program.
+	/// Third argument passed to a function (or eBPF program if using the `bpf_tail_call()` function).
 	///
 	/// `BPF_REG_3` and `BPF_ARG_3`.
 	r3 = 3,
 	
 	/// `r4`.
 	///
-	/// Fourth argument passed to a function or eBPF program.
+	/// Fourth argument passed to a function (or eBPF program if using the `bpf_tail_call()` function).
 	///
 	/// `BPF_REG_4` and `BPF_ARG_4`.
 	r4 = 4,
 	
 	/// `r5`.
 	///
-	/// Fifth argument passed to a function or eBPF program.
+	/// Fifth argument passed to a function (or eBPF program if using the `bpf_tail_call()` function).
 	///
 	/// `BPF_REG_5` and `BPF_ARG_5`.
 	r5 = 5,
@@ -97,8 +106,14 @@ pub enum ExtendedRegister
 	r10 = 10,
 }
 
-impl ExtendedRegister
+impl Register
 {
 	/// An alias to `r10`.
-	pub const fp: Self = ExtendedRegister::r10;
+	pub const fp: Self = Register::r10;
+	
+	pub(crate) const BPF_PSEUDO_MAP_FD: Register = Register::r1;
+	
+	pub(crate) const BPF_PSEUDO_MAP_VALUE: Register = Register::r2;
+	
+	pub(crate) const BPF_PSEUDO_CALL: Register = Register::r1;
 }

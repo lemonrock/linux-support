@@ -839,10 +839,6 @@ pub mod cpu;
 pub mod devices;
 
 
-/// Enhanced BPF (eBPF) (Berkeley Packet Filter) assembler.
-pub mod enhanced_bpf_assembler;
-
-
 /// Environment variables.
 ///
 /// * Find the original environment of a process.

@@ -3,12 +3,14 @@
 
 
 #[non_exhaustive]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(i32)]
 pub enum bpf_func_id
 {
 	#[doc(hidden)]
-	BPF_FUNC_unspec = 0,
+	#[serde(rename = "unspec")] BPF_FUNC_unspec = 0,
 	
 	/// `void *bpf_map_lookup_elem(struct bpf_map *map, const void *key)`.
 	///
@@ -21,7 +23,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// Map value associated to `key`, or `NULL` if no entry was found.
-	BPF_FUNC_map_lookup_elem = 1,
+	#[serde(rename = "bpf_map_lookup_elem")] BPF_FUNC_map_lookup_elem = 1,
 
 	/// `int bpf_map_update_elem(struct bpf_map *map, const void *key, const void *value, u64 flags)`.
 	///
@@ -40,7 +42,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_map_update_elem = 2,
+	#[serde(rename = "bpf_map_update_elem")] BPF_FUNC_map_update_elem = 2,
 	
 	/// `int bpf_map_delete_elem(struct bpf_map *map, const void *key)`.
 	///
@@ -53,7 +55,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_map_delete_elem = 3,
+	#[serde(rename = "bpf_map_delete_elem")] BPF_FUNC_map_delete_elem = 3,
 	
 	/// `int bpf_probe_read(void *dst, u32 size, const void *unsafe_ptr)`.
 	///
@@ -68,7 +70,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_probe_read = 4,
+	#[serde(rename = "bpf_probe_read")] BPF_FUNC_probe_read = 4,
 	
 	/// `u64 bpf_ktime_get_ns(void)`.
 	///
@@ -81,7 +83,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// Current `ktime`.
-	BPF_FUNC_ktime_get_ns = 5,
+	#[serde(rename = "bpf_ktime_get_ns")] BPF_FUNC_ktime_get_ns = 5,
 	
 	/// `int bpf_trace_printk(const char *fmt, u32 fmt_size, ...)`.
 	///
@@ -124,7 +126,7 @@ pub enum bpf_func_id
 	///
 	/// The number of bytes written to the buffer, or a negative error
 	/// in case of failure.
-	BPF_FUNC_trace_printk = 6,
+	#[serde(rename = "bpf_trace_printk")] BPF_FUNC_trace_printk = 6,
 	
 	/// `u32 bpf_get_prandom_u32(void)`.
 	///
@@ -140,7 +142,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// A random 32-bit unsigned value.
-	BPF_FUNC_get_prandom_u32 = 7,
+	#[serde(rename = "bpf_get_prandom_u32")] BPF_FUNC_get_prandom_u32 = 7,
 	
 	/// `u32 bpf_get_smp_processor_id(void)`.
 	///
@@ -154,7 +156,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// The SMP id of the processor running the program.
-	BPF_FUNC_get_smp_processor_id = 8,
+	#[serde(rename = "bpf_get_smp_processor_id")] BPF_FUNC_get_smp_processor_id = 8,
 	
 	/// `int bpf_skb_store_bytes(struct sk_buff *skb, u32 offset, const void *from, u32 len, u64 flags)`.
 	///
@@ -172,7 +174,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_skb_store_bytes = 9,
+	#[serde(rename = "bpf_skb_store_bytes")] BPF_FUNC_skb_store_bytes = 9,
 
 	/// `int bpf_l3_csum_replace(struct sk_buff *skb, u32 offset, u64 from, u64 to, u64 size)`.
 	///
@@ -193,7 +195,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_l3_csum_replace = 10,
+	#[serde(rename = "bpf_l3_csum_replace")] BPF_FUNC_l3_csum_replace = 10,
 
 	/// `int bpf_l4_csum_replace(struct sk_buff *skb, u32 offset, u64 from, u64 to, u64 flags)`.
 	///
@@ -217,7 +219,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_l4_csum_replace = 11,
+	#[serde(rename = "bpf_l4_csum_replace")] BPF_FUNC_l4_csum_replace = 11,
 	
 	/// `int bpf_tail_call(void *ctx, struct bpf_map *prog_array_map, u32 index)`.
 	///
@@ -229,7 +231,7 @@ pub enum bpf_func_id
 	/// This mechanism allows for program chaining, either for raising the maximum number of available eBPF instructions, or to execute given programs in conditional blocks.
 	/// For security reasons, there is an upper limit to the number of successive tail calls that can be performed.
 	///
-	/// Upon call of this helper, the program attempts to jump into a program referenced at index *index* in `prog_array_map`, a  special map of type `BPF_MAP_TYPE_PROG_ARRAY`, and passes `ctx`, a pointer to the context.
+	/// Upon call of this helper, the program attempts to jump into a program referenced at `index` in `prog_array_map`, a  special map of type `BPF_MAP_TYPE_PROG_ARRAY`, and passes `ctx`, a pointer to the context.
 	///
 	/// If the call succeeds, the kernel immediately runs the first instruction of the new program.
 	/// This is not a function call,and it never returns to the previous program.
@@ -241,7 +243,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_tail_call = 12,
+	#[serde(rename = "bpf_tail_call")] BPF_FUNC_tail_call = 12,
 	
 	/// `int bpf_clone_redirect(struct sk_buff *skb, u32 ifindex, u64 flags)`.
 	///
@@ -263,7 +265,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_clone_redirect = 13,
+	#[serde(rename = "bpf_clone_redirect")] BPF_FUNC_clone_redirect = 13,
 	
 	/// `u64 bpf_get_current_pid_tgid(void)`.
 	///
@@ -271,7 +273,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// A 64-bit integer containing the current `tgid` and `pid` combined as `current_task->tgid << 32 | current_task->pid`.
-	BPF_FUNC_get_current_pid_tgid = 14,
+	#[serde(rename = "bpf_get_current_pid_tgid")] BPF_FUNC_get_current_pid_tgid = 14,
 	
 	/// `u64 bpf_get_current_uid_gid(void)`.
 	///
@@ -279,7 +281,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// A 64-bit integer containing the current `GID` and `UID` and combined as `current_gid << 32 | current_uid`.
-	BPF_FUNC_get_current_uid_gid = 15,
+	#[serde(rename = "bpf_get_current_uid_gid")] BPF_FUNC_get_current_uid_gid = 15,
 	
 	/// `int bpf_get_current_comm(void *buf, u32 size_of_buf)`.
 	///
@@ -295,7 +297,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_get_current_comm = 16,
+	#[serde(rename = "bpf_get_current_comm")] BPF_FUNC_get_current_comm = 16,
 	
 	/// `u32 bpf_get_cgroup_classid(struct sk_buff *skb)`.
 	///
@@ -320,7 +322,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// The `classid`, or 0 for the default unconfigured `classid`.
-	BPF_FUNC_get_cgroup_classid = 17,
+	#[serde(rename = "bpf_get_cgroup_classid")] BPF_FUNC_get_cgroup_classid = 17,
 	
 	/// `int bpf_skb_vlan_push(struct sk_buff *skb, __be16 vlan_proto, u16 vlan_tci)`.
 	///
@@ -337,7 +339,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_skb_vlan_push = 18,
+	#[serde(rename = "bpf_skb_vlan_push")] BPF_FUNC_skb_vlan_push = 18,
 	
 	/// `int bpf_skb_vlan_pop(struct sk_buff *skb)`.
 	///
@@ -353,7 +355,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_skb_vlan_pop = 19,
+	#[serde(rename = "bpf_skb_vlan_pop")] BPF_FUNC_skb_vlan_pop = 19,
 	
 	/// `int bpf_skb_get_tunnel_key(struct sk_buff *skb, struct bpf_tunnel_key *key, u32 size, u64 flags)`.
 	///
@@ -393,7 +395,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_skb_get_tunnel_key = 20,
+	#[serde(rename = "bpf_skb_get_tunnel_key")] BPF_FUNC_skb_get_tunnel_key = 20,
 	
 	/// `int bpf_skb_set_tunnel_key(struct sk_buff *skb, struct bpf_tunnel_key *key, u32 size, u64 flags)`.
 	///
@@ -422,7 +424,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_skb_set_tunnel_key = 21,
+	#[serde(rename = "bpf_skb_set_tunnel_key")] BPF_FUNC_skb_set_tunnel_key = 21,
 	
 	/// `u64 bpf_perf_event_read(struct bpf_map *map, u64 flags)`.
 	///
@@ -448,7 +450,7 @@ pub enum bpf_func_id
 	///
 	/// The value of the perf event counter read from the `map`, or a negative error code in case of failure.
 	#[deprecated]
-	BPF_FUNC_perf_event_read = 22,
+	#[serde(rename = "bpf_perf_event_read")] BPF_FUNC_perf_event_read = 22,
 	
 	/// `int bpf_redirect(u32 ifindex, u64 flags)`.
 	///
@@ -469,7 +471,7 @@ pub enum bpf_func_id
 	///
 	/// For XDP, the helper returns `XDP_REDIRECT` on success or `XDP_ABORTED` on error.
 	/// For other program types, the values are `TC_ACT_REDIRECT` on success or `TC_ACT_SHOT` on error.
-	BPF_FUNC_redirect = 23,
+	#[serde(rename = "bpf_redirect")] BPF_FUNC_redirect = 23,
 	
 	/// `u32 bpf_get_route_realm(struct sk_buff *skb)`.
 	///
@@ -489,7 +491,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// The realm of the route for the packet associated to `skb`, or 0 if none was found.
-	BPF_FUNC_get_route_realm = 24,
+	#[serde(rename = "bpf_get_route_realm")] BPF_FUNC_get_route_realm = 24,
 	
 	/// `int bpf_perf_event_output(void *ctx, struct bpf_map *map, u64 flags, void *data, u64 size)`.
 	///
@@ -523,7 +525,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_perf_event_output = 25,
+	#[serde(rename = "bpf_perf_event_output")] BPF_FUNC_perf_event_output = 25,
 	
 	/// `int bpf_skb_load_bytes(const void *skb, u32 offset, void *to, u32 len)`.
 	///
@@ -541,7 +543,7 @@ pub enum bpf_func_id
 	///
 	/// 0 on success, or a negative error in case of failure.
 	#[deprecated]
-	BPF_FUNC_skb_load_bytes = 26,
+	#[serde(rename = "bpf_skb_load_bytes")] BPF_FUNC_skb_load_bytes = 26,
 	
 	/// `int bpf_get_stackid(void *ctx, struct bpf_map *map, u64 flags)`.
 	///
@@ -574,7 +576,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// The positive or null stack id on success, or a negative error in case of failure.
-	BPF_FUNC_get_stackid = 27,
+	#[serde(rename = "bpf_get_stackid")] BPF_FUNC_get_stackid = 27,
 	
 	/// `i64 bpf_csum_diff(__be32 *from, u32 from_size, __be32 *to, u32 to_size, __wsum seed)`.
 	///
@@ -596,7 +598,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// The checksum result, or a negative error code in case of failure.
-	BPF_FUNC_csum_diff = 28,
+	#[serde(rename = "bpf_csum_diff")] BPF_FUNC_csum_diff = 28,
 	
 	/// `int bpf_skb_get_tunnel_opt(struct sk_buff *skb, void *opt, u32 size)`.
 	///
@@ -613,7 +615,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// The size of the option data retrieved.
-	BPF_FUNC_skb_get_tunnel_opt = 29,
+	#[serde(rename = "bpf_skb_get_tunnel_opt")] BPF_FUNC_skb_get_tunnel_opt = 29,
 	
 	/// `int bpf_skb_set_tunnel_opt(struct sk_buff *skb, void *opt, u32 size)`.
 	///
@@ -628,7 +630,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_skb_set_tunnel_opt = 30,
+	#[serde(rename = "bpf_skb_set_tunnel_opt")] BPF_FUNC_skb_set_tunnel_opt = 30,
 	
 	/// `int bpf_skb_change_proto(struct sk_buff *skb, __be16 proto, u64 flags)`.
 	///
@@ -653,7 +655,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_skb_change_proto = 31,
+	#[serde(rename = "bpf_skb_change_proto")] BPF_FUNC_skb_change_proto = 31,
 	
 	/// `int bpf_skb_change_type(struct sk_buff *skb, u32 type)`.
 	///
@@ -678,7 +680,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_skb_change_type = 32,
+	#[serde(rename = "bpf_skb_change_type")] BPF_FUNC_skb_change_type = 32,
 	
 	/// `int bpf_skb_under_cgroup(struct sk_buff *skb, struct bpf_map *map, u32 index)`.
 	///
@@ -695,7 +697,7 @@ pub enum bpf_func_id
 	/// * 0, if the `skb` failed the cgroup2 descendant test.
 	/// * 1, if the `skb` succeeded the cgroup2 descendant test.
 	/// * A negative error code, if an error occurred.
-	BPF_FUNC_skb_under_cgroup = 33,
+	#[serde(rename = "bpf_skb_under_cgroup")] BPF_FUNC_skb_under_cgroup = 33,
 	
 	/// `u32 bpf_get_hash_recalc(struct sk_buff *skb)`.
 	///
@@ -712,7 +714,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// The 32-bit hash.
-	BPF_FUNC_get_hash_recalc = 34,
+	#[serde(rename = "bpf_get_hash_recalc")] BPF_FUNC_get_hash_recalc = 34,
 	
 	/// `u64 bpf_get_current_task(void)`.
 	///
@@ -720,7 +722,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// A pointer to the current task struct.
-	BPF_FUNC_get_current_task = 35,
+	#[serde(rename = "bpf_get_current_task")] BPF_FUNC_get_current_task = 35,
 	
 	/// `int bpf_probe_write_user(void *dst, const void *src, u32 len)`.
 	///
@@ -739,7 +741,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_probe_write_user = 36,
+	#[serde(rename = "bpf_probe_write_user")] BPF_FUNC_probe_write_user = 36,
 	
 	/// `int bpf_current_task_under_cgroup(struct bpf_map *map, u32 index)`.
 	///
@@ -757,7 +759,7 @@ pub enum bpf_func_id
 	/// * 0, if the `skb` task belongs to the cgroup2.
 	/// * 1, if the `skb` task does not belong to the cgroup2.
 	/// * A negative error code, if an error occurred.
-	BPF_FUNC_current_task_under_cgroup = 37,
+	#[serde(rename = "bpf_current_task_under_cgroup")] BPF_FUNC_current_task_under_cgroup = 37,
 	
 	/// `int bpf_skb_change_tail(struct sk_buff *skb, u32 len, u64 flags)`.
 	///
@@ -778,7 +780,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_skb_change_tail = 38,
+	#[serde(rename = "bpf_skb_change_tail")] BPF_FUNC_skb_change_tail = 38,
 	
 	/// `int bpf_skb_pull_data(struct sk_buff *skb, u32 len)`.
 	///
@@ -806,7 +808,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_skb_pull_data = 39,
+	#[serde(rename = "bpf_skb_pull_data")] BPF_FUNC_skb_pull_data = 39,
 	
 	/// `i64 bpf_csum_update(struct sk_buff *skb, __wsum csum)`.
 	///
@@ -821,7 +823,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// The checksum on success, or a negative error code in case of failure.
-	BPF_FUNC_csum_update = 40,
+	#[serde(rename = "bpf_csum_update")] BPF_FUNC_csum_update = 40,
 	
 	/// void bpf_set_hash_invalid(struct sk_buff *skb)`.
 	///
@@ -830,7 +832,7 @@ pub enum bpf_func_id
 	///
 	/// Invalidate the current `skb->hash`.
 	/// It can be used after mangling on headers through direct packet access, in order to indicate that the hash is outdated and to trigger a recalculation the next time the kernel tries to access this hash or when the `bpf_get_hash_recalc()` helper is called.
-	BPF_FUNC_set_hash_invalid = 41,
+	#[serde(rename = "bpf_set_hash_invalid")] BPF_FUNC_set_hash_invalid = 41,
 	
 	/// `int bpf_get_numa_node_id(void)`.
 	///
@@ -844,7 +846,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// The id of current NUMA node.
-	BPF_FUNC_get_numa_node_id = 42,
+	#[serde(rename = "bpf_get_numa_node_id")] BPF_FUNC_get_numa_node_id = 42,
 	
 	/// `int bpf_skb_change_head(struct sk_buff *skb, u32 len, u64 flags)`.
 	///
@@ -865,7 +867,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_skb_change_head = 43,
+	#[serde(rename = "bpf_skb_change_head")] BPF_FUNC_skb_change_head = 43,
 	
 	/// `int bpf_xdp_adjust_head(struct xdp_buff *xdp_md, int delta)`.
 	///
@@ -883,7 +885,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_xdp_adjust_head = 44,
+	#[serde(rename = "bpf_xdp_adjust_head")] BPF_FUNC_xdp_adjust_head = 44,
 	
 	/// `int bpf_probe_read_str(void *dst, u32 size, const void *unsafe_ptr)`.
 	///
@@ -901,7 +903,7 @@ pub enum bpf_func_id
 	/// On success, the strictly positive length of the string, including the trailing `NULL` character.
 	/// On error, a negative value.
 	#[deprecated]
-	BPF_FUNC_probe_read_str = 45,
+	#[serde(rename = "bpf_probe_read_str")] BPF_FUNC_probe_read_str = 45,
 	
 	/// # `u64 bpf_get_socket_cookie(struct sk_buff *skb)`.
 	/// # `u64 bpf_get_socket_cookie(struct bpf_sock_addr *ctx)`.
@@ -919,7 +921,7 @@ pub enum bpf_func_id
 	/// ## Returns
 	///
 	/// A 8-byte long non-decreasing number on success, or 0 if the socket field is missing inside `skb` or `ctx`.
-	BPF_FUNC_get_socket_cookie = 46,
+	#[serde(rename = "bpf_get_socket_cookie")] BPF_FUNC_get_socket_cookie = 46,
 	
 	/// `u32 bpf_get_socket_uid(struct sk_buff *skb)`.
 	///
@@ -928,7 +930,7 @@ pub enum bpf_func_id
 	///
 	/// The owner UID of the socket associated to `skb`.
 	/// If the socket is `NULL`, or if it is not a full socket (ie if it is a time-wait or a request socket instead), `overflowuid` value is returned (note that `overflowuid` might also be the actual UID value for the socket).
-	BPF_FUNC_get_socket_uid = 47,
+	#[serde(rename = "bpf_get_socket_uid")] BPF_FUNC_get_socket_uid = 47,
 	
 	/// `u32 bpf_set_hash(struct sk_buff *skb, u32 hash)`.
 	///
@@ -941,7 +943,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0
-	BPF_FUNC_set_hash = 48,
+	#[serde(rename = "bpf_set_hash")] BPF_FUNC_set_hash = 48,
 	
 	/// `int bpf_setsockopt(struct bpf_sock_ops *bpf_socket, int level, int optname, void *optval, int optlen)`.
 	///
@@ -975,7 +977,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_setsockopt = 49,
+	#[serde(rename = "bpf_setsockopt")] BPF_FUNC_setsockopt = 49,
 	
 	/// `int bpf_skb_adjust_room(struct sk_buff *skb, i32 len_diff, u32 mode, u64 flags)`.
 	///
@@ -1006,7 +1008,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_skb_adjust_room = 50,
+	#[serde(rename = "bpf_skb_adjust_room")] BPF_FUNC_skb_adjust_room = 50,
 	
 	/// `int bpf_redirect_map(struct bpf_map *map, u32 key, u64 flags)`.
 	///
@@ -1027,7 +1029,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// `XDP_REDIRECT` on success, or the value of the two lower bits of the `flags` argument on error.
-	BPF_FUNC_redirect_map = 51,
+	#[serde(rename = "bpf_redirect_map")] BPF_FUNC_redirect_map = 51,
 	
 	/// `int bpf_sk_redirect_map(struct sk_buff *skb, struct bpf_map *map, u32 key, u64 flags)`.
 	///
@@ -1043,7 +1045,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// `SK_PASS` on success, or `SK_DROP` on error.
-	BPF_FUNC_sk_redirect_map = 52,
+	#[serde(rename = "bpf_sk_redirect_map")] BPF_FUNC_sk_redirect_map = 52,
 	
 	/// `int bpf_sock_map_update(struct bpf_sock_ops *skops, struct bpf_map *map, void *key, u64 flags)`.
 	///
@@ -1065,7 +1067,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_sock_map_update = 53,
+	#[serde(rename = "bpf_sock_map_update")] BPF_FUNC_sock_map_update = 53,
 	
 	/// `int bpf_xdp_adjust_meta(struct xdp_buff *xdp_md, int delta)`.
 	///
@@ -1087,7 +1089,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_xdp_adjust_meta = 54,
+	#[serde(rename = "bpf_xdp_adjust_meta")] BPF_FUNC_xdp_adjust_meta = 54,
 	
 	/// `int bpf_perf_event_read_value(struct bpf_map *map, u64 flags, struct bpf_perf_event_value *buf, u32 buf_size)`.
 	///
@@ -1124,7 +1126,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_perf_event_read_value = 55,
+	#[serde(rename = "bpf_perf_event_read_value")] BPF_FUNC_perf_event_read_value = 55,
 	
 	/// `int bpf_perf_prog_read_value(struct bpf_perf_event_data *ctx, struct bpf_perf_event_value *buf, u32 buf_size)`.
 	///
@@ -1138,7 +1140,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_perf_prog_read_value = 56,
+	#[serde(rename = "bpf_perf_prog_read_value")] BPF_FUNC_perf_prog_read_value = 56,
 	/// `int bpf_getsockopt(struct bpf_sock_ops *bpf_socket, int level, int optname, void *optval, int optlen)`.
 	///
 	///
@@ -1162,7 +1164,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_getsockopt = 57,
+	#[serde(rename = "bpf_getsockopt")] BPF_FUNC_getsockopt = 57,
 	/// `int bpf_override_return(struct pt_regs *regs, u64 rc)`.
 	///
 	///
@@ -1185,7 +1187,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0
-	BPF_FUNC_override_return = 58,
+	#[serde(rename = "bpf_override_return")] BPF_FUNC_override_return = 58,
 	
 	/// `int bpf_sock_ops_cb_flags_set(struct bpf_sock_ops *bpf_sock, int argval)`.
 	///
@@ -1223,7 +1225,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// Code `-EINVAL` if the socket is not a full TCP socket; otherwise, a positive number containing the bits that could not be set is returned (which comes down to 0 if all bits were set as required).
-	BPF_FUNC_sock_ops_cb_flags_set = 59,
+	#[serde(rename = "bpf_sock_ops_cb_flags_set")] BPF_FUNC_sock_ops_cb_flags_set = 59,
 	
 	/// `int bpf_msg_redirect_map(struct sk_msg_buff *msg, struct bpf_map *map, u32 key, u64 flags)`.
 	///
@@ -1240,7 +1242,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// `SK_PASS` on success, or `SK_DROP` on error.
-	BPF_FUNC_msg_redirect_map = 60,
+	#[serde(rename = "bpf_msg_redirect_map")] BPF_FUNC_msg_redirect_map = 60,
 	
 	/// `int bpf_msg_apply_bytes(struct sk_msg_buff *msg, u32 bytes)`.
 	///
@@ -1264,7 +1266,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0
-	BPF_FUNC_msg_apply_bytes = 61,
+	#[serde(rename = "bpf_msg_apply_bytes")] BPF_FUNC_msg_apply_bytes = 61,
 	
 	/// `int bpf_msg_cork_bytes(struct sk_msg_buff *msg, u32 bytes)`.
 	///
@@ -1282,7 +1284,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0
-	BPF_FUNC_msg_cork_bytes = 62,
+	#[serde(rename = "bpf_msg_cork_bytes")] BPF_FUNC_msg_cork_bytes = 62,
 	
 	/// `int bpf_msg_pull_data(struct sk_msg_buff *msg, u32 start, u32 end, u64 flags)`.
 	///
@@ -1306,7 +1308,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_msg_pull_data = 63,
+	#[serde(rename = "bpf_msg_pull_data")] BPF_FUNC_msg_pull_data = 63,
 	
 	/// `int bpf_bind(struct bpf_sock_addr *ctx, struct sockaddr *addr, int addr_len)`.
 	///
@@ -1324,7 +1326,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_bind = 64,
+	#[serde(rename = "bpf_bind")] BPF_FUNC_bind = 64,
 	
 	/// `int bpf_xdp_adjust_tail(struct xdp_buff *xdp_md, int delta)`.
 	///
@@ -1341,7 +1343,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_xdp_adjust_tail = 65,
+	#[serde(rename = "bpf_xdp_adjust_tail")] BPF_FUNC_xdp_adjust_tail = 65,
 	
 	/// `int bpf_skb_get_xfrm_state(struct sk_buff *skb, u32 index, struct bpf_xfrm_state *xfrm_state, u32 size, u64 flags)`.
 	///
@@ -1360,7 +1362,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_skb_get_xfrm_state = 66,
+	#[serde(rename = "bpf_skb_get_xfrm_state")] BPF_FUNC_skb_get_xfrm_state = 66,
 	
 	/// `int bpf_get_stack(void *ctx, void *buf, u32 size, u64 flags)`.
 	///
@@ -1389,7 +1391,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// A non-negative value equal to or less than `size` on success, or a negative error in case of failure.
-	BPF_FUNC_get_stack = 67,
+	#[serde(rename = "bpf_get_stack")] BPF_FUNC_get_stack = 67,
 	
 	/// `int bpf_skb_load_bytes_relative(const void *skb, u32 offset, void *to, u32 len, u32 start_header)`.
 	///
@@ -1409,7 +1411,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_skb_load_bytes_relative = 68,
+	#[serde(rename = "bpf_skb_load_bytes_relative")] BPF_FUNC_skb_load_bytes_relative = 68,
 	
 	/// `int bpf_fib_lookup(void *ctx, struct bpf_fib_lookup *params, int plen, u32 flags)`.
 	///
@@ -1434,7 +1436,7 @@ pub enum bpf_func_id
 	/// * Less than 0 if any input argument is invalid.
 	/// * 0 on success (packet is forwarded, `nexthop` neighbor exists)`.
 	/// * More than 0: one of the `BPF_FIB_LKUP_RET_*` codes explaining why the packet is not forwarded or needs assist from full stack.
-	BPF_FUNC_fib_lookup = 69,
+	#[serde(rename = "bpf_fib_lookup")] BPF_FUNC_fib_lookup = 69,
 	
 	/// `int bpf_sock_hash_update(struct bpf_sock_ops *skops, struct bpf_map *map, void *key, u64 flags)`.
 	///
@@ -1456,7 +1458,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_sock_hash_update = 70,
+	#[serde(rename = "bpf_sock_hash_update")] BPF_FUNC_sock_hash_update = 70,
 	
 	/// `int bpf_msg_redirect_hash(struct sk_msg_buff *msg, struct bpf_map *map, void *key, u64 flags)`.
 	///
@@ -1473,7 +1475,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// `SK_PASS` on success, or `SK_DROP` on error.
-	BPF_FUNC_msg_redirect_hash = 71,
+	#[serde(rename = "bpf_msg_redirect_hash")] BPF_FUNC_msg_redirect_hash = 71,
 	
 	/// `int bpf_sk_redirect_hash(struct sk_buff *skb, struct bpf_map *map, void *key, u64 flags)`.
 	///
@@ -1490,7 +1492,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// `SK_PASS` on success, or `SK_DROP` on error.
-	BPF_FUNC_sk_redirect_hash = 72,
+	#[serde(rename = "bpf_sk_redirect_hash")] BPF_FUNC_sk_redirect_hash = 72,
 	
 	/// `int bpf_lwt_push_encap(struct sk_buff *skb, u32 type, void *hdr, u32 len)`.
 	///
@@ -1514,7 +1516,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_lwt_push_encap = 73,
+	#[serde(rename = "bpf_lwt_push_encap")] BPF_FUNC_lwt_push_encap = 73,
 	
 	/// `int bpf_lwt_seg6_store_bytes(struct sk_buff *skb, u32 offset, const void *from, u32 len)`.
 	///
@@ -1531,7 +1533,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_lwt_seg6_store_bytes = 74,
+	#[serde(rename = "bpf_lwt_seg6_store_bytes")] BPF_FUNC_lwt_seg6_store_bytes = 74,
 	
 	/// `int bpf_lwt_seg6_adjust_srh(struct sk_buff *skb, u32 offset, i32 delta)`.
 	///
@@ -1549,7 +1551,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_lwt_seg6_adjust_srh = 75,
+	#[serde(rename = "bpf_lwt_seg6_adjust_srh")] BPF_FUNC_lwt_seg6_adjust_srh = 75,
 	
 	/// `int bpf_lwt_seg6_action(struct sk_buff *skb, u32 action, void *param, u32 param_len)`.
 	///
@@ -1580,7 +1582,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_lwt_seg6_action = 76,
+	#[serde(rename = "bpf_lwt_seg6_action")] BPF_FUNC_lwt_seg6_action = 76,
 	
 	/// `int bpf_rc_repeat(void *ctx)`.
 	///
@@ -1600,7 +1602,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0
-	BPF_FUNC_rc_repeat = 77,
+	#[serde(rename = "bpf_rc_repeat")] BPF_FUNC_rc_repeat = 77,
 	
 	/// `int bpf_rc_keydown(void *ctx, u32 protocol, u64 scancode, u32 toggle)`.
 	///
@@ -1624,7 +1626,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0
-	BPF_FUNC_rc_keydown = 78,
+	#[serde(rename = "bpf_rc_keydown")] BPF_FUNC_rc_keydown = 78,
 	/// `u64 bpf_skb_cgroup_id(struct sk_buff *skb)`.
 	///
 	///
@@ -1640,7 +1642,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// The id is returned or 0 in case the id could not be retrieved.
-	BPF_FUNC_skb_cgroup_id = 79,
+	#[serde(rename = "bpf_skb_cgroup_id")] BPF_FUNC_skb_cgroup_id = 79,
 	
 	/// `u64 bpf_get_current_cgroup_id(void)`.
 	///
@@ -1648,7 +1650,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// A 64-bit integer containing the current cgroup id based on the cgroup within which the current task is running.
-	BPF_FUNC_get_current_cgroup_id = 80,
+	#[serde(rename = "bpf_get_current_cgroup_id")] BPF_FUNC_get_current_cgroup_id = 80,
 	
 	/// `void *bpf_get_local_storage(void *map, u64 flags)`.
 	///
@@ -1667,7 +1669,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// A pointer to the local storage area.
-	BPF_FUNC_get_local_storage = 81,
+	#[serde(rename = "bpf_get_local_storage")] BPF_FUNC_get_local_storage = 81,
 	
 	/// `int bpf_sk_select_reuseport(struct sk_reuseport_md *reuse, struct bpf_map *map, void *key, u64 flags)`.
 	///
@@ -1681,7 +1683,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_sk_select_reuseport = 82,
+	#[serde(rename = "bpf_sk_select_reuseport")] BPF_FUNC_sk_select_reuseport = 82,
 	
 	/// `u64 bpf_skb_ancestor_cgroup_id(struct sk_buff *skb, int ancestor_level)`.
 	///
@@ -1700,7 +1702,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// The id is returned or 0 in case the id could not be retrieved.
-	BPF_FUNC_skb_ancestor_cgroup_id = 83,
+	#[serde(rename = "bpf_skb_ancestor_cgroup_id")] BPF_FUNC_skb_ancestor_cgroup_id = 83,
 	
 	/// `struct bpf_sock *bpf_sk_lookup_tcp(void *ctx, struct bpf_sock_tuple *tuple, u32 tuple_size, u64 netns, u64 flags)`.
 	///
@@ -1733,7 +1735,7 @@ pub enum bpf_func_id
 	///
 	/// Pointer to `struct bpf_sock`, or `NULL` in case of failure.
 	/// For sockets with reuseport option, the `struct bpf_sock` result is from `reuse->socks[]` using the hash of the tuple.
-	BPF_FUNC_sk_lookup_tcp = 84,
+	#[serde(rename = "bpf_sk_lookup_tcp")] BPF_FUNC_sk_lookup_tcp = 84,
 	
 	/// `struct bpf_sock *bpf_sk_lookup_udp(void *ctx, struct bpf_sock_tuple *tuple, u32 tuple_size, u64 netns, u64 flags)`.
 	///
@@ -1767,7 +1769,7 @@ pub enum bpf_func_id
 	/// Pointer to `struct bpf_sock`, or `NULL` in case of failure.
 	/// For sockets with reuseport option, the `struct bpf_sock` result is from `reuse->socks[]` using the hash of the tuple.
 	///
-	BPF_FUNC_sk_lookup_udp = 85,
+	#[serde(rename = "bpf_sk_lookup_udp")] BPF_FUNC_sk_lookup_udp = 85,
 	
 	/// `int bpf_sk_release(struct bpf_sock *sock)`.
 	///
@@ -1781,7 +1783,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_sk_release = 86,
+	#[serde(rename = "bpf_sk_release")] BPF_FUNC_sk_release = 86,
 	
 	/// `int bpf_map_push_elem(struct bpf_map *map, const void *value, u64 flags)`.
 	///
@@ -1797,7 +1799,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_map_push_elem = 87,
+	#[serde(rename = "bpf_map_push_elem")] BPF_FUNC_map_push_elem = 87,
 	
 	/// `int bpf_map_pop_elem(struct bpf_map *map, void *value)`.
 	///
@@ -1810,7 +1812,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_map_pop_elem = 88,
+	#[serde(rename = "bpf_map_pop_elem")] BPF_FUNC_map_pop_elem = 88,
 	
 	/// `int bpf_map_peek_elem(struct bpf_map *map, void *value)`.
 	///
@@ -1823,7 +1825,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_map_peek_elem = 89,
+	#[serde(rename = "bpf_map_peek_elem")] BPF_FUNC_map_peek_elem = 89,
 	
 	/// `int bpf_msg_push_data(struct sk_msg_buff *msg, u32 start, u32 len, u64 flags)`.
 	///
@@ -1841,7 +1843,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_msg_push_data = 90,
+	#[serde(rename = "bpf_msg_push_data")] BPF_FUNC_msg_push_data = 90,
 	
 	/// `int bpf_msg_pop_data(struct sk_msg_buff *msg, u32 start, u32 len, u64 flags)`.
 	///
@@ -1857,7 +1859,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_msg_pop_data = 91,
+	#[serde(rename = "bpf_msg_pop_data")] BPF_FUNC_msg_pop_data = 91,
 	
 	/// `int bpf_rc_pointer_rel(void *ctx, s32 rel_x, s32 rel_y)`.
 	///
@@ -1874,7 +1876,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0
-	BPF_FUNC_rc_pointer_rel = 92,
+	#[serde(rename = "bpf_rc_pointer_rel")] BPF_FUNC_rc_pointer_rel = 92,
 	/// `int bpf_spin_lock(struct bpf_spin_lock *lock)`.
 	///
 	///
@@ -1909,7 +1911,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0
-	BPF_FUNC_spin_lock = 93,
+	#[serde(rename = "bpf_spin_lock")] BPF_FUNC_spin_lock = 93,
 	
 	/// `int bpf_spin_unlock(struct bpf_spin_lock *lock)`.
 	///
@@ -1922,7 +1924,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0
-	BPF_FUNC_spin_unlock = 94,
+	#[serde(rename = "bpf_spin_unlock")] BPF_FUNC_spin_unlock = 94,
 	
 	/// `struct bpf_sock *bpf_sk_fullsock(struct bpf_sock *sk)`.
 	///
@@ -1935,7 +1937,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// A `struct bpf_sock` pointer on success, or `NULL` in case of failure.
-	BPF_FUNC_sk_fullsock = 95,
+	#[serde(rename = "bpf_sk_fullsock")] BPF_FUNC_sk_fullsock = 95,
 	
 	/// `struct bpf_tcp_sock *bpf_tcp_sock(struct bpf_sock *sk)`.
 	///
@@ -1948,7 +1950,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// A `struct bpf_tcp_sock` pointer on success, or `NULL` in case of failure.
-	BPF_FUNC_tcp_sock = 96,
+	#[serde(rename = "bpf_tcp_sock")] BPF_FUNC_tcp_sock = 96,
 	
 	/// `int bpf_skb_ecn_set_ce(struct sk_buff *skb)`.
 	///
@@ -1964,7 +1966,7 @@ pub enum bpf_func_id
 	///
 	/// 1 if the `CE` flag is set (either by the current helper call or because it was already present).
 	/// 0 if it is not set.
-	BPF_FUNC_skb_ecn_set_ce = 97,
+	#[serde(rename = "bpf_skb_ecn_set_ce")] BPF_FUNC_skb_ecn_set_ce = 97,
 	
 	/// `struct bpf_sock *bpf_get_listener_sock(struct bpf_sock *sk)`.
 	///
@@ -1978,7 +1980,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// A `struct bpf_sock` pointer on success, or `NULL` in case of failure.
-	BPF_FUNC_get_listener_sock = 98,
+	#[serde(rename = "bpf_get_listener_sock")] BPF_FUNC_get_listener_sock = 98,
 	/// struct bpf_sock *bpf_skc_lookup_tcp(void *ctx, struct bpf_sock_tuple *tuple, u32 tuple_size, u64 netns, u64 flags)`.
 	///
 	///
@@ -1997,7 +1999,7 @@ pub enum bpf_func_id
 	///
 	/// Pointer to `struct bpf_sock`, or `NULL` in case of failure.
 	/// For sockets with reuseport option, the `struct bpf_sock` result is from `reuse->socks[]` using the hash of the tuple.
-	BPF_FUNC_skc_lookup_tcp = 99,
+	#[serde(rename = "bpf_skc_lookup_tcp")] BPF_FUNC_skc_lookup_tcp = 99,
 	
 	/// `int bpf_tcp_check_syncookie(struct bpf_sock *sk, void *iph, u32 iph_len, struct tcphdr *th, u32 th_len)`.
 	///
@@ -2014,7 +2016,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 if `iph` and `th` are a valid SYN cookie ACK, or a negative error otherwise.
-	BPF_FUNC_tcp_check_syncookie = 100,
+	#[serde(rename = "bpf_tcp_check_syncookie")] BPF_FUNC_tcp_check_syncookie = 100,
 	
 	/// `int bpf_sysctl_get_name(struct bpf_sysctl *ctx, char *buf, size_t buf_len, u64 flags)`.
 	///
@@ -2033,7 +2035,7 @@ pub enum bpf_func_id
 	///
 	/// Number of characters copied (not including the trailing `NULL`).
 	/// `-E2BIG` if the buffer wasn't big enough (`buf` will contain truncated name in this case).
-	BPF_FUNC_sysctl_get_name = 101,
+	#[serde(rename = "bpf_sysctl_get_name")] BPF_FUNC_sysctl_get_name = 101,
 	
 	/// `int bpf_sysctl_get_current_value(struct bpf_sysctl *ctx, char *buf, size_t buf_len)`.
 	///
@@ -2052,7 +2054,7 @@ pub enum bpf_func_id
 	/// Number of characters copied (not including the trailing`NULL`).
 	/// `-E2BIG` if the buffer wasn't big enough (`buf` will contain truncated name in this case).
 	/// `-EINVAL` if current value was unavailable, eg because sysctl is uninitialized and read returns `-EIO` for it).
-	BPF_FUNC_sysctl_get_current_value = 102,
+	#[serde(rename = "bpf_sysctl_get_current_value")] BPF_FUNC_sysctl_get_current_value = 102,
 	
 	/// `int bpf_sysctl_get_new_value(struct bpf_sysctl *ctx, char *buf, size_t buf_len)`.
 	///
@@ -2071,7 +2073,7 @@ pub enum bpf_func_id
 	/// Number of characters copied (not including the trailing `NULL`).
 	/// `-E2BIG` if the buffer wasn't big enough (`buf` will contain truncated name in this case).
 	/// `-EINVAL` if sysctl is being read.
-	BPF_FUNC_sysctl_get_new_value = 103,
+	#[serde(rename = "bpf_sysctl_get_new_value")] BPF_FUNC_sysctl_get_new_value = 103,
 	
 	/// `int bpf_sysctl_set_new_value(struct bpf_sysctl *ctx, const char *buf, size_t buf_len)`.
 	///
@@ -2091,7 +2093,7 @@ pub enum bpf_func_id
 	/// 0 on success.
 	/// `-E2BIG` if the `buf_len` is too big.
 	/// `-EINVAL` if sysctl is being read.
-	BPF_FUNC_sysctl_set_new_value = 104,
+	#[serde(rename = "bpf_sysctl_set_new_value")] BPF_FUNC_sysctl_set_new_value = 104,
 	
 	/// `int bpf_strtol(const char *buf, size_t buf_len, u64 flags, long *res)`.
 	///
@@ -2113,7 +2115,7 @@ pub enum bpf_func_id
 	/// Must be positive but no more than `buf_len`.
 	/// `-EINVAL` if no valid digits were found or unsupported base was provided.
 	/// `-ERANGE` if resulting value was out of range.
-	BPF_FUNC_strtol = 105,
+	#[serde(rename = "bpf_strtol")] BPF_FUNC_strtol = 105,
 	
 	/// `int bpf_strtoul(const char *buf, size_t buf_len, u64 flags, unsigned long *res)`.
 	///
@@ -2135,7 +2137,7 @@ pub enum bpf_func_id
 	/// Must be positive but no more than `buf_len`.
 	/// `-EINVAL` if no valid digits were found or unsupported base was provided.
 	/// `-ERANGE` if resulting value was out of range.
-	BPF_FUNC_strtoul = 106,
+	#[serde(rename = "bpf_strtoul")] BPF_FUNC_strtoul = 106,
 	
 	/// `void *bpf_sk_storage_get(struct bpf_map *map, struct bpf_sock *sk, void *value, u64 flags)`.
 	///
@@ -2160,7 +2162,7 @@ pub enum bpf_func_id
 	///
 	/// A bpf-local-storage pointer is returned on success.
 	/// `NULL` if not found or there was an error in adding a new bpf-local-storage.
-	BPF_FUNC_sk_storage_get = 107,
+	#[serde(rename = "bpf_sk_storage_get")] BPF_FUNC_sk_storage_get = 107,
 	
 	/// `int bpf_sk_storage_delete(struct bpf_map *map, struct bpf_sock *sk)`.
 	///
@@ -2174,7 +2176,7 @@ pub enum bpf_func_id
 	///
 	/// 0 on success.
 	/// `-ENOENT` if the bpf-local-storage cannot be found.
-	BPF_FUNC_sk_storage_delete = 108,
+	#[serde(rename = "bpf_sk_storage_delete")] BPF_FUNC_sk_storage_delete = 108,
 	
 	/// `int bpf_send_signal(u32 sig)`.
 	///
@@ -2192,7 +2194,7 @@ pub enum bpf_func_id
 	/// `-EINVAL` if `sig` is invalid.
 	/// `-EPERM` if no permission to send the `sig`.
 	/// `-EAGAIN` if bpf program can try again.
-	BPF_FUNC_send_signal = 109,
+	#[serde(rename = "bpf_send_signal")] BPF_FUNC_send_signal = 109,
 	
 	/// `i64 bpf_tcp_gen_syncookie(struct bpf_sock *sk, void *iph, u32 iph_len, struct tcphdr *th, u32 th_len)`.
 	///
@@ -2215,7 +2217,7 @@ pub enum bpf_func_id
 	/// * `-ENOENT` SYN cookie should not be issued (no SYN flood).
 	/// * `-EOPNOTSUPP` kernel configuration does not enable SYN cookies.
 	/// * `-EPROTONOSUPPORT` IP packet version is not 4 or 6.
-	BPF_FUNC_tcp_gen_syncookie = 110,
+	#[serde(rename = "bpf_tcp_gen_syncookie")] BPF_FUNC_tcp_gen_syncookie = 110,
 	
 	/// `int bpf_skb_output(void *ctx, struct bpf_map *map, u64 flags, void *data, u64 size)`.
 	///
@@ -2239,7 +2241,7 @@ pub enum bpf_func_id
 	///
 	/// 0 on success, or a negative error in case of failure.
 	///
-	BPF_FUNC_skb_output = 111,
+	#[serde(rename = "bpf_skb_output")] BPF_FUNC_skb_output = 111,
 	/// `int bpf_probe_read_user(void *dst, u32 size, const void *unsafe_ptr)`.
 	///
 	///
@@ -2251,7 +2253,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_probe_read_user = 112,
+	#[serde(rename = "bpf_probe_read_user")] BPF_FUNC_probe_read_user = 112,
 	
 	/// `int bpf_probe_read_kernel(void *dst, u32 size, const void *unsafe_ptr)`.
 	///
@@ -2264,7 +2266,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_probe_read_kernel = 113,
+	#[serde(rename = "bpf_probe_read_kernel")] BPF_FUNC_probe_read_kernel = 113,
 	
 	/// `int bpf_probe_read_user_str(void *dst, u32 size, const void *unsafe_ptr)`.
 	///
@@ -2303,7 +2305,7 @@ pub enum bpf_func_id
 	///
 	/// On success, the strictly positive length of the string, including the trailing `NULL` character.
 	/// On error, a negative value.
-	BPF_FUNC_probe_read_user_str = 114,
+	#[serde(rename = "bpf_probe_read_user_str")] BPF_FUNC_probe_read_user_str = 114,
 	
 	/// `int bpf_probe_read_kernel_str(void *dst, u32 size, const void *unsafe_ptr)`.
 	///
@@ -2318,7 +2320,7 @@ pub enum bpf_func_id
 	///
 	/// On success, the strictly positive length of the string,	including the trailing `NULL` character.
 	/// On error, a negative value.
-	BPF_FUNC_probe_read_kernel_str = 115,
+	#[serde(rename = "bpf_probe_read_kernel_str")] BPF_FUNC_probe_read_kernel_str = 115,
 	
 	/// `int bpf_tcp_send_ack(void *tp, u32 rcv_nxt)`.
 	///
@@ -2332,7 +2334,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_tcp_send_ack = 116,
+	#[serde(rename = "bpf_tcp_send_ack")] BPF_FUNC_tcp_send_ack = 116,
 	
 	/// `int bpf_send_signal_thread(u32 sig)`.
 	///
@@ -2349,7 +2351,7 @@ pub enum bpf_func_id
 	/// `-EINVAL` if `sig` is invalid.
 	/// `-EPERM` if no permission to send the `sig`.
 	/// `-EAGAIN` if bpf program can try again.
-	BPF_FUNC_send_signal_thread = 117,
+	#[serde(rename = "bpf_send_signal_thread")] BPF_FUNC_send_signal_thread = 117,
 	
 	/// `u64 bpf_jiffies64(void)`.
 	///
@@ -2362,7 +2364,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// The 64 bit jiffies.
-	BPF_FUNC_jiffies64 = 118,
+	#[serde(rename = "bpf_jiffies64")] BPF_FUNC_jiffies64 = 118,
 	
 	/// `int bpf_read_branch_records(struct bpf_perf_event_data *ctx, void *buf, u32 size, u64 flags)`.
 	///
@@ -2382,7 +2384,7 @@ pub enum bpf_func_id
 	///
 	/// `-EINVAL` if arguments invalid or `size` not a multiple of `size_of::<struct perf_branch_entry>()`.
 	/// `-ENOENT` if architecture does not support branch records.
-	BPF_FUNC_read_branch_records = 119,
+	#[serde(rename = "bpf_read_branch_records")] BPF_FUNC_read_branch_records = 119,
 	
 	/// `int bpf_get_ns_current_pid_tgid(u64 dev, u64 ino, struct bpf_pidns_info *nsdata, u32 size)`.
 	///
@@ -2394,7 +2396,7 @@ pub enum bpf_func_id
 	/// On failure, the returned value is one of the following:-
 	/// * `-EINVAL` if dev and inum supplied don't match `dev_t` and `inode` number with `nsfs` of current task, or if `dev` conversion to `dev_t` lost high bits.
 	/// * `-ENOENT` if `pidns` does not exists for the current task.
-	BPF_FUNC_get_ns_current_pid_tgid = 120,
+	#[serde(rename = "bpf_get_ns_current_pid_tgid")] BPF_FUNC_get_ns_current_pid_tgid = 120,
 	
 	/// `int bpf_xdp_output(void *ctx, struct bpf_map *map, u64 flags, void *data, u64 size)`.
 	///
@@ -2417,7 +2419,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	BPF_FUNC_xdp_output = 121,
+	#[serde(rename = "bpf_xdp_output")] BPF_FUNC_xdp_output = 121,
 	
 	/// `u64 bpf_get_netns_cookie(void *ctx)`.
 	///
@@ -2433,7 +2435,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// A 8-byte long opaque number.
-	BPF_FUNC_get_netns_cookie = 122,
+	#[serde(rename = "bpf_get_netns_cookie")] BPF_FUNC_get_netns_cookie = 122,
 	
 	/// `u64 bpf_get_current_ancestor_cgroup_id(int ancestor_level)`.
 	///
@@ -2452,7 +2454,7 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// The id is returned or 0 in case the id could not be retrieved.
-	BPF_FUNC_get_current_ancestor_cgroup_id = 123,
+	#[serde(rename = "bpf_get_current_ancestor_cgroup_id")] BPF_FUNC_get_current_ancestor_cgroup_id = 123,
 	
 	/// `int bpf_sk_assign(struct sk_buff *skb, struct bpf_sock *sk, u64 flags)`.
 	///
@@ -2463,7 +2465,7 @@ pub enum bpf_func_id
 	/// When combined with appropriate routing configuration to receive the packet towards the socket, will cause `skb` to be delivered to the specified socket.
 	/// Subsequent redirection of `skb` via  `bpf_redirect()`, `bpf_clone_redirect()` or other methods outside of BPF may interfere with successful delivery to the socket.
 	///
-	/// This operation is only valid from TC ingress path.
+	/// This operation is only valid from the TC ingress path.
 	///
 	/// The `flags` argument must be zero.
 	///
@@ -2477,5 +2479,5 @@ pub enum bpf_func_id
 	/// * `-ENETUNREACH`: Socket is unreachable (wrong netns).
 	/// * `-EOPNOTSUPP`: Unsupported operation, for example a call from outside of TC ingress.
 	/// * `-ESOCKTNOSUPPORT`: Socket type not supported (reuseport).
-	BPF_FUNC_sk_assign = 124,
+	#[serde(rename = "bpf_sk_assign")] BPF_FUNC_sk_assign = 124,
 }

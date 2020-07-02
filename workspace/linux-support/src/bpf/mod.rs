@@ -10,18 +10,18 @@ use crate::linux_kernel_version::LinuxKernelVersionNumber;
 use crate::process::CommandName;
 
 
-pub(crate) mod c;
+/// C.
+pub mod c;
 
 
-include!("AluOperation.rs");
-include!("BpfProgram.rs");
-include!("BpfProgramLicense.rs");
-include!("EndiannessOperation.rs");
-include!("MinimumLinuxKernelVersion.rs");
-include!("ExtendedLoadSize.rs");
-include!("ExtendedRegister.rs");
-include!("JumpOperation.rs");
-include!("ScratchMemoryIndex.rs");
+
+
+/// Classic BPF (cBPF).
+pub mod classic;
+
+
+/// Enhanced BPF (eBPF).
+pub mod extended;
 
 /*
 

@@ -4,11 +4,11 @@
 
 /// A seccomp BPF program.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct SeccompProgram(BpfProgram);
+pub struct SeccompProgram(ClassicBpfProgram);
 
 impl Deref for SeccompProgram
 {
-	type Target = BpfProgram;
+	type Target = ClassicBpfProgram;
 
 	#[inline(always)]
 	fn deref(&self) -> &Self::Target

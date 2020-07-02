@@ -4,13 +4,13 @@
 
 /// This is a bitfield.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-struct DestinationAndSourceExtendedRegisters(u8);
+struct DestinationAndSourceRegisters(u8);
 
-impl DestinationAndSourceExtendedRegisters
+impl DestinationAndSourceRegisters
 {
 	#[cfg(target_endian = "little")]
 	#[inline(always)]
-	const fn new(destination_register: ExtendedRegister, source_register: ExtendedRegister) -> Self
+	const fn new(destination_register: Register, source_register: Register) -> Self
 	{
 		let dst_reg = destination_register as u8;
 		let src_reg = source_register as u8;
@@ -19,7 +19,7 @@ impl DestinationAndSourceExtendedRegisters
 	
 	#[cfg(target_endian = "big")]
 	#[inline(always)]
-	const fn new(destination_register: ExtendedRegister, source_register: ExtendedRegister) -> Self
+	const fn new(destination_register: Register, source_register: Register) -> Self
 	{
 		let dst_reg = destination_register as u8;
 		let src_reg = source_register as u8;

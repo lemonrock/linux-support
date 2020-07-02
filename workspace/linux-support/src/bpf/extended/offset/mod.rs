@@ -3,27 +3,20 @@
 
 
 use super::*;
-use self::c::*;
-use crate::bpf::classic::ClassicBpfProgram;
-use crate::bpf::c::*;
-use crate::signals::AuditArchitecture;
-use crate::syscall::SYS;
-use crate::thread::ThreadIdentifier;
-use crate::file_descriptors::seccomp_user_notification::SeccompUserNotificationFileDescriptor;
 
 
-/// C definitions.
-pub mod c;
+/// Immediate.
+pub mod immediate;
 
 
-/// libseccomp backed filtering.
-#[cfg(feature = "libseccomp")]
-pub mod libseccomp;
+/// Memory.
+pub mod memory;
 
 
-include!("disabled_seccomp.rs");
-include!("PermittedSyscalls.rs");
-include!("SeccompProgram.rs");
-include!("strict_seccomp.rs");
-include!("SyscallOutcome.rs");
-include!("UserNotificationFlags.rs");
+/// Program counter.
+pub mod program_counter;
+
+
+include!("Offset.rs");
+include!("OffsetsMap.rs");
+include!("OffsetValue.rs");

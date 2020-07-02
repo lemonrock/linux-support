@@ -5,11 +5,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// An eBPF program.
+/// A cBPF program.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct BpfProgram(Vec<sock_filter>);
+pub struct ClassicBpfProgram(Vec<sock_filter>);
 
-impl Deref for BpfProgram
+impl Deref for ClassicBpfProgram
 {
 	type Target = Vec<sock_filter>;
 
@@ -20,7 +20,7 @@ impl Deref for BpfProgram
 	}
 }
 
-impl DerefMut for BpfProgram
+impl DerefMut for ClassicBpfProgram
 {
 	#[inline(always)]
 	fn deref_mut(&mut self) -> &mut Self::Target
@@ -30,7 +30,7 @@ impl DerefMut for BpfProgram
 }
 
 #[allow(missing_docs)]
-impl BpfProgram
+impl ClassicBpfProgram
 {
 	/// Useful if one needs to make a jump longer than 256 instructions; simply jump to this instruction, then jump the arbitrary value needed.
 	#[inline(always)]

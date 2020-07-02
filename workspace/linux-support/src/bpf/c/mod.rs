@@ -3,7 +3,8 @@
 
 
 use super::*;
-use super::ExtendedLoadSize::*;
+use super::extended::*;
+use super::extended::LoadSize::*;
 
 
 include!("__IncompleteArrayField.rs");
@@ -54,7 +55,7 @@ include!("BpfCommandProgramQuery.rs");
 include!("BpfCommandProgramTestRun.rs");
 include!("BpfCommandRawTracePointOpen.rs");
 include!("BpfCommandTaskFileDescriptorQuery.rs");
-include!("DestinationAndSourceExtendedRegisters.rs");
+include!("DestinationAndSourceRegisters.rs");
 include!("ExtendedBPF_.rs");
 include!("OffsetOrInternetProtocol.rs");
 //include!("SKF_AD_.rs");
