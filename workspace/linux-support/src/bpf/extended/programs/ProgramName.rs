@@ -2,26 +2,55 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A program counter (pc) offset.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+/// Program name.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
-pub struct ProgramCounterOffset<'de, PCOV: ProgramCounterOffsetValue>(pub Offset<'de, PCOV>);
+pub struct ProgramName(pub CommandName);
 
-impl<'de, PCOV: ProgramCounterOffsetValue> AsRef<Offset<'de, PCOV>> for ProgramCounterOffset<'de, PCOV>
+impl Deref for ProgramName
 {
+	type Target = CommandName;
+
 	#[inline(always)]
-	fn as_ref(&self) -> &Offset<'de, PCOV>
+	fn deref(&self) -> &Self::Target
 	{
 		&self.0
 	}
 }
 
-impl<'de, PCOV: ProgramCounterOffsetValue, V: Into<Offset<'de, PCOV>>> From<V> for Immediate<'de, PCOV>
+impl AsRef<CStr> for ProgramName
 {
 	#[inline(always)]
-	fn from(value: V) -> Self
+	fn as_ref(&self) -> &CStr
 	{
-		Self(value.into())
+		self.0.as_ref()
+	}
+}
+
+impl AsRef<[u8]> for ProgramName
+{
+	#[inline(always)]
+	fn as_ref(&self) -> &[u8]
+	{
+		self.0.deref()
+	}
+}
+
+impl ToString for ProgramName
+{
+	#[inline(always)]
+	fn to_string(&self) -> String
+	{
+		self.0.to_string()
+	}
+}
+
+impl Default for ProgramName
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self(CommandName::new_from_bytes_excluding_ascii_nul(b"").unwrap())
 	}
 }

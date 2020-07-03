@@ -3,10 +3,32 @@
 
 
 /// Name.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Name<'de>(pub Cow<'de, str>);
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct Name<'name>(pub Cow<'name, str>);
 
-impl<'de> From<String> for Name<'de>
+impl<'name> Deref for Name<'name>
+{
+	type Target = str;
+	
+	#[inline(always)]
+	fn deref(&self) -> &Self::Target
+	{
+		&self.0
+	}
+}
+
+impl<'name> From<Cow<'name, str>> for Name<'name>
+{
+	#[inline(always)]
+	fn from(value: Cow<'name, str>) -> Self
+	{
+		Self(value)
+	}
+}
+
+impl<'name> From<String> for Name<'name>
 {
 	#[inline(always)]
 	fn from(value: String) -> Self
@@ -15,10 +37,10 @@ impl<'de> From<String> for Name<'de>
 	}
 }
 
-impl<'de> From<&'de str> for Name<'de>
+impl<'name> From<&'name str> for Name<'name>
 {
 	#[inline(always)]
-	fn from(value: &'de str) -> Self
+	fn from(value: &'name str) -> Self
 	{
 		Self(Cow::from(value))
 	}

@@ -11,10 +11,7 @@ impl Drop for MapFileDescriptor
 	#[inline(always)]
 	fn drop(&mut self)
 	{
-		if self.0 != Self::StandardInFileDescriptor
-		{
-			self.0.close()
-		}
+		self.0.close()
 	}
 }
 

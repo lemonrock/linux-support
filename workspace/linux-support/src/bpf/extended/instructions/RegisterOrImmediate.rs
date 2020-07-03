@@ -2,19 +2,34 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Resolves the value of items of type `MapFileDescriptor`.
-#[derive(Default, Debug, Clone, PartialEq, Eq)]
-pub struct MapFileDescriptorLabelsMap<'a>(HashMap<String, &'a MapFileDescriptor>);
+/// A register or immediate.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+#[repr(u8)]
+pub enum RegisterOrImmediate<'name>
+{
+	/// Register.
+	Register(Register),
 
-impl<'a> MapFileDescriptorLabelsMap<'a>
+	/// Immediate.
+	Immediate(#[serde(borrow)] Immediate<'name, i32>)
+}
+
+impl<'name> From<Register> for RegisterOrImmediate<'name>
 {
 	#[inline(always)]
-	pub(crate) fn resolve<'de>(&self, map_file_descriptor_label: &MapFileDescriptorLabel) -> Result<RawFd, InstructionError>
+	fn from(value: Register) -> Self
 	{
-		match self.0.get(map_file_descriptor_label)
-		{
-			None => Err(InstructionError::CouldNotResolveMapFileDescriptorLabel),
-			Ok(map_file_descriptor) => Ok(map_file_descriptor.as_raw_fd())
-		}
+		RegisterOrImmediate::Register(value)
+	}
+}
+
+impl<'name, V: Into<Immediate<'name, i32>>> From<V> for RegisterOrImmediate<'name>
+{
+	#[inline(always)]
+	fn from(value: V) -> Self
+	{
+		RegisterOrImmediate::Immediate(value.into())
 	}
 }

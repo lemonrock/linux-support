@@ -2,26 +2,26 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Resolves the value of items of type `Immediate::Named`.
-#[derive(Default, Debug, Clone, PartialEq, Eq)]
-pub struct OffsetsMap<OV: OffsetValue>
-{
-	values: HashMap<String, OV>,
-}
+/// A program counter (pc) offset.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct ProgramCounterOffset<'name, PCOV: ProgramCounterOffsetValue>(#[serde(borrow)] pub Offset<'name, PCOV>);
 
-impl<OV: OffsetValue> OffsetsMap<OV>
+impl<'name, PCOV: ProgramCounterOffsetValue> AsRef<Offset<'name, PCOV>> for ProgramCounterOffset<'name, PCOV>
 {
 	#[inline(always)]
-	pub(crate) fn resolve<'de>(&self, offset: &impl AsRef<Offset<'de, OV>>) -> Result<OV, InstructionError>
+	fn as_ref(&self) -> &Offset<'name, PCOV>
 	{
-		use self::Offset::*;
-		
-		let offset = offset.as_ref();
-		
-		match offset
-		{
-			&Known(value) => Ok(*value),
-			&Named(Name(ref name)) => self.0.get(value).ok_or(InstructionError::CouldNotResolveOffset),
-		}
+		&self.0
+	}
+}
+
+impl<'name, PCOV: ProgramCounterOffsetValue, V: Into<Offset<'name, PCOV>>> From<V> for ProgramCounterOffset<'name, PCOV>
+{
+	#[inline(always)]
+	fn from(value: V) -> Self
+	{
+		Self(value.into())
 	}
 }

@@ -3,13 +3,16 @@
 
 
 /// An offset value.
-pub trait OffsetValue: Sized
+pub trait OffsetValue: Sized + Copy
 {
 	#[doc(hidden)]
 	fn from_i128(value: i128) -> Result<Self, ()>;
 	
 	#[doc(hidden)]
 	fn from_u128(value: u128) -> Result<Self, ()>;
+	
+	#[doc(hidden)]
+	fn serialize<S: Serializer>(self, serializer: S) -> Result<S::Ok, S::Error>;
 }
 
 impl OffsetValue for i16
@@ -38,6 +41,12 @@ impl OffsetValue for i16
 		{
 			Err(())
 		}
+	}
+	
+	#[inline(always)]
+	fn serialize<S: Serializer>(self, serializer: S) -> Result<S::Ok, S::Error>
+	{
+		serializer.serialize_i16(self)
 	}
 }
 
@@ -68,6 +77,12 @@ impl OffsetValue for i32
 			Err(())
 		}
 	}
+	
+	#[inline(always)]
+	fn serialize<S: Serializer>(self, serializer: S) -> Result<S::Ok, S::Error>
+	{
+		serializer.serialize_i32(self)
+	}
 }
 
 impl OffsetValue for u64
@@ -96,5 +111,11 @@ impl OffsetValue for u64
 		{
 			Err(())
 		}
+	}
+	
+	#[inline(always)]
+	fn serialize<S: Serializer>(self, serializer: S) -> Result<S::Ok, S::Error>
+	{
+		serializer.serialize_u64(self)
 	}
 }

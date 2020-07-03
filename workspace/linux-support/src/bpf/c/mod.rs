@@ -3,8 +3,9 @@
 
 
 use super::*;
-use super::extended::*;
-use super::extended::LoadSize::*;
+use super::extended::instructions::*;
+use super::extended::instructions::LoadSize::*;
+use crate::syscall::SYS;
 
 
 include!("__IncompleteArrayField.rs");
@@ -34,8 +35,6 @@ include!("BPF_PROG_ATTACH_flags.rs");
 include!("BPF_PROG_LOAD_flags.rs");
 include!("BPF_PROG_QUERY_flags.rs");
 include!("bpf_prog_type.rs");
-include!("BPF_PSEUDO_CALL.rs");
-include!("BPF_PSEUDO_MAP_.rs");
 include!("bpf_stack_build_id.rs");
 include!("bpf_stack_build_id_status.rs");
 include!("BpfCommandBtfLoad.rs");

@@ -2,34 +2,26 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A register or immediate.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+/// An immediate.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-#[repr(u8)]
-pub enum RegisterOrImmediate<'de>
-{
-	/// Register.
-	Register(Register),
+#[repr(transparent)]
+pub struct Immediate<'name, IV: ImmediateValue>(#[serde(borrow)] pub Offset<'name, IV>);
 
-	/// Immediate.
-	Immediate(Immediate<'de, i32>)
-}
-
-impl<'de> From<Register> for RegisterOrImmediate<'de>
+impl<'name, IV: ImmediateValue> AsRef<Offset<'name, IV>> for Immediate<'name, IV>
 {
 	#[inline(always)]
-	fn from(value: Register) -> Self
+	fn as_ref(&self) -> &Offset<'name, IV>
 	{
-		RegisterOrImmediate::Register(value)
+		&self.0
 	}
 }
 
-impl<'de, V: Into<Immediate<'de>>> From<V> for RegisterOrImmediate<'de>
+impl<'name, IV: ImmediateValue, V: Into<Offset<'name, IV>>> From<V> for Immediate<'name, IV>
 {
 	#[inline(always)]
 	fn from(value: V) -> Self
 	{
-		RegisterOrImmediate::Immediate(value.into())
+		Self(value.into())
 	}
 }

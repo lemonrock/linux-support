@@ -3,16 +3,34 @@
 
 
 /// Instructions.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Instructions<'de>
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Instructions<'name>
 {
 	instructions: Vec<bpf_insn>,
-	labels_to_program_counters: HashMap<Name<'de>, ProgramCounter>,
-	jump_instructions_labelled_offset_to_resolve: HashMap<Name<'de>, Vec<ProgramCounter>>,
+	labels_to_program_counters: HashMap<Name<'name>, ProgramCounter>,
+	jump_instructions_labelled_offset_to_resolve: HashMap<Name<'name>, Vec<ProgramCounter>>,
 }
 
-impl<'de> Instructions<'de>
+impl<'name> Instructions<'name>
 {
+	/// Process instructions.
+	pub fn process(instruction_stream: &mut impl Iterator<Item=&'name Instruction<'name>>, i32_immediates_map: &OffsetsMap<i32>, u64_immediates_map: &OffsetsMap<u64>, memory_offsets_map: &OffsetsMap<i16>, map_file_descriptor_labels_map: &MapFileDescriptorLabelsMap) -> Result<Box<[bpf_insn]>, InstructionError>
+	{
+		let mut instructions = Self
+		{
+			instructions: Vec::default(),
+			labels_to_program_counters: HashMap::default(),
+			jump_instructions_labelled_offset_to_resolve: HashMap::default(),
+		};
+		
+		for instruction in instruction_stream
+		{
+			instruction.add_to_instructions(&mut instructions, i32_immediates_map, u64_immediates_map, memory_offsets_map, map_file_descriptor_labels_map)?;
+		}
+		
+		instructions.validate_all_labels_resolved()
+	}
+	
 	#[inline(always)]
 	fn validate_all_labels_resolved(self) -> Result<Box<[bpf_insn]>, InstructionError>
 	{
@@ -28,7 +46,7 @@ impl<'de> Instructions<'de>
 	
 	/// Registering a label more than once is permitted; the latest registration 'wins'.
 	#[inline(always)]
-	fn register_label(&mut self, label: &Name<'de>) -> Result<(), InstructionError>
+	fn register_label(&mut self, label: &Name<'name>) -> Result<(), InstructionError>
 	{
 		let label_program_counter = self.current_program_counter();
 		let first_registration_of_label = self.labels_to_program_counters.insert(label.clone(), label_program_counter).is_none();
@@ -59,7 +77,7 @@ impl<'de> Instructions<'de>
 	}
 	
 	#[inline(always)]
-	fn resolve_label<PCOV: ProgramCounterOffsetValue>(&mut self, program_counter_offset: &ProgramCounterOffset<'de, PCOV>) -> Result<PCOV, InstructionError>
+	fn resolve_label<PCOV: ProgramCounterOffsetValue>(&mut self, program_counter_offset: &ProgramCounterOffset<'name, PCOV>) -> Result<PCOV, InstructionError>
 	{
 		use self::Offset::*;
 		match program_counter_offset.as_ref()

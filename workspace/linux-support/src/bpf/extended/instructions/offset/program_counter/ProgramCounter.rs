@@ -11,13 +11,13 @@ impl ProgramCounter
 	#[inline(always)]
 	pub(crate) fn i16_offset_to_label(self, from_program_counter: Self) -> Result<i16, InstructionError>
 	{
-		self.offset_to_label(from_program_counter, InstructionError::JumpOffsetIsTooLargeForI16, i16::MAX as u64, (-(i16::MIN as i64::MIN)) as u64).map(|i32_offset| i32_offset as i16)
+		self.offset_to_label(from_program_counter, InstructionError::JumpOffsetIsTooLargeForI16, i16::MAX as u64, (-(i16::MIN as i64)) as u64).map(|i32_offset| i32_offset as i16)
 	}
 	
 	#[inline(always)]
 	pub(crate) fn i32_offset_to_label(self, from_program_counter: Self) -> Result<i32, InstructionError>
 	{
-		self.offset_to_label(from_program_counter, InstructionError::JumpOffsetIsTooLargeForI32, i32::MAX as u64, (-(i32::MIN as i64::MIN)) as u64)
+		self.offset_to_label(from_program_counter, InstructionError::JumpOffsetIsTooLargeForI32, i32::MAX as u64, (-(i32::MIN as i64)) as u64)
 	}
 	
 	/// Unconditional jumps simply move the program counter forward, so that the next instruction to be executed relative to the current instruction is `off + 1`, where `off` is the constant offset encoded in the instruction.
@@ -30,7 +30,7 @@ impl ProgramCounter
 		let from_program_counter = from_program_counter.0 as u64;
 		if label > from_program_counter
 		{
-			let difference = (label - from_program_counter - 1);
+			let difference = label - from_program_counter - 1;
 			if unlikely!(difference > maximum)
 			{
 				Err(error_if_too_large)
@@ -40,7 +40,7 @@ impl ProgramCounter
 				Ok(difference as i32)
 			}
 		}
-		else if label < program_counter
+		else if label < from_program_counter
 		{
 			let difference = (from_program_counter - label).checked_add(1).ok_or(error_if_too_large)?;
 			if unlikely!(difference > minimum)

@@ -3,7 +3,6 @@
 
 
 use super::*;
-use super::c::*;
 
 
 include!("ClassicBpfProgram.rs");

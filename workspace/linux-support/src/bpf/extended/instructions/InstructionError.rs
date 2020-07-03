@@ -2,28 +2,33 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A map file descriptor label.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Deserialize, Serialize)]
-#[repr(transparent)]
-pub struct MapFileDescriptorLabel<'de>(pub Name<'de>);
-
-impl Deref for MapFileDescriptorLabel
+/// An error when processing an instruction.
+#[allow(missing_docs)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum InstructionError
 {
-	type Target = str;
+	CouldNotResolveOffset,
 	
+	CouldNotResolveMapFileDescriptorLabel,
+	
+	JumpOffsetOfNegativeOneCreatesAnInfiniteJumpLoop,
+	
+	JumpOffsetIsTooLargeForI32,
+	
+	JumpOffsetIsTooLargeForI16,
+	
+	SomeJumpLabelsAreUnresolved,
+}
+
+impl Display for InstructionError
+{
 	#[inline(always)]
-	fn deref(&self) -> &Self::Target
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
 	{
-		self.0.deref()
+		Debug::fmt(self, f)
 	}
 }
 
-impl<'de, V: Into<Name<'de>>> From<V> for MapFileDescriptorLabel<'de>
+impl error::Error for InstructionError
 {
-	#[inline(always)]
-	fn from(value: V) -> Self
-	{
-		Self(value.into())
-	}
 }

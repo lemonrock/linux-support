@@ -2,10 +2,28 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use crate::file_descriptors::FileDescriptor;
+/// Resolves the value of items of type `Immediate::Named`.
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
+pub struct OffsetsMap<OV: OffsetValue>
+{
+	values: HashMap<String, OV>,
+}
 
-
-include!("MapFileDescriptor.rs");
-include!("MapFileDescriptorLabel.rs");
-include!("MapFileDescriptorLabelsMap.rs");
+impl<OV: OffsetValue> OffsetsMap<OV>
+{
+	#[inline(always)]
+	pub(crate) fn resolve<'de>(&self, offset: &impl AsRef<Offset<'de, OV>>) -> Result<OV, InstructionError>
+	{
+		use self::Offset::*;
+		
+		match offset.as_ref()
+		{
+			&Known(value) => Ok(value),
+			&Named(Name(ref name)) => match self.values.get(name.deref())
+			{
+				Some(value) => Ok(*value),
+				None => Err(InstructionError::CouldNotResolveOffset),
+			}
+		}
+	}
+}

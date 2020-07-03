@@ -59,6 +59,7 @@ pub(crate) const BPF_H: u16 = 0x08;
 pub(crate) const BPF_B: u16 = 0x10;
 
 /// ld/ldx field (addressing mode).
+#[allow(dead_code)]
 #[inline(always)]
 pub(crate)const fn BPF_MODE(code: u16) -> u16
 {

@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// BPF instruction.
 #[repr(C)]
 #[derive(Default, Debug, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub struct bpf_insn
@@ -52,7 +53,7 @@ impl bpf_insn
 			destination_register,
 			Register::r0,
 			0,
-			0,
+			immediate,
 		)
 	}
 	
@@ -66,7 +67,7 @@ impl bpf_insn
 			destination_register,
 			Register::r0,
 			0,
-			0,
+			immediate,
 		)
 	}
 	
@@ -462,7 +463,7 @@ impl bpf_insn
 	{
 		Self::new
 		(
-			(BPF_JMP as u8) | (BMP_JA as u8),
+			(BPF_JMP as u8) | (BPF_JA as u8),
 			Register::r0,
 			Register::r0,
 			program_counter_offset,
@@ -482,7 +483,7 @@ impl bpf_insn
 			Register::r0,
 			Register::r0,
 			0,
-			(bpf_func_id as i32) - (func_id::BPF_FUNC_unspec as i32),
+			(function_identifier as i32) - (bpf_func_id::BPF_FUNC_unspec as i32),
 		)
 	}
 	

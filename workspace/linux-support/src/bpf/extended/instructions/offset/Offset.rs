@@ -3,17 +3,17 @@
 
 
 /// An offset.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum Offset<'de, OV: OffsetValue>
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Offset<'name, OV: OffsetValue>
 {
 	/// Known value.
 	Known(OV),
 	
 	/// Name to to be resolved at load time.
-	Named(Name<'de>),
+	Named(Name<'name>),
 }
 
-impl<'de, OV: OffsetValue> From<OV> for Offset<'de, OV>
+impl<'name, OV: OffsetValue> From<OV> for Offset<'name, OV>
 {
 	#[inline(always)]
 	fn from(value: OV) -> Self
@@ -22,25 +22,43 @@ impl<'de, OV: OffsetValue> From<OV> for Offset<'de, OV>
 	}
 }
 
-impl<'de, OV: OffsetValue, V: Into<Name<'de>>> From<V> for Offset<'de, OV>
+impl<'name, OV: OffsetValue> From<Name<'name>> for Offset<'name, OV>
 {
 	#[inline(always)]
-	fn from(value: V) -> Self
+	fn from(value: Name<'name>) -> Self
 	{
-		Offset::Named(value.into())
+		Offset::Named(value)
 	}
 }
 
-impl<'de, OV: OffsetValue> Deserialize<'de> for Offset<'de, OV>
+impl<'name, OV: OffsetValue> From<String> for Offset<'name, OV>
+{
+	#[inline(always)]
+	fn from(value: String) -> Self
+	{
+		Self::from(Name::from(value))
+	}
+}
+
+impl<'name, OV: OffsetValue> From<&'name str> for Offset<'name, OV>
+{
+	#[inline(always)]
+	fn from(value: &'name str) -> Self
+	{
+		Self::from(Name::from(value))
+	}
+}
+
+impl<'de: 'name, 'name, OV: OffsetValue> Deserialize<'de> for Offset<'name, OV>
 {
 	#[inline(always)]
 	fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error>
 	{
-		struct OffsetVisitor;
+		struct OffsetVisitor<OV: OffsetValue>(PhantomData<OV>);
 
-		impl<'de, OV: OffsetValue> Visitor<'de> for OffsetVisitor<OV>
+		impl<'name, OV: OffsetValue> Visitor<'name> for OffsetVisitor<OV>
 		{
-			type Value = Offset<'de, OV>;
+			type Value = Offset<'name, OV>;
 			
 			#[inline(always)]
 			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result
@@ -51,25 +69,25 @@ impl<'de, OV: OffsetValue> Deserialize<'de> for Offset<'de, OV>
 			#[inline(always)]
 			fn visit_i8<E: de::Error>(self, value: i8) -> Result<Self::Value, E>
 			{
-				Self::visit_i128(i128::from(value))
+				self.visit_i128(i128::from(value))
 			}
 			
 			#[inline(always)]
 			fn visit_i16<E: de::Error>(self, value: i16) -> Result<Self::Value, E>
 			{
-				Self::visit_i128(i128::from(value))
+				self.visit_i128(i128::from(value))
 			}
 			
 			#[inline(always)]
 			fn visit_i32<E: de::Error>(self, value: i32) -> Result<Self::Value, E>
 			{
-				Self::visit_i128(i128::from(value))
+				self.visit_i128(i128::from(value))
 			}
 			
 			#[inline(always)]
 			fn visit_i64<E: de::Error>(self, value: i64) -> Result<Self::Value, E>
 			{
-				Self::visit_i128(i128::from(value))
+				self.visit_i128(i128::from(value))
 			}
 			
 			#[inline(always)]
@@ -86,25 +104,25 @@ impl<'de, OV: OffsetValue> Deserialize<'de> for Offset<'de, OV>
 			#[inline(always)]
 			fn visit_u8<E: de::Error>(self, value: u8) -> Result<Self::Value, E>
 			{
-				Self::visit_u128(u128::from(value))
+				self.visit_u128(u128::from(value))
 			}
 			
 			#[inline(always)]
 			fn visit_u16<E: de::Error>(self, value: u16) -> Result<Self::Value, E>
 			{
-				Self::visit_u128(u128::from(value))
+				self.visit_u128(u128::from(value))
 			}
 			
 			#[inline(always)]
 			fn visit_u32<E: de::Error>(self, value: u32) -> Result<Self::Value, E>
 			{
-				Self::visit_u128(u128::from(value))
+				self.visit_u128(u128::from(value))
 			}
 			
 			#[inline(always)]
 			fn visit_u64<E: de::Error>(self, value: u64) -> Result<Self::Value, E>
 			{
-				Self::visit_u128(u128::from(value))
+				self.visit_u128(u128::from(value))
 			}
 			
 			#[inline(always)]
@@ -125,7 +143,7 @@ impl<'de, OV: OffsetValue> Deserialize<'de> for Offset<'de, OV>
 			}
 			
 			#[inline(always)]
-			fn visit_borrowed_str<E: Error>(self, v: &'de str) -> Result<Self::Value, E>
+			fn visit_borrowed_str<E: Error>(self, v: &'name str) -> Result<Self::Value, E>
 			{
 				Ok(Offset::from(v))
 			}
@@ -137,19 +155,20 @@ impl<'de, OV: OffsetValue> Deserialize<'de> for Offset<'de, OV>
 			}
 		}
 		
-		deserializer.deserialize_any(OffsetVisitor::<OV>)
+		deserializer.deserialize_any(OffsetVisitor(PhantomData))
 	}
 }
 
-impl Serialize for Offset
+impl<'name, OV: OffsetValue> Serialize for Offset<'name, OV>
 {
 	#[inline(always)]
 	fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	{
 		use self::Offset::*;
+		
 		match self
 		{
-			&Known(value) => serializer.serialize_i16(value),
+			&Known(value) => value.serialize(serializer),
 			&Named(Name(ref name)) => serializer.serialize_str(name),
 		}
 	}

@@ -2,12 +2,26 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+/// A memory offset.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct MemoryOffset<'name>(#[serde(borrow)] pub Offset<'name, i16>);
 
+impl<'name> AsRef<Offset<'name, i16>> for MemoryOffset<'name>
+{
+	#[inline(always)]
+	fn as_ref(&self) -> &Offset<'name, i16>
+	{
+		&self.0
+	}
+}
 
-/// Instructions.
-pub mod instructions;
-
-
-/// Programs.
-pub mod programs;
+impl<'name, V: Into<Offset<'name, i16>>> From<V> for MemoryOffset<'name>
+{
+	#[inline(always)]
+	fn from(value: V) -> Self
+	{
+		Self(value.into())
+	}
+}

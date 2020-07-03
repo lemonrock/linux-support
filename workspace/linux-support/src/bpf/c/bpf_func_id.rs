@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// BPF function identifier.
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
@@ -449,7 +450,6 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// The value of the perf event counter read from the `map`, or a negative error code in case of failure.
-	#[deprecated]
 	#[serde(rename = "bpf_perf_event_read")] BPF_FUNC_perf_event_read = 22,
 	
 	/// `int bpf_redirect(u32 ifindex, u64 flags)`.
@@ -542,7 +542,6 @@ pub enum bpf_func_id
 	/// # Returns
 	///
 	/// 0 on success, or a negative error in case of failure.
-	#[deprecated]
 	#[serde(rename = "bpf_skb_load_bytes")] BPF_FUNC_skb_load_bytes = 26,
 	
 	/// `int bpf_get_stackid(void *ctx, struct bpf_map *map, u64 flags)`.
@@ -902,7 +901,6 @@ pub enum bpf_func_id
 	///
 	/// On success, the strictly positive length of the string, including the trailing `NULL` character.
 	/// On error, a negative value.
-	#[deprecated]
 	#[serde(rename = "bpf_probe_read_str")] BPF_FUNC_probe_read_str = 45,
 	
 	/// # `u64 bpf_get_socket_cookie(struct sk_buff *skb)`.
