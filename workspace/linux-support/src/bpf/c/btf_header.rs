@@ -58,7 +58,7 @@ impl btf_header
 	pub(crate) const Size: usize = size_of::<Self>();
 	
 	#[inline(always)]
-	pub(crate) const fn new(type_identifier_section_starts_at: usize, type_identifier_section_length: usize, string_section_starts_at: usize, string_section_length: usize) -> Result<Self, TryFromIntError>
+	pub(crate) fn new(type_identifier_section_starts_at: usize, type_identifier_section_length: usize, string_section_starts_at: usize, string_section_length: usize) -> Result<Self, TryFromIntError>
 	{
 		Ok
 		(

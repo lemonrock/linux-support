@@ -41,3 +41,14 @@ impl Debug for bpf_attr
 		write!(f, "bpf_attr {{ union }}")
 	}
 }
+
+impl bpf_attr
+{
+	#[inline(always)]
+	pub(crate) fn syscall(&mut self, command: bpf_cmd) -> i32
+	{
+		const Size: u32 = size_of::<bpf_attr>() as u32;
+		
+		bpf(command, self, Size)
+	}
+}

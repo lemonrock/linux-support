@@ -106,6 +106,10 @@ impl StringTable
 	#[inline(always)]
 	fn to_ascii_null_terminated_bytes(value: &str) -> Result<Vec<u8>, BtfTypeError>
 	{
-		CString::new(any.as_bytes()).map_err(BtfTypeError::IdentifierContainsAsciiNul).map(into_bytes_with_nul.to_vec())
+		match CString::new(value.as_bytes())
+		{
+			Ok(c_string) => Ok(c_string.into_bytes_with_nul.to_vec()),
+			Err(cause) => Err(BtfTypeError::IdentifierContainsAsciiNul(cause)),
+		}
 	}
 }

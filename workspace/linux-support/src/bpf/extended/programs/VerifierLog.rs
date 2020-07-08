@@ -63,7 +63,7 @@ impl VerifierLog
 			(
 				this.level as u32,
 				AlignedU64::from(&mut this.messages_buffer[..]),
-				buffer_size as u32,
+				this.messages_buffer.len() as u32,
 			)
 		}
 	}

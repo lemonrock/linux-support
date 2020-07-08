@@ -17,7 +17,7 @@ impl ParsedBtfData
 	{
 		const NoBtfFileDescriptor: u32 = 0;
 		const NoBtfArray: BtfDataArray = (0, AlignedU64::Null, 0);
-		match btf_file_descriptor_and_function_information_and_line_information
+		match parsed_btf_data
 		{
 			None => Ok
 			(

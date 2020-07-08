@@ -25,7 +25,7 @@ impl Default for BtfTypeIdentifiers
 		let mut this = Self
 		{
 			last_type_identifier: BtfTypeIdentifier::Void,
-			known_type_identifiers: hashmap!
+			known_type_identifiers: maplit::hashmap!
 			[
 				CVoidType.type_id => BtfTypeIdentifier::Void,
 			],
@@ -53,7 +53,7 @@ impl BtfTypeIdentifiers
 		let string_section_starts_at = self.btf_header_then_type_identifiers_table.len();
 		let string_section_length = self.string_table.len();
 		
-		/// See check in the Linux kernel function `btf_parse_hdr()`
+		// See check in the Linux kernel function `btf_parse_hdr()`
 		if unlikely!(type_identifiers_section_length + string_section_length == 0)
 		{
 			return Err(NoBtfData)
@@ -105,7 +105,7 @@ impl BtfTypeIdentifiers
 			
 			Struct(Unnamed(fields)) => self.write_struct_or_union_fields(type_, fields, false, StructHasTooManyUnnamedFields),
 			
-			Struct(Unit) => self.write_struct_or_union_fields(type_, fields, false, StructHasTooManyUnnamedFields),
+			Struct(Unit) => self.write_struct_or_union_fields(type_, &[], false, StructHasTooManyUnnamedFields),
 			
 			Enum(variants) => self.write_enum(type_, variants),
 		}
@@ -138,7 +138,7 @@ impl BtfTypeIdentifiers
 	}
 	
 	#[inline(always)]
-	fn primitive(&mut self, type_: &Type, encoding: BtfTypeEncoding) -> Result<btf_type<u32>, BtfTypeError>
+	fn primitive(&mut self, type_: &Type, encoding: BtfTypeIntegerEncoding) -> Result<btf_type<u32>, BtfTypeError>
 	{
 		const NoOffset: u8 = 0;
 		
@@ -193,7 +193,7 @@ impl BtfTypeIdentifiers
 	}
 	
 	#[inline(always)]
-	fn forward_declare_struct_or_union(&mut self, type_: &Type, is_union: bool) -> Result<(Option<NonZeroU32>, BtfTypeIdentifier), BtfError>
+	fn forward_declare_struct_or_union(&mut self, type_: &Type, is_union: bool) -> Result<(Option<NonZeroU32>, BtfTypeIdentifier), BtfTypeError>
 	{
 		let offset_of_name_into_string_section = self.push_c_identifier_for_type(type_, BtfKind::Forward)?;
 		let forward_declared_type_identifier = self.write_btf_type_header_unlinked_to_type_id(btf_type::forward_struct_or_union(offset_of_name_into_string_section, is_union)?)?;
@@ -255,8 +255,10 @@ impl BtfTypeIdentifiers
 	#[inline(always)]
 	fn write_btf_type_header<T: Sized>(&mut self, type_id: TypeId, header: btf_type<T>) -> Result<BtfTypeIdentifier, BtfTypeError>
 	{
-		self.known_type_identifiers.insert(type_id, type_identifier);
-		self.write_btf_type_header_unlinked_to_type_id(btf_type)
+		let type_identifier = self.write_btf_type_header_unlinked_to_type_id(header)?;
+		let previous = self.known_type_identifiers.insert(type_id, type_identifier);
+		debug_assert!(previous.is_none());
+		Ok(type_identifier)
 	}
 	
 	#[inline(always)]

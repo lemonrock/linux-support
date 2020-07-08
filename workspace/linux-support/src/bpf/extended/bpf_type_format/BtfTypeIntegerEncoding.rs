@@ -4,7 +4,7 @@
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u8)]
-pub(crate) enum BtfTypeEncoding
+pub(crate) enum BtfTypeIntegerEncoding
 {
 	Unsigned = 0,
 	
@@ -15,11 +15,11 @@ pub(crate) enum BtfTypeEncoding
 	Boolean = BTF_INT_BOOL,
 }
 
-impl Default for BtfTypeEncoding
+impl Default for BtfTypeIntegerEncoding
 {
 	#[inline(always)]
 	fn default() -> Self
 	{
-		BtfTypeEncoding::Unsigned
+		BtfTypeIntegerEncoding::Unsigned
 	}
 }

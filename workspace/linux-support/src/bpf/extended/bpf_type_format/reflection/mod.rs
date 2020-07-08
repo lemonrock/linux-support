@@ -3,7 +3,6 @@
 
 
 use super::*;
-use std::os::raw::c_char;
 
 
 include!("pointer_type.rs");

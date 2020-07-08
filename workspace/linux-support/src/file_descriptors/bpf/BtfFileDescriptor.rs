@@ -62,7 +62,7 @@ impl BtfFileDescriptor
 		
 		let (btf_log_level, btf_log_buf, btf_log_size) = VerifierLog::to_values_for_syscall(verifier_log)?;
 		
-		let mut attr = bpf_attr
+		let mut attributes = bpf_attr
 		{
 			btf_load: BpfCommandBtfLoad
 			{
@@ -74,7 +74,7 @@ impl BtfFileDescriptor
 			}
 		};
 		
-		let result = bpf(bpf_cmd::BPF_BTF_LOAD, &mut attr, size_of::<bpf_attr>() as u32);
+		let result = attributes.syscall(bpf_cmd::BPF_BTF_LOAD);
 		if likely!(result >= 0)
 		{
 			Ok(Self(result))

@@ -49,7 +49,7 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 			(line_info_rec_size, line_info, line_info_cnt),
 		) = ParsedBtfData::optionally_to_bpf_load_data(parsed_btf_data)?;
 		
-		let mut attr = bpf_attr
+		let mut attributes = bpf_attr
 		{
 			program_load: BpfCommandProgramLoad
 			{
@@ -83,34 +83,43 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 			}
 		};
 		
-		let result = bpf(bpf_cmd::BPF_PROG_LOAD, &mut attributes, size_of::<bpf_attr>() as u32);
+		let result = attributes.syscall(bpf_cmd::BPF_PROG_LOAD);
 		
 		if likely!(result >= 0)
 		{
-			return Ok(result)
+			Ok(result)
 		}
 		else if likely!(result == -1)
 		{
-			// TODO: See tools/lib/bpf/bpf.c: bpf_load_program_xattr.
+			use self::ProgramLoadError::*;
+			
 			match errno().0
 			{
-				// TODO: If the size of the buffer is not large enough to store all verifier messages, -1 is returned and errno is set to ENOSPC.
-				ENOSPC @ if log_level > 0 =>
+				ENOSPC => if log_level > 0
 				{
-					// not enough log space
+					Err(NotEnoughSpaceForVerifierLogMessages)
 				}
+				else
+				{
+					unreachable!()
+				},
 				
-				// 'btf_data_size > BTF_MAX_SIZE' in btf_parse()
-				E2BIG,
+				EBADF => unreachable!(),
 				
-				ENOMEM
+				EACCES | EINVAL | E2BIG => Err(InvalidProgram),
+				
+				ENOMEM=> Err(OutOfMemoryOrResources),
+				
+				EPERM => Err(PermissionDenied),
 					
-					EFAULT
+				EFAULT => panic!("Memory fault"),
+				
+				unexpected @ _ => panic!("Unexpected error `{}`", unexpected),
 			}
 		}
 		else
 		{
-			unreachable!("result `{}` was unexpected from bpf()", result)
+			unreachable!("result `{}` from bpf(BPF_PROG_LOAD) was unexpected", result)
 		}
 	}
 	
@@ -129,41 +138,5 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 			
 			_ => Err(Program(ThereAreMoreThanU32MaxInstructions)),
 		};
-	}
-	
-	#[inline(always)]
-	fn verifier_log(verifier_log: VerifierLog) -> Result<(u32, AlignedU64, u32), ProgramLoadError>
-	{
-		match verifier_log
-		{
-			None => Ok((0, AlignedU64::Null, 0)),
-			
-			Some((verifier_log_level, log_buffer)) =>
-			{
-				use self::ProgramLoadError::*;
-				
-				// Checks deduced from Linux kernel function `btf_parse()`.
-				let buffer_size = log_buffer.len();
-				if unlikely!(buffer_size < 128)
-				{
-					return Err(VerifierLogBufferMustBeAtLeast128Bytes)
-				}
-				
-				const ExclusiveMaximumBufferSize: usize = (1 << 24) as usize;
-				if unlikely!(buffer_size >= ExclusiveMaximumBufferSize)
-				{
-					return Err(VerifierLogBufferMustBeLessThan2ToThe24Bytes)
-				}
-				
-				Ok
-				(
-					(
-						verifier_log_level as u32,
-						AlignedU64::from(log_buffer),
-						buffer_size as u32,
-					)
-				)
-			}
-		}
 	}
 }

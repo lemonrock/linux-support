@@ -3,7 +3,7 @@
 
 
 /// An error when processing a list of `ProgramLine`.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ProgramError
 {
 	/// More than 2^22 program lines.

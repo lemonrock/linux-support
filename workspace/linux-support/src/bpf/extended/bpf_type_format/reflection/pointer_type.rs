@@ -6,7 +6,7 @@
 #[macro_export]
 macro_rules! pointer_type
 {
-	($type_: ty, $encoding: ident) =>
+	($type_: ty) =>
 	{
 		impl HasReflectionInformation for *const $type_
 		{

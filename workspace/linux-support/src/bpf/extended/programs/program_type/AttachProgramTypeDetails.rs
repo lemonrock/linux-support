@@ -10,7 +10,7 @@
 /// * `BPF_PROG_TYPE_EXT`.
 ///
 /// See the function `bpf_prog_load_check_attach()` in the linux source `kernel/bpf/syscall.c`.
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Default, Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct AttachProgramTypeDetails<'name>

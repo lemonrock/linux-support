@@ -8,7 +8,6 @@ use super::extended::instructions::*;
 use super::extended::instructions::LoadSize::*;
 use crate::syscall::SYS;
 use crate::pci_express::NetworkInterfaceIndex;
-use crate::bpf::extended::instructions::offset::program_counter::ProgramCounter;
 
 
 include!("__IncompleteArrayField.rs");

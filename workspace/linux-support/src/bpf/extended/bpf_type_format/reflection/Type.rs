@@ -31,7 +31,7 @@ impl Type
 {
 	/// Primitive.
 	#[inline(always)]
-	pub const fn primitive<Primitive: Sized>(ident: &'static str, encoding: BtfTypeEncoding) -> Type
+	pub const fn primitive<Primitive: Sized>(ident: &'static str, encoding: BtfTypeIntegerEncoding) -> Type
 	{
 		Type
 		{
@@ -61,7 +61,7 @@ impl Type
 	/// `&'static T`.
 	#[inline(always)]
 	pub const fn static_reference<T: Sized>(ident: &str) -> Type
-	where &'static mut T: HasReflectionInformation
+	where &'static mut T: 'static + HasReflectionInformation
 	{
 		Type
 		{

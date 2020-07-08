@@ -23,7 +23,7 @@ impl<'name> ProgramLinesParser<'name>
 	/// Process instructions.
 	///
 	/// If `btf_program_details` is `None`, no function or line information is produced.
-	pub fn parse(btf_program_details: Option<&BtfProgramDetails>, program_lines: &Vec<ProgramLine<'name>>, arguments: ExtendedBpfProgramArguments) -> Result<(Box<[bpf_insn]>, Option<ParsedBtfData>, FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>), ProgramError>
+	pub fn parse<'file_descriptor>(btf_program_details: Option<&BtfProgramDetails>, program_lines: &Vec<ProgramLine<'name>>, arguments: ExtendedBpfProgramArguments<'file_descriptor>) -> Result<(Box<[bpf_insn]>, Option<ParsedBtfData>, FileDescriptorLabelsMap<'file_descriptor, ExtendedBpfProgramFileDescriptor>), ProgramError>
 	{
 		let number_of_program_lines = program_lines.len();
 		if unlikely!(number_of_program_lines > bpf_line_info::MaximumNumberOfProgramLines)
@@ -54,11 +54,11 @@ impl<'name> ProgramLinesParser<'name>
 			},
 		};
 		
-		this.parse_internal(btf_program_details, arguments)
+		this.parse_internal(program_lines, btf_program_details, arguments)
 	}
 	
 	#[inline(always)]
-	fn parse_internal(mut self, btf_program_details: Option<&BtfProgramDetails>, arguments: ExtendedBpfProgramArguments) -> Result<(Box<[bpf_insn]>, Option<ParsedBtfData>, FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>), ProgramError>
+	fn parse_internal<'file_descriptor>(mut self, program_lines: &Vec<ProgramLine<'name>>, btf_program_details: Option<&BtfProgramDetails>, arguments: ExtendedBpfProgramArguments<'file_descriptor>) -> Result<(Box<[bpf_insn]>, Option<ParsedBtfData>, FileDescriptorLabelsMap<'file_descriptor, ExtendedBpfProgramFileDescriptor>), ProgramError>
 	{
 		use self::ProgramError::*;
 		
@@ -103,7 +103,7 @@ impl<'name> ProgramLinesParser<'name>
 		let parsed_btf_data = match self.btf_type_information_parser
 		{
 			None => None,
-			(Some(btf_type_information_parser)) => btf_type_information_parser.finish(),
+			Some(btf_type_information_parser) => btf_type_information_parser.finish(),
 		};
 		
 		Ok
@@ -125,11 +125,11 @@ impl<'name> ProgramLinesParser<'name>
 	
 	/// Registering a relative function name more than once is permitted; the latest registration 'wins'.
 	#[inline(always)]
-	pub(crate) fn register_relative_function_name(&mut self, relative_function_name: &Name<'name>) -> Result<(), ProgramError>
+	pub(crate) fn register_relative_function_name(&mut self, relative_function_name: &Name<'name>, function_prototype: Option<&FunctionPrototype>) -> Result<(), ProgramError>
 	{
 		if let Some(ref btf_type_information_parser) = self.btf_type_information_parser
 		{
-			btf_type_information_parser.push_relative_function_definition(relative_function_name, function_prototype.as_ref(), self.current_program_counter(), self.line_number)?;
+			btf_type_information_parser.push_relative_function_definition(relative_function_name, function_prototype, self.current_program_counter(), self.line_number)?;
 		}
 		
 		Self::register(relative_function_name, self.current_program_counter(), &mut self.relative_function_names_to_program_counters, &mut self.jump_instructions_relative_function_named_offset_to_resolve)

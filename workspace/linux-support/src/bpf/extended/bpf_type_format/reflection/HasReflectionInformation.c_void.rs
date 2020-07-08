@@ -10,7 +10,7 @@ impl HasReflectionInformation for c_void
 		size: 0,
 		// See the Linux kernel function `__btf_name_by_offset()`.
 		ident: "(anon)",
-		data: Data::Primitive(BtfTypeEncoding::Unsigned),
+		data: Data::Primitive(BtfTypeIntegerEncoding::Unsigned),
 	};
 }
 

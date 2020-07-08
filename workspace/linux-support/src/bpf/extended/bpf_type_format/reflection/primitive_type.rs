@@ -10,10 +10,10 @@ macro_rules! primitive_type
 	{
 		impl HasReflectionInformation for $type_
 		{
-			const Type: Type = Type::primitive::<$type_>(stringify!($type_), BtfTypeEncoding::$encoding);
+			const Type: Type = Type::primitive::<$type_>(stringify!($type_), BtfTypeIntegerEncoding::$encoding);
 		}
 		
-		pointer_type!($type_)
+		pointer_type!($type_);
 	}
 }
 

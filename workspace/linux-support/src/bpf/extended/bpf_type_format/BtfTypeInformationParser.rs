@@ -17,7 +17,7 @@ impl BtfTypeInformationParser
 	pub(crate) fn new(number_of_functions_size_hint: usize, file_name: &str) -> Self
 	{
 		let mut btf_type_identifiers = BtfTypeIdentifiers::default();
-		file_name_off = unsafe { transmute(btf_type_identifiers.push_any(file_name)?) };
+		let file_name_off = unsafe { transmute(btf_type_identifiers.push_any(file_name)?) };
 		
 		Self
 		{

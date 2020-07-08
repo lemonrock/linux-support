@@ -3,9 +3,7 @@
 
 
 use super::*;
-use super::c::*;
-use super::extended::bpf_type_format::*;
-use super::extended::bpf_type_format::reflection::*;
+use super::bpf_type_format::*;
 use super::instructions::*;
 use super::instructions::file_descriptor_label::*;
 use super::instructions::offset::*;

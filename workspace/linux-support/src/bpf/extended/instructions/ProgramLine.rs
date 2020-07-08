@@ -839,7 +839,7 @@ impl<'name> ProgramLine<'name>
 			
 			&Function(ref relative_function_name, ref function_prototype) =>
 			{
-				instructions.register_relative_function_name(relative_function_name)?;
+				instructions.register_relative_function_name(relative_function_name, function_prototype)?;
 				return Ok(())
 			}
 			

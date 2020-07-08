@@ -22,7 +22,6 @@ include!("BtfTypeError.rs");
 include!("BtfTypeIdentifier.rs");
 include!("BtfTypeIdentifiers.rs");
 include!("BtfTypeInformationParser.rs");
-include!("BtfTypeIntegerFlags.rs");
-include!("BtfTypeIntegerFlags.rs");
+include!("BtfTypeIntegerEncoding.rs");
 include!("ParsedBtfData.rs");
 include!("StringTable.rs");

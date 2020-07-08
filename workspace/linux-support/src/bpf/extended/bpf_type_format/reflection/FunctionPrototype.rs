@@ -20,7 +20,7 @@ impl Display for FunctionPrototype
 {
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
 	{
-		use self::bpf_func_linkage::*;
+		use self::btf_func_linkage::*;
 		let linkage = match self.linkage
 		{
 			Static => "static",

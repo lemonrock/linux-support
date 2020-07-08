@@ -177,7 +177,7 @@ impl btf_type<__IncompleteArrayField<btf_member>>
 impl btf_type<()>
 {
 	#[inline(always)]
-	pub(crate) const fn forward_struct_or_union(offset_of_name_into_string_section: NonZeroU32, is_union: bool) -> Result<Self, BtfTypeError>
+	pub(crate) fn forward_struct_or_union(offset_of_name_into_string_section: NonZeroU32, is_union: bool) -> Result<Self, BtfTypeError>
 	{
 		Ok
 		(
@@ -195,7 +195,7 @@ impl btf_type<()>
 	}
 	
 	#[inline(always)]
-	pub(crate) const fn type_definition(offset_of_name_into_string_section: NonZeroU32, type_identifier: BtfTypeIdentifier) -> Result<Self, BtfTypeError>
+	pub(crate) fn type_definition(offset_of_name_into_string_section: NonZeroU32, type_identifier: BtfTypeIdentifier) -> Result<Self, BtfTypeError>
 	{
 		Ok
 		(
@@ -350,7 +350,7 @@ impl btf_type<u32>
 	/// In practice, `offset` is always `0`.
 	///
 	/// Since Rust does not support bitfields, `offset` should always be `0` and bits `8`, `16`, `32`, `64` or `128`.
-	pub(crate) fn integer(offset_of_name_into_string_section: Option<NonZeroU32>, size: u32, encoding: BtfTypeEncoding, offset: u8, bits: u8) -> Result<Self, BtfTypeError>
+	pub(crate) fn integer(offset_of_name_into_string_section: Option<NonZeroU32>, size: u32, encoding: BtfTypeIntegerEncoding, offset: u8, bits: u8) -> Result<Self, BtfTypeError>
 	{
 		use self::BtfTypeError::*;
 		
@@ -380,7 +380,7 @@ impl btf_type<u32>
 	}
 	
 	#[inline(always)]
-	const fn BTF_INT_ENCODING(VAL: u32) -> BtfTypeEncoding
+	const fn BTF_INT_ENCODING(VAL: u32) -> BtfTypeIntegerEncoding
 	{
 		unsafe { transmute((VAL & 0x0F000000 >> 24) as u8) }
 	}

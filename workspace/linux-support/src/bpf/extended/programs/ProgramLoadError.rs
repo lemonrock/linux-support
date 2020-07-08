@@ -3,7 +3,7 @@
 
 
 /// An error when loading a program.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ProgramLoadError
 {
 	#[allow(missing_docs)]
@@ -14,6 +14,18 @@ pub enum ProgramLoadError
 	
 	/// Linux can not support more than `u32::MAX` entries in the line information array.
 	LineInformationArrayIsLargerThanU32Max(TryFromIntError),
+
+	/// Invalid program.
+	InvalidProgram,
+
+	/// Not enough space for verifier log messages.
+	NotEnoughSpaceForVerifierLogMessages,
+
+	/// Not enough memory.
+	OutOfMemoryOrResources,
+
+	/// Caller lacks necessary capability.
+	PermissionDenied,
 }
 
 impl Display for ProgramLoadError
@@ -50,6 +62,6 @@ impl From<ProgramError> for ProgramLoadError
 	#[inline(always)]
 	fn from(error: ProgramError) -> Self
 	{
-		ProgramError::Instruction(InstructionError)
+		ProgramLoadError::Program(error)
 	}
 }
