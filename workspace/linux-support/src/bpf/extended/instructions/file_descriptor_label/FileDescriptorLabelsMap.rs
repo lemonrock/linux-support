@@ -3,7 +3,7 @@
 
 
 /// Resolves the value of items of type `FileDescriptor`.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug)]
 pub struct FileDescriptorLabelsMap<'file_descriptor, FD: FileDescriptor>(UsageHashMap<&'file_descriptor FD>);
 
 impl<'file_descriptor, FD: FileDescriptor> Default for FileDescriptorLabelsMap<'file_descriptor, FD>
@@ -20,7 +20,7 @@ impl<'file_descriptor, FD: FileDescriptor> Default for FileDescriptorLabelsMap<'
 impl<'file_descriptor, FD: FileDescriptor> FileDescriptorLabelsMap<'file_descriptor, FD>
 {
 	#[inline(always)]
-	pub(crate) fn resolve(&self, file_descriptor_label: &FileDescriptorLabel) -> Result<RawFd, ProgramError>
+	pub(crate) fn resolve<'name>(&self, file_descriptor_label: &FileDescriptorLabel<'name>) -> Result<RawFd, ProgramError>
 	{
 		self.0.resolve(file_descriptor_label.deref()).map(|file_descriptor| file_descriptor.as_raw_fd())
 	}

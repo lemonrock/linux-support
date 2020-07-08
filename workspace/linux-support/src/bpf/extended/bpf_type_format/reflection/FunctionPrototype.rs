@@ -28,7 +28,7 @@ impl Display for FunctionPrototype
 			Extern => "extern",
 		};
 		
-		write!(f, "{} fn {}(", linkage, self.ident)?;
+		write!(f, "{} fn(", linkage)?;
 		
 		let mut after_first = false;
 		for &(parameter_name, parameter_type) in self.parameters

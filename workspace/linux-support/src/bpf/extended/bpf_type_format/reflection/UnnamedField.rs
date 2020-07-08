@@ -24,7 +24,7 @@ impl Field for UnnamedField
 		(
 			btf_member
 			{
-				name_off: type_identifiers.push_c_identifier(&format!("_{}", index), BtfKind::Function)?,
+				name_off: unsafe { transmute(type_identifiers.push_c_identifier(&format!("_{}", index), BtfKind::Function)?) },
 				type_identifier: type_identifiers.get_or_create_type_identifier(self.type_)?,
 				offset: self.offset_in_bits()?,
 			}

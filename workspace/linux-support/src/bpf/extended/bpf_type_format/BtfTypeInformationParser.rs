@@ -14,18 +14,21 @@ pub(crate) struct BtfTypeInformationParser
 impl BtfTypeInformationParser
 {
 	#[inline(always)]
-	pub(crate) fn new(number_of_functions_size_hint: usize, file_name: &str) -> Self
+	pub(crate) fn new(number_of_functions_size_hint: usize, file_name: &str) -> Result<Self, BtfTypeError>
 	{
 		let mut btf_type_identifiers = BtfTypeIdentifiers::default();
 		let file_name_off = unsafe { transmute(btf_type_identifiers.push_any(file_name)?) };
 		
-		Self
-		{
-			btf_type_identifiers,
-			function_information: Vec::with_capacity(number_of_functions_size_hint),
-			line_information: Vec::with_capacity(number_of_functions_size_hint),
-			file_name_off,
-		}
+		Ok
+		(
+			Self
+			{
+				btf_type_identifiers,
+				function_information: Vec::with_capacity(number_of_functions_size_hint),
+				line_information: Vec::with_capacity(number_of_functions_size_hint),
+				file_name_off,
+			}
+		)
 	}
 	
 	#[inline(always)]

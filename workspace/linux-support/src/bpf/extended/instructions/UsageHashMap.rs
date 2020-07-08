@@ -34,7 +34,7 @@ impl<V> UsageHashMap<V>
 				Ok(value)
 			}
 			
-			None => Err(self.could_not_resolve_program_error),
+			None => Err(self.could_not_resolve_program_error.clone()),
 		}
 	}
 	
@@ -42,7 +42,7 @@ impl<V> UsageHashMap<V>
 	pub(crate) fn guard_all_values_have_been_resolved_at_least_once(self) -> Result<(), ProgramError>
 	{
 		let mut unused = Vec::new();
-		for (name, (_, usage_count)) in self.0
+		for (name, (_, usage_count)) in self.map
 		{
 			if unlikely!(usage_count.get() == 0)
 			{

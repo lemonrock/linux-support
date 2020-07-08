@@ -3,10 +3,10 @@
 
 
 /// An error when loading a program.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug)]
 pub enum ProgramLoadError
 {
-	#[allow(missing_docs)]
+	/// Program error.
 	Program(ProgramError),
 	
 	/// Linux can not support more than `u32::MAX` entries in the function information array.

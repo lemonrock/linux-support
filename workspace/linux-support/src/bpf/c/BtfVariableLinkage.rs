@@ -4,6 +4,8 @@
 
 /// Variable linkage.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(u32)]
 pub enum BtfVariableLinkage
 {
@@ -15,4 +17,13 @@ pub enum BtfVariableLinkage
 	
 	/// `BTF_VAR_GLOBAL_EXTERN`.
 	GlobalExtern = 2,
+}
+
+impl Default for BtfVariableLinkage
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		BtfVariableLinkage::Static
+	}
 }

@@ -3,7 +3,7 @@
 
 
 /// Arguments.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug)]
 pub struct ExtendedBpfProgramArguments<'file_descriptor>
 {
 	/// Immediates.

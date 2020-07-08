@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
 pub(crate) struct StringTable
 {
 	deduplication: HashMap<String, u32>,
@@ -37,7 +37,7 @@ impl StringTable
 			return Ok(NonZeroU32::new(*offset))
 		}
 		
-		let bytes = to_bytes(value);
+		let bytes = to_bytes(value)?;
 		
 		debug_assert!(BTF_MAX_NAME_OFFSET <= u32::MAX);
 		let raw_offset = self.deduplication.len();
@@ -108,7 +108,7 @@ impl StringTable
 	{
 		match CString::new(value.as_bytes())
 		{
-			Ok(c_string) => Ok(c_string.into_bytes_with_nul.to_vec()),
+			Ok(c_string) => Ok(c_string.into_bytes_with_nul().to_vec()),
 			Err(cause) => Err(BtfTypeError::IdentifierContainsAsciiNul(cause)),
 		}
 	}

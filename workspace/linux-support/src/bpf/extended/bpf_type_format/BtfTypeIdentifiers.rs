@@ -29,11 +29,11 @@ impl Default for BtfTypeIdentifiers
 			[
 				CVoidType.type_id => BtfTypeIdentifier::Void,
 			],
-			btf_header_then_type_identifiers_table: Vec::with_capacity(btf_header::Size()),
+			btf_header_then_type_identifiers_table: Vec::with_capacity(btf_header::Size),
 			string_table: StringTable::default(),
 		};
 		
-		this.reserve(btf_header::Size as u16);
+		this.reserve::<btf_header>(1);
 		
 		this.push_c_identifier_for_type(CVoidType, BtfKind::Unknown);
 		
@@ -51,7 +51,9 @@ impl BtfTypeIdentifiers
 		let type_identifiers_section_starts_at = btf_header::Size;
 		let type_identifiers_section_length = self.btf_header_then_type_identifiers_table.len() - btf_header::Size;
 		let string_section_starts_at = self.btf_header_then_type_identifiers_table.len();
-		let string_section_length = self.string_table.len();
+		
+		let string_section = self.string_table.string_table;
+		let string_section_length = string_section.len();
 		
 		// See check in the Linux kernel function `btf_parse_hdr()`
 		if unlikely!(type_identifiers_section_length + string_section_length == 0)
@@ -59,14 +61,36 @@ impl BtfTypeIdentifiers
 			return Err(NoBtfData)
 		}
 		
-		let header_and_type_identifier_section_and_string_section = self.btf_header_then_type_identifiers_table;
-		header_and_type_identifier_section_and_string_section.extend_from_slice(&self.string_table.string_table[..]);
+		let mut header_and_type_identifier_section_and_string_section = self.btf_header_then_type_identifiers_table;
+		header_and_type_identifier_section_and_string_section.extend_from_slice(&string_section[..]);
 		
-		let header = btf_header::new(type_identifiers_section_starts_at, type_identifiers_section_length, string_section_starts_at,  string_section_length).map_err(InvalidBtfDataSize)?;
+		let header = Self::btf_header(type_identifiers_section_starts_at, type_identifiers_section_length, string_section_starts_at,  string_section_length)?;
 		unsafe { (header_and_type_identifier_section_and_string_section.as_mut_ptr() as *mut btf_header).write(header) };
 		
 		Ok(header_and_type_identifier_section_and_string_section)
 	}
+	
+	#[inline(always)]
+	pub(crate) fn btf_header(type_identifier_section_starts_at: usize, type_identifier_section_length: usize, string_section_starts_at: usize, string_section_length: usize) -> Result<btf_header, ProgramError>
+	{
+		#[inline(always)]
+		fn offset(starts_at: usize) -> Result<u32, TryFromIntError>
+		{
+			(starts_at - btf_header::Size).try_into()
+		}
+		
+		Ok
+		(
+			btf_header::new
+			(
+				offset(type_identifier_section_starts_at)?,
+				type_identifier_section_length.try_into()?,
+				offset(string_section_starts_at)?,
+				string_section_length.try_into()?,
+			)
+		)
+	}
+	
 	
 	#[inline(always)]
 	pub(crate) fn create_function(&mut self, name: &Name, function_prototype: &FunctionPrototype) -> Result<BtfTypeIdentifier, BtfTypeError>
@@ -91,11 +115,23 @@ impl BtfTypeIdentifiers
 		use self::StructFields::*;
 		match type_.data
 		{
-			Primitive(encoding) => self.write_btf_type_header(type_id, self.primitive(type_, encoding)?),
+			Primitive(encoding) =>
+			{
+				let btf_type = self.primitive(type_, encoding)?;
+				self.write_btf_type_header(type_id, btf_type)
+			},
 			
-			ReferenceOrConstantPointer(mutable_pointer_type) => self.write_btf_type_header(type_id, btf_type::constant(self.get_or_create_type_identifier(mutable_pointer_type)?)),
+			ReferenceOrConstantPointer(mutable_pointer_type) =>
+			{
+				let btf_type = btf_type::constant(self.get_or_create_type_identifier(mutable_pointer_type)?);
+				self.write_btf_type_header(type_id, btf_type)
+			},
 			
-			MutableReferenceOrPointer(points_to_type) => self.write_btf_type_header(type_id, btf_type::pointer(self.get_or_create_type_identifier(points_to_type)?)),
+			MutableReferenceOrPointer(points_to_type) =>
+			{
+				let btf_type = btf_type::pointer(self.get_or_create_type_identifier(points_to_type)?);
+				self.write_btf_type_header(type_id, btf_type)
+			},
 			
 			Array(element_type, count) => self.write_array(type_, element_type, count),
 			
@@ -105,7 +141,7 @@ impl BtfTypeIdentifiers
 			
 			Struct(Unnamed(fields)) => self.write_struct_or_union_fields(type_, fields, false, StructHasTooManyUnnamedFields),
 			
-			Struct(Unit) => self.write_struct_or_union_fields(type_, &[], false, StructHasTooManyUnnamedFields),
+			Struct(Unit) => self.write_struct_or_union_fields::<NamedField>(type_, &[], false, StructHasTooManyUnnamedFields),
 			
 			Enum(variants) => self.write_enum(type_, variants),
 		}
@@ -121,14 +157,14 @@ impl BtfTypeIdentifiers
 		let return_type_identifier = self.get_or_create_type_identifier(return_type)?;
 		let function_prototype_type_identifier = self.write_btf_type_header_unlinked_to_type_id(btf_type::function_prototype(vlen, return_type_identifier))?;
 		
-		let start_overwriting_at = self.reserve(vlen);
+		let start_overwriting_at = self.reserve::<btf_param>(vlen);
 		for index in 0 .. vlen
 		{
 			let &(parameter_name, parameter_type) = unsafe { parameters.get_unchecked(index as usize) };
 			
 			let param = btf_param
 			{
-				name_off: self.push_c_identifier(parameter_name, BtfKind::FunctionPrototype)?.expect("void identifier created in Self::new()"),
+				name_off: unsafe { transmute(self.push_c_identifier(parameter_name, BtfKind::FunctionPrototype)?.expect("void identifier created in Self::new()")) },
 				type_: self.get_or_create_type_identifier(parameter_type)?,
 			};
 			self.overwrite(param, start_overwriting_at, index)
@@ -181,7 +217,7 @@ impl BtfTypeIdentifiers
 		let header = btf_type::struct_or_union(offset_of_name_into_string_section, vlen, type_.size, is_union)?;
 		let struct_or_union_type_identifier = self.write_btf_type_header(type_.type_id, header)?;
 		
-		let start_overwriting_at = self.reserve(vlen);
+		let start_overwriting_at = self.reserve::<btf_member>(vlen);
 		for index in 0 .. vlen
 		{
 			let field = unsafe { fields.get_unchecked(index as usize) };
@@ -196,7 +232,7 @@ impl BtfTypeIdentifiers
 	fn forward_declare_struct_or_union(&mut self, type_: &Type, is_union: bool) -> Result<(Option<NonZeroU32>, BtfTypeIdentifier), BtfTypeError>
 	{
 		let offset_of_name_into_string_section = self.push_c_identifier_for_type(type_, BtfKind::Forward)?;
-		let forward_declared_type_identifier = self.write_btf_type_header_unlinked_to_type_id(btf_type::forward_struct_or_union(offset_of_name_into_string_section, is_union)?)?;
+		let forward_declared_type_identifier = self.write_btf_type_header_unlinked_to_type_id(btf_type::forward_struct_or_union(offset_of_name_into_string_section.unwrap(), is_union)?)?;
 		
 		Ok((offset_of_name_into_string_section, forward_declared_type_identifier))
 	}
@@ -217,7 +253,7 @@ impl BtfTypeIdentifiers
 			{
 				UnitValued(val) =>
 				{
-					let name_off = self.push_c_identifier_for_type(type_, BtfKind::Enumeration)?.expect("void identifier created in Self::new()");
+					let name_off = unsafe { transmute(self.push_c_identifier_for_type(type_, BtfKind::Enumeration)?.expect("void identifier created in Self::new()")) };
 					self.write
 					(
 						btf_enum
@@ -228,9 +264,9 @@ impl BtfTypeIdentifiers
 					)
 				}
 				
-				Named(fields) => return Err(EnumVariantWithNamedFieldsIsUnsupported),
+				Named(_fields) => return Err(EnumVariantWithNamedFieldsIsUnsupported),
 				
-				Unnamed(fields) => return Err(EnumVariantWithUnnamedFieldsIsUnsupported),
+				Unnamed(_fields) => return Err(EnumVariantWithUnnamedFieldsIsUnsupported),
 				
 				UnitValuelessOrDoesNotFitInI32 => return Err(EnumUnitVariantIsNotRepresentableInAnI32),
 			}

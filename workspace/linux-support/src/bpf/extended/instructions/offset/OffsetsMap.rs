@@ -3,7 +3,7 @@
 
 
 /// Resolves the value of items of type `Immediate::Named`.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug)]
 pub struct OffsetsMap<OV: OffsetValue>(UsageHashMap<OV>);
 
 impl<OV: OffsetValue> Default for OffsetsMap<OV>
@@ -20,7 +20,7 @@ impl<OV: OffsetValue> Default for OffsetsMap<OV>
 impl<OV: OffsetValue> OffsetsMap<OV>
 {
 	#[inline(always)]
-	pub(crate) fn resolve<'de>(&self, offset: &impl AsRef<Offset<'de, OV>>) -> Result<OV, ProgramError>
+	pub(crate) fn resolve<'name>(&self, offset: &impl AsRef<Offset<'name, OV>>) -> Result<OV, ProgramError>
 	{
 		use self::Offset::*;
 		
@@ -28,7 +28,7 @@ impl<OV: OffsetValue> OffsetsMap<OV>
 		{
 			&Known(value) => Ok(value),
 			
-			&Named(Name(ref name)) => self.0.resolve(name.deref()),
+			&Named(Name(ref name)) => Ok(*(self.0.resolve(name.deref())?)),
 		}
 	}
 	

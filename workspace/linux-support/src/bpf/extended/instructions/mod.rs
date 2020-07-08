@@ -5,13 +5,13 @@
 use super::*;
 use super::bpf_type_format::*;
 use super::bpf_type_format::reflection::*;
-use super::programs::ExtendedBpfProgramArguments;
+use super::programs::*;
 use self::file_descriptor_label::*;
 use self::offset::*;
 use self::offset::immediate::*;
 use self::offset::memory::*;
 use self::offset::program_counter::*;
-use crate::file_descriptors::bpf::{MapFileDescriptor, ExtendedBpfProgramFileDescriptor};
+use crate::file_descriptors::bpf::*;
 
 
 include!("AluOperation.rs");

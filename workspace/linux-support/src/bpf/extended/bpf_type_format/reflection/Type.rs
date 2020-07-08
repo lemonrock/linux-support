@@ -31,7 +31,7 @@ impl Type
 {
 	/// Primitive.
 	#[inline(always)]
-	pub const fn primitive<Primitive: Sized>(ident: &'static str, encoding: BtfTypeIntegerEncoding) -> Type
+	pub const fn primitive<Primitive: 'static + Sized>(ident: &'static str, encoding: BtfTypeIntegerEncoding) -> Type
 	{
 		Type
 		{
@@ -44,11 +44,9 @@ impl Type
 	
 	/// `*const T`.
 	#[inline(always)]
-	pub const fn const_pointer<T: Sized>(ident: &str) -> Type
+	pub const fn const_pointer<T: 'static + Sized>(ident: &'static str) -> Type
 	where *mut T: HasReflectionInformation
 	{
-		let x = &<*mut T>::Type;
-		
 		Type
 		{
 			type_id: TypeId::of::<*const T>(),
@@ -60,7 +58,7 @@ impl Type
 	
 	/// `&'static T`.
 	#[inline(always)]
-	pub const fn static_reference<T: Sized>(ident: &str) -> Type
+	pub const fn static_reference<T: 'static + Sized>(ident: &'static str) -> Type
 	where &'static mut T: 'static + HasReflectionInformation
 	{
 		Type
@@ -74,7 +72,7 @@ impl Type
 	
 	/// `*mut T`.
 	#[inline(always)]
-	pub const fn mutable_pointer<T: Sized>(ident: &str) -> Type
+	pub const fn mutable_pointer<T: 'static + HasReflectionInformation>(ident: &'static str) -> Type
 	{
 		Type
 		{
@@ -87,7 +85,7 @@ impl Type
 	
 	/// `&'static mut T`.
 	#[inline(always)]
-	pub const fn static_mutable_reference<T: Sized>(ident: &str) -> Type
+	pub const fn static_mutable_reference<T: 'static + HasReflectionInformation>(ident: &'static str) -> Type
 	{
 		Type
 		{
@@ -100,7 +98,7 @@ impl Type
 	
 	/// `NonNull<T>`.
 	#[inline(always)]
-	pub const fn non_null<T: Sized>(ident: &str) -> Type
+	pub const fn non_null<T: 'static + HasReflectionInformation>(ident: &'static str) -> Type
 	{
 		Type
 		{
@@ -113,7 +111,7 @@ impl Type
 	
 	/// `Option<NonNull<T>>`.
 	#[inline(always)]
-	pub const fn option_non_null<T: Sized>(ident: &str) -> Type
+	pub const fn option_non_null<T: 'static + HasReflectionInformation>(ident: &'static str) -> Type
 	{
 		Type
 		{

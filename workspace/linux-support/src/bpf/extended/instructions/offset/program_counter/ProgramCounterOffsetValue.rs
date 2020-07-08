@@ -19,7 +19,7 @@ impl ProgramCounterOffsetValue for i16
 	#[inline(always)]
 	fn program_counter_offset_value(label: ProgramCounter, current_program_counter: ProgramCounter) -> Result<Self, ProgramError>
 	{
-		label.i16_offset_to_label(current_program_counter)
+		label.i16_offset(current_program_counter)
 	}
 }
 
@@ -30,6 +30,6 @@ impl ProgramCounterOffsetValue for i32
 	#[inline(always)]
 	fn program_counter_offset_value(label: ProgramCounter, current_program_counter: ProgramCounter) -> Result<Self, ProgramError>
 	{
-		label.i32_offset_to_relative_function(current_program_counter)
+		label.i32_offset(current_program_counter)
 	}
 }

@@ -40,7 +40,7 @@ impl ParsedBtfData
 		Ok
 		(
 			(
-				self.btf_file_descriptor.into_raw_fd() as u32,
+				self.btf_file_descriptor.as_raw_fd() as u32,
 				Self::to_array(&self.function_information[..], FunctionInformationArrayIsLargerThanU32Max)?,
 				Self::to_array(&self.line_information[..], LineInformationArrayIsLargerThanU32Max)?,
 			)

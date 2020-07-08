@@ -4,6 +4,7 @@
 
 /// Defaults to `Void`.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct BtfTypeIdentifier(u32);
 
@@ -22,7 +23,7 @@ impl BtfTypeIdentifier
 	pub const Void: Self = Self(0);
 	
 	/// Inclusive maximum.
-	pub const InclusiveMaximum: Self = Self(BTF_MAX_TYPE);
+	pub const InclusiveMaximum: Self = Self(BTF_MAX_TYPE as u32);
 	
 	/// New instance.
 	#[inline(always)]
@@ -34,7 +35,7 @@ impl BtfTypeIdentifier
 	#[inline(always)]
 	pub(crate) fn next(&mut self) -> Result<Self, BtfTypeError>
 	{
-		if unlikely!(self == Self::InclusiveMaximum)
+		if unlikely!(self == &mut Self::InclusiveMaximum)
 		{
 			return Err(BtfTypeError::TooManyBtfTypes)
 		}

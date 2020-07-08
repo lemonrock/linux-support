@@ -29,14 +29,14 @@ pub(crate) struct btf_header
 	/// Type (identifier) section (table) length in bytes.
 	///
 	/// See the Linux kernel function `btf_parse_type_sec()`.
-	type_len: NonZeroU32,
+	type_len: u32,
 	
 	/// String section (table) offset relative to the end of the `bpf_header` record.
 	///
 	/// Must always be the last section.
 	///
 	/// See the Linux kernel function `btf_parse_str_sec()`.
-	str_off: NonZeroU32,
+	str_off: u32,
 	
 	/// String section (table) length in bytes.
 	///
@@ -58,21 +58,18 @@ impl btf_header
 	pub(crate) const Size: usize = size_of::<Self>();
 	
 	#[inline(always)]
-	pub(crate) fn new(type_identifier_section_starts_at: usize, type_identifier_section_length: usize, string_section_starts_at: usize, string_section_length: usize) -> Result<Self, TryFromIntError>
+	pub(crate) fn new(type_off: u32, type_len: u32, str_off: u32, str_len: u32) -> Self
 	{
-		Ok
-		(
-			Self
-			{
-				magic: Self::BTF_MAGIC,
-				version: Self::BTF_VERSION,
-				flags: 0,
-				hdr_len: Self::Size as u32,
-				type_off: (type_identifier_section_starts_at - Self::Size).try_into()?,
-				type_len: type_identifier_section_length.try_into()?,
-				str_off: (string_section_starts_at - Self::Size).try_into()?,
-				str_len: string_section_length.try_into()?,
-			}
-		)
+		Self
+		{
+			magic: Self::BTF_MAGIC,
+			version: Self::BTF_VERSION,
+			flags: 0,
+			hdr_len: Self::Size as u32,
+			type_off,
+			type_len,
+			str_off,
+			str_len,
+		}
 	}
 }

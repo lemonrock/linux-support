@@ -19,6 +19,15 @@
 #[repr(transparent)]
 pub struct AttachToBpfTypeIdentifier(pub BtfTypeIdentifier);
 
+impl Into<u32> for AttachToBpfTypeIdentifier
+{
+	#[inline(always)]
+	fn into(self) -> u32
+	{
+		self.0.into()
+	}
+}
+
 impl AttachToBpfTypeIdentifier
 {
 	#[inline(always)]

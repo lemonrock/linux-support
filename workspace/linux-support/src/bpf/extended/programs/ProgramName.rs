@@ -62,7 +62,7 @@ impl ProgramName
 	{
 		debug_assert_eq!(BPF_OBJ_NAME_LEN, CommandName::MaximumCommandNameLengthIncludingAsciiNul);
 		
-		let array_vec = self.0.clone().into();
+		let array_vec: ArrayVec<[u8; BPF_OBJ_NAME_LEN]> = self.0.clone().into();
 		let const_array_vec: ConstArrayVec<[u8; BPF_OBJ_NAME_LEN]> = unsafe { transmute(array_vec) };
 		unsafe { transmute(const_array_vec.xs) }
 	}

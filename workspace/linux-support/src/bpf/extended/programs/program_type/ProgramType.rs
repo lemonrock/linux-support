@@ -5,208 +5,210 @@
 /// Program type.
 #[allow(missing_docs)]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum ProgramType<'name>
 {
 	/// Also known as in libpbf as `scoket_filter`.
 	/// Also known as the ELF section `socket`.
 	///
 	/// The capability `CAP_SYS_ADMIN` is required.
-	SocketFilter(CommonProgramTypeDetails),
+	SocketFilter(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as in libpbf as `kprobe`.
 	/// Also known as the ELF sections as `kprobe/` `uprobe/`, `kretprobe/` and `uretprobe/`.
-	KProbe(CommonProgramTypeDetails),
+	KProbe(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as in libpbf as `sched_cls`.
 	/// Also known as the ELF section `classifier`.
-	SchedulerClassifier(CommonProgramTypeDetails),
+	SchedulerClassifier(#[serde(default)] CommonProgramTypeDetails),
 
 	/// Also known as in libpbf as `sched_act`.
 	/// Also known as the ELF section `action`.
-	SchedulerAction(CommonProgramTypeDetails),
+	SchedulerAction(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as in libpbf as `tracepoint`.
 	/// Also known as the ELF section `tracepoint/` and `tp/`.
-	TracePoint(CommonProgramTypeDetails),
+	TracePoint(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as in libpbf as `raw_tracepoint`.
 	/// Also known as the ELF section `raw_tracepoint/` and `raw_tp/`.
-	RawTracePoint(CommonProgramTypeDetails),
+	RawTracePoint(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as in libpbf as `xdp`.
 	/// Also known as the ELF section `xdp`.
-	Xdp(CommonProgramTypeDetails),
+	Xdp(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as in libpbf as `perf_event`.
 	/// Also known as the ELF section `perf_event`.
-	PerfEvent(CommonProgramTypeDetails),
+	PerfEvent(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Lightweight Tunnel in.
 	///
 	/// Also known as in libpbf as `lwt_in`.
 	/// Also known as the ELF section `lwt_in`.
-	LightweightTunnelIn(CommonProgramTypeDetails),
+	LightweightTunnelIn(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Lightweight Tunnel out.
 	///
 	/// Also known as in libpbf as `lwt_out`.
 	/// Also known as the ELF section `lwt_out`.
-	LightweightTunnelOut(CommonProgramTypeDetails),
+	LightweightTunnelOut(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Lightweight Tunnel transmit.
 	///
 	/// Also known as in libpbf as `lwt_xmit`.
 	/// Also known as the ELF section `lwt_xmit`.
-	LightweightTunnelTransmit(CommonProgramTypeDetails),
+	LightweightTunnelTransmit(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Lightweight Tunnel ?.
 	///
 	/// Also known as in libpbf as `lwt_seg6local`.
 	/// Also known as the ELF section `lwt_seg6local`.
-	LightweightTunnelSeg6Local(CommonProgramTypeDetails),
+	LightweightTunnelSeg6Local(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as the ELF section `cgroup_skb/ingress`.
 	/// Legacy as libbpf's `cgroup_skb`.
 	/// Legacy with the ELF section `cgroup/skb`.
 	///
 	/// The capability `CAP_SYS_ADMIN` is required.
-	CgroupSocketBufferIngress(CommonProgramTypeDetails),
+	CgroupSocketBufferIngress(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as the ELF section `cgroup_skb/egress`.
 	/// Legacy as libbpf's `cgroup_skb`.
 	/// Legacy with the ELF section `cgroup/skb`.
 	///
 	/// The capability `CAP_SYS_ADMIN` is required.
-	CgroupSocketBufferEgress(CommonProgramTypeDetails),
+	CgroupSocketBufferEgress(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as in libpbf as `cgroup_sock`.
 	/// Also known as the ELF section `cgroup/sock`.
-	CgroupCreateSocket(CommonProgramTypeDetails),
+	CgroupCreateSocket(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as the ELF section `cgroup/post_bind4`.
-	CgroupPostBindInternetProtocolVersion4(CommonProgramTypeDetails),
+	CgroupPostBindInternetProtocolVersion4(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as the ELF section `cgroup/post_bind6`.
-	CgroupPostBindInternetProtocolVersion6(CommonProgramTypeDetails),
+	CgroupPostBindInternetProtocolVersion6(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as in libbpf as `cgroup_device`.
 	/// Also known as the ELF section `cgroup/dev`.
-	CgroupDevice(CommonProgramTypeDetails),
+	CgroupDevice(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as in libbpf as `sock_ops`.
 	/// Also known as the ELF section `sockops`.
-	SocketOps(CommonProgramTypeDetails),
+	SocketOps(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as the ELF section `sk_skb/stream_parser`.
 	/// Legacy as libbpf's `sk_skb`.
 	/// Legacy with the ELF section `sk_skb`.
-	SocketBufferStreamParser(CommonProgramTypeDetails),
+	SocketBufferStreamParser(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as the ELF section `sk_skb/stream_verdict`.
 	/// Legacy as libbpf's `sk_skb`.
 	/// Legacy with the ELF section `sk_skb`.
-	SocketBufferStreamVerdiet(CommonProgramTypeDetails),
+	SocketBufferStreamVerdiet(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as in libbpf as `sk_msg`.
 	/// Also known as the ELF section `sk_msg`.
-	SocketMessage(CommonProgramTypeDetails),
+	SocketMessage(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as in libbpf as `lirc_mode2`.
 	/// Also known as the ELF section `lirc_mode2`.
-	LIRCMode2(CommonProgramTypeDetails),
+	LIRCMode2(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as in libbpf as `flow_dissector`.
 	/// Also known as the ELF section `flow_dissector`.
-	FlowDissector(CommonProgramTypeDetails),
+	FlowDissector(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as the ELF section `cgroup/bind4`.
 	/// ?Overlaps with libbpf's `cgroup_sock_addr`.
-	CgroupBindInternetProtocolVersion4(CommonProgramTypeDetails),
+	CgroupBindInternetProtocolVersion4(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as the ELF section `cgroup/bind6`.
 	/// ?Overlaps with libbpf's `cgroup_sock_addr`.
-	CgroupBindInternetProtocolVersion6(CommonProgramTypeDetails),
+	CgroupBindInternetProtocolVersion6(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as the ELF section `cgroup/connect4`.
 	/// ?Overlaps with libbpf's `cgroup_sock_addr`.
-	CgroupConnectInternetProtocolVersion4(CommonProgramTypeDetails),
+	CgroupConnectInternetProtocolVersion4(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as the ELF section `cgroup/connect6`.
 	/// ?Overlaps with libbpf's `cgroup_sock_addr`.
-	CgroupConnectInternetProtocolVersion6(CommonProgramTypeDetails),
+	CgroupConnectInternetProtocolVersion6(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as the ELF section `cgroup/sendmsg4`.
 	/// ?Overlaps with libbpf's `cgroup_sock_addr`.
-	CgroupSendMessageUdpOverInternetProtocolVersion4(CommonProgramTypeDetails),
+	CgroupSendMessageUdpOverInternetProtocolVersion4(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as the ELF section `cgroup/sendmsg6`.
 	/// ?Overlaps with libbpf's `cgroup_sock_addr`.
-	CgroupSendMessageUdpOverInternetProtocolVersion6(CommonProgramTypeDetails),
+	CgroupSendMessageUdpOverInternetProtocolVersion6(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as the ELF section `cgroup/recvmsg4`.
 	/// ?Overlaps with libbpf's `cgroup_sock_addr`.
-	CgroupReceiveMessageUdpOverInternetProtocolVersion4(CommonProgramTypeDetails),
+	CgroupReceiveMessageUdpOverInternetProtocolVersion4(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as the ELF section `cgroup/recvmsg6`.
 	/// ?Overlaps with libbpf's `cgroup_sock_addr`.
-	cgroup_recvmsg6(CommonProgramTypeDetails),
+	cgroup_recvmsg6(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as in libbpf as `cgroup_sysctl`.
 	/// Also known as the ELF section `cgroup/sysctl`.
-	CgroupReceiveMessageUdpOverInternetProtocolVersion6(CommonProgramTypeDetails),
+	CgroupReceiveMessageUdpOverInternetProtocolVersion6(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// ?Overlaps with libbpf's `cgroup_sockopt`.
 	/// Also known as the ELF section `cgroup/getsockopt`.
-	CgroupSetSocketOptions(CommonProgramTypeDetails),
+	CgroupSetSocketOptions(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// ?Overlaps with libbpf's `cgroup_sockopt`.
 	/// Also known as the ELF section `cgroup/setsockopt`.
-	CgroupGetSocketOptions(CommonProgramTypeDetails),
+	CgroupGetSocketOptions(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as in libbpf as `struct_ops`.
 	/// Also known as the ELF section `struct_ops`.
-	StructOps(AttachToBpfTypeIdentifier),
+	StructOps(#[serde(default)] AttachToBpfTypeIdentifier),
 	
 	/// A type of tracing program.
 	///
 	/// Also known as the ELF section `lsm/`.
-	LinuxSecurityModule(AttachToBpfTypeIdentifier),
+	LinuxSecurityModule(#[serde(default)] AttachToBpfTypeIdentifier),
 	
 	/// Also known as in libbpf as `tracing`.
 	/// Also known as the ELF section `tp_btf/`.
 	///
 	/// A type of tracing program.
-	TracingRawTracePoint(AttachProgramTypeDetails<'name>),
+	TracingRawTracePoint(#[serde(default)] AttachProgramTypeDetails<'name>),
 	
 	/// Also known as in libbpf as `tracing`.
 	/// Also known as the ELF section `fentry/`.
 	///
 	/// A type of tracing program.
-	TracingFunctionEntry(AttachProgramTypeDetails<'name>),
+	TracingFunctionEntry(#[serde(default)] AttachProgramTypeDetails<'name>),
 	
 	/// Also known as in libbpf as `tracing`.
 	/// Also known as the ELF section `fmod_ret/`.
 	///
 	/// A type of tracing program.
-	TracingModifyReturn(AttachProgramTypeDetails<'name>),
+	TracingModifyReturn(#[serde(default)] AttachProgramTypeDetails<'name>),
 	
 	/// Also known as in libbpf as `tracing`.
 	/// Also known as the ELF section `fmod_ret/`.
 	///
 	/// A type of tracing program.
-	TracingFunctionExit(AttachProgramTypeDetails<'name>),
+	TracingFunctionExit(#[serde(default)] AttachProgramTypeDetails<'name>),
 	
 	/// Also known as in libbpf as `ext`.
 	/// Also known as the ELF section `fexit/`.
 	///
 	/// A type of tracing program.
-	Ext(AttachProgramTypeDetails<'name>),
+	Ext(#[serde(default)] AttachProgramTypeDetails<'name>),
 	
 	/// Also known as in libbpf as `sk_reuseport`.
-	SocketReusePort(CommonProgramTypeDetails),
+	SocketReusePort(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as in libbpf as `raw_tracepoint_writable`.
-	RawTracePointWritable(CommonProgramTypeDetails),
+	RawTracePointWritable(#[serde(default)] CommonProgramTypeDetails),
 }
 
 impl<'name> ProgramType<'name>

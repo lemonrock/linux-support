@@ -9,13 +9,13 @@ pub struct ProgramCounter(pub(crate) usize);
 impl ProgramCounter
 {
 	#[inline(always)]
-	pub(crate) fn i16_offset_to_label(self, from_program_counter: Self) -> Result<i16, ProgramError>
+	pub(crate) fn i16_offset(self, from_program_counter: Self) -> Result<i16, ProgramError>
 	{
 		self.offset_to_label(from_program_counter, ProgramError::JumpOffsetIsTooLargeForI16, i16::MAX as u64, (-(i16::MIN as i64)) as u64).map(|i32_offset| i32_offset as i16)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn i32_offset_to_relative_function(self, from_program_counter: Self) -> Result<i32, ProgramError>
+	pub(crate) fn i32_offset(self, from_program_counter: Self) -> Result<i32, ProgramError>
 	{
 		self.offset_to_label(from_program_counter, ProgramError::RelativeFunctionOffsetIsTooLargeForI32, i32::MAX as u64, (-(i32::MIN as i64)) as u64)
 	}
@@ -42,19 +42,26 @@ impl ProgramCounter
 		}
 		else if label < from_program_counter
 		{
-			let difference = (from_program_counter - label).checked_add(1).ok_or(error_if_too_large)?;
-			if unlikely!(difference > minimum)
+			match (from_program_counter - label).checked_add(1)
 			{
-				Err(error_if_too_large)
-			}
-			else
-			{
-				Ok(-(difference as i64) as i32)
+				None => Err(error_if_too_large),
+				
+				Some(difference) =>
+				{
+					if unlikely!(difference > minimum)
+					{
+						Err(error_if_too_large)
+					}
+					else
+					{
+						Ok(-(difference as i64) as i32)
+					}
+				}
 			}
 		}
 		else
 		{
-			return Err(ProgramError::JumpOrRelativeFunctionOffsetOfNegativeOneCreatesAnInfiniteLoop)
+			Err(ProgramError::JumpOrRelativeFunctionOffsetOfNegativeOneCreatesAnInfiniteLoop)
 		}
 	}
 }

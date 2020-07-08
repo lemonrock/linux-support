@@ -19,6 +19,6 @@ impl btf_param
 	pub(crate) const FinalVarArgsParameter: Self = Self
 	{
 		name_off: 0,
-		type_: BtfTypeSizeOrTypeIdentifier::Void,
+		type_: BtfTypeIdentifier::Void,
 	};
 }

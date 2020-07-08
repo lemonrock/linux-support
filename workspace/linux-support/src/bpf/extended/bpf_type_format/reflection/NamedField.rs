@@ -22,7 +22,7 @@ impl Field for NamedField
 		(
 			btf_member
 			{
-				name_off: type_identifiers.push_c_identifier(self.ident, BtfKind::Function)?,
+				name_off: unsafe { transmute(type_identifiers.push_c_identifier(self.ident, BtfKind::Function)?) },
 				type_identifier: type_identifiers.get_or_create_type_identifier(self.unnamed.type_)?,
 				offset: self.unnamed.offset_in_bits()?,
 			}

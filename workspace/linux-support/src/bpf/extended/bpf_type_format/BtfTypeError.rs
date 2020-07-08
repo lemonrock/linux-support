@@ -3,7 +3,7 @@
 
 
 #[allow(missing_docs)]
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum BtfTypeError
 {
 	IntegerSizeCanNotExceed31Bytes,

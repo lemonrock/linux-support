@@ -3,7 +3,7 @@
 
 
 /// An error when processing a list of `ProgramLine`.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ProgramError
 {
 	/// More than 2^22 program lines.
@@ -57,11 +57,14 @@ pub enum ProgramError
 	/// Invalid program size.
 	InvalidBtfDataSize(TryFromIntError),
 	
+	/// Invalid program size.
+	BtfDataSizeZero,
+	
 	/// Too much BTF data to load.
 	MaximumBtfDataSizeExceeded,
 	
 	/// Too much BTF data to load.
-	CouldNotLoadBtfData(io::Error),
+	CouldNotLoadBtfData(Errno),
 }
 
 impl Display for ProgramError
@@ -86,8 +89,6 @@ impl error::Error for ProgramError
 			
 			&InvalidBtfDataSize(ref error) => Some(error),
 			
-			&CouldNotLoadBtfData(ref error) => Some(error),
-			
 			_ => None,
 		}
 	}
@@ -99,5 +100,14 @@ impl From<BtfTypeError> for ProgramError
 	fn from(value: BtfTypeError) -> Self
 	{
 		ProgramError::BtfType(value)
+	}
+}
+
+impl From<TryFromIntError> for ProgramError
+{
+	#[inline(always)]
+	fn from(value: TryFromIntError) -> Self
+	{
+		ProgramError::InvalidBtfDataSize(value)
 	}
 }

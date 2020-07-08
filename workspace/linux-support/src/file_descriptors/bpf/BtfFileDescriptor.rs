@@ -60,7 +60,7 @@ impl BtfFileDescriptor
 			return Err(MaximumBtfDataSizeExceeded)
 		}
 		
-		let (btf_log_level, btf_log_buf, btf_log_size) = VerifierLog::to_values_for_syscall(verifier_log)?;
+		let (btf_log_level, btf_log_buf, btf_log_size) = VerifierLog::to_values_for_syscall(verifier_log);
 		
 		let mut attributes = bpf_attr
 		{
@@ -81,7 +81,7 @@ impl BtfFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			Err(CouldNotLoadBtfData(io::Error::last_os_error()))
+			Err(CouldNotLoadBtfData(errno()))
 		}
 		else
 		{

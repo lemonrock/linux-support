@@ -23,9 +23,9 @@ impl VerifierLog
 	/// New instance.
 	pub fn new(level: VerifierLogLevel, ideal_size: usize) -> Self
 	{
-		let buffer_size = if ideal_size < Self::MinimumBufferSize
+		let buffer_size = if ideal_size < Self::MinimumInclusiveBufferSize
 		{
-			Self::MinimumBufferSize
+			Self::MinimumInclusiveBufferSize
 		}
 		else if ideal_size >= Self::ExclusiveMaximumBufferSize
 		{
@@ -36,9 +36,9 @@ impl VerifierLog
 			ideal_size
 		};
 		
-		let mut messages_buffer = Vec::with_capacity(buffer_size);
+		let mut messages_buffer: Vec<c_char> = Vec::with_capacity(buffer_size);
 		unsafe { messages_buffer.set_len(buffer_size) };
-		unsafe { *messages_buffer.get_unchecked_mut(0) = b'\0' };
+		unsafe { *messages_buffer.get_unchecked_mut(0) = b'\0' as i8 };
 		
 		Self
 		{

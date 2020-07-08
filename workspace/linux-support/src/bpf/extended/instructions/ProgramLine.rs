@@ -466,9 +466,9 @@ impl<'name> ProgramLine<'name>
 	///
 	/// ***CAUTION***: emits ***NO*** instructions - be aware when manually counting jump offsets!
 	#[inline(always)]
-	pub fn function(name: impl Into<Name<'name>>) -> Self
+	pub fn function(name: impl Into<Name<'name>>, function_prototype: Option<FunctionPrototype>) -> Self
 	{
-		ProgramLine::Function(name.into())
+		ProgramLine::Function(name.into(), function_prototype)
 	}
 	
 	/// Load a true 64-bit value.
@@ -839,7 +839,7 @@ impl<'name> ProgramLine<'name>
 			
 			&Function(ref relative_function_name, ref function_prototype) =>
 			{
-				instructions.register_relative_function_name(relative_function_name, function_prototype)?;
+				instructions.register_relative_function_name(relative_function_name, function_prototype.as_ref())?;
 				return Ok(())
 			}
 			

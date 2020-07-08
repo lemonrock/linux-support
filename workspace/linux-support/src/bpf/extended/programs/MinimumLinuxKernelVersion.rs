@@ -4,6 +4,8 @@
 
 /// Only of relevance to loading BPF programs with `prog_type` of `bpf_prog_type::BPF_PROG_TYPE_KPROBE`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum MinimumLinuxKernelVersion
 {
 	/// Minimum.
@@ -25,7 +27,7 @@ impl Default for MinimumLinuxKernelVersion
 impl MinimumLinuxKernelVersion
 {
 	#[inline(always)]
-	fn to_u32(self) -> u32
+	fn to_u32(&self) -> u32
 	{
 		use self::MinimumLinuxKernelVersion::*;
 		

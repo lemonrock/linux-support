@@ -37,7 +37,7 @@ impl<ExtraData: Sized> btf_type<ExtraData>
 	#[inline(always)]
 	fn kind(&self) -> BtfKind
 	{
-		unsafe { transmute(Self::BTF_INFO_KIND(self.info)) }
+		unsafe { transmute(Self::BTF_INFO_KIND(self.info) as u8) }
 	}
 	
 	#[inline(always)]
@@ -67,7 +67,7 @@ impl<ExtraData: Sized> btf_type<ExtraData>
 	#[inline(always)]
 	const fn BTF_INFO_KFLAG(info: u32) -> bool
 	{
-		(info >> 31) as bool
+		(info >> 31) != 0
 	}
 	
 	#[inline(always)]
@@ -86,7 +86,7 @@ impl<ExtraData: Sized> btf_type<ExtraData>
 			Some(offset_of_name_into_string_section) =>
 			{
 				let offset_of_name_into_string_section = offset_of_name_into_string_section.get();
-				if unlikely!(offset_of_name_into_string_section >= Self::BTF_MAX_NAME_OFFSET)
+				if unlikely!(offset_of_name_into_string_section >= BTF_MAX_NAME_OFFSET)
 				{
 					Err(BtfTypeError::StringTableOffsetIsTooLarge)
 				}
@@ -183,7 +183,7 @@ impl btf_type<()>
 		(
 			Self
 			{
-				name_off: Self::guard_offset_of_name_into_string_section(offset_of_name_into_string_section)?,
+				name_off: Self::guard_offset_of_name_into_string_section(Some(offset_of_name_into_string_section))?,
 				info: Self::info(BtfKind::Forward, 0, is_union),
 				btf_type_size_or_type: BtfTypeSizeOrTypeIdentifier
 				{
@@ -201,7 +201,7 @@ impl btf_type<()>
 		(
 			Self
 			{
-				name_off: Self::guard_offset_of_name_into_string_section(offset_of_name_into_string_section)?,
+				name_off: Self::guard_offset_of_name_into_string_section(Some(offset_of_name_into_string_section))?,
 				info: Self::info(BtfKind::TypeDefinition, 0, false),
 				btf_type_size_or_type: BtfTypeSizeOrTypeIdentifier
 				{
