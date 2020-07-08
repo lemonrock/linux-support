@@ -27,6 +27,7 @@ assert_cfg!(target_os = "linux");
 assert_cfg!(target_pointer_width = "64");
 
 
+use arrayvec::Array;
 use libc::c_char;
 use likely::likely;
 use likely::unlikely;
@@ -75,12 +76,6 @@ use std::ptr::null;
 use std::ptr::write_bytes;
 
 
-include!("LoadNonAtomically.rs");
-include!("move_to_front_of_vec.rs");
-include!("StaticInitializedOnce.rs");
-include!("VariablySized.rs");
-
-
 /// A set of types to support the use of bit sets in Linux APIs and files.
 #[macro_use]
 pub mod bit_set;
@@ -100,3 +95,10 @@ pub mod split;
 
 /// String utilities.
 pub mod strings;
+
+
+include!("ConstArrayVec.rs");
+include!("LoadNonAtomically.rs");
+include!("move_to_front_of_vec.rs");
+include!("StaticInitializedOnce.rs");
+include!("VariablySized.rs");

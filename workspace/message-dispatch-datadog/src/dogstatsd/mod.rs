@@ -26,7 +26,6 @@ include!("dog_stats_d_tags.rs");
 
 include!("AdditionalDogStatsDTag.rs");
 include!("AdditionalDogStatsDTags.rs");
-include!("ConstArrayVec.rs");
 include!("DogStatsDMessage.rs");
 include!("DogStatsDTag.rs");
 include!("DogStatsDTags.rs");

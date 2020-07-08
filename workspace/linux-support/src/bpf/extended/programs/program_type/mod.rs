@@ -2,33 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// An error when processing an instruction.
-#[allow(missing_docs)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum InstructionError
-{
-	CouldNotResolveOffset,
-	
-	CouldNotResolveMapFileDescriptorLabel,
-	
-	JumpOffsetOfNegativeOneCreatesAnInfiniteJumpLoop,
-	
-	JumpOffsetIsTooLargeForI32,
-	
-	JumpOffsetIsTooLargeForI16,
-	
-	SomeJumpLabelsAreUnresolved,
-}
+use super::*;
 
-impl Display for InstructionError
-{
-	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter) -> fmt::Result
-	{
-		Debug::fmt(self, f)
-	}
-}
 
-impl error::Error for InstructionError
-{
-}
+include!("AttachBpfTypeIdentifier.rs");
+include!("AttachProgramTypeDetails.rs");
+include!("CommonProgramTypeDetails.rs");
+include!("ProgramType.rs");

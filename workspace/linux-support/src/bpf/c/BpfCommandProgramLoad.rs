@@ -3,6 +3,8 @@
 
 
 /// Used by `BPF_PROG_LOAD` command.
+///
+/// `libbpf` calls this `struct bpf_load_program_attr`.
 #[repr(C)]
 #[derive(Debug, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub(crate) struct BpfCommandProgramLoad
@@ -15,7 +17,7 @@ pub(crate) struct BpfCommandProgramLoad
 	/// An array of `bpf_insn` instructions.
 	pub(crate) insns: AlignedU64,
 	
-	/// Pointer to a C string (ASCII NULL terminated string) such as `"GPL\0"`
+	/// Pointer to a C string (ASCII NULL terminated string) such as `"GPL\0"`.
 	pub(crate) license: AlignedU64,
 	
 	/// verbosity level of verifier.
@@ -38,29 +40,37 @@ pub(crate) struct BpfCommandProgramLoad
 	/// ifindex of netdev to prep for.
 	///
 	/// For some prog types expected attach type must be known at load time to verify attach type specific parts of prog (eg context accesses, allowed helpers, etc).
-	pub(crate) prog_ifindex: u32,
+	pub(crate) prog_ifindex: Option<NetworkInterfaceIndex>,
 	
 	pub(crate) expected_attach_type: bpf_attach_type,
 	
 	/// File descriptor pointing to BTF type data.
 	pub(crate) prog_btf_fd: u32,
 	
-	/// Size of `bpf_func_info`, an array of `bpf_func_info` records.
+	/// Either `0` or `size_of::<bpf_func_info>()`.
+	///
+	/// Used for BTF.
 	pub(crate) func_info_rec_size: u32,
 	
-	/// pointer to `bpf_func_info`, an array of `bpf_func_info` records.
+	/// Pointer to an array of `struct bpf_func_info` records used for BTF.
 	pub(crate) func_info: AlignedU64,
 	
-	/// number of `bpf_func_info` records.
+	/// number of `struct bpf_func_info` records used for BTF.
+	///
+	/// If not `0`, then `func_info_rec_size` is checked by the kernel to be either `0` or `size_of::<bpf_func_info>()`.
 	pub(crate) func_info_cnt: u32,
 	
-	/// Size of `bpf_line_info`, an array of `bpf_func_info` records.
+	/// Either `0` or `size_of::<bpf_line_info>()`.
+	///
+	/// Used for BTF.
 	pub(crate) line_info_rec_size: u32,
 	
-	/// pointer to `bpf_line_info`, an array of `bpf_func_info` records.
+	/// Pointer to an array of `struct bpf_line_info` records used for BTF.
 	pub(crate) line_info: AlignedU64,
 	
-	/// number of` bpf_line_info` records.
+	/// number of `struct bpf_line_info` records used for BTF.
+	///
+	/// If not `0`, then `line_info_rec_size` is checked by the kernel to be either `0` or `size_of::<bpf_line_info>()`.
 	pub(crate) line_info_cnt: u32,
 	
 	/// in-kernel BTF type id to attach to.

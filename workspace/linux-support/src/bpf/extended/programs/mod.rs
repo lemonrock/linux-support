@@ -3,11 +3,26 @@
 
 
 use super::*;
+use super::c::*;
+use super::extended::bpf_type_format::*;
+use super::extended::bpf_type_format::reflection::*;
+use super::instructions::*;
+use super::instructions::map_file_descriptor_label::*;
+use super::instructions::offset::*;
+use self::program_type::*;
 use crate::linux_kernel_version::LinuxKernelVersionNumber;
+use crate::pci_express::NetworkInterfaceIndex;
 use crate::process::CommandName;
+
+
+/// Program type.
+pub mod program_type;
 
 
 include!("BpfProgramLicense.rs");
 include!("MinimumLinuxKernelVersion.rs");
-//include!("LoadableBpfProgram.rs");
+include!("ExtendedBpfProgram.rs");
+include!("ExtendedBpfProgramArguments.rs");
+include!("ProgramLoadError.rs");
 include!("ProgramName.rs");
+include!("VerifierLogLevel.rs");

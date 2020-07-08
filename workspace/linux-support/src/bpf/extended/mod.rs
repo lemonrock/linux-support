@@ -5,6 +5,10 @@
 use super::*;
 
 
+/// BPF type format (BTF).
+pub mod bpf_type_format;
+
+
 /// Instructions.
 pub mod instructions;
 

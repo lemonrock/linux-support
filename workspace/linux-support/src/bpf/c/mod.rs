@@ -3,9 +3,12 @@
 
 
 use super::*;
+use super::extended::bpf_type_format::*;
 use super::extended::instructions::*;
 use super::extended::instructions::LoadSize::*;
 use crate::syscall::SYS;
+use crate::pci_express::NetworkInterfaceIndex;
+use crate::bpf::extended::instructions::offset::program_counter::ProgramCounter;
 
 
 include!("__IncompleteArrayField.rs");
@@ -19,7 +22,9 @@ include!("bpf_attr.rs");
 include!("bpf_cgroup_storage_key.rs");
 include!("bpf_cmd.rs");
 include!("bpf_func_id.rs");
+include!("bpf_func_info.rs");
 include!("bpf_insn.rs");
+include!("bpf_line_info.rs");
 include!("bpf_lpm_trie_key.rs");
 include!("BPF_JUMP.rs");
 //include!("BPF_LL_OFF.rs");
@@ -54,6 +59,18 @@ include!("BpfCommandProgramQuery.rs");
 include!("BpfCommandProgramTestRun.rs");
 include!("BpfCommandRawTracePointOpen.rs");
 include!("BpfCommandTaskFileDescriptorQuery.rs");
+include!("btf_array.rs");
+include!("btf_enum.rs");
+include!("btf_func_linkage.rs");
+include!("btf_header.rs");
+include!("BTF_INT_.rs");
+include!("BTF_MAX_.rs");
+include!("btf_member.rs");
+include!("btf_param.rs");
+include!("btf_type.rs");
+include!("btf_var.rs");
+include!("BtfTypeSizeOrTypeIdentifier.rs");
+include!("BtfVariableLinkage.rs");
 include!("DestinationAndSourceRegisters.rs");
 include!("ExtendedBPF_.rs");
 include!("OffsetOrInternetProtocol.rs");

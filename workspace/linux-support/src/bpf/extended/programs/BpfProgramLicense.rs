@@ -3,8 +3,19 @@
 
 
 /// License.
+///
+/// Defaults to `GPLv2`.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct BpfProgramLicense(ConstCStr);
+
+impl Default for BpfProgramLicense
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self::GPLv2
+	}
+}
 
 impl BpfProgramLicense
 {

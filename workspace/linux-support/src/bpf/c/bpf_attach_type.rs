@@ -34,5 +34,4 @@ pub(crate) enum bpf_attach_type
 	BPF_TRACE_FEXIT = 25,
 	BPF_MODIFY_RETURN = 26,
 	BPF_LSM_MAC = 27,
-	__MAX_BPF_ATTACH_TYPE = 28,
 }

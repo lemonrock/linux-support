@@ -491,7 +491,7 @@ impl bpf_insn
 	///
 	/// Relative call.
 	#[inline(always)]
-	pub const fn relative_call(program_counter_offset_to_another_bpf_function: i32) -> Self
+	pub const fn relative_function_call(program_counter_offset_to_another_bpf_function: i32) -> Self
 	{
 		Self::new
 		(

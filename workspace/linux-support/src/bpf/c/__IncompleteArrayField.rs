@@ -4,7 +4,7 @@
 
 #[repr(C)]
 #[derive(Default)]
-pub(crate) struct __IncompleteArrayField<T>(::std::marker::PhantomData<T>, [T; 0]);
+pub(crate) struct __IncompleteArrayField<T>(PhantomData<T>, [T; 0]);
 
 impl<T> Debug for __IncompleteArrayField<T>
 {
@@ -20,7 +20,7 @@ impl<T> __IncompleteArrayField<T>
 	#[inline(always)]
 	pub(crate) const fn new() -> Self
 	{
-		__IncompleteArrayField(::std::marker::PhantomData, [])
+		__IncompleteArrayField(PhantomData, [])
 	}
 	
 	#[inline(always)]

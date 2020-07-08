@@ -3,6 +3,9 @@
 
 
 use super::*;
+use super::bpf_type_format::*;
+use super::bpf_type_format::reflection::*;
+use super::programs::ExtendedBpfProgramArguments;
 use self::map_file_descriptor_label::*;
 use self::offset::*;
 use self::offset::immediate::*;
@@ -12,14 +15,15 @@ use self::offset::program_counter::*;
 
 include!("AluOperation.rs");
 include!("EndiannessOperation.rs");
-include!("Instruction.rs");
-include!("Instructions.rs");
-include!("InstructionError.rs");
 include!("LoadSize.rs");
 include!("JumpOperation.rs");
 include!("Name.rs");
+include!("ProgramError.rs");
+include!("ProgramLine.rs");
+include!("ProgramLinesParser.rs");
 include!("Register.rs");
 include!("RegisterOrImmediate.rs");
+include!("UsageHashMap.rs");
 
 
 /// Map File Descriptor label.

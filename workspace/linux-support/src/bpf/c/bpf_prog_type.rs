@@ -7,7 +7,7 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum bpf_prog_type
 {
-	/// This is usuallly invalid.
+	#[doc(hidden)]
 	BPF_PROG_TYPE_UNSPEC = 0,
 	
 	BPF_PROG_TYPE_SOCKET_FILTER = 1,

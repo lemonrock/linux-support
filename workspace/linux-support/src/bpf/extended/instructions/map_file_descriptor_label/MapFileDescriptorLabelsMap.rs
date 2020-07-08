@@ -3,18 +3,31 @@
 
 
 /// Resolves the value of items of type `MapFileDescriptor`.
-#[derive(Default, Debug, Clone, PartialEq, Eq)]
-pub struct MapFileDescriptorLabelsMap<'a>(HashMap<String, &'a MapFileDescriptor>);
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MapFileDescriptorLabelsMap<'map_file_descriptor>(UsageHashMap<&'map_file_descriptor MapFileDescriptor>);
 
-impl<'a> MapFileDescriptorLabelsMap<'a>
+impl<'map_file_descriptor> Default for MapFileDescriptorLabelsMap<'map_file_descriptor>
 {
 	#[inline(always)]
-	pub(crate) fn resolve<'de>(&self, map_file_descriptor_label: &MapFileDescriptorLabel) -> Result<RawFd, InstructionError>
+	fn default() -> Self
 	{
-		match self.0.get(map_file_descriptor_label.deref())
-		{
-			None => Err(InstructionError::CouldNotResolveMapFileDescriptorLabel),
-			Some(map_file_descriptor) => Ok(map_file_descriptor.as_raw_fd())
-		}
+		use self::ProgramError::*;
+		
+		Self(UsageHashMap::new(CouldNotResolveMapFileDescriptorLabel, NotAllMapFileDescriptorLabelsHaveBeenResolved))
+	}
+}
+
+impl<'map_file_descriptor> MapFileDescriptorLabelsMap<'map_file_descriptor>
+{
+	#[inline(always)]
+	pub(crate) fn resolve<'de>(&self, map_file_descriptor_label: &MapFileDescriptorLabel) -> Result<RawFd, ProgramError>
+	{
+		self.0.resolve(map_file_descriptor_label.deref()).map(|map_file_descriptor| map_file_descriptor.as_raw_fd())
+	}
+	
+	#[inline(always)]
+	pub(crate) fn guard_all_values_have_been_resolved_at_least_once(self) -> Result<(), ProgramError>
+	{
+		self.0.guard_all_values_have_been_resolved_at_least_once()
 	}
 }

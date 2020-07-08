@@ -48,6 +48,15 @@ impl<'de> Deserialize<'de> for CommandName
 	}
 }
 
+impl Into<ArrayVec<[u8; CommandName::MaximumCommandNameLengthIncludingAsciiNul]>> for CommandName
+{
+	#[inline(always)]
+	fn into(self) -> ArrayVec<[u8; CommandName::MaximumCommandNameLengthIncludingAsciiNul]>
+	{
+		self.0
+	}
+}
+
 impl Serialize for CommandName
 {
 	#[inline(always)]

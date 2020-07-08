@@ -3,27 +3,38 @@
 
 
 /// Resolves the value of items of type `Immediate::Named`.
-#[derive(Default, Debug, Clone, PartialEq, Eq)]
-pub struct OffsetsMap<OV: OffsetValue>
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OffsetsMap<OV: OffsetValue>(UsageHashMap<OV>);
+
+impl<OV: OffsetValue> Default for OffsetsMap<OV>
 {
-	values: HashMap<String, OV>,
+	#[inline(always)]
+	fn default() -> Self
+	{
+		use self::ProgramError::*;
+		
+		Self(UsageHashMap::new(CouldNotResolveOffset, NotAllOffsetsHaveBeenResolved))
+	}
 }
 
 impl<OV: OffsetValue> OffsetsMap<OV>
 {
 	#[inline(always)]
-	pub(crate) fn resolve<'de>(&self, offset: &impl AsRef<Offset<'de, OV>>) -> Result<OV, InstructionError>
+	pub(crate) fn resolve<'de>(&self, offset: &impl AsRef<Offset<'de, OV>>) -> Result<OV, ProgramError>
 	{
 		use self::Offset::*;
 		
 		match offset.as_ref()
 		{
 			&Known(value) => Ok(value),
-			&Named(Name(ref name)) => match self.values.get(name.deref())
-			{
-				Some(value) => Ok(*value),
-				None => Err(InstructionError::CouldNotResolveOffset),
-			}
+			
+			&Named(Name(ref name)) => self.0.resolve(name.deref()),
 		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn guard_all_values_have_been_resolved_at_least_once(self) -> Result<(), ProgramError>
+	{
+		self.0.guard_all_values_have_been_resolved_at_least_once()
 	}
 }

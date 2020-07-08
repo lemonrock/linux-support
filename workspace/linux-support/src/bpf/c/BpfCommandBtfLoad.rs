@@ -15,7 +15,7 @@ pub(crate) struct BpfCommandBtfLoad
 	/// Pointer to data.
 	pub(crate) btf_log_buf: AlignedU64,
 	
-	/// Size of data pointed to by `btf`.
+	/// Size of data pointed to by `bpf_type_format`.
 	pub(crate) btf_size: u32,
 	
 	/// Size of data pointed to by `btf_log_buf`.

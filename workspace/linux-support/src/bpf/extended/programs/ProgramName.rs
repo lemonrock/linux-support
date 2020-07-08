@@ -54,3 +54,16 @@ impl Default for ProgramName
 		Self(CommandName::new_from_bytes_excluding_ascii_nul(b"").unwrap())
 	}
 }
+
+impl ProgramName
+{
+	#[inline(always)]
+	fn prog_name(&self) -> [c_char; BPF_OBJ_NAME_LEN]
+	{
+		debug_assert_eq!(BPF_OBJ_NAME_LEN, CommandName::MaximumCommandNameLengthIncludingAsciiNul);
+		
+		let array_vec = self.0.clone().into();
+		let const_array_vec: ConstArrayVec<[u8; BPF_OBJ_NAME_LEN]> = unsafe { transmute(array_vec) };
+		unsafe { transmute(const_array_vec.xs) }
+	}
+}

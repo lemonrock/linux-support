@@ -18,6 +18,7 @@
 #![feature(const_raw_ptr_deref)]
 #![feature(const_raw_ptr_to_usize_cast)]
 #![feature(const_transmute)]
+#![feature(const_type_id)]
 #![feature(internal_uninit_const)]
 #![feature(llvm_asm)]
 #![feature(maybe_uninit_extra)]
@@ -41,7 +42,8 @@ assert_cfg!(target_pointer_width = "64");
 
 
 use crate::cpu::HyperThread;
-use crate::memory::numa::NumaNode;#[cfg(target_arch = "x86_64")] use raw_cpuid::*;
+use crate::memory::numa::NumaNode;
+#[cfg(target_arch = "x86_64")] use raw_cpuid::*;
 use arrayvec::Array;
 use arrayvec::ArrayVec;
 use arrayvec::CapacityError;
@@ -593,6 +595,7 @@ use serde::Serializer;
 use serde::de;
 use serde::de::Unexpected;
 use serde::de::Visitor;
+use std::any::TypeId;
 #[cfg(all(target_arch = "x86_64", target_feature = "popcnt"))] use std::arch::x86_64::_mm_popcnt_u64;
 use std::array::TryFromSliceError;
 use std::borrow::Borrow;
@@ -677,6 +680,7 @@ use std::num::NonZeroU64;
 use std::num::NonZeroU8;
 use std::num::NonZeroUsize;
 use std::num::ParseIntError;
+use std::num::TryFromIntError;
 use std::ops::Add;
 use std::ops::AddAssign;
 use std::ops::BitAnd;
@@ -750,6 +754,7 @@ use strum_macros::EnumIter;
 use strum_macros::EnumMessage;
 use strum_macros::IntoStaticStr;
 use swiss_army_knife::bit_set_aware;
+use swiss_army_knife::ConstArrayVec;
 use swiss_army_knife::LoadNonAtomically;
 use swiss_army_knife::move_to_front_of_vec;
 use swiss_army_knife::StaticInitializedOnce;
