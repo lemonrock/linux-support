@@ -3,9 +3,9 @@
 
 
 #[derive(Debug)]
-pub(crate) struct ParsedBtfData
+pub struct ParsedBtfData
 {
-	btf_file_descriptor: RawFd,
+	btf_file_descriptor: BtfFileDescriptor,
 	function_information: Box<[bpf_func_info]>,
 	line_information: Box<[bpf_line_info]>,
 }
@@ -40,7 +40,7 @@ impl ParsedBtfData
 		Ok
 		(
 			(
-				self.btf_file_descriptor as u32,
+				self.btf_file_descriptor.into_raw_fd() as u32,
 				Self::to_array(&self.function_information[..], FunctionInformationArrayIsLargerThanU32Max)?,
 				Self::to_array(&self.line_information[..], LineInformationArrayIsLargerThanU32Max)?,
 			)

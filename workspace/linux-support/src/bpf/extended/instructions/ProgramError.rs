@@ -19,10 +19,10 @@ pub enum ProgramError
 	NotAllOffsetsHaveBeenResolved(Vec<String>),
 	
 	/// Could not resolve a map file descriptor label.
-	CouldNotResolveMapFileDescriptorLabel,
+	CouldNotResolveFileDescriptorLabel,
 	
 	/// Not all map file descriptor labels have been resolved.
-	NotAllMapFileDescriptorLabelsHaveBeenResolved(Vec<String>),
+	NotAllFileDescriptorLabelsHaveBeenResolved(Vec<String>),
 	
 	/// A jump or relative function jump offset can not be -1 as this creates a jump to the jump statement itself, thus creating an infinite loop.
 	JumpOrRelativeFunctionOffsetOfNegativeOneCreatesAnInfiniteLoop,
@@ -56,6 +56,12 @@ pub enum ProgramError
 	
 	/// Invalid program size.
 	InvalidBtfDataSize(TryFromIntError),
+	
+	/// Too much BTF data to load.
+	MaximumBtfDataSizeExceeded,
+	
+	/// Too much BTF data to load.
+	CouldNotLoadBtfData(io::Error),
 }
 
 impl Display for ProgramError
@@ -79,6 +85,8 @@ impl error::Error for ProgramError
 			&BtfType(ref error) => Some(error),
 			
 			&InvalidBtfDataSize(ref error) => Some(error),
+			
+			&CouldNotLoadBtfData(ref error) => Some(error),
 			
 			_ => None,
 		}

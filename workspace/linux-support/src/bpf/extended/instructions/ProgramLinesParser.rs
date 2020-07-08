@@ -23,7 +23,7 @@ impl<'name> ProgramLinesParser<'name>
 	/// Process instructions.
 	///
 	/// If `btf_program_details` is `None`, no function or line information is produced.
-	pub fn parse(btf_program_details: Option<&BtfProgramDetails>, program_lines: &Vec<ProgramLine<'name>>, arguments: ExtendedBpfProgramArguments) -> Result<(Box<[bpf_insn]>, Option<ParsedBtfData>), ProgramError>
+	pub fn parse(btf_program_details: Option<&BtfProgramDetails>, program_lines: &Vec<ProgramLine<'name>>, arguments: ExtendedBpfProgramArguments) -> Result<(Box<[bpf_insn]>, Option<ParsedBtfData>, FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>), ProgramError>
 	{
 		let number_of_program_lines = program_lines.len();
 		if unlikely!(number_of_program_lines > bpf_line_info::MaximumNumberOfProgramLines)
@@ -58,11 +58,11 @@ impl<'name> ProgramLinesParser<'name>
 	}
 	
 	#[inline(always)]
-	fn parse_internal(mut self, btf_program_details: Option<&BtfProgramDetails>, arguments: ExtendedBpfProgramArguments) -> Result<(Box<[bpf_insn]>, Option<ParsedBtfData>), ProgramError>
+	fn parse_internal(mut self, btf_program_details: Option<&BtfProgramDetails>, arguments: ExtendedBpfProgramArguments) -> Result<(Box<[bpf_insn]>, Option<ParsedBtfData>, FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>), ProgramError>
 	{
 		use self::ProgramError::*;
 		
-		let ExtendedBpfProgramArguments { i32_immediates_map, u64_immediates_map, memory_offsets_map, map_file_descriptor_labels_map } = arguments;
+		let ExtendedBpfProgramArguments { i32_immediates_map, u64_immediates_map, memory_offsets_map, map_file_descriptor_labels_map, extended_bpf_program_file_descriptor_labels_map } = arguments;
 		
 		if let Some(&BtfProgramDetails { ref main_function, .. }) = btf_program_details
 		{
@@ -111,6 +111,7 @@ impl<'name> ProgramLinesParser<'name>
 			(
 				instructions,
 				parsed_btf_data,
+				extended_bpf_program_file_descriptor_labels_map,
 			)
 		)
 	}

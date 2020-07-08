@@ -2,27 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Used for the command `BPF_BTF_LOAD`.
-///
-/// BTF is BPF Type Format.
-///
-/// Requires the capability `CAP_SYS_ADMIN`.
-#[repr(C)]
-#[derive(Debug, Default, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
-pub(crate) struct BpfCommandBtfLoad
-{
-	/// Pointer to data.
-	pub(crate) btf: AlignedU64,
-	
-	/// Pointer to data.
-	pub(crate) btf_log_buf: AlignedU64,
-	
-	/// Size of data pointed to by `bpf_type_format`.
-	pub(crate) btf_size: u32,
-	
-	/// Size of data pointed to by `btf_log_buf`.
-	pub(crate) btf_log_size: u32,
-	
-	/// Log level.
-	pub(crate) btf_log_level: u32,
-}
+use super::*;
+use crate::bpf::c::*;
+use crate::bpf::extended::programs::VerifierLog;
+use crate::bpf::extended::instructions::ProgramError;
+
+
+include!("BtfFileDescriptor.rs");
+include!("ExtendedBpfProgramFileDescriptor.rs");
+include!("MapFileDescriptor.rs");

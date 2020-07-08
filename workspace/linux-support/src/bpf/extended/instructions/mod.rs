@@ -6,11 +6,12 @@ use super::*;
 use super::bpf_type_format::*;
 use super::bpf_type_format::reflection::*;
 use super::programs::ExtendedBpfProgramArguments;
-use self::map_file_descriptor_label::*;
+use self::file_descriptor_label::*;
 use self::offset::*;
 use self::offset::immediate::*;
 use self::offset::memory::*;
 use self::offset::program_counter::*;
+use crate::file_descriptors::bpf::{MapFileDescriptor, ExtendedBpfProgramFileDescriptor};
 
 
 include!("AluOperation.rs");
@@ -26,8 +27,8 @@ include!("RegisterOrImmediate.rs");
 include!("UsageHashMap.rs");
 
 
-/// Map File Descriptor label.
-pub mod map_file_descriptor_label;
+/// File Descriptor label.
+pub mod file_descriptor_label;
 
 
 /// Offsets.

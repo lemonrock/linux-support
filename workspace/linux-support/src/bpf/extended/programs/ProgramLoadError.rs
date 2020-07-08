@@ -7,19 +7,13 @@
 pub enum ProgramLoadError
 {
 	#[allow(missing_docs)]
-	Instruction(ProgramError),
+	Program(ProgramError),
 	
 	/// Linux can not support more than `u32::MAX` entries in the function information array.
 	FunctionInformationArrayIsLargerThanU32Max(TryFromIntError),
 	
 	/// Linux can not support more than `u32::MAX` entries in the line information array.
 	LineInformationArrayIsLargerThanU32Max(TryFromIntError),
-	
-	/// Linux's verifier log buffer must be at least 128 bytes.
-	VerifierLogBufferMustBeAtLeast128Bytes,
-	
-	/// Linux's verifier log buffer must be less than `2^24` bytes (`16,777,216`).
-	VerifierLogBufferMustBeLessThan2ToThe24Bytes,
 }
 
 impl Display for ProgramLoadError
@@ -40,7 +34,7 @@ impl error::Error for ProgramLoadError
 
 		match self
 		{
-			&Instruction(ref error) => Some(error),
+			&Program(ref error) => Some(error),
 
 			&FunctionInformationArrayIsLargerThanU32Max(ref error) => Some(error),
 

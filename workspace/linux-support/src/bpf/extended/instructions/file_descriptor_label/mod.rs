@@ -4,9 +4,7 @@
 
 use super::*;
 use crate::file_descriptors::FileDescriptor;
-use crate::file_descriptors::RawFdExt;
 
 
-include!("MapFileDescriptor.rs");
-include!("MapFileDescriptorLabel.rs");
-include!("MapFileDescriptorLabelsMap.rs");
+include!("FileDescriptorLabel.rs");
+include!("FileDescriptorLabelsMap.rs");

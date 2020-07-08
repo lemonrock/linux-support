@@ -7,6 +7,15 @@
 #[repr(transparent)]
 pub struct BtfTypeIdentifier(u32);
 
+impl Into<u32> for BtfTypeIdentifier
+{
+	#[inline(always)]
+	fn into(self) -> u32
+	{
+		self.0
+	}
+}
+
 impl BtfTypeIdentifier
 {
 	/// `void`.

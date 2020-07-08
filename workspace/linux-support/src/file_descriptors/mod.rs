@@ -75,6 +75,10 @@ use crate::vectors::VectoredWrite;
 use crate::terminal::TerminalSettingsError;
 
 
+/// BPF file descriptors.
+pub mod bpf;
+
+
 /// Block device file descriptors.
 pub mod block_device;
 

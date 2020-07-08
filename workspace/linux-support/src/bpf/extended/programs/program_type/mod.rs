@@ -3,9 +3,10 @@
 
 
 use super::*;
+use crate::file_descriptors::bpf::ExtendedBpfProgramFileDescriptor;
 
 
-include!("AttachBpfTypeIdentifier.rs");
+include!("AttachToBpfTypeIdentifier.rs");
 include!("AttachProgramTypeDetails.rs");
 include!("CommonProgramTypeDetails.rs");
 include!("ProgramType.rs");

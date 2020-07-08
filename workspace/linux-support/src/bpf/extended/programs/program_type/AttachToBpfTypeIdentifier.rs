@@ -15,13 +15,15 @@
 ///
 /// See the function `bpf_prog_load_check_attach()` in the linux source `kernel/bpf/syscall.c`.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub struct AttachBpfTypeIdentifier(pub u32);
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct AttachToBpfTypeIdentifier(pub BtfTypeIdentifier);
 
-impl AttachBpfTypeIdentifier
+impl AttachToBpfTypeIdentifier
 {
 	#[inline(always)]
-	pub(crate) fn to_values(&self, program_type: bpf_prog_type, expected_attached_type: bpf_attach_type) -> (bpf_prog_type, bpf_attach_type, u32, u32, u32, Option<NetworkInterfaceIndex>)
+	pub(crate) fn to_values(&self, program_type: bpf_prog_type, expected_attached_type: bpf_attach_type) -> Result<(bpf_prog_type, bpf_attach_type, u32, u32, u32, Option<NetworkInterfaceIndex>), ProgramError>
 	{
-		(program_type, expected_attached_type, self.0, 0, 0, None)
+		Ok((program_type, expected_attached_type, self.0.into(), 0, 0, None))
 	}
 }

@@ -2,27 +2,28 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Used for the command `BPF_BTF_LOAD`.
-///
-/// BTF is BPF Type Format.
-///
-/// Requires the capability `CAP_SYS_ADMIN`.
-#[repr(C)]
-#[derive(Debug, Default, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
-pub(crate) struct BpfCommandBtfLoad
+/// A map file descriptor label.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct FileDescriptorLabel<'name>(pub Name<'name>);
+
+impl<'name> Deref for FileDescriptorLabel<'name>
 {
-	/// Pointer to data.
-	pub(crate) btf: AlignedU64,
+	type Target = str;
 	
-	/// Pointer to data.
-	pub(crate) btf_log_buf: AlignedU64,
-	
-	/// Size of data pointed to by `bpf_type_format`.
-	pub(crate) btf_size: u32,
-	
-	/// Size of data pointed to by `btf_log_buf`.
-	pub(crate) btf_log_size: u32,
-	
-	/// Log level.
-	pub(crate) btf_log_level: u32,
+	#[inline(always)]
+	fn deref(&self) -> &Self::Target
+	{
+		&self.0
+	}
+}
+
+impl<'name, V: Into<Name<'name>>> From<V> for FileDescriptorLabel<'name>
+{
+	#[inline(always)]
+	fn from(value: V) -> Self
+	{
+		Self(value.into())
+	}
 }

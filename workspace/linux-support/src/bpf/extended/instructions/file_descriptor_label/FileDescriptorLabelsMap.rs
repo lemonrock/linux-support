@@ -2,27 +2,27 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Resolves the value of items of type `MapFileDescriptor`.
+/// Resolves the value of items of type `FileDescriptor`.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct MapFileDescriptorLabelsMap<'map_file_descriptor>(UsageHashMap<&'map_file_descriptor MapFileDescriptor>);
+pub struct FileDescriptorLabelsMap<'file_descriptor, FD: FileDescriptor>(UsageHashMap<&'file_descriptor FD>);
 
-impl<'map_file_descriptor> Default for MapFileDescriptorLabelsMap<'map_file_descriptor>
+impl<'file_descriptor, FD: FileDescriptor> Default for FileDescriptorLabelsMap<'file_descriptor, FD>
 {
 	#[inline(always)]
 	fn default() -> Self
 	{
 		use self::ProgramError::*;
 		
-		Self(UsageHashMap::new(CouldNotResolveMapFileDescriptorLabel, NotAllMapFileDescriptorLabelsHaveBeenResolved))
+		Self(UsageHashMap::new(CouldNotResolveFileDescriptorLabel, NotAllFileDescriptorLabelsHaveBeenResolved))
 	}
 }
 
-impl<'map_file_descriptor> MapFileDescriptorLabelsMap<'map_file_descriptor>
+impl<'file_descriptor, FD: FileDescriptor> FileDescriptorLabelsMap<'file_descriptor, FD>
 {
 	#[inline(always)]
-	pub(crate) fn resolve<'de>(&self, map_file_descriptor_label: &MapFileDescriptorLabel) -> Result<RawFd, ProgramError>
+	pub(crate) fn resolve(&self, file_descriptor_label: &FileDescriptorLabel) -> Result<RawFd, ProgramError>
 	{
-		self.0.resolve(map_file_descriptor_label.deref()).map(|map_file_descriptor| map_file_descriptor.as_raw_fd())
+		self.0.resolve(file_descriptor_label.deref()).map(|file_descriptor| file_descriptor.as_raw_fd())
 	}
 	
 	#[inline(always)]

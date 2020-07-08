@@ -5,8 +5,9 @@
 use super::*;
 use super::instructions::*;
 use super::instructions::offset::program_counter::*;
-use super::programs::ProgramLoadError;
+use super::programs::*;
 use self::reflection::*;
+use crate::file_descriptors::bpf::BtfFileDescriptor;
 
 
 /// A type system inspired by the `type_info` crate to use for runtime-reflection of Rust types.

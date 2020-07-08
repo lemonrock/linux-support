@@ -29,7 +29,7 @@ impl BtfTypeInformationParser
 	}
 	
 	#[inline(always)]
-	pub(crate) fn finish(self) -> Result<Option<ParsedBtfData>, ProgramError>
+	pub(crate) fn finish(self, verifier_log: Option<&mut VerifierLog>) -> Result<Option<ParsedBtfData>, ProgramError>
 	{
 		// There must always be at least one function information and one line information.
 		if self.function_information.is_empty() || self.line_information.is_empty()
@@ -39,8 +39,8 @@ impl BtfTypeInformationParser
 		
 		let header_and_type_identifier_section_and_string_section = self.btf_type_identifiers.finish()?;
 		
-		// TODO: btf_check_sec_info();
-
+		let btf_file_descriptor = BtfFileDescriptor::load_btf_data(&header_and_type_identifier_section_and_string_section[..], verifier_log)?;
+		
 // TODO: eg attach_kprobe for kprobe and uprobe but not kretprobe and uretprobe
 // eg attach_tp for TRACEPOINT (tracepoint_category and tracepoint_name) use a pfd - perfevent fd using perf_event_open_probe
 // eg attach_raw_tp for RAW_TRACEPOINT (tracepoint_name)
@@ -53,7 +53,7 @@ impl BtfTypeInformationParser
 			(
 				ParsedBtfData
 				{
-					btf_file_descriptor: XXXXX,
+					btf_file_descriptor,
 					function_information: self.function_information.into_boxed_slice(),
 					line_information: self.line_information.into_boxed_slice()
 				}
