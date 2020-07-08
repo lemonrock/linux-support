@@ -2,16 +2,21 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// Integer encoding.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u8)]
-pub(crate) enum BtfTypeIntegerEncoding
+pub enum BtfTypeIntegerEncoding
 {
+	/// Unsigned.
 	Unsigned = 0,
 	
+	/// Signed.
 	Signed = BTF_INT_SIGNED,
 	
+	/// Char.
 	Char = BTF_INT_CHAR,
 	
+	/// Boolean.
 	Boolean = BTF_INT_BOOL,
 }
 

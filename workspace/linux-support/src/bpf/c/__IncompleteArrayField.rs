@@ -22,28 +22,4 @@ impl<T> __IncompleteArrayField<T>
 	{
 		__IncompleteArrayField(PhantomData, [])
 	}
-	
-	#[inline(always)]
-	pub(crate) fn as_ptr(&self) -> *const T
-	{
-		self as *const _ as *const T
-	}
-	
-	#[inline(always)]
-	pub(crate) fn as_mut_ptr(&mut self) -> *mut T
-	{
-		self as *mut _ as *mut T
-	}
-	
-	#[inline(always)]
-	pub(crate) unsafe fn as_slice(&self, len: usize) -> &[T]
-	{
-		from_raw_parts(self.as_ptr(), len)
-	}
-	
-	#[inline(always)]
-	pub(crate) unsafe fn as_mut_slice(&mut self, len: usize) -> &mut [T]
-	{
-		from_raw_parts_mut(self.as_mut_ptr(), len)
-	}
 }

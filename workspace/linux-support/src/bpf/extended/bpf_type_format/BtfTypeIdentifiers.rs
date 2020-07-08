@@ -35,7 +35,7 @@ impl Default for BtfTypeIdentifiers
 		
 		this.reserve::<btf_header>(1);
 		
-		this.push_c_identifier_for_type(CVoidType, BtfKind::Unknown);
+		this.push_c_identifier_for_type(CVoidType, BtfKind::Unknown).unwrap();
 		
 		this
 	}

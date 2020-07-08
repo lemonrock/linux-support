@@ -302,7 +302,7 @@ impl<'name> ProgramType<'name>
 			
 			// `expected_attach_type` is validated in `bpf_prog_load_check_attach()` in `kernel/bpf/syscall.c` for these.
 			CgroupSetSocketOptions(program_details) => program_details.to_values(BPF_PROG_TYPE_CGROUP_SOCKOPT, BPF_CGROUP_SETSOCKOPT),
-			CgroupGetSocketOptions(program_details) => program_details.to_values(BPF_PROG_TYPE_CGROUP_SOCKOPT, BPF_CGROUP_SETSOCKOPT),
+			CgroupGetSocketOptions(program_details) => program_details.to_values(BPF_PROG_TYPE_CGROUP_SOCKOPT, BPF_CGROUP_GETSOCKOPT),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
 			StructOps(program_details) => program_details.to_values(BPF_PROG_TYPE_STRUCT_OPS, unsafe { zeroed() }),

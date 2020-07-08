@@ -5,5 +5,6 @@
 /// Has reflection information.
 pub trait HasReflectionInformation
 {
+	/// Type.
 	const Type: Type;
 }

@@ -28,10 +28,13 @@ pub struct ExtendedBpfProgramTemplate<'name>
 
 impl<'name> ExtendedBpfProgramTemplate<'name>
 {
+	/// Parse and load.
 	#[inline(always)]
 	pub fn parse_and_load(&self, arguments: ExtendedBpfProgramArguments, verifier_log: Option<&mut VerifierLog>) -> Result<RawFd, ProgramLoadError>
 	{
-		let (instructions, parsed_btf_data, extended_bpf_program_file_descriptor_labels_map) = ProgramLinesParser::parse(self.btf_program_details.as_ref(), &self.program_lines, arguments, verifier_log)?;
+		let verifier_log_copy = unsafe { transmute_copy(&verifier_log) };
+		
+		let (instructions, parsed_btf_data, extended_bpf_program_file_descriptor_labels_map) = ProgramLinesParser::parse(self.btf_program_details.as_ref(), &self.program_lines, arguments, verifier_log_copy)?;
 		
 		self.load(&instructions[..], parsed_btf_data.as_ref(), extended_bpf_program_file_descriptor_labels_map, verifier_log)
 	}

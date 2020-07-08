@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// Parsed BTF data.
 #[derive(Debug)]
 pub struct ParsedBtfData
 {
@@ -13,7 +14,7 @@ pub struct ParsedBtfData
 impl ParsedBtfData
 {
 	#[inline(always)]
-	pub fn optionally_to_bpf_load_data(parsed_btf_data: Option<&Self>) -> Result<(u32, BtfDataArray, BtfDataArray), ProgramLoadError>
+	pub(crate) fn optionally_to_bpf_load_data(parsed_btf_data: Option<&Self>) -> Result<(u32, BtfDataArray, BtfDataArray), ProgramLoadError>
 	{
 		const NoBtfFileDescriptor: u32 = 0;
 		const NoBtfArray: BtfDataArray = (0, AlignedU64::Null, 0);
@@ -33,7 +34,7 @@ impl ParsedBtfData
 	}
 	
 	#[inline(always)]
-	pub fn to_bpf_load_data(&self) -> Result<(u32, BtfDataArray, BtfDataArray), ProgramLoadError>
+	pub(crate) fn to_bpf_load_data(&self) -> Result<(u32, BtfDataArray, BtfDataArray), ProgramLoadError>
 	{
 		use self::ProgramLoadError::*;
 		

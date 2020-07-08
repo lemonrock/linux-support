@@ -6,6 +6,7 @@
 pub(crate) union BpfCommandMapChangeValueOrNextKey
 {
 	pub(crate) value: AlignedU64,
+	
 	pub(crate) next_key: AlignedU64,
 }
 

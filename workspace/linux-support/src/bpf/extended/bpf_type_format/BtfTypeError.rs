@@ -2,13 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// BTF type error.
 #[allow(missing_docs)]
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) enum BtfTypeError
+pub enum BtfTypeError
 {
 	IntegerSizeCanNotExceed31Bytes,
-	
-	EnumsAreNotSupportedByThisMethod,
 	
 	IdentifierIsEmpty,
 	
@@ -20,8 +19,6 @@ pub(crate) enum BtfTypeError
 	
 	IdentifierIsTooLarge,
 	
-	StructIsTooLarge(TryFromIntError),
-	
 	FunctionHasTooManyParameters,
 	
 	StructHasTooManyNamedFields,
@@ -31,10 +28,6 @@ pub(crate) enum BtfTypeError
 	UnionHasTooManyFields,
 	
 	EnumHasTooManyVariants,
-	
-	EnumVariantHasTooManyNamedFields,
-	
-	EnumVariantHasTooManyUnnamedFields,
 	
 	EnumVariantWithNamedFieldsIsUnsupported,
 	
@@ -74,8 +67,6 @@ impl error::Error for BtfTypeError
 		match self
 		{
 			&IdentifierContainsAsciiNul(ref error) => Some(error),
-			
-			&StructIsTooLarge(ref error) => Some(error),
 			
 			_ => None,
 		}

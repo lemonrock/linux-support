@@ -218,7 +218,7 @@ impl<'name> ProgramLinesParser<'name>
 	fn one_instruction(&mut self, one_instruction: bpf_insn) -> Result<(), ProgramError>
 	{
 		const One: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(1) };
-		self.maximum_instructions_guard(One);
+		self.maximum_instructions_guard(One)?;
 		
 		self.instructions.push(one_instruction);
 		Ok(())
@@ -228,7 +228,7 @@ impl<'name> ProgramLinesParser<'name>
 	fn two_instructions(&mut self, two_instructions: [bpf_insn; 2]) -> Result<(), ProgramError>
 	{
 		const Two: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(2) };
-		self.maximum_instructions_guard(Two);
+		self.maximum_instructions_guard(Two)?;
 		
 		self.instructions.extend_from_slice(&two_instructions[..]);
 		Ok(())

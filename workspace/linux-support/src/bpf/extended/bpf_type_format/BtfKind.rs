@@ -67,7 +67,9 @@ impl Default for BtfKind
 
 impl BtfKind
 {
+	#[allow(dead_code)]
 	pub(crate) const BTF_KIND_MAX: Self = BtfKind::Section;
 	
+	#[allow(dead_code)]
 	pub(crate) const NR_BTF_KINDS: u8 = (BtfKind::BTF_KIND_MAX as u8) + 1;
 }

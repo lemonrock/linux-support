@@ -48,9 +48,11 @@ pub(crate) const BPF_TO_LE: u8 = 0x00;
 pub(crate) const BPF_TO_BE: u8 = 0x08;
 
 /// change endianness of a register.
+#[allow(dead_code)]
 pub(crate) const BPF_FROM_LE: u8 = BPF_TO_LE;
 
 /// change endianness of a register.
+#[allow(dead_code)]
 pub(crate) const BPF_FROM_BE: u8 = BPF_TO_BE;
 
 /// jmp encodings.

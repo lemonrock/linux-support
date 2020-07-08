@@ -9,6 +9,7 @@
 #[derive(Default, Debug, Copy, Clone)]
 pub(crate) struct btf_type<ExtraData: Sized>
 {
+	/// Maximum value is `2^24 - 1`.
 	name_off: u32,
 	
 	/// `info` is a bit set:-
@@ -27,25 +28,21 @@ pub(crate) struct btf_type<ExtraData: Sized>
 
 impl<ExtraData: Sized> btf_type<ExtraData>
 {
-	/// Maximum value is `2^24 - 1`.
-	#[inline(always)]
-	fn offset_of_name_into_string_section(&self) -> u32
-	{
-		self.name_off
-	}
-	
+	#[allow(dead_code)]
 	#[inline(always)]
 	fn kind(&self) -> BtfKind
 	{
 		unsafe { transmute(Self::BTF_INFO_KIND(self.info) as u8) }
 	}
 	
+	#[allow(dead_code)]
 	#[inline(always)]
 	fn vlen(&self) -> u16
 	{
 		Self::BTF_INFO_VLEN(self.info)
 	}
 	
+	#[allow(dead_code)]
 	#[inline(always)]
 	fn kind_flag(&self) -> bool
 	{
@@ -194,6 +191,7 @@ impl btf_type<()>
 		)
 	}
 	
+	#[allow(dead_code)]
 	#[inline(always)]
 	pub(crate) fn type_definition(offset_of_name_into_string_section: NonZeroU32, type_identifier: BtfTypeIdentifier) -> Result<Self, BtfTypeError>
 	{
@@ -227,6 +225,7 @@ impl btf_type<()>
 		}
 	}
 	
+	#[allow(dead_code)]
 	#[inline(always)]
 	pub(crate) const fn volatile(type_identifier: BtfTypeIdentifier) -> Self
 	{
@@ -242,6 +241,7 @@ impl btf_type<()>
 		}
 	}
 	
+	#[allow(dead_code)]
 	#[inline(always)]
 	pub(crate) const fn restrict(type_identifier: BtfTypeIdentifier) -> Self
 	{
@@ -318,6 +318,7 @@ impl btf_type<btf_array>
 
 impl btf_type<btf_var>
 {
+	#[allow(dead_code)]
 	pub(crate) fn variable(offset_of_name_into_string_section: Option<NonZeroU32>, type_identifier: BtfTypeIdentifier, linkage: BtfVariableLinkage) -> Result<Self, BtfTypeError>
 	{
 		Ok
@@ -379,18 +380,21 @@ impl btf_type<u32>
 		)
 	}
 	
+	#[allow(dead_code)]
 	#[inline(always)]
 	const fn BTF_INT_ENCODING(VAL: u32) -> BtfTypeIntegerEncoding
 	{
 		unsafe { transmute((VAL & 0x0F000000 >> 24) as u8) }
 	}
 	
+	#[allow(dead_code)]
 	#[inline(always)]
 	const fn BTF_INT_OFFSET(VAL: u32) -> u8
 	{
 		(VAL & 0x00FF0000 >> 16) as u8
 	}
 	
+	#[allow(dead_code)]
 	#[inline(always)]
 	const fn BTF_INT_BITS(VAL: u32) -> u8
 	{
