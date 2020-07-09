@@ -4,6 +4,8 @@
 
 use super::*;
 use self::c::*;
+use crate::paths::*;
+use crate::user_and_groups::assert_effective_user_id_is_root;
 
 
 /// C.
@@ -16,3 +18,8 @@ pub mod classic;
 
 /// Enhanced BPF (eBPF).
 pub mod extended;
+
+
+include!("JustInTimeCompilationChoice.rs");
+include!("JustInTimeCompilationHardening.rs");
+include!("JustInTimeMemoryAllocationLimitSizeInBytes.rs");

@@ -59,6 +59,9 @@ pub enum GlobalConfigurationError
 
 	#[allow(missing_docs)]
 	GlobalNetworkConfiguration(GlobalNetworkConfigurationError),
+
+	#[allow(missing_docs)]
+	GlobalBpfConfiguration(GlobalBpfConfigurationError),
 }
 
 impl Display for GlobalConfigurationError
@@ -114,6 +117,8 @@ impl error::Error for GlobalConfigurationError
 			&GlobalSwapConfiguration(ref cause) => Some(cause),
 
 			&GlobalNetworkConfiguration(ref cause) => Some(cause),
+
+			&GlobalBpfConfiguration(ref cause) => Some(cause),
 		}
 	}
 }
@@ -277,5 +282,14 @@ impl From<GlobalNetworkConfigurationError> for GlobalConfigurationError
 	fn from(cause: GlobalNetworkConfigurationError) -> Self
 	{
 		GlobalConfigurationError::GlobalNetworkConfiguration(cause)
+	}
+}
+
+impl From<GlobalBpfConfigurationError> for GlobalConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: GlobalBpfConfigurationError) -> Self
+	{
+		GlobalConfigurationError::GlobalBpfConfiguration(cause)
 	}
 }

@@ -17,7 +17,13 @@ pub enum GlobalSecurityConfigurationError
 	CouldNotSetMaximumProcessIdentifiersToMaximum(io::Error),
 
 	#[allow(missing_docs)]
+	CouldNotHardenJitOfBpfPrograms(io::Error),
+
+	#[allow(missing_docs)]
 	CouldNotDisableKexecLoadingUntilNextReboot(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotDisableBpfLoadingOfProgramsByUnprivilegedUsersUntilNextReboot(io::Error),
 }
 
 impl Display for GlobalSecurityConfigurationError
@@ -42,7 +48,11 @@ impl error::Error for GlobalSecurityConfigurationError
 			
 			&CouldNotSetMaximumProcessIdentifiersToMaximum(ref cause) => Some(cause),
 			
+			&CouldNotHardenJitOfBpfPrograms(ref cause) => Some(cause),
+			
 			&CouldNotDisableKexecLoadingUntilNextReboot(ref cause) => Some(cause),
+			
+			&CouldNotDisableBpfLoadingOfProgramsByUnprivilegedUsersUntilNextReboot(ref cause) => Some(cause),
 		}
 	}
 }

@@ -56,6 +56,9 @@ pub struct GlobalConfiguration
 	/// Requires root.
 	pub network: GlobalNetworkConfiguration,
 	
+	/// Requires root.
+	pub bpf: GlobalBpfConfiguration,
+	
 	/// Validation-only checks.
 	pub linux_kernel_command_line: GlobalLinuxKernelCommandLineConfiguration,
 }
@@ -100,6 +103,8 @@ impl GlobalConfiguration
 		}
 
 		self.network.configure(proc_path)?;
+		
+		self.bpf.configure(proc_path)?;
 		
 		self.linux_kernel_command_line.configure(proc_path)?;
 

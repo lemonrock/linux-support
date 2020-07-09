@@ -19,20 +19,11 @@
 #[repr(transparent)]
 pub struct AttachToBpfTypeIdentifier(pub BtfTypeIdentifier);
 
-impl Into<u32> for AttachToBpfTypeIdentifier
-{
-	#[inline(always)]
-	fn into(self) -> u32
-	{
-		self.0.into()
-	}
-}
-
 impl AttachToBpfTypeIdentifier
 {
 	#[inline(always)]
-	pub(crate) fn to_values(&self, program_type: bpf_prog_type, expected_attached_type: bpf_attach_type) -> Result<(bpf_prog_type, bpf_attach_type, u32, u32, u32, Option<NetworkInterfaceIndex>), ProgramError>
+	pub(crate) fn to_values(&self, program_type: bpf_prog_type, expected_attached_type: bpf_attach_type) -> Result<(bpf_prog_type, bpf_attach_type, BtfTypeIdentifier, RawFd, u32, Option<NetworkInterfaceIndex>), ProgramError>
 	{
-		Ok((program_type, expected_attached_type, self.0.into(), 0, 0, None))
+		Ok((program_type, expected_attached_type, self.0, 0, 0, None))
 	}
 }

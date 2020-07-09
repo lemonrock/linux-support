@@ -45,7 +45,7 @@ pub(crate) struct BpfCommandProgramLoad
 	pub(crate) expected_attach_type: bpf_attach_type,
 	
 	/// File descriptor pointing to BTF type data.
-	pub(crate) prog_btf_fd: u32,
+	pub(crate) prog_btf_fd: RawFd,
 	
 	/// Either `0` or `size_of::<bpf_func_info>()`.
 	///
@@ -74,10 +74,10 @@ pub(crate) struct BpfCommandProgramLoad
 	pub(crate) line_info_cnt: u32,
 	
 	/// in-kernel BTF type id to attach to.
-	pub(crate) attach_btf_id: u32,
+	pub(crate) attach_btf_id: BtfTypeIdentifier,
 	
 	/// A file descriptor.
 	///
 	/// Use `0` to attach to vmlinux.
-	pub(crate) attach_prog_fd: u32,
+	pub(crate) attach_prog_fd: RawFd,
 }

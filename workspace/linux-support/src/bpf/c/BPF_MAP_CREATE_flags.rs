@@ -6,7 +6,7 @@ bitflags!
 {
 	/// Flags for `BPF_MAP_CREATE` command.
 	#[allow(missing_docs)]
-	pub(crate) struct _bindgen_ty_2: u32
+	pub(crate) struct BPF_MAP_CREATE_flags: u32
 	{
 		const BPF_F_NO_PREALLOC = 1;
 		
@@ -17,10 +17,10 @@ bitflags!
 		/// Specify numa node during map creation.
 		const BPF_F_NUMA_NODE = 4;
 		
-		/// Flag for accessing BPF object from syscall side.
+		/// Flag for accessing BPF map from syscall side.
 		const BPF_F_RDONLY = 8;
 		
-		/// Flag for accessing BPF object from syscall side.
+		/// Flag for accessing BPF map from syscall side.
 		const BPF_F_WRONLY = 16;
 		
 		/// Flag for stack_map, store build_id+offset instead of pointer.
@@ -31,10 +31,10 @@ bitflags!
 		#[deprecated]
 		const BPF_F_ZERO_SEED = 64;
 		
-		/// Flag for accessing BPF object from program side.
+		/// Flag for accessing BPF map from program side.
 		const BPF_F_RDONLY_PROG = 128;
 		
-		/// Flag for accessing BPF object from program side.
+		/// Flag for accessing BPF map from program side.
 		const BPF_F_WRONLY_PROG = 256;
 		
 		/// Clone map from listener for newly accepted socket.

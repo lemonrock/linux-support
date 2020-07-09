@@ -3,7 +3,7 @@
 
 
 /// Parsed BTF data.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ParsedBtfData
 {
 	btf_file_descriptor: BtfFileDescriptor,
@@ -13,17 +13,18 @@ pub struct ParsedBtfData
 
 impl ParsedBtfData
 {
+	pub(crate) const NoBtfFileDescriptor: RawFd = 0;
+	
 	#[inline(always)]
-	pub(crate) fn optionally_to_bpf_load_data(parsed_btf_data: Option<&Self>) -> Result<(u32, BtfDataArray, BtfDataArray), ProgramLoadError>
+	pub(crate) fn optionally_to_bpf_load_data(parsed_btf_data: Option<&Self>) -> Result<(RawFd, BtfDataArray, BtfDataArray), ProgramLoadError>
 	{
-		const NoBtfFileDescriptor: u32 = 0;
 		const NoBtfArray: BtfDataArray = (0, AlignedU64::Null, 0);
 		match parsed_btf_data
 		{
 			None => Ok
 			(
 				(
-					NoBtfFileDescriptor,
+					Self::NoBtfFileDescriptor,
 					NoBtfArray,
 					NoBtfArray,
 				)
@@ -34,14 +35,20 @@ impl ParsedBtfData
 	}
 	
 	#[inline(always)]
-	pub(crate) fn to_bpf_load_data(&self) -> Result<(u32, BtfDataArray, BtfDataArray), ProgramLoadError>
+	pub(crate) fn to_raw_file_descriptor(&self) -> RawFd
+	{
+		self.btf_file_descriptor.as_raw_fd()
+	}
+	
+	#[inline(always)]
+	pub(crate) fn to_bpf_load_data(&self) -> Result<(RawFd, BtfDataArray, BtfDataArray), ProgramLoadError>
 	{
 		use self::ProgramLoadError::*;
 		
 		Ok
 		(
 			(
-				self.btf_file_descriptor.as_raw_fd() as u32,
+				self.to_raw_file_descriptor(),
 				Self::to_array(&self.function_information[..], FunctionInformationArrayIsLargerThanU32Max)?,
 				Self::to_array(&self.line_information[..], LineInformationArrayIsLargerThanU32Max)?,
 			)

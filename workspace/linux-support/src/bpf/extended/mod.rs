@@ -13,5 +13,9 @@ pub mod bpf_type_format;
 pub mod instructions;
 
 
+/// Maps.
+pub mod maps;
+
+
 /// Programs.
 pub mod programs;

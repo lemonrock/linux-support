@@ -69,7 +69,7 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 				prog_name: match self.program_name
 				{
 					None => unsafe { zeroed() },
-					Some(ref program_name) => program_name.prog_name()
+					Some(ref program_name) => program_name.to_bpf_object_name()
 				},
 				prog_ifindex,
 				expected_attach_type,

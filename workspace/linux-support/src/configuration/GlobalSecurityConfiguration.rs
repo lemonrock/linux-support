@@ -32,13 +32,27 @@ pub struct GlobalSecurityConfiguration
 	///
 	/// * `unprivileged_userfaultfd`.
 	///
+	/// And the following in `/proc/sys/net/core` are hardened if present:-
+	///
+	/// * `bpf_jit_kallsyms`.
+	/// * (Note that `bpf_jit_harden` is treated separately below).
+	///
+	///
 	/// And the maximum number of process identifiers is set to 2^22 in `/proc/sys/kernel/pid_max` to reduce the impact of races and process identifier wrap-around (Frankly, they should just be an UUID and be done with it).
 	pub harden: bool,
+	
+	/// Hardens JIT'd eBPF programs using the file `/proc/sys/net/core/bpf_jit_harden`.
+	pub harden_jit_ebpf: Option<JustInTimeCompilationHardening>,
 
 	/// Disables kexec loading of new kernel images until reboot.
 	///
 	/// By default it is enabled.
 	pub disable_kexec_loading_of_new_kernel_images_until_reboot: bool,
+
+	/// Disables loading of BPF programs by unprivileged users (those lacking the capability `CAP_SYS_ADMIN`) until reboot.
+	///
+	/// By default it is enabled.
+	pub disable_bpf_loading_of_programs_by_unprivileged_users_until_reboot: bool,
 }
 
 impl GlobalSecurityConfiguration
@@ -59,7 +73,31 @@ impl GlobalSecurityConfiguration
 			}
 			Ok(())
 		}
-
+		
+		#[inline(always)]
+		fn set_sys_kernel_boolean_value_once(proc_path: &ProcPath, file_name: &str, value: bool, error: impl FnOnce(io::Error) -> GlobalSecurityConfigurationError) -> Result<(), GlobalSecurityConfigurationError>
+		{
+			set_value_once
+			(
+				proc_path,
+				|proc_path|
+				{
+					let file_path = proc_path.sys_kernel_file_path(file_name);
+					if file_path.exists()
+					{
+						let enabled: bool = file_path.read_zero_or_one_bool().unwrap();
+						if !enabled
+						{
+							return file_path.write_value(true)
+						}
+					}
+					Ok(())
+				},
+				value,
+				error
+			)
+		}
+		
 		if self.harden
 		{
 			harden_value(proc_path, ProcPath::sys_kernel_file_path, "randomize_va_space", 2)?;
@@ -73,27 +111,16 @@ impl GlobalSecurityConfiguration
 			harden_value(proc_path, ProcPath::sys_fs_file_path, "protected_hardlinks", 1)?;
 			harden_value(proc_path, ProcPath::sys_fs_file_path, "protected_fifos", 2)?;
 			harden_value(proc_path, ProcPath::sys_vm_file_path, "unprivileged_userfaultfd", 0)?;
+			harden_value(proc_path, ProcPath::sys_net_core_file_path, "bpf_jit_kallsyms", 0)?;
 			ProcessIdentifier::set_maximum_value_to_maximum(proc_path).map_err(CouldNotSetMaximumProcessIdentifiersToMaximum)?;
 		}
-
-		set_value_once
-		(
-			proc_path,
-			|proc_path|
-			{
-				let file_path = proc_path.sys_kernel_file_path("kexec_load_disabled");
-				if file_path.exists()
-				{
-					let enabled: bool = file_path.read_zero_or_one_bool().unwrap();
-					if !enabled
-					{
-						return file_path.write_value(true)
-					}
-				}
-				Ok(())
-			},
-			self.disable_kexec_loading_of_new_kernel_images_until_reboot,
-			CouldNotDisableKexecLoadingUntilNextReboot
-		)
+		
+		set_value(proc_path, |proc_path, value| value.set_value(proc_path), self.harden_jit_ebpf, CouldNotHardenJitOfBpfPrograms)?;
+		
+		set_sys_kernel_boolean_value_once(proc_path, "kexec_load_disabled", value, CouldNotDisableKexecLoadingUntilNextReboot)?;
+		
+		set_sys_kernel_boolean_value_once(proc_path, "unprivileged_bpf_disabled", value, CouldNotDisableKexecLoadingUntilNextReboot)?;
+		
+		Ok(())
 	}
 }

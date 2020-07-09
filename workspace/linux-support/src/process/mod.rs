@@ -3,6 +3,7 @@
 
 
 use super::*;
+use crate::bpf::c::BPF_OBJ_NAME_LEN;
 use crate::cpu::*;
 use crate::file_descriptors::CreationError;
 use crate::file_descriptors::process_identifier::ProcessIdentifierFileDescriptor;

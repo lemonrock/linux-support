@@ -7,7 +7,7 @@
 #[derive(Copy, Clone)]
 pub(crate) struct BpfCommandMapChange
 {
-	pub(crate) map_fd: u32,
+	pub(crate) map_fd: RawFd,
 	pub(crate) key: AlignedU64,
 	pub(crate) value_or_next_key: BpfCommandMapChangeValueOrNextKey,
 	pub(crate) flags: u64,

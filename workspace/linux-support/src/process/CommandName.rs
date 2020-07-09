@@ -148,4 +148,14 @@ impl CommandName
 		array_vec.push(b'\0');
 		Ok(Self(array_vec))
 	}
+	
+	#[inline(always)]
+	pub(crate) fn to_bpf_object_name(&self) -> [c_char; BPF_OBJ_NAME_LEN]
+	{
+		debug_assert_eq!(BPF_OBJ_NAME_LEN, Self::MaximumCommandNameLengthIncludingAsciiNul);
+		
+		let array_vec: ArrayVec<[u8; BPF_OBJ_NAME_LEN]> = self.0.clone().into();
+		let const_array_vec: ConstArrayVec<[u8; BPF_OBJ_NAME_LEN]> = unsafe { transmute(array_vec) };
+		unsafe { transmute(const_array_vec.xs) }
+	}
 }

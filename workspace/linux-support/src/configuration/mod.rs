@@ -4,6 +4,7 @@
 
 use super::*;
 use self::checks::*;
+use crate::bpf::*;
 use crate::capabilities_and_privileges::*;
 use crate::coredump::CoreDumpFilterFlags;
 use crate::cpu::*;
@@ -50,6 +51,8 @@ use crate::interrupt_request::InterruptRequest;
 pub mod checks;
 
 
+include!("GlobalBpfConfiguration.rs");
+include!("GlobalBpfConfigurationError.rs");
 include!("GlobalConfiguration.rs");
 include!("GlobalConfigurationError.rs");
 include!("GlobalEPollConfiguration.rs");

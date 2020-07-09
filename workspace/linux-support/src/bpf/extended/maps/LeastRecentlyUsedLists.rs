@@ -2,15 +2,24 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-bitflags!
+/// Does this map use one common system-wide least recently used list or one least recently used list per HyperThread?
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub enum LeastRecentlyUsedLists
 {
-	/// Flags for `BPF_MAP_UPDATE_ELEM` command.
-	#[allow(missing_docs)]
-	pub(crate) struct _bindgen_ty_1: u32
+	/// Is system-wide.
+	Common,
+	
+	/// Is per CPU.
+	OnePerCpu,
+}
+
+impl Default for LeastRecentlyUsedLists
+{
+	#[inline(always)]
+	fn default() -> Self
 	{
-		const BPF_ANY = 0;
-		const BPF_NOEXIST = 1;
-		const BPF_EXIST = 2;
-		const BPF_F_LOCK = 4;
+		LeastRecentlyUsedLists::Common
 	}
 }

@@ -2,5 +2,24 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Program name.
-pub type ProgramName = CommandName;
+/// Is this map system wide or per-HyperThread?
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub enum PerCpu
+{
+	/// Is system-wide.
+	SystemWide,
+	
+	/// Is per CPU.
+	IsPerCpu,
+}
+
+impl Default for PerCpu
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		PerCpu::SystemWide
+	}
+}

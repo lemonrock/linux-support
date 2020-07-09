@@ -11,8 +11,6 @@ use crate::pci_express::NetworkInterfaceIndex;
 
 
 include!("__IncompleteArrayField.rs");
-include!("_bindgen_ty_1.rs");
-include!("_bindgen_ty_2.rs");
 include!("AlignedU64.rs");
 include!("bpf.rs");
 include!("BPF_.rs");
@@ -29,7 +27,8 @@ include!("BPF_JUMP.rs");
 //include!("BPF_LL_OFF.rs");
 //include!("BPF_MAJOR_VERSION.rs");
 include!("BPF_MAXINSNS.rs");
-include!("BPF_STMT.rs");
+include!("BPF_MAP_CREATE_flags.rs");
+include!("BPF_MAP_UPDATE_ELEM_flags.rs");
 include!("bpf_map_type.rs");
 include!("BPF_MEMWORDS.rs");
 //include!("BPF_MINOR_VERSION.rs");
@@ -41,6 +40,7 @@ include!("BPF_PROG_QUERY_flags.rs");
 include!("bpf_prog_type.rs");
 include!("bpf_stack_build_id.rs");
 include!("bpf_stack_build_id_status.rs");
+include!("BPF_STMT.rs");
 include!("BpfCommandBtfLoad.rs");
 include!("BpfCommandGetIdentifier.rs");
 include!("BpfCommandGetIdentifierValueOfIdentifier.rs");
