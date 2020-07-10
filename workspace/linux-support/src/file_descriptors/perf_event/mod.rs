@@ -3,20 +3,11 @@
 
 
 use super::*;
-use super::bpf_type_format::*;
-use crate::process::CommandName;
-use crate::pci_express::NetworkInterfaceIndex;
+use self::c::*;
 
 
-include!("AccessPermissions.rs");
-include!("GenericMap.rs");
-include!("LeastRecentlyUsedLists.rs");
-include!("MapCreationError.rs");
-include!("MapFileDescriptor.rs");
-include!("MapName.rs");
-include!("MapType.rs");
-include!("MemoryMap.rs");
-include!("ParsedBtfMapData.rs");
-include!("PerCpu.rs");
-include!("PerDevice.rs");
-include!("Preallocation.rs");
+mod c;
+
+
+
+include!("PerfEventFileDescriptor.rs");

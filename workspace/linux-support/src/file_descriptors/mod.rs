@@ -132,6 +132,10 @@ pub mod netlink;
 pub mod path;
 
 
+/// Perf Event file descriptors.
+pub mod perf_event;
+
+
 /// POSIX message queue file descriptors.
 pub mod posix_message_queues;
 

@@ -2,21 +2,29 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use super::bpf_type_format::*;
-use crate::process::CommandName;
-use crate::pci_express::NetworkInterfaceIndex;
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub(crate) union perf_event_attr__bindgen_ty_4
+{
+	pub(crate) bp_len: u64,
+	pub(crate) kprobe_addr: u64,
+	pub(crate) probe_offset: u64,
+	pub(crate) config2: u64,
+	_bindgen_union_align: u64,
+}
 
+impl Default for perf_event_attr__bindgen_ty_4
+{
+	fn default() -> Self
+	{
+		unsafe { zeroed() }
+	}
+}
 
-include!("AccessPermissions.rs");
-include!("GenericMap.rs");
-include!("LeastRecentlyUsedLists.rs");
-include!("MapCreationError.rs");
-include!("MapFileDescriptor.rs");
-include!("MapName.rs");
-include!("MapType.rs");
-include!("MemoryMap.rs");
-include!("ParsedBtfMapData.rs");
-include!("PerCpu.rs");
-include!("PerDevice.rs");
-include!("Preallocation.rs");
+impl Debug for perf_event_attr__bindgen_ty_4
+{
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "perf_event_attr__bindgen_ty_4 {{ union }}")
+	}
+}

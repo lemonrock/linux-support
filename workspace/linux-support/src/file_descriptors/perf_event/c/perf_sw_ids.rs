@@ -2,21 +2,20 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use super::bpf_type_format::*;
-use crate::process::CommandName;
-use crate::pci_express::NetworkInterfaceIndex;
-
-
-include!("AccessPermissions.rs");
-include!("GenericMap.rs");
-include!("LeastRecentlyUsedLists.rs");
-include!("MapCreationError.rs");
-include!("MapFileDescriptor.rs");
-include!("MapName.rs");
-include!("MapType.rs");
-include!("MemoryMap.rs");
-include!("ParsedBtfMapData.rs");
-include!("PerCpu.rs");
-include!("PerDevice.rs");
-include!("Preallocation.rs");
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub(crate) enum perf_sw_ids
+{
+	PERF_COUNT_SW_CPU_CLOCK = 0,
+	PERF_COUNT_SW_TASK_CLOCK = 1,
+	PERF_COUNT_SW_PAGE_FAULTS = 2,
+	PERF_COUNT_SW_CONTEXT_SWITCHES = 3,
+	PERF_COUNT_SW_CPU_MIGRATIONS = 4,
+	PERF_COUNT_SW_PAGE_FAULTS_MIN = 5,
+	PERF_COUNT_SW_PAGE_FAULTS_MAJ = 6,
+	PERF_COUNT_SW_ALIGNMENT_FAULTS = 7,
+	PERF_COUNT_SW_EMULATION_FAULTS = 8,
+	PERF_COUNT_SW_DUMMY = 9,
+	PERF_COUNT_SW_BPF_OUTPUT = 10,
+	PERF_COUNT_SW_MAX = 11,
+}

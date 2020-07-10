@@ -2,21 +2,13 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use super::bpf_type_format::*;
-use crate::process::CommandName;
-use crate::pci_express::NetworkInterfaceIndex;
-
-
-include!("AccessPermissions.rs");
-include!("GenericMap.rs");
-include!("LeastRecentlyUsedLists.rs");
-include!("MapCreationError.rs");
-include!("MapFileDescriptor.rs");
-include!("MapName.rs");
-include!("MapType.rs");
-include!("MemoryMap.rs");
-include!("ParsedBtfMapData.rs");
-include!("PerCpu.rs");
-include!("PerDevice.rs");
-include!("Preallocation.rs");
+pub(crate) const PERF_MEM_LVLNUM_L1: u32 = 1;
+pub(crate) const PERF_MEM_LVLNUM_L2: u32 = 2;
+pub(crate) const PERF_MEM_LVLNUM_L3: u32 = 3;
+pub(crate) const PERF_MEM_LVLNUM_L4: u32 = 4;
+pub(crate) const PERF_MEM_LVLNUM_ANY_CACHE: u32 = 11;
+pub(crate) const PERF_MEM_LVLNUM_LFB: u32 = 12;
+pub(crate) const PERF_MEM_LVLNUM_RAM: u32 = 13;
+pub(crate) const PERF_MEM_LVLNUM_PMEM: u32 = 14;
+pub(crate) const PERF_MEM_LVLNUM_NA: u32 = 15;
+pub(crate) const PERF_MEM_LVLNUM_SHIFT: u32 = 33;

@@ -72,7 +72,7 @@ include!("BtfTypeSizeOrTypeIdentifier.rs");
 include!("BtfVariableLinkage.rs");
 include!("DestinationAndSourceRegisters.rs");
 include!("ExtendedBPF_.rs");
-include!("OffsetOrInternetProtocol.rs");
+include!("OffsetOrInstructionPointer.rs");
 //include!("SKF_AD_.rs");
 //include!("SKF_LL_OFF.rs");
 //include!("SKF_NET_OFF.rs");

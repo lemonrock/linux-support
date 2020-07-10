@@ -2,21 +2,18 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use super::bpf_type_format::*;
-use crate::process::CommandName;
-use crate::pci_express::NetworkInterfaceIndex;
-
-
-include!("AccessPermissions.rs");
-include!("GenericMap.rs");
-include!("LeastRecentlyUsedLists.rs");
-include!("MapCreationError.rs");
-include!("MapFileDescriptor.rs");
-include!("MapName.rs");
-include!("MapType.rs");
-include!("MemoryMap.rs");
-include!("ParsedBtfMapData.rs");
-include!("PerCpu.rs");
-include!("PerDevice.rs");
-include!("Preallocation.rs");
+#[repr(u64)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub(crate) enum _bindgen_ty_2
+{
+	PERF_TXN_ELISION = 1,
+	PERF_TXN_TRANSACTION = 2,
+	PERF_TXN_SYNC = 4,
+	PERF_TXN_ASYNC = 8,
+	PERF_TXN_RETRY = 16,
+	PERF_TXN_CONFLICT = 32,
+	PERF_TXN_CAPACITY_WRITE = 64,
+	PERF_TXN_CAPACITY_READ = 128,
+	PERF_TXN_MAX = 256,
+	PERF_TXN_ABORT_MASK = 18446744069414584320,
+}

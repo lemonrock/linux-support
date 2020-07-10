@@ -3,12 +3,19 @@
 
 
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(crate) struct bpf_stack_build_id
 {
-	pub(crate) status: bpf_stack_build_id_status,
+	/// How to interpret `offset_or_instruction_pointer`:-
+	///
+	/// * `BPF_STACK_BUILD_ID_EMPTY`: `offset_or_instruction_pointer` is unused.
+	/// * `BPF_STACK_BUILD_ID_VALID`: `offset_or_instruction_pointer.offset` is valid.
+	/// * `BPF_STACK_BUILD_ID_IP`: `offset_or_instruction_pointer.ip` (instruction pointer) is valid.
+	status: bpf_stack_build_id_status,
+	
 	pub(crate) build_id: [c_uchar; Self::BPF_BUILD_ID_SIZE],
-	pub(crate) offset_or_internet_protocol: OffsetOrInternetProtocol,
+	
+	offset_or_instruction_pointer: OffsetOrInstructionPointer,
 }
 
 impl Default for bpf_stack_build_id
@@ -25,11 +32,25 @@ impl Debug for bpf_stack_build_id
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
 	{
-		write!(f, "bpf_stack_build_id {{ status: {:?}, build_id: {:?}, offset_or_internet_protocol: {:?} }}", self.status, self.build_id, self.offset_or_internet_protocol)
+		write!(f, "bpf_stack_build_id {{ status: {:?}, build_id: {:?}, offset_or_instruction_pointer: {:?} }}", self.status, self.build_id, self.offset_or_instruction_pointer)
 	}
 }
 
 impl bpf_stack_build_id
 {
 	pub(crate) const BPF_BUILD_ID_SIZE: usize = 20;
+	
+	/// Left is offset; right is instruction pointer.
+	#[inline(always)]
+	pub(crate) fn offset_or_instruction_pointer(&self) -> Option<Either<u64, u64>>
+	{
+		use self::bpf_stack_build_id_status::*;
+		
+		match self.status
+		{
+			&BPF_STACK_BUILD_ID_EMPTY => None,
+			&BPF_STACK_BUILD_ID_VALID => Some(Left(unsafe { self.offset_or_instruction_pointer.offset })),
+			&BPF_STACK_BUILD_ID_IP => Some(Right(unsafe { self.offset_or_instruction_pointer.ip })),
+		}
+	}
 }

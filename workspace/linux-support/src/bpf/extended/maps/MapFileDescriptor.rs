@@ -6,10 +6,6 @@
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct MapFileDescriptor(RawFd);
 
-
-// if (attr->map_type != BPF_MAP_TYPE_ARRAY &&
-// attr->map_type != BPF_MAP_TYPE_HASH)
-
 impl MapFileDescriptor
 {
 	/// `numa_node` must be online.
@@ -21,19 +17,9 @@ impl MapFileDescriptor
 	{
 		use self::MapCreationError::*;
 		
-		// This is size_of::<u32>() for:-
-		// * BPF_MAP_TYPE_ARRAY
-		// * BPF_MAP_TYPE_PROG_ARRAY
-		let key_size;
-		
-		// This is size_of::<RawFd>() for:-
-		// * BPF_MAP_TYPE_PERF_EVENT_ARRAY
-		// * BPF_MAP_TYPE_CGROUP_ARRAY
-		// * BPF_MAP_TYPE_ARRAY_OF_MAPS
-		// * BPF_MAP_TYPE_PROG_ARRAY
-		// * BPF_MAP_TYPE_HASH_OF_MAPS
-		let value_size;
-		
+		let key_size: NonZeroU32;
+		let value_size: NonZeroU32;
+		let max_entries: NonZeroU32;
 		
 		let (map_type, map_flags, vmlinux_value_type_identifier, offload_map_to_network_device) = map_type.to_values();
 		
@@ -48,15 +34,19 @@ impl MapFileDescriptor
 		let (btf_fd, btf_key_type_id, btf_value_type_id, btf_vmlinux_value_type_id, map_ifindex) = ParsedBtfMapData::to_values(parsed_btf_map_data, vmlinux_value_type_identifier, offload_map_to_network_device)?;
 		
 		/*
-		
-		BPF_F_NO_PREALLOC;
-		BPF_F_CLONE;
-		
-		// only if doesn't have a spinlock.
-		BPF_F_MMAPABLE;
-		
+		TODO: research BPF_F_CLONE;
 		 */
 		
+		if map_type == bpf_map_type::BPF_MAP_TYPE_STACK_TRACE
+		{
+			use self::AccessPermissions::*;
+			match access_permissions
+			{
+				KernelReadUserspaceWrite | KernelWriteUserspaceRead| KernelReadAndWriteUserspaceRead | KernelReadAndWriteUserspaceWrite => return Err(StackTraceMapsDoNotSupportUserpsaceReadOnlyOrWriteOnlyAccessPermissions),
+				
+				_ => (),
+			}
+		}
 		
 		
 		let mut attributes = bpf_attr
@@ -89,6 +79,8 @@ impl MapFileDescriptor
 		{
 			match errno().0
 			{
+				EINVAL => (),
+				ENOMEM => (),
 				ENOTSUPP => panic!("BTF settings are not allowed if the map is offloaded to a network device"),
 			}
 		}

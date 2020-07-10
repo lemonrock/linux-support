@@ -2,21 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use super::bpf_type_format::*;
-use crate::process::CommandName;
-use crate::pci_express::NetworkInterfaceIndex;
-
-
-include!("AccessPermissions.rs");
-include!("GenericMap.rs");
-include!("LeastRecentlyUsedLists.rs");
-include!("MapCreationError.rs");
-include!("MapFileDescriptor.rs");
-include!("MapName.rs");
-include!("MapType.rs");
-include!("MemoryMap.rs");
-include!("ParsedBtfMapData.rs");
-include!("PerCpu.rs");
-include!("PerDevice.rs");
-include!("Preallocation.rs");
+pub(crate) const PERF_ATTR_SIZE_VER0: u32 = 64;
+pub(crate) const PERF_ATTR_SIZE_VER1: u32 = 72;
+pub(crate) const PERF_ATTR_SIZE_VER2: u32 = 80;
+pub(crate) const PERF_ATTR_SIZE_VER3: u32 = 96;
+pub(crate) const PERF_ATTR_SIZE_VER4: u32 = 104;
+pub(crate) const PERF_ATTR_SIZE_VER5: u32 = 112;
+pub(crate) const PERF_ATTR_SIZE_VER6: u32 = 120;

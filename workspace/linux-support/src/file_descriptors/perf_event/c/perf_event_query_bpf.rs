@@ -3,28 +3,10 @@
 
 
 #[repr(C)]
-#[derive(Copy, Clone)]
-pub(crate) union OffsetOrInternetProtocol
+#[derive(Debug, Default)]
+pub(crate) struct perf_event_query_bpf
 {
-	pub(crate) offset: u64,
-	pub(crate) ip: u64,
-	_bindgen_union_align: u64,
-}
-
-impl Default for OffsetOrInternetProtocol
-{
-	#[inline(always)]
-	fn default() -> Self
-	{
-		unsafe { zeroed() }
-	}
-}
-
-impl Debug for OffsetOrInternetProtocol
-{
-	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter) -> fmt::Result
-	{
-		write!(f, "OffsetOrInternetProtocol {{ {} }}", unsafe { self.offset })
-	}
+	pub(crate) ids_len: u32,
+	pub(crate) prog_cnt: u32,
+	pub(crate) ids: __IncompleteArrayField<u32>,
 }

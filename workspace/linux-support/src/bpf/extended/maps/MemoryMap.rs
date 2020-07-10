@@ -2,17 +2,34 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[allow(dead_code)]
-#[repr(i32)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub(crate) enum bpf_stack_build_id_status
+/// Memory map or do not memory map this map?
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+#[repr(u32)]
+pub enum MemoryMap
 {
-	/// user space need an empty entry to identify end of a trace.
-	BPF_STACK_BUILD_ID_EMPTY = 0,
+	/// Memory map
+	MemoryMap = BPF_MAP_CREATE_flags::BPF_F_MMAPABLE.bits(),
 	
-	/// with valid build_id and offset.
-	BPF_STACK_BUILD_ID_VALID = 1,
-	
-	/// couldn't get build_id, fallback to ip (instruction pointer).
-	BPF_STACK_BUILD_ID_IP = 2,
+	/// Do not memory map (the default).
+	DoNotMemoryMap = BPF_MAP_CREATE_flags::empty().bits(),
+}
+
+impl Default for MemoryMap
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		MemoryMap::DoNotMemoryMap
+	}
+}
+
+impl Prealllocation
+{
+	#[inline(always)]
+	fn to_flags(self) -> BPF_MAP_CREATE_flags
+	{
+		unsafe { transmute(self as u32) }
+	}
 }
