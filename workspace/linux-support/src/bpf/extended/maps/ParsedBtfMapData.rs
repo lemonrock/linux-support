@@ -6,9 +6,11 @@
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ParsedBtfMapData
 {
-	data: ParsedBtfData,
-	key_type_identifier: BtfTypeIdentifier,
-	value_type_identifier: BtfTypeIdentifier,
+	/// Data.
+	pub data: ParsedBtfData,
+	
+	/// Identifiers.
+	pub btf_key_value_type_identifiers: BtfKeyValueTypeIdentifiers,
 }
 
 impl ParsedBtfMapData
@@ -29,19 +31,6 @@ impl ParsedBtfMapData
 		{
 			(&Some(Self { data, key_type_identifier, value_type_identifier }), None) =>
 			{
-				use self::MapCreationError::*;
-				
-				match (key_type_identifier, value_type_identifier)
-				{
-					(BtfTypeIdentifier::Void, BtfTypeIdentifier::Void) => (),
-					
-					(_, BtfTypeIdentifier::Void) => return Err(BtfMapHasAKeyTypeIdentifierButNotAValueTypeIdentifier),
-					
-					(BtfTypeIdentifier::Void, _) => return Err(BtfMapHasAVoidKeyTypeIdentifierButNotNotAValueTypeIdentifier),
-					
-					(_, _) => (),
-				}
-				
 				Ok((data.to_raw_file_descriptor(), key_type_identifier, value_type_identifier, vmlinux_value_type_identifier, None))
 			}
 			

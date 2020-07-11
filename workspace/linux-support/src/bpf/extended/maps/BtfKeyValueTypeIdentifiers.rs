@@ -2,31 +2,14 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Type identifier.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-#[repr(transparent)]
-pub struct NonVoidBtfTypeIdentifier(NonZeroU32);
-
-impl NonVoidBtfTypeIdentifier
+#[serde(deny_unknown_fields)]
+pub struct BtfKeyValueTypeIdentifiers
 {
-	/// Inclusive maximum.
-	pub const InclusiveMinimum: Self = Self::new_from_u32(1);
+	/// Key type identifier.
+	pub key_type_identifier: NonVoidBtfTypeIdentifier,
 	
-	/// Inclusive maximum.
-	pub const InclusiveMaximum: Self = Self::new_from_u32(BTF_MAX_TYPE as u32);
-	
-	/// New instance.
-	#[inline(always)]
-	pub const fn new(value: NonZeroU32) -> Self
-	{
-		Self(value)
-	}
-	
-	/// New instance.
-	#[inline(always)]
-	const fn new_from_u32(value: u32) -> Self
-	{
-		Self(unsafe { NonZeroU32::new_unchecked(value) })
-	}
+	/// Value type identifier.
+	pub value_type_identifier: NonVoidBtfTypeIdentifier,
 }

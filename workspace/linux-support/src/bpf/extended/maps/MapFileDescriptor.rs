@@ -8,26 +8,26 @@ pub struct MapFileDescriptor(RawFd);
 
 impl MapFileDescriptor
 {
-	/// `numa_node` must be online.
+	/// `parsed_btf_map_data` must be `None` for `map_type` when it is:-
 	///
-	/// `parsed_btf_map_data` is ignored when:-
+	/// * `MapType::HashPerDevice`.
+	/// * `MapType::ArrayPerDevice`.
+	/// * `MapType::StructOps`.
 	///
-	/// * `offload_map_to_network_device` is `Some`;
-	/// * `map_type` is `StructOps`.
-	pub fn create<Key: Sized, Value: Sized>(map_type: MapType, map_name: &MapName, numa_node: Option<NumaNode>, parsed_btf_map_data: Option<&ParsedBtfMapData>, access_permissions: AccessPermissions, map_file_descriptors: &FileDescriptorLabelsMap<MapFileDescriptor>) -> Result<Self, MapCreationError>
+	/// `parsed_btf_map_data` must be `Some` for `map_type` when it is:-
+	///
+	/// * `MapType::SocketStorage`.
+	pub fn create<Key: Sized, Value: Sized>(map_type: MapType, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, map_file_descriptors: &FileDescriptorLabelsMap<MapFileDescriptor>) -> Result<Self, MapCreationError>
 	{
 		use self::MapCreationError::*;
 		
-		let key_size: NonZeroU32;
-		let value_size: NonZeroU32;
-		let max_entries: u32; // usually non-zero but occasionally must be only zero or only one and nothing else.
+		let btf_key_value_type_identifiers = match parsed_btf_map_data
+		{
+			None => None,
+			&Some(ParsedBtfMapData { btf_key_value_type_identifiers, .. }) => Some(btf_key_value_type_identifiers),
+		};
 		
-		let (map_type, map_flags, vmlinux_value_type_identifier, offload_map_to_network_device, numa_node, inner_map_fd, key_size, value_size, max_entries) = map_type.to_values(map_file_descriptors)?;
-		
-		let (btf_fd, btf_key_type_id, btf_value_type_id, btf_vmlinux_value_type_id, map_ifindex) = ParsedBtfMapData::to_values(parsed_btf_map_data, vmlinux_value_type_identifier, offload_map_to_network_device)?;
-		
-		// TODO: SocketStorage requires BTF!!!
-		xxx;
+		let (map_type, map_flags, (btf_fd, btf_key_type_id, btf_value_type_id, btf_vmlinux_value_type_id), offload_map_to_network_device, numa_node, inner_map_fd, key_size, value_size, max_entries) = map_type.to_values(parsed_btf_map_data, map_file_descriptors)?;
 		
 		let mut attributes = bpf_attr
 		{

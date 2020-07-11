@@ -11,6 +11,7 @@ use crate::pci_express::NetworkInterfaceIndex;
 
 
 include!("AccessPermissions.rs");
+include!("BtfKeyValueTypeIdentifiers.rs");
 include!("CloneFromListener.rs");
 include!("GenericMap.rs");
 include!("KernelOnlyAccessPermissions.rs");

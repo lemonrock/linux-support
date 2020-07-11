@@ -17,12 +17,12 @@ pub enum MapCreationError
 	
 	#[allow(missing_docs)]
 	ValueIsTooLarge,
-
+	
 	#[allow(missing_docs)]
-	BtfMapHasAKeyTypeIdentifierButNotAValueTypeIdentifier,
-
+	HashByDeviceArrayByDeviceAndStructOpsMandatesThatThereAreNotKeyOrValueTypeIdentifiers,
+	
 	#[allow(missing_docs)]
-	BtfMapHasAVoidKeyTypeIdentifierButNotNotAValueTypeIdentifier,
+	SocketStorageMandatesBtfTypeIdentifiersForKeyAndValue,
 
 	#[allow(missing_docs)]
 	MissingMapFileDescriptor(ProgramError),
@@ -54,9 +54,9 @@ impl error::Error for MapCreationError
 			
 			&ValueIsEmpty => None,
 			
-			&BtfMapHasAKeyTypeIdentifierButNotAValueTypeIdentifier => None,
+			&HashByDeviceArrayByDeviceAndStructOpsMandatesThatThereAreNotKeyOrValueTypeIdentifiers => None,
 			
-			&BtfMapHasAVoidKeyTypeIdentifierButNotNotAValueTypeIdentifier => None,
+			&SocketStorageMandatesBtfTypeIdentifiersForKeyAndValue => None,
 			
 			&MissingMapFileDescriptor(ref cause) => Some(cause),
 		}
