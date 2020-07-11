@@ -26,6 +26,9 @@ pub enum MapCreationError
 
 	#[allow(missing_docs)]
 	MissingMapFileDescriptor(ProgramError),
+
+	#[allow(missing_docs)]
+	CreateFailed(Errno),
 }
 
 impl Display for MapCreationError
@@ -59,6 +62,8 @@ impl error::Error for MapCreationError
 			&SocketStorageMandatesBtfTypeIdentifiersForKeyAndValue => None,
 			
 			&MissingMapFileDescriptor(ref cause) => Some(cause),
+			
+			&CreateFailed(ref cause) => Some(cause),
 		}
 	}
 }

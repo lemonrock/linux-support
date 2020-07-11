@@ -23,7 +23,7 @@ impl<'name> ProgramLinesParser<'name>
 	/// Process instructions.
 	///
 	/// If `btf_program_details` is `None`, no function or line information is produced.
-	pub fn parse<'file_descriptor>(btf_program_details: Option<&BtfProgramDetails>, program_lines: &Vec<ProgramLine<'name>>, arguments: ExtendedBpfProgramArguments<'file_descriptor>, verifier_log: Option<&mut VerifierLog>) -> Result<(Box<[bpf_insn]>, Option<ParsedBtfData>, FileDescriptorLabelsMap<'file_descriptor, ExtendedBpfProgramFileDescriptor>), ProgramError>
+	pub fn parse<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>(btf_program_details: Option<&BtfProgramDetails>, program_lines: &Vec<ProgramLine<'name>>, arguments: ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>, verifier_log: Option<&mut VerifierLog>) -> Result<(Box<[bpf_insn]>, Option<ParsedBtfData>, &'extended_bpf_program_file_descriptor_label_map FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>), ProgramError>
 	{
 		let number_of_program_lines = program_lines.len();
 		if unlikely!(number_of_program_lines > bpf_line_info::MaximumNumberOfProgramLines)
@@ -58,7 +58,7 @@ impl<'name> ProgramLinesParser<'name>
 	}
 	
 	#[inline(always)]
-	fn parse_internal<'file_descriptor>(mut self, program_lines: &Vec<ProgramLine<'name>>, btf_program_details: Option<&BtfProgramDetails>, arguments: ExtendedBpfProgramArguments<'file_descriptor>, verifier_log: Option<&mut VerifierLog>) -> Result<(Box<[bpf_insn]>, Option<ParsedBtfData>, FileDescriptorLabelsMap<'file_descriptor, ExtendedBpfProgramFileDescriptor>), ProgramError>
+	fn parse_internal<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>(mut self, program_lines: &Vec<ProgramLine<'name>>, btf_program_details: Option<&BtfProgramDetails>, arguments: ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>, verifier_log: Option<&mut VerifierLog>) -> Result<(Box<[bpf_insn]>, Option<ParsedBtfData>, &'extended_bpf_program_file_descriptor_label_map FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>), ProgramError>
 	{
 		use self::ProgramError::*;
 		
@@ -71,7 +71,7 @@ impl<'name> ProgramLinesParser<'name>
 		
 		for program_line in program_lines
 		{
-			program_line.parse(&mut self, &i32_immediates_map, &u64_immediates_map, &memory_offsets_map, &map_file_descriptor_labels_map)?;
+			program_line.parse(&mut self, &i32_immediates_map, &u64_immediates_map, &memory_offsets_map, map_file_descriptor_labels_map)?;
 			self.line_number += 1;
 		}
 		
@@ -93,7 +93,6 @@ impl<'name> ProgramLinesParser<'name>
 		i32_immediates_map.guard_all_values_have_been_resolved_at_least_once()?;
 		u64_immediates_map.guard_all_values_have_been_resolved_at_least_once()?;
 		memory_offsets_map.guard_all_values_have_been_resolved_at_least_once()?;
-		map_file_descriptor_labels_map.guard_all_values_have_been_resolved_at_least_once()?;
 		
 		let instructions = self.instructions.into_boxed_slice();
 		let parsed_btf_data = match self.btf_type_information_parser

@@ -19,6 +19,15 @@ impl<'name> Deref for Name<'name>
 	}
 }
 
+impl<'name> Into<String> for Name<'name>
+{
+	#[inline(always)]
+	fn into(self) -> String
+	{
+		self.0.to_string()
+	}
+}
+
 impl<'name> From<Cow<'name, str>> for Name<'name>
 {
 	#[inline(always)]

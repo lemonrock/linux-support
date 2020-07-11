@@ -19,6 +19,15 @@ impl<'name> Deref for FileDescriptorLabel<'name>
 	}
 }
 
+impl<'name> Into<String> for FileDescriptorLabel<'name>
+{
+	#[inline(always)]
+	fn into(self) -> String
+	{
+		self.0.into()
+	}
+}
+
 impl<'name, V: Into<Name<'name>>> From<V> for FileDescriptorLabel<'name>
 {
 	#[inline(always)]

@@ -4,37 +4,11 @@
 
 /// BTF data to describe the map.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct ParsedBtfMapData
+pub struct ParsedBtfMapData<'data>
 {
 	/// Data.
-	pub data: ParsedBtfData,
+	pub data: &'data ParsedBtfData,
 	
 	/// Identifiers.
 	pub btf_key_value_type_identifiers: BtfKeyValueTypeIdentifiers,
-}
-
-impl ParsedBtfMapData
-{
-	pub(crate) fn to_values(parsed_btf_map_data: Option<&Self>, vmlinux_value_type_identifier: BtfTypeIdentifier, offload_map_to_network_device: Option<NetworkInterfaceIndex>) -> Result<(RawFd, BtfTypeIdentifier, BtfTypeIdentifier, BtfTypeIdentifier, Option<NetworkInterfaceIndex>), MapCreationError>
-	{
-		const NoBtfFileDescriptor: RawFd = 0;
-		
-		const NoBtfData: (RawFd, BtfTypeIdentifier, BtfTypeIdentifier, BtfTypeIdentifier, Option<NetworkInterfaceIndex>) = (NoBtfFileDescriptor, BtfTypeIdentifier::Void, BtfTypeIdentifier::Void, vmlinux_value_type_identifier, None);
-		
-		if vmlinux_value_type_identifier.is_non_void()
-		{
-			debug_assert_eq!(offload_map_to_network_device, None);
-			return Ok(NoBtfData)
-		}
-		
-		match (parsed_btf_map_data, offload_map_to_network_device)
-		{
-			(&Some(Self { data, key_type_identifier, value_type_identifier }), None) =>
-			{
-				Ok((data.to_raw_file_descriptor(), key_type_identifier, value_type_identifier, vmlinux_value_type_identifier, None))
-			}
-			
-			_ => Ok(NoBtfData),
-		}
-	}
 }

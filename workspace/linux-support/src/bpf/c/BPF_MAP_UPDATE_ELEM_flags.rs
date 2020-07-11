@@ -6,7 +6,7 @@ bitflags!
 {
 	/// Flags for `BPF_MAP_UPDATE_ELEM` command.
 	#[allow(missing_docs)]
-	pub(crate) struct BPF_MAP_UPDATE_ELEM_flags: u32
+	pub(crate) struct BPF_MAP_UPDATE_ELEM_flags: u64
 	{
 		const BPF_ANY = 0;
 		const BPF_NOEXIST = 1;

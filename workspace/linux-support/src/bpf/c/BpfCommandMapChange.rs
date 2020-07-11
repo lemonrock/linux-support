@@ -10,7 +10,7 @@ pub(crate) struct BpfCommandMapChange
 	pub(crate) map_fd: RawFd,
 	pub(crate) key: AlignedU64,
 	pub(crate) value_or_next_key: BpfCommandMapChangeValueOrNextKey,
-	pub(crate) flags: u64,
+	pub(crate) flags: BPF_MAP_UPDATE_ELEM_flags,
 }
 
 impl Default for BpfCommandMapChange

@@ -4,7 +4,7 @@
 
 /// Arguments.
 #[derive(Debug)]
-pub struct ExtendedBpfProgramArguments<'file_descriptor>
+pub struct ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>
 {
 	/// Immediates.
 	pub i32_immediates_map: OffsetsMap<i32>,
@@ -16,8 +16,8 @@ pub struct ExtendedBpfProgramArguments<'file_descriptor>
 	pub memory_offsets_map: OffsetsMap<i16>,
 	
 	/// Maps.
-	pub map_file_descriptor_labels_map: FileDescriptorLabelsMap<'file_descriptor, MapFileDescriptor>,
+	pub map_file_descriptor_labels_map: &'map_file_descriptor_label_map FileDescriptorLabelsMap<MapFileDescriptor>,
 	
 	/// Programs.
-	pub extended_bpf_program_file_descriptor_labels_map: FileDescriptorLabelsMap<'file_descriptor, ExtendedBpfProgramFileDescriptor>,
+	pub extended_bpf_program_file_descriptor_labels_map: &'map_file_descriptor_label_map FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>,
 }

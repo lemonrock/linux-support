@@ -6,6 +6,24 @@
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(crate) struct AlignedU64(pub u64);
 
+impl<'t, T: Sized> From<&'t T> for AlignedU64
+{
+	#[inline(always)]
+	fn from(value: &'t T) -> Self
+	{
+		Self::from(value as *const T)
+	}
+}
+
+impl<'t, T: Sized> From<&'t mut T> for AlignedU64
+{
+	#[inline(always)]
+	fn from(value: &'t mut T) -> Self
+	{
+		Self::from(value as *mut T)
+	}
+}
+
 impl<T: Sized> From<*const T> for AlignedU64
 {
 	#[inline(always)]

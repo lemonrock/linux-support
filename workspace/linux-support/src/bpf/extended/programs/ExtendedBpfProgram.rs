@@ -30,7 +30,7 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 {
 	/// Parse and load.
 	#[inline(always)]
-	pub fn parse_and_load(&self, arguments: ExtendedBpfProgramArguments, verifier_log: Option<&mut VerifierLog>) -> Result<RawFd, ProgramLoadError>
+	pub fn parse_and_load<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>(&self, arguments: ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>, verifier_log: Option<&mut VerifierLog>) -> Result<RawFd, ProgramLoadError>
 	{
 		let verifier_log_copy = unsafe { transmute_copy(&verifier_log) };
 		
@@ -39,12 +39,11 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 		self.load(&instructions[..], parsed_btf_data.as_ref(), extended_bpf_program_file_descriptor_labels_map, verifier_log)
 	}
 	
-	fn load(&self, instructions: &[bpf_insn], parsed_btf_data: Option<&ParsedBtfData>, extended_bpf_program_file_descriptor_labels_map: FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>, verifier_log: Option<&mut VerifierLog>) -> Result<RawFd, ProgramLoadError>
+	fn load(&self, instructions: &[bpf_insn], parsed_btf_data: Option<&ParsedBtfData>, extended_bpf_program_file_descriptor_labels_map: &FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>, verifier_log: Option<&mut VerifierLog>) -> Result<RawFd, ProgramLoadError>
 	{
 		let (log_level, log_buf, log_size) = VerifierLog::to_values_for_syscall(verifier_log);
 		
 		let (prog_type, expected_attach_type, attach_btf_id, attach_prog_fd, kern_version, prog_ifindex) = self.program_type.to_values(&extended_bpf_program_file_descriptor_labels_map)?;
-		extended_bpf_program_file_descriptor_labels_map.guard_all_values_have_been_resolved_at_least_once()?;
 		
 		let
 		(

@@ -3,31 +3,25 @@
 
 
 /// Resolves the value of items of type `FileDescriptor`.
-#[derive(Debug)]
-pub struct FileDescriptorLabelsMap<'file_descriptor, FD: FileDescriptor>(UsageHashMap<&'file_descriptor FD>);
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
+pub struct FileDescriptorLabelsMap<FD: FileDescriptor>(HashMap<FD>);
 
-impl<'file_descriptor, FD: FileDescriptor> Default for FileDescriptorLabelsMap<'file_descriptor, FD>
+impl<FD: FileDescriptor> FileDescriptorLabelsMap<FD>
 {
 	#[inline(always)]
-	fn default() -> Self
+	pub(crate) fn add(&mut self, file_descriptor_label: FileDescriptorLabel, file_descriptor: FD) -> &FD
 	{
-		use self::ProgramError::*;
-		
-		Self(UsageHashMap::new(CouldNotResolveFileDescriptorLabel, NotAllFileDescriptorLabelsHaveBeenResolved))
+		use std::collections::hash_map::Entry::*;
+		match self.0.entry(file_descriptor_label.into())
+		{
+			Vacant(vacant) => vacant.insert(file_descriptor),
+			Occupied(_) => panic!("Already added"),
+		}
 	}
-}
-
-impl<'file_descriptor, FD: FileDescriptor> FileDescriptorLabelsMap<'file_descriptor, FD>
-{
+	
 	#[inline(always)]
 	pub(crate) fn resolve<'name>(&self, file_descriptor_label: &FileDescriptorLabel<'name>) -> Result<RawFd, ProgramError>
 	{
 		self.0.resolve(file_descriptor_label.deref()).map(|file_descriptor| file_descriptor.as_raw_fd())
-	}
-	
-	#[inline(always)]
-	pub(crate) fn guard_all_values_have_been_resolved_at_least_once(self) -> Result<(), ProgramError>
-	{
-		self.0.guard_all_values_have_been_resolved_at_least_once()
 	}
 }
