@@ -23,6 +23,9 @@ pub enum MapCreationError
 
 	#[allow(missing_docs)]
 	BtfMapHasAVoidKeyTypeIdentifierButNotNotAValueTypeIdentifier,
+
+	#[allow(missing_docs)]
+	MissingMapFileDescriptor(ProgramError),
 }
 
 impl Display for MapCreationError
@@ -54,6 +57,17 @@ impl error::Error for MapCreationError
 			&BtfMapHasAKeyTypeIdentifierButNotAValueTypeIdentifier => None,
 			
 			&BtfMapHasAVoidKeyTypeIdentifierButNotNotAValueTypeIdentifier => None,
+			
+			&MissingMapFileDescriptor(ref cause) => Some(cause),
 		}
+	}
+}
+
+impl From<ProgramError> for MapCreationError
+{
+	#[inline(always)]
+	fn from(value: ProgramError) -> Self
+	{
+		MapCreationError::MissingMapFileDescriptor(value)
 	}
 }

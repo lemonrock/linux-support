@@ -83,6 +83,10 @@ pub mod bpf;
 pub mod block_device;
 
 
+/// Cgroup file descriptors.
+pub mod cgroup;
+
+
 /// Character device file descriptors.
 pub mod character_device;
 

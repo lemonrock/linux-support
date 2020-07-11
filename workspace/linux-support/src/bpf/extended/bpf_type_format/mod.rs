@@ -23,5 +23,6 @@ include!("BtfTypeIdentifier.rs");
 include!("BtfTypeIdentifiers.rs");
 include!("BtfTypeInformationParser.rs");
 include!("BtfTypeIntegerEncoding.rs");
+include!("NonVoidBtfTypeIdentifier.rs");
 include!("ParsedBtfData.rs");
 include!("StringTable.rs");

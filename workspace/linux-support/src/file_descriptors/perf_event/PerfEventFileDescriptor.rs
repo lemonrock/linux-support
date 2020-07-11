@@ -49,8 +49,43 @@ impl FileDescriptor for PerfEventFileDescriptor
 impl PerfEventFileDescriptor
 {
 	/// Opens a new instance using `perf_event_open()`.
-	pub fn open() -> Result<Self, io::Error>
+	///
+	/// If `event_group_leader` this event is created as an event group leader in a new event group.
+	/// To attach an event into an existing event group, pass the event group leader of the event group.
+	///
+	/// Events are created with the close-on-exec flag set.
+	#[allow(dead_code)]
+	pub(crate) fn open(mut attr: perf_event_attr, event_attachment: EventAttachment, event_group_leader: Option<&Self>) -> Result<Self, io::Error>
 	{
-		unimplemented!("Create a wrapper for perf_event_open()")
+		let (pid, cpu, flags) = event_attachment.to_values();
+		
+		let group_fd = match event_group_leader
+		{
+			None => -1,
+			Some(event_group_leader) => event_group_leader.as_raw_fd(),
+		};
+		
+		let flags = flags | if output
+		{
+			PERF_FLAG_FD_OUTPUT
+		}
+		else
+		{
+			0
+		};
+		
+		let result = perf_event_open(&mut attr, pid, cpu, group_fd, flags);
+		if likely!(result >= 0)
+		{
+			Ok(Self(result))
+		}
+		else if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("Unexpected result `{}` from perf_event_open()", result)
+		}
 	}
 }

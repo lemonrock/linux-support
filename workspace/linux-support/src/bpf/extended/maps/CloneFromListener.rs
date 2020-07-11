@@ -2,14 +2,5 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use self::c::*;
-use super::*;
-use super::cgroup::CgroupFileDescriptor;
-
-
-mod c;
-
-
-
-include!("EventAttachment.rs");
-include!("PerfEventFileDescriptor.rs");
+/// Clone from listener?
+pub type CloneFromListener = bool;

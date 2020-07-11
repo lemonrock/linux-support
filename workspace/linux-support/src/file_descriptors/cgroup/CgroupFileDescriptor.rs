@@ -2,34 +2,46 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Preallocate or do not preallocate this map?
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-#[repr(u32)]
-pub enum Preallocation
-{
-	/// Preallocate (the default for all hash super-types).
-	Preallocate = BPF_MAP_CREATE_flags::empty().bits(),
-	
-	/// Do not preallocate.
-	DoNotPreallocate = BPF_MAP_CREATE_flags::BPF_F_NO_PREALLOC.bits(),
-}
+/// Represents a Cgroup file descriptor which is backed by a `File`.
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct CgroupFileDescriptor(File);
 
-impl Default for Preallocation
+impl Drop for CgroupFileDescriptor
 {
 	#[inline(always)]
-	fn default() -> Self
+	fn drop(&mut self)
 	{
-		Preallocation::Preallocate
+		self.0.close()
 	}
 }
 
-impl Prealllocation
+impl AsRawFd for CgroupFileDescriptor
 {
 	#[inline(always)]
-	fn to_map_flags(self) -> BPF_MAP_CREATE_flags
+	fn as_raw_fd(&self) -> RawFd
 	{
-		unsafe { transmute(self as u32) }
+		self.0.as_raw_fd()
 	}
+}
+
+impl IntoRawFd for CgroupFileDescriptor
+{
+	#[inline(always)]
+	fn into_raw_fd(self) -> RawFd
+	{
+		self.0.into_raw_fd()
+	}
+}
+
+impl FromRawFd for CgroupFileDescriptor
+{
+	#[inline(always)]
+	unsafe fn from_raw_fd(fd: RawFd) -> Self
+	{
+		Self(File::from_raw_fd(fd))
+	}
+}
+
+impl FileDescriptor for CgroupFileDescriptor
+{
 }

@@ -2,45 +2,35 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Read, write or both?
+/// Access permissions specialized for use with the map types:-
 ///
-/// See the checks in the Linux kernel function `bpf_get_file_flag()`.
+/// * `BPF_MAP_TYPE_STACK_TRACE`.
+/// * `BPF_MAP_TYPE_SOCKMAP`.
+/// * `BPF_MAP_TYPE_SOCKHASH`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u32)]
-pub enum AccessPermissions
+pub enum KernelOnlyAccessPermissions
 {
 	#[allow(missing_docs)]
-	KernelReadUserspaceWrite = BPF_MAP_CREATE_flags::BPF_F_RDONLY.bits() | BPF_MAP_CREATE_flags::BPF_F_WRONLY_PROG.bits(),
-	
-	#[allow(missing_docs)]
 	KernelReadUserspaceReadWrite = BPF_MAP_CREATE_flags::BPF_F_RDONLY.bits(),
-	
-	#[allow(missing_docs)]
-	KernelWriteUserspaceRead = BPF_MAP_CREATE_flags::BPF_F_WRONLY.bits() | BPF_MAP_CREATE_flags::BPF_F_RDONLY_PROG.bits(),
 	
 	/// Note this differs in value to `XdpAccessPermissions::KernelWriteUserspaceRead`.
 	KernelWriteUserspaceReadWrite = BPF_MAP_CREATE_flags::BPF_F_WRONLY.bits(),
 	
 	#[allow(missing_docs)]
-	KernelReadAndWriteUserspaceRead = BPF_MAP_CREATE_flags::BPF_F_RDONLY_PROG.bits(),
-	
-	#[allow(missing_docs)]
-	KernelReadAndWriteUserspaceWrite = BPF_MAP_CREATE_flags::BPF_F_WRONLY_PROG.bits(),
-	
-	#[allow(missing_docs)]
 	KernelReadAndWriteUserspaceReadWrite = BPF_MAP_CREATE_flags::empty().bits(),
 }
 
-impl Default for AccessPermissions
+impl Default for KernelOnlyAccessPermissions
 {
 	#[inline(always)]
 	fn default() -> Self
 	{
-		AccessPermissions::KernelReadAndWriteUserspaceReadWrite
+		KernelOnlyAccessPermissions::KernelReadAndWriteUserspaceReadWrite
 	}
 }
 
-impl AccessPermissions
+impl KernelOnlyAccessPermissions
 {
 	#[inline(always)]
 	const fn to_map_flags(self) -> BPF_MAP_CREATE_flags

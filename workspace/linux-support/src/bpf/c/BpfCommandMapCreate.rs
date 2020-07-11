@@ -11,10 +11,10 @@ pub(crate) struct BpfCommandMapCreate
 	pub(crate) map_type: bpf_map_type,
 	
 	/// size of key in bytes.
-	pub(crate) key_size: u32,
+	pub(crate) key_size: NonZeroU32,
 	
 	/// size of value in bytes.
-	pub(crate) value_size: u32,
+	pub(crate) value_size: NonZeroU32,
 	
 	/// max number of entries in a map.
 	pub(crate) max_entries: u32,

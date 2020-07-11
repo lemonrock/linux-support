@@ -10,55 +10,35 @@ impl MapFileDescriptor
 {
 	/// `numa_node` must be online.
 	///
-	/// If `offload_map_to_network_device` is `Some`, then:-
-	/// * `parsed_btf_map_data` is ignored as BTF information is not permitted.
-	/// * The capability `CAP_SYS_ADMIN` is needed.
-	pub fn create<Key: Sized, Value: Sized>(map_type: MapType, map_name: &MapName, numa_node: Option<NumaNode>, parsed_btf_map_data: Option<&ParsedBtfMapData>, access_permissions: AccessPermissions) -> Result<Self, MapCreationError>
+	/// `parsed_btf_map_data` is ignored when:-
+	///
+	/// * `offload_map_to_network_device` is `Some`;
+	/// * `map_type` is `StructOps`.
+	pub fn create<Key: Sized, Value: Sized>(map_type: MapType, map_name: &MapName, numa_node: Option<NumaNode>, parsed_btf_map_data: Option<&ParsedBtfMapData>, access_permissions: AccessPermissions, map_file_descriptors: &FileDescriptorLabelsMap<MapFileDescriptor>) -> Result<Self, MapCreationError>
 	{
 		use self::MapCreationError::*;
 		
 		let key_size: NonZeroU32;
 		let value_size: NonZeroU32;
-		let max_entries: NonZeroU32;
+		let max_entries: u32; // usually non-zero but occasionally must be only zero or only one and nothing else.
 		
-		let (map_type, map_flags, vmlinux_value_type_identifier, offload_map_to_network_device) = map_type.to_values();
-		
-		let map_flags = map_flags | access_permissions.to_map_flags();
-		
-		let (numa_node, map_flags) = match numa_node
-		{
-			None => (0, map_flags),
-			Some(numa_node) => (numa_node.into(), map_flags | BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE),
-		};
+		let (map_type, map_flags, vmlinux_value_type_identifier, offload_map_to_network_device, numa_node, inner_map_fd, key_size, value_size, max_entries) = map_type.to_values(map_file_descriptors)?;
 		
 		let (btf_fd, btf_key_type_id, btf_value_type_id, btf_vmlinux_value_type_id, map_ifindex) = ParsedBtfMapData::to_values(parsed_btf_map_data, vmlinux_value_type_identifier, offload_map_to_network_device)?;
 		
-		/*
-		TODO: research BPF_F_CLONE;
-		 */
-		
-		if map_type == bpf_map_type::BPF_MAP_TYPE_STACK_TRACE
-		{
-			use self::AccessPermissions::*;
-			match access_permissions
-			{
-				KernelReadUserspaceWrite | KernelWriteUserspaceRead| KernelReadAndWriteUserspaceRead | KernelReadAndWriteUserspaceWrite => return Err(StackTraceMapsDoNotSupportUserpsaceReadOnlyOrWriteOnlyAccessPermissions),
-				
-				_ => (),
-			}
-		}
-		
+		// TODO: SocketStorage requires BTF!!!
+		xxx;
 		
 		let mut attributes = bpf_attr
 		{
 			map_create: BpfCommandMapCreate
 			{
 				map_type,
-				key_size: X,
-				value_size: X,
-				max_entries: X,
+				key_size,
+				value_size,
+				max_entries,
 				map_flags,
-				inner_map_fd: X,
+				inner_map_fd,
 				numa_node,
 				map_name: map_name.to_bpf_object_name(),
 				map_ifindex,
@@ -79,6 +59,7 @@ impl MapFileDescriptor
 		{
 			match errno().0
 			{
+				EFAULT => (),
 				EINVAL => (),
 				ENOMEM => (),
 				ENOTSUPP => panic!("BTF settings are not allowed if the map is offloaded to a network device"),

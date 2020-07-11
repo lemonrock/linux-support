@@ -2,34 +2,23 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Preallocate or do not preallocate this map?
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+/// Maximum number of entries.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-#[repr(u32)]
-pub enum Preallocation
-{
-	/// Preallocate (the default for all hash super-types).
-	Preallocate = BPF_MAP_CREATE_flags::empty().bits(),
-	
-	/// Do not preallocate.
-	DoNotPreallocate = BPF_MAP_CREATE_flags::BPF_F_NO_PREALLOC.bits(),
-}
+#[repr(transparent)]
+pub struct MaximumEntries(NonZeroU32);
 
-impl Default for Preallocation
+impl MaximumEntries
 {
 	#[inline(always)]
-	fn default() -> Self
+	pub const fn new(value: NonZeroU32) -> Self
 	{
-		Preallocation::Preallocate
+		Self(value)
 	}
-}
-
-impl Prealllocation
-{
+	
 	#[inline(always)]
-	fn to_map_flags(self) -> BPF_MAP_CREATE_flags
+	pub(crate) const fn to_u32(self) -> u32
 	{
-		unsafe { transmute(self as u32) }
+		self.0.get()
 	}
 }

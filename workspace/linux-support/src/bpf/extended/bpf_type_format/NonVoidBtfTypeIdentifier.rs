@@ -2,34 +2,31 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Preallocate or do not preallocate this map?
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+/// Defaults to `Void`.
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-#[repr(u32)]
-pub enum Preallocation
+#[repr(transparent)]
+pub struct NonVoidBtfTypeIdentifier(NonZeroU32);
+
+impl NonVoidBtfTypeIdentifier
 {
-	/// Preallocate (the default for all hash super-types).
-	Preallocate = BPF_MAP_CREATE_flags::empty().bits(),
+	/// Inclusive maximum.
+	pub const InclusiveMinimum: Self = Self::new_from_u32(1);
 	
-	/// Do not preallocate.
-	DoNotPreallocate = BPF_MAP_CREATE_flags::BPF_F_NO_PREALLOC.bits(),
-}
-
-impl Default for Preallocation
-{
+	/// Inclusive maximum.
+	pub const InclusiveMaximum: Self = Self::new_from_u32(BTF_MAX_TYPE as u32);
+	
+	/// New instance.
 	#[inline(always)]
-	fn default() -> Self
+	pub const fn new(value: NonZeroU32) -> Self
 	{
-		Preallocation::Preallocate
+		Self(value)
 	}
-}
-
-impl Prealllocation
-{
+	
+	/// New instance.
 	#[inline(always)]
-	fn to_map_flags(self) -> BPF_MAP_CREATE_flags
+	const fn new_from_u32(value: u32) -> Self
 	{
-		unsafe { transmute(self as u32) }
+		Self(unsafe { NonZeroU32::new_unchecked(value) })
 	}
 }

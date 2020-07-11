@@ -6,30 +6,21 @@
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
-pub struct BtfTypeIdentifier(u32);
-
-impl Into<u32> for BtfTypeIdentifier
-{
-	#[inline(always)]
-	fn into(self) -> u32
-	{
-		self.0
-	}
-}
+pub struct BtfTypeIdentifier(Option<NonVoidBtfTypeIdentifier>);
 
 impl BtfTypeIdentifier
 {
 	/// `void`.
-	pub const Void: Self = Self(0);
+	pub const Void: Self = Self(None);
 	
 	/// Inclusive maximum.
-	pub const InclusiveMaximum: Self = Self(BTF_MAX_TYPE as u32);
+	pub const InclusiveMaximum: Self = Self(Some(NonVoidBtfTypeIdentifier::InclusiveMaximum));
 	
 	/// New instance.
 	#[inline(always)]
-	pub const fn new(value: NonZeroU32) -> Self
+	pub const fn new(value: NonVoidBtfTypeIdentifier) -> Self
 	{
-		Self(value.get())
+		Self(Some(value))
 	}
 	
 	#[inline(always)]
@@ -40,7 +31,9 @@ impl BtfTypeIdentifier
 			return Err(BtfTypeError::TooManyBtfTypes)
 		}
 		
-		self.0 += 1;
+		let inner: u32 = unsafe { transmute(self.0) };
+		*self = Self(Some(NonVoidBtfTypeIdentifier::new_from_u32(inner + 1)));
+		
 		Ok(*self)
 	}
 }

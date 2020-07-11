@@ -4,19 +4,28 @@
 
 use super::*;
 use super::bpf_type_format::*;
+use super::instructions::*;
+use super::instructions::file_descriptor_label::*;
 use crate::process::CommandName;
 use crate::pci_express::NetworkInterfaceIndex;
 
 
 include!("AccessPermissions.rs");
+include!("CloneFromListener.rs");
 include!("GenericMap.rs");
+include!("KernelOnlyAccessPermissions.rs");
+include!("KeySize.rs");
 include!("LeastRecentlyUsedLists.rs");
 include!("MapCreationError.rs");
 include!("MapFileDescriptor.rs");
 include!("MapName.rs");
 include!("MapType.rs");
+include!("MaximumEntries.rs");
 include!("MemoryMap.rs");
 include!("ParsedBtfMapData.rs");
-include!("PerCpu.rs");
-include!("PerDevice.rs");
 include!("Preallocation.rs");
+include!("StackDepth.rs");
+include!("ValueSizeU16.rs");
+include!("ValueSizeU32.rs");
+include!("VMLinuxValueTypeIdentifier.rs");
+include!("XdpAccessPermissions.rs");
