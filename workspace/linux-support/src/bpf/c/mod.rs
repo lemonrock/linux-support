@@ -4,6 +4,7 @@
 
 use super::*;
 use super::extended::bpf_type_format::*;
+use super::extended::bpf_type_format::reflection::*;
 use super::extended::instructions::*;
 use super::extended::instructions::LoadSize::*;
 use crate::syscall::SYS;
@@ -38,6 +39,7 @@ include!("BPF_PROG_ATTACH_flags.rs");
 include!("BPF_PROG_LOAD_flags.rs");
 include!("BPF_PROG_QUERY_flags.rs");
 include!("bpf_prog_type.rs");
+include!("bpf_spin_lock.rs");
 include!("bpf_stack_build_id.rs");
 include!("bpf_stack_build_id_status.rs");
 include!("BPF_STMT.rs");

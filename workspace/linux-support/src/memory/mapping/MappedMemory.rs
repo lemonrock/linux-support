@@ -402,14 +402,18 @@ impl MappedMemory
 		let prefault_flags = if prefault
 		{
 			MAP_POPULATE
-		} else {
+		}
+		else
+		{
 			0
 		};
 		
 		let no_reserve_flags = if reserve_swap_space
 		{
 			0
-		} else {
+		}
+		else
+		{
 			MAP_NORESERVE
 		};
 		

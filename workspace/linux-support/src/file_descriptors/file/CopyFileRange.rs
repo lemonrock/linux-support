@@ -53,7 +53,7 @@ pub trait CopyFileRange: AsRawFd + Seek + FileExt
 				ENOSPC | EXDEV => Err(false),
 
 				EBADF => panic!("Either fd_in, fd_out or both file descriptors are not valid. Or fd_in is not open for reading. Or fd_out is not open for writing. Or the O_APPEND flag is set for the open file description referred to by the file descriptor fd_out."),
-				EFBIG => panic!("An attempt was made to write at a position past the maximum file offset the kernel supports. Or an attempt was made to write a range that exceeds the allowed maximum file size (The maximum file size differs between filesystem implementations and can be different from the maximum allowed file offset). Or an attempt was made to write beyond the process's file size resource limit.  This may also result in the process receiving a SIGXFSZ signal"),
+				EFBIG => panic!("An attempt was made to write at a position past the maximum file offset the kernel supports. Or an attempt was made to write a range that exceeds the allowed maximum file size (The maximum file size differs between filesystem domain and can be different from the maximum allowed file offset). Or an attempt was made to write beyond the process's file size resource limit.  This may also result in the process receiving a SIGXFSZ signal"),
 				EINVAL => panic!("The flags argument is not 0. Or fd_in and fd_out refer to the same file and the source and target ranges overlap. Or either fd_in or fd_out (or both) is not a regular file."),
 				EPERM => panic!("fd_out refers to an immutable file"),
 				EOVERFLOW => panic!("The requested source or destination range (offset + length) is too large to represent in the specified data types (ie exceeds usize::MAX)"),

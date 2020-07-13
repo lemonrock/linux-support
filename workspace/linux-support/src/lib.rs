@@ -661,6 +661,7 @@ use std::io::stderr;
 use std::io::stdin;
 use std::io::stdout;
 use std::marker::PhantomData;
+use std::mem::ManuallyDrop;
 use std::mem::align_of;
 use std::mem::forget;
 use std::mem::size_of;

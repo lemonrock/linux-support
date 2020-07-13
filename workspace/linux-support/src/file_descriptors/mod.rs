@@ -189,6 +189,7 @@ pub mod timerfd;
 include!("close_all_open_file_descriptors_apart_from_standard.rs");
 include!("CreationError.rs");
 include!("FileDescriptor.rs");
+include!("FileDescriptorCopy.rs");
 include!("MemoryMappableFileDescriptor.rs");
 include!("InvalidPathReason.rs");
 include!("OnDiskFileDescriptor.rs");

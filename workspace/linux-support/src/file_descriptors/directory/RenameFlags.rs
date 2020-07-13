@@ -24,7 +24,7 @@ pub enum RenameFlags
 
 	/// Requires the process to have the `CAP_MKNOD` capability.
 	///
-	/// This operation makes sense only for overlay/union filesystem implementations, and requires file system support from the underlying filesystem.
+	/// This operation makes sense only for overlay/union filesystem domain, and requires file system support from the underlying filesystem.
 	///
 	/// Specifying this creates a "whiteout" object at the source of the rename at the same time as performing the rename.
 	/// The whole operation is atomic, so that if the rename succeeds then the whiteout will also have been created.
@@ -37,7 +37,7 @@ pub enum RenameFlags
 	/// At the same time, the source file needs to be "whiteouted" (so that the version of the source file in the lower layer is rendered invisible).  The whole operation needs to be done atomically.
 	///
 	/// When not part of a union/overlay, the whiteout appears as a character device with a {0,0} device number.
-	/// (Note that other union/overlay implementations may employ different methods for storing whiteout entries; specifically, BSD union mount  employs a separate inode type, `DT_WHT`, which, while supported by some filesystems available in Linux, such as CODA and XFS, is ignored by the kernel's whiteout support code, as of Linux 4.19, at least).
+	/// (Note that other union/overlay domain may employ different methods for storing whiteout entries; specifically, BSD union mount  employs a separate inode type, `DT_WHT`, which, while supported by some filesystems available in Linux, such as CODA and XFS, is ignored by the kernel's whiteout support code, as of Linux 4.19, at least).
 	///
 	/// Equivalent to `RENAME_WHITEOUT`.
 	Whiteout = RENAME_WHITEOUT,

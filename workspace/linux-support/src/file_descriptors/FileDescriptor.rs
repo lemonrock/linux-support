@@ -5,6 +5,17 @@
 /// A marker trait to bring together all the properties of a file descriptor.
 pub trait FileDescriptor: Sized + Debug + AsRawFd + FromRawFd + IntoRawFd
 {
+	/// Makes a copy that, when dropped, does not close the underlying file descriptor.
+	///
+	/// However, it is *not linked* to the lifetime of the underlying file descriptor and so may become invalid.
+	///
+	/// The `FileDescriptorCopy` can be used via `deref()` and `deref_mut()`.
+	#[inline(always)]
+	fn copy(&self) -> FileDescriptorCopy<Self>
+	{
+		FileDescriptorCopy::new(self.as_raw_fd())
+	}
+	
 	/// Similar to `clone()` but underlying status (eg file seek position) is shared; file descriptor flags, on the other hand, are not.
 	///
 	/// Forces the new file descriptor to be close-on-exec.

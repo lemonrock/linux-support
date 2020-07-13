@@ -16,6 +16,7 @@ pub mod reflection;
 
 
 include!("BtfDataArray.rs");
+include!("BtfKeyValueTypeIdentifiers.rs");
 include!("BtfKind.rs");
 include!("BtfProgramDetails.rs");
 include!("BtfTypeError.rs");
@@ -25,4 +26,6 @@ include!("BtfTypeInformationParser.rs");
 include!("BtfTypeIntegerEncoding.rs");
 include!("NonVoidBtfTypeIdentifier.rs");
 include!("ParsedBtfData.rs");
+include!("ParsedBtfMapData.rs");
 include!("StringTable.rs");
+include!("VMLinuxValueTypeIdentifier.rs");

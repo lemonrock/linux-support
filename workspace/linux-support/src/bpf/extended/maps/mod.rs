@@ -2,30 +2,30 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use self::domain::*;
+use self::domain::access_permissions::*;
 use super::*;
 use super::bpf_type_format::*;
+use super::bpf_type_format::reflection::*;
 use super::instructions::*;
 use super::instructions::file_descriptor_label::*;
 use crate::process::CommandName;
 use crate::pci_express::NetworkInterfaceIndex;
+use crate::file_descriptors::*;
+use crate::file_descriptors::bpf::ExtendedBpfProgramFileDescriptor;
+use crate::file_descriptors::cgroup::CgroupFileDescriptor;
+use crate::memory::mapping::*;
+use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 
 
-include!("AccessPermissions.rs");
-include!("BtfKeyValueTypeIdentifiers.rs");
-include!("CloneFromListener.rs");
-include!("KernelOnlyAccessPermissions.rs");
-include!("KeySize.rs");
-include!("LeastRecentlyUsedLists.rs");
-include!("MapCreationError.rs");
+/// Domain
+pub mod domain;
+
+
+include!("ArrayMap.rs");
+include!("FileDescriptorArrayMap.rs");
 include!("MapFileDescriptor.rs");
-include!("MapName.rs");
-include!("MapType.rs");
-include!("MaximumEntries.rs");
-include!("MemoryMap.rs");
-include!("ParsedBtfMapData.rs");
-include!("Preallocation.rs");
-include!("StackDepth.rs");
-include!("ValueSizeU16.rs");
-include!("ValueSizeU32.rs");
-include!("VMLinuxValueTypeIdentifier.rs");
-include!("XdpAccessPermissions.rs");
+include!("MemoryMappedArrayMap.rs");
+include!("SpinLockableArrayMap.rs");
+include!("SpinLockableValue.rs");
+
