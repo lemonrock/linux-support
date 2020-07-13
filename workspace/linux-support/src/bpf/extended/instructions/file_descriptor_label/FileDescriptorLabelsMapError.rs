@@ -2,34 +2,38 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Preallocate or do not preallocate this map?
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-#[repr(u32)]
-pub(crate) enum Preallocation
+/// Error.
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+pub enum FileDescriptorLabelsMapError
 {
-	/// Preallocate (the default for all hash super-types).
-	Preallocate = BPF_MAP_CREATE_flags::empty().bits(),
+	/// Already added file descriptor label.
+	AlreadyAddedFileDescriptorLabel,
 	
-	/// Do not preallocate.
-	DoNotPreallocate = BPF_MAP_CREATE_flags::BPF_F_NO_PREALLOC.bits(),
+	/// Missing file descriptor label.
+	MissingFileDescriptorLabel,
 }
 
-impl Default for Preallocation
+impl Display for FileDescriptorLabelsMapError
 {
 	#[inline(always)]
-	fn default() -> Self
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
 	{
-		Preallocation::Preallocate
+		Debug::fmt(self, f)
 	}
 }
 
-impl Preallocation
+impl error::Error for FileDescriptorLabelsMapError
 {
 	#[inline(always)]
-	pub(super) fn to_map_flags(self) -> BPF_MAP_CREATE_flags
+	fn source(&self) ->  Option<&(dyn error::Error + 'static)>
 	{
-		unsafe { transmute(self as u32) }
+		use self::FileDescriptorLabelsMapError::*;
+		
+		match self
+		{
+			AlreadyAddedFileDescriptorLabel => None,
+			
+			MissingFileDescriptorLabel => None,
+		}
 	}
 }

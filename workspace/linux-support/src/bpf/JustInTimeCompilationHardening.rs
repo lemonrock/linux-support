@@ -11,10 +11,13 @@
 #[repr(u8)]
 pub enum JustInTimeCompilationHardening
 {
+	#[allow(missing_docs)]
 	Unhardened = 0,
-
+	
+	#[allow(missing_docs)]
 	HardenedForUnprivilegedUsers = 1,
 	
+	#[allow(missing_docs)]
 	HardenedForAllUsers = 2,
 }
 
@@ -49,7 +52,7 @@ impl JustInTimeCompilationHardening
 	#[inline(always)]
 	pub fn value(self, proc_path: &ProcPath) -> io::Result<Self>
 	{
-		Self(Self::sys_net_core_bpf_jit_harden_file_path(proc_path).read_value().unwrap())
+		Self::sys_net_core_bpf_jit_harden_file_path(proc_path).read_value()
 	}
 	
 	/// Set value of `/proc/sys/net/core/bpf_jit_harden`.

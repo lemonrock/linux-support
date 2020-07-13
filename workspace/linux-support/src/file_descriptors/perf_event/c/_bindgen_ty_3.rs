@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[allow(dead_code)]
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub(crate) enum _bindgen_ty_3
@@ -13,5 +14,10 @@ pub(crate) enum _bindgen_ty_3
 	USER_NS_INDEX = 4,
 	MNT_NS_INDEX = 5,
 	CGROUP_NS_INDEX = 6,
-	NR_NAMESPACES = 7,
+}
+
+impl _bindgen_ty_3
+{
+	#[allow(dead_code)]
+	pub(crate) const NR_NAMESPACES: u32 = 7;
 }

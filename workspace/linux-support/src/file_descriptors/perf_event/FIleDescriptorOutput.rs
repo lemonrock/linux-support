@@ -2,24 +2,34 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Does this map use one common system-wide least recently used list or one least recently used list per HyperThread?
+/// Memory map or do not memory map this map?
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub enum LeastRecentlyUsedLists
+#[repr(u32)]
+pub(crate) enum FileDescriptorOutput
 {
-	/// Is system-wide.
-	Common,
+	/// Memory map
+	MemoryMap = BPF_MAP_CREATE_flags::BPF_F_MMAPABLE.bits(),
 	
-	/// Is per CPU.
-	OnePerCpu,
+	/// Do not memory map (the default).
+	DoNotMemoryMap = BPF_MAP_CREATE_flags::empty().bits(),
 }
 
-impl Default for LeastRecentlyUsedLists
+impl Default for FileDescriptorOutput
 {
 	#[inline(always)]
 	fn default() -> Self
 	{
-		LeastRecentlyUsedLists::Common
+		MemoryMap::DoNotMemoryMap
+	}
+}
+
+impl FileDescriptorOutput
+{
+	#[inline(always)]
+	pub(super) fn to_flags(self) -> BPF_MAP_CREATE_flags
+	{
+		unsafe { transmute(self as u32) }
 	}
 }

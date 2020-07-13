@@ -8,6 +8,8 @@
 /// * `BPF_MAP_TYPE_DEVMAP_HASH`.
 /// * `BPF_MAP_TYPE_XSKMAP`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(u32)]
 pub enum XdpAccessPermissions
 {
@@ -30,7 +32,7 @@ impl Default for XdpAccessPermissions
 impl XdpAccessPermissions
 {
 	#[inline(always)]
-	const fn to_map_flags(self) -> BPF_MAP_CREATE_flags
+	pub(crate) const fn to_map_flags(self) -> BPF_MAP_CREATE_flags
 	{
 		unsafe { BPF_MAP_CREATE_flags::from_bits_unchecked(self as u32) }
 	}

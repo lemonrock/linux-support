@@ -10,9 +10,18 @@ pub(crate) enum bpf_stack_build_id_status
 	/// user space need an empty entry to identify end of a trace.
 	BPF_STACK_BUILD_ID_EMPTY = 0,
 	
-	/// with valid build_id and offset.
+	/// with valid `build_id` and `offset`.
 	BPF_STACK_BUILD_ID_VALID = 1,
 	
-	/// couldn't get build_id, fallback to ip (instruction pointer).
+	/// couldn't get `build_id`, fallback to instruction pointer (IP).
 	BPF_STACK_BUILD_ID_IP = 2,
+}
+
+impl Default for bpf_stack_build_id_status
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		bpf_stack_build_id_status::BPF_STACK_BUILD_ID_EMPTY
+	}
 }

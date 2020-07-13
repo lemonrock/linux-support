@@ -2,5 +2,5 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) const PERF_MEM_SNOOPX_FWD: u32 = 1;
-pub(crate) const PERF_MEM_SNOOPX_SHIFT: u32 = 37;
+#[allow(dead_code)] pub(crate) const PERF_MEM_SNOOPX_FWD: u32 = 1;
+#[allow(dead_code)] pub(crate) const PERF_MEM_SNOOPX_SHIFT: u32 = 37;

@@ -2,11 +2,13 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use crate::file_descriptors::FileDescriptor;
-use crate::process::CommandName;
-
-
-include!("FileDescriptorLabel.rs");
-include!("FileDescriptorLabelsMap.rs");
-include!("FileDescriptorLabelsMapError.rs");
+#[inline(always)]
+fn instance_set_value<'a, Value, Cause, Error: error::Error>(proc_path: &ProcPath, function: impl FnOnce(Value, &ProcPath) -> Result<(), Cause>, value: Option<Value>, error: impl FnOnce(Cause) -> Error) -> Result<(), Error>
+{
+	if let Some(value) = value
+	{
+		return function(value, proc_path).map_err(error)
+	}
+	
+	Ok(())
+}

@@ -91,6 +91,7 @@ include!("GlobalSystemVMessageQueueConfiguration.rs");
 include!("GlobalSystemVMessageQueueConfigurationError.rs");
 include!("GlobalTransparentHugePagesConfiguration.rs");
 include!("GlobalTransparentHugePagesConfigurationError.rs");
+include!("instance_set_value.rs");
 include!("LocaleName.rs");
 include!("ProcessNiceConfiguration.rs");
 include!("ProcessNiceConfigurationError.rs");

@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[allow(dead_code)]
 #[repr(u64)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub(crate) enum _bindgen_ty_2
@@ -14,6 +15,13 @@ pub(crate) enum _bindgen_ty_2
 	PERF_TXN_CONFLICT = 32,
 	PERF_TXN_CAPACITY_WRITE = 64,
 	PERF_TXN_CAPACITY_READ = 128,
-	PERF_TXN_MAX = 256,
-	PERF_TXN_ABORT_MASK = 18446744069414584320,
+}
+
+impl _bindgen_ty_2
+{
+	#[allow(dead_code)]
+	pub(crate) const PERF_TXN_MAX: u64 = 256;
+
+	#[allow(dead_code)]
+	pub(crate) const PERF_TXN_ABORT_MASK: u64 = 18446744069414584320;
 }

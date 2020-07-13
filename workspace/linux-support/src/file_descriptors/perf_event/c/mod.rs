@@ -10,7 +10,7 @@ include!("__BindgenBitfieldUnit.rs");
 include!("__IncompleteArrayField.rs");
 include!("_bindgen_ty_1.rs");
 include!("_bindgen_ty_2.rs");
-include!("_bindgen_ty_2.rs");
+include!("_bindgen_ty_3.rs");
 include!("PERF_ATTR_SIZE_VER.rs");
 include!("PERF_AUX_FLAG.rs");
 include!("perf_bpf_event_type.rs");

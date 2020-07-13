@@ -2,10 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) const PERF_ATTR_SIZE_VER0: u32 = 64;
-pub(crate) const PERF_ATTR_SIZE_VER1: u32 = 72;
-pub(crate) const PERF_ATTR_SIZE_VER2: u32 = 80;
-pub(crate) const PERF_ATTR_SIZE_VER3: u32 = 96;
-pub(crate) const PERF_ATTR_SIZE_VER4: u32 = 104;
-pub(crate) const PERF_ATTR_SIZE_VER5: u32 = 112;
-pub(crate) const PERF_ATTR_SIZE_VER6: u32 = 120;
+#[allow(dead_code)] pub(crate) const PERF_ATTR_SIZE_VER0: u32 = 64;
+#[allow(dead_code)] pub(crate) const PERF_ATTR_SIZE_VER1: u32 = 72;
+#[allow(dead_code)] pub(crate) const PERF_ATTR_SIZE_VER2: u32 = 80;
+#[allow(dead_code)] pub(crate) const PERF_ATTR_SIZE_VER3: u32 = 96;
+#[allow(dead_code)] pub(crate) const PERF_ATTR_SIZE_VER4: u32 = 104;
+#[allow(dead_code)] pub(crate) const PERF_ATTR_SIZE_VER5: u32 = 112;
+#[allow(dead_code)] pub(crate) const PERF_ATTR_SIZE_VER6: u32 = 120;

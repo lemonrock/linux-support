@@ -3,7 +3,9 @@
 
 
 /// A memory-mapped array.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+///
+/// When created, all its elements are zeroed.
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct MemoryMappedArrayMap<'map_file_descriptor_label_map, V: Sized>
 {
 	array_map: ArrayMap<'map_file_descriptor_label_map, V>,
@@ -12,25 +14,28 @@ pub struct MemoryMappedArrayMap<'map_file_descriptor_label_map, V: Sized>
 
 impl<'map_file_descriptor_label_map, V: Sized> MemoryMappedArrayMap<'map_file_descriptor_label_map, V>
 {
-	/// Length.
+	/// Capacity.
 	#[inline(always)]
-	pub fn length(&self) -> NonZeroU32
+	pub fn capacity(&self) -> NonZeroU32
 	{
-		self.array_map.length()
+		self.array_map.capacity()
 	}
 	
 	/// Element at index.
+	///
+	/// The element should be considered `MaybeUninit::zeroed()`.
+	/// The element is not writable if the map was created with `AccessPermissions` that did not have permissions for user space write.
 	#[inline(always)]
 	pub fn element(&self, index: u32) -> NonNull<V>
 	{
-		debug_assert!(index < self.length().get());
+		debug_assert!(index < self.capacity().get());
 		
 		self.mapped_memory.virtual_address().pointer_to((index as usize) * size_of::<V>())
 	}
 	
 	/// New instance.
 	#[inline(always)]
-	pub fn new(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, value_size: ValueSizeU32, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, MapCreationError>
+	pub fn new(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, value_size: ValueSizeU32, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, MapCreationError>
 	{
 		let array_map = ArrayMap::new_system_wide_internal(map_file_descriptors, map_name, parsed_btf_map_data, value_size, maximum_entries, access_permissions, numa_node, MemoryMap::MemoryMap)?;
 		
@@ -50,7 +55,7 @@ impl<'map_file_descriptor_label_map, V: Sized> MemoryMappedArrayMap<'map_file_de
 			KernelReadAndWriteUserspaceReadWrite => ReadWrite,
 		};
 		
-		let mapped_memory = MappedMemory::from_file(array_map.map_file_descriptor, 0, length, address_hint, protection, Sharing::Shared, None, false, false, defaults).unwrap();
+		let mapped_memory = MappedMemory::from_file(array_map.map_file_descriptor, 0, length, AddressHint::any(), protection, Sharing::Shared, None, false, false, defaults).unwrap();
 		
 		Ok
 		(

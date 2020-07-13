@@ -39,7 +39,7 @@ impl<FD: FileDescriptor> DerefMut for FileDescriptorCopy<FD>
 impl<FD: FileDescriptor> FileDescriptorCopy<FD>
 {
 	#[inline(always)]
-	pub(crate) const fn new(raw_fd: RawFd) -> Self
+	pub(crate) fn new(raw_fd: RawFd) -> Self
 	{
 		Self(ManuallyDrop::new(unsafe { FD::from_raw_fd(raw_fd) }))
 	}

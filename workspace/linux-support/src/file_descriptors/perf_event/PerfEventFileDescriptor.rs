@@ -55,7 +55,7 @@ impl PerfEventFileDescriptor
 	///
 	/// Events are created with the close-on-exec flag set.
 	#[allow(dead_code)]
-	pub(crate) fn open(mut attr: perf_event_attr, event_attachment: EventAttachment, event_group_leader: Option<&Self>) -> Result<Self, io::Error>
+	pub(crate) fn open(mut attr: perf_event_attr, event_attachment: EventAttachment, event_group_leader: Option<&Self>, output: bool) -> Result<Self, io::Error>
 	{
 		let (pid, cpu, flags) = event_attachment.to_values();
 		

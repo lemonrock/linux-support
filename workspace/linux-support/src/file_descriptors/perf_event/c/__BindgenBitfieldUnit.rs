@@ -2,25 +2,13 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[allow(missing_docs)]
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub(crate) struct __BindgenBitfieldUnit<Storage, Align>
+pub struct __BindgenBitfieldUnit<Storage, Align>
 {
 	storage: Storage,
 	align: [Align; 0],
-}
-
-impl<Storage, Align> __BindgenBitfieldUnit<Storage, Align>
-{
-	#[inline(always)]
-	pub(crate) const fn new(storage: Storage) -> Self
-	{
-		Self
-		{
-			storage,
-			align: [],
-		}
-	}
 }
 
 impl<Storage, Align> __BindgenBitfieldUnit<Storage, Align> where Storage: AsRef<[u8]> + AsMut<[u8]>,

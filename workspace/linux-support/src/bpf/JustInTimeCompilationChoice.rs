@@ -11,10 +11,13 @@
 #[repr(u8)]
 pub enum JustInTimeCompilationChoice
 {
+	#[allow(missing_docs)]
 	Interpreted = 0,
-
+	
+	#[allow(missing_docs)]
 	Enabled = 1,
-
+	
+	#[allow(missing_docs)]
 	EnabledWithDebugLogging = 2,
 }
 
@@ -49,7 +52,7 @@ impl JustInTimeCompilationChoice
 	#[inline(always)]
 	pub fn value(self, proc_path: &ProcPath) -> io::Result<Self>
 	{
-		Self(Self::sys_net_core_bpf_jit_enable_file_path(proc_path).read_value().unwrap())
+		Self::sys_net_core_bpf_jit_enable_file_path(proc_path).read_value()
 	}
 	
 	/// Set value of `/proc/sys/net/core/bpf_jit_enable`.

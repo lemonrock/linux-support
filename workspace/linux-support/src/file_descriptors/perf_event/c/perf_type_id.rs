@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[allow(dead_code)]
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub(crate) enum perf_type_id
@@ -12,5 +13,10 @@ pub(crate) enum perf_type_id
 	PERF_TYPE_HW_CACHE = 3,
 	PERF_TYPE_RAW = 4,
 	PERF_TYPE_BREAKPOINT = 5,
-	PERF_TYPE_MAX = 6,
+}
+
+impl perf_type_id
+{
+	#[allow(dead_code)]
+	pub(crate) const PERF_TYPE_MAX: u32 = 6;
 }

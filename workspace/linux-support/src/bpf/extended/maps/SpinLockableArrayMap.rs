@@ -3,41 +3,39 @@
 
 
 /// When an array is created, all its elements are zeroed.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct SpinLockableArrayMap<'map_file_descriptor_label_map, V: Sized + HasReflectionInformation>(ArrayMap<'map_file_descriptor_label_map, SpinLockableValue<V>>);
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct SpinLockableArrayMap<'map_file_descriptor_label_map, V: 'static + Sized + HasReflectionInformation>(ArrayMap<'map_file_descriptor_label_map, SpinLockableValue<V>>);
 
-impl<'map_file_descriptor_label_map, V: Sized + HasReflectionInformation> SpinLockableArrayMap<'map_file_descriptor_label_map, V>
+impl<'map_file_descriptor_label_map, V: 'static + Sized + HasReflectionInformation> SpinLockableArrayMap<'map_file_descriptor_label_map, V>
 {
-	/// Length.
+	/// New system-wide.
 	#[inline(always)]
-	pub fn length(&self) -> NonZeroU32
+	pub fn new_system_wide(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, value_size: ValueSizeU32, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
 	{
-		self.0.length()
+		let array_map = ArrayMap::new_system_wide_internal(map_file_descriptors, map_name, parsed_btf_map_data, value_size, maximum_entries, access_permissions, numa_node, MemoryMap::DoNotMemoryMap)?;
+		Ok(Self(array_map))
+	}
+	
+	/// Capacity.
+	#[inline(always)]
+	pub fn capacity(&self) -> NonZeroU32
+	{
+		self.0.capacity()
 	}
 	
 	/// Gets the next index (key).
 	///
-	/// Returns `None` if the `index` is the last one (ie `length() - 1`).
+	/// Returns `None` if the `index` is the last one (ie `capacity() - 1`).
 	///
 	/// Does not make a syscall.
 	#[inline(always)]
 	pub fn get_next_index(&self, index: u32) -> Option<u32>
 	{
-		if unlikely!(index >= self.maximum_entries.get())
-		{
-			Some(0)
-		}
-		else if unlikely!(index == self.maximum_entries.get() - 1)
-		{
-			None
-		}
-		else
-		{
-			Some(index + 1)
-		}
+		self.0.get_next_index(index)
 	}
 	
 	/// Looks up an index; should always succeed.
+	#[inline(always)]
 	pub fn get(&self, index: u32) -> V
 	{
 		let spin_lockable_value = self.0.get(index);

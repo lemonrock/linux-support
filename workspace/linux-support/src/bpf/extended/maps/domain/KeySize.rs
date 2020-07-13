@@ -29,10 +29,12 @@ impl TryFrom<u16> for KeySize
 
 impl TryFrom<NonZeroU16> for KeySize
 {
+	type Error = ParseNumberError;
+	
 	#[inline(always)]
 	fn try_from(value: NonZeroU16) -> Result<Self, Self::Error>
 	{
-		if value > Self::InclusiveMaximum
+		if value > Self::InclusiveMaximum.0
 		{
 			Err(ParseNumberError::TooLarge)
 		}

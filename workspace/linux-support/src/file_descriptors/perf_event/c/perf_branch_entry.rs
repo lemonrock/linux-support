@@ -3,20 +3,21 @@
 
 
 #[repr(C)]
-#[derive(Debug, Default, Copy, Clone, Hash, PartialOrd, Ord)]
+#[derive(Debug, Default, Copy, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) struct perf_branch_entry
 {
 	pub(crate) from: u64,
 	pub(crate) to: u64,
-	pub(crate) _bitfield_1: __BindgenBitfieldUnit<[u8; 8usize], u64>,
+	pub(crate) _bitfield_1: __BindgenBitfieldUnit<[u8; 8], u64>,
 }
 
+#[allow(dead_code)]
 impl perf_branch_entry
 {
 	#[inline(always)]
 	pub(crate) fn mispred(&self) -> u64
 	{
-		unsafe { transmute(self._bitfield_1.get(0usize, 1u8) as u64) }
+		unsafe { transmute(self._bitfield_1.get(0, 1) as u64) }
 	}
 
 	#[inline(always)]
@@ -25,14 +26,14 @@ impl perf_branch_entry
 		unsafe
 		{
 			let val: u64 = transmute(val);
-			self._bitfield_1.set(0usize, 1u8, val as u64)
+			self._bitfield_1.set(0, 1, val as u64)
 		}
 	}
 
 	#[inline(always)]
 	pub(crate) fn predicted(&self) -> u64
 	{
-		unsafe { transmute(self._bitfield_1.get(1usize, 1u8) as u64) }
+		unsafe { transmute(self._bitfield_1.get(1, 1) as u64) }
 	}
 
 	#[inline(always)]
@@ -41,14 +42,14 @@ impl perf_branch_entry
 		unsafe
 		{
 			let val: u64 = transmute(val);
-			self._bitfield_1.set(1usize, 1u8, val as u64)
+			self._bitfield_1.set(1, 1, val as u64)
 		}
 	}
 
 	#[inline(always)]
 	pub(crate) fn in_tx(&self) -> u64
 	{
-		unsafe { transmute(self._bitfield_1.get(2usize, 1u8) as u64) }
+		unsafe { transmute(self._bitfield_1.get(2, 1) as u64) }
 	}
 
 	#[inline(always)]
@@ -57,14 +58,14 @@ impl perf_branch_entry
 		unsafe
 		{
 			let val: u64 = transmute(val);
-			self._bitfield_1.set(2usize, 1u8, val as u64)
+			self._bitfield_1.set(2, 1, val as u64)
 		}
 	}
 
 	#[inline(always)]
 	pub(crate) fn abort(&self) -> u64
 	{
-		unsafe { transmute(self._bitfield_1.get(3usize, 1u8) as u64) }
+		unsafe { transmute(self._bitfield_1.get(3, 1) as u64) }
 	}
 
 	#[inline(always)]
@@ -73,14 +74,14 @@ impl perf_branch_entry
 		unsafe
 		{
 			let val: u64 = transmute(val);
-			self._bitfield_1.set(3usize, 1u8, val as u64)
+			self._bitfield_1.set(3, 1, val as u64)
 		}
 	}
 
 	#[inline(always)]
 	pub(crate) fn cycles(&self) -> u64
 	{
-		unsafe { transmute(self._bitfield_1.get(4usize, 16u8) as u64) }
+		unsafe { transmute(self._bitfield_1.get(4, 16) as u64) }
 	}
 
 	#[inline(always)]
@@ -89,14 +90,14 @@ impl perf_branch_entry
 		unsafe
 		{
 			let val: u64 = transmute(val);
-			self._bitfield_1.set(4usize, 16u8, val as u64)
+			self._bitfield_1.set(4, 16, val as u64)
 		}
 	}
 
 	#[inline(always)]
 	pub(crate) fn type_(&self) -> u64
 	{
-		unsafe { transmute(self._bitfield_1.get(20usize, 4u8) as u64) }
+		unsafe { transmute(self._bitfield_1.get(20, 4) as u64) }
 	}
 
 	#[inline(always)]
@@ -105,14 +106,14 @@ impl perf_branch_entry
 		unsafe
 		{
 			let val: u64 = transmute(val);
-			self._bitfield_1.set(20usize, 4u8, val as u64)
+			self._bitfield_1.set(20, 4, val as u64)
 		}
 	}
 
 	#[inline(always)]
 	pub(crate) fn reserved(&self) -> u64
 	{
-		unsafe { transmute(self._bitfield_1.get(24usize, 40u8) as u64) }
+		unsafe { transmute(self._bitfield_1.get(24, 40) as u64) }
 	}
 
 	#[inline(always)]
@@ -121,14 +122,14 @@ impl perf_branch_entry
 		unsafe
 		{
 			let val: u64 = transmute(val);
-			self._bitfield_1.set(24usize, 40u8, val as u64)
+			self._bitfield_1.set(24, 40, val as u64)
 		}
 	}
 
 	#[inline(always)]
 	pub(crate) fn new_bitfield_1(mispred: u64, predicted: u64, in_tx: u64, abort: u64, cycles: u64, type_: u64, reserved: u64) -> __BindgenBitfieldUnit<[u8; 8], u64> {
 		let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 8], u64> = Default::default();
-		__bindgen_bitfield_unit.set(0usize, 1, {
+		__bindgen_bitfield_unit.set(0, 1, {
 			let mispred: u64 = unsafe { transmute(mispred) };
 			mispred as u64
 		});

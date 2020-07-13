@@ -8,9 +8,55 @@
 #[repr(transparent)]
 pub struct ValueSizeU16(NonZeroU16);
 
+impl TryFrom<u16> for ValueSizeU16
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: u16) -> Result<Self, Self::Error>
+	{
+		if unlikely!(value == 0)
+		{
+			Err(ParseNumberError::WasZero)
+		}
+		else
+		{
+			let non_zero = unsafe { NonZeroU16::new_unchecked(value) };
+			Self::try_from(non_zero)
+		}
+	}
+}
+
+impl TryFrom<NonZeroU16> for ValueSizeU16
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: NonZeroU16) -> Result<Self, Self::Error>
+	{
+		if value >= Self::ExclusiveMaximum.0
+		{
+			Err(ParseNumberError::TooLarge)
+		}
+		else
+		{
+			Ok(Self(value))
+		}
+	}
+}
+
 impl ValueSizeU16
 {
-	const PAGE_SIZE: NonZeroU16 = Self::new_unsafe((1 << ValueSizeU32::PAGE_SHIFT) as u16);
+	const PAGE_SIZE: u16 = (1 << ValueSizeU32::PAGE_SHIFT) as u16;
+	
+	/// Inclusive minimum.
+	pub const InclusiveMinimum: Self = Self::new_unsafe(1);
+	
+	/// Inclusive maximum.
+	pub const InclusiveMaximum: Self = Self::new_unsafe(Self::PAGE_SIZE);
+	
+	/// Exclusive maximum.
+	pub const ExclusiveMaximum: Self = Self::new_unsafe(Self::PAGE_SIZE + 1);
 	
 	#[inline(always)]
 	const fn new_unsafe(value: u16) -> Self

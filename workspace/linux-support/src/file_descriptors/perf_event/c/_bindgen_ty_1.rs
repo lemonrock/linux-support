@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[allow(dead_code)]
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub(crate) enum _bindgen_ty_1
@@ -17,5 +18,10 @@ pub(crate) enum _bindgen_ty_1
 	PERF_BR_SYSRET = 8,
 	PERF_BR_COND_CALL = 9,
 	PERF_BR_COND_RET = 10,
-	PERF_BR_MAX = 11,
+}
+
+impl _bindgen_ty_1
+{
+	#[allow(dead_code)]
+	pub(crate) const PERF_BR_MAX: u32 = 1;
 }

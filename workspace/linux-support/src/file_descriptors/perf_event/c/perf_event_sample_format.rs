@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[allow(dead_code)]
 #[repr(u64)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub(crate) enum perf_event_sample_format
@@ -27,6 +28,13 @@ pub(crate) enum perf_event_sample_format
 	PERF_SAMPLE_REGS_INTR = 262144,
 	PERF_SAMPLE_PHYS_ADDR = 524288,
 	PERF_SAMPLE_AUX = 1048576,
-	PERF_SAMPLE_MAX = 2097152,
-	__PERF_SAMPLE_CALLCHAIN_EARLY = 9223372036854775808,
+}
+
+impl perf_event_sample_format
+{
+	#[allow(dead_code)]
+	pub(crate) const PERF_SAMPLE_MAX: u64 = 2097152;
+	
+	#[allow(dead_code)]
+	pub(crate) const __PERF_SAMPLE_CALLCHAIN_EARLY: u64 = 9223372036854775808;
 }

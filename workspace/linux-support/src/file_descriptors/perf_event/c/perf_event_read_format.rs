@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[allow(dead_code)]
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub(crate) enum perf_event_read_format
@@ -10,5 +11,10 @@ pub(crate) enum perf_event_read_format
 	PERF_FORMAT_TOTAL_TIME_RUNNING = 2,
 	PERF_FORMAT_ID = 4,
 	PERF_FORMAT_GROUP = 8,
-	PERF_FORMAT_MAX = 16,
+}
+
+impl perf_event_read_format
+{
+	#[allow(dead_code)]
+	pub(crate) const PERF_FORMAT_MAX: u32 = 16;
 }

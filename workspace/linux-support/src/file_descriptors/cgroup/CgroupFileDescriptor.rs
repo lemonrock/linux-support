@@ -3,17 +3,8 @@
 
 
 /// Represents a Cgroup file descriptor which is backed by a `File`.
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug)]
 pub struct CgroupFileDescriptor(File);
-
-impl Drop for CgroupFileDescriptor
-{
-	#[inline(always)]
-	fn drop(&mut self)
-	{
-		self.0.close()
-	}
-}
 
 impl AsRawFd for CgroupFileDescriptor
 {

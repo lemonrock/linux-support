@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) const PERF_FLAG_FD_NO_GROUP: u32 = 1;
-pub(crate) const PERF_FLAG_FD_OUTPUT: u32 = 2;
-pub(crate) const PERF_FLAG_PID_CGROUP: u32 = 4;
-pub(crate) const PERF_FLAG_FD_CLOEXEC: u32 = 8;
+#[allow(dead_code)] pub(crate) const PERF_FLAG_FD_NO_GROUP: u64 = 1;
+pub(crate) const PERF_FLAG_FD_OUTPUT: u64 = 2;
+pub(crate) const PERF_FLAG_PID_CGROUP: u64 = 4;
+pub(crate) const PERF_FLAG_FD_CLOEXEC: u64 = 8;

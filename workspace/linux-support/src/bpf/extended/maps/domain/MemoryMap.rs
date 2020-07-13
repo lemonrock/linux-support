@@ -3,11 +3,11 @@
 
 
 /// Memory map or do not memory map this map?
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 #[repr(u32)]
-pub enum MemoryMap
+pub(crate) enum MemoryMap
 {
 	/// Memory map
 	MemoryMap = BPF_MAP_CREATE_flags::BPF_F_MMAPABLE.bits(),
@@ -25,10 +25,10 @@ impl Default for MemoryMap
 	}
 }
 
-impl Prealllocation
+impl MemoryMap
 {
 	#[inline(always)]
-	fn to_flags(self) -> BPF_MAP_CREATE_flags
+	pub(super) fn to_flags(self) -> BPF_MAP_CREATE_flags
 	{
 		unsafe { transmute(self as u32) }
 	}

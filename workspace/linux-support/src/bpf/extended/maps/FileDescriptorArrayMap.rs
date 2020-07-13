@@ -3,22 +3,22 @@
 
 
 /// An array map specialized for use with file descriptors.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct FileDescriptorArrayMap<'map_file_descriptor_label_map, FD: FileDescriptor>(ArrayMap<'map_file_descriptor_label_map, RawFd>, PhantomData<FD>);
 
 impl<'map_file_descriptor_label_map, FD: FileDescriptor> FileDescriptorArrayMap<'map_file_descriptor_label_map, FD>
 {
-	/// Length.
+	/// Capacity.
 	#[inline(always)]
-	pub fn length(&self) -> NonZeroU32
+	pub fn capacity(&self) -> NonZeroU32
 	{
-		self.0.length()
+		self.0.capacity()
 	}
 	
 	/// Gets the next index (key).
 	///
-	/// Returns `None` if the `index` is the last one (ie `length() - 1`).
+	/// Returns `None` if the `index` is the last one (ie `capacity() - 1`).
 	///
 	/// Does not make a syscall.
 	#[inline(always)]
@@ -49,39 +49,38 @@ impl<'map_file_descriptor_label_map, FD: FileDescriptor> FileDescriptorArrayMap<
 		self.0.set(index, file_descriptor.as_raw_fd())
 	}
 	
-	/// New Extended BPF program array.
 	#[inline(always)]
-	fn create(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, map_type: impl FnOnce(MaximumEntries, AccessPermissions) -> MapType) -> Result<Self, MapCreationError>
+	fn create(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, map_type: impl FnOnce(MaximumEntries, AccessPermissions) -> MapType<'static>) -> Result<Self, MapCreationError>
 	{
-		ArrayMap::create(map_file_descriptors, map_name, parsed_btf_map_data, map_type(maximum_entries, access_permissions)).map(|array_map| Self(array_map, PhantomData))
+		ArrayMap::create(map_file_descriptors, map_name, parsed_btf_map_data, map_type(maximum_entries, access_permissions), maximum_entries).map(|array_map| Self(array_map, PhantomData))
 	}
 }
 
-impl<'map_file_descriptor_label_map, FD: FileDescriptor> FileDescriptorArrayMap<'map_file_descriptor_label_map, ExtendedBpfProgramFileDescriptor>
+impl<'map_file_descriptor_label_map> FileDescriptorArrayMap<'map_file_descriptor_label_map, ExtendedBpfProgramFileDescriptor>
 {
-	/// New Extended BPF program array.
+	/// New extended BPF program array.
 	#[inline(always)]
-	pub fn new_extended_bpf_program(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions) -> Result<Self, MapCreationError>
+	pub fn new_extended_bpf_program(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions) -> Result<Self, MapCreationError>
 	{
 		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, maximum_entries, access_permissions, MapType::ProgramArray)
 	}
 }
 
-impl<'map_file_descriptor_label_map, FD: FileDescriptor> FileDescriptorArrayMap<'map_file_descriptor_label_map, PerfEventProgramFileDescriptor>
+impl<'map_file_descriptor_label_map> FileDescriptorArrayMap<'map_file_descriptor_label_map, PerfEventFileDescriptor>
 {
-	/// New Extended BPF program array.
+	/// New perf event array.
 	#[inline(always)]
-	pub fn new_perf_event(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions) -> Result<Self, MapCreationError>
+	pub fn new_perf_event(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions) -> Result<Self, MapCreationError>
 	{
 		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, maximum_entries, access_permissions, MapType::PerfEventArray)
 	}
 }
 
-impl<'map_file_descriptor_label_map, FD: FileDescriptor> FileDescriptorArrayMap<'map_file_descriptor_label_map, CgroupFileDescriptor>
+impl<'map_file_descriptor_label_map> FileDescriptorArrayMap<'map_file_descriptor_label_map, CgroupFileDescriptor>
 {
-	/// New Extended BPF program array.
+	/// New cgroup array.
 	#[inline(always)]
-	pub fn new_cgroup(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions) -> Result<Self, MapCreationError>
+	pub fn new_cgroup(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions) -> Result<Self, MapCreationError>
 	{
 		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, maximum_entries, access_permissions, MapType::CgroupArray)
 	}

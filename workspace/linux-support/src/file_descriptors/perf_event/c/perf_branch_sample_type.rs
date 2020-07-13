@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[allow(dead_code)]
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub(crate) enum perf_branch_sample_type
@@ -24,5 +25,10 @@ pub(crate) enum perf_branch_sample_type
 	PERF_SAMPLE_BRANCH_NO_CYCLES = 32768,
 	PERF_SAMPLE_BRANCH_TYPE_SAVE = 65536,
 	PERF_SAMPLE_BRANCH_HW_INDEX = 131072,
-	PERF_SAMPLE_BRANCH_MAX = 262144,
+}
+
+impl perf_branch_sample_type
+{
+	#[allow(dead_code)]
+	pub(crate) const PERF_SAMPLE_BRANCH_MAX: u32 = 262144;
 }

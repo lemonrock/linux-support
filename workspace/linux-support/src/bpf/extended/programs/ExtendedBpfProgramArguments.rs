@@ -19,5 +19,5 @@ pub struct ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended
 	pub map_file_descriptor_labels_map: &'map_file_descriptor_label_map FileDescriptorLabelsMap<MapFileDescriptor>,
 	
 	/// Programs.
-	pub extended_bpf_program_file_descriptor_labels_map: &'map_file_descriptor_label_map FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>,
+	pub extended_bpf_program_file_descriptor_labels_map: &'extended_bpf_program_file_descriptor_label_map FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>,
 }

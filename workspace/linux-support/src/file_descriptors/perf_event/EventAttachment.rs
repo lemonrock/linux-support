@@ -3,7 +3,7 @@
 
 
 /// Event attachment.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug)]
 pub enum EventAttachment<'file_descriptor>
 {
 	/// Attach event to all processes on a specific HyperThread.
@@ -29,7 +29,7 @@ pub enum EventAttachment<'file_descriptor>
 impl<'file_descriptor> EventAttachment<'file_descriptor>
 {
 	#[inline(always)]
-	fn to_values(self) -> (i32, i32, u32)
+	fn to_values(self) -> (i32, i32, u64)
 	{
 		use self::EventAttachment::*;
 		
@@ -39,7 +39,7 @@ impl<'file_descriptor> EventAttachment<'file_descriptor>
 			SpecificProcessAllHyperThreads(process_identifier) => (process_identifier.into(), -1, PERF_FLAG_FD_CLOEXEC),
 			SpecificProcessAndSpecificHyperThread(process_identifier, hyper_thread) => (process_identifier.into(), hyper_thread.into(), PERF_FLAG_FD_CLOEXEC),
 			SpecificCgroupAllHyperThreads(cgroup_file_descriptor) => (cgroup_file_descriptor.as_raw_fd(), -1, PERF_FLAG_FD_CLOEXEC | PERF_FLAG_PID_CGROUP),
-			SpecificProcessAndSpecificHyperThread(cgroup_file_descriptor, hyper_thread) => (cgroup_file_descriptor.as_raw_fd(), hyper_thread.into(), PERF_FLAG_FD_CLOEXEC | PERF_FLAG_PID_CGROUP),
+			SpecificCgroupAndSpecificHyperThread(cgroup_file_descriptor, hyper_thread) => (cgroup_file_descriptor.as_raw_fd(), hyper_thread.into(), PERF_FLAG_FD_CLOEXEC | PERF_FLAG_PID_CGROUP),
 		}
 	}
 }

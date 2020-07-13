@@ -10,7 +10,7 @@ pub struct bpf_spin_lock
 	pub val: u32
 }
 
-impl HasReflection for bpf_spin_lock
+impl HasReflectionInformation for bpf_spin_lock
 {
 	const Type: Type = Type
 	{
@@ -27,7 +27,7 @@ impl HasReflection for bpf_spin_lock
 					{
 						unnamed: UnnamedField
 						{
-							type_: &val::Type,
+							type_: &u32::Type,
 							offset_in_bytes: 0,
 						},
 						ident: "val"

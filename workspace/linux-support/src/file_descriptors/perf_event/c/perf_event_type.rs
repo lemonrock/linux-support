@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[allow(dead_code)]
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub(crate) enum perf_event_type
@@ -24,5 +25,10 @@ pub(crate) enum perf_event_type
 	PERF_RECORD_NAMESPACES = 16,
 	PERF_RECORD_KSYMBOL = 17,
 	PERF_RECORD_BPF_EVENT = 18,
-	PERF_RECORD_MAX = 19,
+}
+
+impl perf_event_type
+{
+	#[allow(dead_code)]
+	pub(crate) const PERF_RECORD_MAX: u32 = 19;
 }

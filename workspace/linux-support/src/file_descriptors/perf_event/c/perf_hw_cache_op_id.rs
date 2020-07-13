@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[allow(dead_code)]
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub(crate) enum perf_hw_cache_op_id
@@ -9,5 +10,10 @@ pub(crate) enum perf_hw_cache_op_id
 	PERF_COUNT_HW_CACHE_OP_READ = 0,
 	PERF_COUNT_HW_CACHE_OP_WRITE = 1,
 	PERF_COUNT_HW_CACHE_OP_PREFETCH = 2,
-	PERF_COUNT_HW_CACHE_OP_MAX = 3,
+}
+
+impl perf_hw_cache_op_id
+{
+	#[allow(dead_code)]
+	pub(crate) const PERF_COUNT_HW_CACHE_OP_MAX: u32 = 3;
 }

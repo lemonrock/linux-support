@@ -19,6 +19,15 @@ impl<OV: OffsetValue> Default for OffsetsMap<OV>
 
 impl<OV: OffsetValue> OffsetsMap<OV>
 {
+	/// Insert value.
+	///
+	/// Panics in debug if inserted more than once.
+	#[inline(always)]
+	pub fn insert(&mut self, key: impl Into<String>, value: OV)
+	{
+		self.0.insert(key.into(), value)
+	}
+	
 	#[inline(always)]
 	pub(crate) fn resolve<'name>(&self, offset: &impl AsRef<Offset<'name, OV>>) -> Result<OV, ProgramError>
 	{

@@ -7,7 +7,8 @@ use super::*;
 use super::cgroup::CgroupFileDescriptor;
 
 
-mod c;
+/// C definitions.
+pub mod c;
 
 
 

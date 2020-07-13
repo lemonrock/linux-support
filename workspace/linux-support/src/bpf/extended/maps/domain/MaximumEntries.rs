@@ -6,10 +6,11 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
-pub struct MaximumEntries(NonZeroU32);
+pub struct MaximumEntries(pub(crate) NonZeroU32);
 
 impl MaximumEntries
 {
+	/// New instance.
 	#[inline(always)]
 	pub const fn new(value: NonZeroU32) -> Self
 	{

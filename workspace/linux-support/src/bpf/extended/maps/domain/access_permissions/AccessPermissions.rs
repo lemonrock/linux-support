@@ -6,6 +6,8 @@
 ///
 /// See the checks in the Linux kernel function `bpf_get_file_flag()`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(u32)]
 pub enum AccessPermissions
 {
@@ -43,7 +45,7 @@ impl Default for AccessPermissions
 impl AccessPermissions
 {
 	#[inline(always)]
-	const fn to_map_flags(self) -> BPF_MAP_CREATE_flags
+	pub(crate) const fn to_map_flags(self) -> BPF_MAP_CREATE_flags
 	{
 		unsafe { BPF_MAP_CREATE_flags::from_bits_unchecked(self as u32) }
 	}

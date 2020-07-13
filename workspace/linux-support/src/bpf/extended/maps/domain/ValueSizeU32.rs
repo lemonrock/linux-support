@@ -35,10 +35,12 @@ impl TryFrom<u32> for ValueSizeU32
 
 impl TryFrom<NonZeroU32> for ValueSizeU32
 {
+	type Error = ParseNumberError;
+	
 	#[inline(always)]
 	fn try_from(value: NonZeroU32) -> Result<Self, Self::Error>
 	{
-		if value >= Self::ExclusiveMaximum
+		if value >= Self::ExclusiveMaximum.0
 		{
 			Err(ParseNumberError::TooLarge)
 		}
@@ -63,13 +65,16 @@ impl ValueSizeU32
 	const KMALLOC_SHIFT_MAX: u32 = Self::MAX_ORDER + Self::PAGE_SHIFT - 1;
 	
 	/// See `include/linux/slab.h` in Linux kernel sources.
-	const KMALLOC_MAX_SIZE: NonZeroU32 = Self::new_unsafe(1 << Self::KMALLOC_SHIFT_MAX);
+	const KMALLOC_MAX_SIZE: u32 = 1 << Self::KMALLOC_SHIFT_MAX;
 	
-	const InclusiveMinimum: Self = Self::new_unsafe(1);
+	/// Inclusive minimum.
+	pub const InclusiveMinimum: Self = Self::new_unsafe(1);
 	
-	const ExclusiveMaximum: Self = Self::new_unsafe(Self::KMALLOC_MAX_SIZE.get() / 2);
+	/// Inclusive maximum.
+	pub const ExclusiveMaximum: Self = Self::new_unsafe(Self::KMALLOC_MAX_SIZE / 2);
 	
-	const InclusiveMaximum: Self = Self::new_unsafe(Self::ExclusiveMaximum.get() - 1);
+	/// Exclusive maximum.
+	pub const InclusiveMaximum: Self = Self::new_unsafe(Self::ExclusiveMaximum.0.get() - 1);
 	
 	#[inline(always)]
 	const fn new_unsafe(value: u32) -> Self

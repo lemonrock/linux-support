@@ -36,3 +36,12 @@ impl<'name, V: Into<Name<'name>>> From<V> for FileDescriptorLabel<'name>
 		Self(value.into())
 	}
 }
+
+impl<'name> From<&CommandName> for FileDescriptorLabel<'name>
+{
+	#[inline(always)]
+	fn from(command_name: &CommandName) -> FileDescriptorLabel<'name>
+	{
+		Self(Name(Cow::from(command_name.to_string())))
+	}
+}

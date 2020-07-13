@@ -3,7 +3,7 @@
 
 
 #[inline(always)]
-pub(crate) fn perf_event_open(perf_event_attr: &mut attr, pid: pid_t, cpu: c_int, group_fd: RawFd, flags: c_ulong) -> i32
+pub(crate) fn perf_event_open(attr: &mut perf_event_attr, pid: pid_t, cpu: c_int, group_fd: RawFd, flags: c_ulong) -> i32
 {
-	SYS::perf_event_open.syscall5(perf_event_attr as *mut attr as usize, pid as usize, cpu as usize, group_fd as usize, flags as usize) as i32
+	SYS::perf_event_open.syscall5(attr as *mut perf_event_attr as usize, pid as usize, cpu as usize, group_fd as usize, flags as usize) as i32
 }

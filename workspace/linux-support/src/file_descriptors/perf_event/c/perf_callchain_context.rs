@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[allow(dead_code)]
 #[repr(u64)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub(crate) enum perf_callchain_context
@@ -12,5 +13,10 @@ pub(crate) enum perf_callchain_context
 	PERF_CONTEXT_GUEST = 18446744073709549568,
 	PERF_CONTEXT_GUEST_KERNEL = 18446744073709549440,
 	PERF_CONTEXT_GUEST_USER = 18446744073709549056,
-	PERF_CONTEXT_MAX = 18446744073709547521,
+}
+
+impl perf_event_read_format
+{
+	#[allow(dead_code)]
+	pub(crate) const PERF_CONTEXT_MAX: u64 = 18446744073709547521;
 }

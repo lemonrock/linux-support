@@ -3,7 +3,7 @@
 
 
 use super::*;
-use self::domain::*;
+use crate::file_descriptors::bpf::MapFileDescriptor;
 
 
 /// Access permissions.
@@ -12,7 +12,6 @@ pub mod access_permissions;
 
 include!("CloneFromListener.rs");
 include!("KeySize.rs");
-include!("LeastRecentlyUsedLists.rs");
 include!("MapCreationError.rs");
 include!("MapName.rs");
 include!("MapType.rs");

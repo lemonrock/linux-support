@@ -2,14 +2,14 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[repr(C)]
-#[repr(align(8))]
-#[derive(Debug, Default, Copy, Clone, Hash, PartialOrd, Ord)]
+#[repr(C, align(8))]
+#[derive(Debug, Default, Copy, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) struct perf_mem_data_src__bindgen_ty_1
 {
 	pub(crate) _bitfield_1: __BindgenBitfieldUnit<[u8; 8usize], u32>,
 }
 
+#[allow(dead_code)]
 impl perf_mem_data_src__bindgen_ty_1
 {
 	#[inline(always)]

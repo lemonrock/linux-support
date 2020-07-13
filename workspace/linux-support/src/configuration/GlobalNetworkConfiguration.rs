@@ -177,17 +177,6 @@ impl GlobalNetworkConfiguration
 	{
 		use self::GlobalNetworkConfigurationError::*;
 		
-		#[inline(always)]
-		fn instance_set_value<'a, Value, Cause, Error: error::Error>(proc_path: &ProcPath, function: impl FnOnce(Value, &ProcPath) -> Result<(), Cause>, value: Option<Value>, error: impl FnOnce(Cause) -> Error) -> Result<(), Error>
-		{
-			if let Some(value) = value
-			{
-				return function(value, proc_path).map_err(error)
-			}
-			
-			Ok(())
-		}
-		
 		instance_set_value(proc_path, SendBufferSizeInBytes::set_global_maximum, self.global_maximum_send_buffer_size_in_bytes, CouldNotChangeGlobalMaximumSendBufferSize)?;
 		instance_set_value(proc_path, SendBufferSizeInBytes::set_global_default, self.global_default_send_buffer_size_in_bytes, CouldNotChangeGlobalDefaultSendBufferSize)?;
 		set_value(proc_path, SendBufferSizeInBytes::set_global_tcp_minimum_default_and_maximum, self.global_tcp_minimum_default_and_maximum_send_buffer_size_in_bytes, CouldNotChangeGlobalTcpMinimumDefaultAndMaximumSendBufferSize)?;

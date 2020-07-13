@@ -4,24 +4,29 @@
 
 /// Resolves the value of items of type `FileDescriptor`.
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
-pub struct FileDescriptorLabelsMap<FD: FileDescriptor>(HashMap<FD>);
+pub struct FileDescriptorLabelsMap<FD: FileDescriptor>(HashMap<String, FD>);
 
 impl<FD: FileDescriptor> FileDescriptorLabelsMap<FD>
 {
 	#[inline(always)]
-	pub(crate) fn add(&mut self, file_descriptor_label: FileDescriptorLabel, file_descriptor: FD) -> &FD
+	pub(crate) fn add(&mut self, file_descriptor_label: FileDescriptorLabel, file_descriptor: FD) -> Result<&FD, FileDescriptorLabelsMapError>
 	{
 		use std::collections::hash_map::Entry::*;
+		
 		match self.0.entry(file_descriptor_label.into())
 		{
-			Vacant(vacant) => vacant.insert(file_descriptor),
-			Occupied(_) => panic!("Already added"),
+			Vacant(vacant) => Ok(vacant.insert(file_descriptor)),
+			Occupied(_) => Err(FileDescriptorLabelsMapError::AlreadyAddedFileDescriptorLabel),
 		}
 	}
 	
 	#[inline(always)]
-	pub(crate) fn resolve<'name>(&self, file_descriptor_label: &FileDescriptorLabel<'name>) -> Result<RawFd, ProgramError>
+	pub(crate) fn resolve<'name>(&self, file_descriptor_label: &FileDescriptorLabel<'name>) -> Result<RawFd, FileDescriptorLabelsMapError>
 	{
-		self.0.resolve(file_descriptor_label.deref()).map(|file_descriptor| file_descriptor.as_raw_fd())
+		match self.0.get(file_descriptor_label.deref())
+		{
+			Some(file_descriptor) => Ok(file_descriptor.as_raw_fd()),
+			None => Err(FileDescriptorLabelsMapError::MissingFileDescriptorLabel),
+		}
 	}
 }

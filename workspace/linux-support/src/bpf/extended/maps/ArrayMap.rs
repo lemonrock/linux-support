@@ -7,9 +7,21 @@
 pub struct ArrayMap<'map_file_descriptor_label_map, V: Sized>
 {
 	map_file_descriptor: &'map_file_descriptor_label_map MapFileDescriptor,
-	maximum_entries: NonZeroU32,
+	maximum_entries: MaximumEntries,
 	marker: PhantomData<V>,
 }
+
+// TODO: batch lookup and update only supported on some array maps and some hash maps.
+// For array: BPF_MAP_LOOKUP_BATCH
+// For array: BPF_MAP_UPDATE_BATCH
+
+// For hash: BPF_MAP_DELETE_ELEM
+// For hash: BPF_MAP_GET_NEXT_KEY
+// For hash: BPF_MAP_GET_NEXT_KEY
+// For hash: BPF_MAP_LOOKUP_AND_DELETE_ELEM
+// For hash: BPF_MAP_LOOKUP_AND_DELETE_BATCH
+// For hash: BPF_MAP_DELETE_BATCH
+
 
 impl<'map_file_descriptor_label_map, V: Sized> ArrayMap<'map_file_descriptor_label_map, V>
 {
@@ -17,49 +29,49 @@ impl<'map_file_descriptor_label_map, V: Sized> ArrayMap<'map_file_descriptor_lab
 	#[inline(always)]
 	pub fn new_per_device(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, value_size: ValueSizeU32, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, device: NetworkInterfaceIndex) -> Result<Self, MapCreationError>
 	{
-		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::ArrayPerDevice(value_size, maximum_entries, access_permissions, device))
+		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::ArrayPerDevice(value_size, maximum_entries, access_permissions, device), maximum_entries)
 	}
 	
 	/// New per-CPU.
 	#[inline(always)]
-	pub fn new_per_cpu(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, value_size: ValueSizeU32, maximum_entries: MaximumEntries, access_permissions: AccessPermissions) -> Result<Self, MapCreationError>
+	pub fn new_per_cpu(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, value_size: ValueSizeU32, maximum_entries: MaximumEntries, access_permissions: AccessPermissions) -> Result<Self, MapCreationError>
 	{
-		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::ArrayPerCpu(value_size, maximum_entries, access_permissions))
+		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::ArrayPerCpu(value_size, maximum_entries, access_permissions), maximum_entries)
 	}
 	
 	/// New system-wide.
 	#[inline(always)]
-	pub fn new_system_wide(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, value_size: ValueSizeU32, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
+	pub fn new_system_wide(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, value_size: ValueSizeU32, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
 	{
 		Self::new_system_wide_internal(map_file_descriptors, map_name, parsed_btf_map_data, value_size, maximum_entries, access_permissions, numa_node, MemoryMap::DoNotMemoryMap)
 	}
 	
 	#[inline(always)]
-	fn new_system_wide_internal(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, value_size: ValueSizeU32, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>, memory_map: MemoryMap) -> Result<Self, MapCreationError>
+	fn new_system_wide_internal(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, value_size: ValueSizeU32, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>, memory_map: MemoryMap) -> Result<Self, MapCreationError>
 	{
-		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::ArraySystemWide(value_size, maximum_entries, access_permissions, numa_node, memory_map))
+		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::ArraySystemWide(value_size, maximum_entries, access_permissions, numa_node, memory_map), maximum_entries)
 	}
 	
 	/// Length.
 	#[inline(always)]
-	pub fn length(&self) -> NonZeroU32
+	pub fn capacity(&self) -> NonZeroU32
 	{
-		self.maximum_entries
+		self.maximum_entries.0
 	}
 	
 	/// Gets the next index (key).
 	///
-	/// Returns `None` if the `index` is the last one (ie `length() - 1`).
+	/// Returns `None` if the `index` is the last one (ie `capacity() - 1`).
 	///
 	/// Does not make a syscall.
 	#[inline(always)]
 	pub fn get_next_index(&self, index: u32) -> Option<u32>
 	{
-		if unlikely!(index >= self.maximum_entries.get())
+		if unlikely!(index >= self.maximum_entries.to_u32())
 		{
 			Some(0)
 		}
-		else if unlikely!(index == self.maximum_entries.get() - 1)
+		else if unlikely!(index == self.maximum_entries.to_u32() - 1)
 		{
 			None
 		}
@@ -73,7 +85,7 @@ impl<'map_file_descriptor_label_map, V: Sized> ArrayMap<'map_file_descriptor_lab
 	#[allow(deprecated)]
 	pub fn get(&self, index: u32) -> V
 	{
-		debug_assert!(index < self.length());
+		debug_assert!(index < self.maximum_entries.to_u32());
 		
 		let mut value: V = unsafe { uninitialized() };
 		
@@ -128,7 +140,7 @@ impl<'map_file_descriptor_label_map, V: Sized> ArrayMap<'map_file_descriptor_lab
 	#[inline(always)]
 	fn update_existing(&self, index: u32, value: V, flags: BPF_MAP_UPDATE_ELEM_flags)
 	{
-		debug_assert!(index < self.length());
+		debug_assert!(index < self.maximum_entries.to_u32());
 		
 		let mut attr = bpf_attr
 		{
@@ -159,7 +171,7 @@ impl<'map_file_descriptor_label_map, V: Sized> ArrayMap<'map_file_descriptor_lab
 	}
 	
 	#[inline(always)]
-	fn create(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, map_type: MapType) -> Result<Self, MapCreationError>
+	fn create(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, map_type: MapType, maximum_entries: MaximumEntries) -> Result<Self, MapCreationError>
 	{
 		MapFileDescriptor::create(map_file_descriptors, map_type, map_name, parsed_btf_map_data).map(|map_file_descriptor| Self::new(map_file_descriptor, maximum_entries))
 	}

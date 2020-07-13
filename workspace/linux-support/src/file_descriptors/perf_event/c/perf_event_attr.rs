@@ -2,31 +2,32 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[allow(missing_docs)]
 #[repr(C)]
-#[derive(Copy, Clone)]
-pub(crate) struct perf_event_attr
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct perf_event_attr
 {
-	pub(crate) type_: u32,
-	pub(crate) size: u32,
-	pub(crate) config: u64,
-	pub(crate) __bindgen_anon_1: perf_event_attr__bindgen_ty_1,
-	pub(crate) sample_type: u64,
-	pub(crate) read_format: u64,
-	pub(crate) _bitfield_1: __BindgenBitfieldUnit<[u8; 8usize], u32>,
-	pub(crate) __bindgen_anon_2: perf_event_attr__bindgen_ty_2,
-	pub(crate) bp_type: u32,
-	pub(crate) __bindgen_anon_3: perf_event_attr__bindgen_ty_3,
-	pub(crate) __bindgen_anon_4: perf_event_attr__bindgen_ty_4,
-	pub(crate) branch_sample_type: u64,
-	pub(crate) sample_regs_user: u64,
-	pub(crate) sample_stack_user: u32,
-	pub(crate) clockid: i32,
-	pub(crate) sample_regs_intr: u64,
-	pub(crate) aux_watermark: u32,
-	pub(crate) sample_max_stack: u16,
-	pub(crate) __reserved_2: u16,
-	pub(crate) aux_sample_size: u32,
-	pub(crate) __reserved_3: u32,
+	pub type_: u32,
+	pub size: u32,
+	pub config: u64,
+	pub __bindgen_anon_1: perf_event_attr__bindgen_ty_1,
+	pub sample_type: u64,
+	pub read_format: u64,
+	_bitfield_1: __BindgenBitfieldUnit<[u8; 8], u32>,
+	pub __bindgen_anon_2: perf_event_attr__bindgen_ty_2,
+	pub bp_type: u32,
+	pub __bindgen_anon_3: perf_event_attr__bindgen_ty_3,
+	pub __bindgen_anon_4: perf_event_attr__bindgen_ty_4,
+	pub branch_sample_type: u64,
+	pub sample_regs_user: u64,
+	pub sample_stack_user: u32,
+	pub clockid: i32,
+	pub sample_regs_intr: u64,
+	pub aux_watermark: u32,
+	pub sample_max_stack: u16,
+	__reserved_2: u16,
+	pub aux_sample_size: u32,
+	__reserved_3: u32,
 }
 
 impl Default for perf_event_attr
@@ -34,7 +35,30 @@ impl Default for perf_event_attr
 	#[inline(always)]
 	fn default() -> Self
 	{
-		unsafe { zeroed() }
+		Self
+		{
+			type_: 0,
+			size: 0,
+			config: 0,
+			__bindgen_anon_1: Default::default(),
+			sample_type: 0,
+			read_format: 0,
+			_bitfield_1: Default::default(),
+			__bindgen_anon_2: Default::default(),
+			bp_type: 0,
+			__bindgen_anon_3: Default::default(),
+			__bindgen_anon_4: Default::default(),
+			branch_sample_type: 0,
+			sample_regs_user: 0,
+			sample_stack_user: 0,
+			clockid: 0,
+			sample_regs_intr: 0,
+			aux_watermark: 0,
+			sample_max_stack: 0,
+			__reserved_2: 0,
+			aux_sample_size: 0,
+			__reserved_3: 0
+		}
 	}
 }
 
@@ -47,16 +71,17 @@ impl Debug for perf_event_attr
 	}
 }
 
+#[allow(missing_docs)]
 impl perf_event_attr
 {
 	#[inline(always)]
-	pub(crate) fn disabled(&self) -> u64
+	pub fn disabled(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(0usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_disabled(&mut self, val: u64)
+	pub fn set_disabled(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -66,13 +91,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn inherit(&self) -> u64
+	pub fn inherit(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(1usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_inherit(&mut self, val: u64)
+	pub fn set_inherit(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -82,13 +107,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn pinned(&self) -> u64
+	pub fn pinned(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(2usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_pinned(&mut self, val: u64)
+	pub fn set_pinned(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -98,13 +123,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn exclusive(&self) -> u64
+	pub fn exclusive(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(3usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_exclusive(&mut self, val: u64)
+	pub fn set_exclusive(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -114,13 +139,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn exclude_user(&self) -> u64
+	pub fn exclude_user(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(4usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_exclude_user(&mut self, val: u64)
+	pub fn set_exclude_user(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -130,13 +155,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn exclude_kernel(&self) -> u64
+	pub fn exclude_kernel(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(5usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_exclude_kernel(&mut self, val: u64)
+	pub fn set_exclude_kernel(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -146,13 +171,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn exclude_hv(&self) -> u64
+	pub fn exclude_hv(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(6usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_exclude_hv(&mut self, val: u64)
+	pub fn set_exclude_hv(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -162,13 +187,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn exclude_idle(&self) -> u64
+	pub fn exclude_idle(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(7usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_exclude_idle(&mut self, val: u64)
+	pub fn set_exclude_idle(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -178,13 +203,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn mmap(&self) -> u64
+	pub fn mmap(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(8usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_mmap(&mut self, val: u64)
+	pub fn set_mmap(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -194,13 +219,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn comm(&self) -> u64
+	pub fn comm(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(9usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_comm(&mut self, val: u64)
+	pub fn set_comm(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -210,13 +235,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn freq(&self) -> u64
+	pub fn freq(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(10usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_freq(&mut self, val: u64)
+	pub fn set_freq(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -226,13 +251,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn inherit_stat(&self) -> u64
+	pub fn inherit_stat(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(11usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_inherit_stat(&mut self, val: u64)
+	pub fn set_inherit_stat(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -242,13 +267,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn enable_on_exec(&self) -> u64
+	pub fn enable_on_exec(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(12usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_enable_on_exec(&mut self, val: u64)
+	pub fn set_enable_on_exec(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -258,13 +283,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn task(&self) -> u64
+	pub fn task(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(13usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_task(&mut self, val: u64)
+	pub fn set_task(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -274,13 +299,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn watermark(&self) -> u64
+	pub fn watermark(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(14usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_watermark(&mut self, val: u64)
+	pub fn set_watermark(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -290,13 +315,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn precise_ip(&self) -> u64
+	pub fn precise_ip(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(15usize, 2u8) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_precise_ip(&mut self, val: u64)
+	pub fn set_precise_ip(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -306,13 +331,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn mmap_data(&self) -> u64
+	pub fn mmap_data(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(17usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_mmap_data(&mut self, val: u64)
+	pub fn set_mmap_data(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -322,13 +347,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn sample_id_all(&self) -> u64
+	pub fn sample_id_all(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(18usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_sample_id_all(&mut self, val: u64)
+	pub fn set_sample_id_all(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -338,13 +363,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn exclude_host(&self) -> u64
+	pub fn exclude_host(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(19usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_exclude_host(&mut self, val: u64)
+	pub fn set_exclude_host(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -354,13 +379,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn exclude_guest(&self) -> u64
+	pub fn exclude_guest(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(20usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_exclude_guest(&mut self, val: u64)
+	pub fn set_exclude_guest(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -370,13 +395,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn exclude_callchain_kernel(&self) -> u64
+	pub fn exclude_callchain_kernel(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(21usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_exclude_callchain_kernel(&mut self, val: u64)
+	pub fn set_exclude_callchain_kernel(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -386,13 +411,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn exclude_callchain_user(&self) -> u64
+	pub fn exclude_callchain_user(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(22usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_exclude_callchain_user(&mut self, val: u64)
+	pub fn set_exclude_callchain_user(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -402,13 +427,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn mmap2(&self) -> u64
+	pub fn mmap2(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(23usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_mmap2(&mut self, val: u64)
+	pub fn set_mmap2(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -418,13 +443,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn comm_exec(&self) -> u64
+	pub fn comm_exec(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(24usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_comm_exec(&mut self, val: u64)
+	pub fn set_comm_exec(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -434,13 +459,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn use_clockid(&self) -> u64
+	pub fn use_clockid(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(25usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_use_clockid(&mut self, val: u64)
+	pub fn set_use_clockid(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -450,13 +475,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn context_switch(&self) -> u64
+	pub fn context_switch(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(26usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_context_switch(&mut self, val: u64)
+	pub fn set_context_switch(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -466,13 +491,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn write_backward(&self) -> u64
+	pub fn write_backward(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(27usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_write_backward(&mut self, val: u64)
+	pub fn set_write_backward(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -482,13 +507,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn namespaces(&self) -> u64
+	pub fn namespaces(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(28usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_namespaces(&mut self, val: u64)
+	pub fn set_namespaces(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -498,13 +523,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn ksymbol(&self) -> u64
+	pub fn ksymbol(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(29usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_ksymbol(&mut self, val: u64)
+	pub fn set_ksymbol(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -514,13 +539,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn bpf_event(&self) -> u64
+	pub fn bpf_event(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(30usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_bpf_event(&mut self, val: u64)
+	pub fn set_bpf_event(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -530,13 +555,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn aux_output(&self) -> u64
+	pub fn aux_output(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(31usize, 1) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set_aux_output(&mut self, val: u64)
+	pub fn set_aux_output(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -546,13 +571,13 @@ impl perf_event_attr
 	}
 
 	#[inline(always)]
-	pub(crate) fn __reserved_1(&self) -> u64
+	pub fn __reserved_1(&self) -> u64
 	{
 		unsafe { transmute(self._bitfield_1.get(32usize, 32u8) as u64) }
 	}
 
 	#[inline(always)]
-	pub(crate) fn set___reserved_1(&mut self, val: u64)
+	pub fn set___reserved_1(&mut self, val: u64)
 	{
 		unsafe
 		{
@@ -560,9 +585,9 @@ impl perf_event_attr
 			self._bitfield_1.set(32usize, 32u8, val as u64)
 		}
 	}
-
+	
 	#[inline(always)]
-	pub(crate) fn new_bitfield_1
+	pub fn new_bitfield_1
 	(
 		disabled: u64,
 		inherit: u64,

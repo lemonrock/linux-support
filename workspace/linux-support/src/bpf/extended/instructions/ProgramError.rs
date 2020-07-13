@@ -48,14 +48,8 @@ pub enum ProgramError
 	/// Linux can not support more than `u32::MAX` instructions.
 	ThereAreMoreThanU32MaxInstructions,
 
-	/// Invalid BTF.
-	BtfType(BtfTypeError),
-
 	/// No type identifiers and no strings.
 	NoBtfData,
-	
-	/// Invalid program size.
-	InvalidBtfDataSize(TryFromIntError),
 	
 	/// Invalid program size.
 	BtfDataSizeZero,
@@ -65,6 +59,15 @@ pub enum ProgramError
 	
 	/// Too much BTF data to load.
 	CouldNotLoadBtfData(Errno),
+	
+	/// Invalid BTF.
+	BtfType(BtfTypeError),
+	
+	/// Invalid program size.
+	InvalidBtfDataSize(TryFromIntError),
+	
+	/// Could not resolved file descriptors label.
+	FileDescriptorLabelsMap(FileDescriptorLabelsMapError),
 }
 
 impl Display for ProgramError
@@ -89,6 +92,8 @@ impl error::Error for ProgramError
 			
 			&InvalidBtfDataSize(ref error) => Some(error),
 			
+			&FileDescriptorLabelsMap(ref error) => Some(error),
+			
 			_ => None,
 		}
 	}
@@ -109,5 +114,14 @@ impl From<TryFromIntError> for ProgramError
 	fn from(value: TryFromIntError) -> Self
 	{
 		ProgramError::InvalidBtfDataSize(value)
+	}
+}
+
+impl From<FileDescriptorLabelsMapError> for ProgramError
+{
+	#[inline(always)]
+	fn from(value: FileDescriptorLabelsMapError) -> Self
+	{
+		ProgramError::FileDescriptorLabelsMap(value)
 	}
 }

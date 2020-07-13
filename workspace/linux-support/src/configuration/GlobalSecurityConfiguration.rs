@@ -117,9 +117,9 @@ impl GlobalSecurityConfiguration
 		
 		set_value(proc_path, |proc_path, value| value.set_value(proc_path), self.harden_jit_ebpf, CouldNotHardenJitOfBpfPrograms)?;
 		
-		set_sys_kernel_boolean_value_once(proc_path, "kexec_load_disabled", value, CouldNotDisableKexecLoadingUntilNextReboot)?;
+		set_sys_kernel_boolean_value_once(proc_path, "kexec_load_disabled", self.disable_kexec_loading_of_new_kernel_images_until_reboot, CouldNotDisableKexecLoadingUntilNextReboot)?;
 		
-		set_sys_kernel_boolean_value_once(proc_path, "unprivileged_bpf_disabled", value, CouldNotDisableKexecLoadingUntilNextReboot)?;
+		set_sys_kernel_boolean_value_once(proc_path, "unprivileged_bpf_disabled", self.disable_bpf_loading_of_programs_by_unprivileged_users_until_reboot, CouldNotDisableKexecLoadingUntilNextReboot)?;
 		
 		Ok(())
 	}

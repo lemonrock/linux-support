@@ -24,10 +24,10 @@ impl<V> UsageHashMap<V>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn add<'name>(&mut self, key: String, value: V)
+	pub(crate) fn insert<'name>(&mut self, key: String, value: V)
 	{
 		let previous = self.map.insert(key, (value, Cell::default()));
-		debug_assert_eq!(previous, None)
+		debug_assert!(previous.is_none());
 	}
 	
 	#[inline(always)]

@@ -8,12 +8,12 @@
 #[repr(transparent)]
 pub struct StackDepth(NonZeroU8);
 
-impl TryFrom<u16> for StackDepth
+impl TryFrom<u8> for StackDepth
 {
 	type Error = ParseNumberError;
 	
 	#[inline(always)]
-	fn try_from(value: u16) -> Result<Self, Self::Error>
+	fn try_from(value: u8) -> Result<Self, Self::Error>
 	{
 		if unlikely!(value == 0)
 		{
@@ -21,18 +21,20 @@ impl TryFrom<u16> for StackDepth
 		}
 		else
 		{
-			let non_zero = unsafe { NonZeroU16::new_unchecked(value) };
+			let non_zero = unsafe { NonZeroU8::new_unchecked(value) };
 			Self::try_from(non_zero)
 		}
 	}
 }
 
-impl TryFrom<NonZeroU32> for StackDepth
+impl TryFrom<NonZeroU8> for StackDepth
 {
+	type Error = ParseNumberError;
+	
 	#[inline(always)]
-	fn try_from(value: NonZeroU16) -> Result<Self, Self::Error>
+	fn try_from(value: NonZeroU8) -> Result<Self, Self::Error>
 	{
-		if value > Self::InclusiveMaximum
+		if value > Self::InclusiveMaximum.0
 		{
 			Err(ParseNumberError::TooLarge)
 		}
@@ -46,9 +48,10 @@ impl TryFrom<NonZeroU32> for StackDepth
 impl StackDepth
 {
 	/// `sysctl_perf_event_max_stack` is a global static defined initially as `PERF_MAX_STACK_DEPTH`.
-	const PERF_MAX_STACK_DEPTH: NonZeroU16 = Self::new_unsafe((1 << ValueSizeU32::PAGE_SHIFT) as u16);
+	const PERF_MAX_STACK_DEPTH: u8 = (1 << ValueSizeU32::PAGE_SHIFT) as u8;
 	
-	pub const InclusiveMaximum: Self = Self(Self::PERF_MAX_STACK_DEPTH);
+	/// Inclusive maximum.
+	pub const InclusiveMaximum: Self = Self::new_unsafe(Self::PERF_MAX_STACK_DEPTH);
 	
 	#[inline(always)]
 	pub(crate) const fn to_non_zero_u32<T: Sized>(self) -> NonZeroU32
@@ -57,8 +60,8 @@ impl StackDepth
 	}
 	
 	#[inline(always)]
-	const fn new_unsafe(value: u16) -> Self
+	const fn new_unsafe(value: u8) -> Self
 	{
-		Self(unsafe { NonZeroU16::new_unchecked(value) })
+		Self(unsafe { NonZeroU8::new_unchecked(value) })
 	}
 }
