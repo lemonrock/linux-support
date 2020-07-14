@@ -374,9 +374,10 @@ impl MapFileDescriptor
 		{
 			match errno().0
 			{
+				EINVAL => panic!("Invalid attr"),
+				ENOTSUPP => panic!("Not supported for maps of type `BPF_MAP_TYPE_STRUCT_OPS`"),
 				EBUSY => panic!("Already frozen"),
 				EPERM => panic!("Permission denied"),
-				EINVAL => panic!("Invalid attr"),
 				errno @ _ => panic!("Unexpected error `{}`", errno),
 			}
 		}
