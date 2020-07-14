@@ -340,6 +340,52 @@ impl MapFileDescriptor
 		}
 	}
 	
+	
+	/// The map can no longer be updated from user space.
+	///
+	/// Not supported by `BPF_MAP_TYPE_STRUCT_OPS`.
+	///
+	/// Requires the capability `CAP_SYS_ADMIN`.
+	/// Can only be called once.
+	#[inline(always)]
+	#[allow(deprecated)]
+	pub(crate) fn freeze(&self) -> Result<(), Errno>
+	{
+		let mut attr = bpf_attr
+		{
+			map_change: BpfCommandMapChange
+			{
+				map_fd: self.as_raw_fd(),
+				key: AlignedU64::Null,
+				value_or_next_key: BpfCommandMapChangeValueOrNextKey
+				{
+					value: AlignedU64::Null,
+				},
+				flags: BPF_MAP_UPDATE_ELEM_flags::empty(),
+			},
+		};
+		
+		let result = attr.syscall(bpf_cmd::BPF_MAP_FREEZE);
+		if likely!(result == 0)
+		{
+			Ok(())
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				EBUSY => panic!("Already frozen"),
+				EPERM => panic!("Permission denied"),
+				EINVAL => panic!("Invalid attr"),
+				errno @ _ => panic!("Unexpected error `{}`", errno),
+			}
+		}
+		else
+		{
+			unreachable!("Unexpected result `{}` from bpf(BPF_MAP_FREEZE)", result)
+		}
+	}
+	
 	/// Returns `(values_filled, start of next batch position, more_entries_to_return)`.
 	/// `values_filled.len()` may be less than `keys.len()`.
 	#[allow(deprecated)]
