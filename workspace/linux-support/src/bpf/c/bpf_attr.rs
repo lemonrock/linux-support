@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[repr(C)]
+#[repr(C, align(8))]
 #[derive(Copy, Clone)]
 pub(crate) union bpf_attr
 {
@@ -21,7 +21,6 @@ pub(crate) union bpf_attr
 	pub(crate) task_fd_query: BpfCommandTaskFileDescriptorQuery,
 	pub(crate) link_create: BpfCommandLinkCreate,
 	pub(crate) link_update: BpfCommandLinkUpdate,
-	_bindgen_union_align: [u64; 15],
 }
 
 impl Default for bpf_attr

@@ -2,9 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[doc(hidden)]
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub(crate) union BpfCommandGetIdentifierValueOfIdentifier
+pub union BpfCommandGetIdentifierValueOfIdentifier
 {
 	pub(crate) start_id: u32,
 	pub(crate) prog_id: u32,

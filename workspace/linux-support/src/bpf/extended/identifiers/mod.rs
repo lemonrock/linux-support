@@ -3,16 +3,11 @@
 
 
 use super::*;
-use crate::bpf::c::*;
-use crate::bpf::extended::bpf_type_format::ParsedBtfMapData;
-use crate::bpf::extended::instructions::ProgramError;
-use crate::bpf::extended::instructions::file_descriptor_label::*;
-use crate::bpf::extended::maps::domain::*;
-use crate::bpf::extended::maps::domain::access_permissions::KernelOnlyAccessPermissions;
-use crate::bpf::extended::programs::*;
+use super::maps::domain::access_permissions::KernelOnlyAccessPermissions;
+use crate::file_descriptors::bpf::*;
 
 
-include!("BpfFileDescriptor.rs");
-include!("BtfFileDescriptor.rs");
-include!("ExtendedBpfProgramFileDescriptor.rs");
-include!("MapFileDescriptor.rs");
+include!("Identifier.rs");
+include!("BtfIdentifier.rs");
+include!("ExtendedBpfProgramIdentifier.rs");
+include!("MapIdentifier.rs");

@@ -2,9 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[doc(hidden)]
 #[repr(i32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub(crate) enum bpf_cmd
+pub enum bpf_cmd
 {
 	BPF_MAP_CREATE = 0,
 	BPF_MAP_LOOKUP_ELEM = 1,
@@ -14,21 +15,17 @@ pub(crate) enum bpf_cmd
 	BPF_PROG_LOAD = 5,
 	BPF_OBJ_PIN = 6,
 	BPF_OBJ_GET = 7,
+	BPF_PROG_ATTACH = 8,
+	BPF_PROG_DETACH = 9,
 	
 	// TODO
-	BPF_PROG_ATTACH = 8,
-	// TODO
-	BPF_PROG_DETACH = 9,
-	// TODO
 	BPF_PROG_TEST_RUN = 10,
-	// TODO
+	
 	BPF_PROG_GET_NEXT_ID = 11,
-	// TODO
 	BPF_MAP_GET_NEXT_ID = 12,
-	// TODO
 	BPF_PROG_GET_FD_BY_ID = 13,
-	// TODO
 	BPF_MAP_GET_FD_BY_ID = 14,
+	
 	// TODO
 	BPF_OBJ_GET_INFO_BY_FD = 15,
 	// TODO
@@ -40,7 +37,6 @@ pub(crate) enum bpf_cmd
 	BPF_BTF_LOAD = 18,
 	
 	/// BTF is BPF Type Format.
-	// TODO
 	BPF_BTF_GET_FD_BY_ID = 19,
 	
 	// TODO
@@ -51,7 +47,6 @@ pub(crate) enum bpf_cmd
 	BPF_MAP_FREEZE = 22,
 	
 	/// BTF is BPF Type Format.
-	// TODO
 	BPF_BTF_GET_NEXT_ID = 23,
 	
 	BPF_MAP_LOOKUP_BATCH = 24,
