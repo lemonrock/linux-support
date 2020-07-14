@@ -35,3 +35,12 @@ pub(crate) enum bpf_attach_type
 	BPF_MODIFY_RETURN = 26,
 	BPF_LSM_MAC = 27,
 }
+
+impl Default for bpf_attach_type
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		bpf_attach_type::BPF_CGROUP_INET_INGRESS
+	}
+}

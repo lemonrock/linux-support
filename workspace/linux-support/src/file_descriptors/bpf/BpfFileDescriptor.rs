@@ -12,14 +12,12 @@ pub trait BpfFileDescriptor: FileDescriptor
 		let mut path = path_bytes_without_trailing_nul(path).to_vec();
 		path.push(b'\0');
 		
-		let mut attr = bpf_attr
+		let mut attr = bpf_attr::default();
+		attr.object = BpfCommandObject
 		{
-			object: BpfCommandObject
-			{
-				pathname: AlignedU64::from(path.as_mut_ptr()),
-				bpf_fd: self.as_raw_fd(),
-				file_flags: 0,
-			},
+			pathname: AlignedU64::from(path.as_mut_ptr()),
+			bpf_fd: self.as_raw_fd(),
+			file_flags: 0,
 		};
 		
 		let result = attr.syscall(bpf_cmd::BPF_OBJ_PIN);
@@ -44,14 +42,12 @@ pub trait BpfFileDescriptor: FileDescriptor
 		let mut path = path_bytes_without_trailing_nul(path).to_vec();
 		path.push(b'\0');
 		
-		let mut attr = bpf_attr
+		let mut attr = bpf_attr::default();
+		attr.object = BpfCommandObject
 		{
-			object: BpfCommandObject
-			{
-				pathname: AlignedU64::from(path.as_mut_ptr()),
-				bpf_fd: 0,
-				file_flags: access_permissions.to_map_flags().bits(),
-			},
+			pathname: AlignedU64::from(path.as_mut_ptr()),
+			bpf_fd: 0,
+			file_flags: access_permissions.to_map_flags().bits(),
 		};
 		
 		let result = attr.syscall(bpf_cmd::BPF_OBJ_GET);

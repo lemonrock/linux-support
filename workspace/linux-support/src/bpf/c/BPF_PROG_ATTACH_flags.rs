@@ -19,7 +19,7 @@ bitflags!
 	/// Multiple programs are allowed to be attached to a cgroup with `BPF_F_ALLOW_MULTI` flag.
 	/// They are executed in FIFO order (those that were attached first, run first).
 	/// The programs of sub-cgroup are executed first, then programs of this cgroup and then programs of parent cgroup.
-	/// When children program makes decision (like picking TCP CA or sock bind) parent program has a chance to override it.
+	/// When the child program makes a decision (like picking TCP CA or sock bind) parent program has a chance to override it.
 	///
 	/// With `BPF_F_ALLOW_MULTI` a new program is added to the end of the list of programs for a cgroup.
 	/// Though it's possible to replace an old program at any position by also specifying `BPF_F_REPLACE` flag and position itself in `replace_bpf_fd` attribute.
@@ -48,5 +48,14 @@ bitflags!
 		const BPF_F_ALLOW_OVERRIDE = 1;
 		const BPF_F_ALLOW_MULTI = 2;
 		const BPF_F_REPLACE = 4;
+	}
+}
+
+impl Default for BPF_PROG_ATTACH_flags
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		BPF_PROG_ATTACH_flags::empty()
 	}
 }

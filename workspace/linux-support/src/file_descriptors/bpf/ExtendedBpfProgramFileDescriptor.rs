@@ -70,3 +70,12 @@ impl UsedAsValueInArrayMapDescriptor for ExtendedBpfProgramFileDescriptor
 		unsafe { transmute(value) }
 	}
 }
+
+impl ExtendedBpfProgramFileDescriptor
+{
+	#[inline(always)]
+	pub(crate) fn as_non_zero_i32(&self) -> NonZeroI32
+	{
+		self.0
+	}
+}

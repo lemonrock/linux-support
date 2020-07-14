@@ -66,18 +66,17 @@ impl MapFileDescriptor
 		debug_assert_ne!(size_of::<K>(), 0);
 		
 		let mut next_key = unsafe { uninitialized() };
-		let mut attr = bpf_attr
+		
+		let mut attr = bpf_attr::default();
+		attr.map_change = BpfCommandMapChange
 		{
-			map_change: BpfCommandMapChange
+			map_fd: self.as_raw_fd(),
+			key: AlignedU64::from(key),
+			value_or_next_key: BpfCommandMapChangeValueOrNextKey
 			{
-				map_fd: self.as_raw_fd(),
-				key: AlignedU64::from(key),
-				value_or_next_key: BpfCommandMapChangeValueOrNextKey
-				{
-					next_key: AlignedU64::from(&mut next_key),
-				},
-				flags: BPF_MAP_UPDATE_ELEM_flags::BPF_ANY,
+				next_key: AlignedU64::from(&mut next_key),
 			},
+			flags: BPF_MAP_UPDATE_ELEM_flags::BPF_ANY,
 		};
 		
 		let result = attr.syscall(bpf_cmd::BPF_MAP_GET_NEXT_KEY);
@@ -112,18 +111,16 @@ impl MapFileDescriptor
 		
 		let mut value: V = unsafe { uninitialized() };
 		
-		let mut attr = bpf_attr
+		let mut attr = bpf_attr::default();
+		attr.map_change = BpfCommandMapChange
 		{
-			map_change: BpfCommandMapChange
+			map_fd: self.as_raw_fd(),
+			key: AlignedU64::from(key),
+			value_or_next_key: BpfCommandMapChangeValueOrNextKey
 			{
-				map_fd: self.as_raw_fd(),
-				key: AlignedU64::from(key),
-				value_or_next_key: BpfCommandMapChangeValueOrNextKey
-				{
-					value: AlignedU64::from(&mut value),
-				},
-				flags: BPF_MAP_UPDATE_ELEM_flags::BPF_ANY,
+				value: AlignedU64::from(&mut value),
 			},
+			flags: BPF_MAP_UPDATE_ELEM_flags::BPF_ANY,
 		};
 		
 		let result = attr.syscall(bpf_cmd::BPF_MAP_LOOKUP_ELEM);
@@ -227,18 +224,16 @@ impl MapFileDescriptor
 		debug_assert_ne!(size_of::<K>(), 0);
 		debug_assert_ne!(size_of::<V>(), 0);
 		
-		let mut attr = bpf_attr
+		let mut attr = bpf_attr::default();
+		attr.map_change = BpfCommandMapChange
 		{
-			map_change: BpfCommandMapChange
+			map_fd: self.as_raw_fd(),
+			key: AlignedU64::from(key),
+			value_or_next_key: BpfCommandMapChangeValueOrNextKey
 			{
-				map_fd: self.as_raw_fd(),
-				key: AlignedU64::from(key),
-				value_or_next_key: BpfCommandMapChangeValueOrNextKey
-				{
-					value: AlignedU64::from(value),
-				},
-				flags: flags | lock_flags.to_update_flags(),
+				value: AlignedU64::from(value),
 			},
+			flags: flags | lock_flags.to_update_flags(),
 		};
 		
 		let result = attr.syscall(bpf_cmd::BPF_MAP_UPDATE_ELEM);
@@ -265,18 +260,16 @@ impl MapFileDescriptor
 		
 		let mut value: V = unsafe { uninitialized() };
 		
-		let mut attr = bpf_attr
+		let mut attr = bpf_attr::default();
+		attr.map_change = BpfCommandMapChange
 		{
-			map_change: BpfCommandMapChange
+			map_fd: self.as_raw_fd(),
+			key: AlignedU64::from(key),
+			value_or_next_key: BpfCommandMapChangeValueOrNextKey
 			{
-				map_fd: self.as_raw_fd(),
-				key: AlignedU64::from(key),
-				value_or_next_key: BpfCommandMapChangeValueOrNextKey
-				{
-					value: AlignedU64::from(&mut value),
-				},
-				flags: BPF_MAP_UPDATE_ELEM_flags::empty(),
+				value: AlignedU64::from(&mut value),
 			},
+			flags: BPF_MAP_UPDATE_ELEM_flags::empty(),
 		};
 		
 		let result = attr.syscall(bpf_cmd::BPF_MAP_LOOKUP_AND_DELETE_ELEM);
@@ -306,18 +299,16 @@ impl MapFileDescriptor
 	{
 		debug_assert_ne!(size_of::<K>(), 0);
 		
-		let mut attr = bpf_attr
+		let mut attr = bpf_attr::default();
+		attr.map_change = BpfCommandMapChange
 		{
-			map_change: BpfCommandMapChange
+			map_fd: self.as_raw_fd(),
+			key: AlignedU64::from(key),
+			value_or_next_key: BpfCommandMapChangeValueOrNextKey
 			{
-				map_fd: self.as_raw_fd(),
-				key: AlignedU64::from(key),
-				value_or_next_key: BpfCommandMapChangeValueOrNextKey
-				{
-					value: AlignedU64::Null,
-				},
-				flags: BPF_MAP_UPDATE_ELEM_flags::empty(),
+				value: AlignedU64::Null,
 			},
+			flags: BPF_MAP_UPDATE_ELEM_flags::empty(),
 		};
 		
 		let result = attr.syscall(bpf_cmd::BPF_MAP_DELETE_ELEM);
@@ -340,7 +331,6 @@ impl MapFileDescriptor
 		}
 	}
 	
-	
 	/// The map can no longer be updated from user space.
 	///
 	/// Not supported by `BPF_MAP_TYPE_STRUCT_OPS`.
@@ -351,18 +341,16 @@ impl MapFileDescriptor
 	#[allow(deprecated)]
 	pub(crate) fn freeze(&self) -> Result<(), Errno>
 	{
-		let mut attr = bpf_attr
+		let mut attr = bpf_attr::default();
+		attr.map_change = BpfCommandMapChange
 		{
-			map_change: BpfCommandMapChange
+			map_fd: self.as_raw_fd(),
+			key: AlignedU64::Null,
+			value_or_next_key: BpfCommandMapChangeValueOrNextKey
 			{
-				map_fd: self.as_raw_fd(),
-				key: AlignedU64::Null,
-				value_or_next_key: BpfCommandMapChangeValueOrNextKey
-				{
-					value: AlignedU64::Null,
-				},
-				flags: BPF_MAP_UPDATE_ELEM_flags::empty(),
+				value: AlignedU64::Null,
 			},
+			flags: BPF_MAP_UPDATE_ELEM_flags::empty(),
 		};
 		
 		let result = attr.syscall(bpf_cmd::BPF_MAP_FREEZE);
@@ -372,6 +360,9 @@ impl MapFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
+			// "Operation is not supported".
+			// Not supposed to be returned to userspace.
+			const ENOTSUPP: i32 = 524;
 			match errno().0
 			{
 				EINVAL => panic!("Invalid attr"),
@@ -387,6 +378,114 @@ impl MapFileDescriptor
 		}
 	}
 	
+	/// Requires the capability `CAP_NET_ADMIN`.
+	///
+	/// The program type referred to in `program_fd` must be compatible with the `attach_type` (see the Linux kernel functions `attach_type_to_prog_type()` and `bpf_prog_attach_check_attach_type()` and their usage in `bpf_prog_attach()`).
+	///
+	/// Only the following program types are supported:-
+	///
+	/// * `BPF_PROG_TYPE_SK_SKB`.
+	/// * `BPF_PROG_TYPE_SK_MSG`.
+	/// * `BPF_PROG_TYPE_LIRC_MODE2`.
+	/// * `BPF_PROG_TYPE_FLOW_DISSECTOR`.
+	/// * `BPF_PROG_TYPE_CGROUP_DEVICE`.
+	/// * `BPF_PROG_TYPE_CGROUP_SKB`.
+	/// * `BPF_PROG_TYPE_CGROUP_SOCK`.
+	/// * `BPF_PROG_TYPE_CGROUP_SOCK_ADDR`.
+	/// * `BPF_PROG_TYPE_CGROUP_SOCKOPT`.
+	/// * `BPF_PROG_TYPE_CGROUP_SYSCTL`.
+	/// * `BPF_PROG_TYPE_SOCK_OPS`.
+	pub(crate) fn attach(&self, target_fd: NonZeroI32, attach_type: bpf_attach_type, program_fd: Option<&ExtendedBpfProgramFileDescriptor>, cgroup_program_attachment: Option<CgroupProgramAttachment>)
+	{
+		let (attach_flags, replace_bpf_fd) = match cgroup_program_attachment
+		{
+			None => (BPF_PROG_ATTACH_flags::empty(), None),
+			Some(cgroup_program_attachment) => cgroup_program_attachment.to_attach_flags(),
+		};
+		
+		let mut attr = bpf_attr::default();
+		attr.program_attach_or_detach = BpfCommandProgramAttachOrDetach
+		{
+			target_fd,
+			attach_bpf_fd: program_fd.map(|file_descriptor| file_descriptor.as_non_zero_i32()),
+			attach_type,
+			attach_flags,
+			replace_bpf_fd,
+		};
+		
+		let result = attr.syscall(bpf_cmd::BPF_PROG_ATTACH);
+		if likely!(result == 0)
+		{
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				EINVAL => panic!("Invalid attr or invalid program type to detach"),
+				EPERM => panic!("Permission denied"),
+				EEXIST => panic!("BPF_PROG_TYPE_FLOW_DISSECTOR only allows one program to exist at a time (cgroup_program_attachment is ignored)"),
+				E2BIG => panic!("BPF_PROG_TYPE_LIRC_MODE2 only allows 64 programs to exist at a time (cgroup_program_attachment is ignored)"),
+				ENODEV => panic!("BPF_PROG_TYPE_LIRC_MODE2 only support raw mode 2 (cgroup_program_attachment is ignored)"),
+				EOPNOTSUPP => panic!("BPF_PROG_TYPE_SK_* failure (cgroup_program_attachment is ignored)"),
+				errno @ _ => panic!("Unexpected error `{}`", errno),
+			}
+		}
+		else
+		{
+			unreachable!("Unexpected result `{}` from bpf(BPF_PROG_ATTACH)", result)
+		}
+	}
+	
+	/// Requires the capability `CAP_NET_ADMIN`.
+	///
+	/// Only the following program types are supported:-
+	///
+	/// * `BPF_PROG_TYPE_SK_MSG`.
+	/// * `BPF_PROG_TYPE_SK_SKB`.
+	/// * `BPF_PROG_TYPE_LIRC_MODE2`.
+	/// * `BPF_PROG_TYPE_FLOW_DISSECTOR`.
+	/// * `BPF_PROG_TYPE_CGROUP_DEVICE`.
+	/// * `BPF_PROG_TYPE_CGROUP_SKB`.
+	/// * `BPF_PROG_TYPE_CGROUP_SOCK`.
+	/// * `BPF_PROG_TYPE_CGROUP_SOCK_ADDR`.
+	/// * `BPF_PROG_TYPE_CGROUP_SOCKOPT`.
+	/// * `BPF_PROG_TYPE_CGROUP_SYSCTL`.
+	/// * `BPF_PROG_TYPE_SOCK_OPS`.
+	pub(crate) fn detach(&self, target_fd: NonZeroI32, attach_type: bpf_attach_type, program_fd: Option<&ExtendedBpfProgramFileDescriptor>)
+	{
+		let mut attr = bpf_attr::default();
+		attr.program_attach_or_detach = BpfCommandProgramAttachOrDetach
+		{
+			target_fd,
+			attach_bpf_fd: program_fd.map(|file_descriptor| file_descriptor.as_non_zero_i32()),
+			attach_type,
+			
+			// Unused.
+			attach_flags: BPF_PROG_ATTACH_flags::empty(),
+			
+			// Unused.
+			replace_bpf_fd: None
+		};
+		
+		let result = attr.syscall(bpf_cmd::BPF_PROG_DETACH);
+		if likely!(result == 0)
+		{
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				EINVAL => panic!("Invalid attr or invalid program type to detach"),
+				EPERM => panic!("Permission denied"),
+				errno @ _ => panic!("Unexpected error `{}`", errno),
+			}
+		}
+		else
+		{
+			unreachable!("Unexpected result `{}` from bpf(BPF_PROG_DETACH)", result)
+		}
+	}
+	
 	/// Returns `(values_filled, start of next batch position, more_entries_to_return)`.
 	/// `values_filled.len()` may be less than `keys.len()`.
 	#[allow(deprecated)]
@@ -398,23 +497,21 @@ impl MapFileDescriptor
 		let mut out_batch: OpaqueBatchPosition<K> = unsafe { uninitialized() };
 		let mut values = Vec::with_capacity(keys_length);
 		
-		let mut attr = bpf_attr
+		let mut attr = bpf_attr::default();
+		attr.batch = BpfCommandMapBatch
 		{
-			batch: BpfCommandMapBatch
+			in_batch: match batch_position
 			{
-				in_batch: match batch_position
-				{
-					None => AlignedU64::Null,
-					Some(batch_position) => AlignedU64::from(batch_position),
-				},
-				out_batch: AlignedU64::from(&mut out_batch),
-				keys: AlignedU64::from(keys),
-				values: AlignedU64::from(values.as_mut_ptr()),
-				count: keys_length as u32,
-				map_fd: self.as_raw_fd(),
-				elem_flags: elem_flags::empty(),
-				flags: 0,
+				None => AlignedU64::Null,
+				Some(batch_position) => AlignedU64::from(batch_position),
 			},
+			out_batch: AlignedU64::from(&mut out_batch),
+			keys: AlignedU64::from(keys),
+			values: AlignedU64::from(values.as_mut_ptr()),
+			count: keys_length as u32,
+			map_fd: self.as_raw_fd(),
+			elem_flags: elem_flags::empty(),
+			flags: 0,
 		};
 		
 		let result = attr.syscall(bpf_cmd::BPF_MAP_LOOKUP_BATCH);
@@ -452,19 +549,17 @@ impl MapFileDescriptor
 		debug_assert!(keys_length == values_length);
 		debug_assert!(keys_length <= u32::MAX as usize);
 		
-		let mut attr = bpf_attr
+		let mut attr = bpf_attr::default();
+		attr.batch = BpfCommandMapBatch
 		{
-			batch: BpfCommandMapBatch
-			{
-				in_batch: AlignedU64::Null,
-				out_batch: AlignedU64::Null,
-				keys: AlignedU64::from(keys),
-				values: AlignedU64::from(values),
-				count: keys_length as u32,
-				map_fd: self.as_raw_fd(),
-				elem_flags: lock_flags.to_elem_flags(),
-				flags: 0,
-			},
+			in_batch: AlignedU64::Null,
+			out_batch: AlignedU64::Null,
+			keys: AlignedU64::from(keys),
+			values: AlignedU64::from(values),
+			count: keys_length as u32,
+			map_fd: self.as_raw_fd(),
+			elem_flags: lock_flags.to_elem_flags(),
+			flags: 0,
 		};
 		
 		let result = attr.syscall(bpf_cmd::BPF_MAP_UPDATE_BATCH);
@@ -494,23 +589,21 @@ impl MapFileDescriptor
 		let mut out_batch: OpaqueBatchPosition<K> = unsafe { uninitialized() };
 		let mut values = Vec::with_capacity(keys_length);
 		
-		let mut attr = bpf_attr
+		let mut attr = bpf_attr::default();
+		attr.batch = BpfCommandMapBatch
 		{
-			batch: BpfCommandMapBatch
+			in_batch: match batch_position
 			{
-				in_batch: match batch_position
-				{
-					None => AlignedU64::Null,
-					Some(batch_position) => AlignedU64::from(batch_position),
-				},
-				out_batch: AlignedU64::from(&mut out_batch),
-				keys: AlignedU64::from(keys),
-				values: AlignedU64::from(values.as_mut_ptr()),
-				count: keys_length as u32,
-				map_fd: self.as_raw_fd(),
-				elem_flags: elem_flags::empty(),
-				flags: 0,
+				None => AlignedU64::Null,
+				Some(batch_position) => AlignedU64::from(batch_position),
 			},
+			out_batch: AlignedU64::from(&mut out_batch),
+			keys: AlignedU64::from(keys),
+			values: AlignedU64::from(values.as_mut_ptr()),
+			count: keys_length as u32,
+			map_fd: self.as_raw_fd(),
+			elem_flags: elem_flags::empty(),
+			flags: 0,
 		};
 		
 		let result = attr.syscall(bpf_cmd::BPF_MAP_LOOKUP_AND_DELETE_BATCH);
@@ -545,20 +638,18 @@ impl MapFileDescriptor
 	{
 		let keys_length = keys.len();
 		debug_assert!(keys_length <= u32::MAX as usize);
-		
-		let mut attr = bpf_attr
+	
+		let mut attr = bpf_attr::default();
+		attr.batch = BpfCommandMapBatch
 		{
-			batch: BpfCommandMapBatch
-			{
-				in_batch: AlignedU64::Null,
-				out_batch: AlignedU64::Null,
-				keys: AlignedU64::from(keys),
-				values: AlignedU64::Null,
-				count: keys_length as u32,
-				map_fd: self.as_raw_fd(),
-				elem_flags: elem_flags::empty(),
-				flags: 0,
-			},
+			in_batch: AlignedU64::Null,
+			out_batch: AlignedU64::Null,
+			keys: AlignedU64::from(keys),
+			values: AlignedU64::Null,
+			count: keys_length as u32,
+			map_fd: self.as_raw_fd(),
+			elem_flags: elem_flags::empty(),
+			flags: 0,
 		};
 		
 		let result = attr.syscall(bpf_cmd::BPF_MAP_DELETE_BATCH);

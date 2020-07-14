@@ -4,19 +4,19 @@
 
 /// Used for the commands `BPF_PROG_ATTACH` and `BPF_PROG_DETACH`.
 #[repr(C)]
-#[derive(Debug, Default, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub(crate) struct BpfCommandProgramAttachOrDetach
 {
 	/// container object to attach to.
-	pub(crate) target_fd: u32,
+	pub(crate) target_fd: NonZeroI32,
 	
 	/// eBPF program to attach.
-	pub(crate) attach_bpf_fd: u32,
+	pub(crate) attach_bpf_fd: Option<NonZeroI32>,
 	
-	pub(crate) attach_type: u32,
+	pub(crate) attach_type: bpf_attach_type,
 	
-	pub(crate) attach_flags: u32,
+	pub(crate) attach_flags: BPF_PROG_ATTACH_flags,
 	
 	/// previously attached eBPF program to replace if `BPF_F_REPLACE` is used.
-	pub(crate) replace_bpf_fd: u32,
+	pub(crate) replace_bpf_fd: Option<NonZeroI32>,
 }

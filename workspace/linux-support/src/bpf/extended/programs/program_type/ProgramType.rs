@@ -107,15 +107,17 @@ pub enum ProgramType<'name>
 	/// Also known as the ELF section `sk_skb/stream_verdict`.
 	/// Legacy as libbpf's `sk_skb`.
 	/// Legacy with the ELF section `sk_skb`.
-	SocketBufferStreamVerdiet(#[serde(default)] CommonProgramTypeDetails),
+	SocketBufferStreamVerdict(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as in libbpf as `sk_msg`.
 	/// Also known as the ELF section `sk_msg`.
 	SocketMessage(#[serde(default)] CommonProgramTypeDetails),
 	
+	/// InfraRed Raw Mode 2.
+	///
 	/// Also known as in libbpf as `lirc_mode2`.
 	/// Also known as the ELF section `lirc_mode2`.
-	LIRCMode2(#[serde(default)] CommonProgramTypeDetails),
+	InfraRedRawMode2(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as in libbpf as `flow_dissector`.
 	/// Also known as the ELF section `flow_dissector`.
@@ -276,13 +278,13 @@ impl<'name> ProgramType<'name>
 			SocketBufferStreamParser(program_details) => program_details.to_values(BPF_PROG_TYPE_SK_SKB, BPF_SK_SKB_STREAM_PARSER),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			SocketBufferStreamVerdiet(program_details) => program_details.to_values(BPF_PROG_TYPE_SK_SKB, BPF_SK_SKB_STREAM_VERDICT),
+			SocketBufferStreamVerdict(program_details) => program_details.to_values(BPF_PROG_TYPE_SK_SKB, BPF_SK_SKB_STREAM_VERDICT),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
 			SocketMessage(program_details) => program_details.to_values(BPF_PROG_TYPE_SK_MSG, BPF_SK_MSG_VERDICT),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			LIRCMode2(program_details) => program_details.to_values(BPF_PROG_TYPE_LIRC_MODE2, BPF_LIRC_MODE2),
+			InfraRedRawMode2(program_details) => program_details.to_values(BPF_PROG_TYPE_LIRC_MODE2, BPF_LIRC_MODE2),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
 			FlowDissector(program_details) => program_details.to_values(BPF_PROG_TYPE_FLOW_DISSECTOR, BPF_FLOW_DISSECTOR),
