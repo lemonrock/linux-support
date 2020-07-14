@@ -26,6 +26,9 @@ pub enum ProgramLoadError
 
 	/// Caller lacks necessary capability.
 	PermissionDenied,
+	
+	/// Could not register program.
+	CouldNotRegisterProgram(FileDescriptorLabelsMapError),
 }
 
 impl Display for ProgramLoadError
@@ -51,6 +54,8 @@ impl error::Error for ProgramLoadError
 			&FunctionInformationArrayIsLargerThanU32Max(ref error) => Some(error),
 
 			&LineInformationArrayIsLargerThanU32Max(ref error) => Some(error),
+
+			&CouldNotRegisterProgram(ref error) => Some(error),
 			
 			_ => None,
 		}
@@ -63,5 +68,14 @@ impl From<ProgramError> for ProgramLoadError
 	fn from(error: ProgramError) -> Self
 	{
 		ProgramLoadError::Program(error)
+	}
+}
+
+impl From<FileDescriptorLabelsMapError> for ProgramLoadError
+{
+	#[inline(always)]
+	fn from(error: FileDescriptorLabelsMapError) -> Self
+	{
+		ProgramLoadError::CouldNotRegisterProgram(error)
 	}
 }

@@ -5,15 +5,37 @@
 /// An array map specialized for use with file descriptors.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub struct FileDescriptorArrayMap<'map_file_descriptor_label_map, FD: FileDescriptor>(ArrayMap<'map_file_descriptor_label_map, RawFd>, PhantomData<FD>);
+pub struct FileDescriptorArrayMap<'map_file_descriptor_label_map, FD: UsedAsValueInArrayMapDescriptor>(ArrayMap<'map_file_descriptor_label_map, RawFd>, PhantomData<FD>);
 
-impl<'map_file_descriptor_label_map, FD: FileDescriptor> FileDescriptorArrayMap<'map_file_descriptor_label_map, FD>
+impl<'map_file_descriptor_label_map, FD: UsedAsValueInArrayMapDescriptor> FileDescriptorArrayMap<'map_file_descriptor_label_map, FD>
 {
 	/// Capacity.
 	#[inline(always)]
 	pub fn capacity(&self) -> NonZeroU32
 	{
 		self.0.capacity()
+	}
+	
+	/// Get, batched.
+	///
+	/// Use `None` for `batch_position` when starting a new batch.
+	/// Each value in `indices` must be valid.
+	#[inline(always)]
+	pub fn get_batch(&self, batch_position: Option<&OpaqueBatchPosition<u32>>, indices: &[u32]) -> Result<(Vec<Option<FileDescriptorCopy<FD>>>, OpaqueBatchPosition<u32>, bool), Errno>
+	{
+		let (vec, batch_position, more) = self.0.get_batch(batch_position, indices)?;
+		Ok((FD::transmute_to_file_descriptor_copies(vec), batch_position, more))
+	}
+	
+	/// Set, batched.
+	///
+	/// `indices` and `values` must be the same length.
+	/// Each value in `indices` must be valid.
+	#[inline(always)]
+	pub fn set_batch(&self, indices: &[u32], values: &[Option<FileDescriptorCopy<FD>>]) -> Result<usize, Errno>
+	{
+		let values = FD::transmute_from_file_descriptor_copies(values);
+		self.0.set_batch(indices, values)
 	}
 	
 	/// Gets the next index (key).
@@ -32,21 +54,14 @@ impl<'map_file_descriptor_label_map, FD: FileDescriptor> FileDescriptorArrayMap<
 	pub fn get(&self, index: u32) -> Option<FileDescriptorCopy<FD>>
 	{
 		let raw_fd = self.0.get(index);
-		if raw_fd == 0
-		{
-			None
-		}
-		else
-		{
-			Some(FileDescriptorCopy::new(raw_fd))
-		}
+		FD::transmute_to_file_descriptor_copy(raw_fd)
 	}
 	
 	/// Update existing.
 	#[inline(always)]
 	pub fn set(&self, index: u32, file_descriptor: &FD)
 	{
-		self.0.set(index, file_descriptor.as_raw_fd())
+		self.0.set(index, &file_descriptor.as_raw_fd())
 	}
 	
 	#[inline(always)]

@@ -4,13 +4,15 @@
 
 use super::*;
 use crate::bpf::c::*;
-use crate::bpf::extended::programs::VerifierLog;
+use crate::bpf::extended::bpf_type_format::ParsedBtfMapData;
 use crate::bpf::extended::instructions::ProgramError;
 use crate::bpf::extended::instructions::file_descriptor_label::{FileDescriptorLabelsMap, FileDescriptorLabel};
-use crate::bpf::extended::maps::domain::{MapType, MapName, MapCreationError};
-use crate::bpf::extended::bpf_type_format::ParsedBtfMapData;
+use crate::bpf::extended::maps::domain::*;
+use crate::bpf::extended::programs::VerifierLog;
+use crate::bpf::extended::maps::domain::access_permissions::KernelOnlyAccessPermissions;
 
 
+include!("BpfFileDescriptor.rs");
 include!("BtfFileDescriptor.rs");
 include!("ExtendedBpfProgramFileDescriptor.rs");
 include!("MapFileDescriptor.rs");

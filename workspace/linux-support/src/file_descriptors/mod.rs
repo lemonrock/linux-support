@@ -200,3 +200,4 @@ include!("SpecialFileOpenError.rs");
 include!("StructReadError.rs");
 include!("StructWriteError.rs");
 include!("TimestampUpdate.rs");
+include!("UsedAsValueInArrayMapDescriptor.rs");

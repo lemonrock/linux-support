@@ -11,7 +11,7 @@ use super::instructions::file_descriptor_label::*;
 use crate::process::CommandName;
 use crate::pci_express::NetworkInterfaceIndex;
 use crate::file_descriptors::*;
-use crate::file_descriptors::bpf::{ExtendedBpfProgramFileDescriptor, MapFileDescriptor};
+use crate::file_descriptors::bpf::*;
 use crate::file_descriptors::cgroup::CgroupFileDescriptor;
 use crate::file_descriptors::perf_event::PerfEventFileDescriptor;
 use crate::memory::mapping::*;

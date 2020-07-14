@@ -2,25 +2,21 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use crate::file_descriptors::bpf::MapFileDescriptor;
+bitflags!
+{
+	/// Flags for `BPF_MAP_` batch command.
+	#[allow(missing_docs)]
+	pub(crate) struct elem_flags: u64
+	{
+		const BPF_F_LOCK = 4;
+	}
+}
 
-
-/// Access permissions.
-pub mod access_permissions;
-
-
-include!("CloneFromListener.rs");
-include!("InsertError.rs");
-include!("KeySize.rs");
-include!("LockFlags.rs");
-include!("MapCreationError.rs");
-include!("MapName.rs");
-include!("MapType.rs");
-include!("MaximumEntries.rs");
-include!("MemoryMap.rs");
-include!("OpaqueBatchPosition.rs");
-include!("Preallocation.rs");
-include!("StackDepth.rs");
-include!("ValueSizeU16.rs");
-include!("ValueSizeU32.rs");
+impl Default for elem_flags
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		elem_flags::empty()
+	}
+}

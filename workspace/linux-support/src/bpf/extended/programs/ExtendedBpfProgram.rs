@@ -11,8 +11,8 @@ pub struct ExtendedBpfProgramTemplate<'name>
 	/// Program type.
 	#[serde(borrow)] pub program_type: ProgramType<'name>,
 	
-	/// Program name, if any.
-	#[serde(default)] pub program_name: Option<ProgramName>,
+	/// Program name.
+	#[serde(default = "ExtendedBpfProgramTemplate::program_name_default")] pub program_name: ProgramName,
 	
 	/// Program licence (usually GPL).
 	#[serde(default)] pub license: BpfProgramLicense,
@@ -23,23 +23,26 @@ pub struct ExtendedBpfProgramTemplate<'name>
 	/// Lines of the program.
 	///
 	/// There must be at least one line.
-	#[serde(borrow)]pub program_lines: Vec<ProgramLine<'name>>,
+	#[serde(borrow)] pub program_lines: Vec<ProgramLine<'name>>,
 }
 
 impl<'name> ExtendedBpfProgramTemplate<'name>
 {
 	/// Parse and load.
 	#[inline(always)]
-	pub fn parse_and_load<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>(&self, arguments: ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>, verifier_log: Option<&mut VerifierLog>) -> Result<RawFd, ProgramLoadError>
+	pub fn parse_and_load<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>(&self, arguments: ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>, verifier_log: Option<&mut VerifierLog>) -> Result<&'extended_bpf_program_file_descriptor_label_map ExtendedBpfProgramFileDescriptor, ProgramLoadError>
 	{
 		let verifier_log_copy = unsafe { transmute_copy(&verifier_log) };
 		
 		let (instructions, parsed_btf_data, extended_bpf_program_file_descriptor_labels_map) = ProgramLinesParser::parse(self.btf_program_details.as_ref(), &self.program_lines, arguments, verifier_log_copy)?;
 		
-		self.load(&instructions[..], parsed_btf_data.as_ref(), extended_bpf_program_file_descriptor_labels_map, verifier_log)
+		let extended_bpf_program_file_descriptor = self.load(&instructions[..], parsed_btf_data.as_ref(), extended_bpf_program_file_descriptor_labels_map, verifier_log)?;
+		
+		Ok(extended_bpf_program_file_descriptor_labels_map.add(FileDescriptorLabel::from(&self.program_name), extended_bpf_program_file_descriptor)?)
 	}
 	
-	fn load(&self, instructions: &[bpf_insn], parsed_btf_data: Option<&ParsedBtfData>, extended_bpf_program_file_descriptor_labels_map: &FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>, verifier_log: Option<&mut VerifierLog>) -> Result<RawFd, ProgramLoadError>
+	#[inline(always)]
+	fn load(&self, instructions: &[bpf_insn], parsed_btf_data: Option<&ParsedBtfData>, extended_bpf_program_file_descriptor_labels_map: &FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>, verifier_log: Option<&mut VerifierLog>) -> Result<ExtendedBpfProgramFileDescriptor, ProgramLoadError>
 	{
 		let (log_level, log_buf, log_size) = VerifierLog::to_values_for_syscall(verifier_log);
 		
@@ -65,11 +68,7 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 				log_buf,
 				kern_version,
 				prog_flags: BPF_PROG_LOAD_flags::BPF_F_STRICT_ALIGNMENT,
-				prog_name: match self.program_name
-				{
-					None => unsafe { zeroed() },
-					Some(ref program_name) => program_name.to_bpf_object_name()
-				},
+				prog_name: self.program_name.to_bpf_object_name(),
 				prog_ifindex,
 				expected_attach_type,
 				
@@ -88,9 +87,9 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 		
 		let result = attributes.syscall(bpf_cmd::BPF_PROG_LOAD);
 		
-		if likely!(result >= 0)
+		if likely!(result > 0)
 		{
-			Ok(result)
+			Ok(unsafe { ExtendedBpfProgramFileDescriptor::from_raw_fd(result) })
 		}
 		else if likely!(result == -1)
 		{
@@ -141,5 +140,11 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 			
 			_ => Err(Program(ThereAreMoreThanU32MaxInstructions)),
 		}
+	}
+	
+	#[inline(always)]
+	fn program_name_default() -> ProgramName
+	{
+		ProgramName::new_from_bytes_excluding_ascii_nul(b"bpf_program").unwrap()
 	}
 }

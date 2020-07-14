@@ -2,25 +2,38 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use crate::file_descriptors::bpf::MapFileDescriptor;
+/// Why did an insert fail?
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum InsertError
+{
+	/// Already present.
+	AlreadyPresent,
+	
+	/// Full.
+	MaximumCapacityReached,
+}
 
+impl Display for InsertError
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
 
-/// Access permissions.
-pub mod access_permissions;
-
-
-include!("CloneFromListener.rs");
-include!("InsertError.rs");
-include!("KeySize.rs");
-include!("LockFlags.rs");
-include!("MapCreationError.rs");
-include!("MapName.rs");
-include!("MapType.rs");
-include!("MaximumEntries.rs");
-include!("MemoryMap.rs");
-include!("OpaqueBatchPosition.rs");
-include!("Preallocation.rs");
-include!("StackDepth.rs");
-include!("ValueSizeU16.rs");
-include!("ValueSizeU32.rs");
+impl error::Error for InsertError
+{
+	#[inline(always)]
+	fn source(&self) ->  Option<&(dyn error::Error + 'static)>
+	{
+		use self::InsertError::*;
+		
+		match self
+		{
+			&AlreadyPresent => None,
+			
+			&MaximumCapacityReached => None,
+		}
+	}
+}

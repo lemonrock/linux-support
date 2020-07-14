@@ -8,6 +8,6 @@
 pub(crate) struct BpfCommandObject
 {
 	pub(crate) pathname: AlignedU64,
-	pub(crate) bpf_fd: u32,
+	pub(crate) bpf_fd: RawFd,
 	pub(crate) file_flags: u32,
 }

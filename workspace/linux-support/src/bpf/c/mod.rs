@@ -73,6 +73,7 @@ include!("btf_var.rs");
 include!("BtfTypeSizeOrTypeIdentifier.rs");
 include!("BtfVariableLinkage.rs");
 include!("DestinationAndSourceRegisters.rs");
+include!("elem_flags.rs");
 include!("ExtendedBPF_.rs");
 include!("MAX_BPF_STACK.rs");
 include!("OffsetOrInstructionPointer.rs");

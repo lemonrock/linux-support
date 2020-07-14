@@ -11,16 +11,7 @@ pub struct ArrayMap<'map_file_descriptor_label_map, V: Sized>
 	marker: PhantomData<V>,
 }
 
-// TODO: batch lookup and update only supported on some array maps and some hash maps.
-// For array: BPF_MAP_LOOKUP_BATCH
-// For array: BPF_MAP_UPDATE_BATCH
-
-// For hash: BPF_MAP_DELETE_ELEM
-// For hash: BPF_MAP_GET_NEXT_KEY
-// For hash: BPF_MAP_GET_NEXT_KEY
-// For hash: BPF_MAP_LOOKUP_AND_DELETE_ELEM
-// For hash: BPF_MAP_LOOKUP_AND_DELETE_BATCH
-// For hash: BPF_MAP_DELETE_BATCH
+// For hash: get & set need to be adjusted as can not assume key is present.
 
 
 impl<'map_file_descriptor_label_map, V: Sized> ArrayMap<'map_file_descriptor_label_map, V>
@@ -59,6 +50,40 @@ impl<'map_file_descriptor_label_map, V: Sized> ArrayMap<'map_file_descriptor_lab
 		self.maximum_entries.0
 	}
 	
+	/// Get, batched.
+	///
+	/// Use `None` for `batch_position` when starting a new batch.
+	/// Each value in `indices` must be valid.
+	#[inline(always)]
+	pub fn get_batch(&self, batch_position: Option<&OpaqueBatchPosition<u32>>, indices: &[u32]) -> Result<(Vec<V>, OpaqueBatchPosition<u32>, bool), Errno>
+	{
+		self.guard_indices(indices);
+		
+		self.map_file_descriptor.get_batch(batch_position, indices)
+	}
+	
+	/// Set, batched.
+	///
+	/// `indices` and `values` must be the same length.
+	/// Each value in `indices` must be valid.
+	#[inline(always)]
+	pub fn set_batch(&self, indices: &[u32], values: &[V]) -> Result<usize, Errno>
+	{
+		self.guard_indices_and_values(indices, values);
+		
+		self.map_file_descriptor.set_batch(indices, values, LockFlags::DoNotLock)
+	}
+	
+	/// `indices` and `values` must be the same length.
+	/// Each value in `indices` must be valid.
+	#[inline(always)]
+	fn set_batch_locked(&self, indices: &[u32], values: &[V]) -> Result<usize, Errno>
+	{
+		self.guard_indices_and_values(indices, values);
+		
+		self.map_file_descriptor.set_batch(indices, values, LockFlags::Lock)
+	}
+	
 	/// Gets the next index (key).
 	///
 	/// Returns `None` if the `index` is the last one (ie `capacity() - 1`).
@@ -85,89 +110,52 @@ impl<'map_file_descriptor_label_map, V: Sized> ArrayMap<'map_file_descriptor_lab
 	#[allow(deprecated)]
 	pub fn get(&self, index: u32) -> V
 	{
-		debug_assert!(index < self.maximum_entries.to_u32());
+		self.guard_index(index);
 		
-		let mut value: V = unsafe { uninitialized() };
-		
-		let mut attr = bpf_attr
-		{
-			map_change: BpfCommandMapChange
-			{
-				map_fd: self.map_fd(),
-				key: AlignedU64::from(&index),
-				value_or_next_key: BpfCommandMapChangeValueOrNextKey
-				{
-					value: AlignedU64::from(&mut value),
-				},
-				flags: BPF_MAP_UPDATE_ELEM_flags::BPF_ANY,
-			},
-		};
-		
-		let result = attr.syscall(bpf_cmd::BPF_MAP_LOOKUP_ELEM);
-		if likely!(result == 0)
-		{
-			value
-		}
-		else if likely!(result == -1)
-		{
-			panic!("Unexpected error {}", errno())
-		}
-		else
-		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_MAP_LOOKUP_ELEM)", result)
-		}
+		self.map_file_descriptor.get(&index).expect("index should always exist")
 	}
 	
 	/// Update existing.
-	pub fn set(&self, index: u32, value: V)
+	pub fn set(&self, index: u32, value: &V)
 	{
-		self.update_existing(index, value, BPF_MAP_UPDATE_ELEM_flags::BPF_EXIST)
-	}
-	
-	/// Update existing, locked.
-	///
-	/// Only valid for basic hash, basic array and cgroup local-storage when `V` has been created with a `bpf_spin_lock`.
-	///
-	/// This will panic if this array was not created with a spinlock; it is not valid on per-CPU and per-device arrays nor if the array has been memory-mapped.
-	/// Additionally, the map needs to have been created with BTF data.
-	/// Furthermore, `V` must be a struct whose first field is `spin_lock: bpf_spin_lock`.
-	#[inline(always)]
-	fn set_locked(&self, index: u32, value: V)
-	{
-		self.update_existing(index, value, BPF_MAP_UPDATE_ELEM_flags::BPF_EXIST | BPF_MAP_UPDATE_ELEM_flags::BPF_F_LOCK)
+		self.guard_index(index);
+		
+		self.map_file_descriptor.set(&index, value, LockFlags::DoNotLock).expect("index should always exist")
 	}
 	
 	#[inline(always)]
-	fn update_existing(&self, index: u32, value: V, flags: BPF_MAP_UPDATE_ELEM_flags)
+	fn set_locked(&self, index: u32, mut value: V)
+	{
+		self.guard_index(index);
+		
+		self.map_file_descriptor.set(&index, &mut value, LockFlags::Lock).expect("index should always exist")
+	}
+	
+	#[inline(always)]
+	fn guard_indices_and_values(&self, indices: &[u32], values: &[V])
+	{
+		self.guard_indices(indices);
+		debug_assert_eq!(indices.len(), values.len());
+	}
+	
+	#[inline(always)]
+	fn guard_indices(&self, indices: &[u32])
+	{
+		debug_assert!(indices.len() <= self.maximum_entries.to_u32() as usize);
+		
+		if cfg!(debug_assertions)
+		{
+			for index in indices
+			{
+				self.guard_index(*index);
+			}
+		}
+	}
+	
+	#[inline(always)]
+	fn guard_index(&self, index: u32)
 	{
 		debug_assert!(index < self.maximum_entries.to_u32());
-		
-		let mut attr = bpf_attr
-		{
-			map_change: BpfCommandMapChange
-			{
-				map_fd: self.map_fd(),
-				key: AlignedU64::from(&index),
-				value_or_next_key: BpfCommandMapChangeValueOrNextKey
-				{
-					value: AlignedU64::from(&value),
-				},
-				flags,
-			},
-		};
-		
-		let result = attr.syscall(bpf_cmd::BPF_MAP_UPDATE_ELEM);
-		if likely!(result == 0)
-		{
-		}
-		else if likely!(result == -1)
-		{
-			panic!("Error {} (?due to locking)?", errno())
-		}
-		else
-		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_MAP_UPDATE)", result)
-		}
 	}
 	
 	#[inline(always)]
@@ -185,11 +173,5 @@ impl<'map_file_descriptor_label_map, V: Sized> ArrayMap<'map_file_descriptor_lab
 			maximum_entries,
 			marker: PhantomData
 		}
-	}
-	
-	#[inline(always)]
-	fn map_fd(&self) -> RawFd
-	{
-		self.map_file_descriptor.as_raw_fd()
 	}
 }

@@ -21,9 +21,12 @@ pub(crate) struct BpfCommandMapBatch
 	/// On output, contains number of filled elements.
 	pub(crate) count: u32,
 	
-	pub(crate) map_fd: u32,
+	pub(crate) map_fd: RawFd,
 	
-	pub(crate) elem_flags: u64,
+	pub(crate) elem_flags: elem_flags,
 	
+	/// Always zero.
+	///
+	/// Only validated for hash maps.
 	pub(crate) flags: u64,
 }

@@ -46,6 +46,10 @@ impl FileDescriptor for BtfFileDescriptor
 {
 }
 
+impl BpfFileDescriptor for BtfFileDescriptor
+{
+}
+
 impl BtfFileDescriptor
 {
 	pub(crate) fn load_btf_data(header_and_type_identifier_section_and_string_section: &[u8], verifier_log: Option<&mut VerifierLog>) -> Result<Self, ProgramError>

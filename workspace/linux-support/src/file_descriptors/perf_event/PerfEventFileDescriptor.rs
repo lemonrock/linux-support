@@ -4,14 +4,14 @@
 
 /// Represents a perf event file descriptor.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct PerfEventFileDescriptor(RawFd);
+pub struct PerfEventFileDescriptor(NonZeroI32);
 
 impl Drop for PerfEventFileDescriptor
 {
 	#[inline(always)]
 	fn drop(&mut self)
 	{
-		self.0.close()
+		self.as_raw_fd().close()
 	}
 }
 
@@ -20,7 +20,7 @@ impl AsRawFd for PerfEventFileDescriptor
 	#[inline(always)]
 	fn as_raw_fd(&self) -> RawFd
 	{
-		self.0
+		self.0.get()
 	}
 }
 
@@ -29,7 +29,7 @@ impl IntoRawFd for PerfEventFileDescriptor
 	#[inline(always)]
 	fn into_raw_fd(self) -> RawFd
 	{
-		self.0
+		self.as_raw_fd()
 	}
 }
 
@@ -38,12 +38,33 @@ impl FromRawFd for PerfEventFileDescriptor
 	#[inline(always)]
 	unsafe fn from_raw_fd(fd: RawFd) -> Self
 	{
-		Self(fd)
+		Self(NonZeroI32::new_unchecked(fd))
 	}
 }
 
 impl FileDescriptor for PerfEventFileDescriptor
 {
+}
+
+impl UsedAsValueInArrayMapDescriptor for PerfEventFileDescriptor
+{
+	#[inline(always)]
+	fn transmute_to_file_descriptor_copies(values: Vec<RawFd>) -> Vec<Option<FileDescriptorCopy<Self>>>
+	{
+		unsafe { transmute(values) }
+	}
+	
+	#[inline(always)]
+	fn transmute_from_file_descriptor_copies(values: &[Option<FileDescriptorCopy<Self>>]) -> &[RawFd]
+	{
+		unsafe { transmute(values) }
+	}
+	
+	#[inline(always)]
+	fn transmute_to_file_descriptor_copy(value: RawFd) -> Option<FileDescriptorCopy<Self>>
+	{
+		unsafe { transmute(value) }
+	}
 }
 
 impl PerfEventFileDescriptor
@@ -75,9 +96,9 @@ impl PerfEventFileDescriptor
 		};
 		
 		let result = perf_event_open(&mut attr, pid, cpu, group_fd, flags);
-		if likely!(result >= 0)
+		if likely!(result > 0)
 		{
-			Ok(Self(result))
+			Ok(Self(unsafe { NonZeroI32::new_unchecked(result) }))
 		}
 		else if likely!(result == -1)
 		{
