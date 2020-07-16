@@ -2,11 +2,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Represents a Cgroup file descriptor which is backed by a `File`.
+/// Represents a Linux InfraRed Remote Control (LIRC) raw mode 2 file descriptor which is backed by a device `File` such as `/dev/lircN` where `N` is a number.
 #[derive(Debug)]
-pub struct CgroupFileDescriptor(RawFd);
+pub struct LinuxInfraRedRemoteControlRawMode2FileDescriptor(RawFd);
 
-impl From<File> for CgroupFileDescriptor
+impl From<File> for LinuxInfraRedRemoteControlRawMode2FileDescriptor
 {
 	#[inline(always)]
 	fn from(value: File) -> Self
@@ -15,7 +15,7 @@ impl From<File> for CgroupFileDescriptor
 	}
 }
 
-impl Into<File> for CgroupFileDescriptor
+impl Into<File> for LinuxInfraRedRemoteControlRawMode2FileDescriptor
 {
 	#[inline(always)]
 	fn into(self) -> File
@@ -24,7 +24,7 @@ impl Into<File> for CgroupFileDescriptor
 	}
 }
 
-impl Drop for CgroupFileDescriptor
+impl Drop for LinuxInfraRedRemoteControlRawMode2FileDescriptor
 {
 	#[inline(always)]
 	fn drop(&mut self)
@@ -33,7 +33,7 @@ impl Drop for CgroupFileDescriptor
 	}
 }
 
-impl AsRawFd for CgroupFileDescriptor
+impl AsRawFd for LinuxInfraRedRemoteControlRawMode2FileDescriptor
 {
 	#[inline(always)]
 	fn as_raw_fd(&self) -> RawFd
@@ -42,7 +42,7 @@ impl AsRawFd for CgroupFileDescriptor
 	}
 }
 
-impl IntoRawFd for CgroupFileDescriptor
+impl IntoRawFd for LinuxInfraRedRemoteControlRawMode2FileDescriptor
 {
 	#[inline(always)]
 	fn into_raw_fd(self) -> RawFd
@@ -51,7 +51,7 @@ impl IntoRawFd for CgroupFileDescriptor
 	}
 }
 
-impl FromRawFd for CgroupFileDescriptor
+impl FromRawFd for LinuxInfraRedRemoteControlRawMode2FileDescriptor
 {
 	#[inline(always)]
 	unsafe fn from_raw_fd(fd: RawFd) -> Self
@@ -60,11 +60,11 @@ impl FromRawFd for CgroupFileDescriptor
 	}
 }
 
-impl FileDescriptor for CgroupFileDescriptor
+impl FileDescriptor for LinuxInfraRedRemoteControlRawMode2FileDescriptor
 {
 }
 
-impl UsedAsValueInArrayMapDescriptor for CgroupFileDescriptor
+impl UsedAsValueInArrayMapDescriptor for LinuxInfraRedRemoteControlRawMode2FileDescriptor
 {
 	#[inline(always)]
 	fn transmute_to_file_descriptor_copies(values: Vec<RawFd>) -> Vec<FileDescriptorCopy<Self>>
@@ -85,16 +85,16 @@ impl UsedAsValueInArrayMapDescriptor for CgroupFileDescriptor
 	}
 }
 
-impl ExtendedBpfProgramCanBeAttachedFileDescriptor for CgroupFileDescriptor
+impl ExtendedBpfProgramCanBeAttachedFileDescriptor for LinuxInfraRedRemoteControlRawMode2FileDescriptor
 {
-	type ProgramAttachmentType = CgroupAttachmentType;
+	type AttachmentType = LinuxInfraRedRemoteControlRawMode2AttachmentType;
 	
-	type ProgramQueryFlags = CgroupProgramQueryFlags;
+	type QueryFlags = ();
 	
-	type ProgramAttachmentFlags = CgroupProgramAttachmentFlags;
+	type AttachFlags = ();
 	
-	type ProgramAttachmentOptions = CgroupProgramAttachmentOptions;
+	type ProgramAttachmentOptions = ();
 	
-	// This is a guess.
-	const InitialProgramCountGuess: usize = 16;
+	// This is the maximum allowed.
+	const InitialProgramCountGuess: usize = 64;
 }

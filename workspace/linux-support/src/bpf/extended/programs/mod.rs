@@ -19,7 +19,6 @@ pub mod program_type;
 
 
 include!("BpfProgramLicense.rs");
-include!("CgroupProgramAttachment.rs");
 include!("ExtendedBpfProgram.rs");
 include!("ExtendedBpfProgramArguments.rs");
 include!("MinimumLinuxKernelVersion.rs");

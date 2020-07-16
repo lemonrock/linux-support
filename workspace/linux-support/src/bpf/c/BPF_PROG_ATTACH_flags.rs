@@ -43,7 +43,7 @@ bitflags!
 	///
 	/// All eligible programs are executed regardless of return code from earlier programs.
 	#[allow(missing_docs)]
-	pub(crate) struct BPF_PROG_ATTACH_flags: u32
+	pub struct BPF_PROG_ATTACH_flags: u32
 	{
 		const BPF_F_ALLOW_OVERRIDE = 1;
 		const BPF_F_ALLOW_MULTI = 2;

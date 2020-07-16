@@ -10,11 +10,11 @@ pub(crate) struct BpfCommandProgramQuery
 	/// container object to query.
 	pub(crate) target_fd: u32,
 	
-	pub(crate) attach_type: u32,
+	pub(crate) attach_type: bpf_attach_type,
 	
-	pub(crate) query_flags: u32,
+	pub(crate) query_flags: BPF_PROG_QUERY_flags,
 	
-	pub(crate) attach_flags: u32,
+	pub(crate) attach_flags: BPF_PROG_ATTACH_flags,
 	
 	pub(crate) prog_ids: AlignedU64,
 	

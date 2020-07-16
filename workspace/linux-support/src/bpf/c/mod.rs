@@ -54,6 +54,7 @@ include!("bpf_stack_build_id.rs");
 include!("bpf_stack_build_id_status.rs");
 include!("BPF_STMT.rs");
 include!("BPF_TAG_SIZE.rs");
+include!("bpf_task_fd_type.rs");
 include!("BpfCommandBtfLoad.rs");
 include!("BpfCommandGetIdentifier.rs");
 include!("BpfCommandGetIdentifierValueOfIdentifier.rs");

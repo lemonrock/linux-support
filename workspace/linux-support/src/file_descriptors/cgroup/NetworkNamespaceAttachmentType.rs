@@ -2,15 +2,15 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use super::bpf::*;
-use crate::bpf::c::{BPF_PROG_ATTACH_flags, bpf_attach_type, bpf_prog_type};
+/// Solitary instance.
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct NetworkNamespaceAttachmentType;
 
-
-include!("CgroupFileDescriptor.rs");
-include!("CgroupProgramAttachmentType.rs");
-include!("CgroupProgramAttachmentFlags.rs");
-include!("CgroupProgramAttachmentOptions.rs");
-include!("CgroupProgramQueryFlags.rs");
-include!("NetworkNamespaceAttachmentType.rs");
-include!("NetworkNamespaceFileDescriptor.rs");
+impl ProgramAttachmentType for NetworkNamespaceAttachmentType
+{
+	#[inline(always)]
+	fn to_bpf_attach_type(self) -> bpf_attach_type
+	{
+		bpf_attach_type::BPF_FLOW_DISSECTOR
+	}
+}

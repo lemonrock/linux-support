@@ -361,9 +361,6 @@ impl MapFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			// "Operation is not supported".
-			// Not supposed to be returned to userspace.
-			const ENOTSUPP: i32 = 524;
 			match errno().0
 			{
 				EINVAL => panic!("Invalid attr"),
@@ -376,118 +373,6 @@ impl MapFileDescriptor
 		else
 		{
 			unreachable!("Unexpected result `{}` from bpf(BPF_MAP_FREEZE)", result)
-		}
-	}
-	
-	/// Requires the capability `CAP_NET_ADMIN`.
-	///
-	/// The program type referred to in `program_fd` must be compatible with the `attach_type` (see the Linux kernel functions `attach_type_to_prog_type()` and `bpf_prog_attach_check_attach_type()` and their usage in `bpf_prog_attach()`).
-	///
-	/// Only the following program types are supported:-
-	///
-	/// * `BPF_PROG_TYPE_SK_SKB`.
-	/// * `BPF_PROG_TYPE_SK_MSG`.
-	/// * `BPF_PROG_TYPE_LIRC_MODE2`.
-	/// * `BPF_PROG_TYPE_FLOW_DISSECTOR`.
-	/// * `BPF_PROG_TYPE_CGROUP_DEVICE`.
-	/// * `BPF_PROG_TYPE_CGROUP_SKB`.
-	/// * `BPF_PROG_TYPE_CGROUP_SOCK`.
-	/// * `BPF_PROG_TYPE_CGROUP_SOCK_ADDR`.
-	/// * `BPF_PROG_TYPE_CGROUP_SOCKOPT`.
-	/// * `BPF_PROG_TYPE_CGROUP_SYSCTL`.
-	/// * `BPF_PROG_TYPE_SOCK_OPS`.
-	pub(crate) fn attach(&self, target_fd: NonZeroI32, attach_type: bpf_attach_type, program_fd: Option<&ExtendedBpfProgramFileDescriptor>, cgroup_program_attachment: Option<CgroupProgramAttachment>)
-	{
-		let (attach_flags, replace_bpf_fd) = match cgroup_program_attachment
-		{
-			None => (BPF_PROG_ATTACH_flags::empty(), None),
-			Some(cgroup_program_attachment) => cgroup_program_attachment.to_attach_flags(),
-		};
-		
-		let mut attr = bpf_attr::default();
-		attr.program_attach_or_detach = BpfCommandProgramAttachOrDetach
-		{
-			target_fd,
-			attach_bpf_fd: match program_fd
-			{
-				None => 0,
-				Some(file_descriptor) => file_descriptor.as_raw_fd(),
-			},
-			attach_type,
-			attach_flags,
-			replace_bpf_fd,
-		};
-		
-		let result = attr.syscall(bpf_cmd::BPF_PROG_ATTACH);
-		if likely!(result == 0)
-		{
-		}
-		else if likely!(result == -1)
-		{
-			match errno().0
-			{
-				EINVAL => panic!("Invalid attr or invalid program type to detach"),
-				EPERM => panic!("Permission denied"),
-				EEXIST => panic!("BPF_PROG_TYPE_FLOW_DISSECTOR only allows one program to exist at a time (cgroup_program_attachment is ignored)"),
-				E2BIG => panic!("BPF_PROG_TYPE_LIRC_MODE2 only allows 64 programs to exist at a time (cgroup_program_attachment is ignored)"),
-				ENODEV => panic!("BPF_PROG_TYPE_LIRC_MODE2 only support raw mode 2 (cgroup_program_attachment is ignored)"),
-				EOPNOTSUPP => panic!("BPF_PROG_TYPE_SK_* failure (cgroup_program_attachment is ignored)"),
-				errno @ _ => panic!("Unexpected error `{}`", errno),
-			}
-		}
-		else
-		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_PROG_ATTACH)", result)
-		}
-	}
-	
-	/// Requires the capability `CAP_NET_ADMIN`.
-	///
-	/// Only the following program types are supported:-
-	///
-	/// * `BPF_PROG_TYPE_SK_MSG`.
-	/// * `BPF_PROG_TYPE_SK_SKB`.
-	/// * `BPF_PROG_TYPE_LIRC_MODE2`.
-	/// * `BPF_PROG_TYPE_FLOW_DISSECTOR`.
-	/// * `BPF_PROG_TYPE_CGROUP_DEVICE`.
-	/// * `BPF_PROG_TYPE_CGROUP_SKB`.
-	/// * `BPF_PROG_TYPE_CGROUP_SOCK`.
-	/// * `BPF_PROG_TYPE_CGROUP_SOCK_ADDR`.
-	/// * `BPF_PROG_TYPE_CGROUP_SOCKOPT`.
-	/// * `BPF_PROG_TYPE_CGROUP_SYSCTL`.
-	/// * `BPF_PROG_TYPE_SOCK_OPS`.
-	pub(crate) fn detach(&self, target_fd: NonZeroI32, attach_type: bpf_attach_type, program_fd: Option<&ExtendedBpfProgramFileDescriptor>)
-	{
-		let mut attr = bpf_attr::default();
-		attr.program_attach_or_detach = BpfCommandProgramAttachOrDetach
-		{
-			target_fd,
-			attach_bpf_fd: match program_fd
-			{
-				None => 0,
-				Some(file_descriptor) => file_descriptor.as_raw_fd(),
-			},
-			attach_type,
-			attach_flags: BPF_PROG_ATTACH_flags::empty(),
-			replace_bpf_fd: 0
-		};
-		
-		let result = attr.syscall(bpf_cmd::BPF_PROG_DETACH);
-		if likely!(result == 0)
-		{
-		}
-		else if likely!(result == -1)
-		{
-			match errno().0
-			{
-				EINVAL => panic!("Invalid attr or invalid program type to detach"),
-				EPERM => panic!("Permission denied"),
-				errno @ _ => panic!("Unexpected error `{}`", errno),
-			}
-		}
-		else
-		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_PROG_DETACH)", result)
 		}
 	}
 	

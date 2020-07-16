@@ -2,15 +2,25 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use super::bpf::*;
-use crate::bpf::c::{BPF_PROG_ATTACH_flags, bpf_attach_type, bpf_prog_type};
-
-
-include!("CgroupFileDescriptor.rs");
-include!("CgroupProgramAttachmentType.rs");
-include!("CgroupProgramAttachmentFlags.rs");
-include!("CgroupProgramAttachmentOptions.rs");
-include!("CgroupProgramQueryFlags.rs");
-include!("NetworkNamespaceAttachmentType.rs");
-include!("NetworkNamespaceFileDescriptor.rs");
+/// File descriptor type.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum FileDescriptorType
+{
+	/// Raw trace point.
+	RawTracePoint(TracePointDetails),
+	
+	/// Trace point.
+	TracePoint(TracePointDetails),
+	
+	/// KProbe.
+	KProbe(KProbeDetails),
+	
+	/// KRetProbe.
+	KRetProbe(KProbeDetails),
+	
+	/// UProbe.
+	UProbe(UProbeDetails),
+	
+	/// URetProbe.
+	URetProbe(UProbeDetails),
+}

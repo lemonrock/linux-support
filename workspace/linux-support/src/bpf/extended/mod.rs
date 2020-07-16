@@ -3,6 +3,8 @@
 
 
 use super::*;
+use self::identifiers::ExtendedBpfProgramIdentifier;
+use crate::process::ProcessIdentifierChoice;
 
 
 /// BPF type format (BTF).
@@ -19,6 +21,10 @@ pub mod instructions;
 
 /// Maps.
 pub mod maps;
+
+
+/// Process (task) query.
+pub mod process_query;
 
 
 /// Programs.

@@ -4,13 +4,8 @@
 
 use super::*;
 use super::bpf::*;
-use crate::bpf::c::{BPF_PROG_ATTACH_flags, bpf_attach_type, bpf_prog_type};
+use crate::bpf::c::bpf_attach_type;
 
 
-include!("CgroupFileDescriptor.rs");
-include!("CgroupProgramAttachmentType.rs");
-include!("CgroupProgramAttachmentFlags.rs");
-include!("CgroupProgramAttachmentOptions.rs");
-include!("CgroupProgramQueryFlags.rs");
-include!("NetworkNamespaceAttachmentType.rs");
-include!("NetworkNamespaceFileDescriptor.rs");
+include!("LinuxInfraRedRemoteControlMode2AttachmentType.rs");
+include!("LinuxInfraRedRemoteControlRawMode2FileDescriptor.rs");

@@ -2,15 +2,18 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use super::bpf::*;
-use crate::bpf::c::{BPF_PROG_ATTACH_flags, bpf_attach_type, bpf_prog_type};
+/// Program query flags.
+pub trait ProgramQueryFlags
+{
+	#[doc(hidden)]
+	fn to_query_flags(self) -> BPF_PROG_QUERY_flags;
+}
 
-
-include!("CgroupFileDescriptor.rs");
-include!("CgroupProgramAttachmentType.rs");
-include!("CgroupProgramAttachmentFlags.rs");
-include!("CgroupProgramAttachmentOptions.rs");
-include!("CgroupProgramQueryFlags.rs");
-include!("NetworkNamespaceAttachmentType.rs");
-include!("NetworkNamespaceFileDescriptor.rs");
+impl ProgramQueryFlags for ()
+{
+	#[inline(always)]
+	fn to_query_flags(self) -> BPF_PROG_QUERY_flags
+	{
+		BPF_PROG_QUERY_flags::empty()
+	}
+}

@@ -10,9 +10,15 @@ use crate::bpf::extended::instructions::file_descriptor_label::*;
 use crate::bpf::extended::maps::domain::*;
 use crate::bpf::extended::maps::domain::access_permissions::KernelOnlyAccessPermissions;
 use crate::bpf::extended::programs::*;
+use crate::bpf::extended::identifiers::ExtendedBpfProgramIdentifier;
 
 
 include!("BpfFileDescriptor.rs");
 include!("BtfFileDescriptor.rs");
+include!("ExtendedBpfProgramCanBeAttachedFileDescriptor.rs");
 include!("ExtendedBpfProgramFileDescriptor.rs");
 include!("MapFileDescriptor.rs");
+include!("ProgramAttachmentFlags.rs");
+include!("ProgramAttachmentOptions.rs");
+include!("ProgramAttachmentType.rs");
+include!("ProgramQueryFlags.rs");

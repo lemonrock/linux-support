@@ -4,9 +4,9 @@
 
 /// How to attach the program.
 ///
-/// Mostly this is to support a complex hierarchy of Cgroups.
+/// This is to support a complex hierarchy of Cgroups.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum CgroupProgramAttachment<'a>
+pub enum CgroupProgramAttachmentOptions
 {
 	/// This is the only program at this level; no child programs are allowed.
 	AddLeaf,
@@ -18,15 +18,15 @@ pub enum CgroupProgramAttachment<'a>
 	AddMultiple,
 
 	/// Replace a program with this program.
-	Replace(&'a ExtendedBpfProgramFileDescriptor)
+	Replace(FileDescriptorCopy<ExtendedBpfProgramFileDescriptor>),
 }
 
-impl<'a> CgroupProgramAttachment<'a>
+impl ProgramAttachmentOptions for CgroupProgramAttachmentOptions
 {
 	#[inline(always)]
-	pub(crate) fn to_attach_flags(self) -> (BPF_PROG_ATTACH_flags, RawFd)
+	fn to_attach_flags(self) -> (BPF_PROG_ATTACH_flags, RawFd)
 	{
-		use self::CgroupProgramAttachment::*;
+		use self::CgroupProgramAttachmentOptions::*;
 		
 		match self
 		{

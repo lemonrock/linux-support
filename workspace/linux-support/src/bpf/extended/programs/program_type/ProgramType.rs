@@ -61,43 +61,24 @@ pub enum ProgramType<'name>
 	/// Also known as the ELF section `lwt_xmit`.
 	LightweightTunnelTransmit(#[serde(default)] CommonProgramTypeDetails),
 	
-	/// Lightweight Tunnel ?.
+	/// Lightweight Tunnel ?
 	///
 	/// Also known as in libpbf as `lwt_seg6local`.
 	/// Also known as the ELF section `lwt_seg6local`.
 	LightweightTunnelSeg6Local(#[serde(default)] CommonProgramTypeDetails),
 	
-	/// Also known as the ELF section `cgroup_skb/ingress`.
-	/// Legacy as libbpf's `cgroup_skb`.
-	/// Legacy with the ELF section `cgroup/skb`.
+	/// InfraRed Raw Mode 2.
 	///
-	/// The capability `CAP_SYS_ADMIN` is required.
-	CgroupSocketBufferIngress(#[serde(default)] CommonProgramTypeDetails),
+	/// Also known as in libbpf as `lirc_mode2`.
+	/// Also known as the ELF section `lirc_mode2`.
+	InfraRedRawMode2(#[serde(default)] CommonProgramTypeDetails),
 	
-	/// Also known as the ELF section `cgroup_skb/egress`.
-	/// Legacy as libbpf's `cgroup_skb`.
-	/// Legacy with the ELF section `cgroup/skb`.
-	///
-	/// The capability `CAP_SYS_ADMIN` is required.
-	CgroupSocketBufferEgress(#[serde(default)] CommonProgramTypeDetails),
+	/// Also known as in libbpf as `flow_dissector`.
+	/// Also known as the ELF section `flow_dissector`.
+	FlowDissector(#[serde(default)] CommonProgramTypeDetails),
 	
-	/// Also known as in libpbf as `cgroup_sock`.
-	/// Also known as the ELF section `cgroup/sock`.
-	CgroupCreateSocket(#[serde(default)] CommonProgramTypeDetails),
-	
-	/// Also known as the ELF section `cgroup/post_bind4`.
-	CgroupPostBindInternetProtocolVersion4(#[serde(default)] CommonProgramTypeDetails),
-	
-	/// Also known as the ELF section `cgroup/post_bind6`.
-	CgroupPostBindInternetProtocolVersion6(#[serde(default)] CommonProgramTypeDetails),
-	
-	/// Also known as in libbpf as `cgroup_device`.
-	/// Also known as the ELF section `cgroup/dev`.
-	CgroupDevice(#[serde(default)] CommonProgramTypeDetails),
-	
-	/// Also known as in libbpf as `sock_ops`.
-	/// Also known as the ELF section `sockops`.
-	SocketOps(#[serde(default)] CommonProgramTypeDetails),
+	/// Cgroup.
+	Cgroup(#[serde(default)] CommonProgramTypeDetails, CgroupProgramAttachmentType),
 	
 	/// Also known as the ELF section `sk_skb/stream_parser`.
 	/// Legacy as libbpf's `sk_skb`.
@@ -112,60 +93,6 @@ pub enum ProgramType<'name>
 	/// Also known as in libbpf as `sk_msg`.
 	/// Also known as the ELF section `sk_msg`.
 	SocketMessage(#[serde(default)] CommonProgramTypeDetails),
-	
-	/// InfraRed Raw Mode 2.
-	///
-	/// Also known as in libbpf as `lirc_mode2`.
-	/// Also known as the ELF section `lirc_mode2`.
-	InfraRedRawMode2(#[serde(default)] CommonProgramTypeDetails),
-	
-	/// Also known as in libbpf as `flow_dissector`.
-	/// Also known as the ELF section `flow_dissector`.
-	FlowDissector(#[serde(default)] CommonProgramTypeDetails),
-	
-	/// Also known as the ELF section `cgroup/bind4`.
-	/// ?Overlaps with libbpf's `cgroup_sock_addr`.
-	CgroupBindInternetProtocolVersion4(#[serde(default)] CommonProgramTypeDetails),
-	
-	/// Also known as the ELF section `cgroup/bind6`.
-	/// ?Overlaps with libbpf's `cgroup_sock_addr`.
-	CgroupBindInternetProtocolVersion6(#[serde(default)] CommonProgramTypeDetails),
-	
-	/// Also known as the ELF section `cgroup/connect4`.
-	/// ?Overlaps with libbpf's `cgroup_sock_addr`.
-	CgroupConnectInternetProtocolVersion4(#[serde(default)] CommonProgramTypeDetails),
-	
-	/// Also known as the ELF section `cgroup/connect6`.
-	/// ?Overlaps with libbpf's `cgroup_sock_addr`.
-	CgroupConnectInternetProtocolVersion6(#[serde(default)] CommonProgramTypeDetails),
-	
-	/// Also known as the ELF section `cgroup/sendmsg4`.
-	/// ?Overlaps with libbpf's `cgroup_sock_addr`.
-	CgroupSendMessageUdpOverInternetProtocolVersion4(#[serde(default)] CommonProgramTypeDetails),
-	
-	/// Also known as the ELF section `cgroup/sendmsg6`.
-	/// ?Overlaps with libbpf's `cgroup_sock_addr`.
-	CgroupSendMessageUdpOverInternetProtocolVersion6(#[serde(default)] CommonProgramTypeDetails),
-	
-	/// Also known as the ELF section `cgroup/recvmsg4`.
-	/// ?Overlaps with libbpf's `cgroup_sock_addr`.
-	CgroupReceiveMessageUdpOverInternetProtocolVersion4(#[serde(default)] CommonProgramTypeDetails),
-	
-	/// Also known as the ELF section `cgroup/recvmsg6`.
-	/// ?Overlaps with libbpf's `cgroup_sock_addr`.
-	cgroup_recvmsg6(#[serde(default)] CommonProgramTypeDetails),
-	
-	/// Also known as in libbpf as `cgroup_sysctl`.
-	/// Also known as the ELF section `cgroup/sysctl`.
-	CgroupReceiveMessageUdpOverInternetProtocolVersion6(#[serde(default)] CommonProgramTypeDetails),
-	
-	/// ?Overlaps with libbpf's `cgroup_sockopt`.
-	/// Also known as the ELF section `cgroup/getsockopt`.
-	CgroupSetSocketOptions(#[serde(default)] CommonProgramTypeDetails),
-	
-	/// ?Overlaps with libbpf's `cgroup_sockopt`.
-	/// Also known as the ELF section `cgroup/setsockopt`.
-	CgroupGetSocketOptions(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as in libbpf as `struct_ops`.
 	/// Also known as the ELF section `struct_ops`.
@@ -224,55 +151,52 @@ impl<'name> ProgramType<'name>
 		match self
 		{
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			SocketFilter(program_details) => program_details.to_values(BPF_PROG_TYPE_SOCKET_FILTER, unsafe { zeroed() }),
+			SocketFilter(program_details) => program_details.to_values(BPF_PROG_TYPE_SOCKET_FILTER, Self::ignored()),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			KProbe(program_details) => program_details.to_values(BPF_PROG_TYPE_KPROBE, unsafe { zeroed() }),
+			KProbe(program_details) => program_details.to_values(BPF_PROG_TYPE_KPROBE, Self::ignored()),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			SchedulerClassifier(program_details) => program_details.to_values(BPF_PROG_TYPE_SCHED_CLS, unsafe { zeroed() }),
+			SchedulerClassifier(program_details) => program_details.to_values(BPF_PROG_TYPE_SCHED_CLS, Self::ignored()),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			SchedulerAction(program_details) => program_details.to_values(BPF_PROG_TYPE_SCHED_ACT, unsafe { zeroed() }),
+			SchedulerAction(program_details) => program_details.to_values(BPF_PROG_TYPE_SCHED_ACT, Self::ignored()),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			TracePoint(program_details) => program_details.to_values(BPF_PROG_TYPE_TRACEPOINT, unsafe { zeroed() }),
+			TracePoint(program_details) => program_details.to_values(BPF_PROG_TYPE_TRACEPOINT, Self::ignored()),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			RawTracePoint(program_details) => program_details.to_values(BPF_PROG_TYPE_RAW_TRACEPOINT, unsafe { zeroed() }),
+			RawTracePoint(program_details) => program_details.to_values(BPF_PROG_TYPE_RAW_TRACEPOINT, Self::ignored()),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			Xdp(program_details) => program_details.to_values(BPF_PROG_TYPE_XDP, unsafe { zeroed() }),
+			Xdp(program_details) => program_details.to_values(BPF_PROG_TYPE_XDP, Self::ignored()),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			PerfEvent(program_details) => program_details.to_values(BPF_PROG_TYPE_PERF_EVENT, unsafe { zeroed() }),
+			PerfEvent(program_details) => program_details.to_values(BPF_PROG_TYPE_PERF_EVENT, Self::ignored()),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			LightweightTunnelIn(program_details) => program_details.to_values(BPF_PROG_TYPE_LWT_IN, unsafe { zeroed() }),
+			LightweightTunnelIn(program_details) => program_details.to_values(BPF_PROG_TYPE_LWT_IN, Self::ignored()),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			LightweightTunnelOut(program_details) => program_details.to_values(BPF_PROG_TYPE_LWT_OUT, unsafe { zeroed() }),
+			LightweightTunnelOut(program_details) => program_details.to_values(BPF_PROG_TYPE_LWT_OUT, Self::ignored()),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			LightweightTunnelTransmit(program_details) => program_details.to_values(BPF_PROG_TYPE_LWT_XMIT, unsafe { zeroed() }),
+			LightweightTunnelTransmit(program_details) => program_details.to_values(BPF_PROG_TYPE_LWT_XMIT, Self::ignored()),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			LightweightTunnelSeg6Local(program_details) => program_details.to_values(BPF_PROG_TYPE_LWT_SEG6LOCAL, unsafe { zeroed() }),
-			
-			// `expected_attach_type` is validated in `bpf_prog_load_check_attach()` in `kernel/bpf/syscall.c` for these.
-			CgroupSocketBufferIngress(program_details) => program_details.to_values(BPF_PROG_TYPE_CGROUP_SKB, BPF_CGROUP_INET_INGRESS),
-			CgroupSocketBufferEgress(program_details) => program_details.to_values(BPF_PROG_TYPE_CGROUP_SKB, BPF_CGROUP_INET_EGRESS),
-			
-			// `expected_attach_type` is validated in `bpf_prog_load_check_attach()` in `kernel/bpf/syscall.c` for these.
-			CgroupCreateSocket(program_details) => program_details.to_values(BPF_PROG_TYPE_CGROUP_SOCK, BPF_CGROUP_INET_SOCK_CREATE),
-			CgroupPostBindInternetProtocolVersion4(program_details) => program_details.to_values(BPF_PROG_TYPE_CGROUP_SOCK, BPF_CGROUP_INET4_POST_BIND),
-			CgroupPostBindInternetProtocolVersion6(program_details) => program_details.to_values(BPF_PROG_TYPE_CGROUP_SOCK, BPF_CGROUP_INET6_POST_BIND),
+			LightweightTunnelSeg6Local(program_details) => program_details.to_values(BPF_PROG_TYPE_LWT_SEG6LOCAL, Self::ignored()),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			CgroupDevice(program_details) => program_details.to_values(BPF_PROG_TYPE_CGROUP_DEVICE, BPF_CGROUP_DEVICE),
+			InfraRedRawMode2(program_details) => program_details.to_values(BPF_PROG_TYPE_LIRC_MODE2, BPF_LIRC_MODE2),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			SocketOps(program_details) => program_details.to_values(BPF_PROG_TYPE_SOCK_OPS, BPF_CGROUP_SOCK_OPS),
+			FlowDissector(program_details) => program_details.to_values(BPF_PROG_TYPE_FLOW_DISSECTOR, BPF_FLOW_DISSECTOR),
+			
+			&Cgroup(ref program_details, cgroup_program_attachment_type) =>
+			{
+				let (program_type, expected_attach_type) = cgroup_program_attachment_type.to_bpf_prog_type_and_bpf_attach_type();
+				program_details.to_values(program_type, expected_attach_type)
+			}
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
 			SocketBufferStreamParser(program_details) => program_details.to_values(BPF_PROG_TYPE_SK_SKB, BPF_SK_SKB_STREAM_PARSER),
@@ -284,30 +208,7 @@ impl<'name> ProgramType<'name>
 			SocketMessage(program_details) => program_details.to_values(BPF_PROG_TYPE_SK_MSG, BPF_SK_MSG_VERDICT),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			InfraRedRawMode2(program_details) => program_details.to_values(BPF_PROG_TYPE_LIRC_MODE2, BPF_LIRC_MODE2),
-			
-			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			FlowDissector(program_details) => program_details.to_values(BPF_PROG_TYPE_FLOW_DISSECTOR, BPF_FLOW_DISSECTOR),
-			
-			// `expected_attach_type` is validated in `bpf_prog_load_check_attach()` in `kernel/bpf/syscall.c` for these.
-			CgroupBindInternetProtocolVersion4(program_details) => program_details.to_values(BPF_PROG_TYPE_CGROUP_SOCK_ADDR, BPF_CGROUP_INET4_BIND),
-			CgroupBindInternetProtocolVersion6(program_details) => program_details.to_values(BPF_PROG_TYPE_CGROUP_SOCK_ADDR, BPF_CGROUP_INET6_BIND),
-			CgroupConnectInternetProtocolVersion4(program_details) => program_details.to_values(BPF_PROG_TYPE_CGROUP_SOCK_ADDR, BPF_CGROUP_INET4_CONNECT),
-			CgroupConnectInternetProtocolVersion6(program_details) => program_details.to_values(BPF_PROG_TYPE_CGROUP_SOCK_ADDR, BPF_CGROUP_INET6_CONNECT),
-			CgroupSendMessageUdpOverInternetProtocolVersion4(program_details) => program_details.to_values(BPF_PROG_TYPE_CGROUP_SOCK_ADDR, BPF_CGROUP_UDP4_SENDMSG),
-			CgroupSendMessageUdpOverInternetProtocolVersion6(program_details) => program_details.to_values(BPF_PROG_TYPE_CGROUP_SOCK_ADDR, BPF_CGROUP_UDP6_SENDMSG),
-			CgroupReceiveMessageUdpOverInternetProtocolVersion4(program_details) => program_details.to_values(BPF_PROG_TYPE_CGROUP_SOCK_ADDR, BPF_CGROUP_UDP4_RECVMSG),
-			cgroup_recvmsg6(program_details) => program_details.to_values(BPF_PROG_TYPE_CGROUP_SOCK_ADDR, BPF_CGROUP_UDP6_RECVMSG),
-			
-			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			CgroupReceiveMessageUdpOverInternetProtocolVersion6(program_details) => program_details.to_values(BPF_PROG_TYPE_CGROUP_SYSCTL, BPF_CGROUP_SYSCTL),
-			
-			// `expected_attach_type` is validated in `bpf_prog_load_check_attach()` in `kernel/bpf/syscall.c` for these.
-			CgroupSetSocketOptions(program_details) => program_details.to_values(BPF_PROG_TYPE_CGROUP_SOCKOPT, BPF_CGROUP_SETSOCKOPT),
-			CgroupGetSocketOptions(program_details) => program_details.to_values(BPF_PROG_TYPE_CGROUP_SOCKOPT, BPF_CGROUP_GETSOCKOPT),
-			
-			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			StructOps(program_details) => program_details.to_values(BPF_PROG_TYPE_STRUCT_OPS, unsafe { zeroed() }),
+			StructOps(program_details) => program_details.to_values(BPF_PROG_TYPE_STRUCT_OPS, Self::ignored()),
 			
 			// `expected_attach_type` is validated in `bpf_tracing_prog_attach()` in `kernel/bpf/syscall.c`.
 			LinuxSecurityModule(program_details) => program_details.to_values(BPF_PROG_TYPE_LSM, BPF_LSM_MAC),
@@ -319,13 +220,18 @@ impl<'name> ProgramType<'name>
 			
 			// `expected_attach_type` is explicitly tested to be zero in `bpf_prog_load_check_attach()` in `kernel/bpf/syscall.c`.
 			// `expected_attach_type` is explicitly tested to be zero in `bpf_tracing_prog_attach()` in `kernel/bpf/syscall.c`.
-			Ext(program_details) => program_details.to_values(BPF_PROG_TYPE_EXT, unsafe { zeroed() }, extended_bpf_program_file_descriptor_labels_map),
+			Ext(program_details) => program_details.to_values(BPF_PROG_TYPE_EXT, Self::ignored(), extended_bpf_program_file_descriptor_labels_map),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			SocketReusePort(program_details) => program_details.to_values(BPF_PROG_TYPE_SK_REUSEPORT, unsafe { zeroed() }),
+			SocketReusePort(program_details) => program_details.to_values(BPF_PROG_TYPE_SK_REUSEPORT, Self::ignored()),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			RawTracePointWritable(program_details) => program_details.to_values(BPF_PROG_TYPE_RAW_TRACEPOINT_WRITABLE, unsafe { zeroed() }),
+			RawTracePointWritable(program_details) => program_details.to_values(BPF_PROG_TYPE_RAW_TRACEPOINT_WRITABLE, Self::ignored()),
 		}
+	}
+	
+	fn ignored() -> bpf_attach_type
+	{
+		unsafe { zeroed() }
 	}
 }

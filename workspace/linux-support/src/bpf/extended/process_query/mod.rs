@@ -3,14 +3,9 @@
 
 
 use super::*;
-use super::bpf::*;
-use crate::bpf::c::{BPF_PROG_ATTACH_flags, bpf_attach_type, bpf_prog_type};
 
 
-include!("CgroupFileDescriptor.rs");
-include!("CgroupProgramAttachmentType.rs");
-include!("CgroupProgramAttachmentFlags.rs");
-include!("CgroupProgramAttachmentOptions.rs");
-include!("CgroupProgramQueryFlags.rs");
-include!("NetworkNamespaceAttachmentType.rs");
-include!("NetworkNamespaceFileDescriptor.rs");
+include!("FileDescriptorType.rs");
+include!("KProbeDetails.rs");
+include!("ProcessQueryInformation.rs");
+include!("UProbeDetails.rs");

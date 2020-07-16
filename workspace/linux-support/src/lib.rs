@@ -1014,3 +1014,4 @@ pub mod user_and_groups;
 
 
 include!("current_numa_node_and_hyper_thread.rs");
+include!("ENOTSUPP.rs");

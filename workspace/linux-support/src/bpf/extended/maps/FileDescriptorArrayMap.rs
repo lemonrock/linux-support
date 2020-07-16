@@ -20,6 +20,8 @@ impl<'map_file_descriptor_label_map, FD: UsedAsValueInArrayMapDescriptor> FileDe
 	///
 	/// Use `None` for `batch_position` when starting a new batch.
 	/// Each value in `indices` must be valid.
+	///
+	/// ***WARNING***: It is impossible for Linux to distinguish from an uninitialized file descriptor and file descriptor `0`; in practice, unless `stdin` has been closed, this isn't an issue but be aware.
 	#[inline(always)]
 	pub fn get_batch(&self, batch_position: Option<&OpaqueBatchPosition<u32>>, indices: &[u32]) -> Result<(Vec<FileDescriptorCopy<FD>>, OpaqueBatchPosition<u32>, bool), Errno>
 	{
@@ -49,7 +51,9 @@ impl<'map_file_descriptor_label_map, FD: UsedAsValueInArrayMapDescriptor> FileDe
 		self.0.get_next_index(index)
 	}
 	
-	/// Returns a file descriptor, if there is one.
+	/// Returns a file descriptor.
+	///
+	/// ***WARNING***: It is impossible for Linux to distinguish from an uninitialized file descriptor and file descriptor `0`; in practice, unless `stdin` has been closed, this isn't an issue but be aware.
 	#[allow(deprecated)]
 	pub fn get(&self, index: u32) -> FileDescriptorCopy<FD>
 	{

@@ -124,6 +124,10 @@ pub mod file_descriptor_information;
 pub mod inotify;
 
 
+/// Linux InfraRed Remote Control (LIRC).
+pub mod linux_infra_red_remote_control;
+
+
 /// Memory file descriptor.
 pub mod memfd;
 

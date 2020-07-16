@@ -2,15 +2,42 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use super::bpf::*;
-use crate::bpf::c::{BPF_PROG_ATTACH_flags, bpf_attach_type, bpf_prog_type};
+/// KProbe details.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum KProbeDetails
+{
+	/// Function.
+	Function
+	{
+		/// Symbol.
+		symbol: CString,
+		
+		/// Offset.
+		offset: u64,
+	},
+	
+	/// Address.
+	Address(u64),
+}
 
-
-include!("CgroupFileDescriptor.rs");
-include!("CgroupProgramAttachmentType.rs");
-include!("CgroupProgramAttachmentFlags.rs");
-include!("CgroupProgramAttachmentOptions.rs");
-include!("CgroupProgramQueryFlags.rs");
-include!("NetworkNamespaceAttachmentType.rs");
-include!("NetworkNamespaceFileDescriptor.rs");
+impl KProbeDetails
+{
+	#[inline(always)]
+	fn construct(symbol: CString, task_fd_query: &BpfCommandTaskFileDescriptorQuery) -> Self
+	{
+		use self::KProbeDetails::*;
+		
+		if buffer.get(0) == (b'\0' as i8)
+		{
+			Address(task_fd_query.probe_addr)
+		}
+		else
+		{
+			Function
+			{
+				symbol,
+				offset: task_fd_query.probe_offset,
+			}
+		}
+	}
+}

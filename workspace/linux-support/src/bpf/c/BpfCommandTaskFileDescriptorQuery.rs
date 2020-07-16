@@ -10,12 +10,14 @@ pub(crate) struct BpfCommandTaskFileDescriptorQuery
 	/// Process identifier.
 	///
 	/// Used for input.
-	pub(crate) pid: u32,
+	pub(crate) pid: pid_t,
 	
 	/// Used for input.
-	pub(crate) fd: u32,
+	pub(crate) fd: RawFd,
 	
 	/// Used for input.
+	///
+	/// Currently must be zero.
 	pub(crate) flags: u32,
 	
 	/// Used for input as length of data pointed to by `buf`.
@@ -30,12 +32,10 @@ pub(crate) struct BpfCommandTaskFileDescriptorQuery
 	pub(crate) buf: AlignedU64,
 	
 	/// Used for output.
-	pub(crate) prog_id: u32,
+	pub(crate) prog_id: ExtendedBpfProgramIdentifier,
 	
 	/// Used for output.
-	///
-	/// A value `BPF_FD_TYPE_*`.
-	pub(crate) fd_type: u32,
+	pub(crate) fd_type: bpf_task_fd_type,
 	
 	/// Used for output.
 	pub(crate) probe_offset: u64,

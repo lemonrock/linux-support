@@ -4,6 +4,7 @@
 
 use super::*;
 use crate::file_descriptors::bpf::ExtendedBpfProgramFileDescriptor;
+use crate::file_descriptors::cgroup::CgroupProgramAttachmentType;
 
 
 include!("AttachToBpfTypeIdentifier.rs");
