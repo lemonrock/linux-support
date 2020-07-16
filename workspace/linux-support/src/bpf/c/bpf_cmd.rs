@@ -25,9 +25,8 @@ pub enum bpf_cmd
 	BPF_MAP_GET_NEXT_ID = 12,
 	BPF_PROG_GET_FD_BY_ID = 13,
 	BPF_MAP_GET_FD_BY_ID = 14,
-	
-	// TODO
 	BPF_OBJ_GET_INFO_BY_FD = 15,
+	
 	// TODO
 	BPF_PROG_QUERY = 16,
 	// TODO

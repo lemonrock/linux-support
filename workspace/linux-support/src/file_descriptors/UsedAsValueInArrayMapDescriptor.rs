@@ -6,11 +6,11 @@
 pub trait UsedAsValueInArrayMapDescriptor: FileDescriptor
 {
 	#[doc(hidden)]
-	fn transmute_to_file_descriptor_copies(values: Vec<RawFd>) -> Vec<Option<FileDescriptorCopy<Self>>>;
+	fn transmute_to_file_descriptor_copies(values: Vec<RawFd>) -> Vec<FileDescriptorCopy<Self>>;
 	
 	#[doc(hidden)]
-	fn transmute_from_file_descriptor_copies(values: &[Option<FileDescriptorCopy<Self>>]) -> &[RawFd];
+	fn transmute_from_file_descriptor_copies(values: &[FileDescriptorCopy<Self>]) -> &[RawFd];
 	
 	#[doc(hidden)]
-	fn transmute_to_file_descriptor_copy(value: RawFd) -> Option<FileDescriptorCopy<Self>>;
+	fn transmute_to_file_descriptor_copy(value: RawFd) -> FileDescriptorCopy<Self>;
 }

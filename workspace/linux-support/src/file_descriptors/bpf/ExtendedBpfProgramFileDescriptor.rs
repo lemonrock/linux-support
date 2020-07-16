@@ -3,8 +3,10 @@
 
 
 /// Represents an extended BPF program file descriptor.
+///
+/// Created by `ExtendedBpfProgram::parse_and_load()`.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct ExtendedBpfProgramFileDescriptor(NonZeroI32);
+pub struct ExtendedBpfProgramFileDescriptor(RawFd);
 
 impl Drop for ExtendedBpfProgramFileDescriptor
 {
@@ -20,7 +22,7 @@ impl AsRawFd for ExtendedBpfProgramFileDescriptor
 	#[inline(always)]
 	fn as_raw_fd(&self) -> RawFd
 	{
-		self.0.get()
+		self.0
 	}
 }
 
@@ -38,7 +40,7 @@ impl FromRawFd for ExtendedBpfProgramFileDescriptor
 	#[inline(always)]
 	unsafe fn from_raw_fd(fd: RawFd) -> Self
 	{
-		Self(NonZeroI32::new_unchecked(fd))
+		Self(fd)
 	}
 }
 
@@ -48,34 +50,26 @@ impl FileDescriptor for ExtendedBpfProgramFileDescriptor
 
 impl BpfFileDescriptor for ExtendedBpfProgramFileDescriptor
 {
+	type Information = bpf_prog_info;
 }
 
 impl UsedAsValueInArrayMapDescriptor for ExtendedBpfProgramFileDescriptor
 {
 	#[inline(always)]
-	fn transmute_to_file_descriptor_copies(values: Vec<RawFd>) -> Vec<Option<FileDescriptorCopy<Self>>>
+	fn transmute_to_file_descriptor_copies(values: Vec<RawFd>) -> Vec<FileDescriptorCopy<Self>>
 	{
 		unsafe { transmute(values) }
 	}
 	
 	#[inline(always)]
-	fn transmute_from_file_descriptor_copies(values: &[Option<FileDescriptorCopy<Self>>]) -> &[RawFd]
+	fn transmute_from_file_descriptor_copies(values: &[FileDescriptorCopy<Self>]) -> &[RawFd]
 	{
 		unsafe { transmute(values) }
 	}
 	
 	#[inline(always)]
-	fn transmute_to_file_descriptor_copy(value: RawFd) -> Option<FileDescriptorCopy<Self>>
+	fn transmute_to_file_descriptor_copy(value: RawFd) -> FileDescriptorCopy<Self>
 	{
 		unsafe { transmute(value) }
-	}
-}
-
-impl ExtendedBpfProgramFileDescriptor
-{
-	#[inline(always)]
-	pub(crate) fn as_non_zero_i32(&self) -> NonZeroI32
-	{
-		self.0
 	}
 }

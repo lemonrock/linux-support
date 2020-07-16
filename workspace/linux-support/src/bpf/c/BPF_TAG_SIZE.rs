@@ -2,16 +2,5 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Used for the command `BPF_OBJ_GET_INFO_BY_FD`.
-#[repr(C)]
-#[derive(Debug, Default, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
-pub(crate) struct BpfCommandObjectGetInformationByFileDescriptor
-{
-	pub(crate) bpf_fd: RawFd,
-	
-	/// Size of data pointed to by `info`.
-	pub(crate) info_len: u32,
-	
-	/// Pointer to data.
-	pub(crate) info: AlignedU64,
-}
+/// Tag size.
+pub(crate) const BPF_TAG_SIZE: usize = 8;

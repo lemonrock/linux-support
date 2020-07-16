@@ -4,7 +4,7 @@
 
 /// Represents a Cgroup file descriptor which is backed by a `File`.
 #[derive(Debug)]
-pub struct CgroupFileDescriptor(NonZeroI32);
+pub struct CgroupFileDescriptor(RawFd);
 
 impl From<File> for CgroupFileDescriptor
 {
@@ -38,7 +38,7 @@ impl AsRawFd for CgroupFileDescriptor
 	#[inline(always)]
 	fn as_raw_fd(&self) -> RawFd
 	{
-		self.0.get()
+		self.0
 	}
 }
 
@@ -56,7 +56,7 @@ impl FromRawFd for CgroupFileDescriptor
 	#[inline(always)]
 	unsafe fn from_raw_fd(fd: RawFd) -> Self
 	{
-		Self(NonZeroI32::new_unchecked(fd))
+		Self(fd)
 	}
 }
 
@@ -67,19 +67,19 @@ impl FileDescriptor for CgroupFileDescriptor
 impl UsedAsValueInArrayMapDescriptor for CgroupFileDescriptor
 {
 	#[inline(always)]
-	fn transmute_to_file_descriptor_copies(values: Vec<RawFd>) -> Vec<Option<FileDescriptorCopy<Self>>>
+	fn transmute_to_file_descriptor_copies(values: Vec<RawFd>) -> Vec<FileDescriptorCopy<Self>>
 	{
 		unsafe { transmute(values) }
 	}
 	
 	#[inline(always)]
-	fn transmute_from_file_descriptor_copies(values: &[Option<FileDescriptorCopy<Self>>]) -> &[RawFd]
+	fn transmute_from_file_descriptor_copies(values: &[FileDescriptorCopy<Self>]) -> &[RawFd]
 	{
 		unsafe { transmute(values) }
 	}
 	
 	#[inline(always)]
-	fn transmute_to_file_descriptor_copy(value: RawFd) -> Option<FileDescriptorCopy<Self>>
+	fn transmute_to_file_descriptor_copy(value: RawFd) -> FileDescriptorCopy<Self>
 	{
 		unsafe { transmute(value) }
 	}

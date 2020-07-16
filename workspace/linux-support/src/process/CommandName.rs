@@ -57,6 +57,29 @@ impl Into<ArrayVec<[u8; CommandName::MaximumCommandNameLengthIncludingAsciiNul]>
 	}
 }
 
+impl<'a> From<&'a [c_char; CommandName::MaximumCommandNameLengthIncludingAsciiNul]> for CommandName
+{
+	#[inline(always)]
+	fn from(value: &'a [c_char; CommandName::MaximumCommandNameLengthIncludingAsciiNul]) -> Self
+	{
+		let length_including_ascii_nul = match memchr(b'\0', value)
+		{
+			Some(index) => index + 1,
+			None => CommandName::MaximumCommandNameLengthIncludingAsciiNul,
+		};
+		
+		let mut array_vec = ArrayVec::new();
+		
+		unsafe
+		{
+			let pointer: *mut u8 = array_vec.as_mut_ptr();
+			pointer.copy_from_nonoverlapping(value.as_ptr() as *const u8, length_including_ascii_nul);
+			array_vec.set_len(length_including_ascii_nul)
+		}
+		Self(array_vec)
+	}
+}
+
 impl Serialize for CommandName
 {
 	#[inline(always)]

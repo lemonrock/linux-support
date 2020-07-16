@@ -21,7 +21,7 @@ impl<'map_file_descriptor_label_map, FD: UsedAsValueInArrayMapDescriptor> FileDe
 	/// Use `None` for `batch_position` when starting a new batch.
 	/// Each value in `indices` must be valid.
 	#[inline(always)]
-	pub fn get_batch(&self, batch_position: Option<&OpaqueBatchPosition<u32>>, indices: &[u32]) -> Result<(Vec<Option<FileDescriptorCopy<FD>>>, OpaqueBatchPosition<u32>, bool), Errno>
+	pub fn get_batch(&self, batch_position: Option<&OpaqueBatchPosition<u32>>, indices: &[u32]) -> Result<(Vec<FileDescriptorCopy<FD>>, OpaqueBatchPosition<u32>, bool), Errno>
 	{
 		let (vec, batch_position, more) = self.0.get_batch(batch_position, indices)?;
 		Ok((FD::transmute_to_file_descriptor_copies(vec), batch_position, more))
@@ -32,7 +32,7 @@ impl<'map_file_descriptor_label_map, FD: UsedAsValueInArrayMapDescriptor> FileDe
 	/// `indices` and `values` must be the same length.
 	/// Each value in `indices` must be valid.
 	#[inline(always)]
-	pub fn set_batch(&self, indices: &[u32], values: &[Option<FileDescriptorCopy<FD>>]) -> Result<usize, Errno>
+	pub fn set_batch(&self, indices: &[u32], values: &[FileDescriptorCopy<FD>]) -> Result<usize, Errno>
 	{
 		let values = FD::transmute_from_file_descriptor_copies(values);
 		self.0.set_batch(indices, values)
@@ -51,7 +51,7 @@ impl<'map_file_descriptor_label_map, FD: UsedAsValueInArrayMapDescriptor> FileDe
 	
 	/// Returns a file descriptor, if there is one.
 	#[allow(deprecated)]
-	pub fn get(&self, index: u32) -> Option<FileDescriptorCopy<FD>>
+	pub fn get(&self, index: u32) -> FileDescriptorCopy<FD>
 	{
 		let raw_fd = self.0.get(index);
 		FD::transmute_to_file_descriptor_copy(raw_fd)

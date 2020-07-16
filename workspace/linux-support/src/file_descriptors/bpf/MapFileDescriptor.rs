@@ -48,6 +48,7 @@ impl FileDescriptor for MapFileDescriptor
 
 impl BpfFileDescriptor for MapFileDescriptor
 {
+	type Information = bpf_map_info;
 }
 
 impl MemoryMappableFileDescriptor for MapFileDescriptor
@@ -407,7 +408,11 @@ impl MapFileDescriptor
 		attr.program_attach_or_detach = BpfCommandProgramAttachOrDetach
 		{
 			target_fd,
-			attach_bpf_fd: program_fd.map(|file_descriptor| file_descriptor.as_non_zero_i32()),
+			attach_bpf_fd: match program_fd
+			{
+				None => 0,
+				Some(file_descriptor) => file_descriptor.as_raw_fd(),
+			},
 			attach_type,
 			attach_flags,
 			replace_bpf_fd,
@@ -457,14 +462,14 @@ impl MapFileDescriptor
 		attr.program_attach_or_detach = BpfCommandProgramAttachOrDetach
 		{
 			target_fd,
-			attach_bpf_fd: program_fd.map(|file_descriptor| file_descriptor.as_non_zero_i32()),
+			attach_bpf_fd: match program_fd
+			{
+				None => 0,
+				Some(file_descriptor) => file_descriptor.as_raw_fd(),
+			},
 			attach_type,
-			
-			// Unused.
 			attach_flags: BPF_PROG_ATTACH_flags::empty(),
-			
-			// Unused.
-			replace_bpf_fd: None
+			replace_bpf_fd: 0
 		};
 		
 		let result = attr.syscall(bpf_cmd::BPF_PROG_DETACH);

@@ -15,6 +15,24 @@ impl<'t, T: Sized> From<&'t T> for AlignedU64
 	}
 }
 
+impl<T: Sized> Into<*const T> for AlignedU64
+{
+	#[inline(always)]
+	fn into(self) -> *const T
+	{
+		self.0 as usize as *const T
+	}
+}
+
+impl<T: Sized> Into<*mut T> for AlignedU64
+{
+	#[inline(always)]
+	fn into(self) -> *mut T
+	{
+		self.0 as usize as *mut T
+	}
+}
+
 impl<'t, T: Sized> From<&'t mut T> for AlignedU64
 {
 	#[inline(always)]
@@ -85,4 +103,42 @@ impl Display for AlignedU64
 impl AlignedU64
 {
 	pub(crate) const Null: Self = Self(0);
+	
+	/// To slice.
+	#[inline(always)]
+	pub fn to_slice<'a, T: Sized>(self, size: u32) -> Option<&'a [T]>
+	{
+		let pointer: *const T = self.into();
+		if pointer.is_null()
+		{
+			None
+		}
+		else
+		{
+			Some(unsafe { from_raw_parts(pointer, size as usize) })
+		}
+	}
+	
+	/// To an array.
+	#[inline(always)]
+	pub fn to_array_of_elements_whose_size_varies_by_linux_version(self, size: u32, element_size: u32) -> Option<ArrayOfElementsWhoseSizeVariesByLinuxVersion>
+	{
+		let pointer: *mut u8 = self.into();
+		if pointer.is_null()
+		{
+			None
+		}
+		else
+		{
+			Some
+			(
+				ArrayOfElementsWhoseSizeVariesByLinuxVersion
+				{
+					pointer: unsafe { NonNull::new_unchecked(pointer) },
+					number_of_elements: size as usize,
+					element_size_for_this_version_of_linux: element_size as usize
+				}
+			)
+		}
+	}
 }

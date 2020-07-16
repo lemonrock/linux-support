@@ -87,7 +87,7 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 		
 		let result = attributes.syscall(bpf_cmd::BPF_PROG_LOAD);
 		
-		if likely!(result > 0)
+		if likely!(result >= 0)
 		{
 			Ok(unsafe { ExtendedBpfProgramFileDescriptor::from_raw_fd(result) })
 		}

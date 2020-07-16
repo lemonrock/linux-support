@@ -11,7 +11,7 @@ impl Drop for BtfFileDescriptor
 	#[inline(always)]
 	fn drop(&mut self)
 	{
-		self.0.close()
+		self.as_raw_fd().close()
 	}
 }
 
@@ -29,7 +29,7 @@ impl IntoRawFd for BtfFileDescriptor
 	#[inline(always)]
 	fn into_raw_fd(self) -> RawFd
 	{
-		self.0
+		self.as_raw_fd()
 	}
 }
 
@@ -48,6 +48,7 @@ impl FileDescriptor for BtfFileDescriptor
 
 impl BpfFileDescriptor for BtfFileDescriptor
 {
+	type Information = bpf_prog_info;
 }
 
 impl BtfFileDescriptor

@@ -24,19 +24,19 @@ pub enum CgroupProgramAttachment<'a>
 impl<'a> CgroupProgramAttachment<'a>
 {
 	#[inline(always)]
-	pub(crate) fn to_attach_flags(self) -> (BPF_PROG_ATTACH_flags, Option<NonZeroI32>)
+	pub(crate) fn to_attach_flags(self) -> (BPF_PROG_ATTACH_flags, RawFd)
 	{
 		use self::CgroupProgramAttachment::*;
 		
 		match self
 		{
-			AddLeaf => (BPF_PROG_ATTACH_flags::empty(), None),
+			AddLeaf => (BPF_PROG_ATTACH_flags::empty(), 0),
 			
-			AddButOverridable => (BPF_PROG_ATTACH_flags::BPF_F_ALLOW_OVERRIDE, None),
+			AddButOverridable => (BPF_PROG_ATTACH_flags::BPF_F_ALLOW_OVERRIDE, 0),
 			
-			AddMultiple => (BPF_PROG_ATTACH_flags::BPF_F_ALLOW_MULTI, None),
+			AddMultiple => (BPF_PROG_ATTACH_flags::BPF_F_ALLOW_MULTI, 0),
 			
-			Replace(replace) => (BPF_PROG_ATTACH_flags::BPF_F_ALLOW_MULTI, Some(replace.as_non_zero_i32())),
+			Replace(replace) => (BPF_PROG_ATTACH_flags::BPF_F_ALLOW_MULTI, replace.as_raw_fd()),
 		}
 	}
 }

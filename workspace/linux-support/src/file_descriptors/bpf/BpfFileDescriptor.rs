@@ -5,6 +5,39 @@
 /// Common to BPF file descriptors returned from the `bpf()` syscall.
 pub trait BpfFileDescriptor: FileDescriptor
 {
+	type Information: Sized;
+	
+	#[allow(deprecated)]
+	#[inline(always)]
+	fn get_information(&self) -> Result<Self::Information, Errno>
+	{
+		let mut information: Self::Information = unsafe { uninitialized() };
+		
+		let mut attr = bpf_attr::default();
+		attr.info = BpfCommandObjectGetInformationByFileDescriptor
+		{
+			bpf_fd: self.as_raw_fd(),
+			info_len: size_of::<Self::Information>() as u32,
+			info: AlignedU64::from(&mut information),
+		};
+		
+		let result = attr.syscall(bpf_cmd::BPF_OBJ_GET_INFO_BY_FD);
+		if likely!(result == 0)
+		{
+			// let length = (unsafe { attr.info.info_len }) as usize;
+			// unsafe { information.set_len(length) }
+			Ok(information)
+		}
+		else if likely!(result == -1)
+		{
+			Err(errno())
+		}
+		else
+		{
+			unreachable!("Unexpected result `{}` from bpf(BPF_OBJ_GET_INFO_BY_FD)", result)
+		}
+	}
+	
 	/// Pin to a path so other processes can use this file descriptor.
 	#[inline(always)]
 	fn pin_to_path(&self, path: &impl AsRef<Path>) -> Result<(), Errno>

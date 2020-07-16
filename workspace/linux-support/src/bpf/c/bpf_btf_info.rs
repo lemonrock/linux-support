@@ -2,16 +2,25 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Used for the command `BPF_OBJ_GET_INFO_BY_FD`.
-#[repr(C)]
-#[derive(Debug, Default, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
-pub(crate) struct BpfCommandObjectGetInformationByFileDescriptor
+/// BTF information.
+#[repr(C, align(8))]
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct bpf_btf_info
 {
-	pub(crate) bpf_fd: RawFd,
+	pub(crate) btf: AlignedU64,
 	
-	/// Size of data pointed to by `info`.
-	pub(crate) info_len: u32,
+	pub(crate) btf_size: u32,
 	
-	/// Pointer to data.
-	pub(crate) info: AlignedU64,
+	/// Identifier.
+	pub id: BtfIdentifier,
+}
+
+impl bpf_btf_info
+{
+	/// BTF data, including header (`btf_header`) and sections.
+	#[inline(always)]
+	pub fn data(&self) -> Option<&[u8]>
+	{
+		self.btf.to_slice(self.btf_size)
+	}
 }
