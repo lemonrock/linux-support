@@ -7,7 +7,7 @@
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 #[repr(u32)]
-pub(crate) enum Preallocation
+pub enum Preallocation
 {
 	/// Preallocate (the default for all hash super-types).
 	Preallocate = BPF_MAP_CREATE_flags::empty().bits(),

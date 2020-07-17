@@ -11,36 +11,33 @@ pub struct ArrayMap<'map_file_descriptor_label_map, V: Sized>
 	marker: PhantomData<V>,
 }
 
-// For hash: get & set need to be adjusted as can not assume key is present.
-
-
 impl<'map_file_descriptor_label_map, V: Sized> ArrayMap<'map_file_descriptor_label_map, V>
 {
 	/// New per-device.
 	#[inline(always)]
-	pub fn new_per_device(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, value_size: ValueSizeU32, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, device: NetworkInterfaceIndex) -> Result<Self, MapCreationError>
+	pub fn new_per_device(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, device: NetworkInterfaceIndex) -> Result<Self, MapCreationError>
 	{
-		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::ArrayPerDevice(value_size, maximum_entries, access_permissions, device), maximum_entries)
+		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::ArrayPerDevice(Self::value_size(), maximum_entries, access_permissions, device), maximum_entries)
 	}
 	
 	/// New per-CPU.
 	#[inline(always)]
-	pub fn new_per_cpu(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, value_size: ValueSizeU32, maximum_entries: MaximumEntries, access_permissions: AccessPermissions) -> Result<Self, MapCreationError>
+	pub fn new_per_cpu(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions) -> Result<Self, MapCreationError>
 	{
-		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::ArrayPerCpu(value_size, maximum_entries, access_permissions), maximum_entries)
+		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::ArrayPerCpu(Self::value_size(), maximum_entries, access_permissions), maximum_entries)
 	}
 	
 	/// New system-wide.
 	#[inline(always)]
-	pub fn new_system_wide(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, value_size: ValueSizeU32, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
+	pub fn new_system_wide(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
 	{
-		Self::new_system_wide_internal(map_file_descriptors, map_name, parsed_btf_map_data, value_size, maximum_entries, access_permissions, numa_node, MemoryMap::DoNotMemoryMap)
+		Self::new_system_wide_internal(map_file_descriptors, map_name, parsed_btf_map_data, maximum_entries, access_permissions, numa_node, MemoryMap::DoNotMemoryMap)
 	}
 	
 	#[inline(always)]
-	fn new_system_wide_internal(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, value_size: ValueSizeU32, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>, memory_map: MemoryMap) -> Result<Self, MapCreationError>
+	fn new_system_wide_internal(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>, memory_map: MemoryMap) -> Result<Self, MapCreationError>
 	{
-		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::ArraySystemWide(value_size, maximum_entries, access_permissions, numa_node, memory_map), maximum_entries)
+		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::ArraySystemWide(Self::value_size(), maximum_entries, access_permissions, numa_node, memory_map), maximum_entries)
 	}
 	
 	/// Length.
@@ -48,6 +45,13 @@ impl<'map_file_descriptor_label_map, V: Sized> ArrayMap<'map_file_descriptor_lab
 	pub fn capacity(&self) -> NonZeroU32
 	{
 		self.maximum_entries.0
+	}
+	
+	/// Freeze.
+	#[inline(always)]
+	pub fn freeze(&self) -> Result<(), Errno>
+	{
+		self.map_file_descriptor.freeze()
 	}
 	
 	/// Get, batched.
@@ -107,7 +111,6 @@ impl<'map_file_descriptor_label_map, V: Sized> ArrayMap<'map_file_descriptor_lab
 	}
 	
 	/// Looks up an index; should always succeed.
-	#[allow(deprecated)]
 	pub fn get(&self, index: u32) -> V
 	{
 		self.guard_index(index);
@@ -173,5 +176,11 @@ impl<'map_file_descriptor_label_map, V: Sized> ArrayMap<'map_file_descriptor_lab
 			maximum_entries,
 			marker: PhantomData
 		}
+	}
+	
+	#[inline(always)]
+	fn value_size() -> ValueSizeU32
+	{
+		ValueSizeU32::try_from_value_size::<V>().unwrap()
 	}
 }

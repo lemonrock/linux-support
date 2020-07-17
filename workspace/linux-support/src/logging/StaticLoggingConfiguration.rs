@@ -49,6 +49,7 @@ impl StaticLoggingConfiguration
 		Rfc3164MessageTemplate::new(facility, severity, self.linux_kernel_host_name.as_ref(), &self.process_name)
 	}
 	
+	#[allow(dead_code)]
 	#[inline(always)]
 	fn new_rfc_5424_message_template(&self, facility: KnownFacility, severity: Severity, message_identifier: &MessageIdentifier) -> Rfc5424MessageTemplate
 	{
@@ -62,6 +63,7 @@ impl StaticLoggingConfiguration
 		this.new_rfc_3164_message_template(facility, severity)
 	}
 	
+	#[allow(dead_code)]
 	#[inline(always)]
 	fn rfc_5424_message_template(facility: KnownFacility, severity: Severity, message_identifier: &MessageIdentifier) -> Rfc5424MessageTemplate
 	{

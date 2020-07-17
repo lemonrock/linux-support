@@ -57,12 +57,12 @@ impl MemoryMappableFileDescriptor for MapFileDescriptor
 
 impl MapFileDescriptor
 {
-	/// Gets the next index (key).
+	/// Gets the next key.
 	///
 	/// Returns `None` if the `key` is the last one (ie `capacity() - 1`).
 	#[inline(always)]
 	#[allow(deprecated)]
-	pub fn get_next_key<K: Sized>(&self, key: &K) -> Result<Option<K>, Errno>
+	pub fn get_next_key<K: Sized>(&self, key: *const K) -> Result<Option<K>, Errno>
 	{
 		debug_assert_ne!(size_of::<K>(), 0);
 		
@@ -293,7 +293,7 @@ impl MapFileDescriptor
 		}
 	}
 	
-	/// Returns `true` if `key` was present.
+	/// Returns `Ok(true)` if `key` was present.
 	#[inline(always)]
 	#[allow(deprecated)]
 	pub(crate) fn delete<K: Sized>(&self, key: &K) -> Result<bool, Errno>

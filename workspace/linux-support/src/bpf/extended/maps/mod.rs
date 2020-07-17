@@ -24,6 +24,8 @@ pub mod domain;
 
 include!("ArrayMap.rs");
 include!("FileDescriptorArrayMap.rs");
+include!("HashMap.rs");
+include!("KeyIterator.rs");
 include!("MemoryMappedArrayMap.rs");
 include!("SpinLockableArrayMap.rs");
 include!("SpinLockableValue.rs");

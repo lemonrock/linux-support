@@ -11,9 +11,9 @@ impl<'map_file_descriptor_label_map, V: 'static + Sized + HasReflectionInformati
 {
 	/// New system-wide.
 	#[inline(always)]
-	pub fn new_system_wide(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, value_size: ValueSizeU32, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
+	pub fn new_system_wide(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
 	{
-		let array_map = ArrayMap::new_system_wide_internal(map_file_descriptors, map_name, parsed_btf_map_data, value_size, maximum_entries, access_permissions, numa_node, MemoryMap::DoNotMemoryMap)?;
+		let array_map = ArrayMap::new_system_wide_internal(map_file_descriptors, map_name, parsed_btf_map_data, maximum_entries, access_permissions, numa_node, MemoryMap::DoNotMemoryMap)?;
 		Ok(Self(array_map))
 	}
 	
@@ -22,6 +22,13 @@ impl<'map_file_descriptor_label_map, V: 'static + Sized + HasReflectionInformati
 	pub fn capacity(&self) -> NonZeroU32
 	{
 		self.0.capacity()
+	}
+	
+	/// Freeze.
+	#[inline(always)]
+	pub fn freeze(&self) -> Result<(), Errno>
+	{
+		self.0.freeze()
 	}
 	
 	/// Get, batched.

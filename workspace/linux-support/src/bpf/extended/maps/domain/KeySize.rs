@@ -8,6 +8,24 @@
 #[repr(transparent)]
 pub struct KeySize(NonZeroU16);
 
+impl TryFrom<usize> for KeySize
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: usize) -> Result<Self, Self::Error>
+	{
+		if unlikely!(value > u16::MAX as usize)
+		{
+			Err(ParseNumberError::OutOfRange)
+		}
+		else
+		{
+			Self::try_from(value as u16)
+		}
+	}
+}
+
 impl TryFrom<u16> for KeySize
 {
 	type Error = ParseNumberError;
@@ -63,5 +81,11 @@ impl KeySize
 	pub(crate) const fn to_non_zero_u32(self) -> NonZeroU32
 	{
 		unsafe { NonZeroU32::new_unchecked(self.0.get() as u32) }
+	}
+	
+	#[inline(always)]
+	pub(crate) fn try_from_key_size<K: Sized>() -> Result<Self, ParseNumberError>
+	{
+		Self::try_from(size_of::<K>())
 	}
 }

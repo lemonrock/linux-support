@@ -21,6 +21,13 @@ impl<'map_file_descriptor_label_map, V: Sized> MemoryMappedArrayMap<'map_file_de
 		self.array_map.capacity()
 	}
 	
+	/// Freeze.
+	#[inline(always)]
+	pub fn freeze(&self) -> Result<(), Errno>
+	{
+		self.array_map.freeze()
+	}
+	
 	/// Element at index.
 	///
 	/// The element should be considered `MaybeUninit::zeroed()`.
@@ -35,9 +42,9 @@ impl<'map_file_descriptor_label_map, V: Sized> MemoryMappedArrayMap<'map_file_de
 	
 	/// New instance.
 	#[inline(always)]
-	pub fn new(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, value_size: ValueSizeU32, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, MapCreationError>
+	pub fn new(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, MapCreationError>
 	{
-		let array_map = ArrayMap::new_system_wide_internal(map_file_descriptors, map_name, parsed_btf_map_data, value_size, maximum_entries, access_permissions, numa_node, MemoryMap::MemoryMap)?;
+		let array_map = ArrayMap::new_system_wide_internal(map_file_descriptors, map_name, parsed_btf_map_data, maximum_entries, access_permissions, numa_node, MemoryMap::MemoryMap)?;
 		
 		let length = defaults.default_page_size().number_of_bytes_rounded_up_to_multiple_of_page_size((maximum_entries.to_u32() as u64) * (size_of::<V>() as u64));
 		let length = unsafe { NonZeroU64::new_unchecked(length) };

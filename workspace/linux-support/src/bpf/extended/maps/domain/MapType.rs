@@ -91,7 +91,7 @@ pub(crate) enum MapType<'name>
 	/// Max entries is non-zero.
 	///
 	/// Requires the capability `CAP_SYS_ADMIN`.
-	LeastRecentlyUsedHashSystemWideListPerCpu(KeySize, ValueSizeU32, MaximumEntries, #[serde(default)] AccessPermissions, ),
+	LeastRecentlyUsedHashSystemWideListPerCpu(KeySize, ValueSizeU32, MaximumEntries, #[serde(default)] AccessPermissions),
 	
 	/// Least-recently used (LRU) Hash.
 	///

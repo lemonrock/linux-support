@@ -13,8 +13,9 @@ pub(crate) struct __BindgenBitfieldUnit<Storage, Align>
 
 impl<Storage, Align> __BindgenBitfieldUnit<Storage, Align>
 {
+	#[allow(dead_code)]
     #[inline(always)]
-    pub const fn new(storage: Storage) -> Self
+    pub(crate) const fn new(storage: Storage) -> Self
 	{
         Self
 		{
@@ -25,6 +26,7 @@ impl<Storage, Align> __BindgenBitfieldUnit<Storage, Align>
 }
 impl<Storage: AsRef<[u8]> + AsMut<[u8]>, Align> __BindgenBitfieldUnit<Storage, Align>
 {
+	#[allow(dead_code)]
     #[inline(always)]
     pub fn get_bit(&self, index: usize) -> bool
 {
@@ -43,9 +45,10 @@ impl<Storage: AsRef<[u8]> + AsMut<[u8]>, Align> __BindgenBitfieldUnit<Storage, A
         let mask = 1 << bit_index;
         byte & mask == mask
     }
-
+	
+	#[allow(dead_code)]
     #[inline(always)]
-    pub fn set_bit(&mut self, index: usize, val: bool)
+    pub(crate) fn set_bit(&mut self, index: usize, val: bool)
 	{
         debug_assert!(index / 8 < self.storage.as_ref().len());
 		
@@ -69,7 +72,8 @@ impl<Storage: AsRef<[u8]> + AsMut<[u8]>, Align> __BindgenBitfieldUnit<Storage, A
             *byte &= !mask;
         }
     }
-
+	
+	#[allow(dead_code)]
     #[inline(always)]
     pub fn get(&self, bit_offset: usize, bit_width: u8) -> u64
 	{
@@ -96,8 +100,9 @@ impl<Storage: AsRef<[u8]> + AsMut<[u8]>, Align> __BindgenBitfieldUnit<Storage, A
         val
     }
 
+	#[allow(dead_code)]
     #[inline(always)]
-    pub fn set(&mut self, bit_offset: usize, bit_width: u8, val: u64)
+    pub(crate) fn set(&mut self, bit_offset: usize, bit_width: u8, val: u64)
 	{
         debug_assert!(bit_width <= 64);
         debug_assert!(bit_offset / 8 < self.storage.as_ref().len());
