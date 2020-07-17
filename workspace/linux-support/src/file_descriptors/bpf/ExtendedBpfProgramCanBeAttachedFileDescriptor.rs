@@ -164,11 +164,11 @@ pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 	///     * `BPF_SK_SKB_STREAM_PARSER`.
 	///     * `BPF_SK_SKB_STREAM_VERDICT`.
 	///
-	/// The program type referred to in `program_fd` must be compatible with the `program_attachment_type`.
+	/// The program type referred to in `attach_program` must be compatible with the `program_attachment_type`.
 	///
 	/// Does not support programs loaded onto to devices (`NetworkInterfaceIndex`).
 	#[inline(always)]
-	fn attach(&self, program_attachment_type: Self::ProgramAttachmentType, program_fd: &ExtendedBpfProgramFileDescriptor, program_attachment_options: Self::ProgramAttachmentOptions)
+	fn attach(&self, program_attachment_type: Self::ProgramAttachmentType, attach_program: &ExtendedBpfProgramFileDescriptor, program_attachment_options: Self::ProgramAttachmentOptions)
 	{
 		let (attach_flags, replace_bpf_fd) = program_attachment_options.to_attach_flags();
 		
@@ -176,7 +176,7 @@ pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 		attr.program_attach_or_detach = BpfCommandProgramAttachOrDetach
 		{
 			target_fd: self.as_raw_fd(),
-			attach_bpf_fd: program_fd.as_raw_fd(),
+			attach_bpf_fd: attach_program.as_raw_fd(),
 			attach_type: program_attachment_type.to_bpf_attach_type(),
 			attach_flags,
 			replace_bpf_fd,
@@ -249,13 +249,13 @@ pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 	///     * `BPF_SK_SKB_STREAM_PARSER`.
 	///     * `BPF_SK_SKB_STREAM_VERDICT`.
 	#[inline(always)]
-	fn detach(&self, program_attachment_type: Self::ProgramAttachmentType, program_fd: Option<&ExtendedBpfProgramFileDescriptor>)
+	fn detach(&self, program_attachment_type: Self::ProgramAttachmentType, attach_program: Option<&ExtendedBpfProgramFileDescriptor>)
 	{
 		let mut attr = bpf_attr::default();
 		attr.program_attach_or_detach = BpfCommandProgramAttachOrDetach
 		{
 			target_fd: self.as_raw_fd(),
-			attach_bpf_fd: match program_fd
+			attach_bpf_fd: match attach_program
 			{
 				None => 0,
 				Some(file_descriptor) => file_descriptor.as_raw_fd(),

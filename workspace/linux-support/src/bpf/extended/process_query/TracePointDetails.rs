@@ -9,7 +9,7 @@ pub struct TracePointDetails
 	/// Name of trace point.
 	///
 	/// Total length, including trailing ASCII NUL, is limited to 128 bytes.
-	trace_point_name: CString,
+	pub(crate) trace_point_name: CString,
 }
 
 impl Deref for TracePointDetails

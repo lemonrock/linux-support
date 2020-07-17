@@ -67,6 +67,10 @@ impl UsedAsValueInArrayMapDescriptor for PerfEventFileDescriptor
 	}
 }
 
+impl ProcessQueryableFileDescriptor for PerfEventFileDescriptor
+{
+}
+
 impl PerfEventFileDescriptor
 {
 	/// Opens a new instance using `perf_event_open()`.

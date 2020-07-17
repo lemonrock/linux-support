@@ -8,5 +8,5 @@
 pub(crate) struct BpfCommandRawTracePointOpen
 {
 	pub(crate) name: AlignedU64,
-	pub(crate) prog_fd: u32,
+	pub(crate) prog_fd: RawFd,
 }

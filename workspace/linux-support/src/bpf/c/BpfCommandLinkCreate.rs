@@ -8,14 +8,14 @@
 pub(crate) struct BpfCommandLinkCreate
 {
 	/// eBPF program to attach.
-	pub(crate) prog_fd: u32,
+	pub(crate) prog_fd: RawFd,
 	
 	/// object to attach to.
-	pub(crate) target_fd: u32,
+	pub(crate) target_fd: RawFd,
 	
 	/// attach type.
-	pub(crate) attach_type: u32,
+	pub(crate) attach_type: bpf_attach_type,
 	
-	/// extra flags.
+	/// Currently always zero.
 	pub(crate) flags: u32,
 }

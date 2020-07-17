@@ -3,6 +3,7 @@
 
 
 use super::*;
+use crate::file_descriptors::bpf::ProcessQueryableFileDescriptor;
 
 
 include!("FileDescriptorType.rs");

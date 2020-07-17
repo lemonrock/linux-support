@@ -35,6 +35,9 @@ pub enum ProgramType<'name>
 	/// Also known as the ELF section `raw_tracepoint/` and `raw_tp/`.
 	RawTracePoint(#[serde(default)] CommonProgramTypeDetails),
 	
+	/// Also known as in libbpf as `raw_tracepoint_writable`.
+	RawTracePointWritable(#[serde(default)] CommonProgramTypeDetails),
+	
 	/// Also known as in libpbf as `xdp`.
 	/// Also known as the ELF section `xdp`.
 	Xdp(#[serde(default)] CommonProgramTypeDetails),
@@ -135,9 +138,6 @@ pub enum ProgramType<'name>
 	
 	/// Also known as in libbpf as `sk_reuseport`.
 	SocketReusePort(#[serde(default)] CommonProgramTypeDetails),
-	
-	/// Also known as in libbpf as `raw_tracepoint_writable`.
-	RawTracePointWritable(#[serde(default)] CommonProgramTypeDetails),
 }
 
 impl<'name> ProgramType<'name>
@@ -167,6 +167,9 @@ impl<'name> ProgramType<'name>
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
 			RawTracePoint(program_details) => program_details.to_values(BPF_PROG_TYPE_RAW_TRACEPOINT, Self::ignored()),
+			
+			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
+			RawTracePointWritable(program_details) => program_details.to_values(BPF_PROG_TYPE_RAW_TRACEPOINT_WRITABLE, Self::ignored()),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
 			Xdp(program_details) => program_details.to_values(BPF_PROG_TYPE_XDP, Self::ignored()),
@@ -224,9 +227,6 @@ impl<'name> ProgramType<'name>
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
 			SocketReusePort(program_details) => program_details.to_values(BPF_PROG_TYPE_SK_REUSEPORT, Self::ignored()),
-			
-			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			RawTracePointWritable(program_details) => program_details.to_values(BPF_PROG_TYPE_RAW_TRACEPOINT_WRITABLE, Self::ignored()),
 		}
 	}
 	

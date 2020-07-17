@@ -4,10 +4,10 @@
 
 /// Used by `BPF_PROG_TEST_RUN` command.
 #[repr(C)]
-#[derive(Debug, Default, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub(crate) struct BpfCommandProgramTestRun
 {
-	pub(crate) prog_fd: u32,
+	pub(crate) prog_fd: RawFd,
 	
 	pub(crate) retval: u32,
 	
@@ -23,7 +23,7 @@ pub(crate) struct BpfCommandProgramTestRun
 	/// Pointer to data out.
 	pub(crate) data_out: AlignedU64,
 	
-	pub(crate) repeat: u32,
+	pub(crate) repeat: NonZeroU32,
 	
 	pub(crate) duration: u32,
 	

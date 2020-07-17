@@ -2,22 +2,19 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A raw trace point type.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum RawTracePointType
+/// Test run results.
+#[derive(Debug)]
+pub struct TestRunResults<C: Sized>
 {
-	/// `BPF_PROG_TYPE_TRACING`.
-	Tracing,
+	/// Modified context.
+	context: C,
 	
-	/// `BPF_PROG_TYPE_EXT`.
-	Ext,
+	/// Data.
+	data: Vec<u8>,
 	
-	/// `BPF_PROG_TYPE_LSM`.
-	LinuxSecurityModule,
+	/// Result code.
+	result_code: u32,
 	
-	/// `BPF_PROG_TYPE_RAW_TRACEPOINT`.
-	RawTracePoint(TracePointDetails),
-	
-	/// `BPF_PROG_TYPE_RAW_TRACEPOINT_WRITABLE`.
-	RawTracePointWritable(TracePointDetails),
+	/// Duration in ?nanoseconds.
+	pub duration: u32,
 }

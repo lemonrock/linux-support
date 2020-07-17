@@ -8,14 +8,14 @@
 pub(crate) struct BpfCommandLinkUpdate
 {
 	/// link file descriptor.
-	pub(crate) link_fd: u32,
+	pub(crate) link_fd: RawFd,
 	
 	/// new program file descriptor to update link with.
-	pub(crate) new_prog_fd: u32,
+	pub(crate) new_prog_fd: RawFd,
 	
-	/// extra flags.
+	/// A subset of `BPF_PROG_ATTACH_flags`.
 	pub(crate) flags: u32,
 	
 	/// expected link's program file descriptor; is specified only if `BPF_F_REPLACE` flag is set in flags.
-	pub(crate) old_prog_fd: u32,
+	pub(crate) old_prog_fd: RawFd,
 }

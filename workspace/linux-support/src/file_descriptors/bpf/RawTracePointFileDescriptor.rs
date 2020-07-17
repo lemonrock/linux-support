@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Represents a raw trace point file descriptor.
+/// Represents a link file descriptor with operations `bpf_raw_tp_lops`.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct RawTracePointFileDescriptor(RawFd);
 
@@ -46,49 +46,42 @@ impl FileDescriptor for RawTracePointFileDescriptor
 {
 }
 
+impl ProcessQueryableFileDescriptor for RawTracePointFileDescriptor
+{
+}
+
+impl LinkFileDescriptor for RawTracePointFileDescriptor
+{
+}
+
 impl RawTracePointFileDescriptor
 {
-	// `raw_trace_point_type` MUST match the program type of `extended_bpf_program_file_descriptor`.
-	// returns a trace point file descriptor.
-	pub fn attach_raw_trace_point(extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor, raw_trace_point_type: &RawTracePointType) -> Result<RawFd, ()>
+	/// `extended_bpf_program_file_descriptor` must have a suitable program type.
+	#[inline(always)]
+	pub fn attach(extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor, raw_trace_point_type: &RawTracePointType) -> Result<Self, RawTracePointAttachError>
 	{
 		use self::RawTracePointType::*;
 		
-		let mut attr: bpf_attr = bpf_attr::default();
-		attr.raw_tracepoint = BpfCommandRawTracePointOpen
+		let name = match raw_trace_point_type
 		{
-			name: match raw_trace_point_type
-			{
-				RawTracePoint(TracePointDetails { ref trace_point_name }) => AlignedU64::from(name.as_ptr()),
-				RawTracePointWritable(TracePointDetails { ref trace_point_name }) => AlignedU64::from(name.as_ptr()),
-				_ => AlignedU64::Null,
-			},
-			prog_fd: extended_bpf_program_file_descriptor.as_raw_fd(),
+			TracingOfRawTracePoint => AlignedU64::Null,
+			
+			RawTracePoint(TracePointDetails { ref trace_point_name }) => AlignedU64::from(trace_point_name.as_ptr()),
+			
+			RawTracePointWritable(TracePointDetails { ref trace_point_name }) => AlignedU64::from(trace_point_name.as_ptr()),
 		};
 		
-		let result = attr.syscall(bpf_cmd::BPF_RAW_TRACEPOINT_OPEN);
-		if likely!(result == 0)
+		use self::RawTracePointAttachError::*;
+		match raw_trace_point_open(extended_bpf_program_file_descriptor, name)
 		{
-		}
-		else if likely!(result == -1)
-		{
-			match errno().0
+			Ok(raw_fd) => Ok(Self(raw_fd)),
+			Err(errno) => match errno
 			{
-				EINVAL => panic!("Invalid attr or invalid attach type"),
-				// Should only occur for:-
-				// * `RawTracePoint` and `RawTracePointWritable`: the `trace_point_name` does not exist.
-				// * `BPF_PROG_TYPE_TRACING` with expected attach type `BPF_TRACE_RAW_TP`: `prog->aux->attach_func_name` does not exist.
-				ENOENT => Err(()),
-				ENOMEM => (),
-				EPERM => panic!("Permission denied"),
-				EFAULT => panic!("Fault copying to / from userspace"),
-				
-				errno @ _ => panic!("Unexpected error `{}`", errno),
+				ENOENT => Err(TracePointNameNotFound),
+				ENOMEM => Err(OutOfMemory),
+				_ => unreachable!(),
 			}
 		}
-		else
-		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_PROG_QUERY)", result)
-		}
 	}
+	
 }

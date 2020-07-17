@@ -20,7 +20,11 @@ pub struct ProcessQueryInformation
 impl ProcessQueryInformation
 {
 	/// Needs the capability `CAP_SYS_ADMIN`.
-	pub fn query(process_identifier: ProcessIdentifierChoice, file_descriptor: RawFd) -> Option<Self>
+	///
+	/// `file_descriptor` can be one that represents a raw trace point or a perf event.
+	///
+	/// Only a subset of instances of `RawTracePointFileDescriptor` are valid.
+	pub fn query(process_identifier: ProcessIdentifierChoice, file_descriptor: &impl ProcessQueryableFileDescriptor) -> Option<Self>
 	{
 		const SizeIncrement: usize = 256;
 		
@@ -31,7 +35,7 @@ impl ProcessQueryInformation
 		attr.task_fd_query = BpfCommandTaskFileDescriptorQuery
 		{
 			pid: process_identifier.into(),
-			fd: file_descriptor,
+			fd: file_descriptor.as_raw_fd(),
 			flags: 0,
 			buf_len: buffer.len() as u32,
 			buf: AlignedU64::from(buffer.as_mut_ptr()),
@@ -61,8 +65,7 @@ impl ProcessQueryInformation
 					}
 					EINVAL => panic!("Invalid attr"),
 					EPERM => panic!("Permission denied"),
-					ENOENT | EBADF => return None,
-					ENOTSUPP => panic!("Unsupported by file descriptor"),
+					ENOENT | EBADF | ENOTSUPP | EOPNOTSUPP => return None,
 					EFAULT => panic!("Could not access buffer"),
 					errno @ _ => panic!("Unexpected error `{}`", errno),
 				}

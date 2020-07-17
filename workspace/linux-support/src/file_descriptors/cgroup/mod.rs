@@ -9,6 +9,7 @@ use crate::bpf::extended::programs::*;
 
 
 include!("CgroupFileDescriptor.rs");
+include!("CgroupLinkFileDescriptor.rs");
 include!("CgroupProgramAttachmentType.rs");
 include!("CgroupProgramAttachmentFlags.rs");
 include!("CgroupProgramAttachmentOptions.rs");
