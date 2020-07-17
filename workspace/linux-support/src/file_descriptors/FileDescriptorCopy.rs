@@ -3,9 +3,18 @@
 
 
 /// A copy of a file descriptor that when dropped does not close the file descriptor.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct FileDescriptorCopy<FD: FileDescriptor>(ManuallyDrop<FD>);
+
+impl<FD: FileDescriptor> Clone for FileDescriptorCopy<FD>
+{
+	#[inline(always)]
+	fn clone(&self) -> Self
+	{
+		FileDescriptorCopy::new(unsafe { transmute_copy(&self.0) })
+	}
+}
 
 impl<FD: FileDescriptor> Into<FileDescriptorCopy<FD>> for RawFd
 {

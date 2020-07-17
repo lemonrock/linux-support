@@ -8,4 +8,5 @@ use super::*;
 include!("FileDescriptorType.rs");
 include!("KProbeDetails.rs");
 include!("ProcessQueryInformation.rs");
+include!("TracePointDetails.rs");
 include!("UProbeDetails.rs");

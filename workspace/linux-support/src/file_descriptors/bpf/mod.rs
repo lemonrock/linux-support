@@ -18,7 +18,4 @@ include!("BtfFileDescriptor.rs");
 include!("ExtendedBpfProgramCanBeAttachedFileDescriptor.rs");
 include!("ExtendedBpfProgramFileDescriptor.rs");
 include!("MapFileDescriptor.rs");
-include!("ProgramAttachmentFlags.rs");
-include!("ProgramAttachmentOptions.rs");
-include!("ProgramAttachmentType.rs");
-include!("ProgramQueryFlags.rs");
+//include!("RawTracePointFileDescriptor.rs");

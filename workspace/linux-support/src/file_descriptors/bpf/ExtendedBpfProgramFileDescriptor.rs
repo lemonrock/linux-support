@@ -73,3 +73,80 @@ impl UsedAsValueInArrayMapDescriptor for ExtendedBpfProgramFileDescriptor
 		unsafe { transmute(value) }
 	}
 }
+
+impl ExtendedBpfProgramFileDescriptor
+{
+	// TODO: eg attach_kprobe for kprobe and uprobe but not kretprobe and uretprobe load program, perf_event_open_tracepoint, attach
+	// TODO: eg attach_tp for TRACEPOINT (tracepoint_category and tracepoint_name) load program, perf_event_open_probe, attach
+		// bpf_program__attach_tracepoint(prog, tp_cat, tp_name)
+	
+	/*
+	struct bpf_link *bpf_program__attach_kprobe(struct bpf_program *prog,
+					    bool retprobe,
+					    const char *func_name)
+{
+	char errmsg[STRERR_BUFSIZE];
+	struct bpf_link *link;
+	int pfd, err;
+
+	pfd = perf_event_open_probe(false /* uprobe */, retprobe, func_name,
+				    0 /* offset */, -1 /* pid */);
+	if (pfd < 0) {
+		pr_warn("program '%s': failed to create %s '%s' perf event: %s\n",
+			bpf_program__title(prog, false),
+			retprobe ? "kretprobe" : "kprobe", func_name,
+			libbpf_strerror_r(pfd, errmsg, sizeof(errmsg)));
+		return ERR_PTR(pfd);
+	}
+	link = bpf_program__attach_perf_event(prog, pfd);
+	if (IS_ERR(link)) {
+		close(pfd);
+		err = PTR_ERR(link);
+		pr_warn("program '%s': failed to attach to %s '%s': %s\n",
+			bpf_program__title(prog, false),
+			retprobe ? "kretprobe" : "kprobe", func_name,
+			libbpf_strerror_r(err, errmsg, sizeof(errmsg)));
+		return link;
+	}
+	return link;
+}
+	
+	
+	struct bpf_link *bpf_program__attach_tracepoint(struct bpf_program *prog,
+						const char *tp_category,
+						const char *tp_name)
+{
+	char errmsg[STRERR_BUFSIZE];
+	struct bpf_link *link;
+	int pfd, err;
+
+	pfd = perf_event_open_tracepoint(tp_category, tp_name);
+	if (pfd < 0) {
+		pr_warn("program '%s': failed to create tracepoint '%s/%s' perf event: %s\n",
+			bpf_program__title(prog, false),
+			tp_category, tp_name,
+			libbpf_strerror_r(pfd, errmsg, sizeof(errmsg)));
+		return ERR_PTR(pfd);
+	}
+	link = bpf_program__attach_perf_event(prog, pfd);
+	if (IS_ERR(link)) {
+		close(pfd);
+		err = PTR_ERR(link);
+		pr_warn("program '%s': failed to attach to tracepoint '%s/%s': %s\n",
+			bpf_program__title(prog, false),
+			tp_category, tp_name,
+			libbpf_strerror_r(err, errmsg, sizeof(errmsg)));
+		return link;
+	}
+	return link;
+}
+	
+	 */
+	//
+	// TODO: eg attach_raw_tp for RAW_TRACEPOINT (tracepoint_name) => Load program then call attach_raw_trace_point
+	// TODO: eg attach_trace for TRACING and EXT and LSM => Load program then call attach_raw_trace_point
+	
+	// TODO: Only for a sub-type of programs!!!
+	
+	
+}

@@ -87,7 +87,7 @@ impl UsedAsValueInArrayMapDescriptor for CgroupFileDescriptor
 
 impl ExtendedBpfProgramCanBeAttachedFileDescriptor for CgroupFileDescriptor
 {
-	type ProgramAttachmentType = CgroupAttachmentType;
+	type ProgramAttachmentType = CgroupProgramAttachmentType;
 	
 	type ProgramQueryFlags = CgroupProgramQueryFlags;
 	

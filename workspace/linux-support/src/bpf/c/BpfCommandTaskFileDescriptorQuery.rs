@@ -4,7 +4,7 @@
 
 /// Used for command `BPF_TASK_FD_QUERY`.
 #[repr(C)]
-#[derive(Debug, Default, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub(crate) struct BpfCommandTaskFileDescriptorQuery
 {
 	/// Process identifier.

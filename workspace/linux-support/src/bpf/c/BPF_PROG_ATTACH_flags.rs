@@ -45,8 +45,13 @@ bitflags!
 	#[allow(missing_docs)]
 	pub struct BPF_PROG_ATTACH_flags: u32
 	{
+		#[doc(hidden)]
 		const BPF_F_ALLOW_OVERRIDE = 1;
+		
+		#[doc(hidden)]
 		const BPF_F_ALLOW_MULTI = 2;
+		
+		#[doc(hidden)]
 		const BPF_F_REPLACE = 4;
 	}
 }

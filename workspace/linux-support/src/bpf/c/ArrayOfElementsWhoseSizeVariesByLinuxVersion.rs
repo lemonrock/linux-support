@@ -35,6 +35,6 @@ impl ArrayOfElementsWhoseSizeVariesByLinuxVersion
 	{
 		debug_assert!(index < self.number_of_elements);
 		
-		unsafe { from_raw_parts(self.pointer.as_ptr().add(index * self.element_size_for_this_version_of_linux), self.element_size_for_this_version_of_linux) }
+		from_raw_parts(self.pointer.as_ptr().add(index * self.element_size_for_this_version_of_linux), self.element_size_for_this_version_of_linux)
 	}
 }

@@ -11,8 +11,18 @@ pub struct bpf_btf_info
 	
 	pub(crate) btf_size: u32,
 	
-	/// Identifier.
-	pub id: BtfIdentifier,
+	pub(crate) id: BtfIdentifier,
+}
+
+impl Information for bpf_btf_info
+{
+	type Identifier = BtfIdentifier;
+	
+	#[inline(always)]
+	fn identifier(&self) -> Self::Identifier
+	{
+		self.id
+	}
 }
 
 impl bpf_btf_info

@@ -27,7 +27,7 @@ impl KProbeDetails
 	{
 		use self::KProbeDetails::*;
 		
-		if buffer.get(0) == (b'\0' as i8)
+		if symbol.as_bytes().is_empty()
 		{
 			Address(task_fd_query.probe_addr)
 		}

@@ -27,10 +27,7 @@ pub enum bpf_cmd
 	BPF_MAP_GET_FD_BY_ID = 14,
 	BPF_OBJ_GET_INFO_BY_FD = 15,
 	BPF_PROG_QUERY = 16,
-	
-	// TODO
 	BPF_RAW_TRACEPOINT_OPEN = 17,
-	
 	BPF_BTF_LOAD = 18,
 	BPF_BTF_GET_FD_BY_ID = 19,
 	BPF_TASK_FD_QUERY = 20,
@@ -44,6 +41,7 @@ pub enum bpf_cmd
 	
 	// TODO
 	BPF_LINK_CREATE = 28,
+	
 	// TODO
 	BPF_LINK_UPDATE = 29,
 }

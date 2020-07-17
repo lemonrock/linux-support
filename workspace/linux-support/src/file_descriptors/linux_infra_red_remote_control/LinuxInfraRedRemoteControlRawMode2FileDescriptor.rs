@@ -87,11 +87,11 @@ impl UsedAsValueInArrayMapDescriptor for LinuxInfraRedRemoteControlRawMode2FileD
 
 impl ExtendedBpfProgramCanBeAttachedFileDescriptor for LinuxInfraRedRemoteControlRawMode2FileDescriptor
 {
-	type AttachmentType = LinuxInfraRedRemoteControlRawMode2AttachmentType;
+	type ProgramAttachmentType = LinuxInfraRedRemoteControlRawMode2ProgramAttachmentType;
 	
-	type QueryFlags = ();
+	type ProgramQueryFlags = ();
 	
-	type AttachFlags = ();
+	type ProgramAttachmentFlags = ();
 	
 	type ProgramAttachmentOptions = ();
 	

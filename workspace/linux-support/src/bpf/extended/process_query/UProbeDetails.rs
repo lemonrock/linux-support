@@ -12,3 +12,16 @@ pub struct UProbeDetails
 	/// Offset.
 	pub offset: u64,
 }
+
+impl UProbeDetails
+{
+	#[inline(always)]
+	pub(crate) fn construct(file_name: CString, task_fd_query: &BpfCommandTaskFileDescriptorQuery) -> Self
+	{
+		Self
+		{
+			file_name,
+			offset: task_fd_query.probe_offset,
+		}
+	}
+}

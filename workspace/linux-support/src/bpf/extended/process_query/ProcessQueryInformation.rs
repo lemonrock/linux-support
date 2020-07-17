@@ -3,7 +3,7 @@
 
 
 /// Task query information.
-#[derive(Default, Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct ProcessQueryInformation
 {
 	/// Pointer to data of various kinds:-
@@ -28,7 +28,6 @@ impl ProcessQueryInformation
 		unsafe { buffer.set_len(buffer.capacity()) };
 		
 		let mut attr = bpf_attr::default();
-		let attach_type = program_attachment_type.to_bpf_attach_type();
 		attr.task_fd_query = BpfCommandTaskFileDescriptorQuery
 		{
 			pid: process_identifier.into(),
@@ -47,7 +46,7 @@ impl ProcessQueryInformation
 			let result = attr.syscall(bpf_cmd::BPF_TASK_FD_QUERY);
 			if likely!(result == 0)
 			{
-				return Some(Self::construct(buffer, &attr.task_fd_query))
+				return Some(Self::construct(buffer, unsafe { &attr.task_fd_query }))
 			}
 			else if likely!(result == -1)
 			{
@@ -89,17 +88,17 @@ impl ProcessQueryInformation
 			
 			file_descriptor_type: match task_fd_query.fd_type
 			{
-				BPF_FD_TYPE_RAW_TRACEPOINT => RawTracePoint(TracePointDetails { name: string }),
+				BPF_FD_TYPE_RAW_TRACEPOINT => RawTracePoint(TracePointDetails::new(string).unwrap()),
 				
-				BPF_FD_TYPE_TRACEPOINT => TracePoint(TracePointDetails { name: string }),
+				BPF_FD_TYPE_TRACEPOINT => TracePoint(TracePointDetails::new(string).unwrap()),
 				
 				BPF_FD_TYPE_KPROBE => KProbe(KProbeDetails::construct(string,  task_fd_query)),
 				
 				BPF_FD_TYPE_KRETPROBE => KRetProbe(KProbeDetails::construct(string,  task_fd_query)),
 				
-				BPF_FD_TYPE_UPROBE => UProbe(UProbeDetails { file_name: string, offset: task_fd_query.probe_offset }),
+				BPF_FD_TYPE_UPROBE => UProbe(UProbeDetails::construct(string, task_fd_query)),
 				
-				BPF_FD_TYPE_URETPROBE => URetProbe(UProbeDetails { file_name: string, offset: task_fd_query.probe_offset }),
+				BPF_FD_TYPE_URETPROBE => URetProbe(UProbeDetails::construct(string, task_fd_query)),
 			},
 		}
 	}

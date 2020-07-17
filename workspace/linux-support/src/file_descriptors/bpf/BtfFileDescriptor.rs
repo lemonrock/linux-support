@@ -48,7 +48,7 @@ impl FileDescriptor for BtfFileDescriptor
 
 impl BpfFileDescriptor for BtfFileDescriptor
 {
-	type Information = bpf_prog_info;
+	type Information = bpf_btf_info;
 }
 
 impl BtfFileDescriptor

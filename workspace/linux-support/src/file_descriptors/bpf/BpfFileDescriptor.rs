@@ -5,8 +5,10 @@
 /// Common to BPF file descriptors returned from the `bpf()` syscall.
 pub trait BpfFileDescriptor: FileDescriptor
 {
-	type Information: Sized;
+	/// Information.
+	type Information: Information;
 	
+	/// Get information.
 	#[allow(deprecated)]
 	#[inline(always)]
 	fn get_information(&self) -> Result<Self::Information, Errno>

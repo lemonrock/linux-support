@@ -14,6 +14,8 @@ use crate::inode::Inode;
 use crate::pci_express::NetworkInterfaceIndex;
 use crate::syscall::SYS;
 use crate::user_and_groups::UserIdentifier;
+use crate::bpf::extended::maps::domain::{MaximumEntries, ValueSizeU32, KeySize};
+use crate::bpf::extended::programs::Information;
 
 
 include!("__BindgenBitFieldUnit.rs");

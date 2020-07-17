@@ -7,6 +7,6 @@
 #[derive(Debug, Default, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub(crate) struct BpfCommandRawTracePointOpen
 {
-	pub(crate) name: u64,
+	pub(crate) name: AlignedU64,
 	pub(crate) prog_fd: u32,
 }

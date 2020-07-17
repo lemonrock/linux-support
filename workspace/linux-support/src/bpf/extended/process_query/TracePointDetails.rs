@@ -6,5 +6,55 @@
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct TracePointDetails
 {
-	name: CString,
+	/// Name of trace point.
+	///
+	/// Total length, including trailing ASCII NUL, is limited to 128 bytes.
+	trace_point_name: CString,
+}
+
+impl Deref for TracePointDetails
+{
+	type Target = CStr;
+	
+	#[inline(always)]
+	fn deref(&self) -> &Self::Target
+	{
+		&self.trace_point_name
+	}
+}
+
+impl TracePointDetails
+{
+	/// Maximum length of `trace_point_name` (including trailing nul).
+	pub const TracePointNameMaximumLengthIncludingTrailingNul: usize = 128;
+	
+	/// Maximum length `trace_point_name` (excluding trailing nul).
+	pub const TracePointNameMaximumLengthExcludingTrailingNul: usize = Self::TracePointNameMaximumLengthIncludingTrailingNul - 1;
+	
+	/// Constructs a new instance, validating that the `trace_point_name`'s length including the trailing nul does not exceed `TracePointNameMaximumLengthIncludingTrailingNul`.
+	#[inline(always)]
+	pub fn new(trace_point_name: CString) -> Result<Self, ()>
+	{
+		if trace_point_name.as_bytes().len() > Self::TracePointNameMaximumLengthExcludingTrailingNul
+		{
+			Err(())
+		}
+		else
+		{
+			Ok
+			(
+				Self
+				{
+					trace_point_name
+				}
+			)
+		}
+	}
+	
+	/// Trace point name.
+	#[inline(always)]
+	pub fn trace_point_name(self) -> CString
+	{
+		self.trace_point_name
+	}
 }

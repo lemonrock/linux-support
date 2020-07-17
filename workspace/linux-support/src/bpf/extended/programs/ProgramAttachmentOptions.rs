@@ -2,15 +2,18 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Solitary instance.
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct LinuxInfraRedRemoteControlMode2AttachmentType;
+/// Program attachment options, if any.
+pub trait ProgramAttachmentOptions
+{
+	#[doc(hidden)]
+	fn to_attach_flags(self) -> (BPF_PROG_ATTACH_flags, RawFd);
+}
 
-impl ProgramAttachmentType for LinuxInfraRedRemoteControlMode2AttachmentType
+impl ProgramAttachmentOptions for ()
 {
 	#[inline(always)]
-	fn to_bpf_attach_type(self) -> bpf_attach_type
+	fn to_attach_flags(self) -> (BPF_PROG_ATTACH_flags, RawFd)
 	{
-		bpf_attach_type::BPF_LIRC_MODE2
+		(BPF_PROG_ATTACH_flags::empty(), 0)
 	}
 }

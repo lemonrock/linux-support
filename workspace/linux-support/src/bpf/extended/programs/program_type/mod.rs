@@ -3,6 +3,7 @@
 
 
 use super::*;
+use super::super::process_query::TracePointDetails;
 use crate::file_descriptors::bpf::ExtendedBpfProgramFileDescriptor;
 use crate::file_descriptors::cgroup::CgroupProgramAttachmentType;
 
@@ -11,3 +12,4 @@ include!("AttachToBpfTypeIdentifier.rs");
 include!("AttachProgramTypeDetails.rs");
 include!("CommonProgramTypeDetails.rs");
 include!("ProgramType.rs");
+include!("RawTracePointType.rs");

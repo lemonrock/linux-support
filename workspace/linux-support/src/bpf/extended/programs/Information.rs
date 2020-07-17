@@ -2,23 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-bitflags!
+/// Information.
+pub trait Information: Sized
 {
-	#[doc(hidden)]
-	#[allow(missing_docs)]
-	pub struct BPF_PROG_QUERY_flags: u32
-	{
-		/// Query effective (directly attached + inherited from ancestor cgroups) programs that will be executed for events within a cgroup.
-		/// `attach_flags` with this flag are returned only for directly attached programs.
-		const BPF_F_QUERY_EFFECTIVE = 1;
-	}
-}
-
-impl Default for BPF_PROG_QUERY_flags
-{
-	#[inline(always)]
-	fn default() -> Self
-	{
-		BPF_PROG_QUERY_flags::empty()
-	}
+	/// Type of identifier.
+	type Identifier: Identifier;
+	
+	/// Identifier.
+	fn identifier(&self) -> Self::Identifier;
 }

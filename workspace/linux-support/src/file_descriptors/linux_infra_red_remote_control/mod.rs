@@ -5,7 +5,8 @@
 use super::*;
 use super::bpf::*;
 use crate::bpf::c::bpf_attach_type;
+use crate::bpf::extended::programs::*;
 
 
-include!("LinuxInfraRedRemoteControlMode2AttachmentType.rs");
+include!("LinuxInfraRedRemoteControlRawMode2ProgramAttachmentType.rs");
 include!("LinuxInfraRedRemoteControlRawMode2FileDescriptor.rs");

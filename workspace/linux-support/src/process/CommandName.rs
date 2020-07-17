@@ -62,7 +62,7 @@ impl<'a> From<&'a [c_char; CommandName::MaximumCommandNameLengthIncludingAsciiNu
 	#[inline(always)]
 	fn from(value: &'a [c_char; CommandName::MaximumCommandNameLengthIncludingAsciiNul]) -> Self
 	{
-		let length_including_ascii_nul = match memchr(b'\0', value)
+		let length_including_ascii_nul = match memchr(b'\0', unsafe { transmute(&value[..]) })
 		{
 			Some(index) => index + 1,
 			None => CommandName::MaximumCommandNameLengthIncludingAsciiNul,

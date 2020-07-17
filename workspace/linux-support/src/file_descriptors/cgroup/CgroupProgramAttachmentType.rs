@@ -28,6 +28,8 @@
 ///   * `BPF_CGROUP_GETSOCKOPT`.
 ///   * `BPF_CGROUP_SETSOCKOPT`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(u32)]
 pub enum CgroupProgramAttachmentType
 {
@@ -145,7 +147,16 @@ pub enum CgroupProgramAttachmentType
 impl ProgramAttachmentType for CgroupProgramAttachmentType
 {
 	#[inline(always)]
-	fn to_bpf_prog_type_and_bpf_attach_type(self) -> (bpf_prog_type, bpf_attach_type)
+	fn to_bpf_attach_type(self) -> bpf_attach_type
+	{
+		unsafe { transmute(self as u32) }
+	}
+}
+
+impl CgroupProgramAttachmentType
+{
+	#[inline(always)]
+	pub(crate) fn to_bpf_prog_type_and_bpf_attach_type(self) -> (bpf_prog_type, bpf_attach_type)
 	{
 		use self::bpf_attach_type::*;
 		use self::bpf_prog_type::*;
@@ -172,11 +183,5 @@ impl ProgramAttachmentType for CgroupProgramAttachmentType
 			GetSocketOptions => (BPF_PROG_TYPE_CGROUP_SOCKOPT, BPF_CGROUP_GETSOCKOPT),
 			SysControl => (BPF_PROG_TYPE_CGROUP_SYSCTL, BPF_CGROUP_SYSCTL),
 		}
-	}
-	
-	#[inline(always)]
-	fn to_bpf_attach_type(self) -> bpf_attach_type
-	{
-		unsafe { transmute((self as u32)) }
 	}
 }

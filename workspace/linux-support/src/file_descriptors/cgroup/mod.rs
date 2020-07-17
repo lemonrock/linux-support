@@ -4,7 +4,8 @@
 
 use super::*;
 use super::bpf::*;
-use crate::bpf::c::{BPF_PROG_ATTACH_flags, bpf_attach_type, bpf_prog_type};
+use crate::bpf::c::*;
+use crate::bpf::extended::programs::*;
 
 
 include!("CgroupFileDescriptor.rs");

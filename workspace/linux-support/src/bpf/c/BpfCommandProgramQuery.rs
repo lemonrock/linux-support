@@ -8,7 +8,7 @@
 pub(crate) struct BpfCommandProgramQuery
 {
 	/// container object to query.
-	pub(crate) target_fd: u32,
+	pub(crate) target_fd: RawFd,
 	
 	pub(crate) attach_type: bpf_attach_type,
 	

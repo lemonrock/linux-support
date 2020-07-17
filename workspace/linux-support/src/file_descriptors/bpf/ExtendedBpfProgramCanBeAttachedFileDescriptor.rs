@@ -5,12 +5,16 @@
 /// Supports attaching and detaching programs.
 pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 {
+	/// Program attachment type.
 	type ProgramAttachmentType: ProgramAttachmentType;
 	
+	/// Program query flags, if any.
 	type ProgramQueryFlags: ProgramQueryFlags;
 	
+	/// Program attachment flags, if any.
 	type ProgramAttachmentFlags: ProgramAttachmentFlags;
 	
+	/// Program attachment options, if any.
 	type ProgramAttachmentOptions: ProgramAttachmentOptions;
 	
 	#[doc(hidden)]
@@ -86,7 +90,7 @@ pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 			{
 				unsafe { programs.set_len(attr.query.prog_cnt as usize) };
 				programs.shrink_to_fit();
-				let program_attachment_flags = Self::ProgramAttachmentFlags::parse(attr.query.attach_flags);
+				let program_attachment_flags = Self::ProgramAttachmentFlags::parse(unsafe { attr.query.attach_flags });
 				return (programs, program_attachment_flags)
 			}
 			else if likely!(result == -1)
@@ -96,7 +100,7 @@ pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 					// Only returned as of Linux 5.6 for CgroupFileDescriptor.
 					ENOSPC =>
 					{
-						let required = attr.query.prog_cnt as usize;
+						let required = unsafe { attr.query.prog_cnt as usize };
 						debug_assert!(required > programs.capacity());
 						programs.reserve(required - programs.capacity());
 						continue
@@ -116,10 +120,6 @@ pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 		}
 	}
 	
-	// TODO: eg attach_kprobe for kprobe and uprobe but not kretprobe and uretprobe
-	// TODO: eg attach_tp for TRACEPOINT (tracepoint_category and tracepoint_name) use a pfd - perfevent fd using perf_event_open_probe
-	// TODO: eg attach_raw_tp for RAW_TRACEPOINT (tracepoint_name)
-	// TODO: eg attach_trace for TRACING and EXT and LSM
 	/// Requires the capability `CAP_NET_ADMIN`.
 	///
 	/// Supported attach types by program type (found in the Linux kernel functions `bpf_prog_attach()` and `attach_type_to_prog_type()`).

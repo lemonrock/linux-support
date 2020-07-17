@@ -3,48 +3,75 @@
 
 
 /// Program information.
-#[allow(missing_docs)]
 #[repr(C, align(8))]
 #[derive(Debug, Copy, Clone)]
 pub struct bpf_prog_info
 {
 	pub(crate) type_: bpf_prog_type,
 	
-	/// Identifier.
-	pub id: ExtendedBpfProgramIdentifier,
+	pub(crate) id: ExtendedBpfProgramIdentifier,
 	
+	/// Tag.
 	pub tag: [u8; BPF_TAG_SIZE],
+	
 	pub(crate) jited_prog_len: u32,
+	
 	pub(crate) xlated_prog_len: u32,
+	
 	pub(crate) jited_prog_insns: AlignedU64,
+	
 	pub(crate) xlated_prog_insns: AlignedU64,
 	
 	/// Value relative to system boot.
 	pub load_time: u64,
 	
+	/// User who created this program.
 	pub created_by_uid: UserIdentifier,
+	
 	pub(crate) nr_map_ids: u32,
+	
 	pub(crate) map_ids: AlignedU64,
+	
 	pub(crate) name: [c_char; BPF_OBJ_NAME_LEN],
-	pub ifindex: Option<NetworkInterfaceIndex>,
+	
+	pub(crate) ifindex: Option<NetworkInterfaceIndex>,
+	
 	_bitfield_1: __BindgenBitfieldUnit<[u8; 4], u8>,
-	pub netns_dev: u64,
-	pub netns_ino: Inode,
+	
+	pub(crate) netns_dev: u64,
+	
+	pub(crate) netns_ino: Inode,
+	
 	pub(crate) nr_jited_ksyms: u32,
+	
 	pub(crate) nr_jited_func_lens: u32,
+	
 	pub(crate) jited_ksyms: AlignedU64,
+	
 	pub(crate) jited_func_lens: AlignedU64,
-	pub btf_id: BtfIdentifier,
+	
+	pub(crate) btf_id: BtfIdentifier,
+	
 	pub(crate) func_info_rec_size: u32,
+	
 	pub(crate) func_info: AlignedU64,
+	
 	pub(crate) nr_func_info: u32,
+	
 	pub(crate) nr_line_info: u32,
+	
 	pub(crate) line_info: AlignedU64,
+	
 	pub(crate) jited_line_info: AlignedU64,
+	
 	pub(crate) nr_jited_line_info: u32,
+	
 	pub(crate) line_info_rec_size: u32,
+	
 	pub(crate) jited_line_info_rec_size: u32,
+	
 	pub(crate) nr_prog_tags: u32,
+	
 	pub(crate) prog_tags: AlignedU64,
 	
 	/// Time spent running, in nanoseconds.
@@ -54,6 +81,17 @@ pub struct bpf_prog_info
 	pub run_cnt: u64,
 }
 
+impl Information for bpf_prog_info
+{
+	type Identifier = ExtendedBpfProgramIdentifier;
+	
+	#[inline(always)]
+	fn identifier(&self) -> Self::Identifier
+	{
+		self.id
+	}
+}
+
 impl bpf_prog_info
 {
 	/// Name (clones internally).
@@ -61,6 +99,20 @@ impl bpf_prog_info
 	pub fn name(&self) -> ProgramName
 	{
 		ProgramName::from(&self.name)
+	}
+	
+	/// Associated BTF identifier, if any.
+	#[inline(always)]
+	pub fn btf_identifier(&self) -> BtfIdentifier
+	{
+		self.btf_id
+	}
+	
+	/// Network device bound to, if any.
+	#[inline(always)]
+	pub fn network_device_network_namespace_dev_and_network_namespace_inode(&self) -> (Option<NetworkInterfaceIndex>, u64, Inode)
+	{
+		(self.ifindex, self.netns_dev, self.netns_ino)
 	}
 	
 	/// Jitted instructions.
@@ -128,7 +180,7 @@ impl bpf_prog_info
 	
 	/// Is GPL compatible?
 	#[inline(always)]
-	pub fn gpl_compatible(&self) -> u32
+	pub fn is_gpl_compatible(&self) -> u32
 	{
 		unsafe { transmute(self._bitfield_1.get(0, 1) as u32) }
 	}

@@ -5,7 +5,7 @@
 /// How to attach the program.
 ///
 /// This is to support a complex hierarchy of Cgroups.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum CgroupProgramAttachmentOptions
 {
 	/// This is the only program at this level; no child programs are allowed.

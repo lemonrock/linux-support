@@ -2,9 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// Bitfield.
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct __BindgenBitfieldUnit<Storage, Align>
+pub(crate) struct __BindgenBitfieldUnit<Storage, Align>
 {
     storage: Storage,
     align: [Align; 0],

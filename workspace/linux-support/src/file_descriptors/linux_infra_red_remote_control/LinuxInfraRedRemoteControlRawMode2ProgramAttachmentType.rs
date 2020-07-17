@@ -2,23 +2,15 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-bitflags!
-{
-	#[doc(hidden)]
-	#[allow(missing_docs)]
-	pub struct BPF_PROG_QUERY_flags: u32
-	{
-		/// Query effective (directly attached + inherited from ancestor cgroups) programs that will be executed for events within a cgroup.
-		/// `attach_flags` with this flag are returned only for directly attached programs.
-		const BPF_F_QUERY_EFFECTIVE = 1;
-	}
-}
+/// Solitary instance.
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct LinuxInfraRedRemoteControlRawMode2ProgramAttachmentType;
 
-impl Default for BPF_PROG_QUERY_flags
+impl ProgramAttachmentType for LinuxInfraRedRemoteControlRawMode2ProgramAttachmentType
 {
 	#[inline(always)]
-	fn default() -> Self
+	fn to_bpf_attach_type(self) -> bpf_attach_type
 	{
-		BPF_PROG_QUERY_flags::empty()
+		bpf_attach_type::BPF_LIRC_MODE2
 	}
 }

@@ -12,6 +12,7 @@ use crate::file_descriptors::bpf::*;
 use crate::linux_kernel_version::LinuxKernelVersionNumber;
 use crate::pci_express::NetworkInterfaceIndex;
 use crate::process::CommandName;
+use crate::bpf::extended::identifiers::Identifier;
 
 
 /// Program type.
@@ -21,8 +22,13 @@ pub mod program_type;
 include!("BpfProgramLicense.rs");
 include!("ExtendedBpfProgram.rs");
 include!("ExtendedBpfProgramArguments.rs");
+include!("Information.rs");
 include!("MinimumLinuxKernelVersion.rs");
 include!("ProgramLoadError.rs");
+include!("ProgramAttachmentFlags.rs");
+include!("ProgramAttachmentOptions.rs");
+include!("ProgramAttachmentType.rs");
 include!("ProgramName.rs");
+include!("ProgramQueryFlags.rs");
 include!("VerifierLog.rs");
 include!("VerifierLogLevel.rs");
