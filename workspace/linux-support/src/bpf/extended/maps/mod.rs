@@ -42,6 +42,7 @@ include!("ReusePortSocketValue.rs");
 include!("ReusePortSocketArrayMap.rs");
 include!("SocketCookie.rs");
 include!("SpinLockableArrayMap.rs");
+include!("SpinLockableHashMap.rs");
 include!("SpinLockableValue.rs");
 include!("StackFrame.rs");
 include!("StackTraceMap.rs");
