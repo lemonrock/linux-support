@@ -2,11 +2,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Map type.
+#[doc(hidden)]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) enum MapType<'name>
+pub(crate) enum MapType<'map_of_maps_template_file_descriptor>
 {
 	/// A hash.
 	///
@@ -111,7 +111,7 @@ pub(crate) enum MapType<'name>
 	/// Key size is always 4 (`size_of::<u32>()`).
 	/// Value size is always 4 (`size_of::<RawFd>()` where `RawFd` is an `ExtendedBpfFileDescriptor`).
 	/// Max entries is non-zero.
-	ProgramArray(MaximumEntries, #[serde(default)] AccessPermissions),
+	ProgramArray(MaximumEntries, #[serde(default)] KernelOnlyAccessPermissions),
 	
 	/// An array of perf event file descriptors
 	///
@@ -120,7 +120,7 @@ pub(crate) enum MapType<'name>
 	/// Key size is always 4 (`size_of::<u32>()`).
 	/// Value size is always 4 (`size_of::<RawFd>()` where `RawFd` is an `PerfEventFileDescriptor`).
 	/// Max entries is non-zero.
-	PerfEventArray(MaximumEntries, #[serde(default)] AccessPermissions),
+	PerfEventArray(MaximumEntries, #[serde(default)] KernelOnlyAccessPermissions),
 	
 	/// Key size is always 4 (`size_of::<u32>()`).
 	/// Value size can not be 0 and is always a multiple of 8 (`size_of::<AlignedU64>()`).
@@ -130,7 +130,7 @@ pub(crate) enum MapType<'name>
 	/// Requires the capability `CAP_SYS_ADMIN`.
 	///
 	/// Uses structures of the type `AlignedU64` (a pointer).
-	StackTraceAlignedU64(StackDepth, MaximumEntries, #[serde(default)] KernelOnlyAccessPermissions, #[serde(default)] Option<NumaNode>),
+	StackTraceInstructionPointerAddress(StackDepth, MaximumEntries, #[serde(default)] KernelOnlyAccessPermissions, #[serde(default)] Option<NumaNode>),
 	
 	/// Key size is always 4 (`size_of::<u32>()`).
 	/// Value size can not be 0 and is always a multiple of 32 (`size_of::<bpf_stack_build_id>()`).
@@ -149,7 +149,7 @@ pub(crate) enum MapType<'name>
 	/// Key size is always 4 (`size_of::<u32>()`).
 	/// Value size is always 4 (`size_of::<RawFd>()` where `RawFd` is an `CgroupFileDescriptor`).
 	/// Max entries is non-zero.
-	CgroupArray(MaximumEntries, #[serde(default)] AccessPermissions),
+	CgroupArray(MaximumEntries, #[serde(default)] KernelOnlyAccessPermissions),
 	
 	/// Reuse port socket array.
 	///
@@ -157,7 +157,7 @@ pub(crate) enum MapType<'name>
 	///
 	/// Key size is `size_of::<u32>()`.
 	/// Value size is `size_of::<u32>()` (4).
-	/// Max entries is non-zero.
+	/// Max entries is non-zero.(MaximumEntries, #[serde(default)] AccessPermissions, #[serde(default)] Option<NumaNode>)
 	ReusePortSocketArrayU32(MaximumEntries, #[serde(default)] AccessPermissions, #[serde(default)] Option<NumaNode>),
 	
 	/// Reuse port socket array.
@@ -176,7 +176,7 @@ pub(crate) enum MapType<'name>
 	/// Key size is always 4 (`size_of::<u32>()`).
 	/// Value size is always 4 (`size_of::<RawFd>()` where `RawFd` is a `MapFileDescriptor`).
 	/// Max entries is non-zero.
-	ArrayOfMaps(MaximumEntries, #[serde(default)] AccessPermissions, FileDescriptorLabel<'name>),
+	#[serde(skip)] ArrayOfMaps(MaximumEntries, #[serde(default)] KernelOnlyAccessPermissions, &'map_of_maps_template_file_descriptor MapFileDescriptor),
 	
 	/// Hash of Maps.
 	///
@@ -185,7 +185,7 @@ pub(crate) enum MapType<'name>
 	/// Key size is anything in the range `1 ..= MAX_BPF_STACK`.
 	/// Value size is always 4 (`size_of::<RawFd>()` where `RawFd` is a `MapFileDescriptor`).
 	/// Max entries is non-zero.
-	HashOfMaps(KeySize, MaximumEntries, #[serde(default)] AccessPermissions, FileDescriptorLabel<'name>, #[serde(default)] Option<NumaNode>, Preallocation),
+	#[serde(skip)] HashOfMaps(KeySize, MaximumEntries, #[serde(default)] AccessPermissions, &'map_of_maps_template_file_descriptor MapFileDescriptor, #[serde(default)] Option<NumaNode>, Preallocation),
 
 	/// Longest-prefix match (LPM) trie.
 	///
@@ -329,10 +329,10 @@ pub(crate) enum MapType<'name>
 	SocketStorage(ValueSizeU16, MaximumEntries, CloneFromListener),
 }
 
-impl<'name> MapType<'name>
+impl<'map_of_maps_template_file_descriptor> MapType<'map_of_maps_template_file_descriptor>
 {
 	#[inline(always)]
-	pub(crate) fn to_values(&self, parsed_btf_map_data: Option<&ParsedBtfMapData>, map_file_descriptors: &FileDescriptorLabelsMap<MapFileDescriptor>) -> Result<(bpf_map_type, BPF_MAP_CREATE_flags, (RawFd, BtfTypeIdentifier, BtfTypeIdentifier, BtfTypeIdentifier), Option<NetworkInterfaceIndex>, u32, RawFd, NonZeroU32, NonZeroU32, u32), MapCreationError>
+	pub(crate) fn to_values(&self, parsed_btf_map_data: Option<&ParsedBtfMapData>) -> Result<(bpf_map_type, BPF_MAP_CREATE_flags, (RawFd, BtfTypeIdentifier, BtfTypeIdentifier, BtfTypeIdentifier), Option<NetworkInterfaceIndex>, u32, RawFd, NonZeroU32, NonZeroU32, u32), MapCreationError>
 	{
 		use self::bpf_map_type::*;
 		use self::MapType::*;
@@ -368,8 +368,8 @@ impl<'name> MapType<'name>
 			&LeastRecentlyUsedHashSystemWideListSystemWide(key_size, value_size, maximum_entries, access_permissions, Some(numa_node)) => (BPF_MAP_TYPE_LRU_PERCPU_HASH, access_permissions.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_NO_COMMON_LRU | BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE, Self::btf(parsed_btf_map_data), None, numa_node.into(), NoInnerMapFileDescriptor, key_size.to_non_zero_u32(), value_size.to_non_zero_u32(), maximum_entries.to_u32()),
 			&ProgramArray(maximum_entries, access_permissions) => (BPF_MAP_TYPE_PROG_ARRAY, access_permissions.to_map_flags(), Self::btf(parsed_btf_map_data), None, NoNumaNode, NoInnerMapFileDescriptor, KeySizeOfU32, ValueSizeOfRawFd, maximum_entries.to_u32()),
 			&PerfEventArray(maximum_entries, access_permissions) => (BPF_MAP_TYPE_PERF_EVENT_ARRAY, access_permissions.to_map_flags(), Self::btf(parsed_btf_map_data), None, NoNumaNode, NoInnerMapFileDescriptor, KeySizeOfU32, ValueSizeOfRawFd, maximum_entries.to_u32()),
-			&StackTraceAlignedU64(stack_depth, maximum_entries, access_permissions, None) => (BPF_MAP_TYPE_STACK_TRACE, access_permissions.to_map_flags(), Self::btf(parsed_btf_map_data), None, NoNumaNode, NoInnerMapFileDescriptor, KeySizeOfAlignedU64, stack_depth.to_non_zero_u32::<AlignedU64>(), maximum_entries.to_u32()),
-			&StackTraceAlignedU64(stack_depth, maximum_entries, access_permissions, Some(numa_node)) => (BPF_MAP_TYPE_STACK_TRACE, access_permissions.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE, Self::btf(parsed_btf_map_data), None, numa_node.into(), NoInnerMapFileDescriptor, KeySizeOfAlignedU64, stack_depth.to_non_zero_u32::<AlignedU64>(), maximum_entries.to_u32()),
+			&StackTraceInstructionPointerAddress(stack_depth, maximum_entries, access_permissions, None) => (BPF_MAP_TYPE_STACK_TRACE, access_permissions.to_map_flags(), Self::btf(parsed_btf_map_data), None, NoNumaNode, NoInnerMapFileDescriptor, KeySizeOfAlignedU64, stack_depth.to_non_zero_u32::<AlignedU64>(), maximum_entries.to_u32()),
+			&StackTraceInstructionPointerAddress(stack_depth, maximum_entries, access_permissions, Some(numa_node)) => (BPF_MAP_TYPE_STACK_TRACE, access_permissions.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE, Self::btf(parsed_btf_map_data), None, numa_node.into(), NoInnerMapFileDescriptor, KeySizeOfAlignedU64, stack_depth.to_non_zero_u32::<AlignedU64>(), maximum_entries.to_u32()),
 			&StackTraceBuildIdentifier(stack_depth, maximum_entries, access_permissions, None) => (BPF_MAP_TYPE_STACK_TRACE, access_permissions.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_STACK_BUILD_ID, Self::btf(parsed_btf_map_data), None, NoNumaNode, NoInnerMapFileDescriptor, KeySizeOfAlignedU64, stack_depth.to_non_zero_u32::<bpf_stack_build_id>(), maximum_entries.to_u32()),
 			&StackTraceBuildIdentifier(stack_depth, maximum_entries, access_permissions, Some(numa_node)) => (BPF_MAP_TYPE_STACK_TRACE, access_permissions.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_STACK_BUILD_ID | BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE, Self::btf(parsed_btf_map_data), None, numa_node.into(), NoInnerMapFileDescriptor, KeySizeOfAlignedU64, stack_depth.to_non_zero_u32::<bpf_stack_build_id>(), maximum_entries.to_u32()),
 			&CgroupArray(maximum_entries, access_permissions) => (BPF_MAP_TYPE_CGROUP_ARRAY, access_permissions.to_map_flags(), Self::btf(parsed_btf_map_data), None, NoNumaNode, NoInnerMapFileDescriptor, KeySizeOfU32, ValueSizeOfRawFd, maximum_entries.to_u32()),
@@ -377,9 +377,9 @@ impl<'name> MapType<'name>
 			&ReusePortSocketArrayU32(maximum_entries, access_permissions, Some(numa_node)) => (BPF_MAP_TYPE_REUSEPORT_SOCKARRAY, access_permissions.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE, Self::btf(parsed_btf_map_data), None, numa_node.into(), NoInnerMapFileDescriptor, KeySizeOfU32, ValueSizeOfU32, maximum_entries.to_u32()),
 			&ReusePortSocketArrayU64(maximum_entries, access_permissions, None) => (BPF_MAP_TYPE_REUSEPORT_SOCKARRAY, access_permissions.to_map_flags(), Self::btf(parsed_btf_map_data), None, NoNumaNode, NoInnerMapFileDescriptor, KeySizeOfU32, ValueSizeOfU64, maximum_entries.to_u32()),
 			&ReusePortSocketArrayU64(maximum_entries, access_permissions, Some(numa_node)) => (BPF_MAP_TYPE_REUSEPORT_SOCKARRAY, access_permissions.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE, Self::btf(parsed_btf_map_data), None, numa_node.into(), NoInnerMapFileDescriptor, KeySizeOfU32, ValueSizeOfU64, maximum_entries.to_u32()),
-			&ArrayOfMaps(maximum_entries, access_permissions, ref file_descriptor_label) => (BPF_MAP_TYPE_ARRAY_OF_MAPS, access_permissions.to_map_flags(), Self::btf(parsed_btf_map_data), None, NoNumaNode, map_file_descriptors.resolve(file_descriptor_label)?, KeySizeOfU32, ValueSizeOfRawFd, maximum_entries.to_u32()),
-			&HashOfMaps(key_size, maximum_entries, access_permissions, ref file_descriptor_label, None, preallocation) => (BPF_MAP_TYPE_HASH_OF_MAPS, access_permissions.to_map_flags() | preallocation.to_map_flags(), Self::btf(parsed_btf_map_data), None, NoNumaNode, map_file_descriptors.resolve(file_descriptor_label)?, key_size.to_non_zero_u32(), ValueSizeOfRawFd, maximum_entries.to_u32()),
-			&HashOfMaps(key_size, maximum_entries, access_permissions, ref file_descriptor_label, Some(numa_node), preallocation) => (BPF_MAP_TYPE_HASH_OF_MAPS, access_permissions.to_map_flags() | preallocation.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE, Self::btf(parsed_btf_map_data), None, numa_node.into(), map_file_descriptors.resolve(file_descriptor_label)?, key_size.to_non_zero_u32(), ValueSizeOfRawFd, maximum_entries.to_u32()),
+			&ArrayOfMaps(maximum_entries, access_permissions, template_map_file_descriptor) => (BPF_MAP_TYPE_ARRAY_OF_MAPS, access_permissions.to_map_flags(), Self::btf(parsed_btf_map_data), None, NoNumaNode, template_map_file_descriptor.as_raw_fd(), KeySizeOfU32, ValueSizeOfRawFd, maximum_entries.to_u32()),
+			&HashOfMaps(key_size, maximum_entries, access_permissions, template_map_file_descriptor, None, preallocation) => (BPF_MAP_TYPE_HASH_OF_MAPS, access_permissions.to_map_flags() | preallocation.to_map_flags(), Self::btf(parsed_btf_map_data), None, NoNumaNode, template_map_file_descriptor.as_raw_fd(), key_size.to_non_zero_u32(), ValueSizeOfRawFd, maximum_entries.to_u32()),
+			&HashOfMaps(key_size, maximum_entries, access_permissions, template_map_file_descriptor, Some(numa_node), preallocation) => (BPF_MAP_TYPE_HASH_OF_MAPS, access_permissions.to_map_flags() | preallocation.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE, Self::btf(parsed_btf_map_data), None, numa_node.into(), template_map_file_descriptor.as_raw_fd(), key_size.to_non_zero_u32(), ValueSizeOfRawFd, maximum_entries.to_u32()),
 			&LongestPrefixMatchTrieInternetProtocolVersion4(value_size, maximum_entries, access_permissions, None) => (BPF_MAP_TYPE_LPM_TRIE, access_permissions.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_NO_PREALLOC, Self::btf(parsed_btf_map_data), None, NoNumaNode, NoInnerMapFileDescriptor, ValueSizeOfLongestPrefixMatchTrieInternetProtocolVersion4, value_size.to_non_zero_u32(), maximum_entries.to_u32()),
 			&LongestPrefixMatchTrieInternetProtocolVersion4(value_size, maximum_entries, access_permissions, Some(numa_node)) => (BPF_MAP_TYPE_LPM_TRIE, access_permissions.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_NO_PREALLOC | BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE, Self::btf(parsed_btf_map_data), None, numa_node.into(), NoInnerMapFileDescriptor, ValueSizeOfLongestPrefixMatchTrieInternetProtocolVersion4, value_size.to_non_zero_u32(), maximum_entries.to_u32()),
 			&LongestPrefixMatchTrieInternetProtocolVersion6(value_size, maximum_entries, access_permissions, None) => (BPF_MAP_TYPE_LPM_TRIE, access_permissions.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_NO_PREALLOC, Self::btf(parsed_btf_map_data), None, NoNumaNode, NoInnerMapFileDescriptor, ValueSizeOfLongestPrefixMatchTrieInternetProtocolVersion6, value_size.to_non_zero_u32(), maximum_entries.to_u32()),

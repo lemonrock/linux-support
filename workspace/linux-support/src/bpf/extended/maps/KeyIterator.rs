@@ -4,13 +4,13 @@
 
 /// Iterator.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct KeyIterator<'map_file_descriptor_label_map, K: Sized>
+pub struct KeyIterator<'map_file_descriptor, K: Sized>
 {
-	map_file_descriptor: &'map_file_descriptor_label_map MapFileDescriptor,
+	map_file_descriptor: &'map_file_descriptor MapFileDescriptor,
 	current_key: Option<K>,
 }
 
-impl<'map_file_descriptor_label_map, K: Sized> Iterator for KeyIterator<'map_file_descriptor_label_map, K>
+impl<'map_file_descriptor, K: Sized> Iterator for KeyIterator<'map_file_descriptor, K>
 {
 	type Item = Result<K, Errno>;
 	
@@ -33,10 +33,10 @@ impl<'map_file_descriptor_label_map, K: Sized> Iterator for KeyIterator<'map_fil
 	}
 }
 
-impl<'map_file_descriptor_label_map, K: Sized> KeyIterator<'map_file_descriptor_label_map, K>
+impl<'map_file_descriptor, K: Sized> KeyIterator<'map_file_descriptor, K>
 {
 	#[inline(always)]
-	fn new(map_file_descriptor: &'map_file_descriptor_label_map MapFileDescriptor) -> Result<Self, Errno>
+	fn new(map_file_descriptor: &'map_file_descriptor MapFileDescriptor) -> Result<Self, Errno>
 	{
 		let first_key = map_file_descriptor.get_next_key(null())?;
 		

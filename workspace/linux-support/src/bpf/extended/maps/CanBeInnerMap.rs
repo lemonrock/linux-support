@@ -2,9 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Used as a value in a BPF array map.
-pub trait UsedAsValueInArrayMapDescriptor: FileDescriptor
+/// Can be an inner map.
+pub trait CanBeInnerMap
 {
 	#[doc(hidden)]
-	fn transmute_from_file_descriptor_copies(values: &[Self]) -> &[RawFd];
+	fn map_file_descriptor(&self) -> &MapFileDescriptor;
 }

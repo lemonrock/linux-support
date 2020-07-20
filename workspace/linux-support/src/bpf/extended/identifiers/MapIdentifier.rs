@@ -42,13 +42,19 @@ impl Identifier for MapIdentifier
 	
 	const GetFileDescriptor: bpf_cmd = bpf_cmd::BPF_MAP_GET_FD_BY_ID;
 	
+	#[inline(always)]
+	fn access_permissions_to_open_flags(access: Self::Access) -> u32
+	{
+		access.to_map_flags().bits() as u32
+	}
+	
 	type FD = MapFileDescriptor;
 	
 	type Access = KernelOnlyAccessPermissions;
 	
 	#[inline(always)]
-	fn access_permissions_to_open_flags(access: Self::Access) -> u32
+	fn froms(values: Vec<u32>) -> Vec<Self>
 	{
-		access.to_map_flags().bits() as u32
+		unsafe { transmute(values) }
 	}
 }

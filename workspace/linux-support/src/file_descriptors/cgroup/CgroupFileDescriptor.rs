@@ -67,21 +67,9 @@ impl FileDescriptor for CgroupFileDescriptor
 impl UsedAsValueInArrayMapDescriptor for CgroupFileDescriptor
 {
 	#[inline(always)]
-	fn transmute_to_file_descriptor_copies(values: Vec<RawFd>) -> Vec<FileDescriptorCopy<Self>>
+	fn transmute_from_file_descriptor_copies(values: &[Self]) -> &[RawFd]
 	{
 		unsafe { transmute(values) }
-	}
-	
-	#[inline(always)]
-	fn transmute_from_file_descriptor_copies(values: &[FileDescriptorCopy<Self>]) -> &[RawFd]
-	{
-		unsafe { transmute(values) }
-	}
-	
-	#[inline(always)]
-	fn transmute_to_file_descriptor_copy(value: RawFd) -> FileDescriptorCopy<Self>
-	{
-		unsafe { transmute(value) }
 	}
 }
 
@@ -95,8 +83,8 @@ impl ExtendedBpfProgramCanBeAttachedFileDescriptor for CgroupFileDescriptor
 	
 	type ProgramAttachmentOptions = CgroupProgramAttachmentOptions;
 	
-	// This is a guess.
-	const InitialProgramCountGuess: usize = 16;
+	/// `BPF_CGROUP_MAX_PROGS`.
+	const InitialProgramCountGuess: usize = 64;
 }
 
 impl CgroupFileDescriptor

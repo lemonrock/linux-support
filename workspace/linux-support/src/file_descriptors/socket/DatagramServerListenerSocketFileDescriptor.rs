@@ -38,6 +38,10 @@ impl<SD: SocketData> FileDescriptor for DatagramServerListenerSocketFileDescript
 {
 }
 
+impl<SD: SocketData> ListenerSocketFileDescriptor for DatagramServerListenerSocketFileDescriptor<SD>
+{
+}
+
 impl<SD: SocketData> Deref for DatagramServerListenerSocketFileDescriptor<SD>
 {
 	type Target = SocketFileDescriptor<SD>;

@@ -167,8 +167,10 @@ pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 	/// The program type referred to in `attach_program` must be compatible with the `program_attachment_type`.
 	///
 	/// Does not support programs loaded onto to devices (`NetworkInterfaceIndex`).
+	///
+	/// Fails if `self` has too many programs attached (the norm is 64 for Linux Infra Red Control, PerfEvent and CGroup).
 	#[inline(always)]
-	fn attach(&self, program_attachment_type: Self::ProgramAttachmentType, attach_program: &ExtendedBpfProgramFileDescriptor, program_attachment_options: Self::ProgramAttachmentOptions)
+	fn attach(&self, program_attachment_type: Self::ProgramAttachmentType, attach_program: &ExtendedBpfProgramFileDescriptor, program_attachment_options: Self::ProgramAttachmentOptions) -> Result<(), ()>
 	{
 		let (attach_flags, replace_bpf_fd) = program_attachment_options.to_attach_flags();
 		
@@ -185,6 +187,7 @@ pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 		let result = attr.syscall(bpf_cmd::BPF_PROG_ATTACH);
 		if likely!(result == 0)
 		{
+			Ok(())
 		}
 		else if likely!(result == -1)
 		{
@@ -193,7 +196,7 @@ pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 				EINVAL => panic!("Invalid attr or invalid attachment type to attach"),
 				EPERM => panic!("Permission denied"),
 				EEXIST => panic!("BPF_PROG_TYPE_FLOW_DISSECTOR only allows one program to exist at a time"),
-				E2BIG => panic!("BPF_PROG_TYPE_LIRC_MODE2 only allows 64 programs to exist at a time"),
+				E2BIG => Err(()),
 				ENODEV => panic!("BPF_PROG_TYPE_LIRC_MODE2 only supports raw mode 2"),
 				EOPNOTSUPP => panic!("BPF_PROG_TYPE_SK_* failure"),
 				errno @ _ => panic!("Unexpected error `{}`", errno),

@@ -10,7 +10,7 @@ pub(crate) union OffsetOrInstructionPointer
 	pub(crate) offset: u64,
 	
 	/// Instruction pointer.
-	pub(crate) ip: u64,
+	pub(crate) ip: InstructionPointer,
 }
 
 impl Default for OffsetOrInstructionPointer

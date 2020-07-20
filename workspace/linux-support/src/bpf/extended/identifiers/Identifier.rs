@@ -87,4 +87,7 @@ pub trait Identifier: From<u32> + Into<u32> + Into<BpfCommandGetIdentifierValueO
 			unreachable!("Unexpected result `{}` from bpf({:?})", result, Self::GetFileDescriptor)
 		}
 	}
+	
+	#[doc(hidden)]
+	fn froms(values: Vec<u32>) -> Vec<Self>;
 }

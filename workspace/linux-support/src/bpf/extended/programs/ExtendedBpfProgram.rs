@@ -30,7 +30,7 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 {
 	/// Parse and load.
 	#[inline(always)]
-	pub fn parse_and_load<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>(&self, arguments: ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>, verifier_log: Option<&mut VerifierLog>) -> Result<&'extended_bpf_program_file_descriptor_label_map ExtendedBpfProgramFileDescriptor, ProgramLoadError>
+	pub fn parse_and_load(&self, arguments: ExtendedBpfProgramArguments, verifier_log: Option<&mut VerifierLog>) -> Result<Rc<ExtendedBpfProgramFileDescriptor>, ProgramLoadError>
 	{
 		let verifier_log_copy = unsafe { transmute_copy(&verifier_log) };
 		

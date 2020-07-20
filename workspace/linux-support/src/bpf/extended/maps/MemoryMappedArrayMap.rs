@@ -6,13 +6,22 @@
 ///
 /// When created, all its elements are zeroed.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct MemoryMappedArrayMap<'map_file_descriptor_label_map, V: Sized>
+pub struct MemoryMappedArrayMap<V: Sized>
 {
-	array_map: ArrayMap<'map_file_descriptor_label_map, V>,
+	array_map: ArrayMap<V>,
 	mapped_memory: MappedMemory,
 }
 
-impl<'map_file_descriptor_label_map, V: Sized> MemoryMappedArrayMap<'map_file_descriptor_label_map, V>
+impl<V: Sized> CanBeInnerMap for MemoryMappedArrayMap<V>
+{
+	#[inline(always)]
+	fn map_file_descriptor(&self) -> &MapFileDescriptor
+	{
+		&self.array_map.map_file_descriptor()
+	}
+}
+
+impl<V: Sized> MemoryMappedArrayMap<V>
 {
 	/// Capacity.
 	#[inline(always)]
@@ -26,6 +35,13 @@ impl<'map_file_descriptor_label_map, V: Sized> MemoryMappedArrayMap<'map_file_de
 	pub fn freeze(&self) -> Result<(), Errno>
 	{
 		self.array_map.freeze()
+	}
+	
+	/// Indices.
+	#[inline(always)]
+	pub fn indices(&self) -> RangeInclusive<u32>
+	{
+		self.array_map.indices()
 	}
 	
 	/// Element at index.
@@ -42,7 +58,7 @@ impl<'map_file_descriptor_label_map, V: Sized> MemoryMappedArrayMap<'map_file_de
 	
 	/// New instance.
 	#[inline(always)]
-	pub fn new(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, MapCreationError>
+	pub fn new(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, MapCreationError>
 	{
 		let array_map = ArrayMap::new_system_wide_internal(map_file_descriptors, map_name, parsed_btf_map_data, maximum_entries, access_permissions, numa_node, MemoryMap::MemoryMap)?;
 		
@@ -62,7 +78,7 @@ impl<'map_file_descriptor_label_map, V: Sized> MemoryMappedArrayMap<'map_file_de
 			KernelReadAndWriteUserspaceReadWrite => ReadWrite,
 		};
 		
-		let mapped_memory = MappedMemory::from_file(array_map.map_file_descriptor, 0, length, AddressHint::any(), protection, Sharing::Shared, None, false, false, defaults).unwrap();
+		let mapped_memory = MappedMemory::from_file(array_map.map_file_descriptor.deref(), 0, length, AddressHint::any(), protection, Sharing::Shared, None, false, false, defaults).unwrap();
 		
 		Ok
 		(

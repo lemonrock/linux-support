@@ -5,13 +5,13 @@
 /// When an array is created, all its elements are zeroed.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub struct SpinLockableArrayMap<'map_file_descriptor_label_map, V: 'static + Sized + HasReflectionInformation>(ArrayMap<'map_file_descriptor_label_map, SpinLockableValue<V>>);
+pub struct SpinLockableArrayMap<V: 'static + Sized + HasReflectionInformation>(ArrayMap<SpinLockableValue<V>>);
 
-impl<'map_file_descriptor_label_map, V: 'static + Sized + HasReflectionInformation> SpinLockableArrayMap<'map_file_descriptor_label_map, V>
+impl<V: 'static + Sized + HasReflectionInformation> SpinLockableArrayMap<V>
 {
 	/// New system-wide.
 	#[inline(always)]
-	pub fn new_system_wide(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
+	pub fn new_system_wide(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
 	{
 		let array_map = ArrayMap::new_system_wide_internal(map_file_descriptors, map_name, parsed_btf_map_data, maximum_entries, access_permissions, numa_node, MemoryMap::DoNotMemoryMap)?;
 		Ok(Self(array_map))
@@ -31,6 +31,13 @@ impl<'map_file_descriptor_label_map, V: 'static + Sized + HasReflectionInformati
 		self.0.freeze()
 	}
 	
+	/// Indices.
+	#[inline(always)]
+	pub fn indices(&self) -> RangeInclusive<u32>
+	{
+		self.0.indices()
+	}
+	
 	/// Get, batched.
 	#[inline(always)]
 	pub fn get_batch(&self, in_batch: Option<&OpaqueBatchPosition<u32>>, indices: &[u32]) -> Result<(Vec<SpinLockableValue<V>>, OpaqueBatchPosition<u32>, bool), Errno>
@@ -43,17 +50,6 @@ impl<'map_file_descriptor_label_map, V: 'static + Sized + HasReflectionInformati
 	pub fn set_batch(&self, indices: &[u32], values: &[SpinLockableValue<V>]) -> Result<usize, Errno>
 	{
 		self.0.set_batch_locked(indices, values)
-	}
-	
-	/// Gets the next index (key).
-	///
-	/// Returns `None` if the `index` is the last one (ie `capacity() - 1`).
-	///
-	/// Does not make a syscall.
-	#[inline(always)]
-	pub fn get_next_index(&self, index: u32) -> Option<u32>
-	{
-		self.0.get_next_index(index)
 	}
 	
 	/// Looks up an index; should always succeed.

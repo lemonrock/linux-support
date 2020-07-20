@@ -54,9 +54,15 @@ impl StackDepth
 	pub const InclusiveMaximum: Self = Self::new_unsafe(Self::PERF_MAX_STACK_DEPTH);
 	
 	#[inline(always)]
-	pub(crate) const fn to_non_zero_u32<T: Sized>(self) -> NonZeroU32
+	pub(crate) const fn to_non_zero_u32<SF: StackFrame>(self) -> NonZeroU32
 	{
-		unsafe { NonZeroU32::new_unchecked((self.0.get() as u32) * (size_of::<T>() as u32)) }
+		unsafe { NonZeroU32::new_unchecked((self.0.get() as u32) * (size_of::<SF>() as u32)) }
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn to_count(self) -> usize
+	{
+		self.0.get() as usize
 	}
 	
 	#[inline(always)]

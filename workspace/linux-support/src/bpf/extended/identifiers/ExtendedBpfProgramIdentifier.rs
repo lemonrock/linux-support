@@ -42,13 +42,19 @@ impl Identifier for ExtendedBpfProgramIdentifier
 	
 	const GetFileDescriptor: bpf_cmd = bpf_cmd::BPF_PROG_GET_FD_BY_ID;
 	
+	#[inline(always)]
+	fn access_permissions_to_open_flags(_access: Self::Access) -> u32
+	{
+		0
+	}
+	
 	type FD = ExtendedBpfProgramFileDescriptor;
 	
 	type Access = ();
 	
 	#[inline(always)]
-	fn access_permissions_to_open_flags(_access: Self::Access) -> u32
+	fn froms(values: Vec<u32>) -> Vec<Self>
 	{
-		0
+		unsafe { transmute(values) }
 	}
 }

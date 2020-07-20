@@ -4,18 +4,18 @@
 
 /// Resolves the value of items of type `FileDescriptor`.
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
-pub struct FileDescriptorLabelsMap<FD: FileDescriptor>(HashMap<String, FD>);
+pub struct FileDescriptorLabelsMap<FD: FileDescriptor>(HashMap<String, Rc<FD>>);
 
 impl<FD: FileDescriptor> FileDescriptorLabelsMap<FD>
 {
 	#[inline(always)]
-	pub(crate) fn add(&mut self, file_descriptor_label: FileDescriptorLabel, file_descriptor: FD) -> Result<&FD, FileDescriptorLabelsMapError>
+	pub(crate) fn add(&mut self, file_descriptor_label: FileDescriptorLabel, file_descriptor: FD) -> Result<Rc<FD>, FileDescriptorLabelsMapError>
 	{
 		use std::collections::hash_map::Entry::*;
 		
 		match self.0.entry(file_descriptor_label.into())
 		{
-			Vacant(vacant) => Ok(vacant.insert(file_descriptor)),
+			Vacant(vacant) => Ok(Rc::clone(vacant.insert(Rc::new(file_descriptor)))),
 			Occupied(_) => Err(FileDescriptorLabelsMapError::AlreadyAddedFileDescriptorLabel),
 		}
 	}

@@ -4,29 +4,43 @@
 
 use self::domain::*;
 use self::domain::access_permissions::*;
+use self::map_constructors::*;
 use super::*;
 use super::bpf_type_format::*;
 use super::bpf_type_format::reflection::*;
+use super::identifiers::*;
 use super::instructions::file_descriptor_label::*;
-use crate::process::CommandName;
-use crate::pci_express::NetworkInterfaceIndex;
 use crate::file_descriptors::*;
 use crate::file_descriptors::bpf::*;
 use crate::file_descriptors::cgroup::CgroupFileDescriptor;
 use crate::file_descriptors::perf_event::PerfEventFileDescriptor;
 use crate::memory::mapping::*;
 use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
+use crate::pci_express::NetworkInterfaceIndex;
+use crate::process::CommandName;
+use crate::file_descriptors::socket::ListenerSocketFileDescriptor;
 
 
 /// Domain
 pub mod domain;
 
 
+/// Map constructors.
+pub mod map_constructors;
+
+
 include!("ArrayMap.rs");
+include!("CanBeInnerMap.rs");
 include!("FileDescriptorArrayMap.rs");
 include!("HashMap.rs");
 include!("KeyIterator.rs");
+include!("MapsArrayMap.rs");
 include!("MemoryMappedArrayMap.rs");
+include!("ReusePortSocketValue.rs");
+include!("ReusePortSocketArrayMap.rs");
+include!("SocketCookie.rs");
 include!("SpinLockableArrayMap.rs");
 include!("SpinLockableValue.rs");
+include!("StackFrame.rs");
+include!("StackTraceMap.rs");
 

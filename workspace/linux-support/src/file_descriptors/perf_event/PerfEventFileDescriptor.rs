@@ -3,6 +3,9 @@
 
 
 /// Represents a perf event file descriptor.
+///
+/// Can have `ExtendedBpfProgramFileDescriptor` attached using an `ioctl(PERF_EVENT_IOC_SET_BPF)`.
+/// Can have `ExtendedBpfProgramFileDescriptor` queried using an `ioctl(PERF_EVENT_IOC_QUERY_BPF)`.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PerfEventFileDescriptor(RawFd);
 
@@ -49,21 +52,9 @@ impl FileDescriptor for PerfEventFileDescriptor
 impl UsedAsValueInArrayMapDescriptor for PerfEventFileDescriptor
 {
 	#[inline(always)]
-	fn transmute_to_file_descriptor_copies(values: Vec<RawFd>) -> Vec<FileDescriptorCopy<Self>>
+	fn transmute_from_file_descriptor_copies(values: &[Self]) -> &[RawFd]
 	{
 		unsafe { transmute(values) }
-	}
-	
-	#[inline(always)]
-	fn transmute_from_file_descriptor_copies(values: &[FileDescriptorCopy<Self>]) -> &[RawFd]
-	{
-		unsafe { transmute(values) }
-	}
-	
-	#[inline(always)]
-	fn transmute_to_file_descriptor_copy(value: RawFd) -> FileDescriptorCopy<Self>
-	{
-		unsafe { transmute(value) }
 	}
 }
 

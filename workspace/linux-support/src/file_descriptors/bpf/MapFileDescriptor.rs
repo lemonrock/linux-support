@@ -55,6 +55,20 @@ impl MemoryMappableFileDescriptor for MapFileDescriptor
 {
 }
 
+impl UsedAsValueInArrayMapDescriptor for MapFileDescriptor
+{
+	#[inline(always)]
+	fn transmute_from_file_descriptor_copies(values: &[Self]) -> &[RawFd]
+	{
+		unsafe { transmute(values) }
+	}
+}
+
+impl ProvidesIdentifierWhenUsedAsValueInArrayMapDescriptor for MapFileDescriptor
+{
+	type Identifier = MapIdentifier;
+}
+
 impl MapFileDescriptor
 {
 	/// Gets the next key.
@@ -103,14 +117,48 @@ impl MapFileDescriptor
 		}
 	}
 	
-	/// Looks up an index; should always succeed.
 	#[allow(deprecated)]
+	#[inline(always)]
 	pub(crate) fn get<K: Sized, V: Sized>(&self, key: &K) -> Option<V>
 	{
 		debug_assert_ne!(size_of::<K>(), 0);
 		debug_assert_ne!(size_of::<V>(), 0);
 		
 		let mut value: V = unsafe { uninitialized() };
+		let found = self.get_internal(key, unsafe { NonNull::new_unchecked(&mut value) });
+		if found
+		{
+			Some(value)
+		}
+		else
+		{
+			None
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn get_variably_sized<K: Sized, V>(&self, key: &K, length: usize) -> Option<Vec<V>>
+	{
+		debug_assert_ne!(size_of::<K>(), 0);
+		
+		let mut value: Vec<V> = Vec::with_capacity(length);
+		
+		let found = self.get_internal(key, unsafe { NonNull::new_unchecked(value.as_mut_ptr()) });
+		if found
+		{
+			unsafe { value.set_len(length) };
+			Some(value)
+		}
+		else
+		{
+			None
+		}
+	}
+	
+	#[inline(always)]
+	fn get_internal<K: Sized, V>(&self, key: &K, value: NonNull<V>) -> bool
+	{
+		debug_assert_ne!(size_of::<K>(), 0);
 		
 		let mut attr = bpf_attr::default();
 		attr.map_change = BpfCommandMapChange
@@ -119,7 +167,7 @@ impl MapFileDescriptor
 			key: AlignedU64::from(key),
 			value_or_next_key: BpfCommandMapChangeValueOrNextKey
 			{
-				value: AlignedU64::from(&mut value),
+				value: AlignedU64::from(value),
 			},
 			flags: BPF_MAP_UPDATE_ELEM_flags::BPF_ANY,
 		};
@@ -127,14 +175,15 @@ impl MapFileDescriptor
 		let result = attr.syscall(bpf_cmd::BPF_MAP_LOOKUP_ELEM);
 		if likely!(result == 0)
 		{
-			Some(value)
+			true
 		}
 		else if likely!(result == -1)
 		{
 			let errno = errno();
 			match errno.0
 			{
-				ENOENT => None,
+				ENOENT => false,
+				ENOTSUPP | EOPNOTSUPP => panic!("Operation is unsupported"),
 				_ => panic!("Unexpected error {}", errno)
 			}
 		}
@@ -155,7 +204,7 @@ impl MapFileDescriptor
 			
 			Err(errno) => match errno.0
 			{
-				E2BIG => unreachable!("Should not return `E2BIG` as flag `BPF_NOEXIST` or `BPF_ANY` not specified"),
+				E2BIG => panic!("MaximumCapacityReached"),
 				
 				EEXIST => unreachable!("Should not return `EEXIST` as flag `BPF_NOEXIST` not specified"),
 				
@@ -182,6 +231,30 @@ impl MapFileDescriptor
 				E2BIG => Err(MaximumCapacityReached),
 				
 				EEXIST => Err(AlreadyPresent),
+				
+				ENOENT => unreachable!("Should not return `ENOENT` as flag `BPF_EXIST` not specified"),
+				
+				_ => panic!("Unexpected error `{}`", errno),
+			}
+		}
+	}
+	
+	/// Set.
+	///
+	/// For some weird reason, one needs to specifiy different `map_flags`.
+	///
+	/// See the Linux kernel function `bpf_fd_array_map_update_elem()`.
+	pub(crate) fn set_for_file_descriptor_array_map<K: Sized, V: Sized>(&self, key: &K, value: &V) -> Result<(), ()>
+	{
+		match self.update(key, value, BPF_MAP_UPDATE_ELEM_flags::BPF_ANY, LockFlags::DoNotLock)
+		{
+			Ok(()) => Ok(()),
+			
+			Err(errno) => match errno.0
+			{
+				E2BIG => Err(()),
+				
+				EEXIST => unreachable!("Should not return `EEXIST` as flag `BPF_NOEXIST` not specified"),
 				
 				ENOENT => unreachable!("Should not return `ENOENT` as flag `BPF_EXIST` not specified"),
 				
@@ -573,9 +646,9 @@ impl MapFileDescriptor
 	/// `parsed_btf_map_data` must be `Some` for `map_type` when it is:-
 	///
 	/// * `MapType::SocketStorage`.
-	pub(crate) fn create<'map_file_descriptor_label_map>(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_type: MapType, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>) -> Result<&'map_file_descriptor_label_map Self, MapCreationError>
+	pub(crate) fn create(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_type: MapType, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>) -> Result<Rc<Self>, MapCreationError>
 	{
-		let (map_type, map_flags, (btf_fd, btf_key_type_id, btf_value_type_id, btf_vmlinux_value_type_id), map_ifindex, numa_node, inner_map_fd, key_size, value_size, max_entries) = map_type.to_values(parsed_btf_map_data, map_file_descriptors)?;
+		let (map_type, map_flags, (btf_fd, btf_key_type_id, btf_value_type_id, btf_vmlinux_value_type_id), map_ifindex, numa_node, inner_map_fd, key_size, value_size, max_entries) = map_type.to_values(parsed_btf_map_data)?;
 		
 		let mut attributes = bpf_attr
 		{

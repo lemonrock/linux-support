@@ -2,9 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// A stack frame.
 #[repr(C)]
 #[derive(Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct bpf_stack_build_id
+pub struct bpf_stack_build_id
 {
 	/// How to interpret `offset_or_instruction_pointer`:-
 	///
@@ -34,7 +35,7 @@ impl bpf_stack_build_id
 	/// Left is offset; right is instruction pointer.
 	#[allow(dead_code)]
 	#[inline(always)]
-	pub(crate) fn offset_or_instruction_pointer(&self) -> Option<Either<u64, u64>>
+	pub fn offset_or_instruction_pointer(&self) -> Option<Either<u64, InstructionPointer>>
 	{
 		use self::bpf_stack_build_id_status::*;
 		

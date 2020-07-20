@@ -4,29 +4,34 @@
 
 /// An array map specialized for use with file descriptors.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(transparent)]
-pub struct FileDescriptorArrayMap<'map_file_descriptor_label_map, FD: UsedAsValueInArrayMapDescriptor>(ArrayMap<'map_file_descriptor_label_map, RawFd>, PhantomData<FD>);
+pub struct FileDescriptorArrayMap<FD: UsedAsValueInArrayMapDescriptor>
+{
+	map_file_descriptor: Rc<MapFileDescriptor>,
+	maximum_entries: MaximumEntries,
+	marker: PhantomData<FD>,
+}
 
-impl<'map_file_descriptor_label_map, FD: UsedAsValueInArrayMapDescriptor> FileDescriptorArrayMap<'map_file_descriptor_label_map, FD>
+impl<FD: UsedAsValueInArrayMapDescriptor> FileDescriptorArrayMap<FD>
 {
 	/// Capacity.
 	#[inline(always)]
 	pub fn capacity(&self) -> NonZeroU32
 	{
-		self.0.capacity()
+		self.maximum_entries.0
 	}
 	
-	/// Get, batched.
-	///
-	/// Use `None` for `batch_position` when starting a new batch.
-	/// Each value in `indices` must be valid.
-	///
-	/// ***WARNING***: It is impossible for Linux to distinguish from an uninitialized file descriptor and file descriptor `0`; in practice, unless `stdin` has been closed, this isn't an issue but be aware.
+	/// Freeze.
 	#[inline(always)]
-	pub fn get_batch(&self, batch_position: Option<&OpaqueBatchPosition<u32>>, indices: &[u32]) -> Result<(Vec<FileDescriptorCopy<FD>>, OpaqueBatchPosition<u32>, bool), Errno>
+	pub fn freeze(&self) -> Result<(), Errno>
 	{
-		let (vec, batch_position, more) = self.0.get_batch(batch_position, indices)?;
-		Ok((FD::transmute_to_file_descriptor_copies(vec), batch_position, more))
+		self.map_file_descriptor.freeze()
+	}
+	
+	/// Indices.
+	#[inline(always)]
+	pub fn indices(&self) -> RangeInclusive<u32>
+	{
+		0 ..= self.maximum_entries.0.get()
 	}
 	
 	/// Set, batched.
@@ -34,73 +39,127 @@ impl<'map_file_descriptor_label_map, FD: UsedAsValueInArrayMapDescriptor> FileDe
 	/// `indices` and `values` must be the same length.
 	/// Each value in `indices` must be valid.
 	#[inline(always)]
-	pub fn set_batch(&self, indices: &[u32], values: &[FileDescriptorCopy<FD>]) -> Result<usize, Errno>
+	pub fn set_batch(&self, indices: &[u32], values: &[FD]) -> Result<usize, Errno>
 	{
 		let values = FD::transmute_from_file_descriptor_copies(values);
-		self.0.set_batch(indices, values)
-	}
-	
-	/// Gets the next index (key).
-	///
-	/// Returns `None` if the `index` is the last one (ie `capacity() - 1`).
-	///
-	/// Does not make a syscall.
-	#[inline(always)]
-	pub fn get_next_index(&self, index: u32) -> Option<u32>
-	{
-		self.0.get_next_index(index)
-	}
-	
-	/// Returns a file descriptor.
-	///
-	/// ***WARNING***: It is impossible for Linux to distinguish from an uninitialized file descriptor and file descriptor `0`; in practice, unless `stdin` has been closed, this isn't an issue but be aware.
-	#[allow(deprecated)]
-	pub fn get(&self, index: u32) -> FileDescriptorCopy<FD>
-	{
-		let raw_fd = self.0.get(index);
-		FD::transmute_to_file_descriptor_copy(raw_fd)
+		self.map_file_descriptor.set_batch(indices, values, LockFlags::DoNotLock)
 	}
 	
 	/// Update existing.
 	#[inline(always)]
-	pub fn set(&self, index: u32, file_descriptor: &FD)
+	pub fn set(&self, index: u32, file_descriptor: &FD) -> Result<(), ()>
 	{
-		self.0.set(index, &file_descriptor.as_raw_fd())
+		self.map_file_descriptor.set_for_file_descriptor_array_map(&index, &file_descriptor.as_raw_fd())
+	}
+	
+	/// Removes a file descriptor.
+	#[allow(deprecated)]
+	pub fn delete(&self, index: u32) -> Result<bool, Errno>
+	{
+		self.map_file_descriptor.delete(&index)
 	}
 	
 	#[inline(always)]
-	fn create(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, map_type: impl FnOnce(MaximumEntries, AccessPermissions) -> MapType<'static>) -> Result<Self, MapCreationError>
+	fn create(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions, map_type: impl FnOnce(MaximumEntries, KernelOnlyAccessPermissions) -> MapType<'static>) -> Result<Self, MapCreationError>
 	{
-		ArrayMap::create(map_file_descriptors, map_name, parsed_btf_map_data, map_type(maximum_entries, access_permissions), maximum_entries).map(|array_map| Self(array_map, PhantomData))
+		let map_file_descriptor = MapFileDescriptor::create(map_file_descriptors, map_type(maximum_entries, access_permissions), map_name, parsed_btf_map_data)?;
+		Ok
+		(
+			Self
+			{
+				map_file_descriptor,
+				maximum_entries,
+				marker: PhantomData,
+			}
+		)
 	}
 }
 
-impl<'map_file_descriptor_label_map> FileDescriptorArrayMap<'map_file_descriptor_label_map, ExtendedBpfProgramFileDescriptor>
+impl<FD: ProvidesIdentifierWhenUsedAsValueInArrayMapDescriptor> FileDescriptorArrayMap<FD>
 {
-	/// New extended BPF program array.
+	/// Get, batched.
+	///
+	/// Use `None` for `batch_position` when starting a new batch.
+	/// Each value in `indices` must be valid.
 	#[inline(always)]
-	pub fn new_extended_bpf_program(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions) -> Result<Self, MapCreationError>
+	pub fn get_batch(&self, batch_position: Option<&OpaqueBatchPosition<u32>>, indices: &[u32]) -> Result<(Vec<FD::Identifier>, OpaqueBatchPosition<u32>, bool), Errno>
 	{
-		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, maximum_entries, access_permissions, MapType::ProgramArray)
+		let (vec, batch_position, more) = self.map_file_descriptor.get_batch(batch_position, indices)?;
+		Ok((FD::Identifier::froms(vec), batch_position, more))
+	}
+	
+	/// Returns an identifier.
+	///
+	/// It may be that this *always* returns `Some(identifier)` and the `identifier` may not be valid; the Linux API isn't documented at all and the source code in Linux is the usual C spaghetti.
+	#[allow(deprecated)]
+	pub fn get(&self, index: u32) -> Option<FD::Identifier>
+	{
+		self.map_file_descriptor.get(&index).map(|raw_identifier| FD::Identifier::from(raw_identifier))
 	}
 }
 
-impl<'map_file_descriptor_label_map> FileDescriptorArrayMap<'map_file_descriptor_label_map, PerfEventFileDescriptor>
+impl CanBeInnerMap for FileDescriptorArrayMap<PerfEventFileDescriptor>
+{
+	#[inline(always)]
+	fn map_file_descriptor(&self) -> &MapFileDescriptor
+	{
+		&self.map_file_descriptor
+	}
+}
+
+impl FileDescriptorArrayMap<PerfEventFileDescriptor>
 {
 	/// New perf event array.
 	#[inline(always)]
-	pub fn new_perf_event(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions) -> Result<Self, MapCreationError>
+	pub fn new_perf_event(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions) -> Result<Self, MapCreationError>
 	{
 		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, maximum_entries, access_permissions, MapType::PerfEventArray)
 	}
 }
 
-impl<'map_file_descriptor_label_map> FileDescriptorArrayMap<'map_file_descriptor_label_map, CgroupFileDescriptor>
+impl CanBeInnerMap for FileDescriptorArrayMap<CgroupFileDescriptor>
+{
+	#[inline(always)]
+	fn map_file_descriptor(&self) -> &MapFileDescriptor
+	{
+		&self.map_file_descriptor
+	}
+}
+
+impl FileDescriptorArrayMap<CgroupFileDescriptor>
 {
 	/// New cgroup array.
 	#[inline(always)]
-	pub fn new_cgroup(map_file_descriptors: &'map_file_descriptor_label_map mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions) -> Result<Self, MapCreationError>
+	pub fn new_cgroup(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions) -> Result<Self, MapCreationError>
 	{
 		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, maximum_entries, access_permissions, MapType::CgroupArray)
+	}
+}
+
+impl FileDescriptorArrayMap<ExtendedBpfProgramFileDescriptor>
+{
+	/// New extended BPF program array.
+	#[inline(always)]
+	pub fn new_extended_bpf_program(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions) -> Result<Self, MapCreationError>
+	{
+		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, maximum_entries, access_permissions, MapType::ProgramArray)
+	}
+}
+
+impl FileDescriptorArrayMap<MapFileDescriptor>
+{
+	#[inline(always)]
+	fn new_map_of_maps(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions, template_map_file_descriptor: &MapFileDescriptor) -> Result<Self, MapCreationError>
+	{
+		let map_file_descriptor = MapFileDescriptor::create(map_file_descriptors, MapType::ArrayOfMaps(maximum_entries, access_permissions, template_map_file_descriptor), map_name, parsed_btf_map_data)?;
+		Ok
+		(
+			Self
+			{
+				map_file_descriptor,
+				maximum_entries,
+				marker: PhantomData,
+			}
+		)
 	}
 }

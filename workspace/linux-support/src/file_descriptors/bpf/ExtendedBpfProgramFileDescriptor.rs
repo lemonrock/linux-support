@@ -56,22 +56,15 @@ impl BpfFileDescriptor for ExtendedBpfProgramFileDescriptor
 impl UsedAsValueInArrayMapDescriptor for ExtendedBpfProgramFileDescriptor
 {
 	#[inline(always)]
-	fn transmute_to_file_descriptor_copies(values: Vec<RawFd>) -> Vec<FileDescriptorCopy<Self>>
+	fn transmute_from_file_descriptor_copies(values: &[Self]) -> &[RawFd]
 	{
 		unsafe { transmute(values) }
 	}
-	
-	#[inline(always)]
-	fn transmute_from_file_descriptor_copies(values: &[FileDescriptorCopy<Self>]) -> &[RawFd]
-	{
-		unsafe { transmute(values) }
-	}
-	
-	#[inline(always)]
-	fn transmute_to_file_descriptor_copy(value: RawFd) -> FileDescriptorCopy<Self>
-	{
-		unsafe { transmute(value) }
-	}
+}
+
+impl ProvidesIdentifierWhenUsedAsValueInArrayMapDescriptor for ExtendedBpfProgramFileDescriptor
+{
+	type Identifier = ExtendedBpfProgramIdentifier;
 }
 
 impl ExtendedBpfProgramFileDescriptor

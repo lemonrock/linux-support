@@ -186,7 +186,7 @@ impl SubmissionQueueEntry
 	///
 	/// `file_descriptor` must *NOT* be closed until completion.
 	#[inline(always)]
-	pub fn prepare_accept<SD: SocketData>(self, user_data: impl UserData, options: SubmissionQueueEntryOptions, personality: Option<PersonalityCredentialsIdentifier>, file_descriptor: FileDescriptorOrigin<impl SocketAccept>, pending_accept_connection: &mut PendingAcceptConnection<SD>)
+	pub fn prepare_accept<SD: SocketData>(self, user_data: impl UserData, options: SubmissionQueueEntryOptions, personality: Option<PersonalityCredentialsIdentifier>, file_descriptor: FileDescriptorOrigin<impl ListenerSocketFileDescriptor>, pending_accept_connection: &mut PendingAcceptConnection<SD>)
 	{
 		let (file_descriptor, flags) = file_descriptor.into_and_adjust_flags(options, self.using_kernel_submission_queue_poll());
 		

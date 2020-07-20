@@ -67,21 +67,9 @@ impl FileDescriptor for LinuxInfraRedRemoteControlRawMode2FileDescriptor
 impl UsedAsValueInArrayMapDescriptor for LinuxInfraRedRemoteControlRawMode2FileDescriptor
 {
 	#[inline(always)]
-	fn transmute_to_file_descriptor_copies(values: Vec<RawFd>) -> Vec<FileDescriptorCopy<Self>>
+	fn transmute_from_file_descriptor_copies(values: &[Self]) -> &[RawFd]
 	{
 		unsafe { transmute(values) }
-	}
-	
-	#[inline(always)]
-	fn transmute_from_file_descriptor_copies(values: &[FileDescriptorCopy<Self>]) -> &[RawFd]
-	{
-		unsafe { transmute(values) }
-	}
-	
-	#[inline(always)]
-	fn transmute_to_file_descriptor_copy(value: RawFd) -> FileDescriptorCopy<Self>
-	{
-		unsafe { transmute(value) }
 	}
 }
 

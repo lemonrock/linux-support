@@ -2,9 +2,16 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Used as a value in a BPF array map.
-pub trait UsedAsValueInArrayMapDescriptor: FileDescriptor
+/// A socket cookie.
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
+pub struct SocketCookie(u64);
+
+impl Into<u64> for SocketCookie
 {
-	#[doc(hidden)]
-	fn transmute_from_file_descriptor_copies(values: &[Self]) -> &[RawFd];
+	#[inline(always)]
+	fn into(self) -> u64
+	{
+		self.0
+	}
 }

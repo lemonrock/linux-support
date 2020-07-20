@@ -5,7 +5,7 @@
 use super::*;
 use crate::bpf::c::*;
 use crate::bpf::extended::bpf_type_format::ParsedBtfMapData;
-use crate::bpf::extended::identifiers::ExtendedBpfProgramIdentifier;
+use crate::bpf::extended::identifiers::*;
 use crate::bpf::extended::instructions::ProgramError;
 use crate::bpf::extended::instructions::file_descriptor_label::*;
 use crate::bpf::extended::maps::domain::*;
@@ -21,6 +21,7 @@ include!("ExtendedBpfProgramFileDescriptor.rs");
 include!("LinkFileDescriptor.rs");
 include!("MapFileDescriptor.rs");
 include!("ProcessQueryableFileDescriptor.rs");
+include!("ProvidesIdentifierWhenUsedAsValueInArrayMapDescriptor.rs");
 include!("raw_trace_point_open.rs");
 include!("RawTracePointAttachError.rs");
 include!("RawTracePointType.rs");
