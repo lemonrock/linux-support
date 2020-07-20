@@ -3,17 +3,22 @@
 
 
 /// An Internet Protocol (IP) version 4 or version 4 address with a mask.
+///
+/// The order of fields and the size of fields is to maintain layout compatibility with the Linux type `bpf_lpm_trie_key`.
+#[repr(C)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct InternetProtocolAddressWithMask<IPA: InternetProtocolAddress>
 {
-	/// An Internet Protocol (IP) version 4 or version 4 address.
-	pub internet_protocol_address: IPA,
-
 	/// * From 1 inclusive to 32 inclusive for an inclusive for an Internet Protocol version 4 address.
 	/// * From 1 inclusive to 128 inclusive for an inclusive for an Internet Protocol version 6 address.
-	pub mask_length_in_bits: NonZeroU8,
+	///
+	/// Could be modelled as `NonZeroU8`, but this is incompatible with the Linux type `bpf_lpm_trie_key`.
+	mask_length_in_bits: NonZeroU32,
+	
+	/// An Internet Protocol (IP) version 4 or version 4 address.
+	#[serde(default)] internet_protocol_address: IPA,
 }
 
 impl<IPA: InternetProtocolAddress> PartialOrd for InternetProtocolAddressWithMask<IPA>
@@ -49,21 +54,44 @@ impl<IPA: InternetProtocolAddress> InternetProtocolAddressWithMask<IPA>
 	#[inline(always)]
 	pub fn new(internet_protocol_address: IPA, mask_length_in_bits: NonZeroU8) -> Self
 	{
-		assert!(IPA::InclusiveMaximumPrefixLength <= mask_length_in_bits.get(), "mask_length_in_bits {} exceeds InclusiveMaximumPrefixLength {}", mask_length_in_bits, IPA::InclusiveMaximumPrefixLength);
+		let mask_length_in_bits = mask_length_in_bits.get();
+		assert!(IPA::InclusiveMaximumPrefixLength <= mask_length_in_bits, "mask_length_in_bits {} exceeds InclusiveMaximumPrefixLength {}", mask_length_in_bits, IPA::InclusiveMaximumPrefixLength);
 		Self
 		{
 			internet_protocol_address,
-			mask_length_in_bits,
+			mask_length_in_bits: unsafe { NonZeroU32::new_unchecked(mask_length_in_bits as u32) }
 		}
 	}
 	
 	/// Local host.
+	#[inline(always)]
 	pub fn local_host() -> Self
 	{
 		Self
 		{
 			internet_protocol_address: IPA::LocalHost,
-			mask_length_in_bits: unsafe { NonZeroU8::new_unchecked(IPA::InclusiveMaximumPrefixLength) },
+			mask_length_in_bits: unsafe { NonZeroU32::new_unchecked(IPA::InclusiveMaximumPrefixLength as u32) },
 		}
+	}
+	
+	/// Mask length in bits.
+	#[inline(always)]
+	pub fn mask_length_in_bits(&self) -> NonZeroU8
+	{
+		unsafe { NonZeroU8::new_unchecked(self.mask_length_in_bits.get() as u8) }
+	}
+	
+	/// Internet Protocol address.
+	#[inline(always)]
+	pub fn internet_protocol_address(&self) -> &IPA
+	{
+		&self.internet_protocol_address
+	}
+	
+	/// Internet Protocol address (moved).
+	#[inline(always)]
+	pub fn internet_protocol_address_moved(self) -> IPA
+	{
+		self.internet_protocol_address
 	}
 }

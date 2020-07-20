@@ -11,6 +11,9 @@ pub enum InsertError
 	
 	/// Full.
 	MaximumCapacityReached,
+
+	/// Out-of-memory.
+	OutOfMemory,
 }
 
 impl Display for InsertError
@@ -34,6 +37,8 @@ impl error::Error for InsertError
 			&AlreadyPresent => None,
 			
 			&MaximumCapacityReached => None,
+			
+			&OutOfMemory => None,
 		}
 	}
 }

@@ -111,7 +111,7 @@ impl<K: Sized, V: Sized> HashMap<K, V>
 		self.map_file_descriptor.delete_batch(keys)
 	}
 	
-	/// Looks up an index; should always succeed.
+	/// Looks up a key.
 	#[inline(always)]
 	pub fn get(&self, key: &K) -> Option<V>
 	{

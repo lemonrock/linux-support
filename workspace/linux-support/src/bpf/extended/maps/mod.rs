@@ -13,11 +13,12 @@ use crate::file_descriptors::*;
 use crate::file_descriptors::bpf::*;
 use crate::file_descriptors::cgroup::CgroupFileDescriptor;
 use crate::file_descriptors::perf_event::PerfEventFileDescriptor;
+use crate::file_descriptors::socket::ListenerSocketFileDescriptor;
+use crate::file_descriptors::socket::c::*;
 use crate::memory::mapping::*;
 use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use crate::pci_express::NetworkInterfaceIndex;
 use crate::process::CommandName;
-use crate::file_descriptors::socket::ListenerSocketFileDescriptor;
 
 
 /// Domain
@@ -33,6 +34,7 @@ include!("CanBeInnerMap.rs");
 include!("FileDescriptorArrayMap.rs");
 include!("HashMap.rs");
 include!("KeyIterator.rs");
+include!("LongestPrefixMatchTrieMap.rs");
 include!("MapsArrayMap.rs");
 include!("MapsHashMap.rs");
 include!("MemoryMappedArrayMap.rs");

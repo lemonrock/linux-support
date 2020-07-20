@@ -204,11 +204,13 @@ impl MapFileDescriptor
 			
 			Err(errno) => match errno.0
 			{
-				E2BIG => panic!("MaximumCapacityReached"),
+				E2BIG => Err(()),
 				
 				EEXIST => unreachable!("Should not return `EEXIST` as flag `BPF_NOEXIST` not specified"),
 				
 				ENOENT => unreachable!("Should not return `ENOENT` as flag `BPF_EXIST` not specified"),
+				
+				ENOMEM => Err(()),
 				
 				_ => panic!("Unexpected error `{}`", errno),
 			}
@@ -234,6 +236,8 @@ impl MapFileDescriptor
 				
 				ENOENT => unreachable!("Should not return `ENOENT` as flag `BPF_EXIST` not specified"),
 				
+				ENOMEM => Err(OutOfMemory),
+				
 				_ => panic!("Unexpected error `{}`", errno),
 			}
 		}
@@ -257,6 +261,8 @@ impl MapFileDescriptor
 				EEXIST => unreachable!("Should not return `EEXIST` as flag `BPF_NOEXIST` not specified"),
 				
 				ENOENT => unreachable!("Should not return `ENOENT` as flag `BPF_EXIST` not specified"),
+				
+				ENOMEM => Err(()),
 				
 				_ => panic!("Unexpected error `{}`", errno),
 			}

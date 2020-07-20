@@ -51,9 +51,9 @@ impl<Value> Point<Value>
 	
 	fn add_from_root<'a, 'b, IPA: InternetProtocolAddress>(&'a mut self, internet_protocol_address_with_mask: &'b InternetProtocolAddressWithMask<IPA>, value: &'b Arc<Value>)
 	{
-		let remaining_mask_length_in_bits = internet_protocol_address_with_mask.mask_length_in_bits;
+		let remaining_mask_length_in_bits = internet_protocol_address_with_mask.mask_length_in_bits();
 		
-		let remaining_bytes = internet_protocol_address_with_mask.internet_protocol_address.bytes();
+		let remaining_bytes = internet_protocol_address_with_mask.internet_protocol_address().bytes();
 		
 		self.add(remaining_bytes, remaining_mask_length_in_bits, value)
 	}

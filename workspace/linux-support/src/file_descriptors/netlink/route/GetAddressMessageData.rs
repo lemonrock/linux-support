@@ -100,11 +100,7 @@ impl<IPA: InternetProtocolAddress> GetAddressMessageData<IPA>
 			}
 			else if mask_length_in_bits <= IPA::InclusiveMaximumPrefixLength
 			{
-				Right(InternetProtocolAddressWithMask
-				{
-					internet_protocol_address: address.clone(),
-					mask_length_in_bits: unsafe { NonZeroU8::new_unchecked(mask_length_in_bits) },
-				})
+				Right(InternetProtocolAddressWithMask::new(address.clone(), unsafe { NonZeroU8::new_unchecked(mask_length_in_bits)}))
 			}
 			else
 			{

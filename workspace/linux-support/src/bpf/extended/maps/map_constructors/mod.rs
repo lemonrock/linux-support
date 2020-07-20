@@ -6,16 +6,19 @@ use super::*;
 
 
 include!("CgroupFileDescriptorArrayMapConstructor.rs");
+include!("InternetProtocolAddressLongestPrefixMatchTrieMapConstructor.rs");
 include!("MapConstructor.rs");
 include!("PerCpuArrayMapConstructor.rs");
 include!("PerDeviceArrayMapConstructor.rs");
 include!("PerfEventFileDescriptorArrayMapConstructor.rs");
+include!("WithNumaNodeLongestPrefixMatchTrieMapConstructor.rs");
 include!("WithNumaNodeMemoryMappedArrayMapConstructor.rs");
 include!("WithNumaNodeReusePortSocketU32ArrayMapConstructor.rs");
 include!("WithNumaNodeReusePortSocketU64ArrayMapConstructor.rs");
 include!("WithNumaNodeStackTraceMapBuildIdentifierMapConstructor.rs");
 include!("WithNumaNodeStackTraceMapInstructionPointerMapConstructor.rs");
 include!("WithNumaNodeSystemWideArrayMapConstructor.rs");
+include!("WithoutNumaNodeLongestPrefixMatchTrieMapConstructor.rs");
 include!("WithoutNumaNodeMemoryMappedArrayMapConstructor.rs");
 include!("WithoutNumaNodeReusePortSocketU32ArrayMapConstructor.rs");
 include!("WithoutNumaNodeReusePortSocketU64ArrayMapConstructor.rs");

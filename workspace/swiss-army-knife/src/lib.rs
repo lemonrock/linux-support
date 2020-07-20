@@ -63,6 +63,7 @@ use std::mem::MaybeUninit;
 use std::mem::size_of;
 use std::mem::transmute;
 #[allow(deprecated)] use std::mem::uninitialized;
+use std::num::NonZeroU32;
 use std::num::NonZeroU8;
 use std::ops::Deref;
 use std::ops::DerefMut;
