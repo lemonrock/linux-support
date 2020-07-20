@@ -241,7 +241,7 @@ impl MapFileDescriptor
 	
 	/// Set.
 	///
-	/// For some weird reason, one needs to specifiy different `map_flags`.
+	/// For some weird reason, one needs to specify different `map_flags`.
 	///
 	/// See the Linux kernel function `bpf_fd_array_map_update_elem()`.
 	pub(crate) fn set_for_file_descriptor_array_map<K: Sized, V: Sized>(&self, key: &K, value: &V) -> Result<(), ()>

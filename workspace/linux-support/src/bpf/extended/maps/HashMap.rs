@@ -139,13 +139,6 @@ impl<K: Sized, V: Sized> HashMap<K, V>
 		self.map_file_descriptor.set(key, value, LockFlags::DoNotLock)
 	}
 	
-	/// Get and delete.
-	#[inline(always)]
-	pub fn get_and_delete(&self, key: &K) -> Result<Option<V>, Errno>
-	{
-		self.map_file_descriptor.lookup_and_delete(key)
-	}
-	
 	/// Delete.
 	///
 	/// Returns `Ok(true)` if `key` was present.
@@ -207,6 +200,6 @@ impl<K: Sized, V: Sized> HashMap<K, V>
 	#[inline(always)]
 	fn key_size() -> KeySize
 	{
-		KeySize::try_from_key_size::<V>().unwrap()
+		KeySize::try_from_key_size::<K>().unwrap()
 	}
 }

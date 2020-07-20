@@ -185,7 +185,7 @@ pub(crate) enum MapType<'map_of_maps_template_file_descriptor>
 	/// Key size is anything in the range `1 ..= MAX_BPF_STACK`.
 	/// Value size is always 4 (`size_of::<RawFd>()` where `RawFd` is a `MapFileDescriptor`).
 	/// Max entries is non-zero.
-	#[serde(skip)] HashOfMaps(KeySize, MaximumEntries, #[serde(default)] AccessPermissions, &'map_of_maps_template_file_descriptor MapFileDescriptor, #[serde(default)] Option<NumaNode>, Preallocation),
+	#[serde(skip)] HashOfMaps(KeySize, MaximumEntries, #[serde(default)] KernelOnlyAccessPermissions, &'map_of_maps_template_file_descriptor MapFileDescriptor, #[serde(default)] Option<NumaNode>, Preallocation),
 
 	/// Longest-prefix match (LPM) trie.
 	///

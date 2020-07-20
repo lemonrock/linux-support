@@ -52,27 +52,6 @@ impl<MC: MapConstructor> MapsArrayMap<MC>
 		self.underlying.indices()
 	}
 	
-	/// Batch creation.
-	///
-	/// Although it avoids a number of syscalls, the overall algorithm requires several mallocs and other logic, and so may not be more efficient overall than calling `set()` many times.
-	#[inline(always)]
-	pub fn set_batch(&self, indices: &[u32], map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name_parsed_btf_map_data_and_variable_arguments: &[(&MapName, Option<&ParsedBtfMapData>, MC::VariableArguments)]) -> Result<Vec<MC::Map>, ()>
-	where MC::VariableArguments: Clone
-	{
-		let length = map_name_parsed_btf_map_data_and_variable_arguments.len();
-		let mut inner_map_raw_fds = Vec::with_capacity(length);
-		let mut inner_maps = Vec::with_capacity(length);
-		for &(map_name, parsed_btf_map_data, ref variable_arguments) in map_name_parsed_btf_map_data_and_variable_arguments
-		{
-			let variable_arguments = variable_arguments.clone();
-			let inner_map = MC::construct(map_file_descriptors, map_name, parsed_btf_map_data, self.inner_map_maximum_entries, self.inner_map_access_permissions, self.inner_map_invariant_arguments, variable_arguments).map_err(|_| ())?;
-			inner_map_raw_fds.push(inner_map.map_file_descriptor().as_raw_fd());
-			inner_maps.push(inner_map)
-		}
-		self.underlying.map_file_descriptor.set_batch(indices, &inner_map_raw_fds[..], LockFlags::DoNotLock).map_err(|_| ())?;
-		Ok(inner_maps)
-	}
-	
 	/// Set the map at index to a newly-created map.
 	#[inline(always)]
 	pub fn set(&self, index: u32, map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, variable_arguments: MC::VariableArguments) -> Result<MC::Map, ()>
@@ -82,21 +61,23 @@ impl<MC: MapConstructor> MapsArrayMap<MC>
 		Ok(inner_map)
 	}
 	
-	/// Removes a file descriptor.
+	/// Removes a map.
 	#[inline(always)]
 	pub fn delete(&self, index: u32) -> Result<bool, Errno>
 	{
 		self.underlying.delete(index)
 	}
 	
-	/// Creates a new map of maps, and populates index `0` with a map.
+	/// Creates a new map of maps, and populates index `index` with a map.
 	///
-	/// Returns the new maps of maps and the map value of index `0`.
+	/// Returns the new maps of maps and the map value of index `index`.
 	///
 	/// This unfortunate design is because the Linux kernel object is effectively using 'prototype-orientated programming' when creating a map-of-maps.
-	pub fn new(maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions, inner_map_maximum_entries: MaximumEntries, inner_map_access_permissions: MC::AccessPermissions, inner_map_invariant_arguments: MC::InvariantArguments, map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, variable_arguments: MC::VariableArguments) -> Result<(Self, MC::Map), ()>
+	pub fn new(maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions, inner_map_maximum_entries: MaximumEntries, inner_map_access_permissions: MC::AccessPermissions, inner_map_invariant_arguments: MC::InvariantArguments, map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, index: u32, map_at_index_variable_arguments: MC::VariableArguments) -> Result<(Self, MC::Map), ()>
 	{
-		let inner_map = MC::construct(map_file_descriptors, map_name, parsed_btf_map_data, inner_map_maximum_entries, inner_map_access_permissions, inner_map_invariant_arguments, variable_arguments).map_err(|_| ())?;
+		debug_assert!(index < maximum_entries.to_u32());
+		
+		let inner_map = MC::construct(map_file_descriptors, map_name, parsed_btf_map_data, inner_map_maximum_entries, inner_map_access_permissions, inner_map_invariant_arguments, map_at_index_variable_arguments).map_err(|_| ())?;
 		let template_map_file_descriptor = inner_map.map_file_descriptor();
 		
 		let this = Self
@@ -107,8 +88,7 @@ impl<MC: MapConstructor> MapsArrayMap<MC>
 			inner_map_invariant_arguments,
 		};
 		
-		const Index0: u32 = 0;
-		this.underlying.set(Index0, template_map_file_descriptor)?;
+		this.underlying.set(index, template_map_file_descriptor)?;
 		Ok((this, inner_map))
 	}
 }

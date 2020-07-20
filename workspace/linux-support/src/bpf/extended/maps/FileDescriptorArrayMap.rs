@@ -34,17 +34,6 @@ impl<FD: UsedAsValueInArrayMapDescriptor> FileDescriptorArrayMap<FD>
 		0 ..= self.maximum_entries.0.get()
 	}
 	
-	/// Set, batched.
-	///
-	/// `indices` and `values` must be the same length.
-	/// Each value in `indices` must be valid.
-	#[inline(always)]
-	pub fn set_batch(&self, indices: &[u32], values: &[FD]) -> Result<usize, Errno>
-	{
-		let values = FD::transmute_from_file_descriptor_copies(values);
-		self.map_file_descriptor.set_batch(indices, values, LockFlags::DoNotLock)
-	}
-	
 	/// Update existing.
 	#[inline(always)]
 	pub fn set(&self, index: u32, file_descriptor: &FD) -> Result<(), ()>
@@ -77,17 +66,6 @@ impl<FD: UsedAsValueInArrayMapDescriptor> FileDescriptorArrayMap<FD>
 
 impl<FD: ProvidesIdentifierWhenUsedAsValueInArrayMapDescriptor> FileDescriptorArrayMap<FD>
 {
-	/// Get, batched.
-	///
-	/// Use `None` for `batch_position` when starting a new batch.
-	/// Each value in `indices` must be valid.
-	#[inline(always)]
-	pub fn get_batch(&self, batch_position: Option<&OpaqueBatchPosition<u32>>, indices: &[u32]) -> Result<(Vec<FD::Identifier>, OpaqueBatchPosition<u32>, bool), Errno>
-	{
-		let (vec, batch_position, more) = self.map_file_descriptor.get_batch(batch_position, indices)?;
-		Ok((FD::Identifier::froms(vec), batch_position, more))
-	}
-	
 	/// Returns an identifier.
 	///
 	/// It may be that this *always* returns `Some(identifier)` and the `identifier` may not be valid; the Linux API isn't documented at all and the source code in Linux is the usual C spaghetti.

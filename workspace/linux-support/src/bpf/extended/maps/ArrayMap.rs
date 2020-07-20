@@ -69,7 +69,9 @@ impl<V: Sized> ArrayMap<V>
 	{
 		0 ..= self.maximum_entries.0.get()
 	}
-	
+
+	/// TODO: Batch operations are only supported for system wide array maps.
+	///
 	/// Get, batched.
 	///
 	/// Use `None` for `batch_position` when starting a new batch.
@@ -78,10 +80,12 @@ impl<V: Sized> ArrayMap<V>
 	pub fn get_batch(&self, batch_position: Option<&OpaqueBatchPosition<u32>>, indices: &[u32]) -> Result<(Vec<V>, OpaqueBatchPosition<u32>, bool), Errno>
 	{
 		self.guard_indices(indices);
-		
+	
 		self.map_file_descriptor.get_batch(batch_position, indices)
 	}
 	
+	/// TODO: Batch operations are only supported for system wide array maps.
+	///
 	/// Set, batched.
 	///
 	/// `indices` and `values` must be the same length.
@@ -90,7 +94,7 @@ impl<V: Sized> ArrayMap<V>
 	pub fn set_batch(&self, indices: &[u32], values: &[V]) -> Result<usize, Errno>
 	{
 		self.guard_indices_and_values(indices, values);
-		
+	
 		self.map_file_descriptor.set_batch(indices, values, LockFlags::DoNotLock)
 	}
 	
