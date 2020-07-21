@@ -4,9 +4,9 @@
 
 #[allow(missing_docs)]
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct WithNumaNodeLeastSystemWideHashMapConstructor<K: Copy, V: Copy>(PhantomData<(K, V)>);
+pub struct WithNumaNodeSystemWideHashMapConstructor<K: Copy, V: Copy>(PhantomData<(K, V)>);
 
-impl<K: Copy, V: Copy> MapConstructor for WithNumaNodeLeastSystemWideHashMapConstructor<K, V>
+impl<K: Copy, V: Copy> MapConstructor for WithNumaNodeSystemWideHashMapConstructor<K, V>
 {
 	type Map = crate::bpf::extended::maps::HashMap<K, V>;
 	

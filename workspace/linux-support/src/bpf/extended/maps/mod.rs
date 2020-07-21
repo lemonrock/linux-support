@@ -46,6 +46,7 @@ include!("PerHyperThreadCgroupStorageMap.rs");
 include!("PerHyperThreadHashMap.rs");
 include!("PerHyperThreadValue.rs");
 include!("PerHyperThreadValues.rs");
+include!("QueueOrStackMap.rs");
 include!("ReusePortSocketArrayMap.rs");
 include!("SocketArrayMap.rs");
 include!("SocketCookie.rs");
