@@ -14,9 +14,9 @@ pub struct PerHyperThreadHashMap<K: Copy, V: Copy>
 
 impl<K: Copy, V: Copy> PerHyperThreadHashMap<K, V>
 {
-	/// New per-CPU.
+	/// New per-HyperThread.
 	#[inline(always)]
-	pub fn new_per_cpu(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, number_of_possible_hyper_threads: NumberOfPossibleHyperThreads, preallocation: Preallocation) -> Result<Self, MapCreationError>
+	pub fn new_per_hyper_thread(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, number_of_possible_hyper_threads: NumberOfPossibleHyperThreads, preallocation: Preallocation) -> Result<Self, MapCreationError>
 	{
 		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::HashPerCpu(Self::key_size(), Self::value_size(), maximum_entries, access_permissions, preallocation), maximum_entries, number_of_possible_hyper_threads)
 	}
