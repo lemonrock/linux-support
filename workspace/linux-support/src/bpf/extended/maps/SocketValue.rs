@@ -5,13 +5,13 @@
 /// Strange representation of a listening socket used by BPF map.
 ///
 /// Must not be implemented in downstream code.
-pub trait ReusePortSocketValue: Copy
+pub trait SocketValue: Copy
 {
 	#[doc(hidden)]
 	fn from_raw_fd(raw_fd: RawFd) -> Self;
 }
 
-impl ReusePortSocketValue for u32
+impl SocketValue for u32
 {
 	#[inline(always)]
 	fn from_raw_fd(raw_fd: RawFd) -> Self
@@ -20,7 +20,7 @@ impl ReusePortSocketValue for u32
 	}
 }
 
-impl ReusePortSocketValue for u64
+impl SocketValue for u64
 {
 	#[inline(always)]
 	fn from_raw_fd(raw_fd: RawFd) -> Self

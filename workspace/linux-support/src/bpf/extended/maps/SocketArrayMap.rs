@@ -6,14 +6,14 @@
 ///
 /// Values can only be retrieved if `SV` is `u64` (weird internal restriction in Linux).
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct ReusePortSocketArrayMap<SV: SocketValue>
+pub struct SocketArrayMap<SV: SocketValue>
 {
 	map_file_descriptor: Rc<MapFileDescriptor>,
 	maximum_entries: MaximumEntries,
 	marker: PhantomData<SV>,
 }
 
-impl<SV: SocketValue> CanBeInnerMap for ReusePortSocketArrayMap<SV>
+impl<SV: SocketValue> CanBeInnerMap for SocketArrayMap<SV>
 {
 	#[inline(always)]
 	fn map_file_descriptor(&self) -> &MapFileDescriptor
@@ -22,7 +22,7 @@ impl<SV: SocketValue> CanBeInnerMap for ReusePortSocketArrayMap<SV>
 	}
 }
 
-impl<SV: SocketValue> ReusePortSocketArrayMap<SV>
+impl<SV: SocketValue> SocketArrayMap<SV>
 {
 	/// Length.
 	#[inline(always)]
@@ -51,8 +51,7 @@ impl<SV: SocketValue> ReusePortSocketArrayMap<SV>
 	///
 	/// * be Internet Protocol version 4 or version 6.
 	/// * be UDP (and `SOCK_DGRAM`) or TCP (and `SOCK_STREAM`).
-	/// * have `SO_REUSEPORT` set.
-	/// * be either a listening TCP socket (using `listen()`) or a bound UDP socket (using `bind()`).
+	/// * be either a listening TCP socket (using `listen()`), an established TCP socket (using ?) or a bound UDP socket (using `bind()`).
 	pub fn insert_or_set(&self, index: u32, file_descriptor: &impl ListenerSocketFileDescriptor) -> Result<(), ()>
 	{
 		self.guard_index(index);
@@ -66,8 +65,7 @@ impl<SV: SocketValue> ReusePortSocketArrayMap<SV>
 	///
 	/// * be Internet Protocol version 4 or version 6.
 	/// * be UDP (and `SOCK_DGRAM`) or TCP (and `SOCK_STREAM`).
-	/// * have `SO_REUSEPORT` set.
-	/// * be either a listening TCP socket (using `listen()`) or a bound UDP socket (using `bind()`).
+	/// * be either a listening TCP socket (using `listen()`), an established TCP socket (using ?) or a bound UDP socket (using `bind()`).
 	pub fn insert(&self, index: u32, file_descriptor: &impl ListenerSocketFileDescriptor) -> Result<(), InsertError>
 	{
 		self.guard_index(index);
@@ -81,8 +79,7 @@ impl<SV: SocketValue> ReusePortSocketArrayMap<SV>
 	///
 	/// * be Internet Protocol version 4 or version 6.
 	/// * be UDP (and `SOCK_DGRAM`) or TCP (and `SOCK_STREAM`).
-	/// * have `SO_REUSEPORT` set.
-	/// * be either a listening TCP socket (using `listen()`) or a bound UDP socket (using `bind()`).
+	/// * be either a listening TCP socket (using `listen()`), an established TCP socket (using ?) or a bound UDP socket (using `bind()`).
 	pub fn set(&self, index: u32, file_descriptor: &impl ListenerSocketFileDescriptor) -> Result<(), ()>
 	{
 		self.guard_index(index);
@@ -128,27 +125,27 @@ impl<SV: SocketValue> ReusePortSocketArrayMap<SV>
 	}
 }
 
-impl ReusePortSocketArrayMap<u32>
+impl SocketArrayMap<u32>
 {
 	/// New u32 array.
 	///
 	/// Needs the capability `CAP_SYS_ADMIN`.
 	#[inline(always)]
-	pub fn new_u32(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
+	pub fn new_u32(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
 	{
-		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::ReusePortSocketArrayU32(maximum_entries, access_permissions, numa_node), maximum_entries)
+		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::SocketArrayU32(maximum_entries, access_permissions, numa_node), maximum_entries)
 	}
 }
 
-impl ReusePortSocketArrayMap<u64>
+impl SocketArrayMap<u64>
 {
 	/// New u64 array.
 	///
 	/// Needs the capability `CAP_SYS_ADMIN`.
 	#[inline(always)]
-	pub fn new_u64(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
+	pub fn new_u64(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
 	{
-		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::ReusePortSocketArrayU64(maximum_entries, access_permissions, numa_node), maximum_entries)
+		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::SocketArrayU64(maximum_entries, access_permissions, numa_node), maximum_entries)
 	}
 	
 	/// Gets a socket cookie.
