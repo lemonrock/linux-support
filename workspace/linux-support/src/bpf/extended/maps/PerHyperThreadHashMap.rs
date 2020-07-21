@@ -219,14 +219,6 @@ impl<K: Copy, V: Copy> PerHyperThreadHashMap<K, V>
 	}
 	
 	#[inline(always)]
-	fn guard_keys_and_values(&self, keys: &[K], values: &[V])
-	{
-		self.guard_keys(keys);
-		
-		debug_assert_eq!(keys.len(), values.len())
-	}
-	
-	#[inline(always)]
 	fn guard_keys(&self, keys: &[K])
 	{
 		assert_ne!(keys.len(), 0);

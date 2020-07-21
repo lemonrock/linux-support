@@ -96,10 +96,4 @@ impl<V: Copy> PerHyperThreadValues<V>
 	{
 		self.number_of_possible_hyper_threads.row_size_in_bytes::<V>()
 	}
-	
-	#[inline(always)]
-	fn size_of_per_hyper_thread_value() -> usize
-	{
-		size_of::<PerHyperThreadValue<V>>()
-	}
 }
