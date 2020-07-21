@@ -4,13 +4,13 @@
 
 /// An array map specialized for use with XDP.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct XdpRedirectSocketArrayMap
+pub struct XdpRedirectHyperThreadArrayMap
 {
 	map_file_descriptor: Rc<MapFileDescriptor>,
 	maximum_entries: MaximumEntries,
 }
 
-impl CanBeInnerMap for XdpRedirectSocketArrayMap
+impl CanBeInnerMap for XdpRedirectHyperThreadArrayMap
 {
 	#[inline(always)]
 	fn map_file_descriptor(&self) -> &MapFileDescriptor
@@ -19,15 +19,15 @@ impl CanBeInnerMap for XdpRedirectSocketArrayMap
 	}
 }
 
-impl XdpRedirectSocketArrayMap
+impl XdpRedirectHyperThreadArrayMap
 {
 	/// New u32 array.
 	///
 	/// Needs the capability `CAP_SYS_ADMIN`.
 	#[inline(always)]
-	pub fn new_xdp_redirect_socket_array(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: XdpAccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
+	pub fn new_xdp_redirect_hyper_thread_array(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
 	{
-		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::XdpRedirectToSocketArray(maximum_entries, access_permissions, numa_node), maximum_entries)
+		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::XdpRedirectToHyperThreadArray(maximum_entries, numa_node), maximum_entries)
 	}
 	
 	/// Length.
@@ -51,34 +51,52 @@ impl XdpRedirectSocketArrayMap
 		0 ..= self.maximum_entries.0.get()
 	}
 	
-	/// Insert or update existing.
-	///
-	/// `file_descriptor` must:-
-	///
-	/// * be `AF_XDP`.
-	pub fn insert_or_set(&self, index: u32, file_descriptor: &impl FileDescriptor) -> Result<(), ()>
+	/// Gets value.
+	#[inline(always)]
+	pub fn get(&self, hyper_thread: HyperThread) -> QueueDepth
 	{
+		let index: u32 = hyper_thread.into();
+		
 		self.guard_index(index);
 		
-		self.map_file_descriptor.insert_or_set(&index, &file_descriptor.as_raw_fd(), LockFlags::DoNotLock)
+		let value: u32 = self.map_file_descriptor.get(&index).expect("index should always be present");
+		QueueDepth::try_from(value).unwrap()
+	}
+	
+	/// Insert or update existing.
+	///
+	/// (A `queue_depth` of `0` is supported; it is equivalent to `self.delete()`).
+	pub fn insert_or_set(&self, hyper_thread: HyperThread, queue_depth: QueueDepth) -> Result<(), ()>
+	{
+		let index: u32 = hyper_thread.into();
+		
+		self.guard_index(index);
+		
+		let queue_depth: u32 = queue_depth.into();
+		
+		self.map_file_descriptor.insert_or_set(&index, &queue_depth, LockFlags::DoNotLock)
 	}
 	
 	/// Insert.
 	///
-	/// `file_descriptor` must:-
-	///
-	/// * be `AF_XDP`.
-	pub fn insert(&self, index: u32, file_descriptor: &impl FileDescriptor) -> Result<(), InsertError>
+	/// (A `queue_depth` of `0` is supported; it is equivalent to `self.delete()`).
+	pub fn set(&self, hyper_thread: HyperThread, queue_depth: QueueDepth) -> Result<(), ()>
 	{
+		let index: u32 = hyper_thread.into();
+		
 		self.guard_index(index);
 		
-		self.map_file_descriptor.insert(&index, &file_descriptor.as_raw_fd(), LockFlags::DoNotLock)
+		let queue_depth: u32 = queue_depth.into();
+		
+		self.map_file_descriptor.set(&index, &queue_depth, LockFlags::DoNotLock)
 	}
 	
-	/// Removes a file descriptor.
+	/// Removes a queue (sets its queue depth to zero).
 	#[inline(always)]
-	pub fn delete(&self, index: u32) -> Result<bool, Errno>
+	pub fn delete(&self, hyper_thread: HyperThread) -> Result<bool, Errno>
 	{
+		let index: u32 = hyper_thread.into();
+		
 		self.map_file_descriptor.delete(&index)
 	}
 	

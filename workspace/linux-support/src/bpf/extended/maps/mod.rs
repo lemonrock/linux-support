@@ -46,6 +46,7 @@ include!("PerHyperThreadCgroupStorageMap.rs");
 include!("PerHyperThreadHashMap.rs");
 include!("PerHyperThreadValue.rs");
 include!("PerHyperThreadValues.rs");
+include!("QueueDepth.rs");
 include!("QueueOrStackMap.rs");
 include!("ReusePortSocketArrayMap.rs");
 include!("SocketArrayMap.rs");
@@ -60,5 +61,6 @@ include!("SpinLockableSocketStorageMap.rs");
 include!("SpinLockableValue.rs");
 include!("StackFrame.rs");
 include!("StackTraceMap.rs");
+include!("XdpRedirectHyperThreadArrayMap.rs");
 include!("XdpRedirectSocketArrayMap.rs");
 

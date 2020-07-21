@@ -250,9 +250,9 @@ pub(crate) enum MapType<'map_of_maps_template_file_descriptor>
 	/// Requires the capability `CAP_NET_ADMIN`.
 	XdpRedirectToNetworkDeviceHash(MaximumEntries, #[serde(default)] XdpAccessPermissions, #[serde(default)] Option<NumaNode>),
 	
-	/// CPU array map.
+	/// HyperThread array map.
 	///
-	/// Primary use is a map for XDP BPF helper call `bpf_redirect_map()` to redirect to another CPU.
+	/// Primary use is a map for XDP BPF helper call `bpf_redirect_map()` to redirect to another HyperThread.
 	/// This allows for 10G wirespeed pre-filtering using BPF!
 	///
 	/// Key size is `size_of::<u32>()`.
@@ -260,7 +260,7 @@ pub(crate) enum MapType<'map_of_maps_template_file_descriptor>
 	/// Max entries is in the range `1 ..= NR_CPUS`.
 	///
 	/// Requires the capability `CAP_SYS_ADMIN`.
-	XdpRedirectToCpuArray(MaximumEntries, #[serde(default)] Option<NumaNode>),
+	XdpRedirectToHyperThreadArray(MaximumEntries, #[serde(default)] Option<NumaNode>),
 	
 	/// XDP socket map.
 	///
@@ -395,8 +395,8 @@ impl<'map_of_maps_template_file_descriptor> MapType<'map_of_maps_template_file_d
 			&XdpRedirectToNetworkDeviceArray(maximum_entries, access_permissions, Some(numa_node)) => (BPF_MAP_TYPE_DEVMAP, access_permissions.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE, Self::btf(parsed_btf_map_data), None, numa_node.into(), NoInnerMapFileDescriptor, KeySizeOfU32, ValueSizeOptionNetworkInterfaceIndex, maximum_entries.to_u32()),
 			&XdpRedirectToNetworkDeviceHash(maximum_entries, access_permissions, None) => (BPF_MAP_TYPE_DEVMAP_HASH, access_permissions.to_map_flags(), Self::btf(parsed_btf_map_data), None, NoNumaNode, NoInnerMapFileDescriptor, KeySizeOfU32, ValueSizeOptionNetworkInterfaceIndex, maximum_entries.to_u32()),
 			&XdpRedirectToNetworkDeviceHash(maximum_entries, access_permissions, Some(numa_node)) => (BPF_MAP_TYPE_DEVMAP_HASH, access_permissions.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE, Self::btf(parsed_btf_map_data), None, numa_node.into(), NoInnerMapFileDescriptor, KeySizeOfU32, ValueSizeOptionNetworkInterfaceIndex, maximum_entries.to_u32()),
-			&XdpRedirectToCpuArray(maximum_entries, None) => (BPF_MAP_TYPE_CPUMAP, BPF_MAP_CREATE_flags::empty(), Self::btf(parsed_btf_map_data), None, NoNumaNode, NoInnerMapFileDescriptor, KeySizeOfU32, ValueSizeOfU32, maximum_entries.to_u32()),
-			&XdpRedirectToCpuArray(maximum_entries, Some(numa_node)) => (BPF_MAP_TYPE_CPUMAP, BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE, Self::btf(parsed_btf_map_data), None, numa_node.into(), NoInnerMapFileDescriptor, KeySizeOfU32, ValueSizeOfU32, maximum_entries.to_u32()),
+			&XdpRedirectToHyperThreadArray(maximum_entries, None) => (BPF_MAP_TYPE_CPUMAP, BPF_MAP_CREATE_flags::empty(), Self::btf(parsed_btf_map_data), None, NoNumaNode, NoInnerMapFileDescriptor, KeySizeOfU32, ValueSizeOfU32, maximum_entries.to_u32()),
+			&XdpRedirectToHyperThreadArray(maximum_entries, Some(numa_node)) => (BPF_MAP_TYPE_CPUMAP, BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE, Self::btf(parsed_btf_map_data), None, numa_node.into(), NoInnerMapFileDescriptor, KeySizeOfU32, ValueSizeOfU32, maximum_entries.to_u32()),
 			&XdpRedirectToSocketArray(maximum_entries, access_permissions, None) => (BPF_MAP_TYPE_XSKMAP, access_permissions.to_map_flags(), Self::btf(parsed_btf_map_data), None, NoNumaNode, NoInnerMapFileDescriptor, KeySizeOfU32, ValueSizeOfRawFd, maximum_entries.to_u32()),
 			&XdpRedirectToSocketArray(maximum_entries, access_permissions, Some(numa_node)) => (BPF_MAP_TYPE_XSKMAP, access_permissions.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE, Self::btf(parsed_btf_map_data), None, numa_node.into(), NoInnerMapFileDescriptor, KeySizeOfU32, ValueSizeOfRawFd, maximum_entries.to_u32()),
 			&SocketArrayU32(maximum_entries, access_permissions, None) => (BPF_MAP_TYPE_SOCKMAP, access_permissions.to_map_flags(), Self::btf(parsed_btf_map_data), None, NoNumaNode, NoInnerMapFileDescriptor, KeySizeOfU32, ValueSizeOfU32, maximum_entries.to_u32()),
