@@ -11,6 +11,15 @@ pub struct HashMap<K: Copy, V: Copy>
 	marker: PhantomData<(K, V)>,
 }
 
+impl<K: Copy, V: Copy> CanBeInnerMap for HashMap<K, V>
+{
+	#[inline(always)]
+	fn map_file_descriptor(&self) -> &MapFileDescriptor
+	{
+		&self.map_file_descriptor
+	}
+}
+
 impl<K: Copy, V: Copy> HashMap<K, V>
 {
 	/// New per-device.

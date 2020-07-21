@@ -12,6 +12,15 @@ pub struct PerHyperThreadHashMap<K: Copy, V: Copy>
 	marker: PhantomData<(K, V)>,
 }
 
+impl<K: Copy, V: Copy> CanBeInnerMap for PerHyperThreadHashMap<K, V>
+{
+	#[inline(always)]
+	fn map_file_descriptor(&self) -> &MapFileDescriptor
+	{
+		&self.map_file_descriptor
+	}
+}
+
 impl<K: Copy, V: Copy> PerHyperThreadHashMap<K, V>
 {
 	/// New per-HyperThread.
@@ -23,16 +32,16 @@ impl<K: Copy, V: Copy> PerHyperThreadHashMap<K, V>
 	
 	/// New least-recently used (LRU) hash with a LRU list shared amongst all HyperThreads.
 	#[inline(always)]
-	pub fn new_least_recently_used_system_wide(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, number_of_possible_hyper_threads: NumberOfPossibleHyperThreads) -> Result<Self, MapCreationError>
+	pub fn new_least_recently_used_per_hyper_thread(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, number_of_possible_hyper_threads: NumberOfPossibleHyperThreads) -> Result<Self, MapCreationError>
 	{
 		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::LeastRecentlyUsedHashPerHyperThread(Self::key_size(), Self::value_size(), maximum_entries, access_permissions), maximum_entries, number_of_possible_hyper_threads)
 	}
 	
 	/// New least-recently used (LRU) hash with a LRU list per HyperThread.
 	#[inline(always)]
-	pub fn new_least_recently_used_system_wide_with_a_per_hyper_thread_least_recently_used_list(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, number_of_possible_hyper_threads: NumberOfPossibleHyperThreads) -> Result<Self, MapCreationError>
+	pub fn new_least_recently_used_per_hyper_thread_with_a_per_hyper_thread_least_recently_used_list(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, number_of_possible_hyper_threads: NumberOfPossibleHyperThreads) -> Result<Self, MapCreationError>
 	{
-		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::LeastRecentlyUsedHashPerHyperThreadeWithAPerHyperThreadLeastRecentlyUsedList(Self::key_size(), Self::value_size(), maximum_entries, access_permissions,), maximum_entries, number_of_possible_hyper_threads)
+		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::LeastRecentlyUsedHashPerHyperThreadWithAPerHyperThreadLeastRecentlyUsedList(Self::key_size(), Self::value_size(), maximum_entries, access_permissions,), maximum_entries, number_of_possible_hyper_threads)
 	}
 	
 	/// Length.
