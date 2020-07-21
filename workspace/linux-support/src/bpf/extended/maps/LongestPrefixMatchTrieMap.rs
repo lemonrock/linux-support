@@ -4,14 +4,14 @@
 
 /// When created this map is empty.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct LongestPrefixMatchTrieMap<IPA: InternetProtocolAddress, V: Sized>
+pub struct LongestPrefixMatchTrieMap<IPA: InternetProtocolAddress, V: Copy>
 {
 	map_file_descriptor: Rc<MapFileDescriptor>,
 	maximum_entries: MaximumEntries,
 	marker: PhantomData<(IPA, V)>,
 }
 
-impl<IPA: InternetProtocolAddress, V: Sized> CanBeInnerMap for LongestPrefixMatchTrieMap<IPA, V>
+impl<IPA: InternetProtocolAddress, V: Copy> CanBeInnerMap for LongestPrefixMatchTrieMap<IPA, V>
 {
 	#[inline(always)]
 	fn map_file_descriptor(&self) -> &MapFileDescriptor
@@ -20,7 +20,7 @@ impl<IPA: InternetProtocolAddress, V: Sized> CanBeInnerMap for LongestPrefixMatc
 	}
 }
 
-impl<IPA: InternetProtocolAddress, V: Sized> LongestPrefixMatchTrieMap<IPA, V>
+impl<IPA: InternetProtocolAddress, V: Copy> LongestPrefixMatchTrieMap<IPA, V>
 {
 	/// Length.
 	#[inline(always)]
@@ -90,7 +90,7 @@ impl<IPA: InternetProtocolAddress, V: Sized> LongestPrefixMatchTrieMap<IPA, V>
 	}
 }
 
-impl<V: Sized> LongestPrefixMatchTrieMap<in_addr, V>
+impl<V: Copy> LongestPrefixMatchTrieMap<in_addr, V>
 {
 	/// New.
 	#[inline(always)]
@@ -100,7 +100,7 @@ impl<V: Sized> LongestPrefixMatchTrieMap<in_addr, V>
 	}
 }
 
-impl<V: Sized> LongestPrefixMatchTrieMap<in6_addr, V>
+impl<V: Copy> LongestPrefixMatchTrieMap<in6_addr, V>
 {
 	/// New.
 	#[inline(always)]

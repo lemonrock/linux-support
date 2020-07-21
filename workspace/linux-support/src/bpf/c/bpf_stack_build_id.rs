@@ -4,7 +4,7 @@
 
 /// A stack frame.
 #[repr(C)]
-#[derive(Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Default, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct bpf_stack_build_id
 {
 	/// How to interpret `offset_or_instruction_pointer`:-

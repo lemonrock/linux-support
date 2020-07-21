@@ -4,14 +4,14 @@
 
 /// When an array is created, all its elements are zeroed.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct ArrayMap<V: Sized>
+pub struct ArrayMap<V: Copy>
 {
 	map_file_descriptor: Rc<MapFileDescriptor>,
 	maximum_entries: MaximumEntries,
 	marker: PhantomData<V>,
 }
 
-impl<V: Sized> CanBeInnerMap for ArrayMap<V>
+impl<V: Copy> CanBeInnerMap for ArrayMap<V>
 {
 	#[inline(always)]
 	fn map_file_descriptor(&self) -> &MapFileDescriptor
@@ -20,20 +20,13 @@ impl<V: Sized> CanBeInnerMap for ArrayMap<V>
 	}
 }
 
-impl<V: Sized> ArrayMap<V>
+impl<V: Copy> ArrayMap<V>
 {
 	/// New per-device.
 	#[inline(always)]
 	pub fn new_per_device(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, device: NetworkInterfaceIndex) -> Result<Self, MapCreationError>
 	{
 		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::ArrayPerDevice(Self::value_size(), maximum_entries, access_permissions, device), maximum_entries)
-	}
-	
-	/// New per-CPU.
-	#[inline(always)]
-	pub fn new_per_cpu(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions) -> Result<Self, MapCreationError>
-	{
-		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::ArrayPerCpu(Self::value_size(), maximum_entries, access_permissions), maximum_entries)
 	}
 	
 	/// New system-wide.
@@ -70,8 +63,6 @@ impl<V: Sized> ArrayMap<V>
 		0 ..= self.maximum_entries.0.get()
 	}
 
-	/// TODO: Batch operations are only supported for system wide array maps.
-	///
 	/// Get, batched.
 	///
 	/// Use `None` for `batch_position` when starting a new batch.
@@ -84,8 +75,6 @@ impl<V: Sized> ArrayMap<V>
 		self.map_file_descriptor.get_batch(batch_position, indices)
 	}
 	
-	/// TODO: Batch operations are only supported for system wide array maps.
-	///
 	/// Set, batched.
 	///
 	/// `indices` and `values` must be the same length.

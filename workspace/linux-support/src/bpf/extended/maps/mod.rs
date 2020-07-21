@@ -19,6 +19,7 @@ use crate::memory::mapping::*;
 use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use crate::pci_express::NetworkInterfaceIndex;
 use crate::process::CommandName;
+use crate::cpu::HyperThreads;
 
 
 /// Domain
@@ -38,6 +39,11 @@ include!("LongestPrefixMatchTrieMap.rs");
 include!("MapsArrayMap.rs");
 include!("MapsHashMap.rs");
 include!("MemoryMappedArrayMap.rs");
+include!("NumberOfPossibleHyperThreads.rs");
+include!("PerHyperThreadArrayMap.rs");
+include!("PerHyperThreadHashMap.rs");
+include!("PerHyperThreadValue.rs");
+include!("PerHyperThreadValues.rs");
 include!("ReusePortSocketValue.rs");
 include!("ReusePortSocketArrayMap.rs");
 include!("SocketCookie.rs");

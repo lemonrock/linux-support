@@ -17,7 +17,7 @@ pub(crate) struct BpfCommandMapBatch
 	
 	pub(crate) values: AlignedU64,
 	
-	/// On input, must be number of key or value elements.
+	/// On input, must be number of key or value elements and non-zero.
 	/// On output, contains number of filled elements.
 	pub(crate) count: u32,
 	

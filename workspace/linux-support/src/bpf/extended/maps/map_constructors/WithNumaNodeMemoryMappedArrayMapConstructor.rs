@@ -4,22 +4,23 @@
 
 #[allow(missing_docs)]
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct WithNumaNodeMemoryMappedArrayMapConstructor<V: Sized>(PhantomData<V>);
+pub struct WithNumaNodeMemoryMappedArrayMapConstructor<V: Copy>(PhantomData<V>);
 
-impl<V: Sized> MapConstructor for WithNumaNodeMemoryMappedArrayMapConstructor<V>
+impl<V: Copy> MapConstructor for WithNumaNodeMemoryMappedArrayMapConstructor<V>
 {
 	type Map = MemoryMappedArrayMap<V>;
 	
 	type AccessPermissions = AccessPermissions;
 	
-	type InvariantArguments = ();
+	type InvariantArguments = Rc<DefaultPageSizeAndHugePageSizes>;
 	
-	type VariableArguments = (NumaNode, Rc<DefaultPageSizeAndHugePageSizes>);
+	type VariableArguments = NumaNode;
 	
 	#[inline(always)]
-	fn construct(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: Self::AccessPermissions, _arguments_that_end_up_in_map_flags: Self::InvariantArguments, variable_arguments: Self::VariableArguments) -> Result<Self::Map, MapCreationError>
+	fn construct(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: Self::AccessPermissions, invariant_arguments: Self::InvariantArguments, variable_arguments: Self::VariableArguments) -> Result<Self::Map, MapCreationError>
 	{
-		let (numa_node, defaults) = variable_arguments;
+		let defaults = invariant_arguments;
+		let numa_node = variable_arguments;
 		MemoryMappedArrayMap::new(map_file_descriptors, map_name, parsed_btf_map_data, maximum_entries, access_permissions, Some(numa_node), &defaults)
 	}
 }

@@ -4,9 +4,9 @@
 
 #[allow(missing_docs)]
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct PerDeviceArrayMapConstructor<V: Sized>(PhantomData<V>);
+pub struct PerDeviceArrayMapConstructor<V: Copy>(PhantomData<V>);
 
-impl<V: Sized> MapConstructor for PerDeviceArrayMapConstructor<V>
+impl<V: Copy> MapConstructor for PerDeviceArrayMapConstructor<V>
 {
 	type Map = ArrayMap<V>;
 	

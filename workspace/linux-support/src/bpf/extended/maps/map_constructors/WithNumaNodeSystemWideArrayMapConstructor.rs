@@ -4,9 +4,9 @@
 
 #[allow(missing_docs)]
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct WithNumaNodeSystemWideArrayMapConstructor<V: Sized>(PhantomData<V>);
+pub struct WithNumaNodeSystemWideArrayMapConstructor<V: Copy>(PhantomData<V>);
 
-impl<V: Sized> MapConstructor for WithNumaNodeSystemWideArrayMapConstructor<V>
+impl<V: Copy> MapConstructor for WithNumaNodeSystemWideArrayMapConstructor<V>
 {
 	type Map = ArrayMap<V>;
 	

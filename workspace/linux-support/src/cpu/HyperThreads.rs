@@ -99,11 +99,20 @@ impl HyperThreads
 	{
 		let mut valid = Self::has_a_folder_path(sys_path);
 		valid.intersection(&Self::is_in_proc_self_status(proc_path));
-		valid.intersection(&Self::present(sys_path));
+		
+		// In a system that does not support CPU hotplug (ie `CONFIG_HOTPLUG_CPU` is not define), `present` is the same as `possible`.
+		// Otherwise, `present` is a subset of `possible` and can vary over time.
+		// See `include/linux/cpumask.h` in the Linux kernel sources.
 		valid.intersection(&Self::possible(sys_path));
+		valid.intersection(&Self::present(sys_path));
+		
+		// In a system that does not support CPU hotplug (ie `CONFIG_HOTPLUG_CPU` is not define), `online` is the same as `present`.
+		// Otherwise, `online` is a subset of `present` and can vary over time.
+		// See `include/linux/cpumask.h` in the Linux kernel sources.
 		valid.intersection(&Self::online(sys_path));
+		
 		valid.remove_all(&Self::offline(sys_path));
-		valid.remove_any_that_are_actually_online(sys_path);
+		valid.remove_any_that_are_not_actually_online(sys_path);
 		valid.remove_any_without_associated_numa_nodes(sys_path);
 
 		assert!(!valid.is_empty());
@@ -257,7 +266,18 @@ impl HyperThreads
 	{
 		self.set_affinity_list(proc_path.sys_kernel_file_path("watchdog_cpumask"))
 	}
-
+	
+	/// Mirrors `num_possible_cpus()` in the Linux kernel but with a twist.
+	///
+	/// There is a design flaw in BPF's `PER_CPU` maps such that access a particular CPU's value is incorrect if `/sys/devices/system/cpu/possible` has a CPU mask which does not include all possible CPUs!
+	///
+	/// It is too hard to engage with the libbpf mailing list at <https://lore.kernel.org/bpf/>.
+	#[inline(always)]
+	pub(crate) fn number_of_possible_hyper_threads_unless_there_are_missing_possible_hyper_threads(sys_path: &SysPath) -> Option<usize>
+	{
+		Self::possible(sys_path).len_if_full()
+	}
+	
 	/// CPU nodes that exist in the file system.
 	#[inline(always)]
 	fn has_a_folder_path(sys_path: &SysPath) -> Self
@@ -272,16 +292,7 @@ impl HyperThreads
 		let process_status_statistics = Status::self_status(proc_path).unwrap();
 		process_status_statistics.cpus_allowed
 	}
-
-	/// CPUs (hyper threaded logical cores) that are present and that could become online.
-	///
-	/// See <https://www.kernel.org/doc/Documentation/cputopology.txt>.
-	#[inline(always)]
-	fn present(sys_path: &SysPath) -> Self
-	{
-		Self::read_hyper_thread_list(sys_path, "present")
-	}
-
+	
 	/// Hyper threaded logical cores that could possibly be online at some point.
 	///
 	/// Close to very useless.
@@ -293,7 +304,22 @@ impl HyperThreads
 		Self::read_hyper_thread_list(sys_path, "possible")
 	}
 
+	/// CPUs (hyper threaded logical cores) that are present and that could become online.
+	///
+	/// A dynamic subset of `possible()` in a system configured with `CONFIG_CPU_HOTPLUG`, otherwise the same as `possible()`.
+	/// See comments in the Linux source code file `include/linux/cpumask.h`.
+	///
+	/// See <https://www.kernel.org/doc/Documentation/cputopology.txt>.
+	#[inline(always)]
+	fn present(sys_path: &SysPath) -> Self
+	{
+		Self::read_hyper_thread_list(sys_path, "present")
+	}
+
 	/// Hyper threaded logical cores that are online at some point.
+	///
+	/// A dynamic subset of `present()` in a system configured with `CONFIG_CPU_HOTPLUG`, otherwise the same as `present()`.
+	/// See comments in the Linux source code file `include/linux/cpumask.h`.
 	///
 	/// See <https://www.kernel.org/doc/Documentation/cputopology.txt>.
 	#[inline(always)]
@@ -314,7 +340,7 @@ impl HyperThreads
 	}
 
 	#[inline(always)]
-	fn remove_any_that_are_actually_online(&mut self, sys_path: &SysPath)
+	fn remove_any_that_are_not_actually_online(&mut self, sys_path: &SysPath)
 	{
 		let mut invalid_hyper_threads = Self(BitSet::<HyperThread>::empty());
 		for hyper_thread in self.iterate()

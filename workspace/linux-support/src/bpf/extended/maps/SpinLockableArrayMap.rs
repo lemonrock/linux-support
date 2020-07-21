@@ -5,9 +5,9 @@
 /// When an array is created, all its elements are zeroed.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub struct SpinLockableArrayMap<V: 'static + Sized + HasReflectionInformation>(ArrayMap<SpinLockableValue<V>>);
+pub struct SpinLockableArrayMap<V: 'static + Copy + HasReflectionInformation>(ArrayMap<SpinLockableValue<V>>);
 
-impl<V: 'static + Sized + HasReflectionInformation> SpinLockableArrayMap<V>
+impl<V: 'static + Copy + HasReflectionInformation> SpinLockableArrayMap<V>
 {
 	/// New system-wide.
 	#[inline(always)]

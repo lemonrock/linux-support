@@ -21,7 +21,7 @@
 ///
 /// Inner map elements must all have the same `maximum_entries`, `value_size` and `BPF_MAP_CREATE_flags` for all elements.
 #[derive(Debug)]
-pub struct MapsHashMap<K: Sized, MC: MapConstructor>
+pub struct MapsHashMap<K: Copy, MC: MapConstructor>
 {
 	map_file_descriptor: Rc<MapFileDescriptor>,
 	maximum_entries: MaximumEntries,
@@ -31,7 +31,7 @@ pub struct MapsHashMap<K: Sized, MC: MapConstructor>
 	marker: PhantomData<K>,
 }
 
-impl<K: Sized, MC: MapConstructor> MapsHashMap<K, MC>
+impl<K: Copy, MC: MapConstructor> MapsHashMap<K, MC>
 {
 	/// Capacity.
 	#[inline(always)]
@@ -59,7 +59,7 @@ impl<K: Sized, MC: MapConstructor> MapsHashMap<K, MC>
 	pub fn insert_or_set(&self, key: &K, map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, variable_arguments: MC::VariableArguments) -> Result<MC::Map, ()>
 	{
 		let inner_map = self.inner_map(map_file_descriptors, map_name, parsed_btf_map_data, variable_arguments)?;
-		self.map_file_descriptor.insert_or_set(key, inner_map.map_file_descriptor(), LockFlags::DoNotLock)?;
+		self.map_file_descriptor.insert_or_set(key, &inner_map.map_file_descriptor().as_raw_fd(), LockFlags::DoNotLock)?;
 		Ok(inner_map)
 	}
 	
@@ -68,7 +68,7 @@ impl<K: Sized, MC: MapConstructor> MapsHashMap<K, MC>
 	pub fn insert(&self, key: &K, map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, variable_arguments: MC::VariableArguments) -> Result<MC::Map, ()>
 	{
 		let inner_map = self.inner_map(map_file_descriptors, map_name, parsed_btf_map_data, variable_arguments)?;
-		self.map_file_descriptor.insert(key, inner_map.map_file_descriptor(), LockFlags::DoNotLock).map_err(|_| ())?;
+		self.map_file_descriptor.insert(key, &inner_map.map_file_descriptor().as_raw_fd(), LockFlags::DoNotLock).map_err(|_| ())?;
 		Ok(inner_map)
 	}
 	
@@ -77,7 +77,7 @@ impl<K: Sized, MC: MapConstructor> MapsHashMap<K, MC>
 	pub fn set(&self, key: &K, map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, variable_arguments: MC::VariableArguments) -> Result<MC::Map, ()>
 	{
 		let inner_map = self.inner_map(map_file_descriptors, map_name, parsed_btf_map_data, variable_arguments)?;
-		self.map_file_descriptor.set(key, inner_map.map_file_descriptor(), LockFlags::DoNotLock)?;
+		self.map_file_descriptor.set(key, &inner_map.map_file_descriptor().as_raw_fd(), LockFlags::DoNotLock)?;
 		Ok(inner_map)
 	}
 	
@@ -108,7 +108,7 @@ impl<K: Sized, MC: MapConstructor> MapsHashMap<K, MC>
 			marker: PhantomData,
 		};
 		
-		this.map_file_descriptor.set(key, template_map_file_descriptor, LockFlags::DoNotLock)?;
+		this.map_file_descriptor.set(key, &template_map_file_descriptor.as_raw_fd(), LockFlags::DoNotLock)?;
 		Ok((this, inner_map))
 	}
 	

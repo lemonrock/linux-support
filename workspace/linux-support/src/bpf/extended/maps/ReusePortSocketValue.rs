@@ -5,7 +5,7 @@
 /// Strange representation of a listening socket used by BPF map.
 ///
 /// Must not be implemented in downstream code.
-pub trait ReusePortSocketValue: Sized
+pub trait ReusePortSocketValue: Copy
 {
 	#[doc(hidden)]
 	fn from_raw_fd(raw_fd: RawFd) -> Self;

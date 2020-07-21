@@ -142,7 +142,7 @@ impl HyperThread
 		let this = Self::try_from(value).unwrap();
 		this.0 + 1
 	}
-
+	
 	/// Uses `sysconf(_SC_NPROCESSORS_CONF)` which is ***only valid*** if `sched_setaffinity()` has not been called.
 	///
 	/// Internally `sysconf(_SC_NPROCESSORS_CONF)`, in musl, uses the system call `SYS_sched_getaffinity()`.

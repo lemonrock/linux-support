@@ -6,8 +6,8 @@
 ///
 /// BPF map must have valid BTF to be usable.
 #[repr(C)]
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct SpinLockableValue<V: 'static + Sized + HasReflectionInformation>
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct SpinLockableValue<V: 'static + Copy + HasReflectionInformation>
 {
 	/// Spin lock.
 	pub spin_lock: bpf_spin_lock,
@@ -16,7 +16,7 @@ pub struct SpinLockableValue<V: 'static + Sized + HasReflectionInformation>
 	pub value: V,
 }
 
-impl<V: 'static + Sized + HasReflectionInformation> HasReflectionInformation for SpinLockableValue<V>
+impl<V: 'static + Copy + HasReflectionInformation> HasReflectionInformation for SpinLockableValue<V>
 {
 	const Type: Type = Type
 	{

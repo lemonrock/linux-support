@@ -2,15 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A stack frame.
-pub trait StackFrame: Copy
-{
-}
-
-impl StackFrame for AlignedU64
-{
-}
-
-impl StackFrame for bpf_stack_build_id
-{
-}
+/// Represents a per-HyperThread value.
+///
+/// This does not exist for CPUs that are not part of the possible list.
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(C, align(8))]
+pub struct PerHyperThreadValue<V: Copy>(pub V);

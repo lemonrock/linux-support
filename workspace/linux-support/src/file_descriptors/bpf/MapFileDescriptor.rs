@@ -76,7 +76,7 @@ impl MapFileDescriptor
 	/// Returns `None` if the `key` is the last one (ie `capacity() - 1`).
 	#[inline(always)]
 	#[allow(deprecated)]
-	pub fn get_next_key<K: Sized>(&self, key: *const K) -> Result<Option<K>, Errno>
+	pub fn get_next_key<K: Copy>(&self, key: *const K) -> Result<Option<K>, Errno>
 	{
 		debug_assert_ne!(size_of::<K>(), 0);
 		
@@ -119,9 +119,8 @@ impl MapFileDescriptor
 	
 	#[allow(deprecated)]
 	#[inline(always)]
-	pub(crate) fn get<K: Sized, V: Sized>(&self, key: &K) -> Option<V>
+	pub(crate) fn get<K: Copy, V: Copy>(&self, key: &K) -> Option<V>
 	{
-		debug_assert_ne!(size_of::<K>(), 0);
 		debug_assert_ne!(size_of::<V>(), 0);
 		
 		let mut value: V = unsafe { uninitialized() };
@@ -137,17 +136,15 @@ impl MapFileDescriptor
 	}
 	
 	#[inline(always)]
-	pub(crate) fn get_variably_sized<K: Sized, V>(&self, key: &K, length: usize) -> Option<Vec<V>>
+	pub(crate) fn get_variably_sized<K: Copy, V: Copy>(&self, key: &K, length: usize) -> Option<Vec<V>>
 	{
-		debug_assert_ne!(size_of::<K>(), 0);
+		let mut allocate_values: Vec<V> = Vec::with_capacity(length);
 		
-		let mut value: Vec<V> = Vec::with_capacity(length);
-		
-		let found = self.get_internal(key, unsafe { NonNull::new_unchecked(value.as_mut_ptr()) });
+		let found = self.get_variably_sized_vector(key, &mut allocate_values);
 		if found
 		{
-			unsafe { value.set_len(length) };
-			Some(value)
+			unsafe { allocate_values.set_len(length) };
+			Some(allocate_values)
 		}
 		else
 		{
@@ -156,7 +153,13 @@ impl MapFileDescriptor
 	}
 	
 	#[inline(always)]
-	fn get_internal<K: Sized, V>(&self, key: &K, value: NonNull<V>) -> bool
+	pub(crate) fn get_variably_sized_vector<K: Copy, V: Copy>(&self, key: &K, allocate_values: &mut Vec<V>) -> bool
+	{
+		self.get_internal(key, unsafe { NonNull::new_unchecked(allocate_values.as_mut_ptr()) })
+	}
+	
+	#[inline(always)]
+	fn get_internal<K: Copy, V: Copy>(&self, key: &K, value: NonNull<V>) -> bool
 	{
 		debug_assert_ne!(size_of::<K>(), 0);
 		
@@ -196,9 +199,33 @@ impl MapFileDescriptor
 	/// Insert or set.
 	///
 	/// Errors if already present.
-	pub(crate) fn insert_or_set<K: Sized, V: Sized>(&self, key: &K, value: &V, lock_flags: LockFlags) -> Result<(), ()>
+	pub(crate) fn insert_or_set<K: Copy, V: Copy>(&self, key: &K, value: &V, lock_flags: LockFlags) -> Result<(), ()>
 	{
 		match self.update(key, value, BPF_MAP_UPDATE_ELEM_flags::BPF_ANY, lock_flags)
+		{
+			Ok(()) => Ok(()),
+			
+			Err(errno) => match errno.0
+			{
+				E2BIG => Err(()),
+				
+				EEXIST => unreachable!("Should not return `EEXIST` as flag `BPF_NOEXIST` not specified"),
+				
+				ENOENT => unreachable!("Should not return `ENOENT` as flag `BPF_EXIST` not specified"),
+				
+				ENOMEM => Err(()),
+				
+				_ => panic!("Unexpected error `{}`", errno),
+			}
+		}
+	}
+	
+	/// Insert or set.
+	///
+	/// Errors if already present.
+	pub(crate) fn insert_or_set_variably_sized<K: Copy, V: Copy>(&self, key: &K, values: &[V]) -> Result<(), ()>
+	{
+		match self.update(key, values.as_ptr(), BPF_MAP_UPDATE_ELEM_flags::BPF_ANY, LockFlags::DoNotLock)
 		{
 			Ok(()) => Ok(()),
 			
@@ -220,7 +247,7 @@ impl MapFileDescriptor
 	/// Insert.
 	///
 	/// Errors if already present.
-	pub(crate) fn insert<K: Sized, V: Sized>(&self, key: &K, value: &V, lock_flags: LockFlags) -> Result<(), InsertError>
+	pub(crate) fn insert<K: Copy, V: Copy>(&self, key: &K, value: &V, lock_flags: LockFlags) -> Result<(), InsertError>
 	{
 		use self::InsertError::*;
 		
@@ -243,12 +270,89 @@ impl MapFileDescriptor
 		}
 	}
 	
+	/// Insert.
+	///
+	/// Errors if already present.
+	pub(crate) fn insert_variably_sized<K: Copy, V: Copy>(&self, key: &K, values: &[V]) -> Result<(), InsertError>
+	{
+		use self::InsertError::*;
+		
+		match self.update(key, values.as_ptr(), BPF_MAP_UPDATE_ELEM_flags::BPF_NOEXIST, LockFlags::DoNotLock)
+		{
+			Ok(()) => Ok(()),
+			
+			Err(errno) => match errno.0
+			{
+				E2BIG => Err(MaximumCapacityReached),
+				
+				EEXIST => Err(AlreadyPresent),
+				
+				ENOENT => unreachable!("Should not return `ENOENT` as flag `BPF_EXIST` not specified"),
+				
+				ENOMEM => Err(OutOfMemory),
+				
+				_ => panic!("Unexpected error `{}`", errno),
+			}
+		}
+	}
+	
+	/// Set.
+	///
+	/// Returns an error if the key does not exist.
+	///
+	/// If specifying `BPF_MAP_UPDATE_ELEM_flags::BPF_F_LOCK`:-
+	///
+	/// * Only valid for basic hash, basic array and cgroup local-storage when `V` has been created with a `bpf_spin_lock`.
+	/// * This will panic if this array was not created with a spinlock; it is not valid on per-CPU and per-device arrays nor if the array has been memory-mapped.
+	/// * Additionally, the map needs to have been created with BTF data.
+	/// * Furthermore, `V` must be a struct of type `SpinLockableValue`.
+	pub(crate) fn set<K: Copy, V: Copy>(&self, key: &K, value: &V, lock_flags: LockFlags) -> Result<(), ()>
+	{
+		match self.update(key, value, BPF_MAP_UPDATE_ELEM_flags::BPF_EXIST, lock_flags)
+		{
+			Ok(()) => Ok(()),
+			
+			Err(errno) => match errno.0
+			{
+				E2BIG => unreachable!("Should not return `E2BIG` as flag `BPF_NOEXIST` or `BPF_ANY` not specified"),
+				
+				EEXIST => unreachable!("Should not return `EEXIST` as flag `BPF_NOEXIST` not specified"),
+				
+				ENOENT => Err(()),
+				
+				_ => panic!("Unexpected error `{}`", errno),
+			}
+		}
+	}
+	
+	/// Set.
+	///
+	/// Returns an error if the key does not exist.
+	pub(crate) fn set_variably_sized<K: Copy, V: Copy>(&self, key: &K, values: &[V]) -> Result<(), ()>
+	{
+		match self.update(key, values.as_ptr(), BPF_MAP_UPDATE_ELEM_flags::BPF_EXIST, LockFlags::DoNotLock)
+		{
+			Ok(()) => Ok(()),
+			
+			Err(errno) => match errno.0
+			{
+				E2BIG => unreachable!("Should not return `E2BIG` as flag `BPF_NOEXIST` or `BPF_ANY` not specified"),
+				
+				EEXIST => unreachable!("Should not return `EEXIST` as flag `BPF_NOEXIST` not specified"),
+				
+				ENOENT => Err(()),
+				
+				_ => panic!("Unexpected error `{}`", errno),
+			}
+		}
+	}
+	
 	/// Set.
 	///
 	/// For some weird reason, one needs to specify different `map_flags`.
 	///
 	/// See the Linux kernel function `bpf_fd_array_map_update_elem()`.
-	pub(crate) fn set_for_file_descriptor_array_map<K: Sized, V: Sized>(&self, key: &K, value: &V) -> Result<(), ()>
+	pub(crate) fn set_for_file_descriptor_array_map<K: Copy, V: Copy>(&self, key: &K, value: &V) -> Result<(), ()>
 	{
 		match self.update(key, value, BPF_MAP_UPDATE_ELEM_flags::BPF_ANY, LockFlags::DoNotLock)
 		{
@@ -269,37 +373,8 @@ impl MapFileDescriptor
 		}
 	}
 	
-	/// Set.
-	///
-	/// Returns an error if the key does not exist.
-	///
-	/// If specifying `BPF_MAP_UPDATE_ELEM_flags::BPF_F_LOCK`:-
-	///
-	/// * Only valid for basic hash, basic array and cgroup local-storage when `V` has been created with a `bpf_spin_lock`.
-	/// * This will panic if this array was not created with a spinlock; it is not valid on per-CPU and per-device arrays nor if the array has been memory-mapped.
-	/// * Additionally, the map needs to have been created with BTF data.
-	/// * Furthermore, `V` must be a struct of type `SpinLockableValue`.
-	pub(crate) fn set<K: Sized, V: Sized>(&self, key: &K, value: &V, lock_flags: LockFlags) -> Result<(), ()>
-	{
-		match self.update(key, value, BPF_MAP_UPDATE_ELEM_flags::BPF_EXIST, lock_flags)
-		{
-			Ok(()) => Ok(()),
-			
-			Err(errno) => match errno.0
-			{
-				E2BIG => unreachable!("Should not return `E2BIG` as flag `BPF_NOEXIST` or `BPF_ANY` not specified"),
-				
-				EEXIST => unreachable!("Should not return `EEXIST` as flag `BPF_NOEXIST` not specified"),
-				
-				ENOENT => Err(()),
-				
-				_ => panic!("Unexpected error `{}`", errno),
-			}
-		}
-	}
-	
 	#[inline(always)]
-	fn update<K: Sized, V: Sized>(&self, key: &K, value: &V, flags: BPF_MAP_UPDATE_ELEM_flags, lock_flags: LockFlags) -> Result<(), Errno>
+	fn update<K: Copy, V: Copy>(&self, key: &K, value: *const V, flags: BPF_MAP_UPDATE_ELEM_flags, lock_flags: LockFlags) -> Result<(), Errno>
 	{
 		debug_assert_ne!(size_of::<K>(), 0);
 		debug_assert_ne!(size_of::<V>(), 0);
@@ -333,7 +408,7 @@ impl MapFileDescriptor
 	
 	#[allow(deprecated)]
 	#[inline(always)]
-	pub(crate) fn lookup_and_delete<K: Sized, V: Sized>(&self, key: &K) -> Result<Option<V>, Errno>
+	pub(crate) fn lookup_and_delete<K: Copy, V: Copy>(&self, key: &K) -> Result<Option<V>, Errno>
 	{
 		debug_assert_ne!(size_of::<K>(), 0);
 		debug_assert_ne!(size_of::<V>(), 0);
@@ -375,7 +450,7 @@ impl MapFileDescriptor
 	/// Returns `Ok(true)` if `key` was present.
 	#[inline(always)]
 	#[allow(deprecated)]
-	pub(crate) fn delete<K: Sized>(&self, key: &K) -> Result<bool, Errno>
+	pub(crate) fn delete<K: Copy>(&self, key: &K) -> Result<bool, Errno>
 	{
 		debug_assert_ne!(size_of::<K>(), 0);
 		
@@ -418,7 +493,6 @@ impl MapFileDescriptor
 	/// Requires the capability `CAP_SYS_ADMIN`.
 	/// Can only be called once.
 	#[inline(always)]
-	#[allow(deprecated)]
 	pub(crate) fn freeze(&self) -> Result<(), Errno>
 	{
 		let mut attr = bpf_attr::default();
@@ -457,14 +531,35 @@ impl MapFileDescriptor
 	
 	/// Returns `(values_filled, start of next batch position, more_entries_to_return)`.
 	/// `values_filled.len()` may be less than `keys.len()`.
-	#[allow(deprecated)]
-	pub(crate) fn get_batch<K: Sized, V: Sized>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K]) -> Result<(Vec<V>, OpaqueBatchPosition<K>, bool), Errno>
+	#[inline(always)]
+	pub(crate) fn get_batch<K: Copy, V: Copy>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K]) -> Result<(Vec<V>, OpaqueBatchPosition<K>, bool), Errno>
 	{
 		let keys_length = keys.len();
+		let mut values = Vec::with_capacity(keys.len());
+		
+		let (count, out_batch, more) = self.lookup_batch(batch_position, keys, AlignedU64::from(values.as_mut_ptr()))?;
+		unsafe { values.set_len(count as usize) };
+		Ok((values, out_batch, more))
+	}
+	
+	#[inline(always)]
+	pub(crate) fn get_batch_variably_sized<K: Copy>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K], values: &mut [u8]) -> Result<(usize, OpaqueBatchPosition<K>, bool), Errno>
+	{
+		let (count, out_batch, more) = self.lookup_batch(batch_position, keys, AlignedU64::from(values.as_mut_ptr()))?;
+		Ok((count as usize, out_batch, more))
+	}
+	
+	/// Returns `(values_filled, start of next batch position, more_entries_to_return)`.
+	/// `values_filled.len()` may be less than `keys.len()`.
+	#[allow(deprecated)]
+	#[inline(always)]
+	pub(crate) fn lookup_batch<K: Copy>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K], values: AlignedU64) -> Result<(u32, OpaqueBatchPosition<K>, bool), Errno>
+	{
+		let keys_length = keys.len();
+		assert_ne!(keys_length, 0, "There must be at least one key");
 		debug_assert!(keys_length <= u32::MAX as usize);
 		
 		let mut out_batch: OpaqueBatchPosition<K> = unsafe { uninitialized() };
-		let mut values = Vec::with_capacity(keys_length);
 		
 		let mut attr = bpf_attr::default();
 		attr.batch = BpfCommandMapBatch
@@ -476,7 +571,7 @@ impl MapFileDescriptor
 			},
 			out_batch: AlignedU64::from(&mut out_batch),
 			keys: AlignedU64::from(keys),
-			values: AlignedU64::from(values.as_mut_ptr()),
+			values,
 			count: keys_length as u32,
 			map_fd: self.as_raw_fd(),
 			elem_flags: elem_flags::empty(),
@@ -487,8 +582,7 @@ impl MapFileDescriptor
 		let count = unsafe { attr.batch.count };
 		if likely!(result == 0)
 		{
-			unsafe { values.set_len(count as usize) };
-			Ok((values, out_batch, true))
+			Ok((count, out_batch, true))
 		}
 		else if likely!(result == -1)
 		{
@@ -497,8 +591,7 @@ impl MapFileDescriptor
 			{
 				ENOENT =>
 				{
-					unsafe { values.set_len(count as usize) };
-					Ok((values, out_batch, false))
+					Ok((count, out_batch, false))
 				},
 				
 				_ => Err(errno),
@@ -510,12 +603,99 @@ impl MapFileDescriptor
 		}
 	}
 	
-	/// `keys` and `values` must be the same length.
-	pub(crate) fn set_batch<K: Sized, V: Sized>(&self, keys: &[K], values: &[V], lock_flags: LockFlags) -> Result<usize, Errno>
+	/// Returns `(values_filled, start of next batch position, more_entries_to_return)`.
+	/// `values_filled.len()` may be less than `keys.len()`.
+	#[inline(always)]
+	pub(crate) fn get_and_delete_batch<K: Copy, V: Copy>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K]) -> Result<(Vec<V>, OpaqueBatchPosition<K>, bool), Errno>
 	{
 		let keys_length = keys.len();
-		let values_length = values.len();
-		debug_assert!(keys_length == values_length);
+		let mut values = Vec::with_capacity(keys.len());
+		
+		let (count, out_batch, more) = self.lookup_and_delete_batch(batch_position, keys, AlignedU64::from(values.as_mut_ptr()))?;
+		unsafe { values.set_len(count as usize) };
+		Ok((values, out_batch, more))
+	}
+	
+	#[inline(always)]
+	pub(crate) fn get_and_delete_batch_variably_sized<K: Copy>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K], values: &mut [u8]) -> Result<(usize, OpaqueBatchPosition<K>, bool), Errno>
+	{
+		let (count, out_batch, more) = self.lookup_and_delete_batch(batch_position, keys, AlignedU64::from(values.as_mut_ptr()))?;
+		Ok((count as usize, out_batch, more))
+	}
+	
+	/// Returns `(values_filled, start of next batch position, more_entries_to_return)`.
+	/// `values_filled.len()` may be less than `keys.len()`.
+	#[allow(deprecated)]
+	#[inline(always)]
+	fn lookup_and_delete_batch<K: Copy>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K], values: AlignedU64) -> Result<(u32, OpaqueBatchPosition<K>, bool), Errno>
+	{
+		let keys_length = keys.len();
+		assert_ne!(keys_length, 0, "There must be at least one key");
+		debug_assert!(keys_length <= u32::MAX as usize);
+		
+		let mut out_batch: OpaqueBatchPosition<K> = unsafe { uninitialized() };
+		
+		let mut attr = bpf_attr::default();
+		attr.batch = BpfCommandMapBatch
+		{
+			in_batch: match batch_position
+			{
+				None => AlignedU64::Null,
+				Some(batch_position) => AlignedU64::from(batch_position),
+			},
+			out_batch: AlignedU64::from(&mut out_batch),
+			keys: AlignedU64::from(keys),
+			values,
+			count: keys_length as u32,
+			map_fd: self.as_raw_fd(),
+			elem_flags: elem_flags::empty(),
+			flags: 0,
+		};
+		
+		let result = attr.syscall(bpf_cmd::BPF_MAP_LOOKUP_AND_DELETE_BATCH);
+		let count = unsafe { attr.batch.count };
+		if likely!(result == 0)
+		{
+			Ok((count, out_batch, true))
+		}
+		else if likely!(result == -1)
+		{
+			let errno = errno();
+			match errno.0
+			{
+				ENOENT =>
+				{
+					Ok((count, out_batch, false))
+				},
+				
+				_ => Err(errno),
+			}
+		}
+		else
+		{
+			unreachable!("Unexpected result `{}` from bpf(BPF_MAP_LOOKUP_AND_DELETE_BATCH)", result)
+		}
+	}
+	
+	/// `keys` and `values` must be the same length.
+	#[inline(always)]
+	pub(crate) fn set_batch<K: Copy, V: Copy>(&self, keys: &[K], values: &[V], lock_flags: LockFlags) -> Result<usize, Errno>
+	{
+		self.update_batch(keys, AlignedU64::from(values), lock_flags)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn set_batch_variably_sized<K: Copy>(&self, keys: &[K], values: &[u8]) -> Result<usize, Errno>
+	{
+		self.update_batch(keys, AlignedU64::from(values), LockFlags::DoNotLock)
+	}
+	
+	/// `keys` and `values` must be the same length.
+	#[inline(always)]
+	 fn update_batch<K: Copy>(&self, keys: &[K], values: AlignedU64, lock_flags: LockFlags) -> Result<usize, Errno>
+	{
+		let keys_length = keys.len();
+		assert_ne!(keys_length, 0, "There must be at least one key");
 		debug_assert!(keys_length <= u32::MAX as usize);
 		
 		let mut attr = bpf_attr::default();
@@ -524,7 +704,7 @@ impl MapFileDescriptor
 			in_batch: AlignedU64::Null,
 			out_batch: AlignedU64::Null,
 			keys: AlignedU64::from(keys),
-			values: AlignedU64::from(values),
+			values,
 			count: keys_length as u32,
 			map_fd: self.as_raw_fd(),
 			elem_flags: lock_flags.to_elem_flags(),
@@ -547,65 +727,11 @@ impl MapFileDescriptor
 		}
 	}
 	
-	/// Returns `(values_filled, start of next batch position, more_entries_to_return)`.
-	/// `values_filled.len()` may be less than `keys.len()`.
-	#[allow(deprecated)]
-	pub(crate) fn lookup_and_delete_batch<K: Sized, V: Sized>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K]) -> Result<(Vec<V>, OpaqueBatchPosition<K>, bool), Errno>
-	{
-		let keys_length = keys.len();
-		debug_assert!(keys_length <= u32::MAX as usize);
-		
-		let mut out_batch: OpaqueBatchPosition<K> = unsafe { uninitialized() };
-		let mut values = Vec::with_capacity(keys_length);
-		
-		let mut attr = bpf_attr::default();
-		attr.batch = BpfCommandMapBatch
-		{
-			in_batch: match batch_position
-			{
-				None => AlignedU64::Null,
-				Some(batch_position) => AlignedU64::from(batch_position),
-			},
-			out_batch: AlignedU64::from(&mut out_batch),
-			keys: AlignedU64::from(keys),
-			values: AlignedU64::from(values.as_mut_ptr()),
-			count: keys_length as u32,
-			map_fd: self.as_raw_fd(),
-			elem_flags: elem_flags::empty(),
-			flags: 0,
-		};
-		
-		let result = attr.syscall(bpf_cmd::BPF_MAP_LOOKUP_AND_DELETE_BATCH);
-		let count = unsafe { attr.batch.count };
-		if likely!(result == 0)
-		{
-			unsafe { values.set_len(count as usize) };
-			Ok((values, out_batch, true))
-		}
-		else if likely!(result == -1)
-		{
-			let errno = errno();
-			match errno.0
-			{
-				ENOENT =>
-				{
-					unsafe { values.set_len(count as usize) };
-					Ok((values, out_batch, false))
-				},
-				
-				_ => Err(errno),
-			}
-		}
-		else
-		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_MAP_LOOKUP_AND_DELETE_BATCH)", result)
-		}
-	}
-	
 	/// Returns `(count_of_entries_filled, more_entries_to_return)`.
-	pub(crate) fn delete_batch<K: Sized>(&self, keys: &[K]) -> Result<(usize, bool), Errno>
+	pub(crate) fn delete_batch<K: Copy>(&self, keys: &[K]) -> Result<(usize, bool), Errno>
 	{
 		let keys_length = keys.len();
+		assert_ne!(keys_length, 0, "There must be at least one key");
 		debug_assert!(keys_length <= u32::MAX as usize);
 	
 		let mut attr = bpf_attr::default();

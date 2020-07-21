@@ -6,13 +6,13 @@
 ///
 /// When created, all its elements are zeroed.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct MemoryMappedArrayMap<V: Sized>
+pub struct MemoryMappedArrayMap<V: Copy>
 {
 	array_map: ArrayMap<V>,
 	mapped_memory: MappedMemory,
 }
 
-impl<V: Sized> CanBeInnerMap for MemoryMappedArrayMap<V>
+impl<V: Copy> CanBeInnerMap for MemoryMappedArrayMap<V>
 {
 	#[inline(always)]
 	fn map_file_descriptor(&self) -> &MapFileDescriptor
@@ -21,7 +21,7 @@ impl<V: Sized> CanBeInnerMap for MemoryMappedArrayMap<V>
 	}
 }
 
-impl<V: Sized> MemoryMappedArrayMap<V>
+impl<V: Copy> MemoryMappedArrayMap<V>
 {
 	/// Capacity.
 	#[inline(always)]

@@ -207,10 +207,10 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	#[inline(always)]
 	pub fn capacity(&self) -> usize
 	{
-		self.capacity_in_words() * size_of::<usize>()
+		self.capacity_in_words() * size_of::<usize>() * 8
 	}
 
-	/// Number of bits set.
+	/// Are no bits set?
 	///
 	/// This operation is a little expensive, but less expensive than `self.len()`.
 	#[inline(always)]
@@ -219,6 +219,22 @@ impl<BSA: BitSetAware> BitSet<BSA>
 		for word_index in 0 .. self.capacity_in_words()
 		{
 			if self.get_word(word_index) != 0
+			{
+				return false
+			}
+		}
+		true
+	}
+	
+	/// Are all bits set?
+	///
+	/// This operation is a little expensive, but less expensive than `self.len()`.
+	#[inline(always)]
+	pub fn is_full(&self) -> bool
+	{
+		for word_index in 0 .. self.capacity_in_words()
+		{
+			if self.get_word(word_index) != usize::MAX
 			{
 				return false
 			}
@@ -241,6 +257,20 @@ impl<BSA: BitSetAware> BitSet<BSA>
 			count += word.count_ones();
 		}
 		count as usize
+	}
+
+	/// Number of bits set if all bits are set.
+	#[inline(always)]
+	pub fn len_if_full(&self) -> Option<usize>
+	{
+		for word_index in 0 .. self.capacity_in_words()
+		{
+			if self.get_word(word_index) != usize::MAX
+			{
+				return None
+			}
+		}
+		Some(self.capacity())
 	}
 
 	/// Adds.

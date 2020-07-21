@@ -6,7 +6,7 @@
 ///
 /// The order of fields and the size of fields is to maintain layout compatibility with the Linux type `bpf_lpm_trie_key`.
 #[repr(C)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct InternetProtocolAddressWithMask<IPA: InternetProtocolAddress>

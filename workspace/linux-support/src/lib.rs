@@ -721,6 +721,7 @@ use std::ptr::null_mut;
 use std::ptr::read;
 use std::ptr::read_volatile;
 use std::ptr::write;
+use std::ptr::write_bytes;
 use std::ptr::write_volatile;
 use std::rc::Rc;
 use std::rc::Weak;

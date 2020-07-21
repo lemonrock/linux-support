@@ -4,9 +4,9 @@
 
 #[allow(missing_docs)]
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct WithoutNumaNodeLongestPrefixMatchTrieMapConstructor<IPA: InternetProtocolAddress + InternetProtocolAddressLongestPrefixMatchTrieMapConstructor<V>, V: Sized>(PhantomData<(IPA, V)>);
+pub struct WithoutNumaNodeLongestPrefixMatchTrieMapConstructor<IPA: InternetProtocolAddress + InternetProtocolAddressLongestPrefixMatchTrieMapConstructor<V>, V: Copy>(PhantomData<(IPA, V)>);
 
-impl<IPA: InternetProtocolAddress + InternetProtocolAddressLongestPrefixMatchTrieMapConstructor<V>, V: Sized> MapConstructor for WithoutNumaNodeLongestPrefixMatchTrieMapConstructor<IPA, V>
+impl<IPA: InternetProtocolAddress + InternetProtocolAddressLongestPrefixMatchTrieMapConstructor<V>, V: Copy> MapConstructor for WithoutNumaNodeLongestPrefixMatchTrieMapConstructor<IPA, V>
 {
 	type Map = LongestPrefixMatchTrieMap<IPA, V>;
 	

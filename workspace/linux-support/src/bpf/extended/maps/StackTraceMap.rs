@@ -44,13 +44,45 @@ impl<SF: StackFrame> StackTraceMap<SF>
 		KeyIterator::new(&self.map_file_descriptor)
 	}
 	
+	/// Allocates a reusable vector.
+	#[inline(always)]
+	pub fn allocate_values(&self) -> Vec<SF>
+	{
+		let length = self.allocate_values_length();
+		let mut allocate_values = Vec::with_capacity(length);
+		unsafe
+		{
+			write_bytes(allocate_values.as_mut_ptr(), 0x00, length);
+			allocate_values.set_len(length)
+		}
+		allocate_values
+	}
+	
+	/// Uses a reusable vector created with `self.allocate_values()`.
+	///
+	/// Returns `true` if found.
+	pub unsafe fn get_values(&self, key: u32, allocate_values: &mut Vec<SF>) -> bool
+	{
+		self.guard_key(key);
+		
+		debug_assert_eq!(allocate_values.len(), self.allocate_values_length());
+		self.map_file_descriptor.get_variably_sized_vector(&key, allocate_values)
+	}
+	
+	#[inline(always)]
+	fn allocate_values_length(&self) -> usize
+	{
+		self.stack_depth.to_count()
+	}
+	
 	/// Looks up a key.
+	///
+	/// ***Expensive*** as creates a vector first.
 	pub fn get(&self, key: u32) -> Option<Vec<SF>>
 	{
 		self.guard_key(key);
 		
-		let length = self.stack_depth.to_count();
-		self.map_file_descriptor.get_variably_sized(&key, length)
+		self.map_file_descriptor.get_variably_sized(&key, self.allocate_values_length())
 	}
 	
 	/// Delete.

@@ -3,13 +3,13 @@
 
 
 /// Support trait implemented only for `in_addr` and `in6_addr`.
-pub trait InternetProtocolAddressLongestPrefixMatchTrieMapConstructor<V: Sized>: InternetProtocolAddress
+pub trait InternetProtocolAddressLongestPrefixMatchTrieMapConstructor<V: Copy>: InternetProtocolAddress
 {
 	#[doc(hidden)]
 	fn new_longest_prefix_match_trie_map(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<LongestPrefixMatchTrieMap<Self, V>, MapCreationError>;
 }
 
-impl<V: Sized> InternetProtocolAddressLongestPrefixMatchTrieMapConstructor<V> for in_addr
+impl<V: Copy> InternetProtocolAddressLongestPrefixMatchTrieMapConstructor<V> for in_addr
 {
 	#[inline(always)]
 	fn new_longest_prefix_match_trie_map(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<LongestPrefixMatchTrieMap<in_addr, V>, MapCreationError>
@@ -18,7 +18,7 @@ impl<V: Sized> InternetProtocolAddressLongestPrefixMatchTrieMapConstructor<V> fo
 	}
 }
 
-impl<V: Sized> InternetProtocolAddressLongestPrefixMatchTrieMapConstructor<V> for in6_addr
+impl<V: Copy> InternetProtocolAddressLongestPrefixMatchTrieMapConstructor<V> for in6_addr
 {
 	#[inline(always)]
 	fn new_longest_prefix_match_trie_map(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<LongestPrefixMatchTrieMap<in6_addr, V>, MapCreationError>

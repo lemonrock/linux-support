@@ -5,9 +5,9 @@
 /// When a hash map is created it is empty.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub struct SpinLockableHashMap<K: Sized, V: 'static + Sized + HasReflectionInformation>(HashMap<K, SpinLockableValue<V>>);
+pub struct SpinLockableHashMap<K: Copy, V: 'static + Copy + HasReflectionInformation>(HashMap<K, SpinLockableValue<V>>);
 
-impl<K: Sized, V: 'static + Sized + HasReflectionInformation> SpinLockableHashMap<K, V>
+impl<K: Copy, V: 'static + Copy + HasReflectionInformation> SpinLockableHashMap<K, V>
 {
 	/// New system-wide.
 	#[inline(always)]
