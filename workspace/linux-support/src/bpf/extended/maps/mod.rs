@@ -60,4 +60,5 @@ include!("SpinLockableSocketStorageMap.rs");
 include!("SpinLockableValue.rs");
 include!("StackFrame.rs");
 include!("StackTraceMap.rs");
+include!("XdpRedirectSocketArrayMap.rs");
 

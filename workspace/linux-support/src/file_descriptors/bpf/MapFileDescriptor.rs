@@ -398,7 +398,12 @@ impl MapFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			Err(errno())
+			let errno = errno();
+			match errno.0
+			{
+				ENOTSUPP | EOPNOTSUPP => panic!("Operation is unsupported"),
+				_ => Err(errno)
+			}
 		}
 		else
 		{
