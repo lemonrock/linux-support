@@ -45,7 +45,7 @@ impl<SV: SocketValue> ReusePortSocketArrayMap<SV>
 		0 ..= self.maximum_entries.0.get()
 	}
 	
-	/// Insert or update exitings.
+	/// Insert or update existing.
 	///
 	/// `file_descriptor` must:-
 	///

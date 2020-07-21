@@ -45,7 +45,7 @@ impl<K: Copy, SV: SocketValue> SocketHashMap<K, SV>
 		KeyIterator::new(&self.map_file_descriptor)
 	}
 	
-	/// Insert or update exitings.
+	/// Insert or update existing.
 	///
 	/// `file_descriptor` must:-
 	///
@@ -94,7 +94,7 @@ impl<K: Copy, SV: SocketValue> SocketHashMap<K, SV>
 		let raw_fd = file_descriptor.as_raw_fd();
 		SV::from_raw_fd(raw_fd)
 	}
-		
+	
 	#[inline(always)]
 	fn create(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, map_type: MapType, maximum_entries: MaximumEntries) -> Result<Self, MapCreationError>
 	{

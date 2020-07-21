@@ -321,7 +321,7 @@ pub(crate) enum MapType<'map_of_maps_template_file_descriptor>
 	/// Requires the capability `CAP_SYS_ADMIN`.
 	Stack(ValueSizeU32, MaximumEntries, #[serde(default)] AccessPermissions, #[serde(default)] Option<NumaNode>),
 	
-	/// Key size is `size_of::<i32>()` (4).
+	/// Key size is `size_of::<RawFd>()` (4).
 	/// Value size is in the range `1 ..= MAX_VALUE_SIZE` where `MAX_VALUE_SIZE` is the smaller of either `KMALLOC_MAX_SIZE - MAX_BPF_STACK - size_of::<bpf_sk_storage_elem>()` or `u16::MAX - size_of::<bpf_sk_storage_elem>()`; in practice this means the later value, as it is much smaller.
 	/// Max entries is non-zero.
 	///
@@ -341,7 +341,7 @@ impl<'map_of_maps_template_file_descriptor> MapType<'map_of_maps_template_file_d
 		
 		const UnusedKeySize: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(1) };
 		const KeySizeOfU32: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(size_of::<u32>() as u32) };
-		const KeySizeOfI32: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(size_of::<i32>() as u32) };
+		const KeySizeOfRawFd: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(size_of::<RawFd>() as u32) };
 		const KeySizeOfAlignedU64: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(size_of::<AlignedU64>() as u32) };
 		const ValueSizeOfU32: NonZeroU32 = KeySizeOfU32;
 		const ValueSizeOfU64: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(size_of::<u64>() as u32) };
@@ -411,8 +411,8 @@ impl<'map_of_maps_template_file_descriptor> MapType<'map_of_maps_template_file_d
 			&Queue(value_size, maximum_entries, access_permissions, Some(numa_node)) => (BPF_MAP_TYPE_QUEUE, access_permissions.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE, Self::btf(parsed_btf_map_data), None, numa_node.into(), NoInnerMapFileDescriptor, UnusedKeySize, value_size.to_non_zero_u32(), maximum_entries.to_u32()),
 			&Stack(value_size, maximum_entries, access_permissions, None) => (BPF_MAP_TYPE_STACK, access_permissions.to_map_flags(), Self::btf(parsed_btf_map_data), None, NoNumaNode, NoInnerMapFileDescriptor, UnusedKeySize, value_size.to_non_zero_u32(), maximum_entries.to_u32()),
 			&Stack(value_size, maximum_entries, access_permissions, Some(numa_node)) => (BPF_MAP_TYPE_REUSEPORT_SOCKARRAY, access_permissions.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE, Self::btf(parsed_btf_map_data), None, numa_node.into(), NoInnerMapFileDescriptor, UnusedKeySize, value_size.to_non_zero_u32(), maximum_entries.to_u32()),
-			&SocketStorage(value_size, maximum_entries, false) => (BPF_MAP_TYPE_SK_STORAGE, BPF_MAP_CREATE_flags::BPF_F_NO_PREALLOC, Self::mandatory_btf(parsed_btf_map_data)?, None, NoNumaNode, NoInnerMapFileDescriptor, KeySizeOfI32, value_size.to_non_zero_u32(), maximum_entries.to_u32()),
-			&SocketStorage(value_size, maximum_entries, true) => (BPF_MAP_TYPE_SK_STORAGE, BPF_MAP_CREATE_flags::BPF_F_NO_PREALLOC | BPF_MAP_CREATE_flags::BPF_F_CLONE, Self::mandatory_btf(parsed_btf_map_data)?, None, NoNumaNode, NoInnerMapFileDescriptor, KeySizeOfI32, value_size.to_non_zero_u32(), maximum_entries.to_u32()),
+			&SocketStorage(value_size, maximum_entries, false) => (BPF_MAP_TYPE_SK_STORAGE, BPF_MAP_CREATE_flags::BPF_F_NO_PREALLOC, Self::mandatory_btf(parsed_btf_map_data)?, None, NoNumaNode, NoInnerMapFileDescriptor, KeySizeOfRawFd, value_size.to_non_zero_u32(), maximum_entries.to_u32()),
+			&SocketStorage(value_size, maximum_entries, true) => (BPF_MAP_TYPE_SK_STORAGE, BPF_MAP_CREATE_flags::BPF_F_NO_PREALLOC | BPF_MAP_CREATE_flags::BPF_F_CLONE, Self::mandatory_btf(parsed_btf_map_data)?, None, NoNumaNode, NoInnerMapFileDescriptor, KeySizeOfRawFd, value_size.to_non_zero_u32(), maximum_entries.to_u32()),
 		};
 		Ok(values)
 	}
