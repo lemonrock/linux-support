@@ -23,7 +23,7 @@ pub(crate) enum MapType<'map_of_maps_template_file_descriptor>
 	///
 	/// Key size is anything in the range `1 ..= MAX_BPF_STACK`.
 	/// Value size is anything in the range `1 .. KMALLOC_MAX_SIZE - MAX_BPF_STACK - size_of::<htab_elem>()`.
-	HashPerCpu(KeySize, ValueSizeU32, MaximumEntries, #[serde(default)] AccessPermissions, #[serde(default)] Preallocation),
+	HashPerHyperThread(KeySize, ValueSizeU32, MaximumEntries, #[serde(default)] AccessPermissions, #[serde(default)] Preallocation),
 	
 	/// A hash.
 	///
@@ -206,7 +206,7 @@ pub(crate) enum MapType<'map_of_maps_template_file_descriptor>
 	/// Key size is `size_of::<bpf_cgroup_storage_key>()`.
 	/// Value size is anything in the range `1 ..= PAGE_SIZE`.
 	/// Max entries is always zero as it is unused.
-	CgroupStoragePerCpu(ValueSizeU16, #[serde(default)] AccessPermissions, #[serde(default)] Option<NumaNode>),
+	CgroupStoragePerHyperThread(ValueSizeU16, #[serde(default)] AccessPermissions, #[serde(default)] Option<NumaNode>),
 	
 	/// Key size is `size_of::<bpf_cgroup_storage_key>()`.
 	/// Value size is anything in the range `1 ..= PAGE_SIZE`.
@@ -354,7 +354,7 @@ impl<'map_of_maps_template_file_descriptor> MapType<'map_of_maps_template_file_d
 		let values = match self
 		{
 			&HashPerDevice(key_size, value_size, maximum_entries, access_permissions, network_interface_index) => (BPF_MAP_TYPE_HASH, access_permissions.to_map_flags(), Self::no_btf(parsed_btf_map_data, BtfTypeIdentifier::Void)?, Some(network_interface_index), NoNumaNode, NoInnerMapFileDescriptor, key_size.to_non_zero_u32(), value_size.to_non_zero_u32(), maximum_entries.to_u32()),
-			&HashPerCpu(key_size, value_size, maximum_entries, access_permissions, preallocation) => (BPF_MAP_TYPE_HASH, access_permissions.to_map_flags() | preallocation.to_map_flags(), Self::btf(parsed_btf_map_data), None, NoNumaNode, NoInnerMapFileDescriptor, key_size.to_non_zero_u32(), value_size.to_non_zero_u32(), maximum_entries.to_u32()),
+			&HashPerHyperThread(key_size, value_size, maximum_entries, access_permissions, preallocation) => (BPF_MAP_TYPE_HASH, access_permissions.to_map_flags() | preallocation.to_map_flags(), Self::btf(parsed_btf_map_data), None, NoNumaNode, NoInnerMapFileDescriptor, key_size.to_non_zero_u32(), value_size.to_non_zero_u32(), maximum_entries.to_u32()),
 			&HashSystemWide(key_size, value_size, maximum_entries, access_permissions, None, preallocation) => (BPF_MAP_TYPE_PERCPU_HASH, access_permissions.to_map_flags() | preallocation.to_map_flags(), Self::btf(parsed_btf_map_data), None, NoNumaNode, NoInnerMapFileDescriptor, key_size.to_non_zero_u32(), value_size.to_non_zero_u32(), maximum_entries.to_u32()),
 			&HashSystemWide(key_size, value_size, maximum_entries, access_permissions, Some(numa_node), preallocation) => (BPF_MAP_TYPE_PERCPU_HASH, access_permissions.to_map_flags() | preallocation.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE, Self::btf(parsed_btf_map_data), None, numa_node.into(), NoInnerMapFileDescriptor, key_size.to_non_zero_u32(), value_size.to_non_zero_u32(), maximum_entries.to_u32()),
 			&ArrayPerDevice(value_size, maximum_entries, access_permissions, network_interface_index) => (BPF_MAP_TYPE_ARRAY, access_permissions.to_map_flags(), Self::no_btf(parsed_btf_map_data, BtfTypeIdentifier::Void)?, Some(network_interface_index), NoNumaNode, NoInnerMapFileDescriptor, KeySizeOfU32, value_size.to_non_zero_u32(), maximum_entries.to_u32()),
@@ -384,8 +384,8 @@ impl<'map_of_maps_template_file_descriptor> MapType<'map_of_maps_template_file_d
 			&LongestPrefixMatchTrieInternetProtocolVersion4(value_size, maximum_entries, access_permissions, Some(numa_node)) => (BPF_MAP_TYPE_LPM_TRIE, access_permissions.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_NO_PREALLOC | BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE, Self::btf(parsed_btf_map_data), None, numa_node.into(), NoInnerMapFileDescriptor, ValueSizeOfLongestPrefixMatchTrieInternetProtocolVersion4, value_size.to_non_zero_u32(), maximum_entries.to_u32()),
 			&LongestPrefixMatchTrieInternetProtocolVersion6(value_size, maximum_entries, access_permissions, None) => (BPF_MAP_TYPE_LPM_TRIE, access_permissions.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_NO_PREALLOC, Self::btf(parsed_btf_map_data), None, NoNumaNode, NoInnerMapFileDescriptor, ValueSizeOfLongestPrefixMatchTrieInternetProtocolVersion6, value_size.to_non_zero_u32(), maximum_entries.to_u32()),
 			&LongestPrefixMatchTrieInternetProtocolVersion6(value_size, maximum_entries, access_permissions, Some(numa_node)) => (BPF_MAP_TYPE_LPM_TRIE, access_permissions.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_NO_PREALLOC | BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE, Self::btf(parsed_btf_map_data), None, numa_node.into(), NoInnerMapFileDescriptor, ValueSizeOfLongestPrefixMatchTrieInternetProtocolVersion6, value_size.to_non_zero_u32(), maximum_entries.to_u32()),
-			&CgroupStoragePerCpu(value_size, access_permissions, None) => (BPF_MAP_TYPE_PERCPU_CGROUP_STORAGE, access_permissions.to_map_flags(), Self::btf(parsed_btf_map_data), None, NoNumaNode, NoInnerMapFileDescriptor, ValueSizeOfBpfCgroupStorageKey, value_size.to_non_zero_u32(), 0),
-			&CgroupStoragePerCpu(value_size, access_permissions, Some(numa_node)) => (BPF_MAP_TYPE_PERCPU_CGROUP_STORAGE, access_permissions.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE, Self::btf(parsed_btf_map_data), None, numa_node.into(), NoInnerMapFileDescriptor, ValueSizeOfBpfCgroupStorageKey, value_size.to_non_zero_u32(), 0),
+			&CgroupStoragePerHyperThread(value_size, access_permissions, None) => (BPF_MAP_TYPE_PERCPU_CGROUP_STORAGE, access_permissions.to_map_flags(), Self::btf(parsed_btf_map_data), None, NoNumaNode, NoInnerMapFileDescriptor, ValueSizeOfBpfCgroupStorageKey, value_size.to_non_zero_u32(), 0),
+			&CgroupStoragePerHyperThread(value_size, access_permissions, Some(numa_node)) => (BPF_MAP_TYPE_PERCPU_CGROUP_STORAGE, access_permissions.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE, Self::btf(parsed_btf_map_data), None, numa_node.into(), NoInnerMapFileDescriptor, ValueSizeOfBpfCgroupStorageKey, value_size.to_non_zero_u32(), 0),
 			&CgroupStorageSystemWide(value_size, access_permissions, None) => (BPF_MAP_TYPE_CGROUP_STORAGE, access_permissions.to_map_flags(), Self::btf(parsed_btf_map_data), None, NoNumaNode, NoInnerMapFileDescriptor, ValueSizeOfBpfCgroupStorageKey, value_size.to_non_zero_u32(), 0),
 			&CgroupStorageSystemWide(value_size, access_permissions, Some(numa_node)) => (BPF_MAP_TYPE_CGROUP_STORAGE, access_permissions.to_map_flags() | BPF_MAP_CREATE_flags::BPF_F_NUMA_NODE, Self::btf(parsed_btf_map_data), None, numa_node.into(), NoInnerMapFileDescriptor, ValueSizeOfBpfCgroupStorageKey, value_size.to_non_zero_u32(), 0),
 			&StructOps(value_size, vmlinux_value_type_identifier) => (BPF_MAP_TYPE_STRUCT_OPS, BPF_MAP_CREATE_flags::empty(), Self::no_btf(parsed_btf_map_data, BtfTypeIdentifier::new(vmlinux_value_type_identifier))?, None, NoNumaNode, NoInnerMapFileDescriptor, KeySizeOfU32, value_size.to_non_zero_u32(), 1),
