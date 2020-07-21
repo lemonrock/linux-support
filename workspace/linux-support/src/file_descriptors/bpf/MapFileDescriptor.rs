@@ -534,6 +534,7 @@ impl MapFileDescriptor
 	#[inline(always)]
 	pub(crate) fn get_batch<K: Copy, V: Copy>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K]) -> Result<(Vec<V>, OpaqueBatchPosition<K>, bool), Errno>
 	{
+		let keys_length = keys.len();
 		let mut values = Vec::with_capacity(keys_length);
 		
 		let (count, out_batch, more) = self.lookup_batch(batch_position, keys, AlignedU64::from(values.as_mut_ptr()))?;
