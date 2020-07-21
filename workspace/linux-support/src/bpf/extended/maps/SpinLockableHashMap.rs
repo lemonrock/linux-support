@@ -11,9 +11,9 @@ impl<K: Copy, V: 'static + Copy + HasReflectionInformation> SpinLockableHashMap<
 {
 	/// New system-wide.
 	#[inline(always)]
-	pub fn new_system_wide(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, preallocation: Preallocation, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
+	pub fn new_system_wide(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: &ParsedBtfMapData, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, preallocation: Preallocation, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
 	{
-		let hash_map = HashMap::new_system_wide(map_file_descriptors, map_name, parsed_btf_map_data, maximum_entries, access_permissions, preallocation, numa_node)?;
+		let hash_map = HashMap::new_system_wide(map_file_descriptors, map_name, Some(parsed_btf_map_data), maximum_entries, access_permissions, preallocation, numa_node)?;
 		Ok(Self(hash_map))
 	}
 	

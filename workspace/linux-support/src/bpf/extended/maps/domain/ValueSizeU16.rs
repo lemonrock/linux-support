@@ -8,6 +8,24 @@
 #[repr(transparent)]
 pub struct ValueSizeU16(NonZeroU16);
 
+impl TryFrom<usize> for ValueSizeU16
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: usize) -> Result<Self, Self::Error>
+	{
+		if unlikely!(value > u16::MAX as usize)
+		{
+			Err(ParseNumberError::OutOfRange)
+		}
+		else
+		{
+			Self::try_from(value as u16)
+		}
+	}
+}
+
 impl TryFrom<u16> for ValueSizeU16
 {
 	type Error = ParseNumberError;
@@ -68,5 +86,11 @@ impl ValueSizeU16
 	pub(crate) const fn to_non_zero_u32(self) -> NonZeroU32
 	{
 		unsafe { NonZeroU32::new_unchecked(self.0.get() as u32) }
+	}
+	
+	#[inline(always)]
+	pub(crate) fn try_from_value_size<V: Sized>() -> Result<Self, ParseNumberError>
+	{
+		Self::try_from(size_of::<V>())
 	}
 }

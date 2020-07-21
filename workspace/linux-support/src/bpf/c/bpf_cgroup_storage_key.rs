@@ -2,10 +2,14 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// Key.
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
-pub(crate) struct bpf_cgroup_storage_key
+pub struct bpf_cgroup_storage_key
 {
-	pub(crate) cgroup_inode_id: u64,
-	pub(crate) attach_type: u32,
+	/// Inode.
+	pub cgroup_inode_id: Inode,
+	
+	/// Attach type.
+	pub attach_type: bpf_attach_type,
 }

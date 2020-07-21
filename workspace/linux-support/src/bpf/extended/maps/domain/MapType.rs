@@ -206,6 +206,8 @@ pub(crate) enum MapType<'map_of_maps_template_file_descriptor>
 	/// Key size is `size_of::<bpf_cgroup_storage_key>()`.
 	/// Value size is anything in the range `1 ..= PAGE_SIZE`.
 	/// Max entries is always zero as it is unused.
+	///
+	/// Weirdly, unlike all other per-HyperThread maps, this one supports allocating on a NumaNode.
 	CgroupStoragePerHyperThread(ValueSizeU16, #[serde(default)] AccessPermissions, #[serde(default)] Option<NumaNode>),
 	
 	/// Key size is `size_of::<bpf_cgroup_storage_key>()`.
