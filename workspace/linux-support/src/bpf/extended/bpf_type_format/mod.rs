@@ -7,7 +7,7 @@ use super::instructions::*;
 use super::instructions::offset::program_counter::*;
 use super::programs::*;
 use self::reflection::*;
-use crate::file_descriptors::bpf::BtfFileDescriptor;
+use crate::file_descriptors::bpf::BpfTypeFormatFileDescriptor;
 
 
 /// A type system inspired by the `type_info` crate to use for runtime-reflection of Rust types.
@@ -15,17 +15,17 @@ use crate::file_descriptors::bpf::BtfFileDescriptor;
 pub mod reflection;
 
 
-include!("BtfDataArray.rs");
-include!("BtfKeyValueTypeIdentifiers.rs");
-include!("BtfKind.rs");
-include!("BtfProgramDetails.rs");
-include!("BtfTypeError.rs");
-include!("BtfTypeIdentifier.rs");
-include!("BtfTypeIdentifiers.rs");
-include!("BtfTypeInformationParser.rs");
-include!("BtfTypeIntegerEncoding.rs");
-include!("NonVoidBtfTypeIdentifier.rs");
-include!("ParsedBtfData.rs");
-include!("ParsedBtfMapData.rs");
+include!("BpfTypeFormatDataArray.rs");
+include!("BpfTypeFormatKeyValueTypeIdentifiers.rs");
+include!("BpfTypeFormatKind.rs");
+include!("BpfTypeFormatProgramDetails.rs");
+include!("BpfTypeFormatError.rs");
+include!("BpfTypeFormatTypeIdentifier.rs");
+include!("BpfTypeFormatTypeIdentifiers.rs");
+include!("BpfTypeFormatInformationParser.rs");
+include!("BpfTypeFormatIntegerEncoding.rs");
+include!("NonVoidBpfTypeFormatTypeIdentifier.rs");
+include!("ParsedBpfTypeFormatData.rs");
+include!("ParsedBpfTypeFormatMapData.rs");
 include!("StringTable.rs");
-include!("VMLinuxValueTypeIdentifier.rs");
+include!("VMLinuxValueBpfTypeFormatTypeIdentifier.rs");

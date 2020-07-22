@@ -15,15 +15,15 @@ pub struct ProgramLinesParser<'name>
 	jump_instructions_relative_function_named_offset_to_resolve: HashMap<Name<'name>, Vec<ProgramCounter>>,
 
 	line_number: u32,
-	btf_type_information_parser: Option<BtfTypeInformationParser>,
+	bpf_type_format_type_information_parser: Option<BpfTypeFormatInformationParser>,
 }
 
 impl<'name> ProgramLinesParser<'name>
 {
 	/// Process instructions.
 	///
-	/// If `btf_program_details` is `None`, no function or line information is produced.
-	pub fn parse<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>(btf_program_details: Option<&BtfProgramDetails>, program_lines: &Vec<ProgramLine<'name>>, arguments: ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>, verifier_log: Option<&mut VerifierLog>) -> Result<(Box<[bpf_insn]>, Option<ParsedBtfData>, &'extended_bpf_program_file_descriptor_label_map mut FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>), ProgramError>
+	/// If `bpf_type_format_program_details` is `None`, no function or line information is produced.
+	pub fn parse<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>(bpf_type_format_program_details: Option<&BpfTypeFormatProgramDetails>, program_lines: &Vec<ProgramLine<'name>>, arguments: ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>, verifier_log: Option<&mut VerifierLog>) -> Result<(Box<[bpf_insn]>, Option<ParsedBpfTypeFormatData>, &'extended_bpf_program_file_descriptor_label_map mut FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>), ProgramError>
 	{
 		let number_of_program_lines = program_lines.len();
 		if unlikely!(number_of_program_lines > bpf_line_info::MaximumNumberOfProgramLines)
@@ -44,9 +44,9 @@ impl<'name> ProgramLinesParser<'name>
 			jump_instructions_relative_function_named_offset_to_resolve: HashMap::with_capacity(number_of_jumps_size_hint),
 			
 			line_number: 0,
-			btf_type_information_parser: if let Some(btf_program_details) = btf_program_details
+			bpf_type_format_type_information_parser: if let Some(bpf_type_format_program_details) = bpf_type_format_program_details
 			{
-				Some(BtfTypeInformationParser::new(number_of_functions_size_hint, btf_program_details.file_name)?)
+				Some(BpfTypeFormatInformationParser::new(number_of_functions_size_hint, bpf_type_format_program_details.file_name)?)
 			}
 			else
 			{
@@ -54,17 +54,17 @@ impl<'name> ProgramLinesParser<'name>
 			},
 		};
 		
-		this.parse_internal(program_lines, btf_program_details, arguments, verifier_log)
+		this.parse_internal(program_lines, bpf_type_format_program_details, arguments, verifier_log)
 	}
 	
 	#[inline(always)]
-	fn parse_internal<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>(mut self, program_lines: &Vec<ProgramLine<'name>>, btf_program_details: Option<&BtfProgramDetails>, arguments: ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>, verifier_log: Option<&mut VerifierLog>) -> Result<(Box<[bpf_insn]>, Option<ParsedBtfData>, &'extended_bpf_program_file_descriptor_label_map mut FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>), ProgramError>
+	fn parse_internal<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>(mut self, program_lines: &Vec<ProgramLine<'name>>, bpf_type_format_program_details: Option<&BpfTypeFormatProgramDetails>, arguments: ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>, verifier_log: Option<&mut VerifierLog>) -> Result<(Box<[bpf_insn]>, Option<ParsedBpfTypeFormatData>, &'extended_bpf_program_file_descriptor_label_map mut FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>), ProgramError>
 	{
 		use self::ProgramError::*;
 		
 		let ExtendedBpfProgramArguments { i32_immediates_map, u64_immediates_map, memory_offsets_map, map_file_descriptor_labels_map, extended_bpf_program_file_descriptor_labels_map } = arguments;
 		
-		if let Some(&BtfProgramDetails { ref main_function, .. }) = btf_program_details
+		if let Some(&BpfTypeFormatProgramDetails { ref main_function, .. }) = bpf_type_format_program_details
 		{
 			self.push_relative_function_definition(&"main".into(), Some(main_function))?;
 		}
@@ -95,17 +95,17 @@ impl<'name> ProgramLinesParser<'name>
 		memory_offsets_map.guard_all_values_have_been_resolved_at_least_once()?;
 		
 		let instructions = self.instructions.into_boxed_slice();
-		let parsed_btf_data = match self.btf_type_information_parser
+		let parsed_bpf_type_format_data = match self.bpf_type_format_type_information_parser
 		{
 			None => None,
-			Some(btf_type_information_parser) => btf_type_information_parser.finish(verifier_log)?,
+			Some(bpf_type_format_type_information_parser) => bpf_type_format_type_information_parser.finish(verifier_log)?,
 		};
 		
 		Ok
 		(
 			(
 				instructions,
-				parsed_btf_data,
+				parsed_bpf_type_format_data,
 				extended_bpf_program_file_descriptor_labels_map,
 			)
 		)
@@ -131,9 +131,9 @@ impl<'name> ProgramLinesParser<'name>
 	fn push_relative_function_definition(&mut self, relative_function_name: &Name<'name>, function_prototype: Option<&FunctionPrototype>) -> Result<(), ProgramError>
 	{
 		let current_program_counter = self.current_program_counter();
-		if let Some(ref mut btf_type_information_parser) = self.btf_type_information_parser
+		if let Some(ref mut bpf_type_format_type_information_parser) = self.bpf_type_format_type_information_parser
 		{
-			btf_type_information_parser.push_relative_function_definition(relative_function_name, function_prototype, current_program_counter, self.line_number)
+			bpf_type_format_type_information_parser.push_relative_function_definition(relative_function_name, function_prototype, current_program_counter, self.line_number)
 		}
 		else
 		{

@@ -10,7 +10,7 @@ pub(crate) struct btf_param
 	pub(crate) name_off: u32,
 	
 	/// Void (zero) for a final varargs argument (`...`).
-	pub(crate) type_: BtfTypeIdentifier,
+	pub(crate) type_: BpfTypeFormatTypeIdentifier,
 }
 
 impl btf_param
@@ -19,6 +19,6 @@ impl btf_param
 	pub(crate) const FinalVarArgsParameter: Self = Self
 	{
 		name_off: 0,
-		type_: BtfTypeIdentifier::Void,
+		type_: BpfTypeFormatTypeIdentifier::Void,
 	};
 }

@@ -774,18 +774,18 @@ impl MapFileDescriptor
 		}
 	}
 	
-	/// `parsed_btf_map_data` must be `None` for `map_type` when it is:-
+	/// `parsed_bpf_type_format_map_data` must be `None` for `map_type` when it is:-
 	///
 	/// * `MapType::HashPerDevice`.
 	/// * `MapType::ArrayPerDevice`.
 	/// * `MapType::StructOps`.
 	///
-	/// `parsed_btf_map_data` must be `Some` for `map_type` when it is:-
+	/// `parsed_bpf_type_format_map_data` must be `Some` for `map_type` when it is:-
 	///
 	/// * `MapType::SocketStorage`.
-	pub(crate) fn create(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_type: MapType, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>) -> Result<Rc<Self>, MapCreationError>
+	pub(crate) fn create(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_type: MapType, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>) -> Result<Rc<Self>, MapCreationError>
 	{
-		let (map_type, map_flags, (btf_fd, btf_key_type_id, btf_value_type_id, btf_vmlinux_value_type_id), map_ifindex, numa_node, inner_map_fd, key_size, value_size, max_entries) = map_type.to_values(parsed_btf_map_data)?;
+		let (map_type, map_flags, (btf_fd, btf_key_type_id, btf_value_type_id, btf_vmlinux_value_type_id), map_ifindex, numa_node, inner_map_fd, key_size, value_size, max_entries) = map_type.to_values(parsed_bpf_type_format_map_data)?;
 		
 		let mut attributes = bpf_attr
 		{

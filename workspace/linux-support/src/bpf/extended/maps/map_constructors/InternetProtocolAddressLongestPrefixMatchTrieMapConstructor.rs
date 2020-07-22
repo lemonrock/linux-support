@@ -6,23 +6,23 @@
 pub trait InternetProtocolAddressLongestPrefixMatchTrieMapConstructor<V: Copy>: InternetProtocolAddress
 {
 	#[doc(hidden)]
-	fn new_longest_prefix_match_trie_map(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<LongestPrefixMatchTrieMap<Self, V>, MapCreationError>;
+	fn new_longest_prefix_match_trie_map(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<LongestPrefixMatchTrieMap<Self, V>, MapCreationError>;
 }
 
 impl<V: Copy> InternetProtocolAddressLongestPrefixMatchTrieMapConstructor<V> for in_addr
 {
 	#[inline(always)]
-	fn new_longest_prefix_match_trie_map(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<LongestPrefixMatchTrieMap<in_addr, V>, MapCreationError>
+	fn new_longest_prefix_match_trie_map(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<LongestPrefixMatchTrieMap<in_addr, V>, MapCreationError>
 	{
-		LongestPrefixMatchTrieMap::new_internet_protocol_version_4(map_file_descriptors, map_name, parsed_btf_map_data, maximum_entries, access_permissions, numa_node)
+		LongestPrefixMatchTrieMap::new_internet_protocol_version_4(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, maximum_entries, access_permissions, numa_node)
 	}
 }
 
 impl<V: Copy> InternetProtocolAddressLongestPrefixMatchTrieMapConstructor<V> for in6_addr
 {
 	#[inline(always)]
-	fn new_longest_prefix_match_trie_map(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<LongestPrefixMatchTrieMap<in6_addr, V>, MapCreationError>
+	fn new_longest_prefix_match_trie_map(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<LongestPrefixMatchTrieMap<in6_addr, V>, MapCreationError>
 	{
-		LongestPrefixMatchTrieMap::new_internet_protocol_version_6(map_file_descriptors, map_name, parsed_btf_map_data, maximum_entries, access_permissions, numa_node)
+		LongestPrefixMatchTrieMap::new_internet_protocol_version_6(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, maximum_entries, access_permissions, numa_node)
 	}
 }

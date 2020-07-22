@@ -8,6 +8,6 @@ use crate::file_descriptors::bpf::*;
 
 
 include!("Identifier.rs");
-include!("BtfIdentifier.rs");
+include!("BpfTypeFormatIdentifier.rs");
 include!("ExtendedBpfProgramIdentifier.rs");
 include!("MapIdentifier.rs");

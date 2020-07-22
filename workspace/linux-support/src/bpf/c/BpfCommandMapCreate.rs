@@ -37,11 +37,11 @@ pub(crate) struct BpfCommandMapCreate
 	pub(crate) btf_fd: RawFd,
 	
 	/// BTF (BPF Type Format) type_id of the key.
-	pub(crate) btf_key_type_id: BtfTypeIdentifier,
+	pub(crate) btf_key_type_id: BpfTypeFormatTypeIdentifier,
 	
 	/// BTF (BPF Type Format) type_id of the value.
-	pub(crate) btf_value_type_id: BtfTypeIdentifier,
+	pub(crate) btf_value_type_id: BpfTypeFormatTypeIdentifier,
 	
 	/// BTF (BPF Type Format) type_id of a kernel-struct stored as the map value.
-	pub(crate) btf_vmlinux_value_type_id: BtfTypeIdentifier,
+	pub(crate) btf_vmlinux_value_type_id: BpfTypeFormatTypeIdentifier,
 }

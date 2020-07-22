@@ -20,7 +20,7 @@ pub enum AccessPermissions
 	#[allow(missing_docs)]
 	KernelWriteUserspaceRead = BPF_MAP_CREATE_flags::BPF_F_WRONLY.bits() | BPF_MAP_CREATE_flags::BPF_F_RDONLY_PROG.bits(),
 	
-	/// Note this differs in value to `XdpAccessPermissions::KernelWriteUserspaceRead`.
+	/// Note this differs in value to `ExpressDataPathAccessPermissions::KernelWriteUserspaceRead`.
 	KernelWriteUserspaceReadWrite = BPF_MAP_CREATE_flags::BPF_F_WRONLY.bits(),
 	
 	#[allow(missing_docs)]

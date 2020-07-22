@@ -54,9 +54,9 @@ impl<MC: MapConstructor> MapsArrayMap<MC>
 	
 	/// Set the map at index to a newly-created map.
 	#[inline(always)]
-	pub fn set(&self, index: u32, map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, variable_arguments: MC::VariableArguments) -> Result<MC::Map, ()>
+	pub fn set(&self, index: u32, map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, variable_arguments: MC::VariableArguments) -> Result<MC::Map, ()>
 	{
-		let inner_map = MC::construct(map_file_descriptors, map_name, parsed_btf_map_data, self.inner_map_maximum_entries, self.inner_map_access_permissions, self.inner_map_invariant_arguments, variable_arguments).map_err(|_| ())?;
+		let inner_map = MC::construct(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, self.inner_map_maximum_entries, self.inner_map_access_permissions, self.inner_map_invariant_arguments, variable_arguments).map_err(|_| ())?;
 		self.underlying.set(index, inner_map.map_file_descriptor())?;
 		Ok(inner_map)
 	}
@@ -73,16 +73,16 @@ impl<MC: MapConstructor> MapsArrayMap<MC>
 	/// Returns the new maps of maps and the map value of index `index`.
 	///
 	/// This unfortunate design is because the Linux kernel object is effectively using 'prototype-orientated programming' when creating a map-of-maps.
-	pub fn new(maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions, inner_map_maximum_entries: MaximumEntries, inner_map_access_permissions: MC::AccessPermissions, inner_map_invariant_arguments: MC::InvariantArguments, map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, index: u32, map_at_index_variable_arguments: MC::VariableArguments) -> Result<(Self, MC::Map), ()>
+	pub fn new(maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions, inner_map_maximum_entries: MaximumEntries, inner_map_access_permissions: MC::AccessPermissions, inner_map_invariant_arguments: MC::InvariantArguments, map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, index: u32, map_at_index_variable_arguments: MC::VariableArguments) -> Result<(Self, MC::Map), ()>
 	{
 		debug_assert!(index < maximum_entries.to_u32());
 		
-		let inner_map = MC::construct(map_file_descriptors, map_name, parsed_btf_map_data, inner_map_maximum_entries, inner_map_access_permissions, inner_map_invariant_arguments, map_at_index_variable_arguments).map_err(|_| ())?;
+		let inner_map = MC::construct(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, inner_map_maximum_entries, inner_map_access_permissions, inner_map_invariant_arguments, map_at_index_variable_arguments).map_err(|_| ())?;
 		let template_map_file_descriptor = inner_map.map_file_descriptor();
 		
 		let this = Self
 		{
-			underlying: FileDescriptorArrayMap::new_map_of_maps(map_file_descriptors, map_name, parsed_btf_map_data, maximum_entries, access_permissions, template_map_file_descriptor).map_err(|_| ())?,
+			underlying: FileDescriptorArrayMap::new_map_of_maps(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, maximum_entries, access_permissions, template_map_file_descriptor).map_err(|_| ())?,
 			inner_map_maximum_entries,
 			inner_map_access_permissions,
 			inner_map_invariant_arguments,

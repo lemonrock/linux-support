@@ -25,19 +25,19 @@ pub struct bpf_map_info
 	pub(crate) ifindex: Option<NetworkInterfaceIndex>,
 	
 	/// BTF type identifier used by Linux, if any.
-	pub btf_vmlinux_value_type_id: BtfTypeIdentifier,
+	pub btf_vmlinux_value_type_id: BpfTypeFormatTypeIdentifier,
 	
 	pub(crate) netns_dev: u64,
 	
 	pub(crate) netns_ino: Inode,
 	
-	btf_id: BtfIdentifier,
+	btf_id: BpfTypeFormatIdentifier,
 	
 	/// BTF type identifier for key, if any.
-	pub btf_key_type_id: BtfTypeIdentifier,
+	pub btf_key_type_id: BpfTypeFormatTypeIdentifier,
 	
 	/// BTF type identifier for value, if any.
-	pub btf_value_type_id: BtfTypeIdentifier,
+	pub btf_value_type_id: BpfTypeFormatTypeIdentifier,
 }
 
 impl Information for bpf_map_info
@@ -62,7 +62,7 @@ impl bpf_map_info
 	
 	/// Associated BTF identifier, if any.
 	#[inline(always)]
-	pub fn btf_identifier(&self) -> BtfIdentifier
+	pub fn btf_identifier(&self) -> BpfTypeFormatIdentifier
 	{
 		self.btf_id
 	}

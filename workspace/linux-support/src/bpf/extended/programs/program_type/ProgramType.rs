@@ -38,9 +38,9 @@ pub enum ProgramType<'name>
 	/// Also known as in libbpf as `raw_tracepoint_writable`.
 	RawTracePointWritable(#[serde(default)] CommonProgramTypeDetails),
 	
-	/// Also known as in libpbf as `xdp`.
-	/// Also known as the ELF section `xdp`.
-	Xdp(#[serde(default)] CommonProgramTypeDetails),
+	/// Also known as in libpbf as `express_data_path`.
+	/// Also known as the ELF section `express_data_path`.
+	ExpressDataPath(#[serde(default)] CommonProgramTypeDetails),
 	
 	/// Also known as in libpbf as `perf_event`.
 	/// Also known as the ELF section `perf_event`.
@@ -142,7 +142,7 @@ pub enum ProgramType<'name>
 
 impl<'name> ProgramType<'name>
 {
-	pub(crate) fn to_values(&self, extended_bpf_program_file_descriptor_labels_map: &FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>) -> Result<(bpf_prog_type, bpf_attach_type, BtfTypeIdentifier, RawFd, u32, Option<NetworkInterfaceIndex>), ProgramError>
+	pub(crate) fn to_values(&self, extended_bpf_program_file_descriptor_labels_map: &FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>) -> Result<(bpf_prog_type, bpf_attach_type, BpfTypeFormatTypeIdentifier, RawFd, u32, Option<NetworkInterfaceIndex>), ProgramError>
 	{
 		use self::bpf_attach_type::*;
 		use self::bpf_prog_type::*;
@@ -172,7 +172,7 @@ impl<'name> ProgramType<'name>
 			RawTracePointWritable(program_details) => program_details.to_values(BPF_PROG_TYPE_RAW_TRACEPOINT_WRITABLE, Self::ignored()),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
-			Xdp(program_details) => program_details.to_values(BPF_PROG_TYPE_XDP, Self::ignored()),
+			ExpressDataPath(program_details) => program_details.to_values(BPF_PROG_TYPE_XDP, Self::ignored()),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
 			PerfEvent(program_details) => program_details.to_values(BPF_PROG_TYPE_PERF_EVENT, Self::ignored()),

@@ -4,5 +4,5 @@
 
 pub(crate) trait Field
 {
-	fn to_btf_member(&self, type_identifiers: &mut BtfTypeIdentifiers, index: u16) -> Result<btf_member, BtfTypeError>;
+	fn to_btf_member(&self, type_identifiers: &mut BpfTypeFormatTypeIdentifiers, index: u16) -> Result<btf_member, BpfTypeFormatError>;
 }

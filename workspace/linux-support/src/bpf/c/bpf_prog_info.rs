@@ -50,7 +50,7 @@ pub struct bpf_prog_info
 	
 	pub(crate) jited_func_lens: AlignedU64,
 	
-	pub(crate) btf_id: BtfIdentifier,
+	pub(crate) btf_id: BpfTypeFormatIdentifier,
 	
 	pub(crate) func_info_rec_size: u32,
 	
@@ -103,7 +103,7 @@ impl bpf_prog_info
 	
 	/// Associated BTF identifier, if any.
 	#[inline(always)]
-	pub fn btf_identifier(&self) -> BtfIdentifier
+	pub fn btf_identifier(&self) -> BpfTypeFormatIdentifier
 	{
 		self.btf_id
 	}

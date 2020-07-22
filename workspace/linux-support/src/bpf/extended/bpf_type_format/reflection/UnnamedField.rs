@@ -18,13 +18,13 @@ pub struct UnnamedField
 impl Field for UnnamedField
 {
 	#[inline(always)]
-	fn to_btf_member(&self, type_identifiers: &mut BtfTypeIdentifiers, index: u16) -> Result<btf_member, BtfTypeError>
+	fn to_btf_member(&self, type_identifiers: &mut BpfTypeFormatTypeIdentifiers, index: u16) -> Result<btf_member, BpfTypeFormatError>
 	{
 		Ok
 		(
 			btf_member
 			{
-				name_off: unsafe { transmute(type_identifiers.push_c_identifier(&format!("_{}", index), BtfKind::Function)?) },
+				name_off: unsafe { transmute(type_identifiers.push_c_identifier(&format!("_{}", index), BpfTypeFormatKind::Function)?) },
 				type_identifier: type_identifiers.get_or_create_type_identifier(self.type_)?,
 				offset: self.offset_in_bits()?,
 			}
@@ -52,12 +52,12 @@ impl UnnamedField
 	}
 	
 	#[inline(always)]
-	fn offset_in_bits(&self) -> Result<u32, BtfTypeError>
+	fn offset_in_bits(&self) -> Result<u32, BpfTypeFormatError>
 	{
 		let offset_in_bytes = self.offset_in_bytes;
 		if unlikely!(self.offset_in_bytes > Self::MaximumOffsetInBytes)
 		{
-			Err(BtfTypeError::FieldOffsetTooLarge)
+			Err(BpfTypeFormatError::FieldOffsetTooLarge)
 		}
 		else
 		{

@@ -3,6 +3,7 @@
 
 
 use super::*;
+use super::stack_trace::StackDepth;
 use crate::file_descriptors::bpf::MapFileDescriptor;
 
 
@@ -10,8 +11,10 @@ use crate::file_descriptors::bpf::MapFileDescriptor;
 pub mod access_permissions;
 
 
+include!("CanBeInnerMap.rs");
 include!("CloneFromListener.rs");
 include!("InsertError.rs");
+include!("KeyIterator.rs");
 include!("KeySize.rs");
 include!("LockFlags.rs");
 include!("MapCreationError.rs");
@@ -21,6 +24,6 @@ include!("MaximumEntries.rs");
 include!("MemoryMap.rs");
 include!("OpaqueBatchPosition.rs");
 include!("Preallocation.rs");
-include!("StackDepth.rs");
+include!("SocketValue.rs");
 include!("ValueSizeU16.rs");
 include!("ValueSizeU32.rs");

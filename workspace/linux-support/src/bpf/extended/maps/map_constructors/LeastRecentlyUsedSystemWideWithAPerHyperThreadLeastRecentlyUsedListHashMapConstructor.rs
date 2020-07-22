@@ -8,7 +8,7 @@ pub struct LeastRecentlyUsedSystemWideWithAPerHyperThreadLeastRecentlyUsedListHa
 
 impl<K: Copy, V: Copy> MapConstructor for LeastRecentlyUsedSystemWideWithAPerHyperThreadLeastRecentlyUsedListHashMapConstructor<K, V>
 {
-	type Map = crate::bpf::extended::maps::HashMap<K, V>;
+	type Map = super::HashMap<K, V>;
 	
 	type AccessPermissions = AccessPermissions;
 	
@@ -17,8 +17,8 @@ impl<K: Copy, V: Copy> MapConstructor for LeastRecentlyUsedSystemWideWithAPerHyp
 	type VariableArguments = ();
 	
 	#[inline(always)]
-	fn construct(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: Self::AccessPermissions, _invariant_arguments: Self::InvariantArguments, _variable_arguments: Self::VariableArguments) -> Result<Self::Map, MapCreationError>
+	fn construct(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: Self::AccessPermissions, _invariant_arguments: Self::InvariantArguments, _variable_arguments: Self::VariableArguments) -> Result<Self::Map, MapCreationError>
 	{
-		crate::bpf::extended::maps::HashMap::new_least_recently_used_system_wide_with_a_per_hyper_thread_least_recently_used_list(map_file_descriptors, map_name, parsed_btf_map_data, maximum_entries, access_permissions)
+		super::HashMap::new_least_recently_used_system_wide_with_a_per_hyper_thread_least_recently_used_list(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, maximum_entries, access_permissions)
 	}
 }

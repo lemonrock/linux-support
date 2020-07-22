@@ -24,22 +24,22 @@ impl<V: Copy> ArrayMap<V>
 {
 	/// New per-device.
 	#[inline(always)]
-	pub fn new_per_device(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, device: NetworkInterfaceIndex) -> Result<Self, MapCreationError>
+	pub fn new_per_device(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, device: NetworkInterfaceIndex) -> Result<Self, MapCreationError>
 	{
-		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::ArrayPerDevice(Self::value_size(), maximum_entries, access_permissions, device), maximum_entries)
+		Self::create(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, MapType::ArrayPerDevice(Self::value_size(), maximum_entries, access_permissions, device), maximum_entries)
 	}
 	
 	/// New system-wide.
 	#[inline(always)]
-	pub fn new_system_wide(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
+	pub fn new_system_wide(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
 	{
-		Self::new_system_wide_internal(map_file_descriptors, map_name, parsed_btf_map_data, maximum_entries, access_permissions, numa_node, MemoryMap::DoNotMemoryMap)
+		Self::new_system_wide_internal(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, maximum_entries, access_permissions, numa_node, MemoryMap::DoNotMemoryMap)
 	}
 	
 	#[inline(always)]
-	fn new_system_wide_internal(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>, memory_map: MemoryMap) -> Result<Self, MapCreationError>
+	fn new_system_wide_internal(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>, memory_map: MemoryMap) -> Result<Self, MapCreationError>
 	{
-		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::ArraySystemWide(Self::value_size(), maximum_entries, access_permissions, numa_node, memory_map), maximum_entries)
+		Self::create(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, MapType::ArraySystemWide(Self::value_size(), maximum_entries, access_permissions, numa_node, memory_map), maximum_entries)
 	}
 	
 	/// Length.
@@ -149,9 +149,9 @@ impl<V: Copy> ArrayMap<V>
 	}
 	
 	#[inline(always)]
-	fn create(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, map_type: MapType, maximum_entries: MaximumEntries) -> Result<Self, MapCreationError>
+	fn create(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, map_type: MapType, maximum_entries: MaximumEntries) -> Result<Self, MapCreationError>
 	{
-		MapFileDescriptor::create(map_file_descriptors, map_type, map_name, parsed_btf_map_data).map(|map_file_descriptor| Self::new(map_file_descriptor, maximum_entries))
+		MapFileDescriptor::create(map_file_descriptors, map_type, map_name, parsed_bpf_type_format_map_data).map(|map_file_descriptor| Self::new(map_file_descriptor, maximum_entries))
 	}
 	
 	#[inline(always)]

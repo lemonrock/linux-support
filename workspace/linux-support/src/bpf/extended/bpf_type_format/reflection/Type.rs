@@ -31,7 +31,7 @@ impl Type
 {
 	/// Primitive.
 	#[inline(always)]
-	pub const fn primitive<Primitive: 'static + Sized>(ident: &'static str, encoding: BtfTypeIntegerEncoding) -> Type
+	pub const fn primitive<Primitive: 'static + Sized>(ident: &'static str, encoding: BpfTypeFormatIntegerEncoding) -> Type
 	{
 		Type
 		{

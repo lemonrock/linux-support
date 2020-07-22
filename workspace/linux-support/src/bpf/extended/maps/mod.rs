@@ -8,6 +8,7 @@ use self::map_constructors::*;
 use super::*;
 use super::bpf_type_format::*;
 use super::bpf_type_format::reflection::*;
+use crate::cpu::HyperThreads;
 use super::instructions::file_descriptor_label::*;
 use crate::file_descriptors::*;
 use crate::file_descriptors::bpf::*;
@@ -19,48 +20,43 @@ use crate::memory::mapping::*;
 use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use crate::pci_express::NetworkInterfaceIndex;
 use crate::process::CommandName;
-use crate::cpu::HyperThreads;
 
 
 /// Domain
 pub mod domain;
 
 
+/// eXpress Data Path (XDP) redirect maps.
+pub mod express_data_path_redirect;
+
+
 /// Map constructors.
 pub mod map_constructors;
 
 
+/// Per-HyperThread maps.
+pub mod per_hyper_thread;
+
+
+/// Spin-lockable maps.
+pub mod spin_lockable;
+
+
+/// Stack trace map.
+pub mod stack_trace;
+
+
 include!("ArrayMap.rs");
-include!("CanBeInnerMap.rs");
 include!("CgroupStorageMap.rs");
 include!("FileDescriptorArrayMap.rs");
 include!("HashMap.rs");
-include!("KeyIterator.rs");
 include!("LongestPrefixMatchTrieMap.rs");
 include!("MapsArrayMap.rs");
 include!("MapsHashMap.rs");
 include!("MemoryMappedArrayMap.rs");
-include!("NumberOfPossibleHyperThreads.rs");
-include!("PerHyperThreadArrayMap.rs");
-include!("PerHyperThreadCgroupStorageMap.rs");
-include!("PerHyperThreadHashMap.rs");
-include!("PerHyperThreadValue.rs");
-include!("PerHyperThreadValues.rs");
-include!("QueueDepth.rs");
 include!("QueueOrStackMap.rs");
 include!("ReusePortSocketArrayMap.rs");
 include!("SocketArrayMap.rs");
-include!("SocketCookie.rs");
 include!("SocketHashMap.rs");
 include!("SocketStorageMap.rs");
-include!("SocketValue.rs");
-include!("SpinLockableArrayMap.rs");
-include!("SpinLockableCgroupStorageMap.rs");
-include!("SpinLockableHashMap.rs");
-include!("SpinLockableSocketStorageMap.rs");
-include!("SpinLockableValue.rs");
-include!("StackFrame.rs");
-include!("StackTraceMap.rs");
-include!("XdpRedirectHyperThreadArrayMap.rs");
-include!("XdpRedirectSocketArrayMap.rs");
 

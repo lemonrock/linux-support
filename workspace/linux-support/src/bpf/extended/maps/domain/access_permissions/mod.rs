@@ -7,4 +7,4 @@ use super::*;
 
 include!("AccessPermissions.rs");
 include!("KernelOnlyAccessPermissions.rs");
-include!("XdpAccessPermissions.rs");
+include!("ExpressDataPathAccessPermissions.rs");

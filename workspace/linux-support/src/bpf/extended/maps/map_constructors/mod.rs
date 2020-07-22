@@ -3,6 +3,9 @@
 
 
 use super::*;
+use super::express_data_path_redirect::*;
+use super::per_hyper_thread::*;
+use super::stack_trace::*;
 
 
 include!("CgroupFileDescriptorArrayMapConstructor.rs");
@@ -32,8 +35,8 @@ include!("WithNumaNodeStackTraceMapBuildIdentifierMapConstructor.rs");
 include!("WithNumaNodeStackTraceMapInstructionPointerMapConstructor.rs");
 include!("WithNumaNodeSystemWideArrayMapConstructor.rs");
 include!("WithNumaNodeSystemWideHashMapConstructor.rs");
-include!("WithNumaNodeXdpRedirectHyperThreadArrayMapConstructor.rs");
-include!("WithNumaNodeXdpRedirectSocketArrayMapConstructor.rs");
+include!("WithNumaNodeExpressDataPathRedirectHyperThreadArrayMapConstructor.rs");
+include!("WithNumaNodeExpressDataPathRedirectSocketArrayMapConstructor.rs");
 include!("WithoutCloneFromListenerSocketStorageMapConstructor.rs");
 include!("WithoutNumaNodeLeastRecentlyUsedSystemWideHashMapConstructor.rs");
 include!("WithoutNumaNodeLongestPrefixMatchTrieMapConstructor.rs");
@@ -50,5 +53,5 @@ include!("WithoutNumaNodeStackTraceMapBuildIdentifierMapConstructor.rs");
 include!("WithoutNumaNodeStackTraceMapInstructionPointerMapConstructor.rs");
 include!("WithoutNumaNodeSystemWideArrayMapConstructor.rs");
 include!("WithoutNumaNodeSystemWideHashMapConstructor.rs");
-include!("WithoutNumaNodeXdpRedirectHyperThreadArrayMapConstructor.rs");
-include!("WithoutNumaNodeXdpRedirectSocketArrayMapConstructor.rs");
+include!("WithoutNumaNodeExpressDataPathRedirectHyperThreadArrayMapConstructor.rs");
+include!("WithoutNumaNodeExpressDataPathRedirectSocketArrayMapConstructor.rs");

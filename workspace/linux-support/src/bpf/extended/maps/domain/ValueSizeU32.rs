@@ -77,7 +77,7 @@ impl ValueSizeU32
 	/// Varies by architecture, but usually `12` for systems with a 4Kb page size.
 	///
 	/// Linux does not support a page size smaller than 4Kb, so this is safe.
-	const PAGE_SHIFT: u32 = 12;
+	pub(crate) const PAGE_SHIFT: u32 = 12;
 	
 	/// See `include/linux/slab.h` in Linux kernel sources.
 	const KMALLOC_SHIFT_MAX: u32 = Self::MAX_ORDER + Self::PAGE_SHIFT - 1;

@@ -17,8 +17,8 @@ impl<V: Copy> MapConstructor for WithCloneFromListenerSocketStorageMapConstructo
 	type VariableArguments = ();
 	
 	#[inline(always)]
-	fn construct(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, _access_permissions: Self::AccessPermissions, _invariant_arguments: Self::InvariantArguments, _variable_arguments: Self::VariableArguments) -> Result<Self::Map, MapCreationError>
+	fn construct(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, _access_permissions: Self::AccessPermissions, _invariant_arguments: Self::InvariantArguments, _variable_arguments: Self::VariableArguments) -> Result<Self::Map, MapCreationError>
 	{
-		SocketStorageMap::new_socket_storage(map_file_descriptors, map_name, parsed_btf_map_data, maximum_entries, true)
+		SocketStorageMap::new_socket_storage(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, maximum_entries, true)
 	}
 }

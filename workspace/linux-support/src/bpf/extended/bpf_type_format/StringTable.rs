@@ -13,24 +13,24 @@ impl StringTable
 {
 	/// Push any valid as long as it does not contain an embedded ASCII NULL.
 	#[inline(always)]
-	pub(crate) fn push_any(&mut self, any: &str) -> Result<Option<NonZeroU32>, BtfTypeError>
+	pub(crate) fn push_any(&mut self, any: &str) -> Result<Option<NonZeroU32>, BpfTypeFormatError>
 	{
 		self.push(any, |any| Self::to_ascii_null_terminated_bytes(any))
 	}
 	
 	/// `ident` is validated as a c identifier, with substitution of `_` (underscore) for invalid characters.
 	///
-	/// If it is an `ident` has a `kind` of `BtfKind::Section` then a period (dot) is also permitted.
+	/// If it is an `ident` has a `kind` of `BpfTypeFormatKind::Section` then a period (dot) is also permitted.
 	#[inline(always)]
-	pub(crate) fn push_c_identifier(&mut self, ident: &str, kind: BtfKind) -> Result<Option<NonZeroU32>, BtfTypeError>
+	pub(crate) fn push_c_identifier(&mut self, ident: &str, kind: BpfTypeFormatKind) -> Result<Option<NonZeroU32>, BpfTypeFormatError>
 	{
 		self.push(ident, |ident| Self::convert_to_valid_c_identifier(ident, kind))
 	}
 	
 	#[inline(always)]
-	fn push(&mut self, value: &str, to_bytes: impl FnOnce(&str) -> Result<Vec<u8>, BtfTypeError>) -> Result<Option<NonZeroU32>, BtfTypeError>
+	fn push(&mut self, value: &str, to_bytes: impl FnOnce(&str) -> Result<Vec<u8>, BpfTypeFormatError>) -> Result<Option<NonZeroU32>, BpfTypeFormatError>
 	{
-		use self::BtfTypeError::*;
+		use self::BpfTypeFormatError::*;
 		
 		if let Some(offset) = self.deduplication.get(value)
 		{
@@ -62,16 +62,16 @@ impl StringTable
 	
 	// Logic based on the Linux kernel function `__btf_name_valid()`.
 	#[inline(always)]
-	fn convert_to_valid_c_identifier(ident: &str, kind: BtfKind) -> Result<Vec<u8>, BtfTypeError>
+	fn convert_to_valid_c_identifier(ident: &str, kind: BpfTypeFormatKind) -> Result<Vec<u8>, BpfTypeFormatError>
 	{
-		use self::BtfTypeError::*;
+		use self::BpfTypeFormatError::*;
 		
 		if unlikely!(ident.is_empty())
 		{
 			return Err(IdentifierIsEmpty);
 		}
 		
-		let period_is_permitted = kind == BtfKind::Section;
+		let period_is_permitted = kind == BpfTypeFormatKind::Section;
 		
 		let mut bytes = Self::to_ascii_null_terminated_bytes(ident)?;
 		
@@ -104,12 +104,12 @@ impl StringTable
 	}
 	
 	#[inline(always)]
-	fn to_ascii_null_terminated_bytes(value: &str) -> Result<Vec<u8>, BtfTypeError>
+	fn to_ascii_null_terminated_bytes(value: &str) -> Result<Vec<u8>, BpfTypeFormatError>
 	{
 		match CString::new(value.as_bytes())
 		{
 			Ok(c_string) => Ok(c_string.into_bytes_with_nul().to_vec()),
-			Err(cause) => Err(BtfTypeError::IdentifierContainsAsciiNul(cause)),
+			Err(cause) => Err(BpfTypeFormatError::IdentifierContainsAsciiNul(cause)),
 		}
 	}
 }

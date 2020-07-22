@@ -7,7 +7,7 @@
 pub enum Data
 {
 	/// The associated type is a primitive type.
-	Primitive(BtfTypeIntegerEncoding),
+	Primitive(BpfTypeFormatIntegerEncoding),
 	
 	/// `&T` or `*const T`.
 	///

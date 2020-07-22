@@ -29,3 +29,7 @@ pub mod process_query;
 
 /// Programs.
 pub mod programs;
+
+
+/// eXpress Data Path (XDP).
+pub mod express_data_path;

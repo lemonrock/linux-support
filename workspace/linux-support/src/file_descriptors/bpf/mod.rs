@@ -4,18 +4,18 @@
 
 use super::*;
 use crate::bpf::c::*;
-use crate::bpf::extended::bpf_type_format::ParsedBtfMapData;
+use crate::bpf::extended::bpf_type_format::*;
 use crate::bpf::extended::identifiers::*;
-use crate::bpf::extended::instructions::ProgramError;
+use crate::bpf::extended::instructions::*;
 use crate::bpf::extended::instructions::file_descriptor_label::*;
 use crate::bpf::extended::maps::domain::*;
-use crate::bpf::extended::maps::domain::access_permissions::KernelOnlyAccessPermissions;
-use crate::bpf::extended::process_query::TracePointDetails;
+use crate::bpf::extended::maps::domain::access_permissions::*;
+use crate::bpf::extended::process_query::*;
 use crate::bpf::extended::programs::*;
 
 
 include!("BpfFileDescriptor.rs");
-include!("BtfFileDescriptor.rs");
+include!("BpfTypeFormatFileDescriptor.rs");
 include!("ExtendedBpfProgramCanBeAttachedFileDescriptor.rs");
 include!("ExtendedBpfProgramFileDescriptor.rs");
 include!("LinkFileDescriptor.rs");

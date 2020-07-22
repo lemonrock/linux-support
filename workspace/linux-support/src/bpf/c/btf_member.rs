@@ -8,9 +8,9 @@ pub(crate) struct btf_member
 {
 	pub(crate) name_off: NonZeroU32,
 	
-	pub(crate) type_identifier: BtfTypeIdentifier,
+	pub(crate) type_identifier: BpfTypeFormatTypeIdentifier,
 	
-	/// Only used if `type_identifier` points to a `BtfKind::Integer`.
+	/// Only used if `type_identifier` points to a `BpfTypeFormatKind::Integer`.
 	/// Interpretation varies depending on setting of `kind_flag` bit 31 inside `btf_type`.
 	///
 	/// See `btf_member_is_reg_int()` in `kernel/bpf/btf.c`.

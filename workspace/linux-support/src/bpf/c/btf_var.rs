@@ -6,5 +6,5 @@
 #[repr(C)]
 pub(crate) struct btf_var
 {
-	pub(crate) linkage: BtfVariableLinkage,
+	pub(crate) linkage: BpfTypeFormatVariableLinkage,
 }

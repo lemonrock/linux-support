@@ -17,7 +17,7 @@ pub(crate) union bpf_attr
 	pub(crate) info: BpfCommandObjectGetInformationByFileDescriptor,
 	pub(crate) query: BpfCommandProgramQuery,
 	pub(crate) raw_tracepoint: BpfCommandRawTracePointOpen,
-	pub(crate) btf_load: BpfCommandBtfLoad,
+	pub(crate) bpf_type_format_load: BpfCommandBpfTypeFormatLoad,
 	pub(crate) task_fd_query: BpfCommandTaskFileDescriptorQuery,
 	pub(crate) link_create: BpfCommandLinkCreate,
 	pub(crate) link_update: BpfCommandLinkUpdate,

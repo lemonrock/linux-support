@@ -17,9 +17,9 @@ impl<K: Copy, V: Copy> MapConstructor for PerHyperThreadHashMapConstructor<K, V>
 	type VariableArguments = ();
 	
 	#[inline(always)]
-	fn construct(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: Self::AccessPermissions, invariant_arguments: Self::InvariantArguments, _variable_arguments: Self::VariableArguments) -> Result<Self::Map, MapCreationError>
+	fn construct(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: Self::AccessPermissions, invariant_arguments: Self::InvariantArguments, _variable_arguments: Self::VariableArguments) -> Result<Self::Map, MapCreationError>
 	{
 		let (number_of_possible_hyper_threads, preallocation) = invariant_arguments;
-		PerHyperThreadHashMap::new_per_hyper_thread(map_file_descriptors, map_name, parsed_btf_map_data, maximum_entries, access_permissions, number_of_possible_hyper_threads, preallocation)
+		PerHyperThreadHashMap::new_per_hyper_thread(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, maximum_entries, access_permissions, number_of_possible_hyper_threads, preallocation)
 	}
 }

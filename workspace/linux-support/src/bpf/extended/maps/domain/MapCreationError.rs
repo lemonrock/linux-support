@@ -22,7 +22,7 @@ pub enum MapCreationError
 	HashByDeviceArrayByDeviceAndStructOpsMandatesThatThereAreNotKeyOrValueTypeIdentifiers,
 	
 	#[allow(missing_docs)]
-	SocketStorageMandatesBtfTypeIdentifiersForKeyAndValue,
+	SocketStorageMandatesBpfTypeFormatTypeIdentifiersForKeyAndValue,
 
 	#[allow(missing_docs)]
 	MissingMapFileDescriptor(FileDescriptorLabelsMapError),
@@ -59,7 +59,7 @@ impl error::Error for MapCreationError
 			
 			&HashByDeviceArrayByDeviceAndStructOpsMandatesThatThereAreNotKeyOrValueTypeIdentifiers => None,
 			
-			&SocketStorageMandatesBtfTypeIdentifiersForKeyAndValue => None,
+			&SocketStorageMandatesBpfTypeFormatTypeIdentifiersForKeyAndValue => None,
 			
 			&MissingMapFileDescriptor(ref cause) => Some(cause),
 			

@@ -74,7 +74,7 @@ pub(crate) struct BpfCommandProgramLoad
 	pub(crate) line_info_cnt: u32,
 	
 	/// in-kernel BTF type id to attach to.
-	pub(crate) attach_btf_id: BtfTypeIdentifier,
+	pub(crate) attach_btf_id: BpfTypeFormatTypeIdentifier,
 	
 	/// A file descriptor.
 	///

@@ -56,27 +56,27 @@ impl<K: Copy, MC: MapConstructor> MapsHashMap<K, MC>
 	
 	/// Insert or set (overwrite).
 	#[inline(always)]
-	pub fn insert_or_set(&self, key: &K, map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, variable_arguments: MC::VariableArguments) -> Result<MC::Map, ()>
+	pub fn insert_or_set(&self, key: &K, map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, variable_arguments: MC::VariableArguments) -> Result<MC::Map, ()>
 	{
-		let inner_map = self.inner_map(map_file_descriptors, map_name, parsed_btf_map_data, variable_arguments)?;
+		let inner_map = self.inner_map(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, variable_arguments)?;
 		self.map_file_descriptor.insert_or_set(key, &inner_map.map_file_descriptor().as_raw_fd(), LockFlags::DoNotLock)?;
 		Ok(inner_map)
 	}
 	
 	/// Insert or fail.
 	#[inline(always)]
-	pub fn insert(&self, key: &K, map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, variable_arguments: MC::VariableArguments) -> Result<MC::Map, ()>
+	pub fn insert(&self, key: &K, map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, variable_arguments: MC::VariableArguments) -> Result<MC::Map, ()>
 	{
-		let inner_map = self.inner_map(map_file_descriptors, map_name, parsed_btf_map_data, variable_arguments)?;
+		let inner_map = self.inner_map(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, variable_arguments)?;
 		self.map_file_descriptor.insert(key, &inner_map.map_file_descriptor().as_raw_fd(), LockFlags::DoNotLock).map_err(|_| ())?;
 		Ok(inner_map)
 	}
 	
 	/// Set the map at key to a newly-created map.
 	#[inline(always)]
-	pub fn set(&self, key: &K, map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, variable_arguments: MC::VariableArguments) -> Result<MC::Map, ()>
+	pub fn set(&self, key: &K, map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, variable_arguments: MC::VariableArguments) -> Result<MC::Map, ()>
 	{
-		let inner_map = self.inner_map(map_file_descriptors, map_name, parsed_btf_map_data, variable_arguments)?;
+		let inner_map = self.inner_map(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, variable_arguments)?;
 		self.map_file_descriptor.set(key, &inner_map.map_file_descriptor().as_raw_fd(), LockFlags::DoNotLock)?;
 		Ok(inner_map)
 	}
@@ -93,14 +93,14 @@ impl<K: Copy, MC: MapConstructor> MapsHashMap<K, MC>
 	/// Returns the new maps of maps and the map value of key `key`.
 	///
 	/// This unfortunate design is because the Linux kernel object is effectively using 'prototype-orientated programming' when creating a map-of-maps.
-	pub fn new(maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions, numa_node: Option<NumaNode>, preallocation: Preallocation, inner_map_maximum_entries: MaximumEntries, inner_map_access_permissions: MC::AccessPermissions, inner_map_invariant_arguments: MC::InvariantArguments, map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, key: &K, map_at_key_variable_arguments: MC::VariableArguments) -> Result<(Self, MC::Map), ()>
+	pub fn new(maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions, numa_node: Option<NumaNode>, preallocation: Preallocation, inner_map_maximum_entries: MaximumEntries, inner_map_access_permissions: MC::AccessPermissions, inner_map_invariant_arguments: MC::InvariantArguments, map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, key: &K, map_at_key_variable_arguments: MC::VariableArguments) -> Result<(Self, MC::Map), ()>
 	{
-		let inner_map = Self::inner_map_construct(map_file_descriptors, map_name, parsed_btf_map_data, map_at_key_variable_arguments, inner_map_maximum_entries, inner_map_access_permissions, inner_map_invariant_arguments)?;
+		let inner_map = Self::inner_map_construct(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, map_at_key_variable_arguments, inner_map_maximum_entries, inner_map_access_permissions, inner_map_invariant_arguments)?;
 		let template_map_file_descriptor = inner_map.map_file_descriptor();
 		
 		let this = Self
 		{
-			map_file_descriptor: MapFileDescriptor::create(map_file_descriptors, MapType::HashOfMaps(Self::key_size(), maximum_entries, access_permissions, template_map_file_descriptor, numa_node, preallocation), map_name, parsed_btf_map_data).map_err(|_| ())?,
+			map_file_descriptor: MapFileDescriptor::create(map_file_descriptors, MapType::HashOfMaps(Self::key_size(), maximum_entries, access_permissions, template_map_file_descriptor, numa_node, preallocation), map_name, parsed_bpf_type_format_map_data).map_err(|_| ())?,
 			maximum_entries,
 			inner_map_maximum_entries,
 			inner_map_access_permissions,
@@ -113,15 +113,15 @@ impl<K: Copy, MC: MapConstructor> MapsHashMap<K, MC>
 	}
 	
 	#[inline(always)]
-	fn inner_map(&self, map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, variable_arguments: MC::VariableArguments) -> Result<MC::Map, ()>
+	fn inner_map(&self, map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, variable_arguments: MC::VariableArguments) -> Result<MC::Map, ()>
 	{
-		Self::inner_map_construct(map_file_descriptors, map_name, parsed_btf_map_data, variable_arguments, self.inner_map_maximum_entries, self.inner_map_access_permissions, self.inner_map_invariant_arguments)
+		Self::inner_map_construct(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, variable_arguments, self.inner_map_maximum_entries, self.inner_map_access_permissions, self.inner_map_invariant_arguments)
 	}
 	
 	#[inline(always)]
-	fn inner_map_construct(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, variable_arguments: MC::VariableArguments, inner_map_maximum_entries: MaximumEntries, inner_map_access_permissions: MC::AccessPermissions, inner_map_invariant_arguments: MC::InvariantArguments) -> Result<MC::Map, ()>
+	fn inner_map_construct(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, variable_arguments: MC::VariableArguments, inner_map_maximum_entries: MaximumEntries, inner_map_access_permissions: MC::AccessPermissions, inner_map_invariant_arguments: MC::InvariantArguments) -> Result<MC::Map, ()>
 	{
-		MC::construct(map_file_descriptors, map_name, parsed_btf_map_data, inner_map_maximum_entries, inner_map_access_permissions, inner_map_invariant_arguments, variable_arguments).map_err(|_| ())
+		MC::construct(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, inner_map_maximum_entries, inner_map_access_permissions, inner_map_invariant_arguments, variable_arguments).map_err(|_| ())
 	}
 	
 	#[inline(always)]

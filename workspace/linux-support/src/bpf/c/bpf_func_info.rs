@@ -19,5 +19,5 @@ pub(crate) struct bpf_func_info
 	/// Relative pointer to a `struct btf_type` of type `BTF_KIND_FUNC`.
 	///
 	/// Increments from `1`; a value of `0` is always the type `void`.
-	pub(crate) type_identifier: BtfTypeIdentifier,
+	pub(crate) type_identifier: BpfTypeFormatTypeIdentifier,
 }

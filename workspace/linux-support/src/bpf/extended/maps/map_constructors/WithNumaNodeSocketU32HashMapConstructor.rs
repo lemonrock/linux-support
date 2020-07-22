@@ -17,9 +17,9 @@ impl<K: Copy> MapConstructor for WithNumaNodeSocketU32HashMapConstructor<K>
 	type VariableArguments = NumaNode;
 	
 	#[inline(always)]
-	fn construct(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: Self::AccessPermissions, _arguments_that_end_up_in_map_flags: Self::InvariantArguments, variable_arguments: Self::VariableArguments) -> Result<Self::Map, MapCreationError>
+	fn construct(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: Self::AccessPermissions, _arguments_that_end_up_in_map_flags: Self::InvariantArguments, variable_arguments: Self::VariableArguments) -> Result<Self::Map, MapCreationError>
 	{
 		let numa_node = variable_arguments;
-		SocketHashMap::new_u32(map_file_descriptors, map_name, parsed_btf_map_data, maximum_entries, access_permissions, Some(numa_node))
+		SocketHashMap::new_u32(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, maximum_entries, access_permissions, Some(numa_node))
 	}
 }

@@ -111,9 +111,9 @@ impl<SV: SocketValue> ReusePortSocketArrayMap<SV>
 	}
 	
 	#[inline(always)]
-	fn create(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, map_type: MapType, maximum_entries: MaximumEntries) -> Result<Self, MapCreationError>
+	fn create(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, map_type: MapType, maximum_entries: MaximumEntries) -> Result<Self, MapCreationError>
 	{
-		MapFileDescriptor::create(map_file_descriptors, map_type, map_name, parsed_btf_map_data).map(|map_file_descriptor| Self::new(map_file_descriptor, maximum_entries))
+		MapFileDescriptor::create(map_file_descriptors, map_type, map_name, parsed_bpf_type_format_map_data).map(|map_file_descriptor| Self::new(map_file_descriptor, maximum_entries))
 	}
 	
 	#[inline(always)]
@@ -134,9 +134,9 @@ impl ReusePortSocketArrayMap<u32>
 	///
 	/// Needs the capability `CAP_SYS_ADMIN`.
 	#[inline(always)]
-	pub fn new_u32(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
+	pub fn new_u32(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
 	{
-		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::ReusePortSocketArrayU32(maximum_entries, access_permissions, numa_node), maximum_entries)
+		Self::create(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, MapType::ReusePortSocketArrayU32(maximum_entries, access_permissions, numa_node), maximum_entries)
 	}
 }
 
@@ -146,9 +146,9 @@ impl ReusePortSocketArrayMap<u64>
 	///
 	/// Needs the capability `CAP_SYS_ADMIN`.
 	#[inline(always)]
-	pub fn new_u64(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_btf_map_data: Option<&ParsedBtfMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
+	pub fn new_u64(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
 	{
-		Self::create(map_file_descriptors, map_name, parsed_btf_map_data, MapType::ReusePortSocketArrayU64(maximum_entries, access_permissions, numa_node), maximum_entries)
+		Self::create(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, MapType::ReusePortSocketArrayU64(maximum_entries, access_permissions, numa_node), maximum_entries)
 	}
 	
 	/// Gets a socket cookie.

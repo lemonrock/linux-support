@@ -49,22 +49,19 @@ pub enum ProgramError
 	ThereAreMoreThanU32MaxInstructions,
 
 	/// No type identifiers and no strings.
-	NoBtfData,
-	
-	/// Invalid program size.
-	BtfDataSizeZero,
+	NoBpfTypeFormatData,
 	
 	/// Too much BTF data to load.
-	MaximumBtfDataSizeExceeded,
+	MaximumBpfTypeFormatDataSizeExceeded,
 	
 	/// Too much BTF data to load.
-	CouldNotLoadBtfData(Errno),
+	CouldNotLoadBpfTypeFormatData(Errno),
 	
 	/// Invalid BTF.
-	BtfType(BtfTypeError),
+	BpfTypeFormat(BpfTypeFormatError),
 	
 	/// Invalid program size.
-	InvalidBtfDataSize(TryFromIntError),
+	InvalidBpfTypeFormatDataSize(TryFromIntError),
 	
 	/// Could not resolved file descriptors label.
 	FileDescriptorLabelsMap(FileDescriptorLabelsMapError),
@@ -88,9 +85,9 @@ impl error::Error for ProgramError
 		
 		match self
 		{
-			&BtfType(ref error) => Some(error),
+			&BpfTypeFormat(ref error) => Some(error),
 			
-			&InvalidBtfDataSize(ref error) => Some(error),
+			&InvalidBpfTypeFormatDataSize(ref error) => Some(error),
 			
 			&FileDescriptorLabelsMap(ref error) => Some(error),
 			
@@ -99,12 +96,12 @@ impl error::Error for ProgramError
 	}
 }
 
-impl From<BtfTypeError> for ProgramError
+impl From<BpfTypeFormatError> for ProgramError
 {
 	#[inline(always)]
-	fn from(value: BtfTypeError) -> Self
+	fn from(value: BpfTypeFormatError) -> Self
 	{
-		ProgramError::BtfType(value)
+		ProgramError::BpfTypeFormat(value)
 	}
 }
 
@@ -113,7 +110,7 @@ impl From<TryFromIntError> for ProgramError
 	#[inline(always)]
 	fn from(value: TryFromIntError) -> Self
 	{
-		ProgramError::InvalidBtfDataSize(value)
+		ProgramError::InvalidBpfTypeFormatDataSize(value)
 	}
 }
 

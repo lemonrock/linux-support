@@ -16,13 +16,13 @@ pub struct NamedField
 impl Field for NamedField
 {
 	#[inline(always)]
-	fn to_btf_member(&self, type_identifiers: &mut BtfTypeIdentifiers, _index: u16) -> Result<btf_member, BtfTypeError>
+	fn to_btf_member(&self, type_identifiers: &mut BpfTypeFormatTypeIdentifiers, _index: u16) -> Result<btf_member, BpfTypeFormatError>
 	{
 		Ok
 		(
 			btf_member
 			{
-				name_off: unsafe { transmute(type_identifiers.push_c_identifier(self.ident, BtfKind::Function)?) },
+				name_off: unsafe { transmute(type_identifiers.push_c_identifier(self.ident, BpfTypeFormatKind::Function)?) },
 				type_identifier: type_identifiers.get_or_create_type_identifier(self.unnamed.type_)?,
 				offset: self.unnamed.offset_in_bits()?,
 			}

@@ -6,7 +6,7 @@
 #[repr(C)]
 pub(crate) struct btf_array
 {
-	pub(crate) type_: BtfTypeIdentifier,
-	pub(crate) index_type: BtfTypeIdentifier,
+	pub(crate) type_: BpfTypeFormatTypeIdentifier,
+	pub(crate) index_type: BpfTypeFormatTypeIdentifier,
 	pub(crate) nelems: u32,
 }

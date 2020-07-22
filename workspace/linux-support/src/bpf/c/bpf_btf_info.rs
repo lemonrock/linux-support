@@ -11,12 +11,12 @@ pub struct bpf_btf_info
 	
 	pub(crate) btf_size: u32,
 	
-	pub(crate) id: BtfIdentifier,
+	pub(crate) id: BpfTypeFormatIdentifier,
 }
 
 impl Information for bpf_btf_info
 {
-	type Identifier = BtfIdentifier;
+	type Identifier = BpfTypeFormatIdentifier;
 	
 	#[inline(always)]
 	fn identifier(&self) -> Self::Identifier
