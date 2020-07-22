@@ -46,3 +46,36 @@ impl FromRawFd for ExpressDataPathSocketFileDescriptor
 impl FileDescriptor for ExpressDataPathSocketFileDescriptor
 {
 }
+
+impl ExpressDataPathSocketFileDescriptor
+{
+	/// New.
+	#[inline(always)]
+	pub fn new(blocking: &Blocking) -> Result<Self, io::Error>
+	{
+		const protocol: i32 = 0;
+		const Flags: i32 = SOCK_RAW | SOCK_CLOEXEC;
+		let type_ = if blocking.is_non_blocking()
+		{
+			Flags | SOCK_NONBLOCK
+		}
+		else
+		{
+			Flags
+		};
+		
+		let result = unsafe { socket(AF_XDP, type_, protocol) };
+		if likely!(result >= 0)
+		{
+			Ok(Self(result))
+		}
+		else if likely!(result == -1)
+		{
+			Err(io::Error::last_os_error())
+		}
+		else
+		{
+			unreachable!("Unexpected error {} from `socket(AF_XDP, SOCK_RAW | SOCK_CLOEXEC, {})`", result, protocol);
+		}
+	}
+}

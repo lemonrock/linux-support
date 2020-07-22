@@ -2,27 +2,14 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use self::map_constructors::MapConstructor;
 use super::*;
-use super::stack_trace::StackDepth;
-use crate::file_descriptors::bpf::MapFileDescriptor;
 
 
-/// Access permissions.
-pub mod access_permissions;
+/// Map constructors.
+pub mod map_constructors;
 
 
-include!("CloneFromListener.rs");
-include!("InsertError.rs");
-include!("KeyIterator.rs");
-include!("KeySize.rs");
-include!("LockFlags.rs");
-include!("MapCreationError.rs");
-include!("MapName.rs");
-include!("MapType.rs");
-include!("MaximumEntries.rs");
-include!("MemoryMap.rs");
-include!("OpaqueBatchPosition.rs");
-include!("Preallocation.rs");
-include!("SocketValue.rs");
-include!("ValueSizeU16.rs");
-include!("ValueSizeU32.rs");
+include!("CanBeInnerMap.rs");
+include!("MapsOfMapArrayMap.rs");
+include!("MapsOfMapHashMap.rs");

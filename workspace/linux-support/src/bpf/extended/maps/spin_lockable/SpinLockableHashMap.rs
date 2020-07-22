@@ -5,7 +5,7 @@
 /// When a hash map is created it is empty.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub struct SpinLockableHashMap<K: Copy, V: 'static + Copy + HasReflectionInformation>(super::HashMap<K, SpinLockableValue<V>>);
+pub struct SpinLockableHashMap<K: Copy, V: 'static + Copy + HasReflectionInformation>(crate::bpf::extended::maps::HashMap<K, SpinLockableValue<V>>);
 
 impl<K: Copy, V: 'static + Copy + HasReflectionInformation> SpinLockableHashMap<K, V>
 {
@@ -13,7 +13,7 @@ impl<K: Copy, V: 'static + Copy + HasReflectionInformation> SpinLockableHashMap<
 	#[inline(always)]
 	pub fn new_system_wide(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: &ParsedBpfTypeFormatMapData, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, preallocation: Preallocation, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
 	{
-		let hash_map = super::HashMap::new_system_wide(map_file_descriptors, map_name, Some(parsed_bpf_type_format_map_data), maximum_entries, access_permissions, preallocation, numa_node)?;
+		let hash_map = crate::bpf::extended::maps::HashMap::new_system_wide(map_file_descriptors, map_name, Some(parsed_bpf_type_format_map_data), maximum_entries, access_permissions, preallocation, numa_node)?;
 		Ok(Self(hash_map))
 	}
 	

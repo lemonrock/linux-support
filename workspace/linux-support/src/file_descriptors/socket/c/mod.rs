@@ -8,6 +8,7 @@ use super::netlink::PortIdentifier;
 
 include!("__BindgenBitfieldUnit.rs");
 include!("accept4.rs");
+include!("AF_.rs");
 include!("bind.rs");
 include!("cmsghdr.rs");
 include!("connect.rs");

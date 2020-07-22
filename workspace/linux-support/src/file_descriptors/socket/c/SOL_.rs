@@ -8,3 +8,5 @@
 #[allow(missing_docs)] pub const SOL_TCP: c_int = 6;
 
 #[allow(missing_docs)] pub const SOL_UDP: c_int = 17;
+
+#[allow(missing_docs)] pub const SOL_XDP: c_int = 283;

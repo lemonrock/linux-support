@@ -4,7 +4,7 @@
 
 use self::domain::*;
 use self::domain::access_permissions::*;
-use self::map_constructors::*;
+use self::map_of_maps::CanBeInnerMap;
 use super::*;
 use super::bpf_type_format::*;
 use super::bpf_type_format::reflection::*;
@@ -30,8 +30,8 @@ pub mod domain;
 pub mod express_data_path_redirect;
 
 
-/// Map constructors.
-pub mod map_constructors;
+/// Map of Maps maps (sic).
+pub mod map_of_maps;
 
 
 /// Per-HyperThread maps.
@@ -51,8 +51,6 @@ include!("CgroupStorageMap.rs");
 include!("FileDescriptorArrayMap.rs");
 include!("HashMap.rs");
 include!("LongestPrefixMatchTrieMap.rs");
-include!("MapsArrayMap.rs");
-include!("MapsHashMap.rs");
 include!("MemoryMappedArrayMap.rs");
 include!("QueueOrStackMap.rs");
 include!("ReusePortSocketArrayMap.rs");
