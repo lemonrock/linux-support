@@ -3,4 +3,4 @@
 
 
 /// Program name.
-pub type ProgramName = CommandName;
+pub type ProgramName = ObjectName;

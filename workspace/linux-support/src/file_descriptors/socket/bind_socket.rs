@@ -2,35 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Represents a network interface name, such as `eth0`.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Deserialize, Serialize)]
-#[repr(transparent)]
-pub struct NetworkInterfaceName(String);
-
-impl From<String> for NetworkInterfaceName
+#[inline(always)]
+pub(crate) fn bind_socket<SA: Sized>(socket_file_descriptor: &impl FileDescriptor, socket_address: &SA) -> Result<(), SocketBindError>
 {
-	fn from(value: String) -> Self
-	{
-		Self(value)
-	}
-}
-
-impl<'a> From<&'a str> for NetworkInterfaceName
-{
-	fn from(value: &'a str) -> Self
-	{
-		Self(value.to_string())
-	}
-}
-
-impl Deref for NetworkInterfaceName
-{
-	type Target = str;
-
-	#[inline(always)]
-	fn deref(&self) -> &Self::Target
-	{
-		self.0.deref()
-	}
+	bind_socket_with_length(socket_file_descriptor, socket_address, size_of::<SA>())
 }

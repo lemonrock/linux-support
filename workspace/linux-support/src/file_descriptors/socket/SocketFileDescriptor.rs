@@ -143,50 +143,7 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 			unreachable!()
 		}
 	}
-
-	#[inline(always)]
-	fn bind(&self, socket_data: &SD, length: usize) -> Result<(), SocketBindError>
-	{
-		use self::SocketBindError::*;
-		use self::FilePathInvalidReason::*;
-
-		let result = unsafe { bind(self.0, &socket_data as *const _ as *const sockaddr_storage, length as socklen_t) };
-		if likely!(result == 0)
-		{
-			Ok(())
-		}
-		else if likely!(result == -1)
-		{
-			Err
-			(
-				match errno().0
-				{
-					EACCES => PermissionDenied,
-					EADDRINUSE => AddressInUse,
-					ENOMEM => KernelWouldBeOutOfMemory,
-					EBADF => panic!("`sockfd` is not a valid descriptor"),
-					EINVAL => panic!("already bound, or the `addrlen` is wrong, or the socket was not in the `AF_UNIX` family"),
-					ENOTSOCK => panic!("`sockfd` is not a socket file descriptor"),
-
-					EADDRNOTAVAIL => FilePathInvalid(AddressUnavailable),
-					EFAULT => panic!("`addr` points outside the user's accessible address space"),
-					ELOOP => FilePathInvalid(TooManySymbolicLinksInFilePath),
-					ENOENT => FilePathInvalid(DoesNotExist),
-					ENOTDIR => FilePathInvalid(FilePathPrefixComponentIsNotADirectory),
-					EROFS => FilePathInvalid(FilePathIsReadOnly),
-
-					EAFNOSUPPORT => panic!("Invalid `sa_family_t` value"),
-
-					_ => unreachable!(),
-				}
-			)
-		}
-		else
-		{
-			unreachable!()
-		}
-	}
-
+	
 	#[inline(always)]
 	fn connect(&self, socket_data: &SD, length: usize, writes_before_reading: bool) -> Result<(), SocketConnectError>
 	{
@@ -595,36 +552,14 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 			unreachable!();
 		}
 	}
-
+	
 	#[inline(always)]
 	fn new(domain: c_int, type_: c_int, ethernet_protocol: c_int, blocking: &Blocking) -> Result<Self, CreationError>
 	{
-		let result = unsafe { socket(domain, Self::type_and_flags(type_, blocking), ethernet_protocol) };
-		if likely!(result != -1)
-		{
-			let socket_file_descriptor = SocketFileDescriptor(result, PhantomData);
-			blocking.set_time_outs(&socket_file_descriptor);
-			Ok(socket_file_descriptor)
-		}
-		else
-		{
-			use self::CreationError::*;
-
-			Err
-			(
-				match errno().0
-				{
-					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
-					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
-					ENOBUFS | ENOMEM => KernelWouldBeOutOfMemory,
-					EINVAL => panic!("Invalid arguments"),
-					EACCES => panic!("Permission denined"),
-					EAFNOSUPPORT => panic!("The implementation does not support the specified address family"),
-					EPROTONOSUPPORT => panic!("The protocol type or the specified protocol is not supported within this domain"),
-					_ => unreachable!(),
-				}
-			)
-		}
+		let file_descriptor = new_socket(domain, type_, ethernet_protocol, blocking.is_non_blocking())?;
+		let socket_file_descriptor = SocketFileDescriptor(file_descriptor, PhantomData);
+		blocking.set_time_outs(&socket_file_descriptor);
+		Ok(socket_file_descriptor)
 	}
 }
 
@@ -669,7 +604,7 @@ impl SocketFileDescriptor<sockaddr_in>
 		this.connect_internet_protocol_version_4_socket(socket_address, false)?;
 		Ok(DatagramClientSocketFileDescriptor(this))
 	}
-
+	
 	#[inline(always)]
 	fn connect_internet_protocol_version_4_socket(&self, socket_address: &sockaddr_in, writes_before_reading: bool) -> Result<(), SocketConnectError>
 	{
@@ -679,7 +614,7 @@ impl SocketFileDescriptor<sockaddr_in>
 	#[inline(always)]
 	fn bind_internet_protocol_version_4_socket(&self, socket_address: &sockaddr_in) -> Result<(), SocketBindError>
 	{
-		self.bind(socket_address, size_of::<sockaddr_in>())
+		bind_socket(self, socket_address)
 	}
 }
 
@@ -734,7 +669,7 @@ impl SocketFileDescriptor<sockaddr_in6>
 	#[inline(always)]
 	fn bind_internet_protocol_version_6_socket(&self, socket_address: &sockaddr_in6) -> Result<(), SocketBindError>
 	{
-		self.bind(socket_address, size_of::<sockaddr_in6>())
+		bind_socket(self, socket_address)
 	}
 }
 
@@ -1107,7 +1042,7 @@ impl SocketFileDescriptor<sockaddr_un>
 			&Abstract { ref abstract_name } => Self::unix_domain_socket_data_from_abstract_name(&abstract_name[..]),
 		};
 
-		self.bind(&local_address, length)
+		bind_socket_with_length(self, &local_address, length)
 	}
 
 	#[inline(always)]

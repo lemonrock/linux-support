@@ -798,7 +798,7 @@ impl MapFileDescriptor
 				map_flags,
 				inner_map_fd,
 				numa_node,
-				map_name: map_name.to_bpf_object_name(),
+				map_name: map_name.into(),
 				map_ifindex,
 				
 				btf_fd,

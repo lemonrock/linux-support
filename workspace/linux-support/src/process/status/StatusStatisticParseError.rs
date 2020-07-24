@@ -40,7 +40,7 @@ pub enum StatusStatisticParseError
 	NotAValidBitSetAware(BitSetAwareTryFromU16Error),
 
 	/// Value was not a valid command name.
-	NotAValidCommandName(CommandNameFromBytesError),
+	NotAValidCommandName(ObjectNameFromBytesError),
 }
 
 impl Display for StatusStatisticParseError
@@ -115,10 +115,10 @@ impl From<BitSetAwareTryFromU16Error> for StatusStatisticParseError
 	}
 }
 
-impl From<CommandNameFromBytesError> for StatusStatisticParseError
+impl From<ObjectNameFromBytesError> for StatusStatisticParseError
 {
 	#[inline(always)]
-	fn from(error: CommandNameFromBytesError) -> Self
+	fn from(error: ObjectNameFromBytesError) -> Self
 	{
 		StatusStatisticParseError::NotAValidCommandName(error)
 	}

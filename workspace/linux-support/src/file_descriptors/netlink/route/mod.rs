@@ -3,7 +3,10 @@
 
 
 use super::*;
+use super::attributes::*;
 use crate::pci_express::NetworkInterfaceIndex;
+use crate::netdevice::NetworkInterfaceIndex;
+use crate::file_descriptors::bpf::ExtendedBpfProgramFileDescriptor;
 
 
 include!("CacheTimestampInHundrethsOfSeconds.rs");

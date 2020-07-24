@@ -68,7 +68,7 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 				log_buf,
 				kern_version,
 				prog_flags: BPF_PROG_LOAD_flags::BPF_F_STRICT_ALIGNMENT,
-				prog_name: self.program_name.to_bpf_object_name(),
+				prog_name: self.program_name.into(),
 				prog_ifindex,
 				expected_attach_type,
 				
@@ -145,6 +145,6 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 	#[inline(always)]
 	fn program_name_default() -> ProgramName
 	{
-		ProgramName::new_from_bytes_excluding_ascii_nul(b"bpf_program").unwrap()
+		ProgramName::from_bytes(b"bpf_program").unwrap()
 	}
 }

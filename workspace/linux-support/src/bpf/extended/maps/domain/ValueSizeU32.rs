@@ -74,7 +74,15 @@ impl ValueSizeU32
 	/// See `include/linux/mmzone.h` in Linux kernel sources.
 	const MAX_ORDER: u32 = 11;
 	
-	/// Varies by architecture, but usually `12` for systems with a 4Kb page size.
+	/// Varies by architecture, but usually `12` for systems with a 4Kb page size except:-
+	///
+	/// * ARM64 can optionally be configured to use 16 (64kb page size) using `CONFIG_ARM64_64K_PAGES`;
+	/// * PowerPC can optionally be configured to other page sizes using `CONFIG_PPC_PAGE_SHIFT`;
+	/// * SPARC64, NDS32, Alpha and OpenRisc use `13` (8Kb page size);
+	/// * Hexagon can optionally be configured to use 14, 16, 18 or 20;
+	/// * ARC can optionally be configured to use 12, 13, or 14.
+	///
+	/// None of these choices or processors are mainstream enough for the intended users of this code.
 	///
 	/// Linux does not support a page size smaller than 4Kb, so this is safe.
 	pub(crate) const PAGE_SHIFT: u32 = 12;

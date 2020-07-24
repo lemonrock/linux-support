@@ -45,6 +45,109 @@ impl NetlinkProtocol for RouteNetlinkProtocol
 
 impl RouteNetlinkProtocol
 {
+	pub fn xdp_fd_replace(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, network_interface_index: NetworkInterfaceIndex, xdp_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor, flags: u32, replace_xdp_extended_bpf_program_file_descriptor: Option<&ExtendedBpfProgramFileDescriptor>)
+	{
+		/*
+		#define XDP_FLAGS_UPDATE_IF_NOEXIST	(1U << 0)
+#define XDP_FLAGS_SKB_MODE		(1U << 1)
+#define XDP_FLAGS_DRV_MODE		(1U << 2)
+#define XDP_FLAGS_HW_MODE		(1U << 3)
+#define XDP_FLAGS_REPLACE		(1U << 4)
+#define XDP_FLAGS_MODES			(XDP_FLAGS_SKB_MODE | \
+					 XDP_FLAGS_DRV_MODE | \
+					 XDP_FLAGS_HW_MODE)
+#define XDP_FLAGS_MASK			(XDP_FLAGS_UPDATE_IF_NOEXIST | \
+					 XDP_FLAGS_MODES | XDP_FLAGS_REPLACE)
+		 */
+		
+		
+		
+		
+		let flags = if replace_xdp_extended_bpf_program_file_descriptor.is_some()
+		{
+			flags | XDP_FLAGS_REPLACE
+		}
+		else
+		{
+			flags
+		};
+		
+		use self::IFLA::*;
+		use self::IFLA_XDP::*;
+		
+		struct MessageBody<V: Sized>
+		{
+			ifinfo: ifinfomsg,
+			nested_attributes: NetlinkAttribute<V>,
+		}
+		
+		let message_body = MessageBody
+		{
+			ifinfo: ifinfomsg::for_xdp(network_interface_index),
+			nested_attributes: IFLA_XDP.nests
+			(
+				IFLA_XDP_FD.attribute(xdp_extended_bpf_program_file_descriptor.as_raw_fd())
+				.followed_by(IFLA_XDP_FLAGS.attribute(flags))
+				.followed_by(IFLA_XDP_EXPECTED_FD.attribute(replace_xdp_extended_bpf_program_file_descriptor.unwrap().as_raw_fd()))
+			),
+		};
+		
+		loop
+		{
+			let mut request = Self::new_acknowledge_message(RouteNetlinkMessageType::SETLINK, flags, ifinfomsg::for_xdp(network_interface_index));
+			
+			
+// 			xxx;
+// 			
+// /* started nested attribute for XDP */
+// nla = (struct nlattr *)(((char *)&req)
+// 			+ NLMSG_ALIGN(req.nh.nlmsg_len));
+// nla->nla_type = NLA_F_NESTED | IFLA_XDP;
+// nla->nla_len = NLA_HDRLEN;
+// 
+// /* add XDP fd */
+// nla_xdp = (struct nlattr *)((char *)nla + nla->nla_len);
+// nla_xdp->nla_type = IFLA_XDP_FD;
+// nla_xdp->nla_len = NLA_HDRLEN + sizeof(int);
+// memcpy((char *)nla_xdp + NLA_HDRLEN, &fd, sizeof(fd));
+// nla->nla_len += nla_xdp->nla_len;
+// 
+// /* if user passed in any flags, add those too */
+// if (flags) {
+// 	nla_xdp = (struct nlattr *)((char *)nla + nla->nla_len);
+// 	nla_xdp->nla_type = IFLA_XDP_FLAGS;
+// 	nla_xdp->nla_len = NLA_HDRLEN + sizeof(flags);
+// 	memcpy((char *)nla_xdp + NLA_HDRLEN, &flags, sizeof(flags));
+// 	nla->nla_len += nla_xdp->nla_len;
+// }
+// 
+// if (flags & XDP_FLAGS_REPLACE) {
+// 	nla_xdp = (struct nlattr *)((char *)nla + nla->nla_len);
+// 	nla_xdp->nla_type = IFLA_XDP_EXPECTED_FD;
+// 	nla_xdp->nla_len = NLA_HDRLEN + sizeof(old_fd);
+// 	memcpy((char *)nla_xdp + NLA_HDRLEN, &old_fd, sizeof(old_fd));
+// 	nla->nla_len += nla_xdp->nla_len;
+// }
+// 
+// req.nh.nlmsg_len += NLA_ALIGN(nla->nla_len);
+			
+			let sequence_number = netlink_socket_file_descriptor.send_request(&mut request).expect("Send a request");
+			
+			let message_identification = MultipartMessagePartIdentification::from_linux_kernel(sequence_number);
+			
+			match Self::try_receiving_until_get_something(netlink_socket_file_descriptor, route_message_processor, &message_identification)
+			{
+				Ok(None) => continue,
+				
+				Ok(Some(processed_messages)) => return Ok(processed_messages),
+				
+				Err(Left(messaging_parsing_errors)) => return Err(format!("Message parsing errors {:?}", messaging_parsing_errors)),
+				
+				Err(Right(end_of_set_of_messages_error)) => return Err(format!("End of set of messages errors {:?}", end_of_set_of_messages_error)),
+			}
+		}
+	}
+	
 	/// Get Internet Protocol version 4 addresses.
 	///
 	/// This is ***SLOW***.
@@ -117,7 +220,6 @@ impl RouteNetlinkProtocol
 		};
 		Self::new_get_request_message(RouteNetlinkMessageType::GETADDR, NetlinkGetRequestMessageFlags::Dump, body)
 	}
-	
 	
 	// TODO: Not sure we need to try receiving more than once but nothing about netlink seems obvious.
 	fn try_receiving_until_get_something<IPA: InternetProtocolAddress>(netlink_socket_file_descriptor: &NetlinkSocketFileDescriptor<Self>, route_message_processor: &'static GetAddressRouteMessageProcessor<IPA>, message_identification: &MultipartMessagePartIdentification) -> Result<Option<Vec<GetAddressMessageData<IPA>>>, Either<Vec<String>, io::Error>>

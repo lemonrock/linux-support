@@ -2,23 +2,6 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// An error.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum CommandNameFromBytesError
-{
-	/// More than `CommandName::MaximumCommandNameLengthExcludingAsciiNul` bytes.
-	TooLong(usize),
-}
-
-impl Display for CommandNameFromBytesError
-{
-	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter) -> fmt::Result
-	{
-		Debug::fmt(self, f)
-	}
-}
-
-impl error::Error for CommandNameFromBytesError
-{
-}
+/// Page offsets for mmap of rings.
+pub(super) const XDP_PGOFF_RX_RING: u64 = 0;
+pub(super) const XDP_PGOFF_TX_RING: u64 = 0x80000000;

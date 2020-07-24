@@ -4,6 +4,32 @@
 
 use self::c::*;
 use super::*;
+use super::instructions::file_descriptor_label::FileDescriptorLabelsMap;
+use super::maps::domain::*;
+use super::maps::domain::access_permissions::ExpressDataPathAccessPermissions;
+use super::maps::express_data_path_redirect::*;
+use crate::netdevice::*;
+use crate::file_descriptors::*;
+use crate::file_descriptors::bpf::*;
+use crate::file_descriptors::socket::*;
+use crate::file_descriptors::socket::c::*;
+use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
+use crate::memory::mapping::*;
+use crate::pci_express::NetworkInterfaceIndex;
 
 
-//mod c;
+pub(crate) mod c;
+
+
+include!("CreateExpressDataPathRedirectSocketMapError.rs");
+include!("Descriptor.rs");
+include!("FrameSize.rs");
+include!("OwnedReceiveTransmitMemoryRingQueues.rs");
+include!("QueueIdentifier.rs");
+include!("ReceiveOrTransmitOrBoth.rs");
+include!("ReceiveTransmitMemoryRingQueues.rs");
+include!("RingQueueDepth.rs");
+include!("SharedReceiveTransmitMemoryRingQueues.rs");
+include!("UmemDescriptor.rs");
+include!("UserMemory.rs");
+include!("XskRingQueue.rs");

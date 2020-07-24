@@ -9,6 +9,7 @@ use self::configuration_space::MemoryMappedConfigurationSpace;
 use self::link::*;
 use self::resources::Resources;
 use crate::cpu::*;
+use crate::netdevice::*;
 use crate::linux_kernel_modules::*;
 use crate::file_descriptors::RawFdExt;
 use crate::file_descriptors::socket::c::socket;
@@ -17,6 +18,7 @@ use crate::memory::mapping::*;
 use crate::memory::numa::NumaNode;
 use crate::paths::*;
 use crate::user_and_groups::assert_effective_user_id_is_root;
+use crate::process::CommandName;
 
 
 /// Classifications.
@@ -43,14 +45,10 @@ pub mod registers;
 pub mod resources;
 
 
-include!("ConvertNetworkInterfaceIndexToPciDeviceAddressError.rs");
 include!("LinuxPciUserspaceKernelDriverModule.rs");
-include!("NetworkInterfaceIndex.rs");
-include!("NetworkInterfaceName.rs");
-include!("NetworkInterfaceNameToIndexConversionError.rs");
-include!("NetworkInterfaceNameToPciDeviceAddressConversionError.rs");
 include!("PciDevice.rs");
-include!("PciDeviceDetails.rs");
 include!("PciDeviceAddress.rs");
+include!("PciDeviceAddressFromNetworkInterfaceNameError.rs");
 include!("PciDeviceAddressStringParseError.rs");
+include!("PciDeviceDetails.rs");
 include!("PciDevicePhysicalOrVirtualFunction.rs");

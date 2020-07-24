@@ -33,3 +33,15 @@ pub struct ifinfomsg
 impl NetlinkRequestMessageBody for ifinfomsg
 {
 }
+
+impl ifinfomsg
+{
+	#[inline(always)]
+	pub(crate) fn for_xdp(network_interface_index: NetworkInterfaceIndex) -> Self
+	{
+		let mut this: Self = unsafe { zeroed() };
+		this.ifi_family = AF_INET as u8;
+		this.ifi_index = Some(network_interface_index);
+		this
+	}
+}

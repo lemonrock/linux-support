@@ -3,6 +3,7 @@
 
 
 use super::*;
+use self::c::*;
 use crate::bpf::c::BPF_OBJ_NAME_LEN;
 use crate::cpu::*;
 use crate::file_descriptors::CreationError;
@@ -18,6 +19,9 @@ use crate::vectors::VectoredRead;
 use crate::vectors::VectoredWrite;
 
 
+pub(crate) mod c;
+
+
 /// `/proc/<N>/stat`.
 pub mod stat;
 
@@ -31,7 +35,6 @@ pub mod status;
 
 
 include!("CommandName.rs");
-include!("CommandNameFromBytesError.rs");
 include!("daemonize.rs");
 include!("get_program_invocation_short_name.rs");
 include!("ProcessGroupIdentifier.rs");

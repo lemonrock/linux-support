@@ -3,4 +3,4 @@
 
 
 /// Map name.
-pub type MapName = CommandName;
+pub type MapName = ObjectName;

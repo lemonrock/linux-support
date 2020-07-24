@@ -5,15 +5,16 @@
 use self::c::*;
 use super::*;
 use super::directory::AccessPermissions;
-use crate::cpu::HyperThread;
 use super::file::SendFile;
-use crate::paths::PathExt;
 use super::pipes_and_fifos::SpliceRecipient;
 use super::pipes_and_fifos::SpliceSender;
-use crate::process::*;
-use crate::user_and_groups::{UserIdentifier, assert_effective_user_id_is_root};
-use crate::user_and_groups::GroupIdentifier;
+use crate::bpf::extended::express_data_path::*;
+use crate::bpf::extended::express_data_path::c::*;
+use crate::cpu::HyperThread;
 use crate::memory::NumberOfPages;
+use crate::paths::PathExt;
+use crate::process::*;
+use crate::user_and_groups::*;
 
 
 /// Contains essential data structures.
@@ -23,6 +24,8 @@ pub mod c;
 include!("AcceptedConnection.rs");
 include!("AcceptedConnectionEnum.rs");
 include!("BackLog.rs");
+include!("bind_socket.rs");
+include!("bind_socket_with_length.rs");
 include!("Blocking.rs");
 include!("BlockingDuration.rs");
 include!("BusyPollMicroseconds.rs");
@@ -46,6 +49,7 @@ include!("MaximumSynRetransmits.rs");
 include!("MaximumUnixDomainSocketDatagramQueueLength.rs");
 include!("MemoryPressure.rs");
 include!("MessageHeadersIterator.rs");
+include!("new_socket.rs");
 include!("NewSocketClientError.rs");
 include!("NewSocketServerListenerError.rs");
 include!("NonServerSocket.rs");
@@ -78,6 +82,7 @@ include!("SocketBindError.rs");
 include!("SocketConnect.rs");
 include!("SocketConnectError.rs");
 include!("SocketCookie.rs");
+include!("SocketCreationOrBindError.rs");
 include!("SocketData.rs");
 include!("SocketDataWithLength.rs");
 include!("SocketFileDescriptor.rs");

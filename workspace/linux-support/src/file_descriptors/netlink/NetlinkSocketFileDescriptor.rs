@@ -84,40 +84,14 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 	///
 	/// Binds the port so no multicast messages are received.
 	#[inline(always)]
-	pub fn open() -> io::Result<Self>
+	pub fn open() -> Result<Self, SocketCreationOrBindError>
 	{
-		let protocol: i32 = Protocol::Protocol;
-		
-		let result = unsafe { socket(AF_NETLINK, SOCK_RAW | SOCK_CLOEXEC, protocol) };
-		let file_descriptor = if likely!(result >= 0)
-		{
-			result
-		}
-		else if likely!(result == -1)
-		{
-			return Err(io::Error::last_os_error())
-		}
-		else
-		{
-			unreachable!("Unexpected error {} from `socket(AF_NETLINK, SOCK_RAW | SOCK_CLOEXEC, {})`", result, protocol);
-		};
+		let this = Self(new_socket(AF_NETLINK, SOCK_RAW, Protocol::Protocol, false)?, SequenceNumber::One, PhantomData);
 		
 		let socket_address = sockaddr_nl::default();
+		bind_socket(&this, &socket_address)?;
 		
-		let bind_result = unsafe { bind(file_descriptor, &socket_address as *const sockaddr_nl as *const sockaddr_storage, size_of::<sockaddr_nl>() as u32) };
-		
-		if likely!(bind_result == 0)
-		{
-			Ok(Self(file_descriptor, SequenceNumber::One, PhantomData))
-		}
-		else if likely!(bind_result == -1)
-		{
-			Err(io::Error::last_os_error())
-		}
-		else
-		{
-			unreachable!("Unexpected error {} from `bind()`", bind_result);
-		}
+		Ok(this)
 	}
 	
 	/// Returns message identification.

@@ -30,6 +30,7 @@ include!("setsockopt.rs");
 include!("socketpair.rs");
 include!("shutdown.rs");
 include!("SO_.rs");
+include!("sockaddr.rs");
 include!("sockaddr_ib.rs");
 include!("sockaddr_in.rs");
 include!("sockaddr_in6.rs");

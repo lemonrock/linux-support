@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Access permissions specialized for use with XDPs-specific map types:-
+/// Access permissions specialized for use with XDP-specific map types:-
 ///
 /// * `BPF_MAP_TYPE_DEVMAP`.
 /// * `BPF_MAP_TYPE_DEVMAP_HASH`.
@@ -13,11 +13,14 @@
 #[repr(u32)]
 pub enum ExpressDataPathAccessPermissions
 {
-	/// Note this differs in value to `AccessPermissions::KernelWriteUserspaceRead` and `KernelOnlyAccessPermissions::KernelWriteUserspaceRead` (which both have the same value).
-	KernelWriteUserspaceRead = BPF_MAP_CREATE_flags::BPF_F_WRONLY.bits(),
+	#[allow(missing_docs)]
+	KernelReadWriteUserspaceReadWrite = BPF_MAP_CREATE_flags::empty().bits(),
 	
 	#[allow(missing_docs)]
-	KernelReadAndWriteUserspaceRead = BPF_MAP_CREATE_flags::BPF_F_RDONLY_PROG.bits(),
+	KernelWriteUserspaceReadWrite = BPF_MAP_CREATE_flags::BPF_F_WRONLY.bits(),
+	
+	#[allow(missing_docs)]
+	KernelReadUserspaceReadWrite = BPF_MAP_CREATE_flags::BPF_F_RDONLY.bits(),
 }
 
 impl Default for ExpressDataPathAccessPermissions
@@ -25,7 +28,7 @@ impl Default for ExpressDataPathAccessPermissions
 	#[inline(always)]
 	fn default() -> Self
 	{
-		ExpressDataPathAccessPermissions::KernelReadAndWriteUserspaceRead
+		ExpressDataPathAccessPermissions::KernelReadWriteUserspaceReadWrite
 	}
 }
 

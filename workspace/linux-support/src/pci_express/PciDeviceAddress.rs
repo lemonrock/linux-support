@@ -56,74 +56,49 @@ impl<'a> IntoLineFeedTerminatedByteString<'a> for &'a PciDeviceAddress
 	}
 }
 
+impl<'a> TryFrom<&'a NetworkInterfaceName> for PciDeviceAddress
+{
+	type Error = PciDeviceAddressFromNetworkInterfaceNameError;
+
+	#[inline(always)]
+	fn try_from(network_interface_name: &'a NetworkInterfaceName) -> Result<Self, Self::Error>
+	{
+		let bus_device_address = BusDeviceAddress::try_from(network_interface_name)?;
+		Self::try_from(bus_device_address)
+	}
+}
+
 impl TryFrom<NetworkInterfaceName> for PciDeviceAddress
 {
-	type Error = NetworkInterfaceNameToPciDeviceAddressConversionError;
+	type Error = PciDeviceAddressFromNetworkInterfaceNameError;
 
 	#[inline(always)]
 	fn try_from(network_interface_name: NetworkInterfaceName) -> Result<Self, Self::Error>
 	{
-		let network_interface_index = NetworkInterfaceIndex::try_from(&network_interface_name)?;
-		let pci_device_address: PciDeviceAddress = Self::try_from(network_interface_index)?;
-		Ok(pci_device_address)
+		let bus_device_address = BusDeviceAddress::try_from(network_interface_name)?;
+		Self::try_from(bus_device_address)
 	}
 }
 
-#[doc(hidden)]
-impl TryFrom<NetworkInterfaceIndex> for PciDeviceAddress
+impl<'a> TryFrom<&'a BusDeviceAddress> for PciDeviceAddress
 {
-	type Error = ConvertNetworkInterfaceIndexToPciDeviceAddressError;
+	type Error = PciDeviceAddressStringParseError;
 
 	#[inline(always)]
-	fn try_from(network_interface_index: NetworkInterfaceIndex) -> Result<Self, Self::Error>
+	fn try_from(value: &'a BusDeviceAddress) -> Result<Self, Self::Error>
 	{
-		let socket_file_descriptor = Self::open_socket_for_ioctl()?;
+		Self::try_from(value.deref())
+	}
+}
 
-		let mut interface_request = ifreq::default();
+impl TryFrom<BusDeviceAddress> for PciDeviceAddress
+{
+	type Error = PciDeviceAddressStringParseError;
 
-		let mut command = ethtool_drvinfo::default();
-		command.cmd = ETHTOOL_GDRVINFO;
-
-		// Specify ifr_ifindex 'field'.
-		let x = network_interface_index.into();
-		unsafe { interface_request.ifr_ifru.ifru_ivalue().write(x) };
-
-		// Specify ifr_data 'field'.
-		unsafe { interface_request.ifr_ifru.ifru_data().write(&mut command as * mut _ as *mut c_void) };
-
-		let result = unsafe { ioctl(socket_file_descriptor, SIOCETHTOOL, &mut interface_request as *mut _ as *mut c_void) };
-
-		match result
-		{
-			-1 =>
-			{
-				// NOTE: Order here is important, as the `close()` system call can cause the error number to change.
-				let error_number = errno();
-				result.close();
-
-				match error_number.0
-				{
-					EINVAL => Err(ConvertNetworkInterfaceIndexToPciDeviceAddressError::IoctlCallFailed),
-
-					EBADF => panic!("fd is not a valid file descriptor"),
-					EFAULT => panic!("argp references an inaccessible memory area"),
-					ENOTTY => panic!("fd is not associated with a character special device, or, the specified request does not apply to the kind of object that the file descriptor fd references"),
-
-					error_number @ _ => panic!("Unexpected error number `{}`", error_number),
-				}
-			},
-
-			_ =>
-			{
-				result.close();
-
-				let bus_info_length = unsafe { strnlen(command.bus_info.as_ptr(), ETHTOOL_BUSINFO_LEN) };
-				let bus_info: [u8; ETHTOOL_BUSINFO_LEN] = unsafe { transmute(command.bus_info) };
-				let bytes = &bus_info[0 .. bus_info_length];
-
-				Ok(PciDeviceAddress::try_from(bytes)?)
-			}
-		}
+	#[inline(always)]
+	fn try_from(value: BusDeviceAddress) -> Result<Self, Self::Error>
+	{
+		Self::try_from(value.deref())
 	}
 }
 
@@ -168,6 +143,18 @@ impl TryFrom<Vec<u8>> for PciDeviceAddress
 	fn try_from(value: Vec<u8>) -> Result<Self, Self::Error>
 	{
 		Self::try_from(&value[..])
+	}
+}
+
+impl<'a> TryFrom<&'a [c_char]> for PciDeviceAddress
+{
+	type Error = PciDeviceAddressStringParseError;
+	
+	#[inline(always)]
+	fn try_from(value: &'a [c_char]) -> Result<Self, Self::Error>
+	{
+		let value: &'a [u8] = unsafe { transmute(value) };
+		Self::try_from(value)
 	}
 }
 
@@ -246,35 +233,5 @@ impl<'a> TryFrom<&'a [u8]> for PciDeviceAddress
 				},
 			}
 		)
-	}
-}
-
-impl PciDeviceAddress
-{
-	#[inline(always)]
-	fn open_socket_for_ioctl() -> Result<RawFd, ConvertNetworkInterfaceIndexToPciDeviceAddressError>
-	{
-		use self::ConvertNetworkInterfaceIndexToPciDeviceAddressError::*;
-		match unsafe { socket(AF_INET, SOCK_DGRAM, IPPROTO_IP) }
-		{
-			socket_file_descriptor if socket_file_descriptor >= 0 => Ok(socket_file_descriptor),
-
-			-1 => match { errno().0 }
-			{
-				EACCES => Err(PermissionDenied),
-				EAFNOSUPPORT => Err(Unsupported("Address family not supported")),
-				EPROTOTYPE => Err(Unsupported("The socket type is not supported by the protocol")),
-				EPROTONOSUPPORT => Err(Unsupported("The protocol type or the specified protocol is not supported within this domain")),
-
-				EMFILE => Err(OutOfMemoryOrResources("The per-process descriptor table is full")),
-				ENFILE => Err(OutOfMemoryOrResources("The system file table is full")),
-				ENOBUFS => Err(OutOfMemoryOrResources("Insufficient buffer space is available; the socket cannot be created until sufficient resources are freed")),
-				ENOMEM => Err(OutOfMemoryOrResources("Insufficient memory was available to fulfill the request")),
-
-				illegal @ _ => panic!("socket() had illegal errno '{}'", illegal),
-			},
-
-			illegal @ _ => panic!("Illegal result '{}' from socket()", illegal),
-		}
 	}
 }

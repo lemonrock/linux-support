@@ -43,6 +43,8 @@ assert_cfg!(target_pointer_width = "64");
 
 use crate::cpu::HyperThread;
 use crate::memory::numa::NumaNode;
+use crate::bpf::c::BPF_OBJ_NAME_LEN;
+use crate::process::c::TASK_COMM_LEN;
 #[cfg(target_arch = "x86_64")] use raw_cpuid::*;
 use arrayvec::Array;
 use arrayvec::ArrayVec;
@@ -199,6 +201,7 @@ use libc::IFLA_QDISC;
 use libc::IFLA_STATS;
 use libc::IFLA_UNSPEC;
 use libc::IF_NAMESIZE;
+use libc::IFNAMSIZ;
 use libc::IPPROTO_IP;
 use libc::IPPROTO_TCP;
 use libc::IPPROTO_UDP;
@@ -465,6 +468,7 @@ use libc::getrlimit;
 use libc::getsid;
 use libc::getuid;
 use libc::gid_t;
+use libc::if_indextoname;
 use libc::if_nametoindex;
 use libc::in_addr_t;
 use libc::in_port_t;
@@ -557,7 +561,17 @@ use libc::unlink;
 use libc::unlinkat;
 use libc::utimensat;
 use libc_extra::android_linux::linux::capability;
-use libc_extra::android_linux::linux::ethtool::*;
+use libc_extra::android_linux::linux::ethtool::ETHTOOL_BUSINFO_LEN;
+use libc_extra::android_linux::linux::ethtool::ethtool_cmd;
+use libc_extra::android_linux::linux::ethtool::ethtool_coalesce;
+use libc_extra::android_linux::linux::ethtool::ethtool_drvinfo;
+use libc_extra::android_linux::linux::ethtool::ethtool_flow_union;
+use libc_extra::android_linux::linux::ethtool::ETHTOOL_GCHANNELS;
+use libc_extra::android_linux::linux::ethtool::ethtool_ringparam;
+use libc_extra::android_linux::linux::ethtool::ethtool_rx_ntuple;
+use libc_extra::android_linux::linux::ethtool::ethtool_rx_ntuple_flow_spec;
+use libc_extra::android_linux::linux::ethtool::ethtool_value;
+use libc_extra::android_linux::linux::ethtool::ethtool_wolinfo;
 use libc_extra::android_linux::linux::securebits::SECBIT_KEEP_CAPS;
 use libc_extra::android_linux::linux::securebits::SECBIT_KEEP_CAPS_LOCKED;
 use libc_extra::android_linux::linux::securebits::SECBIT_NOROOT;
@@ -567,6 +581,8 @@ use libc_extra::android_linux::linux::securebits::SECBIT_NO_CAP_AMBIENT_RAISE_LO
 use libc_extra::android_linux::linux::securebits::SECBIT_NO_SETUID_FIXUP;
 use libc_extra::android_linux::linux::securebits::SECBIT_NO_SETUID_FIXUP_LOCKED;
 use libc_extra::android_linux::linux::sockios::SIOCETHTOOL;
+use libc_extra::android_linux::linux::sockios::SIOCGIFINDEX;
+use libc_extra::android_linux::linux::sockios::SIOCGIFNAME;
 use libc_extra::android_linux::mntent::endmntent;
 use libc_extra::android_linux::mntent::getmntent;
 use libc_extra::android_linux::mntent::mntent;
@@ -613,6 +629,7 @@ use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::convert::AsRef;
+use std::convert::Infallible;
 use std::convert::TryFrom;
 use std::convert::TryInto;
 use std::env::JoinPathsError;
@@ -800,6 +817,7 @@ use terminate::ParsedPanic;
 use terminate::ParsedPanicErrorLogger;
 use terminate::SimpleTerminate;
 use terminate::Terminate;
+use crate::paths::PathExt;
 
 
 /// Vectored reads and writes.
@@ -852,6 +870,9 @@ pub mod devices;
 /// * Find the command line of a process.
 /// * Create a clean environment for a process with just essential variables set (a security and reproducibility protection).
 pub mod environment;
+
+
+pub(crate) mod netdevice;
 
 
 /// Extended file attributes.
@@ -1016,3 +1037,5 @@ pub mod user_and_groups;
 
 include!("current_numa_node_and_hyper_thread.rs");
 include!("ENOTSUPP.rs");
+include!("ObjectName.rs");
+include!("ObjectNameFromBytesError.rs");

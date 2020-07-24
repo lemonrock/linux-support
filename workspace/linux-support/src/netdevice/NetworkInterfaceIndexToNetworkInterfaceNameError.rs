@@ -3,47 +3,46 @@
 
 
 /// Errors that can occur when converting an network interface name to an index.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum NetworkInterfaceNameToIndexConversionError
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Ord, PartialOrd, Hash)]
+pub enum NetworkInterfaceIndexToNetworkInterfaceNameError
 {
-	/// Whilst technically legal it is never valid on Linux or BSDs - have you made a configuration error?
-	ZeroSized,
-
-	/// Longer than IF_NAMESIZE.
-	TooLong,
-
-	/// Invalid as a CString.
-	InvalidCString(NulError),
-
+	/// Control operation failed.
+	NetworkDeviceInputOutputControl(NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>),
+	
 	/// Does not exist as an interface.
 	DoesNotExistAsAnInterface,
 }
 
-impl<'a> Display for NetworkInterfaceNameToIndexConversionError
+impl Display for NetworkInterfaceIndexToNetworkInterfaceNameError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
 	{
-		<NetworkInterfaceNameToIndexConversionError as Debug>::fmt(self, f)
+		Debug::fmt(self, f)
 	}
 }
 
-impl<'a> error::Error for NetworkInterfaceNameToIndexConversionError
+impl error::Error for NetworkInterfaceIndexToNetworkInterfaceNameError
 {
 	#[inline(always)]
 	fn source(&self) ->  Option<&(dyn error::Error + 'static)>
 	{
-		use self::NetworkInterfaceNameToIndexConversionError::*;
+		use self::NetworkInterfaceIndexToNetworkInterfaceNameError::*;
 
 		match self
 		{
-			&ZeroSized => None,
-
-			&TooLong => None,
-
-			&InvalidCString(ref cause) => Some(cause),
+			&NetworkDeviceInputOutputControl(ref error) => Some(error),
 
 			&DoesNotExistAsAnInterface => None,
 		}
+	}
+}
+
+impl From<NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>> for NetworkInterfaceIndexToNetworkInterfaceNameError
+{
+	#[inline(always)]
+	fn from(value: NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>) -> Self
+	{
+		NetworkInterfaceIndexToNetworkInterfaceNameError::NetworkDeviceInputOutputControl(value)
 	}
 }

@@ -3,7 +3,9 @@
 
 
 use super::*;
+use super::attributes::*;
 use crate::pci_express::NetworkInterfaceIndex;
+use crate::netdevice::NetworkInterfaceIndex;
 
 
 include!("ControlNetlinkMessageType.rs");
@@ -12,7 +14,10 @@ include!("ifa_cacheinfo.rs");
 include!("IFA_F_.rs");
 include!("ifaddrmsg.rs");
 include!("ifinfomsg.rs");
+include!("IFLA.rs");
+include!("IFLA_XDP.rs");
 include!("NetlinkMessageType.rs");
+include!("nlattr.rs");
 include!("NLM_F_.rs");
 include!("nlmsgerr.rs");
 include!("nlmsghdr.rs");

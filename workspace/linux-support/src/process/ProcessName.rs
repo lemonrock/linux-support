@@ -8,6 +8,51 @@
 #[repr(transparent)]
 pub struct ProcessName(CommandName);
 
+impl Display for ProcessName
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result
+	{
+		write!(f, "{}", self.0)
+	}
+}
+
+impl From<CommandName> for ProcessName
+{
+	#[inline(always)]
+	fn from(value: CommandName) -> Self
+	{
+		Self(value)
+	}
+}
+
+impl From<ObjectName> for ProcessName
+{
+	#[inline(always)]
+	fn from(value: ObjectName) -> Self
+	{
+		Self::from(CommandName(value))
+	}
+}
+
+impl Into<CommandName> for ProcessName
+{
+	#[inline(always)]
+	fn into(self) -> CommandName
+	{
+		self.0
+	}
+}
+
+impl Into<ObjectName> for ProcessName
+{
+	#[inline(always)]
+	fn into(self) -> ObjectName
+	{
+		(self.0).into()
+	}
+}
+
 impl Deref for ProcessName
 {
 	type Target = CommandName;
@@ -19,33 +64,6 @@ impl Deref for ProcessName
 	}
 }
 
-impl AsRef<CStr> for ProcessName
-{
-	#[inline(always)]
-	fn as_ref(&self) -> &CStr
-	{
-		self.0.as_ref()
-	}
-}
-
-impl AsRef<[u8]> for ProcessName
-{
-	#[inline(always)]
-	fn as_ref(&self) -> &[u8]
-	{
-		self.0.deref()
-	}
-}
-
-impl ToString for ProcessName
-{
-	#[inline(always)]
-	fn to_string(&self) -> String
-	{
-		self.0.to_string()
-	}
-}
-
 impl Default for ProcessName
 {
 	#[inline(always)]
@@ -53,7 +71,7 @@ impl Default for ProcessName
 	{
 		let length = unsafe { strnlen(program_invocation_short_name, CommandName::MaximumCommandNameLengthExcludingAsciiNul) };
 
-		Self(CommandName::new_from_bytes_excluding_ascii_nul(unsafe { from_raw_parts(program_invocation_short_name as *const u8, length) }).unwrap())
+		Self(CommandName::from_bytes(unsafe { from_raw_parts(program_invocation_short_name as *const u8, length) }).unwrap())
 	}
 }
 
@@ -64,7 +82,7 @@ impl ProcessName
 	pub fn set_process_name(&self, process_identifier: ProcessIdentifierChoice, proc_path: &ProcPath) -> io::Result<()>
 	{
 		let file_path = proc_path.process_file_path(process_identifier, "comm");
-		file_path.write_value(&self.0[..])
+		self.0.write_to_file_line_feed_terminated(&file_path)
 	}
 
 	/// For any process.
@@ -72,7 +90,6 @@ impl ProcessName
 	pub fn get_process_name(process_identifier: ProcessIdentifierChoice, proc_path: &ProcPath) -> io::Result<Self>
 	{
 		let file_path = proc_path.process_file_path(process_identifier, "comm");
-		let command_name = file_path.read_value()?;
-		Ok(Self(command_name))
+		CommandName::read_from_file_line_feed_terminated(&file_path).map(|object_name| Self(object_name))
 	}
 }

@@ -11,6 +11,11 @@ use super::*;
 use super::socket::c::*;
 use crate::memory::PageSize;
 use crate::process::ProcessIdentifier;
+use crate::file_descriptors::socket::{new_socket, bind_socket, SocketCreationOrBindError};
+
+
+/// Attributes.
+pub(crate) mod attributes;
 
 
 /// libc support structures.
