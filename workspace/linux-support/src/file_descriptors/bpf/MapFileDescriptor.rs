@@ -783,7 +783,7 @@ impl MapFileDescriptor
 	/// `parsed_bpf_type_format_map_data` must be `Some` for `map_type` when it is:-
 	///
 	/// * `MapType::SocketStorage`.
-	pub(crate) fn create(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_type: MapType, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>) -> Result<Rc<Self>, MapCreationError>
+	pub(crate) fn create(map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, map_type: MapType, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>) -> Result<Rc<Self>, MapCreationError>
 	{
 		let (map_type, map_flags, (btf_fd, btf_key_type_id, btf_value_type_id, btf_vmlinux_value_type_id), map_ifindex, numa_node, inner_map_fd, key_size, value_size, max_entries) = map_type.to_values(parsed_bpf_type_format_map_data)?;
 		
@@ -811,9 +811,8 @@ impl MapFileDescriptor
 		let result = attributes.syscall(bpf_cmd::BPF_MAP_CREATE);
 		if likely!(result >= 0)
 		{
-			let file_descriptor_label = FileDescriptorLabel::from(map_name);
 			let map_file_descriptor = Self(result);
-			Ok(map_file_descriptors.add(file_descriptor_label, map_file_descriptor)?)
+			Ok(map_file_descriptors.add(map_name.clone(), map_file_descriptor)?)
 		}
 		else if likely!(result == -1)
 		{

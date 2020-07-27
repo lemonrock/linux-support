@@ -3,7 +3,7 @@
 
 
 #[inline(always)]
-pub(crate) fn new_socket(domain: c_int, type_: c_int, protocol: c_int, non_blocking: bool) -> Result<Self, CreationError>
+pub(crate) fn new_socket(domain: c_int, type_: c_int, protocol: c_int, non_blocking: bool) -> Result<RawFd, CreationError>
 {
 	let flags = if non_blocking
 	{
@@ -17,9 +17,7 @@ pub(crate) fn new_socket(domain: c_int, type_: c_int, protocol: c_int, non_block
 	let result = unsafe { socket(domain, flags, protocol) };
 	if likely!(result >= 0)
 	{
-		let socket_file_descriptor = SocketFileDescriptor(result, PhantomData);
-		blocking.set_time_outs(&socket_file_descriptor);
-		Ok(socket_file_descriptor)
+		Ok(result)
 	}
 	else if likely!(result == -1)
 	{

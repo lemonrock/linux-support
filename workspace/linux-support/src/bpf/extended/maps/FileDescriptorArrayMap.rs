@@ -49,7 +49,7 @@ impl<FD: UsedAsValueInArrayMapDescriptor> FileDescriptorArrayMap<FD>
 	}
 	
 	#[inline(always)]
-	fn create(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions, map_type: impl FnOnce(MaximumEntries, KernelOnlyAccessPermissions) -> MapType<'static>) -> Result<Self, MapCreationError>
+	fn create(map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions, map_type: impl FnOnce(MaximumEntries, KernelOnlyAccessPermissions) -> MapType<'static>) -> Result<Self, MapCreationError>
 	{
 		let map_file_descriptor = MapFileDescriptor::create(map_file_descriptors, map_type(maximum_entries, access_permissions), map_name, parsed_bpf_type_format_map_data)?;
 		Ok
@@ -89,7 +89,7 @@ impl FileDescriptorArrayMap<PerfEventFileDescriptor>
 {
 	/// New perf event array.
 	#[inline(always)]
-	pub fn new_perf_event(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions) -> Result<Self, MapCreationError>
+	pub fn new_perf_event(map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions) -> Result<Self, MapCreationError>
 	{
 		Self::create(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, maximum_entries, access_permissions, MapType::PerfEventArray)
 	}
@@ -108,7 +108,7 @@ impl FileDescriptorArrayMap<CgroupFileDescriptor>
 {
 	/// New cgroup array.
 	#[inline(always)]
-	pub fn new_cgroup(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions) -> Result<Self, MapCreationError>
+	pub fn new_cgroup(map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions) -> Result<Self, MapCreationError>
 	{
 		Self::create(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, maximum_entries, access_permissions, MapType::CgroupArray)
 	}
@@ -118,7 +118,7 @@ impl FileDescriptorArrayMap<ExtendedBpfProgramFileDescriptor>
 {
 	/// New extended BPF program array.
 	#[inline(always)]
-	pub fn new_extended_bpf_program(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions) -> Result<Self, MapCreationError>
+	pub fn new_extended_bpf_program(map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions) -> Result<Self, MapCreationError>
 	{
 		Self::create(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, maximum_entries, access_permissions, MapType::ProgramArray)
 	}
@@ -127,7 +127,7 @@ impl FileDescriptorArrayMap<ExtendedBpfProgramFileDescriptor>
 impl FileDescriptorArrayMap<MapFileDescriptor>
 {
 	#[inline(always)]
-	fn new_map_of_maps(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions, template_map_file_descriptor: &MapFileDescriptor) -> Result<Self, MapCreationError>
+	fn new_map_of_maps(map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions, template_map_file_descriptor: &MapFileDescriptor) -> Result<Self, MapCreationError>
 	{
 		let map_file_descriptor = MapFileDescriptor::create(map_file_descriptors, MapType::ArrayOfMaps(maximum_entries, access_permissions, template_map_file_descriptor), map_name, parsed_bpf_type_format_map_data)?;
 		Ok

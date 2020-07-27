@@ -11,7 +11,7 @@ impl QueueIdentifier
 	// `xsk_create_bpf_maps`.
 	// `xsk->xsks_map_fd`.
 	/// A suitable map.
-	pub fn create_express_data_path_redirect_socket_array_map(network_interface_name: NetworkInterfaceName, map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, access_permissions: ExpressDataPathAccessPermissions, numa_node: Option<NumaNode>) -> Result<Option<ExpressDataPathRedirectSocketArrayMap>, CreateExpressDataPathRedirectSocketMapError>
+	pub fn create_express_data_path_redirect_socket_array_map(network_interface_name: NetworkInterfaceName, map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, access_permissions: ExpressDataPathAccessPermissions, numa_node: Option<NumaNode>) -> Result<Option<ExpressDataPathRedirectSocketArrayMap>, CreateExpressDataPathRedirectSocketMapError>
 	{
 		let maximum_entries = match Self::get_maximum_queues(network_interface_name)?
 		{

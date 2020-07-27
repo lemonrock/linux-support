@@ -9,7 +9,7 @@
 pub struct ExtendedBpfProgramTemplate<'name>
 {
 	/// Program type.
-	#[serde(borrow)] pub program_type: ProgramType<'name>,
+	pub program_type: ProgramType,
 	
 	/// Program name.
 	#[serde(default = "ExtendedBpfProgramTemplate::program_name_default")] pub program_name: ProgramName,
@@ -34,19 +34,19 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 	{
 		let verifier_log_copy = unsafe { transmute_copy(&verifier_log) };
 		
-		let (instructions, parsed_bpf_type_format_data, extended_bpf_program_file_descriptor_labels_map) = ProgramLinesParser::parse(self.bpf_type_format_program_details.as_ref(), &self.program_lines, arguments, verifier_log_copy)?;
+		let (instructions, parsed_bpf_type_format_data, extended_bpf_program_file_descriptors) = ProgramLinesParser::parse(self.bpf_type_format_program_details.as_ref(), &self.program_lines, arguments, verifier_log_copy)?;
 		
-		let extended_bpf_program_file_descriptor = self.load(&instructions[..], parsed_bpf_type_format_data.as_ref(), extended_bpf_program_file_descriptor_labels_map, verifier_log)?;
+		let extended_bpf_program_file_descriptor = self.load(&instructions[..], parsed_bpf_type_format_data.as_ref(), extended_bpf_program_file_descriptors, verifier_log)?;
 		
-		Ok(extended_bpf_program_file_descriptor_labels_map.add(FileDescriptorLabel::from(&self.program_name), extended_bpf_program_file_descriptor)?)
+		Ok(extended_bpf_program_file_descriptors.add(self.program_name.clone(), extended_bpf_program_file_descriptor)?)
 	}
 	
 	#[inline(always)]
-	fn load(&self, instructions: &[bpf_insn], parsed_bpf_type_format_data: Option<&ParsedBpfTypeFormatData>, extended_bpf_program_file_descriptor_labels_map: &FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>, verifier_log: Option<&mut VerifierLog>) -> Result<ExtendedBpfProgramFileDescriptor, ProgramLoadError>
+	fn load(&self, instructions: &[bpf_insn], parsed_bpf_type_format_data: Option<&ParsedBpfTypeFormatData>, extended_bpf_program_file_descriptors: &FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>, verifier_log: Option<&mut VerifierLog>) -> Result<ExtendedBpfProgramFileDescriptor, ProgramLoadError>
 	{
 		let (log_level, log_buf, log_size) = VerifierLog::to_values_for_syscall(verifier_log);
 		
-		let (prog_type, expected_attach_type, attach_btf_id, attach_prog_fd, kern_version, prog_ifindex) = self.program_type.to_values(&extended_bpf_program_file_descriptor_labels_map)?;
+		let (prog_type, expected_attach_type, attach_btf_id, attach_prog_fd, kern_version, prog_ifindex) = self.program_type.to_values(&extended_bpf_program_file_descriptors)?;
 		
 		let
 		(

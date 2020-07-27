@@ -5,6 +5,8 @@
 bitflags!
 {
 	/// Netlink get request message flags.
+	///
+	/// Used for `RouteNetlinkMessageType` with a kind of `RouteNetlinkMessageKind::Get`.
 	pub struct NetlinkGetRequestMessageFlags: u16
 	{
 		/// Get Request: specify tree root.
@@ -18,6 +20,8 @@ bitflags!
 		const Atomic = NLM_F_ATOMIC as u16;
 		
 		/// Get Request: specify tree root and return all matching.
+		///
+		/// Equivalent to `NLM_F_DUMP`.
 		const Dump = Self::Root.bits | Self::Match.bits;
 	}
 }

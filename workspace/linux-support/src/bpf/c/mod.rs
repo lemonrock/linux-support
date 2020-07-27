@@ -11,7 +11,7 @@ use super::extended::instructions::LoadSize::*;
 use super::extended::maps::domain::*;
 use super::extended::programs::*;
 use crate::inode::Inode;
-use crate::pci_express::NetworkInterfaceIndex;
+use crate::network_device::NetworkInterfaceIndex;
 use crate::syscall::SYS;
 use crate::user_and_groups::UserIdentifier;
 

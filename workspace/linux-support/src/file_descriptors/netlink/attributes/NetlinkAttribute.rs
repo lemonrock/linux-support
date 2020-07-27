@@ -9,12 +9,16 @@ pub(crate) struct NetlinkAttribute<V: Sized>
 	payload: NetlinkAttributePayload<V>,
 }
 
+impl<V> NetlinkAttributeOrFollowedByNetlinkAttribute for NetlinkAttribute<V>
+{
+}
+
 impl<V: NetlinkAttributeOrFollowedByNetlinkAttribute> NetlinkAttribute<V>
 {
 	#[inline(always)]
-	fn nested(netlink_attribute_type: IFLA, payload: V) -> Self
+	fn nested(netlink_attribute_type: impl NetlinkAttributeType, payload: V) -> Self
 	{
-		Self::new((netlink_attribute_type as u16) | nlattr::NLA_F_NESTED, payload)
+		Self::new(netlink_attribute_type.to_u16() | nlattr::NLA_F_NESTED, payload)
 	}
 }
 
@@ -28,6 +32,12 @@ impl<V: Sized> NetlinkAttribute<V>
 			current: self,
 			following,
 		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn followed_by_attribute<Following: Sized>(self, netlink_attribute_type: impl NetlinkAttributeType, payload: Following) -> NetlinkAttributeFollowedByNetlinkAttribute<V, NetlinkAttribute<Following>>
+	{
+		self.followed_by(attribute(netlink_attribute_type, payload))
 	}
 	
 	#[inline(always)]

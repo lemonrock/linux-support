@@ -7,7 +7,7 @@
 /// Constructed in `libbpf` from a `struct xsk_umem_config`.
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[repr(C)]
-pub(super) struct xdp_umem_reg
+pub(crate) struct xdp_umem_reg
 {
 	/// Start of packet data area.
 	addr: NonZeroU64,

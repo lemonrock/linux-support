@@ -63,8 +63,8 @@ pub enum ProgramError
 	/// Invalid program size.
 	InvalidBpfTypeFormatDataSize(TryFromIntError),
 	
-	/// Could not resolved file descriptors label.
-	FileDescriptorLabelsMap(FileDescriptorLabelsMapError),
+	/// Could not resolve file descriptor.
+	FileDescriptorMap(FileDescriptorsMapError),
 }
 
 impl Display for ProgramError
@@ -89,7 +89,7 @@ impl error::Error for ProgramError
 			
 			&InvalidBpfTypeFormatDataSize(ref error) => Some(error),
 			
-			&FileDescriptorLabelsMap(ref error) => Some(error),
+			&FileDescriptorMap(ref error) => Some(error),
 			
 			_ => None,
 		}
@@ -114,11 +114,11 @@ impl From<TryFromIntError> for ProgramError
 	}
 }
 
-impl From<FileDescriptorLabelsMapError> for ProgramError
+impl From<FileDescriptorsMapError> for ProgramError
 {
 	#[inline(always)]
-	fn from(value: FileDescriptorLabelsMapError) -> Self
+	fn from(value: FileDescriptorsMapError) -> Self
 	{
-		ProgramError::FileDescriptorLabelsMap(value)
+		ProgramError::FileDescriptorMap(value)
 	}
 }

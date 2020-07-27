@@ -37,6 +37,12 @@ impl NetlinkProtocol for RouteNetlinkProtocol
 	}
 	
 	#[inline(always)]
+	fn new_set_request_message<Body: NetlinkRequestMessageBody>(message_type: Self::MessageType, flags: NetlinkSetRequestMessageFlags, body: Body) -> NetlinkRequestMessage<Body>
+	{
+		NetlinkRequestMessage::new_set_request_message(NetlinkMessageType { route: message_type }, flags, body)
+	}
+	
+	#[inline(always)]
 	fn new_new_request_message<Body: NetlinkRequestMessageBody>(message_type: Self::MessageType, flags: NetlinkNewRequestMessageFlags, body: Body) -> NetlinkRequestMessage<Body>
 	{
 		NetlinkRequestMessage::new_new_request_message(NetlinkMessageType { route: message_type }, flags, body)
@@ -45,116 +51,36 @@ impl NetlinkProtocol for RouteNetlinkProtocol
 
 impl RouteNetlinkProtocol
 {
-	pub fn xdp_fd_replace(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, network_interface_index: NetworkInterfaceIndex, xdp_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor, flags: u32, replace_xdp_extended_bpf_program_file_descriptor: Option<&ExtendedBpfProgramFileDescriptor>)
+	#[inline(always)]
+	fn make_request_and_get_reply_messages<NRMB: NetlinkRequestMessageBody, RMP: MessageProcessor>(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, route_message_processor: &RMP, mut request: NetlinkRequestMessage<NRMB>) -> Result<Vec<RMP::ProcessedMessage>, Either<Vec<String>, Errno>>
 	{
-		/*
-		#define XDP_FLAGS_UPDATE_IF_NOEXIST	(1U << 0)
-#define XDP_FLAGS_SKB_MODE		(1U << 1)
-#define XDP_FLAGS_DRV_MODE		(1U << 2)
-#define XDP_FLAGS_HW_MODE		(1U << 3)
-#define XDP_FLAGS_REPLACE		(1U << 4)
-#define XDP_FLAGS_MODES			(XDP_FLAGS_SKB_MODE | \
-					 XDP_FLAGS_DRV_MODE | \
-					 XDP_FLAGS_HW_MODE)
-#define XDP_FLAGS_MASK			(XDP_FLAGS_UPDATE_IF_NOEXIST | \
-					 XDP_FLAGS_MODES | XDP_FLAGS_REPLACE)
-		 */
-		
-		
-		
-		
-		let flags = if replace_xdp_extended_bpf_program_file_descriptor.is_some()
-		{
-			flags | XDP_FLAGS_REPLACE
-		}
-		else
-		{
-			flags
-		};
-		
-		use self::IFLA::*;
-		use self::IFLA_XDP::*;
-		
-		struct MessageBody<V: Sized>
-		{
-			ifinfo: ifinfomsg,
-			nested_attributes: NetlinkAttribute<V>,
-		}
-		
-		let message_body = MessageBody
-		{
-			ifinfo: ifinfomsg::for_xdp(network_interface_index),
-			nested_attributes: IFLA_XDP.nests
-			(
-				IFLA_XDP_FD.attribute(xdp_extended_bpf_program_file_descriptor.as_raw_fd())
-				.followed_by(IFLA_XDP_FLAGS.attribute(flags))
-				.followed_by(IFLA_XDP_EXPECTED_FD.attribute(replace_xdp_extended_bpf_program_file_descriptor.unwrap().as_raw_fd()))
-			),
-		};
-		
 		loop
 		{
-			let mut request = Self::new_acknowledge_message(RouteNetlinkMessageType::SETLINK, flags, ifinfomsg::for_xdp(network_interface_index));
-			
-			
-// 			xxx;
-// 			
-// /* started nested attribute for XDP */
-// nla = (struct nlattr *)(((char *)&req)
-// 			+ NLMSG_ALIGN(req.nh.nlmsg_len));
-// nla->nla_type = NLA_F_NESTED | IFLA_XDP;
-// nla->nla_len = NLA_HDRLEN;
-// 
-// /* add XDP fd */
-// nla_xdp = (struct nlattr *)((char *)nla + nla->nla_len);
-// nla_xdp->nla_type = IFLA_XDP_FD;
-// nla_xdp->nla_len = NLA_HDRLEN + sizeof(int);
-// memcpy((char *)nla_xdp + NLA_HDRLEN, &fd, sizeof(fd));
-// nla->nla_len += nla_xdp->nla_len;
-// 
-// /* if user passed in any flags, add those too */
-// if (flags) {
-// 	nla_xdp = (struct nlattr *)((char *)nla + nla->nla_len);
-// 	nla_xdp->nla_type = IFLA_XDP_FLAGS;
-// 	nla_xdp->nla_len = NLA_HDRLEN + sizeof(flags);
-// 	memcpy((char *)nla_xdp + NLA_HDRLEN, &flags, sizeof(flags));
-// 	nla->nla_len += nla_xdp->nla_len;
-// }
-// 
-// if (flags & XDP_FLAGS_REPLACE) {
-// 	nla_xdp = (struct nlattr *)((char *)nla + nla->nla_len);
-// 	nla_xdp->nla_type = IFLA_XDP_EXPECTED_FD;
-// 	nla_xdp->nla_len = NLA_HDRLEN + sizeof(old_fd);
-// 	memcpy((char *)nla_xdp + NLA_HDRLEN, &old_fd, sizeof(old_fd));
-// 	nla->nla_len += nla_xdp->nla_len;
-// }
-// 
-// req.nh.nlmsg_len += NLA_ALIGN(nla->nla_len);
-			
 			let sequence_number = netlink_socket_file_descriptor.send_request(&mut request).expect("Send a request");
 			
 			let message_identification = MultipartMessagePartIdentification::from_linux_kernel(sequence_number);
 			
-			match Self::try_receiving_until_get_something(netlink_socket_file_descriptor, route_message_processor, &message_identification)
+			match RouteReplyReceiver::try_receiving_until_get_reply(netlink_socket_file_descriptor, route_message_processor, message_identification)
 			{
 				Ok(None) => continue,
 				
 				Ok(Some(processed_messages)) => return Ok(processed_messages),
 				
-				Err(Left(messaging_parsing_errors)) => return Err(format!("Message parsing errors {:?}", messaging_parsing_errors)),
-				
-				Err(Right(end_of_set_of_messages_error)) => return Err(format!("End of set of messages errors {:?}", end_of_set_of_messages_error)),
+				Err(error) => return Err(error),
 			}
 		}
 	}
-	
+}
+
+/// Get addresses.
+impl RouteNetlinkProtocol
+{
 	/// Get Internet Protocol version 4 addresses.
 	///
 	/// This is ***SLOW***.
 	pub fn get_internet_protocol_version_4_addresses(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>) -> Result<Vec<GetAddressMessageData<in_addr>>, String>
 	{
-		static RouteMessageProcessor: GetAddressRouteMessageProcessor<in_addr> = GetAddressRouteMessageProcessor(PhantomData);
-		Self::get_internet_protocol_addresses(netlink_socket_file_descriptor, &RouteMessageProcessor)
+		GetAddressMessageProcessor::new().get_internet_protocol_addresses(netlink_socket_file_descriptor)
 	}
 	
 	/// Get Internet Protocol version 6 addresses.
@@ -162,85 +88,78 @@ impl RouteNetlinkProtocol
 	/// This is ***SLOW***.
 	pub fn get_internet_protocol_version_6_addresses(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>) -> Result<Vec<GetAddressMessageData<in6_addr>>, String>
 	{
-		static RouteMessageProcessor: GetAddressRouteMessageProcessor<in6_addr> = GetAddressRouteMessageProcessor(PhantomData);
-		Self::get_internet_protocol_addresses(netlink_socket_file_descriptor, &RouteMessageProcessor)
+		GetAddressMessageProcessor::new().get_internet_protocol_addresses(netlink_socket_file_descriptor)
 	}
-	
-	#[inline(always)]
-	fn get_internet_protocol_addresses<IPA: InternetProtocolAddress>(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, route_message_processor: &'static GetAddressRouteMessageProcessor<IPA>) -> Result<Vec<GetAddressMessageData<IPA>>, String>
+}
+
+/// eXpress Data Path (XDP).
+impl RouteNetlinkProtocol
+{
+	/// Attach a eXpress Data Path (XDP) program.
+	///
+	/// returns `ENODEV` if interface does not exist.
+	///
+	/// NOTE: As an alternative to using a network interface index, one can specify the top-level attribute `IFLA_IFNAME` with a network interface name.
+	/// This is not supported by this functionality.
+	pub fn xdp_fd_replace(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, network_interface_index: NetworkInterfaceIndex, xdp_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor, attach_mode: AttachMode, update_mode: UpdateMode) -> Result<(), Errno>
 	{
-		loop
+		use self::IFLA_XDP::*;
+		
+		#[inline(always)]
+		fn request_0(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<RouteNetlinkProtocol>, network_interface_index: NetworkInterfaceIndex, xdp_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor) -> Result<(), Errno>
 		{
-			let mut request = RouteNetlinkProtocol::new_route_get_internet_protocol_addresses_message::<IPA>();
-			let sequence_number = netlink_socket_file_descriptor.send_request(&mut request).expect("Send a request");
-			
-			let message_identification = MultipartMessagePartIdentification::from_linux_kernel(sequence_number);
-			
-			match Self::try_receiving_until_get_something(netlink_socket_file_descriptor, route_message_processor, &message_identification)
-			{
-				Ok(None) => continue,
-				
-				Ok(Some(processed_messages)) => return Ok(processed_messages),
-				
-				Err(Left(messaging_parsing_errors)) => return Err(format!("Message parsing errors {:?}", messaging_parsing_errors)),
-				
-				Err(Right(end_of_set_of_messages_error)) => return Err(format!("End of set of messages errors {:?}", end_of_set_of_messages_error)),
-			}
+			ExpressDataPathMessageBody::make_request_and_get_acknowledgment_or_error
+			(
+				netlink_socket_file_descriptor,
+				network_interface_index,
+				attribute(IFLA_XDP_FD, xdp_extended_bpf_program_file_descriptor.as_raw_fd())
+			)
 		}
-	}
-	
-	#[inline(always)]
-	fn new_route_get_internet_protocol_addresses_message<IPA: InternetProtocolAddress>() -> NetlinkRequestMessage<ifaddrmsg>
-	{
-		Self::new_route_get_addresses_message(IPA::AddressFamily)
-	}
-	
-	#[inline(always)]
-	#[allow(dead_code)]
-	fn new_route_get_all_addresses_message() -> NetlinkRequestMessage<ifaddrmsg>
-	{
-		Self::new_route_get_addresses_message(AF_UNSPEC as u8)
-	}
-	
-	#[inline(always)]
-	fn new_route_get_addresses_message(address_family: u8) -> NetlinkRequestMessage<ifaddrmsg>
-	{
-		let body = ifaddrmsg
+		
+		#[inline(always)]
+		fn request_1(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<RouteNetlinkProtocol>, network_interface_index: NetworkInterfaceIndex, xdp_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor, flags: u32) -> Result<(), Errno>
 		{
-			// Selector field is non-zero family.
-			ifa_family: address_family,
-			
-			// Dump Filter field is non-zero index.
-			ifa_index: None,
-			
-			// Must all be zero (seems mad that the same struct is used for both requests and replies).
-			ifa_prefixlen: unsafe { zeroed() },
-			ifa_flags: unsafe { zeroed() },
-			ifa_scope: unsafe { zeroed() },
-		};
-		Self::new_get_request_message(RouteNetlinkMessageType::GETADDR, NetlinkGetRequestMessageFlags::Dump, body)
-	}
-	
-	// TODO: Not sure we need to try receiving more than once but nothing about netlink seems obvious.
-	fn try_receiving_until_get_something<IPA: InternetProtocolAddress>(netlink_socket_file_descriptor: &NetlinkSocketFileDescriptor<Self>, route_message_processor: &'static GetAddressRouteMessageProcessor<IPA>, message_identification: &MultipartMessagePartIdentification) -> Result<Option<Vec<GetAddressMessageData<IPA>>>, Either<Vec<String>, io::Error>>
-	{
-		let mut reply_receiver = RouteReplyReceiver::new(route_message_processor);
-		 loop
+			ExpressDataPathMessageBody::make_request_and_get_acknowledgment_or_error
+			(
+				netlink_socket_file_descriptor,
+				network_interface_index,
+				attribute(IFLA_XDP_FD, xdp_extended_bpf_program_file_descriptor.as_raw_fd())
+				.followed_by_attribute(IFLA_XDP_FLAGS, flags)
+			)
+		}
+		
+		#[inline(always)]
+		fn request_2(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<RouteNetlinkProtocol>, network_interface_index: NetworkInterfaceIndex, xdp_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor, flags: u32, replace_xdp_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor) -> Result<(), Errno>
 		{
-			netlink_socket_file_descriptor.receive_replies(&mut reply_receiver);
+			ExpressDataPathMessageBody::make_request_and_get_acknowledgment_or_error
+			(
+				netlink_socket_file_descriptor,
+				network_interface_index,
+				attribute(IFLA_XDP_FD, xdp_extended_bpf_program_file_descriptor.as_raw_fd())
+				.followed_by_attribute(IFLA_XDP_FLAGS, flags)
+				.followed_by_attribute(IFLA_XDP_EXPECTED_FD, replace_xdp_extended_bpf_program_file_descriptor.as_raw_fd())
+			)
+		}
+		
+		use self::AttachMode::*;
+		use self::UpdateMode::*;
+		match (attach_mode, update_mode)
+		{
+			(GenericOrNative, CreateOrUpdate) => request_0(netlink_socket_file_descriptor, network_interface_index, xdp_extended_bpf_program_file_descriptor),
+			(GenericOrNative, Create) => request_1(netlink_socket_file_descriptor, network_interface_index, xdp_extended_bpf_program_file_descriptor, XDP_FLAGS_UPDATE_IF_NOEXIST),
+			(GenericOrNative, Update(replace_xdp_extended_bpf_program_file_descriptor)) => request_2(netlink_socket_file_descriptor, network_interface_index, xdp_extended_bpf_program_file_descriptor, XDP_FLAGS_REPLACE, replace_xdp_extended_bpf_program_file_descriptor),
 			
-			reply_receiver.panic_if_has_could_not_start_messages_errors();
+			(Generic, CreateOrUpdate) => request_1(netlink_socket_file_descriptor, network_interface_index, xdp_extended_bpf_program_file_descriptor, XDP_FLAGS_SKB_MODE),
+			(Generic, Create) => request_1(netlink_socket_file_descriptor, network_interface_index, xdp_extended_bpf_program_file_descriptor, XDP_FLAGS_SKB_MODE | XDP_FLAGS_UPDATE_IF_NOEXIST),
+			(Generic, Update(replace_xdp_extended_bpf_program_file_descriptor)) => request_2(netlink_socket_file_descriptor, network_interface_index, xdp_extended_bpf_program_file_descriptor, XDP_FLAGS_SKB_MODE | XDP_FLAGS_REPLACE, replace_xdp_extended_bpf_program_file_descriptor),
 			
-			match reply_receiver.messages(message_identification)
-			{
-				Err(reply_receiver_again) =>
-				{
-					reply_receiver = reply_receiver_again;
-					continue
-				}
-				
-				Ok(something) => return something,
-			}
+			(Native, CreateOrUpdate) => request_1(netlink_socket_file_descriptor, network_interface_index, xdp_extended_bpf_program_file_descriptor, XDP_FLAGS_DRV_MODE),
+			(Native, Create) => request_1(netlink_socket_file_descriptor, network_interface_index, xdp_extended_bpf_program_file_descriptor, XDP_FLAGS_DRV_MODE | XDP_FLAGS_UPDATE_IF_NOEXIST),
+			(Native, Update(replace_xdp_extended_bpf_program_file_descriptor)) => request_2(netlink_socket_file_descriptor, network_interface_index, xdp_extended_bpf_program_file_descriptor, XDP_FLAGS_DRV_MODE | XDP_FLAGS_REPLACE, replace_xdp_extended_bpf_program_file_descriptor),
+			
+			(Offloaded, CreateOrUpdate) => request_1(netlink_socket_file_descriptor, network_interface_index, xdp_extended_bpf_program_file_descriptor, XDP_FLAGS_HW_MODE),
+			(Offloaded, Create) => request_1(netlink_socket_file_descriptor, network_interface_index, xdp_extended_bpf_program_file_descriptor, XDP_FLAGS_HW_MODE | XDP_FLAGS_UPDATE_IF_NOEXIST),
+			(Offloaded, Update(replace_xdp_extended_bpf_program_file_descriptor)) => request_2(netlink_socket_file_descriptor, network_interface_index, xdp_extended_bpf_program_file_descriptor, XDP_FLAGS_HW_MODE | XDP_FLAGS_REPLACE, replace_xdp_extended_bpf_program_file_descriptor),
 		}
 	}
 }

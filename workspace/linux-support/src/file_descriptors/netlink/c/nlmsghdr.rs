@@ -104,9 +104,9 @@ impl nlmsghdr
 	
 	#[allow(dead_code)]
 	#[inline(always)]
-	pub(crate) fn NLMSG_RTA(&self, length: usize) -> *const rtattr
+	pub(crate) fn NLMSG_RTA<NAT: NetlinkAttributeType>(&self, length: usize) -> *const rtattr<NAT>
 	{
-		unsafe { (self as *const Self as *const u8).add(Self::NLMSG_HDRLEN).add(Self::NLMSG_ALIGN(length)) as *const rtattr }
+		unsafe { (self as *const Self as *const u8).add(Self::NLMSG_HDRLEN).add(Self::NLMSG_ALIGN(length)) as *const rtattr<NAT> }
 	}
 	
 	#[inline(always)]

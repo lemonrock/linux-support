@@ -5,6 +5,7 @@
 use super::*;
 
 
+include!("attribute.rs");
 include!("NetlinkAttributeOrFollowedByNetlinkAttribute.rs");
 include!("NetlinkAttribute.rs");
 include!("NetlinkAttributeFollowedByNetlinkAttribute.rs");

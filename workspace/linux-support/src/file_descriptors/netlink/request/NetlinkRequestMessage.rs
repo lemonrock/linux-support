@@ -38,6 +38,12 @@ impl<Body: NetlinkRequestMessageBody> NetlinkRequestMessage<Body>
 	}
 	
 	#[inline(always)]
+	pub(super) fn new_set_request_message(message_type: NetlinkMessageType, flags: NetlinkSetRequestMessageFlags, body: Body) -> Self
+	{
+		NetlinkRequestMessage::new_request_message(message_type, NetlinkSpecificMessageFlags { set_request: flags }, body)
+	}
+	
+	#[inline(always)]
 	pub(super) fn new_new_request_message(message_type: NetlinkMessageType, flags: NetlinkNewRequestMessageFlags, body: Body) -> Self
 	{
 		NetlinkRequestMessage::new_request_message(message_type, NetlinkSpecificMessageFlags { new_request: flags }, body)

@@ -103,7 +103,7 @@ impl<SF: StackFrame> StackTraceMap<SF>
 	}
 	
 	#[inline(always)]
-	fn create(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, map_type: MapType, maximum_entries: MaximumEntries, stack_depth: StackDepth) -> Result<Self, MapCreationError>
+	fn create(map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, map_type: MapType, maximum_entries: MaximumEntries, stack_depth: StackDepth) -> Result<Self, MapCreationError>
 	{
 		MapFileDescriptor::create(map_file_descriptors, map_type, map_name, parsed_bpf_type_format_map_data).map(|map_file_descriptor| Self::new(map_file_descriptor, maximum_entries, stack_depth))
 	}
@@ -128,7 +128,7 @@ impl StackTraceMap<InstructionPointer>
 	/// For user space, this models stack frames with addresses.
 	/// For kernel space, this models stack frames with kernel symbols; one can look up the 64-bit instruction pointer in `/proc/kallsyms` (if present).
 	#[inline(always)]
-	pub fn new_instruction_pointer(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions, numa_node: Option<NumaNode>, stack_depth: StackDepth) -> Result<Self, MapCreationError>
+	pub fn new_instruction_pointer(map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions, numa_node: Option<NumaNode>, stack_depth: StackDepth) -> Result<Self, MapCreationError>
 	{
 		Self::create(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, MapType::StackTraceInstructionPointerAddress(stack_depth, maximum_entries, access_permissions, numa_node), maximum_entries, stack_depth)
 	}
@@ -138,7 +138,7 @@ impl StackTraceMap<bpf_stack_build_id>
 {
 	/// New for a `bpf_stack_build_id`.
 	#[inline(always)]
-	pub fn new_bpf_stack_build_id(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions, numa_node: Option<NumaNode>, stack_depth: StackDepth) -> Result<Self, MapCreationError>
+	pub fn new_bpf_stack_build_id(map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: KernelOnlyAccessPermissions, numa_node: Option<NumaNode>, stack_depth: StackDepth) -> Result<Self, MapCreationError>
 	{
 		Self::create(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, MapType::StackTraceBuildIdentifier(stack_depth, maximum_entries, access_permissions, numa_node), maximum_entries, stack_depth)
 	}

@@ -11,5 +11,7 @@ pub(super) union NetlinkSpecificMessageFlags
 	
 	pub(super) get_request: NetlinkGetRequestMessageFlags,
 	
+	pub(super) set_request: NetlinkSetRequestMessageFlags,
+	
 	pub(super) new_request: NetlinkNewRequestMessageFlags,
 }

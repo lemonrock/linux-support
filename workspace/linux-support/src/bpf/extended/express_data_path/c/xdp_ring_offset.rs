@@ -20,7 +20,7 @@ impl xdp_ring_offset
 	#[inline(always)]
 	pub(crate) fn length_of_memory_to_map<D: Descriptor>(&self, ring_queue_depth: RingQueueDepth) -> NonZeroU64
 	{
-		unsafe { NonZeroU64::new_unchecked(self.desc + fill_ring_queue_depth.memory_length::<D>()) }
+		unsafe { NonZeroU64::new_unchecked(self.desc + ring_queue_depth.memory_length::<D>()) }
 	}
 	
 	#[inline(always)]
@@ -36,7 +36,7 @@ impl xdp_ring_offset
 	}
 	
 	#[inline(always)]
-	pub(crate) fn ring_pointer(&self, ring_mapped_memory: &MappedMemory) -> *mut c_void
+	pub(crate) fn ring_pointer(&self, ring_mapped_memory: &MappedMemory) -> *mut u8
 	{
 		ring_mapped_memory.virtual_address().add(self.desc).into()
 	}

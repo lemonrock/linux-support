@@ -25,7 +25,7 @@ pub enum MapCreationError
 	SocketStorageMandatesBpfTypeFormatTypeIdentifiersForKeyAndValue,
 
 	#[allow(missing_docs)]
-	MissingMapFileDescriptor(FileDescriptorLabelsMapError),
+	MissingMapFileDescriptor(FileDescriptorsMapError),
 
 	#[allow(missing_docs)]
 	CreateFailed(Errno),
@@ -68,10 +68,10 @@ impl error::Error for MapCreationError
 	}
 }
 
-impl From<FileDescriptorLabelsMapError> for MapCreationError
+impl From<FileDescriptorsMapError> for MapCreationError
 {
 	#[inline(always)]
-	fn from(value: FileDescriptorLabelsMapError) -> Self
+	fn from(value: FileDescriptorsMapError) -> Self
 	{
 		MapCreationError::MissingMapFileDescriptor(value)
 	}

@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Used for `RTM_NEWLINK`, `RTM_DELLINK` and `RTM_GETLINK`.
+/// Used for `RTM_NEWLINK`, `RTM_DELLINK`, `RTM_GETLINK` and `RTM_SETLINK`.
 #[repr(C)]
 pub struct ifinfomsg
 {
@@ -32,6 +32,11 @@ pub struct ifinfomsg
 
 impl NetlinkRequestMessageBody for ifinfomsg
 {
+	#[inline(always)]
+	fn family(&self) -> c_uchar
+	{
+		self.ifi_family
+	}
 }
 
 impl ifinfomsg
@@ -39,9 +44,14 @@ impl ifinfomsg
 	#[inline(always)]
 	pub(crate) fn for_xdp(network_interface_index: NetworkInterfaceIndex) -> Self
 	{
-		let mut this: Self = unsafe { zeroed() };
-		this.ifi_family = AF_INET as u8;
-		this.ifi_index = Some(network_interface_index);
-		this
+		Self
+		{
+			ifi_family: AF_INET as u8,
+			__ifi_pad: 0,
+			ifi_type: 0,
+			ifi_index: Some(network_interface_index),
+			ifi_flags: 0,
+			ifi_change: 0,
+		}
 	}
 }

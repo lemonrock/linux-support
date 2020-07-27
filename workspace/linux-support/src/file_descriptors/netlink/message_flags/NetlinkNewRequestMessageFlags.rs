@@ -5,6 +5,8 @@
 bitflags!
 {
 	/// Netlink new (or set) request message flags.
+	///
+	/// Used for `RouteNetlinkMessageType` with a kind of `RouteNetlinkMessageKind::New`.
 	pub struct NetlinkNewRequestMessageFlags: u16
 	{
 		/// New Request: Override existing.

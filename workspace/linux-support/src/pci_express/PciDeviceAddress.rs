@@ -64,7 +64,7 @@ impl<'a> TryFrom<&'a NetworkInterfaceName> for PciDeviceAddress
 	fn try_from(network_interface_name: &'a NetworkInterfaceName) -> Result<Self, Self::Error>
 	{
 		let bus_device_address = BusDeviceAddress::try_from(network_interface_name)?;
-		Self::try_from(bus_device_address)
+		Ok(Self::try_from(bus_device_address)?)
 	}
 }
 
@@ -76,7 +76,7 @@ impl TryFrom<NetworkInterfaceName> for PciDeviceAddress
 	fn try_from(network_interface_name: NetworkInterfaceName) -> Result<Self, Self::Error>
 	{
 		let bus_device_address = BusDeviceAddress::try_from(network_interface_name)?;
-		Self::try_from(bus_device_address)
+		Ok(Self::try_from(bus_device_address)?)
 	}
 }
 
@@ -87,7 +87,8 @@ impl<'a> TryFrom<&'a BusDeviceAddress> for PciDeviceAddress
 	#[inline(always)]
 	fn try_from(value: &'a BusDeviceAddress) -> Result<Self, Self::Error>
 	{
-		Self::try_from(value.deref())
+		let value: &[c_char] = value.deref().as_ref();
+		Self::try_from(value)
 	}
 }
 
@@ -98,7 +99,8 @@ impl TryFrom<BusDeviceAddress> for PciDeviceAddress
 	#[inline(always)]
 	fn try_from(value: BusDeviceAddress) -> Result<Self, Self::Error>
 	{
-		Self::try_from(value.deref())
+		let value: &[c_char] = value.deref().as_ref();
+		Self::try_from(value)
 	}
 }
 

@@ -38,7 +38,7 @@ pub enum ProgramLine<'name>
 	/// * `1`: `map_file_descriptor`.
 	///
 	/// ***CAUTION***: emits ***2*** instructions - be aware when manually counting jump offsets!
-	LoadMapFileDescriptor(Register, #[serde(borrow)] FileDescriptorLabel<'name>),
+	LoadMapFileDescriptor(Register, MapName),
 	
 	/// Load a map value.
 	///
@@ -52,7 +52,7 @@ pub enum ProgramLine<'name>
 	/// * `2`: `offset_into_value`.
 	///
 	/// ***CAUTION***: emits ***2*** instructions - be aware when manually counting jump offsets!
-	LoadMapValue(Register, #[serde(borrow)] FileDescriptorLabel<'name>, Immediate<'name, i32>),
+	LoadMapValue(Register, MapName, Immediate<'name, i32>),
 	
 	/// Operation on 32-bits of values.
 	///
@@ -488,7 +488,7 @@ impl<'name> ProgramLine<'name>
 	///
 	/// ***CAUTION***: emits ***2*** instructions - be aware when manually counting jump offsets!
 	#[inline(always)]
-	pub fn load_map_file_descriptor(destination_register: Register, map_file_descriptor_label: impl Into<FileDescriptorLabel<'name>>) -> Self
+	pub fn load_map_file_descriptor(destination_register: Register, map_file_descriptor_label: impl Into<MapName>) -> Self
 	{
 		ProgramLine::LoadMapFileDescriptor(destination_register, map_file_descriptor_label.into())
 	}
@@ -499,7 +499,7 @@ impl<'name> ProgramLine<'name>
 	///
 	/// ***CAUTION***: emits ***2*** instructions - be aware when manually counting jump offsets!
 	#[inline(always)]
-	pub fn load_map_value(destination_register: Register, map_file_descriptor_label: impl Into<FileDescriptorLabel<'name>>, offset_into_value: impl Into<Immediate<'name, i32>>) -> Self
+	pub fn load_map_value(destination_register: Register, map_file_descriptor_label: impl Into<MapName>, offset_into_value: impl Into<Immediate<'name, i32>>) -> Self
 	{
 		ProgramLine::LoadMapValue(destination_register, map_file_descriptor_label.into(), offset_into_value.into())
 	}
@@ -828,7 +828,7 @@ impl<'name> ProgramLine<'name>
 	
 	/// Add to instruction(s).
 	#[inline(always)]
-	pub(crate) fn parse(&self, instructions: &mut ProgramLinesParser<'name>, i32_immediates_map: &OffsetsMap<i32>, u64_immediates_map: &OffsetsMap<u64>, memory_offsets_map: &OffsetsMap<i16>, map_file_descriptor_labels_map: &FileDescriptorLabelsMap<MapFileDescriptor>) -> Result<(), ProgramError>
+	pub(crate) fn parse(&self, instructions: &mut ProgramLinesParser<'name>, i32_immediates_map: &OffsetsMap<i32>, u64_immediates_map: &OffsetsMap<u64>, memory_offsets_map: &OffsetsMap<i16>, map_file_descriptors: &FileDescriptorsMap<MapFileDescriptor>) -> Result<(), ProgramError>
 	{
 		use self::ProgramLine::*;
 		use self::RegisterOrImmediate::*;
@@ -845,9 +845,9 @@ impl<'name> ProgramLine<'name>
 			
 			&LoadImmediate64(destination_register, ref immediate) => return instructions.two_instructions(bpf_insn::load64_immediate(destination_register, u64_immediates_map.resolve(immediate)?)),
 			
-			&LoadMapFileDescriptor(destination_register, ref map_file_descriptor_label) => return instructions.two_instructions(bpf_insn::load_map_file_descriptor(destination_register, map_file_descriptor_labels_map.resolve(map_file_descriptor_label)?)),
+			&LoadMapFileDescriptor(destination_register, ref map_name) => return instructions.two_instructions(bpf_insn::load_map_file_descriptor(destination_register, map_file_descriptors.resolve(map_name)?)),
 			
-			&LoadMapValue(destination_register, ref map_file_descriptor_label, ref offset_into_value) => return instructions.two_instructions(bpf_insn::load_map_value(destination_register, map_file_descriptor_labels_map.resolve(map_file_descriptor_label)?, i32_immediates_map.resolve(offset_into_value)?)),
+			&LoadMapValue(destination_register, ref map_name, ref offset_into_value) => return instructions.two_instructions(bpf_insn::load_map_value(destination_register, map_file_descriptors.resolve(map_name)?, i32_immediates_map.resolve(offset_into_value)?)),
 			
 			&Alu32(operation, destination_register, Register(source_register)) => bpf_insn::alu32(operation, destination_register, source_register),
 			

@@ -28,7 +28,7 @@ pub enum ProgramLoadError
 	PermissionDenied,
 	
 	/// Could not register program.
-	CouldNotRegisterProgram(FileDescriptorLabelsMapError),
+	CouldNotRegisterProgram(FileDescriptorsMapError),
 }
 
 impl Display for ProgramLoadError
@@ -71,10 +71,10 @@ impl From<ProgramError> for ProgramLoadError
 	}
 }
 
-impl From<FileDescriptorLabelsMapError> for ProgramLoadError
+impl From<FileDescriptorsMapError> for ProgramLoadError
 {
 	#[inline(always)]
-	fn from(error: FileDescriptorLabelsMapError) -> Self
+	fn from(error: FileDescriptorsMapError) -> Self
 	{
 		ProgramLoadError::CouldNotRegisterProgram(error)
 	}

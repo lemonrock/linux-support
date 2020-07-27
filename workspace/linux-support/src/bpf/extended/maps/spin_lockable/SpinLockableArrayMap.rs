@@ -11,7 +11,7 @@ impl<V: 'static + Copy + HasReflectionInformation> SpinLockableArrayMap<V>
 {
 	/// New system-wide.
 	#[inline(always)]
-	pub fn new_system_wide(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: &ParsedBpfTypeFormatMapData, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
+	pub fn new_system_wide(map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: &ParsedBpfTypeFormatMapData, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
 	{
 		let array_map = ArrayMap::new_system_wide_internal(map_file_descriptors, map_name, Some(parsed_bpf_type_format_map_data), maximum_entries, access_permissions, numa_node, MemoryMap::DoNotMemoryMap)?;
 		Ok(Self(array_map))

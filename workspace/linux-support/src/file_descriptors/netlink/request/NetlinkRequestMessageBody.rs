@@ -3,6 +3,20 @@
 
 
 /// A netlink request message body.
+///
+/// All Netlink request message bodies must contain a first initial field of one unsigned char byte, the `family`.
+///
+/// The layout must be compatible with the struct `rtgenmsg`:-
+///
+/// ```
+/// #[repr(C)]
+/// struct rtgenmsg
+/// {
+/// 	rtgen_family: c_uchar,
+/// }
+/// ```
 pub trait NetlinkRequestMessageBody: Sized
 {
+	/// Deliberately exists to force correct implementation.
+	fn family(&self) -> c_uchar;
 }

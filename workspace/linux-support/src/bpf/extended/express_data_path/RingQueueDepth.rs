@@ -40,7 +40,7 @@ impl RingQueueDepth
 	}
 	
 	#[inline(always)]
-	fn mask(&self) -> u32
+	fn mask(self) -> u32
 	{
 		(self as u32) - 1
 	}

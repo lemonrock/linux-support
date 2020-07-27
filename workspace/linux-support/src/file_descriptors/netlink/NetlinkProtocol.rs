@@ -3,10 +3,10 @@
 
 
 /// Netlink protocol.
-pub trait NetlinkProtocol: Debug
+pub trait NetlinkProtocol: Debug + Sized
 {
 	/// Message type.
-	type MessageType;
+	type MessageType: Debug;
 	
 	#[doc(hidden)]
 	const Protocol: c_int;
@@ -25,6 +25,22 @@ pub trait NetlinkProtocol: Debug
 	/// New get request message.
 	fn new_get_request_message<Body: NetlinkRequestMessageBody>(message_type: Self::MessageType, flags: NetlinkGetRequestMessageFlags, body: Body) -> NetlinkRequestMessage<Body>;
 	
+	/// New set request message.
+	fn new_set_request_message<Body: NetlinkRequestMessageBody>(message_type: Self::MessageType, flags: NetlinkSetRequestMessageFlags, body: Body) -> NetlinkRequestMessage<Body>;
+	
 	/// New new request message.
 	fn new_new_request_message<Body: NetlinkRequestMessageBody>(message_type: Self::MessageType, flags: NetlinkNewRequestMessageFlags, body: Body) -> NetlinkRequestMessage<Body>;
+	
+	#[inline(always)]
+	fn make_request_and_get_acknowledgment_or_error<Body: NetlinkRequestMessageBody>(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, mut request: NetlinkRequestMessage<Body>) -> Result<(), Errno>
+	{
+		let sequence_number = netlink_socket_file_descriptor.send_request(&mut request).expect("Send a request");
+		
+		let message_identification = MultipartMessagePartIdentification::from_linux_kernel(sequence_number);
+		
+		let mut reply_receiver = AcnowledgmentOnlyReplyReceiver::new(message_identification);
+		netlink_socket_file_descriptor.receive_replies(&mut reply_receiver);
+		reply_receiver.acknowledgment()
+	}
+	
 }

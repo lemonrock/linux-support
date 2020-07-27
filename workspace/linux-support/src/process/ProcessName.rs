@@ -26,10 +26,10 @@ impl From<CommandName> for ProcessName
 	}
 }
 
-impl From<ObjectName> for ProcessName
+impl From<ObjectName16> for ProcessName
 {
 	#[inline(always)]
-	fn from(value: ObjectName) -> Self
+	fn from(value: ObjectName16) -> Self
 	{
 		Self::from(CommandName(value))
 	}
@@ -44,10 +44,10 @@ impl Into<CommandName> for ProcessName
 	}
 }
 
-impl Into<ObjectName> for ProcessName
+impl Into<ObjectName16> for ProcessName
 {
 	#[inline(always)]
-	fn into(self) -> ObjectName
+	fn into(self) -> ObjectName16
 	{
 		(self.0).into()
 	}
@@ -69,7 +69,7 @@ impl Default for ProcessName
 	#[inline(always)]
 	fn default() -> Self
 	{
-		let length = unsafe { strnlen(program_invocation_short_name, CommandName::MaximumCommandNameLengthExcludingAsciiNul) };
+		let length = unsafe { strnlen(program_invocation_short_name, ObjectName16::MaximumLengthExcludingAsciiNull) };
 
 		Self(CommandName::from_bytes(unsafe { from_raw_parts(program_invocation_short_name as *const u8, length) }).unwrap())
 	}

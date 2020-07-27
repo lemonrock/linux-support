@@ -6,7 +6,7 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ObjectNameFromBytesError
 {
-	/// More than `ObjectName::MaximumObjectNameLengthExcludingAsciiNul` bytes.
+	/// More than `MaximumLengthExcludingAsciiNul` bytes.
 	TooLong(usize),
 
 	/// When passing bytes that are not ASCII NUL terminated, an ASCII NUL was encountered

@@ -8,7 +8,7 @@ fn bind_socket_with_length<SA>(socket_file_descriptor: &impl FileDescriptor, soc
 	use self::SocketBindError::*;
 	use self::FilePathInvalidReason::*;
 
-	let result = unsafe { bind(socket_file_descriptor.as_raw_fd(), &socket_address as *const SA as *const sockaddr_storage, length as socklen_t) };
+	let result = unsafe { bind(socket_file_descriptor.as_raw_fd(), socket_address as *const SA as *const sockaddr_storage, length as socklen_t) };
 	if likely!(result == 0)
 	{
 		Ok(())

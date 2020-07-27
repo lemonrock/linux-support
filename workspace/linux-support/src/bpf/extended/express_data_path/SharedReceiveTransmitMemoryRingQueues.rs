@@ -15,11 +15,39 @@ pub struct SharedReceiveTransmitMemoryRingQueues<'shared>
 	xsk_socket_file_descriptor: ExpressDataPathSocketFileDescriptor,
 }
 
-impl ReceiveTransmitMemoryRingQueues for SharedReceiveTransmitMemoryRingQueues
+impl Deref for SharedReceiveTransmitMemoryRingQueues<'_>
+{
+	type Target = UserMemory;
+	
+	#[inline(always)]
+	fn deref(&self) -> &Self::Target
+	{
+		self.user_memory
+	}
+}
+
+impl ReceiveTransmitMemoryRingQueues for SharedReceiveTransmitMemoryRingQueues<'_>
 {
 	#[inline(always)]
 	fn user_memory_and_receive_transmit(&self) -> (&UserMemory, &ReceiveOrTransmitOrBoth<XskRingQueue>)
 	{
 		(self.user_memory, &self.receive_and_transmit)
+	}
+}
+
+impl SharedReceiveTransmitMemoryRingQueues<'_>
+{
+	/// XSK statistics.
+	#[inline(always)]
+	pub fn xsk_statistics(&self) -> xdp_statistics
+	{
+		self.xsk_socket_file_descriptor.statistics()
+	}
+	
+	/// XSK options.
+	#[inline(always)]
+	pub fn xsk_options(&self) -> xdp_options
+	{
+		self.xsk_socket_file_descriptor.options()
 	}
 }

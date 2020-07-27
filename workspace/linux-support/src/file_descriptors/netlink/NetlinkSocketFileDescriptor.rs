@@ -160,7 +160,7 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 				{
 					if multipart_message_identifier.is_some()
 					{
-						reply_receiver.end_of_set_of_messages(Err(ErrorKind::UnexpectedEof.into()));
+						reply_receiver.unexpected_end_of_set_of_multipart_messages()
 					}
 					return
 				}
@@ -175,7 +175,7 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 							let error = io::Error::last_os_error();
 							if multipart_message_identifier.is_some()
 							{
-								reply_receiver.end_of_set_of_messages(Err(error))
+								reply_receiver.could_not_continue_multipart_messages(error)
 							}
 							else
 							{
@@ -204,7 +204,7 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 				{
 					if multipart_message_identifier.is_some()
 					{
-						reply_receiver.end_of_set_of_messages(Err(ErrorKind::UnexpectedEof.into()));
+						reply_receiver.unexpected_end_of_set_of_multipart_messages()
 					}
 					return
 				}
@@ -219,7 +219,7 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 							let error = io::Error::last_os_error();
 							if multipart_message_identifier.is_some()
 							{
-								reply_receiver.end_of_set_of_messages(Err(error))
+								reply_receiver.could_not_continue_multipart_messages(error)
 							}
 							else
 							{
@@ -265,7 +265,7 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 				{
 					dump_was_interrupted = DumpWasInterrupted;
 				}
-				assert!(!flags.acknowledgment_required(), "Acknowledgments are not supported");
+				assert!(!flags.acknowledgment_required(), "Acknowledgments to received messages are not supported");
 				
 				match unsafe { reply_message.nlmsg_type.control }
 				{
@@ -278,9 +278,16 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 						dump_was_interrupted = DumpCompleted;
 					}
 					
-					ControlNetlinkMessageType::Error | ControlNetlinkMessageType::OverRun =>
+					// This message type is also used for acknowledgments.
+					ControlNetlinkMessageType::Error =>
 					{
-						let result = reply_message.error().io_result().map(|_: ()| dump_was_interrupted);
+						let result = reply_message.error().error_or_acknowledgment_io_result().map(|_: ()| dump_was_interrupted);
+						reply_receiver.end_of_set_of_messages(result);
+					}
+					
+					ControlNetlinkMessageType::OverRun =>
+					{
+						let result = Err(reply_message.error().over_run_io_result());
 						reply_receiver.end_of_set_of_messages(result);
 					}
 					

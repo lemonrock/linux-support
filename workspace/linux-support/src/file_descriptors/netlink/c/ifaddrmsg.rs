@@ -28,4 +28,9 @@ pub(crate) struct ifaddrmsg
 
 impl NetlinkRequestMessageBody for ifaddrmsg
 {
+	#[inline(always)]
+	fn family(&self) -> c_uchar
+	{
+		self.ifa_family
+	}
 }

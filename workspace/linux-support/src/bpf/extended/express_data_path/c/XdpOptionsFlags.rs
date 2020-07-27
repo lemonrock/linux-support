@@ -5,7 +5,7 @@
 bitflags!
 {
 	/// Flags for `struct xdp_options`.
-	pub(super) struct XdpOptionsFlags: u32
+	pub struct XdpOptionsFlags: u32
 	{
 		/// Zero-copy.
 		const ZeroCopy = XDP_OPTIONS_ZEROCOPY;

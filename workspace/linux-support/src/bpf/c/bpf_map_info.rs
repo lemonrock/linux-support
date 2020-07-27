@@ -57,7 +57,7 @@ impl bpf_map_info
 	#[inline(always)]
 	pub fn name(&self) -> MapName
 	{
-		MapName::from(&self.name)
+		MapName::try_from(&self.name).unwrap()
 	}
 	
 	/// Associated BTF identifier, if any.

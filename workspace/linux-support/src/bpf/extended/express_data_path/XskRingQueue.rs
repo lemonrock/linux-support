@@ -9,7 +9,7 @@ pub struct XskRingQueue
 	ring_queue_depth: RingQueueDepth,
 	producer_pointer: NonNull<u32>,
 	consumer_pointer: NonNull<u32>,
-	ring_pointer: *mut c_void,
+	ring_pointer: *mut u8,
 	flags_pointer: NonNull<u32>,
 	use_ring_queue_depth_for_consumer: bool,
 	memory: MappedMemory,
@@ -48,7 +48,6 @@ impl XskRingQueue
 	#[inline(always)]
 	fn from_ring_queue_offsets<D: Descriptor>(socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, ring_queue_offsets: &xdp_ring_offset, ring_queue_depth: RingQueueDepth, defaults: &DefaultPageSizeAndHugePageSizes, offset: u64, use_ring_queue_depth_for_consumer: bool) -> Self
 	{
-		let ring_queue_offsets = memory_map_offsets.completion_ring_offsets();
 		let length = ring_queue_offsets.length_of_memory_to_map::<D>(ring_queue_depth);
 		let memory = MappedMemory::from_file(socket_file_descriptor, offset, length, AddressHint::any(), Protection::ReadWrite, Sharing::Shared, None, true, false, defaults).expect("Could not memory map XDP fill ring queue");
 		Self
@@ -86,21 +85,20 @@ impl XskRingQueue
 	#[inline(always)]
 	fn cached_consumer(&self) -> u32
 	{
-		let offset = if self.use_ring_queue_depth_for_consumer
+		if self.use_ring_queue_depth_for_consumer
 		{
-			self.ring_queue_depth as u32 as usize
+			unsafe { *self.consumer_pointer.as_ptr().add(self.ring_queue_depth as u32 as usize) }
 		}
 		else
 		{
-			0
-		};
-		unsafe { *self.consumer_pointer.add(offset).as_ref() }
+			unsafe { *self.consumer_pointer.as_ref() }
+		}
 	}
 	
 	#[inline(always)]
 	fn ring(&self) -> u8
 	{
-		unsafe { *self.ring_pointer.as_ref() }
+		unsafe { *self.ring_pointer }
 	}
 	
 	#[inline(always)]

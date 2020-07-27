@@ -3,11 +3,11 @@
 
 
 /// Error.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PciDeviceAddressFromNetworkInterfaceNameError
 {
 	/// Could not get it.
-	NetworkInterfaceNameToSomething(NetworkInterfaceNameToSomethingError<EthToolStringFromBytesError>),
+	NetworkInterfaceNameToSomething(NetworkInterfaceNameToSomethingError<ObjectNameFromBytesError>),
 	
 	/// Could not parse it.
 	PciDeviceAddressStringParse(PciDeviceAddressStringParseError),
@@ -38,10 +38,10 @@ impl error::Error for PciDeviceAddressFromNetworkInterfaceNameError
 	}
 }
 
-impl From<NetworkInterfaceNameToSomethingError<EthToolStringFromBytesError>> for PciDeviceAddressFromNetworkInterfaceNameError
+impl From<NetworkInterfaceNameToSomethingError<ObjectNameFromBytesError>> for PciDeviceAddressFromNetworkInterfaceNameError
 {
 	#[inline(always)]
-	fn from(value: NetworkInterfaceNameToSomethingError<EthToolStringFromBytesError>) -> Self
+	fn from(value: NetworkInterfaceNameToSomethingError<ObjectNameFromBytesError>) -> Self
 	{
 		PciDeviceAddressFromNetworkInterfaceNameError::NetworkInterfaceNameToSomething(value)
 	}

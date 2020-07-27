@@ -23,7 +23,7 @@ impl<'name> ProgramLinesParser<'name>
 	/// Process instructions.
 	///
 	/// If `bpf_type_format_program_details` is `None`, no function or line information is produced.
-	pub fn parse<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>(bpf_type_format_program_details: Option<&BpfTypeFormatProgramDetails>, program_lines: &Vec<ProgramLine<'name>>, arguments: ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>, verifier_log: Option<&mut VerifierLog>) -> Result<(Box<[bpf_insn]>, Option<ParsedBpfTypeFormatData>, &'extended_bpf_program_file_descriptor_label_map mut FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>), ProgramError>
+	pub fn parse<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>(bpf_type_format_program_details: Option<&BpfTypeFormatProgramDetails>, program_lines: &Vec<ProgramLine<'name>>, arguments: ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>, verifier_log: Option<&mut VerifierLog>) -> Result<(Box<[bpf_insn]>, Option<ParsedBpfTypeFormatData>, &'extended_bpf_program_file_descriptor_label_map mut FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>), ProgramError>
 	{
 		let number_of_program_lines = program_lines.len();
 		if unlikely!(number_of_program_lines > bpf_line_info::MaximumNumberOfProgramLines)
@@ -58,11 +58,11 @@ impl<'name> ProgramLinesParser<'name>
 	}
 	
 	#[inline(always)]
-	fn parse_internal<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>(mut self, program_lines: &Vec<ProgramLine<'name>>, bpf_type_format_program_details: Option<&BpfTypeFormatProgramDetails>, arguments: ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>, verifier_log: Option<&mut VerifierLog>) -> Result<(Box<[bpf_insn]>, Option<ParsedBpfTypeFormatData>, &'extended_bpf_program_file_descriptor_label_map mut FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>), ProgramError>
+	fn parse_internal<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>(mut self, program_lines: &Vec<ProgramLine<'name>>, bpf_type_format_program_details: Option<&BpfTypeFormatProgramDetails>, arguments: ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>, verifier_log: Option<&mut VerifierLog>) -> Result<(Box<[bpf_insn]>, Option<ParsedBpfTypeFormatData>, &'extended_bpf_program_file_descriptor_label_map mut FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>), ProgramError>
 	{
 		use self::ProgramError::*;
 		
-		let ExtendedBpfProgramArguments { i32_immediates_map, u64_immediates_map, memory_offsets_map, map_file_descriptor_labels_map, extended_bpf_program_file_descriptor_labels_map } = arguments;
+		let ExtendedBpfProgramArguments { i32_immediates_map, u64_immediates_map, memory_offsets_map, map_file_descriptors: map_file_descriptors, extended_bpf_program_file_descriptors } = arguments;
 		
 		if let Some(&BpfTypeFormatProgramDetails { ref main_function, .. }) = bpf_type_format_program_details
 		{
@@ -71,7 +71,7 @@ impl<'name> ProgramLinesParser<'name>
 		
 		for program_line in program_lines
 		{
-			program_line.parse(&mut self, &i32_immediates_map, &u64_immediates_map, &memory_offsets_map, map_file_descriptor_labels_map)?;
+			program_line.parse(&mut self, &i32_immediates_map, &u64_immediates_map, &memory_offsets_map, map_file_descriptors)?;
 			self.line_number += 1;
 		}
 		
@@ -106,7 +106,7 @@ impl<'name> ProgramLinesParser<'name>
 			(
 				instructions,
 				parsed_bpf_type_format_data,
-				extended_bpf_program_file_descriptor_labels_map,
+				extended_bpf_program_file_descriptors,
 			)
 		)
 	}

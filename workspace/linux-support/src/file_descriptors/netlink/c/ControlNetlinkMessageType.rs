@@ -2,9 +2,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// Control message types must be less than `NLMSG_MIN_TYPE` (16) (which is the same value as `RTM_::RTM_BASE`).
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub(crate) struct ControlNetlinkMessageType(u8);
 
+/// All these values are less than  `NLMSG_MIN_TYPE` (16) (which is the same value as `RTM_::RTM_BASE`).
 impl ControlNetlinkMessageType
 {
 	pub(crate) const NoOp: Self = Self(NLMSG_NOOP as u8);

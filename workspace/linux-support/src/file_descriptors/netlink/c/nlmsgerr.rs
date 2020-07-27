@@ -19,15 +19,28 @@ pub(super) struct nlmsgerr
 impl nlmsgerr
 {
 	#[inline(always)]
-	pub fn io_result(&self) -> io::Result<()>
+	pub fn error_or_acknowledgment_io_result(&self) -> Result<(), Errno>
 	{
 		if likely!(self.error > 0 && self.error < 4096)
 		{
-			Err(io::Error::from_raw_os_error(self.error))
+			Err(Errno(self.error))
 		}
 		else if likely!(self.error == 0)
 		{
 			Ok(())
+		}
+		else
+		{
+			unreachable!("error field is either negative or greater than 4095: {}", self.error)
+		}
+	}
+	
+	#[inline(always)]
+	pub fn over_run_io_result(&self) -> Errno
+	{
+		if likely!(self.error > 0 && self.error < 4096)
+		{
+			Errno(self.error)
 		}
 		else
 		{

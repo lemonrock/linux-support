@@ -18,7 +18,7 @@ impl<V: Copy> PerHyperThreadCgroupStorageMap<V>
 	///
 	/// Weirdly, unlike all other per-HyperThread maps, this one supports allocating on a NumaNode.
 	#[inline(always)]
-	pub fn new_per_hyper_thread(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, number_of_possible_hyper_threads: NumberOfPossibleHyperThreads, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
+	pub fn new_per_hyper_thread(map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, number_of_possible_hyper_threads: NumberOfPossibleHyperThreads, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
 	{
 		Self::create(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, MapType::CgroupStoragePerHyperThread(Self::value_size(), access_permissions, numa_node), maximum_entries, number_of_possible_hyper_threads)
 	}
@@ -105,7 +105,7 @@ impl<V: Copy> PerHyperThreadCgroupStorageMap<V>
 	}
 	
 	#[inline(always)]
-	fn create(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, map_type: MapType, maximum_entries: MaximumEntries, number_of_possible_hyper_threads: NumberOfPossibleHyperThreads) -> Result<Self, MapCreationError>
+	fn create(map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, map_type: MapType, maximum_entries: MaximumEntries, number_of_possible_hyper_threads: NumberOfPossibleHyperThreads) -> Result<Self, MapCreationError>
 	{
 		MapFileDescriptor::create(map_file_descriptors, map_type, map_name, parsed_bpf_type_format_map_data).map(|map_file_descriptor| Self::new(map_file_descriptor, maximum_entries, number_of_possible_hyper_threads))
 	}

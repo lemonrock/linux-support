@@ -20,7 +20,7 @@ pub struct UserMemory
 impl UserMemory
 {
 	/// Based on `libbpf`'s `xsk_umem__create_v0_0_4()`.
-	pub fn new(user_memory: MappedMemory, frame_size: FrameSize, frame_headroom: u32, flags: XdpUmemRegFlags, fill_ring_queue_depth: RingQueueDepth, completion_ring_queue_depth: RingQueueDepth) -> Result<Self, CreationError>
+	pub fn new(user_memory: MappedMemory, frame_size: FrameSize, frame_headroom: u32, flags: XdpUmemRegFlags, fill_ring_queue_depth: RingQueueDepth, completion_ring_queue_depth: RingQueueDepth, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, CreationError>
 	{
 		let user_memory_socket_file_descriptor = ExpressDataPathSocketFileDescriptor::new()?;
 		let configuration = xdp_umem_reg::new(&user_memory, frame_size, frame_headroom, flags);
@@ -40,9 +40,23 @@ impl UserMemory
 	}
 	
 	/// Makes the necessary calls to create something suitable to be used as a XDP program with a socket.
-	#[inline(alwayes)]
-	pub fn to_receive_transmit(self, xdp_extended_bpf_program: ExtendedBpfProgramFileDescriptor, network_interface_index: NetworkInterfaceIndex, queue_identifier: QueueIdentifier, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth>) -> Result<OwnedReceiveTransmitMemoryRingQueues, SocketCreationOrBindError>
+	#[inline(always)]
+	pub fn to_receive_transmit(self, xdp_extended_bpf_program: ExtendedBpfProgramFileDescriptor, network_interface_index: NetworkInterfaceIndex, queue_identifier: QueueIdentifier, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<OwnedReceiveTransmitMemoryRingQueues, SocketCreationOrBindError>
 	{
-		OwnedReceiveTransmitMemoryRingQueues::new(self, xdp_extended_bpf_program, network_interface_index, queue_identifier, ring_queue_depths)
+		OwnedReceiveTransmitMemoryRingQueues::new(self, xdp_extended_bpf_program, network_interface_index, queue_identifier, ring_queue_depths, defaults)
+	}
+	
+	/// Statistics.
+	#[inline(always)]
+	pub fn statistics(&self) -> xdp_statistics
+	{
+		self.user_memory_socket_file_descriptor.statistics()
+	}
+	
+	/// Options.
+	#[inline(always)]
+	pub fn options(&self) -> xdp_options
+	{
+		self.user_memory_socket_file_descriptor.options()
 	}
 }

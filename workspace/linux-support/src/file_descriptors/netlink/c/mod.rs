@@ -4,12 +4,12 @@
 
 use super::*;
 use super::attributes::*;
-use crate::pci_express::NetworkInterfaceIndex;
-use crate::netdevice::NetworkInterfaceIndex;
+use super::route::get_address::*;
+use crate::network_device::*;
 
 
 include!("ControlNetlinkMessageType.rs");
-include!("IFA_.rs");
+include!("IFA.rs");
 include!("ifa_cacheinfo.rs");
 include!("IFA_F_.rs");
 include!("ifaddrmsg.rs");
@@ -23,4 +23,7 @@ include!("nlmsgerr.rs");
 include!("nlmsghdr.rs");
 include!("rt_scope.rs");
 include!("rtattr.rs");
+include!("RTM_.rs");
 include!("rtnl_link_stats64.rs");
+include!("XDP_ATTACHED.rs");
+include!("XDP_FLAGS_.rs");

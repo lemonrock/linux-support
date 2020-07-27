@@ -7,7 +7,7 @@
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub enum ProgramType<'name>
+pub enum ProgramType
 {
 	/// Also known as in libpbf as `scoket_filter`.
 	/// Also known as the ELF section `socket`.
@@ -110,39 +110,39 @@ pub enum ProgramType<'name>
 	/// Also known as the ELF section `tp_btf/`.
 	///
 	/// A type of tracing program.
-	TracingRawTracePoint(#[serde(default)] AttachProgramTypeDetails<'name>),
+	TracingRawTracePoint(#[serde(default)] AttachProgramTypeDetails),
 	
 	/// Also known as in libbpf as `tracing`.
 	/// Also known as the ELF section `fentry/`.
 	///
 	/// A type of tracing program.
-	TracingFunctionEntry(#[serde(default)] AttachProgramTypeDetails<'name>),
+	TracingFunctionEntry(#[serde(default)] AttachProgramTypeDetails),
 	
 	/// Also known as in libbpf as `tracing`.
 	/// Also known as the ELF section `fmod_ret/`.
 	///
 	/// A type of tracing program.
-	TracingModifyReturn(#[serde(default)] AttachProgramTypeDetails<'name>),
+	TracingModifyReturn(#[serde(default)] AttachProgramTypeDetails),
 	
 	/// Also known as in libbpf as `tracing`.
 	/// Also known as the ELF section `fmod_ret/`.
 	///
 	/// A type of tracing program.
-	TracingFunctionExit(#[serde(default)] AttachProgramTypeDetails<'name>),
+	TracingFunctionExit(#[serde(default)] AttachProgramTypeDetails),
 	
 	/// Also known as in libbpf as `ext`.
 	/// Also known as the ELF section `fexit/`.
 	///
 	/// A type of tracing program.
-	Ext(#[serde(default)] AttachProgramTypeDetails<'name>),
+	Ext(#[serde(default)] AttachProgramTypeDetails),
 	
 	/// Also known as in libbpf as `sk_reuseport`.
 	SocketReusePort(#[serde(default)] CommonProgramTypeDetails),
 }
 
-impl<'name> ProgramType<'name>
+impl ProgramType
 {
-	pub(crate) fn to_values(&self, extended_bpf_program_file_descriptor_labels_map: &FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>) -> Result<(bpf_prog_type, bpf_attach_type, BpfTypeFormatTypeIdentifier, RawFd, u32, Option<NetworkInterfaceIndex>), ProgramError>
+	pub(crate) fn to_values(&self, extended_bpf_program_file_descriptors: &FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>) -> Result<(bpf_prog_type, bpf_attach_type, BpfTypeFormatTypeIdentifier, RawFd, u32, Option<NetworkInterfaceIndex>), ProgramError>
 	{
 		use self::bpf_attach_type::*;
 		use self::bpf_prog_type::*;
@@ -216,14 +216,14 @@ impl<'name> ProgramType<'name>
 			// `expected_attach_type` is validated in `bpf_tracing_prog_attach()` in `kernel/bpf/syscall.c`.
 			LinuxSecurityModule(program_details) => program_details.to_values(BPF_PROG_TYPE_LSM, BPF_LSM_MAC),
 			
-			TracingRawTracePoint(program_details) => program_details.to_values(BPF_PROG_TYPE_TRACING, BPF_TRACE_RAW_TP, extended_bpf_program_file_descriptor_labels_map),
-			TracingFunctionEntry(program_details) => program_details.to_values(BPF_PROG_TYPE_TRACING, BPF_TRACE_FENTRY, extended_bpf_program_file_descriptor_labels_map),
-			TracingModifyReturn(program_details) => program_details.to_values(BPF_PROG_TYPE_TRACING, BPF_MODIFY_RETURN, extended_bpf_program_file_descriptor_labels_map),
-			TracingFunctionExit(program_details) => program_details.to_values(BPF_PROG_TYPE_TRACING, BPF_TRACE_FEXIT, extended_bpf_program_file_descriptor_labels_map),
+			TracingRawTracePoint(program_details) => program_details.to_values(BPF_PROG_TYPE_TRACING, BPF_TRACE_RAW_TP, extended_bpf_program_file_descriptors),
+			TracingFunctionEntry(program_details) => program_details.to_values(BPF_PROG_TYPE_TRACING, BPF_TRACE_FENTRY, extended_bpf_program_file_descriptors),
+			TracingModifyReturn(program_details) => program_details.to_values(BPF_PROG_TYPE_TRACING, BPF_MODIFY_RETURN, extended_bpf_program_file_descriptors),
+			TracingFunctionExit(program_details) => program_details.to_values(BPF_PROG_TYPE_TRACING, BPF_TRACE_FEXIT, extended_bpf_program_file_descriptors),
 			
 			// `expected_attach_type` is explicitly tested to be zero in `bpf_prog_load_check_attach()` in `kernel/bpf/syscall.c`.
 			// `expected_attach_type` is explicitly tested to be zero in `bpf_tracing_prog_attach()` in `kernel/bpf/syscall.c`.
-			Ext(program_details) => program_details.to_values(BPF_PROG_TYPE_EXT, Self::ignored(), extended_bpf_program_file_descriptor_labels_map),
+			Ext(program_details) => program_details.to_values(BPF_PROG_TYPE_EXT, Self::ignored(), extended_bpf_program_file_descriptors),
 			
 			// `expected_attach_type` is ignored in `kernel/bpf/syscall.c`.
 			SocketReusePort(program_details) => program_details.to_values(BPF_PROG_TYPE_SK_REUSEPORT, Self::ignored()),

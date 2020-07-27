@@ -9,7 +9,7 @@ use super::*;
 use super::bpf_type_format::*;
 use super::bpf_type_format::reflection::*;
 use crate::cpu::HyperThreads;
-use super::instructions::file_descriptor_label::*;
+use super::instructions::file_descriptors_map::*;
 use crate::file_descriptors::*;
 use crate::file_descriptors::bpf::*;
 use crate::file_descriptors::cgroup::CgroupFileDescriptor;
@@ -18,8 +18,7 @@ use crate::file_descriptors::socket::*;
 use crate::file_descriptors::socket::c::*;
 use crate::memory::mapping::*;
 use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
-use crate::pci_express::NetworkInterfaceIndex;
-use crate::process::CommandName;
+use crate::network_device::NetworkInterfaceIndex;
 
 
 /// Domain

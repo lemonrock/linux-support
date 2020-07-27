@@ -9,16 +9,13 @@ use self::configuration_space::MemoryMappedConfigurationSpace;
 use self::link::*;
 use self::resources::Resources;
 use crate::cpu::*;
-use crate::netdevice::*;
+use crate::network_device::*;
 use crate::linux_kernel_modules::*;
-use crate::file_descriptors::RawFdExt;
-use crate::file_descriptors::socket::c::socket;
 use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use crate::memory::mapping::*;
 use crate::memory::numa::NumaNode;
 use crate::paths::*;
 use crate::user_and_groups::assert_effective_user_id_is_root;
-use crate::process::CommandName;
 
 
 /// Classifications.

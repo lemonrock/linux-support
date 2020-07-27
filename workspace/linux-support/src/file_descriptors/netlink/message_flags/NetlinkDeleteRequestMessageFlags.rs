@@ -5,6 +5,8 @@
 bitflags!
 {
 	/// Netlink delete request message flags.
+	///
+	/// Used for `RouteNetlinkMessageType` with a kind of `RouteNetlinkMessageKind::Delete`.
 	pub struct NetlinkDeleteRequestMessageFlags: u16
 	{
 		/// Do not delete recursively.

@@ -3,11 +3,8 @@
 
 
 use super::*;
-use crate::file_descriptors::socket::*;
-use crate::file_descriptors::socket::c::*;
-use crate::memory::VirtualAddress;
 use crate::memory::mapping::MappedMemory;
-use crate::pci_express::NetworkInterfaceIndex;
+use crate::network_device::NetworkInterfaceIndex;
 
 
 include!("sockaddr_xdp.rs");

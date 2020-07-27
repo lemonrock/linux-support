@@ -34,6 +34,7 @@ pub mod request;
 pub mod route;
 
 
+include!("AcknowledgmentOnlyReplyReceiver.rs");
 include!("DumpCompleted.rs");
 include!("DumpWasInterrupted.rs");
 include!("MultipartMessagePartIdentification.rs");

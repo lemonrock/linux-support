@@ -4,15 +4,14 @@
 
 use super::*;
 use super::bpf_type_format::*;
+use super::identifiers::Identifier;
 use super::instructions::*;
-use super::instructions::file_descriptor_label::*;
+use super::instructions::file_descriptors_map::*;
 use super::instructions::offset::*;
 use self::program_type::*;
 use crate::file_descriptors::bpf::*;
 use crate::linux_kernel_version::LinuxKernelVersionNumber;
-use crate::pci_express::NetworkInterfaceIndex;
-use crate::process::CommandName;
-use crate::bpf::extended::identifiers::Identifier;
+use crate::network_device::NetworkInterfaceIndex;
 
 
 /// Program type.

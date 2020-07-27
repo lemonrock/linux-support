@@ -12,7 +12,7 @@ impl<V: 'static + Copy + HasReflectionInformation> SpinLockableSocketStorageMap<
 {
 	/// Needs the capability `CAP_SYS_ADMIN`.
 	#[inline(always)]
-	pub fn new_socket_storage(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: &ParsedBpfTypeFormatMapData, maximum_entries: MaximumEntries, clone_from_listener: CloneFromListener) -> Result<Self, MapCreationError>
+	pub fn new_socket_storage(map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: &ParsedBpfTypeFormatMapData, maximum_entries: MaximumEntries, clone_from_listener: CloneFromListener) -> Result<Self, MapCreationError>
 	{
 		let socket_storage_map = SocketStorageMap::new_socket_storage(map_file_descriptors, map_name, Some(parsed_bpf_type_format_map_data), maximum_entries, clone_from_listener)?;
 		Ok(Self(socket_storage_map))

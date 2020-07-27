@@ -2,152 +2,213 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// The lowest 2 bits encode a 'kind'.
+///
+/// These are: `New`, `Del(ete)`, `Get` and `Set`.
+///
+/// Apart from `Get`, all other 'kind's need a caller to have the capability `CAP_NET_ADMIN`.
+///
+/// A 'dump' is only supported for the `Get` kind.
 #[doc(hidden)]
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[repr(u16)]
 pub enum RouteNetlinkMessageType
 {
 	#[allow(missing_docs)]
-	NEWLINK = RTM_NEWLINK,
+	NEWLINK = RTM_::RTM_NEWLINK as u16,
 
 	#[allow(missing_docs)]
-	DELLINK = RTM_DELLINK,
+	DELLINK = RTM_::RTM_DELLINK as u16,
 
 	#[allow(missing_docs)]
-	GETLINK = RTM_GETLINK,
+	GETLINK = RTM_::RTM_GETLINK as u16,
 
 	#[allow(missing_docs)]
-	SETLINK = RTM_SETLINK,
+	SETLINK = RTM_::RTM_SETLINK as u16,
 
 	#[allow(missing_docs)]
-	NEWADDR = RTM_NEWADDR,
+	NEWADDR = RTM_::RTM_NEWADDR as u16,
 
 	#[allow(missing_docs)]
-	DELADDR = RTM_DELADDR,
+	DELADDR = RTM_::RTM_DELADDR as u16,
 
 	#[allow(missing_docs)]
-	GETADDR = RTM_GETADDR,
+	GETADDR = RTM_::RTM_GETADDR as u16,
 
 	#[allow(missing_docs)]
-	NEWROUTE = RTM_NEWROUTE,
+	NEWROUTE = RTM_::RTM_NEWROUTE as u16,
 
 	#[allow(missing_docs)]
-	DELROUTE = RTM_DELROUTE,
+	DELROUTE = RTM_::RTM_DELROUTE as u16,
 
 	#[allow(missing_docs)]
-	GETROUTE = RTM_GETROUTE,
+	GETROUTE = RTM_::RTM_GETROUTE as u16,
 
 	#[allow(missing_docs)]
-	NEWNEIGH = RTM_NEWNEIGH,
+	NEWNEIGH = RTM_::RTM_NEWNEIGH as u16,
 
 	#[allow(missing_docs)]
-	DELNEIGH = RTM_DELNEIGH,
+	DELNEIGH = RTM_::RTM_DELNEIGH as u16,
 
 	#[allow(missing_docs)]
-	GETNEIGH = RTM_GETNEIGH,
+	GETNEIGH = RTM_::RTM_GETNEIGH as u16,
 
 	#[allow(missing_docs)]
-	NEWRULE = RTM_NEWRULE,
+	NEWRULE = RTM_::RTM_NEWRULE as u16,
 
 	#[allow(missing_docs)]
-	DELRULE = RTM_DELRULE,
+	DELRULE = RTM_::RTM_DELRULE as u16,
 
 	#[allow(missing_docs)]
-	GETRULE = RTM_GETRULE,
+	GETRULE = RTM_::RTM_GETRULE as u16,
 
 	#[allow(missing_docs)]
-	NEWQDISC = RTM_NEWQDISC,
+	NEWQDISC = RTM_::RTM_NEWQDISC as u16,
 
 	#[allow(missing_docs)]
-	DELQDISC = RTM_DELQDISC,
+	DELQDISC = RTM_::RTM_DELQDISC as u16,
 
 	#[allow(missing_docs)]
-	GETQDISC = RTM_GETQDISC,
+	GETQDISC = RTM_::RTM_GETQDISC as u16,
 
 	#[allow(missing_docs)]
-	NEWTCLASS = RTM_NEWTCLASS,
+	NEWTCLASS = RTM_::RTM_NEWTCLASS as u16,
 
 	#[allow(missing_docs)]
-	DELTCLASS = RTM_DELTCLASS,
+	DELTCLASS = RTM_::RTM_DELTCLASS as u16,
 
 	#[allow(missing_docs)]
-	GETTCLASS = RTM_GETTCLASS,
+	GETTCLASS = RTM_::RTM_GETTCLASS as u16,
 
 	#[allow(missing_docs)]
-	NEWTFILTER = RTM_NEWTFILTER,
+	NEWTFILTER = RTM_::RTM_NEWTFILTER as u16,
 
 	#[allow(missing_docs)]
-	DELTFILTER = RTM_DELTFILTER,
+	DELTFILTER = RTM_::RTM_DELTFILTER as u16,
 
 	#[allow(missing_docs)]
-	GETTFILTER = RTM_GETTFILTER,
+	GETTFILTER = RTM_::RTM_GETTFILTER as u16,
 
 	#[allow(missing_docs)]
-	NEWACTION = RTM_NEWACTION,
+	NEWACTION = RTM_::RTM_NEWACTION as u16,
 
 	#[allow(missing_docs)]
-	DELACTION = RTM_DELACTION,
+	DELACTION = RTM_::RTM_DELACTION as u16,
 
 	#[allow(missing_docs)]
-	GETACTION = RTM_GETACTION,
+	GETACTION = RTM_::RTM_GETACTION as u16,
 
 	#[allow(missing_docs)]
-	NEWPREFIX = RTM_NEWPREFIX,
+	NEWPREFIX = RTM_::RTM_NEWPREFIX as u16,
 
 	#[allow(missing_docs)]
-	GETMULTICAST = RTM_GETMULTICAST,
+	GETMULTICAST = RTM_::RTM_GETMULTICAST as u16,
 
 	#[allow(missing_docs)]
-	GETANYCAST = RTM_GETANYCAST,
+	GETANYCAST = RTM_::RTM_GETANYCAST as u16,
 
 	#[allow(missing_docs)]
-	NEWNEIGHTBL = RTM_NEWNEIGHTBL,
+	NEWNEIGHTBL = RTM_::RTM_NEWNEIGHTBL as u16,
 
 	#[allow(missing_docs)]
-	GETNEIGHTBL = RTM_GETNEIGHTBL,
+	GETNEIGHTBL = RTM_::RTM_GETNEIGHTBL as u16,
 
 	#[allow(missing_docs)]
-	SETNEIGHTBL = RTM_SETNEIGHTBL,
+	SETNEIGHTBL = RTM_::RTM_SETNEIGHTBL as u16,
 
 	#[allow(missing_docs)]
-	NEWNDUSEROPT = RTM_NEWNDUSEROPT,
+	NEWNDUSEROPT = RTM_::RTM_NEWNDUSEROPT as u16,
 
 	#[allow(missing_docs)]
-	NEWADDRLABEL = RTM_NEWADDRLABEL,
+	NEWADDRLABEL = RTM_::RTM_NEWADDRLABEL as u16,
 
 	#[allow(missing_docs)]
-	DELADDRLABEL = RTM_DELADDRLABEL,
+	DELADDRLABEL = RTM_::RTM_DELADDRLABEL as u16,
 
 	#[allow(missing_docs)]
-	GETADDRLABEL = RTM_GETADDRLABEL,
+	GETADDRLABEL = RTM_::RTM_GETADDRLABEL as u16,
 
 	#[allow(missing_docs)]
-	GETDCB = RTM_GETDCB,
+	GETDCB = RTM_::RTM_GETDCB as u16,
 
 	#[allow(missing_docs)]
-	SETDCB = RTM_SETDCB,
+	SETDCB = RTM_::RTM_SETDCB as u16,
 
 	#[allow(missing_docs)]
-	NEWNETCONF = RTM_NEWNETCONF,
+	NEWNETCONF = RTM_::RTM_NEWNETCONF as u16,
 
 	#[allow(missing_docs)]
-	GETNETCONF = RTM_GETNETCONF,
+	GETNETCONF = RTM_::RTM_GETNETCONF as u16,
 
 	#[allow(missing_docs)]
-	NEWMDB = RTM_NEWMDB,
+	NEWMDB = RTM_::RTM_NEWMDB as u16,
 
 	#[allow(missing_docs)]
-	DELMDB = RTM_DELMDB,
+	DELMDB = RTM_::RTM_DELMDB as u16,
 
 	#[allow(missing_docs)]
-	GETMDB = RTM_GETMDB,
+	GETMDB = RTM_::RTM_GETMDB as u16,
 
 	#[allow(missing_docs)]
-	NEWNSID = RTM_NEWNSID,
+	NEWNSID = RTM_::RTM_NEWNSID as u16,
 
 	#[allow(missing_docs)]
-	DELNSID = RTM_DELNSID,
+	DELNSID = RTM_::RTM_DELNSID as u16,
 
 	#[allow(missing_docs)]
-	GETNSID = RTM_GETNSID,
+	GETNSID = RTM_::RTM_GETNSID as u16,
+
+	#[allow(missing_docs)]
+	NEWSTATS = RTM_::RTM_NEWSTATS  as u16,
+
+	#[allow(missing_docs)]
+	GETSTATS = RTM_::RTM_GETSTATS  as u16,
+
+	#[allow(missing_docs)]
+	NEWCACHEREPORT = RTM_::RTM_NEWCACHEREPORT  as u16,
+
+	#[allow(missing_docs)]
+	NEWCHAIN = RTM_::RTM_NEWCHAIN  as u16,
+
+	#[allow(missing_docs)]
+	DELCHAIN = RTM_::RTM_DELCHAIN  as u16,
+
+	#[allow(missing_docs)]
+	GETCHAIN = RTM_::RTM_GETCHAIN  as u16,
+
+	#[allow(missing_docs)]
+	NEWNEXTHOP = RTM_::RTM_NEWNEXTHOP  as u16,
+
+	#[allow(missing_docs)]
+	DELNEXTHOP = RTM_::RTM_DELNEXTHOP  as u16,
+
+	#[allow(missing_docs)]
+	GETNEXTHOP = RTM_::RTM_GETNEXTHOP  as u16,
+
+	#[allow(missing_docs)]
+	NEWLINKPROP = RTM_::RTM_NEWLINKPROP  as u16,
+
+	#[allow(missing_docs)]
+	DELLINKPROP = RTM_::RTM_DELLINKPROP  as u16,
+
+	#[allow(missing_docs)]
+	GETLINKPROP = RTM_::RTM_GETLINKPROP  as u16,
+
+	#[allow(missing_docs)]
+	NEWVLAN = RTM_::RTM_NEWVLAN  as u16,
+
+	#[allow(missing_docs)]
+	DELVLAN = RTM_::RTM_DELVLAN  as u16,
+
+	#[allow(missing_docs)]
+	GETVLAN = RTM_::RTM_GETVLAN  as u16,
+}
+
+impl RouteNetlinkMessageType
+{
+	#[inline(always)]
+	pub(crate) const fn kind(self) -> RouteNetlinkMessageKind
+	{
+		unsafe { transmute((self as u16) & 0b11) }
+	}
 }

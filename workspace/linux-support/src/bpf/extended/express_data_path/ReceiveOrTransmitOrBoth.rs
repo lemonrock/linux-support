@@ -16,14 +16,14 @@ pub enum ReceiveOrTransmitOrBoth<V>
 	Both(V, V),
 }
 
-impl<V> ReceiveOrTransmitOrBoth<Receive, V>
+impl<V> ReceiveOrTransmitOrBoth<V>
 {
 	#[inline(always)]
 	pub fn use_value<MappedV>(&self, use_receive: impl FnOnce(&V) -> MappedV, use_transmit: impl FnOnce(&V) -> MappedV) -> ReceiveOrTransmitOrBoth<MappedV>
 	{
 		use self::ReceiveOrTransmitOrBoth::*;
 		
-		match receive_and_transmite_ring_queue_depths
+		match self
 		{
 			Receive(ref receive) => Receive(use_receive(receive)),
 			Transmit(ref transmit) => Transmit(use_transmit(transmit)),
@@ -32,11 +32,11 @@ impl<V> ReceiveOrTransmitOrBoth<Receive, V>
 	}
 	
 	#[inline(always)]
-	pub fn map<MappedV>(mut self, map_receive: impl FnOnce(V) -> MappedV, map_transmit: impl FnOnce(V) -> MappedV) -> ReceiveOrTransmitOrBoth<MappedV>
+	pub fn map<MappedV>(self, map_receive: impl FnOnce(V) -> MappedV, map_transmit: impl FnOnce(V) -> MappedV) -> ReceiveOrTransmitOrBoth<MappedV>
 	{
 		use self::ReceiveOrTransmitOrBoth::*;
 		
-		match receive_and_transmite_ring_queue_depths
+		match self
 		{
 			Receive(receive) => Receive(map_receive(receive)),
 			Transmit(transmit) => Transmit(map_transmit(transmit)),

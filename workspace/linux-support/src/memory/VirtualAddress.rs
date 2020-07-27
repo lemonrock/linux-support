@@ -71,6 +71,24 @@ impl<T> From<*const T> for VirtualAddress
 	}
 }
 
+impl From<usize> for VirtualAddress
+{
+	#[inline(always)]
+	fn from(value: usize) -> Self
+	{
+		VirtualAddress(value)
+	}
+}
+
+impl From<u64> for VirtualAddress
+{
+	#[inline(always)]
+	fn from(value: u64) -> Self
+	{
+		VirtualAddress(value as usize)
+	}
+}
+
 impl<T> Into<*const T> for VirtualAddress
 {
 	#[inline(always)]
@@ -98,24 +116,6 @@ impl<T> Into<*mut T> for VirtualAddress
 	}
 }
 
-impl From<usize> for VirtualAddress
-{
-	#[inline(always)]
-	fn from(value: usize) -> Self
-	{
-		VirtualAddress(value)
-	}
-}
-
-impl From<u64> for VirtualAddress
-{
-	#[inline(always)]
-	fn from(value: u64) -> Self
-	{
-		VirtualAddress(value as usize)
-	}
-}
-
 impl Into<u64> for VirtualAddress
 {
 	#[inline(always)]
@@ -140,6 +140,15 @@ impl<T> Into<NonNull<T>> for VirtualAddress
 	fn into(self) -> NonNull<T>
 	{
 		unsafe { NonNull::new_unchecked(self.0 as *mut T) }
+	}
+}
+
+impl Into<NonZeroU64> for VirtualAddress
+{
+	#[inline(always)]
+	fn into(self) -> NonZeroU64
+	{
+		unsafe { NonZeroU64::new_unchecked(self.0 as u64) }
 	}
 }
 

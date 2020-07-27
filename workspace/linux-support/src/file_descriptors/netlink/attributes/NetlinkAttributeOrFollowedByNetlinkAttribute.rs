@@ -5,7 +5,3 @@
 pub(crate) trait NetlinkAttributeOrFollowedByNetlinkAttribute: Sized
 {
 }
-
-impl NetlinkAttributeOrFollowedByNetlinkAttribute for NetlinkAttribute
-{
-}

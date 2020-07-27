@@ -2,16 +2,17 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// Statistics.
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[repr(C)]
-pub(super) struct xdp_statistics
+pub struct xdp_statistics
 {
-	/// Packets dropped for reasons other than invalid receive descriptor.
-	rx_dropped: u64,
+	/// Packets dropped for reasons other than an invalid receive descriptor.
+	pub rx_dropped: u64,
 	
-	/// Packets dropped due to invalid receive descriptor.
-	rx_invalid_descs: u64,
+	/// Packets dropped due to an invalid receive descriptor.
+	pub rx_invalid_descs: u64,
 	
-	/// Packets dropped due to invalid transmit descriptor.
-	tx_invalid_descs: u64,
+	/// Packets dropped due to an invalid transmit descriptor.
+	pub tx_invalid_descs: u64,
 }

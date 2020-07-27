@@ -16,8 +16,8 @@ pub struct ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended
 	pub memory_offsets_map: OffsetsMap<i16>,
 	
 	/// Maps.
-	pub map_file_descriptor_labels_map: &'map_file_descriptor_label_map FileDescriptorLabelsMap<MapFileDescriptor>,
+	pub map_file_descriptors: &'map_file_descriptor_label_map FileDescriptorsMap<MapFileDescriptor>,
 	
 	/// Programs.
-	pub extended_bpf_program_file_descriptor_labels_map: &'extended_bpf_program_file_descriptor_label_map mut FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>,
+	pub extended_bpf_program_file_descriptors: &'extended_bpf_program_file_descriptor_label_map mut FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>,
 }

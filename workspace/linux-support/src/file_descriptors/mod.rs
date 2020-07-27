@@ -132,6 +132,10 @@ pub mod linux_infra_red_remote_control;
 pub mod memfd;
 
 
+/// Network Device (network_device, netdev).
+pub mod network_device;
+
+
 /// Netlink.
 pub mod netlink;
 

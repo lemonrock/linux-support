@@ -62,8 +62,28 @@ impl ExpressDataPathSocketFileDescriptor
 		new_socket(AF_XDP, SOCK_RAW, 0, blocking.is_non_blocking()).map(|file_descriptor| Self(file_descriptor))
 	}
 	
+	/// Statistics.
+	///
+	/// Makes a syscall.
 	#[inline(always)]
-	pub(crate) fn register_user_space_memory(&self, configuration: &xpd_umem_reg, fill_ring_queue_depth: RingQueueDepth, completion_ring_queue_depth: RingQueueDepth)
+	#[allow(deprecated)]
+	pub(crate) fn statistics(&self) -> xdp_statistics
+	{
+		self.get_xdp_socket_option(XDP_STATISTICS, false)
+	}
+	
+	/// Options.
+	///
+	/// Makes a syscall.
+	#[inline(always)]
+	#[allow(deprecated)]
+	pub(crate) fn options(&self) -> xdp_options
+	{
+		self.get_xdp_socket_option(XDP_OPTIONS, false)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn register_user_space_memory(&self, configuration: &xdp_umem_reg, fill_ring_queue_depth: RingQueueDepth, completion_ring_queue_depth: RingQueueDepth)
 	{
 		self.set_xdp_socket_option(XDP_UMEM_REG, configuration);
 		self.set_xdp_socket_option(XDP_UMEM_FILL_RING, &fill_ring_queue_depth);
@@ -71,9 +91,10 @@ impl ExpressDataPathSocketFileDescriptor
 	}
 	
 	#[inline(always)]
+	#[allow(deprecated)]
 	pub(crate) fn get_memory_map_offsets(&self) -> xdp_mmap_offsets
 	{
-		const OptLen: u32 = size_of::<Self>() as u32;
+		let OptLen = size_of::<Self>() as u32;
 		
 		let mut memory_map_offsets: xdp_mmap_offsets = unsafe { uninitialized() };
 		self.get_xdp_socket_option(XDP_MMAP_OFFSETS, true)
@@ -95,11 +116,11 @@ impl ExpressDataPathSocketFileDescriptor
 	#[allow(deprecated)]
 	fn get_xdp_socket_option<V: Sized>(&self, xdp_socket_option: i32, validate_length_unchanged: bool) -> V
 	{
-		const OptLen: u32 = size_of::<V>() as u32;
+		let OptLen: u32 = size_of::<V>() as u32;
 		
 		let mut value: V = unsafe { uninitialized() };
 		let mut size = OptLen;
-		let result = unsafe { getsockopt(self.as_raw_fd(), SOL_XDP, xdp_socket_option, &mut value as *mut Self as *mut c_void, &mut size) };
+		let result = unsafe { getsockopt(self.as_raw_fd(), SOL_XDP, xdp_socket_option, &mut value as *mut V as *mut c_void, &mut size) };
 		if likely!(result == 0)
 		{
 			if validate_length_unchanged
@@ -117,6 +138,7 @@ impl ExpressDataPathSocketFileDescriptor
 				EINVAL => panic!("optlen invalid in setsockopt().  In some cases this error can also occur for an invalid value in optval (e.g., for the IP_ADD_MEMBERSHIP option described in ip(7))"),
 				ENOPROTOOPT => panic!("The option is unknown at the level indicated"),
 				ENOTSOCK => panic!("The file descriptor umem_or_xsk_socket_file_descriptor does not refer to a socket"),
+				EOPNOTSUPP => panic!("Unsupported sockopt"),
 				
 				unexpected @ _ => unreachable!("Unexpected error {} from getsockopt()", unexpected),
 			}

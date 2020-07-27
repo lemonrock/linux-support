@@ -8,8 +8,14 @@ pub trait ReplyReceiver<Protocol: NetlinkProtocol>
 	/// Starts of a message or messages (if multipart).
 	fn start_of_set_of_messages(&mut self, message_identification: &MultipartMessagePartIdentification);
 	
-	/// Could not start to retrieve messages (usually due to an error with recv).
+	/// Could not start to retrieve messages (usually due to an error with `recv()`).
 	fn could_not_start_messages(&mut self, error: io::Error);
+	
+	/// Could not continue to retrieve messages (usually due to an error with `recv()`).
+	fn could_not_continue_multipart_messages(&mut self, error: io::Error);
+	
+	/// Could not continue to retrieve messages (usually due to `recv()` returning `0`).
+	fn unexpected_end_of_set_of_multipart_messages(&mut self);
 	
 	/// A message.
 	///
@@ -19,6 +25,7 @@ pub trait ReplyReceiver<Protocol: NetlinkProtocol>
 	/// End of a set of messages, called after either `start_of_set_of_messages()` or `message()`.
 	///
 	/// `Ok(true)` if dump was interrrupted.
-	/// `Ok(false)` if everything was good.
-	fn end_of_set_of_messages(&mut self, result: io::Result<bool>);
+	/// `Ok(false)` if everything was good or an acknowledgment was received.
+	/// `Err(Errno)` for an error code from the netlink request message processing code.
+	fn end_of_set_of_messages(&mut self, result: Result<bool, Errno>);
 }

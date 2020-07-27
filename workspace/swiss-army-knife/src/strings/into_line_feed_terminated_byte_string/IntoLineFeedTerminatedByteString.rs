@@ -18,12 +18,32 @@ impl<'a> IntoLineFeedTerminatedByteString<'a> for &'a [u8]
 	}
 }
 
+impl<'a> IntoLineFeedTerminatedByteString<'a> for &'a [i8]
+{
+	#[inline(always)]
+	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
+	{
+		let v: &'a [u8] = unsafe { transmute(self) };
+		Cow::from(v)
+	}
+}
+
 impl<'a> IntoLineFeedTerminatedByteString<'a> for Vec<u8>
 {
 	#[inline(always)]
 	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
 	{
 		Cow::from(self)
+	}
+}
+
+impl<'a> IntoLineFeedTerminatedByteString<'a> for Vec<i8>
+{
+	#[inline(always)]
+	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
+	{
+		let v: Vec<u8> = unsafe { transmute(self) };
+		Cow::from(v)
 	}
 }
 
@@ -45,12 +65,31 @@ impl<'a> IntoLineFeedTerminatedByteString<'a> for &'a Vec<u8>
 	}
 }
 
+impl<'a> IntoLineFeedTerminatedByteString<'a> for &'a Vec<i8>
+{
+	#[inline(always)]
+	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
+	{
+		let v: &Vec<u8> = unsafe { transmute(self) };
+		Cow::from(&v[..])
+	}
+}
+
 impl<'a> IntoLineFeedTerminatedByteString<'a> for Cow<'a, [u8]>
 {
 	#[inline(always)]
 	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
 	{
 		self
+	}
+}
+
+impl<'a> IntoLineFeedTerminatedByteString<'a> for Cow<'a, [i8]>
+{
+	#[inline(always)]
+	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
+	{
+		unsafe { transmute(self) }
 	}
 }
 

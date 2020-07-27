@@ -3,4 +3,4 @@
 
 
 /// Program name.
-pub type ProgramName = ObjectName;
+pub type ProgramName = ObjectName16;

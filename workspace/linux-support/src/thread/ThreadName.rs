@@ -26,12 +26,12 @@ impl From<CommandName> for ThreadName
 	}
 }
 
-impl From<ObjectName> for ThreadName
+impl From<ObjectName16> for ThreadName
 {
 	#[inline(always)]
-	fn from(value: ObjectName) -> Self
+	fn from(value: ObjectName16) -> Self
 	{
-		Self::from(CommandName(value))
+		Self::from(CommandName::from(value))
 	}
 }
 
@@ -44,10 +44,10 @@ impl Into<CommandName> for ThreadName
 	}
 }
 
-impl Into<ObjectName> for ThreadName
+impl Into<ObjectName16> for ThreadName
 {
 	#[inline(always)]
-	fn into(self) -> ObjectName
+	fn into(self) -> ObjectName16
 	{
 		(self.0).into()
 	}
@@ -69,7 +69,7 @@ impl Default for ThreadName
 	#[inline(always)]
 	fn default() -> Self
 	{
-		Self(CommandName::from_bytes(b"unnamed").unwrap())
+		Self(CommandName::from(ObjectName16::from_bytes(b"unnamed").unwrap()))
 	}
 }
 
@@ -81,7 +81,7 @@ impl ThreadName
 	#[inline(always)]
 	pub fn get_current_thread_name() -> Self
 	{
-		let object_name = ObjectName::construct_from_c_function_call
+		let object_name = ObjectName16::construct_from_c_function_call
 		(
 			|buffer|
 			{
@@ -101,7 +101,7 @@ impl ThreadName
 			},
 			|| io::Error::new(ErrorKind::Other, "DoesNotEndWithAsciiNulError")
 		).expect("No good reason to fail");
-		Self(CommandName(object_name))
+		Self(CommandName::from(object_name))
 	}
 
 	/// This should not fail under ordinary circumstances.

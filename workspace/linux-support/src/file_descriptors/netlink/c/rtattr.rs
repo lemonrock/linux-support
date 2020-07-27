@@ -6,275 +6,21 @@
 ///
 /// Followed by attribute value.
 #[repr(C)]
-pub struct rtattr
+pub struct rtattr<NAT: NetlinkAttributeType>
 {
 	rta_len: u16,
 	
-	/// Starts `IFLA_*`.
-	///
-	/// See man 7 rtnetlink.
-	///
-	/// The following are valid for messages of type `RTM_NEWLINK`, `RTM_DELLINK` and `RTM_GETLINK`:-
-	///
-	/// * `IFLA_UNSPEC`      -                  unspecified.
-	/// * `IFLA_ADDRESS`     hardware address   interface L2 address
-	/// * `IFLA_BROADCAST`   hardware address   L2 broadcast address.
-	/// * `IFLA_IFNAME`      asciiz string      Device name.	Size including `NUL` should not exceed `IF_NAMESIZE` (16).
-	/// * `IFLA_MTU`         unsigned int       MTU of the device.
-	/// * `IFLA_LINK`        int                Link type.
-	/// * `IFLA_QDISC`       asciiz string      Queueing discipline.
-	/// * `IFLA_STATS`       see below          Interface Statistics.
-	/// And many others not well documented in the Linux header `if_link.h`.
-	///
-	/// The following are valid for messages of type `RTM_NEWADDR`, `RTM_DELADDR` and `RTM_GETADDR`:-
-	///
-	/// * `IFA_UNSPEC`      -                      unspecified.
-	/// * `IFA_ADDRESS`     raw protocol address   interface address
-	/// * `IFA_LOCAL`       raw protocol address   local address
-	/// * `IFA_LABEL`       asciiz string          name of the interface	Size including `NUL` should not exceed `IF_NAMESIZE` (16).
-	/// * `IFA_BROADCAST`   raw protocol address   broadcast address.
-	/// * `IFA_ANYCAST`     raw protocol address   anycast address
-	/// * `IFA_CACHEINFO`   struct ifa_cacheinfo   Address information.
-	/// * `IFA_FLAGS`
-	/// * `IFA_MULTICAST`
-	/// * `IFA_RT_PRIORITY` unsigned int           Priority or metric for prefix route.
-	/// * `IFA_TARGET_NETNSID`
-	/// The values starting `IFLA_*` ***overlap*** with those starting `IFA_*` ie `IFLA_ADDRESS` and `IFA_ADDRESS` are the same value!
-	pub(crate) rta_type: u16,
+	pub(crate) rta_type: NAT,
 }
 
-/// Link (`IFLA_*`).
-///
-/// See Linux header `if_link.h`.
-impl rtattr
-{
-	/// Unspecified data.
-	#[inline(always)]
-	pub fn get_attribute_value_link_unspecified(&self) -> &[u8]
-	{
-		debug_assert_eq!(self.rta_type, IFLA_UNSPEC);
-		
-		self.get_attribute_value_unspecified()
-	}
-	
-	/// Layer 2 address (eg Ethernet MAC).
-	#[inline(always)]
-	pub fn get_attribute_value_layer_2_address(&self) -> &[u8]
-	{
-		debug_assert_eq!(self.rta_type, IFLA_ADDRESS);
-		
-		self.get_attribute_value_hardware_address()
-	}
-	
-	/// Layer 2 broadcast address (eg Ethernet MAC).
-	#[inline(always)]
-	pub fn get_attribute_value_layer_2_broadcast_address(&self) -> &[u8]
-	{
-		debug_assert_eq!(self.rta_type, IFLA_BROADCAST);
-		
-		self.get_attribute_value_hardware_address()
-	}
-	
-	/// Maximum Transmission Unit (MTU).
-	#[inline(always)]
-	pub fn get_attribute_value_maximum_transmission_unit(&self) -> Result<u32, TryFromSliceError>
-	{
-		debug_assert_eq!(self.rta_type, IFLA_MTU);
-		
-		self.get_attribute_value_unsigned_integer()
-	}
-	
-	/// Device name (interface name).
-	#[inline(always)]
-	pub fn get_attribute_value_device_name(&self) -> Result<InterfaceName, String>
-	{
-		debug_assert_eq!(self.rta_type, IFLA_IFNAME);
-		
-		self.get_attribute_value_interface_name()
-	}
-	
-	/// Link type.
-	#[inline(always)]
-	pub fn get_attribute_value_link_type(&self) -> Result<i32, TryFromSliceError>
-	{
-		debug_assert_eq!(self.rta_type, IFLA_LINK);
-		
-		self.get_attribute_value_signed_integer()
-	}
-	
-	/// Queueing discipline.
-	#[inline(always)]
-	pub fn get_attribute_value_queueing_discipline(&self) -> Result<&CStr, FromBytesWithNulError>
-	{
-		debug_assert_eq!(self.rta_type, IFLA_QDISC);
-		
-		self.get_attribute_value_asciiz_string()
-	}
-	
-	/// Interface statistics.
-	#[inline(always)]
-	pub fn get_attribute_value_interface_statistics(&self) -> Result<&rtnl_link_stats64, &'static str>
-	{
-		debug_assert_eq!(self.rta_type, IFLA_STATS);
-		
-		let attribute_value = self.attribute_value();
-		if attribute_value.len() != size_of::<rtnl_link_stats64>()
-		{
-			Err("Invalid length for rtnl_link_stats64")
-		}
-		else
-		{
-			Ok(unsafe { & * (attribute_value.as_ptr() as *const rtnl_link_stats64) })
-		}
-	}
-	
-	#[inline(always)]
-	fn get_attribute_value_hardware_address(&self) -> &[u8]
-	{
-		if cfg!(debug_assertions)
-		{
-			match self.rta_type
-			{
-				IFLA_ADDRESS | IFLA_BROADCAST => (),
-				
-				_ => debug_assert!(false, "self.rta_type {} is not one of IFLA_ADDRESS or IFLA_BROADCAST"),
-			}
-		}
-		self.attribute_value()
-	}
-}
-
-/// Address (`IFA_*`).
-///
-/// See Linux header `if_addr.h`.
-impl rtattr
-{
-	#[allow(dead_code)]
-	#[inline(always)]
-	pub(super) fn get_attribute_value_address_unspecified(&self) -> &[u8]
-	{
-		debug_assert_eq!(self.rta_type, IFA_UNSPEC);
-		
-		self.get_attribute_value_unspecified()
-	}
-	
-	#[inline(always)]
-	pub(super) fn get_attribute_value_interface_address(&self) -> &[u8]
-	{
-		debug_assert_eq!(self.rta_type, IFA_ADDRESS);
-		
-		self.get_attribute_value_raw_protocol_address()
-	}
-	
-	#[inline(always)]
-	pub(super) fn get_attribute_value_local_address(&self) -> &[u8]
-	{
-		debug_assert_eq!(self.rta_type, IFA_LOCAL);
-		
-		self.get_attribute_value_raw_protocol_address()
-	}
-	
-	#[inline(always)]
-	pub(super) fn get_attribute_value_name_of_interface(&self) -> Result<InterfaceName, String>
-	{
-		debug_assert_eq!(self.rta_type, IFA_LABEL);
-		
-		self.get_attribute_value_interface_name()
-	}
-	
-	#[inline(always)]
-	pub(super) fn get_attribute_value_broadcast_address(&self) -> &[u8]
-	{
-		debug_assert_eq!(self.rta_type, IFA_BROADCAST);
-		
-		self.get_attribute_value_raw_protocol_address()
-	}
-	
-	#[inline(always)]
-	pub(super) fn get_attribute_value_anycast_address(&self) -> &[u8]
-	{
-		debug_assert_eq!(self.rta_type, IFA_ANYCAST);
-		
-		self.get_attribute_value_raw_protocol_address()
-	}
-	
-	#[inline(always)]
-	pub(super) fn get_attribute_value_cache_information(&self) -> Result<&ifa_cacheinfo, String>
-	{
-		debug_assert_eq!(self.rta_type, IFA_CACHEINFO);
-		
-		const Size: usize = size_of::<ifa_cacheinfo>();
-		
-		let attribute_value = self.attribute_value();
-		let length = attribute_value.len();
-		if length != Size
-		{
-			Err(format!("Invalid length {} for ifa_cacheinfo does not match size {} ", length, Size))
-		}
-		else
-		{
-			Ok(unsafe { & * (attribute_value.as_ptr() as *const ifa_cacheinfo) })
-		}
-	}
-	
-	#[inline(always)]
-	pub(super) fn get_attribute_value_multicast_address(&self) -> &[u8]
-	{
-		debug_assert_eq!(self.rta_type, IFA_MULTICAST);
-		
-		self.get_attribute_value_raw_protocol_address()
-	}
-	
-	#[inline(always)]
-	pub(super) fn get_attribute_value_extended_interface_flags(&self) -> Result<ExtendedInterfaceFlags, TryFromSliceError>
-	{
-		debug_assert_eq!(self.rta_type, IFA_FLAGS);
-		
-		Ok(ExtendedInterfaceFlags::from_bits_truncate(self.get_attribute_value_unsigned_integer()?))
-	}
-	
-	#[inline(always)]
-	pub(super) fn get_attribute_value_route_priority(&self) -> Result<u32, TryFromSliceError>
-	{
-		debug_assert_eq!(self.rta_type, IFA_RT_PRIORITY);
-		
-		self.get_attribute_value_unsigned_integer()
-	}
-	
-	#[inline(always)]
-	pub(super) fn get_attribute_value_target_net_namespace_identifier(&self) -> Result<i32, TryFromSliceError>
-	{
-		debug_assert_eq!(self.rta_type, IFA_TARGET_NETNSID);
-		
-		self.get_attribute_value_signed_integer()
-	}
-	
-	#[inline(always)]
-	fn get_attribute_value_raw_protocol_address(&self) -> &[u8]
-	{
-		if cfg!(debug_assertions)
-		{
-			match self.rta_type
-			{
-				IFA_ADDRESS | IFA_LOCAL | IFA_BROADCAST | IFA_ANYCAST | IFA_MULTICAST => (),
-				
-				_ => debug_assert!(false, "self.rta_type {} is not one of IFA_ADDRESS, IFA_LOCAL, IFA_BROADCAST, IFA_ANYCAST or IFA_MULTICAST"),
-			}
-		}
-		self.attribute_value()
-	}
-}
-
-impl rtattr
+impl<NAT: NetlinkAttributeType> rtattr<NAT>
 {
 	#[inline(always)]
-	fn get_attribute_value_interface_name(&self) -> Result<InterfaceName, String>
+	fn get_attribute_value_network_interface_name(&self) -> Result<NetworkInterfaceName, String>
 	{
 		let asciiz_string = self.get_attribute_value_asciiz_string().map_err(|error| error.to_string())?;
 		let bytes = asciiz_string.to_bytes();
-		let mut array_vec = ArrayVec::new();
-		array_vec.try_extend_from_slice(bytes).map_err(|_| format!("Interface name length must be equal to or less than {}, not {}", InterfaceName::InterfaceNameSize, bytes.len()))?;
-		Ok(InterfaceName(array_vec))
+		NetworkInterfaceName::from_bytes(bytes).map_err(|error| format!("{}", error))
 	}
 	
 	#[inline(always)]
@@ -413,5 +159,261 @@ impl rtattr
 	fn length(&self) -> usize
 	{
 		self.rta_len as usize
+	}
+}
+
+/// Link (`IFLA_*`).
+///
+/// See Linux header `if_link.h`.
+///
+/// See man 7 rtnetlink.
+///
+/// The following are valid for messages of type `RTM_NEWLINK`, `RTM_DELLINK` and `RTM_GETLINK`:-
+///
+/// * `IFLA_UNSPEC`      -                  unspecified.
+/// * `IFLA_ADDRESS`     hardware address   interface L2 address
+/// * `IFLA_BROADCAST`   hardware address   L2 broadcast address.
+/// * `IFLA_IFNAME`      asciiz string      Device name.	Size including `NUL` should not exceed `IF_NAMESIZE` (16).
+/// * `IFLA_MTU`         unsigned int       MTU of the device.
+/// * `IFLA_LINK`        int                Link type.
+/// * `IFLA_QDISC`       asciiz string      Queueing discipline.
+/// * `IFLA_STATS`       see below          Interface Statistics.
+/// And many others not well documented in the Linux header `if_link.h`.
+impl rtattr<IFLA>
+{
+	/// Unspecified data.
+	#[inline(always)]
+	pub fn get_attribute_value_link_unspecified(&self) -> &[u8]
+	{
+		debug_assert_eq!(self.rta_type, IFLA::IFLA_UNSPEC);
+		
+		self.get_attribute_value_unspecified()
+	}
+	
+	/// Layer 2 address (eg Ethernet MAC).
+	#[inline(always)]
+	pub fn get_attribute_value_layer_2_address(&self) -> &[u8]
+	{
+		debug_assert_eq!(self.rta_type, IFLA::IFLA_ADDRESS);
+		
+		self.get_attribute_value_hardware_address()
+	}
+	
+	/// Layer 2 broadcast address (eg Ethernet MAC).
+	#[inline(always)]
+	pub fn get_attribute_value_layer_2_broadcast_address(&self) -> &[u8]
+	{
+		debug_assert_eq!(self.rta_type, IFLA::IFLA_BROADCAST);
+		
+		self.get_attribute_value_hardware_address()
+	}
+	
+	/// Maximum Transmission Unit (MTU).
+	#[inline(always)]
+	pub fn get_attribute_value_maximum_transmission_unit(&self) -> Result<u32, TryFromSliceError>
+	{
+		debug_assert_eq!(self.rta_type, IFLA::IFLA_MTU);
+		
+		self.get_attribute_value_unsigned_integer()
+	}
+	
+	/// Device name (interface name).
+	#[inline(always)]
+	pub fn get_attribute_value_device_name(&self) -> Result<NetworkInterfaceName, String>
+	{
+		debug_assert_eq!(self.rta_type, IFLA::IFLA_IFNAME);
+		
+		self.get_attribute_value_network_interface_name()
+	}
+	
+	/// Link type.
+	#[inline(always)]
+	pub fn get_attribute_value_link_type(&self) -> Result<i32, TryFromSliceError>
+	{
+		debug_assert_eq!(self.rta_type, IFLA::IFLA_LINK);
+		
+		self.get_attribute_value_signed_integer()
+	}
+	
+	/// Queueing discipline.
+	#[inline(always)]
+	pub fn get_attribute_value_queueing_discipline(&self) -> Result<&CStr, FromBytesWithNulError>
+	{
+		debug_assert_eq!(self.rta_type, IFLA::IFLA_QDISC);
+		
+		self.get_attribute_value_asciiz_string()
+	}
+	
+	/// Interface statistics.
+	#[inline(always)]
+	pub fn get_attribute_value_interface_statistics(&self) -> Result<&rtnl_link_stats64, &'static str>
+	{
+		debug_assert_eq!(self.rta_type, IFLA::IFLA_STATS);
+		
+		let attribute_value = self.attribute_value();
+		if attribute_value.len() != size_of::<rtnl_link_stats64>()
+		{
+			Err("Invalid length for rtnl_link_stats64")
+		}
+		else
+		{
+			Ok(unsafe { & * (attribute_value.as_ptr() as *const rtnl_link_stats64) })
+		}
+	}
+	
+	#[inline(always)]
+	fn get_attribute_value_hardware_address(&self) -> &[u8]
+	{
+		if cfg!(debug_assertions)
+		{
+			use self::IFLA::*;
+			
+			match self.rta_type
+			{
+				IFLA_ADDRESS | IFLA_BROADCAST => (),
+				
+				_ => debug_assert!(false, "self.rta_type {} is not one of IFLA_ADDRESS or IFLA_BROADCAST"),
+			}
+		}
+		self.attribute_value()
+	}
+}
+
+/// Address (`IFA_*`).
+///
+/// See Linux header `if_addr.h`.
+///
+/// See man 7 rtnetlink.
+///
+/// The following are valid for messages of type `RTM_NEWADDR`, `RTM_DELADDR` and `RTM_GETADDR`:-
+///
+/// * `IFA_UNSPEC`      -                      unspecified.
+/// * `IFA_ADDRESS`     raw protocol address   interface address
+/// * `IFA_LOCAL`       raw protocol address   local address
+/// * `IFA_LABEL`       asciiz string          name of the interface	Size including `NUL` should not exceed `IF_NAMESIZE` (16).
+/// * `IFA_BROADCAST`   raw protocol address   broadcast address.
+/// * `IFA_ANYCAST`     raw protocol address   anycast address
+/// * `IFA_CACHEINFO`   struct ifa_cacheinfo   Address information.
+/// * `IFA_FLAGS`
+/// * `IFA_MULTICAST`
+/// * `IFA_RT_PRIORITY` unsigned int           Priority or metric for prefix route.
+/// * `IFA_TARGET_NETNSID`
+impl rtattr<IFA>
+{
+	#[allow(dead_code)]
+	#[inline(always)]
+	pub(super) fn get_attribute_value_address_unspecified(&self) -> &[u8]
+	{
+		debug_assert_eq!(self.rta_type, IFA::IFA_UNSPEC);
+		
+		self.get_attribute_value_unspecified()
+	}
+	
+	#[inline(always)]
+	pub(super) fn get_attribute_value_interface_address(&self) -> &[u8]
+	{
+		debug_assert_eq!(self.rta_type, IFA::IFA_ADDRESS);
+		
+		self.get_attribute_value_raw_protocol_address()
+	}
+	
+	#[inline(always)]
+	pub(super) fn get_attribute_value_local_address(&self) -> &[u8]
+	{
+		debug_assert_eq!(self.rta_type, IFA::IFA_LOCAL);
+		
+		self.get_attribute_value_raw_protocol_address()
+	}
+	
+	#[inline(always)]
+	pub(super) fn get_attribute_value_name_of_interface(&self) -> Result<NetworkInterfaceName, String>
+	{
+		debug_assert_eq!(self.rta_type, IFA::IFA_LABEL);
+		
+		self.get_attribute_value_network_interface_name()
+	}
+	
+	#[inline(always)]
+	pub(super) fn get_attribute_value_broadcast_address(&self) -> &[u8]
+	{
+		debug_assert_eq!(self.rta_type, IFA::IFA_BROADCAST);
+		
+		self.get_attribute_value_raw_protocol_address()
+	}
+	
+	#[inline(always)]
+	pub(super) fn get_attribute_value_anycast_address(&self) -> &[u8]
+	{
+		debug_assert_eq!(self.rta_type, IFA::IFA_ANYCAST);
+		
+		self.get_attribute_value_raw_protocol_address()
+	}
+	
+	#[inline(always)]
+	pub(super) fn get_attribute_value_cache_information(&self) -> Result<&ifa_cacheinfo, String>
+	{
+		debug_assert_eq!(self.rta_type, IFA::IFA_CACHEINFO);
+		
+		const Size: usize = size_of::<ifa_cacheinfo>();
+		
+		let attribute_value = self.attribute_value();
+		let length = attribute_value.len();
+		if length != Size
+		{
+			Err(format!("Invalid length {} for ifa_cacheinfo does not match size {} ", length, Size))
+		}
+		else
+		{
+			Ok(unsafe { & * (attribute_value.as_ptr() as *const ifa_cacheinfo) })
+		}
+	}
+	
+	#[inline(always)]
+	pub(super) fn get_attribute_value_multicast_address(&self) -> &[u8]
+	{
+		debug_assert_eq!(self.rta_type, IFA::IFA_MULTICAST);
+		
+		self.get_attribute_value_raw_protocol_address()
+	}
+	
+	#[inline(always)]
+	pub(super) fn get_attribute_value_extended_interface_flags(&self) -> Result<ExtendedInterfaceFlags, TryFromSliceError>
+	{
+		debug_assert_eq!(self.rta_type, IFA::IFA_FLAGS);
+		
+		Ok(ExtendedInterfaceFlags::from_bits_truncate(self.get_attribute_value_unsigned_integer()?))
+	}
+	
+	#[inline(always)]
+	pub(super) fn get_attribute_value_route_priority(&self) -> Result<u32, TryFromSliceError>
+	{
+		debug_assert_eq!(self.rta_type, IFA::IFA_RT_PRIORITY);
+		
+		self.get_attribute_value_unsigned_integer()
+	}
+	
+	#[inline(always)]
+	pub(super) fn get_attribute_value_target_net_namespace_identifier(&self) -> Result<i32, TryFromSliceError>
+	{
+		debug_assert_eq!(self.rta_type, IFA::IFA_TARGET_NETNSID);
+		
+		self.get_attribute_value_signed_integer()
+	}
+	
+	#[inline(always)]
+	fn get_attribute_value_raw_protocol_address(&self) -> &[u8]
+	{
+		if cfg!(debug_assertions)
+		{
+			use self::IFA::*;
+			
+			match self.rta_type
+			{
+				IFA_ADDRESS | IFA_LOCAL | IFA_BROADCAST | IFA_ANYCAST | IFA_MULTICAST => (),
+				
+				_ => debug_assert!(false, "self.rta_type {} is not one of IFA_ADDRESS, IFA_LOCAL, IFA_BROADCAST, IFA_ANYCAST or IFA_MULTICAST"),
+			}
+		}
+		self.attribute_value()
 	}
 }

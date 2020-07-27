@@ -98,7 +98,7 @@ impl bpf_prog_info
 	#[inline(always)]
 	pub fn name(&self) -> ProgramName
 	{
-		ProgramName::from(&self.name)
+		ProgramName::try_from(&self.name).unwrap()
 	}
 	
 	/// Associated BTF identifier, if any.

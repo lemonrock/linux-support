@@ -19,7 +19,7 @@ impl MapConstructor for WithNumaNodeStackTraceMapInstructionPointerMapConstructo
 	type VariableArguments = (StackDepth, NumaNode);
 	
 	#[inline(always)]
-	fn construct(map_file_descriptors: &mut FileDescriptorLabelsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: Self::AccessPermissions, _arguments_that_end_up_in_map_flags: Self::InvariantArguments, variable_arguments: Self::VariableArguments) -> Result<Self::Map, MapCreationError>
+	fn construct(map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: Self::AccessPermissions, _arguments_that_end_up_in_map_flags: Self::InvariantArguments, variable_arguments: Self::VariableArguments) -> Result<Self::Map, MapCreationError>
 	{
 		let (stack_depth, numa_node) = variable_arguments;
 		StackTraceMap::new_instruction_pointer(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, maximum_entries, access_permissions, Some(numa_node), stack_depth)

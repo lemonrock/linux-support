@@ -16,7 +16,7 @@ impl<CurrentPayload: Sized, Following: NetlinkAttributeOrFollowedByNetlinkAttrib
 impl<CurrentPayload: Sized, FollowingPayload: Sized> NetlinkAttributeFollowedByNetlinkAttribute<CurrentPayload, NetlinkAttribute<FollowingPayload>>
 {
 	#[inline(always)]
-	pub(crate) fn followed_by<V: Sized>(self, following: NetlinkAttribute<V>) -> NetlinkAttributeFollowedByNetlinkAttribute<CurrentPayload, NetlinkAttributeFollowedByNetlinkAttribute<FollowingPayload, V>>
+	pub(crate) fn followed_by<V: NetlinkAttributeOrFollowedByNetlinkAttribute>(self, following: V) -> NetlinkAttributeFollowedByNetlinkAttribute<CurrentPayload, NetlinkAttributeFollowedByNetlinkAttribute<FollowingPayload, V>>
 	{
 		NetlinkAttributeFollowedByNetlinkAttribute
 		{
@@ -27,5 +27,11 @@ impl<CurrentPayload: Sized, FollowingPayload: Sized> NetlinkAttributeFollowedByN
 				following,
 			}
 		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn followed_by_attribute<Following: Sized>(self, netlink_attribute_type: impl NetlinkAttributeType, payload: Following) -> NetlinkAttributeFollowedByNetlinkAttribute<CurrentPayload, NetlinkAttributeFollowedByNetlinkAttribute<FollowingPayload, NetlinkAttribute<Following>>>
+	{
+		self.followed_by(attribute(netlink_attribute_type, payload))
 	}
 }

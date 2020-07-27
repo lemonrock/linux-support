@@ -26,7 +26,7 @@ impl ApplicationName
 	#[inline(always)]
 	pub fn new_from_process_name(process_name: &ProcessName) -> Result<Self, PrintableAsciiCharacterPushError>
 	{
-		Self::new(&process_name[..])
+		Self::new(process_name.as_ref())
 	}
 	
 	/// ***SLOW***.

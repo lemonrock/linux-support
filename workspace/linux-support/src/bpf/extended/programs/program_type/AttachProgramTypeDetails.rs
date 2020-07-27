@@ -13,24 +13,24 @@
 #[derive(Default, Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
-pub struct AttachProgramTypeDetails<'name>
+pub struct AttachProgramTypeDetails
 {
 	/// In-kernel BTF type id to attach to.
 	pub attach_to_bpf_type_identifier: AttachToBpfTypeIdentifier,
 	
 	/// A file descriptor; use `None` to attach to vmlinux.
-	pub attach_to_bpf_program: Option<FileDescriptorLabel<'name>>,
+	pub attach_to_bpf_program: Option<ProgramName>,
 }
 
-impl<'name> AttachProgramTypeDetails<'name>
+impl AttachProgramTypeDetails
 {
 	#[inline(always)]
-	pub(crate) fn to_values(&self, program_type: bpf_prog_type, expected_attached_type: bpf_attach_type, extended_bpf_program_file_descriptor_labels_map: &FileDescriptorLabelsMap<ExtendedBpfProgramFileDescriptor>) -> Result<(bpf_prog_type, bpf_attach_type, BpfTypeFormatTypeIdentifier, RawFd, u32, Option<NetworkInterfaceIndex>), ProgramError>
+	pub(crate) fn to_values(&self, program_type: bpf_prog_type, expected_attached_type: bpf_attach_type, extended_bpf_program_file_descriptors: &FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>) -> Result<(bpf_prog_type, bpf_attach_type, BpfTypeFormatTypeIdentifier, RawFd, u32, Option<NetworkInterfaceIndex>), ProgramError>
 	{
 		let attach_prog_fd = match self.attach_to_bpf_program
 		{
 			None => 0,
-			Some(ref file_descriptor_label) => extended_bpf_program_file_descriptor_labels_map.resolve(file_descriptor_label)?,
+			Some(ref program_name) => extended_bpf_program_file_descriptors.resolve(program_name)?,
 		};
 		
 		Ok((program_type, expected_attached_type, self.attach_to_bpf_type_identifier.0, attach_prog_fd, 0, None))

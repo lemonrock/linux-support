@@ -213,6 +213,7 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 				EINVAL => panic!("`optlen` is invalid, or there is an invalid value in `optval`"),
 				ENOPROTOOPT => panic!("The option is unknown at the level indicated"),
 				ENOTSOCK => panic!("The argument `sockfd` is a file, not a socket"),
+				EOPNOTSUPP => panic!("Unsupported sockopt"),
 
 				_ => unreachable!(),
 			}

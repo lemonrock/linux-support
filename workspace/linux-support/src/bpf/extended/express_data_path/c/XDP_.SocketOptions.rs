@@ -14,6 +14,6 @@ pub(crate) const XDP_UMEM_FILL_RING: i32 = 5;
 
 pub(crate) const XDP_UMEM_COMPLETION_RING: i32 = 6;
 
-const XDP_STATISTICS: i32 = 7;
+pub(crate) const XDP_STATISTICS: i32 = 7;
 
-const XDP_OPTIONS: i32 = 8;
+pub(crate) const XDP_OPTIONS: i32 = 8;

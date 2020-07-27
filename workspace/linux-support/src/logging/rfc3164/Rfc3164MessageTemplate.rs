@@ -81,8 +81,9 @@ impl Rfc3164MessageTemplate
 			}
 			after_timestamp.push(b' ');
 			
-			let process_name = &process_name[..];
-			assert!(!(&process_name[..]).contains(&b' '), "process_name contains a space");
+			let process_name: &[u8] = process_name.as_ref();
+			
+			assert!(!process_name.contains(&b' '), "process_name contains a space");
 			after_timestamp.extend_from_slice(process_name);
 			after_timestamp.push(b'[');
 			after_timestamp.extend_from_slice(b"]: ");

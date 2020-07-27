@@ -7,7 +7,7 @@ use crate::bpf::c::*;
 use crate::bpf::extended::bpf_type_format::*;
 use crate::bpf::extended::identifiers::*;
 use crate::bpf::extended::instructions::*;
-use crate::bpf::extended::instructions::file_descriptor_label::*;
+use crate::bpf::extended::instructions::file_descriptors_map::*;
 use crate::bpf::extended::maps::domain::*;
 use crate::bpf::extended::maps::domain::access_permissions::*;
 use crate::bpf::extended::process_query::*;

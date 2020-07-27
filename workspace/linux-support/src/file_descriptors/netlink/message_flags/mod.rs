@@ -11,4 +11,5 @@ include!("NetlinkDeleteRequestMessageFlags.rs");
 include!("NetlinkNewRequestMessageFlags.rs");
 include!("NetlinkMessageFlags.rs");
 include!("NetlinkGetRequestMessageFlags.rs");
+include!("NetlinkSetRequestMessageFlags.rs");
 include!("NetlinkSpecificMessageFlags.rs");

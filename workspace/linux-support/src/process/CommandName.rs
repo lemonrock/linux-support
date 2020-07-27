@@ -8,8 +8,9 @@
 ///
 /// Deref excludes trailing ASCII NUL.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 #[repr(transparent)]
-pub struct CommandName(ObjectName);
+pub struct CommandName(ObjectName16);
 
 impl Display for CommandName
 {
@@ -20,18 +21,38 @@ impl Display for CommandName
 	}
 }
 
-impl Into<ObjectName> for CommandName
+impl Into<ObjectName16> for CommandName
 {
 	#[inline(always)]
-	fn into(self) -> ObjectName
+	fn into(self) -> ObjectName16
 	{
 		self.0
 	}
 }
 
+impl From<ObjectName16> for CommandName
+{
+	#[inline(always)]
+	fn from(value: ObjectName16) -> Self
+	{
+		Self(value)
+	}
+}
+
+impl FromBytes for CommandName
+{
+	type Error = ObjectNameFromBytesError;
+	
+	#[inline(always)]
+	fn from_bytes(bytes: &[u8]) -> Result<Self, Self::Error>
+	{
+		ObjectName16::from_bytes(bytes).map(|object_name| Self(object_name))
+	}
+}
+
 impl Deref for CommandName
 {
-	type Target = ObjectName;
+	type Target = ObjectName16;
 	
 	#[inline(always)]
 	fn deref(&self) -> &Self::Target
@@ -46,7 +67,7 @@ impl CommandName
 	#[inline(always)]
 	pub fn read_from_file_line_feed_terminated(file_path: &Path) -> io::Result<Self>
 	{
-		ObjectName::read_from_file_line_feed_terminated(file_path).map(|object_name| Self(object_name))
+		ObjectName16::read_from_file_line_feed_terminated(file_path).map(|object_name| Self(object_name))
 	}
 	
 	/// Writes to a Linux ProcPath or SysPath resource.
