@@ -28,23 +28,34 @@ pub struct ExtendedBpfProgramTemplate<'name>
 
 impl<'name> ExtendedBpfProgramTemplate<'name>
 {
+	/// Wraps parse and load with defaults for common arguments.
+	///
+	/// Creates a VerifierLog of 16Kb.
+	///
+	/// Assumes the program (`self`) has no `Offset::Named` (`'name`) memory offsets or immediates to resolve.
+	#[inline(always)]
+	pub fn convenient_load(&self, map_file_descriptors: &FileDescriptorsMap<MapFileDescriptor>, extended_bpf_program_file_descriptors: &mut FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>) -> Result<Rc<ExtendedBpfProgramFileDescriptor>, ProgramLoadError>
+	{
+		let arguments = ExtendedBpfProgramArguments::new(&map_file_descriptors, &mut extended_bpf_program_file_descriptors);
+		self.parse_and_load(arguments, Some(VerifierLog::default())).map(|((extended_bpf_program_file_descriptor, _verifier_log))| extended_bpf_program_file_descriptor)
+	}
+	
 	/// Parse and load.
 	#[inline(always)]
-	pub fn parse_and_load(&self, arguments: ExtendedBpfProgramArguments, verifier_log: Option<&mut VerifierLog>) -> Result<Rc<ExtendedBpfProgramFileDescriptor>, ProgramLoadError>
+	pub fn parse_and_load(&self, arguments: ExtendedBpfProgramArguments, verifier_log: Option<VerifierLog>) -> Result<(Rc<ExtendedBpfProgramFileDescriptor>, Option<VerifierLog>), ProgramLoadError>
 	{
-		let verifier_log_copy = unsafe { transmute_copy(&verifier_log) };
+		let (instructions, parsed_bpf_type_format_data, extended_bpf_program_file_descriptors, verifier_log) = ProgramLinesParser::parse(self.bpf_type_format_program_details.as_ref(), &self.program_lines, arguments, verifier_log)?;
 		
-		let (instructions, parsed_bpf_type_format_data, extended_bpf_program_file_descriptors) = ProgramLinesParser::parse(self.bpf_type_format_program_details.as_ref(), &self.program_lines, arguments, verifier_log_copy)?;
+		let (extended_bpf_program_file_descriptor, verifier_log) = self.load(&instructions[..], parsed_bpf_type_format_data.as_ref(), extended_bpf_program_file_descriptors, verifier_log)?;
 		
-		let extended_bpf_program_file_descriptor = self.load(&instructions[..], parsed_bpf_type_format_data.as_ref(), extended_bpf_program_file_descriptors, verifier_log)?;
-		
-		Ok(extended_bpf_program_file_descriptors.add(self.program_name.clone(), extended_bpf_program_file_descriptor)?)
+		let extended_bpf_program_file_descriptor = extended_bpf_program_file_descriptors.add(self.program_name.clone(), extended_bpf_program_file_descriptor)?;
+		Ok((extended_bpf_program_file_descriptor, verifier_log))
 	}
 	
 	#[inline(always)]
-	fn load(&self, instructions: &[bpf_insn], parsed_bpf_type_format_data: Option<&ParsedBpfTypeFormatData>, extended_bpf_program_file_descriptors: &FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>, verifier_log: Option<&mut VerifierLog>) -> Result<ExtendedBpfProgramFileDescriptor, ProgramLoadError>
+	fn load(&self, instructions: &[bpf_insn], parsed_bpf_type_format_data: Option<&ParsedBpfTypeFormatData>, extended_bpf_program_file_descriptors: &FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>, verifier_log: Option<VerifierLog>) -> Result<(ExtendedBpfProgramFileDescriptor, Option<VerifierLog>), ProgramLoadError>
 	{
-		let (log_level, log_buf, log_size) = VerifierLog::to_values_for_syscall(verifier_log);
+		let (log_level, log_buf, log_size) = VerifierLog::to_values_for_syscall(verifier_log.as_mut());
 		
 		let (prog_type, expected_attach_type, attach_btf_id, attach_prog_fd, kern_version, prog_ifindex) = self.program_type.to_values(&extended_bpf_program_file_descriptors)?;
 		
@@ -89,7 +100,7 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 		
 		if likely!(result >= 0)
 		{
-			Ok(unsafe { ExtendedBpfProgramFileDescriptor::from_raw_fd(result) })
+			Ok((unsafe { ExtendedBpfProgramFileDescriptor::from_raw_fd(result) }, verifier_log))
 		}
 		else if likely!(result == -1)
 		{
@@ -108,7 +119,10 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 				
 				EBADF => unreachable!(),
 				
-				EACCES | EINVAL | E2BIG => Err(InvalidProgram),
+				EACCES | EINVAL | E2BIG =>
+				{
+					Err(InvalidProgram(verifier_log.map(|verifier_log| verifier_log.into())))
+				}
 				
 				ENOMEM=> Err(OutOfMemoryOrResources),
 				
@@ -128,17 +142,17 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 	#[inline(always)]
 	fn instruction_count(instructions: &[bpf_insn]) -> Result<u32, ProgramLoadError>
 	{
-		use self::ProgramError::*;
+		use self::ParseError::*;
 		use self::ProgramLoadError::*;
 		
 		const UpperLimit: usize = u32::MAX as usize;
 		match instructions.len()
 		{
-			0 => Err(Program(ThereAreNoInstructions)),
+			0 => Err(Parse(ThereAreNoInstructions)),
 			
 			length @ 1 ..= UpperLimit => Ok(length as u32),
 			
-			_ => Err(Program(ThereAreMoreThanU32MaxInstructions)),
+			_ => Err(Parse(ThereAreMoreThanU32MaxInstructions)),
 		}
 	}
 	

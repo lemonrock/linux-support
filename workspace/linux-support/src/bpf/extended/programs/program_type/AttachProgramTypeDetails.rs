@@ -25,7 +25,7 @@ pub struct AttachProgramTypeDetails
 impl AttachProgramTypeDetails
 {
 	#[inline(always)]
-	pub(crate) fn to_values(&self, program_type: bpf_prog_type, expected_attached_type: bpf_attach_type, extended_bpf_program_file_descriptors: &FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>) -> Result<(bpf_prog_type, bpf_attach_type, BpfTypeFormatTypeIdentifier, RawFd, u32, Option<NetworkInterfaceIndex>), ProgramError>
+	pub(crate) fn to_values(&self, program_type: bpf_prog_type, expected_attached_type: bpf_attach_type, extended_bpf_program_file_descriptors: &FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>) -> Result<(bpf_prog_type, bpf_attach_type, BpfTypeFormatTypeIdentifier, RawFd, u32, Option<NetworkInterfaceIndex>), ParseError>
 	{
 		let attach_prog_fd = match self.attach_to_bpf_program
 		{

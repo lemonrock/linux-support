@@ -32,34 +32,37 @@ impl BpfTypeFormatInformationParser
 	}
 	
 	#[inline(always)]
-	pub(crate) fn finish(self, verifier_log: Option<&mut VerifierLog>) -> Result<Option<ParsedBpfTypeFormatData>, ProgramError>
+	pub(crate) fn finish(self, verifier_log: Option<VerifierLog>) -> Result<(Option<ParsedBpfTypeFormatData>, Option<VerifierLog>), ParseError>
 	{
 		// There must always be at least one function information and one line information.
 		if self.function_information.is_empty() || self.line_information.is_empty()
 		{
-			return Ok(None)
+			return Ok((None, verifier_log))
 		}
 		
 		let header_and_type_identifier_section_and_string_section = self.bpf_type_format_type_identifiers.finish()?;
 		
-		let bpf_type_format_file_descriptor = BpfTypeFormatFileDescriptor::load_data(&header_and_type_identifier_section_and_string_section[..], verifier_log)?;
+		let (bpf_type_format_file_descriptor, verifier_log) = BpfTypeFormatFileDescriptor::load_data(&header_and_type_identifier_section_and_string_section[..], verifier_log)?;
 		
 		Ok
 		(
-			Some
 			(
-				ParsedBpfTypeFormatData
-				{
-					bpf_type_format_file_descriptor,
-					function_information: self.function_information.into_boxed_slice(),
-					line_information: self.line_information.into_boxed_slice()
-				}
+				Some
+				(
+					ParsedBpfTypeFormatData
+					{
+						bpf_type_format_file_descriptor,
+						function_information: self.function_information.into_boxed_slice(),
+						line_information: self.line_information.into_boxed_slice()
+					}
+				),
+				verifier_log,
 			)
 		)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn push_relative_function_definition(&mut self, name: &Name, function_prototype: Option<&FunctionPrototype>, current_program_counter: ProgramCounter, line_number: u32) -> Result<(), ProgramError>
+	pub(crate) fn push_relative_function_definition(&mut self, name: &Name, function_prototype: Option<&FunctionPrototype>, current_program_counter: ProgramCounter, line_number: u32) -> Result<(), ParseError>
 	{
 		if let Some(function_prototype) = function_prototype
 		{
@@ -80,7 +83,7 @@ impl BpfTypeFormatInformationParser
 			let column_number = 0;
 			if unlikely!(column_number > bpf_line_info::InclusiveMaximumColumnNumber)
 			{
-				return Err(ProgramError::LineColumnNumberExceedsMaximum)
+				return Err(ParseError::LineColumnNumberExceedsMaximum)
 			}
 			
 			let line_off = unsafe { transmute(self.bpf_type_format_type_identifiers.push_any(&format!("{}", function_prototype))?) };

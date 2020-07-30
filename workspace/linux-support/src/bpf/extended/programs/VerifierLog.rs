@@ -3,16 +3,36 @@
 
 
 /// Verifier log messages.
+///
+/// `Default` has sensible defaults.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct VerifierLog
 {
 	/// Logging level.
 	level: VerifierLogLevel,
 	
-	/// Messages consisting of ASCII-NUL terminated C strings.
+	/// Messages consist of one ASCII NULL terminated C string.
 	///
-	/// Must be at least 128 bytes and not more than x bytes.
+	/// Must be at least 128 bytes and not more than 1^24 bytes.
 	messages_buffer: Vec<c_char>,
+}
+
+impl Default for VerifierLog
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self::new(Self::DefaultLevel, Self::DefaultBufferSize)
+	}
+}
+
+impl Into<CString> for VerifierLog
+{
+	#[inline(always)]
+	fn into(self) -> CString
+	{
+		CString::from_fixed_length_buffer_ascii_nul_terminated(self.messages_buffer)
+	}
 }
 
 impl VerifierLog
@@ -21,20 +41,31 @@ impl VerifierLog
 	
 	const ExclusiveMaximumBufferSize: usize = (1 << 24) as usize;
 	
+	/// Defaults to `Notice` if `cfg!(debug_assertions)`, otherwise `Error`.
+	#[cfg(debug_assertions)]
+	pub const DefaultLevel: VerifierLogLevel = VerifierLogLevel::Notice;
+	
+	/// Defaults to `Notice` if `cfg!(debug_assertions)`, otherwise `Error`.
+	#[cfg(not(debug_assertions))]
+	pub const DefaultLevel: VerifierLogLevel = VerifierLogLevel::Error;
+	
+	/// 16Kb.
+	pub const DefaultBufferSize: usize = 16 * 1024;
+	
 	/// New instance.
-	pub fn new(level: VerifierLogLevel, ideal_size: usize) -> Self
+	pub fn new(level: VerifierLogLevel, preferred_buffer_size: usize) -> Self
 	{
-		let buffer_size = if ideal_size < Self::MinimumInclusiveBufferSize
+		let buffer_size = if preferred_buffer_size < Self::MinimumInclusiveBufferSize
 		{
 			Self::MinimumInclusiveBufferSize
 		}
-		else if ideal_size >= Self::ExclusiveMaximumBufferSize
+		else if preferred_buffer_size >= Self::ExclusiveMaximumBufferSize
 		{
 			Self::ExclusiveMaximumBufferSize - 1
 		}
 		else
 		{
-			ideal_size
+			preferred_buffer_size
 		};
 		
 		let mut messages_buffer: Vec<c_char> = Vec::with_capacity(buffer_size);
@@ -60,11 +91,11 @@ impl VerifierLog
 				0
 			),
 			
-			Some(this) =>
+			Some(verifier_log) =>
 			(
-				this.level as u32,
-				AlignedU64::from(&mut this.messages_buffer[..]),
-				this.messages_buffer.len() as u32,
+				verifier_log.level as u32,
+				AlignedU64::from(&mut verifier_log.messages_buffer[..]),
+				verifier_log.messages_buffer.len() as u32,
 			)
 		}
 	}

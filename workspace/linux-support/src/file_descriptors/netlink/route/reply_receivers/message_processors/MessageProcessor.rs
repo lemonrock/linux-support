@@ -27,9 +27,11 @@ pub(crate) trait MessageProcessor
 			Some(processing_message_state) => processing_message_state,
 		};
 		
+		let pointer = data.as_ptr();
 		let data_length = data.len();
-		let mut potential_message_attribute_pointer = unsafe { data.as_ptr().add(NETLINK_ALIGN::<Self::Header>()) as *const rtattr<Self::NAT> };
-		while rtattr::ok(potential_message_attribute_pointer, data_length)
+		let mut potential_message_attribute_pointer = unsafe { pointer.add(NETLINK_ALIGN::<Self::Header>()) as *const rtattr<Self::NAT> };
+		let end = unsafe { pointer.add(data_length) as *const rtattr<Self::NAT> };
+		while rtattr::ok(potential_message_attribute_pointer, end)
 		{
 			let message_attribute = unsafe { & * potential_message_attribute_pointer };
 			self.process_message_attribute(message_attribute, &mut processing_message_state)?;

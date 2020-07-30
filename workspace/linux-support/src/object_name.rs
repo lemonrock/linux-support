@@ -124,6 +124,83 @@ macro_rules! object_name
 			}
 		}
 		
+		impl<'a> TryFrom<&'a Self> for $name
+		{
+			type Error = Infallible;
+			
+			#[inline(always)]
+			fn try_from(value: &'a Self) -> Result<Self, Self::Error>
+			{
+				Ok(value.clone())
+			}
+		}
+		
+		impl TryFrom<CString> for $name
+		{
+			type Error = ObjectNameFromBytesError;
+			
+			#[inline(always)]
+			fn try_from(value: CString) -> Result<Self, Self::Error>
+			{
+				Self::from_bytes(value.as_bytes())
+			}
+		}
+		
+		impl<'a> TryFrom<&'a CStr> for $name
+		{
+			type Error = ObjectNameFromBytesError;
+			
+			#[inline(always)]
+			fn try_from(value: &'a CStr) -> Result<Self, Self::Error>
+			{
+				Self::from_bytes(value.to_bytes())
+			}
+		}
+		
+		impl<'a> TryFrom<String> for $name
+		{
+			type Error = ObjectNameFromBytesError;
+			
+			#[inline(always)]
+			fn try_from(value: String) -> Result<Self, Self::Error>
+			{
+				Self::from_bytes(value.as_bytes())
+			}
+		}
+		
+		impl<'a> TryFrom<&'a str> for $name
+		{
+			type Error = ObjectNameFromBytesError;
+			
+			#[inline(always)]
+			fn try_from(value: &'a str) -> Result<Self, Self::Error>
+			{
+				Self::from_bytes(value.as_bytes())
+			}
+		}
+		
+		impl<'a> TryFrom<&'a [u8]> for $name
+		{
+			type Error = ObjectNameFromBytesError;
+			
+			#[inline(always)]
+			fn try_from(value: &'a [u8]) -> Result<Self, Self::Error>
+			{
+				Self::from_bytes(value)
+			}
+		}
+		
+		impl<'a> TryFrom<&'a [c_char]> for $name
+		{
+			type Error = ObjectNameFromBytesError;
+			
+			#[inline(always)]
+			fn try_from(value: &'a [c_char]) -> Result<Self, Self::Error>
+			{
+				Self::from_bytes(unsafe { transmute(value) })
+			}
+		}
+		
 		impl TryFrom<[c_char; Self::MaximumLengthIncludingAsciiNull]> for $name
 		{
 			type Error = ObjectNameFromBytesError;
@@ -169,28 +246,6 @@ macro_rules! object_name
 					array_vec.set_len(length_including_ascii_nul)
 				}
 				Ok(Self(array_vec))
-			}
-		}
-		
-		impl<'a> TryFrom<&'a [u8]> for $name
-		{
-			type Error = ObjectNameFromBytesError;
-			
-			#[inline(always)]
-			fn try_from(value: &'a [u8]) -> Result<Self, Self::Error>
-			{
-				Self::from_bytes(value)
-			}
-		}
-		
-		impl<'a> TryFrom<&'a [c_char]> for $name
-		{
-			type Error = ObjectNameFromBytesError;
-			
-			#[inline(always)]
-			fn try_from(value: &'a [c_char]) -> Result<Self, Self::Error>
-			{
-				Self::from_bytes(unsafe { transmute(value) })
 			}
 		}
 		
@@ -333,6 +388,21 @@ macro_rules! object_name
 			fn borrow(&self) -> &[u8]
 			{
 				self.as_ref()
+			}
+		}
+		
+		impl PartialEq<[c_char; Self::MaximumLengthIncludingAsciiNull]> for $name
+		{
+			#[inline(always)]
+			fn eq(&self, other: &[c_char; Self::MaximumLengthIncludingAsciiNull]) -> bool
+			{
+				let index = match Self::index_of_ascii_null(other)
+				{
+					None => return false,
+					Some(index) => index,
+				};
+				
+				self.deref() == &other[0 .. index]
 			}
 		}
 		

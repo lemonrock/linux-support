@@ -56,10 +56,10 @@ pub trait Identifier: From<u32> + Into<u32> + Into<BpfCommandGetIdentifierValueO
 	
 	/// To file descriptor.
 	///
-	/// `access_permissions` are only validated for `MapIdentifier`; otherwise it must be `None`.
+	/// `access_permissions` are only validated for `MapIdentifier`; otherwise it must be `()`.
 	/// `MapIdentifier` usage requires the capability `CAP_SYS_ADMIN`.
 	#[inline(always)]
-	fn to_file_descriptor(self, access_permissions: Self::Access) -> Option<Self::FD>
+	fn to_file_descriptor(self, access_permissions: Self::Access) -> Result<Option<Self::FD>, Errno>
 	{
 		let mut attr = bpf_attr::default();
 		attr.get_identifier = BpfCommandGetIdentifier
@@ -72,14 +72,15 @@ pub trait Identifier: From<u32> + Into<u32> + Into<BpfCommandGetIdentifierValueO
 		let result = attr.syscall(Self::GetFileDescriptor);
 		if likely!(result > 0)
 		{
-			Some(unsafe { Self::FD::from_raw_fd(result) })
+			Ok(Some(unsafe { Self::FD::from_raw_fd(result) }))
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			let errno = errno();
+			match errno.0
 			{
-				ENOENT => None,
-				unexpected @ _ => panic!("Unexpected errror {}", unexpected),
+				ENOENT => Ok(None),
+				_ => Err(errno)
 			}
 		}
 		else

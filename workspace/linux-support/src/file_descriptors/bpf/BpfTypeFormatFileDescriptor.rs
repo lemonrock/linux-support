@@ -53,9 +53,9 @@ impl BpfFileDescriptor for BpfTypeFormatFileDescriptor
 
 impl BpfTypeFormatFileDescriptor
 {
-	pub(crate) fn load_data(header_and_type_identifier_section_and_string_section: &[u8], verifier_log: Option<&mut VerifierLog>) -> Result<Self, ProgramError>
+	pub(crate) fn load_data(header_and_type_identifier_section_and_string_section: &[u8], verifier_log: Option<VerifierLog>) -> Result<(Self, Option<VerifierLog>), ParseError>
 	{
-		use self::ProgramError::*;
+		use self::ParseError::*;
 		
 		const BTF_MAX_SIZE: usize = 16 * 1024 * 1024;
 		
@@ -65,7 +65,7 @@ impl BpfTypeFormatFileDescriptor
 			return Err(MaximumBpfTypeFormatDataSizeExceeded)
 		}
 		
-		let (btf_log_level, btf_log_buf, btf_log_size) = VerifierLog::to_values_for_syscall(verifier_log);
+		let (btf_log_level, btf_log_buf, btf_log_size) = VerifierLog::to_values_for_syscall(verifier_log.as_mut());
 		
 		let mut attributes = bpf_attr
 		{
@@ -86,7 +86,7 @@ impl BpfTypeFormatFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			Err(CouldNotLoadBpfTypeFormatData(errno()))
+			Err(CouldNotLoadBpfTypeFormatData(errno(), verifier_log.map(|verifier_log| verifier_log.into())))
 		}
 		else
 		{

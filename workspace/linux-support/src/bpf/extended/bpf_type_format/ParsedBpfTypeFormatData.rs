@@ -49,8 +49,8 @@ impl ParsedBpfTypeFormatData
 		(
 			(
 				self.to_raw_file_descriptor(),
-				Self::to_array(&self.function_information[..], FunctionInformationArrayIsLargerThanU32Max)?,
-				Self::to_array(&self.line_information[..], LineInformationArrayIsLargerThanU32Max)?,
+				Self::to_array(&self.function_information[..], BpfTypeFormatFunctionInformationArrayIsLargerThanU32Max)?,
+				Self::to_array(&self.line_information[..], BpfTypeFormatLineInformationArrayIsLargerThanU32Max)?,
 			)
 		)
 	}

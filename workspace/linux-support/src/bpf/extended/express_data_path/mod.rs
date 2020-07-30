@@ -4,28 +4,37 @@
 
 use self::c::*;
 use super::*;
-use super::instructions::file_descriptors_map::FileDescriptorsMap;
+use super::identifiers::*;
+use super::instructions::*;
+use super::instructions::file_descriptors_map::*;
+use super::instructions::offset::memory::VariableSlotU64;
 use super::maps::domain::*;
 use super::maps::domain::access_permissions::ExpressDataPathAccessPermissions;
 use super::maps::express_data_path_redirect::*;
-use crate::network_device::*;
+use super::programs::*;
+use super::programs::program_type::*;
 use crate::file_descriptors::*;
 use crate::file_descriptors::bpf::*;
+use crate::file_descriptors::netlink::NetlinkSocketFileDescriptor;
+use crate::file_descriptors::netlink::route::RouteNetlinkProtocol;
+use crate::file_descriptors::network_device::NetworkDeviceSocketFileDescriptor;
 use crate::file_descriptors::socket::*;
 use crate::file_descriptors::socket::c::*;
 use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use crate::memory::mapping::*;
-use crate::network_device::NetworkInterfaceIndex;
-use crate::file_descriptors::network_device::NetworkDeviceSocketFileDescriptor;
+use crate::network_device::*;
+use crate::bpf::extended::maps::domain::access_permissions::KernelOnlyAccessPermissions;
+use crate::bpf::c::bpf_prog_type;
 
 
 pub(crate) mod c;
 
 
 include!("AttachMode.rs");
-include!("CreateExpressDataPathRedirectSocketMapError.rs");
 include!("Descriptor.rs");
 include!("FrameSize.rs");
+include!("load_owned_memory_program.rs");
+include!("LoadOwnedMemoryProgramError.rs");
 include!("OwnedReceiveTransmitMemoryRingQueues.rs");
 include!("QueueIdentifier.rs");
 include!("ReceiveOrTransmitOrBoth.rs");

@@ -18,7 +18,7 @@ pub enum bpf_func_id
 	///
 	/// # Description
 	///
-	/// Perform a lookup in `map` for an entry associated to *key*.
+	/// Perform a lookup in `map` for an entry associated to `key`.
 	///
 	///
 	/// # Returns
@@ -1010,6 +1010,7 @@ pub enum bpf_func_id
 	
 	/// `int bpf_redirect_map(struct bpf_map *map, u32 key, u64 flags)`.
 	///
+	/// but is actually `xdp_action bpf_redirect_map(struct bpf_map *map, u32 key, xdp_action as u64 flags)`.
 	///
 	/// # Description
 	///
@@ -1418,7 +1419,7 @@ pub enum bpf_func_id
 	///
 	/// Do FIB lookup in kernel tables using parameters in `params`.
 	/// If lookup is successful and result shows packet is to be forwarded, the neighbor tables are searched for the `nexthop`.
-	/// If successful (ie, FIB lookup shows forwarding and `nexthop` is resolved), the `nexthop` address is returned in `ipv4_dst` or `ipv6_dst` based on family, `smac` is set to MAC address of egress device, dmac is set to `nexthop` MAC address, `rt_metric` is set to metric from route (IPv4/IPv6 only), and `ifindex` is set to the device index of the `nexthop` from the FIB lookup.
+	/// If successful (ie, FIB lookup shows forwarding and `nexthop` is resolved), the `nexthop` address is returned in `ipv4_dst` or `ipv6_dst` based on family, `smac` is set to MAC address of egress device, `dmac` is set to `nexthop` MAC address, `rt_metric` is set to metric from route (IPv4/IPv6 only), and `ifindex` is set to the device index of the `nexthop` from the FIB lookup.
 	///
 	/// `plen` argument is the size of the passed in struct.
 	/// `flags` argument can be a combination of one or more of the following values:-
@@ -1426,7 +1427,7 @@ pub enum bpf_func_id
 	/// * `BPF_FIB_LOOKUP_DIRECT`: Do a direct table lookup vs full lookup using FIB rules.
 	/// * `BPF_FIB_LOOKUP_OUTPUT`: Perform lookup from an egress perspective (default is ingress).
 	///
-	/// `ctx` is either `struct xdp_md` for XDP programs or `struct sk_buff` tc cls_act programs.
+	/// `ctx` is either `struct xdp_md` for XDP programs or `struct sk_buff` Traffic Control (TC) `cls_act` programs.
 	///
 	///
 	/// # Returns

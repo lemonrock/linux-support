@@ -5,6 +5,7 @@
 /// Used for `RTM_NEWADDR`, `RTM_DELADDR` and `RTM_GETADDR`.
 ///
 /// See Linux header `if_addr.h`.
+#[non_exhaustive]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u16)]
 pub(crate) enum IFA

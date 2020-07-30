@@ -37,38 +37,37 @@ impl<IPA: InternetProtocolAddress> MessageProcessor for GetAddressMessageProcess
 		#[inline(always)]
 		fn set_field_error<Field, Error: ToString, F: FnOnce(&rtattr<IFA>) -> Result<Field, Error>>(field: &mut Option<Field>, message_attribute: &rtattr<IFA>, attribute: F) -> Result<(), String>
 		{
-			if field.is_some()
-			{
-				return Err(format!("field already populated; duplicate rtattr"))
-			}
-			
-			*field.as_mut().unwrap() = attribute(message_attribute).map_err(|error| error.to_string())?;
+			*field.as_mut().ok_or(format!("field already populated; duplicate rtattr"))? = attribute(message_attribute).map_err(|error| error.to_string())?;
 			Ok(())
 		}
 		
-		match message_attribute.rta_type
+		use self::IFA::*;
+		
+		match message_attribute.type_()
 		{
-			IFA_UNSPEC => (),
+			(false, false, IFA_ADDRESS) => set_address_field(&mut processing_message_state.address, message_attribute, rtattr::get_attribute_value_raw_protocol_address)?,
+		
+			(false, false, IFA_LOCAL) => set_address_field(&mut processing_message_state.local_address, message_attribute, rtattr::get_attribute_value_raw_protocol_address)?,
 			
-			IFA_ADDRESS => set_address_field(&mut processing_message_state.address, message_attribute, rtattr::get_attribute_value_interface_address)?,
+			(false, false, IFA_LABEL) => set_field_error(&mut processing_message_state.label, message_attribute, |message_attribute| message_attribute.get_attribute_value_network_interface_name)?,
 			
-			IFA_LOCAL => set_address_field(&mut processing_message_state.local_address, message_attribute, rtattr::get_attribute_value_local_address)?,
+			(false, false, IFA_BROADCAST) => set_address_field(&mut processing_message_state.broadcast_address, message_attribute, rtattr::get_attribute_value_raw_protocol_address)?,
 			
-			IFA_LABEL => set_field_error(&mut processing_message_state.label, message_attribute, |message_attribute| message_attribute.get_attribute_value_name_of_interface())?,
+			(false, false, IFA_ANYCAST) => set_address_field(&mut processing_message_state.anycast_address, message_attribute, rtattr::get_attribute_value_raw_protocol_address)?,
 			
-			IFA_BROADCAST => set_address_field(&mut processing_message_state.broadcast_address, message_attribute, rtattr::get_attribute_value_broadcast_address)?,
+			(false, false, IFA_CACHEINFO) => set_field_error(&mut processing_message_state.cache_information, message_attribute, |message_attribute| message_attribute.get_attribute_value_struct_cloned::<ifa_cacheinfo>)?,
 			
-			IFA_ANYCAST => set_address_field(&mut processing_message_state.anycast_address, message_attribute, rtattr::get_attribute_value_anycast_address)?,
+			(false, false, IFA_FLAGS) => set_field_error(&mut processing_message_state.extended_interface_flags, message_attribute, rtattr::get_attribute_value_extended_interface_flags)?,
 			
-			IFA_CACHEINFO => set_field_error::<_, String, _>(&mut processing_message_state.cache_information, message_attribute, |message_attribute| Ok(message_attribute.get_attribute_value_cache_information()?.clone()))?,
+			(false, false, IFA_MULTICAST) => set_address_field(&mut processing_message_state.multicast_address, message_attribute, rtattr::get_attribute_value_raw_protocol_address)?,
 			
-			IFA_FLAGS => set_field_error(&mut processing_message_state.extended_interface_flags, message_attribute, rtattr::get_attribute_value_extended_interface_flags)?,
+			(false, false, IFA_RT_PRIORITY) => set_field_error(&mut processing_message_state.route_priority, message_attribute, rtattr::get_attribute_value_u32)?,
 			
-			IFA_MULTICAST => set_address_field(&mut processing_message_state.multicast_address, message_attribute, rtattr::get_attribute_value_multicast_address)?,
+			(false, false, IFA_TARGET_NETNSID) => set_field_error(&mut processing_message_state.target_net_namespace_identifier, message_attribute, rtattr::get_attribute_value_net_namespace_identifier)?,
 			
-			IFA_RT_PRIORITY => set_field_error(&mut processing_message_state.route_priority, message_attribute, rtattr::get_attribute_value_route_priority)?,
+			(true, true, _) => panic!("Attribute may not be both nested and in network byte order"),
 			
-			IFA_TARGET_NETNSID => set_field_error(&mut processing_message_state.target_net_namespace_identifier, message_attribute, rtattr::get_attribute_value_target_net_namespace_identifier)?,
+			(_, _, IFA_UNSPEC) => (),
 			
 			_ => (),
 		}
@@ -108,20 +107,20 @@ impl<IPA: InternetProtocolAddress> GetAddressMessageProcessor<IPA>
 	}
 	
 	#[inline(always)]
-	fn new_route_get_internet_protocol_addresses_message() -> NetlinkRequestMessage<ifaddrmsg>
+	fn new_route_get_internet_protocol_addresses_message() -> NetlinkRequestMessage<Self::Header>
 	{
 		Self::new_route_get_addresses_message(IPA::AddressFamily)
 	}
 	
 	#[inline(always)]
 	#[allow(dead_code)]
-	fn new_route_get_all_addresses_message() -> NetlinkRequestMessage<ifaddrmsg>
+	fn new_route_get_all_addresses_message() -> NetlinkRequestMessage<Self::Header>
 	{
 		Self::new_route_get_addresses_message(AF_UNSPEC as u8)
 	}
 	
 	#[inline(always)]
-	fn new_route_get_addresses_message(address_family: u8) -> NetlinkRequestMessage<ifaddrmsg>
+	fn new_route_get_addresses_message(address_family: u8) -> NetlinkRequestMessage<Self::Header>
 	{
 		let body = ifaddrmsg
 		{

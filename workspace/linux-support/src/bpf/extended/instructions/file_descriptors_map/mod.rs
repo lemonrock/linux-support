@@ -8,4 +8,5 @@ use crate::ObjectName16;
 
 
 include!("FileDescriptorsMap.rs");
-include!("FileDescriptorsMapError.rs");
+include!("FileDescriptorsMapAddError.rs");
+include!("FileDescriptorsMapResolveError.rs");

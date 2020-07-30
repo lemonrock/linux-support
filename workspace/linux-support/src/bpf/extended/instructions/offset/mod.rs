@@ -10,6 +10,7 @@ pub mod immediate;
 
 
 /// Memory.
+#[macro_use]
 pub mod memory;
 
 

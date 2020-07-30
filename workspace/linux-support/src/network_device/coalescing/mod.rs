@@ -2,24 +2,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[repr(C)]
-#[derive(Default)]
-pub(crate) struct __IncompleteArrayField<T>(PhantomData<T>, [T; 0]);
+use super::*;
 
-impl<T> Debug for __IncompleteArrayField<T>
-{
-	#[inline(always)]
-	fn fmt(&self, fmt: &mut Formatter<'_>) -> fmt::Result
-	{
-		fmt.write_str("__IncompleteArrayField")
-	}
-}
 
-impl<T> __IncompleteArrayField<T>
-{
-	#[inline(always)]
-	pub(crate) const fn new() -> Self
-	{
-		__IncompleteArrayField(PhantomData, [])
-	}
-}
+include!("CoalescePair.rs");
+include!("AdaptiveCoalescingRateSampling.rs");
+include!("AdaptiveCoalescingConfiguration.rs");
+include!("CoalesceConfiguration.rs");
+include!("ReceiveTransmitCoalescing.rs");

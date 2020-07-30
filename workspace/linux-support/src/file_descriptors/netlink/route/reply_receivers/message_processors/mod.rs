@@ -3,7 +3,10 @@
 
 
 use super::*;
+use crate::bpf::extended::identifiers::ExtendedBpfProgramIdentifier;
+use crate::network_device::HardwareAddress;
 
 
 include!("GetAddressMessageProcessor.rs");
+include!("GetLinkMessageProcessor.rs");
 include!("MessageProcessor.rs");

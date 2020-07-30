@@ -1,0 +1,14 @@
+// This file is part of linux-support. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT. No part of linux-support, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+// Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
+
+
+#[repr(C)]
+#[derive(Debug)]
+pub(crate) struct ethtool_tunable
+{
+	pub(crate) cmd: u32,
+	pub(crate) id: u32,
+	pub(crate) type_id: u32,
+	pub(crate) len: u32,
+	pub(crate) data: __IncompleteArrayField<*mut c_void>,
+}

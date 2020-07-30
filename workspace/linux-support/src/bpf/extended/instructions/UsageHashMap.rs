@@ -6,14 +6,14 @@
 pub(crate) struct UsageHashMap<V>
 {
 	map: HashMap<String, (V, Cell<u64>)>,
-	could_not_resolve_program_error: ProgramError,
-	not_all_values_have_been_used_program_error: fn(Vec<String>) -> ProgramError,
+	could_not_resolve_program_error: ParseError,
+	not_all_values_have_been_used_program_error: fn(Vec<String>) -> ParseError,
 }
 
 impl<V> UsageHashMap<V>
 {
 	#[inline(always)]
-	pub(crate) fn new(could_not_resolve_program_error: ProgramError, not_all_values_have_been_used_program_error: fn(Vec<String>) -> ProgramError) -> Self
+	pub(crate) fn new(could_not_resolve_program_error: ParseError, not_all_values_have_been_used_program_error: fn(Vec<String>) -> ParseError) -> Self
 	{
 		Self
 		{
@@ -31,7 +31,7 @@ impl<V> UsageHashMap<V>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn resolve(&self, key: &str) -> Result<&V, ProgramError>
+	pub(crate) fn resolve(&self, key: &str) -> Result<&V, ParseError>
 	{
 		match self.map.get(key)
 		{
@@ -46,7 +46,7 @@ impl<V> UsageHashMap<V>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn guard_all_values_have_been_resolved_at_least_once(self) -> Result<(), ProgramError>
+	pub(crate) fn guard_all_values_have_been_resolved_at_least_once(self) -> Result<(), ParseError>
 	{
 		let mut unused = Vec::new();
 		for (name, (_, usage_count)) in self.map

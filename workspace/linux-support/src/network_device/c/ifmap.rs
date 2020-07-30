@@ -2,14 +2,15 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[allow(missing_docs)]
 #[repr(C)]
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct ifmap
+pub struct ifmap
 {
-	pub(crate) mem_start: c_ulong,
-	pub(crate) mem_end: c_ulong,
-	pub(crate) base_addr: c_ushort,
-	pub(crate) irq: c_uchar,
-	pub(crate) dma: c_uchar,
-	pub(crate) port: c_uchar,
+	pub mem_start: c_ulong,
+	pub mem_end: c_ulong,
+	pub base_addr: c_ushort,
+	pub irq: c_uchar,
+	pub dma: c_uchar,
+	pub port: c_uchar,
 }

@@ -21,11 +21,35 @@ impl CanBeInnerMap for ExpressDataPathRedirectSocketArrayMap
 
 impl ExpressDataPathRedirectSocketArrayMap
 {
+	#[inline(always)]
+	pub(crate) fn rehydrate(program_information: &bpf_prog_info, map_name: &MapName) -> Result<Self, MapRehydrateError>
+	{
+		use self::MapRehydrateError::*;
+		
+		let (map_file_descriptor, map_information) = program_information.filter_map_identifiers_for(KernelOnlyAccessPermissions::KernelReadAndWriteUserspaceReadWrite, &xskmap, bpf_map_type::BPF_MAP_TYPE_XSKMAP)?.ok_or(CouldNotGetExistingMapNamed(xskmap.clone()))?;
+		
+		Ok
+		(
+			Self
+			{
+				map_file_descriptor: Rc::new(map_file_descriptor),
+				maximum_entries: map_information.maximum_entries().ok_or(NoMaximumEntries)?,
+			}
+		)
+	}
+	
+	/// A suitable map.
+	pub fn new_express_data_path_redirect_socket_array_map_from_channels(map_name: &MapName, channels: Channels, map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, access_permissions: ExpressDataPathAccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
+	{
+		let maximum_entries = MaximumEntries::new(channels.maximum_channels_count());
+		Self::new_express_data_path_redirect_socket_array(map_file_descriptors, map_name, None, maximum_entries, access_permissions, numa_node)
+	}
+	
 	/// New u32 array.
 	///
 	/// Needs the capability `CAP_SYS_ADMIN`.
 	#[inline(always)]
-	pub fn new_xdp_redirect_socket_array(map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: ExpressDataPathAccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
+	pub fn new_express_data_path_redirect_socket_array(map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: ExpressDataPathAccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
 	{
 		Self::create(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, MapType::ExpressDataPathRedirectToSocketArray(maximum_entries, access_permissions, numa_node), maximum_entries)
 	}

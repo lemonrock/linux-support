@@ -2,17 +2,34 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use self::c::*;
 use super::*;
 use crate::file_descriptors::*;
 use crate::file_descriptors::network_device::*;
+use crate::network_device::coalescing::CoalesceConfiguration;
 
 
-pub(crate) mod c;
+/// C.
+pub mod c;
+
+
+/// Coalescing.
+pub mod coalescing;
 
 
 include!("BusDeviceAddress.rs");
+include!("Channels.rs");
+include!("GlobalNetworkDeviceConfiguration.rs");
+include!("GlobalNetworkDeviceConfigurationError.rs");
+include!("HardwareAddress.rs");
+include!("MaximumTransmissionUnit.rs");
 include!("NetworkDeviceInputOutputControlError.rs");
+include!("NetworkInterfaceAlias.rs");
 include!("NetworkInterfaceIndex.rs");
 include!("NetworkInterfaceIndexToNetworkInterfaceNameError.rs");
 include!("NetworkInterfaceName.rs");
 include!("NetworkInterfaceNameToSomethingError.rs");
+include!("PendingQueueDepths.rs");
+include!("PhysicalIdentifier.rs");
+include!("PhysicalIdentifierFromBytesError.rs");
+include!("QueueCount.rs");

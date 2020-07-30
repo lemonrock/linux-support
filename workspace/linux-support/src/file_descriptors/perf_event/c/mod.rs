@@ -6,8 +6,6 @@ use super::*;
 use crate::syscall::SYS;
 
 
-include!("__BindgenBitfieldUnit.rs");
-include!("__IncompleteArrayField.rs");
 include!("_bindgen_ty_1.rs");
 include!("_bindgen_ty_2.rs");
 include!("_bindgen_ty_3.rs");

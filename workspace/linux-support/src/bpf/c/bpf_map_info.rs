@@ -60,6 +60,19 @@ impl bpf_map_info
 		MapName::try_from(&self.name).unwrap()
 	}
 	
+	/// Avoids clone.
+	#[inline(always)]
+	pub fn has_name(&self, map_name: &MapName) -> bool
+	{
+		map_name.eq(&self.name)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn has_type_and_name(&self, map_type: bpf_map_type, map_name: &MapName) -> bool
+	{
+		self.type_ == map_type && self.has_name(map_name)
+	}
+	
 	/// Associated BTF identifier, if any.
 	#[inline(always)]
 	pub fn btf_identifier(&self) -> BpfTypeFormatIdentifier

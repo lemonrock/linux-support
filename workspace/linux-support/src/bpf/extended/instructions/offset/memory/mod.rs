@@ -5,4 +5,6 @@
 use super::*;
 
 
+include!("memory_offset_of.rs");
 include!("MemoryOffset.rs");
+include!("VariableSlotU64.rs");

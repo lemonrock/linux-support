@@ -3,8 +3,9 @@
 
 
 /// "These are stored into IFLA_XDP_ATTACHED on dump".
+#[non_exhaustive]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(u32)]
+#[repr(u8)]
 pub(crate) enum XDP_ATTACHED
 {
 	XDP_ATTACHED_NONE = 0,

@@ -92,6 +92,6 @@ impl BusDeviceAddress
 	#[inline(always)]
 	pub fn try_from_network_interface_name(value: NetworkInterfaceName) -> Result<Option<Self>, NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>>
 	{
-		NetworkDeviceSocketFileDescriptor::bus_device_address(value)
+		NetworkDeviceSocketFileDescriptor::new()?.bus_device_address(value)
 	}
 }

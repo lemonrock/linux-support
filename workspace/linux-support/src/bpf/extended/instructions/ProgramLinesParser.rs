@@ -23,12 +23,12 @@ impl<'name> ProgramLinesParser<'name>
 	/// Process instructions.
 	///
 	/// If `bpf_type_format_program_details` is `None`, no function or line information is produced.
-	pub fn parse<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>(bpf_type_format_program_details: Option<&BpfTypeFormatProgramDetails>, program_lines: &Vec<ProgramLine<'name>>, arguments: ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>, verifier_log: Option<&mut VerifierLog>) -> Result<(Box<[bpf_insn]>, Option<ParsedBpfTypeFormatData>, &'extended_bpf_program_file_descriptor_label_map mut FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>), ProgramError>
+	pub fn parse<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>(bpf_type_format_program_details: Option<&BpfTypeFormatProgramDetails>, program_lines: &Vec<ProgramLine<'name>>, arguments: ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>, verifier_log: Option<VerifierLog>) -> Result<(Box<[bpf_insn]>, Option<ParsedBpfTypeFormatData>, &'extended_bpf_program_file_descriptor_label_map mut FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>, Option<VerifierLog>), ParseError>
 	{
 		let number_of_program_lines = program_lines.len();
 		if unlikely!(number_of_program_lines > bpf_line_info::MaximumNumberOfProgramLines)
 		{
-			return Err(ProgramError::TooManyProgramLines)
+			return Err(ParseError::TooManyProgramLines)
 		}
 		
 		let instructions_size_hint = number_of_program_lines * 2;
@@ -58,9 +58,9 @@ impl<'name> ProgramLinesParser<'name>
 	}
 	
 	#[inline(always)]
-	fn parse_internal<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>(mut self, program_lines: &Vec<ProgramLine<'name>>, bpf_type_format_program_details: Option<&BpfTypeFormatProgramDetails>, arguments: ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>, verifier_log: Option<&mut VerifierLog>) -> Result<(Box<[bpf_insn]>, Option<ParsedBpfTypeFormatData>, &'extended_bpf_program_file_descriptor_label_map mut FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>), ProgramError>
+	fn parse_internal<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>(mut self, program_lines: &Vec<ProgramLine<'name>>, bpf_type_format_program_details: Option<&BpfTypeFormatProgramDetails>, arguments: ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>, verifier_log: Option<VerifierLog>) -> Result<(Box<[bpf_insn]>, Option<ParsedBpfTypeFormatData>, &'extended_bpf_program_file_descriptor_label_map mut FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>, Option<VerifierLog>), ParseError>
 	{
-		use self::ProgramError::*;
+		use self::ParseError::*;
 		
 		let ExtendedBpfProgramArguments { i32_immediates_map, u64_immediates_map, memory_offsets_map, map_file_descriptors: map_file_descriptors, extended_bpf_program_file_descriptors } = arguments;
 		
@@ -95,9 +95,9 @@ impl<'name> ProgramLinesParser<'name>
 		memory_offsets_map.guard_all_values_have_been_resolved_at_least_once()?;
 		
 		let instructions = self.instructions.into_boxed_slice();
-		let parsed_bpf_type_format_data = match self.bpf_type_format_type_information_parser
+		let (parsed_bpf_type_format_data, verifier_log) = match self.bpf_type_format_type_information_parser
 		{
-			None => None,
+			None => (None, verifier_log),
 			Some(bpf_type_format_type_information_parser) => bpf_type_format_type_information_parser.finish(verifier_log)?,
 		};
 		
@@ -107,20 +107,21 @@ impl<'name> ProgramLinesParser<'name>
 				instructions,
 				parsed_bpf_type_format_data,
 				extended_bpf_program_file_descriptors,
+				verifier_log,
 			)
 		)
 	}
 	
 	/// Registering a label more than once is permitted; the latest registration 'wins'.
 	#[inline(always)]
-	pub(crate) fn register_label(&mut self, label: &Name<'name>) -> Result<(), ProgramError>
+	pub(crate) fn register_label(&mut self, label: &Name<'name>) -> Result<(), ParseError>
 	{
 		Self::register(label, self.current_program_counter(), &mut self.labels_to_program_counters, &mut self.jump_instructions_labelled_offset_to_resolve, &mut self.instructions)
 	}
 	
 	/// Registering a relative function name more than once is permitted; the latest registration 'wins'.
 	#[inline(always)]
-	pub(crate) fn register_relative_function_name(&mut self, relative_function_name: &Name<'name>, function_prototype: Option<&FunctionPrototype>) -> Result<(), ProgramError>
+	pub(crate) fn register_relative_function_name(&mut self, relative_function_name: &Name<'name>, function_prototype: Option<&FunctionPrototype>) -> Result<(), ParseError>
 	{
 		self.push_relative_function_definition(relative_function_name, function_prototype)?;
 		
@@ -128,7 +129,7 @@ impl<'name> ProgramLinesParser<'name>
 	}
 	
 	#[inline(always)]
-	fn push_relative_function_definition(&mut self, relative_function_name: &Name<'name>, function_prototype: Option<&FunctionPrototype>) -> Result<(), ProgramError>
+	fn push_relative_function_definition(&mut self, relative_function_name: &Name<'name>, function_prototype: Option<&FunctionPrototype>) -> Result<(), ParseError>
 	{
 		let current_program_counter = self.current_program_counter();
 		if let Some(ref mut bpf_type_format_type_information_parser) = self.bpf_type_format_type_information_parser
@@ -142,19 +143,19 @@ impl<'name> ProgramLinesParser<'name>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn resolve_label(&mut self, program_counter_offset: &ProgramCounterOffset<'name, i16>) -> Result<i16, ProgramError>
+	pub(crate) fn resolve_label(&mut self, program_counter_offset: &ProgramCounterOffset<'name, i16>) -> Result<i16, ParseError>
 	{
 		Self::resolve::<i16>(program_counter_offset, self.current_program_counter(), &mut self.labels_to_program_counters, &mut self.jump_instructions_labelled_offset_to_resolve)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn resolve_relative_function_name(&mut self, program_counter_offset: &ProgramCounterOffset<'name, i32>) -> Result<i32, ProgramError>
+	pub(crate) fn resolve_relative_function_name(&mut self, program_counter_offset: &ProgramCounterOffset<'name, i32>) -> Result<i32, ParseError>
 	{
 		Self::resolve::<i32>(program_counter_offset, self.current_program_counter(), &mut self.labels_to_program_counters, &mut self.jump_instructions_labelled_offset_to_resolve)
 	}
 	
 	#[inline(always)]
-	fn register(name: &Name<'name>, name_program_counter: ProgramCounter, name_to_program_counters: &mut HashMap<Name<'name>, ProgramCounter>, jump_instructions_to_resolve: &mut HashMap<Name<'name>, Vec<ProgramCounter>>, instructions: &mut Vec<bpf_insn>) -> Result<(), ProgramError>
+	fn register(name: &Name<'name>, name_program_counter: ProgramCounter, name_to_program_counters: &mut HashMap<Name<'name>, ProgramCounter>, jump_instructions_to_resolve: &mut HashMap<Name<'name>, Vec<ProgramCounter>>, instructions: &mut Vec<bpf_insn>) -> Result<(), ParseError>
 	{
 		let first_registration_of_name = name_to_program_counters.insert(name.clone(), name_program_counter).is_none();
 		
@@ -183,7 +184,7 @@ impl<'name> ProgramLinesParser<'name>
 	}
 	
 	#[inline(always)]
-	fn resolve<PCOV: ProgramCounterOffsetValue>(program_counter_offset: &ProgramCounterOffset<'name, PCOV>, current_program_counter: ProgramCounter, names_to_program_counters: &mut HashMap<Name<'name>, ProgramCounter>, jump_instructions_to_resolve: &mut HashMap<Name<'name>, Vec<ProgramCounter>>) -> Result<PCOV, ProgramError>
+	fn resolve<PCOV: ProgramCounterOffsetValue>(program_counter_offset: &ProgramCounterOffset<'name, PCOV>, current_program_counter: ProgramCounter, names_to_program_counters: &mut HashMap<Name<'name>, ProgramCounter>, jump_instructions_to_resolve: &mut HashMap<Name<'name>, Vec<ProgramCounter>>) -> Result<PCOV, ParseError>
 	{
 		use self::Offset::*;
 		match program_counter_offset.as_ref()
@@ -214,7 +215,7 @@ impl<'name> ProgramLinesParser<'name>
 	}
 	
 	#[inline(always)]
-	fn one_instruction(&mut self, one_instruction: bpf_insn) -> Result<(), ProgramError>
+	fn one_instruction(&mut self, one_instruction: bpf_insn) -> Result<(), ParseError>
 	{
 		const One: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(1) };
 		self.maximum_instructions_guard(One)?;
@@ -224,7 +225,7 @@ impl<'name> ProgramLinesParser<'name>
 	}
 	
 	#[inline(always)]
-	fn two_instructions(&mut self, two_instructions: [bpf_insn; 2]) -> Result<(), ProgramError>
+	fn two_instructions(&mut self, two_instructions: [bpf_insn; 2]) -> Result<(), ParseError>
 	{
 		const Two: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(2) };
 		self.maximum_instructions_guard(Two)?;
@@ -234,12 +235,12 @@ impl<'name> ProgramLinesParser<'name>
 	}
 	
 	#[inline(always)]
-	fn maximum_instructions_guard(&self, number_of_instructions_to_add: NonZeroUsize) -> Result<(), ProgramError>
+	fn maximum_instructions_guard(&self, number_of_instructions_to_add: NonZeroUsize) -> Result<(), ParseError>
 	{
 		const MaximumInstructionsOnRecentLinux: usize = 1_000_000;
 		if self.number_of_instructions() + (number_of_instructions_to_add.get() - 1) >= MaximumInstructionsOnRecentLinux
 		{
-			Err(ProgramError::MaximumNumberOfInstructionsUsed)
+			Err(ParseError::MaximumNumberOfInstructionsUsed)
 		}
 		else
 		{

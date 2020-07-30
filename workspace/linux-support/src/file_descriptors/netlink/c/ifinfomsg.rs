@@ -11,16 +11,16 @@ pub struct ifinfomsg
 	
 	__ifi_pad: u8,
 	
-	/// Device type.
-	pub ifi_type: u16,
+	/// Interface ARP type.
+	pub ifi_type: ARPHRD,
 	
-	/// `0` for unspecified.
+	/// `None` for unspecified.
 	pub ifi_index: Option<NetworkInterfaceIndex>,
 	
 	/// Device flags.
 	///
 	/// Flags start `IFF_*`.
-	pub ifi_flags: u32,
+	pub ifi_flags: net_device_flags,
 	
 	/// Change bit mask; currently always `0xFFFF_FFFF` (officially).
 	///
@@ -42,15 +42,29 @@ impl NetlinkRequestMessageBody for ifinfomsg
 impl ifinfomsg
 {
 	#[inline(always)]
+	pub(crate) fn for_get_link() -> Self
+	{
+		Self
+		{
+			ifi_family: AF_PACKET as u8,
+			__ifi_pad: 0,
+			ifi_type: unsafe { zeroed() },
+			ifi_index: None,
+			ifi_flags: net_device_flags::empty(),
+			ifi_change: 0,
+		}
+	}
+	
+	#[inline(always)]
 	pub(crate) fn for_xdp(network_interface_index: NetworkInterfaceIndex) -> Self
 	{
 		Self
 		{
 			ifi_family: AF_INET as u8,
 			__ifi_pad: 0,
-			ifi_type: 0,
+			ifi_type: unsafe { zeroed() },
 			ifi_index: Some(network_interface_index),
-			ifi_flags: 0,
+			ifi_flags: net_device_flags::empty(),
 			ifi_change: 0,
 		}
 	}

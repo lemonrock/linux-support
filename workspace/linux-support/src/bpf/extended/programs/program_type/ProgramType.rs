@@ -142,7 +142,7 @@ pub enum ProgramType
 
 impl ProgramType
 {
-	pub(crate) fn to_values(&self, extended_bpf_program_file_descriptors: &FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>) -> Result<(bpf_prog_type, bpf_attach_type, BpfTypeFormatTypeIdentifier, RawFd, u32, Option<NetworkInterfaceIndex>), ProgramError>
+	pub(crate) fn to_values(&self, extended_bpf_program_file_descriptors: &FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>) -> Result<(bpf_prog_type, bpf_attach_type, BpfTypeFormatTypeIdentifier, RawFd, u32, Option<NetworkInterfaceIndex>), ParseError>
 	{
 		use self::bpf_attach_type::*;
 		use self::bpf_prog_type::*;

@@ -44,9 +44,9 @@ impl Default for BpfTypeFormatTypeIdentifiers
 impl BpfTypeFormatTypeIdentifiers
 {
 	#[inline(always)]
-	pub(crate) fn finish(self) -> Result<Vec<u8>, ProgramError>
+	pub(crate) fn finish(self) -> Result<Vec<u8>, ParseError>
 	{
-		use self::ProgramError::*;
+		use self::ParseError::*;
 		
 		let type_identifiers_section_starts_at = btf_header::Size;
 		let type_identifiers_section_length = self.bpf_type_format_header_then_type_identifiers_table.len() - btf_header::Size;
@@ -71,7 +71,7 @@ impl BpfTypeFormatTypeIdentifiers
 	}
 	
 	#[inline(always)]
-	pub(crate) fn btf_header(type_identifier_section_starts_at: usize, type_identifier_section_length: usize, string_section_starts_at: usize, string_section_length: usize) -> Result<btf_header, ProgramError>
+	pub(crate) fn btf_header(type_identifier_section_starts_at: usize, type_identifier_section_length: usize, string_section_starts_at: usize, string_section_length: usize) -> Result<btf_header, ParseError>
 	{
 		#[inline(always)]
 		fn offset(starts_at: usize) -> Result<u32, TryFromIntError>

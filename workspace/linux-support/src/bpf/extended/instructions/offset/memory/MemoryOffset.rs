@@ -25,3 +25,44 @@ impl<'name, V: Into<Offset<'name, i16>>> From<V> for MemoryOffset<'name>
 		Self(value.into())
 	}
 }
+
+impl MemoryOffset<'static>
+{
+	/// Does not accommodate the upper-half of a BPF stack.
+	#[inline(always)]
+	pub(crate) const fn stack_variable_8(variable_slot: u16) -> Self
+	{
+		assert!(variable_slot < (MAX_BPF_STACK as u16), "variable slot equals or exceeds maximum stack depth of MAX_BPF_STACK {}", MAX_BPF_STACK);
+		Self::stack_variable::<u16>(variable_slot as i16)
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn stack_variable_16(variable_slot: u8) -> Self
+	{
+		Self::stack_variable::<u16>(variable_slot as i16)
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn stack_variable_32(variable_slot: u8) -> Self
+	{
+		Self::stack_variable::<u32>(variable_slot as i16)
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn stack_variable_64(variable_slot: u8) -> Self
+	{
+		Self::stack_variable::<64>(variable_slot as i16)
+	}
+	
+	#[inline(always)]
+	const fn stack_variable<V: Sized>(variable_slot: i16) -> Self
+	{
+		MemoryOffset::from(Offset::Known(Self::stack_variable_offset::<V>(variable_slot)))
+	}
+	
+	#[inline(always)]
+	const fn stack_variable_offset<V: Sized>(variable_slot: i16) -> i16
+	{
+		-(variable_slot * (size_of::<V>() as i16))
+	}
+}

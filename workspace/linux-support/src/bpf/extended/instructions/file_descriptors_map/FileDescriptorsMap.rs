@@ -8,25 +8,32 @@ pub struct FileDescriptorsMap<FD: FileDescriptor>(HashMap<ObjectName16, Rc<FD>>)
 
 impl<FD: FileDescriptor> FileDescriptorsMap<FD>
 {
+	/// New instance.
 	#[inline(always)]
-	pub(crate) fn add(&mut self, program_name_or_map_name: ObjectName16, file_descriptor: FD) -> Result<Rc<FD>, FileDescriptorsMapError>
+	pub fn with_capacity(capacity: usize) -> Self
+	{
+		Self(HashMap::with_capacity(capacity))
+	}
+	
+	#[inline(always)]
+	pub(crate) fn add(&mut self, program_name_or_map_name: ObjectName16, file_descriptor: FD) -> Result<Rc<FD>, FileDescriptorsMapAddError>
 	{
 		use std::collections::hash_map::Entry::*;
 		
 		match self.0.entry(program_name_or_map_name)
 		{
 			Vacant(vacant) => Ok(Rc::clone(vacant.insert(Rc::new(file_descriptor)))),
-			Occupied(_) => Err(FileDescriptorsMapError::AlreadyAddedFileDescriptor),
+			Occupied(occupied) => Err(FileDescriptorsMapAddError::AlreadyAddedFileDescriptor(occupied.key().clone())),
 		}
 	}
 	
 	#[inline(always)]
-	pub(crate) fn resolve<'name>(&self, program_name_or_map_name: &ObjectName16) -> Result<RawFd, FileDescriptorsMapError>
+	pub(crate) fn resolve<'name>(&self, program_name_or_map_name: &ObjectName16) -> Result<RawFd, FileDescriptorsMapResolveError>
 	{
 		match self.0.get(program_name_or_map_name)
 		{
 			Some(file_descriptor) => Ok(file_descriptor.as_raw_fd()),
-			None => Err(FileDescriptorsMapError::MissingFileDescriptor),
+			None => Err(FileDescriptorsMapResolveError::MissingFileDescriptor(program_name_or_map_name.clone())),
 		}
 	}
 }

@@ -2,9 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// An error when processing a list of `ProgramLine`.
+/// An error when parsing a list of `ProgramLine`.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ProgramError
+pub enum ParseError
 {
 	/// More than 2^22 program lines.
 	TooManyProgramLines,
@@ -51,11 +51,13 @@ pub enum ProgramError
 	/// No type identifiers and no strings.
 	NoBpfTypeFormatData,
 	
-	/// Too much BTF data to load.
+	/// Too much BPF type format data to load.
 	MaximumBpfTypeFormatDataSizeExceeded,
 	
-	/// Too much BTF data to load.
-	CouldNotLoadBpfTypeFormatData(Errno),
+	/// Could not load BPF type format data.
+	///
+	/// Contains syscall result code and verifier log messages (if logging done).
+	CouldNotLoadBpfTypeFormatData(Errno, Option<CString>),
 	
 	/// Invalid BTF.
 	BpfTypeFormat(BpfTypeFormatError),
@@ -64,10 +66,10 @@ pub enum ProgramError
 	InvalidBpfTypeFormatDataSize(TryFromIntError),
 	
 	/// Could not resolve file descriptor.
-	FileDescriptorMap(FileDescriptorsMapError),
+	FileDescriptorMapResolve(FileDescriptorsMapResolveError),
 }
 
-impl Display for ProgramError
+impl Display for ParseError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -76,12 +78,12 @@ impl Display for ProgramError
 	}
 }
 
-impl error::Error for ProgramError
+impl error::Error for ParseError
 {
 	#[inline(always)]
 	fn source(&self) ->  Option<&(dyn error::Error + 'static)>
 	{
-		use self::ProgramError::*;
+		use self::ParseError::*;
 		
 		match self
 		{
@@ -89,36 +91,36 @@ impl error::Error for ProgramError
 			
 			&InvalidBpfTypeFormatDataSize(ref error) => Some(error),
 			
-			&FileDescriptorMap(ref error) => Some(error),
+			&FileDescriptorMapResolve(ref error) => Some(error),
 			
 			_ => None,
 		}
 	}
 }
 
-impl From<BpfTypeFormatError> for ProgramError
+impl From<BpfTypeFormatError> for ParseError
 {
 	#[inline(always)]
 	fn from(value: BpfTypeFormatError) -> Self
 	{
-		ProgramError::BpfTypeFormat(value)
+		ParseError::BpfTypeFormat(value)
 	}
 }
 
-impl From<TryFromIntError> for ProgramError
+impl From<TryFromIntError> for ParseError
 {
 	#[inline(always)]
 	fn from(value: TryFromIntError) -> Self
 	{
-		ProgramError::InvalidBpfTypeFormatDataSize(value)
+		ParseError::InvalidBpfTypeFormatDataSize(value)
 	}
 }
 
-impl From<FileDescriptorsMapError> for ProgramError
+impl From<FileDescriptorsMapResolveError> for ParseError
 {
 	#[inline(always)]
-	fn from(value: FileDescriptorsMapError) -> Self
+	fn from(value: FileDescriptorsMapResolveError) -> Self
 	{
-		ProgramError::FileDescriptorMap(value)
+		ParseError::FileDescriptorMapResolve(value)
 	}
 }

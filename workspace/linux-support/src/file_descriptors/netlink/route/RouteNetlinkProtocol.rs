@@ -72,6 +72,31 @@ impl RouteNetlinkProtocol
 	}
 }
 
+/// Get links.
+impl RouteNetlinkProtocol
+{
+	/// Get link.
+	pub fn get_link(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, filter: &impl FnOnce(&GetLinkMessageData) -> bool) -> Result<Option<GetLinkMessageData>, String>
+	{
+		for get_link_message_data in Self::get_links(netlink_socket_file_descriptor)?
+		{
+			if filter(&get_link_message_data)
+			{
+				return Ok(Some(get_link_message_data))
+			}
+		}
+		Ok(None)
+	}
+	
+	/// Get links.
+	///
+	/// This is ***SLOW***.
+	pub fn get_links(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>) -> Result<Vec<GetLinkMessageData>, String>
+	{
+		GetLinkMessageProcessor.get_links(netlink_socket_file_descriptor)
+	}
+}
+
 /// Get addresses.
 impl RouteNetlinkProtocol
 {

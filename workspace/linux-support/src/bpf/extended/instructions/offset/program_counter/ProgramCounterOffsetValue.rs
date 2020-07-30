@@ -9,7 +9,7 @@ pub trait ProgramCounterOffsetValue: OffsetValue
 	const Invalid: Self;
 	
 	#[doc(hidden)]
-	fn program_counter_offset_value(label: ProgramCounter, current_program_counter: ProgramCounter) -> Result<Self, ProgramError>;
+	fn program_counter_offset_value(label: ProgramCounter, current_program_counter: ProgramCounter) -> Result<Self, ParseError>;
 }
 
 impl ProgramCounterOffsetValue for i16
@@ -17,7 +17,7 @@ impl ProgramCounterOffsetValue for i16
 	const Invalid: Self = -1;
 	
 	#[inline(always)]
-	fn program_counter_offset_value(label: ProgramCounter, current_program_counter: ProgramCounter) -> Result<Self, ProgramError>
+	fn program_counter_offset_value(label: ProgramCounter, current_program_counter: ProgramCounter) -> Result<Self, ParseError>
 	{
 		label.i16_offset(current_program_counter)
 	}
@@ -28,7 +28,7 @@ impl ProgramCounterOffsetValue for i32
 	const Invalid: Self = -1;
 	
 	#[inline(always)]
-	fn program_counter_offset_value(label: ProgramCounter, current_program_counter: ProgramCounter) -> Result<Self, ProgramError>
+	fn program_counter_offset_value(label: ProgramCounter, current_program_counter: ProgramCounter) -> Result<Self, ParseError>
 	{
 		label.i32_offset(current_program_counter)
 	}

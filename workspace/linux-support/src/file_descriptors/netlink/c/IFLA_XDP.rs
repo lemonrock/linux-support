@@ -3,6 +3,7 @@
 
 
 /// Nested attribute values for `IFLA::IFLA_XDP`.
+#[non_exhaustive]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u16)]
 pub(crate) enum IFLA_XDP

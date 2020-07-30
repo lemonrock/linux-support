@@ -94,6 +94,6 @@ impl NetworkInterfaceName
 	#[inline(always)]
 	pub fn try_from_network_interface_index(value: NetworkInterfaceIndex) -> Result<Option<Self>, NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>>
 	{
-		NetworkDeviceSocketFileDescriptor::network_interface_index_to_network_interface_name(value)
+		NetworkDeviceSocketFileDescriptor::new()?.network_interface_index_to_network_interface_name(value)
 	}
 }

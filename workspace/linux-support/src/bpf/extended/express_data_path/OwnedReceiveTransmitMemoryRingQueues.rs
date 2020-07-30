@@ -12,7 +12,7 @@ pub struct OwnedReceiveTransmitMemoryRingQueues
 	/// transmit is `xsk_ring_prod`.
 	receive_and_transmit: ReceiveOrTransmitOrBoth<XskRingQueue>,
 	
-	xdp_extended_bpf_program: ManuallyDrop<ExtendedBpfProgramFileDescriptor>,
+	xdp_extended_bpf_program: ManuallyDrop<Option<ExtendedBpfProgramFileDescriptor>>,
 }
 
 impl Drop for OwnedReceiveTransmitMemoryRingQueues
@@ -51,10 +51,10 @@ impl ReceiveTransmitMemoryRingQueues for OwnedReceiveTransmitMemoryRingQueues
 impl OwnedReceiveTransmitMemoryRingQueues
 {
 	#[inline(always)]
-	fn new(user_memory: UserMemory, xdp_extended_bpf_program: ExtendedBpfProgramFileDescriptor, network_interface_index: NetworkInterfaceIndex, queue_identifier: QueueIdentifier, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, SocketCreationOrBindError>
+	fn new(user_memory: UserMemory, xdp_extended_bpf_program: Option<ExtendedBpfProgramFileDescriptor>, network_interface_index: NetworkInterfaceIndex, queue_identifier: QueueIdentifier, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, SocketCreationOrBindError>
 	{
 		let user_memory_socket_file_descriptor = &user_memory.user_memory_socket_file_descriptor;
-		let receive_and_transmit = Self::construct(user_memory_socket_file_descriptor, network_interface_index, queue_identifier, ring_queue_depths, XdpSocketAddressFlags::empty(), user_memory_socket_file_descriptor.as_raw_fd(), defaults)?;
+		let receive_and_transmit = Self::construct(user_memory_socket_file_descriptor, network_interface_index, queue_identifier, ring_queue_depths, XdpSocketAddressFlags::empty(), user_memory_socket_file_descriptor.as_raw_fd(), defaults, xdp_extended_bpf_program.as_ref())?;
 		Ok
 		(
 			Self
@@ -88,7 +88,7 @@ impl OwnedReceiveTransmitMemoryRingQueues
 	}
 	
 	/// Based on `libbpf`'s `xsk_socket__create()`.
-	fn construct(xsk_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, network_interface_index: NetworkInterfaceIndex, queue_identifier: QueueIdentifier, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth>, sxdp_flags: XdpSocketAddressFlags, sxdp_shared_umem_fd: RawFd, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<ReceiveOrTransmitOrBoth<XskRingQueue>, SocketBindError>
+	fn construct(xsk_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, network_interface_index: NetworkInterfaceIndex, queue_identifier: QueueIdentifier, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth>, sxdp_flags: XdpSocketAddressFlags, sxdp_shared_umem_fd: RawFd, defaults: &DefaultPageSizeAndHugePageSizes, xdp_extended_bpf_program: Option<&ExtendedBpfProgramFileDescriptor>) -> Result<ReceiveOrTransmitOrBoth<XskRingQueue>, SocketBindError>
 	{
 		ring_queue_depths.use_value
 		(
@@ -117,139 +117,16 @@ impl OwnedReceiveTransmitMemoryRingQueues
 		const len: u32 = size_of::<sockaddr_xdp>() as u32;
 		bind_socket(xsk_socket_file_descriptor, &socket_address)?;
 		
-		// load a program if not using shared user memory.
+		if let Some(xdp_extended_bpf_program) = xdp_extended_bpf_program
+		{
+			if (xsk->rx)
+			{
+				xsk_set_bpf_maps(xsk);
+			}
+		}
 		
 		if owned
 		{
-				/*
-
-static int xsk_setup_xdp_prog(struct xsk_socket *xsk)
-{
-	__u32 prog_id = 0;
-	int err;
-
-	err = bpf_get_link_xdp_id(xsk->ifindex, &prog_id,
-				  xsk->config.xdp_flags);
-	if (err)
-		return err;
-
-	if (!prog_id) {
-		err = xsk_create_bpf_maps(xsk);
-		if (err)
-			return err;
-
-		err = xsk_load_xdp_prog(xsk);
-		if (err) {
-			xsk_delete_bpf_maps(xsk);
-			return err;
-		}
-	} else {
-		xsk->prog_fd = bpf_prog_get_fd_by_id(prog_id);
-		if (xsk->prog_fd < 0)
-			return -errno;
-		err = xsk_lookup_bpf_maps(xsk);
-		if (err) {
-			close(xsk->prog_fd);
-			return err;
-		}
-	}
-
-	if (xsk->rx)
-		err = xsk_set_bpf_maps(xsk);
-	if (err) {
-		xsk_delete_bpf_maps(xsk);
-		close(xsk->prog_fd);
-		return err;
-	}
-
-	return 0;
-}
-	 */
-
-// static int xsk_load_xdp_prog(struct xsk_socket *xsk)
-// {
-// 	static const int log_buf_size = 16 * 1024;
-// 	char log_buf[log_buf_size];
-// 	int err, prog_fd;
-//
-// 	/* This is the C-program:
-// 	 * SEC("xdp_sock") int xdp_sock_prog(struct xdp_md *ctx)
-// 	 * {
-// 	 *     int ret, index = ctx->rx_queue_index;
-// 	 *
-// 	 *     // A set entry here means that the correspnding queue_id
-// 	 *     // has an active AF_XDP socket bound to it.
-// 	 *     ret = bpf_redirect_map(&xsks_map, index, XDP_PASS);
-// 	 *     if (ret > 0)
-// 	 *         return ret;
-// 	 *
-// 	 *     // Fallback for pre-5.3 kernels, not supporting default
-// 	 *     // action in the flags parameter.
-// 	 *     if (bpf_map_lookup_elem(&xsks_map, &index))
-// 	 *         return bpf_redirect_map(&xsks_map, index, 0);
-// 	 *     return XDP_PASS;
-// 	 * }
-// 	 */
-// 	struct bpf_insn prog[] = {
-// 		/* r2 = *(u32 *)(r1 + 16) */
-// 		BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_1, 16),
-// 		/* *(u32 *)(r10 - 4) = r2 */
-// 		BPF_STX_MEM(BPF_W, BPF_REG_10, BPF_REG_2, -4),
-// 		/* r1 = xskmap[] */
-// 		BPF_LD_MAP_FD(BPF_REG_1, xsk->xsks_map_fd),
-// 		/* r3 = XDP_PASS */
-// 		BPF_MOV64_IMM(BPF_REG_3, 2),
-// 		/* call bpf_redirect_map */
-// 		BPF_EMIT_CALL(BPF_FUNC_redirect_map),
-// 		/* if w0 != 0 goto pc+13 */
-// 		BPF_JMP32_IMM(BPF_JSGT, BPF_REG_0, 0, 13),
-// 		/* r2 = r10 */
-// 		BPF_MOV64_REG(BPF_REG_2, BPF_REG_10),
-// 		/* r2 += -4 */
-// 		BPF_ALU64_IMM(BPF_ADD, BPF_REG_2, -4),
-// 		/* r1 = xskmap[] */
-// 		BPF_LD_MAP_FD(BPF_REG_1, xsk->xsks_map_fd),
-// 		/* call bpf_map_lookup_elem */
-// 		BPF_EMIT_CALL(BPF_FUNC_map_lookup_elem),
-// 		/* r1 = r0 */
-// 		BPF_MOV64_REG(BPF_REG_1, BPF_REG_0),
-// 		/* r0 = XDP_PASS */
-// 		BPF_MOV64_IMM(BPF_REG_0, 2),
-// 		/* if r1 == 0 goto pc+5 */
-// 		BPF_JMP_IMM(BPF_JEQ, BPF_REG_1, 0, 5),
-// 		/* r2 = *(u32 *)(r10 - 4) */
-// 		BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_10, -4),
-// 		/* r1 = xskmap[] */
-// 		BPF_LD_MAP_FD(BPF_REG_1, xsk->xsks_map_fd),
-// 		/* r3 = 0 */
-// 		BPF_MOV64_IMM(BPF_REG_3, 0),
-// 		/* call bpf_redirect_map */
-// 		BPF_EMIT_CALL(BPF_FUNC_redirect_map),
-// 		/* The jumps are to this instruction */
-// 		BPF_EXIT_INSN(),
-// 	};
-// 	size_t insns_cnt = sizeof(prog) / sizeof(struct bpf_insn);
-//
-// 	prog_fd = bpf_load_program(BPF_PROG_TYPE_XDP, prog, insns_cnt,
-// 				   "LGPL-2.1 or BSD-2-Clause", 0, log_buf,
-// 				   log_buf_size);
-// 	if (prog_fd < 0) {
-// 		pr_warn("BPF log buffer:\n%s", log_buf);
-// 		return prog_fd;
-// 	}
-//
-// 	err = bpf_set_link_xdp_fd(xsk->ifindex, prog_fd, xsk->config.xdp_flags);
-// 	if (err) {
-// 		close(prog_fd);
-// 		return err;
-// 	}
-//
-// 	xsk->prog_fd = prog_fd;
-// 	return 0;
-// }
-	
-
-	
 			xsk_setup_xdp_prog(xsk);
 		}
 		

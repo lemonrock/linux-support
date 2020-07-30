@@ -3,6 +3,7 @@
 
 
 use super::*;
+use super::express_data_path::AttachMode;
 use super::maps::domain::access_permissions::KernelOnlyAccessPermissions;
 use crate::file_descriptors::bpf::*;
 
@@ -11,3 +12,4 @@ include!("Identifier.rs");
 include!("BpfTypeFormatIdentifier.rs");
 include!("ExtendedBpfProgramIdentifier.rs");
 include!("MapIdentifier.rs");
+include!("MultipleProgramIdentifiers.rs");

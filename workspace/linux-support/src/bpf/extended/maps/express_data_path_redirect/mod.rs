@@ -3,6 +3,7 @@
 
 
 use super::*;
+use crate::network_device::Channels;
 
 
 include!("ExpressDataPathRedirectHyperThreadArrayMap.rs");

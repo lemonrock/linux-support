@@ -40,8 +40,10 @@ impl UserMemory
 	}
 	
 	/// Makes the necessary calls to create something suitable to be used as a XDP program with a socket.
+	///
+	/// If `xdp_extended_bpf_program` is specified it is attached to `network_interface_index`.
 	#[inline(always)]
-	pub fn to_receive_transmit(self, xdp_extended_bpf_program: ExtendedBpfProgramFileDescriptor, network_interface_index: NetworkInterfaceIndex, queue_identifier: QueueIdentifier, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<OwnedReceiveTransmitMemoryRingQueues, SocketCreationOrBindError>
+	pub fn to_receive_transmit(self, xdp_extended_bpf_program: Option<ExtendedBpfProgramFileDescriptor>, network_interface_index: NetworkInterfaceIndex, queue_identifier: QueueIdentifier, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<OwnedReceiveTransmitMemoryRingQueues, SocketCreationOrBindError>
 	{
 		OwnedReceiveTransmitMemoryRingQueues::new(self, xdp_extended_bpf_program, network_interface_index, queue_identifier, ring_queue_depths, defaults)
 	}

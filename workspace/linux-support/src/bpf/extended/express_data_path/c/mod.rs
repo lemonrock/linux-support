@@ -5,12 +5,16 @@
 use super::*;
 use crate::memory::mapping::MappedMemory;
 use crate::network_device::NetworkInterfaceIndex;
+use super::instructions::offset::memory::*;
+use super::extended::instructions::offset::*;
+use super::extended::instructions::offset::immediate::*;
 
 
 include!("sockaddr_xdp.rs");
 include!("XDP_.SocketOptions.rs");
 include!("XDP_.sxdp_flags.rs");
 include!("XDP_.xdp_umem_reg.rs");
+include!("xdp_action.rs");
 include!("XDP_DIAG.rs");
 include!("xdp_desc.rs");
 include!("xdp_diag_msg.rs");
@@ -19,6 +23,7 @@ include!("xdp_diag_req.rs");
 include!("xdp_diag_ring.rs");
 include!("xdp_diag_umem.rs");
 include!("XDP_DU_F_.rs");
+include!("xdp_md.rs");
 include!("xdp_mmap_offsets.rs");
 include!("xdp_options.rs");
 include!("XDP_OPTIONS_.rs");

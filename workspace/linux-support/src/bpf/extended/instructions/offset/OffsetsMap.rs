@@ -11,7 +11,7 @@ impl<OV: OffsetValue> Default for OffsetsMap<OV>
 	#[inline(always)]
 	fn default() -> Self
 	{
-		use self::ProgramError::*;
+		use self::ParseError::*;
 		
 		Self(UsageHashMap::new(CouldNotResolveOffset, NotAllOffsetsHaveBeenResolved))
 	}
@@ -29,7 +29,7 @@ impl<OV: OffsetValue> OffsetsMap<OV>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn resolve<'name>(&self, offset: &impl AsRef<Offset<'name, OV>>) -> Result<OV, ProgramError>
+	pub(crate) fn resolve<'name>(&self, offset: &impl AsRef<Offset<'name, OV>>) -> Result<OV, ParseError>
 	{
 		use self::Offset::*;
 		
@@ -42,7 +42,7 @@ impl<OV: OffsetValue> OffsetsMap<OV>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn guard_all_values_have_been_resolved_at_least_once(self) -> Result<(), ProgramError>
+	pub(crate) fn guard_all_values_have_been_resolved_at_least_once(self) -> Result<(), ParseError>
 	{
 		self.0.guard_all_values_have_been_resolved_at_least_once()
 	}

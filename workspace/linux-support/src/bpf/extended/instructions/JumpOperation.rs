@@ -9,6 +9,18 @@
 #[repr(u8)]
 pub enum JumpOperation
 {
+	/// Equal (`==`).
+	Equal = BPF_OP(BPF_JEQ as u16) as u8,
+	
+	/// Greater-than unsigned (`>`).
+	GreaterThan = BPF_OP(BPF_JGT) as u8,
+	
+	/// Greater-than-or-equal-to unsigned (`>=`).
+	GreaterThanOrEqualTo = BPF_OP(BPF_JGE) as u8,
+	
+	/// If any bits are set.
+	IfBitsSet = BPF_OP(BPF_JSET) as u8,
+	
 	/// Not equal (`!=`).
 	NotEqual = BPF_OP(BPF_JNE as u16) as u8,
 	

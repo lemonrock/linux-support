@@ -94,6 +94,68 @@ impl Information for bpf_prog_info
 
 impl bpf_prog_info
 {
+	#[inline(always)]
+	pub(crate) fn validate_has_program_type(&self, program_type: bpf_prog_type, error: E) -> Result<(), E>
+	{
+		if self.has_program_type(program_type)
+		{
+			Ok(())
+		}
+		else
+		{
+			Err(error)
+		}
+	}
+	
+	#[inline(always)]
+	fn has_program_type(&self, program_type: bpf_prog_type) -> bool
+	{
+		self.type_ == program_type
+	}
+	
+	#[inline(always)]
+	pub(crate) fn validate_attach_mode_and_device_offload_matches_program_information(&self, attach_mode: AttachMode, device_offload: bool) -> Result<(), ValidateAttachModeError>
+	{
+		use self::AttachMode::*;
+		use self::ValidateAttachModeError::*;
+		match (attach_mode, self.ifindex)
+		{
+			(Offloaded, None) => return Err(ExistingExpressDataPathProgramShouldBeOffloaded),
+			
+			(Offloaded, Some(offloaded_network_interface_index)) => if offloaded_network_interface_index == network_interface_name
+			{
+			}
+			else
+			{
+				return Err(ExistingExpressDataPathProgramIsOffloadedForADifferentNetworkInterfaceIndex)
+			}
+			
+			(_, Some(_)) => return Err(ExistingExpressDataPathProgramShouldNotBeOffloaded),
+			
+			_ => (),
+		};
+		
+		match (device_offload, attach_mode)
+		{
+			(false, GenericOrNative) => (),
+			(false, Generic) => (),
+			(false, Native) => (),
+			
+			(true, Offloaded) => (),
+			
+			_ => return Err(AttachModeAndDeviceOffloadMismatch),
+		};
+		
+		if device_offload == self.ifindex.is_some()
+		{
+			Ok(())
+		}
+		else
+		{
+			Err(DeviceOffloadRequiredButNotOffloaded)
+		}
+	}
+	
 	/// Name (clones internally).
 	#[inline(always)]
 	pub fn name(&self) -> ProgramName
@@ -134,6 +196,30 @@ impl bpf_prog_info
 	pub fn map_identifiers(&self) -> Option<&[MapIdentifier]>
 	{
 		self.map_ids.to_slice(self.nr_map_ids)
+	}
+	
+	/// Filters for a map file descriptor.
+	#[inline(always)]
+	pub(crate) fn filter_map_identifiers_for(&self, map_access_permissions: KernelOnlyAccessPermissions, filter_for_map_name: &MapName, filter_for_map_type: bpf_map_type) -> Result<Option<(MapFileDescriptor, bpf_map_info)>, GetExistingMapError>
+	{
+		use self::GetExistingMapError::*;
+		
+		if let Some(map_identifiers) = self.map_identifiers()
+		{
+			for map_identifier in map_identifiers
+			{
+				if let Some(map_file_descriptor) = map_identifier.to_file_descriptor(map_access_permissions).map_err(CouldNotGetExistingMapFileDescriptor)?
+				{
+					let map_information = map_file_descriptor.get_information().map_err(CouldNotGetExistingMapInformation)?;
+					
+					if map_information.has_type_and_name(filter_for_map_type, filter_for_map_name)
+					{
+						return Ok(Some((map_file_descriptor, map_information)))
+					}
+				}
+			}
+		}
+		Ok(None)
 	}
 	
 	/// Jitted kernel symbols.

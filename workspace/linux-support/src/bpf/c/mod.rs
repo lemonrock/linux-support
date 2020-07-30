@@ -14,10 +14,11 @@ use crate::inode::Inode;
 use crate::network_device::NetworkInterfaceIndex;
 use crate::syscall::SYS;
 use crate::user_and_groups::UserIdentifier;
+use crate::bpf::extended::maps::domain::access_permissions::KernelOnlyAccessPermissions;
+use crate::file_descriptors::bpf::{BpfFileDescriptor, MapFileDescriptor};
+use crate::bpf::extended::express_data_path::AttachMode;
 
 
-include!("__BindgenBitFieldUnit.rs");
-include!("__IncompleteArrayField.rs");
 include!("AlignedU64.rs");
 include!("ArrayOfElementsWhoseSizeVariesByLinuxVersion.rs");
 include!("bpf.rs");
@@ -87,6 +88,7 @@ include!("BpfTypeFormatVariableLinkage.rs");
 include!("DestinationAndSourceRegisters.rs");
 include!("elem_flags.rs");
 include!("ExtendedBPF_.rs");
+include!("GetExistingMapError.rs");
 include!("InstructionPointer.rs");
 include!("MAX_BPF_STACK.rs");
 include!("OffsetOrInstructionPointer.rs");
@@ -95,3 +97,4 @@ include!("OffsetOrInstructionPointer.rs");
 //include!("SKF_NET_OFF.rs");
 include!("sock_filter.rs");
 include!("sock_fprog.rs");
+include!("ValidateAttachModeError.rs");

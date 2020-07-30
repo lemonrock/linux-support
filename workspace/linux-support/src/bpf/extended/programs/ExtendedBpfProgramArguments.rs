@@ -21,3 +21,20 @@ pub struct ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended
 	/// Programs.
 	pub extended_bpf_program_file_descriptors: &'extended_bpf_program_file_descriptor_label_map mut FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>,
 }
+
+impl<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map> ExtendedBpfProgramArguments<'map_file_descriptor_label_map, 'extended_bpf_program_file_descriptor_label_map>
+{
+	/// New instance with unpopulated immediate and memory offset maps.
+	#[inline(always)]
+	pub fn new(map_file_descriptors: &'map_file_descriptor_label_map FileDescriptorsMap<MapFileDescriptor>, extended_bpf_program_file_descriptors: &'extended_bpf_program_file_descriptor_label_map mut FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>) -> Self
+	{
+		Self
+		{
+			i32_immediates_map: OffsetsMap::default(),
+			u64_immediates_map: OffsetsMap::default(),
+			memory_offsets_map: OffsetsMap::default(),
+			map_file_descriptors,
+			extended_bpf_program_file_descriptors
+		}
+	}
+}

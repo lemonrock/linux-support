@@ -5,6 +5,7 @@
 /// Used for `RTM_NEWLINK`, `RTM_DELLINK` and `RTM_GETLINK`.
 ///
 /// See Linux header `if_link.h`.
+#[non_exhaustive]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u16)]
 pub(crate) enum IFLA

@@ -18,6 +18,7 @@ include!("KeySize.rs");
 include!("LockFlags.rs");
 include!("MapCreationError.rs");
 include!("MapName.rs");
+include!("MapRehydrateError.rs");
 include!("MapType.rs");
 include!("MaximumEntries.rs");
 include!("MemoryMap.rs");

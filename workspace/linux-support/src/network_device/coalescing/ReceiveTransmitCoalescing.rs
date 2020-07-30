@@ -2,38 +2,22 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Error.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub enum FileDescriptorsMapError
+#[allow(missing_docs)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct ReceiveTransmitCoalescing
 {
-	/// Already added file descriptor.
-	AlreadyAddedFileDescriptor,
+	/// Receive.
+	pub receive: CoalescePair,
 	
-	/// Missing file descriptor.
-	MissingFileDescriptor,
+	/// Transmit.
+	pub transmit: CoalescePair,
 }
 
-impl Display for FileDescriptorsMapError
+impl ReceiveTransmitCoalescing
 {
 	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	fn destructure(&self) -> (u32, u32, u32, u32)
 	{
-		Debug::fmt(self, f)
-	}
-}
-
-impl error::Error for FileDescriptorsMapError
-{
-	#[inline(always)]
-	fn source(&self) ->  Option<&(dyn error::Error + 'static)>
-	{
-		use self::FileDescriptorsMapError::*;
-		
-		match self
-		{
-			AlreadyAddedFileDescriptor => None,
-			
-			MissingFileDescriptor => None,
-		}
+		(self.receive.microseconds, self.receive.maximum_frames, self.transmit.microseconds, self.transmit.maximum_frames)
 	}
 }

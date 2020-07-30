@@ -4,6 +4,7 @@
 
 use self::express_data_path::*;
 use self::get_address::*;
+use self::get_link::*;
 use self::reply_receivers::*;
 use self::reply_receivers::message_processors::*;
 use super::*;
@@ -19,6 +20,10 @@ mod express_data_path;
 
 /// Get address.
 pub mod get_address;
+
+
+/// Get link.
+pub mod get_link;
 
 
 pub(super) mod reply_receivers;

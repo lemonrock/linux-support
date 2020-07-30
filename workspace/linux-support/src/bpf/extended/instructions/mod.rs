@@ -20,8 +20,9 @@ include!("EndiannessOperation.rs");
 include!("LoadSize.rs");
 include!("JumpOperation.rs");
 include!("Name.rs");
-include!("ProgramError.rs");
+include!("ParseError.rs");
 include!("ProgramLine.rs");
+include!("ProgramLine.functions.rs");
 include!("ProgramLinesParser.rs");
 include!("Register.rs");
 include!("RegisterOrImmediate.rs");
@@ -33,4 +34,5 @@ pub mod file_descriptors_map;
 
 
 /// Offsets.
+#[macro_use]
 pub mod offset;

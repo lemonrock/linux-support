@@ -6,17 +6,19 @@
 #[derive(Debug)]
 pub enum ProgramLoadError
 {
-	/// Program error.
-	Program(ProgramError),
+	/// Parse error.
+	Parse(ParseError),
 	
 	/// Linux can not support more than `u32::MAX` entries in the function information array.
-	FunctionInformationArrayIsLargerThanU32Max(TryFromIntError),
+	BpfTypeFormatFunctionInformationArrayIsLargerThanU32Max(TryFromIntError),
 	
 	/// Linux can not support more than `u32::MAX` entries in the line information array.
-	LineInformationArrayIsLargerThanU32Max(TryFromIntError),
+	BpfTypeFormatLineInformationArrayIsLargerThanU32Max(TryFromIntError),
 
 	/// Invalid program.
-	InvalidProgram,
+	///
+	/// Contains verifier log messages if a verifier log was used.
+	InvalidProgram(Option<CString>),
 
 	/// Not enough space for verifier log messages.
 	NotEnoughSpaceForVerifierLogMessages,
@@ -28,7 +30,7 @@ pub enum ProgramLoadError
 	PermissionDenied,
 	
 	/// Could not register program.
-	CouldNotRegisterProgram(FileDescriptorsMapError),
+	CouldNotRegisterProgram(FileDescriptorsMapAddError),
 }
 
 impl Display for ProgramLoadError
@@ -49,11 +51,11 @@ impl error::Error for ProgramLoadError
 
 		match self
 		{
-			&Program(ref error) => Some(error),
+			&Parse(ref error) => Some(error),
 
-			&FunctionInformationArrayIsLargerThanU32Max(ref error) => Some(error),
+			&BpfTypeFormatFunctionInformationArrayIsLargerThanU32Max(ref error) => Some(error),
 
-			&LineInformationArrayIsLargerThanU32Max(ref error) => Some(error),
+			&BpfTypeFormatLineInformationArrayIsLargerThanU32Max(ref error) => Some(error),
 
 			&CouldNotRegisterProgram(ref error) => Some(error),
 			
@@ -62,19 +64,19 @@ impl error::Error for ProgramLoadError
 	}
 }
 
-impl From<ProgramError> for ProgramLoadError
+impl From<ParseError> for ProgramLoadError
 {
 	#[inline(always)]
-	fn from(error: ProgramError) -> Self
+	fn from(error: ParseError) -> Self
 	{
-		ProgramLoadError::Program(error)
+		ProgramLoadError::Parse(error)
 	}
 }
 
-impl From<FileDescriptorsMapError> for ProgramLoadError
+impl From<FileDescriptorsMapAddError> for ProgramLoadError
 {
 	#[inline(always)]
-	fn from(error: FileDescriptorsMapError) -> Self
+	fn from(error: FileDescriptorsMapAddError) -> Self
 	{
 		ProgramLoadError::CouldNotRegisterProgram(error)
 	}

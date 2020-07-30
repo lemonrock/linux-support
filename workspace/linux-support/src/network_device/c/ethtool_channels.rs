@@ -2,29 +2,37 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// A channel is an IRQ and the set of queues (or, in XDP world, the queue) that can trigger that IRQ.
 #[repr(C)]
 pub(crate) struct ethtool_channels
 {
 	/// `ETHTOOL_GCHANNELS` (to get channels) or `ETHTOOL_SCHANNELS` (to set channels).
 	pub(crate) cmd: u32,
 	
-	/// Maximum number of receive channel the driver support.
+	/// Maximum number of receive channels the driver supports.
+	///
+	/// These have only receive queues.
 	///
 	/// Read only.
 	pub(crate) max_rx: u32,
 	
-	/// Maximum number of transmit channel the driver support.
+	/// Maximum number of transmit channels the driver supports.
+	///
+	/// These have only transmit queues.
 	///
 	/// Read only.
 	pub(crate) max_tx: u32,
 	
-	/// Maximum number of other channel the driver support.
+	/// Maximum number of other channels the driver supports.
+	///
+	/// Used for other purposes such as link interrupts or PCI SR-IOV co-ordination.
 	///
 	/// Read only.
 	pub(crate) max_other: u32,
 	
-	/// Maximum number of combined channel the driver support.
-	/// Set of queues RX, TX or other.
+	/// Multi-purpose channels.
+	///
+	/// These have simulataneously receive and transmit queues.
 	///
 	/// Read only.
 	pub(crate) max_combined: u32,
@@ -40,4 +48,13 @@ pub(crate) struct ethtool_channels
 	
 	/// Valid values are in the range 1 to `max_combined`.
 	pub(crate) combined_count: Option<NonZeroU32>,
+}
+
+impl EthtoolCommand for ethtool_channels
+{
+	#[inline(always)]
+	fn command(&self) -> u32
+	{
+		self.cmd
+	}
 }

@@ -22,7 +22,7 @@ pub struct AttachToBpfTypeIdentifier(pub BpfTypeFormatTypeIdentifier);
 impl AttachToBpfTypeIdentifier
 {
 	#[inline(always)]
-	pub(crate) fn to_values(&self, program_type: bpf_prog_type, expected_attached_type: bpf_attach_type) -> Result<(bpf_prog_type, bpf_attach_type, BpfTypeFormatTypeIdentifier, RawFd, u32, Option<NetworkInterfaceIndex>), ProgramError>
+	pub(crate) fn to_values(&self, program_type: bpf_prog_type, expected_attached_type: bpf_attach_type) -> Result<(bpf_prog_type, bpf_attach_type, BpfTypeFormatTypeIdentifier, RawFd, u32, Option<NetworkInterfaceIndex>), ParseError>
 	{
 		Ok((program_type, expected_attached_type, self.0, 0, 0, None))
 	}
