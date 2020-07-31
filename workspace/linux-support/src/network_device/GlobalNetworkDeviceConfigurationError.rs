@@ -13,6 +13,15 @@ pub enum GlobalNetworkDeviceConfigurationError
 	CouldNotSetDriverMessageLevel(NetworkDeviceInputOutputControlError<Infallible>),
 	
 	#[allow(missing_docs)]
+	CouldNotSetForwardErrorConnection(NetworkDeviceInputOutputControlError<Infallible>),
+	
+	#[allow(missing_docs)]
+	CouldNotSetPause(NetworkDeviceInputOutputControlError<Infallible>),
+	
+	#[allow(missing_docs)]
+	CouldNotSetEnergyEfficientEthernet(NetworkDeviceInputOutputControlError<Infallible>),
+	
+	#[allow(missing_docs)]
 	CouldNotDisableWakeOnLan(NetworkDeviceInputOutputControlError<Infallible>),
 	
 	#[allow(missing_docs)]
@@ -49,15 +58,21 @@ impl error::Error for GlobalNetworkDeviceConfigurationError
 		
 		match self
 		{
-			&CouldNotSetDriverMessageLevel(_) => None,
+			&CouldNotSetDriverMessageLevel(ref error) => Some(error),
 			
-			&CouldNotSetDriverMessageLevel(_) => None,
+			&CouldNotSetDriverMessageLevel(ref error) => Some(error),
+			
+			&CouldNotSetForwardErrorConnection(ref error) => Some(error),
+			
+			&CouldNotSetPause(ref error) => Some(error),
+			
+			&CouldNotSetEnergyEfficientEthernet(ref error) => Some(error),
 			
 			&CouldNotDisableWakeOnLan(ref error) => Some(error),
 			
 			&CouldNotChangeFeatures(ref error) => Some(error),
 			
-			&CouldNotChangeCouldNotChangeTunable(ref error) => Some(error),
+			&CouldNotChangeTunable(ref error) => Some(error),
 			
 			&CouldNotChangeCoalesceConfiguration(ref error) => Some(error),
 			

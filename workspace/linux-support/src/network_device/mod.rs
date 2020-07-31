@@ -29,6 +29,7 @@ pub mod tunables;
 
 include!("BusDeviceAddress.rs");
 include!("Channels.rs");
+include!("EnergyEfficientEthernetConfiguration.rs");
 include!("GlobalNetworkDeviceConfiguration.rs");
 include!("GlobalNetworkDeviceConfigurationError.rs");
 include!("HardwareAddress.rs");
@@ -40,6 +41,7 @@ include!("NetworkInterfaceIndex.rs");
 include!("NetworkInterfaceIndexToNetworkInterfaceNameError.rs");
 include!("NetworkInterfaceName.rs");
 include!("NetworkInterfaceNameToSomethingError.rs");
+include!("PauseConfiguration.rs");
 include!("PendingQueueDepths.rs");
 include!("PhysicalIdentifier.rs");
 include!("PhysicalIdentifierFromBytesError.rs");

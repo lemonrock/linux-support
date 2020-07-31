@@ -68,6 +68,50 @@ impl<'a> NetworkDeviceInputOutputControl
 		)
 	}
 	
+	/// Try to set forward error correction (FEC).
+	#[inline(always)]
+	pub fn set_forward_error_correction(&self, forward_error_correction_code: ForwardErrorCorrectionCode) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
+	{
+		let mut command = match self.get_forward_error_correction()?
+		{
+			None => return Ok(None),
+			Some(None) => return Ok(Some(())),
+			Some(Some(command)) => command,
+		};
+		
+		if !command.is_supported_forward_error_correction_code(forward_error_correction_code)
+		{
+			return Ok(Some(()))
+		}
+		
+		if command.active_fec == forward_error_correction_code
+		{
+			return Ok(Some(()))
+		}
+		
+		self.ethtool_command
+		(
+			ethtool_fecparam
+			{
+				cmd: ETHTOOL_SFECPARAM,
+				active_fec: forward_error_correction_code,
+				fec: 0,
+				reserved: 0
+			},
+			|_command| Ok(()),
+			|errno, _command| match errno.0
+			{
+				ENODEV | ENXIO => Ok(None),
+				
+				EOPNOTSUPP => Ok(Some(())),
+				
+				EPERM => panic!("Permission denied"),
+				
+				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
+			}
+		)
+	}
+	
 	/// Disable Wake-on-LAN.
 	#[inline(always)]
 	pub fn disable_wake_on_lan(&self) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
@@ -411,6 +455,32 @@ impl<'a> NetworkDeviceInputOutputControl
 	}
 	
 	#[inline(always)]
+	fn get_forward_error_correction(&self) -> Result<Option<Option<ethtool_fecparam>>, NetworkDeviceInputOutputControlError<Infallible>>
+	{
+		self.ethtool_command
+		(
+			ethtool_fecparam
+			{
+				cmd: ETHTOOL_GFECPARAM,
+				active_fec: ForwardErrorCorrectionCode::ETHTOOL_FEC_NONE,
+				fec: 0,
+				reserved: 0,
+			},
+			|command| Ok(Some(command)),
+			|errno, _command| match errno.0
+			{
+				ENODEV | ENXIO => Ok(None),
+				
+				EOPNOTSUPP => Ok(Some(None)),
+				
+				EPERM => panic!("Permission denied"),
+				
+				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
+			}
+		)
+	}
+	
+	#[inline(always)]
 	fn driver_info(&self) -> Result<Option<ethtool_drvinfo>, CreationError>
 	{
 		let mut command = ethtool_drvinfo::default();
@@ -476,6 +546,130 @@ impl<'a> NetworkDeviceInputOutputControl
 				ENODEV | ENXIO => Ok(None),
 				
 				EOPNOTSUPP => Ok(Some(NETIF_MSG::empty())),
+				
+				EPERM => panic!("Permission denied"),
+				
+				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
+			}
+		)
+	}
+	
+	/// Set pause parameters.
+	pub fn set_pause(&self, pause_configuration: PauseConfiguration) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
+	{
+		self.ethtool_command
+		(
+			ethtool_pauseparam::set(pause_configuration),
+			|command| Ok(()),
+			|errno, _command| match errno.0
+			{
+				ENODEV | ENXIO => Ok(None),
+				
+				EOPNOTSUPP => Ok(Some(())),
+				
+				EPERM => panic!("Permission denied"),
+				
+				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
+			}
+		)
+	}
+	
+	/// Set Energy Efficient Ethernet (EEE).
+	pub fn set_energy_efficient_ethernet(&self, configuration: &EnergyEfficientEthernetConfiguration) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
+	{
+		let eee = match self.get_energy_efficient_ethernet()?
+		{
+			None => return Ok(None),
+			Some(None) => return Ok(Some(())),
+			Some(Some(eee)) => eee,
+		};
+		
+		use self::EnergyEfficientEthernetConfiguration::*;
+		
+		let command = match configuration
+		{
+			&Disable => ethtool_eee
+			{
+				cmd: ETHTOOL_SEEE,
+				supported: 0,
+				advertised: 0,
+				lp_advertised: 0,
+				eee_active: 0,
+				eee_enabled: 0,
+				tx_lpi_enabled: 0,
+				tx_lpi_timer: 0,
+				reserved: [0; 2],
+			},
+			
+			&Enable { ref advertise, ref transmit_low_power_idle_microseconds } =>
+			{
+				let mut command = ethtool_eee
+				{
+					cmd: ETHTOOL_SEEE,
+					supported: 0,
+					advertised: 0,
+					lp_advertised: 0,
+					eee_active: 0,
+					eee_enabled: 1,
+					tx_lpi_enabled: 0,
+					tx_lpi_timer: 0,
+					reserved: [0; 2],
+				};
+				for advertise in advertise.iter()
+				{
+					let advertise = *advertise;
+					if eee.supports(advertise)
+					{
+						command.set_we_advertise(advertise)
+					}
+				}
+				if let Some(transmit_low_power_idle_microseconds) = transmit_low_power_idle_microseconds
+				{
+					command.tx_lpi_enabled = 1;
+					command.tx_lpi_timer = transmit_low_power_idle_microseconds;
+				}
+			}
+		};
+		
+		self.ethtool_command
+		(
+			command,
+			|command| Ok(()),
+			|errno, _command| match errno.0
+			{
+				ENODEV | ENXIO => Ok(None),
+				
+				EOPNOTSUPP => Ok(Some(())),
+				
+				EPERM => panic!("Permission denied"),
+				
+				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
+			}
+		)
+	}
+	
+	fn get_energy_efficient_ethernet(&self) -> Result<Option<Option<ethtool_eee>>, NetworkDeviceInputOutputControlError<Infallible>>
+	{
+		self.ethtool_command
+		(
+			ethtool_eee
+			{
+				cmd: ETHTOOL_GEEE,
+				supported: 0,
+				advertised: 0,
+				lp_advertised: 0,
+				eee_active: 0,
+				eee_enabled: 0,
+				tx_lpi_enabled: 0,
+				tx_lpi_timer: 0,
+				reserved: [0; 2],
+			},
+			|command| Ok(Some(command)),
+			|errno, _command| match errno.0
+			{
+				ENODEV | ENXIO => Ok(None),
+				
+				EOPNOTSUPP => Ok(Some(None)),
 				
 				EPERM => panic!("Permission denied"),
 				

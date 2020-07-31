@@ -16,6 +16,15 @@ pub struct GlobalNetworkDeviceConfiguration
 	/// Use `NETIF_MSG::empty()` to try to disable all messages.
 	#[serde(default)] pub driver_message_level: Option<NETIF_MSG>,
 	
+	/// Forward Error Correction (FEC).
+	#[serde(default)] pub forward_error_correction: Option<ForwardErrorCorrectionCode>,
+	
+	/// Pause configuration.
+	#[serde(default)] pub pause_configuration: Option<PauseConfiguration>,
+	
+	/// Energy Efficient Ethernet (EEE).
+	#[serde(default)] pub energy_efficient_ethernet: Option<EnergyEfficientEthernetConfiguration>,
+	
 	/// Disable Wake-on-LAN (WoL).
 	#[serde(default)] pub disable_wake_on_lan: bool,
 	
@@ -36,11 +45,17 @@ pub struct GlobalNetworkDeviceConfiguration
 }
 
 
-
 xxx;
 /*
 
-per queue coalesce
+with coalsecing, need to be able to set individual parameters.
+
+with setting channels, the RSS table is reset on mlx cards.
+
+--set-rxfh-indir
+--config-nfc / --config-ntuple
+--per-queue ... eg coalesce
+--set-priv-flags
 
 rss / rx hash indirection
 
@@ -49,6 +64,36 @@ const char rss_hash_func_strings[ETH_RSS_HASH_FUNCS_COUNT][ETH_GSTRING_LEN] = {
 	[ETH_RSS_HASH_XOR_BIT] =	"xor",
 	[ETH_RSS_HASH_CRC32_BIT] =	"crc32",
 };
+
+Indirection RSS hash table
+
+This table can be configured. For example, to make sure all traffic goes only to CPUs #0-#5 (the first NUMA node in our setup), we run:
+
+client$ sudo ethtool -X eth2 weight 1 1 1 1 1 1 0 0 0 0 0
+server$ sudo ethtool -X eth3 weight 1 1 1 1 1 1 0 0 0 0 0
+
+
+
+
+Finally, ensure the interrupts of multiqueue network cards are evenly distributed between CPUs. The irqbalance service is stopped and the interrupts are manually assigned. For simplicity let's pin the RX queue #0 to CPU #0, RX queue #1 to CPU #1 and so on.
+
+https://docs.gz.ro/tuning-network-cards-on-linux.html
+https://blog.cloudflare.com/how-to-achieve-low-latency/
+https://serverfault.com/questions/772380/how-to-tell-if-nic-has-multiqueue-enabled
+
+client$ (let CPU=0; cd /sys/class/net/eth2/device/msi_irqs/;
+         for IRQ in *; do
+            echo $CPU > /proc/irq/$IRQ/smp_affinity_list
+            let CPU+=1
+         done)
+server$ (let CPU=0; cd /sys/class/net/eth3/device/msi_irqs/;
+         for IRQ in *; do
+            echo $CPU > /proc/irq/$IRQ/smp_affinity_list
+            let CPU+=1
+         done)
+
+
+
  */
 
 
@@ -72,6 +117,21 @@ impl GlobalNetworkDeviceConfiguration
 		if let Some(driver_message_level) = self.driver_message_level
 		{
 			validate(network_device_input_output_control.set_driver_message_level(driver_message_level), CouldNotSetDriverMessageLevel)?
+		}
+		
+		if let Some(forward_error_correction) = self.forward_error_correction
+		{
+			validate(network_device_input_output_control.set_forward_error_correction(forward_error_correction), CouldNotSetForwardErrorConnection)?
+		}
+		
+		if let Some(pause_configuration) = self.pause_configuration
+		{
+			validate(network_device_input_output_control.set_pause(pause_configuration), CouldNotSetPause)?
+		}
+		
+		if let Some(ref energy_efficient_ethernet) = self.energy_efficient_ethernet
+		{
+			validate(network_device_input_output_control.set_energy_efficient_ethernet(energy_efficient_ethernet), CouldNotSetForwardErrorConnection)?
 		}
 		
 		if self.disable_wake_on_lan
