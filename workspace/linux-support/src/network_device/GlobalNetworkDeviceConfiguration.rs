@@ -11,18 +11,47 @@ pub struct GlobalNetworkDeviceConfiguration
 	/// Network interface name.
 	pub network_interface_name: NetworkInterfaceName,
 
+	/// Driver message level.
+	///
+	/// Use `NETIF_MSG::empty()` to try to disable all messages.
+	#[serde(default)] pub driver_message_level: Option<NETIF_MSG>,
+	
 	/// Disable Wake-on-LAN (WoL).
-	pub disable_wake_on_lan: bool,
+	#[serde(default)] pub disable_wake_on_lan: bool,
+	
+	/// Feature groups.
+	#[serde(default)] pub feature_group_choices: Vec<FeatureGroupChoice>,
+	
+	/// Tunables.
+	#[serde(default)] pub tunables: Vec<Box<dyn Tunable>>,
 	
 	/// Change coalesce configuration.
-	pub coalesce_configuration: Option<CoalesceConfiguration>,
+	#[serde(default)] pub coalesce_configuration: Option<CoalesceConfiguration>,
 	
 	/// Maximize the number of channels?
-	pub maximize_number_of_channels: bool,
+	#[serde(default)] pub maximize_number_of_channels: bool,
 
 	/// Maximize pending queue depths?
-	pub maximize_pending_queue_depths: bool,
+	#[serde(default)] pub maximize_pending_queue_depths: bool,
 }
+
+
+
+xxx;
+/*
+
+per queue coalesce
+
+rss / rx hash indirection
+
+const char rss_hash_func_strings[ETH_RSS_HASH_FUNCS_COUNT][ETH_GSTRING_LEN] = {
+	[ETH_RSS_HASH_TOP_BIT] =	"toeplitz",
+	[ETH_RSS_HASH_XOR_BIT] =	"xor",
+	[ETH_RSS_HASH_CRC32_BIT] =	"crc32",
+};
+ */
+
+
 
 impl GlobalNetworkDeviceConfiguration
 {
@@ -32,71 +61,40 @@ impl GlobalNetworkDeviceConfiguration
 	{
 		use self::GlobalNetworkDeviceConfigurationError::*;
 		
-		let network_socket_file_descriptor = NetworkDeviceSocketFileDescriptor::new()?;
+		#[inline(always)]
+		fn validate<A, E>(change_result: impl FnOnce(&NetworkDeviceInputOutputControl) -> Result<Option<A>, E>, error: impl FnOnce(E) -> GlobalNetworkDeviceConfigurationError) -> Result<A, GlobalNetworkDeviceConfigurationError>
+		{
+			change(network_device_input_output_control).map_err(error)?.ok_or(NetworkDeviceDoesNotExist(network_device_input_output_control.network_interface_name()))
+		}
+		
+		let network_device_input_output_control = NetworkDeviceInputOutputControl::new(Cow::Borrowed(&self.network_interface_name))?;
+		
+		if let Some(driver_message_level) = self.driver_message_level
+		{
+			validate(network_device_input_output_control.set_driver_message_level(driver_message_level), CouldNotSetDriverMessageLevel)?
+		}
 		
 		if self.disable_wake_on_lan
 		{
-			network_socket_file_descriptor.disable_wake_on_lan(self.network_interface_name).map_err(CouldNotDisableWakeOnLan)?.ok_or(NetworkDeviceDoesNotExist(self.network_interface_name()))?
+			validate(network_device_input_output_control.disable_wake_on_lan(), CouldNotDisableWakeOnLan)?
+		}
+		
+		validate(network_device_input_output_control.set_features(FeatureGroupChoice::iter(&self.feature_group_choices)), CouldNotChangeFeatures)?;
+		
+		for tunable in self.tunables.iter()
+		{
+			validate(network_device_input_output_control.set_tunable(table), CouldNotChangeTunable)?
 		}
 		
 		if let Some(ref coalesce_configuration) = self.coalesce_configuration
 		{
-			network_socket_file_descriptor.change_coalesce_configuration(self.network_interface_name, coalesce_configuration).map_err(CouldNotChangeCoalesceConfiguration)?.ok_or(NetworkDeviceDoesNotExist(self.network_interface_name()))?
+			validate(network_device_input_output_control.change_coalesce_configuration(coalesce_configuration), CouldNotChangeCoalesceConfiguration)?
 		}
 		
-		let channels = network_socket_file_descriptor.maximize_number_of_channels(self.network_interface_name(), self.maximize_number_of_channels).map_err(CouldNotMaximizeChannels)?.ok_or(NetworkDeviceDoesNotExist(self.network_interface_name()))?;
+		let channels = validate(network_device_input_output_control.maximize_number_of_channels(self.maximize_number_of_channels), CouldNotMaximizeChannels)?;
 		
-		let pending_queue_depths = network_socket_file_descriptor.maximize_receive_ring_queues_and_transmit_ring_queue_depths(network_interface_name(), self.maximize_pending_queue_depths)?.map_err(CouldNotMaximizePendingQueueDepths).ok_or(NetworkDeviceDoesNotExist(self.network_interface_name()))?;
-		
-		// TODO: get a string set.
-		
-		// TODO: ETHTOOL_SPFLAGS
-		// TODO: parse_rxfhashopts such as RXH_L2DA and dump_rxfhash
-		// TODO: dump_per_queue_coalesce
-		// TODO: ethtool_sfeatures
-		// TODO: do_srxclass
-		// TODO: do_srxntuple
-		/*
-		
-		:: rx-flow-hash
-		
-		struct ethtool_rxnfc nfccmd;
-		
-		if (ctx->argc == 5) {
-			flow_rss = true;
-			nfccmd.rss_context = get_u32(ctx->argp[4], 0);
-			
-		nfccmd.cmd = ETHTOOL_SRXFH;
-		nfccmd.flow_type = rx_fhash_set;
-		nfccmd.data = rx_fhash_val;
-		if (flow_rss)
-			nfccmd.flow_type |= FLOW_RSS;
-
-		:: flow-type
-			
-			/* attempt to add rule via N-tuple specifier */
-			err = do_srxntuple(ctx, &rx_rule_fs);
-			if (!err)
-				return 0;
-	
-			/* attempt to add rule via network flow classifier */
-			err = rxclass_rule_ins(ctx, &rx_rule_fs, rss_context);
-			if (err < 0) {
-				fprintf(stderr, "Cannot insert"
-					" classification rule\n");
-				return 1;
-		
-		:: delete
-		rxclass_rule_del(ctx, rx_class_rule_del);
-		 */
-		 */
+		let pending_queue_depths = validate(network_device_input_output_control.maximize_receive_ring_queues_and_transmit_ring_queue_depths(self.maximize_pending_queue_depths), CouldNotMaximizePendingQueueDepths)?;
 		
 		Ok((channels, pending_queue_depths))
-	}
-	
-	#[inline(always)]
-	fn network_interface_name(&self) -> NetworkInterfaceName
-	{
-		self.network_interface_name.clone()
 	}
 }

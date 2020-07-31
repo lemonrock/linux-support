@@ -2,21 +2,24 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[repr(C)]
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub(crate) struct ethtool_value
+/// Which transceiver to use.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(u8)]
+pub(crate) enum XCVR
 {
-	pub(crate) cmd: u32,
+	/// PHY and MAC are in the same package.
+	///
+	/// Ethtool setting is `internal`.
+	XCVR_INTERNAL = 0x00,
 	
-	/// Is `NETIF_MSG` if `cmd` is `ETHTOOL_GMSGLVL` or `ETHTOOL_SMSGLVL`.
-	pub(crate) data: u32,
-}
-
-impl EthtoolCommand for ethtool_value
-{
-	#[inline(always)]
-	fn command(&self) -> u32
-	{
-		self.cmd
-	}
+	/// PHY and MAC are in different packages.
+	///
+	/// Ethtool setting is `external`.
+	XCVR_EXTERNAL = 0x01,
+	
+	XCVR_DUMMY1 = 0x02,
+	
+	XCVR_DUMMY2 = 0x03,
+	
+	XCVR_DUMMY3 = 0x04,
 }

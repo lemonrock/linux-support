@@ -136,6 +136,7 @@ use libc::EPERM;
 use libc::EPIPE;
 use libc::EPROTO;
 use libc::EPROTONOSUPPORT;
+use libc::ERANGE;
 use libc::EROFS;
 use libc::ESOCKTNOSUPPORT;
 use libc::ESPIPE;

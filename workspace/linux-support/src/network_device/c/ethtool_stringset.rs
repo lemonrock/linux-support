@@ -41,9 +41,13 @@ pub enum ethtool_stringset
 	ETH_SS_PHY_TUNABLES = 8,
 	
 	/// Link mode names.
+	///
+	/// See union `ethtool_link_mode_bit_indices` which contains the enums `ethtool_link_mode_bit_indices_speed` and `ethtool_link_mode_bit_indices_special`.
 	ETH_SS_LINK_MODES = 9,
 	
-	/// Debug message class names.
+	/// Driver message class names.
+	///
+	/// See bitflags struct `NETIF_MSG`.
 	ETH_SS_MSG_CLASSES = 10,
 	
 	/// Wake-on-LAN modes.

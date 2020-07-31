@@ -88,10 +88,10 @@ impl TryFrom<NetworkInterfaceName> for BusDeviceAddress
 
 impl BusDeviceAddress
 {
-	/// Tries to get the network interface name.
+	/// Tries to get the bus device address.
 	#[inline(always)]
 	pub fn try_from_network_interface_name(value: NetworkInterfaceName) -> Result<Option<Self>, NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>>
 	{
-		NetworkDeviceSocketFileDescriptor::new()?.bus_device_address(value)
+		NetworkDeviceInputOutputControl::new(Cow::Owned(value))?.bus_device_address()
 	}
 }

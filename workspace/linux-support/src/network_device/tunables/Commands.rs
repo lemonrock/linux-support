@@ -2,21 +2,29 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[repr(C)]
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub(crate) struct ethtool_value
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[doc(hidden)]
+pub enum Commands
 {
-	pub(crate) cmd: u32,
+	#[doc(hidden)]
+	Normal,
 	
-	/// Is `NETIF_MSG` if `cmd` is `ETHTOOL_GMSGLVL` or `ETHTOOL_SMSGLVL`.
-	pub(crate) data: u32,
+	#[doc(hidden)]
+	Physical,
 }
 
-impl EthtoolCommand for ethtool_value
+impl Commands
 {
 	#[inline(always)]
-	fn command(&self) -> u32
+	pub(crate) fn commands(self) -> (u32, u32)
 	{
-		self.cmd
+		use self::Commands::*;
+		
+		match self
+		{
+			Normal => (ETHTOOL_GTUNABLE, ETHTOOL_STUNABLE),
+			
+			Physical => (ETHTOOL_PHY_GTUNABLE, ETHTOOL_PHY_STUNABLE),
+		}
 	}
 }

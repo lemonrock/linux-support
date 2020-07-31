@@ -2,21 +2,24 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[repr(C)]
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub(crate) struct ethtool_value
+/// Forward Error Correction (FEC).
+///
+/// Strings are in the `ethtool_stringset::ETH_SS_LINK_MODES` string set.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(u32)]
+pub(crate) enum ethtool_link_mode_bit_indices_forward_error_correction
 {
-	pub(crate) cmd: u32,
+	/// String set value is `None`.
+	ETHTOOL_LINK_MODE_FEC_NONE_BIT = 49,
 	
-	/// Is `NETIF_MSG` if `cmd` is `ETHTOOL_GMSGLVL` or `ETHTOOL_SMSGLVL`.
-	pub(crate) data: u32,
-}
-
-impl EthtoolCommand for ethtool_value
-{
-	#[inline(always)]
-	fn command(&self) -> u32
-	{
-		self.cmd
-	}
+	/// String set value is `RS`.
+	ETHTOOL_LINK_MODE_FEC_RS_BIT = 50,
+	
+	/// 'BaseR'.
+	///
+	/// String set value is `BASER`.
+	ETHTOOL_LINK_MODE_FEC_BASER_BIT = 51,
+	
+	/// String set value is `LLRS`.
+	ETHTOOL_LINK_MODE_FEC_LLRS_BIT = 74,
 }

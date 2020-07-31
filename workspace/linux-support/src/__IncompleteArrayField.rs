@@ -3,7 +3,7 @@
 
 
 #[repr(C)]
-#[derive(Default)]
+#[derive(Default, Copy, Clone)]
 pub(crate) struct __IncompleteArrayField<T>(PhantomData<T>, [T; 0]);
 
 impl<T> __IncompleteArrayField<T>

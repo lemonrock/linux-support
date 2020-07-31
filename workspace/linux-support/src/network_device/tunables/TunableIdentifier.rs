@@ -2,21 +2,30 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[doc(hidden)]
+#[derive(Copy, Clone)]
 #[repr(C)]
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub(crate) struct ethtool_value
+pub union TunableIdentifier
 {
-	pub(crate) cmd: u32,
-	
-	/// Is `NETIF_MSG` if `cmd` is `ETHTOOL_GMSGLVL` or `ETHTOOL_SMSGLVL`.
-	pub(crate) data: u32,
+	normal: tunable_id,
+	phy: phy_tunable_id,
 }
 
-impl EthtoolCommand for ethtool_value
+impl TunableIdentifier
 {
-	#[inline(always)]
-	fn command(&self) -> u32
+	const fn normal(normal: tunable_id) -> Self
 	{
-		self.cmd
+		Self
+		{
+			normal,
+		}
+	}
+	
+	const fn phy(phy: phy_tunable_id) -> Self
+	{
+		Self
+		{
+			phy,
+		}
 	}
 }

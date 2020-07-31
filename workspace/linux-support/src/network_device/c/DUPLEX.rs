@@ -2,21 +2,15 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[repr(C)]
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub(crate) struct ethtool_value
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(u8)]
+pub(crate) enum DUPLEX
 {
-	pub(crate) cmd: u32,
+	/// Ethtool setting is `half`.
+	DUPLEX_HALF = 0x00,
 	
-	/// Is `NETIF_MSG` if `cmd` is `ETHTOOL_GMSGLVL` or `ETHTOOL_SMSGLVL`.
-	pub(crate) data: u32,
-}
-
-impl EthtoolCommand for ethtool_value
-{
-	#[inline(always)]
-	fn command(&self) -> u32
-	{
-		self.cmd
-	}
+	/// Ethtool setting is `full`.
+	DUPLEX_FULL = 0x01,
+	
+	DUPLEX_UNKNOWN = 0xFF,
 }

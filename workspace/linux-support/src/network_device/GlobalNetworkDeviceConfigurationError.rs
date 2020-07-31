@@ -10,7 +10,16 @@ pub enum GlobalNetworkDeviceConfigurationError
 	NetworkDeviceDoesNotExist(NetworkInterfaceName),
 	
 	#[allow(missing_docs)]
+	CouldNotSetDriverMessageLevel(NetworkDeviceInputOutputControlError<Infallible>),
+	
+	#[allow(missing_docs)]
 	CouldNotDisableWakeOnLan(NetworkDeviceInputOutputControlError<Infallible>),
+	
+	#[allow(missing_docs)]
+	CouldNotChangeFeatures(NetworkDeviceInputOutputControlError<Infallible>),
+	
+	#[allow(missing_docs)]
+	CouldNotChangeTunable(NetworkDeviceInputOutputControlError<Infallible>),
 	
 	#[allow(missing_docs)]
 	CouldNotChangeCoalesceConfiguration(NetworkDeviceInputOutputControlError<Infallible>),
@@ -40,9 +49,15 @@ impl error::Error for GlobalNetworkDeviceConfigurationError
 		
 		match self
 		{
-			&NetworkDeviceDoesNotExist(_) => None,
+			&CouldNotSetDriverMessageLevel(_) => None,
+			
+			&CouldNotSetDriverMessageLevel(_) => None,
 			
 			&CouldNotDisableWakeOnLan(ref error) => Some(error),
+			
+			&CouldNotChangeFeatures(ref error) => Some(error),
+			
+			&CouldNotChangeCouldNotChangeTunable(ref error) => Some(error),
 			
 			&CouldNotChangeCoalesceConfiguration(ref error) => Some(error),
 			

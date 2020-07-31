@@ -54,7 +54,7 @@ impl ethtool_gstrings
 			{
 				cmd: ETHTOOL_GSTRINGS,
 				string_set,
-				len,
+				len: array_size,
 				data: __IncompleteArrayField::new(),
 			}
 		)

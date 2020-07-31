@@ -2,21 +2,29 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[repr(C)]
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub(crate) struct ethtool_value
+/// Connector port.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(u8)]
+pub(crate) enum PORT
 {
-	pub(crate) cmd: u32,
+	/// Ethtool setting is `tp`.
+	PORT_TP = 0x00,
 	
-	/// Is `NETIF_MSG` if `cmd` is `ETHTOOL_GMSGLVL` or `ETHTOOL_SMSGLVL`.
-	pub(crate) data: u32,
-}
+	/// Ethtool setting is `aui`.
+	PORT_AUI = 0x01,
+	
+	/// Ethtool setting is `mii`.
+	PORT_MII = 0x02,
 
-impl EthtoolCommand for ethtool_value
-{
-	#[inline(always)]
-	fn command(&self) -> u32
-	{
-		self.cmd
-	}
+	PORT_FIBRE = 0x03,
+	
+	/// Ethtool setting is `bnc`.
+	PORT_BNC = 0x04,
+
+	PORT_DA = 0x05,
+
+	PORT_NONE = 0xEF,
+
+	PORT_OTHER = 0xFF,
+
 }

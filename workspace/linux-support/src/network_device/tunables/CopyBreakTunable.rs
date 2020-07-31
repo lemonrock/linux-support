@@ -2,21 +2,15 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[repr(C)]
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub(crate) struct ethtool_value
-{
-	pub(crate) cmd: u32,
-	
-	/// Is `NETIF_MSG` if `cmd` is `ETHTOOL_GMSGLVL` or `ETHTOOL_SMSGLVL`.
-	pub(crate) data: u32,
-}
+/// Copy-break.
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct CopyBreakTunable(pub u32);
 
-impl EthtoolCommand for ethtool_value
+impl CopyBreakTunable
 {
-	#[inline(always)]
-	fn command(&self) -> u32
-	{
-		self.cmd
-	}
+	const TypeIdentifier: tunable_type_id = tunable_type_id::ETHTOOL_TUNABLE_U32;
+	
+	const Commands: Commands = Commands::Normal;
 }

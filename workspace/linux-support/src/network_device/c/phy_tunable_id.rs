@@ -17,6 +17,8 @@ pub(crate) enum phy_tunable_id
 	/// * `DOWNSHIFT_DEV_DEFAULT_COUNT`: `0xFF`.
 	///
 	/// String set value is `phy-downshift`.
+	///
+	/// Ethtool setting is `downshift`.
 	ETHTOOL_PHY_DOWNSHIFT = 1,
 	
 	/// Time in milliseconds after which the link is reported as down.
@@ -27,6 +29,8 @@ pub(crate) enum phy_tunable_id
 	/// * `ETHTOOL_PHY_FAST_LINK_DOWN_OFF`: `0xFF`.
 	///
 	/// String set value is `phy-fast-link-down`.
+	///
+	/// Ethtool setting is `fast-link-down`.
 	ETHTOOL_PHY_FAST_LINK_DOWN = 2,
 	
 	/// Energy Detect Power Down (EDPD) is a feature supported by some PHYs, where the PHY's RX & TX blocks are put into a low-power mode when there is no link detected (typically the cable is un-plugged).
@@ -48,6 +52,8 @@ pub(crate) enum phy_tunable_id
 	/// * `ETHTOOL_PHY_EDPD_DFLT_TX_MSECS`: `0xFFFF`.
 	///
 	/// String set value is `phy-energy-detect-power-down`.
+	///
+	/// Ethtool setting is `energy-detect-power-down`.
 	ETHTOOL_PHY_EDPD = 3,
 }
 

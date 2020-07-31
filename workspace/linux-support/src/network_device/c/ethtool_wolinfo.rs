@@ -18,6 +18,8 @@ pub(crate) struct ethtool_wolinfo
 	pub(crate) wolopts: WAKE,
 	
 	/// SecureOn™ password; meaningful only if `WAKE_MAGICSECURE` is set in `wolopts`.
+	///
+	/// A 6-byte Ethernet Media Access Control Address.
 	pub(crate) sopass: [u8; Self::SOPASS_MAX],
 }
 

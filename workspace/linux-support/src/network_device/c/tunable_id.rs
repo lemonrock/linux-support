@@ -12,9 +12,13 @@ pub(crate) enum tunable_id
 	ETHTOOL_ID_UNSPEC = 0,
 	
 	/// String set value is `rx-copybreak`.
+	///
+	/// Tunable size is `tunable_type_id::ETHTOOL_TUNABLE_U32`.
 	ETHTOOL_RX_COPYBREAK = 1,
 	
 	/// String set value is `tx-copybreak`.
+	///
+	/// Tunable size is `tunable_type_id::ETHTOOL_TUNABLE_U32`.
 	ETHTOOL_TX_COPYBREAK = 2,
 	
 	/// Time in milliseconds after which the link is reported as down.
@@ -25,6 +29,8 @@ pub(crate) enum tunable_id
 	/// * `PFC_STORM_PREVENTION_DISABLE`: `0xFFFF`.
 	///
 	/// String set value is `pfc-prevention-tout`.
+	///
+	/// Tunable size is `tunable_type_id::ETHTOOL_TUNABLE_U16`.
 	ETHTOOL_PFC_PREVENTION_TOUT = 3,
 }
 
