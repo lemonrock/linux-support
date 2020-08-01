@@ -11,6 +11,12 @@ pub enum NetworkDeviceInputOutputControlError<E: error::Error + 'static>
 	
 	/// Error occurring during control operation.
 	ControlOperation(E),
+
+	/// Permission defined during control operation.
+	PermissionDenied,
+
+	/// Out of memory during control operation.
+	OutOfKernelMemory,
 }
 
 impl<E: error::Error + 'static> Display for NetworkDeviceInputOutputControlError<E>
@@ -34,6 +40,10 @@ impl<E: error::Error + 'static> error::Error for NetworkDeviceInputOutputControl
 			&Creation(ref error) => Some(error),
 			
 			&ControlOperation(ref error) => Some(error),
+			
+			&PermissionDenied => None,
+			
+			&OutOfKernelMemory => None,
 		}
 	}
 }
@@ -44,5 +54,25 @@ impl<E: error::Error + 'static> From<CreationError> for NetworkDeviceInputOutput
 	fn from(value: CreationError) -> Self
 	{
 		NetworkDeviceInputOutputControlError::Creation(value)
+	}
+}
+
+impl NetworkDeviceInputOutputControlError<Infallible>
+{
+	#[inline(always)]
+	pub(crate) fn map_error<E2: error::Error + 'static>(self) -> NetworkDeviceInputOutputControlError<E2>
+	{
+		use self::NetworkDeviceInputOutputControlError::*;
+		
+		match self
+		{
+			Creation(error) => Creation(error),
+			
+			ControlOperation(_) => unreachable!(),
+			
+			PermissionDenied => PermissionDenied,
+			
+			OutOfKernelMemory => OutOfKernelMemory,
+		}
 	}
 }

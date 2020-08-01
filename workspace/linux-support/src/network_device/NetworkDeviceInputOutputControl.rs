@@ -36,35 +36,28 @@ impl<'a> NetworkDeviceInputOutputControl
 			|ifreq| Ok(NetworkInterfaceIndex::try_from(unsafe { ifreq.ifr_ifru.ifru_ivalue })?),
 			|errno| match errno.0
 			{
-				ENODEV | ENXIO => Ok(None),
-				
-				EPERM => panic!("Permission denied"),
-				
 				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCGIFINDEX)", unexpected),
 			}
 		)
 	}
 	
 	/// Set a tunable.
+	///
+	/// Returns an error if out-of-range.
 	#[inline(always)]
-	pub fn set_tunable(&self, tunable: impl Tunable) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
+	pub fn set_tunable(&self, tunable: impl Tunable) -> Result<Option<()>, NetworkDeviceInputOutputControlError<TunableOutOfRangeError>>
 	{
 		self.ethtool_command
 		(
 			ethtool_tunable::new_set(tunable),
 			|command| Ok(()),
-			|errno, _command| match errno.0
+			|errno| match errno.0
 			{
-				ENODEV | ENXIO => Ok(None),
+				ERANGE => Err(TunableOutOfRangeError),
 				
-				EOPNOTSUPP => Ok(Some(())),
-				
-				ERANGE => panic!("Out of range permitted for this device"),
-				
-				EPERM => panic!("Permission denied"),
-				
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
-			}
+				_ => Self::error_is_unreachable(errno),
+			},
+			|_command| (),
 		)
 	}
 	
@@ -99,16 +92,8 @@ impl<'a> NetworkDeviceInputOutputControl
 				reserved: 0
 			},
 			|_command| Ok(()),
-			|errno, _command| match errno.0
-			{
-				ENODEV | ENXIO => Ok(None),
-				
-				EOPNOTSUPP => Ok(Some(())),
-				
-				EPERM => panic!("Permission denied"),
-				
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
-			}
+			Self::error_is_unreachable,
+			|_command| (),
 		)
 	}
 	
@@ -138,16 +123,8 @@ impl<'a> NetworkDeviceInputOutputControl
 				sopass: unsafe { zeroed() }
 			},
 			|_command| Ok(()),
-			|errno, _command| match errno.0
-			{
-				ENODEV | ENXIO => Ok(None),
-				
-				EOPNOTSUPP => Ok(Some(())),
-				
-				EPERM => panic!("Permission denied"),
-				
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
-			}
+			Self::error_is_unreachable,
+			|_command| (),
 		)
 	}
 	
@@ -160,16 +137,8 @@ impl<'a> NetworkDeviceInputOutputControl
 		(
 			command,
 			|command| Ok(()),
-			|errno, _command| match errno.0
-			{
-				ENODEV | ENXIO => Ok(None),
-				
-				EOPNOTSUPP => Ok(Some(())),
-				
-				EPERM => panic!("Permission denied"),
-				
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
-			}
+			Self::error_is_unreachable,
+			|_command| (),
 		)
 	}
 	
@@ -212,16 +181,8 @@ impl<'a> NetworkDeviceInputOutputControl
 				tx_pending: transmit_pending_queue_depth,
 			},
 			|_command| Ok(PendingQueueDepths::new(receive_jumbo_pending_queue_depth, receive_pending_queue_depth, receive_mini_pending_queue_depth, transmit_pending_queue_depth)),
-			|errno, _command| match errno.0
-			{
-				ENODEV | ENXIO => Ok(None),
-				
-				EOPNOTSUPP => Ok(Some(PendingQueueDepths::new(ring_parameters.rx_pending, ring_parameters.rx_mini_pending, ring_parameters.rx_jumbo_pending, ring_parameters.tx_pending))),
-				
-				EPERM => panic!("Permission denied"),
-				
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
-			}
+			Self::error_is_unreachable,
+			|_command| PendingQueueDepths::new(ring_parameters.rx_pending, ring_parameters.rx_mini_pending, ring_parameters.rx_jumbo_pending, ring_parameters.tx_pending),
 		)
 	}
 	
@@ -266,31 +227,13 @@ impl<'a> NetworkDeviceInputOutputControl
 				other_count: other_channels_count,
 			},
 			|_command| Ok(Channels::new(receive_and_transmit_channels_count, receive_channels_count, transmit_channels_count)),
-			|errno, _command| match errno.0
-			{
-				ENODEV | ENXIO => Ok(None),
-				
-				EOPNOTSUPP => Ok(Some(Channels::new(channels.combined_count, channels.rx_count, channels.tx_count))),
-				
-				EPERM => panic!("Permission denied"),
-				
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
-			}
+			Self::error_is_unreachable,
+			|_command| Channels::new(channels.combined_count, channels.rx_count, channels.tx_count)
 		)
 	}
 	
-	#[inline(always)]
-	pub(crate) fn bus_device_address(&self) -> Result<Option<BusDeviceAddress>, NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>>
-	{
-		match self.driver_info()?
-		{
-			None => Ok(None),
-			
-			Some(driver_info) => Ok(Some(BusDeviceAddress::from(ObjectName32::try_from(command.bus_info)?))),
-		}
-	}
-	
-	pub(crate) fn set_driver_message_level(&self, desired: NETIF_MSG) -> Result<Option<NETIF_MSG>, NetworkDeviceInputOutputControlError<Infallible>>
+	/// Set driver message level.
+	pub fn set_driver_message_level(&self, desired: NETIF_MSG) -> Result<Option<NETIF_MSG>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		let supported = match self.get_driver_message_level()?
 		{
@@ -311,20 +254,13 @@ impl<'a> NetworkDeviceInputOutputControl
 				data: (supported & desired).bits(),
 			},
 			|command| Ok(NETIF_MSG::from_bits_truncate(command.data)),
-			|errno, command| match errno.0
-			{
-				ENODEV | ENXIO => Ok(None),
-				
-				EOPNOTSUPP => Ok(Some(NETIF_MSG::empty())),
-				
-				EPERM => panic!("Permission denied"),
-				
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
-			}
+			Self::error_is_unreachable,
+			|_command| NETIF_MSG::empty()
 		)
 	}
 	
-	pub(crate) fn set_features(&self, features_to_change: impl Iterator<Item=HashMap<NETIF_F, bool>>) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
+	/// Set features.
+	pub fn set_features(&self, features_to_change: impl Iterator<Item=HashMap<NETIF_F, bool>>) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		let features = match self.get_features()?
 		{
@@ -350,23 +286,74 @@ impl<'a> NetworkDeviceInputOutputControl
 		(
 			set_features,
 			|command| Ok(()),
-			|errno, _command| match errno.0
-			{
-				ENODEV | ENXIO => Ok(None),
-				
-				EOPNOTSUPP => Ok(Some(())),
-				
-				EPERM => panic!("Permission denied"),
-				
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
-			}
+			Self::error_is_unreachable,
+			|_command| ()
 		)
 	}
 	
+	/// Set private flags.
 	#[inline(always)]
-	pub(crate) fn get_all_string_sets(&self) -> Result<Option<HashMap<ethtool_stringset, Vec<ObjectName32>>>, NetworkDeviceInputOutputControlError<()>>
+	pub fn set_private_flags(&self, all_string_sets: &AllStringSets, driver_specific_flags_to_change: &HashMap<ObjectName32, bool>) -> Result<Option<()>, NetworkDeviceInputOutputControlError<()>>
 	{
-		let string_set_lengths = match self.get_all_string_set_lengths()?
+		let option_private_flags = self.ethtool_command
+		(
+			ethtool_value
+			{
+				cmd: ETHTOOL_GPFLAGS,
+				data: 0,
+			},
+			|command| Ok(command.data),
+			Self::error_is_unreachable,
+			|_command| 0
+		)?;
+		
+		let mut bit_mask_of_flags_to_set = match option_private_flags
+		{
+			None => return Ok(None),
+			Some(ethtool_value { data, .. }) => data
+		};
+		
+		let private_flags_string_set = all_string_sets.get(&ethtool_stringset::ETH_SS_PRIV_FLAGS).unwrap();
+		
+		let mut bit_mask_of_flags_to_set = data;
+		for (index, driver_specific_flag) in private_flags_string_set.iter().enumerate().take_while(|&(index, _driver_specific_flag)| index < 32)
+		{
+			match driver_specific_flags_to_change.get(driver_specific_flag)
+			{
+				None => (),
+				
+				Some(set) =>
+				{
+					let flag = (1 << index) as u32;
+					if *set
+					{
+						bit_mask_of_flags_to_set |= flag
+					}
+					else
+					{
+						bit_mask_of_flags_to_set &= !flag
+					}
+				}
+			}
+		}
+		
+		self.ethtool_command
+		(
+			ethtool_value
+			{
+				cmd: ETHTOOL_GPFLAGS,
+				data: bit_mask_of_flags_to_set,
+			},
+			|_command| Ok(()),
+			Self::error_is_unreachable,
+			|_command| (),
+		)
+	}
+	
+	/// Get all string string sets.
+	pub fn get_all_string_sets(&self) -> Result<Option<AllStringSets>, NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>>
+	{
+		let string_set_lengths = match self.get_all_string_set_lengths().map_err(|error| error.map_error())?
 		{
 			None => return Ok(None),
 			Some(string_set_lengths) => string_set_lengths,
@@ -378,84 +365,28 @@ impl<'a> NetworkDeviceInputOutputControl
 		for (index, supported_string_set) in supported_string_sets.enumerate()
 		{
 			let number_of_strings = unsafe { *supported_string_sets_lengths.get_unchecked(index) };
-			let string_set = match self.get_string_set_known_length(supported_string_set, number_of_strings)?
+			let string_set = match self.get_string_set_known_length(supported_string_set, number_of_strings).map_err(|error| error.map_error())?
 			{
 				None => return Ok(None),
 				Some(string_set) => string_set,
 			};
 			
 			let raw_strings = string_set.array_elements();
-			let mut strings = Vec::with_capacity(raw_strings.len());
+			let mut strings = IndexSet::with_capacity(raw_strings.len());
 			for raw_string in raw_strings
 			{
-				let string = ObjectName32::try_from(raw_string).map_err(|_error| NetworkDeviceInputOutputControlError::ControlOperation(()))?;
+				let string = ObjectName32::try_from(raw_string)?;
 				strings.push(string)
 			}
-			string_sets.insert(supported_string_set, strings)
+			string_sets.insert(supported_string_set, StringSet(strings))
 		}
 		
-		Ok(Some(string_sets))
+		Ok(Some(AllStringSets(string_sets)))
 	}
 	
+	/// Forward error correction (FEC) information.
 	#[inline(always)]
-	fn get_all_string_set_lengths(&self) -> Result<Option<VariablySizedEthtoolCommandWrapper<ethtool_sset_info>>, NetworkDeviceInputOutputControlError<()>>
-	{
-		self.ethtool_command
-		(
-			ethtool_sset_info::new(),
-			|command| Ok(command),
-			|errno, command| match errno.0
-			{
-				ENODEV | ENXIO => Ok(None),
-				
-				EOPNOTSUPP =>
-				{
-					command.set_supported_string_sets_to_none();
-					Ok(Some(command))
-				},
-				
-				ENOMEM => Err(()),
-				
-				EPERM => panic!("Permission denied"),
-				
-				EFAULT => unreachable!("We passed a bad memory address"),
-				
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
-			}
-		)
-	}
-	
-	#[inline(always)]
-	fn get_string_set_known_length(&self, string_set: ethtool_stringset, number_of_strings: u32) -> Result<Option<VariablySizedEthtoolCommandWrapper<ethtool_gstrings>>, NetworkDeviceInputOutputControlError<()>>
-	{
-		if number_of_strings == 0
-		{
-			return Ok(Some(ethtool_gstrings::new(string_set, 0)))
-		}
-		
-		self.ethtool_command
-		(
-			ethtool_gstrings::new(string_set, number_of_strings),
-			|command| Ok(command),
-			|errno, command| match errno.0
-			{
-				ENODEV | ENXIO => Ok(None),
-				
-				EOPNOTSUPP => Ok(Some(command)),
-				
-				ENOMEM => Err(()),
-				
-				EPERM => panic!("Permission denied"),
-				
-				EFAULT => unreachable!("We passed a bad memory address"),
-				
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
-			}
-		)
-	}
-	
-	#[inline(always)]
-	fn get_forward_error_correction(&self) -> Result<Option<Option<ethtool_fecparam>>, NetworkDeviceInputOutputControlError<Infallible>>
+	pub fn get_forward_error_correction(&self) -> Result<Option<Option<ethtool_fecparam>>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		self.ethtool_command
 		(
@@ -467,21 +398,14 @@ impl<'a> NetworkDeviceInputOutputControl
 				reserved: 0,
 			},
 			|command| Ok(Some(command)),
-			|errno, _command| match errno.0
-			{
-				ENODEV | ENXIO => Ok(None),
-				
-				EOPNOTSUPP => Ok(Some(None)),
-				
-				EPERM => panic!("Permission denied"),
-				
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
-			}
+			Self::error_is_unreachable,
+			|_command| None
 		)
 	}
 	
+	/// Driver information.
 	#[inline(always)]
-	fn driver_info(&self) -> Result<Option<ethtool_drvinfo>, CreationError>
+	pub fn driver_info(&self) -> Result<Option<ethtool_drvinfo>, CreationError>
 	{
 		let mut command = ethtool_drvinfo::default();
 		command.cmd = ETHTOOL_GDRVINFO;
@@ -490,14 +414,8 @@ impl<'a> NetworkDeviceInputOutputControl
 		(
 			command,
 			|command| Ok(command),
-			|errno, _command| match errno.0
-			{
-				ENODEV | ENXIO => Ok(None),
-				
-				EPERM => panic!("Permission denied"),
-				
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
-			}
+			Self::error_is_unreachable,
+			|_command| panic!("Driver information should always be available")
 		);
 		
 		use self::NetworkDeviceInputOutputControlError::*;
@@ -508,30 +426,39 @@ impl<'a> NetworkDeviceInputOutputControl
 			
 			Err(Creation(creation_error)) => Err(creation_error),
 			
+			Err(PermissionDenied) => panic!("Driver information should always be accessible"),
+			
 			Err(ControlOperation(Infallible)) => unreachable!("Control operation (ioctl) failures either panic or return `Ok(None)` - see logic above"),
 		}
 	}
 	
-	fn get_features(&self) -> Result<Option<VariablySizedEthtoolCommandWrapper<ethtool_gfeatures>>, NetworkDeviceInputOutputControlError<Infallible>>
+	/// Get features.
+	pub fn get_features(&self) -> Result<Option<VariablySizedEthtoolCommandWrapper<ethtool_gfeatures>>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		self.ethtool_command
 		(
 			ethtool_gfeatures::new(),
 			|command| Ok(command),
-			|errno, _command| match errno.0
+			|errno| match errno.0
 			{
-				ENODEV | ENXIO => Ok(None),
-				
-				EPERM => panic!("Permission denied"),
-				
-				EFAULT => panic!("Not enough memory allocated to hold returned features"),
-				
 				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
+			},
+			|command|
+			{
+				for array_element in command.array_elements_mut()
+				{
+					array_element.available = 0;
+					array_element.requested = 0;
+					array_element.active = 0;
+					array_element.never_changed = 0;
+				}
+				command
 			}
 		)
 	}
 	
-	fn get_driver_message_level(&self) -> Result<Option<NETIF_MSG>, NetworkDeviceInputOutputControlError<Infallible>>
+	/// Get driver message level.
+	pub fn get_driver_message_level(&self) -> Result<Option<NETIF_MSG>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		self.ethtool_command
 		(
@@ -541,16 +468,8 @@ impl<'a> NetworkDeviceInputOutputControl
 				data: 0,
 			},
 			|command| Ok(NETIF_MSG::from_bits_truncate(command.data)),
-			|errno, command| match errno.0
-			{
-				ENODEV | ENXIO => Ok(None),
-				
-				EOPNOTSUPP => Ok(Some(NETIF_MSG::empty())),
-				
-				EPERM => panic!("Permission denied"),
-				
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
-			}
+			Self::error_is_unreachable,
+			|_command| NETIF_MSG::empty()
 		)
 	}
 	
@@ -561,16 +480,8 @@ impl<'a> NetworkDeviceInputOutputControl
 		(
 			ethtool_pauseparam::set(pause_configuration),
 			|command| Ok(()),
-			|errno, _command| match errno.0
-			{
-				ENODEV | ENXIO => Ok(None),
-				
-				EOPNOTSUPP => Ok(Some(())),
-				
-				EPERM => panic!("Permission denied"),
-				
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
-			}
+			Self::error_is_unreachable,
+			|_command| ()
 		)
 	}
 	
@@ -626,7 +537,7 @@ impl<'a> NetworkDeviceInputOutputControl
 				if let Some(transmit_low_power_idle_microseconds) = transmit_low_power_idle_microseconds
 				{
 					command.tx_lpi_enabled = 1;
-					command.tx_lpi_timer = transmit_low_power_idle_microseconds;
+					command.tx_lpi_timer = *transmit_low_power_idle_microseconds;
 				}
 			}
 		};
@@ -635,20 +546,13 @@ impl<'a> NetworkDeviceInputOutputControl
 		(
 			command,
 			|command| Ok(()),
-			|errno, _command| match errno.0
-			{
-				ENODEV | ENXIO => Ok(None),
-				
-				EOPNOTSUPP => Ok(Some(())),
-				
-				EPERM => panic!("Permission denied"),
-				
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
-			}
+			Self::error_is_unreachable,
+			|_command| ()
 		)
 	}
 	
-	fn get_energy_efficient_ethernet(&self) -> Result<Option<Option<ethtool_eee>>, NetworkDeviceInputOutputControlError<Infallible>>
+	/// Energy Efficient Ethernet (EEE).
+	pub fn get_energy_efficient_ethernet(&self) -> Result<Option<Option<ethtool_eee>>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		self.ethtool_command
 		(
@@ -665,21 +569,14 @@ impl<'a> NetworkDeviceInputOutputControl
 				reserved: [0; 2],
 			},
 			|command| Ok(Some(command)),
-			|errno, _command| match errno.0
-			{
-				ENODEV | ENXIO => Ok(None),
-				
-				EOPNOTSUPP => Ok(Some(None)),
-				
-				EPERM => panic!("Permission denied"),
-				
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
-			}
+			Self::error_is_unreachable,
+			|_command| None
 		)
 	}
 	
+	// Wake-on-LAN.
 	#[inline(always)]
-	fn wake_on_lan(&self) -> Result<Option<Option<ethtool_wolinfo>>, NetworkDeviceInputOutputControlError<Infallible>>
+	pub fn wake_on_lan(&self) -> Result<Option<Option<ethtool_wolinfo>>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		self.ethtool_command
 		(
@@ -691,21 +588,14 @@ impl<'a> NetworkDeviceInputOutputControl
 				sopass: unsafe { zeroed() }
 			},
 			|command| Ok(Some(command)),
-			|errno, _command| match errno.0
-			{
-				ENODEV | ENXIO => Ok(None),
-				
-				EOPNOTSUPP => Ok(Some(None)),
-				
-				EPERM => panic!("Permission denied"),
-				
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
-			}
+			Self::error_is_unreachable,
+			|_command| None
 		)
 	}
 	
+	/// Queue depths.
 	#[inline(always)]
-	fn receive_ring_queues_and_transmit_ring_queue_depths(&self) -> Result<Option<Option<ethtool_ringparam>>, NetworkDeviceInputOutputControlError<Infallible>>
+	pub fn receive_ring_queues_and_transmit_ring_queue_depths(&self) -> Result<Option<Option<ethtool_ringparam>>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		self.ethtool_command
 		(
@@ -722,21 +612,14 @@ impl<'a> NetworkDeviceInputOutputControl
 				tx_pending: None,
 			},
 			|command| Ok(Some(command)),
-			|errno, _command| match errno.0
-			{
-				ENODEV | ENXIO => Ok(None),
-				
-				EOPNOTSUPP => Ok(Some(None)),
-				
-				EPERM => panic!("Permission denied"),
-				
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
-			}
+			Self::error_is_unreachable,
+			|_command| None
 		)
 	}
 	
+	/// Number of channels.
 	#[inline(always)]
-	fn number_of_channels(&self) -> Result<Option<Option<ethtool_channels>>, NetworkDeviceInputOutputControlError<Infallible>>
+	pub fn number_of_channels(&self) -> Result<Option<Option<ethtool_channels>>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		self.ethtool_command
 		(
@@ -753,16 +636,52 @@ impl<'a> NetworkDeviceInputOutputControl
 				combined_count: None,
 			},
 			|command| Ok(Some(command)),
-			|errno, _command| match errno.0
+			Self::error_is_unreachable,
+			|_command| None
+		)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn bus_device_address(&self) -> Result<Option<BusDeviceAddress>, NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>>
+	{
+		match self.driver_info()?
+		{
+			None => Ok(None),
+			
+			Some(driver_info) => Ok(Some(BusDeviceAddress::from(ObjectName32::try_from(command.bus_info)?))),
+		}
+	}
+	
+	#[inline(always)]
+	fn get_all_string_set_lengths(&self) -> Result<Option<VariablySizedEthtoolCommandWrapper<ethtool_sset_info>>, NetworkDeviceInputOutputControlError<Infallible>>
+	{
+		self.ethtool_command
+		(
+			ethtool_sset_info::new(),
+			|command| Ok(command),
+			Self::error_is_unreachable,
+			|command|
 			{
-				ENODEV | ENXIO => Ok(None),
-				
-				EOPNOTSUPP => Ok(Some(None)),
-				
-				EPERM => panic!("Permission denied"),
-				
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
+				command.set_supported_string_sets_to_none();
+				command
 			}
+		)
+	}
+	
+	#[inline(always)]
+	fn get_string_set_known_length(&self, string_set: ethtool_stringset, number_of_strings: u32) -> Result<Option<VariablySizedEthtoolCommandWrapper<ethtool_gstrings>>, NetworkDeviceInputOutputControlError<Infallible>>
+	{
+		if number_of_strings == 0
+		{
+			return Ok(Some(ethtool_gstrings::new(string_set, 0)))
+		}
+		
+		self.ethtool_command
+		(
+			ethtool_gstrings::new(string_set, number_of_strings),
+			|command| Ok(command),
+			Self::error_is_unreachable,
+			|command| command
 		)
 	}
 	
@@ -773,14 +692,20 @@ impl<'a> NetworkDeviceInputOutputControl
 	}
 	
 	#[inline(always)]
-	pub(crate) fn ethtool_command<C: EthtoolCommand, V: Sized, E: error::Error + 'static>(&self, command: C, ok_handler: impl FnOnce(C) -> Result<V, E>, error_handler: impl FnOnce(Errno, C) -> Result<Option<V>, E>) -> Result<Option<V>, NetworkDeviceInputOutputControlError<E>>
+	fn ethtool_command<C: EthtoolCommand, V: Sized, E: error::Error + 'static>(&self, command: C, ok_handler: impl FnOnce(C) -> Result<V, E>, error_handler: impl FnOnce(Errno) -> Result<Option<V>, E>, not_supported: impl FnOnce(C) -> V) -> Result<Option<V>, NetworkDeviceInputOutputControlError<E>>
 	{
-		self.network_device_socket_file_descriptor.ethtool_command(self.network_interface_name(), command, ok_handler, error_handler)
+		self.network_device_socket_file_descriptor.ethtool_command(self.network_interface_name(), command, ok_handler, error_handler, not_supported)
 	}
 	
 	#[inline(always)]
 	pub(crate) fn network_interface_name(&self) -> NetworkInterfaceName
 	{
 		self.network_interface_name.clone().into_owned()
+	}
+	
+	#[inline(always)]
+	fn error_is_unreachable(errno: Errno) -> !
+	{
+		unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", errno)
 	}
 }

@@ -28,6 +28,12 @@ pub enum GlobalNetworkDeviceConfigurationError
 	CouldNotChangeFeatures(NetworkDeviceInputOutputControlError<Infallible>),
 	
 	#[allow(missing_docs)]
+	CouldNotGetAllStringSets(NetworkDeviceInputOutputControlError<Infallible>),
+	
+	#[allow(missing_docs)]
+	CouldNotChangeDriverSpecificFlags(NetworkDeviceInputOutputControlError<Infallible>),
+	
+	#[allow(missing_docs)]
 	CouldNotChangeTunable(NetworkDeviceInputOutputControlError<Infallible>),
 	
 	#[allow(missing_docs)]
@@ -71,6 +77,10 @@ impl error::Error for GlobalNetworkDeviceConfigurationError
 			&CouldNotDisableWakeOnLan(ref error) => Some(error),
 			
 			&CouldNotChangeFeatures(ref error) => Some(error),
+			
+			&CouldNotGetAllStringSets(ref error) => Some(error),
+			
+			&CouldNotChangeDriverSpecificFlags(ref error) => Some(error),
 			
 			&CouldNotChangeTunable(ref error) => Some(error),
 			

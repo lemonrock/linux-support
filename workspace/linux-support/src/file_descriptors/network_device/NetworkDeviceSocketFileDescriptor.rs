@@ -117,7 +117,7 @@ impl NetworkDeviceSocketFileDescriptor
 	}
 	
 	#[inline(always)]
-	pub(crate) fn ethtool_command<C: EthtoolCommand, V: Sized, E: error::Error + 'static>(&self, network_interface_name: NetworkInterfaceName, mut command: C, ok_handler: impl FnOnce(C) -> Result<V, E>, error_handler: impl FnOnce(Errno, C) -> Result<Option<V>, E>) -> Result<Option<V>, NetworkDeviceInputOutputControlError<E>>
+	pub(crate) fn ethtool_command<C: EthtoolCommand, V: Sized, E: error::Error + 'static>(&self, network_interface_name: NetworkInterfaceName, mut command: C, ok_handler: impl FnOnce(C) -> Result<V, E>, error_handler: impl FnOnce(Errno) -> Result<Option<V>, E>, not_supported: impl FnOnce(C) -> V) -> Result<Option<V>, NetworkDeviceInputOutputControlError<E>>
 	{
 		let mut ifr = ifreq
 		{
@@ -137,7 +137,20 @@ impl NetworkDeviceSocketFileDescriptor
 		{
 			Ok(()) => Ok(Some(ok_handler(command).map_err(ControlOperation)?)),
 			
-			Err(errno) => error_handler(errno, command).map_err(ControlOperation),
+			Err(errno) => match errno.0
+			{
+				ENODEV | ENXIO => Ok(None),
+				
+				EOPNOTSUPP => Ok(Some(not_supported(command))),
+				
+				EPERM => Err(PermissionDenied),
+				
+				ENOMEM => Err(OutOfKernelMemory),
+				
+				EFAULT => unreachable!("We passed a bad memory address"),
+				
+				_ => error_handler(errno, command).map_err(ControlOperation)
+			},
 		}
 	}
 	

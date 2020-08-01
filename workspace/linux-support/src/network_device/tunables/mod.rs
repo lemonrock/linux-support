@@ -15,3 +15,4 @@ include!("ReceiveCopyBreakTunable.rs");
 include!("TransmitCopyBreakTunable.rs");
 include!("Tunable.rs");
 include!("TunableIdentifier.rs");
+include!("TunableOutOfRangeError.rs");

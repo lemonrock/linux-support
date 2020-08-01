@@ -4,11 +4,12 @@
 
 use self::c::*;
 use super::*;
+use self::coalescing::*;
+use self::features::*;
+use self::string_sets::*;
+use self::tunables::*;
 use crate::file_descriptors::*;
 use crate::file_descriptors::network_device::*;
-use crate::network_device::coalescing::CoalesceConfiguration;
-use crate::network_device::features::FeatureGroupChoice;
-use crate::network_device::tunables::Tunable;
 
 
 /// C.
@@ -21,6 +22,10 @@ pub mod coalescing;
 
 /// Features.
 pub mod features;
+
+
+/// String sets.
+pub mod string_sets;
 
 
 /// Tunables.

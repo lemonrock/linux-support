@@ -2,22 +2,19 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use self::NETIF_F::*;
+/// Out-of-range.
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct TunableOutOfRangeError;
 
-
-include!("FeatureGroup.rs");
-include!("FeatureGroupChoice.rs");
-include!("FeatureValue.rs");
-include!("LinkModeBitSet.rs");
-
-
-struct PrivateFlagBit(u32);
-
-impl PrivateFlagBit
+impl Display for TunableOutOfRangeError
 {
-	fn find(name: ObjectName32, string_sets: &HashMap<ethtool_stringset, IndexSet<ObjectName32>>)
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
 	{
-		let string_set = string_sets.get(&ethtool_stringset::ETH_SS_PRIV_FLAGS).expect("Missing private flags string set");
+		Debug::fmt(self, f)
 	}
+}
+
+impl error::Error for TunableOutOfRangeError
+{
 }

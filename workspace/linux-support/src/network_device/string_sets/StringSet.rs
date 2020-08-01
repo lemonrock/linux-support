@@ -2,22 +2,17 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use self::NETIF_F::*;
+/// A string set.
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
+pub struct StringSet(pub(crate) IndexSet<ObjectName32>);
 
-
-include!("FeatureGroup.rs");
-include!("FeatureGroupChoice.rs");
-include!("FeatureValue.rs");
-include!("LinkModeBitSet.rs");
-
-
-struct PrivateFlagBit(u32);
-
-impl PrivateFlagBit
+impl Deref for StringSet
 {
-	fn find(name: ObjectName32, string_sets: &HashMap<ethtool_stringset, IndexSet<ObjectName32>>)
+	type Target = IndexSet<ObjectName32>;
+	
+	#[inline(always)]
+	fn deref(&self) -> &Self::Target
 	{
-		let string_set = string_sets.get(&ethtool_stringset::ETH_SS_PRIV_FLAGS).expect("Missing private flags string set");
+		&self.0
 	}
 }

@@ -31,6 +31,9 @@ pub struct GlobalNetworkDeviceConfiguration
 	/// Feature groups.
 	#[serde(default)] pub feature_group_choices: Vec<FeatureGroupChoice>,
 	
+	/// Driver-specific private flags.
+	#[serde(default)] pub driver_specific_flags_to_change: Option<HashMap<ObjectName32, bool>>,
+	
 	/// Tunables.
 	#[serde(default)] pub tunables: Vec<Box<dyn Tunable>>,
 	
@@ -48,15 +51,20 @@ pub struct GlobalNetworkDeviceConfiguration
 xxx;
 /*
 
-with coalsecing, need to be able to set individual parameters.
-
-with setting channels, the RSS table is reset on mlx cards.
 
 --set-rxfh-indir
+	do_srxfh
+		do_srxfhindir
+	
 --config-nfc / --config-ntuple
+	do_srxclass
+		"rx-flow-hash"
+		"flow-type"
+			do_srxntuple
+		"delete"
 --per-queue ... eg coalesce
---set-priv-flags
 
+with setting channels, the RSS table is reset on mlx cards.
 rss / rx hash indirection
 
 const char rss_hash_func_strings[ETH_RSS_HASH_FUNCS_COUNT][ETH_GSTRING_LEN] = {
@@ -140,6 +148,12 @@ impl GlobalNetworkDeviceConfiguration
 		}
 		
 		validate(network_device_input_output_control.set_features(FeatureGroupChoice::iter(&self.feature_group_choices)), CouldNotChangeFeatures)?;
+		
+		if let Some(ref driver_specific_flags_to_change) = self.driver_specific_flags_to_change
+		{
+			let all_string_sets = validate(network_device_input_output_control.get_all_string_sets(), CouldNotGetAllStringSets)?;
+			validate(network_device_input_output_control.set_private_flags(&all_string_sets, driver_specific_flags_to_change), CouldNotChangeDriverSpecificFlags)
+		}
 		
 		for tunable in self.tunables.iter()
 		{

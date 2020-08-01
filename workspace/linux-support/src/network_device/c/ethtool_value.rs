@@ -9,6 +9,8 @@ pub(crate) struct ethtool_value
 	pub(crate) cmd: u32,
 	
 	/// Is `NETIF_MSG` if `cmd` is `ETHTOOL_GMSGLVL` or `ETHTOOL_SMSGLVL`.
+	///
+	/// Is private flags if `cmd` is `ETHTOOL_GPFLAGS` or `ETHTOOL_SPFLAGS`.
 	pub(crate) data: u32,
 }
 
