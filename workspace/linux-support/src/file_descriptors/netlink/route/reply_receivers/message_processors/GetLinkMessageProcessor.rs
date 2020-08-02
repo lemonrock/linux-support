@@ -48,7 +48,7 @@ impl MessageProcessor for GetLinkMessageProcessor
 			(false, false, IFLA_MTU) => set_field_error(&mut processing_message_state.maximum_transmission_unit, message_attribute, rtattr::get_attribute_value_maximum_transmission_unit)?,
 			(false, false, IFLA_MIN_MTU) => set_field_error(&mut processing_message_state.maximum_transmission_unit, message_attribute, rtattr::get_attribute_value_maximum_transmission_unit)?,
 			(false, false, IFLA_MAX_MTU) => set_field_error(&mut processing_message_state.maximum_transmission_unit_minimum, message_attribute, rtattr::get_attribute_value_maximum_transmission_unit)?,
-			(false, false, IFLA_GROUP) => set_field_error(&mut processing_message_state.group, message_attribute, rtattr::get_attribute_value_u32)?,
+			(false, false, IFLA_GROUP) => set_field_error(&mut processing_message_state.group, message_attribute, rtattr::get_attribute_value_net_dev_group)?,
 			(false, false, IFLA_PROMISCUITY) => set_field_error(&mut processing_message_state.promiscuity, message_attribute, rtattr::get_attribute_value_u32)?,
 			(false, false, IFLA_NUM_TX_QUEUES) => set_field_error(&mut processing_message_state.number_of_transmission_queues, message_attribute, rtattr::get_attribute_value_queue_count)?,
 			(false, false, IFLA_GSO_MAX_SEGS) => set_field_error(&mut processing_message_state.generic_segmentation_offload_maximum_segments, message_attribute, rtattr::get_attribute_value_u32)?,

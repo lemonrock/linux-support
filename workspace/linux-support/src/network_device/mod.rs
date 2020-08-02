@@ -10,6 +10,8 @@ use self::string_sets::*;
 use self::tunables::*;
 use crate::file_descriptors::*;
 use crate::file_descriptors::network_device::*;
+use crate::paths::SysPath;
+use crate::user_and_groups::assert_effective_user_id_is_root;
 
 
 /// C.
@@ -39,6 +41,7 @@ include!("GlobalNetworkDeviceConfiguration.rs");
 include!("GlobalNetworkDeviceConfigurationError.rs");
 include!("HardwareAddress.rs");
 include!("MaximumTransmissionUnit.rs");
+include!("NetworkDeviceGroup.rs");
 include!("NetworkDeviceInputOutputControl.rs");
 include!("NetworkDeviceInputOutputControlError.rs");
 include!("NetworkInterfaceAlias.rs");

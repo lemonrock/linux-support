@@ -44,6 +44,9 @@ pub enum GlobalNetworkDeviceConfigurationError
 	
 	#[allow(missing_docs)]
 	CouldNotMaximizePendingQueueDepths(NetworkDeviceInputOutputControlError<Infallible>),
+	
+	#[allow(missing_docs)]
+	CouldNotSetGenericReceiveOffloadTimeout(io::Error),
 }
 
 impl Display for GlobalNetworkDeviceConfigurationError
@@ -89,6 +92,8 @@ impl error::Error for GlobalNetworkDeviceConfigurationError
 			&CouldNotMaximizeChannels(ref error) => Some(error),
 			
 			&CouldNotMaximizePendingQueueDepths(ref error) => Some(error),
+			
+			&CouldNotSetGenericReceiveOffloadTimeout(ref error) => Some(error),
 		}
 	}
 }

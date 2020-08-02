@@ -181,6 +181,27 @@ impl SysPath
 	{
 		self.path().append("devices")
 	}
+	
+	/// `/sys/class/net/<network_interface_name>`.
+	#[inline(always)]
+	pub fn network_interface_class_net_folder_path(&self, network_interface_name: &NetworkInterfaceName) -> PathBuf
+	{
+		self.class_net_folder_path().append(network_interface_name)
+	}
+	
+	/// `/sys/class/net`.
+	#[inline(always)]
+	fn class_net_folder_path(&self) -> PathBuf
+	{
+		self.class_folder_path().append("net")
+	}
+	
+	/// `/sys/class`.
+	#[inline(always)]
+	fn class_folder_path(&self) -> PathBuf
+	{
+		self.path().append("class")
+	}
 
 	/// `/sys/bus/pci/drivers/<driver_name>`.
 	#[inline(always)]

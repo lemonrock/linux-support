@@ -2,15 +2,23 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[allow(missing_docs)]
-#[repr(C)]
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct ifmap
+/// Hardware address assignment types.
+///
+/// Also available at `/sys/class/net/<network_interface_name>/addr_assign_type`.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(EnumCount)]
+#[repr(u8)]
+pub enum NET_ADDR
 {
-	pub mem_start: c_ulong,
-	pub mem_end: c_ulong,
-	pub base_addr: c_ushort,
-	pub irq: c_uchar,
-	pub dma: c_uchar,
-	pub port: IF_PORT,
+	/// Address is permanent (default).
+	NET_ADDR_PERM = 0,
+
+	/// Address is generated randomly.
+	NET_ADDR_RANDOM = 1,
+
+	/// Address is stolen from another device.
+	NET_ADDR_STOLEN = 2,
+	
+	/// Adddress has been set using `dev_set_mac_address()`.
+	NET_ADDR_SET = 3,
 }

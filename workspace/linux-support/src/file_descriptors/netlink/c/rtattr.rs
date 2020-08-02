@@ -67,6 +67,12 @@ impl<NAT: NetlinkAttributeType> rtattr<NAT>
 	}
 	
 	#[inline(always)]
+	pub(super) fn get_attribute_value_net_dev_group(&self) -> Result<NetworkDeviceGroup, TryFromSliceError>
+	{
+		self.get_attribute_value_u32().map(|value| NetworkDeviceGroup(value))
+	}
+	
+	#[inline(always)]
 	pub(super) fn get_attribute_value_net_namespace_identifier(&self) -> Result<i32, TryFromSliceError>
 	{
 		self.get_attribute_value_i32()

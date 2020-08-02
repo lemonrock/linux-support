@@ -2,44 +2,27 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Connector port.
+/// Interface name assignment types.
+///
+/// Also available at `/sys/class/net/<network_interface_name>/name_assign_type`.
+/// This is not readable if the value is `NET_NAME::NET_NAME_UNKNOWN` (seems to return `EINVAL`).
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(EnumCount)]
 #[repr(u8)]
-pub(crate) enum PORT
+pub enum NET_NAME
 {
-	/// Twisted Pair (TP) connector.
-	///
-	/// Also BaseT.
-	///
-	/// Ethtool setting is `tp`.
-	PORT_TP = 0x00,
+	/// Unknown origin (not exposed to userspace).
+	NET_NAME_UNKNOWN = 0,
 	
-	/// Attachment Unit Interface (AUI) connector.
-	///
-	/// Ethtool setting is `aui`.
-	PORT_AUI = 0x01,
+	/// Enumerated by kernel.
+	NET_NAME_ENUM = 1,
 	
-	/// Media-Independent Interface (MII) connector.
-	///
-	/// Ethtool setting is `mii`.
-	PORT_MII = 0x02,
-
-	/// Fibre.
-	PORT_FIBRE = 0x03,
+	/// Predictably named by the kernel.
+	NET_NAME_PREDICTABLE = 2,
 	
-	/// Bayonet Neill–Concelman (BNC) connector.
-	///
-	/// Ethtool setting is `bnc`.
-	PORT_BNC = 0x04,
-
-	/// ? Digital/Analog connector?
-	///
-	/// Also 'CX4'.
-	PORT_DA = 0x05,
-
-	/// eg Backplane.
-	PORT_NONE = 0xEF,
-
-	PORT_OTHER = 0xFF,
-
+	/// Provided by userspace.
+	NET_NAME_USER = 3,
+	
+	/// Renamed by userspace.
+	NET_NAME_RENAMED = 4,
 }

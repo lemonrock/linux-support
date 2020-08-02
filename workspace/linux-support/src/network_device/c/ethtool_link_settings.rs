@@ -24,6 +24,10 @@ pub(crate) struct ethtool_link_settings
 	///
 	/// Read-only if `autoneg` is `AUTONEG_ENABLE`.
 	/// Writable if `autoneg` is `AUTONEG_DISABLE` and the driver supports multiple speeds (link modes).
+	///
+	/// Also available at `/sys/class/net/<network_interface_name>/speed`, as raw `i32` value of `SPEED` (eg `-1` for `SPEED_UNKNOWN`).
+	/// Read-only is sysfs.
+	/// Unknown for virtual interfaces.
 	pub(crate) speed: SPEED,
 
 	/// Duplex mode; one of enum `DUPLEX`.
@@ -35,6 +39,16 @@ pub(crate) struct ethtool_link_settings
 	///
 	/// Read-only if `autoneg` is `AUTONEG_ENABLE`.
 	/// Writable if `autoneg` is `AUTONEG_DISABLE` and the driver supports multiple duplexes (link modes).
+	///
+	/// Also available at `/sys/class/net/<network_interface_name>/duplex`, but turned into a string.
+	/// Read-only is sysfs.
+	/// Unknown for virtual interfaces.
+	///
+	/// String representations in sysfs are:-
+	///
+	/// * `half`.
+	/// * `full`.
+	/// * `unknown`.
 	pub(crate) duplex: DUPLEX,
 
 	/// Physical connector type; one of the enum `PORT`.

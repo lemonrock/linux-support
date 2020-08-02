@@ -7,24 +7,41 @@
 #[repr(u8)]
 pub enum IF_OPER
 {
-	#[allow(missing_docs)]
+	/// `unknown` in sysfs (`/sys/class/net/<network_interface_name>/oper_state`).
 	IF_OPER_UNKNOWN = 0,
 	
-	#[allow(missing_docs)]
+	/// Apparently unused according to a Linux kernel source comment.
+	///
+	/// `notpresent` in sysfs (`/sys/class/net/<network_interface_name>/oper_state`).
 	IF_OPER_NOTPRESENT = 1,
 	
-	#[allow(missing_docs)]
+	/// `down` in sysfs (`/sys/class/net/<network_interface_name>/oper_state`).
 	IF_OPER_DOWN = 2,
 	
-	#[allow(missing_docs)]
+	/// `lowerlayerdown` in sysfs (`/sys/class/net/<network_interface_name>/oper_state`).
 	IF_OPER_LOWERLAYERDOWN = 3,
 	
-	#[allow(missing_docs)]
+	/// Apparently unused according to a Linux kernel source comment.
+	///
+	/// `testing` in sysfs (`/sys/class/net/<network_interface_name>/oper_state`).
 	IF_OPER_TESTING = 4,
 	
-	#[allow(missing_docs)]
+	/// `dormant` in sysfs (`/sys/class/net/<network_interface_name>/oper_state`).
+	///
+	/// Check that `/sys/class/net/<network_interface_name>/dormant` is true before relying on this state.
+	///
+	/// Also reported as a boolean in `/sys/class/net/<network_interface_name>/dormant` which:-
+	///
+	/// * if true, reflects that a driver has been placed in the `dormant` state but the operational status won't yet have been updated to `IF_OPER_DORMANT`.
+	/// * if false, reflects that a driver has never been placed in the `dormant` state, or, rarely, is exiting from a `dormant` state but the operational status won't yet have been updated to `IF_OPER_UP`.
+	///
+	/// Rarely-used state by a very small number of Linux drivers, none of which are common.
+	///
+	/// See also `NetworkInterfaceName.dormant()`.
 	IF_OPER_DORMANT = 5,
 	
-	#[allow(missing_docs)]
+	/// `up` in sysfs (`/sys/class/net/<network_interface_name>/oper_state`).
+	///
+	/// Check that `/sys/class/net/<network_interface_name>/dormant` is not true before relying on this state.
 	IF_OPER_UP = 6,
 }

@@ -26,7 +26,7 @@ pub struct GetLinkProcessingMessageState
 	
 	pub(crate) maximum_transmission_unit_maximum: Option<MaximumTransmissionUnit>,
 	
-	pub(crate) group: Option<u32>,
+	pub(crate) group: Option<NetworkDeviceGroup>,
 	
 	pub(crate) promiscuity: Option<u32>,
 	

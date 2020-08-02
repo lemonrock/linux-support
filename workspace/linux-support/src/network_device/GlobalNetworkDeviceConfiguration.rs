@@ -20,12 +20,18 @@ pub struct GlobalNetworkDeviceConfiguration
 	#[serde(default)] pub forward_error_correction: Option<ForwardErrorCorrectionCode>,
 	
 	/// Pause configuration.
+	///
+	/// Usually only works for physical (non-virtualized) hardware.
 	#[serde(default)] pub pause_configuration: Option<PauseConfiguration>,
 	
 	/// Energy Efficient Ethernet (EEE).
+	///
+	/// Not supported by many cards, eg Intel i40e.
 	#[serde(default)] pub energy_efficient_ethernet: Option<EnergyEfficientEthernetConfiguration>,
 	
 	/// Disable Wake-on-LAN (WoL).
+	///
+	/// Usually only works for physical (non-virtualized) hardware.
 	#[serde(default)] pub disable_wake_on_lan: bool,
 	
 	/// Feature groups.
@@ -45,6 +51,11 @@ pub struct GlobalNetworkDeviceConfiguration
 
 	/// Maximize pending queue depths?
 	#[serde(default)] pub maximize_pending_queue_depths: bool,
+	
+	/// Change generic receive offload (GRO) flush timeout?
+	///
+	/// Default is usually `0`.
+	#[serde(default)] pub generic_receive_offload_flush_timeout_in_nanoseconds: Option<u32>,
 }
 
 
@@ -64,6 +75,17 @@ xxx;
 		"delete"
 --per-queue ... eg coalesce
 
+Rework set ring params, eg Intel i40e returns EINVAL for values outside of the range I40E_MIN_NUM_DESCRIPTORS ..= I40E_MAX_NUM_DESCRIPTORS
+	eg Intel i40e does not suppport rx_mini_pending or rx_jumbo_pending
+
+Rework coalesce, for example, many devices might only support a subset, eg Intel i40e:-
+
+	.supported_coalesce_params = ETHTOOL_COALESCE_USECS |
+				     ETHTOOL_COALESCE_MAX_FRAMES_IRQ |
+				     ETHTOOL_COALESCE_USE_ADAPTIVE |
+				     ETHTOOL_COALESCE_RX_USECS_HIGH |
+				     ETHTOOL_COALESCE_TX_USECS_HIGH,
+
 with setting channels, the RSS table is reset on mlx cards.
 rss / rx hash indirection
 
@@ -80,14 +102,16 @@ This table can be configured. For example, to make sure all traffic goes only to
 client$ sudo ethtool -X eth2 weight 1 1 1 1 1 1 0 0 0 0 0
 server$ sudo ethtool -X eth3 weight 1 1 1 1 1 1 0 0 0 0 0
 
-
-
-
 Finally, ensure the interrupts of multiqueue network cards are evenly distributed between CPUs. The irqbalance service is stopped and the interrupts are manually assigned. For simplicity let's pin the RX queue #0 to CPU #0, RX queue #1 to CPU #1 and so on.
 
 https://docs.gz.ro/tuning-network-cards-on-linux.html
 https://blog.cloudflare.com/how-to-achieve-low-latency/
 https://serverfault.com/questions/772380/how-to-tell-if-nic-has-multiqueue-enabled
+
+
+//  /sys/class/net/eth2/device/msi_irqs may not exist
+
+Use struct InterruptRequest
 
 client$ (let CPU=0; cd /sys/class/net/eth2/device/msi_irqs/;
          for IRQ in *; do
@@ -100,9 +124,63 @@ server$ (let CPU=0; cd /sys/class/net/eth3/device/msi_irqs/;
             let CPU+=1
          done)
 
-
-
  */
+
+/*
+/sys/class/net/eth0
+
+    queues/
+        tx-0/
+            rps_cpus
+                00000000
+                read-write
+            rps_flow_cnt
+                0
+                read-write
+        rx-0/
+            traffic_class
+                couldn't be read
+            tx_maxrate
+                0
+                read-write
+            tx_timeout
+                0 (without line feed)
+            xps_cpus
+                couldn't be read
+                read-write
+            xps_rxqs
+                0
+                read-write
+            byte_queue_limits/
+                hold_time
+                    1000
+                    read-write
+                inflight
+                    0
+                    read-only
+                limit
+                    0
+                    read-write
+                limit_max
+                    1879048192
+                    read-write
+                limit_min
+                    0
+                    read-write
+    power/
+        autosuspend_delay_ms
+            couldn't be read
+            read-write
+        control
+            "auto"
+            read-write
+        runtime_active_time
+        runtime_status
+            "unsupported"
+        runtime_suspended_time
+ */
+
+xxxx;
 
 
 
@@ -110,7 +188,7 @@ impl GlobalNetworkDeviceConfiguration
 {
 	/// Configures.
 	#[inline(always)]
-	pub fn configure(&self) -> Result<(Channels, PendingQueueDepths), GlobalNetworkDeviceConfigurationError>
+	pub fn configure(&self, sys_path: &SysPath) -> Result<(Channels, PendingQueueDepths), GlobalNetworkDeviceConfigurationError>
 	{
 		use self::GlobalNetworkDeviceConfigurationError::*;
 		
@@ -168,6 +246,11 @@ impl GlobalNetworkDeviceConfiguration
 		let channels = validate(network_device_input_output_control.maximize_number_of_channels(self.maximize_number_of_channels), CouldNotMaximizeChannels)?;
 		
 		let pending_queue_depths = validate(network_device_input_output_control.maximize_receive_ring_queues_and_transmit_ring_queue_depths(self.maximize_pending_queue_depths), CouldNotMaximizePendingQueueDepths)?;
+		
+		if Some(generic_receive_offload_flush_timeout_in_nanoseconds) = self.generic_receive_offload_flush_timeout_in_nanoseconds
+		{
+			self.network_interface_name.set_generic_receive_offload_flush_timeout_in_nanoseconds(sys_path, generic_receive_offload_flush_timeout_in_nanoseconds).map_err(CouldNotSetGenericReceiveOffloadTimeout)
+		}
 		
 		Ok((channels, pending_queue_depths))
 	}
