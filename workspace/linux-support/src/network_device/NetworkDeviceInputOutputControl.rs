@@ -232,6 +232,243 @@ impl<'a> NetworkDeviceInputOutputControl
 		)
 	}
 	
+	/// The ring queue count can legitimately be zero.
+	#[inline(always)]
+	pub fn get_receive_ring_queue_count(&self) -> Result<Option<usize>, NetworkDeviceInputOutputControlError<Infallible>>
+	{
+		self.ethtool_command
+		(
+			ethtool_rxnfc
+			{
+				cmd: ETHTOOL_GRXRINGS,
+				flow_type: 0,
+				data: 0,
+				fs: unsafe { zeroed() },
+				rule_count_or_rss_context: unsafe { zeroed() },
+				rule_locs: Default::default()
+			},
+			|command| Ok(command.data as usize),
+			Self::error_is_unreachable,
+			|_command| 0
+		)
+	}
+	
+	pub fn new_configured_hash_settings_in_new_context(&self, configured_hash_settings: &ConfiguredHashSettings) -> Result<Option<Option<ContextIdentifier>>, NetworkDeviceInputOutputControlError<Infallible>>
+	{
+		self.ethtool_command
+		(
+			ethtool_rxfh::set(Some(ContextIdentifierOrCreate::Create), &configured_hash_settings),
+			|command| Ok(unsafe { transmute(command.rss_context) }),
+			Self::error_is_unreachable,
+			|_command| None,
+		)
+	}
+	
+	pub fn set_configured_hash_settings(&self, context_identifier: Option<ContextIdentifier>, configured_hash_settings: &ConfiguredHashSettings) -> Result<Option<bool>, NetworkDeviceInputOutputControlError<Infallible>>
+	{
+		match self.ethtool_command
+		(
+			ethtool_rxfh::set(context_identifier.map(ContextIdentifierOrCreate::identifier), &configured_hash_settings),
+			|command| Ok(true),
+			Self::error_is_unreachable,
+			|_command| false,
+		)?
+		{
+			None => Ok(None),
+			
+			Some(true) => Ok(Some(true)),
+			
+			Some(false) => match context_identifier
+			{
+				Some(_) => Ok(Some(false)),
+				
+				None => self.legacy_fallback_set_hash_indirection_table_to_defaults(configured_hash_settings),
+			}
+		}
+	}
+	
+	fn legacy_fallback_set_hash_indirection_table_to_defaults(&self, configured_hash_settings: &ConfiguredHashSettings) -> Result<Option<bool>, NetworkDeviceInputOutputControlError<Infallible>>
+	{
+		let indirection_table = configured_hash_settings.indirection_table.as_ref();
+		let indirection_size = indirection_table.map(|vec| vec.len()).unwrap_or(0);
+		
+		let mut command = ethtool_rxfh_indir::new_with_initialized_header_but_uninitialized_array
+		(
+			ethtool_rxfh_indir
+			{
+				cmd: ETHTOOL_SRXFHINDIR,
+				size: indirection_size as u32,
+				ring_index: Default::default()
+			}
+		);
+		
+		if let Some(indirection_table) = indirection_table
+		{
+			unsafe { command.array_elements_mut().as_mut_ptr().copy_from_nonoverlapping(indirection_table.as_ptr(), indirection_size) };
+		}
+		
+		self.ethtool_command
+		(
+			command,
+			|command| Ok(true),
+			Self::error_is_unreachable,
+			|_command| false,
+		)
+	}
+	
+	/// Returns `Some(true)` if managed to reset, `Some(false)` otherwise.
+	/// Returns `None` if no network device.
+	pub fn reset_configured_hash_settings(&self, context_identifier: Option<ContextIdentifier>) -> Result<Option<bool>, NetworkDeviceInputOutputControlError<Infallible>>
+	{
+		match self.ethtool_command
+		(
+			ethtool_rxfh::reset(context_identifier),
+			|command| Ok(true),
+			Self::error_is_unreachable,
+			|_command| false,
+		)?
+		{
+			None => Ok(None),
+			
+			Some(true) => Ok(Some(true)),
+			
+			Some(false) => match context_identifier
+			{
+				Some(_) => Ok(Some(false)),
+				
+				None => self.legacy_fallback_reset_hash_indirection_table_to_defaults(),
+			}
+		}
+	}
+	
+	/// This may not work for all devices.
+	///
+	/// Returns whether it was supported.
+	fn legacy_fallback_reset_hash_indirection_table_to_defaults(&self) -> Result<Option<bool>, NetworkDeviceInputOutputControlError<Infallible>>
+	{
+		self.ethtool_command
+		(
+			ethtool_rxfh_indir
+			{
+				cmd: ETHTOOL_SRXFHINDIR,
+				size: 0,
+				ring_index: Default::default()
+			},
+			|command| Ok(true),
+			Self::error_is_unreachable,
+			|_command| false,
+		)
+	}
+	
+	/// Gets configured hash settings.
+	pub fn get_configured_hash_settings(&self, context_identifier: Option<ContextIdentifier>) -> Result<Option<ConfiguredHashSettings>, NetworkDeviceInputOutputControlError<UnsupportedHashFunctionError>>
+	{
+		match self.modern_get_indirection_size_and_key_size(context_identifier)?
+		{
+			None => return Ok(None),
+			
+			Some(Some(sizes)) => self.get_hash_function_indirection_table_and_key(context_identifier, sizes),
+			
+			Some(None) => match context_identifier
+			{
+				Some(_) => Ok(Some(ConfiguredHashSettings::Unsupported)),
+				
+				None => match self.legacy_fallback_get_indirection_size()?
+				{
+					None => Ok(None),
+					
+					Some(None) => Ok(Some(ConfiguredHashSettings::Unsupported)),
+					
+					Some(Some(indirection_size)) => match self.legacy_fallback_get_indirection_table(indirection_size)?
+					{
+						None => Ok(None),
+						
+						Some(indirection_table) => Ok(Some(ConfiguredHashSettings { function: None, indirection_table, key: None, }))
+					},
+				}
+			}
+		}
+	}
+	
+	/// May not be supported, even for the default `context_identifier` (`None`).
+	///
+	/// In this case, one may fall back to `ETHTOOL_GRXFHINDIR` to get the hash indirection table but not the hash key for the default context (but not other contexts).
+	#[inline(always)]
+	fn modern_get_indirection_size_and_key_size(&self, context_identifier: Option<ContextIdentifier>) -> Result<Option<Option<(usize, usize)>>, NetworkDeviceInputOutputControlError<UnsupportedHashFunctionError>>
+	{
+		self.ethtool_command
+		(
+			ethtool_rxfh::get_indirection_table_size_and_key_size(context_identifier),
+			|command| Ok(Some((command.indir_size as usize, command.key_size as usize))),
+			Self::error_is_unreachable,
+			|_command| None,
+		)
+	}
+	
+	fn get_hash_function_indirection_table_and_key(&self, context_identifier: Option<ContextIdentifier>, (indirection_size, key_size): (usize, usize)) -> Result<Option<ConfiguredHashSettings>, NetworkDeviceInputOutputControlError<UnsupportedHashFunctionError>>
+	{
+		self.ethtool_command
+		(
+			ethtool_rxfh::get_indirection_table_and_key(context_identifier, indirection_size, key_size),
+			|command| Ok
+			(
+				ConfiguredHashSettings
+				{
+					function: command.hash_function()?,
+					indirection_table: command.hash_indirection_table().map(|slice| slice.to_vec()),
+					key: command.hash_key_bytes().map(|slice| slice.to_vec()),
+				}
+			),
+			Self::error_is_unreachable,
+			|_command| ConfiguredHashSettings::Unsupported,
+		)
+	}
+	
+	fn legacy_fallback_get_indirection_size(&self) -> Result<Option<Option<usize>>, NetworkDeviceInputOutputControlError<UnsupportedHashFunctionError>>
+	{
+		self.ethtool_command
+		(
+			ethtool_rxfh_indir
+			{
+				cmd: ETHTOOL_GRXFHINDIR,
+				size: 0,
+				ring_index: Default::default()
+			},
+			|command| Ok(Some(command.size as usize)),
+			Self::error_is_unreachable,
+			|_command| None,
+		)
+	}
+	
+	fn legacy_fallback_get_indirection_table(&self, indirection_size: usize) -> Result<Option<Option<Vec<QueueIdentifier>>>, NetworkDeviceInputOutputControlError<UnsupportedHashFunctionError>>
+	{
+		self.ethtool_command
+		(
+			ethtool_rxfh_indir::new_with_initialized_header_but_uninitialized_array
+			(
+				ethtool_rxfh_indir
+				{
+					cmd: ETHTOOL_GRXFHINDIR,
+					size: indirection_size as u32,
+					ring_index: Default::default()
+				}
+			),
+			|command| Ok
+			(
+				if command.size == 0
+				{
+					None
+				}
+				else
+				{
+					Some(command.array_elements().to_vec())
+				}
+			),
+			Self::error_is_unreachable,
+			|_command| None,
+		)
+	}
+	
 	/// Set driver message level.
 	pub fn set_driver_message_level(&self, desired: NETIF_MSG) -> Result<Option<NETIF_MSG>, NetworkDeviceInputOutputControlError<Infallible>>
 	{

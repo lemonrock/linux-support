@@ -2,28 +2,30 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// Flow specification for IPv4.
+#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[repr(C)]
-#[derive(Copy, Clone)]
-pub(crate) union perf_event_mmap_page__bindgen_ty_1
+pub(crate) struct ethtool_usrip4_spec
 {
-	pub(crate) capabilities: u64,
-	pub(crate) __bindgen_anon_1: perf_event_mmap_page__bindgen_ty_1__bindgen_ty_1,
+	/// Source host.
+	pub(crate) ip4src: BigEndianU32,
+	
+	/// Destination host.
+	pub(crate) ip4dst: BigEndianU32,
+	
+	/// First 4 bytes of transport (layer 4) header.
+	pub(crate) l4_4_bytes: BigEndianU32,
+	
+	/// Type-of-Service (TOS).
+	pub(crate) tos: u8,
+	
+	/// Value must be `ETH_RX_NFC_IP4`; when masked, must be `0`.
+	pub(crate) ip_ver: u8,
+	
+	/// Transport protocol number; when masked, must be `0`.
+	pub(crate) proto: u8,
 }
 
-impl Default for perf_event_mmap_page__bindgen_ty_1
+impl FlowSpecification for ethtool_usrip4_spec
 {
-	#[inline(always)]
-	fn default() -> Self
-	{
-		unsafe { zeroed() }
-	}
-}
-
-impl Debug for perf_event_mmap_page__bindgen_ty_1
-{
-	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter) -> fmt::Result
-	{
-		write!(f, "perf_event_mmap_page__bindgen_ty_1 {{ union }}")
-	}
 }

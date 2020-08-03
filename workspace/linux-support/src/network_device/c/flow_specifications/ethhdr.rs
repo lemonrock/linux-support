@@ -2,28 +2,20 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub(crate) union perf_event_mmap_page__bindgen_ty_1
+#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[repr(C, packed)]
+pub(crate) struct ethhdr
 {
-	pub(crate) capabilities: u64,
-	pub(crate) __bindgen_anon_1: perf_event_mmap_page__bindgen_ty_1__bindgen_ty_1,
+	/// destination eth addr.
+	pub(crate) h_dest: [c_uchar; ETH_ALEN],
+	
+	/// source ether addr.
+	pub(crate) h_source: [c_uchar; ETH_ALEN],
+	
+	/// packet type ID field.
+	pub(crate) h_proto: BigEndianU16,
 }
 
-impl Default for perf_event_mmap_page__bindgen_ty_1
+impl FlowSpecification for ethhdr
 {
-	#[inline(always)]
-	fn default() -> Self
-	{
-		unsafe { zeroed() }
-	}
-}
-
-impl Debug for perf_event_mmap_page__bindgen_ty_1
-{
-	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter) -> fmt::Result
-	{
-		write!(f, "perf_event_mmap_page__bindgen_ty_1 {{ union }}")
-	}
 }

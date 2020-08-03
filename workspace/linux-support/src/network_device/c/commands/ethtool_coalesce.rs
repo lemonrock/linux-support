@@ -24,75 +24,117 @@ pub(crate) struct ethtool_coalesce
 	pub(crate) cmd: u32,
 
 	/// How many microseconds to delay a receive interrupt after a packet arrives.
-	pub(crate) rx_coalesce_usecs: u32,
+	///
+	/// Driver must support `ETHTOOL_COALESCE_RX_USECS` if this is `Some`.
+	pub(crate) rx_coalesce_usecs: Option<NonZeroU32>,
 
 	/// Maximum number of packets to receive before a receive interrupt.
-	pub(crate) rx_max_coalesced_frames: u32,
+	///
+	/// Driver must support `ETHTOOL_COALESCE_RX_MAX_FRAMES` if this is `Some`.
+	pub(crate) rx_max_coalesced_frames: Option<NonZeroU32>,
 	
 	/// Same as `rx_coalesce_usecs`, except that this value applies while an IRQ is being serviced by the host.
-	pub(crate) rx_coalesce_usecs_irq: u32,
+	///
+	/// Driver must support `ETHTOOL_COALESCE_RX_USECS_IRQ` if this is `Some`.
+	pub(crate) rx_coalesce_usecs_irq: Option<NonZeroU32>,
 	
 	/// Same as `rx_max_coalesced_frames`, except that this value applies while an IRQ is being serviced by the host.
-	pub(crate) rx_max_coalesced_frames_irq: u32,
+	///
+	/// Driver must support `ETHTOOL_COALESCE_RX_MAX_FRAMES_IRQ` if this is `Some`.
+	pub(crate) rx_max_coalesced_frames_irq: Option<NonZeroU32>,
 	
 	/// How many microseconds to delay a transmit interrupt after a packet is sent.
-	pub(crate) tx_coalesce_usecs: u32,
+	///
+	/// Driver must support `ETHTOOL_COALESCE_TX_USECS` if this is `Some`.
+	pub(crate) tx_coalesce_usecs: Option<NonZeroU32>,
 
 	/// Maximum number of packets to be sent before a transmit interrupt.
-	pub(crate) tx_max_coalesced_frames: u32,
+	///
+	/// Driver must support `ETHTOOL_COALESCE_TX_MAX_FRAMES` if this is `Some`.
+	pub(crate) tx_max_coalesced_frames: Option<NonZeroU32>,
 
 	/// Same as `tx_coalesce_usecs`, except that this value applies while an IRQ is being serviced by the host.
-	pub(crate) tx_coalesce_usecs_irq: u32,
+	///
+	/// Driver must support `ETHTOOL_COALESCE_TX_USECS_IRQ` if this is `Some`.
+	pub(crate) tx_coalesce_usecs_irq: Option<NonZeroU32>,
 	
 	/// Same as `tx_max_coalesced_frames`, except that this value applies while an IRQ is being serviced by the host.
-	pub(crate) tx_max_coalesced_frames_irq: u32,
+	///
+	/// Driver must support `ETHTOOL_COALESCE_TX_MAX_FRAMES_IRQ` if this is `Some`.
+	pub(crate) tx_max_coalesced_frames_irq: Option<NonZeroU32>,
 
 	/// How many microseconds to delay in-memory statistics block updates.
 	///
 	/// Some drivers do not have an	in-memory statistic block, and in such cases this value is ignored.
 	///
-	/// This value must not be zero.
+	/// Driver must support `ETHTOOL_COALESCE_STATS_BLOCK_USECS` if this is `Some`.
 	pub(crate) stats_block_coalesce_usecs: Option<NonZeroU32>,
 
 	/// Enable adaptive receive coalescing (boolean-like).
+	///
+	/// Driver must support `ETHTOOL_COALESCE_USE_ADAPTIVE_RX` if this is `1`.
 	pub(crate) use_adaptive_rx_coalesce: u32,
 
 	/// Enable adaptive transmit coalescing (boolean-like).
+	///
+	/// Driver must support `ETHTOOL_COALESCE_USE_ADAPTIVE_TX` if this is `1`.
 	pub(crate) use_adaptive_tx_coalesce: u32,
 
 	/// Threshold for low packet rate (packets per second).
-	pub(crate) pkt_rate_low: u32,
+	///
+	/// Driver must support `ETHTOOL_COALESCE_PKT_RATE_LOW` if this is `Some`.
+	pub(crate) pkt_rate_low: Option<NonZeroU32>,
 
 	/// How many microseconds to delay a receive interrupt after a packet arrives, when the packet rate is below `pkt_rate_low`.
-	pub(crate) rx_coalesce_usecs_low: u32,
+	///
+	/// Driver must support `ETHTOOL_COALESCE_RX_USECS_LOW` if this is `Some`.
+	pub(crate) rx_coalesce_usecs_low: Option<NonZeroU32>,
 
 	/// Maximum number of packets to be received before a receive interrupt, when the packet rate is below `pkt_rate_low`.
-	pub(crate) rx_max_coalesced_frames_low: u32,
+	///
+	/// Driver must support `ETHTOOL_COALESCE_RX_MAX_FRAMES_LOW` if this is `Some`.
+	pub(crate) rx_max_coalesced_frames_low: Option<NonZeroU32>,
 
 	/// How many microseconds to delay a transmit interrupt after a packet is sent, when the packet rate is below `pkt_rate_low`.
-	pub(crate) tx_coalesce_usecs_low: u32,
+	///
+	/// Driver must support `ETHTOOL_COALESCE_TX_USECS_LOW` if this is `Some`.
+	pub(crate) tx_coalesce_usecs_low: Option<NonZeroU32>,
 
 	/// Maximum nuumber of packets to be sent before a transmit interrupt, when the packet rate is below `pkt_rate_low`.
-	pub(crate) tx_max_coalesced_frames_low: u32,
+	///
+	/// Driver must support `ETHTOOL_COALESCE_TX_MAX_FRAMES_LOW` if this is `Some`.
+	pub(crate) tx_max_coalesced_frames_low: Option<NonZeroU32>,
 
 	/// Threshold for high packet rate (packets per second).
-	pub(crate) pkt_rate_high: u32,
+	///
+	/// Driver must support `ETHTOOL_COALESCE_PKT_RATE_HIGH` if this is `Some`.
+	pub(crate) pkt_rate_high: Option<NonZeroU32>,
 
 	/// How many microseconds to delay a receive interrupt after a packet arrives, when the packet rate is above `pkt_rate_high`.
-	pub(crate) rx_coalesce_usecs_high: u32,
+	///
+	/// Driver must support `ETHTOOL_COALESCE_RX_USECS_HIGH` if this is `Some`.
+	pub(crate) rx_coalesce_usecs_high: Option<NonZeroU32>,
 
 	/// Maximum number of packets to be received before a receive interrupt, when the packet rate is above `pkt_rate_high`.
-	pub(crate) rx_max_coalesced_frames_high: u32,
+	///
+	/// Driver must support `ETHTOOL_COALESCE_RX_MAX_FRAMES_HIGH` if this is `Some`.
+	pub(crate) rx_max_coalesced_frames_high: Option<NonZeroU32>,
 
 	/// How many microseconds to delay a transmit interrupt after a packet is sent, when the packet rate is above `pkt_rate_high`.
-	pub(crate) tx_coalesce_usecs_high: u32,
+	///
+	/// Driver must support `ETHTOOL_COALESCE_TX_USECS_HIGH` if this is `Some`.
+	pub(crate) tx_coalesce_usecs_high: Option<NonZeroU32>,
 
-	/// Maximum number of packets to be sent before a transmit interrupt, when the packet rate is above @pkt_rate_high.
-	pub(crate) tx_max_coalesced_frames_high: u32,
+	/// Maximum number of packets to be sent before a transmit interrupt, when the packet rate is above `pkt_rate_high`.
+	///
+	/// Driver must support `ETHTOOL_COALESCE_TX_MAX_FRAMES_HIGH` if this is `Some`.
+	pub(crate) tx_max_coalesced_frames_high: Option<NonZeroU32>,
 
 	/// How often to do adaptive coalescing packet rate sampling, measured in seconds.
 	///
 	/// This value must not be zero.
+	///
+	/// Driver must support `ETHTOOL_COALESCE_RATE_SAMPLE_INTERVAL` if this is `Some`.
 	pub(crate) rate_sample_interval: Option<NonZeroU32>,
 }
 

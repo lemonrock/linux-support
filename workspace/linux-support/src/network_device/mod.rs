@@ -3,11 +3,15 @@
 
 
 use self::c::*;
+use self::c::commands::*;
+use self::c::flow_specifications::*;
 use super::*;
 use self::coalescing::*;
 use self::features::*;
+use self::receive_side_scaling::*;
 use self::string_sets::*;
 use self::tunables::*;
+use crate::bpf::extended::express_data_path::QueueIdentifier;
 use crate::file_descriptors::*;
 use crate::file_descriptors::network_device::*;
 use crate::paths::SysPath;
@@ -24,6 +28,10 @@ pub mod coalescing;
 
 /// Features.
 pub mod features;
+
+
+/// Receive side scaling (RSS).
+pub mod receive_side_scaling;
 
 
 /// String sets.

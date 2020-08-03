@@ -46,6 +46,9 @@ pub enum GlobalNetworkDeviceConfigurationError
 	CouldNotMaximizePendingQueueDepths(NetworkDeviceInputOutputControlError<Infallible>),
 	
 	#[allow(missing_docs)]
+	CouldNotConfigureReceiveSideScalingHashConfiguration(NetworkDeviceInputOutputControlError<Infallible>),
+	
+	#[allow(missing_docs)]
 	CouldNotSetGenericReceiveOffloadTimeout(io::Error),
 }
 
@@ -92,6 +95,8 @@ impl error::Error for GlobalNetworkDeviceConfigurationError
 			&CouldNotMaximizeChannels(ref error) => Some(error),
 			
 			&CouldNotMaximizePendingQueueDepths(ref error) => Some(error),
+			
+			&CouldNotConfigureReceiveSideScalingHashConfiguration(ref error) => Some(error),
 			
 			&CouldNotSetGenericReceiveOffloadTimeout(ref error) => Some(error),
 		}

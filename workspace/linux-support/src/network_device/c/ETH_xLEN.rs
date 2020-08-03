@@ -2,28 +2,14 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub(crate) union perf_event_mmap_page__bindgen_ty_1
-{
-	pub(crate) capabilities: u64,
-	pub(crate) __bindgen_anon_1: perf_event_mmap_page__bindgen_ty_1__bindgen_ty_1,
-}
+/// Octets in one ethernet address.
+pub(crate) const ETH_ALEN: usize = 6;
 
-impl Default for perf_event_mmap_page__bindgen_ty_1
-{
-	#[inline(always)]
-	fn default() -> Self
-	{
-		unsafe { zeroed() }
-	}
-}
+/// Octets in ethernet type field.
+pub(crate) const ETH_TLEN: usize = 2;
 
-impl Debug for perf_event_mmap_page__bindgen_ty_1
-{
-	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter) -> fmt::Result
-	{
-		write!(f, "perf_event_mmap_page__bindgen_ty_1 {{ union }}")
-	}
-}
+/// Total octets in header.
+pub(crate) const ETH_HLEN: usize = 14;
+
+/// Minimum octets in frame without Frame Check Sequence (FCS) of 4 bytes.
+pub(crate) const ETH_ZLEN: usize = 60;

@@ -2,28 +2,27 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// Flow specification for a TCP/IPv4, UDP/IPv4 or SCTP/IPv4 flow.
+#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[repr(C)]
-#[derive(Copy, Clone)]
-pub(crate) union perf_event_mmap_page__bindgen_ty_1
+pub(crate) struct ethtool_tcpip4_spec
 {
-	pub(crate) capabilities: u64,
-	pub(crate) __bindgen_anon_1: perf_event_mmap_page__bindgen_ty_1__bindgen_ty_1,
+	/// Source host.
+	pub(crate) ip4src: BigEndianU32,
+	
+	/// Destination host.
+	pub(crate) ip4dst: BigEndianU32,
+	
+	/// Source port.
+	pub(crate) psrc: BigEndianU16,
+	
+	/// Destination port.
+	pub(crate) pdst: BigEndianU16,
+	
+	/// Type-of-Service (TOS).
+	pub(crate) tos: u8,
 }
 
-impl Default for perf_event_mmap_page__bindgen_ty_1
+impl FlowSpecification for ethtool_tcpip4_spec
 {
-	#[inline(always)]
-	fn default() -> Self
-	{
-		unsafe { zeroed() }
-	}
-}
-
-impl Debug for perf_event_mmap_page__bindgen_ty_1
-{
-	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter) -> fmt::Result
-	{
-		write!(f, "perf_event_mmap_page__bindgen_ty_1 {{ union }}")
-	}
 }

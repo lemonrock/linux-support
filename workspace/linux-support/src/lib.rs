@@ -690,13 +690,15 @@ use strum::EnumMessage;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 use strum_macros::EnumMessage;
-use strum_macros::IntoStaticStr;
+use strum_macros::IntoStaticStr;x
 use swiss_army_knife::bit_set_aware;
 use swiss_army_knife::ConstArrayVec;
 use swiss_army_knife::LoadNonAtomically;
 use swiss_army_knife::move_to_front_of_vec;
 use swiss_army_knife::StaticInitializedOnce;
 use swiss_army_knife::VariablySized;
+use swiss_army_knife::big_endian::BigEndianU16;
+use swiss_army_knife::big_endian::BigEndianU32;
 use swiss_army_knife::bit_set::BitsInAByte;
 use swiss_army_knife::bit_set::BitSet;
 use swiss_army_knife::bit_set::BitSetAware;

@@ -14,7 +14,7 @@ pub(crate) trait VariablySizedEthtoolCommand: EthtoolCommand + Copy
 	#[inline(always)]
 	fn array_size(&self) -> usize
 	{
-		size_of::<Self::ArrayElement>() * (self.array_size() as usize)
+		size_of::<Self::ArrayElement>() * (self.array_length() as usize)
 	}
 	
 	#[inline(always)]

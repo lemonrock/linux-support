@@ -2,8 +2,26 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) const ETHTOOL_FWVERS_LEN: usize = 32;
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub(crate) union ContextIdentifierOrCreate
+{
+	identifier: ContextIdentifier,
+	create: NonZeroU32,
+}
 
-pub(crate) const ETHTOOL_BUSINFO_LEN: usize = 32;
-
-pub(crate) const ETHTOOL_EROMVERS_LEN: usize = 32;
+impl ContextIdentifierOrCreate
+{
+	pub(crate) const Create: Self = Self
+	{
+		create: ContextIdentifier::ExclusiveMaximum.0,
+	};
+	
+	pub(crate) const fn identifier(identifier: ContextIdentifier) -> Self
+	{
+		Self
+		{
+			identifier
+		}
+	}
+}

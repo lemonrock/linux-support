@@ -7,6 +7,8 @@ use self::bit_set::*;
 use super::features::*;
 use super::tunables::*;
 use crate::file_descriptors::socket::c::*;
+use crate::network_device::c::flow_specifications::ethtool_rx_flow_spec;
+use crate::network_device::receive_side_scaling::ContextIdentifier;
 
 
 include!("AUTONEG.rs");
@@ -15,37 +17,28 @@ include!("DOWNSHIFT_DEV_.rs");
 include!("DUPLEX.rs");
 include!("ETH_GSTRING_LEN.rs");
 include!("ETH_MDIO_SUPPORTS.rs");
+include!("ETH_RSS_HASH.rs");
+include!("ETH_RX_NFC_.rs");
+include!("ETH_RX_FLOW_SPEC_.rs");
+include!("ETH_RXFH_.rs");
 include!("ETH_TP_MDI.rs");
-include!("ETHTOOL_.rs");
-include!("ethtool_channels.rs");
-include!("ethtool_coalesce.rs");
-include!("ethtool_drvinfo.rs");
-include!("ethtool_eee.rs");
+include!("ETH_x_LEN.rs");
+include!("ETH_x_MTU.rs");
+include!("ETH_xLEN.rs");
 include!("ethtool_fec_config_bits.rs");
-include!("ethtool_fecparam.rs");
 include!("ethtool_get_features_block.rs");
-include!("ethtool_gfeatures.rs");
-include!("ethtool_gstrings.rs");
 include!("ethtool_link_mode_bit_indices.rs");
 include!("ethtool_link_mode_bit_indices_forward_error_correction.rs");
 include!("ethtool_link_mode_bit_indices_pause.rs");
 include!("ethtool_link_mode_bit_indices_ports.rs");
 include!("ethtool_link_mode_bit_indices_speed.rs");
-include!("ethtool_link_settings.rs");
 include!("ethtool_link_settings_link_modes.rs");
-include!("ethtool_pauseparam.rs");
 include!("ETHTOOL_PHY_EDPD_.rs");
 include!("ETHTOOL_PHY_FAST_LINK_DOWN_.rs");
-include!("ethtool_ringparam.rs");
+include!("ethtool_rxnfc_rule_count_or_rss_context.rs");
 include!("ethtool_set_features_block.rs");
-include!("ethtool_sfeatures.rs");
-include!("ethtool_sset_info.rs");
 include!("ethtool_stringset.rs");
-include!("ethtool_tunable.rs");
-include!("ethtool_value.rs");
-include!("ethtool_wolinfo.rs");
-include!("EthtoolCommand.rs");
-include!("ETHTOOL_X_LEN.rs");
+include!("ETHTOOL_x_LEN.rs");
 include!("fr_proto.rs");
 include!("fr_proto_pvc.rs");
 include!("fr_proto_pvc_info.rs");
@@ -71,17 +64,23 @@ include!("PFC_STORM_PREVENTION_.rs");
 include!("phy_tunable_id.rs");
 include!("PORT.rs");
 include!("raw_hdlc_proto.rs");
+include!("RingCookie.rs");
 include!("SOF_TIMESTAMPING.rs");
 include!("SPEED.rs");
 include!("sync_serial_settings.rs");
 include!("te1_settings.rs");
 include!("tunable_id.rs");
 include!("tunable_type_id.rs");
-include!("VariablySizedEthtoolCommand.rs");
-include!("VariablySizedEthtoolCommandWrapper.rs");
 include!("WAKE.rs");
 include!("x25_hdlc_proto.rs");
 include!("XCVR.rs");
 
 
 mod bit_set;
+
+
+/// Ethtool commands.
+pub mod commands;
+
+
+pub(crate) mod flow_specifications;

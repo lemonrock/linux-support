@@ -2,29 +2,34 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// How often to do adaptive coalescing packet rate sampling.
+/// A non-default receive-side scaling context identifier.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct AdaptiveCoalescingRateSampling
-{
-	/// How often to do adaptive coalescing packet rate sampling, measured in seconds.
-	///
-	/// Driver must support `ETHTOOL_COALESCE_RATE_SAMPLE_INTERVAL` if `Some`.
-	pub interval_in_seconds: Option<NonZeroU32>,
-}
+#[repr(transparent)]
+pub struct ContextIdentifier(NonZeroU32);
 
-impl Default for AdaptiveCoalescingRateSampling
+impl TryFrom<NonZeroU32> for ContextIdentifier
 {
+	type Error = ParseNumberError;
+	
 	#[inline(always)]
-	fn default() -> Self
+	fn try_from(value: NonZeroU32) -> Result<Self, Self::Error>
 	{
-		Self::One
+		if likely!(value < Self::ExclusiveMaximum.0)
+		{
+			Ok(Self(value))
+		}
+		else
+		{
+			Err(ParseNumberError::WasMaximum)
+		}
 	}
 }
 
-impl AdaptiveCoalescingRateSampling
+impl ContextIdentifier
 {
-	const One: Self = Self
-	{
-		interval_in_seconds: Some(unsafe { NonZeroU32::new_unchecked(1) }),
-	};
+	/// Exclusive maximum.
+	const ExclusiveMaximum: Self = Self(unsafe { NonZeroU32::new_unchecked(ETH_RXFH_CONTEXT_ALLOC) });
+	
+	/// Default.
+	pub const Default: Option<Self> = None;
 }

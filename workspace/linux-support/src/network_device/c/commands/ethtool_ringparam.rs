@@ -3,6 +3,8 @@
 
 
 /// Ring parameters.
+///
+/// Mini-pending and jumbo-pending are not often supported, eg the very common Intel i40e driver does not support these.
 #[repr(C)]
 pub(crate) struct ethtool_ringparam
 {

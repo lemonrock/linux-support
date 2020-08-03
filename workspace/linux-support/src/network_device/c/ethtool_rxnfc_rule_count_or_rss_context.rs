@@ -4,26 +4,16 @@
 
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub(crate) union perf_event_mmap_page__bindgen_ty_1
+pub(crate) union ethtool_rxnfc_rule_count_or_rss_context
 {
-	pub(crate) capabilities: u64,
-	pub(crate) __bindgen_anon_1: perf_event_mmap_page__bindgen_ty_1__bindgen_ty_1,
-}
-
-impl Default for perf_event_mmap_page__bindgen_ty_1
-{
-	#[inline(always)]
-	fn default() -> Self
-	{
-		unsafe { zeroed() }
-	}
-}
-
-impl Debug for perf_event_mmap_page__bindgen_ty_1
-{
-	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter) -> fmt::Result
-	{
-		write!(f, "perf_event_mmap_page__bindgen_ty_1 {{ union }}")
-	}
+	/// Number of rules to be affected.
+	///
+	/// For `ETHTOOL_GRXCLSRLCNT`, the number of defined rules on return.
+	///
+	/// For `ETHTOOL_GRXCLSRLALL`, specifies the array size of the user buffer for `rules_loc` on entry.
+	/// For `ETHTOOL_GRXCLSRLALL`, specifies the number of defined rules on return.
+	pub(crate) rule_cnt: u32,
+	
+	/// RSS context to be affected.
+	pub(crate) rss_context: Option<ContextIdentifier>,
 }

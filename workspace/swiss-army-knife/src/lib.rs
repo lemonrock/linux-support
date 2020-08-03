@@ -77,6 +77,10 @@ use std::ptr::null;
 use std::ptr::write_bytes;
 
 
+/// Big-endian definitions.
+pub mod big_endian;
+
+
 /// A set of types to support the use of bit sets in Linux APIs and files.
 #[macro_use]
 pub mod bit_set;

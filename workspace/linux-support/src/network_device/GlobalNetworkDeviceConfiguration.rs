@@ -52,81 +52,188 @@ pub struct GlobalNetworkDeviceConfiguration
 	/// Maximize pending queue depths?
 	#[serde(default)] pub maximize_pending_queue_depths: bool,
 	
+	/// Adjust receive side scaling (RSS) hash configuration:-
+	///
+	/// * Change the hash function (eg to Toeplitz);
+	/// * Change the key to the hash function (normally 40 or 52 bytes);
+	/// * Change the indirection (RETA) table (the weighting of hash function results to receive queue indices).
+	///
+	/// Doing this generically is very hard, as the specifics are very much tied to the network device.
+	/// This could be done semi-generically using an algorithm that picks a key size, hash function and RETA table given known card supported values (existing configuration and number of receive queue rings), NUMA settings and CPU counts.
+	///
+	/// Older network devices may only support changing the indirection (RETA) table.
+	/// Passing `ConfiguredHashSettings` with all fields as `None` effectively does a result to defaults, if the network device supports that, or, for an older device, if supported, reseting the indirection (RETA) table to defaults.
+	///
+	/// This is always configured after changes to the number of channels, as changes to channels resets RSS hash configuration on some cards (eg Mellanox).
+	#[serde(default)] pub receive_side_scaling_hash_configuration: Option<ConfiguredHashSettings>,
+	
+	/*
+		TODO:
+		
+		eg have 11 RX rings
+		We want to apply a 'weight' to each RX ring;
+			a weight of 0 disables any flows to that RX ring
+			
+		the CPU which handles the interrupt will also process the packet unless:-
+			/sys/class/net/<device>/queues/<rx-queue>/rps_cpus - a cpu bitmap - is changed - to enable RPS - receive packet steering - which is a software tech, I think.
+			See https://www.suse.com/support/kb/doc/?id=000018430
+		
+		On NUMA machines, best performance can be achieved by configuring RPS to use the CPUs on the same NUMA node as the interrupt IRQ for the interface's receive queue.
+	 */
+	
 	/// Change generic receive offload (GRO) flush timeout?
 	///
 	/// Default is usually `0`.
 	#[serde(default)] pub generic_receive_offload_flush_timeout_in_nanoseconds: Option<u32>,
 }
 
-
 xxx;
 /*
 
+TODO: Receive Queue => CPU
 
---set-rxfh-indir
-	do_srxfh
-		do_srxfhindir
-	
 --config-nfc / --config-ntuple
 	do_srxclass
 		"rx-flow-hash"
 		"flow-type"
 			do_srxntuple
 		"delete"
+		
 --per-queue ... eg coalesce
 
 Rework set ring params, eg Intel i40e returns EINVAL for values outside of the range I40E_MIN_NUM_DESCRIPTORS ..= I40E_MAX_NUM_DESCRIPTORS
 	eg Intel i40e does not suppport rx_mini_pending or rx_jumbo_pending
 
-Rework coalesce, for example, many devices might only support a subset, eg Intel i40e:-
-
-	.supported_coalesce_params = ETHTOOL_COALESCE_USECS |
-				     ETHTOOL_COALESCE_MAX_FRAMES_IRQ |
-				     ETHTOOL_COALESCE_USE_ADAPTIVE |
-				     ETHTOOL_COALESCE_RX_USECS_HIGH |
-				     ETHTOOL_COALESCE_TX_USECS_HIGH,
-
-with setting channels, the RSS table is reset on mlx cards.
-rss / rx hash indirection
-
-const char rss_hash_func_strings[ETH_RSS_HASH_FUNCS_COUNT][ETH_GSTRING_LEN] = {
-	[ETH_RSS_HASH_TOP_BIT] =	"toeplitz",
-	[ETH_RSS_HASH_XOR_BIT] =	"xor",
-	[ETH_RSS_HASH_CRC32_BIT] =	"crc32",
-};
-
 Indirection RSS hash table
-
 This table can be configured. For example, to make sure all traffic goes only to CPUs #0-#5 (the first NUMA node in our setup), we run:
-
 client$ sudo ethtool -X eth2 weight 1 1 1 1 1 1 0 0 0 0 0
-server$ sudo ethtool -X eth3 weight 1 1 1 1 1 1 0 0 0 0 0
-
 Finally, ensure the interrupts of multiqueue network cards are evenly distributed between CPUs. The irqbalance service is stopped and the interrupts are manually assigned. For simplicity let's pin the RX queue #0 to CPU #0, RX queue #1 to CPU #1 and so on.
+
+Use struct InterruptRequest to read and write smp_affinity_list.
+Also change /proc/irq/default_smp_affinity
+
+MSI-X - Message Signal Interrupts (Extended).
+
+When using MSI-X, an IRQ is raised for the RX queue the packet was written on.
+This IRQ is then mapped to a CPU (or set of CPUs)
+
+
+client$ (let CPU=0; cd /sys/class/net/eth0/device/msi_irqs/;
+         for IRQ in *; do
+            echo $CPU > /proc/irq/$IRQ/smp_affinity_list
+            let CPU+=1
+         done)
+NOTE: /sys/class/net/eth2/device/msi_irqs may not exist, in which case:-
+
+	grep eth0 /proc/interrupts
+	32:	0	140	45	850264	PCI-MSI-edge	eth0
+	
+	This means eth0 has assigned IRQ number 32.
+	There may be multiple lines.
+	
+	Change /proc/irq/32/smp_affinity to change the CPUs dealing with that IRQ
+		- The list of CPUs should be on the same NUMA node as the eth0 device (ie check eth0's PCI device).
+
+	Other lines might look like this if MSI-X is available:-
+	            CPU0       CPU1       CPU2       CPU3
+	  65:          1          0          0          0 IR-PCI-MSI-edge      eth0
+	  66:  863649703          0          0          0 IR-PCI-MSI-edge      eth0-TxRx-0
+	  67:  986285573          0          0          0 IR-PCI-MSI-edge      eth0-TxRx-1
+	  68:         45          0          0          0 IR-PCI-MSI-edge      eth0-TxRx-2
+	  69:        394          0          0          0 IR-PCI-MSI-edge      eth0-TxRx-3
+
+This is because each RX queue can have its own hardware interrupt assigned if using MSI-X.
+
+
+Inputs into a weighting algorithm
+
+	- number of receive queues, number_of_receive_queues (eg 2, 11)
+	- indirection_table_size (eg 128) - this is the denominator.
+	
+	fn calculate_indirection_table(number_of_receive_queues: NonZeroU32, indirection_table_size: NonZeroU32, weight_queue: impl WeightQueue, allocate_any_remaining_weight_to_final_queue: bool) -> Vec<QueueIdentifier>
+	{
+		let number_of_receive_queues = number_of_receive_queues.get();
+		let indirection_table_size = indirection_table_size.get();
+		let mut indirection_table = Vec::with_capacity(number_of_receive_queues as usize);
+	
+		let mut hash_index = 0;
+		for queue_identifier in 0 .. number_of_receive_queues
+		{
+			let queue_identifier = QueueIdentifier(queue_identifier);
+			let weight = weight_queue(queue_identifier, number_of_receive_queues, indirection_table_size);
+			let next_hash_index = hash_index.checked_add(weight).expect("Far too much weight");
+			if next_hash_index > indirection_table_size
+			{
+				panic!("Asked for too much weight")
+			}
+			
+			for add_hash_index in hash_index .. next_hash_index
+			{
+				indirection_table.push(queue_identifier);
+			}
+			
+			if next_hash_index == indirection_table_size
+			{
+				break
+			}
+			hash_index = next_hash_index
+		}
+		if hash_index < indirection_table_size
+		{
+			if !allocate_any_remaining_weight_to_final_queue
+			{
+				panic!("Some weight was not used")
+			}
+			let queue_identifier = QueueIdentifier(number_of_receive_queues - 1);
+			for add_hash_index in hash_index .. indirection_table
+			{
+				indirection_table.push(queue_identifier);
+			}
+		}
+		
+		indirection_table
+	}
+	
+	
+	trait WeightQueue
+	{
+		//
+		fn weight(queue_index: QueueIdentifier, maximum_queue_index: NonZeroU32, denominator: NonZeroU32) -> u32
+		{
+		}
+	}
+
 
 https://docs.gz.ro/tuning-network-cards-on-linux.html
 https://blog.cloudflare.com/how-to-achieve-low-latency/
-https://serverfault.com/questions/772380/how-to-tell-if-nic-has-multiqueue-enabled
+https://serverfault.com/questions/772380/how-to-tell-if-nic-has-multiqueue-enabled (multiqueue - more than one rx or tx queue).
+https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/
 
 
-//  /sys/class/net/eth2/device/msi_irqs may not exist
+You can adjust the net_rx_action budget, which determines how much packet processing can be spent among all NAPI structures registered to a CPU
+/proc/sys/net/core/netdev_budget
+	- default is 300.
 
-Use struct InterruptRequest
+Tuning: Enabling accelerated RFS (aRFS)
 
-client$ (let CPU=0; cd /sys/class/net/eth2/device/msi_irqs/;
-         for IRQ in *; do
-            echo $CPU > /proc/irq/$IRQ/smp_affinity_list
-            let CPU+=1
-         done)
-server$ (let CPU=0; cd /sys/class/net/eth3/device/msi_irqs/;
-         for IRQ in *; do
-            echo $CPU > /proc/irq/$IRQ/smp_affinity_list
-            let CPU+=1
-         done)
+Assuming that your NIC and driver support it, you can enable accelerated RFS by enabling and configuring a set of things:
 
- */
+    Have RPS enabled and configured.
+    	So, for eth0 and receive queue 0, you would modify the file: /sys/class/net/eth0/queues/rx-0/rps_cpus with a hexadecimal number indicating which CPUs should process packets from eth0’s receive queue 0.
+    	https://github.com/torvalds/linux/blob/v3.13/Documentation/networking/scaling.txt#L160-L164
+    Have RFS enabled and configured.
+    	Have RPS enabled and configured.
+    	RFS keeps track of a global hash table of all flows and the size of this hash table can be adjusted by setting the net.core.rps_sock_flow_entries sysctl.
+    	Next, you can also set the number of flows per RX queue by writing this value to the sysfs file named rps_flow_cnt for each RX queue.
+		Example: increase the number of flows for RX queue 0 on eth0 to 2048.
+		$ sudo bash -c 'echo 2048 > /sys/class/net/eth0/queues/rx-0/rps_flow_cnt'
+    Your kernel has CONFIG_RFS_ACCEL enabled at compile time. The Ubuntu kernel 3.13.0 does.
+    Have ntuple support enabled for the device, as described previously. You can use ethtool to verify that ntuple support is enabled for the device.
+    Configure your IRQ settings to ensure each RX queue is handled by one of your desired network processing CPUs.
 
-/*
+Once the above is configured, accelerated RFS will be used to automatically move data to the RX queue tied to a CPU core that is processing data for that flow and you won’t need to specify an ntuple filter rule manually for each flow.
+
+
 /sys/class/net/eth0
 
     queues/
@@ -179,10 +286,6 @@ server$ (let CPU=0; cd /sys/class/net/eth3/device/msi_irqs/;
             "unsupported"
         runtime_suspended_time
  */
-
-xxxx;
-
-
 
 impl GlobalNetworkDeviceConfiguration
 {
@@ -246,6 +349,11 @@ impl GlobalNetworkDeviceConfiguration
 		let channels = validate(network_device_input_output_control.maximize_number_of_channels(self.maximize_number_of_channels), CouldNotMaximizeChannels)?;
 		
 		let pending_queue_depths = validate(network_device_input_output_control.maximize_receive_ring_queues_and_transmit_ring_queue_depths(self.maximize_pending_queue_depths), CouldNotMaximizePendingQueueDepths)?;
+		
+		if let Some(ref receive_side_scaling_hash_configuration) = self.receive_side_scaling_hash_configuration
+		{
+			validate(network_device_input_output_control.set_configured_hash_settings(None, receive_side_scaling_hash_configuration), CouldNotConfigureReceiveSideScalingHashConfiguration)?
+		}
 		
 		if Some(generic_receive_offload_flush_timeout_in_nanoseconds) = self.generic_receive_offload_flush_timeout_in_nanoseconds
 		{

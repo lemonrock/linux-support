@@ -2,29 +2,28 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// How often to do adaptive coalescing packet rate sampling.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct AdaptiveCoalescingRateSampling
+/// Configured hash settings.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct ConfiguredHashSettings
 {
-	/// How often to do adaptive coalescing packet rate sampling, measured in seconds.
+	/// Hash function in use.
+	pub(crate) function: Option<ETH_RSS_HASH>,
+	
+	/// Hash indirection table (RETA).
 	///
-	/// Driver must support `ETHTOOL_COALESCE_RATE_SAMPLE_INTERVAL` if `Some`.
-	pub interval_in_seconds: Option<NonZeroU32>,
+	/// Uses the value produced by the hash `function` with the `key` as an index into this table to find a `QueueIdentifier`.
+	pub(crate) indirection_table: Option<Vec<QueueIdentifier>>,
+
+	/// Key used by the hash `function`.
+	pub(crate) key: Option<Vec<u8>>,
 }
 
-impl Default for AdaptiveCoalescingRateSampling
+impl ConfiguredHashSettings
 {
-	#[inline(always)]
-	fn default() -> Self
+	pub(crate) const Unsupported: Self = Self
 	{
-		Self::One
-	}
-}
-
-impl AdaptiveCoalescingRateSampling
-{
-	const One: Self = Self
-	{
-		interval_in_seconds: Some(unsafe { NonZeroU32::new_unchecked(1) }),
+		function: None,
+		indirection_table: None,
+		key: None,
 	};
 }

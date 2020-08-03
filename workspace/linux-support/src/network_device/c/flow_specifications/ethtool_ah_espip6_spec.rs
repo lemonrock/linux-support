@@ -2,28 +2,26 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// Flow specification for IPsec over IPv6.
+///
+/// This can be used to specify an IPsec transport or tunnel over IPv6.
+#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[repr(C)]
-#[derive(Copy, Clone)]
-pub(crate) union perf_event_mmap_page__bindgen_ty_1
+pub(crate) struct ethtool_ah_espip6_spec
 {
-	pub(crate) capabilities: u64,
-	pub(crate) __bindgen_anon_1: perf_event_mmap_page__bindgen_ty_1__bindgen_ty_1,
+	/// Source host.
+	pub(crate) ip6src: [BigEndianU32; 4],
+	
+	/// Destination host.
+	pub(crate) ip6dst: [BigEndianU32; 4],
+	
+	/// Security Parameters Index (SPI).
+	pub(crate) spi: BigEndianU32,
+	
+	/// Traffic Class (TC).
+	pub(crate) tclass: u8,
 }
 
-impl Default for perf_event_mmap_page__bindgen_ty_1
+impl FlowSpecification for ethtool_ah_espip6_spec
 {
-	#[inline(always)]
-	fn default() -> Self
-	{
-		unsafe { zeroed() }
-	}
-}
-
-impl Debug for perf_event_mmap_page__bindgen_ty_1
-{
-	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter) -> fmt::Result
-	{
-		write!(f, "perf_event_mmap_page__bindgen_ty_1 {{ union }}")
-	}
 }

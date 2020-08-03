@@ -8,10 +8,10 @@
 pub struct CoalescePair
 {
 	/// How many microseconds to delay a receive interrupt after a packet arrives or delay a transmit interrupt after a packet is sent.
-	pub microseconds: u32,
+	pub microseconds: Option<NonZeroU32>,
 	
 	/// Maximum number of packets to receive before an interrupt.
-	pub maximum_frames: u32,
+	pub maximum_frames: Option<NonZeroU32>,
 }
 
 impl Default for CoalescePair

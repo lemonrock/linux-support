@@ -16,7 +16,7 @@ pub struct ReceiveTransmitCoalescing
 impl ReceiveTransmitCoalescing
 {
 	#[inline(always)]
-	fn destructure(&self) -> (u32, u32, u32, u32)
+	fn destructure(&self) -> (Option<NonZeroU32>, Option<NonZeroU32>, Option<NonZeroU32>, Option<NonZeroU32>)
 	{
 		(self.receive.microseconds, self.receive.maximum_frames, self.transmit.microseconds, self.transmit.maximum_frames)
 	}

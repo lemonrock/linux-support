@@ -6,12 +6,15 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum AdaptiveCoalescingConfiguration
 {
+	/// Driver must support `ETHTOOL_COALESCE_USE_ADAPTIVE_RX`.
 	#[allow(missing_docs)]
 	ReceiveOnly(AdaptiveCoalescingRateSampling),
 	
+	/// Driver must support `ETHTOOL_COALESCE_USE_ADAPTIVE_TX`.
 	#[allow(missing_docs)]
 	TransmitOnly(AdaptiveCoalescingRateSampling),
 	
+	/// Driver must support `ETHTOOL_COALESCE_USE_ADAPTIVE_RX` and `ETHTOOL_COALESCE_USE_ADAPTIVE_TX`.
 	#[allow(missing_docs)]
 	ReceiveAndTransmit(AdaptiveCoalescingRateSampling),
 }
@@ -33,6 +36,6 @@ impl AdaptiveCoalescingConfiguration
 				ReceiveAndTransmit(adaptive_coalescing_rate_sampling) => (adaptive_coalescing_rate_sampling, true, true),
 			},
 		};
-		(Some(adaptive_coalescing_rate_sampling.interval_in_seconds), use_adaptive_receive_coalesce as u32, use_adaptive_tx_coalesce as u32)
+		(adaptive_coalescing_rate_sampling.interval_in_seconds, use_adaptive_receive_coalesce as u32, use_adaptive_tx_coalesce as u32)
 	}
 }
