@@ -690,7 +690,7 @@ use strum::EnumMessage;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 use strum_macros::EnumMessage;
-use strum_macros::IntoStaticStr;x
+use strum_macros::IntoStaticStr;
 use swiss_army_knife::bit_set_aware;
 use swiss_army_knife::ConstArrayVec;
 use swiss_army_knife::LoadNonAtomically;
@@ -707,6 +707,7 @@ use swiss_army_knife::bit_set::BitSetIterator;
 use swiss_army_knife::bit_set::IntoBitMask;
 use swiss_army_knife::bit_set::IntoList;
 use swiss_army_knife::bit_set::ListParseError;
+use swiss_army_knife::bit_set::PerBitSetAwareData;
 use swiss_army_knife::internet_protocol::InternetProtocolAddress;
 use swiss_army_knife::internet_protocol::InternetProtocolAddressWithMask;
 use swiss_army_knife::path::path_bytes_without_trailing_nul;
@@ -850,6 +851,10 @@ pub mod linux_kernel_command_line;
 ///
 /// Very basic support.
 pub mod linux_kernel_asynchronous_io;
+
+
+/// Linux kernel lock down; allows protection of the kernel from the root user using either the integrity or, stronger, confidentiality, setting.
+pub mod linux_kernel_lock_down;
 
 
 /// Linux kernel modules.

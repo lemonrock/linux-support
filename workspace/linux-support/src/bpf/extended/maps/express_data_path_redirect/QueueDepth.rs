@@ -6,32 +6,23 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
-pub struct QueueDepth(u16);
+pub struct QueueDepth(NonZeroU32);
+
+impl Into<u16> for QueueDepth
+{
+	#[inline(always)]
+	fn into(self) -> u16
+	{
+		self.0.get() as u16
+	}
+}
 
 impl Into<u32> for QueueDepth
 {
 	#[inline(always)]
 	fn into(self) -> u32
 	{
-		self.0 as u32
-	}
-}
-
-impl TryFrom<u32> for QueueDepth
-{
-	type Error = ParseNumberError;
-	
-	#[inline(always)]
-	fn try_from(value: u32) -> Result<Self, Self::Error>
-	{
-		if unlikely!(value > u16::MAX as u32)
-		{
-			Err(ParseNumberError::OutOfRange)
-		}
-		else
-		{
-			Self::try_from(value as u16)
-		}
+		self.0.get()
 	}
 }
 
@@ -42,13 +33,45 @@ impl TryFrom<u16> for QueueDepth
 	#[inline(always)]
 	fn try_from(value: u16) -> Result<Self, Self::Error>
 	{
-		if value > Self::InclusiveMaximum.0
+		Self::try_from(value as u32)
+	}
+}
+
+impl TryFrom<u32> for QueueDepth
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: u32) -> Result<Self, Self::Error>
+	{
+		if unlikely!(value == 0)
+		{
+			Err(ParseNumberError::WasZero)
+		}
+		else
+		{
+			Self::try_from(unsafe { NonZeroU32::new_unchecked(value)})
+		}
+	}
+}
+impl TryFrom<NonZeroU32> for QueueDepth
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: NonZeroU32) -> Result<Self, Self::Error>
+	{
+		if unlikely!(value == 0)
+		{
+			Err(ParseNumberError::WasZero)
+		}
+		else if unlikely!(value > Self::InclusiveMaximum.0)
 		{
 			Err(ParseNumberError::TooLarge)
 		}
 		else
 		{
-			Ok(Self(value))
+			Self(value)
 		}
 	}
 }
@@ -56,7 +79,7 @@ impl TryFrom<u16> for QueueDepth
 impl QueueDepth
 {
 	/// Inclusive minimum.
-	pub const InclusiveMinimum: Self = Self(0);
+	pub const InclusiveMinimum: Self = Self(1);
 	
 	/// Inclusive maximum.
 	pub const InclusiveMaximum: Self = Self(16384);

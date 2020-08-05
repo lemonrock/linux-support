@@ -13,6 +13,9 @@ pub struct GlobalSwapConfiguration
 
 	/// Requires root.
 	pub swappiness: Option<Swappiness>,
+
+	/// Requires root.
+	pub page_cluster: Option<PageCluster>,
 }
 
 impl GlobalSwapConfiguration
@@ -27,6 +30,9 @@ impl GlobalSwapConfiguration
 			swap_off_all_using_proc_swaps(proc_path).map_err(|cause| CouldNotDisableAllSwaps(cause))?;
 		}
 
-		set_value(proc_path, |proc_path, swappiness| swappiness.write(proc_path), self.swappiness, CouldNotChangeSwappiness)
+		set_value(proc_path, |proc_path, swappiness| swappiness.write(proc_path), self.swappiness, CouldNotChangeSwappiness)?;
+		set_value(proc_path, |proc_path, page_cluster| page_cluster.write(proc_path), self.page_cluster, CouldNotChangePageCluster)?;
+		
+		Ok(())
 	}
 }

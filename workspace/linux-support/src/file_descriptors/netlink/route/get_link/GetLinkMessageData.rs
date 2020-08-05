@@ -9,6 +9,8 @@ pub struct GetLinkMessageData
 	/// Link flags.
 	///
 	/// Also available at `/sys/class/net/<network_interface_name>/flags`.
+	/// Also available via the ioctl `SIOCGIFFLAGS`.
+	/// Also settable via the ioctl `SIOCSIFFLAGS`.
 	/// Read-write via sysfs.
 	pub link_flags: net_device_flags,
 	
@@ -20,15 +22,22 @@ pub struct GetLinkMessageData
 	/// Network interface index.
 	///
 	/// Also available at `/sys/class/net/<network_interface_name>/ifindex`.
+	/// Also available via the ioctl `SIOCGIFINDEX`.
 	pub network_interface_index: NetworkInterfaceIndex,
 	
 	/// Network interface name.
+	///
+	/// Also settable via the ioctl `SIOCSIFNAME`.
 	pub network_interface_name: NetworkInterfaceName,
 	
 	/// Transmission queue length.
 	///
 	/// Also available at `/sys/class/net/<network_interface_name>/tx_queue_len`.
+	/// Also available via the ioctl `SIOCGIFTXQLEN`.
+	/// Also settable via the ioctl `SIOCSIFTXQLEN`.
 	/// Read-write via sysfs.
+	///
+	/// Seems to be different to `PendingQueueDepths.transmit_pending_queue_depth` and hence `ethtool_ringparam.tx_pending`.
 	pub transmission_queue_length: u32,
 	
 	/// RFC 2863 operational status.
@@ -61,6 +70,8 @@ pub struct GetLinkMessageData
 	/// Maximum Transmission Unit (MTU).
 	///
 	/// Also available at `/sys/class/net/<network_interface_name>/mtu`.
+	/// Also available via the ioctl `SIOCGIFMTU`.
+	/// Also settable via the ioctl `SIOCSIFMTU`.
 	/// Read-write via sysfs.
 	pub maximum_transmission_unit: MaximumTransmissionUnit,
 	
@@ -156,6 +167,8 @@ pub struct GetLinkMessageData
 	pub event: IFLA_EVENT,
 	
 	/// Map.
+	/// Also available via the ioctl `SIOCGIFMAP`.
+	/// Also settable via the ioctl `SIOCSIFMAP`.
 	pub map: rtnl_link_ifmap,
 	
 	/// Hardware unicast address.
@@ -166,6 +179,8 @@ pub struct GetLinkMessageData
 	/// The permanent address is probably the 'burned into ROM' Ethernet Media Access Control address.
 	///
 	/// Also available at `/sys/class/net/<network_interface_name>/address` and `/sys/class/net/<network_interface_name>/broadcast`.
+	/// Also available via the ioctl `SIOCGIFHWADDR`.
+	/// Also settable via the ioctls `SIOCSIFHWADDR` and `SIOCSIFHWBROADCAST`.
 	/// The length of the two addresses is available at `/sys/class/net/<network_interface_name>/addr_len`.
 	/// Formatted in lower-case colon-separated hexadecimal, eg `00:1c:42:9e:fc:bb`.
 	///

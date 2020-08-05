@@ -13,6 +13,12 @@ pub enum GlobalNetworkDeviceConfigurationError
 	CouldNotSetDriverMessageLevel(NetworkDeviceInputOutputControlError<Infallible>),
 	
 	#[allow(missing_docs)]
+	CouldNotSetTransmissionQueueLength(NetworkDeviceInputOutputControlError<TransmissionQueueLengthOutRangeError>),
+	
+	#[allow(missing_docs)]
+	CouldNotSetMaximumTransmissionUnit(NetworkDeviceInputOutputControlError<tMaximumTransmissionUnitOutRangeError>),
+	
+	#[allow(missing_docs)]
 	CouldNotSetForwardErrorConnection(NetworkDeviceInputOutputControlError<Infallible>),
 	
 	#[allow(missing_docs)]
@@ -34,7 +40,7 @@ pub enum GlobalNetworkDeviceConfigurationError
 	CouldNotChangeDriverSpecificFlags(NetworkDeviceInputOutputControlError<Infallible>),
 	
 	#[allow(missing_docs)]
-	CouldNotChangeTunable(NetworkDeviceInputOutputControlError<Infallible>),
+	CouldNotChangeTunable(NetworkDeviceInputOutputControlError<TunableOutOfRangeError>),
 	
 	#[allow(missing_docs)]
 	CouldNotChangeCoalesceConfiguration(NetworkDeviceInputOutputControlError<Infallible>),
@@ -46,7 +52,7 @@ pub enum GlobalNetworkDeviceConfigurationError
 	CouldNotMaximizePendingQueueDepths(NetworkDeviceInputOutputControlError<Infallible>),
 	
 	#[allow(missing_docs)]
-	CouldNotConfigureReceiveSideScalingHashConfiguration(NetworkDeviceInputOutputControlError<Infallible>),
+	CouldNotConfigureReceiveSideScalingHashConfiguration(NetworkDeviceInputOutputControlError<UnsupportedHashFunctionError>),
 	
 	#[allow(missing_docs)]
 	CouldNotSetGenericReceiveOffloadTimeout(io::Error),
@@ -73,6 +79,10 @@ impl error::Error for GlobalNetworkDeviceConfigurationError
 			&CouldNotSetDriverMessageLevel(ref error) => Some(error),
 			
 			&CouldNotSetDriverMessageLevel(ref error) => Some(error),
+			
+			&CouldNotSetTransmissionQueueLength(ref error) => Some(error),
+			
+			&CouldNotSetMaximumTransmissionUnit(ref error) => Some(error),
 			
 			&CouldNotSetForwardErrorConnection(ref error) => Some(error),
 			

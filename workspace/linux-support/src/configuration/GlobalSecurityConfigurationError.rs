@@ -17,6 +17,12 @@ pub enum GlobalSecurityConfigurationError
 	CouldNotSetMaximumProcessIdentifiersToMaximum(io::Error),
 
 	#[allow(missing_docs)]
+	CouldNotSetMaximumNumberOfFileSystemMounts(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotSetMaximumNumberOfMemoryMapsPerProcess(io::Error),
+
+	#[allow(missing_docs)]
 	CouldNotHardenJitOfBpfPrograms(io::Error),
 
 	#[allow(missing_docs)]
@@ -24,6 +30,9 @@ pub enum GlobalSecurityConfigurationError
 
 	#[allow(missing_docs)]
 	CouldNotDisableBpfLoadingOfProgramsByUnprivilegedUsersUntilNextReboot(io::Error),
+	
+	#[allow(missing_docs)]
+	CouldNotChangeLockDownState(io::Error),
 }
 
 impl Display for GlobalSecurityConfigurationError
@@ -48,11 +57,15 @@ impl error::Error for GlobalSecurityConfigurationError
 			
 			&CouldNotSetMaximumProcessIdentifiersToMaximum(ref cause) => Some(cause),
 			
+			&CouldNotSetMaximumNumberOfFileSystemMounts(ref cause) => Some(cause),
+			
 			&CouldNotHardenJitOfBpfPrograms(ref cause) => Some(cause),
 			
 			&CouldNotDisableKexecLoadingUntilNextReboot(ref cause) => Some(cause),
 			
 			&CouldNotDisableBpfLoadingOfProgramsByUnprivilegedUsersUntilNextReboot(ref cause) => Some(cause),
+			
+			&CouldNotChangeLockDownState(ref cause) => Some(cause),
 		}
 	}
 }

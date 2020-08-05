@@ -10,36 +10,66 @@ pub struct GlobalSecurityConfiguration
 {
 	/// If `true`, then the following in `/proc/sys/kernel` are hardened if present:-
 	///
-	/// * `randomize_va_space`
-	/// * `sysrq`
-	/// * `stack_erasing`
-	/// * `kptr_restrict`
-	/// * `dmesg_restrict`
-	/// * `protected_symlinks`
-	/// * `protected_hardlinks`
-	/// * `protected_fifos`
-	/// * `protected_regular`
+	/// * `core_pattern` (forced to `core`).
+	/// * `core_pipe_limit` (set to 1 to prevent malicious user space programs exploiting a weakness in core dump captures).
+	/// * `core_uses_pid` (legacy value is unset).
+	/// * `dmesg_restrict`.
+	/// * `kptr_restrict`.
+	/// * `perf_event_paranoid`.
+	/// * `printk`.
+	/// * `printk_devkmsg`.
+	/// * `randomize_va_space`.
+	/// * `stack_erasing`.
+	/// * `sysrq`.
+	///
+	/// If `true`, then the following in `/proc/sys/kernel/random` are hardened if present:-
+	///
+	/// * `read_wakeup_threshold` (forced to default of 64 bits of entropy).
+	/// * `urandom_min_reseed_secs` (forced to 15 seconds from a default of 60 seconds; ignored after Linux 4.8 but support may be readded).
+	/// * `write_wakeup_threshold` (forced to default of 896 bits of entropy).
 	///
 	/// And the following in `/proc/sys/fs` are hardened if present:-
 	///
-	/// * `suid_dumpable`
-	/// * `protected_symlinks`
-	/// * `protected_regular`
-	/// * `protected_hardlinks`
-	/// * `protected_fifos`
-	///
-	/// And the following in `/proc/sys/vm` are hardened if present:-
-	///
-	/// * `unprivileged_userfaultfd`.
+	/// * `protected_fifos`.
+	/// * `protected_hardlinks`.
+	/// * `protected_regular`.
+	/// * `protected_symlinks`.
+	/// * `suid_dumpable`.
 	///
 	/// And the following in `/proc/sys/net/core` are hardened if present:-
 	///
 	/// * `bpf_jit_kallsyms`.
+	/// * `message_burst`
+	/// * `message_cost`.
+	/// * `tstamp_allow_data`.
 	/// * (Note that `bpf_jit_harden` is treated separately below).
 	///
+	/// And the following in `/proc/sys/vm` are hardened if present:-
 	///
-	/// And the maximum number of process identifiers is set to 2^22 in `/proc/sys/kernel/pid_max` to reduce the impact of races and process identifier wrap-around (Frankly, they should just be an UUID and be done with it).
+	/// * `block_dump`.
+	/// * `hugetlb_shm_group`.
+	/// * `laptop_mode`.
+	/// * `legacy_va_layout`.
+	/// * `mmap_min_addr`.
+	/// * `mmap_rnd_bits`.
+	/// * `mmap_rnd_compat_bits`.
+	/// * `vfs_cache_pressure`.
+	/// * `oom_dump_tasks`.
+	/// * `unprivileged_userfaultfd`.
+	/// * `vfs_cache_pressure`.
+	///
+	/// And the maximum number of process identifiers is set to 2^22 in `/proc/sys/kernel/pid_max` to reduce the impact of races and process identifier wrap-around (Frankly, they should just be an UUID and be done with it but we're stuck with design decisions from 40 years ago).
 	pub harden: bool,
+	
+	/// Default value is 100,000.
+	///
+	/// A value like 20 is more sensible unless the system is being used for containers.
+	pub maximum_file_system_mounts: Option<u32>,
+	
+	/// Default value is 65,536.
+	///
+	/// A value like 1,000 is probably more sensible.
+	pub maximum_memory_maps_per_proces: Option<u32>,
 	
 	/// Hardens JIT'd eBPF programs using the file `/proc/sys/net/core/bpf_jit_harden`.
 	pub harden_jit_ebpf: Option<JustInTimeCompilationHardening>,
@@ -53,23 +83,40 @@ pub struct GlobalSecurityConfiguration
 	///
 	/// By default it is enabled.
 	pub disable_bpf_loading_of_programs_by_unprivileged_users_until_reboot: bool,
+
+	/// Lock down state to apply until reboot.
+	///
+	/// By default the lock down state is `Off` (`none`).
+	pub lock_down_state: LockDownState,
 }
 
 impl GlobalSecurityConfiguration
 {
 	/// Configures.
 	#[inline(always)]
-	pub fn configure(&self, proc_path: &ProcPath) -> Result<(), GlobalSecurityConfigurationError>
+	pub fn configure(&self, sys_path: &SysPath, proc_path: &ProcPath) -> Result<(), GlobalSecurityConfigurationError>
 	{
 		use self::GlobalSecurityConfigurationError::*;
 
 		#[inline(always)]
-		fn harden_value<'a>(proc_path: &ProcPath, file_function: impl FnOnce(&ProcPath, &str) -> PathBuf, file_name: &'static str, value: u8) -> Result<(), GlobalSecurityConfigurationError>
+		fn harden_value_u8<'a>(proc_path: &ProcPath, file_function: impl FnOnce(&ProcPath, &str) -> PathBuf, file_name: &'static str, value: u8) -> Result<(), GlobalSecurityConfigurationError>
+		{
+			Self::harden_value(UnpaddedDecimalInteger(value))
+		}
+		
+		#[inline(always)]
+		fn harden_value_u32<'a>(proc_path: &ProcPath, file_function: impl FnOnce(&ProcPath, &str) -> PathBuf, file_name: &'static str, value: u32) -> Result<(), GlobalSecurityConfigurationError>
+		{
+			Self::harden_value(UnpaddedDecimalInteger(value))
+		}
+		
+		#[inline(always)]
+		fn harden_value<'a>(proc_path: &ProcPath, file_function: impl FnOnce(&ProcPath, &str) -> PathBuf, file_name: &'static str, value: impl IntoLineFeedTerminatedByteString<'a>) -> Result<(), GlobalSecurityConfigurationError>
 		{
 			let file_path = file_function(proc_path, file_name);
 			if file_path.exists()
 			{
-				return file_path.write_value(UnpaddedDecimalInteger(value)).map_err(|cause| CouldNotHarden { cause, proc_sys_kernel_file: file_name })
+				return file_path.write_value(value).map_err(|cause| CouldNotHarden { cause, proc_sys_kernel_file: file_name })
 			}
 			Ok(())
 		}
@@ -100,26 +147,70 @@ impl GlobalSecurityConfiguration
 		
 		if self.harden
 		{
-			harden_value(proc_path, ProcPath::sys_kernel_file_path, "randomize_va_space", 2)?;
-			harden_value(proc_path, ProcPath::sys_kernel_file_path, "sysrq", 0)?;
-			harden_value(proc_path, ProcPath::sys_kernel_file_path, "stack_erasing", 1)?;
-			harden_value(proc_path, ProcPath::sys_kernel_file_path, "kptr_restrict", 2)?;
-			harden_value(proc_path, ProcPath::sys_kernel_file_path, "dmesg_restrict", 1)?;
-			harden_value(proc_path, ProcPath::sys_fs_file_path, "suid_dumpable", 0)?;
-			harden_value(proc_path, ProcPath::sys_fs_file_path, "protected_symlinks", 1)?;
-			harden_value(proc_path, ProcPath::sys_fs_file_path, "protected_regular", 2)?;
-			harden_value(proc_path, ProcPath::sys_fs_file_path, "protected_hardlinks", 1)?;
-			harden_value(proc_path, ProcPath::sys_fs_file_path, "protected_fifos", 2)?;
-			harden_value(proc_path, ProcPath::sys_vm_file_path, "unprivileged_userfaultfd", 0)?;
-			harden_value(proc_path, ProcPath::sys_net_core_file_path, "bpf_jit_kallsyms", 0)?;
+			const RateLimit: u8 = 5;
+			const RateLimitBurst: u8 = 10;
+			
+			harden_value(proc_path, ProcPath::sys_kernel_file_path, "core", b"core\n")?;
+			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "core_pipe_limit", 1)?;
+			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "core_uses_pid", 0)?;
+			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "dmesg_restrict", 1)?;
+			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "kptr_restrict", 2)?;
+			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "perf_event_paranoid", 2)?;
+			harden_value(proc_path, ProcPath::sys_kernel_file_path, "printk", b"0 4 0 0\n")?;
+			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "printk_delay", 0)?;
+			harden_value(proc_path, ProcPath::sys_kernel_file_path, "printk_devkmsg", b"off\n")?;
+			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "printk_ratelimit", RateLimit)?;
+			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "printk_ratelimit_burst", RateLimitBurst)?;
+			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "randomize_va_space", 2)?;
+			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "stack_erasing", 1)?;
+			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "sysrq", 0)?;
+			
+			const ReadWakeUpThresholdInBitsOfEntry: u32 = 64;
+			const WriteWakeUpThresholdInBitsOfEntry: u32 = 896;
+			harden_value_u32(proc_path, ProcPath::sys_kernel_random_file_path, "read_wakeup_threshold", ReadWakeUpThresholdInBitsOfEntry)?;
+			harden_value_u8(proc_path, ProcPath::sys_kernel_random_file_path, "urandom_min_reseed_secs", 15)?;
+			harden_value_u32(proc_path, ProcPath::sys_kernel_random_file_path, "write_wakeup_threshold", WriteWakeUpThresholdInBitsOfEntry)?;
+			
+			harden_value_u8(proc_path, ProcPath::sys_fs_file_path, "protected_fifos", 2)?;
+			harden_value_u8(proc_path, ProcPath::sys_fs_file_path, "protected_hardlinks", 1)?;
+			harden_value_u8(proc_path, ProcPath::sys_fs_file_path, "protected_regular", 2)?;
+			harden_value_u8(proc_path, ProcPath::sys_fs_file_path, "protected_symlinks", 1)?;
+			harden_value_u8(proc_path, ProcPath::sys_fs_file_path, "suid_dumpable", 0)?;
+			
+			harden_value_u8(proc_path, ProcPath::sys_net_core_file_path, "bpf_jit_kallsyms", 0)?;
+			harden_value_u8(proc_path, ProcPath::sys_net_core_file_path, "message_burst", RateLimitBurst)?;
+			harden_value_u8(proc_path, ProcPath::sys_net_core_file_path, "message_cost", RateLimit)?;
+			harden_value_u8(proc_path, ProcPath::sys_net_core_file_path, "tstamp_allow_data", 0)?;
+			
+			#[cfg(target_arch = "aarch64")] const CONFIG_ARCH_MMAP_RND_BITS_MAX: u8 = 19;
+			#[cfg(target_arch = "riscv64")] const CONFIG_ARCH_MMAP_RND_BITS_MAX: u8 = 24;
+			#[cfg(target_arch = "x86_64")] const CONFIG_ARCH_MMAP_RND_BITS_MAX: u8 = 32;
+			#[cfg(any(target_arch = "aarch64", target_arch = "x86_64"))] const CONFIG_ARCH_MMAP_RND_COMPAT_BITS_MAX: u8 = 16;
+			harden_value_u8(proc_path, ProcPath::sys_vm_file_path, "block_dump", 0)?;
+			harden_value_u8(proc_path, ProcPath::sys_vm_file_path, "hugetlb_shm_group", 0)?;
+			harden_value_u8(proc_path, ProcPath::sys_vm_file_path, "laptop_mode", 0)?;
+			harden_value_u8(proc_path, ProcPath::sys_vm_file_path, "legacy_va_layout", 0)?;
+			harden_value_u32(proc_path, ProcPath::sys_vm_file_path, "mmap_min_addr", 65536)?;
+			harden_value_u8(proc_path, ProcPath::sys_vm_file_path, "mmap_rnd_bits", CONFIG_ARCH_MMAP_RND_BITS_MAX)?;
+			harden_value_u8(proc_path, ProcPath::sys_vm_file_path, "mmap_rnd_compat_bits", CONFIG_ARCH_MMAP_RND_COMPAT_BITS_MAX)?;
+			harden_value_u8(proc_path, ProcPath::sys_vm_file_path, "oom_dump_tasks", 0)?;
+			harden_value_u8(proc_path, ProcPath::sys_vm_file_path, "unprivileged_userfaultfd", 0)?;
+			harden_value_u8(proc_path, ProcPath::sys_vm_file_path, "vfs_cache_pressure", 100)?;
+			
 			ProcessIdentifier::set_maximum_value_to_maximum(proc_path).map_err(CouldNotSetMaximumProcessIdentifiersToMaximum)?;
 		}
+		
+		set_proc_sys_fs_value(proc_path, "mount-max", self.maximum_file_system_mounts, CouldNotSetMaximumNumberOfFileSystemMounts)?;
+		
+		set_proc_sys_vm_value(proc_path, "max_map_count", self.maximum_memory_maps_per_proces, CouldNotSetMaximumNumberOfMemoryMapsPerProcess)?;
 		
 		set_value(proc_path, |proc_path, value| value.set_value(proc_path), self.harden_jit_ebpf, CouldNotHardenJitOfBpfPrograms)?;
 		
 		set_sys_kernel_boolean_value_once(proc_path, "kexec_load_disabled", self.disable_kexec_loading_of_new_kernel_images_until_reboot, CouldNotDisableKexecLoadingUntilNextReboot)?;
 		
 		set_sys_kernel_boolean_value_once(proc_path, "unprivileged_bpf_disabled", self.disable_bpf_loading_of_programs_by_unprivileged_users_until_reboot, CouldNotDisableKexecLoadingUntilNextReboot)?;
+		
+		self.lock_down_state.set(sys_path).map_err(CouldNotChangeLockDownState)?;
 		
 		Ok(())
 	}

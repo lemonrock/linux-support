@@ -153,6 +153,48 @@ impl SysPath
 	{
 		self.kernel_folder_path().append("mm")
 	}
+	
+	/// `/sys/kernel/security`.
+	#[inline(always)]
+	pub(crate) fn kernel_security_file_path(&self, file_name: &str) -> PathBuf
+	{
+		self.kernel_security_folder_path().append(file_name)
+	}
+	
+	/// `/sys/kernel/security`.
+	#[inline(always)]
+	fn kernel_security_folder_path(&self) -> PathBuf
+	{
+		self.kernel_folder_path().append("security")
+	}
+
+	/// `/sys/kernel/irq/<interrupt_request>`.
+	#[inline(always)]
+	pub(crate) fn global_irq_file_path(&self, interrupt_request: InterruptRequest, file_name: &str) -> PathBuf
+	{
+		self.global_irq_folder_path(interrupt_request).append(file_name)
+	}
+	
+	/// `/sys/kernel/irq/<interrupt_request>`.
+	#[inline(always)]
+	pub(crate) fn global_irq_folder_path(&self, interrupt_request: InterruptRequest) -> PathBuf
+	{
+		self.kernel_irq_folder_path().append(interrupt_request.file_name())
+	}
+	
+	/// `/sys/kernel/irq`.
+	#[inline(always)]
+	fn kernel_irq_folder_path(&self) -> PathBuf
+	{
+		self.kernel_folder_path().append("irq")
+	}
+
+	/// `/sys/kernel/<file_name>`.
+	#[inline(always)]
+	pub(crate) fn kernel_file_path(&self, file_name: &str) -> PathBuf
+	{
+		self.kernel_folder_path().append(file_name)
+	}
 
 	/// `/sys/kernel`.
 	#[inline(always)]

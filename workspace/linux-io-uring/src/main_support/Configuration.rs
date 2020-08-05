@@ -130,9 +130,9 @@ impl Configuration
 	
 	/// Configure.
 	#[inline(always)]
-	pub fn configure(&self, run_as_daemon: bool) -> (Arc<impl Terminate>, DefaultPageSizeAndHugePageSizes)
+	pub fn configure(&self, run_as_daemon: bool, global_computed_scheduling_affinity: Option<&GlobalComputedSchedulingConfiguration>, process_affinity: Option<&HyperThreads>) -> Arc<impl Terminate>
 	{
-		self.process_configuration.configure(run_as_daemon, &self.file_system_layout, &mut DogStatsDStaticInitialization).expect("Could not configure process")
+		self.process_configuration.configure(run_as_daemon, &self.file_system_layout, &mut DogStatsDStaticInitialization, global_computed_scheduling_affinity, process_affinity).expect("Could not configure process")
 	}
 	
 	/// Execute.

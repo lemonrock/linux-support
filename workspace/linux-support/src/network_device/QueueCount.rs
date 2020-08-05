@@ -14,6 +14,24 @@ impl Default for QueueCount
 	}
 }
 
+impl TryFrom<u32> for QueueCount
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: u32) -> Result<Self, Self::Error>
+	{
+		if unlikely!(value > (u16::MAX as u32))
+		{
+			Err(ParseNumberError::OutOfRange)
+		}
+		else
+		{
+			Self::try_from(value as u16)
+		}
+	}
+}
+
 impl TryFrom<u16> for QueueCount
 {
 	type Error = ParseNumberError;
@@ -65,6 +83,15 @@ impl TryFrom<NonZeroU32> for QueueCount
 		{
 			Self::try_from(unsafe { NonZeroU16::new_unchecked(value as u16)})
 		}
+	}
+}
+
+impl Into<NonZeroU32> for QueueCount
+{
+	#[inline(always)]
+	fn into(self) -> NonZeroU32
+	{
+		unsafe { NonZeroU32::new_unchecked(self.0.get() as u32) }
 	}
 }
 

@@ -6,24 +6,26 @@
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, HAsh)]
 pub struct PendingQueueDepths
 {
-	receive_jumbo_pending_queue_depth: Option<NonZeroU32>,
+	receive_pending_queue_depth: Option<QueueDepth>,
 	
-	receive_pending_queue_depth: Option<NonZeroU32>,
+	receive_mini_pending_queue_depth: Option<QueueDepth>,
 	
-	receive_mini_pending_queue_depth: Option<NonZeroU32>,
+	receive_jumbo_pending_queue_depth: Option<QueueDepth>,
 	
-	transmit_pending_queue_depth: Option<NonZeroU32>,
+	transmit_pending_queue_depth: Option<QueueDepth>,
 }
 
 impl PendingQueueDepths
 {
+	const Unsupported: Self = Self::new(None, None, None, None);
+	
 	#[inline(always)]
-	pub(crate) fn new(receive_jumbo_pending_queue_depth: Option<NonZeroU32>, receive_pending_queue_depth: Option<NonZeroU32>, receive_mini_pending_queue_depth: Option<NonZeroU32>, transmit_pending_queue_depth: Option<NonZeroU32>) -> Self
+	pub(crate) fn new(receive_pending_queue_depth: Option<QueueDepth>, receive_jumbo_pending_queue_depth: Option<QueueDepth>, receive_mini_pending_queue_depth: Option<QueueDepth>, transmit_pending_queue_depth: Option<QueueDepth>) -> Self
 	{
 		Self
 		{
-			receive_jumbo_pending_queue_depth,
 			receive_pending_queue_depth,
+			receive_jumbo_pending_queue_depth,
 			receive_mini_pending_queue_depth,
 			transmit_pending_queue_depth,
 		}

@@ -10,12 +10,12 @@ bitflags!
 		/// Device supports clause 22 register access to PHY or peripherals using the interface defined in `linux/mii.h`.
 		///
 		/// This should not be set if there are known to be no such peripherals present or if the driver only emulates clause 22 registers for compatibility.
-		ETH_MDIO_SUPPORTS_C22 = 1;
+		const ETH_MDIO_SUPPORTS_C22 = 1;
 	
 		/// Device supports clause 45 register access to PHY or peripherals using the interface defined in `linux/mii.h` and `linux/mdio.h`.
 		///
 		/// This should not be set if there are known to be no such peripherals present.
-		ETH_MDIO_SUPPORTS_C45 = 2;
+		const ETH_MDIO_SUPPORTS_C45 = 2;
 	}
 }
 

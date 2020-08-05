@@ -41,7 +41,7 @@ impl ExpressDataPathRedirectSocketArrayMap
 	/// A suitable map.
 	pub fn new_express_data_path_redirect_socket_array_map_from_channels(map_name: &MapName, channels: Channels, map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, access_permissions: ExpressDataPathAccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
 	{
-		let maximum_entries = MaximumEntries::new(channels.maximum_channels_count());
+		let maximum_entries = MaximumEntries::new(channels.maximum_channels_count().into());
 		Self::new_express_data_path_redirect_socket_array(map_file_descriptors, map_name, None, maximum_entries, access_permissions, numa_node)
 	}
 	

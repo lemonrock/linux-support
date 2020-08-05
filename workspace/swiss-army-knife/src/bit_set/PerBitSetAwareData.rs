@@ -83,7 +83,57 @@ impl<BSA: BitSetAware, PerBitSetAware> PerBitSetAwareData<BSA, PerBitSetAware>
 			marker: PhantomData,
 		}
 	}
-
+	
+	/// `constructor` is called for each defined BitSetAware in `bit_set`; it is passed the BitSetAware.
+	#[inline(always)]
+	pub fn from_iterator<R>(mut constructor: impl Iterator<Item=Result<(BSA, PerBitSetAware), R>>) -> Result<Self, R>
+	{
+		let capacity = Self::capacity_required(&mut constructor);
+		let mut bit_set = BitSet::new_set_length(capacity);
+		let mut data = Vec::with_capacity(capacity);
+		
+		for result in constructor
+		{
+			let (bit_set_aware, per_bit_set_aware) = result?;
+			bit_set.add(bit_set_aware);
+			data.push(Some(per_bit_set_aware));
+		}
+		
+		bit_set.shrink_to_fit();
+		
+		Ok
+		(
+			Self
+			{
+				bit_set,
+				data: data.into_boxed_slice(),
+				marker: PhantomData,
+			}
+		)
+	}
+	
+	#[inline(always)]
+	fn capacity_required(constructor: &mut impl Iterator) -> usize
+	{
+		let (minimum, maximum) = constructor.size_hint();
+		if let Some(maximum) = maximum
+		{
+			let safety_threshold = BSA::LinuxMaximum as usize;
+			if maximum > minimum && maximum < safety_threshold
+			{
+				maximum
+			}
+			else
+			{
+				BSA::LinuxMaximum as usize
+			}
+		}
+		else
+		{
+			BSA::LinuxMaximum as usize
+		}
+	}
+	
 	/// Gets the data for a particular BitSetAware.
 	///
 	/// If the BitSetAware does not exist (or does not have assigned data), returns None; this can happen on Linux if using the `SO_INCOMING_CPU` socket option, which can map to a CPU not assigned to the process.

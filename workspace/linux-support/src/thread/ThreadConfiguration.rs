@@ -17,10 +17,7 @@ pub struct ThreadConfiguration
 	///
 	/// This can not be changed for the main thread.
 	#[serde(default = "ThreadConfiguration::stack_size_default")] pub stack_size: NonZeroNumberOfPages,
-
-	/// Thread HyperThread affinity.
-	#[serde(default)] pub affinity: HyperThreads,
-
+	
 	/// Sets the nice value for the thread.
 	#[serde(default)] pub nice: Option<Nice>,
 
@@ -54,7 +51,6 @@ impl Default for ThreadConfiguration
 		{
 			name: Default::default(),
 			stack_size: Self::stack_size_default(),
-			affinity: Default::default(),
 			nice: None,
 			io_priority: None,
 			thread_scheduler: Default::default(),

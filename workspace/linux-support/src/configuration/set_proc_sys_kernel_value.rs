@@ -5,14 +5,5 @@
 #[inline(always)]
 fn set_proc_sys_kernel_value<'a, E: error::Error>(proc_path: &ProcPath, file_name: &'static str, value: Option<impl IntoLineFeedTerminatedByteString<'a>>, error: impl FnOnce(io::Error) -> E) -> Result<(), E>
 {
-	if let Some(value) = value
-	{
-		let file_path = proc_path.sys_kernel_file_path(file_name);
-		if file_path.exists()
-		{
-			return file_path.write_value(value).map_err(error)
-		}
-	}
-
-	Ok(())
+	set_proc_value(ProcPath::sys_kernel_file_path, proc_path, file_name, value, error)
 }

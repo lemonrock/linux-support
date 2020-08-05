@@ -16,10 +16,10 @@ impl MemoryInformation
 	///
 	/// For NUMA node specific memory information, see `NumaNode.memory_information()`.
 	#[inline(always)]
-	pub fn parse(proc_path: &ProcPath, memory_information_name_prefix: &[u8]) -> Result<Self, MemoryInformationParseError>
+	pub fn parse(proc_path: &ProcPath, memory_information_name_prefix: &[u8], flush_per_cpu_statistics_first: bool) -> Result<Self, MemoryInformationParseError>
 	{
 		let file_path = proc_path.file_path("meminfo");
-		Self::parse_memory_information_file(&file_path, memory_information_name_prefix)
+		Self::parse_memory_information_file(&file_path, memory_information_name_prefix, if flush_per_cpu_statistics_first { Some(proc_path) } else { None })
 	}
 
 	/// Get a statistic.
@@ -83,8 +83,13 @@ impl MemoryInformation
 	}
 
 	/// Parses the `meminfo` file.
-	pub(crate) fn parse_memory_information_file(file_path: &Path, memory_information_name_prefix: &[u8]) -> Result<MemoryInformation, MemoryInformationParseError>
+	pub(crate) fn parse_memory_information_file(file_path: &Path, memory_information_name_prefix: &[u8], flush_per_cpu_statistics_first: Option<&ProcPath>) -> Result<MemoryInformation, MemoryInformationParseError>
 	{
+		if let Some(proc_path) = flush_per_cpu_statistics_first
+		{
+			flush_per_cpu_statistics(proc_path)?;
+		}
+		
 		let reader = file_path.read_raw()?;
 
 		let mut map = HashMap::new();

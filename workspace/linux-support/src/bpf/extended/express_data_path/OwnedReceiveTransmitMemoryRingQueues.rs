@@ -117,18 +117,18 @@ impl OwnedReceiveTransmitMemoryRingQueues
 		const len: u32 = size_of::<sockaddr_xdp>() as u32;
 		bind_socket(xsk_socket_file_descriptor, &socket_address)?;
 		
-		if let Some(xdp_extended_bpf_program) = xdp_extended_bpf_program
-		{
-			if (xsk->rx)
-			{
-				xsk_set_bpf_maps(xsk);
-			}
-		}
-		
-		if owned
-		{
-			xsk_setup_xdp_prog(xsk);
-		}
+		// if let Some(xdp_extended_bpf_program) = xdp_extended_bpf_program
+		// {
+		// 	if (xsk->rx)
+		// 	{
+		// 		xsk_set_bpf_maps(xsk);
+		// 	}
+		// }
+		//
+		// if owned
+		// {
+		// 	xsk_setup_xdp_prog(xsk);
+		// }
 		
 		Ok(receive_and_transmit)
 	}

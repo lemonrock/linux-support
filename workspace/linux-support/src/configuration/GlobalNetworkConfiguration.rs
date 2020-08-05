@@ -8,108 +8,6 @@
 #[serde(default, deny_unknown_fields)]
 pub struct GlobalNetworkConfiguration
 {
-	/// Global maximum send buffer size.
-	///
-	/// Requires root.
-	pub global_maximum_send_buffer_size_in_bytes: Option<SendBufferSizeInBytes>,
-	
-	/// Global default send buffer size.
-	///
-	/// Requires root.
-	pub global_default_send_buffer_size_in_bytes: Option<SendBufferSizeInBytes>,
-	
-	/// Global TCP minimum, default and maximum send buffer size.
-	///
-	/// Requires root.
-	pub global_tcp_minimum_default_and_maximum_send_buffer_size_in_bytes: Option<(SendBufferSizeInBytes, SendBufferSizeInBytes, SendBufferSizeInBytes)>,
-	
-	/// Global maximum receive buffer size.
-	///
-	/// Requires root.
-	pub global_maximum_receive_buffer_size_in_bytes: Option<ReceiveBufferSizeInBytes>,
-	
-	/// Global default receive buffer size.
-	///
-	/// Requires root.
-	pub global_default_receive_buffer_size_in_bytes: Option<ReceiveBufferSizeInBytes>,
-	
-	/// Global TCP minimum, default and maximum receive buffer size.
-	///
-	/// Requires root.
-	pub global_tcp_minimum_default_and_maximum_receive_buffer_size_in_bytes: Option<(ReceiveBufferSizeInBytes, ReceiveBufferSizeInBytes, ReceiveBufferSizeInBytes)>,
-	
-	/// Global maximum control (ancillary) message buffer size.
-	///
-	/// Requires root.
-	pub global_maximum_control_message_buffer_size_in_bytes: Option<ControlMessageBufferSizeInBytes>,
-	
-	/// Default is 75.
-	///
-	/// Requires root.
-	pub keep_alive_interval_seconds: Option<KeepAliveIntervalSeconds>,
-	
-	/// Default is 7200.
-	///
-	/// Requires root.
-	pub idles_before_keep_alive_seconds: Option<IdlesBeforeKeepAliveSeconds>,
-	
-	/// Default is 9.
-	///
-	/// Requires root.
-	pub maximum_keep_alive_probes: Option<MaximumKeepAliveProbes>,
-	
-	/// Default is 60.
-	///
-	/// Requires root.
-	pub finish_timeout_seconds: Option<FinishTimeoutSeconds>,
-	
-	/// Default is 6.
-	///
-	/// Requires root.
-	pub maximum_syn_retransmits: Option<MaximumSynRetransmits>,
-	
-	/// Default is 5.
-	///
-	/// Requires root.
-	pub maximum_syn_ack_retransmits: Option<MaximumSynAckRetransmits>,
-	
-	/// Default is 4_294_967_295.
-	///
-	/// Set this to 16KB for HTTP/2 prioritization to work reliably.
-	///
-	/// Requires root.
-	pub not_sent_low_water_in_bytes: Option<NotSentLowWaterInBytes>,
-	
-	/// Default is 128.
-	///
-	/// Requires root.
-	pub maximum_back_log: Option<BackLog>,
-	
-	/// Default is 128.
-	///
-	/// Requires root.
-	///
-	/// This parameter is the queue size of open tcp connections awaiting an ACK packet to complete the 3-way handshake.
-	/// In the event of a synflood DOS attack, this queue can fill up pretty quickly, at which point TCP SYN cookies will kick in allowing your system to continue to respond to legitimate traffic, and allowing you to gain access to block malicious IPs.
-	pub maximum_syn_back_log: Option<BackLog>,
-	
-	/// Default is 4096.
-	///
-	/// Requires root.
-	pub maximum_orphans: Option<NumberOfSockets>,
-	
-	/// Default is 4096.
-	///
-	/// Requires root.
-	pub maximum_time_wait: Option<NumberOfSockets>,
-	
-	/// Default is `cubic`.
-	///
-	/// However `bbr` is better for HTTP/2 prioritization.
-	///
-	/// Requires root.
-	pub congestion_control_algorithm: Option<CongestionControlAlgorithm>,
-	
 	/// Default is `pfifo_fast`.
 	///
 	/// However `fq` is better for HTTP/2 prioritization.
@@ -117,112 +15,62 @@ pub struct GlobalNetworkConfiguration
 	/// Requires root.
 	pub queuing_discipline_algorithm: Option<QueuingDisciplineAlgorithm>,
 	
-	/// Default is 3.
-	///
 	/// Requires root.
-	pub retries_1: Option<Retries1>,
-	
-	/// Default is 15.
-	///
-	/// Requires root.
-	pub retries_2: Option<Retries2>,
-	
-	/// Default is 0.
-	///
-	/// Requires root.
-	pub retries_orphan: Option<RetriesOrphan>,
-	
-	/// Default is 3.
-	///
-	/// Requires root.
-	pub reordering_threshold: Option<ReorderingThreshold>,
+	pub receive_packet_steering: Option<GlobalReceivePacketSteeringAndReceiveFlowSteeringConfiguration>,
 	
 	/// Requires root.
-	pub memory_pressure: Option<MemoryPressure>,
-	
-	/// Default is 0!
-	///
-	/// A better value might be 32768.
-	///
-	/// Requires root.
-	pub maximum_receive_packet_steering_flows_per_hyper_thread: Option<ReceivePacketSteeringFlowsPerHyperThread>,
-	
-	/// By default, Linux sets auto corking to on (true).
-	///
-	/// Requires root.
-	pub adjust_auto_corking: Option<bool>,
-
-	/// Equivalent to socket option `SO_BUSY_POLL`.
-	///
-	/// If set, the Linux documentation recommends a value of `50` microseconds.
-	///
-	/// Only exists if the Linux kernel has been configured with `CONFIG_NET_RX_BUSY_POLL`.
-	///
-	/// Requires root.
-	pub socket_busy_read: Option<BusyPollMicroseconds>,
-	
-	/// Only exists if the Linux kernel has been configured with `CONFIG_NET_RX_BUSY_POLL`.
-	///
-	/// Requires root.
-	pub socket_busy_select_and_poll: Option<BusyPollMicroseconds>,
+	pub all_network_devices_configuration: Option<GlobalAllNetworkDevicesConfiguration>,
 	
 	/// Requires root.
-	pub maximum_unix_domain_socket_datagram_queue_length: Option<MaximumUnixDomainSocketDatagramQueueLength>,
+	pub network_devices_configuration: HashMap<NetworkInterfaceName, GlobalNetworkDeviceConfiguration>,
+	
+	/// Requires root.
+	pub socket_configuration: Option<GlobalSocketConfiguration>,
+	
+	/// Global TCP network configuration.
+	///
+	/// Requires root.
+	pub tcp_network_configuration: Option<GlobalTcpConfiguration>,
+	
+	/// Requires root.
+	pub unix_domain_socket_maximum_datagram_queue_length: Option<MaximumUnixDomainSocketDatagramQueueLength>,
 }
 
 impl GlobalNetworkConfiguration
 {
 	/// Configures.
-	pub fn configure(&self, proc_path: &ProcPath) -> Result<(), GlobalNetworkConfigurationError>
+	pub fn configure(&self, sys_path: &SysPath, proc_path: &ProcPath) -> Result<(), GlobalNetworkConfigurationError>
 	{
 		use self::GlobalNetworkConfigurationError::*;
 		
-		instance_set_value(proc_path, SendBufferSizeInBytes::set_global_maximum, self.global_maximum_send_buffer_size_in_bytes, CouldNotChangeGlobalMaximumSendBufferSize)?;
-		instance_set_value(proc_path, SendBufferSizeInBytes::set_global_default, self.global_default_send_buffer_size_in_bytes, CouldNotChangeGlobalDefaultSendBufferSize)?;
-		set_value(proc_path, SendBufferSizeInBytes::set_global_tcp_minimum_default_and_maximum, self.global_tcp_minimum_default_and_maximum_send_buffer_size_in_bytes, CouldNotChangeGlobalTcpMinimumDefaultAndMaximumSendBufferSize)?;
-		
-		instance_set_value(proc_path, ReceiveBufferSizeInBytes::set_global_maximum, self.global_maximum_receive_buffer_size_in_bytes, CouldNotChangeGlobalMaximumReceiveBufferSize)?;
-		instance_set_value(proc_path, ReceiveBufferSizeInBytes::set_global_default, self.global_default_receive_buffer_size_in_bytes, CouldNotChangeGlobalDefaultReceiveBufferSize)?;
-		set_value(proc_path, ReceiveBufferSizeInBytes::set_global_tcp_minimum_default_and_maximum, self.global_tcp_minimum_default_and_maximum_receive_buffer_size_in_bytes, CouldNotChangeGlobalTcpMinimumDefaultAndMaximumReceiveBufferSize)?;
-		
-		instance_set_value(proc_path, ControlMessageBufferSizeInBytes::set_global_maximum, self.global_maximum_control_message_buffer_size_in_bytes, CouldNotChangeGlobalMaximumControlMessageBufferSize)?;
-		
-		instance_set_value(proc_path, KeepAliveIntervalSeconds::set_global_default, self.keep_alive_interval_seconds, CouldNotChangeGlobalDefaultKeepAliveIntervalSeconds)?;
-		instance_set_value(proc_path, IdlesBeforeKeepAliveSeconds::set_global_default, self.idles_before_keep_alive_seconds, CouldNotChangeGlobalDefaultIdlesBeforeKeepAliveSeconds)?;
-		instance_set_value(proc_path, MaximumKeepAliveProbes::set_global_default, self.maximum_keep_alive_probes, CouldNotChangeGlobalDefaultMaximumKeepAliveProbes)?;
-		
-		instance_set_value(proc_path, FinishTimeoutSeconds::set_global_default, self.finish_timeout_seconds, CouldNotChangeGlobalDefaultFinishTimeout)?;
-		
-		instance_set_value(proc_path, MaximumSynRetransmits::set_global_maximum, self.maximum_syn_retransmits, CouldNotChangeGlobalDefaultMaximumSynRetransmits)?;
-		instance_set_value(proc_path, MaximumSynAckRetransmits::set_global_maximum, self.maximum_syn_ack_retransmits, CouldNotChangeGlobalDefaultMaximumSynAckRetransmits)?;
-		
-		instance_set_value(proc_path, NotSentLowWaterInBytes::set_global_default, self.not_sent_low_water_in_bytes, CouldNotChangeGlobalDefaultNotSentLowWater)?;
-		
-		instance_set_value(proc_path, BackLog::set_global_maximum, self.maximum_back_log, CouldNotChangeGlobalMaximumBackLog)?;
-		instance_set_value(proc_path, BackLog::set_global_maximum_syn, self.maximum_syn_back_log, CouldNotChangeGlobalMaximumSynBackLog)?;
-		
-		instance_set_value(proc_path, NumberOfSockets::set_global_maximum_orphans, self.maximum_orphans, CouldNotChangeGlobalMaximumOrphans)?;
-		instance_set_value(proc_path, NumberOfSockets::set_global_maximum_time_wait, self.maximum_time_wait, CouldNotChangeGlobalMaximumTimeWait)?;
-		
-		instance_set_value(proc_path, CongestionControlAlgorithm::set_global_default, self.congestion_control_algorithm, CouldNotChangeGlobalDefaultCongestionControlAlgorithm)?;
 		instance_set_value(proc_path, QueuingDisciplineAlgorithm::set_global_default, self.queuing_discipline_algorithm, CouldNotChangeGlobalDefaultQueuingDisciplineAlgorithm)?;
 		
-		instance_set_value(proc_path, Retries1::set_global_default, self.retries_1, CouldNotChangeGlobalDefaultRetries1)?;
-		instance_set_value(proc_path, Retries2::set_global_default, self.retries_2, CouldNotChangeGlobalDefaultRetries2)?;
-		instance_set_value(proc_path, RetriesOrphan::set_global_default, self.retries_orphan, CouldNotChangeGlobalDefaultRetriesOrphan)?;
+		if let Some(ref receive_packet_steering) = self.receive_packet_steering
+		{
+			receive_packet_steering.configure(proc_path)?;
+		}
 		
-		instance_set_value(proc_path, ReorderingThreshold::set_global_maximum, self.reordering_threshold, CouldNotChangeGlobalDefaultReorderingThreshold)?;
+		if let Some(ref all_network_devices_configuration) = self.all_network_devices_configuration
+		{
+			all_network_devices_configuration.configure(proc_path)?;
+		}
 		
-		instance_set_value(proc_path, MemoryPressure::set_global, self.memory_pressure.as_ref(), CouldNotChangeMemoryPressure)?;
+		for (network_interface_name, network_device_configuration) in self.network_devices_configuration.iter()
+		{
+			network_device_configuration.configure(sys_path, network_interface_name)?;
+		}
 		
-		instance_set_value(proc_path, ReceivePacketSteeringFlowsPerHyperThread::set_global_maximum, self.maximum_receive_packet_steering_flows_per_hyper_thread, CouldNotChangeGlobalDefaultReceivePacketSteeringFlowsPerCpu)?;
+		if let Some(ref socket_configuration) = self.socket_configuration
+		{
+			socket_configuration.configure(proc_path)?;
+		}
 		
-		set_value(proc_path, set_auto_corking, self.adjust_auto_corking, CouldNotChangeAutoCorking)?;
+		if let Some(ref tcp_network_configuration) = self.tcp_network_configuration
+		{
+			tcp_network_configuration.configure(proc_path)?;
+		}
 		
-		instance_set_value(proc_path, BusyPollMicroseconds::set_global_default, self.socket_busy_read, CouldNotChangeGlobalDefaultSocketBusyRead)?;
-		instance_set_value(proc_path, BusyPollMicroseconds::set_global_select_and_poll_default, self.socket_busy_select_and_poll, CouldNotChangeGlobalDefaultSocketBusySelectAndPoll)?;
-		
-		instance_set_value(proc_path, MaximumUnixDomainSocketDatagramQueueLength::set_global_default, self.maximum_unix_domain_socket_datagram_queue_length, CouldNotChangeMaximumUnixDomainSocketDatagramQueueLength)?;
+		instance_set_value(proc_path, MaximumUnixDomainSocketDatagramQueueLength::set_global_default, self.unix_domain_socket_maximum_datagram_queue_length, CouldNotChangeMaximumUnixDomainSocketDatagramQueueLength)?;
 		
 		Ok(())
 	}

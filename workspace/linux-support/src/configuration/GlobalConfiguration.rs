@@ -30,9 +30,6 @@ pub struct GlobalConfiguration
 	pub epoll: GlobalEPollConfiguration,
 
 	/// Requires root.
-	pub same_page_merging: GlobalLinuxKernelSamePageMergingConfiguration,
-
-	/// Requires root.
 	pub linux_kernel_asynchronous_io: GlobalLinuxKernelAsynchronousIoConfiguration,
 
 	/// Requires root.
@@ -46,12 +43,9 @@ pub struct GlobalConfiguration
 
 	/// Requires root.
 	pub kernel_panic: GlobalKernelPanicConfiguration,
-
+	
 	/// Requires root.
-	pub security: GlobalSecurityConfiguration,
-
-	/// Requires root.
-	pub transparent_huge_pages: Option<GlobalTransparentHugePagesConfiguration>,
+	pub memory: GlobalMemoryConfiguration,
 	
 	/// Requires root.
 	pub network: GlobalNetworkConfiguration,
@@ -61,6 +55,11 @@ pub struct GlobalConfiguration
 	
 	/// Validation-only checks.
 	pub linux_kernel_command_line: GlobalLinuxKernelCommandLineConfiguration,
+	
+	/// Requires root.
+	///
+	/// Done last as changing, say, system integrity can have a huge impact on the ability to read and write files.
+	pub security: GlobalSecurityConfiguration,
 }
 
 impl GlobalConfiguration
@@ -83,8 +82,6 @@ impl GlobalConfiguration
 
 		self.epoll.configure(proc_path)?;
 
-		self.same_page_merging.configure(sys_path)?;
-
 		self.linux_kernel_asynchronous_io.configure(proc_path)?;
 
 		self.file_handle.configure(proc_path)?;
@@ -95,18 +92,15 @@ impl GlobalConfiguration
 
 		self.kernel_panic.configure(proc_path)?;
 
-		self.security.configure(proc_path)?;
+		self.memory.configure(sys_path, proc_path)?;
 
-		if let Some(ref transparent_huge_pages) = self.transparent_huge_pages
-		{
-			transparent_huge_pages.configure(sys_path)?;
-		}
-
-		self.network.configure(proc_path)?;
+		self.network.configure(sys_path, proc_path)?;
 		
 		self.bpf.configure(proc_path)?;
 		
 		self.linux_kernel_command_line.configure(proc_path)?;
+		
+		self.security.configure(sys_path, proc_path)?;
 
 		Ok(())
 	}

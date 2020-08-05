@@ -12,6 +12,7 @@ use self::receive_side_scaling::*;
 use self::string_sets::*;
 use self::tunables::*;
 use crate::bpf::extended::express_data_path::QueueIdentifier;
+use crate::bpf::extended::maps::express_data_path_redirect::QueueDepth;
 use crate::file_descriptors::*;
 use crate::file_descriptors::network_device::*;
 use crate::paths::SysPath;
@@ -28,6 +29,12 @@ pub mod coalescing;
 
 /// Features.
 pub mod features;
+
+
+/// Queuing discipline.
+///
+/// Only used for transmit.
+pub mod queuing_discipline;
 
 
 /// Receive side scaling (RSS).
@@ -62,3 +69,4 @@ include!("PendingQueueDepths.rs");
 include!("PhysicalIdentifier.rs");
 include!("PhysicalIdentifierFromBytesError.rs");
 include!("QueueCount.rs");
+include!("TransmissionQueueLengthOutRangeError.rs");

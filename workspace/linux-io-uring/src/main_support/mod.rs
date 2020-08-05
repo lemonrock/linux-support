@@ -3,6 +3,8 @@
 
 
 use super::*;
+use linux_support::cpu::HyperThreads;
+use linux_support::configuration::GlobalComputedSchedulingConfiguration;
 
 
 include!("AcceptServiceConfiguration.rs");

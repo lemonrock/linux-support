@@ -267,6 +267,13 @@ impl HyperThreads
 		self.set_affinity_list(proc_path.sys_kernel_file_path("watchdog_cpumask"))
 	}
 	
+	/// Which HyperThreads use flow limit tables>
+	#[inline(always)]
+	pub fn set_receive_packet_steering_flow_limit_tables(&self, proc_path: &ProcPath) -> io::Result<()>
+	{
+		self.set_affinity(proc_path.sys_net_core_file_path("flow_limit_cpu_bitmap"))
+	}
+	
 	/// Mirrors `num_possible_cpus()` in the Linux kernel but with a twist.
 	///
 	/// There is a design flaw in BPF's `PER_CPU` maps such that access a particular CPU's value is incorrect if `/sys/devices/system/cpu/possible` has a CPU mask which does not include all possible CPUs!

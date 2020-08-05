@@ -11,6 +11,9 @@ pub enum GlobalSwapConfigurationError
 
 	#[allow(missing_docs)]
 	CouldNotChangeSwappiness(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotChangePageCluster(io::Error),
 }
 
 impl Display for GlobalSwapConfigurationError
@@ -34,6 +37,8 @@ impl error::Error for GlobalSwapConfigurationError
 			&CouldNotDisableAllSwaps(ref cause) => Some(cause),
 
 			&CouldNotChangeSwappiness(ref cause) => Some(cause),
+
+			&CouldNotChangePageCluster(ref cause) => Some(cause),
 		}
 	}
 }

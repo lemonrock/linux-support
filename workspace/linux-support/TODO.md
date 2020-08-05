@@ -1,199 +1,143 @@
+## Unfinished code
 
-https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/
-
-
-
-/proc/x/stat parsing bug in `comm`: Can have embedded ')' in it legitimately
-
-userfaultfd: http://man7.org/linux/man-pages/man2/userfaultfd.2.html
-F_GET_RW_HINT: read-write hints http://man7.org/linux/man-pages/man2/fcntl.2.html
-
-
-POSIX ACLs: http://man7.org/linux/man-pages/man5/acl.5.html
-
-prctl PR_TASK_PERF_EVENTS_DISABLE / PR_TASK_PERF_EVENTS_ENABLE
-
-int getrusage(int who, struct rusage *usage) / times();
-
-Control prctl deathsig
-
-#define FS_IOC_FSGETXATTR		_IOR('X', 31, struct fsxattr)
-#define FS_IOC_FSSETXATTR		_IOW('X', 32, struct fsxattr)
-/*
- * Structure for FS_IOC_FSGETXATTR[A] and FS_IOC_FSSETXATTR.
- */
-struct fsxattr {
-	__u32		fsx_xflags;	/* xflags field value (get/set) */
-	__u32		fsx_extsize;	/* extsize field value (get/set)*/
-	__u32		fsx_nextents;	/* nextents field value (get)	*/
-	__u32		fsx_projid;	/* project identifier (get/set) */
-	__u32		fsx_cowextsize;	/* CoW extsize field value (get/set)*/
-	unsigned char	fsx_pad[8];
-};
-
-/*
- * Flags for the fsx_xflags field
- */
-#define FS_XFLAG_REALTIME	0x00000001	/* data in realtime volume */
-#define FS_XFLAG_PREALLOC	0x00000002	/* preallocated file extents */
-#define FS_XFLAG_IMMUTABLE	0x00000008	/* file cannot be modified */
-#define FS_XFLAG_APPEND		0x00000010	/* all writes append */
-#define FS_XFLAG_SYNC		0x00000020	/* all writes synchronous */
-#define FS_XFLAG_NOATIME	0x00000040	/* do not update access time */
-#define FS_XFLAG_NODUMP		0x00000080	/* do not include in backups */
-#define FS_XFLAG_RTINHERIT	0x00000100	/* create with rt bit set */
-#define FS_XFLAG_PROJINHERIT	0x00000200	/* create with parents projid */
-#define FS_XFLAG_NOSYMLINKS	0x00000400	/* disallow symlink creation */
-#define FS_XFLAG_EXTSIZE	0x00000800	/* extent size allocator hint */
-#define FS_XFLAG_EXTSZINHERIT	0x00001000	/* inherit inode extent size */
-#define FS_XFLAG_NODEFRAG	0x00002000	/* do not defragment */
-#define FS_XFLAG_FILESTREAM	0x00004000	/* use filestream allocator */
-#define FS_XFLAG_DAX		0x00008000	/* use DAX for IO */
-#define FS_XFLAG_COWEXTSIZE	0x00010000	/* CoW extent size allocator hint */
-#define FS_XFLAG_HASATTR	0x80000000	/* no DIFLAG for this	*/
+* GlobalNetworkDeviceConfiguration
+* OwnedReceiveTransmitMemoryRingQueues::construct
+    * Need to attach XDP program
+    * Need to work how we use receive and transmit in-memory queues
+* NUMA distances
+* Report `/proc/sys/kernel/random/boot_id` UUID to DogStatsD as it identifies the current boot.
 
 
-// TODO: Numa / hyper thread valid threads, master loops, allocating kernel and other processes (including forcibly moving them), etc
+## Bugs
 
-// TODO: /proc/<N>/oom* files and stuff in /proc/sys
-    * /proc/sys/vm/oom_dump_tasks
-    * /proc/sys/vm/oom_kill_allocating_task
-    * /proc/sys/vm/overcommit_kbytes
-    * /proc/sys/vm/overcommit_memory
-    * /proc/sys/vm/overcommit_ratio
-    * /proc/sys/vm/panic_on_oom
+* /proc/<N>/stat parsing bug in `comm`: Can have embedded ')' in it legitimately
 
-// TODO: Adjust CommitLimit to prevent future out-of-memory.
 
-// TODO: libcpuset and /dev/cpuset and cpusetfs (which has several useful details)
+## Forcibly move other processes to a core set of CPUs
 
-// TODO: Finish NUMA distances.
+* Need to identify kernel threads and leave them alone
+* Investigate libcpuset and `/dev/cpuset` with cpusetfs.
 
-// TODO: mmap to physicalling contig.
-    // TODO: mlock, sync and ?mremap additions first.
 
-// TODO: Allocate physically contiguous memory (using huge / gigantic pages; using page map to finding virt to phys mappings)
+## Automatically mount missing file systems, eg
 
-// TODO:  Automatic NUMA balancing can be enabled or disabled for the current session by writing 1 or 0 to /proc/sys/kernel/numa_balancing which will enable or disable the feature respectively. To permanently enable or disable it, use the kernel command line option numa_balancing=[enable|disable].
+* `/dev/mqueue`
+* `/dev/cpuset`
+* `/dev/hugetlbfs`
 
-// Global configuration:-
-/*
 
-Mounts
-	/dev/mqueue
-	/dev/cpuset
-	/dev/hugetlbfs
-Security: Mounts
-   /proc/sys/fs/mount-max
+## Configuration and performance
 
-NUMA
+### Memory (lowmem)
+* lowmem_reserve_ratio
+* min_free_kbytes
 
-numa_balancing
+#### Security
+* Disable User Namespaces, as it opens up a large attack surface to unprivileged users.
+* user.max_user_namespaces = 0
+
+
+### Scheduling
+
+```
+echo 0 > sched_energy_aware
+
+echo "15000000" > /proc/sys/kernel/sched_latency_ns
+echo "1000000" > /proc/sys/kernel/sched_min_granularity_ns
+echo "2000000" > /proc/sys/kernel/sched_wakeup_granularity_ns
+
+# Disable sched_stats for a minor overhead reduction;
+echo "0" > /proc/sys/kernel/sched_schedstats
+```
+
+### Virtual memory tweaks
+```
+echo "500" > /proc/sys/vm/dirty_expire_centisecs
+echo "3000" > /proc/sys/vm/dirty_writeback_centisecs
+
+dirty_background_bytes
+dirty_background_ratio
+dirty_bytes
+dirty_expire_centisecs
+dirty_ratio
+dirty_writeback_centisecs
+dirtytime_expire_seconds
+extfrag_threshold
+
+```
+
+### /sys Wide block based tuning for reduced lag and less possible amount of general IO scheduling based overhead.
+```
+for i in /sys/block/*/queue; do
+  echo "0" > $i/add_random;
+  echo "0" > $i/io_poll;
+  echo "0" > $i/iostats;
+  echo "0" > $i/nomerges;
+  echo "128" > $i/read_ahead_kb;
+  echo "0" > $i/rotational;
+  echo "1" > $i/rq_affinity;
+  echo "cfq" > $i/scheduler;
+  echo "write back" > $i/write_cache;
+done;
+```
+
+### Do we need to change anything under /sys/kernel/debug?
+
+
+### Adjust System V shared memory
+
+* In `/proc/sys/kernel`:-
+    * `shmall`
+    * `shmmax`
+    * `shmmni`
+    * `shm_rmid_forced`
+
+
+### Adjust System V IPC
+
+* `msg_next_id`, `sem_next_id`, and `shm_next_id`.
+
+
+### Hung Task (only if present)
+
+* `hung_task_check_count`
+* `hung_task_timeout_secs`
+* `hung_task_check_interval_secs`
+* `hung_task_warnings`
+
+
+## Automatic NUMA balancing
 
 Enables/disables automatic page fault based NUMA memory balancing. Memory is moved automatically to nodes that access it often.
 
-Enables/disables automatic NUMA memory balancing. On NUMA machines, there is a performance penalty if remote memory is accessed by a CPU. When this feature is enabled the kernel samples what task thread is accessing memory by periodically unmapping pages and later trapping a page fault. At the time of the page fault, it is determined if the data being accessed should be migrated to a local memory node.
+On NUMA machines, there is a performance penalty if remote memory is accessed by a CPU. When this feature is enabled the kernel samples what task thread is accessing memory by periodically unmapping pages and later trapping a page fault. At the time of the page fault, it is determined if the data being accessed should be migrated to a local memory node.
 
-The unmapping of pages and trapping faults incur additional overhead that ideally is offset by improved memory locality but there is no universal guarantee. If the target workload is already bound to NUMA nodes then this feature should be disabled. Otherwise, if the system overhead from the feature is too high then the rate the kernel samples for NUMA hinting faults may be controlled by the numa_balancing_scan_period_min_ms, numa_balancing_scan_delay_ms, numa_balancing_scan_period_max_ms, numa_balancing_scan_size_mb, and numa_balancing_settle_count sysctls.
-numa_balancing_scan_period_min_ms, numa_balancing_scan_delay_ms, numa_balancing_scan_period_max_ms, numa_balancing_scan_size_mb
-
-System V shared memory
-
-shmall
-shmmax
-shmmni
-shm_rmid_forced
-msg_next_id, sem_next_id, and shm_next_id (System V IPC)
-
-(only if present)
-hung_task_check_count
-hung_task_timeout_secs
-hung_task_check_interval_secs
-hung_task_warnings
-
-Memory
-	/proc/sys/vm/admin_reserve_kbytes
-	/proc/sys/vm/user_reserve_kbytes
-	/proc/sys/vm/compact_memory
-	/proc/sys/vm/drop_caches
-	/proc/sys/vm/swappiness
-
-Memory / Machine Checks
-	/proc/sys/vm/memory_failure_early_kill
-	/proc/sys/vm/memory_failure_recovery
-
-OOM
-	/proc/sys/vm/oom_dump_tasks
-	/proc/sys/vm/oom_kill_allocating_task
-	/proc/sys/vm/overcommit_kbytes
-	/proc/sys/vm/overcommit_memory
-	/proc/sys/vm/overcommit_ratio
-	/proc/sys/vm/panic_on_oom
-
-*/
-
-    
-
-/*
-
-/proc/pid/pagemap
-
-/proc/kpagecount (since Linux 2.6.25)
-              This file contains a 64-bit count of the number of times each
-              physical page frame is mapped, indexed by page frame number
-              (see the discussion of /proc/[pid]/pagemap).
-
-              The /proc/kpagecount file is present only if the CON‐
-              FIG_PROC_PAGE_MONITOR kernel configuration option is enabled.
-
-/proc/kpageflags (since Linux 2.6.25)
-              This file contains 64-bit masks corresponding to each physical
-              page frame; it is indexed by page frame number (see the dis‐
-              cussion of /proc/[pid]/pagemap).  The bits are as follows:
-                   0 - KPF_LOCKED
-                   1 - KPF_ERROR
-                   2 - KPF_REFERENCED
-                   3 - KPF_UPTODATE
-                   4 - KPF_DIRTY
-                   5 - KPF_LRU
-                   6 - KPF_ACTIVE
-                   7 - KPF_SLAB
-                   8 - KPF_WRITEBACK
-                   9 - KPF_RECLAIM
-                  10 - KPF_BUDDY
-                  11 - KPF_MMAP           (since Linux 2.6.31)
-                  12 - KPF_ANON           (since Linux 2.6.31)
-                  13 - KPF_SWAPCACHE      (since Linux 2.6.31)
-                  14 - KPF_SWAPBACKED     (since Linux 2.6.31)
-                  15 - KPF_COMPOUND_HEAD  (since Linux 2.6.31)
-                  16 - KPF_COMPOUND_TAIL  (since Linux 2.6.31)
-                  17 - KPF_HUGE           (since Linux 2.6.31)
-                  18 - KPF_UNEVICTABLE    (since Linux 2.6.31)
-                  19 - KPF_HWPOISON       (since Linux 2.6.31)
-                  20 - KPF_NOPAGE         (since Linux 2.6.31)
-                  21 - KPF_KSM            (since Linux 2.6.32)
-                  22 - KPF_THP            (since Linux 3.4)
-                  23 - KPF_BALLOON        (since Linux 3.18)
-                  24 - KPF_ZERO_PAGE      (since Linux 4.0)
-                  25 - KPF_IDLE           (since Linux 4.3)
-
-              For further details on the meanings of these bits, see the
-              kernel source file Documentation/admin-guide/mm/pagemap.rst.
-              Before kernel 2.6.29, KPF_WRITEBACK, KPF_RECLAIM, KPF_BUDDY,
-              and KPF_LOCKED did not report correctly.
-
-              The /proc/kpageflags file is present only if the CON‐
-              FIG_PROC_PAGE_MONITOR kernel configuration option is enabled.
-
-Automatic NUMA balancing notes:-
 If Automatic NUMA Balancing is enabled, the task scanner behavior can be configured. The task scanner balances the overhead of Automatic NUMA Balancing with the amount of time it takes to identify the best placement of data.
 
-numa_balancing_scan_delay_ms:    The amount of CPU time a thread must consume before its data is scanned. This prevents creating overhead because of short-lived processes.
+The unmapping of pages and trapping faults incur additional overhead that ideally is offset by improved memory locality but there is no universal guarantee. If the target workload is already bound to NUMA nodes then this feature should be disabled. Otherwise, if the system overhead from the feature is too high then the rate the kernel samples for NUMA hinting faults may be controlled by sysctl.
 
-numa_balancing_scan_period_min_ms and numa_balancing_scan_period_max_ms: Controls how frequently a task's data is scanned. Depending on the locality of the faults the scan rate will increase or decrease. These settings control the min and max scan rates.
+* `/proc/sys/kernel/numa_balancing` - boolean to enable or disable globally.
+* `numa_balancing_scan_delay_ms`: The amount of CPU time a thread must consume before its data is scanned. This prevents creating overhead because of short-lived processes.
+* `numa_balancing_scan_period_min_ms` and `numa_balancing_scan_period_max_ms`: Controls how frequently a task's data is scanned. Depending on the locality of the faults the scan rate will increase or decrease. These settings control the min and max scan rates.
+* `numa_balancing_scan_size_mb`: Controls how much address space is scanned when the task scanner is active.
+* `numa_balancing_settle_count`: ?
 
-numa_balancing_scan_size_mb: Controls how much address space is scanned when the task scanner is active.
 
+
+## Files in `/proc` to report further one
+
+* `/proc/pid/pagemap`
+* `/proc/kpagecount`
+* `/proc/kpageflags`
+
+
+## NUMA and hyper thread choices
+
+* Finish use of NUMA distance calculations
+* Finish validating NUMA nodes
+
+
+```
 pub struct ValidatedNumaNodeToHyperThreadMap
 {
 	all_valid_hyper_threads: HyperThreads,
@@ -257,3 +201,188 @@ impl ValidatedNumaNodeToHyperThreadMap
 		this
 	}
 }
+```
+
+
+### Miscellaneous File system
+
+#### `userfaultfd`
+<http://man7.org/linux/man-pages/man2/userfaultfd.2.html>
+
+
+#### `fcntl` `F_GET_RW_HINT` read-write hints
+<http://man7.org/linux/man-pages/man2/fcntl.2.html>
+
+
+#### POSIX ACLs
+<http://man7.org/linux/man-pages/man5/acl.5.html>
+
+
+#### Process control for `PR_TASK_PERF_EVENTS_DISABLE` and `PR_TASK_PERF_EVENTS_ENABLE`
+
+
+#### Process control - adjust child death signal (deathsig)
+
+
+#### Extended attributes:-
+
+Flags `FS_IOC_FSGETXATTR` and `FS_IOC_FSSETXATTR`; uses structure `fsxattr`:-
+
+```
+#define FS_IOC_FSGETXATTR		_IOR('X', 31, struct fsxattr)
+#define FS_IOC_FSSETXATTR		_IOW('X', 32, struct fsxattr)
+/*
+ * Structure for FS_IOC_FSGETXATTR[A] and FS_IOC_FSSETXATTR.
+ */
+struct fsxattr {
+	__u32		fsx_xflags;	/* xflags field value (get/set) */
+	__u32		fsx_extsize;	/* extsize field value (get/set)*/
+	__u32		fsx_nextents;	/* nextents field value (get)	*/
+	__u32		fsx_projid;	/* project identifier (get/set) */
+	__u32		fsx_cowextsize;	/* CoW extsize field value (get/set)*/
+	unsigned char	fsx_pad[8];
+};
+
+/*
+ * Flags for the fsx_xflags field
+ */
+#define FS_XFLAG_REALTIME	0x00000001	/* data in realtime volume */
+#define FS_XFLAG_PREALLOC	0x00000002	/* preallocated file extents */
+#define FS_XFLAG_IMMUTABLE	0x00000008	/* file cannot be modified */
+#define FS_XFLAG_APPEND		0x00000010	/* all writes append */
+#define FS_XFLAG_SYNC		0x00000020	/* all writes synchronous */
+#define FS_XFLAG_NOATIME	0x00000040	/* do not update access time */
+#define FS_XFLAG_NODUMP		0x00000080	/* do not include in backups */
+#define FS_XFLAG_RTINHERIT	0x00000100	/* create with rt bit set */
+#define FS_XFLAG_PROJINHERIT	0x00000200	/* create with parents projid */
+#define FS_XFLAG_NOSYMLINKS	0x00000400	/* disallow symlink creation */
+#define FS_XFLAG_EXTSIZE	0x00000800	/* extent size allocator hint */
+#define FS_XFLAG_EXTSZINHERIT	0x00001000	/* inherit inode extent size */
+#define FS_XFLAG_NODEFRAG	0x00002000	/* do not defragment */
+#define FS_XFLAG_FILESTREAM	0x00004000	/* use filestream allocator */
+#define FS_XFLAG_DAX		0x00008000	/* use DAX for IO */
+#define FS_XFLAG_COWEXTSIZE	0x00010000	/* CoW extent size allocator hint */
+#define FS_XFLAG_HASATTR	0x80000000	/* no DIFLAG for this	*/
+```
+
+	// TODO: 8192 UDS packet size for dogstatsd
+		https://docs.datadoghq.com/developers/dogstatsd/high_throughput/?tab=go#use-dogstatsd-over-uds-unix-domain-socket
+
+	// TODO: Do we want to turn the socket's CPU into actual a CPU chosen from the same NUMA node the socket's CPU is on? A round-robin load balancer?
+
+	// TODO: Actually send messages to DataDog in batches (outbound batches Unix domain socket packets w/o a coroutine potentially)
+
+	// TODO: Review how to do RX queues and tie them to CPUs using https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/#preparing-to-receive-data-from-the-network
+		// TODO: https://blog.cloudflare.com/how-to-achieve-low-latency/
+	// TODO: SO_INCOMING_CPU might actually be broken: https://blog.cloudflare.com/perfect-locality-and-three-epic-systemtap-scripts/
+	// TODO: Review the locality examples in https://lwn.net/Articles/675043/
+	"We performed a bit of tuning, which included inspecting:
+
+         number of RSS queues and their interrupts being pinned to right CPUs
+         the indirection table
+         correct XPS settings on the TX path"
+
+	// TODO: "SO_INCOMING_NAPI_ID"
+
+	// TODO: /proc/net/softnet_stat file with the softnet.sh script: https://github.com/majek/dump/blob/master/how-to-receive-a-packet/softnet.sh
+
+/*
+	Operation combinations
+
+		Obtain Buffer then Operation Read Fixed link-with Operation Timeout then Release Buffer
+			or, Cant Obtain so Operation Timeout and Try Again
+
+		Obtain Buffer then Operation Write Fixed link-with Timeout then Release Buffer
+			or, Cant Obtain so Operation Timeout and Try Again
+
+		Obtain File Descriptor Index, Obtain Buffer then Operation Register File Descriptor link-with Operation Read/Write Fixed link-with Operation (De)Register File Descriptor link-with Operation Timeout then Release Buffer then Release File Descriptor Index
+			- that's a lot of steps for a very, very minor performance gain of using File Descriptor Index
+			- File Descriptor Index are in very short supply compared to buffers
+			- Links are only performant on Linux 5.7, and, even then, probably add overhead
+			- Registered file descriptor indices only make sense for long-lived network connections
+
+		Multiple Queued operations (Reads, Writes, etc) link-with Timeout
+
+		Obtain File Descriptor Index then Operation Accept then Operation Update File Descriptor
+			or, Can't Obtain so Operation Timeout and Try Again
+			alternative, Operation Accept, Obtain File Descriptor, can't so Operation Timeout and Try Again
+				or, can't, so Operation Close
+
+		Operation Connect link-with Operation Timeout
+
+		Operation Close link-with Operation Update File Descriptor then Release File Descriptor Index
+			- Need to decide order; File Descriptor Index is a precious resource
+				- Close does not use a File Descriptor Index; not sure of impact of leaving a registered file descriptor index if using close
+
+	Cleaning up a coroutine 'on drop'
+
+		Need to cancel all outstanding SQEs
+		Need to ignore all results
+		Need to tell the coroutine "you are dead"
+		Need to identify incoming CQE user data for a dead coroutine w/o having to keep coroutine heap and stack alive
+		Need to Deregister Buffer(s)
+
+	Question to answer
+		Should sockets now be opened blocking? (some hints that is the better case)
+
+	Tracking outstanding completions
+		If we know the total we can wait for all of them
+			- but no advantage, as we're block for all of them
+		We can know the total for a particular coroutine, and so put in place a timeout (which we can then cancel)
+			We can have a timeout to kill a coroutine after X seconds regardless of what's pending, a sort-of coroutine inactivity timeout, but I think a coroutine is best placed to know this
+
+	Coroutine wake up combinations
+		All pending completions have completed
+		Some pending completions have completed
+		No pending completions have completed but some sort of timeout has occurred
+		Non-IO completion to wake up to try something again (eg obtaining a buffer, posting a message)
+		Wake ups are very cheap, the cost of an indirect function call, so it's probably best to just get a coroutine to decide whether to continue by waking it up.
+		One worry is the use of multiple buffers by a coroutine
+
+	Forgetting file descriptors
+		We need to change file descriptor logic to 'know' they shouldn't close on drop, or come up with a better way
+			Close on drop works well for a panic or unexpected exit, however
+
+	Coroutine completion coalescing
+		Instead of waking-up a coroutine immediately for each completion, we pull off all of them and push them into an internal queue or array (indexed by a 4-bit operation index code).
+		We must remember there is no order to completions; this is tricky for 'linked' completions.
+
+		Some completions require immediate wake up, eg a timeout of a read, write or connect which may be coroutine-ending.
+			This can be an 'always wake up on any of these operation index codes' bit mask.
+
+		Some completions do not, eg we are waiting on two reads. Until both reads are true we do not want to wake up.
+			This can be the inverse of the 'always wake up on any of these operation index codes' bit mask.
+
+		However, we may want to also wake up when one read fails of the two both being done. Thus we want to wake up when:-
+			- one or both reads fail (failure being permament but not a temporary EAGAIN like situation)
+			- one or both reads timeout (ie report that they are cancelled OR the timeout reports it is succcesful)
+			- both reads succeed without timeout
+				- we don't want to wake up at all for 'without timeout completions'
+			- but not one read succeeds and the other is still pending
+
+		The simplest approach is to leave processing from i32 to Result _to the coroutine_, and wake up the coroutine every single time a result arrives
+			- the downside is that we won't have committed our completions yet, so the completion queue and / or submission queue may still be full.
+			- if the submission queue is full the coroutine will want to be woken up AGAIN as soon as it isn't at the exact point it was full.
+
+	https://github.com/CarterLi/liburing4cpp
+	Performance suggestions
+
+		Batch syscalls
+			Use io_uring_for_each_cqe to peek multiple cqes once, handle them and enqueue multiple sqes.
+			After all cqes are handled, submit all sqes.
+			ie Handle multiple CQEs then submit ALL SQEs ONCE
+
+		Blocking for reads of non-disk I/O
+			For operations that may block, kernel will punt them into a kernel worker called io-wq, which turns out to have a high overhead cost.
+			Always make sure that the fd to read is ready to read.
+			Thus use POLL_ADD then *separately* FIXED-READ
+			This is changing in Linux 5.7.
+
+		Link-With
+			This is borked in Linux 5.6 and before; it forces operations after poll be executed async, that makes POLL_ADD mostly useless (See: https://lore.kernel.org/io-uring/5f09d89a-0c6d-47c2-465c-993af0c7ae71@kernel.dk/).
+
+		Link-With for READ link-with WRITE
+			A short read is an error for the link-chain which then cancels WRITE.
+
+		Fixed file descriptors have very little performance boost for a lot of complexity and a *very* limited resource.
+ */

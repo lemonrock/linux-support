@@ -22,6 +22,7 @@ include!("GetMemoryPolicyFlags.rs");
 include!("MemoryLatencyRelativeCost.rs");
 include!("NumaNode.rs");
 include!("NumaNodes.rs");
+include!("NumaZoneReclaimMode.rs");
 include!("PageMoveError.rs");
 include!("PageMoveStatus.rs");
 include!("PerPageMoveError.rs");

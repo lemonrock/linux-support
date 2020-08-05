@@ -85,6 +85,12 @@ impl NetworkDeviceSocketFileDescriptor
 	#[inline(always)]
 	pub(crate) fn ifreq_from_name<V: Sized, E: error::Error + 'static>(&self, request: i32, network_interface_name: NetworkInterfaceName, ok_handler: impl FnOnce(ifreq) -> Result<V, E>, error_handler: impl FnOnce(Errno) -> Result<Option<V>, E>) -> Result<Option<V>, NetworkDeviceInputOutputControlError<E>>
 	{
+		self.set_ifreq_from_name(request, network_interface_name, Default::default(), ok_handler, error_handler)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn set_ifreq_from_name<V: Sized, E: error::Error + 'static>(&self, request: i32, network_interface_name: NetworkInterfaceName, ifr_ifru: ifreq_ifru, ok_handler: impl FnOnce(ifreq) -> Result<V, E>, error_handler: impl FnOnce(Errno) -> Result<Option<V>, E>) -> Result<Option<V>, NetworkDeviceInputOutputControlError<E>>
+	{
 		self.ifreq
 		(
 			request,
@@ -94,7 +100,7 @@ impl NetworkDeviceSocketFileDescriptor
 				{
 					ifrn_name: network_interface_name.into(),
 				},
-				ifr_ifru: Default::default(),
+				ifr_ifru,
 			},
 			ok_handler,
 			error_handler

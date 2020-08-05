@@ -4,13 +4,13 @@
 
 /// Number of flows steered to any one `HyperThread` by Receive Packet Steering (RPS)'s Receive Flow Steering (RFS).
 ///
-/// RFS keeps track of a global hash table of all flows and the size of this hash table can be adjusted by this value.
+/// RFS keeps track of a global hash table of all flows.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
-pub struct ReceivePacketSteeringFlowsPerHyperThread(u32);
+pub struct ReceiveFlowSteeringFlowCount(u32);
 
-impl From<u16> for ReceivePacketSteeringFlowsPerHyperThread
+impl From<u16> for ReceiveFlowSteeringFlowCount
 {
 	#[inline(always)]
 	fn from(value: u16) -> Self
@@ -19,7 +19,7 @@ impl From<u16> for ReceivePacketSteeringFlowsPerHyperThread
 	}
 }
 
-impl TryFrom<u32> for ReceivePacketSteeringFlowsPerHyperThread
+impl TryFrom<u32> for ReceiveFlowSteeringFlowCount
 {
 	type Error = ParseNumberError;
 	
@@ -37,7 +37,7 @@ impl TryFrom<u32> for ReceivePacketSteeringFlowsPerHyperThread
 	}
 }
 
-impl ReceivePacketSteeringFlowsPerHyperThread
+impl ReceiveFlowSteeringFlowCount
 {
 	/// Typical default.
 	///

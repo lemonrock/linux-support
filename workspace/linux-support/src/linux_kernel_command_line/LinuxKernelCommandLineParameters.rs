@@ -160,6 +160,16 @@ impl LinuxKernelCommandLineParameters
 	/// CPUs isolated from the Linux scheduler.
 	///
 	/// Ordinarily should match `isolcpus`.
+	///
+	/// See <https://utcc.utoronto.ca/~cks/space/blog/linux/KernelRcuNocbsMeaning> and <https://wiki.linuxfoundation.org/realtime/documentation/technical_details/rcu>.
+	///
+	/// A list of the CPUs in your system that should have their softirq RCU callbacks offloaded to threads.
+	/// Often used to fence off a few CPUs from the random interruptions of softirq RCU callbacks.
+	///
+	/// Note, `nocbs` stands for 'No callbacks'.
+	///
+	/// Setting this to `0-(N-1)` where `N` is the number of hyper threaded CPUs shifts all RCU callbacks from softirq context during interrupt handling (on whatever specific CPU involved) to kernel threads (on any CPU).
+	/// This is only possible if the kernel was built with `CONFIG_RCU_NOCB_CPU_ALL`.
 	#[inline(always)]
 	pub fn rcu_nocbs(&self) -> Option<HyperThreads>
 	{

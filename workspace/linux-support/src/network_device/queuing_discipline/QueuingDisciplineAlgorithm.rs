@@ -15,6 +15,9 @@ pub enum QueuingDisciplineAlgorithm
 
 	/// fq.
 	fq,
+	
+	/// Used for devices such as `lo` and `veth`.
+	noqueue,
 }
 
 impl Default for QueuingDisciplineAlgorithm

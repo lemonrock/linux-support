@@ -25,16 +25,7 @@ pub enum GlobalSchedulingConfigurationError
 	CouldNotChangeHardwareWatchdogThreshold(io::Error),
 
 	#[allow(missing_docs)]
-	CouldNotChangeSoftwareAndHardwareWatchdogCpus(io::Error),
-
-	#[allow(missing_docs)]
-	CouldNotChangeWorkQueueCpus(io::Error),
-
-	#[allow(missing_docs)]
-	CouldNotChangeInterruptRequestDefaultAffinity(io::Error),
-
-	#[allow(missing_docs)]
-	CouldNotChangeInterruptRequestAffinity(io::Error, InterruptRequest),
+	CouldNotChangeRcuGracePeriod(io::Error),
 }
 
 impl Display for GlobalSchedulingConfigurationError
@@ -67,13 +58,7 @@ impl error::Error for GlobalSchedulingConfigurationError
 
 			&CouldNotChangeHardwareWatchdogThreshold(ref cause) => Some(cause),
 
-			&CouldNotChangeSoftwareAndHardwareWatchdogCpus(ref cause) => Some(cause),
-
-			&CouldNotChangeWorkQueueCpus(ref cause) => Some(cause),
-
-			&CouldNotChangeInterruptRequestDefaultAffinity(ref cause) => Some(cause),
-
-			&CouldNotChangeInterruptRequestAffinity(ref cause, ..) => Some(cause),
+			&CouldNotChangeRcuGracePeriod(ref cause) => Some(cause),
 		}
 	}
 }

@@ -34,7 +34,7 @@ use linux_io_uring::dogstatsd::DogStatsDStaticInitialization;
 use linux_io_uring::registered_buffers::RegisteredBufferSettings;
 use linux_io_uring::registered_buffers::RegisteredBufferSetting;
 use linux_io_uring::thread_local_allocator::SimplePerThreadMemoryAllocatorInstantiator;
-use linux_support::configuration::ProcessConfiguration;
+use linux_support::configuration::{ProcessConfiguration, GlobalComputedSchedulingConfiguration};
 use linux_support::configuration::ProcessExecutor;
 use linux_support::cpu::HyperThread;
 use linux_support::file_descriptors::socket::UnixSocketAddress;
@@ -176,30 +176,40 @@ fn configure_and_execute(run_as_daemon: bool, configuration: Configuration)
 {
 	let (transmission_control_protocol_over_internet_protocol_version_4_server_listeners, transmission_control_protocol_over_internet_protocol_version_6_server_listeners, streaming_unix_domain_socket_server_listener_server_listeners) = configuration.server_listeners();
 	
+	let global_computed_scheduling_affinity = GlobalComputedSchedulingConfiguration
+	{
+		software_and_hardware_watchdog_runs_on_which_kernel_cpus: XXX,
+		work_queue_runs_on_which_kernel_cpus: XXX,
+		default_interrupt_request_affinity: XXX,
+		interrupt_request_affinity: Default::default(),
+		receive_packet_steering_flow_limit_tables: XXX,
+	};
 	
-	
-	
+	let process_affinity = xxx;
 	// TODO: Most be subsets of process configuration affinity.
 	let main_thread_affinity = xxx;
 	let accept_child_thread_affinity = xxx;
+	let queue_hyper_threads = xxx;
 	let dog_stats_d_message_subscribers = vec!
 	[
 		HyperThread::_1(),
 		HyperThread::_2(),
 	];
-	let hyper_threads;
+	
 	let message_handlers_and_preferred_maximum_number_of_elements_of_largest_possible_fixed_size_message_body_in_queue_for_hyper_thread;
 	let inclusive_maximum_bytes_wasted;
 	
 	
 	
-	let (terminate, defaults) = configuration.configure(run_as_daemon);
+	let terminate = configuration.configure(run_as_daemon, Some(&global_computed_scheduling_affinity), Some(&process_affinity));
 	
-	let queues = Queues::one_queue_for_each_hyper_thread(&hyper_threads, message_handlers_and_preferred_maximum_number_of_elements_of_largest_possible_fixed_size_message_body_in_queue_for_hyper_thread, &defaults, inclusive_maximum_bytes_wasted);
+	let queues = Queues::one_queue_for_each_hyper_thread(&queue_hyper_threads, message_handlers_and_preferred_maximum_number_of_elements_of_largest_possible_fixed_size_message_body_in_queue_for_hyper_thread, &defaults, inclusive_maximum_bytes_wasted);
+	
+	let defaults = DefaultPageSizeAndHugePageSizes::new(sys_path, proc_path);
 	
 	let accept_child_thread_function = ThreadLoopInitiation::new
 	(
-		defaults,
+		defaults.clone(),
 		&SwitchableGlobalAllocator,
 		queues,
 		Signals(BitSet::empty()),

@@ -49,6 +49,8 @@ bitflags!
 
 		/// ARP functionality ("Confirm path validity").
 		///
+		/// In essence, keeps the ARP cache warm.
+		///
 		/// Tell the link layer that forward progress happened: you got a successful reply from the other side.
 		/// If the link layer doesn't get this it will regularly reprobe the neighbor (eg via an unicast ARP).
 		/// Valid only on `SOCK_DGRAM` and `SOCK_RAW` and currently implemented only for IPv4 and IPv6.

@@ -36,16 +36,36 @@ pub struct ProcessConfiguration
 	/// Resource limits.
 	#[serde(default = "ProcessConfiguration::resource_limits_default")] pub resource_limits: ResourceLimitsSet,
 
-	/// Pevent all memory in the process' virtual address space from being swapped.
+	/// Legacy adjustment to out-of-memory score.
+	///
+	/// Use `OutOfMemoryAdjustment::Exempt` to disable Out-of-Memory killing.
+	///
+	/// Making less likely or disabling requires root.
+	#[serde(default)] pub out_of_memory_adjustment: Option<OutOfMemoryAdjustment>,
+
+	/// Modern adjustment to out-of-memory score.
+	///
+	/// Use `OutOfMemoryScoreAdjustment::LessLikely(OutOfMemoryScoreAdjustmentValue::InclusiveMaximum))` to disable Out-of-Memory killing.
+	///
+	/// Making less likely or disabling requires root.
+	#[serde(default)] pub out_of_memory_score_adjustment: Option<OutOfMemoryScoreAdjustment>,
+	
+	/// Compact memory, once, on start-up.
+	///
+	/// This can help later memory large allocations to succeed.
+	///
+	/// See also `GlobalMemoryConfiguration.compact_unevictable_allowed`.
+	///
+	/// Requires root if `true`.
+	#[serde(default)] pub compact_memory: bool,
+	
+	/// Prevent all memory in the process' virtual address space from being swapped.
 	///
 	/// Memory locking has two main applications: real-time algorithms and high-security data processing.
 	/// Real-time applications require deterministic timing, and, like scheduling, paging is one major cause of unexpected program execution delays.
 	///
 	/// Memory locks are not inherited by a child created via `fork()` and are automatically removed (unlocked) during an `execve()`.
 	#[serde(default)] pub lock_all_memory: Option<LockAllMemory>,
-
-	/// Process HyperThread affinity.
-	#[serde(default)] pub affinity: Option<HyperThreads>,
 
 	/// Process nice.
 	#[serde(default)] pub process_nice_configuration: Option<ProcessNiceConfiguration>,
@@ -96,8 +116,10 @@ impl Default for ProcessConfiguration
 			umask: Default::default(),
 			initial_capabilities: None,
 			resource_limits: Self::resource_limits_default(),
+			out_of_memory_adjustment: None,
+			out_of_memory_score_adjustment: None,
+			compact_memory: false,
 			lock_all_memory: None,
-			affinity: None,
 			process_nice_configuration: None,
 			process_io_priority_configuration: None,
 			enable_io_flusher: None,
@@ -116,8 +138,10 @@ impl ProcessConfiguration
 	///
 	/// Use `ProcessExecutor::execute_securely()` after this.
 	/// Until this is used, the returned `SimpleTerminate` does not affect any thread behaviour.
+	///
+	/// `process_affinity` should be calculated, but, ideally, should be the isolated CPUs on the system.
 	#[inline(always)]
-	pub fn configure(&self, run_as_daemon: bool, file_system_layout: &FileSystemLayout, additional_logging_configuration: &mut impl AdditionalLoggingConfiguration) -> Result<(Arc<impl Terminate>, DefaultPageSizeAndHugePageSizes), ProcessConfigurationError>
+	pub fn configure(&self, run_as_daemon: bool, file_system_layout: &FileSystemLayout, additional_logging_configuration: &mut impl AdditionalLoggingConfiguration, global_computed_scheduling_affinity: Option<&GlobalComputedSchedulingConfiguration>, process_affinity: Option<&HyperThreads>) -> Result<Arc<impl Terminate>, ProcessConfigurationError>
 	{
 		use self::ProcessConfigurationError::*;
 		
@@ -140,6 +164,9 @@ impl ProcessConfiguration
 
 		// This *MUST* be called after `validate_linux_kernel_version_is_recent_enough()`.
 		self.set_global_configuration(sys_path, proc_path)?;
+		
+		// This *MUST* be called after `validate_linux_kernel_version_is_recent_enough()`.
+		Self::set_global_computed_configuration(sys_path, proc_path, global_computed_scheduling_affinity)?;
 
 		// This *SHOULD* be called as soon as possible so that when threads open network sockets, say, we are already running with as few capabilities as possible.
 		//	Thus is *SHOULD be called before configuring logging which *DOES* open a network connection to a log (or syslog) socket.
@@ -169,7 +196,12 @@ impl ProcessConfiguration
 		// This *MUST* be called before changing process scheduling.
 		// This *MUST* be called opening any significant number of file descriptors.
 		self.resource_limits.change().map_err(CouldNotChangeResourceLimit)?;
-
+		
+		// This should be called before making large memory allocations.
+		self.set_out_of_memory_adjustment(proc_path)?;
+		
+		self.compact_memory(proc_path)?;
+		
 		// This *SHOULD* be configured before configuring logging.
 		// This *MUST* be called before `configure_global_panic_hook()` which uses backtraces depedant on environment variable settings.
 		self.set_environment_variables_to_minimum_required_and_force_time_zone_to_utc(etc_path)?;
@@ -192,7 +224,7 @@ impl ProcessConfiguration
 		self.lock_all_memory();
 
 		// This *MUST* be called before creating new threads.
-		self.configure_process_affinity(proc_path)?;
+		self.configure_process_affinity(proc_path, process_affinity)?;
 
 		// This *MUST* be called before creating new threads.
 		set_value(proc_path, |proc_path, process_nice_configuration| process_nice_configuration.configure(proc_path),self.process_nice_configuration.as_ref(), ProcessNiceConfiguration)?;
@@ -212,9 +244,28 @@ impl ProcessConfiguration
 		// This prevents `execve()` granting additional capabilities.
 		no_new_privileges().map_err(CouldNotPreventTheGrantingOfNoNewPrivileges)?;
 		
-		let defaults = DefaultPageSizeAndHugePageSizes::new(sys_path, proc_path);
-		
-		Ok((terminate, defaults))
+		Ok(terminate)
+	}
+	
+	#[inline(always)]
+	fn set_out_of_memory_adjustment(&self, proc_path: &ProcPath) -> Result<(), ProcessConfigurationError>
+	{
+		self.out_of_memory_adjustment.set(proc_path, ProcessIdentifierChoice::Current).map_err(ProcessConfigurationError::CouldNotChangeOutOfMemoryAdjustment)
+	}
+	
+	#[inline(always)]
+	fn compact_memory(&self, proc_path: &ProcPath) -> Result<(), ProcessConfigurationError>
+	{
+		if self.compact_memory
+		{
+			assert_effective_user_id_is_root("write /proc/sys/vm/compact_memory");
+			
+			set_proc_sys_vm_value(proc_path, "compact_memory", Some(true), ProcessConfigurationError::CouldNotCompactMemory)
+		}
+		else
+		{
+			Ok(())
+		}
 	}
 	
 	fn configure_logging(&self, dev_path: &DevPath, proc_path: &ProcPath, run_as_daemon: bool, additional_logging_configuration: &mut impl AdditionalLoggingConfiguration) -> Result<(), ProcessConfigurationError>
@@ -324,9 +375,9 @@ impl ProcessConfiguration
 	}
 
 	#[inline(always)]
-	fn configure_process_affinity(&self, proc_path: &ProcPath) -> Result<(), ProcessConfigurationError>
+	fn configure_process_affinity(&self, proc_path: &ProcPath, process_affinity: Option<&HyperThreads>) -> Result<(), ProcessConfigurationError>
 	{
-		set_value(proc_path, |_proc_path, value| value.set_current_process_affinity(), self.affinity.as_ref(), ProcessConfigurationError::CouldNotChangeProcessAffinity)
+		set_value(proc_path, |_proc_path, value| value.set_current_process_affinity(), process_affinity, ProcessConfigurationError::CouldNotChangeProcessAffinity)
 	}
 
 	#[inline(always)]
@@ -348,6 +399,12 @@ impl ProcessConfiguration
 	fn set_global_configuration(&self, sys_path: &SysPath, proc_path: &ProcPath) -> Result<(), ProcessConfigurationError>
 	{
 		set_value(proc_path, |proc_path, global| global.configure(sys_path, proc_path), self.global.as_ref(), ProcessConfigurationError::CouldNotChangeGlobalConfiguration)
+	}
+
+	#[inline(always)]
+	fn set_global_computed_configuration(sys_path: &SysPath, proc_path: &ProcPath, global_computed_scheduling_affinity: Option<&GlobalComputedSchedulingConfiguration>) -> Result<(), ProcessConfigurationError>
+	{
+		set_value(proc_path, |proc_path, global_computed_scheduling_affinity| global_computed_scheduling_affinity.configure(sys_path, proc_path), global_computed_scheduling_affinity, ProcessConfigurationError::CouldNotChangeGlobalComputedConfiguration)
 	}
 
 	#[inline(always)]

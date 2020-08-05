@@ -9,8 +9,114 @@
 pub struct InterruptRequest(u8);
 
 #[allow(missing_docs)]
+impl Into<u8> for InterruptRequest
+{
+	#[inline(always)]
+	fn into(self) -> u8
+	{
+		self.0
+	}
+}
+
+#[allow(missing_docs)]
 impl InterruptRequest
 {
+	/// Actions.
+	///
+	/// Values observed on a Parallels VM:-
+	///
+	/// * (empty string).
+	/// * `acpi`.
+	/// * `ahci[0000:00:1f.2]`.
+	/// * `ata_piix`.
+	/// * `i8042`.
+	/// * `rtc0`.
+	/// * `timer`.
+	/// * `virtio1`.
+	/// * `virtio0-config`.
+	/// * `virtio0-input.0`.
+	/// * `virtio0-output.0`.
+	#[inline(always)]
+	pub fn actions(self, sys_path: &SysPath) -> Box<[u8]>
+	{
+		let file_path = self.sys_file_path(sys_path, "actions");
+		file_path.read_raw_without_line_feed().unwrap()
+	}
+	
+	/// Chip name.
+	///
+	/// Values observed on a Parallels VM:-
+	///
+	/// * `IO-APIC`.
+	/// * `PCI-MSI`.
+	/// * `XT-PIC`.
+	#[inline(always)]
+	pub fn chip_name(self, sys_path: &SysPath) -> Box<[u8]>
+	{
+		let file_path = self.sys_file_path(sys_path, "chip_name");
+		file_path.read_raw_without_line_feed().unwrap()
+	}
+	
+	/// Hardware interrupt request line.
+	///
+	/// eg `10`; usually the same value as `self` but can be a large value, eg `512000`.
+	#[inline(always)]
+	pub fn hardware_interrupt_request_line(self, sys_path: &SysPath) -> u32
+	{
+		let file_path = self.sys_file_path(sys_path, "hwirq");
+		file_path.read_value().unwrap()
+	}
+	
+	/// Name.
+	///
+	/// Values observed on a Parallels VM:-
+	///
+	/// * `edge`.
+	/// * `fasteoi`.
+	#[inline(always)]
+	pub fn name(self, sys_path: &SysPath) -> Box<[u8]>
+	{
+		let file_path = self.sys_file_path(sys_path, "name");
+		file_path.read_raw_without_line_feed().unwrap()
+	}
+	
+	/// Type.
+	///
+	/// Values observed on a Parallels VM:-
+	///
+	/// * `edge`.
+	/// * `level`.
+	#[inline(always)]
+	pub fn type_(self, sys_path: &SysPath) -> Box<[u8]>
+	{
+		let file_path = self.sys_file_path(sys_path, "type");
+		file_path.read_raw_without_line_feed().unwrap()
+	}
+	
+	/// Wake up.
+	///
+	/// Values observed on a Parallels VM:-
+	///
+	/// * `disabled`.
+	#[inline(always)]
+	pub fn wake_up(self, sys_path: &SysPath) -> Box<[u8]>
+	{
+		let file_path = self.sys_file_path(sys_path, "wakeup");
+		file_path.read_raw_without_line_feed().unwrap()
+	}
+	
+	/// Number of occurrences per-HyperThread.
+	///
+	/// Number of indices is the number of possible HyperThreads (`/sys/devices/system/cpu/possible`).
+	#[inline(always)]
+	pub fn occurrences_per_hyper_thread(self, sys_path: &SysPath) -> PerBitSetAwareData<HyperThread, u64>
+	{
+		let file_path = self.sys_file_path(sys_path, "per_cpu_count");
+		let comma_separated_string = file_path.read_raw_without_line_feed().unwrap();
+		
+		PerBitSetAwareData::from_iterator(comma_separated_string.split_bytes(b',').map(|raw_bytes| u64::parse_number(count_in_bytes))).expect("Invalid count")
+	}
+	
 	/// Usually `ffffffff` (ie `/sys/devices/system/cpu/possible` but as a bitmask not a list).
 	#[inline(always)]
 	pub fn default_smp_affinity(proc_path: &ProcPath) -> HyperThreads
@@ -46,7 +152,7 @@ impl InterruptRequest
 	#[inline(always)]
 	pub fn numa_node(self, proc_path: &ProcPath) -> Option<NumaNode>
 	{
-		let file_path = self.file_path(proc_path, "node");
+		let file_path = self.proc_file_path(proc_path, "node");
 		if file_path.exists()
 		{
 			Some(file_path.read_value().unwrap())
@@ -60,7 +166,7 @@ impl InterruptRequest
 	#[inline(always)]
 	pub fn set_smp_affinity(self, proc_path: &ProcPath, affinity: &HyperThreads) -> io::Result<()>
 	{
-		affinity.set_affinity(self.file_path(proc_path, "smp_affinity"))
+		affinity.set_affinity(self.proc_file_path(proc_path, "smp_affinity"))
 	}
 	
 	#[inline(always)]
@@ -72,7 +178,7 @@ impl InterruptRequest
 	#[inline(always)]
 	pub fn set_smp_affinity_list(self, proc_path: &ProcPath, affinity: &HyperThreads) -> io::Result<()>
 	{
-		affinity.set_affinity_list(self.file_path(proc_path, "smp_affinity_list"))
+		affinity.set_affinity_list(self.proc_file_path(proc_path, "smp_affinity_list"))
 	}
 	
 	#[inline(always)]
@@ -85,7 +191,7 @@ impl InterruptRequest
 	#[inline(always)]
 	pub fn spurious(self, proc_path: &ProcPath) -> io::Result<(usize, usize, usize)>
 	{
-		let file_path = self.file_path(proc_path, "spurious");
+		let file_path = self.proc_file_path(proc_path, "spurious");
 		
 		let data = file_path.read_raw()?;
 		let mut lines = data.split_bytes_n(3, b'\n');
@@ -116,26 +222,32 @@ impl InterruptRequest
 	}
 	
 	#[inline(always)]
-	pub(crate) fn file_name(self) -> String
-	{
-		format!("{}", self.0)
-	}
-	
-	#[inline(always)]
 	fn get_hyper_threads(self, proc_path: &ProcPath, file_name: &str) -> HyperThreads
 	{
-		HyperThreads(self.file_path(proc_path, file_name).parse_hyper_thread_or_numa_node_bit_set().unwrap())
+		HyperThreads(self.proc_file_path(proc_path, file_name).parse_hyper_thread_or_numa_node_bit_set().unwrap())
 	}
 	
 	#[inline(always)]
 	fn get_hyper_threads_list(self, proc_path: &ProcPath, file_name: &str) -> HyperThreads
 	{
-		HyperThreads(self.file_path(proc_path, file_name).read_hyper_thread_or_numa_node_list().unwrap())
+		HyperThreads(self.proc_file_path(proc_path, file_name).read_hyper_thread_or_numa_node_list().unwrap())
 	}
 	
 	#[inline(always)]
-	fn file_path(self, proc_path: &ProcPath, file_name: &str) -> PathBuf
+	fn sys_file_path(self, sys_path: &SysPath, file_name: &str) -> PathBuf
+	{
+		sys_path.global_irq_file_path(self, file_name)
+	}
+	
+	#[inline(always)]
+	fn proc_file_path(self, proc_path: &ProcPath, file_name: &str) -> PathBuf
 	{
 		proc_path.irq_number_file_path(self, file_name)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn file_name(self) -> String
+	{
+		format!("{}", self.0)
 	}
 }

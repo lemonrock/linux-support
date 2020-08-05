@@ -34,6 +34,9 @@ pub enum GlobalKernelPanicConfigurationError
 	CouldNotChangePanicOnHungTask(io::Error),
 
 	#[allow(missing_docs)]
+	CouldNotChangePanicOnMemoryFailure(io::Error),
+
+	#[allow(missing_docs)]
 	CouldNotChangePanicOnSoftwareWatchdogLockup(io::Error),
 
 	#[allow(missing_docs)]
@@ -87,6 +90,8 @@ impl error::Error for GlobalKernelPanicConfigurationError
 			&CouldNotChangePanicOnStackOverflow(ref cause) => Some(cause),
 
 			&CouldNotChangePanicOnHungTask(ref cause) => Some(cause),
+
+			&CouldNotChangePanicOnMemoryFailure(ref cause) => Some(cause),
 
 			&CouldNotChangePanicOnSoftwareWatchdogLockup(ref cause) => Some(cause),
 

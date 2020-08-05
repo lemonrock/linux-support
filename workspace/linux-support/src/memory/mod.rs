@@ -5,6 +5,8 @@
 use super::*;
 use crate::paths::ProcPath;
 use crate::process::ProcessIdentifierChoice;
+
+
 /// Huge Pages.
 ///
 /// Functionality in here replaces the need to use `libhugetlbfs`.
@@ -29,6 +31,10 @@ pub mod memory_maps;
 ///
 /// Functionality in here replaces the need to use `libnuma`.
 pub mod numa;
+
+
+/// Out-of-Memory.
+pub mod out_of_memory;
 
 
 /// Page map, for mapping physical to virtual addresses.

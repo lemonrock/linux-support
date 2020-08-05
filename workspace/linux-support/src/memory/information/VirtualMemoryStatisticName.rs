@@ -181,9 +181,6 @@ pub enum VirtualMemoryStatisticName
 	Unknown(Box<[u8]>),
 }
 
-/*
-*/
-
 impl VirtualMemoryStatisticName
 {
 	/// Memory statistics (from `/proc/vmstat`).
@@ -192,15 +189,20 @@ impl VirtualMemoryStatisticName
 	///
 	/// For NUMA node specific information, see `NumaNode.numa_memory_statistics()` and `NumaNode.zoned_virtual_memory_statistics()`.
 	#[inline(always)]
-	pub fn global_zoned_virtual_memory_statistics(proc_path: &ProcPath) -> io::Result<HashMap<Self, u64>>
+	pub fn global_zoned_virtual_memory_statistics(proc_path: &ProcPath, flush_per_cpu_statistics_first: bool) -> io::Result<HashMap<Self, u64>>
 	{
 		let file_path = proc_path.file_path("vmstat");
-		Self::parse_virtual_memory_statistics_file(&file_path)
+		Self::parse_virtual_memory_statistics_file(&file_path, if flush_per_cpu_statistics_first { Some(proc_path) } else { None })
 	}
 
 	#[inline(always)]
-	pub(crate) fn parse_virtual_memory_statistics_file(file_path: &Path) -> io::Result<HashMap<Self, u64>>
+	pub(crate) fn parse_virtual_memory_statistics_file(file_path: &Path, flush_per_cpu_statistics_first: Option<&ProcPath>) -> io::Result<HashMap<Self, u64>>
 	{
+		if let(proc_path) = flush_per_cpu_statistics_first
+		{
+			flush_per_cpu_statistics(proc_path)?;
+		}
+		
 		let reader = file_path.read_raw()?;
 
 		let mut statistics = HashMap::with_capacity(6);

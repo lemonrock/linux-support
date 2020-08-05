@@ -14,34 +14,36 @@ pub(crate) struct ethtool_ringparam
 	/// Maximum supported number of pending entries per	receive ring queue.
 	///
 	/// Read-only.
-	pub(crate) rx_max_pending: u32,
+	pub(crate) rx_max_pending: Option<QueueDepth>,
 	
 	/// Maximum supported number of pending entries per receive mini ring queue.
 	///
 	/// Read-only.
-	pub(crate) rx_mini_max_pending: u32,
+	pub(crate) rx_mini_max_pending: Option<QueueDepth>,
 	
 	/// Maximum supported number of pending entries per receive jumbo ring queue.
 	///
 	/// Read-only.
-	pub(crate) rx_jumbo_max_pending: u32,
+	pub(crate) rx_jumbo_max_pending: Option<QueueDepth>,
 	
 	/// Maximum supported number of pending entries per transmit ring queue.
 	///
 	/// Read-only.
-	pub(crate) tx_max_pending: u32,
+	pub(crate) tx_max_pending: Option<QueueDepth>,
 	
 	/// Current maximum number of pending entries per receive ring queue.
-	pub(crate) rx_pending: Option<NonZeroU32>,
+	pub(crate) rx_pending: Option<v>,
 	
 	/// Current maximum number of pending entries per receive mini ring queue.
-	pub(crate) rx_mini_pending: Option<NonZeroU32>,
+	pub(crate) rx_mini_pending: Option<QueueDepth>,
 	
 	/// Current maximum number of pending entries per receive jumbo ring queue.
-	pub(crate) rx_jumbo_pending: Option<NonZeroU32>,
+	pub(crate) rx_jumbo_pending: Option<QueueDepth>,
 	
 	/// Current maximum supported number of pending entries per transmit ring queue.
-	pub(crate) tx_pending: Option<NonZeroU32>,
+	///
+	/// Seems to be different to `/sys/class/net/<network_interface_name>/tx_queue_len`.
+	pub(crate) tx_pending: Option<QueueDepth>,
 }
 
 impl EthtoolCommand for ethtool_ringparam

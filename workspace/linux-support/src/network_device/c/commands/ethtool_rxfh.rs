@@ -76,7 +76,21 @@ impl VariablySizedEthtoolCommand for ethtool_rxfh
 impl VariablySizedEthtoolCommandWrapper<ethtool_rxfh>
 {
 	#[inline(always)]
-	pub(crate) fn hash_function(&self) -> Result<Option<ETH_RSS_HASH>, UnsupportedHashFunctionError>
+	pub(crate) fn configured_hash_settings(&self) -> Result<ConfiguredHashSettings, UnsupportedHashFunctionError>
+	{
+		Ok
+		(
+			ConfiguredHashSettings
+			{
+				function: self.hash_function()?,
+				indirection_table: self.hash_indirection_table().map(|slice| IndirectionTable(slice.to_vec())),
+				key: self.hash_key_bytes().map(|slice| HashFunctionKey(slice.to_vec())),
+			}
+		)
+	}
+	
+	#[inline(always)]
+	fn hash_function(&self) -> Result<Option<ETH_RSS_HASH>, UnsupportedHashFunctionError>
 	{
 		let hash_function_bit_mask = self.hfunc;
 		if hash_function_bit_mask == 0
@@ -98,11 +112,9 @@ impl VariablySizedEthtoolCommandWrapper<ethtool_rxfh>
 		}
 	}
 	
-	/// RETA table.
-	///
 	/// Slices are never empty.
 	#[inline(always)]
-	pub fn hash_indirection_table(&self) -> Option<&[QueueIdentifier]>
+	fn hash_indirection_table(&self) -> Option<&[QueueIdentifier]>
 	{
 		let length = self.indir_size();
 		if length == 0
@@ -117,7 +129,7 @@ impl VariablySizedEthtoolCommandWrapper<ethtool_rxfh>
 	
 	/// Slices are never empty.
 	#[inline(always)]
-	pub(crate) fn hash_key_bytes(&self) -> Option<&[u8]>
+	fn hash_key_bytes(&self) -> Option<&[u8]>
 	{
 		let length = self.key_size();
 		if length == 0
@@ -181,6 +193,12 @@ impl ethtool_rxfh
 		}
 		
 		this
+	}
+	
+	#[inline(always)]
+	pub(crate) fn indirection_size_and_key_size(&self) -> (usize, usize)
+	{
+		(self.indir_size as usize, self.key_size as usize)
 	}
 	
 	const fn get_indirection_table_and_key_data(context_identifier: Option<ContextIdentifier>, indirection_size: usize, key_size: usize) -> Self

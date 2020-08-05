@@ -28,9 +28,6 @@ pub enum GlobalConfigurationError
 	GlobalEPollConfiguration(GlobalEPollConfigurationError),
 
 	#[allow(missing_docs)]
-	GlobalLinuxKernelSamePageMergingConfiguration(GlobalLinuxKernelSamePageMergingConfigurationError),
-
-	#[allow(missing_docs)]
 	GlobalLinuxKernelAsynchronousIoConfiguration(GlobalLinuxKernelAsynchronousIoConfigurationError),
 
 	#[allow(missing_docs)]
@@ -44,24 +41,21 @@ pub enum GlobalConfigurationError
 
 	#[allow(missing_docs)]
 	GlobalKernelPanicConfiguration(GlobalKernelPanicConfigurationError),
-
+	
 	#[allow(missing_docs)]
-	GlobalSecurityConfiguration(GlobalSecurityConfigurationError),
-
-	#[allow(missing_docs)]
-	GlobalTransparentHugePagesConfiguration(GlobalTransparentHugePagesConfigurationError),
-
-	#[allow(missing_docs)]
-	GlobalLinuxKernelCommandLineConfiguration(GlobalLinuxKernelCommandLineConfigurationError),
-
-	#[allow(missing_docs)]
-	GlobalSwapConfiguration(GlobalSwapConfigurationError),
+	GlobalMemoryConfiguration(GlobalMemoryConfigurationError),
 
 	#[allow(missing_docs)]
 	GlobalNetworkConfiguration(GlobalNetworkConfigurationError),
 
 	#[allow(missing_docs)]
 	GlobalBpfConfiguration(GlobalBpfConfigurationError),
+	
+	#[allow(missing_docs)]
+	GlobalLinuxKernelCommandLineConfiguration(GlobalLinuxKernelCommandLineConfigurationError),
+	
+	#[allow(missing_docs)]
+	GlobalSecurityConfiguration(GlobalSecurityConfigurationError),
 }
 
 impl Display for GlobalConfigurationError
@@ -96,8 +90,6 @@ impl error::Error for GlobalConfigurationError
 
 			&GlobalEPollConfiguration(ref cause) => Some(cause),
 
-			&GlobalLinuxKernelSamePageMergingConfiguration(ref cause) => Some(cause),
-
 			&GlobalLinuxKernelAsynchronousIoConfiguration(ref cause) => Some(cause),
 
 			&GlobalFileHandleConfiguration(ref cause) => Some(cause),
@@ -107,18 +99,16 @@ impl error::Error for GlobalConfigurationError
 			&GlobalLinuxModuleConfiguration(ref cause) => Some(cause),
 
 			&GlobalKernelPanicConfiguration(ref cause) => Some(cause),
-
-			&GlobalSecurityConfiguration(ref cause) => Some(cause),
-
-			&GlobalTransparentHugePagesConfiguration(ref cause) => Some(cause),
-
-			&GlobalLinuxKernelCommandLineConfiguration(ref cause) => Some(cause),
-
-			&GlobalSwapConfiguration(ref cause) => Some(cause),
+			
+			&GlobalMemoryConfiguration(ref cause) => Some(cause),
 
 			&GlobalNetworkConfiguration(ref cause) => Some(cause),
 
 			&GlobalBpfConfiguration(ref cause) => Some(cause),
+			
+			&GlobalLinuxKernelCommandLineConfiguration(ref cause) => Some(cause),
+			
+			&GlobalSecurityConfiguration(ref cause) => Some(cause),
 		}
 	}
 }
@@ -186,15 +176,6 @@ impl From<GlobalEPollConfigurationError> for GlobalConfigurationError
 	}
 }
 
-impl From<GlobalLinuxKernelSamePageMergingConfigurationError> for GlobalConfigurationError
-{
-	#[inline(always)]
-	fn from(cause: GlobalLinuxKernelSamePageMergingConfigurationError) -> Self
-	{
-		GlobalConfigurationError::GlobalLinuxKernelSamePageMergingConfiguration(cause)
-	}
-}
-
 impl From<GlobalLinuxKernelAsynchronousIoConfigurationError> for GlobalConfigurationError
 {
 	#[inline(always)]
@@ -231,48 +212,21 @@ impl From<GlobalLinuxModuleConfigurationError> for GlobalConfigurationError
 	}
 }
 
+impl From<GlobalMemoryConfigurationError> for GlobalConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: GlobalMemoryConfigurationError) -> Self
+	{
+		GlobalConfigurationError::GlobalMemoryConfiguration(cause)
+	}
+}
+
 impl From<GlobalKernelPanicConfigurationError> for GlobalConfigurationError
 {
 	#[inline(always)]
 	fn from(cause: GlobalKernelPanicConfigurationError) -> Self
 	{
 		GlobalConfigurationError::GlobalKernelPanicConfiguration(cause)
-	}
-}
-
-impl From<GlobalSecurityConfigurationError> for GlobalConfigurationError
-{
-	#[inline(always)]
-	fn from(cause: GlobalSecurityConfigurationError) -> Self
-	{
-		GlobalConfigurationError::GlobalSecurityConfiguration(cause)
-	}
-}
-
-impl From<GlobalTransparentHugePagesConfigurationError> for GlobalConfigurationError
-{
-	#[inline(always)]
-	fn from(cause: GlobalTransparentHugePagesConfigurationError) -> Self
-	{
-		GlobalConfigurationError::GlobalTransparentHugePagesConfiguration(cause)
-	}
-}
-
-impl From<GlobalLinuxKernelCommandLineConfigurationError> for GlobalConfigurationError
-{
-	#[inline(always)]
-	fn from(cause: GlobalLinuxKernelCommandLineConfigurationError) -> Self
-	{
-		GlobalConfigurationError::GlobalLinuxKernelCommandLineConfiguration(cause)
-	}
-}
-
-impl From<GlobalSwapConfigurationError> for GlobalConfigurationError
-{
-	#[inline(always)]
-	fn from(cause: GlobalSwapConfigurationError) -> Self
-	{
-		GlobalConfigurationError::GlobalSwapConfiguration(cause)
 	}
 }
 
@@ -291,5 +245,23 @@ impl From<GlobalBpfConfigurationError> for GlobalConfigurationError
 	fn from(cause: GlobalBpfConfigurationError) -> Self
 	{
 		GlobalConfigurationError::GlobalBpfConfiguration(cause)
+	}
+}
+
+impl From<GlobalLinuxKernelCommandLineConfigurationError> for GlobalConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: GlobalLinuxKernelCommandLineConfigurationError) -> Self
+	{
+		GlobalConfigurationError::GlobalLinuxKernelCommandLineConfiguration(cause)
+	}
+}
+
+impl From<GlobalSecurityConfigurationError> for GlobalConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: GlobalSecurityConfigurationError) -> Self
+	{
+		GlobalConfigurationError::GlobalSecurityConfiguration(cause)
 	}
 }

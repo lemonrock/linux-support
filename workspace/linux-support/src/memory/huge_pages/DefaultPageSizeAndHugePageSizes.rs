@@ -48,7 +48,7 @@ impl DefaultPageSizeAndHugePageSizes
 
 			default_huge_page_size: parse_and_return_if_supported(&supported_huge_page_sizes, ||
 			{
-				let memory_information = MemoryInformation::parse(proc_path, b"").expect("Missing valid /proc/meminfo");
+				let memory_information = MemoryInformation::parse(proc_path, b"", false).expect("Missing valid /proc/meminfo");
 				HugePageSize::default_huge_page_size(&memory_information)
 			}),
 

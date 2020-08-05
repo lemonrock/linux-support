@@ -3,8 +3,8 @@
 
 
 use super::*;
-use crate::paths::{ProcPath, PathExt};
 use crate::cpu::HyperThreads;
+use crate::paths::*;
 
 
 include!("InterruptRequest.rs");

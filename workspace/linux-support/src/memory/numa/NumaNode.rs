@@ -463,9 +463,9 @@ impl NumaNode
 	/// Interpret this by multiplying counts by page size.
 	#[deprecated]
 	#[inline(always)]
-	pub fn numa_memory_statistics(self, sys_path: &SysPath) -> Option<HashMap<VirtualMemoryStatisticName, u64>>
+	pub fn numa_memory_statistics(self, sys_path: &SysPath, flush_per_cpu_statistics_first: Option<&ProcPath>) -> Option<HashMap<VirtualMemoryStatisticName, u64>>
 	{
-		self.only_if_path_exists(sys_path, "numastat", |file_path| VirtualMemoryStatisticName::parse_virtual_memory_statistics_file(file_path))
+		self.only_if_path_exists(sys_path, "numastat", |file_path| VirtualMemoryStatisticName::parse_virtual_memory_statistics_file(file_path, flush_per_cpu_statistics_first))
 	}
 
 	/// Memory statistics.
@@ -474,16 +474,16 @@ impl NumaNode
 	///
 	/// Interpret this by multiplying counts by page size.
 	#[inline(always)]
-	pub fn zoned_virtual_memory_statistics(self, sys_path: &SysPath) -> Option<HashMap<VirtualMemoryStatisticName, u64>>
+	pub fn zoned_virtual_memory_statistics(self, sys_path: &SysPath, flush_per_cpu_statistics_first: Option<&ProcPath>) -> Option<HashMap<VirtualMemoryStatisticName, u64>>
 	{
-		self.only_if_path_exists(sys_path, "vmstat", |file_path| VirtualMemoryStatisticName::parse_virtual_memory_statistics_file(file_path))
+		self.only_if_path_exists(sys_path, "vmstat", |file_path| VirtualMemoryStatisticName::parse_virtual_memory_statistics_file(file_path, flush_per_cpu_statistics_first))
 	}
 
 	/// Memory information.
 	///
 	/// This will return `None` if this the Linux kernel wasn't configured with `CONFIG_NUMA`, the NUMA node is not present or `sys_path` is not mounted.
 	#[inline(always)]
-	pub fn memory_information(self, sys_path: &SysPath) -> Option<MemoryInformation>
+	pub fn memory_information(self, sys_path: &SysPath, flush_per_cpu_statistics_first: Option<&ProcPath>) -> Option<MemoryInformation>
 	{
 		#[allow(deprecated)] let mut buffer: [u8; 11] = unsafe { uninitialized() };
 
@@ -505,7 +505,7 @@ impl NumaNode
 			&buffer[last_decimal_digit_index - 5 .. ]
 		};
 
-		self.only_if_path_exists(sys_path, "meminfo", |file_path| MemoryInformation::parse_memory_information_file(&file_path, memory_information_name_prefix))
+		self.only_if_path_exists(sys_path, "meminfo", |file_path| MemoryInformation::parse_memory_information_file(&file_path, memory_information_name_prefix, flush_per_cpu_statistics_first))
 	}
 
 	#[inline(always)]

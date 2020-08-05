@@ -5,7 +5,7 @@
 /// A structure that can be stored in a bit set.
 pub trait BitSetAware: Sized + Into<u16> + TryFrom<u16, Error=BitSetAwareTryFromU16Error> + ParseNumber + FromBytes<Error=ParseNumberError> + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash + Into<u32> + Into<u64> + Into<usize> + Into<i32> + Into<i64> + Into<isize>
 {
-	#[doc(hidden)]
+	/// Exclusive maximum (count) that Linux enforces or is compiled for.
 	const LinuxMaximum: u16;
 
 	/// Minimum.

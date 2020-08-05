@@ -12,10 +12,10 @@ pub struct ConfiguredHashSettings
 	/// Hash indirection table (RETA).
 	///
 	/// Uses the value produced by the hash `function` with the `key` as an index into this table to find a `QueueIdentifier`.
-	pub(crate) indirection_table: Option<Vec<QueueIdentifier>>,
+	pub(crate) indirection_table: Option<IndirectionTable>,
 
 	/// Key used by the hash `function`.
-	pub(crate) key: Option<Vec<u8>>,
+	pub(crate) key: Option<HashFunctionKey>,
 }
 
 impl ConfiguredHashSettings

@@ -37,6 +37,9 @@ pub enum ProcessConfigurationError
 	CouldNotChangeGlobalConfiguration(GlobalConfigurationError),
 
 	#[allow(missing_docs)]
+	CouldNotChangeGlobalComputedSchedulingConfiguration(GlobalComputedSchedulingConfigurationError),
+
+	#[allow(missing_docs)]
 	CouldNotSetProcessName(io::Error),
 
 	#[allow(missing_docs)]
@@ -65,6 +68,12 @@ pub enum ProcessConfigurationError
 
 	#[allow(missing_docs)]
 	CouldNotChangeResourceLimit(ResourceLimitError),
+
+	#[allow(missing_docs)]
+	CouldNotChangeOutOfMemoryAdjustment(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotCompactMemory(io::Error),
 
 	#[allow(missing_docs)]
 	CouldNotChangeProcessAffinity(String),
@@ -132,6 +141,8 @@ impl error::Error for ProcessConfigurationError
 
 			&CouldNotChangeGlobalConfiguration(ref cause) => Some(cause),
 
+			&CouldNotChangeGlobalComputedSchedulingConfiguration(ref cause) => Some(cause),
+
 			&CouldNotSetProcessName(ref cause) => Some(cause),
 
 			&CouldNotSetLocale(..) => None,
@@ -151,6 +162,10 @@ impl error::Error for ProcessConfigurationError
 			&RunningSetGid => None,
 
 			&CouldNotChangeResourceLimit(ref cause) => Some(cause),
+
+			&CouldNotChangeOutOfMemoryAdjustment(ref cause) => Some(cause),
+
+			&CouldNotCompactMemory(ref cause) => Some(cause),
 
 			&CouldNotChangeProcessAffinity(..) => None,
 
@@ -197,6 +212,15 @@ impl From<GlobalConfigurationError> for ProcessConfigurationError
 	fn from(error: GlobalConfigurationError) -> Self
 	{
 		ProcessConfigurationError::CouldNotChangeGlobalConfiguration(error)
+	}
+}
+
+impl From<GlobalComputedSchedulingConfigurationError> for ProcessConfigurationError
+{
+	#[inline(always)]
+	fn from(error: GlobalComputedSchedulingConfigurationError) -> Self
+	{
+		ProcessConfigurationError::CouldNotChangeGlobalComputedSchedulingConfiguration(error)
 	}
 }
 

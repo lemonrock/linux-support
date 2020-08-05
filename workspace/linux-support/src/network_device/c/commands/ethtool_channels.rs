@@ -14,40 +14,40 @@ pub(crate) struct ethtool_channels
 	/// These have only receive queues.
 	///
 	/// Read only.
-	pub(crate) max_rx: u32,
+	pub(crate) max_rx: Option<QueueCount>,
 	
 	/// Maximum number of transmit channels the driver supports.
 	///
 	/// These have only transmit queues.
 	///
 	/// Read only.
-	pub(crate) max_tx: u32,
+	pub(crate) max_tx: Option<QueueCount>,
 	
 	/// Maximum number of other channels the driver supports.
 	///
 	/// Used for other purposes such as link interrupts or PCI SR-IOV co-ordination.
 	///
 	/// Read only.
-	pub(crate) max_other: u32,
+	pub(crate) max_other: Option<QueueCount>,
 	
 	/// Multi-purpose channels.
 	///
 	/// These have simulataneously receive and transmit queues.
 	///
 	/// Read only.
-	pub(crate) max_combined: u32,
+	pub(crate) max_combined: Option<QueueCount>,
 	
 	/// Valid values are in the range 1 to `max_rx`.
-	pub(crate) rx_count: Option<NonZeroU32>,
+	pub(crate) rx_count: Option<QueueCount>,
 	
 	/// Valid values are in the range 1 to `max_tx`.
-	pub(crate) tx_count: Option<NonZeroU32>,
+	pub(crate) tx_count: Option<QueueCount>,
 	
 	/// Valid values are in the range 1 to `max_other`.
-	pub(crate) other_count: Option<NonZeroU32>,
+	pub(crate) other_count: Option<QueueCount>,
 	
 	/// Valid values are in the range 1 to `max_combined`.
-	pub(crate) combined_count: Option<NonZeroU32>,
+	pub(crate) combined_count: Option<QueueCount>,
 }
 
 impl EthtoolCommand for ethtool_channels

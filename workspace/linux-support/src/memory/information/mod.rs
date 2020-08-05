@@ -3,7 +3,9 @@
 
 
 use super::*;
-use crate::paths::*;
+
+
+include!("flush_per_cpu_statistics.rs");
 include!("MemoryInformation.rs");
 include!("MemoryInformationName.rs");
 include!("MemoryInformationParseError.rs");

@@ -8,13 +8,21 @@
 #[serde(default, deny_unknown_fields)]
 pub struct GlobalNetworkDeviceConfiguration
 {
-	/// Network interface name.
-	pub network_interface_name: NetworkInterfaceName,
-
 	/// Driver message level.
 	///
 	/// Use `NETIF_MSG::empty()` to try to disable all messages.
 	#[serde(default)] pub driver_message_level: Option<NETIF_MSG>,
+	
+	/// Transmission queue length, unrelated apparently to `PendingQueueDepths.transmit_pending_queue_depth`.
+	///
+	/// Default on Linux is 1000.
+	/// A value of 128 has been suggested for some improvement in reducing bufferbloat.
+	#[serde(default)] pub transmission_queue_length: Option<u32>,
+	
+	/// Maximum Transmission Unit (MTU).
+	///
+	/// Does not normally need to change.
+	#[serde(default)] pub maximum_transmission_unit: Option<MaximumTransmissionUnit>,
 	
 	/// Forward Error Correction (FEC).
 	#[serde(default)] pub forward_error_correction: Option<ForwardErrorCorrectionCode>,
@@ -47,6 +55,10 @@ pub struct GlobalNetworkDeviceConfiguration
 	#[serde(default)] pub coalesce_configuration: Option<CoalesceConfiguration>,
 	
 	/// Maximize the number of channels?
+	///
+	/// Changing the number of channels is not possible if an eXpress Data Path (XDP) program is attached.
+	/// Changing the number of channels is not possible if Intel Flow Director (fdir) rules are active.
+	/// Changing the number of channels is not possible for Intel i40e if traffic classes (TCs) are configured through using the Multiqueue Priority Qdisc (Offloaded Hardware QOS), [MQPRIO](https://www.man7.org/linux/man-pages/man8/tc-mqprio.8.html).
 	#[serde(default)] pub maximize_number_of_channels: bool,
 
 	/// Maximize pending queue depths?
@@ -67,27 +79,23 @@ pub struct GlobalNetworkDeviceConfiguration
 	/// This is always configured after changes to the number of channels, as changes to channels resets RSS hash configuration on some cards (eg Mellanox).
 	#[serde(default)] pub receive_side_scaling_hash_configuration: Option<ConfiguredHashSettings>,
 	
-	/*
-		TODO:
-		
-		eg have 11 RX rings
-		We want to apply a 'weight' to each RX ring;
-			a weight of 0 disables any flows to that RX ring
-			
-		the CPU which handles the interrupt will also process the packet unless:-
-			/sys/class/net/<device>/queues/<rx-queue>/rps_cpus - a cpu bitmap - is changed - to enable RPS - receive packet steering - which is a software tech, I think.
-			See https://www.suse.com/support/kb/doc/?id=000018430
-		
-		On NUMA machines, best performance can be achieved by configuring RPS to use the CPUs on the same NUMA node as the interrupt IRQ for the interface's receive queue.
-	 */
-	
 	/// Change generic receive offload (GRO) flush timeout?
 	///
 	/// Default is usually `0`.
 	#[serde(default)] pub generic_receive_offload_flush_timeout_in_nanoseconds: Option<u32>,
 }
 
-xxx;
+/*
+	TODO:
+	the CPU which handles the interrupt will also process the packet unless:-
+		/sys/class/net/<device>/queues/<rx-queue>/rps_cpus - a cpu bitmap - is changed - to enable RPS - receive packet steering - which is a software tech, I think.
+		See https://www.suse.com/support/kb/doc/?id=000018430
+	
+	On NUMA machines, best performance can be achieved by configuring RPS to use the CPUs on the same NUMA node as the interrupt IRQ for the interface's receive queue.
+ */
+
+
+// https://www.kernel.org/doc/html/v5.8/networking/scaling.html
 /*
 
 TODO: Receive Queue => CPU
@@ -109,8 +117,9 @@ This table can be configured. For example, to make sure all traffic goes only to
 client$ sudo ethtool -X eth2 weight 1 1 1 1 1 1 0 0 0 0 0
 Finally, ensure the interrupts of multiqueue network cards are evenly distributed between CPUs. The irqbalance service is stopped and the interrupts are manually assigned. For simplicity let's pin the RX queue #0 to CPU #0, RX queue #1 to CPU #1 and so on.
 
-Use struct InterruptRequest to read and write smp_affinity_list.
-Also change /proc/irq/default_smp_affinity
+
+We currently use the following in GlobalSchedulingConfiguration
+
 
 MSI-X - Message Signal Interrupts (Extended).
 
@@ -130,6 +139,7 @@ NOTE: /sys/class/net/eth2/device/msi_irqs may not exist, in which case:-
 	
 	This means eth0 has assigned IRQ number 32.
 	There may be multiple lines.
+	The device may not exist at all (eg a Parallels VM)
 	
 	Change /proc/irq/32/smp_affinity to change the CPUs dealing with that IRQ
 		- The list of CPUs should be on the same NUMA node as the eth0 device (ie check eth0's PCI device).
@@ -150,58 +160,8 @@ Inputs into a weighting algorithm
 	- number of receive queues, number_of_receive_queues (eg 2, 11)
 	- indirection_table_size (eg 128) - this is the denominator.
 	
-	fn calculate_indirection_table(number_of_receive_queues: NonZeroU32, indirection_table_size: NonZeroU32, weight_queue: impl WeightQueue, allocate_any_remaining_weight_to_final_queue: bool) -> Vec<QueueIdentifier>
-	{
-		let number_of_receive_queues = number_of_receive_queues.get();
-		let indirection_table_size = indirection_table_size.get();
-		let mut indirection_table = Vec::with_capacity(number_of_receive_queues as usize);
-	
-		let mut hash_index = 0;
-		for queue_identifier in 0 .. number_of_receive_queues
-		{
-			let queue_identifier = QueueIdentifier(queue_identifier);
-			let weight = weight_queue(queue_identifier, number_of_receive_queues, indirection_table_size);
-			let next_hash_index = hash_index.checked_add(weight).expect("Far too much weight");
-			if next_hash_index > indirection_table_size
-			{
-				panic!("Asked for too much weight")
-			}
-			
-			for add_hash_index in hash_index .. next_hash_index
-			{
-				indirection_table.push(queue_identifier);
-			}
-			
-			if next_hash_index == indirection_table_size
-			{
-				break
-			}
-			hash_index = next_hash_index
-		}
-		if hash_index < indirection_table_size
-		{
-			if !allocate_any_remaining_weight_to_final_queue
-			{
-				panic!("Some weight was not used")
-			}
-			let queue_identifier = QueueIdentifier(number_of_receive_queues - 1);
-			for add_hash_index in hash_index .. indirection_table
-			{
-				indirection_table.push(queue_identifier);
-			}
-		}
-		
-		indirection_table
-	}
 	
 	
-	trait WeightQueue
-	{
-		//
-		fn weight(queue_index: QueueIdentifier, maximum_queue_index: NonZeroU32, denominator: NonZeroU32) -> u32
-		{
-		}
-	}
 
 
 https://docs.gz.ro/tuning-network-cards-on-linux.html
@@ -291,68 +251,78 @@ impl GlobalNetworkDeviceConfiguration
 {
 	/// Configures.
 	#[inline(always)]
-	pub fn configure(&self, sys_path: &SysPath) -> Result<(Channels, PendingQueueDepths), GlobalNetworkDeviceConfigurationError>
+	pub fn configure(&self, sys_path: &SysPath, network_interface_name: &NetworkInterfaceName) -> Result<(Channels, PendingQueueDepths), GlobalNetworkDeviceConfigurationError>
 	{
 		use self::GlobalNetworkDeviceConfigurationError::*;
 		
 		#[inline(always)]
-		fn validate<A, E>(change_result: impl FnOnce(&NetworkDeviceInputOutputControl) -> Result<Option<A>, E>, error: impl FnOnce(E) -> GlobalNetworkDeviceConfigurationError) -> Result<A, GlobalNetworkDeviceConfigurationError>
+		fn validate<A, E>(network_device_input_output_control: &NetworkDeviceInputOutputControl, change_result: impl FnOnce(&NetworkDeviceInputOutputControl) -> Result<Option<A>, E>, error: impl FnOnce(E) -> GlobalNetworkDeviceConfigurationError) -> Result<A, GlobalNetworkDeviceConfigurationError>
 		{
 			change(network_device_input_output_control).map_err(error)?.ok_or(NetworkDeviceDoesNotExist(network_device_input_output_control.network_interface_name()))
 		}
 		
-		let network_device_input_output_control = NetworkDeviceInputOutputControl::new(Cow::Borrowed(&self.network_interface_name))?;
+		let network_device_input_output_control = NetworkDeviceInputOutputControl::new(Cow::Borrowed(network_interface_name))?;
 		
 		if let Some(driver_message_level) = self.driver_message_level
 		{
-			validate(network_device_input_output_control.set_driver_message_level(driver_message_level), CouldNotSetDriverMessageLevel)?
+			validate(&network_device_input_output_control, NetworkDeviceInputOutputControl::set_driver_message_level(driver_message_level), CouldNotSetDriverMessageLevel)?
+		}
+		
+		if let Some(transmission_queue_length) = self.transmission_queue_length
+		{
+			validate(&network_device_input_output_control, NetworkDeviceInputOutputControl::sset_transmission_queue_length(transmission_queue_length), CouldNotSetTransmissionQueueLength)?;
+		}
+		
+		if let Some(maximum_transmission_unit) = self.maximum_transmission_unit
+		{
+			validate(&network_device_input_output_control, NetworkDeviceInputOutputControl::sset_maximum_transmission_unit(maximum_transmission_unit), CouldNotSetMaximumTransmissionUnit)?;
 		}
 		
 		if let Some(forward_error_correction) = self.forward_error_correction
 		{
-			validate(network_device_input_output_control.set_forward_error_correction(forward_error_correction), CouldNotSetForwardErrorConnection)?
+			validate(&network_device_input_output_control, NetworkDeviceInputOutputControl::sset_forward_error_correction(forward_error_correction), CouldNotSetForwardErrorConnection)?
 		}
 		
 		if let Some(pause_configuration) = self.pause_configuration
 		{
-			validate(network_device_input_output_control.set_pause(pause_configuration), CouldNotSetPause)?
+			validate(&network_device_input_output_control, NetworkDeviceInputOutputControl::sset_pause(pause_configuration), CouldNotSetPause)?
 		}
 		
 		if let Some(ref energy_efficient_ethernet) = self.energy_efficient_ethernet
 		{
-			validate(network_device_input_output_control.set_energy_efficient_ethernet(energy_efficient_ethernet), CouldNotSetForwardErrorConnection)?
+			validate(&network_device_input_output_control, NetworkDeviceInputOutputControl::sset_energy_efficient_ethernet(energy_efficient_ethernet), CouldNotSetForwardErrorConnection)?
 		}
 		
 		if self.disable_wake_on_lan
 		{
-			validate(network_device_input_output_control.disable_wake_on_lan(), CouldNotDisableWakeOnLan)?
+			validate(&network_device_input_output_control, NetworkDeviceInputOutputControl::sdisable_wake_on_lan(), CouldNotDisableWakeOnLan)?
 		}
 		
-		validate(network_device_input_output_control.set_features(FeatureGroupChoice::iter(&self.feature_group_choices)), CouldNotChangeFeatures)?;
+		validate(&network_device_input_output_control, NetworkDeviceInputOutputControl::sset_features(FeatureGroupChoice::iter(&self.feature_group_choices)), CouldNotChangeFeatures)?;
 		
 		if let Some(ref driver_specific_flags_to_change) = self.driver_specific_flags_to_change
 		{
-			let all_string_sets = validate(network_device_input_output_control.get_all_string_sets(), CouldNotGetAllStringSets)?;
-			validate(network_device_input_output_control.set_private_flags(&all_string_sets, driver_specific_flags_to_change), CouldNotChangeDriverSpecificFlags)
+			let all_string_sets = validate(&network_device_input_output_control, NetworkDeviceInputOutputControl::sget_all_string_sets(), CouldNotGetAllStringSets)?;
+			validate(&network_device_input_output_control, NetworkDeviceInputOutputControl::sset_private_flags(&all_string_sets, driver_specific_flags_to_change), CouldNotChangeDriverSpecificFlags)
 		}
 		
 		for tunable in self.tunables.iter()
 		{
-			validate(network_device_input_output_control.set_tunable(table), CouldNotChangeTunable)?
+			validate(&network_device_input_output_control, NetworkDeviceInputOutputControl::sset_tunable(table), CouldNotChangeTunable)?
 		}
 		
 		if let Some(ref coalesce_configuration) = self.coalesce_configuration
 		{
-			validate(network_device_input_output_control.change_coalesce_configuration(coalesce_configuration), CouldNotChangeCoalesceConfiguration)?
+			validate(&network_device_input_output_control, NetworkDeviceInputOutputControl::schange_coalesce_configuration(coalesce_configuration), CouldNotChangeCoalesceConfiguration)?
 		}
 		
-		let channels = validate(network_device_input_output_control.maximize_number_of_channels(self.maximize_number_of_channels), CouldNotMaximizeChannels)?;
+		let channels = validate(&network_device_input_output_control, NetworkDeviceInputOutputControl::smaximize_number_of_channels(self.maximize_number_of_channels), CouldNotMaximizeChannels)?;
 		
-		let pending_queue_depths = validate(network_device_input_output_control.maximize_receive_ring_queues_and_transmit_ring_queue_depths(self.maximize_pending_queue_depths), CouldNotMaximizePendingQueueDepths)?;
+		let pending_queue_depths = validate(&network_device_input_output_control, NetworkDeviceInputOutputControl::smaximize_receive_ring_queues_and_transmit_ring_queue_depths(self.maximize_pending_queue_depths), CouldNotMaximizePendingQueueDepths)?;
 		
 		if let Some(ref receive_side_scaling_hash_configuration) = self.receive_side_scaling_hash_configuration
 		{
-			validate(network_device_input_output_control.set_configured_hash_settings(None, receive_side_scaling_hash_configuration), CouldNotConfigureReceiveSideScalingHashConfiguration)?
+			validate(&network_device_input_output_control, NetworkDeviceInputOutputControl::sset_configured_hash_settings(None, receive_side_scaling_hash_configuration), CouldNotConfigureReceiveSideScalingHashConfiguration)?
 		}
 		
 		if Some(generic_receive_offload_flush_timeout_in_nanoseconds) = self.generic_receive_offload_flush_timeout_in_nanoseconds

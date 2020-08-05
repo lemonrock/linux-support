@@ -51,28 +51,26 @@ pub struct GlobalSchedulingConfiguration
 	/// Requires root.
 	pub hardware_watchdog_threshold_in_seconds: Option<u32>,
 
-	/// It is recommended that this value be computed.
+	/// RCU grace period.
 	///
-	/// If the watchdogs are disabled, then this value does not need to change.
-	///
-	/// Requires root.
-	pub software_and_hardware_watchdog_runs_on_which_kernel_cpus: Option<HyperThreads>,
-
-	/// It is recommended that this value be computed.
-	///
-	/// Requires root.
-	pub work_queue_runs_on_which_kernel_cpus: Option<HyperThreads>,
-	
-	/// It is recommended that this value be computed.
-	///
-	/// Requires root.
-	pub default_interrupt_request_affinity: Option<HyperThreads>,
-
-	/// It is recommended that this value be computed.
-	///
-	/// Requires root.
-	pub interrupt_request_affinity: HashMap<InterruptRequest, HyperThreads>,
+	/// Onyl rarely needs to be changed.
+	pub rcu_grace_period: Option<RcuGracePeriodConfiguration>,
 }
+
+/*
+### Scheduling
+
+```
+echo 0 > sched_energy_aware
+
+echo "15000000" > /proc/sys/kernel/sched_latency_ns
+echo "1000000" > /proc/sys/kernel/sched_min_granularity_ns
+echo "2000000" > /proc/sys/kernel/sched_wakeup_granularity_ns
+
+# Disable sched_stats for a minor overhead reduction;
+echo "0" > /proc/sys/kernel/sched_schedstats
+```
+ */
 
 impl GlobalSchedulingConfiguration
 {
@@ -90,15 +88,7 @@ impl GlobalSchedulingConfiguration
 		set_proc_sys_kernel_value(proc_path, "software_watchdog", self.enable_software_watchdog_lockup_detection, CouldNotChangeSoftwareWatchdog)?;
 		set_proc_sys_kernel_value(proc_path, "nmi_watchdog", self.enable_hardware_watchdog_lockup_detection, CouldNotChangeHardwareWatchdog)?;
 		set_proc_sys_kernel_value(proc_path, "watchdog_thresh", self.hardware_watchdog_threshold_in_seconds.map(UnpaddedDecimalInteger), CouldNotChangeHardwareWatchdogThreshold)?;
-		set_value(proc_path, |proc_path, value| value.force_watchdog_to_just_these_hyper_threads(proc_path), self.software_and_hardware_watchdog_runs_on_which_kernel_cpus.as_ref(), CouldNotChangeSoftwareAndHardwareWatchdogCpus)?;
-		set_value(proc_path, |_proc_path, value| value.set_work_queue_hyper_thread_affinity(sys_path), self.work_queue_runs_on_which_kernel_cpus.as_ref(), CouldNotChangeWorkQueueCpus)?;
-		set_value(proc_path, |proc_path, value| InterruptRequest::set_default_smp_affinity(proc_path, value), self.default_interrupt_request_affinity.as_ref(), CouldNotChangeInterruptRequestDefaultAffinity)?;
-		
-		for (interrupt_request, hyper_threads) in self.interrupt_request_affinity.iter()
-		{
-			let interrupt_request = *interrupt_request;
-			interrupt_request.set_smp_affinity(proc_path, hyper_threads).map_err(|cause| CouldNotChangeInterruptRequestAffinity(cause, interrupt_request))?;
-		}
+		set_value(proc_path, |_proc_path, value| value.set(sys_path), self.rcu_grace_period, CouldNotChangeRcuGracePeriod)?;
 		
 		Ok(())
 	}

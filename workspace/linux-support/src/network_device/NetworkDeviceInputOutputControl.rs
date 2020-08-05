@@ -41,6 +41,48 @@ impl<'a> NetworkDeviceInputOutputControl
 		)
 	}
 	
+	/// Set transmission queue length.
+	#[inline(always)]
+	pub fn set_transmission_queue_length(&self, transmission_queue_length: u32) -> Result<Option<()>, NetworkDeviceInputOutputControlError<TransmissionQueueLengthOutRangeError>>
+	{
+		self.set_ifreq_from_name
+		(
+			SIOCSIFTXQLEN,
+			ifr_ifru
+			{
+				ifru_ivalue: transmission_queue_length,
+			},
+			|_ifreq| Ok(()),
+			|errno| match errno.0
+			{
+				ERANGE => Err(TransmissionQueueLengthOutRangeError),
+				
+				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCGIFINDEX)", unexpected),
+			}
+		)
+	}
+	
+	/// Set maximum transmission unit (MTU).
+	#[inline(always)]
+	pub fn set_maximum_transmission_unit(&self, maximum_transmission_unit: MaximumTransmissionUnit) -> Result<Option<()>, NetworkDeviceInputOutputControlError<MaximumTransmissionUnitOutRangeError>>
+	{
+		self.set_ifreq_from_name
+		(
+			SIOCSIFMTU,
+			ifr_ifru
+			{
+				ifr_mtu: maximum_transmission_unit.into(),
+			},
+			|_ifreq| Ok(()),
+			|errno| match errno.0
+			{
+				ERANGE => Err(TransmissionQueueLengthOutRangeError),
+				
+				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCGIFINDEX)", unexpected),
+			}
+		)
+	}
+	
 	/// Set a tunable.
 	///
 	/// Returns an error if out-of-range.
@@ -145,44 +187,35 @@ impl<'a> NetworkDeviceInputOutputControl
 	#[allow(missing_docs)]
 	pub fn maximize_receive_ring_queues_and_transmit_ring_queue_depths(&self, maximize: bool) -> Result<Option<PendingQueueDepths>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
-		let ring_parameters = match self.receive_ring_queues_and_transmit_ring_queue_depths()?
+		let (current, maximima) = match self.receive_ring_queues_and_transmit_ring_queue_depths()?
 		{
 			None => return Ok(None),
-			Some(None)  => return Ok(Some(PendingQueueDepths::new(None, None, None, None))),
-			Some(Some(ring_parameters)) => ring_parameters,
+			Some(None)  => return Ok(Some(PendingQueueDepths::Unsupported)),
+			Some(Some(current_and_maximima)) => current_and_maximima,
 		};
 		
 		if !maximize
 		{
-			let receive_pending_queue_depth = ring_parameters.rx_pending;
-			let receive_mini_pending_queue_depth = ring_parameters.rx_mini_pending;
-			let receive_jumbo_pending_queue_depth = ring_parameters.rx_jumbo_pending;
-			let transmit_pending_queue_depth = ring_parameters.tx_pending;
-			return Ok(Some(PendingQueueDepths::new(receive_jumbo_pending_queue_depth, receive_pending_queue_depth, receive_mini_pending_queue_depth, transmit_pending_queue_depth)))
+			return Ok(Some(current))
 		}
-		
-		let receive_pending_queue_depth = NonZeroU32::new(channels.max_rx);
-		let receive_mini_pending_queue_depth = NonZeroU32::new(channels.max_tx);
-		let receive_jumbo_pending_queue_depth = NonZeroU32::new(channels.max_combined);
-		let transmit_pending_queue_depth = NonZeroU32::new(channels.max_other);
 		
 		self.ethtool_command
 		(
 			ethtool_ringparam
 			{
 				cmd: ETHTOOL_SRINGPARAM,
-				rx_max_pending: 0,
-				rx_mini_max_pending: 0,
-				rx_jumbo_max_pending: 0,
-				tx_max_pending: 0,
-				rx_pending: receive_pending_queue_depth,
-				rx_mini_pending: receive_mini_pending_queue_depth,
-				rx_jumbo_pending: receive_jumbo_pending_queue_depth,
-				tx_pending: transmit_pending_queue_depth,
+				rx_max_pending: None,
+				rx_mini_max_pending: None,
+				rx_jumbo_max_pending: None,
+				tx_max_pending: None,
+				rx_pending: maximima.receive_pending_queue_depth,
+				rx_mini_pending: maximima.receive_mini_pending_queue_depth,
+				rx_jumbo_pending: maximima.receive_jumbo_pending_queue_depth,
+				tx_pending: maximima.transmit_pending_queue_depth,
 			},
-			|_command| Ok(PendingQueueDepths::new(receive_jumbo_pending_queue_depth, receive_pending_queue_depth, receive_mini_pending_queue_depth, transmit_pending_queue_depth)),
+			|_command| Ok(maximima),
 			Self::error_is_unreachable,
-			|_command| PendingQueueDepths::new(ring_parameters.rx_pending, ring_parameters.rx_mini_pending, ring_parameters.rx_jumbo_pending, ring_parameters.tx_pending),
+			|_command| current,
 		)
 	}
 	
@@ -192,19 +225,16 @@ impl<'a> NetworkDeviceInputOutputControl
 	{
 		const One: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(1) };
 		
-		let channels = match self.number_of_channels()?
+		let (current, maximima) = match self.number_of_channels()?
 		{
 			None => return Ok(None),
-			Some(None)  => return Ok(Some(Channels::new(None, None, None))),
-			Some(Some(channels)) => channels,
+			Some(None)  => return Ok(Some(Channels::Unsupported)),
+			Some(Some(current_and_maximima)) => current_and_maximima,
 		};
 		
 		if !maximize
 		{
-			let receive_and_transmit_channels_count = channels.combined_count;
-			let receive_channels_count = channels.rx_count;
-			let transmit_channels_count = channels.tx_count;
-			return Ok(Some(Channels::new(receive_and_transmit_channels_count, receive_channels_count, transmit_channels_count)))
+			return Ok(Some(current))
 		}
 		
 		let receive_and_transmit_channels_count = NonZeroU32::new(channels.max_combined);
@@ -217,24 +247,26 @@ impl<'a> NetworkDeviceInputOutputControl
 			ethtool_channels
 			{
 				cmd: ETHTOOL_SCHANNELS,
-				max_rx: 0,
-				max_tx: 0,
-				max_combined: 0,
-				max_other: 0,
-				combined_count: receive_and_transmit_channels_count,
-				rx_count: receive_channels_count,
-				tx_count: transmit_channels_count,
-				other_count: other_channels_count,
+				max_rx: None,
+				max_tx: None,
+				max_combined: None,
+				max_other: None,
+				combined_count: maximima.receive_and_transmit_channels_count,
+				rx_count: maximima.receive_only_channels_count,
+				tx_count: maximima.transmit_only_channels_count,
+				other_count: maximima.other_channels_count,
 			},
-			|_command| Ok(Channels::new(receive_and_transmit_channels_count, receive_channels_count, transmit_channels_count)),
+			|_command| Ok(maximima),
 			Self::error_is_unreachable,
-			|_command| Channels::new(channels.combined_count, channels.rx_count, channels.tx_count)
+			|_command| current,
 		)
 	}
 	
 	/// The ring queue count can legitimately be zero.
+	///
+	/// If unsupported then the value `1` is returned.
 	#[inline(always)]
-	pub fn get_receive_ring_queue_count(&self) -> Result<Option<usize>, NetworkDeviceInputOutputControlError<Infallible>>
+	pub fn get_receive_ring_queue_count(&self) -> Result<Option<QueueCount>, NetworkDeviceInputOutputControlError<ParseNumberError>>
 	{
 		self.ethtool_command
 		(
@@ -247,9 +279,9 @@ impl<'a> NetworkDeviceInputOutputControl
 				rule_count_or_rss_context: unsafe { zeroed() },
 				rule_locs: Default::default()
 			},
-			|command| Ok(command.data as usize),
+			|command| QueueCount::try_from(command.data),
 			Self::error_is_unreachable,
-			|_command| 0
+			|_command| QueueCount::InclusiveMinimum,
 		)
 	}
 	
@@ -367,7 +399,7 @@ impl<'a> NetworkDeviceInputOutputControl
 		{
 			None => return Ok(None),
 			
-			Some(Some(sizes)) => self.get_hash_function_indirection_table_and_key(context_identifier, sizes),
+			Some(Some(sizes)) => self.modern_get_configured_hash_settings(context_identifier, sizes),
 			
 			Some(None) => match context_identifier
 			{
@@ -405,20 +437,13 @@ impl<'a> NetworkDeviceInputOutputControl
 		)
 	}
 	
-	fn get_hash_function_indirection_table_and_key(&self, context_identifier: Option<ContextIdentifier>, (indirection_size, key_size): (usize, usize)) -> Result<Option<ConfiguredHashSettings>, NetworkDeviceInputOutputControlError<UnsupportedHashFunctionError>>
+	#[inline(always)]
+	fn modern_get_configured_hash_settings(&self, context_identifier: Option<ContextIdentifier>, (indirection_size, key_size): (usize, usize)) -> Result<Option<ConfiguredHashSettings>, NetworkDeviceInputOutputControlError<UnsupportedHashFunctionError>>
 	{
 		self.ethtool_command
 		(
 			ethtool_rxfh::get_indirection_table_and_key(context_identifier, indirection_size, key_size),
-			|command| Ok
-			(
-				ConfiguredHashSettings
-				{
-					function: command.hash_function()?,
-					indirection_table: command.hash_indirection_table().map(|slice| slice.to_vec()),
-					key: command.hash_key_bytes().map(|slice| slice.to_vec()),
-				}
-			),
+			|command| command.configured_hash_settings(),
 			Self::error_is_unreachable,
 			|_command| ConfiguredHashSettings::Unsupported,
 		)
@@ -440,7 +465,7 @@ impl<'a> NetworkDeviceInputOutputControl
 		)
 	}
 	
-	fn legacy_fallback_get_indirection_table(&self, indirection_size: usize) -> Result<Option<Option<Vec<QueueIdentifier>>>, NetworkDeviceInputOutputControlError<UnsupportedHashFunctionError>>
+	fn legacy_fallback_get_indirection_table(&self, indirection_size: usize) -> Result<Option<Option<IndirectionTable>>, NetworkDeviceInputOutputControlError<UnsupportedHashFunctionError>>
 	{
 		self.ethtool_command
 		(
@@ -461,7 +486,7 @@ impl<'a> NetworkDeviceInputOutputControl
 				}
 				else
 				{
-					Some(command.array_elements().to_vec())
+					Some(IndirectionTable(command.array_elements().to_vec()))
 				}
 			),
 			Self::error_is_unreachable,
@@ -830,49 +855,60 @@ impl<'a> NetworkDeviceInputOutputControl
 		)
 	}
 	
-	/// Queue depths.
+	/// Queue depths, current and maximima.
 	#[inline(always)]
-	pub fn receive_ring_queues_and_transmit_ring_queue_depths(&self) -> Result<Option<Option<ethtool_ringparam>>, NetworkDeviceInputOutputControlError<Infallible>>
+	pub fn receive_ring_queues_and_transmit_ring_queue_depths(&self) -> Result<Option<Option<(PendingQueueDepths, PendingQueueDepths)>>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		self.ethtool_command
 		(
 			ethtool_ringparam
 			{
 				cmd: ETHTOOL_GRINGPARAM,
-				rx_max_pending: 0,
-				rx_mini_max_pending: 0,
-				rx_jumbo_max_pending: 0,
-				tx_max_pending: 0,
+				rx_max_pending: None,
+				rx_mini_max_pending: None,
+				rx_jumbo_max_pending: None,
+				tx_max_pending: None,
 				rx_pending: None,
 				rx_mini_pending: None,
 				rx_jumbo_pending: None,
 				tx_pending: None,
 			},
-			|command| Ok(Some(command)),
+			|ring_parameters|
+			{
+				let current = PendingQueueDepths::new(ring_parameters.rx_pending, ring_parameters.rx_mini_pending, rx_jumbo_pending, tx_pending);
+				let maximima = PendingQueueDepths::new(ring_parameters.rx_max_pending, ring_parameters.rx_mini_max_pending, ring_parameters.rx_jumbo_max_pending, ring_parameters.tx_max_pending);
+				
+				Ok(Some((current, maximima)))
+			},
 			Self::error_is_unreachable,
 			|_command| None
 		)
 	}
 	
-	/// Number of channels.
+	/// Number of channels, current and maximima.
 	#[inline(always)]
-	pub fn number_of_channels(&self) -> Result<Option<Option<ethtool_channels>>, NetworkDeviceInputOutputControlError<Infallible>>
+	pub fn number_of_channels(&self) -> Result<Option<Option<(Channels, Channels)>>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		self.ethtool_command
 		(
 			ethtool_channels
 			{
 				cmd: ETHTOOL_GCHANNELS,
-				max_rx: 0,
-				max_tx: 0,
-				max_other: 0,
-				max_combined: 0,
+				max_rx: None,
+				max_tx: None,
+				max_other: None,
+				max_combined: None,
 				rx_count: None,
 				tx_count: None,
 				other_count: None,
 				combined_count: None,
 			},
-			|command| Ok(Some(command)),
+			|command|
+			{
+				let current = Channels::new(command.combined_count, command.rx_count, command.tx_count, command.other_count);
+				let maximima = Channels::new(command.max_combined, command.max_rx, command.max_tx, command.max_other);
+				Ok(Some((current, maximima)))
+			},
 			Self::error_is_unreachable,
 			|_command| None
 		)
@@ -926,6 +962,12 @@ impl<'a> NetworkDeviceInputOutputControl
 	fn ifreq_from_name<V: Sized, E: error::Error + 'static>(&self, request: i32, ok_handler: impl FnOnce(ifreq) -> Result<V, E>, error_handler: impl FnOnce(Errno) -> Result<Option<V>, E>) -> Result<Option<V>, NetworkDeviceInputOutputControlError<E>>
 	{
 		self.network_device_socket_file_descriptor.ifreq_from_name(request, self.network_interface_name(), ok_handler, error_handler)
+	}
+	
+	#[inline(always)]
+	fn set_ifreq_from_name<V: Sized, E: error::Error + 'static>(&self, request: i32, ifr_ifru: ifreq_ifru, ok_handler: impl FnOnce(ifreq) -> Result<V, E>, error_handler: impl FnOnce(Errno) -> Result<Option<V>, E>) -> Result<Option<V>, NetworkDeviceInputOutputControlError<E>>
+	{
+		self.network_device_socket_file_descriptor.set_ifreq_from_name(request, self.network_interface_name(), ifr_ifru: ifreq_ifru, ok_handler, error_handler)
 	}
 	
 	#[inline(always)]

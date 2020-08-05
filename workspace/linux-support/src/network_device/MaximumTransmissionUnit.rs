@@ -6,3 +6,12 @@
 #[repr(transparent)]
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct MaximumTransmissionUnit(pub u32);
+
+impl Into<i32> for MaximumTransmissionUnit
+{
+	#[inline(always)]
+	fn into(self) -> i32
+	{
+		self.0 as i32
+	}
+}

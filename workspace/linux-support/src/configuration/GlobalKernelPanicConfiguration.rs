@@ -3,6 +3,8 @@
 
 
 /// Global kernel panic configuration.
+///
+/// This does not configure 'panic on Out-of-Memory', which is very much a setting to use if an application takes over a machine; see `GlobalOutOfMemoryConfiguration`.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
@@ -52,6 +54,11 @@ pub struct GlobalKernelPanicConfiguration
 	///
 	/// Requires root.
 	pub panic_on_hung_task: Option<bool>,
+	
+	/// Panic on a memory check failure.
+	///
+	/// Requires root.
+	pub panic_on_memory_check_failure: Option<bool>,
 
 	/// If the software watchdog lockup detector is running, panic on a detected soft lockup.
 	pub panic_on_software_watchdog_lockup: Option<bool>,
@@ -95,6 +102,7 @@ impl GlobalKernelPanicConfiguration
 		set_proc_sys_kernel_value(proc_path, "panic_on_unrecovered_nmi", self.panic_on_unrecovered_non_maskable_interupt, CouldNotChangePanicOnUnrecoverableNonMaskableInterrupt)?;
 		set_proc_sys_kernel_value(proc_path, "panic_on_stackoverflow", self.panic_on_stack_overflow, CouldNotChangePanicOnStackOverflow)?;
 		set_proc_sys_kernel_value(proc_path, "panic_on_hung_task", self.panic_on_stack_overflow, CouldNotChangePanicOnHungTask)?;
+		set_proc_sys_vm_value(proc_path, "memory_failure_recovery", self.panic_on_memory_check_failure.map(|value| !value), CouldNotChangePanicOnMemoryFailure)?;
 		set_proc_sys_kernel_value(proc_path, "softlockup_panic", self.panic_on_software_watchdog_lockup, CouldNotChangePanicOnSoftwareWatchdogLockup)?;
 		set_proc_sys_kernel_value(proc_path, "softlockup_all_cpu_backtrace", self.capture_debug_information_on_software_watchdog_lockup, CouldNotChangeSoftwareWatchdogLockupDebugInformation)?;
 		set_proc_sys_kernel_value(proc_path, "hardlockup_panic", self.panic_on_hardware_watchdog_lockup, CouldNotChangePanicOnHardwareWatchdogLockup)?;

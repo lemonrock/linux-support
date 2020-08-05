@@ -15,6 +15,8 @@ pub struct GlobalFileLeasingConfiguration
 
 	/// Grace time in seconds.
 	///
+	/// A value such as `20` has been recommended.
+	///
 	/// Requires root.
 	pub number_of_seconds_a_lease_holder_has_to_release_a_lease: Option<usize>
 }

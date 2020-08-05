@@ -36,7 +36,7 @@ impl error::Error for MapRehydrateError
 		{
 			&CouldNotGetExistingMapInformation(_) => None,
 			
-			&CouldNotGetExistingMapNamed(_) => None,x
+			&CouldNotGetExistingMapNamed(_) => None,
 			
 			&NoMaximumEntries => None,
 		}

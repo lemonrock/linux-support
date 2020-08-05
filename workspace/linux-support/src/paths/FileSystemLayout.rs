@@ -36,4 +36,11 @@ impl FileSystemLayout
 			&self.etc_path,
 		)
 	}
+	
+	/// Defaults for page sizes.
+	#[inline(always)]
+	pub fn defaults(&self) -> DefaultPageSizeAndHugePageSizes
+	{
+		DefaultPageSizeAndHugePageSizes::new(&self.sys_path, &self.proc_path)
+	}
 }
