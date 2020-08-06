@@ -2,12 +2,21 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+/// Default is 4,096.
+///
+/// Writes to `/proc/sys/kernel/shmmni`.
+#[inline(always)]
+pub fn set_maximum_number_of_memory_segment_identifiers(proc_path: &ProcPath, maximum_number_of_memory_segment_identifiers: NonZeroU32) -> io::Result<()>
+{
+	assert_effective_user_id_is_root("write /proc/sys/kernel/shmmni");
 
-
-/// Legacy System V (SysV) memory segments (`shm`).
-pub mod memory_segments;
-
-
-/// Legacy System V (SysV) message queues (MQ).
-pub mod message_queues;
+	let file_path = proc_path.sys_kernel_file_path("shmmni");
+	if file_path.exists()
+	{
+		file_path.write_value(UnpaddedDecimalInteger(maximum_number_of_memory_segment_identifiers))
+	}
+	else
+	{
+		Ok(())
+	}
+}

@@ -50,9 +50,18 @@ pub struct ProcessConfiguration
 	/// Making less likely or disabling requires root.
 	#[serde(default)] pub out_of_memory_score_adjustment: Option<OutOfMemoryScoreAdjustment>,
 	
+	/// Synchronize (flush all data and meta data to disks) and drop caches, once, on start-up.
+	///
+	/// This can help later memory large allocations to succeed in conjunction with `compact_memory`.
+	///
+	/// See also `GlobalMemoryConfiguration.compact_unevictable_allowed`.
+	///
+	/// Requires root if `true`.
+	#[serde(default)] pub synchronize_and_drop_caches: bool,
+	
 	/// Compact memory, once, on start-up.
 	///
-	/// This can help later memory large allocations to succeed.
+	/// This can help later memory large allocations to succeed in conjunction with `synchronize_and_drop_caches`.
 	///
 	/// See also `GlobalMemoryConfiguration.compact_unevictable_allowed`.
 	///
@@ -118,6 +127,7 @@ impl Default for ProcessConfiguration
 			resource_limits: Self::resource_limits_default(),
 			out_of_memory_adjustment: None,
 			out_of_memory_score_adjustment: None,
+			synchronize_and_drop_caches: false,
 			compact_memory: false,
 			lock_all_memory: None,
 			process_nice_configuration: None,
@@ -200,6 +210,8 @@ impl ProcessConfiguration
 		// This should be called before making large memory allocations.
 		self.set_out_of_memory_adjustment(proc_path)?;
 		
+		self.synchronize_and_drop_caches(proc_path)?;
+		
 		self.compact_memory(proc_path)?;
 		
 		// This *SHOULD* be configured before configuring logging.
@@ -251,6 +263,27 @@ impl ProcessConfiguration
 	fn set_out_of_memory_adjustment(&self, proc_path: &ProcPath) -> Result<(), ProcessConfigurationError>
 	{
 		self.out_of_memory_adjustment.set(proc_path, ProcessIdentifierChoice::Current).map_err(ProcessConfigurationError::CouldNotChangeOutOfMemoryAdjustment)
+	}
+	
+	#[inline(always)]
+	fn synchronize_and_drop_caches(&self, proc_path: &ProcPath) -> Result<(), ProcessConfigurationError>
+	{
+		if self.synchronize_and_drop_caches
+		{
+			File::synchronize_everything();
+			
+			assert_effective_user_id_is_root("write /proc/sys/vm/drop_caches");
+			
+			const DropPageCaches: u8 = 1;
+			const DropSlabObjects: u8 = 2;
+			const DisableInformationalLogging: u8 = 4;
+			
+			set_proc_sys_vm_value(proc_path, "drop_caches", Some(UnpaddedDecimalInteger(DropPageCaches | DropSlabObjects | DisableInformationalLogging)), ProcessConfigurationError::CouldNotDropCaches)
+		}
+		else
+		{
+			Ok(())
+		}
 	}
 	
 	#[inline(always)]

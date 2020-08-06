@@ -4,6 +4,8 @@
 
 /// Kilobytes.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct Kilobytes(usize);
 
 impl<'a> IntoLineFeedTerminatedByteString<'a> for Kilobytes

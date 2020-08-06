@@ -2,12 +2,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-
-
-/// Legacy System V (SysV) memory segments (`shm`).
-pub mod memory_segments;
-
-
-/// Legacy System V (SysV) message queues (MQ).
-pub mod message_queues;
+/// Default is 18446744073692774399.
+///
+/// Reads from `/proc/sys/kernel/shmall`.
+#[inline(always)]
+pub fn maximum_number_of_shared_memory_pages(proc_path: &ProcPath) -> NonZeroNumberOfPages
+{
+	proc_path.sys_kernel_file_path("shmall").read_value().unwrap()
+}

@@ -15,7 +15,72 @@ pub struct GlobalSchedulingConfiguration
 	///
 	/// Requires root.
 	pub globally_enable_autogroup_if_true_disable_if_false: Option<bool>,
+	
+	/// The initial value for the scheduler period.
+	///
+	/// The scheduler period is a period of time during which all runnable tasks should be allowed to run at least once.
+	/// While the Completely Fair Scheduler (CFS) has no concept of time slices, you can think of the period as the initial chunk of time which is then divided evenly into time slices, one for each runnable process.
+	///
+	/// Note that this tunable only specifies the initial value.
+	/// When too many tasks become runnable ('high load'_ the scheduler	will use `minimum_granularity` instead.
+	///
+	/// Requires root.
+	pub latency: Option<Nanoseconds>,
+	
+	/// Controls whether the scheduler can adjust `latency`.
+	///
+	/// The adjustment made is based on the number of CPUs, and increases logarithmically or linearly as implied in the available values.
+	///
+	/// This is due to the fact that with more CPUs there is an apparent reduction in perceived latency.
+	pub latency_scaling: Option<LatencyScaling>,
+	
+	/// Unlike `latency`, this tunable specifies the target period allocated for each task to run rather than the time in which all tasks should be run once.
+	///
+	/// Only used under 'high load'.
+	///
+	/// Requires root.
+	pub minimum_granularity: Option<Nanoseconds>,
+	
+	/// The target period allocated for each task that wakes up.
+	///
+	/// Requires root.
+	pub wake_up_granularity: Option<Nanoseconds>,
+	
+	/// Amount of time after the last execution that a task is considered to be “cache hot” in migration decisions.
+	///
+	/// A “cache hot” task is less likely to be migrated, so increasing this variable reduces task migrations.
+	///
+	/// The default value is 50,0000 nanoseconds.
+	///
+	/// If the CPU idle time is higher than expected when there are runnable processes, try reducing this value.
+	/// If tasks bounce between CPUs or nodes too often, try increasing it.
+	///
+	/// Requires root.
+	pub migration_cost: Option<Nanoseconds>,
+	
+	/// Completely Fair Scheduler (CFS) bandwidth slice.
+	///
+	/// Only applies to processes scheduled with `SCHED_NORMAL` (`SCHED_OTHER`).
+	///
+	/// Default is 5 milliseconds, ie `Microseconds(5000)`.
+	///
+	/// Requires root.
+	pub completely_fair_scheduler_bandwidth_slice: Option<Microseconds>,
 
+	/// Increasing the sched_nr_migrate variable gives high performance from `SCHED_NORMAL` (`SCHED_OTHER`) threads that spawn lots of tasks, at the expense of real-time latencies.
+	///
+	/// For low real-time task latency at the expense of  `SCHED_NORMAL` (`SCHED_OTHER`) task performance, the value must be lowered.
+	///
+	/// The default value is 8.
+	///
+	/// Requires root.
+	pub number_of_normal_tasks_to_migrate_to_another_hyper_thread_at_once: Option<NonZeroU8>,
+	
+	/// Disabling statistics gives a very small performance gain.
+	///
+	/// Requires root.
+	pub enable_statistics: Option<bool>,
+	
 	/// Changes the quantum used for the round-robin schedulers `Normal` and `RealTimeRoundRobin`.
 	///
 	/// Requires root.
@@ -53,24 +118,9 @@ pub struct GlobalSchedulingConfiguration
 
 	/// RCU grace period.
 	///
-	/// Onyl rarely needs to be changed.
+	/// Only rarely needs to be changed.
 	pub rcu_grace_period: Option<RcuGracePeriodConfiguration>,
 }
-
-/*
-### Scheduling
-
-```
-echo 0 > sched_energy_aware
-
-echo "15000000" > /proc/sys/kernel/sched_latency_ns
-echo "1000000" > /proc/sys/kernel/sched_min_granularity_ns
-echo "2000000" > /proc/sys/kernel/sched_wakeup_granularity_ns
-
-# Disable sched_stats for a minor overhead reduction;
-echo "0" > /proc/sys/kernel/sched_schedstats
-```
- */
 
 impl GlobalSchedulingConfiguration
 {
@@ -83,6 +133,17 @@ impl GlobalSchedulingConfiguration
 		let _current_hyper_threading_status = self.adjust_hyperthreading(sys_path);
 
 		set_proc_sys_kernel_value(proc_path, "sched_autogroup_enabled", self.globally_enable_autogroup_if_true_disable_if_false, CouldNotChangeAutogroup)?;
+	
+		set_proc_sys_kernel_value(proc_path, "sched_latency_ns", self.latency, CouldNotChangeLatency)?;
+		set_value(proc_path, |proc_path, value| value.write(proc_path), self.latency_scaling, CouldNotChangeLatencyScaling)?;
+		set_proc_sys_kernel_value(proc_path, "sched_min_granularity_ns", self.minimum_granularity, CouldNotChangeMinimumGranularity)?;
+		set_proc_sys_kernel_value(proc_path, "sched_wakeup_granularity_ns", self.wake_up_granularity, CouldNotChangeWakeUpGranularity)?;
+		set_proc_sys_kernel_value(proc_path, "sched_migration_cost_ns", self.migration_cost, CouldNotChangeMigrationCost)?;
+		set_proc_sys_kernel_value(proc_path, "sched_cfs_bandwidth_slice_us", self.completely_fair_scheduler_bandwidth_slice, CouldNotChangeMigrationCompletelyFairSchedulerBandwidthSlice)?;
+		set_proc_sys_kernel_value(proc_path, "sched_nr_migrate", self.number_of_normal_tasks_to_migrate_to_another_hyper_thread_at_once, CouldNotChangeNumberOfNormalTasksToMigrate)?;
+	
+		set_proc_sys_kernel_value(proc_path, "sched_schedstats", self.enable_statistics, CouldNotChangeStatisticsEnablement)?;
+	
 		set_value(proc_path, |proc_path, value| value.write(proc_path), self.round_robin_quantum, CouldNotChangeRoundRobinQuantum)?;
 		set_value(proc_path, |proc_path, value| value.write(proc_path), self.reserved_cpu_time_for_non_real_time_scheduler_policies, CouldNotChangeReservedCpuTimeForNonRealTimeSchedulerPolicies)?;
 		set_proc_sys_kernel_value(proc_path, "software_watchdog", self.enable_software_watchdog_lockup_detection, CouldNotChangeSoftwareWatchdog)?;

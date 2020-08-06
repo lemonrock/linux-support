@@ -30,25 +30,16 @@
 
 ### Memory (lowmem)
 * lowmem_reserve_ratio
-* min_free_kbytes
+
+### Memory swaping / watermark
+min_free_kbytes
+watermark_boost_factor
+watermark_scale_factor
 
 #### Security
 * Disable User Namespaces, as it opens up a large attack surface to unprivileged users.
 * user.max_user_namespaces = 0
 
-
-### Scheduling
-
-```
-echo 0 > sched_energy_aware
-
-echo "15000000" > /proc/sys/kernel/sched_latency_ns
-echo "1000000" > /proc/sys/kernel/sched_min_granularity_ns
-echo "2000000" > /proc/sys/kernel/sched_wakeup_granularity_ns
-
-# Disable sched_stats for a minor overhead reduction;
-echo "0" > /proc/sys/kernel/sched_schedstats
-```
 
 ### Virtual memory tweaks
 ```

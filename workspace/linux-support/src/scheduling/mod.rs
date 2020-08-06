@@ -16,6 +16,7 @@ use crate::user_and_groups::assert_effective_user_id_is_root;
 mod c;
 
 
+include!("LatencyScaling.rs");
 include!("Nice.rs");
 include!("PerThreadSchedulerPolicyAndFlags.rs");
 include!("RcuGracePeriodConfiguration.rs");

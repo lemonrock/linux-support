@@ -73,6 +73,9 @@ pub enum ProcessConfigurationError
 	CouldNotChangeOutOfMemoryAdjustment(io::Error),
 
 	#[allow(missing_docs)]
+	CouldNotDropCaches(io::Error),
+
+	#[allow(missing_docs)]
 	CouldNotCompactMemory(io::Error),
 
 	#[allow(missing_docs)]
@@ -164,6 +167,8 @@ impl error::Error for ProcessConfigurationError
 			&CouldNotChangeResourceLimit(ref cause) => Some(cause),
 
 			&CouldNotChangeOutOfMemoryAdjustment(ref cause) => Some(cause),
+
+			&CouldNotDropCaches(ref cause) => Some(cause),
 
 			&CouldNotCompactMemory(ref cause) => Some(cause),
 

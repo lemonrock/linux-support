@@ -21,6 +21,9 @@ pub struct GlobalConfiguration
 	pub posix_message_queue: GlobalPosixMessageQueueConfiguration,
 
 	/// Requires root.
+	pub system_v_memory_segment: GlobalSystemVMemorySegmentConfiguration,
+
+	/// Requires root.
 	pub system_v_message_queue: GlobalSystemVMessageQueueConfiguration,
 
 	/// Requires root.
@@ -75,6 +78,8 @@ impl GlobalConfiguration
 		self.file_leasing.configure(proc_path)?;
 
 		self.posix_message_queue.configure(proc_path)?;
+
+		self.system_v_memory_segment.configure(proc_path)?;
 
 		self.system_v_message_queue.configure(proc_path)?;
 

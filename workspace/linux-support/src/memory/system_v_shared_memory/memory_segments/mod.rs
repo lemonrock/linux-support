@@ -3,11 +3,13 @@
 
 
 use super::*;
+use crate::paths::*;
+use crate::user_and_groups::assert_effective_user_id_is_root;
 
 
-/// Legacy System V (SysV) memory segments (`shm`).
-pub mod memory_segments;
-
-
-/// Legacy System V (SysV) message queues (MQ).
-pub mod message_queues;
+include!("maximum_memory_segment_size.rs");
+include!("maximum_number_of_memory_segment_identifiers.rs");
+include!("maximum_number_of_shared_memory_pages.rs");
+include!("set_maximum_memory_segment_size.rs");
+include!("set_maximum_number_of_memory_segment_identifiers.rs");
+include!("set_maximum_number_of_shared_memory_pages.rs");

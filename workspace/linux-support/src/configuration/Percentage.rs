@@ -6,6 +6,8 @@
 ///
 /// Why Linux models this (a) as something that can be negative and (b) as something that can be far, far greater than 100% is beyond me.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct Percentage(i32);
 
 impl<'a> IntoLineFeedTerminatedByteString<'a> for Percentage

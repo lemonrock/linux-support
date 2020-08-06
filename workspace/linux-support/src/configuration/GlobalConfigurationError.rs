@@ -19,6 +19,9 @@ pub enum GlobalConfigurationError
 	GlobalPosixMessageQueueConfiguration(GlobalPosixMessageQueueConfigurationError),
 
 	#[allow(missing_docs)]
+	GlobalSystemVMemorySegmentConfiguration(GlobalSystemVMemorySegmentConfigurationError),
+
+	#[allow(missing_docs)]
 	GlobalSystemVMessageQueueConfiguration(GlobalSystemVMessageQueueConfigurationError),
 
 	#[allow(missing_docs)]
@@ -84,6 +87,8 @@ impl error::Error for GlobalConfigurationError
 
 			&GlobalPosixMessageQueueConfiguration(ref cause) => Some(cause),
 
+			&GlobalSystemVMemorySegmentConfiguration(ref cause) => Some(cause),
+
 			&GlobalSystemVMessageQueueConfiguration(ref cause) => Some(cause),
 
 			&GlobalInotifyConfiguration(ref cause) => Some(cause),
@@ -146,6 +151,15 @@ impl From<GlobalPosixMessageQueueConfigurationError> for GlobalConfigurationErro
 	fn from(cause: GlobalPosixMessageQueueConfigurationError) -> Self
 	{
 		GlobalConfigurationError::GlobalPosixMessageQueueConfiguration(cause)
+	}
+}
+
+impl From<GlobalSystemVMemorySegmentConfigurationError> for GlobalConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: GlobalSystemVMemorySegmentConfigurationError) -> Self
+	{
+		GlobalConfigurationError::GlobalSystemVMemorySegmentConfiguration(cause)
 	}
 }
 

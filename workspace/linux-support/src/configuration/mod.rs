@@ -35,6 +35,7 @@ use crate::memory::*;
 use crate::memory::huge_pages::*;
 use crate::memory::mapping::LockAllMemory;
 use crate::memory::out_of_memory::*;
+use crate::memory::system_v_shared_memory::memory_segments::*;
 use crate::memory::system_v_shared_memory::message_queues::*;
 use crate::network_device::*;
 use crate::network_device::receive_side_scaling::*;
@@ -51,6 +52,7 @@ use crate::thread::*;
 use crate::time::c::tzset;
 use crate::user_and_groups::*;
 use crate::memory::numa::NumaZoneReclaimMode;
+use crate::file_descriptors::file::Synchronize;
 
 
 /// Checks.
@@ -109,6 +111,8 @@ include!("GlobalSocketConfiguration.rs");
 include!("GlobalSocketConfigurationError.rs");
 include!("GlobalSwapConfiguration.rs");
 include!("GlobalSwapConfigurationError.rs");
+include!("GlobalSystemVMemorySegmentConfiguration.rs");
+include!("GlobalSystemVMemorySegmentConfigurationError.rs");
 include!("GlobalSystemVMessageQueueConfiguration.rs");
 include!("GlobalSystemVMessageQueueConfigurationError.rs");
 include!("GlobalTcpConfiguration.rs");
@@ -118,6 +122,8 @@ include!("GlobalTransparentHugePagesConfigurationError.rs");
 include!("instance_set_value.rs");
 include!("Kilobytes.rs");
 include!("LocaleName.rs");
+include!("Microseconds.rs");
+include!("Nanoseconds.rs");
 include!("Percentage.rs");
 include!("ProcessNiceConfiguration.rs");
 include!("ProcessNiceConfigurationError.rs");

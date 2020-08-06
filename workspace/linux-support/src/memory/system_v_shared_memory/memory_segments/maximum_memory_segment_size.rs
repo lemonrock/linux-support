@@ -2,12 +2,13 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-
-
-/// Legacy System V (SysV) memory segments (`shm`).
-pub mod memory_segments;
-
-
-/// Legacy System V (SysV) message queues (MQ).
-pub mod message_queues;
+/// Does not exceed ?
+///
+/// Default is 18446744073692774399.
+///
+/// Reads from `/proc/sys/kernel/shmmax`.
+#[inline(always)]
+pub fn maximum_memory_segment_size(proc_path: &ProcPath) -> NonZeroU64
+{
+	proc_path.sys_kernel_file_path("shmmax").read_value().unwrap()
+}

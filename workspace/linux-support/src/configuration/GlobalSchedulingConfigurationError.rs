@@ -8,6 +8,30 @@ pub enum GlobalSchedulingConfigurationError
 {
 	/// Could not enable or disable autogroup.
 	CouldNotChangeAutogroup(io::Error),
+	
+	#[allow(missing_docs)]
+	CouldNotChangeLatency(io::Error),
+	
+	#[allow(missing_docs)]
+	CouldNotChangeLatencyScaling(io::Error),
+	
+	#[allow(missing_docs)]
+	CouldNotChangeMinimumGranularity(io::Error),
+	
+	#[allow(missing_docs)]
+	CouldNotChangeWakeUpGranularity(io::Error),
+	
+	#[allow(missing_docs)]
+	CouldNotChangeMigrationCost(io::Error),
+	
+	#[allow(missing_docs)]
+	CouldNotChangeMigrationCompletelyFairSchedulerBandwidthSlice(io::Error),
+	
+	#[allow(missing_docs)]
+	CouldNotChangeNumberOfNormalTasksToMigrate(io::Error),
+	
+	#[allow(missing_docs)]
+	CouldNotChangeStatisticsEnablement(io::Error),
 
 	/// Could not change round-robin quantum.
 	CouldNotChangeRoundRobinQuantum(io::Error),
@@ -47,6 +71,22 @@ impl error::Error for GlobalSchedulingConfigurationError
 		match self
 		{
 			&CouldNotChangeAutogroup(ref cause) => Some(cause),
+
+			&CouldNotChangeLatency(ref cause) => Some(cause),
+
+			&CouldNotChangeLatencyScaling(ref cause) => Some(cause),
+
+			&CouldNotChangeMinimumGranularity(ref cause) => Some(cause),
+
+			&CouldNotChangeWakeUpGranularity(ref cause) => Some(cause),
+
+			&CouldNotChangeMigrationCost(ref cause) => Some(cause),
+
+			&CouldNotChangeMigrationCompletelyFairSchedulerBandwidthSlice(ref cause) => Some(cause),
+
+			&CouldNotChangeNumberOfNormalTasksToMigrate(ref cause) => Some(cause),
+
+			&CouldNotChangeStatisticsEnablement(ref cause) => Some(cause),
 
 			&CouldNotChangeRoundRobinQuantum(ref cause) => Some(cause),
 

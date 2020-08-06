@@ -2,12 +2,23 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+/// Does not exceed ?
+///
+/// Default is 18446744073692774399.
+///
+/// Writes to `/proc/sys/kernel/shmmax`.
+#[inline(always)]
+pub fn set_maximum_memory_segment_size(proc_path: &ProcPath, maximum_memory_segment_size: NonZeroU64) -> io::Result<()>
+{
+	assert_effective_user_id_is_root("write /proc/sys/kernel/shmmax");
 
-
-/// Legacy System V (SysV) memory segments (`shm`).
-pub mod memory_segments;
-
-
-/// Legacy System V (SysV) message queues (MQ).
-pub mod message_queues;
+	let file_path = proc_path.sys_kernel_file_path("shmmax");
+	if file_path.exists()
+	{
+		file_path.write_value(UnpaddedDecimalInteger(maximum_memory_segment_size))
+	}
+	else
+	{
+		Ok(())
+	}
+}

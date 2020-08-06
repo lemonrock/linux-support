@@ -15,10 +15,15 @@ pub struct GlobalSecurityConfiguration
 	/// * `core_uses_pid` (legacy value is unset).
 	/// * `dmesg_restrict`.
 	/// * `kptr_restrict`.
+	/// * `msg_next_id` (forced to `-1` so we aren't affected by a parent process leaving this oddly set).
 	/// * `perf_event_paranoid`.
 	/// * `printk`.
 	/// * `printk_devkmsg`.
 	/// * `randomize_va_space`.
+	/// * `sched_child_runs_first`.
+	/// * `sem_next_id` (forced to `-1` so we aren't affected by a parent process leaving this oddly set).
+	/// * `shm_next_id` (forced to `-1` so we aren't affected by a parent process leaving this oddly set).
+	/// * `shm_rmid_forced` (forced to `1` so unattached segments are immediately garbage-collected; will break some System V IPC programs. Tough).
 	/// * `stack_erasing`.
 	/// * `sysrq`.
 	///
@@ -105,6 +110,12 @@ impl GlobalSecurityConfiguration
 		}
 		
 		#[inline(always)]
+		fn harden_value_i8<'a>(proc_path: &ProcPath, file_function: impl FnOnce(&ProcPath, &str) -> PathBuf, file_name: &'static str, value: i8) -> Result<(), GlobalSecurityConfigurationError>
+		{
+			Self::harden_value(UnpaddedDecimalInteger(value))
+		}
+		
+		#[inline(always)]
 		fn harden_value_u32<'a>(proc_path: &ProcPath, file_function: impl FnOnce(&ProcPath, &str) -> PathBuf, file_name: &'static str, value: u32) -> Result<(), GlobalSecurityConfigurationError>
 		{
 			Self::harden_value(UnpaddedDecimalInteger(value))
@@ -155,6 +166,7 @@ impl GlobalSecurityConfiguration
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "core_uses_pid", 0)?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "dmesg_restrict", 1)?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "kptr_restrict", 2)?;
+			harden_value_i8(proc_path, ProcPath::sys_kernel_file_path, "msg_next_id", -1)?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "perf_event_paranoid", 2)?;
 			harden_value(proc_path, ProcPath::sys_kernel_file_path, "printk", b"0 4 0 0\n")?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "printk_delay", 0)?;
@@ -162,6 +174,10 @@ impl GlobalSecurityConfiguration
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "printk_ratelimit", RateLimit)?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "printk_ratelimit_burst", RateLimitBurst)?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "randomize_va_space", 2)?;
+			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "sched_child_runs_first", 0)?;
+			harden_value_i8(proc_path, ProcPath::sys_kernel_file_path, "sem_next_id", -1)?;
+			harden_value_i8(proc_path, ProcPath::sys_kernel_file_path, "shm_next_id", -1)?;
+			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "shm_rmid_forced", 1)?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "stack_erasing", 1)?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "sysrq", 0)?;
 			
