@@ -14,6 +14,12 @@ pub enum GlobalInotifyConfigurationError
 
 	#[allow(missing_docs)]
 	CouldNotChangeMaximumNumberOfWatchesPerUser(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotChangeMaximumNumberOfInotifyInstancesPerUserNamespaced(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotChangeMaximumNumberOfWatchesPerUserNamespaced(io::Error),
 }
 
 impl Display for GlobalInotifyConfigurationError
@@ -39,6 +45,10 @@ impl error::Error for GlobalInotifyConfigurationError
 			&CouldNotChangeMaximumNumberOfInotifyInstancesPerUser(ref cause) => Some(cause),
 
 			&CouldNotChangeMaximumNumberOfWatchesPerUser(ref cause) => Some(cause),
+
+			&CouldNotChangeMaximumNumberOfInotifyInstancesPerUserNamespaced(ref cause) => Some(cause),
+
+			&CouldNotChangeMaximumNumberOfWatchesPerUserNamespaced(ref cause) => Some(cause),
 		}
 	}
 }

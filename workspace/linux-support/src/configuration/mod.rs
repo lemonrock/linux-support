@@ -12,6 +12,7 @@ use crate::environment::populate_clean_environment;
 use crate::file_descriptors::close_all_open_file_descriptors_apart_from_standard;
 use crate::file_descriptors::directory::AccessPermissions;
 use crate::file_descriptors::epoll::set_maximum_number_of_watched_file_descriptors_per_user;
+use crate::file_descriptors::file::Synchronize;
 use crate::file_descriptors::file::leasing::*;
 use crate::file_descriptors::inotify::*;
 use crate::file_descriptors::netlink::NetlinkSocketFileDescriptor;
@@ -52,7 +53,7 @@ use crate::thread::*;
 use crate::time::c::tzset;
 use crate::user_and_groups::*;
 use crate::memory::numa::NumaZoneReclaimMode;
-use crate::file_descriptors::file::Synchronize;
+use crate::memory::system_v_shared_memory::semaphores::SempahoresConfiguration;
 
 
 /// Checks.
@@ -93,6 +94,10 @@ include!("GlobalMemoryStatisticsConfiguration.rs");
 include!("GlobalMemoryStatisticsConfigurationError.rs");
 include!("GlobalNetworkConfiguration.rs");
 include!("GlobalNetworkConfigurationError.rs");
+include!("GlobalNumaBalancingConfiguration.rs");
+include!("GlobalNumaBalancingConfigurationError.rs");
+include!("GlobalNumaBalancingOnConfiguration.rs");
+include!("GlobalNumaBalancingOnConfigurationError.rs");
 include!("GlobalNumaMemoryReclaimConfiguration.rs");
 include!("GlobalNumaMemoryReclaimConfigurationError.rs");
 include!("GlobalOutOfMemoryConfiguration.rs");
@@ -122,7 +127,9 @@ include!("GlobalTransparentHugePagesConfigurationError.rs");
 include!("instance_set_value.rs");
 include!("Kilobytes.rs");
 include!("LocaleName.rs");
+include!("Megabytes.rs");
 include!("Microseconds.rs");
+include!("Milliseconds.rs");
 include!("Nanoseconds.rs");
 include!("Percentage.rs");
 include!("ProcessNiceConfiguration.rs");

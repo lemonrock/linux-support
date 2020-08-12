@@ -30,6 +30,8 @@ pub struct GlobalNetworkDeviceConfiguration
 	/// Pause configuration.
 	///
 	/// Usually only works for physical (non-virtualized) hardware.
+	///
+	/// Recommended to be turned off for receive and transmit by Intel.
 	#[serde(default)] pub pause_configuration: Option<PauseConfiguration>,
 	
 	/// Energy Efficient Ethernet (EEE).
@@ -62,6 +64,8 @@ pub struct GlobalNetworkDeviceConfiguration
 	#[serde(default)] pub maximize_number_of_channels: bool,
 
 	/// Maximize pending queue depths?
+	///
+	/// Sometimes, *reducing* these to 128 or 256 can help Intel Data I/O Direct (DDIO).
 	#[serde(default)] pub maximize_pending_queue_depths: bool,
 	
 	/// Adjust receive side scaling (RSS) hash configuration:-

@@ -21,6 +21,9 @@ pub struct GlobalMemoryConfiguration
 	pub out_of_memory: GlobalOutOfMemoryConfiguration,
 	
 	/// Requires root.
+	pub numa_memory_balancing: Option<GlobalNumaBalancingConfiguration>,
+	
+	/// Requires root.
 	pub numa_reclaim: GlobalNumaMemoryReclaimConfiguration,
 	
 	/// Requires root.
@@ -67,6 +70,11 @@ impl GlobalMemoryConfiguration
 		self.swap.configure(proc_path)?;
 		
 		self.out_of_memory.configure(proc_path)?;
+		
+		if let Some(ref numa_memory_balancing) = self.numa_memory_balancing
+		{
+			self.numa_memory_balancing.configure(proc_path)?;
+		}
 		
 		self.numa_reclaim.configure(proc_path)?;
 		

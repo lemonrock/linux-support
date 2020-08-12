@@ -3,7 +3,7 @@
 
 
 /// Statistics.
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Statistics
 {
 	/// This is the total number of visible (living) descendant cgroups underneath this cgroup.
@@ -29,45 +29,31 @@ impl Statistics
 	{
 		use self::StatisticsParseError::*;
 		
-		let reader = file_path.read_raw()?;
-		
 		let mut number_of_living_descendants = None;
 		let mut number_of_dying_descendants = None;
-		
-		for line in reader.split_bytes(b'\n')
+		parse_key_value_statistics(file_path, &mut |name, value| match name
 		{
-			let mut name_and_value = line.split_bytes_n(2, b' ');
-			let name = name_and_value.next().expect("Split always should produce at least one item");
-
-			#[inline(always)]
-			fn parse_value<'a>(name: &'static [u8], mut name_and_value: impl Iterator<Item=&'a [u8]>) -> Result<usize, StatisticsParseError>
+			b"nr_descendants" =>
 			{
-				let bytes_value = name_and_value.next().ok_or(MissingStatisticValue { name })?;
-				usize::parse_decimal_number(bytes_value).map_err(|cause| InvalidStatisticValue { name, value: bytes_value.to_vec(), cause })
+				number_of_living_descendants = Some(value);
+				false
 			}
-
-			match name
+			
+			b"nr_dying_descendants" =>
 			{
-				b"nr_descendants" =>
-				{
-					number_of_living_descendants = Some(parse_value(b"nr_descendants", name_and_value)?);
-				}
-
-				b"nr_dying_descendants" =>
-				{
-					number_of_dying_descendants = Some(parse_value(b"nr_dying_descendants", name_and_value)?);
-				}
-
-				_ => return Err(InvalidStatisticName { name: name.to_vec() }),
+				number_of_dying_descendants = Some(value);
+				false
 			}
-		}
+			
+			_ => true,
+		})?;
 
 		Ok
 		(
 			Self
 			{
-				number_of_living_descendants: number_of_living_descendants.ok_or(StatisticNumberOfLivingDescendantsMissing)?,
-				number_of_dying_descendants: number_of_dying_descendants.ok_or(StatisticNumberOfDyingDescendantsMissing)?,
+				number_of_living_descendants: number_of_living_descendants.ok_or(MissingStatistic(b"nr_descendants"))?,
+				number_of_dying_descendants: number_of_dying_descendants.ok_or(MissingStatistic(b"nr_dying_descendants"))?,
 			}
 		)
 	}

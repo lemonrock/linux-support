@@ -61,3 +61,17 @@ impl Into<pid_t> for ThreadIdentifierChoice
 		}
 	}
 }
+
+impl<'a> IntoLineFeedTerminatedByteString<'a> for ThreadIdentifierChoice
+{
+	#[inline(always)]
+	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
+	{
+		use self::ThreadIdentifierChoice::*;
+		match self
+		{
+			Current => UnpaddedDecimalInteger(0i32).into_line_feed_terminated_byte_string(),
+			Other(thread_identifier) => thread_identifier.into_line_feed_terminated_byte_string(),
+		}
+	}
+}

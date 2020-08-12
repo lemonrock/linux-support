@@ -7,14 +7,27 @@
 pub enum NonRootCgroupType
 {
 	/// A normal valid domain cgroup.
+	///
+	/// Will never validly exist under `Threaded` or `ThreadedDomain`.
 	Domain,
 
 	/// A threaded domain cgroup which is serving as the root of a threaded subtree.
+	///
+	/// A `Domain` cgroup is turned into a `ThreadedDomain` when either:-
+	///
+	/// * one of its children becomes `threaded` (its `cgroup.type` is written with `threaded`; not possible if non-threaded (ie domain) controllers are enabled in the parent's `cgroup.subtree_control` tree), or;
+	/// * threaded controllers are enabled in the `cgroup.subtree_control` file while there are processes in the cgroup.
+	///
+	/// Even though threads may be in different child `Threaded` cgroups, the associated processes for these threads reside in the `ThreadedDomain`'s `cgroup.procs` file.
+	///
+	/// A `ThreadedDomain` is only permitted to have threaded controllers.
 	ThreadedDomain,
 
 	/// A cgroup which is in an invalid state.
 	/// It can't be populated or have controllers enabled.
-	/// It may be allowed to become a threaded cgroup.
+	/// It may be allowed to become a `Threaded` cgroup.
+	///
+	/// Can occur when there are two children of a non-root cgroup and one of the children has been made `threaded` and the other has not (its `cgroup.type` is still `domain`).
 	InvalidDomain,
 
 	/// A threaded cgroup which is a member of a threaded subtree.
@@ -32,8 +45,8 @@ impl FromBytes for NonRootCgroupType
 		let variant = match bytes
 		{
 			b"domain" => Domain,
-			b"domain_threaded" => ThreadedDomain,
-			b"domain_invalid" => InvalidDomain,
+			b"domain threaded" => ThreadedDomain,
+			b"domain invalid" => InvalidDomain,
 			b"threaded" => Threaded,
 
 			_ => return Err(ParseNonRootCgroupTypeError::UnknownVariant(bytes.to_vec()))
@@ -52,8 +65,8 @@ impl NonRootCgroupType
 		match self
 		{
 			Domain => "domain",
-			ThreadedDomain => "domain_threaded",
-			InvalidDomain => "domain_invalid",
+			ThreadedDomain => "domain threaded",
+			InvalidDomain => "domain invalid",
 			Threaded => "threaded",
 		}
 	}

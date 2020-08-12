@@ -25,6 +25,9 @@ pub enum GlobalConfigurationError
 	GlobalSystemVMessageQueueConfiguration(GlobalSystemVMessageQueueConfigurationError),
 
 	#[allow(missing_docs)]
+	GlobalSystemVSemaphoreConfiguration(io::Error),
+
+	#[allow(missing_docs)]
 	GlobalInotifyConfiguration(GlobalInotifyConfigurationError),
 
 	#[allow(missing_docs)]
@@ -90,6 +93,8 @@ impl error::Error for GlobalConfigurationError
 			&GlobalSystemVMemorySegmentConfiguration(ref cause) => Some(cause),
 
 			&GlobalSystemVMessageQueueConfiguration(ref cause) => Some(cause),
+
+			&GlobalSystemVSemaphoreConfiguration(ref cause) => Some(cause),
 
 			&GlobalInotifyConfiguration(ref cause) => Some(cause),
 

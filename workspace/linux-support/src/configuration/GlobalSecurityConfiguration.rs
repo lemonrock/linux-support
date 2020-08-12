@@ -14,9 +14,13 @@ pub struct GlobalSecurityConfiguration
 	/// * `core_pipe_limit` (set to 1 to prevent malicious user space programs exploiting a weakness in core dump captures).
 	/// * `core_uses_pid` (legacy value is unset).
 	/// * `dmesg_restrict`.
+	/// * `ftrace_dump_on_oops`.
 	/// * `kptr_restrict`.
+	/// * `latencytop`.
 	/// * `msg_next_id` (forced to `-1` so we aren't affected by a parent process leaving this oddly set).
+	/// * `perf_event_max_stack` (forced to default of `127`).
 	/// * `perf_event_paranoid`.
+	/// * `print-fatal-signals`.
 	/// * `printk`.
 	/// * `printk_devkmsg`.
 	/// * `randomize_va_space`.
@@ -26,12 +30,19 @@ pub struct GlobalSecurityConfiguration
 	/// * `shm_rmid_forced` (forced to `1` so unattached segments are immediately garbage-collected; will break some System V IPC programs. Tough).
 	/// * `stack_erasing`.
 	/// * `sysrq`.
+	/// * `timer_migration`.
+	/// * `traceoff_on_warning`.
+	/// * `tracepoint_printk`.
 	///
-	/// If `true`, then the following in `/proc/sys/kernel/random` are hardened if present:-
+	/// And the following in `/proc/sys/kernel/random` are hardened if present:-
 	///
 	/// * `read_wakeup_threshold` (forced to default of 64 bits of entropy).
 	/// * `urandom_min_reseed_secs` (forced to 15 seconds from a default of 60 seconds; ignored after Linux 4.8 but support may be readded).
 	/// * `write_wakeup_threshold` (forced to default of 896 bits of entropy).
+	///
+	/// And the following in `/proc/sys/kernel/seccomp` are hardened if present:-
+	///
+	/// * `actions_logged` (forced to the value of `actions_avail` without `allow`).
 	///
 	/// And the following in `/proc/sys/fs` are hardened if present:-
 	///
@@ -63,8 +74,34 @@ pub struct GlobalSecurityConfiguration
 	/// * `unprivileged_userfaultfd`.
 	/// * `vfs_cache_pressure`.
 	///
+	/// And the following in `/proc/sys/abi` are hardened if present:-
+	///
+	/// * `vsyscall32` (turned off).
+	///
+	/// And the following in `/proc/sys/debug` are hardened if present:-
+	///
+	/// * `exception-trace` (turned on).
+	/// * `kprobes-optimization` (turned on).
+	///
+	/// And the following in `/proc/sys/dev/scsi` are hardened if present:-
+	///
+	/// * `logging_level` (disabled).
+	///
 	/// And the maximum number of process identifiers is set to 2^22 in `/proc/sys/kernel/pid_max` to reduce the impact of races and process identifier wrap-around (Frankly, they should just be an UUID and be done with it but we're stuck with design decisions from 40 years ago).
 	pub harden: bool,
+	
+	/// This hardening control prevents the creation of namespaces by setting the following files to `0` in `/proc/sys/user`:-
+	///
+	/// * `max_cgroup_namespaces`.
+	/// * `max_ipc_namespaces`.
+	/// * `max_mnt_namespaces`.
+	/// * `max_net_namespaces`.
+	/// * `max_pid_namespaces`.
+	/// * `max_user_namespaces`.
+	/// * `max_uts_namespaces`.
+	///
+	/// If not using containers then this value should be `true`.
+	pub disable_namespaces: bool,
 	
 	/// Default value is 100,000.
 	///
@@ -122,6 +159,29 @@ impl GlobalSecurityConfiguration
 		}
 		
 		#[inline(always)]
+		fn hardden_seccomp_logging(proc_path: &ProcPath) -> Result<(), GlobalSecurityConfigurationError>
+		{
+			let actions_available = proc_path.sys_kernel_seccomp_file_path("actions_avail").read_raw_without_line_feed().map_err(CouldNotHarden)?;
+			
+			let mut actions_to_log = Vec::with_capacity(actions_available.len());
+			for action in actions_available.split_bytes(b' ')
+			{
+				if action == b"allow"
+				{
+					continue
+				}
+				if likely!(!actions_to_log.is_empty())
+				{
+					actions_to_log.push(b' ');
+				}
+				actions_to_log.extend_from_slice(action)
+			}
+			actions_to_log.push(b'\n');
+			
+			proc_path.sys_kernel_seccomp_file_path("actions_logged").write_value(actions_to_log).map_err(CouldNotHarden)
+		}
+		
+		#[inline(always)]
 		fn harden_value<'a>(proc_path: &ProcPath, file_function: impl FnOnce(&ProcPath, &str) -> PathBuf, file_name: &'static str, value: impl IntoLineFeedTerminatedByteString<'a>) -> Result<(), GlobalSecurityConfigurationError>
 		{
 			let file_path = file_function(proc_path, file_name);
@@ -165,9 +225,13 @@ impl GlobalSecurityConfiguration
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "core_pipe_limit", 1)?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "core_uses_pid", 0)?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "dmesg_restrict", 1)?;
+			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "ftrace_dump_on_oops", 0)?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "kptr_restrict", 2)?;
+			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "latencytop", 0)?;
 			harden_value_i8(proc_path, ProcPath::sys_kernel_file_path, "msg_next_id", -1)?;
+			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "perf_event_max_stack", 127)?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "perf_event_paranoid", 2)?;
+			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "print-fatal-signals", 0)?;
 			harden_value(proc_path, ProcPath::sys_kernel_file_path, "printk", b"0 4 0 0\n")?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "printk_delay", 0)?;
 			harden_value(proc_path, ProcPath::sys_kernel_file_path, "printk_devkmsg", b"off\n")?;
@@ -180,12 +244,17 @@ impl GlobalSecurityConfiguration
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "shm_rmid_forced", 1)?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "stack_erasing", 1)?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "sysrq", 0)?;
+			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "timer_migration", 1)?;
+			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "traceoff_on_warning", 0)?;
+			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "tracepoint_printk", 0)?;
 			
 			const ReadWakeUpThresholdInBitsOfEntry: u32 = 64;
 			const WriteWakeUpThresholdInBitsOfEntry: u32 = 896;
 			harden_value_u32(proc_path, ProcPath::sys_kernel_random_file_path, "read_wakeup_threshold", ReadWakeUpThresholdInBitsOfEntry)?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_random_file_path, "urandom_min_reseed_secs", 15)?;
 			harden_value_u32(proc_path, ProcPath::sys_kernel_random_file_path, "write_wakeup_threshold", WriteWakeUpThresholdInBitsOfEntry)?;
+			
+			hardden_seccomp_logging(proc_path)?;
 			
 			harden_value_u8(proc_path, ProcPath::sys_fs_file_path, "protected_fifos", 2)?;
 			harden_value_u8(proc_path, ProcPath::sys_fs_file_path, "protected_hardlinks", 1)?;
@@ -213,7 +282,25 @@ impl GlobalSecurityConfiguration
 			harden_value_u8(proc_path, ProcPath::sys_vm_file_path, "unprivileged_userfaultfd", 0)?;
 			harden_value_u8(proc_path, ProcPath::sys_vm_file_path, "vfs_cache_pressure", 100)?;
 			
+			harden_value_u8(proc_path, ProcPath::sys_abi_file_path, "vsyscall32", 0)?;
+			
+			harden_value_u8(proc_path, ProcPath::sys_debug_file_path, "exception-trace", 1)?;
+			harden_value_u8(proc_path, ProcPath::sys_debug_file_path, "kprobes-optimization", 1)?;
+			
+			harden_value_u8(proc_path, ProcPath::sys_dev_scsi_file_path, "logging_level", 0)?;
+			
 			ProcessIdentifier::set_maximum_value_to_maximum(proc_path).map_err(CouldNotSetMaximumProcessIdentifiersToMaximum)?;
+		}
+		
+		if self.disable_namespaces
+		{
+			harden_value_u8(proc_path, ProcPath::sys_user_file_path, "max_cgroup_namespaces", 0)?;
+			harden_value_u8(proc_path, ProcPath::sys_user_file_path, "max_ipc_namespaces", 0)?;
+			harden_value_u8(proc_path, ProcPath::sys_user_file_path, "max_mnt_namespaces", 0)?;
+			harden_value_u8(proc_path, ProcPath::sys_user_file_path, "max_net_namespaces", 0)?;
+			harden_value_u8(proc_path, ProcPath::sys_user_file_path, "max_pid_namespaces", 0)?;
+			harden_value_u8(proc_path, ProcPath::sys_user_file_path, "max_user_namespaces", 0)?;
+			harden_value_u8(proc_path, ProcPath::sys_user_file_path, "max_uts_namespaces", 0)?;
 		}
 		
 		set_proc_sys_fs_value(proc_path, "mount-max", self.maximum_file_system_mounts, CouldNotSetMaximumNumberOfFileSystemMounts)?;

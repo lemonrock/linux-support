@@ -217,6 +217,20 @@ impl SysPath
 		self.devices_folder_path().append("virtual")
 	}
 
+	/// `/sys/fs/<file_system>`.
+	#[inline(always)]
+	pub fn file_system_fs_folder_path(&self, file_system: FileSystemType) -> PathBuf
+	{
+		self.fs_folder_path().append(file_system)
+	}
+
+	/// `/sys/fs`.
+	#[inline(always)]
+	fn fs_folder_path(&self) -> PathBuf
+	{
+		self.path().append("fs")
+	}
+	
 	/// `/sys/devices`.
 	#[inline(always)]
 	fn devices_folder_path(&self) -> PathBuf

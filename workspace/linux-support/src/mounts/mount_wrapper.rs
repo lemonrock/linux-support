@@ -3,11 +3,11 @@
 
 
 /// Mount wrapper function.
-pub fn mount_wrapper(source: &CStr, mount_point: &Path, file_system_type: &FileSystemType, mount_options: &HashMap<Box<[u8]>, Option<Box<[u8]>>>, mount_flags: MountFlags) -> io::Result<()>
+pub fn mount_wrapper<'a>(source: &CStr, mount_point: &Path, file_system_type: &FileSystemType, mount_options: &HashMap<Cow<'a, [u8]>, Option<Cow<'a, [u8]>>>, mount_flags: MountFlags) -> io::Result<()>
 {
 	use crate::ErrorKind::*;
 
-	fn to_mount_options_c_string(mount_options: &HashMap<Box<[u8]>, Option<Box<[u8]>>>) -> CString
+	fn to_mount_options_c_string<'a>(mount_options: &HashMap<Cow<'a, [u8]>, Option<Cow<'a, [u8]>>>) -> CString
 	{
 		let mut mount_options_cstring: Vec<u8> = Vec::with_capacity(64);
 		let mut after_first = false;
@@ -21,11 +21,11 @@ pub fn mount_wrapper(source: &CStr, mount_point: &Path, file_system_type: &FileS
 			{
 				after_first = true;
 			}
-			mount_options_cstring.extend_from_slice(name);
+			mount_options_cstring.extend_from_slice(&name[..]);
 			if let Some(ref value) = *value_if_any
 			{
 				mount_options_cstring.push(b'=');
-				mount_options_cstring.extend_from_slice(value);
+				mount_options_cstring.extend_from_slice(&value[..]);
 			}
 		}
 		CString::new(mount_options_cstring).expect("mount_options should not contain interior ASCII NULs")

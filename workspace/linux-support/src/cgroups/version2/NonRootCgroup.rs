@@ -2,65 +2,152 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A non-root version 2 cgroup.
-#[derive(Debug, Clone)]
-pub struct NonRootCgroup<'a>
+/// A version 2 non-root cgroup.
+///
+/// See <https://www.kernel.org/doc/Documentation/cgroup-v2.txt>.
+///
+/// By convention, a leaf non-root cgroup is called `leaf` but this is not enforced.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum NonRootCgroup<'name>
 {
-	parent: &'a Cgroup<'a>,
-	name: OsString,
-}
-
-impl<'a> Into<Cgroup<'a>> for NonRootCgroup<'a>
-{
-	#[inline(always)]
-	fn into(self) -> Cgroup<'a>
+	ChildOfRoot
 	{
-		Cgroup::NonRoot(self)
+		/// Folder name.
+		name: Cow<'name, CgroupName>,
+	},
+	
+	ChildOfAChild
+	{
+		/// Parent.
+		parent: Rc<NonRootCgroup<'name>>,
+		
+		/// Folder name.
+		name: Cow<'name, CgroupName>,
 	}
 }
 
-impl<'a> NonRootCgroup<'a>
+impl<'name> Cgroup<'name> for NonRootCgroup<'name>
 {
-	/// To path.
 	#[inline(always)]
-	pub fn to_path<'b>(&self, mount_point: &'b CgroupMountPoint) -> PathBuf
+	fn to_path<'b>(&self, mount_point: &'b CgroupMountPoint) -> Cow<'b, Path>
 	{
-		self.parent.file_path(mount_point, &self.name)
+		use self::NonRootCgroup::*;
+		
+		let path = match self
+		{
+			&ChildOfRoot { ref name} => RootCgroup.to_owned_path(mount_point).append(name),
+			&ChildOfAChild { ref name, parent } => parent.to_owned_path(mount_point).append(name),
+		};
+		Cow::Owned(path)
 	}
-
-	/// Returns `None` if this is the root cgroup.
+	
+	/// Does not check if the child exists.
 	#[inline(always)]
-	pub fn parent(&self) -> &'a Cgroup<'a>
+	fn child(self: Rc<Self>, name: impl Into<Cow<'name, CgroupName>>) -> Rc<NonRootCgroup<'name>>
 	{
-		self.parent
+		Rc::new(NonRootCgroup::ChildOfAChild { name: name.into(), parent: self })
+	}
+}
+
+impl<'name> NonRootCgroup<'name>
+{
+	/// Extant children.
+	#[inline(always)]
+	pub fn extant_children(&self, mount_point: &CgroupMountPoint) -> io::Result<impl Iterator<Item=Self>>
+	{
+		child_cgroup_names(&self.to_path(mount_point)).map(|name| self.child(name))
+	}
+	
+	/// Name.
+	#[inline(always)]
+	pub fn name(&self) -> &Cow<'name, CgroupName>
+	{
+		use self::NonRootCgroup::*;
+		
+		match self
+		{
+			&ChildOfRoot { ref name} => name,
+			
+			&ChildOfAChild { ref name, .. } => name,
+		}
+	}
+	
+	/// Creates, including parent cgroups, if does not already exist.
+	///
+	/// Short-circuits creation if already exists (to avoid permission failures).
+	#[inline(always)]
+	pub fn create(&self, mount_point: &CgroupMountPoint) -> io::Result<()>
+	{
+		let folder_path = self.to_path(mount_point);
+		
+		if folder_path.exists()
+		{
+			return Ok(())
+		}
+		
+		create_dir_all(&folder_path)
+	}
+	
+	/// Removes, excluding parent cgroups, if exists.
+	///
+	/// Short-circuits creation if does not exist (to avoid permission failures).
+	pub fn remove(&self, mount_point: &CgroupMountPoint) -> io::Result<()>
+	{
+		let folder_path = self.to_path(mount_point);
+		
+		if !folder_path.exists()
+		{
+			return Ok(())
+		}
+		
+		remove_dir(&folder_path)
 	}
 
 	/// Read type.
 	#[inline(always)]
 	pub fn read_type(&self, mount_point: &CgroupMountPoint) -> Result<NonRootCgroupType, io::Error>
 	{
-		self.type_file_path(mount_point).read_value()
+		self.cgroup_type_file_path(mount_point).read_value()
 	}
-
+	
+	/// Freeze the cgroup.
+	///
+	/// All processes in this and every descendant cgroup, will be stopped not run until the cgroup is be explicitly thawed.
+	#[inline(always)]
+	pub fn freeze(&self, mount_point: &CgroupMountPoint) -> io::Result<()>
+	{
+		self.cgroup_freeze_file_path(mount_point).write_value(true)
+	}
+	
+	/// Thaw the cgroup.
+	///
+	/// All processes in this and every descendant cgroup, will be run again.
+	#[inline(always)]
+	pub fn thaw(&self, mount_point: &CgroupMountPoint) -> io::Result<()>
+	{
+		self.cgroup_freeze_file_path(mount_point).write_value(false)
+	}
+	
+	/// Is this cgroup frozen?
+	#[inline(always)]
+	pub fn is_frozen(&self, mount_point: &CgroupMountPoint) -> io::Result<bool>
+	{
+		self.cgroup_freeze_file_path(mount_point).read_value()
+	}
+	
 	/// Write type.
 	#[inline(always)]
 	pub fn make_type_threaded(&self, mount_point: &CgroupMountPoint) -> io::Result<()>
 	{
-		let path = self.type_file_path(mount_point);
+		let path = self.cgroup_type_file_path(mount_point);
 		path.write_value(b"threaded\n" as &[u8])
 	}
 
 	/// Is populated?
 	#[inline(always)]
-	pub fn read_events_is_populated(&self, mount_point: &CgroupMountPoint) -> io::Result<bool>
+	pub fn read_events_is_populated(&self, mount_point: &CgroupMountPoint) -> Result<EventStatistics, StatisticsParseError>
 	{
-		let bytes = self.events_file_path(mount_point).read_raw_without_line_feed()?;
-		match &bytes[..]
-		{
-			b"populated 0" => Ok(false),
-			b"populated 1" => Ok(true),
-			_ => Err(io::Error::from(ErrorKind::InvalidData)),
-		}
+		EventStatistics::from_file(&self.cgroup_events_file_path(mount_point))
 	}
 
 	/// Events file descriptor for epoll.
@@ -69,20 +156,208 @@ impl<'a> NonRootCgroup<'a>
 	#[inline(always)]
 	pub fn events_file_descriptor_for_epoll(&self, mount_point: &CgroupMountPoint) -> io::Result<RawFd>
 	{
-		let file: File = File::open(self.events_file_path(mount_point))?;
+		let file: File = File::open(self.cgroup_events_file_path(mount_point))?;
 		Ok(file.into_raw_fd())
 	}
-
+	
+	/// Only works if the `cpu` controller is enabled.
 	#[inline(always)]
-	fn type_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	pub fn read_cpu_weight(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<CpuWeight>>
+	{
+		self.cpu_weight_file_path(mount_point).read_value_if_exists()
+	}
+	
+	/// Only works if the `cpu` controller is enabled.
+	///
+	/// Does not check that the `cpu` controller is enabled.
+	#[inline(always)]
+	pub fn write_cpu_weight(&self, mount_point: &CgroupMountPoint, cpu_weight: CpuWeight) -> io::Result<()>
+	{
+		self.cpu_weight_file_path(mount_point).write_value(cpu_weight)
+	}
+	
+	/// Only works if the `cpu` controller is enabled.
+	///
+	/// Prefer the used of `read_cpu_weight().`
+	#[inline(always)]
+	pub fn read_cpu_weight_nice(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<Nice>>
+	{
+		self.cpu_weight_nice_file_path(mount_point).read_value_if_exists()
+	}
+	
+	/// Only works if the `cpu` controller is enabled.
+	///
+	/// Does not check that the `cpu` controller is enabled.
+	///
+	/// Prefer the used of `write_cpu_weight().`
+	#[inline(always)]
+	pub fn write_cpu_weight_nice(&self, mount_point: &CgroupMountPoint, nice: Nice) -> io::Result<()>
+	{
+		self.cpu_weight_nice_file_path(mount_point).write_value(nice)
+	}
+	
+	/// Only works if the `cpu` controller is enabled.
+	#[inline(always)]
+	pub fn read_cpu_maximum_bandwidth_limit(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<CpuMaximumBandwidthLimit>>
+	{
+		self.cpu_max_file_path(mount_point).read_value_if_exists()
+	}
+	
+	/// Only works if the `cpu` controller is enabled.
+	///
+	/// Does not check that the `cpu` controller is enabled.
+	#[inline(always)]
+	pub fn write_cpu_maximum_bandwidth_limit(&self, mount_point: &CgroupMountPoint, cpu_maximum_bandwidth_limit: CpuMaximumBandwidthLimit) -> io::Result<()>
+	{
+		self.cpu_max_file_path(mount_point).write_value(cpu_maximum_bandwidth_limit)
+	}
+	
+	/// Only works if the `pids` controller is enabled.
+	#[inline(always)]
+	pub fn read_process_identifiers_count_current(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<usize>>
+	{
+		self.pids_current_file_path(mount_point).read_value_if_exists()
+	}
+	
+	/// Only works if the `pids` controller is enabled.
+	#[inline(always)]
+	pub fn read_process_identifiers_count_maximum(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<ProcessIdentifiersMaximum>>
+	{
+		self.pids_max_file_path(mount_point).read_value_if_exists()
+	}
+	
+	/// Only works if the `pids` controller is enabled.
+	///
+	/// Does not check that the `pids` controller is enabled.
+	#[inline(always)]
+	pub fn write_process_identifiers_count_maximum(&self, mount_point: &CgroupMountPoint, maximum: ProcessIdentifiersMaximum) -> io::Result<()>
+	{
+		self.pids_max_file_path(mount_point).write_value(maximum)
+	}
+	
+	/// Only works if the `cpuset` controller is enabled.
+	pub fn read_cpuset_hyper_threads(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<HyperThreads>>
+	{
+		self.cpuset_cpus_file_path(mount_point).read_hyper_thread_or_numa_node_list_if_exists().map(|option| option.map(HyperThreads))
+	}
+	
+	/// Only works if the `cpuset` controller is enabled.
+	///
+	/// Does a cursory check that the `cpuset` controller is enabled (but is subject to a TOCTOU flaw).
+	pub fn write_cpuset_hyper_threads(&self, mount_point: &CgroupMountPoint, hyper_threads: &HyperThreads) -> io::Result<()>
+	{
+		hyper_threads.set_affinity_list(self.cpuset_cpus_file_path(mount_point))
+	}
+	
+	/// Only works if the `cpuset` controller is enabled.
+	pub fn read_cpuset_numa_nodes(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<NumaNodes>>
+	{
+		self.cpuset_mems_file_path(mount_point).read_hyper_thread_or_numa_node_list_if_exists().map(|option| option.map(NumaNodes))
+	}
+	
+	/// Only works if the `cpuset` controller is enabled.
+	///
+	/// Does a cursory check that the `cpuset` controller is enabled (but is subject to a TOCTOU flaw).
+	pub fn write_cpuset_numa_nodes(&self, mount_point: &CgroupMountPoint, numa_nodes: &NumaNodes) -> io::Result<()>
+	{
+		numa_nodes.set_affinity_list(self.cpuset_mems_file_path(mount_point))
+	}
+	
+	/// Only works if the `cpuset` controller is enabled.
+	#[inline(always)]
+	pub fn read_cpuset_hyper_threads_partition(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<ReadPartition>>
+	{
+		self.cpuset_cpus_partition_file_path(mount_point).read_value_if_exists()
+	}
+	
+	/// Only works if the `cpuset` controller is enabled.
+	///
+	/// Setting a cgroup to `Partition::Root` will take the CPUs away from the effective CPUs of the parent cgroup.
+	/// Once it is set, this file cannot be reverted back to `Partition::NonRootMember` if there are any child cgroups with cpuset enabled.
+	///
+	/// A parent partition cannot distribute all its CPUs to its child partitions
+	/// There must be at least one cpu left in the parent partition.
+	///
+	/// There are constraints on where a `Partition::Root` can be set.
+	///
+	/// It can only be set in a cgroup if all the following conditions are true:-
+	///
+	/// * The `cpuset.cpus` file is not empty and the list of CPUs are exclusive, ie they are not shared by any of its siblings.
+	/// * The parent cgroup is a partition root.
+	/// * The `cpuset.cpus` file is also a proper subset of the parent’s `cpuset.cpus.effective`.
+	/// * There is no child cgroups with cpuset enabled. This is for eliminating corner cases that have to be handled if such a condition is allowed.
+	#[inline(always)]
+	pub fn write_cpuset_hyper_threads_partition(&self, mount_point: &CgroupMountPoint, partition: Partition) -> io::Result<()>
+	{
+		self.cpuset_cpus_partition_file_path(mount_point).write_value(partition)
+	}
+	
+	#[inline(always)]
+	fn cgroup_events_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "cgroup.events")
+	}
+	
+	#[inline(always)]
+	fn cgroup_freeze_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "cgroup.freeze")
+	}
+	
+	#[inline(always)]
+	fn cgroup_type_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
 	{
 		self.file_path(mount_point, "cgroup.type")
 	}
 
 	#[inline(always)]
-	fn events_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	fn cpu_weight_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
 	{
-		self.file_path(mount_point, "cgroup.events")
+		self.file_path(mount_point, "cpu.weight")
+	}
+
+	#[inline(always)]
+	fn cpu_weight_nice_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "cpu.weight.nice")
+	}
+
+	#[inline(always)]
+	fn cpu_max_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "cpu.max")
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn cpuset_cpus_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "cpuset.cpus")
+	}
+	
+	#[inline(always)]
+	fn cpuset_cpus_partition_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "cpuset.cpus.partition")
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn cpuset_mems_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "cpuset.mems")
+	}
+	
+	#[inline(always)]
+	fn pids_current_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "pids.current")
+	}
+
+	#[inline(always)]
+	fn pids_max_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "pids.max")
 	}
 
 	#[inline(always)]

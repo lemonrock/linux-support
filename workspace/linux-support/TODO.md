@@ -6,17 +6,50 @@
     * Need to work how we use receive and transmit in-memory queues
 * NUMA distances
 * Report `/proc/sys/kernel/random/boot_id` UUID to DogStatsD as it identifies the current boot.
-
+* FLow director code
 
 ## Bugs
 
-* /proc/<N>/stat parsing bug in `comm`: Can have embedded ')' in it legitimately
+* /proc/<N>/stat parsing bug in `comm`: Can have embedded ')' in it legitimately.
 
 
 ## Forcibly move other processes to a core set of CPUs
 
-* Need to identify kernel threads and leave them alone
-* Investigate libcpuset and `/dev/cpuset` with cpusetfs.
+* Need to identify kernel threads and leave them alone.
+
+* `mkdir /dev/cgroup2`
+* `mount -t cgroup2 none /dev/cgroup2`; check for options such as are in here: <https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html>.
+    * `echo "+cpuset" > /dev/cgroup2/cgroup.subtree_control`
+    * `echo "+cpu" > /dev/cgroup2/cgroup.subtree_control`
+    * `echo "+io" > /dev/cgroup2/cgroup.subtree_control`
+    * `echo "+memory" > /dev/cgroup2/cgroup.subtree_control`
+* `mkdir /dev/group2/other`
+    * `echo "" > /dev/cgroup2/other/cgroup.subtree_control` and other lock downs.
+* `mkdir /dev/group2/us`
+    * `echo "" > /dev/cgroup2/us/cgroup.subtree_control` and other lock downs.
+    * set `cpuset.cpus.partition` to `root`.
+* `mkdir /dev/group2/kthreads`?
+* USe the pids namespace to prevent run-away process creation for `us`
+
+* Create files such as `cpuset.cpus.effective` and `cpuset.mems.effective`?
+* Migrate ourselves to `/dev/group/us` by writing our PID to `cgroup.procs` (?will we have permission to do so)?
+    * Do not do this if we are already in this group.
+* Migrate all non-kthreads to `/dev/group2/other` by multiple writes, one per pid, to `cgroup.procs`.
+    * Do not do this if the PID is already in this group and the PID is *NOT* in the root group.
+* cpuset files:-
+
+File                    Permissions     Location       Owner         Purpose             Example
+cpuset.cpus             RW              child cgroups  child cgroup  Desired CPUs        0-4,6,8-10 (can be empty: all CPUs of parent)
+cpuset.cpus.effective   RO              all cgroups    OS            Granted CPUs        0-1 (can be empty: ?)
+cpuset.cpus.partition   RW              child cgroups  parent cgroup                     root or member
+                        RO for root cgroup (has value root)
+
+cpuset.mems             RW              child cgroups  child cgroup  Desired NUMA nodes  0-1,3 (can be empty: all NUMA nodes of parent)
+cpuset.mems.effective   RO              all cgroups    OS            Granted NUMA nodes  0-1 (can be empty: ?)
+
+
+|File         |Permissions |  Location|
+|cpuset.cpus  |Read-Write
 
 
 ## Automatically mount missing file systems, eg
@@ -26,92 +59,58 @@
 * `/dev/hugetlbfs`
 
 
-## Configuration and performance
+## `/proc/sys` sysctls remaining to consider
+
 
 ### Memory (lowmem)
-* lowmem_reserve_ratio
 
-### Memory swaping / watermark
-min_free_kbytes
-watermark_boost_factor
-watermark_scale_factor
-
-#### Security
-* Disable User Namespaces, as it opens up a large attack surface to unprivileged users.
-* user.max_user_namespaces = 0
+* `vm/lowmem_reserve_ratio`.
 
 
-### Virtual memory tweaks
-```
-echo "500" > /proc/sys/vm/dirty_expire_centisecs
-echo "3000" > /proc/sys/vm/dirty_writeback_centisecs
+### Memory watermark
 
-dirty_background_bytes
-dirty_background_ratio
-dirty_bytes
-dirty_expire_centisecs
-dirty_ratio
-dirty_writeback_centisecs
-dirtytime_expire_seconds
-extfrag_threshold
-
-```
-
-### /sys Wide block based tuning for reduced lag and less possible amount of general IO scheduling based overhead.
-```
-for i in /sys/block/*/queue; do
-  echo "0" > $i/add_random;
-  echo "0" > $i/io_poll;
-  echo "0" > $i/iostats;
-  echo "0" > $i/nomerges;
-  echo "128" > $i/read_ahead_kb;
-  echo "0" > $i/rotational;
-  echo "1" > $i/rq_affinity;
-  echo "cfq" > $i/scheduler;
-  echo "write back" > $i/write_cache;
-done;
-```
-
-### Do we need to change anything under /sys/kernel/debug?
+* `vm/min_free_kbytes`.
+* `vm/watermark_boost_factor`.
+* `vm/watermark_scale_factor`.
 
 
-### Adjust System V shared memory
+### Memory dirtiness
 
-* In `/proc/sys/kernel`:-
-    * `shmall`
-    * `shmmax`
-    * `shmmni`
-    * `shm_rmid_forced`
-
-
-### Adjust System V IPC
-
-* `msg_next_id`, `sem_next_id`, and `shm_next_id`.
+* `vm/dirty_background_bytes`.
+* `vm/dirty_background_ratio`.
+* `vm/dirty_bytes`.
+* `vm/dirty_expire_centisecs` eg 500
+* `vm/dirty_ratio`.
+* `vm/dirty_writeback_centisecs` eg 3000
+* `vm/dirtytime_expire_seconds`.
+* `vm/extfrag_threshold`.
 
 
-### Hung Task (only if present)
+### Kernel miscellany in /proc/sys/kernel
 
-* `hung_task_check_count`
-* `hung_task_timeout_secs`
-* `hung_task_check_interval_secs`
-* `hung_task_warnings`
-
-
-## Automatic NUMA balancing
-
-Enables/disables automatic page fault based NUMA memory balancing. Memory is moved automatically to nodes that access it often.
-
-On NUMA machines, there is a performance penalty if remote memory is accessed by a CPU. When this feature is enabled the kernel samples what task thread is accessing memory by periodically unmapping pages and later trapping a page fault. At the time of the page fault, it is determined if the data being accessed should be migrated to a local memory node.
-
-If Automatic NUMA Balancing is enabled, the task scanner behavior can be configured. The task scanner balances the overhead of Automatic NUMA Balancing with the amount of time it takes to identify the best placement of data.
-
-The unmapping of pages and trapping faults incur additional overhead that ideally is offset by improved memory locality but there is no universal guarantee. If the target workload is already bound to NUMA nodes then this feature should be disabled. Otherwise, if the system overhead from the feature is too high then the rate the kernel samples for NUMA hinting faults may be controlled by sysctl.
-
-* `/proc/sys/kernel/numa_balancing` - boolean to enable or disable globally.
-* `numa_balancing_scan_delay_ms`: The amount of CPU time a thread must consume before its data is scanned. This prevents creating overhead because of short-lived processes.
-* `numa_balancing_scan_period_min_ms` and `numa_balancing_scan_period_max_ms`: Controls how frequently a task's data is scanned. Depending on the locality of the faults the scan rate will increase or decrease. These settings control the min and max scan rates.
-* `numa_balancing_scan_size_mb`: Controls how much address space is scanned when the task scanner is active.
-* `numa_balancing_settle_count`: ?
+* `acct`:-
+    acct:
+    
+    highwater lowwater frequency
+    
+    If BSD-style process accounting is enabled these values control
+    its behaviour. If free space on filesystem where the log lives
+    goes below <lowwater>% accounting suspends. If free space gets
+    above <highwater>% accounting resumes. <Frequency> determines
+    how often do we check the amount of free space (value is in
+    seconds). Default:
+    4 2 30
+    That is, suspend accounting if there left <= 2% free; resume it
+    if we got >=4%; consider information about amount of free space
+    valid for 30 seconds.
+* `perf_cpu_time_max_percent`
+* `perf_event_max_contexts_per_stack`
+* `perf_event_max_sample_rate`
+* `perf_event_mlock_kb`
+* `pty/` (maximum number of pseudoterminals)
+* `sched_domain/` (far too complicated)
+* `keys/` (constrains memory usage of encryption keys in the kernel)
+* `usermodehelper/` ?
 
 
 

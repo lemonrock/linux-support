@@ -27,6 +27,15 @@ impl ProcPath
 	{
 		self.file_path(&process_identifier.to_file_name()).append(relative_path)
 	}
+	
+	/// Get a folder path for the current process or another process' pressure sub folder.
+	///
+	/// This folder only exists if the kernel has been built with support for Pressure Stall Information (PSI).
+	#[inline(always)]
+	pub fn process_pressure_stall_information_file_path(&self, process_identifier: ProcessIdentifierChoice, file_name: &str) -> PathBuf
+	{
+		self.process_file_path(process_identifier, "pressure").append(relative_path)
+	}
 
 	/// Get a folder path for the current process or another process' thread.
 	#[inline(always)]
@@ -56,6 +65,34 @@ impl ProcPath
 		self.sys_fs_file_path("epoll").append(file_name)
 	}
 
+	/// Get a file path within the ProcPath, `/proc/sys/dev/scsi/<file_name>`.
+	#[inline(always)]
+	pub fn sys_dev_scsi_file_path(&self, file_name: &str) -> PathBuf
+	{
+		self.sys_dev_file_path("scsi").append(file_name)
+	}
+	
+	/// Get a file path within the ProcPath, `/proc/sys/dev/<file_name>`.
+	#[inline(always)]
+	pub fn sys_dev_file_path(&self, file_name: &str) -> PathBuf
+	{
+		self.sys_file_path("dev").append(file_name)
+	}
+	
+	/// Get a file path within the ProcPath, `/proc/sys/debug/<file_name>`.
+	#[inline(always)]
+	pub fn sys_debug_file_path(&self, file_name: &str) -> PathBuf
+	{
+		self.sys_file_path("debug").append(file_name)
+	}
+	
+	/// Get a file path within the ProcPath, `/proc/sys/abi/<file_name>`.
+	#[inline(always)]
+	pub fn sys_abi_file_path(&self, file_name: &str) -> PathBuf
+	{
+		self.sys_file_path("abi").append(file_name)
+	}
+	
 	/// Get a file path within the ProcPath, `/proc/sys/vm/<file_name>`.
 	#[inline(always)]
 	pub fn sys_vm_file_path(&self, file_name: &str) -> PathBuf
@@ -105,6 +142,20 @@ impl ProcPath
 		self.sys_file_path("user").append(file_name)
 	}
 
+	/// Get a file path within the ProcPath, `/proc/sys/kernel/random/<file_name>`.
+	#[inline(always)]
+	pub fn sys_kernel_random_file_path(&self, file_name: &str) -> PathBuf
+	{
+		self.sys_kernel_file_path("random").append(file_name)
+	}
+	
+	/// Get a file path within the ProcPath, `/proc/sys/kernel/seccomp/<file_name>`.
+	#[inline(always)]
+	pub fn sys_kernel_seccomp_file_path(&self, file_name: &str) -> PathBuf
+	{
+		self.sys_kernel_file_path("seccomp").append(file_name)
+	}
+	
 	/// Get a file path within the ProcPath, `/proc/sys/kernel/<file_name>`.
 	#[inline(always)]
 	pub fn sys_kernel_file_path(&self, file_name: &str) -> PathBuf

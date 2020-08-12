@@ -6,35 +6,18 @@
 ///
 /// Defaults to `Maximum`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum MaximumNumber
+pub enum MaximumNumber<V: ParseNumber + Sized + IntegerIntoLineFeedTerminatedByteString>
 {
 	/// A finite value.
 	///
 	/// Can be zero.
-	Finite(usize),
+	Finite(V),
 
 	/// A system defined maximum.
 	Maximum,
 }
 
-impl<'a> IntoLineFeedTerminatedByteString<'a> for MaximumNumber
-{
-	/// Converts data to a byte string terminated with a new line (`\n`).
-	#[inline(always)]
-	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
-	{
-		use self::MaximumNumber::*;
-
-		match self
-		{
-			Finite(value) => UnpaddedDecimalInteger(value).into_line_feed_terminated_byte_string(),
-
-			Maximum => Cow::from(b"max\n" as &[u8]),
-		}
-	}
-}
-
-impl Default for MaximumNumber
+impl<V: ParseNumber + Sized + IntegerIntoLineFeedTerminatedByteString> Default for MaximumNumber<V>
 {
 	#[inline(always)]
 	fn default() -> Self
@@ -43,55 +26,69 @@ impl Default for MaximumNumber
 	}
 }
 
-impl Into<Option<usize>> for MaximumNumber
+impl<V: ParseNumber + Sized + IntegerIntoLineFeedTerminatedByteString> Into<Option<V>> for MaximumNumber<V>
 {
 	#[inline(always)]
 	fn into(self) -> Option<usize>
 	{
 		use self::MaximumNumber::*;
-
+		
 		match self
 		{
 			Finite(value) => Some(value),
+			
 			Maximum => None,
 		}
 	}
 }
 
-impl From<Option<usize>> for MaximumNumber
+impl<V: ParseNumber + Sized + IntegerIntoLineFeedTerminatedByteString> From<Option<V>> for MaximumNumber<V>
 {
 	#[inline(always)]
-	fn from(value: Option<usize>) -> Self
+	fn from(value: Option<V>) -> Self
 	{
 		use self::MaximumNumber::*;
-
+		
 		match value
 		{
 			Some(value) => Finite(value),
+			
 			None => Maximum,
 		}
 	}
 }
 
-impl MaximumNumber
+impl<V: ParseNumber + Sized + IntegerIntoLineFeedTerminatedByteString> ParseNumber for MaximumNumber<V>
 {
 	#[inline(always)]
-	fn from_file(file_path: &Path) -> Result<Self, MaximumNumberParseError>
-	{
-		Self::from_file_contents(file_path.read_raw_without_line_feed()?)
-	}
-
-	#[inline(always)]
-	fn from_file_contents(contents: Box<[u8]>) -> Result<Self, MaximumNumberParseError>
+	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
 	{
 		use self::MaximumNumber::*;
-		if &contents[..] == b"max"
+		
+		if &bytes[..] == b"max"
 		{
 			Ok(Maximum)
 		}
 		else
 		{
-			Ok(Finite(usize::parse_decimal_number(&contents)?))
+			Ok(Finite(V::parse_number(bytes, radix, parse_byte)?))
+		}
+	}
+}
+
+impl<V: ParseNumber + Sized + IntegerIntoLineFeedTerminatedByteString> IntoLineFeedTerminatedByteString<'static> for MaximumNumber<V>
+{
+	/// Converts data to a byte string terminated with a new line (`\n`).
+	#[inline(always)]
+	fn into_line_feed_terminated_byte_string(self) -> Cow<'static, [u8]>
+	{
+		use self::MaximumNumber::*;
+
+		match self
+		{
+			Finite(value) => value.unpadded_decimal(),
+
+			Maximum => Cow::from(b"max\n" as &[u8]),
 		}
 	}
 }

@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// `mount -t cgroup2 none /mnt/cgroup2`.
+/// `mount -t cgroup2 none /dev/cgroup2`.
 ///
 /// The only supported mount option is `nsdelegate`.
 pub struct CgroupMountPoint

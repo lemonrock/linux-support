@@ -3,17 +3,17 @@
 
 
 /// Controllers.
-#[derive(Debug)]
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct Controllers(HashSet<Controller>);
 
-impl Default for Controllers
+impl From<HashSet<Controller>> for Controllers
 {
 	#[inline(always)]
-	fn default() -> Self
+	fn from(value: HashSet<Controller>) -> Self
 	{
-		Self(HashSet::with_capacity(Controller::MaximumNumberOfControllers))
+		Self(value)
 	}
 }
 
@@ -37,8 +37,101 @@ impl DerefMut for Controllers
 	}
 }
 
+impl FromBytes for Controllers
+{
+	type Error = ControllersFileError;
+	
+	#[inline(always)]
+	fn from_bytes(bytes: &[u8]) -> Result<Self, Self::Error>
+	{
+		if unlikely!(bytes.is_empty())
+		{
+			return Ok(Self::default())
+		}
+		
+		use self::ControllersFileError::*;
+		
+		let mut controllers = Self::new_if_going_to_be_full();
+		for potential_controller in bytes.split_bytes_n(Controller::MaximumNumberOfControllers, b' ')
+		{
+			let controller = Controller::from_bytes(potential_controller)?;
+			let added_first_time = controllers.insert(controller);
+			if unlikely!(!added_first_time)
+			{
+				return Err(DuplicateController(controller))
+			}
+		}
+		controllers.shrink_to_fit();
+		Ok(controllers)
+	}
+}
+
 impl Controllers
 {
+	#[inline(always)]
+	fn new_if_going_to_be_full() -> Self
+	{
+		Self(HashMap::with_capacity(Controller::MaximumNumberOfControllers))
+	}
+	
+	pub(crate) fn add_if_some<CC: ControllerConfiguration>(&mut self, controller: &Option<CC>)
+	{
+		if controller.is_some()
+		{
+			self.insert(CC::Controller)
+		}
+	}
+	
+	/// Complement, taking into account Controllers that are not extant on this version of Linux.
+	///
+	/// Trying to enabled or disable a Controller that is not extant causes a write error.
+	#[inline(always)]
+	pub fn to_enable_and_disable(&self, available_controllers: &Self) -> (Self, Self)
+	{
+		let mut enabled = Self::new_if_going_to_be_full();
+		let mut disabled = Self::new_if_going_to_be_full();
+		
+		for controller in Controller::iter()
+		{
+			if !available_controllers.contains(&controller)
+			{
+				continue
+			}
+			if self.contains(&controller)
+			{
+				enabled.insert(controller);
+			}
+			else
+			{
+				disabled.insert(controller)
+			}
+		}
+		(enabled, disabled)
+	}
+	
+	/// Contains only threaded controllers, ie no domain controllers.
+	#[inline(always)]
+	pub fn contains_only_threaded_controllers(&self) -> bool
+	{
+		for controller in self.iter()
+		{
+			if !(*controller).is_threaded_controller()
+			{
+				return false
+			}
+		}
+		true
+	}
+	
+	#[inline(always)]
+	pub(crate) fn merge(&mut self, other: &Self)
+	{
+		for controller in other
+		{
+			self.insert(*controller);
+		}
+	}
+	
 	/// Creates a change line such as `+pids -memory` *with* a trailing line feed.
 	fn create_change_line(enable: &Self, disable: &Self) -> Vec<u8>
 	{
@@ -63,41 +156,5 @@ impl Controllers
 		append_to_line(&mut line, b'-', disable);
 		line.push(b'\n');
 		line
-	}
-
-	#[inline(always)]
-	fn from_file(file_path: &Path) -> Result<Self, ControllersFileError>
-	{
-		Self::from_file_contents(file_path.read_raw_without_line_feed()?)
-	}
-
-	#[inline(always)]
-	fn from_file_contents(contents: Box<[u8]>) -> Result<Self, ControllersFileError>
-	{
-		use self::ControllersFileError::*;
-
-		if unlikely!(contents.is_empty())
-		{
-			return Ok(Self::empty())
-		}
-
-		let mut controllers = Self::default();
-		for potential_controller in contents.split_bytes_n(Controller::MaximumNumberOfControllers, b' ')
-		{
-			let controller = Controller::from_bytes(potential_controller)?;
-			let added_first_time = controllers.insert(controller);
-			if unlikely!(!added_first_time)
-			{
-				return Err(DuplicateController(controller))
-			}
-		}
-		controllers.shrink_to_fit();
-		Ok(controllers)
-	}
-
-	#[inline(always)]
-	fn empty() -> Self
-	{
-		Self(HashSet::default())
 	}
 }

@@ -10,7 +10,7 @@ impl Mounts
 {
 	/// Current mounts (from `/proc/<X>/mounts`).
 	#[inline(always)]
-	pub fn parse(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> Result<Mounts, io::Error>
+	pub fn parse(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> io::Result<Self>
 	{
 		let mounts_wrapper = MountsWrapper::new(&proc_path.process_file_path(process_identifier, "mounts"), true)?;
 
@@ -32,18 +32,20 @@ impl Mounts
 		Ok(Mounts(map))
 	}
 
-	/// Returns a path for an existing `hugetlbfs` mount, if any.
+	/// Returns the first path for an existing `file_system_type` mount, if any.
+	///
+	/// Useful for specialized file systems like `cgroup2` and `hugetlbfs`.
 	#[inline(always)]
-	pub fn existing_hugetlbfs_mount<'a>(&self) -> Option<PathBuf>
+	pub fn existing_mount(&self, file_system_type: FileSystemType) -> Option<&Path>
 	{
 		for mount in self.0.values()
 		{
-			if mount.has_file_system_type(&FileSystemType::hugetlbfs)
+			if mount.has_file_system_type(&file_system_type)
 			{
 				let mount_point = &mount.mount_point;
 				if mount_point.is_dir()
 				{
-					return Some(mount_point.to_owned());
+					return Some(mount_point.as_path());
 				}
 			}
 		}

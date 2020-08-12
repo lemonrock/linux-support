@@ -19,6 +19,9 @@ pub enum GlobalMemoryConfigurationError
 	GlobalOutOfMemoryConfiguration(GlobalOutOfMemoryConfigurationError),
 
 	#[allow(missing_docs)]
+	GlobalNumaBalancingConfiguration(GlobalNumaBalancingConfigurationError),
+
+	#[allow(missing_docs)]
 	GlobalNumaMemoryReclaimConfiguration(GlobalNumaMemoryReclaimConfigurationError),
 
 	#[allow(missing_docs)]
@@ -60,6 +63,8 @@ impl error::Error for GlobalMemoryConfigurationError
 
 			&GlobalOutOfMemoryConfiguration(ref cause) => Some(cause),
 
+			&GlobalNumaBalancingConfiguration(ref cause) => Some(cause),
+
 			&GlobalNumaMemoryReclaimConfiguration(ref cause) => Some(cause),
 
 			&GlobalMemoryStatisticsConfiguration(ref cause) => Some(cause),
@@ -97,6 +102,15 @@ impl From<GlobalOutOfMemoryConfigurationError> for GlobalMemoryConfigurationErro
 	fn from(cause: GlobalOutOfMemoryConfigurationError) -> Self
 	{
 		GlobalMemoryConfigurationError::GlobalOutOfMemoryConfiguration(cause)
+	}
+}
+
+impl From<GlobalNumaBalancingConfigurationError> for GlobalMemoryConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: GlobalNumaBalancingConfigurationError) -> Self
+	{
+		GlobalMemoryConfigurationError::GlobalNumaBalancingConfiguration(cause)
 	}
 }
 

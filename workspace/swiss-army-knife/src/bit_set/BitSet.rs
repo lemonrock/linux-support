@@ -74,6 +74,11 @@ impl<BSA: BitSetAware> BitSet<BSA>
 		}
 
 		let mut result = Self::new();
+		
+		if linux_list_string.is_empty()
+		{
+			return Ok(result)
+		}
 
 		use self::ListParseError::*;
 

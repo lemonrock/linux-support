@@ -216,6 +216,8 @@ impl HyperThreads
 	}
 	
 	/// Sets affinity.
+	///
+	/// Does a cursory check that the `path` exists (but is subject to a TOCTOU flaw).
 	#[inline(always)]
 	pub fn set_affinity(&self, path: impl AsRef<Path>) -> io::Result<()>
 	{
@@ -233,7 +235,9 @@ impl HyperThreads
 		}
 	}
 
-	/// Sets affinity
+	/// Sets affinity.
+	///
+	/// Does a cursory check that the `path` exists (but is subject to a TOCTOU flaw).
 	#[inline(always)]
 	pub fn set_affinity_list(&self, path: impl AsRef<Path>) -> io::Result<()>
 	{

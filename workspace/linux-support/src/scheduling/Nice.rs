@@ -181,6 +181,15 @@ impl ParseNumber for Nice
 	}
 }
 
+impl<'a> IntoLineFeedTerminatedByteString<'a> for Nice
+{
+	#[inline(always)]
+	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
+	{
+		UnpaddedDecimalInteger(self as i32).into_line_feed_terminated_byte_string()
+	}
+}
+
 impl Nice
 {
 	pub(super) const InclusiveMinimum: i32 = -20;

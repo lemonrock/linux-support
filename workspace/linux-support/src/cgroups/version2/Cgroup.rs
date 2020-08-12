@@ -2,213 +2,346 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A version 2 cgroup.
-///
-/// See <https://www.kernel.org/doc/Documentation/cgroup-v2.txt>.
-///
-/// By convention, a leaf cgroup is called `leaf` but this is not enforced.
-#[derive(Debug, Clone)]
-pub enum Cgroup<'a>
+/// Properties common to a root and a non-root cgroup.
+pub trait Cgroup<'name>
 {
-	/// Root.
-	Root,
-
-	/// Non-root.
-	NonRoot(NonRootCgroup<'a>),
-}
-
-impl<'a> Cgroup<'a>
-{
-	/// To an owned path.
-	#[inline(always)]
-	pub fn to_owned_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
-	{
-		self.to_path(mount_point).into_owned()
-	}
-
 	/// To a path.
+	fn to_path<'b>(&self, mount_point: &'b CgroupMountPoint) -> Cow<'b, Path>;
+	
+	/// Does not check if the child exists.
+	fn child(self: Rc<Self>, name: impl Into<Cow<'name, CgroupName>>) -> Rc<NonRootCgroup<'name>>;
+	
+	/// Adjusts subtree controllers to `desired_controllers` but working so that controllers not available to the cgroup aren't enabled (trying to enable or disable controllers not available in the version of Linux causes a write error).
 	#[inline(always)]
-	pub fn to_path<'b>(&self, mount_point: &'b CgroupMountPoint) -> Cow<'b, Path>
+	fn change_subtree_controllers_taking_account_of_those_available(&self, mount_point: &CgroupMountPoint, desired_controllers: &Controllers) -> io::Result<Controllers>
 	{
-		use self::Cow::*;
-		use self::Cgroup::*;
-
-		match self
-		{
-			&Root => Borrowed(mount_point.to_path()),
-
-			&NonRoot(ref non_root) => Owned(non_root.to_path(mount_point)),
-		}
+		let available_controllers = self.read_available_controllers(mount_point)?;
+		let (enable, disable) = desired_controllers.to_enable_and_disable(&available_controllers);
+		self.change_subtree_controllers(mount_point, &enable, &disable)?;
+		Ok(available_controllers)
 	}
-
-	/// Returns `None` if this is the root cgroup.
-	#[inline(always)]
-	pub fn parent(&self) -> Option<&'a Self>
-	{
-		use self::Cgroup::*;
-
-		match self
-		{
-			&Root => None,
-
-			&NonRoot(ref non_root) => Some(non_root.parent()),
-		}
-	}
-
+	
 	/// The set of controllers match the set of controllers in the parents' cgroup's `subtree_control()`.
 	#[inline(always)]
-	pub fn read_available_controllers(&self, mount_point: &CgroupMountPoint) -> Result<Controllers, ControllersFileError>
+	fn read_available_controllers(&self, mount_point: &CgroupMountPoint) -> io::Result<Controllers>
 	{
-		self.read_controllers(mount_point, "cgroup.controllers")
+		self.cgroup_controllers_file_path(mount_point).read_value()
 	}
 
 	/// Reads maximum depth.
 	///
 	/// Since Linux version 4.14.
 	#[inline(always)]
-	pub fn read_maximum_depth(&self, mount_point: &CgroupMountPoint) -> Result<MaximumNumber, MaximumNumberParseError>
+	fn read_maximum_depth(&self, mount_point: &CgroupMountPoint) -> io::Result<MaximumNumber<usize>>
 	{
-		self.read_maximum_number(mount_point, "cgroup.max.depth")
+		self.cgroup_max_depth_file_path(mount_point).read_value()
 	}
-
+	
 	/// Writes maximum depth.
 	///
 	/// Since Linux version 4.14.
 	#[inline(always)]
-	pub fn write_maximum_depth(&self, mount_point: &CgroupMountPoint, maximum_number: MaximumNumber) -> io::Result<()>
+	fn write_maximum_depth(&self, mount_point: &CgroupMountPoint, maximum_number: MaximumNumber<usize>) -> io::Result<()>
 	{
-		self.write_maximum_number(mount_point, "cgroup.max.depth", maximum_number)
+		self.cgroup_max_depth_file_path(mount_point).write_value(maximum_number)
 	}
 
-	/// Reads maximum descendants.
+	/// Reads maximum descendants, ie the number of cgroup entries in a directory.
 	///
 	/// Since Linux version 4.14.
 	#[inline(always)]
-	pub fn read_maximum_descendants(&self, mount_point: &CgroupMountPoint) -> Result<MaximumNumber, MaximumNumberParseError>
+	fn read_maximum_descendants(&self, mount_point: &CgroupMountPoint) -> io::Result<MaximumNumber<usize>>
 	{
-		self.read_maximum_number(mount_point, "cgroup.max.descendants")
+		self.cgroup_max_descendants_file_path(mount_point).read_value()
 	}
-
+	
 	/// Writes maximum descendants.
 	///
 	/// Since Linux version 4.14.
 	#[inline(always)]
-	pub fn write_maximum_descendants(&self, mount_point: &CgroupMountPoint, maximum_number: MaximumNumber) -> io::Result<()>
+	fn write_maximum_descendants(&self, mount_point: &CgroupMountPoint, maximum_number: MaximumNumber<usize>) -> io::Result<()>
 	{
-		self.write_maximum_number(mount_point, "cgroup.max.descendants", maximum_number)
+		self.cgroup_max_descendants_file_path(mount_point).write_value(maximum_number)
 	}
 
-	/// List of non-zero process identifiers.
+	/// List of process identifiers.
 	#[inline(always)]
-	pub fn get_process_identifiers(&self, mount_point: &CgroupMountPoint) -> Result<Vec<ProcessIdentifier>, ProcessIdentifiersParseError>
+	fn get_process_identifiers(&self, mount_point: &CgroupMountPoint) -> io::Result<Vec<ProcessIdentifier>>
 	{
-		self.read_process_identifiers(mount_point, "cgroup.procs")
+		read_process_or_thread_identifiers(self.cgroup_procs_file_path(mount_point))
 	}
 
 	/// Migrate process to this cgroup.
 	#[inline(always)]
-	pub fn migrate_process_to_this_cgroup(&self, mount_point: &CgroupMountPoint, process_identifier: ProcessIdentifierChoice) -> io::Result<()>
+	fn migrate_process_to_this_cgroup(&self, mount_point: &CgroupMountPoint, process_identifier: ProcessIdentifierChoice) -> io::Result<()>
 	{
-		self.write_process_identifier(mount_point, "cgroup.procs", process_identifier)
-	}
-
-	#[inline(always)]
-	fn read_process_identifiers(&self, mount_point: &CgroupMountPoint, file_name: &str) -> Result<Vec<ProcessIdentifier>, ProcessIdentifiersParseError>
-	{
-		use self::ProcessIdentifiersParseError::*;
-		
-		let file_path = self.file_path(mount_point, file_name);
-		
-		let reader = file_path.read_raw().map_err(Input)?;
-		
-		const GuessOfRatioOfBytesToProcessIdentifiers: usize = 6;
-		let mut process_identifiers = Vec::with_capacity(reader.len() / GuessOfRatioOfBytesToProcessIdentifiers);
-		for line in reader.split_bytes(b'\n')
-		{
-			let process_identifier = ProcessIdentifier::parse_decimal_number(line).map_err(CouldNotParseProcessIdentifier)?;
-			process_identifiers.push(process_identifier);
-		}
-		
-		process_identifiers.shrink_to_fit();
-		
-		Ok(process_identifiers)
-	}
-
-	#[inline(always)]
-	fn write_process_identifier(&self, mount_point: &CgroupMountPoint, file_name: &str, process_identifier: ProcessIdentifierChoice) -> io::Result<()>
-	{
-		let path = self.file_path(mount_point, file_name);
-		path.write_value(process_identifier)
+		self.cgroup_procs_file_path(mount_point).write_value(process_identifier)
 	}
 
 	/// Statistics.
 	///
 	/// Since Linux version 4.14.
 	#[inline(always)]
-	pub fn read_statistics(&self, mount_point: &CgroupMountPoint) -> Result<Statistics, StatisticsParseError>
+	fn read_statistics(&self, mount_point: &CgroupMountPoint) -> Result<Statistics, StatisticsParseError>
 	{
-		let path = self.file_path(mount_point, "cgroup.stat");
+		let path = self.cgroup_stat_file_path(mount_point);
 		Statistics::from_file(&path)
+	}
+	
+	/// Always exists even if the `cpu` controller is not enabled.
+	///
+	/// Will not exist if the kernel is not configured for Pressure Stall Information.
+	#[inline(always)]
+	fn read_cpu_pressure_stall_information(&self, mount_point: &CgroupMountPoint) -> io::Result<CpuTimeStalled>
+	{
+		let path = self.cpu_pressure_file_path(mount_point);
+		CpuTimeStalled::from_file(&path)
+	}
+	
+	/// Always exists even if the `cpu` controller is not enabled.
+	///
+	/// Will not exist if the kernel is not configured for Pressure Stall Information.
+	#[inline(always)]
+	fn monitor_some_cpu_pressure_stall_information(&self, mount_point: &CgroupMountPoint, maximum_total_stall_time_in_window: U64Microseconds, window: U64Microseconds) -> io::Result<File>
+	{
+		let path = self.cpu_pressure_file_path(mount_point);
+		CpuTimeStalled::monitor_some(&path, maximum_total_stall_time_in_window, window)
+	}
+	
+	/// Statistics always exist even if the `cpu` controller is not enabled (although they contain fewer entries).
+	#[inline(always)]
+	fn read_cpu_statistics(&self, mount_point: &CgroupMountPoint) -> Result<CpuStatistics, StatisticsParseError>
+	{
+		let path = self.cpu_stat_file_path(mount_point);
+		CpuStatistics::from_file(&path)
+	}
+	
+	/// Always exists even if the `io` controller is not enabled.
+	///
+	/// Will not exist if the kernel is not configured for Pressure Stall Information.
+	#[inline(always)]
+	fn read_input_output_pressure_stall_information(&self, mount_point: &CgroupMountPoint) -> io::Result<MemoryOrInputOutputTimeStalled>
+	{
+		let path = self.io_pressure_file_path(mount_point);
+		MemoryOrInputOutputTimeStalled::from_file(&path)
+	}
+	
+	/// Always exists even if the `io` controller is not enabled.
+	///
+	/// Will not exist if the kernel is not configured for Pressure Stall Information.
+	#[inline(always)]
+	fn monitor_some_input_output_pressure_stall_information(&self, mount_point: &CgroupMountPoint, maximum_total_stall_time_in_window: U64Microseconds, window: U64Microseconds) -> io::Result<File>
+	{
+		let path = self.input_output_pressure_file_path(mount_point);
+		MemoryOrInputOutputTimeStalled::monitor_some(&path, maximum_total_stall_time_in_window, window)
+	}
+	
+	/// Always exists even if the `io` controller is not enabled.
+	///
+	/// Will not exist if the kernel is not configured for Pressure Stall Information.
+	#[inline(always)]
+	fn monitor_all_input_output_pressure_stall_information(&self, mount_point: &CgroupMountPoint, maximum_total_stall_time_in_window: U64Microseconds, window: U64Microseconds) -> io::Result<File>
+	{
+		let path = self.input_output_pressure_file_path(mount_point);
+		MemoryOrInputOutputTimeStalled::monitor_all(&path, maximum_total_stall_time_in_window, window)
+	}
+	
+	/// Always exists even if the `memory` controller is not enabled.
+	///
+	/// Will not exist if the kernel is not configured for Pressure Stall Information.
+	#[inline(always)]
+	fn read_memory_pressure_stall_information(&self, mount_point: &CgroupMountPoint) -> io::Result<MemoryOrInputOutputTimeStalled>
+	{
+		let path = self.memory_pressure_file_path(mount_point);
+		MemoryOrInputOutputTimeStalled::from_file(&path)
+	}
+	
+	/// Always exists even if the `memory` controller is not enabled.
+	///
+	/// Will not exist if the kernel is not configured for Pressure Stall Informatmemoryn.
+	#[inline(always)]
+	fn monitor_some_memory_pressure_stall_informatmemoryn(&self, mount_point: &CgroupMountPoint, maximum_total_stall_time_in_window: U64Microseconds, window: U64Microseconds) -> memory::Result<File>
+	{
+		let path = self.memory_pressure_file_path(mount_point);
+		MemoryOrInputOutputTimeStalled::monitor_some(&path, maximum_total_stall_time_in_window, window)
+	}
+	
+	/// Always exists even if the `memory` controller is not enabled.
+	///
+	/// Will not exist if the kernel is not configured for Pressure Stall Informatmemoryn.
+	#[inline(always)]
+	fn monitor_all_memory_pressure_stall_informatmemoryn(&self, mount_point: &CgroupMountPoint, maximum_total_stall_time_in_window: U64Microseconds, window: U64Microseconds) -> memory::Result<File>
+	{
+		let path = self.memory_pressure_file_path(mount_point);
+		MemoryOrInputOutputTimeStalled::monitor_all(&path, maximum_total_stall_time_in_window, window)
 	}
 
 	/// Reads enabled controllers.
 	#[inline(always)]
-	pub fn read_enabled_controllers(&self, mount_point: &CgroupMountPoint) -> Result<Controllers, ControllersFileError>
+	fn read_subtree_controllers(&self, mount_point: &CgroupMountPoint) -> io::Result<Controllers>
 	{
-		self.read_controllers(mount_point, "cgroup.subtree_control")
+		self.cgroup_subtree_control_file_path(mount_point).read_value()
 	}
 
 	/// Changes the enabled controllers.
 	///
 	/// *Panics* in debug mode if `enable` and `disable` sets intersect.
+	///
+	/// Only domain controller cgroups are allowed to have enabled controllers.
 	#[inline(always)]
-	pub fn change_enabled_controllers(&self, mount_point: &CgroupMountPoint, enable: &Controllers, disable: &Controllers) -> io::Result<()>
+	fn change_subtree_controllers(&self, mount_point: &CgroupMountPoint, enable: &Controllers, disable: &Controllers) -> io::Result<()>
 	{
 		debug_assert_eq!(enable.intersection(disable).count(), 0, "There are controllers in both the `enable` and `disable` sets");
 
-		let path = self.file_path(mount_point, "cgroup.subtree_control");
 		let line = Controllers::create_change_line(enable, disable);
-		path.write_value(line)
+		self.cgroup_subtree_control_file_path(mount_point).write_value(line)
 	}
 
-	/// List of non-zero process identifiers.
+	/// List of thread identifiers.
+	///
+	/// Succeeds even if the cgroup's type is `Domain` or `InvalidDomain`.
 	#[inline(always)]
-	pub fn get_thread_identifiers(&self, mount_point: &CgroupMountPoint) -> Result<Vec<ProcessIdentifier>, ProcessIdentifiersParseError>
+	fn get_thread_identifiers(&self, mount_point: &CgroupMountPoint) -> io::Result<Vec<ThreadIdentifier>>
 	{
-		self.read_process_identifiers(mount_point, "cgroup.threads")
+		read_process_or_thread_identifiers(self.cgroup_threads_file_path(mount_point))
 	}
 
 	/// Migrate thread to this cgroup.
+	///
+	/// Succeeds only if:-
+	///
+	/// * This is a `RootCgroup`;
+	/// * This is a `NonRootCgroup` which is a leaf and which has a `type` of `Threaded`.
 	#[inline(always)]
-	pub fn migrate_thread_to_this_cgroup(&self, mount_point: &CgroupMountPoint, thread_identifier: ProcessIdentifierChoice) -> io::Result<()>
+	fn migrate_thread_to_this_cgroup(&self, mount_point: &CgroupMountPoint, thread_identifier: ThreadIdentifierChoice) -> io::Result<()>
 	{
-		self.write_process_identifier(mount_point, "cgroup.threads", thread_identifier)
+		self.cgroup_threads_file_path(mount_point).write_value(thread_identifier)
 	}
-
+	
+	/// Effective HyperThreads.
+	///
+	/// Only works if the `cpuset` controller is enabled.
+	///
+	/// Can be empty.
 	#[inline(always)]
-	fn read_controllers(&self, mount_point: &CgroupMountPoint, file_name: &str) -> Result<Controllers, ControllersFileError>
+	fn cpuset_hyper_threads_effective(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<HyperThreads>>
 	{
-		let path = self.file_path(mount_point, file_name);
-		Controllers::from_file(&path)
+		self.cpuset_cpus_effective_file_path(mount_point).read_hyper_thread_or_numa_node_list_if_exists().map(|option| option.map(HyperThreads))
 	}
-
+	
+	/// Effective NUMA nodes.
+	///
+	/// Only works if the `cpuset` controller is enabled.
+	///
+	/// Can be empty.
 	#[inline(always)]
-	fn read_maximum_number(&self, mount_point: &CgroupMountPoint, file_name: &str) -> Result<MaximumNumber, MaximumNumberParseError>
+	fn cpuset_numa_nodes_effective(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<NumaNodes>>
 	{
-		let path = self.file_path(mount_point, file_name);
-		MaximumNumber::from_file(&path)
+		self.cpuset_mems_effective_file_path(mount_point).read_hyper_thread_or_numa_node_list_if_exists().map(|option| option.map(NumaNodes))
 	}
-
+	
+	#[doc(hidden)]
 	#[inline(always)]
-	fn write_maximum_number(&self, mount_point: &CgroupMountPoint, file_name: &str, maximum_number: MaximumNumber) -> io::Result<()>
+	fn cgroup_controllers_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
 	{
-		let path = self.file_path(mount_point, file_name);
-		path.write_value(maximum_number)
+		self.file_path(mount_point, "cgroup.controllers")
 	}
-
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn cgroup_max_depth_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "cgroup.max.depth")
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn cgroup_max_descendants_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "cgroup.max.descendants")
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn cgroup_procs_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "cgroup.procs")
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn cgroup_subtree_control_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "cgroup.subtree_control")
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn cgroup_stat_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "cgroup.stat")
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn cgroup_threads_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "cgroup.threads")
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn cpu_pressure_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "cpu.pressure")
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn cpu_stat_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "cpu.stat")
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn cpuset_cpus_effective_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "cpuset.cpus.effective")
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn cpuset_mems_effective_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "cpuset.mems.effective")
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn io_pressure_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "io.pressure")
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn memory_pressure_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "memory.pressure")
+	}
+	
+	#[doc(hidden)]
 	#[inline(always)]
 	fn file_path(&self, mount_point: &CgroupMountPoint, file_name: impl AsRef<Path>) -> PathBuf
 	{
 		self.to_owned_path(mount_point).append(file_name)
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn to_owned_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.to_path(mount_point).into_owned()
 	}
 }

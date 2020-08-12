@@ -103,3 +103,56 @@ impl FromBytes for ProcessState
 		Ok(value)
 	}
 }
+
+impl TryFrom<i8> for ProcessState
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: i8) -> Result<Self, Self::Error>
+	{
+		Self::try_from(value as u8)
+	}
+}
+
+impl TryFrom<u8> for ProcessState
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: u8) -> Result<Self, Self::Error>
+	{
+		use self::ParseNumberError::*;
+		use self::ProcessState::*;
+
+		let value = match value
+		{
+			b'R' => Running,
+			b'S' => Sleeping,
+			b'D' => SleepingInAnUninterruptibleWait,
+			b'Z' => Zombie,
+			b'T' => Stopped,
+			b'X' => Dead,
+			b'I' => Idle,
+
+			// Linux 2.6.33 onward.
+			b't' => TracingStop,
+
+			// Linux 2.6.33 to 3.13 only.
+			b'x' => Dead,
+
+			// Only before Linux 2.6.0, when it was used for Paging, and Linux Linux 2.6.33 to 3.13 only.
+			#[allow(deprecated)] b'W' => PagingOrWaking,
+
+			// Linux 3.9 to 3.13 only.
+			#[allow(deprecated)] b'K' => WakeKill,
+
+			// Linux 3.9 to 3.13 only.
+			#[allow(deprecated)] b'P' => Parked,
+
+			_ => return Err(OutOfRange)
+		};
+
+		Ok(value)
+	}
+}

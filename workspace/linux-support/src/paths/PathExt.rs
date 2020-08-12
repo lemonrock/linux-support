@@ -23,6 +23,9 @@ pub trait PathExt
 	///
 	/// The returned bytes lack a final line feed.
 	fn read_raw_without_line_feed(&self) -> io::Result<Box<[u8]>>;
+	
+	/// Reads a value from a file which is line-feed terminated if the file exists.
+	fn read_value_if_exists<F>(&self) -> io::Result<Option<F>> where F: FromBytes, <F as FromBytes>::Error: 'static + Send + Sync + error::Error;
 
 	/// Reads a value from a file which is line-feed terminated.
 	fn read_value<F>(&self) -> io::Result<F> where F: FromBytes, <F as FromBytes>::Error: 'static + Send + Sync + error::Error;
@@ -38,9 +41,19 @@ pub trait PathExt
 
 	/// Reads and parses a linux core or numa list string from a file.
 	///
+	/// Handles empty files.
+	///
 	/// Returns a set with the zero-based indices found in the string.
 	/// For example, "2,4-31,32-63" would return a set with all values between 0 to 63 except 0, 1 and 3.
 	fn read_hyper_thread_or_numa_node_list<BSA: BitSetAware>(&self) -> Result<BitSet<BSA>, io::Error>;
+	
+	/// Reads and parses a linux core or numa list string from a file if it exists.
+	///
+	/// Handles empty files.
+	///
+	/// Returns a set with the zero-based indices found in the string.
+	/// For example, "2,4-31,32-63" would return a set with all values between 0 to 63 except 0, 1 and 3.
+	fn read_hyper_thread_or_numa_node_list_if_exists<BSA: BitSetAware>(&self) -> Result<Option<BitSet<BSA>>, io::Error>;
 
 	/// Reads and parses a HyperThread or NumaNode bit set from a file.
 	///
@@ -135,6 +148,29 @@ impl PathExt for Path
 	}
 
 	#[inline(always)]
+	fn read_value_if_exists<F>(&self) -> io::Result<Option<F>> where F: FromBytes, <F as FromBytes>::Error: 'static + Send + Sync + error::Error
+	{
+		let bytes = match self.read_raw_without_line_feed()
+		{
+			Ok(bytes) => bytes,
+			Err(error) => return if error.kind() == ErrorKind::NotFound
+			{
+				Ok(None)
+			}
+			else
+			{
+				Err(error)
+			}
+		};
+
+		match F::from_bytes(&bytes)
+		{
+			Err(error) => Err(io::Error::new(ErrorKind::InvalidData, error)),
+			Ok(value) => Ok(Some(value)),
+		}
+	}
+
+	#[inline(always)]
 	fn read_zero_or_one_bool(&self) -> io::Result<bool>
 	{
 		let bytes = self.read_raw_without_line_feed()?;
@@ -170,7 +206,33 @@ impl PathExt for Path
 	{
 		let without_line_feed = self.read_raw_without_line_feed()?;
 
-		BitSet::<BSA>::parse_linux_list_string(&without_line_feed).map_err(|error| io::Error::new(ErrorKind::Other, error))
+		BitSet::<BSA>::parse_linux_list_string(&without_line_feed).map_err(|error| io::Error::new(ErrorKind::InvalidData, error))
+	}
+	
+	#[inline(always)]
+	fn read_hyper_thread_or_numa_node_list_if_exists<BSA: BitSetAware>(&self) -> Result<Option<BitSet<BSA>>, io::Error>
+	{
+		let without_line_feed = self.read_raw_without_line_feed()?;
+		
+		let without_line_feed = match self.read_raw_without_line_feed()
+		{
+			Ok(without_line_feed) => without_line_feed,
+			
+			Err(error) => return if error.kind() == ErrorKind::NotFound
+			{
+				Ok(None)
+			}
+			else
+			{
+				Err(error)
+			}
+		};
+		
+		match BitSet::<BSA>::parse_linux_list_string(&without_line_feed)
+		{
+			Err(error) => Err(io::Error::new(ErrorKind::InvalidData, error)),
+			Ok(bit_set) => Ok(Some(bit_set)),
+		}
 	}
 
 	#[inline(always)]

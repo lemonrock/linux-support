@@ -6,9 +6,6 @@
 #[derive(Debug)]
 pub enum ControllersFileError
 {
-	/// Input error.
-	Input(io::Error),
-
 	/// Invalid controller.
 	Parse(ParseControllerError),
 
@@ -34,21 +31,10 @@ impl Error for ControllersFileError
 
 		match self
 		{
-			&Input(ref source) => Some(source),
-
 			&Parse(..) => None,
 
 			&DuplicateController(..) => None,
 		}
-	}
-}
-
-impl From<io::Error> for ControllersFileError
-{
-	#[inline(always)]
-	fn from(value: io::Error) -> Self
-	{
-		ControllersFileError::Input(value)
 	}
 }
 

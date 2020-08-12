@@ -9,6 +9,13 @@ pub enum StatisticsParseError
 	/// Input error.
 	Input(io::Error),
 
+	/// Duplicate statistic name.
+	DuplicateStatisticName
+	{
+		/// Name.
+		name: Vec<u8>,
+	},
+
 	/// Invalid statistic name.
 	InvalidStatisticName
 	{
@@ -35,12 +42,12 @@ pub enum StatisticsParseError
 		/// Cause.
 		cause: ParseNumberError,
 	},
-
-	/// Missing statistic for number of living descendants.
-	StatisticNumberOfLivingDescendantsMissing,
-
-	/// Missing statistic for number of dying descendants.
-	StatisticNumberOfDyingDescendantsMissing,
+	
+	/// Missing statistic value.
+	MissingStatistic(&'static [u8]),
+	
+	/// Missing one or more statistic value.
+	MissingOneOrMoreStatistics,
 }
 
 impl Display for StatisticsParseError
@@ -63,15 +70,17 @@ impl Error for StatisticsParseError
 		{
 			&Input(ref source) => Some(source),
 
+			&DuplicateStatisticName { .. } => None,
+
 			&InvalidStatisticName { .. } => None,
 
 			&MissingStatisticValue { .. } => None,
 
 			&InvalidStatisticValue { ref cause, .. } => Some(cause),
 
-			&StatisticNumberOfLivingDescendantsMissing => None,
-
-			&StatisticNumberOfDyingDescendantsMissing => None,
+			&MissingStatistic(..) => None,
+			
+			&MissingOneOrMoreStatistics => None,
 		}
 	}
 }

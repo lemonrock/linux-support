@@ -25,7 +25,10 @@ pub struct GlobalConfiguration
 
 	/// Requires root.
 	pub system_v_message_queue: GlobalSystemVMessageQueueConfiguration,
-
+	
+	/// Requires root.
+	pub system_v_semaphore: Option<SempahoresConfiguration>,
+	
 	/// Requires root.
 	pub inotify: GlobalInotifyConfiguration,
 
@@ -83,6 +86,11 @@ impl GlobalConfiguration
 
 		self.system_v_message_queue.configure(proc_path)?;
 
+		if let Some(ref system_v_semaphore) = self.system_v_semaphore
+		{
+			system_v_semaphore.write(proc_path).map_err(GlobalConfigurationError::GlobalSystemVSemaphoreConfiguration)?
+		}
+		
 		self.inotify.configure(proc_path)?;
 
 		self.epoll.configure(proc_path)?;

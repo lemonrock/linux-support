@@ -11,3 +11,7 @@ pub mod memory_segments;
 
 /// Legacy System V (SysV) message queues (MQ).
 pub mod message_queues;
+
+
+/// Legacy System V (SysV) semaphores (`sem`).
+pub mod semaphores;

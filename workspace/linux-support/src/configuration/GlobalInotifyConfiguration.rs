@@ -15,13 +15,27 @@ pub struct GlobalInotifyConfiguration
 
 	/// Default is 128.
 	///
+	/// Prefer `maximum_number_of_inotify_instances_per_user_namespaced`; this now only affects the root namespace.
+	///
 	/// Requires root.
 	pub maximum_number_of_inotify_instances_per_user: Option<NonZeroU32>,
 
 	/// Default is 8,192.
 	///
+	/// Prefer `maximum_number_of_watches_per_user_namespaced`; this now only affects the root namespace.
+	///
 	/// Requires root.
 	pub maximum_number_of_watches_per_user: Option<NonZeroU32>,
+
+	/// Default is 128.
+	///
+	/// Requires root.
+	pub maximum_number_of_inotify_instances_per_user_namespaced: Option<NonZeroU32>,
+
+	/// Default is 8,192.
+	///
+	/// Requires root.
+	pub maximum_number_of_watches_per_user_namespaced: Option<NonZeroU32>,
 }
 
 impl GlobalInotifyConfiguration
@@ -33,6 +47,10 @@ impl GlobalInotifyConfiguration
 
 		set_value(proc_path, set_maximum_number_of_events_that_can_be_queued, self.maximum_number_of_events_that_can_be_queued, CouldNotChangeMaximumNumberOfEventsThatCanBeQueued)?;
 		set_value(proc_path, set_maximum_number_of_inotify_instances_per_user, self.maximum_number_of_inotify_instances_per_user, CouldNotChangeMaximumNumberOfInotifyInstancesPerUser)?;
-		set_value(proc_path, set_maximum_number_of_watches_per_user, self.maximum_number_of_watches_per_user, CouldNotChangeMaximumNumberOfWatchesPerUser)
+		set_value(proc_path, set_maximum_number_of_watches_per_user, self.maximum_number_of_watches_per_user, CouldNotChangeMaximumNumberOfWatchesPerUser)?;
+		set_value(proc_path, set_maximum_number_of_inotify_instances_per_user_namespaced, self.maximum_number_of_inotify_instances_per_user_namespaced, CouldNotChangeMaximumNumberOfInotifyInstancesPerUserNamespaced)?;
+		set_value(proc_path, set_maximum_number_of_watches_per_user_namespaced, self.maximum_number_of_watches_per_user_namespaced, CouldNotChangeMaximumNumberOfWatchesPerUserNamespaced)?;
+		
+		Ok(())
 	}
 }

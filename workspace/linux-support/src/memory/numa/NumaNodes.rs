@@ -50,6 +50,46 @@ impl NumaNodes
 		Some(valid)
 	}
 
+	/// Sets affinity.
+	///
+	/// Does a cursory check that the `path` exists (but is subject to a TOCTOU flaw).
+	#[inline(always)]
+	pub fn set_affinity(&self, path: impl AsRef<Path>) -> io::Result<()>
+	{
+		assert_effective_user_id_is_root("write affinity to path");
+		
+		let path = path.as_ref();
+		if path.exists()
+		{
+			let mask = IntoBitMask(self);
+			path.write_value(mask)
+		}
+		else
+		{
+			Ok(())
+		}
+	}
+
+	/// Sets affinity.
+	///
+	/// Does a cursory check that the `path` exists (but is subject to a TOCTOU flaw).
+	#[inline(always)]
+	pub fn set_affinity_list(&self, path: impl AsRef<Path>) -> io::Result<()>
+	{
+		assert_effective_user_id_is_root("write affinity to path");
+		
+		let path = path.as_ref();
+		if path.exists()
+		{
+			let list = IntoList(&self.0);
+			path.write_value(list)
+		}
+		else
+		{
+			Ok(())
+		}
+	}
+	
 	/// NUMA nodes that exist in the file system.
 	///
 	/// This will return `None` if the Linux kernel wasn't configured with `CONFIG_NUMA`.
@@ -137,13 +177,6 @@ impl NumaNodes
 	fn read_numa_node_list(sys_path: &SysPath, file_name: &str) -> Option<Self>
 	{
 		let file_path = sys_path.numa_nodes_path(file_name);
-		if file_path.exists()
-		{
-			Some(Self(file_path.read_hyper_thread_or_numa_node_list().unwrap()))
-		}
-		else
-		{
-			None
-		}
+		file_path.read_hyper_thread_or_numa_node_list_if_exists().unwrap().map(Self)
 	}
 }
