@@ -41,7 +41,7 @@ impl LatencyScaling
 		let value: u8 = Self::file_path(proc_path).read_value()?;
 		if value <= 2
 		{
-			Ok(Self(unsafe { transmute(value) }))
+			Ok(unsafe { transmute(value) })
 		}
 		else
 		{
@@ -51,7 +51,7 @@ impl LatencyScaling
 	
 	/// Write.
 	#[inline(always)]
-	pub fn write(&self, proc_path: &ProcPath) -> io::Result<()>
+	pub fn write(self, proc_path: &ProcPath) -> io::Result<()>
 	{
 		assert_effective_user_id_is_root("write /proc/sys/kernel/sched_tunable_scaling");
 		

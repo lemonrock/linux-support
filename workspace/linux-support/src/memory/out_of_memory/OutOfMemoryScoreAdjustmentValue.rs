@@ -8,6 +8,15 @@
 #[repr(transparent)]
 pub struct OutOfMemoryScoreAdjustmentValue(NonZeroU16);
 
+impl Into<i16> for OutOfMemoryScoreAdjustmentValue
+{
+	#[inline(always)]
+	fn into(self) -> i16
+	{
+		self.0.get() as i16
+	}
+}
+
 impl TryFrom<NonZeroU16> for OutOfMemoryScoreAdjustmentValue
 {
 	type Error = ParseNumberError;
@@ -15,7 +24,7 @@ impl TryFrom<NonZeroU16> for OutOfMemoryScoreAdjustmentValue
 	#[inline(always)]
 	fn try_from(value: NonZeroU16) -> Result<Self, ParseNumberError>
 	{
-		if unlikely!(value > Self::InclusiveMaximum)
+		if unlikely!(value > Self::InclusiveMaximum.0)
 		{
 			Err(ParseNumberError::OutOfRange)
 		}

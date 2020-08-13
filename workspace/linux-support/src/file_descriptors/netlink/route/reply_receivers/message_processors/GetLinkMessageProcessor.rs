@@ -98,7 +98,7 @@ impl MessageProcessor for GetLinkMessageProcessor
 			// rtnl_link_fill IFLA_LINKINFO for details; not present for loopback, ethernet and WiFi devices. Contains `IFLA_INFO_KIND` with values such as `veth` and `bridge`.
 			// rtnl_fill_link_af IFLA_AF_SPEC for address families.
 			// rtnl_fill_prop_list IFLA_PROP_LIST for list of repeated IFLA_ALT_IFNAME interface alternative names.
-			(true, false, IFLA_XDP) => set_field_error(&mut processing_message_state.express_data_path, message_attribute, |message_attribute| Self::process_IFLA_XDP(message_attribute.get_attribute_value_nested())),
+			(true, false, IFLA_XDP) => set_field_error(&mut processing_message_state.express_data_path, message_attribute, |message_attribute| Self::process_IFLA_XDP(message_attribute.get_attribute_value_nested()))?,
 			
 			(false, false, IFLA_LINK_NETNSID) => set_field_error(&mut processing_message_state.linked_net_namespace_identifier, message_attribute, rtattr::get_attribute_value_net_namespace_identifier)?,
 			(false, false, IFLA_LINK) => set_field_error(&mut processing_message_state.linked_network_interface_index, message_attribute, rtattr::get_attribute_value_network_interface_index)?,
@@ -157,13 +157,13 @@ impl GetLinkMessageProcessor
 					attached = true;
 				}
 				
-				(false, false, IFLA_XDP_PROG_ID) => set_program_identifier_field(&mut message_data.program_identifier, message_attribute),
+				(false, false, IFLA_XDP_PROG_ID) => set_program_identifier_field(&mut message_data.program_identifier, message_attribute)?,
 				
-				(false, false, IFLA_XDP_SKB_PROG_ID) => set_program_identifier_field(&mut message_data.generic_program_identifier, message_attribute),
+				(false, false, IFLA_XDP_SKB_PROG_ID) => set_program_identifier_field(&mut message_data.generic_program_identifier, message_attribute)?,
 				
-				(false, false, IFLA_XDP_DRV_PROG_ID) => set_program_identifier_field(&mut message_data.native_program_identifier, message_attribute),
+				(false, false, IFLA_XDP_DRV_PROG_ID) => set_program_identifier_field(&mut message_data.native_program_identifier, message_attribute)?,
 				
-				(false, false, IFLA_XDP_HW_PROG_ID) => set_program_identifier_field(&mut message_data.offloaded_program_identifier, message_attribute),
+				(false, false, IFLA_XDP_HW_PROG_ID) => set_program_identifier_field(&mut message_data.offloaded_program_identifier, message_attribute)?,
 			
 				(true, true, _) => panic!("Attribute may not be both nested and in network byte order"),
 				

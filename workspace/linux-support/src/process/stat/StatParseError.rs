@@ -52,6 +52,9 @@ pub enum StatParseError
 	/// Could not parse child status.
 	CouldNotParseChildStatus(OutOfRangeSignalNumberError),
 	
+	/// Could not parse u16.
+	BitSetAwareTryFromU16(BitSetAwareTryFromU16Error),
+	
 	/// Obsolete field.
 	ObsoleteFieldValueWasNotZero
 	{
@@ -106,6 +109,10 @@ impl error::Error for StatParseError
 			&ParseNumber(ref cause) => Some(cause),
 
 			&CouldNotParseCommandName(ref cause) => Some(cause),
+
+			&CouldNotParseChildStatus(ref cause) => Some(cause),
+
+			&BitSetAwareTryFromU16(ref cause) => Some(cause),
 			
 			&ObsoleteFieldValueWasNotZero { .. } => None,
 		}
@@ -118,6 +125,15 @@ impl From<io::Error> for StatParseError
 	fn from(error: io::Error) -> Self
 	{
 		StatParseError::CouldNotOpenFile(error)
+	}
+}
+
+impl From<ParseNumberError> for StatParseError
+{
+	#[inline(always)]
+	fn from(error: ParseNumberError) -> Self
+	{
+		StatParseError::ParseNumber(error)
 	}
 }
 
@@ -139,11 +155,11 @@ impl From<OutOfRangeSignalNumberError> for StatParseError
 	}
 }
 
-impl From<ParseNumberError> for StatParseError
+impl From<BitSetAwareTryFromU16Error> for StatParseError
 {
 	#[inline(always)]
-	fn from(error: ParseNumberError) -> Self
+	fn from(error: BitSetAwareTryFromU16Error) -> Self
 	{
-		StatParseError::ParseNumber(error)
+		StatParseError::BitSetAwareTryFromU16(error)
 	}
 }

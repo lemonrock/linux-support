@@ -5,5 +5,5 @@
 #[inline(always)]
 fn flush_per_cpu_statistics(proc_path: &ProcPath) -> io::Result<()>
 {
-	proc_path.sys_vm_file_path("stat_refresh").write_value("\n")
+	proc_path.sys_vm_file_path("stat_refresh").write_value(b"\n")
 }

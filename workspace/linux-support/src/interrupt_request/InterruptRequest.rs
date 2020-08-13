@@ -114,7 +114,16 @@ impl InterruptRequest
 		let file_path = self.sys_file_path(sys_path, "per_cpu_count");
 		let comma_separated_string = file_path.read_raw_without_line_feed().unwrap();
 		
-		PerBitSetAwareData::from_iterator(comma_separated_string.split_bytes(b',').map(|count_in_bytes| u64::parse_number(count_in_bytes))).expect("Invalid count")
+		#[inline(always)]
+		fn mapper(index: usize, count_in_bytes: &[u8]) -> Result<(HyperThread, u64), BitSetAwareTryFromU16Error>
+		{
+			let count = u64::parse_decimal_number(count_in_bytes)?;
+			let hyper_thread = HyperThread::try_from(index)?;
+			Ok((hyper_thread, count))
+		}
+		
+		let constructor = comma_separated_string.split_bytes(b',').enumerate().map(mapper);
+		PerBitSetAwareData::from_iterator(constructor).expect("Invalid count or HyperThread")
 	}
 	
 	/// Usually `ffffffff` (ie `/sys/devices/system/cpu/possible` but as a bitmask not a list).

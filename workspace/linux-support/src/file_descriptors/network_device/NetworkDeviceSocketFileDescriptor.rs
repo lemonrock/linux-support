@@ -155,7 +155,7 @@ impl NetworkDeviceSocketFileDescriptor
 				
 				EFAULT => unreachable!("We passed a bad memory address"),
 				
-				_ => error_handler(errno, command).map_err(ControlOperation)
+				_ => error_handler(errno).map_err(ControlOperation)
 			},
 		}
 	}

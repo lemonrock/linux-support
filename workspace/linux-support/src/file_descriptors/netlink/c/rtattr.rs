@@ -257,7 +257,7 @@ impl rtattr<IFLA>
 		self.debug_assert_is_not_nested_and_is_in_native_byte_order();
 		
 		use self::IFLA::*;
-		debug_assert!(matches!(self.type_().2, IFLA_ADDRESS | IFLA_BROADCAST | IFLA_PERM_ADDRESS), "self.type_().2 {} is not one of IFLA_ADDRESS, IFLA_BROADCAST or IFLA_PERM_ADDRESS", self.type_().2);
+		debug_assert!(matches!(self.type_().2, IFLA_ADDRESS | IFLA_BROADCAST | IFLA_PERM_ADDRESS), "self.type_().2 {:?} is not one of IFLA_ADDRESS, IFLA_BROADCAST or IFLA_PERM_ADDRESS", self.type_().2);
 		
 		self.attribute_value()
 	}
@@ -284,7 +284,7 @@ impl rtattr<IFA>
 		self.debug_assert_is_not_nested_and_is_in_native_byte_order();
 		
 		use self::IFA::*;
-		debug_assert!(matches!(self.type_().2, IFA_ADDRESS | IFA_LOCAL | IFA_BROADCAST | IFA_ANYCAST | IFA_MULTICAST), "self.type_().2 {} is not one of IFA_ADDRESS, IFA_LOCAL, IFA_BROADCAST, IFA_ANYCAST or IFA_MULTICAST", self.type_().2);
+		debug_assert!(matches!(self.type_().2, IFA_ADDRESS | IFA_LOCAL | IFA_BROADCAST | IFA_ANYCAST | IFA_MULTICAST), "self.type_().2 {:?} is not one of IFA_ADDRESS, IFA_LOCAL, IFA_BROADCAST, IFA_ANYCAST or IFA_MULTICAST", self.type_().2);
 		
 		self.attribute_value()
 	}
@@ -306,7 +306,7 @@ impl rtattr<IFLA_XDP>
 		self.debug_assert_is_not_nested_and_is_in_native_byte_order();
 		
 		use self::IFLA_XDP::*;
-		debug_assert!(matches!(self.type_().2, IFLA_XDP_PROG_ID | IFLA_XDP_SKB_PROG_ID | IFLA_XDP_DRV_PROG_ID | IFLA_XDP_HW_PROG_ID), "self.type_().2 {} is not one of IFLA_XDP_PROG_ID, IFLA_XDP_SKB_PROG_ID, IFLA_XDP_DRV_PROG_ID or IFLA_XDP_HW_PROG_ID", self.type_().2);
+		debug_assert!(matches!(self.type_().2, IFLA_XDP_PROG_ID | IFLA_XDP_SKB_PROG_ID | IFLA_XDP_DRV_PROG_ID | IFLA_XDP_HW_PROG_ID), "self.type_().2 {:?} is not one of IFLA_XDP_PROG_ID, IFLA_XDP_SKB_PROG_ID, IFLA_XDP_DRV_PROG_ID or IFLA_XDP_HW_PROG_ID", self.type_().2);
 		
 		self.get_attribute_value_u32().map(|value| ExtendedBpfProgramIdentifier::from(value))
 	}

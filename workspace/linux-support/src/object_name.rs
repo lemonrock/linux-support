@@ -337,6 +337,25 @@ macro_rules! object_name
 			}
 		}
 		
+		impl AsRef<OsStr> for $name
+		{
+			#[inline(always)]
+			fn as_ref(&self) -> &OsStr
+			{
+				let this: &OsStr = self.as_ref();
+				Path::new(this)
+			}
+		}
+		
+		impl AsRef<Path> for $name
+		{
+			#[inline(always)]
+			fn as_ref(&self) -> &Path
+			{
+				Path::new(self.as_ref())
+			}
+		}
+		
 		impl AsRef<[c_char]> for $name
 		{
 			#[inline(always)]

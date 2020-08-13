@@ -48,6 +48,15 @@ impl Into<ObjectName16> for NetworkInterfaceName
 	}
 }
 
+impl AsRef<Path> for NetworkInterfaceName
+{
+	#[inline(always)]
+	fn as_ref(&self) -> &Path
+	{
+		self.0.as_ref()
+	}
+}
+
 impl<'a> Into<[c_char; ObjectName16::MaximumLengthIncludingAsciiNull]> for &'a NetworkInterfaceName
 {
 	#[inline(always)]
@@ -64,11 +73,6 @@ impl Into<[c_char; ObjectName16::MaximumLengthIncludingAsciiNull]> for NetworkIn
 	{
 		self.0.into_object_name()
 	}
-}
-
-impl AsRef<Path> for NetworkInterfaceName
-{
-
 }
 
 impl Deref for NetworkInterfaceName

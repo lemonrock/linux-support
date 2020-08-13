@@ -72,7 +72,7 @@ impl ethtool_sset_info
 	}
 	
 	#[inline(always)]
-	pub(crate) fn supported_string_sets(&self) -> impl Iterator<ethtool_stringset>
+	pub(crate) fn supported_string_sets(&self) -> impl Iterator<Item=ethtool_stringset>
 	{
 		struct StringSetBitSetIterator
 		{

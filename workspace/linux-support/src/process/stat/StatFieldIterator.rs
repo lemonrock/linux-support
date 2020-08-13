@@ -35,7 +35,7 @@ impl<'line> Iterator for StatFieldIterator<'line>
 				
 				Some(0) => Err(NoCharactersBeforeOpenBracket),
 				
-				Some(index) => if unsafe { *self.get_unchecked(index - 1) } != Space
+				Some(index) => if unsafe { *self.line.get_unchecked(index - 1) } != Space
 				{
 					Err(NoSpaceBeforeOpenBracket)
 				}
@@ -56,7 +56,7 @@ impl<'line> Iterator for StatFieldIterator<'line>
 				{
 					Err(NoCharactersAfterCloseBracket)
 				}
-				else if unsafe { *self.get_unchecked(index + 1) } != Space
+				else if unsafe { *self.line.get_unchecked(index + 1) } != Space
 				{
 					Err(NoSpaceAfterCloseBracket)
 				}
@@ -91,7 +91,7 @@ impl<'line> Iterator for StatFieldIterator<'line>
 
 impl<'line> StatFieldIterator<'line>
 {
-	const fn new(line: &[u8]) -> Self
+	const fn new(line: &'line [u8]) -> Self
 	{
 		Self
 		{

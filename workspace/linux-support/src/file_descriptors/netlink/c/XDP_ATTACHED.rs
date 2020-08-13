@@ -18,3 +18,12 @@ pub(crate) enum XDP_ATTACHED
 	
 	XDP_ATTACHED_MULTI = 4,
 }
+
+impl Default for XDP_ATTACHED
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		XDP_ATTACHED::XDP_ATTACHED_NONE
+	}
+}

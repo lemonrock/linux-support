@@ -301,7 +301,7 @@ impl Stat
 			}
 			else
 			{
-				Ok(ProcessIdentifier::from(unsafe { NonZeroI32::new_unchecked(value as i32) }));
+				Ok(Some(ProcessIdentifier::from(unsafe { NonZeroI32::new_unchecked(value as i32) })))
 			}
 		}
 		
@@ -318,7 +318,7 @@ impl Stat
 			}
 			else
 			{
-				Ok(ProcessIdentifier::from(unsafe { NonZeroI32::new_unchecked(value as i32) }));
+				Ok(ProcessIdentifier::from(unsafe { NonZeroI32::new_unchecked(value as i32) }))
 			}
 		}
 		
@@ -345,12 +345,12 @@ impl Stat
 			}
 			else
 			{
-				Ok(ProcessGroupIdentifier::from(unsafe { NonZeroI32::new_unchecked(value as i32) }));
+				Ok(ProcessGroupIdentifier::from(unsafe { NonZeroI32::new_unchecked(value as i32) }))
 			}
 		}
 		
 		#[inline(always)]
-		fn real_time_priority(value: u64) -> Result<Option<VirtualAddress>, StatParseError>
+		fn real_time_priority(value: u64) -> Result<Option<RealTimePriority>, StatParseError>
 		{
 			if value == 0
 			{
@@ -393,7 +393,7 @@ impl Stat
 		#[inline(always)]
 		fn to_usize(value: u64) -> Result<usize, StatParseError>
 		{
-			if likely!(value <= usize::MAX as u64)
+			if likely!(value <= (usize::MAX as u64))
 			{
 				Ok(value as usize)
 			}
@@ -406,7 +406,11 @@ impl Stat
 		#[inline(always)]
 		fn num_threads(value: i64) -> Result<Option<NonZeroUsize>, StatParseError>
 		{
-			if likely!(value <= usize::MAX as u64)
+			if unlikely!(value < 0)
+			{
+				Err(NegativeValue)
+			}
+			else if likely!((value as u64) <= (usize::MAX as u64))
 			{
 				Ok(NonZeroUsize::new(value as usize))
 			}
@@ -505,7 +509,7 @@ impl Stat
 		}
 		
 		#[inline(always)]
-		fn kernel_flags(value: u64) -> Result<ProcessState, StatParseError>
+		fn kernel_flags(value: u64) -> Result<StatProcessFlags, StatParseError>
 		{
 			if unlikely!(value > (u32::MAX as u64))
 			{
@@ -513,7 +517,7 @@ impl Stat
 			}
 			else
 			{
-				Ok(StatProcessFlags::from_bits_truncate(value))
+				Ok(StatProcessFlags::from_bits_truncate(value as u32))
 			}
 		}
 		
@@ -536,7 +540,7 @@ impl Stat
 			}
 			else
 			{
-				Ok(ProcessState::try_from(value)?)
+				Ok(HyperThread::try_from(value as u16)?)
 			}
 		}
 		

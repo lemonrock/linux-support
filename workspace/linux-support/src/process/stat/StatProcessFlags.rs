@@ -103,7 +103,7 @@ impl FromBytes for StatProcessFlags
 	#[inline(always)]
 	fn from_bytes(bytes: &[u8]) -> Result<Self, Self::Error>
 	{
-		let bits = u32::from_bytes?;
+		let bits = u32::from_bytes(bytes)?;
 		Ok(StatProcessFlags::from_bits_truncate(bits))
 	}
 }

@@ -27,7 +27,7 @@ impl FromBytes for TimeStalled
 	fn from_bytes(bytes: &[u8]) -> Result<Self, Self::Error>
 	{
 		#[inline(always)]
-		fn parse_field<T: FromBytes>(field_value: &[u8], field: &mut Option<T>) -> io::Result<()>
+		fn parse_field<T: FromBytes<Error=ParseNumberError>>(field_value: &[u8], field: &mut Option<T>) -> io::Result<()>
 		{
 			if field.is_some()
 			{
@@ -46,7 +46,7 @@ impl FromBytes for TimeStalled
 			field.ok_or(io::Error::new(ErrorKind::InvalidData, "Missing field"))
 		}
 		
-		let mut iterator = bytes.split_bytes(4, b' ');
+		let mut iterator = bytes.split_bytes(b' ');
 		
 		let mut average_over_10_seconds = None;
 		let mut average_over_60_seconds = None;

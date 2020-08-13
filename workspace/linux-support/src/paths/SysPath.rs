@@ -221,7 +221,7 @@ impl SysPath
 	#[inline(always)]
 	pub fn file_system_fs_folder_path(&self, file_system: FileSystemType) -> PathBuf
 	{
-		self.fs_folder_path().append(file_system)
+		self.fs_folder_path().append(&file_system)
 	}
 
 	/// `/sys/fs`.

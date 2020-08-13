@@ -105,7 +105,7 @@ impl GetLinkProcessingMessageState
 		(
 			Self
 			{
-				link_flags: net_device_flags::from_bits_truncate(message_header.ifi_flags),
+				link_flags: message_header.ifi_flags,
 				device_arp_type: message_header.ifi_type,
 				network_interface_index: message_header.ifi_index.ok_or(format!("Linux kernel bug - missing network interface index"))?,
 				network_interface_name: None,

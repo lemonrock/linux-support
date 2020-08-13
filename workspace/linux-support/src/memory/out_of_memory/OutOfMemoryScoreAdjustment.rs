@@ -43,7 +43,7 @@ impl Ord for OutOfMemoryScoreAdjustment
 	#[inline(always)]
 	fn cmp(&self, right: &Self) -> Ordering
 	{
-		use self::OutOfMemoryAdjustment::*;
+		use self::OutOfMemoryScoreAdjustment::*;
 		
 		match (self, right)
 		{
@@ -92,11 +92,15 @@ impl OutOfMemoryScoreAdjustment
 		
 		match self
 		{
-			MoreLikely(adjustment) => adjustment as i16,
+			MoreLikely(adjustment) =>
+			{
+				let value: i16 = adjustment.into();
+				value
+			},
 			
 			Neither => 0,
 			
-			LessLikely(adjustment) => -(adjustment as i16),
+			LessLikely(adjustment) => -(adjustment.into()),
 		}
 	}
 }

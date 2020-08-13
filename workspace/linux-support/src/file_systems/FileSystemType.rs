@@ -45,9 +45,29 @@ pub enum FileSystemType
 	Unrecognised(Box<[u8]>)
 }
 
+impl AsRef<OsStr> for FileSystemType
+{
+	#[inline(always)]
+	fn as_ref(&self) -> &OsStr
+	{
+		OsStr::from_bytes(self.to_bytes())
+	}
+}
+
+impl AsRef<Path> for FileSystemType
+{
+	#[inline(always)]
+	fn as_ref(&self) -> &Path
+	{
+		let this: &OsStr = self.as_ref();
+		Path::new(this)
+	}
+}
+
 impl FileSystemType
 {
 	/// To `CString`.
+	#[inline(always)]
 	pub fn to_c_string(&self) -> CString
 	{
 		use self::FileSystemType::*;
@@ -91,6 +111,51 @@ impl FileSystemType
 		};
 
 		CString::new(ref_value.to_owned()).expect("file system type should not contain interior ASCII NULs")
+	}
+	
+	/// To bytes.
+	#[inline(always)]
+	pub fn to_bytes(&self) -> &[u8]
+	{
+		use self::FileSystemType::*;
+
+		match *self
+		{
+			sysfs => b"sysfs" as &[u8],
+			rootfs => b"rootfs" as &[u8],
+			ramfs => b"ramfs" as &[u8],
+			bdev => b"bdev" as &[u8],
+			_proc => b"proc" as &[u8],
+			cpuset => b"cpuset" as &[u8],
+			cgroup => b"cgroup" as &[u8],
+			tmpfs => b"tmpfs" as &[u8],
+			devtmpfs => b"devtmpfs" as &[u8],
+			security => b"security" as &[u8],
+			sockfs => b"sockfs" as &[u8],
+			pipefs => b"pipefs" as &[u8],
+			devpts => b"devpts" as &[u8],
+			hugetlbfs => b"hugetlbfs" as &[u8],
+			pstore => b"pstore" as &[u8],
+			mqueue => b"mqueue" as &[u8],
+			ext2 => b"ext2" as &[u8],
+			ext3 => b"ext3" as &[u8],
+			ext4 => b"ext4" as &[u8],
+			
+			anon_inodefs => b"anon_inodefs" as &[u8],
+			binfmt_misc => b"binfmt_misc" as &[u8],
+			debugfs => b"debugfs" as &[u8],
+			ecryptfs => b"ecryptfs" as &[u8],
+			fuse => b"fuse" as &[u8],
+			fuseblk => b"fuseblk" as &[u8],
+			fusectl => b"fusectl" as &[u8],
+			prl_fs => b"prl_fs" as &[u8],
+			securityfs => b"securityfs" as &[u8],
+			vfat => b"vfat" as &[u8],
+			dax => b"dax" as &[u8],
+			cgroup2 => b"cgroup2" as &[u8],
+			
+			Unrecognised(ref value) => &value[..]
+		}
 	}
 
 	/// From string.
