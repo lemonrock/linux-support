@@ -13,7 +13,7 @@ impl TryFrom<NonZeroU16> for OutOfMemoryScoreAdjustmentValue
 	type Error = ParseNumberError;
 	
 	#[inline(always)]
-	fn try_from(value: NonZeroU16) -> Result<Self, Self::ParseNumberError>
+	fn try_from(value: NonZeroU16) -> Result<Self, ParseNumberError>
 	{
 		if unlikely!(value > Self::InclusiveMaximum)
 		{

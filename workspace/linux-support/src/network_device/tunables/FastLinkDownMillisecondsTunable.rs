@@ -46,7 +46,7 @@ impl FastLinkDownMillisecondsTunable
 	
 	/// Time in milliseconds; driver may choose a nearest value.
 	#[inline(always)]
-	pub fn from_milliseconds(milliseconds_to_delay_reporting_link_is_down: NonZeroU8) -> Result<Self, Self::Error>
+	pub fn from_milliseconds(milliseconds_to_delay_reporting_link_is_down: NonZeroU8) -> Result<Self, ParseNumberError>
 	{
 		Self::try_from(milliseconds_to_delay_reporting_link_is_down)
 	}

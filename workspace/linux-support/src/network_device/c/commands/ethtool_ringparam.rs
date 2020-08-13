@@ -32,7 +32,7 @@ pub(crate) struct ethtool_ringparam
 	pub(crate) tx_max_pending: Option<QueueDepth>,
 	
 	/// Current maximum number of pending entries per receive ring queue.
-	pub(crate) rx_pending: Option<v>,
+	pub(crate) rx_pending: Option<QueueDepth>,
 	
 	/// Current maximum number of pending entries per receive mini ring queue.
 	pub(crate) rx_mini_pending: Option<QueueDepth>,

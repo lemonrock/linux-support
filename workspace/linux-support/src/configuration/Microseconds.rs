@@ -26,6 +26,15 @@ impl Into<u32> for Microseconds
 	}
 }
 
+impl ParseNumber for Microseconds
+{
+	#[inline(always)]
+	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
+	{
+		u32::parse_number(bytes, radix, parse_byte).map_err(Self)
+	}
+}
+
 impl IntegerIntoLineFeedTerminatedByteString for Microseconds
 {
 	#[inline(always)]

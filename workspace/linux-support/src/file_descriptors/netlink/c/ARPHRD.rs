@@ -113,11 +113,6 @@ pub enum ARPHRD
 	/// Dummy type for non-ARP hardware.
 	ARPHRD_CISCO = 513,
 	
-	/// .
-	///
-	/// Dummy type for non-ARP hardware.
-	ARPHRD_HDLC = ARPHRD_CISCO,
-	
 	/// LAPB.
 	///
 	/// Dummy type for non-ARP hardware.
@@ -320,4 +315,12 @@ pub enum ARPHRD
 	///
 	/// Special type.
 	ARPHRD_VOID = 0xFFFF,
+}
+
+impl ARPHRD
+{
+	/// .
+	///
+	/// Dummy type for non-ARP hardware.
+	pub const ARPHRD_HDLC: Self = ARPHRD::ARPHRD_CISCO;
 }

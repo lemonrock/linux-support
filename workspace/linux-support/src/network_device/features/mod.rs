@@ -3,6 +3,7 @@
 
 
 use super::*;
+use super::c::bit_set::*;
 use self::NETIF_F::*;
 
 

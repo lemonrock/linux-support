@@ -7,7 +7,7 @@ pub(crate) trait Bit
 	#[inline(always)]
 	fn is_set(self, bit_set: &[BitSetWord]) -> bool
 	{
-		is_set_field_locator::<BitSetWord>(bit_set, |field| *field)
+		self.is_set_field_locator::<BitSetWord>(bit_set, |field| *field)
 	}
 	
 	// Could be implemented generically if arrays were generic.

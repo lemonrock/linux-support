@@ -161,7 +161,7 @@ impl GlobalSecurityConfiguration
 		#[inline(always)]
 		fn hardden_seccomp_logging(proc_path: &ProcPath) -> Result<(), GlobalSecurityConfigurationError>
 		{
-			let actions_available = proc_path.sys_kernel_seccomp_file_path("actions_avail").read_raw_without_line_feed().map_err(CouldNotHarden)?;
+			let actions_available = proc_path.sys_kernel_seccomp_file_path("actions_avail").read_raw_without_line_feed().map_err(|cause| CouldNotHarden { cause, proc_sys_kernel_file: "actions_avail" })?;
 			
 			let mut actions_to_log = Vec::with_capacity(actions_available.len());
 			for action in actions_available.split_bytes(b' ')
@@ -178,7 +178,7 @@ impl GlobalSecurityConfiguration
 			}
 			actions_to_log.push(b'\n');
 			
-			proc_path.sys_kernel_seccomp_file_path("actions_logged").write_value(actions_to_log).map_err(CouldNotHarden)
+			proc_path.sys_kernel_seccomp_file_path("actions_logged").write_value(actions_to_log).map_err(|cause| CouldNotHarden { cause, proc_sys_kernel_file: "actions_logged" })
 		}
 		
 		#[inline(always)]

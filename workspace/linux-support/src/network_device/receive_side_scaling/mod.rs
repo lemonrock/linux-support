@@ -3,6 +3,7 @@
 
 
 use super::*;
+use crate::paths::ProcPath;
 
 
 include!("ConfiguredHashSettings.rs");

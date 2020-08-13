@@ -28,7 +28,7 @@ pub fn function<'name>(name: impl Into<Name<'name>>, function_prototype: Option<
 #[inline(always)]
 pub fn block<'name>(program_lines: Vec<ProgramLine<'name>>) -> ProgramLine<'name>
 {
-	ProgramLine::Block(function_prototype)
+	ProgramLine::Block(program_lines)
 }
 
 /// Load a true 64-bit value.
@@ -348,7 +348,7 @@ pub fn store_to_stack_variable_8<'name>(source: impl Into<RegisterOrImmediate<'n
 ///
 /// `*((stack_pointer as *mut u16).sub(variable_slot * 2)) = source`.
 #[inline(always)]
-pub fn store_to_stack_variable_16<'name>(source: impl Into<RegisterOrImmediate<'name>>, variable_slot: impl TryInto<VariableSlot>) -> ProgramLine<'name>
+pub fn store_to_stack_variable_16<'name>(source: impl Into<RegisterOrImmediate<'name>>, variable_slot: impl TryInto<VariableSlotU64>) -> ProgramLine<'name>
 {
 	store_to_memory_16(Register::fp, source.into(), VariableSlotU64::to_memory_slot_from_try_into(variable_slot))
 }
@@ -357,7 +357,7 @@ pub fn store_to_stack_variable_16<'name>(source: impl Into<RegisterOrImmediate<'
 ///
 /// `*((stack_pointer as *mut u32).sub(variable_slot * 4)) = source`.
 #[inline(always)]
-pub fn store_to_stack_variable_32<'name>(source: impl Into<RegisterOrImmediate<'name>>, variable_slot: impl TryInto<VariableSlot>) -> ProgramLine<'name>
+pub fn store_to_stack_variable_32<'name>(source: impl Into<RegisterOrImmediate<'name>>, variable_slot: impl TryInto<VariableSlotU64>) -> ProgramLine<'name>
 {
 	store_to_memory_32(Register::fp, source.into(), VariableSlotU64::to_memory_slot_from_try_into(variable_slot))
 }
@@ -366,7 +366,7 @@ pub fn store_to_stack_variable_32<'name>(source: impl Into<RegisterOrImmediate<'
 ///
 /// `*((stack_pointer as *mut u64).sub(variable_slot * 8)) = source`.
 #[inline(always)]
-pub fn store_to_stack_variable_64<'name>(source: impl Into<RegisterOrImmediate<'name>>, variable_slot: impl TryInto<VariableSlot>) -> ProgramLine<'name>
+pub fn store_to_stack_variable_64<'name>(source: impl Into<RegisterOrImmediate<'name>>, variable_slot: impl TryInto<VariableSlotU64>) -> ProgramLine<'name>
 {
 	store_to_memory_64(Register::fp, source.into(), VariableSlotU64::to_memory_slot_from_try_into(variable_slot))
 }

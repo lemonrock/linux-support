@@ -3,7 +3,7 @@
 
 
 /// Cgroup configuration.
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Default, Clone, Eq, PartialEq)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct CgroupConfiguration

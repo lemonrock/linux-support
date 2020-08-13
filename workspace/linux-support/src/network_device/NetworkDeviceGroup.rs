@@ -8,7 +8,7 @@
 ///
 /// Also available at `/sys/class/net/<network_interface_name>/netdev_group`.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct NetworkDeviceGroup(u32);
+pub struct NetworkDeviceGroup(pub u32);
 
 impl NetworkDeviceGroup
 {

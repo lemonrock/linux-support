@@ -55,7 +55,7 @@ impl MessageProcessor for GetLinkMessageProcessor
 			(false, false, IFLA_GSO_MAX_SIZE) => set_field_error(&mut processing_message_state.generic_segmentation_offload_maximum_size, message_attribute, rtattr::get_attribute_value_u32)?,
 			
 			// Only if Linux so configured.
-			(false, false, IFLA_NUM_RX_QUEUES) => set_field_field(&mut processing_message_state.number_of_receive_queues, message_attribute, rtattr::get_attribute_value_queue_count)?,
+			(false, false, IFLA_NUM_RX_QUEUES) => set_field_error(&mut processing_message_state.number_of_receive_queues, message_attribute, rtattr::get_attribute_value_queue_count)?,
 			
 			// Optional.
 			(false, false, IFLA_MASTER) => set_field_error(&mut processing_message_state.master_network_interface_index, message_attribute, rtattr::get_attribute_value_network_interface_index)?,
@@ -78,7 +78,7 @@ impl MessageProcessor for GetLinkMessageProcessor
 			(false, false, IFLA_EVENT) => set_field_error(&mut processing_message_state.event, message_attribute, rtattr::get_attribute_value_non_zero_u32)?,
 			
 			// Mandatory.
-			(false, false, IFLA_MAP) => set_field_field(&mut processing_message_state.map, message_attribute, rtattr::get_attribute_value_struct_cloned::<rtnl_link_ifmap>)?,
+			(false, false, IFLA_MAP) => set_field_error(&mut processing_message_state.map, message_attribute, rtattr::get_attribute_value_struct_cloned::<rtnl_link_ifmap>)?,
 			
 			// Optional but occur together.
 			(false, false, IFLA_ADDRESS) => set_address_field(&mut processing_message_state.address, message_attribute, rtattr::get_attribute_value_hardware_address)?,

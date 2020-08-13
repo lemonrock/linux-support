@@ -9,7 +9,7 @@ pub struct PhysicalIdentifier(ArrayVec<[u8; Self::MaximumLength]>);
 impl From<ArrayVec<[u8; Self::MaximumLength]>> for PhysicalIdentifier
 {
 	#[inline(always)]
-	fn from(value: ArrayVec<[u8; Self::MaximumLength]>) -> Result<Self, Self::Error>
+	fn from(value: ArrayVec<[u8; Self::MaximumLength]>) -> Self
 	{
 		Self(value)
 	}

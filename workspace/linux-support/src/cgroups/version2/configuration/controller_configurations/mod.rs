@@ -3,8 +3,6 @@
 
 
 use super::*;
-use super::super::controllers::cpuset::*;
-use super::super::controllers::pids::*;
 
 
 include!("AllControllersConfiguration.rs");

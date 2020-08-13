@@ -48,9 +48,9 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		self.set_ifreq_from_name
 		(
 			SIOCSIFTXQLEN,
-			ifr_ifru
+			ifreq_ifru
 			{
-				ifru_ivalue: transmission_queue_length,
+				ifru_ivalue: transmission_queue_length.try_into().map_err(|_| TransmissionQueueLengthOutRangeError)?,
 			},
 			|_ifreq| Ok(()),
 			|errno| match errno.0
@@ -69,9 +69,9 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		self.set_ifreq_from_name
 		(
 			SIOCSIFMTU,
-			ifr_ifru
+			ifreq_ifru
 			{
-				ifr_mtu: maximum_transmission_unit.into(),
+				ifru_mtu: maximum_transmission_unit.into(),
 			},
 			|_ifreq| Ok(()),
 			|errno| match errno.0
@@ -237,10 +237,10 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			return Ok(Some(current))
 		}
 		
-		let receive_and_transmit_channels_count = NonZeroU32::new(channels.max_combined);
-		let receive_channels_count = NonZeroU32::new(channels.max_rx);
-		let transmit_channels_count = NonZeroU32::new(channels.max_tx);
-		let other_channels_count = NonZeroU32::new(channels.max_other);
+		let receive_and_transmit_channels_count = NonZeroU32::new(maximima.max_combined);
+		let receive_channels_count = NonZeroU32::new(maximima.max_rx);
+		let transmit_channels_count = NonZeroU32::new(maximima.max_tx);
+		let other_channels_count = NonZeroU32::new(maximima.max_other);
 		
 		self.ethtool_command
 		(
@@ -510,7 +510,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		
 		self.ethtool_command
 		(
-			command = ethtool_value
+			ethtool_value
 			{
 				cmd: ETHTOOL_SMSGLVL,
 				data: (supported & desired).bits(),
@@ -555,7 +555,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	
 	/// Set private flags.
 	#[inline(always)]
-	pub fn set_private_flags(&self, all_string_sets: &AllStringSets, driver_specific_flags_to_change: &HashMap<ObjectName32, bool>) -> Result<Option<()>, NetworkDeviceInputOutputControlError<()>>
+	pub fn set_private_flags(&self, all_string_sets: &AllStringSets, driver_specific_flags_to_change: &HashMap<ObjectName32, bool>) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		let option_private_flags = self.ethtool_command
 		(
@@ -577,7 +577,6 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		
 		let private_flags_string_set = all_string_sets.get(&ethtool_stringset::ETH_SS_PRIV_FLAGS).unwrap();
 		
-		let mut bit_mask_of_flags_to_set = data;
 		for (index, driver_specific_flag) in private_flags_string_set.iter().enumerate().take_while(|&(index, _driver_specific_flag)| index < 32)
 		{
 			match driver_specific_flags_to_change.get(driver_specific_flag)
@@ -724,7 +723,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	{
 		self.ethtool_command
 		(
-			command = ethtool_value
+			ethtool_value
 			{
 				cmd: ETHTOOL_GMSGLVL,
 				data: 0,
@@ -875,7 +874,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			},
 			|ring_parameters|
 			{
-				let current = PendingQueueDepths::new(ring_parameters.rx_pending, ring_parameters.rx_mini_pending, rx_jumbo_pending, tx_pending);
+				let current = PendingQueueDepths::new(ring_parameters.rx_pending, ring_parameters.rx_jumbo_pending, ring_parameters.rx_mini_pending, ring_parameters.tx_pending);
 				let maximima = PendingQueueDepths::new(ring_parameters.rx_max_pending, ring_parameters.rx_mini_max_pending, ring_parameters.rx_jumbo_max_pending, ring_parameters.tx_max_pending);
 				
 				Ok(Some((current, maximima)))
@@ -921,7 +920,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		{
 			None => Ok(None),
 			
-			Some(driver_info) => Ok(Some(BusDeviceAddress::from(ObjectName32::try_from(command.bus_info)?))),
+			Some(driver_info) => Ok(Some(BusDeviceAddress::from(ObjectName32::try_from(driver_info.bus_info)?))),
 		}
 	}
 	

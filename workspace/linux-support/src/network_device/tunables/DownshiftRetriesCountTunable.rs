@@ -48,7 +48,7 @@ impl DownshiftRetriesCountTunable
 	
 	/// A retries count; usually quite small eg 9 or less.
 	#[inline(always)]
-	pub fn from_retries_count(retries_count: NonZeroU8) -> Result<Self, Self::Error>
+	pub fn from_retries_count(retries_count: NonZeroU8) -> Result<Self, ParseNumberError>
 	{
 		Self::try_from(retries_count)
 	}

@@ -120,6 +120,6 @@ bitflags!
 		/// Is volatile.
 		const IFF_ECHO = 1 << 18;
 		
-		const IFF_VOLATILE = IFF_LOOPBACK.bits | net_device_flags::IFF_POINTOPOINT.bits | net_device_flags::IFF_BROADCAST.bits | net_device_flags::IFF_ECHO.bits | net_device_flags::IFF_MASTER.bits | net_device_flags::IFF_SLAVE.bits | net_device_flags::IFF_RUNNING.bits | net_device_flags::IFF_LOWER_UP.bits | net_device_flags::IFF_DORMANT;
+		const IFF_VOLATILE = net_device_flags::IFF_LOOPBACK.bits | net_device_flags::IFF_POINTOPOINT.bits | net_device_flags::IFF_BROADCAST.bits | net_device_flags::IFF_ECHO.bits | net_device_flags::IFF_MASTER.bits | net_device_flags::IFF_SLAVE.bits | net_device_flags::IFF_RUNNING.bits | net_device_flags::IFF_LOWER_UP.bits | net_device_flags::IFF_DORMANT;
 	}
 }

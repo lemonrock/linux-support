@@ -55,6 +55,7 @@ include!("GlobalNetworkDeviceConfiguration.rs");
 include!("GlobalNetworkDeviceConfigurationError.rs");
 include!("HardwareAddress.rs");
 include!("MaximumTransmissionUnit.rs");
+include!("MaximumTransmissionUnitOutRangeError.rs");
 include!("NetworkDeviceGroup.rs");
 include!("NetworkDeviceInputOutputControl.rs");
 include!("NetworkDeviceInputOutputControlError.rs");

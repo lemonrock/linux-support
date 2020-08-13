@@ -26,7 +26,7 @@ impl ExpressDataPathRedirectSocketArrayMap
 	{
 		use self::MapRehydrateError::*;
 		
-		let (map_file_descriptor, map_information) = program_information.filter_map_identifiers_for(KernelOnlyAccessPermissions::KernelReadAndWriteUserspaceReadWrite, &xskmap, bpf_map_type::BPF_MAP_TYPE_XSKMAP)?.ok_or(CouldNotGetExistingMapNamed(xskmap.clone()))?;
+		let (map_file_descriptor, map_information) = program_information.filter_map_identifiers_for(KernelOnlyAccessPermissions::KernelReadAndWriteUserspaceReadWrite, map_name, bpf_map_type::BPF_MAP_TYPE_XSKMAP)?.ok_or(CouldNotGetExistingMapNamed(map_name.clone()))?;
 		
 		Ok
 		(

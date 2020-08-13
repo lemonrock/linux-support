@@ -4,7 +4,7 @@
 
 /// A block of 32 features.
 #[repr(C)]
-#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(crate) struct ethtool_get_features_block
 {
 	/// Mask of changeable features.

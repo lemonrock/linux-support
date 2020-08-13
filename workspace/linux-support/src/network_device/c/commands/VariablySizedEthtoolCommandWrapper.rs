@@ -5,6 +5,7 @@
 pub(crate) struct VariablySizedEthtoolCommandWrapper<VSEC: VariablySizedEthtoolCommand>
 {
 	data: Vec<u8>,
+	marker: PhantomData<VSEC>,
 }
 
 impl<VSEC: VariablySizedEthtoolCommand> Deref for VariablySizedEthtoolCommandWrapper<VSEC>

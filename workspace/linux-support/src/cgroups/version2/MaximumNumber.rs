@@ -6,7 +6,7 @@
 ///
 /// Defaults to `Maximum`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum MaximumNumber<V: ParseNumber + Sized + IntegerIntoLineFeedTerminatedByteString>
+pub enum MaximumNumber<V: ParseNumber + Copy + IntegerIntoLineFeedTerminatedByteString>
 {
 	/// A finite value.
 	///
@@ -17,7 +17,7 @@ pub enum MaximumNumber<V: ParseNumber + Sized + IntegerIntoLineFeedTerminatedByt
 	Maximum,
 }
 
-impl<V: ParseNumber + Sized + IntegerIntoLineFeedTerminatedByteString> Default for MaximumNumber<V>
+impl<V: ParseNumber + Copy + IntegerIntoLineFeedTerminatedByteString> Default for MaximumNumber<V>
 {
 	#[inline(always)]
 	fn default() -> Self
@@ -26,7 +26,7 @@ impl<V: ParseNumber + Sized + IntegerIntoLineFeedTerminatedByteString> Default f
 	}
 }
 
-impl<V: ParseNumber + Sized + IntegerIntoLineFeedTerminatedByteString> Into<Option<V>> for MaximumNumber<V>
+impl<V: ParseNumber + Copy + IntegerIntoLineFeedTerminatedByteString> Into<Option<V>> for MaximumNumber<V>
 {
 	#[inline(always)]
 	fn into(self) -> Option<usize>
@@ -42,7 +42,7 @@ impl<V: ParseNumber + Sized + IntegerIntoLineFeedTerminatedByteString> Into<Opti
 	}
 }
 
-impl<V: ParseNumber + Sized + IntegerIntoLineFeedTerminatedByteString> From<Option<V>> for MaximumNumber<V>
+impl<V: ParseNumber + Copy + IntegerIntoLineFeedTerminatedByteString> From<Option<V>> for MaximumNumber<V>
 {
 	#[inline(always)]
 	fn from(value: Option<V>) -> Self
@@ -58,7 +58,7 @@ impl<V: ParseNumber + Sized + IntegerIntoLineFeedTerminatedByteString> From<Opti
 	}
 }
 
-impl<V: ParseNumber + Sized + IntegerIntoLineFeedTerminatedByteString> ParseNumber for MaximumNumber<V>
+impl<V: ParseNumber + Copy + IntegerIntoLineFeedTerminatedByteString> ParseNumber for MaximumNumber<V>
 {
 	#[inline(always)]
 	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
@@ -76,7 +76,7 @@ impl<V: ParseNumber + Sized + IntegerIntoLineFeedTerminatedByteString> ParseNumb
 	}
 }
 
-impl<V: ParseNumber + Sized + IntegerIntoLineFeedTerminatedByteString> IntoLineFeedTerminatedByteString<'static> for MaximumNumber<V>
+impl<V: ParseNumber + Copy + IntegerIntoLineFeedTerminatedByteString> IntoLineFeedTerminatedByteString<'static> for MaximumNumber<V>
 {
 	/// Converts data to a byte string terminated with a new line (`\n`).
 	#[inline(always)]

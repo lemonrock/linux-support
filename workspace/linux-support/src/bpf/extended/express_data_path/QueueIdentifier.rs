@@ -4,4 +4,4 @@
 
 /// Queue identifier.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct QueueIdentifier(u32);
+pub struct QueueIdentifier(pub u32);

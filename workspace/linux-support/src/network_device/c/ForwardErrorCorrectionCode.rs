@@ -21,7 +21,7 @@ pub enum ForwardErrorCorrectionCode
 	/// No FEC Mode.
 	///
 	/// Ethtool setting is `off`.
-	ETHTOOL_FEC_OFF = ethtool_fec_config_bits::ETHTOOL_FEC_OFF.to_bit(),
+	ETHTOOL_FEC_OFF = ethtool_fec_config_bits::ETHTOOL_FEC_OFF_BIT.to_bit(),
 	
 	/// Reed-Solomon Forward Error Detection mode.
 	///

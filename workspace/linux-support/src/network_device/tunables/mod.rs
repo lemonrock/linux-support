@@ -14,5 +14,6 @@ include!("PriorityFlowControlStormPreventionTunable.rs");
 include!("ReceiveCopyBreakTunable.rs");
 include!("TransmitCopyBreakTunable.rs");
 include!("Tunable.rs");
+include!("TunableChoice.rs");
 include!("TunableIdentifier.rs");
 include!("TunableOutOfRangeError.rs");

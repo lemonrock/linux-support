@@ -74,7 +74,7 @@ include!("x25_hdlc_proto.rs");
 include!("XCVR.rs");
 
 
-mod bit_set;
+pub(crate) mod bit_set;
 
 
 /// Ethtool commands.

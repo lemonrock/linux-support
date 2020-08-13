@@ -19,7 +19,7 @@ pub struct DomainOrThreadedCgroupConfiguration<CC: ControllersConfiguration, CCV
 
 impl<CC: ControllersConfiguration, CCV: CgroupConfigurationVariant> ChildCgroupConfiguration for DomainOrThreadedCgroupConfiguration<CC, CCV>
 {
-	fn configure(&self, mount_point: &CgroupMountPoint, parent: &Rc<impl Cgroup>, name: &CgroupName) -> io::Result<()>
+	fn configure<'name>(&self, mount_point: &CgroupMountPoint, parent: &Rc<impl Cgroup<'name>>, name: &CgroupName) -> io::Result<()>
 	{
 		let cgroup = parent.clone().child(name);
 		

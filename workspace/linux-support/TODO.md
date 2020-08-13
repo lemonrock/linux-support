@@ -15,48 +15,175 @@
 
 ## Forcibly move other processes to a core set of CPUs
 
-* Need to identify kernel threads and leave them alone.
 
-* `mkdir /dev/cgroup2`
-* `mount -t cgroup2 none /dev/cgroup2`; check for options such as are in here: <https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html>.
-    * `echo "+cpuset" > /dev/cgroup2/cgroup.subtree_control`
-    * `echo "+cpu" > /dev/cgroup2/cgroup.subtree_control`
-    * `echo "+io" > /dev/cgroup2/cgroup.subtree_control`
-    * `echo "+memory" > /dev/cgroup2/cgroup.subtree_control`
-* `mkdir /dev/group2/other`
-    * `echo "" > /dev/cgroup2/other/cgroup.subtree_control` and other lock downs.
-* `mkdir /dev/group2/us`
-    * `echo "" > /dev/cgroup2/us/cgroup.subtree_control` and other lock downs.
-    * set `cpuset.cpus.partition` to `root`.
-* `mkdir /dev/group2/kthreads`?
-* USe the pids namespace to prevent run-away process creation for `us`
-
-* Create files such as `cpuset.cpus.effective` and `cpuset.mems.effective`?
-* Migrate ourselves to `/dev/group/us` by writing our PID to `cgroup.procs` (?will we have permission to do so)?
-    * Do not do this if we are already in this group.
-* Migrate all non-kthreads to `/dev/group2/other` by multiple writes, one per pid, to `cgroup.procs`.
-    * Do not do this if the PID is already in this group and the PID is *NOT* in the root group.
-* cpuset files:-
-
-File                    Permissions     Location       Owner         Purpose             Example
-cpuset.cpus             RW              child cgroups  child cgroup  Desired CPUs        0-4,6,8-10 (can be empty: all CPUs of parent)
-cpuset.cpus.effective   RO              all cgroups    OS            Granted CPUs        0-1 (can be empty: ?)
-cpuset.cpus.partition   RW              child cgroups  parent cgroup                     root or member
-                        RO for root cgroup (has value root)
-
-cpuset.mems             RW              child cgroups  child cgroup  Desired NUMA nodes  0-1,3 (can be empty: all NUMA nodes of parent)
-cpuset.mems.effective   RO              all cgroups    OS            Granted NUMA nodes  0-1 (can be empty: ?)
+## 
+/*
+	TODO:
+	the CPU which handles the interrupt will also process the packet unless:-
+		/sys/class/net/<device>/queues/<rx-queue>/rps_cpus - a cpu bitmap - is changed - to enable RPS - receive packet steering - which is a software tech, I think.
+		See https://www.suse.com/support/kb/doc/?id=000018430
+	
+	On NUMA machines, best performance can be achieved by configuring RPS to use the CPUs on the same NUMA node as the interrupt IRQ for the interface's receive queue.
+ */
 
 
-|File         |Permissions |  Location|
-|cpuset.cpus  |Read-Write
+// https://www.kernel.org/doc/html/v5.8/networking/scaling.html
+/*
+
+TODO: Receive Queue => CPU
+
+--config-nfc / --config-ntuple
+	do_srxclass
+		"rx-flow-hash"
+		"flow-type"
+			do_srxntuple
+		"delete"
+		
+--per-queue ... eg coalesce
+
+Rework set ring params, eg Intel i40e returns EINVAL for values outside of the range I40E_MIN_NUM_DESCRIPTORS ..= I40E_MAX_NUM_DESCRIPTORS
+	eg Intel i40e does not suppport rx_mini_pending or rx_jumbo_pending
+
+Indirection RSS hash table
+This table can be configured. For example, to make sure all traffic goes only to CPUs #0-#5 (the first NUMA node in our setup), we run:
+client$ sudo ethtool -X eth2 weight 1 1 1 1 1 1 0 0 0 0 0
+Finally, ensure the interrupts of multiqueue network cards are evenly distributed between CPUs. The irqbalance service is stopped and the interrupts are manually assigned. For simplicity let's pin the RX queue #0 to CPU #0, RX queue #1 to CPU #1 and so on.
+
+
+We currently use the following in GlobalSchedulingConfiguration
+
+
+MSI-X - Message Signal Interrupts (Extended).
+
+When using MSI-X, an IRQ is raised for the RX queue the packet was written on.
+This IRQ is then mapped to a CPU (or set of CPUs)
+
+
+client$ (let CPU=0; cd /sys/class/net/eth0/device/msi_irqs/;
+         for IRQ in *; do
+            echo $CPU > /proc/irq/$IRQ/smp_affinity_list
+            let CPU+=1
+         done)
+NOTE: /sys/class/net/eth2/device/msi_irqs may not exist, in which case:-
+
+	grep eth0 /proc/interrupts
+	32:	0	140	45	850264	PCI-MSI-edge	eth0
+	
+	This means eth0 has assigned IRQ number 32.
+	There may be multiple lines.
+	The device may not exist at all (eg a Parallels VM)
+	
+	Change /proc/irq/32/smp_affinity to change the CPUs dealing with that IRQ
+		- The list of CPUs should be on the same NUMA node as the eth0 device (ie check eth0's PCI device).
+
+	Other lines might look like this if MSI-X is available:-
+	            CPU0       CPU1       CPU2       CPU3
+	  65:          1          0          0          0 IR-PCI-MSI-edge      eth0
+	  66:  863649703          0          0          0 IR-PCI-MSI-edge      eth0-TxRx-0
+	  67:  986285573          0          0          0 IR-PCI-MSI-edge      eth0-TxRx-1
+	  68:         45          0          0          0 IR-PCI-MSI-edge      eth0-TxRx-2
+	  69:        394          0          0          0 IR-PCI-MSI-edge      eth0-TxRx-3
+
+This is because each RX queue can have its own hardware interrupt assigned if using MSI-X.
+
+
+Inputs into a weighting algorithm
+
+	- number of receive queues, number_of_receive_queues (eg 2, 11)
+	- indirection_table_size (eg 128) - this is the denominator.
+	
+	
+	
+
+
+https://docs.gz.ro/tuning-network-cards-on-linux.html
+https://blog.cloudflare.com/how-to-achieve-low-latency/
+https://serverfault.com/questions/772380/how-to-tell-if-nic-has-multiqueue-enabled (multiqueue - more than one rx or tx queue).
+https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/
+
+
+You can adjust the net_rx_action budget, which determines how much packet processing can be spent among all NAPI structures registered to a CPU
+/proc/sys/net/core/netdev_budget
+	- default is 300.
+
+Tuning: Enabling accelerated RFS (aRFS)
+
+Assuming that your NIC and driver support it, you can enable accelerated RFS by enabling and configuring a set of things:
+
+    Have RPS enabled and configured.
+    	So, for eth0 and receive queue 0, you would modify the file: /sys/class/net/eth0/queues/rx-0/rps_cpus with a hexadecimal number indicating which CPUs should process packets from eth0’s receive queue 0.
+    	https://github.com/torvalds/linux/blob/v3.13/Documentation/networking/scaling.txt#L160-L164
+    Have RFS enabled and configured.
+    	Have RPS enabled and configured.
+    	RFS keeps track of a global hash table of all flows and the size of this hash table can be adjusted by setting the net.core.rps_sock_flow_entries sysctl.
+    	Next, you can also set the number of flows per RX queue by writing this value to the sysfs file named rps_flow_cnt for each RX queue.
+		Example: increase the number of flows for RX queue 0 on eth0 to 2048.
+		$ sudo bash -c 'echo 2048 > /sys/class/net/eth0/queues/rx-0/rps_flow_cnt'
+    Your kernel has CONFIG_RFS_ACCEL enabled at compile time. The Ubuntu kernel 3.13.0 does.
+    Have ntuple support enabled for the device, as described previously. You can use ethtool to verify that ntuple support is enabled for the device.
+    Configure your IRQ settings to ensure each RX queue is handled by one of your desired network processing CPUs.
+
+Once the above is configured, accelerated RFS will be used to automatically move data to the RX queue tied to a CPU core that is processing data for that flow and you won’t need to specify an ntuple filter rule manually for each flow.
+
+
+/sys/class/net/eth0
+
+    queues/
+        tx-0/
+            rps_cpus
+                00000000
+                read-write
+            rps_flow_cnt
+                0
+                read-write
+        rx-0/
+            traffic_class
+                couldn't be read
+            tx_maxrate
+                0
+                read-write
+            tx_timeout
+                0 (without line feed)
+            xps_cpus
+                couldn't be read
+                read-write
+            xps_rxqs
+                0
+                read-write
+            byte_queue_limits/
+                hold_time
+                    1000
+                    read-write
+                inflight
+                    0
+                    read-only
+                limit
+                    0
+                    read-write
+                limit_max
+                    1879048192
+                    read-write
+                limit_min
+                    0
+                    read-write
+    power/
+        autosuspend_delay_ms
+            couldn't be read
+            read-write
+        control
+            "auto"
+            read-write
+        runtime_active_time
+        runtime_status
+            "unsupported"
+        runtime_suspended_time
+ */
+
 
 
 ## Automatically mount missing file systems, eg
 
-* `/dev/mqueue`
-* `/dev/cpuset`
-* `/dev/hugetlbfs`
+* `/dev/cgroup2`
 
 
 ## `/proc/sys` sysctls remaining to consider

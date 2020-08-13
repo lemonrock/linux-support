@@ -12,40 +12,41 @@ pub fn reuse_or_load_owned_memory_program(network_interface_name: NetworkInterfa
 	let mut netlink_socket_file_descriptor = NetlinkSocketFileDescriptor::open()?;
 	let get_link_message_data = RouteNetlinkProtocol::get_link(&mut netlink_socket_file_descriptor, &|get_link_message_data| get_link_message_data.is_for(&network_interface_name)).map_err(|error| GetLinksUsingNetlink(error))?.ok_or(NoSuchNetworkInterfaceName)?;
 	
+	let network_interface_index = get_link_message_data.network_interface_index;
 	match get_link_message_data.attached_express_data_path_program_identifiers
 	{
-		Some(program_identifiers) => already_attached(redirect_map_name, network_interface_name, device_offload, program_identifiers),
+		Some(program_identifiers) => already_attached(redirect_map_name, network_interface_index, device_offload, program_identifiers),
 		
-		None => load_owned_memory_program(redirect_map_name, network_interface_name, device_offload, redirect_map_settings)
+		None => load_owned_memory_program(network_interface_index, redirect_map_name, network_interface_name, device_offload, redirect_map_settings)
 	}
 }
 
-fn already_attached(redirect_map_name: MapName, network_interface_name: NetworkInterfaceName, device_offload: bool, program_identifiers: MultipleProgramIdentifiers) -> Result<(ExpressDataPathRedirectSocketArrayMap, Rc<ExtendedBpfProgramFileDescriptor>), LoadOwnedMemoryProgramError>
+fn already_attached(redirect_map_name: MapName, network_interface_index: NetworkInterfaceIndex, device_offload: bool, program_identifiers: MultipleProgramIdentifiers) -> Result<(ExpressDataPathRedirectSocketArrayMap, Rc<ExtendedBpfProgramFileDescriptor>), LoadOwnedMemoryProgramError>
 {
 	use self::LoadOwnedMemoryProgramError::*;
 	
-	let (program_identifer, attach_mode) = program_identifiers.choose_most_performant();
+	let (program_identifier, attach_mode) = program_identifiers.choose_most_performant();
 	
 	let x: ExtendedBpfProgramFileDescriptor = program_identifier.to_file_descriptor(()).map_err(CouldNotGetExistingProgramFileDescriptor)?.ok_or(NoExistingExpressDataPathProgramForAttachedExtendedBpfProgramFileDescriptor)?;
 	
 	let program_information = x.get_information().map_err(CouldNotGetExistingProgramInformation)?;
 	program_information.validate_has_program_type(bpf_prog_type::BPF_PROG_TYPE_XDP, ExistingAttachedProgramHasWrongProgramTypeForExpressDataPath)?;
-	program_information.validate_attach_mode_and_device_offload_matches_program_information(attach_mode, device_offload)?;
+	program_information.validate_attach_mode_and_device_offload_matches_program_information(attach_mode, device_offload, network_interface_index)?;
 	
 	let redirect_map = ExpressDataPathRedirectSocketArrayMap::rehydrate(&program_information, &redirect_map_name)?;
 	
 	Ok((redirect_map, Rc::new(x)))
 }
 
-fn load_owned_memory_program(redirect_map_name: MapName, network_interface_name: NetworkInterfaceName, device_offload: bool, (channels, numa_node): (Channels, Option<NumaNode>)) -> Result<(ExpressDataPathRedirectSocketArrayMap, Rc<ExtendedBpfProgramFileDescriptor>), LoadOwnedMemoryProgramError>
+fn load_owned_memory_program(network_interface_index: NetworkInterfaceIndex, redirect_map_name: MapName, network_interface_name: NetworkInterfaceName, device_offload: bool, (channels, numa_node): (Channels, Option<NumaNode>)) -> Result<(ExpressDataPathRedirectSocketArrayMap, Rc<ExtendedBpfProgramFileDescriptor>), LoadOwnedMemoryProgramError>
 {
 	let mut map_file_descriptors = FileDescriptorsMap::with_capacity(1);
 	
-	let redirect_map = ExpressDataPathRedirectSocketArrayMap::new_express_data_path_redirect_socket_array_map_from_channels(map_name, channels, &mut map_file_descriptors, ExpressDataPathAccessPermissions::default(), numa_node)?;
+	let redirect_map = ExpressDataPathRedirectSocketArrayMap::new_express_data_path_redirect_socket_array_map_from_channels(&redirect_map_name, channels, &mut map_file_descriptors, ExpressDataPathAccessPermissions::default(), numa_node)?;
 	
 	let offload_to = if device_offload
 	{
-		Some(get_link_message_data.network_interface_index)
+		Some(network_interface_index)
 	}
 	else
 	{
@@ -144,7 +145,7 @@ fn owned_memory_program(xskmap: &MapName, offload_to: Option<NetworkInterfaceInd
 			redirect_map(xskmap, None, XDP_PASS),
 			
 			// `if r0 result != xdp_action:XDP_ABORTED goto exit`.
-			conditional_jump_32(NotEqual, r0, xdp_action:XDP_ABORTED, exit),
+			conditional_jump_32(NotEqual, r0, xdp_action::XDP_ABORTED, exit),
 			
 			block(vec!
 			[

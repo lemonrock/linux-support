@@ -36,6 +36,6 @@ impl AdaptiveCoalescingConfiguration
 				ReceiveAndTransmit(adaptive_coalescing_rate_sampling) => (adaptive_coalescing_rate_sampling, true, true),
 			},
 		};
-		(adaptive_coalescing_rate_sampling.interval_in_seconds, use_adaptive_receive_coalesce as u32, use_adaptive_tx_coalesce as u32)
+		(adaptive_coalescing_rate_sampling.interval_in_seconds, use_adaptive_receive_coalesce as u32, use_adaptive_transmit_coalesce as u32)
 	}
 }

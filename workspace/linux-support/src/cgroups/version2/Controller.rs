@@ -152,7 +152,7 @@ impl Controller
 	#[inline(always)]
 	fn is_controller(value: &[u8]) -> bool
 	{
-		Self::from_bytes(values).is_ok()
+		Self::from_bytes(value).is_ok()
 	}
 
 	#[inline(always)]

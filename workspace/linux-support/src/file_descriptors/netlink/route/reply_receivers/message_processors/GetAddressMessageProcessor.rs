@@ -107,20 +107,20 @@ impl<IPA: InternetProtocolAddress> GetAddressMessageProcessor<IPA>
 	}
 	
 	#[inline(always)]
-	fn new_route_get_internet_protocol_addresses_message() -> NetlinkRequestMessage<Self::Header>
+	fn new_route_get_internet_protocol_addresses_message() -> NetlinkRequestMessage<ifaddrmsg>
 	{
 		Self::new_route_get_addresses_message(IPA::AddressFamily)
 	}
 	
 	#[inline(always)]
 	#[allow(dead_code)]
-	fn new_route_get_all_addresses_message() -> NetlinkRequestMessage<Self::Header>
+	fn new_route_get_all_addresses_message() -> NetlinkRequestMessage<ifaddrmsg>
 	{
 		Self::new_route_get_addresses_message(AF_UNSPEC as u8)
 	}
 	
 	#[inline(always)]
-	fn new_route_get_addresses_message(address_family: u8) -> NetlinkRequestMessage<Self::Header>
+	fn new_route_get_addresses_message(address_family: u8) -> NetlinkRequestMessage<ifaddrmsg>
 	{
 		let body = ifaddrmsg
 		{

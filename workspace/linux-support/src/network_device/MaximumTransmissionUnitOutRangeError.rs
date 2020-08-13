@@ -2,8 +2,19 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[inline(always)]
-pub(crate) fn unwrap_statistic<T>(field: Option<T>, name: &'static [u8]) -> Result<T, StatisticsParseError>
+/// Out-of-range.
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct MaximumTransmissionUnitOutRangeError;
+
+impl Display for MaximumTransmissionUnitOutRangeError
 {
-	field.ok_or(StatisticsParseError::MissingStatistic { name })
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
+impl error::Error for MaximumTransmissionUnitOutRangeError
+{
 }

@@ -29,7 +29,7 @@ impl TryFrom<OsString> for CgroupName
 			{
 				b'/' => Err("Can not contain the directory separator '/'"),
 				
-				b'.' => if Controller.is_controller(&value[.. index])
+				b'.' => if Controller::is_controller(&value[.. index])
 				{
 					Err("Can not use a prefix reserved for a controller (this isn't a perfect check)")
 				}

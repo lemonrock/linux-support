@@ -14,7 +14,7 @@ impl<POTIC: ProcessOrThreadIdentifierChoice> Migration<POTIC>
 	{
 		cgroup.write_maximum_descendants(mount_point, MaximumNumber::Finite(0))?;
 		
-		migration.migrate(mount_point, &cgroup);
+		self.migrate(mount_point, &cgroup);
 		
 		Ok(())
 	}

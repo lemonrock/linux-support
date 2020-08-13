@@ -12,6 +12,7 @@
 #![feature(allocator_api)]
 #![feature(asm)]
 #![feature(cell_leak)]
+#![feature(const_if_match)]
 #![feature(const_fn)]
 #![feature(const_fn_union)]
 #![feature(core_intrinsics)]
@@ -503,7 +504,9 @@ use libc_extra::android_linux::linux::securebits::SECBIT_NO_SETUID_FIXUP;
 use libc_extra::android_linux::linux::securebits::SECBIT_NO_SETUID_FIXUP_LOCKED;
 use libc_extra::android_linux::linux::sockios::SIOCETHTOOL;
 use libc_extra::android_linux::linux::sockios::SIOCGIFINDEX;
+use libc_extra::android_linux::linux::sockios::SIOCSIFMTU;
 use libc_extra::android_linux::linux::sockios::SIOCGIFNAME;
+use libc_extra::android_linux::linux::sockios::SIOCSIFTXQLEN;
 use libc_extra::android_linux::mntent::endmntent;
 use libc_extra::android_linux::mntent::getmntent;
 use libc_extra::android_linux::mntent::mntent;

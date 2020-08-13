@@ -48,7 +48,7 @@ impl PriorityFlowControlStormPreventionTunable
 	
 	/// From milliseconds to delay.
 	#[inline(always)]
-	pub fn from_milliseconds(milliseconds_to_delay_reporting_link_is_down: NonZeroU16) -> Result<Self, Self::Error>
+	pub fn from_milliseconds(milliseconds_to_delay_reporting_link_is_down: NonZeroU16) -> Result<Self, ParseNumberError>
 	{
 		Self::try_from(milliseconds_to_delay_reporting_link_is_down)
 	}

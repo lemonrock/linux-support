@@ -17,16 +17,16 @@ pub enum GlobalNumaBalancingConfiguration
 	On(GlobalNumaBalancingOnConfiguration),
 }
 
-impl Default for GlobalNumaBalancingOnConfiguration
+impl Default for GlobalNumaBalancingConfiguration
 {
 	#[inline(always)]
 	fn default() -> Self
 	{
-		GlobalNumaBalancingOnConfiguration::Off
+		GlobalNumaBalancingConfiguration::Off
 	}
 }
 
-impl GlobalNumaBalancingOnConfiguration
+impl GlobalNumaBalancingConfiguration
 {
 	/// Configures.
 	pub fn configure(&self, proc_path: &ProcPath) -> Result<(), GlobalNumaBalancingConfigurationError>

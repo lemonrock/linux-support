@@ -14,21 +14,21 @@ pub(crate) struct ethtool_eee
 	/// Can not accommodate newer flags.
 	///
 	/// Read-only.
-	pub(crate) supported: BitMaskWord,
+	pub(crate) supported: BitSetWord,
 	
 	/// Mask of `ADVERTISED_*` flags for the speed/duplex combinations advertised as eee capable.
 	///
 	/// Can not accommodate newer flags.
 	///
 	/// Read-write.
-	pub(crate) advertised: BitMaskWord,
+	pub(crate) advertised: BitSetWord,
 	
 	/// Mask of `ADVERTISED_*` flags for the speed/duplex combinations advertised by the link partner as eee capable.
 	///
 	/// Can not accommodate newer flags.
 	///
 	/// Read-only.
-	pub(crate) lp_advertised: BitMaskWord,
+	pub(crate) lp_advertised: BitSetWord,
 	
 	/// Result of the eee auto negotiation.
 	///

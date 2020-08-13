@@ -6,6 +6,7 @@ use super::*;
 use super::socket::new_socket;
 use crate::network_device::*;
 use crate::network_device::c::*;
+use crate::network_device::c::commands::EthtoolCommand;
 
 
 include!("NetworkDeviceSocketFileDescriptor.rs");

@@ -16,7 +16,7 @@ pub enum GlobalNetworkDeviceConfigurationError
 	CouldNotSetTransmissionQueueLength(NetworkDeviceInputOutputControlError<TransmissionQueueLengthOutRangeError>),
 	
 	#[allow(missing_docs)]
-	CouldNotSetMaximumTransmissionUnit(NetworkDeviceInputOutputControlError<tMaximumTransmissionUnitOutRangeError>),
+	CouldNotSetMaximumTransmissionUnit(NetworkDeviceInputOutputControlError<MaximumTransmissionUnitOutRangeError>),
 	
 	#[allow(missing_docs)]
 	CouldNotSetForwardErrorConnection(NetworkDeviceInputOutputControlError<Infallible>),

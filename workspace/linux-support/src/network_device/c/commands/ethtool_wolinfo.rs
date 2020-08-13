@@ -31,3 +31,8 @@ impl EthtoolCommand for ethtool_wolinfo
 		self.cmd
 	}
 }
+
+impl ethtool_wolinfo
+{
+	pub(crate) const SOPASS_MAX: usize = ETH_ALEN;
+}

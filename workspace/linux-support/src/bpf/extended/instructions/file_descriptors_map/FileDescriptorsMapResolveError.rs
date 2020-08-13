@@ -3,7 +3,7 @@
 
 
 /// Error.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub enum FileDescriptorsMapResolveError
 {
 	/// Missing file descriptor for `ProgramName` or `MapName`.

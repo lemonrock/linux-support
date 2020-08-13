@@ -92,9 +92,9 @@ impl Error for StatisticsParseError
 
 			&InvalidStatisticValue { ref cause, .. } => Some(cause),
 
-			&NotABooleanValue { .. } => Some(cause),
+			&NotABooleanValue { .. } => None,
 
-			&NotAnU32Value { .. } => Some(cause),
+			&NotAnU32Value { .. } => None,
 
 			&MissingStatistic { .. } => None,
 			

@@ -17,10 +17,10 @@ pub struct AllControllersConfiguration
 
 impl ControllersConfiguration for AllControllersConfiguration
 {
-	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup>, available_controllers: &Controllers) -> io::Result<()>
+	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup<'name>>, available_controllers: &Controllers) -> io::Result<()>
 	{
-		self.threaded.configure(mount_pointer, cgroup, available_controllers)?;
-		self.domain.configure(mount_pointer, cgroup, available_controllers)
+		self.threaded.configure(mount_point, cgroup, available_controllers)?;
+		self.domain.configure(mount_point, cgroup, available_controllers)
 	}
 	
 	fn to_desired_controllers(&self) -> Controllers

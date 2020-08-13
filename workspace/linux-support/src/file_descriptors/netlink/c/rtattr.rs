@@ -206,7 +206,7 @@ impl<NAT: NetlinkAttributeType> rtattr<NAT>
 	}
 	
 	#[inline(always)]
-	fn debug_assert_is(&self, is: NTA)
+	fn debug_assert_is(&self, is: NAT)
 	{
 		debug_assert_eq!(self.type_(), (false, false, is))
 	}

@@ -40,8 +40,8 @@ pub(crate) trait VariablySizedEthtoolCommand: EthtoolCommand + Copy
 				};
 				
 				data
-			}
-			
+			},
+			marker: PhantomData,
 		}
 	}
 }

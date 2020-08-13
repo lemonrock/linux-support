@@ -93,10 +93,10 @@ impl ethtool_sset_info
 				
 				while self.next_index < ExclusiveMaximum
 				{
-					if self.sset_mask & (1 << next_index) != 0
+					if self.sset_mask & (1 << self.next_index) != 0
 					{
 						self.next_index += 1;
-						return Some(unsafe { transmute(next_index as u32) })
+						return Some(unsafe { transmute(self.next_index as u32) })
 					}
 					
 					self.next_index += 1;

@@ -22,6 +22,9 @@ pub enum GlobalAllNetworkDevicesConfigurationError
 	CouldNotChangeMaximumTimeForOneNapiPollingCycle(io::Error),
 	
 	#[allow(missing_docs)]
+	CouldNotChangeMaximumBackLogOfReceivedPacketsInTheKernel(io::Error),
+	
+	#[allow(missing_docs)]
 	CouldNotChangeTimestampPrequeue(io::Error),
 	
 	#[allow(missing_docs)]
@@ -58,6 +61,8 @@ impl error::Error for GlobalAllNetworkDevicesConfigurationError
 			&CouldNotChangeMaximumNumberOfPacketsInOneNapiPollingCycle(ref cause) => Some(cause),
 			
 			&CouldNotChangeMaximumTimeForOneNapiPollingCycle(ref cause) => Some(cause),
+			
+			&CouldNotChangeMaximumBackLogOfReceivedPacketsInTheKernel(ref cause) => Some(cause),
 			
 			&CouldNotChangeTimestampPrequeue(ref cause) => Some(cause),
 			

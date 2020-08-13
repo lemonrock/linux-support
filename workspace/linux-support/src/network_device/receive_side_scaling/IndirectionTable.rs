@@ -3,8 +3,8 @@
 
 
 /// Is never empty.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct IndirectionTable(Vec<QueueIdentifier>);
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct IndirectionTable(pub(crate) Vec<QueueIdentifier>);
 
 impl IndirectionTable
 {

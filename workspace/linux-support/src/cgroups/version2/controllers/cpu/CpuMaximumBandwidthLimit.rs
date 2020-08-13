@@ -3,7 +3,7 @@
 
 
 /// Only for the Completely Fair Scheduler (CFS).
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct CpuMaximumBandwidthLimit

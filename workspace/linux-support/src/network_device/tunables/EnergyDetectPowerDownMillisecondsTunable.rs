@@ -49,7 +49,7 @@ impl EnergyDetectPowerDownMillisecondsTunable
 	
 	/// Time in milliseconds; driver may choose a nearest value.
 	#[inline(always)]
-	pub fn from_milliseconds(milliseconds_to_delay: NonZeroU16) -> Result<Self, Self::Error>
+	pub fn from_milliseconds(milliseconds_to_delay: NonZeroU16) -> Result<Self, ParseNumberError>
 	{
 		Self::try_from(milliseconds_to_delay)
 	}

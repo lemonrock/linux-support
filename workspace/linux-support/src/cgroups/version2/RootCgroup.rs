@@ -46,7 +46,7 @@ impl RootCgroup
 			create_dir_all(&folder_path)?;
 		}
 		
-		RootCgroup::create_and_mount(&cgroup_mount_point)?;
+		RootCgroup::create_and_mount(&mount_point)?;
 		
 		// cgroup2 specific mount options are in here: <https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html> - but `memory_recursiveprot` does not exist in code.
 		let mount_options = hashmap!

@@ -114,7 +114,7 @@ impl bpf_prog_info
 	}
 	
 	#[inline(always)]
-	pub(crate) fn validate_attach_mode_and_device_offload_matches_program_information(&self, attach_mode: AttachMode, device_offload: bool) -> Result<(), ValidateAttachModeError>
+	pub(crate) fn validate_attach_mode_and_device_offload_matches_program_information(&self, attach_mode: AttachMode, device_offload: bool, network_interface_index: NetworkInterfaceIndex) -> Result<(), ValidateAttachModeError>
 	{
 		use self::AttachMode::*;
 		use self::ValidateAttachModeError::*;
@@ -122,7 +122,7 @@ impl bpf_prog_info
 		{
 			(Offloaded, None) => return Err(ExistingExpressDataPathProgramShouldBeOffloaded),
 			
-			(Offloaded, Some(offloaded_network_interface_index)) => if offloaded_network_interface_index == network_interface_name
+			(Offloaded, Some(offloaded_network_interface_index)) => if offloaded_network_interface_index == network_interface_index
 			{
 			}
 			else

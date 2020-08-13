@@ -5,8 +5,8 @@
 /// Is never empty.
 ///
 /// Is usually 40 bytes but Intel i40e drivers use a 52 byte key.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct HashFunctionKey(Vec<u8>);
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct HashFunctionKey(pub(crate) Vec<u8>);
 
 impl HashFunctionKey
 {
