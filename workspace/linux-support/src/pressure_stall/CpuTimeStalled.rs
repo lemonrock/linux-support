@@ -22,7 +22,7 @@ impl CpuTimeStalled
 	
 	/// For current process.
 	///
-	/// Will not exist if the kernel is not configured for Pressure Stall Information.
+	/// Will not exist if the kernel is not configured for Pressure Stall Information (`CONFIG_PSI`).
 	#[inline(always)]
 	pub fn for_self(proc_path: &ProcPath) -> io::Result<Self>
 	{
@@ -31,7 +31,7 @@ impl CpuTimeStalled
 	
 	/// For process.
 	///
-	/// Will not exist if the kernel is not configured for Pressure Stall Information.
+	/// Will not exist if the kernel is not configured for Pressure Stall Information (`CONFIG_PSI`).
 	#[inline(always)]
 	pub fn for_process(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> io::Result<Self>
 	{
@@ -39,7 +39,7 @@ impl CpuTimeStalled
 		Self::from_file(&file_path)
 	}
 	
-	/// Will not exist if the kernel is not configured for Pressure Stall Information.
+	/// Will not exist if the kernel is not configured for Pressure Stall Information (`CONFIG_PSI`).
 	#[inline(always)]
 	pub(crate) fn from_file(file_path: &Path) -> io::Result<Self>
 	{

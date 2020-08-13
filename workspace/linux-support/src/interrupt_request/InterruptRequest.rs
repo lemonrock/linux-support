@@ -114,7 +114,7 @@ impl InterruptRequest
 		let file_path = self.sys_file_path(sys_path, "per_cpu_count");
 		let comma_separated_string = file_path.read_raw_without_line_feed().unwrap();
 		
-		PerBitSetAwareData::from_iterator(comma_separated_string.split_bytes(b',').map(|raw_bytes| u64::parse_number(count_in_bytes))).expect("Invalid count")
+		PerBitSetAwareData::from_iterator(comma_separated_string.split_bytes(b',').map(|count_in_bytes| u64::parse_number(count_in_bytes))).expect("Invalid count")
 	}
 	
 	/// Usually `ffffffff` (ie `/sys/devices/system/cpu/possible` but as a bitmask not a list).

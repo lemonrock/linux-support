@@ -4,7 +4,6 @@
 
 use self::c::*;
 use self::c::commands::*;
-use self::c::flow_specifications::*;
 use super::*;
 use self::coalescing::*;
 use self::features::*;

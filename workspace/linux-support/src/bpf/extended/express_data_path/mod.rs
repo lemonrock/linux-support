@@ -17,13 +17,11 @@ use crate::file_descriptors::*;
 use crate::file_descriptors::bpf::*;
 use crate::file_descriptors::netlink::NetlinkSocketFileDescriptor;
 use crate::file_descriptors::netlink::route::RouteNetlinkProtocol;
-use crate::file_descriptors::network_device::NetworkDeviceSocketFileDescriptor;
 use crate::file_descriptors::socket::*;
 use crate::file_descriptors::socket::c::*;
 use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use crate::memory::mapping::*;
 use crate::network_device::*;
-use crate::bpf::extended::maps::domain::access_permissions::KernelOnlyAccessPermissions;
 use crate::bpf::c::bpf_prog_type;
 
 

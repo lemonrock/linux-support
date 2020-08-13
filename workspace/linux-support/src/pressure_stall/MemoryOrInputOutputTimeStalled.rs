@@ -45,7 +45,7 @@ impl MemoryOrInputOutputTimeStalled
 	
 	/// For current process.
 	///
-	/// Will not exist if the kernel is not configured for Pressure Stall Information.
+	/// Will not exist if the kernel is not configured for Pressure Stall Information (`CONFIG_PSI`).
 	#[inline(always)]
 	pub fn memory_for_self(proc_path: &ProcPath) -> io::Result<Self>
 	{
@@ -54,7 +54,7 @@ impl MemoryOrInputOutputTimeStalled
 	
 	/// For process.
 	///
-	/// Will not exist if the kernel is not configured for Pressure Stall Information.
+	/// Will not exist if the kernel is not configured for Pressure Stall Information (`CONFIG_PSI`).
 	#[inline(always)]
 	pub fn memory_for_process(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> io::Result<Self>
 	{
@@ -64,7 +64,7 @@ impl MemoryOrInputOutputTimeStalled
 	
 	/// For current process.
 	///
-	/// Will not exist if the kernel is not configured for Pressure Stall Information.
+	/// Will not exist if the kernel is not configured for Pressure Stall Information (`CONFIG_PSI`).
 	#[inline(always)]
 	pub fn input_output_for_self(proc_path: &ProcPath) -> io::Result<Self>
 	{
@@ -73,7 +73,7 @@ impl MemoryOrInputOutputTimeStalled
 	
 	/// For process.
 	///
-	/// Will not exist if the kernel is not configured for Pressure Stall Information.
+	/// Will not exist if the kernel is not configured for Pressure Stall Information (`CONFIG_PSI`).
 	#[inline(always)]
 	pub fn input_output_for_process(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> io::Result<Self>
 	{
@@ -88,7 +88,7 @@ impl MemoryOrInputOutputTimeStalled
 		Self::from_file(&file_path)
 	}
 	
-	/// Will not exist if the kernel is not configured for Pressure Stall Information.
+	/// Will not exist if the kernel is not configured for Pressure Stall Information (`CONFIG_PSI`).
 	#[inline(always)]
 	pub(crate) fn from_file(file_path: &impl AsRef<Path>) -> io::Result<Self>
 	{

@@ -3,38 +3,35 @@
 
 
 use super::*;
-use self::cpu::*;
-use self::cpuset::*;
-use self::pids::*;
-use self::configuration::controllers::ControllerConfiguration;
-use crate::paths::*;
-use crate::process::ProcessIdentifier;
-use crate::process::ProcessIdentifierChoice;
-use crate::thread::ThreadIdentifier;
-use crate::thread::ThreadIdentifierChoice;
+use self::configuration::controller_configurations::ControllerConfiguration;
+use self::controllers::cpu::*;
+use self::controllers::cpuset::*;
+use self::controllers::pids::*;
+use self::statistics::*;
 use crate::configuration::Microseconds;
-use crate::file_systems::FileSystemType;
-use crate::scheduling::Nice;
 use crate::cpu::HyperThreads;
+use crate::file_systems::FileSystemType;
+use crate::paths::*;
 use crate::memory::numa::NumaNodes;
 use crate::mounts::*;
 use crate::pressure_stall::*;
+use crate::process::ProcessIdentifier;
+use crate::process::ProcessIdentifierChoice;
+use crate::scheduling::Nice;
+use crate::thread::ThreadIdentifier;
+use crate::thread::ThreadIdentifierChoice;
 
 
 /// Configuration.
 pub mod configuration;
 
 
-/// `cpu` controller.
-pub mod cpu;
+/// Controllers.
+pub mod controllers;
 
 
-/// `cpuset` controller.
-pub mod cpuset;
-
-
-/// `pids` controller.
-pub mod pids;
+/// Statistics.
+pub mod statistics;
 
 
 include!("Cgroup.rs");
@@ -44,15 +41,11 @@ include!("child_cgroup_names.rs");
 include!("Controller.rs");
 include!("Controllers.rs");
 include!("ControllersFileError.rs");
-include!("EventStatistics.rs");
 include!("MaximumNumber.rs");
 include!("NonRootCgroup.rs");
 include!("NonRootCgroupType.rs");
-include!("parse_key_value_statistics.rs");
 include!("ParseControllerError.rs");
 include!("ParseNonRootCgroupTypeError.rs");
 include!("ProcessIdentifiersParseError.rs");
 include!("RootCgroup.rs");
 include!("read_process_or_thread_identifiers.rs");
-include!("Statistics.rs");
-include!("StatisticsParseError.rs");

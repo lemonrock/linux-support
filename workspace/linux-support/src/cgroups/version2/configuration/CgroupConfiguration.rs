@@ -17,8 +17,6 @@ impl CgroupConfiguration
 	/// Configures.
 	pub fn configure(&self, sys_path: &SysPath, proc_path: &ProcPath) -> io::Result<()>
 	{
-		use self::CgroupConfigurationError::*;
-		
 		let mounts = Mounts::parse(proc_path, ProcessIdentifierChoice::Current)?;
 		
 		use self::FileSystemType::cgroup2;

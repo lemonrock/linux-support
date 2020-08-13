@@ -2,19 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// `debug` controller configuration.
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Deserialize, Serialize)]
-#[serde(default, deny_unknown_fields)]
-pub struct DebugControllerConfiguration;
-
-impl ControllerConfiguration for DebugControllerConfiguration
+#[inline(always)]
+pub(crate) fn unwrap_statistic(field: Option<T>, name: &'static [u8]) -> Result<T, StatisticsParseError>
 {
-	const Controller: Controller = Controller::perf_event;
-	
-	#[inline(always)]
-	fn configure(&self, _mount_point: &CgroupMountPoint, c_group: &Rc<NonRootCgroup>) -> io::Result<()>
-	{
-		Ok(())
-	}
+	field.ok_or(StatisticsParseError::MissingStatistic { name })
 }

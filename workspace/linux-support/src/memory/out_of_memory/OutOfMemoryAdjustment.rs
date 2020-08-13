@@ -44,7 +44,7 @@ impl Ord for OutOfMemoryAdjustment
 	#[inline(always)]
 	fn cmp(&self, right: &Self) -> Ordering
 	{
-		(*left).to_value().cmp(&(*right).to_value())
+		(*self).to_value().cmp(&(*right).to_value())
 	}
 }
 
@@ -60,7 +60,7 @@ impl OutOfMemoryAdjustment
 			assert_effective_user_id_is_root("write negative value to `/proc/<PID>/oom_adj`");
 		}
 		
-		proc_path.process_file_path(process_identifier, "oom_adj").write_value((UnpaddedDecimalInteger(value)))
+		proc_path.process_file_path(process_identifier, "oom_adj").write_value(UnpaddedDecimalInteger(value))
 	}
 	
 	#[inline(always)]

@@ -2,19 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// `perf_event` controller configuration.
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Deserialize, Serialize)]
-#[serde(default, deny_unknown_fields)]
-pub struct PerfEventControllerConfiguration;
-
-impl ControllerConfiguration for PerfEventControllerConfiguration
+pub(super) trait ControllersConfiguration
 {
-	const Controller: Controller = Controller::perf_event;
+	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup<'name>>, available_controllers: &Controllers) -> io::Result<()>;
 	
-	#[inline(always)]
-	fn configure(&self, _mount_point: &CgroupMountPoint, c_group: &Rc<NonRootCgroup>) -> io::Result<()>
-	{
-		Ok(())
-	}
+	fn to_desired_controllers(&self) -> Controllers;
 }

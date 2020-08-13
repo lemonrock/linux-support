@@ -95,7 +95,7 @@ impl Information for bpf_prog_info
 impl bpf_prog_info
 {
 	#[inline(always)]
-	pub(crate) fn validate_has_program_type(&self, program_type: bpf_prog_type, error: E) -> Result<(), E>
+	pub(crate) fn validate_has_program_type<E>(&self, program_type: bpf_prog_type, error: E) -> Result<(), E>
 	{
 		if self.has_program_type(program_type)
 		{

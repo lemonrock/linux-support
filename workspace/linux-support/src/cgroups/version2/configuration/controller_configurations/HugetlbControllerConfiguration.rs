@@ -5,7 +5,7 @@
 /// `hugetlb` controller configuration.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-#[serde(default, deny_unknown_fields)]
+#[serde(deny_unknown_fields)]
 pub struct HugetlbControllerConfiguration;
 
 impl ControllerConfiguration for HugetlbControllerConfiguration

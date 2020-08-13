@@ -237,7 +237,7 @@ impl ethtool_rxfh
 	
 	fn indirection_table_size_in_bytes(&self) -> usize
 	{
-		const ElementSize: usize = size_of::<Self::ArrayElement>();
+		const ElementSize: usize = size_of::<ethtool_rxfh::ArrayElement>();
 		
 		self.indir_size() * ElementSize
 	}

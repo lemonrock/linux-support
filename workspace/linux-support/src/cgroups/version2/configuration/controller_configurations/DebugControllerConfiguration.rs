@@ -2,21 +2,19 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use super::c::*;
-use crate::devices::CharacterDevice;
-use crate::memory::NumberOfPages;
-use crate::memory::VirtualAddress;
-use crate::scheduling::RealTimePriority;
-use crate::scheduling::Nice;
-use crate::paths::PathExt;
-use crate::paths::ProcPath;
-use crate::signals::{ChildStatus, OutOfRangeSignalNumberError};
-use crate::signals::Signals;
-use crate::time::ClockTicks;
+/// `debug` controller configuration.
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DebugControllerConfiguration;
 
-
-include!("Stat.rs");
-include!("StatFieldIterator.rs");
-include!("StatParseError.rs");
-include!("StatProcessFlags.rs");
+impl ControllerConfiguration for DebugControllerConfiguration
+{
+	const Controller: Controller = Controller::perf_event;
+	
+	#[inline(always)]
+	fn configure(&self, _mount_point: &CgroupMountPoint, c_group: &Rc<NonRootCgroup>) -> io::Result<()>
+	{
+		Ok(())
+	}
+}

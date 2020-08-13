@@ -27,8 +27,6 @@ impl Statistics
 	#[inline(always)]
 	fn from_file(file_path: &Path) -> Result<Self, StatisticsParseError>
 	{
-		use self::StatisticsParseError::*;
-		
 		let mut number_of_living_descendants = None;
 		let mut number_of_dying_descendants = None;
 		parse_key_value_statistics(file_path, &mut |name, value| match name
@@ -36,24 +34,24 @@ impl Statistics
 			b"nr_descendants" =>
 			{
 				number_of_living_descendants = Some(value);
-				false
+				Ok(())
 			}
 			
 			b"nr_dying_descendants" =>
 			{
 				number_of_dying_descendants = Some(value);
-				false
+				Ok(())
 			}
 			
-			_ => true,
+			_ => Ok(()),
 		})?;
 
 		Ok
 		(
 			Self
 			{
-				number_of_living_descendants: number_of_living_descendants.ok_or(MissingStatistic(b"nr_descendants"))?,
-				number_of_dying_descendants: number_of_dying_descendants.ok_or(MissingStatistic(b"nr_dying_descendants"))?,
+				number_of_living_descendants: unwrap_statistic(number_of_living_descendants, b"number_of_living_descendants")?,
+				number_of_dying_descendants: unwrap_statistic(number_of_dying_descendants, b"number_of_dying_descendants")?,
 			}
 		)
 	}

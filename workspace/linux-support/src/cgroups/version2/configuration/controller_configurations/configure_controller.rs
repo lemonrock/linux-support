@@ -2,19 +2,16 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// `rdma` controller configuration.
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Deserialize, Serialize)]
-#[serde(default, deny_unknown_fields)]
-pub struct RdmaControllerConfiguration;
-
-impl ControllerConfiguration for RdmaControllerConfiguration
+#[inline(always)]
+fn configure_controller<'name, CC: ControllerConfiguration>(controller_configuration: &Option<CC>, mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup<'name>>, available_controllers: &Controllers) -> io::Result<()>
 {
-	const Controller: Controller = Controller::rdma;
-	
-	#[inline(always)]
-	fn configure(&self, _mount_point: &CgroupMountPoint, c_group: &Rc<NonRootCgroup>) -> io::Result<()>
+	if let Some(ref controller_configuration) = controller_configuration
 	{
-		Ok(())
+		if available_controllers.contains(&CC::Controller)
+		{
+			controller_configuration.configure(mount_point, cgroup)?;
+		}
 	}
+	
+	Ok(())
 }

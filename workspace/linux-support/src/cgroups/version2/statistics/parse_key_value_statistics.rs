@@ -2,7 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-fn parse_key_value_statistics(file_path: &Path, callback: &mut FnMut(&[u8], usize) -> bool) -> Result<(), StatisticsParseError>
+#[inline(always)]
+pub(crate) fn parse_key_value_statistics(file_path: &Path, callback: &mut impl FnMut(&[u8], usize) -> Result<(), StatisticsParseError>) -> Result<(), StatisticsParseError>
 {
 	use self::StatisticsParseError::*;
 	
@@ -20,17 +21,13 @@ fn parse_key_value_statistics(file_path: &Path, callback: &mut FnMut(&[u8], usiz
 		}
 		
 		#[inline(always)]
-		fn parse_value<'a>(name: &'static [u8], mut name_and_value: impl Iterator<Item=&'a [u8]>) -> Result<usize, StatisticsParseError>
+		fn parse_value<'a>(name: &[u8], mut name_and_value: impl Iterator<Item=&'a [u8]>) -> Result<usize, StatisticsParseError>
 		{
 			let bytes_value = name_and_value.next().ok_or(MissingStatisticValue { name })?;
-			usize::parse_decimal_number(bytes_value).map_err(|cause| InvalidStatisticValue { name, value: bytes_value.to_vec(), cause })
+			usize::parse_decimal_number(bytes_value).map_err(|cause| InvalidStatisticValue { name: name.to_vec(), value: bytes_value.to_vec(), cause })
 		}
-
-		let statistic_rejected = callback(name, parse_value(name, name_and_value)?);
-		if statistic_rejected
-		{
-			return Err(InvalidStatisticName { name: name.to_vec() })
-		}
+		
+		callback(name, parse_value(name, name_and_value)?)
 	}
 	
 	Ok(())

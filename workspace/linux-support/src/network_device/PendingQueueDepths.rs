@@ -3,7 +3,7 @@
 
 
 /// Pending queue depths.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, HAsh)]
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct PendingQueueDepths
 {
 	receive_pending_queue_depth: Option<QueueDepth>,

@@ -9,6 +9,7 @@
 #[derive(EnumCount, EnumIter)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields, rename = "Feature")]
+#[allow(deprecated)]
 #[repr(u32)]
 pub enum NETIF_F
 {
@@ -478,7 +479,7 @@ impl NETIF_F
 	
 	const NETDEV_FEATURE_COUNT: usize = Self::NETIF_F_COUNT;
 	
-	const ETHTOOL_DEV_FEATURE_WORDS: usize = BitSetHelper::divide_rounded_up_word(Self::NETDEV_FEATURE_COUNT);
+	const ETHTOOL_DEV_FEATURE_WORDS: usize = divide_rounded_up_word(Self::NETDEV_FEATURE_COUNT);
 	
 	// There are, as of the time of coding, 59 entries, and Linux is likely to grow more.
 	// This creates space for up to 256 entries as of the time of writing.

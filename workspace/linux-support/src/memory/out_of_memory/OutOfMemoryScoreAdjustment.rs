@@ -82,7 +82,7 @@ impl OutOfMemoryScoreAdjustment
 			assert_effective_user_id_is_root("write negative value to `/proc/<PID>/oom_score_adj`");
 		}
 		
-		proc_path.process_file_path(process_identifier, "oom_score_adj").write_value((UnpaddedDecimalInteger(value)))
+		proc_path.process_file_path(process_identifier, "oom_score_adj").write_value(UnpaddedDecimalInteger(value))
 	}
 	
 	#[inline(always)]

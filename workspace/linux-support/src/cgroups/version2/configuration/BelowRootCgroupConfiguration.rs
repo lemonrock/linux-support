@@ -20,15 +20,15 @@ pub enum BelowRootCgroupConfiguration
 impl ChildCgroupConfiguration for BelowRootCgroupConfiguration
 {
 	#[inline(always)]
-	fn configure(&self, mount_point: &CgroupMountPoint, parent: &Rc<impl Cgroup>, name: &CgroupName) -> io::Result<()>
+	fn configure<'name>(&self, mount_point: &CgroupMountPoint, parent: &Rc<impl Cgroup<'name>>, name: &CgroupName) -> io::Result<()>
 	{
 		use self::BelowRootCgroupConfiguration::*;
 		
 		match self
 		{
-			&Domain(ref domain_cgroup_configuration) => domain_cgroup_configuration.configure(mount_point, &cgroup, name),
+			&Domain(ref domain_cgroup_configuration) => domain_cgroup_configuration.configure(mount_point, parent, name),
 			
-			&Threaded(ref threaded_cgroup_configuration) => threaded_cgroup_configuration.configure(mount_point, &cgroup, name),
+			&Threaded(ref threaded_cgroup_configuration) => threaded_cgroup_configuration.configure(mount_point, parent, name),
 		}
 	}
 	

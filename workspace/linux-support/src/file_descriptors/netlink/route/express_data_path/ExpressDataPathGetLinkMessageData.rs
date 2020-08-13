@@ -89,10 +89,15 @@ impl ExpressDataPathGetLinkMessageData
 				
 				match (self.generic_program_identifier, self.native_program_identifier, self.offloaded_program_identifier)
 				{
-					(Some(generic_program_identifier), Some(native_program_identifier), None) => Some(Right(GenericAndNative(generic_program_identifier, native_program_identifier))),
-					(Some(generic_program_identifier), None, Some(offloaded_program_identifier)) => Right(GenericAndOffloaded(generic_program_identifier, offloaded_program_identifier))),
-					(None, Some(native_program_identifier), Some(offloaded_program_identifier)) => Some(Right(NativeAndOffloaded(native_program_identifier, offloaded_program_identifier))),
-					(Some(generic_program_identifier), Some(native_program_identifier), Some(offloaded_program_identifier)) => Some(Right(GenericAndNativeAndOffloaded(generic_program_identifier, native_program_identifier, offloaded_program_identifier))),
+					(Some(generic_program_identifier), Some(native_program_identifier), None) => Some(GenericAndNative(generic_program_identifier, native_program_identifier)),
+					
+					(Some(generic_program_identifier), None, Some(offloaded_program_identifier)) => Some(GenericAndOffloaded(generic_program_identifier, offloaded_program_identifier)),
+					
+					(None, Some(native_program_identifier), Some(offloaded_program_identifier)) => Some(NativeAndOffloaded(native_program_identifier, offloaded_program_identifier)),
+					
+					(Some(generic_program_identifier), Some(native_program_identifier), Some(offloaded_program_identifier)) => Some(GenericAndNativeAndOffloaded(generic_program_identifier, native_program_identifier, offloaded_program_identifier)),
+					
+					_ => unreachable!(),
 				}
 			}
 		}

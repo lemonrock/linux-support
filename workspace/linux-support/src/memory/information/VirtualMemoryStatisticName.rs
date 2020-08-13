@@ -198,7 +198,7 @@ impl VirtualMemoryStatisticName
 	#[inline(always)]
 	pub(crate) fn parse_virtual_memory_statistics_file(file_path: &Path, flush_per_cpu_statistics_first: Option<&ProcPath>) -> io::Result<HashMap<Self, u64>>
 	{
-		if let(proc_path) = flush_per_cpu_statistics_first
+		if let Some(proc_path) = flush_per_cpu_statistics_first
 		{
 			flush_per_cpu_statistics(proc_path)?;
 		}

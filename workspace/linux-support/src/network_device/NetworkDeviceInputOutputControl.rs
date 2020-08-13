@@ -10,7 +10,7 @@ pub struct NetworkDeviceInputOutputControl<'a>
 	network_interface_name: Cow<'a, NetworkInterfaceName>,
 }
 
-impl<'a> NetworkDeviceInputOutputControl
+impl<'a> NetworkDeviceInputOutputControl<'a>
 {
 	/// New instance.
 	#[inline(always)]

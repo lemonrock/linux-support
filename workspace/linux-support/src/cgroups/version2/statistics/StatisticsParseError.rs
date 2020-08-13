@@ -16,13 +16,6 @@ pub enum StatisticsParseError
 		name: Vec<u8>,
 	},
 
-	/// Invalid statistic name.
-	InvalidStatisticName
-	{
-		/// Name.
-		name: Vec<u8>,
-	},
-
 	/// Missing statistic value.
 	MissingStatisticValue
 	{
@@ -34,7 +27,7 @@ pub enum StatisticsParseError
 	InvalidStatisticValue
 	{
 		/// Name.
-		name: &'static [u8],
+		name: Vec<u8>,
 
 		/// Value.
 		value: Vec<u8>,
@@ -43,8 +36,31 @@ pub enum StatisticsParseError
 		cause: ParseNumberError,
 	},
 	
+	/// Not a boolean.
+	NotABooleanValue
+	{
+		/// Name.
+		name: Vec<u8>,
+	
+		/// Value.
+		value: usize,
+	},
+	
+	/// Not a u32.
+	NotAnU32Value
+	{
+		/// Name.
+		name: Vec<u8>,
+	
+		/// Value.
+		value: usize,
+	},
+	
 	/// Missing statistic value.
-	MissingStatistic(&'static [u8]),
+	MissingStatistic
+	{
+		name: &'static [u8]
+	},
 	
 	/// Missing one or more statistic value.
 	MissingOneOrMoreStatistics,
@@ -72,13 +88,15 @@ impl Error for StatisticsParseError
 
 			&DuplicateStatisticName { .. } => None,
 
-			&InvalidStatisticName { .. } => None,
-
 			&MissingStatisticValue { .. } => None,
 
 			&InvalidStatisticValue { ref cause, .. } => Some(cause),
 
-			&MissingStatistic(..) => None,
+			&NotABooleanValue { .. } => Some(cause),
+
+			&NotAnU32Value { .. } => Some(cause),
+
+			&MissingStatistic { .. } => None,
 			
 			&MissingOneOrMoreStatistics => None,
 		}

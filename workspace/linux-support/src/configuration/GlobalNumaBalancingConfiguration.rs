@@ -5,9 +5,9 @@
 /// Global NUMA balancing configuration.
 ///
 /// Only used if NUMA balancing is enabled.
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
-#[serde(default, deny_unknown_fields)]
+#[serde(deny_unknown_fields)]
 pub enum GlobalNumaBalancingConfiguration
 {
 	/// Off.
@@ -15,6 +15,15 @@ pub enum GlobalNumaBalancingConfiguration
 
 	/// On.
 	On(GlobalNumaBalancingOnConfiguration),
+}
+
+impl Default for GlobalNumaBalancingOnConfiguration
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		GlobalNumaBalancingOnConfiguration::Off
+	}
 }
 
 impl GlobalNumaBalancingOnConfiguration

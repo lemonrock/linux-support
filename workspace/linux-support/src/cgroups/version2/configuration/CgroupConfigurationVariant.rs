@@ -6,11 +6,11 @@
 pub trait CgroupConfigurationVariant: Default
 {
 	#[doc(hidden)]
-	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: Rc<impl Cgroup>) -> io::Result<()>;
+	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: Rc<impl Cgroup<'name>>) -> io::Result<()>;
 	
 	#[doc(hidden)]
-	fn desired_controllers_and_our_depth(&self, mut all_desired_controllers_in_parent: Controllers) -> (Controllers, usize);
+	fn desired_controllers_and_our_depth(&self, all_desired_controllers_in_parent: Controllers) -> (Controllers, usize);
 	
 	#[doc(hidden)]
-	fn make_type_threaded_if_needed(mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup>) -> io::Result<()>;
+	fn make_type_threaded_if_needed<'name>(mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup<'name>>) -> io::Result<()>;
 }

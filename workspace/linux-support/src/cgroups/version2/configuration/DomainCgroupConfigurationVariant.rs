@@ -29,7 +29,7 @@ impl Default for DomainCgroupConfigurationVariant
 
 impl CgroupConfigurationVariant for DomainCgroupConfigurationVariant
 {
-	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: Rc<impl Cgroup>) -> io::Result<()>
+	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: Rc<impl Cgroup<'name>>) -> io::Result<()>
 	{
 		use self::DomainCgroupConfigurationVariant::*;
 		
@@ -58,7 +58,7 @@ impl CgroupConfigurationVariant for DomainCgroupConfigurationVariant
 	}
 	
 	#[inline(always)]
-	fn make_type_threaded_if_needed(mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup>) -> io::Result<()>
+	fn make_type_threaded_if_needed<'name>(mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup<'name>>) -> io::Result<()>
 	{
 		Ok(())
 	}

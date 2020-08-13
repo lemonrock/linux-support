@@ -7,7 +7,7 @@ pub(crate) struct LinkModeBitSet([BitSetWord; Self::__ETHTOOL_LINK_MODE_MASK_NU3
 
 impl LinkModeBitSet
 {
-	pub(crate) const __ETHTOOL_LINK_MODE_MASK_NU32: usize = BitSetHelper::divide_rounded_up_word(ethtool_link_mode_bit_indices::__ETHTOOL_LINK_MODE_MASK_NBITS);
+	pub(crate) const __ETHTOOL_LINK_MODE_MASK_NU32: usize = divide_rounded_up_word(ethtool_link_mode_bit_indices::__ETHTOOL_LINK_MODE_MASK_NBITS);
 	
 	#[inline(always)]
 	pub(crate) fn is_set(&self, bit: ethtool_link_mode_bit_indices) -> bool

@@ -2,9 +2,20 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(super) trait ControllersConfiguration
-{
-	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup>, available_controllers: &Controllers) -> io::Result<()>;
-	
-	fn to_desired_controllers(&self) -> Controllers;
-}
+use super::*;
+
+
+/// `cpu` controller.
+pub mod cpu;
+
+
+/// `cpuset` controller.
+pub mod cpuset;
+
+
+/// `memory` controller.
+pub mod memory;
+
+
+/// `pids` controller.
+pub mod pids;

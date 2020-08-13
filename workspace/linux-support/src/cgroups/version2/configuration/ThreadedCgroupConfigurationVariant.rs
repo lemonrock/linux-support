@@ -26,7 +26,7 @@ impl Default for ThreadedCgroupConfigurationVariant
 
 impl CgroupConfigurationVariant for ThreadedCgroupConfigurationVariant
 {
-	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: Rc<impl Cgroup>) -> io::Result<()>
+	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: Rc<impl Cgroup<'name>>) -> io::Result<()>
 	{
 		use self::ThreadedCgroupConfigurationVariant::*;
 		
@@ -51,7 +51,7 @@ impl CgroupConfigurationVariant for ThreadedCgroupConfigurationVariant
 	}
 	
 	#[inline(always)]
-	fn make_type_threaded_if_needed(mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup>) -> io::Result<()>
+	fn make_type_threaded_if_needed<'name>(mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup<'name>>) -> io::Result<()>
 	{
 		cgroup.make_type_threaded(mount_point)?
 	}

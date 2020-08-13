@@ -60,14 +60,14 @@ impl MessageProcessor for GetLinkMessageProcessor
 			// Optional.
 			(false, false, IFLA_MASTER) => set_field_error(&mut processing_message_state.master_network_interface_index, message_attribute, rtattr::get_attribute_value_network_interface_index)?,
 			
-			/// Mandatory.
+			// Mandatory.
 			(false, false, IFLA_CARRIER) => set_field_error(&mut processing_message_state.carrier_ok, message_attribute, rtattr::get_attribute_value_bool)?,
 			
 			// Optional.
 			(false, false, IFLA_QDISC) => set_field_error(&mut processing_message_state.queueing_discipline, message_attribute, rtattr::get_attribute_value_asciiz_string)?,
 			(false, false, IFLA_IFALIAS) => set_field_error(&mut processing_message_state.network_interface_alias, message_attribute, rtattr::get_attribute_value_network_interface_alias)?,
 			
-			/// Mandatory.
+			// Mandatory.
 			(false, false, IFLA_CARRIER_CHANGES) => set_field_error(&mut processing_message_state.carrier_up_and_down_count, message_attribute, rtattr::get_attribute_value_u32)?,
 			(false, false, IFLA_PROTO_DOWN) => set_field_error(&mut processing_message_state.proto_down, message_attribute, rtattr::get_attribute_value_bool)?,
 			(false, false, IFLA_CARRIER_UP_COUNT) => set_field_error(&mut processing_message_state.carrier_up_count, message_attribute, rtattr::get_attribute_value_u32)?,

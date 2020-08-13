@@ -39,8 +39,6 @@ fn already_attached(redirect_map_name: MapName, network_interface_name: NetworkI
 
 fn load_owned_memory_program(redirect_map_name: MapName, network_interface_name: NetworkInterfaceName, device_offload: bool, (channels, numa_node): (Channels, Option<NumaNode>)) -> Result<(ExpressDataPathRedirectSocketArrayMap, Rc<ExtendedBpfProgramFileDescriptor>), LoadOwnedMemoryProgramError>
 {
-	use self::LoadOwnedMemoryProgramError::*;
-	
 	let mut map_file_descriptors = FileDescriptorsMap::with_capacity(1);
 	
 	let redirect_map = ExpressDataPathRedirectSocketArrayMap::new_express_data_path_redirect_socket_array_map_from_channels(map_name, channels, &mut map_file_descriptors, ExpressDataPathAccessPermissions::default(), numa_node)?;

@@ -26,7 +26,7 @@ pub struct ThreadedControllersConfiguration
 
 impl ControllersConfiguration for ThreadedControllersConfiguration
 {
-	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup>, available_controllers: &Controllers) -> io::Result<()>
+	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup<'name>>, available_controllers: &Controllers) -> io::Result<()>
 	{
 		configure_controller(&self.cpu, mount_point, cgroup, available_controllers)?;
 		

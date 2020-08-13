@@ -31,7 +31,7 @@ impl<CCC: ChildCgroupConfiguration> DerefMut for ChildrenCgroupConfiguration<CCC
 impl<CCC: ChildCgroupConfiguration> ChildrenCgroupConfiguration<CCC>
 {
 	#[inline(always)]
-	fn configure_children(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup>)
+	fn configure_children<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup<'name>>)
 	{
 		cgroup.write_maximum_descendants(mount_point, MaximumNumber::Finite(self.len()))?;
 		

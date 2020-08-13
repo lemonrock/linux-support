@@ -6,7 +6,7 @@
 ///
 /// This is the swap counterpart to page cache readahead.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Deserialize, Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 #[repr(i32)]
 pub enum PageCluster

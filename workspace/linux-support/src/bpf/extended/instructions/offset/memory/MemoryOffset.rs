@@ -30,7 +30,7 @@ impl MemoryOffset<'static>
 {
 	/// Does not accommodate the upper-half of a BPF stack.
 	#[inline(always)]
-	pub(crate) const fn stack_variable_8(variable_slot: u16) -> Self
+	pub(crate) fn stack_variable_8(variable_slot: u16) -> Self
 	{
 		assert!(variable_slot < (MAX_BPF_STACK as u16), "variable slot equals or exceeds maximum stack depth of MAX_BPF_STACK {}", MAX_BPF_STACK);
 		Self::stack_variable::<u16>(variable_slot as i16)

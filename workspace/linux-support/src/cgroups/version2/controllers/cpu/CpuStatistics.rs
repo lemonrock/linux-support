@@ -36,41 +36,41 @@ impl CpuStatistics
 		{
 			b"usage_usec" =>
 			{
-				usage_usec = Some(Microseconds(value as u32));
-				false
+				usage_usec = Some(parse_usize_to_microseconds(name, value)?);
+				Ok(())
 			}
 			
 			b"user_usec" =>
 			{
-				user_usec = Some(Microseconds(value as u32));
-				false
+				user_usec = Some(parse_usize_to_microseconds(name, value)?);
+				Ok(())
 			}
 			
 			b"system_usec" =>
 			{
-				system_usec = Some(Microseconds(value as u32));
-				false
+				system_usec = Some(parse_usize_to_microseconds(name, value)?);
+				Ok(())
 			}
 			
 			b"nr_periods" =>
 			{
 				nr_periods = Some(value);
-				false
+				Ok(())
 			}
 			
 			b"nr_throttled" =>
 			{
 				nr_throttled = Some(value);
-				false
+				Ok(())
 			}
 			
 			b"throttled_usec" =>
 			{
-				throttled_usec = Some(Microseconds(value as u32));
-				false
+				throttled_usec = Some(parse_usize_to_microseconds(name, value)?);
+				Ok(())
 			}
 			
-			_ => true,
+			_ => Ok(()),
 		})?;
 		
 		let only_when_controller_enabled = match (nr_periods, nr_throttled, throttled_usec)
@@ -94,9 +94,9 @@ impl CpuStatistics
 		(
 			Self
 			{
-				usage_time: usage_usec.ok_or(MissingStatistic(b"usage_usec"))?,
-				user_time: user_usec.ok_or(MissingStatistic(b"user_usec"))?,
-				system_time: system_usec.ok_or(MissingStatistic(b"system_usec"))?,
+				usage_time: unwrap_statistic(usage_usec, b"usage_usec")?,
+				user_time: unwrap_statistic(user_usec, b"user_usec")?,
+				system_time: unwrap_statistic(system_usec, b"system_usec")?,
 				only_when_controller_enabled,
 			}
 		)

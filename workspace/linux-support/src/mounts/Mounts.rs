@@ -4,9 +4,9 @@
 
 /// Mounts (or mount points) for the current process.
 #[derive(Default, Debug)]
-pub struct Mounts(HashMap<PathBuf, Mount>);
+pub struct Mounts<'a>(HashMap<PathBuf, Mount<'a>>);
 
-impl Mounts
+impl<'a> Mounts<'a>
 {
 	/// Current mounts (from `/proc/<X>/mounts`).
 	#[inline(always)]

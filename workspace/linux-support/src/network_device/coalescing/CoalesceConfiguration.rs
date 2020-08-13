@@ -76,7 +76,7 @@ impl CoalesceConfiguration
 	#[inline(always)]
 	pub(crate) fn as_ethtool_coalesce(&self) -> ethtool_coalesce
 	{
-		let (rate_sample_interval, use_adaptive_rx_coalesce, use_adaptive_tx_coalesce) = AdaptiveCoalescingConfiguration::to_values(&self.adaptive_coalescing);;
+		let (rate_sample_interval, use_adaptive_rx_coalesce, use_adaptive_tx_coalesce) = AdaptiveCoalescingConfiguration::to_values(&self.adaptive_coalescing);
 		
 		let (rx_coalesce_usecs, rx_max_coalesced_frames, tx_coalesce_usecs, tx_max_coalesced_frames) = self.receive_transmit.destructure();
 		

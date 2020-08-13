@@ -37,7 +37,7 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 	pub fn convenient_load(&self, map_file_descriptors: &FileDescriptorsMap<MapFileDescriptor>, extended_bpf_program_file_descriptors: &mut FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>) -> Result<Rc<ExtendedBpfProgramFileDescriptor>, ProgramLoadError>
 	{
 		let arguments = ExtendedBpfProgramArguments::new(&map_file_descriptors, &mut extended_bpf_program_file_descriptors);
-		self.parse_and_load(arguments, Some(VerifierLog::default())).map(|((extended_bpf_program_file_descriptor, _verifier_log))| extended_bpf_program_file_descriptor)
+		self.parse_and_load(arguments, Some(VerifierLog::default())).map(|(extended_bpf_program_file_descriptor, _verifier_log)| extended_bpf_program_file_descriptor)
 	}
 	
 	/// Parse and load.

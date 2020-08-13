@@ -96,7 +96,7 @@ impl OverCommitPolicy
 	}
 	
 	#[inline(always)]
-	fn write_value(proc_path: &ProcPath, file_name: &str, value: impl IntoLineFeedTerminatedByteString) -> io::Result<()>
+	fn write_value<'a>(proc_path: &ProcPath, file_name: &str, value: impl IntoLineFeedTerminatedByteString<'a>) -> io::Result<()>
 	{
 		let file_path = proc_path.sys_vm_file_path(file_name);
 		if file_path.exists()

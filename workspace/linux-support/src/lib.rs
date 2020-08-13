@@ -694,6 +694,7 @@ use std::time::UNIX_EPOCH;
 use streaming_iterator::StreamingIterator;
 use strum::EnumMessage;
 use strum::IntoEnumIterator;
+use strum_macros::EnumCount;
 use strum_macros::EnumIter;
 use strum_macros::EnumMessage;
 use strum_macros::IntoStaticStr;

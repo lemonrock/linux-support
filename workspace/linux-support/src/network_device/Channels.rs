@@ -5,7 +5,7 @@
 /// Channels of a network device.
 ///
 /// A channel has one or more ring queues associated with it.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, HAsh)]
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct Channels
 {
 	/// Receive and transmit channels count ('combined'); is ***NOT*** the sum of `receive_channels_count + transmit_channels_count`.

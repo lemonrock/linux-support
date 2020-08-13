@@ -98,8 +98,8 @@ impl Into<NonZeroU32> for QueueCount
 impl QueueCount
 {
 	/// Minimum.
-	pub const InclusiveMinimum: Self = Self(unsafe { NonZero::new_unchecked(1) });
+	pub const InclusiveMinimum: Self = Self(unsafe { NonZeroU16::new_unchecked(1) });
 	
 	/// Maximum.
-	pub const InclusiveMaximum: Self = Self(unsafe { NonZero::new_unchecked(4096) });
+	pub const InclusiveMaximum: Self = Self(unsafe { NonZeroU16::new_unchecked(4096) });
 }

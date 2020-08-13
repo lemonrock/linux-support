@@ -4,8 +4,6 @@
 
 use super::*;
 use self::bit_set::*;
-use super::features::*;
-use super::tunables::*;
 use crate::file_descriptors::socket::c::*;
 use crate::network_device::c::flow_specifications::ethtool_rx_flow_spec;
 use crate::network_device::receive_side_scaling::ContextIdentifier;

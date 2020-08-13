@@ -2,16 +2,19 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[inline(always)]
-fn configure_controller<CC: ControllerConfiguration>(controller_configuration: &Option<CC>, mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup>, available_controllers: &Controllers) -> io::Result<()>
+/// `io` controller configuration.
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct IoControllerConfiguration;
+
+impl ControllerConfiguration for IoControllerConfiguration
 {
-	if let Some(ref controller_configuration) = controller_configuration
-	{
-		if available_controllers.contains(&CC::Controller)
-		{
-			controller_configuration.configure(mount_point, cgroup)?;
-		}
-	}
+	const Controller: Controller = Controller::io;
 	
-	Ok(())
+	#[inline(always)]
+	fn configure(&self, _mount_point: &CgroupMountPoint, c_group: &Rc<NonRootCgroup>) -> io::Result<()>
+	{
+		Ok(())
+	}
 }

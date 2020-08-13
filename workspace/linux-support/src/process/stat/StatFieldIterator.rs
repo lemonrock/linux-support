@@ -173,6 +173,6 @@ impl<'line> StatFieldIterator<'line>
 	#[inline(always)]
 	fn next_field(&mut self, name: &'static str) -> Result<&'line [u8], StatParseError>
 	{
-		fields.next().ok_or(StatParseError::MissingField { name })?
+		self.next().ok_or(StatParseError::MissingField { name })?
 	}
 }

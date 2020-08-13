@@ -4,8 +4,6 @@
 
 fn read_process_or_thread_identifiers<Identifier: ParseNumber>(file_path: PathBuf) -> io::Result<Vec<Identifier>>
 {
-	use self::ProcessIdentifiersParseError::*;
-	
 	let reader = file_path.read_raw()?;
 	
 	const GuessOfRatioOfBytesToIdentifiers: usize = 6;

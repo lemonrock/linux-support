@@ -27,8 +27,6 @@ impl FromBytes for SempahoresConfiguration
 	#[inline(always)]
 	fn from_bytes(value: &[u8]) -> Result<Self, Self::Error>
 	{
-		use self::ParseNumberError::*;
-		
 		let mut iterator = value.split_bytes_n(4, b'\t');
 		
 		#[inline(always)]

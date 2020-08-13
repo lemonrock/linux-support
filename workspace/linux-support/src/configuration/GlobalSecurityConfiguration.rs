@@ -143,19 +143,19 @@ impl GlobalSecurityConfiguration
 		#[inline(always)]
 		fn harden_value_u8<'a>(proc_path: &ProcPath, file_function: impl FnOnce(&ProcPath, &str) -> PathBuf, file_name: &'static str, value: u8) -> Result<(), GlobalSecurityConfigurationError>
 		{
-			Self::harden_value(UnpaddedDecimalInteger(value))
+			harden_value(UnpaddedDecimalInteger(value))
 		}
 		
 		#[inline(always)]
 		fn harden_value_i8<'a>(proc_path: &ProcPath, file_function: impl FnOnce(&ProcPath, &str) -> PathBuf, file_name: &'static str, value: i8) -> Result<(), GlobalSecurityConfigurationError>
 		{
-			Self::harden_value(UnpaddedDecimalInteger(value))
+			harden_value(UnpaddedDecimalInteger(value))
 		}
 		
 		#[inline(always)]
 		fn harden_value_u32<'a>(proc_path: &ProcPath, file_function: impl FnOnce(&ProcPath, &str) -> PathBuf, file_name: &'static str, value: u32) -> Result<(), GlobalSecurityConfigurationError>
 		{
-			Self::harden_value(UnpaddedDecimalInteger(value))
+			harden_value(UnpaddedDecimalInteger(value))
 		}
 		
 		#[inline(always)]

@@ -55,7 +55,7 @@ impl<IPA: InternetProtocolAddress> MessageProcessor for GetAddressMessageProcess
 			
 			(false, false, IFA_ANYCAST) => set_address_field(&mut processing_message_state.anycast_address, message_attribute, rtattr::get_attribute_value_raw_protocol_address)?,
 			
-			(false, false, IFA_CACHEINFO) => set_field_error(&mut processing_message_state.cache_information, message_attribute, |message_attribute| message_attribute.get_attribute_value_struct_cloned::<ifa_cacheinfo>)?,
+			(false, false, IFA_CACHEINFO) => set_field_error(&mut processing_message_state.cache_information, message_attribute, |message_attribute| message_attribute.get_attribute_value_struct_cloned::<ifa_cacheinfo>())?,
 			
 			(false, false, IFA_FLAGS) => set_field_error(&mut processing_message_state.extended_interface_flags, message_attribute, rtattr::get_attribute_value_extended_interface_flags)?,
 			

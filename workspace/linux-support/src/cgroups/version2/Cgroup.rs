@@ -90,7 +90,7 @@ pub trait Cgroup<'name>
 	
 	/// Always exists even if the `cpu` controller is not enabled.
 	///
-	/// Will not exist if the kernel is not configured for Pressure Stall Information.
+	/// Will not exist if the kernel is not configured for Pressure Stall Information (`CONFIG_PSI`).
 	#[inline(always)]
 	fn read_cpu_pressure_stall_information(&self, mount_point: &CgroupMountPoint) -> io::Result<CpuTimeStalled>
 	{
@@ -100,7 +100,7 @@ pub trait Cgroup<'name>
 	
 	/// Always exists even if the `cpu` controller is not enabled.
 	///
-	/// Will not exist if the kernel is not configured for Pressure Stall Information.
+	/// Will not exist if the kernel is not configured for Pressure Stall Information (`CONFIG_PSI`).
 	#[inline(always)]
 	fn monitor_some_cpu_pressure_stall_information(&self, mount_point: &CgroupMountPoint, maximum_total_stall_time_in_window: U64Microseconds, window: U64Microseconds) -> io::Result<File>
 	{
@@ -118,7 +118,7 @@ pub trait Cgroup<'name>
 	
 	/// Always exists even if the `io` controller is not enabled.
 	///
-	/// Will not exist if the kernel is not configured for Pressure Stall Information.
+	/// Will not exist if the kernel is not configured for Pressure Stall Information (`CONFIG_PSI`).
 	#[inline(always)]
 	fn read_input_output_pressure_stall_information(&self, mount_point: &CgroupMountPoint) -> io::Result<MemoryOrInputOutputTimeStalled>
 	{
@@ -128,7 +128,7 @@ pub trait Cgroup<'name>
 	
 	/// Always exists even if the `io` controller is not enabled.
 	///
-	/// Will not exist if the kernel is not configured for Pressure Stall Information.
+	/// Will not exist if the kernel is not configured for Pressure Stall Information (`CONFIG_PSI`).
 	#[inline(always)]
 	fn monitor_some_input_output_pressure_stall_information(&self, mount_point: &CgroupMountPoint, maximum_total_stall_time_in_window: U64Microseconds, window: U64Microseconds) -> io::Result<File>
 	{
@@ -138,7 +138,7 @@ pub trait Cgroup<'name>
 	
 	/// Always exists even if the `io` controller is not enabled.
 	///
-	/// Will not exist if the kernel is not configured for Pressure Stall Information.
+	/// Will not exist if the kernel is not configured for Pressure Stall Information (`CONFIG_PSI`).
 	#[inline(always)]
 	fn monitor_all_input_output_pressure_stall_information(&self, mount_point: &CgroupMountPoint, maximum_total_stall_time_in_window: U64Microseconds, window: U64Microseconds) -> io::Result<File>
 	{
@@ -148,7 +148,7 @@ pub trait Cgroup<'name>
 	
 	/// Always exists even if the `memory` controller is not enabled.
 	///
-	/// Will not exist if the kernel is not configured for Pressure Stall Information.
+	/// Will not exist if the kernel is not configured for Pressure Stall Information (`CONFIG_PSI`).
 	#[inline(always)]
 	fn read_memory_pressure_stall_information(&self, mount_point: &CgroupMountPoint) -> io::Result<MemoryOrInputOutputTimeStalled>
 	{
@@ -158,7 +158,7 @@ pub trait Cgroup<'name>
 	
 	/// Always exists even if the `memory` controller is not enabled.
 	///
-	/// Will not exist if the kernel is not configured for Pressure Stall Informatmemoryn.
+	/// Will not exist if the kernel is not configured for Pressure Stall Information (`CONFIG_PSI`).
 	#[inline(always)]
 	fn monitor_some_memory_pressure_stall_informatmemoryn(&self, mount_point: &CgroupMountPoint, maximum_total_stall_time_in_window: U64Microseconds, window: U64Microseconds) -> memory::Result<File>
 	{
@@ -168,7 +168,7 @@ pub trait Cgroup<'name>
 	
 	/// Always exists even if the `memory` controller is not enabled.
 	///
-	/// Will not exist if the kernel is not configured for Pressure Stall Informatmemoryn.
+	/// Will not exist if the kernel is not configured for Pressure Stall Information (`CONFIG_PSI`).
 	#[inline(always)]
 	fn monitor_all_memory_pressure_stall_informatmemoryn(&self, mount_point: &CgroupMountPoint, maximum_total_stall_time_in_window: U64Microseconds, window: U64Microseconds) -> memory::Result<File>
 	{

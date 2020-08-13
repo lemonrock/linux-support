@@ -23,7 +23,7 @@ pub struct DomainControllersConfiguration
 
 impl DomainControllersConfiguration
 {
-	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup>, available_controllers: &Controllers) -> io::Result<()>
+	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup<'name>>, available_controllers: &Controllers) -> io::Result<()>
 	{
 		configure_controller(&self.io, mount_point, cgroup, available_controllers)?;
 		

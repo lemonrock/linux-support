@@ -19,7 +19,7 @@ pub enum xdp_action
 	XDP_REDIRECT = 4,
 }
 
-impl Into<Immediate<'static>> for xdp_action
+impl Into<Immediate<'static, i32>> for xdp_action
 {
 	#[inline(always)]
 	fn into(self) -> Immediate<'static, i32>

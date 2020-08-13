@@ -81,7 +81,7 @@ impl ethtool_eee
 	#[inline(always)]
 	pub(crate) fn set_we_advertise(&mut self, speed: ethtool_link_mode_bit_indices_speed)
 	{
-		self.advertised |= (1 << (speed as u32))
+		self.advertised |= 1 << (speed as u32)
 	}
 	
 	#[inline(always)]

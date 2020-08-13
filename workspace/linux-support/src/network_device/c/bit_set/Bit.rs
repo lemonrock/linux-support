@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(super) trait Bit
+pub(crate) trait Bit
 {
 	#[inline(always)]
 	fn is_set(self, bit_set: &[BitSetWord]) -> bool
@@ -36,7 +36,7 @@ pub(super) trait Bit
 		let fields = unsafe { bit_set.get_unchecked_mut(word_index) };
 		let word = field_locator(fields);
 		
-		*word = (*word | bit)
+		*word = *word | bit
 	}
 	
 	#[inline(always)]
@@ -53,7 +53,7 @@ pub(super) trait Bit
 		let fields = unsafe { bit_set.get_unchecked_mut(word_index) };
 		let word = field_locator(fields);
 		
-		*word = (*word & !bit);
+		*word = *word & !bit;
 	}
 	
 	#[inline(always)]

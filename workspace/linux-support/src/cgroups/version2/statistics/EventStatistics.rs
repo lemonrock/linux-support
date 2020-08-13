@@ -18,33 +18,31 @@ impl EventStatistics
 	#[inline(always)]
 	fn from_file(file_path: &Path) -> Result<Self, StatisticsParseError>
 	{
-		use self::StatisticsParseError::*;
-		
 		let mut populated = None;
 		let mut frozen = None;
 		parse_key_value_statistics(file_path, &mut |name, value| match name
 		{
 			b"populated" =>
 			{
-				populated = Some(value);
-				false
+				populated = Some(parse_usize_to_boolean(name, value)?);
+				Ok(())
 			}
 			
 			b"frozen" =>
 			{
-				frozen = Some(value);
-				false
+				frozen = Some(parse_usize_to_boolean(name, value)?);
+				Ok(())
 			}
 			
-			_ => true,
+			_ => Ok(()),
 		})?;
 
 		Ok
 		(
 			Self
 			{
-				populated: populated.ok_or(MissingStatistic(b"populated"))?,
-				frozen: frozen.ok_or(MissingStatistic(b"frozen"))?,
+				populated: unwrap_statistic(populated, b"populated")?,
+				frozen: unwrap_statistic(frozen, b"frozen")?,
 			}
 		)
 	}

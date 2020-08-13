@@ -34,7 +34,7 @@ impl ProcPath
 	#[inline(always)]
 	pub fn process_pressure_stall_information_file_path(&self, process_identifier: ProcessIdentifierChoice, file_name: &str) -> PathBuf
 	{
-		self.process_file_path(process_identifier, "pressure").append(relative_path)
+		self.process_file_path(process_identifier, "pressure").append(file_name)
 	}
 
 	/// Get a folder path for the current process or another process' thread.

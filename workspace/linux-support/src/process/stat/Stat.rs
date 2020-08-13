@@ -386,7 +386,7 @@ impl Stat
 			}
 			else
 			{
-				Ok(Some(VirtualAddress(to_usize(value)?)))
+				Ok(Some(VirtualAddress::from(to_usize(value)?)))
 			}
 		}
 		
@@ -507,7 +507,7 @@ impl Stat
 		#[inline(always)]
 		fn kernel_flags(value: u64) -> Result<ProcessState, StatParseError>
 		{
-			if unlikely!(flags > (u32::MAX as u64))
+			if unlikely!(value > (u32::MAX as u64))
 			{
 				Err(LargeValue)
 			}
@@ -580,10 +580,10 @@ impl Stat
 			start_stack: fields.decimal_unsigned_long_long_to("startstack", virtual_address)?,
 			stack_pointer: fields.decimal_unsigned_long_long_to("kstkesp", virtual_address)?,
 			instruction_pointer: fields.decimal_unsigned_long_long_to("kstkeip", virtual_address)?,
-			pending_non_real_time_signals: decimal_unsigned_long_long_to("signal", signals)?,
-			blocked_non_real_time_signals: decimal_unsigned_long_long_to("blocked", signals)?,
-			ignored_non_real_time_signals: decimal_unsigned_long_long_to("sigignore", signals)?,
-			caught_non_real_time_signals: decimal_unsigned_long_long_to("sigcatch", signals)?,
+			pending_non_real_time_signals: fields.decimal_unsigned_long_long_to("signal", signals)?,
+			blocked_non_real_time_signals: fields.decimal_unsigned_long_long_to("blocked", signals)?,
+			ignored_non_real_time_signals: fields.decimal_unsigned_long_long_to("sigignore", signals)?,
+			caught_non_real_time_signals: fields.decimal_unsigned_long_long_to("sigcatch", signals)?,
 			wait_channel: fields.decimal_unsigned_long_long_to("wchan", boolean)?,
 			signal_sent_to_parent_when_this_child_process_exits:
 			{

@@ -7,13 +7,13 @@
 pub enum GlobalSystemVMemorySegmentConfigurationError
 {
 	#[allow(missing_docs)]
-	CouldNotChangeMaximumMessageSize(io::Error),
+	CouldNotChangeMaximumMemorySegmentSize(io::Error),
 
 	#[allow(missing_docs)]
-	CouldNotChangeMaximumNumberOfQueueIdentifiers(io::Error),
+	CouldNotChangeMaximumNumberOfMemorySegmentIdentifiers(io::Error),
 
 	#[allow(missing_docs)]
-	CouldNotChangeMaximumQueueSizeInBytes(io::Error),
+	CouldNotChangeMaximumNumberOfSharedMemoryPages(io::Error),
 }
 
 impl Display for GlobalSystemVMemorySegmentConfigurationError
@@ -34,11 +34,11 @@ impl error::Error for GlobalSystemVMemorySegmentConfigurationError
 
 		match self
 		{
-			&CouldNotChangeMaximumMessageSize(ref cause) => Some(cause),
+			&CouldNotChangeMaximumMemorySegmentSize(ref cause) => Some(cause),
 
-			&CouldNotChangeMaximumNumberOfQueueIdentifiers(ref cause) => Some(cause),
+			&CouldNotChangeMaximumNumberOfMemorySegmentIdentifiers(ref cause) => Some(cause),
 
-			&CouldNotChangeMaximumQueueSizeInBytes(ref cause) => Some(cause),
+			&CouldNotChangeMaximumNumberOfSharedMemoryPages(ref cause) => Some(cause),
 		}
 	}
 }
