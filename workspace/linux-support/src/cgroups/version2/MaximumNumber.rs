@@ -29,7 +29,7 @@ impl<V: ParseNumber + Copy + IntegerIntoLineFeedTerminatedByteString> Default fo
 impl<V: ParseNumber + Copy + IntegerIntoLineFeedTerminatedByteString> Into<Option<V>> for MaximumNumber<V>
 {
 	#[inline(always)]
-	fn into(self) -> Option<usize>
+	fn into(self) -> Option<V>
 	{
 		use self::MaximumNumber::*;
 		

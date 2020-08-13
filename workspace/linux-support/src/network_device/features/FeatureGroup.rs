@@ -344,7 +344,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup =
 			{
-				let difference = FeatureGroup.all().difference(&FeatureGroup::NETIF_F_NEVER_CHANGE());
+				let difference = FeatureGroup::all().difference(&FeatureGroup::NETIF_F_NEVER_CHANGE());
 				FeatureGroup(difference.collect())
 			};
 		}
@@ -363,7 +363,7 @@ impl FeatureGroup
 				let mut hash_set = HashSet::with_capacity((inclusive_last_bit - inclusive_first_bit + 1) as usize);
 				for gso_mask_bit in inclusive_first_bit ..= inclusive_last_bit
 				{
-					hash_set.add(unsafe { transmute(gso_mask_bit) })
+					hash_set.insert(unsafe { transmute(gso_mask_bit) });
 				}
 				FeatureGroup(hash_set)
 			};

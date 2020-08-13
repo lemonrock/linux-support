@@ -3,13 +3,13 @@
 
 
 /// Child cgroup names.
-fn child_cgroup_names(folder_path: &Path) -> io::Result<impl Iterator<Item=NonRootCgroup>>
+fn child_cgroup_names(folder_path: &Path) -> io::Result<impl Iterator<Item=CgroupName>>
 {
 	fn filter_and_map(result: io::Result<DirEntry>) -> Option<CgroupName>
 	{
 		match result
 		{
-			Some(dir_entry) => match dir_entry.metadata()
+			Ok(dir_entry) => match dir_entry.metadata()
 			{
 				Ok(metadata) => if metadata.file_type().is_dir()
 				{

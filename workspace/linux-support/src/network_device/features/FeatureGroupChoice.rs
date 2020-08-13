@@ -57,7 +57,7 @@ pub enum FeatureGroupChoice
 impl FeatureGroupChoice
 {
 	#[inline(always)]
-	pub(crate) fn iter(feature_group_choices: &Vec<Self>) -> impl Iterator<Item=HashMap<NETIF_F, bool>>
+	pub(crate) fn iter(feature_group_choices: &Vec<Self>) -> impl Iterator<Item=HashMap<NETIF_F, bool>> + '_
 	{
 		feature_group_choices.iter().map(|feature_group_choice| feature_group_choice.to_feature_settings())
 	}

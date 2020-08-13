@@ -473,14 +473,14 @@ impl Bit for NETIF_F
 impl NETIF_F
 {
 	/// First of the `SKB_GSO` GSO bits.
-	const NETIF_F_GSO_SHIFT: Self = NETIF_F::NETIF_F_TSO_BIT;
+	pub(crate) const NETIF_F_GSO_SHIFT: Self = NETIF_F::NETIF_F_TSO_BIT;
 	
 	/// Last of the `SKB_GSO` GSO bits.
 	pub const NETIF_F_GSO_LAST: Self = NETIF_F::NETIF_F_GSO_FRAGLIST_BIT;
 	
 	pub(crate) const NETDEV_FEATURE_COUNT: usize = Self::NETIF_F_COUNT;
 	
-	const ETHTOOL_DEV_FEATURE_WORDS: usize = divide_rounded_up_word(Self::NETDEV_FEATURE_COUNT);
+	pub(crate) const ETHTOOL_DEV_FEATURE_WORDS: usize = divide_rounded_up_word(Self::NETDEV_FEATURE_COUNT);
 	
 	// There are, as of the time of coding, 59 entries, and Linux is likely to grow more.
 	// This creates space for up to 256 entries as of the time of writing.

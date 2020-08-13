@@ -26,13 +26,6 @@ impl<'name> Cgroup<'name> for RootCgroup
 
 impl RootCgroup
 {
-	/// Extant children.
-	#[inline(always)]
-	pub fn extant_children(mount_point: &CgroupMountPoint) -> io::Result<impl Iterator<Item=NonRootCgroup>>
-	{
-		child_cgroup_names(mount_point.to_path()).map(Self::child)
-	}
-	
 	/// Creates, including parent folders, if does not already exist; then mounts.
 	///
 	/// Short-circuits creation if already exists (to avoid permission failures).

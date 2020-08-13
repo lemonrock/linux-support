@@ -51,13 +51,6 @@ impl<'name> Cgroup<'name> for NonRootCgroup<'name>
 
 impl<'name> NonRootCgroup<'name>
 {
-	/// Extant children.
-	#[inline(always)]
-	pub fn extant_children(&self, mount_point: &CgroupMountPoint) -> io::Result<impl Iterator<Item=Self>>
-	{
-		child_cgroup_names(&self.to_path(mount_point)).map(|name| self.child(name))
-	}
-	
 	/// Name.
 	#[inline(always)]
 	pub fn name(&self) -> &Cow<'name, CgroupName>
