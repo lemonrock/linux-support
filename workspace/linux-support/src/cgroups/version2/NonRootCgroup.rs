@@ -204,29 +204,6 @@ impl<'name> NonRootCgroup<'name>
 		self.cpu_max_file_path(mount_point).write_value(cpu_maximum_bandwidth_limit)
 	}
 	
-	/// Only works if the `pids` controller is enabled.
-	#[inline(always)]
-	pub fn read_process_identifiers_count_current(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<usize>>
-	{
-		self.pids_current_file_path(mount_point).read_value_if_exists()
-	}
-	
-	/// Only works if the `pids` controller is enabled.
-	#[inline(always)]
-	pub fn read_process_identifiers_count_maximum(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<ProcessIdentifiersMaximum>>
-	{
-		self.pids_max_file_path(mount_point).read_value_if_exists()
-	}
-	
-	/// Only works if the `pids` controller is enabled.
-	///
-	/// Does not check that the `pids` controller is enabled.
-	#[inline(always)]
-	pub fn write_process_identifiers_count_maximum(&self, mount_point: &CgroupMountPoint, maximum: ProcessIdentifiersMaximum) -> io::Result<()>
-	{
-		self.pids_max_file_path(mount_point).write_value(maximum)
-	}
-	
 	/// Only works if the `cpuset` controller is enabled.
 	pub fn read_cpuset_hyper_threads(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<HyperThreads>>
 	{
@@ -284,6 +261,155 @@ impl<'name> NonRootCgroup<'name>
 		self.cpuset_cpus_partition_file_path(mount_point).write_value(partition)
 	}
 	
+	/// Only works if the `memory` controller is enabled.
+	#[inline(always)]
+	pub fn read_memory_current(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<u64>>
+	{
+		self.memory_current_file_path(mount_point).read_value_if_exists()
+	}
+	
+	/// Only works if the `memory` controller is enabled.
+	#[inline(always)]
+	pub fn read_memory_minimum(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<u64>>
+	{
+		self.memory_min_file_path(mount_point).read_value_if_exists()
+	}
+	
+	/// Only works if the `memory` controller is enabled.
+	///
+	/// Does not check that the `memory` controller is enabled.
+	#[inline(always)]
+	pub fn write_memory_minimum(&self, mount_point: &CgroupMountPoint, minimum: u64) -> io::Result<()>
+	{
+		self.memory_min_file_path(mount_point).write_value(UnpaddedDecimalInteger(minimum))
+	}
+	
+	/// Only works if the `memory` controller is enabled.
+	#[inline(always)]
+	pub fn read_memory_low(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<u64>>
+	{
+		self.memory_low_file_path(mount_point).read_value_if_exists()
+	}
+	
+	/// Only works if the `memory` controller is enabled.
+	///
+	/// Does not check that the `memory` controller is enabled.
+	#[inline(always)]
+	pub fn write_memory_low(&self, mount_point: &CgroupMountPoint, low: u64) -> io::Result<()>
+	{
+		self.memory_low_file_path(mount_point).write_value(UnpaddedDecimalInteger(low))
+	}
+	
+	/// Only works if the `memory` controller is enabled.
+	#[inline(always)]
+	pub fn read_memory_high(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<MaximumNumber<u64>>>
+	{
+		self.memory_high_file_path(mount_point).read_value_if_exists()
+	}
+	
+	/// Only works if the `memory` controller is enabled.
+	///
+	/// Does not check that the `memory` controller is enabled.
+	#[inline(always)]
+	pub fn write_memory_high(&self, mount_point: &CgroupMountPoint, high: MaximumNumber<u64>) -> io::Result<()>
+	{
+		self.memory_high_file_path(mount_point).write_value(high)
+	}
+	
+	/// Only works if the `memory` controller is enabled.
+	#[inline(always)]
+	pub fn read_memory_maximum(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<MaximumNumber<u64>>>
+	{
+		self.memory_max_file_path(mount_point).read_value_if_exists()
+	}
+	
+	/// Only works if the `memory` controller is enabled.
+	///i
+	/// Does not check that the `memory` controller is enabled.
+	#[inline(always)]
+	pub fn write_memory_maximum(&self, mount_point: &CgroupMountPoint, maximum: MaximumNumber<u64>) -> io::Result<()>
+	{
+		self.memory_max_file_path(mount_point).write_value(maximum)
+	}
+	
+	/// Only works if the `memory` controller is enabled.
+	#[inline(always)]
+	pub fn read_memory_events(&self, mount_point: &CgroupMountPoint) -> Result<MemoryEventStatistics, StatisticsParseError>
+	{
+		let path = self.memory_events_file_path(mount_point);
+		MemoryEventStatistics::from_file(&path)
+	}
+	
+	/// Only works if the `memory` controller is enabled.
+	#[inline(always)]
+	pub fn read_memory_statistics(&self, mount_point: &CgroupMountPoint) -> Result<MemoryStatistics, StatisticsParseError>
+	{
+		let path = self.memory_swap_events_file_path(mount_point);
+		MemoryStatistics::from_file(&path)
+	}
+	
+	/// Only works if the `memory` controller is enabled.
+	#[inline(always)]
+	pub fn read_memory_swap_current(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<u64>>
+	{
+		self.memory_swap_current_file_path(mount_point).read_value_if_exists()
+	}
+	
+	/// Only works if the `memory` controller is enabled.
+	#[inline(always)]
+	pub fn read_memory_swap_maximum(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<MaximumNumber<u64>>>
+	{
+		self.memory_swap_max_file_path(mount_point).read_value_if_exists()
+	}
+	
+	/// Only works if the `memory` controller is enabled.
+	///i
+	/// Does not check that the `memory` controller is enabled.
+	#[inline(always)]
+	pub fn write_memory_swap_maximum(&self, mount_point: &CgroupMountPoint, maximum: MaximumNumber<u64>) -> io::Result<()>
+	{
+		self.memory_swap_max_file_path(mount_point).write_value(maximum)
+	}
+	
+	/// Only works if the `memory` controller is enabled.
+	#[inline(always)]
+	pub fn read_memory_swap_events(&self, mount_point: &CgroupMountPoint) -> Result<MemorySwapEventStatistics, StatisticsParseError>
+	{
+		let path = self.memory_swap_events_file_path(mount_point);
+		MemorySwapEventStatistics::from_file(&path)
+	}
+	
+	/// Only works if the `pids` controller is enabled.
+	#[inline(always)]
+	pub fn read_process_identifiers_count_current(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<usize>>
+	{
+		self.pids_current_file_path(mount_point).read_value_if_exists()
+	}
+	
+	/// Only works if the `pids` controller is enabled.
+	#[inline(always)]
+	pub fn read_process_identifiers_count_maximum(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<ProcessIdentifiersMaximum>>
+	{
+		self.pids_max_file_path(mount_point).read_value_if_exists()
+	}
+	
+	/// Only works if the `pids` controller is enabled.
+	#[inline(always)]
+	pub fn read_process_identifiers_events(&self, mount_point: &CgroupMountPoint) -> Result<ProcessIdentifiersEventStatistics, StatisticsParseError>
+	{
+		let path = self.pids_events_file_path(mount_point);
+		ProcessIdentifiersEventStatistics::from_file(&path)
+	}
+	
+	/// Only works if the `pids` controller is enabled.
+	///
+	/// Does not check that the `pids` controller is enabled.
+	#[inline(always)]
+	pub fn write_process_identifiers_count_maximum(&self, mount_point: &CgroupMountPoint, maximum: ProcessIdentifiersMaximum) -> io::Result<()>
+	{
+		self.pids_max_file_path(mount_point).write_value(maximum)
+	}
+	
 	#[inline(always)]
 	fn cgroup_events_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
 	{
@@ -320,7 +446,6 @@ impl<'name> NonRootCgroup<'name>
 		self.file_path(mount_point, "cpu.max")
 	}
 	
-	#[doc(hidden)]
 	#[inline(always)]
 	fn cpuset_cpus_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
 	{
@@ -333,7 +458,6 @@ impl<'name> NonRootCgroup<'name>
 		self.file_path(mount_point, "cpuset.cpus.partition")
 	}
 	
-	#[doc(hidden)]
 	#[inline(always)]
 	fn cpuset_mems_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
 	{
@@ -341,9 +465,75 @@ impl<'name> NonRootCgroup<'name>
 	}
 	
 	#[inline(always)]
+	fn memory_current_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "memory.current")
+	}
+	
+	#[inline(always)]
+	fn memory_min_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "memory.min")
+	}
+	
+	#[inline(always)]
+	fn memory_low_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "memory.low")
+	}
+	
+	#[inline(always)]
+	fn memory_high_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "memory.high")
+	}
+	
+	#[inline(always)]
+	fn memory_max_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "memory.max")
+	}
+	
+	#[inline(always)]
+	fn memory_events_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "memory.events")
+	}
+	
+	#[inline(always)]
+	fn memory_stat_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "memory.stat")
+	}
+	
+	#[inline(always)]
+	fn memory_swap_current_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "memory.swap.current")
+	}
+	
+	#[inline(always)]
+	fn memory_swap_max_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "memory.swap.max")
+	}
+	
+	#[inline(always)]
+	fn memory_swap_events_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "memory.swap.events")
+	}
+	
+	#[inline(always)]
 	fn pids_current_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
 	{
 		self.file_path(mount_point, "pids.current")
+	}
+
+	#[inline(always)]
+	fn pids_events_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "pids.events")
 	}
 
 	#[inline(always)]

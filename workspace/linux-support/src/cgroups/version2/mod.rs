@@ -6,6 +6,7 @@ use super::*;
 use self::configuration::controller_configurations::ControllerConfiguration;
 use self::controllers::cpu::*;
 use self::controllers::cpuset::*;
+use self::controllers::memory::*;
 use self::controllers::pids::*;
 use self::statistics::*;
 use crate::configuration::Microseconds;

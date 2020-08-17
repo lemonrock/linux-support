@@ -5,4 +5,5 @@
 use super::*;
 
 
+include!("ProcessIdentifiersEventStatistics.rs");
 include!("ProcessIdentifiersMaximum.rs");
