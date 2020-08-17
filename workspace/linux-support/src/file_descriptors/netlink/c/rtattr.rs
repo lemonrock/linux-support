@@ -79,7 +79,13 @@ impl<NAT: NetlinkAttributeType> rtattr<NAT>
 	}
 	
 	#[inline(always)]
-	pub(super) fn get_attribute_value_asciiz_string(&self) -> Result<&CStr, FromBytesWithNulError>
+	pub(super) fn get_attribute_value_c_string(&self) -> Result<CString, FromBytesWithNulError>
+	{
+		self.get_attribute_value_asciiz_string().map(|c_str| c_str.to_owned())
+	}
+	
+	#[inline(always)]
+	fn get_attribute_value_asciiz_string(&self) -> Result<&CStr, FromBytesWithNulError>
 	{
 		let value = self.attribute_value();
 		CStr::from_bytes_with_nul(value)
@@ -88,7 +94,7 @@ impl<NAT: NetlinkAttributeType> rtattr<NAT>
 	#[inline(always)]
 	pub(super) fn get_attribute_value_network_interface_index(&self) -> Result<NetworkInterfaceIndex, String>
 	{
-		NetworkInterfaceIndex::try_from(self.get_attribute_value_non_zero_u32()).map_err(|error| error.to_string())
+		self.get_attribute_value_non_zero_u32().map(|non_zero_u32| NetworkInterfaceIndex::from(non_zero_u32))
 	}
 	
 	#[inline(always)]

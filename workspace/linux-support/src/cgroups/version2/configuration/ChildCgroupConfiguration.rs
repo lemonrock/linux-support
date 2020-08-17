@@ -6,7 +6,7 @@
 pub trait ChildCgroupConfiguration
 {
 	#[doc(hidden)]
-	fn configure<'name>(&self, mount_point: &CgroupMountPoint, parent: &Rc<impl Cgroup<'name>>, name: &CgroupName) -> io::Result<()>;
+	fn configure<'name, C: 'name + Cgroup<'name>>(&self, mount_point: &CgroupMountPoint, parent: &Rc<C>, name: &'name CgroupName) -> io::Result<()>;
 	
 	#[doc(hidden)]
 	fn desired_controllers_and_our_depth(&self) -> (&Controllers, usize);

@@ -12,7 +12,7 @@ pub struct DownshiftRetriesCountTunable(u8);
 
 impl Tunable for DownshiftRetriesCountTunable
 {
-	const Identifier: TunableIdentifier = TunableIdentifier::phy(phy_tunable_id::DOWNSHIFT);
+	const Identifier: TunableIdentifier = TunableIdentifier::phy(phy_tunable_id::ETHTOOL_PHY_DOWNSHIFT);
 	
 	const TypeIdentifier: tunable_type_id = tunable_type_id::ETHTOOL_TUNABLE_U8;
 	

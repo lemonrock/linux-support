@@ -11,6 +11,15 @@ pub union TunableIdentifier
 	phy: phy_tunable_id,
 }
 
+impl Debug for TunableIdentifier
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "TunableIdentifier({:?})", unsafe { self.normal as u32 })
+	}
+}
+
 impl TunableIdentifier
 {
 	const fn normal(normal: tunable_id) -> Self

@@ -3,7 +3,7 @@
 
 
 /// A map rehydrate error.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MapRehydrateError
 {
 	#[allow(missing_docs)]

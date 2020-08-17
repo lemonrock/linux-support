@@ -3,7 +3,7 @@
 
 
 #[allow(missing_docs)]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug)]
 pub enum LoadOwnedMemoryProgramError
 {
 	#[allow(missing_docs)]
@@ -89,15 +89,6 @@ impl From<MapCreationError> for LoadOwnedMemoryProgramError
 	fn from(value: MapCreationError) -> Self
 	{
 		LoadOwnedMemoryProgramError::CreateExpressDataPathRedirectSocketMap(value)
-	}
-}
-
-impl From<NetworkInterfaceNameToSomethingError<ParseNumberError>> for LoadOwnedMemoryProgramError
-{
-	#[inline(always)]
-	fn from(value: NetworkInterfaceNameToSomethingError<ParseNumberError>) -> Self
-	{
-		LoadOwnedMemoryProgramError::NoSuchNetworkInterfaceToOffloadTo(value)
 	}
 }
 

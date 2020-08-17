@@ -96,6 +96,15 @@ impl From<GlobalTransparentHugePagesConfigurationError> for GlobalMemoryConfigur
 	}
 }
 
+impl From<GlobalSwapConfigurationError> for GlobalMemoryConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: GlobalSwapConfigurationError) -> Self
+	{
+		GlobalMemoryConfigurationError::GlobalSwapConfiguration(cause)
+	}
+}
+
 impl From<GlobalOutOfMemoryConfigurationError> for GlobalMemoryConfigurationError
 {
 	#[inline(always)]

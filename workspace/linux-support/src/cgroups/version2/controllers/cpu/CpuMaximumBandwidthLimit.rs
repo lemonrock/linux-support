@@ -62,6 +62,6 @@ impl<'a> IntoLineFeedTerminatedByteString<'a> for CpuMaximumBandwidthLimit
 			Maximum => format!("max {:?}\n", self.period.0),
 		};
 		
-		Cow::from(string)
+		Cow::from(string.into_bytes())
 	}
 }

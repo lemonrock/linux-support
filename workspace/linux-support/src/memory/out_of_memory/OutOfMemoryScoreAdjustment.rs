@@ -100,7 +100,11 @@ impl OutOfMemoryScoreAdjustment
 			
 			Neither => 0,
 			
-			LessLikely(adjustment) => -(adjustment.into()),
+			LessLikely(adjustment) =>
+			{
+				let value: i16 = adjustment.into();
+				-value
+			}
 		}
 	}
 }

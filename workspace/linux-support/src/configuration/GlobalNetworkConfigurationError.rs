@@ -22,7 +22,7 @@ pub enum GlobalNetworkConfigurationError
 	GlobalSocketConfiguration(GlobalSocketConfigurationError),
 	
 	#[allow(missing_docs)]
-	GlobalTcpConfiguration(GlobalTcpConfigurationError),
+	GlobalTransmissionControlProtocolConfiguration(GlobalTransmissionControlProtocolConfigurationError),
 	
 	#[allow(missing_docs)]
 	CouldNotChangeMaximumUnixDomainSocketDatagramQueueLength(io::Error),
@@ -56,7 +56,7 @@ impl error::Error for GlobalNetworkConfigurationError
 			
 			&GlobalSocketConfiguration(ref cause) => Some(cause),
 			
-			&GlobalTcpConfiguration(ref cause) => Some(cause),
+			&GlobalTransmissionControlProtocolConfiguration(ref cause) => Some(cause),
 			
 			&CouldNotChangeMaximumUnixDomainSocketDatagramQueueLength(ref cause) => Some(cause),
 		}
@@ -99,11 +99,11 @@ impl From<GlobalSocketConfigurationError> for GlobalNetworkConfigurationError
 	}
 }
 
-impl From<GlobalTcpConfigurationError> for GlobalNetworkConfigurationError
+impl From<GlobalTransmissionControlProtocolConfigurationError> for GlobalNetworkConfigurationError
 {
 	#[inline(always)]
-	fn from(value: GlobalTcpConfigurationError) -> Self
+	fn from(value: GlobalTransmissionControlProtocolConfigurationError) -> Self
 	{
-		GlobalNetworkConfigurationError::GlobalTcpConfiguration(value)
+		GlobalNetworkConfigurationError::GlobalTransmissionControlProtocolConfiguration(value)
 	}
 }

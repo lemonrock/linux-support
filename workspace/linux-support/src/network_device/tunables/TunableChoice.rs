@@ -4,6 +4,8 @@
 
 /// A tunable to configure.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum TunableChoice
 {
 	#[allow(missing_docs)]
@@ -35,17 +37,17 @@ impl TunableChoice
 		
 		match self
 		{
-			&PriorityFlowControlStormPrevention(tunable) => network_device_input_output_control.set_tunable(*tunable),
+			&PriorityFlowControlStormPrevention(tunable) => network_device_input_output_control.set_tunable(tunable),
 			
-			&DownshiftRetriesCount(tunable) => network_device_input_output_control.set_tunable(*tunable),
+			&DownshiftRetriesCount(tunable) => network_device_input_output_control.set_tunable(tunable),
 			
-			&ReceiveCopyBreak(tunable) => network_device_input_output_control.set_tunable(*tunable),
+			&ReceiveCopyBreak(tunable) => network_device_input_output_control.set_tunable(tunable),
 			
-			&TransmitCopyBreak(tunable) => network_device_input_output_control.set_tunable(*tunable),
+			&TransmitCopyBreak(tunable) => network_device_input_output_control.set_tunable(tunable),
 			
-			&FastLinkDownMilliseconds(tunable) => network_device_input_output_control.set_tunable(*tunable),
+			&FastLinkDownMilliseconds(tunable) => network_device_input_output_control.set_tunable(tunable),
 			
-			&EnergyDetectPowerDownMilliseconds(tunable) => network_device_input_output_control.set_tunable(*tunable),
+			&EnergyDetectPowerDownMilliseconds(tunable) => network_device_input_output_control.set_tunable(tunable),
 		}
 		
 	}

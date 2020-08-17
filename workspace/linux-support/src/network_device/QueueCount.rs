@@ -14,6 +14,24 @@ impl Default for QueueCount
 	}
 }
 
+impl TryFrom<u64> for QueueCount
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: u64) -> Result<Self, Self::Error>
+	{
+		if unlikely!(value > (u16::MAX as u64))
+		{
+			Err(ParseNumberError::OutOfRange)
+		}
+		else
+		{
+			Self::try_from(value as u16)
+		}
+	}
+}
+
 impl TryFrom<u32> for QueueCount
 {
 	type Error = ParseNumberError;
@@ -63,7 +81,7 @@ impl TryFrom<NonZeroU16> for QueueCount
 		}
 		else
 		{
-			Self(value)
+			Ok(Self(value))
 		}
 	}
 }
@@ -75,7 +93,8 @@ impl TryFrom<NonZeroU32> for QueueCount
 	#[inline(always)]
 	fn try_from(value: NonZeroU32) -> Result<Self, Self::Error>
 	{
-		if unlikely!(value.get() > u16::MAX as u32)
+		let value = value.get();
+		if unlikely!(value > u16::MAX as u32)
 		{
 			Err(ParseNumberError::OutOfRange)
 		}
@@ -95,6 +114,42 @@ impl Into<NonZeroU32> for QueueCount
 	}
 }
 
+impl Into<NonZeroU16> for QueueCount
+{
+	#[inline(always)]
+	fn into(self) -> NonZeroU16
+	{
+		self.0
+	}
+}
+
+impl Into<u16> for QueueCount
+{
+	#[inline(always)]
+	fn into(self) -> u16
+	{
+		self.0.get()
+	}
+}
+
+impl Into<u32> for QueueCount
+{
+	#[inline(always)]
+	fn into(self) -> u32
+	{
+		self.0.get() as u32
+	}
+}
+
+impl Into<usize> for QueueCount
+{
+	#[inline(always)]
+	fn into(self) -> usize
+	{
+		self.0.get() as usize
+	}
+}
+
 impl QueueCount
 {
 	/// Minimum.
@@ -102,4 +157,23 @@ impl QueueCount
 	
 	/// Maximum.
 	pub const InclusiveMaximum: Self = Self(unsafe { NonZeroU16::new_unchecked(4096) });
+	
+	/// To queue identifier.
+	pub const fn to_queue_identifier(self) -> QueueIdentifier
+	{
+		QueueIdentifier(self.0.get() as u32)
+	}
+	
+	/// Try-from.
+	pub fn try_from_non_zero_u16_saturated(value: NonZeroU16) -> Self
+	{
+		if value > Self::InclusiveMaximum.0
+		{
+			Self::InclusiveMaximum
+		}
+		else
+		{
+			Self(value)
+		}
+	}
 }

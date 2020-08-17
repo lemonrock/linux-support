@@ -140,7 +140,7 @@ impl GlobalSchedulingConfiguration
 		set_proc_sys_kernel_value(proc_path, "sched_wakeup_granularity_ns", self.wake_up_granularity, CouldNotChangeWakeUpGranularity)?;
 		set_proc_sys_kernel_value(proc_path, "sched_migration_cost_ns", self.migration_cost, CouldNotChangeMigrationCost)?;
 		set_proc_sys_kernel_value(proc_path, "sched_cfs_bandwidth_slice_us", self.completely_fair_scheduler_bandwidth_slice, CouldNotChangeMigrationCompletelyFairSchedulerBandwidthSlice)?;
-		set_proc_sys_kernel_value(proc_path, "sched_nr_migrate", self.number_of_normal_tasks_to_migrate_to_another_hyper_thread_at_once, CouldNotChangeNumberOfNormalTasksToMigrate)?;
+		set_proc_sys_kernel_value(proc_path, "sched_nr_migrate", self.number_of_normal_tasks_to_migrate_to_another_hyper_thread_at_once.map(UnpaddedDecimalInteger), CouldNotChangeNumberOfNormalTasksToMigrate)?;
 	
 		set_proc_sys_kernel_value(proc_path, "sched_schedstats", self.enable_statistics, CouldNotChangeStatisticsEnablement)?;
 	

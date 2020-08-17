@@ -5,9 +5,9 @@
 /// Used by `phy_tunable_id::ETHTOOL_PHY_FAST_LINK_DOWN`.
 ///
 /// Lowest time supported by the PHY.
-pub(crate) const ETHTOOL_PHY_FAST_LINK_DOWN_ON: u32 = 0;
+pub(crate) const ETHTOOL_PHY_FAST_LINK_DOWN_ON: u8 = 0;
 
 /// Used by `phy_tunable_id::ETHTOOL_PHY_FAST_LINK_DOWN`.
 ///
 /// Off, link down detection according to standard.
-pub(crate) const ETHTOOL_PHY_FAST_LINK_DOWN_OFF: u32 = 0xFF;
+pub(crate) const ETHTOOL_PHY_FAST_LINK_DOWN_OFF: u8 = 0xFF;

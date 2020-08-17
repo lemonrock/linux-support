@@ -26,13 +26,13 @@ impl Default for ThreadedCgroupConfigurationVariant
 
 impl CgroupConfigurationVariant for ThreadedCgroupConfigurationVariant
 {
-	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: Rc<impl Cgroup<'name>>) -> io::Result<()>
+	fn configure<'name, C: 'name + Cgroup<'name>>(&'name self, mount_point: &CgroupMountPoint, cgroup: Rc<C>) -> io::Result<()>
 	{
 		use self::ThreadedCgroupConfigurationVariant::*;
 		
 		match self
 		{
-			&Threaded(ref children) => children.configure_children(mount_point, &cgroup)?,
+			&Threaded(ref children) => children.configure_children(mount_point, &cgroup),
 			
 			&Leaf(ref migration) => migration.leaf_migrate(mount_point, &cgroup),
 		}
@@ -51,8 +51,8 @@ impl CgroupConfigurationVariant for ThreadedCgroupConfigurationVariant
 	}
 	
 	#[inline(always)]
-	fn make_type_threaded_if_needed<'name>(mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup<'name>>) -> io::Result<()>
+	fn make_type_threaded_if_needed<'name>(mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>) -> io::Result<()>
 	{
-		cgroup.make_type_threaded(mount_point)?
+		cgroup.make_type_threaded(mount_point)
 	}
 }

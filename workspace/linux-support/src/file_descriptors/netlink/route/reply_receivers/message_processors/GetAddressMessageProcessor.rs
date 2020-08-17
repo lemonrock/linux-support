@@ -49,7 +49,7 @@ impl<IPA: InternetProtocolAddress> MessageProcessor for GetAddressMessageProcess
 		
 			(false, false, IFA_LOCAL) => set_address_field(&mut processing_message_state.local_address, message_attribute, rtattr::get_attribute_value_raw_protocol_address)?,
 			
-			(false, false, IFA_LABEL) => set_field_error(&mut processing_message_state.label, message_attribute, |message_attribute| message_attribute.get_attribute_value_network_interface_name)?,
+			(false, false, IFA_LABEL) => set_field_error(&mut processing_message_state.label, message_attribute, rtattr::get_attribute_value_network_interface_name)?,
 			
 			(false, false, IFA_BROADCAST) => set_address_field(&mut processing_message_state.broadcast_address, message_attribute, rtattr::get_attribute_value_raw_protocol_address)?,
 			

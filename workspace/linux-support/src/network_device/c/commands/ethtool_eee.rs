@@ -130,6 +130,6 @@ impl ethtool_eee
 			return false
 		}
 		
-		(bit_set_word && (1 << speed)) != 0
+		(bit_set_word & (1 << speed)) != 0
 	}
 }

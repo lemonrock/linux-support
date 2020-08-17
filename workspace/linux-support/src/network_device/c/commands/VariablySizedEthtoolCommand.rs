@@ -26,7 +26,7 @@ pub(crate) trait VariablySizedEthtoolCommand: EthtoolCommand + Copy
 	#[inline(always)]
 	fn new_with_initialized_header_but_uninitialized_array(variably_sized_ethtool_command_header: Self) -> VariablySizedEthtoolCommandWrapper<Self>
 	{
-		Self
+		VariablySizedEthtoolCommandWrapper
 		{
 			data:
 			{

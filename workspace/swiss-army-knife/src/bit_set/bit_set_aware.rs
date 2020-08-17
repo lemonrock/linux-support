@@ -30,6 +30,28 @@ macro_rules! bit_set_aware
 			}
 		}
 
+		impl std::convert::TryFrom<usize> for $type
+		{
+			type Error = BitSetAwareTryFromU16Error;
+
+			#[inline(always)]
+			fn try_from(value: usize) -> Result<Self, Self::Error>
+			{
+				if unlikely!(value < (Self::OneBasedCorrection as usize))
+				{
+					Err(BitSetAwareTryFromU16Error::default())
+				}
+				else if unlikely!(value >= (Self::LinuxMaximum as usize))
+				{
+					Err(BitSetAwareTryFromU16Error::default())
+				}
+				else
+				{
+					Ok(Self::hydrate(value as u16))
+				}
+			}
+		}
+
 		impl $crate::strings::parse_number::ParseNumber for $type
 		{
 			#[inline(always)]

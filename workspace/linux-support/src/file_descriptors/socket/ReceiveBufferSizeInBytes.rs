@@ -19,7 +19,7 @@ impl TryFrom<NonZeroU32> for ReceiveBufferSizeInBytes
 	#[inline(always)]
 	fn try_from(value: NonZeroU32) -> Result<Self, Self::Error>
 	{
-		if unlikely!(value < Self::UsualInclusiveMinimumForTcp.0)
+		if unlikely!(value < Self::UsualInclusiveMinimumForTransmissionControlProtocol.0)
 		{
 			Err(ParseNumberError::TooSmall)
 		}
@@ -117,19 +117,19 @@ impl ReceiveBufferSizeInBytes
 	/// Inclusive minimum.
 	///
 	/// From `/proc/sys/net/ipv4/tcp_rmem`, first column (one-based).
-	pub const UsualInclusiveMinimumForTcp: Self = Self(unsafe { NonZeroU32::new_unchecked(4_096) });
+	pub const UsualInclusiveMinimumForTransmissionControlProtocol: Self = Self(unsafe { NonZeroU32::new_unchecked(4_096) });
 	
 	/// Typical value.
 	///
 	/// From `/proc/sys/net/ipv4/tcp_rmem`, second column (one-based); this value can be adjusted.
-	pub const UsualGlobalDefaultForTcp: Self = Self(unsafe { NonZeroU32::new_unchecked(131_072) });
+	pub const UsualGlobalDefaultForTransmissionControlProtocol: Self = Self(unsafe { NonZeroU32::new_unchecked(131_072) });
 	
 	/// Inclusive maximum.
 	///
 	/// From `/proc/sys/net/ipv4/tcp_rmem`, third column (one-based).
-	pub const UsualInclusiveMaximumForTcp: Self = Self(unsafe { NonZeroU32::new_unchecked(6_291_456) });
+	pub const UsualInclusiveMaximumForTransmissionControlProtocol: Self = Self(unsafe { NonZeroU32::new_unchecked(6_291_456) });
 	
-	/// Default values are `Self::UsualInclusiveMinimumForTcp`, `Self::UsualGlobalDefaultForTcp` and `Self::UsualInclusiveMaximumForTcp`.
+	/// Default values are `Self::UsualInclusiveMinimumForTransmissionControlProtocol`, `Self::UsualGlobalDefaultForTransmissionControlProtocol` and `Self::UsualInclusiveMaximumForTransmissionControlProtocol`.
 	///
 	/// Value of `/proc/sys/net/ipv4/tcp_rmem`.
 	#[inline(always)]
@@ -151,7 +151,7 @@ impl ReceiveBufferSizeInBytes
 		Ok((minimum, default, maximum))
 	}
 	
-	/// Default values are `Self::UsualInclusiveMinimumForTcp`, `Self::UsualGlobalDefaultForTcp` and `Self::UsualInclusiveMaximumForTcp`.
+	/// Default values are `Self::UsualInclusiveMinimumForTransmissionControlProtocol`, `Self::UsualGlobalDefaultForTransmissionControlProtocol` and `Self::UsualInclusiveMaximumForTransmissionControlProtocol`.
 	///
 	/// Set value of `/proc/sys/net/ipv4/tcp_rmem` if it exists.
 	#[inline(always)]

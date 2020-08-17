@@ -73,7 +73,7 @@ impl GlobalMemoryConfiguration
 		
 		if let Some(ref numa_memory_balancing) = self.numa_memory_balancing
 		{
-			self.numa_memory_balancing.configure(proc_path)?;
+			numa_memory_balancing.configure(proc_path)?;
 		}
 		
 		self.numa_reclaim.configure(proc_path)?;

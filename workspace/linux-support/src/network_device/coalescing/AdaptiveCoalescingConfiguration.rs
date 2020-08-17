@@ -4,6 +4,8 @@
 
 /// Adaptive coalescing configuration.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum AdaptiveCoalescingConfiguration
 {
 	/// Driver must support `ETHTOOL_COALESCE_USE_ADAPTIVE_RX`.

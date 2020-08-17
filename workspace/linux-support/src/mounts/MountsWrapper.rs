@@ -47,7 +47,7 @@ impl MountsWrapper
 	}
 
 	fn use_mount<F>(&self, mut called_for_each_mount_point: F) -> Result<(), io::Error>
-	where F: FnMut(Mount) -> Result<(), io::Error>
+	where F: FnMut(Mount<'static>) -> Result<(), io::Error>
 	{
 		let mut mount_entry_pointer;
 		while

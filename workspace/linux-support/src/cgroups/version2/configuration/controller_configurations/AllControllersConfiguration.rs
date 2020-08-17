@@ -17,7 +17,7 @@ pub struct AllControllersConfiguration
 
 impl ControllersConfiguration for AllControllersConfiguration
 {
-	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup<'name>>, available_controllers: &Controllers) -> io::Result<()>
+	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>, available_controllers: &Controllers) -> io::Result<()>
 	{
 		self.threaded.configure(mount_point, cgroup, available_controllers)?;
 		self.domain.configure(mount_point, cgroup, available_controllers)

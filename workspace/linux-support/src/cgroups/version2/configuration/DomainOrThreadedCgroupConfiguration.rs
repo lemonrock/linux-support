@@ -19,9 +19,10 @@ pub struct DomainOrThreadedCgroupConfiguration<CC: ControllersConfiguration, CCV
 
 impl<CC: ControllersConfiguration, CCV: CgroupConfigurationVariant> ChildCgroupConfiguration for DomainOrThreadedCgroupConfiguration<CC, CCV>
 {
-	fn configure<'name>(&self, mount_point: &CgroupMountPoint, parent: &Rc<impl Cgroup<'name>>, name: &CgroupName) -> io::Result<()>
+	fn configure<'name, C: 'name + Cgroup<'name>>(&self, mount_point: &CgroupMountPoint, parent: &Rc<C>, name: &'name CgroupName) -> io::Result<()>
 	{
-		let cgroup = parent.clone().child(name);
+		let parent = Rc::clone(parent);
+		let cgroup = parent.child(Cow::Borrowed(name));
 		
 		cgroup.create(mount_point)?;
 		
@@ -30,7 +31,7 @@ impl<CC: ControllersConfiguration, CCV: CgroupConfigurationVariant> ChildCgroupC
 		self.desired_controllers.configure(mount_point, &cgroup, &available_controllers)?;
 		cgroup.write_maximum_depth(mount_point, MaximumNumber::Finite(maximum_depth))?;
 		
-		CCV::make_type_threaded(mount_point, &cgroup)?;
+		CCV::make_type_threaded_if_needed(mount_point, &cgroup)?;
 		
 		self.variant.configure(mount_point, cgroup)
 	}

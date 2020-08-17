@@ -6,13 +6,13 @@
 pub trait ProcessOrThreadIdentifierChoice: Default + Debug + Copy + Ord + Hash
 {
 	/// Migrate.
-	fn migrate<'name, C: Cgroup<'name>>(self, mount_point: &CgroupMountPoint, cgroup: &C) -> io::Result<()>;
+	fn migrate<'name, C: 'name + Cgroup<'name>>(self, mount_point: &CgroupMountPoint, cgroup: &Rc<C>) -> io::Result<()>;
 }
 
 impl ProcessOrThreadIdentifierChoice for ProcessIdentifierChoice
 {
 	#[inline(always)]
-	fn migrate<'name, C: Cgroup<'name>>(self, mount_point: &CgroupMountPoint, cgroup: &C) -> io::Result<()>
+	fn migrate<'name, C: 'name + Cgroup<'name>>(self, mount_point: &CgroupMountPoint, cgroup: &Rc<C>) -> io::Result<()>
 	{
 		cgroup.migrate_process_to_this_cgroup(mount_point, self)
 	}
@@ -21,7 +21,7 @@ impl ProcessOrThreadIdentifierChoice for ProcessIdentifierChoice
 impl ProcessOrThreadIdentifierChoice for ThreadIdentifierChoice
 {
 	#[inline(always)]
-	fn migrate<'name, C: Cgroup<'name>>(self, mount_point: &CgroupMountPoint, cgroup: &C) -> io::Result<()>
+	fn migrate<'name, C: 'name + Cgroup<'name>>(self, mount_point: &CgroupMountPoint, cgroup: &Rc<C>) -> io::Result<()>
 	{
 		cgroup.migrate_thread_to_this_cgroup(mount_point, self)
 	}

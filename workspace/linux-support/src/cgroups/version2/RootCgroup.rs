@@ -18,9 +18,9 @@ impl<'name> Cgroup<'name> for RootCgroup
 	
 	/// Does not check if the child exists.
 	#[inline(always)]
-	fn child(self: Rc<Self>, name: impl Into<Cow<'name, CgroupName>>) -> Rc<NonRootCgroup<'name>>
+	fn child(self: Rc<Self>, name: Cow<'name, CgroupName>) -> Rc<NonRootCgroup<'name>>
 	{
-		Rc::new(NonRootCgroup::ChildOfRoot { name: name.into() })
+		Rc::new(NonRootCgroup::ChildOfRoot { name })
 	}
 }
 

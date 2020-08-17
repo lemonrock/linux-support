@@ -87,11 +87,6 @@ impl GlobalSocketConfiguration
 		
 		set_value(proc_path, set_auto_corking, self.socket_adjust_auto_corking, CouldNotChangeAutoCorking)?;
 		
-		if let Some(ref tcp_configuration) = self.tcp_configuration
-		{
-			tcp_configuration.configure(proc_path)?;
-		}
-		
 		Ok(())
 	}
 }

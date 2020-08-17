@@ -21,6 +21,6 @@ impl MapConstructor for WithoutNumaNodeExpressDataPathRedirectSocketArrayMapCons
 	#[inline(always)]
 	fn construct(map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: Self::AccessPermissions, _arguments_that_end_up_in_map_flags: Self::InvariantArguments, _variable_arguments: Self::VariableArguments) -> Result<Self::Map, MapCreationError>
 	{
-		ExpressDataPathRedirectSocketArrayMap::new_xdp_redirect_socket_array(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, maximum_entries, access_permissions, None)
+		ExpressDataPathRedirectSocketArrayMap::new_express_data_path_redirect_socket_array(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, maximum_entries, access_permissions, None)
 	}
 }

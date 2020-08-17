@@ -3,7 +3,7 @@
 
 
 /// A block of 32 features which are being requested.
-#[derive(Debug, Copy, Clone)]
+#[derive(Default, Debug, Copy, Clone)]
 pub(crate) struct ethtool_set_features_block
 {
 	/// Mask of features to be changed.

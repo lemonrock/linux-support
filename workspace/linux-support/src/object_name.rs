@@ -4,7 +4,7 @@
 
 macro_rules! object_name
 {
-	($name: ident, $MaximumLengthExcludingAsciiNull: expr, $(#[$documentation: meta])*) =>
+	($name: ident, $array_vec_len_type: ty, $MaximumLengthExcludingAsciiNull: expr, $(#[$documentation: meta])*) =>
 	{
 		$(#[$documentation])*
 		///
@@ -201,6 +201,18 @@ macro_rules! object_name
 			}
 		}
 		
+		impl TryFrom<[u8; Self::MaximumLengthIncludingAsciiNull]> for $name
+		{
+			type Error = ObjectNameFromBytesError;
+			
+			#[inline(always)]
+			fn try_from(value: [u8; Self::MaximumLengthIncludingAsciiNull]) -> Result<Self, Self::Error>
+			{
+				let value: [c_char; Self::MaximumLengthIncludingAsciiNull] = unsafe { transmute(value) };
+				Self::try_from(value)
+			}
+		}
+		
 		impl TryFrom<[c_char; Self::MaximumLengthIncludingAsciiNull]> for $name
 		{
 			type Error = ObjectNameFromBytesError;
@@ -217,10 +229,22 @@ macro_rules! object_name
 				let array_vec = ConstArrayVec
 				{
 					xs: value,
-					len: length_including_ascii_nul as u8,
+					len: length_including_ascii_nul as $array_vec_len_type,
 				};
 				
 				Ok(unsafe { transmute(array_vec) })
+			}
+		}
+		
+		impl<'a> TryFrom<&'a [u8; Self::MaximumLengthIncludingAsciiNull]> for $name
+		{
+			type Error = ObjectNameFromBytesError;
+			
+			#[inline(always)]
+			fn try_from(value: &'a [u8; Self::MaximumLengthIncludingAsciiNull]) -> Result<Self, Self::Error>
+			{
+				let value: &'a [c_char; Self::MaximumLengthIncludingAsciiNull] = unsafe { transmute(value) };
+				Self::try_from(value)
 			}
 		}
 		
@@ -246,6 +270,18 @@ macro_rules! object_name
 					array_vec.set_len(length_including_ascii_nul)
 				}
 				Ok(Self(array_vec))
+			}
+		}
+		
+		impl TryFrom<ArrayVec<[u8; Self::MaximumLengthIncludingAsciiNull]>> for $name
+		{
+			type Error = ObjectNameFromBytesError;
+			
+			#[inline(always)]
+			fn try_from(value: ArrayVec<[u8; Self::MaximumLengthIncludingAsciiNull]>) -> Result<Self, Self::Error>
+			{
+				let value: ArrayVec<[c_char; Self::MaximumLengthIncludingAsciiNull]> = unsafe { transmute(value) };
+				Self::try_from(value)
 			}
 		}
 		
@@ -342,8 +378,7 @@ macro_rules! object_name
 			#[inline(always)]
 			fn as_ref(&self) -> &OsStr
 			{
-				let this: &OsStr = self.as_ref();
-				Path::new(this)
+				OsStr::from_bytes(self.as_ref())
 			}
 		}
 		
@@ -352,7 +387,8 @@ macro_rules! object_name
 			#[inline(always)]
 			fn as_ref(&self) -> &Path
 			{
-				Path::new(self.as_ref())
+				let this: &OsStr = self.as_ref();
+				Path::new(this)
 			}
 		}
 		
@@ -415,7 +451,7 @@ macro_rules! object_name
 			#[inline(always)]
 			fn eq(&self, other: &[c_char; Self::MaximumLengthIncludingAsciiNull]) -> bool
 			{
-				let index = match Self::index_of_ascii_null(other)
+				let index = match Self::index_of_ascii_null(unsafe { transmute(other as &[c_char]) })
 				{
 					None => return false,
 					Some(index) => index,

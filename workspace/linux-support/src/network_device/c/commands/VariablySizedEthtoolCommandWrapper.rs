@@ -57,13 +57,13 @@ impl<VSEC: VariablySizedEthtoolCommand> VariablySizedEthtoolCommandWrapper<VSEC>
 	#[inline(always)]
 	fn array_start(&self) -> *const VSEC::ArrayElement
 	{
-		unsafe { self.start().add(1) }
+		unsafe { self.start().add(1) as *const VSEC::ArrayElement }
 	}
 	
 	#[inline(always)]
 	fn array_start_mut(&self) -> *mut VSEC::ArrayElement
 	{
-		unsafe { self.start_mut().add(1) }
+		unsafe { self.start_mut().add(1) as *mut VSEC::ArrayElement }
 	}
 	
 	#[inline(always)]

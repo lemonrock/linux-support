@@ -25,11 +25,11 @@ impl TryFrom<OsString> for CgroupName
 		{
 			None => Ok(Self(value)),
 			
-			Some(index) => match unsafe { *value.get_unchecked(index) }
+			Some(index) => match unsafe { *bytes.get_unchecked(index) }
 			{
 				b'/' => Err("Can not contain the directory separator '/'"),
 				
-				b'.' => if Controller::is_controller(&value[.. index])
+				b'.' => if Controller::is_controller(&bytes[.. index])
 				{
 					Err("Can not use a prefix reserved for a controller (this isn't a perfect check)")
 				}

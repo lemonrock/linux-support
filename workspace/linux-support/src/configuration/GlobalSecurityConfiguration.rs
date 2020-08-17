@@ -143,19 +143,19 @@ impl GlobalSecurityConfiguration
 		#[inline(always)]
 		fn harden_value_u8<'a>(proc_path: &ProcPath, file_function: impl FnOnce(&ProcPath, &str) -> PathBuf, file_name: &'static str, value: u8) -> Result<(), GlobalSecurityConfigurationError>
 		{
-			harden_value(UnpaddedDecimalInteger(value))
+			harden_value(proc_path, file_function, file_name, UnpaddedDecimalInteger(value))
 		}
 		
 		#[inline(always)]
 		fn harden_value_i8<'a>(proc_path: &ProcPath, file_function: impl FnOnce(&ProcPath, &str) -> PathBuf, file_name: &'static str, value: i8) -> Result<(), GlobalSecurityConfigurationError>
 		{
-			harden_value(UnpaddedDecimalInteger(value))
+			harden_value(proc_path, file_function, file_name, UnpaddedDecimalInteger(value))
 		}
 		
 		#[inline(always)]
 		fn harden_value_u32<'a>(proc_path: &ProcPath, file_function: impl FnOnce(&ProcPath, &str) -> PathBuf, file_name: &'static str, value: u32) -> Result<(), GlobalSecurityConfigurationError>
 		{
-			harden_value(UnpaddedDecimalInteger(value))
+			harden_value(proc_path, file_function, file_name, UnpaddedDecimalInteger(value))
 		}
 		
 		#[inline(always)]
@@ -221,7 +221,7 @@ impl GlobalSecurityConfiguration
 			const RateLimit: u8 = 5;
 			const RateLimitBurst: u8 = 10;
 			
-			harden_value(proc_path, ProcPath::sys_kernel_file_path, "core", b"core\n")?;
+			harden_value(proc_path, ProcPath::sys_kernel_file_path, "core", b"core\n" as &[u8])?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "core_pipe_limit", 1)?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "core_uses_pid", 0)?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "dmesg_restrict", 1)?;
@@ -232,9 +232,9 @@ impl GlobalSecurityConfiguration
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "perf_event_max_stack", 127)?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "perf_event_paranoid", 2)?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "print-fatal-signals", 0)?;
-			harden_value(proc_path, ProcPath::sys_kernel_file_path, "printk", b"0 4 0 0\n")?;
+			harden_value(proc_path, ProcPath::sys_kernel_file_path, "printk", b"0 4 0 0\n" as &[u8])?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "printk_delay", 0)?;
-			harden_value(proc_path, ProcPath::sys_kernel_file_path, "printk_devkmsg", b"off\n")?;
+			harden_value(proc_path, ProcPath::sys_kernel_file_path, "printk_devkmsg", b"off\n" as &[u8])?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "printk_ratelimit", RateLimit)?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "printk_ratelimit_burst", RateLimitBurst)?;
 			harden_value_u8(proc_path, ProcPath::sys_kernel_file_path, "randomize_va_space", 2)?;
@@ -303,9 +303,9 @@ impl GlobalSecurityConfiguration
 			harden_value_u8(proc_path, ProcPath::sys_user_file_path, "max_uts_namespaces", 0)?;
 		}
 		
-		set_proc_sys_fs_value(proc_path, "mount-max", self.maximum_file_system_mounts, CouldNotSetMaximumNumberOfFileSystemMounts)?;
+		set_proc_sys_fs_value(proc_path, "mount-max", self.maximum_file_system_mounts.map(UnpaddedDecimalInteger), CouldNotSetMaximumNumberOfFileSystemMounts)?;
 		
-		set_proc_sys_vm_value(proc_path, "max_map_count", self.maximum_memory_maps_per_proces, CouldNotSetMaximumNumberOfMemoryMapsPerProcess)?;
+		set_proc_sys_vm_value(proc_path, "max_map_count", self.maximum_memory_maps_per_proces.map(UnpaddedDecimalInteger), CouldNotSetMaximumNumberOfMemoryMapsPerProcess)?;
 		
 		set_value(proc_path, |proc_path, value| value.set_value(proc_path), self.harden_jit_ebpf, CouldNotHardenJitOfBpfPrograms)?;
 		

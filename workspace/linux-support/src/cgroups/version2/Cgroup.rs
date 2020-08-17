@@ -9,7 +9,7 @@ pub trait Cgroup<'name>
 	fn to_path<'b>(&self, mount_point: &'b CgroupMountPoint) -> Cow<'b, Path>;
 	
 	/// Does not check if the child exists.
-	fn child(self: Rc<Self>, name: impl Into<Cow<'name, CgroupName>>) -> Rc<NonRootCgroup<'name>>;
+	fn child(self: Rc<Self>, name: Cow<'name, CgroupName>) -> Rc<NonRootCgroup<'name>>;
 	
 	/// Adjusts subtree controllers to `desired_controllers` but working so that controllers not available to the cgroup aren't enabled (trying to enable or disable controllers not available in the version of Linux causes a write error).
 	#[inline(always)]
@@ -132,7 +132,7 @@ pub trait Cgroup<'name>
 	#[inline(always)]
 	fn monitor_some_input_output_pressure_stall_information(&self, mount_point: &CgroupMountPoint, maximum_total_stall_time_in_window: U64Microseconds, window: U64Microseconds) -> io::Result<File>
 	{
-		let path = self.input_output_pressure_file_path(mount_point);
+		let path = self.io_pressure_file_path(mount_point);
 		MemoryOrInputOutputTimeStalled::monitor_some(&path, maximum_total_stall_time_in_window, window)
 	}
 	
@@ -142,7 +142,7 @@ pub trait Cgroup<'name>
 	#[inline(always)]
 	fn monitor_all_input_output_pressure_stall_information(&self, mount_point: &CgroupMountPoint, maximum_total_stall_time_in_window: U64Microseconds, window: U64Microseconds) -> io::Result<File>
 	{
-		let path = self.input_output_pressure_file_path(mount_point);
+		let path = self.io_pressure_file_path(mount_point);
 		MemoryOrInputOutputTimeStalled::monitor_all(&path, maximum_total_stall_time_in_window, window)
 	}
 	

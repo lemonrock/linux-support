@@ -2,15 +2,15 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Global TCP configuration error kind.
+/// Global Transmission Control Protocol (TCP) configuration error kind.
 #[derive(Debug)]
-pub enum GlobalTcpConfigurationError
+pub enum GlobalTransmissionControlProtocolConfigurationError
 {
 	#[allow(missing_docs)]
-	CouldNotChangeGlobalTcpMinimumDefaultAndMaximumSendBufferSize(io::Error),
+	CouldNotChangeGlobalMinimumDefaultAndMaximumSendBufferSize(io::Error),
 	
 	#[allow(missing_docs)]
-	CouldNotChangeGlobalTcpMinimumDefaultAndMaximumReceiveBufferSize(io::Error),
+	CouldNotChangeGlobalMinimumDefaultAndMaximumReceiveBufferSize(io::Error),
 	
 	#[allow(missing_docs)]
 	CouldNotChangeGlobalDefaultKeepAliveIntervalSeconds(io::Error),
@@ -67,7 +67,7 @@ pub enum GlobalTcpConfigurationError
 	CouldNotChangeHighOrderAllocations(io::Error),
 }
 
-impl Display for GlobalTcpConfigurationError
+impl Display for GlobalTransmissionControlProtocolConfigurationError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -76,18 +76,18 @@ impl Display for GlobalTcpConfigurationError
 	}
 }
 
-impl error::Error for GlobalTcpConfigurationError
+impl error::Error for GlobalTransmissionControlProtocolConfigurationError
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>
 	{
-		use self::GlobalTcpConfigurationError::*;
+		use self::GlobalTransmissionControlProtocolConfigurationError::*;
 
 		match self
 		{
-			&CouldNotChangeGlobalTcpMinimumDefaultAndMaximumSendBufferSize(ref cause) => Some(cause),
+			&CouldNotChangeGlobalMinimumDefaultAndMaximumSendBufferSize(ref cause) => Some(cause),
 			
-			&CouldNotChangeGlobalTcpMinimumDefaultAndMaximumReceiveBufferSize(ref cause) => Some(cause),
+			&CouldNotChangeGlobalMinimumDefaultAndMaximumReceiveBufferSize(ref cause) => Some(cause),
 			
 			&CouldNotChangeGlobalDefaultKeepAliveIntervalSeconds(ref cause) => Some(cause),
 			

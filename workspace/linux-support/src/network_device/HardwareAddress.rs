@@ -41,7 +41,7 @@ impl<'a> TryFrom<&'a [u8]> for HardwareAddress
 		{
 			Err(format!("field has a hardware address that is too short ({}), can not be less than HardwareAddress::MinimumLength ({})", length, Self::MinimumLength))
 		}
-		if unlikely!(length > Self::MaximumLength.get())
+		else if unlikely!(length > Self::MaximumLength.get())
 		{
 			Err(format!("field has a hardware address that is too long ({}), can not greater than HardwareAddress::MaximumLength ({})", length, Self::MaximumLength))
 		}

@@ -15,7 +15,7 @@ pub trait WeightQueueStrategy
 	/// Allocate some remaining weight.
 	fn allocate_some_remaining_weight(&self, remaining_weight: NonZeroU32, incomplete_indirection_table: &mut Vec<QueueIdentifier>, number_of_receive_queues: QueueCount)
 	{
-		let queue_identifier = QueueIdentifier(number_of_receive_queues.get() - 1);
+		let queue_identifier = number_of_receive_queues.to_queue_identifier();
 		for _index in 0 .. remaining_weight.get()
 		{
 			incomplete_indirection_table.push(queue_identifier);

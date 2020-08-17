@@ -4,16 +4,23 @@
 
 /// Pause configuration.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum PauseConfiguration
 {
+	/// Disabled.
 	Disabled,
 	
+	/// Auto-negotiated.
 	AutoNegotiated,
 	
+	/// Fixed, transmit-only.
 	TransmitOnly,
 	
+	/// Fixed, receive-only.
 	ReceiveOnly,
 	
+	/// Fixed, transmit and receive.
 	TransmitAndReceive,
 }
 

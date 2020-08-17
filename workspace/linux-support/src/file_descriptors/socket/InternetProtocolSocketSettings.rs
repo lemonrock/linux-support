@@ -42,7 +42,7 @@ impl InternetProtocolSocketSettings
 	{
 		SendBufferSizeSocketOption
 		{
-			size: SendBufferSizeInBytes::UsualGlobalDefaultForTcp,
+			size: SendBufferSizeInBytes::UsualGlobalDefaultForTransmissionControlProtocol,
 			force: false,
 		}
 	}
@@ -52,7 +52,7 @@ impl InternetProtocolSocketSettings
 	{
 		ReceiveBufferSizeSocketOption
 		{
-			size: ReceiveBufferSizeInBytes::UsualGlobalDefaultForTcp,
+			size: ReceiveBufferSizeInBytes::UsualGlobalDefaultForTransmissionControlProtocol,
 			force: false,
 		}
 	}

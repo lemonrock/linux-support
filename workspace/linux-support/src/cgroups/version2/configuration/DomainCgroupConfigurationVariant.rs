@@ -29,15 +29,15 @@ impl Default for DomainCgroupConfigurationVariant
 
 impl CgroupConfigurationVariant for DomainCgroupConfigurationVariant
 {
-	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: Rc<impl Cgroup<'name>>) -> io::Result<()>
+	fn configure<'name, C: 'name + Cgroup<'name>>(&'name self, mount_point: &CgroupMountPoint, cgroup: Rc<C>) -> io::Result<()>
 	{
 		use self::DomainCgroupConfigurationVariant::*;
 		
 		match self
 		{
-			&Domain(ref children) => children.configure_children(mount_point, &cgroup)?,
+			&Domain(ref children) => children.configure_children(mount_point, &cgroup),
 			
-			&ThreadedDomain(ref children) => children.configure_children(mount_point, &cgroup)?,
+			&ThreadedDomain(ref children) => children.configure_children(mount_point, &cgroup),
 			
 			&Leaf(ref migration) => migration.leaf_migrate(mount_point, &cgroup)
 		}
@@ -58,7 +58,7 @@ impl CgroupConfigurationVariant for DomainCgroupConfigurationVariant
 	}
 	
 	#[inline(always)]
-	fn make_type_threaded_if_needed<'name>(mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup<'name>>) -> io::Result<()>
+	fn make_type_threaded_if_needed<'name>(mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>) -> io::Result<()>
 	{
 		Ok(())
 	}

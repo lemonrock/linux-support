@@ -10,6 +10,15 @@ pub(crate) union ContextIdentifierOrCreate
 	create: NonZeroU32,
 }
 
+impl Debug for ContextIdentifierOrCreate
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "ContextIdentifierOrCreate({:?})", unsafe { self.create.get() })
+	}
+}
+
 impl ContextIdentifierOrCreate
 {
 	pub(crate) const Create: Self = Self

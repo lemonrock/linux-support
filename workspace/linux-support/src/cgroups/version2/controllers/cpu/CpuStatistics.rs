@@ -22,7 +22,7 @@ pub struct CpuStatistics
 impl CpuStatistics
 {
 	#[inline(always)]
-	pub(super) fn from_file(file_path: &Path) -> Result<Self, StatisticsParseError>
+	pub(crate) fn from_file(file_path: &Path) -> Result<Self, StatisticsParseError>
 	{
 		use self::StatisticsParseError::*;
 		

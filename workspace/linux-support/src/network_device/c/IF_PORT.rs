@@ -12,21 +12,30 @@ pub enum IF_PORT
 	/// Default.
 	IF_PORT_UNKNOWN = 0,
 	
-	#[allow(missing_docs)]
+	/// `10BASE-2`.
 	IF_PORT_10BASE2 = 1,
 	
-	#[allow(missing_docs)]
+	/// `10BASE-T`.
 	IF_PORT_10BASET = 2,
 	
-	#[allow(missing_docs)]
+	/// `AUI`.
 	IF_PORT_AUI = 3,
 	
-	#[allow(missing_docs)]
+	/// `100BASE-T`.
 	IF_PORT_100BASET = 4,
 	
-	#[allow(missing_docs)]
+	/// `100BASE-TX`.
 	IF_PORT_100BASETX = 5,
 	
-	#[allow(missing_docs)]
+	/// `100BASE-FX`.
 	IF_PORT_100BASEFX = 6,
+}
+
+impl Default for IF_PORT
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		IF_PORT::IF_PORT_UNKNOWN
+	}
 }

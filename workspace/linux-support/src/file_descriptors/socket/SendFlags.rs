@@ -90,6 +90,6 @@ bitflags!
 		/// Send data in TCP SYN packet.
 		///
 		/// The feature is currently implemented for TCP sockets.
-		const TcpFastOpen = MSG_FASTOPEN;
+		const TransmissionControlProtocolFastOpen = MSG_FASTOPEN;
 	}
 }

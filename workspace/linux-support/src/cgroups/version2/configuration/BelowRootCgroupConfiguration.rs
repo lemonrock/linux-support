@@ -20,7 +20,7 @@ pub enum BelowRootCgroupConfiguration
 impl ChildCgroupConfiguration for BelowRootCgroupConfiguration
 {
 	#[inline(always)]
-	fn configure<'name>(&self, mount_point: &CgroupMountPoint, parent: &Rc<impl Cgroup<'name>>, name: &CgroupName) -> io::Result<()>
+	fn configure<'name, C: 'name + Cgroup<'name>>(&self, mount_point: &CgroupMountPoint, parent: &Rc<C>, name: &'name CgroupName) -> io::Result<()>
 	{
 		use self::BelowRootCgroupConfiguration::*;
 		

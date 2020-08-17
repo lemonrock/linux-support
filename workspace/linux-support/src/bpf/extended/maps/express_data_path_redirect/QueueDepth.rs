@@ -61,17 +61,13 @@ impl TryFrom<NonZeroU32> for QueueDepth
 	#[inline(always)]
 	fn try_from(value: NonZeroU32) -> Result<Self, Self::Error>
 	{
-		if unlikely!(value == 0)
-		{
-			Err(ParseNumberError::WasZero)
-		}
-		else if unlikely!(value > Self::InclusiveMaximum.0)
+		if unlikely!(value > Self::InclusiveMaximum.0)
 		{
 			Err(ParseNumberError::TooLarge)
 		}
 		else
 		{
-			Self(value)
+			Ok(Self(value))
 		}
 	}
 }
@@ -79,8 +75,13 @@ impl TryFrom<NonZeroU32> for QueueDepth
 impl QueueDepth
 {
 	/// Inclusive minimum.
-	pub const InclusiveMinimum: Self = Self(1);
+	pub const InclusiveMinimum: Self = Self::new(1);
 	
 	/// Inclusive maximum.
-	pub const InclusiveMaximum: Self = Self(16384);
+	pub const InclusiveMaximum: Self = Self::new(16384);
+	
+	const fn new(value: u32) -> Self
+	{
+		Self(unsafe { NonZeroU32::new_unchecked(value) })
+	}
 }

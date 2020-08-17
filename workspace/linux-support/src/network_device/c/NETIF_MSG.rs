@@ -5,6 +5,7 @@
 bitflags!
 {
 	/// Extracted from ethtool source.
+	#[derive(Serialize, Deserialize)]
 	pub struct NETIF_MSG: u32
 	{
 		/// String set value is `drv`.

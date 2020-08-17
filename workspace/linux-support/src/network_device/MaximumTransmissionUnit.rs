@@ -3,8 +3,9 @@
 
 
 /// Maximum Transmission Unit (MTU).
-#[repr(transparent)]
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct MaximumTransmissionUnit(pub u32);
 
 impl Into<i32> for MaximumTransmissionUnit

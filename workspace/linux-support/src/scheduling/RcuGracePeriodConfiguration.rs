@@ -4,6 +4,8 @@
 
 /// Grace period configuration.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum RcuGracePeriodConfiguration
 {
 	/// Set `/sys/kernel/rcu_expedited` to `0` and `/sys/kernel/rcu_normal` to `0`.

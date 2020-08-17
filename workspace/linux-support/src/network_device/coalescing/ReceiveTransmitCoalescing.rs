@@ -3,7 +3,9 @@
 
 
 #[allow(missing_docs)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields, default)]
 pub struct ReceiveTransmitCoalescing
 {
 	/// Receive.

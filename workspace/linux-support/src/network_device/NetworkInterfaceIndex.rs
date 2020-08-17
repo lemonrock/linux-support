@@ -106,6 +106,6 @@ impl NetworkInterfaceIndex
 	#[inline(always)]
 	pub fn try_from_network_interface_name(value: NetworkInterfaceName) -> Result<Option<Self>, NetworkDeviceInputOutputControlError<ParseNumberError>>
 	{
-		NetworkDeviceSocketFileDescriptor::new()?.network_interface_name_to_network_interface_index(value)
+		NetworkDeviceInputOutputControl::new(Cow::Owned(value))?.network_interface_name_to_network_interface_index()
 	}
 }

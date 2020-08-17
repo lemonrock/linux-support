@@ -15,7 +15,7 @@ pub enum ProgramLine<'name>
 	Function(#[serde(borrow)] Name<'name>, #[serde(skip)] Option<FunctionPrototype>),
 	
 	/// Represents a block of statements.
-	Block(Vec<Self>),
+	#[serde(skip)] Block(Vec<Box<Self>>),
 	
 	/// Load a true 64-bit value.
 	///

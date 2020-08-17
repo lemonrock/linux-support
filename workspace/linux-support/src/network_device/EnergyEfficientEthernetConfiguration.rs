@@ -4,6 +4,8 @@
 
 /// Energy Efficient Ethernet (EEE) configuration.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum EnergyEfficientEthernetConfiguration
 {
 	/// Disable.

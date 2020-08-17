@@ -38,38 +38,38 @@ impl SPEED
 	#[inline(always)]
 	pub(crate) fn is_unknown(self) -> bool
 	{
-		self == Self::UNKNOWN
+		self == Self::SPEED_UNKNOWN
 	}
 	
 	pub(crate) const SPEED_10: Self = Self(10);
 	
 	pub(crate) const SPEED_100: Self = Self(100);
 	
-	pub(crate) const SPEED_1000: Self = Self(1000);
+	pub(crate) const SPEED_1000: Self = Self(1_000);
 	
-	pub(crate) const SPEED_2500: Self = Self(2500);
+	pub(crate) const SPEED_2500: Self = Self(2_500);
 	
-	pub(crate) const SPEED_5000: Self = Self(5000);
+	pub(crate) const SPEED_5000: Self = Self(5_000);
 	
-	pub(crate) const SPEED_10000: Self = Self(10000);
+	pub(crate) const SPEED_10000: Self = Self(10_000);
 	
-	pub(crate) const SPEED_14000: Self = Self(14000);
+	pub(crate) const SPEED_14000: Self = Self(14_000);
 	
-	pub(crate) const SPEED_20000: Self = Self(20000);
+	pub(crate) const SPEED_20000: Self = Self(20_000);
 	
-	pub(crate) const SPEED_25000: Self = Self(25000);
+	pub(crate) const SPEED_25000: Self = Self(25_000);
 	
-	pub(crate) const SPEED_40000: Self = Self(40000);
+	pub(crate) const SPEED_40000: Self = Self(40_000);
 	
-	pub(crate) const SPEED_50000: Self = Self(50000);
+	pub(crate) const SPEED_50000: Self = Self(50_000);
 	
-	pub(crate) const SPEED_56000: Self = Self(56000);
+	pub(crate) const SPEED_56000: Self = Self(56_000);
 	
-	pub(crate) const SPEED_100000: Self = Self(100000);
+	pub(crate) const SPEED_100000: Self = Self(100_000);
 	
-	pub(crate) const SPEED_200000: Self = Self(200000);
+	pub(crate) const SPEED_200000: Self = Self(200_000);
 	
-	pub(crate) const SPEED_400000: Self = Self(400000);
+	pub(crate) const SPEED_400000: Self = Self(400_000);
 	
 	pub(crate) const SPEED_UNKNOWN: Self = Self(-1);
 }

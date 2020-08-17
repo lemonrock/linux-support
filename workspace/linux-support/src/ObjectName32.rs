@@ -5,6 +5,7 @@
 object_name!
 (
 	ObjectName32,
+	u8,
 	31,
 	/// A Linux EthTool string.
 	///

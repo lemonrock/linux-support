@@ -15,18 +15,7 @@ use crate::file_descriptors::bpf::*;
 use crate::bpf::extended::maps::domain::MapName;
 
 
-include!("AluOperation.rs");
-include!("EndiannessOperation.rs");
-include!("LoadSize.rs");
-include!("JumpOperation.rs");
-include!("Name.rs");
-include!("ParseError.rs");
-include!("ProgramLine.rs");
-include!("ProgramLine.functions.rs");
-include!("ProgramLinesParser.rs");
-include!("Register.rs");
-include!("RegisterOrImmediate.rs");
-include!("UsageHashMap.rs");
+include!("program_lines.rs");
 
 
 /// File Descriptor label.
@@ -36,3 +25,20 @@ pub mod file_descriptors_map;
 /// Offsets.
 #[macro_use]
 pub mod offset;
+
+
+include!("AluOperation.rs");
+include!("EndiannessOperation.rs");
+include!("LoadSize.rs");
+include!("JumpOperation.rs");
+include!("Name.rs");
+include!("ParseError.rs");
+include!("ProgramLineWrapper.functions.rs");
+include!("ProgramLineWrapper.rs");
+include!("ProgramLine.rs");
+include!("ProgramLines.rs");
+include!("ProgramLinesParser.rs");
+include!("Register.rs");
+include!("RegisterOrImmediate.rs");
+include!("UsageHashMap.rs");
+

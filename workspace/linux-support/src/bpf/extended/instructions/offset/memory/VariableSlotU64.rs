@@ -46,7 +46,8 @@ impl Into<MemoryOffset<'static>> for VariableSlotU64
 impl VariableSlotU64
 {
 	#[inline(always)]
-	pub(crate) fn to_memory_slot_from_try_into(variable_slot: impl TryInto<VariableSlotU64>) -> MemoryOffset<'static>
+	pub(crate) fn to_memory_slot_from_try_into<VS: TryInto<VariableSlotU64>>(variable_slot: VS) -> MemoryOffset<'static>
+	where VS::Error: Debug
 	{
 		let variable_slot = variable_slot.try_into().expect("Invalid variable slot u64");
 		variable_slot.to_memory_offset()

@@ -3,7 +3,7 @@
 
 
 /// Microseconds.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct Microseconds(pub u32);
@@ -31,7 +31,7 @@ impl ParseNumber for Microseconds
 	#[inline(always)]
 	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
 	{
-		u32::parse_number(bytes, radix, parse_byte).map_err(Self)
+		Ok(Self(u32::parse_number(bytes, radix, parse_byte)?))
 	}
 }
 
@@ -79,6 +79,6 @@ impl<'a> IntoLineFeedTerminatedByteString<'a> for Microseconds
 	#[inline(always)]
 	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
 	{
-		UnpaddedDecimalInteger(Self.0).into_line_feed_terminated_byte_string()
+		UnpaddedDecimalInteger(self.0).into_line_feed_terminated_byte_string()
 	}
 }

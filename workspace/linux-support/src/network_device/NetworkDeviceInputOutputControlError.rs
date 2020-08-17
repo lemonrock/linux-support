@@ -57,6 +57,24 @@ impl<E: error::Error + 'static> From<CreationError> for NetworkDeviceInputOutput
 	}
 }
 
+impl From<ObjectNameFromBytesError> for NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>
+{
+	#[inline(always)]
+	fn from(value: ObjectNameFromBytesError) -> Self
+	{
+		NetworkDeviceInputOutputControlError::ControlOperation(value)
+	}
+}
+
+impl From<TransmissionQueueLengthOutRangeError> for NetworkDeviceInputOutputControlError<TransmissionQueueLengthOutRangeError>
+{
+	#[inline(always)]
+	fn from(value: TransmissionQueueLengthOutRangeError) -> Self
+	{
+		NetworkDeviceInputOutputControlError::ControlOperation(value)
+	}
+}
+
 impl NetworkDeviceInputOutputControlError<Infallible>
 {
 	#[inline(always)]

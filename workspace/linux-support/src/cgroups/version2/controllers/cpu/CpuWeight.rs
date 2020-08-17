@@ -19,7 +19,7 @@ impl TryFrom<NonZeroU16> for CpuWeight
 	#[inline(always)]
 	fn try_from(value: NonZeroU16) -> Result<Self, Self::Error>
 	{
-		if unlikely!(value > Self::InclusiveMaximum)
+		if unlikely!(value > Self::InclusiveMaximum.0)
 		{
 			Err(ParseNumberError::OutOfRange)
 		}

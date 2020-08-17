@@ -6,6 +6,7 @@
 ///
 /// In a single-threaded process, the thread identifier (`tid`) is equal to the process identifier (`pid`) as returned by `ProcessIdentifier::default()`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct ThreadIdentifier(NonZeroI32);
 
@@ -89,6 +90,48 @@ impl<'a> IntoLineFeedTerminatedByteString<'a> for ThreadIdentifier
 	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
 	{
 		UnpaddedDecimalInteger(self.0).into_line_feed_terminated_byte_string()
+	}
+}
+
+impl ParseNumber for ThreadIdentifier
+{
+	#[inline(always)]
+	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
+	{
+		let tid = pid_t::parse_number(bytes, radix, parse_byte)?;
+		if unlikely!(tid < 0)
+		{
+			Err(ParseNumberError::TooShort)
+		}
+		else if unlikely!(tid == 0)
+		{
+			Err(ParseNumberError::WasZero)
+		}
+		else
+		{
+			Ok(Self(unsafe { NonZeroI32::new_unchecked(tid) }))
+		}
+	}
+}
+
+impl ParseNumberOption for ThreadIdentifier
+{
+	#[inline(always)]
+	fn parse_number_option(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Option<Self>, ParseNumberError>
+	{
+		let tid = pid_t::parse_number(bytes, radix, parse_byte)?;
+		if unlikely!(tid < 0)
+		{
+			Err(ParseNumberError::TooShort)
+		}
+		else if tid == 0
+		{
+			Ok(None)
+		}
+		else
+		{
+			Ok(Some(ThreadIdentifier(unsafe { NonZeroI32::new_unchecked(tid) })))
+		}
 	}
 }
 

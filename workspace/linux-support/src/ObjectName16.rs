@@ -5,6 +5,7 @@
 object_name!
 (
 	ObjectName16,
+	u8,
 	15,
 	/// A Linux object name, used for Commands, Processes, Threads, NetworkInterfaces, BPF maps and BPF programs.
 	///

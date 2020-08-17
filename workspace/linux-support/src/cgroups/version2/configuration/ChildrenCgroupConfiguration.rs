@@ -3,10 +3,19 @@
 
 
 /// Children.
-#[derive(Default, Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct ChildrenCgroupConfiguration<CCC: ChildCgroupConfiguration>(HashMap<CgroupName, CCC>);
+
+impl<CCC: ChildCgroupConfiguration> Default for ChildrenCgroupConfiguration<CCC>
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self(HashMap::new())
+	}
+}
 
 impl<CCC: ChildCgroupConfiguration> Deref for ChildrenCgroupConfiguration<CCC>
 {
@@ -31,7 +40,7 @@ impl<CCC: ChildCgroupConfiguration> DerefMut for ChildrenCgroupConfiguration<CCC
 impl<CCC: ChildCgroupConfiguration> ChildrenCgroupConfiguration<CCC>
 {
 	#[inline(always)]
-	fn configure_children<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup<'name>>)
+	fn configure_children<'name, C: 'name + Cgroup<'name>>(&'name self, mount_point: &CgroupMountPoint, cgroup: &'name Rc<C>) -> io::Result<()>
 	{
 		cgroup.write_maximum_descendants(mount_point, MaximumNumber::Finite(self.len()))?;
 		
@@ -39,6 +48,8 @@ impl<CCC: ChildCgroupConfiguration> ChildrenCgroupConfiguration<CCC>
 		{
 			child_cgroup_configuration.configure(mount_point, cgroup, name)?;
 		}
+		
+		Ok(())
 	}
 	
 	#[inline(always)]

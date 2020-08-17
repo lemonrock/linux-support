@@ -73,17 +73,17 @@ impl Channels
 	#[inline(always)]
 	fn channels_count(&self, only_channels_count: Option<QueueCount>) -> QueueCount
 	{
-		let only_channels_count = Self::channel_count_to_u32(only_channels_count);
-		let receive_and_transmit_channels_count = Self::channel_count_to_u32(self.receive_and_transmit_channels_count);
+		let only_channels_count = Self::channel_count_to_u16(only_channels_count);
+		let receive_and_transmit_channels_count = Self::channel_count_to_u16(self.receive_and_transmit_channels_count);
 		match max(only_channels_count, receive_and_transmit_channels_count)
 		{
 			0 => QueueCount::InclusiveMinimum,
-			non_zero @ _ => non_zero
+			non_zero @ _ => QueueCount::try_from_non_zero_u16_saturated(unsafe { NonZeroU16::new_unchecked(non_zero) }),
 		}
 	}
 	
 	#[inline(always)]
-	const fn channel_count_to_u32(channel_count: Option<QueueCount>) -> u32
+	const fn channel_count_to_u16(channel_count: Option<QueueCount>) -> u16
 	{
 		unsafe { transmute(channel_count) }
 	}

@@ -25,7 +25,7 @@ impl TryFrom<NonZeroU16> for EnergyDetectPowerDownMillisecondsTunable
 	fn try_from(value: NonZeroU16) -> Result<Self, Self::Error>
 	{
 		let value = value.get();
-		if unlikely!(value >= Self::ETHTOOL_PHY_EDPD_NO_TX.0)
+		if unlikely!(value >= Self::NoTransmit.0)
 		{
 			Err(ParseNumberError::OutOfRange)
 		}

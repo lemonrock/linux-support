@@ -4,7 +4,7 @@
 
 pub(super) trait ControllersConfiguration
 {
-	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup<'name>>, available_controllers: &Controllers) -> io::Result<()>;
+	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>, available_controllers: &Controllers) -> io::Result<()>;
 	
 	fn to_desired_controllers(&self) -> Controllers;
 }

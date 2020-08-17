@@ -70,7 +70,7 @@ impl FeatureGroup
 				let mut hash_set = HashSet::with_capacity(NETIF_F::NETDEV_FEATURE_COUNT);
 				for feature in NETIF_F::iter()
 				{
-					hash_set.add(feature)
+					hash_set.insert(feature);
 				}
 				FeatureGroup(hash_set)
 			};
@@ -136,7 +136,7 @@ impl FeatureGroup
 	
 	/// Ethtool setting is `rxvlan` or `rx-vlan-offload`.
 	#[inline(always)]
-	pub fn ethtool_rtxvlan() -> &'static Self
+	pub fn ethtool_rxvlan() -> &'static Self
 	{
 		lazy_static!
 		{
@@ -344,8 +344,12 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup =
 			{
-				let difference = FeatureGroup::all().difference(&FeatureGroup::NETIF_F_NEVER_CHANGE());
-				FeatureGroup(difference.collect())
+				let mut set = HashSet::new();
+				for feature in FeatureGroup::all().difference(&FeatureGroup::NETIF_F_NEVER_CHANGE())
+				{
+					set.insert(*feature);
+				}
+				FeatureGroup(set)
 			};
 		}
 		&Static
@@ -581,7 +585,7 @@ impl FeatureGroup
 	pub fn merge_with_one(&self, feature: NETIF_F) -> Self
 	{
 		let mut feature_group = self.clone();
-		feature_group.add(feature);
+		feature_group.insert(feature);
 		feature_group
 	}
 	
@@ -592,7 +596,7 @@ impl FeatureGroup
 		let mut feature_group = self.clone();
 		for feature in features
 		{
-			feature_group.add(*feature);
+			feature_group.insert(*feature);
 		}
 		feature_group
 	}

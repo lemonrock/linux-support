@@ -76,7 +76,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			|_ifreq| Ok(()),
 			|errno| match errno.0
 			{
-				ERANGE => Err(TransmissionQueueLengthOutRangeError),
+				ERANGE => Err(MaximumTransmissionUnitOutRangeError),
 				
 				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCGIFINDEX)", unexpected),
 			}
@@ -237,10 +237,10 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			return Ok(Some(current))
 		}
 		
-		let receive_and_transmit_channels_count = NonZeroU32::new(maximima.max_combined);
-		let receive_channels_count = NonZeroU32::new(maximima.max_rx);
-		let transmit_channels_count = NonZeroU32::new(maximima.max_tx);
-		let other_channels_count = NonZeroU32::new(maximima.max_other);
+		let receive_and_transmit_channels_count = maximima.receive_and_transmit_channels_count;
+		let receive_channels_count = maximima.receive_only_channels_count;
+		let transmit_channels_count = maximima.transmit_only_channels_count;
+		let other_channels_count = maximima.other_channels_count;
 		
 		self.ethtool_command
 		(
@@ -505,7 +505,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		
 		if supported == NETIF_MSG::empty()
 		{
-			Ok(Some(NETIF_MSG::empty()))
+			return Ok(Some(NETIF_MSG::empty()))
 		}
 		
 		self.ethtool_command
@@ -572,7 +572,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		let mut bit_mask_of_flags_to_set = match option_private_flags
 		{
 			None => return Ok(None),
-			Some(ethtool_value { data, .. }) => data
+			Some(data) => data
 		};
 		
 		let private_flags_string_set = all_string_sets.get(&ethtool_stringset::ETH_SS_PRIV_FLAGS).unwrap();
@@ -637,9 +637,9 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			for raw_string in raw_strings
 			{
 				let string = ObjectName32::try_from(raw_string)?;
-				strings.push(string)
+				strings.insert(string);
 			}
-			string_sets.insert(supported_string_set, StringSet(strings))
+			string_sets.insert(supported_string_set, StringSet(strings));
 		}
 		
 		Ok(Some(AllStringSets(string_sets)))
@@ -787,6 +787,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 					tx_lpi_timer: 0,
 					reserved: [0; 2],
 				};
+				
 				for advertise in advertise.iter()
 				{
 					let advertise = *advertise;
@@ -795,11 +796,14 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 						command.set_we_advertise(advertise)
 					}
 				}
+				
 				if let Some(transmit_low_power_idle_microseconds) = transmit_low_power_idle_microseconds
 				{
 					command.tx_lpi_enabled = 1;
 					command.tx_lpi_timer = *transmit_low_power_idle_microseconds;
 				}
+				
+				command
 			}
 		};
 		
@@ -982,7 +986,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	}
 	
 	#[inline(always)]
-	fn error_is_unreachable(errno: Errno) -> !
+	fn error_is_unreachable<V: Sized, E: error::Error + 'static>(errno: Errno) -> Result<Option<V>, E>
 	{
 		unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", errno)
 	}

@@ -13,7 +13,7 @@ impl ControllerConfiguration for RdmaControllerConfiguration
 	const Controller: Controller = Controller::rdma;
 	
 	#[inline(always)]
-	fn configure(&self, _mount_point: &CgroupMountPoint, c_group: &Rc<NonRootCgroup>) -> io::Result<()>
+	fn configure<'name>(&self, _mount_point: &CgroupMountPoint, c_group: &Rc<NonRootCgroup<'name>>) -> io::Result<()>
 	{
 		Ok(())
 	}

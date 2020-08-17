@@ -18,6 +18,15 @@ impl<'a> IntoLineFeedTerminatedByteString<'a> for &'a [u8]
 	}
 }
 
+impl<'a> IntoLineFeedTerminatedByteString<'a> for &'a [u8; 1]
+{
+	#[inline(always)]
+	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
+	{
+		Cow::from(self as &[u8])
+	}
+}
+
 impl<'a> IntoLineFeedTerminatedByteString<'a> for &'a [i8]
 {
 	#[inline(always)]

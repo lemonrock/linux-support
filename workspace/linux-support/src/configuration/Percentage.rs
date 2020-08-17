@@ -72,6 +72,6 @@ impl<'a> IntoLineFeedTerminatedByteString<'a> for Percentage
 	#[inline(always)]
 	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
 	{
-		UnpaddedDecimalInteger(Self.0).into_line_feed_terminated_byte_string()
+		UnpaddedDecimalInteger(self.0).into_line_feed_terminated_byte_string()
 	}
 }

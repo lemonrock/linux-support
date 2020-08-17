@@ -8,30 +8,6 @@ pub struct Mounts<'a>(HashMap<PathBuf, Mount<'a>>);
 
 impl<'a> Mounts<'a>
 {
-	/// Current mounts (from `/proc/<X>/mounts`).
-	#[inline(always)]
-	pub fn parse(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> io::Result<Self>
-	{
-		let mounts_wrapper = MountsWrapper::new(&proc_path.process_file_path(process_identifier, "mounts"), true)?;
-
-		let mut map = HashMap::with_capacity(64);
-
-		mounts_wrapper.use_mount(|mount_point|
-		{
-			let key = mount_point.mount_point.clone();
-			if let Some(previous) = map.insert(key, mount_point)
-			{
-				Err(io::Error::new(ErrorKind::InvalidData, format!("Duplicate mount_point for mount_point point '{:?}'", previous.mount_point)))
-			}
-			else
-			{
-				Ok(())
-			}
-		})?;
-
-		Ok(Mounts(map))
-	}
-
 	/// Returns the first path for an existing `file_system_type` mount, if any.
 	///
 	/// Useful for specialized file systems like `cgroup2` and `hugetlbfs`.
@@ -50,5 +26,32 @@ impl<'a> Mounts<'a>
 			}
 		}
 		None
+	}
+}
+
+impl Mounts<'static>
+{
+	/// Current mounts (from `/proc/<X>/mounts`).
+	#[inline(always)]
+	pub fn parse(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> io::Result<Self>
+	{
+		let mounts_wrapper = MountsWrapper::new(&proc_path.process_file_path(process_identifier, "mounts"), true)?;
+		
+		let mut map = HashMap::with_capacity(64);
+		
+		mounts_wrapper.use_mount(|mount_point|
+		{
+			let key = mount_point.mount_point.clone();
+			if let Some(previous) = map.insert(key, mount_point)
+			{
+				Err(io::Error::new(ErrorKind::InvalidData, format!("Duplicate mount_point for mount_point point '{:?}'", previous.mount_point)))
+			}
+			else
+			{
+				Ok(())
+			}
+		})?;
+		
+		Ok(Mounts(map))
 	}
 }

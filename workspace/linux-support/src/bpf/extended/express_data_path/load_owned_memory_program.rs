@@ -10,7 +10,9 @@ pub fn reuse_or_load_owned_memory_program(network_interface_name: NetworkInterfa
 	let redirect_map_name: MapName = "xsks_map".try_into().unwrap();
 	
 	let mut netlink_socket_file_descriptor = NetlinkSocketFileDescriptor::open()?;
-	let get_link_message_data = RouteNetlinkProtocol::get_link(&mut netlink_socket_file_descriptor, &|get_link_message_data| get_link_message_data.is_for(&network_interface_name)).map_err(|error| GetLinksUsingNetlink(error))?.ok_or(NoSuchNetworkInterfaceName)?;
+	let result = RouteNetlinkProtocol::get_link(&mut netlink_socket_file_descriptor, &|get_link_message_data| get_link_message_data.is_for(&network_interface_name));
+	let option = result.map_err(GetLinksUsingNetlink)?;
+	let get_link_message_data = option.ok_or_else(|| NoSuchNetworkInterfaceName(network_interface_name.clone()))?;
 	
 	let network_interface_index = get_link_message_data.network_interface_index;
 	match get_link_message_data.attached_express_data_path_program_identifiers
@@ -79,7 +81,8 @@ fn owned_memory_program(xskmap: &MapName, offload_to: Option<NetworkInterfaceInd
 	let rx_queue_index: VariableSlotU64 = VariableSlotU64::try_from(1).unwrap();
 	
 	#[inline(always)]
-	fn redirect_map<'name>(map_name: impl TryInto<MapName>, rx_queue_index: Option<impl TryInto<VariableSlotU64>>, flags: xdp_action) -> ProgramLine<'name>
+	fn redirect_map<'name, MN: TryInto<MapName>, VS: TryInto<VariableSlotU64>>(map_name: MN, rx_queue_index: Option<VS>, flags: xdp_action) -> ProgramLineWrapper<'name>
+	where MN::Error: Debug, VS::Error: Debug
 	{
 		let mut program_lines = Vec::with_capacity(4);
 		
@@ -98,7 +101,7 @@ fn owned_memory_program(xskmap: &MapName, offload_to: Option<NetworkInterfaceInd
 		// `r0 exit_code: xdp_action = redirect_map(map: *const bpf_map, rx_queue_index: u32, flags: u64)`.
 		program_lines.push(function_call(BPF_FUNC_redirect_map));
 		
-		block(program_lines)
+		ProgramLineWrapper::ProgramLines(program_lines)
 	}
 	
 	ExtendedBpfProgramTemplate
@@ -134,7 +137,7 @@ fn owned_memory_program(xskmap: &MapName, offload_to: Option<NetworkInterfaceInd
 				XDP_PASS
 			}
 		 */
-		program_lines: vec!
+		program_lines: program_lines!
 		[
 			// `r2 rx_queue_index = r1 ctx.rx_queue_index`.
 			load_from_memory_32(r2, r1, xdp_md::rx_queue_index),
@@ -142,7 +145,7 @@ fn owned_memory_program(xskmap: &MapName, offload_to: Option<NetworkInterfaceInd
 			// `stack rx_queue_index = r2 rx_queue_index`.
 			store_to_stack_variable_32(r2, rx_queue_index),
 			
-			redirect_map(xskmap, None, XDP_PASS),
+			redirect_map::<_, VariableSlotU64>(xskmap, None, XDP_PASS),
 			
 			// `if r0 result != xdp_action:XDP_ABORTED goto exit`.
 			conditional_jump_32(NotEqual, r0, xdp_action::XDP_ABORTED, exit),
@@ -159,7 +162,7 @@ fn owned_memory_program(xskmap: &MapName, offload_to: Option<NetworkInterfaceInd
 				// `r0 result: i32 = bpf_map_lookup_elem(map: *const bpf_map, key: *const u32)`.
 				function_call(BPF_FUNC_map_lookup_elem),
 			]),
-			
+				
 			// `r1 result = r0 result`.
 			move_64(r1, r0),
 			

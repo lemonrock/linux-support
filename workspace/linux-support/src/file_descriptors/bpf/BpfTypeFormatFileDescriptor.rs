@@ -82,7 +82,7 @@ impl BpfTypeFormatFileDescriptor
 		let result = attributes.syscall(bpf_cmd::BPF_BTF_LOAD);
 		if likely!(result >= 0)
 		{
-			Ok(Self(result))
+			Ok((Self(result), verifier_log))
 		}
 		else if likely!(result == -1)
 		{

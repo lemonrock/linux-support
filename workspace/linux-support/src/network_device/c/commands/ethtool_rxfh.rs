@@ -101,7 +101,7 @@ impl VariablySizedEthtoolCommandWrapper<ethtool_rxfh>
 		{
 			let bit = self.hfunc.trailing_zeros();
 			
-			if (bit as usize) > ETH_RSS_HASH::ETH_RSS_HASH_COUNT
+			if (bit as usize) > ETH_RSS_HASH::COUNT
 			{
 				Err(UnsupportedHashFunctionError)
 			}

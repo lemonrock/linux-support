@@ -3,7 +3,6 @@
 
 
 /// Simplification of choices of features for common sets (eg those used by ethtool).
-#[allow(Debug, Clone, PartialEq, Eq)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub enum FeatureGroupChoice
@@ -52,6 +51,76 @@ pub enum FeatureGroupChoice
 
 	/// Any combination not represented above.
 	OtherToDisable(FeatureGroup),
+}
+
+impl Debug for FeatureGroupChoice
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "FeatureGroupChoice")
+	}
+}
+
+impl Clone for FeatureGroupChoice
+{
+	#[inline(always)]
+	fn clone(&self) -> Self
+	{
+		use self::FeatureGroupChoice::*;
+		
+		match self
+		{
+			&ethtool_sg => ethtool_sg,
+			&ethtool_tx => ethtool_tx,
+			&ethtool_txvlan => ethtool_txvlan,
+			&ethtool_rxvlan => ethtool_rxvlan,
+			&ethtool_gso => ethtool_gso,
+			&ethtool_gro => ethtool_gro,
+			&ethtool_lro => ethtool_lro,
+			&ethtool_tso => ethtool_tso,
+			&ethtool_ntuple => ethtool_ntuple,
+			&ethtool_rxhash => ethtool_rxhash,
+			&ethtool_rx => ethtool_rx,
+			&internet_protocols_checksum => internet_protocols_checksum,
+			&internet_protocols_checksum_in_hardware => internet_protocols_checksum_in_hardware,
+			&OtherToEnable(ref feature_group) => OtherToEnable(feature_group.clone()),
+			&OtherToDisable(ref feature_group) => OtherToDisable(feature_group.clone()),
+		}
+	}
+}
+
+impl PartialEq for FeatureGroupChoice
+{
+	#[inline(always)]
+	fn eq(&self, other: &Self) -> bool
+	{
+		use self::FeatureGroupChoice::*;
+		
+		match (self, other)
+		{
+			(&ethtool_sg, &ethtool_sg) => true,
+			(&ethtool_tx, &ethtool_tx) => true,
+			(&ethtool_txvlan, &ethtool_txvlan) => true,
+			(&ethtool_rxvlan, &ethtool_rxvlan) => true,
+			(&ethtool_gso, &ethtool_gso) => true,
+			(&ethtool_gro, &ethtool_gro) => true,
+			(&ethtool_lro, &ethtool_lro) => true,
+			(&ethtool_tso, &ethtool_tso) => true,
+			(&ethtool_ntuple, &ethtool_ntuple) => true,
+			(&ethtool_rxhash, &ethtool_rxhash) => true,
+			(&ethtool_rx, &ethtool_rx) => true,
+			(&internet_protocols_checksum, &internet_protocols_checksum) => true,
+			(&internet_protocols_checksum_in_hardware, &internet_protocols_checksum_in_hardware) => true,
+			(&OtherToEnable(ref left_feature_group), &OtherToEnable(ref right_feature_group)) => left_feature_group.eq(right_feature_group),
+			(&OtherToDisable(ref left_feature_group), &OtherToDisable(ref right_feature_group)) => left_feature_group.eq(right_feature_group),
+			_ => false,
+		}
+	}
+}
+
+impl Eq for FeatureGroupChoice
+{
 }
 
 impl FeatureGroupChoice

@@ -3,7 +3,7 @@
 
 
 #[inline(always)]
-fn configure_controller<'name, CC: ControllerConfiguration>(controller_configuration: &Option<CC>, mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup<'name>>, available_controllers: &Controllers) -> io::Result<()>
+fn configure_controller<'name, CC: ControllerConfiguration>(controller_configuration: &Option<CC>, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>, available_controllers: &Controllers) -> io::Result<()>
 {
 	if let Some(ref controller_configuration) = controller_configuration
 	{

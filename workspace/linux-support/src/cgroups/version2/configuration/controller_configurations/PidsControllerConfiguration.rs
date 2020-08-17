@@ -19,7 +19,7 @@ impl ControllerConfiguration for PidsControllerConfiguration
 	const Controller: Controller = Controller::pids;
 	
 	#[inline(always)]
-	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup>) -> io::Result<()>
+	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>) -> io::Result<()>
 	{
 		cgroup.write_process_identifiers_count_maximum(mount_point, self.maximum)
 	}

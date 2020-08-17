@@ -10,6 +10,9 @@ pub enum GlobalNetworkDeviceConfigurationError
 	NetworkDeviceDoesNotExist(NetworkInterfaceName),
 	
 	#[allow(missing_docs)]
+	NetworkDeviceSocketFileDescriptorCreation(CreationError),
+	
+	#[allow(missing_docs)]
 	CouldNotSetDriverMessageLevel(NetworkDeviceInputOutputControlError<Infallible>),
 	
 	#[allow(missing_docs)]
@@ -34,7 +37,7 @@ pub enum GlobalNetworkDeviceConfigurationError
 	CouldNotChangeFeatures(NetworkDeviceInputOutputControlError<Infallible>),
 	
 	#[allow(missing_docs)]
-	CouldNotGetAllStringSets(NetworkDeviceInputOutputControlError<Infallible>),
+	CouldNotGetAllStringSets(NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>),
 	
 	#[allow(missing_docs)]
 	CouldNotChangeDriverSpecificFlags(NetworkDeviceInputOutputControlError<Infallible>),
@@ -52,7 +55,7 @@ pub enum GlobalNetworkDeviceConfigurationError
 	CouldNotMaximizePendingQueueDepths(NetworkDeviceInputOutputControlError<Infallible>),
 	
 	#[allow(missing_docs)]
-	CouldNotConfigureReceiveSideScalingHashConfiguration(NetworkDeviceInputOutputControlError<UnsupportedHashFunctionError>),
+	CouldNotConfigureReceiveSideScalingHashConfiguration(NetworkDeviceInputOutputControlError<Infallible>),
 	
 	#[allow(missing_docs)]
 	CouldNotSetGenericReceiveOffloadTimeout(io::Error),
@@ -76,7 +79,9 @@ impl error::Error for GlobalNetworkDeviceConfigurationError
 		
 		match self
 		{
-			&CouldNotSetDriverMessageLevel(ref error) => Some(error),
+			&NetworkDeviceDoesNotExist(..) => None,
+			
+			&NetworkDeviceSocketFileDescriptorCreation(ref error) => Some(error),
 			
 			&CouldNotSetDriverMessageLevel(ref error) => Some(error),
 			
@@ -110,5 +115,14 @@ impl error::Error for GlobalNetworkDeviceConfigurationError
 			
 			&CouldNotSetGenericReceiveOffloadTimeout(ref error) => Some(error),
 		}
+	}
+}
+
+impl From<CreationError> for GlobalNetworkDeviceConfigurationError
+{
+	#[inline(always)]
+	fn from(value: CreationError) -> Self
+	{
+		GlobalNetworkDeviceConfigurationError::NetworkDeviceSocketFileDescriptorCreation(value)
 	}
 }

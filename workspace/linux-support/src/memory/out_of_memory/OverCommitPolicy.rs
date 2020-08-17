@@ -4,6 +4,8 @@
 
 /// Over-commit setting.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum OverCommitPolicy
 {
 	/// The kernel attempts to estimate the amount of free memory left when userspace requests more memory.

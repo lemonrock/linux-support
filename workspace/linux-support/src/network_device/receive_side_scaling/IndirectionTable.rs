@@ -4,7 +4,21 @@
 
 /// Is never empty.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+#[repr(transparent)]
 pub struct IndirectionTable(pub(crate) Vec<QueueIdentifier>);
+
+impl Deref for IndirectionTable
+{
+	type Target = Vec<QueueIdentifier>;
+	
+	#[inline(always)]
+	fn deref(&self) -> &Self::Target
+	{
+		&self.0
+	}
+}
 
 impl IndirectionTable
 {
@@ -19,10 +33,10 @@ impl IndirectionTable
 	{
 		let denominator = indirection_table_size;
 		let indirection_table_size = indirection_table_size.get();
-		let mut indirection_table = Vec::with_capacity(number_of_receive_queues.get() as usize);
+		let mut indirection_table = Vec::with_capacity(number_of_receive_queues.into());
 		
 		let mut hash_index = 0u32;
-		for queue_identifier in 0 .. number_of_receive_queues.get()
+		for queue_identifier in 0 .. number_of_receive_queues.into()
 		{
 			let queue_identifier = QueueIdentifier(queue_identifier);
 			let weight = weight_queue_strategy.weight(queue_identifier, number_of_receive_queues, denominator);

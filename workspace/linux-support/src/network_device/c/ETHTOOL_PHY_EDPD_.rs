@@ -2,8 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) const ETHTOOL_PHY_EDPD_DFLT_TX_MSECS: u32 = 0xFFFF;
+pub(crate) const ETHTOOL_PHY_EDPD_DFLT_TX_MSECS: u16 = 0xFFFF;
 
-pub(crate) const ETHTOOL_PHY_EDPD_NO_TX: u32 = 0xFFFE;
+pub(crate) const ETHTOOL_PHY_EDPD_NO_TX: u16 = 0xFFFE;
 
-pub(crate) const ETHTOOL_PHY_EDPD_DISABLE: u32 = 0;
+pub(crate) const ETHTOOL_PHY_EDPD_DISABLE: u16 = 0;

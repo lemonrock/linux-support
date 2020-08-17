@@ -4,6 +4,8 @@
 
 /// Strictly speaking, this is a flags bit set but not all flag combinations make sense.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(u8)]
 pub enum NumaZoneReclaimMode
 {
@@ -21,6 +23,15 @@ pub enum NumaZoneReclaimMode
 
 	/// On, write dirty pages out and swap pages.
 	OnWriteDirtyPagesOutAndSwapPages = 1 | 2 | 4,
+}
+
+impl Default for NumaZoneReclaimMode
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		NumaZoneReclaimMode::Off
+	}
 }
 
 impl NumaZoneReclaimMode

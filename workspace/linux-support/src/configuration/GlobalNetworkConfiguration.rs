@@ -3,7 +3,7 @@
 
 
 /// Global network configuration.
-#[derive(Default, Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Default, Debug, Clone, Eq, PartialEq)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct GlobalNetworkConfiguration
@@ -30,7 +30,7 @@ pub struct GlobalNetworkConfiguration
 	/// Global TCP network configuration.
 	///
 	/// Requires root.
-	pub tcp_network_configuration: Option<GlobalTcpConfiguration>,
+	pub tcp_network_configuration: Option<GlobalTransmissionControlProtocolConfiguration>,
 	
 	/// Requires root.
 	pub unix_domain_socket_maximum_datagram_queue_length: Option<MaximumUnixDomainSocketDatagramQueueLength>,

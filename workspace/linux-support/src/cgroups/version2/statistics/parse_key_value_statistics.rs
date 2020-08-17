@@ -23,11 +23,11 @@ pub(crate) fn parse_key_value_statistics(file_path: &Path, callback: &mut impl F
 		#[inline(always)]
 		fn parse_value<'a>(name: &[u8], mut name_and_value: impl Iterator<Item=&'a [u8]>) -> Result<usize, StatisticsParseError>
 		{
-			let bytes_value = name_and_value.next().ok_or(MissingStatisticValue { name })?;
+			let bytes_value = name_and_value.next().ok_or(MissingStatisticValue { name: name.to_vec() })?;
 			usize::parse_decimal_number(bytes_value).map_err(|cause| InvalidStatisticValue { name: name.to_vec(), value: bytes_value.to_vec(), cause })
 		}
 		
-		callback(name, parse_value(name, name_and_value)?)
+		callback(name, parse_value(name, name_and_value)?)?
 	}
 	
 	Ok(())

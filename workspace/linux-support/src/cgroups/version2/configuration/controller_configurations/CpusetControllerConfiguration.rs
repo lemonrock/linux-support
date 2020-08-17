@@ -22,7 +22,7 @@ impl ControllerConfiguration for CpusetControllerConfiguration
 {
 	const Controller: Controller = Controller::cpuset;
 	
-	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup>) -> io::Result<()>
+	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>) -> io::Result<()>
 	{
 		cgroup.write_cpuset_hyper_threads(mount_point, &self.hyper_threads)?;
 		

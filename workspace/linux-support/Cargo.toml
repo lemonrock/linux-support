@@ -45,7 +45,7 @@ raw-cpuid = "^5.0"
 serde = { version = "^1.0", features = ["derive", "rc"] }
 serde_bytes = "^0.11.3"
 streaming-iterator = "^0.1.5"
-strum = "^0.18.0"
-strum_macros = "^0.18.0"
+strum = "^0.19.2"
+strum_macros = "^0.19.2"
 swiss-army-knife = { version = "0.0.0", path = "../swiss-army-knife" }
 terminate = { version = "^0.2.0", path = "../terminate" }

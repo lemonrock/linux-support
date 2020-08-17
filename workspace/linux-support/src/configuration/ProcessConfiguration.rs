@@ -262,7 +262,14 @@ impl ProcessConfiguration
 	#[inline(always)]
 	fn set_out_of_memory_adjustment(&self, proc_path: &ProcPath) -> Result<(), ProcessConfigurationError>
 	{
-		self.out_of_memory_adjustment.set(proc_path, ProcessIdentifierChoice::Current).map_err(ProcessConfigurationError::CouldNotChangeOutOfMemoryAdjustment)
+		if let Some(out_of_memory_adjustment) = self.out_of_memory_adjustment
+		{
+			out_of_memory_adjustment.set(proc_path, ProcessIdentifierChoice::Current).map_err(ProcessConfigurationError::CouldNotChangeOutOfMemoryAdjustment)
+		}
+		else
+		{
+			Ok(())
+		}
 	}
 	
 	#[inline(always)]
@@ -437,7 +444,7 @@ impl ProcessConfiguration
 	#[inline(always)]
 	fn set_global_computed_configuration(sys_path: &SysPath, proc_path: &ProcPath, global_computed_scheduling_affinity: Option<&GlobalComputedSchedulingConfiguration>) -> Result<(), ProcessConfigurationError>
 	{
-		set_value(proc_path, |proc_path, global_computed_scheduling_affinity| global_computed_scheduling_affinity.configure(sys_path, proc_path), global_computed_scheduling_affinity, ProcessConfigurationError::CouldNotChangeGlobalComputedConfiguration)
+		set_value(proc_path, |proc_path, global_computed_scheduling_affinity| global_computed_scheduling_affinity.configure(sys_path, proc_path), global_computed_scheduling_affinity, ProcessConfigurationError::CouldNotChangeGlobalComputedSchedulingConfiguration)
 	}
 
 	#[inline(always)]

@@ -140,7 +140,7 @@ impl NetworkInterfaceName
 	pub fn device_identifier(self, sys_path: &SysPath) -> io::Result<u16>
 	{
 		let value = self.file_path(sys_path, "dev_id").read_raw_without_line_feed()?;
-		ParseNumberError::parse_hexadecimal_number_lower_case_with_0x_prefix(&value[..]).map_err(|error| io::Error::new(ErrorKind::InvalidData, error))
+		u16::parse_hexadecimal_number_lower_case_with_0x_prefix(&value[..]).map_err(|error| io::Error::new(ErrorKind::InvalidData, error))
 	}
 	
 	/// Reads the `dev_port`, used to differentiate devices that share the same link layer address.
@@ -162,7 +162,7 @@ impl NetworkInterfaceName
 	pub fn assigned_hardware_address_type(self, sys_path: &SysPath) -> io::Result<NET_ADDR>
 	{
 		let value: u8 = self.file_path(sys_path, "addr_assign_type").read_value()?;
-		if (value as usize) >= NET_ADDR::NET_ADDR_COUNT
+		if (value as usize) >= NET_ADDR::COUNT
 		{
 			Err(io::Error::from(ErrorKind::InvalidData))
 		}
@@ -192,7 +192,7 @@ impl NetworkInterfaceName
 			}
 		};
 		
-		if (value as usize) >= NET_NAME::NET_NAME_COUNT
+		if (value as usize) >= NET_NAME::COUNT
 		{
 			Err(io::Error::from(ErrorKind::InvalidData))
 		}

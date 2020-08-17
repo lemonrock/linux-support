@@ -87,7 +87,7 @@ impl ethtool_sset_info
 			#[inline(always)]
 			fn next(&mut self) -> Option<Self::Item>
 			{
-				const ExclusiveMaximum: u64 = ethtool_stringset::ETHTOOL_STRINGSET_COUNT as u64;
+				const ExclusiveMaximum: u64 = ethtool_stringset::COUNT as u64;
 				debug_assert!(ExclusiveMaximum < 64, "Only 64 elements are possible in a bitset which is backed by an u64");
 				debug_assert!(self.next_index <= ExclusiveMaximum);
 				

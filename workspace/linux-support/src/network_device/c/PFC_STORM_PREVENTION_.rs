@@ -3,7 +3,7 @@
 
 
 /// Used by `tunable_id::ETHTOOL_PFC_PREVENTION_TOUT`.
-pub(crate) const PFC_STORM_PREVENTION_AUTO: u32 = 0xFFFF;
+pub(crate) const PFC_STORM_PREVENTION_AUTO: u16 = 0xFFFF;
 
 /// Used by `tunable_id::ETHTOOL_PFC_PREVENTION_TOUT`.
-pub(crate) const PFC_STORM_PREVENTION_DISABLE: u32 = 0;
+pub(crate) const PFC_STORM_PREVENTION_DISABLE: u16 = 0;

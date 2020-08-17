@@ -4,6 +4,8 @@
 
 /// How often to do adaptive coalescing packet rate sampling.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields, default)]
 pub struct AdaptiveCoalescingRateSampling
 {
 	/// How often to do adaptive coalescing packet rate sampling, measured in seconds.

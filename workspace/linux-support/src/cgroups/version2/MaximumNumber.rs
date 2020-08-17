@@ -6,6 +6,8 @@
 ///
 /// Defaults to `Maximum`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum MaximumNumber<V: ParseNumber + Copy + IntegerIntoLineFeedTerminatedByteString>
 {
 	/// A finite value.

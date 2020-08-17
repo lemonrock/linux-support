@@ -5,6 +5,7 @@
 object_name!
 (
 	ObjectName256,
+	u16,
 	255,
 	/// A string.
 	///

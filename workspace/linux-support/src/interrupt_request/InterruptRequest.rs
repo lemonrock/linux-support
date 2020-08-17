@@ -115,7 +115,7 @@ impl InterruptRequest
 		let comma_separated_string = file_path.read_raw_without_line_feed().unwrap();
 		
 		#[inline(always)]
-		fn mapper(index: usize, count_in_bytes: &[u8]) -> Result<(HyperThread, u64), BitSetAwareTryFromU16Error>
+		fn mapper((index, count_in_bytes): (usize, &[u8])) -> Result<(HyperThread, u64), BitSetAwareTryFromU16Error>
 		{
 			let count = u64::parse_decimal_number(count_in_bytes)?;
 			let hyper_thread = HyperThread::try_from(index)?;

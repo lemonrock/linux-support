@@ -35,8 +35,8 @@ impl GlobalNumaMemoryReclaimConfiguration
 		use self::GlobalNumaMemoryReclaimConfigurationError::*;
 
 		set_value(proc_path, |proc_path, value| value.set(proc_path), self.numa_zone_reclaim_mode, CouldNotChangeNumaZoneReclaimMode)?;
-		set_value(proc_path, |proc_path, value| value.set(proc_path), self.minimum_slab_percentage, CouldNotChangeMinimumSlabPercentage)?;
-		set_value(proc_path, |proc_path, value| value.set(proc_path), self.minimum_unmapped_percentage, CouldNotChangeMinimumUnmappedPercentage)?;
+		set_proc_sys_vm_value(proc_path, "min_slab_ratio", self.minimum_slab_percentage, CouldNotChangeMinimumSlabPercentage)?;
+		set_proc_sys_vm_value(proc_path, "min_unmapped_ratio", self.minimum_unmapped_percentage, CouldNotChangeMinimumUnmappedPercentage)?;
 		Ok(())
 	}
 }

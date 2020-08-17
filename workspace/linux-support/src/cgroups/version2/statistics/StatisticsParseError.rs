@@ -20,7 +20,7 @@ pub enum StatisticsParseError
 	MissingStatisticValue
 	{
 		/// Name.
-		name: &'static [u8],
+		name: Vec<u8>,
 	},
 
 	/// Invalid statistic value.

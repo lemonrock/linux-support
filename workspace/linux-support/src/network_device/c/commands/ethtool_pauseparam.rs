@@ -15,6 +15,15 @@ pub(crate) struct ethtool_pauseparam
 	tx_pause: u32,
 }
 
+impl EthtoolCommand for ethtool_pauseparam
+{
+	#[inline(always)]
+	fn command(&self) -> u32
+	{
+		self.cmd
+	}
+}
+
 impl ethtool_pauseparam
 {
 	#[inline(always)]

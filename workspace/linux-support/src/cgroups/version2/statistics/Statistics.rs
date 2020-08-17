@@ -25,7 +25,7 @@ pub struct Statistics
 impl Statistics
 {
 	#[inline(always)]
-	fn from_file(file_path: &Path) -> Result<Self, StatisticsParseError>
+	pub(super) fn from_file(file_path: &Path) -> Result<Self, StatisticsParseError>
 	{
 		let mut number_of_living_descendants = None;
 		let mut number_of_dying_descendants = None;

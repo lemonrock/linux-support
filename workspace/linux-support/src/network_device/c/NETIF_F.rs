@@ -5,7 +5,7 @@
 /// Found in Linux source at `include/linux/netdev_features.h`.
 ///
 /// Strings are in the `ethtool_stringset::ETH_SS_FEATURES` string set.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(EnumCount, EnumIter)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields, rename = "Feature")]
@@ -478,7 +478,7 @@ impl NETIF_F
 	/// Last of the `SKB_GSO` GSO bits.
 	pub const NETIF_F_GSO_LAST: Self = NETIF_F::NETIF_F_GSO_FRAGLIST_BIT;
 	
-	pub(crate) const NETDEV_FEATURE_COUNT: usize = Self::NETIF_F_COUNT;
+	pub(crate) const NETDEV_FEATURE_COUNT: usize = Self::COUNT;
 	
 	pub(crate) const ETHTOOL_DEV_FEATURE_WORDS: usize = divide_rounded_up_word(Self::NETDEV_FEATURE_COUNT);
 	

@@ -23,7 +23,7 @@ pub struct ExtendedBpfProgramTemplate<'name>
 	/// Lines of the program.
 	///
 	/// There must be at least one line.
-	#[serde(borrow)] pub program_lines: Vec<ProgramLine<'name>>,
+	#[serde(borrow)] pub program_lines: ProgramLines<'name>,
 }
 
 impl<'name> ExtendedBpfProgramTemplate<'name>

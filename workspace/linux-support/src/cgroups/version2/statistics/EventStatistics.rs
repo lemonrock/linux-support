@@ -16,7 +16,7 @@ pub struct EventStatistics
 impl EventStatistics
 {
 	#[inline(always)]
-	fn from_file(file_path: &Path) -> Result<Self, StatisticsParseError>
+	pub(super) fn from_file(file_path: &Path) -> Result<Self, StatisticsParseError>
 	{
 		let mut populated = None;
 		let mut frozen = None;

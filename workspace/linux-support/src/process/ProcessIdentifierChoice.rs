@@ -4,6 +4,8 @@
 
 /// A process identifier choice.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum ProcessIdentifierChoice
 {
 	/// The current (Self) process.

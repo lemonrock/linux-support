@@ -75,7 +75,7 @@ impl OwnedReceiveTransmitMemoryRingQueues
 	pub fn share(&self, network_interface_index: NetworkInterfaceIndex, queue_identifier: QueueIdentifier, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<SharedReceiveTransmitMemoryRingQueues, SocketCreationOrBindError>
 	{
 		let xsk_socket_file_descriptor = ExpressDataPathSocketFileDescriptor::new()?;
-		let receive_and_transmit = Self::construct(&xsk_socket_file_descriptor, network_interface_index, queue_identifier, ring_queue_depths, XdpSocketAddressFlags::SharedUserMemory, self.user_memory.user_memory_socket_file_descriptor.as_raw_fd(), defaults)?;
+		let receive_and_transmit = Self::construct(&xsk_socket_file_descriptor, network_interface_index, queue_identifier, ring_queue_depths, XdpSocketAddressFlags::SharedUserMemory, self.user_memory.user_memory_socket_file_descriptor.as_raw_fd(), defaults, None)?;
 		Ok
 		(
 			SharedReceiveTransmitMemoryRingQueues

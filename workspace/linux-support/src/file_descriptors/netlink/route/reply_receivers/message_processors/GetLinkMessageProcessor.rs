@@ -64,7 +64,7 @@ impl MessageProcessor for GetLinkMessageProcessor
 			(false, false, IFLA_CARRIER) => set_field_error(&mut processing_message_state.carrier_ok, message_attribute, rtattr::get_attribute_value_bool)?,
 			
 			// Optional.
-			(false, false, IFLA_QDISC) => set_field_error(&mut processing_message_state.queueing_discipline, message_attribute, rtattr::get_attribute_value_asciiz_string)?,
+			(false, false, IFLA_QDISC) => set_field_error(&mut processing_message_state.queueing_discipline, message_attribute, rtattr::get_attribute_value_c_string)?,
 			(false, false, IFLA_IFALIAS) => set_field_error(&mut processing_message_state.network_interface_alias, message_attribute, rtattr::get_attribute_value_network_interface_alias)?,
 			
 			// Mandatory.
@@ -87,7 +87,7 @@ impl MessageProcessor for GetLinkMessageProcessor
 			
 			// Optional.
 			(false, false, IFLA_PHYS_PORT_ID) => set_field_error(&mut processing_message_state.physical_port_identifier, message_attribute, rtattr::get_attribute_value_physical_identifier)?,
-			(false, false, IFLA_PHYS_PORT_NAME) => set_field_error(&mut processing_message_state.physical_port_name, message_attribute, rtattr::get_attribute_value_asciiz_string)?,
+			(false, false, IFLA_PHYS_PORT_NAME) => set_field_error(&mut processing_message_state.physical_port_name, message_attribute, rtattr::get_attribute_value_c_string)?,
 			(false, false, IFLA_PHYS_SWITCH_ID) => set_field_error(&mut processing_message_state.physical_switch_identifier, message_attribute, rtattr::get_attribute_value_physical_identifier)?,
 			
 			(false, false, IFLA_STATS64) => set_field_error(&mut processing_message_state.statistics, message_attribute, rtattr::get_attribute_value_struct_cloned::<rtnl_link_stats64>)?,
@@ -153,7 +153,7 @@ impl GetLinkMessageProcessor
 					{
 						return Err(format!("IFLA_XDP_ATTACHED can only be specified once"))
 					}
-					message_data.attached = message_attribute.get_attribute_value_attached()?;
+					message_data.attached = message_attribute.get_attribute_value_attached().map_err(|error| format!("{}", error))?;
 					attached = true;
 				}
 				

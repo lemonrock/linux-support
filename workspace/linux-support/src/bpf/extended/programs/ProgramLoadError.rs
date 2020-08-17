@@ -3,7 +3,7 @@
 
 
 /// An error when loading a program.
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ProgramLoadError
 {
 	/// Parse error.

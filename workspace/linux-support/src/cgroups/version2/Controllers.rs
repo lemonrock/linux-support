@@ -71,14 +71,14 @@ impl Controllers
 	#[inline(always)]
 	fn new_if_going_to_be_full() -> Self
 	{
-		Self(HashMap::with_capacity(Controller::MaximumNumberOfControllers))
+		Self(HashSet::with_capacity(Controller::MaximumNumberOfControllers))
 	}
 	
 	pub(crate) fn add_if_some<CC: ControllerConfiguration>(&mut self, controller: &Option<CC>)
 	{
 		if controller.is_some()
 		{
-			self.insert(CC::Controller)
+			self.insert(CC::Controller);
 		}
 	}
 	
@@ -103,7 +103,7 @@ impl Controllers
 			}
 			else
 			{
-				disabled.insert(controller)
+				disabled.insert(controller);
 			}
 		}
 		(enabled, disabled)
@@ -126,7 +126,7 @@ impl Controllers
 	#[inline(always)]
 	pub(crate) fn merge(&mut self, other: &Self)
 	{
-		for controller in other
+		for controller in other.iter()
 		{
 			self.insert(*controller);
 		}

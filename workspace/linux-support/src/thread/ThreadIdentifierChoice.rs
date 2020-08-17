@@ -4,6 +4,8 @@
 
 /// A thread identifier choice.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum ThreadIdentifierChoice
 {
 	/// The current (Self) thread.

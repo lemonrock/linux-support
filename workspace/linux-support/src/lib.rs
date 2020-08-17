@@ -695,6 +695,7 @@ use std::time::Duration;
 use std::time::SystemTime;
 use std::time::UNIX_EPOCH;
 use streaming_iterator::StreamingIterator;
+use strum::EnumCount;
 use strum::EnumMessage;
 use strum::IntoEnumIterator;
 use strum_macros::EnumCount;

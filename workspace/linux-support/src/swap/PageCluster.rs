@@ -62,7 +62,7 @@ impl PageCluster
 	///
 	/// Requires root.
 	#[inline(always)]
-	pub fn set(self, proc_path: &ProcPath) -> io::Result<()>
+	pub fn write(self, proc_path: &ProcPath) -> io::Result<()>
 	{
 		assert_effective_user_id_is_root("write /proc/sys/vm/page-cluster");
 		

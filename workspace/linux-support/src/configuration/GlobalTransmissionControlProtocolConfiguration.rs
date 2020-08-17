@@ -2,11 +2,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Global TCP configuration.
+/// Global Transmission Control Protocol (TCP) configuration.
 #[derive(Default, Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
-pub struct GlobalTcpConfiguration
+pub struct GlobalTransmissionControlProtocolConfiguration
 {
 	/// Global TCP minimum, default and maximum send buffer size.
 	///
@@ -104,15 +104,15 @@ pub struct GlobalTcpConfiguration
 	pub tcp_high_order_allocations: Option<bool>,
 }
 
-impl GlobalTcpConfiguration
+impl GlobalTransmissionControlProtocolConfiguration
 {
 	/// Configures.
-	pub fn configure(&self, proc_path: &ProcPath) -> Result<(), GlobalTcpConfigurationError>
+	pub fn configure(&self, proc_path: &ProcPath) -> Result<(), GlobalTransmissionControlProtocolConfigurationError>
 	{
-		use self::GlobalTcpConfigurationError::*;
+		use self::GlobalTransmissionControlProtocolConfigurationError::*;
 		
-		set_value(proc_path, SendBufferSizeInBytes::set_global_tcp_minimum_default_and_maximum, self.tcp_global_minimum_default_and_maximum_send_buffer_size_in_bytes, CouldNotChangeGlobalTcpMinimumDefaultAndMaximumSendBufferSize)?;
-		set_value(proc_path, ReceiveBufferSizeInBytes::set_global_tcp_minimum_default_and_maximum, self.tcp_global_minimum_default_and_maximum_receive_buffer_size_in_bytes, CouldNotChangeGlobalTcpMinimumDefaultAndMaximumReceiveBufferSize)?;
+		set_value(proc_path, SendBufferSizeInBytes::set_global_tcp_minimum_default_and_maximum, self.tcp_global_minimum_default_and_maximum_send_buffer_size_in_bytes, CouldNotChangeGlobalMinimumDefaultAndMaximumSendBufferSize)?;
+		set_value(proc_path, ReceiveBufferSizeInBytes::set_global_tcp_minimum_default_and_maximum, self.tcp_global_minimum_default_and_maximum_receive_buffer_size_in_bytes, CouldNotChangeGlobalMinimumDefaultAndMaximumReceiveBufferSize)?;
 		instance_set_value(proc_path, KeepAliveIntervalSeconds::set_global_default, self.tcp_keep_alive_interval_seconds, CouldNotChangeGlobalDefaultKeepAliveIntervalSeconds)?;
 		instance_set_value(proc_path, IdlesBeforeKeepAliveSeconds::set_global_default, self.tcp_idles_before_keep_alive_seconds, CouldNotChangeGlobalDefaultIdlesBeforeKeepAliveSeconds)?;
 		instance_set_value(proc_path, MaximumKeepAliveProbes::set_global_default, self.tcp_maximum_keep_alive_probes, CouldNotChangeGlobalDefaultMaximumKeepAliveProbes)?;

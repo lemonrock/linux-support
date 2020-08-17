@@ -98,7 +98,7 @@ impl GlobalNetworkDeviceConfiguration
 		use self::GlobalNetworkDeviceConfigurationError::*;
 		
 		#[inline(always)]
-		fn validate<A, E>(network_device_input_output_control: &NetworkDeviceInputOutputControl, change_result: impl FnOnce(&NetworkDeviceInputOutputControl) -> Result<Option<A>, E>, error: impl FnOnce(E) -> GlobalNetworkDeviceConfigurationError) -> Result<A, GlobalNetworkDeviceConfigurationError>
+		fn validate<A, E>(network_device_input_output_control: &NetworkDeviceInputOutputControl, change_result: Result<Option<A>, E>, error: impl FnOnce(E) -> GlobalNetworkDeviceConfigurationError) -> Result<A, GlobalNetworkDeviceConfigurationError>
 		{
 			change_result.map_err(error)?.ok_or(NetworkDeviceDoesNotExist(network_device_input_output_control.network_interface_name()))
 		}
@@ -107,7 +107,7 @@ impl GlobalNetworkDeviceConfiguration
 		
 		if let Some(driver_message_level) = self.driver_message_level
 		{
-			validate(&network_device_input_output_control, network_device_input_output_control.set_driver_message_level(driver_message_level), CouldNotSetDriverMessageLevel)?
+			validate(&network_device_input_output_control, network_device_input_output_control.set_driver_message_level(driver_message_level), CouldNotSetDriverMessageLevel)?;
 		}
 		
 		if let Some(transmission_queue_length) = self.transmission_queue_length
@@ -137,15 +137,15 @@ impl GlobalNetworkDeviceConfiguration
 		
 		if self.disable_wake_on_lan
 		{
-			validate(&network_device_input_output_control, NetworkDeviceInputOutputControl::sdisable_wake_on_lan(), CouldNotDisableWakeOnLan)?
+			validate(&network_device_input_output_control, network_device_input_output_control.disable_wake_on_lan(), CouldNotDisableWakeOnLan)?
 		}
 		
 		validate(&network_device_input_output_control, network_device_input_output_control.set_features(FeatureGroupChoice::iter(&self.feature_group_choices)), CouldNotChangeFeatures)?;
 		
 		if let Some(ref driver_specific_flags_to_change) = self.driver_specific_flags_to_change
 		{
-			let all_string_sets = validate(&network_device_input_output_control, NetworkDeviceInputOutputControl::sget_all_string_sets(), CouldNotGetAllStringSets)?;
-			validate(&network_device_input_output_control, network_device_input_output_control.set_private_flags(&all_string_sets, driver_specific_flags_to_change), CouldNotChangeDriverSpecificFlags)
+			let all_string_sets = validate(&network_device_input_output_control, network_device_input_output_control.get_all_string_sets(), CouldNotGetAllStringSets)?;
+			validate(&network_device_input_output_control, network_device_input_output_control.set_private_flags(&all_string_sets, driver_specific_flags_to_change), CouldNotChangeDriverSpecificFlags)?;
 		}
 		
 		for tunable_choice in self.tunables.iter()
@@ -155,21 +155,21 @@ impl GlobalNetworkDeviceConfiguration
 		
 		if let Some(ref coalesce_configuration) = self.coalesce_configuration
 		{
-			validate(&network_device_input_output_control, NetworkDeviceInputOutputControl::schange_coalesce_configuration(coalesce_configuration), CouldNotChangeCoalesceConfiguration)?
+			validate(&network_device_input_output_control, network_device_input_output_control.change_coalesce_configuration(coalesce_configuration), CouldNotChangeCoalesceConfiguration)?
 		}
 		
-		let channels = validate(&network_device_input_output_control, NetworkDeviceInputOutputControl::smaximize_number_of_channels(self.maximize_number_of_channels), CouldNotMaximizeChannels)?;
+		let channels = validate(&network_device_input_output_control, network_device_input_output_control.maximize_number_of_channels(self.maximize_number_of_channels), CouldNotMaximizeChannels)?;
 		
-		let pending_queue_depths = validate(&network_device_input_output_control, NetworkDeviceInputOutputControl::smaximize_receive_ring_queues_and_transmit_ring_queue_depths(self.maximize_pending_queue_depths), CouldNotMaximizePendingQueueDepths)?;
+		let pending_queue_depths = validate(&network_device_input_output_control, network_device_input_output_control.maximize_receive_ring_queues_and_transmit_ring_queue_depths(self.maximize_pending_queue_depths), CouldNotMaximizePendingQueueDepths)?;
 		
 		if let Some(ref receive_side_scaling_hash_configuration) = self.receive_side_scaling_hash_configuration
 		{
-			validate(&network_device_input_output_control, network_device_input_output_control.set_configured_hash_settings(None, receive_side_scaling_hash_configuration), CouldNotConfigureReceiveSideScalingHashConfiguration)?
+			validate(&network_device_input_output_control, network_device_input_output_control.set_configured_hash_settings(None, receive_side_scaling_hash_configuration), CouldNotConfigureReceiveSideScalingHashConfiguration)?;
 		}
 		
 		if let Some(generic_receive_offload_flush_timeout_in_nanoseconds) = self.generic_receive_offload_flush_timeout_in_nanoseconds
 		{
-			self.network_interface_name.set_generic_receive_offload_flush_timeout_in_nanoseconds(sys_path, generic_receive_offload_flush_timeout_in_nanoseconds).map_err(CouldNotSetGenericReceiveOffloadTimeout)
+			network_interface_name.set_generic_receive_offload_flush_timeout_in_nanoseconds(sys_path, generic_receive_offload_flush_timeout_in_nanoseconds).map_err(CouldNotSetGenericReceiveOffloadTimeout)?;
 		}
 		
 		Ok((channels, pending_queue_depths))

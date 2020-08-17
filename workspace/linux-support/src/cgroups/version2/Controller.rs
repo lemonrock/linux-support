@@ -93,7 +93,7 @@ impl FromBytes for Controller
 
 impl Controller
 {
-	const MaximumNumberOfControllers: usize = Controller::CONTROLLER_COUNT;
+	const MaximumNumberOfControllers: usize = Self::COUNT;
 	
 	/// Is domain?
 	#[inline(always)]

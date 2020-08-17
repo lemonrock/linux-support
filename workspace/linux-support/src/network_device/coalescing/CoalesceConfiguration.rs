@@ -4,12 +4,14 @@
 
 /// Coalesce configuration.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct CoalesceConfiguration
 {
 	/// Adaptive coalescing.
 	///
 	/// If `Some` then the driver must support either `ETHTOOL_COALESCE_USE_ADAPTIVE_RX` or `ETHTOOL_COALESCE_USE_ADAPTIVE_TX` or both.
-	pub adaptive_coalescing: Option<AdaptiveCoalescingConfiguration>,
+	#[serde(default)] pub adaptive_coalescing: Option<AdaptiveCoalescingConfiguration>,
 	
 	/// Normal settings.
 	///
@@ -34,7 +36,7 @@ pub struct CoalesceConfiguration
 	/// Threshold.
 	///
 	/// Driver must support `ETHTOOL_COALESCE_PKT_RATE_LOW` if is `Some`.
-	pub low_packet_rate_packets_per_second_threshold: Option<NonZeroU32>,
+	#[serde(default)] pub low_packet_rate_packets_per_second_threshold: Option<NonZeroU32>,
 	
 	/// Settings to apply if the `low_packet_rate_packets_per_second_threshold` is met.
 	///
@@ -49,7 +51,7 @@ pub struct CoalesceConfiguration
 	/// Threshold.
 	///
 	/// Driver must support `ETHTOOL_COALESCE_PKT_RATE_HIGH` if is `Some`.
-	pub high_packet_rate_packets_per_second_threshold: Option<NonZeroU32>,
+	#[serde(default)] pub high_packet_rate_packets_per_second_threshold: Option<NonZeroU32>,
 	
 	/// Settings to apply if the `high_packet_rate_packets_per_second_threshold` is met.
 	///
@@ -68,7 +70,7 @@ pub struct CoalesceConfiguration
 	/// This value must not be zero.
 	///
 	/// Driver must support `ETHTOOL_COALESCE_STATS_BLOCK_USECS`.
-	pub statistics_block_coalesce_microseconds: Option<NonZeroU32>,
+	#[serde(default)] pub statistics_block_coalesce_microseconds: Option<NonZeroU32>,
 }
 
 impl CoalesceConfiguration

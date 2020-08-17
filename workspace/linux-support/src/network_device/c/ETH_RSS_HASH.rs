@@ -4,16 +4,27 @@
 
 /// Receive Side Scaling (RSS) function name.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[derive(EnumCount)]
 #[repr(u8)]
 pub enum ETH_RSS_HASH
 {
 	/// Toepltiz.
-	ETH_RSS_HASH_TOP_BIT = 0,
+	#[serde(rename = "Toeplitz")] ETH_RSS_HASH_TOP_BIT = 0,
 	
 	/// eXclusive Or (XOR).
-	ETH_RSS_HASH_XOR_BIT = 1,
+	#[serde(rename = "XOR")] ETH_RSS_HASH_XOR_BIT = 1,
 	
 	/// Cyclic Redundancy Check 32 (CRC32).
-	ETH_RSS_HASH_CRC32_BIT = 2,
+	#[serde(rename = "CRC32")] ETH_RSS_HASH_CRC32_BIT = 2,
+}
+
+impl Default for ETH_RSS_HASH
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		ETH_RSS_HASH::ETH_RSS_HASH_TOP_BIT
+	}
 }

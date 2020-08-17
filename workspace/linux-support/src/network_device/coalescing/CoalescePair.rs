@@ -5,6 +5,8 @@
 /// It is illegal to set both microseconds and maximum_frames to zero as this would cause interrupts to never be generated.
 /// To disable coalescing, set `microseconds = 0` and `maximum_frames = 1`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields, default)]
 pub struct CoalescePair
 {
 	/// How many microseconds to delay a receive interrupt after a packet arrives or delay a transmit interrupt after a packet is sent.
@@ -28,7 +30,7 @@ impl CoalescePair
 	/// Disabled.
 	pub const Disabled: Self = Self
 	{
-		microseconds: 0,
-		maximum_frames: 1,
+		microseconds: None,
+		maximum_frames: Some(unsafe { NonZeroU32::new_unchecked(1) }),
 	};
 }

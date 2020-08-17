@@ -35,17 +35,16 @@ impl<'name> Cgroup<'name> for NonRootCgroup<'name>
 		
 		let path = match self
 		{
-			&ChildOfRoot { ref name} => RootCgroup.to_owned_path(mount_point).append(name),
-			&ChildOfAChild { ref name, parent } => parent.to_owned_path(mount_point).append(name),
+			&ChildOfRoot { ref name} => RootCgroup.to_owned_path(mount_point).append(&**name),
+			&ChildOfAChild { ref name, parent } => parent.to_owned_path(mount_point).append(&**name),
 		};
 		Cow::Owned(path)
 	}
 	
-	/// Does not check if the child exists.
 	#[inline(always)]
-	fn child(self: Rc<Self>, name: impl Into<Cow<'name, CgroupName>>) -> Rc<NonRootCgroup<'name>>
+	fn child(self: Rc<Self>, name: Cow<'name, CgroupName>) -> Rc<NonRootCgroup<'name>>
 	{
-		Rc::new(NonRootCgroup::ChildOfAChild { name: name.into(), parent: self })
+		Rc::new(NonRootCgroup::ChildOfAChild { name, parent: self })
 	}
 }
 
@@ -103,6 +102,14 @@ impl<'name> NonRootCgroup<'name>
 		self.cgroup_type_file_path(mount_point).read_value()
 	}
 	
+	/// Write type.
+	#[inline(always)]
+	pub fn make_type_threaded(&self, mount_point: &CgroupMountPoint) -> io::Result<()>
+	{
+		let path = self.cgroup_type_file_path(mount_point);
+		path.write_value(b"threaded\n" as &[u8])
+	}
+	
 	/// Freeze the cgroup.
 	///
 	/// All processes in this and every descendant cgroup, will be stopped not run until the cgroup is be explicitly thawed.
@@ -125,15 +132,7 @@ impl<'name> NonRootCgroup<'name>
 	#[inline(always)]
 	pub fn is_frozen(&self, mount_point: &CgroupMountPoint) -> io::Result<bool>
 	{
-		self.cgroup_freeze_file_path(mount_point).read_value()
-	}
-	
-	/// Write type.
-	#[inline(always)]
-	pub fn make_type_threaded(&self, mount_point: &CgroupMountPoint) -> io::Result<()>
-	{
-		let path = self.cgroup_type_file_path(mount_point);
-		path.write_value(b"threaded\n" as &[u8])
+		self.cgroup_freeze_file_path(mount_point).read_zero_or_one_bool()
 	}
 
 	/// Is populated?
@@ -356,6 +355,6 @@ impl<'name> NonRootCgroup<'name>
 	#[inline(always)]
 	fn file_path(&self, mount_point: &CgroupMountPoint, file_name: &str) -> PathBuf
 	{
-		self.to_path(mount_point).append(file_name)
+		self.to_path(mount_point).to_path_buf().append(file_name)
 	}
 }
