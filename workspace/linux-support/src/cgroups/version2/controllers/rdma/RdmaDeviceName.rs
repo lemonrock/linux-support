@@ -2,22 +2,19 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// `rdma` controller configuration.
-#[derive(Default, Debug, Clone, PartialEq, Eq)]
+/// A RDMA (or InfiniBand, IB) device name.
+#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields, default)]
-pub struct RdmaControllerConfiguration
-{
-	#[serde(flatten)] pub maximum: RdmaFile,
-}
+#[repr(transparent)]
+pub struct RdmaDeviceName(pub Vec<u8>);
 
-impl ControllerConfiguration for RdmaControllerConfiguration
+impl Deref for RdmaDeviceName
 {
-	const Controller: Controller = Controller::rdma;
+	type Target = Vec<u8>;
 	
 	#[inline(always)]
-	fn configure<'name>(&self, mount_point: &CgroupMountPoint, c_group: &Rc<NonRootCgroup<'name>>) -> io::Result<()>
+	fn deref(&self) -> &Self::Target
 	{
-		c_group.write_rdma_maximum(mount_point, &self.maximum)
+		&self.0
 	}
 }

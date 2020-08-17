@@ -47,6 +47,9 @@ impl<U: UserOrGroupIdentifier> UserOrGroupIdentifierMap<U>
 			let outside_namespace_user_or_group_identifier: u32 = outside_namespace_user_or_group_identifier.into();
 			writeln!(buf_writer, "{} {} {}", inside_namespace_user_or_group_identifier, outside_namespace_user_or_group_identifier, length)?;
 		}
+		
+		buf_writer.flush()?;
+		
 		Ok(())
 	}
 }

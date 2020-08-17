@@ -8,6 +8,7 @@ use self::controllers::cpu::*;
 use self::controllers::cpuset::*;
 use self::controllers::memory::*;
 use self::controllers::pids::*;
+use self::controllers::rdma::*;
 use self::statistics::*;
 use crate::configuration::Microseconds;
 use crate::cpu::HyperThreads;

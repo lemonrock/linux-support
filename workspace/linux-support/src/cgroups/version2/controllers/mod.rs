@@ -19,3 +19,7 @@ pub mod memory;
 
 /// `pids` controller.
 pub mod pids;
+
+
+/// `rdma` controller.
+pub mod rdma;

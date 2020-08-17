@@ -35,7 +35,9 @@ pub struct MemoryStatistics
 	/// Amount of cached filesystem data that was modified and is currently being written back to disk.
 	pub file_writeback: usize,
 	
-	/// Transparent Huge Page statistic, if kernel was compiled with support.
+	/// Transparent Huge Pages: Amount of memory used in anonymous mappings backed by transparent hugepages.
+	///
+	/// This counter is not present when the Linux kernel was not configured with `CONFIG_TRANSPARENT_HUGEPAGE`.
 	pub anon_thp: Option<usize>,
 	
 	/// Amount of memory, swap-backed and filesystem-backed, on the internal memory management lists used by the page reclaim algorithm.
@@ -95,10 +97,14 @@ pub struct MemoryStatistics
 	/// Amount of reclaimed lazyfree pages.
 	pub pglazyfreed: usize,
 	
-	/// Transparent Huge Page statistic, if kernel was compiled with support.
+	/// Transparent Huge Pages: Number of transparent hugepages which were allocated to satisfy a page fault, including COW faults.
+	///
+	/// This counter is not present when the Linux kernel was not configured with `CONFIG_TRANSPARENT_HUGEPAGE`.
 	pub thp_fault_alloc: Option<usize>,
-
-	/// Transparent Huge Page statistic, if kernel was compiled with support.
+	
+	/// Transparent Huge Pages: Number of transparent hugepages which were allocated to allow collapsing an existing range of pages.
+	///
+	/// This counter is not present when the Linux kernel was not configured with `CONFIG_TRANSPARENT_HUGEPAGE`.
 	pub thp_collapse_alloc: Option<usize>,
 }
 

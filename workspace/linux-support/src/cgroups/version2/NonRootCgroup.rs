@@ -342,6 +342,14 @@ impl<'name> NonRootCgroup<'name>
 	
 	/// Only works if the `memory` controller is enabled.
 	#[inline(always)]
+	pub fn read_memory_events_local(&self, mount_point: &CgroupMountPoint) -> Result<MemoryEventStatistics, StatisticsParseError>
+	{
+		let path = self.memory_events_local_file_path(mount_point);
+		MemoryEventStatistics::from_file(&path)
+	}
+	
+	/// Only works if the `memory` controller is enabled.
+	#[inline(always)]
 	pub fn read_memory_statistics(&self, mount_point: &CgroupMountPoint) -> Result<MemoryStatistics, StatisticsParseError>
 	{
 		let path = self.memory_swap_events_file_path(mount_point);
@@ -399,6 +407,31 @@ impl<'name> NonRootCgroup<'name>
 	{
 		let path = self.pids_events_file_path(mount_point);
 		ProcessIdentifiersEventStatistics::from_file(&path)
+	}
+	
+	/// Only works if the `rdma` controller is enabled.
+	#[inline(always)]
+	pub fn read_rdma_current(&self, mount_point: &CgroupMountPoint) -> Result<RdmaFile, RdmaParseError>
+	{
+		let file_path = self.rdma_current_file_path(mount_point);
+		RdmaFile::from_file(&file_path)
+	}
+	
+	/// Only works if the `rdma` controller is enabled.
+	#[inline(always)]
+	pub fn read_rdma_maximum(&self, mount_point: &CgroupMountPoint) -> Result<RdmaFile, RdmaParseError>
+	{
+		let file_path = self.rdma_max_file_path(mount_point);
+		RdmaFile::from_file(&file_path)
+	}
+	
+	/// Only works if the `rdma` controller is enabled.
+	///i
+	/// Does not check that the `rdma` controller is enabled.
+	#[inline(always)]
+	pub fn write_rdma_maximum(&self, mount_point: &CgroupMountPoint, maximum: &RdmaFile) -> io::Result<()>
+	{
+		maximum.to_file(&self.rdma_max_file_path(mount_point))
 	}
 	
 	/// Only works if the `pids` controller is enabled.
@@ -501,6 +534,12 @@ impl<'name> NonRootCgroup<'name>
 	}
 	
 	#[inline(always)]
+	fn memory_events_local_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "memory.events.local")
+	}
+	
+	#[inline(always)]
 	fn memory_stat_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
 	{
 		self.file_path(mount_point, "memory.stat")
@@ -540,6 +579,18 @@ impl<'name> NonRootCgroup<'name>
 	fn pids_max_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
 	{
 		self.file_path(mount_point, "pids.max")
+	}
+
+	#[inline(always)]
+	fn rdma_max_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "rdma.max")
+	}
+	
+	#[inline(always)]
+	fn rdma_current_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
+	{
+		self.file_path(mount_point, "rdma.current")
 	}
 
 	#[inline(always)]

@@ -2,22 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// `rdma` controller configuration.
-#[derive(Default, Debug, Clone, PartialEq, Eq)]
-#[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields, default)]
-pub struct RdmaControllerConfiguration
-{
-	#[serde(flatten)] pub maximum: RdmaFile,
-}
+use super::*;
 
-impl ControllerConfiguration for RdmaControllerConfiguration
-{
-	const Controller: Controller = Controller::rdma;
-	
-	#[inline(always)]
-	fn configure<'name>(&self, mount_point: &CgroupMountPoint, c_group: &Rc<NonRootCgroup<'name>>) -> io::Result<()>
-	{
-		c_group.write_rdma_maximum(mount_point, &self.maximum)
-	}
-}
+
+include!("RdmaDeviceName.rs");
+include!("RdmaDeviceValues.rs");
+include!("RdmaFile.rs");
+include!("RdmaParseError.rs");
