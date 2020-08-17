@@ -59,6 +59,9 @@ pub struct GlobalConfiguration
 	/// Requires root.
 	pub bpf: GlobalBpfConfiguration,
 	
+	/// Requires root.
+	pub cgroup: GlobalCgroupConfiguration,
+	
 	/// Validation-only checks.
 	pub linux_kernel_command_line: GlobalLinuxKernelCommandLineConfiguration,
 	
@@ -74,6 +77,8 @@ impl GlobalConfiguration
 	#[inline(always)]
 	pub fn configure(&self, sys_path: &SysPath, proc_path: &ProcPath) -> Result<(), GlobalConfigurationError>
 	{
+		use self::GlobalConfigurationError::*;
+		
 		self.global_scheduling.configure(sys_path, proc_path)?;
 
 		self.pipe.configure(proc_path)?;
@@ -88,7 +93,7 @@ impl GlobalConfiguration
 
 		if let Some(ref system_v_semaphore) = self.system_v_semaphore
 		{
-			system_v_semaphore.write(proc_path).map_err(GlobalConfigurationError::GlobalSystemVSemaphoreConfiguration)?
+			system_v_semaphore.write(proc_path).map_err(GlobalSystemVSemaphoreConfiguration)?
 		}
 		
 		self.inotify.configure(proc_path)?;
@@ -109,7 +114,9 @@ impl GlobalConfiguration
 
 		self.network.configure(sys_path, proc_path)?;
 		
-		self.bpf.configure(proc_path)?;
+		self.bpf.configure(sys_path, proc_path)?;
+		
+		self.cgroup.configure(sys_path, proc_path)?;
 		
 		self.linux_kernel_command_line.configure(proc_path)?;
 		

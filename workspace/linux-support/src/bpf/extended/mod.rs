@@ -4,6 +4,8 @@
 
 use super::*;
 use self::identifiers::ExtendedBpfProgramIdentifier;
+use crate::file_systems::FileSystemType;
+use crate::mounts::VirtualFileSystemMountPoint;
 use crate::process::ProcessIdentifierChoice;
 
 
@@ -33,3 +35,6 @@ pub mod programs;
 
 /// eXpress Data Path (XDP).
 pub mod express_data_path;
+
+
+include!("BpfMountPoint.rs");

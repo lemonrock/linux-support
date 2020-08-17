@@ -12,6 +12,8 @@ use crate::bpf::extended::maps::domain::*;
 use crate::bpf::extended::maps::domain::access_permissions::*;
 use crate::bpf::extended::process_query::*;
 use crate::bpf::extended::programs::*;
+use crate::bpf::extended::BpfMountPoint;
+use crate::mounts::VirtualFileSystemMountPoint;
 
 
 include!("BpfFileDescriptor.rs");

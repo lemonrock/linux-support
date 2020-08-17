@@ -2,20 +2,36 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// `mount -t cgroup2 none /dev/cgroup2`.
+/// `mount -t cgroup2 none /sys/fs/cgroup2`.
 ///
-/// The only supported mount option is `nsdelegate`.
-pub struct CgroupMountPoint
+/// The only useful mount option is `nsdelegate`; this isn't supported in this design, yet.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct CgroupMountPoint(PathBuf);
+
+impl Default for CgroupMountPoint
 {
-	path: PathBuf,
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self::default_sys_fs_path(&SysPath::default())
+	}
 }
 
-impl CgroupMountPoint
+impl VirtualFileSystemMountPoint for CgroupMountPoint
 {
-	/// To a Path.
+	const FileSystemType: FileSystemType = FileSystemType::cgroup2;
+	
 	#[inline(always)]
-	pub fn to_path(&self) -> &Path
+	fn to_path(&self) -> &Path
 	{
-		&self.path
+		&self.0
+	}
+	
+	#[inline(always)]
+	fn from_path(path: PathBuf) -> Self
+	{
+		Self(path)
 	}
 }

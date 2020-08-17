@@ -2,24 +2,36 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A version 2 root cgroup.
+/// `mount -t cgroup2 none /sys/fs/bpf`.
 ///
-/// See <https://www.kernel.org/doc/Documentation/cgroup-v2.txt>.
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct RootCgroup;
+/// Used for pinned objects.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct BpfMountPoint(PathBuf);
 
-impl<'name> Cgroup<'name> for RootCgroup
+impl Default for BpfMountPoint
 {
 	#[inline(always)]
-	fn to_path<'b>(&self, mount_point: &'b CgroupMountPoint) -> Cow<'b, Path>
+	fn default() -> Self
 	{
-		Cow::Borrowed(mount_point.to_path())
+		Self::default_sys_fs_path(&SysPath::default())
+	}
+}
+
+impl VirtualFileSystemMountPoint for BpfMountPoint
+{
+	const FileSystemType: FileSystemType = FileSystemType::bpf;
+	
+	#[inline(always)]
+	fn to_path(&self) -> &Path
+	{
+		&self.0
 	}
 	
-	/// Does not check if the child exists.
 	#[inline(always)]
-	fn child(self: Rc<Self>, name: Cow<'name, CgroupName>) -> Rc<NonRootCgroup<'name>>
+	fn from_path(path: PathBuf) -> Self
 	{
-		Rc::new(NonRootCgroup::ChildOfRoot { name })
+		Self(path)
 	}
 }

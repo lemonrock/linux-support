@@ -41,10 +41,15 @@ pub trait BpfFileDescriptor: FileDescriptor
 	}
 	
 	/// Pin to a path so other processes can use this file descriptor.
+	///
+	/// Path must be below `BpfMountPoint`.
+	///
+	/// cfg `bpf_obj_pin()`.
 	#[inline(always)]
-	fn pin_to_path(&self, path: &impl AsRef<Path>) -> Result<(), Errno>
+	fn pin_to_path(&self, mount_point: &BpfMountPoint, relative_path: &OsStr) -> Result<(), Errno>
 	{
-		let mut path = path_bytes_without_trailing_nul(path).to_vec();
+		let path = mount_point.with_relative_path(relative_path);
+		let mut path = path_bytes_without_trailing_nul(&path).to_vec();
 		path.push(b'\0');
 		
 		let mut attr = bpf_attr::default();
@@ -71,10 +76,15 @@ pub trait BpfFileDescriptor: FileDescriptor
 	}
 	
 	/// Get a file descriptor pinned to a path.
+	///
+	/// Path must be below `BpfMountPoint`.
+	///
+	/// cfg `bpf_obj_get()`.
 	#[inline(always)]
-	fn get_pinned(&self, path: &impl AsRef<Path>, access_permissions: KernelOnlyAccessPermissions) -> Result<Self, Errno>
+	fn get_pinned(&self, mount_point: &BpfMountPoint, relative_path: &OsStr, access_permissions: KernelOnlyAccessPermissions) -> Result<Self, Errno>
 	{
-		let mut path = path_bytes_without_trailing_nul(path).to_vec();
+		let path = mount_point.with_relative_path(relative_path);
+		let mut path = path_bytes_without_trailing_nul(&path).to_vec();
 		path.push(b'\0');
 		
 		let mut attr = bpf_attr::default();

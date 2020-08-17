@@ -12,7 +12,6 @@ pub mod controller_configurations;
 
 include!("BelowRootCgroupConfiguration.rs");
 include!("CachedDesiredControllersAndOurDepth.rs");
-include!("CgroupConfiguration.rs");
 include!("CgroupConfigurationVariant.rs");
 include!("ChildCgroupConfiguration.rs");
 include!("ChildrenCgroupConfiguration.rs");

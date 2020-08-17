@@ -6,15 +6,6 @@
 #[derive(Debug)]
 pub struct CgroupFileDescriptor(RawFd);
 
-impl From<File> for CgroupFileDescriptor
-{
-	#[inline(always)]
-	fn from(value: File) -> Self
-	{
-		unsafe { Self::from_raw_fd(value.into_raw_fd()) }
-	}
-}
-
 impl Into<File> for CgroupFileDescriptor
 {
 	#[inline(always)]
@@ -89,6 +80,15 @@ impl ExtendedBpfProgramCanBeAttachedFileDescriptor for CgroupFileDescriptor
 
 impl CgroupFileDescriptor
 {
+	/// Creates a new instance.
+	#[inline(always)]
+	pub fn new<'name>(mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup<'name>>) -> io::Result<Self>
+	{
+		let path = cgroup.to_path(mount_point);
+		let file = File::open(path)?;
+		Ok(Self::from_raw_fd(file.into_raw_fd()))
+	}
+	
 	/// Requires the capability `CAP_NET_ADMIN`.
 	///
 	/// `extended_bpf_program_file_descriptor` must have a suitable program type with one of the expected attachment types in `CgroupProgramAttachmentType`, ie be one of:-

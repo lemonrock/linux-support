@@ -2,37 +2,27 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Cgroup configuration.
+/// Global cgroup configuration.
 #[derive(Debug, Default, Clone, Eq, PartialEq)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
-pub struct CgroupConfiguration
+pub struct GlobalCgroupConfiguration
 {
 	/// Root cgroup configuration.
 	#[serde(flatten)] pub root_cgroup_configuration: RootCgroupConfiguration,
 }
 
-impl CgroupConfiguration
+impl GlobalCgroupConfiguration
 {
 	/// Configures.
-	pub fn configure(&self, sys_path: &SysPath, proc_path: &ProcPath) -> io::Result<()>
+	pub fn configure(&self, sys_path: &SysPath, proc_path: &ProcPath) -> Result<(), GlobalCgroupConfigurationError>
 	{
-		let mounts = Mounts::parse(proc_path, ProcessIdentifierChoice::Current)?;
+		use self::GlobalCgroupConfigurationError::*;
 		
-		use self::FileSystemType::cgroup2;
+		let mounts = Mounts::parse(proc_path, ProcessIdentifierChoice::Current).map_err(CouldNotParseMounts)?;
 		
-		let mount_point = match mounts.existing_mount(cgroup2)
-		{
-			None =>
-			{
-				let mount_point = CgroupMountPoint { path: sys_path.file_system_fs_folder_path(cgroup2) };
-				RootCgroup::create_and_mount(&mount_point)?;
-				mount_point
-			}
-			
-			Some(path) => CgroupMountPoint { path: path.to_owned() },
-		};
+		let mount_point = mounts.mount_if_not_mounted::<CgroupMountPoint>(sys_path).map_err(CouldNotMount)?;
 		
-		self.root_cgroup_configuration.configure(&mount_point)
+		self.root_cgroup_configuration.configure(&mount_point).map_err(CouldNotChange)
 	}
 }

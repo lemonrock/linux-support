@@ -2,9 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Global BPF configuration error kind.
+/// Global cgroup configuration error kind.
 #[derive(Debug)]
-pub enum GlobalBpfConfigurationError
+pub enum GlobalCgroupConfigurationError
 {
 	#[allow(missing_docs)]
 	CouldNotParseMounts(io::Error),
@@ -13,13 +13,10 @@ pub enum GlobalBpfConfigurationError
 	CouldNotMount(io::Error),
 	
 	#[allow(missing_docs)]
-	CouldNotChangeJustInTimeCompilation(io::Error),
-	
-	#[allow(missing_docs)]
-	CouldNotChangeJustInTimeCompilationMemoryLimit(io::Error),
+	CouldNotChange(io::Error),
 }
 
-impl Display for GlobalBpfConfigurationError
+impl Display for GlobalCgroupConfigurationError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -28,12 +25,12 @@ impl Display for GlobalBpfConfigurationError
 	}
 }
 
-impl error::Error for GlobalBpfConfigurationError
+impl error::Error for GlobalCgroupConfigurationError
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>
 	{
-		use self::GlobalBpfConfigurationError::*;
+		use self::GlobalCgroupConfigurationError::*;
 
 		match self
 		{
@@ -41,9 +38,7 @@ impl error::Error for GlobalBpfConfigurationError
 			
 			&CouldNotMount(ref cause) => Some(cause),
 			
-			&CouldNotChangeJustInTimeCompilation(ref cause) => Some(cause),
-			
-			&CouldNotChangeJustInTimeCompilationMemoryLimit(ref cause) => Some(cause),
+			&CouldNotChange(ref cause) => Some(cause),
 		}
 	}
 }

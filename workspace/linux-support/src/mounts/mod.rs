@@ -4,7 +4,7 @@
 
 use super::*;
 use crate::file_systems::FileSystemType;
-use crate::paths::PathExt;
+use crate::paths::{PathExt, SysPath};
 use crate::paths::ProcPath;
 use crate::process::ProcessIdentifierChoice;
 
@@ -15,3 +15,4 @@ include!("MountFlags.rs");
 include!("Mounts.rs");
 include!("MountsWrapper.rs");
 include!("UnmountFlags.rs");
+include!("VirtualFileSystemMountPoint.rs");

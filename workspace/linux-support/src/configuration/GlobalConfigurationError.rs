@@ -58,6 +58,9 @@ pub enum GlobalConfigurationError
 	GlobalBpfConfiguration(GlobalBpfConfigurationError),
 	
 	#[allow(missing_docs)]
+	GlobalCgroupConfiguration(GlobalCgroupConfigurationError),
+	
+	#[allow(missing_docs)]
 	GlobalLinuxKernelCommandLineConfiguration(GlobalLinuxKernelCommandLineConfigurationError),
 	
 	#[allow(missing_docs)]
@@ -115,6 +118,8 @@ impl error::Error for GlobalConfigurationError
 			&GlobalNetworkConfiguration(ref cause) => Some(cause),
 
 			&GlobalBpfConfiguration(ref cause) => Some(cause),
+
+			&GlobalCgroupConfiguration(ref cause) => Some(cause),
 			
 			&GlobalLinuxKernelCommandLineConfiguration(ref cause) => Some(cause),
 			
@@ -264,6 +269,15 @@ impl From<GlobalBpfConfigurationError> for GlobalConfigurationError
 	fn from(cause: GlobalBpfConfigurationError) -> Self
 	{
 		GlobalConfigurationError::GlobalBpfConfiguration(cause)
+	}
+}
+
+impl From<GlobalCgroupConfigurationError> for GlobalConfigurationError
+{
+	#[inline(always)]
+	fn from(cause: GlobalCgroupConfigurationError) -> Self
+	{
+		GlobalConfigurationError::GlobalCgroupConfiguration(cause)
 	}
 }
 

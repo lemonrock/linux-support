@@ -10,7 +10,12 @@
 #[serde(default, deny_unknown_fields)]
 pub struct GlobalBpfConfiguration
 {
-	/// Usually defaults to `false`.
+	/// Specify `true` if using pinned objects and the `BpfMountPoint`.
+	///
+	/// Requires root.
+	pub mount_file_system_for_pinning_objects_if_not_already_mounted: bool,
+	
+	/// Normally needs to be overridden.
 	///
 	/// Requires root.
 	pub enable_just_in_time_compilation: Option<JustInTimeCompilationChoice>,
@@ -22,9 +27,15 @@ pub struct GlobalBpfConfiguration
 impl GlobalBpfConfiguration
 {
 	/// Configures.
-	pub fn configure(&self, proc_path: &ProcPath) -> Result<(), GlobalBpfConfigurationError>
+	pub fn configure(&self, sys_path: &SysPath, proc_path: &ProcPath) -> Result<(), GlobalBpfConfigurationError>
 	{
 		use self::GlobalBpfConfigurationError::*;
+		
+		if self.mount_file_system_for_pinning_objects_if_not_already_mounted
+		{
+			let mounts = Mounts::parse(proc_path, ProcessIdentifierChoice::Current).map_err(CouldNotParseMounts)?;
+			let _mount_point = mounts.mount_if_not_mounted::<BpfMountPoint>(sys_path).map_err(CouldNotMount)?;
+		}
 		
 		instance_set_value(proc_path, JustInTimeCompilationChoice::set_value, self.enable_just_in_time_compilation, CouldNotChangeJustInTimeCompilation)?;
 		

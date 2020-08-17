@@ -9,38 +9,77 @@
 #[repr(u32)]
 pub enum FileSystemType
 {
-	bdev,
-	cgroup,
-	cpuset,
-	devpts,
-	devtmpfs,
-	ext2,
-	ext3,
-	ext4,
-	hugetlbfs,
-	mqueue,
-	pipefs,
-	pstore,
-	ramfs,
-	rootfs,
-	security,
-	sockfs,
-	sysfs,
-	tmpfs,
-	_proc,
-
 	anon_inodefs,
+	
+	bdev,
+	
+	/// BPF File System, `BPFFS`.
+	///
+	/// Usually mounted at `/sys/fs/bpf`.
+	bpf,
+	
 	binfmt_misc,
-	debugfs,
-	ecryptfs,
-	fuse,
-	fuseblk,
-	fusectl,
-	prl_fs,
-	securityfs,
-	vfat,
-	dax,
+	
+	cgroup,
+	
+	/// Cgroup version 2 file system.
+	///
+	/// Usually mounted at `/sys/fs/cgroup`.
 	cgroup2,
+	
+	cpuset,
+
+	dax,
+
+	debugfs,
+
+	devpts,
+
+	devtmpfs,
+
+	ecryptfs,
+
+	ext2,
+
+	ext3,
+
+	ext4,
+
+	fuse,
+
+	fuseblk,
+
+	fusectl,
+
+	hugetlbfs,
+
+	mqueue,
+
+	pipefs,
+
+	prl_fs,
+
+	proc,
+
+	pstore,
+
+	ramfs,
+
+	rootfs,
+
+	security,
+
+	securityfs,
+
+	sockfs,
+
+	sysfs,
+
+	tmpfs,
+
+	tracefs,
+
+	vfat,
 
 	Unrecognised(Box<[u8]>)
 }
@@ -66,6 +105,56 @@ impl AsRef<Path> for FileSystemType
 
 impl FileSystemType
 {
+	/// Note that some older filesystems such as MS-DOS only have a 16-bit magic (ie cast the returned value to `u16`).
+	///
+	/// Not complete; `*_MAGIC` constants are scattered all over the Linux code base.
+	#[inline(always)]
+	pub fn magic(self) -> Option<u32>
+	{
+		use self::FileSystemType::*;
+		
+		let magic = match self
+		{
+			anon_inodefs => ANON_INODE_FS_MAGIC,
+			bdev => BDEVFS_MAGIC,
+			bpf => BPF_FS_MAGIC,
+			binfmt_misc => BINFMTFS_MAGIC,
+			cgroup => CGROUP_SUPER_MAGIC,
+			cgroup2 => CGROUP2_SUPER_MAGIC,
+			cpuset => return None,
+			dax => DAXFS_MAGIC,
+			debugfs => DEBUGFS_MAGIC,
+			devpts => DEVPTS_SUPER_MAGIC,
+			devtmpfs => return None,
+			ecryptfs => ECRYPTFS_SUPER_MAGIC,
+			ext2 => EXT2_SUPER_MAGIC,
+			ext3 => EXT3_SUPER_MAGIC,
+			ext4 => EXT4_SUPER_MAGIC,
+			fuse => FUSE_SUPER_MAGIC,
+			fuseblk => return None,
+			fusectl => FUSE_CTL_SUPER_MAGIC,
+			hugetlbfs => HUGETLBFS_MAGIC,
+			mqueue => MQUEUE_MAGIC,
+			pipefs => PIPEFS_MAGIC,
+			prl_fs => return None,
+			proc => PROC_SUPER_MAGIC,
+			pstore => PSTOREFS_MAGIC,
+			ramfs => RAMFS_MAGIC,
+			rootfs => return None,
+			security => return None,
+			securityfs => SECURITYFS_MAGIC,
+			sockfs => SOCKFS_MAGIC,
+			sysfs => SYSFS_MAGIC,
+			tmpfs => TMPFS_MAGIC,
+			tracefs => TRACEFS_MAGIC,
+			vfat => return None,
+			
+			Unrecognised(_) => return None,
+		};
+		
+		Some(magic)
+	}
+	
 	/// To `CString`.
 	#[inline(always)]
 	pub fn to_c_string(&self) -> CString
@@ -74,38 +163,39 @@ impl FileSystemType
 
 		let ref_value = match *self
 		{
-			sysfs => "sysfs",
-			rootfs => "rootfs",
-			ramfs => "ramfs",
+			anon_inodefs => "anon_inodefs",
 			bdev => "bdev",
-			_proc => "proc",
-			cpuset => "cpuset",
+			bpf => "bpf",
+			binfmt_misc => "binfmt_misc",
 			cgroup => "cgroup",
-			tmpfs => "tmpfs",
-			devtmpfs => "devtmpfs",
-			security => "security",
-			sockfs => "sockfs",
-			pipefs => "pipefs",
+			cgroup2 => "cgroup2",
+			cpuset => "cpuset",
+			dax => "dax",
+			debugfs => "debugfs",
 			devpts => "devpts",
-			hugetlbfs => "hugetlbfs",
-			pstore => "pstore",
-			mqueue => "mqueue",
+			devtmpfs => "devtmpfs",
+			ecryptfs => "ecryptfs",
 			ext2 => "ext2",
 			ext3 => "ext3",
 			ext4 => "ext4",
-
-			anon_inodefs => "anon_inodefs",
-			binfmt_misc => "binfmt_misc",
-			debugfs => "debugfs",
-			ecryptfs => "ecryptfs",
 			fuse => "fuse",
 			fuseblk => "fuseblk",
 			fusectl => "fusectl",
+			hugetlbfs => "hugetlbfs",
+			mqueue => "mqueue",
+			pipefs => "pipefs",
 			prl_fs => "prl_fs",
+			proc => "proc",
+			pstore => "pstore",
+			ramfs => "ramfs",
+			rootfs => "rootfs",
+			security => "security",
 			securityfs => "securityfs",
+			sockfs => "sockfs",
+			sysfs => "sysfs",
+			tmpfs => "tmpfs",
+			tracefs => "tracefs",
 			vfat => "vfat",
-			dax => "dax",
-			cgroup2 => "cgroup2",
 
 			Unrecognised(ref value) => return CString::new(value.clone()).unwrap(),
 		};
@@ -121,38 +211,39 @@ impl FileSystemType
 
 		match *self
 		{
-			sysfs => b"sysfs" as &[u8],
-			rootfs => b"rootfs" as &[u8],
-			ramfs => b"ramfs" as &[u8],
+			anon_inodefs => b"anon_inodefs" as &[u8],
 			bdev => b"bdev" as &[u8],
-			_proc => b"proc" as &[u8],
-			cpuset => b"cpuset" as &[u8],
+			bpf => b"bpf" as &[u8],
+			binfmt_misc => b"binfmt_misc" as &[u8],
 			cgroup => b"cgroup" as &[u8],
-			tmpfs => b"tmpfs" as &[u8],
-			devtmpfs => b"devtmpfs" as &[u8],
-			security => b"security" as &[u8],
-			sockfs => b"sockfs" as &[u8],
-			pipefs => b"pipefs" as &[u8],
+			cgroup2 => b"cgroup2" as &[u8],
+			cpuset => b"cpuset" as &[u8],
+			dax => b"dax" as &[u8],
+			debugfs => b"debugfs" as &[u8],
 			devpts => b"devpts" as &[u8],
-			hugetlbfs => b"hugetlbfs" as &[u8],
-			pstore => b"pstore" as &[u8],
-			mqueue => b"mqueue" as &[u8],
+			devtmpfs => b"devtmpfs" as &[u8],
+			ecryptfs => b"ecryptfs" as &[u8],
 			ext2 => b"ext2" as &[u8],
 			ext3 => b"ext3" as &[u8],
 			ext4 => b"ext4" as &[u8],
-			
-			anon_inodefs => b"anon_inodefs" as &[u8],
-			binfmt_misc => b"binfmt_misc" as &[u8],
-			debugfs => b"debugfs" as &[u8],
-			ecryptfs => b"ecryptfs" as &[u8],
 			fuse => b"fuse" as &[u8],
 			fuseblk => b"fuseblk" as &[u8],
 			fusectl => b"fusectl" as &[u8],
+			hugetlbfs => b"hugetlbfs" as &[u8],
+			mqueue => b"mqueue" as &[u8],
+			pipefs => b"pipefs" as &[u8],
 			prl_fs => b"prl_fs" as &[u8],
+			proc => b"proc" as &[u8],
+			pstore => b"pstore" as &[u8],
+			ramfs => b"ramfs" as &[u8],
+			rootfs => b"rootfs" as &[u8],
+			security => b"security" as &[u8],
 			securityfs => b"securityfs" as &[u8],
+			sockfs => b"sockfs" as &[u8],
+			sysfs => b"sysfs" as &[u8],
+			tmpfs => b"tmpfs" as &[u8],
+			tracefs => b"tracefs" as &[u8],
 			vfat => b"vfat" as &[u8],
-			dax => b"dax" as &[u8],
-			cgroup2 => b"cgroup2" as &[u8],
 			
 			Unrecognised(ref value) => &value[..]
 		}
@@ -173,38 +264,39 @@ impl FileSystemType
 
 		match value
 		{
-			b"sysfs" => sysfs,
-			b"rootfs" => rootfs,
-			b"ramfs" => ramfs,
+			b"anon_inodefs" => anon_inodefs,
 			b"bdev" => bdev,
-			b"proc" => _proc,
-			b"cpuset" => cpuset,
+			b"bpf" => bpf,
+			b"binfmt_misc" => binfmt_misc,
 			b"cgroup" => cgroup,
-			b"tmpfs" => tmpfs,
-			b"devtmpfs" => devtmpfs,
-			b"security" => security,
-			b"sockfs" => sockfs,
-			b"pipefs" => pipefs,
+			b"cgroup2" => cgroup2,
+			b"cpuset" => cpuset,
+			b"dax" => dax,
+			b"debugfs" => debugfs,
 			b"devpts" => devpts,
-			b"hugetlbfs" => hugetlbfs,
-			b"pstore" => pstore,
-			b"mqueue" => mqueue,
+			b"devtmpfs" => devtmpfs,
+			b"ecryptfs" => ecryptfs,
 			b"ext2" => ext2,
 			b"ext3" => ext3,
 			b"ext4" => ext4,
-
-			b"anon_inodefs" => anon_inodefs,
-			b"binfmt_misc" => binfmt_misc,
-			b"debugfs" => debugfs,
-			b"ecryptfs" => ecryptfs,
 			b"fuse" => fuse,
 			b"fuseblk" => fuseblk,
 			b"fusectl" => fusectl,
+			b"hugetlbfs" => hugetlbfs,
+			b"mqueue" => mqueue,
+			b"pipefs" => pipefs,
 			b"prl_fs" => prl_fs,
+			b"proc" => proc,
+			b"pstore" => pstore,
+			b"ramfs" => ramfs,
+			b"rootfs" => rootfs,
+			b"security" => security,
 			b"securityfs" => securityfs,
+			b"sockfs" => sockfs,
+			b"sysfs" => sysfs,
+			b"tmpfs" => tmpfs,
+			b"tracefs" => tracefs,
 			b"vfat" => vfat,
-			b"dax" => dax,
-			b"cgroup2" => cgroup2,
 
 			_ => Unrecognised(value.to_vec().into_boxed_slice())
 		}

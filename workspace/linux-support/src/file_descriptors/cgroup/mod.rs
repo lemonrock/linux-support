@@ -6,6 +6,7 @@ use super::*;
 use super::bpf::*;
 use crate::bpf::c::*;
 use crate::bpf::extended::programs::*;
+use crate::cgroups::version2::*;
 
 
 include!("CgroupFileDescriptor.rs");

@@ -8,6 +8,23 @@ pub struct Mounts<'a>(HashMap<PathBuf, Mount<'a>>);
 
 impl<'a> Mounts<'a>
 {
+	/// `sys_path` does not need to exist at this time and is not accessed.
+	pub fn mount_if_not_mounted<VFSMP: VirtualFileSystemMountPoint>(&self, sys_path: &SysPath) -> io::Result<VFSMP>
+	{
+		let mount_point = match self.existing_mount(VFSMP::FileSystemType)
+		{
+			None =>
+			{
+				let mount_point = VFSMP::default_sys_fs_path(sys_path);
+				mount_point.create_and_mount()?;
+				mount_point
+			}
+			
+			Some(path) => VFSMP::from_path(path.to_owned()),
+		};
+		Ok(mount_point)
+	}
+	
 	/// Returns the first path for an existing `file_system_type` mount, if any.
 	///
 	/// Useful for specialized file systems like `cgroup2` and `hugetlbfs`.

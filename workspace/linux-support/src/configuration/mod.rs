@@ -5,7 +5,9 @@
 use super::*;
 use self::checks::*;
 use crate::bpf::*;
+use crate::bpf::extended::BpfMountPoint;
 use crate::capabilities_and_privileges::*;
+use crate::cgroups::version2::CgroupMountPoint;
 use crate::coredump::CoreDumpFilterFlags;
 use crate::cpu::*;
 use crate::environment::populate_clean_environment;
@@ -54,6 +56,8 @@ use crate::time::c::tzset;
 use crate::user_and_groups::*;
 use crate::memory::numa::NumaZoneReclaimMode;
 use crate::memory::system_v_shared_memory::semaphores::SempahoresConfiguration;
+use crate::cgroups::version2::configuration::RootCgroupConfiguration;
+use crate::mounts::Mounts;
 
 
 /// Checks.
@@ -64,6 +68,8 @@ include!("GlobalAllNetworkDevicesConfiguration.rs");
 include!("GlobalAllNetworkDevicesConfigurationError.rs");
 include!("GlobalBpfConfiguration.rs");
 include!("GlobalBpfConfigurationError.rs");
+include!("GlobalCgroupConfiguration.rs");
+include!("GlobalCgroupConfigurationError.rs");
 include!("GlobalComputedSchedulingConfiguration.rs");
 include!("GlobalComputedSchedulingConfigurationError.rs");
 include!("GlobalConfiguration.rs");
