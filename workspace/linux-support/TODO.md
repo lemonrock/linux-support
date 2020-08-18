@@ -315,25 +315,16 @@ impl ValidatedNumaNodeToHyperThreadMap
 
 #### Stuff
 
-* `CONFIG_CFS_BANDWIDTH` in `Documentation/scheduler/sched-rt-group.rst`.
-    * `cpu.cfs_period_us=250000` 250ms.
-    * `cpu.cfs_quota=-1`
-* `CONFIG_RT_GROUP_SCHED` in `Documentation/scheduler/sched-rt-group.rst`.
-    * `cpu.rt_runtime_us`.
-    * `cpu.rt_period_us` (read-only).
-* `CONFIG_UCLAMP_TASK_GROUP` scheduler can track clamped utilization of each CPU
-    * clamping; seems to also depend on `CONFIG_UCLAMP_TASK`
 * How to migrate processes and threads inside cgroups?
     * eg Ours vs kthreads vs all others
 * How to configure cpuset cgroup?
 * How to delete an old cgroup hierarchy?
 
+
 #### Low Priority
 
 * Add reading and writing `io` controller files (files seem empty vs docs)
 * Add configuring `io` controller
-* Add reading and writing `hugetlb` controller files (doesn't seem to exist even though configured and nout mounted on cgroup v1)
-* Add configuring `hugetlb` controller
 
 
 ### Miscellaneous File system
