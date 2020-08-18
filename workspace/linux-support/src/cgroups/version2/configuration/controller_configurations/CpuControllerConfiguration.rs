@@ -32,7 +32,7 @@ impl ControllerConfiguration for CpuControllerConfiguration
 {
 	const Controller: Controller = Controller::cpu;
 	
-	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>) -> io::Result<()>
+	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>, _defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
 	{
 		match self.weight
 		{

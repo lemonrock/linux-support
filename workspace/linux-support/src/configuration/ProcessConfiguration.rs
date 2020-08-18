@@ -151,7 +151,7 @@ impl ProcessConfiguration
 	///
 	/// `process_affinity` should be calculated, but, ideally, should be the isolated CPUs on the system.
 	#[inline(always)]
-	pub fn configure(&self, run_as_daemon: bool, file_system_layout: &FileSystemLayout, additional_logging_configuration: &mut impl AdditionalLoggingConfiguration, global_computed_scheduling_affinity: Option<&GlobalComputedSchedulingConfiguration>, process_affinity: Option<&HyperThreads>) -> Result<Arc<impl Terminate>, ProcessConfigurationError>
+	pub fn configure(&self, run_as_daemon: bool, file_system_layout: &FileSystemLayout, defaults: &DefaultPageSizeAndHugePageSizes, additional_logging_configuration: &mut impl AdditionalLoggingConfiguration, global_computed_scheduling_affinity: Option<&GlobalComputedSchedulingConfiguration>, process_affinity: Option<&HyperThreads>) -> Result<Arc<impl Terminate>, ProcessConfigurationError>
 	{
 		use self::ProcessConfigurationError::*;
 		
@@ -173,7 +173,7 @@ impl ProcessConfiguration
 		self.validate_linux_kernel_version_is_recent_enough(proc_path)?;
 
 		// This *MUST* be called after `validate_linux_kernel_version_is_recent_enough()`.
-		self.set_global_configuration(sys_path, proc_path)?;
+		self.set_global_configuration(sys_path, proc_path, defaults)?;
 		
 		// This *MUST* be called after `validate_linux_kernel_version_is_recent_enough()`.
 		Self::set_global_computed_configuration(sys_path, proc_path, global_computed_scheduling_affinity)?;
@@ -436,9 +436,9 @@ impl ProcessConfiguration
 	}
 
 	#[inline(always)]
-	fn set_global_configuration(&self, sys_path: &SysPath, proc_path: &ProcPath) -> Result<(), ProcessConfigurationError>
+	fn set_global_configuration(&self, sys_path: &SysPath, proc_path: &ProcPath, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<(), ProcessConfigurationError>
 	{
-		set_value(proc_path, |proc_path, global| global.configure(sys_path, proc_path), self.global.as_ref(), ProcessConfigurationError::CouldNotChangeGlobalConfiguration)
+		set_value(proc_path, |proc_path, global| global.configure(sys_path, proc_path, defaults), self.global.as_ref(), ProcessConfigurationError::CouldNotChangeGlobalConfiguration)
 	}
 
 	#[inline(always)]

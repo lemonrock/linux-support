@@ -26,17 +26,17 @@ pub struct ThreadedControllersConfiguration
 
 impl ControllersConfiguration for ThreadedControllersConfiguration
 {
-	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>, available_controllers: &Controllers) -> io::Result<()>
+	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>, available_controllers: &Controllers, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
 	{
-		configure_controller(&self.cpu, mount_point, cgroup, available_controllers)?;
+		configure_controller(&self.cpu, mount_point, cgroup, available_controllers, defaults)?;
 		
-		configure_controller(&self.cpuset, mount_point, cgroup, available_controllers)?;
+		configure_controller(&self.cpuset, mount_point, cgroup, available_controllers, defaults)?;
 		
-		configure_controller(&self.pids, mount_point, cgroup, available_controllers)?;
+		configure_controller(&self.pids, mount_point, cgroup, available_controllers, defaults)?;
 		
-		configure_controller(&self.perf_event, mount_point, cgroup, available_controllers)?;
+		configure_controller(&self.perf_event, mount_point, cgroup, available_controllers, defaults)?;
 		
-		configure_controller(&self.debug, mount_point, cgroup, available_controllers)?;
+		configure_controller(&self.debug, mount_point, cgroup, available_controllers, defaults)?;
 		
 		Ok(())
 	}

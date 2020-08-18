@@ -200,12 +200,9 @@ fn configure_and_execute(run_as_daemon: bool, configuration: Configuration)
 	let inclusive_maximum_bytes_wasted;
 	
 	
-	
-	let terminate = configuration.configure(run_as_daemon, Some(&global_computed_scheduling_affinity), Some(&process_affinity));
+	let (terminate, defaults) = configuration.configure(run_as_daemon, Some(&global_computed_scheduling_affinity), Some(&process_affinity));
 	
 	let queues = Queues::one_queue_for_each_hyper_thread(&queue_hyper_threads, message_handlers_and_preferred_maximum_number_of_elements_of_largest_possible_fixed_size_message_body_in_queue_for_hyper_thread, &defaults, inclusive_maximum_bytes_wasted);
-	
-	let defaults = DefaultPageSizeAndHugePageSizes::new(sys_path, proc_path);
 	
 	let accept_child_thread_function = ThreadLoopInitiation::new
 	(

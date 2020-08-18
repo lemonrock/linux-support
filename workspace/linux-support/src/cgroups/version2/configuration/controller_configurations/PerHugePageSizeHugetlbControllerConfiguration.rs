@@ -2,22 +2,26 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// `rdma` controller configuration.
-#[derive(Default, Debug, Clone, PartialEq, Eq)]
+/// `hugetlb` controller configuration.
+#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields, default)]
-pub struct RdmaControllerConfiguration
+pub struct PerHugePageSizeHugetlbControllerConfiguration
 {
-	#[serde(flatten)] pub maximum: RdmaFile,
+	/// Hard limit for `hugepagesize` usage.
+	pub maximum: MaximumNumber<usize>,
+	
+	/// Hard limit for `reserved` usage.
+	pub reserved_maximum: MaximumNumber<usize>,
 }
 
-impl ControllerConfiguration for RdmaControllerConfiguration
+impl PerHugePageSizeHugetlbControllerConfiguration
 {
-	const Controller: Controller = Controller::rdma;
-	
 	#[inline(always)]
-	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>, _defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
+	fn configure<'name>(&self, mount_point: &CgroupMountPoint, c_group: &Rc<NonRootCgroup<'name>>, huge_page_size: HugePageSize) -> io::Result<()>
 	{
-		cgroup.write_rdma_maximum(mount_point, &self.maximum)
+		c_group.write_hugetlb_maximum(mount_point, huge_page_size, self.maximum)?;
+		c_group.write_hugetlb_reserved_maximum(mount_point, huge_page_size, self.reserved_maximum)?;
+		Ok(())
 	}
 }

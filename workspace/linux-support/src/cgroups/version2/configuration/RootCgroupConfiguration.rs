@@ -20,7 +20,7 @@ pub struct RootCgroupConfiguration
 
 impl RootCgroupConfiguration
 {
-	pub(crate) fn configure(&self, mount_point: &CgroupMountPoint) -> io::Result<()>
+	pub(crate) fn configure(&self, mount_point: &CgroupMountPoint, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
 	{
 		let cgroup = Rc::new(RootCgroup);
 		
@@ -30,7 +30,7 @@ impl RootCgroupConfiguration
 		
 		cgroup.write_maximum_depth(mount_point, MaximumNumber::Finite(maximum_depth))?;
 		
-		self.children.configure_children(mount_point, &cgroup)?;
+		self.children.configure_children(mount_point, &cgroup, defaults)?;
 		
 		self.leaf_processes.migrate(mount_point, &cgroup);
 		

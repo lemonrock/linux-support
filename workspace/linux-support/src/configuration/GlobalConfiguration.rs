@@ -75,7 +75,7 @@ impl GlobalConfiguration
 {
 	/// Configures.
 	#[inline(always)]
-	pub fn configure(&self, sys_path: &SysPath, proc_path: &ProcPath) -> Result<(), GlobalConfigurationError>
+	pub fn configure(&self, sys_path: &SysPath, proc_path: &ProcPath, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<(), GlobalConfigurationError>
 	{
 		use self::GlobalConfigurationError::*;
 		
@@ -116,7 +116,7 @@ impl GlobalConfiguration
 		
 		self.bpf.configure(sys_path, proc_path)?;
 		
-		self.cgroup.configure(sys_path, proc_path)?;
+		self.cgroup.configure(sys_path, proc_path, defaults)?;
 		
 		self.linux_kernel_command_line.configure(proc_path)?;
 		

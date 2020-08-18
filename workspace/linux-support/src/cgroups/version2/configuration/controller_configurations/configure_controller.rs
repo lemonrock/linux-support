@@ -3,13 +3,13 @@
 
 
 #[inline(always)]
-fn configure_controller<'name, CC: ControllerConfiguration>(controller_configuration: &Option<CC>, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>, available_controllers: &Controllers) -> io::Result<()>
+fn configure_controller<'name, CC: ControllerConfiguration>(controller_configuration: &Option<CC>, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>, available_controllers: &Controllers, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
 {
 	if let Some(ref controller_configuration) = controller_configuration
 	{
 		if available_controllers.contains(&CC::Controller)
 		{
-			controller_configuration.configure(mount_point, cgroup)?;
+			controller_configuration.configure(mount_point, cgroup, defaults)?;
 		}
 	}
 	

@@ -3,6 +3,7 @@
 
 
 use super::*;
+use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 
 
 include!("AllControllersConfiguration.rs");
@@ -17,6 +18,7 @@ include!("HugetlbControllerConfiguration.rs");
 include!("IoControllerConfiguration.rs");
 include!("MemoryControllerConfiguration.rs");
 include!("PerfEventControllerConfiguration.rs");
+include!("PerHugePageSizeHugetlbControllerConfiguration.rs");
 include!("PidsControllerConfiguration.rs");
 include!("RdmaControllerConfiguration.rs");
 include!("ThreadedControllersConfiguration.rs");

@@ -9,5 +9,5 @@ pub trait ControllerConfiguration
 	const Controller: Controller;
 	
 	/// Configure.
-	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>) -> io::Result<()>;
+	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>;
 }

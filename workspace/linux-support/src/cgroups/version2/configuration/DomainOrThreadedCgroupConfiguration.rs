@@ -19,7 +19,7 @@ pub struct DomainOrThreadedCgroupConfiguration<CC: ControllersConfiguration, CCV
 
 impl<CC: ControllersConfiguration, CCV: CgroupConfigurationVariant> ChildCgroupConfiguration for DomainOrThreadedCgroupConfiguration<CC, CCV>
 {
-	fn configure<'name, C: 'name + Cgroup<'name>>(&self, mount_point: &CgroupMountPoint, parent: &Rc<C>, name: &'name CgroupName) -> io::Result<()>
+	fn configure<'name, C: 'name + Cgroup<'name>>(&self, mount_point: &CgroupMountPoint, parent: &Rc<C>, name: &'name CgroupName, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
 	{
 		let parent = Rc::clone(parent);
 		let cgroup = parent.child(Cow::Borrowed(name));
@@ -28,12 +28,12 @@ impl<CC: ControllersConfiguration, CCV: CgroupConfigurationVariant> ChildCgroupC
 		
 		let (desired_controllers, maximum_depth) = self.desired_controllers_and_our_depth();
 		let available_controllers = cgroup.change_subtree_controllers_taking_account_of_those_available(mount_point, desired_controllers)?;
-		self.desired_controllers.configure(mount_point, &cgroup, &available_controllers)?;
+		self.desired_controllers.configure(mount_point, &cgroup, &available_controllers, defaults)?;
 		cgroup.write_maximum_depth(mount_point, MaximumNumber::Finite(maximum_depth))?;
 		
 		CCV::make_type_threaded_if_needed(mount_point, &cgroup)?;
 		
-		self.variant.configure(mount_point, cgroup)
+		self.variant.configure(mount_point, cgroup, defaults)
 	}
 	
 	fn desired_controllers_and_our_depth(&self) -> (&Controllers, usize)

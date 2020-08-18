@@ -22,7 +22,7 @@ impl ControllerConfiguration for CpusetControllerConfiguration
 {
 	const Controller: Controller = Controller::cpuset;
 	
-	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>) -> io::Result<()>
+	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>, _defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
 	{
 		cgroup.write_cpuset_hyper_threads(mount_point, &self.hyper_threads)?;
 		

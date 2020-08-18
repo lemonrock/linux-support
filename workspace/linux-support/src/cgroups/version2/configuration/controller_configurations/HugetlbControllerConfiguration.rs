@@ -3,18 +3,25 @@
 
 
 /// `hugetlb` controller configuration.
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
 #[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct HugetlbControllerConfiguration;
+#[repr(transparent)]
+pub struct HugetlbControllerConfiguration(HashMap<HugePageSize, PerHugePageSizeHugetlbControllerConfiguration>);
 
 impl ControllerConfiguration for HugetlbControllerConfiguration
 {
 	const Controller: Controller = Controller::hugetlb;
 	
 	#[inline(always)]
-	fn configure<'name>(&self, _mount_point: &CgroupMountPoint, c_group: &Rc<NonRootCgroup<'name>>) -> io::Result<()>
+	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
 	{
+		for (huge_page_size, per_huge_page_size_hugetlb_controller_configuration) in self.0.iter()
+		{
+			if defaults.is_supported_huge_page_size(huge_page_size)
+			{
+				per_huge_page_size_hugetlb_controller_configuration.configure(mount_point, cgroup, *huge_page_size)?;
+			}
+		}
 		Ok(())
 	}
 }

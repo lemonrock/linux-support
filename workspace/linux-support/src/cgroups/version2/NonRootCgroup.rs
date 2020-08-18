@@ -261,6 +261,64 @@ impl<'name> NonRootCgroup<'name>
 		self.cpuset_cpus_partition_file_path(mount_point).write_value(partition)
 	}
 	
+	/// Only works if the `hugetlb` controller is enabled and the page size exists on the architecture.
+	#[inline(always)]
+	pub fn read_hugetlb_current(&self, mount_point: &CgroupMountPoint, huge_page_size: HugePageSize) -> io::Result<Option<usize>>
+	{
+		self.hugetlb_current_file_path(mount_point, huge_page_size).read_value_if_exists()
+	}
+	
+	/// Only works if the `hugetlb` controller is enabled and the page size exists on the architecture.
+	#[inline(always)]
+	pub fn read_hugetlb_maximum(&self, mount_point: &CgroupMountPoint, huge_page_size: HugePageSize) -> io::Result<Option<MaximumNumber<usize>>>
+	{
+		self.hugetlb_max_file_path(mount_point, huge_page_size).read_value_if_exists()
+	}
+	
+	/// Only works if the `hugetlb` controller is enabled and the page size exists on the architecture.
+	#[inline(always)]
+	pub fn write_hugetlb_maximum(&self, mount_point: &CgroupMountPoint, huge_page_size: HugePageSize, maximum: MaximumNumber<usize>) -> io::Result<()>
+	{
+		self.hugetlb_max_file_path(mount_point, huge_page_size).write_value(maximum)
+	}
+	
+	/// Only works if the `hugetlb` controller is enabled and the page size exists on the architecture.
+	#[inline(always)]
+	pub fn read_hugetlb_reserved_current(&self, mount_point: &CgroupMountPoint, huge_page_size: HugePageSize) -> io::Result<Option<usize>>
+	{
+		self.hugetlb_rsvd_current_file_path(mount_point, huge_page_size).read_value_if_exists()
+	}
+	
+	/// Only works if the `hugetlb` controller is enabled and the page size exists on the architecture.
+	#[inline(always)]
+	pub fn read_hugetlb_reserved_maximum(&self, mount_point: &CgroupMountPoint, huge_page_size: HugePageSize) -> io::Result<Option<MaximumNumber<usize>>>
+	{
+		self.hugetlb_rsvd_max_file_path(mount_point, huge_page_size).read_value_if_exists()
+	}
+	
+	/// Only works if the `hugetlb` controller is enabled and the page size exists on the architecture.
+	#[inline(always)]
+	pub fn write_hugetlb_reserved_maximum(&self, mount_point: &CgroupMountPoint, huge_page_size: HugePageSize, maximum: MaximumNumber<usize>) -> io::Result<()>
+	{
+		self.hugetlb_rsvd_max_file_path(mount_point, huge_page_size).write_value(maximum)
+	}
+	
+	/// Only works if the `hugetlb` controller is enabled and the page size exists on the architecture.
+	#[inline(always)]
+	pub fn read_hugetlb_events(&self, mount_point: &CgroupMountPoint, huge_page_size: HugePageSize) -> Result<HugetlbEventStatistics, StatisticsParseError>
+	{
+		let path = self.hugetlb_events_file_path(mount_point, huge_page_size);
+		HugetlbEventStatistics::from_file(&path)
+	}
+	
+	/// Only works if the `hugetlb` controller is enabled and the page size exists on the architecture.
+	#[inline(always)]
+	pub fn read_hugetlb_events_local(&self, mount_point: &CgroupMountPoint, huge_page_size: HugePageSize) -> Result<HugetlbEventStatistics, StatisticsParseError>
+	{
+		let path = self.hugetlb_events_local_file_path(mount_point, huge_page_size);
+		HugetlbEventStatistics::from_file(&path)
+	}
+	
 	/// Only works if the `memory` controller is enabled.
 	#[inline(always)]
 	pub fn read_memory_current(&self, mount_point: &CgroupMountPoint) -> io::Result<Option<u64>>
@@ -495,6 +553,48 @@ impl<'name> NonRootCgroup<'name>
 	fn cpuset_mems_file_path(&self, mount_point: &CgroupMountPoint) -> PathBuf
 	{
 		self.file_path(mount_point, "cpuset.mems")
+	}
+	
+	#[inline(always)]
+	fn hugetlb_current_file_path(&self, mount_point: &CgroupMountPoint, huge_page_size: HugePageSize) -> PathBuf
+	{
+		self.hugetlb_file_path(mount_point, huge_page_size, "current")
+	}
+	
+	#[inline(always)]
+	fn hugetlb_events_file_path(&self, mount_point: &CgroupMountPoint, huge_page_size: HugePageSize) -> PathBuf
+	{
+		self.hugetlb_file_path(mount_point, huge_page_size, "events")
+	}
+	
+	#[inline(always)]
+	fn hugetlb_events_local_file_path(&self, mount_point: &CgroupMountPoint, huge_page_size: HugePageSize) -> PathBuf
+	{
+		self.hugetlb_file_path(mount_point, huge_page_size, "events.local")
+	}
+	
+	#[inline(always)]
+	fn hugetlb_max_file_path(&self, mount_point: &CgroupMountPoint, huge_page_size: HugePageSize) -> PathBuf
+	{
+		self.hugetlb_file_path(mount_point, huge_page_size, "max")
+	}
+	
+	#[inline(always)]
+	fn hugetlb_rsvd_current_file_path(&self, mount_point: &CgroupMountPoint, huge_page_size: HugePageSize) -> PathBuf
+	{
+		self.hugetlb_file_path(mount_point, huge_page_size, "rsvd.current")
+	}
+	
+	#[inline(always)]
+	fn hugetlb_rsvd_max_file_path(&self, mount_point: &CgroupMountPoint, huge_page_size: HugePageSize) -> PathBuf
+	{
+		self.hugetlb_file_path(mount_point, huge_page_size, "rsvd.max")
+	}
+	
+	#[inline(always)]
+	fn hugetlb_file_path(&self, mount_point: &CgroupMountPoint, huge_page_size: HugePageSize, file_extension: &str) -> PathBuf
+	{
+		self.file_path(mount_point, &format!("hugetlb.{}.{}", huge_page_size.cgroup_file_name_fragment(), file_extension))
 	}
 	
 	#[inline(always)]

@@ -29,15 +29,15 @@ impl Default for DomainCgroupConfigurationVariant
 
 impl CgroupConfigurationVariant for DomainCgroupConfigurationVariant
 {
-	fn configure<'name, C: 'name + Cgroup<'name>>(&'name self, mount_point: &CgroupMountPoint, cgroup: Rc<C>) -> io::Result<()>
+	fn configure<'name, C: 'name + Cgroup<'name>>(&'name self, mount_point: &CgroupMountPoint, cgroup: Rc<C>, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
 	{
 		use self::DomainCgroupConfigurationVariant::*;
 		
 		match self
 		{
-			&Domain(ref children) => children.configure_children(mount_point, &cgroup),
+			&Domain(ref children) => children.configure_children(mount_point, &cgroup, defaults),
 			
-			&ThreadedDomain(ref children) => children.configure_children(mount_point, &cgroup),
+			&ThreadedDomain(ref children) => children.configure_children(mount_point, &cgroup, defaults),
 			
 			&Leaf(ref migration) => migration.leaf_migrate(mount_point, &cgroup)
 		}

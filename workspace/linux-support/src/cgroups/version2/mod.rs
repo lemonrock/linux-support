@@ -6,6 +6,7 @@ use super::*;
 use self::configuration::controller_configurations::ControllerConfiguration;
 use self::controllers::cpu::*;
 use self::controllers::cpuset::*;
+use self::controllers::hugetlb::*;
 use self::controllers::memory::*;
 use self::controllers::pids::*;
 use self::controllers::rdma::*;
@@ -22,6 +23,7 @@ use crate::process::ProcessIdentifierChoice;
 use crate::scheduling::Nice;
 use crate::thread::ThreadIdentifier;
 use crate::thread::ThreadIdentifierChoice;
+use crate::memory::huge_pages::HugePageSize;
 
 
 /// Configuration.

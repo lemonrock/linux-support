@@ -13,7 +13,7 @@ impl ControllerConfiguration for IoControllerConfiguration
 	const Controller: Controller = Controller::io;
 	
 	#[inline(always)]
-	fn configure<'name>(&self, _mount_point: &CgroupMountPoint, c_group: &Rc<NonRootCgroup<'name>>) -> io::Result<()>
+	fn configure<'name>(&self, _mount_point: &CgroupMountPoint, c_group: &Rc<NonRootCgroup<'name>>, _defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
 	{
 		Ok(())
 	}

@@ -120,6 +120,29 @@ impl Into<usize> for HugePageSize
 
 impl HugePageSize
 {
+	#[inline(always)]
+	pub(crate) fn cgroup_file_name_fragment(self) -> &'static str
+	{
+		use self::HugePageSize::*;
+		
+		match self
+		{
+			_64KB => "64KB",
+			_512KB => "512KB",
+			_1MB => "1MB",
+			_2MB => "2MB",
+			_4MB => "4MB",
+			_8MB => "8MB",
+			_16MB => "16MB",
+			_32MB => "32MB",
+			_256MB => "256MB",
+			_512MB => "512MB",
+			_1GB => "1GB",
+			_2GB => "2GB",
+			_16GB => "16GB",
+		}
+	}
+	
 	/// Size in kilobytes.
 	#[inline(always)]
 	pub const fn size_in_kilobytes(self) -> NonZeroKilobyte

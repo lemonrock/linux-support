@@ -23,15 +23,15 @@ pub struct DomainControllersConfiguration
 
 impl DomainControllersConfiguration
 {
-	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>, available_controllers: &Controllers) -> io::Result<()>
+	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>, available_controllers: &Controllers, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
 	{
-		configure_controller(&self.io, mount_point, cgroup, available_controllers)?;
+		configure_controller(&self.io, mount_point, cgroup, available_controllers, defaults)?;
 		
-		configure_controller(&self.memory, mount_point, cgroup, available_controllers)?;
+		configure_controller(&self.memory, mount_point, cgroup, available_controllers, defaults)?;
 		
-		configure_controller(&self.rdma, mount_point, cgroup, available_controllers)?;
+		configure_controller(&self.rdma, mount_point, cgroup, available_controllers, defaults)?;
 		
-		configure_controller(&self.hugetlb, mount_point, cgroup, available_controllers)?;
+		configure_controller(&self.hugetlb, mount_point, cgroup, available_controllers, defaults)?;
 		
 		Ok(())
 	}

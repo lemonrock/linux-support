@@ -26,13 +26,13 @@ impl Default for ThreadedCgroupConfigurationVariant
 
 impl CgroupConfigurationVariant for ThreadedCgroupConfigurationVariant
 {
-	fn configure<'name, C: 'name + Cgroup<'name>>(&'name self, mount_point: &CgroupMountPoint, cgroup: Rc<C>) -> io::Result<()>
+	fn configure<'name, C: 'name + Cgroup<'name>>(&'name self, mount_point: &CgroupMountPoint, cgroup: Rc<C>, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
 	{
 		use self::ThreadedCgroupConfigurationVariant::*;
 		
 		match self
 		{
-			&Threaded(ref children) => children.configure_children(mount_point, &cgroup),
+			&Threaded(ref children) => children.configure_children(mount_point, &cgroup, defaults),
 			
 			&Leaf(ref migration) => migration.leaf_migrate(mount_point, &cgroup),
 		}

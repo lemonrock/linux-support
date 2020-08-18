@@ -15,7 +15,7 @@ pub struct GlobalCgroupConfiguration
 impl GlobalCgroupConfiguration
 {
 	/// Configures.
-	pub fn configure(&self, sys_path: &SysPath, proc_path: &ProcPath) -> Result<(), GlobalCgroupConfigurationError>
+	pub fn configure(&self, sys_path: &SysPath, proc_path: &ProcPath, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<(), GlobalCgroupConfigurationError>
 	{
 		use self::GlobalCgroupConfigurationError::*;
 		
@@ -23,6 +23,6 @@ impl GlobalCgroupConfiguration
 		
 		let mount_point = mounts.mount_if_not_mounted::<CgroupMountPoint>(sys_path).map_err(CouldNotMount)?;
 		
-		self.root_cgroup_configuration.configure(&mount_point).map_err(CouldNotChange)
+		self.root_cgroup_configuration.configure(&mount_point, defaults).map_err(CouldNotChange)
 	}
 }

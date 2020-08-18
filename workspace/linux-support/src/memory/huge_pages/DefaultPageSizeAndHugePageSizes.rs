@@ -79,6 +79,15 @@ impl DefaultPageSizeAndHugePageSizes
 		self.transparent_huge_page_size
 	}
 
+	/// Is this a supported huge page size?
+	///
+	/// This will return `false` if the kernel was compiled without `CONFIG_HUGETLBFS` or `sysfs` was not mounted.
+	#[inline(always)]
+	pub fn is_supported_huge_page_size(&self, huge_page_size: &HugePageSize) -> bool
+	{
+		self.supported_huge_page_sizes.contains(huge_page_size)
+	}
+	
 	/// This will return an empty set if the kernel was compiled without `CONFIG_HUGETLBFS` or `sysfs` was not mounted.
 	#[inline(always)]
 	pub fn supported_huge_page_sizes(&self) -> &BTreeSet<HugePageSize>

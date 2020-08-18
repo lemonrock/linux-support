@@ -67,12 +67,12 @@ impl ControllerConfiguration for MemoryControllerConfiguration
 	const Controller: Controller = Controller::memory;
 	
 	#[inline(always)]
-	fn configure<'name>(&self, mount_point: &CgroupMountPoint, c_group: &Rc<NonRootCgroup<'name>>) -> io::Result<()>
+	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>, _defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
 	{
-		c_group.write_memory_minimum(mount_point, self.minimum)?;
-		c_group.write_memory_low(mount_point, self.low)?;
-		c_group.write_memory_high(mount_point, self.high)?;
-		c_group.write_memory_maximum(mount_point, self.maximum)?;
+		cgroup.write_memory_minimum(mount_point, self.minimum)?;
+		cgroup.write_memory_low(mount_point, self.low)?;
+		cgroup.write_memory_high(mount_point, self.high)?;
+		cgroup.write_memory_maximum(mount_point, self.maximum)?;
 		
 		Ok(())
 	}

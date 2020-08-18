@@ -13,6 +13,10 @@ pub mod cpu;
 pub mod cpuset;
 
 
+/// `hugetlb` controller.
+pub mod hugetlb;
+
+
 /// `memory` controller.
 pub mod memory;
 
