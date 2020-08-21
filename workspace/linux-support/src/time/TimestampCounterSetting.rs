@@ -24,13 +24,7 @@ impl TimestampCounterSetting
 	{
 		let value: i32 = self as i32;
 		
-		process_control_wrapper2
-		(
-			PR_SET_TSC,
-			&value as *const i32 as usize,
-			result_must_be_zero,
-			Err,
-		)
+		process_control_wrapper2(PR_SET_TSC,&value as *const i32 as usize,result_must_be_zero,Err)
 	}
 	
 	/// Get.
@@ -50,14 +44,14 @@ impl TimestampCounterSetting
 				{
 					PR_TSC_ENABLE => Ok(Permit),
 					PR_TSC_SIGSEGV => Ok(DenyAndSendASegmentationFaultSignal),
-					_ => Err(io::Error::new(ErrorKind::InvalidData, "Unknown value"))
+					_ => Err(io_error_invalid_data("Unknown value"))
 				}
 			}
 			else
 			{
 				unreachable!("Positive result")
 			},
-			|error_number| Err(error_number.into()),
+			error_number_to_io_error,
 		)
 	}
 }

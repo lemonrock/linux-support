@@ -57,13 +57,13 @@ impl LockDownState
 						b"none" => Ok(Off),
 						b"integrity" => Ok(Integrity),
 						b"confidentiality" => Ok(Confidentiality),
-						inner @ _ => Err(io::Error::new(ErrorKind::InvalidData, format!("Did not expect lock down state `{:?}`", inner))),
+						inner @ _ => Err(io_error_other(format!("Did not expect lock down state `{:?}`", inner))),
 					}
 				}
 			}
 		}
 		
-		Err(io::Error::new(ErrorKind::InvalidData, "No active lock down state"))
+		Err(io_error_invalid_data("No active lock down state"))
 	}
 	
 	/// Set value of `/sys/kernel/security/lockdown`.

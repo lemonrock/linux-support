@@ -287,18 +287,18 @@ impl Signal
 				}
 				else if parent_death_signal_number < 0
 				{
-					Err(io::Error::new(ErrorKind::InvalidData, "Negative parent deatch signal number"))
+					Err(io_error_invalid_data("Negative parent deatch signal number"))
 				}
 				else
 				{
-					Self::parse_raw_signal_number_u32(non_negative_result as u32).map_err(|cause| io::Error::new(ErrorKind::InvalidData, cause)).map(Some)
+					Self::parse_raw_signal_number_u32(non_negative_result as u32).map_err(io_error_invalid_data).map(Some)
 				}
 			}
 			else
 			{
 				unreachable!("Positive result")
 			},
-			|error_number| Err(error_number.into())
+			error_number_to_io_error
 		)
 	}
 	
@@ -315,7 +315,7 @@ impl Signal
 			PR_SET_PDEATHSIG,
 			&parent_death_signal_number as *const i32 as usize,
 			result_must_be_zero,
-			|error_number| Err(error_number.into())
+			Err
 		)
 	}
 	

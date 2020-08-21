@@ -65,16 +65,14 @@ impl LinuxKernelModuleFileBaseName
     	}
 		const flags: i32 = 0;
 
-		use crate::ErrorKind::*;
-		
 		match SYS::finit_module.syscall3( file_descriptor as usize, options.as_ptr() as usize, flags as usize)
 		{
 			0 => Ok(true),
 
 			-1 => match errno().0
 			{
-				EPERM => Err(io::Error::new(PermissionDenied, "permission denied")),
-				unknown @ _ => Err(io::Error::new(Other, format!("Error Code was '{}'", unknown))),
+				EPERM => Err(io_error_permission_denied("permission denied")),
+				unknown @ _ => Err(io_error_other(format!("Error Code was '{}'", unknown))),
 			},
 
 			illegal @ _ => panic!("syscall(SYS_finit_module) returned illegal value '{}'", illegal),

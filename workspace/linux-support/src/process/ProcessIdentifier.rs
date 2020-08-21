@@ -167,13 +167,7 @@ impl ProcessIdentifier
 			None => 0,
 			Some(process_identifier) => process_identifier.into(),
 		};
-		process_control_wrapper2
-		(
-			PR_SET_CHILD_SUBREAPER,
-			&attribute as *const i32 as usize,
-			result_must_be_zero,
-			Err,
-		)
+		process_control_wrapper2(PR_SET_CHILD_SUBREAPER, &attribute as *const i32 as usize, result_must_be_zero,Err)
 	}
 	
 	/// Should have a parent process?

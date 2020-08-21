@@ -46,9 +46,9 @@ impl MachineCheckExceptionKillPolicy
 				
 				PR_MCE_KILL_DEFAULT => Ok(Default),
 				
-				_ => Err(io::Error::new(ErrorKind::InvalidData, "Unknown value for `prctl(PR_MCE_KILL_GET)`")),
+				_ => Err(io_error_invalid_data("Unknown value for `prctl(PR_MCE_KILL_GET)`")),
 			},
-			|error_number| Err(error_number.into()),
+			error_number_to_io_error,
 		)
 	}
 	
@@ -56,24 +56,12 @@ impl MachineCheckExceptionKillPolicy
 	pub fn clear_for_current_thread() -> io::Result<()>
 	{
 		process_control_wrapper2
-		(
-			PR_MCE_KILL,
-			PR_MCE_KILL_CLEAR as usize,
-			result_must_be_zero,
-			|error_number| Err(error_number.into())
-		)
+		(PR_MCE_KILL,PR_MCE_KILL_CLEAR as usize,result_must_be_zero,error_number_to_io_error)
 	}
 	
 	/// Set.
 	pub fn set_for_current_thread(self) -> io::Result<()>
 	{
-		process_control_wrapper3
-		(
-			PR_MCE_KILL,
-			PR_MCE_KILL_SET as usize,
-			self as i32 as usize,
-			result_must_be_zero,
-			|error_number| Err(error_number.into())
-		)
+		process_control_wrapper3(PR_MCE_KILL,PR_MCE_KILL_SET as usize,self as i32 as usize,result_must_be_zero,error_number_to_io_error)
 	}
 }

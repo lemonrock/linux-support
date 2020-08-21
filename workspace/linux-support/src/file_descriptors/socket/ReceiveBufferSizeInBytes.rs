@@ -141,7 +141,7 @@ impl ReceiveBufferSizeInBytes
 		#[inline(always)]
 		fn parse_field<'a>(fields: &mut impl Iterator<Item=&'a [u8]>) -> io::Result<ReceiveBufferSizeInBytes>
 		{
-			ReceiveBufferSizeInBytes::from_bytes(fields.next().unwrap()).map_err(|cause| io::Error::new(ErrorKind::Other, cause))
+			ReceiveBufferSizeInBytes::from_bytes(fields.next().unwrap()).map_err(io_error_other)
 		}
 		
 		let minimum = parse_field(&mut fields)?;

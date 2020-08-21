@@ -10,7 +10,7 @@ fn read_process_or_thread_identifiers<Identifier: ParseNumber>(file_path: PathBu
 	let mut identifiers = Vec::with_capacity(reader.len() / GuessOfRatioOfBytesToIdentifiers);
 	for line in reader.split_bytes(b'\n')
 	{
-		let identifier = Identifier::parse_decimal_number(line).map_err(|error| io::Error::new(ErrorKind::InvalidData, error))?;
+		let identifier = Identifier::parse_decimal_number(line).map_err(io_error_invalid_data)?;
 		identifiers.push(identifier);
 	}
 	

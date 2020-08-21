@@ -38,7 +38,7 @@ impl MountsWrapper
 		let handle = unsafe { setmntent(mounts_file_path.as_ptr(), flag.as_ptr()) };
 		if unlikely!(handle.is_null())
 		{
-			Err(io::Error::new(ErrorKind::NotFound, "setmntent() returned NULL - not found or couldn't open or read_only was false and file permissions prevent writing"))
+			Err(io_error_not_found("setmntent() returned NULL - not found or couldn't open or read_only was false and file permissions prevent writing"))
 		}
 		else
 		{

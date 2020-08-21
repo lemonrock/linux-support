@@ -225,15 +225,15 @@ impl Nice
 		
 		let name = parts.next().unwrap();
 		
-		let nice_string = parts.next().ok_or(io::Error::new(ErrorKind::Other, "Missing `nice` string"))?;
+		let nice_string = parts.next().ok_or(io_error_other("Missing `nice` string"))?;
 		if nice_string != b"nice"
 		{
-			return Err(io::Error::new(ErrorKind::Other, "`nice` string was not 'nice'"))
+			return Err(io_error_other("`nice` string was not 'nice'"))
 		}
 		
-		let raw_nice_value = parts.next().ok_or(io::Error::new(ErrorKind::Other, "Missing `nice` value"))?;
+		let raw_nice_value = parts.next().ok_or(io_error_other("Missing `nice` value"))?;
 		
-		let nice = Self::parse_decimal_number(raw_nice_value).map_err(|cause| io::Error::new(ErrorKind::Other, cause))?;
+		let nice = Self::parse_decimal_number(raw_nice_value).map_err(io_error_other)?;
 		
 		Ok((name.to_vec().into_boxed_slice(), nice))
 	}

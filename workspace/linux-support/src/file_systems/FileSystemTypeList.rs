@@ -32,8 +32,6 @@ impl FileSystemTypeList
 	#[inline(always)]
 	pub fn parse(proc_path: &ProcPath) -> Result<FileSystemTypeList, io::Error>
 	{
-		use self::ErrorKind::InvalidData;
-		
 		let file_path = proc_path.file_path("filesystems");
 		let reader = file_path.read_raw()?;
 
@@ -50,18 +48,18 @@ impl FileSystemTypeList
 					b"" => false,
 					b"nodev" => true,
 
-					unrecognised @ _ => return Err(io::Error::new(InvalidData, format!("Zero-based line number '{}' has a first column value of '{:?}' which isn't recognised", line_number, unrecognised))),
+					unrecognised @ _ => return Err(io_error_invalid_data(format!("Zero-based line number '{}' has a first column value of '{:?}' which isn't recognised", line_number, unrecognised))),
 				};
 
 				let file_system_type = match split.next()
 				{
-					None => return Err(io::Error::new(InvalidData, format!("Zero-based line number '{}' does not have second column", line_number))),
+					None => return Err(io_error_invalid_data(format!("Zero-based line number '{}' does not have second column", line_number))),
 					Some(value) => FileSystemType::from_byte_slice(value),
 				};
 
 				if let Some(_) = file_systems_map.insert(file_system_type, has_no_associated_device)
 				{
-					return Err(io::Error::new(InvalidData, format!("Zero-based line number '{}' is a duplicate", line_number)));
+					return Err(io_error_invalid_data(format!("Zero-based line number '{}' is a duplicate", line_number)));
 				}
 			}
 

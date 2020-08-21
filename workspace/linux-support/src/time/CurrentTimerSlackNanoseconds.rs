@@ -29,7 +29,7 @@ impl CurrentTimerSlackNanoseconds
 	/// Current.
 	pub fn current() -> io::Result<Self>
 	{
-		process_control_wrapper1::<>
+		process_control_wrapper1
 		(
 			PR_GET_TIMERSLACK,
 			|non_negative_result| if likely!(non_negative_result > 0)
@@ -38,9 +38,9 @@ impl CurrentTimerSlackNanoseconds
 			}
 			else
 			{
-				Err(io::Error::new(ErrorKind::InvalidData, "Timer slack of 0 is invalid"))
+				Err(io_error_invalid_data("Timer slack of 0 is invalid"))
 			},
-			|error_number| Err(error_number.into())
+			error_number_to_io_error
 		)
 	}
 	
@@ -59,13 +59,7 @@ impl CurrentTimerSlackNanoseconds
 	#[inline(always)]
 	fn set_internal(value: usize) -> Result<(), Errno>
 	{
-		process_control_wrapper2
-		(
-			PR_SET_TIMERSLACK,
-			&value as *const usize as usize,
-			result_must_be_zero,
-			Err,
-		)
+		process_control_wrapper2(PR_SET_TIMERSLACK,&value as *const usize as usize,result_must_be_zero,Err)
 	}
 	
 	#[inline(always)]

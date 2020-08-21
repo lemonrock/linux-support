@@ -31,11 +31,11 @@ impl FromBytes for TimeStalled
 		{
 			if field.is_some()
 			{
-				Err(io::Error::new(ErrorKind::InvalidData, "duplicate field"))
+				Err(io_error_invalid_data("duplicate field"))
 			}
 			else
 			{
-				*field = Some(T::from_bytes(field_value).map_err(|error| io::Error::new(ErrorKind::InvalidData, error))?);
+				*field = Some(T::from_bytes(field_value).map_err(io_error_invalid_data)?);
 				Ok(())
 			}
 		}
@@ -43,7 +43,7 @@ impl FromBytes for TimeStalled
 		#[inline(always)]
 		fn unwrap_field<T: FromBytes>(field: Option<T>) -> io::Result<T>
 		{
-			field.ok_or(io::Error::new(ErrorKind::InvalidData, "Missing field"))
+			field.ok_or(io_error_invalid_data("Missing field"))
 		}
 		
 		let mut iterator = bytes.split_bytes(b' ');
@@ -55,7 +55,7 @@ impl FromBytes for TimeStalled
 		
 		for field in iterator
 		{
-			let index = memchr(b'=', field).ok_or(io::Error::new(ErrorKind::InvalidData, "Missing `=`"))?;
+			let index = memchr(b'=', field).ok_or(io_error_invalid_data("Missing `=`"))?;
 			let field_name = &field[ .. index];
 			let field_value = &field[(index + 1) .. ];
 			match field_name
@@ -90,7 +90,7 @@ impl TimeStalled
 {
 	pub(crate) fn parse_line(line_without_line_feed: &[u8]) -> io::Result<(&[u8], Self)>
 	{
-		let index = memchr(b' ', line_without_line_feed).ok_or(io::Error::new(ErrorKind::InvalidData, "Missing data"))?;
+		let index = memchr(b' ', line_without_line_feed).ok_or(io_error_invalid_data("Missing data"))?;
 		let name = &line_without_line_feed[ .. index];
 		let data = &line_without_line_feed[(index + 1) .. ];
 		let time_stalled = Self::from_bytes(data)?;

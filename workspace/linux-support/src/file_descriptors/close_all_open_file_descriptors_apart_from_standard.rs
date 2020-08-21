@@ -11,7 +11,7 @@ pub fn close_all_open_file_descriptors_apart_from_standard(proc_path: &ProcPath)
 	{
 		let file = file?;
 		// NOTE: We do not parse as `RawFd::from_bytes()` because `RawFd` is an `i32` yet file descriptors can only be positive!
-		let raw_file_descriptor = u32::from_bytes(file.file_name().as_bytes()).map_err(|parse_number_error| io::Error::new(ErrorKind::Other, parse_number_error))? as RawFd;
+		let raw_file_descriptor = u32::from_bytes(file.file_name().as_bytes()).map_err(io_error_other)? as RawFd;
 		if raw_file_descriptor > 2
 		{
 			unsafe { close(raw_file_descriptor) };

@@ -252,7 +252,7 @@ impl TerminalFileDescriptor
 		}
 		else
 		{
-			ProcessGroupIdentifier::try_from(result).map_err(|error| io::Error::new(ErrorKind::Other, error))
+			ProcessGroupIdentifier::try_from(result).map_err(io_error_other)
 		}
 	}
 

@@ -114,7 +114,7 @@ impl PathExt for Path
 
 		if unlikely!(raw.is_empty())
 		{
-			Err(io::Error::new(ErrorKind::InvalidData, "Empty file"))
+			Err(io_error_invalid_data("Empty file"))
 		}
 		else
 		{
@@ -130,7 +130,7 @@ impl PathExt for Path
 		let should_be_line_feed = raw.remove(length - 1);
 		if unlikely!(should_be_line_feed != b'\n')
 		{
-			return Err(io::Error::new(ErrorKind::InvalidData, "File lacks terminating line feed"));
+			return Err(io_error_invalid_data("File lacks terminating line feed"));
 		}
 		Ok(raw.into_boxed_slice())
 	}
@@ -142,7 +142,7 @@ impl PathExt for Path
 
 		match F::from_bytes(&bytes)
 		{
-			Err(error) => Err(io::Error::new(ErrorKind::InvalidData, error)),
+			Err(error) => Err(io_error_invalid_data(error)),
 			Ok(value) => Ok(value),
 		}
 	}
@@ -165,7 +165,7 @@ impl PathExt for Path
 
 		match F::from_bytes(&bytes)
 		{
-			Err(error) => Err(io::Error::new(ErrorKind::InvalidData, error)),
+			Err(error) => Err(io_error_invalid_data(error)),
 			Ok(value) => Ok(Some(value)),
 		}
 	}
@@ -177,14 +177,14 @@ impl PathExt for Path
 
 		if unlikely!(bytes.len() != 1)
 		{
-			return Err(io::Error::new(ErrorKind::InvalidData, "bool is not one byte long"));
+			return Err(io_error_invalid_data("bool is not one byte long"));
 		}
 
 		match bytes[0]
 		{
 			b'0' => Ok(false),
 			b'1' => Ok(true),
-			_ => Err(io::Error::new(ErrorKind::InvalidData, "bool is not 0 or 1")),
+			_ => Err(io_error_invalid_data("bool is not 0 or 1")),
 		}
 	}
 
@@ -206,7 +206,7 @@ impl PathExt for Path
 	{
 		let without_line_feed = self.read_raw_without_line_feed()?;
 
-		BitSet::<BSA>::parse_linux_list_string(&without_line_feed).map_err(|error| io::Error::new(ErrorKind::InvalidData, error))
+		BitSet::<BSA>::parse_linux_list_string(&without_line_feed).map_err(io_error_invalid_data)
 	}
 	
 	#[inline(always)]
@@ -230,7 +230,7 @@ impl PathExt for Path
 		
 		match BitSet::<BSA>::parse_linux_list_string(&without_line_feed)
 		{
-			Err(error) => Err(io::Error::new(ErrorKind::InvalidData, error)),
+			Err(error) => Err(io_error_invalid_data(error)),
 			Ok(bit_set) => Ok(Some(bit_set)),
 		}
 	}
@@ -277,15 +277,15 @@ impl PathExt for Path
 			let metadata = file.metadata()?;
 			if !metadata.is_file()
 			{
-				return Err(io::Error::new(ErrorKind::Other, "Not a file"))
+				return Err(io_error_other("Not a file"))
 			}
 			metadata.len()
 		};
 		if length == 0
 		{
-			return Err(io::Error::new(ErrorKind::Other, "Empty files can not be memory-mapped"))
+			return Err(io_error_other("Empty files can not be memory-mapped"))
 		}
 
-		MappedMemory::from_file(&file, offset, unsafe { NonZeroU64::new_unchecked(length) }, address_hint, protection, sharing, huge_memory_page_size, prefault, reserve_swap_space, defaults).map_err(|creation_error| io::Error::new(ErrorKind::Other, creation_error))
+		MappedMemory::from_file(&file, offset, unsafe { NonZeroU64::new_unchecked(length) }, address_hint, protection, sharing, huge_memory_page_size, prefault, reserve_swap_space, defaults).map_err(io_error_other)
 	}
 }

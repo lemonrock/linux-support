@@ -6,11 +6,5 @@
 #[inline(always)]
 pub fn disabled_seccomp() -> Result<(), Errno>
 {
-	process_control_wrapper2
-	(
-		PR_SET_SECUREBITS,
-		SECCOMP_MODE_DISABLED as usize,
-		result_must_be_zero,
-		Err
-	)
+	process_control_wrapper2(PR_SET_SECUREBITS,SECCOMP_MODE_DISABLED as usize,result_must_be_zero,Err)
 }

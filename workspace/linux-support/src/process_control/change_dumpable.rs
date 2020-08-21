@@ -23,11 +23,5 @@ pub fn change_dumpable(enable_or_disable_dumpable: bool) -> Result<(), Errno>
 		0
 	};
 	
-	process_control_wrapper2
-	(
-		PR_SET_DUMPABLE,
-		value,
-		result_must_be_zero,
-		Err,
-	)
+	process_control_wrapper2(PR_SET_DUMPABLE, value, result_must_be_zero, Err)
 }

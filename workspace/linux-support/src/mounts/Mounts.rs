@@ -61,7 +61,7 @@ impl Mounts<'static>
 			let key = mount_point.mount_point.clone();
 			if let Some(previous) = map.insert(key, mount_point)
 			{
-				Err(io::Error::new(ErrorKind::InvalidData, format!("Duplicate mount_point for mount_point point '{:?}'", previous.mount_point)))
+				Err(io_error_invalid_data(format!("Duplicate mount_point for mount_point point '{:?}'", previous.mount_point)))
 			}
 			else
 			{

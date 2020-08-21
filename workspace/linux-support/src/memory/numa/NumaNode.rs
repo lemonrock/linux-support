@@ -437,7 +437,7 @@ impl NumaNode
 					None => return Ok(None),
 					Some(online_numa_node) => online_numa_node,
 				};
-				let distance = MemoryLatencyRelativeCost::from_bytes(raw_distance).map_err(|parse_number_error| io::Error::new(ErrorKind::Other, parse_number_error))?;
+				let distance = MemoryLatencyRelativeCost::from_bytes(raw_distance).map_err(io_error_other)?;
 				map.insert(online_numa_node, distance);
 			}
 

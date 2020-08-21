@@ -43,12 +43,6 @@ impl SpeculationMitigation
 	#[inline(always)]
 	fn current(subcommand: usize) -> Result<Self, Errno>
 	{
-		process_control_wrapper2
-		(
-			PR_GET_SPECULATION_CTRL,
-			subcommand,
-			|non_negative_result| Ok(Self::from_bits_truncate(non_negative_result)),
-			Err
-		)
+		process_control_wrapper2(PR_GET_SPECULATION_CTRL,subcommand,|non_negative_result| Ok(Self::from_bits_truncate(non_negative_result)),Err)
 	}
 }

@@ -14,11 +14,5 @@ pub fn change_io_flusher(enable_or_disable_io_flusher: bool) -> Result<(), Errno
 	{
 		0
 	};
-	process_control_wrapper2
-	(
-		PR_SET_IO_FLUSHER,
-		value,
-		result_must_be_zero,
-		Err,
-	)
+	process_control_wrapper2(PR_SET_IO_FLUSHER, value, result_must_be_zero, Err)
 }

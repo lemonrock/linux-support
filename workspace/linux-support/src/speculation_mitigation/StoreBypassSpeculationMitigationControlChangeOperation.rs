@@ -37,13 +37,6 @@ impl StoreBypassSpeculationMitigationControlChangeOperation
 	#[inline(always)]
 	fn change(subcommand: usize, setting: i32) -> Result<(), Errno>
 	{
-		process_control_wrapper3
-		(
-			PR_SET_SPECULATION_CTRL,
-			subcommand,
-			setting as usize,
-			result_must_be_zero,
-			Err
-		)
+		process_control_wrapper3(PR_SET_SPECULATION_CTRL,subcommand,setting as usize,result_must_be_zero,Err)
 	}
 }

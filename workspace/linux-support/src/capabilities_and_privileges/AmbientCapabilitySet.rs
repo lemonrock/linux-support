@@ -47,13 +47,6 @@ impl AmbientCapabilitySet
 	#[inline(always)]
 	pub fn clear_current_thread_ambient_set()
 	{
-		let result: Result<(), io::Error> = process_control_wrapper2
-		(
-			PR_CAP_AMBIENT,
-			PR_CAP_AMBIENT_CLEAR_ALL as usize,
-			result_must_be_zero,
-			|error_number| panic!("Unexpected error code '{}' from prctl()", error_number)
-		);
-		result.unwrap()
+		process_control_wrapper2(PR_CAP_AMBIENT, PR_CAP_AMBIENT_CLEAR_ALL as usize, result_must_be_zero, error_number_to_io_error).unwrap();
 	}
 }

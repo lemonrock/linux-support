@@ -53,8 +53,6 @@ pub trait BitSetAware: Sized + Into<u16> + TryFrom<u16, Error=BitSetAwareTryFrom
 	#[inline(always)]
 	fn parse_file_name(file_name: &OsStr) -> io::Result<Option<Self>>
 	{
-		use self::ErrorKind::Other;
-
 		let file_name = file_name.as_bytes();
 		if !file_name.starts_with(Self::Prefix)
 		{
@@ -63,8 +61,8 @@ pub trait BitSetAware: Sized + Into<u16> + TryFrom<u16, Error=BitSetAwareTryFrom
 
 		let bytes = &file_name[Self::Prefix.len() .. ];
 
-		let parsed_number = u16::parse_decimal_number(bytes).map_err(|error| io::Error::new(Other, error))?;
+		let parsed_number = u16::parse_decimal_number(bytes).map_err(io_error_other)?;
 
-		Ok(Some(Self::try_from(parsed_number).map_err(|error| io::Error::new(Other, error))?))
+		Ok(Some(Self::try_from(parsed_number).map_err(io_error_other)?))
 	}
 }

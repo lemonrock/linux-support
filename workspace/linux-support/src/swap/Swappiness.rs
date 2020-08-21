@@ -233,7 +233,7 @@ impl Swappiness
 		}
 		else
 		{
-			Err(io::Error::new(ErrorKind::InvalidData, "Value not 0 to 100"))
+			Err(io_error_invalid_data("Value not 0 to 100"))
 		}
 	}
 

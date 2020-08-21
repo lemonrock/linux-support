@@ -31,7 +31,7 @@ impl FromBytes for Environment
 		})
 		{
 			Ok(collection) => Ok(Self(collection)),
-			Err(reason) => Err(io::Error::new(ErrorKind::Other, reason)),
+			Err(reason) => Err(io_error_other(reason)),
 		}
 	}
 }

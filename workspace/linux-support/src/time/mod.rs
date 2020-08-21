@@ -4,7 +4,7 @@
 
 use super::*;
 use self::c::*;
-use crate::process_control::{process_control_wrapper1, process_control_wrapper2, result_must_be_zero};
+use crate::process_control::{process_control_wrapper1, process_control_wrapper2, result_must_be_zero, error_number_to_io_error};
 
 
 pub(crate) mod c;

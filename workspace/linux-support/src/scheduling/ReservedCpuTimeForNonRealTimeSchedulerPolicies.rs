@@ -79,11 +79,11 @@ impl ReservedCpuTimeForNonRealTimeSchedulerPolicies
 		let runtime_microseconds_i32: i32 = Self::runtime_file_path(proc_path).read_value()?;
 		if unlikely!(runtime_microseconds_i32 < -1)
 		{
-			return Err(io::Error::new(ErrorKind::Other, "Value of runtime_microseconds < -1"));
+			return Err(io_error_other("Value of runtime_microseconds < -1"));
 		}
 		if unlikely!(runtime_microseconds_i32 == i32::MAX)
 		{
-			return Err(io::Error::new(ErrorKind::Other, "Value of runtime_microseconds i32::MAX"));
+			return Err(io_error_other("Value of runtime_microseconds i32::MAX"));
 		}
 		let runtime_microseconds = NonZeroU32::new((runtime_microseconds_i32 + 1) as u32);
 		Ok

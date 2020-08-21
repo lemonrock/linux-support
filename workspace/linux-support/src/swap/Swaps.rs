@@ -25,7 +25,7 @@ impl FromBytes for Swaps
 	
 	fn from_bytes(bytes: &[u8]) -> Result<Self, Self::Error>
 	{
-		let index = memchr(b'\n', &bytes[..]).ok_or(io::Error::new(ErrorKind::InvalidData, "No header line"))?;
+		let index = memchr(b'\n', &bytes[..]).ok_or(io_error_invalid_data("No header line"))?;
 		let bytes_without_header_line = &bytes[(index + 1) .. ];
 		
 		let mut swap_lines = Vec::new();

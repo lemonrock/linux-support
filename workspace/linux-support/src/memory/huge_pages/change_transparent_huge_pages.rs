@@ -15,11 +15,5 @@ pub fn change_transparent_huge_pages(enable_or_disable_transparent_huge_pages: b
 		1
 	};
 	
-	process_control_wrapper2
-	(
-		PR_SET_THP_DISABLE,
-		arg2,
-		result_must_be_zero,
-		Err,
-	)
+	process_control_wrapper2(PR_SET_THP_DISABLE, arg2, result_must_be_zero, Err)
 }

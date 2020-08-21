@@ -210,21 +210,19 @@ impl VirtualMemoryStatisticName
 
 		for line in reader.split_bytes(b'\n')
 		{
-			use self::ErrorKind::InvalidData;
-
 			let mut split = line.split_bytes_n(2, b' ');
 
 			let statistic_name = VirtualMemoryStatisticName::parse(split.next().unwrap());
 
 			let statistic_value = match split.next()
 			{
-				None => return Err(io::Error::new(InvalidData, format!("Zero based line '{}' does not have a value second column", zero_based_line_number))),
-				Some(value) => u64::parse_decimal_number(value).map_err(|parse_number_error| io::Error::new(InvalidData, parse_number_error))?,
+				None => return Err(io_error_invalid_data(format!("Zero based line '{}' does not have a value second column", zero_based_line_number))),
+				Some(value) => u64::parse_decimal_number(value).map_err(io_error_invalid_data)?,
 			};
 
 			if let Some(previous) = statistics.insert(statistic_name, statistic_value)
 			{
-				return Err(io::Error::new(InvalidData, format!("Zero based line '{}' has a duplicate statistic (was '{}')", zero_based_line_number, previous)))
+				return Err(io_error_invalid_data(format!("Zero based line '{}' has a duplicate statistic (was '{}')", zero_based_line_number, previous)))
 			}
 
 			zero_based_line_number += 1;

@@ -15,10 +15,5 @@ pub fn change_process_performance_counters(enable_or_disable_process_performance
 		PR_TASK_PERF_EVENTS_DISABLE
 	};
 	
-	process_control_wrapper1
-	(
-		command,
-		result_must_be_zero,
-		Err,
-	)
+	process_control_wrapper1(command, result_must_be_zero, Err)
 }

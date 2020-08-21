@@ -18,11 +18,5 @@ pub fn change_no_new_privileges(enable_or_disable_no_new_privileges: bool) -> Re
 	{
 		0
 	};
-	process_control_wrapper2
-	(
-		PR_SET_NO_NEW_PRIVS,
-		value,
-		result_must_be_zero,
-		Err
-	)
+	process_control_wrapper2(PR_SET_NO_NEW_PRIVS,value,result_must_be_zero, Err)
 }

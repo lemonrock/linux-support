@@ -2,21 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use self::c::*;
-
-
-pub(crate) mod c;
-
-
-include!("change_io_flusher.rs");
-include!("change_dumpable.rs");
-include!("change_no_new_privileges.rs");
-include!("error_number_to_io_error.rs");
-include!("MachineCheckExceptionKillPolicy.rs");
-include!("process_control_wrapper.rs");
-include!("process_control_wrapper1.rs");
-include!("process_control_wrapper2.rs");
-include!("process_control_wrapper3.rs");
-include!("result_must_be_zero.rs");
-include!("SecureBits.rs");
+#[inline(always)]
+pub(crate) fn error_number_to_io_error<V>(error_number: Errno) -> io::Result<V>
+{
+	Err(error_number.into())
+}

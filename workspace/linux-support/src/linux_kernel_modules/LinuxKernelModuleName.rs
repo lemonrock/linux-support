@@ -131,18 +131,17 @@ impl LinuxKernelModuleName
 
 				let path_file_descriptor = PathFileDescriptor::open(&path_to_cstring(modprobe_executable_path), false, false)?;
 				let metadata = path_file_descriptor.metadata_of_self()?;
-				use self::ErrorKind::Other;
 				if unlikely!(!metadata.user_identifier().is_root())
 				{
-					return Err(io::Error::new(Other, "Not owned by root"))
+					return Err(io_error_other("Not owned by root"))
 				}
 				if unlikely!(!metadata.file_type().is_regular_file())
 				{
-					return Err(io::Error::new(Other, "Not a regular file"))
+					return Err(io_error_other("Not a regular file"))
 				}
 				if unlikely!(!metadata.access_permissions().user().is_readable_and_executable())
 				{
-					return Err(io::Error::new(Other, "Not a readable, executable file"))
+					return Err(io_error_other("Not a readable, executable file"))
 				}
 				Ok(modprobe_executable_path)
 			}
@@ -243,8 +242,6 @@ impl LinuxKernelModuleName
 	/// false if does not exist.
 	pub fn unload_linux_kernel_module(&self) -> Result<bool, io::Error>
 	{
-		use crate::ErrorKind::*;
-
 		let name: CString = self.into();
 		const flags: c_long = O_NONBLOCK as c_long;
 
@@ -253,10 +250,10 @@ impl LinuxKernelModuleName
 			0 => Ok(true),
 			-1 => match errno().0
 			{
-				EPERM => Err(io::Error::new(PermissionDenied, "permission denied")),
-				EBUSY => Err(io::Error::new(PermissionDenied, "busy")),
+				EPERM => Err(io_error_permission_denied("permission denied")),
+				EBUSY => Err(io_error_permission_denied("busy")),
 				ENOENT => Ok(false),
-				EWOULDBLOCK => Err(io::Error::new(PermissionDenied, "In use")),
+				EWOULDBLOCK => Err(io_error_permission_denied("In use")),
 
 				EFAULT => panic!("EFAULT should not occur"),
 

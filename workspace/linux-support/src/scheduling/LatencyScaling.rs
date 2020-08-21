@@ -45,7 +45,7 @@ impl LatencyScaling
 		}
 		else
 		{
-			Err(io::Error::new(ErrorKind::InvalidData, "Value out of range"))
+			Err(io_error_invalid_data("Value out of range"))
 		}
 	}
 	

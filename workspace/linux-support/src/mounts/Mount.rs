@@ -56,8 +56,6 @@ impl<'a> Mount<'a>
 	/// Unmounts.
 	pub fn unmount(mount_point: &Path, unmount_flags: UnmountFlags) -> io::Result<()>
 	{
-		use crate::ErrorKind::*;
-		
 		let target = mount_point.to_c_string();
 		match unsafe { umount2(target.as_ptr(), unmount_flags.bits()) }
 		{
@@ -74,11 +72,11 @@ impl<'a> Mount<'a>
 							panic!("umount() set an illegal errno of EAGAIN when unmount flags did not contain MNT_EXPIRE");
 						}
 					},
-				EBUSY => Err(io::Error::new(TimedOut, "Busy")),
-				EPERM => Err(io::Error::new(PermissionDenied, "permission denied")),
+				EBUSY => Err(io_error_timed_out("Busy")),
+				EPERM => Err(io_error_permission_denied("permission denied")),
 				
-				ENOENT => Err(io::Error::new(NotFound, "Mount path had an empty or non-existent component")),
-				EINVAL => Err(io::Error::new(InvalidData, "One of many possible failures (EINVAL)")),
+				ENOENT => Err(io_error_not_found("Mount path had an empty or non-existent component")),
+				EINVAL => Err(io_error_invalid_data("One of many possible failures (EINVAL)")),
 				ENOMEM => panic!("Out of memory (ENOMEM)"),
 				ENAMETOOLONG => panic!("mount_point path name is too long"),
 				EFAULT => panic!("Invalid data"),

@@ -212,15 +212,15 @@ impl InterruptRequest
 			let field_name = fields.next().unwrap();
 			if unlikely!(field_name != expected_field_name)
 			{
-				return Err(io::Error::new(ErrorKind::Other, "Invalid count field name"))
+				return Err(io_error_other("Invalid count field name"))
 			}
 			let field_value_and_unit = fields.next().unwrap();
 			if unlikely!(!field_value_and_unit.ends_with(ends_with))
 			{
-				return Err(io::Error::new(ErrorKind::Other, "Does not end with unit expected"))
+				return Err(io_error_other( "Does not end with unit expected"))
 			}
 			let field_value = &field_value_and_unit[ .. field_value_and_unit.len() - ends_with.len()];
-			usize::from_bytes(field_value).map_err(|_| io::Error::new(ErrorKind::Other, "Invalid field value"))
+			usize::from_bytes(field_value).map_err(|_| io_error_other("Invalid field value"))
 		}
 		
 		let count = parse_line(&mut lines, b"count", b"")?;

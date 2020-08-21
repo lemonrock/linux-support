@@ -61,7 +61,7 @@ impl<'a> Resources<'a>
 		
 		for line in reader.split_bytes(b'\n')
 		{
-			if let Some(resource_entry) = ResourceEntry::parse_line(line).map_err(|message| io::Error::new(ErrorKind::Other, message))?
+			if let Some(resource_entry) = ResourceEntry::parse_line(line).map_err(io_error_other)?
 			{
 				resources.insert(index, resource_entry);
 			}

@@ -81,17 +81,8 @@ impl ThreadName
 	{
 		let object_name = ObjectName16::construct_from_c_function_call
 		(
-			|buffer|
-			{
-				process_control_wrapper2
-				(
-					PR_GET_NAME,
-					buffer.as_mut_ptr() as usize,
-					result_must_be_zero,
-					|error_number| Err(error_number.into())
-				)
-			},
-			|| io::Error::new(ErrorKind::Other, "DoesNotEndWithAsciiNulError")
+			|buffer| process_control_wrapper2(PR_GET_NAME, buffer.as_mut_ptr() as usize,result_must_be_zero, error_number_to_io_error),
+			|| io_error_other("DoesNotEndWithAsciiNulError")
 		).expect("No good reason to fail");
 		Self(CommandName::from(object_name))
 	}
@@ -101,13 +92,7 @@ impl ThreadName
 	pub fn set_current_thread_name(&self) -> Result<(), Errno>
 	{
 		let pointer = self.0.as_ptr();
-		process_control_wrapper2
-		(
-			PR_SET_NAME,
-			pointer as usize,
-			result_must_be_zero,
-			Err,
-		)
+		process_control_wrapper2(PR_SET_NAME,pointer as usize,result_must_be_zero, Err)
 	}
 
 	/// For any process and any thread.

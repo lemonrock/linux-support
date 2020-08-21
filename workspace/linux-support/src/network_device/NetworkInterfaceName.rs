@@ -140,7 +140,7 @@ impl NetworkInterfaceName
 	pub fn device_identifier(self, sys_path: &SysPath) -> io::Result<u16>
 	{
 		let value = self.file_path(sys_path, "dev_id").read_raw_without_line_feed()?;
-		u16::parse_hexadecimal_number_lower_case_with_0x_prefix(&value[..]).map_err(|error| io::Error::new(ErrorKind::InvalidData, error))
+		u16::parse_hexadecimal_number_lower_case_with_0x_prefix(&value[..]).map_err(io_error_invalid_data)
 	}
 	
 	/// Reads the `dev_port`, used to differentiate devices that share the same link layer address.

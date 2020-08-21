@@ -97,7 +97,7 @@ impl MemoryOrInputOutputTimeStalled
 		{
 			if field.is_some()
 			{
-				Err(io::Error::new(ErrorKind::InvalidData, "duplicate field"))
+				Err(io_error_invalid_data("duplicate field"))
 			}
 			else
 			{
@@ -109,7 +109,7 @@ impl MemoryOrInputOutputTimeStalled
 		#[inline(always)]
 		fn unwrap_field<T: FromBytes>(field: Option<T>) -> io::Result<T>
 		{
-			field.ok_or(io::Error::new(ErrorKind::InvalidData, "Missing field"))
+			field.ok_or(io_error_invalid_data("Missing field"))
 		}
 		
 		let bytes = file_path.as_ref().read_raw()?;

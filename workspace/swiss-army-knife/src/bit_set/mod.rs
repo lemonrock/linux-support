@@ -8,6 +8,7 @@ use super::strings::*;
 use super::strings::into_line_feed_terminated_byte_string::*;
 use super::strings::parse_number::*;
 use super::strings::to_number::NumberAsBytes;
+use crate::error_support::io_error_other;
 
 
 include!("bit_set.rs");

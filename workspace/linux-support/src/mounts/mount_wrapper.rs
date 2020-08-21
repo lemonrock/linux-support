@@ -5,8 +5,6 @@
 /// Mount wrapper function.
 pub fn mount_wrapper<'a>(source: &CStr, mount_point: &Path, file_system_type: &FileSystemType, mount_options: &HashMap<Cow<'a, [u8]>, Option<Cow<'a, [u8]>>>, mount_flags: MountFlags) -> io::Result<()>
 {
-	use crate::ErrorKind::*;
-
 	fn to_mount_options_c_string<'a>(mount_options: &HashMap<Cow<'a, [u8]>, Option<Cow<'a, [u8]>>>) -> CString
 	{
 		let mut mount_options_cstring: Vec<u8> = Vec::with_capacity(64);
@@ -41,13 +39,13 @@ pub fn mount_wrapper<'a>(source: &CStr, mount_point: &Path, file_system_type: &F
 
 		-1 => match errno().0
 		{
-			EACCES => Err(io::Error::new(NotFound, "Component of mount path to mount does not exist")),
-			ENOENT => Err(io::Error::new(NotFound, "Mount path had an empty or non-existent component")),
-			ENOTDIR => Err(io::Error::new(NotFound, "target or source is not a directory")),
-			ELOOP => Err(io::Error::new(NotFound, "Loops - target is a descendant of source, or too many links in mount path")),
-			EPERM => Err(io::Error::new(PermissionDenied, "permission denied")),
-			EBUSY => Err(io::Error::new(TimedOut, "Busy")),
-			EINVAL => Err(io::Error::new(InvalidData, "One of many possible failures (EINVAL)")),
+			EACCES => Err(io_error_not_found("Component of mount path to mount does not exist")),
+			ENOENT => Err(io_error_not_found("Mount path had an empty or non-existent component")),
+			ENOTDIR => Err(io_error_not_found("target or source is not a directory")),
+			ELOOP => Err(io_error_not_found("Loops - target is a descendant of source, or too many links in mount path")),
+			EPERM => Err(io_error_permission_denied("permission denied")),
+			EBUSY => Err(io_error_timed_out("Busy")),
+			EINVAL => Err(io_error_invalid_data("One of many possible failures (EINVAL)")),
 
 			EMFILE => panic!("Out of memory (EMFILE)"),
 			ENOMEM => panic!("Out of memory (ENOMEM)"),

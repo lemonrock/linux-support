@@ -33,7 +33,7 @@ impl FromBytes for SwapLine
 		#[inline(always)]
 		fn file_path_field_and_remaining_fields(bytes: &[u8]) -> io::Result<(&[u8], &[u8])>
 		{
-			let index = memchr(b' ', bytes).ok_or(io::Error::new(ErrorKind::InvalidData, "Path field not terminated by spaces"))?;
+			let index = memchr(b' ', bytes).ok_or(io_error_invalid_data("Path field not terminated by spaces"))?;
 			let file_path_field = &bytes[.. index];
 			
 			let last_index_of_file_path_field = memrchr(b' ', bytes).unwrap();
@@ -48,7 +48,7 @@ impl FromBytes for SwapLine
 		// There is inconsistent tab-separation between fields; if the `Type` field is `file`, an additional tab is also inserted.
 		let mut fields = remaining_fields.split_bytes(b'\t').filter(|potential_field| !potential_field.is_empty());
 		
-		let priority = fields.next().ok_or(io::Error::new(ErrorKind::InvalidData, "No `Priority` field"))?;
+		let priority = fields.next().ok_or(io_error_invalid_data("No `Priority` field"))?;
 		
 		use self::SwapType::*;
 		
@@ -59,27 +59,27 @@ impl FromBytes for SwapLine
 				file_path: PathBuf::from(OsString::from_vec(file_path.to_vec())),
 				swap_type:
 				{
-					match fields.next().ok_or(io::Error::new(ErrorKind::InvalidData, "No `Type` field"))?
+					match fields.next().ok_or(io_error_invalid_data("No `Type` field"))?
 					{
 						b"partition" => Partition,
 						b"file" => File,
-						_ => return Err(io::Error::new(ErrorKind::InvalidData, "Invalid `Type` field"))
+						_ => return Err(io_error_invalid_data("Invalid `Type` field"))
 					}
 				},
 				size:
 				{
-					let size = fields.next().ok_or(io::Error::new(ErrorKind::InvalidData, "No `Size` field"))?;
-					usize::from_bytes(size).map_err(|error| io::Error::new(ErrorKind::InvalidData, error))?
+					let size = fields.next().ok_or(io_error_invalid_data("No `Size` field"))?;
+					usize::from_bytes(size).map_err(io_error_invalid_data)?
 				},
 				used:
 				{
-					let used = fields.next().ok_or(io::Error::new(ErrorKind::InvalidData, "No `Used` field"))?;
-					usize::from_bytes(used).map_err(|error| io::Error::new(ErrorKind::InvalidData, error))?
+					let used = fields.next().ok_or(io_error_invalid_data("No `Used` field"))?;
+					usize::from_bytes(used).map_err(io_error_invalid_data)?
 				},
 				priority:
 				{
-					let used = fields.next().ok_or(io::Error::new(ErrorKind::InvalidData, "No `Priority` field"))?;
-					i32::from_bytes(used).map_err(|error| io::Error::new(ErrorKind::InvalidData, error))?
+					let used = fields.next().ok_or(io_error_invalid_data("No `Priority` field"))?;
+					i32::from_bytes(used).map_err(io_error_invalid_data)?
 				},
 			}
 		)

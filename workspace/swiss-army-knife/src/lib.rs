@@ -86,6 +86,10 @@ pub mod big_endian;
 pub mod bit_set;
 
 
+/// Error support.
+pub mod error_support;
+
+
 /// Internet protocol.
 pub mod internet_protocol;
 

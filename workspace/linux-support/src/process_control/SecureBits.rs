@@ -45,12 +45,7 @@ impl SecureBits
 	#[inline(always)]
 	pub fn current() -> Result<Self, Errno>
 	{
-		process_control_wrapper1
-		(
-			PR_GET_SECUREBITS,
-			|non_negative_result| Ok(SecureBits::from_bits_truncate(non_negative_result as u32)),
-			Err
-		)
+		process_control_wrapper1(PR_GET_SECUREBITS, |non_negative_result| Ok(SecureBits::from_bits_truncate(non_negative_result as u32)), Err)
 	}
 	
 	/// Capability protection.
@@ -68,13 +63,7 @@ impl SecureBits
 	{
 		let secure_bits = Self::lock_down(allow_keep_capabilities);
 		
-		process_control_wrapper2
-		(
-			PR_SET_SECUREBITS,
-			secure_bits.bits as usize,
-			result_must_be_zero,
-			Err
-		)
+		process_control_wrapper2(PR_SET_SECUREBITS, secure_bits.bits as usize, result_must_be_zero,Err)
 	}
 	
 	fn lock_down(allow_keep_capabilities: bool) -> Self
