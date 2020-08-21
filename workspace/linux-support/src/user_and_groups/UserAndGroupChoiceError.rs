@@ -18,6 +18,9 @@ pub enum UserAndGroupChoiceError
 	/// User identifier not present in `/etc/passwd`.
 	UserIdentifierNotPresentInEtcPasswd,
 
+	/// Group identifier not present in `/etc/group`.
+	GroupIdentifierNotPresentInEtcGroup,
+
 	/// Group name not present in `/etc/group`.
 	GroupNameNotPresentInEtcGroup,
 
@@ -53,6 +56,8 @@ impl error::Error for UserAndGroupChoiceError
 			&UserNameNotPresentInEtcPasswd => None,
 
 			&UserIdentifierNotPresentInEtcPasswd => None,
+
+			&GroupIdentifierNotPresentInEtcGroup => None,
 
 			&GroupNameNotPresentInEtcGroup => None,
 

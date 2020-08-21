@@ -2,11 +2,19 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Enable or disable transparent huge pages.
+/// Needs to be called after process change.
+///
+/// Needs to be called after:-
+///
+/// * Changing effective user identifier;
+/// * Changing effective group identifier;
+/// * Changing file system user identifier;
+/// * Changing file system group identifier;
+/// * After `execve()`
 #[inline(always)]
-pub fn adjust_transparent_huge_pages(enable_transparent_huge_pages: bool)
+pub fn change_dumpable(enable_or_disable_dumpable: bool) -> Result<(), Errno>
 {
-	let value = if enable_transparent_huge_pages
+	let value = if enable_or_disable_dumpable
 	{
 		1
 	}
@@ -14,5 +22,19 @@ pub fn adjust_transparent_huge_pages(enable_transparent_huge_pages: bool)
 	{
 		0
 	};
-	unsafe { prctl(PR_SET_THP_DISABLE, value as c_ulong) };
+	
+	process_control_wrapper2
+	(
+		PR_SET_DUMPABLE,
+		value,
+		|non_negative_result| if likely!(non_negative_result == 0)
+		{
+			Ok(())
+		}
+		else
+		{
+			unreachable!("Positive result")
+		},
+		|error_number| Err(error_number),
+	)
 }

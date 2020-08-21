@@ -3,7 +3,13 @@
 
 
 use super::*;
+use self::c::*;
+use crate::process_control::{process_control_wrapper1, process_control_wrapper2};
+
+
 pub(crate) mod c;
 
 
 include!("ClockTicks.rs");
+include!("CurrentTimerSlackNanoseconds.rs");
+include!("TimestampCounterSetting.rs");

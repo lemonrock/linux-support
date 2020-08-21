@@ -28,6 +28,7 @@
 #![feature(never_type)]
 #![feature(ptr_offset_from)]
 #![feature(read_initializer)]
+#![feature(thread_id_value)]
 #![feature(thread_local)]
 
 
@@ -285,10 +286,32 @@ use libc::PR_CAP_AMBIENT_LOWER;
 use libc::PR_CAP_AMBIENT_RAISE;
 use libc::PR_CAPBSET_DROP;
 use libc::PR_CAPBSET_READ;
+use libc::PR_GET_CHILD_SUBREAPER;
+use libc::PR_GET_DUMPABLE;
+use libc::PR_GET_KEEPCAPS;
+use libc::PR_GET_PDEATHSIG;
+use libc::PR_GET_NO_NEW_PRIVS;
+use libc::PR_GET_SECUREBITS;
+use libc::PR_GET_THP_DISABLE;
+use libc::PR_GET_TIMERSLACK;
+use libc::PR_GET_TSC;
+use libc::PR_SET_CHILD_SUBREAPER;
 use libc::PR_SET_DUMPABLE;
 use libc::PR_SET_NO_NEW_PRIVS;
+use libc::PR_SET_PDEATHSIG;
 use libc::PR_SET_SECUREBITS;
 use libc::PR_SET_THP_DISABLE;
+use libc::PR_SET_TIMERSLACK;
+use libc::PR_SET_TSC;
+use libc::PR_TASK_PERF_EVENTS_DISABLE;
+use libc::PR_TASK_PERF_EVENTS_ENABLE;
+use libc::PR_MCE_KILL;
+use libc::PR_MCE_KILL_CLEAR;
+use libc::PR_MCE_KILL_DEFAULT;
+use libc::PR_MCE_KILL_EARLY;
+use libc::PR_MCE_KILL_GET;
+use libc::PR_MCE_KILL_LATE;
+use libc::PR_MCE_KILL_SET;
 use libc::PRIO_PGRP;
 use libc::PRIO_PROCESS;
 use libc::PRIO_USER;
@@ -376,6 +399,7 @@ use libc::close;
 use libc::cpu_set_t;
 use libc::dev_t;
 use libc::dup2;
+use libc::endmntent;
 use libc::faccessat;
 use libc::fallocate;
 use libc::fchdir;
@@ -394,6 +418,8 @@ use libc::fsync;
 use libc::getegid;
 use libc::geteuid;
 use libc::getgid;
+use libc::getgroups;
+use libc::getmntent;
 #[cfg(not(any(target_arch = "powerpc64", target_arch = "riscv64", target_arch = "sparc64", target_arch = "x86_64")))] use libc_extra::unix::unistd::getpagesize;
 use libc::getpgid;
 use libc::getpid;
@@ -417,6 +443,7 @@ use libc::mkdirat;
 use libc::mknodat;
 use libc::mlockall;
 use libc::mmap;
+use libc::mntent;
 use libc::mode_t;
 use libc::mount;
 use libc::mprotect;
@@ -459,6 +486,7 @@ use libc::setgroups;
 use libc::sethostname;
 use libc::setlocale;
 use libc::setlogmask;
+use libc::setmntent;
 use libc::setpriority;
 use libc::setresgid;
 use libc::setresuid;
@@ -478,6 +506,7 @@ use libc::ssize_t;
 use libc::stat;
 use libc::statvfs;
 use libc::strnlen;
+use libc::strsignal;
 use libc::swapoff;
 use libc::symlinkat;
 use libc::sync;
@@ -493,29 +522,10 @@ use libc::umount2;
 use libc::unlink;
 use libc::unlinkat;
 use libc::utimensat;
-use libc_extra::android_linux::linux::capability;
-use libc_extra::android_linux::linux::securebits::SECBIT_KEEP_CAPS;
-use libc_extra::android_linux::linux::securebits::SECBIT_KEEP_CAPS_LOCKED;
-use libc_extra::android_linux::linux::securebits::SECBIT_NOROOT;
-use libc_extra::android_linux::linux::securebits::SECBIT_NOROOT_LOCKED;
-use libc_extra::android_linux::linux::securebits::SECBIT_NO_CAP_AMBIENT_RAISE;
-use libc_extra::android_linux::linux::securebits::SECBIT_NO_CAP_AMBIENT_RAISE_LOCKED;
-use libc_extra::android_linux::linux::securebits::SECBIT_NO_SETUID_FIXUP;
-use libc_extra::android_linux::linux::securebits::SECBIT_NO_SETUID_FIXUP_LOCKED;
-use libc_extra::android_linux::linux::sockios::SIOCETHTOOL;
-use libc_extra::android_linux::linux::sockios::SIOCGIFINDEX;
-use libc_extra::android_linux::linux::sockios::SIOCSIFMTU;
-use libc_extra::android_linux::linux::sockios::SIOCGIFNAME;
-use libc_extra::android_linux::linux::sockios::SIOCSIFTXQLEN;
-use libc_extra::android_linux::mntent::endmntent;
-use libc_extra::android_linux::mntent::getmntent;
-use libc_extra::android_linux::mntent::mntent;
-use libc_extra::android_linux::mntent::setmntent;
 use libc_extra::android_linux::stdio::cookie_io_functions_t;
 use libc_extra::android_linux::stdio::fopencookie;
 use libc_extra::linux::errno::program_invocation_short_name;
 use libc_extra::unix::stdio;
-use libc_extra::unix::string::strsignal;
 use likely::likely;
 use likely::unlikely;
 use maplit::btreeset;
@@ -800,6 +810,10 @@ pub mod cpu;
 pub mod devices;
 
 
+/// Diagnostics.
+pub mod diagnostics;
+
+
 /// Environment variables.
 ///
 /// * Find the original environment of a process.
@@ -913,8 +927,16 @@ pub mod mounts;
 pub mod namespaces;
 
 
+/// Perf(ormance) Event.
+pub mod perf_event;
+
+
 /// Very basic `poll` support.
 pub mod poll;
+
+
+/// Some common process (and thread) control, viz `prctl()` that doesn't sit in a more specific module.
+pub mod process_control;
 
 
 /// Nice.
@@ -953,6 +975,10 @@ pub mod seccomp;
 
 /// Signals.
 pub mod signals;
+
+
+/// Speculation mitigation.
+pub mod speculation_mitigation;
 
 
 /// Swap.

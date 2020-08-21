@@ -38,11 +38,11 @@ impl SupplementaryGroupSetting
 	{
 		use self::SupplementaryGroupSetting::*;
 
-		let result = match self
+		match self
 		{
-			&LeaveAsIs => return Ok(()),
+			&LeaveAsIs => (),
 
-			&DropAllSupplementaryGroups => Self::drop_all_supplementary_groups(),
+			&DropAllSupplementaryGroups => Groups::drop_all_supplementary_groups(),
 
 			&ChangeTo(ref supplementary_group_choices) =>
 			{
@@ -50,40 +50,15 @@ impl SupplementaryGroupSetting
 				let length = list.len();
 				if unlikely!(length == 0)
 				{
-					Self::drop_all_supplementary_groups()
+					Groups::drop_all_supplementary_groups()
 				}
 				else
 				{
-					unsafe { setgroups(length, list.as_ptr()) }
+					Groups::set_groups(length, list.as_ptr())
 				}
 			}
-		};
-
-		if likely!(result == 0)
-		{
-			Ok(())
 		}
-		else if likely!(result == -1)
-		{
-			match errno().0
-			{
-				EINVAL => panic!("list has an invalid address, or size is greater than NGROUPS_MAX (32 before Linux 2.6.4; 65536 since Linux 2.6.4)"),
-				ENOMEM => panic!("Out of memory"),
-				EPERM => panic!("Permission denied"),
-
-				unexpected @ _ => panic!("Unexpected error {} from setgroups()", unexpected)
-			}
-		}
-		else
-		{
-			unreachable!("setgroups() returned an unexpected result of {}", result)
-		}
-	}
-
-	#[inline(always)]
-	fn drop_all_supplementary_groups() -> i32
-	{
-		unsafe { setgroups(0, null()) }
+		Ok(())
 	}
 
 	#[inline(always)]
@@ -92,9 +67,7 @@ impl SupplementaryGroupSetting
 		use self::UserAndGroupChoiceError::*;
 
 		let length = supplementary_group_choices.len();
-		// Was 32 before Linux 2.6.4.
-		const NGROUPS_MAX: usize = 65536;
-		if unlikely!(length >= NGROUPS_MAX)
+		if unlikely!(length < Groups::NGROUPS_MAX)
 		{
 			return Err(TooManySupplementaryGroups(length))
 		}

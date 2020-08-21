@@ -85,68 +85,68 @@
 #[serde(deny_unknown_fields)]
 pub enum Capability
 {
-	AuditControl = capability::CAP_AUDIT_CONTROL as u8,
-	AuditRead = capability::CAP_AUDIT_READ as u8,
-	AuditWrite = capability::CAP_AUDIT_WRITE as u8,
+	AuditControl = CAP_AUDIT_CONTROL,
+	AuditRead = CAP_AUDIT_READ,
+	AuditWrite = CAP_AUDIT_WRITE,
 
-	BlockSuspend = capability::CAP_BLOCK_SUSPEND as u8,
+	BlockSuspend = CAP_BLOCK_SUSPEND,
 
-	Chown = capability::CAP_CHOWN as u8,
-	DiscretionaryAccessControlBypass = capability::CAP_DAC_OVERRIDE as u8,
-	DiscretionaryAccessControlFileReadBypass = capability::CAP_DAC_READ_SEARCH as u8,
-	FileOwnerBypass = capability::CAP_FOWNER as u8,
-	FileSetId = capability::CAP_FSETID as u8,
+	Chown = CAP_CHOWN,
+	DiscretionaryAccessControlBypass = CAP_DAC_OVERRIDE,
+	DiscretionaryAccessControlFileReadBypass = CAP_DAC_READ_SEARCH,
+	FileOwnerBypass = CAP_FOWNER,
+	FileSetId = CAP_FSETID,
 
-	LockMemory = capability::CAP_IPC_LOCK as u8,
+	LockMemory = CAP_IPC_LOCK,
 
-	IpcOwner = capability::CAP_IPC_OWNER as u8,
+	IpcOwner = CAP_IPC_OWNER,
 
-	Kill = capability::CAP_KILL as u8,
+	Kill = CAP_KILL,
 
-	Lease = capability::CAP_LEASE as u8,
+	Lease = CAP_LEASE,
 
-	Immutable = capability::CAP_LINUX_IMMUTABLE as u8,
+	Immutable = CAP_LINUX_IMMUTABLE,
 
-	MandatoryAccessControlBypass = capability::CAP_MAC_ADMIN as u8,
-	MandatoryAccessControlOverride = capability::CAP_MAC_OVERRIDE as u8,
+	MandatoryAccessControlBypass = CAP_MAC_ADMIN,
+	MandatoryAccessControlOverride = CAP_MAC_OVERRIDE,
 
-	MakeNodes = capability::CAP_MKNOD as u8,
+	MakeNodes = CAP_MKNOD,
 
-	SystemAdministration = capability::CAP_SYS_ADMIN as u8,
-	NetworkAdministration = capability::CAP_NET_ADMIN as u8,
-	BindPortsBelow1024 = capability::CAP_NET_BIND_SERVICE as u8,
-	NetRaw = capability::CAP_NET_RAW as u8,
+	SystemAdministration = CAP_SYS_ADMIN,
+	NetworkAdministration = CAP_NET_ADMIN,
+	BindPortsBelow1024 = CAP_NET_BIND_SERVICE,
+	NetRaw = CAP_NET_RAW,
 
-	SetUid = capability::CAP_SETUID as u8,
-	SetGid = capability::CAP_SETGID as u8,
+	SetUid = CAP_SETUID,
+	SetGid = CAP_SETGID,
 
-	SetFileCapabilities = capability::CAP_SETFCAP as u8,
+	SetFileCapabilities = CAP_SETFCAP,
 
-	SetProcessCapabilities = capability::CAP_SETPCAP as u8,
+	SetProcessCapabilities = CAP_SETPCAP,
 
-	RebootAndKexecLoad = capability::CAP_SYS_BOOT as u8,
+	RebootAndKexecLoad = CAP_SYS_BOOT,
 
-	Chroot = capability::CAP_SYS_CHROOT as u8,
+	Chroot = CAP_SYS_CHROOT,
 
-	KernelModule = capability::CAP_SYS_MODULE as u8,
+	KernelModule = CAP_SYS_MODULE,
 
-	Nice = capability::CAP_SYS_NICE as u8,
+	Nice = CAP_SYS_NICE,
 
-	ProcessAccounting = capability::CAP_SYS_PACCT as u8,
+	ProcessAccounting = CAP_SYS_PACCT,
 
-	PTrace = capability::CAP_SYS_PTRACE as u8,
+	PTrace = CAP_SYS_PTRACE,
 
-	RawIO = capability::CAP_SYS_RAWIO as u8,
+	RawIO = CAP_SYS_RAWIO,
 
-	Resource = capability::CAP_SYS_RESOURCE as u8,
+	Resource = CAP_SYS_RESOURCE,
 
-	Time = capability::CAP_SYS_TIME as u8,
+	Time = CAP_SYS_TIME,
 
-	TtyConfig = capability::CAP_SYS_TTY_CONFIG as u8,
+	TtyConfig = CAP_SYS_TTY_CONFIG,
 
-	Syslog = capability::CAP_SYSLOG as u8,
+	Syslog = CAP_SYSLOG,
 
-	WakeAlarm = capability::CAP_WAKE_ALARM as u8,
+	WakeAlarm = CAP_WAKE_ALARM,
 }
 
 bit_set_aware!(Capability);
@@ -162,7 +162,7 @@ impl Into<u16> for Capability
 
 impl BitSetAware for Capability
 {
-	const LinuxMaximum: u16 = capability::CAP_LAST_CAP as u16;
+	const LinuxMaximum: u16 = CAP_LAST_CAP as u16;
 
 	const InclusiveMinimum: Self = unsafe { transmute(0u8) };
 
@@ -186,26 +186,29 @@ impl Capability
 	#[inline(always)]
 	pub fn add_to_current_thread_ambient_set(self) -> Result<(), AmbientCapabilityError>
 	{
-		let result = unsafe { prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_RAISE, self as c_ulong, 0, 0) };
-		if likely!(result == 0)
-		{
-			Ok(())
-		}
-		else if likely!(result == -1)
-		{
-			use self::AmbientCapabilityError::*;
-			match errno().0
+		use self::AmbientCapabilityError::*;
+		
+		process_control_wrapper3
+		(
+			PR_CAP_AMBIENT,
+			PR_CAP_AMBIENT_RAISE as usize,
+			self as usize,
+			|non_negative_result| if likely!(non_negative_result == 0)
+			{
+				Ok(())
+			}
+			else
+			{
+				unreachable!("Positive result")
+			},
+			|error_number| match error_number.0
 			{
 				EPERM => Err(PermissionDenied),
 				EINVAL => Err(CapabilityNotKnownByThisLinuxKernel),
-
+				
 				unexpected @ _ => panic!("Unexpected error code '{}' from prctl()", unexpected),
 			}
-		}
-		else
-		{
-			unreachable!("prctl() failed with unexpected result {}", result)
-		}
+		)
 	}
 
 	/// Removes capability from current thread's ambient set.
@@ -215,26 +218,29 @@ impl Capability
 	#[inline(always)]
 	pub fn remove_from_current_thread_ambient_set(self) -> Result<(), AmbientCapabilityError>
 	{
-		let result = unsafe { prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_LOWER, self as c_ulong, 0, 0) };
-		if likely!(result == 0)
-		{
-			Ok(())
-		}
-		else if likely!(result == -1)
-		{
-			use self::AmbientCapabilityError::*;
-			match errno().0
+		use self::AmbientCapabilityError::*;
+		
+		process_control_wrapper3
+		(
+			PR_CAP_AMBIENT,
+			PR_CAP_AMBIENT_LOWER as usize,
+			self as usize,
+			|non_negative_result| if likely!(non_negative_result == 0)
+			{
+				Ok(())
+			}
+			else
+			{
+				unreachable!("Positive result")
+			},
+			|error_number| match error_number.0
 			{
 				EPERM => Err(PermissionDenied),
 				EINVAL => Err(CapabilityNotKnownByThisLinuxKernel),
-
+				
 				unexpected @ _ => panic!("Unexpected error code '{}' from prctl()", unexpected),
 			}
-		}
-		else
-		{
-			unreachable!("prctl() failed with unexpected result {}", result)
-		}
+		)
 	}
 
 	/// Does the current thread have this capability in its ambient set?
@@ -243,21 +249,26 @@ impl Capability
 	#[inline(always)]
 	pub fn is_in_current_thread_ambient_set(self) -> Result<bool, AmbientCapabilityError>
 	{
-		match unsafe { prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_IS_SET, self as c_ulong, 0, 0) }
-		{
-			1 => Ok(true),
-
-			0 => Ok(false),
-
-			-1 => match errno().0
+		use self::AmbientCapabilityError::*;
+		
+		process_control_wrapper3
+		(
+			PR_CAP_AMBIENT,
+			PR_CAP_AMBIENT_IS_SET as usize,
+			self as usize,
+			|non_negative_result| match non_negative_result
 			{
-				EINVAL => Err(AmbientCapabilityError::CapabilityNotKnownByThisLinuxKernel),
-
-				illegal @ _ => panic!("Illegal error code '{}' from prctl()", illegal),
+				0 => Ok(false),
+				1 => Ok(true),
+				_ => unreachable!("Non-boolean result from `prctl()`")
 			},
-
-			illegal @ _ => panic!("prctl() returned illegal result '{}'", illegal),
-		}
+			|error_number| match error_number.0
+			{
+				EINVAL => Err(CapabilityNotKnownByThisLinuxKernel),
+				
+				unexpected @ _ => panic!("Unexpected error code '{}' from prctl()", unexpected),
+			}
+		)
 	}
 
 	/// Does the current thread have this capability in its bounding set?
@@ -266,21 +277,24 @@ impl Capability
 	#[inline(always)]
 	pub fn is_in_current_thread_bounding_set(self) -> Option<bool>
 	{
-		match unsafe { prctl(PR_CAPBSET_READ, self as c_ulong) }
-		{
-			1 => Some(true),
-
-			0 => Some(false),
-
-			-1 => match errno().0
+		let result: Result<Option<bool>, io::Error> = process_control_wrapper2
+		(
+			PR_CAPBSET_READ,
+			self as usize,
+			|non_negative_result| match non_negative_result
 			{
-				EINVAL => None,
-
-				illegal @ _ => panic!("Illegal error code '{}' from prctl()", illegal),
+				0 => Ok(Some(false)),
+				1 => Ok(Some(true)),
+				_ => unreachable!("Non-boolean result from `prctl()`")
 			},
-
-			illegal @ _ => panic!("prctl() returned illegal result '{}'", illegal),
-		}
+			|error_number| match error_number.0
+			{
+				EINVAL => Ok(None),
+				
+				unexpected @ _ => panic!("Unexpected error code '{}' from prctl()", unexpected),
+			}
+		);
+		result.unwrap()
 	}
 
 	/// Returns `Err` if a lack-of-permissions error occurred.
@@ -289,19 +303,25 @@ impl Capability
 	#[inline(always)]
 	pub fn remove_from_current_thread_bounding_set(self) -> Result<(), ()>
 	{
-		match unsafe { prctl(PR_CAPBSET_DROP, self as c_ulong) }
-		{
-			0 => Ok(()),
-
-			-1 => match errno().0
+		process_control_wrapper2
+		(
+			PR_CAPBSET_DROP,
+			self as usize,
+			|non_negative_result| if likely!(non_negative_result == 0)
+			{
+				Ok(())
+			}
+			else
+			{
+				unreachable!("Positive result")
+			},
+			|error_number| match error_number.0
 			{
 				EPERM => Err(()),
 				EINVAL => panic!("Kernel does not support 'file' capabilities. Or capability `{:?}` is not a valid capability on this kernel", self),
-
-				illegal @ _ => panic!("Illegal error code '{}' from prctl()", illegal),
-			},
-
-			illegal @ _ => panic!("prctl() returned illegal result '{}'", illegal),
-		}
+				
+				unexpected @ _ => panic!("Unexpected error code '{}' from prctl()", unexpected),
+			}
+		)
 	}
 }

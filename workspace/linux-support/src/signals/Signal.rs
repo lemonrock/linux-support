@@ -268,7 +268,64 @@ impl Signal
 	{
 		unsafe { CStr::from_ptr(strsignal(self.into()) as *const _) }
 	}
-
+	
+	/// Get parent death signal; `None` implies disabled.
+	#[inline(always)]
+	#[allow(deprecated)]
+	pub fn get_current_process_parent_death_signal() -> io::Result<Option<Self>>
+	{
+		let mut parent_death_signal_number: i32 = unsafe { uninitialized() };
+		process_control_wrapper2
+		(
+			PR_GET_PDEATHSIG,
+			&mut parent_death_signal_number as *mut i32 as usize,
+			|non_negative_result| if likely!(non_negative_result == 0)
+			{
+				if parent_death_signal_number == 0
+				{
+					Ok(None)
+				}
+				else if parent_death_signal_number < 0
+				{
+					Err(io::Error::new(ErrorKind::InvalidData, "Negative parent deatch signal number"))
+				}
+				else
+				{
+					Self::parse_raw_signal_number_u32(non_negative_result as u32).map_err(|cause| io::Error::new(ErrorKind::InvalidData, cause)).map(Some)
+				}
+			}
+			else
+			{
+				unreachable!("Positive result")
+			},
+			|error_number| Err(error_number.into())
+		)
+	}
+	
+	/// Set parent death signal; disabled if `None`.
+	pub fn set_current_process_parent_death_signal(signal: Option<Self>) -> Result<(), Errno>
+	{
+		let parent_death_signal_number: i32 = match signal
+		{
+			None => 0,
+			Some(parent_death_signal_number) => parent_death_signal_number as u8 as i32,
+		};
+		process_control_wrapper2
+		(
+			PR_SET_PDEATHSIG,
+			&parent_death_signal_number as *const i32 as usize,
+			|non_negative_result| if likely!(non_negative_result == 0)
+			{
+				Ok(())
+			}
+			else
+			{
+				unreachable!("Positive result")
+			},
+			|error_number| Err(error_number.into())
+		)
+	}
+	
 	#[inline(always)]
 	pub(crate) fn parse_raw_signal_number_non_zero_u7(raw_signal_number_non_zero_u7: NonZeroU8) -> Result<Self, OutOfRangeSignalNumberError>
 	{

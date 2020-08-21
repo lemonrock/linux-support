@@ -29,7 +29,7 @@ pub enum EventAttachment<'file_descriptor>
 impl<'file_descriptor> EventAttachment<'file_descriptor>
 {
 	#[inline(always)]
-	fn to_values(self) -> (i32, i32, u64)
+	pub(crate) fn to_values(self) -> (i32, i32, u64)
 	{
 		use self::EventAttachment::*;
 		

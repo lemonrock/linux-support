@@ -224,16 +224,16 @@ impl Swappiness
 	/// Default is 60.
 	/// 0 disables swap.
 	#[inline(always)]
-	pub fn read(proc_path: &ProcPath) -> Self
+	pub fn read(proc_path: &ProcPath) -> io::Result<Self>
 	{
-		let value: u8 = Self::swappiness_file_path(proc_path).read_value().unwrap();
+		let value: u8 = Self::swappiness_file_path(proc_path).read_value()?;
 		if value <= 100
 		{
-			unsafe { transmute(value) }
+			Ok(unsafe { transmute(value) })
 		}
 		else
 		{
-			panic!("Value not 0 to 100")
+			Err(io::Error::new(ErrorKind::InvalidData, "Value not 0 to 100"))
 		}
 	}
 

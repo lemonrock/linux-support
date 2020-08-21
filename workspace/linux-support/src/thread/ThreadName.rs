@@ -76,8 +76,6 @@ impl Default for ThreadName
 impl ThreadName
 {
 	/// This should not fail under ordinary circumstances.
-	///
-	/// Uses `prctl()`.
 	#[inline(always)]
 	pub fn get_current_thread_name() -> Self
 	{
@@ -85,19 +83,20 @@ impl ThreadName
 		(
 			|buffer|
 			{
-				let result = unsafe { prctl(PR_GET_NAME, buffer.as_mut_ptr() as c_ulong) };
-				if likely!(result == 0)
-				{
-					Ok(())
-				}
-				else if likely!(result == -1)
-				{
-					Err(io::Error::last_os_error()).expect("No good reason to fail")
-				}
-				else
-				{
-					unreachable!("prctl() returned unexpected result {}", result)
-				}
+				process_control_wrapper2
+				(
+					PR_GET_NAME,
+					buffer.as_mut_ptr() as usize,
+					|non_negative_result| if likely!(non_negative_result == 0)
+					{
+						Ok(())
+					}
+					else
+					{
+						unreachable!("Positive result")
+					},
+					|error_number| Err(error_number.into())
+				)
 			},
 			|| io::Error::new(ErrorKind::Other, "DoesNotEndWithAsciiNulError")
 		).expect("No good reason to fail");
@@ -105,25 +104,24 @@ impl ThreadName
 	}
 
 	/// This should not fail under ordinary circumstances.
-	///
-	/// Uses `prctl()`.
 	#[inline(always)]
-	pub fn set_current_thread_name(&self) -> io::Result<()>
+	pub fn set_current_thread_name(&self) -> Result<(), Errno>
 	{
 		let pointer = self.0.as_ptr();
-		let result = unsafe { prctl(PR_SET_NAME, pointer as c_ulong, 0, 0, 0) };
-		if likely!(result == 0)
-		{
-			Ok(())
-		}
-		else if likely!(result == -1)
-		{
-			Err(io::Error::last_os_error()).expect("No good reason to fail")
-		}
-		else
-		{
-			unreachable!("prctl() returned unexpected result {}", result)
-		}
+		process_control_wrapper2
+		(
+			PR_SET_NAME,
+			pointer as usize,
+			|non_negative_result| if likely!(non_negative_result == 0)
+			{
+				Ok(())
+			}
+			else
+			{
+				unreachable!("Positive result")
+			},
+			|error_number| Err(error_number),
+		)
 	}
 
 	/// For any process and any thread.
@@ -136,7 +134,7 @@ impl ThreadName
 
 	/// For any process and any thread.
 	#[inline(always)]
-	pub fn get_thread_name(&self, process_identifier: ProcessIdentifierChoice, thread_identifier: ThreadIdentifier, proc_path: &ProcPath) -> io::Result<Self>
+	pub fn get_thread_name(process_identifier: ProcessIdentifierChoice, thread_identifier: ThreadIdentifier, proc_path: &ProcPath) -> io::Result<Self>
 	{
 		let file_path = proc_path.process_thread_file_path(process_identifier, thread_identifier, "comm");
 		CommandName::read_from_file_line_feed_terminated(&file_path).map(|object_name| Self(object_name))

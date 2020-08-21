@@ -2,34 +2,31 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Memory map or do not memory map this map?
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+/// Etc group record.
+///
+/// Has a lifetime as it shares its data with the underlying file's bytes.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-#[repr(u32)]
-pub(crate) enum FileDescriptorOutput
+pub struct EtcGroupRecordDiagnostic
 {
-	/// Memory map
-	MemoryMap = BPF_MAP_CREATE_flags::BPF_F_MMAPABLE.bits(),
+	/// Raw value.
+	///
+	/// Use `self.group_name()` for a lifetime-independent, but cloned, value.
+	pub raw_group_name: Vec<u8>,
 	
-	/// Do not memory map (the default).
-	DoNotMemoryMap = BPF_MAP_CREATE_flags::empty().bits(),
+	/// User names.
+	pub raw_user_names: Vec<Vec<u8>>,
 }
 
-impl Default for FileDescriptorOutput
+impl<'a> From<EtcGroupRecord<'a>> for EtcGroupRecordDiagnostic
 {
 	#[inline(always)]
-	fn default() -> Self
+	fn from(value: EtcGroupRecord<'a>) -> Self
 	{
-		MemoryMap::DoNotMemoryMap
-	}
-}
-
-impl FileDescriptorOutput
-{
-	#[inline(always)]
-	pub(super) fn to_flags(self) -> BPF_MAP_CREATE_flags
-	{
-		unsafe { transmute(self as u32) }
+		Self
+		{
+			raw_group_name: value.raw_group_name.to_vec(),
+			raw_user_names: value.raw_user_names().map(|raw_user_name| raw_user_name.to_vec()).collect(),
+		}
 	}
 }

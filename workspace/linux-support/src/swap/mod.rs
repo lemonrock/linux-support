@@ -9,5 +9,7 @@ use crate::user_and_groups::assert_effective_user_id_is_root;
 
 include!("PageCluster.rs");
 include!("swap_off.rs");
-include!("swap_off_all_using_proc_swaps.rs");
+include!("SwapLine.rs");
 include!("Swappiness.rs");
+include!("Swaps.rs");
+include!("SwapType.rs");

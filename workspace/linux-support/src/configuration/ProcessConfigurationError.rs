@@ -52,10 +52,19 @@ pub enum ProcessConfigurationError
 	ProcessIoPriorityConfiguration(ProcessIoPriorityConfigurationError),
 
 	#[allow(missing_docs)]
-	IoFlusher(io::Error),
+	CouldNotEnableOrDisableIoFlusher(Errno),
 
 	#[allow(missing_docs)]
-	CouldNotDisableDumpable(io::Error),
+	CouldNotChangeMachineCheckExceptionKillPolicy(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotSetTimestampCounterSetting(Errno),
+
+	#[allow(missing_docs)]
+	CouldNotEnableOrDisableProcessPerformanceCounters(Errno),
+
+	#[allow(missing_docs)]
+	CouldNotDisableDumpable(Errno),
 
 	#[allow(missing_docs)]
 	CouldNotCloseAllOpenFileDescriptorsApartFromStandard(io::Error),
@@ -91,7 +100,7 @@ pub enum ProcessConfigurationError
 	UtcFilePathDoesNotExistOrIsNotReadable(io::Error),
 
 	#[allow(missing_docs)]
-	CouldNotPreventTheGrantingOfNoNewPrivileges(io::Error),
+	CouldNotPreventTheGrantingOfNoNewPrivileges(Errno),
 
 	#[allow(missing_docs)]
 	CouldNotGetInternetProtocolAddressesUsingNetlink(String),
@@ -154,9 +163,15 @@ impl error::Error for ProcessConfigurationError
 
 			&ProcessIoPriorityConfiguration(ref cause) => Some(cause),
 
-			&IoFlusher(ref cause) => Some(cause),
+			&CouldNotEnableOrDisableIoFlusher(..) => None,
 
-			&CouldNotDisableDumpable(ref cause) => Some(cause),
+			&CouldNotChangeMachineCheckExceptionKillPolicy(ref cause) => Some(cause),
+
+			&CouldNotSetTimestampCounterSetting(..) => None,
+
+			&CouldNotEnableOrDisableProcessPerformanceCounters(..) => None,
+
+			&CouldNotDisableDumpable(..) => None,
 
 			&CouldNotCloseAllOpenFileDescriptorsApartFromStandard(ref cause) => Some(cause),
 
@@ -178,7 +193,7 @@ impl error::Error for ProcessConfigurationError
 
 			&CouldNotChangeWorkingDirectory(ref cause) => Some(cause),
 
-			&CouldNotPreventTheGrantingOfNoNewPrivileges(ref cause) => Some(cause),
+			&CouldNotPreventTheGrantingOfNoNewPrivileges(..) => None,
 
 			&UtcFilePathDoesNotExistOrIsNotReadable(ref cause) => Some(cause),
 

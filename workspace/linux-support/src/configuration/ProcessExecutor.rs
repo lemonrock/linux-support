@@ -7,16 +7,22 @@
 /// Starts threads and locks down security using seccomp, capabilities and setuid et al in an intricate dance once a process is secured using `ProcessConfiguration`.
 #[derive(Default, Debug, Clone, Eq, PartialEq)]
 #[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
+#[serde(deny_unknown_fields, default)]
 pub struct ProcessExecutor
 {
 	/// User and group settings.
-	#[serde(default)] pub user_and_group_settings: UserAndGroupSettings,
+	pub user_and_group_settings: UserAndGroupSettings,
 
 	/// Seccomp configuration.
 	///
 	/// SecComp filtering adds a 5% to 10% overhead.
-	#[serde(default)] pub seccomp: Option<PermittedSyscalls>,
+	pub seccomp: Option<PermittedSyscalls>,
+	
+	/// Parent death signal.
+	pub parent_death_signal: Option<Option<Signal>>,
+	
+	/// Child subreapear process.
+	pub child_subreaper_process: Option<Option<ProcessIdentifier>>,
 }
 
 impl ProcessExecutor
@@ -34,6 +40,23 @@ impl ProcessExecutor
 		where PTMAI::InstantiationArguments: 'static
 	{
 		let (join_handles, main_thread_loop_body_function, main_thread_local_allocator_drop_guard) = self.prepare_and_secure_threads::<T, MainThreadFunction, ChildThreadFunction, PTMAI>(file_system_layout, &terminate, main_thread, child_threads, instantiation_arguments)?;
+		
+		// Must be changed *after* changing any of the following identifiers as it is reset by them:-
+		// * effective user identifier;
+		// * file system user identifier;
+		// * effective group identifier;
+		// * file system group identifier;
+		//
+		// If must also be set after forking.
+		if let Some(parent_death_signal) = self.parent_death_signal
+		{
+			Signal::set_current_process_parent_death_signal(parent_death_signal).map_err(ProcessExecutorError::CouldNotSetParentDeathSignal)?;
+		}
+		
+		if let Some(child_subreaper_process) = self.child_subreaper_process
+		{
+			ProcessIdentifier::set_current_process_child_subreaper_process(child_subreaper_process).map_err(ProcessExecutorError::CouldNotSetChildSubreaper)?;
+		}
 		
 		Self::execute::<T, MainThreadFunction::TLBF, PTMAI>(join_handles, main_thread_loop_body_function, terminate, main_thread_local_allocator_drop_guard)
 	}
@@ -128,6 +151,6 @@ impl ProcessExecutor
 	#[inline(always)]
 	fn protect_access_to_proc_self_and_disable_core_dumps_needs_to_be_called_as_changing_user_identifiers_resets_process_dumpable_bit() -> Result<(), ProcessExecutorError>
 	{
-		disable_dumpable().map_err(ProcessExecutorError::CouldNotDisableDumpable)
+		change_dumpable(false).map_err(ProcessExecutorError::CouldNotDisableDumpable)
 	}
 }

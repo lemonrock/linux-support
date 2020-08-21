@@ -306,8 +306,13 @@ impl ValidatedNumaNodeToHyperThreadMap
 
 ### ethtool
 
-* Look at IRQ affinity mapping for Internet Flow Directory (look at irq script in ~/Downloads/25_2)
+* Look at IRQ affinity mapping for Internet Flow Directory (look at irq script in `~/Downloads/25_2/*/set_irq_affinity`).
 * Finish ethtool flow direction
+
+
+### Diagnostics
+
+* Dump out all known information
 
 
 ### Cgroups v2

@@ -142,4 +142,33 @@ impl ThreadIdentifier
 	{
 		format!("{}", self.0)
 	}
+	
+	/// Current threads for a process.
+	pub fn for_process(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> io::Result<impl Iterator<Item=ThreadIdentifier>>
+	{
+		let folder_path = proc_path.process_threads_folder_path(process_identifier);
+		
+		fn process_dir_entry(dir_entry: io::Result<DirEntry>) -> Option<ThreadIdentifier>
+		{
+			let dir_entry = match dir_entry
+			{
+				Err(_) => return None,
+				Ok(dir_entry) => dir_entry
+			};
+			
+			match dir_entry.file_type()
+			{
+				Err(_) => return None,
+				Ok(file_type) => if file_type.is_file()
+				{
+					return None
+				}
+			};
+			
+			let file_name = dir_entry.file_name().into_vec();
+			NonZeroI32::from_bytes(&file_name[..]).ok().map(|tid| ThreadIdentifier(tid))
+		}
+		
+		Ok(folder_path.read_dir()?.filter_map(process_dir_entry))
+	}
 }

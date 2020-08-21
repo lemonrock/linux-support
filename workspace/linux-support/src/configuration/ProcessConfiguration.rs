@@ -85,7 +85,13 @@ pub struct ProcessConfiguration
 	/// Mostly for things like block device daemons and FUSE daemons.
 	///
 	/// Since Linux 5.6.
-	#[serde(default)] pub enable_io_flusher: Option<bool>,
+	#[serde(default)] pub enable_or_disable_io_flusher: Option<bool>,
+	
+	#[serde(default)] pub machine_check_exception_kill_policy: Option<Option<MachineCheckExceptionKillPolicy>>,
+	
+	#[serde(default)] pub timestamp_counter_setting: Option<TimestampCounterSetting>,
+	
+	#[serde(default)] pub enable_or_disable_process_performance_counters: Option<bool>,
 
 	/// Logging configuration.
 	#[serde(default)] pub logging_configuration: ProcessLoggingConfiguration,
@@ -132,7 +138,10 @@ impl Default for ProcessConfiguration
 			lock_all_memory: None,
 			process_nice_configuration: None,
 			process_io_priority_configuration: None,
-			enable_io_flusher: None,
+			enable_or_disable_io_flusher: None,
+			machine_check_exception_kill_policy: None,
+			timestamp_counter_setting: None,
+			enable_or_disable_process_performance_counters: None,
 			logging_configuration: Default::default(),
 			enable_full_rust_stack_back_traces: Self::enable_full_rust_stack_back_traces_default(),
 			binary_paths: Self::binary_paths_default(),
@@ -244,7 +253,13 @@ impl ProcessConfiguration
 		// This *MUST* be called before creating new threads.
 		set_value(proc_path, |_, process_io_priority_configuration| process_io_priority_configuration.configure(), self.process_io_priority_configuration.as_ref(), ProcessIoPriorityConfiguration)?;
 
-		self.set_io_flusher()?;
+		self.enable_or_disable_io_flusher()?;
+		
+		self.change_machine_check_exception_kill_policy().map_err(CouldNotChangeMachineCheckExceptionKillPolicy)?;
+		
+		self.set_timestamp_counter_setting()?;
+		
+		self.enable_or_disable_process_performance_counters()?;
 
 		// This *MUST* be called after daemonizing (forking).
 		// This *MUST* be called before creating new threads.
@@ -254,7 +269,7 @@ impl ProcessConfiguration
 		// This *MUST* be called before loading Seccomp filters for uprivileged processes.
 		// This *MUST* be called before executing programs that might be setuid/setgid or have file capabilities.
 		// This prevents `execve()` granting additional capabilities.
-		no_new_privileges().map_err(CouldNotPreventTheGrantingOfNoNewPrivileges)?;
+		change_no_new_privileges(true).map_err(CouldNotPreventTheGrantingOfNoNewPrivileges)?;
 		
 		Ok(terminate)
 	}
@@ -405,7 +420,7 @@ impl ProcessConfiguration
 	#[inline(always)]
 	fn protect_access_to_proc_self_and_disable_core_dumps() -> Result<(), ProcessConfigurationError>
 	{
-		disable_dumpable().map_err(ProcessConfigurationError::CouldNotDisableDumpable)
+		change_dumpable(false).map_err(ProcessConfigurationError::CouldNotDisableDumpable)
 	}
 
 	#[inline(always)]
@@ -448,11 +463,54 @@ impl ProcessConfiguration
 	}
 
 	#[inline(always)]
-	fn set_io_flusher(&self) -> Result<(), ProcessConfigurationError>
+	fn enable_or_disable_io_flusher(&self) -> Result<(), ProcessConfigurationError>
 	{
-		if let Some(enable_io_flusher) = self.enable_io_flusher
+		if let Some(enable_or_disable_io_flusher) = self.enable_or_disable_io_flusher
 		{
-			set_io_flusher(enable_io_flusher).map_err(ProcessConfigurationError::IoFlusher)
+			change_io_flusher(enable_or_disable_io_flusher).map_err(ProcessConfigurationError::CouldNotEnableOrDisableIoFlusher)
+		}
+		else
+		{
+			Ok(())
+		}
+	}
+	
+	#[inline(always)]
+	fn change_machine_check_exception_kill_policy(&self) -> io::Result<()>
+	{
+		if let Some(machine_check_exception_kill_policy) = self.machine_check_exception_kill_policy
+		{
+			match machine_check_exception_kill_policy
+			{
+				None => MachineCheckExceptionKillPolicy::clear_for_current_thread(),
+				Some(machine_check_exception_kill_policy) => machine_check_exception_kill_policy.set_for_current_thread(),
+			}
+		}
+		else
+		{
+			Ok(())
+		}
+	}
+	
+	#[inline(always)]
+	fn set_timestamp_counter_setting(&self) -> Result<(), ProcessConfigurationError>
+	{
+		if let Some(timestamp_counter_setting) = self.timestamp_counter_setting
+		{
+			timestamp_counter_setting.set().map_err(ProcessConfigurationError::CouldNotSetTimestampCounterSetting)
+		}
+		else
+		{
+			Ok(())
+		}
+	}
+	
+	#[inline(always)]
+	fn enable_or_disable_process_performance_counters(&self) -> Result<(), ProcessConfigurationError>
+	{
+		if let Some(enable_or_disable_process_performance_counters) = self.enable_or_disable_process_performance_counters
+		{
+			change_process_performance_counters(enable_or_disable_process_performance_counters).map_err(ProcessConfigurationError::CouldNotEnableOrDisableProcessPerformanceCounters)
 		}
 		else
 		{

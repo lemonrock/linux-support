@@ -63,6 +63,7 @@ include!("phy_tunable_id.rs");
 include!("PORT.rs");
 include!("raw_hdlc_proto.rs");
 include!("RingCookie.rs");
+include!("SIOC.rs");
 include!("SOF_TIMESTAMPING.rs");
 include!("SPEED.rs");
 include!("sync_serial_settings.rs");

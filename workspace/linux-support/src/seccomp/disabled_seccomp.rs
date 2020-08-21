@@ -4,19 +4,20 @@
 
 /// Seccomp is disabled after this call.
 #[inline(always)]
-pub fn disabled_seccomp() -> io::Result<()>
+pub fn disabled_seccomp() -> Result<(), Errno>
 {
-	let result = unsafe { prctl(PR_SET_SECCOMP, SECCOMP_MODE_DISABLED, 0, 0, 0) };
-	if likely!(result == 0)
-	{
-		Ok(())
-	}
-	else if likely!(result == -1)
-	{
-		Err(io::Error::last_os_error())
-	}
-	else
-	{
-		unreachable!("prctl() returned unexpected result {}", result)
-	}
+	process_control_wrapper2
+	(
+		PR_SET_SECUREBITS,
+		SECCOMP_MODE_DISABLED as usize,
+		|non_negative_result| if likely!(non_negative_result == 0)
+		{
+			Ok(())
+		}
+		else
+		{
+			unreachable!("Positive result")
+		},
+		|error_number| Err(error_number)
+	)
 }

@@ -27,12 +27,18 @@ impl GlobalSwapConfiguration
 
 		if self.disable_all_swap_partitions
 		{
-			swap_off_all_using_proc_swaps(proc_path).map_err(|cause| CouldNotDisableAllSwaps(cause))?;
+			Self::swap_off_all_using_proc_swaps(proc_path).map_err(|cause| CouldNotDisableAllSwaps(cause))?;
 		}
 
 		set_value(proc_path, |proc_path, swappiness| swappiness.write(proc_path), self.swappiness, CouldNotChangeSwappiness)?;
 		set_value(proc_path, |proc_path, page_cluster| page_cluster.write(proc_path), self.page_cluster, CouldNotChangePageCluster)?;
 		
 		Ok(())
+	}
+	
+	#[inline(always)]
+	fn swap_off_all_using_proc_swaps(proc_path: &ProcPath) -> io::Result<()>
+	{
+		Swaps::parse(proc_path)?.swap_off_all()
 	}
 }

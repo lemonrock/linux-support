@@ -37,11 +37,25 @@ impl ProcPath
 		self.process_file_path(process_identifier, "pressure").append(file_name)
 	}
 
+	/// Get a file path for the current process or another process' thread.
+	#[inline(always)]
+	pub fn process_thread_file_path(&self, process_identifier: ProcessIdentifierChoice, thread_identifier: ThreadIdentifier, file_name: &str) -> PathBuf
+	{
+		self.process_thread_folder_path(process_identifier, thread_identifier).append(file_name)
+	}
+	
 	/// Get a folder path for the current process or another process' thread.
 	#[inline(always)]
-	pub fn process_thread_file_path(&self, process_identifier: ProcessIdentifierChoice, thread_identifier: ThreadIdentifier, relative_path: &str) -> PathBuf
+	pub fn process_thread_folder_path(&self, process_identifier: ProcessIdentifierChoice, thread_identifier: ThreadIdentifier) -> PathBuf
 	{
-		self.process_file_path(process_identifier, "task").append(&thread_identifier.to_file_name()).append(relative_path)
+		self.process_threads_folder_path(process_identifier).append(&thread_identifier.to_file_name())
+	}
+	
+	/// Get a folder path for the current process or another process' threads.
+	#[inline(always)]
+	pub fn process_threads_folder_path(&self, process_identifier: ProcessIdentifierChoice) -> PathBuf
+	{
+		self.process_file_path(process_identifier, "task")
 	}
 
 	/// Get a file path within the ProcPath, `/proc/sys/fs/mqueue/<file_name>`.

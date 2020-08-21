@@ -69,11 +69,19 @@ impl UserAndGroupChoice
 	}
 
 	#[inline(always)]
-	fn etc_passwd_record_for_user_identifier<A, F: FnOnce(EtcPasswdRecord) -> Result<A, UserAndGroupChoiceError>>(etc_path: &EtcPath, user_identifier: UserIdentifier, etc_passwd_record_user: F) -> Result<A, UserAndGroupChoiceError>
+	pub(crate) fn etc_passwd_record_for_user_identifier<A, F: FnOnce(EtcPasswdRecord) -> Result<A, UserAndGroupChoiceError>>(etc_path: &EtcPath, user_identifier: UserIdentifier, etc_passwd_record_user: F) -> Result<A, UserAndGroupChoiceError>
 	{
 		let etc_passwd = EtcPasswd::open(etc_path)?;
 		let etc_passwd_record = Self::try_find_etc_passwd(etc_passwd.iter(), |etc_passwd_record| etc_passwd_record.user_identifier == user_identifier)?.ok_or(UserAndGroupChoiceError::UserIdentifierNotPresentInEtcPasswd)?;
 		etc_passwd_record_user(etc_passwd_record)
+	}
+
+	#[inline(always)]
+	pub(crate) fn etc_group_record_for_group_identifier<A, F: FnOnce(EtcGroupRecord) -> Result<A, UserAndGroupChoiceError>>(etc_path: &EtcPath, group_identifier: GroupIdentifier, etc_group_record_user: F) -> Result<A, UserAndGroupChoiceError>
+	{
+		let etc_group = EtcGroup::open(etc_path)?;
+		let etc_group_record = Self::try_find_etc_group(etc_group.iter(), |etc_group_record| etc_group_record.group_identifier == group_identifier)?.ok_or(UserAndGroupChoiceError::GroupIdentifierNotPresentInEtcGroup)?;
+		etc_group_record_user(etc_group_record)
 	}
 
 	#[inline(always)]

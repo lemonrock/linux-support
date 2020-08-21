@@ -8,19 +8,28 @@
 ///
 /// This MUST be called prior to `seccomp(SECCOMP_SET_MODE_FILTER)` if the current thread does not the `CAP_SYS_ADMIN` capability.
 #[inline(always)]
-pub fn no_new_privileges() -> Result<(), io::Error>
+pub fn change_no_new_privileges(enable_or_disable_no_new_privileges: bool) -> Result<(), Errno>
 {
-	let result = unsafe { prctl(PR_SET_NO_NEW_PRIVS, 1 as c_ulong, 0 as c_ulong, 0 as c_ulong, 0 as c_ulong) };
-	if likely!(result == 0)
+	let value = if enable_or_disable_no_new_privileges
 	{
-		Ok(())
-	}
-	else if likely!(result == -1)
-	{
-		Err(io::Error::last_os_error())
+		1
 	}
 	else
 	{
-		unreachable!("Unexpected result {} from prctl()", result)
-	}
+		0
+	};
+	process_control_wrapper2
+	(
+		PR_SET_NO_NEW_PRIVS,
+		value,
+		|non_negative_result| if likely!(non_negative_result == 0)
+		{
+			Ok(())
+		}
+		else
+		{
+			unreachable!("Positive result")
+		},
+		|error_number| Err(error_number)
+	)
 }

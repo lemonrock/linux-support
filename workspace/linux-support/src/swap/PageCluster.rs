@@ -40,7 +40,7 @@ pub enum PageCluster
 	/// 256 pages.
 	#[serde(rename = "256")] TwoHunderedAndFiftySixPages = 8,
 	
-	/// 512 pages (one huge pafe on x86_64 and most other 64-bit systems).
+	/// 512 pages (one huge page on x86_64 and most other 64-bit systems).
 	#[serde(rename = "512")] FiveHundredAndTwelvePages = 9,
 }
 
@@ -55,6 +55,43 @@ impl Default for PageCluster
 
 impl PageCluster
 {
+	/// Read `/proc/sys/vm/page-cluster`.
+	///
+	/// Default is 3.
+	/// 0 disables.
+	#[inline(always)]
+	pub fn read(proc_path: &ProcPath) -> io::Result<Either<Self, i32>>
+	{
+		use self::PageCluster::*;
+		
+		let file_path = Self::file_path(proc_path);
+		let common = match file_path.read_value()?
+		{
+			0 => Off,
+			
+			1 => TwoPages,
+			
+			2 => FourPages,
+			
+			3 => EightPages,
+			
+			4 => SixteenPages,
+			
+			5 => ThirtyTwoPages,
+			
+			6 => SixtyFourPages,
+			
+			7 => OneHundredAndTwentyEightPages,
+			
+			8 => TwoHunderedAndFiftySixPages,
+			
+			9 => FiveHundredAndTwelvePages,
+			
+			other @ _ => return Ok(Right(other)),
+		};
+		Ok(Left(common))
+	}
+	
 	/// Write `/proc/sys/vm/page-cluster`.
 	///
 	/// Default is 3.
@@ -66,7 +103,7 @@ impl PageCluster
 	{
 		assert_effective_user_id_is_root("write /proc/sys/vm/page-cluster");
 		
-		let file_path = proc_path.sys_vm_file_path("page-cluster");
+		let file_path = Self::file_path(proc_path);
 		if file_path.exists()
 		{
 			file_path.write_value(UnpaddedDecimalInteger(self as i32))
@@ -75,5 +112,11 @@ impl PageCluster
 		{
 			Ok(())
 		}
+	}
+	
+	#[inline(always)]
+	fn file_path(proc_path: &ProcPath) -> PathBuf
+	{
+		proc_path.sys_vm_file_path("page-cluster")
 	}
 }

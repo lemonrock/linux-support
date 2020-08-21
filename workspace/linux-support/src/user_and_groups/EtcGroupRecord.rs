@@ -46,7 +46,7 @@ impl<'a> EtcGroupRecord<'a>
 
 	/// Raw user names.
 	///
-	/// Use `self.raw_names()` if cloned data is wanted.
+	/// Use `self.user_names()` if cloned data is wanted.
 	#[inline(always)]
 	pub fn raw_user_names(&self) -> impl Iterator<Item=&'a [u8]>
 	{

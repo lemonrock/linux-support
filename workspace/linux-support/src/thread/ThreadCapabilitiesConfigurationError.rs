@@ -16,7 +16,7 @@ pub enum ThreadCapabilitiesConfigurationError
 	CouldNotConfigureAmbient(AmbientCapabilityError),
 
 	#[allow(missing_docs)]
-	CouldNotLockSecureBits(io::Error),
+	CouldNotLockSecureBits(Errno),
 }
 
 impl Display for ThreadCapabilitiesConfigurationError
@@ -43,7 +43,7 @@ impl error::Error for ThreadCapabilitiesConfigurationError
 
 			&CouldNotConfigureAmbient(ref cause) => Some(cause),
 
-			&CouldNotLockSecureBits(ref cause) => Some(cause),
+			&CouldNotLockSecureBits(..) => None,
 		}
 	}
 }

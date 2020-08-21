@@ -5,7 +5,7 @@
 /// An User Identifier or a Group Identifier.
 ///
 /// Linux uid and gid values can never be negative (unlike, say HP-UX).
-pub trait UserOrGroupIdentifier: Sized + Copy + Into<u32> + Default + PartialEq + Eq + PartialOrd + Ord + Hash
+pub trait UserOrGroupIdentifier: Sized + Copy + Into<u32> + Default + PartialEq + Eq + PartialOrd + Ord + Hash + FromBytes<Error=ParseNumberError>
 {
 	/// Zero.
 	const Zero: Self;
@@ -15,7 +15,7 @@ pub trait UserOrGroupIdentifier: Sized + Copy + Into<u32> + Default + PartialEq 
 
 	/// Root.
 	const root: Self;
-
+	
 	/// Current real value (also default).
 	fn current_real() -> Self;
 

@@ -31,7 +31,16 @@ pub struct ThreadConfiguration
 	#[serde(default)] numa_memory_policy: Option<SetMemoryPolicy>,
 
 	#[allow(missing_docs)]
-	#[serde(default)] pub disable_transparent_huge_pages: bool,
+	#[serde(default)] pub disable_transparent_huge_pages: Option<bool>,
+
+	#[allow(missing_docs)]
+	#[serde(default)] pub current_timer_slack: Option<Option<CurrentTimerSlackNanoseconds>>,
+	
+	#[allow(missing_docs)]
+	#[serde(default)] pub store_bypass_speculation_mitigation_control: Option<StoreBypassSpeculationMitigationControlChangeOperation>,
+	
+	#[allow(missing_docs)]
+	#[serde(default)] pub indirect_branch_speculation_mitigation_control: Option<IndirectBranchSpeculationMitigationControlChangeOperation>,
 
 	/// Capabilities to apply after configuring the thread but before executing the thread loop.
 	///
@@ -55,7 +64,10 @@ impl Default for ThreadConfiguration
 			io_priority: None,
 			thread_scheduler: Default::default(),
 			numa_memory_policy: None,
-			disable_transparent_huge_pages: false,
+			disable_transparent_huge_pages: None,
+			current_timer_slack: None,
+			store_bypass_speculation_mitigation_control: None,
+			indirect_branch_speculation_mitigation_control: None,
 			capabilities: None,
 			thread_local_allocator_configuration: Default::default()
 		}
@@ -78,20 +90,14 @@ impl ThreadConfiguration
 		let stack_size = self.stack_size.get() * PageSize::current().size_in_bytes().get();
 		let numa_memory_policy = self.numa_memory_policy.clone();
 		let disable_transparent_huge_pages = self.disable_transparent_huge_pages;
+		let current_timer_slack = self.current_timer_slack;
+		let store_bypass_speculation_mitigation_control = self.store_bypass_speculation_mitigation_control;
+		let indirect_branch_speculation_mitigation_control = self.indirect_branch_speculation_mitigation_control;
 		let thread_local_allocator_configuration = self.thread_local_allocator_configuration.clone();
 		let instantiation_arguments = instantiation_arguments.clone();
 		Builder::new().name(self.name.to_string()).stack_size(stack_size as usize).spawn(move ||
 		{
-			if let Some(ref numa_memory_policy) = numa_memory_policy
-			{
-				numa_memory_policy.set_thread_policy()
-			}
-
-			adjust_transparent_huge_pages(!disable_transparent_huge_pages);
-			
-			let thread_local_allocator_drop_guard = PTMAI::instantiate(thread_local_allocator_configuration, instantiation_arguments).expect("Could not allocate a thread-local allocator");
-			
-			(unsafe { LocalSyslogSocket::configure_per_thread_local_syslog_socket() }).expect("Could not start logging");
+			let thread_local_allocator_drop_guard = Self::early_thread_configuration::<PTMAI>(numa_memory_policy.as_ref(), disable_transparent_huge_pages, current_timer_slack, store_bypass_speculation_mitigation_control, indirect_branch_speculation_mitigation_control, thread_local_allocator_configuration, instantiation_arguments, true);
 			
 			let t = f();
 			
@@ -112,16 +118,8 @@ impl ThreadConfiguration
 	#[inline(always)]
 	pub fn configure_main_thread<PTMAI: PerThreadMemoryAllocatorInstantiator>(&self, instantiation_arguments: Arc<PTMAI::InstantiationArguments>, proc_path: &ProcPath, affinity: &HyperThreads) -> Result<PTMAI::ThreadDropGuard, ThreadConfigurationError>
 	{
-		if let Some(ref numa_memory_policy) = self.numa_memory_policy
-		{
-			numa_memory_policy.set_thread_policy()
-		}
-		
-		adjust_transparent_huge_pages(!self.disable_transparent_huge_pages);
-		
-		let thread_local_allocator_drop_guard = PTMAI::instantiate(self.thread_local_allocator_configuration.clone(), instantiation_arguments).expect("Could not allocate a thread-local allocator");
-		
-		// `(unsafe { LocalSyslogSocket::configure_per_thread_local_syslog_socket() }).expect("Could not start logging");` is not required as it is done in `LocalSyslogSocketConfiguration::configure()`.
+		// No need to `start_logging` as this is done in `LocalSyslogSocketConfiguration::configure()`.
+		let thread_local_allocator_drop_guard = Self::early_thread_configuration::<PTMAI>(self.numa_memory_policy.as_ref(), self.disable_transparent_huge_pages, self.current_timer_slack, self.store_bypass_speculation_mitigation_control, self.indirect_branch_speculation_mitigation_control, self.thread_local_allocator_configuration.clone(), instantiation_arguments, false);
 		
 		self.configure_thread(unsafe { pthread_self() }, ThreadIdentifier::default(), proc_path, affinity)?;
 		
@@ -150,6 +148,63 @@ impl ThreadConfiguration
 		self.thread_scheduler.set_for_thread(ThreadIdentifierChoice::Other(thread_identifier)).map_err(ThreadConfigurationError::CouldNotSetSchedulerPolicyAndFlags)?;
 		
 		Ok(())
+	}
+	
+	#[inline(always)]
+	fn early_thread_configuration<PTMAI: PerThreadMemoryAllocatorInstantiator>(numa_memory_policy: Option<&SetMemoryPolicy>, disable_transparent_huge_pages: Option<bool>, current_timer_slack: Option<Option<CurrentTimerSlackNanoseconds>>, store_bypass_speculation_mitigation_control: Option<StoreBypassSpeculationMitigationControlChangeOperation>, indirect_branch_speculation_mitigation_control: Option<IndirectBranchSpeculationMitigationControlChangeOperation>, thread_local_allocator_configuration: Arc<ThreadLocalAllocatorConfiguration>, instantiation_arguments: Arc<PTMAI::InstantiationArguments>, start_logging: bool) -> PTMAI::ThreadDropGuard
+	{
+		if let Some(numa_memory_policy) = numa_memory_policy
+		{
+			numa_memory_policy.set_thread_policy()
+		}
+		
+		if let Some(disable_transparent_huge_pages) = disable_transparent_huge_pages
+		{
+			change_transparent_huge_pages(!disable_transparent_huge_pages).expect("Could not change transparent huge pages");
+		}
+		
+		Self::current_timer_slack(current_timer_slack);
+		
+		if let Some(store_bypass_speculation_mitigation_control) = store_bypass_speculation_mitigation_control
+		{
+			store_bypass_speculation_mitigation_control.change_for_current_thread().expect("Could not change store bypass speculation mitigation control");
+		}
+		
+		if let Some(indirect_branch_speculation_mitigation_control) = indirect_branch_speculation_mitigation_control
+		{
+			indirect_branch_speculation_mitigation_control.change_for_current_thread().expect("Could not change indirect branch speculation mitigation control");
+		}
+		
+		let thread_local_allocator_drop_guard = PTMAI::instantiate(thread_local_allocator_configuration, instantiation_arguments).expect("Could not allocate a thread-local allocator");
+		
+		if start_logging
+		{
+			(unsafe { LocalSyslogSocket::configure_per_thread_local_syslog_socket() }).expect("Could not start logging");
+		}
+		
+		thread_local_allocator_drop_guard
+	}
+	
+	#[inline(always)]
+	fn numa_memory_policy(numa_memory_policy: Option<&SetMemoryPolicy>)
+	{
+		if let Some(numa_memory_policy) = numa_memory_policy
+		{
+			numa_memory_policy.set_thread_policy()
+		}
+	}
+	
+	#[inline(always)]
+	fn current_timer_slack(current_timer_slack: Option<Option<CurrentTimerSlackNanoseconds>>)
+	{
+		match current_timer_slack
+		{
+			None => (),
+			
+			Some(None) => CurrentTimerSlackNanoseconds::reset_to_default().expect("Could not reset current timer slack to default"),
+			
+			Some(Some(current_time_slack)) => current_time_slack.set().expect("Could not change current timer slack"),
+		}
 	}
 	
 	#[inline(always)]

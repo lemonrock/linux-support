@@ -16,7 +16,13 @@ pub enum ProcessExecutorError
 	UserAndGroupChoice(UserAndGroupChoiceError),
 
 	#[allow(missing_docs)]
-	CouldNotDisableDumpable(io::Error),
+	CouldNotDisableDumpable(Errno),
+
+	#[allow(missing_docs)]
+	CouldNotSetParentDeathSignal(Errno),
+
+	#[allow(missing_docs)]
+	CouldNotSetChildSubreaper(Errno),
 
 	#[allow(missing_docs)]
 	CouldNotConfigureChildThreads(ThreadConfigurationError),
@@ -52,7 +58,11 @@ impl error::Error for ProcessExecutorError
 
 			&UserAndGroupChoice(ref cause) => Some(cause),
 
-			&CouldNotDisableDumpable(ref cause) => Some(cause),
+			&CouldNotDisableDumpable(..) => None,
+
+			&CouldNotSetParentDeathSignal(..) => None,
+
+			&CouldNotSetChildSubreaper(..) => None,
 
 			&CouldNotConfigureChildThreads(ref cause) => Some(cause),
 

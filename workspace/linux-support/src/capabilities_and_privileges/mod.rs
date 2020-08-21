@@ -5,9 +5,10 @@
 use super::*;
 use self::c::*;
 use crate::thread::ThreadIdentifier;
+use crate::process_control::*;
 
 
-mod c;
+pub(crate) mod c;
 
 
 include!("AmbientCapabilityError.rs");
@@ -15,8 +16,4 @@ include!("AmbientCapabilitySet.rs");
 include!("BoundingCapabilitySet.rs");
 include!("Capabilities.rs");
 include!("Capability.rs");
-include!("disable_dumpable.rs");
-include!("lock_secure_bits_so_capabilities_are_always_enforced.rs");
-include!("no_new_privileges.rs");
 include!("PermittedEffectiveAndInheritableCapabilitySets.rs");
-include!("set_io_flusher.rs");

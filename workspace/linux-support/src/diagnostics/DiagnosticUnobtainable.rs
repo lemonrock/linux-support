@@ -2,29 +2,17 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Set IO flusher.
-#[inline(always)]
-pub fn set_io_flusher(enable_io_flusher: bool) -> io::Result<()>
+/// Diagnostic unobtainable.
+#[derive(Default, Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct DiagnosticUnobtainable(pub String);
+
+impl<E: Display> From<E> for DiagnosticUnobtainable
 {
-	let value = if enable_io_flusher
+	#[inline(always)]
+	fn from(cause: E) -> Self
 	{
-		1
-	}
-	else
-	{
-		0
-	};
-	let result = unsafe { prctl(PR_SET_IO_FLUSHER, value, 0, 0, 0) };
-	if likely!(result == 0)
-	{
-		Ok(())
-	}
-	else if likely!(result == -1)
-	{
-		Err(io::Error::last_os_error())
-	}
-	else
-	{
-		unreachable!("Unexpected result {} from prctl()", result)
+		Self(format!("{}", cause))
 	}
 }

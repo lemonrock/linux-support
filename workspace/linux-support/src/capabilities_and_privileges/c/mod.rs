@@ -8,7 +8,7 @@ use super::*;
 include!("__user_cap_data_struct.rs");
 include!("__user_cap_header_struct.rs");
 include!("_LINUX_CAPABILITY.rs");
-include!("PR_SET_IO_FLUSHER.rs");
+include!("CAP_.rs");
 include!("cap_user_data_t.rs");
 include!("cap_user_header_t.rs");
 include!("capget.rs");

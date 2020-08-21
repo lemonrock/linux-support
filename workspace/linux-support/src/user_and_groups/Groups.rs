@@ -37,3 +37,91 @@ impl FromBytes for Groups
 		Ok(Self(groups))
 	}
 }
+
+impl Groups
+{
+	// Was 32 before Linux 2.6.4.
+	const NGROUPS_MAX: usize = 65536;
+	
+	/// Current supplementary.
+	///
+	/// *SLOW*; makes two syscalls and two mallocs.
+	pub fn current_supplementary() -> Self
+	{
+		let mut supplementary_groups = Self::current_supplementary_group_identifiers();
+		Self(supplementary_groups.into_iter().collect())
+	}
+	
+	pub(crate) fn current_supplementary_group_identifiers() -> Vec<GroupIdentifier>
+	{
+		let length = Self::get_groups(0, null_mut());
+		let mut supplementary_groups: Vec<GroupIdentifier> = Vec::with_capacity(length);
+		unsafe { supplementary_groups.set_len(length) };
+		Self::get_groups(length, supplementary_groups.as_mut_ptr() as *mut gid_t);
+		supplementary_groups
+	}
+	
+	fn get_groups(length: usize, list: *mut gid_t) -> usize
+	{
+		debug_assert!(length < Self::NGROUPS_MAX);
+		
+		let result = unsafe { getgroups(length as i32, null_mut()) };
+		if likely!(result >= 0)
+		{
+			result as usize
+		}
+		else if result == -1
+		{
+			match errno().0
+			{
+				EFAULT => panic!("list has an invalid address"),
+				
+				EINVAL => panic!("size is less than the number of supplementary group IDs, but is not zero"),
+				
+				_ => unreachable!("Unexpected error {}", errno()),
+			}
+		}
+		else
+		{
+			unreachable!("Unexpected result {} from `getgroups()`", result)
+		}
+	}
+	
+	#[inline(always)]
+	fn drop_all_supplementary_groups()
+	{
+		Self::set_groups(0, null())
+	}
+	
+	#[inline(always)]
+	fn set_groups(length: usize, list: *const gid_t)
+	{
+		debug_assert!(length < Self::NGROUPS_MAX);
+		
+		let result = unsafe { setgroups(length, list) };
+		
+		if likely!(result == 0)
+		{
+			return
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				EFAULT => panic!("list has an invalid address"),
+				
+				EINVAL => panic!("list has an invalid address, or size is greater than NGROUPS_MAX (32 before Linux 2.6.4; 65536 since Linux 2.6.4)"),
+				
+				ENOMEM => panic!("Out of memory"),
+				
+				EPERM => panic!("Permission denied (either setgroups is denied in this user namespace or the process lacks the `CAP_SETGID` capability"),
+
+				unexpected @ _ => panic!("Unexpected error {} from setgroups()", unexpected)
+			}
+		}
+		else
+		{
+			unreachable!("setgroups() returned an unexpected result of {}", result)
+		}
+	}
+}

@@ -129,6 +129,60 @@ impl ProcessIdentifier
 	/// Init process.
 	pub const Init: Self = Self(unsafe { NonZeroI32::new_unchecked(1) });
 	
+	/// Get child subreapear process; `None` implies disabled.
+	#[inline(always)]
+	#[allow(deprecated)]
+	pub fn get_current_process_child_subreaper_process() -> Result<Option<Self>, Errno>
+	{
+		let mut attribute: i32 = unsafe { uninitialized() };
+		process_control_wrapper2
+		(
+			PR_GET_CHILD_SUBREAPER,
+			&mut attribute as *mut i32 as usize,
+			|non_negative_result| if likely!(non_negative_result == 0)
+			{
+				if attribute == 0
+				{
+					Ok(None)
+				}
+				else
+				{
+					Ok(Some(Self(unsafe { NonZeroI32::new_unchecked(attribute) })))
+				}
+			}
+			else
+			{
+				unreachable!("Positive result")
+			},
+			|error_number| Err(error_number),
+		)
+	}
+	
+	/// Changes the child subrepear process; `None` resets.
+	#[inline(always)]
+	pub fn set_current_process_child_subreaper_process(process_identifier: Option<ProcessIdentifier>) -> Result<(), Errno>
+	{
+		let attribute: i32 = match process_identifier
+		{
+			None => 0,
+			Some(process_identifier) => process_identifier.into(),
+		};
+		process_control_wrapper2
+		(
+			PR_SET_CHILD_SUBREAPER,
+			&attribute as *const i32 as usize,
+			|non_negative_result| if likely!(non_negative_result == 0)
+			{
+				Ok(())
+			}
+			else
+			{
+				unreachable!("Positive result")
+			},
+			|error_number| Err(error_number),
+		)
+	}
+	
 	/// Should have a parent process?
 	#[inline(always)]
 	pub fn should_have_parent(self) -> bool

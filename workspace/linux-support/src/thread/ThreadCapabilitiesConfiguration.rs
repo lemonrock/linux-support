@@ -32,12 +32,18 @@ impl ThreadCapabilitiesConfiguration
 	fn configure_if_wanted(&self) -> Result<(), ThreadCapabilitiesConfigurationError>
 	{
 		self.configure_just_capabilities()?;
-		lock_secure_bits_so_capabilities_are_always_enforced(true).map_err(ThreadCapabilitiesConfigurationError::CouldNotLockSecureBits)
+		Self::configure_secure_bits(true)
 	}
 
 	fn configure_if_unwanted() -> Result<(), ThreadCapabilitiesConfigurationError>
 	{
 		AmbientCapabilitySet::clear_current_thread_ambient_set();
-		lock_secure_bits_so_capabilities_are_always_enforced(false).map_err(ThreadCapabilitiesConfigurationError::CouldNotLockSecureBits)
+		Self::configure_secure_bits(false)
+	}
+	
+	#[inline(always)]
+	fn configure_secure_bits(allow_keep_capabilities: bool) -> Result<(), ThreadCapabilitiesConfigurationError>
+	{
+		SecureBits::lock_secure_bits_so_capabilities_are_always_enforced(allow_keep_capabilities).map_err(ThreadCapabilitiesConfigurationError::CouldNotLockSecureBits)
 	}
 }

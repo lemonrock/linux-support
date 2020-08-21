@@ -6,6 +6,8 @@ use super::*;
 use crate::paths::*;
 use crate::process::ProcessIdentifierChoice;
 use crate::process::status::StatusStatisticParseError;
+
+
 include!("assert_effective_user_id_is_root.rs");
 include!("EtcGroup.rs");
 include!("EtcGroupIterator.rs");
@@ -26,5 +28,6 @@ include!("UserAndGroupChoiceError.rs");
 include!("UserAndGroupSettings.rs");
 include!("UserName.rs");
 include!("UserOrGroupIdentifier.rs");
+include!("UserOrGroupIdentifiers.rs");
 include!("UserIdentifier.rs");
 include!("UserIdentifiers.rs");

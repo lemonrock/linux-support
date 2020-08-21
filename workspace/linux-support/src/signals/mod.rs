@@ -11,6 +11,7 @@ use crate::process::status::StatusStatisticParseError;
 use crate::syscall::UnconstrainedSystemCallNumber;
 use crate::time::ClockTicks;
 use crate::user_and_groups::UserIdentifier;
+use crate::process_control::process_control_wrapper2;
 
 
 /// `si_code` ranges of values.

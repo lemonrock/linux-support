@@ -47,22 +47,20 @@ impl AmbientCapabilitySet
 	#[inline(always)]
 	pub fn clear_current_thread_ambient_set()
 	{
-		let result = unsafe { prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_CLEAR_ALL, 0, 0, 0) };
-		if likely!(result == 0)
-		{
-		}
-		else if likely!(result == -1)
-		{
-			match errno().0
+		let result: Result<(), io::Error> = process_control_wrapper2
+		(
+			PR_CAP_AMBIENT,
+			PR_CAP_AMBIENT_CLEAR_ALL as usize,
+			|non_negative_result| if likely!(non_negative_result == 0)
 			{
-				EINVAL => panic!("arg3 is zero"),
-
-				unexpected @ _ => panic!("Unexpected error code '{}' from prctl()", unexpected),
+				Ok(())
 			}
-		}
-		else
-		{
-			unreachable!("prctl() failed with unexpected result {}", result)
-		}
+			else
+			{
+				unreachable!("Positive result")
+			},
+		|error_number| panic!("Unexpected error code '{}' from prctl()", error_number)
+		);
+		result.unwrap()
 	}
 }
