@@ -6,7 +6,7 @@ use super::*;
 use self::c::*;
 use crate::process::ProcessIdentifierChoice;
 use crate::file_descriptors::cgroup::CgroupFileDescriptor;
-use crate::process_control::process_control_wrapper1;
+use crate::process_control::{process_control_wrapper1, result_must_be_zero};
 
 
 /// C definitions.

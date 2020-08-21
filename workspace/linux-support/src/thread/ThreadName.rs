@@ -87,14 +87,7 @@ impl ThreadName
 				(
 					PR_GET_NAME,
 					buffer.as_mut_ptr() as usize,
-					|non_negative_result| if likely!(non_negative_result == 0)
-					{
-						Ok(())
-					}
-					else
-					{
-						unreachable!("Positive result")
-					},
+					result_must_be_zero,
 					|error_number| Err(error_number.into())
 				)
 			},
@@ -112,15 +105,8 @@ impl ThreadName
 		(
 			PR_SET_NAME,
 			pointer as usize,
-			|non_negative_result| if likely!(non_negative_result == 0)
-			{
-				Ok(())
-			}
-			else
-			{
-				unreachable!("Positive result")
-			},
-			|error_number| Err(error_number),
+			result_must_be_zero,
+			Err,
 		)
 	}
 

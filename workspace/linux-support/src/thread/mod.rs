@@ -13,7 +13,7 @@ use crate::memory::mapping::*;
 use crate::memory::numa::*;
 use crate::paths::*;
 use crate::process::*;
-use crate::process_control::{SecureBits, process_control_wrapper2};
+use crate::process_control::{SecureBits, process_control_wrapper2, result_must_be_zero};
 use crate::scheduling::Nice;
 use crate::scheduling::PerThreadSchedulerPolicyAndFlags;
 use crate::speculation_mitigation::*;

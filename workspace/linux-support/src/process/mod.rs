@@ -15,7 +15,7 @@ use crate::thread::ThreadIdentifier;
 use crate::vectors::MaximumNumberOfBuffers;
 use crate::vectors::VectoredRead;
 use crate::vectors::VectoredWrite;
-use crate::process_control::process_control_wrapper2;
+use crate::process_control::{process_control_wrapper2, result_must_be_zero};
 
 
 pub(crate) mod c;

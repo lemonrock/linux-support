@@ -10,14 +10,7 @@ pub fn disabled_seccomp() -> Result<(), Errno>
 	(
 		PR_SET_SECUREBITS,
 		SECCOMP_MODE_DISABLED as usize,
-		|non_negative_result| if likely!(non_negative_result == 0)
-		{
-			Ok(())
-		}
-		else
-		{
-			unreachable!("Positive result")
-		},
-		|error_number| Err(error_number)
+		result_must_be_zero,
+		Err
 	)
 }

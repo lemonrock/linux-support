@@ -49,7 +49,7 @@ impl SecureBits
 		(
 			PR_GET_SECUREBITS,
 			|non_negative_result| Ok(SecureBits::from_bits_truncate(non_negative_result as u32)),
-			|error_number| Err(error_number)
+			Err
 		)
 	}
 	
@@ -72,15 +72,8 @@ impl SecureBits
 		(
 			PR_SET_SECUREBITS,
 			secure_bits.bits as usize,
-			|non_negative_result| if likely!(non_negative_result == 0)
-			{
-				Ok(())
-			}
-			else
-			{
-				unreachable!("Positive result")
-			},
-			|error_number| Err(error_number)
+			result_must_be_zero,
+			Err
 		)
 	}
 	

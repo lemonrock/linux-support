@@ -18,14 +18,7 @@ pub fn change_io_flusher(enable_or_disable_io_flusher: bool) -> Result<(), Errno
 	(
 		PR_SET_IO_FLUSHER,
 		value,
-		|non_negative_result| if likely!(non_negative_result == 0)
-		{
-			Ok(())
-		}
-		else
-		{
-			unreachable!("Positive result")
-		},
-		|error_number| Err(error_number),
+		result_must_be_zero,
+		Err,
 	)
 }

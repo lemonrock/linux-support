@@ -59,14 +59,7 @@ impl MachineCheckExceptionKillPolicy
 		(
 			PR_MCE_KILL,
 			PR_MCE_KILL_CLEAR as usize,
-			|non_negative_result| if likely!(non_negative_result == 0)
-			{
-				Ok(())
-			}
-			else
-			{
-				unreachable!("Positive result")
-			},
+			result_must_be_zero,
 			|error_number| Err(error_number.into())
 		)
 	}
@@ -79,14 +72,7 @@ impl MachineCheckExceptionKillPolicy
 			PR_MCE_KILL,
 			PR_MCE_KILL_SET as usize,
 			self as i32 as usize,
-			|non_negative_result| if likely!(non_negative_result == 0)
-			{
-				Ok(())
-			}
-			else
-			{
-				unreachable!("Positive result")
-			},
+			result_must_be_zero,
 			|error_number| Err(error_number.into())
 		)
 	}

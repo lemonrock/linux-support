@@ -17,4 +17,5 @@ include!("process_control_wrapper.rs");
 include!("process_control_wrapper1.rs");
 include!("process_control_wrapper2.rs");
 include!("process_control_wrapper3.rs");
+include!("result_must_be_zero.rs");
 include!("SecureBits.rs");

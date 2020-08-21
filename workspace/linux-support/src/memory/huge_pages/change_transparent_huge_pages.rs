@@ -19,14 +19,7 @@ pub fn change_transparent_huge_pages(enable_or_disable_transparent_huge_pages: b
 	(
 		PR_SET_THP_DISABLE,
 		arg2,
-		|non_negative_result| if likely!(non_negative_result == 0)
-		{
-			Ok(())
-		}
-		else
-		{
-			unreachable!("Positive result")
-		},
-		|error_number| Err(error_number),
+		result_must_be_zero,
+		Err,
 	)
 }

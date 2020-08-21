@@ -51,15 +51,8 @@ impl AmbientCapabilitySet
 		(
 			PR_CAP_AMBIENT,
 			PR_CAP_AMBIENT_CLEAR_ALL as usize,
-			|non_negative_result| if likely!(non_negative_result == 0)
-			{
-				Ok(())
-			}
-			else
-			{
-				unreachable!("Positive result")
-			},
-		|error_number| panic!("Unexpected error code '{}' from prctl()", error_number)
+			result_must_be_zero,
+			|error_number| panic!("Unexpected error code '{}' from prctl()", error_number)
 		);
 		result.unwrap()
 	}

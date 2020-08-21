@@ -42,15 +42,8 @@ impl StoreBypassSpeculationMitigationControlChangeOperation
 			PR_SET_SPECULATION_CTRL,
 			subcommand,
 			setting as usize,
-			|non_negative_result| if likely!(non_negative_result == 0)
-			{
-				Ok(())
-			}
-			else
-			{
-				unreachable!("Positive result")
-			},
-			|error_number| Err(error_number)
+			result_must_be_zero,
+			Err
 		)
 	}
 }

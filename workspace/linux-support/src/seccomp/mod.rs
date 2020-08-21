@@ -10,7 +10,7 @@ use crate::signals::AuditArchitecture;
 use crate::syscall::SYS;
 use crate::thread::ThreadIdentifier;
 use crate::file_descriptors::seccomp_user_notification::SeccompUserNotificationFileDescriptor;
-use crate::process_control::process_control_wrapper2;
+use crate::process_control::{process_control_wrapper2, result_must_be_zero};
 
 
 /// C definitions.

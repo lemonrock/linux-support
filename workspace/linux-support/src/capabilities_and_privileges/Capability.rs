@@ -193,14 +193,7 @@ impl Capability
 			PR_CAP_AMBIENT,
 			PR_CAP_AMBIENT_RAISE as usize,
 			self as usize,
-			|non_negative_result| if likely!(non_negative_result == 0)
-			{
-				Ok(())
-			}
-			else
-			{
-				unreachable!("Positive result")
-			},
+			result_must_be_zero,
 			|error_number| match error_number.0
 			{
 				EPERM => Err(PermissionDenied),
@@ -225,14 +218,7 @@ impl Capability
 			PR_CAP_AMBIENT,
 			PR_CAP_AMBIENT_LOWER as usize,
 			self as usize,
-			|non_negative_result| if likely!(non_negative_result == 0)
-			{
-				Ok(())
-			}
-			else
-			{
-				unreachable!("Positive result")
-			},
+			result_must_be_zero,
 			|error_number| match error_number.0
 			{
 				EPERM => Err(PermissionDenied),
@@ -307,14 +293,7 @@ impl Capability
 		(
 			PR_CAPBSET_DROP,
 			self as usize,
-			|non_negative_result| if likely!(non_negative_result == 0)
-			{
-				Ok(())
-			}
-			else
-			{
-				unreachable!("Positive result")
-			},
+			result_must_be_zero,
 			|error_number| match error_number.0
 			{
 				EPERM => Err(()),

@@ -28,15 +28,8 @@ impl TimestampCounterSetting
 		(
 			PR_SET_TSC,
 			&value as *const i32 as usize,
-			|non_negative_result| if likely!(non_negative_result == 0)
-			{
-				Ok(())
-			}
-			else
-			{
-				unreachable!("Positive result")
-			},
-			|error_number| Err(error_number),
+			result_must_be_zero,
+			Err,
 		)
 	}
 	

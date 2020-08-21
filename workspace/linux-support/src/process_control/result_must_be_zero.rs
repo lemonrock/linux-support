@@ -2,23 +2,15 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Will fail with `EINVAL` if the Linux kernel was not compiled with `CONFIG_PERF_EVENTS`.
 #[inline(always)]
-pub fn change_process_performance_counters(enable_or_disable_process_performance_counters: bool) -> Result<(), Errno>
+pub(crate) fn result_must_be_zero<E>(non_negative_result: i32) -> Result<(), E>
 {
-	let command = if enable_or_disable_process_performance_counters
+	if likely!(non_negative_result == 0)
 	{
-		PR_TASK_PERF_EVENTS_ENABLE
+		Ok(())
 	}
 	else
 	{
-		PR_TASK_PERF_EVENTS_DISABLE
-	};
-	
-	process_control_wrapper1
-	(
-		command,
-		result_must_be_zero,
-		Err,
-	)
+		unreachable!("Positive result")
+	}
 }

@@ -11,7 +11,7 @@ use crate::memory::information::MemoryInformation;
 use crate::memory::information::MemoryInformationName;
 use crate::paths::*;
 use crate::user_and_groups::assert_effective_user_id_is_root;
-use crate::process_control::process_control_wrapper2;
+use crate::process_control::{process_control_wrapper2, result_must_be_zero};
 
 
 include!("change_transparent_huge_pages.rs");

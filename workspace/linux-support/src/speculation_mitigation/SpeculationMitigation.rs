@@ -48,7 +48,7 @@ impl SpeculationMitigation
 			PR_GET_SPECULATION_CTRL,
 			subcommand,
 			|non_negative_result| Ok(Self::from_bits_truncate(non_negative_result)),
-			|error_number| Err(error_number)
+			Err
 		)
 	}
 }

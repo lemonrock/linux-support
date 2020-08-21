@@ -314,14 +314,7 @@ impl Signal
 		(
 			PR_SET_PDEATHSIG,
 			&parent_death_signal_number as *const i32 as usize,
-			|non_negative_result| if likely!(non_negative_result == 0)
-			{
-				Ok(())
-			}
-			else
-			{
-				unreachable!("Positive result")
-			},
+			result_must_be_zero,
 			|error_number| Err(error_number.into())
 		)
 	}

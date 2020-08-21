@@ -22,14 +22,7 @@ pub fn change_no_new_privileges(enable_or_disable_no_new_privileges: bool) -> Re
 	(
 		PR_SET_NO_NEW_PRIVS,
 		value,
-		|non_negative_result| if likely!(non_negative_result == 0)
-		{
-			Ok(())
-		}
-		else
-		{
-			unreachable!("Positive result")
-		},
-		|error_number| Err(error_number)
+		result_must_be_zero,
+		Err
 	)
 }
