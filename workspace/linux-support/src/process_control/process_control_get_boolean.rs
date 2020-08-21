@@ -2,23 +2,18 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use self::c::*;
-
-
-pub(crate) mod c;
-
-
-include!("change_io_flusher.rs");
-include!("change_dumpable.rs");
-include!("change_no_new_privileges.rs");
-include!("error_number_to_io_error.rs");
-include!("MachineCheckExceptionKillPolicy.rs");
-include!("process_control_get_boolean.rs");
-include!("process_control_get_boolean.rs");
-include!("process_control_wrapper.rs");
-include!("process_control_wrapper1.rs");
-include!("process_control_wrapper2.rs");
-include!("process_control_wrapper3.rs");
-include!("result_must_be_zero.rs");
-include!("SecureBits.rs");
+#[inline(always)]
+pub(crate) fn process_control_get_boolean(operation: i32) -> io::Result<bool>
+{
+	process_control_wrapper1
+	(
+		operation,
+		|non_negative_result| match non_negative_result
+		{
+			0 => Ok(false),
+			1 => Ok(true),
+			_ => Err(io_error_invalid_data(format!("Non-boolean result `{}` from `prctl()`", non_negative_result))),
+		},
+		|error_number| Err(io_error_other(format!("Error result `{}` from `prctl()`", error_number))),
+	)
+}

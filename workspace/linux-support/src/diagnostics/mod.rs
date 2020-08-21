@@ -4,17 +4,25 @@
 
 use super::*;
 use crate::paths::*;
+use crate::personality::PersonalityFlags;
+use crate::process::stat::Stat;
+use crate::process::statm::StatM;
+use crate::process::status::Status;
 use crate::process::*;
 use crate::process_control::*;
+use crate::process_control::c::PR_GET_IO_FLUSHER;
+use crate::resource_limits::ResourceLimitsSet;
 use crate::swap::*;
+use crate::scheduling::*;
 use crate::signals::Signal;
+use crate::speculation_mitigation::SpeculationMitigation;
 use crate::thread::*;
 use crate::time::*;
 use crate::user_and_groups::*;
-use crate::speculation_mitigation::SpeculationMitigation;
-use crate::process_control::c::PR_GET_IO_FLUSHER;
 
 
+include!("CurrentProcessDiagnostics.rs");
+include!("CurrentThreadDiagnostic.rs");
 include!("Diagnostics.rs");
 include!("DiagnosticUnobtainable.rs");
 include!("DiagnosticUnobtainableResult.rs");
@@ -23,8 +31,9 @@ include!("EtcPasswdRecordDiagnostic.rs");
 include!("GroupIdentifierDiagnostic.rs");
 include!("GroupsDiagnostics.rs");
 include!("MiscellaneousProcessControlDiagnostics.rs");
+include!("ProcessDiagnostics.rs");
+include!("SchedulingDiagnostics.rs");
 include!("SwapDiagnostics.rs");
-include!("ThreadsDiagnostics.rs");
 include!("UserIdentifierDiagnostic.rs");
 include!("UsersAndGroupsDiagnostics.rs");
 include!("UsersDiagnostics.rs");

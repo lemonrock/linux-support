@@ -5,6 +5,7 @@
 /// Name for a resource which has a soft and a hard limit.
 #[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(EnumCount, EnumIter)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 #[repr(i32)]

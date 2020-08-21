@@ -216,7 +216,7 @@ impl Nice
 	///
 	/// Name might be `/autogroup-25`.
 	#[inline(always)]
-	pub fn get_autogroup_name_and_nice_value(self, process_identifier: ProcessIdentifierChoice, proc_path: &ProcPath) -> Result<(Box<[u8]>, Self), io::Error>
+	pub fn get_autogroup_name_and_nice_value(process_identifier: ProcessIdentifierChoice, proc_path: &ProcPath) -> io::Result<(Box<[u8]>, Self)>
 	{
 		// Reads are different to writes!
 		// A read might contain the value `/autogroup-25 nice 0`.
@@ -264,7 +264,7 @@ impl Nice
 
 	/// Returns an `Err()` if the user did not have permission to adjust the priority (eg was not privileged or had the capability `CAP_SYS_NICE`).
 	#[inline(always)]
-	pub fn set_user_priority(self, user_identifier: UserIdentifier) -> Result<(), ()>
+	pub fn set_real_user_priority(self, user_identifier: UserIdentifier) -> Result<(), ()>
 	{
 		let uid: uid_t = user_identifier.into();
 		self.set_priority(PRIO_USER, uid)
@@ -282,16 +282,71 @@ impl Nice
 		{
 			match errno().0
 			{
+				ESRCH => Err(()),
+				
+				EACCES | EPERM => panic!("Permission denied"),
+				
 				EINVAL => panic!("`which` was not one of `PRIO_PROCESS`, `PRIO_PGRP`, or `PRIO_USER`"),
-				ESRCH => panic!("no process was located using the `which` and `who` values specified"),
-				EACCES | EPERM => Err(()),
 
-				_ => unreachable!(),
+				unexpected @ _ => panic!("Unexpected error `{}` from `setpriority()`"),
 			}
 		}
 		else
 		{
-			unreachable!()
+			unreachable!("Unexpected result `{}` from `setpriority()`", result)
 		}
 	}
+	
+	/// Returns an `Err()` if the process group does not exist.
+	#[inline(always)]
+	pub fn get_process_group_priority(process_group_identifier: ProcessGroupIdentifierChoice) -> Result<Self, ()>
+	{
+		let pgid: pid_t = process_group_identifier.into();
+		Self::get_priority(PRIO_PGRP, pgid as u32)
+	}
+	
+	/// Returns an `Err()` if the process does not exist.
+	#[inline(always)]
+	pub fn get_process_priority(process_identifier: ProcessIdentifierChoice) -> Result<Self, ()>
+	{
+		let pid: pid_t = process_identifier.into();
+		Self::get_priority(PRIO_PROCESS, pid as u32)
+	}
+	
+	/// Returns an `Err()` if the thread does not exist.
+	#[inline(always)]
+	pub fn get_thread_priority(thread_identifier: ThreadIdentifier) -> Result<Self, ()>
+	{
+		let tid: pid_t = thread_identifier.into();
+		Self::get_priority(PRIO_PROCESS, tid as u32)
+	}
+	
+	/// Returns an `Err()` if the user does not exist.
+	#[inline(always)]
+	pub fn get_real_user_priority(user_identifier: UserIdentifier) -> Result<Self, ()>
+	{
+		let uid: uid_t = user_identifier.into();
+		Self::get_priority(PRIO_USER, uid)
+	}
+	
+	#[inline(always)]
+	fn get_priority(which: i32, who: u32) -> Result<Self, ()>
+	{
+		set_errno(Errno(0));
+		let result = unsafe { getpriority(which, who) };
+		
+		match errno().0
+		{
+			0 => match result
+			{
+				-20 ..= 19 => Ok(unsafe { transmute(result) }),
+				invalid @ _ => panic!("Invalid priority value `{}`", invalid),
+			}
+			
+			EINVAL => panic!("`which` was not one of `PRIO_PROCESS`, `PRIO_PGRP`, or `PRIO_USER`"),
+			
+			ESRCH => Err(()),
+			
+			_ => unreachable!(),
+		}
 }

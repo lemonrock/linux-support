@@ -10,9 +10,11 @@
 #[serde(deny_unknown_fields)]
 pub struct ReservedCpuTimeForNonRealTimeSchedulerPolicies
 {
-	period_microseconds: NonZeroU32,
-
-	runtime_microseconds: Option<NonZeroU32>,
+	#[allow(missing_docs)]
+	pub period_microseconds: NonZeroU32,
+	
+	#[allow(missing_docs)]
+	pub runtime_microseconds: Option<NonZeroU32>,
 }
 
 impl ReservedCpuTimeForNonRealTimeSchedulerPolicies

@@ -22,6 +22,26 @@ pub enum RcuGracePeriodConfiguration
 
 impl RcuGracePeriodConfiguration
 {
+	/// Get.
+	pub fn get(sys_path: &SysPath) -> io::Result<Self>
+	{
+		let rcu_expedited_file_path = Self::rcu_expedited_file_path(sys_path);
+		let rcu_normal_file_path = Self::rcu_normal_file_path(sys_path);
+		
+		let expedited: bool = rcu_expedited_file_path.read_value()?;
+		let normal: bool = rcu_normal_file_path.read_value()?;
+		
+		use self::RcuGracePeriodConfiguration::*;
+		
+		match (expedited, normal)
+		{
+			(false, false) => Ok(Ordinary),
+			(true, false) => Ok(Expedited),
+			(false, true) => Ok(Normal),
+			_ => Err(io_error_other("expedited and normal should not both be true"))
+		}
+	}
+	
 	/// Set.
 	///
 	/// Requires root.

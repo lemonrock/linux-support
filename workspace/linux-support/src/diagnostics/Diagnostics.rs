@@ -14,13 +14,22 @@ pub struct Diagnostics
 	pub users_and_groups: UsersAndGroupsDiagnostics,
 
 	/// Thread.
-	pub thread: ThreadsDiagnostics,
+	pub current_thread: CurrentThreadsDiagnostics,
+
+	/// Thread.
+	pub threads: DiagnosticUnobtainableResult<HashMap<ThreadIdentifier, ThreadDiagnostic>>,
 
 	/// Swap.
 	pub swap: SwapDiagnostics,
 
-	/// Miscellaneous process control.
-	pub miscellaneous_process_control: MiscellaneousProcessControlDiagnostics,
+	/// Scheduling.
+	pub scheduling: SchedulingDiagnostics,
+
+	/// Process.
+	pub current_process_diagnostics: CurrentProcessDiagnostics,
+
+	/// Process.
+	pub process_diagnostics: ProcessDiagnostics,
 }
 
 impl Diagnostics
@@ -29,13 +38,30 @@ impl Diagnostics
 	{
 		let (sys_path, proc_path, dev_path, etc_path) = file_system_layout.paths();
 		
+		let process_group_identifier = ProcessGroupIdentifierChoice::Current;;
+		let process_identifier = ProcessIdentifierChoice::Current;
 		Self
 		{
 			file_system_layout: file_system_layout.clone(),
-			users_and_groups: UsersAndGroupsDiagnostics::gather(proc_path, etc_path, ProcessIdentifierChoice::Current),
-			thread: ThreadsDiagnostics::gather(proc_path),
+			users_and_groups: UsersAndGroupsDiagnostics::gather(proc_path, etc_path, process_identifier),
+			current_thread: CurrentThreadDiagnostics::gather(proc_path, process_identifier),
+			threads: match ThreadIdentifier::for_process(proc_path, process_identifier)
+			{
+				Err(error) => Err(DiagnosticUnobtainable::from(error)),
+				Ok(thread_identifiers) =>
+				{
+					let mut thread_diagnostics = HashMap::new();
+					for thread_identifier in thread_identifiers
+					{
+						thread_diagnostics.insert(thread_identifier, ThreadDiagnostic::gather(proc_path, process_identifier, thread_identifier));
+					}
+					Ok(thread_diagnostics)
+				}
+			},
 			swap: SwapDiagnostics::gather(proc_path),
-			miscellaneous_process_control: MiscellaneousProcessControlDiagnostics::gather(),
+			scheduling: SchedulingDiagnostics::gather(sys_path, proc_path, process_group_identifier, process_identifier),
+			current_process_diagnostics: CurrentProcessDiagnostics::gather(),
+			process_diagnostics: ProcessDiagnostics::gather(proc_path, process_group_identifier, process_identifier),
 		}
 	}
 }

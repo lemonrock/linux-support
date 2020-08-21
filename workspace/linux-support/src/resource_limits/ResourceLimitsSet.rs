@@ -19,6 +19,29 @@ impl Default for ResourceLimitsSet
 
 impl ResourceLimitsSet
 {
+	/// Gets the resource limits.
+	#[inline(always)]
+	pub fn current() -> Self
+	{
+		let mut resource_limits = HashMap::with_capacity(ResourceName::COUNT);
+		for resource_name in ResourceName::iter()
+		{
+			resource_limits.insert(resource_name, resource_name.get());
+		}
+		Self(resource_limits)
+	}
+	
+	/// Applies the resource limits.
+	#[inline(always)]
+	pub fn change(&self) -> Result<(), ResourceLimitError>
+	{
+		for (resource_name, soft_and_hard_resource_limit) in &self.0
+		{
+			resource_name.set(soft_and_hard_resource_limit)?;
+		}
+		Ok(())
+	}
+	
 	/// A generous default for resource limits suitable for a modern server.
 	///
 	/// Obtain `maximum_number_of_open_file_descriptors` from `ResourceLimit::maximum_number_of_open_file_descriptors()`.
@@ -33,17 +56,6 @@ impl ResourceLimitsSet
 		map.insert(MaximumNumberOfBytesForPosixMessageQueues, SoftAndHardResourceLimit::BothZero);
 
 		Self(map)
-	}
-
-	/// Applies the resource limits.
-	#[inline(always)]
-	pub fn change(&self) -> Result<(), ResourceLimitError>
-	{
-		for (resource_name, soft_and_hard_resource_limit) in &self.0
-		{
-			resource_name.set(soft_and_hard_resource_limit)?;
-		}
-		Ok(())
 	}
 
 	#[inline(always)]

@@ -423,6 +423,7 @@ use libc::getmntent;
 #[cfg(not(any(target_arch = "powerpc64", target_arch = "riscv64", target_arch = "sparc64", target_arch = "x86_64")))] use libc_extra::unix::unistd::getpagesize;
 use libc::getpgid;
 use libc::getpid;
+use libc::getpriority;
 use libc::getresgid;
 use libc::getresuid;
 use libc::getrlimit;

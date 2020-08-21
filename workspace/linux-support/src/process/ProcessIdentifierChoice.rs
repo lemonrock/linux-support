@@ -64,6 +64,20 @@ impl Into<pid_t> for ProcessIdentifierChoice
 	}
 }
 
+impl Into<ProcessIdentifier> for ProcessIdentifierChoice
+{
+	#[inline(always)]
+	fn into(self) -> ProcessIdentifier
+	{
+		use self::ProcessIdentifierChoice::*;
+		match self
+		{
+			Current => ProcessIdentifier::default(),
+			Other(process_identifier) => process_identifier,
+		}
+	}
+}
+
 impl<'a> IntoLineFeedTerminatedByteString<'a> for ProcessIdentifierChoice
 {
 	#[inline(always)]
