@@ -4,6 +4,8 @@
 
 /// Process Identifiers in nesting order.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(transparent)]
 pub struct NestedProcessGroupIdentifiers(IndexSet<ProcessGroupIdentifier>);
 

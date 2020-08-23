@@ -4,6 +4,7 @@
 
 /// A process group (or session) identifier.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct ProcessGroupIdentifier(NonZeroI32);
 

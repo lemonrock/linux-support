@@ -26,9 +26,9 @@ impl SchedulingDiagnostics
 		{
 			latency_scheduling: LatencyScaling::read(proc_path).map_err(DiagnosticUnobtainable::from),
 			autogroup_name_and_nice_value: Nice::get_autogroup_name_and_nice_value(process_identifier, proc_path).map_err(DiagnosticUnobtainable::from),
-			process_group_priority: Nice::get_process_group_priority(process_group_identifier).map_err(DiagnosticUnobtainable::from),
-			process_priority: Nice::get_process_priority(process_identifier).map_err(DiagnosticUnobtainable::from),
-			real_user_priority: Nice::get_real_user_priority(UserIdentifier::current_real()).map_err(DiagnosticUnobtainable::from),
+			process_group_priority: Nice::get_process_group_priority(process_group_identifier).map_err(|_: ()| DiagnosticUnobtainable(format!("Could not obtain process group priority"))),
+			process_priority: Nice::get_process_priority(process_identifier).map_err(|_: ()| DiagnosticUnobtainable(format!("Could not obtain process priority"))),
+			real_user_priority: Nice::get_real_user_priority(UserIdentifier::current_real()).map_err(|_: ()| DiagnosticUnobtainable(format!("Could not obtain process real user priority"))),
 			rcu_grace_period: RcuGracePeriodConfiguration::get(sys_path).map_err(DiagnosticUnobtainable::from),
 			reserved_cpu_time_for_non_real_time_scheduler_policies: ReservedCpuTimeForNonRealTimeSchedulerPolicies::read(proc_path).map_err(DiagnosticUnobtainable::from),
 			round_robin_interval: RoundRobinInterval::for_process(process_identifier),

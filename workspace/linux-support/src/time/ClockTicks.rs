@@ -4,6 +4,8 @@
 
 /// Clocks ticks.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct ClockTicks(u64);
 
 impl From<u64> for ClockTicks

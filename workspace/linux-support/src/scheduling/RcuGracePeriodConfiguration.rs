@@ -28,8 +28,8 @@ impl RcuGracePeriodConfiguration
 		let rcu_expedited_file_path = Self::rcu_expedited_file_path(sys_path);
 		let rcu_normal_file_path = Self::rcu_normal_file_path(sys_path);
 		
-		let expedited: bool = rcu_expedited_file_path.read_value()?;
-		let normal: bool = rcu_normal_file_path.read_value()?;
+		let expedited = rcu_expedited_file_path.read_zero_or_one_bool()?;
+		let normal = rcu_normal_file_path.read_zero_or_one_bool()?;
 		
 		use self::RcuGracePeriodConfiguration::*;
 		

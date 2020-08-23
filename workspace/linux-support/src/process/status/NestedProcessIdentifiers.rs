@@ -4,6 +4,7 @@
 
 /// Process Identifiers in nesting order.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct NestedProcessIdentifiers(IndexSet<ProcessIdentifier>);
 

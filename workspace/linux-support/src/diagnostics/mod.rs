@@ -34,6 +34,7 @@ include!("MiscellaneousProcessControlDiagnostics.rs");
 include!("ProcessDiagnostics.rs");
 include!("SchedulingDiagnostics.rs");
 include!("SwapDiagnostics.rs");
+include!("ThreadDiagnostic.rs");
 include!("UserIdentifierDiagnostic.rs");
 include!("UsersAndGroupsDiagnostics.rs");
 include!("UsersDiagnostics.rs");

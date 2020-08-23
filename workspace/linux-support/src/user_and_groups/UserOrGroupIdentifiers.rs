@@ -4,6 +4,8 @@
 
 /// User identifiers (`uid`s) or group identifiers (`gid`s).
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct UserOrGroupIdentifiers<UOGI: UserOrGroupIdentifier>
 {
 	/// Real user identifier (`uid`) or group identifier (`gid`).

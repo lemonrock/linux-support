@@ -14,7 +14,7 @@ pub struct Diagnostics
 	pub users_and_groups: UsersAndGroupsDiagnostics,
 
 	/// Thread.
-	pub current_thread: CurrentThreadsDiagnostics,
+	pub current_thread: CurrentThreadDiagnostic,
 
 	/// Thread.
 	pub threads: DiagnosticUnobtainableResult<HashMap<ThreadIdentifier, ThreadDiagnostic>>,
@@ -38,13 +38,13 @@ impl Diagnostics
 	{
 		let (sys_path, proc_path, dev_path, etc_path) = file_system_layout.paths();
 		
-		let process_group_identifier = ProcessGroupIdentifierChoice::Current;;
+		let process_group_identifier = ProcessGroupIdentifierChoice::Current;
 		let process_identifier = ProcessIdentifierChoice::Current;
 		Self
 		{
 			file_system_layout: file_system_layout.clone(),
 			users_and_groups: UsersAndGroupsDiagnostics::gather(proc_path, etc_path, process_identifier),
-			current_thread: CurrentThreadDiagnostics::gather(proc_path, process_identifier),
+			current_thread: CurrentThreadDiagnostic::gather(proc_path, process_identifier),
 			threads: match ThreadIdentifier::for_process(proc_path, process_identifier)
 			{
 				Err(error) => Err(DiagnosticUnobtainable::from(error)),

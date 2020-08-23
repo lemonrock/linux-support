@@ -5,6 +5,8 @@
 bitflags!
 {
 	/// Stat process flags.
+	#[derive(Deserialize, Serialize)]
+	#[serde(deny_unknown_fields)]
 	pub struct StatProcessFlags: u32
 	{
 		/// I am an IDLE thread.

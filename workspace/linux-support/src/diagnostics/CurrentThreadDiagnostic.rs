@@ -65,4 +65,28 @@ impl CurrentThreadDiagnostic
 			current_thread_secure_bits: SecureBits::current().map_err(DiagnosticUnobtainable::from),
 		}
 	}
+	
+	#[inline(always)]
+	fn current_thread_has_keep_capabilities() -> DiagnosticUnobtainableResult<bool>
+	{
+		Self::prctl_boolean(PR_GET_KEEPCAPS)
+	}
+	
+	#[inline(always)]
+	fn no_new_privileges() -> DiagnosticUnobtainableResult<bool>
+	{
+		Self::prctl_boolean(PR_GET_NO_NEW_PRIVS)
+	}
+	
+	#[inline(always)]
+	fn transparent_huge_pages_disabled() -> DiagnosticUnobtainableResult<bool>
+	{
+		Self::prctl_boolean(PR_GET_THP_DISABLE)
+	}
+	
+	#[inline(always)]
+	fn prctl_boolean(operation: i32) -> DiagnosticUnobtainableResult<bool>
+	{
+		process_control_get_boolean(operation).map_err(DiagnosticUnobtainable::from)
+	}
 }

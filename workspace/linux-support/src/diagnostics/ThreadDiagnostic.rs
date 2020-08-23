@@ -22,33 +22,9 @@ impl ThreadDiagnostic
 		{
 			thread_name: ThreadName::get_thread_name(process_identifier, thread_identifier, proc_path).map_err(DiagnosticUnobtainable::from),
 			
-			current_thread_priority: Nice::get_thread_priority(current_thread_identifier).map_err(DiagnosticUnobtainable::from),
+			current_thread_priority: Nice::get_thread_priority(thread_identifier).map_err(|_: ()| DiagnosticUnobtainable(format!("Could not obtain current thread priority"))),
 			
-			current_thread_scheduler_policy_and_flags: PerThreadSchedulerPolicyAndFlags::get_for_thread(ThreadIdentifierChoice::Current).map_err(DiagnosticUnobtainable::from),
+			current_thread_scheduler_policy_and_flags: PerThreadSchedulerPolicyAndFlags::get_for_thread(ThreadIdentifierChoice::Other(thread_identifier)).map_err(DiagnosticUnobtainable::from),
 		}
-	}
-	
-	#[inline(always)]
-	fn current_thread_has_keep_capabilities() -> DiagnosticUnobtainableResult<bool>
-	{
-		Self::prctl_boolean(PR_GET_KEEPCAPS)
-	}
-	
-	#[inline(always)]
-	fn no_new_privileges() -> DiagnosticUnobtainableResult<bool>
-	{
-		Self::prctl_boolean(PR_GET_NO_NEW_PRIVS)
-	}
-	
-	#[inline(always)]
-	fn transparent_huge_pages_disabled() -> DiagnosticUnobtainableResult<bool>
-	{
-		Self::prctl_boolean(PR_GET_THP_DISABLE)
-	}
-	
-	#[inline(always)]
-	fn prctl_boolean(operation: i32) -> DiagnosticUnobtainableResult<bool>
-	{
-		process_control_get_boolean(operation).map_err(DiagnosticUnobtainable::from)
 	}
 }

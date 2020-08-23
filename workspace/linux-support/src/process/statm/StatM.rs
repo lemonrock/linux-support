@@ -4,6 +4,8 @@
 
 /// Most uses of this are better provided for by `Status`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct StatM
 {
 	/// Total program size.

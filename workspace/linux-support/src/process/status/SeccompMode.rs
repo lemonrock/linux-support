@@ -4,6 +4,8 @@
 
 /// `seccomp` mode.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(u32)]
 pub enum SeccompMode
 {

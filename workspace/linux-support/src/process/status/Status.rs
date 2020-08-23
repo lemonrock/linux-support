@@ -6,6 +6,8 @@
 ///
 /// `VmPMD` is not tested for (it was removed in Linux 4.15).
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Status
 {
 	/// Process name.

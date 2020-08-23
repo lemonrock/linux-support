@@ -4,6 +4,8 @@
 
 /// Represents the contents of the file `/proc/<N>/stat`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Stat
 {
 	/// Process identifier.

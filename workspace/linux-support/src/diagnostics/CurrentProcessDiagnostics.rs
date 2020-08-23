@@ -10,7 +10,7 @@ pub struct CurrentProcessDiagnostics
 	
 	pub current_process_miscellaneous_process_control: MiscellaneousProcessControlDiagnostics,
 	
-	pub current_process_personality: DiagnosticUnobtainableResult<Personality>,
+	pub current_process_personality: DiagnosticUnobtainableResult<PersonalityFlags>,
 }
 
 impl CurrentProcessDiagnostics
@@ -23,7 +23,7 @@ impl CurrentProcessDiagnostics
 			
 			current_process_miscellaneous_process_control: MiscellaneousProcessControlDiagnostics::gather(),
 			
-			current_process_personality: PersonalityFlags::current().map_err(DiagnosticUnobtainable::from),
+			current_process_personality: PersonalityFlags::current().map_err(|_: ()| DiagnosticUnobtainable(format!("Personality flags unobtainable"))),
 		}
 	}
 }

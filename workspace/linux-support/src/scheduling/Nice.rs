@@ -349,4 +349,5 @@ impl Nice
 			
 			_ => unreachable!(),
 		}
+	}
 }

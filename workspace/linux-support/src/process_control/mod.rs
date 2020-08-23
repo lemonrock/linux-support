@@ -15,7 +15,6 @@ include!("change_no_new_privileges.rs");
 include!("error_number_to_io_error.rs");
 include!("MachineCheckExceptionKillPolicy.rs");
 include!("process_control_get_boolean.rs");
-include!("process_control_get_boolean.rs");
 include!("process_control_wrapper.rs");
 include!("process_control_wrapper1.rs");
 include!("process_control_wrapper2.rs");

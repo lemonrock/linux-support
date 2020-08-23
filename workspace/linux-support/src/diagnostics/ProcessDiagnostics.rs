@@ -9,7 +9,7 @@ pub struct ProcessDiagnostics
 {
 	pub process_group_identifier: DiagnosticUnobtainableResult<ProcessGroupIdentifier>,
 	
-	pub session_identifier: ProcessGroupIdentifier,
+	pub session_identifier: DiagnosticUnobtainableResult<ProcessGroupIdentifier>,
 	
 	pub audit_session_identifier: DiagnosticUnobtainableResult<Option<ProcessGroupIdentifier>>,
 	
@@ -25,7 +25,7 @@ pub struct ProcessDiagnostics
 	
 	pub status: DiagnosticUnobtainableResult<Status>,
 	
-	pub personality: DiagnosticUnobtainableResult<Status>,
+	pub personality: DiagnosticUnobtainableResult<PersonalityFlags>,
 }
 
 impl ProcessDiagnostics
@@ -34,9 +34,9 @@ impl ProcessDiagnostics
 	{
 		Self
 		{
-			process_group_identifier: process_identifier.process_group_identifier().map_err(DiagnosticUnobtainable::from),
+			process_group_identifier: process_identifier.process_group_identifier().map_err(|_: ()| DiagnosticUnobtainable(format!("Could not obtain orocess group identifier"))),
 			
-			session_identifier: process_identifier.session_identifier().map_err(DiagnosticUnobtainable::from),
+			session_identifier: process_identifier.session_identifier().map_err(|_: ()| DiagnosticUnobtainable(format!("Could not obtain session identifier"))),
 			
 			audit_session_identifier: ProcessGroupIdentifier::audit_session_identifier(proc_path, process_identifier).map_err(DiagnosticUnobtainable::from),
 			

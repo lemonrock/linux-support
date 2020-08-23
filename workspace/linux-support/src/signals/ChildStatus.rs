@@ -4,6 +4,8 @@
 
 /// Child status, as might be set by `waitpid()` or returned in a `siginfo_t`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum ChildStatus
 {
 	/// The child process was resumed by delivery of `SIGCONT`.

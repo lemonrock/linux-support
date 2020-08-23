@@ -4,6 +4,8 @@
 
 /// Signal queue status.
 #[derive(Default, Debug, Copy,Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct SignalQueueStatus
 {
 	/// Number of signals queued.

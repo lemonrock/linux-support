@@ -195,7 +195,7 @@ impl ProcessIdentifier
 	///
 	/// The session identifier of a process is the process group identifier of the session leader.
 	#[inline(always)]
-	pub fn session_identifer(self) -> Result<ProcessGroupIdentifier, ()>
+	pub fn session_identifier(self) -> Result<ProcessGroupIdentifier, ()>
 	{
 		ProcessGroupIdentifier::session_identifier(ProcessIdentifierChoice::Other(self))
 	}

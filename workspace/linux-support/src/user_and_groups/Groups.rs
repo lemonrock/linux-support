@@ -4,6 +4,7 @@
 
 /// Groups.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct Groups(BTreeSet<GroupIdentifier>);
 

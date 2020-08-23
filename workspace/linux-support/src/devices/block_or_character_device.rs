@@ -8,6 +8,8 @@ macro_rules! block_or_character_device
 	{
 		/// A $name.
 		#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+		#[derive(Deserialize, Serialize)]
+		#[serde(deny_unknown_fields)]
 		pub struct $name
 		{
 			/// Major.
