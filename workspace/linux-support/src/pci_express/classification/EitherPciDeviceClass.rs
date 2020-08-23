@@ -4,6 +4,7 @@
 
 /// New type to permit implementation of `FromBytes`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct EitherPciDeviceClass(pub Either<PciDeviceClass, (u8, u8, u8)>);
 

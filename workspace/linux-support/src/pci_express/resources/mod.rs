@@ -6,6 +6,8 @@ use super::*;
 use super::PciDevice;
 use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use crate::paths::PathExt;
+
+
 include!("MemoryMappedResource.rs");
 include!("ResourceEntry.rs");
 include!("Resources.rs");

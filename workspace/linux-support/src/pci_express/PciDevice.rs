@@ -8,15 +8,15 @@
 ///
 /// The following files are not parsed or used as they are not properly documented and seem to be of very limited value:-
 ///
-/// * `consistent_dma_mask_bits` (Used on x86_64 only, but present on other architectures
-/// * `dma_mask_bits`
-/// * `broken_parity_status`
-/// * `modalias`
+/// * `consistent_dma_mask_bits` (Used on x86_64 only, but present on other architectures).
+/// * `dma_mask_bits`.
+/// * `broken_parity_status`.
+/// * `modalias`.
 ///
 /// Bridges also have the files:-
 ///
-/// * `secondary_bus_number`
-/// * `subordinate_bus_number`
+/// * `secondary_bus_number`.
+/// * `subordinate_bus_number`.
 ///
 /// Bridges do not have files called `resource<N>`.
 ///
@@ -68,9 +68,9 @@ impl<'a> PciDevice<'a>
 
 	/// Resources.
 	#[inline(always)]
-	pub fn resources(&self) -> Resources
+	pub fn resources(&self) -> io::Result<Resources>
 	{
-		Resources::parse_lines(self).expect("No resources")
+		Resources::parse_lines(self)
 	}
 
 	/// Configuration space.

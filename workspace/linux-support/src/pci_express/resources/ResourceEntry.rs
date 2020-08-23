@@ -4,13 +4,15 @@
 
 /// A resource entry.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct ResourceEntry
 {
 	/// Inclusive start.
-	pub inclusive_start: NonNull<u8>,
+	#[serde(deserialize_with = "ResourceEntry::non_null_deserialize", serialize_with = "ResourceEntry::non_null_serialize")] pub inclusive_start: NonNull<u8>,
 
 	/// Inclusive end.
-	pub inclusive_end: NonNull<u8>,
+	#[serde(deserialize_with = "ResourceEntry::non_null_deserialize", serialize_with = "ResourceEntry::non_null_serialize")] pub inclusive_end: NonNull<u8>,
 
 	/// Flags.
 	pub flags: u64,
@@ -73,5 +75,26 @@ impl ResourceEntry
 				}
 			)
 		)
+	}
+	
+	#[inline(always)]
+	fn non_null_deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<NonNull<u8>, D::Error>
+	{
+		let value = usize::deserialize(deserializer)?;
+		if value == 0
+		{
+			use serde::de::Error as SerdeDeserializeError;
+			Err(<D::Error as SerdeDeserializeError>::custom("Not NonNull"))
+		}
+		else
+		{
+			Ok(unsafe { NonNull::new_unchecked(value as *mut u8) })
+		}
+	}
+	
+	#[inline(always)]
+	fn non_null_serialize<S: Serializer>(t: &NonNull<u8>, serializer: S) -> Result<S::Ok, S::Error>
+	{
+		 (t.as_ptr() as usize).serialize(serializer)
 	}
 }

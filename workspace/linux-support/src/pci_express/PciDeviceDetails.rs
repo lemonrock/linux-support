@@ -4,6 +4,8 @@
 
 /// PCI device details.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[allow(missing_docs)]
 pub struct PciDeviceDetails
 {

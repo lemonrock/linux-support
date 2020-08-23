@@ -4,6 +4,8 @@
 
 /// PCI Vendor Identifier.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct PciVendorIdentifier(u16);
 
 impl From<u16> for PciVendorIdentifier

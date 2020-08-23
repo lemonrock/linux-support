@@ -19,6 +19,8 @@ use crate::speculation_mitigation::SpeculationMitigation;
 use crate::thread::*;
 use crate::time::*;
 use crate::user_and_groups::*;
+use crate::pci_express::{PciDeviceAddress, PciDevice, PciDeviceDetails};
+use crate::pci_express::resources::ResourceEntry;
 
 
 include!("CurrentProcessDiagnostics.rs");
@@ -31,6 +33,7 @@ include!("EtcPasswdRecordDiagnostic.rs");
 include!("GroupIdentifierDiagnostic.rs");
 include!("GroupsDiagnostics.rs");
 include!("MiscellaneousProcessControlDiagnostics.rs");
+include!("PciDeviceDiagnostics.rs");
 include!("ProcessDiagnostics.rs");
 include!("SchedulingDiagnostics.rs");
 include!("SwapDiagnostics.rs");

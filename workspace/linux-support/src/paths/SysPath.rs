@@ -283,7 +283,7 @@ impl SysPath
 
 	/// `/sys/bus/pci/devices`.
 	#[inline(always)]
-	fn devices_pci_bus_folder_path(&self) -> PathBuf
+	pub(crate) fn devices_pci_bus_folder_path(&self) -> PathBuf
 	{
 		self.pci_bus_file_path("devices")
 	}

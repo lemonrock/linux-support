@@ -30,6 +30,9 @@ pub struct Diagnostics
 
 	/// Process.
 	pub process_diagnostics: ProcessDiagnostics,
+
+	/// PCI devices.
+	pub pci_devices: DiagnosticUnobtainableResult<HashMap<PciDeviceAddress, Option<PciDeviceDiagnostics>>>,
 }
 
 impl Diagnostics
@@ -43,8 +46,11 @@ impl Diagnostics
 		Self
 		{
 			file_system_layout: file_system_layout.clone(),
+			
 			users_and_groups: UsersAndGroupsDiagnostics::gather(proc_path, etc_path, process_identifier),
+			
 			current_thread: CurrentThreadDiagnostic::gather(proc_path, process_identifier),
+			
 			threads: match ThreadIdentifier::for_process(proc_path, process_identifier)
 			{
 				Err(error) => Err(DiagnosticUnobtainable::from(error)),
@@ -58,10 +64,28 @@ impl Diagnostics
 					Ok(thread_diagnostics)
 				}
 			},
+			
 			swap: SwapDiagnostics::gather(proc_path),
+			
 			scheduling: SchedulingDiagnostics::gather(sys_path, proc_path, process_group_identifier, process_identifier),
+			
 			current_process_diagnostics: CurrentProcessDiagnostics::gather(),
+			
 			process_diagnostics: ProcessDiagnostics::gather(proc_path, process_group_identifier, process_identifier),
+			
+			pci_devices: match PciDeviceAddress::all(sys_path)
+			{
+				Err(error) => Err(DiagnosticUnobtainable::from(error)),
+				Ok(pci_device_addresses) =>
+				{
+					let mut pci_devices = HashMap::new();
+					for pci_device_address in pci_device_addresses
+					{
+						pci_devices.insert(pci_device_address, PciDeviceDiagnostics::gather(sys_path, pci_device_address));
+					}
+					Ok(pci_devices)
+				}
+			}
 		}
 	}
 }

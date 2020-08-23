@@ -4,6 +4,8 @@
 
 /// PCI device identification.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct PciVendorAndDevice
 {
 	/// Vendor.

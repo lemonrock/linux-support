@@ -6,6 +6,8 @@
 ///
 /// Linux as of 24 March 2019 does not support for PCI Express 6.0's 64 GT/s speed.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum LinkSpeed
 {
 	/// 32 GT/s (PCI Express 5.0).

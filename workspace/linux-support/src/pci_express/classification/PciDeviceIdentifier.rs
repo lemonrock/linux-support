@@ -4,6 +4,8 @@
 
 /// PCI device identifier.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct PciDeviceIdentifier(u16);
 
 impl From<u16> for PciDeviceIdentifier

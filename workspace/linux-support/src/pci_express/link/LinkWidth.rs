@@ -4,6 +4,8 @@
 
 /// Link Width, also known as Number of Lanes.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum LinkWidth
 {
 	/// 1 lane.

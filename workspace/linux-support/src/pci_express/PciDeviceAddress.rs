@@ -148,6 +148,17 @@ impl TryFrom<Vec<u8>> for PciDeviceAddress
 	}
 }
 
+impl<'a> TryFrom<OsString> for PciDeviceAddress
+{
+	type Error = PciDeviceAddressStringParseError;
+	
+	#[inline(always)]
+	fn try_from(value: OsString) -> Result<Self, Self::Error>
+	{
+		Self::try_from(value.as_bytes())
+	}
+}
+
 impl<'a> TryFrom<&'a [c_char]> for PciDeviceAddress
 {
 	type Error = PciDeviceAddressStringParseError;
@@ -235,5 +246,41 @@ impl<'a> TryFrom<&'a [u8]> for PciDeviceAddress
 				},
 			}
 		)
+	}
+}
+
+impl PciDeviceAddress
+{
+	/// All PCI devices.
+	#[inline(always)]
+	pub fn all(sys_path: &SysPath) -> io::Result<impl Iterator<Item=Self>>
+	{
+		fn filter_map(dir_entry: io::Result<DirEntry>) -> Option<PciDeviceAddress>
+		{
+			let dir_entry = match dir_entry
+			{
+				Err(_) => return None,
+				Ok(dir_entry) => dir_entry,
+			};
+			
+			let dir_entry = match dir_entry.file_type()
+			{
+				Err(_) => return None,
+				
+				Ok(file_type) => if likely!(file_type.is_dir())
+				{
+					dir_entry
+				}
+				else
+				{
+					return None
+				}
+			};
+			
+			let file_name = dir_entry.file_name();
+			PciDeviceAddress::try_from(file_name).ok()
+		}
+		
+		sys_path.devices_pci_bus_folder_path().read_dir().map(|iterator| iterator.filter_map(filter_map))
 	}
 }
