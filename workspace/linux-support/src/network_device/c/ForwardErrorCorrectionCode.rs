@@ -5,42 +5,43 @@
 /// Forward error correction codes.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
+#[derive(EnumIter, EnumCount)]
 #[serde(deny_unknown_fields)]
 #[repr(u32)]
 pub enum ForwardErrorCorrectionCode
 {
-	#[serde(skip)]
+	#[serde(skip_deserializing)]
 	#[doc(hidden)]
-	ETHTOOL_FEC_NONE = ethtool_fec_config_bits::ETHTOOL_FEC_NONE_BIT.to_bit(),
+	#[serde(rename = "None")] ETHTOOL_FEC_NONE = ethtool_fec_config_bits::ETHTOOL_FEC_NONE_BIT.to_bit(),
 	
 	/// Default/Best FEC mode provided by driver.
 	///
 	/// Ethtool setting is `auto`.
-	ETHTOOL_FEC_AUTO = ethtool_fec_config_bits::ETHTOOL_FEC_AUTO_BIT.to_bit(),
+	#[serde(rename = "Automatic")] ETHTOOL_FEC_AUTO = ethtool_fec_config_bits::ETHTOOL_FEC_AUTO_BIT.to_bit(),
 	
 	/// No FEC Mode.
 	///
 	/// Ethtool setting is `off`.
-	ETHTOOL_FEC_OFF = ethtool_fec_config_bits::ETHTOOL_FEC_OFF_BIT.to_bit(),
+	#[serde(rename = "Off")] ETHTOOL_FEC_OFF = ethtool_fec_config_bits::ETHTOOL_FEC_OFF_BIT.to_bit(),
 	
 	/// Reed-Solomon Forward Error Detection mode.
 	///
 	/// Force RS-FEC encoding.
 	///
 	/// Ethtool setting is `rs`.
-	ETHTOOL_FEC_RS = ethtool_fec_config_bits::ETHTOOL_FEC_RS_BIT.to_bit(),
+	#[serde(rename = "Reed-Solon Forward Error Detection")] ETHTOOL_FEC_RS = ethtool_fec_config_bits::ETHTOOL_FEC_RS_BIT.to_bit(),
 	
 	/// Base-R/Reed-Solomon Forward Error Detection mode.
 	///
 	/// Force BaseR encoding.
 	///
 	/// Ethtool setting is `baser`.
-	ETHTOOL_FEC_BASER = ethtool_fec_config_bits::ETHTOOL_FEC_BASER_BIT.to_bit(),
+	#[serde(rename = "Base-R / Reed-Solomon Forward Error Detection")] ETHTOOL_FEC_BASER = ethtool_fec_config_bits::ETHTOOL_FEC_BASER_BIT.to_bit(),
 	
 	/// LLRS (?Link-Local Reed-Solomon)?
 	///
 	/// Force LLRS-FEC encoding.
 	///
 	/// Ethtool setting is `llrs`.
-	ETHTOOL_FEC_LLRS = ethtool_fec_config_bits::ETHTOOL_FEC_LLRS_BIT.to_bit(),
+	#[serde(rename = "LLRS")] ETHTOOL_FEC_LLRS = ethtool_fec_config_bits::ETHTOOL_FEC_LLRS_BIT.to_bit(),
 }

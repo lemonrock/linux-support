@@ -27,6 +27,18 @@ impl EthtoolCommand for ethtool_pauseparam
 impl ethtool_pauseparam
 {
 	#[inline(always)]
+	pub(crate) fn get() -> Self
+	{
+		Self
+		{
+			cmd: ETHTOOL_SPAUSEPARAM,
+			autoneg: 0,
+			rx_pause: 0,
+			tx_pause: 0
+		}
+	}
+	
+	#[inline(always)]
 	pub(crate) fn set(pause_configuration: PauseConfiguration) -> Self
 	{
 		let (autoneg, rx_pause, tx_pause) = pause_configuration.to_u32_booleans();
@@ -36,6 +48,22 @@ impl ethtool_pauseparam
 			autoneg,
 			rx_pause,
 			tx_pause
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn as_pause_configuration(&self) -> Result<PauseConfiguration, InvalidCombinationOfPauseSettingsError>
+	{
+		use self::PauseConfiguration::*;
+		
+		match (self.autoneg, self.rx_pause, self.tx_pause)
+		{
+			(0, 0, 0) => Ok(Disabled),
+			(1, 0, 0) => Ok(AutoNegotiated),
+			(0, 1, 0) => Ok(TransmitOnly),
+			(0, 0, 1) => Ok(ReceiveOnly),
+			(0, 1, 1) => Ok(TransmitAndReceive),
+			_ => Err(InvalidCombinationOfPauseSettingsError),
 		}
 	}
 }

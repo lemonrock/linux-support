@@ -3,7 +3,25 @@
 
 
 use super::*;
+use crate::file_descriptors::netlink::route::RouteNetlinkProtocol;
+use crate::file_descriptors::netlink::NetlinkSocketFileDescriptor;
+use crate::file_descriptors::netlink::route::get_link::GetLinkMessageData;
+use crate::file_descriptors::netlink::route::get_address::GetAddressMessageData;
+use crate::file_descriptors::socket::c::in_addr;
+use crate::file_descriptors::socket::c::in6_addr;
+use crate::network_device::*;
+use crate::network_device::c::*;
+use crate::network_device::coalescing::CoalesceConfiguration;
+use crate::network_device::eeprom::*;
+use crate::network_device::energy_efficient_ethernet::EnergyEfficientEthernetInformation;
+use crate::network_device::pause::PauseConfiguration;
+use crate::network_device::receive_side_scaling::ConfiguredHashSettings;
+use crate::network_device::string_sets::AllStringSets;
+use crate::network_device::tunables::*;
+use crate::network_device::wake_on_lan::WakeOnLanInformation;
 use crate::paths::*;
+use crate::pci_express::*;
+use crate::pci_express::resources::ResourceEntry;
 use crate::personality::PersonalityFlags;
 use crate::process::stat::Stat;
 use crate::process::statm::StatM;
@@ -19,8 +37,6 @@ use crate::speculation_mitigation::SpeculationMitigation;
 use crate::thread::*;
 use crate::time::*;
 use crate::user_and_groups::*;
-use crate::pci_express::{PciDeviceAddress, PciDevice, PciDeviceDetails};
-use crate::pci_express::resources::ResourceEntry;
 
 
 include!("CurrentProcessDiagnostics.rs");
@@ -32,12 +48,17 @@ include!("EtcGroupRecordDiagnostic.rs");
 include!("EtcPasswdRecordDiagnostic.rs");
 include!("GroupIdentifierDiagnostic.rs");
 include!("GroupsDiagnostics.rs");
+include!("InternetProtocolAddressesDiagnostic.rs");
 include!("MiscellaneousProcessControlDiagnostics.rs");
+include!("NetworkDeviceDiagnostic.rs");
+include!("NetworkDeviceInputOutputControlDiagnostic.rs");
+include!("NetworkDeviceDiagnostics.rs");
 include!("PciDeviceDiagnostics.rs");
 include!("ProcessDiagnostics.rs");
 include!("SchedulingDiagnostics.rs");
 include!("SwapDiagnostics.rs");
 include!("ThreadDiagnostic.rs");
+include!("UndocumentedError.rs");
 include!("UserIdentifierDiagnostic.rs");
 include!("UsersAndGroupsDiagnostics.rs");
 include!("UsersDiagnostics.rs");

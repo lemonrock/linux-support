@@ -4,29 +4,31 @@
 
 /// If link data was sent in response to an event, represents the reason it was sent.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(u32)]
 pub enum IFLA_EVENT
 {
 	/// Not specified.
-	IFLA_EVENT_NONE = 0,
+	#[serde(rename = "None")] IFLA_EVENT_NONE = 0,
 	
 	#[allow(missing_docs)]
-	IFLA_EVENT_REBOOT = 1,
+	#[serde(rename = "Reboot")] IFLA_EVENT_REBOOT = 1,
 	
 	#[allow(missing_docs)]
-	IFLA_EVENT_FEATURES = 2,
+	#[serde(rename = "Feature")] IFLA_EVENT_FEATURES = 2,
 	
 	#[allow(missing_docs)]
-	IFLA_EVENT_BONDING_FAILOVER = 3,
+	#[serde(rename = "Bonding Failover")] IFLA_EVENT_BONDING_FAILOVER = 3,
 	
 	#[allow(missing_docs)]
-	IFLA_EVENT_NOTIFY_PEERS = 4,
+	#[serde(rename = "Notify peers")] IFLA_EVENT_NOTIFY_PEERS = 4,
 	
 	#[allow(missing_docs)]
-	IFLA_EVENT_IGMP_RESEND = 5,
+	#[serde(rename = "IGMP Resend")] IFLA_EVENT_IGMP_RESEND = 5,
 	
 	#[allow(missing_docs)]
-	IFLA_EVENT_BONDING_OPTIONS = 6,
+	#[serde(rename = "Bonding Options")] IFLA_EVENT_BONDING_OPTIONS = 6,
 }
 
 impl Default for IFLA_EVENT

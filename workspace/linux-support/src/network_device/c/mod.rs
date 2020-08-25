@@ -7,14 +7,19 @@ use self::bit_set::*;
 use crate::file_descriptors::socket::c::*;
 use crate::network_device::c::flow_specifications::ethtool_rx_flow_spec;
 use crate::network_device::receive_side_scaling::ContextIdentifier;
+use crate::network_device::wake_on_lan::WakeOnLanWhen;
 
 
 include!("AUTONEG.rs");
 include!("cisco_proto.rs");
 include!("DOWNSHIFT_DEV_.rs");
 include!("DUPLEX.rs");
+include!("ETH_FW_DUMP_DISABLE.rs");
 include!("ETH_GSTRING_LEN.rs");
 include!("ETH_MDIO_SUPPORTS.rs");
+include!("ETH_MODULE_SFF_.rs");
+include!("ETH_MODULE_SFF_x_LEN.rs");
+include!("ETH_MODULE_SFF_x_MAX_LEN.rs");
 include!("ETH_RSS_HASH.rs");
 include!("ETH_RX_NFC_.rs");
 include!("ETH_RX_FLOW_SPEC_.rs");

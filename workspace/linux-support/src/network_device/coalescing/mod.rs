@@ -5,8 +5,9 @@
 use super::*;
 
 
-include!("CoalescePair.rs");
 include!("AdaptiveCoalescingRateSampling.rs");
+include!("AdaptiveCoalescingError.rs");
 include!("AdaptiveCoalescingConfiguration.rs");
 include!("CoalesceConfiguration.rs");
+include!("CoalescePair.rs");
 include!("ReceiveTransmitCoalescing.rs");

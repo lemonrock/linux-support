@@ -2,7 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Usually quite small eg 9 or less.
+/// Usually quite small value of `N`, eg 9 or less.
+///
+/// For operation in cabling environments that are incompatible with 1000BASE-T, a PHY device may provide an automatic link speed downshift operation.
+///
+/// Link speed downshift will occur after `N` failed 1000BASE-T auto-negotiation attempts.
+/// Downshift is useful where a cable does not have 4 twisted pairs.
 ///
 /// Results in ERANGE if the value is out-of-range.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]

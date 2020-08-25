@@ -4,6 +4,8 @@
 
 /// Message data.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct GetLinkMessageData
 {
 	/// Link flags.

@@ -6,6 +6,8 @@
 ///
 /// Documentation is as per Linux header `if_link.h`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(C)]
 pub struct rtnl_link_stats64
 {

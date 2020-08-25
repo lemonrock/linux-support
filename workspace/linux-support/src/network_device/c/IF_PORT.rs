@@ -4,31 +4,33 @@
 
 /// ?Legacy? media selection option.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(u32)]
 pub enum IF_PORT
 {
 	/// Unknown.
 	///
 	/// Default.
-	IF_PORT_UNKNOWN = 0,
+	#[serde(rename = "Unknown")] IF_PORT_UNKNOWN = 0,
 	
 	/// `10BASE-2`.
-	IF_PORT_10BASE2 = 1,
+	#[serde(rename = "10BASE-2")] IF_PORT_10BASE2 = 1,
 	
 	/// `10BASE-T`.
-	IF_PORT_10BASET = 2,
+	#[serde(rename = "10BASE-T")] IF_PORT_10BASET = 2,
 	
 	/// `AUI`.
-	IF_PORT_AUI = 3,
+	#[serde(rename = "AUI")] IF_PORT_AUI = 3,
 	
 	/// `100BASE-T`.
-	IF_PORT_100BASET = 4,
+	#[serde(rename = "100BASE-T")] IF_PORT_100BASET = 4,
 	
 	/// `100BASE-TX`.
-	IF_PORT_100BASETX = 5,
+	#[serde(rename = "100BASE-TX")] IF_PORT_100BASETX = 5,
 	
 	/// `100BASE-FX`.
-	IF_PORT_100BASEFX = 6,
+	#[serde(rename = "100BASE-FX")] IF_PORT_100BASEFX = 6,
 }
 
 impl Default for IF_PORT

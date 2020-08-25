@@ -4,6 +4,8 @@
 
 /// Message data.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct GetAddressMessageData<IPA: InternetProtocolAddress>
 {
 	pub(crate) interface_flags: InterfaceFlags,

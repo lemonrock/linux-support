@@ -5,92 +5,104 @@
 /// Strings are in the `ethtool_stringset::ETH_SS_TS_RX_FILTERS` string set.
 ///
 /// Used in `hwtstamp_config.rx_filter`.
-#[repr(u32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[derive(EnumIter, EnumCount)]
+#[serde(deny_unknown_fields)]
+#[repr(u32)]
 pub enum hwtstamp_rx_filters
 {
 	/// Timestamp no incoming packet at all.
 	///
 	/// String set value is `none`.
-	HWTSTAMP_FILTER_NONE = 0,
+	#[serde(rename = "none")] HWTSTAMP_FILTER_NONE = 0,
 	
 	/// Timestamp any incoming packet.
 	///
 	/// String set value is `all`.
-	HWTSTAMP_FILTER_ALL = 1,
+	#[serde(rename = "all")] HWTSTAMP_FILTER_ALL = 1,
 	
 	/// Return value: timestamp all packets requested plus some others.
 	///
 	/// String set value is `some`.
-	HWTSTAMP_FILTER_SOME = 2,
+	#[serde(rename = "some")] HWTSTAMP_FILTER_SOME = 2,
 	
 	/// Precision Time Protocol (PTP) v1, UDP, any kind of event packet.
 	///
 	/// String set value is `ptpv1-l4-event`.
-	HWTSTAMP_FILTER_PTP_V1_L4_EVENT = 3,
+	#[serde(rename = "ptpv1-l4-event")] HWTSTAMP_FILTER_PTP_V1_L4_EVENT = 3,
 	
 	/// Precision Time Protocol (PTP) v1, UDP, Sync packet.
 	///
 	/// String set value is `ptpv1-l4-sync`.
-	HWTSTAMP_FILTER_PTP_V1_L4_SYNC = 4,
+	#[serde(rename = "ptpv1-l4-sync")] HWTSTAMP_FILTER_PTP_V1_L4_SYNC = 4,
 	
 	/// Precision Time Protocol (PTP) v1, UDP, Delay_req packet.
 	///
 	/// String set value is `ptpv1-l4-delay-req`.
-	HWTSTAMP_FILTER_PTP_V1_L4_DELAY_REQ = 5,
+	#[serde(rename = "ptpv1-l4-delay-req")] HWTSTAMP_FILTER_PTP_V1_L4_DELAY_REQ = 5,
 	
 	/// Precision Time Protocol (PTP) v2, UDP, any kind of event packet.
 	///
 	/// String set value is `ptpv2-l4-event`.
-	HWTSTAMP_FILTER_PTP_V2_L4_EVENT = 6,
+	#[serde(rename = "ptpv2-l4-event")] HWTSTAMP_FILTER_PTP_V2_L4_EVENT = 6,
 	
 	/// Precision Time Protocol (PTP) v2, UDP, Sync packet.
 	///
 	/// String set value is `ptpv2-l4-sync`.
-	HWTSTAMP_FILTER_PTP_V2_L4_SYNC = 7,
+	#[serde(rename = "ptpv2-l4-sync")] HWTSTAMP_FILTER_PTP_V2_L4_SYNC = 7,
 	
 	/// Precision Time Protocol (PTP) v2, UDP, Delay_req packet.
 	///
-	/// String set value is `ptpv2-l4-delay-req`.
-	HWTSTAMP_FILTER_PTP_V2_L4_DELAY_REQ = 8,
+	/// String set value is `ptpv1-l4-event`.
+	#[serde(rename = "ptpv1-l4-event")] HWTSTAMP_FILTER_PTP_V2_L4_DELAY_REQ = 8,
 	
 	/// 802.AS1, Ethernet, any kind of event packet.
 	///
 	/// String set value is `ptpv2-l2-event`.
-	HWTSTAMP_FILTER_PTP_V2_L2_EVENT = 9,
+	#[serde(rename = "ptpv2-l2-event")] HWTSTAMP_FILTER_PTP_V2_L2_EVENT = 9,
 	
 	/// 802.AS1, Ethernet, Sync packet.
 	///
 	/// String set value is `ptpv2-l2-sync`.
-	HWTSTAMP_FILTER_PTP_V2_L2_SYNC = 10,
+	#[serde(rename = "ptpv2-l2-sync")] HWTSTAMP_FILTER_PTP_V2_L2_SYNC = 10,
 	
 	/// 802.AS1, Ethernet, Delay_req packet.
 	///
 	/// String set value is `ptpv2-l2-delay-req`.
-	HWTSTAMP_FILTER_PTP_V2_L2_DELAY_REQ = 11,
+	#[serde(rename = "ptpv2-l2-delay-req")] HWTSTAMP_FILTER_PTP_V2_L2_DELAY_REQ = 11,
 	
 	/// Precision Time Protocol (PTP) v2 or 802.AS1, any layer, any kind of event packet.
 	///
-	/// String set value is `ptpv2-event`.
-	HWTSTAMP_FILTER_PTP_V2_EVENT = 12,
+	/// String set value is `ptpv2-sync`.
+	#[serde(rename = "ptpv2-sync")] HWTSTAMP_FILTER_PTP_V2_EVENT = 12,
 	
 	/// Precision Time Protocol (PTP) v2 or 802.AS1, any layer, Sync packet.
 	///
 	/// String set value is `ptpv2-sync`.
-	HWTSTAMP_FILTER_PTP_V2_SYNC = 13,
+	#[serde(rename = "ptpv2-sync")] HWTSTAMP_FILTER_PTP_V2_SYNC = 13,
 	
 	/// Precision Time Protocol (PTP) v2 or 802.AS1, any layer, Delay_req packet.
 	///
 	/// String set value is `ptpv2-delay-req`.
-	HWTSTAMP_FILTER_PTP_V2_DELAY_REQ = 14,
+	#[serde(rename = "ptpv2-delay-req")] HWTSTAMP_FILTER_PTP_V2_DELAY_REQ = 14,
 	
 	/// NTP, UDP, all versions and packet modes.
 	///
 	/// String set value is `ntp-all`.
-	HWTSTAMP_FILTER_NTP_ALL = 15,
+	#[serde(rename = "ntp-all")] HWTSTAMP_FILTER_NTP_ALL = 15,
+}
+
+impl Into<u32> for hwtstamp_rx_filters
+{
+	#[inline(always)]
+	fn into(self) -> u32
+	{
+		self as u32
+	}
 }
 
 impl hwtstamp_rx_filters
 {
-	const __HWTSTAMP_FILTER_CNT: usize = 16;
+	const __HWTSTAMP_FILTER_CNT: usize = Self::COUNT;
 }

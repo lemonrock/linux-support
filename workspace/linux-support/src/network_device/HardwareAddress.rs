@@ -6,7 +6,9 @@
 ///
 /// Nearly always an Ethernet Media Access Control (MAC) hardware address with a length of `6`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct HardwareAddress(ArrayVec<[u8; Self::MaximumLength.get()]>);
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct HardwareAddress(ArrayVec<[u8; HardwareAddress::MaximumLength.get()]>);
 
 impl Deref for HardwareAddress
 {
@@ -22,7 +24,7 @@ impl Deref for HardwareAddress
 impl From<ArrayVec<[u8; Self::MaximumLength.get()]>> for HardwareAddress
 {
 	#[inline(always)]
-	fn from(value: ArrayVec<[u8; Self::MaximumLength.get()]>) -> Self
+	fn from(value: ArrayVec<[u8; HardwareAddress::MaximumLength.get()]>) -> Self
 	{
 		Self(value)
 	}
@@ -37,17 +39,17 @@ impl<'a> TryFrom<&'a [u8]> for HardwareAddress
 	fn try_from(value: &'a [u8]) -> Result<Self, Self::Error>
 	{
 		let length = value.len();
-		if unlikely!(length < Self::MinimumLength.get())
+		if unlikely!(length < HardwareAddress::MinimumLength.get())
 		{
 			Err(format!("field has a hardware address that is too short ({}), can not be less than HardwareAddress::MinimumLength ({})", length, Self::MinimumLength))
 		}
-		else if unlikely!(length > Self::MaximumLength.get())
+		else if unlikely!(length > HardwareAddress::MaximumLength.get())
 		{
 			Err(format!("field has a hardware address that is too long ({}), can not greater than HardwareAddress::MaximumLength ({})", length, Self::MaximumLength))
 		}
 		else
 		{
-			let mut bytes: [u8; Self::MaximumLength.get()] = unsafe { uninitialized() };
+			let mut bytes: [u8; HardwareAddress::MaximumLength.get()] = unsafe { uninitialized() };
 			unsafe { bytes.as_mut_ptr().copy_from_nonoverlapping(value.as_ptr(), length) };
 			let mut buffer = ConstArrayVec
 			{

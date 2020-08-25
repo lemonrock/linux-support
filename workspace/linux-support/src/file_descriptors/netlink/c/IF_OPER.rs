@@ -4,27 +4,29 @@
 
 /// RFC 2863 operational status.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(u8)]
 pub enum IF_OPER
 {
 	/// `unknown` in sysfs (`/sys/class/net/<network_interface_name>/oper_state`).
-	IF_OPER_UNKNOWN = 0,
+	#[serde(rename = "Unknown")] IF_OPER_UNKNOWN = 0,
 	
 	/// Apparently unused according to a Linux kernel source comment.
 	///
 	/// `notpresent` in sysfs (`/sys/class/net/<network_interface_name>/oper_state`).
-	IF_OPER_NOTPRESENT = 1,
+	#[serde(rename = "Not Present")] IF_OPER_NOTPRESENT = 1,
 	
 	/// `down` in sysfs (`/sys/class/net/<network_interface_name>/oper_state`).
-	IF_OPER_DOWN = 2,
+	#[serde(rename = "Down")] IF_OPER_DOWN = 2,
 	
 	/// `lowerlayerdown` in sysfs (`/sys/class/net/<network_interface_name>/oper_state`).
-	IF_OPER_LOWERLAYERDOWN = 3,
+	#[serde(rename = "Lower Layer Down")] IF_OPER_LOWERLAYERDOWN = 3,
 	
 	/// Apparently unused according to a Linux kernel source comment.
 	///
 	/// `testing` in sysfs (`/sys/class/net/<network_interface_name>/oper_state`).
-	IF_OPER_TESTING = 4,
+	#[serde(rename = "Testing")] IF_OPER_TESTING = 4,
 	
 	/// `dormant` in sysfs (`/sys/class/net/<network_interface_name>/oper_state`).
 	///
@@ -38,10 +40,10 @@ pub enum IF_OPER
 	/// Rarely-used state by a very small number of Linux drivers, none of which are common.
 	///
 	/// See also `NetworkInterfaceName.dormant()`.
-	IF_OPER_DORMANT = 5,
+	#[serde(rename = "Dormant")] IF_OPER_DORMANT = 5,
 	
 	/// `up` in sysfs (`/sys/class/net/<network_interface_name>/oper_state`).
 	///
 	/// Check that `/sys/class/net/<network_interface_name>/dormant` is not true before relying on this state.
-	IF_OPER_UP = 6,
+	#[serde(rename = "Up")] IF_OPER_UP = 6,
 }

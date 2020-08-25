@@ -6,6 +6,8 @@
 ///
 /// A channel has one or more ring queues associated with it.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Channels
 {
 	/// Receive and transmit channels count ('combined'); is ***NOT*** the sum of `receive_channels_count + transmit_channels_count`.

@@ -39,7 +39,7 @@ pub struct GlobalNetworkDeviceConfiguration
 	/// Not supported by many cards, eg Intel i40e.
 	#[serde(default)] pub energy_efficient_ethernet: Option<EnergyEfficientEthernetConfiguration>,
 	
-	/// Disable Wake-on-LAN (WoL).
+	/// Disable Wake-on-LAN.
 	///
 	/// Usually only works for physical (non-virtualized) hardware.
 	#[serde(default)] pub disable_wake_on_lan: bool,
@@ -144,7 +144,7 @@ impl GlobalNetworkDeviceConfiguration
 		
 		if let Some(ref driver_specific_flags_to_change) = self.driver_specific_flags_to_change
 		{
-			let all_string_sets = validate(&network_device_input_output_control, network_device_input_output_control.get_all_string_sets(), CouldNotGetAllStringSets)?;
+			let all_string_sets = validate(&network_device_input_output_control, network_device_input_output_control.all_string_sets(), CouldNotGetAllStringSets)?;
 			validate(&network_device_input_output_control, network_device_input_output_control.set_private_flags(&all_string_sets, driver_specific_flags_to_change), CouldNotChangeDriverSpecificFlags)?;
 		}
 		

@@ -3,24 +3,31 @@
 
 
 use super::*;
+use crate::network_device::wake_on_lan::*;
 
 
 include!("ETHTOOL_.rs");
 include!("ethtool_channels.rs");
 include!("ethtool_coalesce.rs");
+include!("ethtool_dump.rs");
 include!("ethtool_drvinfo.rs");
 include!("ethtool_eee.rs");
+include!("ethtool_eeprom.rs");
 include!("ethtool_fecparam.rs");
 include!("ethtool_gfeatures.rs");
+include!("ethtool_gstats.rs");
 include!("ethtool_gstrings.rs");
 include!("ethtool_link_settings.rs");
+include!("ethtool_modinfo.rs");
 include!("ethtool_pauseparam.rs");
+include!("ethtool_regs.rs");
 include!("ethtool_ringparam.rs");
 include!("ethtool_rxfh.rs");
 include!("ethtool_rxfh_indir.rs");
 include!("ethtool_rxnfc.rs");
 include!("ethtool_sfeatures.rs");
 include!("ethtool_sset_info.rs");
+include!("ethtool_ts_info.rs");
 include!("ethtool_tunable.rs");
 include!("ethtool_value.rs");
 include!("ethtool_wolinfo.rs");

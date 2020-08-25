@@ -73,43 +73,25 @@ impl EthtoolCommand for ethtool_eee
 impl ethtool_eee
 {
 	#[inline(always)]
-	pub(crate) fn supports(&self, speed: ethtool_link_mode_bit_indices_speed) -> bool
-	{
-		Self::is_set(self.supported, speed)
-	}
-	
-	#[inline(always)]
-	pub(crate) fn set_we_advertise(&mut self, speed: ethtool_link_mode_bit_indices_speed)
+	pub(crate) fn set_we_advertise_this_speed_to_our_link_partner(&mut self, speed: LegacySpeed)
 	{
 		self.advertised |= 1 << (speed as u32)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn we_advertise(&self, speed: ethtool_link_mode_bit_indices_speed) -> bool
-	{
-		Self::is_set(self.advertised, speed)
-	}
-	
-	#[inline(always)]
-	pub(crate) fn link_partner_advertises(&self, speed: ethtool_link_mode_bit_indices_speed) -> bool
-	{
-		Self::is_set(self.lp_advertised, speed)
-	}
-	
-	#[inline(always)]
-	pub(crate) fn is_active(&self) -> bool
+	fn is_active(&self) -> bool
 	{
 		self.eee_active != 0
 	}
 	
 	#[inline(always)]
-	pub(crate) fn is_enabled(&self) -> bool
+	fn is_enabled(&self) -> bool
 	{
 		self.eee_enabled != 0
 	}
 	
 	#[inline(always)]
-	pub(crate) fn transmit_low_power_idle_microseconds(&self) -> Option<u32>
+	fn transmit_low_power_idle_microseconds(&self) -> Option<u32>
 	{
 		if self.tx_lpi_enabled == 0
 		{
@@ -122,14 +104,24 @@ impl ethtool_eee
 	}
 	
 	#[inline(always)]
-	fn is_set(bit_set_word: BitSetWord, speed: ethtool_link_mode_bit_indices_speed) -> bool
+	fn is_set(bit_set_word: BitSetWord, speed: LegacySpeed) -> bool
 	{
 		let speed = speed as u32;
-		if speed > 31
-		{
-			return false
-		}
 		
 		(bit_set_word & (1 << speed)) != 0
+	}
+	
+	#[inline(always)]
+	pub(crate) fn as_energy_efficient_ethernet_information(&self) -> EnergyEfficientEthernetInformation
+	{
+		EnergyEfficientEthernetInformation
+		{
+			speeds_we_could_advertise: LegacySpeed::from_bit_set_word(self.supported),
+			speeds_advertising_to_our_link_partner: LegacySpeed::from_bit_set_word(self.advertised),
+			speeds_link_partner_advertising_to_us: LegacySpeed::from_bit_set_word(self.lp_advertised),
+			is_active: self.is_active(),
+			is_enabled: self.is_enabled(),
+			transmit_low_power_idle_microseconds: self.transmit_low_power_idle_microseconds(),
+		}
 	}
 }

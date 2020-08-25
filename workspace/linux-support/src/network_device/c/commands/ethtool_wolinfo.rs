@@ -35,4 +35,22 @@ impl EthtoolCommand for ethtool_wolinfo
 impl ethtool_wolinfo
 {
 	pub(crate) const SOPASS_MAX: usize = ETH_ALEN;
+	
+	#[inline(always)]
+	pub(crate) fn to_wake_on_lan_information(self) -> WakeOnLanInformation
+	{
+		WakeOnLanInformation
+		{
+			supported: WakeOnLanWhen::from_bit_flags(self.supported),
+			active: WakeOnLanWhen::from_bit_flags(self.wolopts),
+			active_secure_on_magic_password: if self.wolopts.secure_on_magic_password_is_valid()
+			{
+				Some(self.sopass)
+			}
+			else
+			{
+				None
+			},
+		}
+	}
 }

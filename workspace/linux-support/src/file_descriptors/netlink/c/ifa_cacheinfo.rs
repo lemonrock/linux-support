@@ -4,6 +4,8 @@
 
 /// Represents cache information.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(C)]
 pub struct ifa_cacheinfo
 {

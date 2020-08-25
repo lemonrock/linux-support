@@ -40,62 +40,6 @@ impl VariablySizedEthtoolCommand for ethtool_gfeatures
 	}
 }
 
-/*
-
-#define FEATURE_FIELD_FLAG(index)		(1U << (index) % 32U)
-
-#define FEATURE_WORD(blocks, index, field)	((blocks)[(index) / 32U].field)
-
-#define FEATURE_BIT_IS_SET(blocks, index, field)		\
-	(FEATURE_WORD(blocks, index, field) & FEATURE_FIELD_FLAG(index))
-	
-	
-	we can not change a feature if:-
-		- it is not in the 'available' set;
-		- it is in the 'never_changed' set.
-	
-	
-	let i = 0;
-	while i < off_flag_def.len()
-	{
-		let mut fixed = 1;
-		let feature_bit = 0;
-		while feature_bit < defs.n_features
-		{
-			if defs.def[feature_bit].off_flag_index != i
-			{
-				continue
-			}
-			if old_state.features.features.available_is_not_set(feature_bit)
-			{
-				continue
-			}
-			if old_state.features.features.never_changed_is_set(feature_bit)
-			{
-				continue
-			}
-			
-			fixed = 0;
-			
-			if efeatures.features.valid.is_not_set(feature_bit)
-			{
-				efeatures.features.valid.set(feature_bit);
-				
-				if off_flags_wanted & off_flag_def[i].value
-				{
-					efeatures.features.requested.set(feature_bit)
-				}
-			}
-			
-			feature_bit += 1
-		}
-		
-		if fixed
-		{
-			warn("Cannot change {}", off_flag_def[i].long_name)
-		}
- */
-
 impl VariablySizedEthtoolCommandWrapper<ethtool_gfeatures>
 {
 	/// Returns `true` if one or more features were added to `set_features`.
@@ -146,6 +90,45 @@ impl VariablySizedEthtoolCommandWrapper<ethtool_gfeatures>
 	fn feature_is_available_and_can_be_changed(&self, feature: NETIF_F) -> bool
 	{
 		self.available_is_set(feature) && !self.never_changed_is_set(feature)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn available_features(&self) -> HashSet<NETIF_F>
+	{
+		self.features(Self::available_is_set)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn requested_features(&self) -> HashSet<NETIF_F>
+	{
+		self.features(Self::requested_is_set)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn active_features(&self) -> HashSet<NETIF_F>
+	{
+		self.features(Self::active_is_set)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn never_changed_features(&self) -> HashSet<NETIF_F>
+	{
+		self.features(Self::never_changed_is_set)
+	}
+	
+	#[inline(always)]
+	fn features(&self, is_set: impl FnOnce(&Self, NETIF_F) -> bool) -> HashSet<NETIF_F>
+	{
+		let mut features = HashSet::with_capacity(NETIF_F::COUNT);
+		for feature in NETIF_F::iter()
+		{
+			if is_set(self, feature)
+			{
+				features.insert(feature);
+			}
+		}
+		features.shrink_to_fit();
+		features
 	}
 	
 	#[inline(always)]

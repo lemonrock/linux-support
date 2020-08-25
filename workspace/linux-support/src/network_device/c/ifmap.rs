@@ -5,6 +5,8 @@
 #[allow(missing_docs)]
 #[repr(C)]
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct ifmap
 {
 	pub mem_start: c_ulong,

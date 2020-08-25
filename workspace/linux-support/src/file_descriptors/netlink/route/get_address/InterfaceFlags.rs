@@ -5,6 +5,8 @@
 bitflags!
 {
 	/// 'Legacy' interface flags.
+	#[derive(Deserialize, Serialize)]
+	#[serde(deny_unknown_fields)]
 	pub struct InterfaceFlags: u8
 	{
 		/// A secondary (alias) address.

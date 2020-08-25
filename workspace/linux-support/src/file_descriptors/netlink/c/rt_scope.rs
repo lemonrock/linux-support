@@ -4,21 +4,32 @@
 
 /// Route distance.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(u8)]
 pub enum rt_scope
 {
 	/// Default if not better match.
-	RT_SCOPE_UNIVERSE = 0,
+	#[serde(rename = "Universe")] RT_SCOPE_UNIVERSE = 0,
 	
 	/// Site.
-	RT_SCOPE_SITE = 200,
+	#[serde(rename = "Site")] RT_SCOPE_SITE = 200,
 	
 	/// Link.
-	RT_SCOPE_LINK = 253,
+	#[serde(rename = "Link")] RT_SCOPE_LINK = 253,
 	
 	/// Host.
-	RT_SCOPE_HOST = 254,
+	#[serde(rename = "Host")] RT_SCOPE_HOST = 254,
 	
 	/// Believed to not be possible in Linux IPv6 logic.
-	RT_SCOPE_NOWHERE = 255,
+	#[serde(rename = "Nowhere")] RT_SCOPE_NOWHERE = 255,
+}
+
+impl Default for rt_scope
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		rt_scope::RT_SCOPE_UNIVERSE
+	}
 }

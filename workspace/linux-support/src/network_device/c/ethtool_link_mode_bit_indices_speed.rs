@@ -10,73 +10,73 @@
 pub(crate) enum ethtool_link_mode_bit_indices_speed
 {
 	/// String set value is `10baseT/Half`.
-	#[serde(rename = "10BASE-T Half")] ETHTOOL_LINK_MODE_10baseT_Half_BIT = 0,
+	#[serde(rename = "10BASE-T Half")] ETHTOOL_LINK_MODE_10baseT_Half_BIT = LegacySpeed::ETHTOOL_LINK_MODE_10baseT_Half_BIT as u32,
 	
 	/// String set value is `10baseT/Full`.
-	#[serde(rename = "10BASE-T")] ETHTOOL_LINK_MODE_10baseT_Full_BIT = 1,
+	#[serde(rename = "10BASE-T")] ETHTOOL_LINK_MODE_10baseT_Full_BIT = LegacySpeed::ETHTOOL_LINK_MODE_10baseT_Full_BIT as u32,
 	
 	/// String set value is `100baseT/Half`.
-	#[serde(rename = "100BASE-T Half")] ETHTOOL_LINK_MODE_100baseT_Half_BIT = 2,
+	#[serde(rename = "100BASE-T Half")] ETHTOOL_LINK_MODE_100baseT_Half_BIT = LegacySpeed::ETHTOOL_LINK_MODE_100baseT_Half_BIT as u32,
 	
 	/// String set value is `100baseT/Full`.
-	#[serde(rename = "100BASE-T")] ETHTOOL_LINK_MODE_100baseT_Full_BIT = 3,
+	#[serde(rename = "100BASE-T")] ETHTOOL_LINK_MODE_100baseT_Full_BIT = LegacySpeed::ETHTOOL_LINK_MODE_100baseT_Full_BIT as u32,
 	
 	/// String set value is `1000baseT/Half`.
-	#[serde(rename = "1000BASE-T Half")] ETHTOOL_LINK_MODE_1000baseT_Half_BIT = 4,
+	#[serde(rename = "1000BASE-T Half")] ETHTOOL_LINK_MODE_1000baseT_Half_BIT = LegacySpeed::ETHTOOL_LINK_MODE_1000baseT_Half_BIT as u32,
 	
 	/// String set value is `1000baseT/Full`.
-	#[serde(rename = "1000BASE-T")] ETHTOOL_LINK_MODE_1000baseT_Full_BIT = 5,
+	#[serde(rename = "1000BASE-T")] ETHTOOL_LINK_MODE_1000baseT_Full_BIT = LegacySpeed::ETHTOOL_LINK_MODE_1000baseT_Full_BIT as u32,
 	
 	/// String set value is `10000baseT/Full`.
-	#[serde(rename = "10GBASE-T")] ETHTOOL_LINK_MODE_10000baseT_Full_BIT = 12,
+	#[serde(rename = "10GBASE-T")] ETHTOOL_LINK_MODE_10000baseT_Full_BIT = LegacySpeed::ETHTOOL_LINK_MODE_10000baseT_Full_BIT as u32,
 	
 	/// String set value is `2500baseX/Full`.
-	#[serde(rename = "2.5GBASE-X")] ETHTOOL_LINK_MODE_2500baseX_Full_BIT = 15,
+	#[serde(rename = "2.5GBASE-X")] ETHTOOL_LINK_MODE_2500baseX_Full_BIT = LegacySpeed::ETHTOOL_LINK_MODE_2500baseX_Full_BIT as u32,
 	
 	/// String set value is `1000baseKX/Full`.
-	#[serde(rename = "1000BASE-KX")] ETHTOOL_LINK_MODE_1000baseKX_Full_BIT = 17,
+	#[serde(rename = "1000BASE-KX")] ETHTOOL_LINK_MODE_1000baseKX_Full_BIT = LegacySpeed::ETHTOOL_LINK_MODE_1000baseKX_Full_BIT as u32,
 	
 	/// String set value is `10000baseKX4/Full`.
-	#[serde(rename = "10GBASE-KX4")] ETHTOOL_LINK_MODE_10000baseKX4_Full_BIT = 18,
+	#[serde(rename = "10GBASE-KX4")] ETHTOOL_LINK_MODE_10000baseKX4_Full_BIT = LegacySpeed::ETHTOOL_LINK_MODE_10000baseKX4_Full_BIT as u32,
 	
 	/// String set value is `10000baseKR/Full`.
-	#[serde(rename = "10GBASE-KR")] ETHTOOL_LINK_MODE_10000baseKR_Full_BIT = 19,
+	#[serde(rename = "10GBASE-KR")] ETHTOOL_LINK_MODE_10000baseKR_Full_BIT = LegacySpeed::ETHTOOL_LINK_MODE_10000baseKR_Full_BIT as u32,
 	
 	/// String set value is `10000baseR_FEC`.
-	#[serde(rename = "10GBASE-R FEC")] ETHTOOL_LINK_MODE_10000baseR_FEC_BIT = 20,
+	#[serde(rename = "10GBASE-R FEC")] ETHTOOL_LINK_MODE_10000baseR_FEC_BIT = LegacySpeed::ETHTOOL_LINK_MODE_10000baseR_FEC_BIT as u32,
 	
 	/// String set value is `20000baseMLD2/Full`.
-	#[serde(rename = "20GBASE-MLD2")] ETHTOOL_LINK_MODE_20000baseMLD2_Full_BIT = 21,
+	#[serde(rename = "20GBASE-MLD2")] ETHTOOL_LINK_MODE_20000baseMLD2_Full_BIT = LegacySpeed::ETHTOOL_LINK_MODE_20000baseMLD2_Full_BIT as u32,
 	
 	/// String set value is `20000baseKR2/Full`.
-	#[serde(rename = "20GBASE-KR2")] ETHTOOL_LINK_MODE_20000baseKR2_Full_BIT = 22,
+	#[serde(rename = "20GBASE-KR2")] ETHTOOL_LINK_MODE_20000baseKR2_Full_BIT = LegacySpeed::ETHTOOL_LINK_MODE_20000baseKR2_Full_BIT as u32,
 	
 	/// String set value is `40000baseKR4/Full`.
-	#[serde(rename = "40GBASE-KR4")] ETHTOOL_LINK_MODE_40000baseKR4_Full_BIT = 23,
+	#[serde(rename = "40GBASE-KR4")] ETHTOOL_LINK_MODE_40000baseKR4_Full_BIT = LegacySpeed::ETHTOOL_LINK_MODE_40000baseKR4_Full_BIT as u32,
 	
 	/// String set value is `40000baseCR4/Full`.
-	#[serde(rename = "40GBASE-CR4")] ETHTOOL_LINK_MODE_40000baseCR4_Full_BIT = 24,
+	#[serde(rename = "40GBASE-CR4")] ETHTOOL_LINK_MODE_40000baseCR4_Full_BIT = LegacySpeed::ETHTOOL_LINK_MODE_40000baseCR4_Full_BIT as u32,
 	
 	/// String set value is `40000baseSR4/Full`.
-	#[serde(rename = "40GBASE-SR4")] ETHTOOL_LINK_MODE_40000baseSR4_Full_BIT = 25,
+	#[serde(rename = "40GBASE-SR4")] ETHTOOL_LINK_MODE_40000baseSR4_Full_BIT = LegacySpeed::ETHTOOL_LINK_MODE_40000baseSR4_Full_BIT as u32,
 	
 	/// String set value is `40000baseLR4/Full`.
-	#[serde(rename = "40GBASE-LR4")] ETHTOOL_LINK_MODE_40000baseLR4_Full_BIT = 26,
+	#[serde(rename = "40GBASE-LR4")] ETHTOOL_LINK_MODE_40000baseLR4_Full_BIT = LegacySpeed::ETHTOOL_LINK_MODE_40000baseLR4_Full_BIT as u32,
 	
 	/// String set value is `56000baseKR4/Full`.
-	#[serde(rename = "56GBASE-KR4")] ETHTOOL_LINK_MODE_56000baseKR4_Full_BIT = 27,
+	#[serde(rename = "56GBASE-KR4")] ETHTOOL_LINK_MODE_56000baseKR4_Full_BIT = LegacySpeed::ETHTOOL_LINK_MODE_56000baseKR4_Full_BIT as u32,
 	
 	/// String set value is `56000baseCR4/Full`.
-	#[serde(rename = "56GBASE-CR4")] ETHTOOL_LINK_MODE_56000baseCR4_Full_BIT = 28,
+	#[serde(rename = "56GBASE-CR4")] ETHTOOL_LINK_MODE_56000baseCR4_Full_BIT = LegacySpeed::ETHTOOL_LINK_MODE_56000baseCR4_Full_BIT as u32,
 	
 	/// String set value is `56000baseSR4/Full`.
-	#[serde(rename = "56GBASE-SR4")] ETHTOOL_LINK_MODE_56000baseSR4_Full_BIT = 29,
+	#[serde(rename = "56GBASE-SR4")] ETHTOOL_LINK_MODE_56000baseSR4_Full_BIT = LegacySpeed::ETHTOOL_LINK_MODE_56000baseSR4_Full_BIT as u32,
 	
 	/// String set value is `56000baseLR4/Full`.
-	#[serde(rename = "56GBASE-LR4")] ETHTOOL_LINK_MODE_56000baseLR4_Full_BIT = 30,
+	#[serde(rename = "56GBASE-LR4")] ETHTOOL_LINK_MODE_56000baseLR4_Full_BIT = LegacySpeed::ETHTOOL_LINK_MODE_56000baseLR4_Full_BIT as u32,
 	
 	/// String set value is `25000baseCR/Full`.
-	#[serde(rename = "25GBASE-CR")] ETHTOOL_LINK_MODE_25000baseCR_Full_BIT = 31,
+	#[serde(rename = "25GBASE-CR")] ETHTOOL_LINK_MODE_25000baseCR_Full_BIT = LegacySpeed::ETHTOOL_LINK_MODE_25000baseCR_Full_BIT as u32,
 	
 	/// String set value is `25000baseKR/Full`.
 	#[serde(rename = "25GBASE-KR")] ETHTOOL_LINK_MODE_25000baseKR_Full_BIT = 32,

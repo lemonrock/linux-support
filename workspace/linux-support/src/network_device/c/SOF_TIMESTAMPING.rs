@@ -4,53 +4,64 @@
 
 /// Strings are in the `ethtool_stringset::ETH_SS_SOF_TIMESTAMPING` string set.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[derive(EnumIter, EnumCount)]
 #[repr(u32)]
 pub(crate) enum SOF_TIMESTAMPING
 {
 	/// String set value is `hardware-transmit`.
-	SOF_TIMESTAMPING_TX_HARDWARE = 1 << 0,
+	#[serde(rename = "hardware-transmit")] SOF_TIMESTAMPING_TX_HARDWARE = 1 << 0,
 	
 	/// String set value is `software-transmit`.
-	SOF_TIMESTAMPING_TX_SOFTWARE = 1 << 1,
+	#[serde(rename = "software-transmit")] SOF_TIMESTAMPING_TX_SOFTWARE = 1 << 1,
 	
 	/// String set value is `hardware-receive`.
-	SOF_TIMESTAMPING_RX_HARDWARE = 1 << 2,
+	#[serde(rename = "hardware-receive")] SOF_TIMESTAMPING_RX_HARDWARE = 1 << 2,
 	
 	/// String set value is `software-receive`.
-	SOF_TIMESTAMPING_RX_SOFTWARE = 1 << 3,
+	#[serde(rename = "software-receive")] SOF_TIMESTAMPING_RX_SOFTWARE = 1 << 3,
 	
 	/// String set value is `software-system-clock`.
-	SOF_TIMESTAMPING_SOFTWARE = 1 << 4,
+	#[serde(rename = "software-system-clock")] SOF_TIMESTAMPING_SOFTWARE = 1 << 4,
 	
 	/// String set value is `hardware-legacy-clock`.
-	SOF_TIMESTAMPING_SYS_HARDWARE = 1 << 5,
+	#[serde(rename = "hardware-legacy-clock")] SOF_TIMESTAMPING_SYS_HARDWARE = 1 << 5,
 	
 	/// String set value is `hardware-raw-clock`.
-	SOF_TIMESTAMPING_RAW_HARDWARE = 1 << 6,
+	#[serde(rename = "hardware-raw-clock")] SOF_TIMESTAMPING_RAW_HARDWARE = 1 << 6,
 	
 	/// String set value is `option-id`.
-	SOF_TIMESTAMPING_OPT_ID = 1 << 7,
+	#[serde(rename = "option-id")] SOF_TIMESTAMPING_OPT_ID = 1 << 7,
 	
 	/// String set value is `sched-transmit`.
-	SOF_TIMESTAMPING_TX_SCHED = 1 << 8,
+	#[serde(rename = "sched-transmit")] SOF_TIMESTAMPING_TX_SCHED = 1 << 8,
 	
 	/// String set value is `ack-transmit`.
-	SOF_TIMESTAMPING_TX_ACK = 1 << 9,
+	#[serde(rename = "ack-transmit")] SOF_TIMESTAMPING_TX_ACK = 1 << 9,
 	
 	/// String set value is `option-cmsg`.
-	SOF_TIMESTAMPING_OPT_CMSG = 1 << 10,
+	#[serde(rename = "option-cmsg")] SOF_TIMESTAMPING_OPT_CMSG = 1 << 10,
 	
 	/// String set value is `option-tsonly`.
-	SOF_TIMESTAMPING_OPT_TSONLY = 1 << 11,
+	#[serde(rename = "option-tsonly")] SOF_TIMESTAMPING_OPT_TSONLY = 1 << 11,
 	
 	/// String set value is `option-stats`.
-	SOF_TIMESTAMPING_OPT_STATS = 1 << 12,
+	#[serde(rename = "option-stats")] SOF_TIMESTAMPING_OPT_STATS = 1 << 12,
 	
 	/// String set value is `option-pktinfo`.
-	SOF_TIMESTAMPING_OPT_PKTINFO = 1 << 13,
+	#[serde(rename = "option-pktinfo")] SOF_TIMESTAMPING_OPT_PKTINFO = 1 << 13,
 	
 	/// String set value is `option-tx-swhw`.
-	SOF_TIMESTAMPING_OPT_TX_SWHW = 1 << 14,
+	#[serde(rename = "option-tx-swhw")] SOF_TIMESTAMPING_OPT_TX_SWHW = 1 << 14,
+}
+
+impl Into<u32> for SOF_TIMESTAMPING
+{
+	#[inline(always)]
+	fn into(self) -> u32
+	{
+		self as u32
+	}
 }
 
 impl SOF_TIMESTAMPING

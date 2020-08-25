@@ -4,6 +4,7 @@
 
 /// Cache timestamp.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct CacheTimestampInHundrethsOfSeconds(u32);
 

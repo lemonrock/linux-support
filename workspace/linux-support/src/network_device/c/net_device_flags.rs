@@ -19,6 +19,7 @@ bitflags!
 	/// * If a link does not have any of the flags `IFF_LOOPBACK`, `IFF_BROADCAST` and `IFF_POINTOPOINT` set then it is a non-broadcast multiple-access (NBMA) network device.
 	/// * If a link has any of the  flags `IFF_LOOPBACK`, `IFF_BROADCAST` and `IFF_POINTOPOINT` set then it supports multicasts even if `IFF_MULTICAST` is not set.
 	/// * Combination `IFF_BROADCAST | IFF_POINTOPOINT` is invalid.
+	#[derive(Deserialize, Serialize)]
 	pub struct net_device_flags: u32
 	{
 		/// Interface is up.

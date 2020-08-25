@@ -5,10 +5,10 @@
 pub(crate) struct FeatureValue
 {
 	/// Feature requested but not necessarily active.
-	requested: bool,
+	pub(crate) requested: bool,
 	
 	/// Feature active.
-	active: bool,
+	pub(crate) active: bool,
 }
 
 impl FeatureValue

@@ -82,7 +82,14 @@ impl TryFrom<NetworkInterfaceName> for BusDeviceAddress
 	#[inline(always)]
 	fn try_from(value: NetworkInterfaceName) -> Result<Self, Self::Error>
 	{
-		Self::try_from_network_interface_name(value)?.ok_or(NetworkInterfaceNameToSomethingError::DoesNotExistAsAnInterface)
+		if let Some(Some(bus_device_address)) = Self::try_from_network_interface_name(value)?
+		{
+			Ok(bus_device_address)
+		}
+		else
+		{
+			Err(NetworkInterfaceNameToSomethingError::DoesNotExistAsAnInterface)
+		}
 	}
 }
 
@@ -90,8 +97,9 @@ impl BusDeviceAddress
 {
 	/// Tries to get the bus device address.
 	#[inline(always)]
-	pub fn try_from_network_interface_name(value: NetworkInterfaceName) -> Result<Option<Self>, NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>>
+	pub fn try_from_network_interface_name(value: NetworkInterfaceName) -> Result<Option<Option<Self>>, NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>>
 	{
-		NetworkDeviceInputOutputControl::new(Cow::Owned(value))?.bus_device_address()
+		let driver_and_device_information = NetworkDeviceInputOutputControl::new(Cow::Owned(value))?.driver_and_device_information()?;
+		Ok(driver_and_device_information.map(|driver_and_device_information| driver_and_device_information.device_bus_device_address))
 	}
 }

@@ -29,4 +29,13 @@ impl AdaptiveCoalescingRateSampling
 	{
 		interval_in_seconds: Some(unsafe { NonZeroU32::new_unchecked(1) }),
 	};
+	
+	#[inline(always)]
+	pub(crate) const fn new_from_ethtool(command: &ethtool_coalesce) -> Self
+	{
+		Self
+		{
+			interval_in_seconds: command.rate_sample_interval,
+		}
+	}
 }

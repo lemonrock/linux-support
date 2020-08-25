@@ -546,6 +546,7 @@ use serde::Serializer;
 use serde::de;
 use serde::de::Unexpected;
 use serde::de::Visitor;
+use serde_big_array::big_array;
 use std::any::TypeId;
 #[cfg(all(target_arch = "x86_64", target_feature = "popcnt"))] use std::arch::x86_64::_mm_popcnt_u64;
 use std::array::TryFromSliceError;

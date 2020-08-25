@@ -146,3 +146,124 @@ impl EthtoolCommand for ethtool_coalesce
 		self.cmd
 	}
 }
+
+impl ethtool_coalesce
+{
+	#[inline(always)]
+	pub(crate) fn get() -> Self
+	{
+		Self
+		{
+			cmd: ETHTOOL_GCOALESCE,
+			rx_coalesce_usecs: None,
+			rx_max_coalesced_frames: None,
+			rx_coalesce_usecs_irq: None,
+			rx_max_coalesced_frames_irq: None,
+			tx_coalesce_usecs: None,
+			tx_max_coalesced_frames: None,
+			tx_coalesce_usecs_irq: None,
+			tx_max_coalesced_frames_irq: None,
+			stats_block_coalesce_usecs: None,
+			use_adaptive_rx_coalesce: 0,
+			use_adaptive_tx_coalesce: 0,
+			pkt_rate_low: None,
+			rx_coalesce_usecs_low: None,
+			rx_max_coalesced_frames_low: None,
+			tx_coalesce_usecs_low: None,
+			tx_max_coalesced_frames_low: None,
+			pkt_rate_high: None,
+			rx_coalesce_usecs_high: None,
+			rx_max_coalesced_frames_high: None,
+			tx_coalesce_usecs_high: None,
+			tx_max_coalesced_frames_high: None,
+			rate_sample_interval: None
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn as_coalesce_configuration(&self) -> Result<CoalesceConfiguration, AdaptiveCoalescingError>
+	{
+		use self::AdaptiveCoalescingConfiguration::*;
+		
+		Ok
+		(
+			CoalesceConfiguration
+			{
+				adaptive_coalescing: match (self.use_adaptive_rx_coalesce, self.use_adaptive_tx_coalesce)
+				{
+					(0, 0) => None,
+					(1, 0) => Some(TransmitOnly(AdaptiveCoalescingRateSampling::new_from_ethtool(self))),
+					(0, 1) => Some(ReceiveOnly(AdaptiveCoalescingRateSampling::new_from_ethtool(self))),
+					(1, 1) => Some(ReceiveAndTransmit(AdaptiveCoalescingRateSampling::new_from_ethtool(self))),
+					(receive @ _, transmit @ _) => return Err(AdaptiveCoalescingError(format!("Invalid combination ({}, {}) for adaptive coalescing", receive, transmit))),
+				},
+				
+				receive_transmit: ReceiveTransmitCoalescing
+				{
+					receive: CoalescePair
+					{
+						microseconds: self.rx_coalesce_usecs,
+						maximum_frames: self.rx_max_coalesced_frames,
+					},
+					
+					transmit: CoalescePair
+					{
+						microseconds: self.tx_coalesce_usecs,
+						maximum_frames: self.tx_max_coalesced_frames,
+					},
+				},
+				
+				receive_transmit_whilst_irq_is_being_serviced_by_the_host: ReceiveTransmitCoalescing
+				{
+					receive: CoalescePair
+					{
+						microseconds: self.rx_coalesce_usecs_irq,
+						maximum_frames: self.rx_max_coalesced_frames_irq,
+					},
+					
+					transmit: CoalescePair
+					{
+						microseconds: self.tx_coalesce_usecs_irq,
+						maximum_frames: self.tx_max_coalesced_frames_irq,
+					},
+				},
+				
+				low_packet_rate_packets_per_second_threshold: self.pkt_rate_low,
+				
+				receive_transmit_at_low_packet_rate: ReceiveTransmitCoalescing
+				{
+					receive: CoalescePair
+					{
+						microseconds: self.rx_coalesce_usecs_low,
+						maximum_frames: self.rx_max_coalesced_frames_low,
+					},
+					
+					transmit: CoalescePair
+					{
+						microseconds: self.tx_coalesce_usecs_low,
+						maximum_frames: self.tx_max_coalesced_frames_low,
+					},
+				},
+				
+				high_packet_rate_packets_per_second_threshold: self.pkt_rate_high,
+				
+				receive_transmit_at_high_packet_rate: ReceiveTransmitCoalescing
+				{
+					receive: CoalescePair
+					{
+						microseconds: self.rx_coalesce_usecs_high,
+						maximum_frames: self.rx_max_coalesced_frames_high,
+					},
+					
+					transmit: CoalescePair
+					{
+						microseconds: self.tx_coalesce_usecs_high,
+						maximum_frames: self.tx_max_coalesced_frames_high,
+					},
+				},
+				
+				statistics_block_coalesce_microseconds: self.stats_block_coalesce_usecs,
+			}
+		)
+	}
+}

@@ -46,7 +46,7 @@ pub enum GlobalNetworkDeviceConfigurationError
 	CouldNotChangeTunable(NetworkDeviceInputOutputControlError<TunableOutOfRangeError>),
 	
 	#[allow(missing_docs)]
-	CouldNotChangeCoalesceConfiguration(NetworkDeviceInputOutputControlError<Infallible>),
+	CouldNotChangeCoalesceConfiguration(NetworkDeviceInputOutputControlError<UndocumentedError>),
 	
 	#[allow(missing_docs)]
 	CouldNotMaximizeChannels(NetworkDeviceInputOutputControlError<Infallible>),

@@ -14,42 +14,42 @@ bitflags!
 		/// String set value is `phy`.
 		///
 		/// Ethtool setting is `p`.
-		const WAKE_PHY = 1 << 0;
+		const WAKE_PHY = WakeOnLanWhen::PHY.to_bitflag();
 		
 		/// Wake on unicast messages.
 		///
 		/// String set value is `ucast`.
 		///
 		/// Ethtool setting is `u`.
-		const WAKE_UCAST = 1 << 1;
+		const WAKE_UCAST = WakeOnLanWhen::UnicastMessages.to_bitflag();
 		
 		/// Wake on multicast messages.
 		///
 		/// String set value is `mcast`.
 		///
 		/// Ethtool setting is `m`.
-		const WAKE_MCAST = 1 << 2;
+		const WAKE_MCAST = WakeOnLanWhen::MulticastMessages.to_bitflag();
 		
 		/// Wake on broadcast messages.
 		///
 		/// String set value is `bcast`.
 		///
 		/// Ethtool setting is `b`.
-		const WAKE_BCAST = 1 << 3;
+		const WAKE_BCAST = WakeOnLanWhen::BroadcastMessages.to_bitflag();
 		
 		/// Wake on ARP.
 		///
 		/// String set value is `arp`.
 		///
 		/// Ethtool setting is `a`.
-		const WAKE_ARP = 1 << 4;
+		const WAKE_ARP = WakeOnLanWhen::AddressResolutionProtocolPackets.to_bitflag();
 		
 		/// Wake on MagicPacket™.
 		///
 		/// String set value is `magic`.
 		///
 		/// Ethtool setting is `g`.
-		const WAKE_MAGIC = 1 << 5;
+		const WAKE_MAGIC = WakeOnLanWhen::MagicPacket.to_bitflag();
 		
 		/// Enable SecureOn™ password for MagicPacket™.
 		///
@@ -65,12 +65,17 @@ bitflags!
 		/// String set value is `filter`.
 		///
 		/// Ethtool setting is `f`.
-		const WAKE_FILTER = 1 << 7;
+		const WAKE_FILTER = WakeOnLanWhen::Filters.to_bitflag();
 	}
 }
 
 impl WAKE
 {
-	#[allow(dead_code)]
-	const WOL_MODE_COUNT: usize = 8;
+	pub(crate) const WOL_MODE_COUNT: usize = 8;
+	
+	#[inline(always)]
+	pub(crate) fn secure_on_magic_password_is_valid(self) -> bool
+	{
+		self.contains(WAKE::WAKE_MAGIC | WAKE::WAKE_MAGICSECURE)
+	}
 }

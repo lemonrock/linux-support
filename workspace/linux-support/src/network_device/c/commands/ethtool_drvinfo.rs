@@ -84,3 +84,44 @@ impl EthtoolCommand for ethtool_drvinfo
 		self.cmd
 	}
 }
+
+impl ethtool_drvinfo
+{
+	#[inline(always)]
+	pub(crate) fn as_driver_and_device_information(self) -> Result<DriverAndDeviceInformation, ObjectNameFromBytesError>
+	{
+		#[inline(always)]
+		fn optional_object_name_32(object_name_32: [c_char; 32]) -> Result<Option<ObjectName32>, ObjectNameFromBytesError>
+		{
+			let value = if object_name_32.is_empty()
+			{
+				None
+			}
+			else
+			{
+				Some(ObjectName32::try_from(object_name_32)?)
+			};
+			Ok(value)
+		}
+		
+		#[inline(always)]
+		fn non_zero_u32(value: u32) -> Option<NonZeroU32>
+		{
+			unsafe { transmute(value) }
+		}
+		
+		Ok
+		(
+			DriverAndDeviceInformation
+			{
+				driver_name: ObjectName32::try_from(self.bus_info)?,
+				driver_version: optional_object_name_32(self.version)?,
+				device_bus_device_address: optional_object_name_32(self.bus_info)?.map(BusDeviceAddress::from),
+				device_firmware_version: optional_object_name_32(self.fw_version)?,
+				device_expansion_eeprom_version: optional_object_name_32(self.erom_version)?,
+				device_eeprom_blob_size_in_bytes: non_zero_u32(self.eedump_len),
+				device_registers_blob_size_in_bytes: non_zero_u32(self.regdump_len),
+			}
+		)
+	}
+}

@@ -4,6 +4,8 @@
 
 /// Identifier for an eBPF program.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct ExtendedBpfProgramIdentifier(u32);
 
 impl From<u32> for ExtendedBpfProgramIdentifier

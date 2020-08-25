@@ -34,8 +34,23 @@ impl EthtoolCommand for ethtool_fecparam
 impl ethtool_fecparam
 {
 	#[inline(always)]
-	pub(crate) const fn is_supported_forward_error_correction_code(&self, code: ForwardErrorCorrectionCode) -> bool
+	pub(crate) const fn is_supported_forward_error_correction_code(&self, forward_error_correction_code: ForwardErrorCorrectionCode) -> bool
 	{
-		(self.fec & (code as u32)) != 0
+		(self.fec & (forward_error_correction_code as u32)) != 0
+	}
+	
+	#[inline(always)]
+	pub(crate) fn to_forward_error_correction_codes(&self) -> HashSet<ForwardErrorCorrectionCode>
+	{
+		let mut forward_error_correction_codes = HashSet::with_capacity(ForwardErrorCorrectionCode::COUNT);
+		for forward_error_correction_code in ForwardErrorCorrectionCode::iter()
+		{
+			if self.is_supported_forward_error_correction_code(forward_error_correction_code)
+			{
+				forward_error_correction_codes.insert(forward_error_correction_code);
+			}
+		}
+		forward_error_correction_codes.shrink_to_fit();
+		forward_error_correction_codes
 	}
 }

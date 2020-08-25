@@ -15,7 +15,7 @@ pub enum EnergyEfficientEthernetConfiguration
 	Enable
 	{
 		/// Link speeds to advertise with Energy Efficient Ethernet.
-		advertise: HashSet<ethtool_link_mode_bit_indices_speed>,
+		advertise: HashSet<LegacySpeed>,
 		
 		/// Assert transmit low power idle (LPI) for this number of microseconds (including 0), if `Some`.
 		transmit_low_power_idle_microseconds: Option<u32>,

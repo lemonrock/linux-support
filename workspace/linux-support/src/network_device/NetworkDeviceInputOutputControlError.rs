@@ -17,6 +17,9 @@ pub enum NetworkDeviceInputOutputControlError<E: error::Error + 'static>
 
 	/// Out of memory during control operation.
 	OutOfKernelMemory,
+
+	/// Other; used for missing string sets with ethtool, for instance.
+	Other(String),
 }
 
 impl<E: error::Error + 'static> Display for NetworkDeviceInputOutputControlError<E>
@@ -44,6 +47,8 @@ impl<E: error::Error + 'static> error::Error for NetworkDeviceInputOutputControl
 			&PermissionDenied => None,
 			
 			&OutOfKernelMemory => None,
+			
+			&Other(..) => None,
 		}
 	}
 }

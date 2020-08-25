@@ -5,6 +5,7 @@
 bitflags!
 {
 	/// Interface flags.
+	#[derive(Deserialize, Serialize)]
 	pub struct ExtendedInterfaceFlags: u32
 	{
 		/// A secondary (alias) address.

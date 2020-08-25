@@ -3,6 +3,8 @@
 
 
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct QueueCount(NonZeroU16);
 
 impl Default for QueueCount

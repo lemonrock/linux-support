@@ -4,6 +4,8 @@
 
 /// Pending queue depths.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct PendingQueueDepths
 {
 	receive_pending_queue_depth: Option<QueueDepth>,

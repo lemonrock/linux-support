@@ -4,6 +4,8 @@
 
 /// A string set.
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct StringSet(pub(crate) IndexSet<ObjectName32>);
 
 impl Deref for StringSet

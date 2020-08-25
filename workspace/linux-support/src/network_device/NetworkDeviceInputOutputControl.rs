@@ -83,6 +83,255 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		)
 	}
 	
+	pub fn link_is_up(&self) -> Result<Option<Option<bool>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
+	{
+		self.ethtool_command
+		(
+			ethtool_value
+			{
+				cmd: ETHTOOL_GLINK,
+				data: 0
+			},
+			|command| Ok(Some(command.data != 0)),
+			|errno| Err(UndocumentedError(errno)),
+			|_command| None,
+		)
+	}
+	
+	pub fn timestamping(&self) -> Result<Option<Option<NetworkDeviceTimestampingInformation>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
+	{
+		self.ethtool_command
+		(
+			ethtool_ts_info::get(),
+			|command|
+			Ok
+			(
+				Some
+				(
+					NetworkDeviceTimestampingInformation
+					{
+						capabilities: command.capabilities(),
+						precision_time_protocol_hardware_clock_index: command.precision_time_protocol_hardware_clock_index(),
+						hardware_transmit_timestamp_modes: command.hardware_transmit_timestamp_modes(),
+						hardware_receive_filter_modes: command.hardware_receive_filter_modes(),
+					}
+				)
+			),
+			|errno| Err(UndocumentedError(errno)),
+			|_command| None,
+		)
+	}
+	
+	pub fn registers(&self, driver_and_device_information: &DriverAndDeviceInformation) -> Result<Option<Option<NetworkDeviceRegisters>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
+	{
+		let length = match driver_and_device_information.device_registers_blob_size_in_bytes
+		{
+			None => return Ok(Some(None)),
+			Some(non_zero_length) => non_zero_length.get()
+		};
+		
+		self.ethtool_command
+		(
+			ethtool_regs::get_registers(length),
+			|command|
+			{
+				let version = command.version;
+				let binary_data = command.array_elements().to_vec().into_boxed_slice();
+				
+				Ok(Some(NetworkDeviceRegisters { version, binary_data }))
+			},
+			|errno| Err(UndocumentedError(errno)),
+			|_command| None,
+		)
+	}
+	
+	pub fn expansion_eeprom(&self, driver_and_device_information: &DriverAndDeviceInformation) -> Result<Option<Option<ExpansionEepromBinaryData>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
+	{
+		let length = match driver_and_device_information.device_eeprom_blob_size_in_bytes
+		{
+			None => return Ok(Some(None)),
+			Some(non_zero_length) => non_zero_length.get()
+		};
+		
+		self.ethtool_command
+		(
+			ethtool_eeprom::get_eeprom(length),
+			|command|
+			{
+				let device_version = driver_and_device_information.device_expansion_eeprom_version.clone();
+				let magic_cookie = command.magic;
+				let binary_data = command.array_elements().to_vec().into_boxed_slice();
+				
+				Ok(Some(ExpansionEepromBinaryData { device_version, magic_cookie, binary_data }))
+			},
+			|errno| Err(UndocumentedError(errno)),
+			|_command| None,
+		)
+	}
+	
+	pub fn plugin_module_eeprom(&self) -> Result<Option<Option<PluginModuleEepromBinaryData>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
+	{
+		let (type_, length) = match self.ethtool_command
+		(
+			ethtool_modinfo::get(),
+			|command| Ok(Some((command.type_, command.eeprom_len))),
+			|errno| Err(UndocumentedError(errno)),
+			|_command| None,
+		)?
+		{
+			None => return Ok(None),
+			Some(None) => return Ok(Some(None)),
+			Some(Some(tuple)) => tuple,
+		};
+		
+		if length == 0
+		{
+			return Ok(Some(None))
+		}
+		
+		const PageSize: usize = BinaryData256::PageSize;
+		const DoublePageSize: usize = PageSize * 2;
+		const LargeSize: usize = BinaryData640::LargeSize;
+		
+		match self.ethtool_command
+		(
+			ethtool_eeprom::get_module_eeprom(length),
+			|command| Ok(Some(command.array_elements().to_vec())),
+			|errno| Err(UndocumentedError(errno)),
+			|_command| None,
+		)?
+		{
+			None => Ok(None),
+			
+			Some(None) => Ok(Some(None)),
+			
+			Some(Some(binary_data)) =>
+			{
+				use self::PluginModuleEepromBinaryData::*;
+				
+				let eeprom = match (type_, length as usize)
+				{
+					(ETH_MODULE_SFF_8079, PageSize) => SFF_8079 { page_A0: binary_data.into() },
+					
+					(ETH_MODULE_SFF_8472, PageSize) => SFF_8472 { page_A0: binary_data.into(), page_A2: None },
+					
+					(ETH_MODULE_SFF_8472, DoublePageSize) => SFF_8472 { page_A0: binary_data.into(), page_A2: Some((&binary_data[PageSize .. ]).into()) },
+					
+					(ETH_MODULE_SFF_8436, PageSize) => SFF_8436 { page_A0: binary_data.into() },
+					
+					(ETH_MODULE_SFF_8436, LargeSize) => SFF_8436_640 { binary_data: binary_data.into() },
+					
+					(ETH_MODULE_SFF_8636, PageSize) => SFF_8636 { page_A0: binary_data.into() },
+					
+					(ETH_MODULE_SFF_8636, LargeSize) => SFF_8636_640 { binary_data: binary_data.into() },
+					
+					// `ionic`   or  ?
+					(0, PageSize)  |  _ => Unknown { type_, binary_data: binary_data.into_boxed_slice() },
+				};
+				
+				Ok(Some(Some(eeprom)))
+			}
+		}
+	}
+	
+	pub fn firmware(&self, driver_and_device_information: &DriverAndDeviceInformation) -> Result<Option<Option<NetworkDeviceFirmware>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
+	{
+		let device_firmware_version = driver_and_device_information.device_firmware_version.clone();
+		
+		let (driver_specific_flags, version, length) = match self.ethtool_command
+		(
+			ethtool_dump::get_flag(),
+			|command| Ok(Some((command.flag, command.version, command.array_length()))),
+			|errno| Err(UndocumentedError(errno)),
+			|_command| None,
+		)?
+		{
+			None => return Ok(None),
+			Some(None) => return Ok(Some(None)),
+			Some(Some(tuple)) => tuple,
+		};
+		
+		if length == 0 || driver_specific_flags == ETH_FW_DUMP_DISABLE
+		{
+			return Ok(Some(Some(NetworkDeviceFirmware { device_version: device_firmware_version, driver_specific_flags, version, binary_data: None })))
+		}
+		
+		match self.ethtool_command
+		(
+			ethtool_dump::get_data(length),
+			|command| Ok(Some(command.array_elements().to_vec().into_boxed_slice())),
+			|errno| Err(UndocumentedError(errno)),
+			|_command| None,
+		)?
+		{
+			None => Ok(None),
+			Some(None) => Ok(Some(Some(NetworkDeviceFirmware { device_version: device_firmware_version, driver_specific_flags, version, binary_data: None }))),
+			Some(Some(binary_data)) => Ok(Some(Some(NetworkDeviceFirmware { device_version: device_firmware_version, driver_specific_flags, version, binary_data: Some(binary_data) }))),
+		}
+	}
+	
+	pub fn nic_statistics(&self, all_string_sets: &AllStringSets)-> Result<Option<Option<HashMap<ObjectName32, u64>>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
+	{
+		self.raw_statistics(all_string_sets, ethtool_stringset::ETH_SS_STATS, ETHTOOL_GSTATS)
+	}
+	
+	pub fn phy_statistics(&self, all_string_sets: &AllStringSets) -> Result<Option<Option<HashMap<ObjectName32, u64>>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
+	{
+		self.raw_statistics(all_string_sets, ethtool_stringset::ETH_SS_PHY_STATS, ETHTOOL_GPHYSTATS)
+	}
+	
+	#[inline(always)]
+	fn raw_statistics(&self, all_string_sets: &AllStringSets, string_set_key: ethtool_stringset, command: u32) -> Result<Option<Option<HashMap<ObjectName32, u64>>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
+	{
+		let statistics_string_set = match all_string_sets.get(&string_set_key)
+		{
+			None => return Ok(Some(None)),
+			Some(string_set) => string_set,
+		};
+		
+		let number_of_statistics = statistics_string_set.len();
+		if number_of_statistics == 0
+		{
+			return Ok(Some(Some(HashMap::new())))
+		}
+		
+		self.ethtool_command
+		(
+			ethtool_gstats::get(command, number_of_statistics as u32),
+			|command|
+			{
+				let statistics_array = command.array_elements();
+				let mut statistics = HashMap::with_capacity(number_of_statistics);
+				for index in 0 .. number_of_statistics
+				{
+					let statistic_name = match statistics_string_set.get_index(index)
+					{
+						None => continue,
+						Some(statistic_name) => statistic_name,
+					};
+					
+					statistics.insert(statistic_name.clone(), unsafe { *statistics_array.get_unchecked(index) });
+				}
+				Ok(Some(statistics))
+			},
+			|errno| Err(UndocumentedError(errno)),
+			|_command| None,
+		)
+	}
+	
+	/// Gets a tunable.
+	#[inline(always)]
+	pub fn tunable<T: Tunable>(&self) -> Result<Option<Option<T>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
+	{
+		self.ethtool_command
+		(
+			ethtool_tunable::new_get(),
+			|tunable| Ok(Some(tunable.data)),
+			|errno| Err(UndocumentedError(errno)),
+			|_command| None,
+		)
+	}
+	
 	/// Set a tunable.
 	///
 	/// Returns an error if out-of-range.
@@ -107,7 +356,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	#[inline(always)]
 	pub fn set_forward_error_correction(&self, forward_error_correction_code: ForwardErrorCorrectionCode) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
-		let mut command = match self.get_forward_error_correction()?
+		let mut command = match self.raw_forward_error_correction()?
 		{
 			None => return Ok(None),
 			Some(None) => return Ok(Some(())),
@@ -150,7 +399,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			Some(Some(wake_on_lan_information)) => wake_on_lan_information,
 		};
 		
-		if wake_on_lan_information.supported == WAKE::empty()
+		if wake_on_lan_information.supported.is_empty()
 		{
 			return Ok(Some(()))
 		}
@@ -171,7 +420,19 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	}
 	
 	#[allow(missing_docs)]
-	pub fn change_coalesce_configuration(&self, coalesce_configuration: &CoalesceConfiguration) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
+	pub fn coalesce_configuration(&self) -> Result<Option<Option<CoalesceConfiguration>>, NetworkDeviceInputOutputControlError<AdaptiveCoalescingError>>
+	{
+		self.ethtool_command
+		(
+			ethtool_coalesce::get(),
+			|command| command.as_coalesce_configuration().map(Some),
+			Self::error_is_unreachable,
+			|_command| None,
+		)
+	}
+	
+	#[allow(missing_docs)]
+	pub fn change_coalesce_configuration(&self, coalesce_configuration: &CoalesceConfiguration) -> Result<Option<()>, NetworkDeviceInputOutputControlError<UndocumentedError>>
 	{
 		let command = coalesce_configuration.as_ethtool_coalesce();
 		
@@ -179,7 +440,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		(
 			command,
 			|command| Ok(()),
-			Self::error_is_unreachable,
+			|errno| Err(UndocumentedError(errno)),
 			|_command| (),
 		)
 	}
@@ -266,7 +527,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	///
 	/// If unsupported then the value `1` is returned.
 	#[inline(always)]
-	pub fn get_receive_ring_queue_count(&self) -> Result<Option<QueueCount>, NetworkDeviceInputOutputControlError<ParseNumberError>>
+	pub fn receive_ring_queue_count(&self) -> Result<Option<QueueCount>, NetworkDeviceInputOutputControlError<ParseNumberError>>
 	{
 		self.ethtool_command
 		(
@@ -393,7 +654,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	}
 	
 	/// Gets configured hash settings.
-	pub fn get_configured_hash_settings(&self, context_identifier: Option<ContextIdentifier>) -> Result<Option<ConfiguredHashSettings>, NetworkDeviceInputOutputControlError<UnsupportedHashFunctionError>>
+	pub fn configured_receive_side_scaling_hash_settings(&self, context_identifier: Option<ContextIdentifier>) -> Result<Option<ConfiguredHashSettings>, NetworkDeviceInputOutputControlError<UnsupportedHashFunctionError>>
 	{
 		match self.modern_get_indirection_size_and_key_size(context_identifier)?
 		{
@@ -497,7 +758,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	/// Set driver message level.
 	pub fn set_driver_message_level(&self, desired: NETIF_MSG) -> Result<Option<NETIF_MSG>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
-		let supported = match self.get_driver_message_level()?
+		let supported = match self.driver_message_level()?
 		{
 			None => return Ok(None),
 			Some(supported) => supported,
@@ -524,7 +785,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	/// Set features.
 	pub fn set_features(&self, features_to_change: impl Iterator<Item=HashMap<NETIF_F, bool>>) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
-		let features = match self.get_features()?
+		let features = match self.raw_features()?
 		{
 			None => return Ok(None),
 			Some(features) => features,
@@ -557,22 +818,10 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	#[inline(always)]
 	pub fn set_private_flags(&self, all_string_sets: &AllStringSets, driver_specific_flags_to_change: &HashMap<ObjectName32, bool>) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
-		let option_private_flags = self.ethtool_command
-		(
-			ethtool_value
-			{
-				cmd: ETHTOOL_GPFLAGS,
-				data: 0,
-			},
-			|command| Ok(command.data),
-			Self::error_is_unreachable,
-			|_command| 0
-		)?;
-		
-		let mut bit_mask_of_flags_to_set = match option_private_flags
+		let mut bit_mask_of_flags_to_set = match self.raw_private_flags()?
 		{
 			None => return Ok(None),
-			Some(data) => data
+			Some(bit_mask_of_flags) => bit_mask_of_flags
 		};
 		
 		let private_flags_string_set = all_string_sets.get(&ethtool_stringset::ETH_SS_PRIV_FLAGS).unwrap();
@@ -602,7 +851,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		(
 			ethtool_value
 			{
-				cmd: ETHTOOL_GPFLAGS,
+				cmd: ETHTOOL_SPFLAGS,
 				data: bit_mask_of_flags_to_set,
 			},
 			|_command| Ok(()),
@@ -611,8 +860,57 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		)
 	}
 	
+	#[inline(always)]
+	pub fn private_flags(&self, all_string_sets: &AllStringSets) -> Result<Option<HashSet<ObjectName32>>, NetworkDeviceInputOutputControlError<Infallible>>
+	{
+		match self.raw_private_flags()?
+		{
+			None => Ok(None),
+			Some(bit_mask_of_flags) =>
+			{
+				if bit_mask_of_flags == 0
+				{
+					return Ok(Some(HashSet::default()))
+				}
+				
+				let private_flags_string_set = all_string_sets.get(&ethtool_stringset::ETH_SS_PRIV_FLAGS).ok_or(NetworkDeviceInputOutputControlError::Other("No string set for ethtool_stringset::ETH_SS_PRIV_FLAGS but private flags are present".to_string()))?;
+				
+				let length = private_flags_string_set.len();
+				let mut private_flags = HashSet::with_capacity(length);
+				
+				for bit in 0 .. 31
+				{
+					if bit_mask_of_flags & (1 << bit) != 0
+					{
+						let private_flag_name = private_flags_string_set.get_index(bit as usize).ok_or(NetworkDeviceInputOutputControlError::Other(format!("No private flag name for private flag zero-based bit {}", bit)))?;
+						
+						private_flags.insert(private_flag_name.clone());
+					}
+				}
+				
+				Ok(Some(private_flags))
+			}
+		}
+	}
+	
+	#[inline(always)]
+	fn raw_private_flags(&self) -> Result<Option<u32>, NetworkDeviceInputOutputControlError<Infallible>>
+	{
+		self.ethtool_command
+		(
+			ethtool_value
+			{
+				cmd: ETHTOOL_GPFLAGS,
+				data: 0,
+			},
+			|command| Ok(command.data),
+			Self::error_is_unreachable,
+			|_command| 0
+		)
+	}
+	
 	/// Get all string string sets.
-	pub fn get_all_string_sets(&self) -> Result<Option<AllStringSets>, NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>>
+	pub fn all_string_sets(&self) -> Result<Option<AllStringSets>, NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>>
 	{
 		let string_set_lengths = match self.get_all_string_set_lengths().map_err(|error| error.map_error())?
 		{
@@ -647,7 +945,20 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	
 	/// Forward error correction (FEC) information.
 	#[inline(always)]
-	pub fn get_forward_error_correction(&self) -> Result<Option<Option<ethtool_fecparam>>, NetworkDeviceInputOutputControlError<Infallible>>
+	pub fn forward_error_correction(&self) -> Result<Option<Option<HashSet<ForwardErrorCorrectionCode>>>, NetworkDeviceInputOutputControlError<Infallible>>
+	{
+		match self.raw_forward_error_correction()?
+		{
+			None => Ok(None),
+			
+			Some(None) => Ok(Some(None)),
+			
+			Some(Some(raw_forward_error_correction)) => Ok(Some(Some(raw_forward_error_correction.to_forward_error_correction_codes()))),
+		}
+	}
+	
+	#[inline(always)]
+	fn raw_forward_error_correction(&self) -> Result<Option<Option<ethtool_fecparam>>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		self.ethtool_command
 		(
@@ -666,35 +977,36 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	
 	/// Driver information.
 	#[inline(always)]
-	pub fn driver_info(&self) -> Result<Option<ethtool_drvinfo>, CreationError>
+	pub fn driver_and_device_information(&self) -> Result<Option<DriverAndDeviceInformation>, NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>>
 	{
 		let mut command = ethtool_drvinfo::default();
 		command.cmd = ETHTOOL_GDRVINFO;
 		
-		let result: Result<Option<ethtool_drvinfo>, NetworkDeviceInputOutputControlError<Infallible>> = self.ethtool_command
+		self.ethtool_command
 		(
 			command,
-			|command| Ok(command),
+			|command| command.as_driver_and_device_information(),
 			Self::error_is_unreachable,
 			|_command| panic!("Driver information should always be available")
-		);
-		
-		use self::NetworkDeviceInputOutputControlError::*;
-		
-		match result
-		{
-			Ok(value) => Ok(value),
-			
-			Err(Creation(creation_error)) => Err(creation_error),
-			
-			Err(PermissionDenied) => panic!("Driver information should always be accessible"),
-			
-			Err(ControlOperation(Infallible)) => unreachable!("Control operation (ioctl) failures either panic or return `Ok(None)` - see logic above"),
-		}
+		)
 	}
 	
 	/// Get features.
-	pub fn get_features(&self) -> Result<Option<VariablySizedEthtoolCommandWrapper<ethtool_gfeatures>>, NetworkDeviceInputOutputControlError<Infallible>>
+	pub fn features(&self) -> Result<Option<DeviceFeatures>, NetworkDeviceInputOutputControlError<Infallible>>
+	{
+		Ok
+		(
+			self.raw_features()?.map(|raw_feature| DeviceFeatures
+			{
+				available: raw_feature.available_features(),
+				requested: raw_feature.requested_features(),
+				active: raw_feature.active_features(),
+				never_changed: raw_feature.never_changed_features()
+			})
+		)
+	}
+	
+	fn raw_features(&self) -> Result<Option<VariablySizedEthtoolCommandWrapper<ethtool_gfeatures>>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		self.ethtool_command
 		(
@@ -719,7 +1031,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	}
 	
 	/// Get driver message level.
-	pub fn get_driver_message_level(&self) -> Result<Option<NETIF_MSG>, NetworkDeviceInputOutputControlError<Infallible>>
+	pub fn driver_message_level(&self) -> Result<Option<NETIF_MSG>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		self.ethtool_command
 		(
@@ -746,14 +1058,26 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		)
 	}
 	
+	/// Get pause parameters.
+	pub fn pause(&self) -> Result<Option<Option<PauseConfiguration>>, NetworkDeviceInputOutputControlError<InvalidCombinationOfPauseSettingsError>>
+	{
+		self.ethtool_command
+		(
+			ethtool_pauseparam::get(),
+			|command| command.as_pause_configuration().map(Some),
+			Self::error_is_unreachable,
+			|_command| None,
+		)
+	}
+	
 	/// Set Energy Efficient Ethernet (EEE).
 	pub fn set_energy_efficient_ethernet(&self, configuration: &EnergyEfficientEthernetConfiguration) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
-		let eee = match self.get_energy_efficient_ethernet()?
+		let energy_efficient_ethernet_information = match self.energy_efficient_ethernet()?
 		{
 			None => return Ok(None),
 			Some(None) => return Ok(Some(())),
-			Some(Some(eee)) => eee,
+			Some(Some(energy_efficient_ethernet_information)) => energy_efficient_ethernet_information,
 		};
 		
 		use self::EnergyEfficientEthernetConfiguration::*;
@@ -791,9 +1115,9 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 				for advertise in advertise.iter()
 				{
 					let advertise = *advertise;
-					if eee.supports(advertise)
+					if energy_efficient_ethernet_information.is_this_a_speed_we_could_advertise(advertise)
 					{
-						command.set_we_advertise(advertise)
+						command.set_we_advertise_this_speed_to_our_link_partner(advertise)
 					}
 				}
 				
@@ -817,7 +1141,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	}
 	
 	/// Energy Efficient Ethernet (EEE).
-	pub fn get_energy_efficient_ethernet(&self) -> Result<Option<Option<ethtool_eee>>, NetworkDeviceInputOutputControlError<Infallible>>
+	pub fn energy_efficient_ethernet(&self) -> Result<Option<Option<EnergyEfficientEthernetInformation>>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		self.ethtool_command
 		(
@@ -833,7 +1157,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 				tx_lpi_timer: 0,
 				reserved: [0; 2],
 			},
-			|command| Ok(Some(command)),
+			|command| Ok(Some(command.as_energy_efficient_ethernet_information())),
 			Self::error_is_unreachable,
 			|_command| None
 		)
@@ -841,7 +1165,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	
 	// Wake-on-LAN.
 	#[inline(always)]
-	pub fn wake_on_lan(&self) -> Result<Option<Option<ethtool_wolinfo>>, NetworkDeviceInputOutputControlError<Infallible>>
+	pub fn wake_on_lan(&self) -> Result<Option<Option<WakeOnLanInformation>>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		self.ethtool_command
 		(
@@ -852,7 +1176,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 				wolopts: WAKE::empty(),
 				sopass: unsafe { zeroed() }
 			},
-			|command| Ok(Some(command)),
+			|command| Ok(Some(command.to_wake_on_lan_information())),
 			Self::error_is_unreachable,
 			|_command| None
 		)
@@ -915,17 +1239,6 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			Self::error_is_unreachable,
 			|_command| None
 		)
-	}
-	
-	#[inline(always)]
-	pub(crate) fn bus_device_address(&self) -> Result<Option<BusDeviceAddress>, NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>>
-	{
-		match self.driver_info()?
-		{
-			None => Ok(None),
-			
-			Some(driver_info) => Ok(Some(BusDeviceAddress::from(ObjectName32::try_from(driver_info.bus_info)?))),
-		}
 	}
 	
 	#[inline(always)]

@@ -3,8 +3,8 @@
 
 
 /// Diagnostics.
-#[derive(Debug)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Diagnostics
 {
 	/// File system layout used.
@@ -33,6 +33,15 @@ pub struct Diagnostics
 
 	/// PCI devices.
 	pub pci_devices: DiagnosticUnobtainableResult<HashMap<PciDeviceAddress, Option<PciDeviceDiagnostics>>>,
+
+	/// Network devices.
+	pub network_devices: DiagnosticUnobtainableResult<NetworkDeviceDiagnostics>,
+
+	/// Internet protocol version 4 addresses.
+	pub internet_protocol_version_4_addresses: DiagnosticUnobtainableResult<InternetProtocolAddressesDiagnostic<in_addr>>,
+
+	/// Internet protocol version 6 addresses.
+	pub internet_protocol_version_6_addresses: DiagnosticUnobtainableResult<InternetProtocolAddressesDiagnostic<in6_addr>>,
 }
 
 impl Diagnostics
@@ -85,7 +94,13 @@ impl Diagnostics
 					}
 					Ok(pci_devices)
 				}
-			}
+			},
+			
+			network_devices: NetworkDeviceDiagnostics::gather(),
+			
+			internet_protocol_version_4_addresses: InternetProtocolAddressesDiagnostic::<in_addr>::gather(),
+			
+			internet_protocol_version_6_addresses: InternetProtocolAddressesDiagnostic::<in6_addr>::gather(),
 		}
 	}
 }

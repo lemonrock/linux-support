@@ -9,7 +9,7 @@ pub enum NetworkInterfaceNameToSomethingError<E: error::Error + 'static>
 	/// Control operation failed.
 	NetworkDeviceInputOutputControl(NetworkDeviceInputOutputControlError<E>),
 	
-	/// Does not exist as an interface.
+	/// Does not exist as an interface (or an interface with a bus device address).
 	DoesNotExistAsAnInterface,
 }
 

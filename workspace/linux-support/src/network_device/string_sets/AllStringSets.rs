@@ -4,6 +4,8 @@
 
 /// All string sets.
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct AllStringSets(pub(crate) HashMap<ethtool_stringset, StringSet>);
 
 impl Deref for AllStringSets

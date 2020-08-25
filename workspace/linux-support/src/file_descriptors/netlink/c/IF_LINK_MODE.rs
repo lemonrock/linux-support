@@ -4,12 +4,23 @@
 
 /// Link modes.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(u8)]
 pub enum IF_LINK_MODE
 {
 	#[allow(missing_docs)]
-	IF_LINK_MODE_DEFAULT = 0,
+	#[serde(rename = "Default")] IF_LINK_MODE_DEFAULT = 0,
 	
 	#[allow(missing_docs)]
-	IF_LINK_MODE_DORMANT = 1,
+	#[serde(rename = "Dormant")] IF_LINK_MODE_DORMANT = 1,
+}
+
+impl Default for IF_LINK_MODE
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		IF_LINK_MODE::IF_LINK_MODE_DEFAULT
+	}
 }
