@@ -4,6 +4,8 @@
 
 /// Status.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum HyperThreadingStatus
 {
 	/// Enabled.
@@ -36,8 +38,8 @@ impl FromBytes for HyperThreadingStatus
 			b"on" => On,
 			b"off" => Off,
 			b"forceoff" => ForceOff,
-			b"notsupported" => ForceOff,
-			b"notimplemented" => ForceOff,
+			b"notsupported" => NotSupported,
+			b"notimplemented" => NotImplemented,
 
 			_ => return Err(ParseHyperThreadingStatusError::UnknownVariant(bytes.to_vec())),
 		};

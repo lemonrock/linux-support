@@ -225,7 +225,7 @@ impl DirectoryFileDescriptor
 
 	/// Name to file handle.
 	///
-	/// Not supported by `/sys` and /proc` and possibly other file systems.
+	/// Not supported by `/sys` and `/proc` and possibly other file systems.
 	#[inline(always)]
 	pub fn name_to_handle(&self, path: &CStr, do_not_dereference_path_if_it_is_a_symlink: bool) -> io::Result<LinuxFileHandle>
 	{

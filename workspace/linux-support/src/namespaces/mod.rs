@@ -12,6 +12,7 @@ use crate::user_and_groups::*;
 include!("Intervals.rs");
 include!("NamespaceInodeParseError.rs");
 include!("NamespacesProcPath.rs");
+include!("SetGroupsPermission.rs");
 include!("setup_uts_namespace.rs");
 include!("UserOrGroupIdentifierMap.rs");
 include!("write_uid_and_gid_maps.rs");

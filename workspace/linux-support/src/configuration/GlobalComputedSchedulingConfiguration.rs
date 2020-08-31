@@ -56,7 +56,7 @@ impl GlobalComputedSchedulingConfiguration
 			interrupt_request.set_smp_affinity(proc_path, hyper_threads).map_err(|cause| CouldNotChangeInterruptRequestAffinity(cause, interrupt_request))?;
 		}
 		
-		set_value(proc_path, |proc_path, value| value.set_receive_packet_steering_flow_limit_tables(proc_path), self.receive_packet_steering_flow_limit_tables.as_ref(), CouldNotChangeWhichHyperThreadsHaveReceivePacketSteeringFlowLimitTablesEnabled)?;
+		set_value(proc_path, |proc_path, value| value.set_receive_packet_steering_flow_limit_tables_affinity(proc_path), self.receive_packet_steering_flow_limit_tables.as_ref(), CouldNotChangeWhichHyperThreadsHaveReceivePacketSteeringFlowLimitTablesEnabled)?;
 		
 		Ok(())
 	}

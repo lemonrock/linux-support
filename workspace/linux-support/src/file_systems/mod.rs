@@ -6,6 +6,7 @@ use super::*;
 use self::c::*;
 use crate::file_descriptors::directory::DirectoryFileDescriptor;
 use crate::paths::{ProcPath, PathExt};
+use crate::inode::NumberOfInodes;
 
 
 mod c;

@@ -4,6 +4,8 @@
 
 /// A memory map entry.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct MemoryMapEntry
 {
 	/// Memory range.
@@ -126,7 +128,7 @@ impl MemoryMapEntry
 	/// Returns `Ok(None)` if it appears that the `numa_maps` line does not match its associated `smaps` (or `maps`) line.
 	///
 	/// Very rarely returns `Ok(Some((None, None)))` or `Ok(Some((None, Some())))` if Linux has a bug and returns an `unknown` memory policy.
-	fn parse_numa_maps_line((zero_based_line_number, numa_map_line): (usize, &[u8]), expected_from: VirtualAddress, expected_kind: &MemoryMapEntryKind, have_movable_memory: &BitSet<NumaNode>) -> Result<(NumaMemoryPolicyDetails, Option<PageCounts>), MemoryMapParseError>
+	fn parse_numa_maps_line((zero_based_line_number, numa_map_line): (usize, &[u8]), expected_from: VirtualAddress, expected_kind: &MemoryMapEntryKind, have_movable_memory: &NumaNodes) -> Result<(NumaMemoryPolicyDetails, Option<PageCounts>), MemoryMapParseError>
 	{
 		let mut fields = numa_map_line.split_bytes(b' ');
 

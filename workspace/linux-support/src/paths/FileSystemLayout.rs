@@ -39,7 +39,7 @@ impl FileSystemLayout
 	
 	/// Defaults for page sizes.
 	#[inline(always)]
-	pub fn defaults(&self) -> DefaultPageSizeAndHugePageSizes
+	pub fn defaults(&self) -> io::Result<DefaultPageSizeAndHugePageSizes>
 	{
 		DefaultPageSizeAndHugePageSizes::new(&self.sys_path, &self.proc_path)
 	}

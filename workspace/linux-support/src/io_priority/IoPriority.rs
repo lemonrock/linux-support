@@ -130,7 +130,20 @@ impl IoPriority
 	{
 		Self::get(user_identifier, IOPRIO_WHO::IOPRIO_WHO_USER)
 	}
-
+	
+	#[inline(always)]
+	pub(crate) fn explain_error(error: bool) -> &'static str
+	{
+		if error
+		{
+			"no such thread"
+		}
+		else
+		{
+			"permission denied"
+		}
+	}
+	
 	#[inline(always)]
 	fn get(which: impl Into<i32>, who: IOPRIO_WHO) -> Result<Self, bool>
 	{

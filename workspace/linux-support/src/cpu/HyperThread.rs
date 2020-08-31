@@ -235,17 +235,17 @@ impl HyperThread
 	///
 	/// To check a HyperThread is offline, NOT the result of this function.
 	#[inline(always)]
-	fn is_online(self, sys_path: &SysPath) -> bool
+	pub(crate) fn is_online(self, sys_path: &SysPath) -> io::Result<bool>
 	{
 		let file_path = self.online_file_path(sys_path);
 
 		// There is a weird bug in Linux 5.4 (and maybe other versions) where the `online` file does not appear in file listings and can not be used until it has been written to at least once.
 		if !file_path.exists()
 		{
-			return true
+			return Ok(true)
 		}
 
-		file_path.read_zero_or_one_bool().unwrap()
+		file_path.read_zero_or_one_bool()
 	}
 
 	/// Online or offline this hyper thread.
@@ -271,9 +271,9 @@ impl HyperThread
 	///
 	/// Does not validate the siblings.
 	#[inline(always)]
-	pub fn siblings(self, sys_path: &SysPath) -> BitSet<Self>
+	pub fn siblings(self, sys_path: &SysPath) -> io::Result<HyperThreads>
 	{
-		sys_path.hyper_thread_topology_file_path(self, "core_siblings_list").read_hyper_thread_or_numa_node_list().unwrap()
+		sys_path.hyper_thread_topology_file_path(self, "core_siblings_list").read_hyper_thread_or_numa_node_list().map(HyperThreads)
 	}
 
 	/// Hyper threaded logical cores that are hyper-thread-siblings of this one.
@@ -286,9 +286,9 @@ impl HyperThread
 	///
 	/// Usually wrong on virtual machines (eg Parallels Desktop).
 	#[inline(always)]
-	pub fn thread_siblings(self, sys_path: &SysPath) -> BitSet<Self>
+	pub fn thread_siblings(self, sys_path: &SysPath) -> io::Result<HyperThreads>
 	{
-		sys_path.hyper_thread_topology_file_path(self, "thread_siblings_list").read_hyper_thread_or_numa_node_list().unwrap()
+		sys_path.hyper_thread_topology_file_path(self, "thread_siblings_list").read_hyper_thread_or_numa_node_list().map(HyperThreads)
 	}
 
 	/// Hyper threaded logical cores that are thread-siblings of this one according to the level 1 cache.
@@ -299,9 +299,9 @@ impl HyperThread
 	///
 	/// Usually reliable.
 	#[inline(always)]
-	pub fn level1_cache_hyper_thread_siblings_including_self(self, sys_path: &SysPath) -> BitSet<Self>
+	pub fn level1_cache_hyper_thread_siblings_including_self(self, sys_path: &SysPath) -> io::Result<HyperThreads>
 	{
-		sys_path.hyper_thread_cache_file_path(self, "index0/shared_cpu_list").read_hyper_thread_or_numa_node_list().unwrap()
+		sys_path.hyper_thread_cache_file_path(self, "index0/shared_cpu_list").read_hyper_thread_or_numa_node_list().unwrap().map(HyperThreads)
 	}
 
 	/// Hyper threaded logical cores that are thread-siblings of this one according to the level 1 cache.
@@ -312,11 +312,11 @@ impl HyperThread
 	///
 	/// Usually reliable.
 	#[inline(always)]
-	pub fn level1_cache_hyper_thread_siblings_excluding_self(self, sys_path: &SysPath) -> BitSet<Self>
+	pub fn level1_cache_hyper_thread_siblings_excluding_self(self, sys_path: &SysPath) -> io::Result<HyperThreads>
 	{
-		let mut hyper_threads = self.level1_cache_hyper_thread_siblings_including_self(sys_path);
+		let mut hyper_threads = self.level1_cache_hyper_thread_siblings_including_self(sys_path)?.0;
 		hyper_threads.remove(self);
-		hyper_threads
+		Ok(HyperThreads(hyper_threads))
 	}
 
 	/// Underlying hardware, not Linux, core identifier.

@@ -4,6 +4,8 @@
 
 /// Statistics in kilobyte units.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct MemoryMapEntryKilobyteStatistics
 {
 	/// Resident set size.

@@ -6,6 +6,8 @@
 #[allow(missing_docs)]
 #[allow(non_camel_case_types)]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(u32)]
 pub enum FileSystemType
 {

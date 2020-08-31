@@ -26,11 +26,17 @@ pub struct ProcessDiagnostics
 	pub status: DiagnosticUnobtainableResult<Status>,
 	
 	pub personality: DiagnosticUnobtainableResult<PersonalityFlags>,
+
+	pub original_command_line: DiagnosticUnobtainableResult<CommandLine>,
+
+	pub original_environment: DiagnosticUnobtainableResult<Environment>,
+
+	pub memory_maps: DiagnosticUnobtainableResult<MemoryMaps>,
 }
 
 impl ProcessDiagnostics
 {
-	fn gather(proc_path: &ProcPath, process_group_identifier: ProcessGroupIdentifierChoice, process_identifier: ProcessIdentifierChoice) -> Self
+	fn gather(sys_path: &SysPath, proc_path: &ProcPath, process_group_identifier: ProcessGroupIdentifierChoice, process_identifier: ProcessIdentifierChoice) -> Self
 	{
 		Self
 		{
@@ -53,6 +59,12 @@ impl ProcessDiagnostics
 			status: Status::process_status(proc_path, process_identifier).map_err(DiagnosticUnobtainable::from),
 			
 			personality: PersonalityFlags::for_process(proc_path, process_identifier).map_err(DiagnosticUnobtainable::from),
+			
+			original_command_line: CommandLine::for_process(proc_path, process_identifier).map_err(DiagnosticUnobtainable::from),
+			
+			original_environment: Environment::original_for_process(proc_path, process_identifier).map_err(DiagnosticUnobtainable::from),
+			
+			memory_maps: MemoryMaps::smaps_for_process(proc_path, process_identifier, NumaNodes::have_movable_memory(sys_path).as_ref()).map_err(DiagnosticUnobtainable::from),
 		}
 	}
 }

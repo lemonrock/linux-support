@@ -159,7 +159,7 @@ impl ThreadIdentifier
 			match dir_entry.file_type()
 			{
 				Err(_) => return None,
-				Ok(file_type) => if file_type.is_file()
+				Ok(file_type) => if !file_type.is_folder()
 				{
 					return None
 				}

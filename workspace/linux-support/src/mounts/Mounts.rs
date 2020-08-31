@@ -4,7 +4,9 @@
 
 /// Mounts (or mount points) for the current process.
 #[derive(Default, Debug)]
-pub struct Mounts<'a>(HashMap<PathBuf, Mount<'a>>);
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct Mounts<'a>(pub HashMap<PathBuf, Mount<'a>>);
 
 impl<'a> Mounts<'a>
 {

@@ -126,7 +126,7 @@ impl NumaNodes
 	///
 	/// Not reliable, as includes NUMA nodes that can never be brought online; simply reports the number that could be used by the Linux kernel upto the `CONFIG_` number of NUMA nodes.
 	#[inline(always)]
-	fn possible(sys_path: &SysPath) -> Option<Self>
+	pub(crate) fn possible(sys_path: &SysPath) -> Option<Self>
 	{
 		Self::read_numa_node_list(sys_path, "possible")
 	}

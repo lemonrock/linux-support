@@ -7,10 +7,9 @@
 /// * `/proc/<pid>/maps`, and,
 /// * `/proc/<pid>/smaps_rollup`.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct MemoryMaps
-{
-	maps: Vec<(MemoryMapEntry, MemoryMapEntryStatistics)>,
-}
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct MemoryMaps(Vec<(MemoryMapEntry, MemoryMapEntryStatistics)>);
 
 impl MemoryMaps
 {
@@ -20,28 +19,34 @@ impl MemoryMaps
 	#[inline(always)]
 	pub fn smaps_roll_up(&self) -> Option<(Range<VirtualAddress>, MemoryMapEntryKilobyteStatistics)>
 	{
-		if unlikely!(self.maps.is_empty())
+		if unlikely!(self.maps().is_empty())
 		{
 			return None
 		}
 
-		let from = self.maps[0].0.memory_range.start;
-		let to = self.maps[self.maps.len() - 1].0.memory_range.start;
+		let from = self.maps()[0].0.memory_range.start;
+		let to = self.maps()[self.maps().len() - 1].0.memory_range.start;
 
-		let mut total = self.maps[0].1.kilobyte_statistics.clone();
-		for &(_, MemoryMapEntryStatistics { ref kilobyte_statistics, .. }) in &self.maps[1 .. ]
+		let mut total = self.maps()[0].1.kilobyte_statistics.clone();
+		for &(_, MemoryMapEntryStatistics { ref kilobyte_statistics, .. }) in &self.maps()[1 .. ]
 		{
 			total += kilobyte_statistics
 		}
 
 		Some((from .. to, total))
 	}
+	
+	#[inline(always)]
+	fn maps(&self) -> &Vec<(MemoryMapEntry, MemoryMapEntryStatistics)>
+	{
+		&self.0
+	}
 
 	/// Details for this process of `/proc/self/smaps` (which is more detailed than `/proc/self/maps`).
 	///
 	/// Use `NumaNodes::have_movable_memory()` for `have_movable_memory`; it will be `None` if the Linux kernel is not-NUMA aware.
 	#[inline(always)]
-	pub fn smaps_for_self(proc_path: &ProcPath, have_movable_memory: Option<&BitSet<NumaNode>>) -> Result<Self, MemoryMapParseError>
+	pub fn smaps_for_self(proc_path: &ProcPath, have_movable_memory: Option<&NumaNodes>) -> Result<Self, MemoryMapParseError>
 	{
 		Self::smaps_for_process(proc_path, ProcessIdentifierChoice::Current, have_movable_memory)
 	}
@@ -50,7 +55,7 @@ impl MemoryMaps
 	///
 	/// Use `NumaNodes::have_movable_memory()` for `have_movable_memory`; it will be `None` if the Linux kernel is not-NUMA aware.
 	#[inline(always)]
-	pub fn smaps_for_process(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice, have_movable_memory: Option<&BitSet<NumaNode>>) -> Result<Self, MemoryMapParseError>
+	pub fn smaps_for_process(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice, have_movable_memory: Option<&NumaNodes>) -> Result<Self, MemoryMapParseError>
 	{
 		match have_movable_memory
 		{
@@ -89,7 +94,7 @@ impl MemoryMaps
 						return Err(Mismatched { explanation: "Too many lines in numa_maps" })
 					}
 					
-					Ok(Self { maps })
+					Ok(Self(maps))
 				}
 			}
 		}

@@ -32,9 +32,9 @@ impl NumberOfInodes
 	///
 	/// Allocated + free will be the maximum.
 	#[inline(always)]
-	pub fn allocated_and_free(proc_path: &ProcPath) -> (Self, Self)
+	pub fn allocated_and_free(proc_path: &ProcPath) -> io::Result<(Self, Self)>
 	{
-		let bytes = proc_path.sys_fs_file_path("inode-nr").read_raw_without_line_feed().unwrap();
+		let bytes = proc_path.sys_fs_file_path("inode-nr").read_raw_without_line_feed()?;
 		let mut fields = bytes.split_bytes_n(2, b'\t');
 
 		#[inline(always)]
@@ -42,6 +42,6 @@ impl NumberOfInodes
 		{
 			NumberOfInodes(usize::parse_decimal_number(fields.next().unwrap()).unwrap())
 		}
-		(next(&mut fields), next(&mut fields))
+		Ok((next(&mut fields), next(&mut fields)))
 	}
 }

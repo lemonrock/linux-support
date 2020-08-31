@@ -8,6 +8,15 @@
 * Report `/proc/sys/kernel/random/boot_id` UUID to DogStatsD as it identifies the current boot.
 * Flow director code
 
+* Diagnostics
+    * Memory
+    * logging
+    * linux_kernel_*
+    * ioports
+    * io_priority
+    * interrupt_request
+    * inode
+    
 
 ## 
 /*

@@ -8,15 +8,22 @@
 /// This is broken down into DMA, DMA33 and Normal sub-zones and then by CPU for each Numa Node (aka 'zone').
 /// A sort of detailed version of `/proc/vmstat`.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct MemoryInformation(pub(crate) HashMap<MemoryInformationName, u64>);
 
 impl MemoryInformation
 {
 	/// Memory information (from `/proc/meminfo`).
-	///
+	#[inline(always)]
+	pub fn parse_global(proc_path: &ProcPath, flush_per_cpu_statistics_first: bool) -> Result<Self, MemoryInformationParseError>
+	{
+		Self::parse(proc_path, b"", flush_per_cpu_statistics_first)
+	}
+	
 	/// For NUMA node specific memory information, see `NumaNode.memory_information()`.
 	#[inline(always)]
-	pub fn parse(proc_path: &ProcPath, memory_information_name_prefix: &[u8], flush_per_cpu_statistics_first: bool) -> Result<Self, MemoryInformationParseError>
+	pub(crate) fn parse(proc_path: &ProcPath, memory_information_name_prefix: &[u8], flush_per_cpu_statistics_first: bool) -> Result<Self, MemoryInformationParseError>
 	{
 		let file_path = proc_path.file_path("meminfo");
 		Self::parse_memory_information_file(&file_path, memory_information_name_prefix, if flush_per_cpu_statistics_first { Some(proc_path) } else { None })

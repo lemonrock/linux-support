@@ -4,6 +4,8 @@
 
 /// What kind of entry is this?
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum MemoryMapEntryKind
 {
 	/// A mapped file.

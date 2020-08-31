@@ -4,6 +4,8 @@
 
 /// Clean, diry and huge page usage.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct CleanDirtyAndHuge
 {
 	#[allow(missing_docs)]

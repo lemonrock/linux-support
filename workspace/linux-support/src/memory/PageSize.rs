@@ -6,6 +6,8 @@
 ///
 /// Some MIPS processors supports 1Kb and 2Kb page sizes, but Linux does not.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(u64)]
 pub enum PageSize
 {

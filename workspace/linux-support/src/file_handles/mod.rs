@@ -7,4 +7,5 @@ use crate::paths::*;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 
 
+include!("AllocatedFreeAndMaximumNumberOfFileHandles.rs");
 include!("NumberOfFileHandles.rs");

@@ -42,6 +42,33 @@ pub struct Diagnostics
 
 	/// Internet protocol version 6 addresses.
 	pub internet_protocol_version_6_addresses: DiagnosticUnobtainableResult<InternetProtocolAddressesDiagnostic<in6_addr>>,
+
+	/// Environment.
+	pub environment: EnvironmentDiagnostic,
+
+	/// Linux kernel.
+	pub linux_kernel: LinuxKernelDiagnostic,
+	
+	/// Interrupt requests.
+	pub interrupt_requests: InterruptRequestDiagnostics,
+
+	/// Inode.
+	pub inode: DiagnosticUnobtainableResult<InodeDiagnostics>,
+
+	/// File Systems.
+	pub file_systems: FileSystemsDiagnostics,
+
+	/// File handles.
+	pub file_handle: FileHandleDiagnostics,
+
+	/// Memory.
+	pub memory: MemoryDiagnostics,
+	
+	/// Hyper Threads (CPUs).
+	pub hyper_threads: HyperThreadsDiagnostics,
+	
+	/// CPU information.
+	#[cfg(target_arch = "x86_64")] pub cpu_information: CpuInformationDiagnostics
 }
 
 impl Diagnostics
@@ -80,7 +107,7 @@ impl Diagnostics
 			
 			current_process_diagnostics: CurrentProcessDiagnostics::gather(),
 			
-			process_diagnostics: ProcessDiagnostics::gather(proc_path, process_group_identifier, process_identifier),
+			process_diagnostics: ProcessDiagnostics::gather(sys_path, proc_path, process_group_identifier, process_identifier),
 			
 			pci_devices: match PciDeviceAddress::all(sys_path)
 			{
@@ -101,6 +128,33 @@ impl Diagnostics
 			internet_protocol_version_4_addresses: InternetProtocolAddressesDiagnostic::<in_addr>::gather(),
 			
 			internet_protocol_version_6_addresses: InternetProtocolAddressesDiagnostic::<in6_addr>::gather(),
+		
+			environment: EnvironmentDiagnostic::gather(),
+		
+			linux_kernel: LinuxKernelDiagnostic::gather(sys_path, proc_path),
+		
+			interrupt_requests: InterruptRequestDiagnostics::gather(sys_path, proc_path),
+		
+			inode: InodeDiagnostics::gather(proc_path),
+		
+			file_systems: FileSystemsDiagnostics::gather(proc_path, process_identifier),
+		
+			file_handle: FileHandleDiagnostics::gather(proc_path),
+		
+			memory: MemoryDiagnostics::gather(sys_path, proc_path),
+		
+			hyper_threads: HyperThreadsDiagnostics::gather(sys_path, proc_path),
+			
+			#[cfg(target_arch = "x86_64")] cpu_information: CpuInformationDiagnostics::gather(),
 		}
 	}
 }
+
+// TODO: POSIX MQ stats; socket stats; pipes_and_fifos; inotify; file.leasing; epoll; inotify
+// memory SysV stuff (yawn)
+// cgroup in-depth
+// list of various capabilities if possible.
+// BPF: JustInTimeCompilationChoice
+// BPF: JustInTimeCompilationHardening
+// BPF: JustInTimeMemoryAllocationLimitSizeInBytes
+// BPF - can we get program identifiers?

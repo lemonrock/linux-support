@@ -4,6 +4,8 @@
 
 /// Linux kernel version information.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct LinuxKernelVersion
 {
 	/// Contents of `/proc/sys/kernel/osrelease`.

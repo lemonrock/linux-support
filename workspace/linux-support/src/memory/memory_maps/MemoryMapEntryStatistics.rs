@@ -4,6 +4,8 @@
 
 /// Statistics for this memory map entry.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct MemoryMapEntryStatistics
 {
 	/// Known as `KernelPageSize`.

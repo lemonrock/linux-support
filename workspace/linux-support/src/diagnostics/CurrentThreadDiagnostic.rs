@@ -28,6 +28,20 @@ pub struct CurrentThreadDiagnostic
 	pub current_thread_indirect_store_speculation_mitigation: DiagnosticUnobtainableResult<SpeculationMitigation>,
 	
 	pub current_thread_secure_bits: DiagnosticUnobtainableResult<SecureBits>,
+
+	pub numa_node: NumaNode,
+
+	pub hyper_thread: HyperThread,
+
+	pub current_thread_memory_policy: MemoryPolicy,
+
+	pub current_thread_memory_policy_dynamism: MemoryPolicyDynamism,
+
+	pub current_thread_valid_numa_nodes_for_set_memory_policy_and_mbind: NumaNodes,
+
+	pub current_thread_numa_node_for_next_interleaved_internal_kernel_page: Option<NumaNode>,
+
+	pub current_thread_affinity: DiagnosticUnobtainableResult<Option<HyperThreads>>,
 }
 
 impl CurrentThreadDiagnostic
@@ -40,6 +54,9 @@ impl CurrentThreadDiagnostic
 		
 		let current_thread_name = ThreadName::get_current_thread_name();
 		
+		let (numa_node, hyper_thread) = current_numa_node_and_hyper_thread();
+		
+		let (current_thread_memory_policy, current_thread_memory_policy_dynamism) = MemoryPolicy::get_current_thread_memory_policy();
 		Self
 		{
 			current_rust_thread_identifier: thread.id().as_u64(),
@@ -63,6 +80,20 @@ impl CurrentThreadDiagnostic
 			current_thread_indirect_store_speculation_mitigation: SpeculationMitigation::indirect_branch().map_err(DiagnosticUnobtainable::from),
 			
 			current_thread_secure_bits: SecureBits::current().map_err(DiagnosticUnobtainable::from),
+			
+			numa_node,
+		
+			hyper_thread,
+			
+			current_thread_memory_policy,
+			
+			current_thread_memory_policy_dynamism,
+			
+			current_thread_valid_numa_nodes_for_set_memory_policy_and_mbind: MemoryPolicy::get_current_thread_valid_numa_nodes_for_set_memory_policy_and_mbind(),
+			
+			current_thread_numa_node_for_next_interleaved_internal_kernel_page: MemoryPolicy::get_current_thread_numa_node_for_next_interleaved_internal_kernel_page(),
+		
+			current_thread_affinity: HyperThreads::current_thread_affinity().map_err(DiagnosticUnobtainable::from),
 		}
 	}
 	

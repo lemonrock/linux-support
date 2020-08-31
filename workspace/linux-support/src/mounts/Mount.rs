@@ -4,6 +4,8 @@
 
 /// Represents a mount.
 #[derive(Debug)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Mount<'a>
 {
 	/// eg eg `/dev/sda1`, `proc`, etc; not really that useful.
@@ -14,7 +16,7 @@ pub struct Mount<'a>
 
 	/// File system type.
 	///
-	/// eg `proc`, `sysfs`, `hugetlbs`, `ext4`; listed in second column of `/proc/filesystems`/
+	/// eg `proc`, `sysfs`, `hugetlbs`, `ext4`; listed in second column of `/proc/filesystems`.
 	pub file_system_type: FileSystemType,
 
 	/// Mount options.
@@ -23,10 +25,10 @@ pub struct Mount<'a>
 	pub mount_options: HashMap<Cow<'a, [u8]>, Option<Cow<'a, [u8]>>>,
 
 	/// Typically `0` (zero).
-	dump_frequency_in_days: i32,
+	pub(crate) dump_frequency_in_days: i32,
 
 	/// Typically `0` (zero).
-	pass_number_on_parallel_filesystem_type: i32,
+	pub(crate) pass_number_on_parallel_filesystem_type: i32,
 }
 
 impl<'a> Mount<'a>

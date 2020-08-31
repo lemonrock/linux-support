@@ -4,6 +4,8 @@
 
 /// Default page sizes.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct DefaultPageSizeAndHugePageSizes
 {
 	default_page_size: PageSize,
@@ -16,14 +18,14 @@ impl DefaultPageSizeAndHugePageSizes
 {
 	/// New instance.
 	///
-	/// Should be goog enough to use in a lazy_static.
+	/// Should be good enough to use in a lazy_static.
 	#[inline(always)]
-	pub fn new(sys_path: &SysPath, proc_path: &ProcPath) -> Self
+	pub fn new(sys_path: &SysPath, proc_path: &ProcPath) -> io::Result<Self>
 	{
 		#[inline(always)]
-		fn parse_and_return_if_supported(supported_huge_page_sizes: &BTreeSet<HugePageSize>, parse: impl FnOnce() -> Option<HugePageSize>) -> Option<HugePageSize>
+		fn parse_and_return_if_supported(supported_huge_page_sizes: &BTreeSet<HugePageSize>, parse: impl FnOnce() -> io::Result<Option<HugePageSize>>) -> io::Result<Option<HugePageSize>>
 		{
-			if let Some(huge_page_size) = parse()
+			let ok = if let Some(huge_page_size) = parse()?
 			{
 				if supported_huge_page_sizes.contains(&huge_page_size)
 				{
@@ -37,25 +39,29 @@ impl DefaultPageSizeAndHugePageSizes
 			else
 			{
 				None
-			}
+			};
+			Ok(ok)
 		}
 
 		let supported_huge_page_sizes = HugePageSize::supported_huge_page_sizes(sys_path);
 
-		Self
-		{
-			default_page_size: PageSize::current(),
-
-			default_huge_page_size: parse_and_return_if_supported(&supported_huge_page_sizes, ||
+		Ok
+		(
+			Self
 			{
-				let memory_information = MemoryInformation::parse(proc_path, b"", false).expect("Missing valid /proc/meminfo");
-				HugePageSize::default_huge_page_size(&memory_information)
-			}),
-
-			transparent_huge_page_size: parse_and_return_if_supported(&supported_huge_page_sizes, || HugePageSize::transparent_huge_page_size(sys_path)),
-
-			supported_huge_page_sizes,
-		}
+				default_page_size: PageSize::current(),
+	
+				default_huge_page_size: parse_and_return_if_supported(&supported_huge_page_sizes, ||
+				{
+					let memory_information = MemoryInformation::parse_global(proc_path, false)?;
+					Ok(HugePageSize::default_huge_page_size(&memory_information))
+				})?,
+	
+				transparent_huge_page_size: parse_and_return_if_supported(&supported_huge_page_sizes, || Ok(HugePageSize::transparent_huge_page_size(sys_path)))?,
+	
+				supported_huge_page_sizes,
+			}
+		)
 	}
 
 	/// Default page size.

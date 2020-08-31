@@ -121,14 +121,50 @@ impl HyperThreads
 
 		valid
 	}
-
+	
+	/// Current process affinity.
+	#[inline(always)]
+	pub fn current_process_affinity() -> Result<Self, String>
+	{
+		Self::process_affinity(ProcessIdentifierChoice::Current)
+	}
+	
+	/// Get process affinity.
+	#[inline(always)]
+	pub fn process_affinity(process_identifier: ProcessIdentifierChoice) -> Result<Self, String>
+	{
+		let mut this = Self::new_for_cpu_set_t();
+		let result = unsafe { sched_getaffinity(process_identifier.into(), this.cpu_set_t_size_in_bytes(), this.cpu_set_t_pointer()) };
+		
+		if likely!(result == 0)
+		{
+			this.shrink_to_fit();
+			Ok(this)
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				EINVAL => Err("The affinity bit mask mask contains no processors that are currently physically on the system and permitted to the process according to any restrictions that may be imposed by the cpuset mechanism described in man cpuset(7)".to_string()),
+				
+				EFAULT => panic!("A supplied memory address was invalid"),
+				
+				unknown @ _ => panic!("Unknown error number {}", unknown),
+			}
+		}
+		else
+		{
+			panic!("Unexpected result {}", result)
+		}
+	}
+	
 	/// Set process affinity for current process.
 	#[inline(always)]
 	pub fn set_current_process_affinity(&self) -> Result<(), String>
 	{
 		self.set_process_affinity(ProcessIdentifierChoice::Current)
 	}
-
+	
 	/// Set process affinity.
 	#[inline(always)]
 	pub fn set_process_affinity(&self, process_identifier: ProcessIdentifierChoice) -> Result<(), String>
@@ -172,7 +208,44 @@ impl HyperThreads
 			panic!("Unexpected result {}", result)
 		}
 	}
+	
+	/// Current thread affinity.
+	#[inline(always)]
+	pub fn current_thread_affinity() -> Result<Option<Self>, String>
+	{
+		Self::get_thread_affinity(unsafe { pthread_self() })
+	}
+	
+	/// Thread affinity.
+	#[inline(always)]
+	pub fn get_thread_affinity(thread_identifier: pthread_t) -> Result<Option<Self>, String>
+	{
+		let mut this = Self::new_for_cpu_set_t();
+		let result = unsafe { pthread_setaffinity_np(thread_identifier, this.cpu_set_t_size_in_bytes(), this.cpu_set_t_pointer()) };
+		if likely!(result == 0)
+		{
+			this.shrink_to_fit();
+			Ok(Some(this))
+		}
+		else if likely!(result == -1)
+		{
+			match errno().0
+			{
+				EINVAL => Err("pusetsize is smaller than the size of the affinity mask used by the kernel".to_string()),
+				
+				ESRCH => Ok(None),
 
+				EFAULT => panic!("A supplied memory address was invalid"),
+
+				unknown @ _ => panic!("Unknown error number {}", unknown),
+			}
+		}
+		else
+		{
+			panic!("Unexpected result {}", result)
+		}
+	}
+	
 	/// Set thread affinity for current thread.
 	#[inline(always)]
 	pub fn set_current_thread_affinity(&self) -> Result<(), String>
@@ -264,6 +337,23 @@ impl HyperThreads
 		sys_path.hyper_thread_work_queue_file_path("writeback/cpumask").write_value(mask)
 	}
 	
+	/// Which HyperThreads use flow limit tables.
+	#[inline(always)]
+	pub fn work_queue_hyper_thread_affinity(sys_path: &SysPath) -> (io::Result<Self>, io::Result<Self>)
+	{
+		(
+			sys_path.hyper_thread_work_queue_file_path("cpumask").read_hyper_thread_or_numa_node_list().map(Self),
+			sys_path.hyper_thread_work_queue_file_path("writeback/cpumask").read_hyper_thread_or_numa_node_list().map(Self),
+		)
+	}
+	
+	/// Which HyperThreads use flow limit tables.
+	#[inline(always)]
+	pub fn watchdog(proc_path: &ProcPath) -> io::Result<Self>
+	{
+		proc_path.sys_kernel_file_path("watchdog_cpumask").read_hyper_thread_or_numa_node_list().map(Self)
+	}
+	
 	/// Should not be needed if `nohz_full` was specified on the Linux command line.
 	#[inline(always)]
 	pub fn force_watchdog_to_just_these_hyper_threads(&self, proc_path: &ProcPath) -> io::Result<()>
@@ -271,9 +361,16 @@ impl HyperThreads
 		self.set_affinity_list(proc_path.sys_kernel_file_path("watchdog_cpumask"))
 	}
 	
-	/// Which HyperThreads use flow limit tables>
+	/// Which HyperThreads use flow limit tables.
 	#[inline(always)]
-	pub fn set_receive_packet_steering_flow_limit_tables(&self, proc_path: &ProcPath) -> io::Result<()>
+	pub fn receive_packet_steering_flow_limit_tables_affinity(proc_path: &ProcPath) -> io::Result<Self>
+	{
+		proc_path.sys_net_core_file_path("flow_limit_cpu_bitmap").read_hyper_thread_or_numa_node_list().map(Self)
+	}
+	
+	/// Which HyperThreads use flow limit tables.
+	#[inline(always)]
+	pub fn set_receive_packet_steering_flow_limit_tables_affinity(&self, proc_path: &ProcPath) -> io::Result<()>
 	{
 		self.set_affinity(proc_path.sys_net_core_file_path("flow_limit_cpu_bitmap"))
 	}
@@ -291,14 +388,14 @@ impl HyperThreads
 	
 	/// CPU nodes that exist in the file system.
 	#[inline(always)]
-	fn has_a_folder_path(sys_path: &SysPath) -> Self
+	pub(crate) fn has_a_folder_path(sys_path: &SysPath) -> Self
 	{
 		Self(sys_path.cpu_system_devices_folder_path().entries_in_folder_path().unwrap().unwrap())
 	}
 
 	/// CPU nodes that could possibly be online at some point.
 	#[inline(always)]
-	fn is_in_proc_self_status(proc_path: &ProcPath) -> Self
+	pub(crate) fn is_in_proc_self_status(proc_path: &ProcPath) -> Self
 	{
 		let process_status_statistics = Status::self_status(proc_path).unwrap();
 		process_status_statistics.cpus_allowed
@@ -310,7 +407,7 @@ impl HyperThreads
 	///
 	/// See <https://www.kernel.org/doc/Documentation/cputopology.txt>.
 	#[inline(always)]
-	fn possible(sys_path: &SysPath) -> Self
+	pub(crate) fn possible(sys_path: &SysPath) -> Self
 	{
 		Self::read_hyper_thread_list(sys_path, "possible")
 	}
@@ -322,7 +419,7 @@ impl HyperThreads
 	///
 	/// See <https://www.kernel.org/doc/Documentation/cputopology.txt>.
 	#[inline(always)]
-	fn present(sys_path: &SysPath) -> Self
+	pub(crate) fn present(sys_path: &SysPath) -> Self
 	{
 		Self::read_hyper_thread_list(sys_path, "present")
 	}
@@ -334,7 +431,7 @@ impl HyperThreads
 	///
 	/// See <https://www.kernel.org/doc/Documentation/cputopology.txt>.
 	#[inline(always)]
-	fn online(sys_path: &SysPath) -> Self
+	pub(crate) fn online(sys_path: &SysPath) -> Self
 	{
 		Self::read_hyper_thread_list(sys_path, "online")
 	}
@@ -345,7 +442,7 @@ impl HyperThreads
 	///
 	/// See <https://www.kernel.org/doc/Documentation/cputopology.txt>.
 	#[inline(always)]
-	fn offline(sys_path: &SysPath) -> Self
+	pub(crate) fn offline(sys_path: &SysPath) -> Self
 	{
 		Self::read_hyper_thread_list(sys_path, "offline")
 	}

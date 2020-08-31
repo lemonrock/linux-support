@@ -168,7 +168,7 @@ impl SysPath
 		self.kernel_folder_path().append("security")
 	}
 
-	/// `/sys/kernel/irq/<interrupt_request>`.
+	/// `/sys/kernel/irq/<interrupt_request>/<file_name>`.
 	#[inline(always)]
 	pub(crate) fn global_irq_file_path(&self, interrupt_request: InterruptRequest, file_name: &str) -> PathBuf
 	{
@@ -184,7 +184,7 @@ impl SysPath
 	
 	/// `/sys/kernel/irq`.
 	#[inline(always)]
-	fn kernel_irq_folder_path(&self) -> PathBuf
+	pub(crate) fn kernel_irq_folder_path(&self) -> PathBuf
 	{
 		self.kernel_folder_path().append("irq")
 	}

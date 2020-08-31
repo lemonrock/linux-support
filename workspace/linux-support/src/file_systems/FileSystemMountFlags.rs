@@ -5,6 +5,7 @@
 bitflags!
 {
 	/// Mount flags.
+	#[derive(Deserialize, Serialize)]
 	pub struct FileSystemMountFlags: u64
 	{
 		#[allow(missing_docs)]

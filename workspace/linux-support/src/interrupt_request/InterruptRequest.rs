@@ -21,6 +21,33 @@ impl Into<u8> for InterruptRequest
 #[allow(missing_docs)]
 impl InterruptRequest
 {
+	/// All known interrupt request numbers.
+	pub fn all(sys_path: &SysPath) -> io::Result<impl Iterator<Item=Self>>
+	{
+		fn map(dir_entry: io::Result<DirEntry>) -> Option<InterruptRequest>
+		{
+			let dir_entry = match dir_entry
+			{
+				Err(_) => return None,
+				Ok(dir_entry) => dir_entry
+			};
+			
+			match dir_entry.file_type()
+			{
+				Err(_) => return None,
+				Ok(file_type) => if !file_type.is_folder()
+				{
+					return None
+				}
+			}
+			
+			let file_name = dir_entry.file_name().into_vec();
+			u8::from_bytes(&file_name[..]).ok().map(|irq| InterruptRequest(irq))
+		}
+		
+		Ok(folder_path.read_dir()?.filter_map(sys_path.kernel_irq_folder_path()))
+	}
+	
 	/// Actions.
 	///
 	/// Values observed on a Parallels VM:-
@@ -37,10 +64,10 @@ impl InterruptRequest
 	/// * `virtio0-input.0`.
 	/// * `virtio0-output.0`.
 	#[inline(always)]
-	pub fn actions(self, sys_path: &SysPath) -> Box<[u8]>
+	pub fn actions(self, sys_path: &SysPath) -> io::Result<Box<[u8]>>
 	{
 		let file_path = self.sys_file_path(sys_path, "actions");
-		file_path.read_raw_without_line_feed().unwrap()
+		file_path.read_raw_without_line_feed()
 	}
 	
 	/// Chip name.
@@ -51,20 +78,20 @@ impl InterruptRequest
 	/// * `PCI-MSI`.
 	/// * `XT-PIC`.
 	#[inline(always)]
-	pub fn chip_name(self, sys_path: &SysPath) -> Box<[u8]>
+	pub fn chip_name(self, sys_path: &SysPath) -> io::Result<Box<[u8]>>
 	{
 		let file_path = self.sys_file_path(sys_path, "chip_name");
-		file_path.read_raw_without_line_feed().unwrap()
+		file_path.read_raw_without_line_feed()
 	}
 	
 	/// Hardware interrupt request line.
 	///
 	/// eg `10`; usually the same value as `self` but can be a large value, eg `512000`.
 	#[inline(always)]
-	pub fn hardware_interrupt_request_line(self, sys_path: &SysPath) -> u32
+	pub fn hardware_interrupt_request_line(self, sys_path: &SysPath) -> io::Result<u32>
 	{
 		let file_path = self.sys_file_path(sys_path, "hwirq");
-		file_path.read_value().unwrap()
+		file_path.read_value()
 	}
 	
 	/// Name.
@@ -74,10 +101,10 @@ impl InterruptRequest
 	/// * `edge`.
 	/// * `fasteoi`.
 	#[inline(always)]
-	pub fn name(self, sys_path: &SysPath) -> Box<[u8]>
+	pub fn name(self, sys_path: &SysPath) -> io::Result<Box<[u8]>>
 	{
 		let file_path = self.sys_file_path(sys_path, "name");
-		file_path.read_raw_without_line_feed().unwrap()
+		file_path.read_raw_without_line_feed()
 	}
 	
 	/// Type.
@@ -87,10 +114,10 @@ impl InterruptRequest
 	/// * `edge`.
 	/// * `level`.
 	#[inline(always)]
-	pub fn type_(self, sys_path: &SysPath) -> Box<[u8]>
+	pub fn type_(self, sys_path: &SysPath) -> io::Result<Box<[u8]>>
 	{
 		let file_path = self.sys_file_path(sys_path, "type");
-		file_path.read_raw_without_line_feed().unwrap()
+		file_path.read_raw_without_line_feed()
 	}
 	
 	/// Wake up.
@@ -99,20 +126,20 @@ impl InterruptRequest
 	///
 	/// * `disabled`.
 	#[inline(always)]
-	pub fn wake_up(self, sys_path: &SysPath) -> Box<[u8]>
+	pub fn wake_up(self, sys_path: &SysPath) -> io::Result<Box<[u8]>>
 	{
 		let file_path = self.sys_file_path(sys_path, "wakeup");
-		file_path.read_raw_without_line_feed().unwrap()
+		file_path.read_raw_without_line_feed()
 	}
 	
 	/// Number of occurrences per-HyperThread.
 	///
 	/// Number of indices is the number of possible HyperThreads (`/sys/devices/system/cpu/possible`).
 	#[inline(always)]
-	pub fn occurrences_per_hyper_thread(self, sys_path: &SysPath) -> PerBitSetAwareData<HyperThread, u64>
+	pub fn occurrences_per_hyper_thread(self, sys_path: &SysPath) -> io::Result<PerBitSetAwareData<HyperThread, u64>>
 	{
 		let file_path = self.sys_file_path(sys_path, "per_cpu_count");
-		let comma_separated_string = file_path.read_raw_without_line_feed().unwrap();
+		let comma_separated_string = file_path.read_raw_without_line_feed()?;
 		
 		#[inline(always)]
 		fn mapper((index, count_in_bytes): (usize, &[u8])) -> Result<(HyperThread, u64), BitSetAwareTryFromU16Error>
@@ -123,7 +150,8 @@ impl InterruptRequest
 		}
 		
 		let constructor = comma_separated_string.split_bytes(b',').enumerate().map(mapper);
-		PerBitSetAwareData::from_iterator(constructor).expect("Invalid count or HyperThread")
+		let result = PerBitSetAwareData::from_iterator(constructor);
+		result.map_err(io_error_invalid_data)
 	}
 	
 	/// Usually `ffffffff` (ie `/sys/devices/system/cpu/possible` but as a bitmask not a list).
@@ -198,7 +226,7 @@ impl InterruptRequest
 	
 	/// Returns `count`, `unhandled` and `last_unhandled_milliseconds`.
 	#[inline(always)]
-	pub fn spurious(self, proc_path: &ProcPath) -> io::Result<(usize, usize, usize)>
+	pub fn spurious(self, proc_path: &ProcPath) -> io::Result<SpuriousInterruptRequestInformation>
 	{
 		let file_path = self.proc_file_path(proc_path, "spurious");
 		
@@ -227,7 +255,15 @@ impl InterruptRequest
 		let unhandled = parse_line(&mut lines, b"unhandled", b"")?;
 		let last_unhandled_milliseconds = parse_line(&mut lines, b"last_unhandled", b" ms")?;
 		
-		Ok((count, unhandled, last_unhandled_milliseconds))
+		Ok
+		(
+			SpuriousInterruptRequestInformation
+			{
+				count,
+				unhandled,
+				last_unhandled_milliseconds,
+			}
+		)
 	}
 	
 	#[inline(always)]

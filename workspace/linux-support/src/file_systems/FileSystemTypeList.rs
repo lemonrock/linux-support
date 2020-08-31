@@ -4,6 +4,8 @@
 
 /// List of supported file systems.
 #[derive(Default, Debug)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct FileSystemTypeList(HashMap<FileSystemType, HasNoAssociatedDevice>);
 
 impl FileSystemTypeList
@@ -30,7 +32,7 @@ impl FileSystemTypeList
 	}
 	/// File systems (from `/proc/filesystems`).
 	#[inline(always)]
-	pub fn parse(proc_path: &ProcPath) -> Result<FileSystemTypeList, io::Error>
+	pub fn parse(proc_path: &ProcPath) -> io::Result<FileSystemTypeList>
 	{
 		let file_path = proc_path.file_path("filesystems");
 		let reader = file_path.read_raw()?;

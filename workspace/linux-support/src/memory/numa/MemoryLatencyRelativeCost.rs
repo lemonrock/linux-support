@@ -10,6 +10,8 @@
 ///
 /// This is called 'distance' in Linux and in the ACPI SLIT table.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct MemoryLatencyRelativeCost(NonZeroU8);
 
 impl TryFrom<u8> for MemoryLatencyRelativeCost

@@ -34,27 +34,38 @@ impl NumberOfFileHandles
 	///
 	/// Allocated + free should equal maximum.
 	#[inline(always)]
-	pub fn allocated_free_and_maximum(proc_path: &ProcPath) -> (Self, Self, Self)
+	pub fn allocated_free_and_maximum(proc_path: &ProcPath) -> io::Result<AllocatedFreeAndMaximumNumberOfFileHandles>
 	{
-		let bytes = proc_path.sys_fs_file_path("file-nr").read_raw_without_line_feed().unwrap();
+		let bytes = proc_path.sys_fs_file_path("file-nr").read_raw_without_line_feed()?;
 		let mut fields = bytes.split_bytes_n(3, b'\t');
 
 		#[inline(always)]
-		fn next<'a>(fields: &mut impl Iterator<Item=&'a [u8]>) -> NumberOfFileHandles
+		fn next<'a>(fields: &mut impl Iterator<Item=&'a [u8]>, field_name: &'static str) -> io::Result<NumberOfFileHandles>
 		{
-			NumberOfFileHandles(usize::parse_decimal_number(fields.next().unwrap()).unwrap())
+			let next = fields.next().ok_or(io_error_invalid_data(format!("Missing field {}", field_name)))?;
+			let parsed = usize::parse_decimal_number(next).map_err(io_error_invalid_data)?;
+			Ok(NumberOfFileHandles(parsed))
 		}
-		(next(&mut fields), next(&mut fields), next(&mut fields))
+		
+		Ok
+		(
+			AllocatedFreeAndMaximumNumberOfFileHandles
+			{
+				allocated: next(&mut fields, "allocated")?,
+				free: next(&mut fields, "free")?,
+				maximum: next(&mut fields, "maximum")?,
+			}
+		)
 	}
 
 	/// Maximum as reported by `/proc/sys/fs/file-max`.
 	///
 	/// Default varies; might be 99,642 on a system with 1Gb.
 	#[inline(always)]
-	pub fn maximum(proc_path: &ProcPath) -> Self
+	pub fn maximum(proc_path: &ProcPath) -> io::Result<Self>
 	{
-		let value: usize = Self::file_max_file_path(proc_path).read_value().unwrap();
-		Self(value)
+		let value: usize = Self::file_max_file_path(proc_path).read_value()?;
+		Ok(Self(value))
 	}
 
 	/// Set maximum in `/proc/sys/fs/file-max`.

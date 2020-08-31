@@ -4,6 +4,8 @@
 
 /// Memory policy.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(i32)]
 pub enum MemoryPolicy
 {
@@ -47,7 +49,7 @@ impl MemoryPolicy
 
 	/// Valid NUMA nodes for set syscalls.
 	#[inline(always)]
-	pub fn get_current_thread_valid_numa_nodes_for_set_memory_policy_and_mbind() -> BitSet<NumaNode>
+	pub fn get_current_thread_valid_numa_nodes_for_set_memory_policy_and_mbind() -> NumaNodes
 	{
 		let mut bit_set = unsafe { BitSet::new_uninitialized() };
 		let (pointer, length) = bit_set.to_raw_parts_mut();
@@ -55,7 +57,7 @@ impl MemoryPolicy
 		Self::guard_result(get_mempolicy(null_mut(), pointer, length, null(), GetMemoryPolicyFlags::MPOL_F_MEMS_ALLOWED));
 
 		bit_set.shrink_to_fit();
-		bit_set
+		NumaNodes(bit_set)
 	}
 
 	/// Valid policy and NUMA nodes for memory.
@@ -90,7 +92,7 @@ impl MemoryPolicy
 
 	/// Valid policy and NUMA nodes for memory if the current thread's policy is interleaved.
 	///
-	/// Seems to bve very brittle.
+	/// Seems to be very brittle.
 	#[inline(always)]
 	pub fn get_current_thread_numa_node_for_next_interleaved_internal_kernel_page() -> Option<NumaNode>
 	{

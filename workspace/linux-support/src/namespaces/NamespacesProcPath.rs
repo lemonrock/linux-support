@@ -8,33 +8,6 @@
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct NamespacesProcPath<'a>(pub &'a ProcPath);
 
-/// `setgroups` permission.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub enum SetGroupsPermission
-{
-	/// Allow.
-	Allow,
-
-	/// Deny.
-	Deny,
-}
-
-impl<'a> IntoLineFeedTerminatedByteString<'a> for SetGroupsPermission
-{
-	/// Converts data to a byte string terminated with a new line (`\n`).
-	#[inline(always)]
-	fn into_line_feed_terminated_byte_string(self) -> Cow<'a, [u8]>
-	{
-		use self::SetGroupsPermission::*;
-
-		match self
-		{
-			Allow => Cow::from(b"allow\n" as &[u8]),
-			Deny => Cow::from(b"deny\n" as &[u8]),
-		}
-	}
-}
-
 #[allow(missing_docs)]
 impl<'a> NamespacesProcPath<'a>
 {

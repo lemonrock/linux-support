@@ -7,11 +7,13 @@
 #[derive(Deserialize, Serialize)]
 pub struct ThreadDiagnostic
 {
-	pub thread_name: DiagnosticUnobtainableResult<ThreadName>,
+	pub name: DiagnosticUnobtainableResult<ThreadName>,
 	
-	pub current_thread_priority: DiagnosticUnobtainableResult<Nice>,
+	pub priority: DiagnosticUnobtainableResult<Nice>,
 	
-	pub current_thread_scheduler_policy_and_flags: DiagnosticUnobtainableResult<PerThreadSchedulerPolicyAndFlags>,
+	pub io_priority: DiagnosticUnobtainableResult<IoPriority>,
+	
+	pub scheduler_policy_and_flags: DiagnosticUnobtainableResult<PerThreadSchedulerPolicyAndFlags>,
 }
 
 impl ThreadDiagnostic
@@ -20,11 +22,13 @@ impl ThreadDiagnostic
 	{
 		Self
 		{
-			thread_name: ThreadName::get_thread_name(process_identifier, thread_identifier, proc_path).map_err(DiagnosticUnobtainable::from),
+			name: ThreadName::get_thread_name(process_identifier, thread_identifier, proc_path).map_err(DiagnosticUnobtainable::from),
 			
-			current_thread_priority: Nice::get_thread_priority(thread_identifier).map_err(|_: ()| DiagnosticUnobtainable(format!("Could not obtain current thread priority"))),
+			priority: Nice::get_thread_priority(thread_identifier).map_err(|_: ()| DiagnosticUnobtainable(format!("Could not obtain thread priority"))),
 			
-			current_thread_scheduler_policy_and_flags: PerThreadSchedulerPolicyAndFlags::get_for_thread(ThreadIdentifierChoice::Other(thread_identifier)).map_err(DiagnosticUnobtainable::from),
+			io_priority: IoPriority::get_for_thread(thread_identifier).map_err(|cause| DiagnosticUnobtainable(format!("Could not obtain thread I/O priority ({})", IoPriority::explain_error(cause)))),
+			
+			scheduler_policy_and_flags: PerThreadSchedulerPolicyAndFlags::get_for_thread(ThreadIdentifierChoice::Other(thread_identifier)).map_err(DiagnosticUnobtainable::from),
 		}
 	}
 }
