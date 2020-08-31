@@ -132,7 +132,7 @@ impl Configuration
 	#[inline(always)]
 	pub fn configure(&self, run_as_daemon: bool, global_computed_scheduling_affinity: Option<&GlobalComputedSchedulingConfiguration>, process_affinity: Option<&HyperThreads>) -> (Arc<impl Terminate>, DefaultPageSizeAndHugePageSizes)
 	{
-		let defaults = self.file_system_layout.defaults();
+		let defaults = self.file_system_layout.defaults().unwrap();
 		let terminate = self.process_configuration.configure(run_as_daemon, &self.file_system_layout, &defaults, &mut DogStatsDStaticInitialization, global_computed_scheduling_affinity, process_affinity).expect("Could not configure process");
 		(terminate, defaults)
 	}

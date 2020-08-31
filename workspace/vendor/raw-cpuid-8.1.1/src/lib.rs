@@ -17,7 +17,7 @@ extern crate bitflags;
 
 /// Provides `cpuid` on stable by linking against a C implementation.
 #[cfg(not(feature = "use_arch"))]
-mod native_cpuid {
+pub mod native_cpuid {
     use super::CpuIdResult;
 
     extern "C" {
@@ -38,7 +38,7 @@ mod native_cpuid {
 
 /// Uses Rust's `cpuid` function from the `arch` module.
 #[cfg(feature = "use_arch")]
-mod native_cpuid {
+pub mod native_cpuid {
     use super::CpuIdResult;
 
     #[cfg(target_arch = "x86")]
@@ -74,6 +74,7 @@ mod std {
 ///
 /// First parameter is cpuid leaf (EAX register value),
 /// second optional parameter is the subleaf (ECX register value).
+#[macro_export]
 macro_rules! cpuid {
     ($eax:expr) => {
         $crate::native_cpuid::cpuid_count($eax as u32, 0)
@@ -103,12 +104,12 @@ fn get_bits(r: u32, from: u32, to: u32) -> u32 {
 }
 
 macro_rules! check_flag {
-    ($doc:meta, $fun:ident, $flags:ident, $flag:expr) => (
+    ($doc:meta, $fun:ident, $flags:ident, $flag:expr) => {
         #[$doc]
         pub fn $fun(&self) -> bool {
             self.$flags.contains($flag)
         }
-    )
+    };
 }
 
 macro_rules! is_bit_set {
@@ -118,12 +119,12 @@ macro_rules! is_bit_set {
 }
 
 macro_rules! check_bit_fn {
-    ($doc:meta, $fun:ident, $field:ident, $bit:expr) => (
+    ($doc:meta, $fun:ident, $field:ident, $bit:expr) => {
         #[$doc]
         pub fn $fun(&self) -> bool {
             is_bit_set!(self.$field, $bit)
         }
-    )
+    };
 }
 
 /// Main type used to query for information about the CPU we're running on.
@@ -167,7 +168,9 @@ const EAX_TIME_STAMP_COUNTER_INFO: u32 = 0x15;
 const EAX_FREQUENCY_INFO: u32 = 0x16;
 const EAX_SOC_VENDOR_INFO: u32 = 0x17;
 const EAX_DETERMINISTIC_ADDRESS_TRANSLATION_INFO: u32 = 0x18;
+const EAX_HYPERVISOR_INFO: u32 = 0x40000000;
 const EAX_EXTENDED_FUNCTION_INFO: u32 = 0x80000000;
+const EAX_MEMORY_ENCRYPTION_INFO: u32 = 0x8000001F;
 
 impl CpuId {
     /// Return new CPUID struct.
@@ -406,11 +409,18 @@ impl CpuId {
     pub fn get_processor_trace_info(&self) -> Option<ProcessorTraceInfo> {
         let res = cpuid!(EAX_TRACE_INFO, 0);
         if self.leaf_is_supported(EAX_TRACE_INFO) {
+            let res1 = if res.eax >= 1 {
+                Some(cpuid!(EAX_TRACE_INFO, 1))
+            } else {
+                None
+            };
+
             Some(ProcessorTraceInfo {
                 eax: res.eax,
                 ebx: res.ebx,
                 ecx: res.ecx,
                 edx: res.edx,
+                leaf1: res1,
             })
         } else {
             None
@@ -424,6 +434,7 @@ impl CpuId {
             Some(TscInfo {
                 eax: res.eax,
                 ebx: res.ebx,
+                ecx: res.ecx,
             })
         } else {
             None
@@ -465,6 +476,15 @@ impl CpuId {
                 ecx: res.ecx,
                 edx: res.edx,
             })
+        } else {
+            None
+        }
+    }
+
+    pub fn get_hypervisor_info(&self) -> Option<HypervisorInfo> {
+        let res = cpuid!(EAX_HYPERVISOR_INFO);
+        if res.eax > 0 {
+            Some(HypervisorInfo { res: res })
         } else {
             None
         }
@@ -546,6 +566,21 @@ impl CpuId {
 
         Some(ef)
     }
+
+    pub fn get_memory_encryption_info(&self) -> Option<MemoryEncryptionInfo> {
+        let res = cpuid!(EAX_EXTENDED_FUNCTION_INFO);
+        if res.eax < EAX_MEMORY_ENCRYPTION_INFO {
+            return None;
+        }
+
+        let res = cpuid!(EAX_MEMORY_ENCRYPTION_INFO);
+        Some(MemoryEncryptionInfo {
+            eax: MemoryEncryptionInfoEax { bits: res.eax },
+            ebx: res.ebx,
+            ecx: res.ecx,
+            edx: res.edx,
+        })
+    }
 }
 
 #[derive(Debug, Default)]
@@ -607,7 +642,7 @@ impl Iterator for CacheInfoIter {
             return self.next();
         }
 
-        for cache_info in CACHE_INFO_TABLE.into_iter() {
+        for cache_info in CACHE_INFO_TABLE.iter() {
             if cache_info.num == byte {
                 self.current += 1;
                 return Some(*cache_info);
@@ -618,20 +653,21 @@ impl Iterator for CacheInfoIter {
     }
 }
 
+/// What type of cache are we dealing with?
 #[derive(Copy, Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub enum CacheInfoType {
-    GENERAL,
-    CACHE,
+    General,
+    Cache,
     TLB,
     STLB,
     DTLB,
-    PREFETCH,
+    Prefetch,
 }
 
 impl Default for CacheInfoType {
     fn default() -> CacheInfoType {
-        CacheInfoType::GENERAL
+        CacheInfoType::General
     }
 }
 
@@ -770,12 +806,12 @@ impl CacheInfo {
 impl fmt::Display for CacheInfo {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let typ = match self.typ {
-            CacheInfoType::GENERAL => "N/A",
-            CacheInfoType::CACHE => "Cache",
+            CacheInfoType::General => "N/A",
+            CacheInfoType::Cache => "Cache",
             CacheInfoType::TLB => "TLB",
             CacheInfoType::STLB => "STLB",
             CacheInfoType::DTLB => "DTLB",
-            CacheInfoType::PREFETCH => "Prefetcher",
+            CacheInfoType::Prefetch => "Prefetcher",
         };
 
         write!(f, "{:x}:\t {}: {}", self.num, typ, self.desc())
@@ -786,7 +822,7 @@ impl fmt::Display for CacheInfo {
 pub const CACHE_INFO_TABLE: [CacheInfo; 108] = [
     CacheInfo {
         num: 0x00,
-        typ: CacheInfoType::GENERAL,
+        typ: CacheInfoType::General,
     },
     CacheInfo {
         num: 0x01,
@@ -810,19 +846,19 @@ pub const CACHE_INFO_TABLE: [CacheInfo; 108] = [
     },
     CacheInfo {
         num: 0x06,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x08,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x09,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x0A,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x0B,
@@ -830,107 +866,107 @@ pub const CACHE_INFO_TABLE: [CacheInfo; 108] = [
     },
     CacheInfo {
         num: 0x0C,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x0D,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x0E,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x21,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x22,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x23,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x24,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x25,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x29,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x2C,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x30,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x40,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x41,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x42,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x43,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x44,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x45,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x46,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x47,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x48,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x49,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x4A,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x4B,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x4C,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x4D,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x4E,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x4F,
@@ -982,7 +1018,7 @@ pub const CACHE_INFO_TABLE: [CacheInfo; 108] = [
     },
     CacheInfo {
         num: 0x60,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x61,
@@ -994,43 +1030,43 @@ pub const CACHE_INFO_TABLE: [CacheInfo; 108] = [
     },
     CacheInfo {
         num: 0x66,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x67,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x68,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x6A,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x6B,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x6C,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x6D,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x70,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x71,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x72,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x76,
@@ -1038,59 +1074,59 @@ pub const CACHE_INFO_TABLE: [CacheInfo; 108] = [
     },
     CacheInfo {
         num: 0x78,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x79,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x7A,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x7B,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x7C,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x7D,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x7F,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x80,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x82,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x83,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x84,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x85,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x86,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0x87,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0xB0,
@@ -1142,79 +1178,79 @@ pub const CACHE_INFO_TABLE: [CacheInfo; 108] = [
     },
     CacheInfo {
         num: 0xD0,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0xD1,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0xD2,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0xD6,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0xD7,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0xD8,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0xDC,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0xDD,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0xDE,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0xE2,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0xE3,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0xE4,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0xEA,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0xEB,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0xEC,
-        typ: CacheInfoType::CACHE,
+        typ: CacheInfoType::Cache,
     },
     CacheInfo {
         num: 0xF0,
-        typ: CacheInfoType::PREFETCH,
+        typ: CacheInfoType::Prefetch,
     },
     CacheInfo {
         num: 0xF1,
-        typ: CacheInfoType::PREFETCH,
+        typ: CacheInfoType::Prefetch,
     },
     CacheInfo {
         num: 0xFE,
-        typ: CacheInfoType::GENERAL,
+        typ: CacheInfoType::General,
     },
     CacheInfo {
         num: 0xFF,
-        typ: CacheInfoType::GENERAL,
+        typ: CacheInfoType::General,
     },
 ];
 
@@ -1242,6 +1278,10 @@ impl ProcessorSerial {
     /// (Available in Pentium III processor only; otherwise, the value in this register is reserved.)
     pub fn serial_middle(&self) -> u32 {
         self.edx
+    }
+
+    pub fn serial(&self) -> u64 {
+        (self.serial_lower() as u64) | (self.serial_middle() as u64) << 32
     }
 }
 
@@ -1525,6 +1565,13 @@ impl FeatureInfo {
     );
 
     check_flag!(
+        doc = "A value of 1 indicates the indicates the presence of a hypervisor.",
+        has_hypervisor,
+        edx_ecx,
+        FeatureInfoFlags::HYPERVISOR
+    );
+
+    check_flag!(
         doc = "Floating Point Unit On-Chip. The processor contains an x87 FPU.",
         has_fpu,
         edx_ecx,
@@ -1763,7 +1810,7 @@ impl FeatureInfo {
         doc = "Max APIC IDs reserved field is Valid. A value of 0 for HTT indicates \
                there is only a single logical processor in the package and software \
                should assume only a single APIC ID is reserved.  A value of 1 for HTT \
-               indicates the value in CPUID.1.EBX[23:16] (the Maximum number of \
+               indicates the value in CPUID.1.EBX\\[23:16\\] (the Maximum number of \
                addressable IDs for logical processors in this package) is valid for the \
                package.",
         has_htt,
@@ -1854,6 +1901,8 @@ bitflags! {
         const F16C = 1 << 29;
         /// A value of 1 indicates that processor supports RDRAND instruction.
         const RDRAND = 1 << 30;
+        /// A value of 1 indicates the indicates the presence of a hypervisor.
+        const HYPERVISOR = 1 << 31;
 
 
         // EDX flags
@@ -1941,8 +1990,8 @@ impl Iterator for CacheParametersIter {
         };
 
         match cp.cache_type() {
-            CacheType::NULL => None,
-            CacheType::RESERVED => None,
+            CacheType::Null => None,
+            CacheType::Reserved => None,
             _ => {
                 self.current += 1;
                 Some(cp)
@@ -1964,17 +2013,20 @@ pub struct CacheParameter {
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub enum CacheType {
     /// Null - No more caches
-    NULL = 0,
-    DATA,
-    INSTRUCTION,
-    UNIFIED,
+    Null = 0,
+    /// Data cache
+    Data,
+    /// Instruction cache
+    Instruction,
+    /// Data and Instruction cache
+    Unified,
     /// 4-31 = Reserved
-    RESERVED,
+    Reserved,
 }
 
 impl Default for CacheType {
     fn default() -> CacheType {
-        CacheType::NULL
+        CacheType::Null
     }
 }
 
@@ -1983,11 +2035,11 @@ impl CacheParameter {
     pub fn cache_type(&self) -> CacheType {
         let typ = get_bits(self.eax, 0, 4) as u8;
         match typ {
-            0 => CacheType::NULL,
-            1 => CacheType::DATA,
-            2 => CacheType::INSTRUCTION,
-            3 => CacheType::UNIFIED,
-            _ => CacheType::RESERVED,
+            0 => CacheType::Null,
+            1 => CacheType::Data,
+            2 => CacheType::Instruction,
+            3 => CacheType::Unified,
+            _ => CacheType::Reserved,
         }
     }
 
@@ -2153,7 +2205,7 @@ impl ThermalPowerInfo {
 
     check_flag!(
         doc = "Intel Turbo Boost Technology Available (see description of \
-               IA32_MISC_ENABLE[38]).",
+               IA32_MISC_ENABLE\\[38\\]).",
         has_turbo_boost,
         eax,
         ThermalPowerFeaturesEax::TURBO_BOOST
@@ -2721,7 +2773,7 @@ pub struct DirectCacheAccessInfo {
 }
 
 impl DirectCacheAccessInfo {
-    /// Value of bits [31:0] of IA32_PLATFORM_DCA_CAP MSR (address 1F8H)
+    /// Value of bits \[31:0\] of IA32_PLATFORM_DCA_CAP MSR (address 1F8H)
     pub fn get_dca_cap_value(&self) -> u32 {
         self.eax
     }
@@ -2845,19 +2897,35 @@ bitflags! {
     }
 }
 
+/// Iterates over the system topology in order to retrieve more
+/// system information at each level of the topology.
 #[derive(Debug, Default)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct ExtendedTopologyIter {
     level: u32,
 }
 
-#[derive(Debug, Default)]
+/// Gives detailed information about the current level in the topology
+/// (how many cores, what type etc.).
+#[derive(Default)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct ExtendedTopologyLevel {
     eax: u32,
     ebx: u32,
     ecx: u32,
     edx: u32,
+}
+
+impl fmt::Debug for ExtendedTopologyLevel {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("ExtendedTopologyLevel")
+            .field("processors", &self.processors())
+            .field("number", &self.level_number())
+            .field("type", &self.level_type())
+            .field("x2apic_id", &self.x2apic_id())
+            .field("next_apic_id", &self.shift_right_for_next_apic_id())
+            .finish()
+    }
 }
 
 impl ExtendedTopologyLevel {
@@ -2875,9 +2943,9 @@ impl ExtendedTopologyLevel {
     // Level type.
     pub fn level_type(&self) -> TopologyType {
         match get_bits(self.ecx, 8, 15) {
-            0 => TopologyType::INVALID,
+            0 => TopologyType::Invalid,
             1 => TopologyType::SMT,
-            2 => TopologyType::CORE,
+            2 => TopologyType::Core,
             _ => unreachable!(),
         }
     }
@@ -2894,18 +2962,19 @@ impl ExtendedTopologyLevel {
     }
 }
 
+/// What type of core we have at this level in the topology (real CPU or hyper-threaded).
 #[derive(PartialEq, Eq, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub enum TopologyType {
-    INVALID = 0,
+    Invalid = 0,
     /// Hyper-thread (Simultaneous multithreading)
     SMT = 1,
-    CORE = 2,
+    Core = 2,
 }
 
 impl Default for TopologyType {
     fn default() -> TopologyType {
-        TopologyType::INVALID
+        TopologyType::Invalid
     }
 }
 
@@ -2924,7 +2993,7 @@ impl Iterator for ExtendedTopologyIter {
         };
 
         match et.level_type() {
-            TopologyType::INVALID => None,
+            TopologyType::Invalid => None,
             _ => Some(et),
         }
     }
@@ -3134,7 +3203,7 @@ pub struct ExtendedStateIter {
 /// and offset information for each processor extended state save area:///
 ///
 /// For i = 2 to 62 // sub-leaf 1 is reserved
-///   IF (CPUID.(EAX=0DH, ECX=0):VECTOR[i] = 1 ) // VECTOR is the 64-bit value of EDX:EAX
+///   IF (CPUID.(EAX=0DH, ECX=0):VECTOR\[i\] = 1 ) // VECTOR is the 64-bit value of EDX:EAX
 ///     Execute CPUID.(EAX=0DH, ECX = i) to examine size and offset for sub-leaf i;
 /// FI;
 impl Iterator for ExtendedStateIter {
@@ -3478,7 +3547,7 @@ impl SgxInfo {
         get_bits(self.edx, 8, 15) as u8
     }
 
-    /// Reports the valid bits of SECS.ATTRIBUTES[127:0] that software can set with ECREATE.
+    /// Reports the valid bits of SECS.ATTRIBUTES\[127:0\] that software can set with ECREATE.
     pub fn secs_attributes(&self) -> (u64, u64) {
         let lower = self.eax1 as u64 | (self.ebx1 as u64) << 32;
         let upper = self.ecx1 as u64 | (self.edx1 as u64) << 32;
@@ -3501,8 +3570,8 @@ impl Iterator for SgxSectionIter {
     type Item = SgxSectionInfo;
 
     fn next(&mut self) -> Option<SgxSectionInfo> {
-        self.current += 1;
         let res = cpuid!(EAX_SGX, self.current);
+        self.current += 1;
         match get_bits(res.eax, 0, 3) {
             0b0001 => Some(SgxSectionInfo::Epc(EpcSection {
                 eax: res.eax,
@@ -3562,6 +3631,7 @@ pub struct ProcessorTraceInfo {
     ebx: u32,
     ecx: u32,
     edx: u32,
+    leaf1: Option<CpuIdResult>,
 }
 
 impl ProcessorTraceInfo {
@@ -3595,15 +3665,15 @@ impl ProcessorTraceInfo {
     );
 
     check_bit_fn!(
-        doc = "Indicates support of PTWRITE. Writes can set IA32_RTIT_CTL[12] (PTWEn \
-               and IA32_RTIT_CTL[5] (FUPonPTW), and PTWRITE can generate packets",
+        doc = "Indicates support of PTWRITE. Writes can set IA32_RTIT_CTL\\[12\\] (PTWEn \
+               and IA32_RTIT_CTL\\[5\\] (FUPonPTW), and PTWRITE can generate packets",
         has_ptwrite,
         ebx,
         4
     );
 
     check_bit_fn!(
-        doc = "Support of Power Event Trace. Writes can set IA32_RTIT_CTL[4] (PwrEvtEn) \
+        doc = "Support of Power Event Trace. Writes can set IA32_RTIT_CTL\\[4\\] (PwrEvtEn) \
                enabling Power Event Trace packet generation.",
         has_power_event_trace,
         ebx,
@@ -3647,87 +3717,75 @@ impl ProcessorTraceInfo {
         31
     );
 
-    /// Iterator over processor trace info sub-leafs.
-    pub fn iter(&self) -> ProcessorTraceIter {
-        ProcessorTraceIter {
-            current: 0,
-            count: self.eax,
-        }
-    }
-}
-
-/// Iterator over the Processor Trace sub-leafs.
-#[derive(Debug, Default)]
-#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
-pub struct ProcessorTraceIter {
-    current: u32,
-    count: u32,
-}
-
-impl Iterator for ProcessorTraceIter {
-    type Item = ProcessorTrace;
-
-    fn next(&mut self) -> Option<ProcessorTrace> {
-        if self.current <= self.count {
-            self.current += 1;
-            let res = cpuid!(EAX_TRACE_INFO, self.current);
-            return Some(ProcessorTrace {
-                eax: res.eax,
-                ebx: res.ebx,
-            });
-        }
-
-        None
-    }
-}
-
-/// Processor Trace information sub-leaf.
-#[derive(Debug, Default)]
-#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
-pub struct ProcessorTrace {
-    eax: u32,
-    ebx: u32,
-}
-
-impl ProcessorTrace {
     /// Number of configurable Address Ranges for filtering (Bits 2:0).
     pub fn configurable_address_ranges(&self) -> u8 {
-        get_bits(self.eax, 0, 2) as u8
+        self.leaf1.map_or(0, |res| get_bits(res.eax, 0, 2) as u8)
     }
 
     /// Bitmap of supported MTC period encodings (Bit 31:16).
     pub fn supported_mtc_period_encodings(&self) -> u16 {
-        get_bits(self.eax, 16, 31) as u16
+        self.leaf1.map_or(0, |res| get_bits(res.eax, 16, 31) as u16)
     }
 
     /// Bitmap of supported Cycle Threshold value encodings (Bits 15-0).
     pub fn supported_cycle_threshold_value_encodings(&self) -> u16 {
-        get_bits(self.ebx, 0, 15) as u16
+        self.leaf1.map_or(0, |res| get_bits(res.ebx, 0, 15) as u16)
     }
 
     /// Bitmap of supported Configurable PSB frequency encodings (Bit 31:16)
     pub fn supported_psb_frequency_encodings(&self) -> u16 {
-        get_bits(self.ebx, 16, 31) as u16
+        self.leaf1.map_or(0, |res| get_bits(res.ebx, 16, 31) as u16)
     }
 }
 
-/// Contains time stamp counter information.
-#[derive(Debug, Default)]
+/// Time Stamp Counter and Nominal Core Crystal Clock Information Leaf.
+#[derive(Default)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct TscInfo {
     eax: u32,
     ebx: u32,
+    ecx: u32,
+}
+
+impl fmt::Debug for TscInfo {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("TscInfo")
+            .field("denominator/eax", &self.denominator())
+            .field("numerator/ebx", &self.numerator())
+            .field("nominal_frequency/ecx", &self.nominal_frequency())
+            .finish()
+    }
 }
 
 impl TscInfo {
-    /// An unsigned integer which is the denominator of the TSC/”core crystal clock” ratio (Bits 31:0).
-    pub fn get_tsc_ratio_denominator(&self) -> u32 {
+    /// An unsigned integer which is the denominator of the TSC/”core crystal clock” ratio.
+    pub fn denominator(&self) -> u32 {
         self.eax
     }
 
-    /// An unsigned integer which is the numerator of the TSC/”core crystal clock” ratio (Bits 31-0).
-    pub fn get_tsc_ratio_numerator(&self) -> u32 {
+    /// An unsigned integer which is the numerator of the TSC/”core crystal clock” ratio.
+    ///
+    /// If this is 0, the TSC/”core crystal clock” ratio is not enumerated.
+    pub fn numerator(&self) -> u32 {
         self.ebx
+    }
+
+    /// An unsigned integer which is the nominal frequency of the core crystal clock in Hz.
+    ///
+    /// If this is 0, the nominal core crystal clock frequency is not enumerated.
+    pub fn nominal_frequency(&self) -> u32 {
+        self.ecx
+    }
+
+    /// “TSC frequency” = “core crystal clock frequency” * EBX/EAX.
+    pub fn tsc_frequency(&self) -> Option<u64> {
+        // In some case TscInfo is a valid leaf, but the values reported are still 0
+        // we should avoid a division by zero in case denominator ends up being 0.
+        if self.nominal_frequency() == 0 || self.numerator() == 0 || self.denominator() == 0 {
+            return None;
+        }
+
+        Some(self.nominal_frequency() as u64 * self.numerator() as u64 / self.denominator() as u64)
     }
 }
 
@@ -3992,6 +4050,70 @@ impl fmt::Display for SoCVendorBrand {
     }
 }
 
+/// Information about Hypervisor (https://lwn.net/Articles/301888/)
+pub struct HypervisorInfo {
+    res: CpuIdResult,
+}
+
+impl fmt::Debug for HypervisorInfo {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("HypervisorInfo")
+            .field("type", &self.identify())
+            .field("tsc_frequency", &self.tsc_frequency())
+            .field("apic_frequency", &self.apic_frequency())
+            .finish()
+    }
+}
+
+/// Identifies the different Hypervisor products.
+#[derive(Debug, Eq, PartialEq)]
+pub enum Hypervisor {
+    Xen,
+    VMware,
+    HyperV,
+    KVM,
+    Unknown(u32, u32, u32),
+}
+
+impl HypervisorInfo {
+    pub fn identify(&self) -> Hypervisor {
+        match (self.res.ebx, self.res.ecx, self.res.edx) {
+            // "VMwareVMware"
+            (0x61774d56, 0x4d566572, 0x65726177) => Hypervisor::VMware,
+            // "XenVMMXenVMM"
+            (0x566e6558, 0x65584d4d, 0x4d4d566e) => Hypervisor::Xen,
+            // "Microsoft Hv"
+            (0x7263694d, 0x666f736f, 0x76482074) => Hypervisor::HyperV,
+            // "KVMKVMKVM\0\0\0"
+            (0x4b4d564b, 0x564b4d56, 0x0000004d) => Hypervisor::KVM,
+            (ebx, ecx, edx) => Hypervisor::Unknown(ebx, ecx, edx),
+        }
+    }
+
+    /// TSC frequency in kHz.
+    pub fn tsc_frequency(&self) -> Option<u32> {
+        // vm aware tsc frequency retrieval:
+        // # EAX: (Virtual) TSC frequency in kHz.
+        if self.res.eax >= 0x40000010 {
+            let virt_tinfo = cpuid!(0x40000010, 0);
+            Some(virt_tinfo.eax)
+        } else {
+            None
+        }
+    }
+
+    /// (Virtual) Bus (local apic timer) frequency in kHz.
+    pub fn apic_frequency(&self) -> Option<u32> {
+        // # EBX: (Virtual) Bus (local apic timer) frequency in kHz.
+        if self.res.eax >= 0x40000010 {
+            let virt_tinfo = cpuid!(0x40000010, 0);
+            Some(virt_tinfo.ebx)
+        } else {
+            None
+        }
+    }
+}
+
 #[derive(Debug, Default)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct ExtendedFunctionInfo {
@@ -4117,58 +4239,74 @@ impl ExtendedFunctionInfo {
 
     /// Is LAHF/SAHF available in 64-bit mode?
     pub fn has_lahf_sahf(&self) -> bool {
-        self.leaf_is_supported(1) && ExtendedFunctionInfoEcx {
-            bits: self.data[1].ecx,
-        }.contains(ExtendedFunctionInfoEcx::LAHF_SAHF)
+        self.leaf_is_supported(1)
+            && ExtendedFunctionInfoEcx {
+                bits: self.data[1].ecx,
+            }
+            .contains(ExtendedFunctionInfoEcx::LAHF_SAHF)
     }
 
     /// Is LZCNT available?
     pub fn has_lzcnt(&self) -> bool {
-        self.leaf_is_supported(1) && ExtendedFunctionInfoEcx {
-            bits: self.data[1].ecx,
-        }.contains(ExtendedFunctionInfoEcx::LZCNT)
+        self.leaf_is_supported(1)
+            && ExtendedFunctionInfoEcx {
+                bits: self.data[1].ecx,
+            }
+            .contains(ExtendedFunctionInfoEcx::LZCNT)
     }
 
     /// Is PREFETCHW available?
     pub fn has_prefetchw(&self) -> bool {
-        self.leaf_is_supported(1) && ExtendedFunctionInfoEcx {
-            bits: self.data[1].ecx,
-        }.contains(ExtendedFunctionInfoEcx::PREFETCHW)
+        self.leaf_is_supported(1)
+            && ExtendedFunctionInfoEcx {
+                bits: self.data[1].ecx,
+            }
+            .contains(ExtendedFunctionInfoEcx::PREFETCHW)
     }
 
     /// Are fast system calls available.
     pub fn has_syscall_sysret(&self) -> bool {
-        self.leaf_is_supported(1) && ExtendedFunctionInfoEdx {
-            bits: self.data[1].edx,
-        }.contains(ExtendedFunctionInfoEdx::SYSCALL_SYSRET)
+        self.leaf_is_supported(1)
+            && ExtendedFunctionInfoEdx {
+                bits: self.data[1].edx,
+            }
+            .contains(ExtendedFunctionInfoEdx::SYSCALL_SYSRET)
     }
 
     /// Is there support for execute disable bit.
     pub fn has_execute_disable(&self) -> bool {
-        self.leaf_is_supported(1) && ExtendedFunctionInfoEdx {
-            bits: self.data[1].edx,
-        }.contains(ExtendedFunctionInfoEdx::EXECUTE_DISABLE)
+        self.leaf_is_supported(1)
+            && ExtendedFunctionInfoEdx {
+                bits: self.data[1].edx,
+            }
+            .contains(ExtendedFunctionInfoEdx::EXECUTE_DISABLE)
     }
 
     /// Is there support for 1GiB pages.
     pub fn has_1gib_pages(&self) -> bool {
-        self.leaf_is_supported(1) && ExtendedFunctionInfoEdx {
-            bits: self.data[1].edx,
-        }.contains(ExtendedFunctionInfoEdx::GIB_PAGES)
+        self.leaf_is_supported(1)
+            && ExtendedFunctionInfoEdx {
+                bits: self.data[1].edx,
+            }
+            .contains(ExtendedFunctionInfoEdx::GIB_PAGES)
     }
 
     /// Check support for rdtscp instruction.
     pub fn has_rdtscp(&self) -> bool {
-        self.leaf_is_supported(1) && ExtendedFunctionInfoEdx {
-            bits: self.data[1].edx,
-        }.contains(ExtendedFunctionInfoEdx::RDTSCP)
+        self.leaf_is_supported(1)
+            && ExtendedFunctionInfoEdx {
+                bits: self.data[1].edx,
+            }
+            .contains(ExtendedFunctionInfoEdx::RDTSCP)
     }
 
     /// Check support for 64-bit mode.
     pub fn has_64bit_mode(&self) -> bool {
-        self.leaf_is_supported(1) && ExtendedFunctionInfoEdx {
-            bits: self.data[1].edx,
-        }.contains(ExtendedFunctionInfoEdx::I64BIT_MODE)
+        self.leaf_is_supported(1)
+            && ExtendedFunctionInfoEdx {
+                bits: self.data[1].edx,
+            }
+            .contains(ExtendedFunctionInfoEdx::I64BIT_MODE)
     }
 }
 
@@ -4199,5 +4337,75 @@ bitflags! {
         const RDTSCP = 1 << 27;
         /// Intel ® 64 Architecture available if 1 (Bit 29).
         const I64BIT_MODE = 1 << 29;
+    }
+}
+
+#[derive(Debug, Default)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+pub struct MemoryEncryptionInfo {
+    eax: MemoryEncryptionInfoEax,
+    ebx: u32,
+    ecx: u32,
+    edx: u32,
+}
+
+impl MemoryEncryptionInfo {
+    check_flag!(
+        doc = "Secure Memory Encryption is supported if set.",
+        has_sme,
+        eax,
+        MemoryEncryptionInfoEax::SME
+    );
+
+    check_flag!(
+        doc = "Secure Encrypted Virtualization is supported if set.",
+        has_sev,
+        eax,
+        MemoryEncryptionInfoEax::SEV
+    );
+
+    check_flag!(
+        doc = "The Page Flush MSR is available if set.",
+        has_page_flush_msr,
+        eax,
+        MemoryEncryptionInfoEax::PAGE_FLUSH_MSR
+    );
+
+    check_flag!(
+        doc = "SEV Encrypted State is supported if set.",
+        has_sev_es,
+        eax,
+        MemoryEncryptionInfoEax::SEV_ES
+    );
+
+    pub fn physical_address_reduction(&self) -> u8 {
+        get_bits(self.ebx, 6, 11) as u8
+    }
+
+    pub fn c_bit_position(&self) -> u8 {
+        get_bits(self.ebx, 0, 5) as u8
+    }
+
+    pub fn max_encrypted_guests(&self) -> u32 {
+        self.ecx
+    }
+
+    pub fn min_sev_no_es_asid(&self) -> u32 {
+        self.edx
+    }
+}
+
+bitflags! {
+    #[derive(Default)]
+    #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+    struct MemoryEncryptionInfoEax: u32 {
+        /// Bit 00: SME supported
+        const SME = 1 << 0;
+        /// Bit 01: SEV supported
+        const SEV = 1 << 1;
+        /// Bit 02: Page Flush MSR available
+        const PAGE_FLUSH_MSR = 1 << 2;
+        /// Bit 03: SEV-ES supported
+        const SEV_ES = 1 << 3;
     }
 }

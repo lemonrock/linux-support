@@ -4,11 +4,12 @@
 
 /// Data (`PerBitSetAware`) with an item per BitSetAware, such as a HyperThread, in use by the process.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 pub struct PerBitSetAwareData<BSA: BitSetAware, PerBitSetAware>
 {
 	data: Box<[Option<PerBitSetAware>]>,
 	bit_set: BitSet<BSA>,
-	marker: PhantomData<BSA>,
+	#[serde(skip)] marker: PhantomData<BSA>,
 }
 
 impl<BSA: BitSetAware, PerBitSetAware> Deref for PerBitSetAwareData<BSA, PerBitSetAware>
