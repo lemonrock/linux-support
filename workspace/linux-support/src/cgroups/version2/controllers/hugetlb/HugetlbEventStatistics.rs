@@ -4,6 +4,8 @@
 
 /// Statistics.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct HugetlbEventStatistics
 {
 	/// The number of allocation failure due to HugeTLB limit.

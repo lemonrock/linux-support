@@ -20,6 +20,13 @@ pub trait Identifier: From<u32> + Into<u32> + Into<BpfCommandGetIdentifierValueO
 	/// Type of access permissions, if used.
 	type Access;
 	
+	/// First identifier.
+	#[inline(always)]
+	fn first() -> Option<Self>
+	{
+		Self::from(0).next()
+	}
+	
 	/// Next identifier.
 	#[inline(always)]
 	fn next(self) -> Option<Self>

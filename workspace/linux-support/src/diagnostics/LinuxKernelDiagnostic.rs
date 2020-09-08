@@ -18,6 +18,10 @@ pub struct LinuxKernelDiagnostic
 	pub lock_down_state: DiagnosticUnobtainableResult<LockDownState>,
 
 	pub command_line_parameters: DiagnosticUnobtainableResult<LinuxKernelCommandLineParameters>,
+
+	pub modprobe_executable_path: DiagnosticUnobtainableResult<Option<PathBuf>>,
+
+	pub is_module_loading_and_unloading_disabled: DiagnosticUnobtainableResult<bool>,
 }
 
 impl LinuxKernelDiagnostic
@@ -32,6 +36,8 @@ impl LinuxKernelDiagnostic
 			modules: LinuxKernelModulesList::parse(proc_path).map_err(DiagnosticUnobtainable::from),
 			lock_down_state: LockDownState::current(sys_path).map_err(DiagnosticUnobtainable::from),
 			command_line_parameters: LinuxKernelCommandLineParameters::parse(proc_path).map_err(DiagnosticUnobtainable::from),
+			modprobe_executable_path: catch_unwind(|| LinuxKernelModuleName::modprobe_executable_path(proc_path)).map_err(|_| DiagnosticUnobtainable(format!("modprobe_executable_path panicked"))),
+			is_module_loading_and_unloading_disabled: catch_unwind(|| LinuxKernelModuleName::is_module_loading_and_unloading_disabled(proc_path)).map_err(|_| DiagnosticUnobtainable(format!("is_module_loading_and_unloading_disabled panicked"))),
 		}
 	}
 }

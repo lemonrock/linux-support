@@ -50,7 +50,7 @@ impl JustInTimeCompilationHardening
 {
 	/// Value of `/proc/sys/net/core/bpf_jit_harden`.
 	#[inline(always)]
-	pub fn value(self, proc_path: &ProcPath) -> io::Result<Self>
+	pub fn value(proc_path: &ProcPath) -> io::Result<Self>
 	{
 		Self::sys_net_core_bpf_jit_harden_file_path(proc_path).read_value()
 	}

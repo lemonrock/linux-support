@@ -2,17 +2,26 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Microseconds (u64).
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[allow(missing_docs)]
+#[derive(Debug)]
 #[derive(Deserialize, Serialize)]
-#[repr(transparent)]
-pub struct U64Microseconds(pub u64);
-
-impl ParseNumber for U64Microseconds
+#[serde(deny_unknown_fields)]
+pub struct ExtendedBerkeleyPacketFilterTypeFormatDiagnostic
 {
-	#[inline(always)]
-	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
+	pub id: BpfTypeFormatIdentifier,
+	
+	pub data: Option<ByteBuf>,
+}
+
+impl ExtendedBerkeleyPacketFilterTypeFormatDiagnostic
+{
+	fn gather(file_descriptor: &BpfTypeFormatFileDescriptor) -> Result<Self, Errno>
 	{
-		Ok(Self(u64::parse_number(bytes, radix, parse_byte)?))
+		file_descriptor.get_information().map(|information| Self
+		{
+			id: information.identifier(),
+			
+			data: information.data().map(|slice| slice.to_vec().into()),
+		})
 	}
 }

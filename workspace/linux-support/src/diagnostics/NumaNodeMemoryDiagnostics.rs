@@ -36,13 +36,13 @@ impl NumaNodeMemoryDiagnostics
 			Err(error) => Err(error),
 			Ok(None) => Ok(HashMap::new()),
 			Ok(Some(numa_nodes)) =>
+			{
+				let mut numa_node_diagnostics = HashMap::with_capacity(numa_nodes.len());
+				for numa_node in numa_nodes
 				{
-					let mut numa_node_diagnostics = HashMap::with_capacity(numa_nodes.len());
-					for numa_node in numa_nodes
-					{
-						numa_node_diagnostics.insert(numa_node, NumaNodeMemoryDiagnostic::gather(sys_path, proc_path, numa_node));
-					}
+					numa_node_diagnostics.insert(numa_node, NumaNodeMemoryDiagnostic::gather(sys_path, proc_path, numa_node));
 				}
+			}
 		};
 		
 		Self

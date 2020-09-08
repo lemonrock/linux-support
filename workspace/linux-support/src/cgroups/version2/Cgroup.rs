@@ -160,7 +160,7 @@ pub trait Cgroup<'name>
 	///
 	/// Will not exist if the kernel is not configured for Pressure Stall Information (`CONFIG_PSI`).
 	#[inline(always)]
-	fn monitor_some_memory_pressure_stall_informatmemoryn(&self, mount_point: &CgroupMountPoint, maximum_total_stall_time_in_window: U64Microseconds, window: U64Microseconds) -> io::Result<File>
+	fn monitor_some_memory_pressure_stall_information(&self, mount_point: &CgroupMountPoint, maximum_total_stall_time_in_window: U64Microseconds, window: U64Microseconds) -> io::Result<File>
 	{
 		let path = self.memory_pressure_file_path(mount_point);
 		MemoryOrInputOutputTimeStalled::monitor_some(&path, maximum_total_stall_time_in_window, window)
@@ -170,7 +170,7 @@ pub trait Cgroup<'name>
 	///
 	/// Will not exist if the kernel is not configured for Pressure Stall Information (`CONFIG_PSI`).
 	#[inline(always)]
-	fn monitor_all_memory_pressure_stall_informatmemoryn(&self, mount_point: &CgroupMountPoint, maximum_total_stall_time_in_window: U64Microseconds, window: U64Microseconds) -> io::Result<File>
+	fn monitor_all_memory_pressure_stall_information(&self, mount_point: &CgroupMountPoint, maximum_total_stall_time_in_window: U64Microseconds, window: U64Microseconds) -> io::Result<File>
 	{
 		let path = self.memory_pressure_file_path(mount_point);
 		MemoryOrInputOutputTimeStalled::monitor_all(&path, maximum_total_stall_time_in_window, window)

@@ -4,6 +4,8 @@
 
 /// Statistics.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct ProcessIdentifiersEventStatistics
 {
 	/// The number of times the cgroup’s swap usage was about to go over the max boundary and swap allocation failed.

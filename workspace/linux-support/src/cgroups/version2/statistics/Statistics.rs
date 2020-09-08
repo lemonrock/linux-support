@@ -4,6 +4,8 @@
 
 /// Statistics.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Statistics
 {
 	/// This is the total number of visible (living) descendant cgroups underneath this cgroup.

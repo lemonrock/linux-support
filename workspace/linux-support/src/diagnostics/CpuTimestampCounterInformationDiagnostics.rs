@@ -2,17 +2,34 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Microseconds (u64).
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[allow(missing_docs)]
+#[derive(Debug)]
 #[derive(Deserialize, Serialize)]
-#[repr(transparent)]
-pub struct U64Microseconds(pub u64);
-
-impl ParseNumber for U64Microseconds
+#[serde(deny_unknown_fields)]
+pub struct CpuTimestampCounterInformationDiagnostics
 {
-	#[inline(always)]
-	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
+	pub denominator: u32,
+	
+	pub numerator: u32,
+	
+	pub nominal_frequency: u32,
+	
+	pub tsc_frequency: Option<u64>,
+}
+
+impl CpuTimestampCounterInformationDiagnostics
+{
+	fn gather(cpu_id: &CpuId) -> Option<Self>
 	{
-		Ok(Self(u64::parse_number(bytes, radix, parse_byte)?))
+		cpu_id.get_tsc_info().map(|tsc_info| Self
+		{
+			denominator: tsc_info.denominator(),
+			
+			numerator: tsc_info.numerator(),
+			
+			nominal_frequency: tsc_info.nominal_frequency(),
+			
+			tsc_frequency: tsc_info.tsc_frequency(),
+		})
 	}
 }

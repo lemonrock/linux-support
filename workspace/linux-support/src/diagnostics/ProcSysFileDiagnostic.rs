@@ -2,46 +2,19 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// `mount -t bpf none /sys/fs/bpf`.
-///
-/// Used for pinned objects.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[allow(missing_docs)]
+#[derive(Debug)]
 #[derive(Deserialize, Serialize)]
-#[repr(transparent)]
-pub struct BpfMountPoint(PathBuf);
+#[serde(deny_unknown_fields)]
+pub struct ProcSysFileDiagnostic(ByteBuf);
 
-impl Default for BpfMountPoint
+impl ProcSysFileDiagnostic
 {
-	#[inline(always)]
-	fn default() -> Self
+	fn gather(proc_path: &ProcPath) -> BTreeMap<PathBuf, Self>
 	{
-		Self::default_sys_fs_path(&SysPath::default())
-	}
-}
-
-impl VirtualFileSystemMountPoint for BpfMountPoint
-{
-	const FileSystemType: FileSystemType = FileSystemType::bpf;
-	
-	#[inline(always)]
-	fn to_path(&self) -> &Path
-	{
-		&self.0
-	}
-	
-	#[inline(always)]
-	fn from_path(path: PathBuf) -> Self
-	{
-		Self(path)
-	}
-}
-
-impl BpfMountPoint
-{
-	/// Passes `pinned_object_fully_qualified_file_path` to `pinned_object_file_path_user` as they are encountered.
-	pub fn all_pinned_object_file_paths(&self, pinned_object_fully_qualified_file_path_user: &mut impl FnMut(PathBuf))
-	{
-		let mut folder_paths = vec![Cow::Borrowed(&self.0)];
+		let mut all = BTreeMap::new();
+		let root_folder_path = proc_path.sys_folder_path();
+		let mut folder_paths = vec![root_folder_path];
 		
 		while let Some(folder_path) = folder_paths.pop()
 		{
@@ -53,18 +26,30 @@ impl BpfMountPoint
 					{
 						if let Ok(metadata) = dir_entry.metadata()
 						{
+							let file_type = dir_entry.file_type();
 							if metadata.is_dir()
 							{
-								folder_paths.push(Cow::Owned(dir_entry.path()))
+								folder_paths.push(dir_entry.path())
 							}
 							else if metadata.is_file()
 							{
-								pinned_object_fully_qualified_file_path_user(dir_entry.path())
+								let file_path = dir_entry.path();
+								if let Ok(file) = File::open(&file_path)
+								{
+									let mut buffer = Vec::with_capacity(64);
+									if let Ok(_number_of_bytes_read) = file.read_to_end(&mut buffer)
+									{
+										buffer.shrink_to_fit();
+										all.insert(file_path, buffer.into());
+									}
+								}
 							}
 						}
 					}
 				}
 			}
 		}
+		
+		all
 	}
 }

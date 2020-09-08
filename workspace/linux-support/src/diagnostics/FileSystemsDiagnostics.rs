@@ -37,4 +37,42 @@ impl FileSystemsDiagnostics
 			},
 		}
 	}
+	
+	#[inline(always)]
+	fn bpf_mount_path(&self) -> Option<&Path>
+	{
+		self.first_known_pseudo_mount_path(FileSystemType::bpf)
+	}
+	
+	#[inline(always)]
+	fn cgroup_version2_mount_path(&self) -> Option<&Path>
+	{
+		self.first_known_pseudo_mount_path(FileSystemType::cgroup2)
+	}
+	
+	#[inline(always)]
+	fn first_known_pseudo_mount_path(&self, file_system_type: FileSystemType) -> Option<&Path>
+	{
+		if self.file_systems.as_ref().map(|list| list.verify_pseudo_file_system_is_supported(file_system_type)).is_err()
+		{
+			return None
+		}
+		
+		match self.mounts
+		{
+			Err(_) => None,
+			
+			Ok(ref mounts) =>
+			{
+				for (mount_path, mount_diagnostic) in mounts.iter()
+				{
+					if mount_diagnostic.file_system_type == file_system_type
+					{
+						return Some(mount_path.as_path())
+					}
+				}
+				None
+			}
+		}
+	}
 }

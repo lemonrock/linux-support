@@ -14,6 +14,8 @@ pub struct ThreadDiagnostic
 	pub io_priority: DiagnosticUnobtainableResult<IoPriority>,
 	
 	pub scheduler_policy_and_flags: DiagnosticUnobtainableResult<PerThreadSchedulerPolicyAndFlags>,
+
+	pub permitted_effective_and_inheritable_capabilities: DiagnosticUnobtainableResult<PermittedEffectiveAndInheritableCapabilitySets>,
 }
 
 impl ThreadDiagnostic
@@ -29,6 +31,8 @@ impl ThreadDiagnostic
 			io_priority: IoPriority::get_for_thread(thread_identifier).map_err(|cause| DiagnosticUnobtainable(format!("Could not obtain thread I/O priority ({})", IoPriority::explain_error(cause)))),
 			
 			scheduler_policy_and_flags: PerThreadSchedulerPolicyAndFlags::get_for_thread(ThreadIdentifierChoice::Other(thread_identifier)).map_err(DiagnosticUnobtainable::from),
+			
+			permitted_effective_and_inheritable_capabilities: PermittedEffectiveAndInheritableCapabilitySets::get(thread_identifier).map_err(DiagnosticUnobtainable::from),
 		}
 	}
 }

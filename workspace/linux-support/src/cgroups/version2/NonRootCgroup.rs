@@ -97,7 +97,7 @@ impl<'name> NonRootCgroup<'name>
 
 	/// Read type.
 	#[inline(always)]
-	pub fn read_type(&self, mount_point: &CgroupMountPoint) -> Result<NonRootCgroupType, io::Error>
+	pub fn read_type(&self, mount_point: &CgroupMountPoint) -> io::Result<NonRootCgroupType>
 	{
 		self.cgroup_type_file_path(mount_point).read_value()
 	}
@@ -135,9 +135,9 @@ impl<'name> NonRootCgroup<'name>
 		self.cgroup_freeze_file_path(mount_point).read_zero_or_one_bool()
 	}
 
-	/// Is populated?
+	/// Events.
 	#[inline(always)]
-	pub fn read_events_is_populated(&self, mount_point: &CgroupMountPoint) -> Result<EventStatistics, StatisticsParseError>
+	pub fn read_events(&self, mount_point: &CgroupMountPoint) -> Result<EventStatistics, StatisticsParseError>
 	{
 		EventStatistics::from_file(&self.cgroup_events_file_path(mount_point))
 	}
@@ -467,6 +467,15 @@ impl<'name> NonRootCgroup<'name>
 		ProcessIdentifiersEventStatistics::from_file(&path)
 	}
 	
+	/// Only works if the `pids` controller is enabled.
+	///
+	/// Does not check that the `pids` controller is enabled.
+	#[inline(always)]
+	pub fn write_process_identifiers_count_maximum(&self, mount_point: &CgroupMountPoint, maximum: ProcessIdentifiersMaximum) -> io::Result<()>
+	{
+		self.pids_max_file_path(mount_point).write_value(maximum)
+	}
+	
 	/// Only works if the `rdma` controller is enabled.
 	#[inline(always)]
 	pub fn read_rdma_current(&self, mount_point: &CgroupMountPoint) -> Result<RdmaFile, RdmaParseError>
@@ -490,15 +499,6 @@ impl<'name> NonRootCgroup<'name>
 	pub fn write_rdma_maximum(&self, mount_point: &CgroupMountPoint, maximum: &RdmaFile) -> io::Result<()>
 	{
 		maximum.to_file(&self.rdma_max_file_path(mount_point))
-	}
-	
-	/// Only works if the `pids` controller is enabled.
-	///
-	/// Does not check that the `pids` controller is enabled.
-	#[inline(always)]
-	pub fn write_process_identifiers_count_maximum(&self, mount_point: &CgroupMountPoint, maximum: ProcessIdentifiersMaximum) -> io::Result<()>
-	{
-		self.pids_max_file_path(mount_point).write_value(maximum)
 	}
 	
 	#[inline(always)]

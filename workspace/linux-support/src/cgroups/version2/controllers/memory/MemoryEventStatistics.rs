@@ -4,6 +4,8 @@
 
 /// Statistics.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct MemoryEventStatistics
 {
 	/// The number of times the cgroup is reclaimed due to high memory pressure even though its usage is under the low boundary.

@@ -4,6 +4,8 @@
 
 /// CPU time stalled.
 #[derive(Default, Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct CpuTimeStalled
 {
 	/// Indicates the share of time in which at least some tasks are stalled on a given resource.

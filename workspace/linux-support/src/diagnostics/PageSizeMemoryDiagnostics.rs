@@ -8,26 +8,19 @@
 #[serde(deny_unknown_fields)]
 pub struct PageSizeMemoryDiagnostics
 {
-	pub defaults: DefaultPageSizeAndHugePageSizes,
-	
 	pub huge_page_size_diagnostics: HashMap<HugePageSize, HugePageSizeMemoryDiagnostic>,
 }
 
 impl PageSizeMemoryDiagnostics
 {
-	fn gather(sys_path: &SysPath, proc_path: &ProcPath) -> DiagnosticUnobtainableResult<Self>
+	fn gather(sys_path: &SysPath, proc_path: &ProcPath, supported_huge_page_sizes: &BTreeSet<HugePageSize>) -> DiagnosticUnobtainableResult<Self>
 	{
-		let defaults = DefaultPageSizeAndHugePageSizes::new(sys_path, proc_path).map_err(DiagnosticUnobtainable::from)?;
-		
 		Ok
 		(
 			Self
 			{
-				defaults,
-				
 				huge_page_size_diagnostics:
 				{
-					let supported_huge_page_sizes = defaults.supported_huge_page_sizes();
 					let mut huge_page_size_diagnostics = HashMap::with_capacity(supported_huge_page_sizes.len());
 					for huge_page_size in supported_huge_page_sizes
 					{

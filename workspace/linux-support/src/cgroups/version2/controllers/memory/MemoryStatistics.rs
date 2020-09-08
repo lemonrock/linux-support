@@ -6,6 +6,8 @@
 ///
 /// All values are in bytes or simple counts.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct MemoryStatistics
 {
 	/// Amount of memory used in anonymous mappings such as `brk()`, `sbrk()` and `mmap(MAP_ANONYMOUS)`.

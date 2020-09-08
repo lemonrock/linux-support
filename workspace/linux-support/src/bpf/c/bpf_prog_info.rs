@@ -7,7 +7,8 @@
 #[derive(Debug, Copy, Clone)]
 pub struct bpf_prog_info
 {
-	pub(crate) type_: bpf_prog_type,
+	/// Program type.
+	pub type_: bpf_prog_type,
 	
 	pub(crate) id: ExtendedBpfProgramIdentifier,
 	
@@ -266,8 +267,8 @@ impl bpf_prog_info
 	
 	/// Is GPL compatible?
 	#[inline(always)]
-	pub fn is_gpl_compatible(&self) -> u32
+	pub fn is_gpl_compatible(&self) -> bool
 	{
-		unsafe { transmute(self._bitfield_1.get(0, 1) as u32) }
+		self._bitfield_1.get(0, 1) & 0x1 != 0
 	}
 }

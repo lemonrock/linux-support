@@ -4,6 +4,8 @@
 
 /// The type of a non-root version 2 cgroup.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum NonRootCgroupType
 {
 	/// A normal valid domain cgroup.

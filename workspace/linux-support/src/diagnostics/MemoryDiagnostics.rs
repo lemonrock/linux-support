@@ -19,7 +19,7 @@ pub struct MemoryDiagnostics
 
 impl MemoryDiagnostics
 {
-	fn gather(sys_path: &SysPath, proc_path: &ProcPath) -> Self
+	fn gather(sys_path: &SysPath, proc_path: &ProcPath, supported_huge_page_sizes: &BTreeSet<HugePageSize>) -> Self
 	{
 		Self
 		{
@@ -27,7 +27,7 @@ impl MemoryDiagnostics
 		
 			global_zoned_virtual_memory_statistics: VirtualMemoryStatisticName::global_zoned_virtual_memory_statistics(proc_path, true).map_err(DiagnosticUnobtainable::from),
 			
-			page_size: PageSizeMemoryDiagnostics::gather(sys_path, proc_path),
+			page_size: PageSizeMemoryDiagnostics::gather(sys_path, proc_path, supported_huge_page_sizes),
 			
 			numa_nodes: NumaNodeMemoryDiagnostics::gather(sys_path, proc_path),
 		}

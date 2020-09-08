@@ -5,6 +5,7 @@
 #[allow(missing_docs)]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct SwapDiagnostics
 {
 	pub page_cluster: DiagnosticUnobtainableResult<Either<PageCluster, i32>>,

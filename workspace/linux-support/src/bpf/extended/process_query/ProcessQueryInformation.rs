@@ -24,7 +24,9 @@ impl ProcessQueryInformation
 	/// `file_descriptor` can be one that represents a raw trace point or a perf event.
 	///
 	/// Only a subset of instances of `RawTracePointFileDescriptor` are valid.
-	pub fn query(process_identifier: ProcessIdentifierChoice, file_descriptor: &impl ProcessQueryableFileDescriptor) -> Option<Self>
+	///
+	/// Fails if permission denied.
+	pub fn query(process_identifier: ProcessIdentifierChoice, file_descriptor: &impl ProcessQueryableFileDescriptor) -> Result<Option<Self>, ()>
 	{
 		const SizeIncrement: usize = 256;
 		
@@ -50,7 +52,7 @@ impl ProcessQueryInformation
 			let result = attr.syscall(bpf_cmd::BPF_TASK_FD_QUERY);
 			if likely!(result == 0)
 			{
-				return Some(Self::construct(buffer, unsafe { &attr.task_fd_query }))
+				return Ok(Some(Self::construct(buffer, unsafe { &attr.task_fd_query })))
 			}
 			else if likely!(result == -1)
 			{
@@ -64,8 +66,8 @@ impl ProcessQueryInformation
 						continue
 					}
 					EINVAL => panic!("Invalid attr"),
-					EPERM => panic!("Permission denied"),
-					ENOENT | EBADF | ENOTSUPP | EOPNOTSUPP => return None,
+					EPERM => Err(()),
+					ENOENT | EBADF | ENOTSUPP | EOPNOTSUPP => Ok(None),
 					EFAULT => panic!("Could not access buffer"),
 					errno @ _ => panic!("Unexpected error `{}`", errno),
 				}

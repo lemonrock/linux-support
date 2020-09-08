@@ -4,6 +4,8 @@
 
 /// Time stalled.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct TimeStalled
 {
 	/// Average time stalled over 10 seconds.

@@ -22,6 +22,7 @@ pub enum FileSystemType
 	
 	binfmt_misc,
 	
+	/// This is deprecated.
 	cgroup,
 	
 	/// Cgroup version 2 file system.
@@ -29,6 +30,7 @@ pub enum FileSystemType
 	/// Usually mounted at `/sys/fs/cgroup`.
 	cgroup2,
 	
+	/// This is deprecated.
 	cpuset,
 
 	dax,

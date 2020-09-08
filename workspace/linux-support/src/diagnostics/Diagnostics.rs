@@ -10,6 +10,9 @@ pub struct Diagnostics
 	/// File system layout used.
 	pub file_system_layout: FileSystemLayout,
 	
+	/// Page and Huge Page Sizes.
+	pub defaults: DiagnosticUnobtainableResult<DefaultPageSizeAndHugePageSizes>,
+	
 	/// Users and groups.
 	pub users_and_groups: UsersAndGroupsDiagnostics,
 
@@ -54,6 +57,12 @@ pub struct Diagnostics
 
 	/// Inode.
 	pub inode: DiagnosticUnobtainableResult<InodeDiagnostics>,
+	
+	/// eBPF.
+	pub extended_berkeley_packet_filter: ExtendedBerkeleyPacketFilterDiagnostics,
+	
+	/// Cgroup2.
+	pub cgroup_version2: Option<RootCgroupVersion2Diagnostics>,
 
 	/// File Systems.
 	pub file_systems: FileSystemsDiagnostics,
@@ -68,17 +77,32 @@ pub struct Diagnostics
 	pub hyper_threads: HyperThreadsDiagnostics,
 	
 	/// CPU information.
-	#[cfg(target_arch = "x86_64")] pub cpu_information: CpuInformationDiagnostics
+	#[cfg(target_arch = "x86_64")] pub cpu_information: CpuInformationDiagnostics,
+	
+	/// `/proc/sys`.
+	pub proc_sys: BTreeMap<PathBuf, ProcSysFileDiagnostic>,
 }
 
 impl Diagnostics
 {
 	fn gather(file_system_layout: &FileSystemLayout) -> Self
 	{
-		let (sys_path, proc_path, dev_path, etc_path) = file_system_layout.paths();
-		
 		let process_group_identifier = ProcessGroupIdentifierChoice::Current;
 		let process_identifier = ProcessIdentifierChoice::Current;
+		
+		let (sys_path, proc_path, dev_path, etc_path) = file_system_layout.paths();
+		
+		let defaults = file_system_layout.defaults().map_err(DiagnosticUnobtainable::from);
+		
+		let file_systems = FileSystemsDiagnostics::gather(proc_path, process_identifier);
+		
+		let supported_huge_page_sizes = match defaults
+		{
+			Err(_) => Cow::Owned(BTreeSet::new()),
+			
+			Ok(ref defaults) => Cow::Borrowed(defaults.supported_huge_page_sizes())
+		};
+		
 		Self
 		{
 			file_system_layout: file_system_layout.clone(),
@@ -137,24 +161,23 @@ impl Diagnostics
 		
 			inode: InodeDiagnostics::gather(proc_path),
 		
-			file_systems: FileSystemsDiagnostics::gather(proc_path, process_identifier),
+			extended_berkeley_packet_filter: ExtendedBerkeleyPacketFilterDiagnostics::gather(proc_path, &file_systems),
 		
+			cgroup_version2: RootCgroupVersion2Diagnostics::gather(&file_systems, &supported_huge_page_sizes),
+			
 			file_handle: FileHandleDiagnostics::gather(proc_path),
 		
-			memory: MemoryDiagnostics::gather(sys_path, proc_path),
+			memory: MemoryDiagnostics::gather(sys_path, proc_path, &supported_huge_page_sizes),
 		
 			hyper_threads: HyperThreadsDiagnostics::gather(sys_path, proc_path),
 			
 			#[cfg(target_arch = "x86_64")] cpu_information: CpuInformationDiagnostics::gather(),
+			
+			proc_sys: ProcSysFileDiagnostic::gather(proc_path),
+			
+			defaults,
+			
+			file_systems,
 		}
 	}
 }
-
-// TODO: POSIX MQ stats; socket stats; pipes_and_fifos; inotify; file.leasing; epoll; inotify
-// memory SysV stuff (yawn)
-// cgroup in-depth
-// list of various capabilities if possible.
-// BPF: JustInTimeCompilationChoice
-// BPF: JustInTimeCompilationHardening
-// BPF: JustInTimeMemoryAllocationLimitSizeInBytes
-// BPF - can we get program identifiers?

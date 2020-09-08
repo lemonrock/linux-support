@@ -6,6 +6,7 @@ bitflags!
 {
 	/// Flags for `BPF_MAP_CREATE` command.
 	#[allow(missing_docs)]
+	#[derive(Serialize, Deserialize)]
 	pub(crate) struct BPF_MAP_CREATE_flags: u32
 	{
 		const BPF_F_NO_PREALLOC = 1;

@@ -181,7 +181,14 @@ impl ProcPath
 	#[inline(always)]
 	pub fn sys_file_path(&self, file_name: &str) -> PathBuf
 	{
-		self.file_path("sys").append(file_name)
+		self.sys_folder_path().append(file_name)
+	}
+
+	/// Get a folder path within the ProcPath, `/proc/sys`.
+	#[inline(always)]
+	pub fn sys_folder_path(&self) -> PathBuf
+	{
+		self.file_path("sys")
 	}
 
 	/// Get a file path within the ProcPath, `/proc/irq/<number>/<file_name>`.

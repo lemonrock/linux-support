@@ -7,7 +7,8 @@
 #[derive(Debug, Copy, Clone)]
 pub struct bpf_map_info
 {
-	pub(crate) type_: bpf_map_type,
+	/// Type.
+	pub type_: bpf_map_type,
 	
 	pub(crate) id: MapIdentifier,
 	
@@ -18,7 +19,8 @@ pub struct bpf_map_info
 	
 	pub(crate) max_entries: Option<MaximumEntries>,
 	
-	pub(crate) map_flags: BPF_MAP_CREATE_flags,
+	/// Flags.
+	pub map_flags: BPF_MAP_CREATE_flags,
 	
 	pub(crate) name: [c_char; BPF_OBJ_NAME_LEN],
 	

@@ -4,6 +4,8 @@
 
 /// CPU statistics.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct CpuStatistics
 {
 	#[allow(missing_docs)]

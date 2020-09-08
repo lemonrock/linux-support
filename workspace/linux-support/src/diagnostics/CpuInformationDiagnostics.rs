@@ -35,6 +35,24 @@ pub struct CpuInformationDiagnostics
 	pub extended_state_information: Option<CpuExtendedStateInformationDiagnostics>,
 	
 	pub intel_resource_director_technology_information: CpuIntelResourceDirectorTechnologyInformation,
+
+	pub intel_sgx_information: Option<CpuIntelSgxInformationDiagnostics>,
+
+	pub processor_trace_information: Option<CpuProcessorTraceInformationDiagnostics>,
+
+	pub timestamp_counter_information: Option<CpuTimestampCounterInformationDiagnostics>,
+
+	pub procesor_frequency_information: Option<CpuProcessorFrequencyInformationDiagnostics>,
+
+	pub deterministic_address_translation_information: Option<Vec<CpuDeterministicAddressTranslationInformationDiagonostic>>,
+
+	pub system_on_chip_vendor_information: Option<CpuSystemOnChipVendorInformationDiagnostics>,
+
+	pub hypervisor_information: Option<CpuHypervisorInformationDiagnostics>,
+
+	pub extended_function_information: Option<CpuExtendedFunctionInformationDiagnostics>,
+	
+	pub memory_encryption_information: Option<CpuMemoryEncryptionInformationDiagnostics>,
 }
 
 impl CpuInformationDiagnostics
@@ -96,6 +114,24 @@ impl CpuInformationDiagnostics
 			extended_state_information: CpuExtendedStateInformationDiagnostics::gather(&cpu_id),
 		
 			intel_resource_director_technology_information: CpuIntelResourceDirectorTechnologyInformation::gather(&cpu_id),
+			
+			intel_sgx_information: CpuIntelSgxInformationDiagnostics::gather(&cpu_id),
+			
+			processor_trace_information: CpuProcessorTraceInformationDiagnostics::gather(&cpu_id),
+			
+			timestamp_counter_information: CpuTimestampCounterInformationDiagnostics::gather(&cpu_id),
+			
+			procesor_frequency_information: CpuProcessorFrequencyInformationDiagnostics::gather(&cpu_id),
+		
+			deterministic_address_translation_information: CpuDeterministicAddressTranslationInformationDiagonostic::gather(&cpu_id),
+			
+			system_on_chip_vendor_information: CpuSystemOnChipVendorInformationDiagnostics::gather(&cpu_id),
+			
+			hypervisor_information: CpuHypervisorInformationDiagnostics::gather(&cpu_id),
+			
+			extended_function_information: CpuExtendedFunctionInformationDiagnostics::gather(&cpu_id),
+			
+			memory_encryption_information: CpuMemoryEncryptionInformationDiagnostics::gather(&cpu_id),
 		}
 	}
 }

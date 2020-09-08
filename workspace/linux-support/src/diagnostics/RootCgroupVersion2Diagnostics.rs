@@ -2,17 +2,31 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Microseconds (u64).
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[allow(missing_docs)]
+#[derive(Debug)]
 #[derive(Deserialize, Serialize)]
-#[repr(transparent)]
-pub struct U64Microseconds(pub u64);
+#[serde(deny_unknown_fields)]
+pub struct RootCgroupVersion2Diagnostics
+{
+	#[serde(flatten)]
+	pub common: CommonCgroupVersion2Diagnostics,
+}
 
-impl ParseNumber for U64Microseconds
+impl RootCgroupVersion2Diagnostics
 {
 	#[inline(always)]
-	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
+	fn gather(file_systems: &FileSystemsDiagnostics, supported_huge_page_sizes: &BTreeSet<HugePageSize>) -> Option<Self>
 	{
-		Ok(Self(u64::parse_number(bytes, radix, parse_byte)?))
+		file_systems.cgroup_version2_mount_path().map(|mount_path|
+		{
+			let mount_point = CgroupMountPoint::from_path(mount_path.to_path_buf());
+			
+			let root_cgroup = Rc::new(RootCgroup);
+			
+			Self
+			{
+				common: CommonCgroupVersion2Diagnostics::gather(&mount_point, &root_cgroup, supported_huge_page_sizes),
+			}
+		})
 	}
 }

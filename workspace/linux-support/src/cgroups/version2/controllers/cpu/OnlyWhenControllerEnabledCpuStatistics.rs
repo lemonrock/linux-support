@@ -6,6 +6,8 @@
 ///
 /// Available only when the `cpu` controller is enabled.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct OnlyWhenControllerEnabledCpuStatistics
 {
 	#[allow(missing_docs)]

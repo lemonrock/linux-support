@@ -42,6 +42,10 @@ pub struct CurrentThreadDiagnostic
 	pub current_thread_numa_node_for_next_interleaved_internal_kernel_page: Option<NumaNode>,
 
 	pub current_thread_affinity: DiagnosticUnobtainableResult<Option<HyperThreads>>,
+
+	pub capability_bounding_set: BoundingCapabilitySet,
+
+	pub capability_ambient_set: AmbientCapabilitySet,
 }
 
 impl CurrentThreadDiagnostic
@@ -94,6 +98,10 @@ impl CurrentThreadDiagnostic
 			current_thread_numa_node_for_next_interleaved_internal_kernel_page: MemoryPolicy::get_current_thread_numa_node_for_next_interleaved_internal_kernel_page(),
 		
 			current_thread_affinity: HyperThreads::current_thread_affinity().map_err(DiagnosticUnobtainable::from),
+			
+			capability_bounding_set: BoundingCapabilitySet::get_for_current_thread(),
+			
+			capability_ambient_set: AmbientCapabilitySet::get_for_current_thread(),
 		}
 	}
 	

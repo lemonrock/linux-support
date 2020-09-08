@@ -2,17 +2,30 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Microseconds (u64).
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[allow(missing_docs)]
+#[derive(Debug)]
 #[derive(Deserialize, Serialize)]
-#[repr(transparent)]
-pub struct U64Microseconds(pub u64);
-
-impl ParseNumber for U64Microseconds
+#[serde(deny_unknown_fields)]
+pub struct CpuProcessorFrequencyInformationDiagnostics
 {
-	#[inline(always)]
-	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
+	pub processor_base_frequency: u16,
+	
+	pub processor_max_frequency: u16,
+	
+	pub bus_frequency: u16,
+}
+
+impl CpuProcessorFrequencyInformationDiagnostics
+{
+	fn gather(cpu_id: &CpuId) -> Option<Self>
 	{
-		Ok(Self(u64::parse_number(bytes, radix, parse_byte)?))
+		cpu_id.get_processor_frequency_info().map(|processor_frequency_info| Self
+		{
+			processor_base_frequency: processor_frequency_info.processor_base_frequency(),
+			
+			processor_max_frequency: processor_frequency_info.processor_max_frequency(),
+			
+			bus_frequency: processor_frequency_info.bus_frequency(),
+		})
 	}
 }

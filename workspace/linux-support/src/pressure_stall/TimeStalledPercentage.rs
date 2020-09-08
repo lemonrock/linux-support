@@ -6,6 +6,8 @@
 ///
 /// TODO: Same structure for loadavg_proc_show
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct TimeStalledPercentage
 {
 	/// Integer.

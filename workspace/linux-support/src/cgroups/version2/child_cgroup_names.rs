@@ -3,8 +3,9 @@
 
 
 /// Child cgroup names.
-fn child_cgroup_names(folder_path: &Path) -> io::Result<impl Iterator<Item=CgroupName>>
+pub fn child_cgroup_names(cgroup: &Rc<impl Cgroup>, mount_point: &CgroupMountPoint) -> io::Result<impl Iterator<Item=CgroupName>>
 {
+	let folder_path = cgroup.to_path(mount_point).deref();
 	fn filter_and_map(result: io::Result<DirEntry>) -> Option<CgroupName>
 	{
 		match result
