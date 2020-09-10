@@ -19,6 +19,18 @@ pub enum ReceiveOrTransmitOrBoth<V>
 impl<V> ReceiveOrTransmitOrBoth<V>
 {
 	#[inline(always)]
+	pub fn is_receive_or_both(&self) -> bool
+	{
+		use self::ReceiveOrTransmitOrBoth::*;
+		
+		match self
+		{
+			&Receive(_) | &Both(_, _) => true,
+			&Transmit(_) => false,
+		}
+	}
+	
+	#[inline(always)]
 	pub fn use_value<MappedV>(&self, use_receive: impl FnOnce(&V) -> MappedV, use_transmit: impl FnOnce(&V) -> MappedV) -> ReceiveOrTransmitOrBoth<MappedV>
 	{
 		use self::ReceiveOrTransmitOrBoth::*;

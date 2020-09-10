@@ -10,20 +10,30 @@ pub struct OwnedReceiveTransmitMemoryRingQueues
 	
 	/// receive is `xsk_ring_cons`.
 	/// transmit is `xsk_ring_prod`.
-	receive_and_transmit: ReceiveOrTransmitOrBoth<XskRingQueue>,
+	receive_and_transmit: ManuallyDrop<ReceiveOrTransmitOrBoth<XskRingQueue>>,
 	
-	xdp_extended_bpf_program: ManuallyDrop<Option<ExtendedBpfProgramFileDescriptor>>,
+	xdp_extended_bpf_program: ManuallyDrop<RedirectMapAndAttachedProgram>,
+	
+	queue_identifier: QueueIdentifier,
 }
 
 impl Drop for OwnedReceiveTransmitMemoryRingQueues
 {
+	/// Based on `libbpf`'s `xsk_socket__delete()`.
 	#[inline(always)]
 	fn drop(&mut self)
 	{
+		if self.receive_and_transmit.is_receive_or_both()
+		{
+			// Based on `libbpf`'s `xsk_delete_bpf_maps()`.
+			let _ignored = self.xdp_extended_bpf_program.redirect_map.delete(self.queue_identifier);
+		}
+		
 		unsafe
 		{
-			ManuallyDrop::drop(&mut self.user_memory);
 			ManuallyDrop::drop(&mut self.xdp_extended_bpf_program);
+			ManuallyDrop::drop(&mut self.receive_and_transmit);
+			ManuallyDrop::drop(&mut self.user_memory);
 		}
 	}
 }
@@ -51,17 +61,40 @@ impl ReceiveTransmitMemoryRingQueues for OwnedReceiveTransmitMemoryRingQueues
 impl OwnedReceiveTransmitMemoryRingQueues
 {
 	#[inline(always)]
-	fn new(user_memory: UserMemory, xdp_extended_bpf_program: Option<ExtendedBpfProgramFileDescriptor>, network_interface_index: NetworkInterfaceIndex, queue_identifier: QueueIdentifier, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, SocketCreationOrBindError>
+	fn new(user_memory: UserMemory, xdp_extended_bpf_program: Option<RedirectMapAndAttachedProgram>, network_interface_index: NetworkInterfaceIndex, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth>, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, AttachProgramError>
 	{
 		let user_memory_socket_file_descriptor = &user_memory.user_memory_socket_file_descriptor;
-		let receive_and_transmit = Self::construct(user_memory_socket_file_descriptor, network_interface_index, queue_identifier, ring_queue_depths, XdpSocketAddressFlags::empty(), user_memory_socket_file_descriptor.as_raw_fd(), defaults, xdp_extended_bpf_program.as_ref())?;
+		let receive_and_transmit = Self::construct(user_memory_socket_file_descriptor, network_interface_index, ring_queue_depths, XdpSocketAddressFlags::empty(), user_memory_socket_file_descriptor.as_raw_fd(), queue_identifier, defaults)?;
+		
+		let xdp_extended_bpf_program = match xdp_extended_bpf_program
+		{
+			Some(xdp_extended_bpf_program) => xdp_extended_bpf_program,
+			
+			None =>
+			{
+				use self::ReceiveOrTransmitOrBoth::*;
+				
+				let insert_into_redirect_map_if_receive = if ring_queue_depths.is_receive_or_both()
+				{
+					Some((queue_identifier, user_memory_socket_file_descriptor))
+				}
+				else
+				{
+					None
+				};
+				
+				RedirectMapAndAttachedProgram::new_suitable_for_owned_or_reuse_already_attached(network_interface_name, device_offload, redirect_map_settings, insert_into_redirect_map_if_receive)?
+			}
+		};
+		
 		Ok
 		(
 			Self
 			{
 				user_memory: ManuallyDrop::new(user_memory),
-				receive_and_transmit,
+				receive_and_transmit: ManuallyDrop::new(receive_and_transmit),
 				xdp_extended_bpf_program: ManuallyDrop::new(xdp_extended_bpf_program),
+				queue_identifier,
 			}
 		)
 	}
@@ -71,38 +104,50 @@ impl OwnedReceiveTransmitMemoryRingQueues
 	/// When all slaves have been dropped the master is dropped.
 	/// This ensures the correct ordering of close for socket file descriptors.
 	///
-	/// The `xdp_extended_bpf_program` in use with `self` must be suitable for use with shared user memory.
-	pub fn share(&self, network_interface_index: NetworkInterfaceIndex, queue_identifier: QueueIdentifier, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<SharedReceiveTransmitMemoryRingQueues, SocketCreationOrBindError>
+	/// The `xdp_extended_bpf_program` in use with `self` must be suitable for use with shared user memory; if not an error of `Err(AttachProgramError::AttachedXdpProgramNotSuitableForSharing)` is returned.
+	///
+	/// A potential bug: ***`queue_identifier` is not checked to see if it used by another instance of `SharedReceiveTransmitMemoryRingQueues`.***.
+	/// Adding such a check is possible using a `RefCell` but is tedious.
+	pub fn share(&self, network_interface_index: NetworkInterfaceIndex, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth>, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<SharedReceiveTransmitMemoryRingQueues, AttachProgramError>
 	{
+		debug_assert_ne!(queue_identifier, self.queue_identifier, "Re-use of owned queue identifier is not permitted");
+		
+		if self.xdp_extended_bpf_program.deref().is_our_owned_program_and_thus_can_not_be_shared()
+		{
+			return Err(AttachProgramError::AttachedXdpProgramNotSuitableForSharing)
+		}
+		
 		let xsk_socket_file_descriptor = ExpressDataPathSocketFileDescriptor::new()?;
-		let receive_and_transmit = Self::construct(&xsk_socket_file_descriptor, network_interface_index, queue_identifier, ring_queue_depths, XdpSocketAddressFlags::SharedUserMemory, self.user_memory.user_memory_socket_file_descriptor.as_raw_fd(), defaults, None)?;
+		let receive_and_transmit = Self::construct(&xsk_socket_file_descriptor, network_interface_index, ring_queue_depths, XdpSocketAddressFlags::SharedUserMemory, self.user_memory.user_memory_socket_file_descriptor.as_raw_fd(), queue_identifier, defaults)?;
 		Ok
 		(
 			SharedReceiveTransmitMemoryRingQueues
 			{
 				user_memory: &self.user_memory,
-				receive_and_transmit,
-				xsk_socket_file_descriptor,
+				xdp_extended_bpf_program: &self.xdp_extended_bpf_program,
+				receive_and_transmit: ManuallyDrop::new(receive_and_transmit),
+				xsk_socket_file_descriptor: ManuallyDrop::new(xsk_socket_file_descriptor),
+				queue_identifier,
 			}
 		)
 	}
 	
 	/// Based on `libbpf`'s `xsk_socket__create()`.
-	fn construct(xsk_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, network_interface_index: NetworkInterfaceIndex, queue_identifier: QueueIdentifier, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth>, sxdp_flags: XdpSocketAddressFlags, sxdp_shared_umem_fd: RawFd, defaults: &DefaultPageSizeAndHugePageSizes, xdp_extended_bpf_program: Option<&ExtendedBpfProgramFileDescriptor>) -> Result<ReceiveOrTransmitOrBoth<XskRingQueue>, SocketBindError>
+	fn construct(user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, network_interface_index: NetworkInterfaceIndex, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth>, sxdp_flags: XdpSocketAddressFlags, sxdp_shared_umem_fd: RawFd, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<ReceiveOrTransmitOrBoth<XskRingQueue>, SocketBindError>
 	{
 		ring_queue_depths.use_value
 		(
-			|receive_ring_queue_depth| xsk_socket_file_descriptor.set_xdp_socket_option_receive_ring(receive_ring_queue_depth),
-			|transmit_ring_queue_depth| xsk_socket_file_descriptor.set_xdp_socket_option_transmit_ring(transmit_ring_queue_depth),
+			|receive_ring_queue_depth| user_memory_socket_file_descriptor.set_xdp_socket_option_receive_ring(receive_ring_queue_depth),
+			|transmit_ring_queue_depth| user_memory_socket_file_descriptor.set_xdp_socket_option_transmit_ring(transmit_ring_queue_depth),
 		);
 		
 		// NOTE: Valid memory map offsets are not available until the socket options above have been set.
-		let memory_map_offsets = xsk_socket_file_descriptor.get_memory_map_offsets();
+		let memory_map_offsets = user_memory_socket_file_descriptor.get_memory_map_offsets();
 		
 		let receive_and_transmit = ring_queue_depths.map
 		(
-			|receive_ring_queue_depth| XskRingQueue::from_receive_memory_map_offsets(&xsk_socket_file_descriptor, &memory_map_offsets, receive_ring_queue_depth, defaults),
-			|transmit_ring_queue_depth| XskRingQueue::from_transmit_memory_map_offsets(&xsk_socket_file_descriptor, &memory_map_offsets, transmit_ring_queue_depth, defaults),
+			|receive_ring_queue_depth| XskRingQueue::from_receive_memory_map_offsets(&user_memory_socket_file_descriptor, &memory_map_offsets, receive_ring_queue_depth, defaults),
+			|transmit_ring_queue_depth| XskRingQueue::from_transmit_memory_map_offsets(&user_memory_socket_file_descriptor, &memory_map_offsets, transmit_ring_queue_depth, defaults),
 		);
 		
 		let socket_address = sockaddr_xdp
@@ -115,20 +160,7 @@ impl OwnedReceiveTransmitMemoryRingQueues
 		};
 		
 		const len: u32 = size_of::<sockaddr_xdp>() as u32;
-		bind_socket(xsk_socket_file_descriptor, &socket_address)?;
-		
-		// if let Some(xdp_extended_bpf_program) = xdp_extended_bpf_program
-		// {
-		// 	if (xsk->rx)
-		// 	{
-		// 		xsk_set_bpf_maps(xsk);
-		// 	}
-		// }
-		//
-		// if owned
-		// {
-		// 	xsk_setup_xdp_prog(xsk);
-		// }
+		bind_socket(user_memory_socket_file_descriptor, &socket_address)?;
 		
 		Ok(receive_and_transmit)
 	}

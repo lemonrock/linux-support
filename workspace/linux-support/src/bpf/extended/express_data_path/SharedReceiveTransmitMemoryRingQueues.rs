@@ -8,11 +8,33 @@ pub struct SharedReceiveTransmitMemoryRingQueues<'shared>
 {
 	user_memory: &'shared UserMemory,
 	
+	xdp_extended_bpf_program: &'shared RedirectMapAndAttachedProgram,
+	
 	/// receive is `xsk_ring_cons`.
 	/// transmit is `xsk_ring_prod`.
-	receive_and_transmit: ReceiveOrTransmitOrBoth<XskRingQueue>,
+	receive_and_transmit: ManuallyDrop<ReceiveOrTransmitOrBoth<XskRingQueue>>,
 	
-	xsk_socket_file_descriptor: ExpressDataPathSocketFileDescriptor,
+	xsk_socket_file_descriptor: ManuallyDrop<ExpressDataPathSocketFileDescriptor>,
+	
+	queue_identifier: QueueIdentifier,
+}
+
+impl Drop for SharedReceiveTransmitMemoryRingQueues<'_>
+{
+	fn drop(&mut self)
+	{
+		if self.receive_and_transmit.is_receive_or_both()
+		{
+			// Based on `libbpf`'s `xsk_delete_bpf_maps()`.
+			let _ignored = self.xdp_extended_bpf_program.redirect_map.delete(self.queue_identifier);
+		}
+		
+		unsafe
+		{
+			ManuallyDrop::drop(&mut self.xsk_socket_file_descriptor);
+			ManuallyDrop::drop(&mut self.receive_and_transmit);
+		}
+	}
 }
 
 impl Deref for SharedReceiveTransmitMemoryRingQueues<'_>

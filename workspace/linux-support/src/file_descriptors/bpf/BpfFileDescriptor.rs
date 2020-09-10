@@ -133,6 +133,14 @@ pub trait BpfFileDescriptor: FileDescriptor
 			unreachable!("Unexpected result `{}` from bpf(BPF_OBJ_GET)", result)
 		}
 	}
+	/// To file descriptor.
+	///
+	/// `MapIdentifier` usage requires the capability `CAP_SYS_ADMIN`.
+	#[inline(always)]
+	fn from_identifier_with_access_defaults(identifier: Self::Identifier) -> Result<Option<Self>, Errno>
+	{
+		Self::from_identifier(identifier, Self::DefaultAccess)
+	}
 	
 	/// To file descriptor.
 	///

@@ -68,23 +68,16 @@ impl ExpressDataPathRedirectSocketArrayMap
 		self.map_file_descriptor.freeze()
 	}
 	
-	/// Indices.
-	#[inline(always)]
-	pub fn indices(&self) -> RangeInclusive<u32>
-	{
-		0 ..= self.maximum_entries.0.get()
-	}
-	
 	/// Insert or update existing.
 	///
 	/// `file_descriptor` must:-
 	///
 	/// * be `AF_XDP`.
-	pub fn insert_or_set(&self, index: u32, file_descriptor: &ExpressDataPathSocketFileDescriptor) -> Result<(), ()>
+	pub fn insert_or_set(&self, index: QueueIdentifier, file_descriptor: &ExpressDataPathSocketFileDescriptor) -> Result<(), ()>
 	{
 		self.guard_index(index);
 		
-		self.map_file_descriptor.insert_or_set(&index, &file_descriptor.as_raw_fd(), LockFlags::DoNotLock)
+		self.map_file_descriptor.insert_or_set(&index.0, &file_descriptor.as_raw_fd(), LockFlags::DoNotLock)
 	}
 	
 	/// Insert.
@@ -92,24 +85,24 @@ impl ExpressDataPathRedirectSocketArrayMap
 	/// `file_descriptor` must:-
 	///
 	/// * be `AF_XDP`.
-	pub fn insert(&self, index: u32, file_descriptor: &ExpressDataPathSocketFileDescriptor) -> Result<(), InsertError>
+	pub fn insert(&self, index: QueueIdentifier, file_descriptor: &ExpressDataPathSocketFileDescriptor) -> Result<(), InsertError>
 	{
 		self.guard_index(index);
 		
-		self.map_file_descriptor.insert(&index, &file_descriptor.as_raw_fd(), LockFlags::DoNotLock)
+		self.map_file_descriptor.insert(&index.0, &file_descriptor.as_raw_fd(), LockFlags::DoNotLock)
 	}
 	
 	/// Removes a file descriptor.
 	#[inline(always)]
-	pub fn delete(&self, index: u32) -> Result<bool, Errno>
+	pub fn delete(&self, index: QueueIdentifier) -> Result<bool, Errno>
 	{
-		self.map_file_descriptor.delete(&index)
+		self.map_file_descriptor.delete(&index.0)
 	}
 	
 	#[inline(always)]
-	fn guard_index(&self, index: u32)
+	fn guard_index(&self, index: QueueIdentifier)
 	{
-		debug_assert!(index < self.maximum_entries.to_u32());
+		debug_assert!(index.0 < self.maximum_entries.to_u32());
 	}
 	
 	#[inline(always)]

@@ -4,7 +4,7 @@
 
 #[allow(missing_docs)]
 #[derive(Debug)]
-pub enum LoadOwnedMemoryProgramError
+pub enum AttachProgramError
 {
 	#[allow(missing_docs)]
 	NoSuchNetworkInterfaceName(NetworkInterfaceName),
@@ -37,10 +37,22 @@ pub enum LoadOwnedMemoryProgramError
 	ValidateAttachMode(ValidateAttachModeError),
 	
 	#[allow(missing_docs)]
-	CouldNotGetRehydrateMap(MapRehydrateError),
+	CouldNotGetRehydrateRedirectMap(MapRehydrateError),
+	
+	#[allow(missing_docs)]
+	CouldNotInsertIntoRedirectMap(InsertError),
+	
+	#[allow(missing_docs)]
+	SocketCreation(CreationError),
+	
+	#[allow(missing_docs)]
+	SocketBind(SocketBindError),
+	
+	#[allow(missing_docs)]
+	AttachedXdpProgramNotSuitableForSharing,
 }
 
-impl Display for LoadOwnedMemoryProgramError
+impl Display for AttachProgramError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -49,12 +61,12 @@ impl Display for LoadOwnedMemoryProgramError
 	}
 }
 
-impl error::Error for LoadOwnedMemoryProgramError
+impl error::Error for AttachProgramError
 {
 	#[inline(always)]
 	fn source(&self) ->  Option<&(dyn error::Error + 'static)>
 	{
-		use self::LoadOwnedMemoryProgramError::*;
+		use self::AttachProgramError::*;
 		
 		match self
 		{
@@ -78,52 +90,87 @@ impl error::Error for LoadOwnedMemoryProgramError
 			
 			&ValidateAttachMode(ref error) => Some(error),
 			
-			&CouldNotGetRehydrateMap(ref error) => Some(error),
+			&CouldNotGetRehydrateRedirectMap(ref error) => Some(error),
+			
+			&CouldNotInsertIntoRedirectMap(ref error) => Some(error),
+			
+			&SocketCreation(ref error) => Some(error),
+			
+			&SocketBind(ref error) => Some(error),
+			
+			&AttachedXdpProgramNotSuitableForSharing => None,
 		}
 	}
 }
 
-impl From<MapCreationError> for LoadOwnedMemoryProgramError
+impl From<MapCreationError> for AttachProgramError
 {
 	#[inline(always)]
 	fn from(value: MapCreationError) -> Self
 	{
-		LoadOwnedMemoryProgramError::CreateExpressDataPathRedirectSocketMap(value)
+		AttachProgramError::CreateExpressDataPathRedirectSocketMap(value)
 	}
 }
 
-impl From<ProgramLoadError> for LoadOwnedMemoryProgramError
+impl From<ProgramLoadError> for AttachProgramError
 {
 	#[inline(always)]
 	fn from(value: ProgramLoadError) -> Self
 	{
-		LoadOwnedMemoryProgramError::ProgramLoad(value)
+		AttachProgramError::ProgramLoad(value)
 	}
 }
 
-impl From<SocketCreationOrBindError> for LoadOwnedMemoryProgramError
+impl From<SocketCreationOrBindError> for AttachProgramError
 {
 	#[inline(always)]
 	fn from(value: SocketCreationOrBindError) -> Self
 	{
-		LoadOwnedMemoryProgramError::NetlinkSocketOpen(value)
+		AttachProgramError::NetlinkSocketOpen(value)
 	}
 }
 
-impl From<ValidateAttachModeError> for LoadOwnedMemoryProgramError
+impl From<ValidateAttachModeError> for AttachProgramError
 {
 	#[inline(always)]
 	fn from(value: ValidateAttachModeError) -> Self
 	{
-		LoadOwnedMemoryProgramError::ValidateAttachMode(value)
+		AttachProgramError::ValidateAttachMode(value)
 	}
 }
 
-impl From<MapRehydrateError> for LoadOwnedMemoryProgramError
+impl From<MapRehydrateError> for AttachProgramError
 {
 	#[inline(always)]
 	fn from(value: MapRehydrateError) -> Self
 	{
-		LoadOwnedMemoryProgramError::CouldNotGetRehydrateMap(value)
+		AttachProgramError::CouldNotGetRehydrateRedirectMap(value)
+	}
+}
+
+impl From<InsertError> for AttachProgramError
+{
+	#[inline(always)]
+	fn from(value: InsertError) -> Self
+	{
+		AttachProgramError::CouldNotInsertIntoRedirectMap(value)
+	}
+}
+
+impl From<CreationError> for AttachProgramError
+{
+	#[inline(always)]
+	fn from(value: CreationError) -> Self
+	{
+		AttachProgramError::SocketCreation(value)
+	}
+}
+
+impl From<SocketBindError> for AttachProgramError
+{
+	#[inline(always)]
+	fn from(value: SocketBindError) -> Self
+	{
+		AttachProgramError::SocketBind(value)
 	}
 }

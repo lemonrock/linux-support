@@ -23,20 +23,21 @@ use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use crate::memory::mapping::*;
 use crate::network_device::*;
 use crate::bpf::c::bpf_prog_type;
+use crate::file_descriptors::netlink::route::get_link::GetLinkMessageData;
 
 
 pub(crate) mod c;
 
 
 include!("AttachMode.rs");
+include!("AttachProgramError.rs");
 include!("Descriptor.rs");
 include!("FrameSize.rs");
-include!("load_owned_memory_program.rs");
-include!("LoadOwnedMemoryProgramError.rs");
 include!("OwnedReceiveTransmitMemoryRingQueues.rs");
 include!("QueueIdentifier.rs");
 include!("ReceiveOrTransmitOrBoth.rs");
 include!("ReceiveTransmitMemoryRingQueues.rs");
+include!("RedirectMapAndAttachedProgram.rs");
 include!("RingQueueDepth.rs");
 include!("SharedReceiveTransmitMemoryRingQueues.rs");
 include!("UmemDescriptor.rs");

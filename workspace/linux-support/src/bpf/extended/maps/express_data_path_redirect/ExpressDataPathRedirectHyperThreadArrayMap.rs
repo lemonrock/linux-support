@@ -44,13 +44,6 @@ impl ExpressDataPathRedirectHyperThreadArrayMap
 		self.map_file_descriptor.freeze()
 	}
 	
-	/// Indices.
-	#[inline(always)]
-	pub fn indices(&self) -> RangeInclusive<u32>
-	{
-		0 ..= self.maximum_entries.0.get()
-	}
-	
 	/// Gets value.
 	#[inline(always)]
 	pub fn get(&self, hyper_thread: HyperThread) -> QueueDepth

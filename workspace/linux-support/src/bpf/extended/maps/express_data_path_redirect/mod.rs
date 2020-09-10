@@ -4,6 +4,7 @@
 
 use super::*;
 use crate::network_device::Channels;
+use crate::bpf::extended::express_data_path::QueueIdentifier;
 
 
 include!("ExpressDataPathRedirectHyperThreadArrayMap.rs");

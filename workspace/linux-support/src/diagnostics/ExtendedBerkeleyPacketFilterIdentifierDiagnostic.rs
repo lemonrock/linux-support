@@ -21,7 +21,7 @@ trait ExtendedBerkeleyPacketFilterIdentifierDiagnostic: Sized
 		let mut next = <<<Self::BFD as BpfFileDescriptor>::Information as Information>::Identifier as Identifier>::first();
 		while let Some(some_next) = next
 		{
-			if let Ok(Some(file_descriptor)) = Self::BFD::from_identifier(some_next, Self::BFD::DefaultAccess)
+			if let Ok(Some(file_descriptor)) = Self::BFD::from_identifier_with_access_defaults(some_next)
 			{
 				diagnostics.push(Self::gather(&file_descriptor).map_err(DiagnosticUnobtainable::from));
 			}

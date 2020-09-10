@@ -71,7 +71,7 @@ impl Channels
 		self.channels_count(self.transmit_only_channels_count)
 	}
 	
-	/// Logic based on `xsk_get_max_queues()` in `xsk.c` in the Linux kernel sources.
+	/// Logic based on `xsk_get_max_queues()` in `tools/lib/bpf/xsk.c` in the Linux kernel sources.
 	#[inline(always)]
 	fn channels_count(&self, only_channels_count: Option<QueueCount>) -> QueueCount
 	{
