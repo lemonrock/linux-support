@@ -46,7 +46,7 @@ impl HyperThreadsDiagnostics
 		#[inline(always)]
 		fn wrap_panic<R>(sys_path: &SysPath, callback: impl FnOnce(&SysPath) -> R) -> DiagnosticUnobtainableResult<R>
 		{
-			catch_unwind(AssertUnwindSafe(callback)).map_err(|_| DiagnosticUnobtainable(format!("Panicked")))
+			catch_unwind(AssertUnwindSafe(|| callback(sys_path))).map_err(|_| DiagnosticUnobtainable(format!("Panicked")))
 		}
 		
 		let (work_queue_affinity, work_queue_writeback_affinity) = HyperThreads::work_queue_hyper_thread_affinity(sys_path);
@@ -57,7 +57,7 @@ impl HyperThreadsDiagnostics
 			
 			hyper_threading_control: wrap_panic(sys_path, HyperThread::hyper_threading_control),
 			
-			kernel_exclusive_maximum: wrap_panic(sys_path, HyperThread::hyper_threading_control),
+			kernel_exclusive_maximum: wrap_panic(sys_path, HyperThread::kernel_exclusive_maximum),
 			
 			sysconf_exclusive_maximum: HyperThread::sysconf_exclusive_maximum(),
 			
@@ -76,7 +76,7 @@ impl HyperThreadsDiagnostics
 			present: wrap_panic(sys_path, HyperThreads::present).map(|hyper_threads|
 			{
 				let mut hyper_thread_diagnotiscs = HashMap::with_capacity(hyper_threads.len());
-				for hyper_thread in hyper_threads
+				for hyper_thread in hyper_threads.iterate()
 				{
 					hyper_thread_diagnotiscs.insert(hyper_thread, HyperThreadDiagnostic::gather(sys_path, hyper_thread));
 				}

@@ -6,6 +6,8 @@
 ///
 /// Only present if the kernel has been built with `CONFIG_NUMA` and `/proc` is mounted.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct PageCounts
 {
 	/// ?

@@ -6,22 +6,25 @@
 #[derive(Debug)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct ExtendedBerkeleyPacketFilterTypeFormatDiagnostic
+pub struct TypeFormatExtendedBerkeleyPacketFilterDiagnostic
 {
 	pub id: BpfTypeFormatIdentifier,
 	
 	pub data: Option<ByteBuf>,
 }
 
-impl ExtendedBerkeleyPacketFilterTypeFormatDiagnostic
+impl ExtendedBerkeleyPacketFilterIdentifierDiagnostic for TypeFormatExtendedBerkeleyPacketFilterDiagnostic
 {
-	fn gather(file_descriptor: &BpfTypeFormatFileDescriptor) -> Result<Self, Errno>
+	type BFD = BpfTypeFormatFileDescriptor;
+	
+	#[inline(always)]
+	fn map(information: <Self::BFD as BpfFileDescriptor>::Information) -> Self
 	{
-		file_descriptor.get_information().map(|information| Self
+		Self
 		{
 			id: information.identifier(),
 			
-			data: information.data().map(|slice| slice.to_vec().into()),
-		})
+			data: information.data().map(|slice| ByteBuf::from(slice.to_vec())),
+		}
 	}
 }

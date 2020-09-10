@@ -66,7 +66,7 @@ pub struct NonRootCgroupVersion2Diagnostics
 
 impl NonRootCgroupVersion2Diagnostics
 {
-	fn gather_children_of_parent(mount_point: &CgroupMountPoint, parent_cgroup: &Rc<impl Cgroup>, supported_huge_page_sizes: &BTreeSet<HugePageSize>) -> DiagnosticUnobtainableResult<HashMap<CgroupName, Self>>
+	fn gather_children_of_parent<'name>(mount_point: &CgroupMountPoint, parent_cgroup: &Rc<impl Cgroup<'name>>, supported_huge_page_sizes: &BTreeSet<HugePageSize>) -> DiagnosticUnobtainableResult<HashMap<CgroupName, Self>>
 	{
 		match child_cgroup_names(parent_cgroup, mount_point)
 		{
@@ -82,7 +82,7 @@ impl NonRootCgroupVersion2Diagnostics
 						let child_cgroup = parent_cgroup.clone().child(Cow::Borrowed(&child_cgroup_name));
 						Self::gather(mount_point, &child_cgroup, supported_huge_page_sizes)
 					};
-					child_cgroup_diagnostics.insert(child_cgroup_name, diagnostics)
+					child_cgroup_diagnostics.insert(child_cgroup_name, diagnostics);
 				}
 				Ok(child_cgroup_diagnostics)
 			}

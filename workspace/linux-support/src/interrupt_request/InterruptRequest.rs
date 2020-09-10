@@ -35,7 +35,7 @@ impl InterruptRequest
 			match dir_entry.file_type()
 			{
 				Err(_) => return None,
-				Ok(file_type) => if !file_type.is_folder()
+				Ok(file_type) => if !file_type.is_dir()
 				{
 					return None
 				}
@@ -45,7 +45,7 @@ impl InterruptRequest
 			u8::from_bytes(&file_name[..]).ok().map(|irq| InterruptRequest(irq))
 		}
 		
-		Ok(folder_path.read_dir()?.filter_map(sys_path.kernel_irq_folder_path()))
+		Ok(sys_path.kernel_irq_folder_path().read_dir()?.filter_map(map))
 	}
 	
 	/// Actions.
@@ -156,9 +156,9 @@ impl InterruptRequest
 	
 	/// Usually `ffffffff` (ie `/sys/devices/system/cpu/possible` but as a bitmask not a list).
 	#[inline(always)]
-	pub fn default_smp_affinity(proc_path: &ProcPath) -> HyperThreads
+	pub fn default_smp_affinity(proc_path: &ProcPath) -> io::Result<HyperThreads>
 	{
-		HyperThreads(proc_path.irq_file_path("default_smp_affinity").parse_hyper_thread_or_numa_node_bit_set().unwrap())
+		proc_path.irq_file_path("default_smp_affinity").parse_hyper_thread_or_numa_node_bit_set().map(HyperThreads)
 	}
 	
 	#[inline(always)]

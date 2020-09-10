@@ -4,6 +4,7 @@
 
 /// An inode
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct Inode(ino_t);
 

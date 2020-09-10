@@ -53,7 +53,7 @@ impl DefaultPageSizeAndHugePageSizes
 	
 				default_huge_page_size: parse_and_return_if_supported(&supported_huge_page_sizes, ||
 				{
-					let memory_information = MemoryInformation::parse_global(proc_path, false)?;
+					let memory_information = MemoryInformation::parse_global(proc_path, false).map_err(io_error_invalid_data)?;
 					Ok(HugePageSize::default_huge_page_size(&memory_information))
 				})?,
 	

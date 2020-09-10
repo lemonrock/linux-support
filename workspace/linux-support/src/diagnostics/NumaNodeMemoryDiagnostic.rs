@@ -25,12 +25,13 @@ pub struct NumaNodeMemoryDiagnostic
 
 impl NumaNodeMemoryDiagnostic
 {
+	#[allow(deprecated)]
 	fn gather(sys_path: &SysPath, proc_path: &ProcPath, numa_node: NumaNode, supported_huge_page_sizes: &BTreeSet<HugePageSize>) -> Self
 	{
 		#[inline(always)]
 		fn wrap_panic<R>(numa_node: NumaNode, callback: impl FnOnce(NumaNode) -> R) -> DiagnosticUnobtainableResult<R>
 		{
-			catch_unwind(AssertUnwindSafe(callback)).map_err(|_| DiagnosticUnobtainable(format!("Panicked")))
+			catch_unwind(AssertUnwindSafe(|| callback(numa_node))).map_err(|_| DiagnosticUnobtainable(format!("Panicked")))
 		}
 		
 		Self

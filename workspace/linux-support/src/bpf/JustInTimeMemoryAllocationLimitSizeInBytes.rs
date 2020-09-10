@@ -38,9 +38,9 @@ impl JustInTimeMemoryAllocationLimitSizeInBytes
 	///
 	/// Value of `/proc/sys/net/core/bpf_jit_limit`.
 	#[inline(always)]
-	pub fn global_maximum(proc_path: &ProcPath) -> Self
+	pub fn global_maximum(proc_path: &ProcPath) -> io::Result<Self>
 	{
-		Self(Self::sys_net_core_bpf_jit_limit_file_path(proc_path).read_value().unwrap())
+		Self::sys_net_core_bpf_jit_limit_file_path(proc_path).read_value().map(Self)
 	}
 	
 	/// Default is `Self::UsualGlobalDefault`.

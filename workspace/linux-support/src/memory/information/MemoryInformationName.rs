@@ -4,6 +4,8 @@
 
 /// Memory information names for a process.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum MemoryInformationName
 {
 	/// Total usable RAM (physical RAM minus a few reserved bits and the kernel binary code).
@@ -174,7 +176,6 @@ pub enum MemoryInformationName
 	/// Since Linux 4.4, this field is no longer calculated, and is always 0.
 	///
 	/// See `/proc/vmallocinfo`.
-	#[deprecated]
 	UsedVirtualAddressSpace,
 
 	/// Largest contiguous block of vmalloc area which is free.
@@ -182,7 +183,6 @@ pub enum MemoryInformationName
 	/// Since Linux 4.4, this field is no longer calculated and is hard coded as 0.
 	///
 	/// See `/proc/vmallocinfo`.
-	#[deprecated]
 	LargestContiguousChunkInVirtualAddressSpace,
 	
 	/// The number is derived by dividing `SizeOfDefaultHugePage` by the megabytes set aside for `hugepages` specified in `/proc/sys/vm/hugetlb_pool`.
@@ -261,37 +261,31 @@ pub enum MemoryInformationName
 	/// Only if the Linux Kernel has been compiled with `CONFIG_HIGHMEM`.
 	///
 	/// Obsolete.
-	#[deprecated]
 	TotalHighNotDirectlyMappedIntoKernelSpace,
 
 	/// Only if the Linux Kernel has been compiled with `CONFIG_HIGHMEM`.
 	///
 	/// Obsolete.
-	#[deprecated]
 	FreeHighNotDirectlyMappedIntoKernelSpace,
 
 	/// Only if the Linux Kernel has been compiled with `CONFIG_HIGHMEM`.
 	///
 	/// Obsolete.
-	#[deprecated]
 	TotalLowDirectlyMappedIntoKernelSpace,
 
 	/// Only if the Linux Kernel has been compiled with `CONFIG_HIGHMEM`.
 	///
 	/// Obsolete.
-	#[deprecated]
 	FreeLowDirectlyMappedIntoKernelSpace,
 
 	/// Only if the Linux Kernel has been compiled with `CONFIG_MMU`.
 	///
 	/// Since Linux 2.6.19.
-	#[deprecated]
 	MMapCopy,
 
 	/// Only if the Linux Kernel has been compiled with `CONFIG_QUICKLIST`.
 	///
 	/// Since Linux 2.6.17.
-	#[deprecated]
 	Quicklists,
 
 	/// Only if the Linux Kernel has been compiled with `CONFIG_CMA`.

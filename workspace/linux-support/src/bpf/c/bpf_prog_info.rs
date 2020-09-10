@@ -209,7 +209,7 @@ impl bpf_prog_info
 		{
 			for map_identifier in map_identifiers
 			{
-				if let Some(map_file_descriptor) = map_identifier.to_file_descriptor(map_access_permissions).map_err(CouldNotGetExistingMapFileDescriptor)?
+				if let Some(map_file_descriptor) = MapFileDescriptor::from_identifier(*map_identifier, map_access_permissions).map_err(CouldNotGetExistingMapFileDescriptor)?
 				{
 					let map_information = map_file_descriptor.get_information().map_err(CouldNotGetExistingMapInformation)?;
 					

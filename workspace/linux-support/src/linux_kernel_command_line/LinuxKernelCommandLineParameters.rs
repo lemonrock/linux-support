@@ -10,6 +10,8 @@
 ///
 /// See <https://www.kernel.org/doc/html/latest/admin-guide/kernel-parameters.html> and <https://www.kernel.org/doc/Documentation/x86/x86_64/boot-options.txt>.
 #[derive(Default, Debug, Clone)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct LinuxKernelCommandLineParameters(HashMap<Box<[u8]>, Vec<Option<Box<[u8]>>>>);
 
 impl LinuxKernelCommandLineParameters

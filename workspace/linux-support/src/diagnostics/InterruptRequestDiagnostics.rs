@@ -12,7 +12,7 @@ pub struct InterruptRequestDiagnostics
 	pub default_smp_affinity: DiagnosticUnobtainableResult<HyperThreads>,
 	
 	/// Per-interrupt request diagnostics.
-	pub interrupt_request_diagnostics: DiagnosticUnobtainableResult<HashMap<InterrruptRequest, InterruptRequestDiagnostic>>,
+	pub interrupt_request_diagnostics: DiagnosticUnobtainableResult<HashMap<InterruptRequest, InterruptRequestDiagnostic>>,
 }
 
 impl InterruptRequestDiagnostics
@@ -22,18 +22,20 @@ impl InterruptRequestDiagnostics
 		Self
 		{
 			default_smp_affinity: InterruptRequest::default_smp_affinity(proc_path).map_err(DiagnosticUnobtainable::from),
-			interrupt_request_diagnostics:
-			{
-				let mut interrupt_request_diagnostics = HashMap::new();
-				
-				for interrupt_request in InterruptRequest::all(sys_path).map_err(DiagnosticUnobtainable::from)?
-				{
-					let interrupt_request_diagnostic = InterruptRequestDiagnostic::gather(sys_path, proc_path, interrupt_request);
-					interrupt_request_diagnostics.insert(interrupt_request, interrupt_request_diagnostic);
-				}
-				
-				Ok(interrupt_request_diagnostics)
-			}
+			interrupt_request_diagnostics: Self::interrupt_request_diagnostics(sys_path, proc_path),
 		}
+	}
+	
+	fn interrupt_request_diagnostics(sys_path: &SysPath, proc_path: &ProcPath) -> DiagnosticUnobtainableResult<HashMap<InterruptRequest, InterruptRequestDiagnostic>>
+	{
+		let mut interrupt_request_diagnostics = HashMap::new();
+		
+		for interrupt_request in InterruptRequest::all(sys_path).map_err(DiagnosticUnobtainable::from)?
+		{
+			let interrupt_request_diagnostic = InterruptRequestDiagnostic::gather(sys_path, proc_path, interrupt_request);
+			interrupt_request_diagnostics.insert(interrupt_request, interrupt_request_diagnostic);
+		}
+		
+		Ok(interrupt_request_diagnostics)
 	}
 }

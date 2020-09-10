@@ -134,7 +134,7 @@ impl HyperThreads
 	pub fn process_affinity(process_identifier: ProcessIdentifierChoice) -> Result<Self, String>
 	{
 		let mut this = Self::new_for_cpu_set_t();
-		let result = unsafe { sched_getaffinity(process_identifier.into(), this.cpu_set_t_size_in_bytes(), this.cpu_set_t_pointer()) };
+		let result = unsafe { sched_getaffinity(process_identifier.into(), this.cpu_set_t_size_in_bytes(), this.cpu_set_t_pointer() as *mut cpu_set_t) };
 		
 		if likely!(result == 0)
 		{
@@ -453,7 +453,7 @@ impl HyperThreads
 		let mut invalid_hyper_threads = Self(BitSet::<HyperThread>::empty());
 		for hyper_thread in self.iterate()
 		{
-			if !hyper_thread.is_online(sys_path)
+			if !hyper_thread.is_online(sys_path).unwrap()
 			{
 				invalid_hyper_threads.add(hyper_thread)
 			}

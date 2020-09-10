@@ -4,6 +4,8 @@
 
 /// Global huge page pool size.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct GlobalHugePagePoolSize
 {
 	/// Maximum number of `persistent` (ie static) huge pages, ie these are the number of pages in the Kernel's huge page size pool for the associated Huge Page Size.

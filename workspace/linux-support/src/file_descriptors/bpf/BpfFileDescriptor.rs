@@ -5,8 +5,23 @@
 /// Common to BPF file descriptors returned from the `bpf()` syscall.
 pub trait BpfFileDescriptor: FileDescriptor
 {
+	/// Identifier.
+	type Identifier: Identifier;
+	
 	/// Information.
-	type Information: Information;
+	type Information: Information<Identifier=Self::Identifier>;
+	
+	/// Type of access permissions, if used.
+	type Access;
+	
+	#[doc(hidden)]
+	const GetFileDescriptor: bpf_cmd;
+	
+	#[doc(hidden)]
+	const DefaultAccess: Self::Access;
+	
+	#[doc(hidden)]
+	fn access_permissions_to_open_flags(access: Self::Access) -> u32;
 	
 	/// Get information.
 	#[allow(deprecated)]
@@ -116,6 +131,41 @@ pub trait BpfFileDescriptor: FileDescriptor
 		else
 		{
 			unreachable!("Unexpected result `{}` from bpf(BPF_OBJ_GET)", result)
+		}
+	}
+	
+	/// To file descriptor.
+	///
+	/// `access_permissions` are only validated for `MapIdentifier`; otherwise it must be `()`.
+	/// `MapIdentifier` usage requires the capability `CAP_SYS_ADMIN`.
+	#[inline(always)]
+	fn from_identifier(identifier: Self::Identifier, access_permissions: Self::Access) -> Result<Option<Self>, Errno>
+	{
+		let mut attr = bpf_attr::default();
+		attr.get_identifier = BpfCommandGetIdentifier
+		{
+			value_of_identifier: identifier.into(),
+			next_id: 0,
+			open_flags: Self::access_permissions_to_open_flags(access_permissions),
+		};
+		
+		let result = attr.syscall(Self::GetFileDescriptor);
+		if likely!(result > 0)
+		{
+			Ok(Some(unsafe { Self::from_raw_fd(result) }))
+		}
+		else if likely!(result == -1)
+		{
+			let errno = errno();
+			match errno.0
+			{
+				ENOENT => Ok(None),
+				_ => Err(errno)
+			}
+		}
+		else
+		{
+			unreachable!("Unexpected result `{}` from bpf({:?})", result, Self::GetFileDescriptor)
 		}
 	}
 }

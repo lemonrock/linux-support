@@ -4,6 +4,8 @@
 
 /// Original environment of a process when it was started.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct CommandLine(Vec<Box<[u8]>>);
 
 impl Deref for CommandLine

@@ -12,11 +12,11 @@ pub struct CpuIntelResourceDirectorTechnologyInformation
 
 	pub layer_3_cache_monitoring: Option<CpuLayer3CacheMonitoringIntelResourceDirectorTechnologyInformation>,
 
-	pub layer_2_cache_allocation: Option<CpuLayer3CacheAllocationIntelResourceDirectorTechnologyInformation>,
+	pub layer_2_cache_allocation: Option<CpuLayer2CacheAllocationIntelResourceDirectorTechnologyInformation>,
 
-	pub layer_3_cache_allocation: Option<CpuLayer2CacheAllocationIntelResourceDirectorTechnologyInformation>,
+	pub layer_3_cache_allocation: Option<CpuLayer3CacheAllocationIntelResourceDirectorTechnologyInformation>,
 
-	pub memory_bandwidth_allocation: Option<>,
+	pub memory_bandwidth_allocation: Option<CpuMemoryBandwidthAllocationIntelResourceDirectorTechnologyInformation>,
 }
 
 impl CpuIntelResourceDirectorTechnologyInformation
@@ -27,11 +27,11 @@ impl CpuIntelResourceDirectorTechnologyInformation
 		{
 			None => (None, None),
 			
-			Some(rdt_monitoring_info) => match rdt_monitoring_info.l3_cache_monitoring()
+			Some(rdt_monitoring_info) => match rdt_monitoring_info.l3_monitoring()
 			{
-				None => (Some(rdt_monitoring_info.rmid_range), None),
+				None => (Some(rdt_monitoring_info.rmid_range()), None),
 				
-				Some(l3_cache_monitoring_info) => (Some(rdt_monitoring_info.rmid_range), Some
+				Some(l3_cache_monitoring_info) => (Some(rdt_monitoring_info.rmid_range()), Some
 				(
 					CpuLayer3CacheMonitoringIntelResourceDirectorTechnologyInformation
 					{
@@ -76,7 +76,7 @@ impl CpuIntelResourceDirectorTechnologyInformation
 						has_code_data_prioritization: l3_cat_info.has_code_data_prioritization(),
 					}),
 					
-					rdt_allocation_info.memory_bandwidth_allocation.map(|mem_bw_allocation_info| CpuMemoryBandwidthAllocationIntelResourceDirectorTechnologyInformation
+					rdt_allocation_info.memory_bandwidth_allocation().map(|mem_bw_allocation_info| CpuMemoryBandwidthAllocationIntelResourceDirectorTechnologyInformation
 					{
 						max_hba_throttling: mem_bw_allocation_info.max_hba_throttling(),
 					

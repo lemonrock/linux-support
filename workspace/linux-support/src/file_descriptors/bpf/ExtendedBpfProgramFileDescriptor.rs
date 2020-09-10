@@ -50,7 +50,21 @@ impl FileDescriptor for ExtendedBpfProgramFileDescriptor
 
 impl BpfFileDescriptor for ExtendedBpfProgramFileDescriptor
 {
+	type Identifier = ExtendedBpfProgramIdentifier;
+	
 	type Information = bpf_prog_info;
+	
+	type Access = ();
+	
+	const GetFileDescriptor: bpf_cmd = bpf_cmd::BPF_PROG_GET_FD_BY_ID;
+	
+	const DefaultAccess: Self::Access = ();
+	
+	#[inline(always)]
+	fn access_permissions_to_open_flags(_access: Self::Access) -> u32
+	{
+		0
+	}
 }
 
 impl UsedAsValueInArrayMapDescriptor for ExtendedBpfProgramFileDescriptor

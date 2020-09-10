@@ -48,7 +48,21 @@ impl FileDescriptor for MapFileDescriptor
 
 impl BpfFileDescriptor for MapFileDescriptor
 {
+	type Identifier = MapIdentifier;
+	
 	type Information = bpf_map_info;
+	
+	type Access = KernelOnlyAccessPermissions;
+	
+	const GetFileDescriptor: bpf_cmd = bpf_cmd::BPF_MAP_GET_FD_BY_ID;
+	
+	const DefaultAccess: Self::Access = KernelOnlyAccessPermissions::KernelReadAndWriteUserspaceReadWrite;
+	
+	#[inline(always)]
+	fn access_permissions_to_open_flags(access: Self::Access) -> u32
+	{
+		access.to_map_flags().bits() as u32
+	}
 }
 
 impl MemoryMappableFileDescriptor for MapFileDescriptor

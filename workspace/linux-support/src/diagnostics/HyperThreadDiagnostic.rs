@@ -32,7 +32,7 @@ impl HyperThreadDiagnostic
 		#[inline(always)]
 		fn wrap_panic<R>(sys_path: &SysPath, callback: impl FnOnce(&SysPath) -> R) -> DiagnosticUnobtainableResult<R>
 		{
-			catch_unwind(AssertUnwindSafe(callback)).map_err(|_| DiagnosticUnobtainable(format!("Panicked")))
+			catch_unwind(AssertUnwindSafe(|| callback(sys_path))).map_err(|_| DiagnosticUnobtainable(format!("Panicked")))
 		}
 		
 		Self

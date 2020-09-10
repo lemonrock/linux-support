@@ -7,6 +7,8 @@
 /// All of these statistics were in existence before Linux 4.0 unless indicated otherwise.
 #[allow(missing_docs)]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub enum VirtualMemoryStatisticName
 {
 	NumberOFreePages,

@@ -38,21 +38,26 @@ impl MountDiagnostic
 		Self
 		{
 			source: mount.source,
+			
 			file_system_type: mount.file_system_type,
+			
 			mount_options:
 			{
 				let from_mount_options = mount.mount_options;
-				let mut mount_options = HashMap::with_capacity(from_mount_options.len())
+				let mut mount_options = HashMap::with_capacity(from_mount_options.len());
 				for (name, option) in from_mount_options
 				{
 					let name = name.into_owned().into_boxed_slice();
 					let option = option.map(|value| value.into_owned().into_boxed_slice());
-					mount_options.insert(name, option)
+					mount_options.insert(name, option);
 				}
 				mount_options
-			}
+			},
+			
 			dump_frequency_in_days: mount.dump_frequency_in_days,
+			
 			pass_number_on_parallel_filesystem_type: mount.pass_number_on_parallel_filesystem_type,
+			
 			mount_point_file_system_diagnostics: MountPointFileSystemDiagnostics::gather(&mount.mount_point),
 		}
 	}

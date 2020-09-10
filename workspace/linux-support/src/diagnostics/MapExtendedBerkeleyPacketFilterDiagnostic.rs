@@ -6,7 +6,7 @@
 #[derive(Debug)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct ExtendedBerkeleyPacketFilterMapDiagnostic
+pub struct MapExtendedBerkeleyPacketFilterDiagnostic
 {
 	pub id: MapIdentifier,
 	
@@ -31,11 +31,14 @@ pub struct ExtendedBerkeleyPacketFilterMapDiagnostic
 	pub map_create_flags: BPF_MAP_CREATE_flags,
 }
 
-impl ExtendedBerkeleyPacketFilterMapDiagnostic
+impl ExtendedBerkeleyPacketFilterIdentifierDiagnostic for MapExtendedBerkeleyPacketFilterDiagnostic
 {
-	fn gather(file_descriptor: &MapFileDescriptor) -> Result<Self, Errno>
+	type BFD = MapFileDescriptor;
+	
+	#[inline(always)]
+	fn map(information: <Self::BFD as BpfFileDescriptor>::Information) -> Self
 	{
-		file_descriptor.get_information().map(|information| Self
+		Self
 		{
 			id: information.identifier(),
 			
@@ -49,7 +52,7 @@ impl ExtendedBerkeleyPacketFilterMapDiagnostic
 			
 			maximum_entries: information.maximum_entries(),
 			
-			btf_vmlinux_value_type_id: information.btf_vmlinux_value_type_id(),
+			btf_vmlinux_value_type_id: information.btf_vmlinux_value_type_id,
 			
 			btf_key_type_id: information.btf_key_type_id,
 			
@@ -58,6 +61,6 @@ impl ExtendedBerkeleyPacketFilterMapDiagnostic
 			type_: information.type_,
 		
 			map_create_flags: information.map_flags
-		})
+		}
 	}
 }

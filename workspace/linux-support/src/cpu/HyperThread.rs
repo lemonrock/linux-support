@@ -301,7 +301,7 @@ impl HyperThread
 	#[inline(always)]
 	pub fn level1_cache_hyper_thread_siblings_including_self(self, sys_path: &SysPath) -> io::Result<HyperThreads>
 	{
-		sys_path.hyper_thread_cache_file_path(self, "index0/shared_cpu_list").read_hyper_thread_or_numa_node_list().unwrap().map(HyperThreads)
+		sys_path.hyper_thread_cache_file_path(self, "index0/shared_cpu_list").read_hyper_thread_or_numa_node_list().map(HyperThreads)
 	}
 
 	/// Hyper threaded logical cores that are thread-siblings of this one according to the level 1 cache.

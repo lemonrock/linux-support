@@ -29,7 +29,7 @@ impl MemoryDiagnostics
 			
 			page_size: PageSizeMemoryDiagnostics::gather(sys_path, proc_path, supported_huge_page_sizes),
 			
-			numa_nodes: NumaNodeMemoryDiagnostics::gather(sys_path, proc_path),
+			numa_nodes: NumaNodeMemoryDiagnostics::gather(sys_path, proc_path, supported_huge_page_sizes),
 		}
 	}
 }

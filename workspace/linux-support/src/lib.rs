@@ -478,7 +478,6 @@ use libc::prctl;
 use libc::pread;
 use libc::process_vm_readv;
 use libc::process_vm_writev;
-use libc::pthread_getaffinity_np;
 use libc::pthread_self;
 use libc::pthread_setaffinity_np;
 use libc::pthread_sigmask;

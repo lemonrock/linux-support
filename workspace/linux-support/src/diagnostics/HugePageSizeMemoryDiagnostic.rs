@@ -10,8 +10,6 @@ pub struct HugePageSizeMemoryDiagnostic
 {
 	pub can_have_a_dynamic_huge_page_pool: bool,
 	
-	pub cgroup_file_name_fragment: &'static str,
-	
 	pub is_a_gigantic_huge_page: bool,
 	
 	pub global_huge_page_pool_size: Option<GlobalHugePagePoolSize>,
@@ -28,7 +26,6 @@ impl HugePageSizeMemoryDiagnostic
 		Self
 		{
 			can_have_a_dynamic_huge_page_pool: huge_page_size.can_have_a_dynamic_huge_page_pool(),
-			cgroup_file_name_fragment: huge_page_size.cgroup_file_name_fragment(),
 			is_a_gigantic_huge_page: huge_page_size.is_a_gigantic_huge_page(),
 			global_huge_page_pool_size: huge_page_size.global_huge_page_pool_size(sys_path),
 			global_huge_page_pool_statistics: huge_page_size.global_huge_page_pool_statistics(sys_path),

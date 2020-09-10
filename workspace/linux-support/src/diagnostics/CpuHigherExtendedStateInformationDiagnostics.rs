@@ -37,7 +37,7 @@ impl CpuHigherExtendedStateInformationDiagnostics
 			
 			is_in_xcr0: extended_state.is_in_xcr0(),
 			
-			is_compacted_form: extended_state.is_compacted_form(),
+			is_compacted_form: extended_state.is_compacted_format(),
 		}
 	}
 }

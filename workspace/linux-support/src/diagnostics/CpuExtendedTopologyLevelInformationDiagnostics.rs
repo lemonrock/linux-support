@@ -32,7 +32,7 @@ impl CpuExtendedTopologyLevelInformationDiagnostics
 			
 			level_number: extended_topology_level.level_number(),
 			
-			level_type: match extended_topology_level.level_type
+			level_type: match extended_topology_level.level_type()
 			{
 				Invalid => "Invalid",
 				SMT => "HyperThread",

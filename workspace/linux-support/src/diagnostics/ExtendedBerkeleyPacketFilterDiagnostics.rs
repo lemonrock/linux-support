@@ -14,17 +14,17 @@ pub struct ExtendedBerkeleyPacketFilterDiagnostics
 	
 	pub just_in_time_memory_allocation_limit_size_in_bytes: DiagnosticUnobtainableResult<JustInTimeMemoryAllocationLimitSizeInBytes>,
 	
-	pub program_diagnostics: Vec<DiagnosticUnobtainableResult<ExtendedBerkeleyPacketFilterProgramDiagnostic>>,
+	pub program_diagnostics: Vec<DiagnosticUnobtainableResult<ProgramExtendedBerkeleyPacketFilterDiagnostic>>,
 	
-	pub map_diagnostics: Vec<DiagnosticUnobtainableResult<ExtendedBerkeleyPacketFilterMapDiagnostic>>,
+	pub map_diagnostics: Vec<DiagnosticUnobtainableResult<MapExtendedBerkeleyPacketFilterDiagnostic>>,
 	
-	pub bpf_type_format_diagnostics: Vec<DiagnosticUnobtainableResult<ExtendedBerkeleyPacketFilterTypeFormatDiagnostic>>,
+	pub type_format_diagnostics: Vec<DiagnosticUnobtainableResult<TypeFormatExtendedBerkeleyPacketFilterDiagnostic>>,
 	
-	pub pinned_program_diagnostics: HashMap<PathBuf, ExtendedBerkeleyPacketFilterProgramDiagnostic>,
+	pub pinned_program_diagnostics: HashMap<PathBuf, ProgramExtendedBerkeleyPacketFilterDiagnostic>,
 	
-	pub pinned_map_diagnostics: HashMap<PathBuf, ExtendedBerkeleyPacketFilterMapDiagnostic>,
+	pub pinned_map_diagnostics: HashMap<PathBuf, MapExtendedBerkeleyPacketFilterDiagnostic>,
 	
-	pub pinned_bpf_type_format_diagnostics: HashMap<PathBuf, ExtendedBerkeleyPacketFilterTypeFormatDiagnostic>,
+	pub pinned_type_format_diagnostics: HashMap<PathBuf, TypeFormatExtendedBerkeleyPacketFilterDiagnostic>,
 }
 
 impl ExtendedBerkeleyPacketFilterDiagnostics
@@ -32,7 +32,7 @@ impl ExtendedBerkeleyPacketFilterDiagnostics
 	#[inline(always)]
 	fn gather(proc_path: &ProcPath, file_systems: &FileSystemsDiagnostics) -> Self
 	{
-		let (pinned_program_diagnostics, pinned_map_diagnostics, pinned_bpf_type_format_diagnostics) = Self::pinned(file_systems);
+		let (pinned_program_diagnostics, pinned_map_diagnostics, pinned_type_format_diagnostics) = Self::pinned(file_systems);
 		
 		Self
 		{
@@ -40,73 +40,47 @@ impl ExtendedBerkeleyPacketFilterDiagnostics
 			
 			just_in_time_compilation_hardening: JustInTimeCompilationHardening::value(proc_path).map_err(DiagnosticUnobtainable::from),
 			
-			just_in_time_memory_allocation_limit_size_in_bytes: JustInTimeMemoryAllocationLimitSizeInBytes::value(proc_path).map_err(DiagnosticUnobtainable::from),
+			just_in_time_memory_allocation_limit_size_in_bytes: JustInTimeMemoryAllocationLimitSizeInBytes::global_maximum(proc_path).map_err(DiagnosticUnobtainable::from),
 			
-			program_diagnostics: Self::all::<ExtendedBpfProgramFileDescriptor, ExtendedBerkeleyPacketFilterProgramDiagnostic>(ExtendedBerkeleyPacketFilterProgramDiagnostic::gather),
+			program_diagnostics: ProgramExtendedBerkeleyPacketFilterDiagnostic::all(),
 			
-			map_diagnostics: Self::all::<MapFileDescriptor, ExtendedBerkeleyPacketFilterMapDiagnostic>(ExtendedBerkeleyPacketFilterMapDiagnostic::gather),
+			map_diagnostics: MapExtendedBerkeleyPacketFilterDiagnostic::all(),
 		
-			bpf_type_format_diagnostics: Self::all::<BpfTypeFormatFileDescriptor, ExtendedBerkeleyPacketFilterTypeFormatDiagnostic>(ExtendedBerkeleyPacketFilterTypeFormatDiagnostic::gather),
+			type_format_diagnostics: TypeFormatExtendedBerkeleyPacketFilterDiagnostic::all(),
 			
 			pinned_program_diagnostics,
 			
 			pinned_map_diagnostics,
-		
-			pinned_bpf_type_format_diagnostics,
+			
+			pinned_type_format_diagnostics,
 		}
 	}
 	
-	fn all<BFD: BpfFileDescriptor, I>(gather_information: impl FnOnce(&BFD) -> Result<I, Errno>) -> Vec<DiagnosticUnobtainableResult<I>>
-	{
-		let mut diagnostics = Vec::new();
-		
-		let mut next = ExtendedBpfProgramIdentifier::first();
-		while let Some(some_next) = next
-		{
-			if let Ok(Some(file_descriptor)) = some_next.to_file_descriptor(())
-			{
-				diagnostics.push(gather_information(&file_descriptor).map_err(DiagnosticUnobtainable::from));
-			}
-			next = some_next.next();
-		}
-		
-		diagnostics
-	}
-	
-	fn pinned(file_systems: &FileSystemsDiagnostics) -> (HashMap<PathBuf, ExtendedBerkeleyPacketFilterProgramDiagnostic>, HashMap<PathBuf, ExtendedBerkeleyPacketFilterMapDiagnostic>, HashMap<PathBuf, ExtendedBerkeleyPacketFilterTypeFormatDiagnostic>)
+	fn pinned(file_systems: &FileSystemsDiagnostics) -> (HashMap<PathBuf, ProgramExtendedBerkeleyPacketFilterDiagnostic>, HashMap<PathBuf, MapExtendedBerkeleyPacketFilterDiagnostic>, HashMap<PathBuf, TypeFormatExtendedBerkeleyPacketFilterDiagnostic>)
 	{
 		let mut pinned_program_diagnostics = HashMap::new();
 		let mut pinned_map_diagnostics = HashMap::new();
-		let mut pinned_bpf_type_format_diagnostics = HashMap::new();
+		let mut pinned_type_format_diagnostics = HashMap::new();
 		if let Some(mount_path) = file_systems.bpf_mount_path()
 		{
 			let mount_point = BpfMountPoint::from_path(mount_path.to_path_buf());
 			
 			mount_point.all_pinned_object_file_paths(&mut |pinned_object_fully_qualified_file_path|
 			{
-				if let Ok(Some(program_diagnostic)) = Self::gather_from_pinned_object::<ExtendedBpfProgramFileDescriptor, ExtendedBerkeleyPacketFilterProgramDiagnostic>(&pinned_object_fully_qualified_file_path, ExtendedBerkeleyPacketFilterProgramDiagnostic::gather)
+				if let Ok(Some(program_diagnostic)) = ProgramExtendedBerkeleyPacketFilterDiagnostic::gather_from_pinned_object(&pinned_object_fully_qualified_file_path)
 				{
 					pinned_program_diagnostics.insert(pinned_object_fully_qualified_file_path, program_diagnostic);
 				}
-				else if let Ok(Some(map_diagnostic)) = Self::gather_from_pinned_object::<MapFileDescriptor, ExtendedBerkeleyPacketFilterMapDiagnostic>(&pinned_object_fully_qualified_file_path, ExtendedBerkeleyPacketFilterMapDiagnostic::gather)
+				else if let Ok(Some(map_diagnostic)) = MapExtendedBerkeleyPacketFilterDiagnostic::gather_from_pinned_object(&pinned_object_fully_qualified_file_path)
 				{
 					pinned_map_diagnostics.insert(pinned_object_fully_qualified_file_path, map_diagnostic);
 				}
-				else if let Ok(Some(bpf_type_format_diagnostic)) = Self::gather_from_pinned_object::<BpfTypeFormatFileDescriptor, ExtendedBerkeleyPacketFilterTypeFormatDiagnostic>(&pinned_object_fully_qualified_file_path, ExtendedBerkeleyPacketFilterTypeFormatDiagnostic::gather)
+				else if let Ok(Some(bpf_type_format_diagnostic)) = TypeFormatExtendedBerkeleyPacketFilterDiagnostic::gather_from_pinned_object(&pinned_object_fully_qualified_file_path)
 				{
-					pinned_bpf_type_format_diagnostics.insert(pinned_object_fully_qualified_file_path, bpf_type_format_diagnostic);
+					pinned_type_format_diagnostics.insert(pinned_object_fully_qualified_file_path, bpf_type_format_diagnostic);
 				}
 			});
 		}
-		(pinned_program_diagnostics, pinned_map_diagnostics, pinned_bpf_type_format_diagnostics)
-	}
-	
-	/// There is no way to know in advance whether an `absolute_path` is represented by either of `ExtendedBpfProgramFileDescriptor`, `BpfTypeFormatFileDescriptor`, or `MapFileDescriptor`.
-	///
-	/// A returned value of `Err()` implies that the file path itself is not one of `ExtendedBpfProgramFileDescriptor`, `BpfTypeFormatFileDescriptor`, or `MapFileDescriptor`, or does not exist or is not a file.
-	fn gather_from_pinned_object<BFD: BpfFileDescriptor, I>(absolute_path: &impl AsRef<Path>, gather_information: impl FnOnce(&BFD) -> Result<I, Errno>) -> DiagnosticUnobtainableResult<Option<I>>
-	{
-		let file_descriptor = BFD::get_pinned_absolute_path(absolute_path, KernelOnlyAccessPermissions::KernelReadAndWriteUserspaceReadWrite).map_err(|errno| DiagnosticUnobtainable::from(format!("Could not open pinned Extended BPF file descriptor: {}", errno)))?;
-		Ok(gather_information(&file_descriptor).ok())
+		(pinned_program_diagnostics, pinned_map_diagnostics, pinned_type_format_diagnostics)
 	}
 }

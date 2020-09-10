@@ -40,7 +40,7 @@ impl ProcSysFileDiagnostic
 									if let Ok(_number_of_bytes_read) = file.read_to_end(&mut buffer)
 									{
 										buffer.shrink_to_fit();
-										all.insert(file_path, buffer.into());
+										all.insert(file_path, Self(ByteBuf::from(buffer)));
 									}
 								}
 							}

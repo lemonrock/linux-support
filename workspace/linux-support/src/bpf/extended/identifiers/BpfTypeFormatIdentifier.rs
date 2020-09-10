@@ -4,6 +4,8 @@
 
 /// Identifier for BPF Type Format (BTF) data.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct BpfTypeFormatIdentifier(u32);
 
 impl From<u32> for BpfTypeFormatIdentifier
@@ -39,22 +41,4 @@ impl Into<BpfCommandGetIdentifierValueOfIdentifier> for BpfTypeFormatIdentifier
 impl Identifier for BpfTypeFormatIdentifier
 {
 	const Next: bpf_cmd = bpf_cmd::BPF_BTF_GET_NEXT_ID;
-	
-	const GetFileDescriptor: bpf_cmd = bpf_cmd::BPF_BTF_GET_FD_BY_ID;
-	
-	#[inline(always)]
-	fn access_permissions_to_open_flags(_access: Self::Access) -> u32
-	{
-		0
-	}
-	
-	type FD = BpfTypeFormatFileDescriptor;
-	
-	type Access = ();
-	
-	#[inline(always)]
-	fn froms(values: Vec<u32>) -> Vec<Self>
-	{
-		unsafe { transmute(values) }
-	}
 }

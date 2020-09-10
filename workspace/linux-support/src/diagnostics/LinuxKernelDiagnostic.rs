@@ -7,9 +7,9 @@
 #[serde(deny_unknown_fields)]
 pub struct LinuxKernelDiagnostic
 {
-	pub host_name: DiagnosticUnobtainable<Option<LinuxKernelHostName>>,
+	pub host_name: DiagnosticUnobtainableResult<Option<LinuxKernelHostName>>,
 	
-	pub domain_name: DiagnosticUnobtainable<Option<LinuxKernelDomainName>>,
+	pub domain_name: DiagnosticUnobtainableResult<Option<LinuxKernelDomainName>>,
 
 	pub version: DiagnosticUnobtainableResult<LinuxKernelVersion>,
 
@@ -30,8 +30,8 @@ impl LinuxKernelDiagnostic
 	{
 		Self
 		{
-			host_name: LinuxKernelHostName::parse(proc_path).map_err(DiagnosticUnobtainable::from),
-			domain_name: LinuxKernelDomainName::parse(proc_path).map_err(DiagnosticUnobtainable::from),
+			host_name: LinuxKernelHostName::new(proc_path).map_err(DiagnosticUnobtainable::from),
+			domain_name: LinuxKernelDomainName::new(proc_path).map_err(DiagnosticUnobtainable::from),
 			version: LinuxKernelVersion::parse(proc_path).map_err(DiagnosticUnobtainable::from),
 			modules: LinuxKernelModulesList::parse(proc_path).map_err(DiagnosticUnobtainable::from),
 			lock_down_state: LockDownState::current(sys_path).map_err(DiagnosticUnobtainable::from),

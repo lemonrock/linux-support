@@ -4,8 +4,6 @@
 
 /// File system metadata.
 #[derive(Debug, Clone)]
-#[derive(Deserialize, Serialize)]
-#[repr(transparent)]
 pub struct FileSystemMetadata(pub(crate) statvfs);
 
 impl FileSystemMetadata
@@ -70,7 +68,7 @@ impl FileSystemMetadata
 	#[inline(always)]
 	pub fn number_of_free_inodes(&self) -> NumberOfInodes
 	{
-		NumberOfInodes(self.0.f_ffree)
+		NumberOfInodes(self.0.f_ffree as usize)
 	}
 
 	/// Should be equal to or less than `number_of_inodes()`.
@@ -78,7 +76,7 @@ impl FileSystemMetadata
 	#[inline(always)]
 	pub fn number_of_free_inodes_for_unprivileged_users(&self) -> NumberOfInodes
 	{
-		NumberOfInodes(self.0.f_favail)
+		NumberOfInodes(self.0.f_favail as usize)
 	}
 
 	/// ?

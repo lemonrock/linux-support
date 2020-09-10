@@ -39,7 +39,7 @@ pub struct CommonCgroupVersion2Diagnostics
 
 impl CommonCgroupVersion2Diagnostics
 {
-	fn gather(mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup>, supported_huge_page_sizes: &BTreeSet<HugePageSize>) -> Self
+	fn gather<'name>(mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup<'name>>, supported_huge_page_sizes: &BTreeSet<HugePageSize>) -> Self
 	{
 		Self
 		{

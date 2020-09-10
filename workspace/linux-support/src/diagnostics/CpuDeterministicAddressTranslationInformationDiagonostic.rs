@@ -42,7 +42,7 @@ impl CpuDeterministicAddressTranslationInformationDiagonostic
 			{
 				use self::DatType::*;
 				
-				let cache_type = match cache_type: dat_info.cache_type()
+				let cache_type = match dat_info.cache_type()
 				{
 					Null | Unknown => continue,
 					DataTLB => "DataTLB",

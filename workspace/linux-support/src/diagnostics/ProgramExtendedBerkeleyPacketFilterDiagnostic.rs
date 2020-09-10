@@ -6,7 +6,7 @@
 #[derive(Debug)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct ExtendedBerkeleyPacketFilterProgramDiagnostic
+pub struct ProgramExtendedBerkeleyPacketFilterDiagnostic
 {
 	pub id: ExtendedBpfProgramIdentifier,
 	
@@ -55,11 +55,14 @@ pub struct ExtendedBerkeleyPacketFilterProgramDiagnostic
 	pub run_cnt: u64,
 }
 
-impl ExtendedBerkeleyPacketFilterProgramDiagnostic
+impl ExtendedBerkeleyPacketFilterIdentifierDiagnostic for ProgramExtendedBerkeleyPacketFilterDiagnostic
 {
-	fn gather(file_descriptor: &ExtendedBpfProgramFileDescriptor) -> Result<Self, Errno>
+	type BFD = ExtendedBpfProgramFileDescriptor;
+	
+	#[inline(always)]
+	fn map(information: <Self::BFD as BpfFileDescriptor>::Information) -> Self
 	{
-		file_descriptor.get_information().map(|information| Self
+		Self
 		{
 			id: information.identifier(),
 			
@@ -69,20 +72,24 @@ impl ExtendedBerkeleyPacketFilterProgramDiagnostic
 			
 			network_device_network_namespace_dev_and_network_namespace_inode: information.network_device_network_namespace_dev_and_network_namespace_inode(),
 			
-			jitted_instructions: information.jitted_instructions().map(|slice| slice.to_vec().into()()),
+			jitted_instructions: information.jitted_instructions().map(|slice| ByteBuf::from(slice.to_vec())),
 			
-			translated_instructions: information.translated_instructions().map(|slice| slice.to_vec().into()()),
+			translated_instructions: information.translated_instructions().map(|slice| ByteBuf::from(slice.to_vec())),
 			
 			map_identifiers: information.map_identifiers().map(|slice| slice.to_vec().into_boxed_slice()),
 			
 			jitted_kernel_symbols: information.jitted_kernel_symbols().map(|slice| slice.to_vec().into_boxed_slice()),
 			
 			jitted_function_lengths: information.jitted_function_lengths().map(|slice| slice.to_vec().into_boxed_slice()),
+			
 			// Can not be easily represented.
 			//
 			// function_information: information.function_information(),
+			//
 			// line_information: information.line_information(),
+			//
 			// jitted_line_information: information.jitted_line_information(),
+			
 			program_tags: information.program_tags().map(|slice| slice.to_vec().into_boxed_slice()),
 			
 			is_gpl_compatible: information.is_gpl_compatible(),
@@ -98,6 +105,6 @@ impl ExtendedBerkeleyPacketFilterProgramDiagnostic
 			run_time_ns: information.run_time_ns,
 			
 			run_cnt: information.run_cnt,
-		})
+		}
 	}
 }

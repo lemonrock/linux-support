@@ -107,7 +107,7 @@ impl MemoryMaps
 		
 		parse_state.validate()?;
 		
-		Ok(Self { maps })
+		Ok(Self(maps))
 	}
 
 	#[inline(always)]

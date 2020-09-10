@@ -29,7 +29,7 @@ fn already_attached(redirect_map_name: MapName, network_interface_index: Network
 	
 	let (program_identifier, attach_mode) = program_identifiers.choose_most_performant();
 	
-	let x: ExtendedBpfProgramFileDescriptor = program_identifier.to_file_descriptor(()).map_err(CouldNotGetExistingProgramFileDescriptor)?.ok_or(NoExistingExpressDataPathProgramForAttachedExtendedBpfProgramFileDescriptor)?;
+	let x: ExtendedBpfProgramFileDescriptor = ExtendedBpfProgramFileDescriptor::from_identifier(program_identifier, ()).map_err(CouldNotGetExistingProgramFileDescriptor)?.ok_or(NoExistingExpressDataPathProgramForAttachedExtendedBpfProgramFileDescriptor)?;
 	
 	let program_information = x.get_information().map_err(CouldNotGetExistingProgramInformation)?;
 	program_information.validate_has_program_type(bpf_prog_type::BPF_PROG_TYPE_XDP, ExistingAttachedProgramHasWrongProgramTypeForExpressDataPath)?;

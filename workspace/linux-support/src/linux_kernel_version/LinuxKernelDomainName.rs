@@ -4,7 +4,9 @@
 
 /// Domain name.
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub struct LinuxKernelDomainName(Box<[u8]>);
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct LinuxKernelDomainName(#[serde(with = "serde_bytes")] Box<[u8]>);
 
 impl Deref for LinuxKernelDomainName
 {

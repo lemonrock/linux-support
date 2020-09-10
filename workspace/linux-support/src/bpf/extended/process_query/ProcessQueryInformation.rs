@@ -66,8 +66,8 @@ impl ProcessQueryInformation
 						continue
 					}
 					EINVAL => panic!("Invalid attr"),
-					EPERM => Err(()),
-					ENOENT | EBADF | ENOTSUPP | EOPNOTSUPP => Ok(None),
+					EPERM => return Err(()),
+					ENOENT | EBADF | ENOTSUPP | EOPNOTSUPP => return Ok(None),
 					EFAULT => panic!("Could not access buffer"),
 					errno @ _ => panic!("Unexpected error `{}`", errno),
 				}

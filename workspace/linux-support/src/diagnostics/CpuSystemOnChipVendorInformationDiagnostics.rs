@@ -24,7 +24,7 @@ impl CpuSystemOnChipVendorInformationDiagnostics
 	#[inline(always)]
 	fn gather(cpu_id: &CpuId) -> Option<Self>
 	{
-		cpu_id.get_soc_vendor_info().map(|sgx_info| Self
+		cpu_id.get_soc_vendor_info().map(|soc_vendor_info| Self
 		{
 			soc_vendor_id: soc_vendor_info.get_soc_vendor_id(),
 			
@@ -37,7 +37,7 @@ impl CpuSystemOnChipVendorInformationDiagnostics
 			vendor_attributes: soc_vendor_info.get_vendor_attributes().map(|iterator|
 			{
 				let mut vendor_attributes = Vec::new();
-				for cpu_id_result in vendor_attributes
+				for cpu_id_result in iterator
 				{
 					vendor_attributes.push((cpu_id_result.eax, cpu_id_result.ebx, cpu_id_result.ecx, cpu_id_result.edx))
 				}

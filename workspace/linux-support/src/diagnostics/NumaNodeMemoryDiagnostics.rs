@@ -17,7 +17,7 @@ pub struct NumaNodeMemoryDiagnostics
 
 impl NumaNodeMemoryDiagnostics
 {
-	fn gather(sys_path: &SysPath, proc_path: &ProcPath) -> Self
+	fn gather(sys_path: &SysPath, proc_path: &ProcPath, supported_huge_page_sizes: &BTreeSet<HugePageSize>) -> Self
 	{
 		let is_a_numa_machine = NumaNode::is_a_numa_machine(sys_path);
 		
@@ -38,10 +38,11 @@ impl NumaNodeMemoryDiagnostics
 			Ok(Some(numa_nodes)) =>
 			{
 				let mut numa_node_diagnostics = HashMap::with_capacity(numa_nodes.len());
-				for numa_node in numa_nodes
+				for numa_node in numa_nodes.iterate()
 				{
-					numa_node_diagnostics.insert(numa_node, NumaNodeMemoryDiagnostic::gather(sys_path, proc_path, numa_node));
+					numa_node_diagnostics.insert(numa_node, NumaNodeMemoryDiagnostic::gather(sys_path, proc_path, numa_node, supported_huge_page_sizes));
 				}
+				Ok(numa_node_diagnostics)
 			}
 		};
 		

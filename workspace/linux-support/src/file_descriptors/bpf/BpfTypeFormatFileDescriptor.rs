@@ -48,7 +48,21 @@ impl FileDescriptor for BpfTypeFormatFileDescriptor
 
 impl BpfFileDescriptor for BpfTypeFormatFileDescriptor
 {
+	type Identifier = BpfTypeFormatIdentifier;
+	
 	type Information = bpf_btf_info;
+	
+	type Access = ();
+	
+	const GetFileDescriptor: bpf_cmd = bpf_cmd::BPF_BTF_GET_FD_BY_ID;
+	
+	const DefaultAccess: Self::Access = ();
+	
+	#[inline(always)]
+	fn access_permissions_to_open_flags(_access: Self::Access) -> u32
+	{
+		0
+	}
 }
 
 impl BpfTypeFormatFileDescriptor

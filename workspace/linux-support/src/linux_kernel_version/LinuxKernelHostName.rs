@@ -4,7 +4,9 @@
 
 /// Host name.
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub struct LinuxKernelHostName(Box<[u8]>);
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct LinuxKernelHostName(#[serde(with = "serde_bytes")] Box<[u8]>);
 
 impl Deref for LinuxKernelHostName
 {

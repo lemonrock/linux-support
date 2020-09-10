@@ -8,7 +8,7 @@
 #[serde(deny_unknown_fields)]
 pub struct CpuHypervisorInformationDiagnostics
 {
-	pub identity: Either<String, (u32, u32, u32)>,
+	pub identify: Either<String, (u32, u32, u32)>,
 	
 	pub tsc_frequency: Option<u32>,
 	
@@ -23,7 +23,7 @@ impl CpuHypervisorInformationDiagnostics
 		
 		cpu_id.get_hypervisor_info().map(|hypervisor_info| Self
 		{
-			identity: match hypervisor_info.identity()
+			identify: match hypervisor_info.identify()
 			{
 				Xen => Left("Xen".to_string()),
 				

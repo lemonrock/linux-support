@@ -30,9 +30,9 @@ pub struct CpuExtendedStateInformationDiagnostics
 	
 	pub ia32_xss_supports_hdc: bool,
 	
-	pub xsave_area_size_enabled_features: bool,
+	pub xsave_area_size_enabled_features: u32,
 	
-	pub xsave_area_size_supported_features: bool,
+	pub xsave_area_size_supported_features: u32,
 	
 	pub has_xsaveopt: bool,
 	
@@ -42,7 +42,7 @@ pub struct CpuExtendedStateInformationDiagnostics
 	
 	pub has_xsaves_xrstors: bool,
 	
-	pub xsave_size: bool,
+	pub xsave_size: u32,
 
 	pub higher_extended_states_information: Vec<CpuHigherExtendedStateInformationDiagnostics>,
 }

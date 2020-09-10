@@ -29,25 +29,23 @@ impl CpuMemoryEncryptionInformationDiagnostics
 {
 	fn gather(cpu_id: &CpuId) -> Option<Self>
 	{
-		use self::L2Associativity::*;
-		
 		cpu_id.get_memory_encryption_info().map(|memory_encryption_info| Self
 		{
-			has_sme: extended_function_info.has_sme(),
+			has_sme: memory_encryption_info.has_sme(),
 			
-			has_sev: extended_function_info.has_sev(),
+			has_sev: memory_encryption_info.has_sev(),
 			
-			has_page_flush_msr: extended_function_info.has_page_flush_msr(),
+			has_page_flush_msr: memory_encryption_info.has_page_flush_msr(),
 			
-			has_sev_es: extended_function_info.has_sev_es(),
+			has_sev_es: memory_encryption_info.has_sev_es(),
 			
-			physical_address_reduction: extended_function_info.physical_address_reduction(),
+			physical_address_reduction: memory_encryption_info.physical_address_reduction(),
 			
-			c_bit_position: extended_function_info.c_bit_position(),
+			c_bit_position: memory_encryption_info.c_bit_position(),
 			
-			max_encrypted_guests: extended_function_info.max_encrypted_guests(),
+			max_encrypted_guests: memory_encryption_info.max_encrypted_guests(),
 			
-			min_sev_no_es_asid: extended_function_info.min_sev_no_es_asid(),
+			min_sev_no_es_asid: memory_encryption_info.min_sev_no_es_asid(),
 		})
 	}
 }

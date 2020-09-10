@@ -101,7 +101,7 @@ impl CpuInformationDiagnostics
 			
 			performance_monitoring_information: CpuPerformanceMonitoringInformationDiagnostics::gather(&cpu_id),
 		
-			extended_topology: cpu_id.extended_topology().map(|extended_topology_iter|
+			extended_topology: cpu_id.get_extended_topology_info().map(|extended_topology_iter|
 			{
 				let mut extended_topology_information = Vec::new();
 				for extended_topology_level in extended_topology_iter
