@@ -126,6 +126,8 @@ impl RouteNetlinkProtocol
 	///
 	/// NOTE: As an alternative to using a network interface index, one can specify the top-level attribute `IFLA_IFNAME` with a network interface name.
 	/// This is not supported by this functionality.
+	///
+	/// Based on the function `bpf_set_link_xdp_fd()` and its children in the Linux source `tools/lib/bpf/netlink.c`.
 	pub fn xdp_fd_replace(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, network_interface_index: NetworkInterfaceIndex, xdp_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor, attach_mode: AttachMode, update_mode: UpdateMode) -> Result<(), Errno>
 	{
 		use self::IFLA_XDP::*;

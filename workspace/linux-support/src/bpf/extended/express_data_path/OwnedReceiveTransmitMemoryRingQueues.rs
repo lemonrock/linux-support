@@ -2,8 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+// TODO: How do we use this program?
 /// Receive and transmit memory ring queues.
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug)]
 pub struct OwnedReceiveTransmitMemoryRingQueues
 {
 	user_memory: ManuallyDrop<UserMemory>,
@@ -61,19 +62,15 @@ impl ReceiveTransmitMemoryRingQueues for OwnedReceiveTransmitMemoryRingQueues
 impl OwnedReceiveTransmitMemoryRingQueues
 {
 	#[inline(always)]
-	fn new(user_memory: UserMemory, xdp_extended_bpf_program: Option<RedirectMapAndAttachedProgram>, network_interface_index: NetworkInterfaceIndex, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth>, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, AttachProgramError>
+	fn new(user_memory: UserMemory, xdp_extended_bpf_program: Either<OwnedRedirectMapAndAttachedProgramSettings, RedirectMapAndAttachedProgram>, network_interface_index: NetworkInterfaceIndex, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth>, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, AttachProgramError>
 	{
 		let user_memory_socket_file_descriptor = &user_memory.user_memory_socket_file_descriptor;
 		let receive_and_transmit = Self::construct(user_memory_socket_file_descriptor, network_interface_index, ring_queue_depths, XdpSocketAddressFlags::empty(), user_memory_socket_file_descriptor.as_raw_fd(), queue_identifier, defaults)?;
 		
 		let xdp_extended_bpf_program = match xdp_extended_bpf_program
 		{
-			Some(xdp_extended_bpf_program) => xdp_extended_bpf_program,
-			
-			None =>
+			Left(settings) =>
 			{
-				use self::ReceiveOrTransmitOrBoth::*;
-				
 				let insert_into_redirect_map_if_receive = if ring_queue_depths.is_receive_or_both()
 				{
 					Some((queue_identifier, user_memory_socket_file_descriptor))
@@ -83,8 +80,10 @@ impl OwnedReceiveTransmitMemoryRingQueues
 					None
 				};
 				
-				RedirectMapAndAttachedProgram::new_suitable_for_owned_or_reuse_already_attached(network_interface_name, device_offload, redirect_map_settings, insert_into_redirect_map_if_receive)?
+				RedirectMapAndAttachedProgram::new_suitable_for_owned_or_reuse_already_attached(network_interface_index, settings, insert_into_redirect_map_if_receive)?
 			}
+			
+			Right(xdp_extended_bpf_program) => xdp_extended_bpf_program,
 		};
 		
 		Ok
@@ -107,7 +106,7 @@ impl OwnedReceiveTransmitMemoryRingQueues
 	/// The `xdp_extended_bpf_program` in use with `self` must be suitable for use with shared user memory; if not an error of `Err(AttachProgramError::AttachedXdpProgramNotSuitableForSharing)` is returned.
 	///
 	/// A potential bug: ***`queue_identifier` is not checked to see if it used by another instance of `SharedReceiveTransmitMemoryRingQueues`.***.
-	/// Adding such a check is possible using a `RefCell` but is tedious.
+	/// Adding such a check is possible using a `RefCell<Vec<QueueIdentifier>>` field but is tedious.
 	pub fn share(&self, network_interface_index: NetworkInterfaceIndex, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth>, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<SharedReceiveTransmitMemoryRingQueues, AttachProgramError>
 	{
 		debug_assert_ne!(queue_identifier, self.queue_identifier, "Re-use of owned queue identifier is not permitted");

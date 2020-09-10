@@ -24,27 +24,28 @@ impl RedirectMapAndAttachedProgram
 		self.attached_program_name == Self::our_owned_program_name()
 	}
 	
-	/// Channels is for `network_interface_name` implying that it existed at some point before calling this method.
-	///
-	/// Called from `OwnedReceiveTransmitMemoryRingQueues::construct()`.
-	///
 	/// Based on the function `xsk_setup_xdp_prog()` in Linux source `tools/lib/bpf/xsk.c`.
-	pub fn new_suitable_for_owned_or_reuse_already_attached(network_interface_name: NetworkInterfaceName, device_offload: bool, redirect_map_settings: (Channels, Option<NumaNode>), insert_into_redirect_map_if_receive: Option<(QueueIdentifier, &ExpressDataPathSocketFileDescriptor)>) -> Result<Self, AttachProgramError>
+	fn new_suitable_for_owned_or_reuse_already_attached(network_interface_index: NetworkInterfaceIndex, settings: OwnedRedirectMapAndAttachedProgramSettings, insert_into_redirect_map_if_receive: Option<(QueueIdentifier, &ExpressDataPathSocketFileDescriptor)>) -> Result<Self, AttachProgramError>
 	{
-		use self::AttachProgramError::*;
+		let OwnedRedirectMapAndAttachedProgramSettings { forcibly_overwrite_already_attached, device_offload, redirect_map_numa_node } = settings;
 		
-		let (network_interface_name, get_link_message_data) = Self::get_link_message_data(network_interface_name)?;
+		let get_link_message_data = Self::get_link_message_data(network_interface_index)?;
 		
-		let network_interface_index = get_link_message_data.network_interface_index;
-		
-		let mut this = match get_link_message_data.attached_express_data_path_program_identifiers
+		let mut this = if forcibly_overwrite_already_attached
 		{
-			Some(program_identifiers) => Self::already_attached(network_interface_index, device_offload, program_identifiers),
-			
-			None => Self::load_owned_memory_program(network_interface_index, network_interface_name, device_offload, redirect_map_settings)
+			Self::load_and_attach_owned_memory_program(network_interface_index, device_offload, redirect_map_numa_node)
+		}
+		else
+		{
+			match get_link_message_data.attached_express_data_path_program_identifiers
+			{
+				Some(program_identifiers) => Self::already_attached(network_interface_index, device_offload, program_identifiers),
+				
+				None => Self::load_and_attach_owned_memory_program(network_interface_index, device_offload, redirect_map_numa_node),
+			}
 		}?;
 		
-		if let Some((queue_identifier, user_memory_socket_file_descriptor)) = queue_identifier_if_receive
+		if let Some((queue_identifier, user_memory_socket_file_descriptor)) = insert_into_redirect_map_if_receive
 		{
 			// Based on the function `xsk_set_bpf_maps()` in Linux source `tools/lib/bpf/xsk.c`.
 			this.redirect_map.insert(queue_identifier, user_memory_socket_file_descriptor)?
@@ -81,13 +82,24 @@ impl RedirectMapAndAttachedProgram
 		)
 	}
 	
+	fn number_of_channels(network_interface_index: NetworkInterfaceIndex) -> Result<Channels, AttachProgramError>
+	{
+		let network_interface_name = NetworkInterfaceName::try_from(network_interface_index)?;
+		
+		use self::AttachProgramError::*;
+		let (current, _maximima) = NetworkDeviceInputOutputControl::new(Cow::Owned(network_interface_name))?.number_of_channels().map_err(CouldNotGetNumberOfChannels)?.ok_or(NoSuchNetworkInterfaceIndex(network_interface_index))?.unwrap_or((Channels::Unsupported, Channels::Unsupported));
+		Ok(current)
+	}
+	
 	/// Based on the function `xsk_setup_xdp_prog()` in Linux source `tools/lib/bpf/xsk.c`.
-	fn load_owned_memory_program(network_interface_index: NetworkInterfaceIndex, network_interface_name: NetworkInterfaceName, device_offload: bool, (channels, numa_node): (Channels, Option<NumaNode>)) -> Result<Self, AttachProgramError>
+	fn load_and_attach_owned_memory_program(network_interface_index: NetworkInterfaceIndex, device_offload: bool, redirect_map_numa_node: Option<NumaNode>) -> Result<Self, AttachProgramError>
 	{
 		let mut map_file_descriptors = FileDescriptorsMap::with_capacity(1);
 		
-		/// Equivalent to the function `xsk_create_bpf_maps()` in the Linux source `tools/lib/bpf/xsk.c`.
-		let redirect_map = ExpressDataPathRedirectSocketArrayMap::new_express_data_path_redirect_socket_array_map_from_channels(Self::redirect_map_name(), channels, &mut map_file_descriptors, ExpressDataPathAccessPermissions::default(), numa_node)?;
+		let channels = Self::number_of_channels(network_interface_index)?;
+		
+		// Equivalent to the function `xsk_create_bpf_maps()` in the Linux source `tools/lib/bpf/xsk.c`.
+		let redirect_map = ExpressDataPathRedirectSocketArrayMap::new_express_data_path_redirect_socket_array_map_from_channels(Self::redirect_map_name(), channels, &mut map_file_descriptors, ExpressDataPathAccessPermissions::default(), redirect_map_numa_node)?;
 		
 		let offload_to = if device_offload
 		{
@@ -102,11 +114,7 @@ impl RedirectMapAndAttachedProgram
 		let mut extended_bpf_program_file_descriptors = FileDescriptorsMap::with_capacity(1);
 		let xdp_extended_bpf_program_file_descriptor = program_template.convenient_load(&map_file_descriptors, &mut extended_bpf_program_file_descriptors)?;
 		
-		// TODO: attach!
-		bpf_set_link_xdp_fd;
-		xxxx;
-		
-		// TODO: How do we use this program?
+		Self::attach_program(network_interface_index, &xdp_extended_bpf_program_file_descriptor, device_offload)?;
 		
 		Ok
 		(
@@ -117,6 +125,22 @@ impl RedirectMapAndAttachedProgram
 				attached_program_name: Self::our_owned_program_name(),
 			}
 		)
+	}
+	
+	#[inline(always)]
+	fn attach_program(network_interface_index: NetworkInterfaceIndex, xdp_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor, device_offload: bool) -> Result<(), AttachProgramError>
+	{
+		let mut netlink_socket_file_descriptor = NetlinkSocketFileDescriptor::open()?;
+		use self::AttachMode::*;
+		let attach_mode = if device_offload
+		{
+			Offloaded
+		}
+		else
+		{
+			GenericOrNative
+		};
+		RouteNetlinkProtocol::xdp_fd_replace(&mut netlink_socket_file_descriptor, network_interface_index, xdp_extended_bpf_program_file_descriptor, attach_mode, UpdateMode::CreateOrUpdate).map_err(AttachProgramError::CouldNotAttachXdpProgram)
 	}
 	
 	/// Specify `Some` for `offload_to` if using a network card that supports offloading of eBPF (currently, only Netronome NFP drivers support this).
@@ -235,22 +259,22 @@ impl RedirectMapAndAttachedProgram
 	}
 	
 	/// Based on the function `xsk_setup_xdp_prog()` in Linux source `tools/lib/bpf/netlink.c`.
-	fn get_link_message_data(network_interface_name: NetworkInterfaceName) -> Result<(NetworkInterfaceName, GetLinkMessageData), AttachProgramError>
+	fn get_link_message_data(network_interface_index: NetworkInterfaceIndex) -> Result<GetLinkMessageData, AttachProgramError>
 	{
 		use self::AttachProgramError::*;
 		
 		let mut netlink_socket_file_descriptor = NetlinkSocketFileDescriptor::open()?;
-		let result = RouteNetlinkProtocol::get_link(&mut netlink_socket_file_descriptor, &|get_link_message_data| get_link_message_data.is_for(&network_interface_name));
+		let result = RouteNetlinkProtocol::get_link(&mut netlink_socket_file_descriptor, &|get_link_message_data| get_link_message_data.is_for_index(network_interface_index));
 		let option = result.map_err(GetLinksUsingNetlink)?;
 		match option
 		{
-			None => Err(NoSuchNetworkInterfaceName(network_interface_name)),
-			Some(get_link_message_data) => Ok((network_interface_name, get_link_message_data)),
+			None => Err(NoSuchNetworkInterfaceIndex(network_interface_index)),
+			Some(get_link_message_data) => Ok(get_link_message_data),
 		}
 	}
 	
 	#[inline(always)]
-	fn redirect_map_name() -> &MapName
+	fn redirect_map_name() -> &'static MapName
 	{
 		lazy_static!
 		{

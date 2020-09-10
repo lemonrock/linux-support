@@ -3,7 +3,7 @@
 
 
 /// Receive and transmit memory ring queues.
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug)]
 pub struct SharedReceiveTransmitMemoryRingQueues<'shared>
 {
 	user_memory: &'shared UserMemory,

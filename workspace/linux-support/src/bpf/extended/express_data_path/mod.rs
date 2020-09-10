@@ -34,6 +34,7 @@ include!("AttachProgramError.rs");
 include!("Descriptor.rs");
 include!("FrameSize.rs");
 include!("OwnedReceiveTransmitMemoryRingQueues.rs");
+include!("OwnedRedirectMapAndAttachedProgramSettings.rs");
 include!("QueueIdentifier.rs");
 include!("ReceiveOrTransmitOrBoth.rs");
 include!("ReceiveTransmitMemoryRingQueues.rs");

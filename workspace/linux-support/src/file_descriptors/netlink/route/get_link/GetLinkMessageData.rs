@@ -214,8 +214,15 @@ impl GetLinkMessageData
 {
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn is_for(&self, network_interface_name: &NetworkInterfaceName) -> bool
+	pub fn is_for_name(&self, network_interface_name: &NetworkInterfaceName) -> bool
 	{
-		Some(&self.network_interface_name) == Some(network_interface_name)
+		&self.network_interface_name == network_interface_name
+	}
+	
+	#[allow(missing_docs)]
+	#[inline(always)]
+	pub fn is_for_index(&self, network_interface_index: NetworkInterfaceIndex) -> bool
+	{
+		self.network_interface_index == network_interface_index
 	}
 }

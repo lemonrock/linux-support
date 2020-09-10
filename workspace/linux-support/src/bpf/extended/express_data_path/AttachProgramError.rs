@@ -7,7 +7,16 @@
 pub enum AttachProgramError
 {
 	#[allow(missing_docs)]
-	NoSuchNetworkInterfaceName(NetworkInterfaceName),
+	NoSuchNetworkInterfaceIndex(NetworkInterfaceIndex),
+	
+	#[allow(missing_docs)]
+	NoSuchNetworkInterfaceNameForNetworkInterfaceIndex(NetworkInterfaceIndexToNetworkInterfaceNameError),
+	
+	#[allow(missing_docs)]
+	CouldNotCreateNetworkDeviceInputOutputControl(CreationError),
+	
+	#[allow(missing_docs)]
+	CouldNotGetNumberOfChannels(NetworkDeviceInputOutputControlError<Infallible>),
 	
 	#[allow(missing_docs)]
 	CreateExpressDataPathRedirectSocketMap(MapCreationError),
@@ -49,6 +58,9 @@ pub enum AttachProgramError
 	SocketBind(SocketBindError),
 	
 	#[allow(missing_docs)]
+	CouldNotAttachXdpProgram(Errno),
+	
+	#[allow(missing_docs)]
 	AttachedXdpProgramNotSuitableForSharing,
 }
 
@@ -70,7 +82,13 @@ impl error::Error for AttachProgramError
 		
 		match self
 		{
-			&NoSuchNetworkInterfaceName(_) => None,
+			&NoSuchNetworkInterfaceIndex(_) => None,
+			
+			&NoSuchNetworkInterfaceNameForNetworkInterfaceIndex(ref error) => Some(error),
+			
+			&CouldNotCreateNetworkDeviceInputOutputControl(ref error) => Some(error),
+			
+			&CouldNotGetNumberOfChannels(ref error) => Some(error),
 			
 			&CreateExpressDataPathRedirectSocketMap(ref error) => Some(error),
 			
@@ -98,8 +116,28 @@ impl error::Error for AttachProgramError
 			
 			&SocketBind(ref error) => Some(error),
 			
+			&CouldNotAttachXdpProgram(_) => None,
+			
 			&AttachedXdpProgramNotSuitableForSharing => None,
 		}
+	}
+}
+
+impl From<NetworkInterfaceIndexToNetworkInterfaceNameError> for AttachProgramError
+{
+	#[inline(always)]
+	fn from(value: NetworkInterfaceIndexToNetworkInterfaceNameError) -> Self
+	{
+		AttachProgramError::NoSuchNetworkInterfaceNameForNetworkInterfaceIndex(value)
+	}
+}
+
+impl From<CouldNotCreateNetworkDeviceInputOutputControl> for AttachProgramError
+{
+	#[inline(always)]
+	fn from(value: CreationError) -> Self
+	{
+		AttachProgramError::CouldNotCreateNetworkDeviceInputOutputControl(value)
 	}
 }
 
