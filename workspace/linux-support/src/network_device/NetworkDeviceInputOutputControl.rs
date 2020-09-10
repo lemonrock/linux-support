@@ -1283,7 +1283,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	#[inline(always)]
 	fn set_ifreq_from_name<V: Sized, E: error::Error + 'static>(&self, request: i32, ifr_ifru: ifreq_ifru, ok_handler: impl FnOnce(ifreq) -> Result<V, E>, error_handler: impl FnOnce(Errno) -> Result<Option<V>, E>) -> Result<Option<V>, NetworkDeviceInputOutputControlError<E>>
 	{
-		self.network_device_socket_file_descriptor.set_ifreq_from_name(request, self.network_interface_name(), ifr_ifru: ifreq_ifru, ok_handler, error_handler)
+		self.network_device_socket_file_descriptor.set_ifreq_from_name(request, self.network_interface_name(), ifr_ifru, ok_handler, error_handler)
 	}
 	
 	#[inline(always)]

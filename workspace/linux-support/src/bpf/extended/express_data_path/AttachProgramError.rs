@@ -132,15 +132,6 @@ impl From<NetworkInterfaceIndexToNetworkInterfaceNameError> for AttachProgramErr
 	}
 }
 
-impl From<CouldNotCreateNetworkDeviceInputOutputControl> for AttachProgramError
-{
-	#[inline(always)]
-	fn from(value: CreationError) -> Self
-	{
-		AttachProgramError::CouldNotCreateNetworkDeviceInputOutputControl(value)
-	}
-}
-
 impl From<MapCreationError> for AttachProgramError
 {
 	#[inline(always)]
