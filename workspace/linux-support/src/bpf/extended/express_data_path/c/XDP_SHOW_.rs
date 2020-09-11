@@ -9,3 +9,5 @@ pub(super) const XDP_SHOW_RING_CFG: u32 = 1 << 1;
 pub(super) const XDP_SHOW_UMEM: u32 = 1 << 2;
 
 pub(super) const XDP_SHOW_MEMINFO: u32 = 1 << 3;
+
+pub(super) const XDP_SHOW_STATS: u32 = 1 << 4;

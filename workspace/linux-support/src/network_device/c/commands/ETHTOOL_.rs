@@ -187,8 +187,11 @@ pub(crate) const ETHTOOL_FLASHDEV: u32 = 0x00000033;
 pub(crate) const ETHTOOL_RESET: u32 = 0x00000034;
 
 /// Add an n-tuple filter to device.
+#[allow(dead_code)]
+#[deprecated]
 pub(crate) const ETHTOOL_SRXNTUPLE: u32 = 0x00000035;
 
+#[allow(dead_code)]
 #[deprecated]
 pub(crate) const ETHTOOL_GRXNTUPLE: u32 = 0x00000036;
 

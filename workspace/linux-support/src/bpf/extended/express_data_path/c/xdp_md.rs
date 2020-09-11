@@ -4,7 +4,7 @@
 
 #[allow(missing_docs)]
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub struct xdp_md
+pub(crate) struct xdp_md
 {
 	data: u32,
 	data_end: u32,
@@ -15,13 +15,13 @@ pub struct xdp_md
 
 impl xdp_md
 {
-	pub const data: MemoryOffset<'static> = memory_offset_of!(xdp_md, data);
+	pub(crate) const data: MemoryOffset<'static> = memory_offset_of!(xdp_md, data);
 	
-	pub const data_end: MemoryOffset<'static> = memory_offset_of!(xdp_md, data_end);
+	pub(crate) const data_end: MemoryOffset<'static> = memory_offset_of!(xdp_md, data_end);
 	
-	pub const data_meta: MemoryOffset<'static> = memory_offset_of!(xdp_md, data_meta);
+	pub(crate) const data_meta: MemoryOffset<'static> = memory_offset_of!(xdp_md, data_meta);
 	
-	pub const ingress_ifindex: MemoryOffset<'static> = memory_offset_of!(xdp_md, ingress_ifindex);
+	pub(crate) const ingress_ifindex: MemoryOffset<'static> = memory_offset_of!(xdp_md, ingress_ifindex);
 	
-	pub const rx_queue_index: MemoryOffset<'static> = memory_offset_of!(xdp_md, rx_queue_index);
+	pub(crate) const rx_queue_index: MemoryOffset<'static> = memory_offset_of!(xdp_md, rx_queue_index);
 }

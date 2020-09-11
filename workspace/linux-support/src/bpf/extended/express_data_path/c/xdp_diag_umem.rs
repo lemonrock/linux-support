@@ -4,7 +4,8 @@
 
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[repr(C)]
-pub(super) struct xdp_diag_umem
+#[derive(Deserialize, Serialize)]
+pub struct xdp_diag_umem
 {
 	size: u64,
 	
@@ -16,11 +17,14 @@ pub(super) struct xdp_diag_umem
 	
 	headroom: u32,
 	
-	ifindex: NetworkInterfaceIndex,
+	/// ?Duplicates `xdp_diag_info.ifindex`.
+	ifindex: Option<NetworkInterfaceIndex>,
 	
+	/// ?Duplicates `xdp_diag_info.queue_id`.
 	queue_id: QueueIdentifier,
 	
-	flags: u32,
+	/// `XDP_DU_F_ZEROCOPY` is the only valid flag.
+	flags: XdpDiagnosticUserMemoryFlags,
 	
 	refs: u32,
 }

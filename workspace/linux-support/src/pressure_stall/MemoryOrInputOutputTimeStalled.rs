@@ -60,8 +60,7 @@ impl MemoryOrInputOutputTimeStalled
 	#[inline(always)]
 	pub fn memory_for_process(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> io::Result<Self>
 	{
-		let file_path = proc_path.process_pressure_stall_information_file_path(process_identifier, "memory");
-		Self::from_file(&file_path)
+		Self::for_process(proc_path, process_identifier, "memory")
 	}
 	
 	/// For current process.
@@ -79,8 +78,7 @@ impl MemoryOrInputOutputTimeStalled
 	#[inline(always)]
 	pub fn input_output_for_process(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> io::Result<Self>
 	{
-		let file_path = proc_path.process_pressure_stall_information_file_path(process_identifier, "io");
-		Self::from_file(&file_path)
+		Self::for_process(proc_path, process_identifier, "io")
 	}
 	
 	#[inline(always)]

@@ -4,9 +4,12 @@
 
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[repr(C)]
-pub(super) struct xdp_diag_info
+#[derive(Deserialize, Serialize)]
+pub struct xdp_diag_info
 {
-	ifindex: NetworkInterfaceIndex,
+	/// ?Duplicates `xdp_diag_umem.ifindex`.
+	ifindex: Option<NetworkInterfaceIndex>,
 	
+	/// ?Duplicates `xdp_diag_umem.queue_id`.
 	queue_id: QueueIdentifier,
 }

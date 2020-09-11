@@ -15,7 +15,7 @@ use crate::network_device::NetworkInterfaceIndex;
 
 
 /// eXpress Data Path.
-mod express_data_path;
+pub mod express_data_path;
 
 
 /// Get address.

@@ -2,14 +2,28 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use crate::bpf::extended::identifiers::*;
-use crate::bpf::extended::express_data_path::c::{xdp_diag_info, xdp_diag_msg, xdp_diag_umem, xdp_diag_stats};
-use crate::user_and_groups::UserIdentifier;
-use crate::inode::Inode;
-
-
-include!("ExpressDataPathGetLinkMessageData.rs");
-include!("ExpressDataPathMessageBody.rs");
-include!("GetExpressDataPathDiagnosticsMessageData.rs");
-include!("GetExpressDataPathDiagnosticsProcessingMessageState.rs");
+/// Statistics; only in Linux since July 2020.
+#[repr(C)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct xdp_diag_stats
+{
+	#[allow(missing_docs)]
+	pub n_rx_dropped: u64,
+	
+	#[allow(missing_docs)]
+	pub n_rx_invalid: u64,
+	
+	#[allow(missing_docs)]
+	pub n_rx_full: u64,
+	
+	#[allow(missing_docs)]
+	pub n_fill_ring_empty: u64,
+	
+	#[allow(missing_docs)]
+	pub n_tx_invalid: u64,
+	
+	#[allow(missing_docs)]
+	pub n_tx_ring_empty: u64,
+}

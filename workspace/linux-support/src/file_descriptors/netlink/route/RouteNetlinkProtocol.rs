@@ -120,6 +120,12 @@ impl RouteNetlinkProtocol
 /// eXpress Data Path (XDP).
 impl RouteNetlinkProtocol
 {
+	/// Show diagnostics.
+	pub fn get_express_data_path_diagnostics(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>) -> Result<Vec<GetExpressDataPathDiagnosticsMessageData>, String>
+	{
+		GetExpressDataPathDiagnosticsMessageProcessor.get_diagnostics(netlink_socket_file_descriptor)
+	}
+	
 	/// Attach a eXpress Data Path (XDP) program.
 	///
 	/// returns `ENODEV` if interface does not exist.

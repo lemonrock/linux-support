@@ -138,7 +138,37 @@ impl<NAT: NetlinkAttributeType> rtattr<NAT>
 	}
 	
 	#[inline(always)]
-	fn get_attribute_value_struct<T: Sized>(&self) -> Result<&T, String>
+	pub(crate) fn socket_memory_information(&self) -> Result<HashMap<SK_MEMINFO_, u32>, String>
+	{
+		let slice = self.get_attribute_values_u32()?;
+		let length = min(SK_MEMINFO_::COUNT, slice.len());
+		let mut socket_memory_information = HashMap::with_capacity(length);
+		for index in 0 ..length
+		{
+			let key = unsafe { transmute(index) };
+			socket_memory_information.insert(key, unsafe { *slice.get_unchecked(index) });
+		}
+		Ok(socket_memory_information)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn get_attribute_values_u32(&self) -> Result<&[u32], String>
+	{
+		let attribute_value = self.attribute_value();
+		let length = attribute_value.len();
+		const SizeOfU32: usize = size_of::<u32>();
+		if length % SizeOfU32 == 0
+		{
+			Ok(unsafe { from_raw_parts(attribute_value.as_ptr() as *const u32, length / SizeOfU32) })
+		}
+		else
+		{
+			Err(format!("Not a multiple of size of u32"))
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn get_attribute_value_struct<T: Sized>(&self) -> Result<&T, String>
 	{
 		let attribute_value = self.attribute_value();
 		let length = attribute_value.len();
@@ -315,5 +345,22 @@ impl rtattr<IFLA_XDP>
 		debug_assert!(matches!(self.type_().2, IFLA_XDP_PROG_ID | IFLA_XDP_SKB_PROG_ID | IFLA_XDP_DRV_PROG_ID | IFLA_XDP_HW_PROG_ID), "self.type_().2 {:?} is not one of IFLA_XDP_PROG_ID, IFLA_XDP_SKB_PROG_ID, IFLA_XDP_DRV_PROG_ID or IFLA_XDP_HW_PROG_ID", self.type_().2);
 		
 		self.get_attribute_value_u32().map(|value| ExtendedBpfProgramIdentifier::from(value))
+	}
+}
+
+impl rtattr<XDP_DIAG>
+{
+	#[inline(always)]
+	pub(crate) fn get_attribute_value_uid(&self) -> Result<UserIdentifier, TryFromSliceError>
+	{
+		self.debug_assert_is(XDP_DIAG::XDP_DIAG_UID);
+		
+		self.get_attribute_value_u32().map(UserIdentifier::from)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn get_attribute_value_ring_number_of_descriptors(&self) -> Result<u32, String>
+	{
+		self.get_attribute_value_struct::<xdp_diag_ring>().map(|ring| ring.entries)
 	}
 }

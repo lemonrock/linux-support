@@ -8,6 +8,9 @@ use super::route::get_address::*;
 use crate::bpf::extended::identifiers::ExtendedBpfProgramIdentifier;
 use crate::network_device::*;
 use crate::network_device::c::*;
+use crate::bpf::extended::express_data_path::c::XDP_DIAG;
+use crate::bpf::extended::express_data_path::c::xdp_diag_ring;
+use crate::user_and_groups::UserIdentifier;
 
 
 include!("ARPHRD.rs");
@@ -32,5 +35,6 @@ include!("rtattr.rs");
 include!("RTM_.rs");
 include!("rtnl_link_ifmap.rs");
 include!("rtnl_link_stats64.rs");
+include!("SK_MEMINFO_.rs");
 include!("XDP_ATTACHED.rs");
 include!("XDP_FLAGS_.rs");

@@ -4,15 +4,15 @@
 
 #[derive(Default, Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[repr(C)]
-pub(super) struct xdp_diag_msg
+pub(crate) struct xdp_diag_msg
 {
-	xdiag_family: u8,
+	pub(crate) xdiag_family: u8,
 	
-	xdiag_type: u8,
+	pub(crate) xdiag_type: u8,
 	
 	pad: u16,
 	
-	xdiag_ino: u32,
+	pub(crate) xdiag_ino: u32,
 	
-	xdiag_cookie: [u32; 2],
+	pub(crate) xdiag_cookie: [u32; 2],
 }

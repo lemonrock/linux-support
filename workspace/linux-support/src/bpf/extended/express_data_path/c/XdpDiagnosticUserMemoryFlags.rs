@@ -2,14 +2,13 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use crate::bpf::extended::identifiers::*;
-use crate::bpf::extended::express_data_path::c::{xdp_diag_info, xdp_diag_msg, xdp_diag_umem, xdp_diag_stats};
-use crate::user_and_groups::UserIdentifier;
-use crate::inode::Inode;
-
-
-include!("ExpressDataPathGetLinkMessageData.rs");
-include!("ExpressDataPathMessageBody.rs");
-include!("GetExpressDataPathDiagnosticsMessageData.rs");
-include!("GetExpressDataPathDiagnosticsProcessingMessageState.rs");
+bitflags!
+{
+	/// Flags.
+	#[derive(Deserialize, Serialize)]
+	pub struct XdpDiagnosticUserMemoryFlags: u32
+	{
+		/// Zero copy enabled.
+		const ZeroCopy = XDP_DU_F_ZEROCOPY;
+	}
+}

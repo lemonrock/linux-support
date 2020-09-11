@@ -8,6 +8,8 @@ use crate::network_device::NetworkInterfaceIndex;
 use super::instructions::offset::memory::*;
 use super::extended::instructions::offset::*;
 use super::extended::instructions::offset::immediate::*;
+use crate::file_descriptors::netlink::request::NetlinkRequestMessageBody;
+use crate::file_descriptors::netlink::attributes::NetlinkAttributeType;
 
 
 include!("sockaddr_xdp.rs");
@@ -21,6 +23,7 @@ include!("xdp_diag_msg.rs");
 include!("xdp_diag_info.rs");
 include!("xdp_diag_req.rs");
 include!("xdp_diag_ring.rs");
+include!("xdp_diag_stats.rs");
 include!("xdp_diag_umem.rs");
 include!("XDP_DU_F_.rs");
 include!("xdp_md.rs");
@@ -31,9 +34,11 @@ include!("XDP_PGOFF_.rs");
 include!("XDP_RING_.rs");
 include!("xdp_ring_offset.rs");
 include!("XDP_SHOW_.rs");
+include!("XDP_SHOW_flags.rs");
 include!("xdp_statistics.rs");
 include!("XDP_UMEM_PGOFF_.rs");
 include!("xdp_umem_reg.rs");
+include!("XdpDiagnosticUserMemoryFlags.rs");
 include!("XdpOptionsFlags.rs");
 include!("XdpSocketAddressFlags.rs");
 include!("XdpUmemRegFlags.rs");

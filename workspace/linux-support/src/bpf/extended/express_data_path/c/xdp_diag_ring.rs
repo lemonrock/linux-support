@@ -4,8 +4,8 @@
 
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[repr(C)]
-pub(super) struct xdp_diag_ring
+pub(crate) struct xdp_diag_ring
 {
 	/// Number of descriptors.
-	entries: u32,
+	pub(crate) entries: u32,
 }

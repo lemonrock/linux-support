@@ -61,6 +61,9 @@ pub struct Diagnostics
 	/// eBPF.
 	pub extended_berkeley_packet_filter: ExtendedBerkeleyPacketFilterDiagnostics,
 	
+	/// XDP.
+	pub express_data_path_diagnostics: DiagnosticUnobtainableResult<Vec<GetExpressDataPathDiagnosticsMessageData>>,
+	
 	/// Cgroup2.
 	pub cgroup_version2: Option<RootCgroupVersion2Diagnostics>,
 
@@ -167,7 +170,9 @@ impl Diagnostics
 				inode: InodeDiagnostics::gather(proc_path),
 			
 				extended_berkeley_packet_filter: ExtendedBerkeleyPacketFilterDiagnostics::gather(proc_path, &file_systems),
-			
+				
+				express_data_path_diagnostics: Self::express_data_path_diagnostics(),
+				
 				cgroup_version2: RootCgroupVersion2Diagnostics::gather(&file_systems, &supported_huge_page_sizes),
 				
 				file_handle: FileHandleDiagnostics::gather(proc_path),
@@ -185,5 +190,12 @@ impl Diagnostics
 				file_systems,
 			}
 		})).map_err(|_| DiagnosticUnobtainable(format!("Panicked")))
+	}
+	
+	#[inline(always)]
+	fn express_data_path_diagnostics() -> DiagnosticUnobtainableResult<Vec<GetExpressDataPathDiagnosticsMessageData>>
+	{
+		let mut netlink_socket_file_descriptor = NetlinkSocketFileDescriptor::open().map_err(DiagnosticUnobtainable::from)?;
+		RouteNetlinkProtocol::get_express_data_path_diagnostics(&mut netlink_socket_file_descriptor).map_err(DiagnosticUnobtainable)
 	}
 }

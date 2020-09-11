@@ -186,15 +186,6 @@ impl ThreadConfiguration
 	}
 	
 	#[inline(always)]
-	fn numa_memory_policy(numa_memory_policy: Option<&SetMemoryPolicy>)
-	{
-		if let Some(numa_memory_policy) = numa_memory_policy
-		{
-			numa_memory_policy.set_thread_policy()
-		}
-	}
-	
-	#[inline(always)]
 	fn current_timer_slack(current_timer_slack: Option<Option<CurrentTimerSlackNanoseconds>>)
 	{
 		match current_timer_slack

@@ -5,7 +5,7 @@
 pub(super) struct ExpressDataPathMessageBody<V: NetlinkAttributeOrFollowedByNetlinkAttribute>
 {
 	ifinfo: ifinfomsg,
-	nested_attributes: NetlinkAttribute<V>,
+	#[allow(dead_code)] nested_attributes: NetlinkAttribute<V>,
 }
 
 impl<V: NetlinkAttributeOrFollowedByNetlinkAttribute> NetlinkRequestMessageBody for ExpressDataPathMessageBody<V>

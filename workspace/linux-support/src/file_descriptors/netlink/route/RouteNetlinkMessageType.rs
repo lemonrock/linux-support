@@ -206,8 +206,9 @@ pub enum RouteNetlinkMessageType
 
 impl RouteNetlinkMessageType
 {
+	#[allow(missing_docs)]
 	#[inline(always)]
-	pub(crate) const fn kind(self) -> RouteNetlinkMessageKind
+	pub const fn kind(self) -> RouteNetlinkMessageKind
 	{
 		unsafe { transmute((self as u16) & 0b11) }
 	}

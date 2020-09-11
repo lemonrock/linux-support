@@ -36,6 +36,7 @@ impl HashFunctionKey
 	/// Good distribution apparently.
 	///
 	/// 40 bytes.
+	#[inline(always)]
 	pub fn toeplitz_microsoft() -> Self
 	{
 		Self
@@ -56,6 +57,7 @@ impl HashFunctionKey
 	/// Essential when applying RSS to both sides of a TCP or UDP connection, eg if one is a man-in-the-middle.
 	///
 	/// 40 bytes.
+	#[inline(always)]
 	pub fn toeplitz_symmetric() -> Self
 	{
 		Self
@@ -74,6 +76,7 @@ impl HashFunctionKey
 	/// Default Mellanox key.
 	///
 	/// 40 bytes.
+	#[inline(always)]
 	pub fn mellanox_default() -> Self
 	{
 		Self

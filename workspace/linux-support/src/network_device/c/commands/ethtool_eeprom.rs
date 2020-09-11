@@ -63,7 +63,7 @@ impl ethtool_eeprom
 		(
 			Self
 			{
-				cmd: ETHTOOL_GMODULEINFO,
+				cmd: ETHTOOL_GMODULEEEPROM,
 				magic: 0,
 				offset: 0,
 				len: length,
