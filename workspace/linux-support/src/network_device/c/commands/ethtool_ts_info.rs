@@ -77,7 +77,7 @@ impl ethtool_ts_info
 	}
 	
 	#[inline(always)]
-	pub(crate) fn to_set<E: Into<u32> + IntoEnumIterator + EnumCount + Eq + Hash>(bit_set_word: BitSetWord) -> HashSet<E>
+	pub(crate) fn to_set<E: Into<u32> + IntoEnumIterator + EnumCount + Eq + Hash + Copy>(bit_set_word: BitSetWord) -> HashSet<E>
 	{
 		let mut set = HashSet::with_capacity(E::COUNT);
 		for e in E::iter()

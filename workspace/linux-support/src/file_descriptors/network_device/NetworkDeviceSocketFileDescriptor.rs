@@ -117,8 +117,6 @@ impl NetworkDeviceSocketFileDescriptor
 			Ok(()) => Ok(Some(ok_handler(ifreq).map_err(ControlOperation)?)),
 			
 			Err(errno) => error_handler(errno).map_err(ControlOperation),
-			
-			Err(unexpected @ _) => unreachable!("Unexpected error {} from ioctl({})", unexpected, request),
 		}
 	}
 	
@@ -163,7 +161,7 @@ impl NetworkDeviceSocketFileDescriptor
 	#[inline(always)]
 	fn input_output_control(&self, request: i32, ifreq: &mut ifreq) -> Result<(), Errno>
 	{
-		let result = unsafe { ioctl(self.as_raw_fd(), request, &mut ifreq as *mut _ as *mut c_void) };
+		let result = unsafe { ioctl(self.as_raw_fd(), request, ifreq as *mut _ as *mut c_void) };
 		if likely!(result == 0)
 		{
 			Ok(())

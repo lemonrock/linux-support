@@ -24,6 +24,7 @@ use crate::scheduling::Nice;
 use crate::thread::ThreadIdentifier;
 use crate::thread::ThreadIdentifierChoice;
 use crate::memory::huge_pages::HugePageSize;
+use crate::file_descriptors::cgroup::CgroupFileDescriptor;
 
 
 /// Configuration.

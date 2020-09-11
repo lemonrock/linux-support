@@ -49,7 +49,7 @@ use crate::cpu::maximum_logical_processor_identifiers_per_package;
 use crate::environment::CommandLine;
 use crate::environment::Environment;
 use crate::file_descriptors::OnDiskFileDescriptor;
-use crate::file_descriptors::bpf::BpfFileDescriptor;
+use crate::file_descriptors::bpf::{BpfFileDescriptor, ExtendedBpfProgramCanBeAttachedFileDescriptor};
 use crate::file_descriptors::bpf::MapFileDescriptor;
 use crate::file_descriptors::bpf::ExtendedBpfProgramFileDescriptor;
 use crate::file_descriptors::bpf::BpfTypeFormatFileDescriptor;
@@ -118,6 +118,7 @@ use crate::swap::*;
 use crate::thread::*;
 use crate::time::*;
 use crate::user_and_groups::*;
+use crate::file_descriptors::cgroup::{CgroupProgramAttachmentType, CgroupProgramQueryFlags, CgroupProgramAttachmentFlags};
 
 
 include!("CommonCgroupVersion2Diagnostics.rs");

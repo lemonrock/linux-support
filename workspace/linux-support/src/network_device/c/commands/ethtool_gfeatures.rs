@@ -117,7 +117,7 @@ impl VariablySizedEthtoolCommandWrapper<ethtool_gfeatures>
 	}
 	
 	#[inline(always)]
-	fn features(&self, is_set: impl FnOnce(&Self, NETIF_F) -> bool) -> HashSet<NETIF_F>
+	fn features(&self, is_set: impl FnOnce(&Self, NETIF_F) -> bool + Copy) -> HashSet<NETIF_F>
 	{
 		let mut features = HashSet::with_capacity(NETIF_F::COUNT);
 		for feature in NETIF_F::iter()

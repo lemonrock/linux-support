@@ -31,7 +31,7 @@ impl RedirectMapAndAttachedProgram
 		
 		let get_link_message_data = Self::get_link_message_data(network_interface_index)?;
 		
-		let mut this = if forcibly_overwrite_already_attached
+		let this = if forcibly_overwrite_already_attached
 		{
 			Self::load_and_attach_owned_memory_program(network_interface_index, device_offload, redirect_map_numa_node)
 		}
@@ -264,7 +264,7 @@ impl RedirectMapAndAttachedProgram
 		use self::AttachProgramError::*;
 		
 		let mut netlink_socket_file_descriptor = NetlinkSocketFileDescriptor::open()?;
-		let result = RouteNetlinkProtocol::get_link(&mut netlink_socket_file_descriptor, &|get_link_message_data| get_link_message_data.is_for_index(network_interface_index));
+		let result = RouteNetlinkProtocol::get_link(&mut netlink_socket_file_descriptor, |get_link_message_data| get_link_message_data.is_for_index(network_interface_index));
 		let option = result.map_err(GetLinksUsingNetlink)?;
 		match option
 		{

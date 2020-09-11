@@ -25,6 +25,8 @@ pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 	/// `query_flags` is only appropriate for queries on `CgroupFileDescriptor`.
 	/// `attach_flags` is only appropriate for queries on `CgroupFileDescriptor`.
 	///
+	/// Returns an error if permission is denied.
+	///
 	/// Works for the following `attach_types`:-
 	///
 	/// * `CgroupFileDescriptor`.
@@ -67,7 +69,7 @@ pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 	///     * `BPF_SK_SKB_STREAM_PARSER`.
 	///     * `BPF_SK_SKB_STREAM_VERDICT`.
 	#[inline(always)]
-	fn query_attached_extended_bpf_programs(&self, program_attachment_type: Self::ProgramAttachmentType, program_query_flags: Self::ProgramQueryFlags) -> (Vec<ExtendedBpfProgramIdentifier>, Self::ProgramAttachmentFlags)
+	fn query_attached_extended_bpf_programs(&self, program_attachment_type: Self::ProgramAttachmentType, program_query_flags: Self::ProgramQueryFlags) -> Result<(Vec<ExtendedBpfProgramIdentifier>, Self::ProgramAttachmentFlags), ()>
 	{
 		let mut programs: Vec<ExtendedBpfProgramIdentifier> = Vec::with_capacity(Self::InitialProgramCountGuess);
 		
@@ -91,7 +93,7 @@ pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 				unsafe { programs.set_len(attr.query.prog_cnt as usize) };
 				programs.shrink_to_fit();
 				let program_attachment_flags = Self::ProgramAttachmentFlags::parse(unsafe { attr.query.attach_flags });
-				return (programs, program_attachment_flags)
+				return Ok((programs, program_attachment_flags))
 			}
 			else if likely!(result == -1)
 			{
@@ -106,8 +108,8 @@ pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 						continue
 					}
 					
+					EPERM => return Err(()),
 					EINVAL => panic!("Invalid attr or invalid attach type"),
-					EPERM => panic!("Permission denied"),
 					EFAULT => panic!("Fault copying to / from userspace"),
 					
 					errno @ _ => panic!("Unexpected error `{}`", errno),

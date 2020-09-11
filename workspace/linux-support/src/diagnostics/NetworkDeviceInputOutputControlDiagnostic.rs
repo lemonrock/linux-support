@@ -130,13 +130,7 @@ impl NetworkDeviceInputOutputControlDiagnostic
 		(
 			Self
 			{
-				driver_name: driver_and_device_information.driver_name,
-				
-				driver_version: driver_and_device_information.driver_version,
-				
 				driver_message_level: exists!(network_device_input_output_control.driver_message_level()),
-				
-				device_bus_device_address: driver_and_device_information.device_bus_device_address,
 				
 				link_is_up: exists!(network_device_input_output_control.link_is_up()),
 				
@@ -189,6 +183,12 @@ impl NetworkDeviceInputOutputControlDiagnostic
 				registers: exists!(network_device_input_output_control.registers(&driver_and_device_information)),
 				
 				all_string_sets,
+				
+				driver_name: driver_and_device_information.driver_name,
+				
+				driver_version: driver_and_device_information.driver_version,
+				
+				device_bus_device_address: driver_and_device_information.device_bus_device_address,
 			}
 		)
 	}

@@ -8,25 +8,25 @@
 ///
 /// By convention, a leaf non-root cgroup is called `leaf` but this is not enforced.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum NonRootCgroup<'name>
+pub enum NonRootCgroup
 {
 	ChildOfRoot
 	{
 		/// Folder name.
-		name: Cow<'name, CgroupName>,
+		name: CgroupName,
 	},
 	
 	ChildOfAChild
 	{
 		/// Parent.
-		parent: Rc<NonRootCgroup<'name>>,
+		parent: Rc<NonRootCgroup>,
 		
 		/// Folder name.
-		name: Cow<'name, CgroupName>,
+		name: CgroupName,
 	}
 }
 
-impl<'name> Cgroup<'name> for NonRootCgroup<'name>
+impl Cgroup for NonRootCgroup
 {
 	#[inline(always)]
 	fn to_path<'b>(&self, mount_point: &'b CgroupMountPoint) -> Cow<'b, Path>
@@ -35,24 +35,24 @@ impl<'name> Cgroup<'name> for NonRootCgroup<'name>
 		
 		let path = match self
 		{
-			&ChildOfRoot { ref name} => RootCgroup.to_owned_path(mount_point).append(&**name),
-			&ChildOfAChild { ref name, parent } => parent.to_owned_path(mount_point).append(&**name),
+			&ChildOfRoot { ref name} => RootCgroup.to_owned_path(mount_point).append(name),
+			&ChildOfAChild { ref name, ref parent } => parent.to_owned_path(mount_point).append(name),
 		};
 		Cow::Owned(path)
 	}
 	
 	#[inline(always)]
-	fn child(self: Rc<Self>, name: Cow<'name, CgroupName>) -> Rc<NonRootCgroup<'name>>
+	fn child(self: Rc<Self>, name: CgroupName) -> Rc<Self>
 	{
-		Rc::new(NonRootCgroup::ChildOfAChild { name, parent: self })
+		Rc::new(NonRootCgroup::ChildOfAChild { parent: self, name })
 	}
 }
 
-impl<'name> NonRootCgroup<'name>
+impl NonRootCgroup
 {
 	/// Name.
 	#[inline(always)]
-	pub fn name(&self) -> &Cow<'name, CgroupName>
+	pub fn name(&self) -> &CgroupName
 	{
 		use self::NonRootCgroup::*;
 		

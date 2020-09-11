@@ -59,6 +59,8 @@ impl error::Error for GlobalSecurityConfigurationError
 			
 			&CouldNotSetMaximumNumberOfFileSystemMounts(ref cause) => Some(cause),
 			
+			&CouldNotSetMaximumNumberOfMemoryMapsPerProcess(ref cause) => Some(cause),
+			
 			&CouldNotHardenJitOfBpfPrograms(ref cause) => Some(cause),
 			
 			&CouldNotDisableKexecLoadingUntilNextReboot(ref cause) => Some(cause),

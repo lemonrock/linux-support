@@ -43,6 +43,7 @@ bitflags!
 	///
 	/// All eligible programs are executed regardless of return code from earlier programs.
 	#[allow(missing_docs)]
+	#[derive(Deserialize, Serialize)]
 	pub struct BPF_PROG_ATTACH_flags: u32
 	{
 		#[doc(hidden)]

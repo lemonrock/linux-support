@@ -50,7 +50,7 @@ pub struct CurrentThreadDiagnostic
 
 impl CurrentThreadDiagnostic
 {
-	fn gather(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> Self
+	fn gather() -> Self
 	{
 		let current_thread_identifier = ThreadIdentifier::default();
 		

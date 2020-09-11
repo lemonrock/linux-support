@@ -11,14 +11,3 @@ include!("FeatureGroup.rs");
 include!("FeatureGroupChoice.rs");
 include!("FeatureValue.rs");
 include!("LinkModeBitSet.rs");
-
-
-struct PrivateFlagBit(u32);
-
-impl PrivateFlagBit
-{
-	fn find(name: ObjectName32, string_sets: &HashMap<ethtool_stringset, IndexSet<ObjectName32>>)
-	{
-		let string_set = string_sets.get(&ethtool_stringset::ETH_SS_PRIV_FLAGS).expect("Missing private flags string set");
-	}
-}

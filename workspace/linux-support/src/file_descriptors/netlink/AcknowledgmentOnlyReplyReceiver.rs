@@ -41,7 +41,7 @@ impl<Protocol: NetlinkProtocol> ReplyReceiver<Protocol> for AcnowledgmentOnlyRep
 	}
 	
 	#[inline(always)]
-	fn message(&mut self, message_type: Protocol::MessageType, data: &[u8])
+	fn message(&mut self, message_type: Protocol::MessageType, _data: &[u8])
 	{
 		assert!(self.start_of_set_of_messages_called, "start_of_set_of_messages({:?}, _) should be called before message()", message_type);
 		

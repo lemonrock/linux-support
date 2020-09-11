@@ -12,16 +12,48 @@ pub struct NetworkDeviceDiagnostic
 
 	/// From `ioctl()`.
 	#[serde(flatten)] pub input_output_control: DiagnosticUnobtainableResult<NetworkDeviceInputOutputControlDiagnostic>,
+
+	#[allow(missing_docs)]
+	pub generic_receive_offload_flush_timeout_in_nanoseconds: DiagnosticUnobtainableResult<u32>,
+
+	#[allow(missing_docs)]
+	pub device_identifier: DiagnosticUnobtainableResult<u16>,
+
+	#[allow(missing_docs)]
+	pub device_port: DiagnosticUnobtainableResult<u16>,
+
+	#[allow(missing_docs)]
+	pub is_dormant: DiagnosticUnobtainableResult<bool>,
+
+	#[allow(missing_docs)]
+	pub assigned_hardware_address_type: DiagnosticUnobtainableResult<NET_ADDR>,
+
+	#[allow(missing_docs)]
+	pub assigned_hardware_name: DiagnosticUnobtainableResult<NET_NAME>,
 }
 
 impl NetworkDeviceDiagnostic
 {
 	#[inline(always)]
-	fn gather(link: GetLinkMessageData) -> Self
+	fn gather(sys_path: &SysPath, link: GetLinkMessageData) -> Self
 	{
+		let network_interface_name = &link.network_interface_name;
 		Self
 		{
 			input_output_control: NetworkDeviceInputOutputControlDiagnostic::gather(&link.network_interface_name),
+			
+			generic_receive_offload_flush_timeout_in_nanoseconds: network_interface_name.generic_receive_offload_flush_timeout_in_nanoseconds(sys_path).map_err(DiagnosticUnobtainable::from),
+			
+			device_identifier: network_interface_name.device_identifier(sys_path).map_err(DiagnosticUnobtainable::from),
+			
+			device_port: network_interface_name.device_port(sys_path).map_err(DiagnosticUnobtainable::from),
+			
+			is_dormant: network_interface_name.is_dormant(sys_path).map_err(DiagnosticUnobtainable::from),
+			
+			assigned_hardware_address_type: network_interface_name.assigned_hardware_address_type(sys_path).map_err(DiagnosticUnobtainable::from),
+			
+			assigned_hardware_name: network_interface_name.assigned_hardware_name(sys_path).map_err(DiagnosticUnobtainable::from),
+			
 			link,
 		}
 	}

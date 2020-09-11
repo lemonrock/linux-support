@@ -21,12 +21,10 @@ pub struct NumaNodeMemoryDiagnostic
 	pub memory_information: DiagnosticUnobtainableResult<MemoryInformation>,
 }
 
-// TODO: Memory Policy for threads to numa nodes?
-
 impl NumaNodeMemoryDiagnostic
 {
 	#[allow(deprecated)]
-	fn gather(sys_path: &SysPath, proc_path: &ProcPath, numa_node: NumaNode, supported_huge_page_sizes: &BTreeSet<HugePageSize>) -> Self
+	fn gather(sys_path: &SysPath, numa_node: NumaNode, supported_huge_page_sizes: &BTreeSet<HugePageSize>) -> Self
 	{
 		#[inline(always)]
 		fn wrap_panic<R>(numa_node: NumaNode, callback: impl FnOnce(NumaNode) -> R) -> DiagnosticUnobtainableResult<R>

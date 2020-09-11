@@ -9,7 +9,7 @@ pub struct NetworkDeviceDiagnostics(Vec<NetworkDeviceDiagnostic>);
 
 impl NetworkDeviceDiagnostics
 {
-	fn gather() -> DiagnosticUnobtainableResult<Self>
+	fn gather(sys_path: &SysPath) -> DiagnosticUnobtainableResult<Self>
 	{
 		let mut netlink_socket_file_descriptor = NetlinkSocketFileDescriptor::open().map_err(DiagnosticUnobtainable::from)?;
 		let links = RouteNetlinkProtocol::get_links(&mut netlink_socket_file_descriptor).map_err(DiagnosticUnobtainable)?;
@@ -17,7 +17,7 @@ impl NetworkDeviceDiagnostics
 		let mut diagnostics = Vec::with_capacity(links.len());
 		for link in links
 		{
-			diagnostics.push(NetworkDeviceDiagnostic::gather(link))
+			diagnostics.push(NetworkDeviceDiagnostic::gather(sys_path, link))
 		}
 		
 		Ok(Self(diagnostics))

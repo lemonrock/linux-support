@@ -13,7 +13,7 @@ pub struct PageSizeMemoryDiagnostics
 
 impl PageSizeMemoryDiagnostics
 {
-	fn gather(sys_path: &SysPath, proc_path: &ProcPath, supported_huge_page_sizes: &BTreeSet<HugePageSize>) -> DiagnosticUnobtainableResult<Self>
+	fn gather(sys_path: &SysPath, supported_huge_page_sizes: &BTreeSet<HugePageSize>) -> DiagnosticUnobtainableResult<Self>
 	{
 		Ok
 		(

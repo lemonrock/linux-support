@@ -110,7 +110,7 @@ impl NetworkInterfaceName
 	///
 	/// Default is 0.
 	#[inline(always)]
-	pub fn generic_receive_offload_flush_timeout_in_nanoseconds(self, sys_path: &SysPath) -> io::Result<u32>
+	pub fn generic_receive_offload_flush_timeout_in_nanoseconds(&self, sys_path: &SysPath) -> io::Result<u32>
 	{
 		self.file_path(sys_path, "gro_flush_timeout").read_value()
 	}
@@ -119,7 +119,7 @@ impl NetworkInterfaceName
 	///
 	/// Default is 0.
 	#[inline(always)]
-	pub fn set_generic_receive_offload_flush_timeout_in_nanoseconds(self, sys_path: &SysPath, generic_receive_offload_flush_timeout_in_nanoseconds: u32) -> io::Result<()>
+	pub fn set_generic_receive_offload_flush_timeout_in_nanoseconds(&self, sys_path: &SysPath, generic_receive_offload_flush_timeout_in_nanoseconds: u32) -> io::Result<()>
 	{
 		assert_effective_user_id_is_root("write /sys/class/net/<network_interface_name>/gro_flush_timeout");
 		
@@ -137,7 +137,7 @@ impl NetworkInterfaceName
 	
 	/// Reads the `dev_id`, used to differentiate devices that share the same link layer address.
 	#[inline(always)]
-	pub fn device_identifier(self, sys_path: &SysPath) -> io::Result<u16>
+	pub fn device_identifier(&self, sys_path: &SysPath) -> io::Result<u16>
 	{
 		let value = self.file_path(sys_path, "dev_id").read_raw_without_line_feed()?;
 		u16::parse_hexadecimal_number_lower_case_with_0x_prefix(&value[..]).map_err(io_error_invalid_data)
@@ -145,21 +145,21 @@ impl NetworkInterfaceName
 	
 	/// Reads the `dev_port`, used to differentiate devices that share the same link layer address.
 	#[inline(always)]
-	pub fn device_port(self, sys_path: &SysPath) -> io::Result<u16>
+	pub fn device_port(&self, sys_path: &SysPath) -> io::Result<u16>
 	{
 		self.file_path(sys_path, "dev_port").read_value()
 	}
 	
 	/// Has the link been changed to or from dormant, but the operational status may not yet have become `IF_OPER::IF_OPER_DORMANT`?
 	#[inline(always)]
-	pub fn is_dormant(self, sys_path: &SysPath) -> io::Result<bool>
+	pub fn is_dormant(&self, sys_path: &SysPath) -> io::Result<bool>
 	{
 		self.file_path(sys_path, "dormant").read_zero_or_one_bool()
 	}
 	
 	/// Assigned hardware address type.
 	#[inline(always)]
-	pub fn assigned_hardware_address_type(self, sys_path: &SysPath) -> io::Result<NET_ADDR>
+	pub fn assigned_hardware_address_type(&self, sys_path: &SysPath) -> io::Result<NET_ADDR>
 	{
 		let value: u8 = self.file_path(sys_path, "addr_assign_type").read_value()?;
 		if (value as usize) >= NET_ADDR::COUNT
@@ -174,7 +174,7 @@ impl NetworkInterfaceName
 	
 	/// Assigned hardware name type.
 	#[inline(always)]
-	pub fn assigned_hardware_name(self, sys_path: &SysPath) -> io::Result<NET_NAME>
+	pub fn assigned_hardware_name(&self, sys_path: &SysPath) -> io::Result<NET_NAME>
 	{
 		let result: io::Result<u8> = self.file_path(sys_path, "hardware_addr_type").read_value();
 		
@@ -203,8 +203,8 @@ impl NetworkInterfaceName
 	}
 	
 	#[inline(always)]
-	fn file_path(self, sys_path: &SysPath, file_name: &str) -> PathBuf
+	fn file_path(&self, sys_path: &SysPath, file_name: &str) -> PathBuf
 	{
-		sys_path.network_interface_class_net_folder_path(&self).append(file_name)
+		sys_path.network_interface_class_net_folder_path(self).append(file_name)
 	}
 }

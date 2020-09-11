@@ -42,7 +42,7 @@ impl FromBytes for RdmaDeviceValues
 		let mut hca_handle = None;
 		let mut hca_object = None;
 		
-		let mut fields = bytes.split_bytes(b' ');
+		let fields = bytes.split_bytes(b' ');
 		for key_value in fields
 		{
 			let mut key_value = key_value.split_bytes_n(2, b'=');

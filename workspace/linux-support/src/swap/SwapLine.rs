@@ -48,8 +48,6 @@ impl FromBytes for SwapLine
 		// There is inconsistent tab-separation between fields; if the `Type` field is `file`, an additional tab is also inserted.
 		let mut fields = remaining_fields.split_bytes(b'\t').filter(|potential_field| !potential_field.is_empty());
 		
-		let priority = fields.next().ok_or(io_error_invalid_data("No `Priority` field"))?;
-		
 		use self::SwapType::*;
 		
 		Ok

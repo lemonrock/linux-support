@@ -107,7 +107,7 @@ impl VariablySizedEthtoolCommandWrapper<ethtool_rxfh>
 			}
 			else
 			{
-				Ok(Some(unsafe { transmute(bit) }))
+				Ok(Some(unsafe { transmute(bit as u8) }))
 			}
 		}
 	}
@@ -145,12 +145,12 @@ impl VariablySizedEthtoolCommandWrapper<ethtool_rxfh>
 
 impl ethtool_rxfh
 {
-	pub(crate) const fn get_indirection_table_size_and_key_size(context_identifier: Option<ContextIdentifier>) -> Self
+	pub(crate) fn get_indirection_table_size_and_key_size(context_identifier: Option<ContextIdentifier>) -> Self
 	{
 		Self::get_indirection_table_and_key_data(context_identifier, 0, 0)
 	}
 	
-	pub(crate) const fn reset(context_identifier: Option<ContextIdentifier>) -> Self
+	pub(crate) fn reset(context_identifier: Option<ContextIdentifier>) -> Self
 	{
 		Self::set_indirection_table_and_key_data(context_identifier.map(ContextIdentifierOrCreate::identifier), None, 0, 0)
 	}
@@ -201,7 +201,7 @@ impl ethtool_rxfh
 		(self.indir_size as usize, self.key_size as usize)
 	}
 	
-	const fn get_indirection_table_and_key_data(context_identifier: Option<ContextIdentifier>, indirection_size: usize, key_size: usize) -> Self
+	fn get_indirection_table_and_key_data(context_identifier: Option<ContextIdentifier>, indirection_size: usize, key_size: usize) -> Self
 	{
 		Self
 		{
@@ -212,11 +212,11 @@ impl ethtool_rxfh
 			hfunc: 0,
 			rsvd8: [0; 3],
 			rsvd32: 0,
-			rss_config: Default::default()
+			rss_config: __IncompleteArrayField::Default,
 		}
 	}
 	
-	const fn set_indirection_table_and_key_data(context_identifier_or_create: Option<ContextIdentifierOrCreate>, hash_function: Option<ETH_RSS_HASH>, indirection_size: usize, key_size: usize) -> Self
+	fn set_indirection_table_and_key_data(context_identifier_or_create: Option<ContextIdentifierOrCreate>, hash_function: Option<ETH_RSS_HASH>, indirection_size: usize, key_size: usize) -> Self
 	{
 		Self
 		{
@@ -231,7 +231,7 @@ impl ethtool_rxfh
 			},
 			rsvd8: [0; 3],
 			rsvd32: 0,
-			rss_config: Default::default()
+			rss_config: __IncompleteArrayField::Default,
 		}
 	}
 	

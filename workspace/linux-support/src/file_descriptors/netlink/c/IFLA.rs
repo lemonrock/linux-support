@@ -130,6 +130,15 @@ pub(crate) enum IFLA
 	IFLA_PERM_ADDRESS = 54,
 }
 
+impl From<u16> for IFLA
+{
+	#[inline(always)]
+	fn from(value: u16) -> Self
+	{
+		unsafe { transmute(value) }
+	}
+}
+
 impl NetlinkAttributeType for IFLA
 {
 	#[inline(always)]

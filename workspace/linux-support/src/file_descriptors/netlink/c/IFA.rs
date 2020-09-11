@@ -40,6 +40,15 @@ pub(crate) enum IFA
 	IFA_TARGET_NETNSID = 10,
 }
 
+impl From<u16> for IFA
+{
+	#[inline(always)]
+	fn from(value: u16) -> Self
+	{
+		unsafe { transmute(value) }
+	}
+}
+
 impl NetlinkAttributeType for IFA
 {
 	#[inline(always)]
@@ -51,7 +60,7 @@ impl NetlinkAttributeType for IFA
 
 impl IFA
 {
-	const __IFA_MAX: u16 = unsafe { IFA::IFA_TARGET_NETNSID as u16 + 1 };
+	const __IFA_MAX: u16 = IFA::IFA_TARGET_NETNSID as u16 + 1;
 	
 	pub(crate) const IFA_MAX: Self = unsafe { transmute(Self::__IFA_MAX - 1) };
 }

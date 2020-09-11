@@ -43,7 +43,7 @@ impl IndirectionTable
 			let next_hash_index = hash_index.checked_add(weight).expect("Far too much weight");
 			assert!(next_hash_index <= indirection_table_size, "Asked for too much weight ({:?}) for `{:?}` when only a weight of {:?} remains to allocate", weight, queue_identifier, indirection_table_size - hash_index);
 			
-			for add_hash_index in hash_index .. next_hash_index
+			for _ in hash_index .. next_hash_index
 			{
 				indirection_table.push(queue_identifier);
 			}

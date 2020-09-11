@@ -22,7 +22,7 @@ impl UsersAndGroupsDiagnostics
 		{
 			process_identifier_choice,
 			users: UsersDiagnostics::gather(proc_path, etc_path, process_identifier_choice),
-			groups: GroupsDiagnostics::gather(proc_path, etc_path, process_identifier_choice),
+			groups: GroupsDiagnostics::gather(etc_path),
 		}
 	}
 }

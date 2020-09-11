@@ -215,7 +215,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 					
 					(ETH_MODULE_SFF_8472, PageSize) => SFF_8472 { page_A0: binary_data.into(), page_A2: None },
 					
-					(ETH_MODULE_SFF_8472, DoublePageSize) => SFF_8472 { page_A0: binary_data.into(), page_A2: Some((&binary_data[PageSize .. ]).into()) },
+					(ETH_MODULE_SFF_8472, DoublePageSize) => SFF_8472 { page_A0: (&binary_data[0 .. PageSize]).into(), page_A2: Some((&binary_data[PageSize .. ]).into()) },
 					
 					(ETH_MODULE_SFF_8436, PageSize) => SFF_8436 { page_A0: binary_data.into() },
 					
@@ -341,7 +341,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		self.ethtool_command
 		(
 			ethtool_tunable::new_set(tunable),
-			|command| Ok(()),
+			|_command| Ok(()),
 			|errno| match errno.0
 			{
 				ERANGE => Err(TunableOutOfRangeError),
@@ -356,7 +356,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	#[inline(always)]
 	pub fn set_forward_error_correction(&self, forward_error_correction_code: ForwardErrorCorrectionCode) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
-		let mut command = match self.raw_forward_error_correction()?
+		let command = match self.raw_forward_error_correction()?
 		{
 			None => return Ok(None),
 			Some(None) => return Ok(Some(())),
@@ -439,7 +439,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		self.ethtool_command
 		(
 			command,
-			|command| Ok(()),
+			|_command| Ok(()),
 			|errno| Err(UndocumentedError(errno)),
 			|_command| (),
 		)
@@ -497,11 +497,6 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		{
 			return Ok(Some(current))
 		}
-		
-		let receive_and_transmit_channels_count = maximima.receive_and_transmit_channels_count;
-		let receive_channels_count = maximima.receive_only_channels_count;
-		let transmit_channels_count = maximima.transmit_only_channels_count;
-		let other_channels_count = maximima.other_channels_count;
 		
 		self.ethtool_command
 		(
@@ -562,7 +557,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		match self.ethtool_command
 		(
 			ethtool_rxfh::set(context_identifier.map(ContextIdentifierOrCreate::identifier), &configured_hash_settings),
-			|command| Ok(true),
+			|_command| Ok(true),
 			Self::error_is_unreachable,
 			|_command| false,
 		)?
@@ -603,7 +598,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		self.ethtool_command
 		(
 			command,
-			|command| Ok(true),
+			|_command| Ok(true),
 			Self::error_is_unreachable,
 			|_command| false,
 		)
@@ -616,7 +611,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		match self.ethtool_command
 		(
 			ethtool_rxfh::reset(context_identifier),
-			|command| Ok(true),
+			|_command| Ok(true),
 			Self::error_is_unreachable,
 			|_command| false,
 		)?
@@ -647,7 +642,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 				size: 0,
 				ring_index: Default::default()
 			},
-			|command| Ok(true),
+			|_command| Ok(true),
 			Self::error_is_unreachable,
 			|_command| false,
 		)
@@ -808,7 +803,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		self.ethtool_command
 		(
 			set_features,
-			|command| Ok(()),
+			|_command| Ok(()),
 			Self::error_is_unreachable,
 			|_command| ()
 		)
@@ -1016,7 +1011,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			{
 				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
 			},
-			|command|
+			|mut command|
 			{
 				for array_element in command.array_elements_mut()
 				{
@@ -1052,7 +1047,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		self.ethtool_command
 		(
 			ethtool_pauseparam::set(pause_configuration),
-			|command| Ok(()),
+			|_command| Ok(()),
 			Self::error_is_unreachable,
 			|_command| ()
 		)
@@ -1134,7 +1129,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		self.ethtool_command
 		(
 			command,
-			|command| Ok(()),
+			|_command| Ok(()),
 			Self::error_is_unreachable,
 			|_command| ()
 		)
@@ -1249,7 +1244,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			ethtool_sset_info::new(),
 			|command| Ok(command),
 			Self::error_is_unreachable,
-			|command|
+			|mut command|
 			{
 				command.set_supported_string_sets_to_none();
 				command

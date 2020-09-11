@@ -12,13 +12,13 @@ impl FileSystemTypeList
 {
 	/// Verifies a nodev file system is supported, eg `sysfs` will be `Ok()`; `ext3` will be `Err(HasAssociatedDevices)`.
 	#[inline(always)]
-	pub fn verify_pseudo_file_system_is_supported(&self, file_system_type: FileSystemType) -> Result<(), FileSystemSupportedError>
+	pub fn verify_pseudo_file_system_is_supported(&self, file_system_type: &FileSystemType) -> Result<(), FileSystemSupportedError>
 	{
 		use self::FileSystemSupportedError::*;
 
 		match self.0.get(&file_system_type)
 		{
-			None => Err(Unsupported(file_system_type)),
+			None => Err(Unsupported(file_system_type.clone())),
 
 			Some(has_no_associated_device) => if *has_no_associated_device
 			{
@@ -26,7 +26,7 @@ impl FileSystemTypeList
 			}
 			else
 			{
-				Err(HasAssociatedDevices(file_system_type))
+				Err(HasAssociatedDevices(file_system_type.clone()))
 			},
 		}
 	}

@@ -483,7 +483,7 @@ pub fn relative_function_call<'name>(program_counter_offset: impl Into<ProgramCo
 
 /// Program exit.
 #[inline(always)]
-pub const fn program_exit() ->  ProgramLineWrapper<'static>
+pub fn program_exit() ->  ProgramLineWrapper<'static>
 {
 	ProgramLine::ProgramExit.into()
 }

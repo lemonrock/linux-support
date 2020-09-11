@@ -23,7 +23,7 @@ impl<NAT: NetlinkAttributeType> rtattr<NAT>
 		(
 			self.rta_type & (nlattr::NLA_F_NESTED) != 0,
 			self.rta_type & (nlattr::NLA_F_NET_BYTEORDER) != 0,
-			unsafe { transmute(self.rta_type & nlattr::NLA_TYPE_MASK) }
+			NAT::from(self.rta_type & nlattr::NLA_TYPE_MASK),
 		)
 	}
 	
@@ -202,7 +202,7 @@ impl<NAT: NetlinkAttributeType> rtattr<NAT>
 	#[inline(always)]
 	pub(crate) const fn ok(this: *const Self, end: *const Self) -> bool
 	{
-		(end as usize) - (this as usize) >= Self::RTA_HDRLEN
+		(unsafe { (end as usize) - (this as usize) }) >= Self::RTA_HDRLEN
 	}
 	
 	#[inline(always)]

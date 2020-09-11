@@ -32,7 +32,7 @@ impl ControllerConfiguration for CpuControllerConfiguration
 {
 	const Controller: Controller = Controller::cpu;
 	
-	fn configure<'name>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>, _defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
+	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup>, _defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
 	{
 		match self.weight
 		{
@@ -40,7 +40,7 @@ impl ControllerConfiguration for CpuControllerConfiguration
 			Right(nice) => cgroup.write_cpu_weight_nice(mount_point, nice)?,
 		}
 		
-		cgroup.write_cpu_maximum_bandwidth_limit(mount_point, self.maximum_bandwidth_limit)
+		cgroup.write_cpu_maximum_bandwidth_limit(mount_point, self.maximum_bandwidth_limit.clone())
 	}
 }
 
@@ -49,6 +49,6 @@ impl CpuControllerConfiguration
 	#[inline(always)]
 	const fn weight_default() -> Either<CpuWeight, Nice>
 	{
-		Right(Nice::default())
+		Right(Nice::Default)
 	}
 }

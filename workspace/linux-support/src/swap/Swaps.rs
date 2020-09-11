@@ -31,7 +31,7 @@ impl FromBytes for Swaps
 		let mut swap_lines = Vec::new();
 		for line in bytes_without_header_line.split_bytes(b'\n')
 		{
-			swap_lines.push(SwapLine::from_bytes(bytes_without_header_line)?);
+			swap_lines.push(SwapLine::from_bytes(line)?);
 		}
 		Ok(Self(swap_lines))
 	}
@@ -53,7 +53,7 @@ impl Swaps
 	#[inline(always)]
 	pub fn parse(proc_path: &ProcPath) -> io::Result<Self>
 	{
-		let bytes = proc_path.file_path("swap").read_raw()?;
+		let bytes = proc_path.file_path("swaps").read_raw()?;
 		Self::from_bytes(&bytes[..])
 	}
 }

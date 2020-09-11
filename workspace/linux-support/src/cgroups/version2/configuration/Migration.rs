@@ -10,7 +10,7 @@ pub struct Migration<POTIC: ProcessOrThreadIdentifierChoice>(Vec<POTIC>);
 
 impl<POTIC: ProcessOrThreadIdentifierChoice> Migration<POTIC>
 {
-	fn leaf_migrate<'name, C: 'name + Cgroup<'name>>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<C>) -> io::Result<()>
+	fn leaf_migrate<C: Cgroup>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<C>) -> io::Result<()>
 	{
 		cgroup.write_maximum_descendants(mount_point, MaximumNumber::Finite(0))?;
 		
@@ -19,7 +19,7 @@ impl<POTIC: ProcessOrThreadIdentifierChoice> Migration<POTIC>
 		Ok(())
 	}
 	
-	fn migrate<'name, C: 'name + Cgroup<'name>>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<C>)
+	fn migrate<C: Cgroup>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<C>)
 	{
 		for potic in self.0.iter()
 		{

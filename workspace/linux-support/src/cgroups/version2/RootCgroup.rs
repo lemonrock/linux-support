@@ -8,7 +8,7 @@
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct RootCgroup;
 
-impl<'name> Cgroup<'name> for RootCgroup
+impl Cgroup for RootCgroup
 {
 	#[inline(always)]
 	fn to_path<'b>(&self, mount_point: &'b CgroupMountPoint) -> Cow<'b, Path>
@@ -18,7 +18,7 @@ impl<'name> Cgroup<'name> for RootCgroup
 	
 	/// Does not check if the child exists.
 	#[inline(always)]
-	fn child(self: Rc<Self>, name: Cow<'name, CgroupName>) -> Rc<NonRootCgroup<'name>>
+	fn child(self: Rc<Self>, name: CgroupName) -> Rc<NonRootCgroup>
 	{
 		Rc::new(NonRootCgroup::ChildOfRoot { name })
 	}

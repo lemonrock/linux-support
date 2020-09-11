@@ -85,7 +85,7 @@ impl HyperThreadsDiagnostics
 			
 			work_queue_affinity: work_queue_affinity.map_err(DiagnosticUnobtainable::from),
 			
-			work_queue_writeback_affinity: work_queue_affinity.map_err(DiagnosticUnobtainable::from),
+			work_queue_writeback_affinity: work_queue_writeback_affinity.map_err(DiagnosticUnobtainable::from),
 			
 			watchdog_affinity: HyperThreads::watchdog(proc_path).map_err(DiagnosticUnobtainable::from),
 			

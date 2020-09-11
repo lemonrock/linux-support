@@ -56,3 +56,8 @@ impl<T> Debug for __IncompleteArrayField<T>
 		fmt.write_str("__IncompleteArrayField")
 	}
 }
+
+impl<T> __IncompleteArrayField<T>
+{
+	pub const Default: Self = Self(PhantomData, []);
+}

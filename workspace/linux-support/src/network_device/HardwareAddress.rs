@@ -51,7 +51,7 @@ impl<'a> TryFrom<&'a [u8]> for HardwareAddress
 		{
 			let mut bytes: [u8; HardwareAddress::MaximumLength.get()] = unsafe { uninitialized() };
 			unsafe { bytes.as_mut_ptr().copy_from_nonoverlapping(value.as_ptr(), length) };
-			let mut buffer = ConstArrayVec
+			let buffer = ConstArrayVec
 			{
 				xs: bytes,
 				len: length as u8,

@@ -96,6 +96,8 @@ impl NetworkDeviceInputOutputControlError<Infallible>
 			PermissionDenied => PermissionDenied,
 			
 			OutOfKernelMemory => OutOfKernelMemory,
+			
+			Other(other) => Other(other),
 		}
 	}
 }

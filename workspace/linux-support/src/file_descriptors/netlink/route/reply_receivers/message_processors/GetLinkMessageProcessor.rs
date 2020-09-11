@@ -139,7 +139,7 @@ impl GetLinkMessageProcessor
 		
 		let pointer = nested_attributes.as_ptr();
 		let mut potential_message_attribute_pointer = pointer as *const rtattr<IFLA_XDP>;
-		let mut end = unsafe { potential_message_attribute_pointer.add(nested_attributes.len()) };
+		let end = unsafe { potential_message_attribute_pointer.add(nested_attributes.len()) };
 		while rtattr::ok(potential_message_attribute_pointer, end)
 		{
 			let message_attribute = unsafe { & * potential_message_attribute_pointer };

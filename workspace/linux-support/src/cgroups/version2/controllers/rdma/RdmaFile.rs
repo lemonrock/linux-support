@@ -43,10 +43,10 @@ impl RdmaFile
 			let mut fields = line.split_bytes_n(2, b' ');
 			let device_name = RdmaDeviceName(fields.next().expect("Split always should produce at least one item").to_vec());
 			
-			let key_value_fields = fields.next().ok_or(MissingKeyValueFields { device_name })?;
+			let key_value_fields = fields.next().ok_or(MissingKeyValueFields { device_name: device_name.clone() })?;
 			let device_values = RdmaDeviceValues::from_bytes(key_value_fields)?;
 			
-			let was_a_duplicate = this.insert(device_name, device_values).is_some();
+			let was_a_duplicate = this.insert(device_name.clone(), device_values).is_some();
 			if unlikely!(was_a_duplicate)
 			{
 				return Err(DuplicateDevice { device_name })

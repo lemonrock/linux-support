@@ -73,8 +73,6 @@ impl ethtool_sfeatures
 	#[inline(always)]
 	pub(crate) fn new() -> VariablySizedEthtoolCommandWrapper<Self>
 	{
-		let array_size = NETIF_F::ETHTOOL_DEV_FEATURE_WORDS + 2;
-		
 		Self::new_with_initialized_header_but_uninitialized_array
 		(
 			Self

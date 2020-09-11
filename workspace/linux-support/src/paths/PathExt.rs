@@ -212,8 +212,6 @@ impl PathExt for Path
 	#[inline(always)]
 	fn read_hyper_thread_or_numa_node_list_if_exists<BSA: BitSetAware>(&self) -> Result<Option<BitSet<BSA>>, io::Error>
 	{
-		let without_line_feed = self.read_raw_without_line_feed()?;
-		
 		let without_line_feed = match self.read_raw_without_line_feed()
 		{
 			Ok(without_line_feed) => without_line_feed,

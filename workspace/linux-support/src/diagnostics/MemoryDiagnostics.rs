@@ -27,7 +27,7 @@ impl MemoryDiagnostics
 		
 			global_zoned_virtual_memory_statistics: VirtualMemoryStatisticName::global_zoned_virtual_memory_statistics(proc_path, true).map_err(DiagnosticUnobtainable::from),
 			
-			page_size: PageSizeMemoryDiagnostics::gather(sys_path, proc_path, supported_huge_page_sizes),
+			page_size: PageSizeMemoryDiagnostics::gather(sys_path, supported_huge_page_sizes),
 			
 			numa_nodes: NumaNodeMemoryDiagnostics::gather(sys_path, proc_path, supported_huge_page_sizes),
 		}

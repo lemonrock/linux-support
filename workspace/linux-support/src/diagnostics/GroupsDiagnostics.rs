@@ -18,7 +18,7 @@ pub struct GroupsDiagnostics
 
 impl GroupsDiagnostics
 {
-	fn gather(proc_path: &ProcPath, etc_path: &EtcPath, process_identifier_choice: ProcessIdentifierChoice) -> Self
+	fn gather(etc_path: &EtcPath) -> Self
 	{
 		let (real, effective, saved_set) = GroupIdentifier::current_real_effective_and_saved_set();
 		

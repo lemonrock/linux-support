@@ -31,7 +31,7 @@ impl TimestampCounterSetting
 	#[allow(deprecated)]
 	pub fn current() -> io::Result<Self>
 	{
-		let value: i32 = unsafe { uninitialized() };
+		let mut value: i32 = unsafe { uninitialized() };
 		
 		process_control_wrapper2
 		(

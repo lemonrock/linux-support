@@ -27,6 +27,15 @@ pub(crate) enum IFLA_XDP
 	IFLA_XDP_EXPECTED_FD = 8,
 }
 
+impl From<u16> for IFLA_XDP
+{
+	#[inline(always)]
+	fn from(value: u16) -> Self
+	{
+		unsafe { transmute(value) }
+	}
+}
+
 impl NetlinkAttributeType for IFLA_XDP
 {
 	#[inline(always)]

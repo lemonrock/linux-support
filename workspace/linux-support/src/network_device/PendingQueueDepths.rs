@@ -22,7 +22,7 @@ impl PendingQueueDepths
 	const Unsupported: Self = Self::new(None, None, None, None);
 	
 	#[inline(always)]
-	pub(crate) fn new(receive_pending_queue_depth: Option<QueueDepth>, receive_jumbo_pending_queue_depth: Option<QueueDepth>, receive_mini_pending_queue_depth: Option<QueueDepth>, transmit_pending_queue_depth: Option<QueueDepth>) -> Self
+	pub(crate) const fn new(receive_pending_queue_depth: Option<QueueDepth>, receive_jumbo_pending_queue_depth: Option<QueueDepth>, receive_mini_pending_queue_depth: Option<QueueDepth>, transmit_pending_queue_depth: Option<QueueDepth>) -> Self
 	{
 		Self
 		{

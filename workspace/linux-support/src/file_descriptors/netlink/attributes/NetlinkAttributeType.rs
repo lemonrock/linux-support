@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) trait NetlinkAttributeType: Debug + Copy + PartialEq + Eq + PartialOrd + Ord + Hash
+pub(crate) trait NetlinkAttributeType: Debug + Copy + PartialEq + Eq + PartialOrd + Ord + Hash + From<u16>
 {
 	#[doc(hidden)]
 	fn to_u16(self) -> u16;

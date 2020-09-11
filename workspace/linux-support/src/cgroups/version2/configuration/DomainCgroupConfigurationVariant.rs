@@ -29,7 +29,7 @@ impl Default for DomainCgroupConfigurationVariant
 
 impl CgroupConfigurationVariant for DomainCgroupConfigurationVariant
 {
-	fn configure<'name, C: 'name + Cgroup<'name>>(&'name self, mount_point: &CgroupMountPoint, cgroup: Rc<C>, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
+	fn configure<C: Cgroup>(&self, mount_point: &CgroupMountPoint, cgroup: Rc<C>, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
 	{
 		use self::DomainCgroupConfigurationVariant::*;
 		
@@ -43,7 +43,7 @@ impl CgroupConfigurationVariant for DomainCgroupConfigurationVariant
 		}
 	}
 	
-	fn desired_controllers_and_our_depth(&self, mut all_desired_controllers_in_parent: Controllers) -> (Controllers, usize)
+	fn desired_controllers_and_our_depth(&self, all_desired_controllers_in_parent: Controllers) -> (Controllers, usize)
 	{
 		use self::DomainCgroupConfigurationVariant::*;
 		
@@ -58,7 +58,7 @@ impl CgroupConfigurationVariant for DomainCgroupConfigurationVariant
 	}
 	
 	#[inline(always)]
-	fn make_type_threaded_if_needed<'name>(mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup<'name>>) -> io::Result<()>
+	fn make_type_threaded_if_needed(_mount_point: &CgroupMountPoint, _cgroup: &Rc<NonRootCgroup>) -> io::Result<()>
 	{
 		Ok(())
 	}

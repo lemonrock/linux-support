@@ -40,7 +40,7 @@ impl NumaNodeMemoryDiagnostics
 				let mut numa_node_diagnostics = HashMap::with_capacity(numa_nodes.len());
 				for numa_node in numa_nodes.iterate()
 				{
-					numa_node_diagnostics.insert(numa_node, NumaNodeMemoryDiagnostic::gather(sys_path, proc_path, numa_node, supported_huge_page_sizes));
+					numa_node_diagnostics.insert(numa_node, NumaNodeMemoryDiagnostic::gather(sys_path, numa_node, supported_huge_page_sizes));
 				}
 				Ok(numa_node_diagnostics)
 			}

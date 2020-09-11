@@ -82,11 +82,11 @@ impl CgroupFileDescriptor
 {
 	/// Creates a new instance.
 	#[inline(always)]
-	pub fn new<'name>(mount_point: &CgroupMountPoint, cgroup: &Rc<impl Cgroup<'name>>) -> io::Result<Self>
+	pub fn new<C: Cgroup>(mount_point: &CgroupMountPoint, cgroup: &C) -> io::Result<Self>
 	{
 		let path = cgroup.to_path(mount_point);
 		let file = File::open(path)?;
-		Ok(Self::from_raw_fd(file.into_raw_fd()))
+		Ok(unsafe { Self::from_raw_fd(file.into_raw_fd()) })
 	}
 	
 	/// Requires the capability `CAP_NET_ADMIN`.

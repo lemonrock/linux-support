@@ -94,9 +94,6 @@ impl ExpressDataPathSocketFileDescriptor
 	#[allow(deprecated)]
 	pub(crate) fn get_memory_map_offsets(&self) -> xdp_mmap_offsets
 	{
-		let OptLen = size_of::<Self>() as u32;
-		
-		let mut memory_map_offsets: xdp_mmap_offsets = unsafe { uninitialized() };
 		self.get_xdp_socket_option(XDP_MMAP_OFFSETS, true)
 	}
 	

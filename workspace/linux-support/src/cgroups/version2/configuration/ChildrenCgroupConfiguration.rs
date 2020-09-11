@@ -40,7 +40,7 @@ impl<CCC: ChildCgroupConfiguration> DerefMut for ChildrenCgroupConfiguration<CCC
 impl<CCC: ChildCgroupConfiguration> ChildrenCgroupConfiguration<CCC>
 {
 	#[inline(always)]
-	fn configure_children<'name, C: 'name + Cgroup<'name>>(&'name self, mount_point: &CgroupMountPoint, cgroup: &'name Rc<C>, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
+	fn configure_children<C: Cgroup>(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<C>, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
 	{
 		cgroup.write_maximum_descendants(mount_point, MaximumNumber::Finite(self.len()))?;
 		

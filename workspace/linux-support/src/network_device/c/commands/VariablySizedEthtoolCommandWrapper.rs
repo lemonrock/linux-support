@@ -37,7 +37,7 @@ impl<VSEC: VariablySizedEthtoolCommand> VariablySizedEthtoolCommandWrapper<VSEC>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn array_elements_mut(&self) -> &mut [VSEC::ArrayElement]
+	pub(crate) fn array_elements_mut(&mut self) -> &mut [VSEC::ArrayElement]
 	{
 		unsafe { from_raw_parts_mut(self.array_start_mut(), self.array_length() as usize) }
 	}
@@ -49,7 +49,7 @@ impl<VSEC: VariablySizedEthtoolCommand> VariablySizedEthtoolCommandWrapper<VSEC>
 	}
 	
 	#[inline(always)]
-	fn header_mut(&self) -> &mut VSEC
+	fn header_mut(&mut self) -> &mut VSEC
 	{
 		unsafe { &mut * self.start_mut() }
 	}
@@ -61,7 +61,7 @@ impl<VSEC: VariablySizedEthtoolCommand> VariablySizedEthtoolCommandWrapper<VSEC>
 	}
 	
 	#[inline(always)]
-	fn array_start_mut(&self) -> *mut VSEC::ArrayElement
+	fn array_start_mut(&mut self) -> *mut VSEC::ArrayElement
 	{
 		unsafe { self.start_mut().add(1) as *mut VSEC::ArrayElement }
 	}
@@ -73,7 +73,7 @@ impl<VSEC: VariablySizedEthtoolCommand> VariablySizedEthtoolCommandWrapper<VSEC>
 	}
 	
 	#[inline(always)]
-	fn start_mut(&self) -> *mut VSEC
+	fn start_mut(&mut self) -> *mut VSEC
 	{
 		self.data.as_mut_ptr() as *mut VSEC
 	}

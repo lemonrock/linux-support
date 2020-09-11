@@ -40,6 +40,7 @@ impl IntoLineFeedTerminatedByteString<'static> for QueuingDisciplineAlgorithm
 		{
 			pfifo_fast => b"pfifo_fast" as &[u8],
 			fq => b"fq" as &[u8],
+			noqueue => b"noqueue" as &[u8],
 		};
 		
 		Cow::from(bytes)

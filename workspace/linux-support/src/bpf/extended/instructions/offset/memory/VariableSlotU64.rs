@@ -54,7 +54,7 @@ impl VariableSlotU64
 	}
 	
 	#[inline(always)]
-	pub(crate) const fn to_memory_offset(self) -> MemoryOffset<'static>
+	pub(crate) fn to_memory_offset(self) -> MemoryOffset<'static>
 	{
 		MemoryOffset::stack_variable_64(self.0)
 	}

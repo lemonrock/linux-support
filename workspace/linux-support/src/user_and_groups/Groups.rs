@@ -49,7 +49,7 @@ impl Groups
 	/// *SLOW*; makes two syscalls and two mallocs.
 	pub fn current_supplementary() -> Self
 	{
-		let mut supplementary_groups = Self::current_supplementary_group_identifiers();
+		let supplementary_groups = Self::current_supplementary_group_identifiers();
 		Self(supplementary_groups.into_iter().collect())
 	}
 	
@@ -66,7 +66,7 @@ impl Groups
 	{
 		debug_assert!(length < Self::NGROUPS_MAX);
 		
-		let result = unsafe { getgroups(length as i32, null_mut()) };
+		let result = unsafe { getgroups(length as i32, list) };
 		if likely!(result >= 0)
 		{
 			result as usize

@@ -48,14 +48,12 @@ impl FromBytes for TimeStalled
 			field.ok_or(io_error_invalid_data("Missing field"))
 		}
 		
-		let mut iterator = bytes.split_bytes(b' ');
-		
 		let mut average_over_10_seconds = None;
 		let mut average_over_60_seconds = None;
 		let mut average_over_300_seconds = None;
 		let mut total_absolute_stall_time = None;
 		
-		for field in iterator
+		for field in bytes.split_bytes(b' ')
 		{
 			let index = memchr(b'=', field).ok_or(io_error_invalid_data("Missing `=`"))?;
 			let field_name = &field[ .. index];

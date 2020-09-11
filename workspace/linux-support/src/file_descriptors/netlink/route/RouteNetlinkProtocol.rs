@@ -76,7 +76,7 @@ impl RouteNetlinkProtocol
 impl RouteNetlinkProtocol
 {
 	/// Get link.
-	pub fn get_link(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, filter: &impl FnOnce(&GetLinkMessageData) -> bool) -> Result<Option<GetLinkMessageData>, String>
+	pub fn get_link(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, filter: impl FnOnce(&GetLinkMessageData) -> bool + Copy) -> Result<Option<GetLinkMessageData>, String>
 	{
 		for get_link_message_data in Self::get_links(netlink_socket_file_descriptor)?
 		{

@@ -3,13 +3,20 @@
 
 
 /// Properties common to a root and a non-root cgroup.
-pub trait Cgroup<'name>
+pub trait Cgroup: Sized
 {
 	/// To a path.
 	fn to_path<'b>(&self, mount_point: &'b CgroupMountPoint) -> Cow<'b, Path>;
 	
 	/// Does not check if the child exists.
-	fn child(self: Rc<Self>, name: Cow<'name, CgroupName>) -> Rc<NonRootCgroup<'name>>;
+	fn child(self: Rc<Self>, name: CgroupName) -> Rc<NonRootCgroup>;
+	
+	/// Open a file descriptor.
+	#[inline(always)]
+	fn open(&self, mount_point: &CgroupMountPoint) -> io::Result<CgroupFileDescriptor>
+	{
+		CgroupFileDescriptor::new(mount_point, self)
+	}
 	
 	/// Adjusts subtree controllers to `desired_controllers` but working so that controllers not available to the cgroup aren't enabled (trying to enable or disable controllers not available in the version of Linux causes a write error).
 	#[inline(always)]

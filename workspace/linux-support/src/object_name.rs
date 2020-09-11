@@ -369,7 +369,7 @@ macro_rules! object_name
 			#[inline(always)]
 			fn as_ref(&self) -> &CStr
 			{
-				unsafe { CStr::from_bytes_with_nul_unchecked(unsafe { transmute(self.0.as_slice()) }) }
+				unsafe { CStr::from_bytes_with_nul_unchecked(transmute(self.0.as_slice())) }
 			}
 		}
 		
@@ -486,7 +486,7 @@ macro_rules! object_name
 					None => return Err(does_not_end_with_ascii_nul_error())
 				};
 				
-				let buffer: ArrayVec<[c_char; Self::MaximumLengthIncludingAsciiNull]> = unsafe { transmute(buffer) };
+				let mut buffer: ArrayVec<[c_char; Self::MaximumLengthIncludingAsciiNull]> = unsafe { transmute(buffer) };
 				unsafe { buffer.set_len(index + 1) };
 				Ok(Self(buffer))
 			}

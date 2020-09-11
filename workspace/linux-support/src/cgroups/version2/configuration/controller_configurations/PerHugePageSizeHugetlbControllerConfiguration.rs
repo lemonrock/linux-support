@@ -18,10 +18,10 @@ pub struct PerHugePageSizeHugetlbControllerConfiguration
 impl PerHugePageSizeHugetlbControllerConfiguration
 {
 	#[inline(always)]
-	fn configure<'name>(&self, mount_point: &CgroupMountPoint, c_group: &Rc<NonRootCgroup<'name>>, huge_page_size: HugePageSize) -> io::Result<()>
+	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup>, huge_page_size: HugePageSize) -> io::Result<()>
 	{
-		c_group.write_hugetlb_maximum(mount_point, huge_page_size, self.maximum)?;
-		c_group.write_hugetlb_reserved_maximum(mount_point, huge_page_size, self.reserved_maximum)?;
+		cgroup.write_hugetlb_maximum(mount_point, huge_page_size, self.maximum)?;
+		cgroup.write_hugetlb_reserved_maximum(mount_point, huge_page_size, self.reserved_maximum)?;
 		Ok(())
 	}
 }

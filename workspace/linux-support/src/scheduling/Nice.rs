@@ -109,7 +109,7 @@ impl Default for Nice
 	#[inline(always)]
 	fn default() -> Self
 	{
-		Nice::Negative_20
+		Nice::Default
 	}
 }
 
@@ -192,6 +192,8 @@ impl<'a> IntoLineFeedTerminatedByteString<'a> for Nice
 
 impl Nice
 {
+	pub const Default: Self = Nice::Negative_20;
+	
 	pub(super) const InclusiveMinimum: i32 = -20;
 
 	pub(super) const InclusiveMaximum: i32 = 19;
@@ -288,7 +290,7 @@ impl Nice
 				
 				EINVAL => panic!("`which` was not one of `PRIO_PROCESS`, `PRIO_PGRP`, or `PRIO_USER`"),
 
-				unexpected @ _ => panic!("Unexpected error `{}` from `setpriority()`"),
+				unexpected @ _ => panic!("Unexpected error `{}` from `setpriority()`", unexpected),
 			}
 		}
 		else

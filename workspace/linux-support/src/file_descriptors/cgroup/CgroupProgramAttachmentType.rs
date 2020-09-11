@@ -29,6 +29,7 @@
 ///   * `BPF_CGROUP_SETSOCKOPT`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[derive(Deserialize, Serialize)]
+#[derive(EnumCount, EnumIter)]
 #[serde(deny_unknown_fields)]
 #[repr(u32)]
 pub enum CgroupProgramAttachmentType

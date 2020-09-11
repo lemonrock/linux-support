@@ -75,8 +75,6 @@ impl OutOfMemoryScoreAdjustment
 	pub fn set(self, proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> io::Result<()>
 	{
 		let value = self.to_value();
-		
-		let value = self.to_value();
 		if value < 0
 		{
 			assert_effective_user_id_is_root("write negative value to `/proc/<PID>/oom_score_adj`");

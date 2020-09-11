@@ -64,6 +64,8 @@ impl OwnedReceiveTransmitMemoryRingQueues
 	#[inline(always)]
 	fn new(user_memory: UserMemory, xdp_extended_bpf_program: Either<OwnedRedirectMapAndAttachedProgramSettings, RedirectMapAndAttachedProgram>, network_interface_index: NetworkInterfaceIndex, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth>, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, AttachProgramError>
 	{
+		let is_receive_or_both = ring_queue_depths.is_receive_or_both();
+		
 		let user_memory_socket_file_descriptor = &user_memory.user_memory_socket_file_descriptor;
 		let receive_and_transmit = Self::construct(user_memory_socket_file_descriptor, network_interface_index, ring_queue_depths, XdpSocketAddressFlags::empty(), user_memory_socket_file_descriptor.as_raw_fd(), queue_identifier, defaults)?;
 		
@@ -71,7 +73,7 @@ impl OwnedReceiveTransmitMemoryRingQueues
 		{
 			Left(settings) =>
 			{
-				let insert_into_redirect_map_if_receive = if ring_queue_depths.is_receive_or_both()
+				let insert_into_redirect_map_if_receive = if is_receive_or_both
 				{
 					Some((queue_identifier, user_memory_socket_file_descriptor))
 				}

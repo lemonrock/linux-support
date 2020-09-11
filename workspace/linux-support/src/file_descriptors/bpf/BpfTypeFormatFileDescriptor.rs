@@ -67,7 +67,7 @@ impl BpfFileDescriptor for BpfTypeFormatFileDescriptor
 
 impl BpfTypeFormatFileDescriptor
 {
-	pub(crate) fn load_data(header_and_type_identifier_section_and_string_section: &[u8], verifier_log: Option<VerifierLog>) -> Result<(Self, Option<VerifierLog>), ParseError>
+	pub(crate) fn load_data(header_and_type_identifier_section_and_string_section: &[u8], mut verifier_log: Option<VerifierLog>) -> Result<(Self, Option<VerifierLog>), ParseError>
 	{
 		use self::ParseError::*;
 		

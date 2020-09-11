@@ -87,10 +87,9 @@ impl Diagnostics
 {
 	fn gather(file_system_layout: &FileSystemLayout) -> Self
 	{
-		let process_group_identifier = ProcessGroupIdentifierChoice::Current;
 		let process_identifier = ProcessIdentifierChoice::Current;
 		
-		let (sys_path, proc_path, dev_path, etc_path) = file_system_layout.paths();
+		let (sys_path, proc_path, _dev_path, etc_path) = file_system_layout.paths();
 		
 		let defaults = file_system_layout.defaults().map_err(DiagnosticUnobtainable::from);
 		
@@ -103,13 +102,16 @@ impl Diagnostics
 			Ok(ref defaults) => Cow::Borrowed(defaults.supported_huge_page_sizes())
 		};
 		
+		let process_diagnostics = ProcessDiagnostics::gather(sys_path, proc_path, process_identifier);
+		
+		let process_group_identifier = process_diagnostics.process_group_identifier.as_ref().map(|process_group_identifier| ProcessGroupIdentifierChoice::Other(*process_group_identifier)).unwrap_or(ProcessGroupIdentifierChoice::Current);
 		Self
 		{
 			file_system_layout: file_system_layout.clone(),
 			
 			users_and_groups: UsersAndGroupsDiagnostics::gather(proc_path, etc_path, process_identifier),
 			
-			current_thread: CurrentThreadDiagnostic::gather(proc_path, process_identifier),
+			current_thread: CurrentThreadDiagnostic::gather(),
 			
 			threads: match ThreadIdentifier::for_process(proc_path, process_identifier)
 			{
@@ -131,7 +133,7 @@ impl Diagnostics
 			
 			current_process_diagnostics: CurrentProcessDiagnostics::gather(),
 			
-			process_diagnostics: ProcessDiagnostics::gather(sys_path, proc_path, process_group_identifier, process_identifier),
+			process_diagnostics,
 			
 			pci_devices: match PciDeviceAddress::all(sys_path)
 			{
@@ -147,7 +149,7 @@ impl Diagnostics
 				}
 			},
 			
-			network_devices: NetworkDeviceDiagnostics::gather(),
+			network_devices: NetworkDeviceDiagnostics::gather(sys_path),
 			
 			internet_protocol_version_4_addresses: InternetProtocolAddressesDiagnostic::<in_addr>::gather(),
 			

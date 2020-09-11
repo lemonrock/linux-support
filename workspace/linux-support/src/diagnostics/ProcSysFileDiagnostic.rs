@@ -26,7 +26,6 @@ impl ProcSysFileDiagnostic
 					{
 						if let Ok(metadata) = dir_entry.metadata()
 						{
-							let file_type = dir_entry.file_type();
 							if metadata.is_dir()
 							{
 								folder_paths.push(dir_entry.path())
@@ -34,7 +33,7 @@ impl ProcSysFileDiagnostic
 							else if metadata.is_file()
 							{
 								let file_path = dir_entry.path();
-								if let Ok(file) = File::open(&file_path)
+								if let Ok(mut file) = File::open(&file_path)
 								{
 									let mut buffer = Vec::with_capacity(64);
 									if let Ok(_number_of_bytes_read) = file.read_to_end(&mut buffer)

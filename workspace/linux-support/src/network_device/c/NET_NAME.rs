@@ -7,22 +7,23 @@
 /// Also available at `/sys/class/net/<network_interface_name>/name_assign_type`.
 /// This is not readable if the value is `NET_NAME::NET_NAME_UNKNOWN` (seems to return `EINVAL`).
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 #[derive(EnumCount)]
 #[repr(u8)]
 pub enum NET_NAME
 {
 	/// Unknown origin (not exposed to userspace).
-	NET_NAME_UNKNOWN = 0,
+	#[serde(rename = "unknown")] NET_NAME_UNKNOWN = 0,
 	
 	/// Enumerated by kernel.
-	NET_NAME_ENUM = 1,
+	#[serde(rename = "enumerated")] NET_NAME_ENUM = 1,
 	
 	/// Predictably named by the kernel.
-	NET_NAME_PREDICTABLE = 2,
+	#[serde(rename = "predictable")] NET_NAME_PREDICTABLE = 2,
 	
 	/// Provided by userspace.
-	NET_NAME_USER = 3,
+	#[serde(rename = "userspace")] NET_NAME_USER = 3,
 	
 	/// Renamed by userspace.
-	NET_NAME_RENAMED = 4,
+	#[serde(rename = "renamed")] NET_NAME_RENAMED = 4,
 }

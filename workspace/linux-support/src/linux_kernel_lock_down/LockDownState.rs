@@ -39,8 +39,7 @@ impl LockDownState
 		
 		// eg `none integrity [confidentiality]`.
 		let bytes = file_path.read_raw_without_line_feed()?;
-		let mut iterator = bytes.split_bytes_n(3, b' ');
-		for raw_bytes in iterator
+		for raw_bytes in bytes.split_bytes_n(3, b' ')
 		{
 			let length = raw_bytes.len();
 			if length >= 2

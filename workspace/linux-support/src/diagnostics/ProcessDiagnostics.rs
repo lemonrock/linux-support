@@ -36,7 +36,7 @@ pub struct ProcessDiagnostics
 
 impl ProcessDiagnostics
 {
-	fn gather(sys_path: &SysPath, proc_path: &ProcPath, process_group_identifier: ProcessGroupIdentifierChoice, process_identifier: ProcessIdentifierChoice) -> Self
+	fn gather(sys_path: &SysPath, proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> Self
 	{
 		Self
 		{

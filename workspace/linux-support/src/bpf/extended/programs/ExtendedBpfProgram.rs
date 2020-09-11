@@ -36,7 +36,7 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 	#[inline(always)]
 	pub fn convenient_load(&self, map_file_descriptors: &FileDescriptorsMap<MapFileDescriptor>, extended_bpf_program_file_descriptors: &mut FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>) -> Result<Rc<ExtendedBpfProgramFileDescriptor>, ProgramLoadError>
 	{
-		let arguments = ExtendedBpfProgramArguments::new(&map_file_descriptors, &mut extended_bpf_program_file_descriptors);
+		let arguments = ExtendedBpfProgramArguments::new(&map_file_descriptors, extended_bpf_program_file_descriptors);
 		self.parse_and_load(arguments, Some(VerifierLog::default())).map(|(extended_bpf_program_file_descriptor, _verifier_log)| extended_bpf_program_file_descriptor)
 	}
 	
@@ -53,7 +53,7 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 	}
 	
 	#[inline(always)]
-	fn load(&self, instructions: &[bpf_insn], parsed_bpf_type_format_data: Option<&ParsedBpfTypeFormatData>, extended_bpf_program_file_descriptors: &FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>, verifier_log: Option<VerifierLog>) -> Result<(ExtendedBpfProgramFileDescriptor, Option<VerifierLog>), ProgramLoadError>
+	fn load(&self, instructions: &[bpf_insn], parsed_bpf_type_format_data: Option<&ParsedBpfTypeFormatData>, extended_bpf_program_file_descriptors: &FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>, mut verifier_log: Option<VerifierLog>) -> Result<(ExtendedBpfProgramFileDescriptor, Option<VerifierLog>), ProgramLoadError>
 	{
 		let (log_level, log_buf, log_size) = VerifierLog::to_values_for_syscall(verifier_log.as_mut());
 		
@@ -79,7 +79,7 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 				log_buf,
 				kern_version,
 				prog_flags: BPF_PROG_LOAD_flags::BPF_F_STRICT_ALIGNMENT,
-				prog_name: self.program_name.into(),
+				prog_name: self.program_name.clone().into(),
 				prog_ifindex,
 				expected_attach_type,
 				

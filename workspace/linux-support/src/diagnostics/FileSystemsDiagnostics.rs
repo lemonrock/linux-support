@@ -53,7 +53,7 @@ impl FileSystemsDiagnostics
 	#[inline(always)]
 	fn first_known_pseudo_mount_path(&self, file_system_type: FileSystemType) -> Option<&Path>
 	{
-		if self.file_systems.as_ref().map(|list| list.verify_pseudo_file_system_is_supported(file_system_type)).is_err()
+		if self.file_systems.as_ref().map(|list| list.verify_pseudo_file_system_is_supported(&file_system_type)).is_err()
 		{
 			return None
 		}

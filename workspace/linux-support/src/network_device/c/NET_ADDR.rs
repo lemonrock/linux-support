@@ -6,19 +6,20 @@
 ///
 /// Also available at `/sys/class/net/<network_interface_name>/addr_assign_type`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 #[derive(EnumCount)]
 #[repr(u8)]
 pub enum NET_ADDR
 {
 	/// Address is permanent (default).
-	NET_ADDR_PERM = 0,
+	#[serde(rename = "permanent")] NET_ADDR_PERM = 0,
 
 	/// Address is generated randomly.
-	NET_ADDR_RANDOM = 1,
+	#[serde(rename = "random")] NET_ADDR_RANDOM = 1,
 
 	/// Address is stolen from another device.
-	NET_ADDR_STOLEN = 2,
+	#[serde(rename = "stolen")] NET_ADDR_STOLEN = 2,
 	
 	/// Adddress has been set using `dev_set_mac_address()`.
-	NET_ADDR_SET = 3,
+	#[serde(rename = "set")] NET_ADDR_SET = 3,
 }
