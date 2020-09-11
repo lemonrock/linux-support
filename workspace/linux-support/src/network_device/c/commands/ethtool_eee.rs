@@ -104,23 +104,20 @@ impl ethtool_eee
 	}
 	
 	#[inline(always)]
-	fn is_set(bit_set_word: BitSetWord, speed: LegacySpeed) -> bool
-	{
-		let speed = speed as u32;
-		
-		(bit_set_word & (1 << speed)) != 0
-	}
-	
-	#[inline(always)]
 	pub(crate) fn as_energy_efficient_ethernet_information(&self) -> EnergyEfficientEthernetInformation
 	{
 		EnergyEfficientEthernetInformation
 		{
 			speeds_we_could_advertise: LegacySpeed::from_bit_set_word(self.supported),
+			
 			speeds_advertising_to_our_link_partner: LegacySpeed::from_bit_set_word(self.advertised),
+			
 			speeds_link_partner_advertising_to_us: LegacySpeed::from_bit_set_word(self.lp_advertised),
+			
 			is_active: self.is_active(),
+			
 			is_enabled: self.is_enabled(),
+			
 			transmit_low_power_idle_microseconds: self.transmit_low_power_idle_microseconds(),
 		}
 	}

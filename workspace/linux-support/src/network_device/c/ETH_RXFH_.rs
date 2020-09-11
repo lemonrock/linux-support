@@ -6,4 +6,5 @@
 pub(crate) const ETH_RXFH_CONTEXT_ALLOC: u32 = 0xFFFFFFFF;
 
 /// Used with struct `ethtool_rxfh`.
+#[allow(dead_code)]
 pub(crate) const ETH_RXFH_INDIR_NO_CHANGE: u32 = 0xFFFFFFFF;

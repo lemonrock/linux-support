@@ -2,33 +2,40 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// Port connector.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-#[repr(i32)]
-pub(super) enum XDP_DIAG
+#[derive(Deserialize, Serialize)]
+pub enum PortConnector
 {
-	XDP_DIAG_NONE = 0,
+	/// `TP`.
+	TwistedPair
+	{
+		/// MDI(-X) status.
+		///
+		/// If the status is unknown or not applicable, the value will be `ETH_TP_MDI::ETH_TP_MDI_INVALID`.
+		mdi_x_status: ETH_TP_MDI,
+		
+		/// MDI(-X) control.
+		///
+		/// If MDI(-X) control is not implemented, the valud will be `ETH_TP_MDI::ETH_TP_MDI_INVALID`.
+		mdi_x_control: ETH_TP_MDI,
+	},
 	
-	XDP_DIAG_INFO = 1,
+	/// `AUI`.
+	AttachmentUnitInterface,
 	
-	XDP_DIAG_UID = 2,
+	/// `MII`.
+	MediaIndependentInterface,
 	
-	XDP_DIAG_RX_RING = 3,
+	/// Fibre.
+	Fibre,
 	
-	XDP_DIAG_TX_RING = 4,
-
-	XDP_DIAG_UMEM = 5,
-
-	XDP_DIAG_UMEM_FILL_RING = 6,
-
-	XDP_DIAG_UMEM_COMPLETION_RING = 7,
-
-	XDP_DIAG_MEMINFO = 8,
-}
-
-impl XDP_DIAG
-{
-	#[allow(dead_code)]
-	const __XDP_DIAG_MAX: i32 = (Self::XDP_DIAG_MEMINFO as i32) + 1;
+	/// `BNC`.
+	BayonetNeillConcelman,
 	
-	pub(super) const XDP_DIAG_MAX: i32 = Self::__XDP_DIAG_MAX - 1;
+	/// `DA`.
+	DirectAttachCopper,
+	
+	/// Other
+	Other,
 }

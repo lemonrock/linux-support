@@ -5,8 +5,9 @@
 bitflags!
 {
 	/// Flags for `struct xdp_umem_reg`.
-	pub(super) struct XdpUmemRegFlags: u32
+	pub struct XdpUmemRegFlags: u32
 	{
+		/// Unaligned frames.
 		const UnalignedFrames = XDP_UMEM_UNALIGNED_CHUNK_FLAG;
 		
 		// This flag is ***not*** part of the public API.

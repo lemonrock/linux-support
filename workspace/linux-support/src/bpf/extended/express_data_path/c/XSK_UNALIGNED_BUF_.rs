@@ -2,7 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[allow(dead_code)]
 pub(super) const XSK_UNALIGNED_BUF_OFFSET_SHIFT: u64 = 48;
 
 /// Mask for unaligned chunks mode.
+#[allow(dead_code)]
 pub(super) const XSK_UNALIGNED_BUF_ADDR_MASK: u64 = (1 << XSK_UNALIGNED_BUF_OFFSET_SHIFT) - 1;

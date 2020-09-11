@@ -59,6 +59,7 @@ pub enum StatisticsParseError
 	/// Missing statistic value.
 	MissingStatistic
 	{
+		#[allow(missing_docs)]
 		name: &'static [u8]
 	},
 	

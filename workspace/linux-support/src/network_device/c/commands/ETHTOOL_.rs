@@ -6,12 +6,14 @@
 ///
 /// Please use `ETHTOOL_GLINKSETTINGS`.
 #[deprecated]
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_GSET: u32 = 0x00000001;
 
 /// Set settings.
 ///
 /// Please use `ETHTOOL_SLINKSETTINGS`.
 #[deprecated]
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_SSET: u32 = 0x00000002;
 
 /// Get driver information.
@@ -33,6 +35,7 @@ pub(crate) const ETHTOOL_GMSGLVL: u32 = 0x00000007;
 pub(crate) const ETHTOOL_SMSGLVL: u32 = 0x00000008;
 
 /// Restart autonegotiation.
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_NWAY_RST: u32 = 0x00000009;
 
 /// Get link status for host, ie whether the interface *and* the physical port (if there is one) are up (is an `ethtool_value`).
@@ -42,6 +45,7 @@ pub(crate) const ETHTOOL_GLINK: u32 = 0x0000000A;
 pub(crate) const ETHTOOL_GEEPROM: u32 = 0x0000000B;
 
 /// Set EEPROM data.
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_SEEPROM: u32 = 0x0000000C;
 
 /// Get coalesce configuration.
@@ -63,60 +67,77 @@ pub(crate) const ETHTOOL_GPAUSEPARAM: u32 = 0x00000012;
 pub(crate) const ETHTOOL_SPAUSEPARAM: u32 = 0x00000013;
 
 /// Get receive hardware checksum enable (is an `ethtool_value`).
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_GRXCSUM: u32 = 0x00000014;
 
 /// Set receive hardware checksum enable (is an `ethtool_value`).
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_SRXCSUM: u32 = 0x00000015;
 
 /// Get transmit hardware checksum enable (is an `ethtool_value`).
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_GTXCSUM: u32 = 0x00000016;
 
 /// Set transmit hardware checksum enable (is an `ethtool_value`).
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_STXCSUM: u32 = 0x00000017;
 
 /// Get scatter-gather enable (is an `ethtool_value`).
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_GSG: u32 = 0x00000018;
 
 /// Set scatter-gather enable (is an `ethtool_value`).
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_SSG: u32 = 0x00000019;
 
 /// Execute NIC self-test.
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_TEST: u32 = 0x0000001A;
 
 /// Get specified string set.
 pub(crate) const ETHTOOL_GSTRINGS: u32 = 0x0000001B;
 
 /// Identify the NIC.
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_PHYS_ID: u32 = 0x0000001C;
 
 /// Get NIC-specific statistics.
 pub(crate) const ETHTOOL_GSTATS: u32 = 0x0000001D;
 
 /// Get TSO enable (is an `ethtool_value`).
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_GTSO: u32 = 0x0000001E;
 
 /// Set TSO enable (is an `ethtool_value`).
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_STSO: u32 = 0x0000001F;
 
 /// Get permanent hardware address.
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_GPERMADDR: u32 = 0x00000020;
 
 /// Get UFO enable (is an `ethtool_value`).
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_GUFO: u32 = 0x00000021;
 
 /// Set UFO enable (is an `ethtool_value`).
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_SUFO: u32 = 0x00000022;
 
 /// Get GSO enable (is an `ethtool_value`).
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_GGSO: u32 = 0x00000023;
 
 /// Set GSO enable (is an `ethtool_value`).
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_SGSO: u32 = 0x00000024;
 
 /// Get flags bitmap (is an `ethtool_value`).
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_GFLAGS: u32 = 0x00000025;
 
 /// Set flags bitmap (is an `ethtool_value`).
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_SFLAGS: u32 = 0x00000026;
 
 /// Get driver-private flags bitmap.
@@ -132,9 +153,11 @@ pub(crate) const ETHTOOL_GRXFH: u32 = 0x00000029;
 pub(crate) const ETHTOOL_SRXFH: u32 = 0x0000002A;
 
 /// Get GRO enable (is an `ethtool_value`).
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_GGRO: u32 = 0x0000002B;
 
 /// Set GRO enable (is an `ethtool_value`).
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_SGRO: u32 = 0x0000002C;
 
 /// Get receive rings available for load-balancing (LB).
@@ -156,9 +179,11 @@ pub(crate) const ETHTOOL_SRXCLSRLDEL: u32 = 0x00000031;
 pub(crate) const ETHTOOL_SRXCLSRLINS: u32 = 0x00000032;
 
 /// Flash firmware to device.
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_FLASHDEV: u32 = 0x00000033;
 
 /// Reset hardware.
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_RESET: u32 = 0x00000034;
 
 /// Add an n-tuple filter to device.
@@ -188,7 +213,8 @@ pub(crate) const ETHTOOL_GCHANNELS: u32 = 0x0000003C;
 /// Set number of channels.
 pub(crate) const ETHTOOL_SCHANNELS: u32 = 0x0000003D;
 
-/// Set dump setting.s
+/// Set dump settings.
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_SET_DUMP: u32 = 0x0000003E;
 
 /// Get dump settings.
@@ -231,9 +257,11 @@ pub(crate) const ETHTOOL_GPHYSTATS: u32 = 0x0000004A;
 pub(crate) const ETHTOOL_PERQUEUE: u32 = 0x0000004B;
 
 /// Get ethtool_link_settings.
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_GLINKSETTINGS: u32 = 0x0000004C;
 
 /// Set ethtool_link_settings.
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_SLINKSETTINGS: u32 = 0x0000004D;
 
 /// Get PHY tunable configuration.

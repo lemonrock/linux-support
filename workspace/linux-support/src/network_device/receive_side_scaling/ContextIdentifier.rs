@@ -30,6 +30,8 @@ impl ContextIdentifier
 	/// Exclusive maximum.
 	const ExclusiveMaximum: Self = Self(unsafe { NonZeroU32::new_unchecked(ETH_RXFH_CONTEXT_ALLOC) });
 	
+	pub(crate) const Create: Self = Self::ExclusiveMaximum;
+	
 	/// Default.
 	pub const Default: Option<Self> = None;
 }

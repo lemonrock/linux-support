@@ -10,16 +10,21 @@ pub(crate) enum XCVR
 	/// PHY and MAC are in the same package.
 	///
 	/// Ethtool setting is `internal`.
+	#[allow(dead_code)]
 	XCVR_INTERNAL = 0x00,
 	
 	/// PHY and MAC are in different packages.
 	///
 	/// Ethtool setting is `external`.
+	#[allow(dead_code)]
 	XCVR_EXTERNAL = 0x01,
 	
+	#[allow(dead_code)]
 	XCVR_DUMMY1 = 0x02,
 	
+	#[allow(dead_code)]
 	XCVR_DUMMY2 = 0x03,
 	
+	#[allow(dead_code)]
 	XCVR_DUMMY3 = 0x04,
 }

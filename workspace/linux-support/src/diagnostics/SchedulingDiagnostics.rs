@@ -2,24 +2,37 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[allow(missing_docs)]
 #[derive(Debug)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct SchedulingDiagnostics
 {
-	process_affinity: DiagnosticUnobtainableResult<HyperThreads>,
-	latency_scheduling: DiagnosticUnobtainableResult<LatencyScaling>,
-	autogroup_name_and_nice_value: DiagnosticUnobtainableResult<(Box<[u8]>, Nice)>,
-	process_group_priority: DiagnosticUnobtainableResult<Nice>,
-	process_priority: DiagnosticUnobtainableResult<Nice>,
-	real_user_priority: DiagnosticUnobtainableResult<Nice>,
-	process_group_io_priority: DiagnosticUnobtainableResult<IoPriority>,
-	process_io_priority: DiagnosticUnobtainableResult<IoPriority>,
-	real_user_io_priority: DiagnosticUnobtainableResult<IoPriority>,
-	rcu_grace_period: DiagnosticUnobtainableResult<RcuGracePeriodConfiguration>,
-	reserved_cpu_time_for_non_real_time_scheduler_policies: DiagnosticUnobtainableResult<ReservedCpuTimeForNonRealTimeSchedulerPolicies>,
-	round_robin_interval: Option<RoundRobinInterval>,
-	round_robin_interval_quantum_milliseconds: DiagnosticUnobtainableResult<RoundRobinQuantumMilliseconds>,
+	pub process_affinity: DiagnosticUnobtainableResult<HyperThreads>,
+	
+	pub latency_scheduling: DiagnosticUnobtainableResult<LatencyScaling>,
+	
+	pub autogroup_name_and_nice_value: DiagnosticUnobtainableResult<(Box<[u8]>, Nice)>,
+	
+	pub process_group_priority: DiagnosticUnobtainableResult<Nice>,
+	
+	pub process_priority: DiagnosticUnobtainableResult<Nice>,
+	
+	pub real_user_priority: DiagnosticUnobtainableResult<Nice>,
+	
+	pub process_group_io_priority: DiagnosticUnobtainableResult<IoPriority>,
+	
+	pub process_io_priority: DiagnosticUnobtainableResult<IoPriority>,
+	
+	pub real_user_io_priority: DiagnosticUnobtainableResult<IoPriority>,
+	
+	pub rcu_grace_period: DiagnosticUnobtainableResult<RcuGracePeriodConfiguration>,
+	
+	pub reserved_cpu_time_for_non_real_time_scheduler_policies: DiagnosticUnobtainableResult<ReservedCpuTimeForNonRealTimeSchedulerPolicies>,
+	
+	pub round_robin_interval: Option<RoundRobinInterval>,
+	
+	pub round_robin_interval_quantum_milliseconds: DiagnosticUnobtainableResult<RoundRobinQuantumMilliseconds>,
 
 }
 

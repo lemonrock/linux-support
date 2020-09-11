@@ -9,6 +9,7 @@ pub(crate) enum tunable_id
 {
 	/// String set value is `Unspec`.
 	#[deprecated]
+	#[allow(dead_code)]
 	ETHTOOL_ID_UNSPEC = 0,
 	
 	/// String set value is `rx-copybreak`.

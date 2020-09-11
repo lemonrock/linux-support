@@ -80,11 +80,6 @@ impl GlobalAllNetworkDevicesConfiguration
 	/// Configures.
 	pub fn configure(&self, proc_path: &ProcPath) -> Result<(), GlobalAllNetworkDevicesConfigurationError>
 	{
-		fn write_value(proc_path: &ProcPath, file_name: &str, value: NonZeroU32) -> io::Result<()>
-		{
-			proc_path.sys_net_core_file_path(file_name).write_value(UnpaddedDecimalInteger(value))
-		}
-		
 		use self::GlobalAllNetworkDevicesConfigurationError::*;
 		
 		set_proc_sys_net_core_value(proc_path, "dev_weight", self.weight.map(UnpaddedDecimalInteger), CouldNotChangeWeight)?;

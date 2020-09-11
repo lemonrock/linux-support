@@ -20,16 +20,19 @@
 ///
 /// Strings are in the `ethtool_stringset::ETH_SS_LINK_MODES` string set.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(EnumIter, EnumCount)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(u32)]
-pub(crate) enum ethtool_link_mode_bit_indices_pause
+pub enum ethtool_link_mode_bit_indices_pause
 {
 	/// If this bit is set, the link supports either symmaetic, transmit or receive pausing.
 	///
 	/// String set value is `Pause`.
-	ETHTOOL_LINK_MODE_Pause_BIT = 13,
+	#[serde(rename = "Pause")] ETHTOOL_LINK_MODE_Pause_BIT = 13,
 	
 	/// If this bit is set and
 	///
 	/// String set value is `Asym_Pause`.
-	ETHTOOL_LINK_MODE_Asym_Pause_BIT = 14,
+	#[serde(rename = "AsymetricPause")] ETHTOOL_LINK_MODE_Asym_Pause_BIT = 14,
 }

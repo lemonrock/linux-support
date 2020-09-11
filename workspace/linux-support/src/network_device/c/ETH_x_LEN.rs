@@ -3,10 +3,13 @@
 
 
 /// Maximum octets in payload.
+#[allow(dead_code)]
 pub(crate) const ETH_DATA_LEN: usize = 1500;
 
 /// Maximum octets in frame without Frame Check Sequence (FCS) of 4 bytes.
+#[allow(dead_code)]
 pub(crate) const ETH_FRAME_LEN: usize = 1514;
 
 /// Octets in the Frame Check Seequence (FCS).
+#[allow(dead_code)]
 pub(crate) const ETH_FCS_LEN: usize = 4;

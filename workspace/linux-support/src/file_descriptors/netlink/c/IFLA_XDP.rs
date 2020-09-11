@@ -8,7 +8,7 @@
 #[repr(u16)]
 pub(crate) enum IFLA_XDP
 {
-	IFLA_XDP_UNSPEC = 0,
+	#[allow(dead_code)] IFLA_XDP_UNSPEC = 0,
 	
 	IFLA_XDP_FD = 1,
 	
@@ -16,7 +16,7 @@ pub(crate) enum IFLA_XDP
 	
 	IFLA_XDP_FLAGS = 3,
 	
-	IFLA_XDP_PROG_ID = 4,
+	#[allow(dead_code)] IFLA_XDP_PROG_ID = 4,
 	
 	IFLA_XDP_DRV_PROG_ID = 5,
 	
@@ -49,5 +49,5 @@ impl IFLA_XDP
 {
 	const __IFLA_XDP_MAX: u16 = 9;
 	
-	pub(crate) const IFLA_XDP_MAX: Self = unsafe { transmute(Self::__IFLA_XDP_MAX - 1) };
+	#[allow(dead_code)] pub(crate) const IFLA_XDP_MAX: Self = unsafe { transmute(Self::__IFLA_XDP_MAX - 1) };
 }

@@ -7,8 +7,9 @@ bitflags!
 	/// Flags for `BPF_MAP_CREATE` command.
 	#[allow(missing_docs)]
 	#[derive(Serialize, Deserialize)]
-	pub(crate) struct BPF_MAP_CREATE_flags: u32
+	pub struct BPF_MAP_CREATE_flags: u32
 	{
+		/// No preallocation.
 		const BPF_F_NO_PREALLOC = 1;
 		
 		/// Instead of having one common LRU list in the `BPF_MAP_TYPE_LRU_[PERCPU_]HASH` map, use a percpu LRU list which can scale and perform better.

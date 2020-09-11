@@ -75,7 +75,7 @@ pub enum ethtool_stringset
 
 impl ethtool_stringset
 {
-	#[doc(hidden)]
+	#[allow(dead_code)]
 	const ETH_SS_COUNT: u32 = Self::ETH_SS_TS_RX_FILTERS as u32;
 	
 	const fn to_u64_bit(self) -> u64

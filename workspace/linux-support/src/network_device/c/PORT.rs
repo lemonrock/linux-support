@@ -12,34 +12,42 @@ pub(crate) enum PORT
 	/// Also BaseT.
 	///
 	/// Ethtool setting is `tp`.
+	#[allow(dead_code)]
 	PORT_TP = 0x00,
 	
 	/// Attachment Unit Interface (AUI) connector.
 	///
 	/// Ethtool setting is `aui`.
+	#[allow(dead_code)]
 	PORT_AUI = 0x01,
 	
 	/// Media-Independent Interface (MII) connector.
 	///
 	/// Ethtool setting is `mii`.
-	PORT_MII = 0x02,
+	#[allow(dead_code)]
+	 PORT_MII = 0x02,
 
 	/// Fibre.
+	#[allow(dead_code)]
 	PORT_FIBRE = 0x03,
 	
 	/// Bayonet Neill–Concelman (BNC) connector.
 	///
 	/// Ethtool setting is `bnc`.
+	#[allow(dead_code)]
 	PORT_BNC = 0x04,
 
-	/// ? Digital/Analog connector?
+	/// Direct attach copper.
 	///
 	/// Also 'CX4'.
-	PORT_DA = 0x05,
+	#[allow(dead_code)]
+	 PORT_DA = 0x05,
 
 	/// eg Backplane.
+	#[allow(dead_code)]
 	PORT_NONE = 0xEF,
-
+	
+	/// Other.
+	#[allow(dead_code)]
 	PORT_OTHER = 0xFF,
-
 }

@@ -4,10 +4,11 @@
 
 /// Strings are in the `ethtool_stringset::ETH_SS_LINK_MODES` string set.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(EnumIter, EnumCount)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 #[repr(u32)]
-pub(crate) enum ethtool_link_mode_bit_indices_speed
+pub enum ethtool_link_mode_bit_indices_speed
 {
 	/// String set value is `10baseT/Half`.
 	#[serde(rename = "10BASE-T Half")] ETHTOOL_LINK_MODE_10baseT_Half_BIT = LegacySpeed::ETHTOOL_LINK_MODE_10baseT_Half_BIT as u32,

@@ -6,20 +6,23 @@
 ///
 /// Strings are in the `ethtool_stringset::ETH_SS_LINK_MODES` string set.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(EnumIter, EnumCount)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(u32)]
-pub(crate) enum ethtool_link_mode_bit_indices_forward_error_correction
+pub enum ethtool_link_mode_bit_indices_forward_error_correction
 {
 	/// String set value is `None`.
-	ETHTOOL_LINK_MODE_FEC_NONE_BIT = 49,
+	#[serde(rename = "None")] ETHTOOL_LINK_MODE_FEC_NONE_BIT = 49,
 	
 	/// String set value is `RS`.
-	ETHTOOL_LINK_MODE_FEC_RS_BIT = 50,
+	#[serde(rename = "RS")] ETHTOOL_LINK_MODE_FEC_RS_BIT = 50,
 	
 	/// 'BaseR'.
 	///
 	/// String set value is `BASER`.
-	ETHTOOL_LINK_MODE_FEC_BASER_BIT = 51,
+	#[serde(rename = "Base-R")] ETHTOOL_LINK_MODE_FEC_BASER_BIT = 51,
 	
 	/// String set value is `LLRS`.
-	ETHTOOL_LINK_MODE_FEC_LLRS_BIT = 74,
+	#[serde(rename = "LLRS")] ETHTOOL_LINK_MODE_FEC_LLRS_BIT = 74,
 }

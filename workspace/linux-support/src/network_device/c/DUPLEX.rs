@@ -3,14 +3,17 @@
 
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(u8)]
-pub(crate) enum DUPLEX
+pub enum DUPLEX
 {
 	/// Ethtool setting is `half`.
-	DUPLEX_HALF = 0x00,
+	#[serde(rename = "half")] DUPLEX_HALF = 0x00,
 	
 	/// Ethtool setting is `full`.
-	DUPLEX_FULL = 0x01,
+	#[serde(rename = "full")] DUPLEX_FULL = 0x01,
 	
-	DUPLEX_UNKNOWN = 0xFF,
+	/// Unknown.
+	#[serde(rename = "unknown")] DUPLEX_UNKNOWN = 0xFF,
 }

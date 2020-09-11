@@ -34,6 +34,8 @@ pub(crate) const XDP_FLAGS_HW_MODE: u32 = 1 << 3;
 /// Returns error `EEXIST` if a XDP extended BPF program is already attached with a different file descriptor to that expected.
 pub(crate) const XDP_FLAGS_REPLACE: u32 = 1 << 4;
 
+#[allow(dead_code)]
 pub(crate) const XDP_FLAGS_MODES: u32 = XDP_FLAGS_SKB_MODE | XDP_FLAGS_DRV_MODE | XDP_FLAGS_HW_MODE;
 
+#[allow(dead_code)]
 pub(crate) const XDP_FLAGS_MASK: u32 = XDP_FLAGS_UPDATE_IF_NOEXIST | XDP_FLAGS_MODES | XDP_FLAGS_REPLACE;

@@ -9,10 +9,13 @@
 #[repr(C)]
 pub union ethtool_link_mode_bit_indices
 {
-	speed: ethtool_link_mode_bit_indices_speed,
-	ports: ethtool_link_mode_bit_indices_ports,
-	pause: ethtool_link_mode_bit_indices_pause,
-	forward_error_correction: ethtool_link_mode_bit_indices_forward_error_correction,
+	pub(crate) speed: ethtool_link_mode_bit_indices_speed,
+	
+	pub(crate) ports: ethtool_link_mode_bit_indices_ports,
+	
+	pub(crate) pause: ethtool_link_mode_bit_indices_pause,
+	
+	pub(crate) forward_error_correction: ethtool_link_mode_bit_indices_forward_error_correction,
 }
 
 impl Bit for ethtool_link_mode_bit_indices

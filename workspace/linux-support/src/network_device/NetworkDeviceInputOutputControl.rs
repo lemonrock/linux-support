@@ -83,6 +83,104 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		)
 	}
 	
+	/// Link settings.
+	pub fn link_settings(&self) -> Result<Option<Option<LinkSettings>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
+	{
+		let (cmd, link_mode_masks_nwords) = match self.ethtool_command
+		(
+			ethtool_link_settings::to_get_link_mode_masks_nwords(),
+			|command| Ok(Some((command.cmd, command.link_mode_masks_nwords))),
+			|errno| Err(UndocumentedError(errno)),
+			|_command| None,
+		)?
+		{
+			None => return Ok(None),
+			Some(None) => return Ok(Some(None)),
+			Some(Some(value)) => value,
+		};
+		
+		if cmd != ETHTOOL_GLINKSETTINGS || link_mode_masks_nwords >= 0
+		{
+			return Ok(Some(None))
+		}
+		
+		let command = match self.ethtool_command
+		(
+			ethtool_link_settings::to_get(link_mode_masks_nwords),
+			|command| Ok(Some(command)),
+			|errno| Err(UndocumentedError(errno)),
+			|_command| None,
+		)?
+		{
+			None => return Ok(None),
+			Some(None) => return Ok(Some(None)),
+			Some(Some(command)) => if command.cmd != ETHTOOL_GLINKSETTINGS || command.link_mode_masks_nwords <= 0
+			{
+				return Ok(Some(None))
+			}
+			else
+			{
+				command
+			},
+		};
+		
+		use self::PORT::*;
+		use self::PortConnector::*;
+		Ok
+		(
+			Some
+			(
+				Some
+				(
+					LinkSettings
+					{
+						speed: command.speed,
+						
+						duplex: command.duplex,
+						
+						port_connector: match command.port
+						{
+							PORT_TP => Some
+							(
+								TwistedPair
+								{
+									mdi_x_status: command.eth_tp_mdix,
+									mdi_x_control: command.eth_tp_mdix_ctrl,
+								}
+							),
+							
+							PORT_AUI => Some(AttachmentUnitInterface),
+							
+							PORT_BNC => Some(BayonetNeillConcelman),
+							
+							PORT_MII => Some(MediaIndependentInterface),
+							
+							PORT_FIBRE => Some(Fibre),
+							
+							PORT_DA => Some(DirectAttachCopper),
+							
+							PORT_OTHER => Some(Other),
+							
+							PORT_NONE => None,
+						},
+						
+						phy_address: command.phy_address,
+						
+						auto_negotiation: command.autoneg,
+						
+						mdio_support: command.mdio_support,
+						
+						we_support: SpeedsPortConnectorsPausesAndForwardErrorConnectionsSettings::from_link_mode_bit_set(command.supported()),
+						
+						we_advertise: SpeedsPortConnectorsPausesAndForwardErrorConnectionsSettings::from_link_mode_bit_set(command.advertising()),
+						
+						our_link_partner_advertises: SpeedsPortConnectorsPausesAndForwardErrorConnectionsSettings::from_link_mode_bit_set(command.lp_advertising()),
+					}
+				)
+			)
+		)
+	}
+	
 	pub fn link_is_up(&self) -> Result<Option<Option<bool>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
 	{
 		self.ethtool_command
@@ -484,8 +582,6 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	/// NOTE: If XDP user memory is in use against a channel (a queue to XDP) and the number of channels is reduced (which should not happen) `EINVAL` is returned.
 	pub fn maximize_number_of_channels(&self, maximize: bool) -> Result<Option<Channels>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
-		const One: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(1) };
-		
 		let (current, maximima) = match self.number_of_channels()?
 		{
 			None => return Ok(None),
@@ -545,8 +641,8 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	{
 		self.ethtool_command
 		(
-			ethtool_rxfh::set(Some(ContextIdentifierOrCreate::Create), &configured_hash_settings),
-			|command| Ok(unsafe { transmute(command.rss_context) }),
+			ethtool_rxfh::set(Some(ContextIdentifier::Create), &configured_hash_settings),
+			|command| Ok(command.rss_context),
 			Self::error_is_unreachable,
 			|_command| None,
 		)
@@ -556,7 +652,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	{
 		match self.ethtool_command
 		(
-			ethtool_rxfh::set(context_identifier.map(ContextIdentifierOrCreate::identifier), &configured_hash_settings),
+			ethtool_rxfh::set(context_identifier, &configured_hash_settings),
 			|_command| Ok(true),
 			Self::error_is_unreachable,
 			|_command| false,

@@ -23,7 +23,7 @@ pub(crate) struct ethtool_rxfh
 	/// Other contexts can be referenced as the destination for receive flow classification rules.
 	///
 	/// The special value `ETH_RXFH_CONTEXT_ALLOC` can be used to create a new context; on return, this will contain the value of the new context's identifier.
-	pub(crate) rss_context: Option<ContextIdentifierOrCreate>,
+	pub(crate) rss_context: Option<ContextIdentifier>,
 	
 	/// On entry, the array size of the user buffer for the indirection table, which may be zero.
 	///
@@ -152,7 +152,7 @@ impl ethtool_rxfh
 	
 	pub(crate) fn reset(context_identifier: Option<ContextIdentifier>) -> Self
 	{
-		Self::set_indirection_table_and_key_data(context_identifier.map(ContextIdentifierOrCreate::identifier), None, 0, 0)
+		Self::set_indirection_table_and_key_data(context_identifier, None, 0, 0)
 	}
 	
 	#[inline(always)]
@@ -161,7 +161,7 @@ impl ethtool_rxfh
 		Self::new_with_initialized_header_but_uninitialized_array(ethtool_rxfh::get_indirection_table_and_key_data(context_identifier, indirection_size, key_size))
 	}
 	
-	pub(crate) fn set(context_identifier_or_create: Option<ContextIdentifierOrCreate>, configured_hash_settings: &ConfiguredHashSettings) -> VariablySizedEthtoolCommandWrapper<Self>
+	pub(crate) fn set(context_identifier_or_create: Option<ContextIdentifier>, configured_hash_settings: &ConfiguredHashSettings) -> VariablySizedEthtoolCommandWrapper<Self>
 	{
 		let indirection_table = configured_hash_settings.indirection_table.as_ref();
 		let indirection_size = indirection_table.map(|vec| vec.len()).unwrap_or(0);
@@ -206,7 +206,7 @@ impl ethtool_rxfh
 		Self
 		{
 			cmd: ETHTOOL_GRSSH,
-			rss_context: context_identifier.map(ContextIdentifierOrCreate::identifier),
+			rss_context: context_identifier,
 			indir_size: indirection_size as u32,
 			key_size: key_size as u32,
 			hfunc: 0,
@@ -216,7 +216,7 @@ impl ethtool_rxfh
 		}
 	}
 	
-	fn set_indirection_table_and_key_data(context_identifier_or_create: Option<ContextIdentifierOrCreate>, hash_function: Option<ETH_RSS_HASH>, indirection_size: usize, key_size: usize) -> Self
+	fn set_indirection_table_and_key_data(context_identifier_or_create: Option<ContextIdentifier>, hash_function: Option<ETH_RSS_HASH>, indirection_size: usize, key_size: usize) -> Self
 	{
 		Self
 		{

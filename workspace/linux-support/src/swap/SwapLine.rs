@@ -86,6 +86,7 @@ impl FromBytes for SwapLine
 
 impl SwapLine
 {
+	/// Swap off.
 	#[inline(always)]
 	pub fn swap_off(&self) -> io::Result<()>
 	{

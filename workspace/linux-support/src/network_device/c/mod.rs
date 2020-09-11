@@ -35,7 +35,6 @@ include!("ethtool_link_mode_bit_indices_forward_error_correction.rs");
 include!("ethtool_link_mode_bit_indices_pause.rs");
 include!("ethtool_link_mode_bit_indices_ports.rs");
 include!("ethtool_link_mode_bit_indices_speed.rs");
-include!("ethtool_link_settings_link_modes.rs");
 include!("ETHTOOL_PHY_EDPD_.rs");
 include!("ETHTOOL_PHY_FAST_LINK_DOWN_.rs");
 include!("ethtool_rxnfc_rule_count_or_rss_context.rs");

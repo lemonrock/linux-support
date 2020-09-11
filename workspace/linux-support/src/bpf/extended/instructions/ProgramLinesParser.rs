@@ -62,7 +62,7 @@ impl<'name> ProgramLinesParser<'name>
 	{
 		use self::ParseError::*;
 		
-		let ExtendedBpfProgramArguments { i32_immediates_map, u64_immediates_map, memory_offsets_map, map_file_descriptors: map_file_descriptors, extended_bpf_program_file_descriptors } = arguments;
+		let ExtendedBpfProgramArguments { i32_immediates_map, u64_immediates_map, memory_offsets_map, map_file_descriptors, extended_bpf_program_file_descriptors } = arguments;
 		
 		if let Some(&BpfTypeFormatProgramDetails { ref main_function, .. }) = bpf_type_format_program_details
 		{

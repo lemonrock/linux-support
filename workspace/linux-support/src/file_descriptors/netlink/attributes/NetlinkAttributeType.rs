@@ -2,23 +2,27 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) trait NetlinkAttributeType: Debug + Copy + PartialEq + Eq + PartialOrd + Ord + Hash + From<u16>
+/// Netlink attribute type.
+pub trait NetlinkAttributeType: Debug + Copy + PartialEq + Eq + PartialOrd + Ord + Hash + From<u16>
 {
 	#[doc(hidden)]
 	fn to_u16(self) -> u16;
 	
+	#[doc(hidden)]
 	#[inline(always)]
 	fn nests<V: NetlinkAttributeOrFollowedByNetlinkAttribute>(self, payload: V) -> NetlinkAttribute<V>
 	{
 		NetlinkAttribute::nested(self, payload)
 	}
 	
+	#[doc(hidden)]
 	#[inline(always)]
 	fn attribute<V: Sized>(self, payload: V) -> NetlinkAttribute<V>
 	{
 		NetlinkAttribute::leaf(self, payload)
 	}
 	
+	#[doc(hidden)]
 	#[inline(always)]
 	fn attribute_network_byte_order<V: Sized>(self, payload: V) -> NetlinkAttribute<V>
 	{

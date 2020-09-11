@@ -85,101 +85,105 @@ pub struct Diagnostics
 
 impl Diagnostics
 {
-	fn gather(file_system_layout: &FileSystemLayout) -> Self
+	/// Gather diagnostics or panic.
+	pub fn gather(file_system_layout: &FileSystemLayout) -> DiagnosticUnobtainableResult<Self>
 	{
-		let process_identifier = ProcessIdentifierChoice::Current;
-		
-		let (sys_path, proc_path, _dev_path, etc_path) = file_system_layout.paths();
-		
-		let defaults = file_system_layout.defaults().map_err(DiagnosticUnobtainable::from);
-		
-		let file_systems = FileSystemsDiagnostics::gather(proc_path, process_identifier);
-		
-		let supported_huge_page_sizes = match defaults
+		catch_unwind(AssertUnwindSafe(||
 		{
-			Err(_) => Cow::Owned(BTreeSet::new()),
-			
-			Ok(ref defaults) => Cow::Borrowed(defaults.supported_huge_page_sizes())
-		};
+			let process_identifier = ProcessIdentifierChoice::Current;
 		
-		let process_diagnostics = ProcessDiagnostics::gather(sys_path, proc_path, process_identifier);
-		
-		let process_group_identifier = process_diagnostics.process_group_identifier.as_ref().map(|process_group_identifier| ProcessGroupIdentifierChoice::Other(*process_group_identifier)).unwrap_or(ProcessGroupIdentifierChoice::Current);
-		Self
-		{
-			file_system_layout: file_system_layout.clone(),
+			let (sys_path, proc_path, _dev_path, etc_path) = file_system_layout.paths();
 			
-			users_and_groups: UsersAndGroupsDiagnostics::gather(proc_path, etc_path, process_identifier),
+			let defaults = file_system_layout.defaults().map_err(DiagnosticUnobtainable::from);
 			
-			current_thread: CurrentThreadDiagnostic::gather(),
+			let file_systems = FileSystemsDiagnostics::gather(proc_path, process_identifier);
 			
-			threads: match ThreadIdentifier::for_process(proc_path, process_identifier)
+			let supported_huge_page_sizes = match defaults
 			{
-				Err(error) => Err(DiagnosticUnobtainable::from(error)),
-				Ok(thread_identifiers) =>
-				{
-					let mut thread_diagnostics = HashMap::new();
-					for thread_identifier in thread_identifiers
-					{
-						thread_diagnostics.insert(thread_identifier, ThreadDiagnostic::gather(proc_path, process_identifier, thread_identifier));
-					}
-					Ok(thread_diagnostics)
-				}
-			},
+				Err(_) => Cow::Owned(BTreeSet::new()),
+				
+				Ok(ref defaults) => Cow::Borrowed(defaults.supported_huge_page_sizes())
+			};
 			
-			swap: SwapDiagnostics::gather(proc_path),
+			let process_diagnostics = ProcessDiagnostics::gather(sys_path, proc_path, process_identifier);
 			
-			scheduling: SchedulingDiagnostics::gather(sys_path, proc_path, process_group_identifier, process_identifier),
-			
-			current_process_diagnostics: CurrentProcessDiagnostics::gather(),
-			
-			process_diagnostics,
-			
-			pci_devices: match PciDeviceAddress::all(sys_path)
+			let process_group_identifier = process_diagnostics.process_group_identifier.as_ref().map(|process_group_identifier| ProcessGroupIdentifierChoice::Other(*process_group_identifier)).unwrap_or(ProcessGroupIdentifierChoice::Current);
+			Self
 			{
-				Err(error) => Err(DiagnosticUnobtainable::from(error)),
-				Ok(pci_device_addresses) =>
+				file_system_layout: file_system_layout.clone(),
+				
+				users_and_groups: UsersAndGroupsDiagnostics::gather(proc_path, etc_path, process_identifier),
+				
+				current_thread: CurrentThreadDiagnostic::gather(),
+				
+				threads: match ThreadIdentifier::for_process(proc_path, process_identifier)
 				{
-					let mut pci_devices = HashMap::new();
-					for pci_device_address in pci_device_addresses
+					Err(error) => Err(DiagnosticUnobtainable::from(error)),
+					Ok(thread_identifiers) =>
 					{
-						pci_devices.insert(pci_device_address, PciDeviceDiagnostics::gather(sys_path, pci_device_address));
+						let mut thread_diagnostics = HashMap::new();
+						for thread_identifier in thread_identifiers
+						{
+							thread_diagnostics.insert(thread_identifier, ThreadDiagnostic::gather(proc_path, process_identifier, thread_identifier));
+						}
+						Ok(thread_diagnostics)
 					}
-					Ok(pci_devices)
-				}
-			},
+				},
+				
+				swap: SwapDiagnostics::gather(proc_path),
+				
+				scheduling: SchedulingDiagnostics::gather(sys_path, proc_path, process_group_identifier, process_identifier),
+				
+				current_process_diagnostics: CurrentProcessDiagnostics::gather(),
+				
+				process_diagnostics,
+				
+				pci_devices: match PciDeviceAddress::all(sys_path)
+				{
+					Err(error) => Err(DiagnosticUnobtainable::from(error)),
+					Ok(pci_device_addresses) =>
+					{
+						let mut pci_devices = HashMap::new();
+						for pci_device_address in pci_device_addresses
+						{
+							pci_devices.insert(pci_device_address, PciDeviceDiagnostics::gather(sys_path, pci_device_address));
+						}
+						Ok(pci_devices)
+					}
+				},
+				
+				network_devices: NetworkDeviceDiagnostics::gather(sys_path),
+				
+				internet_protocol_version_4_addresses: InternetProtocolAddressesDiagnostic::<in_addr>::gather(),
+				
+				internet_protocol_version_6_addresses: InternetProtocolAddressesDiagnostic::<in6_addr>::gather(),
 			
-			network_devices: NetworkDeviceDiagnostics::gather(sys_path),
+				environment: EnvironmentDiagnostic::gather(),
 			
-			internet_protocol_version_4_addresses: InternetProtocolAddressesDiagnostic::<in_addr>::gather(),
+				linux_kernel: LinuxKernelDiagnostic::gather(sys_path, proc_path),
 			
-			internet_protocol_version_6_addresses: InternetProtocolAddressesDiagnostic::<in6_addr>::gather(),
-		
-			environment: EnvironmentDiagnostic::gather(),
-		
-			linux_kernel: LinuxKernelDiagnostic::gather(sys_path, proc_path),
-		
-			interrupt_requests: InterruptRequestDiagnostics::gather(sys_path, proc_path),
-		
-			inode: InodeDiagnostics::gather(proc_path),
-		
-			extended_berkeley_packet_filter: ExtendedBerkeleyPacketFilterDiagnostics::gather(proc_path, &file_systems),
-		
-			cgroup_version2: RootCgroupVersion2Diagnostics::gather(&file_systems, &supported_huge_page_sizes),
+				interrupt_requests: InterruptRequestDiagnostics::gather(sys_path, proc_path),
 			
-			file_handle: FileHandleDiagnostics::gather(proc_path),
-		
-			memory: MemoryDiagnostics::gather(sys_path, proc_path, &supported_huge_page_sizes),
-		
-			hyper_threads: HyperThreadsDiagnostics::gather(sys_path, proc_path),
+				inode: InodeDiagnostics::gather(proc_path),
 			
-			#[cfg(target_arch = "x86_64")] cpu_information: CpuInformationDiagnostics::gather(),
+				extended_berkeley_packet_filter: ExtendedBerkeleyPacketFilterDiagnostics::gather(proc_path, &file_systems),
 			
-			proc_sys: ProcSysFileDiagnostic::gather(proc_path),
+				cgroup_version2: RootCgroupVersion2Diagnostics::gather(&file_systems, &supported_huge_page_sizes),
+				
+				file_handle: FileHandleDiagnostics::gather(proc_path),
 			
-			defaults,
+				memory: MemoryDiagnostics::gather(sys_path, proc_path, &supported_huge_page_sizes),
 			
-			file_systems,
-		}
+				hyper_threads: HyperThreadsDiagnostics::gather(sys_path, proc_path),
+				
+				#[cfg(target_arch = "x86_64")] cpu_information: CpuInformationDiagnostics::gather(),
+				
+				proc_sys: ProcSysFileDiagnostic::gather(proc_path),
+				
+				defaults,
+				
+				file_systems,
+			}
+		})).map_err(|_| DiagnosticUnobtainable(format!("Panicked")))
 	}
 }

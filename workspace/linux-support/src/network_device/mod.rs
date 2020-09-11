@@ -21,6 +21,7 @@ use crate::paths::SysPath;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 use crate::network_device::eeprom::{PluginModuleEepromBinaryData, ExpansionEepromBinaryData, BinaryData256, BinaryData640};
 use crate::diagnostics::UndocumentedError;
+use crate::network_device::link_settings::{LinkSettings, PortConnector, SpeedsPortConnectorsPausesAndForwardErrorConnectionsSettings};
 
 
 /// C.
@@ -41,6 +42,10 @@ pub mod eeprom;
 
 /// Features.
 pub mod features;
+
+
+/// Link settings.
+pub mod link_settings;
 
 
 /// Queuing discipline.

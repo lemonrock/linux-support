@@ -10,12 +10,16 @@ pub(crate) enum XDP_ATTACHED
 {
 	XDP_ATTACHED_NONE = 0,
 	
+	#[allow(dead_code)]
 	XDP_ATTACHED_DRV = 1,
 	
+	#[allow(dead_code)]
 	XDP_ATTACHED_SKB = 2,
 	
+	#[allow(dead_code)]
 	XDP_ATTACHED_HW = 3,
 	
+	#[allow(dead_code)]
 	XDP_ATTACHED_MULTI = 4,
 }
 

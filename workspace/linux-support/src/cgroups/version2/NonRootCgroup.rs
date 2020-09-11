@@ -10,12 +10,14 @@
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NonRootCgroup
 {
+	#[allow(missing_docs)]
 	ChildOfRoot
 	{
 		/// Folder name.
 		name: CgroupName,
 	},
 	
+	#[allow(missing_docs)]
 	ChildOfAChild
 	{
 		/// Parent.
@@ -410,7 +412,7 @@ impl NonRootCgroup
 	#[inline(always)]
 	pub fn read_memory_statistics(&self, mount_point: &CgroupMountPoint) -> Result<MemoryStatistics, StatisticsParseError>
 	{
-		let path = self.memory_swap_events_file_path(mount_point);
+		let path = self.memory_stat_file_path(mount_point);
 		MemoryStatistics::from_file(&path)
 	}
 	

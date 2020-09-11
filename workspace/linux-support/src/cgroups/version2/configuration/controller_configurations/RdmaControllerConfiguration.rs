@@ -8,6 +8,7 @@
 #[serde(deny_unknown_fields, default)]
 pub struct RdmaControllerConfiguration
 {
+	/// Maximum.
 	#[serde(flatten)] pub maximum: RdmaFile,
 }
 

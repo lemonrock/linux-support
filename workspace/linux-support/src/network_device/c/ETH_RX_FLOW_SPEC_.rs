@@ -2,6 +2,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[allow(dead_code)]
 const ETHTOOL_RX_FLOW_SPEC_RING: u64 = 0x00000000FFFFFFFF;
+
+#[allow(dead_code)]
 const ETHTOOL_RX_FLOW_SPEC_RING_VF: u64 = 0x000000FF00000000;
+
+#[allow(dead_code)]
 const ETHTOOL_RX_FLOW_SPEC_RING_VF_OFF: u64 = 32;

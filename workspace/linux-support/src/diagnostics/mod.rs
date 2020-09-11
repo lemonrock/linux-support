@@ -119,6 +119,7 @@ use crate::thread::*;
 use crate::time::*;
 use crate::user_and_groups::*;
 use crate::file_descriptors::cgroup::{CgroupProgramAttachmentType, CgroupProgramQueryFlags, CgroupProgramAttachmentFlags};
+use crate::network_device::link_settings::LinkSettings;
 
 
 include!("CommonCgroupVersion2Diagnostics.rs");

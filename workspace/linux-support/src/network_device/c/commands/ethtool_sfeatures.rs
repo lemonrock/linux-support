@@ -41,12 +41,14 @@ impl VariablySizedEthtoolCommand for ethtool_sfeatures
 
 impl VariablySizedEthtoolCommandWrapper<ethtool_sfeatures>
 {
+	#[allow(dead_code)]
 	#[inline(always)]
 	pub(crate) fn valid_is_set(&self, feature: NETIF_F) -> bool
 	{
 		feature.is_set_field_locator(self.array_elements(), |ethtool_set_features_block| ethtool_set_features_block.valid)
 	}
 	
+	#[allow(dead_code)]
 	#[inline(always)]
 	pub(crate) fn requested_is_set(&self, feature: NETIF_F) -> bool
 	{

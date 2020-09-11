@@ -24,6 +24,9 @@ pub struct NetworkDeviceInputOutputControlDiagnostic
 	/// `None` if not supported.
 	pub link_is_up: Option<bool>,
 	
+	/// `None` if not supported.
+	pub link_settings: Option<LinkSettings>,
+	
 	/// Device features.
 	pub device_features: DeviceFeatures,
 	
@@ -133,6 +136,8 @@ impl NetworkDeviceInputOutputControlDiagnostic
 				driver_message_level: exists!(network_device_input_output_control.driver_message_level()),
 				
 				link_is_up: exists!(network_device_input_output_control.link_is_up()),
+				
+				link_settings: exists!(network_device_input_output_control.link_settings()),
 				
 				device_features: exists!(network_device_input_output_control.features()),
 				

@@ -10,10 +10,13 @@
 #[serde(deny_unknown_fields)]
 pub enum LockDownState
 {
+	/// Off.
 	Off,
 
+	/// Moderate setting.
 	Integrity,
 
+	/// Strongest setting.
 	Confidentiality,
 }
 

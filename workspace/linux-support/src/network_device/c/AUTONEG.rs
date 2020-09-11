@@ -4,12 +4,14 @@
 
 /// Enable or disable autonegotiation.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(u8)]
 pub(crate) enum AUTONEG
 {
 	/// Ethtool setting is `off`.
-	AUTONEG_DISABLE = 0x00,
+	#[serde(rename = "off")] AUTONEG_DISABLE = 0x00,
 	
 	/// Ethtool setting is `on`.
-	AUTONEG_ENABLE = 0x01,
+	#[serde(rename = "on")] AUTONEG_ENABLE = 0x01,
 }

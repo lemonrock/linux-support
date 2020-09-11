@@ -5,7 +5,7 @@
 /// Bitfield.
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub(crate) struct __BindgenBitfieldUnit<Storage, Align>
+pub struct __BindgenBitfieldUnit<Storage, Align>
 {
     storage: Storage,
     align: [Align; 0],
@@ -26,6 +26,7 @@ impl<Storage, Align> __BindgenBitfieldUnit<Storage, Align>
 }
 impl<Storage: AsRef<[u8]> + AsMut<[u8]>, Align> __BindgenBitfieldUnit<Storage, Align>
 {
+	/// Get bit.
 	#[allow(dead_code)]
     #[inline(always)]
     pub fn get_bit(&self, index: usize) -> bool
@@ -73,6 +74,7 @@ impl<Storage: AsRef<[u8]> + AsMut<[u8]>, Align> __BindgenBitfieldUnit<Storage, A
         }
     }
 	
+	// Get.
 	#[allow(dead_code)]
     #[inline(always)]
     pub fn get(&self, bit_offset: usize, bit_width: u8) -> u64

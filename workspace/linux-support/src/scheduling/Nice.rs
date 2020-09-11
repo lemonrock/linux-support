@@ -192,6 +192,7 @@ impl<'a> IntoLineFeedTerminatedByteString<'a> for Nice
 
 impl Nice
 {
+	/// Default.
 	pub const Default: Self = Nice::Negative_20;
 	
 	pub(super) const InclusiveMinimum: i32 = -20;

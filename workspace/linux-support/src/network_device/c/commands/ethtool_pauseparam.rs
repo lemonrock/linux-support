@@ -31,7 +31,7 @@ impl ethtool_pauseparam
 	{
 		Self
 		{
-			cmd: ETHTOOL_SPAUSEPARAM,
+			cmd: ETHTOOL_GPAUSEPARAM,
 			autoneg: 0,
 			rx_pause: 0,
 			tx_pause: 0

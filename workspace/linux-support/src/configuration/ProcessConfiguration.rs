@@ -87,10 +87,13 @@ pub struct ProcessConfiguration
 	/// Since Linux 5.6.
 	#[serde(default)] pub enable_or_disable_io_flusher: Option<bool>,
 	
+	#[allow(missing_docs)]
 	#[serde(default)] pub machine_check_exception_kill_policy: Option<Option<MachineCheckExceptionKillPolicy>>,
 	
+	#[allow(missing_docs)]
 	#[serde(default)] pub timestamp_counter_setting: Option<TimestampCounterSetting>,
 	
+	#[allow(missing_docs)]
 	#[serde(default)] pub enable_or_disable_process_performance_counters: Option<bool>,
 
 	/// Logging configuration.

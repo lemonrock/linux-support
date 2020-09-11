@@ -7,7 +7,7 @@
 #[derive(Deserialize, Serialize)]
 #[derive(EnumIter, EnumCount)]
 #[repr(u32)]
-pub(crate) enum SOF_TIMESTAMPING
+pub enum SOF_TIMESTAMPING
 {
 	/// String set value is `hardware-transmit`.
 	#[serde(rename = "hardware-transmit")] SOF_TIMESTAMPING_TX_HARDWARE = 1 << 0,
@@ -66,11 +66,14 @@ impl Into<u32> for SOF_TIMESTAMPING
 
 impl SOF_TIMESTAMPING
 {
+	#[allow(dead_code)]
 	const SOF_TIMESTAMPING_LAST: u32 = SOF_TIMESTAMPING::SOF_TIMESTAMPING_OPT_TX_SWHW as u32;
 	
+	#[allow(dead_code)]
 	const SOF_TIMESTAMPING_MASK: u32 = (Self::SOF_TIMESTAMPING_LAST - 1) | Self::SOF_TIMESTAMPING_LAST;
 	
-	 /// `SO_TIMESTAMPING` (sic) flags are either for recording a packet timestamp or for reporting the timestamp to user space.
-	 /// Recording flags can be set both via socket options and control messages.
+	/// `SO_TIMESTAMPING` (sic) flags are either for recording a packet timestamp or for reporting the timestamp to user space.
+	/// Recording flags can be set both via socket options and control messages.
+	#[allow(dead_code)]
 	const SOF_TIMESTAMPING_TX_RECORD_MASK: u32 = SOF_TIMESTAMPING::SOF_TIMESTAMPING_TX_HARDWARE as u32 | SOF_TIMESTAMPING::SOF_TIMESTAMPING_TX_SOFTWARE as u32 | SOF_TIMESTAMPING::SOF_TIMESTAMPING_TX_SCHED as u32  | SOF_TIMESTAMPING::SOF_TIMESTAMPING_TX_ACK as u32;
 }

@@ -86,15 +86,23 @@
 pub enum Capability
 {
 	AuditControl = CAP_AUDIT_CONTROL,
+	
 	AuditRead = CAP_AUDIT_READ,
+	
 	AuditWrite = CAP_AUDIT_WRITE,
 
 	BlockSuspend = CAP_BLOCK_SUSPEND,
+	
+	Broadcast = CAP_NET_BROADCAST,
 
 	Chown = CAP_CHOWN,
+	
 	DiscretionaryAccessControlBypass = CAP_DAC_OVERRIDE,
+	
 	DiscretionaryAccessControlFileReadBypass = CAP_DAC_READ_SEARCH,
+	
 	FileOwnerBypass = CAP_FOWNER,
+	
 	FileSetId = CAP_FSETID,
 
 	LockMemory = CAP_IPC_LOCK,
@@ -108,16 +116,21 @@ pub enum Capability
 	Immutable = CAP_LINUX_IMMUTABLE,
 
 	MandatoryAccessControlBypass = CAP_MAC_ADMIN,
+	
 	MandatoryAccessControlOverride = CAP_MAC_OVERRIDE,
 
 	MakeNodes = CAP_MKNOD,
 
 	SystemAdministration = CAP_SYS_ADMIN,
+	
 	NetworkAdministration = CAP_NET_ADMIN,
+	
 	BindPortsBelow1024 = CAP_NET_BIND_SERVICE,
+	
 	NetRaw = CAP_NET_RAW,
 
 	SetUid = CAP_SETUID,
+	
 	SetGid = CAP_SETGID,
 
 	SetFileCapabilities = CAP_SETFCAP,

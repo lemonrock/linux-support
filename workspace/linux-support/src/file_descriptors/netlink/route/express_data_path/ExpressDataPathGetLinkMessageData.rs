@@ -3,7 +3,7 @@
 
 
 /// Message data.
-#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ExpressDataPathGetLinkMessageData
 {
 	pub(crate) attached: XDP_ATTACHED,
@@ -17,7 +17,7 @@ pub struct ExpressDataPathGetLinkMessageData
 	pub(crate) offloaded_program_identifier: Option<ExtendedBpfProgramIdentifier>,
 }
 
-impl ExpressDataPathGetLinkMessageData
+impl Default for ExpressDataPathGetLinkMessageData
 {
 	#[inline(always)]
 	fn default() -> Self

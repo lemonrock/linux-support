@@ -8,6 +8,7 @@ bitflags!
 	#[derive(Serialize, Deserialize)]
 	pub struct SpeculationMitigation: i32
 	{
+		/// The speculation feature is possible.
 		const PerThreadMitigationControlPossible = PR_SPEC_PRCTL;
 		
 		/// The speculation feature is enabled, mitigation is disabled.

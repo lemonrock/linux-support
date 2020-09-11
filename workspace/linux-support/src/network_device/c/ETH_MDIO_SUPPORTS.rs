@@ -5,6 +5,7 @@
 bitflags!
 {
 	/// MDIO support.
+	#[derive(Deserialize, Serialize)]
 	pub(crate) struct ETH_MDIO_SUPPORTS: u8
 	{
 		/// Device supports clause 22 register access to PHY or peripherals using the interface defined in `linux/mii.h`.

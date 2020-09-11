@@ -12,12 +12,14 @@ pub enum RdmaParseError
 	/// Duplicate.
 	DuplicateDevice
 	{
+		#[allow(missing_docs)]
 		device_name: RdmaDeviceName,
 	},
 
 	/// Missing key-value fields.
 	MissingKeyValueFields
 	{
+		#[allow(missing_docs)]
 		device_name: RdmaDeviceName,
 	},
 
@@ -51,6 +53,7 @@ pub enum RdmaParseError
 	/// Missing statistic value.
 	MissingStatistic
 	{
+		#[allow(missing_docs)]
 		name: &'static [u8]
 	},
 }

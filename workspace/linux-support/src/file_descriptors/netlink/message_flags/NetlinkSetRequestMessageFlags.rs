@@ -10,6 +10,7 @@ pub struct NetlinkSetRequestMessageFlags(u16);
 
 impl NetlinkSetRequestMessageFlags
 {
+	/// Empty.
 	#[inline(always)]
 	pub const fn empty() -> Self
 	{

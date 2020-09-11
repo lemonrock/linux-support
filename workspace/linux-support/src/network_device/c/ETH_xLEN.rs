@@ -6,10 +6,13 @@
 pub(crate) const ETH_ALEN: usize = 6;
 
 /// Octets in ethernet type field.
+#[allow(dead_code)]
 pub(crate) const ETH_TLEN: usize = 2;
 
 /// Total octets in header.
+#[allow(dead_code)]
 pub(crate) const ETH_HLEN: usize = 14;
 
 /// Minimum octets in frame without Frame Check Sequence (FCS) of 4 bytes.
+#[allow(dead_code)]
 pub(crate) const ETH_ZLEN: usize = 60;

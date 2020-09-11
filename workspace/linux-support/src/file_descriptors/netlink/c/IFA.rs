@@ -10,20 +10,24 @@
 #[repr(u16)]
 pub(crate) enum IFA
 {
+	#[allow(dead_code)]
 	IFA_UNSPEC = 0,
 	
 	/// `IFA_ADDRESS` is a prefix address, rather than local interface address.
 	/// It makes no difference for normally configured broadcast interfaces, but for point-to-point `IFA_ADDRESS` is destination address, local address is supplied in the `IFA_LOCAL` attribute.
+	#[allow(dead_code)]
 	IFA_ADDRESS = 1,
 	
 	IFA_LOCAL = 2,
 	
+	#[allow(dead_code)]
 	IFA_LABEL = 3,
 	
 	IFA_BROADCAST = 4,
 	
 	IFA_ANYCAST = 5,
 	
+	#[allow(dead_code)]
 	IFA_CACHEINFO = 6,
 	
 	IFA_MULTICAST = 7,
@@ -35,8 +39,10 @@ pub(crate) enum IFA
 	/// Priority or metric for prefix route.
 	///
 	/// `u32`.
+	#[allow(dead_code)]
 	IFA_RT_PRIORITY = 9,
 	
+	#[allow(dead_code)]
 	IFA_TARGET_NETNSID = 10,
 }
 
@@ -62,5 +68,6 @@ impl IFA
 {
 	const __IFA_MAX: u16 = IFA::IFA_TARGET_NETNSID as u16 + 1;
 	
+	#[allow(dead_code)]
 	pub(crate) const IFA_MAX: Self = unsafe { transmute(Self::__IFA_MAX - 1) };
 }

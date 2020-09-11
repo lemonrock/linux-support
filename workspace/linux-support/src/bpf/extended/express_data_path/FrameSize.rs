@@ -11,6 +11,7 @@
 #[repr(u32)]
 pub enum FrameSize
 {
+	#[allow(missing_docs)]
 	_2048 = 2048,
 	
 	/// This is the default used by `libbpf` as `XSK_UMEM__DEFAULT_FRAME_SIZE`.

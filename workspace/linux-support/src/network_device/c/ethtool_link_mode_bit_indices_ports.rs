@@ -4,27 +4,30 @@
 
 /// Strings are in the `ethtool_stringset::ETH_SS_LINK_MODES` string set.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(EnumIter, EnumCount)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 #[repr(u32)]
-pub(crate) enum ethtool_link_mode_bit_indices_ports
+pub enum ethtool_link_mode_bit_indices_ports
 {
 	/// String set value is `Autoneg`.
-	ETHTOOL_LINK_MODE_Autoneg_BIT = 6,
+	#[serde(rename = "AutoNegotiation")] ETHTOOL_LINK_MODE_Autoneg_BIT = 6,
 	
 	/// String set value is `TP`.
-	ETHTOOL_LINK_MODE_TP_BIT = 7,
+	#[serde(rename = "TwistedPair")] ETHTOOL_LINK_MODE_TP_BIT = 7,
 	
 	/// String set value is `AUI`.
-	ETHTOOL_LINK_MODE_AUI_BIT = 8,
+	#[serde(rename = "AttachmentUnitInterface")] ETHTOOL_LINK_MODE_AUI_BIT = 8,
 	
 	/// String set value is `MII`.
-	ETHTOOL_LINK_MODE_MII_BIT = 9,
+	#[serde(rename = "MediaIndependentInterface")] ETHTOOL_LINK_MODE_MII_BIT = 9,
 	
 	/// String set value is `FIBRE`.
-	ETHTOOL_LINK_MODE_FIBRE_BIT = 10,
+	#[serde(rename = "Fibre")] ETHTOOL_LINK_MODE_FIBRE_BIT = 10,
 	
 	/// String set value is `BNC`.
-	ETHTOOL_LINK_MODE_BNC_BIT = 11,
+	#[serde(rename = "BayonetNeillConcelman")] ETHTOOL_LINK_MODE_BNC_BIT = 11,
 	
 	/// String set value is `Backplane`.
-	ETHTOOL_LINK_MODE_Backplane_BIT = 16,
+	#[serde(rename = "Other")] ETHTOOL_LINK_MODE_Backplane_BIT = 16,
 }

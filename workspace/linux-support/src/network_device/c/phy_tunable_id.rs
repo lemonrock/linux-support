@@ -9,6 +9,7 @@ pub(crate) enum phy_tunable_id
 {
 	/// String set value is `Unspec`.
 	#[deprecated]
+	#[allow(dead_code)]
 	ETHTOOL_PHY_ID_UNSPEC = 0,
 	
 	/// There are two special values:-

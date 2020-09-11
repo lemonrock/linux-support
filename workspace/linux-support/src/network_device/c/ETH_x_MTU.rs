@@ -3,7 +3,9 @@
 
 
 /// Minimum Internet Protocol version 4 Maximum Transmission Unit (MTU) defined in RFC 791.
+#[allow(dead_code)]
 pub(crate) const ETH_MIN_MTU: u32 = 68;
 
 /// Maximum Maximum Transmission Unit (MTU); identical to `IP_MAX_MTU`.
+#[allow(dead_code)]
 pub(crate) const ETH_MAX_MTU: u32 = 65535;

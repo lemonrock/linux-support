@@ -12,10 +12,19 @@
 #[repr(u32)]
 pub enum xdp_action
 {
+	#[allow(dead_code)]
 	XDP_ABORTED = 0,
+	
+	#[allow(dead_code)]
 	XDP_DROP = 1,
+	
+	#[allow(dead_code)]
 	XDP_PASS = 2,
+	
+	#[allow(dead_code)]
 	XDP_TX = 3,
+	
+	#[allow(dead_code)]
 	XDP_REDIRECT = 4,
 }
 

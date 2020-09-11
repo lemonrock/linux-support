@@ -160,7 +160,6 @@ impl OwnedReceiveTransmitMemoryRingQueues
 			sxdp_shared_umem_fd,
 		};
 		
-		const len: u32 = size_of::<sockaddr_xdp>() as u32;
 		bind_socket(user_memory_socket_file_descriptor, &socket_address)?;
 		
 		Ok(receive_and_transmit)

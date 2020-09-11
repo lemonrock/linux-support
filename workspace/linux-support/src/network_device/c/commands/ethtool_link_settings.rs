@@ -56,9 +56,9 @@ pub(crate) struct ethtool_link_settings
 	/// May be writable if multiple PHYs or physical connectors are fitted or the driver does detect if multiple PHYs or physical connectors are fitted, especially if `autoneg` is `AUTONEG_DISABLE`.
 	pub(crate) port: PORT,
 
-	/// MDIO address of PHY (transceiver); 0 or 255 if not applicable.
+	/// `MDIO` address of PHY (transceiver); 0 or 255 if not applicable.
 	///
-	/// For clause 45 PHYs this is the PRTAD.
+	/// For clause 45 PHYs this is the `PRTAD`.
 	///
 	/// May be writable if multiple PHYs or physical connectors are fitted or the driver does detect if multiple PHYs or physical connectors are fitted, especially if `autoneg` is `AUTONEG_DISABLE`.
 	pub(crate) phy_address: u8,
@@ -68,7 +68,7 @@ pub(crate) struct ethtool_link_settings
 	/// Either `AUTONEG_DISABLE` or `AUTONEG_ENABLE`.
 	pub(crate) autoneg: AUTONEG,
 
-	/// Bitmask of `ETH_MDIO_SUPPORTS` flags for the MDIO protocols supported by the interface.
+	/// Bitmask of `ETH_MDIO_SUPPORTS` flags for the `MDIO` protocols supported by the interface.
 	///
 	/// The value `ETH_TP_MDI_AUTO` is not valid for this field.
 	///
@@ -88,28 +88,29 @@ pub(crate) struct ethtool_link_settings
 	/// When written successfully, the link should be renegotiated if necessary.
 	pub(crate) eth_tp_mdix_ctrl: ETH_TP_MDI,
 
-	/// Number of 32-bit words for each of the `supported`, `advertising` and `lp_advertising` link mode bitmaps (see `ethtool_link_settings_link_modes` for layout and definitions).
+	/// Number of 32-bit words for each of the `supported`, `advertising` and `lp_advertising` link mode bitmaps.
 	///
 	/// Usually `LinkModeBitSet::__ETHTOOL_LINK_MODE_MASK_NU32 as i8`.
 	///
 	/// For the `ETHTOOL_GLINKSETTINGS` command: on entry, number of words passed by user (>= 0); on return, if handshake in progress, negative if request size unsupported by kernel: absolute value indicates kernel expected size and all the other fields but `cmd` are 0; otherwise (handshake completed), strictly positive to indicate size used by kernel and `cmd` field stays `ETHTOOL_GLINKSETTINGS`, all other fields populated by driver.
 	///
 	/// For the `ETHTOOL_SLINKSETTINGS` command: must be valid on entry, ie a positive value returned previously by `ETHTOOL_GLINKSETTINGS`, otherwise refused.
-	link_mode_masks_nwords: i8,
+	pub(crate) link_mode_masks_nwords: i8,
 
 	/// Used to distinguish different possible PHY types, reported consistently by PHYLIB.
 	///
 	/// Read-only.
+	#[deprecated]
 	pub(crate) transceiver: XCVR,
 
 	reserved1: [u8; 3],
 
 	reserved: [u32; 7],
 	
-	/// See `ethtool_link_settings_link_modes`.
-	///
 	/// Read-only.
-	link_mode_masks: ethtool_link_settings_link_modes,
+	///
+	/// In theory, variably sized; in practice, fixed but not necessarily fully-populated.
+	link_mode_masks: [u32; 3 * LinkModeBitSet::__ETHTOOL_LINK_MODE_MASK_NU32],
 }
 
 impl EthtoolCommand for ethtool_link_settings
@@ -118,5 +119,69 @@ impl EthtoolCommand for ethtool_link_settings
 	fn command(&self) -> u32
 	{
 		self.cmd
+	}
+}
+
+impl ethtool_link_settings
+{
+	#[inline(always)]
+	pub(crate) fn to_get_link_mode_masks_nwords() -> Self
+	{
+		let mut this: Self = unsafe { zeroed() };
+		this.cmd = ETHTOOL_GLINKSETTINGS;
+		this
+	}
+	
+	#[inline(always)]
+	pub(crate) fn to_get(negative_link_mode_masks_nwords_from_to_get_link_mode_masks_nwords: i8) -> Self
+	{
+		let mut this: Self = unsafe { zeroed() };
+		this.cmd = ETHTOOL_GLINKSETTINGS;
+		this.link_mode_masks_nwords = -negative_link_mode_masks_nwords_from_to_get_link_mode_masks_nwords;
+		this
+	}
+	
+	/// `supported` is a bit set with each bit meaning given by `ethtool_link_mode_bit_indices` for the link modes, physical connectors and other link features for which the interface supports autonegotiation or auto-detection.
+	///
+	/// Read-only.
+	pub(crate) fn supported(&self) -> LinkModeBitSet
+	{
+		self.link_mode_bit_set(0)
+	}
+	
+	/// `advertising` is a bit set with each bit meaning given by `ethtool_link_mode_bit_indices` for the link modes, physical connectors and other link features that are advertised through autonegotiation or enabled for auto-detection.
+	///
+	/// Read-write.
+	pub(crate) fn advertising(&self) -> LinkModeBitSet
+	{
+		self.link_mode_bit_set(1)
+	}
+	
+	/// `lp_advertising` is a bit set with each bit meaning given by `ethtool_link_mode_bit_indices` for the link modes, physical connectors and other link features that the link partner advertised through autonegotiation.
+	///
+	/// Read-only.
+	pub(crate) fn lp_advertising(&self) -> LinkModeBitSet
+	{
+		self.link_mode_bit_set(2)
+	}
+	
+	#[allow(deprecated)]
+	#[inline(always)]
+	fn link_mode_bit_set(&self, field_index: usize) -> LinkModeBitSet
+	{
+		debug_assert!(self.link_mode_masks_nwords >= 0);
+		
+		let length = self.link_mode_masks_nwords as usize;
+		debug_assert!(length <= LinkModeBitSet::__ETHTOOL_LINK_MODE_MASK_NU32);
+		
+		let offset = field_index * length;
+		
+		let mut link_mode_bit_set_array: [BitSetWord; LinkModeBitSet::__ETHTOOL_LINK_MODE_MASK_NU32] = unsafe { uninitialized() };
+		unsafe
+		{
+			link_mode_bit_set_array.as_mut_ptr().copy_from_nonoverlapping(self.link_mode_masks.as_ptr().add(offset), length);
+			link_mode_bit_set_array.as_mut_ptr().add(length).write_bytes(0x00, LinkModeBitSet::__ETHTOOL_LINK_MODE_MASK_NU32 - length);
+		}
+		LinkModeBitSet(link_mode_bit_set_array)
 	}
 }
