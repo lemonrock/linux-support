@@ -2,7 +2,6 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-// TODO: How do we use this program?
 /// Receive and transmit memory ring queues.
 #[derive(Debug)]
 pub struct OwnedReceiveTransmitMemoryRingQueues
@@ -11,7 +10,7 @@ pub struct OwnedReceiveTransmitMemoryRingQueues
 	
 	/// receive is `xsk_ring_cons`.
 	/// transmit is `xsk_ring_prod`.
-	receive_and_transmit: ManuallyDrop<ReceiveOrTransmitOrBoth<XskRingQueue>>,
+	receive_and_transmit: ManuallyDrop<ReceiveOrTransmitOrBoth<XskRingQueue<ConsumerXskRingQueueKind, xdp_desc>, XskRingQueue<ProducerXskRingQueueKind, xdp_desc>>>,
 	
 	xdp_extended_bpf_program: ManuallyDrop<RedirectMapAndAttachedProgram>,
 	
@@ -53,7 +52,7 @@ impl Deref for OwnedReceiveTransmitMemoryRingQueues
 impl ReceiveTransmitMemoryRingQueues for OwnedReceiveTransmitMemoryRingQueues
 {
 	#[inline(always)]
-	fn user_memory_and_receive_transmit(&self) -> (&UserMemory, &ReceiveOrTransmitOrBoth<XskRingQueue>)
+	fn user_memory_and_receive_transmit(&self) -> (&UserMemory, &ReceiveOrTransmitOrBoth<XskRingQueue<ConsumerXskRingQueueKind, xdp_desc>, XskRingQueue<ProducerXskRingQueueKind, xdp_desc>>)
 	{
 		(&self.user_memory, &self.receive_and_transmit)
 	}
@@ -62,12 +61,26 @@ impl ReceiveTransmitMemoryRingQueues for OwnedReceiveTransmitMemoryRingQueues
 impl OwnedReceiveTransmitMemoryRingQueues
 {
 	#[inline(always)]
-	fn new(user_memory: UserMemory, xdp_extended_bpf_program: Either<OwnedRedirectMapAndAttachedProgramSettings, RedirectMapAndAttachedProgram>, network_interface_index: NetworkInterfaceIndex, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth>, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, AttachProgramError>
+	fn new(user_memory: UserMemory, xdp_extended_bpf_program: Either<OwnedRedirectMapAndAttachedProgramSettings, RedirectMapAndAttachedProgram>, network_interface_index: NetworkInterfaceIndex, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth>, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes, force_copy: bool, force_zero_copy: bool, needs_wake_up: bool) -> Result<Self, AttachProgramError>
 	{
+		let mut sxdp_flags = XdpSocketAddressFlags::empty();
+		if force_copy
+		{
+			sxdp_flags |= XdpSocketAddressFlags::ForceCopy;
+		}
+		if force_zero_copy
+		{
+			sxdp_flags |= XdpSocketAddressFlags::ForceZeroCopy;
+		}
+		if needs_wake_up
+		{
+			sxdp_flags |= XdpSocketAddressFlags::UseNeedsWakeUp;
+		}
+		
 		let is_receive_or_both = ring_queue_depths.is_receive_or_both();
 		
 		let user_memory_socket_file_descriptor = &user_memory.user_memory_socket_file_descriptor;
-		let receive_and_transmit = Self::construct(user_memory_socket_file_descriptor, network_interface_index, ring_queue_depths, XdpSocketAddressFlags::empty(), user_memory_socket_file_descriptor.as_raw_fd(), queue_identifier, defaults)?;
+		let receive_and_transmit = Self::construct(user_memory_socket_file_descriptor, network_interface_index, ring_queue_depths, sxdp_flags, user_memory_socket_file_descriptor.as_raw_fd(), queue_identifier, defaults)?;
 		
 		let xdp_extended_bpf_program = match xdp_extended_bpf_program
 		{
@@ -109,7 +122,7 @@ impl OwnedReceiveTransmitMemoryRingQueues
 	///
 	/// A potential bug: ***`queue_identifier` is not checked to see if it used by another instance of `SharedReceiveTransmitMemoryRingQueues`.***.
 	/// Adding such a check is possible using a `RefCell<Vec<QueueIdentifier>>` field but is tedious.
-	pub fn share(&self, network_interface_index: NetworkInterfaceIndex, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth>, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<SharedReceiveTransmitMemoryRingQueues, AttachProgramError>
+	pub fn share(&self, network_interface_index: NetworkInterfaceIndex, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth>, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<SharedReceiveTransmitMemoryRingQueues, AttachProgramError>
 	{
 		debug_assert_ne!(queue_identifier, self.queue_identifier, "Re-use of owned queue identifier is not permitted");
 		
@@ -134,7 +147,7 @@ impl OwnedReceiveTransmitMemoryRingQueues
 	}
 	
 	/// Based on `libbpf`'s `xsk_socket__create()`.
-	fn construct(user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, network_interface_index: NetworkInterfaceIndex, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth>, sxdp_flags: XdpSocketAddressFlags, sxdp_shared_umem_fd: RawFd, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<ReceiveOrTransmitOrBoth<XskRingQueue>, SocketBindError>
+	fn construct(user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, network_interface_index: NetworkInterfaceIndex, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth>, sxdp_flags: XdpSocketAddressFlags, sxdp_shared_umem_fd: RawFd, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<ReceiveOrTransmitOrBoth<XskRingQueue<ConsumerXskRingQueueKind, xdp_desc>, XskRingQueue<ProducerXskRingQueueKind, xdp_desc>>, SocketBindError>
 	{
 		ring_queue_depths.use_value
 		(

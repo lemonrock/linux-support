@@ -10,10 +10,10 @@ bitflags!
 		const SharedUserMemory = XDP_SHARED_UMEM;
 		
 		/// Force copy-mode.
-		const Copy = XDP_COPY;
+		const ForceCopy = XDP_COPY;
 		
 		/// Force zero-copy mode.
-		const ZeroCopy = XDP_ZEROCOPY;
+		const ForceZeroCopy = XDP_ZEROCOPY;
 		
 		/// If this option is set, the driver might go sleep and in that case the `XDP_RING_NEED_WAKEUP` flag in the fill and/or Tx rings will be set.
 		/// If it is set, the application need to explicitly wake up the driver with a `poll()` (Rx and Tx) or `sendto()` (Tx only).

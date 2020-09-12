@@ -10,9 +10,7 @@ pub struct SharedReceiveTransmitMemoryRingQueues<'shared>
 	
 	xdp_extended_bpf_program: &'shared RedirectMapAndAttachedProgram,
 	
-	/// receive is `xsk_ring_cons`.
-	/// transmit is `xsk_ring_prod`.
-	receive_and_transmit: ManuallyDrop<ReceiveOrTransmitOrBoth<XskRingQueue>>,
+	receive_and_transmit: ManuallyDrop<ReceiveOrTransmitOrBoth<XskRingQueue<ConsumerXskRingQueueKind, xdp_desc>, XskRingQueue<ProducerXskRingQueueKind, xdp_desc>>>,
 	
 	xsk_socket_file_descriptor: ManuallyDrop<ExpressDataPathSocketFileDescriptor>,
 	
@@ -51,7 +49,7 @@ impl Deref for SharedReceiveTransmitMemoryRingQueues<'_>
 impl ReceiveTransmitMemoryRingQueues for SharedReceiveTransmitMemoryRingQueues<'_>
 {
 	#[inline(always)]
-	fn user_memory_and_receive_transmit(&self) -> (&UserMemory, &ReceiveOrTransmitOrBoth<XskRingQueue>)
+	fn user_memory_and_receive_transmit(&self) -> (&UserMemory, &ReceiveOrTransmitOrBoth<XskRingQueue<ConsumerXskRingQueueKind, xdp_desc>, XskRingQueue<ProducerXskRingQueueKind, xdp_desc>>)
 	{
 		(self.user_memory, &self.receive_and_transmit)
 	}

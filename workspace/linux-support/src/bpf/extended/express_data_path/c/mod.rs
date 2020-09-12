@@ -42,4 +42,5 @@ include!("XdpDiagnosticUserMemoryFlags.rs");
 include!("XdpOptionsFlags.rs");
 include!("XdpSocketAddressFlags.rs");
 include!("XdpUmemRegFlags.rs");
+include!("XSK_UMEM__DEFAULT_FRAME_HEADROOM.rs");
 include!("XSK_UNALIGNED_BUF_.rs");

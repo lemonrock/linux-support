@@ -2,7 +2,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(super) const XSK_UNALIGNED_BUF_OFFSET_SHIFT: u64 = 48;
+/// `xsk_ring_prod`.
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct ProducerXskRingQueueKind;
 
-/// Mask for unaligned chunks mode.
-pub(super) const XSK_UNALIGNED_BUF_ADDR_MASK: u64 = (1 << XSK_UNALIGNED_BUF_OFFSET_SHIFT) - 1;
+impl XskRingQueueKind for ProducerXskRingQueueKind
+{
+	const UseRingQueueDepthForConsumer: bool = true;
+}

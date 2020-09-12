@@ -37,7 +37,7 @@ impl xdp_ring_offset
 	}
 	
 	#[inline(always)]
-	pub(crate) fn ring_pointer(&self, ring_mapped_memory: &MappedMemory) -> *mut u8
+	pub(crate) fn ring_pointer<D: Descriptor>(&self, ring_mapped_memory: &MappedMemory) -> *mut D
 	{
 		ring_mapped_memory.virtual_address().add(self.desc).into()
 	}

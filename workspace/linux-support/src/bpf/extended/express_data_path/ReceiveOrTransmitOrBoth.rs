@@ -4,19 +4,19 @@
 
 /// Receive, transmit or both.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum ReceiveOrTransmitOrBoth<V>
+pub enum ReceiveOrTransmitOrBoth<R, T>
 {
 	/// Receive.
-	Receive(V),
+	Receive(R),
 	
 	/// Other.
-	Transmit(V),
+	Transmit(T),
 	
 	/// Both.
-	Both(V, V),
+	Both(R, T),
 }
 
-impl<V> ReceiveOrTransmitOrBoth<V>
+impl<R, T> ReceiveOrTransmitOrBoth<R, T>
 {
 	#[allow(missing_docs)]
 	#[inline(always)]
@@ -30,10 +30,13 @@ impl<V> ReceiveOrTransmitOrBoth<V>
 			&Transmit(_) => false,
 		}
 	}
-	
+}
+
+impl<R, T> ReceiveOrTransmitOrBoth<R, T>
+{
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn use_value<MappedV>(&self, use_receive: impl FnOnce(&V) -> MappedV, use_transmit: impl FnOnce(&V) -> MappedV) -> ReceiveOrTransmitOrBoth<MappedV>
+	pub fn use_value<MappedR, MappedT>(&self, use_receive: impl FnOnce(&R) -> MappedR, use_transmit: impl FnOnce(&T) -> MappedT) -> ReceiveOrTransmitOrBoth<MappedR, MappedT>
 	{
 		use self::ReceiveOrTransmitOrBoth::*;
 		
@@ -47,7 +50,7 @@ impl<V> ReceiveOrTransmitOrBoth<V>
 	
 	#[allow(missing_docs)]
 	#[inline(always)]
-	pub fn map<MappedV>(self, map_receive: impl FnOnce(V) -> MappedV, map_transmit: impl FnOnce(V) -> MappedV) -> ReceiveOrTransmitOrBoth<MappedV>
+	pub fn map<MappedR, MappedT>(self, map_receive: impl FnOnce(R) -> MappedR, map_transmit: impl FnOnce(T) -> MappedT) -> ReceiveOrTransmitOrBoth<MappedR, MappedT>
 	{
 		use self::ReceiveOrTransmitOrBoth::*;
 		

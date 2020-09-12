@@ -372,14 +372,14 @@ impl MappedMemory
 		let length_to_remove = self.length_to_remove(pages_to_remove);
 		
 		drop
-			(
-				Self
-				{
-					virtual_address: self.virtual_address,
-					size: length_to_remove,
-					page_size: self.page_size,
-				}
-			);
+		(
+			Self
+			{
+				virtual_address: self.virtual_address,
+				size: length_to_remove,
+				page_size: self.page_size,
+			}
+		);
 		self.virtual_address = self.virtual_address.offset_in_bytes(length_to_remove);
 		self.size -= length_to_remove;
 	}

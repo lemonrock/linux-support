@@ -3,6 +3,7 @@
 
 
 use self::c::*;
+use self::ring_queues::*;
 use super::*;
 use super::identifiers::*;
 use super::instructions::*;
@@ -19,7 +20,7 @@ use crate::file_descriptors::netlink::NetlinkSocketFileDescriptor;
 use crate::file_descriptors::netlink::route::RouteNetlinkProtocol;
 use crate::file_descriptors::socket::*;
 use crate::file_descriptors::socket::c::*;
-use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
+use crate::memory::huge_pages::{DefaultPageSizeAndHugePageSizes, HugePageSize};
 use crate::memory::mapping::*;
 use crate::network_device::*;
 use crate::bpf::c::bpf_prog_type;
@@ -29,9 +30,14 @@ use crate::file_descriptors::netlink::route::get_link::GetLinkMessageData;
 pub(crate) mod c;
 
 
+/// Ring queues.
+pub mod ring_queues;
+
+
 include!("AttachMode.rs");
 include!("AttachProgramError.rs");
 include!("Descriptor.rs");
+include!("FrameHeadroom.rs");
 include!("FrameSize.rs");
 include!("OwnedReceiveTransmitMemoryRingQueues.rs");
 include!("OwnedRedirectMapAndAttachedProgramSettings.rs");
@@ -44,4 +50,5 @@ include!("SharedReceiveTransmitMemoryRingQueues.rs");
 include!("UmemDescriptor.rs");
 include!("UpdateMode.rs");
 include!("UserMemory.rs");
-include!("XskRingQueue.rs");
+include!("UserMemoryArea.rs");
+include!("UserMemoryAreaRelativeAddress.rs");

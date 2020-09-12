@@ -34,16 +34,19 @@ impl nlattr
 	}
 	
 	/// A 14-bit value.
+	#[allow(dead_code)]
 	const fn attribute_type(self) -> u16
 	{
 		self.nla_type & Self::NLA_TYPE_MASK
 	}
 	
+	#[allow(dead_code)]
 	const fn is_nested(self) -> bool
 	{
 		self.nla_type & Self::NLA_F_NESTED != 0
 	}
 	
+	#[allow(dead_code)]
 	const fn payload_is_stored_in_network_byte_order(self) -> bool
 	{
 		self.nla_type & Self::NLA_F_NET_BYTEORDER != 0
