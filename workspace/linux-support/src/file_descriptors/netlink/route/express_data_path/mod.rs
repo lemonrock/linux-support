@@ -4,9 +4,12 @@
 
 use super::*;
 use crate::bpf::extended::identifiers::*;
-use crate::bpf::extended::express_data_path::c::{xdp_diag_info, xdp_diag_msg, xdp_diag_umem, xdp_diag_stats};
-use crate::user_and_groups::UserIdentifier;
+use crate::express_data_path::c::xdp_diag_info;
+use crate::express_data_path::c::xdp_diag_msg;
+use crate::express_data_path::c::xdp_diag_stats;
+use crate::express_data_path::c::xdp_diag_umem;
 use crate::inode::Inode;
+use crate::user_and_groups::UserIdentifier;
 
 
 include!("ExpressDataPathGetLinkMessageData.rs");

@@ -22,6 +22,7 @@ impl UserMemory
 	/// Based on `libbpf`'s `xsk_umem__create_v0_0_4()` (also known as `xsk_umem__create()`) in Linux source `tools/lib/bpf/xsk.c` and also `main()` and `xsk_configure_umem()` in Linux source `samples/bpf/xdp_sockuser.c`.
 	///
 	/// If flags contains `XdpUmemRegFlags::UnalignedFrames`, then `huge_memory_page_size` can not be `None`.
+	/// `number_of_frames` might be 4096.
 	pub fn new(number_of_frames: NonZeroU64, frame_size: FrameSize, frame_headroom: FrameHeadroom, flags: XdpUmemRegFlags, fill_ring_queue_depth: RingQueueDepth, completion_ring_queue_depth: RingQueueDepth, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, CreationError>
 	{
 		if cfg!(debug_assertions)

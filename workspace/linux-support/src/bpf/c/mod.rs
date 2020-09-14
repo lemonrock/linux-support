@@ -10,17 +10,17 @@ use super::extended::instructions::*;
 use super::extended::instructions::LoadSize::*;
 use super::extended::maps::domain::*;
 use super::extended::programs::*;
+use super::extended::maps::domain::access_permissions::KernelOnlyAccessPermissions;
+use crate::express_data_path::AttachMode;
+use crate::file_descriptors::bpf::BpfFileDescriptor;
+use crate::file_descriptors::bpf::MapFileDescriptor;
 use crate::inode::Inode;
 use crate::network_device::NetworkInterfaceIndex;
 use crate::syscall::SYS;
 use crate::user_and_groups::UserIdentifier;
-use crate::bpf::extended::maps::domain::access_permissions::KernelOnlyAccessPermissions;
-use crate::file_descriptors::bpf::{BpfFileDescriptor, MapFileDescriptor};
-use crate::bpf::extended::express_data_path::AttachMode;
 
 
-include!("AlignedU64.rs");
-include!("ArrayOfElementsWhoseSizeVariesByLinuxVersion.rs");
+include!("AlignedU64.rs");include!("ArrayOfElementsWhoseSizeVariesByLinuxVersion.rs");
 include!("bpf.rs");
 include!("BPF_.rs");
 include!("bpf_attach_type.rs");

@@ -13,7 +13,7 @@ use self::receive_side_scaling::*;
 use self::string_sets::*;
 use self::tunables::*;
 use self::wake_on_lan::WakeOnLanInformation;
-use crate::bpf::extended::express_data_path::QueueIdentifier;
+use crate::express_data_path::QueueIdentifier;
 use crate::bpf::extended::maps::express_data_path_redirect::QueueDepth;
 use crate::file_descriptors::*;
 use crate::file_descriptors::network_device::*;

@@ -850,7 +850,12 @@ pub mod diagnostics;
 pub mod environment;
 
 
-pub(crate) mod network_device;
+/// Network devices.
+pub mod network_device;
+
+
+/// eXpress Data Path (XDP).
+pub mod express_data_path;
 
 
 /// Extended file attributes.

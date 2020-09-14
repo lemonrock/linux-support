@@ -36,5 +36,6 @@ impl From<Vec<u8>> for BinaryData640
 
 impl BinaryData640
 {
+	/// Large page size of 640 bytes.
 	pub const LargeSize: usize = 640;
 }

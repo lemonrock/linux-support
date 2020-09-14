@@ -8,14 +8,14 @@ use super::directory::AccessPermissions;
 use super::file::SendFile;
 use super::pipes_and_fifos::SpliceRecipient;
 use super::pipes_and_fifos::SpliceSender;
-use crate::bpf::extended::express_data_path::*;
-use crate::bpf::extended::express_data_path::c::*;
 use crate::cpu::HyperThread;
+use crate::express_data_path::*;
+use crate::express_data_path::c::*;
 use crate::memory::NumberOfPages;
+use crate::network_device::queuing_discipline::QueuingDisciplineSendPriority;
 use crate::paths::PathExt;
 use crate::process::*;
 use crate::user_and_groups::*;
-use crate::network_device::queuing_discipline::QueuingDisciplineSendPriority;
 
 
 /// Contains essential data structures.

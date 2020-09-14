@@ -3,31 +3,39 @@
 
 
 use self::c::*;
+use self::descriptors::*;
 use self::ring_queues::*;
 use super::*;
-use super::identifiers::*;
-use super::instructions::*;
-use super::instructions::file_descriptors_map::*;
-use super::instructions::offset::memory::VariableSlotU64;
-use super::maps::domain::*;
-use super::maps::domain::access_permissions::ExpressDataPathAccessPermissions;
-use super::maps::express_data_path_redirect::*;
-use super::programs::*;
-use super::programs::program_type::*;
+use crate::bpf::c::bpf_func_id;
+use crate::bpf::c::bpf_prog_type;
+use crate::bpf::c::ValidateAttachModeError;
+use crate::bpf::extended::identifiers::*;
+use crate::bpf::extended::instructions::*;
+use crate::bpf::extended::instructions::file_descriptors_map::*;
+use crate::bpf::extended::instructions::offset::memory::VariableSlotU64;
+use crate::bpf::extended::maps::domain::*;
+use crate::bpf::extended::maps::domain::access_permissions::ExpressDataPathAccessPermissions;
+use crate::bpf::extended::maps::express_data_path_redirect::*;
+use crate::bpf::extended::programs::*;
+use crate::bpf::extended::programs::program_type::*;
 use crate::file_descriptors::*;
 use crate::file_descriptors::bpf::*;
 use crate::file_descriptors::netlink::NetlinkSocketFileDescriptor;
 use crate::file_descriptors::netlink::route::RouteNetlinkProtocol;
+use crate::file_descriptors::netlink::route::get_link::GetLinkMessageData;
 use crate::file_descriptors::socket::*;
 use crate::file_descriptors::socket::c::*;
-use crate::memory::huge_pages::{DefaultPageSizeAndHugePageSizes, HugePageSize};
+use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
+use crate::memory::huge_pages::HugePageSize;
 use crate::memory::mapping::*;
 use crate::network_device::*;
-use crate::bpf::c::bpf_prog_type;
-use crate::file_descriptors::netlink::route::get_link::GetLinkMessageData;
 
 
 pub(crate) mod c;
+
+
+/// Descriptors.
+pub mod descriptors;
 
 
 /// Ring queues.
@@ -36,7 +44,6 @@ pub mod ring_queues;
 
 include!("AttachMode.rs");
 include!("AttachProgramError.rs");
-include!("Descriptor.rs");
 include!("FrameHeadroom.rs");
 include!("FrameSize.rs");
 include!("OwnedReceiveTransmitMemoryRingQueues.rs");
@@ -47,7 +54,6 @@ include!("ReceiveTransmitMemoryRingQueues.rs");
 include!("RedirectMapAndAttachedProgram.rs");
 include!("RingQueueDepth.rs");
 include!("SharedReceiveTransmitMemoryRingQueues.rs");
-include!("UmemDescriptor.rs");
 include!("UpdateMode.rs");
 include!("UserMemory.rs");
 include!("UserMemoryArea.rs");

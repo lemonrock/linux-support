@@ -35,5 +35,6 @@ impl From<Vec<u8>> for BinaryData256
 
 impl BinaryData256
 {
+	/// Page size of 256 bytes.
 	pub const PageSize: usize = 256;
 }

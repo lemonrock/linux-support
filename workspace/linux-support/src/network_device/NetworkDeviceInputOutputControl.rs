@@ -181,6 +181,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		)
 	}
 	
+	/// Is the link up?
 	pub fn link_is_up(&self) -> Result<Option<Option<bool>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
 	{
 		self.ethtool_command
@@ -196,6 +197,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		)
 	}
 	
+	/// Link timestamping.
 	pub fn timestamping(&self) -> Result<Option<Option<NetworkDeviceTimestampingInformation>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
 	{
 		self.ethtool_command
@@ -220,6 +222,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		)
 	}
 	
+	/// Device register dump.
 	pub fn registers(&self, driver_and_device_information: &DriverAndDeviceInformation) -> Result<Option<Option<NetworkDeviceRegisters>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
 	{
 		let length = match driver_and_device_information.device_registers_blob_size_in_bytes
@@ -243,6 +246,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		)
 	}
 	
+	/// Device expansion EEPROM data.
 	pub fn expansion_eeprom(&self, driver_and_device_information: &DriverAndDeviceInformation) -> Result<Option<Option<ExpansionEepromBinaryData>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
 	{
 		let length = match driver_and_device_information.device_eeprom_blob_size_in_bytes
@@ -267,6 +271,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		)
 	}
 	
+	/// Device plugin module EEPROM data.
 	pub fn plugin_module_eeprom(&self) -> Result<Option<Option<PluginModuleEepromBinaryData>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
 	{
 		let (type_, length) = match self.ethtool_command
@@ -332,6 +337,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		}
 	}
 	
+	/// Device firmware.
 	pub fn firmware(&self, driver_and_device_information: &DriverAndDeviceInformation) -> Result<Option<Option<NetworkDeviceFirmware>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
 	{
 		let device_firmware_version = driver_and_device_information.device_firmware_version.clone();
@@ -368,11 +374,13 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		}
 	}
 	
+	/// Device NIC statistics.
 	pub fn nic_statistics(&self, all_string_sets: &AllStringSets)-> Result<Option<Option<HashMap<ObjectName32, u64>>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
 	{
 		self.raw_statistics(all_string_sets, ethtool_stringset::ETH_SS_STATS, ETHTOOL_GSTATS)
 	}
 	
+	/// Device PHY statistics.
 	pub fn phy_statistics(&self, all_string_sets: &AllStringSets) -> Result<Option<Option<HashMap<ObjectName32, u64>>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
 	{
 		self.raw_statistics(all_string_sets, ethtool_stringset::ETH_SS_PHY_STATS, ETHTOOL_GPHYSTATS)
@@ -637,6 +645,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		)
 	}
 	
+	/// A new RSS context.
 	pub fn new_configured_hash_settings_in_new_context(&self, configured_hash_settings: &ConfiguredHashSettings) -> Result<Option<Option<ContextIdentifier>>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		self.ethtool_command
@@ -648,6 +657,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		)
 	}
 	
+	/// Set RSS settings.
 	pub fn set_configured_hash_settings(&self, context_identifier: Option<ContextIdentifier>, configured_hash_settings: &ConfiguredHashSettings) -> Result<Option<bool>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		match self.ethtool_command
@@ -951,6 +961,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		)
 	}
 	
+	/// Device driver private flags.
 	#[inline(always)]
 	pub fn private_flags(&self, all_string_sets: &AllStringSets) -> Result<Option<HashSet<ObjectName32>>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
@@ -1254,7 +1265,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		)
 	}
 	
-	// Wake-on-LAN.
+	/// Wake-on-LAN.
 	#[inline(always)]
 	pub fn wake_on_lan(&self) -> Result<Option<Option<WakeOnLanInformation>>, NetworkDeviceInputOutputControlError<Infallible>>
 	{

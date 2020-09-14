@@ -5,12 +5,12 @@
 use super::*;
 use crate::bpf::extended::identifiers::ExtendedBpfProgramIdentifier;
 use crate::network_device::HardwareAddress;
-use crate::bpf::extended::express_data_path::c::xdp_diag_info;
-use crate::bpf::extended::express_data_path::c::XDP_DIAG;
-use crate::bpf::extended::express_data_path::c::xdp_diag_msg;
-use crate::bpf::extended::express_data_path::c::xdp_diag_req;
-use crate::bpf::extended::express_data_path::c::xdp_diag_umem;
-use crate::bpf::extended::express_data_path::c::xdp_diag_stats;
+use crate::express_data_path::c::xdp_diag_info;
+use crate::express_data_path::c::XDP_DIAG;
+use crate::express_data_path::c::xdp_diag_msg;
+use crate::express_data_path::c::xdp_diag_req;
+use crate::express_data_path::c::xdp_diag_umem;
+use crate::express_data_path::c::xdp_diag_stats;
 
 
 include!("GetAddressMessageProcessor.rs");include!("GetExpressDataPathDiagnosticsMessageProcessor.rs");

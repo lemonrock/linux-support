@@ -66,7 +66,6 @@ impl ExpressDataPathSocketFileDescriptor
 	///
 	/// Makes a syscall.
 	#[inline(always)]
-	#[allow(deprecated)]
 	pub(crate) fn statistics(&self) -> xdp_statistics
 	{
 		self.get_xdp_socket_option(XDP_STATISTICS, false)
@@ -76,7 +75,6 @@ impl ExpressDataPathSocketFileDescriptor
 	///
 	/// Makes a syscall.
 	#[inline(always)]
-	#[allow(deprecated)]
 	pub(crate) fn options(&self) -> xdp_options
 	{
 		self.get_xdp_socket_option(XDP_OPTIONS, false)
@@ -91,7 +89,6 @@ impl ExpressDataPathSocketFileDescriptor
 	}
 	
 	#[inline(always)]
-	#[allow(deprecated)]
 	pub(crate) fn get_memory_map_offsets(&self) -> xdp_mmap_offsets
 	{
 		self.get_xdp_socket_option(XDP_MMAP_OFFSETS, true)

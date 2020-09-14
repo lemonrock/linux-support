@@ -9,7 +9,7 @@ use self::reply_receivers::*;
 use self::reply_receivers::message_processors::*;
 use super::*;
 use super::attributes::*;
-use crate::bpf::extended::express_data_path::*;
+use crate::express_data_path::*;
 use crate::file_descriptors::bpf::ExtendedBpfProgramFileDescriptor;
 use crate::network_device::NetworkInterfaceIndex;
 

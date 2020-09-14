@@ -37,42 +37,59 @@ impl TryFrom<u32> for SPEED
 
 impl SPEED
 {
+	/// Is unknown.
 	#[inline(always)]
 	pub fn is_unknown(self) -> bool
 	{
 		self == Self::SPEED_UNKNOWN
 	}
 	
+	/// 10 Mbit/s.
 	pub const SPEED_10: Self = Self(10);
 	
+	/// 100 Mbit/s.
 	pub const SPEED_100: Self = Self(100);
 	
+	/// 1 Gbit/s.
 	pub const SPEED_1000: Self = Self(1_000);
 	
+	/// 2·5 Gbit/s.
 	pub const SPEED_2500: Self = Self(2_500);
 	
+	/// 5 Gbit/s.
 	pub const SPEED_5000: Self = Self(5_000);
 	
+	/// 10 Gbit/s.
 	pub const SPEED_10000: Self = Self(10_000);
 	
+	/// 14 Gbit/s.
 	pub const SPEED_14000: Self = Self(14_000);
 	
+	/// 20 Gbit/s.
 	pub const SPEED_20000: Self = Self(20_000);
 	
+	/// 25 Gbit/s.
 	pub const SPEED_25000: Self = Self(25_000);
 	
+	/// 40 Gbit/s.
 	pub const SPEED_40000: Self = Self(40_000);
 	
+	/// 50 Gbit/s.
 	pub const SPEED_50000: Self = Self(50_000);
 	
+	/// 56 Gbit/s.
 	pub const SPEED_56000: Self = Self(56_000);
 	
+	/// 100 Gbit/s.
 	pub const SPEED_100000: Self = Self(100_000);
 	
+	/// 200 Gbit/s.
 	pub const SPEED_200000: Self = Self(200_000);
 	
+	/// 400 Gbit/s.
 	pub const SPEED_400000: Self = Self(400_000);
 	
+	/// Unknown.
 	pub const SPEED_UNKNOWN: Self = Self(-1);
 }
 

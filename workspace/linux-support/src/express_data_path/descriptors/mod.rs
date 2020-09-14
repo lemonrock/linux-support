@@ -2,16 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[allow(missing_docs)]
-mod missing_docs_hack_because_big_array_does_not_allow_doc_comments
-{
-	use super::*;
-	
-	big_array!
-	{
-		PluginModuleBigArray;
-		256, 640,
-	}
-}
+use super::*;
 
-pub use missing_docs_hack_because_big_array_does_not_allow_doc_comments::PluginModuleBigArray;
+
+include!("Descriptor.rs");
+include!("UmemDescriptor.rs");
+include!("xdp_desc.rs");

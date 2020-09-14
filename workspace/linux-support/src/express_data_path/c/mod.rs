@@ -5,9 +5,9 @@
 use super::*;
 use crate::memory::mapping::MappedMemory;
 use crate::network_device::NetworkInterfaceIndex;
-use super::instructions::offset::memory::*;
-use super::extended::instructions::offset::*;
-use super::extended::instructions::offset::immediate::*;
+use crate::bpf::extended::instructions::offset::memory::*;
+use crate::bpf::extended::instructions::offset::*;
+use crate::bpf::extended::instructions::offset::immediate::*;
 use crate::file_descriptors::netlink::request::NetlinkRequestMessageBody;
 use crate::file_descriptors::netlink::attributes::NetlinkAttributeType;
 
@@ -18,7 +18,6 @@ include!("XDP_.sxdp_flags.rs");
 include!("XDP_.xdp_umem_reg.rs");
 include!("xdp_action.rs");
 include!("XDP_DIAG.rs");
-include!("xdp_desc.rs");
 include!("xdp_diag_msg.rs");
 include!("xdp_diag_info.rs");
 include!("xdp_diag_req.rs");

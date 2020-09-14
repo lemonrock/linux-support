@@ -33,8 +33,4 @@ pub mod process_query;
 pub mod programs;
 
 
-/// eXpress Data Path (XDP).
-pub mod express_data_path;
-
-
 include!("BpfMountPoint.rs");

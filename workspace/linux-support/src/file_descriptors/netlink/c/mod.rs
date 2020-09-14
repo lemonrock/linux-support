@@ -8,8 +8,8 @@ use super::route::get_address::*;
 use crate::bpf::extended::identifiers::ExtendedBpfProgramIdentifier;
 use crate::network_device::*;
 use crate::network_device::c::*;
-use crate::bpf::extended::express_data_path::c::XDP_DIAG;
-use crate::bpf::extended::express_data_path::c::xdp_diag_ring;
+use crate::express_data_path::c::XDP_DIAG;
+use crate::express_data_path::c::xdp_diag_ring;
 use crate::user_and_groups::UserIdentifier;
 
 
