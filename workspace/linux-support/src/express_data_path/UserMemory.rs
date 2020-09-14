@@ -23,7 +23,7 @@ impl UserMemory
 	///
 	/// If flags contains `XdpUmemRegFlags::UnalignedFrames`, then `huge_memory_page_size` can not be `None`.
 	/// `number_of_frames` might be 4096.
-	pub fn new(number_of_frames: NonZeroU64, frame_size: FrameSize, frame_headroom: FrameHeadroom, flags: XdpUmemRegFlags, fill_ring_queue_depth: RingQueueDepth, completion_ring_queue_depth: RingQueueDepth, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, CreationError>
+	fn new(number_of_frames: NonZeroU64, frame_size: FrameSize, frame_headroom: FrameHeadroom, flags: XdpUmemRegFlags, fill_ring_queue_depth: RingQueueDepth, completion_ring_queue_depth: RingQueueDepth, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, AttachProgramError>
 	{
 		if cfg!(debug_assertions)
 		{
@@ -35,7 +35,7 @@ impl UserMemory
 		
 		let user_memory = UserMemoryArea::new(number_of_frames, frame_size, huge_memory_page_size, defaults)?;
 		
-		let user_memory_socket_file_descriptor = ExpressDataPathSocketFileDescriptor::new()?;
+		let user_memory_socket_file_descriptor = ExpressDataPathSocketFileDescriptor::new().map_err(AttachProgramError::CouldNotCreateUserMemorySocketFileDescriptor)?;
 		let configuration = xdp_umem_reg::new(&user_memory, frame_size, frame_headroom, flags);
 		user_memory_socket_file_descriptor.register_user_space_memory(&configuration, fill_ring_queue_depth, completion_ring_queue_depth);
 		let memory_map_offsets = user_memory_socket_file_descriptor.get_memory_map_offsets();
@@ -56,22 +56,8 @@ impl UserMemory
 	///
 	/// `needs_wake_up` should normally be `true`.
 	#[inline(always)]
-	pub fn to_receive_transmit(self, xdp_extended_bpf_program: Either<OwnedRedirectMapAndAttachedProgramSettings, RedirectMapAndAttachedProgram>, network_interface_index: NetworkInterfaceIndex, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth>, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes, force_copy: bool, force_zero_copy: bool, needs_wake_up: bool) -> Result<OwnedReceiveTransmitMemoryRingQueues, AttachProgramError>
+	fn to_owned_receive_transmit_memory_ring_queues(self, xdp_extended_bpf_program: Either<OwnedRedirectMapAndAttachedProgramSettings, RedirectMapAndAttachedProgram>, network_interface_index: NetworkInterfaceIndex, ring_queue_depths: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth>, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes, force_copy: bool, force_zero_copy: bool, needs_wake_up: bool) -> Result<OwnedReceiveTransmitMemoryRingQueues, AttachProgramError>
 	{
-		OwnedReceiveTransmitMemoryRingQueues::new(self, xdp_extended_bpf_program, network_interface_index, ring_queue_depths, queue_identifier, defaults, force_copy, force_zero_copy, needs_wake_up)
-	}
-	
-	/// Statistics.
-	#[inline(always)]
-	pub fn statistics(&self) -> xdp_statistics
-	{
-		self.user_memory_socket_file_descriptor.statistics()
-	}
-	
-	/// Options.
-	#[inline(always)]
-	pub fn options(&self) -> xdp_options
-	{
-		self.user_memory_socket_file_descriptor.options()
+		OwnedReceiveTransmitMemoryRingQueues::from_user_memory(self, xdp_extended_bpf_program, network_interface_index, ring_queue_depths, queue_identifier, defaults, force_copy, force_zero_copy, needs_wake_up)
 	}
 }

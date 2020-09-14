@@ -12,7 +12,7 @@ pub struct SharedReceiveTransmitMemoryRingQueues<'shared>
 	
 	receive_and_transmit: ManuallyDrop<ReceiveOrTransmitOrBoth<XskRingQueue<ConsumerXskRingQueueKind, xdp_desc>, XskRingQueue<ProducerXskRingQueueKind, xdp_desc>>>,
 	
-	xsk_socket_file_descriptor: ManuallyDrop<ExpressDataPathSocketFileDescriptor>,
+	express_data_path_socket_file_descriptor: ManuallyDrop<ExpressDataPathSocketFileDescriptor>,
 	
 	queue_identifier: QueueIdentifier,
 }
@@ -29,7 +29,7 @@ impl Drop for SharedReceiveTransmitMemoryRingQueues<'_>
 		
 		unsafe
 		{
-			ManuallyDrop::drop(&mut self.xsk_socket_file_descriptor);
+			ManuallyDrop::drop(&mut self.express_data_path_socket_file_descriptor);
 			ManuallyDrop::drop(&mut self.receive_and_transmit);
 		}
 	}
@@ -49,25 +49,22 @@ impl Deref for SharedReceiveTransmitMemoryRingQueues<'_>
 impl ReceiveTransmitMemoryRingQueues for SharedReceiveTransmitMemoryRingQueues<'_>
 {
 	#[inline(always)]
-	fn user_memory_and_receive_transmit(&self) -> (&UserMemory, &ReceiveOrTransmitOrBoth<XskRingQueue<ConsumerXskRingQueueKind, xdp_desc>, XskRingQueue<ProducerXskRingQueueKind, xdp_desc>>)
+	fn receive_transmit(&self) -> &ReceiveOrTransmitOrBoth<XskRingQueue<ConsumerXskRingQueueKind, xdp_desc>, XskRingQueue<ProducerXskRingQueueKind, xdp_desc>>
 	{
-		(self.user_memory, &self.receive_and_transmit)
-	}
-}
-
-impl SharedReceiveTransmitMemoryRingQueues<'_>
-{
-	/// XSK statistics.
-	#[inline(always)]
-	pub fn xsk_statistics(&self) -> xdp_statistics
-	{
-		self.xsk_socket_file_descriptor.statistics()
+		&self.receive_and_transmit
 	}
 	
-	/// XSK options.
+	/// Statistics.
 	#[inline(always)]
-	pub fn xsk_options(&self) -> xdp_options
+	fn statistics(&self) -> xdp_statistics
 	{
-		self.xsk_socket_file_descriptor.options()
+		self.express_data_path_socket_file_descriptor.statistics()
+	}
+	
+	/// Options.
+	#[inline(always)]
+	fn options(&self) -> xdp_options
+	{
+		self.express_data_path_socket_file_descriptor.options()
 	}
 }

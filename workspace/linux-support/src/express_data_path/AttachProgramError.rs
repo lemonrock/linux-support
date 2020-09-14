@@ -7,6 +7,9 @@
 pub enum AttachProgramError
 {
 	#[allow(missing_docs)]
+	CouldNotCreateUserMemorySocketFileDescriptor(CreationError),
+	
+	#[allow(missing_docs)]
 	NoSuchNetworkInterfaceIndex(NetworkInterfaceIndex),
 	
 	#[allow(missing_docs)]
@@ -82,6 +85,8 @@ impl error::Error for AttachProgramError
 		
 		match self
 		{
+			&CouldNotCreateUserMemorySocketFileDescriptor(ref error) => Some(error),
+			
 			&NoSuchNetworkInterfaceIndex(_) => None,
 			
 			&NoSuchNetworkInterfaceNameForNetworkInterfaceIndex(ref error) => Some(error),

@@ -4,6 +4,7 @@
 
 use self::c::*;
 use self::descriptors::*;
+use self::frames::*;
 use self::ring_queues::*;
 use super::*;
 use crate::bpf::c::bpf_func_id;
@@ -38,17 +39,18 @@ pub(crate) mod c;
 pub mod descriptors;
 
 
+/// Frames.
+pub mod frames;
+
+
 /// Ring queues.
 pub mod ring_queues;
 
 
 include!("AttachMode.rs");
 include!("AttachProgramError.rs");
-include!("FrameHeadroom.rs");
-include!("FrameSize.rs");
 include!("OwnedReceiveTransmitMemoryRingQueues.rs");
 include!("OwnedRedirectMapAndAttachedProgramSettings.rs");
-include!("QueueIdentifier.rs");
 include!("ReceiveOrTransmitOrBoth.rs");
 include!("ReceiveTransmitMemoryRingQueues.rs");
 include!("RedirectMapAndAttachedProgram.rs");

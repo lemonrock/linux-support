@@ -6,5 +6,11 @@
 pub trait ReceiveTransmitMemoryRingQueues: Deref<Target=UserMemory>
 {
 	/// Access common fields.
-	fn user_memory_and_receive_transmit(&self) -> (&UserMemory, &ReceiveOrTransmitOrBoth<XskRingQueue<ConsumerXskRingQueueKind, xdp_desc>, XskRingQueue<ProducerXskRingQueueKind, xdp_desc>>);
+	fn receive_transmit(&self) -> &ReceiveOrTransmitOrBoth<XskRingQueue<ConsumerXskRingQueueKind, xdp_desc>, XskRingQueue<ProducerXskRingQueueKind, xdp_desc>>;
+	
+	/// Statistics.
+	fn statistics(&self) -> xdp_statistics;
+	
+	/// Options.
+	fn options(&self) -> xdp_options;
 }

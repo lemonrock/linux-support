@@ -6,22 +6,26 @@ use super::*;
 use self::c::*;
 use self::c::commands::*;
 use self::coalescing::*;
+use self::eeprom::BinaryData256;
+use self::eeprom::BinaryData640;
+use self::eeprom::ExpansionEepromBinaryData;
+use self::eeprom::PluginModuleEepromBinaryData;
 use self::energy_efficient_ethernet::*;
 use self::features::*;
+use self::link_settings::LinkSettings;
+use self::link_settings::PortConnector;
+use self::link_settings::SpeedsPortConnectorsPausesAndForwardErrorConnectionsSettings;
 use self::pause::*;
 use self::receive_side_scaling::*;
 use self::string_sets::*;
 use self::tunables::*;
 use self::wake_on_lan::WakeOnLanInformation;
-use crate::express_data_path::QueueIdentifier;
 use crate::bpf::extended::maps::express_data_path_redirect::QueueDepth;
+use crate::diagnostics::UndocumentedError;
 use crate::file_descriptors::*;
 use crate::file_descriptors::network_device::*;
 use crate::paths::SysPath;
 use crate::user_and_groups::assert_effective_user_id_is_root;
-use crate::network_device::eeprom::{PluginModuleEepromBinaryData, ExpansionEepromBinaryData, BinaryData256, BinaryData640};
-use crate::diagnostics::UndocumentedError;
-use crate::network_device::link_settings::{LinkSettings, PortConnector, SpeedsPortConnectorsPausesAndForwardErrorConnectionsSettings};
 
 
 /// C.
@@ -74,8 +78,7 @@ pub mod tunables;
 pub mod wake_on_lan;
 
 
-include!("BusDeviceAddress.rs");
-include!("Channels.rs");
+include!("BusDeviceAddress.rs");include!("Channels.rs");
 include!("DeviceFeatures.rs");
 include!("DriverAndDeviceInformation.rs");
 include!("EnergyEfficientEthernetConfiguration.rs");
@@ -99,4 +102,5 @@ include!("PendingQueueDepths.rs");
 include!("PhysicalIdentifier.rs");
 include!("PhysicalIdentifierFromBytesError.rs");
 include!("QueueCount.rs");
+include!("QueueIdentifier.rs");
 include!("TransmissionQueueLengthOutRangeError.rs");

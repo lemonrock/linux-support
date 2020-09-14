@@ -20,7 +20,7 @@ impl RedirectMapAndAttachedProgram
 {
 	/// This test relies on the program's `ProgramName`, which, although unique, is a value that another process on Linux could have set for its XDP eBPF.
 	#[inline(always)]
-	pub fn is_our_owned_program_and_thus_can_not_be_shared(&self) -> bool
+	fn is_our_owned_program_and_thus_can_not_be_shared(&self) -> bool
 	{
 		self.attached_program_name == Self::our_owned_program_name()
 	}

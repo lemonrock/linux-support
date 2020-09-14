@@ -164,7 +164,7 @@ impl QueueCount
 	/// To queue identifier.
 	pub const fn to_queue_identifier(self) -> QueueIdentifier
 	{
-		QueueIdentifier(self.0.get() as u32)
+		QueueIdentifier((self.0.get() - 1) as u32)
 	}
 	
 	/// Try-from.
