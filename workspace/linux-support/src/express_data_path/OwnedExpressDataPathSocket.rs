@@ -8,7 +8,7 @@ pub struct OwnedExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDe
 {
 	user_memory: ManuallyDrop<UserMemory<CA>>,
 	
-	express_data_path_extended_bpf_program: ManuallyDrop<RedirectMapAndAttachedProgram>,
+	redirect_map_and_attached_program: ManuallyDrop<RedirectMapAndAttachedProgram>,
 
 	common: CommonSharedExpressDataPathSocket<ROTOB::To, RP>,
 	
@@ -21,13 +21,13 @@ impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceive
 	#[inline(always)]
 	fn drop(&mut self)
 	{
-		self.common.remove_receive_map_queue_identifier(&self.express_data_path_extended_bpf_program);
+		self.common.remove_receive_map_queue_identifier(&self.redirect_map_and_attached_program);
 		
 		unsafe
 		{
-			ManuallyDrop::drop(&mut self.express_data_path_extended_bpf_program);
 			ManuallyDrop::drop(&mut self.common);
 			ManuallyDrop::drop(&mut self.user_memory);
+			ManuallyDrop::drop(&mut self.redirect_map_and_attached_program);
 		}
 	}
 }
@@ -51,22 +51,37 @@ impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceive
 	{
 		&self.user_memory().user_memory_socket_file_descriptor
 	}
+	
+	#[inline(always)]
+	fn lock_fill_queue(&self)
+	{
+	}
+	
+	#[inline(always)]
+	fn unlock_fill_queue(&self)
+	{
+	}
+	
+	#[inline(always)]
+	fn lock_completion_queue(&self)
+	{
+	}
+	
+	#[inline(always)]
+	fn unlock_completion_queue(&self)
+	{
+	}
 }
 
 impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceiveOrTransmitOrBoth, RP: ReceivePoll, CA: ChunkAlignment> OwnedExpressDataPathSocket<ROTOB, RP, CA>
 {
-	// TODO: Shared sockets need locks for fill queue and completion queue.
-	// TODO: Merge `receive_poll_creator`.
 	// TODO: Sort out ring_queue_depths and chunk_size.
 	// TODO: Sort out frame_headroom (can be used for application-specific storage); need to check if xdp_desc.len includes frame headroom.
 		// TODO: Current logic creating a headroom slice seems WRONG;
 		// Looking at __xsk_rcv_zv it seems that xdp_desc.addr is after headroom.
-	// TODO: When we have dropped UserMemory, we should unload the XDP program attached to the network device.
-		// See `remove_xdp_program()` -> `bpf_set_link_xdp_fd(-1, XDP_FLAGS_UPDATE_IF_NOEXIST)
 	
 	/// If flags contains `XdpUmemRegFlags::UnalignedChunks`, then `huge_memory_page_size` can not be `None`.
 	///
-	/// `needs_wake_up` should normally be `true`.
 	/// `number_of_frames` should be `fill_ring_queue_depth` + `completion_ring_queue_depth`; if it is just `fill_ring_queue_depth` then at start up it will be impossible to transmit frames as all possible frames will have been 'gifted' to the Linux kernel.
 	/// However, if doing packet forwarding, `number_of_frames == fill_ring_queue_depth == completion_ring_queue_depth`.
 	///
@@ -75,7 +90,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceive
 	///
 	/// When this method returns, the inner `UserMemory`'s `fill_queue` is fully populated with (Ethernet) frames for receiving ethernet packets matching relative frame numbers `0` to `fill_ring_queue_depth - 1` having been 'gifted' to the Linux kernel.
 	#[inline(always)]
-	pub fn new(number_of_frames: NonZeroU32, chunk_size: ChunkSize, frame_headroom: FrameHeadroom, chunk_alignment: CA, fill_ring_queue_depth: RingQueueDepth, completion_ring_queue_depth: RingQueueDepth, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes, express_data_path_extended_bpf_program: Either<RedirectMapAndAttachedProgramSettings, RedirectMapAndAttachedProgram>, network_interface_name: NetworkInterfaceName, ring_queue_depths: ROTOB, receive_poll_creator: impl FnOnce(&ExpressDataPathSocketFileDescriptor) -> RP, queue_identifier: QueueIdentifier, force_copy: bool, force_zero_copy: bool, needs_wake_up: bool) -> Result<Self, ExpressDataPathSocketCreationError>
+	pub fn new(number_of_frames: NonZeroU32, chunk_size: ChunkSize, frame_headroom: FrameHeadroom, chunk_alignment: CA, fill_ring_queue_depth: RingQueueDepth, completion_ring_queue_depth: RingQueueDepth, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes, redirect_map_and_attached_program: Either<RedirectMapAndAttachedProgramSettings, RedirectMapAndAttachedProgram>, network_interface_name: NetworkInterfaceName, ring_queue_depths: ROTOB, receive_poll_creator: impl FnOnce(&ExpressDataPathSocketFileDescriptor) -> RP, queue_identifier: QueueIdentifier, force_copy: bool, force_zero_copy: bool) -> Result<Self, ExpressDataPathSocketCreationError>
 	{
 		use self::ExpressDataPathSocketCreationError::*;
 		
@@ -87,7 +102,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceive
 		
 		let user_memory = UserMemory::new::<ROTOB>(number_of_frames, chunk_size, frame_headroom, network_interface_maximum_transmission_unit_including_frame_check_sequence, chunk_alignment, fill_ring_queue_depth, completion_ring_queue_depth, huge_memory_page_size, defaults)?;
 		
-		Self::from_user_memory(user_memory, express_data_path_extended_bpf_program, network_interface_index, ring_queue_depths, receive_poll_creator, queue_identifier, defaults, force_copy, force_zero_copy, needs_wake_up)
+		Self::from_user_memory(user_memory, redirect_map_and_attached_program, network_interface_index, ring_queue_depths, receive_poll_creator, queue_identifier, defaults, force_copy, force_zero_copy)
 	}
 	
 	/// Treats `self` as master; returns a slave.
@@ -98,35 +113,28 @@ impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceive
 	/// The `express_data_path_extended_bpf_program` in use with `self` must be suitable for use with shared user memory; if not an error of `Err(AttachProgramError::AttachedXdpProgramNotSuitableForSharing)` is returned.
 	///
 	/// A potential bug: ***`queue_identifier` is not checked to see if it used by another instance of `SharedReceiveTransmitMemoryRingQueues`***.
-	/// Adding such a check is possible using a `RefCell<Vec<QueueIdentifier>>` field but is tedious.
-	pub fn share(&self, ring_queue_depths: ROTOB, receive_poll_creator: impl FnOnce(&ExpressDataPathSocketFileDescriptor) -> RP, queue_identifier: QueueIdentifier, force_copy: bool, force_zero_copy: bool, needs_wake_up: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<SharedExpressDataPathSocket<ROTOB::To, RP, CA>, ExpressDataPathSocketCreationError>
+	/// Adding such a check is possible but is tedious.
+	fn share(&self, ring_queue_depths: ROTOB, receive_poll_creator: impl FnOnce(&ExpressDataPathSocketFileDescriptor) -> RP, queue_identifier: QueueIdentifier, force_copy: bool, force_zero_copy: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<(CommonSharedExpressDataPathSocket<ROTOB::To, RP>, ManuallyDrop<ExpressDataPathSocketFileDescriptor>), ExpressDataPathSocketCreationError>
 	{
 		debug_assert_ne!(queue_identifier, self.queue_identifier, "Re-use of owned queue identifier is not permitted");
 		
 		use self::ExpressDataPathSocketCreationError::*;
 		
-		if self.express_data_path_extended_bpf_program.is_our_owned_program_and_thus_can_not_be_shared()
+		
+		if self.redirect_map_and_attached_program.is_our_owned_program_and_thus_can_not_be_shared()
 		{
 			return Err(AttachedXdpProgramNotSuitableForSharing)
 		}
 		
-		let sxdp_flags = XdpSocketAddressFlags::SharedUserMemory.sxdp_flags(force_copy, force_zero_copy, needs_wake_up);
+		let sxdp_flags = XdpSocketAddressFlags::SharedUserMemory.sxdp_flags(force_copy, force_zero_copy, true);
 		let express_data_path_socket_file_descriptor = ExpressDataPathSocketFileDescriptor::new().map_err(CouldNotCreateUserMemorySocketFileDescriptor)?;
 		let receive_and_transmit = Self::construct(&express_data_path_socket_file_descriptor, self.network_interface_index, ring_queue_depths, sxdp_flags, self.user_memory.user_memory_socket_file_descriptor(), queue_identifier, defaults)?;
 		
 		// Based on call to `enter_xsks_into_map()` in `main()` in Linux source `samples/bpf/xdpsock_user.c`.
-		self.express_data_path_extended_bpf_program.insert_into_redirect_map_if_receive::<ROTOB>(queue_identifier, &express_data_path_socket_file_descriptor)?;
+		self.redirect_map_and_attached_program.insert_into_redirect_map_if_receive::<ROTOB>(queue_identifier, &express_data_path_socket_file_descriptor)?;
 		
-		Ok
-		(
-			SharedExpressDataPathSocket
-			{
-				user_memory: &self.user_memory,
-				express_data_path_extended_bpf_program: &self.express_data_path_extended_bpf_program,
-				common: CommonSharedExpressDataPathSocket::new(receive_and_transmit, queue_identifier, needs_wake_up, receive_poll_creator(&express_data_path_socket_file_descriptor)),
-				express_data_path_socket_file_descriptor: ManuallyDrop::new(express_data_path_socket_file_descriptor),
-			}
-		)
+		Ok((CommonSharedExpressDataPathSocket::new(receive_and_transmit, queue_identifier, receive_poll_creator(&express_data_path_socket_file_descriptor)), ManuallyDrop::new(express_data_path_socket_file_descriptor)))
+		
 	}
 	
 	/// Calculate the maximum transmission unit (MTU) that can be supported by eXpress Data Path.
@@ -148,27 +156,27 @@ impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceive
 	}
 	
 	#[inline(always)]
-	fn from_user_memory(user_memory: UserMemory, express_data_path_extended_bpf_program: Either<RedirectMapAndAttachedProgramSettings, RedirectMapAndAttachedProgram>, network_interface_index: NetworkInterfaceIndex, ring_queue_depths: ROTOB, receive_poll_creator: impl FnOnce(&ExpressDataPathSocketFileDescriptor) -> RP, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes, force_copy: bool, force_zero_copy: bool, needs_wake_up: bool) -> Result<Self, ExpressDataPathSocketCreationError>
+	fn from_user_memory(user_memory: UserMemory, redirect_map_and_attached_program: Either<RedirectMapAndAttachedProgramSettings, RedirectMapAndAttachedProgram>, network_interface_index: NetworkInterfaceIndex, ring_queue_depths: ROTOB, receive_poll_creator: impl FnOnce(&ExpressDataPathSocketFileDescriptor) -> RP, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes, force_copy: bool, force_zero_copy: bool) -> Result<Self, ExpressDataPathSocketCreationError>
 	{
-		let sxdp_flags = XdpSocketAddressFlags::empty().sxdp_flags(force_copy, force_zero_copy, needs_wake_up);
+		let sxdp_flags = XdpSocketAddressFlags::empty().sxdp_flags(force_copy, force_zero_copy, true);
 		
 		let user_memory_socket_file_descriptor = user_memory.user_memory_socket_file_descriptor();
 		let receive_and_transmit = Self::construct(user_memory_socket_file_descriptor, network_interface_index, ring_queue_depths, sxdp_flags, user_memory_socket_file_descriptor, queue_identifier, defaults)?;
 		
-		let express_data_path_extended_bpf_program = match express_data_path_extended_bpf_program
+		let redirect_map_and_attached_program = match redirect_map_and_attached_program
 		{
 			Left(settings) => RedirectMapAndAttachedProgram::new_suitable_for_owned_or_reuse_already_attached::<ROTOB>(network_interface_index, settings, queue_identifier, user_memory_socket_file_descriptor)?,
 			
-			Right(express_data_path_extended_bpf_program) => express_data_path_extended_bpf_program,
+			Right(redirect_map_and_attached_program) => redirect_map_and_attached_program,
 		};
 		
 		Ok
 		(
 			Self
 			{
-				common: CommonSharedExpressDataPathSocket::new(receive_and_transmit, queue_identifier, needs_wake_up, receive_poll_creator(user_memory_socket_file_descriptor)),
+				common: CommonSharedExpressDataPathSocket::new(receive_and_transmit, queue_identifier, receive_poll_creator(user_memory_socket_file_descriptor)),
 				user_memory: ManuallyDrop::new(user_memory),
-				express_data_path_extended_bpf_program: ManuallyDrop::new(express_data_path_extended_bpf_program),
+				redirect_map_and_attached_program: ManuallyDrop::new(redirect_map_and_attached_program),
 				network_interface_index,
 			}
 		)
@@ -177,6 +185,9 @@ impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceive
 	/// Based on `libbpf`'s `xsk_socket__create()`.
 	fn construct(express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, network_interface_index: NetworkInterfaceIndex, ring_queue_depths: ROTOB, sxdp_flags: XdpSocketAddressFlags, user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<ROTOB::To, ExpressDataPathSocketCreationError>
 	{
+		let reveive_ring_queue_depth = FillQueue;
+		let transmit_ring_queue_depth = CompletionQueue;
+		
 		ring_queue_depths.use_value
 		(
 			|receive_ring_queue_depth| express_data_path_socket_file_descriptor.set_xdp_socket_option_receive_ring(receive_ring_queue_depth),

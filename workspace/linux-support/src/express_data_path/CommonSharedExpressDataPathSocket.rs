@@ -14,8 +14,6 @@ pub struct CommonSharedExpressDataPathSocket<ReceiveTransmit: ReceiveOrTransmitO
 	
 	receive_poll: RefCell<RP>,
 	
-	needs_wake_up: bool,
-	
 	outstanding_frames_to_transmit: Cell<u32>,
 
 	frames_received: Cell<u64>,
@@ -26,14 +24,13 @@ pub struct CommonSharedExpressDataPathSocket<ReceiveTransmit: ReceiveOrTransmitO
 impl<ReceiveTransmit: ReceiveOrTransmitOrBoth<ReceiveQueue, TransmitQueue>, RP: ReceivePoll> CommonSharedExpressDataPathSocket<ReceiveTransmit, RP>
 {
 	#[inline(always)]
-	fn new(receive_transmit: ReceiveTransmit, queue_identifier: QueueIdentifier, needs_wake_up: bool, receive_poll: RP) -> Self
+	fn new(receive_transmit: ReceiveTransmit, queue_identifier: QueueIdentifier, receive_poll: RP) -> Self
 	{
 		Self
 		{
 			receive_transmit,
 			receive_poll: RefCell::new(receive_poll),
 			queue_identifier,
-			needs_wake_up,
 			outstanding_frames_to_transmit: Cell::new(0),
 			frames_received: Cell::new(0),
 			frames_transmitted: Cell::new(0),

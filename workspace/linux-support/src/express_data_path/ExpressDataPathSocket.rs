@@ -5,7 +5,7 @@
 /// Access common fields.
 pub trait ExpressDataPathSocket<ReceiveTransmit: ReceiveOrTransmitOrBoth<ReceiveQueue, TransmitQueue>, RP: ReceivePoll, CA: ChunkAlignment>
 {
-	/// `maximum_number_of_frames` is usually `64`.
+	/// `maximum_number_of_frames` is usually `64` but can also be `16` or `32`.
 	fn receive_and_drop<F: FnOnce(&ExpressDataPathFileDescriptor) + Copy, RFP: ReceivedFrameProcessor>(&self, maximum_number_of_frames: u32, received_frame_processor: &mut RFP) -> RFP::R
 	{
 		let receive_queue = self.receive_queue();
@@ -27,7 +27,7 @@ pub trait ExpressDataPathSocket<ReceiveTransmit: ReceiveOrTransmitOrBoth<Receive
 			Some((received_number_of_frames, receive_index)) => (received.get(), receive_index)
 		};
 		
-		let fill_queue_index = self.empty_fill_queue_until_sufficient_space_is_available(received_number_of_frames);
+		let fill_queue_index = self.empty_fill_queue_until_sufficient_space_is_available_returning_it_locked(received_number_of_frames);
 		
 		received_frame_processor.begin(received_number_of_frames);
 		for relative_frame_index in 0 .. received_number_of_frames
@@ -42,6 +42,8 @@ pub trait ExpressDataPathSocket<ReceiveTransmit: ReceiveOrTransmitOrBoth<Receive
 		let result = received_frame_processor.end();
 		
 		fill_queue.submit(received_number_of_frames);
+		self.unlock_fill_queue();
+		
 		receive_queue.release(received_number_of_frames);
 		
 		common.increase_frames_received(received_number_of_frames);
@@ -107,6 +109,18 @@ pub trait ExpressDataPathSocket<ReceiveTransmit: ReceiveOrTransmitOrBoth<Receive
 	fn express_data_path_socket_file_descriptor(&self) -> &ExpressDataPathSocketFileDescriptor;
 	
 	#[doc(hidden)]
+	fn lock_fill_queue(&self);
+	
+	#[doc(hidden)]
+	fn unlock_fill_queue(&self);
+	
+	#[doc(hidden)]
+	fn lock_completion_queue(&self);
+	
+	#[doc(hidden)]
+	fn unlock_completion_queue(&self);
+	
+	#[doc(hidden)]
 	#[inline(always)]
 	fn fill_queue(&self) -> &FillQueue
 	{
@@ -155,15 +169,17 @@ pub trait ExpressDataPathSocket<ReceiveTransmit: ReceiveOrTransmitOrBoth<Receive
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn empty_fill_queue_until_sufficient_space_is_available(&self, received_number_of_frames: u32) -> u32
+	fn empty_fill_queue_until_sufficient_space_is_available_returning_it_locked(&self, received_number_of_frames: u32) -> u32
 	{
 		let fill_queue = self.fill_queue();
 		loop
 		{
+			self.lock_fill_queue();
 			if let Some(fill_queue_index) = fill_queue.reserve(received_number_of_frames)
 			{
 				return fill_queue_index
 			}
+			self.unlock_fill_queue();
 			
 			if fill_queue.needs_wake_up()
 			{
@@ -184,20 +200,26 @@ pub trait ExpressDataPathSocket<ReceiveTransmit: ReceiveOrTransmitOrBoth<Receive
 			return
 		}
 		
-		if !common.needs_wake_up || self.transmit_queue().needs_wake_up()
+		if self.transmit_queue().needs_wake_up()
 		{
 			self.express_data_path_socket_file_descriptor().initiate_transmit_processing_by_kernel()
 		}
 		
 		let completion_queue = self.completion_queue();
 		
+		self.lock_completion_queue();
 		if let Some((received, index)) = completion_queue.peek(number_of_frames)
 		{
 			let number_of_frames_received = received.get();
 			completion_queue.release(number_of_frames_received);
+			self.unlock_completion_queue();
 			
 			common.decrement_outstanding_frames_to_transmit(number_of_frames_received);
 			common.increase_frames_transmitted(number_of_frames_received);
+		}
+		else
+		{
+			self.unlock_completion_queue()
 		}
 	}
 }

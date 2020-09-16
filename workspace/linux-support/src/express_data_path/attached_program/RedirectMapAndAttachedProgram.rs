@@ -9,11 +9,34 @@ pub struct RedirectMapAndAttachedProgram
 	/// Created and manipulated by functions such as `xsk_set_bpf_maps()`, `xsk_lookup_bpf_maps()`, `xsk_delete_bpf_maps()` and `xsk_create_bpf_maps()` in Linux source `tools/lib/bpf/xsk.c`.
 	///
 	/// Supplied with size information (`Channels`) from the function `xsk_get_max_queues()` in Linux source `tools/lib/bpf/xsk.c`.
-	redirect_map: ExpressDataPathRedirectSocketArrayMap,
+	redirect_map: ManuallyDrop<ExpressDataPathRedirectSocketArrayMap>,
 	
-	attached_express_data_path_extended_bpf_program_file_descriptor: Rc<ExtendedBpfProgramFileDescriptor>,
+	attached_express_data_path_extended_bpf_program_file_descriptor: ManuallyDrop<ExtendedBpfProgramFileDescriptor>,
 	
 	attached_program_name: ProgramName,
+	
+	network_interface_index_if_removing_xdp_program_on_drop: Option<NetworkInterfaceIndex>,
+}
+
+impl Drop for RedirectMapAndAttachedProgram
+{
+	#[inline(always)]
+	fn drop(&mut self)
+	{
+		if let Some(network_interface_index) = self.network_interface_index_if_removing_xdp_program_on_drop
+		{
+			if let Ok(netlink_socket_file_descriptor) = NetlinkSocketFileDescriptor::open()
+			{
+				let _ignored = RouteNetlinkProtocol::xdp_fd_remove(&mut netlink_socket_file_descriptor, network_interface_index, &self.attached_express_data_path_extended_bpf_program_file_descriptor);
+			}
+		}
+		
+		unsafe
+		{
+			ManuallyDrop::drop(&mut self.attached_express_data_path_extended_bpf_program_file_descriptor);
+			ManuallyDrop::drop(&mut self.redirect_map);
+		}
+	}
 }
 
 impl RedirectMapAndAttachedProgram
@@ -72,7 +95,6 @@ impl RedirectMapAndAttachedProgram
 		Ok(this)
 	}
 	
-	
 	/// Based on the function `xsk_setup_xdp_prog()` in Linux source `tools/lib/bpf/xsk.c`.
 	///
 	/// `Ok(ExpressDataPathRedirectSocketArrayMap, _)` is used only by `ReceiveTransmitRingQueues`.
@@ -94,9 +116,10 @@ impl RedirectMapAndAttachedProgram
 		(
 			Self
 			{
-				redirect_map,
-				attached_express_data_path_extended_bpf_program_file_descriptor: Rc::new(attached_express_data_path_extended_bpf_program_file_descriptor),
+				redirect_map: ManuallyDrop::new(redirect_map),
+				attached_express_data_path_extended_bpf_program_file_descriptor: ManuallyDrop::new(attached_express_data_path_extended_bpf_program_file_descriptor),
 				attached_program_name: program_information.name(),
+				network_interface_index_if_removing_xdp_program_on_drop: None,
 			}
 		)
 	}
@@ -131,19 +154,49 @@ impl RedirectMapAndAttachedProgram
 		let program_template = Self::owned_memory_program(offload_to);
 		
 		let mut extended_bpf_program_file_descriptors = FileDescriptorsMap::with_capacity(1);
-		let express_data_path_extended_bpf_program_file_descriptor = program_template.convenient_load(&map_file_descriptors, &mut extended_bpf_program_file_descriptors)?;
 		
-		Self::attach_program(network_interface_index, &express_data_path_extended_bpf_program_file_descriptor, device_offload)?;
+		let rc_express_data_path_extended_bpf_program_file_descriptor = program_template.convenient_load(&map_file_descriptors, &mut extended_bpf_program_file_descriptors)?;
+		
+		let attached_express_data_path_extended_bpf_program_file_descriptor = Self::convert_rc_to_single(rc_express_data_path_extended_bpf_program_file_descriptor, map_file_descriptors, extended_bpf_program_file_descriptors);
+		
+		Self::attach_program(network_interface_index, &attached_express_data_path_extended_bpf_program_file_descriptor, device_offload)?;
 		
 		Ok
 		(
 			Self
 			{
-				redirect_map,
-				attached_express_data_path_extended_bpf_program_file_descriptor: express_data_path_extended_bpf_program_file_descriptor,
+				redirect_map: ManuallyDrop::new(redirect_map),
+				attached_express_data_path_extended_bpf_program_file_descriptor: ManuallyDrop::new(attached_express_data_path_extended_bpf_program_file_descriptor),
 				attached_program_name: Self::our_owned_program_name(),
+				network_interface_index_if_removing_xdp_program_on_drop: Some(network_interface_index),
 			}
 		)
+	}
+	
+	#[inline(always)]
+	fn convert_rc_to_single(rc_express_data_path_extended_bpf_program_file_descriptor: Rc<ExtendedBpfProgramFileDescriptor>, map_file_descriptors: FileDescriptorMap<MapFileDescriptor>, extended_bpf_program_file_descriptors: FileDescriptorMap<ExtendedBpfProgramFileDescriptor>) -> ExtendedBpfProgramFileDescriptor
+	{
+		drop(map_file_descriptors);
+		drop(extended_bpf_program_file_descriptors);
+		
+		// We should now have only one instance of an `Rc<ExtendedBpfProgramFileDescriptor>` after the drops above, but it is difficult reason certainly this is the case.
+		// Hence this belt-and-braces approach which uses a near-equivalent of `dup()` - which will infinitely loop if the Linux kernel is out of memory.
+		match Rc::try_unwrap(rc_express_data_path_extended_bpf_program_file_descriptor)
+		{
+			Ok(express_data_path_extended_bpf_program_file_descriptor) => express_data_path_extended_bpf_program_file_descriptor,
+			
+			Err(rc_express_data_path_extended_bpf_program_file_descriptor) => loop
+			{
+				match rc_express_data_path_extended_bpf_program_file_descriptor.duplicate_with_close_on_exec_non_blocking()
+				{
+					Ok(Some(express_data_path_extended_bpf_program_file_descriptor)) => break express_data_path_extended_bpf_program_file_descriptor,
+					
+					Ok(None) | Err(CreationError::KernelWouldBeOutOfMemory) => continue,
+					
+					Err(error) => panic!(error),
+				}
+			}
+		}
 	}
 	
 	#[inline(always)]

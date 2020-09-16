@@ -6,23 +6,21 @@
 ///
 /// Created by `OwnedExpressDataPathSocket::share()`.
 #[derive(Debug)]
-pub struct SharedExpressDataPathSocket<'shared, ReceiveTransmit: ReceiveOrTransmitOrBoth<ReceiveQueue, TransmitQueue>, RP: ReceivePoll, CA: ChunkAlignment>
+pub struct SharedExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceiveOrTransmitOrBoth, RP: ReceivePoll, CA: ChunkAlignment>
 {
-	user_memory: &'shared UserMemory,
-	
-	express_data_path_extended_bpf_program: &'shared RedirectMapAndAttachedProgram,
+	owner: ShareableExpressDataPathSocket<ROTOB, RP, CA>,
 	
 	express_data_path_socket_file_descriptor: ManuallyDrop<ExpressDataPathSocketFileDescriptor>,
 	
-	common: CommonSharedExpressDataPathSocket<ReceiveTransmit, RP>,
+	common: CommonSharedExpressDataPathSocket<ROTOB::To, RP>,
 }
 
-impl<'shared, ReceiveTransmit: ReceiveOrTransmitOrBoth<ReceiveQueue, TransmitQueue>, RP: ReceivePoll, CA: ChunkAlignment> Drop for SharedExpressDataPathSocket<'shared, ReceiveTransmit, RP, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceiveOrTransmitOrBoth, RP: ReceivePoll, CA: ChunkAlignment> Drop for SharedExpressDataPathSocket<ROTOB, RP, CA>
 {
 	#[inline(always)]
 	fn drop(&mut self)
 	{
-		self.common.remove_receive_map_queue_identifier(self.express_data_path_extended_bpf_program);
+		self.common.remove_receive_map_queue_identifier(self.owner.express_data_path_extended_bpf_program);
 		
 		unsafe
 		{
@@ -32,12 +30,12 @@ impl<'shared, ReceiveTransmit: ReceiveOrTransmitOrBoth<ReceiveQueue, TransmitQue
 	}
 }
 
-impl<'shared, ReceiveTransmit: ReceiveOrTransmitOrBoth<ReceiveQueue, TransmitQueue>, RP: ReceivePoll, CA: ChunkAlignment> ExpressDataPathSocket for SharedExpressDataPathSocket<'shared, ReceiveTransmit, RP, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceiveOrTransmitOrBoth, RP: ReceivePoll, CA: ChunkAlignment> ExpressDataPathSocket for SharedExpressDataPathSocket<ROTOB, RP, CA>
 {
 	#[inline(always)]
 	fn user_memory(&self) -> &UserMemory<CA>
 	{
-		self.user_memory
+		&self.owner.user_memory
 	}
 	
 	#[inline(always)]
@@ -50,5 +48,29 @@ impl<'shared, ReceiveTransmit: ReceiveOrTransmitOrBoth<ReceiveQueue, TransmitQue
 	fn express_data_path_socket_file_descriptor(&self) -> &ExpressDataPathSocketFileDescriptor
 	{
 		&self.express_data_path_socket_file_descriptor
+	}
+	
+	#[inline(always)]
+	fn lock_fill_queue(&self)
+	{
+		self.owner.fill_queue_spin_lock().acquire_spin_lock()
+	}
+	
+	#[inline(always)]
+	fn unlock_fill_queue(&self)
+	{
+		self.owner.fill_queue_spin_lock().unlock_spin_lock()
+	}
+	
+	#[inline(always)]
+	fn lock_completion_queue(&self)
+	{
+		self.owner.completion_queue_spin_lock().acquire_spin_lock()
+	}
+	
+	#[inline(always)]
+	fn unlock_completion_queue(&self)
+	{
+		self.owner.completion_queue_spin_lock().unlock_spin_lock()
 	}
 }

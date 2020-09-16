@@ -126,51 +126,64 @@ impl RouteNetlinkProtocol
 		GetExpressDataPathDiagnosticsMessageProcessor.get_diagnostics(netlink_socket_file_descriptor)
 	}
 	
+	/// Remove a eXpress Data Path (XDP) program.
+	///
+	/// Returns `ENODEV` if interface does not exist.
+	pub fn xdp_fd_remove(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor) -> Result<(), Errno>
+	{
+		const SpecialUndocumentedDeleteValue: RawFd = -1;
+		Self::xdp_fd_change(netlink_socket_file_descriptor, network_interface_index, SpecialUndocumentedDeleteValue, AttachMode::GenericOrNative, UpdateMode::Update(express_data_path_extended_bpf_program_file_descriptor))
+	}
+	
+	/// Attach an eXpress Data Path (XDP) program.
+	///
+	/// Returns `ENODEV` if interface does not exist.
+	pub fn xdp_fd_replace(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor, attach_mode: AttachMode, update_mode: UpdateMode) -> Result<(), Errno>
+	{
+		Self::xdp_fd_change(netlink_socket_file_descriptor, network_interface_index, express_data_path_extended_bpf_program_file_descriptor.as_raw_fd(), attach_mode, update_mode)
+	}
+	
 	/// Attach a eXpress Data Path (XDP) program.
 	///
-	/// returns `ENODEV` if interface does not exist.
-	///
-	/// NOTE: As an alternative to using a network interface index, one can specify the top-level attribute `IFLA_IFNAME` with a network interface name.
-	/// This is not supported by this functionality.
-	///
-	/// Based on the function `bpf_set_link_xdp_fd()` and its children in the Linux source `tools/lib/bpf/netlink.c`.
-	pub fn xdp_fd_replace(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor, attach_mode: AttachMode, update_mode: UpdateMode) -> Result<(), Errno>
+	/// Returns `ENODEV` if interface does not exist.
+	#[inline(always)]
+	fn xdp_fd_change(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: RawFd, attach_mode: AttachMode, update_mode: UpdateMode) -> Result<(), Errno>
 	{
 		use self::IFLA_XDP::*;
 		
 		#[inline(always)]
-		fn request_0(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<RouteNetlinkProtocol>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor) -> Result<(), Errno>
+		fn request_0(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<RouteNetlinkProtocol>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: RawFd) -> Result<(), Errno>
 		{
 			ExpressDataPathMessageBody::make_request_and_get_acknowledgment_or_error
 			(
 				netlink_socket_file_descriptor,
 				network_interface_index,
-				attribute(IFLA_XDP_FD, express_data_path_extended_bpf_program_file_descriptor.as_raw_fd())
+				attribute(IFLA_XDP_FD, express_data_path_extended_bpf_program_file_descriptor)
 			)
 		}
 		
 		#[inline(always)]
-		fn request_1(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<RouteNetlinkProtocol>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor, flags: u32) -> Result<(), Errno>
+		fn request_1(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<RouteNetlinkProtocol>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: RawFd, flags: u32) -> Result<(), Errno>
 		{
 			ExpressDataPathMessageBody::make_request_and_get_acknowledgment_or_error
 			(
 				netlink_socket_file_descriptor,
 				network_interface_index,
-				attribute(IFLA_XDP_FD, express_data_path_extended_bpf_program_file_descriptor.as_raw_fd())
+				attribute(IFLA_XDP_FD, express_data_path_extended_bpf_program_file_descriptor)
 				.followed_by_attribute(IFLA_XDP_FLAGS, flags)
 			)
 		}
 		
 		#[inline(always)]
-		fn request_2(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<RouteNetlinkProtocol>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor, flags: u32, replace_express_data_path_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor) -> Result<(), Errno>
+		fn request_2(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<RouteNetlinkProtocol>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: RawFd, flags: u32, replace_express_data_path_extended_bpf_program_file_descriptor: RawFd) -> Result<(), Errno>
 		{
 			ExpressDataPathMessageBody::make_request_and_get_acknowledgment_or_error
 			(
 				netlink_socket_file_descriptor,
 				network_interface_index,
-				attribute(IFLA_XDP_FD, express_data_path_extended_bpf_program_file_descriptor.as_raw_fd())
+				attribute(IFLA_XDP_FD, express_data_path_extended_bpf_program_file_descriptor)
 				.followed_by_attribute(IFLA_XDP_FLAGS, flags)
-				.followed_by_attribute(IFLA_XDP_EXPECTED_FD, replace_express_data_path_extended_bpf_program_file_descriptor.as_raw_fd())
+				.followed_by_attribute(IFLA_XDP_EXPECTED_FD, replace_express_data_path_extended_bpf_program_file_descriptor)
 			)
 		}
 		

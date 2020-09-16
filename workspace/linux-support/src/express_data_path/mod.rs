@@ -74,6 +74,7 @@ include!("ExpressDataPathSocketCreationError.rs");
 include!("OwnedExpressDataPathSocket.rs");
 include!("ReceivedFrameProcessor.rs");
 include!("SharedExpressDataPathSocket.rs");
+include!("ShareableExpressDataPathSocket.rs");
 include!("UserMemory.rs");
 include!("UserMemoryArea.rs");
 include!("UserMemoryAreaRelativeAddress.rs");
