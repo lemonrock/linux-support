@@ -356,6 +356,14 @@ impl MappedMemory
 		self.size / (self.page_size_in_bytes().get() as usize)
 	}
 	
+	/// Zeros all mapped memory.
+	#[inline(always)]
+	pub fn zero(&self)
+	{
+		let pointer: *mut u8 = self.virtual_address.into();
+		unsafe { pointer.write_bytes(0x00, self.size) }
+	}
+	
 	/// Removes page of `self.page_size` (which might be huge pages) from the end of this mapping.
 	#[inline(always)]
 	pub fn remove_from_end(&mut self, pages_to_remove: NonZeroNumberOfPages)
@@ -442,16 +450,18 @@ impl MappedMemory
 				
 				unexpected @ _ => panic!("Unexpected error `{}`", unexpected),
 			}
-		} else {
+		}
+		else
+		{
 			Ok
-				(
-					Self
-					{
-						virtual_address: VirtualAddress::from(result),
-						size: length_in_bytes as usize,
-						page_size,
-					},
-				)
+			(
+				Self
+				{
+					virtual_address: VirtualAddress::from(result),
+					size: length_in_bytes as usize,
+					page_size,
+				},
+			)
 		}
 	}
 	

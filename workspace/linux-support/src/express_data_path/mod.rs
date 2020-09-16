@@ -2,9 +2,13 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use self::attached_program::*;
 use self::c::*;
+use self::chunk_alignment::*;
 use self::descriptors::*;
 use self::frames::*;
+use self::receive_or_transmit::*;
+use self::receive_polling::*;
 use self::ring_queues::*;
 use super::*;
 use crate::bpf::c::bpf_func_id;
@@ -32,31 +36,44 @@ use crate::memory::mapping::*;
 use crate::network_device::*;
 
 
-pub(crate) mod c;
+/// Attached program.
+pub mod attached_program;
+
+
+/// C.
+pub mod c;
+
+
+/// Chunk alignment.
+pub mod chunk_alignment;
 
 
 /// Descriptors.
-pub mod descriptors;
+pub(crate) mod descriptors;
 
 
 /// Frames.
 pub mod frames;
 
 
+/// Receive, transmit or both.
+pub mod receive_or_transmit;
+
+
+/// Receive polling.
+pub mod receive_polling;
+
+
 /// Ring queues.
 pub mod ring_queues;
 
 
-include!("AttachMode.rs");
-include!("AttachProgramError.rs");
-include!("OwnedReceiveTransmitMemoryRingQueues.rs");
-include!("OwnedRedirectMapAndAttachedProgramSettings.rs");
-include!("ReceiveOrTransmitOrBoth.rs");
-include!("ReceiveTransmitMemoryRingQueues.rs");
-include!("RedirectMapAndAttachedProgram.rs");
-include!("RingQueueDepth.rs");
-include!("SharedReceiveTransmitMemoryRingQueues.rs");
-include!("UpdateMode.rs");
+include!("CommonSharedExpressDataPathSocket.rs");
+include!("ExpressDataPathSocket.rs");
+include!("ExpressDataPathSocketCreationError.rs");
+include!("OwnedExpressDataPathSocket.rs");
+include!("ReceivedFrameProcessor.rs");
+include!("SharedExpressDataPathSocket.rs");
 include!("UserMemory.rs");
 include!("UserMemoryArea.rs");
 include!("UserMemoryAreaRelativeAddress.rs");

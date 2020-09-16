@@ -5,10 +5,12 @@
 bitflags!
 {
 	/// Flags for `struct xdp_umem_reg`.
-	pub struct XdpUmemRegFlags: u32
+	pub(crate) struct XdpUmemRegFlags: u32
 	{
-		/// Unaligned frames.
-		const UnalignedFrames = XDP_UMEM_UNALIGNED_CHUNK_FLAG;
+		/// Unaligned chunks.
+		///
+		/// In this case, `xdp_desc.addr` have an offset in the topmost 12 bits.
+		const UnalignedChunks = XDP_UMEM_UNALIGNED_CHUNK_FLAG;
 		
 		// This flag is ***not*** part of the public API.
 		#[doc(hidden)]

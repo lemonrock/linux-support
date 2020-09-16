@@ -51,6 +51,7 @@ include!("IF_PORT.rs");
 include!("if_settings.rs");
 include!("if_settings_ifsu.rs");
 include!("IFALIASZ.rs");
+include!("IFF_.rs");
 include!("ifmap.rs");
 include!("ifreq.rs");
 include!("ifreq_ifrn.rs");

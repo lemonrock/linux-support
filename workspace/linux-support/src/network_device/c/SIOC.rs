@@ -12,3 +12,6 @@ pub(crate) const SIOCGIFNAME: i32 = 0x8910;
 
 pub(crate) const SIOCSIFTXQLEN: i32 = 0x8943;
 
+pub(crate) const SIOCGIFFLAGS: i32 = 0x8913;
+
+pub(crate) const SIOCSIFFLAGS: i32 = 0x8914;

@@ -2,15 +2,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Access common fields.
-pub trait ReceiveTransmitMemoryRingQueues: Deref<Target=UserMemory>
-{
-	/// Access common fields.
-	fn receive_transmit(&self) -> &ReceiveOrTransmitOrBoth<XskRingQueue<ConsumerXskRingQueueKind, xdp_desc>, XskRingQueue<ProducerXskRingQueueKind, xdp_desc>>;
-	
-	/// Statistics.
-	fn statistics(&self) -> xdp_statistics;
-	
-	/// Options.
-	fn options(&self) -> xdp_options;
-}
+use super::*;
+
+
+include!("AttachProgramError.rs");
+include!("AttachMode.rs");
+include!("RedirectMapAndAttachedProgram.rs");
+include!("RedirectMapAndAttachedProgramSettings.rs");
+include!("UpdateMode.rs");

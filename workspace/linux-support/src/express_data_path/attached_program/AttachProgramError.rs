@@ -7,9 +7,6 @@
 pub enum AttachProgramError
 {
 	#[allow(missing_docs)]
-	CouldNotCreateUserMemorySocketFileDescriptor(CreationError),
-	
-	#[allow(missing_docs)]
 	NoSuchNetworkInterfaceIndex(NetworkInterfaceIndex),
 	
 	#[allow(missing_docs)]
@@ -58,13 +55,7 @@ pub enum AttachProgramError
 	SocketCreation(CreationError),
 	
 	#[allow(missing_docs)]
-	SocketBind(SocketBindError),
-	
-	#[allow(missing_docs)]
 	CouldNotAttachXdpProgram(Errno),
-	
-	#[allow(missing_docs)]
-	AttachedXdpProgramNotSuitableForSharing,
 }
 
 impl Display for AttachProgramError
@@ -85,8 +76,6 @@ impl error::Error for AttachProgramError
 		
 		match self
 		{
-			&CouldNotCreateUserMemorySocketFileDescriptor(ref error) => Some(error),
-			
 			&NoSuchNetworkInterfaceIndex(_) => None,
 			
 			&NoSuchNetworkInterfaceNameForNetworkInterfaceIndex(ref error) => Some(error),
@@ -119,11 +108,7 @@ impl error::Error for AttachProgramError
 			
 			&SocketCreation(ref error) => Some(error),
 			
-			&SocketBind(ref error) => Some(error),
-			
 			&CouldNotAttachXdpProgram(_) => None,
-			
-			&AttachedXdpProgramNotSuitableForSharing => None,
 		}
 	}
 }
@@ -197,14 +182,5 @@ impl From<CreationError> for AttachProgramError
 	fn from(value: CreationError) -> Self
 	{
 		AttachProgramError::SocketCreation(value)
-	}
-}
-
-impl From<SocketBindError> for AttachProgramError
-{
-	#[inline(always)]
-	fn from(value: SocketBindError) -> Self
-	{
-		AttachProgramError::SocketBind(value)
 	}
 }

@@ -4,7 +4,7 @@
 
 /// `xsk_ring_prod`.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct ProducerXskRingQueueKind;
+pub(super) struct ProducerXskRingQueueKind;
 
 impl XskRingQueueKind for ProducerXskRingQueueKind
 {

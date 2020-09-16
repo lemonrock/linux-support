@@ -5,7 +5,12 @@
 use super::*;
 
 
+include!("CompletionQueue.rs");
 include!("ConsumerXskRingQueueKind.rs");
+include!("FillQueue.rs");
 include!("ProducerXskRingQueueKind.rs");
+include!("ReceiveQueue.rs");
+include!("RingQueueDepth.rs");
+include!("TransmitQueue.rs");
 include!("XskRingQueue.rs");
 include!("XskRingQueueKind.rs");

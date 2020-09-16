@@ -3,7 +3,7 @@
 
 
 /// Marker trait.
-pub trait XskRingQueueKind
+pub(super) trait XskRingQueueKind
 {
 	#[doc(hidden)]
 	const UseRingQueueDepthForConsumer: bool;

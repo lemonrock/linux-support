@@ -14,6 +14,8 @@ pub struct GetLinkMessageData
 	/// Also available via the ioctl `SIOCGIFFLAGS`.
 	/// Also settable via the ioctl `SIOCSIFFLAGS`.
 	/// Read-write via sysfs.
+	///
+	/// See also `NetworkDeviceInputOutputControl::link_flags()`.
 	pub link_flags: net_device_flags,
 	
 	/// Device ARP type.

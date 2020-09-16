@@ -10,7 +10,7 @@ bitflags!
 	/// Userspace can query and set these flags using userspace utilities but there is also a sysfs entry available for all dev flags which can be queried and set.
 	/// These flags are shared for all types of net_devices.
 	/// The sysfs entries are available via `/sys/class/net/<dev>/flags`.
-	/// Flags which can be toggled through sysfs are annotated below, note that only a few flags can be toggled and some other flags are always preserved from the original net_device flags even if you try to set them via sysfs.
+	/// Flags which can be toggled through sysfs are annotated below, note that only a few flags can be toggled and some other flags are always preserved from the original flags even if you try to set them via sysfs.
 	/// Flags which are always preserved are kept under the flag grouping `IFF_VOLATILE`.
 	/// Flags which are volatile are annotated below as such.
 	///
@@ -25,103 +25,121 @@ bitflags!
 		/// Interface is up.
 		///
 		/// Can be toggled through sysfs.
-		const IFF_UP = 1 << 0;
+		const UP = IFF_UP;
 	
 		/// Broadcast address is valid.
 		///
 		/// Is volatile.
-		const IFF_BROADCAST = 1 << 1;
+		const BROADCAST = IFF_BROADCAST;
 	
 		/// Turn on debugging.
 		/// 
 		/// Can be toggled through sysfs.
-		const IFF_DEBUG = 1 << 2;
+		const DEBUG = IFF_DEBUG;
 	
 		/// Is a loopback net device.
 		/// 
 		/// Is volatile.
-		const IFF_LOOPBACK = 1 << 3;
+		const LOOPBACK = IFF_LOOPBACK;
 	
 		/// Interface is a point-to-point (P2P) link.
 		///
 		/// Is volatile.
-		const IFF_POINTOPOINT = 1 << 4;
+		const POINTOPOINT = IFF_POINTOPOINT;
 	
 		/// Avoid use of trailers.
 		///
 		/// Can be toggled through sysfs.
 		/// Is volatile.
-		const IFF_NOTRAILERS = 1 << 5;
+		const NOTRAILERS = IFF_NOTRAILERS;
 	
 		/// Interface has RFC 2863 operational status `OPER_UP`.
 		///
 		/// Is volatile.
-		const IFF_RUNNING = 1 << 6;
+		const RUNNING = IFF_RUNNING;
 	
 		/// No ARP protocol.
 		///
 		/// Can be toggled through sysfs.
 		/// Is volatile.
-		const IFF_NOARP = 1 << 7;
+		const NOARP = IFF_NOARP;
 	
 		/// Receive all packets.
 		///
 		/// Can be toggled through sysfs.
-		const IFF_PROMISC = 1 << 8;
+		const PROMISC = IFF_PROMISC;
 	
 		/// Receive all multicast packets.
 		///
 		/// Can be toggled through sysfs.
-		const IFF_ALLMULTI = 1 << 9;
+		const ALLMULTI = IFF_ALLMULTI;
 	
 		/// Master of a load balancer.
 		///
 		/// Is volatile.
-		const IFF_MASTER = 1 << 10;
+		const MASTER = IFF_MASTER;
 	
 		/// Slave of a load balancer.
 		///
 		/// Is volatile.
-		const IFF_SLAVE = 1 << 11;
+		const SLAVE = IFF_SLAVE;
 	
 		/// Means that this media uses special encapsulation for multicast frames.
 		///
 		/// Apparently, all `IFF_POINTOPOINT` and `IFF_BROADCAST` devices are able to use multicast too.
 		///
 		/// Can be toggled through sysfs.
-		const IFF_MULTICAST = 1 << 12;
+		const MULTICAST = IFF_MULTICAST;
 	
 		/// Can set media type.
 		///
 		/// Can be toggled through sysfs.
-		const IFF_PORTSEL = 1 << 13;
+		const PORTSEL = IFF_PORTSEL;
 	
 		/// Auto media select active.
 		///
 		/// Can be toggled through sysfs.
-		const IFF_AUTOMEDIA = 1 << 14;
+		const AUTOMEDIA = IFF_AUTOMEDIA;
 	
 		/// Dial-up device with changing addresses.
 		///
 		/// Can be toggled through sysfs.
-		const IFF_DYNAMIC = 1 << 15;
+		const DYNAMIC = IFF_DYNAMIC;
 	
 		/// Driver signals L1 up.
 		///
 		/// Is volatile.
-		const IFF_LOWER_UP = 1 << 16;
+		const LOWER_UP = IFF_LOWER_UP;
 	
 		/// Driver signals dormant.
 		///
 		/// Is volatile.
-		const IFF_DORMANT = 1 << 17;
+		const DORMANT = IFF_DORMANT;
 	
 		/// Echo sent packets.
 		///
 		/// Is volatile.
-		const IFF_ECHO = 1 << 18;
+		const ECHO = IFF_ECHO;
 		
 		/// Volatile (combination of flags).
-		const IFF_VOLATILE = net_device_flags::IFF_LOOPBACK.bits | net_device_flags::IFF_POINTOPOINT.bits | net_device_flags::IFF_BROADCAST.bits | net_device_flags::IFF_ECHO.bits | net_device_flags::IFF_MASTER.bits | net_device_flags::IFF_SLAVE.bits | net_device_flags::IFF_RUNNING.bits | net_device_flags::IFF_LOWER_UP.bits | net_device_flags::IFF_DORMANT.bits;
+		const VOLATILE = IFF_VOLATILE;
+	}
+}
+
+impl From<SettableLinkFlags> for net_device_flags
+{
+	#[inline(alwaus)]
+	fn from(value: SettableLinkFlags) -> Self
+	{
+		net_device_flags::frrom_bits_truncate(value.bits() as u32)
+	}
+}
+
+impl net_device_flags
+{
+	#[inline(always)]
+	pub(crate) fn mask(&self) -> u32
+	{
+		!self.bits
 	}
 }

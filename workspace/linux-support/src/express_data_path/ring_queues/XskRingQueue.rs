@@ -4,7 +4,7 @@
 
 /// Inspired by `xsk_ring_prod` in `libbpf`.
 #[derive(Debug)]
-pub struct XskRingQueue<XRQK: XskRingQueueKind, D: Descriptor>
+pub(super) struct XskRingQueue<XRQK: XskRingQueueKind, D: Descriptor>
 {
 	ring_queue_depth: RingQueueDepth,
 	
@@ -36,9 +36,9 @@ impl<XRQK: XskRingQueueKind, D: Descriptor> XskRingQueue<XRQK, D>
 	
 	/// Should be treated as uninitialized data.
 	#[inline(always)]
-	fn ring_entry_mut(&self, index: u32) -> *mut D
+	fn ring_entry_mut(&self, index: u32) -> NonNull<D>
 	{
-		unsafe { self.ring.add(self.array_index(index)) }
+		unsafe { NonNull::new_unchecked(self.ring.add(self.array_index(index))) }
 	}
 	
 	#[inline(always)]
@@ -268,18 +268,20 @@ impl<D: Descriptor> XskRingQueue<ProducerXskRingQueueKind, D>
 	///
 	/// Call `poll()` or `sendto()` if this is true; see `kick_tx()` in Linux source `sample/bpf/xdpsock_user.c`.
 	#[inline(always)]
-	pub fn needs_wake_up(&self) -> bool
+	pub(super) fn needs_wake_up(&self) -> bool
 	{
 		self.flags() & XDP_RING_NEED_WAKEUP != 0
 	}
 	
 	/// Based on `xsk_prod_nb_free()` in Linux source `tools/lib/bpf/xsk.h`.
 	#[inline(always)]
-	pub fn number_free(&self, number: u32) -> u32
+	pub(super) fn number_free(&self, number: u32) -> u32
 	{
-		debug_assert!(self.cached_consumer() >= self.cached_producer(), "cached_consumer is less than cached_producer");
+		let cached_producer = self.cached_producer();
 		
-		let free_entries = self.cached_consumer() - self.cached_producer();
+		debug_assert!(self.cached_consumer() >= cached_producer, "cached_consumer is less than cached_producer");
+		
+		let free_entries = self.cached_consumer() - cached_producer;
 		
 		if free_entries >= number
 		{
@@ -292,30 +294,30 @@ impl<D: Descriptor> XskRingQueue<ProducerXskRingQueueKind, D>
 		// Without this optimization it whould have been `free_entries = cached_producer - cached_consumer + ring_queue_depth`.
 		self.set_cached_consumer(self.consumer() + self.ring_queue_depth as u32);
 		
-		self.cached_consumer() - self.cached_producer()
+		self.cached_consumer() - cached_producer
 	}
 	
 	/// Based on `xsk_ring_prod__reserve()` in Linux source `tools/lib/bpf/xsk.h`.
 	#[inline(always)]
-	pub fn reserve(&self, number: u32, index: &mut u32) -> u32
+	pub(super) fn reserve(&self, number: u32) -> Option<u32>
 	{
 		if self.number_free(number) < number
 		{
-			0
+			None
 		}
 		else
 		{
 			let cached_producer = self.cached_producer();
-			*index = cached_producer;
+			let index = cached_producer;
 			self.set_cached_producer(cached_producer + number);
 			
-			number
+			Some(index)
 		}
 	}
 	
 	/// Based on `xsk_ring_prod__submit()` in Linux source `tools/lib/bpf/xsk.h`.
 	#[inline(always)]
-	pub fn submit(&self, number: u32)
+	pub(super) fn submit(&self, number: u32)
 	{
 		// Make sure everything has been written to the ring before indicating this to the kernel by writing the producer pointer.
 		Self::libbpf_smp_wmb();
@@ -328,7 +330,7 @@ impl<D: Descriptor> XskRingQueue<ConsumerXskRingQueueKind, D>
 {
 	/// Based on `xsk_cons_nb_avail()` in Linux source `tools/lib/bpf/xsk.h`.
 	#[inline(always)]
-	pub fn number_available(&self, number: u32) -> u32
+	pub(super) fn number_available(&self, number: u32) -> u32
 	{
 		let cached_producer = self.cached_producer();
 		let cached_consumer = self.cached_consumer();
@@ -355,7 +357,7 @@ impl<D: Descriptor> XskRingQueue<ConsumerXskRingQueueKind, D>
 	
 	/// Based on `xsk_ring_cons__peek()` in Linux source `tools/lib/bpf/xsk.h`.
 	#[inline(always)]
-	pub fn peek(&self, number: u32, index: &mut u32) -> u32
+	pub(super) fn peek(&self, number: u32) -> Option<(NonZeroU32, u32)>
 	{
 		let entries = self.number_available(number);
 		
@@ -365,88 +367,23 @@ impl<D: Descriptor> XskRingQueue<ConsumerXskRingQueueKind, D>
 			Self::libbpf_smp_rmb();
 			
 			let cached_consumer = self.cached_consumer();
-			*index = cached_consumer;
-			self.set_cached_consumer(cached_consumer + entries)
+			let index = cached_consumer;
+			self.set_cached_consumer(cached_consumer + entries);
+			Some((unsafe { NonZeroU32::new_unchecked(entries) }, index))
 		}
-		
-		entries
+		else
+		{
+			None
+		}
 	}
 	
 	/// Based on `xsk_ring_cons__release()` in Linux source `tools/lib/bpf/xsk.h`.
 	#[inline(always)]
-	pub fn release(&self, number: u32)
+	pub(super) fn release(&self, number: u32)
 	{
 		// Make sure data has been read before indicating we are done with the entries by updating the consumer pointer.
 		Self::libbpf_smp_rwmb();
 		
 		self.set_consumer(self.consumer() + number)
-	}
-}
-
-impl XskRingQueue<ProducerXskRingQueueKind, UmemDescriptor>
-{
-	#[inline(always)]
-	pub(super) fn from_fill_memory_map_offsets(user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, memory_map_offsets: &xdp_mmap_offsets, fill_ring_queue_depth: RingQueueDepth, defaults: &DefaultPageSizeAndHugePageSizes) -> Self
-	{
-		Self::from_ring_queue_offsets(user_memory_socket_file_descriptor, memory_map_offsets.fill_ring_offsets(), fill_ring_queue_depth, defaults, XDP_UMEM_PGOFF_FILL_RING)
-	}
-	
-	/// Based on `xsk_ring_prod__fill_addr()` in Linux source `tools/lib/bpf/xsk.h`.
-	///
-	/// Returned pointer should be treated as uninitialized memory.
-	#[inline(always)]
-	pub fn fill_adddress(&self, index: u32) -> *mut UmemDescriptor
-	{
-		self.ring_entry_mut(index)
-	}
-}
-
-impl XskRingQueue<ProducerXskRingQueueKind, xdp_desc>
-{
-	#[inline(always)]
-	pub(super) fn from_transmit_memory_map_offsets(xsk_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, memory_map_offsets: &xdp_mmap_offsets, transmit_ring_queue_depth: RingQueueDepth, defaults: &DefaultPageSizeAndHugePageSizes) -> Self
-	{
-		Self::from_ring_queue_offsets(xsk_socket_file_descriptor, memory_map_offsets.transmit_ring_offsets(), transmit_ring_queue_depth, defaults, XDP_PGOFF_TX_RING)
-	}
-	
-	/// Based on `xsk_ring_prod__tx_desc()` in Linux source `tools/lib/bpf/xsk.h`.
-	///
-	/// Returned pointer should be treated as uninitialized memory.
-	#[inline(always)]
-	pub fn transmit_descriptor(&self, index: u32) -> *mut xdp_desc
-	{
-		self.ring_entry_mut(index)
-	}
-}
-
-impl XskRingQueue<ConsumerXskRingQueueKind, UmemDescriptor>
-{
-	#[inline(always)]
-	pub(super) fn from_completion_memory_map_offsets(user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, memory_map_offsets: &xdp_mmap_offsets, completion_ring_queue_depth: RingQueueDepth, defaults: &DefaultPageSizeAndHugePageSizes) -> Self
-	{
-		Self::from_ring_queue_offsets(user_memory_socket_file_descriptor, memory_map_offsets.completion_ring_offsets(), completion_ring_queue_depth, defaults, XDP_UMEM_PGOFF_COMPLETION_RING)
-	}
-	
-	/// Based on `xsk_ring_cons__comp_addr()` in Linux source `tools/lib/bpf/xsk.h`.
-	#[inline(always)]
-	pub fn completion_adddress(&self, index: u32) -> &UmemDescriptor
-	{
-		self.ring_entry(index)
-	}
-}
-
-impl XskRingQueue<ConsumerXskRingQueueKind, xdp_desc>
-{
-	#[inline(always)]
-	pub(super) fn from_receive_memory_map_offsets(xsk_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, memory_map_offsets: &xdp_mmap_offsets, receive_ring_queue_depth: RingQueueDepth, defaults: &DefaultPageSizeAndHugePageSizes) -> Self
-	{
-		Self::from_ring_queue_offsets(xsk_socket_file_descriptor, memory_map_offsets.receive_ring_offsets(), receive_ring_queue_depth, defaults, XDP_PGOFF_RX_RING)
-	}
-	
-	/// Based on `xsk_ring_cons__rx_desc()` in Linux source `tools/lib/bpf/xsk.h`.
-	#[inline(always)]
-	pub fn receive_descriptor(&self, index: u32) -> &xdp_desc
-	{
-		self.ring_entry(index)
 	}
 }

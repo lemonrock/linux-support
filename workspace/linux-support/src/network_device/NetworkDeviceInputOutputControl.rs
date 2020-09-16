@@ -41,6 +41,54 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		)
 	}
 	
+	/// Overlaps with Netlink Route `GetLinkMessageData`.
+	///
+	/// Be aware that internally this uses a legacy function Linux syscall that truncates `net_device_flags` (which are 32-bit) because it only supports 16-bit return values.
+	#[inline(always)]
+	pub fn link_flags(&self) -> Result<Option<net_device_flags>, NetworkDeviceInputOutputControlError<Infallible>>
+	{
+		self.ifreq_from_name
+		(
+			SIOCGIFFLAGS,
+			|ifreq| Ok(net_device_flags::from_bits_truncate(unsafe { ifreq.ifr_ifru.ifru_flags } as u32)),
+			|errno| match errno.0
+			{
+				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCGIFFLAGS)", unexpected),
+			}
+		)
+	}
+	
+	/// Be aware that internally this uses a legacy function Linux syscall that truncates `net_device_flags` (which are 32-bit) because it only supports 16-bit return values.
+	///
+	// In the event that the same flag is in `enable` and `disable`, the value in `enable` takes precedence.
+	pub fn set_link_flags(&self, enable: SettableLinkFlags, disable: SettableLinkFlags) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
+	{
+		let link_flags = match self.link_flags()?
+		{
+			None => return Ok(None),
+			
+			Some(link_flags) => link_flags,
+		};
+		
+		let enable = enable.into().bits();
+		let disable_mask = disable.into().mask();
+		let flags_bits_to_set = (link_flags.bits() & disable_mask) | enable;
+		
+		self.set_ifreq_from_name
+		(
+			SIOCSIFFLAGS,
+			ifreq_ifru
+			{
+				ifru_flags: flags_bits_to_set as i16,
+			},
+			|_ifreq| Ok(()),
+			|errno| match errno.0
+			{
+				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCSIFFLAGS)", unexpected),
+			}
+		)
+	}
+	
 	/// Set transmission queue length.
 	#[inline(always)]
 	pub fn set_transmission_queue_length(&self, transmission_queue_length: u32) -> Result<Option<()>, NetworkDeviceInputOutputControlError<TransmissionQueueLengthOutRangeError>>

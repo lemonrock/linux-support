@@ -4,6 +4,8 @@
 
 /// Statistics.
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields, default)]
 #[repr(C)]
 pub struct xdp_statistics
 {

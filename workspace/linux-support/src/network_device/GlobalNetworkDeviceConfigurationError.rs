@@ -16,6 +16,9 @@ pub enum GlobalNetworkDeviceConfigurationError
 	CouldNotSetDriverMessageLevel(NetworkDeviceInputOutputControlError<Infallible>),
 	
 	#[allow(missing_docs)]
+	CouldNotSetLinkFlags(NetworkDeviceInputOutputControlError<Infallible>),
+	
+	#[allow(missing_docs)]
 	CouldNotSetTransmissionQueueLength(NetworkDeviceInputOutputControlError<TransmissionQueueLengthOutRangeError>),
 	
 	#[allow(missing_docs)]
@@ -84,6 +87,8 @@ impl error::Error for GlobalNetworkDeviceConfigurationError
 			&NetworkDeviceSocketFileDescriptorCreation(ref error) => Some(error),
 			
 			&CouldNotSetDriverMessageLevel(ref error) => Some(error),
+			
+			&CouldNotSetLinkFlags(ref error) => Some(error),
 			
 			&CouldNotSetTransmissionQueueLength(ref error) => Some(error),
 			

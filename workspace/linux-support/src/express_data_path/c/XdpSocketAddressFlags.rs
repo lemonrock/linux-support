@@ -30,3 +30,24 @@ impl Default for XdpSocketAddressFlags
 		Self::empty()
 	}
 }
+
+impl XdpSocketAddressFlags
+{
+	#[inline(always)]
+	pub(crate) fn sxdp_flags(mut self, force_copy: bool, force_zero_copy: bool, needs_wake_up: bool) -> Self
+	{
+		if force_copy
+		{
+			sxdp_flags |= XdpSocketAddressFlags::ForceCopy;
+		}
+		if force_zero_copy
+		{
+			sxdp_flags |= XdpSocketAddressFlags::ForceZeroCopy;
+		}
+		if needs_wake_up
+		{
+			sxdp_flags |= XdpSocketAddressFlags::UseNeedsWakeUp;
+		}
+		self
+	}
+}

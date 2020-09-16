@@ -78,7 +78,8 @@ pub mod tunables;
 pub mod wake_on_lan;
 
 
-include!("BusDeviceAddress.rs");include!("Channels.rs");
+include!("BusDeviceAddress.rs");
+include!("Channels.rs");
 include!("DeviceFeatures.rs");
 include!("DriverAndDeviceInformation.rs");
 include!("EnergyEfficientEthernetConfiguration.rs");
@@ -103,4 +104,5 @@ include!("PhysicalIdentifier.rs");
 include!("PhysicalIdentifierFromBytesError.rs");
 include!("QueueCount.rs");
 include!("QueueIdentifier.rs");
+include!("SettableLinkFlags.rs");
 include!("TransmissionQueueLengthOutRangeError.rs");

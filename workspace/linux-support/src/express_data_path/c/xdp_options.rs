@@ -4,6 +4,8 @@
 
 /// Options.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields, default)]
 #[repr(C)]
 pub struct xdp_options
 {

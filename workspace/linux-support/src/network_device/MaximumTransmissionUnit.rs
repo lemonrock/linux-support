@@ -16,3 +16,9 @@ impl Into<i32> for MaximumTransmissionUnit
 		self.0 as i32
 	}
 }
+
+impl MaximumTransmissionUnit
+{
+	/// Ethernet inclusive minimum.
+	pub const EthernetInclusiveMinimumIncludingFrameCheckSequence: Self = Self(68);
+}

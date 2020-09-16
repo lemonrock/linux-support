@@ -5,6 +5,9 @@
 /// Frame headroom.
 ///
 /// Default is `0` (`XSK_UMEM__DEFAULT_FRAME_HEADROOM`).
+///
+/// Must be much less than `ChunkSize`; at the very least, the maximum size is `ChunkSize - MinimumEthernetFrameSize`.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub struct FrameHeadroom(u32);
+pub struct FrameHeadroom(pub u32);
+

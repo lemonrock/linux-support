@@ -62,6 +62,31 @@ impl ExpressDataPathSocketFileDescriptor
 		new_socket(AF_XDP, SOCK_RAW, 0, blocking.is_non_blocking()).map(|file_descriptor| Self(file_descriptor))
 	}
 	
+	
+	#[inline(always)]
+	pub(crate) fn initiate_transmit_processing_by_kernel(&self)
+	{
+		let result = unsafe { sendto(self.express_data_path_socket_file_descriptor(), null(), 0, MSG_DONTWAIT, null(), 0) };
+		if likely!(result >= 0)
+		{
+			return
+		}
+		else if likely!(result == -1)
+		{
+			let errno = errno();
+			match errno.0
+			{
+				ENOBUFS | EAGAIN | EBUSY | ENETDOWN => return,
+				
+				_ => panic!("Unexpected error `{}` from `sendto()`", errno)
+			}
+		}
+		else
+		{
+			unreachable!("Unexpected result `{}` from `sendto()`", result)
+		};
+	}
+	
 	/// Statistics.
 	///
 	/// Makes a syscall.

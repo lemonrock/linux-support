@@ -26,6 +26,7 @@ include!("recvmmsg.rs");
 include!("recvmsg.rs");
 include!("SCM_.rs");
 include!("sendmsg.rs");
+include!("sendto.rs");
 include!("setsockopt.rs");
 include!("socketpair.rs");
 include!("shutdown.rs");

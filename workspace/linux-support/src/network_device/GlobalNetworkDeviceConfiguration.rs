@@ -13,6 +13,11 @@ pub struct GlobalNetworkDeviceConfiguration
 	/// Use `NETIF_MSG::empty()` to try to disable all messages.
 	#[serde(default)] pub driver_message_level: Option<NETIF_MSG>,
 	
+	/// Link flags to enable and disable.
+	///
+	/// This is the way to enable promiscuity for a network device (`Some(SettableLinkFlags::Promiscuos, SettableLinkFlags::empty())`) or to disable the use of ARP.
+	#[serde(default)] pub link_flags_to_enable_and_disable: Option<(SettableLinkFlags, SettableLinkFlags)>,
+	
 	/// Transmission queue length, unrelated apparently to `PendingQueueDepths.transmit_pending_queue_depth`.
 	///
 	/// Default on Linux is 1000.
@@ -108,6 +113,11 @@ impl GlobalNetworkDeviceConfiguration
 		if let Some(driver_message_level) = self.driver_message_level
 		{
 			validate(&network_device_input_output_control, network_device_input_output_control.set_driver_message_level(driver_message_level), CouldNotSetDriverMessageLevel)?;
+		}
+		
+		if let Some((enable, disable)) = self.link_flags_to_enable_and_disable
+		{
+			validate(&network_device_input_output_control, network_device_input_output_control.set_link_flags(enable, disable), CouldNotSetLinkFlags)?;
 		}
 		
 		if let Some(transmission_queue_length) = self.transmission_queue_length

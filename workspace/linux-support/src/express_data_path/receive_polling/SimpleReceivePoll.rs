@@ -1,0 +1,63 @@
+// This file is part of linux-support. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT. No part of linux-support, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+// Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
+
+
+/// A simple, blocking receive poll.
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct SimpleReceivePoll([pollfd; Self::NumberOfPolledFileDescriptors]);
+
+impl ReceivePoll for SimpleReceivePoll
+{
+	#[inline(always)]
+	fn blocking_poll(&mut self)
+	{
+		loop
+		{
+			let result = unsafe { poll(self.0.as_mut_ptr(), Self::NumberOfPolledFileDescriptors as u32, Self::DefaultTimeoutInMilliseconds) };
+			if likely!(result >= 0)
+			{
+				return
+			}
+			else if likely!(result == -1)
+			{
+				let errno = errno();
+				match errno.0
+				{
+					EINTR | ENOMEM | EAGAIN => continue,
+					EFAULT => panic!("fds points outside the process's accessible address space. The array given as argument was not contained in the calling program's address space."),
+					EINVAL => panic!("The nfds value exceeds the RLIMIT_NOFILE value"),
+					
+					_ => panic!("Unexpected errno `{}`", errno)
+				}
+			}
+			else
+			{
+				unreachable!("poll() returned unexpected result {}", result)
+			}
+		}
+	}
+}
+
+impl SimpleReceivePoll
+{
+	const NumberOfPolledFileDescriptors: usize = 1;
+	
+	const DefaultTimeoutInMilliseconds: i32 = 1000;
+	
+	/// Use this with `OwnedReceiveTransmitMemoryRingQueues::new()` and `OwnedReceiveTransmitMemoryRingQueues::shared()`.
+	#[inline(always)]
+	pub fn receive_poll_creator(express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor) -> Self
+	{
+		Self
+		(
+			[
+				pollfd
+				{
+					fd: express_data_path_socket_file_descriptor.as_raw_fd(),
+					events: POLLIN,
+					revents: 0
+				}
+			]
+		)
+	}
+}

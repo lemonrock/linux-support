@@ -4,7 +4,7 @@
 
 /// This combines the parameters `umem_area` and `size` in `xsk_umem__create_v0_0_4()`.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct UserMemoryArea(MappedMemory);
+struct UserMemoryArea(MappedMemory);
 
 impl Deref for UserMemoryArea
 {
@@ -19,30 +19,41 @@ impl Deref for UserMemoryArea
 
 impl UserMemoryArea
 {
-	/// New instance.
 	#[inline(always)]
-	pub fn new(number_of_frames: NonZeroU64, frame_size: FrameSize, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, CreationError>
+	fn new(number_of_frames: NonZeroU32, chunk_size: ChunkSize, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, ExpressDataPathSocketCreationError>
 	{
-		let length = unsafe { NonZeroU64::new_unchecked(number_of_frames.get() * (frame_size as u32 as u64)) };
+		let length = unsafe { NonZeroU64::new_unchecked((number_of_frames.get() as u64) * (chunk_size as u32 as u64)) };
 		
-		MappedMemory::anonymous(length, AddressHint::any(), Protection::ReadWrite, Sharing::Private, huge_memory_page_size, false, false, defaults).map(Self)
+		let mapped_memory = MappedMemory::anonymous(length, AddressHint::any(), Protection::ReadWrite, Sharing::Private, huge_memory_page_size, false, false, defaults).map_err(ExpressDataPathSocketCreationError::CouldNotCreateUserMemory)?;
+		mapped_memory.zero();
+		Ok(Self(mapped_memory))
 	}
 	
-	/// The network packet should start with an `ether_header` struct, eg see the function `swap_mac_addresses()` in Linux source `samples/bpf/xdpsock_user.c`.
-	///
-	/// ***WARNING***: The network packet is only valid until the underlying `descriptor` is released; the lifetime `'a` is overly long.
-	pub fn network_packet<'a>(&self, descriptor: &'a xdp_desc) -> &'a mut [u8]
+	#[inline(always)]
+	fn address_and_length(&self) -> (NonZeroU64, NonZeroU64)
 	{
-		let pointer = self.network_packet_address(descriptor.user_memory_area_relative_address()).as_ptr();
+		(
+			memory.virtual_address().into(),
+			NonZeroU64::new(memory.mapped_size_in_bytes() as u64).expect("Memory can not be zero length (empty)")
+		)
+	}
+	
+	#[inline(always)]
+	fn frame<'a>(&'a self, frame_headroom: FrameHeadroom, user_memory_area_relative_address: UserMemoryAreaRelativeAddress, length: usize) -> (&'a mut [u8], &'a mut [u8])
+	{
+		let pointer = self.frame_address(user_memory_area_relative_address).as_ptr();
 		let length = descriptor.len as usize;
-		unsafe { from_raw_parts_mut(pointer, length) }
+		
+		let frame_headroom = unsafe { XXXXX };
+		let frame = unsafe { from_raw_parts_mut(pointer, length) };
+		(frame_headroom, frame)
 	}
 	
 	/// Based on `xsk_umem__get_data()` in Linux source `tools/lib/bpf/xsk.h`.
 	///
 	/// The `address` is the result of calling `xsk_umem__add_offset_to_addr()` on `xdp_desc.addr`.
 	#[inline(always)]
-	fn network_packet_address(&self, address: UserMemoryAreaRelativeAddress) -> NonNull<u8>
+	fn frame_address(&self, address: UserMemoryAreaRelativeAddress) -> NonNull<u8>
 	{
 		self.virtual_address().pointer_to(address as usize)
 	}

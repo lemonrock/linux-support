@@ -29,6 +29,7 @@ include!("xdp_md.rs");
 include!("xdp_mmap_offsets.rs");
 include!("xdp_options.rs");
 include!("XDP_OPTIONS_.rs");
+include!("XDP_PACKET_HEADROOM.rs");
 include!("XDP_PGOFF_.rs");
 include!("XDP_RING_.rs");
 include!("xdp_ring_offset.rs");

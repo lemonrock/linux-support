@@ -3,7 +3,7 @@
 
 
 /// UMEM (User space memory) descriptor.
-pub(super) type UmemDescriptor = u64;
+pub(crate) type UmemDescriptor = u64;
 
 impl Descriptor for UmemDescriptor
 {

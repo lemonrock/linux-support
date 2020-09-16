@@ -11,24 +11,45 @@ pub struct RedirectMapAndAttachedProgram
 	/// Supplied with size information (`Channels`) from the function `xsk_get_max_queues()` in Linux source `tools/lib/bpf/xsk.c`.
 	redirect_map: ExpressDataPathRedirectSocketArrayMap,
 	
-	attached_xdp_extended_bpf_program_file_descriptor: Rc<ExtendedBpfProgramFileDescriptor>,
+	attached_express_data_path_extended_bpf_program_file_descriptor: Rc<ExtendedBpfProgramFileDescriptor>,
 	
 	attached_program_name: ProgramName,
 }
 
 impl RedirectMapAndAttachedProgram
 {
+	/// Based on the function `xsk_set_bpf_maps()` in Linux source `tools/lib/bpf/xsk.c`.
+	#[inline(always)]
+	pub(super) fn insert_into_redirect_map_if_receive<ROTOB: ReceiveOrTransmitOrBoth<_, _>>(&self, queue_identifier: QueueIdentifier, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor) -> Result<(), AttachProgramError>
+	{
+		if ROTOB::IsReceiveOrBoth
+		{
+			self.redirect_map.insert(queue_identifier, user_memory_socket_file_descriptor)?;
+		}
+		Ok(())
+	}
+	
+	/// Based on `libbpf`'s `xsk_delete_bpf_maps()`.
+	#[inline(always)]
+	pub(super) fn remove_receive_map_queue_identifier<ROTOB: ReceiveOrTransmitOrBoth<_, _>>(&self, queu_identifier: QueueIdentifier)
+	{
+		if ROTOB::IsReceiveOrBoth
+		{
+			let _ignored = self.redirect_map.delete(queue_identifier);
+		}
+	}
+	
 	/// This test relies on the program's `ProgramName`, which, although unique, is a value that another process on Linux could have set for its XDP eBPF.
 	#[inline(always)]
-	fn is_our_owned_program_and_thus_can_not_be_shared(&self) -> bool
+	pub(super) fn is_our_owned_program_and_thus_can_not_be_shared(&self) -> bool
 	{
 		self.attached_program_name == Self::our_owned_program_name()
 	}
 	
 	/// Based on the function `xsk_setup_xdp_prog()` in Linux source `tools/lib/bpf/xsk.c`.
-	fn new_suitable_for_owned_or_reuse_already_attached(network_interface_index: NetworkInterfaceIndex, settings: OwnedRedirectMapAndAttachedProgramSettings, insert_into_redirect_map_if_receive: Option<(QueueIdentifier, &ExpressDataPathSocketFileDescriptor)>) -> Result<Self, AttachProgramError>
+	pub(super) fn new_suitable_for_owned_or_reuse_already_attached<ROTOB: ReceiveOrTransmitOrBoth<_, _>>(network_interface_index: NetworkInterfaceIndex, settings: RedirectMapAndAttachedProgramSettings, queue_identifier: QueueIdentifier, user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor) -> Result<Self, AttachProgramError>
 	{
-		let OwnedRedirectMapAndAttachedProgramSettings { forcibly_overwrite_already_attached, device_offload, redirect_map_numa_node } = settings;
+		let RedirectMapAndAttachedProgramSettings { forcibly_overwrite_already_attached, device_offload, redirect_map_numa_node } = settings;
 		
 		let get_link_message_data = Self::get_link_message_data(network_interface_index)?;
 		
@@ -46,14 +67,11 @@ impl RedirectMapAndAttachedProgram
 			}
 		}?;
 		
-		if let Some((queue_identifier, user_memory_socket_file_descriptor)) = insert_into_redirect_map_if_receive
-		{
-			// Based on the function `xsk_set_bpf_maps()` in Linux source `tools/lib/bpf/xsk.c`.
-			this.redirect_map.insert(queue_identifier, user_memory_socket_file_descriptor)?
-		}
+		this.insert_into_redirect_map_if_receive::<ROTOB>(queue_identifier, user_memory_socket_file_descriptor)?;
 		
 		Ok(this)
 	}
+	
 	
 	/// Based on the function `xsk_setup_xdp_prog()` in Linux source `tools/lib/bpf/xsk.c`.
 	///
@@ -64,9 +82,9 @@ impl RedirectMapAndAttachedProgram
 		
 		let (program_identifier, attach_mode) = program_identifiers.choose_most_performant();
 		
-		let attached_xdp_extended_bpf_program_file_descriptor = ExtendedBpfProgramFileDescriptor::from_identifier_with_access_defaults(program_identifier).map_err(CouldNotGetExistingProgramFileDescriptor)?.ok_or(NoExistingExpressDataPathProgramForAttachedExtendedBpfProgramFileDescriptor)?;
+		let attached_express_data_path_extended_bpf_program_file_descriptor = ExtendedBpfProgramFileDescriptor::from_identifier_with_access_defaults(program_identifier).map_err(CouldNotGetExistingProgramFileDescriptor)?.ok_or(NoExistingExpressDataPathProgramForAttachedExtendedBpfProgramFileDescriptor)?;
 		
-		let program_information = attached_xdp_extended_bpf_program_file_descriptor.get_information().map_err(CouldNotGetExistingProgramInformation)?;
+		let program_information = attached_express_data_path_extended_bpf_program_file_descriptor.get_information().map_err(CouldNotGetExistingProgramInformation)?;
 		program_information.validate_has_program_type(bpf_prog_type::BPF_PROG_TYPE_XDP, ExistingAttachedProgramHasWrongProgramTypeForExpressDataPath)?;
 		program_information.validate_attach_mode_and_device_offload_matches_program_information(attach_mode, device_offload, network_interface_index)?;
 		
@@ -77,7 +95,7 @@ impl RedirectMapAndAttachedProgram
 			Self
 			{
 				redirect_map,
-				attached_xdp_extended_bpf_program_file_descriptor: Rc::new(attached_xdp_extended_bpf_program_file_descriptor),
+				attached_express_data_path_extended_bpf_program_file_descriptor: Rc::new(attached_express_data_path_extended_bpf_program_file_descriptor),
 				attached_program_name: program_information.name(),
 			}
 		)
@@ -113,23 +131,23 @@ impl RedirectMapAndAttachedProgram
 		let program_template = Self::owned_memory_program(offload_to);
 		
 		let mut extended_bpf_program_file_descriptors = FileDescriptorsMap::with_capacity(1);
-		let xdp_extended_bpf_program_file_descriptor = program_template.convenient_load(&map_file_descriptors, &mut extended_bpf_program_file_descriptors)?;
+		let express_data_path_extended_bpf_program_file_descriptor = program_template.convenient_load(&map_file_descriptors, &mut extended_bpf_program_file_descriptors)?;
 		
-		Self::attach_program(network_interface_index, &xdp_extended_bpf_program_file_descriptor, device_offload)?;
+		Self::attach_program(network_interface_index, &express_data_path_extended_bpf_program_file_descriptor, device_offload)?;
 		
 		Ok
 		(
 			Self
 			{
 				redirect_map,
-				attached_xdp_extended_bpf_program_file_descriptor: xdp_extended_bpf_program_file_descriptor,
+				attached_express_data_path_extended_bpf_program_file_descriptor: express_data_path_extended_bpf_program_file_descriptor,
 				attached_program_name: Self::our_owned_program_name(),
 			}
 		)
 	}
 	
 	#[inline(always)]
-	fn attach_program(network_interface_index: NetworkInterfaceIndex, xdp_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor, device_offload: bool) -> Result<(), AttachProgramError>
+	fn attach_program(network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor, device_offload: bool) -> Result<(), AttachProgramError>
 	{
 		let mut netlink_socket_file_descriptor = NetlinkSocketFileDescriptor::open()?;
 		use self::AttachMode::*;
@@ -141,7 +159,7 @@ impl RedirectMapAndAttachedProgram
 		{
 			GenericOrNative
 		};
-		RouteNetlinkProtocol::xdp_fd_replace(&mut netlink_socket_file_descriptor, network_interface_index, xdp_extended_bpf_program_file_descriptor, attach_mode, UpdateMode::CreateOrUpdate).map_err(AttachProgramError::CouldNotAttachXdpProgram)
+		RouteNetlinkProtocol::xdp_fd_replace(&mut netlink_socket_file_descriptor, network_interface_index, express_data_path_extended_bpf_program_file_descriptor, attach_mode, UpdateMode::CreateOrUpdate).map_err(AttachProgramError::CouldNotAttachXdpProgram)
 	}
 	
 	/// Specify `Some` for `offload_to` if using a network card that supports offloading of eBPF (currently, only Netronome NFP drivers support this).

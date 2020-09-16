@@ -3,6 +3,6 @@
 
 
 /// Ring descriptor (type of elements in ring).
-pub trait Descriptor: Sized
+pub(crate) trait Descriptor: Sized
 {
 }

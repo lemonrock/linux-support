@@ -28,6 +28,7 @@
 #![feature(never_type)]
 #![feature(ptr_offset_from)]
 #![feature(read_initializer)]
+#![feature(step_trait)]
 #![feature(thread_id_value)]
 #![feature(thread_local)]
 
@@ -129,6 +130,7 @@ use libc::ELOOP;
 use libc::EMFILE;
 use libc::EMSGSIZE;
 use libc::ENAMETOOLONG;
+use libc::ENETDOWN;
 use libc::ENETUNREACH;
 use libc::ENFILE;
 use libc::ENOBUFS;
@@ -279,6 +281,8 @@ use libc::O_SYNC;
 use libc::O_TMPFILE;
 use libc::O_TRUNC;
 use libc::O_WRONLY;
+use libc::poll;
+use libc::pollfd;
 use libc::POLLERR;
 use libc::POLLHUP;
 use libc::POLLIN;
@@ -620,6 +624,7 @@ use std::fs::remove_file;
 use std::fs::set_permissions;
 use std::hash::Hash;
 use std::hash::Hasher;
+use std::iter::Step;
 use std::io;
 use std::io::BufRead;
 use std::io::BufReader;
