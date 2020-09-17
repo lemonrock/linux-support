@@ -2,12 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-
-
-include!("ChunkSize.rs");
-include!("FrameHeadroom.rs");
-include!("FrameLength.rs");
-include!("FrameNumber.rs");
-include!("FrameReference.rs");
-include!("FramesCount.rs");
+/// Fill and Completion ring queue depths.
+pub trait FillOrCompletionOrBothRingQueueDepths: RingQueueDepths
+{
+	/// Related to `Received::receive()`.
+	fn fill_ring_queue_depth_or_default(&self) -> RingQueueDepth;
+	
+	/// Related to `Transmits::transmit()`.
+	fn completion_ring_queue_depth_or_default(&self) -> RingQueueDepth;
+}

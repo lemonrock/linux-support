@@ -2,18 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Receive, transmit or both.
-pub trait ReceiveOrTransmitOrBoth<Receive, Transmit>
+#[doc(hidden)]
+pub trait ReceiveOrTransmitOrBoth: Supports
 {
-	#[allow(missing_docs)]
-	const IsReceiveOrBoth: bool;
-	
-	#[allow(missing_docs)]
-	fn receive(&self) -> &Receive;
-	
-	#[allow(missing_docs)]
-	fn transmit(&self) -> &Transmit;
-	
-	#[allow(missing_docs)]
-	fn use_value(&self, use_receive: impl FnOnce(&Receive), use_transmit: impl FnOnce(&Transmit));
 }

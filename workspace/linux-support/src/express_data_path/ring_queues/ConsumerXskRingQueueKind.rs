@@ -4,7 +4,7 @@
 
 /// `xsk_ring_cons`.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(super) struct ConsumerXskRingQueueKind;
+pub(crate) struct ConsumerXskRingQueueKind;
 
 impl XskRingQueueKind for ConsumerXskRingQueueKind
 {

@@ -5,6 +5,7 @@
 use self::attached_program::*;
 use self::c::*;
 use self::chunk_alignment::*;
+use self::common::*;
 use self::descriptors::*;
 use self::frames::*;
 use self::receive_or_transmit::*;
@@ -48,6 +49,10 @@ pub mod c;
 pub mod chunk_alignment;
 
 
+#[doc(hidden)]
+pub mod common;
+
+
 /// Descriptors.
 pub(crate) mod descriptors;
 
@@ -68,13 +73,15 @@ pub mod receive_polling;
 pub mod ring_queues;
 
 
-include!("CommonSharedExpressDataPathSocket.rs");
+include!("CommonExpressDataPathSocket.rs");
 include!("ExpressDataPathSocket.rs");
 include!("ExpressDataPathSocketCreationError.rs");
 include!("OwnedExpressDataPathSocket.rs");
 include!("ReceivedFrameProcessor.rs");
+include!("ReceivesExpressDataPathSocket.rs");
 include!("SharedExpressDataPathSocket.rs");
 include!("ShareableExpressDataPathSocket.rs");
+include!("TransmitsExpressDataPathSocket.rs");
 include!("UserMemory.rs");
 include!("UserMemoryArea.rs");
 include!("UserMemoryAreaRelativeAddress.rs");

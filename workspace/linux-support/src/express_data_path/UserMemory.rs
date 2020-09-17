@@ -94,9 +94,12 @@ impl<CA: ChunkAlignment> UserMemory<CA>
 	///
 	/// If flags contains `XdpUmemRegFlags::UnalignedChunks`, then `huge_memory_page_size` can not be `None`.
 	/// `number_of_frames` might be 4096.
-	fn new<ROTOB: ReceiveOrTransmitOrBoth<_, _>>(number_of_frames: NonZeroU32, chunk_size: ChunkSize, frame_headroom: FrameHeadroom, network_interface_maximum_transmission_unit_including_frame_check_sequence: MaximumTransmissionUnit, chunk_alignment: CA, fill_ring_queue_depth: RingQueueDepth, completion_ring_queue_depth: RingQueueDepth, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, ExpressDataPathSocketCreationError>
+	fn new<FOCOBRQD: FillOrCompletionOrBothRingQueueDepths>(number_of_frames: NonZeroU32, chunk_size: ChunkSize, frame_headroom: FrameHeadroom, network_interface_maximum_transmission_unit_including_frame_check_sequence: MaximumTransmissionUnit, chunk_alignment: CA, fill_or_completion_or_both_ring_queue_depths: FOCOBRQD, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, ExpressDataPathSocketCreationError>
 	{
 		use self::ExpressDataPathSocketCreationError::*;
+		
+		let fill_ring_queue_depth = fill_or_completion_or_both_ring_queue_depths.fill_queue_ring_queue_depth_or_default();
+		let completion_ring_queue_depth = fill_or_completion_or_both_ring_queue_depths.completion_queue_depth_or_default();
 		
 		let flags = if CA::IsUnaligned
 		{
@@ -131,7 +134,7 @@ impl<CA: ChunkAlignment> UserMemory<CA>
 		(
 			Self
 			{
-				fill_queue: XskRingQueue::from_fill_memory_map_offsets::<ROTOB>(&user_memory_socket_file_descriptor, &memory_map_offsets, fill_ring_queue_depth, defaults, chunk_size),
+				fill_queue: XskRingQueue::from_fill_memory_map_offsets::<FOCOBRQD>(&user_memory_socket_file_descriptor, &memory_map_offsets, fill_ring_queue_depth, defaults, chunk_size),
 				completion_queue: XskRingQueue::from_completion_memory_map_offsets(&user_memory_socket_file_descriptor, &memory_map_offsets, completion_ring_queue_depth, defaults),
 				user_memory_area: ManuallyDrop::new(user_memory_area),
 				user_memory_socket_file_descriptor: ManuallyDrop::new(user_memory_socket_file_descriptor),

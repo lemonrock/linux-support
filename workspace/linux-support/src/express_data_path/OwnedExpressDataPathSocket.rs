@@ -4,25 +4,44 @@
 
 /// Owned socket.
 #[derive(Debug)]
-pub struct OwnedExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceiveOrTransmitOrBoth, RP: ReceivePoll, CA: ChunkAlignment>
+pub struct OwnedExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment>
 {
 	user_memory: ManuallyDrop<UserMemory<CA>>,
 	
 	redirect_map_and_attached_program: ManuallyDrop<RedirectMapAndAttachedProgram>,
 
-	common: CommonSharedExpressDataPathSocket<ROTOB::To, RP>,
+	common: CommonExpressDataPathSocket<ROTOB>,
 	
 	network_interface_index: NetworkInterfaceIndex,
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceiveOrTransmitOrBoth, RP: ReceivePoll, CA: ChunkAlignment> Drop for OwnedExpressDataPathSocket<ROTOB, RP, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, CA: ChunkAlignment, RP: ReceivePoll> Drop for OwnedExpressDataPathSocket<RingQueueDepths, CA>
 {
 	/// Based on `libbpf`'s `xsk_socket__delete()`.
 	#[inline(always)]
 	fn drop(&mut self)
 	{
 		self.common.remove_receive_map_queue_identifier(&self.redirect_map_and_attached_program);
-		
+		self.manually_drop()
+	}
+}
+
+impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, CA: ChunkAlignment> Drop for OwnedExpressDataPathSocket<RingQueueDepths, CA>
+{
+	/// Based on `libbpf`'s `xsk_socket__delete()`.
+	#[inline(always)]
+	fn drop(&mut self)
+	{
+		self.manually_drop()
+	}
+}
+
+impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> OwnedExpressDataPathSocket<ROTOB, CA>
+{
+	/// Based on `libbpf`'s `xsk_socket__delete()`.
+	#[inline(always)]
+	fn manually_drop(&mut self)
+	{
 		unsafe
 		{
 			ManuallyDrop::drop(&mut self.common);
@@ -32,7 +51,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceive
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceiveOrTransmitOrBoth, RP: ReceivePoll, CA: ChunkAlignment> ExpressDataPathSocket<ROTOB::To, RP, CA> for OwnedExpressDataPathSocket<ROTOB, RP, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> ExpressDataPathSocket<ROTOB, CA> for OwnedExpressDataPathSocket<RingQueueDepths, CA>
 {
 	#[inline(always)]
 	fn user_memory(&self) -> &UserMemory<CA>
@@ -41,7 +60,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceive
 	}
 	
 	#[inline(always)]
-	fn common(&self) -> &CommonSharedExpressDataPathSocket<ROTOB::To, RP>
+	fn common(&self) -> &CommonExpressDataPathSocket<RingQueueDepths::ReceiveOrTransmitOrBoth>
 	{
 		&self.common
 	}
@@ -51,7 +70,10 @@ impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceive
 	{
 		&self.user_memory().user_memory_socket_file_descriptor
 	}
-	
+}
+
+impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, CA: ChunkAlignment, RP: ReceivePoll> ReceivesExpressDataPathSocket<ROTOB, CA> for OwnedExpressDataPathSocket<RingQueueDepths, CA>
+{
 	#[inline(always)]
 	fn lock_fill_queue(&self)
 	{
@@ -61,7 +83,10 @@ impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceive
 	fn unlock_fill_queue(&self)
 	{
 	}
-	
+}
+
+impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, CA: ChunkAlignment> TransmitsExpressDataPathSocket<ROTOB, CA> for OwnedExpressDataPathSocket<RingQueueDepths, CA>
+{
 	#[inline(always)]
 	fn lock_completion_queue(&self)
 	{
@@ -73,12 +98,16 @@ impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceive
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceiveOrTransmitOrBoth, RP: ReceivePoll, CA: ChunkAlignment> OwnedExpressDataPathSocket<ROTOB, RP, CA>
+impl<RingQueueDepths: FillOrCompletionOrBothRingQueueDepths + CreateReceiveOrTransmitOrBoth, CA: ChunkAlignment> OwnedExpressDataPathSocket<RingQueueDepths::ReceiveOrTransmitOrBoth, CA>
 {
-	// TODO: Sort out ring_queue_depths and chunk_size.
+	// TODO: Two different kinds of queues - fill/complete, rx/tx - need two types, not just RingQueueDepths
+	// TODO: insert receive_queue_identifier after binding socket!
+	// TODO: Sort out number of frames - either fill + completion depth, or, if fwd'ing, either fill or completion but fill == completion
+		// TODO: Can be larger, eg for scratch space, but what's the point?
 	// TODO: Sort out frame_headroom (can be used for application-specific storage); need to check if xdp_desc.len includes frame headroom.
 		// TODO: Current logic creating a headroom slice seems WRONG;
 		// Looking at __xsk_rcv_zv it seems that xdp_desc.addr is after headroom.
+	// TODO: Sort out sharing - the OwnedExpressDataPathSocket still needs to be used as one-of the shared instances!
 	
 	/// If flags contains `XdpUmemRegFlags::UnalignedChunks`, then `huge_memory_page_size` can not be `None`.
 	///
@@ -89,8 +118,10 @@ impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceive
 	/// `ring_queue_depths.transmit()` ought to be the same as `completion_ring_queue_depth`.
 	///
 	/// When this method returns, the inner `UserMemory`'s `fill_queue` is fully populated with (Ethernet) frames for receiving ethernet packets matching relative frame numbers `0` to `fill_ring_queue_depth - 1` having been 'gifted' to the Linux kernel.
+	///
+	/// Even if we are never transmitting, we still have to specify and create a `completion_ring_queue_depth`!
 	#[inline(always)]
-	pub fn new(number_of_frames: NonZeroU32, chunk_size: ChunkSize, frame_headroom: FrameHeadroom, chunk_alignment: CA, fill_ring_queue_depth: RingQueueDepth, completion_ring_queue_depth: RingQueueDepth, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes, redirect_map_and_attached_program: Either<RedirectMapAndAttachedProgramSettings, RedirectMapAndAttachedProgram>, network_interface_name: NetworkInterfaceName, ring_queue_depths: ROTOB, receive_poll_creator: impl FnOnce(&ExpressDataPathSocketFileDescriptor) -> RP, queue_identifier: QueueIdentifier, force_copy: bool, force_zero_copy: bool) -> Result<Self, ExpressDataPathSocketCreationError>
+	pub fn new(number_of_frames: NonZeroU32, chunk_size: ChunkSize, frame_headroom: FrameHeadroom, chunk_alignment: CA, fill_or_completion_or_both_ring_queue_depths: RingQueueDepths, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes, redirect_map_and_attached_program: Either<RedirectMapAndAttachedProgramSettings, RedirectMapAndAttachedProgram>, network_interface_name: NetworkInterfaceName, receive_or_transmit_or_both_ring_queue_depths: RingQueueDepths, queue_identifier: QueueIdentifier, force_copy: bool, force_zero_copy: bool, arguments: RingQueueDepths::Arguments) -> Result<Self, ExpressDataPathSocketCreationError>
 	{
 		use self::ExpressDataPathSocketCreationError::*;
 		
@@ -100,41 +131,63 @@ impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceive
 		let network_interface_maximum_transmission_unit_including_frame_check_sequence = Self::calculate_maximum_transmission_unit_including_frame_check_sequence(frame_headroom, chunk_size).map_err(|reason| CouldNotFindAnAcceptableMaximumTransmissionUnit { reason, frame_headroom, chunk_size })?;
 		network_device_control.set_maximum_transmission_unit(network_interface_maximum_transmission_unit_including_frame_check_sequence)?.ok_or(NoSuchNetworkInterfaceName)?;
 		
-		let user_memory = UserMemory::new::<ROTOB>(number_of_frames, chunk_size, frame_headroom, network_interface_maximum_transmission_unit_including_frame_check_sequence, chunk_alignment, fill_ring_queue_depth, completion_ring_queue_depth, huge_memory_page_size, defaults)?;
+		let user_memory = UserMemory::new(number_of_frames, chunk_size, frame_headroom, network_interface_maximum_transmission_unit_including_frame_check_sequence, chunk_alignment, fill_or_completion_or_both_ring_queue_depths, huge_memory_page_size, defaults)?;
 		
-		Self::from_user_memory(user_memory, redirect_map_and_attached_program, network_interface_index, ring_queue_depths, receive_poll_creator, queue_identifier, defaults, force_copy, force_zero_copy)
+		Self::owned(user_memory, redirect_map_and_attached_program, network_interface_index, receive_or_transmit_or_both_ring_queue_depths, queue_identifier, defaults, force_copy, force_zero_copy, arguments)
 	}
 	
-	/// Treats `self` as master; returns a slave.
-	///
-	/// When all slaves have been dropped the master is dropped.
-	/// This ensures the correct ordering of close for socket file descriptors.
-	///
-	/// The `express_data_path_extended_bpf_program` in use with `self` must be suitable for use with shared user memory; if not an error of `Err(AttachProgramError::AttachedXdpProgramNotSuitableForSharing)` is returned.
-	///
-	/// A potential bug: ***`queue_identifier` is not checked to see if it used by another instance of `SharedReceiveTransmitMemoryRingQueues`***.
-	/// Adding such a check is possible but is tedious.
-	fn share(&self, ring_queue_depths: ROTOB, receive_poll_creator: impl FnOnce(&ExpressDataPathSocketFileDescriptor) -> RP, queue_identifier: QueueIdentifier, force_copy: bool, force_zero_copy: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<(CommonSharedExpressDataPathSocket<ROTOB::To, RP>, ManuallyDrop<ExpressDataPathSocketFileDescriptor>), ExpressDataPathSocketCreationError>
+	#[inline(always)]
+	fn owned(user_memory: UserMemory, redirect_map_and_attached_program: Either<RedirectMapAndAttachedProgramSettings, RedirectMapAndAttachedProgram>, network_interface_index: NetworkInterfaceIndex, receive_or_transmit_or_both_ring_queue_depths: RingQueueDepths, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes, force_copy: bool, force_zero_copy: bool, arguments: RingQueueDepths::Arguments) -> Result<Self, ExpressDataPathSocketCreationError>
 	{
-		debug_assert_ne!(queue_identifier, self.queue_identifier, "Re-use of owned queue identifier is not permitted");
+		let redirect_map_and_attached_program = match redirect_map_and_attached_program
+		{
+			Left(settings) => RedirectMapAndAttachedProgram::new_suitable_for_owned_or_reuse_already_attached::<RingQueueDepths>(network_interface_index, settings, queue_identifier, user_memory_socket_file_descriptor)?,
+			
+			Right(redirect_map_and_attached_program) => redirect_map_and_attached_program,
+		};
 		
+		Ok
+		(
+			Self
+			{
+				common:
+				{
+					let user_memory_socket_file_descriptor = user_memory.user_memory_socket_file_descriptor();
+					let express_data_path_socket_file_descriptor = user_memory_socket_file_descriptor;
+					
+					CommonExpressDataPathSocket::new(express_data_path_socket_file_descriptor, network_interface_index, receive_or_transmit_or_both_ring_queue_depths, XdpSocketAddressFlags::empty(), force_copy, force_zero_copy, user_memory_socket_file_descriptor, queue_identifier, defaults, &redirect_map_and_attached_program, arguments)?
+				},
+				
+				user_memory: ManuallyDrop::new(user_memory),
+				
+				redirect_map_and_attached_program: ManuallyDrop::new(redirect_map_and_attached_program),
+				
+				network_interface_index,
+			}
+		)
+	}
+	
+	fn shared(&self, receive_or_transmit_or_both_ring_queue_depths: RingQueueDepths, queue_identifier: QueueIdentifier, force_copy: bool, force_zero_copy: bool, defaults: &DefaultPageSizeAndHugePageSizes, arguments: RingQueueDepths::Arguments) -> Result<(CommonExpressDataPathSocket<RingQueueDepths::ReceiveOrTransmitOrBoth>, ManuallyDrop<ExpressDataPathSocketFileDescriptor>), ExpressDataPathSocketCreationError>
+	{
 		use self::ExpressDataPathSocketCreationError::*;
 		
+		debug_assert_ne!(queue_identifier, self.queue_identifier, "Re-use of owned queue identifier is not permitted");
 		
 		if self.redirect_map_and_attached_program.is_our_owned_program_and_thus_can_not_be_shared()
 		{
-			return Err(AttachedXdpProgramNotSuitableForSharing)
+			return Err(AttachedExpressDataPathProgramNotSuitableForSharing)
 		}
 		
-		let sxdp_flags = XdpSocketAddressFlags::SharedUserMemory.sxdp_flags(force_copy, force_zero_copy, true);
 		let express_data_path_socket_file_descriptor = ExpressDataPathSocketFileDescriptor::new().map_err(CouldNotCreateUserMemorySocketFileDescriptor)?;
-		let receive_and_transmit = Self::construct(&express_data_path_socket_file_descriptor, self.network_interface_index, ring_queue_depths, sxdp_flags, self.user_memory.user_memory_socket_file_descriptor(), queue_identifier, defaults)?;
 		
-		// Based on call to `enter_xsks_into_map()` in `main()` in Linux source `samples/bpf/xdpsock_user.c`.
-		self.redirect_map_and_attached_program.insert_into_redirect_map_if_receive::<ROTOB>(queue_identifier, &express_data_path_socket_file_descriptor)?;
-		
-		Ok((CommonSharedExpressDataPathSocket::new(receive_and_transmit, queue_identifier, receive_poll_creator(&express_data_path_socket_file_descriptor)), ManuallyDrop::new(express_data_path_socket_file_descriptor)))
-		
+		Ok
+		(
+			(
+				CommonExpressDataPathSocket::new(&express_data_path_socket_file_descriptor, self.network_interface_index, receive_or_transmit_or_both_ring_queue_depths, XdpSocketAddressFlags::SharedUserMemory, force_copy, force_zero_copy, self.user_memory.user_memory_socket_file_descriptor(), queue_identifier, defaults, &self.redirect_map_and_attached_program, arguments)?,
+				
+				ManuallyDrop::new(express_data_path_socket_file_descriptor)
+			)
+		)
 	}
 	
 	/// Calculate the maximum transmission unit (MTU) that can be supported by eXpress Data Path.
@@ -153,67 +206,5 @@ impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceive
 			
 			Some(value) => Ok(MaximumTransmissionUnit(value)),
 		}
-	}
-	
-	#[inline(always)]
-	fn from_user_memory(user_memory: UserMemory, redirect_map_and_attached_program: Either<RedirectMapAndAttachedProgramSettings, RedirectMapAndAttachedProgram>, network_interface_index: NetworkInterfaceIndex, ring_queue_depths: ROTOB, receive_poll_creator: impl FnOnce(&ExpressDataPathSocketFileDescriptor) -> RP, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes, force_copy: bool, force_zero_copy: bool) -> Result<Self, ExpressDataPathSocketCreationError>
-	{
-		let sxdp_flags = XdpSocketAddressFlags::empty().sxdp_flags(force_copy, force_zero_copy, true);
-		
-		let user_memory_socket_file_descriptor = user_memory.user_memory_socket_file_descriptor();
-		let receive_and_transmit = Self::construct(user_memory_socket_file_descriptor, network_interface_index, ring_queue_depths, sxdp_flags, user_memory_socket_file_descriptor, queue_identifier, defaults)?;
-		
-		let redirect_map_and_attached_program = match redirect_map_and_attached_program
-		{
-			Left(settings) => RedirectMapAndAttachedProgram::new_suitable_for_owned_or_reuse_already_attached::<ROTOB>(network_interface_index, settings, queue_identifier, user_memory_socket_file_descriptor)?,
-			
-			Right(redirect_map_and_attached_program) => redirect_map_and_attached_program,
-		};
-		
-		Ok
-		(
-			Self
-			{
-				common: CommonSharedExpressDataPathSocket::new(receive_and_transmit, queue_identifier, receive_poll_creator(user_memory_socket_file_descriptor)),
-				user_memory: ManuallyDrop::new(user_memory),
-				redirect_map_and_attached_program: ManuallyDrop::new(redirect_map_and_attached_program),
-				network_interface_index,
-			}
-		)
-	}
-	
-	/// Based on `libbpf`'s `xsk_socket__create()`.
-	fn construct(express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, network_interface_index: NetworkInterfaceIndex, ring_queue_depths: ROTOB, sxdp_flags: XdpSocketAddressFlags, user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<ROTOB::To, ExpressDataPathSocketCreationError>
-	{
-		let reveive_ring_queue_depth = FillQueue;
-		let transmit_ring_queue_depth = CompletionQueue;
-		
-		ring_queue_depths.use_value
-		(
-			|receive_ring_queue_depth| express_data_path_socket_file_descriptor.set_xdp_socket_option_receive_ring(receive_ring_queue_depth),
-			|transmit_ring_queue_depth| express_data_path_socket_file_descriptor.set_xdp_socket_option_transmit_ring(transmit_ring_queue_depth),
-		);
-		
-		// NOTE: Valid memory map offsets are not available until the socket options above have been set.
-		let memory_map_offsets = express_data_path_socket_file_descriptor.get_memory_map_offsets();
-		
-		let receive_and_transmit = ring_queue_depths.map
-		(
-			|receive_ring_queue_depth| XskRingQueue::from_receive_memory_map_offsets(&express_data_path_socket_file_descriptor, &memory_map_offsets, receive_ring_queue_depth, defaults),
-			|transmit_ring_queue_depth| XskRingQueue::from_transmit_memory_map_offsets(&express_data_path_socket_file_descriptor, &memory_map_offsets, transmit_ring_queue_depth, defaults),
-		);
-		
-		let socket_address = sockaddr_xdp
-		{
-			sxdp_family: AF_XDP as u16,
-			sxdp_flags,
-			sxdp_ifindex: network_interface_index,
-			sxdp_queue_id: queue_identifier,
-			sxdp_shared_umem_fd: user_memory_socket_file_descriptor.as_raw_fd(),
-		};
-		
-		bind_socket(express_data_path_socket_file_descriptor, &socket_address)?;
-		
-		Ok(receive_and_transmit)
 	}
 }

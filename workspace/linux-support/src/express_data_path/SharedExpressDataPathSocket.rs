@@ -6,22 +6,41 @@
 ///
 /// Created by `OwnedExpressDataPathSocket::share()`.
 #[derive(Debug)]
-pub struct SharedExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceiveOrTransmitOrBoth, RP: ReceivePoll, CA: ChunkAlignment>
+pub struct SharedExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment>
 {
-	owner: ShareableExpressDataPathSocket<ROTOB, RP, CA>,
+	owner: ShareableExpressDataPathSocket<ROTOB, CA>,
 	
 	express_data_path_socket_file_descriptor: ManuallyDrop<ExpressDataPathSocketFileDescriptor>,
 	
-	common: CommonSharedExpressDataPathSocket<ROTOB::To, RP>,
+	common: CommonExpressDataPathSocket<ROTOB>,
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceiveOrTransmitOrBoth, RP: ReceivePoll, CA: ChunkAlignment> Drop for SharedExpressDataPathSocket<ROTOB, RP, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, CA: ChunkAlignment, RP: ReceivePoll> Drop for SharedExpressDataPathSocket<RingQueueDepths, CA>
 {
+	/// Based on `libbpf`'s `xsk_socket__delete()`.
 	#[inline(always)]
 	fn drop(&mut self)
 	{
-		self.common.remove_receive_map_queue_identifier(self.owner.express_data_path_extended_bpf_program);
-		
+		self.common.remove_receive_map_queue_identifier(self.owner.redirect_map_and_attached_program());
+		self.manually_drop()
+	}
+}
+
+impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, CA: ChunkAlignment> Drop for SharedExpressDataPathSocket<RingQueueDepths, CA>
+{
+	/// Based on `libbpf`'s `xsk_socket__delete()`.
+	#[inline(always)]
+	fn drop(&mut self)
+	{
+		self.manually_drop()
+	}
+}
+
+impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> SharedExpressDataPathSocket<RingQueueDepths, CA>
+{
+	#[inline(always)]
+	fn manually_drop(&mut self)
+	{
 		unsafe
 		{
 			ManuallyDrop::drop(&mut self.common);
@@ -30,16 +49,16 @@ impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceive
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceiveOrTransmitOrBoth, RP: ReceivePoll, CA: ChunkAlignment> ExpressDataPathSocket for SharedExpressDataPathSocket<ROTOB, RP, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> ExpressDataPathSocket<RingQueueDepths::ReceiveOrTransmitOrBoth, CA> for SharedExpressDataPathSocket<RingQueueDepths, CA>
 {
 	#[inline(always)]
 	fn user_memory(&self) -> &UserMemory<CA>
 	{
-		&self.owner.user_memory
+		&self.owner.user_memory()
 	}
 	
 	#[inline(always)]
-	fn common(&self) -> &CommonSharedExpressDataPathSocket<RP>
+	fn common(&self) -> &CommonExpressDataPathSocket<RingQueueDepths::ReceiveOrTransmitOrBoth>
 	{
 		&self.common
 	}
@@ -49,28 +68,52 @@ impl<ROTOB: ReceiveOrTransmitOrBoth<RingQueueDepth, RingQueueDepth> + MapReceive
 	{
 		&self.express_data_path_socket_file_descriptor
 	}
-	
+}
+
+impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, CA: ChunkAlignment, RP: ReceivePoll> ReceivesExpressDataPathSocket<RingQueueDepths::ReceiveOrTransmitOrBoth, CA> for SharedExpressDataPathSocket<RingQueueDepths, CA>
+{
 	#[inline(always)]
 	fn lock_fill_queue(&self)
 	{
-		self.owner.fill_queue_spin_lock().acquire_spin_lock()
+		self.fill_queue_spin_lock().acquire_spin_lock()
 	}
 	
 	#[inline(always)]
 	fn unlock_fill_queue(&self)
 	{
-		self.owner.fill_queue_spin_lock().unlock_spin_lock()
+		self.fill_queue_spin_lock().unlock_spin_lock()
 	}
-	
+}
+
+impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, CA: ChunkAlignment> TransmitsExpressDataPathSocket<RingQueueDepths::ReceiveOrTransmitOrBoth, CA> for SharedExpressDataPathSocket<RingQueueDepths, CA>
+{
 	#[inline(always)]
 	fn lock_completion_queue(&self)
 	{
-		self.owner.completion_queue_spin_lock().acquire_spin_lock()
+		self.completion_queue_spin_lock().acquire_spin_lock()
 	}
 	
 	#[inline(always)]
 	fn unlock_completion_queue(&self)
 	{
-		self.owner.completion_queue_spin_lock().unlock_spin_lock()
+		self.completion_queue_spin_lock().unlock_spin_lock()
+	}
+}
+
+impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, CA: ChunkAlignment, RP: ReceivePoll> SharedExpressDataPathSocket<RingQueueDepths, CA>
+{
+	#[inline(always)]
+	fn fill_queue_spin_lock(&self) -> &BestForCompilationTargetSpinLock
+	{
+		self.owner.fill_queue_spin_lock()
+	}
+}
+
+impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, CA: ChunkAlignment> SharedExpressDataPathSocket<RingQueueDepths, CA>
+{
+	#[inline(always)]
+	fn completion_queue_spin_lock(&self) -> &BestForCompilationTargetSpinLock
+	{
+		self.owner.completion_queue_spin_lock()
 	}
 }

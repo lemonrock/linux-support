@@ -7,17 +7,17 @@
 /// Contains a queue of user memory frame indices 'gifted' to the Linux kernel.
 ///
 /// Starts off full.
-pub(super) type FillQueue = XskRingQueue<ProducerXskRingQueueKind, UmemDescriptor>;
+pub(crate) type FillQueue = XskRingQueue<ProducerXskRingQueueKind, UmemDescriptor>;
 
 impl FillQueue
 {
 	#[inline(always)]
-	pub(super) fn from_fill_memory_map_offsets<ROTOB: ReceiveOrTransmitOrBoth<_, _>>(user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, memory_map_offsets: &xdp_mmap_offsets, fill_ring_queue_depth: RingQueueDepth, defaults: &DefaultPageSizeAndHugePageSizes, chunk_size: ChunkSize) -> Self
+	pub(crate) fn from_fill_memory_map_offsets<FOCOBRQD: FillOrCompletionOrBothRingQueueDepths>(user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, memory_map_offsets: &xdp_mmap_offsets, fill_ring_queue_depth: RingQueueDepth, defaults: &DefaultPageSizeAndHugePageSizes, chunk_size: ChunkSize) -> Self
 	{
 		let this = Self::from_ring_queue_offsets(user_memory_socket_file_descriptor, memory_map_offsets.fill_ring_offsets(), fill_ring_queue_depth, defaults, XDP_UMEM_PGOFF_FILL_RING);
 		
 		// Linux documentation (`Documentation/networking/af_xdp.rst`, currently section `XDP_{RX|TX|UMEM_FILL|UMEM_COMPLETION}_RING setsockopts`) recommends not populating the fill queue if only doing transmit.
-		if ROTOB::IsReceiveOrBoth
+		if FOCOBRQD::SupportsReceive
 		{
 			this.populate(fill_ring_queue_depth, chunk_size)
 		}
@@ -26,7 +26,7 @@ impl FillQueue
 	}
 	
 	#[inline(always)]
-	pub(super) fn set_fill_address(&self, fill_queue_index: u32, relative_frame_index: u32, relative_address_of_frame_in_user_memory: UmemDescriptor)
+	pub(crate) fn set_fill_address(&self, fill_queue_index: u32, relative_frame_index: u32, relative_address_of_frame_in_user_memory: UmemDescriptor)
 	{
 		let index = fill_queue_index + relative_frame_index;
 		unsafe { *self.fill_adddress(index).as_ptr() = relative_address_of_frame_in_user_memory }

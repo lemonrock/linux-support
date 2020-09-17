@@ -2,12 +2,26 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub(crate) struct FramesCount(Cell<u64>);
 
-
-include!("ChunkSize.rs");
-include!("FrameHeadroom.rs");
-include!("FrameLength.rs");
-include!("FrameNumber.rs");
-include!("FrameReference.rs");
-include!("FramesCount.rs");
+impl FramesCount
+{
+	#[inline(always)]
+	pub(crate) const fn new() -> Self
+	{
+		Self(Cell::new(0))
+	}
+	
+	#[inline(always)]
+	pub(crate) fn current(&self) -> u64
+	{
+		self.0.get()
+	}
+	
+	#[inline(always)]
+	pub(crate) fn increment(&self, number_of_frames: u32)
+	{
+		self.0.set(self.current() + number_of_frames as u64)
+	}
+}

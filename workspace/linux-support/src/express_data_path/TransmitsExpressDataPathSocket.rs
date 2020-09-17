@@ -1,0 +1,115 @@
+// This file is part of linux-support. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT. No part of linux-support, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+// Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
+
+
+/// Transmits.
+pub trait TransmitsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, CA: ChunkAlignment>: ExpressDataPathSocket<ROTOB, CA>
+{
+	/// Frames transmitted.
+	#[inline(always)]
+	fn frames_transmitted(&self) -> u64
+	{
+		self.common().frames_transmitted()
+	}
+	
+	/// Frame data are (ethernet) frames (packets) held in user memory.
+	///
+	/// Frames in user memory do not include a trailing ethernet frame check sequeunce (FCS).
+	fn transmit_only(&self, frames: &[FrameReference])
+	{
+		let user_memory = self.user_memory();
+		let common = self.common();
+		let transmit_queue = self.transmit_queue();
+		
+		let number_of_frames = user_memory.number_of_frames(frames);
+		
+		let mut transmit_queue_index_to_start_enqueuing_at = self.empty_transmit_queue_until_sufficient_space_is_available(number_of_frames);
+		
+		for frame_reference in frames
+		{
+			let transmit_descriptor = transmit_queue.transmit_descriptor(transmit_queue_index_to_start_enqueuing_at);
+			transmit_queue_index_to_start_enqueuing_at += 1;
+			
+			xdp_desc::write_frame_reference(transmit_descriptor, frame_reference, user_memory);
+		}
+		
+		transmit_queue.submit(number_of_frames);
+		
+		common.increment_outstanding_frames_to_transmit(number_of_frames);
+		self.complete_transmit(number_of_frames)
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn completion_queue(&self) -> &CompletionQueue
+	{
+		&self.user_memory().completion_queue
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn transmit_queue(&self) -> &TransmitQueue
+	{
+		self.common().transmit_queue()
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn empty_transmit_queue_until_sufficient_space_is_available(&self, to_transmit_number_of_frames: u32) -> u32
+	{
+		let transmit_queue = self.transmit_queue();
+		loop
+		{
+			match transmit_queue.reserve(to_transmit_number_of_frames)
+			{
+				Some(transmit_queue_index_to_start_enqueuing_at) => return transmit_queue_index_to_start_enqueuing_at,
+				
+				None =>
+				{
+					self.complete_transmit(to_transmit_number_of_frames)
+				}
+			}
+		}
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn complete_transmit(&self, number_of_frames: u32)
+	{
+		let common = self.common();
+		let user_memory = self.user_memory();
+		
+		if common.have_no_outstanding_frames_to_transmit()
+		{
+			return
+		}
+		
+		if self.transmit_queue().needs_wake_up()
+		{
+			self.express_data_path_socket_file_descriptor().initiate_transmit_processing_by_kernel()
+		}
+		
+		let completion_queue = self.completion_queue();
+		
+		self.lock_completion_queue();
+		if let Some((received, index)) = completion_queue.peek(number_of_frames)
+		{
+			let number_of_frames_received = received.get();
+			completion_queue.release(number_of_frames_received);
+			self.unlock_completion_queue();
+			
+			common.decrement_outstanding_frames_to_transmit(number_of_frames_received);
+			common.increase_frames_transmitted(number_of_frames_received);
+		}
+		else
+		{
+			self.unlock_completion_queue()
+		}
+	}
+	
+	#[doc(hidden)]
+	fn lock_completion_queue(&self);
+	
+	#[doc(hidden)]
+	fn unlock_completion_queue(&self);
+}

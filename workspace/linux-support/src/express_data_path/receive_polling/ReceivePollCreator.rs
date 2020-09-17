@@ -2,12 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-
-
-include!("ChunkSize.rs");
-include!("FrameHeadroom.rs");
-include!("FrameLength.rs");
-include!("FrameNumber.rs");
-include!("FrameReference.rs");
-include!("FramesCount.rs");
+/// Creates a `ReceivePoll`.
+pub trait ReceivePollCreator
+{
+	/// Type of `ReceivePoll`.
+	type RP:  ReceivePoll;
+	
+	/// Create.
+	fn create(self, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor) -> Self::RP;
+}

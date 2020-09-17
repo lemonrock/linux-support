@@ -28,7 +28,7 @@ pub enum ExpressDataPathSocketCreationError
 	ExpressDataPathSocketBind(SocketBindError),
 	
 	#[allow(missing_docs)]
-	AttachedXdpProgramNotSuitableForSharing,
+	AttachedExpressDataPathProgramNotSuitableForSharing,
 	
 	#[allow(missing_docs)]
 	ChunkSizeDoesNotAccommodateFrameHeadroomAndMaximumTransmissionUnitIncludingFrameCheckSequence
@@ -52,6 +52,9 @@ pub enum ExpressDataPathSocketCreationError
 	
 	#[allow(missing(docs))]
 	CouldNotSetAnAcceptableMaximumTransmissionUnit(NetworkDeviceInputOutputControlError<MaximumTransmissionUnitOutRangeError>),
+	
+	#[allow(missing_docs)]
+	CouldNotInsertIntoRedirectMap(InsertError),
 }
 
 impl Display for ExpressDataPathSocketCreationError
@@ -86,13 +89,15 @@ impl error::Error for ExpressDataPathSocketCreationError
 			
 			&ExpressDataPathSocketBind(ref error) => Some(error),
 			
-			&AttachedXdpProgramNotSuitableForSharing => None,
+			&AttachedExpressDataPathProgramNotSuitableForSharing => None,
 			
 			&ChunkSizeDoesNotAccommodateFrameHeadroomAndMaximumTransmissionUnitIncludingFrameCheckSequence { .. } => None,
 			
 			&CouldNotFindAnAcceptableMaximumTransmissionUnit { .. } => None,
 			
 			&CouldNotSetAnAcceptableMaximumTransmissionUnit(ref error) => Some(error),
+			
+			&CouldNotInsertIntoRedirectMap(ref error) => Some(error),
 		}
 	}
 }
@@ -123,3 +128,13 @@ impl From<NetworkDeviceInputOutputControlError<MaximumTransmissionUnitOutRangeEr
 		ExpressDataPathSocketCreationError::CouldNotSetAnAcceptableMaximumTransmissionUnit(value)
 	}
 }
+
+impl From<InsertError> for ExpressDataPathSocketCreationError
+{
+	#[inline(always)]
+	fn from(value: InsertError) -> Self
+	{
+		ExpressDataPathSocketCreationError::CouldNotInsertIntoRedirectMap(value)
+	}
+}
+

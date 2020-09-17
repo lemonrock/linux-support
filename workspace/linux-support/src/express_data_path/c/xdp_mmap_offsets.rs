@@ -2,9 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[repr(C)]
-pub(crate) struct xdp_mmap_offsets
+pub struct xdp_mmap_offsets
 {
 	/// Receive ring offsets.
 	rx: xdp_ring_offset,

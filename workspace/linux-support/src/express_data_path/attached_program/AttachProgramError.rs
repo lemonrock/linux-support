@@ -49,9 +49,6 @@ pub enum AttachProgramError
 	CouldNotGetRehydrateRedirectMap(MapRehydrateError),
 	
 	#[allow(missing_docs)]
-	CouldNotInsertIntoRedirectMap(InsertError),
-	
-	#[allow(missing_docs)]
 	SocketCreation(CreationError),
 	
 	#[allow(missing_docs)]
@@ -103,8 +100,6 @@ impl error::Error for AttachProgramError
 			&ValidateAttachMode(ref error) => Some(error),
 			
 			&CouldNotGetRehydrateRedirectMap(ref error) => Some(error),
-			
-			&CouldNotInsertIntoRedirectMap(ref error) => Some(error),
 			
 			&SocketCreation(ref error) => Some(error),
 			
@@ -164,15 +159,6 @@ impl From<MapRehydrateError> for AttachProgramError
 	fn from(value: MapRehydrateError) -> Self
 	{
 		AttachProgramError::CouldNotGetRehydrateRedirectMap(value)
-	}
-}
-
-impl From<InsertError> for AttachProgramError
-{
-	#[inline(always)]
-	fn from(value: InsertError) -> Self
-	{
-		AttachProgramError::CouldNotInsertIntoRedirectMap(value)
 	}
 }
 

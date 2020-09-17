@@ -4,12 +4,33 @@
 
 /// A simple, blocking receive poll.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct SimpleReceivePoll([pollfd; Self::NumberOfPolledFileDescriptors]);
+pub struct BlockingReceivePollAndReceivePollCreator([pollfd; Self::NumberOfPolledFileDescriptors]);
 
-impl ReceivePoll for SimpleReceivePoll
+impl ReceivePollCreator for BlockingReceivePollAndReceivePollCreator
+{
+	type RP = Self;
+	
+	#[inline(always)]
+	fn create(self, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor) -> Self::RP
+	{
+		Self
+		(
+			[
+				pollfd
+				{
+					fd: express_data_path_socket_file_descriptor.as_raw_fd(),
+					events: POLLIN,
+					revents: 0
+				}
+			]
+		)
+	}
+}
+
+impl ReceivePoll for BlockingReceivePollAndReceivePollCreator
 {
 	#[inline(always)]
-	fn blocking_poll(&mut self)
+	fn poll(&mut self)
 	{
 		loop
 		{
@@ -38,26 +59,9 @@ impl ReceivePoll for SimpleReceivePoll
 	}
 }
 
-impl SimpleReceivePoll
+impl BlockingReceivePollAndReceivePollCreator
 {
 	const NumberOfPolledFileDescriptors: usize = 1;
 	
 	const DefaultTimeoutInMilliseconds: i32 = 1000;
-	
-	/// Use this with `OwnedReceiveTransmitMemoryRingQueues::new()` and `OwnedReceiveTransmitMemoryRingQueues::shared()`.
-	#[inline(always)]
-	pub fn receive_poll_creator(express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor) -> Self
-	{
-		Self
-		(
-			[
-				pollfd
-				{
-					fd: express_data_path_socket_file_descriptor.as_raw_fd(),
-					events: POLLIN,
-					revents: 0
-				}
-			]
-		)
-	}
 }

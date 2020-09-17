@@ -5,9 +5,6 @@
 use super::*;
 
 
-include!("ChunkSize.rs");
-include!("FrameHeadroom.rs");
-include!("FrameLength.rs");
-include!("FrameNumber.rs");
-include!("FrameReference.rs");
-include!("FramesCount.rs");
+include!("CommonReceiveAndTransmitSeparately.rs");
+include!("CommonReceiveOnly.rs");
+include!("CommonTransmitOnly.rs");

@@ -43,23 +43,16 @@ impl RedirectMapAndAttachedProgram
 {
 	/// Based on the function `xsk_set_bpf_maps()` in Linux source `tools/lib/bpf/xsk.c`.
 	#[inline(always)]
-	pub(super) fn insert_into_redirect_map_if_receive<ROTOB: ReceiveOrTransmitOrBoth<_, _>>(&self, queue_identifier: QueueIdentifier, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor) -> Result<(), AttachProgramError>
+	pub(super) fn insert_into_redirect_map_if_receive(&self, receive_queue_identifier: QueueIdentifier, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor) -> Result<(), ExpressDataPathSocketCreationError>
 	{
-		if ROTOB::IsReceiveOrBoth
-		{
-			self.redirect_map.insert(queue_identifier, user_memory_socket_file_descriptor)?;
-		}
-		Ok(())
+		Ok(self.redirect_map.insert(receive_queue_identifier, user_memory_socket_file_descriptor)?)
 	}
 	
 	/// Based on `libbpf`'s `xsk_delete_bpf_maps()`.
 	#[inline(always)]
-	pub(super) fn remove_receive_map_queue_identifier<ROTOB: ReceiveOrTransmitOrBoth<_, _>>(&self, queu_identifier: QueueIdentifier)
+	pub(super) fn remove_receive_map_receive_queue_identifier(&self, receive_queue_identifier: QueueIdentifier) -> Result<bool, Errno>
 	{
-		if ROTOB::IsReceiveOrBoth
-		{
-			let _ignored = self.redirect_map.delete(queue_identifier);
-		}
+		self.redirect_map.delete(receive_queue_identifier)
 	}
 	
 	/// This test relies on the program's `ProgramName`, which, although unique, is a value that another process on Linux could have set for its XDP eBPF.
@@ -70,13 +63,13 @@ impl RedirectMapAndAttachedProgram
 	}
 	
 	/// Based on the function `xsk_setup_xdp_prog()` in Linux source `tools/lib/bpf/xsk.c`.
-	pub(super) fn new_suitable_for_owned_or_reuse_already_attached<ROTOB: ReceiveOrTransmitOrBoth<_, _>>(network_interface_index: NetworkInterfaceIndex, settings: RedirectMapAndAttachedProgramSettings, queue_identifier: QueueIdentifier, user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor) -> Result<Self, AttachProgramError>
+	pub(super) fn new_suitable_for_owned_or_reuse_already_attached<ReceiveOrTransmitOrBoth>(network_interface_index: NetworkInterfaceIndex, settings: RedirectMapAndAttachedProgramSettings, queue_identifier: QueueIdentifier, user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor) -> Result<Self, AttachProgramError>
 	{
 		let RedirectMapAndAttachedProgramSettings { forcibly_overwrite_already_attached, device_offload, redirect_map_numa_node } = settings;
 		
 		let get_link_message_data = Self::get_link_message_data(network_interface_index)?;
 		
-		let this = if forcibly_overwrite_already_attached
+		if forcibly_overwrite_already_attached
 		{
 			Self::load_and_attach_owned_memory_program(network_interface_index, device_offload, redirect_map_numa_node)
 		}
@@ -88,11 +81,7 @@ impl RedirectMapAndAttachedProgram
 				
 				None => Self::load_and_attach_owned_memory_program(network_interface_index, device_offload, redirect_map_numa_node),
 			}
-		}?;
-		
-		this.insert_into_redirect_map_if_receive::<ROTOB>(queue_identifier, user_memory_socket_file_descriptor)?;
-		
-		Ok(this)
+		}
 	}
 	
 	/// Based on the function `xsk_setup_xdp_prog()` in Linux source `tools/lib/bpf/xsk.c`.

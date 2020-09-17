@@ -8,14 +8,14 @@
 ///
 /// Is filled with 'fat pointers' (`xdp_desc`) by the Linux kernel.
 /// The 'fat pointers' contain the size and relative address of an (Ethernet) frame in `UserMemory`.
-pub(super) type ReceiveQueue = XskRingQueue<ConsumerXskRingQueueKind, xdp_desc>;
+pub(crate) type ReceiveQueue = XskRingQueue<ConsumerXskRingQueueKind, xdp_desc>;
 
 impl ReceiveQueue
 {
 	#[inline(always)]
-	pub(super) fn from_receive_memory_map_offsets(xsk_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, memory_map_offsets: &xdp_mmap_offsets, receive_ring_queue_depth: RingQueueDepth, defaults: &DefaultPageSizeAndHugePageSizes) -> Self
+	pub(super) fn from_receive_memory_map_offsets(express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, memory_map_offsets: &xdp_mmap_offsets, receive_ring_queue_depth: RingQueueDepth, defaults: &DefaultPageSizeAndHugePageSizes) -> Self
 	{
-		Self::from_ring_queue_offsets(xsk_socket_file_descriptor, memory_map_offsets.receive_ring_offsets(), receive_ring_queue_depth, defaults, XDP_PGOFF_RX_RING)
+		Self::from_ring_queue_offsets(express_data_path_socket_file_descriptor, memory_map_offsets.receive_ring_offsets(), receive_ring_queue_depth, defaults, XDP_PGOFF_RX_RING)
 	}
 	
 	/// Based on `xsk_ring_cons__rx_desc()` in Linux source `tools/lib/bpf/xsk.h`.

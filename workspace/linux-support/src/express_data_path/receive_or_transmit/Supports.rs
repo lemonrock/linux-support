@@ -2,12 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Receive, transmit or both.
-pub trait MapReceiveOrTransmitOrBoth
+/// Supports.
+pub trait Supports
 {
-	#[allow(missing_docs)]
-	type To: ReceiveOrTransmitOrBoth<ReceiveQueue, TransmitQueue>;
+	/// Supports receive?
+	const SupportsReceive: bool;
 	
-	#[allow(missing_docs)]
-	fn map(self, map_receive: impl FnOnce(RingQueue) -> ReceiveQueue, map_transmit: impl FnOnce(RingQueue) -> TransmitQueue) -> Self::To;
+	/// Supports transmit?
+	const SupportsTransmit: bool;
 }

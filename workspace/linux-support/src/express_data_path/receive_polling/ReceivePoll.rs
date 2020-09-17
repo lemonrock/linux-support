@@ -14,5 +14,5 @@ pub trait ReceivePoll
 	/// If using the `poll()` system call, it is sufficient to check for only the `POLLIN` event.
 	///
 	/// Timing out is also supported; there is no need to report this and hence no return value is provided for.
-	fn blocking_poll(&mut self);
+	fn poll(&mut self);
 }

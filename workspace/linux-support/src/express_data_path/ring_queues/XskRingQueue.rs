@@ -4,7 +4,7 @@
 
 /// Inspired by `xsk_ring_prod` in `libbpf`.
 #[derive(Debug)]
-pub(super) struct XskRingQueue<XRQK: XskRingQueueKind, D: Descriptor>
+pub(crate) struct XskRingQueue<XRQK: XskRingQueueKind, D: Descriptor>
 {
 	ring_queue_depth: RingQueueDepth,
 	
@@ -42,10 +42,10 @@ impl<XRQK: XskRingQueueKind, D: Descriptor> XskRingQueue<XRQK, D>
 	}
 	
 	#[inline(always)]
-	fn from_ring_queue_offsets(socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, ring_queue_offsets: &xdp_ring_offset, ring_queue_depth: RingQueueDepth, defaults: &DefaultPageSizeAndHugePageSizes, offset: u64) -> Self
+	fn from_ring_queue_offsets(express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, ring_queue_offsets: &xdp_ring_offset, ring_queue_depth: RingQueueDepth, defaults: &DefaultPageSizeAndHugePageSizes, offset: u64) -> Self
 	{
 		let length = ring_queue_offsets.length_of_memory_to_map::<D>(ring_queue_depth);
-		let memory = MappedMemory::from_file(socket_file_descriptor, offset, length, AddressHint::any(), Protection::ReadWrite, Sharing::Shared, None, true, false, defaults).expect("Could not memory map XDP fill ring queue");
+		let memory = MappedMemory::from_file(express_data_path_socket_file_descriptor, offset, length, AddressHint::any(), Protection::ReadWrite, Sharing::Shared, None, true, false, defaults).expect("Could not memory map XDP fill ring queue");
 		let producer = ring_queue_offsets.producer_pointer(&memory);
 		let consumer = ring_queue_offsets.consumer_pointer(&memory);
 		Self

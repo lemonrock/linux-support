@@ -2,12 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-
-
-include!("ChunkSize.rs");
-include!("FrameHeadroom.rs");
-include!("FrameLength.rs");
-include!("FrameNumber.rs");
-include!("FrameReference.rs");
-include!("FramesCount.rs");
+/// Transmits.
+pub trait Transmits<Transmit>: Supports
+{
+	#[allow(missing_docs)]
+	fn transmit(&self) -> &Transmit;
+}

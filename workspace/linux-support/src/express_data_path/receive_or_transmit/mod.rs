@@ -5,9 +5,14 @@
 use super::*;
 
 
-include!("BothReceiveAndTransmit.rs");
-include!("MapReceiveOrTransmitOrBoth.rs");
-include!("ReceiveOnly.rs");
-include!("ReceiveOrTransmitOrBoth.rs");
-include!("TransmitOnly.rs");
+include!("CreateReceiveOrTransmitOrBothRingQueueDepths.rs");
+include!("FillOrCompletionOrBothRingQueueDepths.rs");
+include!("RingQueueDepthReceiveAndTransmitSeparately.rs");
+include!("RingQueueDepthReceiveOnly.rs");
+include!("RingQueueDepthTransmitOnly.rs");
 
+include!("ReceiveOrTransmitOrBoth.rs");
+include!("RingQueueDepths.rs");
+include!("Receives.rs");
+include!("Supports.rs");
+include!("Transmits.rs");
