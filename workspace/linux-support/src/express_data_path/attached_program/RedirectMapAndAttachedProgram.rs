@@ -63,7 +63,7 @@ impl RedirectMapAndAttachedProgram
 	}
 	
 	/// Based on the function `xsk_setup_xdp_prog()` in Linux source `tools/lib/bpf/xsk.c`.
-	pub(super) fn new_suitable_for_owned_or_reuse_already_attached<ReceiveOrTransmitOrBoth>(network_interface_index: NetworkInterfaceIndex, settings: RedirectMapAndAttachedProgramSettings, queue_identifier: QueueIdentifier, user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor) -> Result<Self, AttachProgramError>
+	pub(super) fn new_suitable_for_owned_or_reuse_already_attached(network_interface_index: NetworkInterfaceIndex, settings: RedirectMapAndAttachedProgramSettings, queue_identifier: QueueIdentifier) -> Result<Self, AttachProgramError>
 	{
 		let RedirectMapAndAttachedProgramSettings { forcibly_overwrite_already_attached, device_offload, redirect_map_numa_node } = settings;
 		

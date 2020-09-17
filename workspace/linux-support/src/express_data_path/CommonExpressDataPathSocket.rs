@@ -9,7 +9,7 @@ pub struct CommonExpressDataPathSocket<ReceiveOrTransmitOrBoth: ReceiveOrTransmi
 impl<RingQueueDepths: CreateReceiveOrTransmitOrBoth> CommonExpressDataPathSocket<RingQueueDepths::ReceiveOrTransmitOrBoth>
 {
 	/// Based on `libbpf`'s `xsk_socket__create()`.
-	fn new(express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, network_interface_index: NetworkInterfaceIndex, receive_or_transmit_or_both_ring_queue_depths: RingQueueDepths, owned_or_shared: XdpSocketAddressFlags, force_copy: bool, force_zero_copy: bool, user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes, redirect_map_and_attached_program: &RedirectMapAndAttachedProgram, arguments: RingQueueDepths::Arguments) -> Result<Self, ExpressDataPathSocketCreationError>
+	fn new(express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, network_interface_index: NetworkInterfaceIndex, receive_or_transmit_or_both_ring_queue_depths: RingQueueDepths, owned_or_shared: XdpSocketAddressFlags, force_copy: bool, force_zero_copy: bool, user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes, redirect_map_and_attached_program: &RedirectMapAndAttachedProgram, arguments: RingQueueDepths::Arguments) -> Result<ManuallyDrop<Self>, ExpressDataPathSocketCreationError>
 	{
 		// NOTE: Needs to happen before the socket is bound below.
 		let receive_or_transmit_or_both =
@@ -34,7 +34,7 @@ impl<RingQueueDepths: CreateReceiveOrTransmitOrBoth> CommonExpressDataPathSocket
 			bind_socket(express_data_path_socket_file_descriptor, &socket_address)?;
 		}
 		
-		Ok(Self(receive_or_transmit_or_both))
+		Ok(Self(ManuallyDrop::new(receive_or_transmit_or_both)))
 	}
 }
 

@@ -715,6 +715,8 @@ use std::str::Utf8Error;
 use std::str::from_utf8;
 use std::str::from_utf8_unchecked;
 use std::sync::Arc;
+use std::sync::Mutex;
+use std::sync::MutexGuard;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::AtomicI32;
 use std::sync::atomic::AtomicU32;

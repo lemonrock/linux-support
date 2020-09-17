@@ -94,7 +94,7 @@ impl<CA: ChunkAlignment> UserMemory<CA>
 	///
 	/// If flags contains `XdpUmemRegFlags::UnalignedChunks`, then `huge_memory_page_size` can not be `None`.
 	/// `number_of_frames` might be 4096.
-	fn new<FOCOBRQD: FillOrCompletionOrBothRingQueueDepths>(number_of_frames: NonZeroU32, chunk_size: ChunkSize, frame_headroom: FrameHeadroom, network_interface_maximum_transmission_unit_including_frame_check_sequence: MaximumTransmissionUnit, chunk_alignment: CA, fill_or_completion_or_both_ring_queue_depths: FOCOBRQD, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, ExpressDataPathSocketCreationError>
+	fn new(number_of_frames: NonZeroU32, chunk_size: ChunkSize, frame_headroom: FrameHeadroom, network_interface_maximum_transmission_unit_including_frame_check_sequence: MaximumTransmissionUnit, chunk_alignment: CA, fill_or_completion_or_both_ring_queue_depths: impl FillOrCompletionOrBothRingQueueDepths, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, ExpressDataPathSocketCreationError>
 	{
 		use self::ExpressDataPathSocketCreationError::*;
 		

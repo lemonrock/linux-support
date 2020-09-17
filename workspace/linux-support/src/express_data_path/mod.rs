@@ -74,13 +74,14 @@ pub mod ring_queues;
 
 
 include!("CommonExpressDataPathSocket.rs");
+include!("ExpressDataPathInstance.rs");
 include!("ExpressDataPathSocket.rs");
 include!("ExpressDataPathSocketCreationError.rs");
 include!("OwnedExpressDataPathSocket.rs");
 include!("ReceivedFrameProcessor.rs");
 include!("ReceivesExpressDataPathSocket.rs");
 include!("SharedExpressDataPathSocket.rs");
-include!("ShareableExpressDataPathSocket.rs");
+include!("ShareableExpressDataPathInstance.rs");
 include!("TransmitsExpressDataPathSocket.rs");
 include!("UserMemory.rs");
 include!("UserMemoryArea.rs");
