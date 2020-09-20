@@ -6,9 +6,18 @@
 ///
 /// Frames in user memory do not include a trailing ethernet frame check sequeunces (FCS).
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub struct FrameNumber(u32);
+pub struct AlignedFrameNumber(u32);
 
-impl Add for FrameNumber
+impl From<u32> for AlignedFrameNumber
+{
+	#[inline(always)]
+	fn from(absolute_frame_index: u32) -> Self
+	{
+		Self(absolute_frame_index)
+	}
+}
+
+impl Add for AlignedFrameNumber
 {
 	type Output = Self;
 	
@@ -21,7 +30,7 @@ impl Add for FrameNumber
 	}
 }
 
-unsafe impl Step for FrameNumber
+unsafe impl Step for AlignedFrameNumber
 {
 	fn steps_between(start: &Self, end: &Self) -> Option<usize>
 	{
@@ -39,12 +48,25 @@ unsafe impl Step for FrameNumber
 	}
 }
 
-impl FrameNumber
+impl AlignedFrameNumber
 {
-	/// To an `UserMemoryAreaRelativeAddress`; only correct if unaligned chunks are not allowed.
+	/// To an `UserMemoryDescriptor`; only correct if aligned chunks are being used.
 	#[inline(always)]
-	pub const fn to_user_memory_area_relative_address(self, chunk_size: ChunkSize) -> UserMemoryAreaRelativeAddress
+	pub const fn to_user_memory_descriptor(self, aligned_chunk_size: AlignedChunkSize) -> UserMemoryDescriptor
 	{
-		(self.0 as u64) * (chunk_size as u32 as u64)
+		UserMemoryDescriptor::from(self.to_u64() * aligned_chunk_size.to_u64())
+	}
+	
+	/// From an `UserMemoryDescriptor`; only correct if aligned chunks are being used.
+	#[inline(always)]
+	pub const fn from_user_memory_descriptor(user_memory_descriptor: UserMemoryDescriptor, aligned_chunk_size: AlignedChunkSize) -> Self
+	{
+		user_memory_descriptor.to_aligned_frame_number(aligned_chunk_size)
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn to_u64(self) -> u64
+	{
+		self.0 as u64
 	}
 }

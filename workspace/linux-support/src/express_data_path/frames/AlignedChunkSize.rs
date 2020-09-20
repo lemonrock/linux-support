@@ -6,6 +6,8 @@
 ///
 /// Represents the size of elements in user memory used for storing (Ethernet) frames (packets).
 ///
+/// In DPDK, contains the header, packet and trailer.
+///
 /// It is the maximum size of `len(ethernet_packet) + frame_headroom`.
 ///
 /// Called `chunk_size` in some Linux documentation and code.
@@ -16,7 +18,7 @@
 ///
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[repr(u32)]
-pub enum ChunkSize
+pub enum AlignedChunkSize
 {
 	#[allow(missing_docs)]
 	_2048 = 2048,
@@ -25,7 +27,7 @@ pub enum ChunkSize
 	_4096 = 4096,
 }
 
-impl Default for ChunkSize
+impl Default for AlignedChunkSize
 {
 	#[inline(always)]
 	fn default() -> Self
@@ -34,7 +36,7 @@ impl Default for ChunkSize
 	}
 }
 
-impl Into<NonZeroU32> for ChunkSize
+impl Into<NonZeroU32> for AlignedChunkSize
 {
 	#[inline(always)]
 	fn into(self) -> NonZeroU32
@@ -43,11 +45,23 @@ impl Into<NonZeroU32> for ChunkSize
 	}
 }
 
-impl ChunkSize
+impl AlignedChunkSize
 {
 	#[inline(always)]
 	pub(crate) const fn mask(self) -> u64
 	{
-		(self as u32 as u64) - 1
+		!((self as u32 as u64) - 1)
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn to_u32(self) -> u32
+	{
+		self as u32
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn to_u64(self) -> u64
+	{
+		self.to_u32() as u64
 	}
 }

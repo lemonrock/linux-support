@@ -19,12 +19,17 @@ pub struct ExpressDataPathInstance<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlig
 	marker: PhantomData<ROTOB>,
 }
 
+// TODO: FIllQueue population if using unaligned frames.
+	// TODO: Replace the FrameNumber unsused frames queue with something else?
+// TODO: Unaligned ChunkSize
+	// If aligned, must be a power of 2BUT
+// chunks == number_of_frames
+// viz,
+// number_of_frames must be at least the number that can fit into one page
+// number_of_frames must be a multiply of the number that can fit into one page.
+	// If unaligned, no restriction.
 // TODO: Sort out number of frames - either fill + completion depth, or, if fwd'ing, either fill or completion but fill == completion
-// TODO: Can be larger, eg for scratch space, but what's the point?
-
-// TODO: Sort out frame_headroom (can be used for application-specific storage); need to check if xdp_desc.len includes frame headroom.
-// TODO: Current logic creating a headroom slice seems WRONG;
-// Looking at __xsk_rcv_zv it seems that xdp_desc.addr is after headroom.
+// TODO: Received frames, managing frame recycling!
 
 impl<RingQueueDepths: CreateReceiveOrTransmitOrBoth, CA: ChunkAlignment> ExpressDataPathInstance<RingQueueDepths::ReceiveOrTransmitOrBoth, CA>
 {
@@ -92,16 +97,16 @@ impl<RingQueueDepths: FillOrCompletionOrBothRingQueueDepths, CA: ChunkAlignment>
 {
 	/// New instance.
 	#[inline(always)]
-	pub fn new(number_of_frames: NonZeroU32, chunk_size: ChunkSize, frame_headroom: FrameHeadroom, chunk_alignment: CA, fill_or_completion_or_both_ring_queue_depths: RingQueueDepths, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes, redirect_map_and_attached_program: Either<RedirectMapAndAttachedProgramSettings, RedirectMapAndAttachedProgram>, network_interface_name: NetworkInterfaceName, force_copy: bool, force_zero_copy: bool) -> Result<Self, ExpressDataPathSocketCreationError>
+	pub fn new(number_of_frames: NonZeroU32, chunk_size: AlignedChunkSize, frame_headroom: FrameHeadroom, chunk_alignment: CA, fill_or_completion_or_both_ring_queue_depths: RingQueueDepths, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes, redirect_map_and_attached_program: Either<RedirectMapAndAttachedProgramSettings, RedirectMapAndAttachedProgram>, network_interface_name: NetworkInterfaceName, force_copy: bool, force_zero_copy: bool) -> Result<Self, ExpressDataPathSocketCreationError>
 	{
 		let (network_interface_index, network_interface_maximum_transmission_unit_including_frame_check_sequence) = Self::network_interface_index_and_network_interface_maximum_transmission_unit_including_frame_check_sequence(network_interface_name, chunk_size, frame_headroom)?;
+		
+		let user_memory = ManuallyDrop::new(UserMemory::new(number_of_frames, chunk_size, frame_headroom, network_interface_maximum_transmission_unit_including_frame_check_sequence, chunk_alignment, fill_or_completion_or_both_ring_queue_depths, huge_memory_page_size, defaults)?);
 		
 		Ok
 		(
 			Self
 			{
-				user_memory: ManuallyDrop::new(UserMemory::new(number_of_frames, chunk_size, frame_headroom, network_interface_maximum_transmission_unit_including_frame_check_sequence, chunk_alignment, fill_or_completion_or_both_ring_queue_depths, huge_memory_page_size, defaults)?),
-				
 				redirect_map_and_attached_program: ManuallyDrop::new
 				(
 					match redirect_map_and_attached_program
@@ -119,6 +124,8 @@ impl<RingQueueDepths: FillOrCompletionOrBothRingQueueDepths, CA: ChunkAlignment>
 				force_zero_copy,
 				
 				marker: PhantomData,
+				
+				user_memory,
 			}
 		)
 	}
@@ -127,7 +134,7 @@ impl<RingQueueDepths: FillOrCompletionOrBothRingQueueDepths, CA: ChunkAlignment>
 impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> ExpressDataPathInstance<ROTOB, CA>
 {
 	#[inline(always)]
-	fn network_interface_index_and_network_interface_maximum_transmission_unit_including_frame_check_sequence(network_interface_name: NetworkInterfaceName, chunk_size: ChunkSize, frame_headroom: FrameHeadroom) -> Result<(NetworkInterfaceIndex, MaximumTransmissionUnit), ExpressDataPathSocketCreationError>
+	fn network_interface_index_and_network_interface_maximum_transmission_unit_including_frame_check_sequence(network_interface_name: NetworkInterfaceName, chunk_size: AlignedChunkSize, frame_headroom: FrameHeadroom) -> Result<(NetworkInterfaceIndex, MaximumTransmissionUnit), ExpressDataPathSocketCreationError>
 	{
 		use self::ExpressDataPathSocketCreationError::*;
 		
@@ -143,7 +150,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> ExpressDataPathInstance
 	}
 	
 	#[inline(always)]
-	fn network_interface_maximum_transmission_unit_including_frame_check_sequence(chunk_size: ChunkSize, frame_headroom: FrameHeadroom, network_device_control: NetworkDeviceInputOutputControl) -> Result<MaximumTransmissionUnit, ExpressDataPathSocketCreationError>
+	fn network_interface_maximum_transmission_unit_including_frame_check_sequence(chunk_size: AlignedChunkSize, frame_headroom: FrameHeadroom, network_device_control: NetworkDeviceInputOutputControl) -> Result<MaximumTransmissionUnit, ExpressDataPathSocketCreationError>
 	{
 		use self::ExpressDataPathSocketCreationError::*;
 		
@@ -158,7 +165,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> ExpressDataPathInstance
 	///
 	/// Before creating an eXpress Data Path socket,
 	#[inline(always)]
-	fn calculate_maximum_transmission_unit_including_frame_check_sequence(frame_headroom: FrameHeadroom, chunk_size: ChunkSize) -> Result<MaximumTransmissionUnit, String>
+	fn calculate_maximum_transmission_unit_including_frame_check_sequence(frame_headroom: FrameHeadroom, chunk_size: AlignedChunkSize) -> Result<MaximumTransmissionUnit, String>
 	{
 		let chunk_size = chunk_size as u32;
 		debug_assert!(chunk_size >= (XDP_PACKET_HEADROOM + MaximumTransmissionUnit::EthernetInclusiveMinimumIncludingFrameCheckSequence.0));

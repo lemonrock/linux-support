@@ -3,4 +3,5 @@
 
 
 /// An user memory area relative address.
-pub(crate) type UserMemoryAreaRelativeAddress = u64;
+#[deprecated]
+pub(crate) type UserMemoryAreaRelativeAddress = UserMemoryDescriptor;

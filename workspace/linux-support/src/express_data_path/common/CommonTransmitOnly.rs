@@ -59,31 +59,25 @@ impl CommonTransmitOnly
 	}
 	
 	#[inline(always)]
-	pub(crate) fn increase_frames_transmitted(&self, number_of_frames: u32)
+	pub(crate) fn increase_frames_transmitted(&self, number_of_frames: NonZeroU32)
 	{
 		self.frames_transmitted.increment(number_of_frames)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn have_no_outstanding_frames_to_transmit(&self) -> bool
+	pub(crate) fn increment_outstanding_frames_to_transmit(&self, number_of_frames: NonZeroU32)
 	{
-		self.outstanding_frames_to_transmit() == 0
+		self.outstanding_frames_to_transmit.set(self.outstanding_frames_to_transmit() + number_of_frames.get())
 	}
 	
 	#[inline(always)]
-	pub(crate) fn increment_outstanding_frames_to_transmit(&self, number_of_frames: u32)
+	pub(crate) fn decrement_outstanding_frames_to_transmit(&self, number_of_frames: NonZeroU32)
 	{
-		self.outstanding_frames_to_transmit.set(self.outstanding_frames_to_transmit() + number_of_frames)
+		self.outstanding_frames_to_transmit.set(self.outstanding_frames_to_transmit() - number_of_frames.get())
 	}
 	
 	#[inline(always)]
-	pub(crate) fn decrement_outstanding_frames_to_transmit(&self, number_of_frames: u32)
-	{
-		self.outstanding_frames_to_transmit.set(self.outstanding_frames_to_transmit() - number_of_frames)
-	}
-	
-	#[inline(always)]
-	fn outstanding_frames_to_transmit(&self) -> u32
+	pub(crate) fn outstanding_frames_to_transmit(&self) -> u32
 	{
 		self.outstanding_frames_to_transmit.get()
 	}

@@ -47,7 +47,7 @@ pub enum ExpressDataPathSocketCreationError
 		
 		frame_headroom: FrameHeadroom,
 		
-		chunk_size: ChunkSize,
+		chunk_size: AlignedChunkSize,
 	},
 	
 	#[allow(missing(docs))]

@@ -101,7 +101,7 @@ impl FrameLength
 	pub const InclusiveMinimum: Self = Self::new_unchecked(64);
 	
 	/// This is the upper limit of `FrameSize`.
-	pub const InclusiveMaximum: Self = Self::new_unchecked(ChunkSize::_4096 as u16);
+	pub const InclusiveMaximum: Self = Self::new_unchecked(AlignedChunkSize::_4096 as u16);
 	
 	#[inline(always)]
 	const fn new_unchecked(value: u16) -> Self

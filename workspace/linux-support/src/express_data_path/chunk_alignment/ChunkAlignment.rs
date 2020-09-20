@@ -9,5 +9,5 @@ pub trait ChunkAlignment
 	const IsUnaligned: bool;
 	
 	#[doc(hidden)]
-	fn user_memory_area_relative_address(chunk_size: ChunkSize, descriptor: &xdp_desc) -> UserMemoryAreaRelativeAddress;
+	fn user_memory_area_relative_address(chunk_size: AlignedChunkSize, descriptor: &FrameDescriptor) -> UserMemoryAreaRelativeAddress;
 }

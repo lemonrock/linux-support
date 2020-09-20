@@ -2,17 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Aligned chunks.
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct AlignedChunkAlignment;
+/// Frame descriptor.
+/// Used for `ReceiveQueue` and `TransmitQueue`.
+///
+/// Effectively, a fat pointer, containing a relative, bit-encoded pointer to a frame in memory and the length of the frame.
+pub(crate) type FrameDescriptor = xdp_desc;
 
-impl ChunkAlignment for AlignedChunkAlignment
+impl Descriptor for FrameDescriptor
 {
-	const IsUnaligned: bool = false;
-	
-	#[inline(always)]
-	fn user_memory_area_relative_address(chunk_size: ChunkSize, descriptor: &xdp_desc) -> UserMemoryAreaRelativeAddress
-	{
-		descriptor.extract_address_if_aligned(chunk_size)
-	}
 }

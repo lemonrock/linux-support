@@ -3,8 +3,12 @@
 
 
 use super::*;
+use crate::memory::VirtualAddress;
 
 
 include!("Descriptor.rs");
-include!("UmemDescriptor.rs");
+include!("RelativeAddressesAndOffsets.rs");
+include!("FrameDescriptor.rs");
+include!("FrameDescriptorBitfield.rs");
+include!("UserMemoryDescriptor.rs");
 include!("xdp_desc.rs");

@@ -5,9 +5,10 @@
 use super::*;
 
 
-include!("ChunkSize.rs");
+include!("AlignedChunkSize.rs");
 include!("FrameHeadroom.rs");
 include!("FrameLength.rs");
-include!("FrameNumber.rs");
-include!("FrameReference.rs");
+include!("AlignedFrameNumber.rs");
+include!("AlignedFrameReference.rs");
 include!("FramesCount.rs");
+include!("UnusedFramesMultipleProducerMultipleConsumerArrayQueue.rs");

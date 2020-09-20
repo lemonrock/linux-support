@@ -3,7 +3,7 @@
 
 
 /// Used in conjunction with the `TransmitQueue`.
-pub(crate) type CompletionQueue = XskRingQueue<ConsumerXskRingQueueKind, UmemDescriptor>;
+pub(crate) type CompletionQueue = XskRingQueue<ConsumerXskRingQueueKind, FrameDescriptorBitfield>;
 
 impl CompletionQueue
 {
@@ -13,9 +13,18 @@ impl CompletionQueue
 		Self::from_ring_queue_offsets(user_memory_socket_file_descriptor, memory_map_offsets.completion_ring_offsets(), completion_ring_queue_depth, defaults, XDP_UMEM_PGOFF_COMPLETION_RING)
 	}
 	
-	/// Based on `xsk_ring_cons__comp_addr()` in Linux source `tools/lib/bpf/xsk.h`.
 	#[inline(always)]
-	pub(crate) fn completion_adddress(&self, index: u32) -> &UmemDescriptor
+	pub(crate) fn get_completed_frame_descriptor_bitfield(&self, completion_queue_index: u32, relative_frame_index: u32) -> FrameDescriptorBitfield
+	{
+		let index = completion_queue_index + relative_frame_index;
+		*self.completion_adddress(index)
+	}
+	
+	/// Based on `xsk_ring_cons__comp_addr()` in Linux source `tools/lib/bpf/xsk.h`.
+	///
+	/// What we get back is the original value of xdp_desc.addr.
+	#[inline(always)]
+	fn completion_adddress(&self, index: u32) -> &FrameDescriptorBitfield
 	{
 		self.ring_entry(index)
 	}

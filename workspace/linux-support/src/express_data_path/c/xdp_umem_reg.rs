@@ -29,9 +29,9 @@ impl xdp_umem_reg
 	/// `memory` must be page-aligned (technically, it does not need to mmap'd but in practice it is easier to ensure it is page-aligned; it is also likely to be a large allocation for which `malloc()` is not appropriate).
 	/// `frame_headroom` is usually `0`.
 	#[inline(always)]
-	pub(super) fn new(memory: &UserMemoryArea, chunk_size: ChunkSize, frame_headroom: FrameHeadroom, flags: XdpUmemRegFlags) -> Self
+	pub(super) fn new(memory: &UserMemoryArea, chunk_size: AlignedChunkSize, frame_headroom: FrameHeadroom, flags: XdpUmemRegFlags) -> Self
 	{
-		let (addr, len) = memory.address_and_length();
+		let (addr, len) = memory.start_address_and_length();
 		Self
 		{
 			addr,

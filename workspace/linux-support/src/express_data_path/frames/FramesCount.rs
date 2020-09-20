@@ -20,7 +20,7 @@ impl FramesCount
 	}
 	
 	#[inline(always)]
-	pub(crate) fn increment(&self, number_of_frames: u32)
+	pub(crate) fn increment(&self, number_of_frames: NonZeroU32)
 	{
 		self.0.set(self.current() + number_of_frames as u64)
 	}

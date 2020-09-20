@@ -279,9 +279,9 @@ impl<D: Descriptor> XskRingQueue<ProducerXskRingQueueKind, D>
 	{
 		let cached_producer = self.cached_producer();
 		
-		debug_assert!(self.cached_consumer() >= cached_producer, "cached_consumer is less than cached_producer");
-		
-		let free_entries = self.cached_consumer() - cached_producer;
+		let cached_consumer = self.cached_consumer();
+		debug_assert!(cached_consumer >= cached_producer, "cached_consumer is less than cached_producer");
+		let free_entries = cached_consumer - cached_producer;
 		
 		if free_entries >= number
 		{
@@ -292,16 +292,18 @@ impl<D: Descriptor> XskRingQueue<ProducerXskRingQueueKind, D>
 		//
 		// `cached_consumer` is `ring_queue_depth` bigger than the real consumer pointer so that this addition can be avoided in the more frequently executed code that computes `free_entries` in the beginning of this function.
 		// Without this optimization it whould have been `free_entries = cached_producer - cached_consumer + ring_queue_depth`.
-		self.set_cached_consumer(self.consumer() + self.ring_queue_depth as u32);
+		let cached_consumer = self.consumer() + self.ring_queue_depth as u32;
+		self.set_cached_consumer(cached_consumer);
 		
-		self.cached_consumer() - cached_producer
+		debug_assert!(cached_consumer >= cached_producer, "cached_consumer is less than cached_producer");
+		cached_consumer - cached_producer
 	}
 	
 	/// Based on `xsk_ring_prod__reserve()` in Linux source `tools/lib/bpf/xsk.h`.
 	#[inline(always)]
-	pub(super) fn reserve(&self, number: u32) -> Option<u32>
+	pub(super) fn reserve(&self, number: NonZeroU32) -> Option<u32>
 	{
-		if self.number_free(number) < number
+		if self.number_free(number.get()) < number.get()
 		{
 			None
 		}
@@ -317,12 +319,12 @@ impl<D: Descriptor> XskRingQueue<ProducerXskRingQueueKind, D>
 	
 	/// Based on `xsk_ring_prod__submit()` in Linux source `tools/lib/bpf/xsk.h`.
 	#[inline(always)]
-	pub(super) fn submit(&self, number: u32)
+	pub(super) fn submit(&self, number: NonZeroU32)
 	{
 		// Make sure everything has been written to the ring before indicating this to the kernel by writing the producer pointer.
 		Self::libbpf_smp_wmb();
 		
-		self.set_producer(self.producer() + number);
+		self.set_producer(self.producer() + number.get());
 	}
 }
 
@@ -330,12 +332,12 @@ impl<D: Descriptor> XskRingQueue<ConsumerXskRingQueueKind, D>
 {
 	/// Based on `xsk_cons_nb_avail()` in Linux source `tools/lib/bpf/xsk.h`.
 	#[inline(always)]
-	pub(super) fn number_available(&self, number: u32) -> u32
+	fn number_available(&self, number: NonZeroU32) -> u32
 	{
 		let cached_producer = self.cached_producer();
 		let cached_consumer = self.cached_consumer();
 		
-		debug_assert!(cached_producer >= cached_consumer);
+		debug_assert!(cached_producer >= cached_consumer, "cached_consumer is less than cached_producer");
 		let mut entries = cached_producer - cached_consumer;
 		
 		if entries == 0
@@ -345,23 +347,24 @@ impl<D: Descriptor> XskRingQueue<ConsumerXskRingQueueKind, D>
 			entries = new_cached_producer - cached_consumer;
 		}
 		
-		if entries > number
-		{
-			number
-		}
-		else
-		{
-			entries
-		}
+		min(number.get(), entries)
 	}
 	
 	/// Based on `xsk_ring_cons__peek()` in Linux source `tools/lib/bpf/xsk.h`.
+	///
+	/// Returns `Some(non_zero_available, completion_queue_index)` if there is space in the queue.
+	///
+	/// Returns `None` if there is no space in the queue.
 	#[inline(always)]
-	pub(super) fn peek(&self, number: u32) -> Option<(NonZeroU32, u32)>
+	pub(super) fn peek(&self, number: NonZeroU32) -> Option<(NonZeroU32, u32)>
 	{
 		let entries = self.number_available(number);
 		
-		if entries > 0
+		if entries == 0
+		{
+			None
+		}
+		else
 		{
 			// Make sure we do not speculatively read the data before we have received the packet buffers from the ring.
 			Self::libbpf_smp_rmb();
@@ -371,19 +374,15 @@ impl<D: Descriptor> XskRingQueue<ConsumerXskRingQueueKind, D>
 			self.set_cached_consumer(cached_consumer + entries);
 			Some((unsafe { NonZeroU32::new_unchecked(entries) }, index))
 		}
-		else
-		{
-			None
-		}
 	}
 	
 	/// Based on `xsk_ring_cons__release()` in Linux source `tools/lib/bpf/xsk.h`.
 	#[inline(always)]
-	pub(super) fn release(&self, number: u32)
+	pub(super) fn release(&self, number: NonZeroU32)
 	{
 		// Make sure data has been read before indicating we are done with the entries by updating the consumer pointer.
 		Self::libbpf_smp_rwmb();
 		
-		self.set_consumer(self.consumer() + number)
+		self.set_consumer(self.consumer() + number.get())
 	}
 }

@@ -75,6 +75,7 @@ use const_fn_assert::cfn_assert;
 use const_fn_assert::cfn_assert_eq;
 use const_fn_assert::cfn_assert_ne;
 use const_fn_assert::cfn_debug_assert;
+use crossbeam::queue::ArrayQueue;
 use either::Either;
 use either::Either::Left;
 use either::Either::Right;

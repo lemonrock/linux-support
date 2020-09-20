@@ -62,7 +62,7 @@ impl<RP: ReceivePoll> CommonReceiveOnly<RP>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn increase_frames_received(&self, number_of_frames: u32)
+	pub(crate) fn increase_frames_received(&self, number_of_frames: NonZeroU32)
 	{
 		self.frames_received.increment(number_of_frames)
 	}

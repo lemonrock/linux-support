@@ -11,3 +11,11 @@
 #[repr(transparent)]
 pub struct FrameHeadroom(pub u32);
 
+impl Into<usize> for FrameHeadroom
+{
+	#[inline(always)]
+	fn into(self) -> usize
+	{
+		self.0 as usize
+	}
+}

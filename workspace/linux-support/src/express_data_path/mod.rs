@@ -35,6 +35,7 @@ use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use crate::memory::huge_pages::HugePageSize;
 use crate::memory::mapping::*;
 use crate::network_device::*;
+use crate::memory::VirtualAddress;
 
 
 /// Attached program.
@@ -77,6 +78,7 @@ include!("CommonExpressDataPathSocket.rs");
 include!("ExpressDataPathInstance.rs");
 include!("ExpressDataPathSocket.rs");
 include!("ExpressDataPathSocketCreationError.rs");
+include!("ForwardsExpressDataPathSocket.rs");
 include!("OwnedExpressDataPathSocket.rs");
 include!("ReceivedFrameProcessor.rs");
 include!("ReceivesExpressDataPathSocket.rs");

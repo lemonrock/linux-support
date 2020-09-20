@@ -20,7 +20,7 @@ impl Deref for UserMemoryArea
 impl UserMemoryArea
 {
 	#[inline(always)]
-	fn new(number_of_frames: NonZeroU32, chunk_size: ChunkSize, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, ExpressDataPathSocketCreationError>
+	fn new(number_of_frames: NonZeroU32, chunk_size: AlignedChunkSize, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, ExpressDataPathSocketCreationError>
 	{
 		let length = unsafe { NonZeroU64::new_unchecked((number_of_frames.get() as u64) * (chunk_size as u32 as u64)) };
 		
@@ -30,31 +30,37 @@ impl UserMemoryArea
 	}
 	
 	#[inline(always)]
-	fn address_and_length(&self) -> (NonZeroU64, NonZeroU64)
+	fn slice(&self, start_relative_address: u64, length: usize) -> &[u8]
+	{
+		unsafe { from_raw_parts(self.slice_starts_from(start_relative_address, length).into(), length) }
+	}
+	
+	#[inline(always)]
+	fn slice_mut(&self, start_relative_address: u64, length: usize) -> &mut [u8]
+	{
+		unsafe { from_raw_parts_mut(self.slice_starts_from(start_relative_address, length).into(), length) }
+	}
+	
+	#[inline(always)]
+	fn slice_starts_from(&self, start_relative_address: u64, length: usize) -> VirtualAddress
+	{
+		let starts_from = self.virtual_address().add(start_relative_address);
+		if cfg!(debug_assertions)
+		{
+			let end_address = self.virtual_address().add(self.mapped_size_in_bytes());
+			debug_assert!(starts_from <= end_address);
+			
+			debug_assert!(starts_from.add(length) <= end_address);
+		}
+		starts_from
+	}
+	
+	#[inline(always)]
+	fn start_address_and_length(&self) -> (NonZeroU64, NonZeroU64)
 	{
 		(
-			memory.virtual_address().into(),
+			self.virtual_address().into(),
 			NonZeroU64::new(memory.mapped_size_in_bytes() as u64).expect("Memory can not be zero length (empty)")
 		)
-	}
-	
-	#[inline(always)]
-	fn frame<'a>(&'a self, frame_headroom: FrameHeadroom, user_memory_area_relative_address: UserMemoryAreaRelativeAddress, length: usize) -> (&'a mut [u8], &'a mut [u8])
-	{
-		let pointer = self.frame_address(user_memory_area_relative_address).as_ptr();
-		let length = descriptor.len as usize;
-		
-		let frame_headroom = unsafe { XXXXX };
-		let frame = unsafe { from_raw_parts_mut(pointer, length) };
-		(frame_headroom, frame)
-	}
-	
-	/// Based on `xsk_umem__get_data()` in Linux source `tools/lib/bpf/xsk.h`.
-	///
-	/// The `address` is the result of calling `xsk_umem__add_offset_to_addr()` on `xdp_desc.addr`.
-	#[inline(always)]
-	fn frame_address(&self, address: UserMemoryAreaRelativeAddress) -> NonNull<u8>
-	{
-		self.virtual_address().pointer_to(address as usize)
 	}
 }

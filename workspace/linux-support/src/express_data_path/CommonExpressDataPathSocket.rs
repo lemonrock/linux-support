@@ -53,7 +53,7 @@ impl<ReceiveOrTransmitOrBoth: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOn
 	}
 	
 	#[inline(always)]
-	fn increase_frames_received(&self, number_of_frames: u32)
+	fn increase_frames_received(&self, number_of_frames: NonZeroU32)
 	{
 		self.receive().increase_frames_received(number_of_frames)
 	}
@@ -92,27 +92,22 @@ impl<ReceiveOrTransmitOrBoth: ReceiveOrTransmitOrBoth + Transmits<CommonTransmit
 	}
 	
 	#[inline(always)]
-	fn increase_frames_transmitted(&self, number_of_frames: u32)
+	fn outstanding_frames_to_transmit(&self) -> u32
 	{
-		self.transmit().increase_frames_transmitted(number_of_frames)
+		self.transmit().outstanding_frames_to_transmit()
 	}
 	
 	#[inline(always)]
-	fn have_no_outstanding_frames_to_transmit(&self) -> bool
-	{
-		self.transmit().have_no_outstanding_frames_to_transmit()
-	}
-	
-	#[inline(always)]
-	fn increment_outstanding_frames_to_transmit(&self, number_of_frames: u32)
+	fn increment_outstanding_frames_to_transmit(&self, number_of_frames: NonZeroU32)
 	{
 		self.transmit().increment_outstanding_frames_to_transmit(number_of_frames)
 	}
 	
 	#[inline(always)]
-	fn decrement_outstanding_frames_to_transmit(&self, number_of_frames: u32)
+	fn change_frames_transmitted(&self, completed_number_of_frames: NonZeroU32)
 	{
-		self.transmit().decrement_outstanding_frames_to_transmit(number_of_frames)
+		self.transmit().decrement_outstanding_frames_to_transmit(completed_number_of_frames);
+		self.transmit().increase_frames_transmitted(completed_number_of_frames);
 	}
 	
 	#[inline(always)]
