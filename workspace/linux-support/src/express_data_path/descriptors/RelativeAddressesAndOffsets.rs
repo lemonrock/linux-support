@@ -28,12 +28,12 @@
 ///
 /// The following for receive is worked out from:-
 /// 
-/// *  `__xp_alloc()` in Linux source `net/xdp/xsk_buff_pool.c`;
-/// *  `xp_alloc()` in Linux source `net/xdp/xsk_buff_pool.c`.
+/// * `__xp_alloc()` in Linux source `net/xdp/xsk_buff_pool.c`;
 /// * `__xsk_rcv()` in Linux source `net/xdp/xsk.c`.
 /// * `__xsk_rcv_zc()` in Linux source `net/xdp/xsk.c`.
 /// * `xdp_update_frame_from_buff()` in Linux source `includes/net/xdp.h`.
 /// * `xp_aligned_extract_addr()` in Linux source `includes/net/xsk_buff_pool.h`.
+/// * `xp_alloc()` in Linux source `net/xdp/xsk_buff_pool.c`.
 /// * `xp_check_aligned()` in Linux source `includes/net/xdp_sock_drv.h`.
 /// * `xp_check_unaligned()` in Linux source `includes/net/xdp_sock_drv.h`.
 /// * `xp_get_handle()` in Linux source `net/xdp/xsk.c`.
@@ -53,7 +53,7 @@
 /// 	// filled_address & pool.chunk_mask  viz
 /// 	filled_address & !(chunk_size - 1)
 ///
-/// 	// ie make user_memory_descriptor start from start of a chunk.
+/// 	// ie round user_memory_descriptor down to start from start of a chunk, ie extract orig_addr.
 /// }
 /// else
 /// {
@@ -114,7 +114,7 @@
 /// 	* `length_of_xdp_headroom_after_xdp_frame = xdp_headroom_length - size_of::<xdp_frame>()`.
 pub struct RelativeAddressesAndOffsets
 {
-	pub start_of_packet: u64,
+	pub start_of_packet: UserMemoryAreaRelativeAddress,
 	
 	/// Zero for completed frames, which is technically incorrect.
 	///
@@ -122,24 +122,24 @@ pub struct RelativeAddressesAndOffsets
 	pub length_of_packet: usize,
 	
 	/// Sames as `orig_addr` for transmitted frames.
-	pub start_of_our_frame_headroom: u64,
+	pub start_of_our_frame_headroom: UserMemoryAreaRelativeAddress,
 	
 	pub length_of_our_frame_headroom: usize,
 	
 	/// Sames as `orig_addr` for transmitted frames and completed frames.
-	pub end_of_xdp_headroom: u64,
+	pub end_of_xdp_headroom: UserMemoryAreaRelativeAddress,
 	
 	/// Zero for transmitted frames and completed frames.
 	pub xdp_headroom_length: usize,
 	
 	/// Sames as `orig_addr` for transmitted frames and completed frames.
-	pub start_of_xdp_headroom: u64,
+	pub start_of_xdp_headroom: UserMemoryAreaRelativeAddress,
 	
-	pub orig_addr: u64,
+	pub orig_addr: UserMemoryAreaRelativeAddress,
 	
 	pub offset: usize,
 	
-	// pub start_of_xdp_headroom_after_xdp_frame: u64,
+	// pub start_of_xdp_headroom_after_xdp_frame: UserMemoryAreaRelativeAddress,
 	
 	// pub length_of_xdp_headroom_after_xdp_frame: usize,
 }
@@ -179,6 +179,40 @@ impl RelativeAddressesAndOffsets
 		user_memory_area.slice_mut(self.start_of_packet, self.length_of_packet)
 	}
 	
+	#[inline(always)]
+	pub(crate) fn minimum_tailroom_length(&self, chunk_size: impl ChunkSize) -> usize
+	{
+		let length_occupied = (self.start_of_packet + self.length_of_packet) - self.orig_addr;
+		let chunk_size = chunk_size.into().get() as u64;
+		
+		debug_assert!(length_occupied <= chunk_size);
+		(chunk_size - length_occupied) as usize
+	}
+	
+	#[inline(always)]
+	pub(crate) fn fill_frame_descriptor_bitfield_if_constructed_from_received_frame_descriptor_if_aligned(&self) -> FrameDescriptorBitfield
+	{
+		FrameDescriptorBitfield::for_aligned(self.start_of_packet)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn fill_frame_descriptor_bitfield_if_constructed_from_received_frame_descriptor_if_unaligned(&self) -> FrameDescriptorBitfield
+	{
+		FrameDescriptorBitfield::for_unaligned(self.orig_addr, self.offset)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn fill_frame_descriptor_bitfield_if_unaligned(&self) -> FrameDescriptorBitfield
+	{
+		FrameDescriptorBitfield::for_unaligned(self.orig_addr, self.offset)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn transmit_frame_descriptor_bitfield_if_unaligned(&self) -> FrameDescriptorBitfield
+	{
+		FrameDescriptorBitfield::for_unaligned(self.orig_addr, self.offset)
+	}
+	
 	const TransmittedXdpHeadroomLength: usize = 0;
 	
 	/// `xdp_headroom_length` will be zero.
@@ -186,7 +220,7 @@ impl RelativeAddressesAndOffsets
 	/// `end_of_xdp_headroom` will be equal to `orig_addr`.
 	/// `start_of_our_frame_headroom` will be equal to `orig_addr`.
 	#[inline(always)]
-	pub(crate) fn for_transmitted_frame_descriptor_if_aligned(orig_addr: u64, frame_headroom: FrameHeadroom, length_of_packet: usize) -> Self
+	pub(crate) fn for_transmitted_frame_descriptor(orig_addr: UserMemoryAreaRelativeAddress, frame_headroom: FrameHeadroom, length_of_packet: usize) -> Self
 	{
 		let start_of_xdp_headroom = orig_addr;
 		let xdp_headroom_length: usize = Self::TransmittedXdpHeadroomLength;
@@ -270,6 +304,15 @@ impl RelativeAddressesAndOffsets
 			//start_of_xdp_headroom_after_xdp_frame: start_of_xdp_headroom,
 			//length_of_xdp_headroom_after_xdp_frame: 0,
 		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn start_of_packet_for_fill_queue_if_aligned(orig_addr: UserMemoryAreaRelativeAddress, frame_headroom: FrameHeadroom) -> u64
+	{
+		let xdp_headroom_length = XDP_PACKET_HEADROOM;
+		let length_of_our_frame_headroom = frame_headroom.into();
+		let offset = xdp_headroom_length + length_of_our_frame_headroom;
+		orig_addr + offset
 	}
 	
 	#[inline(always)]

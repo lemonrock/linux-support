@@ -6,7 +6,7 @@
 /// Used for `ReceiveQueue` and `TransmitQueue`.
 ///
 /// Effectively, a fat pointer, containing a relative, bit-encoded pointer to a frame in memory and the length of the frame.
-pub(crate) type FrameDescriptor = xdp_desc;
+pub type FrameDescriptor = xdp_desc;
 
 impl Descriptor for FrameDescriptor
 {

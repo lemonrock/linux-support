@@ -2,30 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum ReceiveProcessingOutcome
-{
-	/// Also known as `drop`.
-	GiftFrameBackToKernelForAnotherReceive,
-
-	/// This will starve the Linux kernel of frames.
-	ReturnFrameToUnusedFrames,
-
-	/// This keeps the Linux kernel topped-up unless all available frames have been exhausted.
-	///
-	/// Needed for IP defragmentation.
-	RetainedFramePickAnotherOneFromUnusedFrames,
-
-	// TODO
-	Forward,
-}
-
 /// Processes received frames (or no received frames).
 pub trait ReceivedFrameProcessor
 {
 	/// For receive-only, normally a `bool`, where `true` implies the frame can be gifted back to the kernel.
 	///
-	/// For forwarding, always `()` as the frame is always gifted back to the kernel.
+	/// For forwarding, always `usize`, the packet length to forward, as the frame is always gifted back to the kernel.
 	type ProcessingOutcome;
 	
 	/// Nothing received; by default, calls `self.begin(0)` then `self.end()`.
@@ -61,7 +43,11 @@ pub trait ReceivedFrameProcessor
 	/// `relative_frame_index` is always less than `received_number_of_frames` in `self.begin()`.
 	///
 	/// After `end()` is called `relative_frame_index` may be re-used.
-	fn process_received_frame<'a>(&mut self, relative_frame_index: u32, received_frame: &'a mut [u8]) -> Self::Outcome;
+	///
+	/// There may be space available ('tailroom') after the `ethernet_packet`.
+	/// This can be used when forwarding a frame (`impl ReceivedFrameProcessor<ProcessingOutcome=usize> for X`) to increase the size of an ethernet frame.
+	/// Unless using aligned chunks, the processing logic cannot know the maximum length of the tailroom.
+	fn process_received_frame<'a>(&mut self, relative_frame_index: u32, xdp_headroom: &'a [u8], our_frame_headroom: &'a mut [u8], ethernet_packet: &'a mut [u8], minimum_tailroom_length: usize) -> Self::Outcome;
 	
 	/// If we retained the frame in `process_received_frame()` above yet there are no unused frames - hence we potentially starve the Linux kernel.
 	#[inline(always)]

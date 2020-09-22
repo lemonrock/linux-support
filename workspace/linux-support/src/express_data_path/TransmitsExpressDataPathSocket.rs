@@ -3,10 +3,30 @@
 
 
 /// Transmits.
-pub trait TransmitsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, CA: ChunkAlignment>: ExpressDataPathSocket<ROTOB, CA>
+pub trait TransmitsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, FFQ: FreeFrameQueue>: ExpressDataPathSocket<ROTOB, FFQ>
 {
+	/// Send as part of a burst of frames with `transmit_only()`.
+	/// `populate` takes `our_frame_headroom, space_for_ethernet_packet` and returns the actual size of the ethernet packet (which must be `<= space_for_ethernet_packet.len()`.
+	fn populate_new_frame_to_transmit(&self, populate: impl FnOnce(&mut [u8], &mut [u8]) -> usize) -> Option<FrameReference<FFQ::CS>>
+	{
+		let frame_identifier = self.user_memory().pop_free_frame();
+		frame_identifier.map(|frame_identifier|
+		{
+			let (our_frame_headroom, ethernet_packet) = self.user_memory().frame_to_transmit_our_frame_headroom_ethernet_packet(frame_identifier);
+			let length_of_packet = populate(our_frame_headroom, ethernet_packet);
+			debug_assert!(length_of_packet <= ethernet_packet.len());
+			FrameReference
+			{
+				frame_identifier,
+				length_of_packet
+			}
+		})
+	}
+	
 	/// Frame data are (ethernet) frames (packets) held in user memory.
-	fn transmit_only(&self, frames_to_transmit: &[AlignedFrameReference])
+	///
+	/// Do not submit more frames than the capacity of the `TransmitQueue`.
+	fn transmit_only(&self, frames_to_transmit: &[FrameReference<FFQ::CS>])
 	{
 		const peek_release_completion_queue: bool = true;
 		
@@ -17,12 +37,15 @@ pub trait TransmitsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Transm
 		
 		let number_of_frames_to_transmit = self.user_memory().number_of_frames(frames_to_transmit);
 		
+		debug_assert!(self.transmit_queue().number_of_frames_to_transmit_is_within_or_at_capacity(number_of_frames_to_transmit));
+		
 		self.transmit_queue_reserve_execute_submit(number_of_frames_to_transmit, peek_release_completion_queue, |number_of_frames_to_transmit, transmit_queue_index|
 		{
 			for relative_frame_index in 0 .. number_of_frames_to_transmit.get()
 			{
-				let aligned_frame_reference = unsafe { frames_to_transmit.get_unchecked(relative_frame_index as usize) };
-				self.transmit_queue().set_transmit_descriptor_from_aligned_frame_reference(transmit_queue_index, relative_frame_index, aligned_frame_reference, self.user_memory().chunk_size, self.user_memory().frame_headroom)
+				let frame_reference = unsafe { frames_to_transmit.get_unchecked(relative_frame_index as usize) };
+				let transmit_frame_descriptor_bitfield = frame_reference.transmit_frame_descriptor_bitfield(self.user_memory());
+				self.transmit_queue().set_transmit_descriptor_from_frame(transmit_queue_index, relative_frame_index, transmit_frame_descriptor_bitfield, frame_reference.length_of_packet)
 			}
 			Some(number_of_frames_to_transmit)
 		});
@@ -39,7 +62,7 @@ pub trait TransmitsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Transm
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn transmit_queue_reserve_execute_submit(&self, expect_to_transmit_number_of_frames: NonZeroU32, peek_release_completion_queue: bool, execute: impl FnOnce(NonZeroU32, u32) -> Option<NonZeroU32>) -> Option<NonZeroU32>
+	fn transmit_queue_reserve_execute_submit(&self, expect_to_transmit_number_of_frames: NonZeroU32, peek_release_completion_queue: bool, execute: impl FnOnce(NonZeroU32, RingQueueIndex) -> Option<NonZeroU32>) -> Option<NonZeroU32>
 	{
 		let transmit_queue_index = loop
 		{
@@ -87,24 +110,7 @@ pub trait TransmitsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Transm
 				for relative_frame_index in 0 .. available_number_of_frames.get()
 				{
 					let completed_frame_descriptor_bitfield = self.completion_queue().get_completed_frame_descriptor_bitfield(completion_queue_index, relative_frame_index);
-					if CA::IsUnaligned
-					{
-						let relative_addresss_and_offsets = RelativeAddressesAndOffsets::from_completed_frame_descriptor_if_unaligned(completed_frame_descriptor_bitfield, self.user_memory().frame_headroom);
-						
-						let absolute_frame_index = relative_addresss_and_offsets.orig_addr / self.user_memory().chunk_size.to_u64();
-						AlignedFrameNumber::from(absolute_frame_index as u32);
-						
-						self.user_memory().unused_frames_queue.push(aligned_frame_number);
-					}
-					else
-					{
-						RelativeAddressesAndOffsets::from_completed_frame_descriptor_if_aligned(completed_frame_descriptor_bitfield, self.user_memory().frame_headroom);
-						
-						// TODO push frames back onto the free queue.
-						xxxx;
-						
-					};
-					
+					self.user_memory().push_free_frame_from_completion(completed_frame_descriptor_bitfield);
 				}
 				
 				Some(available_number_of_frames)
@@ -114,7 +120,7 @@ pub trait TransmitsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Transm
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn completion_queue_lock_peek_execute_release_unlock(&self, requested_number_of_frames: NonZeroU32, execute: impl FnOnce(NonZeroU32, u32) -> Option<NonZeroU32>) -> Option<NonZeroU32>
+	fn completion_queue_lock_peek_execute_release_unlock(&self, requested_number_of_frames: NonZeroU32, execute: impl FnOnce(NonZeroU32, RingQueueIndex) -> Option<NonZeroU32>) -> Option<NonZeroU32>
 	{
 		self.lock_completion_queue();
 		

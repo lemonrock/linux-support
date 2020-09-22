@@ -4,7 +4,7 @@
 
 #[doc(hidden)]
 #[derive(Debug)]
-pub(crate) struct UserMemory<CA: ChunkAlignment>
+pub(crate) struct UserMemory<FFQ: FreeFrameQueue>
 {
 	fill_queue: FillQueue,
 	
@@ -17,18 +17,16 @@ pub(crate) struct UserMemory<CA: ChunkAlignment>
 	
 	user_memory_socket_file_descriptor: ManuallyDrop<ExpressDataPathSocketFileDescriptor>,
 	
-	chunk_size: AlignedChunkSize,
+	chunk_size: CS,
 	
-	chunk_alignment: CA,
-	
-	number_of_frames: NonZeroU32,
+	number_of_chunks: NonZeroU32,
 	
 	frame_headroom: FrameHeadroom,
 	
-	unused_frames_queue: UnusedFramesMultipleProducerMultipleConsumerArrayQueue,
+	free_frame_queue: FFQ,
 }
 
-impl<CA: ChunkAlignment> Drop for UserMemory<CA>
+impl<FFQ: FreeFrameQueue> Drop for UserMemory<FFQ>
 {
 	#[inline(always)]
 	fn drop(&mut self)
@@ -41,17 +39,17 @@ impl<CA: ChunkAlignment> Drop for UserMemory<CA>
 	}
 }
 
-impl<CA: ChunkAlignment> UserMemory<CA>
+impl<FFQ: FreeFrameQueue> UserMemory<FFQ>
 {
 	#[inline(always)]
-	pub(crate) fn number_of_frames(&self, frames: &[AlignedFrameReference]) -> NonZeroU32
+	pub(crate) fn number_of_frames(&self, frames: &[FrameReference<CS>]) -> NonZeroU32
 	{
 		let number_of_frames = frames.len();
 		debug_assert_ne!(number_of_frames, 0);
 		debug_assert!(number_of_frames <= (u32::MAX as usize));
 		
 		let number_of_frames = number_of_frames as u32;
-		debug_assert!(number_of_frames <= self.number_of_frames.get());
+		debug_assert!(number_of_frames <= self.number_of_chunks.get());
 		
 		unsafe { NonZeroU32::new_unchecked(number_of_frames) }
 	}
@@ -63,79 +61,104 @@ impl<CA: ChunkAlignment> UserMemory<CA>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn chunk_size(&self) -> AlignedChunkSize
+	pub(crate) fn received_xdp_headroom_our_frame_headroom_ethernet_packet_minimum_tailroom_length(&self, received_descriptor: &FrameDescriptor) -> (FrameDescriptorBitfield, &[u8], &mut [u8], &mut [u8], usize)
 	{
-		self.chunk_size
+		let received_relative_addresses_and_offsets = FFQ::CS::received_relative_addresses_and_offsets(received_descriptor, self.frame_headroom);
+		
+		let user_memory_area = self.user_memory_area.deref();
+		(
+			FFQ::CS::fill_frame_descriptor_bitfield_if_constructed_from_received_frame_descriptor(&received_relative_addresses_and_offsets),
+			received_relative_addresses_and_offsets.xdp_headroom(user_memory_area),
+			received_relative_addresses_and_offsets.our_frame_headroom_mut(user_memory_area),
+			received_relative_addresses_and_offsets.ethernet_packet_mut(user_memory_area),
+			received_relative_addresses_and_offsets.minimum_tailroom_length(self.chunk_size),
+		)
 	}
 	
-	/// Raw address, before any frame headroom.
 	#[inline(always)]
-	pub(crate) fn absolute_address_of_frame(&self, user_memory_descriptor: UserMemoryDescriptor) -> NonNull<u8>
+	pub(crate) fn frame_to_transmit_our_frame_headroom_ethernet_packet(&self, frame_identifier: <<FFQ as FreeFrameQueue>::CS as ChunkSize>::FrameIdentifier) -> (&mut [u8], &mut [u8])
 	{
+		let relative_addresses_and_offsets = self.chunk_size.transmit_relative_addesses_and_offsets(self.frame_headroom, frame_identifier, 0);
+		relative_addresses_and_offsets.length_of_packet = relative_addresses_and_offsets.minimum_tailroom_length(self.chunk_size);
+		
+		(
+			relative_addresses_and_offsets.our_frame_headroom_mut(),
+			relative_addresses_and_offsets.ethernet_packet_mut(),
+		)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn user_memory_area_relative_address_from_descriptor(&self, descriptor: &FrameDescriptor) -> XXX
+	pub(crate) fn push_free_frame_from_receive(&self, received_frame_descriptor_bitfield: FrameDescriptorBitfield)
 	{
+		let newly_freed_frame_identifier = self.chunk_size.received_frame_identifier(received_frame_descriptor_bitfield);
+		self.free_frame_queue.push(newly_freed_frame_identifier)
 	}
 	
-	/// The network packet should start with an `ether_header` struct, eg see the function `swap_mac_addresses()` in Linux source `samples/bpf/xdpsock_user.c`.
-	///
-	/// ***WARNING***: The frame is only valid until the underlying `descriptor` is released; the lifetime `'a` is overly long.
-	///
-	/// Frames in user memory do not include a trailing ethernet frame check sequeunces (FCS).
 	#[inline(always)]
-	pub(crate) fn frame_from_descriptor<'a>(&'a self, descriptor: &'a FrameDescriptor) -> (&'a mut [u8], &'a mut [u8])
+	pub(crate) fn push_free_frame_from_completion(&self, completed_frame_descriptor_bitfield: FrameDescriptorBitfield)
 	{
+		let newly_freed_frame_identifier = self.chunk_size.completed_frame_identifier(completed_frame_descriptor_bitfield, self.frame_headroom);
+		self.free_frame_queue.push(newly_freed_frame_identifier);
 	}
 	
-	/// The (Ethernet) frame (packet) should start with an `ether_header` struct, eg see the function `swap_mac_addresses()` in Linux source `samples/bpf/xdpsock_user.c`.
 	#[inline(always)]
-	pub(crate) fn frame_from_frame_number(&self, frame_number: AlignedFrameNumber, chunk_size: AlignedChunkSize) -> (&mut [u8], &mut [u8])
+	pub(crate) fn pop_free_frame(&self) -> Option<<<FFQ as FreeFrameQueue>::CS as ChunkSize>::FrameIdentifier>
 	{
+		self.free_frame_queue.pop()
+	}
+	
+	#[inline(always)]
+	pub(crate) fn frame_identifier_to_fill_frame_descriptor_bitfield(&self, frame_identifier: <<FFQ as FreeFrameQueue>::CS as ChunkSize>::FrameIdentifier) -> FrameDescriptorBitfield
+	{
+		self.chunk_size.fill_frame_descriptor_bitfield(self.frame_headroom, frame_identifier)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn frame_identifier_to_transmit_frame_descriptor_bitfield(&self, frame_identifier: <<FFQ as FreeFrameQueue>::CS as ChunkSize>::FrameIdentifier) -> FrameDescriptorBitfield
+	{
+		self.chunk_size.transmit_frame_descriptor_bitfield(self.frame_headroom, frame_identifier)
 	}
 	
 	/// Based on `libbpf`'s `xsk_umem__create_v0_0_4()` (also known as `xsk_umem__create()`) in Linux source `tools/lib/bpf/xsk.c` and also `main()` and `xsk_configure_umem()` in Linux source `samples/bpf/xdp_sockuser.c`.
 	///
 	/// If flags contains `XdpUmemRegFlags::UnalignedChunks`, then `huge_memory_page_size` can not be `None`.
-	/// `number_of_frames` might be 4096.
-	fn new(number_of_frames: NonZeroU32, chunk_size: AlignedChunkSize, frame_headroom: FrameHeadroom, network_interface_maximum_transmission_unit_including_frame_check_sequence: MaximumTransmissionUnit, chunk_alignment: CA, fill_or_completion_or_both_ring_queue_depths: impl FillOrCompletionOrBothRingQueueDepths, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, ExpressDataPathSocketCreationError>
+	/// `number_of_chunks` might be 4096.
+	///
+	/// If using an AlignedChunkSize, `number_of_chunks` must be an exact multiple of the number that would fit in a page.
+	/// Thus we round it up if necessary.
+	fn new<FOCOBRQD: FillOrCompletionOrBothRingQueueDepths>(number_of_chunks: NonZeroU32, chunk_size: FFQ::CS, frame_headroom: FrameHeadroom, network_interface_maximum_transmission_unit_including_frame_check_sequence: MaximumTransmissionUnit, fill_or_completion_or_both_ring_queue_depths: FOCOBRQD, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, ExpressDataPathSocketCreationError>
 	{
 		use self::ExpressDataPathSocketCreationError::*;
+		
+		FFQ::CS::validate_user_memory(huge_memory_page_size);
 		
 		let fill_ring_queue_depth = fill_or_completion_or_both_ring_queue_depths.fill_queue_ring_queue_depth_or_default();
 		let completion_ring_queue_depth = fill_or_completion_or_both_ring_queue_depths.completion_queue_depth_or_default();
 		
-		let flags = if CA::IsUnaligned
-		{
-			debug_assert!(huge_memory_page_size.is_some(), "When using XdpUmemRegFlagsUnalignedChunks in `flags`, Huge Pages must be used");
-			XdpUmemFlags::UnalignedChunks
-		}
-		else
-		{
-			XdpUmemFlags::empty()
-		};
-		
-		assert!((XDP_PACKET_HEADROOM + frame_headroom.0) < (chunk_size as u32), "Mirrors check in `xdp_umem_reg() in Linux source`");
-		
 		// Internally, Linux drops received packets that don't fit into a chunk.
 		// See the usage of `xsk_umem_get_rx_frame_size()` in Linux source.
-		if (XDP_PACKET_HEADROOM + frame_headroom.0 + network_interface_maximum_transmission_unit_including_frame_check_sequence.0) > (chunk_size as u32)
+		if XDP_PACKET_HEADROOM + frame_headroom.into() + network_interface_maximum_transmission_unit_including_frame_check_sequence.into() > (chunk_size.into().get() as usize)
 		{
-			return Err(ChunkSizeDoesNotAccommodateFrameHeadroomAndMaximumTransmissionUnitIncludingFrameCheckSequence { xdp_packet_headroom: XDP_PACKET_HEADROOM, frame_headroom, network_interface_maximum_transmission_unit_including_frame_check_sequence} )
+			return Err(ChunkSizeDoesNotAccommodateFrameHeadroomAndMaximumTransmissionUnitIncludingFrameCheckSequence { xdp_packet_headroom: XDP_PACKET_HEADROOM, frame_headroom, network_interface_maximum_transmission_unit_including_frame_check_sequence } )
 		}
 		
-		
-		assert!((XDP_PACKET_HEADROOM + frame_headroom.0 + network_interface_maximum_transmission_unit_including_frame_check_sequence.0) <= (chunk_size as u32), "XDP_PACKET_HEADROOM `{:?}` + frame_headroom `{:?}` + network_interface_maximum_transmission_unit `{:?}` will not fit in chunk_size `{}`", XDP_PACKET_HEADROOM, frame_headroom, network_interface_maximum_transmission_unit_including_frame_check_sequence, chunk_size);
-		
-		let user_memory_area = UserMemoryArea::new(number_of_frames, chunk_size, huge_memory_page_size, defaults)?;
+		let number_of_chunks = chunk_size.round_up_number_of_chunks(number_of_chunks);
+		let user_memory_area = UserMemoryArea::new(number_of_chunks, chunk_size, huge_memory_page_size, defaults)?;
+		let free_frame_queue = FFQ::new(number_of_chunks, user_memory_area.deref());
 		
 		let user_memory_socket_file_descriptor = ExpressDataPathSocketFileDescriptor::new().map_err(CouldNotCreateUserMemorySocketFileDescriptor)?;
-		let configuration = xdp_umem_reg::new(&user_memory_area, chunk_size, frame_headroom, flags);
+		let configuration = xdp_umem_reg::new(&user_memory_area, chunk_size, frame_headroom, FFQ::CS::RegistrationFlags);
 		user_memory_socket_file_descriptor.register_user_space_memory(&configuration, fill_ring_queue_depth, completion_ring_queue_depth);
 		let memory_map_offsets = user_memory_socket_file_descriptor.get_memory_map_offsets();
 		
 		let (fill_queue, number_of_frames_initially_gifted_to_the_linux_kernel) = XskRingQueue::from_fill_memory_map_offsets::<FOCOBRQD>(&user_memory_socket_file_descriptor, &memory_map_offsets, fill_ring_queue_depth, defaults, chunk_size);
+		
+		// Linux documentation (`Documentation/networking/af_xdp.rst`, currently section `XDP_{RX|TX|UMEM_FILL|UMEM_COMPLETION}_RING setsockopts`) recommends not populating the fill queue if only doing transmit.
+		if FOCOBRQD::SupportsReceive
+		{
+			fill_queue.gift_initial_frames_to_kernel_for_receive(fill_ring_queue_depth, chunk_size, &free_frame_queue)
+		}
+		
 		Ok
 		(
 			Self
@@ -145,10 +168,9 @@ impl<CA: ChunkAlignment> UserMemory<CA>
 				user_memory_area: ManuallyDrop::new(user_memory_area),
 				user_memory_socket_file_descriptor: ManuallyDrop::new(user_memory_socket_file_descriptor),
 				chunk_size,
-				chunk_alignment,
-				number_of_frames,
+				number_of_chunks,
 				frame_headroom,
-				unused_frames_queue: UnusedFramesMultipleProducerMultipleConsumerArrayQueue::new(number_of_frames, number_of_frames_initially_gifted_to_the_linux_kernel),
+				free_frame_queue,
 			}
 		)
 	}

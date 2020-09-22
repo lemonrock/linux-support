@@ -24,6 +24,12 @@ pub(crate) struct xdp_desc
 impl xdp_desc
 {
 	#[inline(always)]
+	pub(crate) fn frame_descriptor_bitfield(&self) -> FrameDescriptorBitfield
+	{
+		self.addr
+	}
+	
+	#[inline(always)]
 	pub(crate) fn received_relative_addresses_and_offsets_if_aligned(&self, frame_headroom: FrameHeadroom) -> RelativeAddressesAndOffsets
 	{
 		RelativeAddressesAndOffsets::from_received_frame_descriptor_if_aligned(self.addr, self.len, frame_headroom)
@@ -41,29 +47,15 @@ impl xdp_desc
 		unsafe { other.copy_to_nonoverlapping(transmit_descriptor.as_ptr(), size_of::<FrameDescriptor>()) }
 	}
 	
-	/// Parameters are named by analogy to the fields in `ReceivedRelativeAddressesAndOffsets`.
 	#[inline(always)]
-	pub(crate) fn write_for_transmit_aligned(transmit_descriptor: NonNull<Self>, start_of_packet: u64, length_of_packet: usize)
-	{
-		Self::write(transmit_descriptor, FrameDescriptorBitfield::for_aligned(start_of_packet), length)
-	}
-	
-	/// Parameters are named by analogy to the fields in `ReceivedRelativeAddressesAndOffsets`.
-	#[inline(always)]
-	pub(crate) fn write_for_transmit_unaligned(transmit_descriptor: NonNull<Self>, orig_addr: u64, offset: u64, length_of_packet: usize)
-	{
-		Self::write(transmit_descriptor, FrameDescriptorBitfield::for_unaligned(orig_addr, offset), length_of_packet)
-	}
-	
-	#[inline(always)]
-	fn write(transmit_descriptor: NonNull<Self>, address_and_offset_bitfield: FrameDescriptorBitfield, length_of_packet: usize)
+	pub(crate) fn write(transmit_descriptor: NonNull<Self>, transmit_frame_descriptor_bitfield: FrameDescriptorBitfield, length_of_packet: usize)
 	{
 		const OptionsMustCurrentlyBeAlwaysZero: u32 = 0;
 		
 		unsafe
 		{
 			let this = transmit_descriptor.as_mut();
-			write(&mut this.addr, address_and_offset_bitfield.into());
+			write(&mut this.addr, transmit_frame_descriptor_bitfield.into());
 			write(&mut this.len, length_of_packet.try_into().unwrap());
 			write(&mut this.options, OptionsMustCurrentlyBeAlwaysZero);
 		}

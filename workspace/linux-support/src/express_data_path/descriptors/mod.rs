@@ -10,5 +10,4 @@ include!("Descriptor.rs");
 include!("RelativeAddressesAndOffsets.rs");
 include!("FrameDescriptor.rs");
 include!("FrameDescriptorBitfield.rs");
-include!("UserMemoryDescriptor.rs");
 include!("xdp_desc.rs");

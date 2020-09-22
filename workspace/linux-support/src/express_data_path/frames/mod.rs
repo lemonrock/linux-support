@@ -3,12 +3,15 @@
 
 
 use super::*;
+use crate::memory::PageSize;
 
 
-include!("AlignedChunkSize.rs");
-include!("FrameHeadroom.rs");
-include!("FrameLength.rs");
 include!("AlignedFrameNumber.rs");
-include!("AlignedFrameReference.rs");
+include!("AlignedChunkSize.rs");
+include!("ChunkSize.rs");
+include!("FrameHeadroom.rs");
+include!("FrameReference.rs");
 include!("FramesCount.rs");
-include!("UnusedFramesMultipleProducerMultipleConsumerArrayQueue.rs");
+include!("FreeFrameQueue.rs");
+include!("UnalignedChunkSize.rs");
+include!("MultipleProducerMultipleConsumerAlignedFreeFrameQueue.rs");

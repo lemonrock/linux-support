@@ -7,79 +7,48 @@
 /// Contains a queue of user memory frame indices 'gifted' to the Linux kernel.
 ///
 /// Starts off full.
-pub(crate) type FillQueue = XskRingQueue<ProducerXskRingQueueKind, UserMemoryDescriptor>;
+pub(crate) type FillQueue = XskRingQueue<ProducerXskRingQueueKind, FrameDescriptorBitfield>;
 
 impl FillQueue
 {
 	#[inline(always)]
-	pub(crate) fn from_fill_memory_map_offsets<FOCOBRQD: FillOrCompletionOrBothRingQueueDepths>(user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, memory_map_offsets: &xdp_mmap_offsets, fill_ring_queue_depth: RingQueueDepth, defaults: &DefaultPageSizeAndHugePageSizes, chunk_size: AlignedChunkSize) -> (Self, Option<NonZeroU32>)
+	pub(crate) fn from_fill_memory_map_offsets<FOCOBRQD: FillOrCompletionOrBothRingQueueDepths>(user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, memory_map_offsets: &xdp_mmap_offsets, fill_ring_queue_depth: RingQueueDepth, defaults: &DefaultPageSizeAndHugePageSizes, chunk_size: AlignedChunkSize) -> Self
 	{
-		let this = Self::from_ring_queue_offsets(user_memory_socket_file_descriptor, memory_map_offsets.fill_ring_offsets(), fill_ring_queue_depth, defaults, XDP_UMEM_PGOFF_FILL_RING);
-		
-		// Linux documentation (`Documentation/networking/af_xdp.rst`, currently section `XDP_{RX|TX|UMEM_FILL|UMEM_COMPLETION}_RING setsockopts`) recommends not populating the fill queue if only doing transmit.
-		let number_of_frames_initially_gifted_to_the_linux_kernel = if FOCOBRQD::SupportsReceive
-		{
-			xxxx;
-			// TODO: populate for non-aligned chunk sizes.
-			
-			Some(this.gift_initial_frames_to_kernel_for_receive(fill_ring_queue_depth, chunk_size))
-		}
-		else
-		{
-			None
-		};
-		
-		(this, number_of_frames_initially_gifted_to_the_linux_kernel)
+		Self::from_ring_queue_offsets(user_memory_socket_file_descriptor, memory_map_offsets.fill_ring_offsets(), fill_ring_queue_depth, defaults, XDP_UMEM_PGOFF_FILL_RING)
 	}
 	
+	/// Originally based on `xsk_populate_fill_ring()` in Linux source `samples/bpf/xdpsock_user.c`.
 	#[inline(always)]
-	pub(crate) fn set_fill_user_memory_descriptor_of_frame_in_user_memory(&self, fill_queue_index: u32, relative_frame_index: u32, fill_address_user_memory_descriptor: UserMemoryDescriptor)
+	pub(crate) fn gift_initial_frames_to_kernel_for_receive<FFQ: FreeFrameQueue>(&self, fill_ring_queue_depth: RingQueueDepth, chunk_size: FFQ::CS, free_frame_queue: &FFQ)
 	{
-		let index = fill_queue_index + relative_frame_index;
-		unsafe { *self.fill_user_memory_descriptor(index).as_ptr() = fill_address_user_memory_descriptor }
+		let number_of_frames_initially_gifted_to_the_linux_kernel: NonZeroU32 = fill_ring_queue_depth.into();
+		
+		let fill_queue_index = self.reserve(number_of_frames_initially_gifted_to_the_linux_kernel).unwrap();
+		{
+			for relative_frame_index in 0 .. number_of_frames_initially_gifted_to_the_linux_kernel.get()
+			{
+				let frame_identifier = free_frame_queue.pop().unwrap();
+				let fill_frame_descriptor_bitfield = chunk_size.fill_frame_descriptor_bitfield(frame_headroom, frame_identifier);
+				self.set_fill_address(fill_queue_index, relative_frame_index, fill_frame_descriptor_bitfield)
+			}
+		}
+		self.submit(number_of_frames_initially_gifted_to_the_linux_kernel)
+	}
+	
+	/// At this point in time, only the `orig_addr` part of the `fill_address_frame_descriptor_bitfield` is used by the Linux kernel.
+	#[inline(always)]
+	pub(crate) fn set_fill_address(&self, fill_queue_index: RingQueueIndex, relative_frame_index: u32, fill_frame_descriptor_bitfield: FrameDescriptorBitfield)
+	{
+		let index = fill_queue_indexadd(relative_frame_index);
+		unsafe { * self.fill_address(index).as_ptr() = fill_frame_descriptor_bitfield }
 	}
 	
 	/// Based on `xsk_ring_prod__fill_addr()` in Linux source `tools/lib/bpf/xsk.h`.
 	///
 	/// Returned pointer should be treated as uninitialized memory.
 	#[inline(always)]
-	fn fill_user_memory_descriptor(&self, index: u32) -> NonNull<UserMemoryDescriptor>
+	fn fill_address(&self, index: RingQueueEntryIndex) -> NonNull<FrameDescriptorBitfield>
 	{
 		self.ring_entry_mut(index)
-	}
-	
-	/// Based on `xsk_populate_fill_ring()` in Linux source `samples/bpf/xdpsock_user.c`.
-	#[inline(always)]
-	fn gift_initial_frames_to_kernel_for_receive(&self, fill_ring_queue_depth: RingQueueDepth, aligned_chunk_size: AlignedChunkSize, is_aligned: bool) -> NonZeroU32
-	{
-		let number_of_frames_initially_gifted_to_the_linux_kernel: NonZeroU32 = fill_ring_queue_depth.into();
-		
-		let fill_queue_index = self.reserve(number_of_frames_initially_gifted_to_the_linux_kernel).unwrap();
-		{
-			for absolute_frame_index in 0 .. number_of_frames_initially_gifted_to_the_linux_kernel.get()
-			{
-				let fill_address_user_memory_descriptor = if is_aligned
-				{
-					let frame_number = AlignedFrameNumber::from(absolute_frame_index);
-					frame_number.to_user_memory_descriptor(aligned_chunk_size)
-				}
-				else
-				{
-					 XXXXXX;
-				};
-				
-				let relative_frame_index = absolute_frame_index;
-				self.set_fill_user_memory_descriptor_of_frame_in_user_memory(fill_queue_index, relative_frame_index, fill_address_user_memory_descriptor)
-			}
-		}
-		self.submit(number_of_frames_initially_gifted_to_the_linux_kernel);
-		
-		number_of_frames_initially_gifted_to_the_linux_kernel
-	}
-	
-	#[inline(always)]
-	pub(crate) fn first_frame_not_initially_gifted_to_the_linux_kernel(number_of_frames_initially_gifted_to_the_linux_kernel: NonZeroU32) -> AlignedFrameNumber
-	{
-		AlignedFrameNumber(number_of_frames_initially_gifted_to_the_linux_kernel.get())
 	}
 }

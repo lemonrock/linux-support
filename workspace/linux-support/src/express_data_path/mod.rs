@@ -35,7 +35,7 @@ use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use crate::memory::huge_pages::HugePageSize;
 use crate::memory::mapping::*;
 use crate::network_device::*;
-use crate::memory::VirtualAddress;
+use crate::memory::{VirtualAddress, PageSize};
 
 
 /// Attached program.
@@ -44,10 +44,6 @@ pub mod attached_program;
 
 /// C.
 pub mod c;
-
-
-/// Chunk alignment.
-pub mod chunk_alignment;
 
 
 #[doc(hidden)]
@@ -81,6 +77,7 @@ include!("ExpressDataPathSocketCreationError.rs");
 include!("ForwardsExpressDataPathSocket.rs");
 include!("OwnedExpressDataPathSocket.rs");
 include!("ReceivedFrameProcessor.rs");
+include!("ReceiveProcessingOutcome.rs");
 include!("ReceivesExpressDataPathSocket.rs");
 include!("SharedExpressDataPathSocket.rs");
 include!("ShareableExpressDataPathInstance.rs");

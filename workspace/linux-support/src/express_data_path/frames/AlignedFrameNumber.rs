@@ -50,18 +50,55 @@ unsafe impl Step for AlignedFrameNumber
 
 impl AlignedFrameNumber
 {
-	/// To an `UserMemoryDescriptor`; only correct if aligned chunks are being used.
 	#[inline(always)]
-	pub const fn to_user_memory_descriptor(self, aligned_chunk_size: AlignedChunkSize) -> UserMemoryDescriptor
+	pub(crate) fn to_fill_frame_descriptor_bitfield_if_aligned(self, aligned_chunk_size: AlignedChunkSize, frame_headroom: FrameHeadroom) -> FrameDescriptorBitfield
 	{
-		UserMemoryDescriptor::from(self.to_u64() * aligned_chunk_size.to_u64())
+		FrameDescriptorBitfield::for_aligned_from_orig_addr_and_frame_headroom(self.orig_addr_if_aligned(aligned_chunk_size), frame_headroom)
 	}
 	
-	/// From an `UserMemoryDescriptor`; only correct if aligned chunks are being used.
 	#[inline(always)]
-	pub const fn from_user_memory_descriptor(user_memory_descriptor: UserMemoryDescriptor, aligned_chunk_size: AlignedChunkSize) -> Self
+	pub(crate) const fn from_received_descriptor_if_aligned(aligned_chunk_size: AlignedChunkSize, received_frame_descriptor_bitfield: FrameDescriptorBitfield) -> Self
 	{
-		user_memory_descriptor.to_aligned_frame_number(aligned_chunk_size)
+		// Strictly speaking, `received_frame_descriptor_bitfield.orig_addr_if_aligned(self) / aligned_chunk_size.to_u64()` but aligned frames do not cross an aligned_chunk_size multiple.
+		let absolute_frame_index = received_frame_descriptor_bitfield.start_of_packet_if_aligned() / aligned_chunk_size.to_u64();
+		debug_assert!(absolute_frame_index <= (u32::MAX as u64));
+		Self(received_frame_descriptor_bitfield.start_of_packet_if_aligned() / aligned_chunk_size.to_u64())
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn from_completed_descriptor_if_aligned(aligned_chunk_size: AlignedChunkSize, completed_frame_descriptor_bitfield: FrameDescriptorBitfield) -> Self
+	{
+		// Strictly speaking, `completed_frame_descriptor_bitfield.orig_addr_if_aligned(self) / aligned_chunk_size.to_u64()` but aligned frames do not cross an aligned_chunk_size multiple.
+		let absolute_frame_index = completed_frame_descriptor_bitfield.start_of_packet_if_aligned() / aligned_chunk_size.to_u64();
+		debug_assert!(absolute_frame_index <= (u32::MAX as u64));
+		Self(absolute_frame_index as u32)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn transmit_frame_descriptor_bitfield_if_aligned(self, aligned_chunk_size: AlignedChunkSize, frame_headroom: FrameHeadroom) -> FrameDescriptorBitfield
+	{
+		let orig_addr = self.orig_addr_if_aligned(aligned_chunk_size);
+		FrameDescriptorBitfield::for_aligned_from_orig_addr_and_frame_headroom(orig_addr, frame_headroom)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn transmit_relative_addesses_and_offsets(self, aligned_chunk_size: AlignedChunkSize, frame_headroom: FrameHeadroom, length_of_packet: usize) -> RelativeAddressesAndOffsets
+	{
+		RelativeAddressesAndOffsets::for_transmitted_frame_descriptor(self.orig_addr_if_aligned(aligned_chunk_size), frame_headroom, length_of_packet)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn from_relative_addresses_and_offsets_if_aligned(relative_addresss_and_offsets: RelativeAddressesAndOffsets, aligned_chunk_size: AlignedChunkSize) -> Self
+	{
+		let absolute_frame_index = relative_addresss_and_offsets.orig_addr / aligned_chunk_size.to_u64();
+		debug_assert!(absolute_frame_index <= (u32::MAX as u64));
+		Self(absolute_frame_index as u32)
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn orig_addr_if_aligned(self, aligned_chunk_size: AlignedChunkSize) -> UserMemoryAreaRelativeAddress
+	{
+		self.to_u64() * aligned_chunk_size.to_u64()
 	}
 	
 	#[inline(always)]

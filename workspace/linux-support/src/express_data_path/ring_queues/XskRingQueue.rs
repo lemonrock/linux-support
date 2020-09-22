@@ -27,16 +27,22 @@ pub(crate) struct XskRingQueue<XRQK: XskRingQueueKind, D: Descriptor>
 
 impl<XRQK: XskRingQueueKind, D: Descriptor> XskRingQueue<XRQK, D>
 {
+	#[inline(always)]
+	pub(crate) fn number_of_frames_to_transmit_is_within_or_at_capacity(&self, number_of_frames_to_transmit: NonZeroU32) -> bool
+	{
+		number_of_frames_to_transmit.get() <= (self.ring_queue_depth as u32)
+	}
+	
 	/// Should be treated as initialized data.
 	#[inline(always)]
-	fn ring_entry(&self, index: u32) -> &D
+	fn ring_entry(&self, index: RingQueueEntryIndex) -> &D
 	{
 		unsafe { & * self.ring.add(self.array_index(index)) }
 	}
 	
 	/// Should be treated as uninitialized data.
 	#[inline(always)]
-	fn ring_entry_mut(&self, index: u32) -> NonNull<D>
+	fn ring_entry_mut(&self, index: RingQueueEntryIndex) -> NonNull<D>
 	{
 		unsafe { NonNull::new_unchecked(self.ring.add(self.array_index(index))) }
 	}
@@ -73,9 +79,9 @@ impl<XRQK: XskRingQueueKind, D: Descriptor> XskRingQueue<XRQK, D>
 	}
 	
 	#[inline(always)]
-	fn array_index(&self, index: u32) -> usize
+	fn array_index(&self, index: RingQueueEntryIndex) -> usize
 	{
-		(index & self.mask()) as usize
+		(index.0 & self.mask()) as usize
 	}
 	
 	#[inline(always)]
@@ -301,7 +307,7 @@ impl<D: Descriptor> XskRingQueue<ProducerXskRingQueueKind, D>
 	
 	/// Based on `xsk_ring_prod__reserve()` in Linux source `tools/lib/bpf/xsk.h`.
 	#[inline(always)]
-	pub(super) fn reserve(&self, number: NonZeroU32) -> Option<u32>
+	pub(super) fn reserve(&self, number: NonZeroU32) -> Option<RingQueueIndex>
 	{
 		if self.number_free(number.get()) < number.get()
 		{
@@ -313,7 +319,7 @@ impl<D: Descriptor> XskRingQueue<ProducerXskRingQueueKind, D>
 			let index = cached_producer;
 			self.set_cached_producer(cached_producer + number);
 			
-			Some(index)
+			Some(RingQueueIndex(index))
 		}
 	}
 	
@@ -356,7 +362,7 @@ impl<D: Descriptor> XskRingQueue<ConsumerXskRingQueueKind, D>
 	///
 	/// Returns `None` if there is no space in the queue.
 	#[inline(always)]
-	pub(super) fn peek(&self, number: NonZeroU32) -> Option<(NonZeroU32, u32)>
+	pub(super) fn peek(&self, number: NonZeroU32) -> Option<(NonZeroU32, RingQueueIndex)>
 	{
 		let entries = self.number_available(number);
 		
@@ -372,7 +378,7 @@ impl<D: Descriptor> XskRingQueue<ConsumerXskRingQueueKind, D>
 			let cached_consumer = self.cached_consumer();
 			let index = cached_consumer;
 			self.set_cached_consumer(cached_consumer + entries);
-			Some((unsafe { NonZeroU32::new_unchecked(entries) }, index))
+			Some((unsafe { NonZeroU32::new_unchecked(entries) }, RingQueueIndex(index)))
 		}
 	}
 	

@@ -2,12 +2,20 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Chunk alignment.
-pub trait ChunkAlignment
+/// Receive processing outcome.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum ReceiveProcessingOutcome
 {
-	#[doc(hidden)]
-	const IsUnaligned: bool;
+	/// Also known as `drop`.
+	GiftFrameBackToKernelForAnotherReceive,
 	
-	#[doc(hidden)]
-	fn user_memory_area_relative_address(chunk_size: AlignedChunkSize, descriptor: &FrameDescriptor) -> UserMemoryAreaRelativeAddress;
+	/// This will starve the Linux kernel of frames.
+	ReturnFrameToUnusedFrames,
+	
+	/// This keeps the Linux kernel topped-up unless all available frames have been exhausted.
+	///
+	/// Needed for IP defragmentation.
+	///
+	/// Can also be used to implement forwarding of frames.
+	RetainedFramePickAnotherOneFromUnusedFrames,
 }

@@ -33,7 +33,7 @@ pub enum ExpressDataPathSocketCreationError
 	#[allow(missing_docs)]
 	ChunkSizeDoesNotAccommodateFrameHeadroomAndMaximumTransmissionUnitIncludingFrameCheckSequence
 	{
-		xdp_packet_headroom: u32,
+		xdp_packet_headroom: usize,
 		
 		frame_headroom: FrameHeadroom,
 		

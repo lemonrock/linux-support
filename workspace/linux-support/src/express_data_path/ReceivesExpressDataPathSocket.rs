@@ -3,7 +3,7 @@
 
 
 /// Receives.
-pub trait ReceivesExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, CA: ChunkAlignment, RP: ReceivePoll>: ExpressDataPathSocket<ROTOB, CA>
+pub trait ReceivesExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, FFQ: FreeFrameQueue, RP: ReceivePoll>: ExpressDataPathSocket<ROTOB, FFQ>
 {
 	/// Receive and drop frames.
 	fn receive_and_drop<RFP: ReceivedFrameProcessor<ProcessingOutcome=ReceiveProcessingOutcome>>(&self, received_frame_processor: &mut RFP)
@@ -26,44 +26,29 @@ pub trait ReceivesExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receive
 						{
 							for relative_frame_index in 0 .. reserved_number_of_frames
 							{
-								let receive_descriptor = self.receive_queue().get_receive_descriptor(receive_queue_index, relative_frame_index);
-								let (headroom, received_frame) = self.user_memory().frame_from_descriptor(&receive_descriptor);
-								
-								match received_frame_processor.process_received_frame(relative_frame_index, received_frame)
+								let received_descriptor = self.receive_queue().get_receive_descriptor(receive_queue_index, relative_frame_index);
+								let (fill_frame_descriptor_bitfield, xdp_headroom, our_frame_headroom, ethernet_packet, minimum_tailroom_length) = self.user_memory().received_xdp_headroom_our_frame_headroom_ethernet_packet_minimum_tailroom_length(received_descriptor);
+								match received_frame_processor.process_received_frame(relative_frame_index, xdp_headroom, our_frame_headroom, ethernet_packet, minimum_tailroom_length)
 								{
 									GiftFrameBackToKernelForAnotherReceive =>
 									{
-										let user_memory_area_relative_address = CA::user_memory_area_relative_address(user_memory.chunk_size(), receive_descriptor);
-										self.fill_queue().set_fill_user_memory_descriptor_of_frame_in_user_memory(fill_queue_index, relative_frame_index, user_memory_area_relative_address);
+										self.fill_queue().set_fill_address(fill_queue_index, relative_frame_index, fill_frame_descriptor_bitfield);
 										filled_number_of_frames += 1;
 									}
 									
-									ReturnFrameToUnusedFrames =>
-									{
-										let frame_number = AlignedFrameNumber::from_user_memory_descriptor(receive_descriptor.extract_address_if_aligned(self.user_memory().chunk_size), self.user_memory().chunk_size);
-										self.user_memory().unused_frames_queue.push(frame_number)
-									}
+									ReturnFrameToUnusedFrames => self.user_memory().push_free_frame_from_receive(received_descriptor.frame_descriptor_bitfield()),
 									
-									RetainedFramePickAnotherOneFromUnusedFrames =>
+									RetainedFramePickAnotherOneFromUnusedFrames => match self.user_memory().pop_free_frame()
 									{
-										match self.user_memory().unused_frames_queue.pop()
+										None => received_frame_processor.no_more_unused_frames_to_gift_to_linux_kernel(),
+										
+										Some(frame_identifier) =>
 										{
-											None => received_frame_processor.no_more_unused_frames_to_gift_to_linux_kernel(),
-											
-											Some(frame_nummber) =>
-											{
-												self.fill_queue().set_fill_user_memory_descriptor_of_frame_in_user_memory(fill_queue_index, relative_frame_index, frame_nummber.to_user_memory_descriptor(self.user_memory().chunk_size));
-												filled_number_of_frames += 1;
-											}
+											let fill_frame_descriptor_bitfield = self.user_memory().frame_identifier_to_fill_frame_descriptor_bitfield(frame_identifier);
+											self.fill_queue().set_fill_address(fill_queue_index, relative_frame_index, fill_frame_descriptor_bitfield);
+											filled_number_of_frames += 1;
 										}
-									}
-									
-									Forward =>
-									{
-										// push to a pending transmit queue.
-										// specialized case of `RetainedFramePickAnotherOneFromUnusedFrames`.
-										XXXX;
-									}
+									},
 								}
 							}
 						}
@@ -93,7 +78,7 @@ pub trait ReceivesExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receive
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn fill_queue_lock_reserve_execute_submit_unlock(&self, requested_number_of_frames: NonZeroU32, execute: impl FnOnce(NonZeroU32, u32) -> Option<NonZeroU32>) -> Option<NonZeroU32>
+	fn fill_queue_lock_reserve_execute_submit_unlock(&self, requested_number_of_frames: NonZeroU32, execute: impl FnOnce(NonZeroU32, RingQueueIndex) -> Option<NonZeroU32>) -> Option<NonZeroU32>
 	{
 		let fill_queue_index = loop
 		{
@@ -149,7 +134,7 @@ pub trait ReceivesExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receive
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn receive_queue_peek_execute_submit<RFP: ReceivedFrameProcessor>(&self, received_frame_processor: &mut RFP, execute: impl FnOnce(NonZeroU32, u32, &mut RFP) -> Option<NonZeroU32>) -> Option<NonZeroU32>
+	fn receive_queue_peek_execute_submit<RFP: ReceivedFrameProcessor>(&self, received_frame_processor: &mut RFP, execute: impl FnOnce(NonZeroU32, RingQueueIndex, &mut RFP) -> Option<NonZeroU32>) -> Option<NonZeroU32>
 	{
 		if let Some((available_number_of_frames, receive_index)) = self.receive_queue().peek(received_frame_processor.maximum_number_of_frames())
 		{

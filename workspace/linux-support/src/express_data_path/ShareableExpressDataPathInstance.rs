@@ -7,17 +7,17 @@
 /// No need to hold onto an instance once all desired shared sockts have been created.
 #[derive(Debug)]
 #[repr(transparent)]
-pub struct ShareableExpressDataPathInstance<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment>(Arc<(ExpressDataPathInstance<CA>, BestForCompilationTargetSpinLock, BestForCompilationTargetSpinLock, Mutex<HashSet<QueueIdentifier>>)>);
+pub struct ShareableExpressDataPathInstance<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue>(Arc<(ExpressDataPathInstance<ROTOB, FFQ>, BestForCompilationTargetSpinLock, BestForCompilationTargetSpinLock, Mutex<HashSet<QueueIdentifier>>)>);
 
-unsafe impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> Sync for ShareableExpressDataPathInstance<ROTOB, CA>
+unsafe impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> Sync for ShareableExpressDataPathInstance<ROTOB, FFQ>
 {
 }
 
-unsafe impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> Send for ShareableExpressDataPathInstance<ROTOB, CA>
+unsafe impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> Send for ShareableExpressDataPathInstance<ROTOB, FFQ>
 {
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> Clone for ShareableExpressDataPathInstance<ROTOB, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> Clone for ShareableExpressDataPathInstance<ROTOB, FFQ>
 {
 	#[inline(always)]
 	fn clone(&self) -> Self
@@ -26,7 +26,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> Clone for ShareableExpr
 	}
 }
 
-impl<RingQueueDepths: CreateReceiveOrTransmitOrBoth, CA: ChunkAlignment> ShareableExpressDataPathInstance<RingQueueDepths::ReceiveOrTransmitOrBoth, CA>
+impl<RingQueueDepths: CreateReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ShareableExpressDataPathInstance<RingQueueDepths::ReceiveOrTransmitOrBoth, FFQ>
 {
 	/// Treats `self` as master; returns a slave.
 	///
@@ -38,7 +38,7 @@ impl<RingQueueDepths: CreateReceiveOrTransmitOrBoth, CA: ChunkAlignment> Shareab
 	///
 	/// A potential bug: ***`queue_identifier` is not checked to see if it used by another instance of `SharedReceiveTransmitMemoryRingQueues`***.
 	/// Adding such a check is possible but is tedious.
-	pub fn share(&self, receive_or_transmit_or_both_ring_queue_depths: RingQueueDepths, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes, arguments: RingQueueDepths::Arguments) -> Result<SharedExpressDataPathSocket<RingQueueDepths::ReceiveOrTransmitOrBoth, CA>, ExpressDataPathSocketCreationError>
+	pub fn share(&self, receive_or_transmit_or_both_ring_queue_depths: RingQueueDepths, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes, arguments: RingQueueDepths::Arguments) -> Result<SharedExpressDataPathSocket<RingQueueDepths::ReceiveOrTransmitOrBoth, FFQ>, ExpressDataPathSocketCreationError>
 	{
 		let is_first =
 		{
@@ -75,7 +75,7 @@ impl<RingQueueDepths: CreateReceiveOrTransmitOrBoth, CA: ChunkAlignment> Shareab
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> ShareableExpressDataPathInstance<ROTOB, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ShareableExpressDataPathInstance<ROTOB, FFQ>
 {
 	#[inline(always)]
 	fn redirect_map_and_attached_program(self) -> &RedirectMapAndAttachedProgram
@@ -84,14 +84,14 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> ShareableExpressDataPat
 	}
 	
 	#[inline(always)]
-	fn user_memory(self) -> &UserMemory<CA>
+	fn user_memory(self) -> &UserMemory<FFQ>
 	{
 		&self.express_data_path_instance().user_memory
 	}
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn express_data_path_instance(self) -> &ExpressDataPathInstance<ROTOB, CA>
+	fn express_data_path_instance(self) -> &ExpressDataPathInstance<ROTOB, FFQ>
 	{
 		&(self.fields().0)
 	}

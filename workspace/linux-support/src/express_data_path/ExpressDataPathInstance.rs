@@ -4,9 +4,9 @@
 
 /// Instance.
 #[derive(Debug)]
-pub struct ExpressDataPathInstance<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment>
+pub struct ExpressDataPathInstance<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue>
 {
-	user_memory: ManuallyDrop<UserMemory<CA>>,
+	user_memory: ManuallyDrop<UserMemory<FFQ>>,
 	
 	redirect_map_and_attached_program: ManuallyDrop<RedirectMapAndAttachedProgram>,
 	
@@ -19,19 +19,7 @@ pub struct ExpressDataPathInstance<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlig
 	marker: PhantomData<ROTOB>,
 }
 
-// TODO: FIllQueue population if using unaligned frames.
-	// TODO: Replace the FrameNumber unsused frames queue with something else?
-// TODO: Unaligned ChunkSize
-	// If aligned, must be a power of 2BUT
-// chunks == number_of_frames
-// viz,
-// number_of_frames must be at least the number that can fit into one page
-// number_of_frames must be a multiply of the number that can fit into one page.
-	// If unaligned, no restriction.
-// TODO: Sort out number of frames - either fill + completion depth, or, if fwd'ing, either fill or completion but fill == completion
-// TODO: Received frames, managing frame recycling!
-
-impl<RingQueueDepths: CreateReceiveOrTransmitOrBoth, CA: ChunkAlignment> ExpressDataPathInstance<RingQueueDepths::ReceiveOrTransmitOrBoth, CA>
+impl<RingQueueDepths: CreateReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ExpressDataPathInstance<RingQueueDepths::ReceiveOrTransmitOrBoth, FFQ>
 {
 	/// Converts to single-threaded owned instance.
 	pub fn owned(self, receive_or_transmit_or_both_ring_queue_depths: RingQueueDepths, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes, arguments: RingQueueDepths::Arguments) -> Result<OwnedExpressDataPathSocket<RingQueueDepths::ReceiveOrTransmitOrBoth>, ExpressDataPathSocketCreationError>
@@ -54,14 +42,21 @@ impl<RingQueueDepths: CreateReceiveOrTransmitOrBoth, CA: ChunkAlignment> Express
 	}
 	
 	/// Converts to instance that can then create per-thread instances (sic).
+	///
+	/// If using a shared instance, then each shared instance should:-
+	///
+	/// * Have a transmit queue depth equal to the completion queue depth;
+	/// * Have a receive queue depth equal to the fill queue depth;
+	///
+	/// Additionally, the `number_of_chunks` should be equal to the total of all shared instances transmit queue depths + receive queue depths, unless only forwarding immediately, in which case it can be half this value.
 	#[inline(always)]
-	pub fn shareable(self, number_of_threads_guess: NonZeroUsize) -> ShareableExpressDataPathInstance<RingQueueDepths::ReceiveOrTransmitOrBoth, CA>
+	pub fn shareable(self, number_of_threads_guess: NonZeroUsize) -> ShareableExpressDataPathInstance<RingQueueDepths::ReceiveOrTransmitOrBoth, FFQ::CS>
 	{
 		ShareableExpressDataPathInstance(Arc::new((self, BestForCompilationTargetSpinLock::new(), BestForCompilationTargetSpinLock::new(), Mutex::new(HashSet::with_capacity(number_of_threads_guess.get())))))
 	}
 	
 	#[inline(always)]
-	fn shared(&self, receive_or_transmit_or_both_ring_queue_depths: RingQueueDepths, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes, arguments: RingQueueDepths::Arguments, instance: &ShareableExpressDataPathInstance<RingQueueDepths::ReceiveOrTransmitOrBoth, CA>, express_data_path_socket_file_descriptor: ExpressDataPathSocketFileDescriptor) -> Result<SharedExpressDataPathSocket<RingQueueDepths::ReceiveOrTransmitOrBoth>, ExpressDataPathSocketCreationError>
+	fn shared(&self, receive_or_transmit_or_both_ring_queue_depths: RingQueueDepths, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes, arguments: RingQueueDepths::Arguments, instance: &ShareableExpressDataPathInstance<RingQueueDepths::ReceiveOrTransmitOrBoth, FFQ::CS>, express_data_path_socket_file_descriptor: ExpressDataPathSocketFileDescriptor) -> Result<SharedExpressDataPathSocket<RingQueueDepths::ReceiveOrTransmitOrBoth>, ExpressDataPathSocketCreationError>
 	{
 		use self::ExpressDataPathSocketCreationError::*;
 		
@@ -93,15 +88,15 @@ impl<RingQueueDepths: CreateReceiveOrTransmitOrBoth, CA: ChunkAlignment> Express
 	}
 }
 
-impl<RingQueueDepths: FillOrCompletionOrBothRingQueueDepths, CA: ChunkAlignment> ExpressDataPathInstance<RingQueueDepths::ReceiveOrTransmitOrBoth, CA>
+impl<RingQueueDepths: FillOrCompletionOrBothRingQueueDepths, FFQ: FreeFrameQueue> ExpressDataPathInstance<RingQueueDepths::ReceiveOrTransmitOrBoth, FFQ>
 {
 	/// New instance.
 	#[inline(always)]
-	pub fn new(number_of_frames: NonZeroU32, chunk_size: AlignedChunkSize, frame_headroom: FrameHeadroom, chunk_alignment: CA, fill_or_completion_or_both_ring_queue_depths: RingQueueDepths, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes, redirect_map_and_attached_program: Either<RedirectMapAndAttachedProgramSettings, RedirectMapAndAttachedProgram>, network_interface_name: NetworkInterfaceName, force_copy: bool, force_zero_copy: bool) -> Result<Self, ExpressDataPathSocketCreationError>
+	pub fn new(number_of_chunks: NonZeroU32, frame_headroom: FrameHeadroom, chunk_size: FFQ::CS, fill_or_completion_or_both_ring_queue_depths: RingQueueDepths, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes, redirect_map_and_attached_program: Either<RedirectMapAndAttachedProgramSettings, RedirectMapAndAttachedProgram>, network_interface_name: NetworkInterfaceName, force_copy: bool, force_zero_copy: bool) -> Result<Self, ExpressDataPathSocketCreationError>
 	{
 		let (network_interface_index, network_interface_maximum_transmission_unit_including_frame_check_sequence) = Self::network_interface_index_and_network_interface_maximum_transmission_unit_including_frame_check_sequence(network_interface_name, chunk_size, frame_headroom)?;
 		
-		let user_memory = ManuallyDrop::new(UserMemory::new(number_of_frames, chunk_size, frame_headroom, network_interface_maximum_transmission_unit_including_frame_check_sequence, chunk_alignment, fill_or_completion_or_both_ring_queue_depths, huge_memory_page_size, defaults)?);
+		let user_memory = ManuallyDrop::new(UserMemory::new(number_of_chunks, chunk_size, frame_headroom, network_interface_maximum_transmission_unit_including_frame_check_sequence, fill_or_completion_or_both_ring_queue_depths, huge_memory_page_size, defaults)?);
 		
 		Ok
 		(
@@ -131,10 +126,10 @@ impl<RingQueueDepths: FillOrCompletionOrBothRingQueueDepths, CA: ChunkAlignment>
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> ExpressDataPathInstance<ROTOB, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ExpressDataPathInstance<ROTOB, FFQ>
 {
 	#[inline(always)]
-	fn network_interface_index_and_network_interface_maximum_transmission_unit_including_frame_check_sequence(network_interface_name: NetworkInterfaceName, chunk_size: AlignedChunkSize, frame_headroom: FrameHeadroom) -> Result<(NetworkInterfaceIndex, MaximumTransmissionUnit), ExpressDataPathSocketCreationError>
+	fn network_interface_index_and_network_interface_maximum_transmission_unit_including_frame_check_sequence(network_interface_name: NetworkInterfaceName, chunk_size: FFQ::CS, frame_headroom: FrameHeadroom) -> Result<(NetworkInterfaceIndex, MaximumTransmissionUnit), ExpressDataPathSocketCreationError>
 	{
 		use self::ExpressDataPathSocketCreationError::*;
 		
@@ -167,8 +162,8 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> ExpressDataPathInstance
 	#[inline(always)]
 	fn calculate_maximum_transmission_unit_including_frame_check_sequence(frame_headroom: FrameHeadroom, chunk_size: AlignedChunkSize) -> Result<MaximumTransmissionUnit, String>
 	{
-		let chunk_size = chunk_size as u32;
-		debug_assert!(chunk_size >= (XDP_PACKET_HEADROOM + MaximumTransmissionUnit::EthernetInclusiveMinimumIncludingFrameCheckSequence.0));
+		let chunk_size = chunk_size.into() as u32;
+		debug_assert!((chunk_size as usize) >= (XDP_PACKET_HEADROOM + MaximumTransmissionUnit::EthernetInclusiveMinimumIncludingFrameCheckSequence.into()));
 		
 		let without_frame_headroom = chunk_size.checked_sub(frame_headroom.0).ok_or(format!("frame_headroom `{:?}` leaves no space whatsoever for ethernet frame", frame_headroom))?;
 		match without_frame_headroom.checked_sub(MaximumTransmissionUnit::EthernetInclusiveMinimumIncludingFrameCheckSequence.0)

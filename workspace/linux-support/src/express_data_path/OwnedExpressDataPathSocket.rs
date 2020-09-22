@@ -4,14 +4,14 @@
 
 /// Owned socket.
 #[derive(Debug)]
-pub struct OwnedExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment>
+pub struct OwnedExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue>
 {
 	common: ManuallyDrop<CommonExpressDataPathSocket<ROTOB>>,
 	
-	instance: ManuallyDrop<ExpressDataPathInstance<CA>>,
+	instance: ManuallyDrop<ExpressDataPathInstance<ROTOB, FFQ>>,
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, CA: ChunkAlignment, RP: ReceivePoll> Drop for OwnedExpressDataPathSocket<ROTOB, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, FFQ: FreeFrameQueue, RP: ReceivePoll> Drop for OwnedExpressDataPathSocket<ROTOB, FFQ>
 {
 	/// Based on `libbpf`'s `xsk_socket__delete()`.
 	#[inline(always)]
@@ -22,7 +22,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, CA: Chunk
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, CA: ChunkAlignment> Drop for OwnedExpressDataPathSocket<ROTOB, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, FFQ: FreeFrameQueue> Drop for OwnedExpressDataPathSocket<ROTOB, FFQ>
 {
 	/// Based on `libbpf`'s `xsk_socket__delete()`.
 	#[inline(always)]
@@ -32,7 +32,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, CA: ChunkAl
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> OwnedExpressDataPathSocket<ROTOB, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> OwnedExpressDataPathSocket<ROTOB, FFQ>
 {
 	/// Based on `libbpf`'s `xsk_socket__delete()`.
 	#[inline(always)]
@@ -46,10 +46,10 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> OwnedExpressDataPathSoc
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> ExpressDataPathSocket<ROTOB, CA> for OwnedExpressDataPathSocket<ROTOB, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ExpressDataPathSocket<ROTOB, CS> for OwnedExpressDataPathSocket<ROTOB, FFQ>
 {
 	#[inline(always)]
-	fn user_memory(&self) -> &UserMemory<CA>
+	fn user_memory(&self) -> &UserMemory<FFQ>
 	{
 		&self.user_memory
 	}
@@ -67,7 +67,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> ExpressDataPathSocket<R
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, CA: ChunkAlignment, RP: ReceivePoll> ReceivesExpressDataPathSocket<ROTOB, CA> for OwnedExpressDataPathSocket<ROTOB, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, FFQ: FreeFrameQueue, RP: ReceivePoll> ReceivesExpressDataPathSocket<ROTOB, CS> for OwnedExpressDataPathSocket<ROTOB, FFQ>
 {
 	#[inline(always)]
 	fn lock_fill_queue(&self)
@@ -80,7 +80,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, CA: Chunk
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, CA: ChunkAlignment> TransmitsExpressDataPathSocket<ROTOB, CA> for OwnedExpressDataPathSocket<ROTOB, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, FFQ: FreeFrameQueue> TransmitsExpressDataPathSocket<ROTOB, CS> for OwnedExpressDataPathSocket<ROTOB, FFQ>
 {
 	#[inline(always)]
 	fn lock_completion_queue(&self)

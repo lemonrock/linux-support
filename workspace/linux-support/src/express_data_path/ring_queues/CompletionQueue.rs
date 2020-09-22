@@ -14,9 +14,9 @@ impl CompletionQueue
 	}
 	
 	#[inline(always)]
-	pub(crate) fn get_completed_frame_descriptor_bitfield(&self, completion_queue_index: u32, relative_frame_index: u32) -> FrameDescriptorBitfield
+	pub(crate) fn get_completed_frame_descriptor_bitfield(&self, completion_queue_index: RingQueueIndex, relative_frame_index: u32) -> FrameDescriptorBitfield
 	{
-		let index = completion_queue_index + relative_frame_index;
+		let index = completion_queue_index.add(relative_frame_index);
 		*self.completion_adddress(index)
 	}
 	
@@ -24,7 +24,7 @@ impl CompletionQueue
 	///
 	/// What we get back is the original value of xdp_desc.addr.
 	#[inline(always)]
-	fn completion_adddress(&self, index: u32) -> &FrameDescriptorBitfield
+	fn completion_adddress(&self, index: RingQueueEntryIndex) -> &FrameDescriptorBitfield
 	{
 		self.ring_entry(index)
 	}

@@ -3,7 +3,7 @@
 
 
 /// Access common fields.
-pub trait ExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment>
+pub trait ExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue>
 {
 	/// Statistics.
 	#[inline(always)]
@@ -20,7 +20,7 @@ pub trait ExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignme
 	}
 	
 	#[doc(hidden)]
-	fn user_memory(&self) -> &UserMemory<CA>;
+	fn user_memory(&self) -> &UserMemory<FFQ>;
 	
 	#[doc(hidden)]
 	fn common(&self) -> &CommonExpressDataPathSocket<ROTOB>;

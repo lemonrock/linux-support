@@ -8,6 +8,15 @@
 #[repr(transparent)]
 pub struct MaximumTransmissionUnit(pub u32);
 
+impl Into<usize> for MaximumTransmissionUnit
+{
+	#[inline(always)]
+	fn into(self) -> usize
+	{
+		self.0 as usize
+	}
+}
+
 impl Into<i32> for MaximumTransmissionUnit
 {
 	#[inline(always)]

@@ -6,18 +6,18 @@
 ///
 /// Created by `OwnedExpressDataPathSocket::share()`.
 #[derive(Debug)]
-pub struct SharedExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment>
+pub struct SharedExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue>
 {
 	common: ManuallyDrop<CommonExpressDataPathSocket<ROTOB>>,
 	
-	instance: ShareableExpressDataPathInstance<ROTOB, CA>,
+	instance: ShareableExpressDataPathInstance<ROTOB, FFQ>,
 	
 	express_data_path_socket_file_descriptor: ManuallyDrop<ExpressDataPathSocketFileDescriptor>,
 
 	queue_identifier: QueueIdentifier,
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, CA: ChunkAlignment, RP: ReceivePoll> Drop for SharedExpressDataPathSocket<ROTOB, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, FFQ: FreeFrameQueue, RP: ReceivePoll> Drop for SharedExpressDataPathSocket<ROTOB, FFQ>
 {
 	/// Based on `libbpf`'s `xsk_socket__delete()`.
 	#[inline(always)]
@@ -28,7 +28,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, CA: Chunk
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, CA: ChunkAlignment> Drop for SharedExpressDataPathSocket<ROTOB, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, FFQ: FreeFrameQueue> Drop for SharedExpressDataPathSocket<ROTOB, FFQ>
 {
 	/// Based on `libbpf`'s `xsk_socket__delete()`.
 	#[inline(always)]
@@ -38,7 +38,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, CA: ChunkAl
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> SharedExpressDataPathSocket<ROTOB, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> SharedExpressDataPathSocket<ROTOB, FFQ>
 {
 	#[inline(always)]
 	fn manually_drop(&mut self)
@@ -53,10 +53,10 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> SharedExpressDataPathSo
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> ExpressDataPathSocket<ROTOB, CA> for SharedExpressDataPathSocket<ROTOB, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ExpressDataPathSocket<ROTOB, FFQ> for SharedExpressDataPathSocket<ROTOB, FFQ>
 {
 	#[inline(always)]
-	fn user_memory(&self) -> &UserMemory<CA>
+	fn user_memory(&self) -> &UserMemory<FFQ>
 	{
 		&self.instance.user_memory()
 	}
@@ -74,7 +74,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, CA: ChunkAlignment> ExpressDataPathSocket<R
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, CA: ChunkAlignment, RP: ReceivePoll> ReceivesExpressDataPathSocket<ROTOB, CA> for SharedExpressDataPathSocket<ROTOB, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, FFQ: FreeFrameQueue, RP: ReceivePoll> ReceivesExpressDataPathSocket<ROTOB, FFQ> for SharedExpressDataPathSocket<ROTOB, FFQ>
 {
 	#[inline(always)]
 	fn lock_fill_queue(&self)
@@ -89,7 +89,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, CA: Chunk
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, CA: ChunkAlignment> TransmitsExpressDataPathSocket<ROTOB, CA> for SharedExpressDataPathSocket<ROTOB, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, FFQ: FreeFrameQueue> TransmitsExpressDataPathSocket<ROTOB, FFQ> for SharedExpressDataPathSocket<ROTOB, FFQ>
 {
 	#[inline(always)]
 	fn lock_completion_queue(&self)
@@ -104,7 +104,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, CA: ChunkAl
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, CA: ChunkAlignment, RP: ReceivePoll> SharedExpressDataPathSocket<ROTOB, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, FFQ: FreeFrameQueue, RP: ReceivePoll> SharedExpressDataPathSocket<ROTOB, FFQ>
 {
 	#[inline(always)]
 	fn fill_queue_spin_lock(&self) -> &BestForCompilationTargetSpinLock
@@ -113,7 +113,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, CA: Chunk
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, CA: ChunkAlignment> SharedExpressDataPathSocket<ROTOB, CA>
+impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, FFQ: FreeFrameQueue> SharedExpressDataPathSocket<ROTOB, FFQ>
 {
 	#[inline(always)]
 	fn completion_queue_spin_lock(&self) -> &BestForCompilationTargetSpinLock

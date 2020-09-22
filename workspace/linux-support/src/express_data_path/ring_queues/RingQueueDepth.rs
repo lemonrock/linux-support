@@ -129,7 +129,7 @@ impl Into<NonZeroU32> for RingQueueDepth
 impl RingQueueDepth
 {
 	#[inline(always)]
-	const fn memory_length<D: Descriptor>(self) -> u64
+	pub(crate) const fn memory_length<D: Descriptor>(self) -> u64
 	{
 		(self as u32 as u64) * (size_of::<D>() as u64)
 	}

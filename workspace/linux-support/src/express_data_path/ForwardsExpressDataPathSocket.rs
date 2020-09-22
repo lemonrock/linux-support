@@ -3,7 +3,7 @@
 
 
 /// Forwards.
-pub trait ForwardsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>> + Transmits<CommonTransmitOnly>, CA: ChunkAlignment, RP: ReceivePoll>: ReceivesExpressDataPathSocket<ROTOB, CA> + TransmitsExpressDataPathSocket<ROTOB, CA>
+pub trait ForwardsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>> + Transmits<CommonTransmitOnly>, FFQ: FreeFrameQueue, RP: ReceivePoll>: ReceivesExpressDataPathSocket<ROTOB, FFQ> + TransmitsExpressDataPathSocket<ROTOB, FFQ>
 {
 	fn forward<RFP: ReceivedFrameProcessor<ProcessingOutcome=()>>(&self, received_frame_processor: &mut RFP)
 	{
@@ -24,12 +24,11 @@ pub trait ForwardsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receive
 						{
 							for relative_frame_index in 0..received_number_of_frames
 							{
-								let receive_descriptor = self.receive_queue().get_receive_descriptor(receive_queue_index, relative_frame_index);
+								let received_descriptor = self.receive_queue().get_receive_descriptor(receive_queue_index, relative_frame_index);
+								let (fill_address_frame_descriptor_bitfield, xdp_headroom, our_frame_headroom, ethernet_packet, minimum_tailroom_length) = self.user_memory().received_xdp_headroom_our_frame_headroom_ethernet_packet_minimum_tailroom_length(received_descriptor);
+								let length_of_packet = received_frame_processor.process_received_frame(relative_frame_index, xdp_headroom, our_frame_headroom, ethernet_packet, minimum_tailroom_length);
 								
-								let (headroom, received_frame) = self.user_memory().frame_from_descriptor(&receive_descriptor);
-								received_frame_processor.process_received_frame(relative_frame_index, received_frame);
-								
-								self.transmit_queue().set_transmit_descriptor_from_receive_descriptor(transmit_queue_index, relative_frame_index, receive_descriptor);
+								self.transmit_queue().set_transmit_descriptor_from_frame(transmit_queue_index, relative_frame_index, received_descriptor.frame_descriptor_bitfield(), length_of_packet);
 							}
 						}
 						received_frame_processor.end();
@@ -65,7 +64,7 @@ pub trait ForwardsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receive
 						let relative_address_of_frame_in_user_memory = self.completion_queue().get_completed_frame_descriptor_bitfield(completion_queue_index, relative_frame_index);
 						
 						// Gift the frame back to the kernel.
-						self.fill_queue().set_fill_user_memory_descriptor_of_frame_in_user_memory(fill_queue_index, relative_frame_index, relative_address_of_frame_in_user_memory);
+						self.fill_queue().set_fill_address(fill_queue_index, relative_frame_index, relative_address_of_frame_in_user_memory);
 					}
 					Some(reserved_number_of_frames)
 				}

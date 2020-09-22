@@ -2,6 +2,5 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// An user memory area relative address.
-#[deprecated]
-pub(crate) type UserMemoryAreaRelativeAddress = UserMemoryDescriptor;
+/// A pointer recorded as a relative offset from the base of the `UserMemoryArea`.
+pub type UserMemoryAreaRelativeAddress = u64;
