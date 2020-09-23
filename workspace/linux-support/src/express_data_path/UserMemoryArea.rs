@@ -4,7 +4,7 @@
 
 /// This combines the parameters `umem_area` and `size` in `xsk_umem__create_v0_0_4()`.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-struct UserMemoryArea(MappedMemory);
+pub(crate) struct UserMemoryArea(MappedMemory);
 
 impl Deref for UserMemoryArea
 {

@@ -4,7 +4,7 @@
 
 #[doc(hidden)]
 #[derive(Debug)]
-pub(crate) struct UserMemory<FFQ: FreeFrameQueue>
+pub struct UserMemory<FFQ: FreeFrameQueue>
 {
 	fill_queue: FillQueue,
 	

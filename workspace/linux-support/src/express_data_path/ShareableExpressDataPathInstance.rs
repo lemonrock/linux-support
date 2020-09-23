@@ -42,7 +42,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ShareableExpressDataPa
 	{
 		let is_first =
 		{
-			let queue_identifiers = self.queue_identifiers();
+			let mut queue_identifiers = self.queue_identifiers();
 			
 			let is_first = queue_identifiers.is_empty();
 			

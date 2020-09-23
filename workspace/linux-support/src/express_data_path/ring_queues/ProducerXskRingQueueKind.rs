@@ -2,9 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// `xsk_ring_prod`.
+// `xsk_ring_prod`.
+#[doc(hidden)]
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct ProducerXskRingQueueKind;
+pub struct ProducerXskRingQueueKind;
 
 impl XskRingQueueKind for ProducerXskRingQueueKind
 {

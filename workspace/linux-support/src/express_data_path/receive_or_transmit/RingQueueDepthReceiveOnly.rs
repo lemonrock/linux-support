@@ -4,7 +4,7 @@
 
 /// Receive only.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct RingQueueDepthReceiveOnly<RPC: ReceivePollCreator>(RingQueueDepth, RPC);
+pub struct RingQueueDepthReceiveOnly<RPC: ReceivePollCreator>(RingQueueDepth, PhantomData<RPC>);
 
 impl<RPC: ReceivePollCreator> Supports for RingQueueDepthReceiveOnly<RPC>
 {
@@ -60,7 +60,7 @@ impl<RPC: ReceivePollCreator> CreateReceiveOrTransmitOrBoth for RingQueueDepthRe
 		let common = CommonReceiveOnly::new
 		(
 			ReceiveQueue::from_receive_memory_map_offsets(express_data_path_socket_file_descriptor, memory_map_offsets, receive_ring_queue_depth, defaults),
-			self.1.create(express_data_path_socket_file_descriptor),
+			arguments.create(express_data_path_socket_file_descriptor),
 			receive_queue_identifier,
 		);
 		
@@ -75,8 +75,8 @@ impl<RPC: ReceivePollCreator> RingQueueDepthReceiveOnly<RPC>
 {
 	/// Create a new instance.
 	#[inline(always)]
-	pub fn new(fill_or_receive_ring_queue_depth: RingQueueDepth, receive_poll_creator: RPC) -> Self
+	pub fn new(fill_or_receive_ring_queue_depth: RingQueueDepth) -> Self
 	{
-		Self(fill_or_receive_ring_queue_depth, receive_poll_creator)
+		Self(fill_or_receive_ring_queue_depth, PhantomData)
 	}
 }

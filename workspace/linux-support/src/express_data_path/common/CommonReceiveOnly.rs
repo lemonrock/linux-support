@@ -75,7 +75,7 @@ impl<RP: ReceivePoll> CommonReceiveOnly<RP>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn remove_receive_map_queue_identifier(&mut self, redirect_map_and_attached_program: &RedirectMapAndAttachedProgram) -> Result<bool, Errno>
+	pub(crate) fn remove_receive_map_queue_identifier(&self, redirect_map_and_attached_program: &RedirectMapAndAttachedProgram) -> Result<bool, Errno>
 	{
 		redirect_map_and_attached_program.remove_receive_map_receive_queue_identifier(self.receive_queue_identifier)
 	}

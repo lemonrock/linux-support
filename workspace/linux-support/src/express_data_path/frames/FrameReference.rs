@@ -7,7 +7,7 @@
 pub struct FrameReference<CS: ChunkSize>
 {
 	/// Frame identifier, either `AlignedFrameNumber` or `UserMemoryAreaRelativeAddress`.
-	frame_identifier: CS::FrameIdentifier,
+	pub(crate) frame_identifier: CS::FrameIdentifier,
 	
 	/// This is the length of data in an Ethernet packet.
 	///

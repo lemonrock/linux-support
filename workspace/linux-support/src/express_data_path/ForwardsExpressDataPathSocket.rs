@@ -5,6 +5,9 @@
 /// Forwards.
 pub trait ForwardsExpressDataPathSocket<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth<RP=RP> + Receives<CommonReceiveOnly<RP>> + Transmits<CommonTransmitOnly>, FFQ: 'a + FreeFrameQueue, RP: 'a + ReceivePoll>: ReceivesExpressDataPathSocket<'a, ROTOB, FFQ, RP> + TransmitsExpressDataPathSocket<'a, ROTOB, FFQ>
 {
+	/// Immediately forwards received frames.
+	///
+	/// Received frames can be mutated and their length changed.
 	fn forward<RFP: ReceivedFrameProcessor<ProcessingOutcome=usize>>(&'a self, received_frame_processor: &mut RFP)
 	{
 		const DoNotPeekReleaseCompletionQueueAsNeedCompletionAddressesIn_complete_forward: bool = false;
@@ -25,7 +28,7 @@ pub trait ForwardsExpressDataPathSocket<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth<
 							for relative_frame_index in RelativeFrameIndex::relative_frame_indices(received_number_of_frames)
 							{
 								let received_descriptor = self.receive_queue().get_receive_descriptor(receive_queue_index, relative_frame_index);
-								let (fill_address_frame_descriptor_bitfield, xdp_headroom, our_frame_headroom, ethernet_packet, minimum_tailroom_length) = self.user_memory().received_xdp_headroom_our_frame_headroom_ethernet_packet_minimum_tailroom_length(received_descriptor);
+								let (_fill_address_frame_descriptor_bitfield, xdp_headroom, our_frame_headroom, ethernet_packet, minimum_tailroom_length) = self.user_memory().received_xdp_headroom_our_frame_headroom_ethernet_packet_minimum_tailroom_length(received_descriptor);
 								let length_of_packet = received_frame_processor.process_received_frame(relative_frame_index, xdp_headroom, our_frame_headroom, ethernet_packet, minimum_tailroom_length);
 								
 								self.transmit_queue().set_transmit_descriptor_from_frame(transmit_queue_index, relative_frame_index, received_descriptor.frame_descriptor_bitfield(), length_of_packet);
@@ -41,6 +44,7 @@ pub trait ForwardsExpressDataPathSocket<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth<
 		self.complete_forward()
 	}
 	
+	#[doc(hidden)]
 	fn complete_forward(&'a self)
 	{
 		let requested_number_of_frames = match self.common().outstanding_frames_to_transmit()

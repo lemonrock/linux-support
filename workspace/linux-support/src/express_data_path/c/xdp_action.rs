@@ -12,18 +12,23 @@
 #[repr(u32)]
 pub enum xdp_action
 {
+	/// Aborted.
 	#[allow(dead_code)]
 	XDP_ABORTED = 0,
 	
+	/// Drop.
 	#[allow(dead_code)]
 	XDP_DROP = 1,
 	
+	/// Pass.
 	#[allow(dead_code)]
 	XDP_PASS = 2,
 	
+	/// Transmit.
 	#[allow(dead_code)]
 	XDP_TX = 3,
 	
+	/// Redirect to user space.
 	#[allow(dead_code)]
 	XDP_REDIRECT = 4,
 }

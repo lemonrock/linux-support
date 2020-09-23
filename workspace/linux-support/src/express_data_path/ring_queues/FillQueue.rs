@@ -2,12 +2,13 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Used in conjunction with a `ReceiveQueue`.
-///
-/// Contains a queue of user memory frame indices 'gifted' to the Linux kernel.
-///
-/// Starts off full.
-pub(crate) type FillQueue = XskRingQueue<ProducerXskRingQueueKind, FrameDescriptorBitfield>;
+// Used in conjunction with a `ReceiveQueue`.
+//
+// Contains a queue of user memory frame indices 'gifted' to the Linux kernel.
+//
+// Starts off full.
+#[doc(hidden)]
+pub type FillQueue = XskRingQueue<ProducerXskRingQueueKind, FrameDescriptorBitfield>;
 
 impl FillQueue
 {

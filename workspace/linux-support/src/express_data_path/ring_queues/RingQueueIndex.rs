@@ -2,8 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[doc(hidden)]
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub(crate) struct RingQueueIndex(u32);
+#[repr(transparent)]
+pub struct RingQueueIndex(u32);
 
 impl Add<RelativeFrameIndex> for RingQueueIndex
 {

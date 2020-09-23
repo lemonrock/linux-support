@@ -114,6 +114,7 @@
 /// 	* `length_of_xdp_headroom_after_xdp_frame = xdp_headroom_length - size_of::<xdp_frame>()`.
 pub struct RelativeAddressesAndOffsets
 {
+	/// Start of packet.
 	pub start_of_packet: UserMemoryAreaRelativeAddress,
 	
 	/// Zero for completed frames, which is technically incorrect.
@@ -161,21 +162,9 @@ impl RelativeAddressesAndOffsets
 	}
 	
 	#[inline(always)]
-	pub(crate) fn our_frame_headroom<'a>(&self, user_memory_area: &'a UserMemoryArea) -> &'a [u8]
-	{
-		user_memory_area.slice(self.start_of_our_frame_headroom, self.length_of_our_frame_headroom)
-	}
-	
-	#[inline(always)]
 	pub(crate) fn our_frame_headroom_mut<'a>(&self, user_memory_area: &'a UserMemoryArea) -> &'a mut [u8]
 	{
 		user_memory_area.slice_mut(self.start_of_our_frame_headroom, self.length_of_our_frame_headroom)
-	}
-	
-	#[inline(always)]
-	pub(crate) fn ethernet_packet<'a>(&self, user_memory_area: &'a UserMemoryArea) -> &'a [u8]
-	{
-		user_memory_area.slice(self.start_of_packet, self.length_of_packet)
 	}
 	
 	#[inline(always)]
@@ -260,7 +249,7 @@ impl RelativeAddressesAndOffsets
 	}
 	
 	#[inline(always)]
-	pub(crate) const fn from_completed_frame_descriptor_if_aligned(frame_descriptor_bitfield: FrameDescriptorBitfield, frame_headroom: FrameHeadroom) -> Self
+	pub(crate) fn from_completed_frame_descriptor_if_aligned(frame_descriptor_bitfield: FrameDescriptorBitfield, frame_headroom: FrameHeadroom) -> Self
 	{
 		let start_of_packet = frame_descriptor_bitfield.start_of_packet_if_aligned();
 		let length_of_packet = 0;
@@ -289,7 +278,7 @@ impl RelativeAddressesAndOffsets
 	}
 	
 	#[inline(always)]
-	pub(crate) const fn from_completed_frame_descriptor_if_unaligned(frame_descriptor_bitfield: FrameDescriptorBitfield, frame_headroom: FrameHeadroom) -> Self
+	pub(crate) fn from_completed_frame_descriptor_if_unaligned(frame_descriptor_bitfield: FrameDescriptorBitfield, frame_headroom: FrameHeadroom) -> Self
 	{
 		let start_of_packet = frame_descriptor_bitfield.start_of_packet_if_unaligned();
 		let length_of_packet = 0;
@@ -329,7 +318,7 @@ impl RelativeAddressesAndOffsets
 	}
 	
 	#[inline(always)]
-	pub(crate) const fn from_received_frame_descriptor_if_aligned(frame_descriptor_bitfield: FrameDescriptorBitfield, length_of_packet: u32, frame_headroom: FrameHeadroom) -> Self
+	pub(crate) fn from_received_frame_descriptor_if_aligned(frame_descriptor_bitfield: FrameDescriptorBitfield, length_of_packet: u32, frame_headroom: FrameHeadroom) -> Self
 	{
 		let start_of_packet = frame_descriptor_bitfield.start_of_packet_if_aligned();
 		let length_of_packet = length_of_packet as usize;
@@ -360,7 +349,7 @@ impl RelativeAddressesAndOffsets
 	}
 	
 	#[inline(always)]
-	pub(crate) const fn from_received_frame_descriptor_if_unaligned(frame_descriptor_bitfield: FrameDescriptorBitfield, length_of_packet: u32, frame_headroom: FrameHeadroom) -> Self
+	pub(crate) fn from_received_frame_descriptor_if_unaligned(frame_descriptor_bitfield: FrameDescriptorBitfield, length_of_packet: u32, frame_headroom: FrameHeadroom) -> Self
 	{
 		let orig_addr = frame_descriptor_bitfield.orig_addr_if_unaligned();
 		let offset = frame_descriptor_bitfield.offset_if_unaligned() as usize;

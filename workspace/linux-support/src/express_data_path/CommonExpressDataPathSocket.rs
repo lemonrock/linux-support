@@ -65,7 +65,7 @@ impl<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth<RP=RP> + Receives<CommonReceiveOnly
 	}
 	
 	#[inline(always)]
-	fn remove_receive_map_queue_identifier<FFQ: FreeFrameQueue>(&'a mut self, instance: &ExpressDataPathInstance<ROTOB, FFQ>)
+	fn remove_receive_map_queue_identifier<FFQ: FreeFrameQueue>(&'a self, instance: &ExpressDataPathInstance<ROTOB, FFQ>)
 	{
 		let _ignored = self.receive().remove_receive_map_queue_identifier(&instance.redirect_map_and_attached_program);
 	}

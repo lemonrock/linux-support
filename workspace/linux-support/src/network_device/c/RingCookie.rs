@@ -11,13 +11,13 @@ pub(crate) struct RingCookie(pub(crate) u64);
 
 impl RingCookie
 {
-	const fn ethtool_get_flow_spec_ring(self) -> u64
+	pub(crate) const fn ethtool_get_flow_spec_ring(self) -> u64
 	{
 		let ring_cookie = self.0;
 		ETHTOOL_RX_FLOW_SPEC_RING & ring_cookie
 	}
 	
-	const fn ethtool_get_flow_spec_ring_vf(self) -> u64
+	pub(crate) const fn ethtool_get_flow_spec_ring_vf(self) -> u64
 	{
 		let ring_cookie = self.0;
 		(ETHTOOL_RX_FLOW_SPEC_RING_VF & ring_cookie) >> ETHTOOL_RX_FLOW_SPEC_RING_VF_OFF

@@ -5,7 +5,7 @@
 /// Rx/Tx descriptor.
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[repr(C)]
-pub(crate) struct xdp_desc
+pub struct xdp_desc
 {
 	/// This is the `addr` in the functions `xsk_umem__extract_addr()` and `xsk_umem__add_offset_to_addr()` in the Linux source `tools/lib/bpf/xsk.h`.
 	///
@@ -42,7 +42,7 @@ impl xdp_desc
 	}
 	
 	#[inline(always)]
-	pub(crate) fn write(transmit_descriptor: NonNull<Self>, transmit_frame_descriptor_bitfield: FrameDescriptorBitfield, length_of_packet: usize)
+	pub(crate) fn write(mut transmit_descriptor: NonNull<Self>, transmit_frame_descriptor_bitfield: FrameDescriptorBitfield, length_of_packet: usize)
 	{
 		const OptionsMustCurrentlyBeAlwaysZero: u32 = 0;
 		

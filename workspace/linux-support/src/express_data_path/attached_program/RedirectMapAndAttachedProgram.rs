@@ -25,7 +25,7 @@ impl Drop for RedirectMapAndAttachedProgram
 	{
 		if let Some(network_interface_index) = self.network_interface_index_if_removing_xdp_program_on_drop
 		{
-			if let Ok(netlink_socket_file_descriptor) = NetlinkSocketFileDescriptor::open()
+			if let Ok(mut netlink_socket_file_descriptor) = NetlinkSocketFileDescriptor::open()
 			{
 				let _ignored = RouteNetlinkProtocol::xdp_fd_remove(&mut netlink_socket_file_descriptor, network_interface_index, &self.attached_express_data_path_extended_bpf_program_file_descriptor);
 			}

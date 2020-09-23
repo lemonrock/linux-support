@@ -90,11 +90,18 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ExpressDataPathInstanc
 
 impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ExpressDataPathInstance<ROTOB, FFQ>
 {
+	/// For interest.
+	#[inline(always)]
+	pub fn calculate_maximum_transmission_unit_payload_size(chunk_size: FFQ::CS, frame_headroom: FrameHeadroom) -> Result<MaximumTransmissionUnitPayloadSize, ParseNumberError>
+	{
+		chunk_size.calculate_maximum_transmission_unit_payload_size(frame_headroom)
+	}
+	
 	/// New instance.
 	#[inline(always)]
 	pub fn new<RingQueueDepths: FillOrCompletionOrBothRingQueueDepths + CreateReceiveOrTransmitOrBoth<ReceiveOrTransmitOrBoth=ROTOB>>(number_of_chunks: NonZeroU32, frame_headroom: FrameHeadroom, chunk_size: FFQ::CS, fill_or_completion_or_both_ring_queue_depths: RingQueueDepths, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes, redirect_map_and_attached_program: Either<RedirectMapAndAttachedProgramSettings, RedirectMapAndAttachedProgram>, network_interface_name: NetworkInterfaceName, force_copy: bool, force_zero_copy: bool) -> Result<Self, ExpressDataPathSocketCreationError>
 	{
-		let (network_interface_index, maximum_transmission_unit_payload_size) = Self::network_interface_index_and_maximum_transmission_unit_payload_size(network_interface_name, chunk_size, frame_headroom)?;
+		let (network_interface_index, maximum_transmission_unit_payload_size) = Self::network_interface_index_and_maximum_transmission_unit_payload_size(network_interface_name)?;
 		
 		let user_memory = ManuallyDrop::new(UserMemory::new(number_of_chunks, chunk_size, frame_headroom, maximum_transmission_unit_payload_size, fill_or_completion_or_both_ring_queue_depths, huge_memory_page_size, defaults)?);
 		
@@ -124,38 +131,25 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ExpressDataPathInstanc
 			}
 		)
 	}
-}
-
-impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ExpressDataPathInstance<ROTOB, FFQ>
-{
+	
 	#[inline(always)]
-	fn network_interface_index_and_maximum_transmission_unit_payload_size(network_interface_name: NetworkInterfaceName, chunk_size: FFQ::CS, frame_headroom: FrameHeadroom) -> Result<(NetworkInterfaceIndex, MaximumTransmissionUnitPayloadSize), ExpressDataPathSocketCreationError>
+	fn network_interface_index_and_maximum_transmission_unit_payload_size(network_interface_name: NetworkInterfaceName) -> Result<(NetworkInterfaceIndex, MaximumTransmissionUnitPayloadSize), ExpressDataPathSocketCreationError>
 	{
 		use self::ExpressDataPathSocketCreationError::*;
-		
-		let network_device_control = NetworkDeviceInputOutputControl::new(Cow::Owned(network_interface_name)).map_err(CouldNotCreateNetworkDeviceControlSocket)?;
 		
 		Ok
 		(
 			(
-				network_device_control.network_interface_name_to_network_interface_index().map_err(CouldNotGetValidNetworkInterfaceName)?.ok_or(NoSuchNetworkInterfaceName)?,
-				Self::maximum_transmission_unit_payload_size(chunk_size, frame_headroom, network_device_control)?
+				{
+					let network_device_control = NetworkDeviceInputOutputControl::new(Cow::Borrowed(&network_interface_name)).map_err(CouldNotCreateNetworkDeviceControlSocket)?;
+					network_device_control.network_interface_name_to_network_interface_index().map_err(CouldNotGetValidNetworkInterfaceName)?.ok_or(NoSuchNetworkInterfaceName)?
+				},
+				{
+					let mut netlink_socket_file_descriptor = NetlinkSocketFileDescriptor::open().map_err(CouldNotCreateNetlinkSocket)?;
+					let get_link_message_data = RouteNetlinkProtocol::get_link(&mut netlink_socket_file_descriptor, |get_link_message_data| get_link_message_data.network_interface_name == network_interface_name).map_err(NetlinkGetLinksFailed )?.ok_or(NoSuchNetworkInterfaceName)?;
+					get_link_message_data.maximum_transmission_unit
+				}
 			)
 		)
-	}
-	
-	#[inline(always)]
-	fn maximum_transmission_unit_payload_size(chunk_size: FFQ::CS, frame_headroom: FrameHeadroom, network_device_control: NetworkDeviceInputOutputControl) -> Result<MaximumTransmissionUnitPayloadSize, ExpressDataPathSocketCreationError>
-	{
-		use self::ExpressDataPathSocketCreationError::*;
-		
-		let maximum_transmission_unit_payload_size = chunk_size.calculate_maximum_transmission_unit_payload_size(frame_headroom).map_err(|reason| CouldNotFindAnAcceptableMaximumTransmissionUnit { xdp_packet_headroom: XDP_PACKET_HEADROOM, frame_headroom, chunk_size: chunk_size.into(), reason })?;
-		
-		xxxx;
-		// TODO: We probably don't want to set MTU here but accept what we've been given or pick a ChunkSize that can accommodate the set MTU.
-		
-		network_device_control.set_maximum_transmission_unit(maximum_transmission_unit_payload_size)?.ok_or(NoSuchNetworkInterfaceName)?;
-		
-		Ok(maximum_transmission_unit_payload_size)
 	}
 }

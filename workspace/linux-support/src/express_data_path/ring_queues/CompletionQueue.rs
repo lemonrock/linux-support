@@ -2,8 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Used in conjunction with the `TransmitQueue`.
-pub(crate) type CompletionQueue = XskRingQueue<ConsumerXskRingQueueKind, FrameDescriptorBitfield>;
+// Used in conjunction with the `TransmitQueue`.
+#[doc(hidden)]
+pub type CompletionQueue = XskRingQueue<ConsumerXskRingQueueKind, FrameDescriptorBitfield>;
 
 impl CompletionQueue
 {

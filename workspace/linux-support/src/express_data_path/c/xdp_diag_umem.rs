@@ -2,29 +2,36 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// Diagnostic information.
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[repr(C)]
 #[derive(Deserialize, Serialize)]
 pub struct xdp_diag_umem
 {
-	size: u64,
+	/// Size of user memory area.
+	pub size: u64,
 	
-	id: u32,
+	/// ?
+	pub id: u32,
 	
-	num_pages: u32,
+	/// Number of pages.
+	pub num_pages: u32,
 	
-	chunk_size: u32,
+	/// Chunk size.
+	pub chunk_size: u32,
 	
-	headroom: u32,
+	/// Frame Headroom.
+	pub headroom: u32,
 	
 	/// ?Duplicates `xdp_diag_info.ifindex`.
-	ifindex: Option<NetworkInterfaceIndex>,
+	pub ifindex: Option<NetworkInterfaceIndex>,
 	
 	/// ?Duplicates `xdp_diag_info.queue_id`.
-	queue_id: QueueIdentifier,
+	pub queue_id: QueueIdentifier,
 	
 	/// `XDP_DU_F_ZEROCOPY` is the only valid flag.
-	flags: XdpDiagnosticUserMemoryFlags,
+	pub flags: XdpDiagnosticUserMemoryFlags,
 	
-	refs: u32,
+	/// ?
+	pub refs: u32,
 }

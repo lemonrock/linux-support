@@ -59,19 +59,10 @@ impl AlignedFrameNumber
 	}
 	
 	#[inline(always)]
-	pub(crate) const fn from_received_descriptor_if_aligned(aligned_chunk_size: AlignedChunkSize, received_frame_descriptor_bitfield: FrameDescriptorBitfield) -> Self
+	pub(crate) fn from_received_descriptor_if_aligned(aligned_chunk_size: AlignedChunkSize, received_frame_descriptor_bitfield: FrameDescriptorBitfield) -> Self
 	{
 		// Strictly speaking, `received_frame_descriptor_bitfield.orig_addr_if_aligned(self) / aligned_chunk_size.to_u64()` but aligned frames do not cross an aligned_chunk_size multiple.
 		let absolute_frame_index = received_frame_descriptor_bitfield.start_of_packet_if_aligned() / aligned_chunk_size;
-		debug_assert!(absolute_frame_index <= (u32::MAX as u64));
-		Self(absolute_frame_index as u32)
-	}
-	
-	#[inline(always)]
-	pub(crate) const fn from_completed_descriptor_if_aligned(aligned_chunk_size: AlignedChunkSize, completed_frame_descriptor_bitfield: FrameDescriptorBitfield) -> Self
-	{
-		// Strictly speaking, `completed_frame_descriptor_bitfield.orig_addr_if_aligned(self) / aligned_chunk_size.to_u64()` but aligned frames do not cross an aligned_chunk_size multiple.
-		let absolute_frame_index = completed_frame_descriptor_bitfield.start_of_packet_if_aligned() / aligned_chunk_size;
 		debug_assert!(absolute_frame_index <= (u32::MAX as u64));
 		Self(absolute_frame_index as u32)
 	}
@@ -87,6 +78,15 @@ impl AlignedFrameNumber
 	pub(crate) fn transmit_relative_addesses_and_offsets(self, aligned_chunk_size: AlignedChunkSize, frame_headroom: FrameHeadroom, length_of_packet: usize) -> RelativeAddressesAndOffsets
 	{
 		RelativeAddressesAndOffsets::for_transmitted_frame_descriptor(self.orig_addr_if_aligned(aligned_chunk_size), frame_headroom, length_of_packet)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn from_completed_descriptor_if_aligned(aligned_chunk_size: AlignedChunkSize, completed_frame_descriptor_bitfield: FrameDescriptorBitfield) -> Self
+	{
+		// Strictly speaking, `completed_frame_descriptor_bitfield.orig_addr_if_aligned(self) / aligned_chunk_size.to_u64()` but aligned frames do not cross an aligned_chunk_size multiple.
+		let absolute_frame_index = completed_frame_descriptor_bitfield.start_of_packet_if_aligned() / aligned_chunk_size;
+		debug_assert!(absolute_frame_index <= (u32::MAX as u64));
+		Self(absolute_frame_index as u32)
 	}
 	
 	#[inline(always)]

@@ -63,6 +63,7 @@ impl FrameDescriptorBitfield
 		self.orig_addr_if_unaligned() + self.offset_if_unaligned()
 	}
 	
+	#[allow(dead_code)]
 	#[inline(always)]
 	pub(crate) fn orig_addr_if_aligned(self, aligned_chunk_size: AlignedChunkSize) -> UserMemoryAreaRelativeAddress
 	{
@@ -77,6 +78,7 @@ impl FrameDescriptorBitfield
 		UserMemoryAreaRelativeAddress::from_u64(Self::extract_address(self.0))
 	}
 	
+	#[allow(dead_code)]
 	#[inline(always)]
 	pub(crate) fn offset_if_aligned(self, aligned_chunk_size: AlignedChunkSize) -> usize
 	{

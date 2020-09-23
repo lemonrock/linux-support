@@ -50,7 +50,7 @@ pub mod common;
 
 
 /// Descriptors.
-pub(crate) mod descriptors;
+pub mod descriptors;
 
 
 /// Frames.

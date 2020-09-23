@@ -10,6 +10,12 @@ pub enum ExpressDataPathSocketCreationError
 	CouldNotCreateNetworkDeviceControlSocket(CreationError),
 	
 	#[allow(missing_docs)]
+	CouldNotCreateNetlinkSocket(SocketCreationOrBindError),
+	
+	#[allow(missing_docs)]
+	NetlinkGetLinksFailed(String),
+	
+	#[allow(missing_docs)]
 	CouldNotGetValidNetworkInterfaceName(NetworkDeviceInputOutputControlError<ParseNumberError>),
 	
 	#[allow(missing_docs)]
@@ -41,18 +47,6 @@ pub enum ExpressDataPathSocketCreationError
 		
 		maximum_transmission_unit_payload_size: MaximumTransmissionUnitPayloadSize,
 	},
-
-	#[allow(missing_docs)]
-	CouldNotFindAnAcceptableMaximumTransmissionUnit
-	{
-		xdp_packet_headroom: usize,
-		
-		frame_headroom: FrameHeadroom,
-		
-		chunk_size: u64,
-		
-		reason: ParseNumberError,
-	},
 	
 	#[allow(missing_docs)]
 	CouldNotSetAnAcceptableMaximumTransmissionUnit(NetworkDeviceInputOutputControlError<MaximumTransmissionUnitPayloadSizeOutOfRangeError>),
@@ -81,6 +75,10 @@ impl error::Error for ExpressDataPathSocketCreationError
 		{
 			&CouldNotCreateNetworkDeviceControlSocket(ref error) => Some(error),
 			
+			&CouldNotCreateNetlinkSocket(ref error) => Some(error),
+			
+			&NetlinkGetLinksFailed(..) => None,
+			
 			&CouldNotGetValidNetworkInterfaceName(ref error) => Some(error),
 			
 			&NoSuchNetworkInterfaceName => None,
@@ -96,8 +94,6 @@ impl error::Error for ExpressDataPathSocketCreationError
 			&AttachedExpressDataPathProgramNotSuitableForSharing => None,
 			
 			&ChunkSizeDoesNotAccommodateFrameHeadroomAndMaximumTransmissionUnitIncludingFrameCheckSequenceSoLinuxWouldDropPackets { .. } => None,
-			
-			&CouldNotFindAnAcceptableMaximumTransmissionUnit { ref reason, .. } => Some(reason),
 			
 			&CouldNotSetAnAcceptableMaximumTransmissionUnit(ref error) => Some(error),
 			

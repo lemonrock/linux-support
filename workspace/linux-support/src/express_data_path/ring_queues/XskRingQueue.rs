@@ -2,9 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Inspired by `xsk_ring_prod` in `libbpf`.
+#[doc(hidden)]
 #[derive(Debug)]
-pub(crate) struct XskRingQueue<XRQK: XskRingQueueKind, D: Descriptor>
+pub struct XskRingQueue<XRQK: XskRingQueueKind, D: Descriptor>
 {
 	ring_queue_depth: RingQueueDepth,
 	

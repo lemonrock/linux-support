@@ -2,13 +2,14 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Used in conjunction with a `FillQueue`.
-///
-/// Starts off empty.
-///
-/// Is filled with 'fat pointers' (`xdp_desc`) by the Linux kernel.
-/// The 'fat pointers' contain the size and relative address of an (Ethernet) frame in `UserMemory`.
-pub(crate) type ReceiveQueue = XskRingQueue<ConsumerXskRingQueueKind, FrameDescriptor>;
+// Used in conjunction with a `FillQueue`.
+//
+// Starts off empty.
+//
+// Is filled with 'fat pointers' (`xdp_desc`) by the Linux kernel.
+// The 'fat pointers' contain the size and relative address of an (Ethernet) frame in `UserMemory`.
+#[doc(hidden)]
+pub type ReceiveQueue = XskRingQueue<ConsumerXskRingQueueKind, FrameDescriptor>;
 
 impl ReceiveQueue
 {
