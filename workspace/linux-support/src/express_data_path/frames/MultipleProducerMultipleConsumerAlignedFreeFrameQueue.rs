@@ -23,10 +23,9 @@ impl FreeFrameQueue for MultipleProducerMultipleConsumerAlignedFreeFrameQueue
 	#[inline(always)]
 	fn new(number_of_chunks: NonZeroU32, user_memory: &MappedMemory) -> Self
 	{
-		let number_of_frames = number_of_chunks.get();
-		let this = Self(ArrayQueue::new(number_of_frames as usize));
+		let this = Self(ArrayQueue::new(number_of_chunks.get() as usize));
 		
-		this.populate(number_of_frames);
+		this.populate(number_of_chunks);
 		
 		this
 	}
@@ -49,11 +48,11 @@ impl FreeFrameQueue for MultipleProducerMultipleConsumerAlignedFreeFrameQueue
 impl MultipleProducerMultipleConsumerAlignedFreeFrameQueue
 {
 	#[inline(always)]
-	fn populate(&self, number_of_frames: NonZeroU32)
+	fn populate(&self, number_of_chunks: NonZeroU32)
 	{
-		for frame_number in AlignedFrameNumber(0) .. self.exclusive_maximum_aligned_frame_number()
+		for frame_identifier in AlignedFrameNumber::InclusiveMinimum .. self.exclusive_maximum_aligned_frame_number()
 		{
-			self.push(frame_number)
+			self.push(frame_identifier)
 		}
 	}
 	

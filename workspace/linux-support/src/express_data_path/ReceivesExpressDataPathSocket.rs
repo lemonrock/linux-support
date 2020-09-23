@@ -3,10 +3,10 @@
 
 
 /// Receives.
-pub trait ReceivesExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, FFQ: FreeFrameQueue, RP: ReceivePoll>: ExpressDataPathSocket<ROTOB, FFQ>
+pub trait ReceivesExpressDataPathSocket<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth<RP=RP> + Receives<CommonReceiveOnly<RP>>, FFQ: 'a + FreeFrameQueue, RP: 'a + ReceivePoll>: ExpressDataPathSocket<'a, ROTOB, FFQ>
 {
 	/// Receive and drop frames.
-	fn receive_and_drop<RFP: ReceivedFrameProcessor<ProcessingOutcome=ReceiveProcessingOutcome>>(&self, received_frame_processor: &mut RFP)
+	fn receive_and_drop<RFP: ReceivedFrameProcessor<ProcessingOutcome=ReceiveProcessingOutcome>>(&'a self, received_frame_processor: &mut RFP)
 	{
 		use self::ReceiveProcessingOutcome::*;
 		
@@ -21,20 +21,16 @@ pub trait ReceivesExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receive
 					|reserved_number_of_frames, fill_queue_index|
 					{
 						let mut filled_number_of_frames = 0;
-						
 						received_frame_processor.begin(reserved_number_of_frames.get());
 						{
-							for relative_frame_index in 0 .. reserved_number_of_frames
+							let mut fill_relative_frame_index = RelativeFrameIndex::Zero;
+							for relative_frame_index in RelativeFrameIndex::relative_frame_indices(reserved_number_of_frames)
 							{
 								let received_descriptor = self.receive_queue().get_receive_descriptor(receive_queue_index, relative_frame_index);
 								let (fill_frame_descriptor_bitfield, xdp_headroom, our_frame_headroom, ethernet_packet, minimum_tailroom_length) = self.user_memory().received_xdp_headroom_our_frame_headroom_ethernet_packet_minimum_tailroom_length(received_descriptor);
 								match received_frame_processor.process_received_frame(relative_frame_index, xdp_headroom, our_frame_headroom, ethernet_packet, minimum_tailroom_length)
 								{
-									GiftFrameBackToKernelForAnotherReceive =>
-									{
-										self.fill_queue().set_fill_address(fill_queue_index, relative_frame_index, fill_frame_descriptor_bitfield);
-										filled_number_of_frames += 1;
-									}
+									GiftFrameBackToKernelForAnotherReceive => self.fill_queue().set_fill_address_receive(fill_queue_index, &mut fill_relative_frame_index, fill_frame_descriptor_bitfield, &mut filled_number_of_frames),
 									
 									ReturnFrameToUnusedFrames => self.user_memory().push_free_frame_from_receive(received_descriptor.frame_descriptor_bitfield()),
 									
@@ -45,8 +41,8 @@ pub trait ReceivesExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receive
 										Some(frame_identifier) =>
 										{
 											let fill_frame_descriptor_bitfield = self.user_memory().frame_identifier_to_fill_frame_descriptor_bitfield(frame_identifier);
-											self.fill_queue().set_fill_address(fill_queue_index, relative_frame_index, fill_frame_descriptor_bitfield);
-											filled_number_of_frames += 1;
+											
+											self.fill_queue().set_fill_address_receive(fill_queue_index, &mut fill_relative_frame_index, fill_frame_descriptor_bitfield, &mut filled_number_of_frames);
 										}
 									},
 								}
@@ -63,14 +59,14 @@ pub trait ReceivesExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receive
 	
 	/// Frames received.
 	#[inline(always)]
-	fn frames_received(&self) -> u64
+	fn frames_received(&'a self) -> u64
 	{
 		self.common().frames_received()
 	}
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn nothing_received<RFP: ReceivedFrameProcessor>(&self, received_frame_processor: &mut RFP)
+	fn nothing_received<RFP: ReceivedFrameProcessor>(&'a self, received_frame_processor: &mut RFP)
 	{
 		self.if_fill_queue_needs_wake_up_receive_poll();
 		received_frame_processor.nothing_received()
@@ -78,7 +74,7 @@ pub trait ReceivesExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receive
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn fill_queue_lock_reserve_execute_submit_unlock(&self, requested_number_of_frames: NonZeroU32, execute: impl FnOnce(NonZeroU32, RingQueueIndex) -> Option<NonZeroU32>) -> Option<NonZeroU32>
+	fn fill_queue_lock_reserve_execute_submit_unlock(&'a self, requested_number_of_frames: NonZeroU32, execute: impl FnOnce(NonZeroU32, RingQueueIndex) -> Option<NonZeroU32>) -> Option<NonZeroU32>
 	{
 		let fill_queue_index = loop
 		{
@@ -111,7 +107,7 @@ pub trait ReceivesExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receive
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn if_fill_queue_needs_wake_up_receive_poll(&self)
+	fn if_fill_queue_needs_wake_up_receive_poll(&'a self)
 	{
 		if self.fill_queue().needs_wake_up()
 		{
@@ -121,7 +117,7 @@ pub trait ReceivesExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receive
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn fill_queue(&self) -> &FillQueue
+	fn fill_queue(&'a self) -> &'a FillQueue
 	{
 		&self.user_memory().fill_queue
 	}
@@ -134,7 +130,7 @@ pub trait ReceivesExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receive
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn receive_queue_peek_execute_submit<RFP: ReceivedFrameProcessor>(&self, received_frame_processor: &mut RFP, execute: impl FnOnce(NonZeroU32, RingQueueIndex, &mut RFP) -> Option<NonZeroU32>) -> Option<NonZeroU32>
+	fn receive_queue_peek_execute_submit<RFP: ReceivedFrameProcessor>(&'a self, received_frame_processor: &mut RFP, execute: impl FnOnce(NonZeroU32, RingQueueIndex, &mut RFP) -> Option<NonZeroU32>) -> Option<NonZeroU32>
 	{
 		if let Some((available_number_of_frames, receive_index)) = self.receive_queue().peek(received_frame_processor.maximum_number_of_frames())
 		{
@@ -159,7 +155,7 @@ pub trait ReceivesExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receive
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn receive_queue(&self) -> &ReceiveQueue
+	fn receive_queue(&'a self) -> &'a ReceiveQueue
 	{
 		self.common().receive_queue()
 	}

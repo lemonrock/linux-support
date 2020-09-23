@@ -673,6 +673,7 @@ use std::ops::BitAnd;
 use std::ops::BitOr;
 use std::ops::Deref;
 use std::ops::DerefMut;
+use std::ops::Div;
 use std::ops::Mul;
 use std::ops::Not;
 use std::ops::Range;

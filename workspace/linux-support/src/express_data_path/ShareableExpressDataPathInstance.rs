@@ -53,10 +53,9 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ShareableExpressDataPa
 		
 		let express_data_path_socket_file_descriptor = if is_first
 		{
-			let user_memory_socket_file_descriptor = self.user_memory().user_memory_socket_file_descriptor.duplicate_with_close_on_exec_non_blocking();
 			loop
 			{
-				match user_memory_socket_file_descriptor.duplicate_with_close_on_exec_non_blocking()
+				match self.user_memory().user_memory_socket_file_descriptor.duplicate_with_close_on_exec_non_blocking()
 				{
 					Ok(Some(express_data_path_socket_file_descriptor)) => break express_data_path_socket_file_descriptor,
 					
@@ -64,7 +63,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ShareableExpressDataPa
 					
 					Err(error) => panic!(error),
 				}
-			};
+			}
 		}
 		else
 		{
@@ -110,7 +109,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ShareableExpressDataPa
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn fields(&self) -> &(OwnedExpressDataPathSocket<ROTOB, FFQ>, BestForCompilationTargetSpinLock, BestForCompilationTargetSpinLock)
+	fn fields(&self) -> &(ExpressDataPathInstance<ROTOB, FFQ>, BestForCompilationTargetSpinLock, BestForCompilationTargetSpinLock, Mutex<HashSet<QueueIdentifier>>)
 	{
 		self.0.deref()
 	}

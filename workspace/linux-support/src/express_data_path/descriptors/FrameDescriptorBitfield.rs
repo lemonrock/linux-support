@@ -68,7 +68,7 @@ impl FrameDescriptorBitfield
 	{
 		let start_of_packet = Self::debug_assert_no_offset(self.0);
 		
-		UserMemoryAreaRelativeAddress::from_u64(start_of_packet & aligned_chunk_size.mask())
+		UserMemoryAreaRelativeAddress::from_u64(start_of_packet & aligned_chunk_size.mask_u64())
 	}
 	
 	#[inline(always)]
@@ -98,7 +98,7 @@ impl FrameDescriptorBitfield
 	#[inline(always)]
 	fn encode_offset(offset: usize) -> u64
 	{
-		(validate_offset(offset) as u64) << Self::XSK_UNALIGNED_BUF_OFFSET_SHIFT
+		(Self::validate_offset(offset) as u64) << Self::XSK_UNALIGNED_BUF_OFFSET_SHIFT
 	}
 	
 	#[inline(always)]
@@ -107,13 +107,13 @@ impl FrameDescriptorBitfield
 		let offset = value >> Self::XSK_UNALIGNED_BUF_OFFSET_SHIFT;
 		debug_assert!(offset <= (usize::MAX as u64));
 		
-		validate_offset(offset as usize)
+		Self::validate_offset(offset as usize)
 	}
 	
 	#[inline(always)]
 	const fn extract_address(value: u64) -> u64
 	{
-		const XSK_UNALIGNED_BUF_ADDR_MASK: u64 = (1 << Self::XSK_UNALIGNED_BUF_OFFSET_SHIFT) - 1;
+		const XSK_UNALIGNED_BUF_ADDR_MASK: u64 = (1 << FrameDescriptorBitfield::XSK_UNALIGNED_BUF_OFFSET_SHIFT) - 1;
 		
 		value & XSK_UNALIGNED_BUF_ADDR_MASK
 	}
@@ -122,8 +122,8 @@ impl FrameDescriptorBitfield
 	fn validate_offset(offset: usize) -> usize
 	{
 		const BitsInAByte: u64 = 8;
-		const U64SizeInBits: u64 = ((size_of::<u64>() as u64) * BitsInAByte);
-		const OffsetSizeInBits: u64 = U64SizeInBits - XSK_UNALIGNED_BUF_OFFSET_SHIFT;
+		const U64SizeInBits: u64 = (size_of::<u64>() as u64) * BitsInAByte;
+		const OffsetSizeInBits: u64 = U64SizeInBits - FrameDescriptorBitfield::XSK_UNALIGNED_BUF_OFFSET_SHIFT;
 		const ExclusiveMaximum: usize = (1 << OffsetSizeInBits) as usize;
 		
 		debug_assert!(offset < ExclusiveMaximum);

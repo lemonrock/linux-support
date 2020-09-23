@@ -2,26 +2,35 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[derive(Default, Debug)]
-pub(crate) struct FramesCount(Cell<u64>);
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
+pub(crate) struct RelativeFrameIndex(u32);
 
-impl FramesCount
+impl RelativeFrameIndex
 {
+	pub(crate) const Zero: Self = Self(0);
+	
 	#[inline(always)]
-	pub(crate) const fn new() -> Self
+	pub(crate) fn relative_frame_indices(number_of_frames: NonZeroU32) -> impl Iterator<Item=Self>
 	{
-		Self(Cell::new(0))
+		(0 .. (number_of_frames.get())).map(|index| Self(index))
 	}
 	
 	#[inline(always)]
-	pub(crate) fn current(&self) -> u64
+	pub(crate) const fn into_u32(self) -> u32
 	{
-		self.0.get()
+		self.0
 	}
 	
 	#[inline(always)]
-	pub(crate) fn increment(&self, number_of_frames: NonZeroU32)
+	pub(crate) const fn into_usize(self) -> usize
 	{
-		self.0.set(self.current() + number_of_frames.get() as u64)
+		self.0 as usize
+	}
+	
+	#[inline(always)]
+	pub(crate) fn next(&mut self)
+	{
+		self.0 += 1
 	}
 }

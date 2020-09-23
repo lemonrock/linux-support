@@ -13,5 +13,6 @@ include!("FrameHeadroom.rs");
 include!("FrameReference.rs");
 include!("FramesCount.rs");
 include!("FreeFrameQueue.rs");
-include!("UnalignedChunkSize.rs");
 include!("MultipleProducerMultipleConsumerAlignedFreeFrameQueue.rs");
+include!("RelativeFrameIndex.rs");
+include!("UnalignedChunkSize.rs");

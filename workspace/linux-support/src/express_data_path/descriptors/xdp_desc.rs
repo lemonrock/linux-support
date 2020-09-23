@@ -42,12 +42,6 @@ impl xdp_desc
 	}
 	
 	#[inline(always)]
-	pub(crate) fn write_for_transmit_copying_from(transmit_descriptor: NonNull<Self>, other: &Self)
-	{
-		unsafe { other.copy_to_nonoverlapping(transmit_descriptor.as_ptr(), size_of::<FrameDescriptor>()) }
-	}
-	
-	#[inline(always)]
 	pub(crate) fn write(transmit_descriptor: NonNull<Self>, transmit_frame_descriptor_bitfield: FrameDescriptorBitfield, length_of_packet: usize)
 	{
 		const OptionsMustCurrentlyBeAlwaysZero: u32 = 0;

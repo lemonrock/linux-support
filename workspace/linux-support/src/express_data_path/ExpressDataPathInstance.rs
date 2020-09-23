@@ -52,7 +52,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ExpressDataPathInstanc
 	#[inline(always)]
 	pub fn shareable(self, number_of_threads_guess: NonZeroUsize) -> ShareableExpressDataPathInstance<ROTOB, FFQ>
 	{
-		ShareableExpressDataPathInstance(Arc::new((self, BestForCompilationTargetSpinLock::new(), BestForCompilationTargetSpinLock::new(), Mutex::new(HashSet::with_capacity(number_of_threads_guess.get())))))
+		ShareableExpressDataPathInstance(Arc::new((self, BestForCompilationTargetSpinLock::default(), BestForCompilationTargetSpinLock::default(), Mutex::new(HashSet::with_capacity(number_of_threads_guess.get())))))
 	}
 	
 	#[inline(always)]

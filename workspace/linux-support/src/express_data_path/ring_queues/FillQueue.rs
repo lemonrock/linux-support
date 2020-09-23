@@ -12,7 +12,7 @@ pub(crate) type FillQueue = XskRingQueue<ProducerXskRingQueueKind, FrameDescript
 impl FillQueue
 {
 	#[inline(always)]
-	pub(crate) fn from_fill_memory_map_offsets<FOCOBRQD: FillOrCompletionOrBothRingQueueDepths>(user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, memory_map_offsets: &xdp_mmap_offsets, fill_ring_queue_depth: RingQueueDepth, defaults: &DefaultPageSizeAndHugePageSizes, chunk_size: AlignedChunkSize) -> Self
+	pub(crate) fn from_fill_memory_map_offsets<FOCOBRQD: FillOrCompletionOrBothRingQueueDepths>(user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, memory_map_offsets: &xdp_mmap_offsets, fill_ring_queue_depth: RingQueueDepth, defaults: &DefaultPageSizeAndHugePageSizes) -> Self
 	{
 		Self::from_ring_queue_offsets(user_memory_socket_file_descriptor, memory_map_offsets.fill_ring_offsets(), fill_ring_queue_depth, defaults, XDP_UMEM_PGOFF_FILL_RING)
 	}
@@ -25,7 +25,7 @@ impl FillQueue
 		
 		let fill_queue_index = self.reserve(number_of_frames_initially_gifted_to_the_linux_kernel).unwrap();
 		{
-			for relative_frame_index in 0 .. number_of_frames_initially_gifted_to_the_linux_kernel.get()
+			for relative_frame_index in RelativeFrameIndex::relative_frame_indices(number_of_frames_initially_gifted_to_the_linux_kernel)
 			{
 				let frame_identifier = free_frame_queue.pop().unwrap();
 				let fill_frame_descriptor_bitfield = chunk_size.fill_frame_descriptor_bitfield(frame_headroom, frame_identifier);
@@ -35,9 +35,17 @@ impl FillQueue
 		self.submit(number_of_frames_initially_gifted_to_the_linux_kernel)
 	}
 	
+	#[inline(always)]
+	pub(crate) fn set_fill_address_receive(&self, fill_queue_index: RingQueueIndex, fill_relative_frame_index: &mut RelativeFrameIndex, fill_frame_descriptor_bitfield: FrameDescriptorBitfield, filled_number_of_frames: &mut u32)
+	{
+		self.set_fill_address(fill_queue_index, *fill_relative_frame_index, fill_frame_descriptor_bitfield);
+		fill_relative_frame_index.next();
+		*filled_number_of_frames += 1;
+	}
+	
 	/// At this point in time, only the `orig_addr` part of the `fill_address_frame_descriptor_bitfield` is used by the Linux kernel.
 	#[inline(always)]
-	pub(crate) fn set_fill_address(&self, fill_queue_index: RingQueueIndex, relative_frame_index: u32, fill_frame_descriptor_bitfield: FrameDescriptorBitfield)
+	pub(crate) fn set_fill_address(&self, fill_queue_index: RingQueueIndex, relative_frame_index: RelativeFrameIndex, fill_frame_descriptor_bitfield: FrameDescriptorBitfield)
 	{
 		unsafe { * self.fill_address(fill_queue_index + relative_frame_index).as_ptr() = fill_frame_descriptor_bitfield }
 	}

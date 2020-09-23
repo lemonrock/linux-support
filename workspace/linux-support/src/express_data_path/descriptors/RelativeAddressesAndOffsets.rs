@@ -323,7 +323,7 @@ impl RelativeAddressesAndOffsets
 	pub(crate) fn start_of_packet_for_fill_queue_if_aligned(orig_addr: UserMemoryAreaRelativeAddress, frame_headroom: FrameHeadroom) -> UserMemoryAreaRelativeAddress
 	{
 		let xdp_headroom_length = XDP_PACKET_HEADROOM;
-		let length_of_our_frame_headroom = frame_headroom.into();
+		let length_of_our_frame_headroom: usize = frame_headroom.into();
 		let offset = xdp_headroom_length + length_of_our_frame_headroom;
 		orig_addr + offset
 	}

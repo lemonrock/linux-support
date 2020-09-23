@@ -20,7 +20,7 @@ impl ReceiveQueue
 	
 	/// Based on `xsk_ring_cons__rx_desc()` in Linux source `tools/lib/bpf/xsk.h`.
 	#[inline(always)]
-	pub(super) fn get_receive_descriptor(&self, receive_queue_index: RingQueueIndex, relative_frame_index: u32) -> &FrameDescriptor
+	pub(super) fn get_receive_descriptor(&self, receive_queue_index: RingQueueIndex, relative_frame_index: RelativeFrameIndex) -> &FrameDescriptor
 	{
 		self.receive_descriptor(receive_queue_index + relative_frame_index)
 	}

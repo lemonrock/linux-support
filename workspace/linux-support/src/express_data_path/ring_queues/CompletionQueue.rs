@@ -14,7 +14,7 @@ impl CompletionQueue
 	}
 	
 	#[inline(always)]
-	pub(crate) fn get_completed_frame_descriptor_bitfield(&self, completion_queue_index: RingQueueIndex, relative_frame_index: u32) -> FrameDescriptorBitfield
+	pub(crate) fn get_completed_frame_descriptor_bitfield(&self, completion_queue_index: RingQueueIndex, relative_frame_index: RelativeFrameIndex) -> FrameDescriptorBitfield
 	{
 		*self.completion_adddress(completion_queue_index + relative_frame_index)
 	}

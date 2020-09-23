@@ -66,7 +66,7 @@ impl ExpressDataPathSocketFileDescriptor
 	#[inline(always)]
 	pub(crate) fn initiate_transmit_processing_by_kernel(&self)
 	{
-		let result = unsafe { sendto(self.express_data_path_socket_file_descriptor(), null(), 0, MSG_DONTWAIT, null(), 0) };
+		let result = unsafe { sendto(self.as_raw_fd(), null(), 0, MSG_DONTWAIT, null(), 0) };
 		if likely!(result >= 0)
 		{
 			return

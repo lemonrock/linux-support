@@ -81,9 +81,10 @@ impl<FFQ: FreeFrameQueue> UserMemory<FFQ>
 		let mut relative_addresses_and_offsets = self.chunk_size.transmit_relative_addesses_and_offsets(self.frame_headroom, frame_identifier, 0);
 		relative_addresses_and_offsets.length_of_packet = relative_addresses_and_offsets.minimum_tailroom_length(self.chunk_size);
 		
+		let user_memory_area = self.user_memory_area.deref();
 		(
-			relative_addresses_and_offsets.our_frame_headroom_mut(),
-			relative_addresses_and_offsets.ethernet_packet_mut(),
+			relative_addresses_and_offsets.our_frame_headroom_mut(user_memory_area),
+			relative_addresses_and_offsets.ethernet_packet_mut(user_memory_area),
 		)
 	}
 	
@@ -97,7 +98,7 @@ impl<FFQ: FreeFrameQueue> UserMemory<FFQ>
 	#[inline(always)]
 	pub(crate) fn push_free_frame_from_completion(&self, completed_frame_descriptor_bitfield: FrameDescriptorBitfield)
 	{
-		let newly_freed_frame_identifier = self.chunk_size.completed_frame_identifier(completed_frame_descriptor_bitfield, self.frame_headroom);
+		let newly_freed_frame_identifier = self.chunk_size.completed_frame_identifier(completed_frame_descriptor_bitfield);
 		self.free_frame_queue.push(newly_freed_frame_identifier);
 	}
 	
@@ -132,17 +133,18 @@ impl<FFQ: FreeFrameQueue> UserMemory<FFQ>
 		
 		FFQ::CS::validate_user_memory(huge_memory_page_size);
 		
-		let fill_ring_queue_depth = fill_or_completion_or_both_ring_queue_depths.fill_queue_ring_queue_depth_or_default();
-		let completion_ring_queue_depth = fill_or_completion_or_both_ring_queue_depths.completion_queue_depth_or_default();
+		let fill_ring_queue_depth = fill_or_completion_or_both_ring_queue_depths.fill_ring_queue_depth_or_default();
+		let completion_ring_queue_depth = fill_or_completion_or_both_ring_queue_depths.completion_ring_queue_depth_or_default();
 		
 		// Internally, Linux drops received packets that don't fit into a chunk.
 		// See the usage of `xsk_umem_get_rx_frame_size()` in Linux source.
 		if chunk_size.compare_to_frame_sizes(frame_headroom, maximum_transmission_unit_payload_size) == Ordering::Less
 		{
-			return Err(ChunkSizeDoesNotAccommodateFrameHeadroomAndMaximumTransmissionUnitIncludingFrameCheckSequenceSoLinuxWouldDropPackets { xdp_packet_headroom: XDP_PACKET_HEADROOM, frame_headroom, chunk_size: chunk_size.into(), maximum_transmission_unit_payload_size } )
+			let chunk_size: u64 = chunk_size.into();
+			return Err(ChunkSizeDoesNotAccommodateFrameHeadroomAndMaximumTransmissionUnitIncludingFrameCheckSequenceSoLinuxWouldDropPackets { xdp_packet_headroom: XDP_PACKET_HEADROOM, frame_headroom, chunk_size, maximum_transmission_unit_payload_size } )
 		}
 		
-		let number_of_chunks = chunk_size.round_up_number_of_chunks(number_of_chunks);
+		let number_of_chunks = chunk_size.round_up_number_of_chunks_to_a_multiple_that_fits_exactly_into_multiple_pages(number_of_chunks);
 		let user_memory_area = UserMemoryArea::new(number_of_chunks, chunk_size, huge_memory_page_size, defaults)?;
 		let free_frame_queue = FFQ::new(number_of_chunks, user_memory_area.deref());
 		
@@ -151,7 +153,7 @@ impl<FFQ: FreeFrameQueue> UserMemory<FFQ>
 		user_memory_socket_file_descriptor.register_user_space_memory(&configuration, fill_ring_queue_depth, completion_ring_queue_depth);
 		let memory_map_offsets = user_memory_socket_file_descriptor.get_memory_map_offsets();
 		
-		let (fill_queue, number_of_frames_initially_gifted_to_the_linux_kernel) = XskRingQueue::from_fill_memory_map_offsets::<FOCOBRQD>(&user_memory_socket_file_descriptor, &memory_map_offsets, fill_ring_queue_depth, defaults, chunk_size);
+		let fill_queue = XskRingQueue::from_fill_memory_map_offsets::<FOCOBRQD>(&user_memory_socket_file_descriptor, &memory_map_offsets, fill_ring_queue_depth, defaults);
 		
 		// Linux documentation (`Documentation/networking/af_xdp.rst`, currently section `XDP_{RX|TX|UMEM_FILL|UMEM_COMPLETION}_RING setsockopts`) recommends not populating the fill queue if only doing transmit.
 		if FOCOBRQD::SupportsReceive

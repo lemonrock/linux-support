@@ -23,13 +23,13 @@ impl Into<usize> for FrameHeadroom
 impl FrameHeadroom
 {
 	/// Into usize.
-	#[inline(alwaus)]
+	#[inline(always)]
 	pub const fn into_usize(self) -> usize
 	{
 		self.0 as usize
 	}
 	
-	#[inline(alwaus)]
+	#[inline(always)]
 	pub(crate) const fn with_xdp_packet_headroom_before_frame_headroom(self) -> usize
 	{
 		XDP_PACKET_HEADROOM + self.into_usize()

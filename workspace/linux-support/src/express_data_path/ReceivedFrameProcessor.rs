@@ -47,7 +47,7 @@ pub trait ReceivedFrameProcessor
 	/// There may be space available ('tailroom') after the `ethernet_packet`.
 	/// This can be used when forwarding a frame (`impl ReceivedFrameProcessor<ProcessingOutcome=usize> for X`) to increase the size of an ethernet frame.
 	/// Unless using aligned chunks, the processing logic cannot know the maximum length of the tailroom.
-	fn process_received_frame<'a>(&mut self, relative_frame_index: u32, xdp_headroom: &'a [u8], our_frame_headroom: &'a mut [u8], ethernet_packet: &'a mut [u8], minimum_tailroom_length: usize) -> Self::ProcessingOutcome;
+	fn process_received_frame<'a>(&mut self, relative_frame_index: RelativeFrameIndex, xdp_headroom: &'a [u8], our_frame_headroom: &'a mut [u8], ethernet_packet: &'a mut [u8], minimum_tailroom_length: usize) -> Self::ProcessingOutcome;
 	
 	/// If we retained the frame in `process_received_frame()` above yet there are no unused frames - hence we potentially starve the Linux kernel.
 	#[inline(always)]

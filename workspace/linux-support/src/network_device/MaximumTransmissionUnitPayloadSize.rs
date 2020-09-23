@@ -18,10 +18,19 @@
 /// * returned by Netlink's attribute `IFLA_MTU`.
 /// * The definition in <https://www.cloudflare.com/learning/network-layer/what-is-mtu/>.
 /// * Amazon AWS (<https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/network_mtu.html>) calls `1300 MTU`, `1500 MTU` or `9001 MTU`.
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct MaximumTransmissionUnitPayloadSize(NonZeroU16);
+
+impl Default for MaximumTransmissionUnitPayloadSize
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		MaximumTransmissionUnitPayloadSize::NonJumboFrameInclusiveMaximum
+	}
+}
 
 impl TryFrom<u8> for MaximumTransmissionUnitPayloadSize
 {
@@ -126,7 +135,7 @@ impl Into<usize> for MaximumTransmissionUnitPayloadSize
 	#[inline(always)]
 	fn into(self) -> usize
 	{
-		self.0 as usize
+		self.0.get() as usize
 	}
 }
 
@@ -142,13 +151,19 @@ impl Into<i32> for MaximumTransmissionUnitPayloadSize
 impl MaximumTransmissionUnitPayloadSize
 {
 	/// Inclusive minimum.
-	pub const InclusiveMinimum: Self = Self(46);
+	pub const InclusiveMinimum: Self = Self::new_unchecked(46);
 	
 	/// Amazon AWS Wavelength Zone.
-	pub const AmazonAwsWavelengthZoneInclusiveMaximum: Self = Self(1300);
+	pub const AmazonAwsWavelengthZoneInclusiveMaximum: Self = Self::new_unchecked(1300);
 	
-	/// Inclusive maximum non-jumboframe.
-	pub const NonJumboFrameInclusiveMaximum: Self = Self(1500);
+	/// Inclusive maximum for non-jumboframes.
+	pub const NonJumboFrameInclusiveMaximum: Self = Self::new_unchecked(1500);
+	
+	#[inline(always)]
+	const fn new_unchecked(value: u16) -> Self
+	{
+		Self(unsafe { NonZeroU16::new_unchecked(value) })
+	}
 	
 	/// Overhead of 18 bytes for a frame, including a trailing Frame Check Sequence (FCS).
 	pub const EthernetFrameOverheadIncludingTrailingFrameCheckSequence: usize =

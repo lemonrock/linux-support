@@ -323,7 +323,7 @@ impl<D: Descriptor> XskRingQueue<ProducerXskRingQueueKind, D>
 		{
 			let cached_producer = self.cached_producer();
 			let index = cached_producer;
-			self.set_cached_producer(cached_producer + number);
+			self.set_cached_producer(cached_producer + number.get());
 			
 			Some(RingQueueIndex(index))
 		}

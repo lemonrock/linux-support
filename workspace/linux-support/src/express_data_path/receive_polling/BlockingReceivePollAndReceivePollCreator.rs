@@ -3,7 +3,7 @@
 
 
 /// A simple, blocking receive poll.
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug)]
 pub struct BlockingReceivePollAndReceivePollCreator([pollfd; Self::NumberOfPolledFileDescriptors]);
 
 impl ReceivePollCreator for BlockingReceivePollAndReceivePollCreator
@@ -34,7 +34,7 @@ impl ReceivePoll for BlockingReceivePollAndReceivePollCreator
 	{
 		loop
 		{
-			let result = unsafe { poll(self.0.as_mut_ptr(), Self::NumberOfPolledFileDescriptors as u32, Self::DefaultTimeoutInMilliseconds) };
+			let result = unsafe { poll(self.0.as_mut_ptr(), Self::NumberOfPolledFileDescriptors as u64, Self::DefaultTimeoutInMilliseconds) };
 			if likely!(result >= 0)
 			{
 				return

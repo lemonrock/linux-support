@@ -3,28 +3,28 @@
 
 
 /// Access common fields.
-pub trait ExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue>
+pub trait ExpressDataPathSocket<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth, FFQ: 'a + FreeFrameQueue>
 {
 	/// Statistics.
 	#[inline(always)]
-	fn statistics(&self) -> xdp_statistics
+	fn statistics(&'a self) -> xdp_statistics
 	{
 		self.express_data_path_socket_file_descriptor().statistics()
 	}
 	
 	/// Options.
 	#[inline(always)]
-	fn options(&self) -> xdp_options
+	fn options(&'a self) -> xdp_options
 	{
 		self.express_data_path_socket_file_descriptor().options()
 	}
 	
 	#[doc(hidden)]
-	fn user_memory(&self) -> &UserMemory<FFQ>;
+	fn user_memory(&'a self) -> &'a UserMemory<FFQ>;
 	
 	#[doc(hidden)]
-	fn common(&self) -> &CommonExpressDataPathSocket<ROTOB>;
+	fn common(&'a self) -> &'a CommonExpressDataPathSocket<ROTOB>;
 	
 	#[doc(hidden)]
-	fn express_data_path_socket_file_descriptor(&self) -> &ExpressDataPathSocketFileDescriptor;
+	fn express_data_path_socket_file_descriptor(&'a self) -> &'a ExpressDataPathSocketFileDescriptor;
 }

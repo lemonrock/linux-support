@@ -71,7 +71,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		};
 		
 		let enable = enable.to_net_device_flags_bits();
-		let disable_mask = disable.into().mask();
+		let disable_mask = disable.to_net_device_flags_mask();
 		let flags_bits_to_set = (link_flags.bits() & disable_mask) | enable;
 		
 		self.set_ifreq_from_name

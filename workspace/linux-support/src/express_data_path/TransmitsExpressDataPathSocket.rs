@@ -3,11 +3,11 @@
 
 
 /// Transmits.
-pub trait TransmitsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, FFQ: FreeFrameQueue>: ExpressDataPathSocket<ROTOB, FFQ>
+pub trait TransmitsExpressDataPathSocket<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, FFQ: 'a + FreeFrameQueue>: ExpressDataPathSocket<'a, ROTOB, FFQ>
 {
 	/// Send as part of a burst of frames with `transmit_only()`.
 	/// `populate` takes `our_frame_headroom, space_for_ethernet_packet` and returns the actual size of the ethernet packet (which must be `<= space_for_ethernet_packet.len()`.
-	fn populate_new_frame_to_transmit(&self, populate: impl FnOnce(&mut [u8], &mut [u8]) -> usize) -> Option<FrameReference<FFQ::CS>>
+	fn populate_new_frame_to_transmit(&'a self, populate: impl FnOnce(&mut [u8], &mut [u8]) -> usize) -> Option<FrameReference<FFQ::CS>>
 	{
 		let frame_identifier = self.user_memory().pop_free_frame();
 		frame_identifier.map(|frame_identifier|
@@ -26,7 +26,7 @@ pub trait TransmitsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Transm
 	/// Frame data are (ethernet) frames (packets) held in user memory.
 	///
 	/// Do not submit more frames than the capacity of the `TransmitQueue`.
-	fn transmit_only(&self, frames_to_transmit: &[FrameReference<FFQ::CS>])
+	fn transmit_only(&'a self, frames_to_transmit: &[FrameReference<FFQ::CS>])
 	{
 		const peek_release_completion_queue: bool = true;
 		
@@ -41,9 +41,9 @@ pub trait TransmitsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Transm
 		
 		self.transmit_queue_reserve_execute_submit(number_of_frames_to_transmit, peek_release_completion_queue, |number_of_frames_to_transmit, transmit_queue_index|
 		{
-			for relative_frame_index in 0 .. number_of_frames_to_transmit.get()
+			for relative_frame_index in RelativeFrameIndex::relative_frame_indices(number_of_frames_to_transmit)
 			{
-				let frame_reference = unsafe { frames_to_transmit.get_unchecked(relative_frame_index as usize) };
+				let frame_reference = unsafe { frames_to_transmit.get_unchecked(relative_frame_index.into_usize()) };
 				let transmit_frame_descriptor_bitfield = frame_reference.transmit_frame_descriptor_bitfield(self.user_memory());
 				self.transmit_queue().set_transmit_descriptor_from_frame(transmit_queue_index, relative_frame_index, transmit_frame_descriptor_bitfield, frame_reference.length_of_packet)
 			}
@@ -55,14 +55,14 @@ pub trait TransmitsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Transm
 	
 	/// Frames transmitted.
 	#[inline(always)]
-	fn frames_transmitted(&self) -> u64
+	fn frames_transmitted(&'a self) -> u64
 	{
 		self.common().frames_transmitted()
 	}
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn transmit_queue_reserve_execute_submit(&self, expect_to_transmit_number_of_frames: NonZeroU32, peek_release_completion_queue: bool, execute: impl FnOnce(NonZeroU32, RingQueueIndex) -> Option<NonZeroU32>) -> Option<NonZeroU32>
+	fn transmit_queue_reserve_execute_submit(&'a self, expect_to_transmit_number_of_frames: NonZeroU32, peek_release_completion_queue: bool, execute: impl FnOnce(NonZeroU32, RingQueueIndex) -> Option<NonZeroU32>) -> Option<NonZeroU32>
 	{
 		let transmit_queue_index = loop
 		{
@@ -93,7 +93,7 @@ pub trait TransmitsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Transm
 	// On return, the best attempt possible to transmit all outstanding frames has been done.
 	#[doc(hidden)]
 	#[inline(always)]
-	fn complete_transmit(&self, peek_release_completion_queue: bool)
+	fn complete_transmit(&'a self, peek_release_completion_queue: bool)
 	{
 		let requested_number_of_frames = match self.common().outstanding_frames_to_transmit()
 		{
@@ -107,7 +107,7 @@ pub trait TransmitsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Transm
 		{
 			self.completion_queue_lock_peek_execute_release_unlock(requested_number_of_frames, |available_number_of_frames, completion_queue_index|
 			{
-				for relative_frame_index in 0 .. available_number_of_frames.get()
+				for relative_frame_index in RelativeFrameIndex::relative_frame_indices(available_number_of_frames)
 				{
 					let completed_frame_descriptor_bitfield = self.completion_queue().get_completed_frame_descriptor_bitfield(completion_queue_index, relative_frame_index);
 					self.user_memory().push_free_frame_from_completion(completed_frame_descriptor_bitfield);
@@ -120,7 +120,7 @@ pub trait TransmitsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Transm
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn completion_queue_lock_peek_execute_release_unlock(&self, requested_number_of_frames: NonZeroU32, execute: impl FnOnce(NonZeroU32, RingQueueIndex) -> Option<NonZeroU32>) -> Option<NonZeroU32>
+	fn completion_queue_lock_peek_execute_release_unlock(&'a self, requested_number_of_frames: NonZeroU32, execute: impl FnOnce(NonZeroU32, RingQueueIndex) -> Option<NonZeroU32>) -> Option<NonZeroU32>
 	{
 		self.lock_completion_queue();
 		
@@ -152,7 +152,7 @@ pub trait TransmitsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Transm
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn completion_queue(&self) -> &CompletionQueue
+	fn completion_queue(&'a self) -> &'a CompletionQueue
 	{
 		&self.user_memory().completion_queue
 	}
@@ -165,7 +165,7 @@ pub trait TransmitsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Transm
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn initiate_transmit_processing_by_kernel_if_transmit_queue_needs_wake_up(&self)
+	fn initiate_transmit_processing_by_kernel_if_transmit_queue_needs_wake_up(&'a self)
 	{
 		if self.transmit_queue().needs_wake_up()
 		{
@@ -175,7 +175,7 @@ pub trait TransmitsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Transm
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn transmit_queue(&self) -> &TransmitQueue
+	fn transmit_queue(&'a self) -> &'a TransmitQueue
 	{
 		self.common().transmit_queue()
 	}

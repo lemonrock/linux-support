@@ -20,7 +20,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth> CommonExpressDataPathSocket<ROTOB>
 			let memory_map_offsets = express_data_path_socket_file_descriptor.get_memory_map_offsets();
 			
 			receive_or_transmit_or_both_ring_queue_depths.create_receive_or_transmit_or_both(express_data_path_socket_file_descriptor, defaults, &memory_map_offsets, queue_identifier, redirect_map_and_attached_program, arguments)
-		};
+		}?;
 		
 		{
 			let socket_address = sockaddr_xdp
@@ -34,85 +34,85 @@ impl<ROTOB: ReceiveOrTransmitOrBoth> CommonExpressDataPathSocket<ROTOB>
 			bind_socket(express_data_path_socket_file_descriptor, &socket_address)?;
 		}
 		
-		Ok(Self(ManuallyDrop::new(receive_or_transmit_or_both)))
+		Ok(ManuallyDrop::new(Self(receive_or_transmit_or_both)))
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth<RP=RP> + Receives<CommonReceiveOnly<RP>>, RP: ReceivePoll> CommonExpressDataPathSocket<ROTOB>
+impl<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth<RP=RP> + Receives<CommonReceiveOnly<RP>>, RP: 'a + ReceivePoll> CommonExpressDataPathSocket<ROTOB>
 {
 	#[inline(always)]
-	fn receive_queue(&self) -> &ReceiveQueue
+	fn receive_queue(&'a self) -> &'a ReceiveQueue
 	{
 		self.receive().receive_queue()
 	}
 	
 	#[inline(always)]
-	fn frames_received(&self) -> u64
+	fn frames_received(&'a self) -> u64
 	{
 		self.receive().frames_received()
 	}
 	
 	#[inline(always)]
-	fn increase_frames_received(&self, number_of_frames: NonZeroU32)
+	fn increase_frames_received(&'a self, number_of_frames: NonZeroU32)
 	{
 		self.receive().increase_frames_received(number_of_frames)
 	}
 	
 	#[inline(always)]
-	fn receive_poll(&self)
+	fn receive_poll(&'a self)
 	{
 		self.receive().receive_poll()
 	}
 	
 	#[inline(always)]
-	fn remove_receive_map_queue_identifier<FFQ: FreeFrameQueue>(&mut self, instance: &ExpressDataPathInstance<ROTOB, FFQ>)
+	fn remove_receive_map_queue_identifier<FFQ: FreeFrameQueue>(&'a mut self, instance: &ExpressDataPathInstance<ROTOB, FFQ>)
 	{
 		let _ignored = self.receive().remove_receive_map_queue_identifier(&instance.redirect_map_and_attached_program);
 	}
 	
 	#[inline(always)]
-	fn receive(&self) -> &CommonReceiveOnly<ROTOB::RP>
+	fn receive(&'a self) -> &'a CommonReceiveOnly<ROTOB::RP>
 	{
-		self.common_receive_or_transmit_or_both.receive()
+		self.0.receive()
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>> CommonExpressDataPathSocket<ROTOB>
+impl<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>> CommonExpressDataPathSocket<ROTOB>
 {
 	#[inline(always)]
-	fn transmit_queue(&self) -> &TransmitQueue
+	fn transmit_queue(&'a self) -> &'a TransmitQueue
 	{
 		self.transmit().transmit_queue()
 	}
 	
 	#[inline(always)]
-	fn frames_transmitted(&self) -> u64
+	fn frames_transmitted(&'a self) -> u64
 	{
 		self.transmit().frames_transmitted()
 	}
 	
 	#[inline(always)]
-	fn outstanding_frames_to_transmit(&self) -> u32
+	fn outstanding_frames_to_transmit(&'a self) -> u32
 	{
 		self.transmit().outstanding_frames_to_transmit()
 	}
 	
 	#[inline(always)]
-	fn increment_outstanding_frames_to_transmit(&self, number_of_frames: NonZeroU32)
+	fn increment_outstanding_frames_to_transmit(&'a self, number_of_frames: NonZeroU32)
 	{
 		self.transmit().increment_outstanding_frames_to_transmit(number_of_frames)
 	}
 	
 	#[inline(always)]
-	fn change_frames_transmitted(&self, completed_number_of_frames: NonZeroU32)
+	fn change_frames_transmitted(&'a self, completed_number_of_frames: NonZeroU32)
 	{
 		self.transmit().decrement_outstanding_frames_to_transmit(completed_number_of_frames);
 		self.transmit().increase_frames_transmitted(completed_number_of_frames);
 	}
 	
 	#[inline(always)]
-	fn transmit(&self) -> &CommonTransmitOnly
+	fn transmit(&'a self) -> &'a CommonTransmitOnly
 	{
-		self.common_receive_or_transmit_or_both.transmit()
+		self.0.transmit()
 	}
 }

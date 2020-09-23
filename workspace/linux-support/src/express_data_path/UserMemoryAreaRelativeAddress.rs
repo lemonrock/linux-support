@@ -67,7 +67,7 @@ impl Sub<Self> for UserMemoryAreaRelativeAddress
 		let difference = self.0 - rhs.0;
 		debug_assert!(difference <= (usize::MAX as u64));
 		
-		Self(difference)
+		difference as usize
 	}
 }
 
@@ -82,6 +82,17 @@ impl Sub<usize> for UserMemoryAreaRelativeAddress
 		debug_assert!(self.0 >= rhs);
 		
 		Self(self.0 - rhs)
+	}
+}
+
+impl Div<AlignedChunkSize> for UserMemoryAreaRelativeAddress
+{
+	type Output = u64;
+	
+	#[inline(always)]
+	fn div(self, rhs: AlignedChunkSize) -> Self::Output
+	{
+		rhs.divide_with_self_as_denominator(self.0)
 	}
 }
 

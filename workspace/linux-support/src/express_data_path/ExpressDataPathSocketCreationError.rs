@@ -37,7 +37,7 @@ pub enum ExpressDataPathSocketCreationError
 		
 		frame_headroom: FrameHeadroom,
 		
-		chunk_size: NonZeroU32,
+		chunk_size: u64,
 		
 		maximum_transmission_unit_payload_size: MaximumTransmissionUnitPayloadSize,
 	},
@@ -49,7 +49,7 @@ pub enum ExpressDataPathSocketCreationError
 		
 		frame_headroom: FrameHeadroom,
 		
-		chunk_size: NonZeroU32,
+		chunk_size: u64,
 		
 		reason: ParseNumberError,
 	},

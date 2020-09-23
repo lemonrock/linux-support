@@ -26,7 +26,6 @@ use crate::file_descriptors::*;
 use crate::file_descriptors::network_device::*;
 use crate::paths::SysPath;
 use crate::user_and_groups::assert_effective_user_id_is_root;
-use crate::express_data_path::frames::FrameHeadroom;
 
 
 /// C.

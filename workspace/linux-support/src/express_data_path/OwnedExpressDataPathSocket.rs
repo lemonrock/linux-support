@@ -53,28 +53,28 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> OwnedExpressDataPathSo
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ExpressDataPathSocket<ROTOB, FFQ> for OwnedExpressDataPathSocket<ROTOB, FFQ>
+impl<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth, FFQ: 'a + FreeFrameQueue> ExpressDataPathSocket<'a, ROTOB, FFQ> for OwnedExpressDataPathSocket<ROTOB, FFQ>
 {
 	#[inline(always)]
-	fn user_memory(&self) -> &UserMemory<FFQ>
+	fn user_memory(&'a self) -> &'a UserMemory<FFQ>
 	{
-		self.instance.user_memory()
+		&self.instance.user_memory
 	}
 	
 	#[inline(always)]
-	fn common(&self) -> &CommonExpressDataPathSocket<ROTOB>
+	fn common(&'a self) -> &'a CommonExpressDataPathSocket<ROTOB>
 	{
 		&self.common
 	}
 	
 	#[inline(always)]
-	fn express_data_path_socket_file_descriptor(&self) -> &ExpressDataPathSocketFileDescriptor
+	fn express_data_path_socket_file_descriptor(&'a self) -> &'a ExpressDataPathSocketFileDescriptor
 	{
 		self.user_memory().user_memory_socket_file_descriptor()
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, FFQ: FreeFrameQueue, RP: ReceivePoll> ReceivesExpressDataPathSocket<ROTOB, FFQ, RP> for OwnedExpressDataPathSocket<ROTOB, FFQ>
+impl<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth<RP=RP> + Receives<CommonReceiveOnly<RP>>, FFQ: 'a + FreeFrameQueue, RP: 'a + ReceivePoll> ReceivesExpressDataPathSocket<'a, ROTOB, FFQ, RP> for OwnedExpressDataPathSocket<ROTOB, FFQ>
 {
 	#[inline(always)]
 	fn lock_fill_queue(&self)
@@ -87,7 +87,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, FFQ: Free
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, FFQ: FreeFrameQueue> TransmitsExpressDataPathSocket<ROTOB, FFQ> for OwnedExpressDataPathSocket<ROTOB, FFQ>
+impl<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, FFQ: 'a + FreeFrameQueue> TransmitsExpressDataPathSocket<'a, ROTOB, FFQ> for OwnedExpressDataPathSocket<ROTOB, FFQ>
 {
 	#[inline(always)]
 	fn lock_completion_queue(&self)

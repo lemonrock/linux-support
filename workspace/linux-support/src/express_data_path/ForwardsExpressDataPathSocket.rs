@@ -3,9 +3,9 @@
 
 
 /// Forwards.
-pub trait ForwardsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>> + Transmits<CommonTransmitOnly>, FFQ: FreeFrameQueue, RP: ReceivePoll>: ReceivesExpressDataPathSocket<ROTOB, FFQ, RP> + TransmitsExpressDataPathSocket<ROTOB, FFQ>
+pub trait ForwardsExpressDataPathSocket<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth<RP=RP> + Receives<CommonReceiveOnly<RP>> + Transmits<CommonTransmitOnly>, FFQ: 'a + FreeFrameQueue, RP: 'a + ReceivePoll>: ReceivesExpressDataPathSocket<'a, ROTOB, FFQ, RP> + TransmitsExpressDataPathSocket<'a, ROTOB, FFQ>
 {
-	fn forward<RFP: ReceivedFrameProcessor<ProcessingOutcome=()>>(&self, received_frame_processor: &mut RFP)
+	fn forward<RFP: ReceivedFrameProcessor<ProcessingOutcome=usize>>(&'a self, received_frame_processor: &mut RFP)
 	{
 		const DoNotPeekReleaseCompletionQueueAsNeedCompletionAddressesIn_complete_forward: bool = false;
 		
@@ -22,7 +22,7 @@ pub trait ForwardsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receive
 					{
 						received_frame_processor.begin(received_number_of_frames.get());
 						{
-							for relative_frame_index in 0..received_number_of_frames
+							for relative_frame_index in RelativeFrameIndex::relative_frame_indices(received_number_of_frames)
 							{
 								let received_descriptor = self.receive_queue().get_receive_descriptor(receive_queue_index, relative_frame_index);
 								let (fill_address_frame_descriptor_bitfield, xdp_headroom, our_frame_headroom, ethernet_packet, minimum_tailroom_length) = self.user_memory().received_xdp_headroom_our_frame_headroom_ethernet_packet_minimum_tailroom_length(received_descriptor);
@@ -41,7 +41,7 @@ pub trait ForwardsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receive
 		self.complete_forward()
 	}
 	
-	fn complete_forward(&self)
+	fn complete_forward(&'a self)
 	{
 		let requested_number_of_frames = match self.common().outstanding_frames_to_transmit()
 		{
@@ -59,7 +59,7 @@ pub trait ForwardsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receive
 				available_number_of_frames,
 				|reserved_number_of_frames, fill_queue_index|
 				{
-					for relative_frame_index in 0 .. reserved_number_of_frames
+					for relative_frame_index in RelativeFrameIndex::relative_frame_indices(reserved_number_of_frames)
 					{
 						let relative_address_of_frame_in_user_memory = self.completion_queue().get_completed_frame_descriptor_bitfield(completion_queue_index, relative_frame_index);
 						

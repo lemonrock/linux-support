@@ -52,9 +52,16 @@ impl From<net_device_flags> for SettableLinkFlags
 impl SettableLinkFlags
 {
 	#[inline(always)]
+	fn to_net_device_flags_mask(self) -> u32
+	{
+		let value: net_device_flags = self.into();
+		value.mask()
+	}
+	
+	#[inline(always)]
 	fn to_net_device_flags_bits(self) -> u32
 	{
 		let value: net_device_flags = self.into();
-		network_device_flags.bits()
+		value.bits()
 	}
 }

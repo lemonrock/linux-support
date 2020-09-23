@@ -175,7 +175,7 @@ impl RouteNetlinkProtocol
 		}
 		
 		#[inline(always)]
-		fn request_2(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<RouteNetlinkProtocol>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: RawFd, flags: u32, replace_express_data_path_extended_bpf_program_file_descriptor: RawFd) -> Result<(), Errno>
+		fn request_2(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<RouteNetlinkProtocol>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: RawFd, flags: u32, replace_express_data_path_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor) -> Result<(), Errno>
 		{
 			ExpressDataPathMessageBody::make_request_and_get_acknowledgment_or_error
 			(
@@ -183,7 +183,7 @@ impl RouteNetlinkProtocol
 				network_interface_index,
 				attribute(IFLA_XDP_FD, express_data_path_extended_bpf_program_file_descriptor)
 				.followed_by_attribute(IFLA_XDP_FLAGS, flags)
-				.followed_by_attribute(IFLA_XDP_EXPECTED_FD, replace_express_data_path_extended_bpf_program_file_descriptor)
+				.followed_by_attribute(IFLA_XDP_EXPECTED_FD, replace_express_data_path_extended_bpf_program_file_descriptor.as_raw_fd())
 			)
 		}
 		

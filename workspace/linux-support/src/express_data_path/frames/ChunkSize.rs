@@ -16,6 +16,15 @@ pub trait ChunkSize: Default + Debug + Copy + PartialEq + Eq + PartialOrd + Ord 
 	
 	#[doc(hidden)]
 	#[inline(always)]
+	fn user_memory_area_length(self, number_of_chunks: NonZeroU32) -> NonZeroU64
+	{
+		let number_of_chunks = number_of_chunks.get() as u64;
+		let chunk_size: u64 = self.into();
+		unsafe { NonZeroU64::new_unchecked(number_of_chunks * chunk_size) }
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
 	fn compare_to_frame_sizes(self, frame_headroom: FrameHeadroom, maximum_transmission_unit_payload_size: MaximumTransmissionUnitPayloadSize) -> Ordering
 	{
 		let value: usize = self.into();
@@ -38,7 +47,7 @@ pub trait ChunkSize: Default + Debug + Copy + PartialEq + Eq + PartialOrd + Ord 
 	}
 	
 	#[doc(hidden)]
-	fn round_up_number_of_chunks(self, number_of_chunks: NonZeroU32) -> NonZeroU32;
+	fn round_up_number_of_chunks_to_a_multiple_that_fits_exactly_into_multiple_pages(self, number_of_chunks: NonZeroU32) -> NonZeroU32;
 	
 	#[doc(hidden)]
 	fn validate_user_memory(huge_memory_page_size: Option<Option<HugePageSize>>);
@@ -66,34 +75,4 @@ pub trait ChunkSize: Default + Debug + Copy + PartialEq + Eq + PartialOrd + Ord 
 	
 	#[doc(hidden)]
 	fn transmit_relative_addesses_and_offsets(self, frame_headroom: FrameHeadroom, frame_identifier: Self::FrameIdentifier, length_of_packet: usize) -> RelativeAddressesAndOffsets;
-}
-
-impl<CS: ChunkSize> Into<u32> for CS
-{
-	#[inline(always)]
-	fn into(self) -> u32
-	{
-		let value: NonZeroU32 = self.into();
-		value.get()
-	}
-}
-
-impl<CS: ChunkSize> Into<usize> for CS
-{
-	#[inline(always)]
-	fn into(self) -> usize
-	{
-		let value: NonZeroU32 = self.into();
-		value.get() as usize
-	}
-}
-
-impl<CS: ChunkSize> Into<u64> for CS
-{
-	#[inline(always)]
-	fn into(self) -> u64
-	{
-		let value: NonZeroU32 = self.into();
-		value.get() as u64
-	}
 }

@@ -16,18 +16,18 @@
 /// * Must be greater than or equal to `XDP_UMEM_MIN_CHUNK_SIZE` (`2048`).
 /// * Must be less than or equal to `PAGE_SIZE` (`4096` on most systems; aarch 16Kb and 64Kb page sizes are not supported here as they cannot be statically determined to be in effect).
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-#[repr(u32)]
+#[repr(u8)]
 pub enum AlignedChunkSize
 {
 	#[allow(missing_docs)]
-	_2048 = 2048,
+	_2048 = 11,
 	
 	/// This is the default used by `libbpf` as `XSK_UMEM__DEFAULT_FRAME_SIZE`.
-	_4096 = 4096,
+	_4096 = 12,
 
 	/// On Sparc64.
 	#[cfg(target_arch = "sparc64")]
-	_8192 = 8192,
+	_8192 = 13,
 }
 
 impl Default for AlignedChunkSize
@@ -44,7 +44,34 @@ impl Into<NonZeroU32> for AlignedChunkSize
 	#[inline(always)]
 	fn into(self) -> NonZeroU32
 	{
-		unsafe { transmute(self )}
+		self.into_non_zero_u32()
+	}
+}
+
+impl Into<u32> for AlignedChunkSize
+{
+	#[inline(always)]
+	fn into(self) -> u32
+	{
+		self.into_u32()
+	}
+}
+
+impl Into<usize> for AlignedChunkSize
+{
+	#[inline(always)]
+	fn into(self) -> usize
+	{
+		self.into_usize()
+	}
+}
+
+impl Into<u64> for AlignedChunkSize
+{
+	#[inline(always)]
+	fn into(self) -> u64
+	{
+		self.into_u64()
 	}
 }
 
@@ -57,17 +84,22 @@ impl ChunkSize for AlignedChunkSize
 	const RegistrationFlags: XdpUmemRegFlags = XdpUmemRegFlags::empty();
 	
 	#[inline(always)]
-	fn round_up_number_of_chunks(self, number_of_chunks: NonZeroU32) -> NonZeroU32
+	fn round_up_number_of_chunks_to_a_multiple_that_fits_exactly_into_multiple_pages(self, number_of_chunks: NonZeroU32) -> NonZeroU32
 	{
 		let chunks_per_page =
 		{
-			let page_size = PageSize::current().size_in_bytes().get() as u32;
-			let chunk_size = self.into().get();
+			let page_size = PageSize::current().size_in_bytes().get();
 			
-			debug_assert!(page_size >= chunk_size);
-			debug_assert_eq!(page_size % chunk_size, 0);
+			if cfg!(debug_assertions)
+			{
+				let chunk_size = self.into_u64();
+				debug_assert!(page_size >= chunk_size);
+				debug_assert_eq!(page_size % chunk_size, 0);
+			}
 			
-			page_size / chunk_size
+			let chunks_per_page = self.divide_with_self_as_denominator(page_size);
+			debug_assert!(chunks_per_page <= (u32::MAX as u64));
+			chunks_per_page as u32
 		};
 		unsafe { NonZeroU32::new_unchecked((number_of_chunks.get() + chunks_per_page - 1) / chunks_per_page) }
 	}
@@ -110,7 +142,7 @@ impl ChunkSize for AlignedChunkSize
 	#[inline(always)]
 	fn fill_frame_descriptor_bitfield(self, frame_headroom: FrameHeadroom, frame_identifier: Self::FrameIdentifier) -> FrameDescriptorBitfield
 	{
-		frame_identifier.to_fill_frame_descriptor_bitfield_if_aligned(self.chunk_size, self.frame_headroom)
+		frame_identifier.to_fill_frame_descriptor_bitfield_if_aligned(self, frame_headroom)
 	}
 	
 	#[inline(always)]
@@ -129,20 +161,38 @@ impl ChunkSize for AlignedChunkSize
 impl AlignedChunkSize
 {
 	#[inline(always)]
-	pub(crate) const fn mask(self) -> u64
+	pub(crate) const fn into_non_zero_u32(self) -> NonZeroU32
 	{
-		!((self as u32 as u64) - 1)
+		unsafe { NonZeroU32::new_unchecked(1 << (self as u8 as u32)) }
 	}
 	
 	#[inline(always)]
-	pub(crate) const fn to_u32(self) -> u32
+	pub(crate) const fn into_u32(self) -> u32
 	{
-		self as u32
+		self.into_non_zero_u32().get()
 	}
 	
 	#[inline(always)]
-	pub(crate) const fn to_u64(self) -> u64
+	pub(crate) const fn into_usize(self) -> usize
 	{
-		self.to_u32() as u64
+		self.into_u32() as usize
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn into_u64(self) -> u64
+	{
+		self.into_u32() as u64
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn mask_u64(self) -> u64
+	{
+		!(self.into_u64() - 1)
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn divide_with_self_as_denominator(self, numerator: u64) -> u64
+	{
+		numerator >> (self as u8 as u64)
 	}
 }

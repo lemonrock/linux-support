@@ -19,7 +19,7 @@ impl TransmitQueue
 	}
 	
 	#[inline(always)]
-	pub(super) fn set_transmit_descriptor_from_frame(&self, transmit_queue_index: RingQueueIndex, relative_frame_index: u32, transmit_frame_descriptor_bitfield: FrameDescriptorBitfield, length_of_packet: usize)
+	pub(super) fn set_transmit_descriptor_from_frame(&self, transmit_queue_index: RingQueueIndex, relative_frame_index: RelativeFrameIndex, transmit_frame_descriptor_bitfield: FrameDescriptorBitfield, length_of_packet: usize)
 	{
 		let transmit_descriptor = self.transmit_descriptor(transmit_queue_index + relative_frame_index);
 		

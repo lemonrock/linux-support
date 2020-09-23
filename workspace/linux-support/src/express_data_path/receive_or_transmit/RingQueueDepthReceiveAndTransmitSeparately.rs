@@ -81,11 +81,11 @@ impl<RPC: ReceivePollCreator> RingQueueDepthReceiveAndTransmitSeparately<RPC>
 {
 	/// Create a new instance.
 	#[inline(always)]
-	pub const fn new(fill_or_receive_ring_queue_depth: RingQueueDepth, completion_or_transmit_ring_queue_depth: RingQueueDepth) -> Self
+	pub const fn new(fill_or_receive_ring_queue_depth: RingQueueDepth, receive_poll_creator: RPC, completion_or_transmit_ring_queue_depth: RingQueueDepth) -> Self
 	{
 		Self
 		(
-			RingQueueDepthReceiveOnly::new(fill_or_receive_ring_queue_depth),
+			RingQueueDepthReceiveOnly::new(fill_or_receive_ring_queue_depth, receive_poll_creator),
 			RingQueueDepthTransmitOnly::new(completion_or_transmit_ring_queue_depth)
 		)
 	}

@@ -5,13 +5,13 @@
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub(crate) struct RingQueueIndex(u32);
 
-impl Add<u32> for RingQueueIndex
+impl Add<RelativeFrameIndex> for RingQueueIndex
 {
 	type Output = RingQueueEntryIndex;
 	
 	#[inline(always)]
-	fn add(self, relative_frame_index: u32) -> Self::Output
+	fn add(self, relative_frame_index: RelativeFrameIndex) -> Self::Output
 	{
-		RingQueueEntryIndex(self.0 + relative_frame_index)
+		RingQueueEntryIndex(self.0 + relative_frame_index.into_u32())
 	}
 }

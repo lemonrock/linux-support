@@ -7,6 +7,36 @@
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct UnalignedChunkSize(NonZeroU16);
 
+impl Into<u32> for UnalignedChunkSize
+{
+	#[inline(always)]
+	fn into(self) -> u32
+	{
+		let value: NonZeroU32 = self.into();
+		value.get()
+	}
+}
+
+impl Into<usize> for UnalignedChunkSize
+{
+	#[inline(always)]
+	fn into(self) -> usize
+	{
+		let value: NonZeroU32 = self.into();
+		value.get() as usize
+	}
+}
+
+impl Into<u64> for UnalignedChunkSize
+{
+	#[inline(always)]
+	fn into(self) -> u64
+	{
+		let value: NonZeroU32 = self.into();
+		value.get() as u64
+	}
+}
+
 impl Into<NonZeroU32> for UnalignedChunkSize
 {
 	#[inline(always)]
@@ -24,11 +54,11 @@ impl TryFrom<NonZeroU16> for UnalignedChunkSize
 	#[inline(always)]
 	fn try_from(value: NonZeroU16) -> Result<Self, Self::Error>
 	{
-		if value < Self::InclusiveMinimum
+		if value < Self::InclusiveMinimum.0
 		{
 			Err(ParseNumberError::TooSmall)
 		}
-		else if value > Self::inclusive_maximum()
+		else if value > Self::inclusive_maximum().0
 		{
 			Err(ParseNumberError::TooLarge)
 		}
@@ -75,7 +105,7 @@ impl ChunkSize for UnalignedChunkSize
 	const RegistrationFlags: XdpUmemRegFlags = XdpUmemRegFlags::UnalignedChunks;
 	
 	#[inline(always)]
-	fn round_up_number_of_chunks(self, number_of_chunks: NonZeroU32) -> NonZeroU32
+	fn round_up_number_of_chunks_to_a_multiple_that_fits_exactly_into_multiple_pages(self, number_of_chunks: NonZeroU32) -> NonZeroU32
 	{
 		number_of_chunks
 	}

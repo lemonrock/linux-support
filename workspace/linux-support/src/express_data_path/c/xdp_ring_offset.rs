@@ -58,6 +58,6 @@ impl xdp_ring_offset
 	#[inline(always)]
 	fn pointer(&self, ring_mapped_memory: &MappedMemory, field: UserMemoryAreaRelativeAddress) -> VirtualAddress
 	{
-		(ring_mapped_memory.virtual_address() + field)
+		ring_mapped_memory.virtual_address() + field.into_u64()
 	}
 }
