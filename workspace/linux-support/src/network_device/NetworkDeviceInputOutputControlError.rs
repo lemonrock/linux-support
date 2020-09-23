@@ -71,10 +71,10 @@ impl From<ObjectNameFromBytesError> for NetworkDeviceInputOutputControlError<Obj
 	}
 }
 
-impl From<TransmissionQueueLengthOutRangeError> for NetworkDeviceInputOutputControlError<TransmissionQueueLengthOutRangeError>
+impl From<TransmissionQueueLengthOutOfRangeError> for NetworkDeviceInputOutputControlError<TransmissionQueueLengthOutOfRangeError>
 {
 	#[inline(always)]
-	fn from(value: TransmissionQueueLengthOutRangeError) -> Self
+	fn from(value: TransmissionQueueLengthOutOfRangeError) -> Self
 	{
 		NetworkDeviceInputOutputControlError::ControlOperation(value)
 	}

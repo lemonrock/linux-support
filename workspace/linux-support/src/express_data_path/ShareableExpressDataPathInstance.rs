@@ -26,7 +26,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> Clone for ShareableExp
 	}
 }
 
-impl<RingQueueDepths: CreateReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ShareableExpressDataPathInstance<RingQueueDepths::ReceiveOrTransmitOrBoth, FFQ>
+impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ShareableExpressDataPathInstance<ROTOB, FFQ>
 {
 	/// Treats `self` as master; returns a slave.
 	///
@@ -38,7 +38,7 @@ impl<RingQueueDepths: CreateReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> Sharea
 	///
 	/// A potential bug: ***`queue_identifier` is not checked to see if it used by another instance of `SharedReceiveTransmitMemoryRingQueues`***.
 	/// Adding such a check is possible but is tedious.
-	pub fn share(&self, receive_or_transmit_or_both_ring_queue_depths: RingQueueDepths, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes, arguments: RingQueueDepths::Arguments) -> Result<SharedExpressDataPathSocket<RingQueueDepths::ReceiveOrTransmitOrBoth, FFQ>, ExpressDataPathSocketCreationError>
+	pub fn share<RingQueueDepths: CreateReceiveOrTransmitOrBoth<ReceiveOrTransmitOrBoth=ROTOB>>(&self, receive_or_transmit_or_both_ring_queue_depths: RingQueueDepths, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes, arguments: RingQueueDepths::Arguments) -> Result<SharedExpressDataPathSocket<ROTOB, FFQ>, ExpressDataPathSocketCreationError>
 	{
 		let is_first =
 		{
@@ -78,45 +78,39 @@ impl<RingQueueDepths: CreateReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> Sharea
 impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ShareableExpressDataPathInstance<ROTOB, FFQ>
 {
 	#[inline(always)]
-	fn redirect_map_and_attached_program(self) -> &RedirectMapAndAttachedProgram
-	{
-		&self.express_data_path_instance().redirect_map_and_attached_program
-	}
-	
-	#[inline(always)]
-	fn user_memory(self) -> &UserMemory<FFQ>
+	fn user_memory(&self) -> &UserMemory<FFQ>
 	{
 		&self.express_data_path_instance().user_memory
 	}
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn express_data_path_instance(self) -> &ExpressDataPathInstance<ROTOB, FFQ>
+	fn express_data_path_instance(&self) -> &ExpressDataPathInstance<ROTOB, FFQ>
 	{
 		&(self.fields().0)
 	}
 	
 	#[inline(always)]
-	fn fill_queue_spin_lock(self) -> &BestForCompilationTargetSpinLock
+	fn fill_queue_spin_lock(&self) -> &BestForCompilationTargetSpinLock
 	{
 		&(self.fields().1)
 	}
 	
 	#[inline(always)]
-	fn completion_queue_spin_lock(self) -> &BestForCompilationTargetSpinLock
+	fn completion_queue_spin_lock(&self) -> &BestForCompilationTargetSpinLock
 	{
 		&(self.fields().2)
 	}
 	
 	#[inline(always)]
-	fn queue_identifiers(self) -> MutexGuard<HashSet<QueueIdentifier>>
+	fn queue_identifiers(&self) -> MutexGuard<HashSet<QueueIdentifier>>
 	{
 		(&(self.fields().3)).lock().unwrap()
 	}
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn fields(self) -> &(OwnedExpressDataPathSocket<ReceiveOrTransmitOrBoth>, BestForCompilationTargetSpinLock, BestForCompilationTargetSpinLock)
+	fn fields(&self) -> &(OwnedExpressDataPathSocket<ROTOB, FFQ>, BestForCompilationTargetSpinLock, BestForCompilationTargetSpinLock)
 	{
 		self.0.deref()
 	}

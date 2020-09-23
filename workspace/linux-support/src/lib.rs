@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#![allow(incomplete_features)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
@@ -10,7 +11,6 @@
 #![deny(unreachable_patterns)]
 #![feature(alloc_layout_extra)]
 #![feature(allocator_api)]
-#![feature(asm)]
 #![feature(cell_leak)]
 #![feature(const_if_match)]
 #![feature(const_fn)]
@@ -28,10 +28,11 @@
 #![feature(never_type)]
 #![feature(ptr_offset_from)]
 #![feature(read_initializer)]
+#![feature(specialization)]
 #![feature(step_trait)]
+#![feature(step_trait_ext)]
 #![feature(thread_id_value)]
 #![feature(thread_local)]
-
 
 //! #linux-support
 //! 
@@ -75,7 +76,7 @@ use const_fn_assert::cfn_assert;
 use const_fn_assert::cfn_assert_eq;
 use const_fn_assert::cfn_assert_ne;
 use const_fn_assert::cfn_debug_assert;
-use crossbeam::queue::ArrayQueue;
+use crossbeam_queue::ArrayQueue;
 use either::Either;
 use either::Either::Left;
 use either::Either::Right;
@@ -568,7 +569,6 @@ use serde::de::Unexpected;
 use serde::de::Visitor;
 use serde_big_array::big_array;
 use serde_bytes::ByteBuf;
-use spin_locks::BestSpinLockForCompilationTarget;
 use std::any::TypeId;
 #[cfg(all(target_arch = "x86_64", target_feature = "popcnt"))] use std::arch::x86_64::_mm_popcnt_u64;
 use std::array::TryFromSliceError;

@@ -3,7 +3,7 @@
 
 
 /// Chunk size.
-pub trait ChunkSize: Default + Debug + Copy + PartialEq + Eq + PartialOrd + Ord + Hash + Into<NonZeroU32>
+pub trait ChunkSize: Default + Debug + Copy + PartialEq + Eq + PartialOrd + Ord + Hash + Into<NonZeroU32> + Into<u32> + Into<usize> + Into<u64>
 {
 	/// A frame identifier, such as an `AlignedFrameNumber`.
 	type FrameIdentifier: Copy;
@@ -13,6 +13,29 @@ pub trait ChunkSize: Default + Debug + Copy + PartialEq + Eq + PartialOrd + Ord 
 	
 	#[doc(hidden)]
 	const RegistrationFlags: XdpUmemRegFlags;
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn compare_to_frame_sizes(self, frame_headroom: FrameHeadroom, maximum_transmission_unit_payload_size: MaximumTransmissionUnitPayloadSize) -> Ordering
+	{
+		let value: usize = self.into();
+		
+		let mininum_required_frame_size = frame_headroom.with_xdp_packet_headroom_before_frame_headroom() + maximum_transmission_unit_payload_size.frame_size_including_trailing_frame_check_sequence();
+		
+		value.cmp(&mininum_required_frame_size)
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn calculate_maximum_transmission_unit_payload_size(self, frame_headroom: FrameHeadroom) -> Result<MaximumTransmissionUnitPayloadSize, ParseNumberError>
+	{
+		let overhead = frame_headroom.with_xdp_packet_headroom_before_frame_headroom() + MaximumTransmissionUnitPayloadSize::EthernetFrameOverheadIncludingTrailingFrameCheckSequence;
+		let value: usize = self.into();
+		
+		let maximum_length_of_packet = value.checked_sub(overhead).ok_or(ParseNumberError::TooShortWithMinusSign)?;
+		
+		MaximumTransmissionUnitPayloadSize::try_from(maximum_length_of_packet)
+	}
 	
 	#[doc(hidden)]
 	fn round_up_number_of_chunks(self, number_of_chunks: NonZeroU32) -> NonZeroU32;
@@ -43,4 +66,34 @@ pub trait ChunkSize: Default + Debug + Copy + PartialEq + Eq + PartialOrd + Ord 
 	
 	#[doc(hidden)]
 	fn transmit_relative_addesses_and_offsets(self, frame_headroom: FrameHeadroom, frame_identifier: Self::FrameIdentifier, length_of_packet: usize) -> RelativeAddressesAndOffsets;
+}
+
+impl<CS: ChunkSize> Into<u32> for CS
+{
+	#[inline(always)]
+	fn into(self) -> u32
+	{
+		let value: NonZeroU32 = self.into();
+		value.get()
+	}
+}
+
+impl<CS: ChunkSize> Into<usize> for CS
+{
+	#[inline(always)]
+	fn into(self) -> usize
+	{
+		let value: NonZeroU32 = self.into();
+		value.get() as usize
+	}
+}
+
+impl<CS: ChunkSize> Into<u64> for CS
+{
+	#[inline(always)]
+	fn into(self) -> u64
+	{
+		let value: NonZeroU32 = self.into();
+		value.get() as u64
+	}
 }

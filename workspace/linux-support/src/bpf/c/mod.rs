@@ -11,7 +11,7 @@ use super::extended::instructions::LoadSize::*;
 use super::extended::maps::domain::*;
 use super::extended::programs::*;
 use super::extended::maps::domain::access_permissions::KernelOnlyAccessPermissions;
-use crate::express_data_path::AttachMode;
+use crate::express_data_path::attached_program::AttachMode;
 use crate::file_descriptors::bpf::BpfFileDescriptor;
 use crate::file_descriptors::bpf::MapFileDescriptor;
 use crate::inode::Inode;

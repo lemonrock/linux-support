@@ -128,10 +128,10 @@ bitflags!
 
 impl From<SettableLinkFlags> for net_device_flags
 {
-	#[inline(alwaus)]
+	#[inline(always)]
 	fn from(value: SettableLinkFlags) -> Self
 	{
-		net_device_flags::frrom_bits_truncate(value.bits() as u32)
+		net_device_flags::from_bits_truncate(value.bits() as u32)
 	}
 }
 

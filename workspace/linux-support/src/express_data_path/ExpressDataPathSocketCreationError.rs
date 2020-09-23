@@ -31,27 +31,31 @@ pub enum ExpressDataPathSocketCreationError
 	AttachedExpressDataPathProgramNotSuitableForSharing,
 	
 	#[allow(missing_docs)]
-	ChunkSizeDoesNotAccommodateFrameHeadroomAndMaximumTransmissionUnitIncludingFrameCheckSequence
+	ChunkSizeDoesNotAccommodateFrameHeadroomAndMaximumTransmissionUnitIncludingFrameCheckSequenceSoLinuxWouldDropPackets
 	{
 		xdp_packet_headroom: usize,
 		
 		frame_headroom: FrameHeadroom,
 		
-		network_interface_maximum_transmission_unit_including_frame_check_sequence: MaximumTransmissionUnit,
+		chunk_size: NonZeroU32,
+		
+		maximum_transmission_unit_payload_size: MaximumTransmissionUnitPayloadSize,
 	},
 
 	#[allow(missing_docs)]
 	CouldNotFindAnAcceptableMaximumTransmissionUnit
 	{
-		reason: String,
+		xdp_packet_headroom: usize,
 		
 		frame_headroom: FrameHeadroom,
 		
-		chunk_size: AlignedChunkSize,
+		chunk_size: NonZeroU32,
+		
+		reason: ParseNumberError,
 	},
 	
-	#[allow(missing(docs))]
-	CouldNotSetAnAcceptableMaximumTransmissionUnit(NetworkDeviceInputOutputControlError<MaximumTransmissionUnitOutRangeError>),
+	#[allow(missing_docs)]
+	CouldNotSetAnAcceptableMaximumTransmissionUnit(NetworkDeviceInputOutputControlError<MaximumTransmissionUnitPayloadSizeOutOfRangeError>),
 	
 	#[allow(missing_docs)]
 	CouldNotInsertIntoRedirectMap(InsertError),
@@ -91,9 +95,9 @@ impl error::Error for ExpressDataPathSocketCreationError
 			
 			&AttachedExpressDataPathProgramNotSuitableForSharing => None,
 			
-			&ChunkSizeDoesNotAccommodateFrameHeadroomAndMaximumTransmissionUnitIncludingFrameCheckSequence { .. } => None,
+			&ChunkSizeDoesNotAccommodateFrameHeadroomAndMaximumTransmissionUnitIncludingFrameCheckSequenceSoLinuxWouldDropPackets { .. } => None,
 			
-			&CouldNotFindAnAcceptableMaximumTransmissionUnit { .. } => None,
+			&CouldNotFindAnAcceptableMaximumTransmissionUnit { ref reason, .. } => Some(reason),
 			
 			&CouldNotSetAnAcceptableMaximumTransmissionUnit(ref error) => Some(error),
 			
@@ -120,10 +124,10 @@ impl From<SocketBindError> for ExpressDataPathSocketCreationError
 	}
 }
 
-impl From<NetworkDeviceInputOutputControlError<MaximumTransmissionUnitOutRangeError>> for ExpressDataPathSocketCreationError
+impl From<NetworkDeviceInputOutputControlError<MaximumTransmissionUnitPayloadSizeOutOfRangeError>> for ExpressDataPathSocketCreationError
 {
 	#[inline(always)]
-	fn from(value: NetworkDeviceInputOutputControlError<MaximumTransmissionUnitOutRangeError>) -> Self
+	fn from(value: NetworkDeviceInputOutputControlError<MaximumTransmissionUnitPayloadSizeOutOfRangeError>) -> Self
 	{
 		ExpressDataPathSocketCreationError::CouldNotSetAnAcceptableMaximumTransmissionUnit(value)
 	}

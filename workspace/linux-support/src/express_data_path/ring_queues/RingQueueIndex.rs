@@ -5,7 +5,7 @@
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub(crate) struct RingQueueIndex(u32);
 
-impl Add for RingQueueIndex<u32>
+impl Add<u32> for RingQueueIndex
 {
 	type Output = RingQueueEntryIndex;
 	

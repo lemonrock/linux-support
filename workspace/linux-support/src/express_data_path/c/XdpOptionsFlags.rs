@@ -5,6 +5,7 @@
 bitflags!
 {
 	/// Flags for `struct xdp_options`.
+	#[derive(Deserialize, Serialize)]
 	pub struct XdpOptionsFlags: u32
 	{
 		/// Zero-copy.

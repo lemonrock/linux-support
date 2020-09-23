@@ -7,13 +7,13 @@
 #[repr(C)]
 pub struct xdp_ring_offset
 {
-	producer: u64,
+	producer: UserMemoryAreaRelativeAddress,
 	
-	consumer: u64,
+	consumer: UserMemoryAreaRelativeAddress,
 	
-	desc: u64,
+	desc: UserMemoryAreaRelativeAddress,
 	
-	flags: u64,
+	flags: UserMemoryAreaRelativeAddress,
 }
 
 impl xdp_ring_offset
@@ -21,30 +21,43 @@ impl xdp_ring_offset
 	#[inline(always)]
 	pub(crate) fn length_of_memory_to_map<D: Descriptor>(&self, ring_queue_depth: RingQueueDepth) -> NonZeroU64
 	{
-		unsafe { NonZeroU64::new_unchecked(self.desc + ring_queue_depth.memory_length::<D>()) }
+		let end = self.desc + ring_queue_depth.memory_length::<D>();
+		end.try_into().unwrap()
 	}
 	
 	#[inline(always)]
 	pub(crate) fn producer_pointer(&self, ring_mapped_memory: &MappedMemory) -> NonNull<u32>
 	{
-		ring_mapped_memory.virtual_address().add(self.producer).into()
+		self.pointer_non_null_u32(ring_mapped_memory, self.producer)
 	}
 	
 	#[inline(always)]
 	pub(crate) fn consumer_pointer(&self, ring_mapped_memory: &MappedMemory) -> NonNull<u32>
 	{
-		ring_mapped_memory.virtual_address().add(self.consumer).into()
+		self.pointer_non_null_u32(ring_mapped_memory, self.consumer)
 	}
 	
 	#[inline(always)]
 	pub(crate) fn ring_pointer<D: Descriptor>(&self, ring_mapped_memory: &MappedMemory) -> *mut D
 	{
-		ring_mapped_memory.virtual_address().add(self.desc).into()
+		self.pointer(ring_mapped_memory, self.desc).into()
 	}
 	
 	#[inline(always)]
 	pub(crate) fn flags_pointer(&self, ring_mapped_memory: &MappedMemory) -> NonNull<u32>
 	{
-		ring_mapped_memory.virtual_address().add(self.flags).into()
+		self.pointer_non_null_u32(ring_mapped_memory, self.flags)
+	}
+	
+	#[inline(always)]
+	fn pointer_non_null_u32(&self, ring_mapped_memory: &MappedMemory, field: UserMemoryAreaRelativeAddress) -> NonNull<u32>
+	{
+		self.pointer(ring_mapped_memory, field).into()
+	}
+	
+	#[inline(always)]
+	fn pointer(&self, ring_mapped_memory: &MappedMemory, field: UserMemoryAreaRelativeAddress) -> VirtualAddress
+	{
+		(ring_mapped_memory.virtual_address() + field)
 	}
 }

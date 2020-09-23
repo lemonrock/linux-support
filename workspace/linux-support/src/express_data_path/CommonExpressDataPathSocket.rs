@@ -4,12 +4,12 @@
 
 #[doc(hidden)]
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct CommonExpressDataPathSocket<ReceiveOrTransmitOrBoth: ReceiveOrTransmitOrBoth>(ReceiveOrTransmitOrBoth);
+pub struct CommonExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth>(ROTOB);
 
-impl<RingQueueDepths: CreateReceiveOrTransmitOrBoth> CommonExpressDataPathSocket<RingQueueDepths::ReceiveOrTransmitOrBoth>
+impl<ROTOB: ReceiveOrTransmitOrBoth> CommonExpressDataPathSocket<ROTOB>
 {
 	/// Based on `libbpf`'s `xsk_socket__create()`.
-	fn new(express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, network_interface_index: NetworkInterfaceIndex, receive_or_transmit_or_both_ring_queue_depths: RingQueueDepths, owned_or_shared: XdpSocketAddressFlags, force_copy: bool, force_zero_copy: bool, user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes, redirect_map_and_attached_program: &RedirectMapAndAttachedProgram, arguments: RingQueueDepths::Arguments) -> Result<ManuallyDrop<Self>, ExpressDataPathSocketCreationError>
+	fn new<RingQueueDepths: CreateReceiveOrTransmitOrBoth<ReceiveOrTransmitOrBoth=ROTOB>>(express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, network_interface_index: NetworkInterfaceIndex, receive_or_transmit_or_both_ring_queue_depths: RingQueueDepths, owned_or_shared: XdpSocketAddressFlags, force_copy: bool, force_zero_copy: bool, user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, queue_identifier: QueueIdentifier, defaults: &DefaultPageSizeAndHugePageSizes, redirect_map_and_attached_program: &RedirectMapAndAttachedProgram, arguments: RingQueueDepths::Arguments) -> Result<ManuallyDrop<Self>, ExpressDataPathSocketCreationError>
 	{
 		// NOTE: Needs to happen before the socket is bound below.
 		let receive_or_transmit_or_both =
@@ -38,7 +38,7 @@ impl<RingQueueDepths: CreateReceiveOrTransmitOrBoth> CommonExpressDataPathSocket
 	}
 }
 
-impl<ReceiveOrTransmitOrBoth: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, RP: ReceivePoll> CommonExpressDataPathSocket<ReceiveOrTransmitOrBoth>
+impl<ROTOB: ReceiveOrTransmitOrBoth<RP=RP> + Receives<CommonReceiveOnly<RP>>, RP: ReceivePoll> CommonExpressDataPathSocket<ROTOB>
 {
 	#[inline(always)]
 	fn receive_queue(&self) -> &ReceiveQueue
@@ -65,19 +65,19 @@ impl<ReceiveOrTransmitOrBoth: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOn
 	}
 	
 	#[inline(always)]
-	fn remove_receive_map_queue_identifier(&mut self, redirect_map_and_attached_program: &RedirectMapAndAttachedProgram)
+	fn remove_receive_map_queue_identifier<FFQ: FreeFrameQueue>(&mut self, instance: &ExpressDataPathInstance<ROTOB, FFQ>)
 	{
-		let _ignored = self.receive().remove_receive_map_queue_identifier(redirect_map_and_attached_program);
+		let _ignored = self.receive().remove_receive_map_queue_identifier(&instance.redirect_map_and_attached_program);
 	}
 	
 	#[inline(always)]
-	fn receive(&self) -> &CommonReceiveOnly<RP>
+	fn receive(&self) -> &CommonReceiveOnly<ROTOB::RP>
 	{
 		self.common_receive_or_transmit_or_both.receive()
 	}
 }
 
-impl<ReceiveOrTransmitOrBoth: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>> CommonExpressDataPathSocket<ReceiveOrTransmitOrBoth>
+impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>> CommonExpressDataPathSocket<ROTOB>
 {
 	#[inline(always)]
 	fn transmit_queue(&self) -> &TransmitQueue

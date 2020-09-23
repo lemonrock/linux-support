@@ -24,6 +24,7 @@ impl<RP: ReceivePoll> Supports for CommonReceiveOnly<RP>
 
 impl<RP: ReceivePoll> ReceiveOrTransmitOrBoth for CommonReceiveOnly<RP>
 {
+	type RP = RP;
 }
 
 impl<RP: ReceivePoll> Receives<Self> for CommonReceiveOnly<RP>

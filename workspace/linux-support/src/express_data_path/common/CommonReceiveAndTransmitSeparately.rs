@@ -3,7 +3,7 @@
 
 
 #[doc(hidden)]
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug)]
 pub struct CommonReceiveAndTransmitSeparately<RP: ReceivePoll>(CommonReceiveOnly<RP>, CommonTransmitOnly);
 
 impl<RP: ReceivePoll> Supports for CommonReceiveAndTransmitSeparately<RP>
@@ -15,12 +15,13 @@ impl<RP: ReceivePoll> Supports for CommonReceiveAndTransmitSeparately<RP>
 
 impl<RP: ReceivePoll> ReceiveOrTransmitOrBoth for CommonReceiveAndTransmitSeparately<RP>
 {
+	type RP = RP;
 }
 
-impl<RP: ReceivePoll> Receives<CommonReceiveOnly> for CommonReceiveAndTransmitSeparately<RP>
+impl<RP: ReceivePoll> Receives<CommonReceiveOnly<RP>> for CommonReceiveAndTransmitSeparately<RP>
 {
 	#[inline(always)]
-	fn receive(&self) -> &CommonReceiveOnly
+	fn receive(&self) -> &CommonReceiveOnly<RP>
 	{
 		self.0.receive()
 	}

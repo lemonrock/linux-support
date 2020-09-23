@@ -4,20 +4,20 @@
 
 /// Receive only.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct RingQueueDepthReceiveOnly(RingQueueDepth);
+pub struct RingQueueDepthReceiveOnly<RPC: ReceivePollCreator>(RingQueueDepth, PhantomData<RPC>);
 
-impl Supports for RingQueueDepthReceiveOnly
+impl<RPC: ReceivePollCreator> Supports for RingQueueDepthReceiveOnly<RPC>
 {
 	const SupportsReceive: bool = true;
 	
 	const SupportsTransmit: bool = false;
 }
 
-impl RingQueueDepths for RingQueueDepthReceiveOnly
+impl<RPC: ReceivePollCreator> RingQueueDepths for RingQueueDepthReceiveOnly<RPC>
 {
 }
 
-impl Receives for RingQueueDepthReceiveOnly
+impl<RPC: ReceivePollCreator> Receives<RingQueueDepth> for RingQueueDepthReceiveOnly<RPC>
 {
 	#[inline(always)]
 	fn receive(&self) -> &RingQueueDepth
@@ -26,7 +26,7 @@ impl Receives for RingQueueDepthReceiveOnly
 	}
 }
 
-impl FillOrCompletionOrBothRingQueueDepths for RingQueueDepthReceiveOnly
+impl<RPC: ReceivePollCreator> FillOrCompletionOrBothRingQueueDepths for RingQueueDepthReceiveOnly<RPC>
 {
 	#[inline(always)]
 	fn fill_ring_queue_depth_or_default(&self) -> RingQueueDepth
@@ -54,7 +54,7 @@ impl<RPC: ReceivePollCreator> CreateReceiveOrTransmitOrBoth for RingQueueDepthRe
 	}
 	
 	#[inline(always)]
-	fn create_receive_or_transmit_or_both(self, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, defaults: &DefaultPageSizeAndHugePageSizes, memory_map_offsets: &xdp_mmap_offset, receive_queue_identifier: QueueIdentifier, redirect_map_and_attached_program: &RedirectMapAndAttachedProgram, arguments: Self::Arguments) -> Result<Self::ReceiveOrTransmitOrBoth, ExpressDataPathSocketCreationError>
+	fn create_receive_or_transmit_or_both(self, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, defaults: &DefaultPageSizeAndHugePageSizes, memory_map_offsets: &xdp_mmap_offsets, receive_queue_identifier: QueueIdentifier, redirect_map_and_attached_program: &RedirectMapAndAttachedProgram, arguments: Self::Arguments) -> Result<Self::ReceiveOrTransmitOrBoth, ExpressDataPathSocketCreationError>
 	{
 		let common = CommonReceiveOnly::new
 		(
@@ -70,12 +70,12 @@ impl<RPC: ReceivePollCreator> CreateReceiveOrTransmitOrBoth for RingQueueDepthRe
 	}
 }
 
-impl RingQueueDepthReceiveOnly
+impl<RPC: ReceivePollCreator> RingQueueDepthReceiveOnly<RPC>
 {
 	/// Create a new instance.
 	#[inline(always)]
 	pub fn new(fill_or_receive_ring_queue_depth: RingQueueDepth) -> Self
 	{
-		Self(fill_or_receive_ring_queue_depth)
+		Self(fill_or_receive_ring_queue_depth, PhantomData)
 	}
 }

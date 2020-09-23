@@ -3,7 +3,7 @@
 
 
 /// Statistics.
-#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Default, Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields, default)]
 #[repr(C)]

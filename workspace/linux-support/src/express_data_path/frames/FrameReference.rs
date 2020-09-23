@@ -15,12 +15,12 @@ pub struct FrameReference<CS: ChunkSize>
 	pub(crate) length_of_packet: usize,
 }
 
-impl<FFQ: FreeFrameQueue> FrameReference<FFQ::CS>
+impl<CS: ChunkSize> FrameReference<CS>
 {
 	/// Must write a frame descriptor that works with `xsk_buff_raw_get_data()` in Linux source.
 	/// That function requires `desc.addr == start_of_packet`.
 	#[inline(always)]
-	pub(crate) fn transmit_frame_descriptor_bitfield(&self, user_memory: &UserMemory<FFQ>) -> FrameDescriptorBitfield
+	pub(crate) fn transmit_frame_descriptor_bitfield<FFQ: FreeFrameQueue<CS=CS>>(&self, user_memory: &UserMemory<FFQ>) -> FrameDescriptorBitfield
 	{
 		user_memory.frame_identifier_to_transmit_frame_descriptor_bitfield(self.frame_identifier)
 	}

@@ -30,27 +30,27 @@ impl UserMemoryArea
 	}
 	
 	#[inline(always)]
-	fn slice(&self, start_relative_address: u64, length: usize) -> &[u8]
+	fn slice(&self, start_relative_address: UserMemoryAreaRelativeAddress, length: usize) -> &[u8]
 	{
 		unsafe { from_raw_parts(self.slice_starts_from(start_relative_address, length).into(), length) }
 	}
 	
 	#[inline(always)]
-	fn slice_mut(&self, start_relative_address: u64, length: usize) -> &mut [u8]
+	fn slice_mut(&self, start_relative_address: UserMemoryAreaRelativeAddress, length: usize) -> &mut [u8]
 	{
 		unsafe { from_raw_parts_mut(self.slice_starts_from(start_relative_address, length).into(), length) }
 	}
 	
 	#[inline(always)]
-	fn slice_starts_from(&self, start_relative_address: u64, length: usize) -> VirtualAddress
+	fn slice_starts_from(&self, start_relative_address: UserMemoryAreaRelativeAddress, length: usize) -> VirtualAddress
 	{
-		let starts_from = self.virtual_address().add(start_relative_address);
+		let starts_from = self.virtual_address() + start_relative_address.into_u64();
 		if cfg!(debug_assertions)
 		{
-			let end_address = self.virtual_address().add(self.mapped_size_in_bytes());
+			let end_address = self.virtual_address() + self.mapped_size_in_bytes();
 			debug_assert!(starts_from <= end_address);
 			
-			debug_assert!(starts_from.add(length) <= end_address);
+			debug_assert!((starts_from + length) <= end_address);
 		}
 		starts_from
 	}
@@ -60,7 +60,7 @@ impl UserMemoryArea
 	{
 		(
 			self.virtual_address().into(),
-			NonZeroU64::new(memory.mapped_size_in_bytes() as u64).expect("Memory can not be zero length (empty)")
+			NonZeroU64::new(self.mapped_size_in_bytes() as u64).expect("Memory can not be zero length (empty)")
 		)
 	}
 }

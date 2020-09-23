@@ -4,20 +4,20 @@
 
 /// Receive and Transmit separately.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct RingQueueDepthReceiveAndTransmitSeparately(RingQueueDepthReceiveOnly, RingQueueDepthTransmitOnly);
+pub struct RingQueueDepthReceiveAndTransmitSeparately<RPC: ReceivePollCreator>(RingQueueDepthReceiveOnly<RPC>, RingQueueDepthTransmitOnly);
 
-impl Supports for RingQueueDepthReceiveAndTransmitSeparately
+impl<RPC: ReceivePollCreator> Supports for RingQueueDepthReceiveAndTransmitSeparately<RPC>
 {
 	const SupportsReceive: bool = true;
 	
 	const SupportsTransmit: bool = true;
 }
 
-impl RingQueueDepths for RingQueueDepthReceiveAndTransmitSeparately
+impl<RPC: ReceivePollCreator> RingQueueDepths for RingQueueDepthReceiveAndTransmitSeparately<RPC>
 {
 }
 
-impl Receives for RingQueueDepthReceiveAndTransmitSeparately
+impl<RPC: ReceivePollCreator> Receives<RingQueueDepth> for RingQueueDepthReceiveAndTransmitSeparately<RPC>
 {
 	#[inline(always)]
 	fn receive(&self) -> &RingQueueDepth
@@ -26,7 +26,7 @@ impl Receives for RingQueueDepthReceiveAndTransmitSeparately
 	}
 }
 
-impl Transmits for RingQueueDepthReceiveAndTransmitSeparately
+impl<RPC: ReceivePollCreator> Transmits<RingQueueDepth> for RingQueueDepthReceiveAndTransmitSeparately<RPC>
 {
 	#[inline(always)]
 	fn transmit(&self) -> &RingQueueDepth
@@ -35,7 +35,7 @@ impl Transmits for RingQueueDepthReceiveAndTransmitSeparately
 	}
 }
 
-impl FillOrCompletionOrBothRingQueueDepths for RingQueueDepthReceiveAndTransmitSeparately
+impl<RPC: ReceivePollCreator> FillOrCompletionOrBothRingQueueDepths for RingQueueDepthReceiveAndTransmitSeparately<RPC>
 {
 	#[inline(always)]
 	fn fill_ring_queue_depth_or_default(&self) -> RingQueueDepth
@@ -50,7 +50,7 @@ impl FillOrCompletionOrBothRingQueueDepths for RingQueueDepthReceiveAndTransmitS
 	}
 }
 
-impl<RPC: ReceivePollCreator> CreateReceiveOrTransmitOrBoth for RingQueueDepthReceiveAndTransmitSeparately
+impl<RPC: ReceivePollCreator> CreateReceiveOrTransmitOrBoth for RingQueueDepthReceiveAndTransmitSeparately<RPC>
 {
 	type Arguments = RPC;
 	
@@ -64,7 +64,7 @@ impl<RPC: ReceivePollCreator> CreateReceiveOrTransmitOrBoth for RingQueueDepthRe
 	}
 	
 	#[inline(always)]
-	fn create_receive_or_transmit_or_both(self, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, defaults: &DefaultPageSizeAndHugePageSizes, memory_map_offsets: &xdp_mmap_offset, receive_queue_identifier: QueueIdentifier, redirect_map_and_attached_program: &RedirectMapAndAttachedProgram, arguments: Self::Arguments) -> Result<Self::ReceiveOrTransmitOrBoth, ExpressDataPathSocketCreationError>
+	fn create_receive_or_transmit_or_both(self, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, defaults: &DefaultPageSizeAndHugePageSizes, memory_map_offsets: &xdp_mmap_offsets, receive_queue_identifier: QueueIdentifier, redirect_map_and_attached_program: &RedirectMapAndAttachedProgram, arguments: Self::Arguments) -> Result<Self::ReceiveOrTransmitOrBoth, ExpressDataPathSocketCreationError>
 	{
 		Ok
 		(
@@ -77,7 +77,7 @@ impl<RPC: ReceivePollCreator> CreateReceiveOrTransmitOrBoth for RingQueueDepthRe
 	}
 }
 
-impl RingQueueDepthReceiveAndTransmitSeparately
+impl<RPC: ReceivePollCreator> RingQueueDepthReceiveAndTransmitSeparately<RPC>
 {
 	/// Create a new instance.
 	#[inline(always)]

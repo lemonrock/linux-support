@@ -4,9 +4,9 @@
 
 /// Out-of-range.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct TransmissionQueueLengthOutRangeError;
+pub struct MaximumTransmissionUnitPayloadSizeOutOfRangeError;
 
-impl Display for TransmissionQueueLengthOutRangeError
+impl Display for MaximumTransmissionUnitPayloadSizeOutOfRangeError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -15,6 +15,6 @@ impl Display for TransmissionQueueLengthOutRangeError
 	}
 }
 
-impl error::Error for TransmissionQueueLengthOutRangeError
+impl error::Error for MaximumTransmissionUnitPayloadSizeOutOfRangeError
 {
 }

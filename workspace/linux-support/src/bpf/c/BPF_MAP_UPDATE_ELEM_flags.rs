@@ -9,8 +9,11 @@ bitflags!
 	pub(crate) struct BPF_MAP_UPDATE_ELEM_flags: u64
 	{
 		const BPF_ANY = 0;
+		
 		const BPF_NOEXIST = 1;
+		
 		const BPF_EXIST = 2;
+		
 		const BPF_F_LOCK = 4;
 	}
 }

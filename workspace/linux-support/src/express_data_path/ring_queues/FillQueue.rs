@@ -19,7 +19,7 @@ impl FillQueue
 	
 	/// Originally based on `xsk_populate_fill_ring()` in Linux source `samples/bpf/xdpsock_user.c`.
 	#[inline(always)]
-	pub(crate) fn gift_initial_frames_to_kernel_for_receive<FFQ: FreeFrameQueue>(&self, fill_ring_queue_depth: RingQueueDepth, chunk_size: FFQ::CS, free_frame_queue: &FFQ)
+	pub(crate) fn gift_initial_frames_to_kernel_for_receive<FFQ: FreeFrameQueue>(&self, fill_ring_queue_depth: RingQueueDepth, chunk_size: FFQ::CS, free_frame_queue: &FFQ, frame_headroom: FrameHeadroom)
 	{
 		let number_of_frames_initially_gifted_to_the_linux_kernel: NonZeroU32 = fill_ring_queue_depth.into();
 		
@@ -39,8 +39,7 @@ impl FillQueue
 	#[inline(always)]
 	pub(crate) fn set_fill_address(&self, fill_queue_index: RingQueueIndex, relative_frame_index: u32, fill_frame_descriptor_bitfield: FrameDescriptorBitfield)
 	{
-		let index = fill_queue_indexadd(relative_frame_index);
-		unsafe { * self.fill_address(index).as_ptr() = fill_frame_descriptor_bitfield }
+		unsafe { * self.fill_address(fill_queue_index + relative_frame_index).as_ptr() = fill_frame_descriptor_bitfield }
 	}
 	
 	/// Based on `xsk_ring_prod__fill_addr()` in Linux source `tools/lib/bpf/xsk.h`.

@@ -80,7 +80,7 @@ impl ChunkSize for AlignedChunkSize
 	#[inline(always)]
 	fn received_relative_addresses_and_offsets(received_descriptor: &FrameDescriptor, frame_headroom: FrameHeadroom) -> RelativeAddressesAndOffsets
 	{
-		receive_descriptor.received_relative_addresses_and_offsets_if_aligned(frame_headroom)
+		received_descriptor.received_relative_addresses_and_offsets_if_aligned(frame_headroom)
 	}
 	
 	#[inline(always)]
@@ -92,7 +92,7 @@ impl ChunkSize for AlignedChunkSize
 	#[inline(always)]
 	fn from_completed_frame_descriptor(completed_frame_descriptor_bitfield: FrameDescriptorBitfield, frame_headroom: FrameHeadroom) -> RelativeAddressesAndOffsets
 	{
-		RelativeAddressesAndOffsets::from_completed_frame_descriptor_if_aligned(frame_descriptor_bitfield, frame_headroom)
+		RelativeAddressesAndOffsets::from_completed_frame_descriptor_if_aligned(completed_frame_descriptor_bitfield, frame_headroom)
 	}
 	
 	#[inline(always)]

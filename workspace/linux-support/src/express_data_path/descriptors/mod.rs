@@ -3,7 +3,6 @@
 
 
 use super::*;
-use crate::memory::VirtualAddress;
 
 
 include!("Descriptor.rs");

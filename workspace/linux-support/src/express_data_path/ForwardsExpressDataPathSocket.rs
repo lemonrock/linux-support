@@ -3,7 +3,7 @@
 
 
 /// Forwards.
-pub trait ForwardsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>> + Transmits<CommonTransmitOnly>, FFQ: FreeFrameQueue, RP: ReceivePoll>: ReceivesExpressDataPathSocket<ROTOB, FFQ> + TransmitsExpressDataPathSocket<ROTOB, FFQ>
+pub trait ForwardsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>> + Transmits<CommonTransmitOnly>, FFQ: FreeFrameQueue, RP: ReceivePoll>: ReceivesExpressDataPathSocket<ROTOB, FFQ, RP> + TransmitsExpressDataPathSocket<ROTOB, FFQ>
 {
 	fn forward<RFP: ReceivedFrameProcessor<ProcessingOutcome=()>>(&self, received_frame_processor: &mut RFP)
 	{

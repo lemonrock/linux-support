@@ -20,11 +20,11 @@ pub struct GetLinkProcessingMessageState
 	
 	pub(crate) link_mode: Option<IF_LINK_MODE>,
 	
-	pub(crate) maximum_transmission_unit: Option<MaximumTransmissionUnit>,
+	pub(crate) maximum_transmission_unit: Option<MaximumTransmissionUnitPayloadSize>,
 	
-	pub(crate) maximum_transmission_unit_minimum: Option<MaximumTransmissionUnit>,
+	pub(crate) maximum_transmission_unit_minimum: Option<MaximumTransmissionUnitPayloadSize>,
 	
-	pub(crate) maximum_transmission_unit_maximum: Option<MaximumTransmissionUnit>,
+	pub(crate) maximum_transmission_unit_maximum: Option<MaximumTransmissionUnitPayloadSize>,
 	
 	pub(crate) group: Option<NetworkDeviceGroup>,
 	

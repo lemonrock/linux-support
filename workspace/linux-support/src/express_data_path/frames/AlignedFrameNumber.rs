@@ -17,14 +17,14 @@ impl From<u32> for AlignedFrameNumber
 	}
 }
 
-impl Add for AlignedFrameNumber
+impl Add<u32> for AlignedFrameNumber
 {
 	type Output = Self;
 	
 	#[inline(always)]
 	fn add(self, rhs: u32) -> Self::Output
 	{
-		debug_assert(self.0.checked_add(rhs).is_some());
+		debug_assert!(self.0.checked_add(rhs).is_some());
 		
 		Self(self.0 + rhs)
 	}
@@ -98,7 +98,7 @@ impl AlignedFrameNumber
 	#[inline(always)]
 	pub(crate) const fn orig_addr_if_aligned(self, aligned_chunk_size: AlignedChunkSize) -> UserMemoryAreaRelativeAddress
 	{
-		self.to_u64() * aligned_chunk_size.to_u64()
+		UserMemoryAreaRelativeAddress::from_u64(self.to_u64() * aligned_chunk_size.to_u64())
 	}
 	
 	#[inline(always)]

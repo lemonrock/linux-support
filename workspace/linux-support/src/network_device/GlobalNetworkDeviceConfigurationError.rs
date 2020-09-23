@@ -19,10 +19,10 @@ pub enum GlobalNetworkDeviceConfigurationError
 	CouldNotSetLinkFlags(NetworkDeviceInputOutputControlError<Infallible>),
 	
 	#[allow(missing_docs)]
-	CouldNotSetTransmissionQueueLength(NetworkDeviceInputOutputControlError<TransmissionQueueLengthOutRangeError>),
+	CouldNotSetTransmissionQueueLength(NetworkDeviceInputOutputControlError<TransmissionQueueLengthOutOfRangeError>),
 	
 	#[allow(missing_docs)]
-	CouldNotSetMaximumTransmissionUnit(NetworkDeviceInputOutputControlError<MaximumTransmissionUnitOutRangeError>),
+	CouldNotSetMaximumTransmissionUnit(NetworkDeviceInputOutputControlError<MaximumTransmissionUnitPayloadSizeOutOfRangeError>),
 	
 	#[allow(missing_docs)]
 	CouldNotSetForwardErrorConnection(NetworkDeviceInputOutputControlError<Infallible>),

@@ -54,9 +54,9 @@ impl CreateReceiveOrTransmitOrBoth for RingQueueDepthTransmitOnly
 	}
 	
 	#[inline(always)]
-	fn create_receive_or_transmit_or_both(self, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, defaults: &DefaultPageSizeAndHugePageSizes, memory_map_offsets: &xdp_mmap_offset, _queue_identifier: QueueIdentifier, _redirect_map_and_attached_program: &RedirectMapAndAttachedProgram, _arguments: Self::Arguments) -> Result<Self::ReceiveOrTransmitOrBoth, ExpressDataPathSocketCreationError>
+	fn create_receive_or_transmit_or_both(self, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, defaults: &DefaultPageSizeAndHugePageSizes, memory_map_offsets: &xdp_mmap_offsets, _queue_identifier: QueueIdentifier, _redirect_map_and_attached_program: &RedirectMapAndAttachedProgram, _arguments: Self::Arguments) -> Result<Self::ReceiveOrTransmitOrBoth, ExpressDataPathSocketCreationError>
 	{
-		Ok(CommonTransmitOnly::new(TransmitQueue::from_transmit_memory_map_offsets(express_data_path_socket_file_descriptor, memory_map_offsets, transmit_ring_queue_depth, defaults)))
+		Ok(CommonTransmitOnly::new(TransmitQueue::from_transmit_memory_map_offsets(express_data_path_socket_file_descriptor, memory_map_offsets, self.0, defaults)))
 	}
 }
 

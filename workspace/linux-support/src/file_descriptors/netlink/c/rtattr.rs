@@ -61,9 +61,14 @@ impl<NAT: NetlinkAttributeType> rtattr<NAT>
 	}
 	
 	#[inline(always)]
-	pub(super) fn get_attribute_value_maximum_transmission_unit(&self) -> Result<MaximumTransmissionUnit, TryFromSliceError>
+	pub(super) fn get_attribute_value_maximum_transmission_unit(&self) -> Result<MaximumTransmissionUnitPayloadSize, String>
 	{
-		self.get_attribute_value_u32().map(|value| MaximumTransmissionUnit(value))
+		match self.get_attribute_value_u32()
+		{
+			Err(error) => Err(format!("{}", error)),
+			
+			Ok(value) => MaximumTransmissionUnitPayloadSize::try_from(value).map_err(|error| format!("Out of range: {}", error))
+		}
 	}
 	
 	#[inline(always)]

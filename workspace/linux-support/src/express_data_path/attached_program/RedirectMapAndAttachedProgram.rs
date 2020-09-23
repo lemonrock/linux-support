@@ -45,7 +45,7 @@ impl RedirectMapAndAttachedProgram
 	#[inline(always)]
 	pub(super) fn insert_into_redirect_map_if_receive(&self, receive_queue_identifier: QueueIdentifier, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor) -> Result<(), ExpressDataPathSocketCreationError>
 	{
-		Ok(self.redirect_map.insert(receive_queue_identifier, user_memory_socket_file_descriptor)?)
+		Ok(self.redirect_map.insert(receive_queue_identifier, express_data_path_socket_file_descriptor)?)
 	}
 	
 	/// Based on `libbpf`'s `xsk_delete_bpf_maps()`.
@@ -63,7 +63,7 @@ impl RedirectMapAndAttachedProgram
 	}
 	
 	/// Based on the function `xsk_setup_xdp_prog()` in Linux source `tools/lib/bpf/xsk.c`.
-	pub(super) fn new_suitable_for_owned_or_reuse_already_attached(network_interface_index: NetworkInterfaceIndex, settings: RedirectMapAndAttachedProgramSettings, queue_identifier: QueueIdentifier) -> Result<Self, AttachProgramError>
+	pub(super) fn new_suitable_for_owned_or_reuse_already_attached(network_interface_index: NetworkInterfaceIndex, settings: RedirectMapAndAttachedProgramSettings) -> Result<Self, AttachProgramError>
 	{
 		let RedirectMapAndAttachedProgramSettings { forcibly_overwrite_already_attached, device_offload, redirect_map_numa_node } = settings;
 		
@@ -163,7 +163,7 @@ impl RedirectMapAndAttachedProgram
 	}
 	
 	#[inline(always)]
-	fn convert_rc_to_single(rc_express_data_path_extended_bpf_program_file_descriptor: Rc<ExtendedBpfProgramFileDescriptor>, map_file_descriptors: FileDescriptorMap<MapFileDescriptor>, extended_bpf_program_file_descriptors: FileDescriptorMap<ExtendedBpfProgramFileDescriptor>) -> ExtendedBpfProgramFileDescriptor
+	fn convert_rc_to_single(rc_express_data_path_extended_bpf_program_file_descriptor: Rc<ExtendedBpfProgramFileDescriptor>, map_file_descriptors: FileDescriptorsMap<MapFileDescriptor>, extended_bpf_program_file_descriptors: FileDescriptorsMap<ExtendedBpfProgramFileDescriptor>) -> ExtendedBpfProgramFileDescriptor
 	{
 		drop(map_file_descriptors);
 		drop(extended_bpf_program_file_descriptors);

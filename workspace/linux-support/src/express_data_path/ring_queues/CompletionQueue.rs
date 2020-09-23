@@ -16,8 +16,7 @@ impl CompletionQueue
 	#[inline(always)]
 	pub(crate) fn get_completed_frame_descriptor_bitfield(&self, completion_queue_index: RingQueueIndex, relative_frame_index: u32) -> FrameDescriptorBitfield
 	{
-		let index = completion_queue_index.add(relative_frame_index);
-		*self.completion_adddress(index)
+		*self.completion_adddress(completion_queue_index + relative_frame_index)
 	}
 	
 	/// Based on `xsk_ring_cons__comp_addr()` in Linux source `tools/lib/bpf/xsk.h`.

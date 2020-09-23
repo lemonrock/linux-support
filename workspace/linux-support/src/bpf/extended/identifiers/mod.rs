@@ -3,7 +3,7 @@
 
 
 use super::*;
-use super::express_data_path::AttachMode;
+use super::express_data_path::attached_program::AttachMode;
 
 
 include!("Identifier.rs");

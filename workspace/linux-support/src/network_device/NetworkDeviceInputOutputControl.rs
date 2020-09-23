@@ -70,7 +70,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			Some(link_flags) => link_flags,
 		};
 		
-		let enable = enable.into().bits();
+		let enable = enable.to_net_device_flags_bits();
 		let disable_mask = disable.into().mask();
 		let flags_bits_to_set = (link_flags.bits() & disable_mask) | enable;
 		
@@ -91,19 +91,19 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	
 	/// Set transmission queue length.
 	#[inline(always)]
-	pub fn set_transmission_queue_length(&self, transmission_queue_length: u32) -> Result<Option<()>, NetworkDeviceInputOutputControlError<TransmissionQueueLengthOutRangeError>>
+	pub fn set_transmission_queue_length(&self, transmission_queue_length: u32) -> Result<Option<()>, NetworkDeviceInputOutputControlError<TransmissionQueueLengthOutOfRangeError>>
 	{
 		self.set_ifreq_from_name
 		(
 			SIOCSIFTXQLEN,
 			ifreq_ifru
 			{
-				ifru_ivalue: transmission_queue_length.try_into().map_err(|_| TransmissionQueueLengthOutRangeError)?,
+				ifru_ivalue: transmission_queue_length.try_into().map_err(|_| TransmissionQueueLengthOutOfRangeError)?,
 			},
 			|_ifreq| Ok(()),
 			|errno| match errno.0
 			{
-				ERANGE => Err(TransmissionQueueLengthOutRangeError),
+				ERANGE => Err(TransmissionQueueLengthOutOfRangeError),
 				
 				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCGIFINDEX)", unexpected),
 			}
@@ -112,7 +112,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	
 	/// Set maximum transmission unit (MTU).
 	#[inline(always)]
-	pub fn set_maximum_transmission_unit(&self, maximum_transmission_unit: MaximumTransmissionUnit) -> Result<Option<()>, NetworkDeviceInputOutputControlError<MaximumTransmissionUnitOutRangeError>>
+	pub fn set_maximum_transmission_unit(&self, maximum_transmission_unit: MaximumTransmissionUnitPayloadSize) -> Result<Option<()>, NetworkDeviceInputOutputControlError<MaximumTransmissionUnitPayloadSizeOutOfRangeError>>
 	{
 		self.set_ifreq_from_name
 		(
@@ -124,7 +124,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			|_ifreq| Ok(()),
 			|errno| match errno.0
 			{
-				ERANGE => Err(MaximumTransmissionUnitOutRangeError),
+				ERANGE => Err(MaximumTransmissionUnitPayloadSizeOutOfRangeError),
 				
 				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCGIFINDEX)", unexpected),
 			}

@@ -31,7 +31,7 @@ arrayvec = { version = "^0.5.1", features = ["array-sizes-33-128", "array-sizes-
 bitflags = "^1.0"
 bit-vec = "^0.6.1"
 chrono = { version = "^0.4.11", features = ["serde"] }
-crossbeam = { version = "^0.7.3" }
+crossbeam-queue = { version = "^0.2.3" }
 either = { version = "^1.5.3", features = ["serde"] }
 errno = "^0.2"
 lazy_static = "^1.4.0"
@@ -46,7 +46,6 @@ raw-cpuid = "^8.1.1"
 serde = { version = "^1.0", features = ["derive", "rc"] }
 serde_bytes = "^0.11.3"
 serde-big-array = "^0.3.0"
-spin-locks = "0.0.2"
 streaming-iterator = "^0.1.5"
 strum = "^0.19.2"
 strum_macros = "^0.19.2"

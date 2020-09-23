@@ -11,24 +11,31 @@ pub struct OwnedExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeF
 	instance: ManuallyDrop<ExpressDataPathInstance<ROTOB, FFQ>>,
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, FFQ: FreeFrameQueue, RP: ReceivePoll> Drop for OwnedExpressDataPathSocket<ROTOB, FFQ>
+impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> SpecializationHackOfDropToOvercomeComplierErrorE0367ExpressDataPathSocket for OwnedExpressDataPathSocket<ROTOB, FFQ>
 {
-	/// Based on `libbpf`'s `xsk_socket__delete()`.
 	#[inline(always)]
-	fn drop(&mut self)
+	default fn specialization_of_drop(&mut self)
 	{
-		self.common.remove_receive_map_queue_identifier(&self.redirect_map_and_attached_program);
 		self.manually_drop()
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, FFQ: FreeFrameQueue> Drop for OwnedExpressDataPathSocket<ROTOB, FFQ>
+impl<ROTOB: ReceiveOrTransmitOrBoth<RP=RP> + Receives<CommonReceiveOnly<RP>>, FFQ: FreeFrameQueue, RP: ReceivePoll> SpecializationHackOfDropToOvercomeComplierErrorE0367ExpressDataPathSocket for OwnedExpressDataPathSocket<ROTOB, FFQ>
 {
-	/// Based on `libbpf`'s `xsk_socket__delete()`.
+	#[inline(always)]
+	fn specialization_of_drop(&mut self)
+	{
+		self.common.remove_receive_map_queue_identifier(&self.instance);
+		self.manually_drop()
+	}
+}
+
+impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> Drop for OwnedExpressDataPathSocket<ROTOB, FFQ>
+{
 	#[inline(always)]
 	fn drop(&mut self)
 	{
-		self.manually_drop()
+		self.specialization_of_drop()
 	}
 }
 
@@ -46,12 +53,12 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> OwnedExpressDataPathSo
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ExpressDataPathSocket<ROTOB, CS> for OwnedExpressDataPathSocket<ROTOB, FFQ>
+impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ExpressDataPathSocket<ROTOB, FFQ> for OwnedExpressDataPathSocket<ROTOB, FFQ>
 {
 	#[inline(always)]
 	fn user_memory(&self) -> &UserMemory<FFQ>
 	{
-		&self.user_memory
+		self.instance.user_memory()
 	}
 	
 	#[inline(always)]
@@ -63,11 +70,11 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ExpressDataPathSocket<
 	#[inline(always)]
 	fn express_data_path_socket_file_descriptor(&self) -> &ExpressDataPathSocketFileDescriptor
 	{
-		&self.user_memory().user_memory_socket_file_descriptor
+		self.user_memory().user_memory_socket_file_descriptor()
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, FFQ: FreeFrameQueue, RP: ReceivePoll> ReceivesExpressDataPathSocket<ROTOB, CS> for OwnedExpressDataPathSocket<ROTOB, FFQ>
+impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, FFQ: FreeFrameQueue, RP: ReceivePoll> ReceivesExpressDataPathSocket<ROTOB, FFQ, RP> for OwnedExpressDataPathSocket<ROTOB, FFQ>
 {
 	#[inline(always)]
 	fn lock_fill_queue(&self)
@@ -80,7 +87,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, FFQ: Free
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, FFQ: FreeFrameQueue> TransmitsExpressDataPathSocket<ROTOB, CS> for OwnedExpressDataPathSocket<ROTOB, FFQ>
+impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, FFQ: FreeFrameQueue> TransmitsExpressDataPathSocket<ROTOB, FFQ> for OwnedExpressDataPathSocket<ROTOB, FFQ>
 {
 	#[inline(always)]
 	fn lock_completion_queue(&self)

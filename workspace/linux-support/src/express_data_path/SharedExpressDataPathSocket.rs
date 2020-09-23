@@ -17,23 +17,21 @@ pub struct SharedExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth, FFQ: Free
 	queue_identifier: QueueIdentifier,
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, FFQ: FreeFrameQueue, RP: ReceivePoll> Drop for SharedExpressDataPathSocket<ROTOB, FFQ>
+impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> SpecializationHackOfDropToOvercomeComplierErrorE0367ExpressDataPathSocket for SharedExpressDataPathSocket<ROTOB, FFQ>
 {
-	/// Based on `libbpf`'s `xsk_socket__delete()`.
 	#[inline(always)]
-	fn drop(&mut self)
+	default fn specialization_of_drop(&mut self)
 	{
-		self.common.remove_receive_map_queue_identifier(self.instance.redirect_map_and_attached_program());
 		self.manually_drop()
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, FFQ: FreeFrameQueue> Drop for SharedExpressDataPathSocket<ROTOB, FFQ>
+impl<ROTOB: ReceiveOrTransmitOrBoth<RP=RP> + Receives<CommonReceiveOnly<RP>>, FFQ: FreeFrameQueue, RP: ReceivePoll> SpecializationHackOfDropToOvercomeComplierErrorE0367ExpressDataPathSocket for SharedExpressDataPathSocket<ROTOB, FFQ>
 {
-	/// Based on `libbpf`'s `xsk_socket__delete()`.
 	#[inline(always)]
-	fn drop(&mut self)
+	fn specialization_of_drop(&mut self)
 	{
+		self.common.remove_receive_map_queue_identifier(&self.instance);
 		self.manually_drop()
 	}
 }
@@ -43,13 +41,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> SharedExpressDataPathS
 	#[inline(always)]
 	fn manually_drop(&mut self)
 	{
-		unsafe
-		{
-			self.instance.remove_queue_identifier(self.queue_identifier);
-			
-			ManuallyDrop::drop(&mut self.common);
-			ManuallyDrop::drop(&mut self.express_data_path_socket_file_descriptor);
-		}
+		self.specialization_of_drop()
 	}
 }
 
@@ -74,7 +66,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ExpressDataPathSocket<
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, FFQ: FreeFrameQueue, RP: ReceivePoll> ReceivesExpressDataPathSocket<ROTOB, FFQ> for SharedExpressDataPathSocket<ROTOB, FFQ>
+impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, FFQ: FreeFrameQueue, RP: ReceivePoll> ReceivesExpressDataPathSocket<ROTOB, FFQ, RP> for SharedExpressDataPathSocket<ROTOB, FFQ>
 {
 	#[inline(always)]
 	fn lock_fill_queue(&self)
@@ -104,7 +96,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, FFQ: FreeFr
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth + Receives<CommonReceiveOnly<RP>>, FFQ: FreeFrameQueue, RP: ReceivePoll> SharedExpressDataPathSocket<ROTOB, FFQ>
+impl<ROTOB: ReceiveOrTransmitOrBoth<RP=RP> + Receives<CommonReceiveOnly<RP>>, FFQ: FreeFrameQueue, RP: ReceivePoll> SharedExpressDataPathSocket<ROTOB, FFQ>
 {
 	#[inline(always)]
 	fn fill_queue_spin_lock(&self) -> &BestForCompilationTargetSpinLock

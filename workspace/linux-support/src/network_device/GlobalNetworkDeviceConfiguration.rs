@@ -27,7 +27,7 @@ pub struct GlobalNetworkDeviceConfiguration
 	/// Maximum Transmission Unit (MTU).
 	///
 	/// Does not normally need to change.
-	#[serde(default)] pub maximum_transmission_unit: Option<MaximumTransmissionUnit>,
+	#[serde(default)] pub maximum_transmission_unit: Option<MaximumTransmissionUnitPayloadSize>,
 	
 	/// Forward Error Correction (FEC).
 	#[serde(default)] pub forward_error_correction: Option<ForwardErrorCorrectionCode>,

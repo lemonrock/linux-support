@@ -38,15 +38,15 @@ impl XdpSocketAddressFlags
 	{
 		if force_copy
 		{
-			sxdp_flags |= XdpSocketAddressFlags::ForceCopy;
+			self |= XdpSocketAddressFlags::ForceCopy;
 		}
 		if force_zero_copy
 		{
-			sxdp_flags |= XdpSocketAddressFlags::ForceZeroCopy;
+			self |= XdpSocketAddressFlags::ForceZeroCopy;
 		}
 		if needs_wake_up
 		{
-			sxdp_flags |= XdpSocketAddressFlags::UseNeedsWakeUp;
+			self |= XdpSocketAddressFlags::UseNeedsWakeUp;
 		}
 		self
 	}

@@ -17,7 +17,7 @@ pub(crate) struct UserMemory<FFQ: FreeFrameQueue>
 	
 	user_memory_socket_file_descriptor: ManuallyDrop<ExpressDataPathSocketFileDescriptor>,
 	
-	chunk_size: CS,
+	chunk_size: FFQ::CS,
 	
 	number_of_chunks: NonZeroU32,
 	
@@ -42,7 +42,7 @@ impl<FFQ: FreeFrameQueue> Drop for UserMemory<FFQ>
 impl<FFQ: FreeFrameQueue> UserMemory<FFQ>
 {
 	#[inline(always)]
-	pub(crate) fn number_of_frames(&self, frames: &[FrameReference<CS>]) -> NonZeroU32
+	pub(crate) fn number_of_frames(&self, frames: &[FrameReference<FFQ::CS>]) -> NonZeroU32
 	{
 		let number_of_frames = frames.len();
 		debug_assert_ne!(number_of_frames, 0);
@@ -78,7 +78,7 @@ impl<FFQ: FreeFrameQueue> UserMemory<FFQ>
 	#[inline(always)]
 	pub(crate) fn frame_to_transmit_our_frame_headroom_ethernet_packet(&self, frame_identifier: <<FFQ as FreeFrameQueue>::CS as ChunkSize>::FrameIdentifier) -> (&mut [u8], &mut [u8])
 	{
-		let relative_addresses_and_offsets = self.chunk_size.transmit_relative_addesses_and_offsets(self.frame_headroom, frame_identifier, 0);
+		let mut relative_addresses_and_offsets = self.chunk_size.transmit_relative_addesses_and_offsets(self.frame_headroom, frame_identifier, 0);
 		relative_addresses_and_offsets.length_of_packet = relative_addresses_and_offsets.minimum_tailroom_length(self.chunk_size);
 		
 		(
@@ -126,7 +126,7 @@ impl<FFQ: FreeFrameQueue> UserMemory<FFQ>
 	///
 	/// If using an AlignedChunkSize, `number_of_chunks` must be an exact multiple of the number that would fit in a page.
 	/// Thus we round it up if necessary.
-	fn new<FOCOBRQD: FillOrCompletionOrBothRingQueueDepths>(number_of_chunks: NonZeroU32, chunk_size: FFQ::CS, frame_headroom: FrameHeadroom, network_interface_maximum_transmission_unit_including_frame_check_sequence: MaximumTransmissionUnit, fill_or_completion_or_both_ring_queue_depths: FOCOBRQD, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, ExpressDataPathSocketCreationError>
+	fn new<FOCOBRQD: FillOrCompletionOrBothRingQueueDepths>(number_of_chunks: NonZeroU32, chunk_size: FFQ::CS, frame_headroom: FrameHeadroom, maximum_transmission_unit_payload_size: MaximumTransmissionUnitPayloadSize, fill_or_completion_or_both_ring_queue_depths: FOCOBRQD, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, ExpressDataPathSocketCreationError>
 	{
 		use self::ExpressDataPathSocketCreationError::*;
 		
@@ -137,9 +137,9 @@ impl<FFQ: FreeFrameQueue> UserMemory<FFQ>
 		
 		// Internally, Linux drops received packets that don't fit into a chunk.
 		// See the usage of `xsk_umem_get_rx_frame_size()` in Linux source.
-		if XDP_PACKET_HEADROOM + frame_headroom.into() + network_interface_maximum_transmission_unit_including_frame_check_sequence.into() > (chunk_size.into().get() as usize)
+		if chunk_size.compare_to_frame_sizes(frame_headroom, maximum_transmission_unit_payload_size) == Ordering::Less
 		{
-			return Err(ChunkSizeDoesNotAccommodateFrameHeadroomAndMaximumTransmissionUnitIncludingFrameCheckSequence { xdp_packet_headroom: XDP_PACKET_HEADROOM, frame_headroom, network_interface_maximum_transmission_unit_including_frame_check_sequence } )
+			return Err(ChunkSizeDoesNotAccommodateFrameHeadroomAndMaximumTransmissionUnitIncludingFrameCheckSequenceSoLinuxWouldDropPackets { xdp_packet_headroom: XDP_PACKET_HEADROOM, frame_headroom, chunk_size: chunk_size.into(), maximum_transmission_unit_payload_size } )
 		}
 		
 		let number_of_chunks = chunk_size.round_up_number_of_chunks(number_of_chunks);
@@ -156,7 +156,7 @@ impl<FFQ: FreeFrameQueue> UserMemory<FFQ>
 		// Linux documentation (`Documentation/networking/af_xdp.rst`, currently section `XDP_{RX|TX|UMEM_FILL|UMEM_COMPLETION}_RING setsockopts`) recommends not populating the fill queue if only doing transmit.
 		if FOCOBRQD::SupportsReceive
 		{
-			fill_queue.gift_initial_frames_to_kernel_for_receive(fill_ring_queue_depth, chunk_size, &free_frame_queue)
+			fill_queue.gift_initial_frames_to_kernel_for_receive(fill_ring_queue_depth, chunk_size, &free_frame_queue, frame_headroom)
 		}
 		
 		Ok

@@ -9,37 +9,34 @@ bitflags!
 	pub struct SettableLinkFlags: u16
 	{
 		/// Interface is up.
-		const Up = IFF_UP;
+		const Up = IFF_UP as u16;
 	
 		/// Turn on debugging.
-		const Debug = IFF_DEBUG;
+		const Debug = IFF_DEBUG as u16;
 	
 		/// Avoid use of trailers.
-		const NoTraliers = IFF_NOTRAILERS;
+		const NoTraliers = IFF_NOTRAILERS as u16;
 	
 		/// No ARP protocol.
-		const NoArpProtocol = IFF_NOARP;
+		const NoArpProtocol = IFF_NOARP as u16;
 		
 		/// Promiscuous
-		const Promiscuous = IFF_PROMISC;
-	
-		/// Receive all packets.
-		const Promiscuity = IFF_PROMISC;
+		const Promiscuous = IFF_PROMISC as u16;
 	
 		/// Receive all multicast packets.
-		const ReceiveAllMulticast = IFF_ALLMULTI;
+		const ReceiveAllMulticast = IFF_ALLMULTI as u16;
 	
 		/// Means that this media uses special encapsulation for multicast frames.
-		const MulticastSpecialEncapsulation = IFF_MULTICAST;
+		const MulticastSpecialEncapsulation = IFF_MULTICAST as u16;
 	
 		/// Can set port media type.
-		const PortSelectionEnabled = IFF_PORTSEL;
+		const PortSelectionEnabled = IFF_PORTSEL as u16;
 	
 		/// Auto media select active.
-		const AutoMedia = IFF_AUTOMEDIA;
+		const AutoMedia = IFF_AUTOMEDIA as u16;
 	
 		/// Dial-up device with changing addresses.
-		const DialUpDeviceWithDynamicallyChangingAddresses = IFF_DYNAMIC;
+		const DialUpDeviceWithDynamicallyChangingAddresses = IFF_DYNAMIC as u16;
 	}
 }
 
@@ -48,6 +45,16 @@ impl From<net_device_flags> for SettableLinkFlags
 	#[inline(always)]
 	fn from(value: net_device_flags) -> Self
 	{
-		SettableLinkFlags::frrom_bits_truncate(value.bits() as u16)
+		SettableLinkFlags::from_bits_truncate(value.bits() as u16)
+	}
+}
+
+impl SettableLinkFlags
+{
+	#[inline(always)]
+	fn to_net_device_flags_bits(self) -> u32
+	{
+		let value: net_device_flags = self.into();
+		network_device_flags.bits()
 	}
 }

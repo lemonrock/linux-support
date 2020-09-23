@@ -26,6 +26,7 @@ use crate::file_descriptors::*;
 use crate::file_descriptors::network_device::*;
 use crate::paths::SysPath;
 use crate::user_and_groups::assert_effective_user_id_is_root;
+use crate::express_data_path::frames::FrameHeadroom;
 
 
 /// C.
@@ -86,8 +87,8 @@ include!("EnergyEfficientEthernetConfiguration.rs");
 include!("GlobalNetworkDeviceConfiguration.rs");
 include!("GlobalNetworkDeviceConfigurationError.rs");
 include!("HardwareAddress.rs");
-include!("MaximumTransmissionUnit.rs");
-include!("MaximumTransmissionUnitOutRangeError.rs");
+include!("MaximumTransmissionUnitPayloadSize.rs");
+include!("MaximumTransmissionUnitPayloadSizeOutOfRangeError.rs");
 include!("NetworkDeviceFirmware.rs");
 include!("NetworkDeviceGroup.rs");
 include!("NetworkDeviceInputOutputControl.rs");
@@ -105,4 +106,4 @@ include!("PhysicalIdentifierFromBytesError.rs");
 include!("QueueCount.rs");
 include!("QueueIdentifier.rs");
 include!("SettableLinkFlags.rs");
-include!("TransmissionQueueLengthOutRangeError.rs");
+include!("TransmissionQueueLengthOutOfRangeError.rs");

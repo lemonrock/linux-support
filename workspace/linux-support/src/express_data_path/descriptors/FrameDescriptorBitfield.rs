@@ -25,7 +25,7 @@ impl FrameDescriptorBitfield
 	#[inline(always)]
 	pub(crate) fn for_aligned(start_of_packet: UserMemoryAreaRelativeAddress) -> Self
 	{
-		Self(start_of_packet)
+		Self(start_of_packet.into_u64())
 	}
 	
 	#[inline(always)]
@@ -37,46 +37,96 @@ impl FrameDescriptorBitfield
 	#[inline(always)]
 	pub(crate) fn for_unaligned(orig_addr: UserMemoryAreaRelativeAddress, offset: usize) -> Self
 	{
-		debug_assert_eq!(orig_addr, orig_addr & XSK_UNALIGNED_BUF_ADDR_MASK);
+		let orig_addr = Self::debug_assert_no_offset(orig_addr.into_u64());
 		
-		Self(orig_addr | ((offset as u64) << XSK_UNALIGNED_BUF_OFFSET_SHIFT))
+		Self(Self::encode_offset(offset) | orig_addr)
 	}
 	
 	#[inline(always)]
-	pub(crate) const fn start_of_packet_if_aligned(self) -> UserMemoryAreaRelativeAddress
+	pub(crate) fn start_of_packet_if_aligned(self) -> UserMemoryAreaRelativeAddress
 	{
-		self.0
+		let start_of_packet = Self::debug_assert_no_offset(self.0);
+		
+		UserMemoryAreaRelativeAddress::from_u64(start_of_packet)
 	}
 	
 	#[inline(always)]
-	pub(crate) const fn start_of_packet_if_unaligned(self) -> UserMemoryAreaRelativeAddress
+	fn debug_assert_no_offset(value: u64) -> u64
+	{
+		debug_assert_eq!(value, Self::extract_address(value));
+		value
+	}
+	
+	#[inline(always)]
+	pub(crate) fn start_of_packet_if_unaligned(self) -> UserMemoryAreaRelativeAddress
 	{
 		self.orig_addr_if_unaligned() + self.offset_if_unaligned()
 	}
 	
 	#[inline(always)]
-	pub(crate) const fn orig_addr_if_aligned(self, aligned_chunk_size: AlignedChunkSize) -> UserMemoryAreaRelativeAddress
+	pub(crate) fn orig_addr_if_aligned(self, aligned_chunk_size: AlignedChunkSize) -> UserMemoryAreaRelativeAddress
 	{
-		self.0 & aligned_chunk_size.mask()
+		let start_of_packet = Self::debug_assert_no_offset(self.0);
+		
+		UserMemoryAreaRelativeAddress::from_u64(start_of_packet & aligned_chunk_size.mask())
 	}
 	
 	#[inline(always)]
 	pub(crate) const fn orig_addr_if_unaligned(self) -> UserMemoryAreaRelativeAddress
 	{
-		self.0 & XSK_UNALIGNED_BUF_ADDR_MASK
+		UserMemoryAreaRelativeAddress::from_u64(Self::extract_address(self.0))
 	}
 	
 	#[inline(always)]
-	pub(crate) const fn offset_if_aligned(self, aligned_chunk_size: AlignedChunkSize) -> usize
+	pub(crate) fn offset_if_aligned(self, aligned_chunk_size: AlignedChunkSize) -> usize
 	{
+		let start_of_packet = self.start_of_packet_if_aligned();
+		
 		let orig_addr = self.orig_addr_if_aligned(aligned_chunk_size);
-		debug_assert!(orig_addr <= self.0);
-		(self.0 - orig_addr) as usize
+		
+		start_of_packet - orig_addr
 	}
 	
 	#[inline(always)]
-	pub(crate) const fn offset_if_unaligned(self) -> usize
+	pub(crate) fn offset_if_unaligned(self) -> usize
 	{
-		(self.0 >> XSK_UNALIGNED_BUF_OFFSET_SHIFT) as usize
+		Self::extract_offset(self.0)
+	}
+	
+	const XSK_UNALIGNED_BUF_OFFSET_SHIFT: u64 = 48;
+	
+	#[inline(always)]
+	fn encode_offset(offset: usize) -> u64
+	{
+		(validate_offset(offset) as u64) << Self::XSK_UNALIGNED_BUF_OFFSET_SHIFT
+	}
+	
+	#[inline(always)]
+	fn extract_offset(value: u64) -> usize
+	{
+		let offset = value >> Self::XSK_UNALIGNED_BUF_OFFSET_SHIFT;
+		debug_assert!(offset <= (usize::MAX as u64));
+		
+		validate_offset(offset as usize)
+	}
+	
+	#[inline(always)]
+	const fn extract_address(value: u64) -> u64
+	{
+		const XSK_UNALIGNED_BUF_ADDR_MASK: u64 = (1 << Self::XSK_UNALIGNED_BUF_OFFSET_SHIFT) - 1;
+		
+		value & XSK_UNALIGNED_BUF_ADDR_MASK
+	}
+	
+	#[inline(always)]
+	fn validate_offset(offset: usize) -> usize
+	{
+		const BitsInAByte: u64 = 8;
+		const U64SizeInBits: u64 = ((size_of::<u64>() as u64) * BitsInAByte);
+		const OffsetSizeInBits: u64 = U64SizeInBits - XSK_UNALIGNED_BUF_OFFSET_SHIFT;
+		const ExclusiveMaximum: usize = (1 << OffsetSizeInBits) as usize;
+		
+		debug_assert!(offset < ExclusiveMaximum);
+		offset
 	}
 }

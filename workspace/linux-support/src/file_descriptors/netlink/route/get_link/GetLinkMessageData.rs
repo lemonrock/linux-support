@@ -77,13 +77,13 @@ pub struct GetLinkMessageData
 	/// Also available via the ioctl `SIOCGIFMTU`.
 	/// Also settable via the ioctl `SIOCSIFMTU`.
 	/// Read-write via sysfs.
-	pub maximum_transmission_unit: MaximumTransmissionUnit,
+	pub maximum_transmission_unit: MaximumTransmissionUnitPayloadSize,
 	
 	/// Maximum Transmission Unit (MTU), minimum.
-	pub maximum_transmission_unit_minimum: MaximumTransmissionUnit,
+	pub maximum_transmission_unit_minimum: MaximumTransmissionUnitPayloadSize,
 	
 	/// Maximum Transmission Unit (MTU), maximum.
-	pub maximum_transmission_unit_maximum: MaximumTransmissionUnit,
+	pub maximum_transmission_unit_maximum: MaximumTransmissionUnitPayloadSize,
 	
 	/// Group this link belongs to.
 	///

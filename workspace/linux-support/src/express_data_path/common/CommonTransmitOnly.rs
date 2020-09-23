@@ -22,6 +22,7 @@ impl Supports for CommonTransmitOnly
 
 impl ReceiveOrTransmitOrBoth for CommonTransmitOnly
 {
+	type RP = ();
 }
 
 impl Transmits<Self> for CommonTransmitOnly

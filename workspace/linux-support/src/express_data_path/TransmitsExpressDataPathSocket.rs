@@ -130,7 +130,7 @@ pub trait TransmitsExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth + Transm
 			{
 				None =>
 				{
-					Self.unlock_completion_queue();
+					self.unlock_completion_queue();
 					None
 				},
 				

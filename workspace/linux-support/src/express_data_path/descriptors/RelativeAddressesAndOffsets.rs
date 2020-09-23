@@ -124,6 +124,7 @@ pub struct RelativeAddressesAndOffsets
 	/// Sames as `orig_addr` for transmitted frames.
 	pub start_of_our_frame_headroom: UserMemoryAreaRelativeAddress,
 	
+	/// Length of frame headroom; same value as `FrameHeadroom` and same constraints.
 	pub length_of_our_frame_headroom: usize,
 	
 	/// Sames as `orig_addr` for transmitted frames and completed frames.
@@ -135,8 +136,12 @@ pub struct RelativeAddressesAndOffsets
 	/// Sames as `orig_addr` for transmitted frames and completed frames.
 	pub start_of_xdp_headroom: UserMemoryAreaRelativeAddress,
 	
+	/// The start of the chunk of memory.
+	///
+	/// Name reflects that used internally by the Linux kernel.
 	pub orig_addr: UserMemoryAreaRelativeAddress,
 	
+	/// This value can not exceed `(1 << 16) - 1`, ie `u16::MAX as usize`.
 	pub offset: usize,
 	
 	// pub start_of_xdp_headroom_after_xdp_frame: UserMemoryAreaRelativeAddress,
@@ -146,44 +151,52 @@ pub struct RelativeAddressesAndOffsets
 
 impl RelativeAddressesAndOffsets
 {
-	/// Length should be `XDP_FRAME_HEADROOM` but zero if created for a frame being transmitted by us.
+	/// Length should be `XDP_PACKET_HEADROOM` but zero if created for a frame being transmitted by us.
 	///
 	/// The first part of this slice is occupied by a `xdp_frame`.
 	#[inline(always)]
-	pub(crate) fn xdp_headroom(&self, user_memory_area: &UserMemoryArea) -> &[u8]
+	pub(crate) fn xdp_headroom<'a>(&self, user_memory_area: &'a UserMemoryArea) -> &'a [u8]
 	{
 		user_memory_area.slice(self.start_of_xdp_headroom, self.xdp_headroom_length)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn our_frame_headroom(&self, user_memory_area: &UserMemoryArea) -> &[u8]
+	pub(crate) fn our_frame_headroom<'a>(&self, user_memory_area: &'a UserMemoryArea) -> &'a [u8]
 	{
 		user_memory_area.slice(self.start_of_our_frame_headroom, self.length_of_our_frame_headroom)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn our_frame_headroom_mut(&self, user_memory_area: &UserMemoryArea) -> &mut [u8]
+	pub(crate) fn our_frame_headroom_mut<'a>(&self, user_memory_area: &'a UserMemoryArea) -> &'a mut [u8]
 	{
 		user_memory_area.slice_mut(self.start_of_our_frame_headroom, self.length_of_our_frame_headroom)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn ethernet_packet(&self, user_memory_area: &UserMemoryArea) -> &[u8]
+	pub(crate) fn ethernet_packet<'a>(&self, user_memory_area: &'a UserMemoryArea) -> &'a [u8]
 	{
 		user_memory_area.slice(self.start_of_packet, self.length_of_packet)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn ethernet_packet_mut(&self, user_memory_area: &UserMemoryArea) -> &mut [u8]
+	pub(crate) fn ethernet_packet_mut<'a>(&self, user_memory_area: &'a UserMemoryArea) -> &'a mut [u8]
 	{
 		user_memory_area.slice_mut(self.start_of_packet, self.length_of_packet)
 	}
 	
 	#[inline(always)]
+	fn minimum_end_of_chunk(&self) -> UserMemoryAreaRelativeAddress
+	{
+		self.start_of_packet + self.length_of_packet
+	}
+	
+	#[inline(always)]
 	pub(crate) fn minimum_tailroom_length(&self, chunk_size: impl ChunkSize) -> usize
 	{
-		let length_occupied = (self.start_of_packet + self.length_of_packet) - self.orig_addr;
-		let chunk_size = chunk_size.into().get() as u64;
+		let minimum_end_of_chunk = self.minimum_end_of_chunk();
+		
+		let length_occupied = minimum_end_of_chunk - self.orig_addr;
+		let chunk_size: usize = chunk_size.into();
 		
 		debug_assert!(length_occupied <= chunk_size);
 		(chunk_size - length_occupied) as usize
@@ -307,7 +320,7 @@ impl RelativeAddressesAndOffsets
 	}
 	
 	#[inline(always)]
-	pub(crate) fn start_of_packet_for_fill_queue_if_aligned(orig_addr: UserMemoryAreaRelativeAddress, frame_headroom: FrameHeadroom) -> u64
+	pub(crate) fn start_of_packet_for_fill_queue_if_aligned(orig_addr: UserMemoryAreaRelativeAddress, frame_headroom: FrameHeadroom) -> UserMemoryAreaRelativeAddress
 	{
 		let xdp_headroom_length = XDP_PACKET_HEADROOM;
 		let length_of_our_frame_headroom = frame_headroom.into();

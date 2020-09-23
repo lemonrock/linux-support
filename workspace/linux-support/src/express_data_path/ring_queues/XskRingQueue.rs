@@ -37,14 +37,20 @@ impl<XRQK: XskRingQueueKind, D: Descriptor> XskRingQueue<XRQK, D>
 	#[inline(always)]
 	fn ring_entry(&self, index: RingQueueEntryIndex) -> &D
 	{
-		unsafe { & * self.ring.add(self.array_index(index)) }
+		unsafe { & * self.ring_entry_raw(index) }
 	}
 	
 	/// Should be treated as uninitialized data.
 	#[inline(always)]
 	fn ring_entry_mut(&self, index: RingQueueEntryIndex) -> NonNull<D>
 	{
-		unsafe { NonNull::new_unchecked(self.ring.add(self.array_index(index))) }
+		unsafe { NonNull::new_unchecked(self.ring_entry_raw(index)) }
+	}
+	
+	#[inline(always)]
+	unsafe fn ring_entry_raw(&self, index: RingQueueEntryIndex) -> *mut D
+	{
+		self.ring.add(self.array_index(index))
 	}
 	
 	#[inline(always)]
