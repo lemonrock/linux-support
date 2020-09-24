@@ -5,6 +5,7 @@
 use super::*;
 use crate::network_device::*;
 use crate::network_device::c::*;
+use crate::network_device::queues::*;
 use crate::bpf::extended::identifiers::MultipleProgramIdentifiers;
 
 

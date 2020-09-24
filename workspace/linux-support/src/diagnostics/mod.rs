@@ -99,6 +99,7 @@ use crate::network_device::coalescing::CoalesceConfiguration;
 use crate::network_device::eeprom::*;
 use crate::network_device::energy_efficient_ethernet::EnergyEfficientEthernetInformation;
 use crate::network_device::pause::PauseConfiguration;
+use crate::network_device::queues::*;
 use crate::network_device::receive_side_scaling::ConfiguredHashSettings;
 use crate::network_device::string_sets::AllStringSets;
 use crate::network_device::tunables::*;

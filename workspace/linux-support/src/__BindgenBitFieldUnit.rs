@@ -74,7 +74,7 @@ impl<Storage: AsRef<[u8]> + AsMut<[u8]>, Align> __BindgenBitfieldUnit<Storage, A
         }
     }
 	
-	// Get.
+	/// Get.
 	#[allow(dead_code)]
     #[inline(always)]
     pub fn get(&self, bit_offset: usize, bit_width: u8) -> u64

@@ -35,6 +35,7 @@ use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use crate::memory::huge_pages::HugePageSize;
 use crate::memory::mapping::*;
 use crate::network_device::*;
+use crate::network_device::queues::*;
 
 
 /// Attached program.

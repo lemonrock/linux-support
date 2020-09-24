@@ -862,11 +862,9 @@ pub mod diagnostics;
 pub mod environment;
 
 
-/// Network devices.
-pub mod network_device;
-
-
 /// eXpress Data Path (XDP).
+///
+/// Start by creating an instance of `ExpressDataPathInstance`.
 pub mod express_data_path;
 
 
@@ -970,6 +968,10 @@ pub mod mounts;
 
 /// Namespaces.
 pub mod namespaces;
+
+
+/// Network devices.
+pub mod network_device;
 
 
 /// Perf(ormance) Event.

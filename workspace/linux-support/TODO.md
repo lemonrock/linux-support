@@ -1,22 +1,12 @@
 ## Unfinished code
 
-* GlobalNetworkDeviceConfiguration
-* OwnedReceiveTransmitMemoryRingQueues::construct
-    * Need to attach XDP program
-    * Need to work how we use receive and transmit in-memory queues
 * NUMA distances
 * Report `/proc/sys/kernel/random/boot_id` UUID to DogStatsD as it identifies the current boot.
 * Flow director code
+    * ethtool flows
+* https://github.com/gamemann/XDP-Firewall
+* https://github.com/Barricade-FW/Firewall
 
-* Diagnostics
-    * Memory
-    * logging
-    * linux_kernel_*
-    * ioports
-    * io_priority
-    * interrupt_request
-    * inode
-    
 
 ## 
 /*
@@ -128,6 +118,7 @@ Assuming that your NIC and driver support it, you can enable accelerated RFS by 
 Once the above is configured, accelerated RFS will be used to automatically move data to the RX queue tied to a CPU core that is processing data for that flow and you won’t need to specify an ntuple filter rule manually for each flow.
 
 
+TODO: Diagnostic for ethX queues
 /sys/class/net/eth0
 
     queues/
@@ -308,20 +299,10 @@ impl ValidatedNumaNodeToHyperThreadMap
 }
 ```
 
-### eBPF
-
-* Finish eBPF XDP program attach and how we actually use the in-memory queues! vs just as a firewall
-
-
 ### ethtool
 
 * Look at IRQ affinity mapping for Internet Flow Directory (look at irq script in `~/Downloads/25_2/*/set_irq_affinity`).
 * Finish ethtool flow direction
-
-
-### Diagnostics
-
-* Dump out all known information
 
 
 ### Cgroups v2

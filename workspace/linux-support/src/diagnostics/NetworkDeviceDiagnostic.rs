@@ -32,6 +32,63 @@ pub struct NetworkDeviceDiagnostic
 	pub assigned_hardware_name: DiagnosticUnobtainableResult<NET_NAME>,
 }
 
+/*
+TODO: Diagnostic for ethX queues.
+TODO: Setting values for ethX queues.
+/sys/class/net/eth0
+
+    queues/
+        tx-0/
+            rps_cpus
+                00000000
+                read-write
+            rps_flow_cnt
+                0
+                read-write
+        rx-0/
+            traffic_class
+                couldn't be read
+            tx_maxrate
+                0
+                read-write
+            tx_timeout
+                0 (without line feed)
+            xps_cpus
+                couldn't be read
+                read-write
+            xps_rxqs
+                0
+                read-write
+            byte_queue_limits/
+                hold_time
+                    1000
+                    read-write
+                inflight
+                    0
+                    read-only
+                limit
+                    0
+                    read-write
+                limit_max
+                    1879048192
+                    read-write
+                limit_min
+                    0
+                    read-write
+    power/
+        autosuspend_delay_ms
+            couldn't be read
+            read-write
+        control
+            "auto"
+            read-write
+        runtime_active_time
+        runtime_status
+            "unsupported"
+        runtime_suspended_time
+ */
+
+
 impl NetworkDeviceDiagnostic
 {
 	#[inline(always)]

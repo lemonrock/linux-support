@@ -16,6 +16,7 @@ use self::link_settings::LinkSettings;
 use self::link_settings::PortConnector;
 use self::link_settings::SpeedsPortConnectorsPausesAndForwardErrorConnectionsSettings;
 use self::pause::*;
+use self::queues::*;
 use self::receive_side_scaling::*;
 use self::string_sets::*;
 use self::tunables::*;
@@ -62,6 +63,10 @@ pub mod queuing_discipline;
 pub mod pause;
 
 
+/// Queues.
+pub mod queues;
+
+
 /// Receive side scaling (RSS).
 pub mod receive_side_scaling;
 
@@ -102,7 +107,5 @@ include!("NetworkInterfaceNameToSomethingError.rs");
 include!("PendingQueueDepths.rs");
 include!("PhysicalIdentifier.rs");
 include!("PhysicalIdentifierFromBytesError.rs");
-include!("QueueCount.rs");
-include!("QueueIdentifier.rs");
 include!("SettableLinkFlags.rs");
 include!("TransmissionQueueLengthOutOfRangeError.rs");

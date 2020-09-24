@@ -3,10 +3,7 @@
 
 
 use super::*;
-use crate::network_device::Channels;
-use crate::network_device::queues::QueueIdentifier;
 
 
-include!("ExpressDataPathRedirectHyperThreadArrayMap.rs");
-include!("ExpressDataPathRedirectSocketArrayMap.rs");
-include!("QueueDepth.rs");
+include!("QueueCount.rs");
+include!("QueueIdentifier.rs");
