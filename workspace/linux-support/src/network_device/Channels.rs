@@ -50,37 +50,36 @@ impl Channels
 	
 	/// How many channels are available?
 	///
-	/// Logic based on `xsk_get_max_queues()` in `xsk.c` in the Linux kernel sources.
+	/// Logic based on `find_max_num_queues()` in `ethtool.c` in the `ethtool-5.7` source.
+	/// Seems to be the same as `xsk_get_max_queues()` in `tools/lib/bpf/xsk.c` in the Linux kernel sources.
 	#[inline(always)]
-	pub fn maximum_channels_count(&self) -> QueueCount
+	pub fn maximum_number_of_queues(&self) -> QueueCount
 	{
-		max(self.receive_channels_count(), self.transmit_channels_count())
+		self.maximum_number(max(Self::channel_count_to_u16(self.receive_only_channels_count), Self::channel_count_to_u16(self.transmit_only_channels_count)))
 	}
 	
 	/// How many receive channels are available?
 	#[inline(always)]
-	pub fn receive_channels_count(&self) -> QueueCount
+	pub fn maximum_number_of_receive_queues(&self) -> QueueCount
 	{
-		self.channels_count(self.receive_only_channels_count)
+		self.maximum_number(Self::channel_count_to_u16(self.receive_only_channels_count))
 	}
 	
 	/// How many transmit channels are available?
 	#[inline(always)]
-	pub fn transmit_channels_count(&self) -> QueueCount
+	pub fn maximum_number_of_transmit_queues(&self) -> QueueCount
 	{
-		self.channels_count(self.transmit_only_channels_count)
+		self.maximum_number(Self::channel_count_to_u16(self.transmit_only_channels_count))
 	}
 	
-	/// Logic based on `xsk_get_max_queues()` in `tools/lib/bpf/xsk.c` in the Linux kernel sources.
 	#[inline(always)]
-	fn channels_count(&self, only_channels_count: Option<QueueCount>) -> QueueCount
+	fn maximum_number(&self, channel_count: u16) -> QueueCount
 	{
-		let only_channels_count = Self::channel_count_to_u16(only_channels_count);
-		let receive_and_transmit_channels_count = Self::channel_count_to_u16(self.receive_and_transmit_channels_count);
-		match max(only_channels_count, receive_and_transmit_channels_count)
+		match channel_count + Self::channel_count_to_u16(self.receive_and_transmit_channels_count)
 		{
 			0 => QueueCount::InclusiveMinimum,
-			non_zero @ _ => QueueCount::try_from_non_zero_u16_saturated(unsafe { NonZeroU16::new_unchecked(non_zero) }),
+			
+			non_zero @ _ => QueueCount::new_unchecked(non_zero),
 		}
 	}
 	

@@ -575,6 +575,61 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		)
 	}
 	
+	/// Specify `None` for all queue identifiers.
+	#[allow(missing_docs)]
+	pub fn per_queue_coalesce_configuration(&self, queue_identifiers: Option<&HashSet<QueueIdentifier>>) -> Result<Option<Option<HashMap<QueueIdentifier, CoalesceConfiguration>>>, NetworkDeviceInputOutputControlError<AdaptiveCoalescingError>>
+	{
+		let queue_identifiers = match queue_identifiers
+		{
+			None =>
+			{
+				let maximum_number_of_queues = match self.number_of_channels()?
+				{
+					None => return Ok(None),
+					Some(None) => return Ok(Some(None)),
+					Some(Some((current, _maxima))) => current.maximum_number_of_queues(),
+				};
+				
+				Left(maximum_number_of_queues)
+			}
+			
+			Some(queue_identifiers) => Right(queue_identifiers),
+		};
+		
+		self.ethtool_command
+		(
+			ethtool_per_queue_op::coalesce_get(queue_identifiers),
+			|command| command.as_coalesce_configurations().map(Some),
+			Self::error_is_unreachable,
+			|_command| None,
+		)
+	}
+	
+	/// Change per-queue coalesce configuration.
+	#[allow(missing_docs)]
+	pub fn change_per_queue_coalesce_configuration(&self, queue_identifiers: &HashMap<QueueIdentifier, CoalesceConfiguration>) -> Result<Option<()>, NetworkDeviceInputOutputControlError<UndocumentedError>>
+	{
+		let command = ethtool_per_queue_op::coalesce_set(queue_identifiers.keys());
+		{
+			let array = command.array_elements_mut();
+			for (index, coalsece_configuration) in queue_identifiers.values().enumerate()
+			{
+				unsafe
+				{
+					let pointer = array.get_unchecked_mut(index) as *mut ethtool_coalesce;
+					pointer.write(coalsece_configuration.as_ethtool_coalesce()) }
+			}
+		}
+		
+		self.ethtool_command
+		(
+			command,
+			|_command| Ok(()),
+			|errno| Err(UndocumentedError(errno)),
+			|_command| (),
+		)
+	}
+	
 	#[allow(missing_docs)]
 	pub fn coalesce_configuration(&self) -> Result<Option<Option<CoalesceConfiguration>>, NetworkDeviceInputOutputControlError<AdaptiveCoalescingError>>
 	{

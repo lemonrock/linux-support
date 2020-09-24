@@ -57,6 +57,7 @@ include!("ifreq.rs");
 include!("ifreq_ifrn.rs");
 include!("ifreq_ifru.rs");
 include!("MAX_ADDR_LEN.rs");
+include!("MAX_NUM_QUEUE.rs");
 include!("MAX_PHYS_ITEM_ID_LEN.rs");
 include!("net_device_flags.rs");
 include!("NET_ADDR.rs");

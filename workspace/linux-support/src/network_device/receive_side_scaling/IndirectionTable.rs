@@ -38,7 +38,7 @@ impl IndirectionTable
 		let mut hash_index = 0u32;
 		for queue_identifier in 0 .. number_of_receive_queues.into()
 		{
-			let queue_identifier = QueueIdentifier(queue_identifier);
+			let queue_identifier = QueueIdentifier::from_validated_u16(queue_identifier);
 			let weight = weight_queue_strategy.weight(queue_identifier, number_of_receive_queues, denominator);
 			let next_hash_index = hash_index.checked_add(weight).expect("Far too much weight");
 			assert!(next_hash_index <= indirection_table_size, "Asked for too much weight ({:?}) for `{:?}` when only a weight of {:?} remains to allocate", weight, queue_identifier, indirection_table_size - hash_index);

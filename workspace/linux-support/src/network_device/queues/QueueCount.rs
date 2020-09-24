@@ -17,6 +17,27 @@ impl Default for QueueCount
 	}
 }
 
+impl Add for QueueCount
+{
+	type Output = Self;
+	
+	#[inline(always)]
+	fn add(self, rhs: Self) -> Self::Output
+	{
+		let lhs = self.0.get();
+		let rhs = rhs.0.get();
+		
+		if cfg!(debug_assertions)
+		{
+			let outcome = lhs.checked_add(rhs);
+			debug_assert!(outcome.is_some());
+			debug_assert!(outcome.unwrap() <= MAX_NUM_QUEUE)
+		}
+		
+		Self::new_unchecked(lhs + rhs)
+	}
+}
+
 impl TryFrom<u64> for QueueCount
 {
 	type Error = ParseNumberError;
@@ -156,10 +177,10 @@ impl Into<usize> for QueueCount
 impl QueueCount
 {
 	/// Minimum.
-	pub const InclusiveMinimum: Self = Self(unsafe { NonZeroU16::new_unchecked(1) });
+	pub const InclusiveMinimum: Self = Self::new_unchecked(1);
 	
 	/// Maximum.
-	pub const InclusiveMaximum: Self = Self(unsafe { NonZeroU16::new_unchecked(4096) });
+	pub const InclusiveMaximum: Self = Self::new_unchecked(MAX_NUM_QUEUE);
 	
 	/// To queue identifier.
 	pub const fn to_queue_identifier(self) -> QueueIdentifier
@@ -178,5 +199,11 @@ impl QueueCount
 		{
 			Self(value)
 		}
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn new_unchecked(value: u16) -> Self
+	{
+		Self(unsafe { NonZeroU16::new_unchecked(value) })
 	}
 }

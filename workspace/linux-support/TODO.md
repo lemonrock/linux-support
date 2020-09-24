@@ -42,7 +42,6 @@
 * Look at IRQ affinity mapping for Internet Flow Directory (look at irq script in `~/Downloads/25_2/*/set_irq_affinity`).
 * Finish ethtool flow direction
 * TODO: Receive Queue => CPU
-* TOOD: Per-Queue settings
 
 ```
 --config-nfc / --config-ntuple
@@ -51,8 +50,6 @@
 		"flow-type"
 			do_srxntuple
 		"delete"
-		
---per-queue ... eg coalesce
 ```
 
 
@@ -180,12 +177,6 @@ Once the above is configured, accelerated RFS will be used to automatically move
 
 #### POSIX ACLs
 <http://man7.org/linux/man-pages/man5/acl.5.html>
-
-
-#### Process control for `PR_TASK_PERF_EVENTS_DISABLE` and `PR_TASK_PERF_EVENTS_ENABLE`
-
-
-#### Process control - adjust child death signal (deathsig)
 
 
 #### Extended attributes:-

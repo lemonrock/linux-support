@@ -18,6 +18,7 @@
 ///
 /// When the packet rate is below `pkt_rate_high` but above `pkt_rate_low` (both measured in packets per second) the normal `{rx,tx}_*` coalescing parameters are used.
 #[repr(C)]
+#[derive(Debug, Copy, Clone)]
 pub(crate) struct ethtool_coalesce
 {
 	/// Either `ETHTOOL_GCOALESCE` or `ETHTOOL_SCOALESCE`.

@@ -6,7 +6,7 @@
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
-pub struct QueueIdentifier(pub u16);
+pub struct QueueIdentifier(u16);
 
 bit_set_aware!(QueueIdentifier);
 
@@ -21,14 +21,13 @@ impl Into<u16> for QueueIdentifier
 
 impl BitSetAware for QueueIdentifier
 {
-	/// This is a guess.
-	const LinuxMaximum: u32 = 65536;
+	const LinuxMaximum: u32 = MAX_NUM_QUEUE as u32;
 
 	const InclusiveMinimum: Self = Self(0);
 
 	const InclusiveMaximum: Self = Self((Self::LinuxMaximum - 1) as u16);
 
-	const Prefix: &'static [u8] = b"";
+	const Prefix: &'static [u8] = b"(irrelevant)";
 
 	#[inline(always)]
 	fn from_validated_u16(value: u16) -> Self

@@ -52,6 +52,9 @@ pub enum GlobalNetworkDeviceConfigurationError
 	CouldNotChangeCoalesceConfiguration(NetworkDeviceInputOutputControlError<UndocumentedError>),
 	
 	#[allow(missing_docs)]
+	CouldNotChangePerQueueCoalesceConfiguration(NetworkDeviceInputOutputControlError<UndocumentedError>),
+	
+	#[allow(missing_docs)]
 	CouldNotMaximizeChannels(NetworkDeviceInputOutputControlError<Infallible>),
 	
 	#[allow(missing_docs)]
@@ -138,6 +141,8 @@ impl error::Error for GlobalNetworkDeviceConfigurationError
 			&CouldNotChangeTunable(ref error) => Some(error),
 			
 			&CouldNotChangeCoalesceConfiguration(ref error) => Some(error),
+			
+			&CouldNotChangePerQueueCoalesceConfiguration(ref error) => Some(error),
 			
 			&CouldNotMaximizeChannels(ref error) => Some(error),
 			

@@ -20,6 +20,7 @@ include!("ethtool_gstrings.rs");
 include!("ethtool_link_settings.rs");
 include!("ethtool_modinfo.rs");
 include!("ethtool_pauseparam.rs");
+include!("ethtool_per_queue_op.rs");
 include!("ethtool_regs.rs");
 include!("ethtool_ringparam.rs");
 include!("ethtool_rxfh.rs");

@@ -86,6 +86,9 @@ pub struct NetworkDeviceInputOutputControlDiagnostic
 	pub coalesce_configuration: Option<CoalesceConfiguration>,
 	
 	/// `None` if not supported.
+	pub per_queue_coalsece_configurations: Option<HashMap<QueueIdentifier, CoalesceConfiguration>>,
+	
+	/// `None` if not supported.
 	pub timestamping: Option<NetworkDeviceTimestampingInformation>,
 	
 	/// `None` if not supported.
@@ -172,6 +175,8 @@ impl NetworkDeviceInputOutputControlDiagnostic
 				priority_flow_control_storm_prevention: exists!(network_device_input_output_control.tunable()),
 				
 				coalesce_configuration: exists!(network_device_input_output_control.coalesce_configuration()),
+				
+				per_queue_coalsece_configurations: exists!(network_device_input_output_control.per_queue_coalsece_configurations(None)),
 				
 				timestamping: exists!(network_device_input_output_control.timestamping()),
 				

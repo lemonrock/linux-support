@@ -58,20 +58,23 @@ pub struct GlobalNetworkDeviceConfiguration
 	/// Tunables.
 	#[serde(default)] pub tunables: Vec<TunableChoice>,
 	
-	/// Change coalesce configuration.
-	#[serde(default)] pub coalesce_configuration: Option<CoalesceConfiguration>,
-	
 	/// Maximize the number of channels?
 	///
 	/// Changing the number of channels is not possible if an eXpress Data Path (XDP) program is attached.
 	/// Changing the number of channels is not possible if Intel Flow Director (fdir) rules are active.
 	/// Changing the number of channels is not possible for Intel i40e if traffic classes (TCs) are configured through using the Multiqueue Priority Qdisc (Offloaded Hardware QOS), [MQPRIO](https://www.man7.org/linux/man-pages/man8/tc-mqprio.8.html).
 	#[serde(default)] pub maximize_number_of_channels: bool,
-
+	
 	/// Maximize pending queue depths?
 	///
 	/// Sometimes, *reducing* these to 128 or 256 can help Intel Data I/O Direct (DDIO).
 	#[serde(default)] pub maximize_pending_queue_depths: bool,
+	
+	/// Change coalesce configuration.
+	#[serde(default)] pub coalesce_configuration: Option<CoalesceConfiguration>,
+	
+	/// Change per-queue coalesce configuration.
+	#[serde(default)] pub per_queue_coalesce_configuration: HashMap<QueueIdentifier, CoalesceConfiguration>,
 	
 	/// Receive queue settings.
 	#[serde(default)] pub receive_queues: HashMap<QueueIdentifier, GlobalNetworkDeviceReceiveQueueConfiguration>,
@@ -169,14 +172,19 @@ impl GlobalNetworkDeviceConfiguration
 			validate(&network_device_input_output_control, tunable_choice.set(&network_device_input_output_control), CouldNotChangeTunable)?
 		}
 		
+		let channels = validate(&network_device_input_output_control, network_device_input_output_control.maximize_number_of_channels(self.maximize_number_of_channels), CouldNotMaximizeChannels)?;
+		
+		let pending_queue_depths = validate(&network_device_input_output_control, network_device_input_output_control.maximize_receive_ring_queues_and_transmit_ring_queue_depths(self.maximize_pending_queue_depths), CouldNotMaximizePendingQueueDepths)?;
+		
 		if let Some(ref coalesce_configuration) = self.coalesce_configuration
 		{
 			validate(&network_device_input_output_control, network_device_input_output_control.change_coalesce_configuration(coalesce_configuration), CouldNotChangeCoalesceConfiguration)?
 		}
 		
-		let channels = validate(&network_device_input_output_control, network_device_input_output_control.maximize_number_of_channels(self.maximize_number_of_channels), CouldNotMaximizeChannels)?;
-		
-		let pending_queue_depths = validate(&network_device_input_output_control, network_device_input_output_control.maximize_receive_ring_queues_and_transmit_ring_queue_depths(self.maximize_pending_queue_depths), CouldNotMaximizePendingQueueDepths)?;
+		if !self.per_queue_coalesce_configuration.is_empty()
+		{
+			validate(&network_device_input_output_control, network_device_input_output_control.change_per_queue_coalesce_configuration(&self.per_queue_coalesce_configuration), CouldNotChangePerQueueCoalesceConfiguration)?
+		}
 		
 		for (queue_identifier, receive_queue) in self.receive_queues.iter()
 		{
