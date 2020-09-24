@@ -26,7 +26,7 @@ pub struct NetworkDeviceTransmitQueueDiagnostic
 	pub byte_limits_hold_time: DiagnosticUnobtainableResult<Milliseconds>,
 	
 	/// See detail in `Documentation/ABI/testing/sysfs-class-net-queues` in Linux source.
-	pub number_of_bytes_inflight: DiagnosticUnobtainableResult<number_of_bytes_inflight>,
+	pub number_of_bytes_inflight: DiagnosticUnobtainableResult<u64>,
 	
 	/// See detail in `Documentation/ABI/testing/sysfs-class-net-queues` in Linux source.
 	pub minimum_current_byte_limit: DiagnosticUnobtainableResult<Option<NonZeroU64>>,

@@ -180,12 +180,12 @@ impl GlobalNetworkDeviceConfiguration
 		
 		for (queue_identifier, receive_queue) in self.receive_queues.iter()
 		{
-			receive_queue.configure(sys_path, &ReceiveSysfsQueue::new(network_interface_name, *queue_identifier))
+			receive_queue.configure(sys_path, &ReceiveSysfsQueue::new(network_interface_name, *queue_identifier))?;
 		}
 		
 		for (queue_identifier, transmit_queue) in self.transmit_queues.iter()
 		{
-			transmit_queue.configure(sys_path, &TransmitSysfsQueue::new(network_interface_name, *queue_identifier))
+			transmit_queue.configure(sys_path, &TransmitSysfsQueue::new(network_interface_name, *queue_identifier))?;
 		}
 		
 		if let Some(ref receive_side_scaling_hash_configuration) = self.receive_side_scaling_hash_configuration

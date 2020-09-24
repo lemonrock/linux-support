@@ -209,22 +209,9 @@ impl NetworkInterfaceName
 		}
 	}
 	
-	/// Receive queues.
+	/// Receive or transmit queues.
 	#[inline(always)]
-	pub fn receive_queues<'a>(&'a self, sys_path: &SysPath) -> io::Result<HashSet<ReceiveSysfsQueue<'a>>>
-	{
-		self.queues(sys_path)
-	}
-	
-	/// Transmit queues.
-	#[inline(always)]
-	pub fn transmit_queues<'a>(&'a self, sys_path: &SysPath) -> io::Result<HashSet<TransmitSysfsQueue<'a>>>
-	{
-		self.queues(sys_path)
-	}
-	
-	#[inline(always)]
-	fn queues<'a, SQ: SysfsQueue<'a>>(&'a self, sys_path: &SysPath) -> io::Result<HashSet<SQ>>
+	pub fn queues<'a, SQ: SysfsQueue<'a>>(&'a self, sys_path: &SysPath) -> io::Result<HashSet<SQ>>
 	{
 		let queues_folder_path = sys_path.network_interface_class_net_queues_folder_path(self);
 		let mut queue_identifiers = HashSet::new();

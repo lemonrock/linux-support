@@ -45,14 +45,17 @@ impl GlobalNetworkDeviceTransmitQueueConfiguration
 		
 		if let Some(maximum_rate_in_megabits_per_second) = self.maximum_rate_in_megabits_per_second
 		{
-			transmit_sysfs_queue.set_maximum_rate_in_megabits_per_second(sys_path, maximum_rate_in_megabits_per_second).map_err(CouldNotSetPerTransmitQueueMaximumRate)?
+			transmit_sysfs_queue.set_maximum_rate_in_megabits_per_second(sys_path, maximum_rate_in_megabits_per_second).map_err(CouldNotSetPerTransmitQueueMaximumRate)?;
 		}
 		
 		if let Some(ref transmit_packet_steering) = self.transmit_packet_steering
 		{
 			match transmit_packet_steering
 			{
-				&Left(ref hyper_threads) => transmit_sysfs_queue.set_transmit_packet_steering_hyper_thread_affinity(sys_path, hyper_threads).map_err(CouldNotSetPerTransmitQueueTransmitPacketSteeringHyperThreadAffinity)?,
+				&Left(ref hyper_threads) =>
+				{
+					transmit_sysfs_queue.set_transmit_packet_steering_hyper_thread_affinity(sys_path, hyper_threads).map_err(CouldNotSetPerTransmitQueueTransmitPacketSteeringHyperThreadAffinity)?;
+				},
 				
 				&Right(ref receive_queues_to_map_to) => transmit_sysfs_queue.set_transmit_packet_steering_receive_queue_affinity(sys_path, receive_queues_to_map_to).map_err(CouldNotSetPerTransmitQueueTransmitPacketSteeringReceiveQueueAffinity)?,
 			}

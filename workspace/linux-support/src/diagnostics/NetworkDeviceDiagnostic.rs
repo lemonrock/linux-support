@@ -66,21 +66,32 @@ impl NetworkDeviceDiagnostic
 			
 			assigned_hardware_name: network_interface_name.assigned_hardware_name(sys_path).map_err(DiagnosticUnobtainable::from),
 			
-			receive_queues: match network_interface_name.receive_queues(sys_path)
-			{
-				Err(error) => Err(DiagnosticUnobtainable::from(error)),
-				
-				Ok(receive_sysfs_queues) => Ok(receive_queues.iter(|receive_sysfs_queue| NetworkDeviceReceiveQueueDiagnostic::gather(sys_path, receive_sysfs_queue)).map().collect()),
-			},
+			receive_queues: Self::to_hash_map(sys_path, network_interface_name, NetworkDeviceReceiveQueueDiagnostic::gather),
 			
-			transmit_queues: match network_interface_name.receive_queues(sys_path)
-			{
-				Err(error) => Err(DiagnosticUnobtainable::from(error)),
-				
-				Ok(transmit_sysfs_queues) => Ok(transmit_queues.iter().map(|transmit_sysfs_queue| NetworkDeviceTransmitQueueDiagnostic::gather(sys_path, transmit_sysfs_queue)).collect()),
-			},
+			transmit_queues: Self::to_hash_map(sys_path, network_interface_name, NetworkDeviceTransmitQueueDiagnostic::gather),
 			
 			link,
 		}
 	}
+	
+	#[inline(always)]
+	fn to_hash_map<'a, SQ: SysfsQueue<'a>, D, F: FnOnce(&SysPath, &SQ) -> D + Copy>(sys_path: &SysPath, network_interface_name: &'a NetworkInterfaceName, gather: F) -> DiagnosticUnobtainableResult<HashMap<QueueIdentifier, D>>
+	{
+		match network_interface_name.queues::<SQ>(sys_path)
+		{
+			Err(error) => Err(DiagnosticUnobtainable::from(error)),
+			
+			Ok(sysfs_queues) =>
+			{
+				let mut diagnostics = HashMap::with_capacity(sysfs_queues.len());
+				for (queue_identifier, diagnostic) in sysfs_queues.iter().map(|sysfs_queue| (sysfs_queue.queue_identifier(), gather(sys_path, sysfs_queue)))
+				{
+					diagnostics.insert(queue_identifier, diagnostic);
+				}
+				Ok(diagnostics)
+			}
+		}
+		
+	}
+	
 }
