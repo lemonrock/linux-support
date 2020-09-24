@@ -56,4 +56,11 @@ impl QueueIdentifier
 	
 	/// Maximum.
 	pub const InclusiveMaximum: Self = QueueCount::InclusiveMaximum.to_queue_identifier();
+	
+	/// Into u16.
+	#[inline(always)]
+	pub const fn into_u16(self) -> u16
+	{
+		self.0
+	}
 }

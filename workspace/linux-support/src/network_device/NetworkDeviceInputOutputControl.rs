@@ -583,11 +583,25 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		{
 			None =>
 			{
-				let maximum_number_of_queues = match self.number_of_channels()?
+				use self::NetworkDeviceInputOutputControlError::*;
+				
+				let maximum_number_of_queues = match self.number_of_channels()
 				{
-					None => return Ok(None),
-					Some(None) => return Ok(Some(None)),
-					Some(Some((current, _maxima))) => current.maximum_number_of_queues(),
+					Err(Creation(error)) => return Err(Creation(error)),
+					
+					Err(ControlOperation(_infallible)) => unreachable!(),
+					
+					Err(PermissionDenied) => return Err(PermissionDenied),
+					
+					Err(OutOfKernelMemory) => return Err(OutOfKernelMemory),
+					
+					Err(Other(error)) => return Err(Other(error)),
+					
+					Ok(None) => return Ok(None),
+					
+					Ok(Some(None)) => return Ok(Some(None)),
+					
+					Ok(Some(Some((current, _maxima)))) => current.maximum_number_of_queues(),
 				};
 				
 				Left(maximum_number_of_queues)
@@ -609,7 +623,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	#[allow(missing_docs)]
 	pub fn change_per_queue_coalesce_configuration(&self, queue_identifiers: &HashMap<QueueIdentifier, CoalesceConfiguration>) -> Result<Option<()>, NetworkDeviceInputOutputControlError<UndocumentedError>>
 	{
-		let command = ethtool_per_queue_op::coalesce_set(queue_identifiers.keys());
+		let mut command = ethtool_per_queue_op::coalesce_set(queue_identifiers.keys());
 		{
 			let array = command.array_elements_mut();
 			for (index, coalsece_configuration) in queue_identifiers.values().enumerate()

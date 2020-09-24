@@ -4,7 +4,7 @@
 
 /// Currently `Subcommand` is always `ethtool_coalesce`.
 #[repr(C)]
-#[derive(Default, Copy, Clone)]
+#[derive(Copy, Clone)]
 pub(crate) struct ethtool_per_queue_op<Subcommand: Copy + EthtoolCommand>
 {
 	/// Always `ETHTOOL_PERQUEUE`.
@@ -151,7 +151,7 @@ impl ethtool_per_queue_op<ethtool_coalesce>
 		let mut queue_mask: [u32; QueueMaskSize] = unsafe { zeroed() };
 		for queue_identifier in queue_identifiers
 		{
-			let queue_identifier: u16 = queue_identifier.into();
+			let queue_identifier: u16 = (*queue_identifier).into();
 			let word_index = (queue_identifier as usize) / U32SizeInBits;
 			let word = unsafe { queue_mask.get_unchecked_mut(word_index) };
 			let bit_index_in_word = ((queue_identifier as usize) % U32SizeInBits) as u32;

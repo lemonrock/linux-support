@@ -176,7 +176,7 @@ impl NetworkDeviceInputOutputControlDiagnostic
 				
 				coalesce_configuration: exists!(network_device_input_output_control.coalesce_configuration()),
 				
-				per_queue_coalsece_configurations: exists!(network_device_input_output_control.per_queue_coalsece_configurations(None)),
+				per_queue_coalsece_configurations: exists!(network_device_input_output_control.per_queue_coalesce_configuration(None)),
 				
 				timestamping: exists!(network_device_input_output_control.timestamping()),
 				

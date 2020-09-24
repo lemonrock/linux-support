@@ -242,7 +242,8 @@ impl SysPath
 	#[inline(always)]
 	pub(crate) fn network_interface_class_net_queues_file_path(&self, network_interface_name: &NetworkInterfaceName, prefix: &str, queue_identifier: QueueIdentifier, file_name: &str) -> PathBuf
 	{
-		self.network_interface_class_net_queues_folder_path(network_interface_name).append(format!("{}-{}", prefix, queue_identifier.0)).append(file_name)
+		let queue_identifier: u16 = queue_identifier.into();
+		self.network_interface_class_net_queues_folder_path(network_interface_name).append(format!("{}-{}", prefix, queue_identifier)).append(file_name)
 	}
 	
 	/// `/sys/class/net/<network_interface_name>/queues`.

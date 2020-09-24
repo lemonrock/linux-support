@@ -77,7 +77,7 @@ impl ExpressDataPathRedirectSocketArrayMap
 	{
 		self.guard_index(index);
 		
-		self.map_file_descriptor.insert_or_set(&index.0, &file_descriptor.as_raw_fd(), LockFlags::DoNotLock)
+		self.map_file_descriptor.insert_or_set(&index.into_u16(), &file_descriptor.as_raw_fd(), LockFlags::DoNotLock)
 	}
 	
 	/// Insert.
@@ -89,20 +89,20 @@ impl ExpressDataPathRedirectSocketArrayMap
 	{
 		self.guard_index(index);
 		
-		self.map_file_descriptor.insert(&index.0, &file_descriptor.as_raw_fd(), LockFlags::DoNotLock)
+		self.map_file_descriptor.insert(&index.into_u16(), &file_descriptor.as_raw_fd(), LockFlags::DoNotLock)
 	}
 	
 	/// Removes a file descriptor.
 	#[inline(always)]
 	pub fn delete(&self, index: QueueIdentifier) -> Result<bool, Errno>
 	{
-		self.map_file_descriptor.delete(&index.0)
+		self.map_file_descriptor.delete(&index.into_u16())
 	}
 	
 	#[inline(always)]
 	fn guard_index(&self, index: QueueIdentifier)
 	{
-		debug_assert!(index.0 < (self.maximum_entries.to_u32() as u16));
+		debug_assert!(index.into_u16() < (self.maximum_entries.to_u32() as u16));
 	}
 	
 	#[inline(always)]
