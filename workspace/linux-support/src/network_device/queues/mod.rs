@@ -3,7 +3,13 @@
 
 
 use super::*;
+use crate::cpu::HyperThreads;
 
 
+include!("ExpressDataPathQueueIdentifier.rs");
 include!("QueueCount.rs");
 include!("QueueIdentifier.rs");
+include!("QueueIdentifiers.rs");
+include!("ReceiveSysfsQueue.rs");
+include!("SysfsQueue.rs");
+include!("TransmitSysfsQueue.rs");

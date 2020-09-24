@@ -20,7 +20,7 @@ pub struct GlobalNetworkDeviceConfiguration
 	
 	/// Transmission queue length, unrelated apparently to `PendingQueueDepths.transmit_pending_queue_depth`.
 	///
-	/// Default on Linux is 1000.
+	/// Default on Linux is 1000 for Ethernet devices.
 	/// A value of 128 has been suggested for some improvement in reducing bufferbloat.
 	#[serde(default)] pub transmission_queue_length: Option<u32>,
 	

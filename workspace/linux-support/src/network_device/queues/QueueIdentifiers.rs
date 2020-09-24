@@ -2,16 +2,28 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Diagnostic information.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-#[repr(C)]
+/// `BitSet` of `QueueIdentifier`.
+#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct xdp_diag_info
+#[repr(transparent)]
+pub struct QueueIdentifiers(pub BitSet<QueueIdentifier>);
+
+impl Deref for QueueIdentifiers
 {
-	/// ?Duplicates `xdp_diag_umem.ifindex`.
-	pub ifindex: Option<NetworkInterfaceIndex>,
+	type Target = BitSet<QueueIdentifier>;
 	
-	/// ?Duplicates `xdp_diag_umem.queue_id`.
-	pub queue_id: ExpressDataPathQueueIdentifier,
+	#[inline(always)]
+	fn deref(&self) -> &Self::Target
+	{
+		&self.0
+	}
+}
+
+impl DerefMut for QueueIdentifiers
+{
+	#[inline(always)]
+	fn deref_mut(&mut self) -> &mut Self::Target
+	{
+		&mut self.0
+	}
 }

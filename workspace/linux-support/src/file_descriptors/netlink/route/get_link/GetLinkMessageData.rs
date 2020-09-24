@@ -36,6 +36,8 @@ pub struct GetLinkMessageData
 	
 	/// Transmission queue length.
 	///
+	/// Defaults to `1000` for Ethernet devices.
+	///
 	/// Also available at `/sys/class/net/<network_interface_name>/tx_queue_len`.
 	/// Also available via the ioctl `SIOCGIFTXQLEN`.
 	/// Also settable via the ioctl `SIOCSIFTXQLEN`.

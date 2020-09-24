@@ -19,7 +19,7 @@ pub struct xdp_md
 	ingress_ifindex: Option<NetworkInterfaceIndex>,
 	
 	#[allow(missing_docs)]
-	rx_queue_index: QueueIdentifier,
+	rx_queue_index: ExpressDataPathQueueIdentifier,
 }
 
 impl xdp_md

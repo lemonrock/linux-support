@@ -14,6 +14,7 @@ use std::fs::Permissions;
 use crate::interrupt_request::InterruptRequest;
 use crate::network_device::NetworkInterfaceName;
 use crate::file_systems::FileSystemType;
+use crate::network_device::queues::{QueueIdentifier, ReceiveSysfsQueue, TransmitSysfsQueue};
 
 
 include!("DevPath.rs");

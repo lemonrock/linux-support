@@ -505,7 +505,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 
 	#[doc(hidden)]
 	#[inline(always)]
-	pub fn parse_hyper_thread_or_numa_node_bit_set(without_line_feed: &[u8]) -> Self
+	pub fn parse_comma_separated_bit_set(without_line_feed: &[u8]) -> Self
 	{
 		// n is number of tuples of 32-bits.
 		// LENGTH is value.len()

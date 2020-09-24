@@ -221,7 +221,7 @@ impl Into<u16> for Signal
 
 impl BitSetAware for Signal
 {
-	const LinuxMaximum: u16 = Self::SIGRTMAX as u8 as u16;
+	const LinuxMaximum: u32 = Self::SIGRTMAX as u8 as u32;
 
 	const InclusiveMinimum: Self = unsafe { transmute(0u8) };
 
@@ -233,7 +233,7 @@ impl BitSetAware for Signal
 	fn from_validated_u16(value: u16) -> Self
 	{
 		debug_assert!(value != 0);
-		debug_assert!(value < Self::LinuxMaximum);
+		debug_assert!((value as u32) < Self::LinuxMaximum);
 
 		unsafe { transmute(value as u8) }
 	}

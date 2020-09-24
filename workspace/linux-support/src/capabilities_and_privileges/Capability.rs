@@ -175,7 +175,7 @@ impl Into<u16> for Capability
 
 impl BitSetAware for Capability
 {
-	const LinuxMaximum: u16 = CAP_LAST_CAP as u16;
+	const LinuxMaximum: u32 = CAP_LAST_CAP as u32;
 
 	const InclusiveMinimum: Self = unsafe { transmute(0u8) };
 
@@ -184,7 +184,7 @@ impl BitSetAware for Capability
 	#[inline(always)]
 	fn from_validated_u16(value: u16) -> Self
 	{
-		debug_assert!(value < Self::LinuxMaximum);
+		debug_assert!((value as u32) < Self::LinuxMaximum);
 
 		unsafe { transmute(value as u8) }
 	}

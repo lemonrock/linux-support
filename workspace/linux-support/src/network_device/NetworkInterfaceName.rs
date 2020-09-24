@@ -157,6 +157,13 @@ impl NetworkInterfaceName
 		self.file_path(sys_path, "dormant").read_zero_or_one_bool()
 	}
 	
+	/// Is the link being tested?
+	#[inline(always)]
+	pub fn is_testing(&self, sys_path: &SysPath) -> io::Result<bool>
+	{
+		self.file_path(sys_path, "testing").read_zero_or_one_bool()
+	}
+	
 	/// Assigned hardware address type.
 	#[inline(always)]
 	pub fn assigned_hardware_address_type(&self, sys_path: &SysPath) -> io::Result<NET_ADDR>
@@ -200,6 +207,44 @@ impl NetworkInterfaceName
 		{
 			Ok(unsafe { transmute(value) })
 		}
+	}
+	
+	/// Receive queues.
+	#[inline(always)]
+	pub fn receive_queues<'a>(&'a self, sys_path: &SysPath) -> io::Result<HashSet<ReceiveSysfsQueue<'a>>>
+	{
+		self.queues(sys_path)
+	}
+	
+	/// Transmit queues.
+	#[inline(always)]
+	pub fn transmit_queues<'a>(&'a self, sys_path: &SysPath) -> io::Result<HashSet<TransmitSysfsQueue<'a>>>
+	{
+		self.queues(sys_path)
+	}
+	
+	#[inline(always)]
+	fn queues<'a, SQ: SysfsQueue<'a>>(&'a self, sys_path: &SysPath) -> io::Result<HashSet<SQ>>
+	{
+		let queues_folder_path = sys_path.network_interface_class_net_queues_folder_path(self);
+		let mut queue_identifiers = HashSet::new();
+		for dir_entry in queues_folder_path.read_dir()?
+		{
+			if let Ok(dir_entry) = dir_entry
+			{
+				if let Ok(file_type) = dir_entry.file_type()
+				{
+					if file_type.is_dir()
+					{
+						if let Ok(queue_identifier) = SQ::validate_file_name(dir_entry)
+						{
+							queue_identifiers.insert(SQ::new(self, queue_identifier));
+						}
+					}
+				}
+			}
+		}
+		Ok(queue_identifiers)
 	}
 	
 	#[inline(always)]

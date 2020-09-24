@@ -5,7 +5,6 @@
 use super::*;
 use crate::memory::mapping::MappedMemory;
 use crate::network_device::NetworkInterfaceIndex;
-use crate::network_device::queues::QueueIdentifier;
 use crate::bpf::extended::instructions::offset::memory::*;
 use crate::bpf::extended::instructions::offset::*;
 use crate::bpf::extended::instructions::offset::immediate::*;

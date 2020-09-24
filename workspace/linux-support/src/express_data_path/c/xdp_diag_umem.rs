@@ -15,19 +15,25 @@ pub struct xdp_diag_umem
 	pub id: u32,
 	
 	/// Number of pages.
+	///
+	/// The `size` of the user memory area divided by the current `PageSize`.
 	pub num_pages: u32,
 	
 	/// Chunk size.
+	///
+	/// See the trait `ChunkSize` and its implementations `AlignedChunkSize` and `UnalignedChunkSize`.
 	pub chunk_size: u32,
 	
 	/// Frame Headroom.
+	///
+	/// See the struct `FrameHeadroom`.
 	pub headroom: u32,
 	
 	/// ?Duplicates `xdp_diag_info.ifindex`.
 	pub ifindex: Option<NetworkInterfaceIndex>,
 	
 	/// ?Duplicates `xdp_diag_info.queue_id`.
-	pub queue_id: QueueIdentifier,
+	pub queue_id: ExpressDataPathQueueIdentifier,
 	
 	/// `XDP_DU_F_ZEROCOPY` is the only valid flag.
 	pub flags: XdpDiagnosticUserMemoryFlags,

@@ -375,6 +375,53 @@ impl HyperThreads
 		self.set_affinity(proc_path.sys_net_core_file_path("flow_limit_cpu_bitmap"))
 	}
 	
+	/// Which HyperThreads use Receive Packet Steering (RPS) for a receive queue on a network device.
+	///
+	/// Default is `HyperThreads::empty()`.
+	#[inline(always)]
+	pub fn receive_packet_steering_affinity_for_receive_queue(&self, sys_path: &SysPath, receive_queue: ReceiveSysfsQueue) -> io::Result<Self>
+	{
+		receive_queue.receive_packet_steering_affinity(sys_path)
+	}
+	
+	/// Which HyperThreads use Receive Packet Steering (RPS) for a receive queue on a network device.
+	///
+	/// Default is `HyperThreads::empty()`.
+	#[inline(always)]
+	pub fn set_receive_packet_steering_affinity_for_receive_queue(&self, sys_path: &SysPath, receive_queue: ReceiveSysfsQueue) -> io::Result<()>
+	{
+		receive_queue.set_receive_packet_steering_affinity(sys_path, self)
+	}
+	
+	/// Which HyperThreads use Transmit Packet Steering (XPS) for a transmit queue on a network device.
+	///
+	/// Default is `HyperThreads::empty()`.
+	///
+	/// Returns `Ok(Some(_))` if successfully retrieved.
+	///
+	/// ***Only supported if the network device is multiqueue (ie has more than one transmit queue); if not supported, `Ok(None)` is returned`.
+	/// Most virtual network devices are not multiqueue.
+	#[inline(always)]
+	pub fn transmit_packet_steering_affinity_for_receive_queue(&self, sys_path: &SysPath, transmit_queue: TransmitSysfsQueue) -> io::Result<Option<Self>>
+	{
+		transmit_queue.transmit_packet_steering_hyper_thread_affinity(sys_path)
+	}
+	
+	/// Which HyperThreads use Transmit Packet Steering (XPS) for a transmit queue on a network device.
+	///
+	/// Default is `HyperThreads::empty()`.
+	///
+	/// Returns `Ok(true)` if successfully set.
+	///
+	/// ***Only supported if the network device is multiqueue (ie has more than one transmit queue); if not supported, `Ok(false)`.
+	/// Most virtual network devices are not multiqueue.
+	/// `Ok(false)` is also returned if the file does not exist.
+	#[inline(always)]
+	pub fn set_transmit_packet_steering_affinity_for_receive_queue(&self, sys_path: &SysPath, transmit_queue: TransmitSysfsQueue) -> io::Result<bool>
+	{
+		transmit_queue.set_transmit_packet_steering_hyper_thread_affinity(sys_path, self)
+	}
+	
 	/// Mirrors `num_possible_cpus()` in the Linux kernel but with a twist.
 	///
 	/// There is a design flaw in BPF's `PER_CPU` maps such that access a particular CPU's value is incorrect if `/sys/devices/system/cpu/possible` has a CPU mask which does not include all possible CPUs!

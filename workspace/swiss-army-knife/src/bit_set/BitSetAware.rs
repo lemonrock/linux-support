@@ -6,7 +6,10 @@
 pub trait BitSetAware: Sized + Into<u16> + TryFrom<u16, Error=BitSetAwareTryFromU16Error> + ParseNumber + FromBytes<Error=ParseNumberError> + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash + Into<u32> + Into<u64> + Into<usize> + Into<i32> + Into<i64> + Into<isize>
 {
 	/// Exclusive maximum (count) that Linux enforces or is compiled for.
-	const LinuxMaximum: u16;
+	///
+	/// Defined at `u32` to allow for `(u16::MAX + 1)`.
+	/// (ie the maximum for `LinuxMaximum` is `65,536`.
+	const LinuxMaximum: u32;
 
 	/// Minimum.
 	const InclusiveMinimum: Self;

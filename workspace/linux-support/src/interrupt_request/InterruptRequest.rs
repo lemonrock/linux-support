@@ -158,7 +158,7 @@ impl InterruptRequest
 	#[inline(always)]
 	pub fn default_smp_affinity(proc_path: &ProcPath) -> io::Result<HyperThreads>
 	{
-		proc_path.irq_file_path("default_smp_affinity").parse_hyper_thread_or_numa_node_bit_set().map(HyperThreads)
+		proc_path.irq_file_path("default_smp_affinity").parse_comma_separated_bit_set().map(HyperThreads)
 	}
 	
 	#[inline(always)]
@@ -269,7 +269,7 @@ impl InterruptRequest
 	#[inline(always)]
 	fn get_hyper_threads(self, proc_path: &ProcPath, file_name: &str) -> HyperThreads
 	{
-		HyperThreads(self.proc_file_path(proc_path, file_name).parse_hyper_thread_or_numa_node_bit_set().unwrap())
+		HyperThreads(self.proc_file_path(proc_path, file_name).parse_comma_separated_bit_set().unwrap())
 	}
 	
 	#[inline(always)]

@@ -13,7 +13,7 @@ pub(super) struct sockaddr_xdp
 	
 	pub(crate) sxdp_ifindex: NetworkInterfaceIndex,
 	
-	pub(crate) sxdp_queue_id: QueueIdentifier,
+	pub(crate) sxdp_queue_id: ExpressDataPathQueueIdentifier,
 	
 	pub(crate) sxdp_shared_umem_fd: RawFd,
 }

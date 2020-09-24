@@ -745,13 +745,13 @@ impl Status
 	#[inline(always)]
 	fn parse_cpus_allowed(value: &[u8]) -> Result<HyperThreads, StatusStatisticParseError>
 	{
-		Ok(HyperThreads(BitSet::parse_hyper_thread_or_numa_node_bit_set(&value)))
+		Ok(HyperThreads(BitSet::parse_comma_separated_bit_set(&value)))
 	}
 	
 	#[inline(always)]
 	fn parse_numa_nodes_allowed(value: &[u8]) -> Result<NumaNodes, StatusStatisticParseError>
 	{
-		Ok(NumaNodes(BitSet::parse_hyper_thread_or_numa_node_bit_set(&value)))
+		Ok(NumaNodes(BitSet::parse_comma_separated_bit_set(&value)))
 	}
 
 	#[inline(always)]

@@ -64,7 +64,7 @@ pub trait PathExt
 	/// `ffffffff,ffffffff,ffffffff,ffffffff` for CPUs 0 through 127.
 	///
 	/// Elements are 32-bit words.
-	fn parse_hyper_thread_or_numa_node_bit_set<BSA: BitSetAware>(&self) -> Result<BitSet<BSA>, io::Error>;
+	fn parse_comma_separated_bit_set<BSA: BitSetAware>(&self) -> Result<BitSet<BSA>, io::Error>;
 
 	/// HyperThread or NumaNode present in a folder path.
 	///
@@ -234,10 +234,10 @@ impl PathExt for Path
 	}
 
 	#[inline(always)]
-	fn parse_hyper_thread_or_numa_node_bit_set<BSA: BitSetAware>(&self) -> Result<BitSet<BSA>, io::Error>
+	fn parse_comma_separated_bit_set<BSA: BitSetAware>(&self) -> Result<BitSet<BSA>, io::Error>
 	{
 		let without_line_feed = self.read_raw_without_line_feed()?;
-		Ok(BitSet::parse_hyper_thread_or_numa_node_bit_set(&without_line_feed))
+		Ok(BitSet::parse_comma_separated_bit_set(&without_line_feed))
 	}
 
 	fn entries_in_folder_path<BSA: BitSetAware>(&self) -> Result<Option<BitSet<BSA>>, io::Error>

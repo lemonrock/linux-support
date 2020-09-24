@@ -28,7 +28,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth> CommonExpressDataPathSocket<ROTOB>
 				sxdp_family: AF_XDP as u16,
 				sxdp_flags: owned_or_shared.sxdp_flags(force_copy, force_zero_copy, true),
 				sxdp_ifindex: network_interface_index,
-				sxdp_queue_id: queue_identifier,
+				sxdp_queue_id: ExpressDataPathQueueIdentifier::from_queue_identifier(queue_identifier),
 				sxdp_shared_umem_fd: user_memory_socket_file_descriptor.as_raw_fd(),
 			};
 			bind_socket(express_data_path_socket_file_descriptor, &socket_address)?;

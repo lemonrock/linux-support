@@ -90,6 +90,8 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	}
 	
 	/// Set transmission queue length.
+	///
+	/// Defaults to `1000` for Ethernet devices.
 	#[inline(always)]
 	pub fn set_transmission_queue_length(&self, transmission_queue_length: u32) -> Result<Option<()>, NetworkDeviceInputOutputControlError<TransmissionQueueLengthOutOfRangeError>>
 	{

@@ -29,18 +29,18 @@ impl BitSetAware for NumaNode
 	/// Internally, code in Linux checks that `number of nodes x 4 <= page size`.
 	/// This is to handle writing the `distance` files in sysfs (see `node_read_distance()` in `drivers/base/node.c`).
 	/// This logic, on x86_64, caps the maximum number of nodes to 1024, which is also the maximum here.
-	const LinuxMaximum: u16 = 1 << Self::LinuxMaximumFor_CONFIG_NUMA_SHIFT;
+	const LinuxMaximum: u32 = 1 << Self::LinuxMaximumFor_CONFIG_NUMA_SHIFT;
 
 	const InclusiveMinimum: Self = Self(0);
 
-	const InclusiveMaximum: Self = Self(Self::LinuxMaximum - 1);
+	const InclusiveMaximum: Self = Self((Self::LinuxMaximum - 1) as u16);
 
 	const Prefix: &'static [u8] = b"node";
 
 	#[inline(always)]
 	fn from_validated_u16(value: u16) -> Self
 	{
-		debug_assert!(value < Self::LinuxMaximum);
+		debug_assert!((value as u32) < Self::LinuxMaximum);
 
 		Self(value)
 	}
@@ -72,7 +72,7 @@ impl TryFrom<i32> for NumaNode
 
 impl NumaNode
 {
-	pub(crate) const LinuxMaximumFor_CONFIG_NUMA_SHIFT: u16 = 10;
+	pub(crate) const LinuxMaximumFor_CONFIG_NUMA_SHIFT: u32 = 10;
 
 	/// Reads the hyper thread and NUMA node of the currently executing CPU from the `IA32_TSC_AUX` model state register, which Linux populates.
 	#[inline(always)]
@@ -129,7 +129,7 @@ impl NumaNode
 	#[inline(always)]
 	fn cpu_map(self, sys_path: &SysPath) -> Option<HyperThreads>
 	{
-		self.only_if_path_exists(sys_path, "cpumap", |file_path | file_path.parse_hyper_thread_or_numa_node_bit_set::<HyperThread>().map(|bit_set| HyperThreads(bit_set)))
+		self.only_if_path_exists(sys_path, "cpumap", |file_path | file_path.parse_comma_separated_bit_set::<HyperThread>().map(|bit_set| HyperThreads(bit_set)))
 	}
 
 	#[inline(always)]

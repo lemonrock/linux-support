@@ -11,6 +11,7 @@ use crate::paths::*;
 use crate::process::ProcessIdentifierChoice;
 use crate::process::status::Status;
 use crate::user_and_groups::assert_effective_user_id_is_root;
+use crate::network_device::queues::{ReceiveSysfsQueue, TransmitSysfsQueue};
 
 
 include!("CompiledCpuFeatureCheck.rs");

@@ -259,7 +259,7 @@ impl<'a> PciDevice<'a>
 	#[inline(always)]
 	fn associated_hyper_threads_bitmask(&self) -> HyperThreads
 	{
-		HyperThreads(self.device_file_or_folder_path("local_cpus").parse_hyper_thread_or_numa_node_bit_set().expect("Could not parse local_cpulist"))
+		HyperThreads(self.device_file_or_folder_path("local_cpus").parse_comma_separated_bit_set().expect("Could not parse local_cpulist"))
 	}
 
 	#[inline(always)]

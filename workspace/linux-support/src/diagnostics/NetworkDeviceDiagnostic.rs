@@ -16,19 +16,22 @@ pub struct NetworkDeviceDiagnostic
 	#[allow(missing_docs)]
 	pub generic_receive_offload_flush_timeout_in_nanoseconds: DiagnosticUnobtainableResult<u32>,
 
-	#[allow(missing_docs)]
+	/// See detail in `Documentation/ABI/testing/sysfs-class-net` in Linux source.
 	pub device_identifier: DiagnosticUnobtainableResult<u16>,
-
-	#[allow(missing_docs)]
+	
+	/// See detail in `Documentation/ABI/testing/sysfs-class-net` in Linux source.
 	pub device_port: DiagnosticUnobtainableResult<u16>,
-
-	#[allow(missing_docs)]
+	
+	/// See detail in `Documentation/ABI/testing/sysfs-class-net` in Linux source.
 	pub is_dormant: DiagnosticUnobtainableResult<bool>,
-
-	#[allow(missing_docs)]
+	
+	/// See detail in `Documentation/ABI/testing/sysfs-class-net` in Linux source.
+	pub is_testing: DiagnosticUnobtainableResult<bool>,
+	
+	/// See detail in `Documentation/ABI/testing/sysfs-class-net` in Linux source.
 	pub assigned_hardware_address_type: DiagnosticUnobtainableResult<NET_ADDR>,
-
-	#[allow(missing_docs)]
+	
+	/// See detail in `Documentation/ABI/testing/sysfs-class-net` in Linux source.
 	pub assigned_hardware_name: DiagnosticUnobtainableResult<NET_NAME>,
 }
 
@@ -39,13 +42,6 @@ TODO: Setting values for ethX queues.
 
     queues/
         tx-0/
-            rps_cpus
-                00000000
-                read-write
-            rps_flow_cnt
-                0
-                read-write
-        rx-0/
             traffic_class
                 couldn't be read
             tx_maxrate
@@ -106,6 +102,8 @@ impl NetworkDeviceDiagnostic
 			device_port: network_interface_name.device_port(sys_path).map_err(DiagnosticUnobtainable::from),
 			
 			is_dormant: network_interface_name.is_dormant(sys_path).map_err(DiagnosticUnobtainable::from),
+			
+			is_testing: network_interface_name.is_testing(sys_path).map_err(DiagnosticUnobtainable::from),
 			
 			assigned_hardware_address_type: network_interface_name.assigned_hardware_address_type(sys_path).map_err(DiagnosticUnobtainable::from),
 			

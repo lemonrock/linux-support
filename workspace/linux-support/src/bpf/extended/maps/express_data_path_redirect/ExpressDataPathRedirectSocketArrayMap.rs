@@ -102,7 +102,7 @@ impl ExpressDataPathRedirectSocketArrayMap
 	#[inline(always)]
 	fn guard_index(&self, index: QueueIdentifier)
 	{
-		debug_assert!(index.0 < self.maximum_entries.to_u32());
+		debug_assert!(index.0 < (self.maximum_entries.to_u32() as u16));
 	}
 	
 	#[inline(always)]

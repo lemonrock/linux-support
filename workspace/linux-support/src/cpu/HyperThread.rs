@@ -22,18 +22,18 @@ impl Into<u16> for HyperThread
 impl BitSetAware for HyperThread
 {
 	/// Maximum value of `CONFIG_NR_CPUS`.
-	const LinuxMaximum: u16 = 8192;
+	const LinuxMaximum: u32 = 8192;
 
 	const InclusiveMinimum: Self = Self(0);
 
-	const InclusiveMaximum: Self = Self(Self::LinuxMaximum - 1);
+	const InclusiveMaximum: Self = Self((Self::LinuxMaximum - 1) as u16);
 
 	const Prefix: &'static [u8] = b"cpu";
 
 	#[inline(always)]
 	fn from_validated_u16(value: u16) -> Self
 	{
-		debug_assert!(value < Self::LinuxMaximum);
+		debug_assert!((value as u32) < Self::LinuxMaximum);
 
 		Self(value)
 	}
@@ -129,7 +129,7 @@ impl HyperThread
 		debug_assert!(result <= u16::MAX as i32, "sched_getcpu() was too large");
 		let result = result as u16;
 
-		debug_assert!(result < Self::LinuxMaximum);
+		debug_assert!((result as u32) < Self::LinuxMaximum);
 
 		Self(result as u16)
 	}
@@ -156,7 +156,7 @@ impl HyperThread
 		}
 		else if result > Self::LinuxMaximum as c_long
 		{
-			Self::LinuxMaximum
+			Self::LinuxMaximum as u16
 		}
 		else
 		{
