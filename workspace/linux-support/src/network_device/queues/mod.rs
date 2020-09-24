@@ -4,12 +4,16 @@
 
 use super::*;
 use crate::cpu::HyperThreads;
+use crate::configuration::Milliseconds;
 
 
 include!("ExpressDataPathQueueIdentifier.rs");
+include!("GlobalNetworkDeviceReceiveQueueConfiguration.rs");
+include!("GlobalNetworkDeviceTransmitQueueConfiguration.rs");
 include!("QueueCount.rs");
 include!("QueueIdentifier.rs");
 include!("QueueIdentifiers.rs");
 include!("ReceiveSysfsQueue.rs");
 include!("SysfsQueue.rs");
+include!("TransmitQueueTrafficClass.rs");
 include!("TransmitSysfsQueue.rs");

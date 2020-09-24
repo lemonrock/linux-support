@@ -3,10 +3,10 @@
 
 
 /// Either a receive or a transmit queue.
-pub trait SysfsQueue<'a>: Sized
+pub trait SysfsQueue<'a>: Sized + PartialEq + Eq + Hash
 {
 	#[doc(hidden)]
-	const Prefix: &str;
+	const Prefix: &'static str;
 	
 	#[doc(hidden)]
 	fn new(network_interface_name: &'a NetworkInterfaceName, queue_identifier: QueueIdentifier) -> Self;
@@ -32,9 +32,9 @@ pub trait SysfsQueue<'a>: Sized
 		let file_name = dir_entry.file_name().into_vec();
 		if file_name.len() < minimum_queue_folder_name_length
 		{
-			Err(ParseNumberError::TooShort)
+			return Err(ParseNumberError::TooShort)
 		}
-		if !file_name.starts_with(prefix.as_bytes())
+		if !file_name.starts_with(prefix)
 		{
 			return Err(ParseNumberError::DoesNotStartWithPrefix { prefix })
 		}

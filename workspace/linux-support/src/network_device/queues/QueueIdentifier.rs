@@ -39,17 +39,6 @@ impl BitSetAware for QueueIdentifier
 	}
 }
 
-impl ParseNumber for QueueIdentifier
-{
-	#[inline(always)]
-	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
-	{
-		use self::ParseNumberError::*;
-		
-		u16::parse_number(bytes, radix, parse_byte).map(Self)
-	}
-}
-
 impl TryFrom<ExpressDataPathQueueIdentifier> for QueueIdentifier
 {
 	type Error = TryFromIntError;

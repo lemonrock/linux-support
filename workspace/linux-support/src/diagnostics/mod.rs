@@ -125,6 +125,7 @@ use crate::time::*;
 use crate::user_and_groups::*;
 use crate::file_descriptors::cgroup::{CgroupProgramAttachmentType, CgroupProgramQueryFlags, CgroupProgramAttachmentFlags};
 use crate::network_device::link_settings::LinkSettings;
+use crate::configuration::Milliseconds;
 
 
 include!("CommonCgroupVersion2Diagnostics.rs");
@@ -185,8 +186,10 @@ include!("MiscellaneousProcessControlDiagnostics.rs");
 include!("MountDiagnostic.rs");
 include!("MountPointFileSystemDiagnostics.rs");
 include!("NetworkDeviceDiagnostic.rs");
-include!("NetworkDeviceInputOutputControlDiagnostic.rs");
 include!("NetworkDeviceDiagnostics.rs");
+include!("NetworkDeviceInputOutputControlDiagnostic.rs");
+include!("NetworkDeviceReceiveQueueDiagnostic.rs");
+include!("NetworkDeviceTransmitQueueDiagnostic.rs");
 include!("NonRootCgroupVersion2Diagnostics.rs");
 include!("NonRootCgroupVersion2HugetlbDiagnostics.rs");
 include!("NumaNodeMemoryDiagnostic.rs");

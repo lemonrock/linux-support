@@ -4,8 +4,6 @@
 
 /// A receive queue reference to a folder `/sys/class/net/<network_interface_name>/queues/rx-<N>` where `N` is `queue_identifier`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
 pub struct ReceiveSysfsQueue<'a>
 {
 	network_interface_name: &'a NetworkInterfaceName,

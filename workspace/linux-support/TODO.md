@@ -1,29 +1,50 @@
 ## Unfinished code
 
 * NUMA distances
-* Report `/proc/sys/kernel/random/boot_id` UUID to DogStatsD as it identifies the current boot.
 * Flow director code
     * ethtool flows
-* https://github.com/gamemann/XDP-Firewall
-* https://github.com/Barricade-FW/Firewall
+
+## How to use XDP
+
+* Firewall
+    * https://github.com/gamemann/XDP-Firewall
+    * https://github.com/Barricade-FW/Firewall
+* Load maps and programs from ELF files, copy code in `ip` tool that bypasses libbpf   
+* Enabling accelerated RFS (aRFS)
+* Scaling with RPS / XPS and aRFS
+* Setting a per-connection value on incoming packets in XDP BPF (a mark)
+    * Checking incoming packets for permission (IP + PORT + Protocol)
+* Busy polling - is it possible? - what about for XDP?
+* Review how to do RX queues and tie them to CPUs using <https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/#preparing-to-receive-data-from-the-network>
+    * <https://blog.cloudflare.com/how-to-achieve-low-latency/>
+* IS `SO_INCOMING_NAPI_ID` any use?
+* `SO_INCOMING_CPU` might actually be broken: <https://blog.cloudflare.com/perfect-locality-and-three-epic-systemtap-scripts/>
+* Review `/proc/net/softnet_stat` file with the softnet.sh script: <https://github.com/majek/dump/blob/master/how-to-receive-a-packet/softnet.sh>
+* Review the locality examples in <https://lwn.net/Articles/675043/>; includes pinning RSS queues, setting up the RSS indirection table and setting XPS (transmit packet steering)
+* See <https://www.suse.com/support/kb/doc/?id=000018430> for how to make changes to per-QUEUE RPS hyper thread affinity.
+    * "On NUMA machines, best performance can be achieved by configuring RPS to use the CPUs on the same NUMA node as the interrupt IRQ for the interface's receive queue."
+* Review <https://www.kernel.org/doc/html/v5.8/networking/scaling.html>
+* <https://docs.gz.ro/tuning-network-cards-on-linux.html>
+* <https://blog.cloudflare.com/how-to-achieve-low-latency/>
+* <https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/>
+* `/proc/sys/net/core/netdev_budget` - defaults to 300.
 
 
-## 
-/*
-	TODO:
-	the CPU which handles the interrupt will also process the packet unless:-
-		/sys/class/net/<device>/queues/<rx-queue>/rps_cpus - a cpu bitmap - is changed - to enable RPS - receive packet steering - which is a software tech, I think.
-		See https://www.suse.com/support/kb/doc/?id=000018430
-	
-	On NUMA machines, best performance can be achieved by configuring RPS to use the CPUs on the same NUMA node as the interrupt IRQ for the interface's receive queue.
- */
+### DogStatsD
+
+* Report `/proc/sys/kernel/random/boot_id` UUID to DogStatsD as it identifies the current boot.
+* 8192 UDS packet size for dogstatsd (<https://docs.datadoghq.com/developers/dogstatsd/high_throughput/?tab=go#use-dogstatsd-over-uds-unix-domain-socket>)
+* Send messages in batches to local UDS (Unix Domain Socket)
 
 
-// https://www.kernel.org/doc/html/v5.8/networking/scaling.html
-/*
+### ethtool
 
-TODO: Receive Queue => CPU
+* Look at IRQ affinity mapping for Internet Flow Directory (look at irq script in `~/Downloads/25_2/*/set_irq_affinity`).
+* Finish ethtool flow direction
+* TODO: Receive Queue => CPU
+* TOOD: Per-Queue settings
 
+```
 --config-nfc / --config-ntuple
 	do_srxclass
 		"rx-flow-hash"
@@ -32,30 +53,20 @@ TODO: Receive Queue => CPU
 		"delete"
 		
 --per-queue ... eg coalesce
-
-Rework set ring params, eg Intel i40e returns EINVAL for values outside of the range I40E_MIN_NUM_DESCRIPTORS ..= I40E_MAX_NUM_DESCRIPTORS
-	eg Intel i40e does not suppport rx_mini_pending or rx_jumbo_pending
-
-Indirection RSS hash table
-This table can be configured. For example, to make sure all traffic goes only to CPUs #0-#5 (the first NUMA node in our setup), we run:
-client$ sudo ethtool -X eth2 weight 1 1 1 1 1 1 0 0 0 0 0
-Finally, ensure the interrupts of multiqueue network cards are evenly distributed between CPUs. The irqbalance service is stopped and the interrupts are manually assigned. For simplicity let's pin the RX queue #0 to CPU #0, RX queue #1 to CPU #1 and so on.
+```
 
 
-We currently use the following in GlobalSchedulingConfiguration
-
-
-MSI-X - Message Signal Interrupts (Extended).
+### MSI-X - Message Signal Interrupts (Extended).
 
 When using MSI-X, an IRQ is raised for the RX queue the packet was written on.
 This IRQ is then mapped to a CPU (or set of CPUs)
 
-
-client$ (let CPU=0; cd /sys/class/net/eth0/device/msi_irqs/;
-         for IRQ in *; do
-            echo $CPU > /proc/irq/$IRQ/smp_affinity_list
-            let CPU+=1
-         done)
+    client$ (let CPU=0; cd /sys/class/net/eth0/device/msi_irqs/;
+             for IRQ in *; do
+                echo $CPU > /proc/irq/$IRQ/smp_affinity_list
+                let CPU+=1
+             done)
+             
 NOTE: /sys/class/net/eth2/device/msi_irqs may not exist, in which case:-
 
 	grep eth0 /proc/interrupts
@@ -77,21 +88,6 @@ NOTE: /sys/class/net/eth2/device/msi_irqs may not exist, in which case:-
 	  69:        394          0          0          0 IR-PCI-MSI-edge      eth0-TxRx-3
 
 This is because each RX queue can have its own hardware interrupt assigned if using MSI-X.
-
-
-Inputs into a weighting algorithm
-
-	- number of receive queues, number_of_receive_queues (eg 2, 11)
-	- indirection_table_size (eg 128) - this is the denominator.
-	
-	
-	
-
-
-https://docs.gz.ro/tuning-network-cards-on-linux.html
-https://blog.cloudflare.com/how-to-achieve-low-latency/
-https://serverfault.com/questions/772380/how-to-tell-if-nic-has-multiqueue-enabled (multiqueue - more than one rx or tx queue).
-https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/
 
 
 You can adjust the net_rx_action budget, which determines how much packet processing can be spent among all NAPI structures registered to a CPU
@@ -116,61 +112,6 @@ Assuming that your NIC and driver support it, you can enable accelerated RFS by 
     Configure your IRQ settings to ensure each RX queue is handled by one of your desired network processing CPUs.
 
 Once the above is configured, accelerated RFS will be used to automatically move data to the RX queue tied to a CPU core that is processing data for that flow and you won’t need to specify an ntuple filter rule manually for each flow.
-
-
-TODO: Diagnostic for ethX queues
-/sys/class/net/eth0
-
-    queues/
-        tx-0/
-            rps_cpus
-                00000000
-                read-write
-            rps_flow_cnt
-                0
-                read-write
-        rx-0/
-            traffic_class
-                couldn't be read
-            tx_maxrate
-                0
-                read-write
-            tx_timeout
-                0 (without line feed)
-            xps_cpus
-                couldn't be read
-                read-write
-            xps_rxqs
-                0
-                read-write
-            byte_queue_limits/
-                hold_time
-                    1000
-                    read-write
-                inflight
-                    0
-                    read-only
-                limit
-                    0
-                    read-write
-                limit_max
-                    1879048192
-                    read-write
-                limit_min
-                    0
-                    read-write
-    power/
-        autosuspend_delay_ms
-            couldn't be read
-            read-write
-        control
-            "auto"
-            read-write
-        runtime_active_time
-        runtime_status
-            "unsupported"
-        runtime_suspended_time
- */
 
 
 ## `/proc/sys` sysctls remaining to consider
@@ -225,101 +166,6 @@ TODO: Diagnostic for ethX queues
 * `sched_domain/` (far too complicated)
 * `keys/` (constrains memory usage of encryption keys in the kernel)
 * `usermodehelper/` ?
-
-
-## NUMA and hyper thread choices
-
-* Finish use of NUMA distance calculations
-* Finish validating NUMA nodes
-
-
-```
-pub struct ValidatedNumaNodeToHyperThreadMap
-{
-	all_valid_hyper_threads: HyperThreads,
-	map: HashMap<NumaNode, HyperThreads>,
-}
-
-impl ValidatedNumaNodeToHyperThreadMap
-{
-	pub fn x(&self)
-	{
-		/*
-			TODO: Which hyper threads for linux kernel watchdog?
-				- must not use anything in the isolcpus list
-			TODO: Which hyper threads are being used for the linux kernel and general userspace programs?
-				- anything not in the isolcpus list
-					- "Kernel parameters `isolcpus`, `rcu_nocbs` and `nohz_full` should all match"
-			TODO: Which hyper threads to use to best access a PCI device?
-			TODO: Which hyper thread to use to best run a control (master) loop?
-			TODO: Which hyper threads to use to best run background tasks?
-
-			Can we enable isolcpus after boot?
-				TODO: Explore use of cpuset file system to isolate cpus: http://man7.org/linux/man-pages/man7/cpuset.7.html
-				TODO: If running as root, move all other processes onto the 'shared' cpuset which overlaps with the Kernel.
-				/dev/cpuset allows for exlusive cpus and exclusive NUMA nodes (?how?)
-				cpuset.memory_spread_page and cpuset.memory_spread_slab override mbind and set_memory_policy (oh great)
-				Look at libcpuset
-
-			TODO: Modify li
-		*/
-
-		/*
-		 TODO: PCI device, check that (a) associated_hyper_threads_bit_set == associated_hyper_threads_bitmask and (b), for associated_numa_node == associated_hyper_threads_bitmask
-	pub associated_numa_node: Option<NumaNode>,
-
-	pub associated_hyper_threads_bit_set: HyperThreads,
-
-	pub associated_hyper_threads_bitmask: HyperThreads,
-		*/
-	}
-
-	pub fn create(sys_path: &SysPath, proc_path: &ProcPath) -> Self
-	{
-		let mut this = Self
-			{
-				all_valid_hyper_threads: BitSet::<HyperThread>::valid(sys_path, proc_path);
-				map: HashMap::default(),
-			};
-
-		if let Some(ref all_valid_numa_nodes) = BitSet::<NumaNode>::valid(sys_path, proc_path)
-		{
-			for numa_node in all_valid_numa_nodes.iterate()
-				{
-					let mut associated_hyper_threads = numa_node.associated_hyper_threads(sys_path).unwrap();
-					associated_hyper_threads.intersection(&this.all_valid_hyper_threads);
-					this.map.insert(numa_node, associated_hyper_threads)
-				}
-		}
-
-		// TODO: Check each NUMA node has hyper threads unique to it.
-
-		this
-	}
-}
-```
-
-### ethtool
-
-* Look at IRQ affinity mapping for Internet Flow Directory (look at irq script in `~/Downloads/25_2/*/set_irq_affinity`).
-* Finish ethtool flow direction
-
-
-### Cgroups v2
-
-
-#### Stuff
-
-* How to migrate processes and threads inside cgroups?
-    * eg Ours vs kthreads vs all others
-* How to configure cpuset cgroup?
-* How to delete an old cgroup hierarchy?
-
-
-#### Low Priority
-
-* Add reading and writing `io` controller files (files seem empty vs docs)
-* Add configuring `io` controller
 
 
 ### Miscellaneous File system
@@ -382,27 +228,6 @@ struct fsxattr {
 #define FS_XFLAG_COWEXTSIZE	0x00010000	/* CoW extent size allocator hint */
 #define FS_XFLAG_HASATTR	0x80000000	/* no DIFLAG for this	*/
 ```
-
-	// TODO: 8192 UDS packet size for dogstatsd
-		https://docs.datadoghq.com/developers/dogstatsd/high_throughput/?tab=go#use-dogstatsd-over-uds-unix-domain-socket
-
-	// TODO: Do we want to turn the socket's CPU into actual a CPU chosen from the same NUMA node the socket's CPU is on? A round-robin load balancer?
-
-	// TODO: Actually send messages to DataDog in batches (outbound batches Unix domain socket packets w/o a coroutine potentially)
-
-	// TODO: Review how to do RX queues and tie them to CPUs using https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/#preparing-to-receive-data-from-the-network
-		// TODO: https://blog.cloudflare.com/how-to-achieve-low-latency/
-	// TODO: SO_INCOMING_CPU might actually be broken: https://blog.cloudflare.com/perfect-locality-and-three-epic-systemtap-scripts/
-	// TODO: Review the locality examples in https://lwn.net/Articles/675043/
-	"We performed a bit of tuning, which included inspecting:
-
-         number of RSS queues and their interrupts being pinned to right CPUs
-         the indirection table
-         correct XPS settings on the TX path"
-
-	// TODO: "SO_INCOMING_NAPI_ID"
-
-	// TODO: /proc/net/softnet_stat file with the softnet.sh script: https://github.com/majek/dump/blob/master/how-to-receive-a-packet/softnet.sh
 
 /*
 	Operation combinations

@@ -6,8 +6,6 @@
 ///
 /// The files `traffic_class` (which is only read only) seems unreadable on my test machine.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Deserialize, Serialize)]
-#[repr(transparent)]
 pub struct TransmitSysfsQueue<'a>
 {
 	network_interface_name: &'a NetworkInterfaceName,
@@ -43,6 +41,51 @@ impl<'a> SysfsQueue<'a> for TransmitSysfsQueue<'a>
 
 impl<'a> TransmitSysfsQueue<'a>
 {
+	/// Traffic class.
+	///
+	/// Returns `Ok(Some(_))` if successfully retrieved.
+	///
+	/// ***Only supported if the network device is multiqueue (ie has more than one transmit queue); if not supported, `Ok(None)` is returned`.
+	/// Most virtual network devices are not multiqueue.
+	pub fn traffic_class(&self, sys_path: &SysPath) -> io::Result<Option<TransmitQueueTrafficClass>>
+	{
+		match self.file_path(sys_path, "traffic_class").read_raw_without_line_feed()
+		{
+			Ok(value) =>
+			{
+				let value = &value[..];
+				let mut bytes = value.split_bytes_n(2, b'-');
+				
+				Ok
+				(
+					Some
+					(
+						TransmitQueueTrafficClass
+						{
+							traffic_class: ParseNumber::parse_decimal_number(bytes.next().unwrap()).map_err(io_error_invalid_data)?,
+						
+							subordinate_device: match bytes.next()
+							{
+								Some(subordinate_device_bytes) => Some(ParseNumber::parse_decimal_number(subordinate_device_bytes).map_err(io_error_invalid_data)?),
+								
+								None => None,
+							},
+						}
+					)
+				)
+			},
+			
+			Err(error) => if error.raw_os_error() == Some(ENOENT)
+			{
+				Ok(None)
+			}
+			else
+			{
+				Err(error)
+			}
+		}
+	}
+	
 	/// Maximum rate.
 	///
 	/// Default is `None` (disabled).
@@ -76,11 +119,11 @@ impl<'a> TransmitSysfsQueue<'a>
 		if file_path.exists()
 		{
 			let maximum_rate_in_megabits_per_second: u32 = unsafe { transmute(maximum_rate_in_megabits_per_second) };
-			match path.write_value(UnpaddedDecimalInteger(maximum_rate_in_megabits_per_second))
+			match file_path.write_value(UnpaddedDecimalInteger(maximum_rate_in_megabits_per_second))
 			{
 				Ok(()) => Ok(true),
 				
-				Err(error) => if error.raw_os_error() == EOPNOTSUPP
+				Err(error) => if error.raw_os_error() == Some(EOPNOTSUPP)
 				{
 					Ok(false)
 				}
@@ -119,7 +162,7 @@ impl<'a> TransmitSysfsQueue<'a>
 		{
 			Ok(bit_set) => Ok(Some(HyperThreads(bit_set))),
 			
-			Err(error) => if error.raw_os_error() == ENOENT
+			Err(error) => if error.raw_os_error() == Some(ENOENT)
 			{
 				Ok(None)
 			}
@@ -155,7 +198,7 @@ impl<'a> TransmitSysfsQueue<'a>
 			{
 				Ok(()) => Ok(true),
 				
-				Err(error) => if error.raw_os_error() == ENOENT
+				Err(error) => if error.raw_os_error() == Some(ENOENT)
 				{
 					Ok(false)
 				}
@@ -212,6 +255,131 @@ impl<'a> TransmitSysfsQueue<'a>
 		}
 	}
 	
+	/// Time interval to measure across.
+	///
+	/// Default is 1,000 milliseconds.
+	#[inline(always)]
+	pub fn byte_limits_hold_time(&self, sys_path: &SysPath) -> io::Result<Milliseconds>
+	{
+		self.byte_queue_limits_hold_time_file_path(sys_path).read_value()
+	}
+	
+	/// Time interval to measure across.
+	///
+	/// Default is 1,000 milliseconds.
+	#[inline(always)]
+	pub fn set_byte_limits_hold_time(&self, sys_path: &SysPath, hold_time: Milliseconds) -> io::Result<()>
+	{
+		assert_effective_user_id_is_root("write /sys/class/net/<network_interface_name>/queues/tx-<queue_identifier/byte_queue_limits/hold_time");
+		
+		let file_path = self.byte_queue_limits_hold_time_file_path(sys_path);
+		
+		if file_path.exists()
+		{
+			file_path.write_value(hold_time)
+		}
+		else
+		{
+			Ok(())
+		}
+	}
+	
+	/// Number of bytes currently inflight.
+	#[inline(always)]
+	pub fn number_of_bytes_inflight(&self, sys_path: &SysPath) -> io::Result<u64>
+	{
+		self.byte_queue_limits_file_path(sys_path, "inflight").read_value()
+	}
+	
+	/// Minimum value for current limit on bytes to transmit.
+	///
+	/// Default is 0 bytes.
+	#[inline(always)]
+	pub fn minimum_current_byte_limit(&self, sys_path: &SysPath) -> io::Result<Option<NonZeroU64>>
+	{
+		self.byte_queue_limits_limit_min_file_path(sys_path).read_value()
+	}
+	
+	/// Minimum value for current limit on bytes to transmit.
+	///
+	/// Default is 0 bytes (off).
+	#[inline(always)]
+	pub fn set_minimum_current_byte_limit(&self, sys_path: &SysPath, minimum_current_byte_limit: Option<NonZeroU64>) -> io::Result<()>
+	{
+		assert_effective_user_id_is_root("write /sys/class/net/<network_interface_name>/queues/tx-<queue_identifier/byte_queue_limits/limit_min");
+		
+		let file_path = self.byte_queue_limits_limit_min_file_path(sys_path);
+		
+		if file_path.exists()
+		{
+			let value: u64 = unsafe { transmute(minimum_current_byte_limit) };
+			file_path.write_value(UnpaddedDecimalInteger(value))
+		}
+		else
+		{
+			Ok(())
+		}
+	}
+	
+	/// Current limit on bytes to transmit.
+	///
+	/// Default is 0 bytes (off).
+	#[inline(always)]
+	pub fn current_byte_limit(&self, sys_path: &SysPath) -> io::Result<Option<NonZeroU64>>
+	{
+		self.byte_queue_limits_limit_file_path(sys_path).read_value()
+	}
+	
+	/// Minimum value for current limit on bytes to transmit.
+	///
+	/// Default is 0 bytes (off).
+	#[inline(always)]
+	pub fn set_current_byte_limit(&self, sys_path: &SysPath, current_byte_limit: Option<NonZeroU64>) -> io::Result<()>
+	{
+		assert_effective_user_id_is_root("write /sys/class/net/<network_interface_name>/queues/tx-<queue_identifier/byte_queue_limits/limit");
+		
+		let file_path = self.byte_queue_limits_limit_file_path(sys_path);
+		
+		if file_path.exists()
+		{
+			let value: u64 = unsafe { transmute(current_byte_limit) };
+			file_path.write_value(UnpaddedDecimalInteger(value))
+		}
+		else
+		{
+			Ok(())
+		}
+	}
+	
+	/// Maximum value for current limit on bytes to transmit.
+	///
+	/// Default is 1,879,048,192 bytes.
+	#[inline(always)]
+	pub fn maximum_current_byte_limit(&self, sys_path: &SysPath) -> io::Result<NonZeroU64>
+	{
+		self.byte_queue_limits_limit_max_file_path(sys_path).read_value()
+	}
+	
+	/// Maximum value for current limit on bytes to transmit.
+	///
+	/// Default is 0 bytes.
+	#[inline(always)]
+	pub fn set_maximum_current_byte_limit(&self, sys_path: &SysPath, maximum_current_byte_limit: NonZeroU64) -> io::Result<()>
+	{
+		assert_effective_user_id_is_root("write /sys/class/net/<network_interface_name>/queues/tx-<queue_identifier/byte_queue_limits/limit_max");
+		
+		let file_path = self.byte_queue_limits_limit_max_file_path(sys_path);
+		
+		if file_path.exists()
+		{
+			file_path.write_value(UnpaddedDecimalInteger(maximum_current_byte_limit))
+		}
+		else
+		{
+			Ok(())
+		}
+	}
+	
 	#[inline(always)]
 	fn tx_maxrate_file_path(&self, sys_path: &SysPath) -> PathBuf
 	{
@@ -228,5 +396,35 @@ impl<'a> TransmitSysfsQueue<'a>
 	fn xps_rxqs_file_path(&self, sys_path: &SysPath) -> PathBuf
 	{
 		self.file_path(sys_path, "xps_rxqs")
+	}
+	
+	#[inline(always)]
+	fn byte_queue_limits_limit_min_file_path(&self, sys_path: &SysPath) -> PathBuf
+	{
+		self.byte_queue_limits_file_path(sys_path, "limit_min")
+	}
+	
+	#[inline(always)]
+	fn byte_queue_limits_limit_max_file_path(&self, sys_path: &SysPath) -> PathBuf
+	{
+		self.byte_queue_limits_file_path(sys_path, "limit_max")
+	}
+	
+	#[inline(always)]
+	fn byte_queue_limits_limit_file_path(&self, sys_path: &SysPath) -> PathBuf
+	{
+		self.byte_queue_limits_file_path(sys_path, "limit")
+	}
+	
+	#[inline(always)]
+	fn byte_queue_limits_hold_time_file_path(&self, sys_path: &SysPath) -> PathBuf
+	{
+		self.byte_queue_limits_file_path(sys_path, "hold_time")
+	}
+	
+	#[inline(always)]
+	fn byte_queue_limits_file_path(&self, sys_path: &SysPath, file_name: &str) -> PathBuf
+	{
+		self.file_path(sys_path, "byte_queue_limits").append(file_name)
 	}
 }

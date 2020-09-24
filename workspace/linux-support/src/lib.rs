@@ -621,6 +621,7 @@ use std::fs::DirEntry;
 use std::fs::File;
 use std::fs::OpenOptions;
 use std::fs::metadata;
+use std::fs::Permissions;
 use std::fs::remove_dir;
 use std::fs::remove_file;
 use std::fs::set_permissions;

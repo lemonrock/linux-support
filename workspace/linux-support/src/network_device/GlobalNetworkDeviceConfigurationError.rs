@@ -62,6 +62,33 @@ pub enum GlobalNetworkDeviceConfigurationError
 	
 	#[allow(missing_docs)]
 	CouldNotSetGenericReceiveOffloadTimeout(io::Error),
+	
+	#[allow(missing_docs)]
+	CouldNotSetPerReceiveQueueReceivePacketSteeringAffinity(io::Error),
+	
+	#[allow(missing_docs)]
+	CouldNotSetPerReceiveQueueReceivePacketSteeringFlowTableCount(io::Error),
+	
+	#[allow(missing_docs)]
+	CouldNotSetPerTransmitQueueMaximumRate(io::Error),
+	
+	#[allow(missing_docs)]
+	CouldNotSetPerTransmitQueueTransmitPacketSteeringHyperThreadAffinity(io::Error),
+	
+	#[allow(missing_docs)]
+	CouldNotSetPerTransmitQueueTransmitPacketSteeringReceiveQueueAffinity(io::Error),
+	
+	#[allow(missing_docs)]
+	CouldNotSetPerTransmitQueueByteLimitsHoldTime(io::Error),
+	
+	#[allow(missing_docs)]
+	CouldNotSetPerTransmitQueueMinimumCurrentByteLimit(io::Error),
+	
+	#[allow(missing_docs)]
+	CouldNotSetPerTransmitQueueMaximumCurrentByteLimit(io::Error),
+	
+	#[allow(missing_docs)]
+	CouldNotSetPerTransmitQueueCurrentByteLimit(io::Error),
 }
 
 impl Display for GlobalNetworkDeviceConfigurationError
@@ -119,6 +146,24 @@ impl error::Error for GlobalNetworkDeviceConfigurationError
 			&CouldNotConfigureReceiveSideScalingHashConfiguration(ref error) => Some(error),
 			
 			&CouldNotSetGenericReceiveOffloadTimeout(ref error) => Some(error),
+			
+			&CouldNotSetPerReceiveQueueReceivePacketSteeringAffinity(ref error) => Some(error),
+			
+			&CouldNotSetPerReceiveQueueReceivePacketSteeringFlowTableCount(ref error) => Some(error),
+			
+			&CouldNotSetPerTransmitQueueMaximumRate(ref error) => Some(error),
+			
+			&CouldNotSetPerTransmitQueueTransmitPacketSteeringHyperThreadAffinity(ref error) => Some(error),
+			
+			&CouldNotSetPerTransmitQueueTransmitPacketSteeringReceiveQueueAffinity(ref error) => Some(error),
+			
+			&CouldNotSetPerTransmitQueueByteLimitsHoldTime(ref error) => Some(error),
+			
+			&CouldNotSetPerTransmitQueueMinimumCurrentByteLimit(ref error) => Some(error),
+			
+			&CouldNotSetPerTransmitQueueMaximumCurrentByteLimit(ref error) => Some(error),
+			
+			&CouldNotSetPerTransmitQueueCurrentByteLimit(ref error) => Some(error),
 		}
 	}
 }

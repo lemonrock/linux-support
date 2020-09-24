@@ -73,6 +73,12 @@ pub struct GlobalNetworkDeviceConfiguration
 	/// Sometimes, *reducing* these to 128 or 256 can help Intel Data I/O Direct (DDIO).
 	#[serde(default)] pub maximize_pending_queue_depths: bool,
 	
+	/// Receive queue settings.
+	#[serde(default)] pub receive_queues: HashMap<QueueIdentifier, GlobalNetworkDeviceReceiveQueueConfiguration>,
+	
+	/// Transmit queue settings.
+	#[serde(default)] pub transmit_queues: HashMap<QueueIdentifier, GlobalNetworkDeviceTransmitQueueConfiguration>,
+	
 	/// Adjust receive side scaling (RSS) hash configuration:-
 	///
 	/// * Change the hash function (eg to Toeplitz);
@@ -171,6 +177,16 @@ impl GlobalNetworkDeviceConfiguration
 		let channels = validate(&network_device_input_output_control, network_device_input_output_control.maximize_number_of_channels(self.maximize_number_of_channels), CouldNotMaximizeChannels)?;
 		
 		let pending_queue_depths = validate(&network_device_input_output_control, network_device_input_output_control.maximize_receive_ring_queues_and_transmit_ring_queue_depths(self.maximize_pending_queue_depths), CouldNotMaximizePendingQueueDepths)?;
+		
+		for (queue_identifier, receive_queue) in self.receive_queues.iter()
+		{
+			receive_queue.configure(sys_path, &ReceiveSysfsQueue::new(network_interface_name, *queue_identifier))
+		}
+		
+		for (queue_identifier, transmit_queue) in self.transmit_queues.iter()
+		{
+			transmit_queue.configure(sys_path, &TransmitSysfsQueue::new(network_interface_name, *queue_identifier))
+		}
 		
 		if let Some(ref receive_side_scaling_hash_configuration) = self.receive_side_scaling_hash_configuration
 		{

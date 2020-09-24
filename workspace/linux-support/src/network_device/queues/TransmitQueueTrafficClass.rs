@@ -2,23 +2,19 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use crate::cpu::*;
-use crate::memory::mapping::*;
-use crate::memory::numa::NumaNode;
-use crate::memory::huge_pages::*;
-use crate::pci_express::PciDeviceAddress;
-use crate::process::ProcessIdentifierChoice;
-use crate::thread::ThreadIdentifier;
-use crate::file_systems::FileSystemType;
-use crate::interrupt_request::InterruptRequest;
-use crate::network_device::NetworkInterfaceName;
-use crate::network_device::queues::QueueIdentifier;
+/// Transmit queue traffic class.
+///
+/// Only exists for multiqueue network devices.
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct TransmitQueueTrafficClass
+{
+	/// If `subordinate_device.is_some()` this is the traffic class of the subordinate device.
+	///
+	/// A value of `0` is commonly displayed as `TC0`.
+	pub traffic_class: u32,
 
-
-include!("DevPath.rs");
-include!("EtcPath.rs");
-include!("FileSystemLayout.rs");
-include!("PathExt.rs");
-include!("ProcPath.rs");
-include!("SysPath.rs");
+	/// Subordinate device.
+	pub subordinate_device: Option<u32>,
+}

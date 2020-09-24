@@ -33,57 +33,13 @@ pub struct NetworkDeviceDiagnostic
 	
 	/// See detail in `Documentation/ABI/testing/sysfs-class-net` in Linux source.
 	pub assigned_hardware_name: DiagnosticUnobtainableResult<NET_NAME>,
+	
+	/// See detail in `Documentation/ABI/testing/sysfs-class-net-queues` in Linux source.
+	pub receive_queues: DiagnosticUnobtainableResult<HashMap<QueueIdentifier, NetworkDeviceReceiveQueueDiagnostic>>,
+	
+	/// See detail in `Documentation/ABI/testing/sysfs-class-net-queues` in Linux source.
+	pub transmit_queues: DiagnosticUnobtainableResult<HashMap<QueueIdentifier, NetworkDeviceTransmitQueueDiagnostic>>,
 }
-
-/*
-TODO: Diagnostic for ethX queues.
-TODO: Setting values for ethX queues.
-/sys/class/net/eth0
-
-    queues/
-        tx-0/
-            traffic_class
-                couldn't be read
-            tx_maxrate
-                0
-                read-write
-            tx_timeout
-                0 (without line feed)
-            xps_cpus
-                couldn't be read
-                read-write
-            xps_rxqs
-                0
-                read-write
-            byte_queue_limits/
-                hold_time
-                    1000
-                    read-write
-                inflight
-                    0
-                    read-only
-                limit
-                    0
-                    read-write
-                limit_max
-                    1879048192
-                    read-write
-                limit_min
-                    0
-                    read-write
-    power/
-        autosuspend_delay_ms
-            couldn't be read
-            read-write
-        control
-            "auto"
-            read-write
-        runtime_active_time
-        runtime_status
-            "unsupported"
-        runtime_suspended_time
- */
-
 
 impl NetworkDeviceDiagnostic
 {
@@ -91,6 +47,7 @@ impl NetworkDeviceDiagnostic
 	fn gather(sys_path: &SysPath, link: GetLinkMessageData) -> Self
 	{
 		let network_interface_name = &link.network_interface_name;
+		
 		Self
 		{
 			input_output_control: NetworkDeviceInputOutputControlDiagnostic::gather(&link.network_interface_name),
@@ -108,6 +65,20 @@ impl NetworkDeviceDiagnostic
 			assigned_hardware_address_type: network_interface_name.assigned_hardware_address_type(sys_path).map_err(DiagnosticUnobtainable::from),
 			
 			assigned_hardware_name: network_interface_name.assigned_hardware_name(sys_path).map_err(DiagnosticUnobtainable::from),
+			
+			receive_queues: match network_interface_name.receive_queues(sys_path)
+			{
+				Err(error) => Err(DiagnosticUnobtainable::from(error)),
+				
+				Ok(receive_sysfs_queues) => Ok(receive_queues.iter(|receive_sysfs_queue| NetworkDeviceReceiveQueueDiagnostic::gather(sys_path, receive_sysfs_queue)).map().collect()),
+			},
+			
+			transmit_queues: match network_interface_name.receive_queues(sys_path)
+			{
+				Err(error) => Err(DiagnosticUnobtainable::from(error)),
+				
+				Ok(transmit_sysfs_queues) => Ok(transmit_queues.iter().map(|transmit_sysfs_queue| NetworkDeviceTransmitQueueDiagnostic::gather(sys_path, transmit_sysfs_queue)).collect()),
+			},
 			
 			link,
 		}

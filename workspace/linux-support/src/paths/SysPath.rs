@@ -238,13 +238,6 @@ impl SysPath
 		self.path().append("devices")
 	}
 	
-	/// `/sys/class/net/<network_interface_name>/queues/rx-<queue_identifier>`.
-	#[inline(always)]
-	pub fn network_interface_class_net_queues_rx_file_path(&self, network_interface_name: &NetworkInterfaceName, queue_identifier: QueueIdentifier, file_name: &str) -> PathBuf
-	{
-		self.network_interface_class_net_queues_file_path(network_interface_name, ReceiveSysfsQueue::Prefix, queue_identifier, file_name)
-	}
-	
 	/// `/sys/class/net/<network_interface_name>/queues/<prefix>-<queue_identifier>/file_name`.
 	#[inline(always)]
 	pub(crate) fn network_interface_class_net_queues_file_path(&self, network_interface_name: &NetworkInterfaceName, prefix: &str, queue_identifier: QueueIdentifier, file_name: &str) -> PathBuf
