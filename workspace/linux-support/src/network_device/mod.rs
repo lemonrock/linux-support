@@ -27,6 +27,8 @@ use crate::file_descriptors::*;
 use crate::file_descriptors::network_device::*;
 use crate::paths::SysPath;
 use crate::user_and_groups::assert_effective_user_id_is_root;
+use crate::configuration::Milliseconds;
+use crate::file_descriptors::socket::c::in6_addr;
 
 
 /// C.
@@ -47,6 +49,10 @@ pub mod eeprom;
 
 /// Features.
 pub mod features;
+
+
+/// Flow specifications.
+pub mod flow_specifications;
 
 
 /// Link settings.
@@ -91,6 +97,10 @@ include!("EnergyEfficientEthernetConfiguration.rs");
 include!("GlobalNetworkDeviceConfiguration.rs");
 include!("GlobalNetworkDeviceConfigurationError.rs");
 include!("HardwareAddress.rs");
+include!("InternetProtocolVersion4Details.rs");
+include!("InternetProtocolVersion4DeviceConfiguration.rs");
+include!("InternetProtocolVersion6Details.rs");
+include!("InternetProtocolVersion6DeviceConfiguration.rs");
 include!("MaximumTransmissionUnitPayloadSize.rs");
 include!("MaximumTransmissionUnitPayloadSizeOutOfRangeError.rs");
 include!("NetworkDeviceFirmware.rs");
@@ -100,6 +110,7 @@ include!("NetworkDeviceInputOutputControlError.rs");
 include!("NetworkDeviceRegisters.rs");
 include!("NetworkDeviceTimestampingInformation.rs");
 include!("NetworkInterfaceAlias.rs");
+include!("NetworkInterfaceAlternativeName.rs");
 include!("NetworkInterfaceIndex.rs");
 include!("NetworkInterfaceIndexToNetworkInterfaceNameError.rs");
 include!("NetworkInterfaceName.rs");

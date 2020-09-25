@@ -1059,5 +1059,6 @@ include!("current_numa_node_and_hyper_thread.rs");
 include!("ENOTSUPP.rs");
 include!("ObjectName16.rs");
 include!("ObjectName32.rs");
+include!("ObjectName128.rs");
 include!("ObjectName256.rs");
 include!("ObjectNameFromBytesError.rs");

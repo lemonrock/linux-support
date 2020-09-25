@@ -7,18 +7,31 @@
 pub(crate) union ethtool_flow_union
 {
 	pub(crate) tcp_ip4_spec: ethtool_tcpip4_spec,
+	
 	pub(crate) udp_ip4_spec: ethtool_tcpip4_spec,
+	
 	pub(crate) sctp_ip4_spec: ethtool_tcpip4_spec,
+	
 	pub(crate) ah_ip4_spec: ethtool_ah_espip4_spec,
+	
 	pub(crate) esp_ip4_spec: ethtool_ah_espip4_spec,
+	
 	pub(crate) usr_ip4_spec: ethtool_usrip4_spec,
+	
 	pub(crate) tcp_ip6_spec: ethtool_tcpip6_spec,
+	
 	pub(crate) udp_ip6_spec: ethtool_tcpip6_spec,
+	
 	pub(crate) sctp_ip6_spec: ethtool_tcpip6_spec,
+	
 	pub(crate) ah_ip6_spec: ethtool_ah_espip6_spec,
+	
 	pub(crate) esp_ip6_spec: ethtool_ah_espip6_spec,
+	
 	pub(crate) usr_ip6_spec: ethtool_usrip6_spec,
+	
 	pub(crate) ether_spec: ethhdr,
+	
 	pub(crate) hdata: [u8; 52],
 }
 

@@ -38,6 +38,14 @@ impl<NAT: NetlinkAttributeType> rtattr<NAT>
 	}
 	
 	#[inline(always)]
+	pub(super) fn get_attribute_value_queuing_discipline(&self) -> Result<QueuingDisciplineAlgorithm, String>
+	{
+		let asciiz_string = self.get_attribute_value_asciiz_string().map_err(|error| error.to_string())?;
+		let bytes = asciiz_string.to_bytes();
+		QueuingDisciplineAlgorithm::from_bytes(bytes).map_err(|error| format!("{}", error))
+	}
+	
+	#[inline(always)]
 	pub(super) fn get_attribute_value_network_interface_name(&self) -> Result<NetworkInterfaceName, String>
 	{
 		let asciiz_string = self.get_attribute_value_asciiz_string().map_err(|error| error.to_string())?;
@@ -51,6 +59,14 @@ impl<NAT: NetlinkAttributeType> rtattr<NAT>
 		let asciiz_string = self.get_attribute_value_asciiz_string().map_err(|error| error.to_string())?;
 		let bytes = asciiz_string.to_bytes();
 		NetworkInterfaceAlias::from_bytes(bytes).map_err(|error| format!("{}", error))
+	}
+	
+	#[inline(always)]
+	pub(super) fn get_attribute_value_network_interface_alternative_name(&self) -> Result<NetworkInterfaceAlternativeName, String>
+	{
+		let asciiz_string = self.get_attribute_value_asciiz_string().map_err(|error| error.to_string())?;
+		let bytes = asciiz_string.to_bytes();
+		NetworkInterfaceAlternativeName::from_bytes(bytes).map_err(|error| format!("{}", error))
 	}
 	
 	#[inline(always)]
@@ -100,6 +116,12 @@ impl<NAT: NetlinkAttributeType> rtattr<NAT>
 	pub(super) fn get_attribute_value_network_interface_index(&self) -> Result<NetworkInterfaceIndex, String>
 	{
 		self.get_attribute_value_non_zero_u32().map(|non_zero_u32| NetworkInterfaceIndex::from(non_zero_u32))
+	}
+	
+	#[inline(always)]
+	pub(super) fn get_attribute_value_milliseconds(&self) -> Result<Milliseconds, TryFromSliceError>
+	{
+		self.get_attribute_value_u32().map(Milliseconds)
 	}
 	
 	#[inline(always)]
@@ -368,4 +390,46 @@ impl rtattr<XDP_DIAG>
 	{
 		self.get_attribute_value_struct::<xdp_diag_ring>().map(|ring| ring.entries)
 	}
+}
+
+impl rtattr<IFLA_INET6>
+{
+	#[inline(always)]
+	pub(crate) fn get_inet6_statistics(&self) -> Result<Box<[u64]>, String>
+	{
+		use self::IFLA_INET6::*;
+		debug_assert!(matches!(self.type_().2, IFLA_INET6_STATS | IFLA_INET6_ICMP6STATS), "self.type_().2 {:?} is not one of IFLA_INET6_STATS or IFLA_INET6_ICMP6STATS", self.type_().2);
+		
+		// Has a header (number of statistics including header) and a zero-padded trailer.
+		let binary_data = self.attribute_value();
+		let length = binary_data.len();
+		
+		type Statistic = u64;
+		const LengthMultiple: usize = size_of::<Statistic>();
+		if unlikely!(length < LengthMultiple)
+		{
+			return Err(format!("binary_data length `{}` is less than `{}`", length, LengthMultiple))
+		}
+		
+		if unlikely!(length % LengthMultiple != 0)
+		{
+			return Err(format!("binary_data length `{}` is not a multiple of `{}`", length, LengthMultiple))
+		}
+		
+		let header = binary_data.as_ptr() as *const Statistic;
+		let number_of_statistics_including_this_one = unsafe { *header };
+		let number_of_statistics = number_of_statistics_including_this_one - 1;
+		
+		let statistics = unsafe { header.add(1) };
+		Ok((unsafe { from_raw_parts(statistics, number_of_statistics as usize) }).into_vec().into_boxed_slice())
+	}
+	
+	#[inline(always)]
+	pub(super) fn get_attribute_value_address_generation_mode(&self) -> Result<in6_addr_gen_mode, TryFromSliceError>
+	{
+		self.debug_assert_is(IFLA_INET6::IFLA_INET6_ADDR_GEN_MODE);
+		
+		Ok(unsafe { transmute(self.get_attribute_value_u8()?) })
+	}
+	
 }

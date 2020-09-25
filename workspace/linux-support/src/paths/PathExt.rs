@@ -35,7 +35,10 @@ pub trait PathExt
 
 	/// Writes a value to a file which is line-feed terminated.
 	fn write_value<'a>(&self, value: impl IntoLineFeedTerminatedByteString<'a>) -> io::Result<()>;
-
+	
+	/// Writes a value to a file which is then line-feed terminated.
+	fn write_value_then_line_feed(&self, value: &[u8]) -> io::Result<()>;
+	
 	/// Opens a file for writing.
 	fn open_file_for_writing(&self) -> io::Result<File>;
 
@@ -193,6 +196,14 @@ impl PathExt for Path
 	{
 		let mut file = self.open_file_for_writing()?;
 		file.write_all(&value.into_line_feed_terminated_byte_string())
+	}
+
+	#[inline(always)]
+	fn write_value_then_line_feed(&self, value: &[u8]) -> io::Result<()>
+	{
+		let mut file = self.open_file_for_writing()?;
+		file.write_all(value)?;
+		file.write_all(&[b'\n'])
 	}
 
 	#[inline(always)]

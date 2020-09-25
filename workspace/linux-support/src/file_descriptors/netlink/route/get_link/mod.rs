@@ -7,7 +7,12 @@ use crate::network_device::*;
 use crate::network_device::c::*;
 use crate::network_device::queues::*;
 use crate::bpf::extended::identifiers::MultipleProgramIdentifiers;
+use crate::network_device::queuing_discipline::QueuingDisciplineAlgorithm;
+use crate::configuration::Milliseconds;
 
 
 include!("GetLinkMessageData.rs");
 include!("GetLinkProcessingMessageState.rs");
+include!("InternetProtocolVersion4DeviceConfigurationGetLinkProcessMessageState.rs");
+include!("InternetProtocolVersion6DetailsGetLinkProcessMessageState.rs");
+include!("InternetProtocolVersion6DeviceConfigurationGetLinkProcessMessageState.rs");

@@ -2,22 +2,31 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+/// This does not really exist.
+#[non_exhaustive]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(u16)]
+pub(crate) enum IFLA_AF_SPEC
+{
+	IFLA_AF_SPEC_INET = AF_INET as u16,
+	
+	IFLA_AF_SPEC_INET6 = AF_INET6 as u16,
+}
 
+impl From<u16> for IFLA_AF_SPEC
+{
+	#[inline(always)]
+	fn from(value: u16) -> Self
+	{
+		unsafe { transmute(value) }
+	}
+}
 
-include!("_FLOW.rs");
-include!("ethhdr.rs");
-include!("ethtool_ah_espip4_spec.rs");
-include!("ethtool_ah_espip6_spec.rs");
-include!("ethtool_flow_ext.rs");
-include!("ethtool_flow_union.rs");
-include!("ethtool_rx_flow_spec.rs");
-include!("ethtool_tcpip4_spec.rs");
-include!("ethtool_tcpip6_spec.rs");
-include!("ethtool_usrip4_spec.rs");
-include!("ethtool_usrip6_spec.rs");
-include!("FLOW_.rs");
-include!("FlowSpecification.rs");
-include!("RX_CLS_FLOW_.rs");
-include!("RX_CLS_LOC_.rs");
-include!("RXH_.rs");
+impl NetlinkAttributeType for IFLA_AF_SPEC
+{
+	#[inline(always)]
+	fn to_u16(self) -> u16
+	{
+		self as u16
+	}
+}

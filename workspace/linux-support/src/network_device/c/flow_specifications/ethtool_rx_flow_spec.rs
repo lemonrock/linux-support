@@ -23,6 +23,7 @@ pub(crate) struct ethtool_rx_flow_spec
 	pub(crate) m_ext: ethtool_flow_ext,
 	
 	/// Receive ring queue index to deliver to, or:-
+	///
 	/// * `RX_CLS_FLOW_DISC` if packets should be discarded;
 	/// * `RX_CLS_FLOW_WAKE` if packets should be used for Wake-on-LAN with `WAKE_FILTER`.
 	pub(crate) ring_cookie: RingCookie,
@@ -31,4 +32,13 @@ pub(crate) struct ethtool_rx_flow_spec
 	///
 	/// Locations must be numbered such that a flow matching multiple rules will be classified according to the first (lowest numbered) rule.
 	pub(crate) location: u32,
+}
+
+impl ethtool_rx_flow_spec
+{
+	#[inline(always)]
+	pub(crate) const fn actual_flow_type(&self) -> u32
+	{
+		self.flow_type & !(FLOW_EXT | FLOW_MAC_EXT | FLOW_RSS)
+	}
 }

@@ -10,25 +10,31 @@
 pub enum IF_OPER
 {
 	/// `unknown` in sysfs (`/sys/class/net/<network_interface_name>/oper_state`).
+	/// `UNKNOWN` for `ip show` tool.
 	#[serde(rename = "Unknown")] IF_OPER_UNKNOWN = 0,
 	
 	/// Apparently unused according to a Linux kernel source comment.
 	///
 	/// `notpresent` in sysfs (`/sys/class/net/<network_interface_name>/oper_state`).
+	/// `NOTPRESENT` for `ip show` tool.
 	#[serde(rename = "Not Present")] IF_OPER_NOTPRESENT = 1,
 	
 	/// `down` in sysfs (`/sys/class/net/<network_interface_name>/oper_state`).
+	/// `DOWN` for `ip show` tool.
 	#[serde(rename = "Down")] IF_OPER_DOWN = 2,
 	
 	/// `lowerlayerdown` in sysfs (`/sys/class/net/<network_interface_name>/oper_state`).
+	/// `LOWERLAYERDOWN` for `ip show` tool.
 	#[serde(rename = "Lower Layer Down")] IF_OPER_LOWERLAYERDOWN = 3,
 	
 	/// Apparently unused according to a Linux kernel source comment.
 	///
 	/// `testing` in sysfs (`/sys/class/net/<network_interface_name>/oper_state`).
+	/// `TESTING` for `ip show` tool.
 	#[serde(rename = "Testing")] IF_OPER_TESTING = 4,
 	
 	/// `dormant` in sysfs (`/sys/class/net/<network_interface_name>/oper_state`).
+	/// `DORMANT` for `ip show` tool.
 	///
 	/// Check that `/sys/class/net/<network_interface_name>/dormant` is true before relying on this state.
 	///
@@ -43,6 +49,7 @@ pub enum IF_OPER
 	#[serde(rename = "Dormant")] IF_OPER_DORMANT = 5,
 	
 	/// `up` in sysfs (`/sys/class/net/<network_interface_name>/oper_state`).
+	/// `UP` for `ip show` tool.
 	///
 	/// Check that `/sys/class/net/<network_interface_name>/dormant` is not true before relying on this state.
 	#[serde(rename = "Up")] IF_OPER_UP = 6,

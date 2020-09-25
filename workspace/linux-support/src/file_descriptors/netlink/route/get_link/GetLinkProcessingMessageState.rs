@@ -44,14 +44,19 @@ pub struct GetLinkProcessingMessageState
 	pub(crate) carrier_ok: Option<bool>,
 	
 	/// Optional.
-	pub(crate) queueing_discipline: Option<CString>,
+	pub(crate) queueing_discipline: Option<QueuingDisciplineAlgorithm>,
 	
 	/// Optional.
 	pub(crate) network_interface_alias: Option<NetworkInterfaceAlias>,
 	
+	/// Optional.
+	pub(crate) alternative_network_interface_names: Option<Vec<NetworkInterfaceAlternativeName>>,
+	
 	pub(crate) carrier_up_and_down_count: Option<u32>,
 	
 	pub(crate) proto_down: Option<bool>,
+	
+	pub(crate) protocol_down_reason_value: Option<NonZeroU32>,
 	
 	pub(crate) carrier_up_count: Option<u32>,
 	
@@ -61,13 +66,11 @@ pub struct GetLinkProcessingMessageState
 	
 	pub(crate) linked_net_namespace_identifier: Option<i32>,
 	
-	pub(crate) linked_network_interface_index: Option<NetworkInterfaceIndex>,
+	pub(crate) linked_network_interface_index: Option<Option<NetworkInterfaceIndex>>,
 	
 	pub(crate) new_net_namespace_identifier: Option<i32>,
 	
 	pub(crate) new_network_interface_index: Option<NetworkInterfaceIndex>,
-	
-	pub(crate) event: Option<NonZeroU32>,
 	
 	pub(crate) map: Option<rtnl_link_ifmap>,
 	
@@ -125,8 +128,10 @@ impl GetLinkProcessingMessageState
 				carrier_ok: None,
 				queueing_discipline: None,
 				network_interface_alias: None,
+				alternative_network_interface_names: None,
 				carrier_up_and_down_count: None,
 				proto_down: None,
+				protocol_down_reason_value: None,
 				carrier_up_count: None,
 				carrier_down_count: None,
 				target_net_namespace_identifier: None,
@@ -134,7 +139,6 @@ impl GetLinkProcessingMessageState
 				linked_network_interface_index: None,
 				new_net_namespace_identifier: None,
 				new_network_interface_index: None,
-				event: None,
 				map: None,
 				address: None,
 				broadcast_address: None,
@@ -175,8 +179,25 @@ impl GetLinkProcessingMessageState
 				carrier_ok: self.carrier_ok.ok_or(format!("Linux kernel bug - missing generic_segmentation_offload_maximum_size"))?,
 				queueing_discipline: self.queueing_discipline,
 				network_interface_alias: self.network_interface_alias,
+				network_interface_alternative_names: self.network_interface_alternative_names.unwrap_or(Vec::new()),
 				carrier_up_and_down_count: self.carrier_up_and_down_count.ok_or(format!("Linux kernel bug - missing carrier_up_and_down_count"))?,
-				proto_down: self.proto_down.ok_or(format!("Linux kernel bug - missing proto_down"))?,
+				protocol_down_and_reason_code:
+				{
+					let is_protocol_down = self.proto_down.ok_or(format!("Linux kernel bug - missing proto_down"))?;
+					if is_protocol_down
+					{
+						// Only present in Linux ?5.8 onwards.
+						Some(self.protocol_down_reason_value)
+					}
+					else
+					{
+						if self.protocol_down_reason_value.is_some()
+						{
+							return Err(format!("Linux kernel bug - missing proto_down_reason when proto_down present"))
+						}
+						None
+					}
+				},
 				carrier_up_count: self.carrier_up_count.ok_or(format!("Linux kernel bug - missing carrier_up_count"))?,
 				carrier_down_count: self.carrier_down_count.ok_or(format!("Linux kernel bug - missing carrier_down_count"))?,
 				target_net_namespace_identifier: self.target_net_namespace_identifier,
@@ -185,7 +206,6 @@ impl GetLinkProcessingMessageState
 				new_net_namespace_identifier: self.linked_net_namespace_identifier,
 				new_network_interface_index: self.linked_network_interface_index,
 				map: self.map.ok_or(format!("Linux kernel bug - missing map"))?,
-				event: unsafe { transmute(self.event) },
 				address_and_broadcast_and_permanent_address: match (self.address, self.broadcast_address)
 				{
 					(None, None) => None,

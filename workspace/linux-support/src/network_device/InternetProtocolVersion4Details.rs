@@ -2,22 +2,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-
-
-include!("_FLOW.rs");
-include!("ethhdr.rs");
-include!("ethtool_ah_espip4_spec.rs");
-include!("ethtool_ah_espip6_spec.rs");
-include!("ethtool_flow_ext.rs");
-include!("ethtool_flow_union.rs");
-include!("ethtool_rx_flow_spec.rs");
-include!("ethtool_tcpip4_spec.rs");
-include!("ethtool_tcpip6_spec.rs");
-include!("ethtool_usrip4_spec.rs");
-include!("ethtool_usrip6_spec.rs");
-include!("FLOW_.rs");
-include!("FlowSpecification.rs");
-include!("RX_CLS_FLOW_.rs");
-include!("RX_CLS_LOC_.rs");
-include!("RXH_.rs");
+#[allow(missing_docs)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct InternetProtocolVersion4Details
+{
+	#[serde(flatten)] pub device_configuration: InternetProtocolVersion4DeviceConfiguration,
+}

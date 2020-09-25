@@ -138,7 +138,7 @@ pub struct GetLinkMessageData
 	pub carrier_up_and_down_count: u32,
 	
 	/// Queuing discipline.
-	pub queueing_discipline: Option<CString>,
+	pub queueing_discipline: Option<QueuingDisciplineAlgorithm>,
 	
 	/// Alias.
 	///
@@ -146,11 +146,17 @@ pub struct GetLinkMessageData
 	/// Read-write via sysfs.
 	pub network_interface_alias: Option<NetworkInterfaceAlias>,
 	
-	/// ?
+	/// Alternative names.
+	pub network_interface_alternative_names: Vec<NetworkInterfaceAlternativeName>,
+	
+	/// `None` is `false`.
+	/// `Some(..)` is `true`.
+	/// `Some(None)` is `true` and Linux does not provide a reason code (older versions) or the reason code was `0` ( which may not be a valid possibility; Linux does not have clarity here).
+	/// `Some(Some(reason))` is `true` and the reason code is provided by Linux.
 	///
 	/// Also available at `/sys/class/net/<network_interface_name>/proto_down`.
-	/// Read-write via sysfs.
-	pub proto_down: bool,
+	/// Read-write via sysfs as boolean.
+	pub protocol_down_and_reason_code: Option<Option<NonZeroU32>>,
 	
 	/// Target net namespace identifier.
 	pub target_net_namespace_identifier: Option<i32>,
@@ -161,16 +167,15 @@ pub struct GetLinkMessageData
 	pub linked_net_namespace_identifier: Option<i32>,
 	
 	/// Linked network interface index.
-	pub linked_network_interface_index: Option<NetworkInterfaceIndex>,
+	///
+	/// May be `Some(None)` which means the network interface is linked to `NONE`.
+	pub linked_network_interface_index: Option<Option<NetworkInterfaceIndex>>,
 	
 	/// New net namespace identifier.
 	pub new_net_namespace_identifier: Option<i32>,
 	
 	/// New network interface index.
 	pub new_network_interface_index: Option<NetworkInterfaceIndex>,
-	
-	/// Was this link data sent because of an event? If so, what was it?
-	pub event: IFLA_EVENT,
 	
 	/// Map.
 	/// Also available via the ioctl `SIOCGIFMAP`.

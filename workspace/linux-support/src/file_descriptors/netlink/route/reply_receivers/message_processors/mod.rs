@@ -4,7 +4,7 @@
 
 use super::*;
 use crate::bpf::extended::identifiers::ExtendedBpfProgramIdentifier;
-use crate::network_device::HardwareAddress;
+use crate::network_device::{HardwareAddress, NetworkInterfaceAlternativeName, InternetProtocolVersion4DeviceConfiguration, InternetProtocolVersion6DeviceConfiguration, InternetProtocolVersion6Details, InternetProtocolVersion4Details};
 use crate::express_data_path::c::xdp_diag_info;
 use crate::express_data_path::c::XDP_DIAG;
 use crate::express_data_path::c::xdp_diag_msg;
@@ -13,6 +13,7 @@ use crate::express_data_path::c::xdp_diag_umem;
 use crate::express_data_path::c::xdp_diag_stats;
 
 
-include!("GetAddressMessageProcessor.rs");include!("GetExpressDataPathDiagnosticsMessageProcessor.rs");
+include!("GetAddressMessageProcessor.rs");
+include!("GetExpressDataPathDiagnosticsMessageProcessor.rs");
 include!("GetLinkMessageProcessor.rs");
 include!("MessageProcessor.rs");

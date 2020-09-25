@@ -10,6 +10,7 @@ use crate::network_device::receive_side_scaling::ContextIdentifier;
 use crate::network_device::wake_on_lan::WakeOnLanWhen;
 
 
+include!("ALTIFNAMSIZ.rs");
 include!("AUTONEG.rs");
 include!("cisco_proto.rs");
 include!("DOWNSHIFT_DEV_.rs");
@@ -56,6 +57,7 @@ include!("ifmap.rs");
 include!("ifreq.rs");
 include!("ifreq_ifrn.rs");
 include!("ifreq_ifru.rs");
+include!("in6_addr_gen_mode.rs");
 include!("MAX_ADDR_LEN.rs");
 include!("MAX_NUM_QUEUE.rs");
 include!("MAX_PHYS_ITEM_ID_LEN.rs");

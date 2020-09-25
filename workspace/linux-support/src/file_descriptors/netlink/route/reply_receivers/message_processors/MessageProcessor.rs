@@ -18,6 +18,13 @@ pub(crate) trait MessageProcessor
 	
 	#[doc(hidden)]
 	#[inline(always)]
+	fn validate_message_type(_message_type: RouteNetlinkMessageType) -> Result<(), String>
+	{
+		Ok(())
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
 	fn process_message(&self, _message_type: RouteNetlinkMessageType, data: &[u8]) -> Result<Option<Self::ProcessedMessage>, String>
 	{
 		let message_header = unsafe { & * (data.as_ptr() as *const Self::Header) };

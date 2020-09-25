@@ -92,6 +92,8 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	/// Set transmission queue length.
 	///
 	/// Defaults to `1000` for Ethernet devices.
+	///
+	/// Can also be set using a Route Netlink Set Link message with the attribute `IFLA_TXQLEN`.
 	#[inline(always)]
 	pub fn set_transmission_queue_length(&self, transmission_queue_length: u32) -> Result<Option<()>, NetworkDeviceInputOutputControlError<TransmissionQueueLengthOutOfRangeError>>
 	{
@@ -113,6 +115,8 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	}
 	
 	/// Set maximum transmission unit (MTU).
+	///
+	/// Can also be set using a Route Netlink Set Link message with the attribute `IFLA_MTU`.
 	#[inline(always)]
 	pub fn set_maximum_transmission_unit(&self, maximum_transmission_unit: MaximumTransmissionUnitPayloadSize) -> Result<Option<()>, NetworkDeviceInputOutputControlError<MaximumTransmissionUnitPayloadSizeOutOfRangeError>>
 	{

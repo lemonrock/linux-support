@@ -2,22 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+// Special RX classification rule insert location values.
 
+pub(crate) const RX_CLS_LOC_SPECIAL: u32 = 0x80000000;
 
-include!("_FLOW.rs");
-include!("ethhdr.rs");
-include!("ethtool_ah_espip4_spec.rs");
-include!("ethtool_ah_espip6_spec.rs");
-include!("ethtool_flow_ext.rs");
-include!("ethtool_flow_union.rs");
-include!("ethtool_rx_flow_spec.rs");
-include!("ethtool_tcpip4_spec.rs");
-include!("ethtool_tcpip6_spec.rs");
-include!("ethtool_usrip4_spec.rs");
-include!("ethtool_usrip6_spec.rs");
-include!("FLOW_.rs");
-include!("FlowSpecification.rs");
-include!("RX_CLS_FLOW_.rs");
-include!("RX_CLS_LOC_.rs");
-include!("RXH_.rs");
+pub(crate) const RX_CLS_LOC_ANY: u32 = 0xFFFFFFFF;
+
+pub(crate) const RX_CLS_LOC_FIRST: u32 = 0xFFFFFFFE;
+
+pub(crate) const RX_CLS_LOC_LAST: u32 = 0xFFFFFFFD;

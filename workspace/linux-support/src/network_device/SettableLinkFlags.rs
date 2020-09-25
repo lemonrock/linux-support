@@ -9,33 +9,53 @@ bitflags!
 	pub struct SettableLinkFlags: u16
 	{
 		/// Interface is up.
+		///
+		/// `ip link` calls this `up` and `down` (for the flag not set).
 		const Up = IFF_UP as u16;
 	
 		/// Turn on debugging.
+		///
+		/// Not settable with `ip link`.
 		const Debug = IFF_DEBUG as u16;
 	
 		/// Avoid use of trailers.
+		///
+		/// `ip link` calls this `trailers off` and `trailers on` (for the flag not set).
 		const NoTraliers = IFF_NOTRAILERS as u16;
 	
 		/// No ARP protocol.
+		///
+		/// `ip link` calls this `arp off` and `arp on` (for the flag not set).
 		const NoArpProtocol = IFF_NOARP as u16;
 		
 		/// Promiscuous
+		///
+		/// `ip link` calls this `promisc on` and `promisc off`.
 		const Promiscuous = IFF_PROMISC as u16;
 	
 		/// Receive all multicast packets.
+		///
+		/// `ip link` calls this `allmulticast on` and `allmulticast off` (for the flag not set).
 		const ReceiveAllMulticast = IFF_ALLMULTI as u16;
 	
 		/// Means that this media uses special encapsulation for multicast frames.
+		///
+		/// `ip link` calls this `multicast on` and `multicast off` (for the flag not set).
 		const MulticastSpecialEncapsulation = IFF_MULTICAST as u16;
 	
 		/// Can set port media type.
+		///
+		/// Not settable with `ip link`.
 		const PortSelectionEnabled = IFF_PORTSEL as u16;
 	
 		/// Auto media select active.
+		///
+		/// Not settable with `ip link`.
 		const AutoMedia = IFF_AUTOMEDIA as u16;
 	
 		/// Dial-up device with changing addresses.
+		///
+		/// `ip link` calls this `dynamic on` and `dynamic off` (for the flag not set).
 		const DialUpDeviceWithDynamicallyChangingAddresses = IFF_DYNAMIC as u16;
 	}
 }

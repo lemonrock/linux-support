@@ -2,22 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+/// Flag to enable additional fields in `ethtool_rx_flow_spec`.
+pub(crate) const FLOW_EXT: u32 = 0x80000000;
 
+pub(crate) const FLOW_MAC_EXT: u32 = 0x40000000;
 
-include!("_FLOW.rs");
-include!("ethhdr.rs");
-include!("ethtool_ah_espip4_spec.rs");
-include!("ethtool_ah_espip6_spec.rs");
-include!("ethtool_flow_ext.rs");
-include!("ethtool_flow_union.rs");
-include!("ethtool_rx_flow_spec.rs");
-include!("ethtool_tcpip4_spec.rs");
-include!("ethtool_tcpip6_spec.rs");
-include!("ethtool_usrip4_spec.rs");
-include!("ethtool_usrip6_spec.rs");
-include!("FLOW_.rs");
-include!("FlowSpecification.rs");
-include!("RX_CLS_FLOW_.rs");
-include!("RX_CLS_LOC_.rs");
-include!("RXH_.rs");
+/// Flag to enable RSS spreading of traffic matching rule (nfc only).
+pub(crate) const FLOW_RSS: u32 = 0x20000000;

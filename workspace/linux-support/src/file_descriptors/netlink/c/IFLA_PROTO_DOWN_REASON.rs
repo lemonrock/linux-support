@@ -2,34 +2,26 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Nested attribute values for `IFLA::IFLA_XDP`.
+/// Nested attribute values for `IFLA::IFLA_PROTO_DOWN_REASON`.
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u16)]
-pub(crate) enum IFLA_XDP
+pub(crate) enum IFLA_PROTO_DOWN_REASON
 {
-	#[allow(dead_code)]
-	IFLA_XDP_UNSPEC = 0,
+	#[allow(dead_code)] IFLA_PROTO_DOWN_REASON_UNSPEC = 0,
 	
-	IFLA_XDP_FD = 1,
+	/// Mask for reason value.
+	///
+	/// `u32`; does not seem to be used in `RTM_GETLINK`.
+	IFLA_PROTO_DOWN_REASON_MASK = 1,
 	
-	IFLA_XDP_ATTACHED = 2,
-	
-	IFLA_XDP_FLAGS = 3,
-	
-	#[allow(dead_code)]
-	IFLA_XDP_PROG_ID = 4,
-	
-	IFLA_XDP_DRV_PROG_ID = 5,
-	
-	IFLA_XDP_SKB_PROG_ID = 6,
-	
-	IFLA_XDP_HW_PROG_ID = 7,
-	
-	IFLA_XDP_EXPECTED_FD = 8,
+	/// Reason value.
+	///
+	/// `NonZeroU32`.
+	IFLA_PROTO_DOWN_REASON_VALUE = 2,
 }
 
-impl From<u16> for IFLA_XDP
+impl From<u16> for IFLA_PROTO_DOWN_REASON
 {
 	#[inline(always)]
 	fn from(value: u16) -> Self
@@ -38,7 +30,7 @@ impl From<u16> for IFLA_XDP
 	}
 }
 
-impl NetlinkAttributeType for IFLA_XDP
+impl NetlinkAttributeType for IFLA_PROTO_DOWN_REASON
 {
 	#[inline(always)]
 	fn to_u16(self) -> u16
@@ -47,9 +39,9 @@ impl NetlinkAttributeType for IFLA_XDP
 	}
 }
 
-impl IFLA_XDP
+impl IFLA_PROTO_DOWN_REASON
 {
-	const __IFLA_XDP_MAX: u16 = 9;
+	const __IFLA_PROTO_DOWN_REASON_CNT: u16 = 3;
 	
-	#[allow(dead_code)] pub(crate) const IFLA_XDP_MAX: Self = unsafe { transmute(Self::__IFLA_XDP_MAX - 1) };
+	#[allow(dead_code)] pub(crate) const IFLA_PROTO_DOWN_REASON_MAX: Self = unsafe { transmute(Self::__IFLA_PROTO_DOWN_REASON_CNT - 1) };
 }

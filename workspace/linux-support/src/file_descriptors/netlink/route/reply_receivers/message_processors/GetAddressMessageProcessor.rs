@@ -49,21 +49,21 @@ impl<IPA: InternetProtocolAddress> MessageProcessor for GetAddressMessageProcess
 		
 			(false, false, IFA_LOCAL) => set_address_field(&mut processing_message_state.local_address, message_attribute, rtattr::get_attribute_value_raw_protocol_address)?,
 			
-			(false, false, IFA_LABEL) => set_field_error(&mut processing_message_state.label, message_attribute, rtattr::get_attribute_value_network_interface_name)?,
+			(false, false, IFA_LABEL) => Self::set_field_error(&mut processing_message_state.label, message_attribute, rtattr::get_attribute_value_network_interface_name)?,
 			
 			(false, false, IFA_BROADCAST) => set_address_field(&mut processing_message_state.broadcast_address, message_attribute, rtattr::get_attribute_value_raw_protocol_address)?,
 			
 			(false, false, IFA_ANYCAST) => set_address_field(&mut processing_message_state.anycast_address, message_attribute, rtattr::get_attribute_value_raw_protocol_address)?,
 			
-			(false, false, IFA_CACHEINFO) => set_field_error(&mut processing_message_state.cache_information, message_attribute, |message_attribute| message_attribute.get_attribute_value_struct_cloned::<ifa_cacheinfo>())?,
+			(false, false, IFA_CACHEINFO) => Self::set_field_error(&mut processing_message_state.cache_information, message_attribute, |message_attribute| message_attribute.get_attribute_value_struct_cloned::<ifa_cacheinfo>())?,
 			
-			(false, false, IFA_FLAGS) => set_field_error(&mut processing_message_state.extended_interface_flags, message_attribute, rtattr::get_attribute_value_extended_interface_flags)?,
+			(false, false, IFA_FLAGS) => Self::set_field_error(&mut processing_message_state.extended_interface_flags, message_attribute, rtattr::get_attribute_value_extended_interface_flags)?,
 			
 			(false, false, IFA_MULTICAST) => set_address_field(&mut processing_message_state.multicast_address, message_attribute, rtattr::get_attribute_value_raw_protocol_address)?,
 			
-			(false, false, IFA_RT_PRIORITY) => set_field_error(&mut processing_message_state.route_priority, message_attribute, rtattr::get_attribute_value_u32)?,
+			(false, false, IFA_RT_PRIORITY) => Self::set_field_error(&mut processing_message_state.route_priority, message_attribute, rtattr::get_attribute_value_u32)?,
 			
-			(false, false, IFA_TARGET_NETNSID) => set_field_error(&mut processing_message_state.target_net_namespace_identifier, message_attribute, rtattr::get_attribute_value_net_namespace_identifier)?,
+			(false, false, IFA_TARGET_NETNSID) => Self::set_field_error(&mut processing_message_state.target_net_namespace_identifier, message_attribute, rtattr::get_attribute_value_net_namespace_identifier)?,
 			
 			(true, true, _) => panic!("Attribute may not be both nested and in network byte order"),
 			
