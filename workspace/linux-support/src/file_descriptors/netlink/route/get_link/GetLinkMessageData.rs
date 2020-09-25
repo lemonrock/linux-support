@@ -149,6 +149,12 @@ pub struct GetLinkMessageData
 	/// Alternative names.
 	pub network_interface_alternative_names: Vec<NetworkInterfaceAlternativeName>,
 	
+	/// Internet Protocol version 4 details.
+	pub internet_version_4_protocol_details: Option<InternetProtocolVersion4Details>,
+	
+	/// Internet Protocol version 6 details.
+	pub internet_version_6_protocol_details: Option<InternetProtocolVersion6Details>,
+	
 	/// `None` is `false`.
 	/// `Some(..)` is `true`.
 	/// `Some(None)` is `true` and Linux does not provide a reason code (older versions) or the reason code was `0` ( which may not be a valid possibility; Linux does not have clarity here).

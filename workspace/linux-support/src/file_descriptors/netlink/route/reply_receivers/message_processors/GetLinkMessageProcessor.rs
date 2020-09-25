@@ -111,16 +111,16 @@ impl MessageProcessor for GetLinkMessageProcessor
 			// rtnl_fill_vf IFLA_VF_PORTS for virtual functions.
 			// rtnl_port_fill IFLA_PORT_SELF for virtual functions.
 			// rtnl_link_fill IFLA_LINKINFO for details; not present for loopback, ethernet and WiFi devices. Contains `IFLA_INFO_KIND` with values such as `veth` and `bridge`.
-			// rtnl_fill_link_af IFLA_AF_SPEC for address families.
-			// rtnl_fill_prop_list IFLA_PROP_LIST for list of repeated IFLA_ALT_IFNAME interface alternative names.
 			(true, false, IFLA_XDP) => Self::set_field_error(&mut processing_message_state.express_data_path, message_attribute, |message_attribute| Self::process_IFLA_XDP(message_attribute.get_attribute_value_nested()))?,
+			
+			// Nested.
+			(true, false, IFLA_AF_SPEC) => Self::set_field_error(&mut processing_message_state.address_family_specific, message_attribute, |message_attribute| Self::process_IFLA_AF_SPEC(message_attribute.get_attribute_value_nested()))?,
+			(true, false, IFLA_PROP_LIST) => Self::set_field_error(&mut processing_message_state.alternative_network_interface_names, message_attribute, |message_attribute| Self::process_IFLA_PROP_LIST(message_attribute.get_attribute_value_nested()))?,
 			
 			(false, false, IFLA_LINK_NETNSID) => Self::set_field_error(&mut processing_message_state.linked_net_namespace_identifier, message_attribute, rtattr::get_attribute_value_net_namespace_identifier)?,
 			(false, false, IFLA_LINK) => Self::set_field_error(&mut processing_message_state.linked_network_interface_index, message_attribute, rtattr::get_attribute_value_network_interface_index.map(Some))?,
 			(false, false, IFLA_NEW_NETNSID) => Self::set_field_error(&mut processing_message_state.new_net_namespace_identifier, message_attribute, rtattr::get_attribute_value_net_namespace_identifier)?,
 			(false, false, IFLA_NEW_IFINDEX) => Self::set_field_error(&mut processing_message_state.new_network_interface_index, message_attribute, rtattr::get_attribute_value_network_interface_index)?,
-			
-			(true, false, IFLA_PROP_LIST) => Self::set_field_error(&mut processing_message_state.alternative_network_interface_names, message_attribute, |message_attribute| Self::process_IFLA_PROP_LIST(message_attribute.get_attribute_value_nested()))?,
 			
 			(true, true, _) => panic!("Attribute may not be both nested and in network byte order"),
 			
