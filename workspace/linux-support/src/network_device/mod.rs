@@ -51,10 +51,6 @@ pub mod eeprom;
 pub mod features;
 
 
-/// Flow specifications.
-pub mod flow_specifications;
-
-
 /// Link settings.
 pub mod link_settings;
 
@@ -71,6 +67,10 @@ pub mod pause;
 
 /// Queues.
 pub mod queues;
+
+
+/// Receive flows.
+pub mod receive_flows;
 
 
 /// Receive side scaling (RSS).
@@ -97,12 +97,14 @@ include!("EnergyEfficientEthernetConfiguration.rs");
 include!("GlobalNetworkDeviceConfiguration.rs");
 include!("GlobalNetworkDeviceConfigurationError.rs");
 include!("HardwareAddress.rs");
+include!("InternetProtocolAddressLifetime.rs");
 include!("InternetProtocolVersion4Details.rs");
 include!("InternetProtocolVersion4DeviceConfiguration.rs");
 include!("InternetProtocolVersion6Details.rs");
 include!("InternetProtocolVersion6DeviceConfiguration.rs");
 include!("MaximumTransmissionUnitPayloadSize.rs");
 include!("MaximumTransmissionUnitPayloadSizeOutOfRangeError.rs");
+include!("NetNamespaceIdentifier.rs");
 include!("NetworkDeviceFirmware.rs");
 include!("NetworkDeviceGroup.rs");
 include!("NetworkDeviceInputOutputControl.rs");

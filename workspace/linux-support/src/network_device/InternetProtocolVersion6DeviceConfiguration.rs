@@ -26,10 +26,10 @@ pub struct InternetProtocolVersion6DeviceConfiguration
 	/// Default if `IPV6_DEFAULT_HOPLIMIT`.
 	pub hop_limit: u32,
 	
-	/// `maximum_transmission_unit6`.
+	/// `maximum_transmission_unit`.
 	///
-	/// Default is `IPV6_MIN_MTU`.
-	pub maximum_transmission_unit6: u32,
+	/// Default is `IPV6_MIN_MTU` but usually same as ethernet card `1500`.
+	pub maximum_transmission_unit: MaximumTransmissionUnitPayloadSize,
 	
 	/// `autoconf`.
 	///
@@ -69,15 +69,15 @@ pub struct InternetProtocolVersion6DeviceConfiguration
 	
 	/// `temporary_address_valid_lifetime`.
 	///
-	/// Default is `TEMP_VALID_LIFETIME`.
+	/// Default is `TEMP_VALID_LIFETIME` (`7 × 86,400`).
 	/// Infinity is `INFINITY_LIFE_TIME` (`0xFFFF_FFFF`).
-	pub temporary_address_valid_lifetime: u32,
+	pub temporary_address_valid_lifetime: InternetProtocolAddressLifetime,
 	
 	/// `temporary_address_prefered_lifetime`.
 	///
-	/// Default is `TEMP_PREFERRED_LIFETIME`.
+	/// Default is `TEMP_PREFERRED_LIFETIME` (`86,400`).
 	/// Infinity is `INFINITY_LIFE_TIME` (`0xFFFF_FFFF`).
-	pub temporary_address_prefered_lifetime: u32,
+	pub temporary_address_prefered_lifetime: InternetProtocolAddressLifetime,
 	
 	/// `regen_maximum_retry`.
 	///
@@ -134,14 +134,14 @@ pub struct InternetProtocolVersion6DeviceConfiguration
 	/// Only present if Linux compiled with `CONFIG_IPV6_ROUTE_INFO`.
 	///
 	/// Default is `Some(0)`.
-	pub accept_router_advertisement_route_information_maximum_prefix_length: Option<u32>,
+	pub accept_router_advertisement_route_information_maximum_prefix_length: Option<bool>,
 	
 	/// `accept_router_advertisement_route_information_minimum_prefix_length`.
 	///
 	/// Only present if Linux compiled with `CONFIG_IPV6_ROUTE_INFO`.
 	///
 	/// Default is `Some(0)`.
-	pub accept_router_advertisement_route_information_minimum_prefix_length: Option<u32>,
+	pub accept_router_advertisement_route_information_minimum_prefix_length: Option<bool>,
 	
 	/// `accept_router_advertisement_router_preference`.
 	///

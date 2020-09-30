@@ -19,13 +19,49 @@ pub(crate) struct ethtool_usrip4_spec
 	/// Type-of-Service (TOS).
 	pub(crate) tos: u8,
 	
-	/// Value must be `ETH_RX_NFC_IP4`; when masked, must be `0`.
+	/// Value must be `ETH_RX_NFC_IP4`; when masked, must be `0` (unused).
 	pub(crate) ip_ver: u8,
 	
-	/// Transport protocol number; when masked, must be `0`.
+	/// Transport protocol number; when masked, must be either `0` (unused) or `0xFF`.
 	pub(crate) proto: u8,
 }
 
 impl FlowSpecification for ethtool_usrip4_spec
 {
+}
+
+impl CommonLayer3FlowSpecification<BigEndianU32> for ethtool_usrip4_spec
+{
+	#[inline(always)]
+	fn source_address(&self) -> BigEndianU32
+	{
+		self.ip4src
+	}
+	
+	#[inline(always)]
+	fn destination_address(&self) -> BigEndianU32
+	{
+		self.ip4dst
+	}
+	
+	#[inline(always)]
+	fn tos_or_tclass(&self) -> u8
+	{
+		self.tos
+	}
+}
+
+impl UserFlowSpecification<BigEndianU32> for ethtool_usrip4_spec
+{
+	#[inline(always)]
+	fn first_four_bytes_of_layer4_header(&self) -> [u8; 4]
+	{
+		self.l4_4_bytes
+	}
+	
+	#[inline(always)]
+	fn transport_protocol_number(&self) -> u8
+	{
+		self.proto
+	}
 }

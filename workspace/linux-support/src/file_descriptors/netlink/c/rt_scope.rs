@@ -9,7 +9,7 @@
 #[repr(u8)]
 pub enum rt_scope
 {
-	/// Default if not better match.
+	/// Default if no better match.
 	#[serde(rename = "Universe")] RT_SCOPE_UNIVERSE = 0,
 	
 	/// Site.

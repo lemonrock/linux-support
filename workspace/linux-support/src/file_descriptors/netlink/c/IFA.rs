@@ -15,33 +15,99 @@ pub(crate) enum IFA
 	
 	/// `IFA_ADDRESS` is a prefix address, rather than local interface address.
 	/// It makes no difference for normally configured broadcast interfaces, but for point-to-point `IFA_ADDRESS` is destination address, local address is supplied in the `IFA_LOCAL` attribute.
+	///
+	/// Valid for get address for:-
+	/// * IPv4
+	/// * IPv6
+	///
+	/// Valid for delete address for:-
+	// * IPv4.
+	// * IPv6.
 	#[allow(dead_code)]
 	IFA_ADDRESS = 1,
 	
+	///
+	/// Valid for get address for:-
+	/// * IPv4
+	/// * IPv6
+	///
+	/// Valid for delete address for:-
+	// * IPv4.
+	// * IPv6.
 	IFA_LOCAL = 2,
 	
+	///
+	/// Valid for get address for:-
+	/// * IPv4
+	///
+	/// Valid for delete address for:-
+	// * IPv4.
 	#[allow(dead_code)]
 	IFA_LABEL = 3,
 	
+	///
+	/// Valid for get address for:-
+	/// * IPv4
+	///
+	/// Valid for delete address for:-
+	// * IPv4.
 	IFA_BROADCAST = 4,
 	
+	/// Only valid for `RTM_GETANYCAST` for Internet Protocol version 6.
+	///
+	/// See `inet6_fill_ifacaddr()` in Linux source `addrconf.c`.
+	///
+	/// If present, then the only other attributes present will be `IFA_CACHEINFO` and optionally `IFA_TARGET_NETNSID`.
 	IFA_ANYCAST = 5,
 	
+	/// Valid for get address for:-
+	/// * IPv4
+	///
+	/// Valid for delete address for:-
+	// * IPv4.
+	// * IPv6.
 	#[allow(dead_code)]
 	IFA_CACHEINFO = 6,
 	
+	/// Only valid for `RTM_GETMULTICAST` for Internet Protocol version 6.
+	///
+	/// See `inet6_fill_ifmcaddr()` in Linux source `addrconf.c`.
+	///
+	/// If present, then the only other attributes present will be `IFA_CACHEINFO` and optionally `IFA_TARGET_NETNSID`.
 	IFA_MULTICAST = 7,
 	
 	/// `IFA_FLAGS` is a `u32` attribute that replaces the `u8` field `ifa_flags` in `ifaddrmsg`.
 	/// If present, the field `ifa_flags` in the struct `ifaddrmsg` will be ignored by the Linux kernel.
+	///
+	/// Valid for get address for:-
+	/// * IPv4
+	///
+	/// Valid for delete address for:-
+	// * IPv4.
+	// * IPv6.
 	IFA_FLAGS = 8,
 	
 	/// Priority or metric for prefix route.
 	///
-	/// `u32`.
+	/// `NonZeroU32`.
+	///
+	/// Valid for get address for:-
+	/// * IPv4
+	/// * IPv6
+	///
+	/// Valid for delete address for:-
+	// * IPv4.
+	// * IPv6.
 	#[allow(dead_code)]
 	IFA_RT_PRIORITY = 9,
 	
+	/// Valid for get address for:-
+	/// * IPv4
+	/// * IPv6
+	///
+	/// Valid for delete address for:-
+	// * IPv4.
+	// * IPv6.
 	#[allow(dead_code)]
 	IFA_TARGET_NETNSID = 10,
 }

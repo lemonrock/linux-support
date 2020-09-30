@@ -94,9 +94,9 @@ impl<NAT: NetlinkAttributeType> rtattr<NAT>
 	}
 	
 	#[inline(always)]
-	pub(super) fn get_attribute_value_net_namespace_identifier(&self) -> Result<i32, TryFromSliceError>
+	pub(super) fn get_attribute_value_net_namespace_identifier(&self) -> Result<NetNamespaceIdentifer, TryFromSliceError>
 	{
-		self.get_attribute_value_i32()
+		self.get_attribute_value_i32().map(NetNamespaceIdentifer)
 	}
 	
 	#[inline(always)]
@@ -116,6 +116,12 @@ impl<NAT: NetlinkAttributeType> rtattr<NAT>
 	pub(super) fn get_attribute_value_network_interface_index(&self) -> Result<NetworkInterfaceIndex, String>
 	{
 		self.get_attribute_value_non_zero_u32().map(|non_zero_u32| NetworkInterfaceIndex::from(non_zero_u32))
+	}
+	
+	#[inline(always)]
+	pub(super) fn get_attribute_value_internet_protocol_address_lifetime(&self) -> Result<InternetProtocolAddressLifetime, TryFromSliceError>
+	{
+		self.get_attribute_value_u32().map(InternetProtocolAddressLifetime)
 	}
 	
 	#[inline(always)]
@@ -421,7 +427,7 @@ impl rtattr<IFLA_INET6>
 		let number_of_statistics = number_of_statistics_including_this_one - 1;
 		
 		let statistics = unsafe { header.add(1) };
-		Ok((unsafe { from_raw_parts(statistics, number_of_statistics as usize) }).into_vec().into_boxed_slice())
+		Ok(unsafe { from_raw_parts(statistics, number_of_statistics as usize) }.to_vec().into_boxed_slice())
 	}
 	
 	#[inline(always)]

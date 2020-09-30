@@ -4,14 +4,15 @@
 
 use super::*;
 use self::bit_set::*;
+use self::c::flow_specifications::ethtool_rx_flow_spec;
+use self::receive_flows::RuleAction;
+use self::receive_flows::VirtualFunctionIndex;
+use self::receive_side_scaling::ContextIdentifier;
+use self::wake_on_lan::WakeOnLanWhen;
 use crate::file_descriptors::socket::c::*;
-use crate::network_device::c::flow_specifications::ethtool_rx_flow_spec;
-use crate::network_device::receive_side_scaling::ContextIdentifier;
-use crate::network_device::wake_on_lan::WakeOnLanWhen;
 
 
-include!("ALTIFNAMSIZ.rs");
-include!("AUTONEG.rs");
+include!("ALTIFNAMSIZ.rs");include!("AUTONEG.rs");
 include!("cisco_proto.rs");
 include!("DOWNSHIFT_DEV_.rs");
 include!("DUPLEX.rs");
@@ -22,7 +23,6 @@ include!("ETH_MODULE_SFF_.rs");
 include!("ETH_MODULE_SFF_x_LEN.rs");
 include!("ETH_MODULE_SFF_x_MAX_LEN.rs");
 include!("ETH_RSS_HASH.rs");
-include!("ETH_RX_NFC_.rs");
 include!("ETH_RX_FLOW_SPEC_.rs");
 include!("ETH_RXFH_.rs");
 include!("ETH_TP_MDI.rs");
@@ -70,7 +70,6 @@ include!("PFC_STORM_PREVENTION_.rs");
 include!("phy_tunable_id.rs");
 include!("PORT.rs");
 include!("raw_hdlc_proto.rs");
-include!("RingCookie.rs");
 include!("SIOC.rs");
 include!("SOF_TIMESTAMPING.rs");
 include!("SPEED.rs");

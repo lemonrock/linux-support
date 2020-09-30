@@ -2,5 +2,18 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[allow(dead_code)]
-pub(crate) const ETH_RX_NFC_IP4: u32 = 1;
+use super::*;
+
+
+/// Common building blocks.
+pub mod common_receive_flows;
+
+
+include!("DataAndMasks.rs");
+include!("EthernetFlow.rs");
+include!("IpsecAuthenticationHeaderFlow.rs");
+include!("IpsecEncapsulatingSecurityPayloadFlow.rs");
+include!("StreamControlTransmissionProtocolFlow.rs");
+include!("TransmissionControlProtocolFlow.rs");
+include!("UserDatagramProtocolFlow.rs");
+include!("UserLayer4Flow.rs");

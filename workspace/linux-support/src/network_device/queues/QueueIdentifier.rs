@@ -38,14 +38,33 @@ impl BitSetAware for QueueIdentifier
 	}
 }
 
+impl TryFrom<u32> for QueueIdentifier
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: u32) -> Result<Self, Self::Error>
+	{
+		if unlikely!(value > Self::InclusiveMaximum.0 as u32)
+		{
+			Err(ParseNumberError::TooLarge)
+		}
+		else
+		{
+			Ok(Self(value as u16))
+		}
+	}
+}
+
 impl TryFrom<ExpressDataPathQueueIdentifier> for QueueIdentifier
 {
-	type Error = TryFromIntError;
+	type Error = ParseNumberError;
 	
 	#[inline(always)]
 	fn try_from(value: ExpressDataPathQueueIdentifier) -> Result<Self, Self::Error>
 	{
-		value.0.try_into().map(Self)
+		let value = value.into_u32();
+		Self::try_from(value)
 	}
 }
 
@@ -62,5 +81,12 @@ impl QueueIdentifier
 	pub const fn into_u16(self) -> u16
 	{
 		self.0
+	}
+	
+	/// Into u64.
+	#[inline(always)]
+	pub const fn into_u64(self) -> u64
+	{
+		self.into_u16() as u64
 	}
 }

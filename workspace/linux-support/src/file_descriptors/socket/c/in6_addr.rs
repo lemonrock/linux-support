@@ -11,10 +11,10 @@ pub union in6_addr
 	pub s6_addr: [u8; 16],
 
 	/// 8 network endian 16-bit integers.
-	pub s6_addr16: [u16; 8],
+	pub s6_addr16: [BigEndianU16; 8],
 
 	/// 4 network endian 32-bit integers.
-	pub s6_addr32: [u32; 4],
+	pub s6_addr32: [BigEndianU32; 4],
 }
 
 impl<'de> Deserialize<'de> for in6_addr

@@ -64,13 +64,13 @@ pub struct GetLinkProcessingMessageState
 	
 	pub(crate) carrier_down_count: Option<u32>,
 	
-	pub(crate) target_net_namespace_identifier: Option<i32>,
+	pub(crate) target_net_namespace_identifier: Option<NetNamespaceIdentifer>,
 	
-	pub(crate) linked_net_namespace_identifier: Option<i32>,
+	pub(crate) linked_net_namespace_identifier: Option<NetNamespaceIdentifer>,
 	
 	pub(crate) linked_network_interface_index: Option<Option<NetworkInterfaceIndex>>,
 	
-	pub(crate) new_net_namespace_identifier: Option<i32>,
+	pub(crate) new_net_namespace_identifier: Option<NetNamespaceIdentifer>,
 	
 	pub(crate) new_network_interface_index: Option<NetworkInterfaceIndex>,
 	
@@ -90,6 +90,8 @@ pub struct GetLinkProcessingMessageState
 	pub(crate) physical_port_name: Option<CString>,
 	
 	pub(crate) physical_switch_identifier: Option<PhysicalIdentifier>,
+	
+	pub(crate) number_of_virtual_functions: Option<u32>,
 	
 	pub(crate) statistics: Option<rtnl_link_stats64>,
 	
@@ -149,6 +151,7 @@ impl GetLinkProcessingMessageState
 				physical_port_identifier: None,
 				physical_port_name: None,
 				physical_switch_identifier: None,
+				number_of_virtual_functions: None,
 				statistics: None,
 				express_data_path: None,
 			}
@@ -202,7 +205,7 @@ impl GetLinkProcessingMessageState
 				
 				network_interface_alias: self.network_interface_alias,
 				
-				network_interface_alternative_names: self.network_interface_alternative_names.unwrap_or(Vec::new()),
+				alternative_network_interface_names: self.alternative_network_interface_names.unwrap_or(Vec::new()),
 				
 				internet_version_4_protocol_details: if let Some((internet_version_4_protocol_details, _)) = self.address_family_specific
 				{
@@ -252,9 +255,9 @@ impl GetLinkProcessingMessageState
 				
 				linked_network_interface_index: self.linked_network_interface_index,
 				
-				new_net_namespace_identifier: self.linked_net_namespace_identifier,
+				new_net_namespace_identifier: self.new_net_namespace_identifier,
 				
-				new_network_interface_index: self.linked_network_interface_index,
+				new_network_interface_index: self.new_network_interface_index,
 				
 				map: self.map.ok_or(format!("Linux kernel bug - missing map"))?,
 				
@@ -290,6 +293,24 @@ impl GetLinkProcessingMessageState
 				physical_port_name: self.physical_port_name,
 				
 				physical_switch_identifier: self.physical_switch_identifier,
+				
+				number_of_virtual_functions: match self.number_of_virtual_functions
+				{
+					None => None,
+					
+					Some(value) =>
+					{
+						let maximum = VirtualFunctionIndex::ExclusiveMaximum.0;
+						if value > (maximum as u32)
+						{
+							return Err(format!("Linux kernel bug - number_of_virtual_functions `{:?}` exceeds maximum `{:?}`", value, maximum))
+						}
+						else
+						{
+							Some(value as u8)
+						}
+					}
+				},
 				
 				statistics: self.statistics,
 				

@@ -502,7 +502,7 @@ macro_rules! object_name
 			#[inline(always)]
 			pub fn write_to_file_line_feed_terminated(&self, file_path: &Path) -> io::Result<()>
 			{
-				file_path.write_value_then_line_feed(&self[..])
+				file_path.write_value_then_line_feed(self.as_ref())
 			}
 			
 			#[inline(always)]

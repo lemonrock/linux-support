@@ -113,6 +113,24 @@ pub(crate) enum DEVCONF
 	DEVCONF_RPL_SEG_ENABLED = 51,
 }
 
+impl From<u16> for DEVCONF
+{
+	#[inline(always)]
+	fn from(value: u16) -> Self
+	{
+		unsafe { transmute(value) }
+	}
+}
+
+impl NetlinkAttributeType for DEVCONF
+{
+	#[inline(always)]
+	fn to_u16(self) -> u16
+	{
+		self as u16
+	}
+}
+
 impl DEVCONF
 {
 	pub(crate) const DEVCONF_MAX: u16 = 52;

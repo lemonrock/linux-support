@@ -27,6 +27,6 @@ impl ifla_cacheinfo
 	#[inline(always)]
 	pub(crate) fn debug_assert_max_reasm_len_is_constant(&self)
 	{
-		debug_assert_eq!(cache_information.max_reasm_len, IPV6_MAXPLEN);
+		debug_assert_eq!(self.max_reasm_len, IPV6_MAXPLEN);
 	}
 }

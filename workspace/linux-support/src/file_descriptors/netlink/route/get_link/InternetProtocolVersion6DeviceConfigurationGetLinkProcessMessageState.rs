@@ -11,7 +11,7 @@ pub(crate) struct InternetProtocolVersion6DeviceConfigurationGetLinkProcessMessa
 	
 	pub(crate) hop_limit: Option<u32>,
 	
-	pub(crate) maximum_transmission_unit6: Option<u32>,
+	pub(crate) maximum_transmission_unit: Option<MaximumTransmissionUnitPayloadSize>,
 	
 	pub(crate) autoconf: Option<bool>,
 	
@@ -25,9 +25,9 @@ pub(crate) struct InternetProtocolVersion6DeviceConfigurationGetLinkProcessMessa
 	
 	pub(crate) use_temporary_address: Option<bool>,
 	
-	pub(crate) temporary_address_valid_lifetime: Option<u32>,
+	pub(crate) temporary_address_valid_lifetime: Option<InternetProtocolAddressLifetime>,
 	
-	pub(crate) temporary_address_prefered_lifetime: Option<u32>,
+	pub(crate) temporary_address_prefered_lifetime: Option<InternetProtocolAddressLifetime>,
 	
 	pub(crate) regen_maximum_retry: Option<u32>,
 	
@@ -49,9 +49,9 @@ pub(crate) struct InternetProtocolVersion6DeviceConfigurationGetLinkProcessMessa
 	
 	pub(crate) accept_router_advertisement_prefix_information: Option<bool>,
 	
-	pub(crate) accept_router_advertisement_route_information_maximum_prefix_length: Option<Option<u32>>,
+	pub(crate) accept_router_advertisement_route_information_maximum_prefix_length: Option<Option<bool>>,
 	
-	pub(crate) accept_router_advertisement_route_information_minimum_prefix_length: Option<Option<u32>>,
+	pub(crate) accept_router_advertisement_route_information_minimum_prefix_length: Option<Option<bool>>,
 	
 	pub(crate) accept_router_advertisement_router_preference: Option<Option<bool>>,
 	
@@ -123,7 +123,7 @@ impl InternetProtocolVersion6DeviceConfigurationGetLinkProcessMessageState
 				
 				hop_limit: self.hop_limit.ok_or(format!("Linux kernel bug - missing hop_limit"))?,
 				
-				maximum_transmission_unit6: self.maximum_transmission_unit6.ok_or(format!("Linux kernel bug - missing maximum_transmission_unit6"))?,
+				maximum_transmission_unit: self.maximum_transmission_unit.ok_or(format!("Linux kernel bug - missing maximum_transmission_unit6"))?,
 				
 				autoconf: self.autoconf.ok_or(format!("Linux kernel bug - missing autoconf"))?,
 				

@@ -147,7 +147,7 @@ pub struct GetLinkMessageData
 	pub network_interface_alias: Option<NetworkInterfaceAlias>,
 	
 	/// Alternative names.
-	pub network_interface_alternative_names: Vec<NetworkInterfaceAlternativeName>,
+	pub alternative_network_interface_names: Vec<NetworkInterfaceAlternativeName>,
 	
 	/// Internet Protocol version 4 details.
 	pub internet_version_4_protocol_details: Option<InternetProtocolVersion4Details>,
@@ -165,12 +165,12 @@ pub struct GetLinkMessageData
 	pub protocol_down_and_reason_code: Option<Option<NonZeroU32>>,
 	
 	/// Target net namespace identifier.
-	pub target_net_namespace_identifier: Option<i32>,
+	pub target_net_namespace_identifier: Option<NetNamespaceIdentifer>,
 	
 	/// Linked net namespace identifier.
 	///
 	/// Also available at `/sys/class/net/<network_interface_name>/iflink`.
-	pub linked_net_namespace_identifier: Option<i32>,
+	pub linked_net_namespace_identifier: Option<NetNamespaceIdentifer>,
 	
 	/// Linked network interface index.
 	///
@@ -178,7 +178,7 @@ pub struct GetLinkMessageData
 	pub linked_network_interface_index: Option<Option<NetworkInterfaceIndex>>,
 	
 	/// New net namespace identifier.
-	pub new_net_namespace_identifier: Option<i32>,
+	pub new_net_namespace_identifier: Option<NetNamespaceIdentifer>,
 	
 	/// New network interface index.
 	pub new_network_interface_index: Option<NetworkInterfaceIndex>,
@@ -205,17 +205,17 @@ pub struct GetLinkMessageData
 	/// See also `NetworkInterfaceName.assigned_hardware_address_type()`.
 	pub address_and_broadcast_and_permanent_address: Option<(HardwareAddress, HardwareAddress, Option<HardwareAddress>)>,
 	
-	///
 	/// Also available at `/sys/class/net/<network_interface_name>/phys_port_id`.
 	pub physical_port_identifier: Option<PhysicalIdentifier>,
 	
-	///
 	/// Also available at `/sys/class/net/<network_interface_name>/phys_port_name`.
 	pub physical_port_name: Option<CString>,
 	
-	///
 	/// Also available at `/sys/class/net/<network_interface_name>/phys_switch_id`.
 	pub physical_switch_identifier: Option<PhysicalIdentifier>,
+	
+	/// Number of virtual functions (VF).
+	pub number_of_virtual_functions: Option<u8>,
 	
 	/// Statistics.
 	pub(crate) statistics: Option<rtnl_link_stats64>,

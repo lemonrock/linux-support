@@ -25,3 +25,33 @@ pub(crate) struct ethtool_ah_espip6_spec
 impl FlowSpecification for ethtool_ah_espip6_spec
 {
 }
+
+impl CommonLayer3FlowSpecification<[BigEndianU32; 4]> for ethtool_ah_espip6_spec
+{
+	#[inline(always)]
+	fn source_address(&self) -> [BigEndianU32; 4]
+	{
+		self.ip6src
+	}
+	
+	#[inline(always)]
+	fn destination_address(&self) -> [BigEndianU32; 4]
+	{
+		self.ip6dst
+	}
+	
+	#[inline(always)]
+	fn tos_or_tclass(&self) -> u8
+	{
+		self.tclass
+	}
+}
+
+impl IpsecFlowSpecification<[BigEndianU32; 4]> for ethtool_ah_espip6_spec
+{
+	#[inline(always)]
+	fn security_parameter_index(&self) -> BigEndianU32
+	{
+		self.spi
+	}
+}

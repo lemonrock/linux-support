@@ -349,23 +349,23 @@ impl ProcessConfiguration
 		
 		let mut netlink_socket_file_descriptor = NetlinkSocketFileDescriptor::open().map_err(|cause| cause.to_string())?;
 		
-		for entry in RouteNetlinkProtocol::get_internet_protocol_version_4_addresses(&mut netlink_socket_file_descriptor)?
+		for entry in RouteNetlinkProtocol::get_internet_protocol_version_4_addresses(&mut netlink_socket_file_descriptor, None)?
 		{
-			match entry.local_address_and_destination_address_for_point_to_point()
+			match entry.unicast_common.source_address_and_point_to_point_peer_destination_address
 			{
 				None => (),
-				Some((Left(local_address), _destination_address_for_point_to_point)) => internet_protocol_addresses.push((*local_address).into()),
-				Some((Right(local_address), _destination_address_for_point_to_point)) => internet_protocol_addresses.push(local_address.internet_protocol_address_moved().into()),
+				
+				Some((source_address, _)) => internet_protocol_addresses.push(IpAddr::V4(source_address.into())),
 			}
 		}
 		
-		for entry in RouteNetlinkProtocol::get_internet_protocol_version_6_addresses(&mut netlink_socket_file_descriptor)?
+		for entry in RouteNetlinkProtocol::get_internet_protocol_version_6_addresses(&mut netlink_socket_file_descriptor, None)?
 		{
-			match entry.local_address_and_destination_address_for_point_to_point()
+			match entry.unicast_common.source_address_and_point_to_point_peer_destination_address
 			{
 				None => (),
-				Some((Left(local_address), _destination_address_for_point_to_point)) => internet_protocol_addresses.push((*local_address).into()),
-				Some((Right(local_address), _destination_address_for_point_to_point)) => internet_protocol_addresses.push(local_address.internet_protocol_address_moved().into()),
+				
+				Some((source_address, _)) => internet_protocol_addresses.push(IpAddr::V6(source_address.into())),
 			}
 		}
 		

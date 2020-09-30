@@ -4,7 +4,13 @@
 
 use super::*;
 use crate::bpf::extended::identifiers::ExtendedBpfProgramIdentifier;
-use crate::network_device::{HardwareAddress, NetworkInterfaceAlternativeName, InternetProtocolVersion4DeviceConfiguration, InternetProtocolVersion6DeviceConfiguration, InternetProtocolVersion6Details, InternetProtocolVersion4Details};
+use crate::network_device::HardwareAddress;
+use crate::network_device::NetworkInterfaceAlternativeName;
+use crate::network_device::InternetProtocolVersion4DeviceConfiguration;
+use crate::network_device::InternetProtocolVersion6DeviceConfiguration;
+use crate::network_device::InternetProtocolVersion6Details;
+use crate::network_device::InternetProtocolVersion4Details;
+use crate::network_device::c::in6_addr_gen_mode;
 use crate::express_data_path::c::xdp_diag_info;
 use crate::express_data_path::c::XDP_DIAG;
 use crate::express_data_path::c::xdp_diag_msg;
@@ -13,7 +19,13 @@ use crate::express_data_path::c::xdp_diag_umem;
 use crate::express_data_path::c::xdp_diag_stats;
 
 
-include!("GetAddressMessageProcessor.rs");
 include!("GetExpressDataPathDiagnosticsMessageProcessor.rs");
+include!("GetInternetProtocolVersion4AddressMessageProcessor.rs");
+include!("GetInternetProtocolVersion6AddressMessageProcessor.rs");
+include!("GetInternetProtocolVersion6AnycastAddressMessageProcessor.rs");
+include!("GetInternetProtocolVersion6MulticastAddressMessageProcessor.rs");
 include!("GetLinkMessageProcessor.rs");
 include!("MessageProcessor.rs");
+include!("set_address_field.rs");
+include!("set_field_error.rs");
+

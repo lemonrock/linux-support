@@ -17,3 +17,12 @@ pub enum in6_addr_gen_mode
 	
 	#[serde(rename = "Random")] IN6_ADDR_GEN_MODE_RANDOM = 3,
 }
+
+impl Default for in6_addr_gen_mode
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		in6_addr_gen_mode::IN6_ADDR_GEN_MODE_EUI64
+	}
+}

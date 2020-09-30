@@ -3,9 +3,15 @@
 
 
 use super::*;
+use crate::network_device::receive_flows::rule_location::FixedRuleLocation;
+use crate::network_device::receive_flows::rule_location::RuleLocation;
+use crate::network_device::receive_flows::rule_location::SpecialRuleLocation;
 
 
-include!("_FLOW.rs");
+include!("_FLOW.rs");include!("CombinedRuleLocation.rs");
+include!("CommonLayer3FlowSpecification.rs");
+include!("CommonLayer4FlowSpecification.rs");
+include!("ETH_RX_NFC_IP4.rs");
 include!("ethhdr.rs");
 include!("ethtool_ah_espip4_spec.rs");
 include!("ethtool_ah_espip6_spec.rs");
@@ -18,6 +24,9 @@ include!("ethtool_usrip4_spec.rs");
 include!("ethtool_usrip6_spec.rs");
 include!("FLOW_.rs");
 include!("FlowSpecification.rs");
+include!("IpsecFlowSpecification.rs");
+include!("RingCookie.rs");
 include!("RX_CLS_FLOW_.rs");
 include!("RX_CLS_LOC_.rs");
 include!("RXH_.rs");
+include!("UserFlowSpecification.rs");

@@ -26,3 +26,39 @@ pub(crate) struct ethtool_usrip6_spec
 impl FlowSpecification for ethtool_usrip6_spec
 {
 }
+
+impl CommonLayer3FlowSpecification<[BigEndianU32; 4]> for ethtool_usrip6_spec
+{
+	#[inline(always)]
+	fn source_address(&self) -> [BigEndianU32; 4]
+	{
+		self.ip6src
+	}
+	
+	#[inline(always)]
+	fn destination_address(&self) -> [BigEndianU32; 4]
+	{
+		self.ip6dst
+	}
+	
+	#[inline(always)]
+	fn tos_or_tclass(&self) -> u8
+	{
+		self.tclass
+	}
+}
+
+impl UserFlowSpecification<[BigEndianU32; 4]> for ethtool_usrip6_spec
+{
+	#[inline(always)]
+	fn first_four_bytes_of_layer4_header(&self) -> [u8; 4]
+	{
+		self.l4_4_bytes
+	}
+	
+	#[inline(always)]
+	fn transport_protocol_number(&self) -> u8
+	{
+		self.l4_proto
+	}
+}

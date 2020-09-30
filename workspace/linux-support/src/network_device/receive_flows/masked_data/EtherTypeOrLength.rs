@@ -2,45 +2,41 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Can never be `u32::MAX`.
-///
-/// Internal value is shifted by 1 to exploit Rust's optimizations.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 #[repr(transparent)]
-pub struct LifeTimeMicroseconds(NonZeroU32);
+pub struct EtherTypeOrLength(BigEndianU16);
 
-impl Into<u32> for LifeTimeMicroseconds
+impl Unmasked for EtherTypeOrLength
 {
-	#[inline(always)]
-	fn into(self) -> u32
-	{
-		self.0.get() - 1
-	}
-}
-
-impl TryFrom<u32> for LifeTimeMicroseconds
-{
-	type Error = ();
+	const UnderlyingZero: Self::Underlying = [0; 2];
+	
+	type Underlying = BigEndianU16;
 	
 	#[inline(always)]
-	fn try_from(value: u32) -> Result<Self, Self::Error>
+	fn into_mask(self) -> Masked<Self>
 	{
-		if value == ifa_cacheinfo::INFINITY_LIFE_TIME
-		{
-			Err(())
-		}
-		else
-		{
-			Ok(Self::from_unchecked(value))
-		}
+		let mut underlying = self.0;
+		invert_bytes(&mut underlying);
+		Masked::new(underlying)
 	}
-}
-
-impl LifeTimeMicroseconds
-{
+	
 	#[inline(always)]
-	fn from_unchecked(value: u32) -> Self
+	fn from_underlying(underlying: Self::Underlying) -> Self
 	{
-		Self(unsafe { NonZeroU32::new_unchecked(value + 1) })
+		Self(underlying)
+	}
+	
+	#[inline(always)]
+	fn from_underlying_inverted(underlying_inverted: Self::Underlying) -> Self
+	{
+		invert_bytes(&mut underlying_inverted);
+		Self(underlying_inverted)
+	}
+	
+	#[inline(always)]
+	fn underlying(&self) -> Self::Underlying
+	{
+		self.0
 	}
 }

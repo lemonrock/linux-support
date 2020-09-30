@@ -9,7 +9,7 @@
 /// Many more names can be found by looking in the Linux source for calls to the function `register_qdisc()`.
 ///
 /// Linux models this internally as `ObjectName16`.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct QueuingDisciplineAlgorithm(ObjectName16);
@@ -56,11 +56,11 @@ impl QueuingDisciplineAlgorithm
 {
 	/// pfifo_fast.
 	#[inline(always)]
-	pub fn pfifo_fast() -> &Self
+	pub fn pfifo_fast() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref pfifo_fast: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"pfifo_fast\0");
+    		static ref pfifo_fast: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"pfifo_fast\0").unwrap();
     	}
 		
 		&pfifo_fast
@@ -68,11 +68,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// Used for devices such as `lo` and `veth`.
 	#[inline(always)]
-	pub fn noqueue() -> &Self
+	pub fn noqueue() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref noqueue: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"noqueue\0");
+    		static ref noqueue: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"noqueue\0").unwrap();
     	}
 		
 		&noqueue
@@ -80,11 +80,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// Does nothing.
 	#[inline(always)]
-	pub fn noop() -> &Self
+	pub fn noop() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref noop: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"noop\0");
+    		static ref noop: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"noop\0").unwrap();
     	}
 		
 		&noop
@@ -92,11 +92,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// fq.
 	#[inline(always)]
-	pub fn fq() -> &Self
+	pub fn fq() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref fq: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref fq: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0").unwrap();
     	}
 		
 		&fq
@@ -104,11 +104,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// atm.
 	#[inline(always)]
-	pub fn atm() -> &Self
+	pub fn atm() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref atm: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref atm: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"atm\0").unwrap();
     	}
 		
 		&atm
@@ -116,11 +116,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// blackhole.
 	#[inline(always)]
-	pub fn blackhole() -> &Self
+	pub fn blackhole() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref blackhole: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref blackhole: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"blackhole\0").unwrap();
     	}
 		
 		&blackhole
@@ -128,11 +128,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// cake.
 	#[inline(always)]
-	pub fn cake() -> &Self
+	pub fn cake() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref cake: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref cake: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"cake\0").unwrap();
     	}
 		
 		&cake
@@ -140,11 +140,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// cbq.
 	#[inline(always)]
-	pub fn cbq() -> &Self
+	pub fn cbq() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref cbq: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref cbq: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"cbq\0").unwrap();
     	}
 		
 		&cbq
@@ -152,11 +152,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// cbs.
 	#[inline(always)]
-	pub fn cbs() -> &Self
+	pub fn cbs() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref cbs: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref cbs: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"cbs\0").unwrap();
     	}
 		
 		&cbs
@@ -164,11 +164,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// choke.
 	#[inline(always)]
-	pub fn cbs() -> &Self
+	pub fn choke() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref choke: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref choke: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"choke\0").unwrap();
     	}
 		
 		&choke
@@ -176,11 +176,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// codel.
 	#[inline(always)]
-	pub fn codel() -> &Self
+	pub fn codel() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref codel: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref codel: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"codel\0").unwrap();
     	}
 		
 		&codel
@@ -188,11 +188,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// drr.
 	#[inline(always)]
-	pub fn drr() -> &Self
+	pub fn drr() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref drr: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref drr: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"drr\0").unwrap();
     	}
 		
 		&drr
@@ -200,11 +200,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// dsmark.
 	#[inline(always)]
-	pub fn dsmark() -> &Self
+	pub fn dsmark() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref dsmark: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref dsmark: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"dsmark\0").unwrap();
     	}
 		
 		&dsmark
@@ -212,11 +212,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// etf.
 	#[inline(always)]
-	pub fn etf() -> &Self
+	pub fn etf() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref etf: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref etf: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"etf\0").unwrap();
     	}
 		
 		&etf
@@ -224,11 +224,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// ets.
 	#[inline(always)]
-	pub fn ets() -> &Self
+	pub fn ets() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref ets: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref ets: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"ets\0").unwrap();
     	}
 		
 		&ets
@@ -236,11 +236,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// fq_codel.
 	#[inline(always)]
-	pub fn fq_codel() -> &Self
+	pub fn fq_codel() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref fq_codel: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref fq_codel: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq_codel\0").unwrap();
     	}
 		
 		&fq_codel
@@ -248,11 +248,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// fq_pie.
 	#[inline(always)]
-	pub fn fq_pie() -> &Self
+	pub fn fq_pie() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref fq_pie: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref fq_pie: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq_pie\0").unwrap();
     	}
 		
 		&fq_pie
@@ -260,11 +260,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// gred.
 	#[inline(always)]
-	pub fn gred() -> &Self
+	pub fn gred() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref gred: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref gred: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"gred\0").unwrap();
     	}
 		
 		&gred
@@ -272,11 +272,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// hfsc.
 	#[inline(always)]
-	pub fn hfsc() -> &Self
+	pub fn hfsc() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref hfsc: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref hfsc: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"hfsc\0").unwrap();
     	}
 		
 		&hfsc
@@ -284,11 +284,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// hhf.
 	#[inline(always)]
-	pub fn hhf() -> &Self
+	pub fn hhf() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref hhf: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref hhf: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"hhf\0").unwrap();
     	}
 		
 		&hhf
@@ -296,11 +296,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// htb.
 	#[inline(always)]
-	pub fn hhf() -> &Self
+	pub fn htb() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref htb: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref htb: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"htb\0").unwrap();
     	}
 		
 		&htb
@@ -310,11 +310,11 @@ impl QueuingDisciplineAlgorithm
 	///
 	/// Used for ingress and egress.
 	#[inline(always)]
-	pub fn clsact() -> &Self
+	pub fn clsact() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref clsact: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref clsact: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"clasct\0").unwrap();
     	}
 		
 		&clsact
@@ -324,11 +324,11 @@ impl QueuingDisciplineAlgorithm
 	///
 	/// Used for ingress.
 	#[inline(always)]
-	pub fn ingress() -> &Self
+	pub fn ingress() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref ingress: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref ingress: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"ingress\0").unwrap();
     	}
 		
 		&ingress
@@ -336,11 +336,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// mqprio.
 	#[inline(always)]
-	pub fn mqprio() -> &Self
+	pub fn mqprio() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref mqprio: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref mqprio: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"mqprio\0").unwrap();
     	}
 		
 		&mqprio
@@ -348,11 +348,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// multiq.
 	#[inline(always)]
-	pub fn multiq() -> &Self
+	pub fn multiq() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref multiq: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref multiq: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"multiq\0").unwrap();
     	}
 		
 		&multiq
@@ -360,11 +360,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// netem.
 	#[inline(always)]
-	pub fn netem() -> &Self
+	pub fn netem() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref netem: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref netem: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"netem\0").unwrap();
     	}
 		
 		&netem
@@ -372,11 +372,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// pie.
 	#[inline(always)]
-	pub fn pie() -> &Self
+	pub fn pie() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref pie: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref pie: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"pie\0").unwrap();
     	}
 		
 		&pie
@@ -384,11 +384,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// plug.
 	#[inline(always)]
-	pub fn plug() -> &Self
+	pub fn plug() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref plug: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref plug: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"plug\0").unwrap();
     	}
 		
 		&plug
@@ -396,11 +396,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// prio.
 	#[inline(always)]
-	pub fn prio() -> &Self
+	pub fn prio() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref prio: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref prio: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"prio\0").unwrap();
     	}
 		
 		&prio
@@ -408,11 +408,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// qfq.
 	#[inline(always)]
-	pub fn qfq() -> &Self
+	pub fn qfq() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref qfq: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref qfq: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"qfq\0").unwrap();
     	}
 		
 		&qfq
@@ -420,11 +420,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// red.
 	#[inline(always)]
-	pub fn red() -> &Self
+	pub fn red() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref red: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref red: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"red\0").unwrap();
     	}
 		
 		&red
@@ -432,11 +432,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// sfb.
 	#[inline(always)]
-	pub fn sfb() -> &Self
+	pub fn sfb() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref sfb: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref sfb: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"sfb\0").unwrap();
     	}
 		
 		&sfb
@@ -444,11 +444,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// sfq.
 	#[inline(always)]
-	pub fn sfq() -> &Self
+	pub fn sfq() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref sfq: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref sfq: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"sfq\0").unwrap();
     	}
 		
 		&sfq
@@ -456,11 +456,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// skbprio.
 	#[inline(always)]
-	pub fn skbprio() -> &Self
+	pub fn skbprio() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref skbprio: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref skbprio: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"skbprio\0").unwrap();
     	}
 		
 		&skbprio
@@ -468,11 +468,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// taprio.
 	#[inline(always)]
-	pub fn taprio() -> &Self
+	pub fn taprio() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref taprio: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref taprio: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"taprio\0").unwrap();
     	}
 		
 		&taprio
@@ -480,11 +480,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// tbf.
 	#[inline(always)]
-	pub fn tbf() -> &Self
+	pub fn tbf() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref tbf: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref tbf: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"tbf\0").unwrap();
     	}
 		
 		&tbf
@@ -492,11 +492,11 @@ impl QueuingDisciplineAlgorithm
 	
 	/// teql.
 	#[inline(always)]
-	pub fn teql() -> &Self
+	pub fn teql() -> &'static Self
 	{
 		lazy_static!
 		{
-    		static ref teql: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"fq\0");
+    		static ref teql: QueuingDisciplineAlgorithm = QueuingDisciplineAlgorithm::from_bytes(b"teql\0").unwrap();
     	}
 		
 		&teql

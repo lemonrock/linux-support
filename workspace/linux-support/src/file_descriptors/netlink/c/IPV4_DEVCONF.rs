@@ -4,7 +4,7 @@
 
 /// Internet Protocol version 4 configuration value keys.
 #[non_exhaustive]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u16)]
 pub enum IPV4_DEVCONF
 {

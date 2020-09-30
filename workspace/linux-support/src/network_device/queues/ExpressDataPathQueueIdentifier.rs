@@ -24,4 +24,10 @@ impl ExpressDataPathQueueIdentifier
 	{
 		Self(queue_identifier.0 as u32)
 	}
+	
+	#[inline(always)]
+	pub(crate) const fn into_u32(self) -> u32
+	{
+		self.0
+	}
 }

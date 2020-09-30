@@ -26,3 +26,39 @@ pub(crate) struct ethtool_tcpip4_spec
 impl FlowSpecification for ethtool_tcpip4_spec
 {
 }
+
+impl CommonLayer3FlowSpecification<BigEndianU32> for ethtool_tcpip4_spec
+{
+	#[inline(always)]
+	fn source_address(&self) -> BigEndianU32
+	{
+		self.ip4src
+	}
+	
+	#[inline(always)]
+	fn destination_address(&self) -> BigEndianU32
+	{
+		self.ip4dst
+	}
+	
+	#[inline(always)]
+	fn tos_or_tclass(&self) -> u8
+	{
+		self.tos
+	}
+}
+
+impl CommonLayer4FlowSpecification<BigEndianU32> for ethtool_tcpip4_spec
+{
+	#[inline(always)]
+	fn source_port(&self) -> BigEndianU16
+	{
+		self.psrc
+	}
+	
+	#[inline(always)]
+	fn destination_port(&self) -> BigEndianU16
+	{
+		self.pdst
+	}
+}

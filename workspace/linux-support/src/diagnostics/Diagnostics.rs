@@ -41,10 +41,10 @@ pub struct Diagnostics
 	pub network_devices: DiagnosticUnobtainableResult<NetworkDeviceDiagnostics>,
 
 	/// Internet protocol version 4 addresses.
-	pub internet_protocol_version_4_addresses: DiagnosticUnobtainableResult<InternetProtocolAddressesDiagnostic<in_addr>>,
+	pub internet_protocol_version_4_addresses: DiagnosticUnobtainableResult<InternetProtocolVersion4AddressesDiagnostic>,
 
 	/// Internet protocol version 6 addresses.
-	pub internet_protocol_version_6_addresses: DiagnosticUnobtainableResult<InternetProtocolAddressesDiagnostic<in6_addr>>,
+	pub internet_protocol_version_6_addresses: DiagnosticUnobtainableResult<InternetProtocolVersion6AddressesDiagnostic>,
 
 	/// Environment.
 	pub environment: EnvironmentDiagnostic,
@@ -157,9 +157,9 @@ impl Diagnostics
 				
 				network_devices: NetworkDeviceDiagnostics::gather(sys_path),
 				
-				internet_protocol_version_4_addresses: InternetProtocolAddressesDiagnostic::<in_addr>::gather(),
+				internet_protocol_version_4_addresses: InternetProtocolVersion4AddressesDiagnostic::gather(),
 				
-				internet_protocol_version_6_addresses: InternetProtocolAddressesDiagnostic::<in6_addr>::gather(),
+				internet_protocol_version_6_addresses: InternetProtocolVersion6AddressesDiagnostic::gather(),
 			
 				environment: EnvironmentDiagnostic::gather(),
 			

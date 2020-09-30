@@ -3,58 +3,23 @@
 
 
 /// Represents cache information.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(C)]
-pub struct ifa_cacheinfo
+pub(crate) struct ifa_cacheinfo
 {
-	/// Can be `INFINITY_LIFE_TIME` (`0xFFFFFFFF` / `u32::MAX`).
+	/// Temporary preferred address lifetime.
 	///
-	/// Otherwise it is in microseconds.
-	ifa_prefered: u32,
+	/// `Infinite` for a permanent address.
+	pub(crate) ifa_prefered: InternetProtocolAddressLifetime,
 	
-	/// Can be `INFINITY_LIFE_TIME` (`0xFFFFFFFF` / `u32::MAX`).
+	/// Temporary valid address lifetime.
 	///
-	/// Otherwise it is in microseconds.
-	ifa_valid: u32,
+	/// `Infinite` for a permanent address.
+	pub(crate) ifa_valid: InternetProtocolAddressLifetime,
 	
 	/// Created timestamp in hundredths of seconds.
-	cstamp: CacheTimestampInHundrethsOfSeconds,
+	pub(crate) cstamp: CacheTimestampInHundrethsOfSeconds,
 	
 	/// Updated timestamp in hundredths of seconds.
-	tstamp: CacheTimestampInHundrethsOfSeconds,
-}
-
-impl ifa_cacheinfo
-{
-	pub(super) const INFINITY_LIFE_TIME: u32 = 0xFFFFFFFF;
-	
-	/// Preferred lifetime.
-	#[inline(always)]
-	pub fn preferred_life_time(&self) -> LifeTime
-	{
-		LifeTime::from(self.ifa_prefered)
-	}
-	
-	/// Valid lifetime.
-	#[inline(always)]
-	pub fn valid_life_time(&self) -> LifeTime
-	{
-		LifeTime::from(self.ifa_valid)
-	}
-	
-	/// Created.
-	#[inline(always)]
-	pub fn created(&self) -> CacheTimestampInHundrethsOfSeconds
-	{
-		self.cstamp
-	}
-	
-	/// Updated.
-	#[inline(always)]
-	pub fn updated(&self) -> CacheTimestampInHundrethsOfSeconds
-	{
-		self.tstamp
-	}
+	pub(crate) tstamp: CacheTimestampInHundrethsOfSeconds,
 }

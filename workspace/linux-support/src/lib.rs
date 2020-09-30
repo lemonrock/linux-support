@@ -672,6 +672,7 @@ use std::ops::Add;
 use std::ops::AddAssign;
 use std::ops::BitAnd;
 use std::ops::BitOr;
+use std::ops::BitXorAssign;
 use std::ops::Deref;
 use std::ops::DerefMut;
 use std::ops::Div;

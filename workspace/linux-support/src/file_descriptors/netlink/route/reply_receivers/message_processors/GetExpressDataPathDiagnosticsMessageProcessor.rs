@@ -23,34 +23,27 @@ impl MessageProcessor for GetExpressDataPathDiagnosticsMessageProcessor
 	#[inline(always)]
 	fn process_message_attribute(&self, message_attribute: &rtattr<Self::NAT>, processing_message_state: &mut Self::ProcessingMessageState) -> Result<(), String>
 	{
-		#[inline(always)]
-		fn set_field_error<Field, Error: ToString, F: FnOnce(&rtattr<XDP_DIAG>) -> Result<Field, Error>>(field: &mut Option<Field>, message_attribute: &rtattr<XDP_DIAG>, attribute: F) -> Result<(), String>
-		{
-			*field.as_mut().ok_or(format!("field already populated; duplicate rtattr"))? = attribute(message_attribute).map_err(|error| error.to_string())?;
-			Ok(())
-		}
-		
 		use self::XDP_DIAG::*;
 		
 		match message_attribute.type_()
 		{
-			(false, false, XDP_DIAG_INFO) => Self::set_field_error(&mut processing_message_state.basic_information, message_attribute, |message_attribute| message_attribute.get_attribute_value_struct_cloned::<xdp_diag_info>())?,
+			(false, false, XDP_DIAG_INFO) => set_field_error(&mut processing_message_state.basic_information, message_attribute, |message_attribute| message_attribute.get_attribute_value_struct_cloned::<xdp_diag_info>())?,
 			
-			(false, false, XDP_DIAG_UID) => Self::set_field_error(&mut processing_message_state.user_identifier, message_attribute, |message_attribute| message_attribute.get_attribute_value_uid())?,
+			(false, false, XDP_DIAG_UID) => set_field_error(&mut processing_message_state.user_identifier, message_attribute, |message_attribute| message_attribute.get_attribute_value_uid())?,
 			
-			(false, false, XDP_DIAG_RX_RING) => Self::set_field_error(&mut processing_message_state.receive_ring_number_of_descriptors, message_attribute, |message_attribute| message_attribute.get_attribute_value_ring_number_of_descriptors())?,
+			(false, false, XDP_DIAG_RX_RING) => set_field_error(&mut processing_message_state.receive_ring_number_of_descriptors, message_attribute, |message_attribute| message_attribute.get_attribute_value_ring_number_of_descriptors())?,
 			
-			(false, false, XDP_DIAG_TX_RING) => Self::set_field_error(&mut processing_message_state.transmit_ring_number_of_descriptors, message_attribute, |message_attribute| message_attribute.get_attribute_value_ring_number_of_descriptors())?,
+			(false, false, XDP_DIAG_TX_RING) => set_field_error(&mut processing_message_state.transmit_ring_number_of_descriptors, message_attribute, |message_attribute| message_attribute.get_attribute_value_ring_number_of_descriptors())?,
 			
-			(false, false, XDP_DIAG_UMEM_FILL_RING) => Self::set_field_error(&mut processing_message_state.fill_ring_number_of_descriptors, message_attribute, |message_attribute| message_attribute.get_attribute_value_ring_number_of_descriptors())?,
+			(false, false, XDP_DIAG_UMEM_FILL_RING) => set_field_error(&mut processing_message_state.fill_ring_number_of_descriptors, message_attribute, |message_attribute| message_attribute.get_attribute_value_ring_number_of_descriptors())?,
 			
-			(false, false, XDP_DIAG_UMEM_COMPLETION_RING) => Self::set_field_error(&mut processing_message_state.completion_ring_number_of_descriptors, message_attribute, |message_attribute| message_attribute.get_attribute_value_ring_number_of_descriptors())?,
+			(false, false, XDP_DIAG_UMEM_COMPLETION_RING) => set_field_error(&mut processing_message_state.completion_ring_number_of_descriptors, message_attribute, |message_attribute| message_attribute.get_attribute_value_ring_number_of_descriptors())?,
 			
-			(false, false, XDP_DIAG_UMEM) => Self::set_field_error(&mut processing_message_state.user_memory_information, message_attribute, |message_attribute| message_attribute.get_attribute_value_struct_cloned::<xdp_diag_umem>())?,
+			(false, false, XDP_DIAG_UMEM) => set_field_error(&mut processing_message_state.user_memory_information, message_attribute, |message_attribute| message_attribute.get_attribute_value_struct_cloned::<xdp_diag_umem>())?,
 			
-			(false, false, XDP_DIAG_MEMINFO) => Self::set_field_error(&mut processing_message_state.socket_memory_information, message_attribute, |message_attribute| message_attribute.socket_memory_information())?,
+			(false, false, XDP_DIAG_MEMINFO) => set_field_error(&mut processing_message_state.socket_memory_information, message_attribute, |message_attribute| message_attribute.socket_memory_information())?,
 			
-			(false, false, XDP_DIAG_STATS) => Self::set_field_error(&mut processing_message_state.statistics, message_attribute, |message_attribute| message_attribute.get_attribute_value_struct_cloned::<xdp_diag_stats>())?,
+			(false, false, XDP_DIAG_STATS) => set_field_error(&mut processing_message_state.statistics, message_attribute, |message_attribute| message_attribute.get_attribute_value_struct_cloned::<xdp_diag_stats>())?,
 			
 			(true, true, _) => panic!("Attribute may not be both nested and in network byte order"),
 			

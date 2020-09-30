@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+
 /// Classification rule for receive flows.
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -31,7 +32,7 @@ pub(crate) struct ethtool_rx_flow_spec
 	/// Location of rule in the table.
 	///
 	/// Locations must be numbered such that a flow matching multiple rules will be classified according to the first (lowest numbered) rule.
-	pub(crate) location: u32,
+	pub(crate) location: CombinedRuleLocation,
 }
 
 impl ethtool_rx_flow_spec
@@ -40,5 +41,23 @@ impl ethtool_rx_flow_spec
 	pub(crate) const fn actual_flow_type(&self) -> u32
 	{
 		self.flow_type & !(FLOW_EXT | FLOW_MAC_EXT | FLOW_RSS)
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn has_extended_flow_type(&self) -> bool
+	{
+		self.flow_type & FLOW_EXT != 0
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn has_extended_media_access_control_flow_type(&self) -> bool
+	{
+		self.flow_type & FLOW_MAC_EXT != 0
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn has_receive_side_scaling_flow_type(&self) -> bool
+	{
+		self.flow_type & FLOW_RSS != 0
 	}
 }

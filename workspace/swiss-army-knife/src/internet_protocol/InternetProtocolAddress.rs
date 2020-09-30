@@ -3,7 +3,7 @@
 
 
 /// An Internet Protocol (IP) version 4 or version 6 address.
-pub trait InternetProtocolAddress: Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Sized + Default
+pub trait InternetProtocolAddress: Default + Debug + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash
 {
 	/// Inclusive aximum prefix (netmask / subnet) length.
 	const InclusiveMaximumPrefixLength: u8;

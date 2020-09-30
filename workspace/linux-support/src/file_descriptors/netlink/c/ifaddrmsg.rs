@@ -3,13 +3,19 @@
 
 
 /// Used for `RTM_NEWADDR`, `RTM_DELADDR` and `RTM_GETADDR`.
+///
+/// In addition, the attribute `IFA_TARGET_NETNSID` can be specified after this header in `RTM_GETADDR` to filter by `NetNamespaceIdentifer`.
 #[repr(C)]
 pub(crate) struct ifaddrmsg
 {
 	/// Address type.
+	///
+	/// Must be either `AF_INET` or `AF_INET6` for `RTM_GETADDR` ordinarily.
 	pub(crate) ifa_family: u8,
 	
 	/// Prefix length of address.
+	///
+	/// Must be `0` for `RTM_GETADDR`.
 	pub(crate) ifa_prefixlen: u8,
 	
 	/// Flags.
@@ -17,12 +23,18 @@ pub(crate) struct ifaddrmsg
 	/// Can be extended by a `rtattr` with a type of `IFA_FLAGS`.
 	///
 	/// If a `rtattr` with a type of `IFA_FLAGS` is present this field should be ignored.
+	///
+	/// Must be `0` for `RTM_GETADDR`.
 	pub(crate) ifa_flags: InterfaceFlags,
 	
 	/// Address scope.
+	///
+	/// Must be `0` for `RTM_GETADDR`.
 	pub(crate) ifa_scope: rt_scope,
 	
 	/// Interface index.
+	///
+	/// Can be specified in `RTM_GETADDR` to filter by network interface index.
 	pub(crate) ifa_index: Option<NetworkInterfaceIndex>,
 }
 

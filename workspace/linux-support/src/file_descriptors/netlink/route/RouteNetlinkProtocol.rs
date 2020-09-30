@@ -103,18 +103,70 @@ impl RouteNetlinkProtocol
 	/// Get Internet Protocol version 4 addresses.
 	///
 	/// This is ***SLOW***.
-	pub fn get_internet_protocol_version_4_addresses(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>) -> Result<Vec<GetAddressMessageData<in_addr>>, String>
+	pub fn get_internet_protocol_version_4_addresses(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, filter_by_network_interface_index: Option<NetworkInterfaceIndex>) -> Result<Vec<GetInternetProtocolVersion4AddressMessageData>, String>
 	{
-		GetAddressMessageProcessor::new().get_internet_protocol_addresses(netlink_socket_file_descriptor)
+		Self::get_internet_protocol_addresses::<_, in_addr>(netlink_socket_file_descriptor, filter_by_network_interface_index, &GetInternetProtocolVersion4AddressMessageProcessor, RouteNetlinkMessageType::GETADDR)
 	}
 	
 	/// Get Internet Protocol version 6 addresses.
 	///
 	/// This is ***SLOW***.
-	pub fn get_internet_protocol_version_6_addresses(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>) -> Result<Vec<GetAddressMessageData<in6_addr>>, String>
+	pub fn get_internet_protocol_version_6_addresses(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, filter_by_network_interface_index: Option<NetworkInterfaceIndex>) -> Result<Vec<GetInternetProtocolVersion6AddressMessageData>, String>
 	{
-		GetAddressMessageProcessor::new().get_internet_protocol_addresses(netlink_socket_file_descriptor)
+		Self::get_internet_protocol_addresses::<_, in6_addr>(netlink_socket_file_descriptor, filter_by_network_interface_index, &GetInternetProtocolVersion6AddressMessageProcessor, RouteNetlinkMessageType::GETADDR)
 	}
+	
+	/// Get Internet Protocol version 6 multicast addresses.
+	///
+	/// This is ***SLOW***.
+	pub fn get_internet_protocol_version_6_multicast_addresses(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, filter_by_network_interface_index: Option<NetworkInterfaceIndex>) -> Result<Vec<GetInternetProtocolVersion6OtherCastAddressMessageData>, String>
+	{
+		Self::get_internet_protocol_addresses::<_, in6_addr>(netlink_socket_file_descriptor, filter_by_network_interface_index, &GetInternetProtocolVersion6MulticastAddressMessageProcessor, RouteNetlinkMessageType::GETMULTICAST)
+	}
+	
+	/// Get Internet Protocol version 6 anycast addresses.
+	///
+	/// This is ***SLOW***.
+	pub fn get_internet_protocol_version_6_anycast_addresses(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, filter_by_network_interface_index: Option<NetworkInterfaceIndex>) -> Result<Vec<GetInternetProtocolVersion6OtherCastAddressMessageData>, String>
+	{
+		Self::get_internet_protocol_addresses::<_, in6_addr>(netlink_socket_file_descriptor, filter_by_network_interface_index, &GetInternetProtocolVersion6AnycastAddressMessageProcessor, RouteNetlinkMessageType::GETANYCAST)
+	}
+	
+	#[inline(always)]
+	fn get_internet_protocol_addresses<RMP: MessageProcessor, IPA: InternetProtocolAddress>(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<RouteNetlinkProtocol>, filter_by_network_interface_index: Option<NetworkInterfaceIndex>, route_message_processor: &RMP, route_netlink_message_type: RouteNetlinkMessageType) -> Result<Vec<RMP::ProcessedMessage>, String>
+	{
+		Self::make_request_and_get_reply_messages
+		(
+			netlink_socket_file_descriptor,
+			route_message_processor,
+			Self::new_route_get_internet_protocol_addresses_message::<IPA>(filter_by_network_interface_index, route_netlink_message_type)).map_err(|error| match error
+			{
+				Left(messaging_parsing_errors) => format!("Message parsing errors {:?}", messaging_parsing_errors),
+				
+				Right(end_of_set_of_messages_error) => format!("End of set of messages errors {}", end_of_set_of_messages_error),
+			}
+		)
+	}
+	
+	#[inline(always)]
+	fn new_route_get_internet_protocol_addresses_message<IPA: InternetProtocolAddress>(filter_by_network_interface_index: Option<NetworkInterfaceIndex>, route_netlink_message_type: RouteNetlinkMessageType) -> NetlinkRequestMessage<ifaddrmsg>
+	{
+		let body = ifaddrmsg
+		{
+			// Selector field is non-zero family.
+			ifa_family: IPA::AddressFamily,
+			
+			// Dump Filter field is non-zero index.
+			ifa_index: filter_by_network_interface_index,
+			
+			// Must all be zero (seems mad that the same struct is used for both requests and replies).
+			ifa_prefixlen: unsafe { zeroed() },
+			ifa_flags: unsafe { zeroed() },
+			ifa_scope: unsafe { zeroed() },
+		};
+		Self::new_get_request_message(route_netlink_message_type, NetlinkGetRequestMessageFlags::Dump, body)
+	}
+
 }
 
 /// eXpress Data Path (XDP).

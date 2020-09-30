@@ -5,7 +5,7 @@
 object_name!
 (
 	ObjectName128,
-	u16,
+	u8,
 	127,
 	/// A string.
 	///

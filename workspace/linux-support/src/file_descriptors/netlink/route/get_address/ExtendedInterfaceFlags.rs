@@ -11,13 +11,13 @@ bitflags!
 		/// A secondary (alias) address.
 		const Secondary = IFA_F_SECONDARY;
 		
-		#[allow(missing_docs)]
+		/// Only for Internet Protocol version 6.
 		const NoDuplicateAddressDetection = IFA_F_NODAD;
 		
-		/// ?actually is OptimisticDuplicateAddressDetection?
-		const Optimistic = IFA_F_OPTIMISTIC;
+		/// Only for Internet Protocol version 6.
+		const OptimisticDuplicateAddressDetection = IFA_F_OPTIMISTIC;
 		
-		#[allow(missing_docs)]
+		/// Only for Internet Protocol version 6.
 		const DuplicateAddressDetectionFailed = IFA_F_DADFAILED;
 		
 		#[allow(missing_docs)]

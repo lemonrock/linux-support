@@ -3,12 +3,18 @@
 
 
 use super::*;
-use crate::network_device::NetworkInterfaceName;
+use crate::network_device::{NetworkInterfaceName, NetNamespaceIdentifer, InternetProtocolAddressLifetime};
 
 
 include!("CacheTimestampInHundrethsOfSeconds.rs");
 include!("ExtendedInterfaceFlags.rs");
-include!("GetAddressMessageData.rs");
+include!("GetInternetProtocolVersion6AddressMessageData.rs");
+include!("GetAddressMessageDataCommon.rs");
+include!("GetAddressMessageDataUnicastCommon.rs");
+include!("GetAddressProcessingMessageState.rs");
+include!("GetAddressProcessingMessageStateCommon.rs");
+include!("GetAddressProcessingMessageStateOtherCastInternetProtocolVersion6.rs");
+include!("GetAddressProcessingMessageStateUnicastCommon.rs");
+include!("GetInternetProtocolVersion4AddressMessageData.rs");
+include!("GetInternetProtocolVersion6OtherCastAddressMessageData.rs");
 include!("InterfaceFlags.rs");
-include!("LifeTime.rs");
-include!("LifeTimeMicroseconds.rs");
