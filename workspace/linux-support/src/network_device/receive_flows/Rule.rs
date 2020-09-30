@@ -14,7 +14,7 @@ pub struct Rule
 	/// Rule action.
 	#[serde(default)] pub action: RuleAction,
 
-	// Basic receive flow specification.
+	/// Basic receive flow specification.
 	pub basic_flow: BasicFlow,
 	
 	/// Additional receive flow specification.
@@ -23,7 +23,8 @@ pub struct Rule
 
 impl Rule
 {
-	fn parse(mut ethtool_flow_specification: ethtool_rx_flow_spec) -> Result<(Self, bool), FlowSpecificationParseError>
+	#[allow(dead_code)]
+	pub(crate) fn parse(ethtool_flow_specification: ethtool_rx_flow_spec) -> Result<(Self, bool), FlowSpecificationParseError>
 	{
 		use self::FlowSpecificationParseError::*;
 		
@@ -57,19 +58,20 @@ impl Rule
 		)
 	}
 	
-	fn to_ethtool_flow_specification(&self, has_receive_side_scaling_context: bool) -> ethtool_rx_flow_spec
+	#[allow(dead_code)]
+	pub(crate) fn to_ethtool_flow_specification(&self, has_receive_side_scaling_context: bool) -> ethtool_rx_flow_spec
 	{
 		let mut ethtool_flow_specification: ethtool_rx_flow_spec = unsafe { zeroed() };
 		
 		let (mut flow_type, (data, mask), destination_media_access_control_address_extended_flow) = self.basic_flow.actual_flow_type_and_data_and_masks();
 		
-		if let Some(virtual_local_area_network_extended_flow) = self.virtual_local_area_network_extended_flow
+		if let Some(ref virtual_local_area_network_extended_flow) = self.virtual_local_area_network_extended_flow
 		{
 			flow_type |= FLOW_EXT;
 			virtual_local_area_network_extended_flow.data_and_masks(&mut ethtool_flow_specification.h_ext, &mut ethtool_flow_specification.m_ext)
 		}
 		
-		if let Some(destination_media_access_control_address_extended_flow) = destination_media_access_control_address_extended_flow
+		if let Some(ref destination_media_access_control_address_extended_flow) = destination_media_access_control_address_extended_flow
 		{
 			flow_type |= FLOW_MAC_EXT;
 			destination_media_access_control_address_extended_flow.data_and_masks(&mut ethtool_flow_specification.h_ext, &mut ethtool_flow_specification.m_ext)

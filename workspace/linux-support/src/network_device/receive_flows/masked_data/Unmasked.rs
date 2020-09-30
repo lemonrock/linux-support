@@ -3,13 +3,13 @@
 
 
 /// Unmaked.
-pub trait Unmasked: Default + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash
+pub trait Unmasked: Default + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash + DeserializeOwned
 {
 	#[doc(hidden)]
 	const UnderlyingZero: Self::Underlying;
 	
 	#[doc(hidden)]
-	type Underlying: Default + Debug + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash + Serialize;
+	type Underlying: Default + Debug + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash + Serialize + DeserializeOwned;
 	
 	#[doc(hidden)]
 	fn into_mask(self) -> Masked<Self>;

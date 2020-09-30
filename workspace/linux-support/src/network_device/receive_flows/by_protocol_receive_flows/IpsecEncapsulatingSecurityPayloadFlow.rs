@@ -7,6 +7,7 @@
 /// `ethtool` calls this either `esp4` or `esp6`.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
+#[serde(bound(deserialize = "IPA: DeserializeOwned"))]
 #[repr(transparent)]
 pub struct IpsecEncapsulatingSecurityPayloadFlow<IPA: InternetProtocolAddress + Unmasked>(IpsecFlow<IPA>);
 

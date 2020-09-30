@@ -35,13 +35,15 @@ impl GetAddressProcessingMessageStateOtherCastInternetProtocolVersion6
 	#[inline(always)]
 	pub(crate) fn to_processed_message(self) -> Result<GetInternetProtocolVersion6OtherCastAddressMessageData, String>
 	{
+		let common = self.common;
+		let interface_flags = common.interface_flags;
 		Ok
 		(
 			GetInternetProtocolVersion6OtherCastAddressMessageData
 			{
-				common: self.common.to_processed_message::<in6_addr>()?,
+				common: common.to_processed_message::<in6_addr>()?,
 				
-				interface_flags: self.common.interface_flags,
+				interface_flags,
 				
 				other_cast_address: self.other_cast_address,
 			}

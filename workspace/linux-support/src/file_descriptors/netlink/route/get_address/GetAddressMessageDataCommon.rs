@@ -27,15 +27,21 @@ pub struct GetAddressMessageDataCommon
 	/// Only relevant to IPv6 if the `IN6_IS_ADDR_LINKLOCAL()` or `IN6_IS_ADDR_MC_LINKLOCAL()` macros are true.
 	pub network_interface_index: NetworkInterfaceIndex,
 	
+	#[allow(missing_docs)]
 	pub address_scope: rt_scope,
 	
+	#[allow(missing_docs)]
 	pub target_net_namespace_identifier: Option<NetNamespaceIdentifer>,
 	
+	#[allow(missing_docs)]
 	pub temporary_address_valid_lifetime: InternetProtocolAddressLifetime,
 	
+	#[allow(missing_docs)]
 	pub temporary_address_prefered_lifetime: InternetProtocolAddressLifetime,
 	
+	#[allow(missing_docs)]
 	pub temporary_address_created_timestamp: CacheTimestampInHundrethsOfSeconds,
 	
+	#[allow(missing_docs)]
 	pub temporary_address_updated_timestamp: CacheTimestampInHundrethsOfSeconds,
 }

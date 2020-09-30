@@ -46,7 +46,7 @@ impl InternetProtocolAddressLifetime
 	#[inline(always)]
 	pub const fn is_infinite(self) -> bool
 	{
-		self == Self::Infinite
+		self.0 == Self::Infinite.0
 	}
 	
 	/// Into microseconds, or `None` if infinite.

@@ -7,6 +7,7 @@
 /// `ethtool` calls this either `udp4` or `udp6`.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
+#[serde(bound(deserialize = "IPA: DeserializeOwned"))]
 #[repr(transparent)]
 pub struct UserDatagramProtocolFlow<IPA: InternetProtocolAddress + Unmasked>(CommonLayer4Flow<IPA>);
 

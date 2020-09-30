@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// EtherType or Payload length for legacy ethernet packets.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
@@ -28,7 +29,7 @@ impl Unmasked for EtherTypeOrLength
 	}
 	
 	#[inline(always)]
-	fn from_underlying_inverted(underlying_inverted: Self::Underlying) -> Self
+	fn from_underlying_inverted(mut underlying_inverted: Self::Underlying) -> Self
 	{
 		invert_bytes(&mut underlying_inverted);
 		Self(underlying_inverted)

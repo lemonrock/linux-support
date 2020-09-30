@@ -7,25 +7,53 @@
 pub enum BasicFlowParseError
 {
 	/// Only used by `ETHTOOL_SRXFH` (`do_srxclass()`) and `ETHTOOL_GRXFH` (`do_grxclass()`).
-	UnexpectedActualFlowType { actual_flow_type: u32 },
+	UnexpectedActualFlowType
+	{
+		#[allow(missing_docs)]
+		actual_flow_type: u32
+	},
 	
 	/// Unused by ethtool but is supported by Amazon ENA driver.
-	UnusedActualFlowType { actual_flow_type: u32 },
+	UnusedActualFlowType
+	{
+		#[allow(missing_docs)]
+		actual_flow_type: u32
+	},
 	
 	/// Unknown and possibly a bug in Linux.
-	UnknownActualFlowType { actual_flow_type: u32 },
+	UnknownActualFlowType
+	{
+		#[allow(missing_docs)]
+		actual_flow_type: u32
+	},
 	
 	/// UserOverInternetProtocolVersion4 flow must have the `ip_ver` data as only `ETH_RX_NFC_IP4`.
-	UserOverInternetProtocolVersion4FlowHasInvalidVersionData { ip_ver: u8 },
+	UserOverInternetProtocolVersion4FlowHasInvalidVersionData
+	{
+		#[allow(missing_docs)]
+		ip_ver: u8
+	},
 	
 	/// UserOverInternetProtocolVersion4 flow must have the `ip_ver` mask as only `0`.
-	UserOverInternetProtocolVersion4FlowHasInvalidVersionMask { ip_ver: u8 },
+	UserOverInternetProtocolVersion4FlowHasInvalidVersionMask
+	{
+		#[allow(missing_docs)]
+		ip_ver: u8
+	},
 	
 	/// UserOverInternetProtocolVersion4 flow must have the `proto` mask as only `0` or `0xFF`.
-	UserLayer4FlowTransportProtocolNumberMaskMustEitherBeZeroOr0xFF { transport_protocol_number_mask: u8 },
+	UserLayer4FlowTransportProtocolNumberMaskMustEitherBeZeroOr0xFF
+	{
+		#[allow(missing_docs)]
+		transport_protocol_number_mask: u8
+	},
 	
 	/// Ethernet flows do not use this extension.
-	EthernetFlowIsNotAllowedAnExtendedDestinationMediaAccessControlAddress { destination_media_access_control_address_extended_flow: DestinationMediaAccessControlAddressExtendedFlow },
+	EthernetFlowIsNotAllowedAnExtendedDestinationMediaAccessControlAddress
+	{
+		#[allow(missing_docs)]
+		destination_media_access_control_address_extended_flow: DestinationMediaAccessControlAddressExtendedFlow
+	},
 }
 
 impl Display for BasicFlowParseError

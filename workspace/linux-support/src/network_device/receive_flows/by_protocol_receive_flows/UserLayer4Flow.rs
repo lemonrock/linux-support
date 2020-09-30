@@ -5,9 +5,10 @@
 /// Layer 4 flow which matches on first 4 bytes of transport and specific transport protocol number.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-#[serde(default, deny_unknown_fields)]
+#[serde(default, deny_unknown_fields, bound(deserialize = "IPA: DeserializeOwned"))]
 pub struct UserLayer4Flow<IPA: InternetProtocolAddress + Unmasked>
 {
+	#[allow(missing_docs)]
 	#[serde(flatten)] pub layer_3: CommonLayer3Flow<IPA>,
 	
 	/// First 4 bytes of transport (layer 4) header.

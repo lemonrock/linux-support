@@ -8,10 +8,13 @@
 #[serde(default, deny_unknown_fields)]
 pub struct EthernetFlow
 {
+	#[allow(missing_docs)]
 	pub source_address: MaskedData<MediaAccessControlAddress>,
 	
+	#[allow(missing_docs)]
 	pub destination_address: MaskedData<MediaAccessControlAddress>,
 	
+	#[allow(missing_docs)]
 	pub ethertype_or_length: MaskedData<EtherTypeOrLength>,
 }
 

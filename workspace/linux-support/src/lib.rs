@@ -565,6 +565,7 @@ use serde::Deserializer;
 use serde::Serialize;
 use serde::Serializer;
 use serde::de;
+use serde::de::DeserializeOwned;
 use serde::de::Unexpected;
 use serde::de::Visitor;
 use serde_big_array::big_array;

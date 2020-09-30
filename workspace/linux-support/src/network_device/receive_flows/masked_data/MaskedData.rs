@@ -5,7 +5,7 @@
 /// Masked data.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-#[serde(default, deny_unknown_fields)]
+#[serde(default, deny_unknown_fields, bound(deserialize = "T: DeserializeOwned"))]
 pub struct MaskedData<T: Unmasked>
 {
 	/// Data.

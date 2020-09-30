@@ -19,7 +19,7 @@ impl InternetProtocolVersion6AddressesDiagnostic
 	#[inline(always)]
 	fn gather() -> DiagnosticUnobtainableResult<Self>
 	{
-		let netlink_socket_file_descriptor = NetlinkSocketFileDescriptor::open().map_err(DiagnosticUnobtainable::from)?;
+		let mut netlink_socket_file_descriptor = NetlinkSocketFileDescriptor::open().map_err(DiagnosticUnobtainable::from)?;
 		
 		Ok
 		(

@@ -43,7 +43,7 @@ impl GlobalNetworkConfiguration
 	{
 		use self::GlobalNetworkConfigurationError::*;
 		
-		instance_set_value(proc_path, QueuingDisciplineAlgorithm::set_global_default, self.queuing_discipline_algorithm, CouldNotChangeGlobalDefaultQueuingDisciplineAlgorithm)?;
+		instance_set_value(proc_path, QueuingDisciplineAlgorithm::set_global_default, self.queuing_discipline_algorithm.clone(), CouldNotChangeGlobalDefaultQueuingDisciplineAlgorithm)?;
 		
 		if let Some(ref receive_packet_steering) = self.receive_packet_steering
 		{

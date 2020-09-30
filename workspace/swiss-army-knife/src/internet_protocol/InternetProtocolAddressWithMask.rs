@@ -8,7 +8,7 @@
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
+#[serde(deny_unknown_fields, bound(deserialize = "IPA: DeserializeOwned"))]
 pub struct InternetProtocolAddressWithMask<IPA: InternetProtocolAddress>
 {
 	/// * From 1 inclusive to 32 inclusive for an inclusive for an Internet Protocol version 4 address.

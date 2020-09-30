@@ -161,6 +161,13 @@ impl GetLinkProcessingMessageState
 	#[inline(always)]
 	pub(crate) fn to_processed_message(self) -> Result<GetLinkMessageData, String>
 	{
+		let (internet_version_4_protocol_details, internet_version_6_protocol_details) = match self.address_family_specific
+		{
+			None => (None, None),
+			
+			Some((internet_version_4_protocol_details, internet_version_6_protocol_details)) => (internet_version_4_protocol_details, internet_version_6_protocol_details),
+		};
+		
 		Ok
 		(
 			GetLinkMessageData
@@ -207,23 +214,9 @@ impl GetLinkProcessingMessageState
 				
 				alternative_network_interface_names: self.alternative_network_interface_names.unwrap_or(Vec::new()),
 				
-				internet_version_4_protocol_details: if let Some((internet_version_4_protocol_details, _)) = self.address_family_specific
-				{
-					internet_version_4_protocol_details
-				}
-				else
-				{
-					None
-				},
+				internet_version_4_protocol_details,
 				
-				internet_version_6_protocol_details: if let Some((_, internet_version_6_protocol_details)) = self.address_family_specific
-				{
-					internet_version_6_protocol_details
-				}
-				else
-				{
-					None
-				},
+				internet_version_6_protocol_details,
 				
 				carrier_up_and_down_count: self.carrier_up_and_down_count.ok_or(format!("Linux kernel bug - missing carrier_up_and_down_count"))?,
 				

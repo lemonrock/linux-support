@@ -8,6 +8,7 @@
 #[serde(default, deny_unknown_fields)]
 pub struct DestinationMediaAccessControlAddressExtendedFlow
 {
+	#[allow(missing_docs)]
 	#[serde(flatten)] pub destination_address: MaskedData<MediaAccessControlAddress>,
 }
 

@@ -5,7 +5,7 @@
 /// Internet Protocol unicast address message data.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
+#[serde(deny_unknown_fields, bound(deserialize = "IPA: DeserializeOwned"))]
 pub struct GetAddressMessageDataUnicastCommon<IPA: InternetProtocolAddress>
 {
 	/// Common fields.

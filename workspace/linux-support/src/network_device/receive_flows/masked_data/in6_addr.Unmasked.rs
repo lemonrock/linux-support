@@ -26,9 +26,9 @@ impl Unmasked for in6_addr
 	}
 	
 	#[inline(always)]
-	fn from_underlying_inverted(mut underlying_inverted: Self::Underlying) -> Self
+	fn from_underlying_inverted(underlying_inverted: Self::Underlying) -> Self
 	{
-		let s6_addr: [u8; 16] = unsafe { transmute(underlying_inverted) };
+		let mut s6_addr: [u8; 16] = unsafe { transmute(underlying_inverted) };
 		
 		invert_bytes(&mut s6_addr);
 		Self
@@ -40,6 +40,6 @@ impl Unmasked for in6_addr
 	#[inline(always)]
 	fn underlying(&self) -> Self::Underlying
 	{
-		self.s6_addr32
+		unsafe { self.s6_addr32 }
 	}
 }

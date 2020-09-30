@@ -7,6 +7,7 @@
 /// `ethtool` calls this either `tcp4` or `tcp6`.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
+#[serde(bound(deserialize = "IPA: DeserializeOwned"))]
 #[repr(transparent)]
 pub struct TransmissionControlProtocolFlow<IPA: InternetProtocolAddress + Unmasked>(CommonLayer4Flow<IPA>);
 

@@ -60,9 +60,9 @@ impl<IPA: InternetProtocolAddress> GetAddressProcessingMessageStateUnicastCommon
 	#[inline(always)]
 	pub(crate) fn to_processed_message(self) -> Result<GetAddressMessageDataUnicastCommon<IPA>, String>
 	{
-		let common = self.common.to_processed_message::<IPA>()?;
-		
-		let mask_length_in_bits = common.mask_length_in_bits;
+		let common = self.common;
+		let interface_flags = common.interface_flags;
+		let common = common.to_processed_message::<IPA>()?;
 		
 		// Based on convuluted logic in musl libc `getifaddrs.c`.
 		let source_address_and_point_to_point_peer_destination_address = match (self.address, self.local_address)
@@ -90,7 +90,7 @@ impl<IPA: InternetProtocolAddress> GetAddressProcessingMessageStateUnicastCommon
 				{
 					let extended_interface_flags = self.extended_interface_flags.ok_or(format!("Linux kernel bug - missing extended_interface_flags"))?;
 					
-					if likely!(extended_interface_flags.contains(ExtendedInterfaceFlags::from(self.common.interface_flags)))
+					if likely!(extended_interface_flags.contains(ExtendedInterfaceFlags::from(interface_flags)))
 					{
 						extended_interface_flags
 					}

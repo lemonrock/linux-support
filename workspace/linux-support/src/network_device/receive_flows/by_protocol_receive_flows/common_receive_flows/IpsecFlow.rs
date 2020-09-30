@@ -2,13 +2,16 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[allow(missing_docs)]
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-#[serde(default, deny_unknown_fields)]
+#[serde(default, deny_unknown_fields, bound(deserialize = "IPA: DeserializeOwned"))]
 pub struct IpsecFlow<IPA: InternetProtocolAddress + Unmasked>
 {
+	#[allow(missing_docs)]
 	#[serde(flatten)] pub layer_3: CommonLayer3Flow<IPA>,
 	
+	#[allow(missing_docs)]
 	pub security_parameter_index: MaskedData<SecurityParameterIndex>,
 }
 

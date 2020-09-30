@@ -7,6 +7,7 @@
 /// `ethtool` calls this either `ah4` or `ah6`.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
+#[serde(bound(deserialize = "IPA: DeserializeOwned"))]
 #[repr(transparent)]
 pub struct IpsecAuthenticationHeaderFlow<IPA: InternetProtocolAddress + Unmasked>(IpsecFlow<IPA>);
 

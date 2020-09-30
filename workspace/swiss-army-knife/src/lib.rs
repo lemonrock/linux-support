@@ -36,6 +36,7 @@ use memchr::memchr;
 use memchr::memrchr;
 use serde::Deserialize;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 use std::alloc::alloc_zeroed;
 use std::alloc::dealloc;
 use std::alloc::Layout;

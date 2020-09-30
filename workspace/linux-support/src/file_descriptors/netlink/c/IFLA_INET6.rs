@@ -6,7 +6,7 @@
 #[non_exhaustive]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u16)]
-pub enum IFLA_INET6
+pub(crate) enum IFLA_INET6
 {
 	#[allow(dead_code)]
 	IFLA_INET6_UNSPEC = 0,

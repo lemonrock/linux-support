@@ -93,7 +93,7 @@ impl GetAddressProcessingMessageStateCommon
 	#[inline(always)]
 	fn cache_information(&self) -> Result<(InternetProtocolAddressLifetime, InternetProtocolAddressLifetime, CacheTimestampInHundrethsOfSeconds, CacheTimestampInHundrethsOfSeconds), String>
 	{
-		let ifa_cacheinfo { ifa_prefered, ifa_valid, cstamp, tstamp } = self.cache_information.ok_or(format!("Linux kernel bug - missing cache_information"))?;
-		Ok((ifa_prefered, ifa_valid, cstamp, tstamp))
+		let ifa_cacheinfo { ref ifa_prefered, ref ifa_valid, ref cstamp, ref tstamp } = self.cache_information.as_ref().ok_or(format!("Linux kernel bug - missing cache_information"))?;
+		Ok((*ifa_prefered, *ifa_valid, *cstamp, *tstamp))
 	}
 }

@@ -9,10 +9,13 @@
 #[repr(u32)]
 pub enum SpecialRuleLocation
 {
+	#[allow(missing_docs)]
 	Any = RX_CLS_LOC_ANY,
 	
+	#[allow(missing_docs)]
 	First = RX_CLS_LOC_FIRST,
 	
+	#[allow(missing_docs)]
 	Last = RX_CLS_LOC_LAST,
 }
 

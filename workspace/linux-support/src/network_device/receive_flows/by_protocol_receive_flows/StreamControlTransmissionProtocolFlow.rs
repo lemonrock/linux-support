@@ -7,6 +7,7 @@
 /// `ethtool` calls this either `sctp4` or `sctp6`.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
+#[serde(bound(deserialize = "IPA: DeserializeOwned"))]
 #[repr(transparent)]
 pub struct StreamControlTransmissionProtocolFlow<IPA: InternetProtocolAddress + Unmasked>(CommonLayer4Flow<IPA>);
 
