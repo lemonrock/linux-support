@@ -5,6 +5,8 @@
 /// Is never empty.
 ///
 /// Is usually 40 bytes but Intel i40e drivers use a 52 byte key.
+///
+/// For Intel ixgbevf, the key is 40 (`IXGBEVF_RSS_HASH_KEY_SIZE`) bytes.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]

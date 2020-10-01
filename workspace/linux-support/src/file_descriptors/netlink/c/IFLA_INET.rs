@@ -11,6 +11,7 @@ pub(crate) enum IFLA_INET
 	#[allow(dead_code)]
 	IFLA_INET_UNSPEC = 0,
 	
+	#[allow(dead_code)]
 	IFLA_INET_CONF = 1,
 }
 

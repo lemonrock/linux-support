@@ -3,6 +3,8 @@
 
 
 /// Is never empty.
+///
+/// For Intel ixgbevf, the table is either 64 (`IXGBEVF_X550_VFRETA_SIZE`) or 128 (`IXGBEVF_82599_RETA_SIZE`) entries.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]

@@ -2,33 +2,19 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// This does not really exist.
-#[non_exhaustive]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(u16)]
-pub(crate) enum IFLA_AF_SPEC
+#[allow(missing_docs)]
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct TransmissionControlProtocolReceiveSideScalingFlowHashKey(pub Layer4ReceiveSideScalingFlowHashKey);
+
+impl Deref<Layer4ReceiveSideScalingFlowHashKey> for TransmissionControlProtocolReceiveSideScalingFlowHashKey
 {
-	#[allow(dead_code)]
-	IFLA_AF_SPEC_INET = AF_INET as u16,
+	type Target = Layer4ReceiveSideScalingFlowHashKey;
 	
-	#[allow(dead_code)]
-	IFLA_AF_SPEC_INET6 = AF_INET6 as u16,
-}
-
-impl From<u16> for IFLA_AF_SPEC
-{
 	#[inline(always)]
-	fn from(value: u16) -> Self
+	fn deref(&self) -> &Self::Target
 	{
-		unsafe { transmute(value) }
-	}
-}
-
-impl NetlinkAttributeType for IFLA_AF_SPEC
-{
-	#[inline(always)]
-	fn to_u16(self) -> u16
-	{
-		self as u16
+		&self.0
 	}
 }

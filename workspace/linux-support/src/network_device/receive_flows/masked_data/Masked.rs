@@ -3,6 +3,8 @@
 
 
 /// Masked.
+///
+/// This is the invert of the value, eg, for the IPv4 mask 255.0.0.0, field `0` is 0.255.255.255.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
@@ -20,17 +22,17 @@ impl<T: Unmasked> Default for Masked<T>
 impl<U: Unmasked> Masked<U>
 {
 	/// Unused.
-	pub const Unused: Self = Self::new(U::UnderlyingZero);
+	pub const Unused: Self = Self::from_underlying(U::UnderlyingZero);
 	
 	/// New instance.
 	#[inline(always)]
-	pub const fn new(underlying: U::Underlying) -> Self
+	pub const fn from_underlying(underlying: U::Underlying) -> Self
 	{
 		Self(underlying, PhantomData)
 	}
 	
 	#[inline(always)]
-	fn is_zero_and_so_item_is_unused(self) -> bool
+	pub fn is_zero_and_so_item_is_unused(self) -> bool
 	{
 		self == Self::Unused
 	}

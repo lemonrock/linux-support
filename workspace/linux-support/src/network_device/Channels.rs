@@ -5,6 +5,11 @@
 /// Channels of a network device.
 ///
 /// A channel has one or more ring queues associated with it.
+///
+/// * Amazon ENA:-
+/// 	* only uses `receive_and_transmit_channels_count`;
+///		* this value must be at least `Some(1)`.
+///		* this value is the same as `NetworkDeviceInputOutputControl.receive_ring_queue_count()` or its maximum.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]

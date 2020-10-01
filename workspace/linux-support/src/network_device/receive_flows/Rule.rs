@@ -94,4 +94,9 @@ impl Rule
 		
 		ethtool_flow_specification
 	}
+	
+	// `do_srxclass` "flow-type"
+	pub(crate) fn to_x(&self) -> ethtool_rxnfc
+	{
+	}
 }

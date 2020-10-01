@@ -19,7 +19,7 @@ impl Unmasked for Layer4Port
 	{
 		let mut underlying = self.0;
 		invert_bytes(&mut underlying);
-		Masked::new(underlying)
+		Masked::from_underlying(underlying)
 	}
 	
 	#[inline(always)]

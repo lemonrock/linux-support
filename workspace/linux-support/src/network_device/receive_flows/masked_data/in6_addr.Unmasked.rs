@@ -13,7 +13,7 @@ impl Unmasked for in6_addr
 	{
 		let mut underlying = unsafe { self.s6_addr };
 		invert_bytes(&mut underlying);
-		Masked::new(unsafe { transmute(underlying) })
+		Masked::from_underlying(unsafe { transmute(underlying) })
 	}
 	
 	#[inline(always)]

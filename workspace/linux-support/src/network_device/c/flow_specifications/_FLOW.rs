@@ -41,6 +41,8 @@ pub(crate) const ESP_V6_FLOW: u32 = 0x0C;
 /// Specification only (`usr_ip4_spec`).
 pub(crate) const IPV4_USER_FLOW: u32 = 0x0D;
 
+#[allow(dead_code)]
+#[deprecated]
 pub(crate) const IP_USER_FLOW: u32 = IPV4_USER_FLOW;
 
 /// Specification only (usr_ip6_spec; nfc only).

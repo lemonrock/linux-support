@@ -29,6 +29,7 @@ use crate::paths::SysPath;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 use crate::configuration::Milliseconds;
 use crate::file_descriptors::socket::c::in6_addr;
+use crate::network_device::receive_side_scaling::hash_keys::{ReceiveSideScalingFlowHashKey, ReceiveSideScalingFlowHashKeyConfiguration};
 
 
 /// C.

@@ -20,7 +20,7 @@ impl Unmasked for UserDefinedData
 		let mut underlying: [BigEndianU32; 2] = self.0;
 		invert_bytes(&mut underlying[0]);
 		invert_bytes(&mut underlying[1]);
-		Masked::new(underlying)
+		Masked::from_underlying(underlying)
 	}
 	
 	#[inline(always)]

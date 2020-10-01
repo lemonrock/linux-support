@@ -11,20 +11,28 @@ pub(crate) enum IFLA_INET6
 	#[allow(dead_code)]
 	IFLA_INET6_UNSPEC = 0,
 	
+	#[allow(dead_code)]
 	IFLA_INET6_FLAGS = 1,
 	
+	#[allow(dead_code)]
 	IFLA_INET6_CONF = 2,
 	
+	#[allow(dead_code)]
 	IFLA_INET6_STATS = 3,
 	
+	#[allow(dead_code)]
 	IFLA_INET6_MCAST = 4,
 	
+	#[allow(dead_code)]
 	IFLA_INET6_CACHEINFO = 5,
 	
+	#[allow(dead_code)]
 	IFLA_INET6_ICMP6STATS = 6,
 	
+	#[allow(dead_code)]
 	IFLA_INET6_TOKEN = 7,
 	
+	#[allow(dead_code)]
 	IFLA_INET6_ADDR_GEN_MODE = 8,
 }
 

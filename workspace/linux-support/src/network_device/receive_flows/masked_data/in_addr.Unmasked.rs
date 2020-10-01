@@ -13,7 +13,7 @@ impl Unmasked for in_addr
 	{
 		let mut underlying: BigEndianU32 = unsafe { transmute(self.s_addr) };
 		invert_bytes(&mut underlying);
-		Masked::new(underlying)
+		Masked::from_underlying(underlying)
 	}
 	
 	#[inline(always)]

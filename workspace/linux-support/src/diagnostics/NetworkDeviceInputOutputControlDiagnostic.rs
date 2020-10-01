@@ -37,10 +37,24 @@ pub struct NetworkDeviceInputOutputControlDiagnostic
 	pub all_string_sets: AllStringSets,
 	
 	/// `None` if not supported.
-	pub current_number_of_channels_and_maximum_number_of_channels: Option<(Channels, Channels)>,
+	pub current_queue_depths_and_maximum_queue_depths: Option<(PendingQueueDepths, PendingQueueDepths)>,
 	
 	/// `None` if not supported.
-	pub current_queue_depths_and_maximum_queue_depths: Option<(PendingQueueDepths, PendingQueueDepths)>,
+	pub current_number_of_channels_and_maximum_number_of_channels: Option<(Channels, Channels)>,
+	
+	/// Receive ring queue count.
+	///
+	/// If only one implicit ring is supported, this is returned as `1`.
+	///
+	/// Ordinarily should match `self.current_number_of_channels_and_maximum_number_of_channels.1.combined_count`.
+	pub receive_ring_queue_count: QueueCount,
+	
+	pub default_context_receive_side_scaling_flow_hash_key_configurations: HashMap<ReceiveSideScalingFlowHashKeyName, Option<ReceiveSideScalingFlowHashKeyConfiguration>>,
+	
+	/// Configured receive-side scaling (RSS) hash settings for the default context (`None`).
+	///
+	/// There doesn't seem to be a simple way to list other contexts.
+	pub default_context_configured_receive_side_scaling_hash_settings: ConfiguredHashSettings,
 	
 	/// `None` if not supported.
 	pub wake_on_lan: Option<WakeOnLanInformation>,
@@ -53,16 +67,6 @@ pub struct NetworkDeviceInputOutputControlDiagnostic
 	
 	/// `None` if not supported.
 	pub forward_error_correction: Option<HashSet<ForwardErrorCorrectionCode>>,
-	
-	/// Configured receive-side scaling (RSS) hash settings for the default context (`None`).
-	///
-	/// There doesn't seem to be a simple way to list other contexts.
-	pub default_context_configured_receive_side_scaling_hash_settings: ConfiguredHashSettings,
-	
-	/// Receive ring queue count.
-	///
-	/// If only one implicit ring is supported, this is returned as `1`.
-	pub receive_ring_queue_count: QueueCount,
 	
 	/// `None` if not supported.
 	pub downshift_retries_count: Option<DownshiftRetriesCountTunable>,
@@ -161,6 +165,16 @@ impl NetworkDeviceInputOutputControlDiagnostic
 				default_context_configured_receive_side_scaling_hash_settings: exists!(network_device_input_output_control.configured_receive_side_scaling_hash_settings(None)),
 				
 				receive_ring_queue_count: exists!(network_device_input_output_control.receive_ring_queue_count()),
+				
+				default_context_receive_side_scaling_flow_hash_key_configurations:
+				{
+					let mut configurations = HashMap::with_capacity(ReceiveSideScalingFlowHashKeyName::COUNT);
+					for key_name in ReceiveSideScalingFlowHashKeyName::iter()
+					{
+						configurations.insert(key_name, exists!(network_device_input_output_control.receive_side_scaling_flow_hash_key(key_name, None)))?;
+					}
+					configurations
+				},
 				
 				downshift_retries_count: exists!(network_device_input_output_control.tunable()),
 				

@@ -124,6 +124,7 @@ use crate::user_and_groups::*;
 use crate::file_descriptors::cgroup::{CgroupProgramAttachmentType, CgroupProgramQueryFlags, CgroupProgramAttachmentFlags};
 use crate::network_device::link_settings::LinkSettings;
 use crate::configuration::Milliseconds;
+use crate::network_device::receive_side_scaling::hash_keys::*;
 
 
 include!("CommonCgroupVersion2Diagnostics.rs");

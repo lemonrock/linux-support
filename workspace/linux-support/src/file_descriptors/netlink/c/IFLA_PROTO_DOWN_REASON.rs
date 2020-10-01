@@ -13,11 +13,13 @@ pub(crate) enum IFLA_PROTO_DOWN_REASON
 	/// Mask for reason value.
 	///
 	/// `u32`; does not seem to be used in `RTM_GETLINK`.
+	#[allow(dead_code)]
 	IFLA_PROTO_DOWN_REASON_MASK = 1,
 	
 	/// Reason value.
 	///
 	/// `NonZeroU32`.
+	#[allow(dead_code)]
 	IFLA_PROTO_DOWN_REASON_VALUE = 2,
 }
 

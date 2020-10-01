@@ -64,6 +64,9 @@ pub enum GlobalNetworkDeviceConfigurationError
 	CouldNotConfigureReceiveSideScalingHashConfiguration(NetworkDeviceInputOutputControlError<Infallible>),
 	
 	#[allow(missing_docs)]
+	CouldNotConfigureReceiveSideScalingHashKeyConfiguration(NetworkDeviceInputOutputControlError<UndocumentedError>),
+	
+	#[allow(missing_docs)]
 	CouldNotSetGenericReceiveOffloadTimeout(io::Error),
 	
 	#[allow(missing_docs)]

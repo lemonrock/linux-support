@@ -8,13 +8,13 @@
 #[serde(default, deny_unknown_fields)]
 pub struct EthernetFlow
 {
-	#[allow(missing_docs)]
+	/// For Intel devices, only an all 1s mask is supported (ie exact match).
 	pub source_address: MaskedData<MediaAccessControlAddress>,
 	
-	#[allow(missing_docs)]
+	/// For Intel devices, only an all 1s mask is supported (ie exact match).
 	pub destination_address: MaskedData<MediaAccessControlAddress>,
 	
-	#[allow(missing_docs)]
+	/// For Intel devices, only an all 1s mask is supported (ie exact match).
 	pub ethertype_or_length: MaskedData<EtherTypeOrLength>,
 }
 

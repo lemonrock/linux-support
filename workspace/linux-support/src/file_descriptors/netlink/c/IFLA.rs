@@ -402,6 +402,7 @@ pub(crate) enum IFLA
 	/// Only present if `IFLA_PROTO_DOWN` is present *and* `IFLA_PROTO_DOWN_REASON_VALUE` is non-zero.
 	/// Used in `RTM_GETLINK`.
 	/// Used in `RTM_SETLINK`.
+	#[allow(dead_code)]
 	IFLA_PROTO_DOWN_REASON = 55,
 }
 
@@ -427,6 +428,7 @@ impl IFLA
 {
 	const __IFLA_MAX: u16 = 55;
 	
+	#[allow(dead_code)]
 	#[deprecated]
 	pub(crate) const IFLA_IF_NETNSID: Self = IFLA::IFLA_TARGET_NETNSID;
 	

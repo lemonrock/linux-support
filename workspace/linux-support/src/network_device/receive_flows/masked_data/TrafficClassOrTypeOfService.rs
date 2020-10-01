@@ -19,7 +19,7 @@ impl Unmasked for TrafficClassOrTypeOfService
 	{
 		let mut underlying = self.0;
 		invert_byte(&mut underlying);
-		Masked::new(underlying)
+		Masked::from_underlying(underlying)
 	}
 	
 	#[inline(always)]

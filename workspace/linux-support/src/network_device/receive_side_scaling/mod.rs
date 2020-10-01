@@ -6,6 +6,10 @@ use super::*;
 use crate::paths::ProcPath;
 
 
+/// Hash keys.
+pub mod hash_keys;
+
+
 include!("ConfiguredHashSettings.rs");
 include!("ContextIdentifier.rs");
 include!("HashFunctionKey.rs");

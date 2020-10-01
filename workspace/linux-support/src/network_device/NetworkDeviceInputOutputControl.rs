@@ -480,6 +480,8 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	}
 	
 	/// Gets a tunable.
+	///
+	/// Amazon ENA driver returns `EINVAL` for unsupported tunables.
 	#[inline(always)]
 	pub fn tunable<T: Tunable>(&self) -> Result<Option<Option<T>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
 	{
@@ -495,6 +497,8 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	/// Set a tunable.
 	///
 	/// Returns an error if out-of-range.
+	///
+	/// Amazon ENA driver returns `EINVAL` for unsupported tunables.
 	#[inline(always)]
 	pub fn set_tunable(&self, tunable: impl Tunable) -> Result<Option<()>, NetworkDeviceInputOutputControlError<TunableOutOfRangeError>>
 	{
@@ -765,6 +769,42 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			|command| QueueCount::try_from(command.data),
 			Self::error_is_unreachable,
 			|_command| QueueCount::InclusiveMinimum,
+		)
+	}
+	
+	/// Gets the fields in an incoming packet to use for a Receive Side Scaling (RSS) flow hash key.
+	#[inline(always)]
+	pub fn receive_side_scaling_flow_hash_key(&self, key_name: ReceiveSideScalingFlowHashKeyName, receive_side_scaling_context: Option<Option<ContextIdentifier>>) -> Result<Option<Option<ReceiveSideScalingFlowHashKeyConfiguration>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
+	{
+		let actual_flow_type = key_name.to_actual_flow_type();
+		
+		let command = key_name.to_ethtool_rxnfc(receive_side_scaling_context);
+		let expected_flow_type = command.flow_type;
+		self.ethtool_command
+		(
+			command,
+			|command| Ok(Some(ReceiveSideScalingFlowHashKeyConfiguration::parse(command, expected_flow_type))),
+			Self::error_is_unreachable,
+			|_command| None,
+		)
+	}
+	
+	/// Sets the fields in an incoming packet to use for a Receive Side Scaling (RSS) flow hash key.
+	#[inline(always)]
+	pub fn set_receive_side_scaling_flow_hash_key(&self, receive_side_scaling_flow_hash_key_configuration: &ReceiveSideScalingFlowHashKeyConfiguration, receive_side_scaling_context: Option<Option<ContextIdentifier>>) -> Result<Option<bool>, NetworkDeviceInputOutputControlError<UndocumentedError>>
+	{
+		self.ethtool_command
+		(
+			receive_side_scaling_flow_hash_key.to_ethtool_rxnfc(receive_side_scaling_context),
+			|_command| Ok(true),
+			|errno| match errno.0
+			{
+				// An unsupported setting should give `EOPNOTSUPP` but a bug in the Amazon ENA driver (and maybe others) will give `EINVAL`.
+				EINVAL => Ok(Some(false)),
+				
+				_ => Err(UndocumentedError(errno)),
+			},
+			|_command| false,
 		)
 	}
 	

@@ -5,53 +5,55 @@
 /// Masked data.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-#[serde(default, deny_unknown_fields, bound(deserialize = "T: DeserializeOwned"))]
-pub struct MaskedData<T: Unmasked>
+#[serde(default, deny_unknown_fields, bound(deserialize = "U: DeserializeOwned"))]
+pub struct MaskedData<U: Unmasked>
 {
 	/// Data.
-	pub data: T,
+	pub data: U,
 	
 	/// This is the inverse of the data being masked.
 	///
-	/// If zero then the data is not used.
-	pub mask: Masked<T>,
+	/// If all bits are zero then the data is not used.
+	///
+	/// If all bits are one then an exact match is made.
+	pub mask: Masked<U>,
 }
 
-impl<T: Unmasked> Default for MaskedData<T>
+impl<U: Unmasked> Default for MaskedData<U>
 {
 	#[inline(always)]
 	fn default() -> Self
 	{
 		Self
 		{
-			data: T::default(),
+			data: U::default(),
 			
 			mask: Masked::Unused,
 		}
 	}
 }
 
-impl<T: Unmasked> MaskedData<T>
+impl<U: Unmasked> MaskedData<U>
 {
 	#[inline(always)]
-	pub(crate) fn from_underlying_data_and_mask(underlying_data: T::Underlying, underlying_mask: T::Underlying) -> Self
+	pub(crate) fn from_underlying_data_and_mask(underlying_data: U::Underlying, underlying_mask: U::Underlying) -> Self
 	{
 		Self
 		{
-			data: T::from_underlying(underlying_data),
+			data: U::from_underlying(underlying_data),
 			
-			mask: Masked::new(underlying_mask)
+			mask: Masked::from_underlying(underlying_mask)
 		}
 	}
 	
 	#[inline(always)]
-	pub(crate) fn underlying_data(&self) -> T::Underlying
+	pub(crate) fn underlying_data(&self) -> U::Underlying
 	{
 		self.data.underlying()
 	}
 	
 	#[inline(always)]
-	pub(crate) fn underlying_mask(&self) -> T::Underlying
+	pub(crate) fn underlying_mask(&self) -> U::Underlying
 	{
 		self.mask.underlying()
 	}
