@@ -201,47 +201,49 @@ pub struct GlobalNetworkDeviceConfiguration
 	/// 	* `function` is only ever Toeplitz.
 	/// 	* Hash key size is `IXGBEVF_RSS_HASH_KEY_SIZE` (40).
 	/// 	* Indirection table size is either `IXGBEVF_82599_RETA_SIZE` (128) or `IXGBEVF_X550_VFRETA_SIZE` (64).
-	#[serde(default)] pub receive_side_scaling_hash_configuration: Option<ConfiguredHashSettings>,
+	#[serde(default)] pub receive_side_scaling_hash_configuration: Option<HashFunctionConfiguration>,
 	
 	/// Adjust the fields from an incoming packet used to generate a hash.
 	///
 	/// Support of various configurations is very spotty.
 	///
 	/// * Supported by Amazon ENA.
+	/// 	* Does not support `discard`.
+	/// 	* Does not support anything other than RSS default context (fails if `FLOW_RSS` is set).
 	/// 	* For Ethernet
-	/// 		* ETHER_FLOW
+	/// 		* `ETHER_FLOW`.
 	/// 			* Source address (not possible to configure with ethtool).
 	/// 			* `include_ethernet_destination_address`
 	/// 	* For Internet Protocol version 4
 	/// 		* IPV4_FLOW
-	/// 			* `include_internet_protocol_version_6_source_address`
-	/// 			* `include_internet_protocol_version_6_destination_address`
-	/// 		* TCP_V4_FLOW
-	/// 			* `include_internet_protocol_version_6_source_address`
-	/// 			* `include_internet_protocol_version_6_destination_address`
-	/// 			* `include_source_port`
-	/// 			* `include_destination_port`
-	/// 		* UDP_V4_FLOW
-	/// 			* `include_internet_protocol_version_6_source_address`
-	/// 			* `include_internet_protocol_version_6_destination_address`
-	/// 			* `include_source_port`
-	/// 			* `include_destination_port`
+	/// 			* `include_internet_protocol_source_address`.
+	/// 			* `include_internet_protocol_destination_address`.
+	/// 		* `TransmissionControlProtocolOverInternetProtocolVersion4`.
+	/// 			* `include_internet_protocol_source_address`.
+	/// 			* `include_internet_protocol_destination_address`.
+	/// 			* `include_source_port`.
+	/// 			* `include_destination_port`.
+	/// 		* `UserDatagramProtocolOverInternetProtocolVersion4`.
+	/// 			* `include_internet_protocol_source_address`.
+	/// 			* `include_internet_protocol_destination_address`.
+	/// 			* `include_source_port`.
+	/// 			* `include_destination_port`.
 	/// 	* For Internet Protocol version 6
 	/// 		* IPV6_FLOW.
-	/// 			* `include_internet_protocol_version_6_source_address`
-	/// 			* `include_internet_protocol_version_6_destination_address`
-	/// 		* TCP_V6_FLOW
-	/// 			* `include_internet_protocol_version_6_source_address`
-	/// 			* `include_internet_protocol_version_6_destination_address`
-	/// 			* `include_source_port`
-	/// 			* `include_destination_port`
-	/// 		* UDP_V6_FLOW
-	/// 			* `include_internet_protocol_version_6_source_address`
-	/// 			* `include_internet_protocol_version_6_destination_address`
-	/// 			* `include_source_port`
-	/// 			* `include_destination_port`
+	/// 			* `include_internet_protocol_source_address`.
+	/// 			* `include_internet_protocol_destination_address`.
+	/// 		* `TransmissionControlProtocolOverInternetProtocolVersion6`.
+	/// 			* `include_internet_protocol_source_address`.
+	/// 			* `include_internet_protocol_destination_address`.
+	/// 			* `include_source_port`.
+	/// 			* `include_destination_port`.
+	/// 		* `UserDatagramProtocolOverInternetProtocolVersion6`.
+	/// 			* `include_internet_protocol_source_address`.
+	/// 			* `include_internet_protocol_destination_address`.
+	/// 			* `include_source_port`.
+	/// 			* `include_destination_port`.
 	/// * Unsupported by Intel ixgbevf.
-	#[serde(default)] pub receive_side_scaling_hash_key_configuration: Vec<ReceiveSideScalingFlowHashKeyConfiguration>,
+	#[serde(default)] pub receive_side_scaling_hash_key_configuration: Vec<HashFunctionFieldsConfiguration>,
 	
 	/// Change generic receive offload (GRO) flush timeout?
 	///
@@ -351,7 +353,7 @@ impl GlobalNetworkDeviceConfiguration
 		
 		for receive_side_scaling_hash_key_configuration in self.receive_side_scaling_hash_key_configuration.iter()
 		{
-			validate(&network_device_input_output_control, network_device_input_output_control.set_receive_side_scaling_flow_hash_key(receive_side_scaling_hash_key_configuration, None), CouldNotConfigureReceiveSideScalingHashKeyConfiguration)?;
+			validate(&network_device_input_output_control, network_device_input_output_control.set_receive_side_scaling_flow_hash_key(receive_side_scaling_hash_key_configuration, None), CouldNotConfigureHashFunctionFieldsConfiguration)?;
 		}
 		
 		if let Some(generic_receive_offload_flush_timeout_in_nanoseconds) = self.generic_receive_offload_flush_timeout_in_nanoseconds

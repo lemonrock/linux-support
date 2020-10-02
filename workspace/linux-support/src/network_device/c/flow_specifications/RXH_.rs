@@ -23,7 +23,3 @@ pub(crate) const RXH_L4_B_0_1: u64 = 1 << 6;
 pub(crate) const RXH_L4_B_2_3: u64 = 1 << 7;
 
 pub(crate) const RXH_DISCARD: u64 = 1 << 31;
-
-pub(crate) const RXH_2TUPLE: u64 = RXH_IP_SRC | RXH_IP_DST;
-
-pub(crate) const RXH_4TUPLE: u64 = RXH_IP_SRC | RXH_IP_DST | RXH_L4_B_0_1 | RXH_L4_B_2_3;

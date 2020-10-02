@@ -4,6 +4,5 @@
 
 trait ToDataField
 {
-	#[inline(always)]
 	fn to_data_field(&self) -> RXH;
 }

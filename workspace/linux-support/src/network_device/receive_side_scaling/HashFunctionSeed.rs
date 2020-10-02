@@ -10,9 +10,9 @@
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
-pub struct HashFunctionKey(pub(crate) Vec<u8>);
+pub struct HashFunctionSeed(pub(crate) Vec<u8>);
 
-impl Deref for HashFunctionKey
+impl Deref for HashFunctionSeed
 {
 	type Target = Vec<u8>;
 	
@@ -23,7 +23,7 @@ impl Deref for HashFunctionKey
 	}
 }
 
-impl HashFunctionKey
+impl HashFunctionSeed
 {
 	/// Microsoft key, found at <http://www.ran-lifshitz.com/2014/08/28/symmetric-rss-receive-side-scaling/>.
 	///

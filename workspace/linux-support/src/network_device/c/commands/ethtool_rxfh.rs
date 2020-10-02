@@ -21,6 +21,7 @@ pub(crate) struct ethtool_rxfh
 	///
 	/// Context 0 is the default for normal traffic.
 	/// Other contexts can be referenced as the destination for receive flow classification rules.
+	/// Currently only the Marvell mvpp2 driver supports more than one RSS context.
 	///
 	/// The special value `ETH_RXFH_CONTEXT_ALLOC` can be used to create a new context; on return, this will contain the value of the new context's identifier.
 	pub(crate) rss_context: Option<ContextIdentifier>,
@@ -76,21 +77,21 @@ impl VariablySizedEthtoolCommand for ethtool_rxfh
 impl VariablySizedEthtoolCommandWrapper<ethtool_rxfh>
 {
 	#[inline(always)]
-	pub(crate) fn configured_hash_settings(&self) -> Result<ConfiguredHashSettings, UnsupportedHashFunctionError>
+	pub(crate) fn configured_hash_settings(&self) -> Result<HashFunctionConfiguration, HashFunctionNameUnsupportedError>
 	{
 		Ok
 		(
-			ConfiguredHashSettings
+			HashFunctionConfiguration
 			{
 				function: self.hash_function()?,
 				indirection_table: self.hash_indirection_table().map(|slice| IndirectionTable(slice.to_vec())),
-				key: self.hash_key_bytes().map(|slice| HashFunctionKey(slice.to_vec())),
+				seed: self.hash_key_bytes().map(|slice| HashFunctionSeed(slice.to_vec())),
 			}
 		)
 	}
 	
 	#[inline(always)]
-	fn hash_function(&self) -> Result<Option<ETH_RSS_HASH>, UnsupportedHashFunctionError>
+	fn hash_function(&self) -> Result<Option<ETH_RSS_HASH>, HashFunctionNameUnsupportedError>
 	{
 		let hash_function_bit_mask = self.hfunc;
 		if hash_function_bit_mask == 0
@@ -103,7 +104,7 @@ impl VariablySizedEthtoolCommandWrapper<ethtool_rxfh>
 			
 			if (bit as usize) > ETH_RSS_HASH::COUNT
 			{
-				Err(UnsupportedHashFunctionError)
+				Err(HashFunctionNameUnsupportedError)
 			}
 			else
 			{
@@ -161,12 +162,12 @@ impl ethtool_rxfh
 		Self::new_with_initialized_header_but_uninitialized_array(ethtool_rxfh::get_indirection_table_and_key_data(context_identifier, indirection_size, key_size))
 	}
 	
-	pub(crate) fn set(context_identifier_or_create: Option<ContextIdentifier>, configured_hash_settings: &ConfiguredHashSettings) -> VariablySizedEthtoolCommandWrapper<Self>
+	pub(crate) fn set(context_identifier_or_create: Option<ContextIdentifier>, configured_hash_settings: &HashFunctionConfiguration) -> VariablySizedEthtoolCommandWrapper<Self>
 	{
 		let indirection_table = configured_hash_settings.indirection_table.as_ref();
 		let indirection_size = indirection_table.map(|vec| vec.len()).unwrap_or(0);
 		
-		let key = configured_hash_settings.key.as_ref();
+		let key = configured_hash_settings.seed.as_ref();
 		let key_size = key.map(|vec| vec.len()).unwrap_or(0);
 		
 		let mut this = Self::new_with_initialized_header_but_uninitialized_array(Self::set_indirection_table_and_key_data(context_identifier_or_create, configured_hash_settings.function, indirection_size, key_size));

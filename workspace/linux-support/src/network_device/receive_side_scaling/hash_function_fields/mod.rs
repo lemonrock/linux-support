@@ -6,15 +6,12 @@ use super::*;
 use crate::network_device::c::flow_specifications::*;
 
 
-include!("EthernetReceiveSideScalingFlowHashKey.rs");
-include!("Layer4ReceiveSideScalingFlowHashKey.rs");
-include!("InternetProtocolReceiveSideScalingFlowHashKey.rs");
-include!("IpsecReceiveSideScalingFlowHashKey.rs");
-include!("ReceiveSideScalingFlowHashKey.rs");
-include!("ReceiveSideScalingFlowHashKeyConfiguration.rs");
-include!("ReceiveSideScalingFlowHashKeyName.rs");
+include!("EthernetHashFunctionFields.rs");
+include!("Layer4HashFunctionFields.rs");
+include!("InternetProtocolHashFunctionFields.rs");
+include!("IpsecHashFunctionFields.rs");
+include!("HashFunctionFields.rs");
+include!("HashFunctionFieldsConfiguration.rs");
+include!("HashFunctionFieldsName.rs");
 include!("RXH.rs");
-include!("StreamTransmissionControlProtocolReceiveSideScalingFlowHashKey.rs");
 include!("ToDataField.rs");
-include!("TransmissionControlProtocolReceiveSideScalingFlowHashKey.rs");
-include!("UserDatagramProtocolReceiveSideScalingFlowHashKey.rs");

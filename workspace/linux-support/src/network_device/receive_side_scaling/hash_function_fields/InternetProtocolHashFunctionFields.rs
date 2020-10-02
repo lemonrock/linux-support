@@ -7,40 +7,40 @@
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
-pub struct InternetProtocolReceiveSideScalingFlowHashKey
+pub struct InternetProtocolHashFunctionFields
 {
 	/// * Not supported by Amazon ENA.
-	#[serde(flatten)] pub ethernet: EthernetReceiveSideScalingFlowHashKey,
+	#[serde(flatten)] pub ethernet: EthernetHashFunctionFields,
 	
 	/// * Not supported by Amazon ENA.
 	pub include_layer_3_protocol_number: bool,
 	
 	/// * Supported by Amazon ENA.
-	pub include_internet_protocol_version_6_source_address: bool,
+	pub include_internet_protocol_version_source_address: bool,
 	
 	/// * Supported by Amazon ENA.
-	pub include_internet_protocol_version_6_destination_address: bool,
+	pub include_internet_protocol_version_destination_address: bool,
 }
 
-impl From<RXH> for InternetProtocolReceiveSideScalingFlowHashKey
+impl From<RXH> for InternetProtocolHashFunctionFields
 {
 	#[inline(always)]
 	fn from(rxh: RXH) -> Self
 	{
 		Self
 		{
-			ethernet: EthernetReceiveSideScalingFlowHashKey::from(rxh),
+			ethernet: EthernetHashFunctionFields::from(rxh),
 			
 			include_layer_3_protocol_number: rxh.contains(RXH::Layer3ProtocolNumber),
 			
-			include_internet_protocol_version_6_source_address: rxh.contains(RXH::InternetProtocolVersion4OrInternetProtocolVersion6SourceAddress),
+			include_internet_protocol_version_source_address: rxh.contains(RXH::InternetProtocolVersion4OrInternetProtocolVersion6SourceAddress),
 			
-			include_internet_protocol_version_6_destination_address: rxh.contains(RXH::InternetProtocolVersion4OrInternetProtocolVersion6DestinationAddress),
+			include_internet_protocol_version_destination_address: rxh.contains(RXH::InternetProtocolVersion4OrInternetProtocolVersion6DestinationAddress),
 		}
 	}
 }
 
-impl ToDataField for InternetProtocolReceiveSideScalingFlowHashKey
+impl ToDataField for InternetProtocolHashFunctionFields
 {
 	#[inline(always)]
 	fn to_data_field(&self) -> RXH
@@ -52,12 +52,12 @@ impl ToDataField for InternetProtocolReceiveSideScalingFlowHashKey
 			data_field |= RXH::Layer3ProtocolNumber
 		}
 		
-		if self.include_internet_protocol_version_6_source_address
+		if self.include_internet_protocol_version_source_address
 		{
 			data_field |= RXH::InternetProtocolVersion4OrInternetProtocolVersion6SourceAddress
 		}
 		
-		if self.include_internet_protocol_version_6_destination_address
+		if self.include_internet_protocol_version_destination_address
 		{
 			data_field |= RXH::InternetProtocolVersion4OrInternetProtocolVersion6DestinationAddress
 		}

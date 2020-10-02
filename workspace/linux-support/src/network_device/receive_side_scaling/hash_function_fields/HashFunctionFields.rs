@@ -2,80 +2,74 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// Fields from incoming packet to use in the hash function.
+///
+/// Totally unsupported by Intel ixgbevf.
 #[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[derive(EnumDiscriminants)]
-#[strum_discriminants(name(ReceiveSideScalingFlowHashKeyName))]
+#[strum_discriminants(name(HashFunctionFieldsName))]
+#[strum_discriminants(derive(PartialOrd))]
+#[strum_discriminants(derive(Ord))]
+#[strum_discriminants(derive(Hash))]
 #[strum_discriminants(derive(EnumIter))]
 #[strum_discriminants(derive(EnumCount))]
 #[strum_discriminants(derive(Deserialize))]
 #[strum_discriminants(derive(Serialize))]
-pub enum ReceiveSideScalingFlowHashKey
+pub enum HashFunctionFields
 {
 	/// * Partly supported by Amazon ENA.
-	/// * Totally unsupported by Intel ixgbevf.
-	TransmissionControlProtocolOverInternetProtocolVersion4(TransmissionControlProtocolReceiveSideScalingFlowHashKey),
+	Ethernet(EthernetHashFunctionFields),
 	
 	/// * Partly supported by Amazon ENA.
-	/// * Totally unsupported by Intel ixgbevf.
-	UserDatagramProtocolOverInternetProtocolVersion4(UserDatagramProtocolReceiveSideScalingFlowHashKey),
+	InternetProtocolVersion4(InternetProtocolHashFunctionFields),
+	
+	/// * Partly supported by Amazon ENA.
+	TransmissionControlProtocolOverInternetProtocolVersion4(Layer4HashFunctionFields),
+	
+	/// * Partly supported by Amazon ENA.
+	UserDatagramProtocolOverInternetProtocolVersion4(Layer4HashFunctionFields),
 	
 	/// * Totally unsupported by Amazon ENA.
-	/// * Totally unsupported by Intel ixgbevf.
-	StreamTransmissionControlProtocolOverInternetProtocolVersion4(StreamTransmissionControlProtocolReceiveSideScalingFlowHashKey),
+	StreamTransmissionControlProtocolOverInternetProtocolVersion4(Layer4HashFunctionFields),
 	
 	/// * Totally unsupported by Amazon ENA.
-	/// * Totally unsupported by Intel ixgbevf.
-	IpsecOverInternetProtocolVersion4(IpsecReceiveSideScalingFlowHashKey),
+	IpsecOverInternetProtocolVersion4(IpsecHashFunctionFields),
 	
 	/// * Partly supported by Amazon ENA.
-	/// * Totally unsupported by Intel ixgbevf.
-	TransmissionControlProtocolOverInternetProtocolVersion6(TransmissionControlProtocolReceiveSideScalingFlowHashKey),
+	InternetProtocolVersion6(InternetProtocolHashFunctionFields),
 	
 	/// * Partly supported by Amazon ENA.
-	/// * Totally unsupported by Intel ixgbevf.
-	UserDatagramProtocolOverInternetProtocolVersion6(UserDatagramProtocolReceiveSideScalingFlowHashKey),
+	TransmissionControlProtocolOverInternetProtocolVersion6(Layer4HashFunctionFields),
+	
+	/// * Partly supported by Amazon ENA.
+	UserDatagramProtocolOverInternetProtocolVersion6(Layer4HashFunctionFields),
 	
 	/// * Totally unsupported by Amazon ENA.
-	/// * Totally unsupported by Intel ixgbevf.
-	StreamTransmissionControlProtocolOverInternetProtocolVersion6(StreamTransmissionControlProtocolReceiveSideScalingFlowHashKey),
+	StreamTransmissionControlProtocolOverInternetProtocolVersion6(Layer4HashFunctionFields),
 	
-	/// * Totally unsupported by Amazon ENA (and .
-	/// * Totally unsupported by Intel ixgbevf.
-	IpsecOverInternetProtocolVersion6(IpsecReceiveSideScalingFlowHashKey),
-	
-	/// * Partly supported by Amazon ENA.
-	/// * Totally unsupported by Intel ixgbevf.
-	InternetProtocolVersion4(InternetProtocolReceiveSideScalingFlowHashKey),
-	
-	/// * Partly supported by Amazon ENA.
-	/// * Totally unsupported by Intel ixgbevf.
-	InternetProtocolVersion6(InternetProtocolReceiveSideScalingFlowHashKey),
-	
-	/// * Partly supported by Amazon ENA.
-	/// * Totally unsupported by Intel ixgbevf.
-	Ethernet(EthernetReceiveSideScalingFlowHashKey),
+	/// * Totally unsupported by Amazon ENA.
+	IpsecOverInternetProtocolVersion6(IpsecHashFunctionFields),
 }
 
-impl ReceiveSideScalingFlowHashKey
+impl HashFunctionFields
 {
-	pub(crate) fn to_ethtool_rxnfc(&self, receive_side_scaling_context: Option<Option<ContextIdentifier>>, discard: bool) -> ethtool_rxnfc
+	#[allow(deprecated)]
+	pub(crate) fn to_ethtool_rxnfc(&self, receive_side_scaling_context: Option<ContextIdentifier>, discard: bool) -> ethtool_rxnfc
 	{
-		let (has_receive_side_scaling_context, receive_side_scaling_context) = match receive_side_scaling_context
+		let (actual_flow_type, mut data_field) = self.to_actual_flow_type_and_data_field();
+		
+		if discard
 		{
-			Some(receive_side_scaling_context) => (true, receive_side_scaling_context),
-			
-			None => (false, None)
-		};
+			data_field |= RXH::Discard
+		}
 		
-		let (actual_flow_type, data_field) = self.to_actual_flow_type_and_data_field();
-		
-		let nfcmd = ethtool_rxnfc
+		ethtool_rxnfc
 		{
 			cmd: ETHTOOL_SRXFH,
 			
-			flow_type: if has_receive_side_scaling_context
+			flow_type: if receive_side_scaling_context.is_some()
 			{
 				actual_flow_type | FLOW_RSS
 			}
@@ -91,19 +85,21 @@ impl ReceiveSideScalingFlowHashKey
 			
 			data: data_field.bits,
 			
-			fs: unsafe { zeroed() },
+			fs: unsafe { uninitialized() },
 			
-			rule_locs: Default::default(),
-		};
+			rule_locs: unsafe { uninitialized() },
+		}
 	}
 	
 	#[inline(always)]
 	fn to_actual_flow_type_and_data_field(&self) -> (u32, RXH)
 	{
-		use self::ReceiveSideScalingFlowHashKey::*;
+		use self::HashFunctionFields::*;
 		
-		let (actual_flow_type, data) = match self
+		match self
 		{
+			Ethernet(hash_key) => (ETHER_FLOW, hash_key.to_data_field()),
+			
 			InternetProtocolVersion4(hash_key) => (IPV4_FLOW, hash_key.to_data_field()),
 			
 			TransmissionControlProtocolOverInternetProtocolVersion4(hash_key) => (TCP_V4_FLOW, hash_key.to_data_field()),
@@ -123,8 +119,6 @@ impl ReceiveSideScalingFlowHashKey
 			StreamTransmissionControlProtocolOverInternetProtocolVersion6(hash_key) => (SCTP_V6_FLOW, hash_key.to_data_field()),
 			
 			IpsecOverInternetProtocolVersion6(hash_key) => (AH_ESP_V6_FLOW, hash_key.to_data_field()),
-			
-			Ethernet(hash_key) => (ETHER_FLOW, hash_key.to_data_field()),
-		};
+		}
 	}
 }

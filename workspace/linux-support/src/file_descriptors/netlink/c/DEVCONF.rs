@@ -185,5 +185,6 @@ impl NetlinkAttributeType for DEVCONF
 
 impl DEVCONF
 {
+	#[allow(dead_code)]
 	pub(crate) const DEVCONF_MAX: u16 = 52;
 }

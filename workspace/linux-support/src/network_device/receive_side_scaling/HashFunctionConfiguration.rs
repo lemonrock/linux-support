@@ -2,30 +2,32 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Configured hash settings.
+/// Settings for a RETA table.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
-pub struct ConfiguredHashSettings
+pub struct HashFunctionConfiguration
 {
 	/// Hash function in use.
-	pub(crate) function: Option<ETH_RSS_HASH>,
+	pub(crate) function: Option<HashFunctionName>,
 	
 	/// Hash indirection table (RETA).
 	///
 	/// Uses the value produced by the hash `function` with the `key` as an index into this table to find a `QueueIdentifier`.
 	pub(crate) indirection_table: Option<IndirectionTable>,
 
-	/// Key used by the hash `function`.
-	pub(crate) key: Option<HashFunctionKey>,
+	/// Seed used by the hash `function`.
+	///
+	/// Called a 'key' in Receive Side Scaling (RSS) literature, but this is confusing; the key is actually the set of fields in the incoming data packet that are hashed.
+	pub(crate) seed: Option<HashFunctionSeed>,
 }
 
-impl ConfiguredHashSettings
+impl HashFunctionConfiguration
 {
 	pub(crate) const Unsupported: Self = Self
 	{
 		function: None,
 		indirection_table: None,
-		key: None,
+		seed: None,
 	};
 }

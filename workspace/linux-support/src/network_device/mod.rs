@@ -6,18 +6,14 @@ use super::*;
 use self::c::*;
 use self::c::commands::*;
 use self::coalescing::*;
-use self::eeprom::BinaryData256;
-use self::eeprom::BinaryData640;
-use self::eeprom::ExpansionEepromBinaryData;
-use self::eeprom::PluginModuleEepromBinaryData;
+use self::eeprom::*;
 use self::energy_efficient_ethernet::*;
 use self::features::*;
-use self::link_settings::LinkSettings;
-use self::link_settings::PortConnector;
-use self::link_settings::SpeedsPortConnectorsPausesAndForwardErrorConnectionsSettings;
+use self::link_settings::*;
 use self::pause::*;
 use self::queues::*;
 use self::receive_side_scaling::*;
+use self::receive_side_scaling::hash_function_fields::*;
 use self::string_sets::*;
 use self::tunables::*;
 use self::wake_on_lan::WakeOnLanInformation;
@@ -29,7 +25,6 @@ use crate::paths::SysPath;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 use crate::configuration::Milliseconds;
 use crate::file_descriptors::socket::c::in6_addr;
-use crate::network_device::receive_side_scaling::hash_keys::{ReceiveSideScalingFlowHashKey, ReceiveSideScalingFlowHashKeyConfiguration};
 
 
 /// C.

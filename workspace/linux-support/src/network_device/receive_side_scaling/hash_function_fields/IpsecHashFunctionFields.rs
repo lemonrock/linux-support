@@ -8,28 +8,28 @@
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
-pub struct IpsecReceiveSideScalingFlowHashKey
+pub struct IpsecHashFunctionFields
 {
-	#[serde(flatten)] internet_protocol: InternetProtocolReceiveSideScalingFlowHashKey,
+	#[serde(flatten)] internet_protocol: InternetProtocolHashFunctionFields,
 	
 	pub include_security_parameter_index: bool,
 }
 
-impl From<RXH> for IpsecReceiveSideScalingFlowHashKey
+impl From<RXH> for IpsecHashFunctionFields
 {
 	#[inline(always)]
 	fn from(rxh: RXH) -> Self
 	{
 		Self
 		{
-			internet_protocol: InternetProtocolReceiveSideScalingFlowHashKey::from(rxh),
+			internet_protocol: InternetProtocolHashFunctionFields::from(rxh),
 			
 			include_security_parameter_index: rxh.contains(RXH::FirstTwoBytesOfLayer4Header) && rxh.contains(RXH::NextTwoBytesOfLayer4Header),
 		}
 	}
 }
 
-impl ToDataField for IpsecReceiveSideScalingFlowHashKey
+impl ToDataField for IpsecHashFunctionFields
 {
 	#[inline(always)]
 	fn to_data_field(&self) -> RXH

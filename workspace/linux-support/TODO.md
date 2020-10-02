@@ -2,14 +2,17 @@
 
 * NUMA distances
 * Flow director code
-    * ethtool flows
+    * Not supported but ought to finish off.
+* Traffic Class setting (transmit scheduler)
 
 ## How to use XDP
 
 * Firewall
     * https://github.com/gamemann/XDP-Firewall
     * https://github.com/Barricade-FW/Firewall
-* Load maps and programs from ELF files, copy code in `ip` tool that bypasses libbpf   
+* Load maps and programs from ELF files, copy code in `ip` tool that bypasses libbpf
+* Can we specify a 'mark' with a XDP processed packet?
+* Can we use XDP to redirect to a queue?
 * Enabling accelerated RFS (aRFS)
 * Scaling with RPS / XPS and aRFS
 * Setting a per-connection value on incoming packets in XDP BPF (a mark)
@@ -28,6 +31,8 @@
 * <https://blog.cloudflare.com/how-to-achieve-low-latency/>
 * <https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/>
 * `/proc/sys/net/core/netdev_budget` - defaults to 300.
+* Look at IRQ affinity mapping for Internet Flow Directory (look at irq script in `~/Downloads/25_2/*/set_irq_affinity`).
+* TODO: Receive Queue => CPU
 
 
 ### DogStatsD
@@ -35,22 +40,6 @@
 * Report `/proc/sys/kernel/random/boot_id` UUID to DogStatsD as it identifies the current boot.
 * 8192 UDS packet size for dogstatsd (<https://docs.datadoghq.com/developers/dogstatsd/high_throughput/?tab=go#use-dogstatsd-over-uds-unix-domain-socket>)
 * Send messages in batches to local UDS (Unix Domain Socket)
-
-
-### ethtool
-
-* Look at IRQ affinity mapping for Internet Flow Directory (look at irq script in `~/Downloads/25_2/*/set_irq_affinity`).
-* Finish ethtool flow direction
-* TODO: Receive Queue => CPU
-
-```
---config-nfc / --config-ntuple
-	do_srxclass
-		"rx-flow-hash"
-		"flow-type"
-			do_srxntuple
-		"delete"
-```
 
 
 ### MSI-X - Message Signal Interrupts (Extended).
@@ -136,6 +125,9 @@ Once the above is configured, accelerated RFS will be used to automatically move
 * `vm/dirty_writeback_centisecs` eg 3000
 * `vm/dirtytime_expire_seconds`.
 * `vm/extfrag_threshold`.
+
+
+### inet / inet6 settings.
 
 
 ### Kernel miscellany in /proc/sys/kernel

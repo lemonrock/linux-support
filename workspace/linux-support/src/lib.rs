@@ -745,6 +745,7 @@ use strum::EnumCount;
 use strum::EnumMessage;
 use strum::IntoEnumIterator;
 use strum_macros::EnumCount;
+use strum_macros::EnumDiscriminants;
 use strum_macros::EnumIter;
 use strum_macros::EnumMessage;
 use strum_macros::IntoStaticStr;

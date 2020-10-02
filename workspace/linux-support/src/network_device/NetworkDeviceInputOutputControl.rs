@@ -774,16 +774,14 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	
 	/// Gets the fields in an incoming packet to use for a Receive Side Scaling (RSS) flow hash key.
 	#[inline(always)]
-	pub fn receive_side_scaling_flow_hash_key(&self, key_name: ReceiveSideScalingFlowHashKeyName, receive_side_scaling_context: Option<Option<ContextIdentifier>>) -> Result<Option<Option<ReceiveSideScalingFlowHashKeyConfiguration>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
+	pub fn receive_side_scaling_flow_hash_key(&self, key_name: HashFunctionFieldsName, receive_side_scaling_context: Option<ContextIdentifier>) -> Result<Option<Option<HashFunctionFieldsConfiguration>>, NetworkDeviceInputOutputControlError<UndocumentedError>>
 	{
-		let actual_flow_type = key_name.to_actual_flow_type();
-		
 		let command = key_name.to_ethtool_rxnfc(receive_side_scaling_context);
 		let expected_flow_type = command.flow_type;
 		self.ethtool_command
 		(
 			command,
-			|command| Ok(Some(ReceiveSideScalingFlowHashKeyConfiguration::parse(command, expected_flow_type))),
+			|command| Ok(Some(HashFunctionFieldsConfiguration::parse(command, expected_flow_type))),
 			Self::error_is_unreachable,
 			|_command| None,
 		)
@@ -791,11 +789,11 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	
 	/// Sets the fields in an incoming packet to use for a Receive Side Scaling (RSS) flow hash key.
 	#[inline(always)]
-	pub fn set_receive_side_scaling_flow_hash_key(&self, receive_side_scaling_flow_hash_key_configuration: &ReceiveSideScalingFlowHashKeyConfiguration, receive_side_scaling_context: Option<Option<ContextIdentifier>>) -> Result<Option<bool>, NetworkDeviceInputOutputControlError<UndocumentedError>>
+	pub fn set_receive_side_scaling_flow_hash_key(&self, receive_side_scaling_flow_hash_key_configuration: &HashFunctionFieldsConfiguration, receive_side_scaling_context: Option<ContextIdentifier>) -> Result<Option<bool>, NetworkDeviceInputOutputControlError<UndocumentedError>>
 	{
 		self.ethtool_command
 		(
-			receive_side_scaling_flow_hash_key.to_ethtool_rxnfc(receive_side_scaling_context),
+			receive_side_scaling_flow_hash_key_configuration.to_ethtool_rxnfc(receive_side_scaling_context),
 			|_command| Ok(true),
 			|errno| match errno.0
 			{
@@ -809,7 +807,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	}
 	
 	/// A new RSS context.
-	pub fn new_configured_hash_settings_in_new_context(&self, configured_hash_settings: &ConfiguredHashSettings) -> Result<Option<Option<ContextIdentifier>>, NetworkDeviceInputOutputControlError<Infallible>>
+	pub fn new_configured_hash_settings_in_new_context(&self, configured_hash_settings: &HashFunctionConfiguration) -> Result<Option<Option<ContextIdentifier>>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		self.ethtool_command
 		(
@@ -821,7 +819,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	}
 	
 	/// Set RSS settings.
-	pub fn set_configured_hash_settings(&self, context_identifier: Option<ContextIdentifier>, configured_hash_settings: &ConfiguredHashSettings) -> Result<Option<bool>, NetworkDeviceInputOutputControlError<Infallible>>
+	pub fn set_configured_hash_settings(&self, context_identifier: Option<ContextIdentifier>, configured_hash_settings: &HashFunctionConfiguration) -> Result<Option<bool>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		match self.ethtool_command
 		(
@@ -844,7 +842,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		}
 	}
 	
-	fn legacy_fallback_set_hash_indirection_table_to_defaults(&self, configured_hash_settings: &ConfiguredHashSettings) -> Result<Option<bool>, NetworkDeviceInputOutputControlError<Infallible>>
+	fn legacy_fallback_set_hash_indirection_table_to_defaults(&self, configured_hash_settings: &HashFunctionConfiguration) -> Result<Option<bool>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		let indirection_table = configured_hash_settings.indirection_table.as_ref();
 		let indirection_size = indirection_table.map(|vec| vec.len()).unwrap_or(0);
@@ -918,7 +916,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	}
 	
 	/// Gets configured hash settings.
-	pub fn configured_receive_side_scaling_hash_settings(&self, context_identifier: Option<ContextIdentifier>) -> Result<Option<ConfiguredHashSettings>, NetworkDeviceInputOutputControlError<UnsupportedHashFunctionError>>
+	pub fn configured_receive_side_scaling_hash_settings(&self, context_identifier: Option<ContextIdentifier>) -> Result<Option<HashFunctionConfiguration>, NetworkDeviceInputOutputControlError<HashFunctionNameUnsupportedError>>
 	{
 		match self.modern_get_indirection_size_and_key_size(context_identifier)?
 		{
@@ -928,19 +926,19 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			
 			Some(None) => match context_identifier
 			{
-				Some(_) => Ok(Some(ConfiguredHashSettings::Unsupported)),
+				Some(_) => Ok(Some(HashFunctionConfiguration::Unsupported)),
 				
 				None => match self.legacy_fallback_get_indirection_size()?
 				{
 					None => Ok(None),
 					
-					Some(None) => Ok(Some(ConfiguredHashSettings::Unsupported)),
+					Some(None) => Ok(Some(HashFunctionConfiguration::Unsupported)),
 					
 					Some(Some(indirection_size)) => match self.legacy_fallback_get_indirection_table(indirection_size)?
 					{
 						None => Ok(None),
 						
-						Some(indirection_table) => Ok(Some(ConfiguredHashSettings { function: None, indirection_table, key: None, }))
+						Some(indirection_table) => Ok(Some(HashFunctionConfiguration { function: None, indirection_table, seed: None, }))
 					},
 				}
 			}
@@ -951,7 +949,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	///
 	/// In this case, one may fall back to `ETHTOOL_GRXFHINDIR` to get the hash indirection table but not the hash key for the default context (but not other contexts).
 	#[inline(always)]
-	fn modern_get_indirection_size_and_key_size(&self, context_identifier: Option<ContextIdentifier>) -> Result<Option<Option<(usize, usize)>>, NetworkDeviceInputOutputControlError<UnsupportedHashFunctionError>>
+	fn modern_get_indirection_size_and_key_size(&self, context_identifier: Option<ContextIdentifier>) -> Result<Option<Option<(usize, usize)>>, NetworkDeviceInputOutputControlError<HashFunctionNameUnsupportedError>>
 	{
 		self.ethtool_command
 		(
@@ -963,18 +961,18 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	}
 	
 	#[inline(always)]
-	fn modern_get_configured_hash_settings(&self, context_identifier: Option<ContextIdentifier>, (indirection_size, key_size): (usize, usize)) -> Result<Option<ConfiguredHashSettings>, NetworkDeviceInputOutputControlError<UnsupportedHashFunctionError>>
+	fn modern_get_configured_hash_settings(&self, context_identifier: Option<ContextIdentifier>, (indirection_size, key_size): (usize, usize)) -> Result<Option<HashFunctionConfiguration>, NetworkDeviceInputOutputControlError<HashFunctionNameUnsupportedError>>
 	{
 		self.ethtool_command
 		(
 			ethtool_rxfh::get_indirection_table_and_key(context_identifier, indirection_size, key_size),
 			|command| command.configured_hash_settings(),
 			Self::error_is_unreachable,
-			|_command| ConfiguredHashSettings::Unsupported,
+			|_command| HashFunctionConfiguration::Unsupported,
 		)
 	}
 	
-	fn legacy_fallback_get_indirection_size(&self) -> Result<Option<Option<usize>>, NetworkDeviceInputOutputControlError<UnsupportedHashFunctionError>>
+	fn legacy_fallback_get_indirection_size(&self) -> Result<Option<Option<usize>>, NetworkDeviceInputOutputControlError<HashFunctionNameUnsupportedError>>
 	{
 		self.ethtool_command
 		(
@@ -990,7 +988,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		)
 	}
 	
-	fn legacy_fallback_get_indirection_table(&self, indirection_size: usize) -> Result<Option<Option<IndirectionTable>>, NetworkDeviceInputOutputControlError<UnsupportedHashFunctionError>>
+	fn legacy_fallback_get_indirection_table(&self, indirection_size: usize) -> Result<Option<Option<IndirectionTable>>, NetworkDeviceInputOutputControlError<HashFunctionNameUnsupportedError>>
 	{
 		self.ethtool_command
 		(

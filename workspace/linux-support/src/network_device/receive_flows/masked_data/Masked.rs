@@ -31,12 +31,14 @@ impl<U: Unmasked> Masked<U>
 		Self(underlying, PhantomData)
 	}
 	
+	/// Is this item masked such that it is not used?
 	#[inline(always)]
 	pub fn is_zero_and_so_item_is_unused(self) -> bool
 	{
 		self == Self::Unused
 	}
 	
+	#[allow(dead_code)]
 	#[inline(always)]
 	fn into_unmasked(self) -> U
 	{

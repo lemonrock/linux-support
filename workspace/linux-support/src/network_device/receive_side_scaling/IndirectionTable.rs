@@ -2,6 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// Maps queue hash function result to queue identifier.
+///
 /// Is never empty.
 ///
 /// For Intel ixgbevf, the table is either 64 (`IXGBEVF_X550_VFRETA_SIZE`) or 128 (`IXGBEVF_82599_RETA_SIZE`) entries.

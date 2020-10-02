@@ -98,7 +98,7 @@ use crate::network_device::eeprom::*;
 use crate::network_device::energy_efficient_ethernet::EnergyEfficientEthernetInformation;
 use crate::network_device::pause::PauseConfiguration;
 use crate::network_device::queues::*;
-use crate::network_device::receive_side_scaling::ConfiguredHashSettings;
+use crate::network_device::receive_side_scaling::HashFunctionConfiguration;
 use crate::network_device::string_sets::AllStringSets;
 use crate::network_device::tunables::*;
 use crate::network_device::wake_on_lan::WakeOnLanInformation;
@@ -124,7 +124,7 @@ use crate::user_and_groups::*;
 use crate::file_descriptors::cgroup::{CgroupProgramAttachmentType, CgroupProgramQueryFlags, CgroupProgramAttachmentFlags};
 use crate::network_device::link_settings::LinkSettings;
 use crate::configuration::Milliseconds;
-use crate::network_device::receive_side_scaling::hash_keys::*;
+use crate::network_device::receive_side_scaling::hash_function_fields::*;
 
 
 include!("CommonCgroupVersion2Diagnostics.rs");

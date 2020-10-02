@@ -7,50 +7,44 @@
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
-pub struct Layer4ReceiveSideScalingFlowHashKey
+pub struct EthernetHashFunctionFields
 {
-	#[serde(flatten)] internet_protocol: InternetProtocolReceiveSideScalingFlowHashKey,
-	
 	/// * Supported by Amazon ENA.
-	/// * Unsupported by Intel ixgbevf.
-	pub include_source_port: bool,
+	pub include_ethernet_destination_address: bool,
 	
-	/// * Supported by Amazon ENA.
-	/// * Unsupported by Intel ixgbevf.
-	pub include_destination_port: bool,
+	/// * Not supported by Amazon ENA.
+	pub include_virtual_local_area_network_tag: bool,
 }
 
-impl From<RXH> for Layer4ReceiveSideScalingFlowHashKey
+impl From<RXH> for EthernetHashFunctionFields
 {
 	#[inline(always)]
 	fn from(rxh: RXH) -> Self
 	{
 		Self
 		{
-			internet_protocol: InternetProtocolReceiveSideScalingFlowHashKey::from(rxh),
+			include_ethernet_destination_address: rxh.contains(RXH::EthernetDestinationAddress),
 			
-			include_source_port: rxh.contains(RXH::FirstTwoBytesOfLayer4Header),
-			
-			include_destination_port: rxh.contains(RXH::NextTwoBytesOfLayer4Header),
+			include_virtual_local_area_network_tag: rxh.contains(RXH::EthernetVirtualLocalAreaNetworkTag),
 		}
 	}
 }
 
-impl ToDataField for Layer4ReceiveSideScalingFlowHashKey
+impl ToDataField for EthernetHashFunctionFields
 {
 	#[inline(always)]
 	fn to_data_field(&self) -> RXH
 	{
-		let mut data_field = self.internet_protocol.to_data_field();
+		let mut data_field = RXH::empty();
 		
-		if self.include_source_port
+		if self.include_ethernet_destination_address
 		{
-			data_field |= RXH::FirstTwoBytesOfLayer4Header
+			data_field |= RXH::EthernetDestinationAddress
 		}
 		
-		if self.include_destination_port
+		if self.include_virtual_local_area_network_tag
 		{
-			data_field |= RXH::NextTwoBytesOfLayer4Header
+			data_field |= RXH::EthernetVirtualLocalAreaNetworkTag
 		}
 		
 		data_field

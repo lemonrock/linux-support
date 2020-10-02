@@ -7,13 +7,14 @@ use crate::paths::ProcPath;
 
 
 /// Hash keys.
-pub mod hash_keys;
+pub mod hash_function_fields;
 
 
-include!("ConfiguredHashSettings.rs");
 include!("ContextIdentifier.rs");
-include!("HashFunctionKey.rs");
+include!("HashFunctionConfiguration.rs");
+include!("HashFunctionName.rs");
+include!("HashFunctionSeed.rs");
 include!("IndirectionTable.rs");
 include!("ReceiveFlowSteeringFlowCount.rs");
-include!("UnsupportedHashFunctionError.rs");
+include!("HashFunctionNameUnsupportedError.rs");
 include!("WeightQueueStrategy.rs");

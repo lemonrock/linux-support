@@ -49,12 +49,15 @@ pub struct NetworkDeviceInputOutputControlDiagnostic
 	/// Ordinarily should match `self.current_number_of_channels_and_maximum_number_of_channels.1.combined_count`.
 	pub receive_ring_queue_count: QueueCount,
 	
-	pub default_context_receive_side_scaling_flow_hash_key_configurations: HashMap<ReceiveSideScalingFlowHashKeyName, Option<ReceiveSideScalingFlowHashKeyConfiguration>>,
+	/// Configured receive-side scaling (RSS) hash key settings for the default context (`None`).
+	///
+	/// There doesn't seem to be a simple way to list other contexts.
+	pub default_context_receive_side_scaling_flow_hash_key_configurations: HashMap<HashFunctionFieldsName, Option<HashFunctionFieldsConfiguration>>,
 	
 	/// Configured receive-side scaling (RSS) hash settings for the default context (`None`).
 	///
 	/// There doesn't seem to be a simple way to list other contexts.
-	pub default_context_configured_receive_side_scaling_hash_settings: ConfiguredHashSettings,
+	pub default_context_configured_receive_side_scaling_hash_settings: HashFunctionConfiguration,
 	
 	/// `None` if not supported.
 	pub wake_on_lan: Option<WakeOnLanInformation>,
@@ -168,10 +171,10 @@ impl NetworkDeviceInputOutputControlDiagnostic
 				
 				default_context_receive_side_scaling_flow_hash_key_configurations:
 				{
-					let mut configurations = HashMap::with_capacity(ReceiveSideScalingFlowHashKeyName::COUNT);
-					for key_name in ReceiveSideScalingFlowHashKeyName::iter()
+					let mut configurations = HashMap::with_capacity(HashFunctionFieldsName::COUNT);
+					for key_name in HashFunctionFieldsName::iter()
 					{
-						configurations.insert(key_name, exists!(network_device_input_output_control.receive_side_scaling_flow_hash_key(key_name, None)))?;
+						configurations.insert(key_name, exists!(network_device_input_output_control.receive_side_scaling_flow_hash_key(key_name, None)));
 					}
 					configurations
 				},
