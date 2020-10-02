@@ -437,5 +437,15 @@ impl rtattr<IFLA_INET6>
 		
 		Ok(unsafe { transmute(self.get_attribute_value_u8()?) })
 	}
-	
+}
+
+impl rtattr<DEVCONF>
+{
+	#[inline(always)]
+	pub(super) fn get_attribute_value_hmac_policy(&self) -> Result<HmacPolicyForSrEnabledPackets, TryFromSliceError>
+	{
+		self.debug_assert_is(DEVCONF::DEVCONF_SEG6_REQUIRE_HMAC);
+		
+		Ok(unsafe { transmute(self.get_attribute_value_i32()?) })
+	}
 }

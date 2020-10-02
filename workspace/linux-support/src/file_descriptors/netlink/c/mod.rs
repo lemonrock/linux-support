@@ -14,6 +14,7 @@ use crate::express_data_path::c::xdp_diag_ring;
 use crate::user_and_groups::UserIdentifier;
 use crate::network_device::queuing_discipline::QueuingDisciplineAlgorithm;
 use crate::configuration::Milliseconds;
+use crate::network_device::seg6::HmacPolicyForSrEnabledPackets;
 
 
 include!("ARPHRD.rs");

@@ -1,6 +1,5 @@
 ## Unfinished code
 
-* Sendto in XDP transmit needs to be able to use io_uring so we can interuppt the thread
 * How to set up an eth0 device on a Numa Node
     * Find all the queues it can have
     * Find all the cores the Numa Node can have
@@ -11,38 +10,13 @@
     * Do we discover eth devices or what?
 
 
-## Medium Importance
-
-### Changing Traffic Class (`qdisc`)
-
-* Look at `tc.c` and `tc_qdisc.c` in iproute2.
-* Get scared as it uses a lot of Route Netlink.
-* Uggh.
-
-
-### DogStatsD
-
-* Report `/proc/sys/kernel/random/boot_id` UUID to DogStatsD as it identifies the current boot.
-* 8192 UDS packet size for dogstatsd (<https://docs.datadoghq.com/developers/dogstatsd/high_throughput/?tab=go#use-dogstatsd-over-uds-unix-domain-socket>)
-* Send messages in batches to local UDS (Unix Domain Socket)
-
-
-## Low Importance
-
-### Unfinished Code
-
-* NUMA distances
-* Intel flow director / Network Flow Classifier (flow steering)
-
-
-
 ## How to use XDP
 
+* Load maps and programs from ELF files, copy code in `ip` tool that bypasses libbpf
 * Firewall
     * https://github.com/gamemann/XDP-Firewall
     * https://github.com/Barricade-FW/Firewall
-* Load maps and programs from ELF files, copy code in `ip` tool that bypasses libbpf
-* Can we specify a 'mark' with a XDP processed packet?
+* Can we specify a 'mark' with a XDP processed packet? And get it from userspace?
 * Can we use XDP to redirect to a queue?
 * Enabling accelerated RFS (aRFS)
 * Scaling with RPS / XPS and aRFS
@@ -123,22 +97,47 @@ Assuming that your NIC and driver support it, you can enable accelerated RFS by 
 Once the above is configured, accelerated RFS will be used to automatically move data to the RX queue tied to a CPU core that is processing data for that flow and you won’t need to specify an ntuple filter rule manually for each flow.
 
 
-## `/proc/sys` sysctls remaining to consider
+## Medium Importance
+
+### Changing Traffic Class (`qdisc`)
+
+* Look at `tc.c` and `tc_qdisc.c` in iproute2.
+* Get scared as it uses a lot of Route Netlink.
+* Uggh.
 
 
-### Memory (lowmem)
+### DogStatsD
+
+* Report `/proc/sys/kernel/random/boot_id` UUID to DogStatsD as it identifies the current boot.
+* 8192 UDS packet size for dogstatsd (<https://docs.datadoghq.com/developers/dogstatsd/high_throughput/?tab=go#use-dogstatsd-over-uds-unix-domain-socket>)
+* Send messages in batches to local UDS (Unix Domain Socket)
+
+
+## Low Importance
+
+
+### Unfinished Code
+
+* NUMA distances
+* Intel flow director / Network Flow Classifier (flow steering)
+
+
+### `/proc/sys` sysctls remaining to consider
+
+
+#### Memory (lowmem)
 
 * `vm/lowmem_reserve_ratio`.
 
 
-### Memory watermark
+#### Memory watermark
 
 * `vm/min_free_kbytes`.
 * `vm/watermark_boost_factor`.
 * `vm/watermark_scale_factor`.
 
 
-### Memory dirtiness
+#### Memory dirtiness
 
 * `vm/dirty_background_bytes`.
 * `vm/dirty_background_ratio`.
@@ -150,10 +149,10 @@ Once the above is configured, accelerated RFS will be used to automatically move
 * `vm/extfrag_threshold`.
 
 
-### inet / inet6 settings.
+#### inet / inet6 settings.
 
 
-### Kernel miscellany in /proc/sys/kernel
+#### Kernel miscellany in /proc/sys/kernel
 
 * `acct`:-
     acct:

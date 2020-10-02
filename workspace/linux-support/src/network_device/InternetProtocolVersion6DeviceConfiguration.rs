@@ -11,147 +11,97 @@
 #[serde(default, deny_unknown_fields)]
 pub struct InternetProtocolVersion6DeviceConfiguration
 {
-	/// `disable_ipv6`.
-	///
 	/// Default is `0`.
 	pub disable_ipv6: bool,
 	
-	/// `forwarding`.
-	///
 	/// Default is `0`.
 	pub forwarding: bool,
 	
-	/// `hop_limit`.
-	///
-	/// Default if `IPV6_DEFAULT_HOPLIMIT`.
+	/// Default is `IPV6_DEFAULT_HOPLIMIT` (64).
 	pub hop_limit: u32,
 	
-	/// `maximum_transmission_unit`.
-	///
-	/// Default is `IPV6_MIN_MTU` but usually same as ethernet card `1500`.
+	/// Default is `IPV6_MIN_MTU` but usually same as ethernet card `1500` or `1280`.
 	pub maximum_transmission_unit: MaximumTransmissionUnitPayloadSize,
 	
-	/// `autoconf`.
-	///
 	/// Default is `1`.
 	pub autoconf: bool,
 	
-	/// `router_solicits`.
-	///
 	/// Default is `MAX_RTR_SOLICITATIONS`.
 	pub router_solicits: u32,
 	
-	/// `router_solicit_interval`.
-	///
 	/// Milliseconds.
 	///
 	/// Default is `RTR_SOLICITATION_INTERVAL`.
 	pub router_solicit_interval: Milliseconds,
 	
-	/// `router_solicit_maximum_interval`.
-	///
 	/// Milliseconds.
 	///
 	/// Default is `RTR_SOLICITATION_MAX_INTERVAL`.
 	pub router_solicit_maximum_interval: Milliseconds,
 	
-	/// `router_solicit_delay`.
-	///
 	/// Milliseconds.
 	///
 	/// Default is `MAX_RTR_SOLICITATION_DELAY`.
 	pub router_solicit_delay: Milliseconds,
 	
-	/// `use_temporary_address`.
+	/// See `use_tempaddr` in <https://www.kernel.org/doc/html/latest/networking/ip-sysctl.html#proc-sys-net-ipv6-variables>.
 	///
 	/// Default is `0`.
-	pub use_temporary_address: bool,
+	pub use_temporary_address: InternetProtocolVersion6PrivacyExtensions,
 	
-	/// `temporary_address_valid_lifetime`.
-	///
 	/// Default is `TEMP_VALID_LIFETIME` (`7 × 86,400`).
 	/// Infinity is `INFINITY_LIFE_TIME` (`0xFFFF_FFFF`).
 	pub temporary_address_valid_lifetime: InternetProtocolAddressLifetime,
 	
-	/// `temporary_address_prefered_lifetime`.
-	///
 	/// Default is `TEMP_PREFERRED_LIFETIME` (`86,400`).
 	/// Infinity is `INFINITY_LIFE_TIME` (`0xFFFF_FFFF`).
 	pub temporary_address_prefered_lifetime: InternetProtocolAddressLifetime,
 	
-	/// `regen_maximum_retry`.
-	///
 	/// Default is `REGEN_MAX_RETRY`.
 	pub regen_maximum_retry: u32,
 	
-	/// `maximum_desync_factor`.
-	///
-	/// Default is `MAX_DESYNC_FACTOR`.
+	/// Default is `MAX_DESYNC_FACTOR` (600).
 	pub maximum_desync_factor: u32,
 	
-	/// `maximum_addresses`.
-	///
-	/// Default is `IPV6_MAX_ADDRESSES`.
+	/// Default is `IPV6_MAX_ADDRESSES` (16).
 	pub maximum_addresses: u32,
 	
-	/// `accept_router_advertisement`.
-	///
 	/// Default is `1`.
-	pub accept_router_advertisement: bool,
+	pub accept_router_advertisement: InternetProtocolVersion6AcceptRouterAdvertisement,
 	
-	/// `accept_redirects`.
-	///
 	/// Default is `1`.
 	pub accept_redirects: bool,
 	
-	/// `accept_router_advertisement_default_router`.
-	///
 	/// Default is `1`.
 	pub accept_router_advertisement_default_router: bool,
 	
-	/// `accept_router_advertisement_from_local`.
-	///
 	/// Default is `0`.
 	pub accept_router_advertisement_from_local: bool,
 	
-	/// `accept_router_advertisement_minimum_hop_limit`.
-	///
 	/// Default is `1`.
 	pub accept_router_advertisement_minimum_hop_limit: bool,
 	
-	/// `accept_router_advertisement_maximum_transmission_unit`.
-	///
 	/// Default is `1`.
 	pub accept_router_advertisement_maximum_transmission_unit: bool,
 	
-	/// `accept_router_advertisement_prefix_information`.
-	///
 	/// Default is `1`.
 	pub accept_router_advertisement_prefix_information: bool,
 	
-	/// `accept_router_advertisement_route_information_maximum_prefix_length`.
-	///
 	/// Only present if Linux compiled with `CONFIG_IPV6_ROUTE_INFO`.
 	///
 	/// Default is `Some(0)`.
 	pub accept_router_advertisement_route_information_maximum_prefix_length: Option<bool>,
 	
-	/// `accept_router_advertisement_route_information_minimum_prefix_length`.
-	///
 	/// Only present if Linux compiled with `CONFIG_IPV6_ROUTE_INFO`.
 	///
 	/// Default is `Some(0)`.
 	pub accept_router_advertisement_route_information_minimum_prefix_length: Option<bool>,
 	
-	/// `accept_router_advertisement_router_preference`.
-	///
 	/// Only present if Linux compiled with `CONFIG_IPV6_ROUTER_PREF`.
 	///
 	/// Default is `1`.
 	pub accept_router_advertisement_router_preference: Option<bool>,
 	
-	/// `router_probe_interval`.
-	///
 	/// Milliseconds.
 	///
 	/// Only present if Linux compiled with `CONFIG_IPV6_ROUTER_PREF`.
@@ -159,140 +109,94 @@ pub struct InternetProtocolVersion6DeviceConfiguration
 	/// Default is `Some(60 * Hz)`.
 	pub router_probe_interval: Option<Milliseconds>,
 	
-	/// `duplicate_address_detection_transmits`.
+	/// Default is `1`.
+	pub duplicate_address_detection_transmits: u32,
+	
+	/// Range is `0` to `2`.
 	///
 	/// Default is `1`.
-	pub duplicate_address_detection_transmits: bool,
+	pub accept_duplicate_address_detection: InternetProtocolVersion6AcceptDuplicateAddressDetection,
 	
-	/// `accept_duplicate_address_detection`.
-	///
-	/// Default is `1`.
-	pub accept_duplicate_address_detection: bool,
-	
-	/// `enhanced_duplicate_address_detection`.
-	///
 	/// Default is `1`.
 	pub enhanced_duplicate_address_detection: bool,
 	
-	/// `use_optimistic_duplicate_address_detection`.
-	///
 	/// Only present if Linux compiled with `CONFIG_IPV6_OPTIMISTIC_DAD`.
 	///
 	/// No default (so probably `0`).
 	pub use_optimistic_duplicate_address_detection: Option<bool>,
 	
-	/// `optimistic_duplicate_address_detection`.
-	///
 	/// Only present if Linux compiled with `CONFIG_IPV6_OPTIMISTIC_DAD`.
 	///
 	/// No default (so probably `0`).
 	pub optimistic_duplicate_address_detection: Option<bool>,
 	
-	/// `accept_source_route`.
-	///
 	/// Default is `0`.
 	pub accept_source_route: bool,
 	
-	/// `mulitcast_forwarding`.
-	///
 	/// Only present if Linux compiled with `CONFIG_IPV6_MROUTE`.
 	pub mulitcast_forwarding: Option<bool>,
 	
-	/// `force_force_target_link_layer_address_option`.
-	///
 	/// No default (so probably `0`).
 	pub force_force_target_link_layer_address_option: bool,
 	
-	/// `proxy_neighbor_discovery_protocol`.
-	///
 	/// Default is `0`.
 	pub proxy_neighbor_discovery_protocol: bool,
 	
-	/// `icmpv6_neighbor_discovery_notify`.
-	///
 	/// No default (so probably `0`).
 	pub icmpv6_neighbor_discovery_notify: bool,
 	
-	/// `icmpv6_neighbor_discovery_suppress_fragments`.
-	///
 	/// Default is `1`.
-	pub icmpv6_neighbor_discovery_suppress_fragments: bool,
+	pub icmpv6_neighbor_discovery_discard_fragmented_packets: bool,
 	
-	/// `icmpv6_neighbor_discovery_traffic_class`.
-	///
-	/// No default (so probably `0`).
-	pub icmpv6_neighbor_discovery_traffic_class: u32,
+	/// Default is `0`.
+	pub icmpv6_neighbor_discovery_traffic_class: u8,
 	
-	/// `force_multicast_listener_discovery_version`.
+	/// Range is `0` to `2`.
 	///
 	/// Default is `0`.
-	pub force_multicast_listener_discovery_version: bool,
+	pub force_multicast_listener_discovery_version: InternetProtocolVersion6ForceMulticastListenerDiscoverVersion,
 	
-	/// `multicast_listener_discovery_v1_unsolicited_report_interval`.
-	///
 	/// Milliseconds.
 	///
-	/// Default is `10 * HZ`.
-	/// `HZ` is defined as `100`.
+	/// Default is 10,000 milliseconds.
 	pub multicast_listener_discovery_v1_unsolicited_report_interval: Milliseconds,
 	
-	/// `multicast_listener_discovery_v2_unsolicited_report_interval`.
-	///
 	/// Milliseconds.
 	///
-	/// Default is `HZ`.
-	/// `HZ` is defined as `100`.
+	/// Default is 1,000 milliseconds.
 	pub multicast_listener_discovery_v2_unsolicited_report_interval: Milliseconds,
 	
-	/// `use_output_interface_addresses_only`.
-	///
 	/// Default is `0`.
 	pub use_output_interface_addresses_only: bool,
 	
-	/// `ignore_routes_with_link_down`.
-	///
 	/// Default is `0`.
 	pub ignore_routes_with_link_down: bool,
 	
-	/// `drop_unicast_in_layer2_multicast`.
-	///
 	/// No default (so probably `0`).
 	pub drop_unicast_in_layer2_multicast: bool,
 	
-	/// `drop_unsolicited_neighbor_advertisements`.
-	///
 	/// No default (so probably `0`).
 	pub drop_unsolicited_neighbor_advertisements: bool,
 	
-	/// `keep_address_on_down`.
+	/// See `keep_addr_on_down` in <https://www.kernel.org/doc/html/latest/networking/ip-sysctl.html#proc-sys-net-ipv6-variables>.
 	///
 	/// Default is `0`.
-	pub keep_address_on_down: bool,
+	pub keep_address_on_down: InternetProtocolVersion6KeepAddressOnDown,
 	
-	/// `seg6_enabled`.
-	///
 	/// Default is `0`.
 	pub seg6_enabled: bool,
 	
-	/// `seg6_require_hmac`.
-	///
 	/// Only present if Linux compiled with `CONFIG_IPV6_SEG6_HMAC`.
 	///
 	/// Default is `Some(0)`.
-	pub seg6_require_hmac: Option<bool>,
+	pub seg6_hmac_policy: Option<HmacPolicyForSrEnabledPackets>,
 	
-	/// `address_generation_mode`.
-	///
 	/// Default is `IN6_ADDR_GEN_MODE_EUI64`.
 	pub address_generation_mode: in6_addr_gen_mode,
 	
-	/// `disable_policy`.
-	///
 	/// Default is `0`.
 	pub disable_policy: bool,
 	
-	/// `rpl_seg_enabled`.
-	///
 	/// Default is `0`.
 	pub rpl_seg_enabled: bool,
 }

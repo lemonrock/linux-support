@@ -30,55 +30,59 @@ pub struct InternetProtocolVersion4DeviceConfiguration
 	pub shared_media: u32,
 	
 	/// Called `rp_filter` in `/proc/sys`.
-	pub reverse_path_filter: bool,
+	///
+	/// Range is `0` to `2`.
+	pub reverse_path_filter: InternetProtocolVersion4ReversePathFilter,
 	
 	pub accept_source_route: bool,
 	
-	pub bootp_relay: bool,
+	pub boot_protocol_relay: bool,
 	
 	pub log_martians: bool,
 	
 	pub tag: u32,
 	
-	pub arp_filter: bool,
+	pub address_resolution_protocol_filter: bool,
 	
-	pub medium_id: u32,
+	pub address_resolution_protocol_announce: InternetProtocolVersion4AddressResolutionProtocolAnnounce,
+	
+	pub address_resolution_protocol_ignore: InternetProtocolVersion4AddressResolutionProtocolIgnore,
+	
+	pub address_resolution_protocol_accept: bool,
+	
+	pub address_resolution_protocol_notify: bool,
+	
+	pub drop_gratuitous_address_resolution_protocol: bool,
+	
+	pub proxy_address_resolution_protocol_pvlan: bool,
+	
+	/// * `0` is the default and means that the device is the only one on its interface.
+	/// * `-1` means the device is not known.
+	pub medium_identifier: InternetProtocolVersion4MediumIdentifier,
 	
 	pub disable_xfrm: bool,
 	
 	pub disable_policy: bool,
 	
-	pub force_igmp_version: bool,
-	
-	pub arp_announce: bool,
-	
-	pub arp_ignore: bool,
-	
 	pub promote_secondaries: bool,
-	
-	pub arp_accept: bool,
-	
-	pub arp_notify: bool,
 	
 	pub accept_local: bool,
 	
 	pub source_valid_mark: u32,
 	
-	pub proxy_arp_pvlan: bool,
-	
 	pub route_localnet: bool,
 	
-	pub igmpv2_unsolicited_report_interval: u32,
+	pub force_internet_group_management_protocol_version: InternetProtocolVersion4ForceInternetGroupManagementProtocolVersion,
 	
-	pub igmpv3_unsolicited_report_interval: u32,
+	pub internet_group_management_protocol_version_2_unsolicited_report_interval: Milliseconds,
+	
+	pub internet_group_management_protocol_version_3_unsolicited_report_interval: Milliseconds,
 	
 	/// Called `ignore_routes_with_link_down` in `/proc/sys`.
 	pub ignore_routes_with_link_down: bool,
 	
 	/// Called `drop_unicast_in_l2_multicast` in `/proc/sys`.
 	pub drop_unicast_in_layer2_multicast: bool,
-	
-	pub drop_gratuitous_arp: bool,
 	
 	/// Called `bc_forwarding` in `/proc/sys`.
 	pub broadcast_forwarding: bool,

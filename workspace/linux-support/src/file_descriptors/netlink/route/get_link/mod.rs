@@ -9,6 +9,7 @@ use crate::network_device::queues::*;
 use crate::bpf::extended::identifiers::MultipleProgramIdentifiers;
 use crate::network_device::queuing_discipline::QueuingDisciplineAlgorithm;
 use crate::configuration::Milliseconds;
+use crate::network_device::seg6::HmacPolicyForSrEnabledPackets;
 
 
 include!("GetLinkMessageData.rs");

@@ -23,7 +23,7 @@ pub(crate) struct InternetProtocolVersion6DeviceConfigurationGetLinkProcessMessa
 	
 	pub(crate) router_solicit_delay: Option<Milliseconds>,
 	
-	pub(crate) use_temporary_address: Option<bool>,
+	pub(crate) use_temporary_address: Option<i32>,
 	
 	pub(crate) temporary_address_valid_lifetime: Option<InternetProtocolAddressLifetime>,
 	
@@ -35,7 +35,8 @@ pub(crate) struct InternetProtocolVersion6DeviceConfigurationGetLinkProcessMessa
 	
 	pub(crate) maximum_addresses: Option<u32>,
 	
-	pub(crate) accept_router_advertisement: Option<bool>,
+	/// `0` to `2`.
+	pub(crate) accept_router_advertisement: Option<u32>,
 	
 	pub(crate) accept_redirects: Option<bool>,
 	
@@ -57,9 +58,9 @@ pub(crate) struct InternetProtocolVersion6DeviceConfigurationGetLinkProcessMessa
 	
 	pub(crate) router_probe_interval: Option<Option<Milliseconds>>,
 	
-	pub(crate) duplicate_address_detection_transmits: Option<bool>,
+	pub(crate) duplicate_address_detection_transmits: Option<u32>,
 	
-	pub(crate) accept_duplicate_address_detection: Option<bool>,
+	pub(crate) accept_duplicate_address_detection: Option<u32>,
 	
 	pub(crate) enhanced_duplicate_address_detection: Option<bool>,
 	
@@ -67,7 +68,8 @@ pub(crate) struct InternetProtocolVersion6DeviceConfigurationGetLinkProcessMessa
 	
 	pub(crate) optimistic_duplicate_address_detection: Option<Option<bool>>,
 	
-	pub(crate) accept_source_route: Option<bool>,
+	/// See `accept_source_route` in <https://www.kernel.org/doc/html/latest/networking/ip-sysctl.html#proc-sys-net-ipv6-variables>.
+	pub(crate) accept_source_route: Option<i32>,
 	
 	pub(crate) mulitcast_forwarding: Option<Option<bool>>,
 	
@@ -77,11 +79,11 @@ pub(crate) struct InternetProtocolVersion6DeviceConfigurationGetLinkProcessMessa
 	
 	pub(crate) icmpv6_neighbor_discovery_notify: Option<bool>,
 	
-	pub(crate) icmpv6_neighbor_discovery_suppress_fragments: Option<bool>,
+	pub(crate) icmpv6_neighbor_discovery_discard_fragmented_packets: Option<bool>,
 	
 	pub(crate) icmpv6_neighbor_discovery_traffic_class: Option<u32>,
 	
-	pub(crate) force_multicast_listener_discovery_version: Option<bool>,
+	pub(crate) force_multicast_listener_discovery_version: Option<u32>,
 	
 	pub(crate) multicast_listener_discovery_v1_unsolicited_report_interval: Option<Milliseconds>,
 	
@@ -95,11 +97,19 @@ pub(crate) struct InternetProtocolVersion6DeviceConfigurationGetLinkProcessMessa
 	
 	pub(crate) drop_unsolicited_neighbor_advertisements: Option<bool>,
 	
-	pub(crate) keep_address_on_down: Option<bool>,
+	pub(crate) keep_address_on_down: Option<i32>,
 	
+	/// If enabled, SR-enabled packets are accepted or dropped.
+	///
+	/// A SR-enabled packet has `SRH` present and a local destination address.
 	pub(crate) seg6_enabled: Option<bool>,
 	
-	pub(crate) seg6_require_hmac: Option<Option<bool>>,
+	/// Values are as follows:-
+	///
+	/// * `-1`: Ignore HMAC field.
+	/// * `0`: Accept SR packets without HMAC, validate SR packets with HMAC.
+	/// * `1`: Drop SR packets without HMAC, validate SR packets with HMAC.
+	pub(crate) seg6_hmac_policy: Option<Option<HmacPolicyForSrEnabledPackets>>,
 	
 	pub(crate) address_generation_mode: Option<in6_addr_gen_mode>,
 	
@@ -135,7 +145,7 @@ impl InternetProtocolVersion6DeviceConfigurationGetLinkProcessMessageState
 				
 				router_solicit_delay: self.router_solicit_delay.ok_or(format!("Linux kernel bug - missing router_solicit_delay"))?,
 				
-				use_temporary_address: self.use_temporary_address.ok_or(format!("Linux kernel bug - missing use_temporary_address"))?,
+				use_temporary_address: InternetProtocolVersion6PrivacyExtensions::parse(self.use_temporary_address.ok_or(format!("Linux kernel bug - missing use_temporary_address"))?),
 				
 				temporary_address_valid_lifetime: self.temporary_address_valid_lifetime.ok_or(format!("Linux kernel bug - missing temporary_address_valid_lifetime"))?,
 				
@@ -147,7 +157,7 @@ impl InternetProtocolVersion6DeviceConfigurationGetLinkProcessMessageState
 				
 				maximum_addresses: self.maximum_addresses.ok_or(format!("Linux kernel bug - missing maximum_addresses"))?,
 				
-				accept_router_advertisement: self.accept_router_advertisement.ok_or(format!("Linux kernel bug - missing accept_router_advertisement"))?,
+				accept_router_advertisement: InternetProtocolVersion6AcceptRouterAdvertisement::parse(self.accept_router_advertisement.ok_or(format!("Linux kernel bug - missing accept_router_advertisement"))?)?,
 				
 				accept_redirects: self.accept_redirects.ok_or(format!("Linux kernel bug - missing accept_redirects"))?,
 				
@@ -171,7 +181,7 @@ impl InternetProtocolVersion6DeviceConfigurationGetLinkProcessMessageState
 				
 				duplicate_address_detection_transmits: self.duplicate_address_detection_transmits.ok_or(format!("Linux kernel bug - missing duplicate_address_detection_transmits"))?,
 				
-				accept_duplicate_address_detection: self.accept_duplicate_address_detection.ok_or(format!("Linux kernel bug - missing accept_duplicate_address_detection"))?,
+				accept_duplicate_address_detection: InternetProtocolVersion6AcceptDuplicateAddressDetection::parse(self.accept_duplicate_address_detection.ok_or(format!("Linux kernel bug - missing accept_duplicate_address_detection"))?)?,
 				
 				enhanced_duplicate_address_detection: self.enhanced_duplicate_address_detection.ok_or(format!("Linux kernel bug - missing enhanced_duplicate_address_detection"))?,
 				
@@ -179,7 +189,11 @@ impl InternetProtocolVersion6DeviceConfigurationGetLinkProcessMessageState
 				
 				optimistic_duplicate_address_detection: self.optimistic_duplicate_address_detection.ok_or(format!("Linux kernel bug - missing optimistic_duplicate_address_detection"))?,
 				
-				accept_source_route: self.accept_source_route.ok_or(format!("Linux kernel bug - missing accept_source_route"))?,
+				accept_source_route:
+				{
+					let raw_value = self.accept_source_route.ok_or(format!("Linux kernel bug - missing accept_source_route"))?;
+					raw_value >= 0
+				},
 				
 				mulitcast_forwarding: self.mulitcast_forwarding.ok_or(format!("Linux kernel bug - missing mulitcast_forwarding"))?,
 				
@@ -189,11 +203,19 @@ impl InternetProtocolVersion6DeviceConfigurationGetLinkProcessMessageState
 				
 				icmpv6_neighbor_discovery_notify: self.icmpv6_neighbor_discovery_notify.ok_or(format!("Linux kernel bug - missing icmpv6_neighbor_discovery_notify"))?,
 				
-				icmpv6_neighbor_discovery_suppress_fragments: self.icmpv6_neighbor_discovery_suppress_fragments.ok_or(format!("Linux kernel bug - missing icmpv6_neighbor_discovery_suppress_fragments"))?,
+				icmpv6_neighbor_discovery_discard_fragmented_packets: self.icmpv6_neighbor_discovery_discard_fragmented_packets.ok_or(format!("Linux kernel bug - missing icmpv6_neighbor_discovery_suppress_fragments"))?,
 				
-				icmpv6_neighbor_discovery_traffic_class: self.icmpv6_neighbor_discovery_traffic_class.ok_or(format!("Linux kernel bug - missing icmpv6_neighbor_discovery_traffic_class"))?,
+				icmpv6_neighbor_discovery_traffic_class:
+				{
+					let icmpv6_neighbor_discovery_traffic_class = self.icmpv6_neighbor_discovery_traffic_class.ok_or(format!("Linux kernel bug - missing icmpv6_neighbor_discovery_traffic_class"))?;
+					if icmpv6_neighbor_discovery_traffic_class > (u8::MAX as u32)
+					{
+						return Err(format!("icmpv6_neighbor_discovery_traffic_class does not fit in an u8"))
+					}
+					icmpv6_neighbor_discovery_traffic_class as u8
+				},
 				
-				force_multicast_listener_discovery_version: self.force_multicast_listener_discovery_version.ok_or(format!("Linux kernel bug - missing force_multicast_listener_discovery_version"))?,
+				force_multicast_listener_discovery_version: InternetProtocolVersion6ForceMulticastListenerDiscoverVersion::parse(self.force_multicast_listener_discovery_version.ok_or(format!("Linux kernel bug - missing force_multicast_listener_discovery_version"))?)?,
 				
 				multicast_listener_discovery_v1_unsolicited_report_interval: self.multicast_listener_discovery_v1_unsolicited_report_interval.ok_or(format!("Linux kernel bug - missing multicast_listener_discovery_v1_unsolicited_report_interval"))?,
 				
@@ -207,11 +229,11 @@ impl InternetProtocolVersion6DeviceConfigurationGetLinkProcessMessageState
 				
 				drop_unsolicited_neighbor_advertisements: self.drop_unsolicited_neighbor_advertisements.ok_or(format!("Linux kernel bug - missing drop_unsolicited_neighbor_advertisements"))?,
 				
-				keep_address_on_down: self.keep_address_on_down.ok_or(format!("Linux kernel bug - missing keep_address_on_down"))?,
+				keep_address_on_down: InternetProtocolVersion6KeepAddressOnDown::parse(self.keep_address_on_down.ok_or(format!("Linux kernel bug - missing keep_address_on_down"))?),
 				
 				seg6_enabled: self.seg6_enabled.ok_or(format!("Linux kernel bug - missing seg6_enabled"))?,
 				
-				seg6_require_hmac: self.seg6_require_hmac.ok_or(format!("Linux kernel bug - missing seg6_require_hmac"))?,
+				seg6_hmac_policy: self.seg6_hmac_policy.ok_or(format!("Linux kernel bug - missing seg6_require_hmac"))?,
 				
 				address_generation_mode: self.address_generation_mode.ok_or(format!("Linux kernel bug - missing address_generation_mode"))?,
 				

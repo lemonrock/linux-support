@@ -14,6 +14,7 @@ use self::pause::*;
 use self::queues::*;
 use self::receive_side_scaling::*;
 use self::receive_side_scaling::hash_function_fields::*;
+use self::seg6::*;
 use self::string_sets::*;
 use self::tunables::*;
 use self::wake_on_lan::WakeOnLanInformation;
@@ -73,6 +74,10 @@ pub mod queues;
 pub mod receive_side_scaling;
 
 
+/// 'seg6'.
+pub mod seg6;
+
+
 /// String sets.
 pub mod string_sets;
 
@@ -94,10 +99,20 @@ include!("GlobalNetworkDeviceConfiguration.rs");
 include!("GlobalNetworkDeviceConfigurationError.rs");
 include!("HardwareAddress.rs");
 include!("InternetProtocolAddressLifetime.rs");
+include!("InternetProtocolVersion4AddressResolutionProtocolAnnounce.rs");
+include!("InternetProtocolVersion4AddressResolutionProtocolIgnore.rs");
 include!("InternetProtocolVersion4Details.rs");
 include!("InternetProtocolVersion4DeviceConfiguration.rs");
+include!("InternetProtocolVersion4ForceInternetGroupManagementProtocolVersion.rs");
+include!("InternetProtocolVersion4MediumIdentifier.rs");
+include!("InternetProtocolVersion4ReversePathFilter.rs");
+include!("InternetProtocolVersion6AcceptDuplicateAddressDetection.rs");
+include!("InternetProtocolVersion6AcceptRouterAdvertisement.rs");
 include!("InternetProtocolVersion6Details.rs");
 include!("InternetProtocolVersion6DeviceConfiguration.rs");
+include!("InternetProtocolVersion6ForceMulticastListenerDiscoverVersion.rs");
+include!("InternetProtocolVersion6KeepAddressOnDown.rs");
+include!("InternetProtocolVersion6PrivacyExtensions.rs");
 include!("MaximumTransmissionUnitPayloadSize.rs");
 include!("MaximumTransmissionUnitPayloadSizeOutOfRangeError.rs");
 include!("NetNamespaceIdentifier.rs");

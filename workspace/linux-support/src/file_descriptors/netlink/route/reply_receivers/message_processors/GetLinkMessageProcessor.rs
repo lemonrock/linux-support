@@ -425,53 +425,53 @@ impl GetLinkMessageProcessor
 
 				(false, false, IPV4_DEVCONF_SHARED_MEDIA) => set_field_error(&mut processing_message_state.shared_media, message_attribute, rtattr::get_attribute_value_u32)?,
 
-				(false, false, IPV4_DEVCONF_RP_FILTER) => set_field_error(&mut processing_message_state.reverse_path_filter, message_attribute, rtattr::get_attribute_value_bool)?,
+				(false, false, IPV4_DEVCONF_RP_FILTER) => set_field_error(&mut processing_message_state.reverse_path_filter, message_attribute, rtattr::get_attribute_value_u32)?,
 
 				(false, false, IPV4_DEVCONF_ACCEPT_SOURCE_ROUTE) => set_field_error(&mut processing_message_state.accept_source_route, message_attribute, rtattr::get_attribute_value_bool)?,
 
-				(false, false, IPV4_DEVCONF_BOOTP_RELAY) => set_field_error(&mut processing_message_state.bootp_relay, message_attribute, rtattr::get_attribute_value_bool)?,
+				(false, false, IPV4_DEVCONF_BOOTP_RELAY) => set_field_error(&mut processing_message_state.boot_protocol_relay, message_attribute, rtattr::get_attribute_value_bool)?,
 
 				(false, false, IPV4_DEVCONF_LOG_MARTIANS) => set_field_error(&mut processing_message_state.log_martians, message_attribute, rtattr::get_attribute_value_bool)?,
 
 				(false, false, IPV4_DEVCONF_TAG) => set_field_error(&mut processing_message_state.tag, message_attribute, rtattr::get_attribute_value_u32)?,
 
-				(false, false, IPV4_DEVCONF_ARPFILTER) => set_field_error(&mut processing_message_state.arp_filter, message_attribute, rtattr::get_attribute_value_bool)?,
+				(false, false, IPV4_DEVCONF_ARPFILTER) => set_field_error(&mut processing_message_state.address_resolution_protocol_filter, message_attribute, rtattr::get_attribute_value_bool)?,
 
-				(false, false, IPV4_DEVCONF_MEDIUM_ID) => set_field_error(&mut processing_message_state.medium_id, message_attribute, rtattr::get_attribute_value_u32)?,
+				(false, false, IPV4_DEVCONF_MEDIUM_ID) => set_field_error(&mut processing_message_state.medium_identifier, message_attribute, rtattr::get_attribute_value_u32)?,
 
 				(false, false, IPV4_DEVCONF_NOXFRM) => set_field_error(&mut processing_message_state.disable_xfrm, message_attribute, rtattr::get_attribute_value_bool)?,
 
 				(false, false, IPV4_DEVCONF_NOPOLICY) => set_field_error(&mut processing_message_state.disable_policy, message_attribute, rtattr::get_attribute_value_bool)?,
 
-				(false, false, IPV4_DEVCONF_FORCE_IGMP_VERSION) => set_field_error(&mut processing_message_state.force_igmp_version, message_attribute, rtattr::get_attribute_value_bool)?,
+				(false, false, IPV4_DEVCONF_FORCE_IGMP_VERSION) => set_field_error(&mut processing_message_state.force_internet_group_management_protocol_version, message_attribute, rtattr::get_attribute_value_u32)?,
 
-				(false, false, IPV4_DEVCONF_ARP_ANNOUNCE) => set_field_error(&mut processing_message_state.arp_announce, message_attribute, rtattr::get_attribute_value_bool)?,
+				(false, false, IPV4_DEVCONF_ARP_ANNOUNCE) => set_field_error(&mut processing_message_state.address_resolution_protocol_announce, message_attribute, rtattr::get_attribute_value_u32)?,
 
-				(false, false, IPV4_DEVCONF_ARP_IGNORE) => set_field_error(&mut processing_message_state.arp_ignore, message_attribute, rtattr::get_attribute_value_bool)?,
+				(false, false, IPV4_DEVCONF_ARP_IGNORE) => set_field_error(&mut processing_message_state.address_resolution_protocol_ignore, message_attribute, rtattr::get_attribute_value_u32)?,
 
 				(false, false, IPV4_DEVCONF_PROMOTE_SECONDARIES) => set_field_error(&mut processing_message_state.promote_secondaries, message_attribute, rtattr::get_attribute_value_bool)?,
 
-				(false, false, IPV4_DEVCONF_ARP_ACCEPT) => set_field_error(&mut processing_message_state.arp_accept, message_attribute, rtattr::get_attribute_value_bool)?,
+				(false, false, IPV4_DEVCONF_ARP_ACCEPT) => set_field_error(&mut processing_message_state.address_resolution_protocol_accept, message_attribute, rtattr::get_attribute_value_bool)?,
 
-				(false, false, IPV4_DEVCONF_ARP_NOTIFY) => set_field_error(&mut processing_message_state.arp_notify, message_attribute, rtattr::get_attribute_value_bool)?,
+				(false, false, IPV4_DEVCONF_ARP_NOTIFY) => set_field_error(&mut processing_message_state.address_resolution_protocol_notify, message_attribute, rtattr::get_attribute_value_bool)?,
 
 				(false, false, IPV4_DEVCONF_ACCEPT_LOCAL) => set_field_error(&mut processing_message_state.accept_local, message_attribute, rtattr::get_attribute_value_bool)?,
 
 				(false, false, IPV4_DEVCONF_SRC_VMARK) => set_field_error(&mut processing_message_state.source_valid_mark, message_attribute, rtattr::get_attribute_value_u32)?,
 
-				(false, false, IPV4_DEVCONF_PROXY_ARP_PVLAN) => set_field_error(&mut processing_message_state.proxy_arp_pvlan, message_attribute, rtattr::get_attribute_value_bool)?,
+				(false, false, IPV4_DEVCONF_PROXY_ARP_PVLAN) => set_field_error(&mut processing_message_state.proxy_address_resolution_protocol_pvlan, message_attribute, rtattr::get_attribute_value_bool)?,
 
 				(false, false, IPV4_DEVCONF_ROUTE_LOCALNET) => set_field_error(&mut processing_message_state.route_localnet, message_attribute, rtattr::get_attribute_value_bool)?,
 
-				(false, false, IPV4_DEVCONF_IGMPV2_UNSOLICITED_REPORT_INTERVAL) => set_field_error(&mut processing_message_state.igmpv2_unsolicited_report_interval, message_attribute, rtattr::get_attribute_value_u32)?,
+				(false, false, IPV4_DEVCONF_IGMPV2_UNSOLICITED_REPORT_INTERVAL) => set_field_error(&mut processing_message_state.internet_group_management_protocol_version_2_unsolicited_report_interval, message_attribute, rtattr::get_attribute_value_milliseconds)?,
 
-				(false, false, IPV4_DEVCONF_IGMPV3_UNSOLICITED_REPORT_INTERVAL) => set_field_error(&mut processing_message_state.igmpv3_unsolicited_report_interval, message_attribute, rtattr::get_attribute_value_u32)?,
+				(false, false, IPV4_DEVCONF_IGMPV3_UNSOLICITED_REPORT_INTERVAL) => set_field_error(&mut processing_message_state.internet_group_management_protocol_version_3_unsolicited_report_interval, message_attribute, rtattr::get_attribute_value_milliseconds)?,
 
 				(false, false, IPV4_DEVCONF_IGNORE_ROUTES_WITH_LINKDOWN) => set_field_error(&mut processing_message_state.ignore_routes_with_link_down, message_attribute, rtattr::get_attribute_value_bool)?,
 
 				(false, false, IPV4_DEVCONF_DROP_UNICAST_IN_L2_MULTICAST) => set_field_error(&mut processing_message_state.drop_unicast_in_layer2_multicast, message_attribute, rtattr::get_attribute_value_bool)?,
 
-				(false, false, IPV4_DEVCONF_DROP_GRATUITOUS_ARP) => set_field_error(&mut processing_message_state.drop_gratuitous_arp, message_attribute, rtattr::get_attribute_value_bool)?,
+				(false, false, IPV4_DEVCONF_DROP_GRATUITOUS_ARP) => set_field_error(&mut processing_message_state.drop_gratuitous_address_resolution_protocol, message_attribute, rtattr::get_attribute_value_bool)?,
 
 				(false, false, IPV4_DEVCONF_BC_FORWARDING) => set_field_error(&mut processing_message_state.broadcast_forwarding, message_attribute, rtattr::get_attribute_value_bool)?,
 				
@@ -550,13 +550,13 @@ impl GetLinkMessageProcessor
 				
 				(false, false, DEVCONF_MTU6) => set_field_error(&mut processing_message_state.maximum_transmission_unit, message_attribute, rtattr::get_attribute_value_maximum_transmission_unit)?,
 				
-				(false, false, DEVCONF_ACCEPT_RA) => set_field_error(&mut processing_message_state.accept_router_advertisement, message_attribute, rtattr::get_attribute_value_bool)?,
+				(false, false, DEVCONF_ACCEPT_RA) => set_field_error(&mut processing_message_state.accept_router_advertisement, message_attribute, rtattr::get_attribute_value_u32)?,
 				
 				(false, false, DEVCONF_ACCEPT_REDIRECTS) => set_field_error(&mut processing_message_state.accept_redirects, message_attribute, rtattr::get_attribute_value_bool)?,
 				
 				(false, false, DEVCONF_AUTOCONF) => set_field_error(&mut processing_message_state.autoconf, message_attribute, rtattr::get_attribute_value_bool)?,
 				
-				(false, false, DEVCONF_DAD_TRANSMITS) => set_field_error(&mut processing_message_state.duplicate_address_detection_transmits, message_attribute, rtattr::get_attribute_value_bool)?,
+				(false, false, DEVCONF_DAD_TRANSMITS) => set_field_error(&mut processing_message_state.duplicate_address_detection_transmits, message_attribute, rtattr::get_attribute_value_u32)?,
 				
 				(false, false, DEVCONF_RTR_SOLICITS) => set_field_error(&mut processing_message_state.router_solicits, message_attribute, rtattr::get_attribute_value_u32)?,
 				
@@ -564,7 +564,7 @@ impl GetLinkMessageProcessor
 				
 				(false, false, DEVCONF_RTR_SOLICIT_DELAY) => set_field_error(&mut processing_message_state.router_solicit_delay, message_attribute, rtattr::get_attribute_value_milliseconds)?,
 				
-				(false, false, DEVCONF_USE_TEMPADDR) => set_field_error(&mut processing_message_state.use_temporary_address, message_attribute, rtattr::get_attribute_value_bool)?,
+				(false, false, DEVCONF_USE_TEMPADDR) => set_field_error(&mut processing_message_state.use_temporary_address, message_attribute, rtattr::get_attribute_value_i32)?,
 				
 				(false, false, DEVCONF_TEMP_VALID_LFT) => set_field_error(&mut processing_message_state.temporary_address_valid_lifetime, message_attribute, rtattr::get_attribute_value_internet_protocol_address_lifetime)?,
 				
@@ -576,7 +576,7 @@ impl GetLinkMessageProcessor
 				
 				(false, false, DEVCONF_MAX_ADDRESSES) => set_field_error(&mut processing_message_state.maximum_addresses, message_attribute, rtattr::get_attribute_value_u32)?,
 				
-				(false, false, DEVCONF_FORCE_MLD_VERSION) => set_field_error(&mut processing_message_state.force_multicast_listener_discovery_version, message_attribute, rtattr::get_attribute_value_bool)?,
+				(false, false, DEVCONF_FORCE_MLD_VERSION) => set_field_error(&mut processing_message_state.force_multicast_listener_discovery_version, message_attribute, rtattr::get_attribute_value_u32)?,
 				
 				(false, false, DEVCONF_ACCEPT_RA_DEFRTR) => set_field_error(&mut processing_message_state.accept_router_advertisement_default_router, message_attribute, rtattr::get_attribute_value_bool)?,
 				
@@ -592,13 +592,13 @@ impl GetLinkMessageProcessor
 				
 				(false, false, DEVCONF_OPTIMISTIC_DAD) => set_field_error(&mut processing_message_state.optimistic_duplicate_address_detection, message_attribute, |message_attribute| message_attribute.get_attribute_value_bool().map(Some))?,
 				
-				(false, false, DEVCONF_ACCEPT_SOURCE_ROUTE) => set_field_error(&mut processing_message_state.accept_source_route, message_attribute, rtattr::get_attribute_value_bool)?,
+				(false, false, DEVCONF_ACCEPT_SOURCE_ROUTE) => set_field_error(&mut processing_message_state.accept_source_route, message_attribute, rtattr::get_attribute_value_i32)?,
 				
 				(false, false, DEVCONF_MC_FORWARDING) => set_field_error(&mut processing_message_state.mulitcast_forwarding, message_attribute, |message_attribute| message_attribute.get_attribute_value_bool().map(Some))?,
 				
 				(false, false, DEVCONF_DISABLE_IPV6) => set_field_error(&mut processing_message_state.disable_ipv6, message_attribute, rtattr::get_attribute_value_bool)?,
 				
-				(false, false, DEVCONF_ACCEPT_DAD) => set_field_error(&mut processing_message_state.accept_duplicate_address_detection, message_attribute, rtattr::get_attribute_value_bool)?,
+				(false, false, DEVCONF_ACCEPT_DAD) => set_field_error(&mut processing_message_state.accept_duplicate_address_detection, message_attribute, rtattr::get_attribute_value_u32)?,
 				
 				(false, false, DEVCONF_FORCE_TLLAO) => set_field_error(&mut processing_message_state.force_force_target_link_layer_address_option, message_attribute, rtattr::get_attribute_value_bool)?,
 				
@@ -608,7 +608,7 @@ impl GetLinkMessageProcessor
 				
 				(false, false, DEVCONF_MLDV2_UNSOLICITED_REPORT_INTERVAL) => set_field_error(&mut processing_message_state.multicast_listener_discovery_v2_unsolicited_report_interval, message_attribute, rtattr::get_attribute_value_milliseconds)?,
 				
-				(false, false, DEVCONF_SUPPRESS_FRAG_NDISC) => set_field_error(&mut processing_message_state.icmpv6_neighbor_discovery_suppress_fragments, message_attribute, rtattr::get_attribute_value_bool)?,
+				(false, false, DEVCONF_SUPPRESS_FRAG_NDISC) => set_field_error(&mut processing_message_state.icmpv6_neighbor_discovery_discard_fragmented_packets, message_attribute, rtattr::get_attribute_value_bool)?,
 				
 				(false, false, DEVCONF_ACCEPT_RA_FROM_LOCAL) => set_field_error(&mut processing_message_state.accept_router_advertisement_from_local, message_attribute, rtattr::get_attribute_value_bool)?,
 				
@@ -629,13 +629,13 @@ impl GetLinkMessageProcessor
 				
 				(false, false, DEVCONF_DROP_UNSOLICITED_NA) => set_field_error(&mut processing_message_state.drop_unsolicited_neighbor_advertisements, message_attribute, rtattr::get_attribute_value_bool)?,
 				
-				(false, false, DEVCONF_KEEP_ADDR_ON_DOWN) => set_field_error(&mut processing_message_state.keep_address_on_down, message_attribute, rtattr::get_attribute_value_bool)?,
+				(false, false, DEVCONF_KEEP_ADDR_ON_DOWN) => set_field_error(&mut processing_message_state.keep_address_on_down, message_attribute, rtattr::get_attribute_value_i32)?,
 				
 				(false, false, DEVCONF_RTR_SOLICIT_MAX_INTERVAL) => set_field_error(&mut processing_message_state.router_solicit_maximum_interval, message_attribute, rtattr::get_attribute_value_milliseconds)?,
 				
 				(false, false, DEVCONF_SEG6_ENABLED) => set_field_error(&mut processing_message_state.seg6_enabled, message_attribute, rtattr::get_attribute_value_bool)?,
 				
-				(false, false, DEVCONF_SEG6_REQUIRE_HMAC) => set_field_error(&mut processing_message_state.seg6_require_hmac, message_attribute, |message_attribute| message_attribute.get_attribute_value_bool().map(Some))?,
+				(false, false, DEVCONF_SEG6_REQUIRE_HMAC) => set_field_error(&mut processing_message_state.seg6_hmac_policy, message_attribute, |message_attribute| message_attribute.get_attribute_value_hmac_policy().map(Some))?,
 				
 				(false, false, DEVCONF_ENHANCED_DAD) => set_field_error(&mut processing_message_state.enhanced_duplicate_address_detection, message_attribute, rtattr::get_attribute_value_bool)?,
 				
