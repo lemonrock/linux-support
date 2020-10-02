@@ -4,20 +4,20 @@
 
 /// Transmit only.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct RingQueueDepthTransmitOnly(RingQueueDepth);
+pub struct RingQueueDepthTransmitOnly<TSC: TransmitSendCreator>(RingQueueDepth, PhantomData<TSC>);
 
-impl Supports for RingQueueDepthTransmitOnly
+impl<TSC: TransmitSendCreator> Supports for RingQueueDepthTransmitOnly<TSC>
 {
 	const SupportsReceive: bool = false;
 	
 	const SupportsTransmit: bool = true;
 }
 
-impl RingQueueDepths for RingQueueDepthTransmitOnly
+impl<TSC: TransmitSendCreator> RingQueueDepths for RingQueueDepthTransmitOnly<TSC>
 {
 }
 
-impl Transmits<RingQueueDepth> for RingQueueDepthTransmitOnly
+impl<TSC: TransmitSendCreator> Transmits<RingQueueDepth> for RingQueueDepthTransmitOnly<TSC>
 {
 	#[inline(always)]
 	fn transmit(&self) -> &RingQueueDepth
@@ -26,7 +26,7 @@ impl Transmits<RingQueueDepth> for RingQueueDepthTransmitOnly
 	}
 }
 
-impl FillOrCompletionOrBothRingQueueDepths for RingQueueDepthTransmitOnly
+impl<TSC: TransmitSendCreator> FillOrCompletionOrBothRingQueueDepths for RingQueueDepthTransmitOnly<TSC>
 {
 	#[inline(always)]
 	fn fill_ring_queue_depth_or_default(&self) -> RingQueueDepth
@@ -41,11 +41,11 @@ impl FillOrCompletionOrBothRingQueueDepths for RingQueueDepthTransmitOnly
 	}
 }
 
-impl CreateReceiveOrTransmitOrBoth for RingQueueDepthTransmitOnly
+impl<TSC: TransmitSendCreator> CreateReceiveOrTransmitOrBoth for RingQueueDepthTransmitOnly<TSC>
 {
-	type Arguments = ();
+	type Arguments = TSC;
 	
-	type ReceiveOrTransmitOrBoth = CommonTransmitOnly;
+	type ReceiveOrTransmitOrBoth = CommonTransmitOnly<TSC::TS>;
 	
 	#[inline(always)]
 	fn set_ring_queue_depths(&self, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor)
@@ -54,18 +54,25 @@ impl CreateReceiveOrTransmitOrBoth for RingQueueDepthTransmitOnly
 	}
 	
 	#[inline(always)]
-	fn create_receive_or_transmit_or_both(self, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, defaults: &DefaultPageSizeAndHugePageSizes, memory_map_offsets: &xdp_mmap_offsets, _queue_identifier: QueueIdentifier, _redirect_map_and_attached_program: &RedirectMapAndAttachedProgram, _arguments: Self::Arguments) -> Result<Self::ReceiveOrTransmitOrBoth, ExpressDataPathSocketCreationError>
+	fn create_receive_or_transmit_or_both(self, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, defaults: &DefaultPageSizeAndHugePageSizes, memory_map_offsets: &xdp_mmap_offsets, _queue_identifier: QueueIdentifier, _redirect_map_and_attached_program: &RedirectMapAndAttachedProgram, arguments: Self::Arguments) -> Result<Self::ReceiveOrTransmitOrBoth, ExpressDataPathSocketCreationError>
 	{
-		Ok(CommonTransmitOnly::new(TransmitQueue::from_transmit_memory_map_offsets(express_data_path_socket_file_descriptor, memory_map_offsets, self.0, defaults)))
+		Ok
+		(
+			CommonTransmitOnly::new
+			(
+				TransmitQueue::from_transmit_memory_map_offsets(express_data_path_socket_file_descriptor, memory_map_offsets, self.0, defaults),
+				arguments.create(express_data_path_socket_file_descriptor)
+			)
+		)
 	}
 }
 
-impl RingQueueDepthTransmitOnly
+impl<TSC: TransmitSendCreator> RingQueueDepthTransmitOnly<TSC>
 {
 	/// Create a new instance.
 	#[inline(always)]
 	pub const fn new(completion_or_transmit_ring_queue_depth: RingQueueDepth) -> Self
 	{
-		Self(completion_or_transmit_ring_queue_depth)
+		Self(completion_or_transmit_ring_queue_depth, PhantomData)
 	}
 }

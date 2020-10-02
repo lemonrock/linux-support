@@ -2,15 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A receive poll.
-///
-/// In practice, this could suspend the thread or coroutine, or make a callback via `io_uring`.
-pub trait ReceivePoll
-{
-	/// A 'blocking' receive poll.
-	///
-	/// If using the `poll()` system call, it is sufficient to check for only the `POLLIN` event.
-	///
-	/// Timing out is also supported; there is no need to report this and hence no return value is provided for.
-	fn poll(&mut self);
-}
+use super::*;
+
+
+include!("NonBlockingTransmitSendAndTransmitSendCreator.rs");
+include!("TransmitSend.rs");
+include!("TransmitSendCreator.rs");

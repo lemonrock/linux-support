@@ -87,7 +87,7 @@ impl<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth<RP=RP> + Receives<CommonReceiveOnly
 	}
 }
 
-impl<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, FFQ: 'a + FreeFrameQueue> TransmitsExpressDataPathSocket<'a, ROTOB, FFQ> for OwnedExpressDataPathSocket<ROTOB, FFQ>
+impl<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth<TS=TS> + Transmits<CommonTransmitOnly<TS>>, FFQ: 'a + FreeFrameQueue, TS: 'a + TransmitSend> TransmitsExpressDataPathSocket<'a, ROTOB, FFQ, TS> for OwnedExpressDataPathSocket<ROTOB, FFQ>
 {
 	#[inline(always)]
 	fn lock_completion_queue(&self)

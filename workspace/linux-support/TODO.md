@@ -1,9 +1,40 @@
 ## Unfinished code
 
+* Sendto in XDP transmit needs to be able to use io_uring so we can interuppt the thread
+* How to set up an eth0 device on a Numa Node
+    * Find all the queues it can have
+    * Find all the cores the Numa Node can have
+        * Create a hash table (Amazon ENA) with weightings
+        * We may have more cores than queues or vice versa
+    * How does RPS, XPS, RFS and aRFS work? Does Amazon ENA support aRFS?
+    * Do we want one core not used on the Numa Node?
+    * Do we discover eth devices or what?
+
+
+## Medium Importance
+
+### Changing Traffic Class (`qdisc`)
+
+* Look at `tc.c` and `tc_qdisc.c` in iproute2.
+* Get scared as it uses a lot of Route Netlink.
+* Uggh.
+
+
+### DogStatsD
+
+* Report `/proc/sys/kernel/random/boot_id` UUID to DogStatsD as it identifies the current boot.
+* 8192 UDS packet size for dogstatsd (<https://docs.datadoghq.com/developers/dogstatsd/high_throughput/?tab=go#use-dogstatsd-over-uds-unix-domain-socket>)
+* Send messages in batches to local UDS (Unix Domain Socket)
+
+
+## Low Importance
+
+### Unfinished Code
+
 * NUMA distances
-* Flow director code
-    * Not supported but ought to finish off.
-* Traffic Class setting (transmit scheduler)
+* Intel flow director / Network Flow Classifier (flow steering)
+
+
 
 ## How to use XDP
 
@@ -31,16 +62,8 @@
 * <https://blog.cloudflare.com/how-to-achieve-low-latency/>
 * <https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/>
 * `/proc/sys/net/core/netdev_budget` - defaults to 300.
-* Look at IRQ affinity mapping for Internet Flow Directory (look at irq script in `~/Downloads/25_2/*/set_irq_affinity`).
+* Look at IRQ affinity mapping for Intel Flow Director (look at irq script in `~/Downloads/25_2/*/set_irq_affinity`).
 * TODO: Receive Queue => CPU
-
-
-### DogStatsD
-
-* Report `/proc/sys/kernel/random/boot_id` UUID to DogStatsD as it identifies the current boot.
-* 8192 UDS packet size for dogstatsd (<https://docs.datadoghq.com/developers/dogstatsd/high_throughput/?tab=go#use-dogstatsd-over-uds-unix-domain-socket>)
-* Send messages in batches to local UDS (Unix Domain Socket)
-
 
 ### MSI-X - Message Signal Interrupts (Extended).
 
@@ -159,58 +182,28 @@ Once the above is configured, accelerated RFS will be used to automatically move
 
 ### Miscellaneous File system
 
-#### `userfaultfd`
-<http://man7.org/linux/man-pages/man2/userfaultfd.2.html>
+
+#### Extended attributes
+
+* Use ioctls `FS_IOC_FSGETXATTR` and `FS_IOC_FSSETXATTR`.
+* Uses struct `fsxattr`.
+* Definitions of `fsxattr.fsx_xflags` are in `include/uapi/linux/fs.h`.
 
 
-#### `fcntl` `F_GET_RW_HINT` read-write hints
-<http://man7.org/linux/man-pages/man2/fcntl.2.html>
+#### `fcntl` `F_GET_RW_HINT` and `F_GET_FILE_RW_HINT` and related read-write hints
+
+* See <http://man7.org/linux/man-pages/man2/fcntl.2.html>
 
 
 #### POSIX ACLs
-<http://man7.org/linux/man-pages/man5/acl.5.html>
+
+* See <http://man7.org/linux/man-pages/man5/acl.5.html>
 
 
-#### Extended attributes:-
+#### `userfaultfd`
 
-Flags `FS_IOC_FSGETXATTR` and `FS_IOC_FSSETXATTR`; uses structure `fsxattr`:-
+* See <http://man7.org/linux/man-pages/man2/userfaultfd.2.html>
 
-```
-#define FS_IOC_FSGETXATTR		_IOR('X', 31, struct fsxattr)
-#define FS_IOC_FSSETXATTR		_IOW('X', 32, struct fsxattr)
-/*
- * Structure for FS_IOC_FSGETXATTR[A] and FS_IOC_FSSETXATTR.
- */
-struct fsxattr {
-	__u32		fsx_xflags;	/* xflags field value (get/set) */
-	__u32		fsx_extsize;	/* extsize field value (get/set)*/
-	__u32		fsx_nextents;	/* nextents field value (get)	*/
-	__u32		fsx_projid;	/* project identifier (get/set) */
-	__u32		fsx_cowextsize;	/* CoW extsize field value (get/set)*/
-	unsigned char	fsx_pad[8];
-};
-
-/*
- * Flags for the fsx_xflags field
- */
-#define FS_XFLAG_REALTIME	0x00000001	/* data in realtime volume */
-#define FS_XFLAG_PREALLOC	0x00000002	/* preallocated file extents */
-#define FS_XFLAG_IMMUTABLE	0x00000008	/* file cannot be modified */
-#define FS_XFLAG_APPEND		0x00000010	/* all writes append */
-#define FS_XFLAG_SYNC		0x00000020	/* all writes synchronous */
-#define FS_XFLAG_NOATIME	0x00000040	/* do not update access time */
-#define FS_XFLAG_NODUMP		0x00000080	/* do not include in backups */
-#define FS_XFLAG_RTINHERIT	0x00000100	/* create with rt bit set */
-#define FS_XFLAG_PROJINHERIT	0x00000200	/* create with parents projid */
-#define FS_XFLAG_NOSYMLINKS	0x00000400	/* disallow symlink creation */
-#define FS_XFLAG_EXTSIZE	0x00000800	/* extent size allocator hint */
-#define FS_XFLAG_EXTSZINHERIT	0x00001000	/* inherit inode extent size */
-#define FS_XFLAG_NODEFRAG	0x00002000	/* do not defragment */
-#define FS_XFLAG_FILESTREAM	0x00004000	/* use filestream allocator */
-#define FS_XFLAG_DAX		0x00008000	/* use DAX for IO */
-#define FS_XFLAG_COWEXTSIZE	0x00010000	/* CoW extent size allocator hint */
-#define FS_XFLAG_HASATTR	0x80000000	/* no DIFLAG for this	*/
-```
 
 /*
 	Operation combinations

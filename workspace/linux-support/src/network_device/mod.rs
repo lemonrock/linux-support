@@ -51,6 +51,10 @@ pub mod features;
 pub mod link_settings;
 
 
+/// Network flow classifier (`nfc`) for received packets.
+pub mod network_flow_classifier;
+
+
 /// Queuing discipline.
 ///
 /// Only used for transmit.
@@ -63,10 +67,6 @@ pub mod pause;
 
 /// Queues.
 pub mod queues;
-
-
-/// Receive flows.
-pub mod receive_flows;
 
 
 /// Receive side scaling (RSS).
@@ -118,3 +118,4 @@ include!("PhysicalIdentifier.rs");
 include!("PhysicalIdentifierFromBytesError.rs");
 include!("SettableLinkFlags.rs");
 include!("TransmissionQueueLengthOutOfRangeError.rs");
+include!("VirtualFunctionIndex.rs");

@@ -4,28 +4,32 @@
 
 #[doc(hidden)]
 #[derive(Debug)]
-pub struct CommonTransmitOnly
+pub struct CommonTransmitOnly<TS: TransmitSend>
 {
 	transmit_queue: TransmitQueue,
+	
+	transmit_send: RefCell<TS>,
 	
 	frames_transmitted: FramesCount,
 	
 	outstanding_frames_to_transmit: Cell<u32>,
 }
 
-impl Supports for CommonTransmitOnly
+impl<TS: TransmitSend> Supports for CommonTransmitOnly<TS>
 {
 	const SupportsReceive: bool = false;
 	
 	const SupportsTransmit: bool = true;
 }
 
-impl ReceiveOrTransmitOrBoth for CommonTransmitOnly
+impl<TS: TransmitSend> ReceiveOrTransmitOrBoth for CommonTransmitOnly<TS>
 {
 	type RP = ();
+	
+	type TS = TS;
 }
 
-impl Transmits<Self> for CommonTransmitOnly
+impl<TS: TransmitSend> Transmits<Self> for CommonTransmitOnly<TS>
 {
 	#[inline(always)]
 	fn transmit(&self) -> &Self
@@ -34,14 +38,15 @@ impl Transmits<Self> for CommonTransmitOnly
 	}
 }
 
-impl CommonTransmitOnly
+impl<TS: TransmitSend> CommonTransmitOnly<TS>
 {
 	#[inline(always)]
-	pub(crate) const fn new(transmit_queue: TransmitQueue) -> Self
+	pub(crate) const fn new(transmit_queue: TransmitQueue, transmit_send: TS) -> Self
 	{
 		Self
 		{
 			transmit_queue,
+			transmit_send: RefCell::new(transmit_send),
 			frames_transmitted: FramesCount::new(),
 			outstanding_frames_to_transmit: Cell::new(0),
 		}
@@ -81,5 +86,11 @@ impl CommonTransmitOnly
 	pub(crate) fn outstanding_frames_to_transmit(&self) -> u32
 	{
 		self.outstanding_frames_to_transmit.get()
+	}
+	
+	#[inline(always)]
+	pub(crate) fn transmit_send(&self)
+	{
+		self.transmit_send.borrow_mut().send()
 	}
 }

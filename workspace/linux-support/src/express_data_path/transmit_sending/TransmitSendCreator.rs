@@ -2,15 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A receive poll.
-///
-/// In practice, this could suspend the thread or coroutine, or make a callback via `io_uring`.
-pub trait ReceivePoll
+/// Creates a `TransmitSend`.
+pub trait TransmitSendCreator
 {
-	/// A 'blocking' receive poll.
-	///
-	/// If using the `poll()` system call, it is sufficient to check for only the `POLLIN` event.
-	///
-	/// Timing out is also supported; there is no need to report this and hence no return value is provided for.
-	fn poll(&mut self);
+	/// Type of `TransmitSend`.
+	type TS: TransmitSend;
+	
+	/// Create.
+	fn create(self, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor) -> Self::TS;
 }

@@ -4,8 +4,8 @@
 
 use self::masked_data::*;
 use self::rule_location::*;
-use self::by_protocol_receive_flows::*;
-use self::by_protocol_receive_flows::common_receive_flows::*;
+use self::by_protocol::*;
+use self::by_protocol::common::*;
 use super::*;
 use super::c::flow_specifications::*;
 use crate::file_descriptors::socket::c::in6_addr;
@@ -13,7 +13,7 @@ use crate::file_descriptors::socket::c::in_addr;
 
 
 /// Underlying receive flows (building blocks).
-pub mod by_protocol_receive_flows;
+pub mod by_protocol;
 
 
 /// Masked data.
@@ -31,5 +31,4 @@ include!("DestinationMediaAccessControlAddressExtendedFlow.rs");
 include!("FlowSpecificationParseError.rs");
 include!("Rule.rs");
 include!("RuleAction.rs");
-include!("VirtualFunctionIndex.rs");
 include!("VirtualLocalAreaNetworkExtendedFlow.rs");

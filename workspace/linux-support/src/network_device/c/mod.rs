@@ -5,14 +5,14 @@
 use super::*;
 use self::bit_set::*;
 use self::c::flow_specifications::ethtool_rx_flow_spec;
-use self::receive_flows::RuleAction;
-use self::receive_flows::VirtualFunctionIndex;
+use self::network_flow_classifier::RuleAction;
 use self::receive_side_scaling::ContextIdentifier;
 use self::wake_on_lan::WakeOnLanWhen;
 use crate::file_descriptors::socket::c::*;
 
 
-include!("ALTIFNAMSIZ.rs");include!("AUTONEG.rs");
+include!("ALTIFNAMSIZ.rs");
+include!("AUTONEG.rs");
 include!("cisco_proto.rs");
 include!("DOWNSHIFT_DEV_.rs");
 include!("DUPLEX.rs");

@@ -6,7 +6,7 @@
 pub trait ReceivePollCreator
 {
 	/// Type of `ReceivePoll`.
-	type RP:  ReceivePoll;
+	type RP: ReceivePoll;
 	
 	/// Create.
 	fn create(self, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor) -> Self::RP;

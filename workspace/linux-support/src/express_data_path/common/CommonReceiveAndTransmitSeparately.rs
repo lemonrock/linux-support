@@ -4,21 +4,23 @@
 
 #[doc(hidden)]
 #[derive(Debug)]
-pub struct CommonReceiveAndTransmitSeparately<RP: ReceivePoll>(CommonReceiveOnly<RP>, CommonTransmitOnly);
+pub struct CommonReceiveAndTransmitSeparately<RP: ReceivePoll, TS: TransmitSend>(CommonReceiveOnly<RP>, CommonTransmitOnly<TS>);
 
-impl<RP: ReceivePoll> Supports for CommonReceiveAndTransmitSeparately<RP>
+impl<RP: ReceivePoll, TS: TransmitSend> Supports for CommonReceiveAndTransmitSeparately<RP, TS>
 {
 	const SupportsReceive: bool = true;
 	
 	const SupportsTransmit: bool = true;
 }
 
-impl<RP: ReceivePoll> ReceiveOrTransmitOrBoth for CommonReceiveAndTransmitSeparately<RP>
+impl<RP: ReceivePoll, TS: TransmitSend> ReceiveOrTransmitOrBoth for CommonReceiveAndTransmitSeparately<RP, TS>
 {
 	type RP = RP;
+	
+	type TS = TS;
 }
 
-impl<RP: ReceivePoll> Receives<CommonReceiveOnly<RP>> for CommonReceiveAndTransmitSeparately<RP>
+impl<RP: ReceivePoll, TS: TransmitSend> Receives<CommonReceiveOnly<RP>> for CommonReceiveAndTransmitSeparately<RP, TS>
 {
 	#[inline(always)]
 	fn receive(&self) -> &CommonReceiveOnly<RP>
@@ -27,19 +29,19 @@ impl<RP: ReceivePoll> Receives<CommonReceiveOnly<RP>> for CommonReceiveAndTransm
 	}
 }
 
-impl<RP: ReceivePoll> Transmits<CommonTransmitOnly> for CommonReceiveAndTransmitSeparately<RP>
+impl<RP: ReceivePoll, TS: TransmitSend> Transmits<CommonTransmitOnly<TS>> for CommonReceiveAndTransmitSeparately<RP, TS>
 {
 	#[inline(always)]
-	fn transmit(&self) -> &CommonTransmitOnly
+	fn transmit(&self) -> &CommonTransmitOnly<TS>
 	{
 		self.1.transmit()
 	}
 }
 
-impl<RP: ReceivePoll> CommonReceiveAndTransmitSeparately<RP>
+impl<RP: ReceivePoll, TS: TransmitSend> CommonReceiveAndTransmitSeparately<RP, TS>
 {
 	#[inline(always)]
-	pub(crate) const fn new(common_receive_only: CommonReceiveOnly<RP>, common_transmit_only: CommonTransmitOnly) -> Self
+	pub(crate) const fn new(common_receive_only: CommonReceiveOnly<RP>, common_transmit_only: CommonTransmitOnly<TS>) -> Self
 	{
 		Self(common_receive_only, common_transmit_only)
 	}

@@ -89,6 +89,7 @@ impl AlignedFrameNumber
 		Self(absolute_frame_index as u32)
 	}
 	
+	#[allow(dead_code)]
 	#[inline(always)]
 	pub(crate) fn from_relative_addresses_and_offsets_if_aligned(relative_addresss_and_offsets: RelativeAddressesAndOffsets, aligned_chunk_size: AlignedChunkSize) -> Self
 	{

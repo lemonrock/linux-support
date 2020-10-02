@@ -164,18 +164,33 @@ pub(crate) const ETHTOOL_SGRO: u32 = 0x0000002C;
 pub(crate) const ETHTOOL_GRXRINGS: u32 = 0x0000002D;
 
 /// Get receive class rule count.
+///
+/// Used by Network Flow Classifier.
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_GRXCLSRLCNT: u32 = 0x0000002E;
 
 /// Get receive classification rule.
+///
+/// Used by Network Flow Classifier.
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_GRXCLSRULE: u32 = 0x0000002F;
 
 /// Get all receive classification rule.
+///
+/// Used by Network Flow Classifier.
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_GRXCLSRLALL: u32 = 0x00000030;
 
 /// Delete receive classification rule.
+///
+/// Used by Network Flow Classifier.
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_SRXCLSRLDEL: u32 = 0x00000031;
 
 /// Insert receive classification rule.
+///
+/// Used by Network Flow Classifier.
+#[allow(dead_code)]
 pub(crate) const ETHTOOL_SRXCLSRLINS: u32 = 0x00000032;
 
 /// Flash firmware to device.
@@ -187,10 +202,13 @@ pub(crate) const ETHTOOL_FLASHDEV: u32 = 0x00000033;
 pub(crate) const ETHTOOL_RESET: u32 = 0x00000034;
 
 /// Add an n-tuple filter to device.
+///
+/// No longer used by any drivers in Linux 5.8.
 #[allow(dead_code)]
 #[deprecated]
 pub(crate) const ETHTOOL_SRXNTUPLE: u32 = 0x00000035;
 
+/// No longer used by any drivers in Linux 5.8.
 #[allow(dead_code)]
 #[deprecated]
 pub(crate) const ETHTOOL_GRXNTUPLE: u32 = 0x00000036;

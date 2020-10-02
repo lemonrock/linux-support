@@ -59,12 +59,6 @@ impl<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth<RP=RP> + Receives<CommonReceiveOnly
 	}
 	
 	#[inline(always)]
-	fn receive_poll(&'a self)
-	{
-		self.receive().receive_poll()
-	}
-	
-	#[inline(always)]
 	fn remove_receive_map_queue_identifier<FFQ: FreeFrameQueue>(&'a self, instance: &ExpressDataPathInstance<ROTOB, FFQ>)
 	{
 		let _ignored = self.receive().remove_receive_map_queue_identifier(&instance.redirect_map_and_attached_program);
@@ -75,9 +69,15 @@ impl<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth<RP=RP> + Receives<CommonReceiveOnly
 	{
 		self.0.receive()
 	}
+	
+	#[inline(always)]
+	fn receive_poll(&'a self)
+	{
+		self.receive().receive_poll()
+	}
 }
 
-impl<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>> CommonExpressDataPathSocket<ROTOB>
+impl<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth<TS=TS> + Transmits<CommonTransmitOnly<TS>>, TS: 'a + TransmitSend> CommonExpressDataPathSocket<ROTOB>
 {
 	#[inline(always)]
 	fn transmit_queue(&'a self) -> &'a TransmitQueue
@@ -111,8 +111,14 @@ impl<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>> Co
 	}
 	
 	#[inline(always)]
-	fn transmit(&'a self) -> &'a CommonTransmitOnly
+	fn transmit(&'a self) -> &'a CommonTransmitOnly<TS>
 	{
 		self.0.transmit()
+	}
+	
+	#[inline(always)]
+	fn transmit_send(&'a self)
+	{
+		self.transmit().transmit_send()
 	}
 }

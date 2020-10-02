@@ -10,7 +10,6 @@ include!("FillOrCompletionOrBothRingQueueDepths.rs");
 include!("RingQueueDepthReceiveAndTransmitSeparately.rs");
 include!("RingQueueDepthReceiveOnly.rs");
 include!("RingQueueDepthTransmitOnly.rs");
-
 include!("ReceiveOrTransmitOrBoth.rs");
 include!("RingQueueDepths.rs");
 include!("Receives.rs");

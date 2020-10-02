@@ -3,9 +3,9 @@
 
 
 use super::*;
-use crate::network_device::receive_flows::rule_location::FixedRuleLocation;
-use crate::network_device::receive_flows::rule_location::RuleLocation;
-use crate::network_device::receive_flows::rule_location::SpecialRuleLocation;
+use crate::network_device::network_flow_classifier::rule_location::FixedRuleLocation;
+use crate::network_device::network_flow_classifier::rule_location::RuleLocation;
+use crate::network_device::network_flow_classifier::rule_location::SpecialRuleLocation;
 
 
 include!("_FLOW.rs");include!("CombinedRuleLocation.rs");

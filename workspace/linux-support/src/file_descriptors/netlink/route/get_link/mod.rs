@@ -9,7 +9,6 @@ use crate::network_device::queues::*;
 use crate::bpf::extended::identifiers::MultipleProgramIdentifiers;
 use crate::network_device::queuing_discipline::QueuingDisciplineAlgorithm;
 use crate::configuration::Milliseconds;
-use crate::network_device::receive_flows::VirtualFunctionIndex;
 
 
 include!("GetLinkMessageData.rs");

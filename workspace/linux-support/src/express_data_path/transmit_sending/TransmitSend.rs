@@ -2,18 +2,15 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-
-
-/// Common building blocks.
-pub mod common_receive_flows;
-
-
-include!("DataAndMasks.rs");
-include!("EthernetFlow.rs");
-include!("IpsecAuthenticationHeaderFlow.rs");
-include!("IpsecEncapsulatingSecurityPayloadFlow.rs");
-include!("StreamControlTransmissionProtocolFlow.rs");
-include!("TransmissionControlProtocolFlow.rs");
-include!("UserDatagramProtocolFlow.rs");
-include!("UserLayer4Flow.rs");
+/// A transmit send.
+///
+/// In practice, this could suspend the thread or coroutine, or make a callback via `io_uring`.
+pub trait TransmitSend
+{
+	/// A 'non-blocking' transmit send.
+	///
+	/// Typically implemented using `sendto()`.
+	///
+	/// Timing out is also supported; there is no need to report this and hence no return value is provided for.
+	fn send(&mut self);
+}

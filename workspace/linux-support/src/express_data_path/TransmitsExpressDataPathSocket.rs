@@ -3,7 +3,7 @@
 
 
 /// Transmits.
-pub trait TransmitsExpressDataPathSocket<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, FFQ: 'a + FreeFrameQueue>: ExpressDataPathSocket<'a, ROTOB, FFQ>
+pub trait TransmitsExpressDataPathSocket<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth<TS=TS> + Transmits<CommonTransmitOnly<TS>>, FFQ: 'a + FreeFrameQueue, TS: 'a + TransmitSend>: ExpressDataPathSocket<'a, ROTOB, FFQ>
 {
 	/// Send as part of a burst of frames with `transmit_only()`.
 	/// `populate` takes `our_frame_headroom, space_for_ethernet_packet` and returns the actual size of the ethernet packet (which must be `<= space_for_ethernet_packet.len()`.
@@ -169,7 +169,7 @@ pub trait TransmitsExpressDataPathSocket<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth
 	{
 		if self.transmit_queue().needs_wake_up()
 		{
-			self.express_data_path_socket_file_descriptor().initiate_transmit_processing_by_kernel()
+			self.common().transmit_send()
 		}
 	}
 	

@@ -81,7 +81,7 @@ impl<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth<RP=RP> + Receives<CommonReceiveOnly
 	}
 }
 
-impl<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, FFQ: 'a + FreeFrameQueue> TransmitsExpressDataPathSocket<'a, ROTOB, FFQ> for SharedExpressDataPathSocket<ROTOB, FFQ>
+impl<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth<TS=TS> + Transmits<CommonTransmitOnly<TS>>, FFQ: 'a + FreeFrameQueue, TS: 'a + TransmitSend> TransmitsExpressDataPathSocket<'a, ROTOB, FFQ, TS> for SharedExpressDataPathSocket<ROTOB, FFQ>
 {
 	#[inline(always)]
 	fn lock_completion_queue(&self)
@@ -105,7 +105,7 @@ impl<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth<RP=RP> + Receives<CommonReceiveOnly
 	}
 }
 
-impl<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth + Transmits<CommonTransmitOnly>, FFQ: 'a + FreeFrameQueue> SharedExpressDataPathSocket<ROTOB, FFQ>
+impl<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth<TS=TS> + Transmits<CommonTransmitOnly<TS>>, FFQ: 'a + FreeFrameQueue, TS: 'a + TransmitSend> SharedExpressDataPathSocket<ROTOB, FFQ>
 {
 	#[inline(always)]
 	fn completion_queue_spin_lock(&self) -> &BestForCompilationTargetSpinLock

@@ -8,9 +8,9 @@ pub struct CommonReceiveOnly<RP: ReceivePoll>
 {
 	receive_queue: ReceiveQueue,
 	
-	frames_received: FramesCount,
-	
 	receive_poll: RefCell<RP>,
+	
+	frames_received: FramesCount,
 	
 	receive_queue_identifier: QueueIdentifier,
 }
@@ -25,6 +25,8 @@ impl<RP: ReceivePoll> Supports for CommonReceiveOnly<RP>
 impl<RP: ReceivePoll> ReceiveOrTransmitOrBoth for CommonReceiveOnly<RP>
 {
 	type RP = RP;
+	
+	type TS = ();
 }
 
 impl<RP: ReceivePoll> Receives<Self> for CommonReceiveOnly<RP>
@@ -44,8 +46,8 @@ impl<RP: ReceivePoll> CommonReceiveOnly<RP>
 		Self
 		{
 			receive_queue,
-			frames_received: FramesCount::new(),
 			receive_poll: RefCell::new(receive_poll),
+			frames_received: FramesCount::new(),
 			receive_queue_identifier,
 		}
 	}

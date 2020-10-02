@@ -10,6 +10,7 @@ use self::frames::*;
 use self::receive_or_transmit::*;
 use self::receive_polling::*;
 use self::ring_queues::*;
+use self::transmit_sending::*;
 use super::*;
 use crate::bpf::c::bpf_func_id;
 use crate::bpf::c::bpf_prog_type;
@@ -68,6 +69,10 @@ pub mod receive_polling;
 
 /// Ring queues.
 pub mod ring_queues;
+
+
+/// Transmit sending.
+pub mod transmit_sending;
 
 
 include!("CommonExpressDataPathSocket.rs");

@@ -7,4 +7,7 @@ pub trait ReceiveOrTransmitOrBoth: Supports
 {
 	#[doc(hidden)]
 	type RP;
+	
+	#[doc(hidden)]
+	type TS;
 }

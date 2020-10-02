@@ -3,7 +3,7 @@
 
 
 /// Forwards.
-pub trait ForwardsExpressDataPathSocket<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth<RP=RP> + Receives<CommonReceiveOnly<RP>> + Transmits<CommonTransmitOnly>, FFQ: 'a + FreeFrameQueue, RP: 'a + ReceivePoll>: ReceivesExpressDataPathSocket<'a, ROTOB, FFQ, RP> + TransmitsExpressDataPathSocket<'a, ROTOB, FFQ>
+pub trait ForwardsExpressDataPathSocket<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth<RP=RP, TS=TS> + Receives<CommonReceiveOnly<RP>> + Transmits<CommonTransmitOnly<TS>>, FFQ: 'a + FreeFrameQueue, RP: 'a + ReceivePoll, TS: 'a + TransmitSend>: ReceivesExpressDataPathSocket<'a, ROTOB, FFQ, RP> + TransmitsExpressDataPathSocket<'a, ROTOB, FFQ, TS>
 {
 	/// Immediately forwards received frames.
 	///
