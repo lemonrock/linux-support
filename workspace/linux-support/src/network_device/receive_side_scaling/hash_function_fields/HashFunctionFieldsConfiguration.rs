@@ -20,6 +20,223 @@ pub struct HashFunctionFieldsConfiguration
 
 impl HashFunctionFieldsConfiguration
 {
+	/// Best possible combination without packets being received out-of-order.
+	#[inline(always)]
+	pub fn amazon_ena_best_possible() -> Vec<HashFunctionFieldsConfiguration>
+	{
+		Self::amazon_ena_valid_combinations_of_hash_function_fields_configuration().iter().collect()
+	}
+	
+	/// Valid combinations of `HashFunctionFieldsConfiguration` for Amazon ENA.
+	///
+	/// All of these can be independently set.
+	#[inline(always)]
+	pub fn amazon_ena_valid_combinations_of_hash_function_fields_configuration() -> HashSet<HashFunctionFieldsConfiguration>
+	{
+		use self::HashFunctionFields::*;
+		
+		const EthernetFields: EthernetHashFunctionFields = EthernetHashFunctionFields
+		{
+			include_ethernet_destination_address: true,
+			
+			include_virtual_local_area_network_tag: false,
+		};
+		
+		const InternetProtocolFields: InternetProtocolHashFunctionFields = InternetProtocolHashFunctionFields
+		{
+			ethernet: EthernetFields,
+			
+			include_layer_3_protocol_number: false,
+			
+			include_internet_protocol_version_source_address: true,
+			
+			include_internet_protocol_version_destination_address: true,
+		};
+		
+		const Layer4Fields: Layer4HashFunctionFields = Layer4HashFunctionFields
+		{
+			internet_protocol: InternetProtocolFields,
+			
+			include_source_port: true,
+			
+			include_destination_port: true,
+		};
+		
+		hashset!
+		[
+			HashFunctionFieldsConfiguration::new_without_discard(Ethernet(EthernetFields)),
+			HashFunctionFieldsConfiguration::new_without_discard(InternetProtocolVersion4(InternetProtocolFields)),
+			HashFunctionFieldsConfiguration::new_without_discard(TransmissionControlProtocolOverInternetProtocolVersion4(Layer4Fields)),
+			HashFunctionFieldsConfiguration::new_without_discard(UserDatagramProtocolOverInternetProtocolVersion4(Layer4Fields)),
+			HashFunctionFieldsConfiguration::new_without_discard(InternetProtocolVersion6(InternetProtocolFields)),
+			HashFunctionFieldsConfiguration::new_without_discard(TransmissionControlProtocolOverInternetProtocolVersion6(Layer4Fields)),
+			HashFunctionFieldsConfiguration::new_without_discard(UserDatagramProtocolOverInternetProtocolVersion6(Layer4Fields)),
+		]
+	}
+	
+	/// Best possible combination without packets being received out-of-order.
+	#[inline(always)]
+	pub fn intel_ixgbevf_intel_fork_for_x550_or_later_valid_combinations_of_hash_function_fields_configuration_best_possible() -> Vec<HashFunctionFieldsConfiguration>
+	{
+		use self::HashFunctionFields::*;
+		
+		const EthernetFields: EthernetHashFunctionFields = EthernetHashFunctionFields
+		{
+			include_ethernet_destination_address: false,
+			
+			include_virtual_local_area_network_tag: false,
+		};
+		
+		const InternetProtocolFields: InternetProtocolHashFunctionFields = InternetProtocolHashFunctionFields
+		{
+			ethernet: EthernetFields,
+			
+			include_layer_3_protocol_number: false,
+			
+			include_internet_protocol_version_source_address: true,
+			
+			include_internet_protocol_version_destination_address: true,
+		};
+		
+		const Layer4FieldsWithPortNumbers: Layer4HashFunctionFields = Layer4HashFunctionFields
+		{
+			internet_protocol: InternetProtocolFields,
+			
+			include_source_port: true,
+			
+			include_destination_port: true,
+		};
+		
+		const Layer4FieldsWithoutPortNumbers: Layer4HashFunctionFields = Layer4HashFunctionFields
+		{
+			internet_protocol: InternetProtocolFields,
+			
+			include_source_port: true,
+			
+			include_destination_port: true,
+		};
+		
+		vec!
+		[
+			HashFunctionFieldsConfiguration::new_without_discard(TransmissionControlProtocolOverInternetProtocolVersion4(Layer4FieldsWithPortNumbers)),
+		
+			HashFunctionFieldsConfiguration::new_without_discard(TransmissionControlProtocolOverInternetProtocolVersion6(Layer4FieldsWithPortNumbers)),
+			
+			// This *disables* the internal flag `IXGBE_MRQC_RSS_FIELD_IPV4_UDP`, ie it unsets UDP receive side scaling (RSS) hashing of flows.
+			HashFunctionFieldsConfiguration::new_without_discard(UserDatagramProtocolOverInternetProtocolVersion4(Layer4FieldsWithoutPortNumbers)),
+			
+			// This *disables* the internal flag `IXGBE_MRQC_RSS_FIELD_IPV6_UDP`, ie it unsets UDP receive side scaling (RSS) hashing of flows.
+			HashFunctionFieldsConfiguration::new_without_discard(UserDatagramProtocolOverInternetProtocolVersion6(Layer4FieldsWithoutPortNumbers)),
+		]
+	}
+	
+	/// Valid combinations of `HashFunctionFieldsConfiguration` for Intel ixgbevf (Intel out-of-tree fork) driver for Intel X550 or later models.
+	///
+	/// In practice, under the covers in the driver, all of these combinations translate into just two alternatives:-
+	///
+	/// * Receive side scaling (RSS) hashing with or without the flag `IXGBE_MRQC_RSS_FIELD_IPV4_UDP`.
+	/// * Receive side scaling (RSS) hashing with or without the flag `IXGBE_MRQC_RSS_FIELD_IPV6_UDP`.
+	///
+	/// Otherwise, the following receive side scaling (RSS) hashing is always enabled for:-
+	///
+	/// * `IXGBE_MRQC_RSS_FIELD_IPV4`.
+	/// * `IXGBE_MRQC_RSS_FIELD_IPV4_TCP`.
+	/// * `IXGBE_MRQC_RSS_FIELD_IPV6`.
+	/// * `IXGBE_MRQC_RSS_FIELD_IPV6_TCP`.
+	///
+	/// Additionally, it seems that enabling either `IXGBE_MRQC_RSS_FIELD_IPV4_UDP` or `IXGBE_MRQC_RSS_FIELD_IPV6_UDP` can cause fragmented UDP packets to arrive to the application's socket *out-of-order*!
+	///
+	/// So to enable RSS hashing:-
+	///
+	/// * Pass `HashFunctionFieldsConfiguration::new_without_discard(TransmissionControlProtocolOverInternetProtocolVersion4(Layer4FieldsWithPortNumbers))` and then `HashFunctionFieldsConfiguration::new_without_discard(TransmissionControlProtocolOverInternetProtocolVersion6(Layer4FieldsWithPortNumbers))`.
+	/// * Then pass `HashFunctionFieldsConfiguration::new_without_discard(UserDatagramProtocolOverInternetProtocolVersion4(Layer4FieldsWithoutPortNumbers))` and `HashFunctionFieldsConfiguration::new_without_discard(UserDatagramProtocolOverInternetProtocolVersion6(Layer4FieldsWithoutPortNumbers))`.
+	/// * Then, if hashing of UDP packets is desired, pass `HashFunctionFieldsConfiguration::new_without_discard(UserDatagramProtocolOverInternetProtocolVersion4(Layer4FieldsWithPortNumbers))` and `HashFunctionFieldsConfiguration::new_without_discard(UserDatagramProtocolOverInternetProtocolVersion6(Layer4FieldsWithPortNumbers))`.
+	#[inline(always)]
+	pub fn intel_ixgbevf_intel_fork_for_x550_or_later_valid_combinations_of_hash_function_fields_configuration() -> HashSet<HashFunctionFieldsConfiguration>
+	{
+		use self::HashFunctionFields::*;
+		
+		const EthernetFields: EthernetHashFunctionFields = EthernetHashFunctionFields
+		{
+			include_ethernet_destination_address: false,
+			
+			include_virtual_local_area_network_tag: false,
+		};
+		
+		const InternetProtocolFields: InternetProtocolHashFunctionFields = InternetProtocolHashFunctionFields
+		{
+			ethernet: EthernetFields,
+			
+			include_layer_3_protocol_number: false,
+			
+			include_internet_protocol_version_source_address: true,
+			
+			include_internet_protocol_version_destination_address: true,
+		};
+		
+		const Layer4FieldsWithPortNumbers: Layer4HashFunctionFields = Layer4HashFunctionFields
+		{
+			internet_protocol: InternetProtocolFields,
+			
+			include_source_port: true,
+			
+			include_destination_port: true,
+		};
+		
+		const Layer4FieldsWithoutPortNumbers: Layer4HashFunctionFields = Layer4HashFunctionFields
+		{
+			internet_protocol: InternetProtocolFields,
+			
+			include_source_port: true,
+			
+			include_destination_port: true,
+		};
+		
+		const IpsecFields: IpsecHashFunctionFields = IpsecHashFunctionFields
+		{
+			internet_protocol: InternetProtocolFields,
+			
+			include_security_parameter_index: false,
+		};
+		
+		hashset!
+		[
+			HashFunctionFieldsConfiguration::new_without_discard(TransmissionControlProtocolOverInternetProtocolVersion4(Layer4FieldsWithPortNumbers)),
+		
+			HashFunctionFieldsConfiguration::new_without_discard(TransmissionControlProtocolOverInternetProtocolVersion6(Layer4FieldsWithPortNumbers)),
+			
+			HashFunctionFieldsConfiguration::new_without_discard(UserDatagramProtocolOverInternetProtocolVersion4(Layer4FieldsWithPortNumbers)),
+			
+			// This *disables* the internal flag `IXGBE_MRQC_RSS_FIELD_IPV4_UDP`, ie it unsets UDP receive side scaling (RSS) hashing of flows.
+			HashFunctionFieldsConfiguration::new_without_discard(UserDatagramProtocolOverInternetProtocolVersion4(Layer4FieldsWithoutPortNumbers)),
+			
+			HashFunctionFieldsConfiguration::new_without_discard(UserDatagramProtocolOverInternetProtocolVersion6(Layer4FieldsWithPortNumbers)),
+			
+			// This *disables* the internal flag `IXGBE_MRQC_RSS_FIELD_IPV6_UDP`, ie it unsets UDP receive side scaling (RSS) hashing of flows.
+			HashFunctionFieldsConfiguration::new_without_discard(UserDatagramProtocolOverInternetProtocolVersion6(Layer4FieldsWithoutPortNumbers)),
+			
+			HashFunctionFieldsConfiguration::new_without_discard(StreamTransmissionControlProtocolOverInternetProtocolVersion4(Layer4FieldsWithoutPortNumbers)),
+			
+			HashFunctionFieldsConfiguration::new_without_discard(StreamTransmissionControlProtocolOverInternetProtocolVersion6(Layer4FieldsWithoutPortNumbers)),
+			
+			HashFunctionFieldsConfiguration::new_without_discard(IpsecOverInternetProtocolVersion4(IpsecFields)),
+			
+			HashFunctionFieldsConfiguration::new_without_discard(IpsecOverInternetProtocolVersion6(IpsecFields)),
+		]
+	}
+	
+	/// New.
+	#[inline(always)]
+	pub const fn new_without_discard(hash_function_fields: HashFunctionFields) -> Self
+	{
+		Self
+		{
+			hash_function_fields,
+		
+			discard,
+		}
+	}
+	
 	#[inline(always)]
 	pub(crate) fn to_ethtool_rxnfc(&self, receive_side_scaling_context: Option<ContextIdentifier>) -> ethtool_rxnfc
 	{

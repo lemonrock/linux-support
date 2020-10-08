@@ -3,6 +3,8 @@
 
 
 /// Host name.
+///
+/// Equivalent to `UTS_NODENAME` (but not static).
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]

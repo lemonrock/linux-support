@@ -2,37 +2,19 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Global network device configuration
+/// Global network device transmit queue configuration
 #[derive(Default, Debug, Clone, Eq, PartialEq)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct GlobalNetworkDeviceTransmitQueueConfiguration
 {
-	/// See detail in `Documentation/ABI/testing/sysfs-class-net-queues` in Linux source.
-	#[serde(default)] pub maximum_rate_in_megabits_per_second: Option<Option<NonZeroU32>>,
+	/// Common.
+	#[serde(default)] pub common: CommonTransmitQueueConfiguration,
 	
 	/// See detail in `Documentation/ABI/testing/sysfs-class-net-queues` in Linux source.
 	///
 	/// Either set Transmit Packet Steering (XPS) affinity to HyperThreads or Receive QueueIdentifiers.
 	#[serde(default)] pub transmit_packet_steering: Option<Either<HyperThreads, QueueIdentifiers>>,
-	
-	/// See detail in `Documentation/ABI/testing/sysfs-class-net-queues` in Linux source.
-	#[serde(default)] pub byte_limits_hold_time: Option<Milliseconds>,
-	
-	/// See detail in `Documentation/ABI/testing/sysfs-class-net-queues` in Linux source.
-	///
-	/// Not validated to be less than or equal to `self.current_byte_limit`.
-	#[serde(default)] pub minimum_current_byte_limit: Option<Option<NonZeroU64>>,
-	
-	/// See detail in `Documentation/ABI/testing/sysfs-class-net-queues` in Linux source.
-	///
-	/// Not validated to be equal to or greater than `self.current_byte_limit`.
-	#[serde(default)] pub maximum_current_byte_limit: Option<NonZeroU64>,
-	
-	/// See detail in `Documentation/ABI/testing/sysfs-class-net-queues` in Linux source.
-	///
-	/// Not validated to be in the range `self.minimum_current_byte_limit ..= self.maximum_current_byte_limit`.
-	#[serde(default)] pub current_byte_limit: Option<Option<NonZeroU64>>,
 }
 
 impl GlobalNetworkDeviceTransmitQueueConfiguration
@@ -43,10 +25,7 @@ impl GlobalNetworkDeviceTransmitQueueConfiguration
 	{
 		use self::GlobalNetworkDeviceConfigurationError::*;
 		
-		if let Some(maximum_rate_in_megabits_per_second) = self.maximum_rate_in_megabits_per_second
-		{
-			transmit_sysfs_queue.set_maximum_rate_in_megabits_per_second(sys_path, maximum_rate_in_megabits_per_second).map_err(CouldNotSetPerTransmitQueueMaximumRate)?;
-		}
+		self.common.configure(sys_path, transmit_sysfs_queue)?;
 		
 		if let Some(ref transmit_packet_steering) = self.transmit_packet_steering
 		{
@@ -61,26 +40,17 @@ impl GlobalNetworkDeviceTransmitQueueConfiguration
 			}
 		}
 		
-		if let Some(byte_limits_hold_time) = self.byte_limits_hold_time
-		{
-			transmit_sysfs_queue.set_byte_limits_hold_time(sys_path, byte_limits_hold_time).map_err(CouldNotSetPerTransmitQueueByteLimitsHoldTime)?
-		}
-		
-		if let Some(minimum_current_byte_limit) = self.minimum_current_byte_limit
-		{
-			transmit_sysfs_queue.set_minimum_current_byte_limit(sys_path, minimum_current_byte_limit).map_err(CouldNotSetPerTransmitQueueMinimumCurrentByteLimit)?
-		}
-		
-		if let Some(maximum_current_byte_limit) = self.maximum_current_byte_limit
-		{
-			transmit_sysfs_queue.set_maximum_current_byte_limit(sys_path, maximum_current_byte_limit).map_err(CouldNotSetPerTransmitQueueMaximumCurrentByteLimit)?
-		}
-		
-		if let Some(current_byte_limit) = self.current_byte_limit
-		{
-			transmit_sysfs_queue.set_current_byte_limit(sys_path, current_byte_limit).map_err(CouldNotSetPerTransmitQueueCurrentByteLimit)?
-		}
-		
 		Ok(())
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn linux_default_with_one_to_one_receive_to_transmit_packet_steering(receive_queue_identifier: QueueIdentifier) -> Self
+	{
+		Self
+		{
+			common: CommonTransmitQueueConfiguration::linux_default(),
+			
+			transmit_packet_steering: Some(Right(QueueIdentifiers::for_one(receive_queue_identifier))),
+		}
 	}
 }

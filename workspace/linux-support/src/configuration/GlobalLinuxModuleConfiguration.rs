@@ -30,6 +30,9 @@ pub struct GlobalLinuxModuleConfiguration
 	///
 	/// Unaffected by the setting of `disable_module_loading_and_unloading_until_reboot` (unless this application has been re-run).
 	pub linux_kernel_modules_to_load: IndexSet<LinuxKernelModuleName>,
+	
+	/// Change module parameters.
+	pub linux_kernel_module_parameters: GlobalLinuxModuleParametersConfiguration,
 
 	/// Disables module loading and unloading until reboot.
 	pub disable_module_loading_and_unloading_until_reboot: bool,
@@ -39,7 +42,7 @@ impl GlobalLinuxModuleConfiguration
 {
 	/// Configures.
 	#[inline(always)]
-	pub fn configure(&self, proc_path: &ProcPath) -> Result<(), GlobalLinuxModuleConfigurationError>
+	pub fn configure(&self, sys_path: &SysPath, proc_path: &ProcPath) -> Result<(), GlobalLinuxModuleConfigurationError>
 	{
 		use self::GlobalLinuxModuleConfigurationError::*;
 
@@ -84,6 +87,8 @@ impl GlobalLinuxModuleConfiguration
 				}
 			}
 		}
+		
+		self.linux_kernel_module_parameters.configure(sys_path)?;
 
 		set_value_once(proc_path, LinuxKernelModuleName::disable_module_loading_and_unloading_until_reboot, self.disable_module_loading_and_unloading_until_reboot, CouldNotDisableModuleLoadingAndUnloadingUntilNextReboot)
 	}

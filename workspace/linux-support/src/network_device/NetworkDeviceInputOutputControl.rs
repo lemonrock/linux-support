@@ -679,74 +679,30 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	}
 	
 	#[allow(missing_docs)]
-	pub fn maximize_receive_ring_queues_and_transmit_ring_queue_depths(&self, maximize: bool) -> Result<Option<PendingQueueDepths>, NetworkDeviceInputOutputControlError<Infallible>>
+	pub fn maximize_receive_ring_queues_and_transmit_ring_queue_depths(&self) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
-		let (current, maximima) = match self.receive_ring_queues_and_transmit_ring_queue_depths()?
+		let maximima = match self.receive_ring_queues_and_transmit_ring_queue_depths()?
 		{
 			None => return Ok(None),
-			Some(None)  => return Ok(Some(PendingQueueDepths::Unsupported)),
-			Some(Some(current_and_maximima)) => current_and_maximima,
+			Some(None)  => return Ok(Some(())),
+			Some(Some((_current, maximima))) => maximima,
 		};
 		
-		if !maximize
-		{
-			return Ok(Some(current))
-		}
-		
-		self.ethtool_command
-		(
-			ethtool_ringparam
-			{
-				cmd: ETHTOOL_SRINGPARAM,
-				rx_max_pending: None,
-				rx_mini_max_pending: None,
-				rx_jumbo_max_pending: None,
-				tx_max_pending: None,
-				rx_pending: maximima.receive_pending_queue_depth,
-				rx_mini_pending: maximima.receive_mini_pending_queue_depth,
-				rx_jumbo_pending: maximima.receive_jumbo_pending_queue_depth,
-				tx_pending: maximima.transmit_pending_queue_depth,
-			},
-			|_command| Ok(maximima),
-			Self::error_is_unreachable,
-			|_command| current,
-		)
+		self.set_receive_ring_queues_and_transmit_ring_queue_depths(maximima)
 	}
 	
 	/// NOTE: If a RX flow indirection table is configured (`netif_is_rxfh_configured()`) and the number of receive channels (combined + receive only) is reduced then `EINVAL` is returned.
 	/// NOTE: If XDP user memory is in use against a channel (a queue to XDP) and the number of channels is reduced (which should not happen) `EINVAL` is returned.
-	pub fn maximize_number_of_channels(&self, maximize: bool) -> Result<Option<Channels>, NetworkDeviceInputOutputControlError<Infallible>>
+	pub fn maximize_number_of_channels(&self) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
-		let (current, maximima) = match self.number_of_channels()?
+		let maximima = match self.number_of_channels()?
 		{
 			None => return Ok(None),
-			Some(None)  => return Ok(Some(Channels::Unsupported)),
-			Some(Some(current_and_maximima)) => current_and_maximima,
+			Some(None)  => return Ok(Some(())),
+			Some(Some((_current, maximima))) => maximima,
 		};
 		
-		if !maximize
-		{
-			return Ok(Some(current))
-		}
-		
-		self.ethtool_command
-		(
-			ethtool_channels
-			{
-				cmd: ETHTOOL_SCHANNELS,
-				max_rx: None,
-				max_tx: None,
-				max_combined: None,
-				max_other: None,
-				combined_count: maximima.receive_and_transmit_channels_count,
-				rx_count: maximima.receive_only_channels_count,
-				tx_count: maximima.transmit_only_channels_count,
-				other_count: maximima.other_channels_count,
-			},
-			|_command| Ok(maximima),
-			Self::error_is_unreachable,
-			|_command| current,
-		)
+		self.set_number_of_channels(maximima)
 	}
 	
 	/// The ring queue count can legitimately be zero.
@@ -1240,7 +1196,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	
 	/// Driver information.
 	#[inline(always)]
-	pub fn driver_and_device_information(&self) -> Result<Option<DriverAndDeviceInformation>, NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>>
+	pub fn driver_and_device_information(&self) -> Result<Option<Option<DriverAndDeviceInformation>>, NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>>
 	{
 		let mut command = ethtool_drvinfo::default();
 		command.cmd = ETHTOOL_GDRVINFO;
@@ -1248,9 +1204,9 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		self.ethtool_command
 		(
 			command,
-			|command| command.as_driver_and_device_information(),
+			|command| Ok(Some(command.as_driver_and_device_information()?)),
 			Self::error_is_unreachable,
-			|_command| panic!("Driver information should always be available")
+			|_command| None
 		)
 	}
 	
@@ -1445,6 +1401,29 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		)
 	}
 	
+	#[allow(missing_docs)]
+	pub fn set_receive_ring_queues_and_transmit_ring_queue_depths(&self, pending_queue_depths: PendingQueueDepths) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
+	{
+		self.ethtool_command
+		(
+			ethtool_ringparam
+			{
+				cmd: ETHTOOL_SRINGPARAM,
+				rx_max_pending: None,
+				rx_mini_max_pending: None,
+				rx_jumbo_max_pending: None,
+				tx_max_pending: None,
+				rx_pending: maximima.receive_pending_queue_depth,
+				rx_mini_pending: maximima.receive_mini_pending_queue_depth,
+				rx_jumbo_pending: maximima.receive_jumbo_pending_queue_depth,
+				tx_pending: maximima.transmit_pending_queue_depth,
+			},
+			|_command| Ok(()),
+			Self::error_is_unreachable,
+			|_command| (),
+		)
+	}
+	
 	/// Queue depths, current and maximima.
 	#[inline(always)]
 	pub fn receive_ring_queues_and_transmit_ring_queue_depths(&self) -> Result<Option<Option<(PendingQueueDepths, PendingQueueDepths)>>, NetworkDeviceInputOutputControlError<Infallible>>
@@ -1472,6 +1451,30 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			},
 			Self::error_is_unreachable,
 			|_command| None
+		)
+	}
+	
+	/// NOTE: If a RX flow indirection table is configured (`netif_is_rxfh_configured()`) and the number of receive channels (combined + receive only) is reduced then `EINVAL` is returned.
+	/// NOTE: If XDP user memory is in use against a channel (a queue to XDP) and the number of channels is reduced (which should not happen) `EINVAL` is returned.
+	pub fn set_number_of_channels(&self, number_of_channels: Channels) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
+	{
+		self.ethtool_command
+		(
+			ethtool_channels
+			{
+				cmd: ETHTOOL_SCHANNELS,
+				max_rx: None,
+				max_tx: None,
+				max_combined: None,
+				max_other: None,
+				combined_count: number_of_channels.receive_and_transmit_channels_count,
+				rx_count: number_of_channels.receive_only_channels_count,
+				tx_count: number_of_channels.transmit_only_channels_count,
+				other_count: number_of_channels.other_channels_count,
+			},
+			|_command| Ok(()),
+			Self::error_is_unreachable,
+			|_command| (),
 		)
 	}
 	

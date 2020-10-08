@@ -31,7 +31,23 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	{
 		Self::with_capacity_in_words(Self::MaximumNumberOfUsizeWords)
 	}
-
+	
+	/// Creates a new bit set containing just `element`.
+	#[inline(always)]
+	pub fn for_one(element: BSA) -> Self
+	{
+		let mut bit_set = BitSet::new();
+		bit_set.add(element);
+		bit_set
+	}
+	
+	/// Creates an empty new instance of the same capacity as this one.
+	#[inline(always)]
+	pub fn empty_but_same_capacity(&self) -> Self
+	{
+		Self::with_capacity_in_words(self.0.capacity())
+	}
+	
 	/// Creates a new empty bit set (all bits are initially zero).
 	#[inline(always)]
 	fn with_capacity_in_32bit_tuples(size_in_32bit_tuples: usize) -> Self
@@ -171,7 +187,37 @@ impl<BSA: BitSetAware> BitSet<BSA>
 		self.add(BSA::try_from(index)?);
 		Ok(())
 	}
-
+	
+	
+	/// Removes the highest values from the set.
+	#[inline(always)]
+	pub fn cap_retaining_lowest_values(&mut self, maximum_length: usize)
+	{
+		if self.is_shorter_than_or_equal_to(maximum_length)
+		{
+			return
+		}
+		
+		let first_bit_index_to_zero = maximum_length;
+		let word_index = first_bit_index_to_zero / Self::BitsInAWord;
+		let relative_bit_index_within_word = first_bit_index_to_zero % Self::BitsInAWord;
+		
+		let subsequent_word_index = if relative_bit_index_within_word == 0
+		{
+			word_index
+		}
+		else
+		{
+			let word_pointer = unsafe { self.word_mut(word_index) };
+			let current = *word_pointer;
+			let preserve_lower_bits_mask = (1 << relative_bit_index_within_word) - 1;
+			*word_pointer = current & preserve_lower_bits_mask;
+			word_index + 1
+		};
+		
+		self.write_zeros_from(subsequent_word_index)
+	}
+	
 	/// Iterate.
 	#[inline(always)]
 	pub fn iterate<'a>(&'a self) -> BitSetIterator<'a, BSA>
@@ -246,7 +292,36 @@ impl<BSA: BitSetAware> BitSet<BSA>
 		}
 		true
 	}
-
+	
+	/// Is this longer than `maximum_length`?
+	///
+	/// More efficient than calling `self.len() <= maximum_length`.
+	#[inline(always)]
+	pub fn is_shorter_than_or_equal_to(&self, maximum_length: usize) -> bool
+	{
+		!self.is_longer_than(maximum_length)
+	}
+	
+	/// Is this longer than `maximum_length`?
+	///
+	/// More efficient than calling `self.len() > maximum_length`.
+	#[inline(always)]
+	pub fn is_longer_than(&self, maximum_length: usize) -> bool
+	{
+		let mut length = 0;
+		for word_index in 0 .. self.capacity_in_words()
+		{
+			let word = self.get_word(word_index);
+			length += word.count_ones() as usize;
+			
+			if length > maximum_length
+			{
+				return true
+			}
+		}
+		false
+	}
+	
 	/// Number of bits set.
 	///
 	/// This operation is relatively expensive.
@@ -255,13 +330,13 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	#[inline(always)]
 	pub fn len(&self) -> usize
 	{
-		let mut count = 0;
+		let mut length = 0;
 		for word_index in 0 .. self.capacity_in_words()
 		{
 			let word = self.get_word(word_index);
-			count += word.count_ones();
+			length += word.count_ones();
 		}
-		count as usize
+		length as usize
 	}
 
 	/// Number of bits set if all bits are set.
@@ -330,7 +405,16 @@ impl<BSA: BitSetAware> BitSet<BSA>
 		let current = *word_pointer;
 		*word_pointer = current & !(1 << relative_bit_index_within_word)
 	}
-
+	
+	/// Pops first element.
+	#[inline(always)]
+	pub fn pop_first(&mut self) -> BSA
+	{
+		let first = self.iterate().next().unwrap();
+		self.remove(first);
+		first
+	}
+	
 	/// Removes top bits that are zero and tries to shrink underlying storage.
 	///
 	/// Use only if intending to store a BitSet in memory for a long time.
@@ -655,5 +739,11 @@ impl<BSA: BitSetAware> BitSet<BSA>
 		let extend_size = new_length - current_length;
 
 		unsafe { self.as_mut_ptr_end().write_bytes(0x00, extend_size) };
+	}
+	
+	#[inline(always)]
+	fn write_zeros_from(&mut self, word_index: usize)
+	{
+		unsafe { self.as_mut_ptr().add(word_index).write_bytes(0x00, self.capacity_in_words() - word_index) };
 	}
 }

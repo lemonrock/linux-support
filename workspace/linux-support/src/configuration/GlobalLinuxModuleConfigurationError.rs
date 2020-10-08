@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Global Linux kernel asynchronous IO (KAIO) configuration error kind.
+/// Global Linux kernel module configuration error kind.
 #[derive(Debug)]
 pub enum GlobalLinuxModuleConfigurationError
 {
@@ -29,6 +29,16 @@ pub enum GlobalLinuxModuleConfigurationError
 
 	#[allow(missing_docs)]
 	CouldNotDisableModuleLoadingAndUnloadingUntilNextReboot(io::Error),
+
+	#[allow(missing_docs)]
+	CouldNotConfigureModuleParameter
+	{
+		linux_kernel_module_name: LinuxKernelModuleName,
+	
+		parameter_name: LinuxKernelModuleParameterName,
+	
+		cause: io::Error,
+	},
 }
 
 impl Display for GlobalLinuxModuleConfigurationError
@@ -64,6 +74,8 @@ impl error::Error for GlobalLinuxModuleConfigurationError
 			&CouldNotLoadLinuxKernelModuleBecauseModuleLoadingIsDisabled => None,
 
 			&CouldNotDisableModuleLoadingAndUnloadingUntilNextReboot(ref cause) => Some(cause),
+
+			&CouldNotConfigureModuleParameter { ref cause, .. } => Some(cause),
 		}
 	}
 }

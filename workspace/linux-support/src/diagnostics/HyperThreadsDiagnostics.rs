@@ -71,7 +71,7 @@ impl HyperThreadsDiagnostics
 			
 			offline: wrap_panic(sys_path, HyperThreads::offline),
 			
-			valid: wrap_panic(sys_path, |sys_path| HyperThreads::valid(sys_path, proc_path)),
+			valid: wrap_panic(sys_path, |sys_path| HyperThreads::valid(sys_path, Some(proc_path))),
 			
 			present: wrap_panic(sys_path, HyperThreads::present).map(|hyper_threads|
 			{

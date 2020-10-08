@@ -12,6 +12,8 @@ pub struct GlobalReceivePacketSteeringAndReceiveFlowSteeringConfiguration
 	///
 	/// A better value might be 32768.
 	///
+	/// Rounded up to power of two.
+	///
 	/// Requires root.
 	pub maximum_receive_packet_steering_flows_per_hyper_thread: Option<ReceiveFlowSteeringFlowCount>,
 	

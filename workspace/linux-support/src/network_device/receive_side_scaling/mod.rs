@@ -15,6 +15,7 @@ include!("HashFunctionConfiguration.rs");
 include!("HashFunctionName.rs");
 include!("HashFunctionSeed.rs");
 include!("IndirectionTable.rs");
+include!("IndirectionTableLengthError.rs");
 include!("ReceiveFlowSteeringFlowCount.rs");
 include!("HashFunctionNameUnsupportedError.rs");
 include!("WeightQueueStrategy.rs");

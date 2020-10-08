@@ -12,19 +12,29 @@ pub struct DriverAndDeviceInformation
 	pub driver_name: ObjectName32,
 	
 	/// If `Some` will not be empty.
+	///
+	/// As of 2020, most drivers now default to `UTS_RELEASE` (the value of `LinuxKernelVersion.release) and `ethool`'s `ioctl()` interface ensures the driver version is populated.
+	///
+	/// So unlikely to be `None`.
 	pub driver_version: Option<ObjectName32>,
 	
 	/// If `Some` will not be empty.
 	///
 	/// May not be a PCI address.
+	///
+	/// Usually populated.
 	pub device_bus_device_address: Option<BusDeviceAddress>,
 	
 	/// If `Some` will not be empty.
+	///
+	/// Not usually populated.
 	pub device_firmware_version: Option<ObjectName32>,
 	
 	/// Expansion ROM version.
 	///
 	/// If `Some` will not be empty.
+	///
+	/// Not usually populated.
 	pub device_expansion_eeprom_version: Option<ObjectName32>,
 	
 	/// Expansion EEPROM.

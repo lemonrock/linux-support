@@ -84,6 +84,13 @@ impl HyperThreads
 
 	const CpuSetTSizeInWords: usize = (Self::MaximumCLibrary as usize) / Self::UsizeSizeInBytes;
 	
+	/// For one hyper thread.
+	#[inline(always)]
+	pub fn for_one(hyper_thread: HyperThread) -> Self
+	{
+		Self(BitSet::for_one(hyper_thread))
+	}
+	
 	/// A new bit set suitable for converting to a cpu_set_t.
 	#[inline(always)]
 	pub fn new_for_cpu_set_t() -> Self
@@ -93,33 +100,42 @@ impl HyperThreads
 
 	/// Valid `HyperThread`s.
 	///
-	/// Validated to make sure the result is not empty.
+	/// Removes those not available to the current process if `proc_path` is `Some`.
 	#[inline(always)]
-	pub fn valid(sys_path: &SysPath, proc_path: &ProcPath) -> Self
+	pub fn valid(sys_path: &SysPath, proc_path: Option<&ProcPath>) -> Self
 	{
-		let mut valid = Self::has_a_folder_path(sys_path);
-		valid.intersection(&Self::is_in_proc_self_status(proc_path));
+		Self::has_a_folder_path(sys_path).validate(sys_path, proc_path)
+	}
+	
+	/// Valid `HyperThread`s.
+	///
+	/// Removes those not available to the current process if `proc_path` is `Some`.
+	#[inline(always)]
+	pub fn validate(mut self, sys_path: &SysPath, proc_path: Option<&ProcPath>) -> Self
+	{
+		if let Some(proc_path) = proc_path
+		{
+			self.intersection(&Self::is_in_proc_self_status(proc_path));
+		}
 		
 		// In a system that does not support CPU hotplug (ie `CONFIG_HOTPLUG_CPU` is not define), `present` is the same as `possible`.
 		// Otherwise, `present` is a subset of `possible` and can vary over time.
 		// See `include/linux/cpumask.h` in the Linux kernel sources.
-		valid.intersection(&Self::possible(sys_path));
-		valid.intersection(&Self::present(sys_path));
+		self.intersection(&Self::possible(sys_path));
+		self.intersection(&Self::present(sys_path));
 		
 		// In a system that does not support CPU hotplug (ie `CONFIG_HOTPLUG_CPU` is not define), `online` is the same as `present`.
 		// Otherwise, `online` is a subset of `present` and can vary over time.
 		// See `include/linux/cpumask.h` in the Linux kernel sources.
-		valid.intersection(&Self::online(sys_path));
+		self.intersection(&Self::online(sys_path));
 		
-		valid.remove_all(&Self::offline(sys_path));
-		valid.remove_any_that_are_not_actually_online(sys_path);
-		valid.remove_any_without_associated_numa_nodes(sys_path);
-
-		assert!(!valid.is_empty());
-
-		valid.shrink_to_fit();
-
-		valid
+		self.remove_all(&Self::offline(sys_path));
+		self.remove_any_that_are_not_actually_online(sys_path);
+		self.remove_any_without_associated_numa_nodes(sys_path);
+		
+		self.shrink_to_fit();
+		
+		self
 	}
 	
 	/// Current process affinity.

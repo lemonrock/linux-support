@@ -9,12 +9,31 @@
 pub struct InterruptRequest(u8);
 
 #[allow(missing_docs)]
+impl From<u8> for InterruptRequest
+{
+	#[inline(always)]
+	fn from(value: u8) -> Self
+	{
+		Self(value)
+	}
+}
+
+#[allow(missing_docs)]
 impl Into<u8> for InterruptRequest
 {
 	#[inline(always)]
 	fn into(self) -> u8
 	{
 		self.0
+	}
+}
+
+impl ParseNumber for InterruptRequest
+{
+	#[inline(always)]
+	fn parse_number(bytes: &[u8], radix: Radix, parse_byte: impl Fn(Radix, u8) -> Result<u8, ParseNumberError>) -> Result<Self, ParseNumberError>
+	{
+		u8::parse_number(bytes, radix, parse_byte).map(Self)
 	}
 }
 
@@ -29,12 +48,14 @@ impl InterruptRequest
 			let dir_entry = match dir_entry
 			{
 				Err(_) => return None,
+				
 				Ok(dir_entry) => dir_entry
 			};
 			
 			match dir_entry.file_type()
 			{
 				Err(_) => return None,
+				
 				Ok(file_type) => if !file_type.is_dir()
 				{
 					return None
@@ -48,7 +69,11 @@ impl InterruptRequest
 		Ok(sys_path.kernel_irq_folder_path().read_dir()?.filter_map(map))
 	}
 	
-	/// Actions.
+	/// Actions (Interrupt Names).
+	///
+	/// May be empty.
+	///
+	/// See also `self.procfs_actions()`.
 	///
 	/// Values observed on a Parallels VM:-
 	///
@@ -64,11 +89,60 @@ impl InterruptRequest
 	/// * `virtio0-input.0`.
 	/// * `virtio0-output.0`.
 	#[inline(always)]
-	pub fn actions(self, sys_path: &SysPath) -> io::Result<Box<[u8]>>
+	pub fn sysfs_actions(self, sys_path: &SysPath) -> io::Result<Vec<InterruptRequestActionName>>
 	{
 		let file_path = self.sys_file_path(sys_path, "actions");
-		file_path.read_raw_without_line_feed()
+		
+		match Self::raw_data_if_empty(file_path)?
+		{
+			None => Ok(Vec::new()),
+			
+			Some(raw_data_without_line_feed) => Ok
+			(
+				{
+					let mut actions = Vec::new();
+					for action in raw_data_without_line_feed.split_bytes(b',')
+					{
+						if !action.is_empty()
+						{
+							actions.push(unsafe { CString::from_vec_unchecked(action.to_vec()) });
+						}
+					}
+					actions
+				}
+			)
+		}
 	}
+	
+	/// Actions (Interrupt Names).
+	///
+	/// May be empty.
+	///
+	/// See also `self.sysfs_actions()`.
+	pub fn procfs_actions(self, proc_path: &ProcPath) -> io::Result<Vec<InterruptRequestActionName>>
+	{
+		let folder_path = self.proc_folder_path(proc_path);
+		let read_dir = folder_path.read_dir()?;
+		let mut actions = Vec::new();
+		for dir_entry in read_dir
+		{
+			if let Ok(dir_entry) = dir_entry
+			{
+				if let Ok(file_type) = dir_entry.file_type()
+				{
+					if !file_type.is_dir()
+					{
+						continue
+					}
+					
+					let action = dir_entry.file_name().os_str_to_c_string();
+					actions.push(action);
+				}
+			}
+		}
+		Ok(actions)
+	}
+	
 	
 	/// Chip name.
 	///
@@ -78,58 +152,73 @@ impl InterruptRequest
 	/// * `PCI-MSI`.
 	/// * `XT-PIC`.
 	#[inline(always)]
-	pub fn chip_name(self, sys_path: &SysPath) -> io::Result<Box<[u8]>>
+	pub fn chip_name(self, sys_path: &SysPath) -> io::Result<Option<CString>>
 	{
 		let file_path = self.sys_file_path(sys_path, "chip_name");
-		file_path.read_raw_without_line_feed()
+		Ok
+		(
+			Self::raw_data_if_empty(file_path)?.map(|raw_data_without_line_feed|
+			{
+				unsafe { CString::from_vec_unchecked(raw_data_without_line_feed) }
+			})
+		)
 	}
 	
 	/// Hardware interrupt request line.
 	///
 	/// eg `10`; usually the same value as `self` but can be a large value, eg `512000`.
+	///
+	/// Note that `0xFFFF_FFFF` is invalid (this is not an error).
 	#[inline(always)]
-	pub fn hardware_interrupt_request_line(self, sys_path: &SysPath) -> io::Result<u32>
+	pub fn hardware_interrupt_request_line(self, sys_path: &SysPath) -> io::Result<Option<u32>>
 	{
 		let file_path = self.sys_file_path(sys_path, "hwirq");
-		file_path.read_value()
+		
+		match Self::raw_data_if_empty(file_path)?
+		{
+			None => Ok(None),
+			
+			Some(bytes) =>
+			{
+				let value = i32::from_bytes(&bytes[..]).map_err(io_error_invalid_data)?;
+				Ok(Some(value as u32))
+			}
+		}
 	}
 	
 	/// Name.
 	///
 	/// Values observed on a Parallels VM:-
 	///
-	/// * `edge`.
-	/// * `fasteoi`.
+	/// * `Some(edge)`.
+	/// * `Some(fasteoi)`.
 	#[inline(always)]
-	pub fn name(self, sys_path: &SysPath) -> io::Result<Box<[u8]>>
+	pub fn name(self, sys_path: &SysPath) -> io::Result<Option<CString>>
 	{
 		let file_path = self.sys_file_path(sys_path, "name");
-		file_path.read_raw_without_line_feed()
+		Ok
+		(
+			Self::raw_data_if_empty(file_path)?.map(|raw_data_without_line_feed|
+			{
+				unsafe { CString::from_vec_unchecked(raw_data_without_line_feed) }
+			})
+		)
 	}
 	
 	/// Type.
-	///
-	/// Values observed on a Parallels VM:-
-	///
-	/// * `edge`.
-	/// * `level`.
 	#[inline(always)]
-	pub fn type_(self, sys_path: &SysPath) -> io::Result<Box<[u8]>>
+	pub fn type_(self, sys_path: &SysPath) -> io::Result<InterruptRequestType>
 	{
 		let file_path = self.sys_file_path(sys_path, "type");
-		file_path.read_raw_without_line_feed()
+		file_path.read_value()
 	}
 	
 	/// Wake up.
-	///
-	/// Values observed on a Parallels VM:-
-	///
-	/// * `disabled`.
 	#[inline(always)]
-	pub fn wake_up(self, sys_path: &SysPath) -> io::Result<Box<[u8]>>
+	pub fn wake_up(self, sys_path: &SysPath) -> io::Result<InterruptRequestWakeUp>
 	{
 		let file_path = self.sys_file_path(sys_path, "wakeup");
-		file_path.read_raw_without_line_feed()
+		file_path.read_value()
 	}
 	
 	/// Number of occurrences per-HyperThread.
@@ -278,6 +367,31 @@ impl InterruptRequest
 		HyperThreads(self.proc_file_path(proc_path, file_name).read_hyper_thread_or_numa_node_list().unwrap())
 	}
 	
+	// Annoningly, Linux does not output "\n" for an empty value for actions and name but "".
+	#[inline(always)]
+	fn raw_data_if_empty(file_path: PathBuf) -> io::Result<Option<Vec<u8>>>
+	{
+		let mut raw = file_path.read_raw()?;
+		let length = raw.len();
+		if length == 0
+		{
+			Ok(None)
+		}
+		else
+		{
+			let mut vec = raw.into_vec();
+			let should_be_line_feed = vec.remove(length - 1);
+			if unlikely!(should_be_line_feed != b'\n')
+			{
+				Err(io_error_invalid_data("File lacks terminating line feed"))
+			}
+			else
+			{
+				Ok(Some(vec))
+			}
+		}
+	}
+	
 	#[inline(always)]
 	fn sys_file_path(self, sys_path: &SysPath, file_name: &str) -> PathBuf
 	{
@@ -288,6 +402,12 @@ impl InterruptRequest
 	fn proc_file_path(self, proc_path: &ProcPath, file_name: &str) -> PathBuf
 	{
 		proc_path.irq_number_file_path(self, file_name)
+	}
+	
+	#[inline(always)]
+	fn proc_folder_path(self, proc_path: &ProcPath) -> PathBuf
+	{
+		proc_path.irq_number_folder_path(self)
 	}
 	
 	#[inline(always)]

@@ -437,7 +437,7 @@ impl GetLinkMessageProcessor
 
 				(false, false, IPV4_DEVCONF_ARPFILTER) => set_field_error(&mut processing_message_state.address_resolution_protocol_filter, message_attribute, rtattr::get_attribute_value_bool)?,
 
-				(false, false, IPV4_DEVCONF_MEDIUM_ID) => set_field_error(&mut processing_message_state.medium_identifier, message_attribute, rtattr::get_attribute_value_u32)?,
+				(false, false, IPV4_DEVCONF_MEDIUM_ID) => set_field_error(&mut processing_message_state.medium_identifier, message_attribute, rtattr::get_attribute_value_i32)?,
 
 				(false, false, IPV4_DEVCONF_NOXFRM) => set_field_error(&mut processing_message_state.disable_xfrm, message_attribute, rtattr::get_attribute_value_bool)?,
 

@@ -201,7 +201,7 @@ pub struct GetLinkMessageData
 	/// The length of the two addresses is available at `/sys/class/net/<network_interface_name>/addr_len`.
 	/// Formatted in lower-case colon-separated hexadecimal, eg `00:1c:42:9e:fc:bb`.
 	///
-	/// More information about `Some(hardware_addresses.0)` is avaliable at  `/sys/class/net/<network_interface_name>/addr_assign_type` which is a value of type `NET_ADDR`.
+	/// More information about `Some(hardware_addresses.0)` is avaliable at  `/sys/class/net/<network_interface_name>/addr_assign_type` which is a value of type `HardwareAddressType`.
 	/// See also `NetworkInterfaceName.assigned_hardware_address_type()`.
 	pub address_and_broadcast_and_permanent_address: Option<(HardwareAddress, HardwareAddress, Option<HardwareAddress>)>,
 	

@@ -38,6 +38,24 @@ impl Add for QueueCount
 	}
 }
 
+impl TryFrom<usize> for QueueCount
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: usize) -> Result<Self, Self::Error>
+	{
+		if unlikely!(value > (u16::MAX as usize))
+		{
+			Err(ParseNumberError::OutOfRange)
+		}
+		else
+		{
+			Self::try_from(value as u16)
+		}
+	}
+}
+
 impl TryFrom<u64> for QueueCount
 {
 	type Error = ParseNumberError;
@@ -205,5 +223,37 @@ impl QueueCount
 	pub(crate) const fn new_unchecked(value: u16) -> Self
 	{
 		Self(unsafe { NonZeroU16::new_unchecked(value) })
+	}
+	
+	/// Queue identifiers.
+	#[inline(always)]
+	pub fn queue_identifiers(self) -> impl Iterator<Item=QueueIdentifier>
+	{
+		let exclusive_maximum: u16 = self.into();
+		(0 .. exclusive_maximum).map(QueueIdentifier)
+	}
+	
+	/// Caps number of hyper threads.
+	#[inline(always)]
+	pub fn from_number_of_hyper_threads_capped_to_inclusive_maximum(mut hyper_threads: HyperThreads) -> (HyperThreads, Self)
+	{
+		const MaximumLength: usize = QueueCount::InclusiveMaximum.0 as usize;
+		
+		let length = hyper_threads.len();
+		if length > MaximumLength
+		{
+			hyper_threads.cap_retaining_lowest_values(MaximumLength);
+			(hyper_threads, QueueCount::InclusiveMaximum)
+		}
+		else
+		{
+			(hyper_threads, Self(length as u16))
+		}
+	}
+	
+	#[inline(alwys)]
+	pub(crate) fn new_queue_configurations<Configuration>(self) -> HashMap<QueueIdentifier, Configuration>
+	{
+		HashMap::with_capacity(self.into())
 	}
 }

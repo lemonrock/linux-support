@@ -55,10 +55,10 @@ pub enum GlobalNetworkDeviceConfigurationError
 	CouldNotChangePerQueueCoalesceConfiguration(NetworkDeviceInputOutputControlError<UndocumentedError>),
 	
 	#[allow(missing_docs)]
-	CouldNotMaximizeChannels(NetworkDeviceInputOutputControlError<Infallible>),
+	CouldNotChangeChannels(NetworkDeviceInputOutputControlError<Infallible>),
 	
 	#[allow(missing_docs)]
-	CouldNotMaximizePendingQueueDepths(NetworkDeviceInputOutputControlError<Infallible>),
+	CouldNotChangePendingQueueDepths(NetworkDeviceInputOutputControlError<Infallible>),
 	
 	#[allow(missing_docs)]
 	CouldNotConfigureReceiveSideScalingHashConfiguration(NetworkDeviceInputOutputControlError<Infallible>),
@@ -68,6 +68,9 @@ pub enum GlobalNetworkDeviceConfigurationError
 	
 	#[allow(missing_docs)]
 	CouldNotSetGenericReceiveOffloadTimeout(io::Error),
+	
+	#[allow(missing_docs)]
+	CouldNotSetNapHardInterruptRequestsCount(io::Error),
 	
 	#[allow(missing_docs)]
 	CouldNotSetPerReceiveQueueReceivePacketSteeringAffinity(io::Error),
@@ -147,15 +150,17 @@ impl error::Error for GlobalNetworkDeviceConfigurationError
 			
 			&CouldNotChangePerQueueCoalesceConfiguration(ref error) => Some(error),
 			
-			&CouldNotMaximizeChannels(ref error) => Some(error),
+			&CouldNotChangeChannels(ref error) => Some(error),
 			
-			&CouldNotMaximizePendingQueueDepths(ref error) => Some(error),
+			&CouldNotChangePendingQueueDepths(ref error) => Some(error),
 			
 			&CouldNotConfigureReceiveSideScalingHashConfiguration(ref error) => Some(error),
 			
 			&CouldNotConfigureHashFunctionFieldsConfiguration(ref error) => Some(error),
 			
 			&CouldNotSetGenericReceiveOffloadTimeout(ref error) => Some(error),
+			
+			&CouldNotSetNapHardInterruptRequestsCount(ref error) => Some(error),
 			
 			&CouldNotSetPerReceiveQueueReceivePacketSteeringAffinity(ref error) => Some(error),
 			

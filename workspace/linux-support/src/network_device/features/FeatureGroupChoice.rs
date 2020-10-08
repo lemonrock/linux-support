@@ -45,6 +45,9 @@ pub enum FeatureGroupChoice
 
 	/// IP checksums in hardware.
 	internet_protocols_checksum_in_hardware,
+	
+	/// Generic Send Offload (GSO) encapsulation.
+	generic_send_offload_encapsulation,
 
 	/// Any combination not represented above.
 	OtherToEnable(FeatureGroup),
@@ -84,6 +87,7 @@ impl Clone for FeatureGroupChoice
 			&ethtool_rx => ethtool_rx,
 			&internet_protocols_checksum => internet_protocols_checksum,
 			&internet_protocols_checksum_in_hardware => internet_protocols_checksum_in_hardware,
+			&generic_send_offload_encapsulation => generic_send_offload_encapsulation,
 			&OtherToEnable(ref feature_group) => OtherToEnable(feature_group.clone()),
 			&OtherToDisable(ref feature_group) => OtherToDisable(feature_group.clone()),
 		}
@@ -112,6 +116,7 @@ impl PartialEq for FeatureGroupChoice
 			(&ethtool_rx, &ethtool_rx) => true,
 			(&internet_protocols_checksum, &internet_protocols_checksum) => true,
 			(&internet_protocols_checksum_in_hardware, &internet_protocols_checksum_in_hardware) => true,
+			(&generic_send_offload_encapsulation, &generic_send_offload_encapsulation) => true,
 			(&OtherToEnable(ref left_feature_group), &OtherToEnable(ref right_feature_group)) => left_feature_group.eq(right_feature_group),
 			(&OtherToDisable(ref left_feature_group), &OtherToDisable(ref right_feature_group)) => left_feature_group.eq(right_feature_group),
 			_ => false,
@@ -123,16 +128,100 @@ impl Eq for FeatureGroupChoice
 {
 }
 
+impl<'a> Sub<Feature> for &'a FeatureGroupChoice
+{
+	type Output = FeatureGroupChoice;
+	
+	#[inline(always)]
+	fn sub(self, rhs: Feature) -> Self::Output
+	{
+		use self::FeatureGroupChoice::*;
+		
+		let (mut hash_set, disable) = self.to_feature_settings();
+		let was_removed = hash_set.remove(&rhs).is_some();
+		if was_removed
+		{
+			let feature_group = FeatureGroup::from(hash_set);
+			if disable
+			{
+				OtherToDisable(feature_group)
+			}
+			else
+			{
+				OtherToEnable(feature_group)
+			}
+		}
+		else
+		{
+			self.clone()
+		}
+	}
+}
+
+impl Sub<Feature> for FeatureGroupChoice
+{
+	type Output = Self;
+	
+	#[inline(always)]
+	fn sub(self, rhs: Feature) -> Self::Output
+	{
+		use self::FeatureGroupChoice::*;
+		
+		let (mut hash_set, disable) = self.to_feature_settings();
+		let was_removed = hash_set.remove(&rhs).is_some();
+		if was_removed
+		{
+			let feature_group = FeatureGroup::from(hash_set);
+			if disable
+			{
+				OtherToDisable(feature_group)
+			}
+			else
+			{
+				OtherToEnable(feature_group)
+			}
+		}
+		else
+		{
+			self
+		}
+	}
+}
+
 impl FeatureGroupChoice
 {
 	#[inline(always)]
-	pub(crate) fn iter(feature_group_choices: &Vec<Self>) -> impl Iterator<Item=HashMap<NETIF_F, bool>> + '_
+	pub fn enable_one(feature: Feature) -> Self
+	{
+		Self::enable(hashset! [feature])
+	}
+	
+	#[inline(always)]
+	pub fn enable(features: HashSet<Feature>) -> Self
+	{
+		FeatureGroupChoice::OtherToEnable(FeatureGroup::from(features))
+	}
+	
+	#[inline(always)]
+	pub fn disable_one(feature: Feature) -> Self
+	{
+		Self::disable(hashset! [feature])
+	}
+	
+	#[inline(always)]
+	pub fn disable(features: HashSet<Feature>) -> Self
+	{
+		FeatureGroupChoice::OtherToDisable(FeatureGroup::from(features))
+	}
+	
+	#[inline(always)]
+	pub(crate) fn iter(feature_group_choices: &Vec<Self>) -> impl Iterator<Item=HashMap<Feature, bool>> + '_
 	{
 		feature_group_choices.iter().map(|feature_group_choice| feature_group_choice.to_feature_settings())
 	}
 	
 	#[inline(always)]
-	pub(crate) fn to_feature_settings(&self) -> HashMap<NETIF_F, bool>
+	pub(crate) fn to_feature_settings(&self) -> HashMap<Feature, bool>
 	{
 		use self::FeatureGroupChoice::*;
 		
@@ -151,6 +240,7 @@ impl FeatureGroupChoice
 			ethtool_rx => FeatureGroup::ethtool_rx().enable(),
 			internet_protocols_checksum => FeatureGroup::internet_protocols_checksum().enable(),
 			internet_protocols_checksum_in_hardware => FeatureGroup::internet_protocols_checksum_in_hardware().enable(),
+			generic_send_offload_encapsulation => FeatureGroup::generic_send_offload_encapsulation().enable(),
 			OtherToEnable(ref feature_group) => feature_group.enable(),
 			OtherToDisable(ref feature_group) => feature_group.disable(),
 		}

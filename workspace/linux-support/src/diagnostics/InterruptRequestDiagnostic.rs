@@ -8,7 +8,7 @@
 #[serde(deny_unknown_fields)]
 pub struct InterruptRequestDiagnostic
 {
-	/// Actions.
+	/// Actions (Interrupt Names).
 	///
 	/// Values observed on a Parallels VM:-
 	///
@@ -23,37 +23,52 @@ pub struct InterruptRequestDiagnostic
 	/// * `virtio0-config`.
 	/// * `virtio0-input.0`.
 	/// * `virtio0-output.0`.
-	pub actions: DiagnosticUnobtainableResult<Box<[u8]>>,
+	pub sysfs_actions: DiagnosticUnobtainableResult<Vec<InterruptRequestActionName>>,
+	
+	/// Actions (Interrupt Names).
+	///
+	/// Values observed on a Parallels VM:-
+	///
+	/// * (empty string).
+	/// * `acpi`.
+	/// * `ahci[0000:00:1f.2]`.
+	/// * `ata_piix`.
+	/// * `i8042`.
+	/// * `rtc0`.
+	/// * `timer`.
+	/// * `virtio1`.
+	/// * `virtio0-config`.
+	/// * `virtio0-input.0`.
+	/// * `virtio0-output.0`.
+	pub procfs_actions: DiagnosticUnobtainableResult<Vec<InterruptRequestActionName>>,
 	
 	/// Values observed on a Parallels VM:-
 	///
 	/// * `IO-APIC`.
 	/// * `PCI-MSI`.
 	/// * `XT-PIC`.
-	pub chip_name: DiagnosticUnobtainableResult<Box<[u8]>>,
+	pub chip_name: DiagnosticUnobtainableResult<Option<CString>>,
 	
 	/// Values observed on a Parallels VM:-
 	///
-	/// * `10` (the same as the `InterruptRequest`).
-	/// * `512000`.
-	pub hardware_interrupt_request_line: DiagnosticUnobtainableResult<u32>,
+	/// eg `10`; usually the same value as tje IRQ number but can be a large value, eg `512000`.
+	///
+	/// Note that `0xFFFF_FFFF` is invalid (this is not an error).
+	pub hardware_interrupt_request_line: DiagnosticUnobtainableResult<Option<u32>>,
 	
 	/// Values observed on a Parallels VM:-
 	///
-	/// * `edge`.
-	/// * `fasteoi`.
-	pub name: DiagnosticUnobtainableResult<Box<[u8]>>,
+	/// * `Some(edge)`.
+	/// * `Some(fasteoi)`.
+	pub name: DiagnosticUnobtainableResult<Option<CString>>,
 	
-	/// Values observed on a Parallels VM:-
-	///
-	/// * `edge`.
-	/// * `level`.
-	pub type_: DiagnosticUnobtainableResult<Box<[u8]>>,
+	/// Type.
+	pub type_: DiagnosticUnobtainableResult<InterruptRequestType>,
 	
 	/// Values observed on a Parallels VM:-
 	///
 	/// * `disabled`.
-	pub wake_up: DiagnosticUnobtainableResult<Box<[u8]>>,
+	pub wake_up: DiagnosticUnobtainableResult<InterruptRequestWakeUp>,
 	
 	/// Number of occurrences per-HyperThread.
 	///
@@ -88,8 +103,9 @@ impl InterruptRequestDiagnostic
 	{
 		Self
 		{
-			actions: interrupt_request.actions(sys_path).map_err(DiagnosticUnobtainable::from),
-			chip_name: interrupt_request.actions(sys_path).map_err(DiagnosticUnobtainable::from),
+			sysfs_actions: interrupt_request.sysfs_actions(sys_path).map_err(DiagnosticUnobtainable::from),
+			procfs_actions: interrupt_request.procfs_actions(sys_path).map_err(DiagnosticUnobtainable::from),
+			chip_name: interrupt_request.chip_name(sys_path).map_err(DiagnosticUnobtainable::from),
 			hardware_interrupt_request_line: interrupt_request.hardware_interrupt_request_line(sys_path).map_err(DiagnosticUnobtainable::from),
 			name: interrupt_request.name(sys_path).map_err(DiagnosticUnobtainable::from),
 			type_: interrupt_request.type_(sys_path).map_err(DiagnosticUnobtainable::from),

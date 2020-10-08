@@ -10,7 +10,7 @@
 #[serde(default, deny_unknown_fields)]
 pub struct IpsecHashFunctionFields
 {
-	#[serde(flatten)] internet_protocol: InternetProtocolHashFunctionFields,
+	#[serde(flatten)] pub internet_protocol: InternetProtocolHashFunctionFields,
 	
 	pub include_security_parameter_index: bool,
 }

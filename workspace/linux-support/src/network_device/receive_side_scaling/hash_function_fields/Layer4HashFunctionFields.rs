@@ -9,7 +9,7 @@
 #[serde(default, deny_unknown_fields)]
 pub struct Layer4HashFunctionFields
 {
-	#[serde(flatten)] internet_protocol: InternetProtocolHashFunctionFields,
+	#[serde(flatten)] pub(crate) internet_protocol: InternetProtocolHashFunctionFields,
 	
 	/// * Supported by Amazon ENA.
 	/// * Unsupported by Intel ixgbevf.

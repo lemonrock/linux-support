@@ -11,7 +11,7 @@ pub struct NetworkDeviceDiagnostic
 	#[serde(flatten)] pub link: GetLinkMessageData,
 
 	/// From `ioctl()`.
-	#[serde(flatten)] pub input_output_control: DiagnosticUnobtainableResult<NetworkDeviceInputOutputControlDiagnostic>,
+	#[serde(flatten)] pub input_output_control: DiagnosticUnobtainableResult<Option<NetworkDeviceInputOutputControlDiagnostic>>,
 
 	#[allow(missing_docs)]
 	pub generic_receive_offload_flush_timeout_in_nanoseconds: DiagnosticUnobtainableResult<u32>,
@@ -29,7 +29,7 @@ pub struct NetworkDeviceDiagnostic
 	pub is_testing: DiagnosticUnobtainableResult<bool>,
 	
 	/// See detail in `Documentation/ABI/testing/sysfs-class-net` in Linux source.
-	pub assigned_hardware_address_type: DiagnosticUnobtainableResult<NET_ADDR>,
+	pub assigned_hardware_address_type: DiagnosticUnobtainableResult<HardwareAddressType>,
 	
 	/// See detail in `Documentation/ABI/testing/sysfs-class-net` in Linux source.
 	pub assigned_hardware_name: DiagnosticUnobtainableResult<NET_NAME>,
@@ -39,6 +39,9 @@ pub struct NetworkDeviceDiagnostic
 	
 	/// See detail in `Documentation/ABI/testing/sysfs-class-net-queues` in Linux source.
 	pub transmit_queues: DiagnosticUnobtainableResult<HashMap<QueueIdentifier, NetworkDeviceTransmitQueueDiagnostic>>,
+
+	/// PCI device address unless this is a loopback interface or something that isn't a PCI device.
+	pub pci_device_address: DiagnosticUnobtainableResult<Option<PciDeviceAddress>>,
 }
 
 impl NetworkDeviceDiagnostic
@@ -69,6 +72,17 @@ impl NetworkDeviceDiagnostic
 			receive_queues: Self::to_hash_map(sys_path, network_interface_name, NetworkDeviceReceiveQueueDiagnostic::gather),
 			
 			transmit_queues: Self::to_hash_map(sys_path, network_interface_name, NetworkDeviceTransmitQueueDiagnostic::gather),
+			
+			pci_device_address: match network_interface_name.pci_device(sys_path)
+			{
+				Err(error) => Err(DiagnosticUnobtainable::from(error)),
+				
+				Ok(None) => Err(DiagnosticUnobtainable(format!("Network Interface Name {:?} no longer exists", network_interface_name))),
+				
+				Ok(Some(None)) => Ok(None),
+				
+				Ok(Some(Some(pci_device_details))) => Ok(Some(pci_device_details.address())),
+			},
 			
 			link,
 		}

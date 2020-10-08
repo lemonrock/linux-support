@@ -5,6 +5,8 @@
 /// Number of flows steered to any one `HyperThread` by Receive Packet Steering (RPS)'s Receive Flow Steering (RFS).
 ///
 /// RFS keeps track of a global hash table of all flows.
+///
+/// Inclusive maximum is `1<<29`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
@@ -37,6 +39,18 @@ impl TryFrom<u32> for ReceiveFlowSteeringFlowCount
 	}
 }
 
+impl Div<QueueCount> for ReceiveFlowSteeringFlowCount
+{
+	type Output = usize;
+	
+	#[inline(always)]
+	fn div(self, rhs: QueueCount) -> Self::Output
+	{
+		let queue_count: usize = rhs.into();
+		(self.0 as usize) / queue_count
+	}
+}
+
 impl ReceiveFlowSteeringFlowCount
 {
 	/// Typical default.
@@ -45,7 +59,26 @@ impl ReceiveFlowSteeringFlowCount
 	pub const UsualDefaultGlobalMaximum: Self = Self(0);
 	
 	/// Maximum.
-	pub const InclusiveMaximum: Self = Self(i32::MAX as u32);
+	pub const InclusiveMaximum: Self = Self(1 << 29);
+	
+	/// Safe construction.
+	#[inline(always)]
+	pub fn capped(value: usize) -> Self
+	{
+		if value > (u32::MAX as usize)
+		{
+			return Self::InclusiveMaximum
+		}
+		let value = value as u32;
+		if value > Self::InclusiveMaximum.0
+		{
+			Self::InclusiveMaximum
+		}
+		else
+		{
+			Self(value)
+		}
+	}
 	
 	/// Safe construction.
 	#[inline(always)]
@@ -55,13 +88,17 @@ impl ReceiveFlowSteeringFlowCount
 	}
 	
 	/// Value of `/proc/sys/net/core/rps_sock_flow_entries`.
+	///
+	/// Rounded up to power of 2.
 	#[inline(always)]
-	pub fn global_maximum(proc_path: &ProcPath) -> Self
+	pub fn global_maximum(proc_path: &ProcPath) -> io::Result<Self>
 	{
-		Self(Self::sys_net_core_rps_sock_flow_entries_file_path(proc_path).read_value().unwrap())
+		Self::sys_net_core_rps_sock_flow_entries_file_path(proc_path).read_value().map(Self)
 	}
 	
 	/// Set value of `/proc/sys/net/core/rps_sock_flow_entries` if it exists.
+	///
+	/// Rounded up to power of 2.
 	#[inline(always)]
 	pub fn set_global_maximum(self, proc_path: &ProcPath) -> io::Result<()>
 	{
@@ -77,6 +114,14 @@ impl ReceiveFlowSteeringFlowCount
 		{
 			Ok(())
 		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn per_receive_queue_receive_flow_steering_table_count(self, receive_queue_count: QueueCount) -> usize
+	{
+		assert_ne!(self, Self(0), "Receive Flow Steering (RFS) must have a flow count to be used per-receive-queue");
+		
+		self / receive_queue_count
 	}
 	
 	#[inline(always)]

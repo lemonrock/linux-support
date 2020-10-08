@@ -15,10 +15,10 @@ pub enum TunableChoice
 	DownshiftRetriesCount(DownshiftRetriesCountTunable),
 	
 	#[allow(missing_docs)]
-	ReceiveCopyBreak(ReceiveCopyBreakTunable),
+	ReceiveCopyBreakPoint(ReceiveCopyBreakPointTunable),
 	
 	#[allow(missing_docs)]
-	TransmitCopyBreak(TransmitCopyBreakTunable),
+	TransmitCopyBreakPoint(TransmitCopyBreakPointTunable),
 	
 	#[allow(missing_docs)]
 	FastLinkDownMilliseconds(FastLinkDownMillisecondsTunable),
@@ -41,9 +41,9 @@ impl TunableChoice
 			
 			&DownshiftRetriesCount(tunable) => network_device_input_output_control.set_tunable(tunable),
 			
-			&ReceiveCopyBreak(tunable) => network_device_input_output_control.set_tunable(tunable),
+			&ReceiveCopyBreakPoint(tunable) => network_device_input_output_control.set_tunable(tunable),
 			
-			&TransmitCopyBreak(tunable) => network_device_input_output_control.set_tunable(tunable),
+			&TransmitCopyBreakPoint(tunable) => network_device_input_output_control.set_tunable(tunable),
 			
 			&FastLinkDownMilliseconds(tunable) => network_device_input_output_control.set_tunable(tunable),
 			

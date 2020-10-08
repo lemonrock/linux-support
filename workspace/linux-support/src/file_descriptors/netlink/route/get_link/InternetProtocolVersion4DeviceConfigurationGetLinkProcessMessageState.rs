@@ -31,7 +31,7 @@ pub(crate) struct InternetProtocolVersion4DeviceConfigurationGetLinkProcessMessa
 
 	pub(crate) address_resolution_protocol_filter: Option<bool>,
 
-	pub(crate) medium_identifier: Option<u32>,
+	pub(crate) medium_identifier: Option<i32>,
 
 	pub(crate) disable_xfrm: Option<bool>,
 

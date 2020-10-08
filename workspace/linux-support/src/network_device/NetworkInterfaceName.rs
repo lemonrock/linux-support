@@ -75,6 +75,15 @@ impl Into<[c_char; ObjectName16::MaximumLengthIncludingAsciiNull]> for NetworkIn
 	}
 }
 
+impl<'a> Into<&'a str> for &'a NetworkInterfaceName
+{
+	#[inline(always)]
+	fn into(self) -> &'a str
+	{
+		self.0.into()
+	}
+}
+
 impl Deref for NetworkInterfaceName
 {
 	type Target = ObjectName16;
@@ -99,6 +108,14 @@ impl TryFrom<NetworkInterfaceIndex> for NetworkInterfaceName
 
 impl NetworkInterfaceName
 {
+	/// All network interface names.
+	#[inline(always)]
+	pub fn all() -> Result<impl Iterator<Item=NetworkInterfaceName>, String>
+	{
+		let mut netlink_socket_file_descriptor = NetlinkSocketFileDescriptor::open().map_err(|error| format!("Could not open netlink socket filet descriptor: {:?}", error))?;
+		RouteNetlinkProtocol::get_links(&mut netlink_socket_file_descriptor).map(|link| link.network_interface_name)
+	}
+	
 	/// Tries to get the network interface name.
 	#[inline(always)]
 	pub fn try_from_network_interface_index(value: NetworkInterfaceIndex) -> Result<Option<Self>, NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>>
@@ -134,9 +151,95 @@ impl NetworkInterfaceName
 			Ok(())
 		}
 	}
+	/// Writes the `gro_flush_timeout` which is used in the NAPI layer.
+	///
+	/// Default is 0.
+	#[inline(always)]
+	pub fn set_counter_to_decrement_before_processing_hard_interrupt_requests(&self, sys_path: &SysPath, counter_to_decrement_before_processing_hard_interrupt_requests: Option<NonZeroU32>) -> io::Result<()>
+	{
+		assert_effective_user_id_is_root("write /sys/class/net/<network_interface_name>/napi_defer_hard_irqs");
+		
+		let file_path = self.file_path(sys_path, "napi_defer_hard_irqs");
+		
+		if file_path.exists()
+		{
+			let value: u32 = unsafe { transmute(counter_to_decrement_before_processing_hard_interrupt_requests) };
+			file_path.write_value(UnpaddedDecimalInteger(value))
+		}
+		else
+		{
+			Ok(())
+		}
+	}
+	
+	/// `None` if no matching network interface.
+	/// `Some(None)` if no PciDevice (eg because this is a loopback interface and has no device, or it is not a PCI device).
+	#[inline(always)]
+	pub fn pci_device<'a>(&self, sys_path: &'a SysPath) -> Result<Option<Option<PciDevice<'a>>>, NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>>
+	{
+		use self::ToPciDeviceError::*;
+		
+		let pci_device_address = match BusDeviceAddress::try_from_network_interface_name(self.clone())?
+		{
+			None => return Ok(None),
+			
+			Some(None) => return Ok(Some(None)),
+			
+			Some(Some(bus_device_address)) => match PciDeviceAddress::try_from(bus_device_address)
+			{
+				Err(_) => return Ok(Some(None)),
+				
+				Ok(pci_device_address) => pci_device_address,
+			},
+		};
+		
+		let pci_device = PciDevice::new(pci_device_address, sys_path);
+		Ok(Some(Some(pci_device)))
+	}
+	
+	/// Does not exist for `lo` loopback interface.
+	#[inline(always)]
+	pub fn canonical_driver_folder_path(&self, sys_path: &SysPath) -> io::Result<Option<PathBuf>>
+	{
+		match self.device_folder_path(sys_path)
+		{
+			None => Ok(None),
+			
+			Some(device_folder_path) => Ok(Some(device_folder_path.append("driver").canonicalize()?))
+		}
+	}
+	
+	/// * Does not exist for the `lo` loopback interface
+	/// * Will be `virtio0` or similar for virtio net devices.
+	/// * Will be the string representation of the PciBusAddress (eg `0000:00:05.0`) for other ethernet devices.
+	#[inline(always)]
+	pub fn device_name_guess(&self, sys_path: &SysPath) -> Option<Box<[u8]>>
+	{
+		self.device_folder_path(sys_path).map(|device_folder_path| device_folder_path.file_name().unwrap().as_bytes().to_vec().into_boxed_slice())
+	}
+	
+	/// Device folder path.
+	///
+	/// This isn't consistent:-
+	///
+	/// * May be the same as the PCI device folder (eg `/sys/devices/pci0000:00/0000:00:05.0`
+	/// * May be a sub folder under it (eg `/sys/devices/pci0000:00/0000:00:05.0/virtio0`).
+	/// * Does not exist for `lo` loopback interface.
+	#[inline(always)]
+	fn device_folder_path(&self, sys_path: &SysPath) -> Option<PathBuf>
+	{
+		let file_path = self.file_path(sys_path, "device");
+		if likely!(file_path.exists())
+		{
+			Some(file_path)
+		}
+		else
+		{
+			None
+		}
+	}
 	
 	/// Reads the `dev_id`, used to differentiate devices that share the same link layer address.
-	#[inline(always)]
 	pub fn device_identifier(&self, sys_path: &SysPath) -> io::Result<u16>
 	{
 		let value = self.file_path(sys_path, "dev_id").read_raw_without_line_feed()?;
@@ -166,10 +269,10 @@ impl NetworkInterfaceName
 	
 	/// Assigned hardware address type.
 	#[inline(always)]
-	pub fn assigned_hardware_address_type(&self, sys_path: &SysPath) -> io::Result<NET_ADDR>
+	pub fn assigned_hardware_address_type(&self, sys_path: &SysPath) -> io::Result<HardwareAddressType>
 	{
 		let value: u8 = self.file_path(sys_path, "addr_assign_type").read_value()?;
-		if (value as usize) >= NET_ADDR::COUNT
+		if (value as usize) >= HardwareAddressType::COUNT
 		{
 			Err(io::Error::from(ErrorKind::InvalidData))
 		}
@@ -237,6 +340,12 @@ impl NetworkInterfaceName
 	#[inline(always)]
 	fn file_path(&self, sys_path: &SysPath, file_name: &str) -> PathBuf
 	{
-		sys_path.network_interface_class_net_folder_path(self).append(file_name)
+		self.self_file_path().append(file_name)
+	}
+	
+	#[inline(always)]
+	fn self_file_path(&self, sys_path: &SysPath)-> PathBuf
+	{
+		sys_path.network_interface_class_net_folder_path(self)
 	}
 }

@@ -17,6 +17,13 @@ pub struct ReceiveTransmitCoalescing
 
 impl ReceiveTransmitCoalescing
 {
+	pub(crate) const DisabledWhereMaximumFramesUnsupported: ReceiveTransmitCoalescing = ReceiveTransmitCoalescing
+	{
+		receive: CoalescePair::DisabledWhereMaximumFramesUnsupported,
+		
+		transmit: CoalescePair::DisabledWhereMaximumFramesUnsupported,
+	};
+	
 	#[inline(always)]
 	fn destructure(&self) -> (Option<NonZeroU32>, Option<NonZeroU32>, Option<NonZeroU32>, Option<NonZeroU32>)
 	{

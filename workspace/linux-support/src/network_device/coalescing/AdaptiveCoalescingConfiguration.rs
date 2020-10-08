@@ -29,7 +29,7 @@ impl AdaptiveCoalescingConfiguration
 		
 		let (adaptive_coalescing_rate_sampling, use_adaptive_receive_coalesce, use_adaptive_transmit_coalesce) = match this
 		{
-			&None => (AdaptiveCoalescingRateSampling::One, false, false),
+			&None => (None, false, false),
 			
 			&Some(this) => match this
 			{

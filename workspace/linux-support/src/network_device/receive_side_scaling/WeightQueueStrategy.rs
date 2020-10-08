@@ -13,6 +13,7 @@ pub trait WeightQueueStrategy
 	fn weight(&self, queue_index: QueueIdentifier, number_of_receive_queues: QueueCount, denominator: NonZeroU32) -> u32;
 	
 	/// Allocate some remaining weight.
+	#[inline(always)]
 	fn allocate_some_remaining_weight(&self, remaining_weight: NonZeroU32, incomplete_indirection_table: &mut Vec<QueueIdentifier>, number_of_receive_queues: QueueCount)
 	{
 		let queue_identifier = number_of_receive_queues.to_queue_identifier();

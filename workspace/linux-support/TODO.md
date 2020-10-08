@@ -1,13 +1,28 @@
 ## Unfinished code
 
 * How to set up an eth0 device on a Numa Node
-    * Find all the queues it can have
-    * Find all the cores the Numa Node can have
-        * Create a hash table (Amazon ENA) with weightings
-        * We may have more cores than queues or vice versa
-    * How does RPS, XPS, RFS and aRFS work? Does Amazon ENA support aRFS?
-    * Do we want one core not used on the Numa Node?
     * Do we discover eth devices or what?
+    * Support virtio devices
+        * 'Children' of a pci bus
+    * Do we want to do XPS using a CPU as an option?
+    * Do we want to do RPS using a CPU as an option even if RSS is supported?
+    * Setting IRQs
+        * Need to understand how Linux names its IRQ lines
+        * One simple technique if MSI interrupts are supported is to map each IRQ number in pcidevice/msi_irqs/<X> to a cpu
+            * Problematic for virtio
+                * Has admin, rx, tx
+            * Problematic for knowing which IRQ is for which queue or even Amazon ENA admin queue
+    * Puzzle: Splitting RPS flow table count if multiple devices are in use?
+* Busy polling
+    * See <https://netdevconf.info/2.1/papers/BusyPollingNextGen.pdf>
+    * Does not require driver support (part of NAPI)
+* "If the NETIF_F_RXHASH flag is set, the 32-bit result of the hash function delivered in the Rx CQ descriptor is set in the received SKB." (Amazon ENA)
+* PCI
+    * Add bus support
+    * Add bridge support
+    * Add support for 'child' devices (virtio0)
+    * vga_boot, resources
+
 
 
 ## How to use XDP
@@ -19,12 +34,17 @@
 * Can we specify a 'mark' with a XDP processed packet? And get it from userspace?
 * Can we use XDP to redirect to a queue?
 * Enabling accelerated RFS (aRFS)
+    * Needs driver support (`ndo_rx_flow_steer`).
+    * Linux must have been built with `CONFIG_RFS_ACCEL`.
+    * Not supported for Amazon ENA.
+    * Not supported for Intel ixgbevf.
 * Scaling with RPS / XPS and aRFS
+    * <https://stackoverflow.com/questions/44958511/what-is-the-main-difference-between-rss-rps-and-rfs>
+* <https://oxnz.github.io/2016/05/03/performance-tuning-networking/>
 * Setting a per-connection value on incoming packets in XDP BPF (a mark)
     * Checking incoming packets for permission (IP + PORT + Protocol)
 * Busy polling - is it possible? - what about for XDP?
 * Review how to do RX queues and tie them to CPUs using <https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/#preparing-to-receive-data-from-the-network>
-    * <https://blog.cloudflare.com/how-to-achieve-low-latency/>
 * IS `SO_INCOMING_NAPI_ID` any use?
 * `SO_INCOMING_CPU` might actually be broken: <https://blog.cloudflare.com/perfect-locality-and-three-epic-systemtap-scripts/>
 * Review `/proc/net/softnet_stat` file with the softnet.sh script: <https://github.com/majek/dump/blob/master/how-to-receive-a-packet/softnet.sh>
@@ -36,8 +56,8 @@
 * <https://blog.cloudflare.com/how-to-achieve-low-latency/>
 * <https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/>
 * `/proc/sys/net/core/netdev_budget` - defaults to 300.
-* Look at IRQ affinity mapping for Intel Flow Director (look at irq script in `~/Downloads/25_2/*/set_irq_affinity`).
-* TODO: Receive Queue => CPU
+* <https://xdp-project.net/>
+
 
 ### MSI-X - Message Signal Interrupts (Extended).
 
@@ -77,27 +97,12 @@ You can adjust the net_rx_action budget, which determines how much packet proces
 /proc/sys/net/core/netdev_budget
 	- default is 300.
 
-Tuning: Enabling accelerated RFS (aRFS)
-
-Assuming that your NIC and driver support it, you can enable accelerated RFS by enabling and configuring a set of things:
-
-    Have RPS enabled and configured.
-    	So, for eth0 and receive queue 0, you would modify the file: /sys/class/net/eth0/queues/rx-0/rps_cpus with a hexadecimal number indicating which CPUs should process packets from eth0’s receive queue 0.
-    	https://github.com/torvalds/linux/blob/v3.13/Documentation/networking/scaling.txt#L160-L164
-    Have RFS enabled and configured.
-    	Have RPS enabled and configured.
-    	RFS keeps track of a global hash table of all flows and the size of this hash table can be adjusted by setting the net.core.rps_sock_flow_entries sysctl.
-    	Next, you can also set the number of flows per RX queue by writing this value to the sysfs file named rps_flow_cnt for each RX queue.
-		Example: increase the number of flows for RX queue 0 on eth0 to 2048.
-		$ sudo bash -c 'echo 2048 > /sys/class/net/eth0/queues/rx-0/rps_flow_cnt'
-    Your kernel has CONFIG_RFS_ACCEL enabled at compile time. The Ubuntu kernel 3.13.0 does.
-    Have ntuple support enabled for the device, as described previously. You can use ethtool to verify that ntuple support is enabled for the device.
-    Configure your IRQ settings to ensure each RX queue is handled by one of your desired network processing CPUs.
-
-Once the above is configured, accelerated RFS will be used to automatically move data to the RX queue tied to a CPU core that is processing data for that flow and you won’t need to specify an ntuple filter rule manually for each flow.
-
 
 ## Medium Importance
+
+
+### inet and inet6 configuration
+
 
 ### Changing Traffic Class (`qdisc`)
 

@@ -106,7 +106,7 @@ impl GlobalConfiguration
 
 		self.file_descriptor.configure(proc_path)?;
 
-		self.linux_module.configure(proc_path)?;
+		self.linux_module.configure(sys_path, proc_path)?;
 
 		self.kernel_panic.configure(proc_path)?;
 

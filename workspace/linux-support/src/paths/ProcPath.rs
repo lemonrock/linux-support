@@ -195,7 +195,14 @@ impl ProcPath
 	#[inline(always)]
 	pub fn irq_number_file_path(&self, interrupt_request: InterruptRequest, file_name: &str) -> PathBuf
 	{
-		self.irq_file_path(&interrupt_request.file_name()).append(file_name)
+		self.irq_number_folder_path(interrupt_request).append(file_name)
+	}
+	
+	/// Get a file path within the ProcPath, `/proc/irq/<number>`.
+	#[inline(always)]
+	pub fn irq_number_folder_path(&self, interrupt_request: InterruptRequest) -> PathBuf
+	{
+		self.irq_file_path(&interrupt_request.file_name())
 	}
 	
 	/// Get a file path within the ProcPath, `/proc/irq/<file_name>`.

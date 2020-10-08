@@ -7,6 +7,7 @@ use super::c::bit_set::*;
 use self::NETIF_F::*;
 
 
+include!("Feature.rs");
 include!("FeatureGroup.rs");
 include!("FeatureGroupChoice.rs");
 include!("FeatureValue.rs");

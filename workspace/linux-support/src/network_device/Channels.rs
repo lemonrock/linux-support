@@ -42,6 +42,12 @@ impl Channels
 	pub(crate) const Unsupported: Self = Self::new(None, None, None, None);
 	
 	#[inline(always)]
+	pub(crate) const fn new_combined_only(receive_and_transmit_channels_count: QueueCount) -> Self
+	{
+		Self::new(Some(receive_and_transmit_channels_count), None, None, None)
+	}
+	
+	#[inline(always)]
 	pub(crate) const fn new(receive_and_transmit_channels_count: Option<QueueCount>, receive_only_channels_count: Option<QueueCount>, transmit_only_channels_count: Option<QueueCount>, other_channels_count: Option<QueueCount>) -> Self
 	{
 		Self

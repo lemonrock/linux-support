@@ -60,6 +60,7 @@ use crate::thread::*;
 use crate::time::TimestampCounterSetting;
 use crate::time::c::tzset;
 use crate::user_and_groups::*;
+use crate::linux_kernel_modules::parameters::{LinuxKernelModuleParameterName, ModuleParameterValueChoice};
 
 
 /// Checks.
@@ -96,6 +97,7 @@ include!("GlobalLinuxKernelSamePageMergingConfiguration.rs");
 include!("GlobalLinuxKernelSamePageMergingConfigurationError.rs");
 include!("GlobalLinuxModuleConfiguration.rs");
 include!("GlobalLinuxModuleConfigurationError.rs");
+include!("GlobalLinuxModuleParametersConfiguration.rs");
 include!("GlobalMemoryConfiguration.rs");
 include!("GlobalMemoryConfigurationError.rs");
 include!("GlobalMemoryStatisticsConfiguration.rs");

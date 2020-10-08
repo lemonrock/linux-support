@@ -12,7 +12,7 @@ pub struct GlobalNetworkDeviceReceiveQueueConfiguration
 	#[serde(default)] pub receive_packet_steering_affinity: Option<HyperThreads>,
 	
 	/// See detail in `Documentation/ABI/testing/sysfs-class-net-queues` in Linux source.
-	#[serde(default)] pub receive_packet_steering_flow_table_count: Option<usize>,
+	#[serde(default)] pub receive_flow_steering_table_count: Option<usize>,
 }
 
 impl GlobalNetworkDeviceReceiveQueueConfiguration
@@ -28,11 +28,24 @@ impl GlobalNetworkDeviceReceiveQueueConfiguration
 			receive_sysfs_queue.set_receive_packet_steering_affinity(sys_path, receive_packet_steering_affinity).map_err(CouldNotSetPerReceiveQueueReceivePacketSteeringAffinity)?
 		}
 		
-		if let Some(receive_packet_steering_flow_table_count) = self.receive_packet_steering_flow_table_count
+		if let Some(receive_packet_steering_flow_table_count) = self.receive_flow_steering_table_count
 		{
 			receive_sysfs_queue.set_receive_packet_steering_flow_table_count(sys_path, receive_packet_steering_flow_table_count).map_err(CouldNotSetPerReceiveQueueReceivePacketSteeringAffinity)?
 		}
 		
 		Ok(())
+	}
+	
+	/// `receive_packet_steering_affinity` is only really useful if RSS is unsupported.
+	/// It can be used with it, though; see the second answer in <https://stackoverflow.com/questions/44958511/what-is-the-main-difference-between-rss-rps-and-rfs>.
+	#[inline(always)]
+	pub(crate) fn use_receive_side_scaling_if_possible(receive_packet_steering_affinity: Option<HyperThread>, receive_flow_steering_table_count: usize) -> Self
+	{
+		Self
+		{
+			receive_packet_steering_affinity: receive_packet_steering_affinity.map(HyperThreads::for_one),
+			
+			receive_flow_steering_table_count: Some(receive_flow_steering_table_count),
+		}
 	}
 }

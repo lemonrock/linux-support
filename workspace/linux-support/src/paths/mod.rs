@@ -14,6 +14,7 @@ use crate::file_systems::FileSystemType;
 use crate::interrupt_request::InterruptRequest;
 use crate::network_device::NetworkInterfaceName;
 use crate::network_device::queues::QueueIdentifier;
+use crate::linux_kernel_modules::LinuxKernelModuleName;
 
 
 include!("DevPath.rs");

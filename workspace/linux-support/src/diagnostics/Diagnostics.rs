@@ -34,8 +34,14 @@ pub struct Diagnostics
 	/// Process.
 	pub process_diagnostics: ProcessDiagnostics,
 
+	/// Primary PCI buses.
+	pub primary_pci_buses: DiagnosticUnobtainableResult<HashMap<PrimaryPciBusAddress, DiagnosticUnobtainableResult<PciBusDetails>>>,
+	
 	/// PCI devices.
-	pub pci_devices: DiagnosticUnobtainableResult<HashMap<PciDeviceAddress, Option<PciDeviceDiagnostics>>>,
+	pub pci_devices: DiagnosticUnobtainableResult<HashMap<PciDeviceAddress, PciDeviceDiagnostics>>,
+
+	/// RFS.
+	pub receive_flow_steering_flow_count: DiagnosticUnobtainableResult<ReceiveFlowSteeringFlowCount>,
 
 	/// Network devices.
 	pub network_devices: DiagnosticUnobtainableResult<NetworkDeviceDiagnostics>,
@@ -141,6 +147,31 @@ impl Diagnostics
 				
 				process_diagnostics,
 				
+				primary_pci_buses:
+				{
+					match PciBusAddress::primary(sys_path)
+					{
+						Err(error) => Err(DiagnosticUnobtainable::from(error)),
+						
+						Ok(primary_pci_buses) =>
+						{
+							let mut details = HashMap::with_capacity(primary_pci_buses.len());
+							for primary_pci_bus in primary_pci_buses
+							{
+								let bus = match primary_pci_bus.bus(sys_path)
+								{
+									Err(error) => Err(DiagnosticUnobtainable::from(error)),
+									
+									Ok(bus) => bus.details().map_err(DiagnosticUnobtainable::from),
+								};
+								
+								details.insert(primary_pci_bus, details)
+							}
+							Ok(details)
+						}
+					}
+				},
+				
 				pci_devices: match PciDeviceAddress::all(sys_path)
 				{
 					Err(error) => Err(DiagnosticUnobtainable::from(error)),
@@ -154,6 +185,8 @@ impl Diagnostics
 						Ok(pci_devices)
 					}
 				},
+				
+				receive_flow_steering_flow_count: ReceiveFlowSteeringFlowCount::global_maximum(proc_path).map_err(DiagnosticUnobtainable::from),
 				
 				network_devices: NetworkDeviceDiagnostics::gather(sys_path),
 				

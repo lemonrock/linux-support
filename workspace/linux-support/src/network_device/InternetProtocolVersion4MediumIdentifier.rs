@@ -31,17 +31,17 @@ impl Default for InternetProtocolVersion4MediumIdentifier
 impl InternetProtocolVersion4MediumIdentifier
 {
 	#[inline(always)]
-	pub(crate) fn parse(value: u32) -> Self
+	pub(crate) fn parse(value: i32) -> Self
 	{
 		use self::InternetProtocolVersion4MediumIdentifier::*;
 		
 		match value
 		{
-			0xFFFF_FFFF => Unknown,
+			-1 => Unknown,
 			
 			0 => Sole,
 			
-			identifier @ _ => MoreThanOne { identifier: unsafe { NonZeroU32::new_unchecked(identifier) }},
+			identifier @ _ => MoreThanOne { identifier: unsafe { NonZeroU32::new_unchecked(identifier as u32) }},
 		}
 	}
 }

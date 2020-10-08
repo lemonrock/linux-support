@@ -23,8 +23,55 @@ impl Deref for HashFunctionSeed
 	}
 }
 
+impl DerefMut for HashFunctionSeed
+{
+	#[inline(always)]
+	fn deref_mut(&self) -> &mut Self::Target
+	{
+		&mut self.0
+	}
+}
+
 impl HashFunctionSeed
 {
+	#[inline(always)]
+	fn copy_from_non_overlapping(&mut self, original_length: usize, copy: usize, length: usize)
+	{
+		unsafe { self.as_mut_ptr().add(original_length).add(copy * original_length).copy_from_nonoverlapping(self.as_ptr(), length) };
+	}
+	
+	/// Resize.
+	#[inline(always)]
+	pub fn resize(&mut self, size: usize)
+	{
+		let original_length = self.len();
+		
+		if likely!(original_length == size)
+		{
+			return
+		}
+		else if likely!(original_length < size)
+		{
+			let additional_length = size - original_length;
+			self.reserve_exact(additional_length);
+			unsafe { self.set_len(size) };
+			
+			let number_of_copies = additional_length / original_length;
+			
+			for copy in 0 .. number_of_copies
+			{
+				unsafe { self.copy_from_non_overlapping(original_length, copy, original_length) }
+			}
+			
+			let remainder = additional_length % original_length;
+			unsafe { self.copy_from_non_overlapping(original_length, number_of_copies, remainder) }
+		}
+		else
+		{
+			self.truncate(size)
+		}
+	}
+	
 	/// Microsoft key, found at <http://www.ran-lifshitz.com/2014/08/28/symmetric-rss-receive-side-scaling/>.
 	///
 	/// Also the default key for:-

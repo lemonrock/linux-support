@@ -94,6 +94,15 @@ macro_rules! object_name
 			}
 		}
 		
+		impl<'a> Into<&'a str> for &'a $name
+		{
+			fn into(self) -> &'a str
+			{
+				let array: [c_char; <$name>::MaximumLengthIncludingAsciiNull] = self.into();
+				unsafe { from_utf8_unchecked(&array[..]) }
+			}
+		}
+		
 		impl<'a> Into<[c_char; <$name>::MaximumLengthIncludingAsciiNull]> for &'a $name
 		{
 			#[inline(always)]

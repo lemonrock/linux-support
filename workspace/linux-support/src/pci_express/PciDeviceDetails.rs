@@ -6,40 +6,76 @@
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-#[allow(missing_docs)]
 pub struct PciDeviceDetails
 {
 	/// Typically this is the 'Chipset Manufacturer'.
 	pub vendor_and_device: PciVendorAndDevice,
+	
+	/// Not always present.
+	pub driver: Option<PciDriverName>,
+	
+	/// Not always present; not present for virtio.
+	pub directly_associated_network_devices: Option<HashSet<NetworkInterfaceName>>,
 
+	/// This is not a PCI concept but a Linux concept.
+	pub subsystem_name: Box<[u8]>,
+	
 	/// Typically this is the 'Card Manufacturer'.
 	pub subsystem_vendor_and_subsystem_device: PciVendorAndDevice,
-
+	
+	#[allow(missing_docs)]
 	pub class: EitherPciDeviceClass,
-
+	
+	#[allow(missing_docs)]
 	pub revision: Revision,
-
-	pub associated_numa_node: Option<NumaNode>,
-
-	pub associated_hyper_threads_bit_set: HyperThreads,
-
-	pub associated_hyper_threads_bitmask: HyperThreads,
-
+	
+	#[allow(missing_docs)]
+	pub associated_numa_node: Option<Option<NumaNode>>,
+	
+	#[allow(missing_docs)]
+	pub associated_hyper_threads_bit_set: Option<HyperThreads>,
+	
+	#[allow(missing_docs)]
+	pub associated_hyper_threads_bitmask: Option<HyperThreads>,
+	
+	#[allow(missing_docs)]
 	pub d3cold_allowed: Option<bool>,
-
-	pub interrupt_request_line: u8, // This should have a type and a range of permitted values.
-
+	
+	#[allow(missing_docs)]
+	pub interrupt_request: InterruptRequest,
+	
 	/// PCI Express only.
 	pub current_link_speed_and_width: Option<LinkSpeedAndWidth>,
-
+	
 	/// PCI Express only.
 	pub maximum_link_speed_and_width: Option<LinkSpeedAndWidth>,
-
+	
+	#[allow(missing_docs)]
 	pub enabled: bool,
-
+	
+	#[allow(missing_docs)]
 	pub msi_and_msi_x_enabled: bool,
+	
+	#[allow(missing_docs)]
+	pub msi_and_msi_x_interrupt_requests: Option<HashMap<InterruptRequest, MsiInterruptMode>>,
+	
+	#[allow(missing_docs)]
+	pub alternative_routing_identifier_interpretation_forwarding_enabled: bool,
+	
+	#[allow(missing_docs)]
+	pub resource_files: Vec<ResourceFile>,
+	
+	#[allow(missing_docs)]
+	pub has_rom: bool,
+	
+	#[allow(missing_docs)]
+	pub has_config: bool,
+	
+	/// Only for `PCI_CLASS_DISPLAY_VGA`.
+	pub boot_vga: bool,
 
-	pub driver: Option<PciDriverName>,
+	/// Only for a bridge.
+	pub bridge: Option<PciBridgeDeviceDetails>,
 }
 
 impl PciDeviceDetails

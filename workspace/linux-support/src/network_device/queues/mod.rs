@@ -7,6 +7,7 @@ use crate::cpu::HyperThreads;
 use crate::configuration::Milliseconds;
 
 
+include!("CommonTransmitQueueConfiguration.rs");
 include!("ExpressDataPathQueueIdentifier.rs");
 include!("GlobalNetworkDeviceReceiveQueueConfiguration.rs");
 include!("GlobalNetworkDeviceTransmitQueueConfiguration.rs");

@@ -30,4 +30,34 @@ impl HashFunctionConfiguration
 		indirection_table: None,
 		seed: None,
 	};
+	
+	#[inline(always)]
+	pub(crate) fn indirection_table_length_u32(&self) -> Result<Option<NonZeroU32>, IndirectionTableLengthError>
+	{
+		use self::IndirectionTableLengthError::*;
+		
+		match self.indirection_table
+		{
+			None => Ok(None),
+			
+			Some(ref indirection_table) =>
+			{
+				let len: usize = existing_hash_function_configuration.indirection_table.len();
+				let x = len.try_into().map_err(IndirectionTableIsTooLongForU32)?;
+				Ok(Some(NonZeroU32::new(x).ok_or(IndirectionTableLengthIsZero)?))
+			}
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn new_seed_matching_in_length(&self, hash_function_seed: &HashFunctionSeed) -> Option<HashFunctionSeed>
+	{
+		self.seed.map(|existing_seed|
+		{
+			let must_be_seed_length = existing_seed.len();
+			let mut hash_function_seed = hash_function_seed.clone();
+			hash_function_seed.resize(must_be_seed_length);
+			hash_function_seed
+		})
+	}
 }

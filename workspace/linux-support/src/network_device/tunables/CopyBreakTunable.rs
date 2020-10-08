@@ -2,13 +2,13 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Copy-break.
+/// Copy break point: frames greater than this are copied.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
-pub struct CopyBreakTunable(pub u32);
+pub struct CopyBreakPointTunable(pub u32);
 
-impl CopyBreakTunable
+impl CopyBreakPointTunable
 {
 	const TypeIdentifier: tunable_type_id = tunable_type_id::ETHTOOL_TUNABLE_U32;
 	

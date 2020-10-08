@@ -27,3 +27,13 @@ impl DerefMut for QueueIdentifiers
 		&mut self.0
 	}
 }
+
+impl QueueIdentifiers
+{
+	/// For one queue identifier.
+	#[inline(always)]
+	pub fn for_one(queue_identifier: QueueIdentifier) -> Self
+	{
+		Self(BitSet::for_one(queue_identifier))
+	}
+}

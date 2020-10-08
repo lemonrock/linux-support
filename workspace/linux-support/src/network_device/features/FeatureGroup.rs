@@ -6,11 +6,11 @@
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
 #[repr(transparent)]
 #[derive(Deserialize, Serialize)]
-pub struct FeatureGroup(HashSet<NETIF_F>);
+pub struct FeatureGroup(HashSet<Feature>);
 
 impl Deref for FeatureGroup
 {
-	type Target = HashSet<NETIF_F>;
+	type Target = HashSet<Feature>;
 	
 	#[inline(always)]
 	fn deref(&self) -> &Self::Target
@@ -28,19 +28,19 @@ impl DerefMut for FeatureGroup
 	}
 }
 
-impl From<HashSet<NETIF_F>> for FeatureGroup
+impl From<HashSet<Feature>> for FeatureGroup
 {
 	#[inline(always)]
-	fn from(value: HashSet<NETIF_F>) -> Self
+	fn from(value: HashSet<Feature>) -> Self
 	{
 		Self(value)
 	}
 }
 
-impl Into<HashSet<NETIF_F>> for FeatureGroup
+impl Into<HashSet<Feature>> for FeatureGroup
 {
 	#[inline(always)]
-	fn into(self) -> HashSet<NETIF_F>
+	fn into(self) -> HashSet<Feature>
 	{
 		self.0
 	}
@@ -49,13 +49,13 @@ impl Into<HashSet<NETIF_F>> for FeatureGroup
 impl FeatureGroup
 {
 	#[inline(always)]
-	pub(crate) fn enable(&self) -> HashMap<NETIF_F, bool>
+	pub(crate) fn enable(&self) -> HashMap<Feature, bool>
 	{
 		self.0.iter().map(|key| (*key, true)).collect()
 	}
 	
 	#[inline(always)]
-	pub(crate) fn disable(&self) -> HashMap<NETIF_F, bool>
+	pub(crate) fn disable(&self) -> HashMap<Feature, bool>
 	{
 		self.0.iter().map(|key| (*key, false)).collect()
 	}
@@ -313,6 +313,13 @@ impl FeatureGroup
 			);
 		}
 		&Static
+	}
+	
+	/// Generic Send Offload (GSO) encapsulation.
+	#[inline(always)]
+	pub fn generic_send_offload_encapsulation() -> &'static Self
+	{
+		Self::NETIF_F_GSO_ENCAP_ALL()
 	}
 	
 	/// Features that can never be changed, but can be reported.
@@ -583,7 +590,7 @@ impl FeatureGroup
 	
 	/// Add one `feature`.
 	#[inline(always)]
-	pub fn merge_with_one(&self, feature: NETIF_F) -> Self
+	pub fn merge_with_one(&self, feature: Feature) -> Self
 	{
 		let mut feature_group = self.clone();
 		feature_group.insert(feature);
@@ -592,7 +599,7 @@ impl FeatureGroup
 	
 	/// Add one `feature`.
 	#[inline(always)]
-	pub fn merge_with_many(&self, features: &[NETIF_F]) -> Self
+	pub fn merge_with_many(&self, features: &[Feature]) -> Self
 	{
 		let mut feature_group = self.clone();
 		for feature in features

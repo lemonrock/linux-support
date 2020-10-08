@@ -18,9 +18,15 @@ pub struct PciVendorAndDevice
 #[allow(missing_docs)]
 impl PciVendorAndDevice
 {
-	pub const Amazon_Ena_LLQ_VF: Self = Self::new(PciVendorIdentifier::Amazon, PciDeviceIdentifier(0xEC21));
+	pub const Amazon_Ena_RESRV0: Self = Self::new(PciVendorIdentifier::Amazon, PciDeviceIdentifier(0x0051));
+	
+	pub const Amazon_Ena_PF: Self = Self::new(PciVendorIdentifier::Amazon, PciDeviceIdentifier(0x0EC2));
+	
+	pub const Amazon_Ena_LLQ_PF: Self = Self::new(PciVendorIdentifier::Amazon, PciDeviceIdentifier(0x1EC2));
 	
 	pub const Amazon_Ena_VF: Self = Self::new(PciVendorIdentifier::Amazon, PciDeviceIdentifier(0xEC20));
+	
+	pub const Amazon_Ena_LLQ_VF: Self = Self::new(PciVendorIdentifier::Amazon, PciDeviceIdentifier(0xEC21));
 	
 	pub const Broadcom_Bnx2x_ChipNumber57711: Self = Self::new(PciVendorIdentifier::Broadcom, PciDeviceIdentifier(0x164f));
 	
@@ -458,22 +464,27 @@ impl PciVendorAndDevice
 	
 	pub const Intel_Ixgbe_Virtual_82599_VF: Self = Self::new(PciVendorIdentifier::Intel, PciDeviceIdentifier(0x10ED));
 	
+	// `HV` - Hyper-V.
 	pub const Intel_Ixgbe_Virtual_82599_VF_HV: Self = Self::new(PciVendorIdentifier::Intel, PciDeviceIdentifier(0x152E));
 	
 	pub const Intel_Ixgbe_Virtual_X540_VF: Self = Self::new(PciVendorIdentifier::Intel, PciDeviceIdentifier(0x1515));
 	
+	// `HV` - Hyper-V.
 	pub const Intel_Ixgbe_Virtual_X540_VF_HV: Self = Self::new(PciVendorIdentifier::Intel, PciDeviceIdentifier(0x1530));
 	
 	pub const Intel_Ixgbe_Virtual_X550EM_A_VF: Self = Self::new(PciVendorIdentifier::Intel, PciDeviceIdentifier(0x15C5));
 	
+	// `HV` - Hyper-V.
 	pub const Intel_Ixgbe_Virtual_X550EM_A_VF_HV: Self = Self::new(PciVendorIdentifier::Intel, PciDeviceIdentifier(0x15B4));
 	
 	pub const Intel_Ixgbe_Virtual_X550EM_X_VF: Self = Self::new(PciVendorIdentifier::Intel, PciDeviceIdentifier(0x15A8));
 	
+	// `HV` - Hyper-V.
 	pub const Intel_Ixgbe_Virtual_X550EM_X_VF_HV: Self = Self::new(PciVendorIdentifier::Intel, PciDeviceIdentifier(0x15A9));
 	
 	pub const Intel_Ixgbe_Virtual_X550_VF: Self = Self::new(PciVendorIdentifier::Intel, PciDeviceIdentifier(0x1565));
 	
+	// `HV` - Hyper-V.
 	pub const Intel_Ixgbe_Virtual_X550_VF_HV: Self = Self::new(PciVendorIdentifier::Intel, PciDeviceIdentifier(0x1564));
 	
 	pub const Intel_QAT: Self = Self::new(PciVendorIdentifier::Intel, PciDeviceIdentifier(0x0443));
@@ -517,6 +528,38 @@ impl PciVendorAndDevice
 	pub const QLogic_QedeVirtual_NX2_VF: Self = Self::new(PciVendorIdentifier::QLogic, PciDeviceIdentifier(0x1630));
 	
 	pub const VirtIO_Network: Self = Self::new(PciVendorIdentifier::VirtIO, PciDeviceIdentifier(0x1000));
+	
+	pub const VirtIO_Block: Self = Self::new(PciVendorIdentifier::VirtIO, PciDeviceIdentifier(0x1001));
+	
+	pub const VirtIO_MemoryBalloon: Self = Self::new(PciVendorIdentifier::VirtIO, PciDeviceIdentifier(0x1002));
+	
+	pub const VirtIO_Console: Self = Self::new(PciVendorIdentifier::VirtIO, PciDeviceIdentifier(0x1003));
+	
+	pub const VirtIO_Scsi: Self = Self::new(PciVendorIdentifier::VirtIO, PciDeviceIdentifier(0x1004));
+	
+	pub const VirtIO_RandomNumberGenerator: Self = Self::new(PciVendorIdentifier::VirtIO, PciDeviceIdentifier(0x1005));
+	
+	pub const VirtIO_Filesystem: Self = Self::new(PciVendorIdentifier::VirtIO, PciDeviceIdentifier(0x1009));
+	
+	pub const VirtIO_NewNetwork: Self = Self::new(PciVendorIdentifier::VirtIO, PciDeviceIdentifier(0x1041));
+	
+	pub const VirtIO_NewBlock: Self = Self::new(PciVendorIdentifier::VirtIO, PciDeviceIdentifier(0x1042));
+	
+	pub const VirtIO_NewConsole: Self = Self::new(PciVendorIdentifier::VirtIO, PciDeviceIdentifier(0x1043));
+	
+	pub const VirtIO_NewRandomNumberGenerator: Self = Self::new(PciVendorIdentifier::VirtIO, PciDeviceIdentifier(0x1044));
+	
+	pub const VirtIO_NewMemoryBalloon: Self = Self::new(PciVendorIdentifier::VirtIO, PciDeviceIdentifier(0x1045));
+	
+	pub const VirtIO_NewScsi: Self = Self::new(PciVendorIdentifier::VirtIO, PciDeviceIdentifier(0x1048));
+	
+	pub const VirtIO_NewFilesystem: Self = Self::new(PciVendorIdentifier::VirtIO, PciDeviceIdentifier(0x1049));
+	
+	pub const VirtIO_NewGpu: Self = Self::new(PciVendorIdentifier::VirtIO, PciDeviceIdentifier(0x1050));
+	
+	pub const VirtIO_Input: Self = Self::new(PciVendorIdentifier::VirtIO, PciDeviceIdentifier(0x1052));
+	
+	pub const VirtIO_Socket: Self = Self::new(PciVendorIdentifier::VirtIO, PciDeviceIdentifier(0x1053));
 	
 	pub const VmWare_VmxNet3: Self = Self::new(PciVendorIdentifier::VmWare, PciDeviceIdentifier(0x07B0));
 }

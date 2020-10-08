@@ -84,7 +84,7 @@ pub struct GlobalNetworkDeviceConfiguration
 	/// 	* NETIF_F_TSO
 	/// 	* NETIF_F_TSO6
 	/// 	* NETIF_F_TSO_ECN
-	/// * Intel ixgbevf supports:-
+	/// * Intel ixgbevf (Linux) supports:-
 	/// 	* NETIF_F_GSO_GRE
 	/// 	* NETIF_F_GSO_GRE_CSUM
 	/// 	* NETIF_F_GSO_IPXIP4
@@ -98,6 +98,28 @@ pub struct GlobalNetworkDeviceConfiguration
 	/// 	* NETIF_F_HW_VLAN_CTAG_RX
 	/// 	* NETIF_F_HW_VLAN_CTAG_TX
 	/// 	* NETIF_F_RXCSUM
+	/// 	* ?NETIF_F_RXHASH
+	/// 	* NETIF_F_SCTP_CRC
+	/// 	* NETIF_F_SG
+	/// 	* NETIF_F_TSO
+	/// 	* NETIF_F_TSO6
+	/// 	* NETIF_F_TSO_MANGLEID
+	/// * Intel ixgbevf (Intel) supports:-
+	/// 	* NETIF_F_GRO
+	/// 	* NETIF_F_GSO_GRE
+	/// 	* NETIF_F_GSO_GRE_CSUM
+	/// 	* NETIF_F_GSO_IPXIP4
+	/// 	* NETIF_F_GSO_IPXIP6
+	/// 	* NETIF_F_GSO_PARTIAL
+	/// 	* NETIF_F_GSO_UDP_TUNNEL
+	/// 	* NETIF_F_GSO_UDP_TUNNEL_CSUM
+	/// 	* NETIF_F_HIGHDMA
+	/// 	* NETIF_F_HW_CSUM
+	/// 	* NETIF_F_HW_VLAN_CTAG_FILTER
+	/// 	* NETIF_F_HW_VLAN_CTAG_RX
+	/// 	* NETIF_F_HW_VLAN_CTAG_TX
+	/// 	* NETIF_F_RXCSUM
+	/// 	* ?NETIF_F_RXHASH
 	/// 	* NETIF_F_SCTP_CRC
 	/// 	* NETIF_F_SG
 	/// 	* NETIF_F_TSO
@@ -109,7 +131,7 @@ pub struct GlobalNetworkDeviceConfiguration
 	///
 	/// * Not supported by Amazon ENA.
 	/// * Supported by Intel ixgbevf for `IXGBEVF_PRIV_FLAGS_LEGACY_RX` ("legacy-rx").
-	#[serde(default)] pub driver_specific_flags_to_change: Option<HashMap<ObjectName32, bool>>,
+	#[serde(default)] pub driver_specific_flags_to_change: HashMap<ObjectName32, bool>,
 	
 	/// Tunables.
 	///
@@ -127,10 +149,13 @@ pub struct GlobalNetworkDeviceConfiguration
 	///
 	/// * Supported by Amazon ENA for `combined_count` only.
 	/// 	* Value must be at least 1 (`ENA_MIN_NUM_IO_QUEUES`).
-	/// 	* Value must be `2 * queues <= adapter->max_num_io_queues (NetworkDeviceInputOutputControl.channels().1)`
+	/// 	* Value must be `2 * queues <= adapter->max_num_io_queues (NetworkDeviceInputOutputControl.channels().1)`.
+	/// 	* Absolute maximum is `ENA_MAX_NUM_IO_QUEUES` (128) but see logic in `ena_calc_max_io_queue_num()` in Linux source `ena_netdev.c`.
+	/// 		* Reduced to smaller of number of online CPUs, available tx and rx descriptors and number of MSI-X IRQs less one.
+	/// 		* Reduced by 1 for maximum number of MSI-X IRQs.
 	/// 	* Default is maximum number of queues.
 	/// * Not supported by Intel ixgbevf.
-	#[serde(default)] pub maximize_number_of_channels: bool,
+	#[serde(default)] pub number_of_channels: Option<SetToSpecificValueOrMaximize<Channels>>,
 	
 	/// Maximize pending queue depths?
 	///
@@ -154,13 +179,13 @@ pub struct GlobalNetworkDeviceConfiguration
 	/// 		* minimum size of `IXGBEVF_MIN_TXD` (64).
 	/// 		* maximum size of `IXGBEVF_MAX_TXD` (4096).
 	/// 		* must be a multiple of `IXGBE_REQ_TX_DESCRIPTOR_MULTIPLE` (8).
-	#[serde(default)] pub maximize_pending_queue_depths: bool,
+	#[serde(default)] pub pending_queue_depths: Option<SetToSpecificValueOrMaximize<PendingQueueDepths>>,
 	
 	/// Change coalesce configuration.
 	///
 	/// * Amazon ENA supports `tx_coalesce_usecs`, `rx_coalesce_usecs` and `use_adaptive_rx_coalesce` if 'ena_com_interrupt_moderation_supported'.
 	/// * Intel ixgbevf supports `rx_coalesce_usecs` and, ordinarily, `tx_coalesce_usecs`.
-	/// 	* Values must be between `` (inclusive) and `0x00000FF8 (IXGBE_MAX_EITR) >> 2` exclusive.
+	/// 	* Values must be between `1` (inclusive) and `0x00000FF8 (IXGBE_MAX_EITR) >> 2` exclusive.
 	#[serde(default)] pub coalesce_configuration: Option<CoalesceConfiguration>,
 	
 	/// Change per-queue coalesce configuration.
@@ -189,7 +214,7 @@ pub struct GlobalNetworkDeviceConfiguration
 	/// This could be done semi-generically using an algorithm that picks a key size, hash function and RETA table given known card supported values (existing configuration and number of receive queue rings), NUMA settings and CPU counts.
 	///
 	/// Older network devices may only support changing the indirection (RETA) table.
-	/// Passing `ConfiguredHashSettings` with all fields as `None` effectively does a result to defaults, if the network device supports that, or, for an older device, if supported, reseting the indirection (RETA) table to defaults.
+	/// Passing `HashFunctionConfiguration` with all fields as `None` effectively does a result to defaults, if the network device supports that, or, for an older device, if supported, reseting the indirection (RETA) table to defaults.
 	///
 	/// This is always configured after changes to the number of channels, as changes to channels resets RSS hash configuration on some cards (eg Mellanox).
 	///
@@ -201,7 +226,7 @@ pub struct GlobalNetworkDeviceConfiguration
 	/// 	* `function` is only ever Toeplitz.
 	/// 	* Hash key size is `IXGBEVF_RSS_HASH_KEY_SIZE` (40).
 	/// 	* Indirection table size is either `IXGBEVF_82599_RETA_SIZE` (128) or `IXGBEVF_X550_VFRETA_SIZE` (64).
-	#[serde(default)] pub receive_side_scaling_hash_configuration: Option<HashFunctionConfiguration>,
+	#[serde(default)] pub receive_side_scaling_hash_function_configuration: Option<HashFunctionConfiguration>,
 	
 	/// Adjust the fields from an incoming packet used to generate a hash.
 	///
@@ -243,23 +268,28 @@ pub struct GlobalNetworkDeviceConfiguration
 	/// 			* `include_source_port`.
 	/// 			* `include_destination_port`.
 	/// * Unsupported by Intel ixgbevf.
-	#[serde(default)] pub receive_side_scaling_hash_key_configuration: Vec<HashFunctionFieldsConfiguration>,
+	#[serde(default)] pub receive_side_scaling_hash_function_fields_configuration: Vec<HashFunctionFieldsConfiguration>,
 	
 	/// Change generic receive offload (GRO) flush timeout?
 	///
 	/// Default is usually `0`.
 	///
+	/// NAPI polling tuning parameter.
 	/// Support is independent of driver (eg Amazon ENA).
 	#[serde(default)] pub generic_receive_offload_flush_timeout_in_nanoseconds: Option<u32>,
+	
+	/// Counter to decrement before processing hard (real) interrupt requests.
+	#[serde(default)] pub counter_to_decrement_before_processing_hard_interrupt_requests: Option<Option<NonZeroU32>>,
 }
 
 impl GlobalNetworkDeviceConfiguration
 {
 	/// Configures.
 	#[inline(always)]
-	pub fn configure(&self, sys_path: &SysPath, network_interface_name: &NetworkInterfaceName) -> Result<(Channels, PendingQueueDepths), GlobalNetworkDeviceConfigurationError>
+	pub fn configure(&self, sys_path: &SysPath, network_interface_name: &NetworkInterfaceName) -> Result<(), GlobalNetworkDeviceConfigurationError>
 	{
 		use self::GlobalNetworkDeviceConfigurationError::*;
+		use self::SetToSpecificValueOrMaximize::*;
 		
 		#[inline(always)]
 		fn validate<A, E>(network_device_input_output_control: &NetworkDeviceInputOutputControl, change_result: Result<Option<A>, E>, error: impl FnOnce(E) -> GlobalNetworkDeviceConfigurationError) -> Result<A, GlobalNetworkDeviceConfigurationError>
@@ -311,10 +341,10 @@ impl GlobalNetworkDeviceConfiguration
 		
 		validate(&network_device_input_output_control, network_device_input_output_control.set_features(FeatureGroupChoice::iter(&self.feature_group_choices)), CouldNotChangeFeatures)?;
 		
-		if let Some(ref driver_specific_flags_to_change) = self.driver_specific_flags_to_change
+		if !self.driver_specific_flags_to_change.is_empty()
 		{
 			let all_string_sets = validate(&network_device_input_output_control, network_device_input_output_control.all_string_sets(), CouldNotGetAllStringSets)?;
-			validate(&network_device_input_output_control, network_device_input_output_control.set_private_flags(&all_string_sets, driver_specific_flags_to_change), CouldNotChangeDriverSpecificFlags)?;
+			validate(&network_device_input_output_control, network_device_input_output_control.set_private_flags(&all_string_sets, &self.driver_specific_flags_to_change), CouldNotChangeDriverSpecificFlags)?;
 		}
 		
 		for tunable_choice in self.tunables.iter()
@@ -322,9 +352,24 @@ impl GlobalNetworkDeviceConfiguration
 			validate(&network_device_input_output_control, tunable_choice.set(&network_device_input_output_control), CouldNotChangeTunable)?
 		}
 		
-		let channels = validate(&network_device_input_output_control, network_device_input_output_control.maximize_number_of_channels(self.maximize_number_of_channels), CouldNotMaximizeChannels)?;
-		
-		let pending_queue_depths = validate(&network_device_input_output_control, network_device_input_output_control.maximize_receive_ring_queues_and_transmit_ring_queue_depths(self.maximize_pending_queue_depths), CouldNotMaximizePendingQueueDepths)?;
+		if let (ref number_of_channels) = self.number_of_channels
+		{
+			match number_of_channels
+			{
+				&SpecificValue(ref number_of_channels) => validate(&network_device_input_output_control, network_device_input_output_control.set_number_of_channels(number_of_channels), CouldNotChangeChannels),
+				
+				&Maximize => validate(&network_device_input_output_control, network_device_input_output_control.maximize_number_of_channels(), CouldNotChangeChannels)?,
+			}
+		}
+		if let (ref pending_queue_depths) = self.pending_queue_depths
+		{
+			match pending_queue_depths
+			{
+				&SpecificValue(ref pending_queue_depths) => validate(&network_device_input_output_control, network_device_input_output_control.set_receive_ring_queues_and_transmit_ring_queue_depth(pending_queue_depths), CouldNotChangePendingQueueDepths),
+				
+				&Maximize => validate(&network_device_input_output_control, network_device_input_output_control.maximize_receive_ring_queues_and_transmit_ring_queue_depths(), CouldNotChangePendingQueueDepths)?,
+			}
+		}
 		
 		if let Some(ref coalesce_configuration) = self.coalesce_configuration
 		{
@@ -346,12 +391,12 @@ impl GlobalNetworkDeviceConfiguration
 			transmit_queue.configure(sys_path, &TransmitSysfsQueue::new(network_interface_name, *queue_identifier))?;
 		}
 		
-		if let Some(ref receive_side_scaling_hash_configuration) = self.receive_side_scaling_hash_configuration
+		if let Some(ref receive_side_scaling_hash_configuration) = self.receive_side_scaling_hash_function_configuration
 		{
 			validate(&network_device_input_output_control, network_device_input_output_control.set_configured_hash_settings(None, receive_side_scaling_hash_configuration), CouldNotConfigureReceiveSideScalingHashConfiguration)?;
 		}
 		
-		for receive_side_scaling_hash_key_configuration in self.receive_side_scaling_hash_key_configuration.iter()
+		for receive_side_scaling_hash_key_configuration in self.receive_side_scaling_hash_function_fields_configuration.iter()
 		{
 			validate(&network_device_input_output_control, network_device_input_output_control.set_receive_side_scaling_flow_hash_key(receive_side_scaling_hash_key_configuration, None), CouldNotConfigureHashFunctionFieldsConfiguration)?;
 		}
@@ -361,6 +406,11 @@ impl GlobalNetworkDeviceConfiguration
 			network_interface_name.set_generic_receive_offload_flush_timeout_in_nanoseconds(sys_path, generic_receive_offload_flush_timeout_in_nanoseconds).map_err(CouldNotSetGenericReceiveOffloadTimeout)?;
 		}
 		
-		Ok((channels, pending_queue_depths))
+		if let Some(counter_to_decrement_before_processing_hard_interrupt_requests) = self.counter_to_decrement_before_processing_hard_interrupt_requests
+		{
+			network_interface_name.set_counter_to_decrement_before_processing_hard_interrupt_requests(sys_path, counter_to_decrement_before_processing_hard_interrupt_requests).map_err(CouldNotSetNapHardInterruptRequestsCount)?;
+		}
+		
+		Ok(())
 	}
 }

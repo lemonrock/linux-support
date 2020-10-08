@@ -15,6 +15,7 @@ use self::queues::*;
 use self::receive_side_scaling::*;
 use self::receive_side_scaling::hash_function_fields::*;
 use self::seg6::*;
+use self::strategies::*;
 use self::string_sets::*;
 use self::tunables::*;
 use self::wake_on_lan::WakeOnLanInformation;
@@ -26,6 +27,10 @@ use crate::paths::SysPath;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 use crate::configuration::Milliseconds;
 use crate::file_descriptors::socket::c::in6_addr;
+use crate::pci_express::{PciDeviceAddress, PciDevice, PciBusAddress, PciBusDetails};
+use crate::cpu::HyperThreads;
+use crate::file_descriptors::netlink::route::RouteNetlinkProtocol;
+use crate::file_descriptors::netlink::NetlinkSocketFileDescriptor;
 
 
 /// C.
@@ -53,6 +58,9 @@ pub mod link_settings;
 
 
 /// Network flow classifier (`nfc`) for received packets.
+///
+/// Used in conjunction with driver support for accelerated Receive Flow Steering (aRFS).
+/// A driver supports aRFS if it implements the `.ndo_rx_flow_steer` operation.
 pub mod network_flow_classifier;
 
 
@@ -78,6 +86,10 @@ pub mod receive_side_scaling;
 pub mod seg6;
 
 
+/// Strategies for working with multi-core, multi-queue NICs with RSS on NUMA machines.
+pub mod strategies;
+
+
 /// String sets.
 pub mod string_sets;
 
@@ -98,6 +110,7 @@ include!("EnergyEfficientEthernetConfiguration.rs");
 include!("GlobalNetworkDeviceConfiguration.rs");
 include!("GlobalNetworkDeviceConfigurationError.rs");
 include!("HardwareAddress.rs");
+include!("HardwareAddressType.rs");
 include!("InternetProtocolAddressLifetime.rs");
 include!("InternetProtocolVersion4AddressResolutionProtocolAnnounce.rs");
 include!("InternetProtocolVersion4AddressResolutionProtocolIgnore.rs");

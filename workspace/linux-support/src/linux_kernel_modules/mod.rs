@@ -11,6 +11,10 @@ use crate::user_and_groups::*;
 use crate::syscall::SYS;
 
 
+/// Parameters.
+pub mod parameters;
+
+
 include!("DriverName.rs");
 include!("LinuxKernelModule.rs");
 include!("LinuxKernelModuleFileBaseName.rs");

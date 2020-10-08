@@ -19,6 +19,24 @@ impl Into<u16> for QueueIdentifier
 	}
 }
 
+impl Into<u32> for QueueIdentifier
+{
+	#[inline(always)]
+	fn into(self) -> u32
+	{
+		self.0 as u32
+	}
+}
+
+impl Into<i16> for QueueIdentifier
+{
+	#[inline(always)]
+	fn into(self) -> i16
+	{
+		self.0 as i16
+	}
+}
+
 impl BitSetAware for QueueIdentifier
 {
 	const LinuxMaximum: u32 = MAX_NUM_QUEUE as u32;

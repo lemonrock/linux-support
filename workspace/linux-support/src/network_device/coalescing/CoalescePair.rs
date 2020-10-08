@@ -10,6 +10,8 @@
 pub struct CoalescePair
 {
 	/// How many microseconds to delay a receive interrupt after a packet arrives or delay a transmit interrupt after a packet is sent.
+	///
+	/// `None` can mean unsupported; it can also mean zero for Amazon ENA.
 	pub microseconds: Option<NonZeroU32>,
 	
 	/// Maximum number of packets to receive before an interrupt.
@@ -27,10 +29,18 @@ impl Default for CoalescePair
 
 impl CoalescePair
 {
+	pub const DisabledWhereMaximumFramesUnsupported: Self = Self
+	{
+		microseconds: None,
+		
+		maximum_frames: None
+	};
+	
 	/// Disabled.
 	pub const Disabled: Self = Self
 	{
 		microseconds: None,
+		
 		maximum_frames: Some(unsafe { NonZeroU32::new_unchecked(1) }),
 	};
 }

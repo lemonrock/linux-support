@@ -11,11 +11,14 @@ pub struct LinuxKernelVersion
 	/// Contents of `/proc/sys/kernel/osrelease`.
 	///
 	/// Equivalent to `uname -r`.
+	/// Equivalent to `UTS_RELEASE` macro.
 	///
 	/// Contains something like `5.4.27-0-virt`.
 	pub release: Box<[u8]>,
 
 	/// Contents of `/proc/sys/kernel/version`.
+	///
+	/// Equivalent to `UTS_VERSION` macro.
 	///
 	/// A string such as `#5 Wed Feb 25 21:49:24 MET 1998`.
 	/// The `#5` means that this is the fifth kernel built from this source base and the date following it indicates the time the kernel was built.
@@ -48,21 +51,26 @@ impl LinuxKernelVersion
 			revision,
 		}
 	}
-
+	
+	/// Equivalent to `uname`, `uname -s` or `uname -o`.
+	/// Equivalent to `UTS_SYSNAME`.
+	#[inline(always)]
+	fn verify_ostype()
+	{
+		let _type = proc_path.sys_kernel_file_path("ostype").read_raw_without_line_feed()?;
+		if &_type[..] != b"Linux"
+		{
+			panic!("This is not Linux");
+		}
+	}
+	
 	/// Parse.
 	///
 	/// Panics if not Linux.
 	#[inline(always)]
 	pub fn parse(proc_path: &ProcPath) -> io::Result<Self>
 	{
-		{
-			// Equivalent to `uname`, `uname -s` or `uname -o`.
-			let _type = proc_path.sys_kernel_file_path("osversion").read_raw_without_line_feed()?;
-			if &_type[..] != b"Linux"
-			{
-				panic!("This is not Linux");
-			}
-		}
+		Self::verify_ostype()
 
 		Ok
 		(

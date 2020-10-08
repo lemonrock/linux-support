@@ -8,4 +8,7 @@ use crate::paths::*;
 
 
 include!("InterruptRequest.rs");
+include!("InterruptRequestActionName.rs");
+include!("InterruptRequestType.rs");
+include!("InterruptRequestWakeUp.rs");
 include!("SpuriousInterruptRequestInformation.rs");

@@ -2,25 +2,15 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-// TODO: Find how many `resourceN` files there are.
-// TODO: Find PciBus.
 /// Models a PCI device.
 ///
-/// The following files are not parsed or used as they are not properly documented and seem to be of very limited value:-
+/// The following files are not parsed or used as they seem to be of very limited value:-
 ///
 /// * `consistent_dma_mask_bits` (Used on x86_64 only, but present on other architectures).
 /// * `dma_mask_bits`.
 /// * `broken_parity_status`.
-/// * `modalias`.
-///
-/// Bridges also have the files:-
-///
-/// * `secondary_bus_number`.
-/// * `subordinate_bus_number`.
-///
-/// Bridges do not have files called `resource<N>`.
-///
-/// PCI Bridges have a `pci_bus` folder which contains the files `rescan`, `cpuaffinity` and `cpulistaffinity`; the same folder can accessed via `/sys/devices/pci0000:00/pci_bus`.
+/// * `modalias` (a formatted string containing vendor, device, subsystem vendor, subsystem device and class).
+/// * `link` (always empty on my Parallels VMs).
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PciDevice<'a>
 {
@@ -34,7 +24,7 @@ impl<'a> Into<PciDeviceAddress> for PciDevice<'a>
 	#[inline(always)]
 	fn into(self) -> PciDeviceAddress
 	{
-		self.pci_device_address
+		self.address()
 	}
 }
 
@@ -51,21 +41,25 @@ impl<'a> PciDevice<'a>
 			cached_device_file_or_folder_path: sys_path.pci_device_folder_path(pci_device_address),
 		}
 	}
-
-	/// Rescans all PCI buses and devices.
+	
 	#[inline(always)]
-	pub fn rescan_all_pci_buses_and_devices(sys_path: &SysPath) -> io::Result<()>
+	pub(crate) fn cached_device_file_or_folder_path_is(&self, device_folder_path: PathBuf) -> bool
 	{
-		sys_path.pci_bus_file_path("rescan").write_value(true)
+		self.cached_device_file_or_folder_path == device_folder_path
 	}
-
-	/// Is this a PCI bus?
+	
 	#[inline(always)]
-	pub fn is_pci_bus(&self) -> bool
+	pub fn address(&self) -> PciDeviceAddress
 	{
-		self.pci_bus_folder_path().exists()
+		self.pci_device_address
 	}
-
+	
+	#[inline(always)]
+	pub fn parent_bus_address(&self) -> PciBusAddress
+	{
+		self.pci_device_address.bus_address
+	}
+	
 	/// Resources.
 	#[inline(always)]
 	pub fn resources(&self) -> io::Result<Resources>
@@ -77,32 +71,171 @@ impl<'a> PciDevice<'a>
 	#[inline(always)]
 	pub fn configuration_space(&self, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<MemoryMappedConfigurationSpace, io::Error>
 	{
-		self.device_file_or_folder_path("config").memory_map_read_write(0, AddressHint::any(), Sharing::Private, None, false, false, defaults).map(|memory_mapped_file| MemoryMappedConfigurationSpace(memory_mapped_file))
+		self.config_file_path().memory_map_read_write(0, AddressHint::any(), Sharing::Private, None, false, false, defaults).map(|memory_mapped_file| MemoryMappedConfigurationSpace(memory_mapped_file))
 	}
-
+	
+	/// PCI buses.
+	#[inline(always)]
+	pub fn child_pci_buses(&self) -> io::Result<HashMap<PciBusAddress, io::Result<PciBusDetails>>>
+	{
+		let read_dir = self.pci_bus_folder_path().read_dir()?;
+		let mut pci_buses = HashMap::new();
+		for dir_entry in read_dir
+		{
+			if let Ok(dir_entry) = dir_entry
+			{
+				if let Ok(file_type) = dir_entry.file_type()
+				{
+					if !file_type.is_dir()
+					{
+						continue
+					}
+					
+					if let Some(pci_bus_address) = PciBusAddress::parse_pci_bus(dir_entry)
+					{
+						let details = match pci_bus_address.bus(self.cached_device_file_or_folder_path.clone())
+						{
+							Err(error) => Err(error),
+							Ok(bus) => bus.details()
+						};
+						
+						pci_buses.insert(pci_bus_address, details);
+					}
+				}
+			}
+		}
+		Ok(pci_buses)
+	}
+	
+	#[inline(always)]
+	pub fn read_rom(&self) -> Option<io::Result<Box<[u8]>>>
+	{
+		assert_effective_user_id_is_root("Read PCI rom");
+		
+		self.rom_file_path().map(|file_path| file_path.read_raw())
+	}
+	
+	#[inline(always)]
+	pub fn write_rom(&self, contents: Box<[u8]>) -> Option<io::Result<()>>
+	{
+		assert_effective_user_id_is_root("Write PCI rom");
+		
+		self.rom_file_path().map(|file_path| file_path.write_value(contents))
+	}
+	
 	/// Details.
 	#[inline(always)]
 	pub fn details(&self) -> PciDeviceDetails
 	{
 		PciDeviceDetails
 		{
-			vendor_and_device: self.vendor_and_device("vendor", "device"),
-			subsystem_vendor_and_subsystem_device: self.vendor_and_device("subsystem_vendor", "subsystem_device"),
-			class: self.class(),
-			revision: self.revision(),
+			vendor_and_device: self.vendor_and_device().unwrap(),
+			driver: self.current_pci_driver(),
+			directly_associated_network_devices: self.directly_associated_network_devices(),
+			subsystem_name: self.subsystem_name(),
+			subsystem_vendor_and_subsystem_device: self.subsystem_vendor_and_subsystem_device().unwrap(),
+			class: self.class().unwrap(),
+			revision: self.revision().unwrap(),
 			associated_numa_node: self.associated_numa_node(),
 			associated_hyper_threads_bit_set: self.associated_hyper_threads_bit_set(),
 			associated_hyper_threads_bitmask: self.associated_hyper_threads_bitmask(),
 			d3cold_allowed: self.d3cold_allowed(),
-			interrupt_request_line: self.interrupt_request_line(),
 			current_link_speed_and_width: self.current_link_speed_and_width(),
 			maximum_link_speed_and_width: self.maximum_link_speed_and_width(),
-			enabled: self.enable(),
-			msi_and_msi_x_enabled: self.msi_and_msi_x_enabled(),
-			driver: self.current_pci_driver(),
+			enabled: self.enable().unwrap(),
+			interrupt_request: self.interrupt_request().unwrap(),
+			msi_and_msi_x_enabled: self.msi_and_msi_x_enabled().unwrap(),
+			msi_and_msi_x_interrupt_requests: self.msi_and_msi_x_interrupt_requests(),
+			alternative_routing_identifier_interpretation_forwarding_enabled: self.ari_forwarding_enabled(),
+			resource_files: self.resource_files().unwrap(),
+			has_rom: self.has_rom(),
+			has_config: self.has_config(),
+			boot_vga: self.boot_vga(),
+			bridge: self.bridge_details(),
 		}
 	}
-
+	
+	#[inline(always)]
+	fn resource_files(&self) -> io::Result<Vec<ResourceFile>>
+	{
+		let read_dir = self.cached_device_file_or_folder_path.read_dir()?;
+		
+		let mut parsed_resource_files: HashMap = HashMap::new();
+		
+		for dir_entry in read_dir
+		{
+			if let Ok(dir_entry) = dir_entry
+			{
+				if let Ok(file_type) = dir_entry.file_type()
+				{
+					if !file_type.is_file()
+					{
+						continue
+					}
+					let file_name = dir_entry.file_name();
+					const Prefix: &'static [u8] = b"resource";
+					if !file_name.starts_with(Prefix)
+					{
+						continue
+					}
+					
+					let file_name_bytes = file_name.into_vec();
+					let suffix = &file_name_bytes[Prefix.len() .. ];
+					let suffix_length = suffix.len();
+					
+					/// There is also a file called 'resource' which is unrelated.
+					if suffix_length == 0
+					{
+						continue
+					}
+					
+					const WriteCombiningSuffix: &'static [u8] = b"_wc";
+					let (without_write_combining_suffix, has_write_combining_suffix) = if suffix_length > WriteCombiningSuffix.len()
+					{
+						let length_less_write_combining_suffix = suffix_length - WriteCombiningSuffix.len();
+						let has_write_combining_suffix = &suffix[length_less_write_combining_suffix .. ] == WriteCombiningSuffix;
+						if has_write_combining_suffix
+						{
+							(&suffix[.. length_less_write_combining_suffix], true)
+						}
+						else
+						{
+							(suffix, false)
+						}
+					}
+					else
+					{
+						(suffix, false)
+					};
+					
+					if let Ok(index) = i32::from_bytes(without_write_combining_suffix)
+					{
+						let index = index as u32;
+						
+						use std::collections::hash_map::Entry::*;
+						let entry = parsed_resource_files.entry(index);
+						match entry
+						{
+							Occupied(occupied) => if has_write_combining_suffix
+							{
+								*occupied.get_mut() = true
+							},
+							
+							Vacant(vacant) => vacant.insert(has_write_combining_suffix),
+						}
+					}
+				}
+			}
+		}
+		
+		let mut resource_files = Vec::with_capacity(parsed_resource_files.len());
+		for (index, write_combining) in parsed_resource_files
+		{
+			resource_files.push(ResourceFile { index, write_combining })
+		}
+		Ok(resource_files)
+	}
+	
 	/// Tries to set the NUMA node of a PCI device.
 	///
 	/// Very brittle; only really to be used for broken system buses.
@@ -116,9 +249,47 @@ impl<'a> PciDevice<'a>
 		self.numa_node_file_path().write_value(UnpaddedDecimalInteger(numa_node));
 	}
 
+	/// Validated associated hyper threads, even for a non-NUMA machine.
+	pub fn validated_associated_hyper_threads(&self, all_pci_buses: &HashMap<PciBusAddress, io::Result<PciBusDetails>>) -> HyperThreads
+	{
+		let parent_bus_details = all_pci_buses.get(&self.parent_bus_address()).unwrap().as_ref().unwrap();
+		debug_assert_eq!(parent_bus_details.associated_hyper_threads_bit_set, parent_bus_details.associated_hyper_threads_bitmask);
+		let parent_bus_associated_hyper_threads = &parent_bus_details.associated_hyper_threads_bit_set;
+		
+		if let Some(Some(numa_node)) = self.associated_numa_node()
+		{
+			if let Some(associated_hyper_threads) = numa_node.associated_hyper_threads(self.sys_path)
+			{
+				return self.validate_associated_hyper_threads(associated_hyper_threads, parent_bus_associated_hyper_threads)
+			}
+		}
+		
+		if let Some(associated_hyper_threads) = self.associated_hyper_threads_bit_set()
+		{
+			if cfg!(debug_assertions)
+			{
+				let associated_hyper_threads_bitmask = self.associated_hyper_threads_bitmask();
+				debug_assert_eq!(associated_hyper_threads_bitmask, Some(associated_hyper_threads))
+			}
+			
+			return self.validate_associated_hyper_threads(associated_hyper_threads, parent_bus_associated_hyper_threads)
+		}
+		
+		self.validate_associated_hyper_threads(HyperThreads::valid(self.sys_path, None), parent_bus_associated_hyper_threads)
+	}
+	
+	#[inline(always)]
+	fn validate_associated_hyper_threads(&self, mut associated_hyper_threads: HyperThreads, parent_bus_associated_hyper_threads: &HyperThreads) -> HyperThreads
+	{
+		let mut validated = associated_hyper_threads.validate(self.sys_path, None);
+		validated.intersection(parent_bus_associated_hyper_threads);
+		validated
+	}
+	
 	/// This value does not exist if the Kernel does not support ACPI.
 	///
 	/// Panics if file exists but a write error occurs; does nothing if file does not exist.
+	#[inline(always)]
 	pub fn write_d3cold_allowed(&self, allowed: bool)
 	{
 		let file_path = self.d3cold_allowed_file_path();
@@ -195,40 +366,186 @@ impl<'a> PciDevice<'a>
 			original_pci_driver_name.bind(self.sys_path, self.pci_device_address)
 		}
 	}
-
+	
 	#[inline(always)]
-	fn vendor_and_device(&self, vendor_file_name: &str, device_file_name: &str) -> PciVendorAndDevice
+	fn subsystem_name(&self) -> Box<[u8]>
 	{
-		PciVendorAndDevice
+		let folder_path = self.subsystem_symlink_folder_path();
+		
+		let link = folder_path.read_link().unwrap();
+		let file_name = link.file_name().unwrap();
+		file_name.as_bytes().to_vec().into_boxed_slice()
+	}
+
+	/// Vendor and device.
+	#[inline(always)]
+	pub(crate) fn vendor_and_device(&self) -> Option<PciVendorAndDevice>
+	{
+		self.vendor_and_device_like("vendor", "device")
+	}
+	
+	#[inline(always)]
+	fn subsystem_vendor_and_subsystem_device(&self) -> Option<PciVendorAndDevice>
+	{
+		self.vendor_and_device_like("subsystem_vendor", "subsystem_device")
+	}
+	
+	#[inline(always)]
+	fn vendor_and_device_like(&self, vendor_file_name: &str, device_file_name: &str) -> Option<PciVendorAndDevice>
+	{
+		let vendor = self.read_value_if_exists(vendor_file_name);
+		let device = self.read_value_if_exists(device_file_name);
+		
+		match (vendor, device)
 		{
-			vendor: self.read_value(vendor_file_name),
-			device: self.read_value(device_file_name),
+			(None, None) => None,
+			
+			(Some(vendor), Some(device)) => Some
+			(
+				PciVendorAndDevice
+				{
+					vendor,
+					device,
+				}
+			),
+			
+			(Some(_), _) => panic!("{} but not {}", vendor_file_name, device_file_name),
+			
+			(_, Some(_)) => panic!("{} but not {}", device_file_name, vendor_file_name),
+		}
+	}
+	
+	#[inline(always)]
+	fn ari_forwarding_enabled(&self) -> bool
+	{
+		self.device_file_or_folder_path("ari_enabled").read_zero_or_one_bool().unwrap()
+	}
+	
+	#[inline(always)]
+	fn boot_vga(&self) -> bool
+	{
+		self.device_file_or_folder_path("boot_vga").read_zero_or_one_bool().unwrap()
+	}
+	
+	#[inline(always)]
+	fn bridge_details(&self) -> Option<PciBridgeDeviceDetails>
+	{
+		let secondary_bus_number = self.read_value_if_exists("secondary_bus_number");
+		let subordinate_bus_number = self.read_value_if_exists("subordinate_bus_number");
+		
+		match (secondary_bus_number, subordinate_bus_number)
+		{
+			(None, None) => None,
+			
+			(Some(secondary_bus_number), Some(subordinate_bus_number)) => Some
+			(
+				PciBridgeDeviceDetails
+				{
+					secondary_bus_number,
+					subordinate_bus_number,
+				}
+			),
+			
+			(Some(_), _) => panic!("secondary_bus_number vendor but not subordinate_bus_number"),
+			
+			(_, Some(_)) => panic!("subordinate_bus_number but not secondary_bus_number"),
+		}
+	}
+	
+	/// This reports nothing for `virtio` as these sit under, say, a `virtio0` child folder.
+	#[inline(always)]
+	fn directly_associated_network_devices(&self) -> Option<HashSet<NetworkInterfaceName>>
+	{
+		let folder_path = self.device_file_or_folder_path("net");
+		if !folder_path.exists()
+		{
+			return None
+		}
+		
+		match folder_path.read_dir()
+		{
+			Err(_) => None,
+			
+			Ok(read_dir) => for dir_entry in read_dir
+			{
+				let mut network_interface_names = HashSet::new();
+				
+				if let Ok(dir_entry) = dir_entry
+				{
+					if let Ok(file_type) = dir_entry.file_type()
+					{
+						if !file_type.is_dir()
+						{
+							continue
+						}
+						
+						let file_name = dir_entry.file_name();
+						if let Ok(network_interface_name) = NetworkInterfaceName::from_bytes(file_name.as_bytes())
+						{
+							network_interface_names.insert(network_interface_name);
+						}
+					}
+				}
+				
+				Ok(network_interface_names)
+			}
 		}
 	}
 
 	#[inline(always)]
-	fn class(&self) -> EitherPciDeviceClass
+	fn class(&self) -> Option<EitherPciDeviceClass>
 	{
-		self.read_value("class")
+		self.read_value_if_exists("class")
 	}
-
+	
 	#[inline(always)]
-	fn revision(&self) -> Revision
+	fn revision(&self) -> Option<Revision>
 	{
-		self.read_value("revision")
+		self.read_value_if_exists("revision")
 	}
-
+	
+	#[inline(always)]
+	fn has_rom(&self) -> bool
+	{
+		self.rom_file_path().is_some()
+	}
+	
+	#[inline(always)]
+	fn has_config(&self) -> bool
+	{
+		self.config_file_path().is_some()
+	}
+	
 	/// PCI device's associated NUMA node.
 	///
-	/// May not be present.
+	/// May not be present even if this is a NUMA machine (eg because this is a virtio device).
+	/// Can also be `-1` as the driver doesn't support a NUMA node.
+	///
+	/// So:-
+	///
+	/// * `None` - no NUMA node (probably not a NUMA machine).
+	/// * `Some(None)` - NUMA node unknown or unreported by the network device driver.
+	/// * `Some(Some())` - NUMA node known and reported.
 	#[inline(always)]
-	fn associated_numa_node(&self) -> Option<NumaNode>
+	pub(crate) fn associated_numa_node(&self) -> Option<Option<NumaNode>>
 	{
 		let numa_node_file_path = self.numa_node_file_path();
 
 		if numa_node_file_path.exists()
 		{
-			Some(numa_node_file_path.read_value::<NumaNode>().unwrap())
+			let value: i32 = numa_node_file_path.read_value().unwrap();
+			if value == -1
+			{
+				Some(None)
+			}
+			else if value >= 0
+			{
+				Some(Some(NumaNode::try_from(value).unwrap()))
+			}
+			else
+			{
+				panic!("Negative NUMA node value")
+			}
 		}
 		else
 		{
@@ -243,35 +560,71 @@ impl<'a> PciDevice<'a>
 	/// On a test machine, with one hyper thread, reports that hyper threads 0 through 31 were assocated.
 	///
 	/// Panics if file unreadable.
+	///
+	/// Returns `None` if file absent (this does not necessarily mean this is not a NUMA machine; virtio devices do not have this information).
 	#[inline(always)]
-	fn associated_hyper_threads_bit_set(&self) -> HyperThreads
+	fn associated_hyper_threads_bit_set(&self) -> Option<HyperThreads>
 	{
-		HyperThreads(self.device_file_or_folder_path("local_cpulist").read_hyper_thread_or_numa_node_list().expect("Could not parse local_cpulist"))
+		let file_path = self.device_file_or_folder_path("local_cpulist");
+		if likely!(file_path.exists())
+		{
+			Some(HyperThreads(file_path.read_hyper_thread_or_numa_node_list().expect("Could not parse local_cpulist")))
+		}
+		else
+		{
+			None
+		}
 	}
-
-	/// PCI device hyper threads that are permitted to use this device.
+	
+	/// PCI device associated hyper threads.
 	///
 	/// May report CPUs that don't actually exist; refine list against that known for a NUMA node.
 	///
 	/// Should be identical to `associated_hyper_threads_bit_set()`.
 	///
 	/// Panics if file unreadable.
+	///
+	/// Returns `None` if file absent (this does not necessarily mean this is not a NUMA machine; virtio devices do not have this information).
 	#[inline(always)]
-	fn associated_hyper_threads_bitmask(&self) -> HyperThreads
+	fn associated_hyper_threads_bitmask(&self) -> Option<HyperThreads>
 	{
-		HyperThreads(self.device_file_or_folder_path("local_cpus").parse_comma_separated_bit_set().expect("Could not parse local_cpulist"))
+		let file_path = self.device_file_or_folder_path("local_cpus");
+		if likely!(file_path.exists())
+		{
+			Some(HyperThreads(file_path.parse_comma_separated_bit_set().expect("Could not parse local_cpus")))
+		}
+		else
+		{
+			None
+		}
 	}
-
+	
 	#[inline(always)]
-	fn msi_and_msi_x_enabled(&self) -> bool
+	fn msi_and_msi_x_enabled(&self) -> Option<bool>
 	{
-		self.msi_bus_file_path().read_zero_or_one_bool().unwrap()
+		let file_path = self.msi_bus_file_path();
+		if likely!(file_path.exists())
+		{
+			Some(file_path.read_zero_or_one_bool().unwrap())
+		}
+		else
+		{
+			None
+		}
 	}
-
+	
 	#[inline(always)]
-	fn enable(&self) -> bool
+	fn enable(&self) -> Option<bool>
 	{
-		self.enable_file_path().read_zero_or_one_bool().unwrap()
+		let file_path = self.enable_file_path();
+		if likely!(file_path.exists())
+		{
+			Some(file_path.read_zero_or_one_bool().unwrap())
+		}
+		else
+		{
+			None
+		}
 	}
 
 	/// This value does not exist if the Kernel does not support ACPI.
@@ -288,11 +641,20 @@ impl<'a> PciDevice<'a>
 			None
 		}
 	}
-
+	
 	#[inline(always)]
-	fn interrupt_request_line(&self) -> u8
+	fn interrupt_request(&self) -> Option<InterruptRequest>
 	{
-		self.device_file_or_folder_path("irq").read_value().expect("Could not parse irq")
+		let file_path = self.device_file_or_folder_path("irq");
+		
+		if likely!(file_path.exists())
+		{
+			Some(file_path.read_value().expect("Could not parse irq"))
+		}
+		else
+		{
+			None
+		}
 	}
 
 	/// PCI express only.
@@ -334,7 +696,78 @@ impl<'a> PciDevice<'a>
 			}
 		)
 	}
-
+	
+	#[inline(always)]
+	fn msi_and_msi_x_interrupt_requests(&self) -> Option<HashMap<InterruptRequest, MsiInterruptMode>>
+	{
+		let folder_path = self.msi_irqs_folder_path();
+		if folder_path.exists()
+		{
+			match folder_path.read_dir()
+			{
+				Err(_) => None,
+				
+				Ok(read_dir) =>
+				{
+					let mut interrupt_requests = HashMap::new();
+					
+					for dir_entry in read_dir
+					{
+						if let Ok(dir_entry) = dir_entry
+						{
+							if let Ok(metadata) = dir_entry.metadata()
+							{
+								if metadata.is_file()
+								{
+									let file_name = dir_entry.file_name().into_vec();
+									if let Ok(raw_interrupt_request) = u8::from_bytes(&file_name[..])
+									{
+										if let Ok(file_value) = dir_entry.path().read_raw_without_line_feed()
+										{
+											use self::MsiInterruptMode::*;
+											let kind = match &file_value[..]
+											{
+												b"msix" => MSI_X,
+												
+												b"msi" => MSI,
+												
+												// Impossible in normal Linux.
+												_ => continue,
+											};
+											
+											interrupt_requests.insert(InterruptRequest(raw_interrupt_request), kind);
+										}
+									}
+								}
+							}
+						}
+					}
+					
+					Ok(interrupt_requests)
+				}
+			}
+		}
+		else
+		{
+			None
+		}
+	}
+	
+	#[inline(always)]
+	fn read_value_if_exists<F: FromBytes>(&self, file_name: &str) -> Option<F>
+	where <F as FromBytes>::Error: 'static + Send + Sync + error::Error
+	{
+		let file_path = self.device_file_or_folder_path(file_name);
+		if likely!(file_path.exists())
+		{
+			Some(file_path.read_value().unwrap())
+		}
+		else
+		{
+			None
+		}
+	}
+	
 	#[inline(always)]
 	fn read_value<F: FromBytes>(&self, file_name: &str) -> F
 	where <F as FromBytes>::Error: 'static + Send + Sync + error::Error
@@ -378,12 +811,17 @@ impl<'a> PciDevice<'a>
 		self.device_file_or_folder_path("driver_override")
 	}
 
-	/// Often not present.
-	#[allow(dead_code)]
 	#[inline(always)]
 	fn msi_irqs_folder_path(&self) -> PathBuf
 	{
 		self.device_file_or_folder_path("msi_irqs")
+	}
+
+	#[allow(dead_code)]
+	#[inline(always)]
+	fn net_folder_path(&self) -> PathBuf
+	{
+		self.device_file_or_folder_path("net")
 	}
 
 	#[allow(dead_code)]
@@ -393,11 +831,40 @@ impl<'a> PciDevice<'a>
 		self.device_file_or_folder_path("power")
 	}
 
-	#[allow(dead_code)]
 	#[inline(always)]
-	fn subsystem_folder_path(&self) -> PathBuf
+	fn subsystem_symlink_folder_path(&self) -> PathBuf
 	{
 		self.device_file_or_folder_path("subsystem")
+	}
+	
+	/// Rare.
+	#[inline(always)]
+	fn rom_file_path(&self) -> Option<PathBuf>
+	{
+		let file_path = self.device_file_or_folder_path("rom");
+		if unlikely!(file_path.exists())
+		{
+			Some(file_path)
+		}
+		else
+		{
+			None
+		}
+	}
+	
+	/// Not always present.
+	#[inline(always)]
+	fn config_file_path(&self) -> Option<PathBuf>
+	{
+		let file_path = self.device_file_or_folder_path("config");
+		if unlikely!(file_path.exists())
+		{
+			Some(file_path)
+		}
+		else
+		{
+			None
+		}
 	}
 
 	/// Only exists if this device is a bus.
@@ -405,6 +872,12 @@ impl<'a> PciDevice<'a>
 	fn pci_bus_folder_path(&self) -> PathBuf
 	{
 		self.device_file_or_folder_path("pci_bus")
+	}
+	
+	#[inline(always)]
+	fn link_folder_path(&self) -> PathBuf
+	{
+		self.device_file_or_folder_path("link")
 	}
 
 	#[inline(always)]

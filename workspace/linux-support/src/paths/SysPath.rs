@@ -233,7 +233,7 @@ impl SysPath
 	
 	/// `/sys/devices`.
 	#[inline(always)]
-	fn devices_folder_path(&self) -> PathBuf
+	pub(crate) fn devices_folder_path(&self) -> PathBuf
 	{
 		self.path().append("devices")
 	}
@@ -265,6 +265,13 @@ impl SysPath
 	fn class_net_folder_path(&self) -> PathBuf
 	{
 		self.class_folder_path().append("net")
+	}
+	
+	/// `/sys/class/pci_bus`.
+	#[inline(always)]
+	pub(crate) fn class_pci_bus_folder_path(&self) -> PathBuf
+	{
+		self.class_folder_path().append("pci_bus")
 	}
 	
 	/// `/sys/class`.
@@ -323,12 +330,13 @@ impl SysPath
 	{
 		self.path().append("bus")
 	}
-
-	/// `/sys/module/<file_name>`.
+	
+	/// `/sys/module/<linux_kernel_module_name>/<file_name>`.
 	#[inline(always)]
-	pub(crate) fn module_file_or_folder_path(&self, file_name: impl AsRef<Path>) -> PathBuf
+	pub(crate) fn module_file_or_folder_path(&self, linux_kernel_module_name: &LinuxKernelModuleName, file_name: impl AsRef<Path>) -> PathBuf
 	{
-		self.path().append("module").append(file_name)
+		let os_string: OsString = linux_kernel_module_name.into();
+		self.path().append("module").append(os_string).append(file_name)
 	}
 
 	#[inline(always)]

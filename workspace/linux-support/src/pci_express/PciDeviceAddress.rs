@@ -6,12 +6,34 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
+#[allow(missing_docs)]
 pub struct PciDeviceAddress
 {
-	domain: u16,
-	bus: u8,
+	bus_address: PciBusAddress,
+	
 	devid: u8,
+	
 	function: u8,
+}
+
+impl Deref for PciDeviceAddress
+{
+	type Target = PciBusAddress;
+	
+	#[inline(always)]
+	fn deref(&self) -> &Self::Target
+	{
+		&self.bus_address
+	}
+}
+
+impl Into<PciBusAddress> for PciDeviceAddress
+{
+	#[inline(always)]
+	fn into(self) -> PciBusAddress
+	{
+		self.bus_address
+	}
 }
 
 impl Into<String> for PciDeviceAddress
@@ -28,7 +50,7 @@ impl<'a> Into<String> for &'a PciDeviceAddress
 	#[inline(always)]
 	fn into(self) -> String
 	{
-		format!("{:04x}:{:02x}:{:02x}.{:01x}", self.domain, self.bus, self.devid, self.function)
+		format!("{:04x}:{:02x}:{:02x}.{:01x}", self.bus_address.domain, self.bus_address.bus, self.devid, self.function)
 	}
 }
 
@@ -213,16 +235,21 @@ impl<'a> TryFrom<&'a [u8]> for PciDeviceAddress
 		(
 			Self
 			{
-				domain:
+				bus_address: PciBusAddress
 				{
-					let value = split.next().ok_or(NoDomain)?;
-					u16::parse_hexadecimal_number_upper_or_lower_case(value).map_err(|cause| CouldNotParseDomain { value: value.to_owned(), cause})?
+					domain:
+					{
+						let value = split.next().ok_or(NoDomain)?;
+						u16::parse_hexadecimal_number_upper_or_lower_case(value).map_err(|cause| CouldNotParseDomain { value: value.to_owned(), cause })?
+					},
+					
+					bus:
+					{
+						let value = split.next().ok_or(NoDeviceIdentifier)?;
+						u8::parse_hexadecimal_number_upper_or_lower_case(value).map_err(|cause| CouldNotParseBus { value: value.to_owned(), cause })?
+					},
 				},
-				bus:
-				{
-					let value = split.next().ok_or(NoDeviceIdentifier)?;
-					u8::parse_hexadecimal_number_upper_or_lower_case(value).map_err(|cause| CouldNotParseBus { value: value.to_owned(), cause})?
-				},
+				
 				devid:
 				{
 					let value = split.next().ok_or(NoDeviceIdentifier)?;
@@ -233,6 +260,7 @@ impl<'a> TryFrom<&'a [u8]> for PciDeviceAddress
 					}
 					value
 				},
+				
 				function:
 				{
 
@@ -267,7 +295,7 @@ impl PciDeviceAddress
 			{
 				Err(_) => return None,
 				
-				Ok(file_type) => if likely!(file_type.is_dir())
+				Ok(file_type) => if likely!(file_type.is_symlink())
 				{
 					dir_entry
 				}
@@ -282,5 +310,12 @@ impl PciDeviceAddress
 		}
 		
 		sys_path.devices_pci_bus_folder_path().read_dir().map(|iterator| iterator.filter_map(filter_map))
+	}
+	
+	/// PCI bus.
+	#[inline(always)]
+	pub fn pci_bus(&self) -> &PciBusAddress
+	{
+		&self
 	}
 }

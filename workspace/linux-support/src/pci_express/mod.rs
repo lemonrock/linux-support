@@ -16,6 +16,7 @@ use crate::memory::mapping::*;
 use crate::memory::numa::NumaNode;
 use crate::paths::*;
 use crate::user_and_groups::assert_effective_user_id_is_root;
+use crate::interrupt_request::InterruptRequest;
 
 
 /// Classifications.
@@ -34,6 +35,9 @@ pub mod definitions;
 pub mod link;
 
 
+pub(crate) mod msi_x_interrupt_request_naming_strategy;
+
+
 /// Registers.
 pub mod registers;
 
@@ -42,10 +46,18 @@ pub mod registers;
 pub mod resources;
 
 
+include!("BusNumber.rs");
 include!("LinuxPciUserspaceKernelDriverModule.rs");
+include!("MsiInterruptMode.rs");
+include!("PciBridgeDeviceDetails.rs");
+include!("PciBusAddress.rs");
+include!("PciBus.rs");
+include!("PciBusDetails.rs");
 include!("PciDevice.rs");
 include!("PciDeviceAddress.rs");
 include!("PciDeviceAddressFromNetworkInterfaceNameError.rs");
 include!("PciDeviceAddressStringParseError.rs");
 include!("PciDeviceDetails.rs");
 include!("PciDevicePhysicalOrVirtualFunction.rs");
+include!("PrimaryPciBusAddress.rs");
+include!("ResourceFile.rs");
