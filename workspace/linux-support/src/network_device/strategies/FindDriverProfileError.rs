@@ -25,6 +25,7 @@ pub enum FindDriverProfileError
 	/// This should not be possible.
 	CouldNotGetDriverAndDeviceInformation
 	{
+		/// Error.
 		error: NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>,
 		
 		/// Name.

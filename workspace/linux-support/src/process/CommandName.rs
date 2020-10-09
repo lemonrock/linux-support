@@ -61,6 +61,24 @@ impl Deref for CommandName
 	}
 }
 
+impl AsRef<[u8]> for CommandName
+{
+	#[inline(always)]
+	fn as_ref(&self) -> &[u8]
+	{
+		self.0.as_ref()
+	}
+}
+
+impl AsRef<CStr> for CommandName
+{
+	#[inline(always)]
+	fn as_ref(&self) -> &CStr
+	{
+		self.0.as_ref()
+	}
+}
+
 impl CommandName
 {
 	/// Reads from a Linux ProcPath or SysPath resource.

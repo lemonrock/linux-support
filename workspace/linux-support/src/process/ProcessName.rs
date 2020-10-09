@@ -64,6 +64,24 @@ impl Deref for ProcessName
 	}
 }
 
+impl AsRef<[u8]> for ProcessName
+{
+	#[inline(always)]
+	fn as_ref(&self) -> &[u8]
+	{
+		self.0.as_ref()
+	}
+}
+
+impl AsRef<CStr> for ProcessName
+{
+	#[inline(always)]
+	fn as_ref(&self) -> &CStr
+	{
+		self.0.as_ref()
+	}
+}
+
 impl Default for ProcessName
 {
 	#[inline(always)]
