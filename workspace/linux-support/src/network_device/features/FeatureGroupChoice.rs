@@ -200,24 +200,28 @@ impl Sub<Feature> for FeatureGroupChoice
 
 impl FeatureGroupChoice
 {
+	/// Enable one.
 	#[inline(always)]
 	pub fn enable_one(feature: Feature) -> Self
 	{
 		Self::enable(hashset! [feature])
 	}
 	
+	/// Enable.
 	#[inline(always)]
 	pub fn enable(features: HashSet<Feature>) -> Self
 	{
 		FeatureGroupChoice::OtherToEnable(FeatureGroup::from(features))
 	}
 	
+	/// Disable one.
 	#[inline(always)]
 	pub fn disable_one(feature: Feature) -> Self
 	{
 		Self::disable(hashset! [feature])
 	}
 	
+	/// Disable.
 	#[inline(always)]
 	pub fn disable(features: HashSet<Feature>) -> Self
 	{

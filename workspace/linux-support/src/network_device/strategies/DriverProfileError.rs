@@ -18,44 +18,54 @@ pub enum DriverProfileError
 	/// The remaining are used for receive-transmit queue pairs; there is at least one such pair, hence a minimum of 2.
 	AtLeastTwoHyperThreadsAreRequired
 	{
+		/// Name.
 		network_interface_name: NetworkInterfaceName,
 		
+		/// Zero or One.
 		actual_number: usize,
 	},
 	
 	/// Error retrieving the number of channels.
 	CouldNotGetNumberOfChannels
 	{
+		/// Name.
 		network_interface_name: NetworkInterfaceName,
 		
+		/// Error.
 		error: NetworkDeviceInputOutputControlError<Infallible>,
 	},
 	
 	/// Does not support retrieving the number of channels; this shouldn't occur if the driver profile is correct.
 	DoesNotSupportNumberOfChannels
 	{
+		/// Name.
 		network_interface_name: NetworkInterfaceName,
 	},
 	
 	/// Does not support combined channels; this shouldn't occur if the driver profile is correct.
 	DoesNotSupportCombinedChannels
 	{
+		/// Name.
 		network_interface_name: NetworkInterfaceName,
 	},
 	
 	/// This shouldn't occur if the driver profile is correct.
 	CouldNotGetNumberOfReceiveRingQueues
 	{
+		/// Name.
 		network_interface_name: NetworkInterfaceName,
 		
+		/// Error.
 		error: NetworkDeviceInputOutputControlError<ParseNumberError>,
 	},
 	
 	/// Error retrieving the RSS hash configuration of channels; this shouldn't occur if the driver profile is correct.
 	CouldNotGetReceiveSideScalingHashFunctionConfiguration
 	{
+		/// Name.
 		network_interface_name: NetworkInterfaceName,
 		
+		/// Error.
 		error: NetworkDeviceInputOutputControlError<HashFunctionNameUnsupportedError>,
 	},
 	

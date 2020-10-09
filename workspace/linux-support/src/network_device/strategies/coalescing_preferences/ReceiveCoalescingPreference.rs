@@ -19,5 +19,6 @@ pub struct ReceiveCoalescingPreference
 	/// Use by Intel ixgbevf for both paired receive-transmit queues and receive-only queues.
 	pub interrupt_throttle_rate_setting: IntelIxgbevfInterruptThrottleRateSetting,
 
+	/// Use adaptive coalescing.
 	pub prefer_adaptive_coalescing: bool,
 }

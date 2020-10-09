@@ -44,7 +44,7 @@ impl GlobalNetworkDeviceTransmitQueueConfiguration
 	}
 	
 	#[inline(always)]
-	pub(crate) const fn linux_default_with_one_to_one_receive_to_transmit_packet_steering(receive_queue_identifier: QueueIdentifier) -> Self
+	pub(crate) fn linux_default_with_one_to_one_receive_to_transmit_packet_steering(receive_queue_identifier: QueueIdentifier) -> Self
 	{
 		Self
 		{

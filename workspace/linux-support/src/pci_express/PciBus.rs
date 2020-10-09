@@ -51,6 +51,7 @@ impl PciBus
 		)
 	}
 	
+	/// Address.
 	#[inline(always)]
 	pub fn address(&self) -> PciBusAddress
 	{
@@ -92,6 +93,6 @@ impl PciBus
 	fn file_path(&self, file_name: &str) -> PathBuf
 	{
 		let string_address: String = self.pci_bus_address.into();
-		self.canonical_parent_folder_path_of_pci_bus_folder_path.append("pci_bus").append(&string_address).append(file_name)
+		self.canonical_parent_folder_path_of_pci_bus_folder_path.clone().append("pci_bus").append(&string_address).append(file_name)
 	}
 }

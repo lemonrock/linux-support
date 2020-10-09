@@ -9,7 +9,7 @@ impl MsiXInterruptRequestNamingStrategy for VirtioNetMsiXInterruptRequestNamingS
 {
 	/// `device_name` is something like `virtio0`.
 	#[inline(always)]
-	fn controller(&self, bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, device_name: &[u8]) -> Option<InterruptRequestActionName>
+	fn controller(&self, _bus_info_name: PciDeviceAddress, _network_interface_name: &NetworkInterfaceName, device_name: &[u8]) -> Option<InterruptRequestActionName>
 	{
 		let device_name: &str = unsafe { from_utf8_unchecked(device_name) };
 		Some(into_action_name(format!("{}-config", device_name)))
@@ -19,14 +19,14 @@ impl MsiXInterruptRequestNamingStrategy for VirtioNetMsiXInterruptRequestNamingS
 	///
 	/// Not always present.
 	#[inline(always)]
-	fn control_queue(&self, bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, device_name: &[u8]) -> Option<InterruptRequestActionName>
+	fn control_queue(&self, _bus_info_name: PciDeviceAddress, _network_interface_name: &NetworkInterfaceName, device_name: &[u8]) -> Option<InterruptRequestActionName>
 	{
 		let device_name: &str = unsafe { from_utf8_unchecked(device_name) };
 		Some(into_action_name(format!("{}-control", device_name)))
 	}
 	
 	#[inline(always)]
-	fn paired_receive_transmit_queue(&self, bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, device_name: &[u8], paired_receive_transmit_queue: QueueIdentifier) -> Option<InterruptRequestActionName>
+	fn paired_receive_transmit_queue(&self, _bus_info_name: PciDeviceAddress, _network_interface_name: &NetworkInterfaceName, _device_name: &[u8], _paired_receive_transmit_queue: QueueIdentifier) -> Option<InterruptRequestActionName>
 	{
 		None
 	}
@@ -35,7 +35,7 @@ impl MsiXInterruptRequestNamingStrategy for VirtioNetMsiXInterruptRequestNamingS
 	///
 	/// May not be present.
 	#[inline(always)]
-	fn receive_queue(&self, bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, device_name: &[u8], receive_queue: QueueIdentifier) -> Option<InterruptRequestActionName>
+	fn receive_queue(&self, _bus_info_name: PciDeviceAddress, _network_interface_name: &NetworkInterfaceName, device_name: &[u8], receive_queue: QueueIdentifier) -> Option<InterruptRequestActionName>
 	{
 		let device_name: &str = unsafe { from_utf8_unchecked(device_name) };
 		let receive_queue: i16 = receive_queue.into();
@@ -46,7 +46,7 @@ impl MsiXInterruptRequestNamingStrategy for VirtioNetMsiXInterruptRequestNamingS
 	///
 	/// May not be present.
 	#[inline(always)]
-	fn transmit_queue(&self, bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, device_name: &[u8], transmit_queue: QueueIdentifier) -> Option<InterruptRequestActionName>
+	fn transmit_queue(&self, _bus_info_name: PciDeviceAddress, _network_interface_name: &NetworkInterfaceName, device_name: &[u8], transmit_queue: QueueIdentifier) -> Option<InterruptRequestActionName>
 	{
 		let device_name: &str = unsafe { from_utf8_unchecked(device_name) };
 		let transmit_queue: i16 = transmit_queue.into();
@@ -57,7 +57,7 @@ impl MsiXInterruptRequestNamingStrategy for VirtioNetMsiXInterruptRequestNamingS
 	///
 	/// May not be present.
 	#[inline(always)]
-	fn all_queues_fallback(&self, bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, device_name: &[u8]) -> Option<InterruptRequestActionName>
+	fn all_queues_fallback(&self, _bus_info_name: PciDeviceAddress, _network_interface_name: &NetworkInterfaceName, device_name: &[u8]) -> Option<InterruptRequestActionName>
 	{
 		let device_name: &str = unsafe { from_utf8_unchecked(device_name) };
 		Some(into_action_name(format!("{}-virtqueues", device_name)))

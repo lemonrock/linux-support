@@ -108,10 +108,6 @@ impl PrimaryPciBusAddress
 				return None
 			}
 			
-			let devid_hexadecimal = &file_name_bytes[8 .. 10];
-			
-			let function_hexadecimal = &file_name_bytes[12 .. 13];
-			
 			Some
 			(
 				PciDeviceAddress

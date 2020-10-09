@@ -30,7 +30,7 @@ impl<'a> AllocateInterruptRequests<'a>
 		}
 	}
 	
-	fn allocate_interrupt_requests_for_controllers_and_control_queues(&self, administrative_queue_hyper_thread: HyperThread)
+	fn allocate_interrupt_requests_for_controllers_and_control_queues(&mut self, administrative_queue_hyper_thread: HyperThread)
 	{
 		if let Some(interrupt_name) = self.msi_x_interrupt_request_naming_strategy.controller(self.bus_info_name, self.network_interface_name, self.device_name)
 		{
@@ -42,7 +42,7 @@ impl<'a> AllocateInterruptRequests<'a>
 		}
 	}
 	
-	fn allocate_interrupt_requests_for_paired_receive_transmit_queue_identifier(&self, paired_receive_transmit_queue: QueueIdentifier, paired_receive_transmit_queue_hyper_thread: HyperThread)
+	fn allocate_interrupt_requests_for_paired_receive_transmit_queue_identifier(&mut self, paired_receive_transmit_queue: QueueIdentifier, paired_receive_transmit_queue_hyper_thread: HyperThread)
 	{
 		if let Some(interrupt_name) = self.msi_x_interrupt_request_naming_strategy.paired_receive_transmit_queue(self.bus_info_name, self.network_interface_name, self.device_name, paired_receive_transmit_queue)
 		{
@@ -60,7 +60,7 @@ impl<'a> AllocateInterruptRequests<'a>
 		}
 	}
 	
-	fn add_all_queues_fallback(&self, associated_hyper_threads_for_paired_receive_transmit_queue_pairs: &HyperThreads)
+	fn add_all_queues_fallback(&mut self, associated_hyper_threads_for_paired_receive_transmit_queue_pairs: &HyperThreads)
 	{
 		if let Some(interrupt_name) = self.msi_x_interrupt_request_naming_strategy.all_queues_fallback(self.bus_info_name, self.network_interface_name, self.device_name)
 		{
@@ -72,7 +72,7 @@ impl<'a> AllocateInterruptRequests<'a>
 	}
 	
 	#[inline(always)]
-	fn add_interrupt_request_affinity(&self, action: InterruptRequestActionName, hyper_thread: HyperThread)
+	fn add_interrupt_request_affinity(&mut self, action: InterruptRequestActionName, hyper_thread: HyperThread)
 	{
 		self.interrupt_request_affinities.add_interrupt_request_affinity(action, hyper_thread)
 	}

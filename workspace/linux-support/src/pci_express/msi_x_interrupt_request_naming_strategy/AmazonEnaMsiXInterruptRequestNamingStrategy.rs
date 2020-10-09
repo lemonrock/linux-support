@@ -8,20 +8,20 @@ pub(crate) struct AmazonEnaMsiXInterruptRequestNamingStrategy;
 impl MsiXInterruptRequestNamingStrategy for AmazonEnaMsiXInterruptRequestNamingStrategy
 {
 	#[inline(always)]
-	fn controller(&self, bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, device_name: &[u8]) -> Option<InterruptRequestActionName>
+	fn controller(&self, _bus_info_name: PciDeviceAddress, _network_interface_name: &NetworkInterfaceName, _device_name: &[u8]) -> Option<InterruptRequestActionName>
 	{
 		None
 	}
 	
 	#[inline(always)]
-	fn control_queue(&self, bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, device_name: &[u8]) -> Option<InterruptRequestActionName>
+	fn control_queue(&self, bus_info_name: PciDeviceAddress, _network_interface_name: &NetworkInterfaceName, _device_name: &[u8]) -> Option<InterruptRequestActionName>
 	{
 		let string: String = bus_info_name.into();
 		Some(into_action_name(format!("ena-mgmnt@pci:{:?}", string)))
 	}
 	
 	#[inline(always)]
-	fn paired_receive_transmit_queue(&self, bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, device_name: &[u8], paired_receive_transmit_queue: QueueIdentifier) -> Option<InterruptRequestActionName>
+	fn paired_receive_transmit_queue(&self, _bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, _device_name: &[u8], paired_receive_transmit_queue: QueueIdentifier) -> Option<InterruptRequestActionName>
 	{
 		let network_interface_name: &str = network_interface_name.into();
 		let paired_receive_transmit_queue: i16 = paired_receive_transmit_queue.into();
@@ -29,13 +29,13 @@ impl MsiXInterruptRequestNamingStrategy for AmazonEnaMsiXInterruptRequestNamingS
 	}
 	
 	#[inline(always)]
-	fn receive_queue(&self, bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, device_name: &[u8], receive_queue: QueueIdentifier) -> Option<InterruptRequestActionName>
+	fn receive_queue(&self, _bus_info_name: PciDeviceAddress, _network_interface_name: &NetworkInterfaceName, _device_name: &[u8], _receive_queue: QueueIdentifier) -> Option<InterruptRequestActionName>
 	{
 		None
 	}
 	
 	#[inline(always)]
-	fn transmit_queue(&self, bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, device_name: &[u8], transmit_queue: QueueIdentifier) -> Option<InterruptRequestActionName>
+	fn transmit_queue(&self, _bus_info_name: PciDeviceAddress, _network_interface_name: &NetworkInterfaceName, _device_name: &[u8], _transmit_queue: QueueIdentifier) -> Option<InterruptRequestActionName>
 	{
 		None
 	}

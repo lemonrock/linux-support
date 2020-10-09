@@ -8,14 +8,14 @@ pub(crate) struct IntelIxgbevfMsiXInterruptRequestNamingStrategy;
 impl MsiXInterruptRequestNamingStrategy for IntelIxgbevfMsiXInterruptRequestNamingStrategy
 {
 	#[inline(always)]
-	fn controller(&self, bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, device_name: &[u8]) -> Option<InterruptRequestActionName>
+	fn controller(&self, _bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, _device_name: &[u8]) -> Option<InterruptRequestActionName>
 	{
 		let network_interface_name: &str = network_interface_name.into();
 		Some(into_action_name(format!("{}", network_interface_name)))
 	}
 	
 	#[inline(always)]
-	fn control_queue(&self, bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, device_name: &[u8]) -> Option<InterruptRequestActionName>
+	fn control_queue(&self, _bus_info_name: PciDeviceAddress, _network_interface_name: &NetworkInterfaceName, _device_name: &[u8]) -> Option<InterruptRequestActionName>
 	{
 		None
 	}
@@ -23,7 +23,7 @@ impl MsiXInterruptRequestNamingStrategy for IntelIxgbevfMsiXInterruptRequestNami
 	// Note: `Rx` is capitalized but is lower case for `receive_queue()`!
 	// Note: `Tx` is capitalized but is lower case for `transmit_queue()`!
 	#[inline(always)]
-	fn paired_receive_transmit_queue(&self, bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, device_name: &[u8], paired_receive_transmit_queue: QueueIdentifier) -> Option<InterruptRequestActionName>
+	fn paired_receive_transmit_queue(&self, _bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, _device_name: &[u8], paired_receive_transmit_queue: QueueIdentifier) -> Option<InterruptRequestActionName>
 	{
 		let network_interface_name: &str = network_interface_name.into();
 		let paired_receive_transmit_queue: u16 = paired_receive_transmit_queue.into();
@@ -32,7 +32,7 @@ impl MsiXInterruptRequestNamingStrategy for IntelIxgbevfMsiXInterruptRequestNami
 	
 	// Note: `rx` is lower case but is capitalized for `paired_receive_transmit_queue()`!
 	#[inline(always)]
-	fn receive_queue(&self, bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, device_name: &[u8], receive_queue: QueueIdentifier) -> Option<InterruptRequestActionName>
+	fn receive_queue(&self, _bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, _device_name: &[u8], receive_queue: QueueIdentifier) -> Option<InterruptRequestActionName>
 	{
 		let network_interface_name: &str = network_interface_name.into();
 		let receive_queue: u16 = receive_queue.into();
@@ -41,7 +41,7 @@ impl MsiXInterruptRequestNamingStrategy for IntelIxgbevfMsiXInterruptRequestNami
 	
 	// Note: `tx` is lower case but is capitalized for `paired_receive_transmit_queue()`!
 	#[inline(always)]
-	fn transmit_queue(&self, bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, device_name: &[u8], transmit_queue: QueueIdentifier) -> Option<InterruptRequestActionName>
+	fn transmit_queue(&self, _bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, _device_name: &[u8], transmit_queue: QueueIdentifier) -> Option<InterruptRequestActionName>
 	{
 		let network_interface_name: &str = network_interface_name.into();
 		let transmit_queue: u16 = transmit_queue.into();

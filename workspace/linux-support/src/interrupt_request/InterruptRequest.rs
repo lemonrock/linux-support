@@ -371,7 +371,7 @@ impl InterruptRequest
 	#[inline(always)]
 	fn raw_data_if_empty(file_path: PathBuf) -> io::Result<Option<Vec<u8>>>
 	{
-		let mut raw = file_path.read_raw()?;
+		let raw = file_path.read_raw()?;
 		let length = raw.len();
 		if length == 0
 		{

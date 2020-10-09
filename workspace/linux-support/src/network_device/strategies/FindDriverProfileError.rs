@@ -15,8 +15,10 @@ pub enum FindDriverProfileError
 	/// This should not be possible.
 	CouldNotCreateNetworkDeviceInputOutputControl
 	{
+		/// Error.
 		error: CreationError,
 		
+		/// Name.
 		network_interface_name: NetworkInterfaceName,
 	},
 	
@@ -25,20 +27,24 @@ pub enum FindDriverProfileError
 	{
 		error: NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>,
 		
+		/// Name.
 		network_interface_name: NetworkInterfaceName,
 	},
 	
 	/// This should not be possible.
 	CouldNotGetPciDevice
 	{
+		/// Error.
 		error: NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>,
 		
+		/// Name.
 		network_interface_name: NetworkInterfaceName,
 	},
 	
 	/// The provided NetworkInterfaceName has no matching NetworkInterfaceIndex implying it does not exist.
 	NoSuchNetworkInterface
 	{
+		/// Name.
 		network_interface_name: NetworkInterfaceName,
 	},
 }

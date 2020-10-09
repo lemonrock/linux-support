@@ -60,11 +60,11 @@ impl HashFunctionSeed
 			
 			for copy in 0 .. number_of_copies
 			{
-				unsafe { self.copy_from_non_overlapping(original_length, copy, original_length) }
+				self.copy_from_non_overlapping(original_length, copy, original_length)
 			}
 			
 			let remainder = additional_length % original_length;
-			unsafe { self.copy_from_non_overlapping(original_length, number_of_copies, remainder) }
+			self.copy_from_non_overlapping(original_length, number_of_copies, remainder)
 		}
 		else
 		{

@@ -52,7 +52,7 @@ impl HashFunctionConfiguration
 	#[inline(always)]
 	pub(crate) fn new_seed_matching_in_length(&self, hash_function_seed: &HashFunctionSeed) -> Option<HashFunctionSeed>
 	{
-		self.seed.map(|existing_seed|
+		self.seed.as_ref().map(|existing_seed|
 		{
 			let must_be_seed_length = existing_seed.len();
 			let mut hash_function_seed = hash_function_seed.clone();

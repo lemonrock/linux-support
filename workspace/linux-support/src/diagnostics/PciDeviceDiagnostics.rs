@@ -31,7 +31,7 @@ impl PciDeviceDiagnostics
 				
 				Ok(pci_buses_with_potential_errors) =>
 				{
-					let pci_buses = HashMap::with_capacity(pci_buses_with_potential_errors.len());
+					let mut pci_buses = HashMap::with_capacity(pci_buses_with_potential_errors.len());
 					for (pci_bus_address, pci_bus_details) in pci_buses_with_potential_errors
 					{
 						pci_buses.insert(pci_bus_address, pci_bus_details.map_err(DiagnosticUnobtainable::from));

@@ -51,7 +51,7 @@ impl PciBusAddress
 						continue
 					}
 					
-					if let Some(pci_bus_address) = Self::parse_pci_bus(dir_entry)
+					if let Some(pci_bus_address) = Self::parse_pci_bus(&dir_entry)
 					{
 						if let Ok(canonical_parent_folder_path_of_pci_bus_folder_path) = dir_entry.path().append(dir_entry.file_name()).append("../..").canonicalize()
 						{
@@ -71,7 +71,7 @@ impl PciBusAddress
 	}
 	
 	#[inline(always)]
-	fn parse_pci_bus(dir_entry: DirEntry) -> Option<Self>
+	fn parse_pci_bus(dir_entry: &DirEntry) -> Option<Self>
 	{
 		let file_name = dir_entry.file_name();
 		
@@ -84,7 +84,7 @@ impl PciBusAddress
 		
 		let file_name_bytes = file_name.into_vec();
 		
-		if unlikely!(*unsafe { file_name_bytes.get_unchecked(4) } != b':')
+		if unlikely!(*file_name_bytes.get_unchecked(4) != b':')
 		{
 			return None
 		}
@@ -141,7 +141,7 @@ impl PciBusAddress
 					continue
 				}
 				
-				if unlikely!(*unsafe { file_name_bytes.get_unchecked(7) } != b':')
+				if unlikely!(*file_name_bytes.get_unchecked(7) != b':')
 				{
 					continue
 				}

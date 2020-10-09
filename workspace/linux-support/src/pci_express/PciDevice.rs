@@ -42,18 +42,14 @@ impl<'a> PciDevice<'a>
 		}
 	}
 	
-	#[inline(always)]
-	pub(crate) fn cached_device_file_or_folder_path_is(&self, device_folder_path: PathBuf) -> bool
-	{
-		self.cached_device_file_or_folder_path == device_folder_path
-	}
-	
+	/// Address.
 	#[inline(always)]
 	pub fn address(&self) -> PciDeviceAddress
 	{
 		self.pci_device_address
 	}
 	
+	/// Parent Bus address.
 	#[inline(always)]
 	pub fn parent_bus_address(&self) -> PciBusAddress
 	{
@@ -100,7 +96,7 @@ impl<'a> PciDevice<'a>
 						continue
 					}
 					
-					if let Some(pci_bus_address) = PciBusAddress::parse_pci_bus(dir_entry)
+					if let Some(pci_bus_address) = PciBusAddress::parse_pci_bus(&dir_entry)
 					{
 						let details = match pci_bus_address.bus(self.cached_device_file_or_folder_path.clone())
 						{
@@ -116,6 +112,7 @@ impl<'a> PciDevice<'a>
 		Ok(pci_buses)
 	}
 	
+	/// Read ROM.
 	#[inline(always)]
 	pub fn read_rom(&self) -> Option<io::Result<Box<[u8]>>>
 	{
@@ -124,6 +121,7 @@ impl<'a> PciDevice<'a>
 		self.rom_file_path().map(|file_path| file_path.read_raw())
 	}
 	
+	/// Write ROM.
 	#[inline(always)]
 	pub fn write_rom(&self, contents: Box<[u8]>) -> Option<io::Result<()>>
 	{
@@ -222,10 +220,9 @@ impl<'a> PciDevice<'a>
 						let index = index as u32;
 						
 						use std::collections::hash_map::Entry::*;
-						let entry = parsed_resource_files.entry(index);
-						match entry
+						match parsed_resource_files.entry(index)
 						{
-							Occupied(occupied) => if has_write_combining_suffix
+							Occupied(mut occupied) => if has_write_combining_suffix
 							{
 								*occupied.get_mut() = true
 							},
@@ -281,7 +278,7 @@ impl<'a> PciDevice<'a>
 			if cfg!(debug_assertions)
 			{
 				let associated_hyper_threads_bitmask = self.associated_hyper_threads_bitmask();
-				debug_assert_eq!(associated_hyper_threads_bitmask, Some(associated_hyper_threads))
+				debug_assert_eq!(associated_hyper_threads_bitmask, Some(associated_hyper_threads.clone()))
 			}
 			
 			return self.validate_associated_hyper_threads(associated_hyper_threads, parent_bus_associated_hyper_threads)
@@ -291,7 +288,7 @@ impl<'a> PciDevice<'a>
 	}
 	
 	#[inline(always)]
-	fn validate_associated_hyper_threads(&self, mut associated_hyper_threads: HyperThreads, parent_bus_associated_hyper_threads: &HyperThreads) -> HyperThreads
+	fn validate_associated_hyper_threads(&self, associated_hyper_threads: HyperThreads, parent_bus_associated_hyper_threads: &HyperThreads) -> HyperThreads
 	{
 		let mut validated = associated_hyper_threads.validate(self.sys_path, None);
 		validated.intersection(parent_bus_associated_hyper_threads);
@@ -784,13 +781,6 @@ impl<'a> PciDevice<'a>
 	}
 	
 	#[inline(always)]
-	fn read_value<F: FromBytes>(&self, file_name: &str) -> F
-	where <F as FromBytes>::Error: 'static + Send + Sync + error::Error
-	{
-		self.device_file_or_folder_path(file_name).read_value().unwrap()
-	}
-	
-	#[inline(always)]
 	fn write_to_driver_override_file<'b>(&self, value: impl IntoLineFeedTerminatedByteString<'b>)
 	{
 		self.driver_override_file_path().write_value(value).unwrap()
@@ -889,12 +879,6 @@ impl<'a> PciDevice<'a>
 		self.device_file_or_folder_path("pci_bus")
 	}
 	
-	#[inline(always)]
-	fn link_folder_path(&self) -> PathBuf
-	{
-		self.device_file_or_folder_path("link")
-	}
-
 	#[inline(always)]
 	fn device_file_or_folder_path(&self, file_name: &str) -> PathBuf
 	{

@@ -74,7 +74,7 @@ impl LinuxKernelVersion
 	#[inline(always)]
 	pub fn parse(proc_path: &ProcPath) -> io::Result<Self>
 	{
-		Self::verify_ostype(proc_path);
+		Self::verify_ostype(proc_path)?;
 
 		Ok
 		(

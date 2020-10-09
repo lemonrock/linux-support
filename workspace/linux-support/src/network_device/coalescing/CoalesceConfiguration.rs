@@ -115,10 +115,4 @@ impl CoalesceConfiguration
 			rate_sample_interval,
 		}
 	}
-	
-	#[inline(always)]
-	fn clamp_coalescing_microseconds(inclusive_minimum: u32, preferred: u32, inclusive_maximum: u32) -> Option<NonZeroU32>
-	{
-		unsafe { transmute(max(inclusive_minimum, min(preferred, inclusive_maximum))) }
-	}
 }

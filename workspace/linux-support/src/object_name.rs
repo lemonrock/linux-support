@@ -98,8 +98,8 @@ macro_rules! object_name
 		{
 			fn into(self) -> &'a str
 			{
-				let array: [c_char; <$name>::MaximumLengthIncludingAsciiNull] = self.into();
-				let array: [u8; <$name>::MaximumLengthIncludingAsciiNull] = unsafe { transmute(array) };
+				let array: &[c_char; <$name>::MaximumLengthIncludingAsciiNull] = self.into();
+				let array: &[u8; <$name>::MaximumLengthIncludingAsciiNull] = unsafe { transmute(array) };
 				unsafe { from_utf8_unchecked(&array[..]) }
 			}
 		}
@@ -110,6 +110,26 @@ macro_rules! object_name
 			fn into(self) -> [c_char; <$name>::MaximumLengthIncludingAsciiNull]
 			{
 				self.to_object_name()
+			}
+		}
+		
+		impl<'a> Into<&'a [u8; <$name>::MaximumLengthIncludingAsciiNull]> for &'a $name
+		{
+			#[inline(always)]
+			fn into(self) -> &'a [u8; <$name>::MaximumLengthIncludingAsciiNull]
+			{
+				let x: &[c_char; <$name>::MaximumLengthIncludingAsciiNull] = self.into();
+				unsafe { transmute(x) }
+			}
+		}
+		
+		impl<'a> Into<&'a [c_char; <$name>::MaximumLengthIncludingAsciiNull]> for &'a $name
+		{
+			#[inline(always)]
+			fn into(self) -> &'a [c_char; <$name>::MaximumLengthIncludingAsciiNull]
+			{
+				let const_array_vec: &ConstArrayVec<[c_char;  <$name>::MaximumLengthIncludingAsciiNull]> = unsafe { transmute(&self.0) };
+				&const_array_vec.xs
 			}
 		}
 		

@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// A profile for a PCI ethernet driver.
 #[derive(Debug)]
 pub struct DriverProfile
 {
@@ -28,6 +29,7 @@ pub struct DriverProfile
 
 impl DriverProfile
 {
+	/// Configure all multiqueue PCI ethernet devices.
 	pub fn configure_all_multiqueue_pci_ethernet_devices(sys_path: &SysPath, proc_path: &ProcPath, device_preferences: &DevicePreferences) -> Result<HashMap<NetworkInterfaceName, (HyperThread, HyperThreads)>, DriverProfileError>
 	{
 		let all_pci_buses = PciBusAddress::all(sys_path).map_err(FailedToRetrieveAllPciBuses)?;
@@ -46,7 +48,7 @@ impl DriverProfile
 				let network_device_input_output_control_driver_profile = NetworkDeviceInputOutputControlDriverProfile::new(&network_interface_name)?;
 				if let Some((driver_name, driver_version, bus_info_name)) = network_device_input_output_control_driver_profile.driver_name_and_driver_version_and_pci_device_device_address()?
 				{
-					if let Some(pci_device) = network_interface_name.pci_device(sys_path).map_err(|error| CouldNotGetPciDevice { network_interface_name, error })?.ok_or(NoSuchNetworkInterface { network_interface_name })?
+					if let Some(pci_device) = network_interface_name.pci_device(sys_path).map_err(|error| CouldNotGetPciDevice { network_interface_name: network_interface_name.clone(), error })?.ok_or(NoSuchNetworkInterface { network_interface_name: network_interface_name.clone() })?
 					{
 						// We do not error here as `bus_info_name` could have been abused by a driver we do not want to use.
 						if pci_device.address() != bus_info_name
@@ -219,7 +221,7 @@ impl DriverProfile
 	#[inline(always)]
 	fn adminstrative_queue_hyper_thread_and_associated_hyper_threads_for_paired_receive_transmit_queue_pairs_and_maximum_receive_transmit_queue_count(network_interface_name: &NetworkInterfaceName, pci_device: &PciDevice, all_pci_buses: &HashMap<PciBusAddress, io::Result<PciBusDetails>>) -> Result<(HyperThread, (HyperThreads, QueueCount)), DriverProfileError>
 	{
-		let associated_hyper_threads = pci_device.validated_associated_hyper_threads(all_pci_buses);
+		let mut associated_hyper_threads = pci_device.validated_associated_hyper_threads(all_pci_buses);
 		let actual_number = associated_hyper_threads.len();
 		if actual_number < 2
 		{
@@ -429,14 +431,15 @@ impl DriverProfile
 				FeatureGroupChoice::enable_one(NETIF_F_LRO_BIT),
 			],
 			
-			driver_specific_flags_to_change: XXXX,
+			driver_specific_flags_to_change: hashmap!
+			[
+			],
 			
 			// The driver-allocated SKB for frames received from Rx handling using NAPI context.
 			// The allocation method depends on the size of the packet.
 			// If the frame length is larger than rx_copybreak, napi_get_frags() is used, otherwise netdev_alloc_skb_ip_align() is used, the buffer content is copied (by CPU) to the SKB, and the buffer is recycled.
 			tunables: vec!
 			[
-				XXX,
 			],
 			
 			supports_getting_and_setting_queue_depths: false,

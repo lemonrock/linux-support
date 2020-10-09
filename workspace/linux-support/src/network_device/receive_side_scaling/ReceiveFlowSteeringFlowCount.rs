@@ -117,14 +117,6 @@ impl ReceiveFlowSteeringFlowCount
 	}
 	
 	#[inline(always)]
-	pub(crate) fn per_receive_queue_receive_flow_steering_table_count(self, receive_queue_count: QueueCount) -> usize
-	{
-		assert_ne!(self, Self(0), "Receive Flow Steering (RFS) must have a flow count to be used per-receive-queue");
-		
-		self / receive_queue_count
-	}
-	
-	#[inline(always)]
 	fn sys_net_core_rps_sock_flow_entries_file_path(proc_path: &ProcPath) -> PathBuf
 	{
 		proc_path.sys_net_core_file_path("rps_sock_flow_entries")

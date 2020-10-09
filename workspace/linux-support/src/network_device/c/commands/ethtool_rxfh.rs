@@ -196,12 +196,6 @@ impl ethtool_rxfh
 		this
 	}
 	
-	#[inline(always)]
-	pub(crate) fn indirection_size_and_key_size(&self) -> (usize, usize)
-	{
-		(self.indir_size as usize, self.key_size as usize)
-	}
-	
 	fn get_indirection_table_and_key_data(context_identifier: Option<ContextIdentifier>, indirection_size: usize, key_size: usize) -> Self
 	{
 		Self

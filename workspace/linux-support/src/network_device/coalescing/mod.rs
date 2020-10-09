@@ -8,7 +8,6 @@ use super::*;
 include!("AdaptiveCoalescingRateSampling.rs");
 include!("AdaptiveCoalescingError.rs");
 include!("AdaptiveCoalescingConfiguration.rs");
-include!("ClampCoalescingMicroseconds.rs");
 include!("CoalesceConfiguration.rs");
 include!("CoalescePair.rs");
 include!("ReceiveTransmitCoalescing.rs");

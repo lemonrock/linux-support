@@ -106,6 +106,11 @@ impl<'a> NetworkDeviceInputOutputControlDriverProfile<'a>
 	#[inline(always)]
 	fn network_interface_name(&self) -> NetworkInterfaceName
 	{
-		self.network_interface_name.into_owned()
+		use self::Cow::*;
+		match self.network_interface_name
+		{
+			Borrowed(network_interface_name) => network_interface_name.clone(),
+			Owned(ref network_interface_name) => network_interface_name.clone()
+		}
 	}
 }

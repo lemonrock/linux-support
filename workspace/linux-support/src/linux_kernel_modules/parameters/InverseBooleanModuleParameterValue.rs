@@ -8,8 +8,10 @@
 #[repr(u8)]
 pub enum InverseBooleanModuleParameterValue
 {
+	/// No.
 	No = 1,
 	
+	/// Yes.
 	Yes = 0,
 }
 

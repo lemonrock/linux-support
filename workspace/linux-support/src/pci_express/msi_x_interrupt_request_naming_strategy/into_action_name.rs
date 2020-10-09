@@ -5,5 +5,5 @@
 #[inline(always)]
 fn into_action_name(value: String) -> InterruptRequestActionName
 {
-	unsafe { CString::new(value).unwrap() }
+	CString::new(value).unwrap()
 }

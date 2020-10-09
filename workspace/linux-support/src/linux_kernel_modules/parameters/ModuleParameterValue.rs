@@ -56,7 +56,9 @@ pub trait ModuleParameterValue: Sized
 		}
 	}
 	
+	/// Parse.
 	fn parse_bytes(bytes: Box<[u8]>) -> io::Result<Self>;
 	
+	/// Write value.
 	fn write_value(&self, extant_parameter_file_path: PathBuf) -> io::Result<()>;
 }

@@ -29,6 +29,7 @@ impl Default for CoalescePair
 
 impl CoalescePair
 {
+	/// Disabled.
 	pub const DisabledWhereMaximumFramesUnsupported: Self = Self
 	{
 		microseconds: None,

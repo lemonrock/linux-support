@@ -83,7 +83,7 @@ impl ModuleParameterValue for IntelIxgbevfDebugLevelModuleParameterValue
 		}
 		else
 		{
-			unsafe { transmute(underlying as u8) }
+			unsafe { transmute(underlying as i32) }
 		};
 		Ok(parsed)
 	}
