@@ -60,7 +60,7 @@ pub enum DriverProfileError
 	},
 	
 	/// Should not happen.
-	IndirectionTable(IndirectionTableLengthError),
+	IndirectionTableLength(IndirectionTableLengthError),
 	
 	/// Should not happen.
 	DoesNotSupportAHashFunctionIndirectionTable,
@@ -104,7 +104,7 @@ impl error::Error for DriverProfileError
 			
 			&CouldNotGetReceiveSideScalingHashFunctionConfiguration { ref error, .. } => Some(error),
 			
-			&IndirectionTable(ref error) => Some(error),
+			&IndirectionTableLength(ref error) => Some(error),
 			
 			&DoesNotSupportAHashFunctionIndirectionTable => None,
 			
@@ -138,6 +138,6 @@ impl From<ConfigureDriverProfileError> for DriverProfileError
 	#[inline(always)]
 	fn from(value: ConfigureDriverProfileError) -> Self
 	{
-		ConfigureDriverProfile(ConfigureDriverProfileError)
+		ConfigureDriverProfile(value)
 	}
 }

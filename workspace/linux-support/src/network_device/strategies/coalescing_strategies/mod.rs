@@ -3,7 +3,6 @@
 
 
 use super::*;
-use super::coalescing_preferences::*;
 
 
 include!("AmazonEnaCoalescingStrategy.rs");

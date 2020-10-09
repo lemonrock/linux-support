@@ -42,7 +42,7 @@ impl HashFunctionConfiguration
 			
 			Some(ref indirection_table) =>
 			{
-				let len: usize = existing_hash_function_configuration.indirection_table.len();
+				let len: usize = indirection_table.len();
 				let x = len.try_into().map_err(IndirectionTableIsTooLongForU32)?;
 				Ok(Some(NonZeroU32::new(x).ok_or(IndirectionTableLengthIsZero)?))
 			}

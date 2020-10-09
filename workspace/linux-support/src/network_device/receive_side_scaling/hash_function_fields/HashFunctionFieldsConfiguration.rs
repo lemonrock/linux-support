@@ -22,16 +22,16 @@ impl HashFunctionFieldsConfiguration
 {
 	/// Best possible combination without packets being received out-of-order.
 	#[inline(always)]
-	pub fn amazon_ena_best_possible() -> Vec<HashFunctionFieldsConfiguration>
+	pub fn amazon_ena_best_possible() -> IndexSet<HashFunctionFieldsConfiguration>
 	{
-		Self::amazon_ena_valid_combinations_of_hash_function_fields_configuration().iter().collect()
+		Self::amazon_ena_valid_combinations_of_hash_function_fields_configuration().clone()
 	}
 	
 	/// Valid combinations of `HashFunctionFieldsConfiguration` for Amazon ENA.
 	///
 	/// All of these can be independently set.
 	#[inline(always)]
-	pub fn amazon_ena_valid_combinations_of_hash_function_fields_configuration() -> HashSet<HashFunctionFieldsConfiguration>
+	pub fn amazon_ena_valid_combinations_of_hash_function_fields_configuration() -> IndexSet<HashFunctionFieldsConfiguration>
 	{
 		use self::HashFunctionFields::*;
 		
@@ -62,7 +62,7 @@ impl HashFunctionFieldsConfiguration
 			include_destination_port: true,
 		};
 		
-		hashset!
+		indexset!
 		[
 			HashFunctionFieldsConfiguration::new_without_discard(Ethernet(EthernetFields)),
 			HashFunctionFieldsConfiguration::new_without_discard(InternetProtocolVersion4(InternetProtocolFields)),
@@ -76,7 +76,7 @@ impl HashFunctionFieldsConfiguration
 	
 	/// Best possible combination without packets being received out-of-order.
 	#[inline(always)]
-	pub fn intel_ixgbevf_intel_fork_for_x550_or_later_valid_combinations_of_hash_function_fields_configuration_best_possible() -> Vec<HashFunctionFieldsConfiguration>
+	pub fn intel_ixgbevf_intel_fork_for_x550_or_later_valid_combinations_of_hash_function_fields_configuration_best_possible() -> IndexSet<HashFunctionFieldsConfiguration>
 	{
 		use self::HashFunctionFields::*;
 		
@@ -116,7 +116,7 @@ impl HashFunctionFieldsConfiguration
 			include_destination_port: true,
 		};
 		
-		vec!
+		indexset!
 		[
 			HashFunctionFieldsConfiguration::new_without_discard(TransmissionControlProtocolOverInternetProtocolVersion4(Layer4FieldsWithPortNumbers)),
 		
@@ -152,7 +152,7 @@ impl HashFunctionFieldsConfiguration
 	/// * Then pass `HashFunctionFieldsConfiguration::new_without_discard(UserDatagramProtocolOverInternetProtocolVersion4(Layer4FieldsWithoutPortNumbers))` and `HashFunctionFieldsConfiguration::new_without_discard(UserDatagramProtocolOverInternetProtocolVersion6(Layer4FieldsWithoutPortNumbers))`.
 	/// * Then, if hashing of UDP packets is desired, pass `HashFunctionFieldsConfiguration::new_without_discard(UserDatagramProtocolOverInternetProtocolVersion4(Layer4FieldsWithPortNumbers))` and `HashFunctionFieldsConfiguration::new_without_discard(UserDatagramProtocolOverInternetProtocolVersion6(Layer4FieldsWithPortNumbers))`.
 	#[inline(always)]
-	pub fn intel_ixgbevf_intel_fork_for_x550_or_later_valid_combinations_of_hash_function_fields_configuration() -> HashSet<HashFunctionFieldsConfiguration>
+	pub fn intel_ixgbevf_intel_fork_for_x550_or_later_valid_combinations_of_hash_function_fields_configuration() -> IndexSet<HashFunctionFieldsConfiguration>
 	{
 		use self::HashFunctionFields::*;
 		
@@ -199,7 +199,7 @@ impl HashFunctionFieldsConfiguration
 			include_security_parameter_index: false,
 		};
 		
-		hashset!
+		indexset!
 		[
 			HashFunctionFieldsConfiguration::new_without_discard(TransmissionControlProtocolOverInternetProtocolVersion4(Layer4FieldsWithPortNumbers)),
 		
@@ -233,7 +233,7 @@ impl HashFunctionFieldsConfiguration
 		{
 			hash_function_fields,
 		
-			discard,
+			discard: false,
 		}
 	}
 	

@@ -137,19 +137,48 @@ impl<'a> Sub<Feature> for &'a FeatureGroupChoice
 	{
 		use self::FeatureGroupChoice::*;
 		
-		let (mut hash_set, disable) = self.to_feature_settings();
-		let was_removed = hash_set.remove(&rhs).is_some();
-		if was_removed
+		#[inline(always)]
+		fn non_static_lifetime(feature_group: &FeatureGroup, feature: &Feature, enable: bool) -> FeatureGroupChoice
 		{
+			let mut hash_set = feature_group.0.clone();
+			hash_set.remove(feature);
 			let feature_group = FeatureGroup::from(hash_set);
-			if disable
-			{
-				OtherToDisable(feature_group)
-			}
-			else
+			if enable
 			{
 				OtherToEnable(feature_group)
 			}
+			else
+			{
+				OtherToDisable(feature_group)
+			}
+		}
+		
+		let feature_group = match &self
+		{
+			&ethtool_sg => FeatureGroup::ethtool_sg(),
+			&ethtool_tx => FeatureGroup::ethtool_tx(),
+			&ethtool_txvlan => FeatureGroup::ethtool_txvlan(),
+			&ethtool_rxvlan => FeatureGroup::ethtool_rxvlan(),
+			&ethtool_gso => FeatureGroup::ethtool_gso(),
+			&ethtool_gro => FeatureGroup::ethtool_gro(),
+			&ethtool_lro => FeatureGroup::ethtool_lro(),
+			&ethtool_tso => FeatureGroup::ethtool_tso(),
+			&ethtool_ntuple => FeatureGroup::ethtool_ntuple(),
+			&ethtool_rxhash => FeatureGroup::ethtool_rxhash(),
+			&ethtool_rx => FeatureGroup::ethtool_rx(),
+			&internet_protocols_checksum => FeatureGroup::internet_protocols_checksum(),
+			&internet_protocols_checksum_in_hardware => FeatureGroup::internet_protocols_checksum_in_hardware(),
+			&generic_send_offload_encapsulation => FeatureGroup::generic_send_offload_encapsulation(),
+			
+			&OtherToEnable(ref feature_group) => return non_static_lifetime(feature_group, &rhs, true),
+			&OtherToDisable(ref feature_group) => return non_static_lifetime(feature_group, &rhs, false),
+		};
+		
+		if feature_group.contains(&rhs)
+		{
+			let mut hash_set = feature_group.0.clone();
+			hash_set.remove(&rhs);
+			OtherToEnable(FeatureGroup::from(hash_set))
 		}
 		else
 		{
@@ -165,26 +194,7 @@ impl Sub<Feature> for FeatureGroupChoice
 	#[inline(always)]
 	fn sub(self, rhs: Feature) -> Self::Output
 	{
-		use self::FeatureGroupChoice::*;
-		
-		let (mut hash_set, disable) = self.to_feature_settings();
-		let was_removed = hash_set.remove(&rhs).is_some();
-		if was_removed
-		{
-			let feature_group = FeatureGroup::from(hash_set);
-			if disable
-			{
-				OtherToDisable(feature_group)
-			}
-			else
-			{
-				OtherToEnable(feature_group)
-			}
-		}
-		else
-		{
-			self
-		}
+		(&self) - rhs
 	}
 }
 

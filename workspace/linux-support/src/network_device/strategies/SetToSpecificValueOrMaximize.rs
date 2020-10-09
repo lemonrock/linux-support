@@ -14,7 +14,7 @@ pub enum SetToSpecificValueOrMaximize<V>
 	Maximize,
 }
 
-impl Default for SetToSpecificValueOrMaximize
+impl<V> Default for SetToSpecificValueOrMaximize<V>
 {
 	#[inline(always)]
 	fn default() -> Self

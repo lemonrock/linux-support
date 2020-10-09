@@ -13,8 +13,6 @@ impl ModuleParameterValue for usize
 	#[inline(always)]
 	fn write_value(&self, extant_parameter_file_path: PathBuf) -> io::Result<()>
 	{
-		use self::InverseBooleanModuleParameterValue::*;
-		
 		extant_parameter_file_path.write_value(UnpaddedDecimalInteger(*self))
 	}
 }

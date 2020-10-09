@@ -146,8 +146,8 @@ impl<'depends> LinuxKernelModule<'depends>
 		let drivers_path = sys_path.module_file_or_folder_path(&self.linux_kernel_module_name, "drivers");
 		if !drivers_path.exists()
 		{
-			let string: String = self.linux_kernel_module_name.into();
-			panic!("drivers path does not exist for module {}", string);
+			let string: CString = (&self.linux_kernel_module_name).into();
+			panic!("drivers path does not exist for module {:?}", string);
 		}
 
 		let prefix_length = prefix.len();

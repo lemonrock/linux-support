@@ -75,7 +75,7 @@ pub trait PathExt
 	fn entries_in_folder_path<BSA: BitSetAware>(&self) -> Result<Option<BitSet<BSA>>, io::Error>;
 
 	/// Memory map a file read-write.
-	fn memory_map_read_write<'a>(&self, offset: u64, address_hint: AddressHint, sharing: Sharing, huge_memory_page_size: Option<Option<HugePageSize>>, prefault: bool, reserve_swap_space: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<MappedMemory, io::Error>;
+	fn memory_map_read_write<'a>(&self, offset: u64, address_hint: AddressHint, sharing: Sharing, huge_memory_page_size: Option<Option<HugePageSize>>, prefault: bool, reserve_swap_space: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<MappedMemory>;
 }
 
 impl PathExt for Path
@@ -276,7 +276,7 @@ impl PathExt for Path
 	}
 
 	#[inline(always)]
-	fn memory_map_read_write<'a>(&self, offset: u64, address_hint: AddressHint, sharing: Sharing, huge_memory_page_size: Option<Option<HugePageSize>>, prefault: bool, reserve_swap_space: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<MappedMemory, io::Error>
+	fn memory_map_read_write<'a>(&self, offset: u64, address_hint: AddressHint, sharing: Sharing, huge_memory_page_size: Option<Option<HugePageSize>>, prefault: bool, reserve_swap_space: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<MappedMemory>
 	{
 		const protection: Protection = Protection::ReadWrite;
 		let file = protection.adjust_open_options_to_match(&mut OpenOptions::new()).open(self)?;

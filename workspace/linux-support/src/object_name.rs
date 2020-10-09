@@ -99,6 +99,7 @@ macro_rules! object_name
 			fn into(self) -> &'a str
 			{
 				let array: [c_char; <$name>::MaximumLengthIncludingAsciiNull] = self.into();
+				let array: [u8; <$name>::MaximumLengthIncludingAsciiNull] = unsafe { transmute(array) };
 				unsafe { from_utf8_unchecked(&array[..]) }
 			}
 		}

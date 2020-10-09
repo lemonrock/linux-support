@@ -28,6 +28,6 @@ impl ModuleParameterValue for bool
 		{
 			b"N\n"
 		};
-		extant_parameter_file_path.write_value(value)
+		extant_parameter_file_path.write_value(&value[..])
 	}
 }

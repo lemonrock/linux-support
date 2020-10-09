@@ -25,6 +25,24 @@ impl Deref for PrimaryPciBusAddress
 	}
 }
 
+impl<'a> Into<String> for &'a PrimaryPciBusAddress
+{
+	#[inline(always)]
+	fn into(self) -> String
+	{
+		(&self.0).into()
+	}
+}
+
+impl Into<String> for PrimaryPciBusAddress
+{
+	#[inline(always)]
+	fn into(self) -> String
+	{
+		(&self.0).into()
+	}
+}
+
 impl PrimaryPciBusAddress
 {
 	/// Details.
@@ -43,7 +61,7 @@ impl PrimaryPciBusAddress
 		{
 			let mut address: String = bus_address.into();
 			address.push(':');
-			address.into_bytes();
+			address.into_bytes()
 		};
 		
 		self.folder_path(sys_path).read_dir().map(|iterator| iterator.filter_map(move |dir_entry|
@@ -70,19 +88,19 @@ impl PrimaryPciBusAddress
 			
 			let file_name = dir_entry.file_name();
 			
+			let file_name_bytes = file_name.into_vec();
+			
 			// `file_name` is of the format `XXXX:YY:AA.B` where `XXXX` is a hexadecimal domain, `YY` is a hexadecimal bus, `AA` is a hexadecimal devid and `B` is a hexadcimal function.
 			const Template: &'static [u8] = b"XXXX:YY:AA.B";
-			if file_name.len() != Template.len()
+			if file_name_bytes.len() != Template.len()
 			{
 				return None
 			}
 			
-			if !file_name.starts_with(&prefix[..])
+			if !file_name_bytes.starts_with(&prefix[..])
 			{
 				return None
 			}
-			
-			let file_name_bytes = file_name.into_vec();
 			
 			let should_be_period = unsafe { * file_name_bytes.get_unchecked(11) };
 			if unlikely!(should_be_period != b'.')

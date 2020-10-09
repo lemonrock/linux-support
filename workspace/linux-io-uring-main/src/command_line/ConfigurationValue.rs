@@ -2,18 +2,4 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-use linux_support::cpu::HyperThreads;
-use linux_support::configuration::GlobalComputedSchedulingConfiguration;
-
-
-include!("AcceptServiceConfiguration.rs");
-include!("AcceptStackSize.rs");
-include!("Configuration.rs");
-include!("CoroutineHeapSize.rs");
-include!("CoroutineLocalAllocator.rs");
-include!("GTACSA.rs");
-include!("OneMegabyte.rs");
-include!("per_thread_state.rs");
-include!("SipOverTls.rs");
-include!("ThreadLocalAllocator.rs");
+const ConfigurationValue: &'static str = "FILE";

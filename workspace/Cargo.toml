@@ -7,6 +7,7 @@ members = [
 	"context-allocator",
 	"context-coroutine",
     "linux-io-uring",
+    "linux-io-uring-main",
     "linux-support",
     "linux-support-clone",
     "magic-ring-buffer",

@@ -27,17 +27,22 @@ impl AdaptiveCoalescingConfiguration
 	{
 		use self::AdaptiveCoalescingConfiguration::*;
 		
-		let (adaptive_coalescing_rate_sampling, use_adaptive_receive_coalesce, use_adaptive_transmit_coalesce) = match this
+		match this
 		{
-			&None => (None, false, false),
+			&None => (None, 0, 0),
 			
-			&Some(this) => match this
+			&Some(this) =>
 			{
-				ReceiveOnly(adaptive_coalescing_rate_sampling) => (adaptive_coalescing_rate_sampling, true, false),
-				TransmitOnly(adaptive_coalescing_rate_sampling) => (adaptive_coalescing_rate_sampling, false, true),
-				ReceiveAndTransmit(adaptive_coalescing_rate_sampling) => (adaptive_coalescing_rate_sampling, true, true),
+				let (adaptive_coalescing_rate_sampling, use_adaptive_receive_coalesce, use_adaptive_transmit_coalesce) = match this
+				{
+					ReceiveOnly(adaptive_coalescing_rate_sampling) => (adaptive_coalescing_rate_sampling, true, false),
+					
+					TransmitOnly(adaptive_coalescing_rate_sampling) => (adaptive_coalescing_rate_sampling, false, true),
+					
+					ReceiveAndTransmit(adaptive_coalescing_rate_sampling) => (adaptive_coalescing_rate_sampling, true, true),
+				};
+				(adaptive_coalescing_rate_sampling.interval_in_seconds, use_adaptive_receive_coalesce as u32, use_adaptive_transmit_coalesce as u32)
 			},
-		};
-		(adaptive_coalescing_rate_sampling.interval_in_seconds, use_adaptive_receive_coalesce as u32, use_adaptive_transmit_coalesce as u32)
+		}
 	}
 }

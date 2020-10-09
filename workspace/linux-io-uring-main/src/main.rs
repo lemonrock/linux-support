@@ -1,0 +1,113 @@
+// This file is part of linux-support. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT. No part of linux-support, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+// Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
+
+
+#![allow(non_snake_case)]
+#![allow(non_upper_case_globals)]
+#![allow(non_camel_case_types)]
+#![deny(missing_docs)]
+#![deny(unconditional_recursion)]
+#![deny(unreachable_patterns)]
+#![feature(thread_local)]
+
+
+use self::command_line::*;
+use self::service_protocol_identifiers::*;
+use clap::App;
+use clap::Arg;
+use clap::ArgMatches;
+use clap::crate_name;
+use clap::crate_authors;
+use clap::crate_version;
+use context_allocator::GlobalThreadAndCoroutineSwitchableAllocatorInstance;
+use context_allocator::PerThreadState;
+use context_allocator::adaptors::GlobalAllocToAllocatorAdaptor;
+use context_allocator::allocators::ContextAllocator;
+use context_allocator::allocators::binary_search_trees::MultipleBinarySearchTreeAllocator;
+use context_allocator::memory_sources::CoroutineHeapMemorySource;
+use context_allocator::memory_sources::MemoryMapSource;
+use linux_io_uring::IoUringSettings;
+use linux_io_uring::ThreadLoopInitiation;
+use linux_io_uring::coroutines::accept::AcceptConnectionsCoroutineSettings;
+use linux_io_uring::coroutines::accept::AccessControlValue;
+use linux_io_uring::coroutines::accept::ServiceProtocolIdentifier;
+use linux_io_uring::coroutines::accept::TransmissionControlProtocolServerListenerSettings;
+use linux_io_uring::dogstatsd::DogStatsDStaticInitialization;
+use linux_io_uring::registered_buffers::RegisteredBufferSettings;
+use linux_io_uring::registered_buffers::RegisteredBufferSetting;
+use linux_io_uring::thread_local_allocator::SimplePerThreadMemoryAllocatorInstantiator;
+use linux_support::configuration::GlobalComputedSchedulingConfiguration;
+use linux_support::configuration::ProcessConfiguration;
+use linux_support::configuration::ProcessExecutor;
+use linux_support::cpu::HyperThread;
+use linux_support::cpu::HyperThreads;
+use linux_support::file_descriptors::socket::UnixSocketAddress;
+use linux_support::file_descriptors::socket::c::in_addr;
+use linux_support::file_descriptors::socket::c::in6_addr;
+use linux_support::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
+use linux_support::network_device::NetworkInterfaceName;
+use linux_support::network_device::strategies::DriverProfile;
+use linux_support::paths::FileSystemLayout;
+use linux_support::signals::Signals;
+use linux_support::thread::ThreadConfiguration;
+use linux_support::thread::ThreadFunction;
+use linux_support::thread::ThreadSettings;
+use linux_support::user_and_groups::GroupIdentifier;
+use linux_support::user_and_groups::UserIdentifier;
+use maplit::btreemap;
+use maplit::hashmap;
+use magic_ring_buffer::memory_sizes::MemorySize64Kb;
+use message_dispatch::Queues;
+use serde::Deserialize;
+use serde::Serialize;
+use serde_json::from_reader;
+use socket_access_control::InternetProtocolVersion4AccessControl;
+use socket_access_control::InternetProtocolVersion6AccessControl;
+use socket_access_control::UnixDomainSocketAccessControl;
+use std::alloc::System;
+use std::collections::BTreeMap;
+use std::collections::HashMap;
+use std::error;
+use std::ffi::OsString;
+use std::fs::File;
+use std::io::BufReader;
+use std::net::SocketAddrV4;
+use std::net::SocketAddrV6;
+use std::net::Ipv6Addr;
+use std::net::Ipv4Addr;
+use std::num::NonZeroU32;
+use std::path::Path;
+use std::path::PathBuf;
+use std::process::exit;
+use std::ptr::NonNull;
+use std::sync::Arc;
+use swiss_army_knife::bit_set::BitSet;
+use swiss_army_knife::internet_protocol::InternetProtocolAddressWithMask;
+use terminate::Terminate;
+
+
+
+mod command_line;
+
+
+include!("AcceptServiceConfiguration.rs");
+include!("AcceptStackSize.rs");
+include!("Configuration.rs");
+include!("CoroutineHeapSize.rs");
+include!("CoroutineLocalAllocator.rs");
+include!("GTACSA.rs");
+include!("OneMegabyte.rs");
+include!("per_thread_state.rs");
+include!("ThreadLocalAllocator.rs");
+
+
+#[global_allocator] static SwitchableGlobalAllocator: GTACSA = GlobalThreadAndCoroutineSwitchableAllocatorInstance::system(per_thread_state);
+
+
+/// Main method.
+pub fn main()
+{
+	let matches = parse_command_line();
+	let (run_as_daemon, configuration) = parse_matches(matches);
+	configure_and_execute(run_as_daemon, configuration)
+}

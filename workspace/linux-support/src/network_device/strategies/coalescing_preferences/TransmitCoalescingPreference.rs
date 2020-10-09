@@ -3,7 +3,7 @@
 
 
 /// Transmit coalescing preference.
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Hash)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct TransmitCoalescingPreference

@@ -3,7 +3,7 @@
 
 
 /// Linux module parameters configuration.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct GlobalLinuxModuleParametersConfiguration(HashMap<LinuxKernelModuleName, HashMap<LinuxKernelModuleParameterName, ModuleParameterValueChoice>>);

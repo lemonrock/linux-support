@@ -10,7 +10,7 @@
 /// * invbool: the above, only sense-reversed (N = true).
 ///
 /// For how these are formatted in sysfs, see functions such as `param_get_invbool()` in `kernel/params.c`.
-pub trait ModuleParameterValue
+pub trait ModuleParameterValue: Sized
 {
 	#[doc(hidden)]
 	#[inline(always)]
@@ -19,7 +19,7 @@ pub trait ModuleParameterValue
 		if let Some(parameter_file_path) = Self::parameter_file_name(sys_path, module_name, parameter_name)
 		{
 			let value = parameter_file_path.read_raw_without_line_feed()?;
-			Self::parse_bytes(value)
+			Self::parse_bytes(value).map(|value| Some(value))
 		}
 		else
 		{
@@ -45,7 +45,7 @@ pub trait ModuleParameterValue
 	#[inline(always)]
 	fn parameter_file_name(sys_path: &SysPath, module_name: &LinuxKernelModuleName, parameter_name: &CStr) -> Option<PathBuf>
 	{
-		let parameter_file_path = sys_path.module_file_or_folder_path(module_name, "parameters").append(parameter_name);
+		let parameter_file_path = sys_path.module_file_or_folder_path(module_name, "parameters").append(OsStr::from_bytes(parameter_name.to_bytes()));
 		if parameter_file_path.exists()
 		{
 			Some(parameter_file_path)

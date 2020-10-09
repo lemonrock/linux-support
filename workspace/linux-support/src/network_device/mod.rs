@@ -27,8 +27,8 @@ use crate::paths::SysPath;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 use crate::configuration::Milliseconds;
 use crate::file_descriptors::socket::c::in6_addr;
-use crate::pci_express::{PciDeviceAddress, PciDevice, PciBusAddress, PciBusDetails};
-use crate::cpu::HyperThreads;
+use crate::pci_express::PciDevice;
+use crate::pci_express::PciDeviceAddress;
 use crate::file_descriptors::netlink::route::RouteNetlinkProtocol;
 use crate::file_descriptors::netlink::NetlinkSocketFileDescriptor;
 

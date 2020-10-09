@@ -235,23 +235,25 @@ impl QueueCount
 	
 	/// Caps number of hyper threads.
 	#[inline(always)]
-	pub fn from_number_of_hyper_threads_capped_to_inclusive_maximum(mut hyper_threads: HyperThreads) -> (HyperThreads, Self)
+	pub fn from_number_of_hyper_threads_capped_to_inclusive_maximum(mut non_zero_number_of_hyper_threads: HyperThreads) -> (HyperThreads, Self)
 	{
-		const MaximumLength: usize = QueueCount::InclusiveMaximum.0 as usize;
+		const MaximumLength: usize = QueueCount::InclusiveMaximum.0.get() as usize;
 		
-		let length = hyper_threads.len();
+		let length = non_zero_number_of_hyper_threads.len();
+		debug_assert_ne!(length, 0);
+		
 		if length > MaximumLength
 		{
-			hyper_threads.cap_retaining_lowest_values(MaximumLength);
-			(hyper_threads, QueueCount::InclusiveMaximum)
+			non_zero_number_of_hyper_threads.cap_retaining_lowest_values(MaximumLength);
+			(non_zero_number_of_hyper_threads, QueueCount::InclusiveMaximum)
 		}
 		else
 		{
-			(hyper_threads, Self(length as u16))
+			(non_zero_number_of_hyper_threads, Self(unsafe { NonZeroU16::new_unchecked(length as u16) }))
 		}
 	}
 	
-	#[inline(alwys)]
+	#[inline(always)]
 	pub(crate) fn new_queue_configurations<Configuration>(self) -> HashMap<QueueIdentifier, Configuration>
 	{
 		HashMap::with_capacity(self.into())

@@ -80,7 +80,7 @@ impl<'a> Into<&'a str> for &'a NetworkInterfaceName
 	#[inline(always)]
 	fn into(self) -> &'a str
 	{
-		self.0.into()
+		(&self.0).into()
 	}
 }
 
@@ -113,7 +113,7 @@ impl NetworkInterfaceName
 	pub fn all() -> Result<impl Iterator<Item=NetworkInterfaceName>, String>
 	{
 		let mut netlink_socket_file_descriptor = NetlinkSocketFileDescriptor::open().map_err(|error| format!("Could not open netlink socket filet descriptor: {:?}", error))?;
-		RouteNetlinkProtocol::get_links(&mut netlink_socket_file_descriptor).map(|link| link.network_interface_name)
+		RouteNetlinkProtocol::get_links(&mut netlink_socket_file_descriptor).map(|links| links.into_iter().map(|link| link.network_interface_name))
 	}
 	
 	/// Tries to get the network interface name.
@@ -177,8 +177,6 @@ impl NetworkInterfaceName
 	#[inline(always)]
 	pub fn pci_device<'a>(&self, sys_path: &'a SysPath) -> Result<Option<Option<PciDevice<'a>>>, NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>>
 	{
-		use self::ToPciDeviceError::*;
-		
 		let pci_device_address = match BusDeviceAddress::try_from_network_interface_name(self.clone())?
 		{
 			None => return Ok(None),
@@ -340,7 +338,7 @@ impl NetworkInterfaceName
 	#[inline(always)]
 	fn file_path(&self, sys_path: &SysPath, file_name: &str) -> PathBuf
 	{
-		self.self_file_path().append(file_name)
+		self.self_file_path(sys_path).append(file_name)
 	}
 	
 	#[inline(always)]

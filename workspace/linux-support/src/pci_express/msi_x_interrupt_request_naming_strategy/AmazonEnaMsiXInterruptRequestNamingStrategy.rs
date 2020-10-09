@@ -41,7 +41,7 @@ impl MsiXInterruptRequestNamingStrategy for AmazonEnaMsiXInterruptRequestNamingS
 	}
 	
 	#[inline(always)]
-	fn all_queues_fallback(&self, bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, device_name: &[u8], transmit_queue: QueueIdentifier) -> Option<InterruptRequestActionName>
+	fn all_queues_fallback(&self, _bus_info_name: PciDeviceAddress, _network_interface_name: &NetworkInterfaceName, _device_name: &[u8]) -> Option<InterruptRequestActionName>
 	{
 		None
 	}

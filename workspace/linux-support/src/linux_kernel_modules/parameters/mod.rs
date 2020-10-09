@@ -19,5 +19,4 @@ include!("ModuleParameterValue.u32.rs");
 include!("ModuleParameterValue.u64.rs");
 include!("ModuleParameterValue.usize.rs");
 include!("ModuleParameterValueChoice.rs");
-include!("ModuleParameterValueName.rs");
 include!("StringLinuxKernelModuleParameterValue.rs");

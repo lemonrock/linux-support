@@ -25,7 +25,7 @@ impl<'a> AllocateInterruptRequests<'a>
 			bus_info_name,
 			network_interface_name,
 			device_name,
-			interrupt_request_affinities: Default::default(),
+			interrupt_request_affinities,
 			msi_x_interrupt_request_naming_strategy,
 		}
 	}
@@ -58,11 +58,16 @@ impl<'a> AllocateInterruptRequests<'a>
 		{
 			self.add_interrupt_request_affinity(interrupt_name, paired_receive_transmit_queue_hyper_thread)
 		}
-		
-		// TODO: Inefficient, as formats the string name repeatedly.
+	}
+	
+	fn add_all_queues_fallback(&self, associated_hyper_threads_for_paired_receive_transmit_queue_pairs: &HyperThreads)
+	{
 		if let Some(interrupt_name) = self.msi_x_interrupt_request_naming_strategy.all_queues_fallback(self.bus_info_name, self.network_interface_name, self.device_name)
 		{
-			self.add_interrupt_request_affinity(interrupt_name, paired_receive_transmit_queue_hyper_thread)
+			for hyper_thread in associated_hyper_threads_for_paired_receive_transmit_queue_pairs.iterate()
+			{
+				self.add_interrupt_request_affinity(interrupt_name.clone(), hyper_thread)
+			}
 		}
 	}
 	

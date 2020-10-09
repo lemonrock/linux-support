@@ -268,7 +268,7 @@ pub struct GlobalNetworkDeviceConfiguration
 	/// 			* `include_source_port`.
 	/// 			* `include_destination_port`.
 	/// * Unsupported by Intel ixgbevf.
-	#[serde(default)] pub receive_side_scaling_hash_function_fields_configuration: Vec<HashFunctionFieldsConfiguration>,
+	#[serde(default)] pub receive_side_scaling_hash_function_fields_configuration: IndexSet<HashFunctionFieldsConfiguration>,
 	
 	/// Change generic receive offload (GRO) flush timeout?
 	///
@@ -352,20 +352,20 @@ impl GlobalNetworkDeviceConfiguration
 			validate(&network_device_input_output_control, tunable_choice.set(&network_device_input_output_control), CouldNotChangeTunable)?
 		}
 		
-		if let (ref number_of_channels) = self.number_of_channels
+		if let Some(ref number_of_channels) = self.number_of_channels
 		{
 			match number_of_channels
 			{
-				&SpecificValue(ref number_of_channels) => validate(&network_device_input_output_control, network_device_input_output_control.set_number_of_channels(number_of_channels), CouldNotChangeChannels),
+				&SpecificValue(ref number_of_channels) => validate(&network_device_input_output_control, network_device_input_output_control.set_number_of_channels(number_of_channels), CouldNotChangeChannels)?,
 				
 				&Maximize => validate(&network_device_input_output_control, network_device_input_output_control.maximize_number_of_channels(), CouldNotChangeChannels)?,
 			}
 		}
-		if let (ref pending_queue_depths) = self.pending_queue_depths
+		if let Some(ref pending_queue_depths) = self.pending_queue_depths
 		{
 			match pending_queue_depths
 			{
-				&SpecificValue(ref pending_queue_depths) => validate(&network_device_input_output_control, network_device_input_output_control.set_receive_ring_queues_and_transmit_ring_queue_depth(pending_queue_depths), CouldNotChangePendingQueueDepths),
+				&SpecificValue(ref pending_queue_depths) => validate(&network_device_input_output_control, network_device_input_output_control.set_receive_ring_queues_and_transmit_ring_queue_depths(pending_queue_depths), CouldNotChangePendingQueueDepths)?,
 				
 				&Maximize => validate(&network_device_input_output_control, network_device_input_output_control.maximize_receive_ring_queues_and_transmit_ring_queue_depths(), CouldNotChangePendingQueueDepths)?,
 			}

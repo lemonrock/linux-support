@@ -57,7 +57,7 @@ impl MsiXInterruptRequestNamingStrategy for VirtioNetMsiXInterruptRequestNamingS
 	///
 	/// May not be present.
 	#[inline(always)]
-	fn all_queues_fallback(&self, bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, device_name: &[u8], transmit_queue: QueueIdentifier) -> Option<InterruptRequestActionName>
+	fn all_queues_fallback(&self, bus_info_name: PciDeviceAddress, network_interface_name: &NetworkInterfaceName, device_name: &[u8]) -> Option<InterruptRequestActionName>
 	{
 		let device_name: &str = unsafe { from_utf8_unchecked(device_name) };
 		Some(into_action_name(format!("{}-virtqueues", device_name)))

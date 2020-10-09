@@ -24,6 +24,15 @@ pub struct Configuration
 	#[serde(default)] pub accept_services: HashMap<ServiceProtocolIdentifier, AcceptServiceConfiguration>,
 }
 
+impl Default for Configuration
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self::defaultish(443)
+	}
+}
+
 impl Configuration
 {
 	/// From JSON file.
@@ -35,12 +44,14 @@ impl Configuration
 	}
 	
 	/// Default-ish
-	pub fn defaultish(registered_buffer_settings: RegisteredBufferSettings, port_number: u16) -> Self
+	pub fn defaultish(port_number: u16) -> Self
 	{
 		Self
 		{
 			file_system_layout: FileSystemLayout::default(),
+			
 			process_executor: ProcessExecutor::default(),
+			
 			io_uring_settings: IoUringSettings::defaultish
 			(
 				RegisteredBufferSettings
@@ -57,9 +68,13 @@ impl Configuration
 					_1Gb: RegisteredBufferSetting::none(),
 				}
 			),
+			
 			process_configuration: ProcessConfiguration::default(),
+			
 			main_thread_configuration: ThreadConfiguration::default(),
+			
 			accept_child_thread_configuration: ThreadConfiguration::default(),
+			
 			accept_services: hashmap!
 			{
 				SipOverTls => AcceptServiceConfiguration
@@ -68,6 +83,7 @@ impl Configuration
 					[
 						TransmissionControlProtocolServerListenerSettings::defaultish(SocketAddrV4::new(Ipv4Addr::LOCALHOST, port_number)),
 					],
+					
 					permitted_internet_protocol_version_4_subnets: btreemap!
 					[
 						InternetProtocolAddressWithMask::<in_addr>::local_host() => Arc::new(AccessControlValue),
@@ -77,6 +93,7 @@ impl Configuration
 					[
 						TransmissionControlProtocolServerListenerSettings::defaultish(SocketAddrV6::new(Ipv6Addr::LOCALHOST, port_number, 0, 0)),
 					],
+					
 					permitted_internet_protocol_version_6_subnets: btreemap!
 					{
 						InternetProtocolAddressWithMask::<in6_addr>::local_host() => Arc::new(AccessControlValue),
@@ -86,10 +103,12 @@ impl Configuration
 					[
 						TransmissionControlProtocolServerListenerSettings::defaultish(UnixSocketAddress::from_abstract_name(port_number.to_string().as_bytes()).unwrap())
 					],
+					
 					permitted_unix_domain_group_identifiers: hashmap!
 					[
 						GroupIdentifier::default() => Arc::new(AccessControlValue),
 					],
+					
 					permitted_unix_domain_user_identifiers: hashmap!
 					[
 						UserIdentifier::default() => Arc::new(AccessControlValue),
@@ -135,6 +154,15 @@ impl Configuration
 		let defaults = self.file_system_layout.defaults().unwrap();
 		let terminate = self.process_configuration.configure(run_as_daemon, &self.file_system_layout, &defaults, &mut DogStatsDStaticInitialization, global_computed_scheduling_affinity, process_affinity).expect("Could not configure process");
 		(terminate, defaults)
+	}
+	
+	/// Configure PCI ethernet devices.
+	#[inline(always)]
+	pub fn configure_pci_ethernet_devices(&self) -> HashMap<NetworkInterfaceName, (HyperThread, HyperThreads)>
+	{
+		let sys_path = &self.file_system_layout.sys_path;
+		let proc_path = &self.file_system_layout.proc_path;
+		DriverProfile::configure_all_multiqueue_pci_ethernet_devices(sys_path, proc_path, &self.device_preferences).expect("Could not configure PCI ethernet devices")
 	}
 	
 	/// Execute.

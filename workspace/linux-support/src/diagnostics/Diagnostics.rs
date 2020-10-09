@@ -165,7 +165,7 @@ impl Diagnostics
 									Ok(bus) => bus.details().map_err(DiagnosticUnobtainable::from),
 								};
 								
-								details.insert(primary_pci_bus, details)
+								details.insert(primary_pci_bus, bus);
 							}
 							Ok(details)
 						}

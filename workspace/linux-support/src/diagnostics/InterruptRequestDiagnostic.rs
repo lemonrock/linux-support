@@ -104,7 +104,7 @@ impl InterruptRequestDiagnostic
 		Self
 		{
 			sysfs_actions: interrupt_request.sysfs_actions(sys_path).map_err(DiagnosticUnobtainable::from),
-			procfs_actions: interrupt_request.procfs_actions(sys_path).map_err(DiagnosticUnobtainable::from),
+			procfs_actions: interrupt_request.procfs_actions(proc_path).map_err(DiagnosticUnobtainable::from),
 			chip_name: interrupt_request.chip_name(sys_path).map_err(DiagnosticUnobtainable::from),
 			hardware_interrupt_request_line: interrupt_request.hardware_interrupt_request_line(sys_path).map_err(DiagnosticUnobtainable::from),
 			name: interrupt_request.name(sys_path).map_err(DiagnosticUnobtainable::from),

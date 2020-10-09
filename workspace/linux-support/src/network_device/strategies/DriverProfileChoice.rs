@@ -37,7 +37,7 @@ impl DriverProfileChoice
     		static ref DriverProfiles: DriverProfilesMap = DriverProfileChoice::driver_profiles_map();
 		};
 		
-		let key: DriverProfileKey = (driver_name.as_ref(), pci_vendor_and_device);
+		let key = (driver_name.clone(), pci_vendor_and_device);
 		
 		let driver_profiles_map: &DriverProfilesMap = DriverProfiles.deref();
 		driver_profiles_map.get(&key).map(|driver_profile_fork| match driver_profile_fork
@@ -70,26 +70,26 @@ impl DriverProfileChoice
 		
 		hashmap!
 		[
-			(Self::ena, PciVendorAndDevice::Amazon_Ena_RESRV0) => Self::linux_only(&amazon_ena),
-			(Self::ena, PciVendorAndDevice::Amazon_Ena_PF) => Self::linux_only(&amazon_ena),
-			(Self::ena, PciVendorAndDevice::Amazon_Ena_LLQ_PF) => Self::linux_only(&amazon_ena),
-			(Self::ena, PciVendorAndDevice::Amazon_Ena_VF) => Self::linux_only(&amazon_ena),
-			(Self::ena, PciVendorAndDevice::Amazon_Ena_LLQ_VF) => Self::linux_only(&amazon_ena),
+			(Self::ena(), PciVendorAndDevice::Amazon_Ena_RESRV0) => Self::linux_only(&amazon_ena),
+			(Self::ena(), PciVendorAndDevice::Amazon_Ena_PF) => Self::linux_only(&amazon_ena),
+			(Self::ena(), PciVendorAndDevice::Amazon_Ena_LLQ_PF) => Self::linux_only(&amazon_ena),
+			(Self::ena(), PciVendorAndDevice::Amazon_Ena_VF) => Self::linux_only(&amazon_ena),
+			(Self::ena(), PciVendorAndDevice::Amazon_Ena_LLQ_VF) => Self::linux_only(&amazon_ena),
 			
-			(Self::ixgbevf, PciVendorAndDevice::Intel_Ixgbe_Virtual_82599_VF) => Self::linux_or_intel(&intel_ixgbevf_linux_fork, &intel_ixgbevf_intel_fork_x540_or_earlier),
-			(Self::ixgbevf, PciVendorAndDevice::Intel_Ixgbe_Virtual_82599_VF_HV) => Self::linux_or_intel(&intel_ixgbevf_linux_fork, &intel_ixgbevf_intel_fork_x540_or_earlier),
-			(Self::ixgbevf, PciVendorAndDevice::Intel_Ixgbe_Virtual_X540_VF) => Self::linux_or_intel(&intel_ixgbevf_linux_fork, &intel_ixgbevf_intel_fork_x540_or_earlier),
-			(Self::ixgbevf, PciVendorAndDevice::Intel_Ixgbe_Virtual_X540_VF_HV) => Self::linux_or_intel(&intel_ixgbevf_linux_fork, &intel_ixgbevf_intel_fork_x540_or_earlier),
+			(Self::ixgbevf(), PciVendorAndDevice::Intel_Ixgbe_Virtual_82599_VF) => Self::linux_or_intel(&intel_ixgbevf_linux_fork, &intel_ixgbevf_intel_fork_x540_or_earlier),
+			(Self::ixgbevf(), PciVendorAndDevice::Intel_Ixgbe_Virtual_82599_VF_HV) => Self::linux_or_intel(&intel_ixgbevf_linux_fork, &intel_ixgbevf_intel_fork_x540_or_earlier),
+			(Self::ixgbevf(), PciVendorAndDevice::Intel_Ixgbe_Virtual_X540_VF) => Self::linux_or_intel(&intel_ixgbevf_linux_fork, &intel_ixgbevf_intel_fork_x540_or_earlier),
+			(Self::ixgbevf(), PciVendorAndDevice::Intel_Ixgbe_Virtual_X540_VF_HV) => Self::linux_or_intel(&intel_ixgbevf_linux_fork, &intel_ixgbevf_intel_fork_x540_or_earlier),
 			
-			(Self::ixgbevf, PciVendorAndDevice::Intel_Ixgbe_Virtual_X550_VF) => Self::linux_or_intel(&intel_ixgbevf_linux_fork, &intel_ixgbevf_intel_fork_x550_or_later),
-			(Self::ixgbevf, PciVendorAndDevice::Intel_Ixgbe_Virtual_X550_VF_HV) => Self::linux_or_intel(&intel_ixgbevf_linux_fork, &intel_ixgbevf_intel_fork_x550_or_later),
-			(Self::ixgbevf, PciVendorAndDevice::Intel_Ixgbe_Virtual_X550EM_X_VF) => Self::linux_or_intel(&intel_ixgbevf_linux_fork, &intel_ixgbevf_intel_fork_x550_or_later),
-			(Self::ixgbevf, PciVendorAndDevice::Intel_Ixgbe_Virtual_X550EM_X_VF_HV) => Self::linux_or_intel(&intel_ixgbevf_linux_fork, &intel_ixgbevf_intel_fork_x550_or_later),
-			(Self::ixgbevf, PciVendorAndDevice::Intel_Ixgbe_Virtual_X550EM_A_VF) => Self::linux_or_intel(&intel_ixgbevf_linux_fork, &intel_ixgbevf_intel_fork_x550_or_later),
-			(Self::ixgbevf, PciVendorAndDevice::Intel_Ixgbe_Virtual_X550EM_A_VF_HV) => Self::linux_or_intel(&intel_ixgbevf_linux_fork, &intel_ixgbevf_intel_fork_x550_or_later),
+			(Self::ixgbevf(), PciVendorAndDevice::Intel_Ixgbe_Virtual_X550_VF) => Self::linux_or_intel(&intel_ixgbevf_linux_fork, &intel_ixgbevf_intel_fork_x550_or_later),
+			(Self::ixgbevf(), PciVendorAndDevice::Intel_Ixgbe_Virtual_X550_VF_HV) => Self::linux_or_intel(&intel_ixgbevf_linux_fork, &intel_ixgbevf_intel_fork_x550_or_later),
+			(Self::ixgbevf(), PciVendorAndDevice::Intel_Ixgbe_Virtual_X550EM_X_VF) => Self::linux_or_intel(&intel_ixgbevf_linux_fork, &intel_ixgbevf_intel_fork_x550_or_later),
+			(Self::ixgbevf(), PciVendorAndDevice::Intel_Ixgbe_Virtual_X550EM_X_VF_HV) => Self::linux_or_intel(&intel_ixgbevf_linux_fork, &intel_ixgbevf_intel_fork_x550_or_later),
+			(Self::ixgbevf(), PciVendorAndDevice::Intel_Ixgbe_Virtual_X550EM_A_VF) => Self::linux_or_intel(&intel_ixgbevf_linux_fork, &intel_ixgbevf_intel_fork_x550_or_later),
+			(Self::ixgbevf(), PciVendorAndDevice::Intel_Ixgbe_Virtual_X550EM_A_VF_HV) => Self::linux_or_intel(&intel_ixgbevf_linux_fork, &intel_ixgbevf_intel_fork_x550_or_later),
 			
-			(Self::virtio_net, PciVendorAndDevice::VirtIO_Network) => Self::linux_only(&virtio_net),
-			(Self::virtio_net, PciVendorAndDevice::VirtIO_NewNetwork) => Self::linux_only(&virtio_net),
+			(Self::virtio_net(), PciVendorAndDevice::VirtIO_Network) => Self::linux_only(&virtio_net),
+			(Self::virtio_net(), PciVendorAndDevice::VirtIO_NewNetwork) => Self::linux_only(&virtio_net),
 		]
 	}
 	
@@ -129,7 +129,7 @@ impl DriverProfileChoice
 		let driver_name_bytes: &[u8] = driver_name.as_ref();
 		match driver_name_bytes
 		{
-			Self::ixgbevf =>
+			Self::ixgbevf_bytes =>
 			{
 				let driver_version_bytes: &[u8] = driver_version.as_ref();
 				if &linux_kernel_version.release[..] == driver_version_bytes
@@ -172,12 +172,27 @@ impl DriverProfileChoice
 		}
 	}
 	
-	#[doc(hidden)]
-	const ena: &'static [u8] = b"ena";
+	const ena_bytes: &'static [u8] = b"ena";
 	
 	#[doc(hidden)]
-	const ixgbevf: &'static [u8] = b"ixgbevf";
+	pub fn ena() -> ObjectName32
+	{
+		ObjectName32::try_from(Self::ena_bytes).unwrap()
+	}
+	
+	const ixgbevf_bytes: &'static [u8] = b"ixgbevf";
 	
 	#[doc(hidden)]
-	const virtio_net: &'static [u8] = b"virtio_net";
+	pub fn ixgbevf() -> ObjectName32
+	{
+		ObjectName32::try_from(Self::ixgbevf_bytes).unwrap()
+	}
+	
+	const virtio_net_bytes: &'static [u8] = b"virtio_net";
+	
+	#[doc(hidden)]
+	pub fn virtio_net() -> ObjectName32
+	{
+		ObjectName32::try_from(Self::virtio_net_bytes).unwrap()
+	}
 }

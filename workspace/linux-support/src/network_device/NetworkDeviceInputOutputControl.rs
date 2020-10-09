@@ -688,7 +688,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			Some(Some((_current, maximima))) => maximima,
 		};
 		
-		self.set_receive_ring_queues_and_transmit_ring_queue_depths(maximima)
+		self.set_receive_ring_queues_and_transmit_ring_queue_depths(&maximima)
 	}
 	
 	/// NOTE: If a RX flow indirection table is configured (`netif_is_rxfh_configured()`) and the number of receive channels (combined + receive only) is reduced then `EINVAL` is returned.
@@ -702,7 +702,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			Some(Some((_current, maximima))) => maximima,
 		};
 		
-		self.set_number_of_channels(maximima)
+		self.set_number_of_channels(&maximima)
 	}
 	
 	/// The ring queue count can legitimately be zero.
@@ -1402,7 +1402,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	}
 	
 	#[allow(missing_docs)]
-	pub fn set_receive_ring_queues_and_transmit_ring_queue_depths(&self, pending_queue_depths: PendingQueueDepths) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
+	pub fn set_receive_ring_queues_and_transmit_ring_queue_depths(&self, pending_queue_depths: &PendingQueueDepths) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		self.ethtool_command
 		(
@@ -1413,10 +1413,10 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 				rx_mini_max_pending: None,
 				rx_jumbo_max_pending: None,
 				tx_max_pending: None,
-				rx_pending: maximima.receive_pending_queue_depth,
-				rx_mini_pending: maximima.receive_mini_pending_queue_depth,
-				rx_jumbo_pending: maximima.receive_jumbo_pending_queue_depth,
-				tx_pending: maximima.transmit_pending_queue_depth,
+				rx_pending: pending_queue_depths.receive_pending_queue_depth,
+				rx_mini_pending: pending_queue_depths.receive_mini_pending_queue_depth,
+				rx_jumbo_pending: pending_queue_depths.receive_jumbo_pending_queue_depth,
+				tx_pending: pending_queue_depths.transmit_pending_queue_depth,
 			},
 			|_command| Ok(()),
 			Self::error_is_unreachable,
@@ -1456,7 +1456,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	
 	/// NOTE: If a RX flow indirection table is configured (`netif_is_rxfh_configured()`) and the number of receive channels (combined + receive only) is reduced then `EINVAL` is returned.
 	/// NOTE: If XDP user memory is in use against a channel (a queue to XDP) and the number of channels is reduced (which should not happen) `EINVAL` is returned.
-	pub fn set_number_of_channels(&self, number_of_channels: Channels) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
+	pub fn set_number_of_channels(&self, number_of_channels: &Channels) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
 		self.ethtool_command
 		(

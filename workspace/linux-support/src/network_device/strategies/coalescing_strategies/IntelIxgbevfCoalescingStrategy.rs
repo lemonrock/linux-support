@@ -18,23 +18,42 @@ impl CoalescingStrategy for IntelIxgbevfCoalescingStrategy
 			{
 				receive: CoalescePair
 				{
-					microseconds: unsafe { transmute(receive_coalescing_preference.interrupt_throttle_rate_setting.into()) },
+					microseconds:
+					{
+						let value = receive_coalescing_preference.interrupt_throttle_rate_setting.into();
+						if value == 0
+						{
+							None
+						}
+						else
+						{
+							Some(unsafe { NonZeroU32::new_unchecked(value) })
+						}
+					},
 					
-					maximum_frames: None
+					maximum_frames: None,
 				},
 				
 				transmit: CoalescePair
 				{
-					microseconds: None,
-					
-					maximum_frames: if paired_transmit_receive_queues
+					microseconds: if !paired_transmit_receive_queues
 					{
-						unsafe { transmute(transmit_coalescing_preference.interrupt_throttle_rate_setting.into()) }
+						let value = transmit_coalescing_preference.interrupt_throttle_rate_setting.into();
+						if value == 0
+						{
+							None
+						}
+						else
+						{
+							Some(unsafe { NonZeroU32::new_unchecked(value) })
+						}
 					}
 					else
 					{
 						None
 					},
+					
+					maximum_frames: None,
 				},
 			},
 			

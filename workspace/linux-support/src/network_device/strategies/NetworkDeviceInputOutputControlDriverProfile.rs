@@ -4,9 +4,9 @@
 
 struct NetworkDeviceInputOutputControlDriverProfile<'a>(NetworkDeviceInputOutputControl<'a>);
 
-impl<'a> Deref<NetworkDeviceInputOutputControl> for NetworkDeviceInputOutputControlDriverProfile
+impl<'a> Deref for NetworkDeviceInputOutputControlDriverProfile<'a>
 {
-	type Target = NetworkDeviceInputOutputControl;
+	type Target = NetworkDeviceInputOutputControl<'a>;
 	
 	#[inline(always)]
 	fn deref(&self) -> &Self::Target
@@ -15,10 +15,10 @@ impl<'a> Deref<NetworkDeviceInputOutputControl> for NetworkDeviceInputOutputCont
 	}
 }
 
-impl<'a> DerefMut<NetworkDeviceInputOutputControl> for NetworkDeviceInputOutputControlDriverProfile<'a>
+impl<'a> DerefMut for NetworkDeviceInputOutputControlDriverProfile<'a>
 {
 	#[inline(always)]
-	fn deref_mut(&self) -> &mut Self::Target
+	fn deref_mut(&mut self) -> &mut Self::Target
 	{
 		&mut self.0
 	}
@@ -99,8 +99,8 @@ impl<'a> NetworkDeviceInputOutputControlDriverProfile<'a>
 	#[inline(always)]
 	fn parse_result<T, E>(&self, result: Result<Option<T>, E>, map_error: impl FnOnce(E) -> DriverProfileError) -> Result<T, DriverProfileError>
 	{
-		let option = map_error.map_err(map_error)?;
-		result.ok_or(DriverProfileError::from(NoSuchNetworkInterface { network_interface_name: self.network_interface_name() }))
+		let option = result.map_err(map_error)?;
+		option.ok_or(DriverProfileError::from(NoSuchNetworkInterface { network_interface_name: self.network_interface_name() }))
 	}
 	
 	#[inline(always)]

@@ -13,14 +13,10 @@ use super::*;
 use crate::cpu::HyperThreads;
 use crate::interrupt_request::*;
 use crate::linux_kernel_version::LinuxKernelVersion;
-use crate::network_device::tunables::TunableChoice::ReceiveCopyBreakPoint;
 use crate::paths::ProcPath;
 use crate::pci_express::*;
 use crate::pci_express::classification::*;
 use crate::pci_express::msi_x_interrupt_request_naming_strategy::*;
-use crate::file_descriptors::netlink::NetlinkSocketFileDescriptor;
-use crate::file_descriptors::netlink::route::RouteNetlinkProtocol;
-use crate::file_descriptors::socket::SocketCreationOrBindError;
 
 
 /// Preferences.
@@ -41,6 +37,5 @@ include!("DriverProfilesMap.rs");
 include!("FindDriverProfileError.rs");
 include!("FairWeightQueueStrategy.rs");
 include!("InterruptRequestAffinities.rs");
-include!("MsiXInterruptRequestNamingStrategy.rs");
 include!("NetworkDeviceInputOutputControlDriverProfile.rs");
 include!("SetToSpecificValueOrMaximize.rs");

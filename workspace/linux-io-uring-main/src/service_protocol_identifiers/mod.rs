@@ -2,19 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// * `bus_info_name` is the value as returned by Linux's `pci_name()` function. The Amazon ENA, Intel ixgbevf (either fork) and virtio net drivers it is the same as the value returned by ethtool in `ethtool_drvinfo.bus_info` and is just a `PciDeviceAddress`, formatted.
-/// * `device_name` is used by virtio net; it is something like `virtio0`.
-///
-// pub enum MsiXInterruptRequestNamingStrategy
-// {
-// 	AmazonEna,
-//
-// 	IntelIxgbevfLinux,
-//
-// 	IntelIxgbevfIntel,
-//
-// 	VirtioNet,
-// }
+use super::*;
 
 
-
+include!("SipOverTls.rs");

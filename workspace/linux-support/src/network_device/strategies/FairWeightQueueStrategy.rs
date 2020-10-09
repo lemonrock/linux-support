@@ -8,7 +8,7 @@ impl WeightQueueStrategy for FairWeightQueueStrategy
 {
 	fn weight(&self, queue_index: QueueIdentifier, number_of_receive_queues: QueueCount, denominator: NonZeroU32) -> u32
 	{
-		let queue_count: u32 = queue_count.into();
+		let queue_count: u32 = number_of_receive_queues.into();
 		let denominator = denominator.get();
 		
 		if denominator < queue_count

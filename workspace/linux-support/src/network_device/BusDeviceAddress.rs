@@ -100,6 +100,20 @@ impl BusDeviceAddress
 	pub fn try_from_network_interface_name(value: NetworkInterfaceName) -> Result<Option<Option<Self>>, NetworkDeviceInputOutputControlError<ObjectNameFromBytesError>>
 	{
 		let driver_and_device_information = NetworkDeviceInputOutputControl::new(Cow::Owned(value))?.driver_and_device_information()?;
-		Ok(driver_and_device_information.map(|driver_and_device_information| driver_and_device_information.device_bus_device_address))
+		let inner = match driver_and_device_information
+		{
+			Some(Some(driver_and_device_information)) => match driver_and_device_information.device_bus_device_address
+			{
+				Some(device_bus_device_address) => Some(Some(device_bus_device_address)),
+				
+				None => Some(None),
+			},
+			
+			Some(None) => Some(None),
+			
+			None => None,
+		};
+		
+		Ok(inner)
 	}
 }

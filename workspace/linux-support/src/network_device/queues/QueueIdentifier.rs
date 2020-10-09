@@ -19,15 +19,6 @@ impl Into<u16> for QueueIdentifier
 	}
 }
 
-impl Into<u32> for QueueIdentifier
-{
-	#[inline(always)]
-	fn into(self) -> u32
-	{
-		self.0 as u32
-	}
-}
-
 impl Into<i16> for QueueIdentifier
 {
 	#[inline(always)]

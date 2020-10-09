@@ -28,3 +28,15 @@ impl Default for ETH_RSS_HASH
 		ETH_RSS_HASH::ETH_RSS_HASH_TOP_BIT
 	}
 }
+
+impl ETH_RSS_HASH
+{
+	/// Toepltiz (convenience).
+	pub const Toeplitz: Self = ETH_RSS_HASH::ETH_RSS_HASH_TOP_BIT;
+	
+	/// ExclusiveOr (XOR).
+	pub const ExclusiveOr: Self = ETH_RSS_HASH::ETH_RSS_HASH_XOR_BIT;
+	
+	/// Cyclic Redundancy Check 32 (CRC32).
+	pub const CyclicRedundancyCheck32: Self = ETH_RSS_HASH::ETH_RSS_HASH_CRC32_BIT;
+}

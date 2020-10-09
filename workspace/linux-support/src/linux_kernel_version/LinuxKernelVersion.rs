@@ -55,12 +55,16 @@ impl LinuxKernelVersion
 	/// Equivalent to `uname`, `uname -s` or `uname -o`.
 	/// Equivalent to `UTS_SYSNAME`.
 	#[inline(always)]
-	fn verify_ostype()
+	fn verify_ostype(proc_path: &ProcPath) -> io::Result<()>
 	{
-		let _type = proc_path.sys_kernel_file_path("ostype").read_raw_without_line_feed()?;
-		if &_type[..] != b"Linux"
+		let type_ = proc_path.sys_kernel_file_path("ostype").read_raw_without_line_feed()?;
+		if &type_[..] == b"Linux"
 		{
-			panic!("This is not Linux");
+			Ok(())
+		}
+		else
+		{
+			Err(io::Error::new(ErrorKind::InvalidData, format!("This is not Linux but {:?}", type_)))
 		}
 	}
 	
@@ -70,7 +74,7 @@ impl LinuxKernelVersion
 	#[inline(always)]
 	pub fn parse(proc_path: &ProcPath) -> io::Result<Self>
 	{
-		Self::verify_ostype()
+		Self::verify_ostype(proc_path);
 
 		Ok
 		(

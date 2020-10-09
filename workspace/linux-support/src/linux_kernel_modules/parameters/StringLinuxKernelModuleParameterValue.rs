@@ -15,13 +15,13 @@ impl TryFrom<CString> for StringLinuxKernelModuleParameterValue
 	#[inline(always)]
 	fn try_from(value: CString) -> Result<Self, Self::Error>
 	{
-		if value.as_byes_with_null().len() > Self::InclusiveMaximumLengthIncludingTrailingNulTerminator
+		if value.as_bytes_with_nul().len() > Self::InclusiveMaximumLengthIncludingTrailingNulTerminator
 		{
 			Err(ParseNumberError::TooLarge)
 		}
 		else
 		{
-			Self(value)
+			Ok(Self(value))
 		}
 	}
 }
@@ -77,8 +77,6 @@ impl ModuleParameterValue for StringLinuxKernelModuleParameterValue
 	#[inline(always)]
 	fn write_value(&self, extant_parameter_file_path: PathBuf) -> io::Result<()>
 	{
-		use self::InverseBooleanModuleParameterValue::*;
-		
 		extant_parameter_file_path.write_value_then_line_feed(self.0.as_bytes())
 	}
 }

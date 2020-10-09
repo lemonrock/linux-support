@@ -69,9 +69,18 @@ impl<'a> PciDevice<'a>
 
 	/// Configuration space.
 	#[inline(always)]
-	pub fn configuration_space(&self, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<MemoryMappedConfigurationSpace, io::Error>
+	pub fn configuration_space(&self, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Option<MemoryMappedConfigurationSpace>, io::Error>
 	{
-		self.config_file_path().memory_map_read_write(0, AddressHint::any(), Sharing::Private, None, false, false, defaults).map(|memory_mapped_file| MemoryMappedConfigurationSpace(memory_mapped_file))
+		if let Some(config_file_path) = self.config_file_path()
+		{
+			let memory_mapped_file = config_file_path.memory_map_read_write(0, AddressHint::any(), Sharing::Private, None, false, false, defaults)?;
+			
+			Ok(Some(MemoryMappedConfigurationSpace(memory_mapped_file)))
+		}
+		else
+		{
+			Ok(None)
+		}
 	}
 	
 	/// PCI buses.
@@ -160,7 +169,7 @@ impl<'a> PciDevice<'a>
 	{
 		let read_dir = self.cached_device_file_or_folder_path.read_dir()?;
 		
-		let mut parsed_resource_files: HashMap = HashMap::new();
+		let mut parsed_resource_files = HashMap::new();
 		
 		for dir_entry in read_dir
 		{
@@ -172,18 +181,18 @@ impl<'a> PciDevice<'a>
 					{
 						continue
 					}
-					let file_name = dir_entry.file_name();
+					
+					let file_name_bytes = dir_entry.file_name().into_vec();
 					const Prefix: &'static [u8] = b"resource";
-					if !file_name.starts_with(Prefix)
+					if !file_name_bytes.starts_with(Prefix)
 					{
 						continue
 					}
 					
-					let file_name_bytes = file_name.into_vec();
 					let suffix = &file_name_bytes[Prefix.len() .. ];
 					let suffix_length = suffix.len();
 					
-					/// There is also a file called 'resource' which is unrelated.
+					// There is also a file called 'resource' which is unrelated.
 					if suffix_length == 0
 					{
 						continue
@@ -221,7 +230,10 @@ impl<'a> PciDevice<'a>
 								*occupied.get_mut() = true
 							},
 							
-							Vacant(vacant) => vacant.insert(has_write_combining_suffix),
+							Vacant(vacant) =>
+							{
+								vacant.insert(has_write_combining_suffix);
+							},
 						}
 					}
 				}
@@ -466,28 +478,31 @@ impl<'a> PciDevice<'a>
 		{
 			Err(_) => None,
 			
-			Ok(read_dir) => for dir_entry in read_dir
+			Ok(read_dir) =>
 			{
 				let mut network_interface_names = HashSet::new();
 				
-				if let Ok(dir_entry) = dir_entry
+				for dir_entry in read_dir
 				{
-					if let Ok(file_type) = dir_entry.file_type()
+					if let Ok(dir_entry) = dir_entry
 					{
-						if !file_type.is_dir()
+						if let Ok(file_type) = dir_entry.file_type()
 						{
-							continue
-						}
-						
-						let file_name = dir_entry.file_name();
-						if let Ok(network_interface_name) = NetworkInterfaceName::from_bytes(file_name.as_bytes())
-						{
-							network_interface_names.insert(network_interface_name);
+							if !file_type.is_dir()
+							{
+								continue
+							}
+							
+							let file_name = dir_entry.file_name();
+							if let Ok(network_interface_name) = NetworkInterfaceName::from_bytes(file_name.as_bytes())
+							{
+								network_interface_names.insert(network_interface_name);
+							}
 						}
 					}
 				}
 				
-				Ok(network_interface_names)
+				Some(network_interface_names)
 			}
 		}
 	}
@@ -735,7 +750,7 @@ impl<'a> PciDevice<'a>
 												_ => continue,
 											};
 											
-											interrupt_requests.insert(InterruptRequest(raw_interrupt_request), kind);
+											interrupt_requests.insert(InterruptRequest::from(raw_interrupt_request), kind);
 										}
 									}
 								}
@@ -743,7 +758,7 @@ impl<'a> PciDevice<'a>
 						}
 					}
 					
-					Ok(interrupt_requests)
+					Some(interrupt_requests)
 				}
 			}
 		}

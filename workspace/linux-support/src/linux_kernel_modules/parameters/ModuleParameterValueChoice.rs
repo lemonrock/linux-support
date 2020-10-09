@@ -12,7 +12,7 @@
 /// * invbool: the above, only sense-reversed (N = true).
 ///
 /// For how these are formatted in sysfs, see functions such as `param_get_invbool()` in `kernel/params.c`.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[derive(EnumDiscriminants)]
 #[strum_discriminants(name(ModuleParameterValueKind))]

@@ -50,6 +50,6 @@ impl ModuleParameterValue for InverseBooleanModuleParameterValue
 			
 			Yes => b"Y\n",
 		};
-		extant_parameter_file_path.write_value(value)
+		extant_parameter_file_path.write_value(&value[..])
 	}
 }

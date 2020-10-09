@@ -26,7 +26,7 @@ impl Deref for HashFunctionSeed
 impl DerefMut for HashFunctionSeed
 {
 	#[inline(always)]
-	fn deref_mut(&self) -> &mut Self::Target
+	fn deref_mut(&mut self) -> &mut Self::Target
 	{
 		&mut self.0
 	}

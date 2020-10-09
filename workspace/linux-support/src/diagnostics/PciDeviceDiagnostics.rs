@@ -36,7 +36,7 @@ impl PciDeviceDiagnostics
 					{
 						pci_buses.insert(pci_bus_address, pci_bus_details.map_err(DiagnosticUnobtainable::from));
 					}
-					pci_buses
+					Ok(pci_buses)
 				}
 			},
 			

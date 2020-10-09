@@ -2,10 +2,6 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-// TODO: Amazon ENA: If the NETIF_F_RXHASH flag is set, the 32-bit result of the hash function delivered in the Rx CQ descriptor is set in the received SKB.
-// TODO: Use configure_all_multiqueue_pci_ethernet_devices().
-xxxxx;
-
 #[derive(Debug)]
 pub struct DriverProfile
 {
@@ -19,11 +15,11 @@ pub struct DriverProfile
 	
 	supports_getting_and_setting_channels: bool,
 	
-	supports_hash_function_configuration: Option<(HashFunctionName, HashFunctionSeed)>,
+	supported_hash_function_names: HashSet<HashFunctionName>,
 	
-	best_possible_hash_function_fields_configuration: Vec<HashFunctionFieldsConfiguration>,
+	best_possible_hash_function_fields_configuration: IndexSet<HashFunctionFieldsConfiguration>,
 	
-	all_supported_hash_function_fields_configuration: HashSet<HashFunctionFieldsConfiguration>,
+	all_supported_hash_function_fields_configuration: IndexSet<HashFunctionFieldsConfiguration>,
 
 	msi_x_interrupt_request_naming_strategy: Box<dyn MsiXInterruptRequestNamingStrategy>,
 
@@ -38,8 +34,8 @@ impl DriverProfile
 		
 		let mut receive_flow_steering_flow_count = 0;
 		let mut configurations = Vec::new();
-		let mut interrupt_request_affinities: InterruptRequestAffinities::default();
-		let mut hyper_threads: HashMap::new();
+		let mut interrupt_request_affinities = InterruptRequestAffinities::default();
+		let mut hyper_threads = HashMap::new();
 		
 		let linux_kernel_version = LinuxKernelVersion::parse(proc_path).map_err(FailedToRetrieveLinuxKernelVersion)?;
 		for network_interface_name in NetworkInterfaceName::all().map_err(FailedToObtainAllNetworkInterfaceNames)?
@@ -83,7 +79,7 @@ impl DriverProfile
 	{
 		ReceiveFlowSteeringFlowCount::capped(receive_flow_steering_flow_count).set_global_maximum(proc_path).map_err(CouldNotConfigureReceiveFlowSteeringCount)?;
 		
-		for (network_interface_name, configuration, interrupt_request_affinities) in configurations
+		for (network_interface_name, configuration) in configurations
 		{
 			configuration.configure(sys_path, &network_interface_name).map_err(|error| CouldNotDoGlobalNetworkDeviceConfiguration { network_interface_name: network_interface_name.clone(), error })?;
 		}
@@ -97,28 +93,16 @@ impl DriverProfile
 	{
 		let (paired_receive_transmit_queue_count, number_of_channels, receive_queues, transmit_queues, receive_flow_steering_flow_count, administrative_queue_hyper_thread, associated_hyper_threads_for_paired_receive_transmit_queue_pairs) = self.queue_configuration(network_device_input_output_control_driver_profile, network_interface_name, pci_device, all_pci_buses, device_name_guess, device_preferences, interrupt_request_affinities)?;
 		
-		let receive_side_scaling_hash_function_configuration = match self.supports_hash_function_configuration
-		{
-			Some((hash_function_name, ref hash_function_seed)) => Some(Self::hash_function_configuration(network_device_input_output_control_driver_profile, paired_receive_transmit_queue_count, hash_function_name, hash_function_seed)?),
-			
-			None => None,
-		};
+		let receive_side_scaling_hash_function_configuration = self.receive_side_scaling_hash_function_configuration(network_device_input_output_control_driver_profile, paired_receive_transmit_queue_count)?;
 		
-		let receive_side_scaling_hash_function_fields_configuration = self.best_possible_hash_function_fields_configuration.clone();
-		if cfg!(debug_assertions)
-		{
-			for combination in self.best_possible_hash_function_fields_configuration.iter()
-			{
-				debug_assert(self.all_supported_hash_function_fields_configuration.contains(combination).is_some());
-			}
-		}
+		let receive_side_scaling_hash_function_fields_configuration = self.receive_side_scaling_hash_function_fields_configuration();
 		
 		Ok
 		(
 			(
 				GlobalNetworkDeviceConfiguration
 				{
-					transmission_queue_length,
+					transmission_queue_length: device_preferences.transmission_queue_length,
 					
 					generic_receive_offload_flush_timeout_in_nanoseconds: Some(device_preferences.generic_receive_offload_flush_timeout_in_nanoseconds),
 					
@@ -195,7 +179,7 @@ impl DriverProfile
 	
 	fn queue_configuration(&self, network_device_input_output_control_driver_profile: &NetworkDeviceInputOutputControlDriverProfile, network_interface_name: &NetworkInterfaceName, pci_device: &PciDevice, all_pci_buses: &HashMap<PciBusAddress, io::Result<PciBusDetails>>, device_name_guess: &[u8], device_preferences: &DevicePreferences, interrupt_request_affinities: &mut InterruptRequestAffinities) -> Result<(QueueCount, Option<SetToSpecificValueOrMaximize<Channels>>, HashMap<QueueIdentifier, GlobalNetworkDeviceReceiveQueueConfiguration>, HashMap<QueueIdentifier, GlobalNetworkDeviceTransmitQueueConfiguration>, usize, HyperThread, HyperThreads), DriverProfileError>
 	{
-		let (administrative_queue_hyper_thread, (associated_hyper_threads_for_paired_receive_transmit_queue_pairs, associated_hyper_threads_for_paired_receive_transmit_queue_pairs_count)) = Self::adminstrative_queue_hyper_thread_and_associated_hyper_threads_for_paired_receive_transmit_queue_pairs_and_maximum_receive_transmit_queue_count(pci_device, all_pci_buses)?;
+		let (administrative_queue_hyper_thread, (associated_hyper_threads_for_paired_receive_transmit_queue_pairs, associated_hyper_threads_for_paired_receive_transmit_queue_pairs_count)) = Self::adminstrative_queue_hyper_thread_and_associated_hyper_threads_for_paired_receive_transmit_queue_pairs_and_maximum_receive_transmit_queue_count(network_interface_name, pci_device, all_pci_buses)?;
 		
 		let (paired_receive_transmit_queue_count, number_of_channels) = if self.supports_getting_and_setting_channels
 		{
@@ -216,9 +200,9 @@ impl DriverProfile
 		
 		let mut receive_flow_steering_flow_count = 0;
 		debug_assert_eq!(associated_hyper_threads_for_paired_receive_transmit_queue_pairs.len(), associated_hyper_threads_for_paired_receive_transmit_queue_pairs_count.into());
-		for (queue_identifier, paired_receive_transmit_queue_hyper_thread) in paired_receive_transmit_queue_count.queue_identifiers().zip(associated_hyper_threads_for_paired_receive_transmit_queue_pairs.iterate())
+		for (queue_identifier, queue_hyper_thread) in paired_receive_transmit_queue_count.queue_identifiers().zip(associated_hyper_threads_for_paired_receive_transmit_queue_pairs.iterate())
 		{
-			allocate_interrupt_requests.allocate_interrupt_requests_for_paired_receive_transmit_queue_identifier(queue_identifier, paired_receive_transmit_queue_hyper_thread);
+			allocate_interrupt_requests.allocate_interrupt_requests_for_paired_receive_transmit_queue_identifier(queue_identifier, queue_hyper_thread);
 			
 			let receive_flow_steering_table_count_per_queue = device_preferences.receive_flow_steering_table_count_per_queue;
 			receive_queues.insert(queue_identifier, GlobalNetworkDeviceReceiveQueueConfiguration::use_receive_side_scaling_if_possible(Some(queue_hyper_thread), receive_flow_steering_table_count_per_queue));
@@ -227,16 +211,27 @@ impl DriverProfile
 			transmit_queues.insert(queue_identifier, GlobalNetworkDeviceTransmitQueueConfiguration::linux_default_with_one_to_one_receive_to_transmit_packet_steering(queue_identifier));
 		}
 		
-		Ok((paired_receive_transmit_queue_count, number_of_channels, receive_queues, transmit_queues, receive_flow_steering_table_count, administrative_queue_hyper_thread, associated_hyper_threads_for_paired_receive_transmit_queue_pairs))
+		allocate_interrupt_requests.add_all_queues_fallback(&associated_hyper_threads_for_paired_receive_transmit_queue_pairs);
+		
+		Ok((paired_receive_transmit_queue_count, number_of_channels, receive_queues, transmit_queues, receive_flow_steering_flow_count, administrative_queue_hyper_thread, associated_hyper_threads_for_paired_receive_transmit_queue_pairs))
 	}
 	
 	#[inline(always)]
-	fn adminstrative_queue_hyper_thread_and_associated_hyper_threads_for_paired_receive_transmit_queue_pairs_and_maximum_receive_transmit_queue_count(pci_device: &PciDevice, all_pci_buses: &HashMap<PciBusAddress, io::Result<PciBusDetails>>) -> Result<(HyperThread, (HyperThreads, QueueCount)), DriverProfileError>
+	fn adminstrative_queue_hyper_thread_and_associated_hyper_threads_for_paired_receive_transmit_queue_pairs_and_maximum_receive_transmit_queue_count(network_interface_name: &NetworkInterfaceName, pci_device: &PciDevice, all_pci_buses: &HashMap<PciBusAddress, io::Result<PciBusDetails>>) -> Result<(HyperThread, (HyperThreads, QueueCount)), DriverProfileError>
 	{
 		let associated_hyper_threads = pci_device.validated_associated_hyper_threads(all_pci_buses);
-		if associated_hyper_threads.len() < 2
+		let actual_number = associated_hyper_threads.len();
+		if actual_number < 2
 		{
-			Err(AtLeastTwoHyperThreadsAreRequired)
+			Err
+			(
+				AtLeastTwoHyperThreadsAreRequired
+				{
+					network_interface_name: network_interface_name.clone(),
+					
+					actual_number,
+				}
+			)
 		}
 		else
 		{
@@ -250,6 +245,29 @@ impl DriverProfile
 	const fn channels(paired_receive_transmit_queue_count: QueueCount) -> SetToSpecificValueOrMaximize<Channels>
 	{
 		SetToSpecificValueOrMaximize::SpecificValue(Channels::new_combined_only(paired_receive_transmit_queue_count))
+	}
+	
+	#[inline(always)]
+	fn receive_side_scaling_hash_function_configuration(&self, network_device_input_output_control_driver_profile: &NetworkDeviceInputOutputControlDriverProfile, paired_receive_transmit_queue_count: QueueCount) -> Result<Option<HashFunctionConfiguration>, DriverProfileError>
+	{
+		lazy_static!
+		{
+			static ref DesiredHashFunctionNamesInPreferenceOrder: IndexSet<HashFunctionName> = indexset!
+			[
+				HashFunctionName::Toeplitz,
+				HashFunctionName::CyclicRedundancyCheck32,
+				HashFunctionName::ExclusiveOr,
+			];
+		}
+		
+		for desired_hash_function_name in DesiredHashFunctionNamesInPreferenceOrder.iter()
+		{
+			if self.supported_hash_function_names.contains(desired_hash_function_name)
+			{
+				return Ok(Some(Self::hash_function_configuration(network_device_input_output_control_driver_profile, paired_receive_transmit_queue_count, *desired_hash_function_name, &HashFunctionSeed::toeplitz_symmetric())?))
+			}
+		}
+		Ok(None)
 	}
 	
 	#[inline(always)]
@@ -271,6 +289,20 @@ impl DriverProfile
 				seed: Some(seed),
 			}
 		)
+	}
+	
+	#[inline(always)]
+	fn receive_side_scaling_hash_function_fields_configuration(&self) -> IndexSet<HashFunctionFieldsConfiguration>
+	{
+		let receive_side_scaling_hash_function_fields_configuration = self.best_possible_hash_function_fields_configuration.clone();
+		if cfg!(debug_assertions)
+		{
+			for combination in self.best_possible_hash_function_fields_configuration.iter()
+			{
+				debug_assert!(self.all_supported_hash_function_fields_configuration.contains(combination));
+			}
+		}
+		receive_side_scaling_hash_function_fields_configuration
 	}
 	
 	#[inline(always)]
@@ -318,13 +350,11 @@ impl DriverProfile
 			
 			supports_getting_and_setting_channels: true,
 			
-			supports_hash_function_configuration: Some
-			(
-				(
-					HashFunctionName::Toeplitz,
-					HashFunctionSeed::topelitz_symmetric()
-				)
-			),
+			supported_hash_function_names: hashset!
+			[
+				HashFunctionName::Toeplitz,
+				HashFunctionName::CyclicRedundancyCheck32,
+			],
 			
 			best_possible_hash_function_fields_configuration: HashFunctionFieldsConfiguration::amazon_ena_best_possible(),
 			
@@ -343,8 +373,8 @@ impl DriverProfile
 		(
 			false,
 			false,
-			Vec::new(),
-			HashSet::new(),
+			IndexSet::new(),
+			IndexSet::new(),
 		)
 	}
 	
@@ -355,8 +385,8 @@ impl DriverProfile
 		(
 			false,
 			true,
-			Vec::new(),
-			HashSet::new(),
+			IndexSet::new(),
+			IndexSet::new(),
 		)
 	}
 	
@@ -396,7 +426,7 @@ impl DriverProfile
 				FeatureGroupChoice::enable_one(NETIF_F_GSO_ROBUST_BIT),
 				
 				// Depends on underlying physical hardware.
-				FeatureGroupChoice::enable_one(NETIF_F_LRO),
+				FeatureGroupChoice::enable_one(NETIF_F_LRO_BIT),
 			],
 			
 			driver_specific_flags_to_change: XXXX,
@@ -413,11 +443,13 @@ impl DriverProfile
 			
 			supports_getting_and_setting_channels: true,
 			
-			supports_hash_function_configuration: None,
+			supported_hash_function_names: hashset!
+			[
+			],
 			
-			best_possible_hash_function_fields_configuration: Vec::new(),
+			best_possible_hash_function_fields_configuration: IndexSet::new(),
 			
-			all_supported_hash_function_fields_configuration: HashSet::new(),
+			all_supported_hash_function_fields_configuration: IndexSet::new(),
 			
 			msi_x_interrupt_request_naming_strategy: Box::new(VirtioNetMsiXInterruptRequestNamingStrategy),
 			
@@ -426,7 +458,7 @@ impl DriverProfile
 	}
 	
 	#[inline(always)]
-	fn intel_ixgbevf(has_ethtool_rxhash: bool, has_NETIF_F_GRO_BIT: bool, best_possible_hash_function_fields_configuration: Vec<HashFunctionFieldsConfiguration>, all_supported_hash_function_fields_configuration: HashSet<HashFunctionFieldsConfiguration>) -> Self
+	fn intel_ixgbevf(has_ethtool_rxhash: bool, has_NETIF_F_GRO_BIT: bool, best_possible_hash_function_fields_configuration: IndexSet<HashFunctionFieldsConfiguration>, all_supported_hash_function_fields_configuration: IndexSet<HashFunctionFieldsConfiguration>) -> Self
 	{
 		let IXGBEVF_PRIV_FLAGS_LEGACY_RX = ObjectName32::try_from("legacy-rx").unwrap();
 		
@@ -446,7 +478,7 @@ impl DriverProfile
 		
 		if has_ethtool_rxhash
 		{
-			miscellaneous.insert(NETIF_F_RXHASH_BIT)
+			miscellaneous.insert(NETIF_F_RXHASH_BIT);
 		}
 		
 		Self
@@ -465,7 +497,7 @@ impl DriverProfile
 				
 				internet_protocols_checksum_in_hardware,
 				
-				generic_send_offload_encapcsulation,
+				generic_send_offload_encapsulation,
 				
 				FeatureGroupChoice::enable(miscellaneous),
 			],
@@ -483,7 +515,9 @@ impl DriverProfile
 			
 			supports_getting_and_setting_channels: false,
 			
-			supports_hash_function_configuration: None,
+			supported_hash_function_names: hashset!
+			[
+			],
 			
 			best_possible_hash_function_fields_configuration,
 			

@@ -127,21 +127,19 @@ impl PciBusAddress
 					}
 				}
 				
-				let file_name = dir_entry.file_name();
+				let file_name_bytes = dir_entry.file_name().into_vec();
 				
 				// `file_name` is of the format `pciXXXX:YY` where `XXXX` is a hexadecimal domain and `YY` is a hexadecimal bus.
 				const Template: &'static [u8] = b"pciXXXX:YY";
-				if file_name.len() != Template.len()
+				if file_name_bytes.len() != Template.len()
 				{
 					continue
 				}
 				
-				if !file_name.starts_with(b"pci")
+				if !file_name_bytes.starts_with(b"pci")
 				{
 					continue
 				}
-				
-				let file_name_bytes = file_name.into_vec();
 				
 				if unlikely!(*unsafe { file_name_bytes.get_unchecked(7) } != b':')
 				{
@@ -177,7 +175,7 @@ impl PciBusAddress
 	/// Bus.
 	fn bus(&self, canonical_parent_folder_path_of_pci_bus_folder_path: PathBuf) -> io::Result<PciBus>
 	{
-		debug_assert_eq!(canonical_parent_folder_path_of_pci_bus_folder_path.is_absolute(), "Not an absolute path. This isn't a perfect check: whilst a canonical path is always absolute, the reverse is not ncessarily true");
+		debug_assert!(canonical_parent_folder_path_of_pci_bus_folder_path.is_absolute(), "Not an absolute path. This isn't a perfect check: whilst a canonical path is always absolute, the reverse is not ncessarily true");
 		
 		Ok
 		(
