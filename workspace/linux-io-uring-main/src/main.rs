@@ -11,7 +11,9 @@
 #![feature(thread_local)]
 
 
+use self::application_configuration::*;
 use self::command_line::*;
+use self::memory_allocator_settings::*;
 use self::service_protocol_identifiers::*;
 use clap::App;
 use clap::Arg;
@@ -46,6 +48,7 @@ use linux_support::file_descriptors::socket::c::in_addr;
 use linux_support::file_descriptors::socket::c::in6_addr;
 use linux_support::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use linux_support::network_device::NetworkInterfaceName;
+use linux_support::network_device::strategies::DevicePreferences;
 use linux_support::network_device::strategies::DriverProfile;
 use linux_support::paths::FileSystemLayout;
 use linux_support::signals::Signals;
@@ -87,18 +90,19 @@ use terminate::Terminate;
 
 
 
+mod application_configuration;
+
+
 mod command_line;
 
 
-include!("AcceptServiceConfiguration.rs");
-include!("AcceptStackSize.rs");
-include!("Configuration.rs");
-include!("CoroutineHeapSize.rs");
-include!("CoroutineLocalAllocator.rs");
-include!("GTACSA.rs");
-include!("OneMegabyte.rs");
-include!("per_thread_state.rs");
-include!("ThreadLocalAllocator.rs");
+mod memory_allocator_settings;
+
+
+mod service_protocol_identifiers;
+
+
+include!("configure_and_execute.rs");
 
 
 #[global_allocator] static SwitchableGlobalAllocator: GTACSA = GlobalThreadAndCoroutineSwitchableAllocatorInstance::system(per_thread_state);
@@ -107,7 +111,6 @@ include!("ThreadLocalAllocator.rs");
 /// Main method.
 pub fn main()
 {
-	let matches = parse_command_line();
-	let (run_as_daemon, configuration) = parse_matches(matches);
+	let (run_as_daemon, configuration) = parse_command_line(parse_matches);
 	configure_and_execute(run_as_daemon, configuration)
 }

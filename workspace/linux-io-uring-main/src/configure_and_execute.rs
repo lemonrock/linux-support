@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(super) fn configure_and_execute(run_as_daemon: bool, configuration: Configuration)
+pub(crate) fn configure_and_execute(run_as_daemon: bool, configuration: Configuration)
 {
 	let (transmission_control_protocol_over_internet_protocol_version_4_server_listeners, transmission_control_protocol_over_internet_protocol_version_6_server_listeners, streaming_unix_domain_socket_server_listener_server_listeners) = configuration.server_listeners();
 	
@@ -14,6 +14,11 @@ pub(super) fn configure_and_execute(run_as_daemon: bool, configuration: Configur
 		interrupt_request_affinity: Default::default(),
 		receive_packet_steering_flow_limit_tables: XXX,
 	};
+	
+	// TODO: This needs to have its 'affinity' overridden; best option is to use all isolated CPUs, or all CPUs.
+	// Consider: Use isolated CPUs for our process; force all other processes to run solely one one or two non-isolated cores; run our main thread on a non-isolated core.
+	// We can use sched_setaffinity to move processes (or threads, usings tid) but we need to identify real processes vs kernel threads.
+	// configuration.process_configuration
 	
 	let process_affinity = xxx;
 	// TODO: Most be subsets of process configuration affinity.
@@ -33,13 +38,11 @@ pub(super) fn configure_and_execute(run_as_daemon: bool, configuration: Configur
 	let (terminate, defaults) = configuration.configure(run_as_daemon, Some(&global_computed_scheduling_affinity), Some(&process_affinity));
 
 // TODO: Amazon ENA: If the NETIF_F_RXHASH flag is set, the 32-bit result of the hash function delivered in the Rx CQ descriptor is set in the received SKB.
-// TODO: Use configure_all_multiqueue_pci_ethernet_devices().
-	xxxxx;
 	
-	let sys_path = &configuration.file_system_layout.sys_path;
-	let proc_path = &configuration.file_system_layout.proc_path;
-	let admin_queue_thread_and_queues_threads: HashMap<NetworkInterfaceName, (HyperThread, HyperThreads)> = DriverProfile::configure_all_multiqueue_pci_ethernet_devices(sys_path, proc_path, &configuration.device_preferences).xxxxxx_error;
+	// TODO: COnflicts with global device configuration...
+	let admin_queue_thread_and_queues_threads = configuration.configure_pci_ethernet_devices();
 	
+	// TODO: Use admin_queue_thread_and_queues_threads for queue_hyper_threads
 	let queues = Queues::one_queue_for_each_hyper_thread(&queue_hyper_threads, message_handlers_and_preferred_maximum_number_of_elements_of_largest_possible_fixed_size_message_body_in_queue_for_hyper_thread, &defaults, inclusive_maximum_bytes_wasted);
 	
 	let accept_child_thread_function = ThreadLoopInitiation::new

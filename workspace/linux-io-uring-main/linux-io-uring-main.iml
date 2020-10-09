@@ -11,6 +11,8 @@
       <sourceFolder url="file://$MODULE_DIR$/../message-dispatch-datadog/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../message-dispatch/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../context-coroutine/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../socket-access-control/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../context-allocator/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/.cargo" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>

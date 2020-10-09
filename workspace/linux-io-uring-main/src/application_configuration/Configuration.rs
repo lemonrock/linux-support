@@ -12,9 +12,8 @@ pub struct Configuration
 	
 	pub io_uring_settings: IoUringSettings,
 	
-	// TODO: This needs to have its 'affinity' overridden; best option is to use all isolated CPUs, or all CPUs.
-	// Consider: Use isolated CPUs for our process; force all other processes to run solely one one or two non-isolated cores; run our main thread on a non-isolated core.
-	// We can use sched_setaffinity to move processes (or threads, usings tid) but we need to identify real processes vs kernel threads.
+	#[serde(default)] pub device_preferences: DevicePreferences,
+	
 	#[serde(default)] pub process_configuration: ProcessConfiguration,
 	
 	#[serde(default)] pub main_thread_configuration: ThreadConfiguration,
@@ -68,6 +67,8 @@ impl Configuration
 					_1Gb: RegisteredBufferSetting::none(),
 				}
 			),
+			
+			device_preferences: DevicePreferences::default(),
 			
 			process_configuration: ProcessConfiguration::default(),
 			

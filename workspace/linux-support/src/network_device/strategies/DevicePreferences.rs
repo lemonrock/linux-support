@@ -29,3 +29,40 @@ pub struct DevicePreferences
 	/// Effectively matches the number of active (as opposed to open) network sockets.
 	pub receive_flow_steering_table_count_per_queue: usize,
 }
+
+impl Default for DevicePreferences
+{
+	fn default() -> Self
+	{
+		Self
+		{
+			transmission_queue_length: Some(1000),
+			
+			queue_depths: SetToSpecificValueOrMaximize::Maximize,
+			
+			generic_receive_offload_flush_timeout_in_nanoseconds: 0,
+			
+			counter_to_decrement_before_processing_hard_interrupt_requests: None,
+			
+			receive_coalescing_preference: ReceiveCoalescingPreference
+			{
+				preferred_micoseconds_interval: 0,
+				
+				interrupt_throttle_rate_setting: IntelIxgbevfInterruptThrottleRateSetting::Dynamic,
+			
+				prefer_adaptive_coalescing: true,
+			},
+			
+			transmit_coalescing_preference: TransmitCoalescingPreference
+			{
+				preferred_micoseconds_interval: 64,
+				
+				interrupt_throttle_rate_setting: IntelIxgbevfInterruptThrottleRateSetting::Dynamic,
+				
+				enable_napi_weight: true,
+			},
+			
+			receive_flow_steering_table_count_per_queue: 2048,
+		}
+	}
+}
