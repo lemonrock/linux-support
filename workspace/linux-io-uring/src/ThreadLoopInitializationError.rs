@@ -19,7 +19,7 @@ pub enum ThreadLoopInitializationError
 	NewSocketServerListener(NewSocketServerListenerError),
 	
 	#[allow(missing_docs)]
-	CouldNotAllocateCoroutine(AllocErr),
+	CouldNotAllocateCoroutine(AllocError),
 }
 
 impl Display for ThreadLoopInitializationError

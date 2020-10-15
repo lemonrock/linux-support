@@ -13,7 +13,7 @@ pub enum CouldNotStartChildProcessError
 	CouldNotAllocateAnonymousPipe(CreationError),
 
 	/// Could not allocate stack.
-	CouldNotAllocateStack(AllocErr),
+	CouldNotAllocateStack(AllocError),
 
 	/// Could not clone.
 	CouldNotClone(CloneError),
@@ -66,10 +66,10 @@ impl From<CreationError> for CouldNotStartChildProcessError
 	}
 }
 
-impl From<AllocErr> for CouldNotStartChildProcessError
+impl From<AllocError> for CouldNotStartChildProcessError
 {
 	#[inline(always)]
-	fn from(error: AllocErr) -> Self
+	fn from(error: AllocError) -> Self
 	{
 		CouldNotStartChildProcessError::CouldNotAllocateStack(error)
 	}

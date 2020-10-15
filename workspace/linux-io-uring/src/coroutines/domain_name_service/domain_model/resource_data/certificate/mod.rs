@@ -3,7 +3,7 @@
 
 
 use super::*;
-use super::dnssec::SecurityAlgorithmRejectedBecauseReason;
+use super::dnssec::*;
 
 
 include!("Certificate.rs");

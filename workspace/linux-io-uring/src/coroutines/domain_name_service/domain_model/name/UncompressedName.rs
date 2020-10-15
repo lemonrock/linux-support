@@ -3,24 +3,24 @@
 
 
 #[derive(Debug, Clone)]
-pub(crate) struct UncompressedName<Allocator: AllocRef>
+pub(crate) struct UncompressedName<A: Allocator>
 {
-	allocator: Allocator,
+	allocator: A,
 	pointer: NonNull<(UncompressedNameHeader, UpTo255Bytes)>,
 }
 
-impl<Allocator: AllocRef> Drop for UncompressedName<Allocator>
+impl<A: Allocator> Drop for UncompressedName<A>
 {
 	#[inline(always)]
 	fn drop(&mut self)
 	{
-		let pointer = self.pointer.unsafe_cast_mut_non_null::<u8>();
-		let layout = Self::layout(self.header_mut().name_length as usize);
-		self.allocator.dealloc(pointer, layout)
+		let (non_zero_size, non_zero_power_of_two_alignment) = Self::non_zero_size_and_non_zero_power_of_two_alignment(self.header_mut().name_length as usize);
+		let current_memory = self.pointer.unsafe_cast_mut_non_null::<u8>();
+		self.allocator.deallocate(non_zero_size, non_zero_power_of_two_alignment, current_memory)
 	}
 }
 
-impl<'message, Allocator: AllocRef> IntoIterator for &'message UncompressedName<Allocator>
+impl<'message, A: Allocator> IntoIterator for &'message UncompressedName<A>
 {
 	type Item = LabelBytes<'message>;
 
@@ -33,7 +33,7 @@ impl<'message, Allocator: AllocRef> IntoIterator for &'message UncompressedName<
 	}
 }
 
-impl<Allocator: AllocRef> PartialEq for UncompressedName<Allocator>
+impl<A: Allocator> PartialEq for UncompressedName<A>
 {
 	#[inline(always)]
 	fn eq(&self, other: &Self) -> bool
@@ -47,7 +47,7 @@ impl<Allocator: AllocRef> PartialEq for UncompressedName<Allocator>
 	}
 }
 
-impl<'message, Allocator: AllocRef> PartialEq<WithoutCompressionParsedName<'message>> for UncompressedName<Allocator>
+impl<'message, A: Allocator> PartialEq<WithoutCompressionParsedName<'message>> for UncompressedName<A>
 {
 	#[inline(always)]
 	fn eq(&self, other: &WithCompressionParsedName<'message>) -> bool
@@ -56,7 +56,7 @@ impl<'message, Allocator: AllocRef> PartialEq<WithoutCompressionParsedName<'mess
 	}
 }
 
-impl<'message, Allocator: AllocRef> PartialEq<WithCompressionParsedName<'message>> for UncompressedName<Allocator>
+impl<'message, A: Allocator> PartialEq<WithCompressionParsedName<'message>> for UncompressedName<A>
 {
 	#[inline(always)]
 	fn eq(&self, other: &WithCompressionParsedName<'message>) -> bool
@@ -65,11 +65,11 @@ impl<'message, Allocator: AllocRef> PartialEq<WithCompressionParsedName<'message
 	}
 }
 
-impl<Allocator: AllocRef> Eq for UncompressedName<Allocator>
+impl<A: Allocator> Eq for UncompressedName<A>
 {
 }
 
-impl<Allocator: AllocRef> Hash for UncompressedName<Allocator>
+impl<Allocator: Allocator> Hash for UncompressedName<Allocator>
 {
 	#[inline(always)]
 	fn hash<H: Hasher>(&self, state: &mut H)
@@ -78,14 +78,14 @@ impl<Allocator: AllocRef> Hash for UncompressedName<Allocator>
 	}
 }
 
-impl<Allocator: AllocRef> UncompressedName<Allocator>
+impl<A: Allocator> UncompressedName<A>
 {
 	// TODO: conversions from a dotted name, and from a dotted name with / without a trailing .
 	// TODO: conversions from a relative name + domain name (which may not have a trailing .)
 	// TODO: Consider validating that the label sizes are correct.
 	/// Creates a new instance.
 	#[inline(always)]
-	pub fn new(allocator: &mut Allocator, name: &[u8], number_of_labels: NonZeroU8) -> Result<Option<Self>, AllocErr>
+	pub fn new(allocator: &mut A, name: &[u8], number_of_labels: NonZeroU8) -> Result<Option<Self>, AllocError>
 	{
 		let number_of_labels = number_of_labels.get();
 		debug_assert!((number_of_labels as usize) <= Label::MaximumNumber, "number_of_labels `{}` exceeds {}", number_of_labels, Label::MaximumNumber);
@@ -94,8 +94,9 @@ impl<Allocator: AllocRef> UncompressedName<Allocator>
 		debug_assert_ne!(name_length_usize, 0, "name is empty");
 		debug_assert!(name_length_usize <= Name::MaximumSize, "name `{}` exceeds {} bytes", name_length_usize, Name::MaximumSize);
 		debug_assert_eq!(name.get(name_length_usize - 1), 0x00, "final byte of name is not 0x00 (a root label)");
-
-		let MemoryBlock { ptr, size } = allocator.alloc(Self::layout(name_length_usize))?;
+		
+		let (non_zero_size, non_zero_power_of_two_alignment) = Self::non_zero_size_and_non_zero_power_of_two_alignment(name_length_usize);
+		let (ptr, size) = allocator.allocate(non_zero_size, non_zero_power_of_two_alignment)?;
 
 		let this = Self
 		{
@@ -190,10 +191,13 @@ impl<Allocator: AllocRef> UncompressedName<Allocator>
 	{
 		unsafe { &mut * self.pointer.as_ptr() }
 	}
-
+	
 	#[inline(always)]
-	fn layout(name_length_usize: usize) -> Layout
+	const fn non_zero_size_and_non_zero_power_of_two_alignment(name_length_usize: usize) -> (NonZeroUsize, NonZeroUsize)
 	{
-		unsafe { Layout::from_size_align_unchecked(size_of::<UncompressedNameHeader>() + name_length_usize, align_of::<UncompressedNameHeader>()) }
+		(
+			unsafe { NonZeroUsize::new_unchecked(size_of::<UncompressedNameHeader>() + name_length_usize) },
+			unsafe { NonZeroUsize::new_unchecked(align_of::<UncompressedNameHeader>()) }
+		)
 	}
 }

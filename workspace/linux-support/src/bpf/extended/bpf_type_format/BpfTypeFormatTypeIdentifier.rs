@@ -26,7 +26,7 @@ impl BpfTypeFormatTypeIdentifier
 	#[inline(always)]
 	pub(crate) fn next(&mut self) -> Result<Self, BpfTypeFormatError>
 	{
-		if unlikely!(self == &mut Self::InclusiveMaximum)
+		if unlikely!(self.0 == Self::InclusiveMaximum.0)
 		{
 			return Err(BpfTypeFormatError::TooManyTypes)
 		}

@@ -42,7 +42,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use std::alloc::Layout;
 use std::alloc::AllocRef;
-use std::alloc::AllocErr;
+use std::alloc::AllocError;
 use std::collections::HashMap;
 use std::env::set_current_dir;
 use std::error;

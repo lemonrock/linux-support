@@ -3,6 +3,7 @@
 
 
 use super::*;
+use super::ipsec::PublicKey;
 
 
 include!("HostIdentityProtocol.rs");

@@ -128,7 +128,7 @@ macro_rules! validate_message_response_code
 		{
 			use self::Outcome::*;
 
-			match message_header.raw_response_code()
+			match $message_header.raw_response_code()
 			{
 				MessageResponseCode::NoError => Normal,
 
@@ -198,15 +198,15 @@ struct RequestQuery<'a>
 }
 
 // TODO: Introduce context-allocator and make it work with TLS!
-pub struct DnsOverTlsConnection<'yielder, SD: SocketData, Allocator: AllocRef>
+pub struct DnsOverTlsConnection<'yielder, SD: SocketData, A: Allocator>
 {
 	stream: TlsClientStream<'yielder, SD>,
-	outstanding_queries: HashMap<MessageIdentifier, Query<Allocator>>
+	outstanding_queries: HashMap<MessageIdentifier, Query<A>>
 }
 
-impl<'yielder, SD: SocketData, Allocator: AllocRef> DnsOverTlsConnection<'yielder, SD, Allocator>
+impl<'yielder, SD: SocketData, A: Allocator> DnsOverTlsConnection<'yielder, SD, A>
 {
-	pub(crate) fn write_new_query(&mut self, query: Query<Allocator>)
+	pub(crate) fn write_new_query(&mut self, query: Query<A>)
 	{
 
 	}

@@ -56,7 +56,7 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 	///
 	/// This logic does not work if the requested record type was `SOA`, `CNAME` or `DNAME`, and probably does not work also for `NS`.
 	/// However, there is very little reason to request these record types for normal clients.
-	fn answer_outcome(&self, is_authoritative_answer: bool, has_nxdomain_error_code: bool, answer_section_has_at_least_one_record_of_requested_data_type: bool) -> AnswerOutcome
+	fn answer_outcome(&self, is_authoritative_answer: bool, has_nxdomain_error_code: bool, answer_section_has_at_least_one_record_of_requested_data_type: bool, have_seen_a_soa_record: bool) -> AnswerOutcome
 	{
 		use self::AnswerOutcome::*;
 

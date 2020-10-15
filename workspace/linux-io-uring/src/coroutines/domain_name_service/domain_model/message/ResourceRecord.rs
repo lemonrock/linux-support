@@ -347,7 +347,7 @@ impl ResourceRecord
 		current_pointer.set_u32_bytes(ExtendedResponseCodeAndFlags::new_for_query());
 		current_pointer += ResourceRecordFooter::ExtendedRCodeAndFlagsSize;
 
-		const NoOptionsSize: u16 = 0;
+		const NoOptionsSize: BigEndianU16 = [0, 0];
 		current_pointer.set_u16_bytes(NoOptionsSize.to_be());
 		current_pointer + ResourceRecordFooter::OptionsSize
 	}

@@ -8,7 +8,7 @@
 #![deny(missing_docs)]
 #![deny(unconditional_recursion)]
 #![deny(unreachable_patterns)]
-#![feature(const_transmute)]
+#![feature(const_fn_transmute)]
 #![feature(core_intrinsics)]
 #![feature(thread_local)]
 

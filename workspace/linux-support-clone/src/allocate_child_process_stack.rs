@@ -3,7 +3,7 @@
 
 
 #[inline(always)]
-fn allocate_child_process_stack(child_stack_allocator: &mut impl AllocRef, child_process_stack_size: usize) -> Result<(Layout, NonNull<u8>, NonNull<u8>), AllocErr>
+fn allocate_child_process_stack(child_stack_allocator: &mut impl AllocRef, child_process_stack_size: usize) -> Result<(Layout, NonNull<u8>, NonNull<u8>), AllocError>
 {
 	debug_assert_eq!(child_process_stack_size % ChildStackAlignment, 0, "child_process_stack_size `{}` is not a multiple of 16", child_process_stack_size);
 

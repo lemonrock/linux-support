@@ -39,8 +39,5 @@ serde = { version = "^1.0", features = ["derive", "rc"] }
 socket-access-control = { path = "../socket-access-control", version = "^0.0.0"}
 swiss-army-knife = { version = "0.0.0", path = "../swiss-army-knife" }
 terminate = { path = "../terminate", version = "^0.2.0" }
-
-# main.rs
-clap = "^2.33.1"
-maplit = "^1.0.2"
-serde_json = "^1.0.55"
+time = { version = "^0.2.22", features = ["serde", "std"] }
+# rustc 1.46.0-nightly (67100f61e 2020-06-24)

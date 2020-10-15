@@ -76,10 +76,10 @@ impl<'message> PartialEq<WithCompressionParsedName<'message>> for WithoutCompres
 	}
 }
 
-impl<'message, Allocator: AllocRef> PartialEq<UncompressedName<Allocator>> for WithoutCompressionParsedName<'message>
+impl<'message, A: Allocator> PartialEq<UncompressedName<A>> for WithoutCompressionParsedName<'message>
 {
 	#[inline(always)]
-	fn eq(&self, other: &UncompressedName<Allocator>) -> bool
+	fn eq(&self, other: &UncompressedName<A>) -> bool
 	{
 		self.eq(other.name())
 	}

@@ -11,10 +11,8 @@
 #![feature(alloc_layout_extra)]
 #![feature(allocator_api)]
 #![feature(const_fn)]
-#![feature(const_int_sign)]
-#![feature(const_transmute)]
+#![feature(const_fn_transmute)]
 #![feature(core_intrinsics)]
-#![feature(internal_uninit_const)]
 #![feature(llvm_asm)]
 #![feature(maybe_uninit_extra)]
 

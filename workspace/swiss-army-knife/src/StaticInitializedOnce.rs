@@ -22,7 +22,7 @@ impl<Value: Sized> StaticInitializedOnce<Value>
 		Self
 		{
 			#[cfg(debug_assertions)] initialization_pattern: Self::Uninitialized,
-			value: MaybeUninit::UNINIT,
+			value: MaybeUninit::uninit(),
 		}
 	}
 	
