@@ -7,7 +7,7 @@
 pub enum ThreadLoopInitializationError
 {
 	#[allow(missing_docs)]
-	AcceptConnectionsCoroutineManager(LargeRingQueueCreationError),
+	CouldNotCreateCoroutineManager(LargeRingQueueCreationError),
 	
 	#[allow(missing_docs)]
 	IoUringSetup(IoUringSetupError),
@@ -19,7 +19,7 @@ pub enum ThreadLoopInitializationError
 	NewSocketServerListener(NewSocketServerListenerError),
 	
 	#[allow(missing_docs)]
-	CouldNotAllocateAcceptCoroutine(AllocErr),
+	CouldNotAllocateCoroutine(AllocErr),
 }
 
 impl Display for ThreadLoopInitializationError
@@ -40,7 +40,7 @@ impl error::Error for ThreadLoopInitializationError
 
 		match self
 		{
-			&AcceptConnectionsCoroutineManager(ref error) => Some(error),
+			&CouldNotCreateCoroutineManager(ref error) => Some(error),
 			
 			&IoUringSetup(ref error) => Some(error),
 			
@@ -48,7 +48,7 @@ impl error::Error for ThreadLoopInitializationError
 			
 			&NewSocketServerListener(ref error) => Some(error),
 			
-			&CouldNotAllocateAcceptCoroutine(ref error) => Some(error),
+			&CouldNotAllocateCoroutine(ref error) => Some(error),
 		}
 	}
 }

@@ -2,6 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+include!("BigEndianI16.rs");
+include!("BigEndianI32.rs");
+include!("BigEndianI64.rs");
+include!("BigEndianI128.rs");
 include!("BigEndianU16.rs");
 include!("BigEndianU32.rs");
 include!("BigEndianU64.rs");

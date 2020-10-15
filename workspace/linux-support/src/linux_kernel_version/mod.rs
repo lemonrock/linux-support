@@ -5,6 +5,9 @@
 use super::*;
 use crate::paths::PathExt;
 use crate::paths::ProcPath;
+
+
+include!("BootIdentifierUniversallyUniqueIdentifier.rs");
 include!("LinuxKernelDomainName.rs");
 include!("LinuxKernelHostName.rs");
 include!("LinuxKernelVersion.rs");

@@ -23,6 +23,8 @@ static mut process_name: Option<DogStatsDTag> = None;
 
 static mut environment: Option<DogStatsDTag> = None;
 
+static mut boot_identifier: Option<DogStatsDTag> = None;
+
 impl DogStatsDTag
 {
 	const Length: usize = 200;
@@ -98,6 +100,40 @@ impl DogStatsDTag
 	pub fn environment() -> &'static Self
 	{
 		(unsafe { &environment }).as_ref().expect("environment not initialized")
+	}
+	
+	/// Boot identifier.
+	///
+	/// Panics if already initialized.
+	#[inline(always)]
+	pub fn initialize_boot_identifier(boot_identifier_uuid: &BootIdentifierUniversallyUniqueIdentifier)
+	{
+		unsafe
+		{
+			if boot_identifier.is_none()
+			{
+				boot_identifier = Some
+				(
+					{
+						let string = format!("{}", boot_identifier_uuid.into_u128());
+						Self::from_name_and_value("boot_identifier", &string).expect("Invalid boot_identifier")
+					}
+				);
+			}
+			else
+			{
+				panic!("Already initialized boot_identifier")
+			}
+		}
+	}
+	
+	/// Environment name based on domain name.
+	///
+	/// Panics if not initialized.
+	#[inline(always)]
+	pub fn boot_identifier() -> &'static Self
+	{
+		(unsafe { &boot_identifier }).as_ref().expect("boot_identifier not initialized")
 	}
 	
 	/// Thread name; initialized once per thread.

@@ -757,6 +757,7 @@ use swiss_army_knife::StaticInitializedOnce;
 use swiss_army_knife::VariablySized;
 use swiss_army_knife::big_endian::BigEndianU16;
 use swiss_army_knife::big_endian::BigEndianU32;
+use swiss_army_knife::big_endian::BigEndianU128;
 use swiss_army_knife::bit_set::BitsInAByte;
 use swiss_army_knife::bit_set::BitSet;
 use swiss_army_knife::bit_set::BitSetAware;

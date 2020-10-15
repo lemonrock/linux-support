@@ -6,7 +6,7 @@
 #[derive(Default)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
-pub struct AcceptServiceConfiguration
+pub(crate) struct AcceptServiceConfiguration
 {
 	pub internet_protocol_version_4: Vec<TransmissionControlProtocolServerListenerSettings<SocketAddrV4>>,
 	pub permitted_internet_protocol_version_4_subnets: BTreeMap<InternetProtocolAddressWithMask<in_addr>, Arc<AccessControlValue>>,
@@ -21,7 +21,7 @@ pub struct AcceptServiceConfiguration
 
 impl AcceptServiceConfiguration
 {
-	pub fn server_listeners
+	pub(crate) fn server_listeners
 	(
 		&mut self,
 		service_protocol_identifier: ServiceProtocolIdentifier,

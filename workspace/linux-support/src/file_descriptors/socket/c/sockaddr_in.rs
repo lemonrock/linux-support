@@ -186,4 +186,10 @@ impl SocketAddress for sockaddr_in
 	{
 		SocketFileDescriptor::<Self::SD>::new_user_datagram_protocol_over_internet_protocol_version_4_client(self, internet_protocol_socket_settings, blocking)
 	}
+	
+	#[inline(always)]
+	fn new_user_datagram_protocol_client_listener(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking, hyper_thread: HyperThread) -> Result<DatagramClientListenerSocketFileDescriptor<Self::SD>, NewSocketClientListenerError>
+	{
+		SocketFileDescriptor::<Self::SD>::new_user_datagram_protocol_over_internet_protocol_version_4_client_listener(self, internet_protocol_socket_settings, blocking, hyper_thread)
+	}
 }

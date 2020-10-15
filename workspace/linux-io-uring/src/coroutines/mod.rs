@@ -9,5 +9,19 @@ use super::*;
 pub mod accept;
 
 
+/// Domain Name Service (DNS).
+pub mod domain_name_service;
+
+
+// /// Simple Network Time Protocol (NTP) (SNTP) client.
+// pub mod simple_network_time_protocol_client;
+
+
 include!("CoroutineDispatch.rs");
 include!("CoroutineRequiresReEntry.rs");
+include!("ServerLoopCoroutineManager.rs");
+include!("SimpleIoUringResumeArguments.rs");
+include!("SimpleIoUringYields.rs");
+include!("SimpleIoUringYielder.rs");
+include!("UnusedComplete.rs");
+include!("UnusedCoroutineInformation.rs");

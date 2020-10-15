@@ -3,6 +3,7 @@
 
 
 use super::*;
+use linux_support::linux_kernel_version::BootIdentifierUniversallyUniqueIdentifier;
 
 
 include!("DogStatsDMessageSubscribers.rs");

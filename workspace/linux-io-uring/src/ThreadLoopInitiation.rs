@@ -97,12 +97,12 @@ impl<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndC
 		let our_hyper_thread = HyperThread::current().1;
 		
 		let dog_stats_d_publisher = DogStatsDPublisher::new(&self.queues, self.dog_stats_d_message_subscribers, self.global_allocator);
-		let thread_local_socket_hyper_thread_additional_dog_stats_d_cache = ThreadLocalNumericAdditionalDogStatsDTagsCache::new("local_socket_hyper_thread", self.global_allocator);
-		let thread_local_processing_hyper_thread_additional_dog_stats_d_cache = ThreadLocalNumericAdditionalDogStatsDTagsCache::new("processing_socket_hyper_thread", self.global_allocator);
+		let socket_hyper_thread_thread_local_additional_dog_stats_d_cache = ThreadLocalNumericAdditionalDogStatsDTagsCache::new("local_socket_hyper_thread", self.global_allocator);
+		let processing_hyper_thread_thread_local_additional_dog_stats_d_cache = ThreadLocalNumericAdditionalDogStatsDTagsCache::new("processing_socket_hyper_thread", self.global_allocator);
 		
 		let subscriber = self.queues.subscriber(our_hyper_thread);
 
-		let coroutine_managers = CoroutineManagers::new
+		let coroutine_managers = ThreadLocalCoroutineManagers::new
 		(
 			self.global_allocator,
 			&self.defaults,
@@ -110,8 +110,8 @@ impl<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndC
 			&self.queues,
 			our_hyper_thread,
 			&dog_stats_d_publisher,
-			&thread_local_socket_hyper_thread_additional_dog_stats_d_cache,
-			&thread_local_processing_hyper_thread_additional_dog_stats_d_cache,
+			&socket_hyper_thread_thread_local_additional_dog_stats_d_cache,
+			&processing_hyper_thread_thread_local_additional_dog_stats_d_cache,
 			self.transmission_control_protocol_over_internet_protocol_version_4_server_listeners,
 			self.transmission_control_protocol_over_internet_protocol_version_6_server_listeners,
 			self.streaming_unix_domain_socket_server_listener_server_listeners,

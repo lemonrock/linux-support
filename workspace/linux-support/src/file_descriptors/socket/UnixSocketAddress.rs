@@ -53,6 +53,12 @@ impl<FilePath: AsRef<Path>> SocketAddress for UnixSocketAddress<FilePath>
 	{
 		SocketFileDescriptor::<Self::SD>::new_datagram_unix_domain_socket_client(self, internet_protocol_socket_settings.send_buffer_size, blocking)
 	}
+	
+	#[inline(always)]
+	fn new_user_datagram_protocol_client_listener(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking, hyper_thread: HyperThread) -> Result<DatagramClientListenerSocketFileDescriptor<Self::SD>, NewSocketClientListenerError>
+	{
+		SocketFileDescriptor::<Self::SD>::new_datagram_unix_domain_socket_client_listener(self, internet_protocol_socket_settings.send_buffer_size, blocking, hyper_thread)
+	}
 }
 
 impl<FilePath: AsRef<Path>> UnixSocketAddress<FilePath>

@@ -25,7 +25,7 @@ static_assertions = "^1.0"
 bitflags = "^1.0"
 errno = "^0.2"
 libc = { version = "^0.2.69", features = ["const-extern-fn", "extra_traits", "std"] }
-likely = "^0.1"
+likely = "^0.1.0"
 linux-support = { version = "0.0.2", path = "../linux-support" }
 serde = { version = "1.0", features = ["derive"] }
 swiss-army-knife = { version = "0.0.0", path = "../swiss-army-knife" }

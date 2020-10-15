@@ -62,7 +62,7 @@ impl ProcessLoggingConfiguration
 {
 	/// Configure logging.
 	#[inline(always)]
-	pub fn configure_logging(&self, additional_logging_configuration: &mut impl AdditionalLoggingConfiguration, dev_path: &DevPath, running_interactively_so_also_log_to_standard_error: bool, internet_protocol_addresses: &[IpAddr], host_name: Option<&LinuxKernelHostName>, domain_name: Option<&LinuxKernelDomainName>, process_name: &ProcessName) -> Result<(), ProcessLoggingConfigurationError>
+	pub fn configure_logging(&self, additional_logging_configuration: &mut impl AdditionalLoggingConfiguration, dev_path: &DevPath, running_interactively_so_also_log_to_standard_error: bool, internet_protocol_addresses: &[IpAddr], host_name: Option<&LinuxKernelHostName>, domain_name: Option<&LinuxKernelDomainName>, process_name: &ProcessName, boot_identifier: &BootIdentifierUniversallyUniqueIdentifier) -> Result<(), ProcessLoggingConfigurationError>
 	{
 		let configuration = StaticLoggingConfiguration::new(self.logging_buffer_size, dev_path, host_name, domain_name, internet_protocol_addresses, &self.private_enterprise_number, process_name)?;
 		unsafe { configuration.configure() };
@@ -71,7 +71,7 @@ impl ProcessLoggingConfiguration
 		
 		self.configure_syslog_for_legacy_third_party_libraries_that_use_syslog_interface(running_interactively_so_also_log_to_standard_error, process_name);
 		
-		additional_logging_configuration.configure(host_name, domain_name, internet_protocol_addresses, process_name).map_err(|cause| ProcessLoggingConfigurationError::AdditionalLoggingConfigurationFailed(cause))?;
+		additional_logging_configuration.configure(host_name, domain_name, internet_protocol_addresses, process_name, boot_identifier).map_err(|cause| ProcessLoggingConfigurationError::AdditionalLoggingConfigurationFailed(cause))?;
 		
 		Ok(())
 	}

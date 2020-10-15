@@ -21,6 +21,9 @@ pub trait SocketAddress
 	
 	/// Creates a new instance of a User Datagram Protocol (UDP) socket client.
 	fn new_user_datagram_protocol_client(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking) -> Result<DatagramClientSocketFileDescriptor<Self::SD>, NewSocketClientError>;
+	
+	/// Creates a new instance of a User Datagram Protocol (UDP) socket client listener.
+	fn new_user_datagram_protocol_client_listener(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking, hyper_thread: HyperThread) -> Result<DatagramClientListenerSocketFileDescriptor<Self::SD>, NewSocketClientListenerError>;
 }
 
 impl SocketAddress for SocketAddrV4
@@ -54,6 +57,13 @@ impl SocketAddress for SocketAddrV4
 		let inner: &sockaddr_in = unsafe { transmute(self) };
 		inner.new_user_datagram_protocol_client(internet_protocol_socket_settings, blocking)
 	}
+	
+	#[inline(always)]
+	fn new_user_datagram_protocol_client_listener(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking, hyper_thread: HyperThread) -> Result<DatagramClientListenerSocketFileDescriptor<Self::SD>, NewSocketClientListenerError>
+	{
+		let inner: &sockaddr_in = unsafe { transmute(self) };
+		inner.new_user_datagram_protocol_client_listener(internet_protocol_socket_settings, blocking, hyper_thread)
+	}
 }
 
 impl SocketAddress for SocketAddrV6
@@ -86,5 +96,12 @@ impl SocketAddress for SocketAddrV6
 	{
 		let inner: &sockaddr_in6 = unsafe { transmute(self) };
 		inner.new_user_datagram_protocol_client(internet_protocol_socket_settings, blocking)
+	}
+	
+	#[inline(always)]
+	fn new_user_datagram_protocol_client_listener(&self, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking, hyper_thread: HyperThread) -> Result<DatagramClientListenerSocketFileDescriptor<Self::SD>, NewSocketClientListenerError>
+	{
+		let inner: &sockaddr_in6 = unsafe { transmute(self) };
+		inner.new_user_datagram_protocol_client_listener(internet_protocol_socket_settings, blocking, hyper_thread)
 	}
 }

@@ -6,5 +6,5 @@
 pub trait AdditionalLoggingConfiguration
 {
 	/// Configure any additional logging requirements, eg DataDog static tag names.
-	fn configure(&mut self, host_name: Option<&LinuxKernelHostName>, domain_name: Option<&LinuxKernelDomainName>, internet_protocol_addresses: &[IpAddr], process_name: &ProcessName) -> Result<(), Box<dyn error::Error + 'static>>;
+	fn configure(&mut self, host_name: Option<&LinuxKernelHostName>, domain_name: Option<&LinuxKernelDomainName>, internet_protocol_addresses: &[IpAddr], process_name: &ProcessName, boot_identifier: &BootIdentifierUniversallyUniqueIdentifier) -> Result<(), Box<dyn error::Error + 'static>>;
 }

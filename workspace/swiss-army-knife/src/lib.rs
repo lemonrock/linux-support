@@ -10,6 +10,9 @@
 #![deny(unreachable_patterns)]
 #![feature(alloc_layout_extra)]
 #![feature(allocator_api)]
+#![feature(const_fn)]
+#![feature(const_int_sign)]
+#![feature(const_transmute)]
 #![feature(core_intrinsics)]
 #![feature(internal_uninit_const)]
 #![feature(llvm_asm)]
@@ -59,6 +62,7 @@ use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::hash::Hash;
+use std::hash::Hasher;
 use std::io;
 use std::io::ErrorKind;
 use std::marker::PhantomData;
@@ -70,6 +74,17 @@ use std::num::NonZeroU32;
 use std::num::NonZeroU8;
 use std::ops::Deref;
 use std::ops::DerefMut;
+use std::ops::Add;
+use std::ops::AddAssign;
+use std::ops::Div;
+use std::ops::DivAssign;
+use std::ops::Mul;
+use std::ops::MulAssign;
+use std::ops::Neg;
+use std::ops::Rem;
+use std::ops::RemAssign;
+use std::ops::Sub;
+use std::ops::SubAssign;
 use std::ops::Index;
 use std::ops::IndexMut;
 use std::os::unix::ffi::OsStrExt;
@@ -96,6 +111,14 @@ pub mod bit_set;
 
 /// Error support.
 pub mod error_support;
+
+
+/// Exponents of 2.
+pub mod exponents_of_two;
+
+
+/// Fixed point arithmetic.
+pub mod fixed_point_arithmetic;
 
 
 /// Intel hardware lock elision.

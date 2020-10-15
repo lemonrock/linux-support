@@ -26,12 +26,15 @@ static_assertions = "^1.1"
 arrayvec = { version = "^0.5.1", features = ["array-sizes-33-128", "array-sizes-129-255", "serde"] }
 context-allocator = { path = "../context-allocator", version = "^0.3.0" }
 context-coroutine = { path = "../context-coroutine", version = "3.2.0" }
+either = { version = "^1.5.3", features = ["serde"] }
 lazy_static = "^1.4.0"
 likely = { version = "^0.1.0" }
 linux-support = { path = "../linux-support", version = "^0.0.2" }
 magic-ring-buffer = { path = "../magic-ring-buffer", version = "^0.2.0" }
 message-dispatch = { path = "../message-dispatch", version = "0.2.0" }
 message-dispatch-datadog = { path = "../message-dispatch-datadog", version = "0.2.0" }
+phf = { version = "^0.8.0", features = ["macros"] }
+phf_macros = { version = "^0.8.0" }
 serde = { version = "^1.0", features = ["derive", "rc"] }
 socket-access-control = { path = "../socket-access-control", version = "^0.0.0"}
 swiss-army-knife = { version = "0.0.0", path = "../swiss-army-knife" }

@@ -6,6 +6,7 @@ use super::*;
 use self::event::*;
 use self::metric::*;
 use self::service_check::*;
+use linux_support::linux_kernel_version::BootIdentifierUniversallyUniqueIdentifier;
 
 
 /// Event.

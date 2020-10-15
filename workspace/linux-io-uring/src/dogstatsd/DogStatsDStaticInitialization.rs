@@ -7,7 +7,7 @@ pub struct DogStatsDStaticInitialization;
 
 impl AdditionalLoggingConfiguration for DogStatsDStaticInitialization
 {
-	fn configure(&mut self, host_name: Option<&LinuxKernelHostName>, domain_name: Option<&LinuxKernelDomainName>, internet_protocol_addresses: &[IpAddr], process_name: &ProcessName) -> Result<(), Box<dyn error::Error + 'static>>
+	fn configure(&mut self, host_name: Option<&LinuxKernelHostName>, domain_name: Option<&LinuxKernelDomainName>, _internet_protocol_addresses: &[IpAddr], process_name: &ProcessName, boot_identifier: &BootIdentifierUniversallyUniqueIdentifier) -> Result<(), Box<dyn error::Error + 'static>>
 	{
 		match host_name
 		{
@@ -20,6 +20,10 @@ impl AdditionalLoggingConfiguration for DogStatsDStaticInitialization
 			None => DogStatsDTag::initialize_environment(&LinuxKernelDomainName::placeholder()),
 			Some(domain_name) => DogStatsDTag::initialize_environment(domain_name),
 		}
+		
+		DogStatsDTag::initialize_boot_identifier(boot_identifier);
+		
+		DogStatsDTag::initialize_process_name(process_name);
 		
 		Ok(())
 	}

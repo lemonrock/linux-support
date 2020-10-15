@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(super) fn parse_command_line<'a, R>(use_arg_matches: impl FnOnce(ArgMatches<'a>) -> R) -> R
+pub(super) fn parse_command_line<'a, R>(use_arg_matches: impl FnOnce(ArgMatches<'a>) -> Result<R, ConfigurationError>) -> R
 {
 	#[allow(deprecated)]
 	use_arg_matches

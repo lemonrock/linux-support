@@ -28,6 +28,7 @@ use context_allocator::allocators::ContextAllocator;
 use context_allocator::allocators::binary_search_trees::MultipleBinarySearchTreeAllocator;
 use context_allocator::memory_sources::CoroutineHeapMemorySource;
 use context_allocator::memory_sources::MemoryMapSource;
+use likely::unlikely;
 use linux_io_uring::IoUringSettings;
 use linux_io_uring::ThreadLoopInitiation;
 use linux_io_uring::coroutines::accept::AcceptConnectionsCoroutineSettings;
@@ -40,7 +41,9 @@ use linux_io_uring::registered_buffers::RegisteredBufferSetting;
 use linux_io_uring::thread_local_allocator::SimplePerThreadMemoryAllocatorInstantiator;
 use linux_support::configuration::GlobalComputedSchedulingConfiguration;
 use linux_support::configuration::ProcessConfiguration;
+use linux_support::configuration::ProcessConfigurationError;
 use linux_support::configuration::ProcessExecutor;
+use linux_support::configuration::ProcessExecutorError;
 use linux_support::cpu::HyperThread;
 use linux_support::cpu::HyperThreads;
 use linux_support::file_descriptors::socket::UnixSocketAddress;
@@ -50,6 +53,7 @@ use linux_support::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use linux_support::network_device::NetworkInterfaceName;
 use linux_support::network_device::strategies::DevicePreferences;
 use linux_support::network_device::strategies::DriverProfile;
+use linux_support::network_device::strategies::DriverProfileError;
 use linux_support::paths::FileSystemLayout;
 use linux_support::signals::Signals;
 use linux_support::thread::ThreadConfiguration;
@@ -70,24 +74,49 @@ use socket_access_control::UnixDomainSocketAccessControl;
 use std::alloc::System;
 use std::collections::BTreeMap;
 use std::collections::HashMap;
+use std::convert::TryInto;
+use std::cmp::Ordering::Equal;
+use std::cmp::Ordering::Greater;
+use std::cmp::Ordering::Less;
 use std::error;
 use std::ffi::OsString;
+use std::fmt;
+use std::fmt::Debug;
+use std::fmt::Display;
+use std::fmt::Formatter;
 use std::fs::File;
+use std::io;
 use std::io::BufReader;
+use std::marker::PhantomData;
+use std::mem::size_of;
+use std::mem::transmute;
+use std::mem::zeroed;
 use std::net::SocketAddrV4;
 use std::net::SocketAddrV6;
 use std::net::Ipv6Addr;
 use std::net::Ipv4Addr;
 use std::num::NonZeroU32;
+use std::ops::Sub;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process::exit;
 use std::ptr::NonNull;
 use std::sync::Arc;
+use std::time::Duration;
+use std::time::SystemTime;
+use swiss_army_knife::big_endian::BigEndianI16;
+use swiss_army_knife::big_endian::BigEndianU16;
+use swiss_army_knife::big_endian::BigEndianU32;
 use swiss_army_knife::bit_set::BitSet;
+use swiss_army_knife::exponents_of_two::SignedExponentOfTwo8;
+use swiss_army_knife::exponents_of_two::UnsignedExponentOfTwo8;
+use swiss_army_knife::fixed_point_arithmetic::Signed1616FixedPoint;
+use swiss_army_knife::fixed_point_arithmetic::Signed3232FixedPoint;
+use swiss_army_knife::fixed_point_arithmetic::Unsigned1616FixedPoint;
+use swiss_army_knife::fixed_point_arithmetic::Unsigned3232FixedPoint;
+use swiss_army_knife::internet_protocol::InternetProtocolAddress;
 use swiss_army_knife::internet_protocol::InternetProtocolAddressWithMask;
 use terminate::Terminate;
-
 
 
 mod application_configuration;
@@ -102,6 +131,9 @@ mod memory_allocator_settings;
 mod service_protocol_identifiers;
 
 
+mod simple_network_time_protocol;
+
+
 include!("configure_and_execute.rs");
 
 
@@ -109,8 +141,9 @@ include!("configure_and_execute.rs");
 
 
 /// Main method.
-pub fn main()
+pub fn main() -> Result<(), ConfigurationError>
 {
-	let (run_as_daemon, configuration) = parse_command_line(parse_matches);
-	configure_and_execute(run_as_daemon, configuration)
+	let (run_as_daemon, configuration) = parse_command_line(parse_matches)?;
+	configure_and_execute(run_as_daemon, configuration);
+	Ok(())
 }

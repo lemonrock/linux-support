@@ -26,25 +26,28 @@ impl DogStatsDTags
 	#[inline(always)]
 	pub fn common_dog_stats_d_tags() -> DogStatsDTags
 	{
-		Self::from_9
-		([
-			DogStatsDTag::environment(),
-			DogStatsDTag::process_name(),
-			DogStatsDTag::process_identifier(),
-			DogStatsDTag::cargo_name(),
-			DogStatsDTag::cargo_version(),
-			DogStatsDTag::numa_node(),
-			DogStatsDTag::thread_name(),
-			DogStatsDTag::thread_identifier(),
-			DogStatsDTag::hyper_thread()
-		])
+		Self::from_10
+		(
+			[
+				DogStatsDTag::environment(),
+				DogStatsDTag::boot_identifier(),
+				DogStatsDTag::process_name(),
+				DogStatsDTag::process_identifier(),
+				DogStatsDTag::cargo_name(),
+				DogStatsDTag::cargo_version(),
+				DogStatsDTag::numa_node(),
+				DogStatsDTag::thread_name(),
+				DogStatsDTag::thread_identifier(),
+				DogStatsDTag::hyper_thread()
+			]
+		)
 	}
 	
-	const Nine: u8 = 9;
+	const Ten: u8 = 10;
 	
 	/// Static-friendly method.
 	#[inline(always)]
-	const fn from_9(tags: [&'static DogStatsDTag; Self::Nine as usize]) -> Self
+	const fn from_10(tags: [&'static DogStatsDTag; Self::Ten as usize]) -> Self
 	{
 		let inner = ConstArrayVec
 		{
@@ -59,7 +62,7 @@ impl DogStatsDTags
 				tags[6],
 				tags[7],
 				tags[8],
-				Self::uninitialized(),
+				tags[9],
 				Self::uninitialized(),
 				Self::uninitialized(),
 				Self::uninitialized(),
@@ -67,7 +70,7 @@ impl DogStatsDTags
 				Self::uninitialized(),
 				Self::uninitialized(),
 			],
-			len: Self::Nine,
+			len: Self::Ten,
 		};
 		
 		Self(unsafe { transmute(inner) })

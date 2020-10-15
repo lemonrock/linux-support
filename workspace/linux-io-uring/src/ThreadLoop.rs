@@ -12,7 +12,7 @@ pub struct ThreadLoop<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static +
 	registered_buffers: RegisteredBuffers,
 	signal_file_descriptor: SignalFileDescriptor,
 	our_hyper_thread: HyperThread,
-	coroutine_managers: CoroutineManagers<CoroutineHeapSize, GTACSA, AcceptStackSize>,
+	coroutine_managers: ThreadLocalCoroutineManagers<CoroutineHeapSize, GTACSA, AcceptStackSize>,
 	retry_submission_queue_was_full_coroutine_instance_handle: Option<CoroutineInstanceHandle>,
 	dog_stats_d_publisher: DogStatsDPublisher<CoroutineHeapSize, GTACSA>,
 	subscriber: Subscriber<MessageHandlerArguments, DequeuedMessageProcessingError>,
@@ -134,7 +134,7 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 	{
 		match self.io_uring.initiate_asynchronous_io()
 		{
-			Ok(number_of_submission_queue_entries_successfully_consumed) => (),
+			Ok(_number_of_submission_queue_entries_successfully_consumed) => (),
 			
 			Err(submit_error) => self.log_io_uring_submit_error(submit_error),
 		}

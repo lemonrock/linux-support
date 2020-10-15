@@ -2,7 +2,7 @@
 // Copyright © 2018-2019 The developers of file-descriptors. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/file-descriptors/master/COPYRIGHT.
 
 
-/// Represents a streaming socket instance between a local peer and a remote peer.
+/// Represents a datagram socket instance between a local peer and a remote peer.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct DatagramClientSocketFileDescriptor<SD: SocketData>(SocketFileDescriptor<SD>);

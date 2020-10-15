@@ -37,7 +37,7 @@ errno = "^0.2"
 lazy_static = "^1.4.0"
 libc = { version = "^0.2.69", features = ["const-extern-fn", "extra_traits", "std"] }
 libc-extra = "^0.3.2"
-likely = "^0.1"
+likely = "^0.1.0"
 indexmap = { version = "^1.5.0", features = ["serde-1"] }
 maplit = "^1.0.2"
 memchr = "^2.3.3"

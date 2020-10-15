@@ -5,18 +5,11 @@
 use super::*;
 
 
-include!("Accept.rs");
-include!("AcceptComplete.rs");
-include!("AcceptConnectionsCoroutineSettings.rs");
-include!("AcceptCoroutine.rs");
-include!("AcceptCoroutineInformation.rs");
-include!("AcceptCoroutineManager.rs");
-include!("AcceptCoroutineManagerFactory.rs");
-include!("AcceptedConnectionMessage.rs");
-include!("AcceptPublisher.rs");
-include!("AcceptResumeArguments.rs");
-include!("AcceptStartArguments.rs");
-include!("AcceptYields.rs");
-include!("AccessControlValue.rs");
-include!("ServiceProtocolIdentifier.rs");
-include!("TransmissionControlProtocolServerListenerSettings.rs");
+/// Required for an implementation of a Coroutine.
+pub(crate) mod required;
+
+
+pub(crate) mod specific;
+
+
+

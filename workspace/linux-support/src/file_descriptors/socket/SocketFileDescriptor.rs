@@ -145,9 +145,9 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 	}
 	
 	#[inline(always)]
-	fn connect(&self, socket_data: &SD, length: usize, writes_before_reading: bool) -> Result<(), SocketConnectError>
+	fn connect(&self, socket_data: &SD, length: usize, tcp_writes_before_reading: bool) -> Result<(), SocketConnectError>
 	{
-		if writes_before_reading
+		if tcp_writes_before_reading
 		{
 			self.set_socket_option_true(SOL_TCP, TCP_DEFER_ACCEPT);
 			self.set_socket_option_true(SOL_TCP, TCP_FASTOPEN_CONNECT);
@@ -605,11 +605,23 @@ impl SocketFileDescriptor<sockaddr_in>
 		this.connect_internet_protocol_version_4_socket(socket_address, false)?;
 		Ok(DatagramClientSocketFileDescriptor(this))
 	}
+
+	/// Creates a new instance of a User Datagram Protocol (UDP) socket over Internet Protocol (IP) version 4 combined client and listener.
+	#[inline(always)]
+	pub fn new_user_datagram_protocol_over_internet_protocol_version_4_client_listener(socket_address: &sockaddr_in, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking, hyper_thread: HyperThread) -> Result<DatagramClientListenerSocketFileDescriptor<sockaddr_in>, NewSocketClientListenerError>
+	{
+		let this = SocketFileDescriptor::<sockaddr_in>::new_user_datagram_protocol_over_internet_protocol_version_4(internet_protocol_socket_settings, blocking)?;
+		this.set_incoming_cpu(hyper_thread);
+		this.set_internet_protocol_server_listener_socket_options();
+		this.bind_internet_protocol_version_4_socket(socket_address)?;
+		this.connect_internet_protocol_version_4_socket(socket_address, false)?;
+		Ok(DatagramClientListenerSocketFileDescriptor(this))
+	}
 	
 	#[inline(always)]
-	fn connect_internet_protocol_version_4_socket(&self, socket_address: &sockaddr_in, writes_before_reading: bool) -> Result<(), SocketConnectError>
+	fn connect_internet_protocol_version_4_socket(&self, socket_address: &sockaddr_in, tcp_writes_before_reading: bool) -> Result<(), SocketConnectError>
 	{
-		self.connect(socket_address, size_of::<sockaddr_in>(), writes_before_reading)
+		self.connect(socket_address, size_of::<sockaddr_in>(), tcp_writes_before_reading)
 	}
 
 	#[inline(always)]
@@ -660,11 +672,23 @@ impl SocketFileDescriptor<sockaddr_in6>
 		this.connect_internet_protocol_version_6_socket(socket_address, false)?;
 		Ok(DatagramClientSocketFileDescriptor(this))
 	}
-
+	
+	/// Creates a new instance of a User Datagram Protocol (UDP) socket over Internet Protocol (IP) version 4 combined client and listener.
 	#[inline(always)]
-	fn connect_internet_protocol_version_6_socket(&self, socket_address: &sockaddr_in6, writes_before_reading: bool) -> Result<(), SocketConnectError>
+	pub fn new_user_datagram_protocol_over_internet_protocol_version_6_client_listener(socket_address: &sockaddr_in6, internet_protocol_socket_settings: &InternetProtocolSocketSettings, blocking: &Blocking, hyper_thread: HyperThread) -> Result<DatagramClientListenerSocketFileDescriptor<sockaddr_in6>, NewSocketClientListenerError>
 	{
-		self.connect(socket_address, size_of::<sockaddr_in6>(), writes_before_reading)
+		let this = SocketFileDescriptor::<sockaddr_in6>::new_user_datagram_protocol_over_internet_protocol_version_6(internet_protocol_socket_settings, blocking)?;
+		this.set_incoming_cpu(hyper_thread);
+		this.set_internet_protocol_server_listener_socket_options();
+		this.bind_internet_protocol_version_6_socket(socket_address)?;
+		this.connect_internet_protocol_version_6_socket(socket_address, false)?;
+		Ok(DatagramClientListenerSocketFileDescriptor(this))
+	}
+	
+	#[inline(always)]
+	fn connect_internet_protocol_version_6_socket(&self, socket_address: &sockaddr_in6, tcp_writes_before_reading: bool) -> Result<(), SocketConnectError>
+	{
+		self.connect(socket_address, size_of::<sockaddr_in6>(), tcp_writes_before_reading)
 	}
 
 	#[inline(always)]
@@ -932,6 +956,17 @@ impl SocketFileDescriptor<sockaddr_un>
 		let this = SocketFileDescriptor::<sockaddr_un>::new_datagram_unix_domain_socket(send_buffer_size_socket_option, blocking)?;
 		this.connect_unix_domain_socket(unix_socket_address)?;
 		Ok(DatagramClientSocketFileDescriptor(this))
+	}
+	
+	/// This is local socket akin to an User Datagram Protocol (UDP) socket.
+	#[inline(always)]
+	pub fn new_datagram_unix_domain_socket_client_listener(unix_socket_address: &UnixSocketAddress<impl AsRef<Path>>, send_buffer_size_socket_option: SendBufferSizeSocketOption, blocking: &Blocking, hyper_thread: HyperThread) -> Result<DatagramClientListenerSocketFileDescriptor<sockaddr_un>, NewSocketClientListenerError>
+	{
+		let this = SocketFileDescriptor::<sockaddr_un>::new_datagram_unix_domain_socket(send_buffer_size_socket_option, blocking)?;
+		this.set_incoming_cpu(hyper_thread);
+		this.bind_unix_domain_socket(unix_socket_address)?;
+		this.connect_unix_domain_socket(unix_socket_address)?;
+		Ok(DatagramClientListenerSocketFileDescriptor(this))
 	}
 
 	/// Creates a new streaming Unix Domain client socket pair.

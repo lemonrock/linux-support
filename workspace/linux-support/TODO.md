@@ -1,28 +1,10 @@
 ## Unfinished code
 
-* How to set up an eth0 device on a Numa Node
-    * Do we discover eth devices or what?
-    * Support virtio devices
-        * 'Children' of a pci bus
-    * Do we want to do XPS using a CPU as an option?
-    * Do we want to do RPS using a CPU as an option even if RSS is supported?
-    * Setting IRQs
-        * Need to understand how Linux names its IRQ lines
-        * One simple technique if MSI interrupts are supported is to map each IRQ number in pcidevice/msi_irqs/<X> to a cpu
-            * Problematic for virtio
-                * Has admin, rx, tx
-            * Problematic for knowing which IRQ is for which queue or even Amazon ENA admin queue
-    * Puzzle: Splitting RPS flow table count if multiple devices are in use?
 * Busy polling
     * See <https://netdevconf.info/2.1/papers/BusyPollingNextGen.pdf>
     * Does not require driver support (part of NAPI)
 * "If the NETIF_F_RXHASH flag is set, the 32-bit result of the hash function delivered in the Rx CQ descriptor is set in the received SKB." (Amazon ENA)
-* PCI
-    * Add bus support
-    * Add bridge support
-    * Add support for 'child' devices (virtio0)
-    * vga_boot, resources
-
+* Send a start up Diagnostics message over DogStatsD, or dump to the console.
 
 
 ## How to use XDP
@@ -33,69 +15,23 @@
     * https://github.com/Barricade-FW/Firewall
 * Can we specify a 'mark' with a XDP processed packet? And get it from userspace?
 * Can we use XDP to redirect to a queue?
-* Enabling accelerated RFS (aRFS)
-    * Needs driver support (`ndo_rx_flow_steer`).
-    * Linux must have been built with `CONFIG_RFS_ACCEL`.
-    * Not supported for Amazon ENA.
-    * Not supported for Intel ixgbevf.
-* Scaling with RPS / XPS and aRFS
-    * <https://stackoverflow.com/questions/44958511/what-is-the-main-difference-between-rss-rps-and-rfs>
+* <https://stackoverflow.com/questions/44958511/what-is-the-main-difference-between-rss-rps-and-rfs>
 * <https://oxnz.github.io/2016/05/03/performance-tuning-networking/>
 * Setting a per-connection value on incoming packets in XDP BPF (a mark)
     * Checking incoming packets for permission (IP + PORT + Protocol)
-* Busy polling - is it possible? - what about for XDP?
-* Review how to do RX queues and tie them to CPUs using <https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/#preparing-to-receive-data-from-the-network>
+* <https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/#preparing-to-receive-data-from-the-network>
 * IS `SO_INCOMING_NAPI_ID` any use?
-* `SO_INCOMING_CPU` might actually be broken: <https://blog.cloudflare.com/perfect-locality-and-three-epic-systemtap-scripts/>
+    * Set via `sk_mark_napi_id` and `skb_mark_napi_id`, but ?only for busy poll?
+* `SO_INCOMING_CPU` is actually broken: <https://blog.cloudflare.com/perfect-locality-and-three-epic-systemtap-scripts/>
+    * Use SO_ATTACH_REUSEPORT_EBPF instead.
 * Review `/proc/net/softnet_stat` file with the softnet.sh script: <https://github.com/majek/dump/blob/master/how-to-receive-a-packet/softnet.sh>
 * Review the locality examples in <https://lwn.net/Articles/675043/>; includes pinning RSS queues, setting up the RSS indirection table and setting XPS (transmit packet steering)
-* See <https://www.suse.com/support/kb/doc/?id=000018430> for how to make changes to per-QUEUE RPS hyper thread affinity.
-    * "On NUMA machines, best performance can be achieved by configuring RPS to use the CPUs on the same NUMA node as the interrupt IRQ for the interface's receive queue."
 * Review <https://www.kernel.org/doc/html/v5.8/networking/scaling.html>
 * <https://docs.gz.ro/tuning-network-cards-on-linux.html>
 * <https://blog.cloudflare.com/how-to-achieve-low-latency/>
 * <https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/>
 * `/proc/sys/net/core/netdev_budget` - defaults to 300.
 * <https://xdp-project.net/>
-
-
-### MSI-X - Message Signal Interrupts (Extended).
-
-When using MSI-X, an IRQ is raised for the RX queue the packet was written on.
-This IRQ is then mapped to a CPU (or set of CPUs)
-
-    client$ (let CPU=0; cd /sys/class/net/eth0/device/msi_irqs/;
-             for IRQ in *; do
-                echo $CPU > /proc/irq/$IRQ/smp_affinity_list
-                let CPU+=1
-             done)
-             
-NOTE: /sys/class/net/eth2/device/msi_irqs may not exist, in which case:-
-
-	grep eth0 /proc/interrupts
-	32:	0	140	45	850264	PCI-MSI-edge	eth0
-	
-	This means eth0 has assigned IRQ number 32.
-	There may be multiple lines.
-	The device may not exist at all (eg a Parallels VM)
-	
-	Change /proc/irq/32/smp_affinity to change the CPUs dealing with that IRQ
-		- The list of CPUs should be on the same NUMA node as the eth0 device (ie check eth0's PCI device).
-
-	Other lines might look like this if MSI-X is available:-
-	            CPU0       CPU1       CPU2       CPU3
-	  65:          1          0          0          0 IR-PCI-MSI-edge      eth0
-	  66:  863649703          0          0          0 IR-PCI-MSI-edge      eth0-TxRx-0
-	  67:  986285573          0          0          0 IR-PCI-MSI-edge      eth0-TxRx-1
-	  68:         45          0          0          0 IR-PCI-MSI-edge      eth0-TxRx-2
-	  69:        394          0          0          0 IR-PCI-MSI-edge      eth0-TxRx-3
-
-This is because each RX queue can have its own hardware interrupt assigned if using MSI-X.
-
-
-You can adjust the net_rx_action budget, which determines how much packet processing can be spent among all NAPI structures registered to a CPU
-/proc/sys/net/core/netdev_budget
-	- default is 300.
 
 
 ## Medium Importance
@@ -113,7 +49,6 @@ You can adjust the net_rx_action budget, which determines how much packet proces
 
 ### DogStatsD
 
-* Report `/proc/sys/kernel/random/boot_id` UUID to DogStatsD as it identifies the current boot.
 * 8192 UDS packet size for dogstatsd (<https://docs.datadoghq.com/developers/dogstatsd/high_throughput/?tab=go#use-dogstatsd-over-uds-unix-domain-socket>)
 * Send messages in batches to local UDS (Unix Domain Socket)
 
@@ -155,6 +90,8 @@ You can adjust the net_rx_action budget, which determines how much packet proces
 
 
 #### inet / inet6 settings.
+
+* Lots in sysctl.
 
 
 #### Kernel miscellany in /proc/sys/kernel

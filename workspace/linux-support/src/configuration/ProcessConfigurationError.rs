@@ -112,6 +112,9 @@ pub enum ProcessConfigurationError
 	CouldNotParseLinuxKernelDomainName(io::Error),
 
 	#[allow(missing_docs)]
+	CouldNotParseBootIdentifier(io::Error),
+
+	#[allow(missing_docs)]
 	ProcessLoggingConfiguration(ProcessLoggingConfigurationError),
 }
 
@@ -202,6 +205,8 @@ impl error::Error for ProcessConfigurationError
 			&CouldNotParseLinuxKernelHostName(ref cause) => Some(cause),
 
 			&CouldNotParseLinuxKernelDomainName(ref cause) => Some(cause),
+
+			&CouldNotParseBootIdentifier(ref cause) => Some(cause),
 
 			&ProcessLoggingConfiguration(ref cause) => Some(cause),
 		}

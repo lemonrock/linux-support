@@ -2,24 +2,16 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(super) fn parse_matches<'a>(matches: ArgMatches<'a>) -> (bool, Configuration)
+pub(super) fn parse_matches(matches: ArgMatches) -> Result<(bool, Configuration), ConfigurationError>
 {
 	let run_as_daemon = matches.is_present(RunAsDaemonName);
 	
 	let configuration = match matches.value_of_os(ConfigurationName)
 	{
-		Some(FILE) => match Configuration::from_json_file(FILE)
-		{
-			Ok(configuration) => configuration,
-			Err(error) =>
-			{
-				eprintln!("The --{} {} {} is invalid: {}", ConfigurationName, ConfigurationValue, FILE.to_string_lossy(), error);
-				exit(1);
-			}
-		},
+		Some(FILE) => Configuration::from_json_file(FILE)?,
 		
 		None => Configuration::default(),
 	};
 	
-	(run_as_daemon, configuration)
+	Ok((run_as_daemon, configuration))
 }

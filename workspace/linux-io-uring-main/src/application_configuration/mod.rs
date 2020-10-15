@@ -7,3 +7,4 @@ use super::*;
 
 include!("AcceptServiceConfiguration.rs");
 include!("Configuration.rs");
+include!("ConfigurationError.rs");

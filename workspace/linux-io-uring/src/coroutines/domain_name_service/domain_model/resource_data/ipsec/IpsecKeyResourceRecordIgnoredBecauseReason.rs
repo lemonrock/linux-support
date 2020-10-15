@@ -1,0 +1,17 @@
+// This file is part of linux-support. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT. No part of linux-support, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+// Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
+
+
+/// Why was an `IPSECKEY` record ignored?
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum IpsecKeyResourceRecordIgnoredBecauseReason
+{
+	/// Gateway type was unassigned.
+	GatewayTypeUnassigned(u8),
+
+	/// The public key algorithm DSA is probably broken.
+	PublicKeyAlgorithmDSAIsProbablyBroken,
+
+	/// The public key algorithm was unassigned.
+	PublicKeyAlgorithmUnassigned(u8),
+}

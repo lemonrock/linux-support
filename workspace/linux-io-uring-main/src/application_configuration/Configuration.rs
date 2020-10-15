@@ -4,7 +4,7 @@
 
 #[allow(missing_docs)]
 #[derive(Deserialize, Serialize)]
-pub struct Configuration
+pub(crate) struct Configuration
 {
 	#[serde(default)] pub file_system_layout: FileSystemLayout,
 	
@@ -35,15 +35,17 @@ impl Default for Configuration
 impl Configuration
 {
 	/// From JSON file.
-	pub fn from_json_file(configuration_file_path: impl AsRef<Path>) -> Result<Self, Box<dyn error::Error>>
+	pub(crate) fn from_json_file(configuration_file_path: impl AsRef<Path>) -> Result<Self, ConfigurationError>
 	{
-    	let reader = BufReader::new(File::open(configuration_file_path)?);
-    	let configuration = from_reader(reader)?;
+		use self::ConfigurationError::*;
+		
+    	let reader = BufReader::new(File::open(configuration_file_path).map_err(CouldNotOpenConfigurationFile)?);
+    	let configuration = from_reader(reader).map_err(CouldNotDeserializeJsonConfigurationFile)?;
 		Ok(configuration)
 	}
 	
 	/// Default-ish
-	pub fn defaultish(port_number: u16) -> Self
+	pub (crate)fn defaultish(port_number: u16) -> Self
 	{
 		Self
 		{
@@ -120,7 +122,7 @@ impl Configuration
 	}
 	
 	/// Server listeners.
-	pub fn server_listeners(&mut self) ->
+	pub(crate) fn server_listeners(&mut self) ->
 	(
 		Vec<AcceptConnectionsCoroutineSettings<SocketAddrV4, InternetProtocolVersion4AccessControl<AccessControlValue>>>,
 		Vec<AcceptConnectionsCoroutineSettings<SocketAddrV6, InternetProtocolVersion6AccessControl<AccessControlValue>>>,
@@ -150,27 +152,27 @@ impl Configuration
 	
 	/// Configure.
 	#[inline(always)]
-	pub fn configure(&self, run_as_daemon: bool, global_computed_scheduling_affinity: Option<&GlobalComputedSchedulingConfiguration>, process_affinity: Option<&HyperThreads>) -> (Arc<impl Terminate>, DefaultPageSizeAndHugePageSizes)
+	pub(crate) fn configure(&self, run_as_daemon: bool, global_computed_scheduling_affinity: Option<&GlobalComputedSchedulingConfiguration>, process_affinity: Option<&HyperThreads>) -> Result<(Arc<impl Terminate>, DefaultPageSizeAndHugePageSizes), ConfigurationError>
 	{
 		let defaults = self.file_system_layout.defaults().unwrap();
-		let terminate = self.process_configuration.configure(run_as_daemon, &self.file_system_layout, &defaults, &mut DogStatsDStaticInitialization, global_computed_scheduling_affinity, process_affinity).expect("Could not configure process");
-		(terminate, defaults)
+		let terminate = self.process_configuration.configure(run_as_daemon, &self.file_system_layout, &defaults, &mut DogStatsDStaticInitialization, global_computed_scheduling_affinity, process_affinity)?;
+		Ok((terminate, defaults))
 	}
 	
 	/// Configure PCI ethernet devices.
 	#[inline(always)]
-	pub fn configure_pci_ethernet_devices(&self) -> HashMap<NetworkInterfaceName, (HyperThread, HyperThreads)>
+	pub(crate) fn configure_pci_ethernet_devices(&self) -> Result<HashMap<NetworkInterfaceName, (HyperThread, HyperThreads)>, ConfigurationError>
 	{
 		let sys_path = &self.file_system_layout.sys_path;
 		let proc_path = &self.file_system_layout.proc_path;
-		DriverProfile::configure_all_multiqueue_pci_ethernet_devices(sys_path, proc_path, &self.device_preferences).expect("Could not configure PCI ethernet devices")
+		Ok(DriverProfile::configure_all_multiqueue_pci_ethernet_devices(sys_path, proc_path, &self.device_preferences)?)
 	}
 	
 	/// Execute.
 	#[inline(always)]
-	pub fn execute<T: Terminate + 'static, MainThreadFunction: ThreadFunction, ChildThreadFunction: ThreadFunction>(self, terminate: Arc<T>, main_thread: ThreadSettings<MainThreadFunction>, child_threads: Vec<ThreadSettings<ChildThreadFunction>>, defaults: DefaultPageSizeAndHugePageSizes)
+	pub(crate) fn execute<T: Terminate + 'static, MainThreadFunction: ThreadFunction, ChildThreadFunction: ThreadFunction>(self, terminate: Arc<T>, main_thread: ThreadSettings<MainThreadFunction>, child_threads: Vec<ThreadSettings<ChildThreadFunction>>, defaults: DefaultPageSizeAndHugePageSizes) -> Result<(), ConfigurationError>
 	{
 		let instantiation_arguments = Arc::new((defaults, &SwitchableGlobalAllocator));
-		self.process_executor.execute_securely::<T, MainThreadFunction, ChildThreadFunction, SimplePerThreadMemoryAllocatorInstantiator<CoroutineHeapSize, GTACSA>>(&self.file_system_layout, terminate, main_thread, child_threads, instantiation_arguments).expect("Could not execute process")
+		Ok(self.process_executor.execute_securely::<T, MainThreadFunction, ChildThreadFunction, SimplePerThreadMemoryAllocatorInstantiator<CoroutineHeapSize, GTACSA>>(&self.file_system_layout, terminate, main_thread, child_threads, instantiation_arguments)?)
 	}
 }

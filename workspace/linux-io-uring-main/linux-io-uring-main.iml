@@ -13,8 +13,13 @@
       <sourceFolder url="file://$MODULE_DIR$/../context-coroutine/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../socket-access-control/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../context-allocator/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../linux-support/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../swiss-army-knife/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../terminate/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../magic-ring-buffer/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/.cargo" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
+      <excludeFolder url="file://$MODULE_DIR$/../terminate/target" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
