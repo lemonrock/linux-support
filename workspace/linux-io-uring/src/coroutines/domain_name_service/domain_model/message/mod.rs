@@ -3,6 +3,7 @@
 
 
 use super::*;
+use super::character_strings::*;
 use super::extended_dns::*;
 use super::resource_data::*;
 use super::resource_data::certificate::*;

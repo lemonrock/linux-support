@@ -23,7 +23,7 @@ impl ResourceRecordFooter
 	const ExtendedRCodeAndFlagsSize: usize = Self::TimeToLiveSize;
 	const OptionsSize: usize = Self::ResourceDataLengthSize;
 
-	const MinimumSize: usize = TypeSize + ClassSize + TimeToLiveSize + ResourceDataLengthSize + ResourceData::MinimumSize;
+	const MinimumSize: usize = Self::TypeSize + Self::ClassSize + Self::TimeToLiveSize + Self::ResourceDataLengthSize + ResourceData::MinimumSize;
 
 	#[inline(always)]
 	fn resource_record_type(&self) -> DataType

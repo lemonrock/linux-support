@@ -3,13 +3,13 @@
 
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct Query<Allocation: AllocRef>
+pub(crate) struct Query<A: Allocator>
 {
 	data_type: DataType,
-	query_name: UncompressedName<Allocation>,
+	query_name: UncompressedName<A>,
 }
 
-impl<Allocation: AllocRef> Query<Allocation>
+impl<A: Allocator> Query<A>
 {
 	#[allow(deprecated)]
 	#[inline(always)]

@@ -5,7 +5,7 @@
 /// Represents a locator pointer along with its preference.
 ///
 /// Used in a `LP` record.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct LocatorPointer<'a>
 {
 	/// Indicates the owner name's relative preference for record among other records associated with this owner name.

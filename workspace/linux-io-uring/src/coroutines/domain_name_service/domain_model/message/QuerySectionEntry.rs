@@ -13,7 +13,7 @@ impl QuerySectionEntry
 
 	/// Validation of available buffer size is done before calling this.
 	#[inline(always)]
-	pub(crate) fn write_query_section_entry_for_query(query_section_pointer: usize, data_type: DataType, query_name: &UncompressedName<impl AllocRef>) -> usize
+	pub(crate) fn write_query_section_entry_for_query(query_section_pointer: usize, data_type: DataType, query_name: &UncompressedName<impl Allocator>) -> usize
 	{
 		let mut current_pointer = query_name.copy_non_overlapping_to(query_section_pointer);
 
@@ -25,7 +25,7 @@ impl QuerySectionEntry
 	}
 
 	#[inline(always)]
-	pub(crate) fn parse_response<'message>(&'message mut self, parsed_labels: &mut ParsedLabels, end_of_message_pointer: usize, request_query_identification: Query<impl AllocRef>) -> Result<(usize, DataType), DnsProtocolError>
+	pub(crate) fn parse_response<'message>(&'message mut self, parsed_labels: &mut ParsedLabels, end_of_message_pointer: usize, request_query_identification: Query<impl Allocator>) -> Result<(usize, DataType), DnsProtocolError>
 	{
 		let (qname, end_of_qname_pointer) = self.name().parse_without_compression_but_register_labels_for_compression(parsed_labels, end_of_message_pointer)?;
 

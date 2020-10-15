@@ -221,7 +221,7 @@ impl<'yielder, SD: SocketData, A: Allocator> DnsOverTlsConnection<'yielder, SD, 
 	}
 
 	#[allow(deprecated)]
-	fn read_outstanding_query(&mut self) -> Result<(), CompleteError>
+	fn read_outstanding_query(&mut self) -> Result<(), ()>
 	{
 		// ? how big a buffer ?
 		// 64 Kb is large, especially on the stack, but the number of DNS connections is quite small.
@@ -341,7 +341,7 @@ impl<'yielder, SD: SocketData, A: Allocator> DnsOverTlsConnection<'yielder, SD, 
 
 		let next_resource_record_pointer = Self::loop_over_resource_records(end_of_message_pointer, next_resource_record_pointer, number_of_resource_records, |response_record_section_parsing, resource_record, end_of_message_pointer| resource_record.parse_authority_section_resource_record_in_response(end_of_message_pointer, parsed_labels, &mut authority_resource_record_visitor, response_parsing_state))?;
 
-		let answer_outcome = authority_resource_record_visitor.answer_outcome(is_authoritative_answer, has_nxdomain_error_code, answer_section_has_at_least_one_record_of_requested_data_type);
+		let answer_outcome = authority_resource_record_visitor.answer_outcome(is_authoritative_answer, has_nxdomain_error_code, answer_section_has_at_least_one_record_of_requested_data_type, have_seen_a_soa_record);
 
 		Ok((next_resource_record_pointer, answer_outcome))
 	}

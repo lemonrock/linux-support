@@ -69,7 +69,7 @@ impl<A: Allocator> Eq for UncompressedName<A>
 {
 }
 
-impl<Allocator: Allocator> Hash for UncompressedName<Allocator>
+impl<A: Allocator> Hash for UncompressedName<A>
 {
 	#[inline(always)]
 	fn hash<H: Hasher>(&self, state: &mut H)
@@ -96,7 +96,7 @@ impl<A: Allocator> UncompressedName<A>
 		debug_assert_eq!(name.get(name_length_usize - 1), 0x00, "final byte of name is not 0x00 (a root label)");
 		
 		let (non_zero_size, non_zero_power_of_two_alignment) = Self::non_zero_size_and_non_zero_power_of_two_alignment(name_length_usize);
-		let (ptr, size) = allocator.allocate(non_zero_size, non_zero_power_of_two_alignment)?;
+		let (non_null_u8, size) = allocator.allocate(non_zero_size, non_zero_power_of_two_alignment)?;
 
 		let this = Self
 		{
@@ -122,7 +122,7 @@ impl<A: Allocator> UncompressedName<A>
 	pub(crate) fn copy_non_overlapping_to(&self, pointer: usize) -> usize
 	{
 		let name_length = self.name_length_usize();
-		unsafe { copy_nonoverlapping(self.pointer_to_label(),cast::<u8>().pointer.cast_mut::<u8>(), name_length) };
+		unsafe { copy_nonoverlapping(self.pointer_to_label().cast::<u8>().pointer.cast_mut::<u8>(), name_length) };
 		pointer + name_length
 	}
 

@@ -17,13 +17,13 @@ impl TcpMessage
 
 	/// Validation of available buffer size is done before calling this.
 	#[inline(always)]
-	pub(crate) fn write_query_tcp_message(buffer_pointer: usize, message_identifier: MessageIdentifier, data_type: DataType, query_name: &UncompressedName<impl Alloc>) -> usize
+	pub(crate) fn write_query_tcp_message(buffer_pointer: usize, message_identifier: MessageIdentifier, data_type: DataType, query_name: &UncompressedName<impl Allocator>) -> usize
 	{
 		let message_pointer = buffer_pointer + TcpMessage::TcpBufferLengthSize;
 
 		let query_section_pointer = MessageHeader::write_message_header(message_pointer, message_identifier);
 		let query_section_end_pointer = QuerySectionEntry::write_query_section_entry_for_query(query_section_pointer, data_type, query_name);
-		let end_pointer = ResourceRecord:write_extended_dns_0_opt_for_query(query_section_end_pointer);
+		let end_pointer = ResourceRecord::write_extended_dns_0_opt_for_query(query_section_end_pointer);
 		TcpMessage::write_tcp_buffer_length(buffer_pointer, message_pointer, end_pointer);
 
 		end_pointer - buffer_pointer
