@@ -19,7 +19,6 @@ use super::resource_data::naming_authority_pointer::*;
 use super::resource_data::ssh_fingerprint::*;
 use super::resource_data::start_of_authority::*;
 use super::response_parsing::*;
-use self::support::*;
 
 
 include!("DataType.rs");

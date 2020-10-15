@@ -17,7 +17,6 @@ use super::resource_data::location::*;
 use super::resource_data::naming_authority_pointer::*;
 use super::resource_data::ssh_fingerprint::*;
 use super::resource_data::start_of_authority::*;
-use super::support::*;
 
 
 include!("AnswerOutcome.rs");
