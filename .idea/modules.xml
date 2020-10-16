@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/workspace/context-allocator/context-allocator.iml" filepath="$PROJECT_DIR$/workspace/context-allocator/context-allocator.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/context-coroutine/context-coroutine.iml" filepath="$PROJECT_DIR$/workspace/context-coroutine/context-coroutine.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/linux-io-uring/linux-io-uring.iml" filepath="$PROJECT_DIR$/workspace/linux-io-uring/linux-io-uring.iml" />
+	  <module fileurl="file://$PROJECT_DIR$/workspace/linux-io-uring-main/linux-io-uring-main.iml" filepath="$PROJECT_DIR$/workspace/linux-io-uring-main/linux-io-uring-main.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/linux-support/linux-support.iml" filepath="$PROJECT_DIR$/workspace/linux-support/linux-support.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/linux-support-clone/linux-support-clone.iml" filepath="$PROJECT_DIR$/workspace/linux-support-clone/linux-support-clone.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/linux-support-process/linux-support-process.iml" filepath="$PROJECT_DIR$/workspace/linux-support-process/linux-support-process.iml" />
