@@ -18,70 +18,56 @@ pub(crate) struct MessageHeader
 
 impl MessageHeader
 {
-	const MessageIdentifierSize: usize = size_of::<u16>();
+	const MessageIdentifierSize: usize = size_of::<MessageIdentifier>();
 
-	const Bitfield1Size: usize = size_of::<u8>();
+	const Bitfield1Size: usize = size_of::<MessageBitField1>();
 
-	const Bitfield2Size: usize = size_of::<u8>();
+	const Bitfield2Size: usize = size_of::<MessageBitField2>();
 
-	const BitfieldSize: usize = Self::Bitfield1Size + Self::Bitfield3Size;
+	const QueryCountSize: usize = size_of::<BigEndianU16>();
 
-	const QueryCountSize: usize = size_of::<u16>();
+	const AnswerCountSize: usize = size_of::<BigEndianU16>();
 
-	const AnswerCountSize: usize = size_of::<u16>();
+	const AuthorityCountSize: usize = size_of::<BigEndianU16>();
 
-	const AuthorityCountSize: usize = size_of::<u16>();
+	const AdditionalCountSize: usize = size_of::<BigEndianU16>();
 
-	const AdditionalCountSize: usize = size_of::<u16>();
-
-	const CountsSize: usize = Self::QueryCountSize + Self::AnswerCountSize + Self::AuthorityCountSize + Self::AdditionalCountSize;
-
-	pub(crate) const Size: usize = size_of::<MessageHeader>();
+	pub(crate) const Size: usize = size_of::<Self>();
 
 	/// Validation of available buffer size is done before calling this.
 	#[inline(always)]
 	pub(crate) fn write_query_message_header(message_pointer: usize, message_identifier: MessageIdentifier) -> usize
 	{
-		message_pointer.set_u16_bytes(message_identifier.0);
-		let mut current_pointer = message_pointer + Self::MessageIdentifierSize;
-
-		current_pointer.set_u16_bytes([MessageBitField1::new_for_query(), MessageBitField2::new_for_query()]);
-		current_pointer += Self::BitfieldSize;
-
-		const CountsNetworkEndian: u64 =
-		{
-			const QuestionCount: u16 = 1;
-			const AnswerCount: u16 = 0;
-			const AuthorityCount: u16 = 0;
-			const AdditionalCount: u16 = 1; // For EDNS(0) `OPT` record.
-			MessageHeader::counts(QuestionCount, AnswerCount, AuthorityCount, AdditionalCount)
-		};
-		current_pointer.set_u64(CountsNetworkEndian);
-		current_pointer + Self::CountsSize
+		let mut current_pointer = message_pointer;
+		
+		current_pointer.set_u16_bytes(message_identifier.0);
+		current_pointer += Self::MessageIdentifierSize;
+		
+		current_pointer.set_u8_byte(MessageBitField1::new_for_query());
+		current_pointer += Self::Bitfield1Size;
+		
+		current_pointer.set_u8_byte(MessageBitField2::new_for_query());
+		current_pointer += Self::Bitfield2Size;
+	
+		const QuestionCount: u16 = 1;
+		current_pointer.set_u16_bytes(QuestionCount.to_be_bytes());
+		current_pointer += Self::QueryCountSize;
+		
+		const AnswerCount: u16 = 0;
+		current_pointer.set_u16_bytes(AnswerCount.to_be_bytes());
+		current_pointer += Self::QueryCountSize;
+		
+		const AuthorityCount: u16 = 0;
+		current_pointer.set_u16_bytes(AuthorityCount.to_be_bytes());
+		current_pointer += Self::QueryCountSize;
+		
+		const AdditionalCount: u16 = 1; // For EDNS(0) `OPT` record.
+		current_pointer.set_u16_bytes(AdditionalCount.to_be_bytes());
+		current_pointer += Self::AdditionalCount;
+		
+		current_pointer
 	}
-
-	#[inline(always)]
-	const fn counts(question_count: u16, answer_count: u16, authority_count: u16, additional_count: u16) -> u64
-	{
-		let question_count_network_endian = question_count.to_be();
-		let answer_count_network_endian = answer_count.to_be();
-		let authority_count_network_endian = authority_count.to_be();
-		let additional_count_network_endian = additional_count.to_be();
-
-		if cfg!(target_endian = "little")
-		{
-			return question_count_network_endian as u64 | (answer_count_network_endian as u64) << 16 | (authority_count_network_endian as u64) << 32 | (additional_count_network_endian as u64) << 48
-		}
-		else if cfg!(target_endian = "big")
-		{
-			return (question_count_network_endian as u64) << 48 | (answer_count_network_endian as u64) << 32 | (authority_count_network_endian as u64) << 16 | additional_count_network_endian as u64
-		}
-		else
-		{
-			panic!("Unsupported endianness")
-		}
-	}
-
+	
 	#[inline(always)]
 	pub(crate) fn is_query(&self) -> bool
 	{
@@ -111,10 +97,12 @@ impl MessageHeader
 	/// This value is set by the originator of a query and copied into the response.
 	///
 	/// Only values 0 - 6 inclusive are defined by IANA, and some of those are for drafts, reserved or obsolete.
+	///
+	/// Valid codes are of type `MessageOpcode`.
 	#[inline(always)]
-	pub(crate) fn raw_opcode(&self) -> u8
+	pub(crate) fn raw_message_opcode(&self) -> u8
 	{
-		self.bitfield1.raw_opcode()
+		self.bitfield1.raw_message_opcode()
 	}
 
 	/// `AA` field.
@@ -228,10 +216,12 @@ impl MessageHeader
 	/// `RCODE` field.
 	///
 	/// A four bit field that specifies the response outcome.
+	///
+	/// Valid codes are of type `MessageResponseCode`.
 	#[inline(always)]
-	pub(crate) fn raw_response_code(&self) -> u8
+	pub(crate) fn raw_message_response_code(&self) -> u8
 	{
-		self.bitfield2.raw_response_code()
+		self.bitfield2.raw_message_response_code()
 	}
 
 	/// `QDCOUNT` field.

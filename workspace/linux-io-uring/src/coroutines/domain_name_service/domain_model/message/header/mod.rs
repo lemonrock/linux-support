@@ -2,7 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A 16-bit message identifier, set in a request and returned in a reply.
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(transparent)]
-pub(crate) struct MessageIdentifier(BigEndianU16);
+use super::*;
+
+
+include!("MessageBitField1.rs");
+include!("MessageBitField2.rs");
+include!("MessageHeader.rs");
+include!("MessageOpcode.rs");
+include!("MessageResponseCode.rs");
+include!("MessageType.rs");

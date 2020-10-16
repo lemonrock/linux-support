@@ -2,7 +2,16 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A 16-bit message identifier, set in a request and returned in a reply.
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(transparent)]
-pub(crate) struct MessageIdentifier(BigEndianU16);
+macro_rules! validate_number_of_entries_in_the_question_section_is_one
+{
+	($message_header: ident) =>
+	{
+		{
+			let number_of_entries_in_the_question_section = $message_header.number_of_entries_in_the_question_section();
+			if unlikely!(number_of_entries_in_the_question_section != 1)
+			{
+				return Err(ResponseDoesNotContainExactlyOneQuestion(number_of_entries_in_the_question_section))
+			}
+		}
+	}
+}

@@ -14,19 +14,11 @@ pub(crate) trait UsizePointer
 
 	fn dereference_u8(self) -> u8;
 
-	fn set_u8(self, value: u8);
-
-	fn set_u16(self, network_endian_value: u16);
-
-	fn set_u16_network_endian(self, native_endian_value: u16);
+	fn set_u8_byte(self, value: u8);
 
 	fn set_u16_bytes(self, value: [u8; 2]);
 
-	fn set_u16_network_endian_from_usize(self, native_endian_value: usize);
-
 	fn set_u32_bytes(self, value: [u8; 4]);
-
-	fn set_u64(self, network_endian_value: u64);
 }
 
 impl UsizePointer for usize
@@ -62,21 +54,9 @@ impl UsizePointer for usize
 	}
 
 	#[inline(always)]
-	fn set_u8(self, value: u8)
+	fn set_u8_byte(self, value: u8)
 	{
 		unsafe { * (self as *mut u8) = value }
-	}
-
-	#[inline(always)]
-	fn set_u16(self, network_endian_value: u16)
-	{
-		unsafe { * (self as *mut u16) = network_endian_value }
-	}
-
-	#[inline(always)]
-	fn set_u16_network_endian(self, native_endian_value: u16)
-	{
-		self.set_u16(native_endian_value.to_be())
 	}
 
 	#[inline(always)]
@@ -84,21 +64,9 @@ impl UsizePointer for usize
 	{
 		unsafe { * (self as *mut [u8; 2]) = value }
 	}
-
-	#[inline(always)]
-	fn set_u16_network_endian_from_usize(self, native_endian_value: usize)
-	{
-		unsafe { * (self as *mut u16) = (native_endian_value as u16).to_be() }
-	}
-
+	
 	fn set_u32_bytes(self, value: [u8; 4])
 	{
 		unsafe { * (self as *mut [u8; 4]) = value }
-	}
-
-	#[inline(always)]
-	fn set_u64(self, network_endian_value: u64)
-	{
-		unsafe { * (self as *mut u64) = network_endian_value }
 	}
 }

@@ -2,320 +2,6 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-macro_rules! guard_hash_digest_if_final_field
-{
-	($resource_data: ident, $digest_offset: ident, $digest_size_in_bits: expr, $name: ident, $dns_protocol_error: ident) =>
-	{
-		{
-			let digest_data = &$resource_data[$digest_offset .. ];
-
-			let length = digest_data.len();
-
-			const BitsInAByte: usize = 8;
-			const DigestSizeInBytes: usize = $digest_size_in_bits / BitsInAByte;
-
-			if unlikely!(length != DigestSizeInBytes)
-			{
-				return Err($dns_protocol_error(length))
-			}
-
-			$name(digest_data.start_pointer().unsafe_cast::<[u8; DigestSizeInBytes]>())
-		}
-	}
-}
-
-macro_rules! ipsec_like_public_key
-{
-	($public_key_algorithm_type: ident, $resource_data: ident, $public_key_starts_at_offset: ident, $public_key_length: ident, $resource_data_end_pointer: ident, $dsa_callback: block, $unassigned_callback: block) =>
-	{
-		{
-			use self::PublicKey::*;
-
-			match $public_key_algorithm_type
-			{
-				0 => if unlikely!($public_key_length != 0)
-				{
-					return Err(ResourceDataForTypeIPSECKEYOrHIPHasWrongLengthForNoPublicKey($public_key_length))
-				}
-				else
-				{
-					None
-				},
-
-				1 =>
-				{
-					$unassigned_callback;
-					return Ok($resource_data_end_pointer)
-				}
-
-				2 =>
-				{
-					if unlikely!($public_key_length == 0)
-					{
-						return Err(ResourceDataForTypeIPSECKEYOrHIPHasTooShortALengthForRSAPublicKey($public_key_length))
-					}
-
-					let public_key_data = &$resource_data[$public_key_starts_at_offset .. $public_key_starts_at_offset + $public_key_length];
-
-					const FirstByteSize: usize = 1;
-
-					let first_byte_of_exponent_length = public_key_data.u8(0);
-					let (exponent_and_modulus, exponent_length) = if first_byte_of_exponent_length == 0
-					{
-						const SecondAndThirdBytesSize: usize = 2;
-
-						const SizeSize: usize = FirstByteSize + SecondAndThirdBytesSize;
-
-						if unlikely!(public_key_data.len() < SizeSize)
-						{
-							return Err(ResourceDataForTypeIPSECKEYOrHIPHasTooShortALengthForRSAPublicKeyForAThreeByteExponentLength($public_key_length))
-						}
-
-						(&public_key_data[SizeSize .. ], public_key_data.u16_as_usize(FirstByteSize))
-					}
-					else
-					{
-						(&public_key_data[FirstByteSize .. ], first_byte_of_exponent_length as usize)
-					};
-
-					if unlikely!(exponent_length == 0)
-					{
-						return Err(ResourceDataForTypeIPSECKEYOrHIPHasAZeroExponentForARSAPublicKey)
-					}
-
-					if unlikely!(exponent_and_modulus.len() < exponent_length)
-					{
-						return Err(ResourceDataForTypeIPSECKEYOrHIPHasTooShortALengthForARSAPublicKeyForExponentLength)
-					}
-
-					let modulus_length = exponent_and_modulus.len() - exponent_length;
-					if unlikely!(modulus_length == 0)
-					{
-						return Err(ResourceDataForTypeIPSECKEYOrHIPHasAZeroModulusForARSAPublicKey)
-					}
-
-					let rsa_public_key = RsaPublicKey
-					{
-						exponent: &exponent_and_modulus[ .. exponent_length],
-						modulus: &exponent_and_modulus[exponent_length .. ],
-					};
-
-					Some(RSA(rsa_public_key))
-				}
-
-				3 =>
-				{
-					const BitsInAByte: usize = 8;
-
-					if unlikely!($public_key_length != 256 / BitsInAByte || $public_key_length != 384 / BitsInAByte)
-					{
-						return Err(ResourceDataForTypeIPSECKEYOrHIPHasAUnusualLengthForAnECDSAPublicKey($public_key_length))
-					}
-
-					let public_key_data = &$resource_data[$public_key_starts_at_offset .. $public_key_starts_at_offset + $public_key_length];
-
-					let ec_dsa_public_key = EcDsaPublicKey
-					{
-						Q: public_key_data,
-					};
-
-					Some(ECDSA(ec_dsa_public_key))
-				}
-
-				_ =>
-				{
-					$unassigned_callback;
-					return Ok($resource_data_end_pointer)
-				}
-			}
-		}
-	}
-}
-
-macro_rules! guard_delegation_signer
-{
-	($self: ident, $end_of_name_pointer: ident, $end_of_message_pointer: ident, $resource_record_name: ident, $resource_record_visitor: ident, $ignored_callback: ident, $visit_callback: ident, $permit_delete: expr, $data_type: ident, $response_parsing_state: ident) =>
-	{
-		{
-			let (time_to_live, resource_data) = $self.validate_class_is_internet_and_get_time_to_live_and_resource_data($resource_record_name, $end_of_name_pointer, $end_of_message_pointer, $data_type, $response_parsing_state)?;
-
-			use self::DelegationSignerResourceRecordIgnoredBecauseReason::*;
-			use self::DigestAlgorithmRejectedBecauseReason::*;
-			use self::DnsSecDigest::*;
-
-			const KeyTagSize: usize = 2;
-			const SecurityAlgorithmTypeSize: usize = 1;
-			const DigestTypeSize: usize = 1;
-			const MinimumDigestSize: usize = 0;
-
-			let length = resource_data.len();
-			if unlikely!(length < KeyTagSize + SecurityAlgorithmTypeSize + DigestTypeSize + MinimumDigestSize)
-			{
-				return Err(ResourceDataForTypeDSOrCDSHasAnIncorrectLength(length))
-			}
-
-			let resource_data_end_pointer = resource_data.end_pointer();
-
-			let security_algorithm_type = resource_data.u8(KeyTagSize);
-			let security_algorithm = match SecurityAlgorithm::parse_security_algorithm(security_algorithm_type, $permit_delete, false)?
-			{
-				Left(security_algorithm) => security_algorithm,
-				Right(security_algorithm_rejected_because_reason) =>
-				{
-					$resource_record_visitor.$ignored_callback($resource_record_name, SecurityAlgorithmRejected(security_algorithm_rejected_because_reason));
-					return Ok(resource_data_end_pointer)
-				}
-			};
-
-			const DigestOffset: usize = KeyTagSize + SecurityAlgorithmTypeSize + DigestTypeSize;
-
-			let digest_type = resource_data.u8(KeyTagSize + SecurityAlgorithmTypeSize);
-			let digest = match digest_type
-			{
-				0 => return Err(DigestAlgorithmTypeIsReservedByRfc3658),
-
-				1 =>
-				{
-					$resource_record_visitor.$ignored_callback($resource_record_name, DigestAlgorithmRejected(Sha1IsBroken));
-					return Ok(resource_data_end_pointer)
-				}
-
-				2 => guard_hash_digest_if_final_field!(resource_data, DigestOffset, 256, Sha2_256, ResourceDataForTypeDSOrCDSHasADigestLengthThatIsIncorrectForTheDigestType),
-
-				3 =>
-				{
-					$resource_record_visitor.$ignored_callback($resource_record_name, DigestAlgorithmRejected(Gost94MayBeBroken));
-					return Ok(resource_data_end_pointer)
-				}
-
-				4 => guard_hash_digest_if_final_field!(resource_data, DigestOffset, 384, Sha2_384, ResourceDataForTypeDSOrCDSHasADigestLengthThatIsIncorrectForTheDigestType),
-
-				_ =>
-				{
-					$resource_record_visitor.$ignored_callback($resource_record_name, DigestAlgorithmRejected(DigestAlgorithmRejectedBecauseReason::Unassigned(digest_type)));
-					return Ok(resource_data_end_pointer)
-				}
-			};
-
-			let record = DelegationSigner
-			{
-				key_tag: resource_data.value::<KeyTag>(0),
-				security_algorithm,
-				digest,
-			};
-
-			$resource_record_visitor.$visit_callback($resource_record_name, time_to_live, record)?;
-			Ok(resource_data_end_pointer)
-		}
-	}
-}
-
-macro_rules! guard_dns_key
-{
-	($self: ident, $end_of_name_pointer: ident, $end_of_message_pointer: ident, $resource_record_name: ident, $resource_record_visitor: ident, $ignored_callback: ident, $visit_callback: ident, $permit_delete: expr, $data_type: ident, $response_parsing_state: ident) =>
-	{
-		{
-			let (time_to_live, resource_data) = $self.validate_class_is_internet_and_get_time_to_live_and_resource_data($resource_record_name, $end_of_name_pointer, $end_of_message_pointer, $data_type, $response_parsing_state)?;
-
-			use self::DnsKeyPurpose::*;
-			use self::DnsKeyResourceRecordIgnoredBecauseReason::*;
-
-			const FlagsSize: usize = 2;
-			const ProtocolSize: usize = 1;
-			const AlgorithmSize: usize = 1;
-			const MinimumPublicKeySize: usize = 0;
-
-			let length = resource_data.len();
-			if unlikely!(length < FlagsSize + ProtocolSize)
-			{
-				return Err(ResourceDataForTypeDNSKEYOrCDNSKEYHasAnIncorrectLength(length))
-			}
-
-			let resource_data_end_pointer = resource_data.end_pointer();
-
-			let protocol = resource_data.u8(FlagsSize);
-			if unlikely!(protocol != 3)
-			{
-				$resource_record_visitor.$ignored_callback($resource_record_name, ProtocolWasNot3(protocol));
-				return Ok(resource_data_end_pointer)
-			}
-
-			if unlikely!(length < FlagsSize + ProtocolSize + AlgorithmSize + MinimumPublicKeySize)
-			{
-				return Err(ResourceDataForTypeDNSKEYOrCDNSKEYHasAnIncorrectLength(length))
-			}
-
-			let flags = resource_data.u16_network_endian(0);
-
-			const ZONE: u16 = 7;
-			#[cfg(target_endian = "big")] const IsZoneKeyFlag: u16 = 1 << (15 - ZONE);
-			#[cfg(target_endian = "little")] const IsZoneKeyFlag: u16 = 1 << ((15 - ZONE) - 8);
-
-			const REVOKE: u16 = 8;
-			#[cfg(target_endian = "big")] const RevokedFlag: u16 = 1 << (15 - REVOKE);
-			#[cfg(target_endian = "little")] const RevokedFlag: u16 = 1 << ((15 - REVOKE) + 8);
-
-			const SEP: u16 = 15;
-			#[cfg(target_endian = "big")] const SecureEntryPointFlag: u16 = 1 << (15 - SEP);
-			#[cfg(target_endian = "little")] const SecureEntryPointFlag: u16 = 1 << ((15 - SEP) + 8);
-
-			const KnownFlags: u16 = IsZoneKeyFlag | IsZoneKeyFlag | SecureEntryPointFlag;
-
-			if unlikely!(flags & !KnownFlags != 0)
-			{
-				$resource_record_visitor.$ignored_callback($resource_record_name, UnassignedFlags(flags));
-				return Ok(resource_data_end_pointer)
-			}
-
-			let is_revoked = flags & RevokedFlag != 0;
-			if unlikely!(is_revoked)
-			{
-				$resource_record_visitor.$ignored_callback($resource_record_name, Revoked);
-				return Ok(resource_data_end_pointer)
-			}
-
-			let is_zone_key = flags & IsZoneKeyFlag != 0;
-			let is_secure_entry_point = flags & SecureEntryPointFlag != 0;
-
-			let purpose = if unlikely!(is_zone_key)
-			{
-				ZoneSigningKey { is_secure_entry_point }
-			}
-			else
-			{
-				if unlikely!(is_secure_entry_point)
-				{
-					$resource_record_visitor.$ignored_callback($resource_record_name, SecureEntryPointFlagSetButNotZoneKeyFlag);
-					return Ok(resource_data_end_pointer)
-				}
-				KeySigningKey
-			};
-
-			let security_algorithm_type = resource_data.u8(FlagsSize + ProtocolSize);
-			let security_algorithm = match SecurityAlgorithm::parse_security_algorithm(security_algorithm_type, $permit_delete, false)?
-			{
-				Left(security_algorithm) => security_algorithm,
-				Right(security_algorithm_rejected_because_reason) =>
-				{
-					$resource_record_visitor.$ignored_callback($resource_record_name, SecurityAlgorithmRejected(security_algorithm_rejected_because_reason));
-					return Ok(resource_data_end_pointer)
-				}
-			};
-
-			let record = DnsKey
-			{
-				computed_key_tag: resource_data.key_tag(),
-				purpose,
-				security_algorithm,
-				public_key: &resource_data[(FlagsSize + ProtocolSize + AlgorithmSize) .. ],
-			};
-
-			$resource_record_visitor.$visit_callback($resource_record_name, time_to_live, record)?;
-			Ok(resource_data_end_pointer)
-		}
-	}
-}
-
 pub(crate) struct ResourceRecord;
 
 impl ResourceRecord
@@ -328,28 +14,34 @@ impl ResourceRecord
 
 	const ExtendedDns0OptRecordWithoutOptionsSize: usize = Self::MinimumSize;
 	
-	pub(crate) const UdpRequestorsPayloadSize: u16 = (4096 - TcpMessage::TcpBufferLengthSize) as u16;
+	pub(crate) const UdpRequestorsPayloadSize: usize = (4096 - TcpMessage::TcpBufferLengthSize);
+	
+	const UdpRequestorsPayloadSizeBigEndianU16: BigEndianU16 = (Self::UdpRequestorsPayloadSize as u16).to_be_bytes();
 
 	#[inline(always)]
 	pub(crate) fn write_extended_dns_0_opt_for_query(end_of_authority_section_pointer: usize) -> usize
 	{
+		let mut current_pointer = end_of_authority_section_pointer;
+		
 		const RootNameSize: usize = Name::MinimumSize;
 		const RootName: u8 = 0x00;
-		end_of_authority_section_pointer.set_u8(RootName);
-		let mut current_pointer = end_of_authority_section_pointer + 1;
+		current_pointer.set_u8_byte(RootName);
+		current_pointer += 1;
 
-		current_pointer.set_u16_bytes(DataType::OPT.0);
+		current_pointer.set_u16_bytes(MetaType::OPT.0);
 		current_pointer += ResourceRecordFooter::DataSize;
-
-		current_pointer.set_u16(Self::UdpRequestorsPayloadSize.to_be());
+		
+		current_pointer.set_u16_bytes(Self::UdpRequestorsPayloadSizeBigEndianU16);
 		current_pointer += ResourceRecordFooter::RequestorsUdpPayloadSize;
 
 		current_pointer.set_u32_bytes(ExtendedResponseCodeAndFlags::new_for_query());
 		current_pointer += ResourceRecordFooter::ExtendedRCodeAndFlagsSize;
 
-		const NoOptionsSize: BigEndianU16 = [0, 0];
-		current_pointer.set_u16_bytes(NoOptionsSize.to_be());
-		current_pointer + ResourceRecordFooter::OptionsSize
+		const NoOptions: BigEndianU16 = [0, 0];
+		current_pointer.set_u16_bytes(NoOptions);
+		current_pointer += ResourceRecordFooter::OptionsSize;
+		
+		current_pointer
 	}
 
 	#[inline(always)]
@@ -378,7 +70,7 @@ impl ResourceRecord
 				if likely!(response_parsing_state.have_yet_to_see_an_answer_section_cname_resource_record)
 				{
 					response_parsing_state.have_yet_to_see_an_answer_section_cname_resource_record = true;
-					self.handle_dname(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_labels, response_parsing_state)
+					self.handle_dname(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state)
 				}
 				else
 				{

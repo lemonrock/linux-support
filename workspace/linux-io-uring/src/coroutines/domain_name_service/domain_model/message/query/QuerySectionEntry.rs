@@ -7,8 +7,11 @@ pub(crate) struct QuerySectionEntry;
 impl QuerySectionEntry
 {
 	const MaximumQueryNameSize: usize = Name::MaximumSize;
+	
 	const QueryTypeSize: usize = 2;
+	
 	const ClassSize: usize = 2;
+	
 	const MaximumSizeOfOneQuery: usize = Name::MaximumSize + Self::QueryTypeSize + Self::ClassSize;
 
 	/// Validation of available buffer size is done before calling this.
@@ -33,7 +36,7 @@ impl QuerySectionEntry
 		debug_assert_eq!(query_class, QueryClass::Internet);
 
 		let data_type = self.data_type(end_of_qname_pointer);
-		request_query_identification.matches(qname, data_type)?;
+		request_query_identification.matches(data_type, qname)?;
 
 		Ok((Self::end_of_query_section(end_of_qname_pointer), data_type))
 	}

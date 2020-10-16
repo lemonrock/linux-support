@@ -2,7 +2,24 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A 16-bit message identifier, set in a request and returned in a reply.
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(transparent)]
-pub(crate) struct MessageIdentifier(BigEndianU16);
+macro_rules! guard_hash_digest_if_final_field
+{
+	($resource_data: ident, $digest_offset: ident, $digest_size_in_bits: expr, $name: ident, $dns_protocol_error: ident) =>
+	{
+		{
+			let digest_data = &$resource_data[$digest_offset .. ];
+
+			let length = digest_data.len();
+
+			const BitsInAByte: usize = 8;
+			const DigestSizeInBytes: usize = $digest_size_in_bits / BitsInAByte;
+
+			if unlikely!(length != DigestSizeInBytes)
+			{
+				return Err($dns_protocol_error(length))
+			}
+
+			$name(digest_data.start_pointer().unsafe_cast::<[u8; DigestSizeInBytes]>())
+		}
+	}
+}

@@ -28,7 +28,7 @@ macro_rules! parse_bytes_label
 
 					if unlikely!(b'A' <= ascii_character && ascii_character <= b'Z')
 					{
-						index.set_u8(ascii_character + 0x20)
+						index.set_u8_byte(ascii_character + 0x20)
 					}
 				}
 			}

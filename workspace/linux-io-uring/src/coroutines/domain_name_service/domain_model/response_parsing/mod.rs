@@ -19,11 +19,13 @@ use super::resource_data::ssh_fingerprint::*;
 use super::resource_data::start_of_authority::*;
 
 
+pub(crate) mod response_parser;
+
+
 include!("AnswerOutcome.rs");
 include!("AuthorityResourceRecordVisitor.rs");
 include!("CanonicalNameChain.rs");
 include!("DiscardingResourceRecordVisitor.rs");
 include!("NegativeCachingTimeToLiveInSeconds.rs");
-include!("ResponseParser.rs");
 include!("ResponseParsingState.rs");
 include!("ResourceRecordVisitor.rs");

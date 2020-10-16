@@ -5,13 +5,13 @@
 #[repr(C, packed)]
 pub(crate) struct TcpMessage
 {
-	length: [u8; TcpMessage::TcpBufferLengthSize],
+	length: BigEndianU16,
 	message: Message,
 }
 
 impl TcpMessage
 {
-	pub(crate) const TcpBufferLengthSize: usize = size_of::<u16>();
+	pub(crate) const TcpBufferLengthSize: usize = size_of::<BigEndianU16>();
 
 	pub(crate) const MaximumQueryBufferSize: usize = Self::TcpBufferLengthSize + Message::MaximumQueryMessageSize;
 
@@ -19,12 +19,12 @@ impl TcpMessage
 	#[inline(always)]
 	pub(crate) fn write_query_tcp_message(buffer_pointer: usize, message_identifier: MessageIdentifier, data_type: DataType, query_name: &UncompressedName<impl Allocator>) -> usize
 	{
-		let message_pointer = buffer_pointer + TcpMessage::TcpBufferLengthSize;
+		let message_pointer = buffer_pointer + Self::TcpBufferLengthSize;
 
-		let query_section_pointer = MessageHeader::write_message_header(message_pointer, message_identifier);
+		let query_section_pointer = MessageHeader::write_query_message_header(message_pointer, message_identifier);
 		let query_section_end_pointer = QuerySectionEntry::write_query_section_entry_for_query(query_section_pointer, data_type, query_name);
 		let end_pointer = ResourceRecord::write_extended_dns_0_opt_for_query(query_section_end_pointer);
-		TcpMessage::write_tcp_buffer_length(buffer_pointer, message_pointer, end_pointer);
+		Self::write_tcp_buffer_length(buffer_pointer, message_pointer, end_pointer);
 
 		end_pointer - buffer_pointer
 	}
@@ -33,7 +33,10 @@ impl TcpMessage
 	#[inline(always)]
 	fn write_tcp_buffer_length(buffer_pointer: usize, message_pointer: usize, end_pointer: usize)
 	{
-		buffer_pointer.set_u16_network_endian_from_usize(end_pointer - message_pointer)
+		let length = end_pointer - message_pointer;
+		debug_assert!(length <= u16::MAX as usize);
+		let length_u16 = length as u16;
+		buffer_pointer.set_u16_bytes(length_u16.to_be_bytes())
 	}
 
 	/// Length (excluding the two byte length field).

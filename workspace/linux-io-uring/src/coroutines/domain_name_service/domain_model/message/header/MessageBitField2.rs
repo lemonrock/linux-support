@@ -3,49 +3,51 @@
 
 
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-struct MessageBitField1(u8);
+#[repr(transparent)]
+struct MessageBitField2(u8);
 
-impl MessageBitField1
+impl MessageBitField2
 {
 	#[inline(always)]
-	fn query_response(self) -> MessageType
+	fn recursion_available(self) -> bool
 	{
-		unsafe { transmute(self.0 & 0b1000_000) }
-	}
-	
-	#[inline(always)]
-	fn raw_opcode(self) -> u8
-	{
-		(self.0 & 0b0111_1000) >> 3
-	}
-	
-	#[inline(always)]
-	fn authoritative_answer(self) -> bool
-	{
-		self.0 & 0b0000_0100 != 0
+		self.0 & 0b1000_000 != 0
 	}
 
 	#[inline(always)]
-	fn is_truncated(self) -> bool
+	fn z(self) -> bool
 	{
-		self.0 & 0b0000_0010 != 0
+		self.0 & 0b0100_0000 != 0
+	}
+
+	#[inline(always)]
+	fn authentic_data(self) -> bool
+	{
+		self.0 & 0b0010_0000 != 0
+	}
+
+	#[inline(always)]
+	fn checking_disabled(self) -> bool
+	{
+		self.0 & 0b0001_0000 != 0
 	}
 	
+	/// Valid codes are of type `MessageResponseCode`.
 	#[inline(always)]
-	fn recursion_desired(self) -> bool
+	fn raw_message_response_code(self) -> u8
 	{
-		self.0 & 0b0000_0001 != 0
+		self.0 & 0b0000_1111
 	}
 
 	#[inline(always)]
 	const fn new_for_query() -> u8
 	{
-		const MessageTypeQuery: u8 = 0b0000_0000;
-		const QueryRawOpcode: u8 = 0b0000_0000;
-		const IsNotAnAuthoritativeAnswer: u8 = 0b0000_0000;
-		const IsNotTruncated: u8 = 0b0000_0000;
-		const RecursionIsDesired: u8 = 0b0000_0001;
+		const RecursionIsAvailableShouldNotBeSetInQuery: u8 = 0b0000_0000;
+		const UnassignedBitsMustBeZero: u8 = 0b0000_0000;
+		const AuthenticDataBitShouldNotBeSetInQuery: u8 = 0b0000_0000;
+		const CheckingIsEnabled: u8 = 0b0000_0000;
+		const OkResponseCode: u8 = 0b0000_0000;
 
-		MessageTypeQuery | QueryRawOpcode | IsNotAnAuthoritativeAnswer | IsNotTruncated | RecursionIsDesired
+		RecursionIsAvailableShouldNotBeSetInQuery | UnassignedBitsMustBeZero | AuthenticDataBitShouldNotBeSetInQuery | CheckingIsEnabled | OkResponseCode
 	}
 }
