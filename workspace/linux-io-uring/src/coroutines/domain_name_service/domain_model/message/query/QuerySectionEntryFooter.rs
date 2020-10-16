@@ -26,18 +26,15 @@ impl QuerySectionEntryFooter
 	}
 
 	#[inline(always)]
-	fn query_class(&self) -> Result<QueryClass, DnsProtocolError>
+	fn validate_is_internet_query_class(&self) -> Result<(), DnsProtocolError>
 	{
-		let (upper, lower) = unsafe { transmute::<_, (u8, u8)>(self.qclass) };
-
-		if likely!(upper == 0x00)
+		if likely!(self.qclass == [0x00, 0x01])
 		{
-			if likely!(lower == 0x01)
-			{
-				return Ok(QueryClass::Internet)
-			}
+			Ok(())
 		}
-
-		Err(ClassIsReservedUnassignedOrObsolete(self.qclass))
+		else
+		{
+			Err(ClassIsReservedUnassignedOrObsolete(self.qclass))
+		}
 	}
 }

@@ -2,26 +2,24 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) struct Message;
+pub(crate) struct DnsMessage;
 
-impl Message
+impl DnsMessage
 {
 	pub(crate) const MinimumMessageSize: usize = MessageHeader::Size + Self::MinimumMessageBodySize;
 
 	const MinimumMessageBodySize: usize = 0;
 
-	const MaximumQueryMessageSize: usize = MessageHeader::Size + QuerySectionEntry::MaximumSizeOfOneQuery + ResourceRecord::ExtendedDns0OptRecordWithoutOptionsSize;
+	pub(super) const MaximumQueryMessageSize: usize = MessageHeader::Size + QuerySectionEntry::MaximumSizeOfOneQuery + ResourceRecord::ExtendedDns0OptRecordWithoutOptionsSize;
 
-	/// Message header.
 	#[inline(always)]
 	pub(crate) fn message_header(&self) -> &MessageHeader
 	{
 		self.unsafe_cast::<MessageHeader>()
 	}
 
-	/// Message body.
 	#[inline(always)]
-	pub(crate) fn message_body_as_query_section_entry(&mut self) -> &mut QuerySectionEntry
+	pub(crate) fn query_section_entry(&mut self) -> &mut QuerySectionEntry
 	{
 		let message_header_pointer = self.as_usize_pointer() + MessageHeader::Size;
 		message_header_pointer.unsafe_cast_mut::<QuerySectionEntry>()

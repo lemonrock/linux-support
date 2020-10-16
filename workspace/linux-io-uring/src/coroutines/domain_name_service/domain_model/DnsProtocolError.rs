@@ -7,7 +7,13 @@
 pub enum DnsProtocolError
 {
 	/// A message is shorter than the minimum.
-	MessageIsTooShort,
+	MessageIsTooShort(usize),
+	
+	/// A message is longer than the maximum.
+	MessageIsTooLong(usize),
+	
+	/// An unexpected reply message.
+	UnexpectedReplyMessage(MessageIdentifier),
 
 	/// A message, once parsed, had bytes remaining in the TCP buffer.
 	MessageHadUnparsedBytesAtEnd,
@@ -61,7 +67,7 @@ pub enum DnsProtocolError
 	ResponseIgnoredDnsSec,
 
 	/// Response was authoritative (`AA` bit is set) but also has the authenticated data (`AD`) bit set; this is not possible, as an authoritative name server can not authenticate its own signatures!
-	ResponseWasAuthoritativeButHasTheAuthoritativeDataBitSet,
+	ResponseWasAuthoritativeButHasTheAuthenticatedDataBitSet,
 
 	/// Response was authoritative (`AA` bit is set), the error code (`RCODE`) was `NXDOMAIN` but the answer section contained one or more answers (excluding `CNAME` and `DNAME` resource records).
 	ResponseWasAuthoritativeWithNoSuchDomainErrorCodeButContainsAnAnswer,
@@ -131,11 +137,11 @@ pub enum DnsProtocolError
 	/// A record type was present in the authority section which should not have been (only `SOA` records are allowed).
 	ResourceRecordTypeIsNotValidInAuthoritySection(DataType),
 
-	/// More than one `CNAME` record exists in an answer section.
-	MoreThanOneCNAMERecordIsNotValidInAnswerSection,
-
-	/// More than one `DNAME` record exists in an answer section.
-	MoreThanOneDNAMERecordIsNotValidInAnswerSection,
+	/// More than one `CNAME` record exists in an answer section when a QueryType was `CNAME`.
+	MoreThanOneCNAMERecordIsNotValidInAnswerSectionForACNAMEQuery,
+	
+	/// More than one `DNAME` record exists in an answer section when a QueryType was `DNAME`.
+	MoreThanOneDNAMERecordIsNotValidInAnswerSectionForADNAMEQuery,
 
 	/// More than one `SOA` resource records.
 	MoreThanOneStatementOfAuthorityResourceRecord,
@@ -505,6 +511,18 @@ pub enum DnsProtocolError
 	///
 	/// This check prevents forward-pointers and circular pointers.
 	LabelPointerPointsToDataAfterTheStartOfTheCurrentlyBeingParsedName,
+	
+	/// We limit our canonical chain to 6 entries.
+	TooManyCanonicalNamesInChain,
+	
+	/// We rely on canonical chain links been sorted.
+	CanonicalNamesNotSorted,
+	
+	/// This avoid a CNAME loop.
+	CanonicalNameChainCanNotIncludeQueryNameAsItCreatesALoop,
+	
+	/// This avoid a CNAME loop.
+	AddingNameToCanonicalNameChainCreatesALoop,
 }
 
 impl Display for DnsProtocolError

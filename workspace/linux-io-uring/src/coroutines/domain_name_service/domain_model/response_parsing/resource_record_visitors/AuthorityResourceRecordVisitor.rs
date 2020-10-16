@@ -3,11 +3,11 @@
 
 
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-struct AuthorityResourceRecordVisitor<'message>
+pub(crate) struct AuthorityResourceRecordVisitor<'message>
 {
 	canonical_name_chain: CanonicalNameChain<'message>,
 	have_seen_a_ns_record: bool,
-	have_send_a_soa_record: Option<NegativeCachingTimeToLiveInSeconds>,
+	have_seen_a_soa_record: Option<NegativeCachingTimeToLiveInSeconds>,
 }
 
 impl<'message> ResourceRecordVisitor<'message> for AuthorityResourceRecordVisitor<'message>
@@ -44,7 +44,7 @@ impl<'message> ResourceRecordVisitor<'message> for AuthorityResourceRecordVisito
 		let resource_record_time_to_live = time_to_live.into();
 		let negative_caching_time_to_live = record.footer.negative_caching_time_to_live.into();
 		let negative_caching_time_to_live = min(resource_record_time_to_live, negative_caching_time_to_live);
-		self.have_send_a_soa_record = Some(negative_caching_time_to_live);
+		self.have_seen_a_soa_record = Some(negative_caching_time_to_live);
 
 		Ok(())
 	}
@@ -52,11 +52,22 @@ impl<'message> ResourceRecordVisitor<'message> for AuthorityResourceRecordVisito
 
 impl<'message> AuthorityResourceRecordVisitor<'message>
 {
+	#[inline(always)]
+	pub(crate) fn new(canonical_name_chain: CanonicalNameChain<'message>) -> Self
+	{
+		Self
+		{
+			canonical_name_chain,
+			have_seen_a_ns_record: false,
+			have_seen_a_soa_record: None
+		}
+	}
+	
 	/// Applies the rules in RFC 2308 to determine the outcome.
 	///
 	/// This logic does not work if the requested record type was `SOA`, `CNAME` or `DNAME`, and probably does not work also for `NS`.
 	/// However, there is very little reason to request these record types for normal clients.
-	fn answer_outcome(&self, is_authoritative_answer: bool, has_nxdomain_error_code: bool, answer_section_has_at_least_one_record_of_requested_data_type: bool, have_seen_a_soa_record: bool) -> AnswerOutcome
+	pub(crate) fn answer_outcome(&self, is_authoritative_answer: bool, has_nxdomain_error_code: bool, answer_section_has_at_least_one_record_of_requested_data_type: bool) -> AnswerOutcome
 	{
 		use self::AnswerOutcome::*;
 
@@ -65,7 +76,7 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 
 		if unlikely!(is_authoritative_answer)
 		{
-			match (answer_section_has_at_least_one_record_of_requested_data_type, have_seen_a_soa_record, self.have_seen_a_ns_record, has_nxdomain_error_code)
+			match (answer_section_has_at_least_one_record_of_requested_data_type, self.have_seen_a_soa_record, self.have_seen_a_ns_record, has_nxdomain_error_code)
 			{
 				// RFC 2308 Section 2.1 "NXDOMAIN RESPONSE: TYPE 1".
 				(false, Some(negative_caching_time_to_live), true, true) => Ok(NameError(negative_caching_time_to_live)),
@@ -94,7 +105,7 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 		{
 			debug_assert_eq!(has_nxdomain_error_code, false, "The `NXDOMAIN` error code is invalid for non-authoritative answers; this should have been validated when checking the message_header");
 
-			match (answer_section_has_at_least_one_record_of_requested_data_type, have_seen_a_soa_record, self.have_seen_a_ns_record)
+			match (answer_section_has_at_least_one_record_of_requested_data_type, self.have_seen_a_soa_record, self.have_seen_a_ns_record)
 			{
 				// RFC 2308 Section 2.2 "NODATA RESPONSE: TYPE 1".
 				(false, Some(negative_caching_time_to_live), true) => Ok(NoData(negative_caching_time_to_live)),
@@ -111,20 +122,6 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 				// ? Should there be SOA / NS records in authority section if answered ?
 				(true, _, _) => Ok(Answered),
 			}
-		}
-	}
-}
-
-impl<'message> AuthorityResourceRecordVisitor<'message>
-{
-	#[inline(always)]
-	fn new(canonical_name_chain: CanonicalNameChain<'message>) -> Self
-	{
-		Self
-		{
-			canonical_name_chain,
-			have_seen_a_ns_record: false,
-			have_send_a_soa_record: None
 		}
 	}
 }

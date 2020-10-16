@@ -3,48 +3,86 @@
 
 
 #[derive(Debug)]
-pub(crate) struct ResponseParsingState<'message>
+pub(crate) struct ResponseParsingState
 {
-	pub(crate) have_yet_to_see_an_answer_section_cname_resource_record: bool,
-	pub(crate) have_yet_to_see_an_answer_section_dname_resource_record: bool,
-	pub(crate) have_yet_to_see_a_soa_resource_record: bool,
-	pub(crate) have_yet_to_see_an_edns_opt_resource_record: bool,
-	pub(crate) dnssec_ok: Option<bool>,
-
-	already_encountered: HashSet<(DataType, WithCompressionParsedName<'message>, &'message [u8])>
+	number_of_cname_records_in_answer_section: Cell<usize>,
+	number_of_dname_records_in_answer_section: Cell<usize>,
+	
+	have_yet_to_see_a_soa_resource_record: Cell<bool>,
+	
+	have_yet_to_see_an_edns_opt_resource_record: Cell<bool>,
+	dnssec_ok: Cell<Option<bool>>,
 }
 
-impl<'message> Default for ResponseParsingState<'message>
+impl ResponseParsingState
 {
 	#[inline(always)]
-	fn default() -> Self
+	const fn new() -> Self
 	{
 		Self
 		{
-			have_yet_to_see_an_answer_section_cname_resource_record: true,
-			have_yet_to_see_an_answer_section_dname_resource_record: true,
-			have_yet_to_see_a_soa_resource_record: true,
-			have_yet_to_see_an_edns_opt_resource_record: true,
-			dnssec_ok: None,
-
-			already_encountered: HashSet::with_capacity(16),
+			number_of_cname_records_in_answer_section: Cell::new(0),
+			number_of_dname_records_in_answer_section: Cell::new(0),
+			
+			have_yet_to_see_a_soa_resource_record: Cell::new(true),
+			
+			have_yet_to_see_an_edns_opt_resource_record: Cell::new(true),
+			dnssec_ok: Cell::new(None),
 		}
 	}
-}
-
-impl<'message> ResponseParsingState<'message>
-{
+	
 	#[inline(always)]
-	pub(crate) fn encountered(&mut self, resource_record_data_type: DataType, resource_record_name: &WithCompressionParsedName<'message>, resource_data: &'message [u8]) -> Result<(), DnsProtocolError>
+	pub(crate) fn validate_only_one_CNAME_record_in_answer_section_when_query_type_was_CNAME(&self) -> Result<(), DnsProtocolError>
 	{
-		let has_not_yet_been_encountered = self.already_encountered.insert((resource_record_data_type, resource_record_name.clone(), resource_data));
-		if likely!(has_not_yet_been_encountered)
+		let number_of_cname_records_in_answer_section = self.number_of_cname_records_in_answer_section.get();
+		if unlikely(number_of_cname_records_in_answer_section > 1)
 		{
-			Ok(())
+			Err(MoreThanOneCNAMERecordIsNotValidInAnswerSectionForACNAMEQuery)
 		}
 		else
 		{
-			Err(DuplicateResourceRecord(resource_record_data_type))
+			self.number_of_cname_records_in_answer_section.set(number_of_cname_records_in_answer_section + 1)
 		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn validate_only_one_DNAME_record_in_answer_section_when_query_type_was_DNAME(&self) -> Result<(), DnsProtocolError>
+	{
+		let number_of_dname_records_in_answer_section = self.number_of_dname_records_in_answer_section.get();
+		if unlikely(number_of_dname_records_in_answer_section > 1)
+		{
+			Err(MoreThanOneDNAMERecordIsNotValidInAnswerSectionForADNAMEQuery)
+		}
+		else
+		{
+			self.number_of_dname_records_in_answer_section.set(number_of_dname_records_in_answer_section + 1)
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn parsing_a_soa_record(&self)
+	{
+		if unlikely!(!self.have_yet_to_see_a_soa_resource_record.get())
+		{
+			return Err(MoreThanOneStatementOfAuthorityResourceRecord)
+		}
+		self.have_yet_to_see_a_soa_resource_record.set(false);
+	}
+	
+	#[inline(always)]
+	pub(crate) fn parsing_an_edns_opt_record(&self)
+	{
+		if unlikely!(!self.have_yet_to_see_an_edns_opt_resource_record.get())
+		{
+			return Err(MoreThanOneExtendedDnsOptResourceRecord)
+		}
+		self.have_yet_to_see_an_edns_opt_resource_record.set(false);
+	}
+	
+	#[inline(always)]
+	pub(crate) fn set_dnssec_ok(&self, dnssec_ok: bool)
+	{
+		debug_assert!(self.dnssec_ok.get().is_none());
+		self.dnssec_ok.set(Some(dnssec_ok))
 	}
 }

@@ -13,13 +13,13 @@ impl Name
 	pub(crate) const MaximumSize: usize = 255;
 
 	#[inline(always)]
-	pub(crate) fn parse_without_compression_but_register_labels_for_compression<'message>(&'message mut self, parsed_labels: &mut ParsedLabels, end_of_message_pointer: usize) -> Result<(WithoutCompressionParsedName<'message>, usize), DnsProtocolError>
+	pub(crate) fn parse_without_compression_but_register_labels_for_compression<'message>(&'message self, parsed_labels: &mut ParsedLabels, end_of_message_pointer: usize) -> Result<(WithoutCompressionParsedName<'message>, usize), DnsProtocolError>
 	{
-		parsed_labels.parse_without_compression_but_register_labels_for_compression(self.as_usize_pointer_mut(), end_of_message_pointer)
+		parsed_labels.parse_without_compression_but_register_labels_for_compression(self.as_usize_pointer(), end_of_message_pointer)
 	}
 
 	#[inline(always)]
-	pub(crate) fn parse_with_compression<'message>(&'message mut self, parsed_labels: &mut ParsedLabels, end_of_message_pointer: usize) -> Result<(WithCompressionParsedName<'message>, usize), DnsProtocolError>
+	pub(crate) fn parse_with_compression<'message>(&'message self, parsed_labels: &mut ParsedLabels, end_of_message_pointer: usize) -> Result<(WithCompressionParsedName<'message>, usize), DnsProtocolError>
 	{
 		parsed_labels.parse_name(self.as_usize_pointer_mut(), end_of_message_pointer)
 	}

@@ -12,9 +12,9 @@ impl ResourceRecord
 
 	const MinimumCharacterStringSize: usize = 1;
 
-	const ExtendedDns0OptRecordWithoutOptionsSize: usize = Self::MinimumSize;
+	pub(crate) const ExtendedDns0OptRecordWithoutOptionsSize: usize = Self::MinimumSize;
 	
-	pub(crate) const UdpRequestorsPayloadSize: usize = (4096 - TcpMessage::TcpBufferLengthSize);
+	pub(crate) const UdpRequestorsPayloadSize: usize = (4096 - TcpDnsMessage::TcpBufferLengthSize);
 	
 	const UdpRequestorsPayloadSizeBigEndianU16: BigEndianU16 = (Self::UdpRequestorsPayloadSize as u16).to_be_bytes();
 
@@ -45,90 +45,57 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	pub(crate) fn parse_answer_section_resource_record_in_response<'message>(&'message mut self, question_q_type: DataType, end_of_message_pointer: usize, parsed_labels: &mut ParsedLabels, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	pub(crate) fn parse_answer_section_resource_record_in_response<'message>(&'message self, question_q_type: DataType, end_of_message_pointer: usize, parsed_labels: &mut ParsedLabels, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, answer_section_has_at_least_one_record_of_requested_data_type: &mut bool) -> Result<usize, DnsProtocolError>
 	{
-		let (resource_record_name, end_of_name_pointer, (type_upper, type_lower)) = self.validate_minimum_record_size_and_parse_name_and_resource_record_type(end_of_message_pointer, parsed_labels)?;
-
-		let (question_q_type_upper, question_q_type_lower) =  question_q_type.upper_and_lower();
-
-		if likely!(type_upper == 0x00 && type_upper == question_q_type_upper)
+		let (resource_record_name, end_of_name_pointer, (resource_record_type_higher, resource_record_type_lower)) = self.validate_minimum_record_size_and_parse_name_and_resource_record_type(end_of_message_pointer, parsed_labels)?;
+		
+		let resource_record_type_matches_query_type =
 		{
-			if unlikely!(type_lower == DataType::CNAME_lower && type_lower == question_q_type_lower)
+			let (question_q_type_higher, question_q_type_lower) = question_q_type.upper_and_lower();
+			question_q_type_higher == resource_record_type_higher && question_q_type_lower == resource_record_type_lower
+		};
+		
+		if likely!(resource_record_type_matches_query_type)
+		{
+			*answer_section_has_at_least_one_record_of_requested_data_type = true;
+			
+			/// This is a list of record types, which, when asked for in a query, are only allowed to occur once or never in the answer section.
+			match (resource_record_type_higher, resource_record_type_lower)
 			{
-				if likely!(response_parsing_state.have_yet_to_see_an_answer_section_cname_resource_record)
+				(DataType::CNAME_higher, DataType::CNAME_lower) =>
 				{
-					response_parsing_state.have_yet_to_see_an_answer_section_cname_resource_record = true;
-					self.handle_cname(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_labels, response_parsing_state)
+					response_parsing_state.validate_only_one_CNAME_record_in_answer_section_when_query_type_was_CNAME()?;
+					self.handle_cname(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_labels, duplicate_resource_record_response_parsing, Some(false))
 				}
-				else
+				
+				(DataType::DNAME_higher, DataType::DNAME_lower) =>
 				{
-					Err(MoreThanOneCNAMERecordIsNotValidInAnswerSection)
+					response_parsing_state.validate_only_one_DNAME_record_in_answer_section_when_query_type_was_DNAME()?;
+					self.handle_dname(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing, Some(false))
 				}
-			}
-			else if unlikely!(type_lower == DataType::DNAME_lower && type_lower == question_q_type_lower)
-			{
-				if likely!(response_parsing_state.have_yet_to_see_an_answer_section_cname_resource_record)
-				{
-					response_parsing_state.have_yet_to_see_an_answer_section_cname_resource_record = true;
-					self.handle_dname(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state)
-				}
-				else
-				{
-					Err(MoreThanOneCNAMERecordIsNotValidInAnswerSection)
-				}
-			}
-			else
-			{
-				self.dispatch_resource_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, parsed_labels, resource_record_visitor, response_parsing_state, true, false, (type_upper, type_lower))
+				
+				_ => self.dispatch_resource_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, parsed_labels, resource_record_visitor, response_parsing_state, duplicate_resource_record_response_parsing, true, false, (resource_record_type_higher, resource_record_type_lower))
 			}
 		}
 		else
 		{
-			if likely!(type_upper == 0x00)
+			/// This is a list of record types, which, although not asked for in a query, are permitted to be in the answer section,
+			match (resource_record_type_higher, resource_record_type_lower)
 			{
-				match type_lower
-				{
-					DataType::CNAME_lower =>
-					{
-						if likely!(response_parsing_state.have_yet_to_see_an_answer_section_cname_resource_record)
-						{
-							response_parsing_state.have_yet_to_see_an_answer_section_cname_resource_record = true;
-							self.handle_cname(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_labels, response_parsing_state)
-						}
-						else
-						{
-							Err(MoreThanOneCNAMERecordIsNotValidInAnswerSection)
-						}
-					}
-
-					DataType::DNAME_lower =>
-					{
-						if likely!(response_parsing_state.have_yet_to_see_an_answer_section_cname_resource_record)
-						{
-							response_parsing_state.have_yet_to_see_an_answer_section_cname_resource_record = true;
-							self.handle_dname(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state)
-						}
-						else
-						{
-							Err(MoreThanOneDNAMERecordIsNotValidInAnswerSection)
-						}
-					}
-
-					DataType::RRSIG_lower => self.handle_rrsig(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
-
-					_ => return Err(ResourceRecordTypeIsNotValidInAnswerSection(DataType([type_upper, type_lower])))
-				}
-			}
-			else
-			{
-				return Err(ResourceRecordTypeIsNotValidInAnswerSection(DataType([type_upper, type_lower])))
+				(DataType::CNAME_higher, DataType::CNAME_lower) => self.handle_cname(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_labels, duplicate_resource_record_response_parsing, Some(true)),
+				
+				(DataType::DNAME_higher, DataType::DNAME_lower) => self.handle_dname(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing, Some(true)),
+				
+				(DataType::RRSIG_higher, DataType::RRSIG_lower) => self.handle_rrsig(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing, Some(true)),
+				
+				_ => Err(ResourceRecordTypeIsNotValidInAnswerSection(DataType([resource_record_type_higher, resource_record_type_lower]))),
 			}
 		}
 	}
 
 	/// Returns `Ok(end_of_resource_data_pointer)` unless there is an error.
 	#[inline(always)]
-	pub(crate) fn parse_authority_section_resource_record_in_response<'message>(&'message mut self, end_of_message_pointer: usize, parsed_labels: &mut ParsedLabels, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	pub(crate) fn parse_authority_section_resource_record_in_response<'message>(&'message self, end_of_message_pointer: usize, parsed_labels: &mut ParsedLabels, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
 		let (resource_record_name, end_of_name_pointer, (type_upper, type_lower)) = self.validate_minimum_record_size_and_parse_name_and_resource_record_type(end_of_message_pointer, parsed_labels)?;
 
@@ -138,22 +105,22 @@ impl ResourceRecord
 			match type_lower
 			{
 				// Referral.
-				DataType::NS_lower => self.handle_ns(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_labels, response_parsing_state),
+				DataType::NS_lower => self.handle_ns(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_labels, duplicate_resource_record_response_parsing),
 
 				// Negative Response.
-				DataType::SOA_lower => self.handle_soa(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_labels, response_parsing_state),
+				DataType::SOA_lower => self.handle_soa(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_labels, response_parsing_state, duplicate_resource_record_response_parsing),
 
 				// Referral.
-				DataType::DS_lower => self.handle_ds(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::DS_lower => self.handle_ds(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
 				// Signing negative response or referral.
-				DataType::RRSIG_lower => self.handle_rrsig(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::RRSIG_lower => self.handle_rrsig(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing, false),
 
 				// Signing negative response.
-				DataType::NSEC_lower => self.handle_nsec(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::NSEC_lower => self.handle_nsec(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
 				// Signing negative response.
-				DataType::NSEC3_lower => self.handle_nsec3(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::NSEC3_lower => self.handle_nsec3(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
 				_ => Err(ResourceRecordTypeIsNotValidInAuthoritySection(DataType([type_upper, type_lower])))
 			}
@@ -166,11 +133,11 @@ impl ResourceRecord
 
 	/// Returns `Ok(end_of_resource_data_pointer)` unless there is an error.
 	#[inline(always)]
-	pub(crate) fn parse_additional_section_resource_record_in_response<'message>(&'message mut self, end_of_message_pointer: usize, parsed_labels: &mut ParsedLabels, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	pub(crate) fn parse_additional_section_resource_record_in_response<'message>(&'message self, end_of_message_pointer: usize, parsed_labels: &mut ParsedLabels, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
 		let (parsed_name_iterator, end_of_name_pointer, (type_upper, type_lower)) = self.validate_minimum_record_size_and_parse_name_and_resource_record_type(end_of_message_pointer, parsed_labels)?;
 
-		self.dispatch_resource_record_type(end_of_name_pointer, end_of_message_pointer, parsed_name_iterator, parsed_labels, resource_record_visitor, response_parsing_state, false, true, (type_upper, type_lower))
+		self.dispatch_resource_record_type(end_of_name_pointer, end_of_message_pointer, parsed_name_iterator, parsed_labels, resource_record_visitor, response_parsing_state, duplicate_resource_record_response_parsing, false, true, (type_upper, type_lower))
 	}
 
 	/// Compression of names within `RDATA` is a mess.
@@ -225,27 +192,27 @@ impl ResourceRecord
 	/// * `SRV`
 	/// * `DNAME`
 	#[inline(always)]
-	fn dispatch_resource_record_type<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, parsed_labels: &mut ParsedLabels, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>, soa_is_permitted: bool, opt_is_permitted: bool, (type_upper, type_lower): (u8, u8)) -> Result<usize, DnsProtocolError>
+	fn dispatch_resource_record_type<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, parsed_labels: &mut ParsedLabels, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, soa_is_permitted: bool, opt_is_permitted: bool, (type_upper, type_lower): (u8, u8)) -> Result<usize, DnsProtocolError>
 	{
 		match type_upper
 		{
 			0x00 => match type_lower
 			{
-				DataType::SIG0_lower => self.handle_obsolete_meta_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, response_parsing_state, DataType::SIG0, "Only really useful for updates, which, frankly, are probably better done out-of-band than using DNS; regardless, when using DNS over TLS a client certificate is much more useful"),
+				DataType::SIG0_lower => self.handle_obsolete_meta_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::SIG0, "Only really useful for updates, which, frankly, are probably better done out-of-band than using DNS; regardless, when using DNS over TLS a client certificate is much more useful"),
 
-				DataType::A_lower => self.handle_a(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::A_lower => self.handle_a(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::NS_lower => self.handle_ns(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_labels, response_parsing_state),
+				DataType::NS_lower => self.handle_ns(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_labels, duplicate_resource_record_response_parsing),
 
 				DataType::MD_lower => self.handle_very_obsolete_record_type(DataType::MD),
 
 				DataType::MF_lower => self.handle_very_obsolete_record_type(DataType::MF),
 
-				DataType::CNAME_lower => self.handle_cname(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_labels, response_parsing_state),
+				DataType::CNAME_lower => self.handle_cname(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_labels, duplicate_resource_record_response_parsing, Some(false)),
 
 				DataType::SOA_lower => if likely!(soa_is_permitted)
 				{
-					self.handle_soa(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_labels, response_parsing_state)
+					self.handle_soa(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_labels, response_parsing_state, duplicate_resource_record_response_parsing)
 				}
 				else
 				{
@@ -262,19 +229,19 @@ impl ResourceRecord
 
 				DataType::WKS_lower => self.handle_very_obsolete_record_type(DataType::WKS),
 
-				DataType::PTR_lower => self.handle_ptr(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_labels, response_parsing_state),
+				DataType::PTR_lower => self.handle_ptr(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_labels, duplicate_resource_record_response_parsing),
 
-				DataType::HINFO_lower => self.handle_hinfo(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::HINFO_lower => self.handle_hinfo(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
 				DataType::MINFO_lower => self.handle_very_obsolete_record_type(DataType::MINFO),
 
-				DataType::MX_lower => self.handle_mx(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_labels, response_parsing_state),
+				DataType::MX_lower => self.handle_mx(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_labels, duplicate_resource_record_response_parsing),
 
-				DataType::TXT_lower => self.handle_txt(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::TXT_lower => self.handle_txt(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::RP_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, response_parsing_state, DataType::RP, "Used in some rare circumstances; some legacy records may remain"),
+				DataType::RP_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::RP, "Used in some rare circumstances; some legacy records may remain"),
 
-				DataType::AFSDB_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, response_parsing_state, DataType::AFSDB, "Replaced by use of SRV records; some legacy records may remain"),
+				DataType::AFSDB_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::AFSDB, "Replaced by use of SRV records; some legacy records may remain"),
 
 				DataType::X25_lower => self.handle_very_obsolete_record_type(DataType::X25),
 
@@ -286,17 +253,17 @@ impl ResourceRecord
 
 				DataType::NSAP_PTR_lower => self.handle_very_obsolete_record_type(DataType::NSAP_PTR),
 
-				DataType::SIG_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, response_parsing_state, DataType::SIG, "Not used now SIG(0) is available; some legacy records may remain"),
+				DataType::SIG_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::SIG, "Not used now SIG(0) is available; some legacy records may remain"),
 
-				DataType::KEY_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, response_parsing_state, DataType::KEY, "Replaced by IPSECKEY and various DNSSEC records; some legacy records may remain"),
+				DataType::KEY_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::KEY, "Replaced by IPSECKEY and various DNSSEC records; some legacy records may remain"),
 
 				DataType::PX_lower => self.handle_very_obsolete_record_type(DataType::PX),
 
 				DataType::GPOS_lower => self.handle_very_obsolete_record_type(DataType::GPOS),
 
-				DataType::AAAA_lower => self.handle_aaaa(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::AAAA_lower => self.handle_aaaa(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::LOC_lower => self.handle_loc(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::LOC_lower => self.handle_loc(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
 				DataType::NXT_lower => self.handle_very_obsolete_record_type(DataType::NXT),
 
@@ -304,19 +271,19 @@ impl ResourceRecord
 
 				DataType::NIMLOC_lower => self.handle_very_obsolete_record_type(DataType::NIMLOC),
 
-				DataType::SRV_lower => self.handle_srv(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_labels, response_parsing_state),
+				DataType::SRV_lower => self.handle_srv(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_labels, duplicate_resource_record_response_parsing),
 
 				DataType::ATMA_lower => self.handle_very_obsolete_record_type(DataType::ATMA),
 
-				DataType::NAPTR_lower => self.handle_naptr(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::NAPTR_lower => self.handle_naptr(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::KX_lower => self.handle_kx(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::KX_lower => self.handle_kx(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::CERT_lower => self.handle_cert(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::CERT_lower => self.handle_cert(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
 				DataType::A6_lower => self.handle_very_obsolete_record_type(DataType::A6),
 
-				DataType::DNAME_lower => self.handle_dname(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::DNAME_lower => self.handle_dname(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing, Some(false)),
 
 				DataType::SINK_lower => self.handle_very_obsolete_record_type(DataType::SINK),
 
@@ -329,53 +296,53 @@ impl ResourceRecord
 					Err(ExtendedDnsOptResourceRecordTypeIsNotPermittedInThisSection)
 				},
 
-				DataType::APL_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, response_parsing_state, DataType::APL, "Some legacy records may remain"),
+				DataType::APL_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::APL, "Some legacy records may remain"),
 
-				DataType::DS_lower => self.handle_ds(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::DS_lower => self.handle_ds(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::SSHFP_lower => self.handle_sshfp(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::SSHFP_lower => self.handle_sshfp(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::IPSECKEY_lower => self.handle_ipseckey(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::IPSECKEY_lower => self.handle_ipseckey(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::NSEC_lower => self.handle_nsec(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::NSEC_lower => self.handle_nsec(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::RRSIG_lower => self.handle_rrsig(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::RRSIG_lower => self.handle_rrsig(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing, false),
 
-				DataType::DNSKEY_lower => self.handle_dnskey(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::DNSKEY_lower => self.handle_dnskey(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::DHCID_lower => self.handle_dhcid(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::DHCID_lower => self.handle_dhcid(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::NSEC3_lower => self.handle_nsec3(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::NSEC3_lower => self.handle_nsec3(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::NSEC3PARAM_lower => self.handle_nsec3param(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::NSEC3PARAM_lower => self.handle_nsec3param(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::TLSA_lower => self.handle_tlsa(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::TLSA_lower => self.handle_tlsa(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::SMIMEA_lower => self.handle_smimea(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::SMIMEA_lower => self.handle_smimea(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				54 => self.handle_unassigned(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, 0x00, 54),
+				54 => self.handle_unassigned(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing, 0x00, 54),
 
-				DataType::HIP_lower => self.handle_hip(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::HIP_lower => self.handle_hip(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::NINFO_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, response_parsing_state, DataType::NINFO, "No RFC or RFC draft and probably not deployed"),
+				DataType::NINFO_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::NINFO, "No RFC or RFC draft and probably not deployed"),
 
-				DataType::RKEY_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, response_parsing_state, DataType::RKEY, "No RFC or RFC draft and probably not deployed"),
+				DataType::RKEY_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::RKEY, "No RFC or RFC draft and probably not deployed"),
 
-				DataType::TALINK_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, response_parsing_state, DataType::TALINK, "No RFC or RFC draft and probably not deployed"),
+				DataType::TALINK_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::TALINK, "No RFC or RFC draft and probably not deployed"),
 
-				DataType::CDS_lower => self.handle_cds(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::CDS_lower => self.handle_cds(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::CDNSKEY_lower => self.handle_cdnskey(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::CDNSKEY_lower => self.handle_cdnskey(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::OPENPGPKEY_lower => self.handle_openpgpkey(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::OPENPGPKEY_lower => self.handle_openpgpkey(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::CSYNC_lower => self.handle_csync(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::CSYNC_lower => self.handle_csync(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::ZONEMD_lower => self.handle_possible_future_standard(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state, DataType::ZONEMD),
+				DataType::ZONEMD_lower => self.handle_possible_future_standard(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing, DataType::ZONEMD),
 
-				64 ..= 98 => self.handle_unassigned(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, 0x00, type_lower),
+				64 ..= 98 => self.handle_unassigned(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing, 0x00, type_lower),
 
-				DataType::SPF_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, response_parsing_state, DataType::SPF, "RFC 7208 deprecated this record type; some legacy records may remain"),
+				DataType::SPF_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::SPF, "RFC 7208 deprecated this record type; some legacy records may remain"),
 
 				DataType::UINFO_lower => self.handle_very_obsolete_record_type(DataType::UINFO),
 
@@ -385,25 +352,25 @@ impl ResourceRecord
 
 				DataType::UNSPEC_lower => self.handle_very_obsolete_record_type(DataType::UNSPEC),
 
-				DataType::NID_lower => self.handle_nid(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::NID_lower => self.handle_nid(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::L32_lower => self.handle_l32(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::L32_lower => self.handle_l32(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::L64_lower => self.handle_l64(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::L64_lower => self.handle_l64(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::LP_lower => self.handle_lp(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::LP_lower => self.handle_lp(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::EUI48_lower => self.handle_eui48(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::EUI48_lower => self.handle_eui48(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::EUI64_lower => self.handle_eui64(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::EUI64_lower => self.handle_eui64(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				110 ..= 127 => self.handle_unassigned(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, 0x00, type_lower),
+				110 ..= 127 => self.handle_unassigned(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing, 0x00, type_lower),
 
 				128 ..= 248 => Err(UnknownQueryTypeOrMetaType(0x00, type_lower)),
 
-				MetaType::TKEY_lower => self.handle_obsolete_meta_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, response_parsing_state, DataType::TKEY, "Only really useful for updates, which, frankly, are probably better done out-of-band than using DNS; regardless, when using DNS over TLS a client certificate is much more useful"),
+				MetaType::TKEY_lower => self.handle_obsolete_meta_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::TKEY, "Only really useful for updates, which, frankly, are probably better done out-of-band than using DNS; regardless, when using DNS over TLS a client certificate is much more useful"),
 
-				MetaType::TSIG_lower => self.handle_obsolete_meta_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, response_parsing_state, DataType::TSIG, "Only really useful for updates, which, frankly, are probably better done out-of-band than using DNS; regardless, when using DNS over TLS a client certificate is much more useful"),
+				MetaType::TSIG_lower => self.handle_obsolete_meta_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::TSIG, "Only really useful for updates, which, frankly, are probably better done out-of-band than using DNS; regardless, when using DNS over TLS a client certificate is much more useful"),
 
 				QueryType::IXFR_lower => Err(QueryTypeIXFRShouldNotOccurOutsideOfAQuestionSectionEntry),
 
@@ -418,29 +385,29 @@ impl ResourceRecord
 
 			0x01 => match type_lower
 			{
-				DataType::URI_lower => self.handle_uri(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::URI_lower => self.handle_uri(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::CAA_lower => self.handle_caa(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state),
+				DataType::CAA_lower => self.handle_caa(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::DOA_lower => self.handle_possible_future_standard(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state, DataType::DOA),
+				DataType::DOA_lower => self.handle_possible_future_standard(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing, DataType::DOA),
 
-				DataType::AMTRELAY_lower => self.handle_possible_future_standard(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state, DataType::AMTRELAY),
+				DataType::AMTRELAY_lower => self.handle_possible_future_standard(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing, DataType::AMTRELAY),
 				
-				_ => self.handle_unassigned(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state, 0x01, type_lower),
+				_ => self.handle_unassigned(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing, 0x01, type_lower),
 			},
 
-			0x02 ..= 0x7F => self.handle_unassigned(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state, type_upper, type_lower),
+			0x02 ..= 0x7F => self.handle_unassigned(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing, type_upper, type_lower),
 
 			0x80 => match type_lower
 			{
-				DataType::TA_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, response_parsing_state, DataType::TA, "DNSSEC Trust Anchors were never widely deployed; some legacy records may remain"),
+				DataType::TA_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::TA, "DNSSEC Trust Anchors were never widely deployed; some legacy records may remain"),
 
-				DataType::DLV_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, response_parsing_state, DataType::DLV, "DNSSEC Lookaside Validation is not longer supported now that all root nameservers support DNSSEC; some legacy records may remain"),
+				DataType::DLV_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::DLV, "DNSSEC Lookaside Validation is not longer supported now that all root nameservers support DNSSEC; some legacy records may remain"),
 
-				_ => self.handle_unassigned(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state, 0x80, type_lower),
+				_ => self.handle_unassigned(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing, 0x80, type_lower),
 			},
 
-			0x81 ..= 0xEF => self.handle_unassigned(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, response_parsing_state,  type_upper, type_lower),
+			0x81 ..= 0xEF => self.handle_unassigned(end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing,  type_upper, type_lower),
 
 			_ => Err(ReservedRecordType(type_upper, type_lower))
 		}
@@ -455,27 +422,27 @@ impl ResourceRecord
 
 	/// Record types that died, never became popular or widespread or never proceeded even to a RFC draft.
 	#[inline(always)]
-	fn handle_obsolete_or_very_obscure_record_type<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, response_parsing_state: &mut ResponseParsingState<'message>, data_type: DataType, _reason: &'static str) -> Result<usize, DnsProtocolError>
+	fn handle_obsolete_or_very_obscure_record_type<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, data_type: DataType, _reason: &'static str) -> Result<usize, DnsProtocolError>
 	{
-		let (_time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, response_parsing_state)?;
+		let (_time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
 
 		Ok(resource_data.end_pointer())
 	}
 
 	/// Meta types, that, with the coming of DNS over TLS, are obsolete.
 	#[inline(always)]
-	fn handle_obsolete_meta_type<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, response_parsing_state: &mut ResponseParsingState<'message>, data_type: DataType, _reason: &'static str) -> Result<usize, DnsProtocolError>
+	fn handle_obsolete_meta_type<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, data_type: DataType, _reason: &'static str) -> Result<usize, DnsProtocolError>
 	{
-		let (_time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, response_parsing_state)?;
+		let (_time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
 
 		Ok(resource_data.end_pointer())
 	}
 
 	/// Data types that are draft RFCs or similar and may need to be supported by clients of this library.
 	#[inline(always)]
-	fn handle_possible_future_standard<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>, data_type: DataType) -> Result<usize, DnsProtocolError>
+	fn handle_possible_future_standard<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, data_type: DataType) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
 
 		resource_record_visitor.handle_possible_future_standard(resource_record_name, time_to_live, resource_data, data_type)?;
 		Ok(resource_data.end_pointer())
@@ -483,48 +450,45 @@ impl ResourceRecord
 
 	/// Data types that aren't officially registered with IANA.
 	#[inline(always)]
-	fn handle_unassigned<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>, type_upper: u8, type_lower: u8) -> Result<usize, DnsProtocolError>
+	fn handle_unassigned<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, type_upper: u8, type_lower: u8) -> Result<usize, DnsProtocolError>
 	{
 		let data_type = DataType([type_upper, type_lower]);
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
 
 		resource_record_visitor.unassigned(resource_record_name, time_to_live, resource_data, DataType([type_upper, type_lower]))?;
 		Ok(resource_data.end_pointer())
 	}
 
 	#[inline(always)]
-	fn handle_a<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_a<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, record, end_of_resource_data_pointer) = self.parse_internet_protocol_address_only(end_of_name_pointer, end_of_message_pointer, resource_record_name, DataType::A, response_parsing_state)?;
+		let (time_to_live, record, end_of_resource_data_pointer) = self.parse_internet_protocol_address_only(end_of_name_pointer, end_of_message_pointer, resource_record_name, DataType::A, duplicate_resource_record_response_parsing)?;
 		resource_record_visitor.A(resource_record_name, time_to_live, record)?;
 		Ok(end_of_resource_data_pointer)
 	}
 
 	#[inline(always)]
-	fn handle_ns<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, parsed_labels: &mut ParsedLabels, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_ns<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, parsed_labels: &mut ParsedLabels, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, record, end_of_resource_data_pointer) = self.parse_name_only(end_of_name_pointer, end_of_message_pointer, resource_record_name, parsed_labels, DataType::NS, response_parsing_state)?;
+		let (time_to_live, record, end_of_resource_data_pointer) = self.parse_name_only(end_of_name_pointer, end_of_message_pointer, resource_record_name, parsed_labels, DataType::NS, duplicate_resource_record_response_parsing)?;
 		resource_record_visitor.NS(resource_record_name, time_to_live, record)?;
 		Ok(end_of_resource_data_pointer)
 	}
 
 	#[inline(always)]
-	fn handle_cname<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, parsed_labels: &mut ParsedLabels, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_cname<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, parsed_labels: &mut ParsedLabels, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, is_some_if_present_in_answer_section_and_true_if_was_queried_for: Option<bool>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, record, end_of_resource_data_pointer) = self.parse_name_only(end_of_name_pointer, end_of_message_pointer, resource_record_name, parsed_labels, DataType::CNAME, response_parsing_state)?;
-		resource_record_visitor.CNAME(resource_record_name, time_to_live, record)?;
+		let (time_to_live, record, end_of_resource_data_pointer) = self.parse_name_only(end_of_name_pointer, end_of_message_pointer, resource_record_name, parsed_labels, DataType::CNAME, duplicate_resource_record_response_parsing)?;
+		resource_record_visitor.CNAME(resource_record_name, time_to_live, record, is_some_if_present_in_answer_section_and_true_if_was_queried_for)?;
 		Ok(end_of_resource_data_pointer)
 	}
 
 	#[inline(always)]
-	fn handle_soa<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, parsed_labels: &mut ParsedLabels, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_soa<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, parsed_labels: &mut ParsedLabels, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		if unlikely!(!response_parsing_state.have_yet_to_see_a_soa_resource_record)
-		{
-			return Err(MoreThanOneStatementOfAuthorityResourceRecord)
-		}
+		response_parsing_state.parsing_a_soa_record()?;
 
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::SOA, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::SOA, duplicate_resource_record_response_parsing)?;
 
 		let start_of_resource_data = resource_data.start_pointer();
 
@@ -543,8 +507,6 @@ impl ResourceRecord
 
 			resource_record_visitor.SOA(resource_record_name, time_to_live, start_of_authority)?;
 
-			response_parsing_state.have_yet_to_see_a_soa_resource_record = false;
-
 			Ok(resource_data.end_pointer())
 		}
 		else
@@ -554,17 +516,17 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_ptr<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, parsed_labels: &mut ParsedLabels, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_ptr<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, parsed_labels: &mut ParsedLabels, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, record, end_of_resource_data_pointer) = self.parse_name_only(end_of_name_pointer, end_of_message_pointer, resource_record_name, parsed_labels, DataType::PTR, response_parsing_state)?;
+		let (time_to_live, record, end_of_resource_data_pointer) = self.parse_name_only(end_of_name_pointer, end_of_message_pointer, resource_record_name, parsed_labels, DataType::PTR, duplicate_resource_record_response_parsing)?;
 		resource_record_visitor.PTR(resource_record_name, time_to_live, record)?;
 		Ok(end_of_resource_data_pointer)
 	}
 
 	#[inline(always)]
-	fn handle_hinfo<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_hinfo<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::HINFO, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::HINFO, duplicate_resource_record_response_parsing)?;
 
 		let length = resource_data.len();
 
@@ -600,9 +562,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_mx<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, parsed_labels: &mut ParsedLabels, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_mx<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, parsed_labels: &mut ParsedLabels, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::MX, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::MX, duplicate_resource_record_response_parsing)?;
 
 		const PreferenceSize: usize = 2;
 		const MinimumMailServerNameSize: usize = ResourceRecord::MinimumNameSize;
@@ -625,9 +587,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_txt<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_txt<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::TXT, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::TXT, duplicate_resource_record_response_parsing)?;
 
 		let text_strings_iterator = CharacterStringsIterator::new(resource_data)?;
 
@@ -644,17 +606,17 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_aaaa<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_aaaa<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, record, end_of_resource_data_pointer) = self.parse_internet_protocol_address_only(end_of_name_pointer, end_of_message_pointer, resource_record_name, DataType::AAAA, response_parsing_state)?;
+		let (time_to_live, record, end_of_resource_data_pointer) = self.parse_internet_protocol_address_only(end_of_name_pointer, end_of_message_pointer, resource_record_name, DataType::AAAA, duplicate_resource_record_response_parsing)?;
 		resource_record_visitor.AAAA(resource_record_name, time_to_live, record)?;
 		Ok(end_of_resource_data_pointer)
 	}
 
 	#[inline(always)]
-	fn handle_loc<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_loc<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::LOC, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::LOC, duplicate_resource_record_response_parsing)?;
 
 		let length = resource_data.len();
 		if unlikely!(length != size_of::<Location>())
@@ -672,9 +634,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_srv<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, parsed_labels: &mut ParsedLabels, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_srv<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, parsed_labels: &mut ParsedLabels, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::SRV, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::SRV, duplicate_resource_record_response_parsing)?;
 
 		const PrioritySize: usize = 2;
 		const WeightSize: usize = 2;
@@ -700,9 +662,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_naptr<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_naptr<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::NAPTR, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::NAPTR, duplicate_resource_record_response_parsing)?;
 
 		const OrderSize: usize = 2;
 		const PreferenceSize: usize = 2;
@@ -783,9 +745,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_kx<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_kx<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::KX, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::KX, duplicate_resource_record_response_parsing)?;
 
 		let length = resource_data.len();
 
@@ -817,9 +779,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_cert<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_cert<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::CERT, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::CERT, duplicate_resource_record_response_parsing)?;
 
 		use self::CertificateResourceRecordIgnoredBecauseReason::*;
 		use self::CertificateType::*;
@@ -924,12 +886,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_opt<'message>(&mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_opt<'message>(&mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, response_parsing_state: &ResponseParsingState) -> Result<usize, DnsProtocolError>
 	{
-		if unlikely!(!response_parsing_state.have_yet_to_see_an_edns_opt_resource_record)
-		{
-			return Err(MoreThanOneExtendedDnsOptResourceRecord)
-		}
+		response_parsing_state.parsing_an_edns_opt_record()?;
 
 		let start_of_name_pointer = self.name().as_usize_pointer_mut();
 		if unlikely!(end_of_name_pointer - start_of_name_pointer != 1)
@@ -1046,16 +1005,15 @@ impl ResourceRecord
 			start_of_option_offset += OptionCodeSize + OptionLengthSize + option_length;
 		}
 
-		response_parsing_state.have_yet_to_see_an_edns_opt_resource_record = false;
-		response_parsing_state.dnssec_ok = Some(dnssec_ok);
+		response_parsing_state.set_dnssec_ok(dnssec_ok);
 
 		Ok(options.end_pointer())
 	}
 
 	#[inline(always)]
-	fn handle_dname<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_dname<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, is_some_if_present_in_answer_section_and_true_if_was_queried_for: Option<bool>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::DNAME, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::DNAME, duplicate_resource_record_response_parsing)?;
 
 		let length = resource_data.len();
 
@@ -1075,21 +1033,21 @@ impl ResourceRecord
 			return Err(ResourceDataForTypeDNAMEDataRemainingAfterDName)
 		}
 
-		resource_record_visitor.DNAME(resource_record_name, time_to_live, record)?;
+		resource_record_visitor.DNAME(resource_record_name, time_to_live, record, is_some_if_present_in_answer_section_and_true_if_was_queried_for)?;
 		Ok(end_of_resource_data_pointer)
 	}
 
 	#[inline(always)]
-	fn handle_ds<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_ds<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
 		const DataType: DataType = DataType::DS;
-		guard_delegation_signer!(self, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, DS_ignored, DS, false, DataType, response_parsing_state)
+		guard_delegation_signer!(self, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, DS_ignored, DS, false, DataType, duplicate_resource_record_response_parsing)
 	}
 
 	#[inline(always)]
-	fn handle_sshfp<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_sshfp<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::SSHFP, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::SSHFP, duplicate_resource_record_response_parsing)?;
 
 		use self::SshFingerprintDigest::*;
 		use self::SshFingerprintResourceRecordIgnoredBecauseReason::*;
@@ -1164,9 +1122,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_ipseckey<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_ipseckey<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::IPSECKEY, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::IPSECKEY, duplicate_resource_record_response_parsing)?;
 
 		use self::Gateway::*;
 		use self::IpsecKeyResourceRecordIgnoredBecauseReason::*;
@@ -1252,9 +1210,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_nsec<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_nsec<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::NSEC, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::NSEC, duplicate_resource_record_response_parsing)?;
 
 		const MinimumNextSecureNameSize: usize = ResourceRecord::MinimumNameSize;
 
@@ -1280,9 +1238,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_rrsig<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_rrsig<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, is_some_if_present_in_answer_section_and_true_if_was_queried_for: Option<bool>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::RRSIG, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::RRSIG, duplicate_resource_record_response_parsing)?;
 
 		use self::ResourceRecordSetSignatureResourceRecordIgnoredBecauseReason::*;
 
@@ -1316,7 +1274,7 @@ impl ResourceRecord
 			Left(security_algorithm) => security_algorithm,
 			Right(security_algorithm_rejected_because_reason) =>
 			{
-				resource_record_visitor.RRSIG_ignored(resource_record_name, SecurityAlgorithmRejected(security_algorithm_rejected_because_reason));
+				resource_record_visitor.RRSIG_ignored(resource_record_name, SecurityAlgorithmRejected(security_algorithm_rejected_because_reason), is_some_if_present_in_answer_section_and_true_if_was_queried_for);
 				return Ok(resource_data_end_pointer)
 			}
 		};
@@ -1327,13 +1285,13 @@ impl ResourceRecord
 		{
 			None =>
 			{
-				resource_record_visitor.RRSIG_ignored(resource_record_name, DifferenceInSignatureExpirationAndInceptionIsTooGreatForWrappingSerialNumberMathematics { signature_inception_timestamp, signature_expiration_timestamp });
+				resource_record_visitor.RRSIG_ignored(resource_record_name, DifferenceInSignatureExpirationAndInceptionIsTooGreatForWrappingSerialNumberMathematics { signature_inception_timestamp, signature_expiration_timestamp }, is_some_if_present_in_answer_section_and_true_if_was_queried_for);
 				return Ok(resource_data_end_pointer)
 			}
 
 			Some((signature_expiration_seconds, signature_inception_seconds, difference)) => if unlikely!(difference <= 0)
 			{
-				resource_record_visitor.RRSIG_ignored(resource_record_name, DifferenceInSignatureInceptionAndExpirationWasNegativeOrZero { signature_inception_timestamp, signature_expiration_timestamp });
+				resource_record_visitor.RRSIG_ignored(resource_record_name, DifferenceInSignatureInceptionAndExpirationWasNegativeOrZero { signature_inception_timestamp, signature_expiration_timestamp }, is_some_if_present_in_answer_section_and_true_if_was_queried_for);
 				return Ok(resource_data_end_pointer)
 			}
 			else
@@ -1357,14 +1315,14 @@ impl ResourceRecord
 				};
 				if unlikely!(signature_inception_timespec > now)
 				{
-					resource_record_visitor.RRSIG_ignored(resource_record_name, InceptionIsInTheFuture { signature_inception_timestamp, signature_expiration_timestamp });
+					resource_record_visitor.RRSIG_ignored(resource_record_name, InceptionIsInTheFuture { signature_inception_timestamp, signature_expiration_timestamp }, is_some_if_present_in_answer_section_and_true_if_was_queried_for);
 					return Ok(resource_data_end_pointer)
 				}
 
 				let signature_expiration_timespec = Timespec::new(LastWrapAroundPoint + signature_expiration_seconds as i64, 0);
 				if unlikely!(signature_expiration_timespec <= now)
 				{
-					resource_record_visitor.RRSIG_ignored(resource_record_name, Expired { signature_inception_timestamp, signature_expiration_timestamp });
+					resource_record_visitor.RRSIG_ignored(resource_record_name, Expired { signature_inception_timestamp, signature_expiration_timestamp }, is_some_if_present_in_answer_section_and_true_if_was_queried_for);
 					return Ok(resource_data_end_pointer)
 				}
 			},
@@ -1390,21 +1348,21 @@ impl ResourceRecord
 			rrsig_rdata_excluding_signature_field: &resource_data[ .. signature_offset],
 		};
 
-		resource_record_visitor.RRSIG(resource_record_name, time_to_live, record)?;
+		resource_record_visitor.RRSIG(resource_record_name, time_to_live, record, is_some_if_present_in_answer_section_and_true_if_was_queried_for)?;
 		Ok(resource_data_end_pointer)
 	}
 
 	#[inline(always)]
-	fn handle_dnskey<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_dnskey<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
 		const DataType: DataType = DataType::DNSKEY;
-		guard_dns_key!(self, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, DNSKEY_ignored, DNSKEY, false, DataType, response_parsing_state)
+		guard_dns_key!(self, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, DNSKEY_ignored, DNSKEY, false, DataType, duplicate_resource_record_response_parsing)
 	}
 
 	#[inline(always)]
-	fn handle_dhcid<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_dhcid<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::DHCID, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::DHCID, duplicate_resource_record_response_parsing)?;
 
 		use self::DhcidDigest::*;
 		use self::DhcidResourceRecordIgnoredBecauseReason::*;
@@ -1460,9 +1418,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_nsec3<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_nsec3<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::NSEC3, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::NSEC3, duplicate_resource_record_response_parsing)?;
 
 		use self::NextSecureVersion3ResourceRecordIgnoredBecauseReason::*;
 
@@ -1560,9 +1518,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_nsec3param<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_nsec3param<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::NSEC3PARAM, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::NSEC3PARAM, duplicate_resource_record_response_parsing)?;
 
 		use self::NextSecureVersion3ParametersResourceRecordIgnoredBecauseReason::*;
 
@@ -1625,9 +1583,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_tlsa<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_tlsa<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (resource_data_end_pointer, either) = self.handle_tlsa_or_smimea(end_of_name_pointer, end_of_message_pointer, resource_record_name, DataType::TLSA, response_parsing_state)?;
+		let (resource_data_end_pointer, either) = self.handle_tlsa_or_smimea(end_of_name_pointer, end_of_message_pointer, resource_record_name, DataType::TLSA, duplicate_resource_record_response_parsing)?;
 
 		match either
 		{
@@ -1640,9 +1598,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_smimea<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_smimea<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (resource_data_end_pointer, either) = self.handle_tlsa_or_smimea(end_of_name_pointer, end_of_message_pointer, resource_record_name, DataType::SMIMEA, response_parsing_state)?;
+		let (resource_data_end_pointer, either) = self.handle_tlsa_or_smimea(end_of_name_pointer, end_of_message_pointer, resource_record_name, DataType::SMIMEA, duplicate_resource_record_response_parsing)?;
 
 		match either
 		{
@@ -1655,9 +1613,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_hip<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_hip<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::HIP, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::HIP, duplicate_resource_record_response_parsing)?;
 
 		use self::HostIdentityProtocolResourceRecordIgnoredBecauseReason::*;
 
@@ -1710,32 +1668,32 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_cds<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_cds<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
 		const DataType: DataType = DataType::CDS;
-		guard_delegation_signer!(self, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, CDS_ignored, CDS, true, DataType, response_parsing_state)
+		guard_delegation_signer!(self, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, CDS_ignored, CDS, true, DataType, duplicate_resource_record_response_parsing)
 	}
 
 	#[inline(always)]
-	fn handle_cdnskey<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_cdnskey<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
 		const DataType: DataType = DataType::CDNSKEY;
-		guard_dns_key!(self, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, CDNSKEY_ignored, CDNSKEY, true, DataType, response_parsing_state)
+		guard_dns_key!(self, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, CDNSKEY_ignored, CDNSKEY, true, DataType, duplicate_resource_record_response_parsing)
 	}
 
 	#[inline(always)]
-	fn handle_openpgpkey<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_openpgpkey<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::OPENPGPKEY, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::OPENPGPKEY, duplicate_resource_record_response_parsing)?;
 
 		resource_record_visitor.OPENPGPKEY(resource_record_name, time_to_live, resource_data)?;
 		Ok(resource_data.end_pointer())
 	}
 
 	#[inline(always)]
-	fn handle_csync<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_csync<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::CSYNC, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::CSYNC, duplicate_resource_record_response_parsing)?;
 
 		use self::ChildSynchronizeResourceRecordIgnoredBecauseReason::*;
 
@@ -1778,9 +1736,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_nid<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_nid<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::NID, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::NID, duplicate_resource_record_response_parsing)?;
 
 		const PreferenceSize: usize = 2;
 		const NodeIdentifierSize: usize = 8;
@@ -1802,9 +1760,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_l32<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_l32<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::L32, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::L32, duplicate_resource_record_response_parsing)?;
 
 		const PreferenceSize: usize = 2;
 		const LocatorSize: usize = 4;
@@ -1826,9 +1784,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_l64<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_l64<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::L64, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::L64, duplicate_resource_record_response_parsing)?;
 
 		const PreferenceSize: usize = 2;
 		const LocatorSize: usize = 8;
@@ -1850,9 +1808,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_lp<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_lp<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::LP, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::LP, duplicate_resource_record_response_parsing)?;
 
 		const PreferenceSize: usize = 2;
 		const MinimumNameSize: usize = ResourceRecord::MinimumNameSize;
@@ -1883,9 +1841,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_eui48<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_eui48<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::EUI48, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::EUI48, duplicate_resource_record_response_parsing)?;
 
 		const Eui48Size: usize = 48 / ResourceRecord::BitsInAByte;
 
@@ -1902,9 +1860,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_eui64<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_eui64<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::EUI64, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::EUI64, duplicate_resource_record_response_parsing)?;
 
 		const Eui64Size: usize = 64 / ResourceRecord::BitsInAByte;
 
@@ -1921,9 +1879,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_uri<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_uri<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::URI, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::URI, duplicate_resource_record_response_parsing)?;
 
 		const PrioritySize: usize = 2;
 		const WeightSize: usize = 2;
@@ -1947,9 +1905,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_caa<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_caa<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::CAA, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::CAA, duplicate_resource_record_response_parsing)?;
 
 		use self::CertificateAuthorityAuthorizationResourceRecordIgnoredBecauseReason::*;
 
@@ -2042,9 +2000,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_tlsa_or_smimea<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, data_type: DataType, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<(usize, Either<(TimeToLiveInSeconds, DnsBasedAuthenticationOfNamedEntities<'message>), DnsBasedAuthenticationOfNamedEntitiesResourceRecordIgnoredBecauseReason>), DnsProtocolError>
+	fn handle_tlsa_or_smimea<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<(usize, Either<(TimeToLiveInSeconds, DnsBasedAuthenticationOfNamedEntities<'message>), DnsBasedAuthenticationOfNamedEntitiesResourceRecordIgnoredBecauseReason>), DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
 
 		use self::DnsBasedAuthenticationOfNamedEntitiesResourceRecordIgnoredBecauseReason::*;
 
@@ -2118,9 +2076,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn parse_internet_protocol_address_only<'message, Address: Copy>(&mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, data_type: DataType, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<(TimeToLiveInSeconds, Address, usize), DnsProtocolError>
+	fn parse_internet_protocol_address_only<'message, Address: Copy>(&mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<(TimeToLiveInSeconds, Address, usize), DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
 
 		let length = resource_data.len();
 		if unlikely!(length != size_of::<Address>())
@@ -2135,9 +2093,9 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn parse_name_only<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, parsed_labels: &mut ParsedLabels, data_type: DataType, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<(TimeToLiveInSeconds, WithCompressionParsedName<'message>, usize), DnsProtocolError>
+	fn parse_name_only<'message>(&'message mut self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: WithCompressionParsedName<'message>, parsed_labels: &mut ParsedLabels, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<(TimeToLiveInSeconds, WithCompressionParsedName<'message>, usize), DnsProtocolError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, response_parsing_state)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
 
 		let record = parsed_labels.parse_name_in_slice_with_nothing_left(resource_data)?;
 		Ok((time_to_live, record, resource_data.end_pointer()))
@@ -2165,13 +2123,13 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn validate_class_is_internet_and_get_time_to_live_and_resource_data<'message>(&mut self, resource_record_name: WithCompressionParsedName<'message>, end_of_name_pointer: usize, end_of_message_pointer: usize, data_type: DataType, response_parsing_state: &mut ResponseParsingState<'message>) -> Result<(TimeToLiveInSeconds, &mut [u8]), DnsProtocolError>
+	fn validate_class_is_internet_and_get_time_to_live_and_resource_data<'message>(&mut self, resource_record_name: WithCompressionParsedName<'message>, end_of_name_pointer: usize, end_of_message_pointer: usize, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<(TimeToLiveInSeconds, &mut [u8]), DnsProtocolError>
 	{
 		let class = self.resource_record_class(end_of_name_pointer)?;
 		debug_assert_eq!(class, ResourceRecordClass::Internet, "Why do we support classes other than Internet?");
 
 		let resource_data = self.safely_access_resource_data(end_of_name_pointer, end_of_message_pointer)?;
-		response_parsing_state.encountered(data_type, &resource_record_name, resource_data)?;
+		duplicate_resource_record_response_parsing.encountered(data_type, &resource_record_name, resource_data)?;
 
 		let time_to_live = self.time_to_live(end_of_name_pointer);
 

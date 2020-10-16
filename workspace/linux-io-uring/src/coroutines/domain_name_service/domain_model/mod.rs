@@ -4,8 +4,28 @@
 
 use super::*;
 use self::DnsProtocolError::*;
+use self::character_strings::*;
+use self::extended_dns::*;
 use self::message::*;
+use self::message::header::*;
+use self::message::query::*;
+use self::message::resource_record::*;
 use self::name::*;
+use self::resource_data::*;
+use self::resource_data::certificate::*;
+use self::resource_data::certification_authority_authorization::*;
+use self::resource_data::dhcid::*;
+use self::resource_data::dns_based_authentication_of_named_entities::*;
+use self::resource_data::dnssec::*;
+use self::resource_data::host_identity_protocol::*;
+use self::resource_data::identifier_locator_network_protocol::*;
+use self::resource_data::ipsec::*;
+use self::resource_data::location::*;
+use self::resource_data::naming_authority_pointer::*;
+use self::resource_data::ssh_fingerprint::*;
+use self::resource_data::start_of_authority::*;
+use self::response_parsing::*;
+use self::response_parsing::resource_record_visitors::*;
 use self::support::*;
 
 

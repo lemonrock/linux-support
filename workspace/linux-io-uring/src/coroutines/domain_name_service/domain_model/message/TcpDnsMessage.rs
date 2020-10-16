@@ -3,17 +3,17 @@
 
 
 #[repr(C, packed)]
-pub(crate) struct TcpMessage
+pub(crate) struct TcpDnsMessage
 {
 	length: BigEndianU16,
-	message: Message,
+	message: DnsMessage,
 }
 
-impl TcpMessage
+impl TcpDnsMessage
 {
 	pub(crate) const TcpBufferLengthSize: usize = size_of::<BigEndianU16>();
 
-	pub(crate) const MaximumQueryBufferSize: usize = Self::TcpBufferLengthSize + Message::MaximumQueryMessageSize;
+	pub(crate) const MaximumQueryBufferSize: usize = Self::TcpBufferLengthSize + DnsMessage::MaximumQueryMessageSize;
 
 	/// Validation of available buffer size is done before calling this.
 	#[inline(always)]
@@ -48,7 +48,7 @@ impl TcpMessage
 
 	/// Message.
 	#[inline(always)]
-	pub fn message(&self) -> &Message
+	pub fn message(&self) -> &DnsMessage
 	{
 		&self.message
 	}

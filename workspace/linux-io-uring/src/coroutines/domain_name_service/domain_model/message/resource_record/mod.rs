@@ -3,20 +3,6 @@
 
 
 use super::*;
-use super::query::QueryType;
-use super::super::resource_data::*;
-use super::super::resource_data::certificate::*;
-use super::super::resource_data::certification_authority_authorization::*;
-use super::super::resource_data::dhcid::*;
-use super::super::resource_data::dns_based_authentication_of_named_entities::*;
-use super::super::resource_data::dnssec::*;
-use super::super::resource_data::host_identity_protocol::*;
-use super::super::resource_data::identifier_locator_network_protocol::*;
-use super::super::resource_data::ipsec::*;
-use super::super::resource_data::location::*;
-use super::super::resource_data::naming_authority_pointer::*;
-use super::super::resource_data::ssh_fingerprint::*;
-use super::super::resource_data::start_of_authority::*;
 
 
 include!("guard_hash_digest_if_final_field.rs");

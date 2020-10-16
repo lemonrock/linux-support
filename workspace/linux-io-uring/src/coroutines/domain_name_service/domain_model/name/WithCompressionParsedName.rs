@@ -133,6 +133,59 @@ impl<'message> WithCompressionParsedName<'message>
 		}
 	}
 
+	#[inline(always)]
+	pub(crate) fn parent(&self) -> Option<Self>
+	{
+		if unlikely!(self.number_of_labels == 1)
+		{
+			None
+		}
+		else
+		{
+			let pointer_to_label = self.iterator.pointer_to_label;
+			let label_length = pointer_to_label.dereference_u8();
+			let parent_pointer_to_label = pointer_to_label + LabelKind::LabelKindSize + label_length;
+			let parent_name_length = self.name_length - label_length;
+			
+			let start_of_message_pointer = self.iterator.start_of_message_pointer + (parent_pointer_to_label - pointer_to_label);
+			
+			Some(Self::new(self.number_of_labels - 1, parent_name_length, parent_pointer_to_label, start_of_message_pointer))
+		}
+	}
+
+	#[inline(always)]
+	pub(crate) fn ends_with(&self, shorter_or_same_length_name: &WithCompressionParsedName<'message>) -> bool
+	{
+		if unlikely!(self.name_length < shorter_or_same_length_name.name_length)
+		{
+			return false
+		}
+
+		if unlikely!(self.number_of_labels < shorter_or_same_length_name.number_of_labels)
+		{
+			return false
+		}
+
+		let mut labels_to_pop = self.number_of_labels - shorter_or_same_length_name.number_of_labels;
+		debug_assert_ne!(labels_to_pop, self.number_of_labels, "Can not pop all labels");
+
+		if likely!(labels_to_pop == 0)
+		{
+			self.eq(shorter_or_same_length_name)
+		}
+		else
+		{
+			let mut shorter = self.parent().unwrap();
+			labels_to_pop -= 1;
+			while labels_to_pop != 0
+			{
+				shorter = shorter.parent().unwrap();
+				labels_to_pop -= 1;
+			}
+			shorter.eq(shorter_or_same_length_name)
+		}
+	}
+	
 	pub(crate) fn parse_with_compression(parsed_labels: &mut ParsedLabels, start_of_name_pointer: usize, end_of_data_section_containing_name_pointer: usize) -> Result<(Self, usize), DnsProtocolError>
 	{
 		macro_rules! compressed_implementation

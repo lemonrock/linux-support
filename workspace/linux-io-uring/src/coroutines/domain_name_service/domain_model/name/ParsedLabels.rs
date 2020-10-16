@@ -7,9 +7,8 @@ pub(crate) struct ParsedLabels
 {
 	pub(crate) start_of_message_pointer: usize,
 
-	parsed_labels: HashMap<u16, ParsedLabelInformation>,
+	parsed_labels: std::collections::HashMap<u16, ParsedLabelInformation>,
 }
-
 
 impl ParsedLabels
 {

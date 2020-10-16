@@ -261,4 +261,184 @@ impl MessageHeader
 	{
 		self.ar_count.from_network_endian_to_native_endian()
 	}
+	
+	#[inline(always)]
+	pub(crate) fn validate_is_not_query(&self) -> Result<(), DnsProtocolError>
+	{
+		if unlikely!(self.is_query())
+		{
+			Err(ResponseWasAQuery)
+		}
+		else
+		{
+			Ok(())
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn validate_is_expected_reply(&self, expected_message_identifier: MessageIdentifier) -> Result<(), DnsProtocolError>
+	{
+		if likely!(self.message_identifier == expected_message_identifier)
+		{
+			Ok(())
+		}
+		else
+		{
+			Err(UnexpectedReplyMessage(expected_message_identifier))
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn validate_contains_exactly_one_question(&self) -> Result<(), DnsProtocolError>
+	{
+		let number_of_entries_in_the_question_section = self.number_of_entries_in_the_question_section();
+		if likely!(number_of_entries_in_the_question_section == 1)
+		{
+			Ok(())
+		}
+		else
+		{
+			Err(ResponseDoesNotContainExactlyOneQuestion(number_of_entries_in_the_question_section))
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn validate_response_message_opcode_is_query(&self) -> Result<(), DnsProtocolError>
+	{
+		match self.raw_message_opcode()
+		{
+			MessageOpcode::Query => Ok(()),
+			
+			MessageOpcode::InverseQuery => Err(InvalidResponseOpcode(MessageOpcode::InverseQuery)),
+			
+			MessageOpcode::Status => Err(InvalidResponseOpcode(MessageOpcode::Status)),
+			
+			opcode @ 3 => Err(UnassignedResponseOpcode(opcode)),
+			
+			MessageOpcode::Notify => Err(InvalidResponseOpcode(MessageOpcode::Notify)),
+			
+			MessageOpcode::Update => Err(InvalidResponseOpcode(MessageOpcode::Update)),
+			
+			MessageOpcode::DnsStatefulOperations => Err(InvalidResponseOpcode(MessageOpcode::DnsStatefulOperations)),
+			
+			opcode @ 7 ..= 15 => Err(UnassignedResponseOpcode(opcode)),
+			
+			_ => unreachable!(),
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn validate_reserved_header_bits_are_zero(&self)
+	{
+		if unlikely!(self.z())
+		{
+			Err(ResponseUsedReservedHeaderBits)
+		}
+		else
+		{
+			Ok(())
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn validate_response_is_not_truncated(&self)
+	{
+		if unlikely!(self.is_truncated())
+		{
+			Err(ResponseIsTruncated)
+		}
+		else
+		{
+			Ok(())
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn validate_recursion_desired_bit_was_copied_from_query_and_is_one(&self)
+	{
+		if likely!(self.recursion_desired())
+		{
+			Ok(())
+		}
+		else
+		{
+			Err(ResponseFailedToCopyRecursionDesiredBit)
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn validate_checking_bit_was_copied_from_query_and_is_zero(&self)
+	{
+		if unlikely!(self.checking_disabled())
+		{
+			Err(ResponseFailedToCopyCheckingDisabledBit)
+		}
+		else
+		{
+			Ok(())
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn validate_authentic_answers_do_not_have_authoritative_data_bit_set_and_validate_message_response_code(&self) -> Result<AnswerQuality, DnsProtocolError>
+	{
+		let authoritative_and_authenticated = self.validate_authentic_answers_do_not_have_authoritative_data_bit_set()?;
+		
+		use self::AnswerQuality::*;
+
+		match self.raw_message_response_code()
+		{
+			MessageResponseCode::NoError => Ok(Normal(authoritative_and_authenticated)),
+
+			MessageResponseCode::FormatError => Err(MessageResponseCodeWasFormatError),
+
+			MessageResponseCode::ServerFailure => if likely!(authoritative_and_authenticated.is_authenticated_data())
+			{
+				Err(MessageResponseCodeWasServerFailure)
+			}
+			else
+			{
+				Ok(DnsSecDataFailedAuthentication { is_authenticated_data: authoritative_and_authenticated.is_authenticated_data() } )
+			},
+
+			MessageResponseCode::NonExistentDomain => if unlikely!(authoritative_and_authenticated.is_authoritative_answer())
+			{
+				Ok(AuthoritativeServerReportsNoDomainButThisIsNotValidated)
+			}
+			else
+			{
+				Err(MessageResponseCodeWasNonExistentDomainForANonAuthoritativeServer)
+			},
+
+			MessageResponseCode::NotImplemented => Err(MessageResponseCodeWasNotImplemented),
+
+			MessageResponseCode::Refused => Err(MessageResponseCodeWasRefused),
+
+			// RFC 6672, Section 2.2 Final Paragraph allows this code to occur if DNAME substitution would produce a FQDN longer than 255 bytes.
+			MessageResponseCode::NameExistsWhenItShouldNot => Err(MessageResponseCodeShouldNotBeDynamicDnsAssociated(MessageResponseCode::NameExistsWhenItShouldNot)),
+
+			MessageResponseCode::ResourceRecordSetExistsWhenItShouldNot => Err(MessageResponseCodeShouldNotBeDynamicDnsAssociated(MessageResponseCode::ResourceRecordSetExistsWhenItShouldNot)),
+
+			MessageResponseCode::ResourceRecordSetThatShouldExistDoesNot => Err(MessageResponseCodeShouldNotBeDynamicDnsAssociated(MessageResponseCode::ResourceRecordSetThatShouldExistDoesNot)),
+
+			MessageResponseCode::ServerNotAuthoritativeForZoneOrNotAuthorized => Err(MessageResponseCodeShouldNotBeDynamicDnsAssociated(MessageResponseCode::ServerNotAuthoritativeForZoneOrNotAuthorized)),
+
+			MessageResponseCode::NameNotContainedInZone => Err(MessageResponseCodeShouldNotBeDynamicDnsAssociated(MessageResponseCode::NameNotContainedInZone)),
+
+			MessageResponseCode::DnsStatefulOperationsTypeNotImplemented => Err(MessageResponseCodeShouldNotBeDnsStatefulOperationsTypeNotImplemented),
+
+			response_code @ 12 ..= 15 => Err(MessageResponseCodeUnassigned(response_code)),
+
+			_ => unreachable!(),
+		}
+	}
+	
+	#[inline(always)]
+	fn validate_authentic_answers_do_not_have_authoritative_data_bit_set(&self) -> Result<AuthoritativeAndAuthenticated, DnsProtocolError>
+	{
+		let is_authoritative_answer = self.authoritative_answer();
+		let is_authenticated_data = self.authentic_data();
+		
+		AuthoritativeAndAuthenticated::parse(is_authoritative_answer, is_authenticated_data)
+	}
 }

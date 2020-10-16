@@ -12,7 +12,7 @@ impl QuerySectionEntry
 	
 	const ClassSize: usize = 2;
 	
-	const MaximumSizeOfOneQuery: usize = Name::MaximumSize + Self::QueryTypeSize + Self::ClassSize;
+	pub(crate) const MaximumSizeOfOneQuery: usize = Name::MaximumSize + Self::QueryTypeSize + Self::ClassSize;
 
 	/// Validation of available buffer size is done before calling this.
 	#[inline(always)]
@@ -28,7 +28,7 @@ impl QuerySectionEntry
 	}
 
 	#[inline(always)]
-	pub(crate) fn parse_response<'message>(&'message mut self, parsed_labels: &mut ParsedLabels, end_of_message_pointer: usize, request_query_identification: Query<impl Allocator>) -> Result<(usize, DataType), DnsProtocolError>
+	pub(crate) fn parse_response<'message>(&'message self, parsed_labels: &mut ParsedLabels, end_of_message_pointer: usize, request_query_identification: Query<impl Allocator>) -> Result<(usize, DataType), DnsProtocolError>
 	{
 		let (qname, end_of_qname_pointer) = self.name().parse_without_compression_but_register_labels_for_compression(parsed_labels, end_of_message_pointer)?;
 
@@ -42,13 +42,13 @@ impl QuerySectionEntry
 	}
 
 	#[inline(always)]
-	fn data_type(&self, end_of_name_pointer: usize) -> DataType
+	pub(crate) fn data_type(&self, end_of_name_pointer: usize) -> DataType
 	{
 		self.query_type_or_data_type(end_of_name_pointer).data_type()
 	}
 
 	#[inline(always)]
-	const fn end_of_query_section(end_of_qname_pointer: usize) -> usize
+	pub(crate) const fn end_of_query_section(end_of_qname_pointer: usize) -> usize
 	{
 		const QueryTypeOrDataTypeSize: usize = 2;
 		const QueryClassSize: usize = 2;
@@ -57,9 +57,9 @@ impl QuerySectionEntry
 
 	/// `QNAME` field.
 	#[inline(always)]
-	pub(crate) fn name(&mut self) -> &mut Name
+	pub(crate) fn name(&self) -> &Name
 	{
-		self.unsafe_cast_mut::<Name>()
+		self.unsafe_cast::<Name>()
 	}
 
 	/// `QTYPE` field.
@@ -71,9 +71,9 @@ impl QuerySectionEntry
 
 	/// `QCLASS` field.
 	#[inline(always)]
-	pub(crate) fn query_class(&self, end_of_name_pointer: usize) -> Result<QueryClass, DnsProtocolError>
+	pub(crate) fn validate_is_internet_query_class(&self, end_of_name_pointer: usize) -> Result<(), DnsProtocolError>
 	{
-		self.query_section_entry_footer(end_of_name_pointer).query_class()
+		self.query_section_entry_footer(end_of_name_pointer).validate_is_internet_query_class()
 	}
 
 	#[inline(always)]

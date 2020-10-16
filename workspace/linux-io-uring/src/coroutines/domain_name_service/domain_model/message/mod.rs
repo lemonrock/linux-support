@@ -3,12 +3,6 @@
 
 
 use super::*;
-use super::character_strings::*;
-use super::extended_dns::*;
-use super::response_parsing::*;
-use self::header::*;
-use self::query::*;
-use self::resource_record::*;
 
 
 pub(crate) mod header;
@@ -23,6 +17,6 @@ pub(crate) mod resource_record;
 
 
 include!("DataType.rs");
-include!("Message.rs");
+include!("DnsMessage.rs");
 include!("MetaType.rs");
-include!("TcpMessage.rs");
+include!("TcpDnsMessage.rs");

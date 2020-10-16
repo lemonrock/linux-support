@@ -2,7 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-struct RequestQuery<'a>
-{
-	answer_section: Box<dyn ResourceRecordVisitor<'a>>,
-}
+use super::*;
+
+
+include!("AuthorityResourceRecordVisitor.rs");
+include!("CanonicalNameChainResourceRecordVisitor.rs");
+include!("DiscardingResourceRecordVisitor.rs");
+include!("ResourceRecordVisitor.rs");

@@ -12,4 +12,8 @@ impl<'yielder, SD: SocketData> TlsClientStream<'yielder, SD>
 	pub(crate) fn write_all_data(&mut self, _buffer: &[u8])
 	{
 	}
+	
+	pub(crate) fn read_all_data(&mut self, _buffer: &mut [u8])
+	{
+	}
 }

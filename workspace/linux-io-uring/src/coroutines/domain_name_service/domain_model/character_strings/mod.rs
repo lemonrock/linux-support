@@ -3,7 +3,6 @@
 
 
 use super::*;
-use super::name::UpTo255Bytes;
 
 
 include!("CharacterString.rs");
