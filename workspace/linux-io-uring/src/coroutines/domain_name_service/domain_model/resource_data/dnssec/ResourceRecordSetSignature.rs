@@ -18,7 +18,7 @@ pub struct ResourceRecordSetSignature<'a>
 	pub labels: u8,
 
 	/// Original time to live.
-	pub original_time_to_live: TimeToLiveInSeconds,
+	pub original_time_to_live: TimeInSeconds,
 
 	/// A key tag.
 	pub key_tag: KeyTag,

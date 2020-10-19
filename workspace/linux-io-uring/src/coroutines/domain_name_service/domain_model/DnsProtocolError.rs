@@ -117,7 +117,7 @@ pub enum DnsProtocolError
 	/// Tuple contains value.
 	///
 	/// See [IANA](https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-2) and RFC 6895 for further details.
-	ClassIsReservedUnassignedOrObsolete([u8; 2]),
+	ClassIsReservedUnassignedOrObsolete(BigEndianU32),
 
 	/// A text record string length was longer than that permitted by the resource data (`RDATA`) length (`RDLEN`).
 	TextRecordStringLengthIncorrect,

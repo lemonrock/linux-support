@@ -2,4 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-type NegativeCachingTimeToLiveInSeconds = u32;
+pub struct PrioritizedAndWeightedRecords<Record: Sized>
+{
+	pub by_priority: BTreeMap<u16, WeightedRecords<Record>>
+}

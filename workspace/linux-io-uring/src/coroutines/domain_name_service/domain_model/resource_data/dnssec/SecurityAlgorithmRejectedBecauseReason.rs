@@ -6,14 +6,19 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum SecurityAlgorithmRejectedBecauseReason
 {
+	/// The security algorithms `RSASHA1` and `RSASHA1-NSEC3-SHA1` are widely deployed but insecure.
+	WidelyDeployedButInsecureSecurityAlogrithm(u8),
+	
 	/// The security alogrithm `RSA-MD5` is deprecated.
 	DeprecatedSecurityAlgorithm_RSA_MD5,
 
 	/// DH came about well before version 3 of DNSSEC and is not used.
 	EffectivelyObsoleteSecurityAlgorithm_Diffie_Hellman,
 
-	/// DSA is probably vulnerable.
-	ProbablyVulnerableSecurityAlgorithm_DSA,
+	/// DSA is vulnerable to a private key compromise when generating signatures usign a weak or compromised random number generator.
+	///
+	/// After the revelations of NSA persuading standards bodies to recommended compromised Random Number Generators in conjunction with DSA, this algorithm must be considered broken.
+	VulnerableSecurityAlgorithm_DSA,
 
 	/// SHA-1 is broken; RSA-SHA-1 should be considered to be broken.
 	MayBeBrokenSecurityAlgorithm_RSA_SHA_1,

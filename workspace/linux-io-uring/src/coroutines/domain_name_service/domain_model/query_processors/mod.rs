@@ -3,15 +3,10 @@
 
 
 use super::*;
+use super::caching::*;
 
 
-pub(crate) mod resource_record_visitors;
-
-
-include!("AnswerOutcome.rs");
-include!("AnswerQuality.rs");
-include!("AuthoritativeAndAuthenticated.rs");
-include!("CanonicalNameChain.rs");
-include!("DuplicateResourceRecordResponseParsing.rs");
-include!("ResponseParsingState.rs");
-include!("ResponseRecordSectionsParser.rs");
+include!("AQueryProcessor.rs");
+include!("CNAMEQueryProcessor.rs");
+include!("MXQueryProcessor.rs");
+include!("QueryProcessor.rs");

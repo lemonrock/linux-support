@@ -2,16 +2,33 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+#[derive(Debug)]
+struct LeastRecentlyUsedListKeyReference
+{
+	key: NonNull<NameAsLabelsIncludingRoot>,
+}
 
+impl PartialEq for LeastRecentlyUsedListKeyReference
+{
+	#[inline(always)]
+	fn eq(&self, rhs: &Self) -> bool
+	{
+		unsafe
+		{
+			self.key.as_ref().eq(rhs.key.as_ref())
+		}
+	}
+}
 
-pub(crate) mod resource_record_visitors;
+impl Eq for LeastRecentlyUsedListKeyReference
+{
+}
 
-
-include!("AnswerOutcome.rs");
-include!("AnswerQuality.rs");
-include!("AuthoritativeAndAuthenticated.rs");
-include!("CanonicalNameChain.rs");
-include!("DuplicateResourceRecordResponseParsing.rs");
-include!("ResponseParsingState.rs");
-include!("ResponseRecordSectionsParser.rs");
+impl Hash for LeastRecentlyUsedListKeyReference
+{
+	#[inline(always)]
+	fn hash<H: Hasher>(&self, state: &mut H)
+	{
+		unsafe { self.key.as_ref().hash(state) }
+	}
+}

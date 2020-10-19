@@ -2,16 +2,27 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+pub(crate) enum CacheEntry<Record: Sized + Clone>
+{
+	AbsentButUncached,
+	
+	AbsentNegativelyCached(NanosecondsSinceUnixEpoch),
+	
+	Present(Present<Record>),
+}
 
-
-pub(crate) mod resource_record_visitors;
-
-
-include!("AnswerOutcome.rs");
-include!("AnswerQuality.rs");
-include!("AuthoritativeAndAuthenticated.rs");
-include!("CanonicalNameChain.rs");
-include!("DuplicateResourceRecordResponseParsing.rs");
-include!("ResponseParsingState.rs");
-include!("ResponseRecordSectionsParser.rs");
+impl<Record: Sized + Clone> CacheEntry<Record>
+{
+	#[inline(always)]
+	pub(crate) fn records_count(&self) -> usize
+	{
+		use self::CacheEntry::*;
+		
+		match self
+		{
+			AbsentButUncached | AbsentNegativelyCached(_) => 1,
+			
+			Present(ref present) => present.records_count(),
+		}
+	}
+}

@@ -68,7 +68,7 @@ impl ParsedLabels
 	#[inline(always)]
 	pub(crate) fn guard(&self, offset: usize, start_of_name_pointer: usize, labels_register_reference: &mut LabelsRegister) -> Result<(usize, u8, u8), DnsProtocolError>
 	{
-		debug_assert!(offset <= ::std::u16::MAX as usize, "offset is larger than ::std::u16::MAX");
+		debug_assert!(offset <= u16::MAX as usize, "offset is larger than u16::MAX");
 
 		let points_to_label_at = self.start_of_message_pointer + offset;
 
@@ -99,7 +99,7 @@ impl ParsedLabels
 
 			debug_assert!(label_starts_at_pointer >= self.start_of_message_pointer, "offset occurs before start_of_message_pointer");
 			let offset = label_starts_at_pointer - self.start_of_message_pointer;
-			debug_assert!(offset <= ::std::u16::MAX as usize, "offset `{}` exceeds ::std::u16::MAX", offset);
+			debug_assert!(offset <= u16::MAX as usize, "offset `{}` exceeds u16::MAX", offset);
 			let previous = self.parsed_labels.insert(offset as u16, ParsedLabelInformation { number_of_uncompressed_labels_with_all_pointers_resolved, length_of_all_labels_including_period });
 			debug_assert_eq!(previous, None, "duplicate uncompressed label");
 		}

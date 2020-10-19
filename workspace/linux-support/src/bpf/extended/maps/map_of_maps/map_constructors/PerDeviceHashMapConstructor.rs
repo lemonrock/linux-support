@@ -10,7 +10,7 @@ impl<K: Copy, V: Copy> MapConstructor for PerDeviceHashMapConstructor<K, V>
 {
 	const Singleton: Self = Self(PhantomData);
 	
-	type Map = crate::bpf::extended::maps::HashMap<K, V>;
+	type Map = crate::bpf::extended::maps::BpfHashMap<K, V>;
 	
 	type AccessPermissions = AccessPermissions;
 	
@@ -22,6 +22,6 @@ impl<K: Copy, V: Copy> MapConstructor for PerDeviceHashMapConstructor<K, V>
 	fn construct(map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: Self::AccessPermissions, _invariant_arguments: Self::InvariantArguments, variable_arguments: Self::VariableArguments) -> Result<Self::Map, MapCreationError>
 	{
 		let device = variable_arguments;
-		crate::bpf::extended::maps::HashMap::new_per_device(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, maximum_entries, access_permissions, device)
+		crate::bpf::extended::maps::BpfHashMap::new_per_device(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, maximum_entries, access_permissions, device)
 	}
 }

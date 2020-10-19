@@ -20,7 +20,7 @@ pub struct ServiceLocation<'a>
 	/// Larger weights imply less loading.
 	pub weight: u16,
 
-	/// TCP, UDP or SCTP port for the service..
+	/// TCP, UDP or SCTP port for the service.
 	pub port: u16,
 
 	/// Must not be an alias; should not use name compression; a value of '.' (ie Root) means the service is unavailable.

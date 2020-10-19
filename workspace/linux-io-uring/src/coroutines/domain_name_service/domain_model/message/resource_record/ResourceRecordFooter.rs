@@ -6,9 +6,13 @@
 struct ResourceRecordFooter
 {
 	type_: DataType,
-	class: [u8; 2],
-	ttl: [u8; 4],
-	rdlen: [u8; 2],
+	
+	class: BigEndianU32,
+	
+	ttl: BigEndianI32,
+	
+	rdlen: BigEndianU32,
+	
 	rdata: ResourceData,
 }
 
@@ -58,9 +62,9 @@ impl ResourceRecordFooter
 	}
 
 	#[inline(always)]
-	fn time_to_live(&self) -> TimeToLiveInSeconds
+	fn time_to_live(&self) -> TimeInSeconds
 	{
-		TimeToLiveInSeconds(self.ttl)
+		TimeInSeconds(self.ttl)
 	}
 
 	#[inline(always)]

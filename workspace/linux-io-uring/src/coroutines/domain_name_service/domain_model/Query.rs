@@ -27,19 +27,21 @@ impl<A: Allocator> Query<A>
 	
 	#[allow(deprecated)]
 	#[inline(always)]
-	pub fn read_tcp_reply<'yielder, 'message, SD: SocketData, RRV: ResourceRecordVisitor<'message>>(&self, stream: &mut TlsClientStream<'yielder, SD>, answer_section_resource_record_visitor: &mut RRV) -> Result<(), DnsProtocolError>
+	pub fn read_tcp_reply<'yielder, 'message, SD: SocketData, RRV: ResourceRecordVisitor<'message>>(&self, stream: &mut TlsClientStream<'yielder, SD>, answer_section_resource_record_visitor: &mut RRV) -> Result<(AnswerQuality, AnswerOutcome, CanonicalNameChain<'message>), DnsProtocolError>
 	{
 		let mut buffer: [u8; ResourceRecord::UdpRequestorsPayloadSize] = unsafe { uninitialized() };
 		let message_length = Self::reply_message(stream, &mut buffer)?;
 		let raw_dns_message = &buffer[.. message_length];
-		self.read_reply_after_message_length_checked(raw_dns_message)
+		self.read_reply_after_message_length_checked(raw_dns_message, answer_section_resource_record_visitor)
 	}
 	
 	#[inline(always)]
-	fn read_reply_after_message_length_checked<'message, RRV: ResourceRecordVisitor<'message>>(&self, raw_dns_message: &'message [u8], answer_section_resource_record_visitor: &mut RRV) -> Result<(), DnsProtocolError>
+	fn read_reply_after_message_length_checked<'message, RRV: ResourceRecordVisitor<'message>>(&self, raw_dns_message: &'message [u8], answer_section_resource_record_visitor: &mut RRV) -> Result<(AnswerQuality, AnswerOutcome, CanonicalNameChain<'message>), DnsProtocolError>
 	{
+		let now = NanosecondsSinceUnixEpoch::now();
+		
 		let dns_message = unsafe { &* (raw_dns_message.as_ptr() as *const DnsMessage) };
-		let outcome = self.parse_message_header(dns_message.message_header())?;;
+		let answer_quality = self.parse_message_header(dns_message.message_header())?;;
 		
 		let start_of_message_pointer = raw_dns_message.start_pointer();
 		let mut parsed_labels = ParsedLabels::new(start_of_message_pointer);
@@ -47,8 +49,8 @@ impl<A: Allocator> Query<A>
 		let end_of_message_pointer = raw_dns_message.end_pointer();
 		
 		let (next_resource_record_pointer, query_name) = self.parse_query_section(dns_message.query_section_entry(), &mut parsed_labels, end_of_message_pointer)?;
-		let response_record_sections_parser = ResponseRecordSectionsParser::new(self.data_type, end_of_message_pointer, message_header, parsed_labels);
-		let (end_of_parsed_message_pointer, answer_outcome) = response_record_sections_parser.parse_answer_authority_and_additional_sections(next_resource_record_pointer, &query_name, outcome, answer_section_resource_record_visitor)?;
+		let response_record_sections_parser = ResponseRecordSectionsParser::new(now, self.data_type, end_of_message_pointer, message_header, parsed_labels);
+		let (end_of_parsed_message_pointer, answer_outcome, canonical_name_chain) = response_record_sections_parser.parse_answer_authority_and_additional_sections(next_resource_record_pointer, query_name, answer_quality, answer_section_resource_record_visitor)?;
 		
 		if unlikely!(end_of_parsed_message_pointer < end_of_message_pointer)
 		{
@@ -56,7 +58,7 @@ impl<A: Allocator> Query<A>
 		}
 		else
 		{
-			Ok(outcome)
+			Ok((answer_quality, answer_outcome, canonical_name_chain))
 		}
 	}
 	

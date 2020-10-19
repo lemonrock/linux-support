@@ -3,34 +3,90 @@
 
 
 /// A 31 bit unsigned integer that specifies a time in seconds.
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Default, Debug, Copy, Clone)]
 #[repr(C, packed)]
-pub struct TimeInSeconds(BigEndianU32);
+pub struct TimeInSeconds(BigEndianI32);
 
-impl From<BigEndianU32> for TimeInSeconds
+impl PartialOrd for TimeInSeconds
 {
 	#[inline(always)]
-	fn from(seconds: BigEndianU32) -> Self
+	fn partial_cmp(&self, rhs: &self) -> Option<Ordering>
 	{
-		Self(seconds)
+		Some(self.cmp(rhs))
 	}
 }
 
-impl Into<u32> for TimeInSeconds
+impl Ord for TimeInSeconds
 {
 	#[inline(always)]
-	fn into(self) -> u32
+	fn cmp(&self, rhs: &self) -> Ordering
 	{
-		let value = u32::from_be_bytes(self.0);
+		let left: u32 = self.into();
+		let right: u32 = self.into();
+		left.cmp(&right)
+	}
+}
 
-		// RFC 2181, Section 8; if the top bit is set, the value is zero.
-		if unlikely!(value & 0x80000000 != 0)
+impl PartialEq for TimeInSeconds
+{
+	#[inline(always)]
+	fn eq(&self, rhs: &self) -> Ordering
+	{
+		let left: u32 = self.into();
+		let right: u32 = self.into();
+		left.eq(&right)
+	}
+}
+
+impl Eq for TimeInSeconds
+{
+}
+
+impl Hash for TimeInSeconds
+{
+	#[inline(always)]
+	fn hash<H: Hasher>(&self, state: &mut H)
+	{
+		let seconds = self.into();
+		seconds.hash(state)
+	}
+}
+
+impl Into<U31SecondsDuration> for TimeInSeconds
+{
+	#[inline(always)]
+	fn into(self) -> U31SecondsDuration
+	{
+		// RFC 2181, Section 8, paragraph 2: "Implementations should treat TTL values received with the most significant bit set as if the entire value received was zero".
+		let top_byte = unsafe { *(self.0).get_unchecked(0) };
+		let seconds = if likely!(top_byte & 0x80 == 0)
 		{
-			0
+			u32::from_be_bytes(self.0)
 		}
 		else
 		{
-			value
+			U31SecondsDuration::Zero
+		};
+		U31SecondsDuration::try_from(seconds).unwrap()
+	}
+}
+
+impl TimeInSeconds
+{
+	/// Cache until?
+	///
+	/// Returns `None` if should not be cached.
+	#[inline(always)]
+	pub fn cache_until(self, now: NanosecondsSinceUnixEpoch) -> Option<NanosecondsSinceUnixEpoch>
+	{
+		let u31_seconds_duration = self.into();
+		if unlikely!(u31_seconds_duration.is_zero())
+		{
+			None
+		}
+		else
+		{
+			Some(now + u31_seconds_duration)
 		}
 	}
 }

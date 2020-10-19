@@ -46,5 +46,5 @@ pub struct StartOfAuthorityFooter
 	/// Negative caching time to live.
 	///
 	/// RFC 2308 redefines this as the time in seconds that any name server or resolver should cache a negative response.
-	pub negative_caching_time_to_live: TimeToLiveInSeconds,
+	pub negative_caching_time_to_live: TimeInSeconds,
 }

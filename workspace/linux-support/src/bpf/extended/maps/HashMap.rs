@@ -4,14 +4,14 @@
 
 /// When a hash map is created it is empty.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct HashMap<K: Copy, V: Copy>
+pub struct BpfHashMap<K: Copy, V: Copy>
 {
 	map_file_descriptor: Rc<MapFileDescriptor>,
 	maximum_entries: MaximumEntries,
 	marker: PhantomData<(K, V)>,
 }
 
-impl<K: Copy, V: Copy> CanBeInnerMap for HashMap<K, V>
+impl<K: Copy, V: Copy> CanBeInnerMap for BpfHashMap<K, V>
 {
 	#[inline(always)]
 	fn map_file_descriptor(&self) -> &MapFileDescriptor
@@ -20,7 +20,7 @@ impl<K: Copy, V: Copy> CanBeInnerMap for HashMap<K, V>
 	}
 }
 
-impl<K: Copy, V: Copy> HashMap<K, V>
+impl<K: Copy, V: Copy> BpfHashMap<K, V>
 {
 	/// New per-device.
 	#[inline(always)]

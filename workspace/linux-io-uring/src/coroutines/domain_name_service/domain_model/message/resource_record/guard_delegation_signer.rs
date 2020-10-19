@@ -7,7 +7,7 @@ macro_rules! guard_delegation_signer
 	($self: ident, $end_of_name_pointer: ident, $end_of_message_pointer: ident, $resource_record_name: ident, $resource_record_visitor: ident, $ignored_callback: ident, $visit_callback: ident, $permit_delete: expr, $data_type: ident, $duplicate_resource_record_response_parsing: ident) =>
 	{
 		{
-			let (time_to_live, resource_data) = $self.validate_class_is_internet_and_get_time_to_live_and_resource_data($resource_record_name, $end_of_name_pointer, $end_of_message_pointer, $data_type, $duplicate_resource_record_response_parsing)?;
+			let (cache_until, resource_data) = $self.validate_class_is_internet_and_get_time_to_live_and_resource_data($resource_record_name, $end_of_name_pointer, $end_of_message_pointer, $data_type, $duplicate_resource_record_response_parsing)?;
 
 			use self::DelegationSignerResourceRecordIgnoredBecauseReason::*;
 			use self::DigestAlgorithmRejectedBecauseReason::*;
@@ -74,7 +74,7 @@ macro_rules! guard_delegation_signer
 				digest,
 			};
 
-			$resource_record_visitor.$visit_callback($resource_record_name, time_to_live, record)?;
+			$resource_record_visitor.$visit_callback($resource_record_name, cache_until, record)?;
 			Ok(resource_data_end_pointer)
 		}
 	}

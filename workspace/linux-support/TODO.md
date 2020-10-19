@@ -5,7 +5,8 @@
     * Does not require driver support (part of NAPI)
 * "If the NETIF_F_RXHASH flag is set, the 32-bit result of the hash function delivered in the Rx CQ descriptor is set in the received SKB." (Amazon ENA)
 * Send a start up Diagnostics message over DogStatsD, or dump to the console.
-
+* Use CLOCK_TAI instead of CLOCK_REALTIME in some Unix-epoch code, eg
+    * <https://superuser.com/questions/1156693/is-there-a-way-of-getting-correct-clock-tai-on-linux> for setting the TAI offset.
 
 ## How to use XDP
 

@@ -3,15 +3,9 @@
 
 
 use super::*;
+use crate::big_endian::BigEndianU32;
+use crate::strings::parse_number::ParseNumberError;
 
 
-pub(crate) mod resource_record_visitors;
-
-
-include!("AnswerOutcome.rs");
-include!("AnswerQuality.rs");
-include!("AuthoritativeAndAuthenticated.rs");
-include!("CanonicalNameChain.rs");
-include!("DuplicateResourceRecordResponseParsing.rs");
-include!("ResponseParsingState.rs");
-include!("ResponseRecordSectionsParser.rs");
+include!("NanosecondsSinceUnixEpoch.rs");
+include!("U31SecondsDuration.rs");

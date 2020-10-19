@@ -3,23 +3,29 @@
 
 
 /// The security algorithm in use.
+///
+/// The list here is deliberately incomplete; only algorithms considered strong as of RFC 8624 are included irrespective of deployment status.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum SecurityAlgorithm
 {
 	/// Only valid for `CDS` and `CDNSKEY` records.
 	Delete,
+	
+	/// RSA-SHA-1.
+	///
+	/// Widely deployed but insecure.
+	RivestShamirAdlemanSha1,
+	
+	/// RSA-SHA-1 NSEC3 SHA-1.
+	///
+	/// Widely deployed but insecure.
+	RivestShamirAdlemanSha1Nsec3Sha1,
 
 	/// RSA-SHA2-256.
 	RivestShamirAdlemanSha256,
 
 	/// RSA-SHA2-512.
 	RivestShamirAdlemanSha512,
-
-	/// DSA NSEC3 SHA-1.
-	DigitalSignatureAlgorithmNsec3Sha1,
-
-	/// RSA-SHA-1 NSEC3 SHA-1.
-	RivestShamirAdlemanSha1Nsec3Sha1,
 
 	/// ECDSA with curve P-256 and SHA-256.
 	EllipticCurveDigitalSignatureAlgorithmWithCurveP256AndSha256,
@@ -160,7 +166,7 @@ impl SecurityAlgorithm
 	const PRIVATEOID: u8 = 254;
 
 	#[inline(always)]
-	pub(crate) fn parse_security_algorithm(security_algorithm_type: u8, permit_delete: bool, permit_nsec3: bool) -> Result<Either<Self, SecurityAlgorithmRejectedBecauseReason>, DnsProtocolError>
+	pub(crate) fn parse_security_algorithm(security_algorithm_type: u8, permit_delete: bool, permit_widely_deployed_but_insecure: bool) -> Result<Either<Self, SecurityAlgorithmRejectedBecauseReason>, DnsProtocolError>
 	{
 		use self::SecurityAlgorithm::*;
 		use self::SecurityAlgorithmRejectedBecauseReason::*;
@@ -180,28 +186,28 @@ impl SecurityAlgorithm
 
 			Self::DH => Ok(Right(EffectivelyObsoleteSecurityAlgorithm_Diffie_Hellman)),
 
-			Self::DSA => Ok(Right(ProbablyVulnerableSecurityAlgorithm_DSA)),
+			Self::DSA => Ok(Right(VulnerableSecurityAlgorithm_DSA)),
 
 			4 => Err(SecurityAlgorithmTypeIsReservedByRfc6725(4)),
 
-			Self::RSASHA1 => Ok(Right(MayBeBrokenSecurityAlgorithm_RSA_SHA_1)),
-
-			Self::DSA_NSEC3_SHA1 => if unlikely!(permit_nsec3)
+			Self::RSASHA1 => if unlikely!(permit_widely_deployed_but_insecure)
 			{
-				Ok(Left(DigitalSignatureAlgorithmNsec3Sha1))
+				Ok(Left(RivestShamirAdlemanSha1))
 			}
 			else
 			{
-				Err(SecurityAlgorithmShouldNotBeUsedForThisResourceRecordType(security_algorithm_type))
+				Err(WidelyDeployedButInsecureSecurityAlogrithm(security_algorithm_type))
 			},
 
-			Self::RSASHA1_NSEC3_SHA1 => if unlikely!(permit_nsec3)
+			Self::DSA_NSEC3_SHA1 => Ok(Right(VulnerableSecurityAlgorithm_DSA)),
+
+			Self::RSASHA1_NSEC3_SHA1 => if unlikely!(permit_widely_deployed_but_insecure)
 			{
 				Ok(Left(RivestShamirAdlemanSha1Nsec3Sha1))
 			}
 			else
 			{
-				Err(SecurityAlgorithmShouldNotBeUsedForThisResourceRecordType(security_algorithm_type))
+				Err(WidelyDeployedButInsecureSecurityAlogrithm(security_algorithm_type))
 			},
 
 			Self::RSASHA256 => Ok(Left(RivestShamirAdlemanSha256)),

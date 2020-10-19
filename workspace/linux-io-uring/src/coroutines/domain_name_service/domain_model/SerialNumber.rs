@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A serial number that can wrap-around.
+/// A serial number that can wrap-around and is often based on a date-time.
 #[derive(Default, Debug, Copy, Clone, Hash)]
 pub struct SerialNumber(BigEndianU32);
 
@@ -74,6 +74,8 @@ impl SerialNumber
 	}
 
 	/// Difference.
+	///
+	/// Returns `(left, right, difference)` unless the difference is too large to work out wrap-around.
 	#[inline(always)]
 	pub fn difference(&self, other: &Self) -> Option<(u32, u32, i32)>
 	{

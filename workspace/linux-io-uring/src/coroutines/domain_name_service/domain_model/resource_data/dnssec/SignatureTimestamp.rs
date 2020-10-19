@@ -6,22 +6,36 @@
 #[derive(Default, Debug, Copy, Clone, PartialEq, PartialOrd, Hash)]
 pub struct SignatureTimestamp(SerialNumber);
 
-impl Into<Timespec> for SignatureTimestamp
-{
-	#[inline(always)]
-	fn into(self) -> Timespec
-	{
-		let seconds: u32 = self.0.into();
-		Timespec::new(seconds as i64, 0)
-	}
-}
-
 impl SignatureTimestamp
 {
-	/// Difference.
+	/// Assumes expiration exceeds inception, otherwise `Some(None)` is returned.
+	/// If the difference is too large (more than 68 years or so) `None` is returned.
 	#[inline(always)]
-	pub fn difference(&self, other: &Self) -> Option<(u32, u32, i32)>
+	pub fn inception_and_expiration(self, inception: Self) -> Option<Option<(NanosecondsSinceUnixEpoch, NanosecondsSinceUnixEpoch)>>
 	{
-		self.0.difference(&other.0)
+		let expiration = self.0;
+		let inception = inception.0;
+		match expiration.difference(&inception)
+		{
+			None => None,
+			
+			Some((signature_expiration_seconds, signature_inception_seconds, difference)) =>  if unlikely!(difference <= 0)
+			{
+				Some(None)
+			}
+			else
+			{
+				let signature_inception_time = if unlikely!(signature_inception_seconds > signature_expiration_seconds)
+				{
+					NanosecondsSinceUnixEpoch::from_seconds_u32_after_next_wrap_around(signature_inception_seconds)
+				}
+				else
+				{
+					NanosecondsSinceUnixEpoch::from_seconds_u32_before_next_wrap_around(signature_inception_seconds)
+				};
+				let signature_expiration_time = NanosecondsSinceUnixEpoch::from_seconds_u32_before_next_wrap_around(signature_expiration_seconds);
+				Some(Some(signature_inception_time, signature_expiration_time))
+			}
+		}
 	}
 }

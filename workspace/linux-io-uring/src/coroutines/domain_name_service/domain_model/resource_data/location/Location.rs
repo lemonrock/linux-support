@@ -20,15 +20,15 @@ pub struct Location
 	/// The latitude of the center of the sphere described by `size()`, expressed as a 32-bit integer, most significant octet first (network standard byte order), in thousandths of a second of arc.
 	///
 	/// 2^31 represents the equator; numbers above that are north latitude.
-	pub unsigned_latitude: [u8; 4],
+	pub unsigned_latitude: BigEndianI32,
 
 	/// The longitude of the center of the sphere described by `size()`, expressed as a 32-bit integer, most significant octet first (network standard byte order), in thousandths of a second of arc.
 	///
 	/// 2^31 represents the equator; numbers above that are north latitude.
-	pub unsigned_longitude: [u8; 4],
+	pub unsigned_longitude: BigEndianI32,
 
 	/// The altitude of the center of the sphere described by by `size()`d, expressed as a 32-bit integer, most significant octet first (network standard byte order), in centimeters, from a base of 100,000m below the WGS 84 reference spheroid used by GPS.
-	pub unsigned_altitude: [u8; 4],
+	pub unsigned_altitude: BigEndianI32,
 }
 
 impl Location

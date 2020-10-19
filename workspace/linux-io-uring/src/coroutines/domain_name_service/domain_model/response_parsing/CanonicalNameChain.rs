@@ -36,9 +36,9 @@
 /// The `query_name` was `www.microsoft.com.`.
 ///
 /// The function `validate_authority_section_name()` below will then validate that the `start_of_authority_name`, `dspb.akamaiedge.net.`, is the same as `parent`.
-struct CanonicalNameChain<'message>
+pub(crate) struct CanonicalNameChain<'message>
 {
-	query_name: &'message WithCompressionParsedName<'message>,
+	query_name: WithCompressionParsedName<'message>,
 	chain: IndexSet<WithCompressionParsedName<'message>>,
 }
 
@@ -50,7 +50,7 @@ impl<'message> CanonicalNameChain<'message>
 	const MaximumChainLength: usize = 6;
 	
 	#[inline(always)]
-	pub(crate) fn new(query_name: &'message WithCompressionParsedName<'message>) -> Self
+	pub(crate) fn new(query_name: WithCompressionParsedName<'message>) -> Self
 	{
 		Self
 		{
@@ -66,7 +66,7 @@ impl<'message> CanonicalNameChain<'message>
 		
 		if unlikely!(chain_length == 0)
 		{
-			self.query_name
+			&self.query_name
 		}
 		else
 		{

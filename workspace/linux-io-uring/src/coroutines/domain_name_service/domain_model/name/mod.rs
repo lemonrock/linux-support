@@ -21,6 +21,7 @@ include!("LabelBytes.rs");
 include!("LabelKind.rs");
 include!("LabelsRegister.rs");
 include!("Name.rs");
+include!("NameAsLabelsIncludingRoot.rs");
 include!("ParsedLabelInformation.rs");
 include!("ParsedLabels.rs");
 include!("UncompressedName.rs");

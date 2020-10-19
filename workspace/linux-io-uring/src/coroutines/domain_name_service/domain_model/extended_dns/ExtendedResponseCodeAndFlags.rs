@@ -4,7 +4,7 @@
 
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(C, packed)]
-pub(crate) struct ExtendedResponseCodeAndFlags(pub(crate) [u8; 4]);
+pub(crate) struct ExtendedResponseCodeAndFlags(pub(crate) BigEndianU32);
 
 impl ExtendedResponseCodeAndFlags
 {
@@ -15,7 +15,7 @@ impl ExtendedResponseCodeAndFlags
 	const Version0: u8 = 0x00;
 
 	#[inline(always)]
-	pub(crate) const fn new_for_query() -> [u8; 4]
+	pub(crate) const fn new_for_query() -> BigEndianU32
 	{
 		const NoExtendedResponseCode: u8 = 0;
 		const UpperFlagBits: u8 = ExtendedResponseCodeAndFlags::DnsSecFlagUpper;

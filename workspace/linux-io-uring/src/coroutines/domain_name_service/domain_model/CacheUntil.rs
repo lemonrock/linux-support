@@ -2,16 +2,4 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-
-
-pub(crate) mod resource_record_visitors;
-
-
-include!("AnswerOutcome.rs");
-include!("AnswerQuality.rs");
-include!("AuthoritativeAndAuthenticated.rs");
-include!("CanonicalNameChain.rs");
-include!("DuplicateResourceRecordResponseParsing.rs");
-include!("ResponseParsingState.rs");
-include!("ResponseRecordSectionsParser.rs");
+pub(crate) type CacheUntil = Option<NanosecondsSinceUnixEpoch>;
