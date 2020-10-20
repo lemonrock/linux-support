@@ -23,8 +23,6 @@ definition of DS digest algorithm 0.  The same argument applies to
 [RFC4034], Section 2.1.2."
 ```
 
-## We need to actually occasionally accept the security algos for NSEC3
-
 ## We need to fix the parsing of HIP resource server names.
 
 ## We need to consider supporting compressed names in ALL resource records if we want to work with multicast-DNS.

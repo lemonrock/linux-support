@@ -4,11 +4,11 @@
 
 /// Key exchange data.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct KeyExchange<'a>
+pub struct KeyExchange<'message>
 {
 	/// Preference.
 	pub preference: u16,
 
 	/// Key exchange server name.
-	pub key_exchange_server_name: WithoutCompressionParsedName<'a>,
+	pub key_exchange_server_name: ParsedName<'message>,
 }

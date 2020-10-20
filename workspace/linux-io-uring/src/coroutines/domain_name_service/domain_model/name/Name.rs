@@ -2,47 +2,114 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A Name consists of one or more labels.
-pub(crate) struct Name;
-
-impl Name
+trait Name: Sized
 {
-	/// The smallest Name consists of one label, which is the Root label, which is one byte.
-	pub(crate) const MinimumSize: usize = 1;
-
-	pub(crate) const MaximumSize: usize = 255;
-
+	type Label: Label;
+	
 	#[inline(always)]
-	pub(crate) fn parse_without_compression_but_register_labels_for_compression<'message>(&'message self, parsed_labels: &mut ParsedLabels, end_of_message_pointer: usize) -> Result<(WithoutCompressionParsedName<'message>, usize), DnsProtocolError>
-	{
-		parsed_labels.parse_without_compression_but_register_labels_for_compression(self.as_usize_pointer(), end_of_message_pointer)
-	}
-
+	fn parent(&self) -> Option<Self>;
+	
 	#[inline(always)]
-	pub(crate) fn parse_with_compression<'message>(&'message self, parsed_labels: &mut ParsedLabels, end_of_message_pointer: usize) -> Result<(WithCompressionParsedName<'message>, usize), DnsProtocolError>
+	fn ends_with<RHS: Name>(&self, ends_with: &RHS) -> bool
 	{
-		parsed_labels.parse_name(self.as_usize_pointer_mut(), end_of_message_pointer)
-	}
-
-	#[inline(always)]
-	pub(crate) fn maximum_for_end_of_name_pointer(start_of_name_pointer: usize, end_of_data_section_containing_name_pointer: usize) -> Result<usize, DnsProtocolError>
-	{
-		let maximum_potential_name_length = Self::maximum_potential_name_length(start_of_name_pointer, end_of_data_section_containing_name_pointer)?;
-		let end_of_name_data_pointer = start_of_name_pointer + maximum_potential_name_length;
-		Ok(end_of_name_data_pointer)
-	}
-
-	#[inline(always)]
-	fn maximum_potential_name_length(start_of_name_pointer: usize, end_of_data_section_containing_name_pointer: usize) -> Result<usize, DnsProtocolError>
-	{
-		debug_assert!(end_of_data_section_containing_name_pointer >= start_of_name_pointer, "end_of_data_section_containing_name_pointer occurs before start_of_name_pointer");
-
-		if unlikely!(start_of_name_pointer == end_of_data_section_containing_name_pointer)
+		if self.name_length_including_trailing_periods_after_labels() < ends_with.name_length_including_trailing_periods_after_labels()
 		{
-			return Err(NameIsEmpty)
+			return false
 		}
-
-		let unconstrained_maximum_potential_name_length = end_of_data_section_containing_name_pointer - start_of_name_pointer;
-		Ok(min(unconstrained_maximum_potential_name_length, Self::MaximumSize))
+		
+		let ends_with_number_of_labels = ends_with.number_of_labels_including_root();
+		
+		if self.number_of_labels_including_root() < ends_with_number_of_labels
+		{
+			return false
+		}
+		
+		let mut length = ends_with_number_of_labels.get();
+		while length > 0
+		{
+			let index = length - 1;
+			
+			let our_label = unsafe { self.label(index) };
+			let ends_with_label = unsafe { ends_with.label(index) };
+			if our_label != ends_with_label
+			{
+				return false
+			}
+			
+			length -= 1;
+		}
+		
+		true
 	}
+	
+	#[inline(always)]
+	fn equals<RHS: Name>(&self, rhs: &RHS) -> bool
+	{
+		if self.number_of_labels_including_root() != rhs.number_of_labels_including_root()
+		{
+			return false
+		}
+		
+		for index in 0 .. (self.number_of_labels_including_root().get())
+		{
+			let left = unsafe { self.label(index) };
+			let right = unsafe { rhs.label(index) };
+			
+			if left.equals(&right)
+			{
+				return false
+			}
+		}
+		
+		true
+	}
+	
+	#[inline(always)]
+	fn partial_compare<RHS: Name>(&self, rhs: &RHS) -> Option<Ordering>
+	{
+		Some(self.compare(rhs))
+	}
+	
+	#[inline(always)]
+	fn compare<RHS: Name>(&self, rhs: &RHS) -> Ordering
+	{
+		let left_length = self.number_of_labels_including_root().get();
+		let right_length = rhs.number_of_labels_including_root().get();
+		
+		for index in 0 .. min(left_length, right_length)
+		{
+			let left = unsafe { self.label(index) };
+			let right = unsafe { rhs.label(index) };
+			
+			use self::Ordering::*;
+			
+			match left.compare(&right)
+			{
+				Less => return Less,
+				Equal => continue,
+				Greater => return Greater,
+			}
+		}
+		
+		left_length.cmp(&right_length)
+	}
+	
+	#[inline(always)]
+	fn hash_slice<H: Hasher>(&self, state: &mut H)
+	{
+		for index in 0 .. (self.number_of_labels_including_root().get())
+		{
+			let label = self.label(index);
+			label.hash_slice(state)
+		}
+	}
+	
+	#[inline(always)]
+	fn label<'label>(&'label self, index: u8) -> Cow<'label, Self::Label>;
+	
+	#[inline(always)]
+	fn number_of_labels_including_root(&self) -> NonZeroU8;
+	
+	#[inline(always)]
+	fn name_length_including_trailing_periods_after_labels(&self) -> NonZeroU8;
 }

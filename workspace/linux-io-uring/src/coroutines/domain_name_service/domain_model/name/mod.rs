@@ -3,32 +3,21 @@
 
 
 use super::*;
+use swiss_army_knife::split::SplitBytes;
 
 
-include!("bytes_label.rs");
-include!("compressed_error.rs");
-include!("guard_next_label_starts_at_pointer.rs");
-include!("iterator_next_label.rs");
-include!("parse_and_ignore_bytes_label.rs");
-include!("parse_and_register_bytes_label.rs");
-include!("parse_bytes_label.rs");
-include!("parse_name.rs");
-
-
+include!("case_fold_byte.rs");
+include!("CaseFoldedName.rs");
+include!("CaseFoldedLabel.rs");
+include!("CompressedPointerOffset.rs");
 include!("Label.rs");
-include!("LabelBitfield.rs");
-include!("LabelBytes.rs");
 include!("LabelKind.rs");
-include!("LabelsRegister.rs");
 include!("Name.rs");
-include!("NameAsLabelsIncludingRoot.rs");
-include!("ParsedLabelInformation.rs");
-include!("ParsedLabels.rs");
-include!("UncompressedName.rs");
-include!("UncompressedNameHeader.rs");
+include!("ParsedLabel.rs");
+include!("ParsedNames.rs");
+include!("ParsedName.rs");
+include!("ParsedNameParser.rs");
+include!("RawLabel.rs");
+include!("RawLabelBitfield.rs");
 include!("UpTo63Bytes.rs");
 include!("UpTo255Bytes.rs");
-include!("WithCompressionParsedName.rs");
-include!("WithCompressionParsedNameIterator.rs");
-include!("WithoutCompressionParsedName.rs");
-include!("WithoutCompressionParsedNameIterator.rs");

@@ -4,11 +4,11 @@
 
 /// A naming authority pointer with a domain name.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct NamingAuthorityPointerWithDomainName<'a>
+pub struct NamingAuthorityPointerWithDomainName<'message>
 {
 	/// Header.
-	pub header: NamingAuthorityPointerHeader<'a>,
+	pub header: NamingAuthorityPointerHeader<'message>,
 
 	/// Will never be empty (0 bytes long).
-	pub domain_name: WithoutCompressionParsedName<'a>,
+	pub domain_name: ParsedName<'message>,
 }

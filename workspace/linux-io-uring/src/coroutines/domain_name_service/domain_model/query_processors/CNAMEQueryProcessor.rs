@@ -5,32 +5,34 @@
 #[derive(Default)]
 struct CNAMEQueryProcessor<'message>
 {
-	records: Option<Record<NameAsLabelsIncludingRoot>>,
+	records: Option<Record<CaseFoldedName>>,
 }
 
 impl<'message, A: Alloctor> ResourceRecordVisitor<'message> for CNAMEQueryProcessor<A>
 {
 	#[inline(always)]
-	fn CNAME(&mut self, name: WithCompressionParsedName<'message>, cache_until: CacheUntil, record: WithCompressionParsedName<'message>, is_some_if_present_in_answer_section_and_true_if_was_queried_for: Option<bool>) -> Result<(), DnsProtocolError>
+	fn CNAME(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: ParsedName<'message>, is_some_if_present_in_answer_section_and_true_if_was_queried_for: Option<bool>) -> Result<(), DnsProtocolError>
 	{
 		debug_assert_eq!(is_some_if_present_in_answer_section_and_true_if_was_queried_for, Some(true));
 		debug_assert!(self.records.is_none(), "This should have been checked for in `ResourceRecord::parse_answer_section_resource_record_in_response()`");
 		
-		self.records = Some(Record::new_from_parsed_data(name, time_to_live, record));
+		self.records = Some(Record::from(name, time_to_live, record));
 		
 		Ok(())
 	}
 }
 
-impl<'message, A: Allocator> QueryProcessor<'message, NameAsLabelsIncludingRoot> for CNAMEQueryProcessor<A>
+impl<'message> QueryProcessor<'message, CaseFoldedName> for CNAMEQueryProcessor
 {
 	const DT: DataType = DataType::CNAME;
 	
-	type R = Option<Record<UncompressedName<A>, A>>;
+	type Record = ();
 	
-	#[inline(always)]
-	fn finish(self) -> Self::R
-	{
-		self.records
+	fn new() -> Self {
+		unimplemented!()
+	}
+	
+	fn finish(self, cache: &mut QueryTypeCache<Self::Record>) {
+		unimplemented!()
 	}
 }

@@ -30,7 +30,7 @@ impl Ord for TimeInSeconds
 impl PartialEq for TimeInSeconds
 {
 	#[inline(always)]
-	fn eq(&self, rhs: &self) -> Ordering
+	fn eq(&self, rhs: &self) -> bool
 	{
 		let left: u32 = self.into();
 		let right: u32 = self.into();

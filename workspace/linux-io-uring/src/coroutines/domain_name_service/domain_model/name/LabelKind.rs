@@ -17,5 +17,7 @@ pub(crate) enum LabelKind
 
 impl LabelKind
 {
-	const LabelKindSize: usize = 1;
+	const BytesLabelKindSize: usize = 1;
+	
+	const CompressedOffsetPointerLabelKindSize: usize = 2;
 }

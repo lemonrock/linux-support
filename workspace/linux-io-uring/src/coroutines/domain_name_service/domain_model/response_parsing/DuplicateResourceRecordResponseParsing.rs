@@ -5,13 +5,13 @@
 #[derive(Default, Debug)]
 pub(crate) struct DuplicateResourceRecordResponseParsing<'message>
 {
-	already_encountered: RefCell<HashSet<(DataType, WithCompressionParsedName<'message>, &'message [u8])>>
+	already_encountered: RefCell<HashSet<(DataType, ParsedName<'message>, &'message [u8])>>
 }
 
 impl<'message> DuplicateResourceRecordResponseParsing<'message>
 {
 	#[inline(always)]
-	pub(crate) fn encountered(&mut self, resource_record_data_type: DataType, resource_record_name: &WithCompressionParsedName<'message>, resource_data: &'message [u8]) -> Result<(), DnsProtocolError>
+	pub(crate) fn encountered(&mut self, resource_record_data_type: DataType, resource_record_name: &ParsedName<'message>, resource_data: &'message [u8]) -> Result<(), DnsProtocolError>
 	{
 		let has_not_yet_been_encountered = self.already_encountered.borrow_mut().insert((resource_record_data_type, resource_record_name.clone(), resource_data));
 		if likely!(has_not_yet_been_encountered)

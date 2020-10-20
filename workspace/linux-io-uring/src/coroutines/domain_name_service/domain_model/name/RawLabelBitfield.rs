@@ -3,25 +3,31 @@
 
 
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct LabelBitfield(u8);
+pub(crate) struct RawLabelBitfield(u8);
 
-impl LabelBitfield
+impl RawLabelBitfield
 {
 	#[inline(always)]
-	fn is_root(self) -> bool
+	const fn is_root(self) -> bool
 	{
 		self.0 == 0x00
 	}
 
 	#[inline(always)]
-	fn raw_kind(self) -> LabelKind
+	const fn raw_kind(self) -> LabelKind
 	{
 		unsafe { transmute(self.0 >> 6) }
 	}
 
 	#[inline(always)]
-	fn bottom_6_bits_as_usize(self) -> usize
+	const fn bottom_6_bits_as_usize(self) -> usize
 	{
-		(self.0 & 0b0011_1111) as usize
+		self.bottom_6_bits_as_u8() as usize
+	}
+	
+	#[inline(always)]
+	const fn bottom_6_bits_as_u8(self) -> u8
+	{
+		self.0 & 0b0011_1111
 	}
 }

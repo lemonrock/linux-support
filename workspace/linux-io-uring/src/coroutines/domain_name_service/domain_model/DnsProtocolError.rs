@@ -296,6 +296,9 @@ pub enum DnsProtocolError
 	/// Resource data for resource record type `LP` has data left over after parsing the domain name.
 	ResourceDataForTypeLPHasDataLeftOver,
 
+	/// Resource data for resource record type `LP` has a `domain_name` the same as the resource record's name.
+	ResourceDataForTypeLPHasDomainNameSameAsRecordName,
+
 	/// Resource data for resource record type `EUI48` has an incorrect length (value in tuple).
 	ResourceDataForTypeEUI48HasAnIncorrectLength(usize),
 
@@ -484,19 +487,25 @@ pub enum DnsProtocolError
 	///
 	/// See RFC 3597, Section 4 for some confusing rules.
 	CompressedNameLabelsAreDisallowedInThisResourceRecord,
+	
+	/// When finishing a name combined from uncompressed labels and pointers, it creates a name longer than 255 bytes (including periods, including the trailing root period).
+	LabelPointerCreatesADnsNameLongerThan255Bytes,
 
 	/// When finishing a name combined from uncompressed labels and pointers, it creates a name longer than 127 labels.
 	LabelPointerCreatesADnsNameLongerThan127Labels,
+	
+	/// When finishing a name combined from compressed labels and pointers, it creates a name longer than 255 bytes (including periods, including the trailing root period).
+	CompressedLabelPointerCreatesADnsNameLongerThan255Bytes,
 
-	/// When finishing a name combined from uncompressed labels and pointers, it creates a name longer than 255 bytes (including periods, including the trailing root period).
-	LabelPointerCreatesADnsNameLongerThan255Bytes,
+	/// When finishing a name combined from compressed labels and pointers, it creates a name longer than 127 labels.
+	CompressedLabelPointerCreatesADnsNameLongerThan127Labels,
 
 	/// The label pointer offset does not point to a previously parsed label.
 	///
 	/// Note that this includes pointers to pointers.
 	///
 	/// The tuple contains the offset.
-	LabelPointerPointsToALabelThatWasNotPreviouslyParsed(usize),
+	LabelPointerPointsToALabelThatWasNotPreviouslyParsed(CompressedPointerOffset),
 
 	/// There is not a terminal root label in a Name.
 	NoTerminalRootLabel,

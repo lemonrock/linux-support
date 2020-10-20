@@ -5,7 +5,7 @@
 #[derive(Debug)]
 struct LeastRecentlyUsedListKeyReference
 {
-	key: NonNull<NameAsLabelsIncludingRoot>,
+	key: NonNull<CaseFoldedName>,
 }
 
 impl PartialEq for LeastRecentlyUsedListKeyReference

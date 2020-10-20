@@ -6,17 +6,17 @@ pub(crate) struct QuerySectionEntry;
 
 impl QuerySectionEntry
 {
-	const MaximumQueryNameSize: usize = Name::MaximumSize;
+	const MaximumQueryNameSize: usize = ParsedNameParser::NameMaximumSize;
 	
 	const QueryTypeSize: usize = 2;
 	
 	const ClassSize: usize = 2;
 	
-	pub(crate) const MaximumSizeOfOneQuery: usize = Name::MaximumSize + Self::QueryTypeSize + Self::ClassSize;
+	pub(crate) const MaximumSizeOfOneQuery: usize = ParsedNameParser::NameMaximumSize + Self::QueryTypeSize + Self::ClassSize;
 
 	/// Validation of available buffer size is done before calling this.
 	#[inline(always)]
-	pub(crate) fn write_query_section_entry_for_query(query_section_pointer: usize, data_type: DataType, query_name: &UncompressedName<impl Allocator>) -> usize
+	pub(crate) fn write_query_section_entry_for_query(query_section_pointer: usize, data_type: DataType, query_name: &CaseFoldedName<'static>) -> usize
 	{
 		let mut current_pointer = query_name.copy_non_overlapping_to(query_section_pointer);
 
@@ -26,21 +26,7 @@ impl QuerySectionEntry
 		current_pointer.set_u16_bytes([0x00, QueryClass::Internet as u8]);
 		current_pointer + Self::ClassSize
 	}
-
-	#[inline(always)]
-	pub(crate) fn parse_response<'message>(&'message self, parsed_labels: &mut ParsedLabels, end_of_message_pointer: usize, request_query_identification: Query<impl Allocator>) -> Result<(usize, DataType), DnsProtocolError>
-	{
-		let (qname, end_of_qname_pointer) = self.name().parse_without_compression_but_register_labels_for_compression(parsed_labels, end_of_message_pointer)?;
-
-		let query_class = self.query_class(end_of_qname_pointer)?;
-		debug_assert_eq!(query_class, QueryClass::Internet);
-
-		let data_type = self.data_type(end_of_qname_pointer);
-		request_query_identification.matches(data_type, qname)?;
-
-		Ok((Self::end_of_query_section(end_of_qname_pointer), data_type))
-	}
-
+	
 	#[inline(always)]
 	pub(crate) fn data_type(&self, end_of_name_pointer: usize) -> DataType
 	{
@@ -57,9 +43,9 @@ impl QuerySectionEntry
 
 	/// `QNAME` field.
 	#[inline(always)]
-	pub(crate) fn name(&self) -> &Name
+	pub(crate) fn start_of_name_pointer(&self) -> usize
 	{
-		self.unsafe_cast::<Name>()
+		self.as_usize_pointer()
 	}
 
 	/// `QTYPE` field.

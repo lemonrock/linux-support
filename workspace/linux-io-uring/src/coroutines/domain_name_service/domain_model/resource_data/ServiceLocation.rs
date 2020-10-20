@@ -4,7 +4,7 @@
 
 /// A `SRV` record.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct ServiceLocation<'a>
+pub struct ServiceLocation<'message>
 {
 	/// Priority.
 	///
@@ -26,5 +26,5 @@ pub struct ServiceLocation<'a>
 	/// Must not be an alias; should not use name compression; a value of '.' (ie Root) means the service is unavailable.
 	///
 	/// The interaction with round-robin `A` or `AAAA` records is unclear.
-	pub target: WithCompressionParsedName<'a>,
+	pub target: ParsedName<'message>,
 }

@@ -7,13 +7,13 @@
 #[derive(Default)]
 struct AQueryProcessor<'message>
 {
-	records: HashMap<WithCompressionParsedName<'message>, Present<Ipv4Addr>>
+	records: HashMap<ParsedName<'message>, Present<Ipv4Addr>>
 }
 
 impl<'message> ResourceRecordVisitor<'message> for AQueryProcessor<'message>
 {
 	#[inline(always)]
-	fn A(&mut self, name: WithCompressionParsedName<'message>, cache_until: CacheUntil, record: Ipv4Addr) -> Result<(), DnsProtocolError>
+	fn A(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: Ipv4Addr) -> Result<(), DnsProtocolError>
 	{
 		Present::store::<'message>(&mut self.records,name, cache_until, record);
 		

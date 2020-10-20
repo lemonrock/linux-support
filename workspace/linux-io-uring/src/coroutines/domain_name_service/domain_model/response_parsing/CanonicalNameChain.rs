@@ -38,8 +38,8 @@
 /// The function `validate_authority_section_name()` below will then validate that the `start_of_authority_name`, `dspb.akamaiedge.net.`, is the same as `parent`.
 pub(crate) struct CanonicalNameChain<'message>
 {
-	query_name: WithCompressionParsedName<'message>,
-	chain: IndexSet<WithCompressionParsedName<'message>>,
+	query_name: ParsedName<'message>,
+	chain: IndexSet<ParsedName<'message>>,
 }
 
 impl<'message> CanonicalNameChain<'message>
@@ -50,7 +50,7 @@ impl<'message> CanonicalNameChain<'message>
 	const MaximumChainLength: usize = 6;
 	
 	#[inline(always)]
-	pub(crate) fn new(query_name: WithCompressionParsedName<'message>) -> Self
+	pub(crate) fn new(query_name: ParsedName<'message>) -> Self
 	{
 		Self
 		{
@@ -60,7 +60,7 @@ impl<'message> CanonicalNameChain<'message>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn most_canonical_name(&self) -> &'message WithCompressionParsedName<'message>
+	pub(crate) fn most_canonical_name(&self) -> &'message ParsedName<'message>
 	{
 		let chain_length = self.chain.len();
 		
@@ -75,7 +75,7 @@ impl<'message> CanonicalNameChain<'message>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn insert_link(&mut self, from: WithCompressionParsedName<'message>, to: WithCompressionParsedName<'message>) -> Result<(), DnsProtocolError>
+	pub(crate) fn insert_link(&mut self, from: ParsedName<'message>, to: ParsedName<'message>) -> Result<(), DnsProtocolError>
 	{
 		if self.chain.len() == Self::MaximumChainLength
 		{
@@ -102,7 +102,7 @@ impl<'message> CanonicalNameChain<'message>
 	}
 	
 	#[inline(always)]
-	fn validate_authority_section_name(&self, start_of_authority_name: &WithCompressionParsedName<'message>) -> bool
+	fn validate_authority_section_name(&self, start_of_authority_name: &ParsedName<'message>) -> bool
 	{
 		let most_canonical_name = self.most_canonical_name();
 

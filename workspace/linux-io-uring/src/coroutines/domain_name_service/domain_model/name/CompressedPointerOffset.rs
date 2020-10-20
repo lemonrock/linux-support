@@ -2,12 +2,29 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-macro_rules! compressed_error
+#[doc(hidden)]
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct CompressedPointerOffset(u16);
+
+impl TryFrom<usize> for CompressedPointerOffset
 {
-	($_current_label_starts_at_pointer: ident, $_maximum_for_end_of_name_pointer: ident, $_label: ident, $_start_of_name_pointer: ident, $_pointer_to_label: ident, $_labels_register_reference: ident, $_parsed_labels: ident, $_number_of_labels: ident, $name_length: ident) =>
+	type Error = ();
+	
+	#[inline(always)]
+	fn try_from(value: usize) -> Result<Self, Self::Error>
 	{
+		if value >= (Self::ExclusiveMaximum as usize)
 		{
-			return Err(CompressedNameLabelsAreDisallowedInThisResourceRecord)
+			Err(())
+		}
+		else
+		{
+			Ok(Self(value))
 		}
 	}
+}
+
+impl CompressedPointerOffset
+{
+	const ExclusiveMaximum: u16 = 1 << 14;
 }

@@ -13,7 +13,7 @@ pub(crate) struct AuthorityResourceRecordVisitor<'message>
 impl<'message> ResourceRecordVisitor<'message> for AuthorityResourceRecordVisitor<'message>
 {
 	#[inline(always)]
-	fn NS(&mut self, name: WithCompressionParsedName<'message>, _cache_until: CacheUntil, _record: WithCompressionParsedName<'message>) -> Result<(), DnsProtocolError>
+	fn NS(&mut self, name: ParsedName<'message>, _cache_until: CacheUntil, _record: ParsedName<'message>) -> Result<(), DnsProtocolError>
 	{
 		if unlikely!(self.canonical_name_chain.validate_authority_section_name(name))
 		{
@@ -26,7 +26,7 @@ impl<'message> ResourceRecordVisitor<'message> for AuthorityResourceRecordVisito
 	}
 
 	#[inline(always)]
-	fn SOA(&mut self, name: WithCompressionParsedName<'message>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message>) -> Result<(), DnsProtocolError>
+	fn SOA(&mut self, name: ParsedName<'message>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message>) -> Result<(), DnsProtocolError>
 	{
 		if unlikely!(self.canonical_name_chain.validate_authority_section_name(name))
 		{

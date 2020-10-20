@@ -26,7 +26,7 @@ impl<Record: Sized + Clone> Present<Record>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn store<'message>(records: &mut HashMap<WithCompressionParsedName<'message>, Self>, name: WithCompressionParsedName<'message>, cache_until: CacheUntil, record: Record)
+	pub(crate) fn store<'message>(records: &mut HashMap<ParsedName<'message>, Self>, name: ParsedName<'message>, cache_until: CacheUntil, record: Record)
 	{
 		let present = records.entry(name).or_insert_with(|| Present::default());
 		

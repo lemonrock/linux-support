@@ -4,17 +4,17 @@
 
 /// Start of Authority (`SOA`) data.
 #[derive(Debug, Clone)]
-pub struct StartOfAuthority<'a>
+pub struct StartOfAuthority<'message>
 {
 	/// `MNAME`.
 	///
 	/// This is the FQDN of the primary name server.
-	pub primary_name_server: WithCompressionParsedName<'a>,
+	pub primary_name_server: ParsedName<'message>,
 
 	/// `RNAME`.
 	///
 	/// First label is the name `@`, eg `hostmaster.example.com.` is the email address `hostmaster@example.com`.
-	pub responsible_person_email_address: WithCompressionParsedName<'a>,
+	pub responsible_person_email_address: ParsedName<'message>,
 	
 	/// `SERIAL`.
 	///

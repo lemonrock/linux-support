@@ -53,7 +53,7 @@ impl<Record: Sized + Clone> QueryTypeCache<Record>
 	/// * `Some(None)`: Negatively cached for one-time use only; do not query for the data.
 	/// * `Some(Some(records))`: Cached, valid answers.
 	#[inline(always)]
-	pub(crate) fn get(&mut self, name: &NameAsLabelsIncludingRoot, now: NanosecondsSinceUnixEpoch) -> Option<Option<Vec<QP::Record>>>
+	pub(crate) fn get(&mut self, name: &CaseFoldedName, now: NanosecondsSinceUnixEpoch) -> Option<Option<Vec<QP::Record>>>
 	{
 		use std::collections::hash_map::Entry::*;
 		
@@ -113,32 +113,32 @@ impl<Record: Sized + Clone> QueryTypeCache<Record>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn put_present<'message>(&mut self, records: HashMap<WithCompressionParsedName<'message>, Present<Ipv4Addr>>)
+	pub(crate) fn put_present<'message>(&mut self, records: HashMap<ParsedName<'message>, Present<Ipv4Addr>>)
 	{
 		for (name, present) in records
 		{
-			let key = NameAsLabelsIncludingRoot::new_from_parsed_data(name);
+			let key = CaseFoldedName::from(name);
 			
 			self.put(key, CacheEntry::Present(present));
 		}
 	}
 	
 	#[inline(always)]
-	pub(crate) fn put_name_error<'message>(&mut self, name: WithCompressionParsedName<'message>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message>)
+	pub(crate) fn put_name_error<'message>(&mut self, name: ParsedName<'message>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message>)
 	{
 		self.put_absent::<'message>(name, negative_cache_until, record)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn put_no_data<'message>(&mut self, name: WithCompressionParsedName<'message>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message>)
+	pub(crate) fn put_no_data<'message>(&mut self, name: ParsedName<'message>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message>)
 	{
 		self.put_absent::<'message>(name, negative_cache_until, record)
 	}
 	
 	#[inline(always)]
-	fn put_absent<'message>(&mut self, name: WithCompressionParsedName<'message>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message>)
+	fn put_absent<'message>(&mut self, name: ParsedName<'message>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message>)
 	{
-		let key = NameAsLabelsIncludingRoot::new_from_parsed_data(name);
+		let key = CaseFoldedName::from(name);
 		
 		use self::CacheEntry::*;
 		
@@ -155,7 +155,7 @@ impl<Record: Sized + Clone> QueryTypeCache<Record>
 	}
 	
 	#[inline(always)]
-	fn put(&mut self, key: NameAsLabelsIncludingRoot, value: CacheEntry<Record>)
+	fn put(&mut self, key: CaseFoldedName, value: CacheEntry<Record>)
 	{
 		let adds_records_count = value.records_count();
 		
@@ -175,7 +175,7 @@ impl<Record: Sized + Clone> QueryTypeCache<Record>
 	}
 	
 	#[inline(always)]
-	fn get_mut(&mut self, key: &NameAsLabelsIncludingRoot) -> Option<&mut CacheEntry<Record>>
+	fn get_mut(&mut self, key: &CaseFoldedName) -> Option<&mut CacheEntry<Record>>
 	{
 		let key = Self::key(key);
 		match self.cache.get(&key)
@@ -200,7 +200,7 @@ impl<Record: Sized + Clone> QueryTypeCache<Record>
 	}
 	
 	#[inline(always)]
-	fn remove(&mut self, key: &NameAsLabelsIncludingRoot)
+	fn remove(&mut self, key: &CaseFoldedName)
 	{
 		let key = Self::key(key);
 		if let Some(removed) = self.cache.remove(&key)
@@ -232,9 +232,9 @@ impl<Record: Sized + Clone> QueryTypeCache<Record>
 	}
 	
 	#[inline(always)]
-	fn key(key: &NameAsLabelsIncludingRoot) -> LeastRecentlyUsedListKeyReference
+	fn key(key: &CaseFoldedName) -> LeastRecentlyUsedListKeyReference
 	{
-		let key = unsafe { NonNull::new_unchecked(key as *const NameAsLabelsIncludingRoot as *mut NameAsLabelsIncludingRoot) };
+		let key = unsafe { NonNull::new_unchecked(key as *const CaseFoldedName as *mut CaseFoldedName) };
 		LeastRecentlyUsedListKeyReference { key }
 	}
 }

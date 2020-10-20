@@ -2,54 +2,78 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-struct Label
+trait Label<'a>
 {
-	bitfield: LabelBitfield,
-	bytes: UpTo63Bytes,
-}
-
-impl Label
-{
-	pub(crate) const MaximumNumber: usize = 127;
-
+	/// Is the terminal root label?
 	#[inline(always)]
 	fn is_root(&self) -> bool
 	{
-		self.bitfield.is_root()
+		self.len() == 0
 	}
-
-	/// Two bits, `u2`.
+	
 	#[inline(always)]
-	fn raw_kind(&self) -> LabelKind
+	fn equals<RHS: Label>(&self, rhs: &RHS) -> bool
 	{
-		self.bitfield.raw_kind()
+		if self.len() != rhs.len()
+		{
+			return false
+		}
+		
+		for index in 0 .. self.len()
+		{
+			let left = self.get_unchecked_case_folded_byte(index);
+			let right = rhs.get_unchecked_case_folded_byte(index);
+			
+			if left != right
+			{
+				return false
+			}
+		}
+		
+		true
 	}
-
-	/// Actually `u6` (an inclusive maximum of 63).
+	
 	#[inline(always)]
-	fn length(&self) -> usize
+	fn partial_compare<RHS: Label>(&self, rhs: &RHS) -> Option<Ordering>
 	{
-		self.bitfield.bottom_6_bits_as_usize()
+		Some(self.cmp(rhs))
 	}
-
-	/// Actually `u14`.
+	
 	#[inline(always)]
-	fn offset(&self) -> usize
+	fn compare<RHS: Label>(&self, rhs: &RHS) -> Ordering
 	{
-		let top_6_bits = self.bitfield.bottom_6_bits_as_usize() << 8;
-		let bottom_8_bits = *self.bytes().unsafe_cast::<u8>() as usize;
-		top_6_bits | bottom_8_bits
+		let left_length = self.len();
+		let right_length = rhs.len();
+		
+		for index in 0 .. min(left_length, right_length)
+		{
+			let left = self.get_unchecked_case_folded_byte(index);
+			let right = rhs.get_unchecked_case_folded_byte(index);
+			
+			use self::Ordering::*;
+			match left.cmp(&right)
+			{
+				Less => return Less,
+				Equal => continue,
+				Greater => return Greater,
+			}
+		}
+		
+		return left_length.cmp(&right_length)
 	}
-
+	
 	#[inline(always)]
-	fn bytes(&self) -> &UpTo63Bytes
+	fn hash_slice<H: Hasher>(&self, state: &mut H)
 	{
-		&self.bytes
+		for index in 0 .. self.len()
+		{
+			self.get_unchecked_case_folded_byte(index).hash(state)
+		}
 	}
-
-	#[inline(always)]
-	fn label<'message>(label_starts_at_pointer: usize) -> &'message Label
-	{
-		label_starts_at_pointer.unsafe_cast::<Label>()
-	}
+	
+	fn len(&self) -> u8;
+	
+	fn get_unchecked_case_folded_byte(&self, index: u8) -> u8;
+	
+	fn get_unchecked(&self, index: u8) -> &u8;
 }

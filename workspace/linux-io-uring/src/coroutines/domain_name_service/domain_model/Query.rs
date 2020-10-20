@@ -3,14 +3,14 @@
 
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct Query<A: Allocator>
+pub(crate) struct Query
 {
 	message_identifier: MessageIdentifier,
 	data_type: DataType,
-	query_name: UncompressedName<A>,
+	query_name: CaseFoldedName<'static>,
 }
 
-impl<A: Allocator> Query<A>
+impl Query
 {
 	#[allow(deprecated)]
 	#[inline(always)]
@@ -44,12 +44,12 @@ impl<A: Allocator> Query<A>
 		let answer_quality = self.parse_message_header(dns_message.message_header())?;;
 		
 		let start_of_message_pointer = raw_dns_message.start_pointer();
-		let mut parsed_labels = ParsedLabels::new(start_of_message_pointer);
+		let mut parsed_names = ParsedNames::new(start_of_message_pointer);
 		
 		let end_of_message_pointer = raw_dns_message.end_pointer();
 		
-		let (next_resource_record_pointer, query_name) = self.parse_query_section(dns_message.query_section_entry(), &mut parsed_labels, end_of_message_pointer)?;
-		let response_record_sections_parser = ResponseRecordSectionsParser::new(now, self.data_type, end_of_message_pointer, message_header, parsed_labels);
+		let (next_resource_record_pointer, query_name) = self.parse_query_section(dns_message.query_section_entry(), &mut parsed_names, end_of_message_pointer)?;
+		let response_record_sections_parser = ResponseRecordSectionsParser::new(now, self.data_type, end_of_message_pointer, message_header, parsed_names);
 		let (end_of_parsed_message_pointer, answer_outcome, canonical_name_chain) = response_record_sections_parser.parse_answer_authority_and_additional_sections(next_resource_record_pointer, query_name, answer_quality, answer_section_resource_record_visitor)?;
 		
 		if unlikely!(end_of_parsed_message_pointer < end_of_message_pointer)
@@ -109,9 +109,10 @@ impl<A: Allocator> Query<A>
 	}
 	
 	#[inline(always)]
-	fn parse_query_section<'message>(&self, query_section_entry: &'message QuerySectionEntry, parsed_labels: &mut ParsedLabels, end_of_message_pointer: usize) -> Result<(usize, WithCompressionParsedName<'message>), DnsProtocolError>
+	fn parse_query_section<'message>(&self, query_section_entry: &'message QuerySectionEntry, parsed_names: &mut ParsedNames, end_of_message_pointer: usize) -> Result<(usize, ParsedName<'message>), DnsProtocolError>
 	{
-		let (query_name, end_of_qname_pointer) = query_section_entry.name().parse_without_compression_but_register_labels_for_compression(parsed_labels, end_of_message_pointer)?;
+		let mut parsed_name_parser = ParsedNameParser::new(false, parsed_names, query_section_entry.start_of_name_pointer(), end_of_message_pointer)?;
+		let (parsed_query_name, end_of_qname_pointer) = parsed_name_parser.parse_name()?;
 		
 		query_section_entry.validate_is_internet_query_class(end_of_qname_pointer)?;
 		
@@ -120,13 +121,13 @@ impl<A: Allocator> Query<A>
 			return Err(ResponseWasForADifferentDataType)
 		}
 		
-		if unlikely!(self.query_name.name() != query_name)
+		if unlikely!(self.query_name.name() != parsed_query_name)
 		{
 			Err(ResponseWasForADifferentName)
 		}
 		
 		let end_of_query_section = QuerySectionEntry::end_of_query_section(end_of_qname_pointer);
-		Ok((end_of_query_section, query_name))
+		Ok((end_of_query_section, parsed_query_name))
 	}
 	
 }

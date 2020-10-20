@@ -5,13 +5,13 @@
 #[derive(Default)]
 struct MXQueryProcessor<'message>
 {
-	by_priority: BTreeMap<u16, Vec<WeightedRecord<NameAsLabelsIncludingRoot>>>
+	by_priority: BTreeMap<u16, Vec<WeightedRecord<CaseFoldedName>>>
 }
 
 impl<'message, A: Alloctor> ResourceRecordVisitor<'message> for MXQueryProcessor<A>
 {
 	#[inline(always)]
-	fn MX(&mut self, name: WithCompressionParsedName<'message>, cache_until: CacheUntil, record: MailExchange<'message>) -> Result<(), DnsProtocolError>
+	fn MX(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: MailExchange<'message>) -> Result<(), DnsProtocolError>
 	{
 		let priority = record.preference;
 		let weighted_records = self.by_priority.entry(priority).or_insert_with(|| Vec::with_capacity(4));
@@ -27,9 +27,9 @@ impl<'message, A: Alloctor> ResourceRecordVisitor<'message> for MXQueryProcessor
 					
 					// TODO: this is a key - it belongs outside of this structure.
 					xxx;
-					name: NameAsLabelsIncludingRoot::new_from_parsed_data(record.name),
+					name: CaseFoldedName::from(record.name),
 					time_to_live,
-					data: NameAsLabelsIncludingRoot::new_from_parsed_data(record.mail_server_name)
+					data: CaseFoldedName::from(record.mail_server_name)
 				}
 			}
 		);
@@ -42,7 +42,7 @@ impl<'message> QueryProcessor<'message, Ipv4Addr> for MXQueryProcessor
 {
 	const DT: DataType = DataType::MX;
 	
-	type R = PrioritizedAndWeightedRecords<NameAsLabelsIncludingRoot>;
+	type R = PrioritizedAndWeightedRecords<CaseFoldedName>;
 	
 	#[inline(always)]
 	fn finish(self) -> Self::R

@@ -13,5 +13,5 @@ pub enum Gateway<'message>
 	InternetProtocolVersion6(Ipv6Addr),
 
 	/// As a domain name.
-	DomainName(WithoutCompressionParsedName<'message>)
+	DomainName(ParsedName<'message>)
 }
