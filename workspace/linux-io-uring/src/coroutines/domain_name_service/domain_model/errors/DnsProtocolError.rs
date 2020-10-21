@@ -138,9 +138,6 @@ pub enum DnsProtocolError
 
 	/// Resource data for resource record type `CSYNC` has an incorrect length (value in tuple).
 	ResourceDataForTypeCSYNCHasAnIncorrectLength(usize),
-
-	/// Resource data for resource record type `HIP` has an incorrect length (value in tuple).
-	ResourceDataForTypeHIPHasAnIncorrectLength(usize),
 	
 	/// Extended DNS 'OPT' record error.
 	ExtendedDns(ExtendedDnsError),

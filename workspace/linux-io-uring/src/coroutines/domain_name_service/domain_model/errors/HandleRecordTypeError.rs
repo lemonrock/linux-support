@@ -85,7 +85,7 @@ pub enum HandleRecordTypeError<E: error::Error>
 	NSEC3(NSEC3HandleRecordTypeError),
 	
 	/// `NSEC3PARAM`.
-	NSEC3PARAM(NSEC3HandleRecordTypeError),
+	NSEC3PARAM(NSEC3PARAMHandleRecordTypeError),
 	
 	/// `TLSA`.
 	TLSA(X509CertificateHandleRecordTypeError),
@@ -93,13 +93,8 @@ pub enum HandleRecordTypeError<E: error::Error>
 	/// `SMIMEA`.
 	SMIMEA(X509CertificateHandleRecordTypeError),
 	
-	
-	
-	
-	
-	
-	
-	
+	/// `HIP`.
+	HIP(HIPHandleRecordTypeError),
 	
 	/// `CDS`.
 	CDS(DelegationSignerHandleRecordTypeError),
@@ -176,24 +171,11 @@ impl<E: error::Error> error::Error for HandleRecordTypeError<E>
 			
 			&SMIMEA(ref error) => Some(error),
 			
-			
-			
-			
-			
-			
-			
-			&CDNSKEY(ref error) => Some(error),
-			
-			
-			
-			
-			
-			
-			
-			
-			
+			&HIP(ref error) => Some(error),
 			
 			&CDS(ref error) => Some(error),
+			
+			&CDNSKEY(ref error) => Some(error),
 			
 			_ => None,
 		}
@@ -358,6 +340,15 @@ impl<E: error::Error> From<NSEC3PARAMHandleRecordTypeError> for HandleRecordType
 	#[inline(always)]
 	fn from(value: NSEC3PARAMHandleRecordTypeError) -> Self
 	{
-		HandleRecordTypeError::NSEC3(value)
+		HandleRecordTypeError::NSEC3PARAM(value)
+	}
+}
+
+impl<E: error::Error> From<HIPHandleRecordTypeError> for HandleRecordTypeError<E>
+{
+	#[inline(always)]
+	fn from(value: HIPHandleRecordTypeError) -> Self
+	{
+		HandleRecordTypeError::HIP(value)
 	}
 }

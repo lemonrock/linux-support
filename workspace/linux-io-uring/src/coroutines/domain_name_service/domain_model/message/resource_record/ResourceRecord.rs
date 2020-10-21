@@ -300,7 +300,7 @@ impl ResourceRecord
 
 				54 => self.handle_unassigned(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing, 0x00, 54),
 
-				DataType::HIP_lower => self.handle_hip(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_names, duplicate_resource_record_response_parsing),
+				DataType::HIP_lower => self.handle_HIP(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_names, duplicate_resource_record_response_parsing),
 
 				DataType::NINFO_lower => self.handle_obsolete_or_very_obscure_record_type::<'message, RRV>(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::NINFO, "No RFC or RFC draft and probably not deployed"),
 
@@ -1679,7 +1679,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_hip<'message>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, parsed_names: &mut ParsedNames, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
+	fn handle_HIP<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, parsed_names: &mut ParsedNames, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		use self::HandleRecordTypeError::*;
 		use self::HIPHandleRecordTypeError::*;
@@ -1699,7 +1699,7 @@ impl ResourceRecord
 		let length = resource_data.len();
 		if unlikely!(length < HostIdentityTagOffset + MinimumHostIdentityTagLength + MinimumPublicKeyLength + MinimumNumberOfRendezvousServersIsOneSoMinimumNameSizeIsOne)
 		{
-			return Err(ResourceDataForTypeHIPHasAnIncorrectLength(length))
+			Err(HasAnIncorrectLength(length))?
 		}
 
 		let resource_data_end_pointer = resource_data.end_pointer();
@@ -1707,7 +1707,7 @@ impl ResourceRecord
 		let host_identity_tag_length = resource_data.u8_as_usize(0);
 		if unlikely!(length < HostIdentityTagOffset + host_identity_tag_length + MinimumPublicKeyLength + MinimumNumberOfRendezvousServersIsOneSoMinimumNameSizeIsOne)
 		{
-			return Err(ResourceDataForTypeHIPHasAnIncorrectLength(length))
+			Err(HasAnIncorrectLength(length))?
 		}
 
 		let public_key_algorithm_type = resource_data.u8(HostIdentityTagLengthSize);
@@ -1730,7 +1730,7 @@ impl ResourceRecord
 		};
 
 		let start_of_name_pointer = resource_data.start_pointer() + HostIdentityTagOffset + host_identity_tag_length + public_key_length;
-		let (first_rendezvous_server_domain_name, true_end_of_name_pointer) = ParsedNameParser::parse_name_uncompressed(parsed_names, start_of_name_pointer, resource_data_end_pointer)?;
+		let (first_rendezvous_server_domain_name, true_end_of_name_pointer) = ParsedNameParser::parse_name_uncompressed(parsed_names, start_of_name_pointer, resource_data_end_pointer).map_err(FirstRendezvousServerDomainName)?;
 
 		let remaining_rendezvous_servers_length = resource_data_end_pointer - true_end_of_name_pointer;
 		let remaining_rendezvous_server_domain_names = true_end_of_name_pointer.unsafe_cast_slice::<u8>(remaining_rendezvous_servers_length);
@@ -1746,7 +1746,7 @@ impl ResourceRecord
 			remaining_rendezvous_server_domain_names,
 		};
 
-		resource_record_visitor.HIP(resource_record_name, cache_until, record)?;
+		resource_record_visitor.HIP(resource_record_name, cache_until, record).map_err(|error| ResourceRecordVisitor(DataType::HIP, error))?;
 		Ok(resource_data_end_pointer)
 	}
 

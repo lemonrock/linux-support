@@ -16,6 +16,7 @@ include!("DnsProtocolError.rs");
 include!("ExtendedDnsError.rs");
 include!("HandleRecordTypeError.rs");
 include!("HINFOHandleRecordTypeError.rs");
+include!("HIPHandleRecordTypeError.rs");
 include!("IPSECKEYHandleRecordTypeError.rs");
 include!("IpsecLikePublicKeyHandleRecordTypeError.rs");
 include!("KXHandleRecordTypeError.rs");
