@@ -12,8 +12,10 @@ struct AQueryProcessor<'message>
 
 impl<'message> ResourceRecordVisitor<'message> for AQueryProcessor<'message>
 {
+	type Error = Infallible;
+	
 	#[inline(always)]
-	fn A(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: Ipv4Addr) -> Result<(), DnsProtocolError>
+	fn A(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: Ipv4Addr) -> Result<(), Self::Error>
 	{
 		Present::store::<'message>(&mut self.records,name, cache_until, record);
 		

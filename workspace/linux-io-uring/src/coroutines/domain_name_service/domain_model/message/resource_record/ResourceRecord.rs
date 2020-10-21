@@ -2308,7 +2308,7 @@ impl ResourceRecord
 	}
 	
 	#[inline(always)]
-	fn handle_delegation_signer<'message, RRV: ResourceRecordVisitor<'message>>(&self, end_of_name_pointer: ident, end_of_message_pointer: ident, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, ignored_callback: impl FnOnce(&mut RRV, ParsedName<'message>, DelegationSignerResourceRecordIgnoredBecauseReason) -> Result<(), DnsProtocolError>, visit_callback: impl FnOnce(&mut RRV, ParsedName<'message>, CacheUntil, DelegationSigner<'message>) -> Result<(), DnsProtocolError>, permit_delete: bool, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, map_error: impl FnOnce(DelegationSignerHandleRecordTypeError) -> HandleRecordTypeError<RRV::Error>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn handle_delegation_signer<'message, RRV: ResourceRecordVisitor<'message>>(&self, end_of_name_pointer: ident, end_of_message_pointer: ident, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, ignored_callback: impl FnOnce(&mut RRV, ParsedName<'message>, DelegationSignerResourceRecordIgnoredBecauseReason), visit_callback: impl FnOnce(&mut RRV, ParsedName<'message>, CacheUntil, DelegationSigner<'message>) -> Result<(), RRV::Error>, permit_delete: bool, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, map_error: impl FnOnce(DelegationSignerHandleRecordTypeError) -> HandleRecordTypeError<RRV::Error>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		use self::DelegationSignerHandleRecordTypeError::*;
 		
@@ -2384,7 +2384,7 @@ impl ResourceRecord
 	}
 	
 	#[inline(always)]
-	fn guard_dns_key<'message, RRV: ResourceRecordVisitor<'message>>(&self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, ignored_callback: impl FnOnce(&mut RRV, ParsedName<'message>, DnsKeyResourceRecordIgnoredBecauseReason) -> Result<(), DnsProtocolError>, visit_callback: impl FnOnce(&mut RRV, ParsedName<'message>, CacheUntil, DnsKey<'message>) -> Result<(), DnsProtocolError>, permit_delete: bool, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, map_error: impl FnOnce(DnsKeyHandleRecordTypeError) -> HandleRecordTypeError<RRV::Error>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn guard_dns_key<'message, RRV: ResourceRecordVisitor<'message>>(&self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, ignored_callback: impl FnOnce(&mut RRV, ParsedName<'message>, DnsKeyResourceRecordIgnoredBecauseReason), visit_callback: impl FnOnce(&mut RRV, ParsedName<'message>, CacheUntil, DnsKey<'message>) -> Result<(), RRV::Error>, permit_delete: bool, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, map_error: impl FnOnce(DnsKeyHandleRecordTypeError) -> HandleRecordTypeError<RRV::Error>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
 

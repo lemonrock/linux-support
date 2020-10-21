@@ -16,7 +16,7 @@ pub enum AuthoritativeAndAuthenticated
 impl AuthoritativeAndAuthenticated
 {
 	#[inline(always)]
-	pub(crate) fn parse(is_authoritative_answer: bool, is_authenticated_data: bool) -> Result<Self, DnsProtocolError>
+	pub(crate) fn parse(is_authoritative_answer: bool, is_authenticated_data: bool) -> Result<Self, MessageHeaderError>
 	{
 		use self::AuthoritativeAndAuthenticated::*;
 		

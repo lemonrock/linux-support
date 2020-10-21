@@ -10,8 +10,10 @@ struct MXQueryProcessor<'message>
 
 impl<'message, A: Alloctor> ResourceRecordVisitor<'message> for MXQueryProcessor<A>
 {
+	type Error = Infallible;
+	
 	#[inline(always)]
-	fn MX(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: MailExchange<'message>) -> Result<(), DnsProtocolError>
+	fn MX(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: MailExchange<'message>) -> Result<(), Self::Error>
 	{
 		let priority = record.preference;
 		let weighted_records = self.by_priority.entry(priority).or_insert_with(|| Vec::with_capacity(4));

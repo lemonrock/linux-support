@@ -34,7 +34,7 @@ impl<'message> ResponseRecordSectionsParser<'message>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn parse_answer_authority_and_additional_sections<RRV: ResourceRecordVisitor<'message>>(&mut self, next_resource_record_pointer: usize, query_name: ParsedName<'message>, answer_quality: AnswerQuality, answer_section_resource_record_visitor: &mut RRV) -> Result<(usize, AnswerOutcome, CanonicalNameChain<'message>), XXXXXXXXXX>
+	pub(crate) fn parse_answer_authority_and_additional_sections<RRV: ResourceRecordVisitor<'message>>(&mut self, next_resource_record_pointer: usize, query_name: ParsedName<'message>, answer_quality: AnswerQuality, answer_section_resource_record_visitor: &mut RRV) -> Result<(usize, AnswerOutcome, CanonicalNameChain<'message>), SectionError<RRV::Error>>
 	{
 		let (next_resource_record_pointer, canonical_name_chain, answer_section_has_at_least_one_record_of_requested_data_type) = self.parse_answer_section(next_resource_record_pointer, query_name, answer_section_resource_record_visitor)?;
 

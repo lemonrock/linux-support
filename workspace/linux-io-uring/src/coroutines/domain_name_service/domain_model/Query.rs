@@ -27,16 +27,16 @@ impl Query
 	
 	#[allow(deprecated)]
 	#[inline(always)]
-	pub fn read_tcp_reply<'yielder, 'message, SD: SocketData, RRV: ResourceRecordVisitor<'message>>(&self, stream: &mut TlsClientStream<'yielder, SD>, answer_section_resource_record_visitor: &mut RRV) -> Result<(AnswerQuality, AnswerOutcome, CanonicalNameChain<'message>), DnsProtocolError>
+	pub fn read_tcp_reply<'yielder, 'message, SD: SocketData, RRV: ResourceRecordVisitor<'message>>(&self, stream: &mut TlsClientStream<'yielder, SD>, answer_section_resource_record_visitor: &mut RRV) -> Result<(AnswerQuality, AnswerOutcome, CanonicalNameChain<'message>), ProtocolError<RRV::Error>>
 	{
 		let mut buffer: [u8; ResourceRecord::UdpRequestorsPayloadSize] = unsafe { uninitialized() };
 		let message_length = Self::reply_message(stream, &mut buffer)?;
 		let raw_dns_message = &buffer[.. message_length];
-		self.read_reply_after_message_length_checked(raw_dns_message, answer_section_resource_record_visitor)
+		self.read_reply_after_message_length_checked(raw_dns_message, answer_section_resource_record_visitor).map_err(ProtocolError::ReadReplyAfterLengthChecked)
 	}
 	
 	#[inline(always)]
-	fn read_reply_after_message_length_checked<'message, RRV: ResourceRecordVisitor<'message>>(&self, raw_dns_message: &'message [u8], answer_section_resource_record_visitor: &mut RRV) -> Result<(AnswerQuality, AnswerOutcome, CanonicalNameChain<'message>), DnsProtocolError>
+	fn read_reply_after_message_length_checked<'message, RRV: ResourceRecordVisitor<'message>>(&self, raw_dns_message: &'message [u8], answer_section_resource_record_visitor: &mut RRV) -> Result<(AnswerQuality, AnswerOutcome, CanonicalNameChain<'message>), ReadReplyAfterLengthCheckedError<RRV::Error>>
 	{
 		let now = NanosecondsSinceUnixEpoch::now();
 		
@@ -48,13 +48,13 @@ impl Query
 		
 		let end_of_message_pointer = raw_dns_message.end_pointer();
 		
-		let (next_resource_record_pointer, query_name) = self.parse_query_section(dns_message.query_section_entry(), &mut parsed_names, end_of_message_pointer)?;
+		let (next_resource_record_pointer, query_name) = self.parse_query_section(dns_message.query_section_entry(), &mut parsed_names, end_of_message_pointer).map_err(SectionError::QuerySection)?;
 		let response_record_sections_parser = ResponseRecordSectionsParser::new(now, self.data_type, end_of_message_pointer, message_header, parsed_names);
 		let (end_of_parsed_message_pointer, answer_outcome, canonical_name_chain) = response_record_sections_parser.parse_answer_authority_and_additional_sections(next_resource_record_pointer, query_name, answer_quality, answer_section_resource_record_visitor)?;
 		
 		if unlikely!(end_of_parsed_message_pointer < end_of_message_pointer)
 		{
-			Err(MessageHadUnparsedBytesAtEnd(self.message_identifier))
+			Err(ReadReplyAfterLengthCheckedError::MessageHadUnparsedBytesAtEnd(self.message_identifier))
 		}
 		else
 		{
@@ -64,17 +64,19 @@ impl Query
 	
 	#[allow(deprecated)]
 	#[inline(always)]
-	fn reply_message<'yielder, SD: SocketData>(stream: &mut TlsClientStream<'yielder, SD>, buffer: &mut [ResourceRecord::UdpRequestorsPayloadSize]) -> Result<usize, DnsProtocolError>
+	fn reply_message<'yielder, SD: SocketData>(stream: &mut TlsClientStream<'yielder, SD>, buffer: &mut [ResourceRecord::UdpRequestorsPayloadSize]) -> Result<usize, MessageLengthError>
 	{
-		let message_length = Self::reply_message_length(stream)?;
+		let message_length = Self::tcp_reply_message_length(stream)?;
 		stream.read_all_data(&mut buffer[.. message_length]);
 		Ok(message_length)
 	}
 	
 	#[allow(deprecated)]
 	#[inline(always)]
-	fn tcp_reply_message_length<'yielder, SD: SocketData>(stream: &mut TlsClientStream<'yielder, SD>) -> Result<usize, DnsProtocolError>
+	fn tcp_reply_message_length<'yielder, SD: SocketData>(stream: &mut TlsClientStream<'yielder, SD>) -> Result<usize, MessageLengthError>
 	{
+		use self::MessageLengthError::*;
+		
 		let mut length_buffer: BigEndianU16 = unsafe { uninitialized() };
 		stream.read_all_data(&mut length_buffer[..]);
 		let message_length_big_endian: BigEndianU16 = (&buffer[0 .. TcpDnsMessage::TcpBufferLengthSize]).try_into().unwrap();
@@ -95,7 +97,7 @@ impl Query
 	}
 	
 	#[inline(always)]
-	fn parse_message_header(&self, message_header: &MessageHeader) -> Result<AnswerQuality, DnsProtocolError>
+	fn parse_message_header(&self, message_header: &MessageHeader) -> Result<AnswerQuality, MessageHeaderError>
 	{
 		message_header.validate_is_not_query()?;
 		message_header.validate_is_expected_reply(self.message_identifier)?;
@@ -109,8 +111,10 @@ impl Query
 	}
 	
 	#[inline(always)]
-	fn parse_query_section<'message>(&self, query_section_entry: &'message QuerySectionEntry, parsed_names: &mut ParsedNames, end_of_message_pointer: usize) -> Result<(usize, ParsedName<'message>), DnsProtocolError>
+	fn parse_query_section<'message>(&self, query_section_entry: &'message QuerySectionEntry, parsed_names: &mut ParsedNames, end_of_message_pointer: usize) -> Result<(usize, ParsedName<'message>), QuerySectionError>
 	{
+		use self::QuerySectionError::*;
+		
 		let (parsed_query_name, end_of_qname_pointer) = ParsedNameParser::parse_name(Some(ParsedNameParserError::CompressedNameLabelsAreDisallowedInQuerySection), parsed_names, query_section_entry.start_of_name_pointer(), end_of_message_pointer)?;
 		
 		query_section_entry.validate_is_internet_query_class(end_of_qname_pointer)?;

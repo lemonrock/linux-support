@@ -263,11 +263,11 @@ impl MessageHeader
 	}
 	
 	#[inline(always)]
-	pub(crate) fn validate_is_not_query(&self) -> Result<(), DnsProtocolError>
+	pub(crate) fn validate_is_not_query(&self) -> Result<(), MessageHeaderError>
 	{
 		if unlikely!(self.is_query())
 		{
-			Err(ResponseWasAQuery)
+			Err(MessageHeaderError::ResponseWasAQuery(self.identifier))
 		}
 		else
 		{
@@ -276,20 +276,20 @@ impl MessageHeader
 	}
 	
 	#[inline(always)]
-	pub(crate) fn validate_is_expected_reply(&self, expected_message_identifier: MessageIdentifier) -> Result<(), DnsProtocolError>
+	pub(crate) fn validate_is_expected_reply(&self, expected_message_identifier: MessageIdentifier) -> Result<(), MessageHeaderError>
 	{
-		if likely!(self.message_identifier == expected_message_identifier)
+		if likely!(self.identifier == expected_message_identifier)
 		{
 			Ok(())
 		}
 		else
 		{
-			Err(UnexpectedReplyMessage(expected_message_identifier))
+			Err(MessageHeaderError::UnexpectedReplyMessage(self.identifier, expected_message_identifier))
 		}
 	}
 	
 	#[inline(always)]
-	pub(crate) fn validate_contains_exactly_one_question(&self) -> Result<(), DnsProtocolError>
+	pub(crate) fn validate_contains_exactly_one_question(&self) -> Result<(), MessageHeaderError>
 	{
 		let number_of_entries_in_the_question_section = self.number_of_entries_in_the_question_section();
 		if likely!(number_of_entries_in_the_question_section == 1)
@@ -298,41 +298,44 @@ impl MessageHeader
 		}
 		else
 		{
-			Err(ResponseDoesNotContainExactlyOneQuestion(number_of_entries_in_the_question_section))
+			Err(MessageHeaderError::DoesNotContainExactlyOneQuestion(self.identifier, number_of_entries_in_the_question_section))
 		}
 	}
 	
 	#[inline(always)]
-	pub(crate) fn validate_response_message_opcode_is_query(&self) -> Result<(), DnsProtocolError>
+	pub(crate) fn validate_response_message_opcode_is_query(&self) -> Result<(), MessageHeaderError>
 	{
-		match self.raw_message_opcode()
+		use self::MessageHeaderResponseOpcodeError::*;
+		
+		let result = match self.raw_message_opcode()
 		{
 			MessageOpcode::Query => Ok(()),
 			
-			MessageOpcode::InverseQuery => Err(InvalidResponseOpcode(MessageOpcode::InverseQuery)),
+			MessageOpcode::InverseQuery => Err(Invalid(MessageOpcode::InverseQuery)),
 			
-			MessageOpcode::Status => Err(InvalidResponseOpcode(MessageOpcode::Status)),
+			MessageOpcode::Status => Err(Invalid(MessageOpcode::Status)),
 			
-			opcode @ 3 => Err(UnassignedResponseOpcode(opcode)),
+			opcode @ 3 => Err(Unassigned(opcode)),
 			
-			MessageOpcode::Notify => Err(InvalidResponseOpcode(MessageOpcode::Notify)),
+			MessageOpcode::Notify => Err(Invalid(MessageOpcode::Notify)),
 			
-			MessageOpcode::Update => Err(InvalidResponseOpcode(MessageOpcode::Update)),
+			MessageOpcode::Update => Err(Invalid(MessageOpcode::Update)),
 			
-			MessageOpcode::DnsStatefulOperations => Err(InvalidResponseOpcode(MessageOpcode::DnsStatefulOperations)),
+			MessageOpcode::DnsStatefulOperations => Err(Invalid(MessageOpcode::DnsStatefulOperations)),
 			
-			opcode @ 7 ..= 15 => Err(UnassignedResponseOpcode(opcode)),
+			opcode @ 7 ..= 15 => Err(Unassigned(opcode)),
 			
 			_ => unreachable!(),
-		}
+		};
+		result.map_err(MessageHeaderError::ResponseOpcode)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn validate_reserved_header_bits_are_zero(&self)
+	pub(crate) fn validate_reserved_header_bits_are_zero(&self) -> Result<(), MessageHeaderError>
 	{
 		if unlikely!(self.z())
 		{
-			Err(ResponseUsedReservedHeaderBits)
+			Err(MessageHeaderError::UsedReservedHeaderBits(self.identifier))
 		}
 		else
 		{
@@ -341,11 +344,11 @@ impl MessageHeader
 	}
 	
 	#[inline(always)]
-	pub(crate) fn validate_response_is_not_truncated(&self)
+	pub(crate) fn validate_response_is_not_truncated(&self) -> Result<(), MessageHeaderError>
 	{
 		if unlikely!(self.is_truncated())
 		{
-			Err(ResponseIsTruncated)
+			Err(MessageHeaderError::IsTruncated(self.identifier))
 		}
 		else
 		{
@@ -354,7 +357,7 @@ impl MessageHeader
 	}
 	
 	#[inline(always)]
-	pub(crate) fn validate_recursion_desired_bit_was_copied_from_query_and_is_one(&self)
+	pub(crate) fn validate_recursion_desired_bit_was_copied_from_query_and_is_one(&self) -> Result<(), MessageHeaderError>
 	{
 		if likely!(self.recursion_desired())
 		{
@@ -362,16 +365,16 @@ impl MessageHeader
 		}
 		else
 		{
-			Err(ResponseFailedToCopyRecursionDesiredBit)
+			Err(MessageHeaderError::FailedToCopyRecursionDesiredBit(self.identifier))
 		}
 	}
 	
 	#[inline(always)]
-	pub(crate) fn validate_checking_bit_was_copied_from_query_and_is_zero(&self)
+	pub(crate) fn validate_checking_bit_was_copied_from_query_and_is_zero(&self) -> Result<(), MessageHeaderError>
 	{
 		if unlikely!(self.checking_disabled())
 		{
-			Err(ResponseFailedToCopyCheckingDisabledBit)
+			Err(MessageHeaderError::FailedToCopyCheckingDisabledBit(self.identifier))
 		}
 		else
 		{
@@ -380,21 +383,31 @@ impl MessageHeader
 	}
 	
 	#[inline(always)]
-	pub(crate) fn validate_authentic_answers_do_not_have_authoritative_data_bit_set_and_validate_message_response_code(&self) -> Result<AnswerQuality, DnsProtocolError>
+	fn validate_authentic_answers_do_not_have_authoritative_data_bit_set(&self) -> Result<AuthoritativeAndAuthenticated, MessageHeaderError>
 	{
-		let authoritative_and_authenticated = self.validate_authentic_answers_do_not_have_authoritative_data_bit_set()?;
+		let is_authoritative_answer = self.authoritative_answer();
+		let is_authenticated_data = self.authentic_data();
 		
+		AuthoritativeAndAuthenticated::parse(is_authoritative_answer, is_authenticated_data)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn validate_authentic_answers_do_not_have_authoritative_data_bit_set_and_validate_message_response_code(&self) -> Result<AnswerQuality, MessageHeaderError>
+	{
+		use self::MessageHeaderResponseCodeError::*;
 		use self::AnswerQuality::*;
+		
+		let authoritative_and_authenticated = self.validate_authentic_answers_do_not_have_authoritative_data_bit_set()?;
 
-		match self.raw_message_response_code()
+		let result = match self.raw_message_response_code()
 		{
 			MessageResponseCode::NoError => Ok(Normal(authoritative_and_authenticated)),
 
-			MessageResponseCode::FormatError => Err(MessageResponseCodeWasFormatError),
+			MessageResponseCode::FormatError => Err(WasFormatError),
 
 			MessageResponseCode::ServerFailure => if likely!(authoritative_and_authenticated.is_authenticated_data())
 			{
-				Err(MessageResponseCodeWasServerFailure)
+				Err(WasServerFailure)
 			}
 			else
 			{
@@ -407,38 +420,31 @@ impl MessageHeader
 			}
 			else
 			{
-				Err(MessageResponseCodeWasNonExistentDomainForANonAuthoritativeServer)
+				Err(WasNonExistentDomainForANonAuthoritativeServer)
 			},
 
-			MessageResponseCode::NotImplemented => Err(MessageResponseCodeWasNotImplemented),
+			MessageResponseCode::NotImplemented => Err(WasNotImplemented),
 
-			MessageResponseCode::Refused => Err(MessageResponseCodeWasRefused),
+			MessageResponseCode::Refused => Err(WasRefused),
 
 			// RFC 6672, Section 2.2 Final Paragraph allows this code to occur if DNAME substitution would produce a FQDN longer than 255 bytes.
-			MessageResponseCode::NameExistsWhenItShouldNot => Err(MessageResponseCodeShouldNotBeDynamicDnsAssociated(MessageResponseCode::NameExistsWhenItShouldNot)),
+			MessageResponseCode::NameExistsWhenItShouldNot => Err(ShouldNotBeDynamicDnsAssociated(MessageResponseCode::NameExistsWhenItShouldNot)),
 
-			MessageResponseCode::ResourceRecordSetExistsWhenItShouldNot => Err(MessageResponseCodeShouldNotBeDynamicDnsAssociated(MessageResponseCode::ResourceRecordSetExistsWhenItShouldNot)),
+			MessageResponseCode::ResourceRecordSetExistsWhenItShouldNot => Err(ShouldNotBeDynamicDnsAssociated(MessageResponseCode::ResourceRecordSetExistsWhenItShouldNot)),
 
-			MessageResponseCode::ResourceRecordSetThatShouldExistDoesNot => Err(MessageResponseCodeShouldNotBeDynamicDnsAssociated(MessageResponseCode::ResourceRecordSetThatShouldExistDoesNot)),
+			MessageResponseCode::ResourceRecordSetThatShouldExistDoesNot => Err(ShouldNotBeDynamicDnsAssociated(MessageResponseCode::ResourceRecordSetThatShouldExistDoesNot)),
 
-			MessageResponseCode::ServerNotAuthoritativeForZoneOrNotAuthorized => Err(MessageResponseCodeShouldNotBeDynamicDnsAssociated(MessageResponseCode::ServerNotAuthoritativeForZoneOrNotAuthorized)),
+			MessageResponseCode::ServerNotAuthoritativeForZoneOrNotAuthorized => Err(ShouldNotBeDynamicDnsAssociated(MessageResponseCode::ServerNotAuthoritativeForZoneOrNotAuthorized)),
 
-			MessageResponseCode::NameNotContainedInZone => Err(MessageResponseCodeShouldNotBeDynamicDnsAssociated(MessageResponseCode::NameNotContainedInZone)),
+			MessageResponseCode::NameNotContainedInZone => Err(ShouldNotBeDynamicDnsAssociated(MessageResponseCode::NameNotContainedInZone)),
 
-			MessageResponseCode::DnsStatefulOperationsTypeNotImplemented => Err(MessageResponseCodeShouldNotBeDnsStatefulOperationsTypeNotImplemented),
+			MessageResponseCode::DnsStatefulOperationsTypeNotImplemented => Err(ShouldNotBeDnsStatefulOperationsTypeNotImplemented),
 
-			response_code @ 12 ..= 15 => Err(MessageResponseCodeUnassigned(response_code)),
+			response_code @ 12 ..= 15 => Err(Unassigned(response_code)),
 
 			_ => unreachable!(),
-		}
-	}
-	
-	#[inline(always)]
-	fn validate_authentic_answers_do_not_have_authoritative_data_bit_set(&self) -> Result<AuthoritativeAndAuthenticated, DnsProtocolError>
-	{
-		let is_authoritative_answer = self.authoritative_answer();
-		let is_authenticated_data = self.authentic_data();
+		};
 		
-		AuthoritativeAndAuthenticated::parse(is_authoritative_answer, is_authenticated_data)
+		result.map_err(MessageHeaderError::ResponseCode)
 	}
 }

@@ -10,8 +10,10 @@ struct CNAMEQueryProcessor<'message>
 
 impl<'message, A: Alloctor> ResourceRecordVisitor<'message> for CNAMEQueryProcessor<A>
 {
+	type Error = Infallible;
+	
 	#[inline(always)]
-	fn CNAME(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: ParsedName<'message>, is_some_if_present_in_answer_section_and_true_if_was_queried_for: Option<bool>) -> Result<(), DnsProtocolError>
+	fn CNAME(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: ParsedName<'message>, is_some_if_present_in_answer_section_and_true_if_was_queried_for: Option<bool>) -> Result<(), Self::Error>
 	{
 		debug_assert_eq!(is_some_if_present_in_answer_section_and_true_if_was_queried_for, Some(true));
 		debug_assert!(self.records.is_none(), "This should have been checked for in `ResourceRecord::parse_answer_section_resource_record_in_response()`");

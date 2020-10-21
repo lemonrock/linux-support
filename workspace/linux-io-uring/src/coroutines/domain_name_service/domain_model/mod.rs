@@ -5,7 +5,6 @@
 use super::*;
 use self::character_strings::*;
 use self::errors::*;
-use self::errors::DnsProtocolError::*;
 use self::extended_dns::*;
 use self::message::*;
 use self::message::header::*;

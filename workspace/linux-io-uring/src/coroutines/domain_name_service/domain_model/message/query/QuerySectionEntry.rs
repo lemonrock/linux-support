@@ -57,7 +57,7 @@ impl QuerySectionEntry
 
 	/// `QCLASS` field.
 	#[inline(always)]
-	pub(crate) fn validate_is_internet_query_class(&self, end_of_name_pointer: usize) -> Result<(), DnsProtocolError>
+	pub(crate) fn validate_is_internet_query_class(&self, end_of_name_pointer: usize) -> Result<(), QuerySectionError>
 	{
 		self.query_section_entry_footer(end_of_name_pointer).validate_is_internet_query_class()
 	}

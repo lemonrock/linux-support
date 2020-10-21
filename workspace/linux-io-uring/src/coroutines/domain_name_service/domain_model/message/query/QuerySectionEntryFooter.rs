@@ -26,7 +26,7 @@ impl QuerySectionEntryFooter
 	}
 
 	#[inline(always)]
-	fn validate_is_internet_query_class(&self) -> Result<(), DnsProtocolError>
+	fn validate_is_internet_query_class(&self) -> Result<(), QuerySectionError>
 	{
 		if likely!(self.qclass == [0x00, 0x01])
 		{
@@ -34,7 +34,7 @@ impl QuerySectionEntryFooter
 		}
 		else
 		{
-			Err(DnsProtocolError::ClassIsReservedUnassignedOrObsolete(self.qclass))
+			Err(QuerySectionError::ClassIsReservedUnassignedOrObsolete(self.qclass))
 		}
 	}
 }

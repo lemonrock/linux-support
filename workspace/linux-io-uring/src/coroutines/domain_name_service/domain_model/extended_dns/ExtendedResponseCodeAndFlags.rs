@@ -36,7 +36,7 @@ impl ExtendedResponseCodeAndFlags
 	}
 
 	#[inline(always)]
-	pub(crate) fn validate_is_version_0(&self) -> Result<(), DnsProtocolError>
+	pub(crate) fn validate_is_version_0(&self) -> Result<(), ExtendedDnsError>
 	{
 		let version = self.0.value(1);
 		if likely!(version == Self::Version0)
@@ -45,7 +45,7 @@ impl ExtendedResponseCodeAndFlags
 		}
 		else
 		{
-			Err(UnsupportedExtendedDnsVersion(version))
+			Err(ExtendedDnsError::UnsupportedExtendedDnsVersion(version))
 		}
 	}
 
@@ -56,7 +56,7 @@ impl ExtendedResponseCodeAndFlags
 	}
 
 	#[inline(always)]
-	pub(crate) fn z(&self) -> Result<(), DnsProtocolError>
+	pub(crate) fn z(&self) -> Result<(), ExtendedDnsError>
 	{
 		if likely!(self.upper_flag_bits() | !Self::KnownExtendedFlagsUpper == 0 && self.lower_flag_bits() == 0)
 		{
@@ -64,7 +64,7 @@ impl ExtendedResponseCodeAndFlags
 		}
 		else
 		{
-			Err(ExtendedDnsZFieldNotZero)
+			Err(ExtendedDnsError::ExtendedDnsZFieldNotZero)
 		}
 	}
 
