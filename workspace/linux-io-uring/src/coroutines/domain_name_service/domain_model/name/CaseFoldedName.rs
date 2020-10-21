@@ -217,8 +217,7 @@ impl<'message> PartialOrd<ParsedName<'message>> for CaseFoldedName
 }
 
 impl CaseFoldedName
-{
-	/// Based on RFC 6762, Appendix G: Private DNS Namespace.
+{ RFC 6762, Appendix G: Private DNS Namespace.
 	pub(crate) fn top_level(label: &[u8]) -> HashSet<Self>
 	{
 		hashset!
@@ -227,6 +226,7 @@ impl CaseFoldedName
 		}
 	}
 	
+	/// Based on
 	pub(crate) fn recommended_local_names_in_rfc_6762_appendix_g()
 	{
 	
