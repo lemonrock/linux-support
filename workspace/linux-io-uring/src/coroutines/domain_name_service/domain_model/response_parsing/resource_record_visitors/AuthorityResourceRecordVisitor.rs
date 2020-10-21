@@ -12,12 +12,14 @@ pub(crate) struct AuthorityResourceRecordVisitor<'message>
 
 impl<'message> ResourceRecordVisitor<'message> for AuthorityResourceRecordVisitor<'message>
 {
+	type Error = AuthorityError;
+	
 	#[inline(always)]
-	fn NS(&mut self, name: ParsedName<'message>, _cache_until: CacheUntil, _record: ParsedName<'message>) -> Result<(), DnsProtocolError>
+	fn NS(&mut self, name: ParsedName<'message>, _cache_until: CacheUntil, _record: ParsedName<'message>) -> Result<(), Self::Error>
 	{
 		if unlikely!(self.canonical_name_chain.validate_authority_section_name(name))
 		{
-			return Err(NameServerRecordInAuthoritySectionIsNotForFinalNameInCanonicalNameChain)
+			return Err(AuthorityError::NameServerRecordInAuthoritySectionIsNotForFinalNameInCanonicalNameChain)
 		}
 
 		self.have_seen_a_ns_record = true;
@@ -26,11 +28,11 @@ impl<'message> ResourceRecordVisitor<'message> for AuthorityResourceRecordVisito
 	}
 
 	#[inline(always)]
-	fn SOA(&mut self, name: ParsedName<'message>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message>) -> Result<(), DnsProtocolError>
+	fn SOA(&mut self, name: ParsedName<'message>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message>) -> Result<(), Self::Error>
 	{
 		if unlikely!(self.canonical_name_chain.validate_authority_section_name(name))
 		{
-			return Err(StartOfAuthorityRecordInAuthoritySectionIsNotForFinalNameInCanonicalNameChain)
+			return Err(AuthorityError::StartOfAuthorityRecordInAuthoritySectionIsNotForFinalNameInCanonicalNameChain)
 		}
 		
 		self.have_seen_a_soa_record = Some(negative_cache_until);

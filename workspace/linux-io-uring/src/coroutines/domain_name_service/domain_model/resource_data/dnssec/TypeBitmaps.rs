@@ -73,8 +73,10 @@ impl TypeBitmaps
 	/// Currently, only type codes (0x01, 0) and (0x01, 1) are usefuly defined; all other blocks can be ignored.
 	#[allow(deprecated)]
 	#[inline(always)]
-	pub(crate) fn parse_type_bitmaps(blocks: &[u8]) -> Result<Self, DnsProtocolError>
+	pub(crate) fn parse_type_bitmaps(data_type: DataType, blocks: &[u8]) -> Result<Self, TypeBitmapsParseError>
 	{
+		use self::TypeBitmapsHandleRecordTypeError::*;
+		
 		let mut this: Self = unsafe { uninitialized() };
 
 		let blocks_length = blocks.len();
@@ -88,27 +90,27 @@ impl TypeBitmaps
 			const MinimumBitmapSize: usize = 1;
 			if unlikely!(blocks_length < WindowSize + BitmapLengthSize + MinimumBitmapSize)
 			{
-				return Err(ResourceDataForTypeCSYNCOrNSECOrNSEC3HasAnOverflowingBlockLength(blocks_length))
+				return Err(HasAnOverflowingBlockLength(data_type, blocks_length))
 			}
 
 			let window_number = blocks.u8(block_starts_at) as i16;
 			if unlikely!(window_number <= previous_window_number)
 			{
-				return Err(ResourceDataForTypeCSYNCOrNSECOrNSEC3HasARepeatedOrDecreasingWindowNumber)
+				return Err(HasARepeatedOrDecreasingWindowNumber(data_type))
 			}
 
 			let bitmap_length = blocks.u8(block_starts_at + WindowSize) as usize;
 			if unlikely!(bitmap_length == 0)
 			{
-				return Err(ResourceDataForTypeCSYNCOrNSECOrNSEC3HasAZeroBitmapLength)
+				return Err(HasAZeroBitmapLength(data_type))
 			}
 			if unlikely!(bitmap_length > 32)
 			{
-				return Err(ResourceDataForTypeCSYNCOrNSECOrNSEC3HasAnIncorrectBitmapLength(bitmap_length))
+				return Err(HasAnIncorrectBitmapLength(data_type, bitmap_length))
 			}
 			if unlikely!(blocks_length < WindowSize + BitmapLengthSize + bitmap_length)
 			{
-				return Err(ResourceDataForTypeCSYNCOrNSECOrNSEC3HasAnOverflowingBitmapLength(bitmap_length))
+				return Err(HasAnOverflowingBitmapLength(data_type, bitmap_length))
 			}
 
 			let block_ends_at = block_starts_at + WindowSize + BitmapLengthSize + bitmap_length;

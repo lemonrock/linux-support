@@ -6,4 +6,6 @@ use super::*;
 
 
 include!("CharacterString.rs");
+include!("CharacterStringLengthIncorrectError.rs");
 include!("CharacterStringsIterator.rs");
+include!("NoCharacterStringsError.rs");

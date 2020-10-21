@@ -34,7 +34,7 @@ impl QuerySectionEntryFooter
 		}
 		else
 		{
-			Err(ClassIsReservedUnassignedOrObsolete(self.qclass))
+			Err(DnsProtocolError::ClassIsReservedUnassignedOrObsolete(self.qclass))
 		}
 	}
 }

@@ -6,5 +6,6 @@ use super::*;
 
 
 include!("Location.rs");
+include!("LocationBody.rs");
+include!("LocationBodyVersion0.rs.rs");
 include!("LocationCompressedCentimetres.rs");
-include!("LocationVersion.rs");

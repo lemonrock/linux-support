@@ -3,26 +3,26 @@
 
 
 /// See <https://www.iana.org/assignments/dane-parameters/dane-parameters.xhtml>
-pub enum MatchingType<'a>
+pub enum MatchingType<'message>
 {
 	/// 'Full'.
 	///
 	/// No hash used; an exact match is required.
 	///
 	/// Defined by RFC 6698.
-	NoHashUsed(&'a [u8]),
+	NoHashUsed(&'message [u8]),
 
 	/// 'SHA2-256'.
 	///
 	/// 256 bit hash by SHA2; an exact match of SHA2-256 hash digests is required.
 	///
 	/// Defined by RFC 6234.
-	Sha2_256(&'a [u8; 256 / 8]),
+	Sha2_256(Sha2_256<'message>),
 
 	/// 'SHA2-512'.
 	///
 	/// 512 bit hash by SHA2; an exact match of SHA2-512 hash digests is required.
 	///
 	/// Defined by RFC 6234.
-	Sha2_512(&'a [u8; 512 / 8]),
+	Sha2_512(Sha2_512<'message>),
 }

@@ -17,6 +17,7 @@ include!("ParsedLabel.rs");
 include!("ParsedNames.rs");
 include!("ParsedName.rs");
 include!("ParsedNameParser.rs");
+include!("ParsedNameParserError.rs");
 include!("RawLabel.rs");
 include!("RawLabelBitfield.rs");
 include!("UpTo63Bytes.rs");

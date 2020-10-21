@@ -3,8 +3,9 @@
 
 
 use super::*;
-use self::DnsProtocolError::*;
 use self::character_strings::*;
+use self::errors::*;
+use self::errors::DnsProtocolError::*;
 use self::extended_dns::*;
 use self::message::*;
 use self::message::header::*;
@@ -16,6 +17,7 @@ use self::resource_data::*;
 use self::resource_data::certificate::*;
 use self::resource_data::certification_authority_authorization::*;
 use self::resource_data::dhcid::*;
+use self::resource_data::digest::*;
 use self::resource_data::dns_based_authentication_of_named_entities::*;
 use self::resource_data::dnssec::*;
 use self::resource_data::host_identity_protocol::*;
@@ -34,6 +36,9 @@ pub(crate) mod caching;
 
 
 pub(crate) mod character_strings;
+
+
+pub(crate) mod errors;
 
 
 pub(crate) mod extended_dns;
@@ -58,7 +63,6 @@ pub(crate) mod support;
 
 
 include!("CacheUntil.rs");
-include!("DnsProtocolError.rs");
 include!("MessageIdentifier.rs");
 include!("NegativeCacheUntil.rs");
 include!("Query.rs");

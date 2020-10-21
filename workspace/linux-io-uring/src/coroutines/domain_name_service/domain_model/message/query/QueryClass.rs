@@ -5,6 +5,7 @@
 /// Values are the lower 8-bits of the registered IANA values.
 ///
 /// Obsolete, reserved and undefined values are excluded.
+/// See [IANA](https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-2) and RFC 6895 for further details.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u8)]
 pub(crate) enum QueryClass

@@ -11,7 +11,6 @@ pub(crate) struct ResponseParsingState
 	have_yet_to_see_a_soa_resource_record: Cell<bool>,
 	
 	have_yet_to_see_an_edns_opt_resource_record: Cell<bool>,
-	dnssec_ok: Cell<Option<bool>>,
 }
 
 impl ResponseParsingState
@@ -27,17 +26,16 @@ impl ResponseParsingState
 			have_yet_to_see_a_soa_resource_record: Cell::new(true),
 			
 			have_yet_to_see_an_edns_opt_resource_record: Cell::new(true),
-			dnssec_ok: Cell::new(None),
 		}
 	}
 	
 	#[inline(always)]
-	pub(crate) fn validate_only_one_CNAME_record_in_answer_section_when_query_type_was_CNAME(&self) -> Result<(), DnsProtocolError>
+	pub(crate) fn validate_only_one_CNAME_record_in_answer_section_when_query_type_was_CNAME(&self) -> Result<(), TooManyResourceRecordsOfTypeError>
 	{
 		let number_of_cname_records_in_answer_section = self.number_of_cname_records_in_answer_section.get();
-		if unlikely(number_of_cname_records_in_answer_section > 1)
+		if unlikely!(number_of_cname_records_in_answer_section > 1)
 		{
-			Err(MoreThanOneCNAMERecordIsNotValidInAnswerSectionForACNAMEQuery)
+			Err(TooManyResourceRecordsOfTypeError::MoreThanOneCNAMERecordIsNotValidInAnswerSectionForACNAMEQuery)
 		}
 		else
 		{
@@ -46,12 +44,12 @@ impl ResponseParsingState
 	}
 	
 	#[inline(always)]
-	pub(crate) fn validate_only_one_DNAME_record_in_answer_section_when_query_type_was_DNAME(&self) -> Result<(), DnsProtocolError>
+	pub(crate) fn validate_only_one_DNAME_record_in_answer_section_when_query_type_was_DNAME(&self) -> Result<(), TooManyResourceRecordsOfTypeError>
 	{
 		let number_of_dname_records_in_answer_section = self.number_of_dname_records_in_answer_section.get();
-		if unlikely(number_of_dname_records_in_answer_section > 1)
+		if unlikely!(number_of_dname_records_in_answer_section > 1)
 		{
-			Err(MoreThanOneDNAMERecordIsNotValidInAnswerSectionForADNAMEQuery)
+			Err(TooManyResourceRecordsOfTypeError::MoreThanOneDNAMERecordIsNotValidInAnswerSectionForADNAMEQuery)
 		}
 		else
 		{
@@ -60,29 +58,78 @@ impl ResponseParsingState
 	}
 	
 	#[inline(always)]
-	pub(crate) fn parsing_a_soa_record(&self)
+	pub(crate) fn parsing_a_soa_record(&self) -> Result<(), SOAHandleRecordTypeError>
 	{
-		if unlikely!(!self.have_yet_to_see_a_soa_resource_record.get())
+		if likely!(self.have_yet_to_see_a_soa_resource_record())
 		{
-			return Err(MoreThanOneStatementOfAuthorityResourceRecord)
+			self.have_yet_to_see_a_soa_resource_record.set(false);
+			Ok(())
 		}
-		self.have_yet_to_see_a_soa_resource_record.set(false);
+		else
+		{
+			Err(SOAHandleRecordTypeError::MoreThanOneStartOfAuthorityResourceRecord)
+		}
 	}
 	
 	#[inline(always)]
-	pub(crate) fn parsing_an_edns_opt_record(&self)
+	pub(crate) fn parsing_an_edns_opt_record(&self) -> Result<(), ExtendedDnsError>
 	{
-		if unlikely!(!self.have_yet_to_see_an_edns_opt_resource_record.get())
+		if likely!(self.have_yet_to_see_an_edns_opt_resource_record())
 		{
-			return Err(MoreThanOneExtendedDnsOptResourceRecord)
+			self.have_yet_to_see_an_edns_opt_resource_record.set(false);
+			Ok(())
 		}
-		self.have_yet_to_see_an_edns_opt_resource_record.set(false);
+		else
+		{
+			Err(ExtendedDnsError::MoreThanOneExtendedDnsOptResourceRecord)
+		}
 	}
 	
 	#[inline(always)]
-	pub(crate) fn set_dnssec_ok(&self, dnssec_ok: bool)
+	pub(crate) fn set_dnssec_ok(&self, dnssec_ok: bool) -> Result<(), ExtendedDnsError>
 	{
-		debug_assert!(self.dnssec_ok.get().is_none());
-		self.dnssec_ok.set(Some(dnssec_ok))
+		debug_assert!(self.have_yet_to_see_an_edns_opt_resource_record(), "Call parsing_an_edns_opt_record() prior to this method");
+		
+		if likely!(dnssec_ok)
+		{
+			Ok(())
+		}
+		else
+		{
+			Err(ExtendedDnsError::ResponseIgnoredDnsSec)
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn parse_extended_dns_outcome(&self) -> Result<(), ResponseDidNotContainAnExtendedDnsOptMetaResourceRecordError>
+	{
+		use self::ResponseDidNotHaveExtendedDnsOptionsError::*;
+		
+		if likely!(self.have_seen_an_edns_opt_resource_record())
+		{
+			Ok(())
+		}
+		else
+		{
+			Err(ResponseDidNotContainAnExtendedDnsOptMetaResourceRecordError)
+		}
+	}
+	
+	#[inline(always)]
+	fn have_yet_to_see_a_soa_resource_record(&self) -> bool
+	{
+		self.have_yet_to_see_a_soa_resource_record.get()
+	}
+	
+	#[inline(always)]
+	fn have_yet_to_see_an_edns_opt_resource_record(&self) -> bool
+	{
+		self.have_yet_to_see_an_edns_opt_resource_record.get()
+	}
+	
+	#[inline(always)]
+	fn have_seen_an_edns_opt_resource_record(&self) -> bool
+	{
+		!self.have_yet_to_see_an_edns_opt_resource_record.get()
 	}
 }

@@ -58,8 +58,16 @@ impl<'message> ParsedNames<'message>
 		}
 	}
 	
-	fn look_up(&self, compressed_pointer_offset: CompressedPointerOffset) -> Result<&ParsedName<'message>, DnsProtocolError>
+	fn look_up(&self, compressed_pointer_offset: CompressedPointerOffset, label_starts_at_pointer: usize) -> Result<&ParsedName<'message>, ParsedNameParserError>
 	{
+		use self::ParsedNameParserError::*;
+		
+		// This check is an optimization to prevent the cost of a hash look up.
+		if unlikely!(compressed_pointer_offset.start_of_name_pointer(self.start_of_message_pointer) >= label_starts_at_pointer)
+		{
+			return Err(LabelPointerPointsToDataAfterTheStartOfTheCurrentlyBeingParsedName)
+		}
+		
 		self.parsed_names.get(&compressed_pointer_offset).ok_or(LabelPointerPointsToALabelThatWasNotPreviouslyParsed(compressed_pointer_offset))
 	}
 }

@@ -17,6 +17,10 @@ pub mod certification_authority_authorization;
 pub mod dhcid;
 
 
+/// Digest support.
+pub mod digest;
+
+
 /// `TLSA` and `SMIME` record support.
 pub mod dns_based_authentication_of_named_entities;
 

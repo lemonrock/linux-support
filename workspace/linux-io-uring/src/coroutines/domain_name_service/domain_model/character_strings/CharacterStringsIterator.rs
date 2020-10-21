@@ -13,7 +13,7 @@ pub struct CharacterStringsIterator<'a>
 
 impl<'a> Iterator for CharacterStringsIterator<'a>
 {
-	type Item = Result<&'a [u8], DnsProtocolError>;
+	type Item = Result<&'a [u8], CharacterStringLengthIncorrectError>;
 
 	#[inline(always)]
 	fn next(&mut self) -> Option<Self::Item>
@@ -29,7 +29,7 @@ impl<'a> Iterator for CharacterStringsIterator<'a>
 		let length = text_string.length as usize;
 		let result = if unlikely!(self.next_string_starts_at_pointer + length > self.end_of_resource_data_pointer)
 		{
-			Err(TextRecordStringLengthIncorrect)
+			Err(CharacterStringLengthIncorrectError)
 		}
 		else
 		{
@@ -42,12 +42,12 @@ impl<'a> Iterator for CharacterStringsIterator<'a>
 impl<'a> CharacterStringsIterator<'a>
 {
 	#[inline(always)]
-	pub(crate) fn new(resource_data: &'a [u8]) -> Result<Self, DnsProtocolError>
+	pub(crate) fn new(resource_data: &'a [u8]) -> Result<Self, NoCharacterStringsError>
 	{
 		let length = resource_data.len();
 		if unlikely!(length == 0)
 		{
-			return Err(ResourceRecordForTypeTXTHasNoCharacterStrings)
+			return Err(NoCharacterStringsError)
 		}
 
 		let next_string_starts_at_pointer = resource_data.as_ptr() as usize;

@@ -7,11 +7,11 @@ struct ResourceRecordFooter
 {
 	type_: DataType,
 	
-	class: BigEndianU32,
+	class: BigEndianU16,
 	
 	ttl: BigEndianI32,
 	
-	rdlen: BigEndianU32,
+	rdlen: BigEndianU16,
 	
 	rdata: ResourceData,
 }
@@ -19,9 +19,9 @@ struct ResourceRecordFooter
 impl ResourceRecordFooter
 {
 	const TypeSize: usize = size_of::<DataType>();
-	const ClassSize: usize = size_of::<[u8; 2]>();
-	const TimeToLiveSize: usize = size_of::<[u8; 4]>();
-	const ResourceDataLengthSize: usize = size_of::<[u8; 2]>();
+	const ClassSize: usize = size_of::<BigEndianU16>();
+	const TimeToLiveSize: usize = size_of::<BigEndianI32>();
+	const ResourceDataLengthSize: usize = size_of::<BigEndianU16>();
 
 	const RequestorsUdpPayloadSize: usize = Self::ClassSize;
 	const ExtendedRCodeAndFlagsSize: usize = Self::TimeToLiveSize;
@@ -36,21 +36,18 @@ impl ResourceRecordFooter
 	}
 
 	#[inline(always)]
-	fn resource_record_class(&self) -> Result<ResourceRecordClass, DnsProtocolError>
+	fn resource_record_class_is_internet(&self) -> Result<(), ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError>
 	{
 		let class = self.class;
 
-		let (upper, lower) = unsafe { transmute(class) };
-
-		if likely!(upper == 0x00)
+		if likely!(self.class == [0x00, 0x01])
 		{
-			if likely!(lower == 0x01)
-			{
-				return Ok(ResourceRecordClass::Internet)
-			}
+			Ok(())
 		}
-
-		Err(ClassIsReservedUnassignedOrObsolete(class))
+		else
+		{
+			Err(ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError::ClassIsReservedUnassignedOrObsolete(self.type_, class))
+		}
 	}
 
 	#[inline(always)]

@@ -3,11 +3,11 @@
 
 
 /// Digest.
-pub enum DnsSecDigest<'a>
+pub enum DnsSecDigest<'message>
 {
 	/// SHA2-256 digest.
-	Sha2_256(&'a [u8; 256 / 8]),
+	Sha2_256(Sha2_256<'message>),
 
 	/// SHA2-384 digest.
-	Sha2_384(&'a [u8; 384 / 8]),
+	Sha2_384(Sha2_384<'message>),
 }

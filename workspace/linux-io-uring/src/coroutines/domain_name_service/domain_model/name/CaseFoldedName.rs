@@ -3,12 +3,35 @@
 
 
 /// A case-folded (normalized to lower case) name which consists of labels, including a terminal root label.
-#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Default, Debug, Clone)]
 pub struct CaseFoldedName
 {
 	labels: Box<[CaseFoldedLabel]>,
 	
 	name_length_including_trailing_periods_after_labels: NonZeroU8,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum CaseFoldedNameParseError
+{
+	RootLabelWasNotEmpty,
+
+	NonRootLabelWasEmpty,
+
+	LabelExceeded63Bytes,
+}
+
+impl Display for CaseFoldedNameParseError
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
+impl error::Error for CaseFoldedNameParseError
+{
 }
 
 impl<'a> TryFrom<&'a [u8]> for CaseFoldedName
@@ -22,6 +45,16 @@ impl<'a> TryFrom<&'a [u8]> for CaseFoldedName
 		
 		let mut labels = Vec::new();
 		let mut name_length_including_trailing_periods_after_labels = 0u8;
+		
+		let mut iterator = value.split_bytes_reverse(b'.');
+		let should_be_root_label = iterator.next().unwrap();
+		if unlikely!(!should_be_root_label.is_empty())
+		{
+			return Err(TooLarge)
+		}
+		
+		
+		
 		for label in value.split_bytes(b'.')
 		{
 			labels.push(CaseFoldedLabel::new_cloned_and_case_folded(label)?);

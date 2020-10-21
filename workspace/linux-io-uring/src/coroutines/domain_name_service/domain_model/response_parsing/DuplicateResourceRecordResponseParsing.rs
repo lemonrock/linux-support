@@ -11,7 +11,7 @@ pub(crate) struct DuplicateResourceRecordResponseParsing<'message>
 impl<'message> DuplicateResourceRecordResponseParsing<'message>
 {
 	#[inline(always)]
-	pub(crate) fn encountered(&mut self, resource_record_data_type: DataType, resource_record_name: &ParsedName<'message>, resource_data: &'message [u8]) -> Result<(), DnsProtocolError>
+	pub(crate) fn encountered(&mut self, resource_record_data_type: DataType, resource_record_name: &ParsedName<'message>, resource_data: &'message [u8]) -> Result<(), ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError>
 	{
 		let has_not_yet_been_encountered = self.already_encountered.borrow_mut().insert((resource_record_data_type, resource_record_name.clone(), resource_data));
 		if likely!(has_not_yet_been_encountered)
@@ -20,7 +20,7 @@ impl<'message> DuplicateResourceRecordResponseParsing<'message>
 		}
 		else
 		{
-			Err(DuplicateResourceRecord(resource_record_data_type))
+			Err(ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError::DuplicateResourceRecord(resource_record_data_type))
 		}
 	}
 }

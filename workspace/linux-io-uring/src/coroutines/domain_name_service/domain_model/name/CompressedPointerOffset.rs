@@ -27,4 +27,10 @@ impl TryFrom<usize> for CompressedPointerOffset
 impl CompressedPointerOffset
 {
 	const ExclusiveMaximum: u16 = 1 << 14;
+	
+	#[inline(always)]
+	const fn start_of_name_pointer(self, start_of_message_pointer: usize) -> usize
+	{
+		start_of_message_pointer + (self.0 as usize)
+	}
 }

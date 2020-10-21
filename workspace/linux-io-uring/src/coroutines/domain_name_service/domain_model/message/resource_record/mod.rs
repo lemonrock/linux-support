@@ -7,8 +7,6 @@ use super::*;
 
 include!("guard_hash_digest_if_final_field.rs");
 include!("ipsec_like_public_key.rs");
-include!("guard_delegation_signer.rs");
-include!("guard_dns_key.rs");
 
 
 include!("ResourceRecord.rs");

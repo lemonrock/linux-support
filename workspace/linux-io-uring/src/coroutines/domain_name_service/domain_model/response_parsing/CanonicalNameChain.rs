@@ -75,11 +75,13 @@ impl<'message> CanonicalNameChain<'message>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn insert_link(&mut self, from: ParsedName<'message>, to: ParsedName<'message>) -> Result<(), DnsProtocolError>
+	pub(crate) fn insert_link(&mut self, from: ParsedName<'message>, to: ParsedName<'message>) -> Result<(), CanonicalChainError>
 	{
+		use self::CanonicalChainError::*;
+		
 		if self.chain.len() == Self::MaximumChainLength
 		{
-			return Err(TooManyCanonicalNamesInChain)
+			return Err(TooManyCanonicalNamesInChain(Self::MaximumChainLength))
 		}
 		
 		if self.most_canonical_name() != from

@@ -36,12 +36,12 @@ impl ExtendedResponseCodeAndFlags
 	}
 
 	#[inline(always)]
-	pub(crate) fn version(&self) -> Result<ExtendedDnsVersion, DnsProtocolError>
+	pub(crate) fn validate_is_version_0(&self) -> Result<(), DnsProtocolError>
 	{
 		let version = self.0.value(1);
 		if likely!(version == Self::Version0)
 		{
-			Ok(ExtendedDnsVersion::Version0)
+			Ok(())
 		}
 		else
 		{

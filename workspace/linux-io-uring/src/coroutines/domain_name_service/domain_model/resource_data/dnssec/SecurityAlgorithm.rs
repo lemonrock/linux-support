@@ -166,9 +166,10 @@ impl SecurityAlgorithm
 	const PRIVATEOID: u8 = 254;
 
 	#[inline(always)]
-	pub(crate) fn parse_security_algorithm(security_algorithm_type: u8, permit_delete: bool, permit_widely_deployed_but_insecure: bool) -> Result<Either<Self, SecurityAlgorithmRejectedBecauseReason>, DnsProtocolError>
+	pub(crate) fn parse_security_algorithm(security_algorithm_type: u8, permit_delete: bool, permit_widely_deployed_but_insecure: bool, data_type: DataType) -> Result<Either<Self, SecurityAlgorithmRejectedBecauseReason>, SecurityAlgorithmHandleRecordTypeError>
 	{
 		use self::SecurityAlgorithm::*;
+		use self::SecurityAlgorithmHandleRecordTypeError::*;
 		use self::SecurityAlgorithmRejectedBecauseReason::*;
 
 		match security_algorithm_type
@@ -179,7 +180,7 @@ impl SecurityAlgorithm
 			}
 			else
 			{
-				Err(SecurityAlgorithmShouldNotBeUsedForThisResourceRecordType(security_algorithm_type))
+				Err(ShouldNotBeUsedForThisResourceRecordType(data_type, security_algorithm_type))
 			}
 
 			Self::RSAMD5 => Ok(Right(DeprecatedSecurityAlgorithm_RSA_MD5)),
@@ -188,7 +189,7 @@ impl SecurityAlgorithm
 
 			Self::DSA => Ok(Right(VulnerableSecurityAlgorithm_DSA)),
 
-			4 => Err(SecurityAlgorithmTypeIsReservedByRfc6725(4)),
+			4 => Err(TypeIsReservedByRfc6725(data_type, 4)),
 
 			Self::RSASHA1 => if unlikely!(permit_widely_deployed_but_insecure)
 			{
@@ -196,7 +197,7 @@ impl SecurityAlgorithm
 			}
 			else
 			{
-				Err(WidelyDeployedButInsecureSecurityAlogrithm(security_algorithm_type))
+				Ok(Right(WidelyDeployedButInsecureSecurityAlogrithm(security_algorithm_type)))
 			},
 
 			Self::DSA_NSEC3_SHA1 => Ok(Right(VulnerableSecurityAlgorithm_DSA)),
@@ -207,16 +208,16 @@ impl SecurityAlgorithm
 			}
 			else
 			{
-				Err(WidelyDeployedButInsecureSecurityAlogrithm(security_algorithm_type))
+				Ok(Right(WidelyDeployedButInsecureSecurityAlogrithm(security_algorithm_type)))
 			},
 
 			Self::RSASHA256 => Ok(Left(RivestShamirAdlemanSha256)),
 
-			9 => Err(SecurityAlgorithmTypeIsReservedByRfc6725(9)),
+			9 => Err(TypeIsReservedByRfc6725(data_type, 9)),
 
 			Self::RSASHA512 => Ok(Left(RivestShamirAdlemanSha512)),
 
-			11 => Err(SecurityAlgorithmTypeIsReservedByRfc6725(11)),
+			11 => Err(TypeIsReservedByRfc6725(data_type, 11)),
 
 			Self::ECC_GOST => Ok(Right(EffectivelyObsoleteSecurityAlgorithm_GOST_R_34_10_2001)),
 
@@ -230,7 +231,7 @@ impl SecurityAlgorithm
 
 			17 ..= 122 => Ok(Right(Unassigned(security_algorithm_type))),
 
-			123 ..= 251 => Err(SecurityAlgorithmTypeIsReservedByRfc6014(security_algorithm_type)),
+			123 ..= 251 => Err(TypeIsReservedByRfc6014(data_type, security_algorithm_type)),
 
 			Self::INDIRECT => Ok(Right(ReservedByRfc4034ForIndirectKeys)),
 
@@ -238,7 +239,7 @@ impl SecurityAlgorithm
 
 			Self::PRIVATEOID => Ok(Right(ReservedByRfc4034ForPrivateAlgorithmOids)),
 
-			255 => Err(SecurityAlgorithmTypeIsReservedByRfc4034),
+			255 => Err(TypeIsReservedByRfc4034(data_type)),
 		}
 	}
 }

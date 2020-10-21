@@ -54,7 +54,7 @@ impl Query
 		
 		if unlikely!(end_of_parsed_message_pointer < end_of_message_pointer)
 		{
-			Err(MessageHadUnparsedBytesAtEnd)
+			Err(MessageHadUnparsedBytesAtEnd(self.message_identifier))
 		}
 		else
 		{
@@ -111,8 +111,7 @@ impl Query
 	#[inline(always)]
 	fn parse_query_section<'message>(&self, query_section_entry: &'message QuerySectionEntry, parsed_names: &mut ParsedNames, end_of_message_pointer: usize) -> Result<(usize, ParsedName<'message>), DnsProtocolError>
 	{
-		let mut parsed_name_parser = ParsedNameParser::new(false, parsed_names, query_section_entry.start_of_name_pointer(), end_of_message_pointer)?;
-		let (parsed_query_name, end_of_qname_pointer) = parsed_name_parser.parse_name()?;
+		let (parsed_query_name, end_of_qname_pointer) = ParsedNameParser::parse_name(Some(ParsedNameParserError::CompressedNameLabelsAreDisallowedInQuerySection), parsed_names, query_section_entry.start_of_name_pointer(), end_of_message_pointer)?;
 		
 		query_section_entry.validate_is_internet_query_class(end_of_qname_pointer)?;
 		

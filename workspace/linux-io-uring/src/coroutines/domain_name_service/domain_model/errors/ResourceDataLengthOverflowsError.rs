@@ -2,9 +2,18 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(u8)]
-pub(crate) enum LocationVersion
+#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+pub struct ResourceDataLengthOverflowsError;
+
+impl Display for ResourceDataLengthOverflowsError
 {
-	Version0 = 0,
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
+impl error::Error for ResourceDataLengthOverflowsError
+{
 }
