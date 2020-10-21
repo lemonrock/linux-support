@@ -101,6 +101,30 @@ pub enum HandleRecordTypeError<E: error::Error>
 	
 	/// `CDNSKEY`.
 	CDNSKEY(DnsKeyHandleRecordTypeError),
+	
+	/// `CSYNC`.
+	CSYNC(CSYNCHandleRecordTypeError),
+	
+	/// `L32`.
+	L32(L32HandleRecordTypeError),
+	
+	/// `L64`.
+	L64(L64HandleRecordTypeError),
+	
+	/// `LP`.
+	LP(LPHandleRecordTypeError),
+	
+	/// `EUI48`.
+	EUI48(EUI48HandleRecordTypeError),
+	
+	/// `EUI64`.
+	EUI64(EUI64HandleRecordTypeError),
+	
+	/// `URI`.
+	URI(URIHandleRecordTypeError),
+	
+	/// `CAA`.
+	CAA(CAAHandleRecordTypeError),
 }
 
 impl<E: error::Error> Display for HandleRecordTypeError<E>
@@ -176,6 +200,18 @@ impl<E: error::Error> error::Error for HandleRecordTypeError<E>
 			&CDS(ref error) => Some(error),
 			
 			&CDNSKEY(ref error) => Some(error),
+			
+			&CSYNC(ref error) => Some(error),
+			
+			&LP(ref error) => Some(error),
+			
+			&EUI48(ref error) => Some(error),
+			
+			&EUI64(ref error) => Some(error),
+			
+			&URI(ref error) => Some(error),
+			
+			&CAA(ref error) => Some(error),
 			
 			_ => None,
 		}
@@ -350,5 +386,77 @@ impl<E: error::Error> From<HIPHandleRecordTypeError> for HandleRecordTypeError<E
 	fn from(value: HIPHandleRecordTypeError) -> Self
 	{
 		HandleRecordTypeError::HIP(value)
+	}
+}
+
+impl<E: error::Error> From<CSYNCHandleRecordTypeError> for HandleRecordTypeError<E>
+{
+	#[inline(always)]
+	fn from(value: CSYNCHandleRecordTypeError) -> Self
+	{
+		HandleRecordTypeError::CSYNC(value)
+	}
+}
+
+impl<E: error::Error> From<L32HandleRecordTypeError> for HandleRecordTypeError<E>
+{
+	#[inline(always)]
+	fn from(value: L32HandleRecordTypeError) -> Self
+	{
+		HandleRecordTypeError::L32(value)
+	}
+}
+
+impl<E: error::Error> From<L64HandleRecordTypeError> for HandleRecordTypeError<E>
+{
+	#[inline(always)]
+	fn from(value: L64HandleRecordTypeError) -> Self
+	{
+		HandleRecordTypeError::L64(value)
+	}
+}
+
+impl<E: error::Error> From<LPHandleRecordTypeError> for HandleRecordTypeError<E>
+{
+	#[inline(always)]
+	fn from(value: LPHandleRecordTypeError) -> Self
+	{
+		HandleRecordTypeError::LP(value)
+	}
+}
+
+impl<E: error::Error> From<EUI48HandleRecordTypeError> for HandleRecordTypeError<E>
+{
+	#[inline(always)]
+	fn from(value: EUI48HandleRecordTypeError) -> Self
+	{
+		HandleRecordTypeError::EUI48(value)
+	}
+}
+
+impl<E: error::Error> From<EUI64HandleRecordTypeError> for HandleRecordTypeError<E>
+{
+	#[inline(always)]
+	fn from(value: EUI64HandleRecordTypeError) -> Self
+	{
+		HandleRecordTypeError::EUI64(value)
+	}
+}
+
+impl<E: error::Error> From<URIHandleRecordTypeError> for HandleRecordTypeError<E>
+{
+	#[inline(always)]
+	fn from(value: URIHandleRecordTypeError) -> Self
+	{
+		HandleRecordTypeError::URI(value)
+	}
+}
+
+impl<E: error::Error> From<CAAHandleRecordTypeError> for HandleRecordTypeError<E>
+{
+	#[inline(always)]
+	fn from(value: CAAHandleRecordTypeError) -> Self
+	{
+		HandleRecordTypeError::CAA(value)
 	}
 }

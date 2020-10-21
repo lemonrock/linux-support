@@ -2,9 +2,23 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+/// Handle `EUI64` record type error.
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+pub enum EUI64HandleRecordTypeError
+{
+	/// Resource data for resource record type `EUI64` has an incorrect length (value in tuple).
+	HasAnIncorrectLength(usize),
+}
 
+impl Display for EUI64HandleRecordTypeError
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
 
-include!("CertificateAuthorityAuthorization.rs");
-include!("CertificateAuthorityAuthorizationPropertyTag.rs");
-include!("CertificateAuthorityAuthorizationResourceRecordIgnoredBecauseReason.rs");
+impl error::Error for EUI64HandleRecordTypeError
+{
+}

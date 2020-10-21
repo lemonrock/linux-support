@@ -102,42 +102,6 @@ pub enum DnsProtocolError
 
 	/// A reserved record type was present; contains upper 8 bits and lower 8 bits.
 	ReservedRecordType(u8, u8),
-
-	/// Resource data for resource record type `NID` has an incorrect length (value in tuple).
-	ResourceDataForTypeNIDHasAnIncorrectLength(usize),
-
-	/// Resource data for resource record type `L32` has an incorrect length (value in tuple).
-	ResourceDataForTypeL32HasAnIncorrectLength(usize),
-
-	/// Resource data for resource record type `L64` has an incorrect length (value in tuple).
-	ResourceDataForTypeL64HasAnIncorrectLength(usize),
-
-	/// Resource data for resource record type `LP` has too short a length (value in tuple).
-	ResourceDataForTypeLPHasTooShortALength(usize),
-
-	/// Resource data for resource record type `LP` has data left over after parsing the domain name.
-	ResourceDataForTypeLPHasDataLeftOver,
-
-	/// Resource data for resource record type `LP` has a `domain_name` the same as the resource record's name.
-	ResourceDataForTypeLPHasDomainNameSameAsRecordName,
-
-	/// Resource data for resource record type `EUI48` has an incorrect length (value in tuple).
-	ResourceDataForTypeEUI48HasAnIncorrectLength(usize),
-
-	/// Resource data for resource record type `EUI64` has an incorrect length (value in tuple).
-	ResourceDataForTypeEUI64HasAnIncorrectLength(usize),
-
-	/// Resource data for resource record type `URI` has an incorrect length (value in tuple).
-	ResourceDataForTypeURIHasAnIncorrectLength(usize),
-
-	/// Resource data for resource record type `CAA` has an incorrect length (value in tuple).
-	ResourceDataForTypeCAAHasAnIncorrectLength(usize),
-
-	/// Resource data for resource record type `CAA` has a zero tag length.
-	ResourceDataForTypeCAAHasAZeroTagLength,
-
-	/// Resource data for resource record type `CSYNC` has an incorrect length (value in tuple).
-	ResourceDataForTypeCSYNCHasAnIncorrectLength(usize),
 	
 	/// Extended DNS 'OPT' record error.
 	ExtendedDns(ExtendedDnsError),

@@ -23,7 +23,7 @@ impl<'message, A: Alloctor> ResourceRecordVisitor<'message> for MXQueryProcessor
 				
 				record: Record
 				{
-					// TODO: ACTUALLY USE THE QUERY PROCESSOR! with query class.
+					// TODO: ACTUALLY USE THE QUERY PROCESSOR! with query class. Also do for SRV and URI
 					
 					// TODO: this is a key - it belongs outside of this structure.
 					xxx;

@@ -34,3 +34,24 @@ pub enum CertificateAuthorityAuthorizationPropertyTag
 	/// Defined by CA/Browser Forum 1.6.3.
 	AuthorizedEMailContactForDomainValidation,
 }
+
+impl CertificateAuthorityAuthorizationPropertyTag
+{
+	#[inline(always)]
+	pub fn known_tag(tag_name: &'static [u8]) -> Option<&Option<Self>>
+	{
+		use self::CertificateAuthorityAuthorizationPropertyTag::*;
+		static KnownTags: Map<&'static [u8], Option<CertificateAuthorityAuthorizationPropertyTag>> = phf_map!
+		{
+    		b"issue" => Some(AuthorizationEntryByDomain),
+    		b"issuewild" => Some(AuthorizationEntryByWildcardDomain),
+    		b"iodef" => Some(ReportIncidentByIodefReport),
+    		b"contactemail" => Some(AuthorizedEMailContactForDomainValidation),
+    		b"auth" => None,
+    		b"path" => None,
+    		b"policy" => None,
+		};
+		
+		KnownTags.get(tag_name)
+	}
+}
