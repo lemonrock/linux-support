@@ -7,9 +7,7 @@ pub(crate) struct ResponseParsingState
 {
 	number_of_cname_records_in_answer_section: Cell<usize>,
 	number_of_dname_records_in_answer_section: Cell<usize>,
-	
 	have_yet_to_see_a_soa_resource_record: Cell<bool>,
-	
 	have_yet_to_see_an_edns_opt_resource_record: Cell<bool>,
 }
 
@@ -22,20 +20,18 @@ impl ResponseParsingState
 		{
 			number_of_cname_records_in_answer_section: Cell::new(0),
 			number_of_dname_records_in_answer_section: Cell::new(0),
-			
 			have_yet_to_see_a_soa_resource_record: Cell::new(true),
-			
 			have_yet_to_see_an_edns_opt_resource_record: Cell::new(true),
 		}
 	}
 	
 	#[inline(always)]
-	pub(crate) fn validate_only_one_CNAME_record_in_answer_section_when_query_type_was_CNAME(&self) -> Result<(), TooManyResourceRecordsOfTypeError>
+	pub(crate) fn validate_only_one_CNAME_record_in_answer_section_when_query_type_was_CNAME(&self) -> Result<(), AnswerSectionError>
 	{
 		let number_of_cname_records_in_answer_section = self.number_of_cname_records_in_answer_section.get();
 		if unlikely!(number_of_cname_records_in_answer_section > 1)
 		{
-			Err(TooManyResourceRecordsOfTypeError::MoreThanOneCNAMERecordIsNotValidInAnswerSectionForACNAMEQuery)
+			Err(AnswerSectionError::MoreThanOneCNAMERecordIsNotValidInAnswerSectionForACNAMEQuery)
 		}
 		else
 		{
@@ -44,12 +40,12 @@ impl ResponseParsingState
 	}
 	
 	#[inline(always)]
-	pub(crate) fn validate_only_one_DNAME_record_in_answer_section_when_query_type_was_DNAME(&self) -> Result<(), TooManyResourceRecordsOfTypeError>
+	pub(crate) fn validate_only_one_DNAME_record_in_answer_section_when_query_type_was_DNAME(&self) -> Result<(), AnswerSectionError>
 	{
 		let number_of_dname_records_in_answer_section = self.number_of_dname_records_in_answer_section.get();
 		if unlikely!(number_of_dname_records_in_answer_section > 1)
 		{
-			Err(TooManyResourceRecordsOfTypeError::MoreThanOneDNAMERecordIsNotValidInAnswerSectionForADNAMEQuery)
+			Err(AnswerSectionError::MoreThanOneDNAMERecordIsNotValidInAnswerSectionForADNAMEQuery)
 		}
 		else
 		{
@@ -101,7 +97,7 @@ impl ResponseParsingState
 	}
 	
 	#[inline(always)]
-	pub(crate) fn parse_extended_dns_outcome(&self) -> Result<(), ResponseDidNotContainAnExtendedDnsOptMetaResourceRecordError>
+	pub(crate) fn parse_extended_dns_outcome<E: error::Error>(&self) -> Result<(), AdditionalSectionError<E>>
 	{
 		use self::ResponseDidNotHaveExtendedDnsOptionsError::*;
 		
@@ -111,7 +107,7 @@ impl ResponseParsingState
 		}
 		else
 		{
-			Err(ResponseDidNotContainAnExtendedDnsOptMetaResourceRecordError)
+			Err(AdditionalSectionError::ResponseDidNotContainAnExtendedDnsOptMetaResourceRecord)
 		}
 	}
 	

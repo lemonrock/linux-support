@@ -34,7 +34,7 @@ impl<'message> ResponseRecordSectionsParser<'message>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn parse_answer_authority_and_additional_sections<RRV: ResourceRecordVisitor<'message>>(&mut self, next_resource_record_pointer: usize, query_name: ParsedName<'message>, answer_quality: AnswerQuality, answer_section_resource_record_visitor: &mut RRV) -> Result<(usize, AnswerOutcome, CanonicalNameChain<'message>), DnsProtocolError>
+	pub(crate) fn parse_answer_authority_and_additional_sections<RRV: ResourceRecordVisitor<'message>>(&mut self, next_resource_record_pointer: usize, query_name: ParsedName<'message>, answer_quality: AnswerQuality, answer_section_resource_record_visitor: &mut RRV) -> Result<(usize, AnswerOutcome, CanonicalNameChain<'message>), XXXXXXXXXX>
 	{
 		let (next_resource_record_pointer, canonical_name_chain, answer_section_has_at_least_one_record_of_requested_data_type) = self.parse_answer_section(next_resource_record_pointer, query_name, answer_section_resource_record_visitor)?;
 
@@ -46,7 +46,7 @@ impl<'message> ResponseRecordSectionsParser<'message>
 	}
 
 	#[inline(always)]
-	fn parse_answer_section<RRV: ResourceRecordVisitor<'message>>(&mut self, next_resource_record_pointer: usize, query_name: ParsedName<'message>, answer_section_resource_record_visitor: &mut RRV) -> Result<(usize, CanonicalNameChain<'message>, bool), DnsProtocolError>
+	fn parse_answer_section<RRV: ResourceRecordVisitor<'message>>(&mut self, next_resource_record_pointer: usize, query_name: ParsedName<'message>, answer_section_resource_record_visitor: &mut RRV) -> Result<(usize, CanonicalNameChain<'message>, bool), AnswerSectionError<WrappingCanonicalChainError<RRV::Error>>>
 	{
 		let number_of_resource_records = self.message_header.number_of_resource_records_in_the_answer_section();
 
@@ -54,20 +54,20 @@ impl<'message> ResponseRecordSectionsParser<'message>
 		let mut answer_section_has_at_least_one_record_of_requested_data_type = true;
 		
 		let parse_method = |resource_record: ResourceRecord| resource_record.parse_answer_section_resource_record_in_response(self.now, self.data_type, self.end_of_message_pointer, self.parsed_names.borrow_mut().deref_mut(), &mut resource_record_visitor, &self.response_parsing_state, &self.duplicate_resource_record_response_parsing, &mut answer_section_has_at_least_one_record_of_requested_data_type);
-		let next_resource_record_pointer = self.loop_over_resource_records(next_resource_record_pointer, number_of_resource_records, ResourceRecordsOverflowAnswerSection, parse_method)?;
+		let next_resource_record_pointer = self.loop_over_resource_records(next_resource_record_pointer, number_of_resource_records, AnswerSectionError::ResourceRecordsOverflowSection, parse_method)?;
 		
 		Ok((next_resource_record_pointer, resource_record_visitor.into(), answer_section_has_at_least_one_record_of_requested_data_type))
 	}
 
 	#[inline(always)]
-	fn parse_authority_section(&mut self, next_resource_record_pointer: usize, canonical_name_chain: CanonicalNameChain<'message>, answer_quality: AnswerQuality, answer_section_has_at_least_one_record_of_requested_data_type: bool) -> Result<(usize, AnswerOutcome, CanonicalNameChain<'message>), DnsProtocolError>
+	fn parse_authority_section(&mut self, next_resource_record_pointer: usize, canonical_name_chain: CanonicalNameChain<'message>, answer_quality: AnswerQuality, answer_section_has_at_least_one_record_of_requested_data_type: bool) -> Result<(usize, AnswerOutcome, CanonicalNameChain<'message>), AuthoritySectionError<AuthorityError>>
 	{
 		let number_of_resource_records = self.message_header.number_of_resource_records_in_the_authority_records_section();
 
 		let mut authority_resource_record_visitor = AuthorityResourceRecordVisitor::new(canonical_name_chain);
 		
 		let parse_method = |resource_record: ResourceRecord| resource_record.parse_authority_section_resource_record_in_response(self.now, self.end_of_message_pointer, self.parsed_names.borrow_mut().deref_mut(), &mut authority_resource_record_visitor, &self.response_parsing_state, &self.duplicate_resource_record_response_parsing);
-		let next_resource_record_pointer = self.loop_over_resource_records(next_resource_record_pointer, number_of_resource_records, ResourceRecordsOverflowAuthoritySection, parse_method)?;
+		let next_resource_record_pointer = self.loop_over_resource_records(next_resource_record_pointer, number_of_resource_records, AuthoritySectionError::ResourceRecordsOverflowSection, parse_method)?;
 
 		let (answer_outcome, canonical_name_chain) = authority_resource_record_visitor.answer_outcome(answer_quality.is_authoritative_answer(), answer_quality.has_nxdomain_error_code(), answer_section_has_at_least_one_record_of_requested_data_type)?;
 
@@ -75,22 +75,22 @@ impl<'message> ResponseRecordSectionsParser<'message>
 	}
 
 	#[inline(always)]
-	fn parse_additional_section(&mut self, next_resource_record_pointer: usize) -> Result<usize, DnsProtocolError>
+	fn parse_additional_section(&mut self, next_resource_record_pointer: usize) -> Result<usize, AdditionalSectionError<Infallible>>
 	{
 		let number_of_resource_records = self.message_header.number_of_resource_records_in_the_additional_records_section();
 		
 		let mut discarding_resource_record_visitor = DiscardingResourceRecordVisitor::default();
 		
 		let parse_method = |resource_record: ResourceRecord| resource_record.parse_additional_section_resource_record_in_response(self.now, self.end_of_message_pointer, self.parsed_names.borrow_mut().deref_mut(), &mut discarding_resource_record_visitor, &self.response_parsing_state, &self.duplicate_resource_record_response_parsing);
-		let next_resource_record_pointer = self.loop_over_resource_records(next_resource_record_pointer, number_of_resource_records, ResourceRecordsOverflowAdditionalSection, parse_method)?;
+		let next_resource_record_pointer = self.loop_over_resource_records(next_resource_record_pointer, number_of_resource_records, AdditionalSectionError::ResourceRecordsOverflowSection, parse_method)?;
 		
-		self.response_parsing_state.parse_extended_dns_outcome()?;
+		self.response_parsing_state.parse_extended_dns_outcome::<Infallible>()?;
 		
 		Ok(next_resource_record_pointer)
 	}
 	
 	#[inline(always)]
-	fn loop_over_resource_records(&self, mut next_resource_record_pointer: usize, number_of_resource_records: u16, overflow_section_error: DnsProtocolError, parse_method: impl for<'a> Fn(&ResourceRecord) -> Result<usize, DnsProtocolError>) -> Result<usize, DnsProtocolError>
+	fn loop_over_resource_records<E: error::Error>(&self, mut next_resource_record_pointer: usize, number_of_resource_records: u16, overflow_section_error: E, parse_method: impl for<'a> Fn(&ResourceRecord) -> Result<usize, E>) -> Result<usize, E>
 	{
 		for _ in 0 .. number_of_resource_records
 		{

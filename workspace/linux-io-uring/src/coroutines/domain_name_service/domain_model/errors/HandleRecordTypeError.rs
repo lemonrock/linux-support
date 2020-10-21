@@ -6,17 +6,29 @@
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub enum HandleRecordTypeError<E: error::Error>
 {
+	/// Resource record visitor returned an error handling the record data type.
+	ResourceRecordVisitor(DataType, E),
+	
 	/// A very obsolete data type was present.
 	VeryObsoleteResourceRecordType(DataType),
 	
 	/// Miscellaneous.
 	ValidateClassIsInternetAndGetTimeToLiveAndResourceData(ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError),
 	
-	/// Resource record visitor returned an error handling the record data type.
-	ResourceRecordVisitor(DataType, E),
-	
 	/// Resource data for resource record type `A` has an incorrect length (value in tuple).
 	AHasAnIncorrectLength(usize),
+	
+	/// Resource type in wrong section.
+	ResourceTypeInWrongSection(ResourceTypeInWrongSectionError),
+	
+	/// A reserved record type was present; contains upper 8 bits and lower 8 bits.
+	ReservedRecordType(u8, u8),
+	
+	/// An unknown query or meta type was present; contains upper 8 bits and lower 8 bits.
+	UnknownQueryTypeOrMetaType(u8, u8),
+	
+	/// Query type outside of a question section entry.
+	QueryTypeOutsideOfAQuestionSectionEntry(QueryTypeOutsideOfAQuestionSectionEntryError),
 	
 	/// Error parsing a name for a `NS` record type.
 	NS(ParsedNameParserError),
@@ -56,6 +68,9 @@ pub enum HandleRecordTypeError<E: error::Error>
 	
 	/// `CERT`.
 	CERT(CERTHandleRecordTypeError),
+	
+	/// Extended DNS 'OPT' record error.
+	OPT(ExtendedDnsError),
 	
 	/// `DNAME`.
 	DNAME(DNAMEHandleRecordTypeError),
@@ -145,9 +160,13 @@ impl<E: error::Error> error::Error for HandleRecordTypeError<E>
 		
 		match self
 		{
+			&ResourceRecordVisitor(_data_type, ref error) => Some(error),
+			
 			&ValidateClassIsInternetAndGetTimeToLiveAndResourceData(ref error) => Some(error),
 			
-			&ResourceRecordVisitor(_data_type, ref error) => Some(error),
+			&ResourceTypeInWrongSection(ref error) => Some(error),
+			
+			&QueryTypeOutsideOfAQuestionSectionEntry(ref error) => Some(error),
 			
 			&NS(ref error) => Some(error),
 			
@@ -170,6 +189,8 @@ impl<E: error::Error> error::Error for HandleRecordTypeError<E>
 			&KX(ref error) => Some(error),
 			
 			&CERT(ref error) => Some(error),
+			
+			&OPT(ref error) => Some(error),
 			
 			&DNAME(ref error) => Some(error),
 			
@@ -224,6 +245,15 @@ impl<E: error::Error> From<ValidateClassIsInternetAndGetTimeToLiveAndResourceDat
 	fn from(value: ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError) -> Self
 	{
 		HandleRecordTypeError::ValidateClassIsInternetAndGetTimeToLiveAndResourceData(value)
+	}
+}
+
+impl<E: error::Error> From<ResourceTypeInWrongSectionError> for HandleRecordTypeError<E>
+{
+	#[inline(always)]
+	fn from(value: ResourceTypeInWrongSectionError) -> Self
+	{
+		HandleRecordTypeError::ResourceTypeInWrongSection(value)
 	}
 }
 

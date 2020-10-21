@@ -45,18 +45,10 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	pub(crate) fn parse_answer_section_resource_record_in_response<'message>(&'message self, now: NanosecondsSinceUnixEpoch, question_q_type: DataType, end_of_message_pointer: usize, parsed_names: &mut ParsedNames, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, answer_section_has_at_least_one_record_of_requested_data_type: &mut bool) -> Result<usize, DnsProtocolError>
+	pub(crate) fn parse_answer_section_resource_record_in_response<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, question_q_type: DataType, end_of_message_pointer: usize, parsed_names: &mut ParsedNames, resource_record_visitor: &mut RRV, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, answer_section_has_at_least_one_record_of_requested_data_type: &mut bool) -> Result<usize, AnswerSectionError<RRV::Error>>
 	{
-		/*
-			ValidateMinimumRecordSizeAndParseNameAndResourceRecordTypeError
-			TooManyResourceRecordsOfTypeError
-			dispatch_resource_record_type()
-			handle_cname()
-			handle_dname()
-			handle_rrsig()
-			
-			ResourceTypeInWrongSection / ResourceTypeInWrongSectionError
-		 */
+		use self::HandleRecordTypeError::ResourceTypeInWrongSection;
+		use self::ResourceTypeInWrongSectionError::ResourceRecordTypeIsNotValidInAnswerSectionIfNotRequestedByQuery;
 		
 		let (resource_record_name, end_of_name_pointer, (resource_record_type_higher, resource_record_type_lower)) = self.validate_minimum_record_size_and_parse_name_and_resource_record_type(end_of_message_pointer, parsed_names)?;
 		
@@ -99,25 +91,17 @@ impl ResourceRecord
 				
 				(DataType::RRSIG_higher, DataType::RRSIG_lower) => self.handle_RRSIG(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_names, duplicate_resource_record_response_parsing, Some(false)),
 				
-				_ => Err(DnsProtocolError::ResourceTypeInWrongSection(ResourceTypeInWrongSectionError::ResourceRecordTypeIsNotValidInAnswerSection(DataType([resource_record_type_higher, resource_record_type_lower])))),
+				_ => Err(ResourceTypeInWrongSection(ResourceRecordTypeIsNotValidInAnswerSectionIfNotRequestedByQuery(DataType([resource_record_type_higher, resource_record_type_lower])))),
 			}
-		}
+		}.map_err(AnswerSectionError::HandleRecordType)
 	}
 
 	/// Returns `Ok(end_of_resource_data_pointer)` unless there is an error.
 	#[inline(always)]
-	pub(crate) fn parse_authority_section_resource_record_in_response<'message>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_message_pointer: usize, parsed_names: &mut ParsedNames, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
+	pub(crate) fn parse_authority_section_resource_record_in_response<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_message_pointer: usize, parsed_names: &mut ParsedNames, resource_record_visitor: &mut RRV, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, AuthoritySectionError<RRV::Error>>
 	{
-		/*
-			ValidateMinimumRecordSizeAndParseNameAndResourceRecordTypeError
-			handle_ns()
-			handle_soa()
-			handle_ds()
-			handle_rrsig()
-			handle_nsec()
-			handle_nsec3()
-			ResourceTypeInWrongSection / ResourceTypeInWrongSectionError
-		 */
+		use self::HandleRecordTypeError::ResourceTypeInWrongSection;
+		use self::ResourceTypeInWrongSectionError::ResourceRecordTypeIsNotValidInAuthoritySection;
 		
 		let (resource_record_name, end_of_name_pointer, (type_upper, type_lower)) = self.validate_minimum_record_size_and_parse_name_and_resource_record_type(end_of_message_pointer, parsed_names)?;
 
@@ -144,32 +128,29 @@ impl ResourceRecord
 				// Signing negative response.
 				DataType::NSEC3_lower => self.handle_NSEC3(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				_ => Err(ResourceTypeInWrongSection(ResourceRecordTypeIsNotValidInAuthoritySection(DataType([type_upper, type_lower]))))
+				_ => Err(ResourceTypeInWrongSection(ResourceRecordTypeIsNotValidInAuthoritySection(DataType([type_upper, type_lower])))),
 			}
 		}
 		else
 		{
 			Err(ResourceTypeInWrongSection(ResourceRecordTypeIsNotValidInAuthoritySection(DataType([type_upper, type_lower]))))
-		}
+		}.map_err(AuthoritySectionError::HandleRecordType)
 	}
 
 	/// Returns `Ok(end_of_resource_data_pointer)` unless there is an error.
 	#[inline(always)]
-	pub(crate) fn parse_additional_section_resource_record_in_response<'message>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_message_pointer: usize, parsed_names: &mut ParsedNames, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, DnsProtocolError>
+	pub(crate) fn parse_additional_section_resource_record_in_response<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_message_pointer: usize, parsed_names: &mut ParsedNames, resource_record_visitor: &mut RRV, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, AdditionalSectionError<RRV::Error>>
 	{
-		/*
-			ValidateMinimumRecordSizeAndParseNameAndResourceRecordTypeError
-			dispatch_resource_record_type()
-		 */
-		
 		let (parsed_name_iterator, end_of_name_pointer, (type_upper, type_lower)) = self.validate_minimum_record_size_and_parse_name_and_resource_record_type(end_of_message_pointer, parsed_names)?;
 
-		self.dispatch_resource_record_type(now, end_of_name_pointer, end_of_message_pointer, parsed_name_iterator, parsed_names, resource_record_visitor, response_parsing_state, duplicate_resource_record_response_parsing, false, true, (type_upper, type_lower), None)
+		self.dispatch_resource_record_type(now, end_of_name_pointer, end_of_message_pointer, parsed_name_iterator, parsed_names, resource_record_visitor, response_parsing_state, duplicate_resource_record_response_parsing, false, true, (type_upper, type_lower), None).map_err(AdditionalSectionError::HandleRecordType)
 	}
 	
 	#[inline(always)]
-	fn dispatch_resource_record_type<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, parsed_names: &mut ParsedNames, resource_record_visitor: &mut RRV, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, soa_is_permitted: bool, is_additional_section: bool, (type_upper, type_lower): (u8, u8), is_some_if_present_in_answer_section_and_true_if_was_queried_for: Option<bool>) -> Result<usize, DnsProtocolError>
+	fn dispatch_resource_record_type<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, parsed_names: &mut ParsedNames, resource_record_visitor: &mut RRV, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, soa_is_permitted: bool, is_additional_section: bool, (type_upper, type_lower): (u8, u8), is_some_if_present_in_answer_section_and_true_if_was_queried_for: Option<bool>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
+		use self::HandleRecordTypeError::*;
+		use self::ResourceTypeInWrongSectionError::*;
 		use self::QueryTypeOutsideOfAQuestionSectionEntryError::*;
 		
 		match type_upper
@@ -267,7 +248,7 @@ impl ResourceRecord
 
 				MetaType::OPT_lower => if likely!(is_additional_section)
 				{
-					self.handle_OPT(now, end_of_name_pointer, end_of_message_pointer, response_parsing_state).map_err(ExtendedDns)
+					self.handle_OPT(now, end_of_name_pointer, end_of_message_pointer, response_parsing_state).map_err(OPT)
 				}
 				else
 				{
@@ -350,15 +331,15 @@ impl ResourceRecord
 
 				MetaType::TSIG_lower => self.handle_obsolete_meta_type::<'message, RRV>(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::TSIG, "Only really useful for updates, which, frankly, are probably better done out-of-band than using DNS; regardless, when using DNS over TLS a client certificate is much more useful"),
 
-				QueryType::IXFR_lower => Err(ResourceTypeInWrongSection(QueryTypeOutsideOfAQuestionSectionEntry(IXFR))),
+				QueryType::IXFR_lower => Err(QueryTypeOutsideOfAQuestionSectionEntry(IXFR)),
 
-				QueryType::AXFR_lower => Err(ResourceTypeInWrongSection(QueryTypeOutsideOfAQuestionSectionEntry(AXFR))),
+				QueryType::AXFR_lower => Err(QueryTypeOutsideOfAQuestionSectionEntry(AXFR)),
 
-				QueryType::MAILB_lower => Err(ResourceTypeInWrongSection(QueryTypeOutsideOfAQuestionSectionEntry(MAILB))),
+				QueryType::MAILB_lower => Err(QueryTypeOutsideOfAQuestionSectionEntry(MAILB)),
 
-				QueryType::MAILA_lower => Err(ResourceTypeInWrongSection(QueryTypeOutsideOfAQuestionSectionEntry(MAILA))),
+				QueryType::MAILA_lower => Err(QueryTypeOutsideOfAQuestionSectionEntry(MAILA)),
 
-				QueryType::Asterisk_lower => Err(ResourceTypeInWrongSection(QueryTypeOutsideOfAQuestionSectionEntry(Asterisk))),
+				QueryType::Asterisk_lower => Err(QueryTypeOutsideOfAQuestionSectionEntry(Asterisk)),
 			},
 
 			0x01 => match type_lower

@@ -58,7 +58,7 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 	///
 	/// This logic does not work if the requested record type was `SOA`, `CNAME` or `DNAME`, and probably does not work also for `NS`.
 	/// However, there is very little reason to request these record types for normal clients.
-	pub(crate) fn answer_outcome(self, is_authoritative_answer: bool, has_nxdomain_error_code: bool, answer_section_has_at_least_one_record_of_requested_data_type: bool) -> Result<AnswerOutcome, DnsProtocolError>
+	pub(crate) fn answer_outcome(self, is_authoritative_answer: bool, has_nxdomain_error_code: bool, answer_section_has_at_least_one_record_of_requested_data_type: bool) -> Result<AnswerOutcome, AuthoritySectionError<AuthorityError>>
 	{
 		use self::AnswerOutcome::*;
 
@@ -86,7 +86,7 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 				// RFC 2308 Section 2.1 "REFERRAL RESPONSE".
 				(false, None, true, false) => Ok(Referral),
 
-				(true, _, _, true) => Err(ResponseWasAuthoritativeWithNoSuchDomainErrorCodeButContainsAnAnswer),
+				(true, _, _, true) => Err(AuthoritySectionError::ResponseWasAuthoritativeWithNoSuchDomainErrorCodeButContainsAnAnswer),
 
 				// ? Should there be SOA / NS records in authority section if answered ?
 				(true, _, _, false) => Ok(Answered),

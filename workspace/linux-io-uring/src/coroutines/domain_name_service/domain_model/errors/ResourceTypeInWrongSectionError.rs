@@ -6,11 +6,8 @@
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub enum ResourceTypeInWrongSectionError
 {
-	/// Query type outside of a question section entry.
-	QueryTypeOutsideOfAQuestionSectionEntry(QueryTypeOutsideOfAQuestionSectionEntryError),
-	
 	/// A record type was present in the answer section which should not have been (eg it was not queried for and is not `CNAME` or `DNAME`).
-	ResourceRecordTypeIsNotValidInAnswerSection(DataType),
+	ResourceRecordTypeIsNotValidInAnswerSectionIfNotRequestedByQuery(DataType),
 	
 	/// A record type was present in the authority section which should not have been (only `SOA` records are allowed).
 	ResourceRecordTypeIsNotValidInAuthoritySection(DataType),
@@ -35,16 +32,4 @@ impl Display for ResourceTypeInWrongSectionError
 
 impl error::Error for ResourceTypeInWrongSectionError
 {
-	#[inline(always)]
-	fn source(&self) -> Option<&(dyn error::Error + 'static)>
-	{
-		use self::ResourceTypeInWrongSectionError::*;
-		
-		match self
-		{
-			&QueryTypeOutsideOfAQuestionSectionEntry(ref error) => Some(error),
-			
-			_ => None,
-		}
-	}
 }

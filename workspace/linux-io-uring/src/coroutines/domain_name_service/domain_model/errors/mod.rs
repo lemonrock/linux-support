@@ -5,7 +5,10 @@
 use super::*;
 
 
+include!("AdditionalSectionError.rs");
+include!("AnswerSectionError.rs");
 include!("AuthorityError.rs");
+include!("AuthoritySectionError.rs");
 include!("CanonicalChainError.rs");
 include!("CAAHandleRecordTypeError.rs");
 include!("CERTHandleRecordTypeError.rs");
@@ -35,7 +38,6 @@ include!("NSECHandleRecordTypeError.rs");
 include!("NSEC3HandleRecordTypeError.rs");
 include!("NSEC3PARAMHandleRecordTypeError.rs");
 include!("QueryTypeOutsideOfAQuestionSectionEntryError.rs");
-include!("ResponseDidNotContainAnExtendedDnsOptMetaResourceRecordError.rs");
 include!("ResourceDataLengthOverflowsError.rs");
 include!("ResourceTypeInWrongSectionError.rs");
 include!("RRSIGHandleRecordTypeError.rs");
@@ -45,7 +47,6 @@ include!("SRVHandleRecordTypeError.rs");
 include!("SSHFPHandleRecordTypeError.rs");
 include!("TXTHandleRecordTypeError.rs");
 include!("TypeBitmapsHandleRecordTypeError.rs");
-include!("TooManyResourceRecordsOfTypeError.rs");
 include!("WrappingCanonicalChainError.rs");
 include!("URIHandleRecordTypeError.rs");
 include!("X509CertificateHandleRecordTypeError.rs");

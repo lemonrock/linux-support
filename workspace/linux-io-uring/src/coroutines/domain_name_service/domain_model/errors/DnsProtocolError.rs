@@ -18,9 +18,6 @@ pub enum DnsProtocolError
 	/// A message, once parsed, had bytes remaining in the TCP buffer.
 	MessageHadUnparsedBytesAtEnd(MessageIdentifier),
 
-	/// Authority error.
-	Authority(AuthorityError),
-
 	/// Response was a query.
 	ResponseWasAQuery,
 
@@ -81,36 +78,6 @@ pub enum DnsProtocolError
 
 	/// Response does not contain exactly one question.
 	ResponseDoesNotContainExactlyOneQuestion(u16),
-
-	/// Too many resource records in the answer section for the size of the message.
-	ResourceRecordsOverflowAnswerSection,
-	/// Too many resource records in the authority section for the size of the message.
-	ResourceRecordsOverflowAuthoritySection,
-	/// Response was authoritative (`AA` bit is set), the error code (`RCODE`) was `NXDOMAIN` but the answer section contained one or more answers (excluding `CNAME` and `DNAME` resource records).
-	ResponseWasAuthoritativeWithNoSuchDomainErrorCodeButContainsAnAnswer,
-	/// Too many resource records in the additional section for the size of the message.
-	ResourceRecordsOverflowAdditionalSection,
-
-	/// Resource type in wrong section.
-	ResourceTypeInWrongSection(ResourceTypeInWrongSectionError),
-	
-	/// Too many resource records of type.
-	TooManyResourceRecordsOfType(TooManyResourceRecordsOfTypeError),
-
-	/// An unknown query or meta type was present; contains upper 8 bits and lower 8 bits.
-	UnknownQueryTypeOrMetaType(u8, u8),
-
-	/// A reserved record type was present; contains upper 8 bits and lower 8 bits.
-	ReservedRecordType(u8, u8),
-	
-	/// Extended DNS 'OPT' record error.
-	ExtendedDns(ExtendedDnsError),
-	
-	/// Canonical chain.
-	CanonicalChain(CanonicalChainError),
-
-	/// Response did not contain an Extended DNS `OPT` meta resource record.
-	ResponseDidNotContainAnExtendedDnsOptMetaResourceRecord(ResponseDidNotContainAnExtendedDnsOptMetaResourceRecordError),
 	
 	/// DNS `QCLASS` is reserved (including for private use), unassigned or obsolete (ie Chaos or Hesiod).
 	///
@@ -140,53 +107,7 @@ impl error::Error for DnsProtocolError
 		{
 			&Authority(ref error) => Some(error),
 			
-			&ResourceTypeInWrongSection(ref error) => Some(error),
-			
-			&TooManyResourceRecordsOfType(ref error) => Some(error),
-			
-			&ExtendedDns(ref error) => Some(error),
-			
-			&CanonicalChain(ref error) => Some(error),
-			
-			&ResponseDidNotContainAnExtendedDnsOptMetaResourceRecord(ref error) => Some(error),
-			
 			_ => None,
 		}
-	}
-}
-
-impl From<TooManyResourceRecordsOfTypeError> for DnsProtocolError
-{
-	#[inline(always)]
-	fn from(value: TooManyResourceRecordsOfTypeError) -> Self
-	{
-		DnsProtocolError::TooManyResourceRecordsOfType(value)
-	}
-}
-
-impl From<AuthorityError> for DnsProtocolError
-{
-	#[inline(always)]
-	fn from(value: AuthorityError) -> Self
-	{
-		DnsProtocolError::Authority(value)
-	}
-}
-
-impl From<CanonicalChainError> for DnsProtocolError
-{
-	#[inline(always)]
-	fn from(value: CanonicalChainError) -> Self
-	{
-		DnsProtocolError::CanonicalChain(value)
-	}
-}
-
-impl From<ResponseDidNotContainAnExtendedDnsOptMetaResourceRecordError> for DnsProtocolError
-{
-	#[inline(always)]
-	fn from(value: ResponseDidNotContainAnExtendedDnsOptMetaResourceRecordError) -> Self
-	{
-		DnsProtocolError::ResponseDidNotContainAnExtendedDnsOptMetaResourceRecord(value)
 	}
 }
