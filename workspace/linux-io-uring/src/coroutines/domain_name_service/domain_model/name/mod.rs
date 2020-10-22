@@ -3,12 +3,13 @@
 
 
 use super::*;
-use swiss_army_knife::split::SplitBytes;
 
 
 include!("case_fold_byte.rs");
-include!("CaseFoldedName.rs");
 include!("CaseFoldedLabel.rs");
+include!("CaseFoldedLabelParseError.rs");
+include!("CaseFoldedName.rs");
+include!("CaseFoldedNameParseError.rs");
 include!("CompressedPointerOffset.rs");
 include!("Label.rs");
 include!("LabelKind.rs");
@@ -20,5 +21,6 @@ include!("ParsedNameParser.rs");
 include!("ParsedNameParserError.rs");
 include!("RawLabel.rs");
 include!("RawLabelBitfield.rs");
+include!("ReversePopulatedVecBuilder.rs");
 include!("UpTo63Bytes.rs");
 include!("UpTo255Bytes.rs");

@@ -29,6 +29,7 @@ assert_cfg!(target_os = "linux");
 assert_cfg!(target_pointer_width = "64");
 
 
+#[cfg(target_arch = "x86_64")] use std::arch::x86_64::_rdrand64_step;
 use arrayvec::Array;
 use libc::c_char;
 use likely::likely;
@@ -121,6 +122,15 @@ pub mod exponents_of_two;
 pub mod fixed_point_arithmetic;
 
 
+/// Spin lock.
+///
+/// An Intel hardware-optimized spin lock that uses Hardware Lock Elision (HLE) and a non-CAS based spin lock (an OR lock) as a fast fallback.
+/// The intel spin lock, `HardwareLockElisionSpinLock`, is only available on a `x86_64` targets.
+/// To pick the best spin lock for the compilation target, use the type alias `BestForCompilationTargetSpinLock`.
+pub mod hardware_optimized_spin_lock;
+
+
+
 /// Intel hardware lock elision.
 ///
 /// From wikipedia: "Hardware Lock Elision (HLE) adds two new instruction prefixes, XACQUIRE and XRELEASE. These two prefixes reuse the opcodes of the existing REPNE / REPE prefixes (F2H / F3H). On processors that do not support TSX/TSX-NI, REPNE / REPE prefixes are ignored on instructions for which the XACQUIRE / XRELEASE are valid, thus enabling backward compatibility".
@@ -141,12 +151,8 @@ pub mod internet_protocol;
 pub mod path;
 
 
-/// Spin lock.
-///
-/// An Intel hardware-optimized spin lock that uses Hardware Lock Elision (HLE) and a non-CAS based spin lock (an OR lock) as a fast fallback.
-/// The intel spin lock, `HardwareLockElisionSpinLock`, is only available on a `x86_64` targets.
-/// To pick the best spin lock for the compilation target, use the type alias `BestForCompilationTargetSpinLock`.
-pub mod hardware_optimized_spin_lock;
+/// Random.
+pub mod random;
 
 
 /// Split performance utilities.

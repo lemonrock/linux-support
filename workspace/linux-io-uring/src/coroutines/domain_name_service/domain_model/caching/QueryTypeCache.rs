@@ -53,7 +53,7 @@ impl<Record: Sized + Clone> QueryTypeCache<Record>
 	/// * `Some(None)`: Negatively cached for one-time use only; do not query for the data.
 	/// * `Some(Some(records))`: Cached, valid answers.
 	#[inline(always)]
-	pub(crate) fn get(&mut self, name: &CaseFoldedName, now: NanosecondsSinceUnixEpoch) -> Option<Option<Vec<QP::Record>>>
+	pub(crate) fn get(&mut self, name: &CaseFoldedName, now: NanosecondsSinceUnixEpoch) -> Option<Option<BTreeMap<Priority, WeightedRecords<Record>>>>
 	{
 		use std::collections::hash_map::Entry::*;
 		
@@ -76,19 +76,57 @@ impl<Record: Sized + Clone> QueryTypeCache<Record>
 			
 			Some(&mut Present(Present { ref mut uncached, ref mut cached })) =>
 			{
-				let mut records_to_return = take(uncached);
-				let mut records_count_reduction = records_to_return.len();
+				let mut records_count_reduction = 0;
+				for expired_record in uncached.values()
+				{
+					records_count_reduction += expired_record.len()
+				}
 				
-				let should_still_be_cached = cached.split_off(&now);
-				for cached_records in should_still_be_cached.values()
+				let mut records_to_return =
 				{
-					records_to_return.extend_from_slice(&cached_records[..]);
-				}
-				for expired in cached.values()
+					let mut records_to_return = BTreeMap::new();
+					let taken = take(uncached);
+					for (priority, unsorted_records) in taken
+					{
+						records_to_return.insert(priority, WeightedRecords::new(unsorted_records))
+					}
+					records_to_return
+				};
+				
+				// TODO: Use Cow to avoid clones.
+				xxxx;
+				
 				{
-					records_count_reduction += expired.len()
+					let (expired, should_still_be_cached) =
+					{
+						let should_still_be_cached = cached.split_off(&now);
+						(cached, should_still_be_cached)
+					};
+					
+					for cached_records in should_still_be_cached.values()
+					{
+						for (priority, unsorted_records) in cached_records
+						{
+							use std::collections::btree_map::Entry::*;
+							match records_to_return.entry(*priority)
+							{
+								Vacant(vacant) => vacant.insert(WeightedRecords::new(unsorted_records.clone())),
+								
+								Occupied(occupied) => occupied.get_mut().append(unsorted_records),
+							}
+						}
+					}
+					
+					for expired_records_for_priority in expired.values()
+					{
+						for expired_record in expired_records_for_priority.values()
+						{
+							records_count_reduction += expired_record.len()
+						}
+					}
+					
+					drop(replace(expired, should_still_be_cached));
 				}
-				replace(cached, should_still_be_cached);
 				
 				if records_to_return.is_empty()
 				{
@@ -113,7 +151,7 @@ impl<Record: Sized + Clone> QueryTypeCache<Record>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn put_present<'message>(&mut self, records: HashMap<ParsedName<'message>, Present<Ipv4Addr>>)
+	pub(crate) fn put_present<'message>(&mut self, records: HashMap<ParsedName<'message>, Present<Record>>)
 	{
 		for (name, present) in records
 		{
@@ -145,6 +183,7 @@ impl<Record: Sized + Clone> QueryTypeCache<Record>
 		self.put
 		(
 			key,
+			
 			match negative_cache_until
 			{
 				None => AbsentButUncached,

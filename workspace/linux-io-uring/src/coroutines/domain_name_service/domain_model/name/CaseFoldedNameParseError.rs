@@ -2,18 +2,27 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Handle `URI` record type error.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub enum URIHandleRecordTypeError
+/// A parse erorr.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum CaseFoldedNameParseError
 {
-	/// Resource data for resource record type `URI` has an incorrect length (value in tuple).
-	HasAnIncorrectLength(usize),
+	#[allow(missing_docs)]
+	RootLabelWasNotEmpty,
 	
-	/// Invalid target URI.
-	InvalidTargetUri(URIError),
+	#[allow(missing_docs)]
+	NonRootLabelWasEmpty,
+	
+	#[allow(missing_docs)]
+	TotalNameLengthExceed255Bytes,
+	
+	#[allow(missing_docs)]
+	NumberOfLabelsExceed127,
+	
+	#[allow(missing_docs)]
+	CaseFolderLabelParse(CaseFoldedLabelParseError),
 }
 
-impl Display for URIHandleRecordTypeError
+impl Display for CaseFoldedNameParseError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -22,18 +31,27 @@ impl Display for URIHandleRecordTypeError
 	}
 }
 
-impl error::Error for URIHandleRecordTypeError
+impl error::Error for CaseFoldedNameParseError
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>
 	{
-		use self::URIHandleRecordTypeError::*;
+		use self::CaseFoldedNameParseError::*;
 		
 		match self
 		{
-			&InvalidTargetUri(ref error) => Some(error),
+			&CaseFolderLabelParse(ref error) => Some(error),
 			
 			_ => None,
 		}
+	}
+}
+
+impl From<CaseFoldedLabelParseError> for CaseFoldedNameParseError
+{
+	#[inline(always)]
+	fn from(value: CaseFoldedLabelParseError) -> Self
+	{
+		CaseFoldedNameParseError::CaseFolderLabelParse(value)
 	}
 }

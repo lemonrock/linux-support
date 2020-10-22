@@ -6,12 +6,12 @@
 ///
 /// Essentially the same as a `SRV` record, but with a URI (eg `https://myserver.com:8080/some_path`), so adding a 'path' component to a `SRV` record.
 #[derive(Debug)]
-pub struct Uri<'a>
+pub struct Uri<'message>
 {
 	/// Priority.
 	///
 	/// RFC 2782: "A client MUST attempt to contact the target host with the lowest-numbered priority it can reach; target hosts with the same priority SHOULD be tried in an order defined by the weight field".
-	pub priority: u16,
+	pub priority: Priority,
 
 	/// Weight.
 	///
@@ -20,10 +20,10 @@ pub struct Uri<'a>
 	/// RFC 2782: "Larger weights SHOULD be given a proportionately higher probability of being selected".
 	///
 	/// Larger weights imply less loading.
-	pub weight: u16,
+	pub weight: Weight,
 
 	/// Will not be empty (this is validated).
 	///
 	/// This is a URI.
-	pub target_uri: &'a [u8],
+	pub target_uri: URI<'message>,
 }

@@ -32,6 +32,7 @@ lazy_static = "^1.4.0"
 likely = { version = "^0.1.0" }
 linux-support = { path = "../linux-support", version = "^0.0.2" }
 magic-ring-buffer = { path = "../magic-ring-buffer", version = "^0.2.0" }
+maplit = "^1.0.2"
 message-dispatch = { path = "../message-dispatch", version = "0.2.0" }
 message-dispatch-datadog = { path = "../message-dispatch-datadog", version = "0.2.0" }
 phf = { version = "^0.8.0", features = ["macros"] }
@@ -40,3 +41,4 @@ serde = { version = "^1.0", features = ["derive", "rc"] }
 socket-access-control = { path = "../socket-access-control", version = "^0.0.0"}
 swiss-army-knife = { version = "0.0.0", path = "../swiss-army-knife" }
 terminate = { path = "../terminate", version = "^0.2.0" }
+uriparse = "^0.6.3"

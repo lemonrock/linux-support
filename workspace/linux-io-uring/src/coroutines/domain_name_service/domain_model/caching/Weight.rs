@@ -2,38 +2,40 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Handle `URI` record type error.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub enum URIHandleRecordTypeError
+/// Weight.
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
+pub struct Weight(pub u16);
+
+impl Weight
 {
-	/// Resource data for resource record type `URI` has an incorrect length (value in tuple).
-	HasAnIncorrectLength(usize),
+	const Unassigned: Self = Self(0);
 	
-	/// Invalid target URI.
-	InvalidTargetUri(URIError),
-}
-
-impl Display for URIHandleRecordTypeError
-{
 	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	pub(crate) fn add_to(&self, sum: &mut u64)
 	{
-		Debug::fmt(self, f)
+		*sum = (*sum) + (self.0 as u64)
 	}
-}
-
-impl error::Error for URIHandleRecordTypeError
-{
+	
 	#[inline(always)]
-	fn source(&self) -> Option<&(dyn error::Error + 'static)>
+	pub(crate) fn subtract_from(&self, sum: &mut u64)
 	{
-		use self::URIHandleRecordTypeError::*;
+		*sum = (*sum) - (self.0 as u64)
+	}
+	
+	#[inline(always)]
+	fn zero_or_not_compare(&self, rhs: &Self) -> Ordering
+	{
+		let left = self.0;
+		let right = rhs.0;
 		
-		match self
+		use self::Ordering::*;
+		match (left, right)
 		{
-			&InvalidTargetUri(ref error) => Some(error),
-			
-			_ => None,
+			(0, 0) => Equal,
+			(0, _) => Less,
+			(_, 0) => Greater,
+			(_, _) => Equal,
 		}
 	}
 }

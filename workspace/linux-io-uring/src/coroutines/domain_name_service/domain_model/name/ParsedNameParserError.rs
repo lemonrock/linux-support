@@ -18,6 +18,9 @@ pub enum ParsedNameParserError
 	/// The unallocated name labels are unused.
 	UnallocatedNameLabelsAreUnused,
 	
+	/// Technically, this is permitted by RFC 1035 but in practice it is almost certainly either misconfiguration or an attempt to attack a code vulnerability.
+	LabelContainsPeriod,
+	
 	/// When finishing a name combined from uncompressed labels and pointers, it creates a name longer than 255 bytes (including periods, including the trailing root period).
 	LabelPointerCreatesADnsNameLongerThan255Bytes,
 	

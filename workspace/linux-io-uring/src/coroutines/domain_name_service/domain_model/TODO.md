@@ -25,13 +25,33 @@ definition of DS digest algorithm 0.  The same argument applies to
 
 ## We need to fix the parsing of HIP resource server names.
 
-## We need to consider supporting compressed names in ALL resource records if we want to work with multicast-DNS.
-
 
 # Handlers
 
 * in practice, we'll implement dedicated handlers for the various resource records of interest.
-* ie, A, AAAA, NS (no CNAMEs allowed), SOA, PTR (mostly useless on the modern internet), SRV, MX, ?KX, IPSECKEY, LOC, URI, CAA, TXT
+
+* Not allowed to be aliases
+    * NS
+    * SOA
+    * ?PTR
+    * MX
+    * ?KX
+    * SRV
+    * ?URI
+* Useful
+    * A (done)
+    * AAAA (done)
+    * MX
+    * PTR
+    * NS
+    * LOC
+    * SRV
+    * URI
+    * TXT
+    * CAA
+    * TLSA
+    * SMIMEA
+
 
 
 # Bugs
@@ -40,6 +60,10 @@ definition of DS digest algorithm 0.  The same argument applies to
 * Looking up A can give a CNAME.
 * Looking up AAAA can give a CNAME.
 * Looking up PTR can give a CNAME.
+
+# Other
+
+* Encode and decode UTF-8 strings to punycode/IDNs.
 
 
 # Resolvers
@@ -58,16 +82,8 @@ definition of DS digest algorithm 0.  The same argument applies to
         * Could use the `services` database (via `/etc/services`) for a back-up for `SRV` / `URI` look up.
 * Special handling of Wildcards
     * See <https://tools.ietf.org/html/rfc4592> for examples like `*.live.com`
-* Special handling of exceptions
-    * eg `example.com`, `example.org`, `localhost` and names in the `.local` TLD.
-    * See RFC 6761.
-* RFC 6762 recommends the following 'internal' domain names:-
-    * .intranet.
-    * .internal.
-    * .private.
-    * .corp.
-    * .home.
-    * .lan.
+* Known records
+    * ipv4only.arpa.
 * RFC 3484 IPv4 sort list
 * RFC 6724 IPv6 sort list
 * RFC 3484 / 6764 destination address selection.
@@ -75,16 +91,3 @@ definition of DS digest algorithm 0.  The same argument applies to
 * Special validations
     - PTR queries are invalid for link-local domains such as "254.169.in-addr.arpa." and the IPv6 link-local reverse mapping domains "8.e.f.ip6.arpa.", "9.e.f.ip6.arpa.", "a.e.f.ip6.arpa.", and "b.e.f.ip6.arpa.".
     - PTR queries which are not for *.in-addr.arpa. or *.ip6.arpa. or do not fit the format (4 labels or 32 labels). Think also about multicast addresses, etc.
-    - RFC 6761:-
-             10.in-addr.arpa.      21.172.in-addr.arpa.  26.172.in-addr.arpa.
-             16.172.in-addr.arpa.  22.172.in-addr.arpa.  27.172.in-addr.arpa.
-             17.172.in-addr.arpa.  30.172.in-addr.arpa.  28.172.in-addr.arpa.
-             18.172.in-addr.arpa.  23.172.in-addr.arpa.  29.172.in-addr.arpa.
-             19.172.in-addr.arpa.  24.172.in-addr.arpa.  31.172.in-addr.arpa.
-             20.172.in-addr.arpa.  25.172.in-addr.arpa.  168.192.in-addr.arpa.
-        test. - supposed to be passed to resolver, but supposed to eventually by NXDOMAIN
-        example. example.com. example.net. example.org. - supposed to be passed to resolver, but supposed to eventually by NXDOMAIN
-        localhost.
-        invalid. - always returns NXDOMAIN
-     - https://www.iana.org/domains/reserved
-     - https://www.iana.org/assignments/special-use-domain-names/special-use-domain-names.xhtml

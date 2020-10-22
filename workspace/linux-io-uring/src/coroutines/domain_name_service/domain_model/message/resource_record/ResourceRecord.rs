@@ -573,7 +573,7 @@ impl ResourceRecord
 
 		let record = MailExchange
 		{
-			preference: resource_data.u16(0),
+			preference: Priority(resource_data.u16(0)),
 			mail_server_name: ParsedNameParser::parse_name_in_slice_with_nothing_left(DataType::MX, parsed_names, &resource_data[PreferenceSize .. ]).map_err(MailServerName)?,
 		};
 
@@ -669,8 +669,8 @@ impl ResourceRecord
 
 		let record = ServiceLocation
 		{
-			priority: resource_data.u16(0),
-			weight: resource_data.u16(PrioritySize),
+			priority: Priority(resource_data.u16(0)),
+			weight: Weight(resource_data.u16(PrioritySize)),
 			port: resource_data.u16(PrioritySize + WeightSize),
 			target: ParsedNameParser::parse_name_in_slice_with_nothing_left(DataType::SRV, parsed_names, &resource_data[(PrioritySize + WeightSize + PortSize) .. ]).map_err(ServiceName)?,
 		};
@@ -1975,12 +1975,15 @@ impl ResourceRecord
 		{
 			Err(HasAnIncorrectLength(length))?
 		}
-
+		
+		let target_uri_bytes = &resource_data[(PrioritySize + WeightSize)..];
+		let target_uri = URI::try_from(target_uri_bytes).map_err(InvalidTargetUri)?;
+		
 		let record = Uri
 		{
-			priority: resource_data.u16(0),
-			weight: resource_data.u16(PrioritySize),
-			target_uri: &resource_data[(PrioritySize + WeightSize) .. ],
+			priority: Priority(resource_data.u16(0)),
+			weight: Weight(resource_data.u16(PrioritySize)),
+			target_uri,
 		};
 
 		resource_record_visitor.URI(resource_record_name, cache_until, record).map_err(|error| HandleRecordTypeError::ResourceRecordVisitor(DataType::URI, error))?;

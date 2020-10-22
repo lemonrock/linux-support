@@ -9,8 +9,11 @@
 #![deny(unconditional_recursion)]
 #![deny(unreachable_patterns)]
 #![feature(allocator_api)]
+#![feature(const_fn)]
 #![feature(const_if_match)]
 #![feature(core_intrinsics)]
+#![feature(const_panic)]
+#![feature(ip)]
 #![feature(thread_local)]
 
 
@@ -111,6 +114,7 @@ use magic_ring_buffer::memory_sizes::MemorySize64Kb;
 use magic_ring_buffer::memory_sizes::MemorySize64Mb;
 use magic_ring_buffer::memory_sizes::MemorySize256Kb;
 use magic_ring_buffer::memory_sizes::MemorySize256Mb;
+use maplit::hashset;
 use message_dispatch::Message;
 use message_dispatch::Publisher;
 use message_dispatch::Queues;
@@ -184,6 +188,7 @@ use std::ops::DerefMut;
 use std::path::PathBuf;
 use std::ptr::NonNull;
 use std::ptr::copy_nonoverlapping;
+use std::ptr::drop_in_place;
 use std::ptr::null_mut;
 use std::ptr::write;
 use std::ptr::write_bytes;
@@ -205,10 +210,14 @@ use swiss_army_knife::big_endian::BigEndianI32;
 //use swiss_army_knife::fixed_point_arithmetic::Unsigned1616FixedPoint;
 //use swiss_army_knife::fixed_point_arithmetic::Unsigned3232FixedPoint;
 //use swiss_army_knife::internet_protocol::InternetProtocolAddress;
+use swiss_army_knife::random::fast_slightly_insecure_random_u64;
+use swiss_army_knife::split::SplitBytes;
 use swiss_army_knife::strings::parse_number::ParseNumberError;
 use swiss_army_knife::time::NanosecondsSinceUnixEpoch;
 use swiss_army_knife::time::U31SecondsDuration;
 use terminate::Terminate;
+use uriparse::URI;
+use uriparse::URIError;
 
 
 /// Coroutines.

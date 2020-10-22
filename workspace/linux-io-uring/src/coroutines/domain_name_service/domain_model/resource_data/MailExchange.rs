@@ -7,7 +7,7 @@
 pub struct MailExchange<'message>
 {
 	/// Preference.
-	pub preference: u16,
+	pub preference: Priority,
 
 	/// Mail server name.
 	pub mail_server_name: ParsedName<'message>,

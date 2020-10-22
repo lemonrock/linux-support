@@ -2,10 +2,21 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub struct WeightedRecord<Record: Sized>
+/// Fast, but slightly insecure, random u64.
+#[allow(deprecated)]
+#[inline(always)]
+pub fn fast_slightly_insecure_random_u64() -> Result<u64, ()>
 {
-	/// Larger weights imply a higher probability of selection.
-	pub weight: u16,
+	let mut random_value= unsafe { uninitialized() };
 	
-	pub record: Record,
+	match unsafe { _rdrand64_step(&mut random_value) }
+	{
+		0 => (),
+		
+		1 => return Err(()),
+		
+		unexpected @ _ => unreachable!("Intel _rdrand64_step() intrisnice returned a result other than 0 or 1: {}", unexpected)
+	};
+	
+	Ok(random_value)
 }

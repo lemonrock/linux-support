@@ -5,10 +5,6 @@
 use super::*;
 
 
-include!("guard_hash_digest_if_final_field.rs");
-include!("ipsec_like_public_key.rs");
-
-
 include!("ResourceRecord.rs");
 include!("ResourceRecordClass.rs");
 include!("ResourceRecordFooter.rs");

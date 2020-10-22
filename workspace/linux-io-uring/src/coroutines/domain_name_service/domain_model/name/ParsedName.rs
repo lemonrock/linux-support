@@ -19,7 +19,7 @@ impl<'message> Name for ParsedName<'message>
 	#[inline(always)]
 	fn parent(&self) -> Option<Self>
 	{
-		if unlikely!(self.number_of_labels_including_root().get() == 1)
+		if unlikely!(self.is_root())
 		{
 			None
 		}
@@ -34,7 +34,7 @@ impl<'message> Name for ParsedName<'message>
 	}
 	
 	#[inline(always)]
-	fn label<'label>(&'label self, index: u8) -> Cow<'label, Self::Label>
+	fn label(&self, index: u8) -> Cow<'message, Self::Label>
 	{
 		let (label_data_starts_at_pointer, label_length_excluding_trailing_period) = (unsafe { self.label_data_starts_at_pointers_and_label_length_excluding_trailing_period.get_unchecked(index as usize) });
 		
@@ -97,16 +97,16 @@ impl<'message> Hash for ParsedName<'message>
 	}
 }
 
-impl<'message> PartialEq<CaseFoldedName> for ParsedName<'message>
+impl<'message, 'a> PartialEq<CaseFoldedName<'a>> for ParsedName<'message>
 {
 	#[inline(always)]
-	fn eq(&self, rhs: &CaseFoldedName) -> bool
+	fn eq(&self, rhs: &CaseFoldedName<'a>) -> bool
 	{
 		self.equals(rhs)
 	}
 }
 
-impl<'message> PartialOrd<CaseFoldedName> for ParsedName<'message>
+impl<'message, 'a> PartialOrd<CaseFoldedNam<'a>> for ParsedName<'message>
 {
 	#[inline(always)]
 	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>

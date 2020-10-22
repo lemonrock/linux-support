@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub struct PrioritizedAndWeightedRecords<Record: Sized>
-{
-	pub by_priority: BTreeMap<u16, WeightedRecords<Record>>
-}
+use super::*;
+
+
+#[cfg(target_arch = "x86_64")] include!("fast_slightly_insecure_random_u64.rs");

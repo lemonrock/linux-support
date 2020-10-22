@@ -9,7 +9,7 @@ pub struct ServiceLocation<'message>
 	/// Priority.
 	///
 	/// RFC 2782: "A client MUST attempt to contact the target host with the lowest-numbered priority it can reach; target hosts with the same priority SHOULD be tried in an order defined by the weight field".
-	pub priority: u16,
+	pub priority: Priority,
 
 	/// Weight.
 	///
@@ -18,7 +18,7 @@ pub struct ServiceLocation<'message>
 	/// RFC 2782: "Larger weights SHOULD be given a proportionately higher probability of being selected".
 	///
 	/// Larger weights imply less loading.
-	pub weight: u16,
+	pub weight: Weight,
 
 	/// TCP, UDP or SCTP port for the service.
 	pub port: u16,

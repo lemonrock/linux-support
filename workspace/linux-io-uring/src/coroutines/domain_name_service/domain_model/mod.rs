@@ -3,6 +3,7 @@
 
 
 use super::*;
+use self::caching::*;
 use self::character_strings::*;
 use self::errors::*;
 use self::extended_dns::*;

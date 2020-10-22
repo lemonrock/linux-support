@@ -5,9 +5,9 @@
 #[derive(Default)]
 pub(crate) struct Present<Record: Sized + Clone>
 {
-	uncached: Vec<Record>,
+	uncached: BTreeMap<Priority, Vec<(Weight, Record)>>,
 	
-	cached: BTreeMap<NanosecondsSinceUnixEpoch, Vec<Record>>,
+	cached: BTreeMap<NanosecondsSinceUnixEpoch, BTreeMap<Priority, Vec<(Weight, Record)>>>,
 }
 
 impl<Record: Sized + Clone> Present<Record>
@@ -26,7 +26,19 @@ impl<Record: Sized + Clone> Present<Record>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn store<'message>(records: &mut HashMap<ParsedName<'message>, Self>, name: ParsedName<'message>, cache_until: CacheUntil, record: Record)
+	pub(crate) fn store_unprioritized_and_unweighted<'message>(records: &mut HashMap<ParsedName<'message>, Self>, name: ParsedName<'message>, cache_until: CacheUntil, record: Record)
+	{
+		Self::store(records, name, cache_until, PrioritizedWeightedRecord::new_unprioritized_and_unweighted(record))
+	}
+	
+	#[inline(always)]
+	pub(crate) fn store_unweighted<'message>(records: &mut HashMap<ParsedName<'message>, Self>, name: ParsedName<'message>, cache_until: CacheUntil, priority_or_preference: u16, record: Record)
+	{
+		Self::store(records, name, cache_until, PrioritizedWeightedRecord::new_unweighted(priority_or_preference, record))
+	}
+	
+	#[inline(always)]
+	pub(crate) fn store<'message>(records: &mut HashMap<ParsedName<'message>, Self>, name: ParsedName<'message>, cache_until: CacheUntil, record: PrioritizedWeightedRecord<Record>)
 	{
 		let present = records.entry(name).or_insert_with(|| Present::default());
 		

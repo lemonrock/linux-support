@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-trait Label<'a>
+pub trait Label<'a>
 {
 	/// Is the terminal root label?
 	#[inline(always)]
@@ -11,6 +11,7 @@ trait Label<'a>
 		self.len() == 0
 	}
 	
+	#[doc(hidden)]
 	#[inline(always)]
 	fn equals<RHS: Label>(&self, rhs: &RHS) -> bool
 	{
@@ -33,12 +34,14 @@ trait Label<'a>
 		true
 	}
 	
+	#[doc(hidden)]
 	#[inline(always)]
 	fn partial_compare<RHS: Label>(&self, rhs: &RHS) -> Option<Ordering>
 	{
 		Some(self.cmp(rhs))
 	}
 	
+	#[doc(hidden)]
 	#[inline(always)]
 	fn compare<RHS: Label>(&self, rhs: &RHS) -> Ordering
 	{
@@ -62,6 +65,7 @@ trait Label<'a>
 		return left_length.cmp(&right_length)
 	}
 	
+	#[doc(hidden)]
 	#[inline(always)]
 	fn hash_slice<H: Hasher>(&self, state: &mut H)
 	{
@@ -71,9 +75,38 @@ trait Label<'a>
 		}
 	}
 	
+	#[doc(hidden)]
 	fn len(&self) -> u8;
 	
+	/// Length including trailing period.
+	#[inline(always)]
+	fn length_including_trailing_period(&self) -> NonZeroU8
+	{
+		unsafe { NonZeroU8::new_unchecked(self.len() + ParsedNameParser::SizeOfTrailingPeriod) }
+	}
+	
+	/// Is probably an internationalized domain name (IDN)?
+	///
+	/// See RFC 3490; only by applying the `ToUnicode` alogrithm can one be certain.
+	///
+	/// It is not obviously if the empty root label is permitted (ie is the minimum length 4 or 5)?; we assume it is not.
+	#[inline(always)]
+	fn is_probably_an_internationalized_domain_name(&self) -> bool
+	{
+		let length = self.len();
+		if length >= 5
+		{
+			*self.get_unchecked(0) == b'x' && *self.get_unchecked(1) == b'n' && *self.get_unchecked(2) == b'-' && *self.get_unchecked(3) == b'-'
+		}
+		else
+		{
+			false
+		}
+	}
+	
+	#[doc(hidden)]
 	fn get_unchecked_case_folded_byte(&self, index: u8) -> u8;
 	
+	#[doc(hidden)]
 	fn get_unchecked(&self, index: u8) -> &u8;
 }
