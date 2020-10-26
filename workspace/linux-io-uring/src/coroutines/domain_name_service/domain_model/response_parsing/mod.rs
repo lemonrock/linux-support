@@ -8,10 +8,13 @@ use super::*;
 pub(crate) mod resource_record_visitors;
 
 
+include!("Answer.rs");
+include!("AnswerExistence.rs");
 include!("AnswerOutcome.rs");
-include!("AnswerQuality.rs");
-include!("AuthoritativeAndAuthenticated.rs");
+include!("AuthoritativeOrAuthenticatedOrNeither.rs");
 include!("CanonicalNameChain.rs");
 include!("DuplicateResourceRecordResponseParsing.rs");
+include!("NoDataResponseType.rs");
+include!("NoDomainResponseType.rs");
 include!("ResponseParsingState.rs");
 include!("ResponseRecordSectionsParser.rs");

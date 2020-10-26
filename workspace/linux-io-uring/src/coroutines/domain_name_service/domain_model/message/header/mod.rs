@@ -9,5 +9,5 @@ include!("MessageBitField1.rs");
 include!("MessageBitField2.rs");
 include!("MessageHeader.rs");
 include!("MessageOpcode.rs");
-include!("MessageResponseCode.rs");
 include!("MessageType.rs");
+include!("RCodeLower4Bits.rs");

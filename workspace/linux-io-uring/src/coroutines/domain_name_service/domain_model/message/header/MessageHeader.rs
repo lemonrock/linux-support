@@ -219,7 +219,7 @@ impl MessageHeader
 	///
 	/// Valid codes are of type `MessageResponseCode`.
 	#[inline(always)]
-	pub(crate) fn raw_message_response_code(&self) -> u8
+	pub(crate) fn raw_message_response_code(&self) -> RCodeLower4Bits
 	{
 		self.bitfield2.raw_message_response_code()
 	}
@@ -383,68 +383,11 @@ impl MessageHeader
 	}
 	
 	#[inline(always)]
-	fn validate_authentic_answers_do_not_have_authoritative_data_bit_set(&self) -> Result<AuthoritativeAndAuthenticated, MessageHeaderError>
+	pub(crate) fn validate_authoritative_or_authenticated(&self) -> Result<AuthoritativeOrAuthenticatedOrNeither, MessageHeaderError>
 	{
 		let is_authoritative_answer = self.authoritative_answer();
 		let is_authenticated_data = self.authentic_data();
 		
-		AuthoritativeAndAuthenticated::parse(is_authoritative_answer, is_authenticated_data)
-	}
-	
-	#[inline(always)]
-	pub(crate) fn validate_authentic_answers_do_not_have_authoritative_data_bit_set_and_validate_message_response_code(&self) -> Result<AnswerQuality, MessageHeaderError>
-	{
-		use self::MessageHeaderResponseCodeError::*;
-		use self::AnswerQuality::*;
-		
-		let authoritative_and_authenticated = self.validate_authentic_answers_do_not_have_authoritative_data_bit_set()?;
-
-		let result = match self.raw_message_response_code()
-		{
-			MessageResponseCode::NoError => Ok(Normal(authoritative_and_authenticated)),
-
-			MessageResponseCode::FormatError => Err(WasFormatError),
-
-			MessageResponseCode::ServerFailure => if likely!(authoritative_and_authenticated.is_authenticated_data())
-			{
-				Err(WasServerFailure)
-			}
-			else
-			{
-				Ok(DnsSecDataFailedAuthentication { is_authenticated_data: authoritative_and_authenticated.is_authenticated_data() } )
-			},
-
-			MessageResponseCode::NonExistentDomain => if unlikely!(authoritative_and_authenticated.is_authoritative_answer())
-			{
-				Ok(AuthoritativeServerReportsNoDomainButThisIsNotValidated)
-			}
-			else
-			{
-				Err(WasNonExistentDomainForANonAuthoritativeServer)
-			},
-
-			MessageResponseCode::NotImplemented => Err(WasNotImplemented),
-
-			MessageResponseCode::Refused => Err(WasRefused),
-
-			// RFC 6672, Section 2.2 Final Paragraph allows this code to occur if DNAME substitution would produce a FQDN longer than 255 bytes.
-			MessageResponseCode::NameExistsWhenItShouldNot => Err(ShouldNotBeDynamicDnsAssociated(MessageResponseCode::NameExistsWhenItShouldNot)),
-
-			MessageResponseCode::ResourceRecordSetExistsWhenItShouldNot => Err(ShouldNotBeDynamicDnsAssociated(MessageResponseCode::ResourceRecordSetExistsWhenItShouldNot)),
-
-			MessageResponseCode::ResourceRecordSetThatShouldExistDoesNot => Err(ShouldNotBeDynamicDnsAssociated(MessageResponseCode::ResourceRecordSetThatShouldExistDoesNot)),
-
-			MessageResponseCode::ServerNotAuthoritativeForZoneOrNotAuthorized => Err(ShouldNotBeDynamicDnsAssociated(MessageResponseCode::ServerNotAuthoritativeForZoneOrNotAuthorized)),
-
-			MessageResponseCode::NameNotContainedInZone => Err(ShouldNotBeDynamicDnsAssociated(MessageResponseCode::NameNotContainedInZone)),
-
-			MessageResponseCode::DnsStatefulOperationsTypeNotImplemented => Err(ShouldNotBeDnsStatefulOperationsTypeNotImplemented),
-
-			response_code @ 12 ..= 15 => Err(Unassigned(response_code)),
-
-			_ => unreachable!(),
-		};
-		
-		result.map_err(MessageHeaderError::ResponseCode)
+		AuthoritativeOrAuthenticatedOrNeither::parse(is_authoritative_answer, is_authenticated_data)
 	}
 }

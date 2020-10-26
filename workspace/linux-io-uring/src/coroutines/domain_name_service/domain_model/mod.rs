@@ -12,6 +12,7 @@ use self::message::header::*;
 use self::message::query::*;
 use self::message::resource_record::*;
 use self::name::*;
+use self::query_processors::*;
 use self::records::*;
 use self::resource_data::*;
 use self::resource_data::certificate::*;
@@ -62,9 +63,9 @@ pub(crate) mod response_parsing;
 pub(crate) mod support;
 
 
-include!("CacheUntil.rs");
+include!("Cache.rs");
 include!("MessageIdentifier.rs");
-include!("NegativeCacheUntil.rs");
 include!("Query.rs");
+include!("RecentMessageIdentifiers.rs");
 include!("SerialNumber.rs");
 include!("TimeInSeconds.rs");

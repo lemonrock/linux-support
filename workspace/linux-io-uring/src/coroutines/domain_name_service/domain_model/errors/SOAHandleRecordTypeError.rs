@@ -6,8 +6,8 @@
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub enum SOAHandleRecordTypeError
 {
-	/// More than one `SOA` resource record.
-	MoreThanOneStartOfAuthorityResourceRecord,
+	/// More than one `SOA` resource record in the combination of the Answer and Additional Sections combined.
+	MoreThanOneStartOfAuthorityResourceRecordInTheAnswerAndAdditionalSectionsCombined,
 	
 	/// Error parsing a `SOA` `MNAME`.
 	ParseStartOfAuthorityMName(ParsedNameParserError),

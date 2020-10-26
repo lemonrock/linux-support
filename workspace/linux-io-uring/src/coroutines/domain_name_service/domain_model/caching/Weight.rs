@@ -9,18 +9,19 @@ pub struct Weight(pub u16);
 
 impl Weight
 {
-	const Unassigned: Self = Self(0);
+	pub(crate) const Unassigned: Self = Self(0);
 	
 	#[inline(always)]
-	pub(crate) fn add_to(&self, sum: &mut u64)
+	const fn is_weightless(self) -> bool
 	{
-		*sum = (*sum) + (self.0 as u64)
+		self.0 == 0
 	}
 	
 	#[inline(always)]
-	pub(crate) fn subtract_from(&self, sum: &mut u64)
+	const fn into_non_zero_u16(self) -> NonZeroU16
 	{
-		*sum = (*sum) - (self.0 as u64)
+		debug_assert_ne!(self.0, 0);
+		unsafe { NonZeroU16::new_unchecked(self.0) }
 	}
 	
 	#[inline(always)]

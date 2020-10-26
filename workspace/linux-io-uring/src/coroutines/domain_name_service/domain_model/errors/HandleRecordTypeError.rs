@@ -69,9 +69,6 @@ pub enum HandleRecordTypeError<E: error::Error>
 	/// `CERT`.
 	CERT(CERTHandleRecordTypeError),
 	
-	/// Extended DNS 'OPT' record error.
-	OPT(ExtendedDnsError),
-	
 	/// `DNAME`.
 	DNAME(DNAMEHandleRecordTypeError),
 	
@@ -189,8 +186,6 @@ impl<E: error::Error> error::Error for HandleRecordTypeError<E>
 			&KX(ref error) => Some(error),
 			
 			&CERT(ref error) => Some(error),
-			
-			&OPT(ref error) => Some(error),
 			
 			&DNAME(ref error) => Some(error),
 			

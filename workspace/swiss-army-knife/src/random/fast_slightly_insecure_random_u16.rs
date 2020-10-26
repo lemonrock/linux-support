@@ -2,18 +2,21 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A 16-bit message identifier, set in a request and returned in a reply.
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(transparent)]
-pub struct MessageIdentifier(BigEndianU16);
-
-impl MessageIdentifier
+/// Fast, but slightly insecure, random u16.
+#[allow(deprecated)]
+#[inline(always)]
+pub fn fast_slightly_insecure_random_u16() -> Result<u16, ()>
 {
-	/// Random.
-	#[inline(always)]
-	pub(crate) fn random() -> Self
+	let mut random_value= unsafe { uninitialized() };
+	
+	match unsafe { _rdrand16_step(&mut random_value) }
 	{
-		Self(fast_slightly_insecure_random_u16().to_be_bytes())
-	}
+		0 => (),
+		
+		1 => return Err(()),
+		
+		unexpected @ _ => unreachable!("Intel _rdrand16_step() intrisnice returned a result other than 0 or 1: {}", unexpected)
+	};
+	
+	Ok(random_value)
 }
-

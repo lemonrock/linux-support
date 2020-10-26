@@ -5,6 +5,7 @@
 pub(crate) struct CanonicalNameChainAnswerSectionResourceRecordVisitor<'message, RRV: ResourceRecordVisitor<'message>>
 {
 	answer_section_resource_record_visitor: &'message mut RRV,
+	
 	canonical_name_chain: CanonicalNameChain<'message>,
 }
 
@@ -26,7 +27,7 @@ impl<'message, RRV: ResourceRecordVisitor<'message>> CanonicalNameChainAnswerSec
 		{
 			answer_section_resource_record_visitor,
 		
-			canonical_name_chain: CanonicalNameChain::new(query_name)
+			canonical_name_chain: CanonicalNameChain::new(query_name),
 		}
 	}
 	
@@ -39,9 +40,9 @@ impl<'message, RRV: ResourceRecordVisitor<'message>> CanonicalNameChainAnswerSec
 	/// Assumes that CNAME records in the answer section are sorted in chain order.
 	/// Whilst they don't have to be, only a poorly implemented server is likely to not do this.
 	#[inline(always)]
-	fn add_canonical_link(&mut self, from: ParsedName<'message>, _cache_until: CacheUntil, to: ParsedName<'message>) -> Result<(), CanonicalChainError>
+	fn add_canonical_link(&mut self, from: ParsedName<'message>, cache_until: CacheUntil, to: ParsedName<'message>) -> Result<(), CanonicalChainError>
 	{
-		self.canonical_name_chain.insert_link(from, to)
+		self.canonical_name_chain.insert_link(from, to, cache_until)
 	}
 }
 
@@ -71,7 +72,7 @@ impl<'message, RRV: ResourceRecordVisitor<'message>> ResourceRecordVisitor<'mess
 	///
 	/// Default implementation does nothing.
 	#[inline(always)]
-	fn SOA(&mut self, name: ParsedName<'message>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message>) -> Result<(), Self::Error>
+	fn SOA(&mut self, name: ParsedName<'message>, negative_cache_until: NegativeCacheUntil, record: StartOfAuthority<'message, ParsedName<'message>>) -> Result<(), Self::Error>
 	{
 		self.answer_section_resource_record_visitor.SOA(name, negative_cache_until, record).map_err(WrappingCanonicalChainError::Wrapped)
 	}

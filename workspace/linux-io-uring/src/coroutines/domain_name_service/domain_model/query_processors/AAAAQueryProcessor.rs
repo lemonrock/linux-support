@@ -5,7 +5,7 @@
 #[derive(Default)]
 struct AAAAQueryProcessor<'message>
 {
-	records: HashMap<ParsedName<'message>, Present<Ipv6Addr>>
+	records: Records<'message, Ipv6Addr>,
 }
 
 impl<'message> ResourceRecordVisitor<'message> for AAAAQueryProcessor<'message>
@@ -15,13 +15,13 @@ impl<'message> ResourceRecordVisitor<'message> for AAAAQueryProcessor<'message>
 	#[inline(always)]
 	fn AAAA(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: Ipv6Addr) -> Result<(), Self::Error>
 	{
-		Present::store_unprioritized_and_unweighted::<'message>(&mut self.records,name, cache_until, record);
+		self.records.store_unprioritized_and_unweighted::<'message>(name, cache_until, record);
 		
 		Ok(())
 	}
 }
 
-impl<'message> QueryProcessor<'message, Ipv4Addr> for AAAAQueryProcessor
+impl<'message> QueryProcessor<'message> for AAAAQueryProcessor
 {
 	const DT: DataType = DataType::AAAA;
 	
@@ -32,7 +32,7 @@ impl<'message> QueryProcessor<'message, Ipv4Addr> for AAAAQueryProcessor
 	{
 		Self
 		{
-			records: HashMap::with_capacity(8),
+			records: Records::with_capacity(8),
 		}
 	}
 	

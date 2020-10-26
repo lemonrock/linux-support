@@ -6,33 +6,6 @@
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub enum MessageHeaderResponseCodeError
 {
-	/// We produced a bad query; we didn't.
-	WasFormatError,
-	
-	/// This is NOT returned for data that failed validation when using DNSSEC.
-	WasServerFailure,
-	
-	/// This should not occur.
-	WasNonExistentDomainForANonAuthoritativeServer,
-	
-	/// Rare; indicates a server does not support a particular DNS OpCode.
-	///
-	/// Since every server should support the `Query` OpCde, this is pretty fatal.
-	///
-	/// Can occur also when using a server that doesn't support DNSSEC.
-	WasNotImplemented,
-	
-	/// Permission denied, effectively.
-	WasRefused,
-	
-	/// Message response code should not be dynamic DNS associated.
-	ShouldNotBeDynamicDnsAssociated(u8),
-	
-	/// Message response code should not be DNS stateful operation type not implemented.
-	ShouldNotBeDnsStatefulOperationsTypeNotImplemented,
-	
-	/// Message response code unassigned.
-	Unassigned(u8),
 }
 
 impl Display for MessageHeaderResponseCodeError

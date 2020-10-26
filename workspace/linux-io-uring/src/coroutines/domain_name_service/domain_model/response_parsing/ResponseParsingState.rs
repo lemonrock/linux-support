@@ -8,7 +8,7 @@ pub(crate) struct ResponseParsingState
 	number_of_cname_records_in_answer_section: Cell<usize>,
 	number_of_dname_records_in_answer_section: Cell<usize>,
 	have_yet_to_see_a_soa_resource_record: Cell<bool>,
-	have_yet_to_see_an_edns_opt_resource_record: Cell<bool>,
+	have_yet_to_see_an_edns_opt_resource_record: Cell<Option<AnswerExistence>>,
 }
 
 impl ResponseParsingState
@@ -21,7 +21,7 @@ impl ResponseParsingState
 			number_of_cname_records_in_answer_section: Cell::new(0),
 			number_of_dname_records_in_answer_section: Cell::new(0),
 			have_yet_to_see_a_soa_resource_record: Cell::new(true),
-			have_yet_to_see_an_edns_opt_resource_record: Cell::new(true),
+			have_yet_to_see_an_edns_opt_resource_record: Cell::new(None),
 		}
 	}
 	
@@ -63,16 +63,16 @@ impl ResponseParsingState
 		}
 		else
 		{
-			Err(SOAHandleRecordTypeError::MoreThanOneStartOfAuthorityResourceRecord)
+			Err(SOAHandleRecordTypeError::MoreThanOneStartOfAuthorityResourceRecordInTheAnswerAndAdditionalSectionsCombined)
 		}
 	}
 	
 	#[inline(always)]
-	pub(crate) fn parsing_an_edns_opt_record(&self) -> Result<(), ExtendedDnsError>
+	pub(crate) fn parsed_an_edns_opt_record(&self, answer_existence: AnswerExistence) -> Result<(), ExtendedDnsError>
 	{
-		if likely!(self.have_yet_to_see_an_edns_opt_resource_record())
+		if likely!(self.have_yet_to_see_an_edns_opt_resource_record.get().is_none())
 		{
-			self.have_yet_to_see_an_edns_opt_resource_record.set(false);
+			self.have_yet_to_see_an_edns_opt_resource_record.set(Some(answer_existence));
 			Ok(())
 		}
 		else
@@ -82,50 +82,14 @@ impl ResponseParsingState
 	}
 	
 	#[inline(always)]
-	pub(crate) fn set_dnssec_ok(&self, dnssec_ok: bool) -> Result<(), ExtendedDnsError>
+	pub(crate) fn parse_extended_dns_outcome<E: error::Error>(&self) -> Result<AnswerExistence, AdditionalSectionError<E>>
 	{
-		debug_assert!(self.have_yet_to_see_an_edns_opt_resource_record(), "Call parsing_an_edns_opt_record() prior to this method");
-		
-		if likely!(dnssec_ok)
-		{
-			Ok(())
-		}
-		else
-		{
-			Err(ExtendedDnsError::ResponseIgnoredDnsSec)
-		}
-	}
-	
-	#[inline(always)]
-	pub(crate) fn parse_extended_dns_outcome<E: error::Error>(&self) -> Result<(), AdditionalSectionError<E>>
-	{
-		use self::ResponseDidNotHaveExtendedDnsOptionsError::*;
-		
-		if likely!(self.have_seen_an_edns_opt_resource_record())
-		{
-			Ok(())
-		}
-		else
-		{
-			Err(AdditionalSectionError::ResponseDidNotContainAnExtendedDnsOptMetaResourceRecord)
-		}
+		self.have_yet_to_see_an_edns_opt_resource_record.get().ok_or(AdditionalSectionError::ResponseDidNotContainAnExtendedDnsOptMetaResourceRecord)
 	}
 	
 	#[inline(always)]
 	fn have_yet_to_see_a_soa_resource_record(&self) -> bool
 	{
 		self.have_yet_to_see_a_soa_resource_record.get()
-	}
-	
-	#[inline(always)]
-	fn have_yet_to_see_an_edns_opt_resource_record(&self) -> bool
-	{
-		self.have_yet_to_see_an_edns_opt_resource_record.get()
-	}
-	
-	#[inline(always)]
-	fn have_seen_an_edns_opt_resource_record(&self) -> bool
-	{
-		!self.have_yet_to_see_an_edns_opt_resource_record.get()
 	}
 }

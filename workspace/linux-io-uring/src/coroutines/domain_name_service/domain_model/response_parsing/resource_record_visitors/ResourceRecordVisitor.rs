@@ -32,7 +32,7 @@ pub(crate) trait ResourceRecordVisitor<'message>
 	/// Default implementation does nothing.
 	#[allow(unused)]
 	#[inline(always)]
-	fn SOA(&mut self, name: ParsedName<'message>, negative_cache_until: NegativeCacheUntil, record: StartOfAuthority<'message>) -> Result<(), Self::Error>
+	fn SOA(&mut self, name: ParsedName<'message>, negative_cache_until: NegativeCacheUntil, record: StartOfAuthority<'message, ParsedName<'message>>) -> Result<(), Self::Error>
 	{
 		Ok(())
 	}

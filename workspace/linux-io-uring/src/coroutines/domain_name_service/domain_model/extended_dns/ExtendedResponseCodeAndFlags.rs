@@ -18,6 +18,8 @@ impl ExtendedResponseCodeAndFlags
 	pub(crate) const fn new_for_query() -> BigEndianU32
 	{
 		const NoExtendedResponseCode: u8 = 0;
+		
+		// Also known as `DO` or `do`.
 		const UpperFlagBits: u8 = ExtendedResponseCodeAndFlags::DnsSecFlagUpper;
 		const LowerFlagBits: u8 = 0b0000_0000;
 
@@ -45,16 +47,18 @@ impl ExtendedResponseCodeAndFlags
 		}
 		else
 		{
-			Err(ExtendedDnsError::UnsupportedExtendedDnsVersion(version))
+			Err(ExtendedDnsError::UnsupportedExtendedDnsVersion(unsafe { NonZeroU8::new_unchecked(version) }))
 		}
 	}
-
+	
+	// Also known as `DO` or `do`.
 	#[inline(always)]
 	pub(crate) fn dnssec_ok(&self) -> bool
 	{
 		self.upper_flag_bits() & Self::DnsSecFlagUpper != 0
 	}
-
+	
+	// Also known as `Z` or `z`.
 	#[inline(always)]
 	pub(crate) fn z(&self) -> Result<(), ExtendedDnsError>
 	{

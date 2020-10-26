@@ -29,6 +29,7 @@ assert_cfg!(target_os = "linux");
 assert_cfg!(target_pointer_width = "64");
 
 
+#[cfg(target_arch = "x86_64")] use std::arch::x86_64::_rdrand16_step;
 #[cfg(target_arch = "x86_64")] use std::arch::x86_64::_rdrand64_step;
 use arrayvec::Array;
 use libc::c_char;

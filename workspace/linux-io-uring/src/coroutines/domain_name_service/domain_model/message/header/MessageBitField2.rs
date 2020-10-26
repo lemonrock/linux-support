@@ -32,22 +32,34 @@ impl MessageBitField2
 		self.0 & 0b0001_0000 != 0
 	}
 	
-	/// Valid codes are of type `MessageResponseCode`.
 	#[inline(always)]
-	fn raw_message_response_code(self) -> u8
+	fn raw_message_response_code(self) -> RCodeLower4Bits
 	{
-		self.0 & 0b0000_1111
+		RCodeLower4Bits(self.0 & 0b0000_1111)
 	}
 
 	#[inline(always)]
 	const fn new_for_query() -> u8
 	{
+		// Also known as `RD` or `rd`.
 		const RecursionIsAvailableShouldNotBeSetInQuery: u8 = 0b0000_0000;
+		
+		// Also known as `Z` or `z`.
 		const UnassignedBitsMustBeZero: u8 = 0b0000_0000;
-		const AuthenticDataBitShouldNotBeSetInQuery: u8 = 0b0000_0000;
+		
+		// Also known as `AD` or `ad`.
+		// Set in accordance with RFC 6840, Section 5.7, Setting the AD Bit on Queries: "This document defines setting the AD bit in a query as a signal indicating that the requester understands and is interested in the value of the AD bit in the response".
+		// However, some historic servers just blindly copy the value of the `AD` bit without actually validating data.
+		// Ho-hum; this is the classic problem of using a 'the data is secure bit'.
+		const AuthenticDataBit: u8 = 0b0010_0000;
+		
+		// Also known as `CD` or `cd`, the checking disabled bit.
+		//
+		// RFC 6840, Section 5.9, Always Set the CD Bit on Queries conflicts with this setting.
 		const CheckingIsEnabled: u8 = 0b0000_0000;
+		
 		const OkResponseCode: u8 = 0b0000_0000;
 
-		RecursionIsAvailableShouldNotBeSetInQuery | UnassignedBitsMustBeZero | AuthenticDataBitShouldNotBeSetInQuery | CheckingIsEnabled | OkResponseCode
+		RecursionIsAvailableShouldNotBeSetInQuery | UnassignedBitsMustBeZero | AuthenticDataBit | CheckingIsEnabled | OkResponseCode
 	}
 }

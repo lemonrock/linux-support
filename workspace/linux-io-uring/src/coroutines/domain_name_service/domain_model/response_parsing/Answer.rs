@@ -2,18 +2,44 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A 16-bit message identifier, set in a request and returned in a reply.
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(transparent)]
-pub struct MessageIdentifier(BigEndianU16);
-
-impl MessageIdentifier
+pub enum Answer<'label, N: Name<'label>>
 {
-	/// Random.
-	#[inline(always)]
-	pub(crate) fn random() -> Self
+	Answered,
+	
+	NoDomain
 	{
-		Self(fast_slightly_insecure_random_u16().to_be_bytes())
-	}
+		response_type: NoDomainResponseType<'label, N>,
+		
+		most_canonical_name: N,
+	},
+
+	NoData
+	{
+		response_type: NoDataResponseType<'label, N>,
+	},
+	
+	Referral
+	{
+		name_servers: Records<'label, N>,
+	},
 }
 
+impl<'label, N: Name<'label>> Answer<'label, N>
+{
+	#[inline(always)]
+	fn is_referral(&self) -> bool
+	{
+		use self::Answer::*;
+		
+		match self
+		{
+			Answered => false,
+			
+			NoDomain { response_type: response_type, .. } => response_type.is_implicit_referral(),
+			
+			NoData { response_type: response_type } => response_type.is_implicit_referral(),
+			
+			Referral { .. } => true,
+		}
+	}
+}

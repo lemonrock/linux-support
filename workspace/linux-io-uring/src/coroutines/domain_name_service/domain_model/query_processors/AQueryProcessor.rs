@@ -5,7 +5,7 @@
 #[derive(Default)]
 struct AQueryProcessor<'message>
 {
-	records: HashMap<ParsedName<'message>, Present<Ipv4Addr>>
+	records: Records<Message, Ipv4Addr>
 }
 
 impl<'message> ResourceRecordVisitor<'message> for AQueryProcessor<'message>
@@ -15,13 +15,13 @@ impl<'message> ResourceRecordVisitor<'message> for AQueryProcessor<'message>
 	#[inline(always)]
 	fn A(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: Ipv4Addr) -> Result<(), Self::Error>
 	{
-		Present::store_unprioritized_and_unweighted::<'message>(&mut self.records,name, cache_until, record);
+		self.records.store_unprioritized_and_unweighted(cache_until, record)
 		
 		Ok(())
 	}
 }
 
-impl<'message> QueryProcessor<'message, Ipv4Addr> for AQueryProcessor
+impl<'message> QueryProcessor<'message> for AQueryProcessor
 {
 	const DT: DataType = DataType::A;
 	
@@ -32,7 +32,7 @@ impl<'message> QueryProcessor<'message, Ipv4Addr> for AQueryProcessor
 	{
 		Self
 		{
-			records: HashMap::with_capacity(8),
+			records: Records::with_capacity(8),
 		}
 	}
 	

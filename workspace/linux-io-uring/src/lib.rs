@@ -210,6 +210,7 @@ use swiss_army_knife::big_endian::BigEndianI32;
 //use swiss_army_knife::fixed_point_arithmetic::Unsigned1616FixedPoint;
 //use swiss_army_knife::fixed_point_arithmetic::Unsigned3232FixedPoint;
 //use swiss_army_knife::internet_protocol::InternetProtocolAddress;
+use swiss_army_knife::random::fast_slightly_insecure_random_u16;
 use swiss_army_knife::random::fast_slightly_insecure_random_u64;
 use swiss_army_knife::split::SplitBytes;
 use swiss_army_knife::strings::parse_number::ParseNumberError;

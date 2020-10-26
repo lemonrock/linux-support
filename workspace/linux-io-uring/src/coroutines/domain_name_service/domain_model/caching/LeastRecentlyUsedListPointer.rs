@@ -3,7 +3,7 @@
 
 
 #[derive(Debug)]
-struct LeastRecentlyUsedListPointer<Record: Sized + Clone>
+struct LeastRecentlyUsedListPointer<Record: Sized>
 {
 	previous: *mut Self,
 	next: *mut Self,
@@ -12,10 +12,10 @@ struct LeastRecentlyUsedListPointer<Record: Sized + Clone>
 	value: CacheEntry<Record>,
 }
 
-impl<Record: Sized + Clone> LeastRecentlyUsedListPointer<Record>
+impl<Record: Sized> LeastRecentlyUsedListPointer<Record>
 {
 	#[inline(always)]
-	unsafe fn new(least_recently_used_list_head: &mut *mut Self, least_recently_used_list_tail: &mut *mut Self, key: CaseFoldedName, value: CacheEntry<Record>) -> (LeastRecentlyUsedListKeyReference, NonNull<Self>)
+	unsafe fn new<'cache>(least_recently_used_list_head: &mut *mut Self, least_recently_used_list_tail: &mut *mut Self, key: CaseFoldedName, value: CacheEntry<Record>) -> (LeastRecentlyUsedListKeyReference<'cache>, NonNull<Self>)
 	{
 		let mut this = Box::new
 		(
@@ -51,7 +51,7 @@ impl<Record: Sized + Clone> LeastRecentlyUsedListPointer<Record>
 	}
 	
 	#[inline(always)]
-	unsafe fn key_reference(&mut self) -> LeastRecentlyUsedListKeyReference
+	unsafe fn key_reference<'cache>(&mut self) -> LeastRecentlyUsedListKeyReference<'cache>
 	{
 		LeastRecentlyUsedListKeyReference
 		{

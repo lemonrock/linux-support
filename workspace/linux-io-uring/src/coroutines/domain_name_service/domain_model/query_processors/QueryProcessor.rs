@@ -2,11 +2,11 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub trait QueryProcessor<'message, Data: Sized + Clone>: Sized + ResourceRecordVisitor<'message>
+pub trait QueryProcessor<'message>: Sized + ResourceRecordVisitor<'message>
 {
 	const DT: DataType;
 	
-	type Record: Data;
+	type Record: Sized;
 	
 	fn new() -> Self;
 	

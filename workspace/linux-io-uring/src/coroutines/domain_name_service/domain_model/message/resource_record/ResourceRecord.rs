@@ -77,7 +77,7 @@ impl ResourceRecord
 					self.handle_DNAME(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_names, duplicate_resource_record_response_parsing, Some(true))
 				}
 				
-				_ => self.dispatch_resource_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, parsed_names, resource_record_visitor, response_parsing_state, duplicate_resource_record_response_parsing, true, false, (resource_record_type_higher, resource_record_type_lower), Some(false))
+				_ => self.dispatch_resource_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, parsed_names, resource_record_visitor, response_parsing_state, duplicate_resource_record_response_parsing, true, (resource_record_type_higher, resource_record_type_lower), Some(false))
 			}
 		}
 		else
@@ -139,15 +139,23 @@ impl ResourceRecord
 
 	/// Returns `Ok(end_of_resource_data_pointer)` unless there is an error.
 	#[inline(always)]
-	pub(crate) fn parse_additional_section_resource_record_in_response<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_message_pointer: usize, parsed_names: &mut ParsedNames, resource_record_visitor: &mut RRV, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, AdditionalSectionError<RRV::Error>>
+	pub(crate) fn parse_additional_section_resource_record_in_response<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_message_pointer: usize, parsed_names: &mut ParsedNames, resource_record_visitor: &mut RRV, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, authoritative_or_authenticated_or_neither: AuthoritativeOrAuthenticatedOrNeither, rcode_lower_4_bits: RCodeLower4Bits) -> Result<usize, AdditionalSectionError<RRV::Error>>
 	{
 		let (parsed_name_iterator, end_of_name_pointer, (type_upper, type_lower)) = self.validate_minimum_record_size_and_parse_name_and_resource_record_type(end_of_message_pointer, parsed_names)?;
-
-		self.dispatch_resource_record_type(now, end_of_name_pointer, end_of_message_pointer, parsed_name_iterator, parsed_names, resource_record_visitor, response_parsing_state, duplicate_resource_record_response_parsing, false, true, (type_upper, type_lower), None).map_err(AdditionalSectionError::HandleRecordType)
+		
+		let end_of_resource_data_pointer = if type_upper == 0x00 && type_lower == MetaType::OPT_lower
+		{
+			self.handle_OPT(now, end_of_name_pointer, end_of_message_pointer, response_parsing_state, authoritative_or_authenticated_or_neither, rcode_lower_4_bits)?
+		}
+		else
+		{
+			self.dispatch_resource_record_type(now, end_of_name_pointer, end_of_message_pointer, parsed_name_iterator, parsed_names, resource_record_visitor, response_parsing_state, duplicate_resource_record_response_parsing, false, (type_upper, type_lower), None)?
+		};
+		Ok(end_of_resource_data_pointer)
 	}
 	
 	#[inline(always)]
-	fn dispatch_resource_record_type<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, parsed_names: &mut ParsedNames, resource_record_visitor: &mut RRV, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, soa_is_permitted: bool, is_additional_section: bool, (type_upper, type_lower): (u8, u8), is_some_if_present_in_answer_section_and_true_if_was_queried_for: Option<bool>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn dispatch_resource_record_type<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, parsed_names: &mut ParsedNames, resource_record_visitor: &mut RRV, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, soa_is_permitted: bool, (type_upper, type_lower): (u8, u8), is_some_if_present_in_answer_section_and_true_if_was_queried_for: Option<bool>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		use self::HandleRecordTypeError::*;
 		use self::ResourceTypeInWrongSectionError::*;
@@ -246,14 +254,7 @@ impl ResourceRecord
 
 				DataType::SINK_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::SINK),
 
-				MetaType::OPT_lower => if likely!(is_additional_section)
-				{
-					self.handle_OPT(now, end_of_name_pointer, end_of_message_pointer, response_parsing_state).map_err(OPT)
-				}
-				else
-				{
-					Err(ResourceTypeInWrongSection(ExtendedDnsOptResourceRecordTypeIsNotPermittedOutsideOfAnAdditionalSection))
-				},
+				MetaType::OPT_lower => Err(ResourceTypeInWrongSection(ExtendedDnsOptResourceRecordTypeIsNotPermittedOutsideOfAnAdditionalSection)),
 
 				DataType::APL_lower => self.handle_obsolete_or_very_obscure_record_type::<'message, RRV>(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::APL, "Some legacy records may remain"),
 
@@ -913,12 +914,10 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_OPT<'message>(&self, _now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, response_parsing_state: &ResponseParsingState) -> Result<usize, ExtendedDnsError>
+	fn handle_OPT<'message>(&self, _now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, response_parsing_state: &ResponseParsingState, authoritative_or_authenticated_or_neither: AuthoritativeOrAuthenticatedOrNeither, rcode_lower_4_bits: RCodeLower4Bits) -> Result<usize, ExtendedDnsError>
 	{
 		use self::ExtendedDnsError::*;
 		
-		response_parsing_state.parsing_an_edns_opt_record()?;
-
 		let start_of_name_pointer = self.start_of_name_pointer();
 		if unlikely!(end_of_name_pointer - start_of_name_pointer != 1)
 		{
@@ -931,23 +930,19 @@ impl ResourceRecord
 			return Err(ExtendedDnsOptRecordNameNotRoot)
 		}
 
-		let requestors_udp_payload_size = max(512, self.requestors_udp_payload_size(end_of_name_pointer));
-
 		let extended_response_code_and_flags = self.extended_response_code_and_flags(end_of_name_pointer);
-
-		let upper_8_bits = extended_response_code_and_flags.extended_response_code_upper_8_bits();
-
-		if unlikely!(upper_8_bits != 0)
+		extended_response_code_and_flags.validate_is_version_0()?;
+		
+		// NOTE: This behaviour violates RFC 6840, Section 5.6, Setting the DO Bit on Replies.
+		if unlikely!(!extended_response_code_and_flags.dnssec_ok())
 		{
-			return Err(ExtendedDnsOptUpper8BitsOfErrorNonZero(upper_8_bits))
+			Err(ExtendedDnsError::ResponseIgnoredDnsSec)
 		}
 		
-		extended_response_code_and_flags.validate_is_version_0()?;
-
-		let dnssec_ok = extended_response_code_and_flags.dnssec_ok();
-
-		extended_response_code_and_flags.z()?;
-
+		response_parsing_state.parsed_an_edns_opt_record(ExtendedDnsResponseCodeError::parse_error_code(extended_response_code_and_flags.extended_response_code_upper_8_bits(), authoritative_or_authenticated_or_neither, rcode_lower_4_bits)?)?;
+		
+		let _requestors_udp_payload_size = max(512, self.requestors_udp_payload_size(end_of_name_pointer));
+		
 		let options = self.safely_access_resource_data(end_of_name_pointer, end_of_message_pointer)?;
 
 		let mut start_of_option_offset = 0;
@@ -1032,8 +1027,6 @@ impl ResourceRecord
 
 			start_of_option_offset += OptionCodeSize + OptionLengthSize + option_length;
 		}
-
-		response_parsing_state.set_dnssec_ok(dnssec_ok);
 
 		Ok(options.end_pointer())
 	}
@@ -2214,7 +2207,6 @@ impl ResourceRecord
 	{
 		self.resource_record_class_is_internet(end_of_name_pointer)?;
 
-		// TOD: Also used in handle_opt
 		let resource_data = self.safely_access_resource_data(end_of_name_pointer, end_of_message_pointer)?;
 		
 		duplicate_resource_record_response_parsing.encountered(data_type, &resource_record_name, resource_data)?;

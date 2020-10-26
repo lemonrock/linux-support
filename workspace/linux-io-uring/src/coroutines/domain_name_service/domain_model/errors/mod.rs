@@ -20,6 +20,7 @@ include!("DnsKeyHandleRecordTypeError.rs");
 include!("EUI48HandleRecordTypeError.rs");
 include!("EUI64HandleRecordTypeError.rs");
 include!("ExtendedDnsError.rs");
+include!("ExtendedDnsResponseCodeError.rs");
 include!("HandleRecordTypeError.rs");
 include!("HINFOHandleRecordTypeError.rs");
 include!("HIPHandleRecordTypeError.rs");

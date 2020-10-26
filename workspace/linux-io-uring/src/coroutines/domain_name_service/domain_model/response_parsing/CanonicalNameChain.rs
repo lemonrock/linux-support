@@ -39,7 +39,19 @@
 pub(crate) struct CanonicalNameChain<'message>
 {
 	query_name: ParsedName<'message>,
+	
 	chain: IndexSet<ParsedName<'message>>,
+	
+	records: Records<'message, ParsedName<'message>>,
+}
+
+impl<'message> Into<Records<'message, ParsedName<'message>>> for CanonicalNameChain<'message>
+{
+	#[inline(always)]
+	fn into(self) -> Records<'message, ParsedName<'message>>
+	{
+		self.records
+	}
 }
 
 impl<'message> CanonicalNameChain<'message>
@@ -56,7 +68,14 @@ impl<'message> CanonicalNameChain<'message>
 		{
 			query_name,
 			chain: IndexSet::with_capacity(Self::MaximumChainLength),
+			records: Records::with_capacity(3),
 		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn cache_records(self, cname_query_type_cache: &mut QueryTypeCache<CaseFoldedName>)
+	{
+		cname_query_type_cache.put_present(records)
 	}
 	
 	#[inline(always)]
@@ -94,25 +113,25 @@ impl<'message> CanonicalNameChain<'message>
 			return Err(CanonicalNameChainCanNotIncludeQueryNameAsItCreatesALoop)
 		}
 		
-		let ok = self.chain.insert(to);
+		let ok = self.chain.insert(to.clone());
 		if unlikely!(!ok)
 		{
 			return Err(AddingNameToCanonicalNameChainCreatesALoop)
 		}
 		
+		Present::store_unprioritized_and_unweighted::<'message>(&mut self.records,name, cache_until, CaseFoldedName::from(to));
 		Ok(())
 	}
 	
 	#[inline(always)]
-	fn validate_authority_section_name(&self, start_of_authority_name: &ParsedName<'message>) -> bool
+	fn validate_authority_section_name(&self, authority_section_name: &ParsedName<'message>) -> bool
 	{
-		let most_canonical_name = self.most_canonical_name();
-
-		match most_canonical_name.parent()
+		match self.most_canonical_name().parent()
 		{
-			None => false,
+			Some(ref most_canonical_name_parent) => authority_section_name.eq(most_canonical_name_parent),
 			
-			Some(parent) => parent.ends_with(start_of_authority_name),
+			// Very rare; only if we queried for root or the CNAME chain points to root (why)?
+			None => authority_section_name.is_root(),
 		}
 	}
 }

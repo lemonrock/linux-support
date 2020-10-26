@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) enum AnswerOutcome
+pub(crate) enum AnswerOutcome<'message>
 {
 	/// Even if this code is sent, they may be no matching records although a complete `CNAME` chain (?`DNAME`) may be present.
 	Answered,
@@ -16,7 +16,7 @@ pub(crate) enum AnswerOutcome
 	/// RFC 2308, Section 5: "A negative answer that resulted from a name error (NXDOMAIN) should be cached such that it can be retrieved and returned in response to another query for the same <QNAME, QCLASS> that resulted in the cached negative response.
 	///
 	/// For us, this means caching a negative response against the `QNAME` unary tuple for the last resolved name in the `CNAME` chain.
-	NameError(NegativeCacheUntil),
+	NameError((NegativeCacheUntil, StartOfAuthority<'message, ParsedName<'message>>)),
 	
 	/// This is only for non-authoritative answers (this is quite common).
 	///
@@ -66,7 +66,7 @@ pub(crate) enum AnswerOutcome
 	/// ;; AUTHORITY SECTION:
 	/// microsoft.com.		90	IN	SOA	ns1-205.azure-dns.com. azuredns-hostmaster.microsoft.com. 1 3600 300 2419200 300
 	/// ```
-	NoData(NegativeCacheUntil),
+	NoData((NegativeCacheUntil, StartOfAuthority<'message, ParsedName<'message>>)),
 
 	/// There is no answer, although a partial `CNAME` chain or `DNAME` record might be present.
 	///

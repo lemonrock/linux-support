@@ -34,15 +34,17 @@ impl<'message> ResponseRecordSectionsParser<'message>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn parse_answer_authority_and_additional_sections<RRV: ResourceRecordVisitor<'message>>(&mut self, next_resource_record_pointer: usize, query_name: ParsedName<'message>, answer_quality: AnswerQuality, answer_section_resource_record_visitor: &mut RRV) -> Result<(usize, AnswerOutcome, CanonicalNameChain<'message>), SectionError<RRV::Error>>
+	pub(crate) fn parse_answer_authority_and_additional_sections<RRV: ResourceRecordVisitor<'message>>(&mut self, next_resource_record_pointer: usize, query_name: ParsedName<'message>, authoritative_or_authenticated_or_neither: AuthoritativeOrAuthenticatedOrNeither, rcode_lower_4_bits: RCodeLower4Bits, answer_section_resource_record_visitor: &mut RRV) -> Result<(usize, Answer, Records<'message, ParsedName<'message>>), SectionError<RRV::Error>>
 	{
 		let (next_resource_record_pointer, canonical_name_chain, answer_section_has_at_least_one_record_of_requested_data_type) = self.parse_answer_section(next_resource_record_pointer, query_name, answer_section_resource_record_visitor)?;
 
-		let (next_resource_record_pointer, answer_outcome, canonical_name_chain) = self.parse_authority_section(next_resource_record_pointer, canonical_name_chain, answer_quality, answer_section_has_at_least_one_record_of_requested_data_type)?;
+		let (next_resource_record_pointer, authority_resource_record_visitor) = self.parse_authority_section(next_resource_record_pointer, canonical_name_chain)?;
 
-		let next_resource_record_pointer = self.parse_additional_section(next_resource_record_pointer)?;
+		let (next_resource_record_pointer, answer_existence) = self.parse_additional_section(next_resource_record_pointer, authoritative_or_authenticated_or_neither, rcode_lower_4_bits)?;
 
-		Ok((next_resource_record_pointer, answer_outcome, canonical_name_chain))
+		let (answer, canonical_name_records) = authority_resource_record_visitor.answer(answer_existence, answer_section_has_at_least_one_record_of_requested_data_type);
+		
+		Ok((next_resource_record_pointer, answer, canonical_name_records))
 	}
 
 	#[inline(always)]
@@ -60,7 +62,7 @@ impl<'message> ResponseRecordSectionsParser<'message>
 	}
 
 	#[inline(always)]
-	fn parse_authority_section(&mut self, next_resource_record_pointer: usize, canonical_name_chain: CanonicalNameChain<'message>, answer_quality: AnswerQuality, answer_section_has_at_least_one_record_of_requested_data_type: bool) -> Result<(usize, AnswerOutcome, CanonicalNameChain<'message>), AuthoritySectionError<AuthorityError>>
+	fn parse_authority_section(&mut self, next_resource_record_pointer: usize, canonical_name_chain: CanonicalNameChain<'message>) -> Result<(usize, AuthorityResourceRecordVisitor<'message>), AuthoritySectionError<AuthorityError>>
 	{
 		let number_of_resource_records = self.message_header.number_of_resource_records_in_the_authority_records_section();
 
@@ -68,25 +70,23 @@ impl<'message> ResponseRecordSectionsParser<'message>
 		
 		let parse_method = |resource_record: ResourceRecord| resource_record.parse_authority_section_resource_record_in_response(self.now, self.end_of_message_pointer, self.parsed_names.borrow_mut().deref_mut(), &mut authority_resource_record_visitor, &self.response_parsing_state, &self.duplicate_resource_record_response_parsing);
 		let next_resource_record_pointer = self.loop_over_resource_records(next_resource_record_pointer, number_of_resource_records, AuthoritySectionError::ResourceRecordsOverflowSection, parse_method)?;
-
-		let (answer_outcome, canonical_name_chain) = authority_resource_record_visitor.answer_outcome(answer_quality.is_authoritative_answer(), answer_quality.has_nxdomain_error_code(), answer_section_has_at_least_one_record_of_requested_data_type)?;
-
-		Ok((next_resource_record_pointer, answer_outcome, canonical_name_chain))
+		
+		Ok((next_resource_record_pointer, authority_resource_record_visitor))
 	}
 
 	#[inline(always)]
-	fn parse_additional_section(&mut self, next_resource_record_pointer: usize) -> Result<usize, AdditionalSectionError<Infallible>>
+	fn parse_additional_section(&mut self, next_resource_record_pointer: usize, authoritative_or_authenticated_or_neither: AuthoritativeOrAuthenticatedOrNeither, rcode_lower_4_bits: RCodeLower4Bits) -> Result<(usize, AnswerExistence), AdditionalSectionError<Infallible>>
 	{
 		let number_of_resource_records = self.message_header.number_of_resource_records_in_the_additional_records_section();
 		
 		let mut discarding_resource_record_visitor = DiscardingResourceRecordVisitor::default();
 		
-		let parse_method = |resource_record: ResourceRecord| resource_record.parse_additional_section_resource_record_in_response(self.now, self.end_of_message_pointer, self.parsed_names.borrow_mut().deref_mut(), &mut discarding_resource_record_visitor, &self.response_parsing_state, &self.duplicate_resource_record_response_parsing);
+		let parse_method = |resource_record: ResourceRecord| resource_record.parse_additional_section_resource_record_in_response(self.now, self.end_of_message_pointer, self.parsed_names.borrow_mut().deref_mut(), &mut discarding_resource_record_visitor, &self.response_parsing_state, &self.duplicate_resource_record_response_parsing, authoritative_or_authenticated_or_neither, rcode_lower_4_bits);
 		let next_resource_record_pointer = self.loop_over_resource_records(next_resource_record_pointer, number_of_resource_records, AdditionalSectionError::ResourceRecordsOverflowSection, parse_method)?;
 		
-		self.response_parsing_state.parse_extended_dns_outcome::<Infallible>()?;
+		let answer_existence = self.response_parsing_state.parse_extended_dns_outcome::<Infallible>()?;
 		
-		Ok(next_resource_record_pointer)
+		Ok((next_resource_record_pointer, answer_existence))
 	}
 	
 	#[inline(always)]

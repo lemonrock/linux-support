@@ -4,17 +4,17 @@
 
 /// Start of Authority (`SOA`) data.
 #[derive(Debug, Clone)]
-pub struct StartOfAuthority<'message>
+pub struct StartOfAuthority<'label, N: Name<'label>>
 {
 	/// `MNAME`.
 	///
 	/// This is the FQDN of the primary name server.
-	pub primary_name_server: ParsedName<'message>,
+	pub primary_name_server: N,
 
 	/// `RNAME`.
 	///
 	/// First label is the name `@`, eg `hostmaster.example.com.` is the email address `hostmaster@example.com`.
-	pub responsible_person_email_address: ParsedName<'message>,
+	pub responsible_person_email_address: N,
 	
 	/// `SERIAL`.
 	///
@@ -49,4 +49,21 @@ pub struct StartOfAuthority<'message>
 	///
 	/// A typical value is between 2 weeks (1,209,600 seconds) and 4 weeks (2,419,200 seconds).
 	pub expire_interval: U31SecondsDuration,
+}
+
+impl<'message> Into<StartOfAuthority<'static, CaseFoldedName<'static>>> for StartOfAuthority<'message, ParsedName<'message>>
+{
+	#[inline(always)]
+	fn into(self) -> StartOfAuthority<'static>
+	{
+		StartOfAuthority
+		{
+			primary_name_server: CaseFoldedName::from(self.primary_name_server),
+			responsible_person_email_address: CaseFoldedName::from(self.responsible_person_email_address),
+			zone_file_serial_number: self.zone_file_serial_number,
+			referesh_interval: self.referesh_interval,
+			retry_interval: self.retry_interval,
+			expire_interval: self.expire_interval,
+		}
+	}
 }

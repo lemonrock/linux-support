@@ -7,6 +7,5 @@ use super::*;
 
 include!("AAAAQueryProcessor.rs");
 include!("AQueryProcessor.rs");
-include!("CNAMEQueryProcessor.rs");
 include!("MXQueryProcessor.rs");
 include!("QueryProcessor.rs");

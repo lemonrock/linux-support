@@ -44,8 +44,15 @@ impl MessageBitField1
 	{
 		const MessageTypeQuery: u8 = 0b0000_0000;
 		const QueryRawOpcode: u8 = 0b0000_0000;
+		
+		// Also known as `AA` or `aa`.
 		const IsNotAnAuthoritativeAnswer: u8 = 0b0000_0000;
+		
+		// Also known as `TC` or `tc`.
+		// Should never be set in query.
 		const IsNotTruncated: u8 = 0b0000_0000;
+		
+		// Also known as `RD` or `rd`.
 		const RecursionIsDesired: u8 = 0b0000_0001;
 
 		MessageTypeQuery | QueryRawOpcode | IsNotAnAuthoritativeAnswer | IsNotTruncated | RecursionIsDesired

@@ -3,12 +3,12 @@
 
 
 #[derive(Debug)]
-struct LeastRecentlyUsedListKeyReference
+struct LeastRecentlyUsedListKeyReference<'cache>
 {
-	key: NonNull<CaseFoldedName>,
+	key: NonNull<CaseFoldedName<'cache>>,
 }
 
-impl PartialEq for LeastRecentlyUsedListKeyReference
+impl<'cache> PartialEq for LeastRecentlyUsedListKeyReference<'cache>
 {
 	#[inline(always)]
 	fn eq(&self, rhs: &Self) -> bool
@@ -20,11 +20,11 @@ impl PartialEq for LeastRecentlyUsedListKeyReference
 	}
 }
 
-impl Eq for LeastRecentlyUsedListKeyReference
+impl<'cache> Eq for LeastRecentlyUsedListKeyReference<'cache>
 {
 }
 
-impl Hash for LeastRecentlyUsedListKeyReference
+impl<'cache> Hash for LeastRecentlyUsedListKeyReference<'cache>
 {
 	#[inline(always)]
 	fn hash<H: Hasher>(&self, state: &mut H)

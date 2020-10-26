@@ -11,6 +11,9 @@ pub enum AuthorityError
 	
 	/// A start-of-authority (`SOA`) record in the authority section is not for the final name in a canonical name chain.
 	StartOfAuthorityRecordInAuthoritySectionIsNotForFinalNameInCanonicalNameChain,
+
+	/// More than one start-of-authority (`SOA`) record in the authority section.
+	MoreThanOneStartOfAuthorityRecordInAuthoritySection,
 }
 
 impl Display for AuthorityError

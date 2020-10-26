@@ -2,9 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) struct QueryTypeCache<Record: Sized + Clone>
+pub struct QueryTypeCache<'cache, Record: Sized>
 {
-	cache: HashMap<KeyReference, NonNull<LeastRecentlyUsedListPointer<Record>>>,
+	cache: HashMap<LeastRecentlyUsedListKeyReference<'cache>, NonNull<LeastRecentlyUsedListPointer<Record>>>,
 	records_count: usize,
 	maximum_records_count: usize,
 	
@@ -15,7 +15,7 @@ pub(crate) struct QueryTypeCache<Record: Sized + Clone>
 	least_recently_used_list_tail: *mut LeastRecentlyUsedListPointer<Record>,
 }
 
-impl<Record: Sized + Clone> Drop for QueryTypeCache<Record>
+impl<'cache, Record: Sized> Drop for QueryTypeCache<'cache, Record>
 {
 	#[inline(always)]
 	fn drop(&mut self)
@@ -28,7 +28,7 @@ impl<Record: Sized + Clone> Drop for QueryTypeCache<Record>
 	}
 }
 
-impl<Record: Sized + Clone> QueryTypeCache<Record>
+impl<'cache, Record: Sized> QueryTypeCache<'cache, Record>
 {
 	#[inline(always)]
 	pub(crate) fn new(maximum_records_count: usize) -> Self
@@ -47,113 +47,49 @@ impl<Record: Sized + Clone> QueryTypeCache<Record>
 		}
 	}
 	
-	/// Returns:-
-	///
-	/// * `None`: No details at all; one could query for the data.
-	/// * `Some(None)`: Negatively cached for one-time use only; do not query for the data.
-	/// * `Some(Some(records))`: Cached, valid answers.
+	/// Gets a result for the name.
 	#[inline(always)]
-	pub(crate) fn get(&mut self, name: &CaseFoldedName, now: NanosecondsSinceUnixEpoch) -> Option<Option<BTreeMap<Priority, WeightedRecords<Record>>>>
+	pub fn get(&mut self, name: &CaseFoldedName<'cache>, now: NanosecondsSinceUnixEpoch) -> CacheResult<Record>
 	{
 		use std::collections::hash_map::Entry::*;
 		
 		use self::CacheEntry::*;
+		use self::CacheResult::*;
 		
-		let (result, records_count_reduction) = match self.get_mut(name)
+		const RemoveEntry: Option<usize> = None;
+		
+		let (result, expired_records_count) = match self.get_mut(name)
 		{
-			None => return None,
+			None => return Nothing,
 			
-			Some(&mut AbsentButUncached) => (Some(None), None),
+			Some(&mut AbsentUseOnce(ref record)) => (DoesNotExist(record.clone()), RemoveEntry),
 			
-			Some(&mut AbsentNegativelyCached(negative_cache_until)) => if negative_cache_until < now
+			Some(&mut AbsentNegativelyCached(negative_cache_until, ref record)) => if negative_cache_until < now
 			{
-				(None, None)
+				(Nothing, RemoveEntry)
 			}
 			else
 			{
-				(Some(None), Some(0))
+				(DoesNotExist(record.clone()), Some(0))
 			},
 			
-			Some(&mut Present(Present { ref mut uncached, ref mut cached })) =>
-			{
-				let mut records_count_reduction = 0;
-				for expired_record in uncached.values()
-				{
-					records_count_reduction += expired_record.len()
-				}
-				
-				let mut records_to_return =
-				{
-					let mut records_to_return = BTreeMap::new();
-					let taken = take(uncached);
-					for (priority, unsorted_records) in taken
-					{
-						records_to_return.insert(priority, WeightedRecords::new(unsorted_records))
-					}
-					records_to_return
-				};
-				
-				// TODO: Use Cow to avoid clones.
-				xxxx;
-				
-				{
-					let (expired, should_still_be_cached) =
-					{
-						let should_still_be_cached = cached.split_off(&now);
-						(cached, should_still_be_cached)
-					};
-					
-					for cached_records in should_still_be_cached.values()
-					{
-						for (priority, unsorted_records) in cached_records
-						{
-							use std::collections::btree_map::Entry::*;
-							match records_to_return.entry(*priority)
-							{
-								Vacant(vacant) => vacant.insert(WeightedRecords::new(unsorted_records.clone())),
-								
-								Occupied(occupied) => occupied.get_mut().append(unsorted_records),
-							}
-						}
-					}
-					
-					for expired_records_for_priority in expired.values()
-					{
-						for expired_record in expired_records_for_priority.values()
-						{
-							records_count_reduction += expired_record.len()
-						}
-					}
-					
-					drop(replace(expired, should_still_be_cached));
-				}
-				
-				if records_to_return.is_empty()
-				{
-					occupied.remove_entry();
-					(None, None)
-				}
-				else
-				{
-					(Some(Some(records_to_return)), Some(records_count_reduction))
-				}
-			}
+			Some(&mut Present(ref mut present)) => present.retrieve(now),
 		};
 		
-		match records_count_reduction
+		match expired_records_count
 		{
 			None => self.remove(name),
 			
-			Some(records_count_reduction) => self.records_count -= records_count_reduction,
+			Some(expired_records_count) => self.records_count -= expired_records_count,
 		}
 		
 		result
 	}
 	
 	#[inline(always)]
-	pub(crate) fn put_present<'message>(&mut self, records: HashMap<ParsedName<'message>, Present<Record>>)
+	pub(crate) fn put_present<'message>(&mut self, records: Records<'message, Record>)
 	{
-		for (name, present) in records
+		for (name, present) in records.inner()
 		{
 			let key = CaseFoldedName::from(name);
 			
@@ -161,40 +97,45 @@ impl<Record: Sized + Clone> QueryTypeCache<Record>
 		}
 	}
 	
+	
+	/// RFC 2308, Section 8 - Changes from RFC 1034, Paragraph 3: "The SOA record from the authority section MUST be cached. Name error indications must be cached against the tuple `<query name, QCLASS>`".
 	#[inline(always)]
-	pub(crate) fn put_name_error<'message>(&mut self, name: ParsedName<'message>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message>)
+	pub(crate) fn put_name_error<'message>(&mut self, query_name: CaseFoldedName<'cache>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message, ParsedName<'message>>)
 	{
-		self.put_absent::<'message>(name, negative_cache_until, record)
+		self.put_absent::<'message>(query_name, negative_cache_until, record)
+	}
+	
+	/// RFC 2308, Section 8 - Changes from RFC 1034, Paragraph 3: "The SOA record from the authority section MUST be cached. … No data indications must be cached against \[the\] `<query name, QTYPE, QCLASS>` tuple".
+	///
+	/// However, since we only query for `QCLASS` `IN` internet and never support any other type, this is effectively the same behaviour we must implement as for `self.put_name_error()`.
+	#[inline(always)]
+	pub(crate) fn put_no_data<'message>(&mut self, query_name: CaseFoldedName<'cache>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message, ParsedName<'message>>)
+	{
+		self.put_absent::<'message>(query_name, negative_cache_until, record)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn put_no_data<'message>(&mut self, name: ParsedName<'message>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message>)
+	fn put_absent<'message>(&mut self, query_name: CaseFoldedName<'cache>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message, ParsedName<'message>>)
 	{
-		self.put_absent::<'message>(name, negative_cache_until, record)
-	}
-	
-	#[inline(always)]
-	fn put_absent<'message>(&mut self, name: ParsedName<'message>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message>)
-	{
-		let key = CaseFoldedName::from(name);
-		
 		use self::CacheEntry::*;
+		
+		let record = record.into();
 		
 		self.put
 		(
-			key,
+			query_name,
 			
 			match negative_cache_until
 			{
-				None => AbsentButUncached,
+				None => AbsentUseOnce(Rc::new(record)),
 				
-				Some(negative_cache_until) => AbsentNegativelyCached(negative_cache_until)
+				Some(negative_cache_until) => AbsentNegativelyCached(negative_cache_until, Rc::new(record))
 			}
 		);
 	}
 	
 	#[inline(always)]
-	fn put(&mut self, key: CaseFoldedName, value: CacheEntry<Record>)
+	fn put(&mut self, key: CaseFoldedName<'cache>, value: CacheEntry<Record>)
 	{
 		let adds_records_count = value.records_count();
 		
@@ -214,7 +155,7 @@ impl<Record: Sized + Clone> QueryTypeCache<Record>
 	}
 	
 	#[inline(always)]
-	fn get_mut(&mut self, key: &CaseFoldedName) -> Option<&mut CacheEntry<Record>>
+	fn get_mut(&mut self, key: &CaseFoldedName<'cache>) -> Option<&mut CacheEntry<Record>>
 	{
 		let key = Self::key(key);
 		match self.cache.get(&key)
@@ -239,7 +180,7 @@ impl<Record: Sized + Clone> QueryTypeCache<Record>
 	}
 	
 	#[inline(always)]
-	fn remove(&mut self, key: &CaseFoldedName)
+	fn remove(&mut self, key: &CaseFoldedName<'cache>)
 	{
 		let key = Self::key(key);
 		if let Some(removed) = self.cache.remove(&key)
@@ -271,9 +212,9 @@ impl<Record: Sized + Clone> QueryTypeCache<Record>
 	}
 	
 	#[inline(always)]
-	fn key(key: &CaseFoldedName) -> LeastRecentlyUsedListKeyReference
+	fn key(key: &CaseFoldedName<'cache>) -> LeastRecentlyUsedListKeyReference<'cache>
 	{
-		let key = unsafe { NonNull::new_unchecked(key as *const CaseFoldedName as *mut CaseFoldedName) };
+		let key = unsafe { NonNull::new_unchecked(key as *const CaseFoldedName<'cache> as *mut CaseFoldedName<'cache>) };
 		LeastRecentlyUsedListKeyReference { key }
 	}
 }

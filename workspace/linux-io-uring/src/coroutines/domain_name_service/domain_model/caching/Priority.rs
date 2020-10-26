@@ -9,5 +9,5 @@ pub struct Priority(pub u16);
 
 impl Priority
 {
-	const Unassigned: Self = Self(0);
+	pub(crate) const Unassigned: Self = Self(0);
 }

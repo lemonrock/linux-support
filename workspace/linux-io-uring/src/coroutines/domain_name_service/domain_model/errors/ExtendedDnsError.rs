@@ -10,7 +10,7 @@ pub enum ExtendedDnsError
 	MoreThanOneExtendedDnsOptResourceRecord,
 	
 	/// The OPT extended error code bits are non-zero.
-	ExtendedDnsOptUpper8BitsOfErrorNonZero(u8),
+	ResponseCode(ExtendedDnsResponseCodeError),
 	
 	/// A resource record of the psuedo-type `OPT` has too long a record name.
 	ExtendedDnsOptRecordNameTooLong,
@@ -19,10 +19,7 @@ pub enum ExtendedDnsError
 	ExtendedDnsOptRecordNameNotRoot,
 	
 	/// An unsupported EDNS version; unsupported version in tuple.
-	UnsupportedExtendedDnsVersion(u8),
-	
-	/// EDNS(0) `Z` field not zero.
-	ExtendedDnsZFieldNotZero,
+	UnsupportedExtendedDnsVersion(NonZeroU8),
 	
 	/// EDNS(0) Option field has a length less than 4.
 	ExtendedDnsOptionTooShort,
@@ -42,6 +39,8 @@ pub enum ExtendedDnsError
 	ResourceDataLengthOverflows(ResourceDataLengthOverflowsError),
 	
 	/// Response did not have the EDNS(0) DNSSEC OK (`DO`) bit set.
+	///
+	/// NOTE: This behaviour violates RFC 6840, Section 5.6, Setting the DO Bit on Replies.
 	ResponseIgnoredDnsSec,
 }
 
@@ -63,9 +62,20 @@ impl error::Error for ExtendedDnsError
 		
 		match self
 		{
+			&ResponseCode(ref error) => Some(error),
+			
 			&ResourceDataLengthOverflows(ref error) => Some(error),
 			
 			_ => None,
 		}
+	}
+}
+
+impl From<ExtendedDnsResponseCodeError> for ExtendedDnsError
+{
+	#[inline(always)]
+	fn from(value: ExtendedDnsResponseCodeError) -> Self
+	{
+		ExtendedDnsError::ResponseCode(value)
 	}
 }

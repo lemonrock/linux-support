@@ -15,8 +15,11 @@ pub enum AuthoritySectionError<E: error::Error>
 	/// Too many resource records in the authority section for the size of the message.
 	ResourceRecordsOverflowSection,
 	
-	/// Response was authoritative (`AA` bit is set), the error code (`RCODE`) was `NXDOMAIN` but the answer section contained one or more answers (excluding `CNAME` and `DNAME` resource records).
-	ResponseWasAuthoritativeWithNoSuchDomainErrorCodeButContainsAnAnswer,
+	/// The error code (`RCODE`) was `NXDOMAIN` but the answer section contained one or more answers (excluding `CNAME` and `DNAME` resource records).
+	ResponseHadNoSuchDomainErrorCodeButContainsAnAnswer,
+	
+	/// RFC 2308, Section 3, Paragraph 1.
+	AuthoritativeServersMustReturnAStartOfAuthorityRecord,
 }
 
 impl<E: error::Error> Display for AuthoritySectionError<E>

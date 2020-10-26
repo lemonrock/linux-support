@@ -3,15 +3,28 @@
 
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct Query
+pub struct Query<'a>
 {
 	message_identifier: MessageIdentifier,
 	data_type: DataType,
-	query_name: CaseFoldedName<'static>,
+	query_name: CaseFoldedName<'a>,
 }
 
-impl Query
+impl<'a> Query<'a>
 {
+	#[inline(always)]
+	pub fn enquire_over_tcp<'yielder, 'message, 'cache: 'a, RRV: ResourceRecordVisitor<'message>, SD: SocketData>(stream: &mut TlsClientStream<'yielder, SD>, message_identifier: MessageIdentifier, query_name: CaseFoldedName<'a>, answer_section_resource_record_visitor: RRV, cname_query_type_cache: &mut QueryTypeCache<CaseFoldedName<'cache>>, finish: impl Fn(RRV, AnswerExistence, AnswerOutcome)) -> Result<(), ProtocolError<RRV::Error>>
+	{
+		let mut query = Query
+		{
+			message_identifier,
+			data_type: QP::DT,
+			query_name,
+		};
+		query.write_tcp_query(stream);
+		query.read_tcp_reply(stream, answer_section_resource_record_visitor, cname_query_type_cache, finish)
+	}
+	
 	#[allow(deprecated)]
 	#[inline(always)]
 	pub fn write_tcp_query<'yielder, SD: SocketData>(&self, stream: &mut TlsClientStream<'yielder, SD>)
@@ -27,21 +40,22 @@ impl Query
 	
 	#[allow(deprecated)]
 	#[inline(always)]
-	pub fn read_tcp_reply<'yielder, 'message, SD: SocketData, RRV: ResourceRecordVisitor<'message>>(&self, stream: &mut TlsClientStream<'yielder, SD>, answer_section_resource_record_visitor: &mut RRV) -> Result<(AnswerQuality, AnswerOutcome, CanonicalNameChain<'message>), ProtocolError<RRV::Error>>
+	pub fn read_tcp_reply<'yielder, 'message, 'cache, RRV: ResourceRecordVisitor<'message>, SD: SocketData>(&self, stream: &mut TlsClientStream<'yielder, SD>, mut answer_section_resource_record_visitor: RRV, cname_query_type_cache: &mut QueryTypeCache<CaseFoldedName<'cache>>, finish: impl Fn(RRV, AnswerExistence, AnswerOutcome<'message>)) -> Result<(), ProtocolError<RRV::Error>>
 	{
 		let mut buffer: [u8; ResourceRecord::UdpRequestorsPayloadSize] = unsafe { uninitialized() };
 		let message_length = Self::reply_message(stream, &mut buffer)?;
 		let raw_dns_message = &buffer[.. message_length];
-		self.read_reply_after_message_length_checked(raw_dns_message, answer_section_resource_record_visitor).map_err(ProtocolError::ReadReplyAfterLengthChecked)
+		let (answer_existence, answer_outcome) = self.read_reply_after_message_length_checked(raw_dns_message, &mut answer_section_resource_record_visitor, cname_query_type_cache).map_err(ProtocolError::ReadReplyAfterLengthChecked)?;
+		finish(answer_section_resource_record_visitor, answer_existence, answer_outcome)
 	}
 	
 	#[inline(always)]
-	fn read_reply_after_message_length_checked<'message, RRV: ResourceRecordVisitor<'message>>(&self, raw_dns_message: &'message [u8], answer_section_resource_record_visitor: &mut RRV) -> Result<(AnswerQuality, AnswerOutcome, CanonicalNameChain<'message>), ReadReplyAfterLengthCheckedError<RRV::Error>>
+	fn read_reply_after_message_length_checked<'message, 'cache, RRV: ResourceRecordVisitor<'message>>(&self, raw_dns_message: &'message [u8], answer_section_resource_record_visitor: &mut RRV, cname_query_type_cache: &mut QueryTypeCache<CaseFoldedName<'cache>>) -> Result<(AnswerExistence, AnswerOutcome<'message>), ReadReplyAfterLengthCheckedError<RRV::Error>>
 	{
 		let now = NanosecondsSinceUnixEpoch::now();
 		
 		let dns_message = unsafe { &* (raw_dns_message.as_ptr() as *const DnsMessage) };
-		let answer_quality = self.parse_message_header(dns_message.message_header())?;;
+		let (authoritative_or_authenticated_or_neither, rcode_lower_4_bits) = self.parse_message_header(dns_message.message_header())?;;
 		
 		let start_of_message_pointer = raw_dns_message.start_pointer();
 		let mut parsed_names = ParsedNames::new(start_of_message_pointer);
@@ -50,16 +64,16 @@ impl Query
 		
 		let (next_resource_record_pointer, query_name) = self.parse_query_section(dns_message.query_section_entry(), &mut parsed_names, end_of_message_pointer).map_err(SectionError::QuerySection)?;
 		let response_record_sections_parser = ResponseRecordSectionsParser::new(now, self.data_type, end_of_message_pointer, message_header, parsed_names);
-		let (end_of_parsed_message_pointer, answer_outcome, canonical_name_chain) = response_record_sections_parser.parse_answer_authority_and_additional_sections(next_resource_record_pointer, query_name, answer_quality, answer_section_resource_record_visitor)?;
+		let (end_of_parsed_message_pointer, answer_outcome, canonical_name_records) = response_record_sections_parser.parse_answer_authority_and_additional_sections(next_resource_record_pointer, query_name, authoritative_or_authenticated_or_neither, rcode_lower_4_bits, answer_section_resource_record_visitor)?;
 		
 		if unlikely!(end_of_parsed_message_pointer < end_of_message_pointer)
 		{
-			Err(ReadReplyAfterLengthCheckedError::MessageHadUnparsedBytesAtEnd(self.message_identifier))
+			return Err(ReadReplyAfterLengthCheckedError::MessageHadUnparsedBytesAtEnd(self.message_identifier))
 		}
-		else
-		{
-			Ok((answer_quality, answer_outcome, canonical_name_chain))
-		}
+		
+		cname_query_type_cache.put_present(canonical_name_records);
+		
+		Ok((answer_existence, answer_outcome))
 	}
 	
 	#[allow(deprecated)]
@@ -97,7 +111,7 @@ impl Query
 	}
 	
 	#[inline(always)]
-	fn parse_message_header(&self, message_header: &MessageHeader) -> Result<AnswerQuality, MessageHeaderError>
+	fn parse_message_header(&self, message_header: &MessageHeader) -> Result<(AuthoritativeOrAuthenticatedOrNeither, RCodeLower4Bits), MessageHeaderError>
 	{
 		message_header.validate_is_not_query()?;
 		message_header.validate_is_expected_reply(self.message_identifier)?;
@@ -107,7 +121,10 @@ impl Query
 		message_header.validate_response_is_not_truncated()?;
 		message_header.validate_recursion_desired_bit_was_copied_from_query_and_is_one()?;
 		message_header.validate_checking_bit_was_copied_from_query_and_is_zero()?;
-		message_header.validate_authentic_answers_do_not_have_authoritative_data_bit_set_and_validate_message_response_code()
+		
+		let authoritative_or_authenticated_or_neither = message_header.validate_authoritative_or_authenticated()?;
+		let rcode_lower_4_bits = message_header.raw_message_response_code();
+		Ok((authoritative_or_authenticated_or_neither, rcode_lower_4_bits))
 	}
 	
 	#[inline(always)]

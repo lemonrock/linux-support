@@ -2,16 +2,18 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) enum CacheEntry<Record: Sized + Clone>
+pub(crate) enum CacheEntry<Record: Sized>
 {
-	AbsentButUncached,
+	/// One-time use.
+	AbsentUseOnce(Rc<StartOfAuthority<'static, CaseFoldedName<'static>>>),
 	
-	AbsentNegativelyCached(NanosecondsSinceUnixEpoch),
+	/// Negatively cached.
+	AbsentNegativelyCached(NanosecondsSinceUnixEpoch, Rc<StartOfAuthority<'static, CaseFoldedName<'static>>>),
 	
 	Present(Present<Record>),
 }
 
-impl<Record: Sized + Clone> CacheEntry<Record>
+impl<Record: Sized> CacheEntry<Record>
 {
 	#[inline(always)]
 	pub(crate) fn records_count(&self) -> usize
@@ -20,7 +22,7 @@ impl<Record: Sized + Clone> CacheEntry<Record>
 		
 		match self
 		{
-			AbsentButUncached | AbsentNegativelyCached(_) => 1,
+			AbsentUseOnce(_) | AbsentNegativelyCached(_, _) => 1,
 			
 			Present(ref present) => present.records_count(),
 		}

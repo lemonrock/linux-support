@@ -2,18 +2,20 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A 16-bit message identifier, set in a request and returned in a reply.
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(transparent)]
-pub struct MessageIdentifier(BigEndianU16);
+/// Known to exist.
+#[derive(Debug)]
+pub struct Exists<Record: Sized>(BTreeMap<Priority, SortedWeightedRecords<Record>>);
 
-impl MessageIdentifier
+impl<Record: Sized> Exists<Record>
 {
-	/// Random.
+	/// Iterate destructively.
+	///
+	/// The iterator will always contain at least one instance of `SortedWeightedRecords` which will always contain at least one `Record`.
+	///
+	/// Does not implement `IntoIterator` as we do not know `IntoIterator::IntoIter`'s type.
 	#[inline(always)]
-	pub(crate) fn random() -> Self
+	pub fn into_iter(mut self) -> impl Iterator<Item=Rc<Record>>
 	{
-		Self(fast_slightly_insecure_random_u16().to_be_bytes())
+		self.0.into_iter().flat_map(|(_priority, sorted_weighted_records)| sorted_weighted_records)
 	}
 }
-

@@ -44,10 +44,10 @@ impl<'a, 'b> TryFrom<&'b [u8]> for CaseFoldedName<'a>
 	}
 }
 
-impl<'a, 'message> From<ParsedName<'message>> for CaseFoldedName<'a>
+impl<'a, 'message, 'b> From<&'b ParsedName<'message>> for CaseFoldedName<'a>
 {
 	#[inline(always)]
-	fn from(value: ParsedName<'message>) -> Self
+	fn from(value: &'b ParsedName<'message>) -> Self
 	{
 		Self
 		{
@@ -58,13 +58,23 @@ impl<'a, 'message> From<ParsedName<'message>> for CaseFoldedName<'a>
 				for index in 0 .. value.number_of_labels_including_root().get()
 				{
 					let parsed_label_cow = value.label(index);
-					labels.push(Self::from(parsed_label_cow.deref()))
+					labels.push(CaseFoldedLabel::from(parsed_label_cow.deref()))
 				}
 				
 				labels.into_boxed_slice()
 			},
+			
 			name_length_including_trailing_periods_after_labels: value.name_length_including_trailing_periods_after_labels
 		}
+	}
+}
+
+impl<'a, 'message> From<ParsedName<'message>> for CaseFoldedName<'a>
+{
+	#[inline(always)]
+	fn from(value: ParsedName<'message>) -> Self
+	{
+		Self::from(&value)
 	}
 }
 
