@@ -59,7 +59,8 @@ impl<'cache> Query<'cache>
 		let now = NanosecondsSinceUnixEpoch::now();
 		
 		let dns_message = unsafe { &* (raw_dns_message.as_ptr() as *const DnsMessage) };
-		let (authoritative_or_authenticated_or_neither, rcode_lower_4_bits) = self.parse_message_header(dns_message.message_header())?;
+		let message_header = dns_message.message_header();
+		let (authoritative_or_authenticated_or_neither, rcode_lower_4_bits) = self.parse_message_header(message_header)?;
 		
 		let start_of_message_pointer = raw_dns_message.start_pointer();
 		let mut parsed_names = ParsedNames::new(start_of_message_pointer);
@@ -80,7 +81,7 @@ impl<'cache> Query<'cache>
 	
 	#[allow(deprecated)]
 	#[inline(always)]
-	fn reply_message<'yielder, SD: SocketData>(stream: &mut TlsClientStream<'yielder, SD>, buffer: &mut [ResourceRecord::UdpRequestorsPayloadSize]) -> Result<usize, MessageLengthError>
+	fn reply_message<'yielder, SD: SocketData>(stream: &mut TlsClientStream<'yielder, SD>, buffer: &mut [u8; ResourceRecord::UdpRequestorsPayloadSize]) -> Result<usize, MessageLengthError>
 	{
 		let message_length = Self::tcp_reply_message_length(stream)?;
 		stream.read_all_data(&mut buffer[.. message_length]);

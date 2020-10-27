@@ -54,7 +54,7 @@ impl<E: error::Error> From<ValidateMinimumRecordSizeAndParseNameAndResourceRecor
 	#[inline(always)]
 	fn from(value: ValidateMinimumRecordSizeAndParseNameAndResourceRecordTypeError) -> Self
 	{
-		AnswerError::ValidateMinimumRecordSizeAndParseNameAndResourceRecordType(value)
+		AnswerSectionError::ValidateMinimumRecordSizeAndParseNameAndResourceRecordType(value)
 	}
 }
 
