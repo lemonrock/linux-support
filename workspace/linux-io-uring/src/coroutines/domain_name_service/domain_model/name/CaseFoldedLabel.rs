@@ -4,9 +4,9 @@
 
 /// A case-folded (normalized to lower case) label.
 #[derive(Default, Debug, Clone)]
-pub struct CaseFoldedLabel<'a>(Cow<'a, [u8]>);
+pub struct CaseFoldedLabel<'cache>(Cow<'cache, [u8]>);
 
-impl<'a> TryFrom<Box<[u8]>> for CaseFoldedLabel<'a>
+impl<'cache> TryFrom<Box<[u8]>> for CaseFoldedLabel<'cache>
 {
 	type Error = CaseFoldedLabelParseError;
 	
@@ -18,7 +18,7 @@ impl<'a> TryFrom<Box<[u8]>> for CaseFoldedLabel<'a>
 	}
 }
 
-impl<'a> TryFrom<Vec<u8>> for CaseFoldedLabel<'a>
+impl<'cache> TryFrom<Vec<u8>> for CaseFoldedLabel<'cache>
 {
 	type Error = CaseFoldedLabelParseError;
 	
@@ -30,12 +30,12 @@ impl<'a> TryFrom<Vec<u8>> for CaseFoldedLabel<'a>
 	}
 }
 
-impl<'a> TryFrom<&'a [u8]> for CaseFoldedLabel<'a>
+impl<'cache> TryFrom<&'cache [u8]> for CaseFoldedLabel<'cache>
 {
 	type Error = CaseFoldedLabelParseError;
 	
 	#[inline(always)]
-	fn try_from(value: &'a [u8]) -> Result<Self, Self::Error>
+	fn try_from(value: &'cache [u8]) -> Result<Self, Self::Error>
 	{
 		Self::validate_bytes(value)?;
 		Ok(Self(Cow::Borrowed(value)))
@@ -43,7 +43,7 @@ impl<'a> TryFrom<&'a [u8]> for CaseFoldedLabel<'a>
 }
 
 /// This clones the underlying data and case-folds.
-impl<'a, 'message> From<ParsedLabel<'message>> for CaseFoldedLabel<'a>
+impl<'cache: 'message, 'message> From<ParsedLabel<'message>> for CaseFoldedLabel<'cache>
 {
 	#[inline(always)]
 	fn from(value: ParsedLabel<'message>) -> Self
@@ -61,7 +61,7 @@ impl<'a, 'message> From<ParsedLabel<'message>> for CaseFoldedLabel<'a>
 	}
 }
 
-impl<'a> PartialEq for CaseFoldedLabel<'a>
+impl<'cache> PartialEq for CaseFoldedLabel<'cache>
 {
 	#[inline(always)]
 	fn eq(&self, rhs: &Self) -> bool
@@ -70,11 +70,11 @@ impl<'a> PartialEq for CaseFoldedLabel<'a>
 	}
 }
 
-impl<'a> Eq for CaseFoldedLabel<'a>
+impl<'cache> Eq for CaseFoldedLabel<'cache>
 {
 }
 
-impl<'a> PartialOrd for CaseFoldedLabel<'a>
+impl<'cache> PartialOrd for CaseFoldedLabel<'cache>
 {
 	#[inline(always)]
 	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
@@ -83,7 +83,7 @@ impl<'a> PartialOrd for CaseFoldedLabel<'a>
 	}
 }
 
-impl<'a> Ord for CaseFoldedLabel<'a>
+impl<'cache> Ord for CaseFoldedLabel<'cache>
 {
 	#[inline(always)]
 	fn cmp(&self, rhs: &Self) -> Ordering
@@ -92,7 +92,7 @@ impl<'a> Ord for CaseFoldedLabel<'a>
 	}
 }
 
-impl<'a> Hash for CaseFoldedLabel<'a>
+impl<'cache> Hash for CaseFoldedLabel<'cache>
 {
 	#[inline(always)]
 	fn hash<H: Hasher>(&self, state: &mut H)
@@ -101,7 +101,7 @@ impl<'a> Hash for CaseFoldedLabel<'a>
 	}
 }
 
-impl<'a, 'message> PartialEq<ParsedLabel<'message>> for CaseFoldedLabel<'a>
+impl<'cache: 'message, 'message> PartialEq<ParsedLabel<'message>> for CaseFoldedLabel<'cache>
 {
 	#[inline(always)]
 	fn eq(&self, rhs: &ParsedLabel<'message>) -> bool
@@ -110,7 +110,7 @@ impl<'a, 'message> PartialEq<ParsedLabel<'message>> for CaseFoldedLabel<'a>
 	}
 }
 
-impl<'a, 'message> PartialOrd<ParsedLabel<'message>> for CaseFoldedLabel<'a>
+impl<'cache: 'message, 'message> PartialOrd<ParsedLabel<'message>> for CaseFoldedLabel<'cache>
 {
 	#[inline(always)]
 	fn partial_cmp(&self, rhs: &ParsedLabel<'message>) -> Option<Ordering>
@@ -119,7 +119,7 @@ impl<'a, 'message> PartialOrd<ParsedLabel<'message>> for CaseFoldedLabel<'a>
 	}
 }
 
-impl<'a> Label<'a> for CaseFoldedLabel<'a>
+impl<'cache> Label<'cache> for CaseFoldedLabel<'cache>
 {
 	#[inline(always)]
 	fn len(&self) -> u8
@@ -140,7 +140,7 @@ impl<'a> Label<'a> for CaseFoldedLabel<'a>
 	}
 }
 
-impl<'a> CaseFoldedLabel<'a>
+impl<'cache> CaseFoldedLabel<'cache>
 {
 	const MaximumSize: usize = 63;
 	

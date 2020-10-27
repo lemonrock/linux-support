@@ -13,6 +13,7 @@ include!("CaseFoldedNameParseError.rs");
 include!("CompressedPointerOffset.rs");
 include!("Label.rs");
 include!("LabelKind.rs");
+include!("LabelMaximumNumber.rs");
 include!("Name.rs");
 include!("ParsedLabel.rs");
 include!("ParsedNames.rs");

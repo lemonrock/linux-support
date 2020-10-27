@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub trait Label<'label>
+pub trait Label<'label>: Clone
 {
 	/// Is the terminal root label?
 	#[inline(always)]

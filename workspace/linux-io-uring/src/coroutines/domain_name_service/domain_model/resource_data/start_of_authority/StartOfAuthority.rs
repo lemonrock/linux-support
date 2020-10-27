@@ -49,6 +49,8 @@ pub struct StartOfAuthority<'label, N: Name<'label>>
 	///
 	/// A typical value is between 2 weeks (1,209,600 seconds) and 4 weeks (2,419,200 seconds).
 	pub expire_interval: U31SecondsDuration,
+
+	pub(crate) marker: PhantomData<&'label ()>,
 }
 
 impl<'message, 'cache: 'message> Into<StartOfAuthority<'cache, CaseFoldedName<'cache>>> for StartOfAuthority<'message, ParsedName<'message>>
@@ -64,6 +66,7 @@ impl<'message, 'cache: 'message> Into<StartOfAuthority<'cache, CaseFoldedName<'c
 			referesh_interval: self.referesh_interval,
 			retry_interval: self.retry_interval,
 			expire_interval: self.expire_interval,
+			marker: PhantomData,
 		}
 	}
 }

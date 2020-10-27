@@ -491,6 +491,7 @@ impl ResourceRecord
 				referesh_interval: footer.refresh_interval.into(),
 				retry_interval: footer.retry_interval.into(),
 				expire_interval: footer.expire_interval.into(),
+				marker: PhantomData,
 			};
 			
 			resource_record_visitor.SOA(resource_record_name, negative_cache_until, record).map_err(|error| HandleRecordTypeError::ResourceRecordVisitor(DataType::SOA, error))?;

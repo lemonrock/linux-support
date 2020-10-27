@@ -14,7 +14,7 @@ impl<Record: Sized> Exists<Record>
 	///
 	/// Does not implement `IntoIterator` as we do not know `IntoIterator::IntoIter`'s type.
 	#[inline(always)]
-	pub fn into_iter(mut self) -> impl Iterator<Item=Rc<Record>>
+	pub fn into_iter(self) -> impl Iterator<Item=Rc<Record>>
 	{
 		self.0.into_iter().flat_map(|(_priority, sorted_weighted_records)| sorted_weighted_records)
 	}

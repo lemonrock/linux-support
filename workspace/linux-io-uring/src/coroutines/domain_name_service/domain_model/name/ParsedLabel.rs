@@ -50,23 +50,23 @@ impl<'message> Hash for ParsedLabel<'message>
 	}
 }
 
-impl<'message, 'a> PartialEq<CaseFoldedLabel<'a>> for ParsedLabel<'a>
-{
-	#[inline(always)]
-	fn eq(&self, rhs: &CaseFoldedLabel<'a>) -> bool
-	{
-		self.equals(rhs)
-	}
-}
-
-impl<'message, 'a> PartialOrd<CaseFoldedLabel<'a>> for ParsedLabel<'message>
-{
-	#[inline(always)]
-	fn partial_cmp(&self, rhs: &CaseFoldedLabel<'a>) -> Option<Ordering>
-	{
-		self.partial_compare(rhs)
-	}
-}
+// impl<'message, 'cache: 'message> PartialEq<CaseFoldedLabel<'cache>> for ParsedLabel<'cache>
+// {
+// 	#[inline(always)]
+// 	fn eq(&self, rhs: &CaseFoldedLabel<'cache>) -> bool
+// 	{
+// 		self.equals(rhs)
+// 	}
+// }
+//
+// impl<'message, 'cache: 'message> PartialOrd<CaseFoldedLabel<'cache>> for ParsedLabel<'message>
+// {
+// 	#[inline(always)]
+// 	fn partial_cmp(&self, rhs: &CaseFoldedLabel<'cache>) -> Option<Ordering>
+// 	{
+// 		self.partial_compare(rhs)
+// 	}
+// }
 
 impl<'message> Label<'message> for ParsedLabel<'message>
 {
