@@ -53,17 +53,17 @@
 /// * `NAPTR`
 /// * `SRV`
 /// * `DNAME`
-pub(crate) struct ParsedNameParser<'a>
+pub(crate) struct ParsedNameParser<'a, 'message: 'a>
 {
 	compressed_name_presence_error: Option<ParsedNameParserError>,
-	parsed_names: &'a mut ParsedNames,
+	parsed_names: &'a mut ParsedNames<'message>,
 	start_of_name_pointer: usize,
 	maximum_for_end_of_name_pointer: usize,
 	label_data_starts_at_pointers_and_label_length_excluding_trailing_period: ArrayVec<[(usize, u8); Label::MaximumNumber]>,
 	name_length_including_trailing_periods_after_labels: u8,
 }
 
-impl<'a> ParsedNameParser<'a>
+impl<'a, 'message: 'a> ParsedNameParser<'a, 'message>
 {
 	const SizeOfTrailingPeriod: u8 = 1;
 	
@@ -73,20 +73,20 @@ impl<'a> ParsedNameParser<'a>
 	pub(crate) const NameMaximumSize: usize = 255;
 	
 	#[inline(always)]
-	pub(crate) fn parse_name<'message>(compressed_name_presence_error: Option<ParsedNameParserError>, parsed_names: &'a mut ParsedNames, start_of_name_pointer: usize, end_of_data_section_containing_name_pointer: usize) -> Result<(ParsedName<'message>, usize), ParsedNameParserError>
+	pub(crate) fn parse_name(compressed_name_presence_error: Option<ParsedNameParserError>, parsed_names: &'a mut ParsedNames<'message>, start_of_name_pointer: usize, end_of_data_section_containing_name_pointer: usize) -> Result<(ParsedName<'message>, usize), ParsedNameParserError>
 	{
 		let mut this = Self::new(compressed_name_presence_error, parsed_names, start_of_name_pointer, end_of_data_section_containing_name_pointer)?;
 		this.parse()
 	}
 	
 	#[inline(always)]
-	pub(crate) fn parse_name_uncompressed<'message>(parsed_names: &mut ParsedNames, start_of_name_pointer: usize, resource_data_end_pointer: usize) -> Result<(ParsedName<'message>, usize), ParsedNameParserError>
+	pub(crate) fn parse_name_uncompressed(parsed_names: &'a mut ParsedNames<'message>, start_of_name_pointer: usize, resource_data_end_pointer: usize, data_type: DataType) -> Result<(ParsedName<'message>, usize), ParsedNameParserError>
 	{
 		Self::parse_name(Some(ParsedNameParserError::CompressedNameLabelsAreDisallowedInThisResourceRecord(data_type)), parsed_names, start_of_name_pointer, resource_data_end_pointer)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn parse_name_in_slice_with_nothing_left<'message>(data_type: DataType, parsed_names: &mut ParsedNames, slice: &'message [u8]) -> Result<ParsedName<'message>, ParsedNameParserError>
+	pub(crate) fn parse_name_in_slice_with_nothing_left(data_type: DataType, parsed_names: &'a mut ParsedNames<'message>, slice: &'message [u8]) -> Result<ParsedName<'message>, ParsedNameParserError>
 	{
 		let (parsed_name, end_of_name_pointer) = Self::parse_name_in_slice(data_type, parsed_names, slice)?;
 		
@@ -102,7 +102,7 @@ impl<'a> ParsedNameParser<'a>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn parse_name_in_slice<'message>(data_type: DataType, parsed_names: &mut ParsedNames, slice: &'message [u8]) -> Result<(ParsedName<'message>, usize), ParsedNameParserError>
+	pub(crate) fn parse_name_in_slice(data_type: DataType, parsed_names: &'a mut ParsedNames<'message>, slice: &'message [u8]) -> Result<(ParsedName<'message>, usize), ParsedNameParserError>
 	{
 		let start_of_name_pointer = slice.as_ptr() as usize;
 		let end_of_data_section_containing_name_pointer = (unsafe { slice.as_ptr().add(slice.len()) }) as usize;
@@ -110,7 +110,7 @@ impl<'a> ParsedNameParser<'a>
 	}
 	
 	#[inline(always)]
-	fn new(compressed_name_presence_error: Option<ParsedNameParserError>, parsed_names: &'a mut ParsedNames, start_of_name_pointer: usize, end_of_data_section_containing_name_pointer: usize) -> Result<Self, ParsedNameParserError>
+	fn new(compressed_name_presence_error: Option<ParsedNameParserError>, parsed_names: &'a mut ParsedNames<'message>, start_of_name_pointer: usize, end_of_data_section_containing_name_pointer: usize) -> Result<Self, ParsedNameParserError>
 	{
 		debug_assert!(end_of_data_section_containing_name_pointer >= start_of_name_pointer, "end_of_data_section_containing_name_pointer {} occurs before start_of_name_pointer {}", end_of_data_section_containing_name_pointer, start_of_name_pointer);
 		
@@ -129,7 +129,7 @@ impl<'a> ParsedNameParser<'a>
 	}
 	
 	#[inline(always)]
-	fn parse<'message>(mut self) -> Result<(ParsedName<'message>, usize), ParsedNameParserError>
+	fn parse(mut self) -> Result<(ParsedName<'message>, usize), ParsedNameParserError>
 	{
 		let mut label_starts_at_pointer = self.start_of_name_pointer;
 		let end_of_qname_pointer = loop

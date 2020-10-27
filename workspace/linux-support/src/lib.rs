@@ -23,7 +23,6 @@
 #![feature(const_type_id)]
 #![feature(llvm_asm)]
 #![feature(maybe_uninit_extra)]
-#![feature(move_ref_pattern)]
 #![feature(never_type)]
 #![feature(read_initializer)]
 #![feature(specialization)]

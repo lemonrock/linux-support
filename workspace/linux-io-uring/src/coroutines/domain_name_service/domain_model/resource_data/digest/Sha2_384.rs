@@ -6,7 +6,7 @@
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct Sha2_384<'message>(&'message [u8; 384 / BitsInAByte]);
 
-impl Digest for Sha2_384
+impl<'message> Digest for Sha2_384<'message>
 {
 	const DigestSizeInBits: usize = 384;
 }

@@ -10,7 +10,7 @@ pub struct TimeInSeconds(BigEndianI32);
 impl PartialOrd for TimeInSeconds
 {
 	#[inline(always)]
-	fn partial_cmp(&self, rhs: &self) -> Option<Ordering>
+	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
 	{
 		Some(self.cmp(rhs))
 	}
@@ -19,7 +19,7 @@ impl PartialOrd for TimeInSeconds
 impl Ord for TimeInSeconds
 {
 	#[inline(always)]
-	fn cmp(&self, rhs: &self) -> Ordering
+	fn cmp(&self, rhs: &Self) -> Ordering
 	{
 		let left: u32 = self.into();
 		let right: u32 = self.into();
@@ -30,7 +30,7 @@ impl Ord for TimeInSeconds
 impl PartialEq for TimeInSeconds
 {
 	#[inline(always)]
-	fn eq(&self, rhs: &self) -> bool
+	fn eq(&self, rhs: &Self) -> bool
 	{
 		let left: u32 = self.into();
 		let right: u32 = self.into();

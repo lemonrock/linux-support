@@ -3,9 +3,18 @@
 
 
 #[derive(Debug)]
-pub(crate) struct Records<'message, Record: Sized>(HashMap<ParsedName<'message>, Present<Record>>);
+pub(crate) struct Records<'cache, Record: Sized>(HashMap<CaseFoldedName<'cache>, Present<Record>>);
 
-impl<'message, Record: Sized> Records<'message>
+impl<'cache, Record: Sized> Into<HashMap<ParsedName<'cache>, Present<Record>>> for Records<'cache, Record>
+{
+	#[inline(always)]
+	fn into(self) -> HashMap<CaseFoldedName<'cache>, Present<Record>>
+	{
+		self.0
+	}
+}
+
+impl<'cache, Record: Sized> Records<'cache, Record>
 {
 	#[inline(always)]
 	pub(crate) fn with_capacity(capacity: usize) -> Self
@@ -20,27 +29,24 @@ impl<'message, Record: Sized> Records<'message>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn inner(self) -> HashMap<ParsedName<'message>, Present<Record>>
-	{
-		self.0
-	}
-	
-	#[inline(always)]
-	pub(crate) fn store_unprioritized_and_unweighted(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: Record)
+	pub(crate) fn store_unprioritized_and_unweighted<'message>(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: Record)
+	where 'cache: 'message
 	{
 		self.store_unweighted(name, cache_until, Priority::Unassigned, record)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn store_unweighted(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, priority_or_preference: Priority, record: Record)
+	pub(crate) fn store_unweighted<'message>(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, priority_or_preference: Priority, record: Record)
+	where 'cache: 'message
 	{
 		self.store(name, cache_until, priority_or_preference, Weight::Unassigned, record)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn store(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, priority: Priority, weight: Weight, record: Record)
+	pub(crate) fn store<'message>(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, priority: Priority, weight: Weight, record: Record)
+	where 'cache: 'message
 	{
-		let present = self.0.entry(name).or_insert_with(|| Present::default());
+		let present = self.0.entry(CaseFoldedName::map(name)).or_insert_with(|| Present::default());
 		
 		match cache_until
 		{

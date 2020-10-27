@@ -51,7 +51,7 @@ impl<'message> ParsedNames<'message>
 						name_length_including_trailing_period
 					)
 				);
-				debug_assert_eq!(was.is_none())
+				debug_assert!(was.is_none());
 			}
 			
 			length -= 1;

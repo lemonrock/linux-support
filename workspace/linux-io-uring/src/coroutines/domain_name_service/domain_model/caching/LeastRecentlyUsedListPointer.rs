@@ -3,19 +3,19 @@
 
 
 #[derive(Debug)]
-struct LeastRecentlyUsedListPointer<Record: Sized>
+struct LeastRecentlyUsedListPointer<'cache, V: LeastRecentlyUsedCacheValue>
 {
 	previous: *mut Self,
 	next: *mut Self,
 	
-	key: CaseFoldedName,
-	value: CacheEntry<Record>,
+	key: CaseFoldedName<'cache>,
+	value: V,
 }
 
-impl<Record: Sized> LeastRecentlyUsedListPointer<Record>
+impl<'cache, V: LeastRecentlyUsedCacheValue> LeastRecentlyUsedListPointer<'cache, V>
 {
 	#[inline(always)]
-	unsafe fn new<'cache>(least_recently_used_list_head: &mut *mut Self, least_recently_used_list_tail: &mut *mut Self, key: CaseFoldedName, value: CacheEntry<Record>) -> (LeastRecentlyUsedListKeyReference<'cache>, NonNull<Self>)
+	unsafe fn new(least_recently_used_list_head: &mut *mut Self, least_recently_used_list_tail: &mut *mut Self, key: CaseFoldedName<'cache>, value: V) -> (LeastRecentlyUsedListKeyReference<'cache>, NonNull<Self>)
 	{
 		let mut this = Box::new
 		(
@@ -51,7 +51,7 @@ impl<Record: Sized> LeastRecentlyUsedListPointer<Record>
 	}
 	
 	#[inline(always)]
-	unsafe fn key_reference<'cache>(&mut self) -> LeastRecentlyUsedListKeyReference<'cache>
+	unsafe fn key_reference(&mut self) -> LeastRecentlyUsedListKeyReference<'cache>
 	{
 		LeastRecentlyUsedListKeyReference
 		{
@@ -66,12 +66,12 @@ impl<Record: Sized> LeastRecentlyUsedListPointer<Record>
 		
 		instance.detach(least_recently_used_list_head, least_recently_used_list_tail);
 		let removed_records_count = instance.removed_records_count();
-		*records_count = (*records_count) - removed_records_count;
+		*records_count = (*records_count) - removed_records_count.get();
 		drop(Box::from_raw(this.as_ptr()));
 	}
 	
 	#[inline(always)]
-	fn removed_records_count(&self) -> usize
+	fn removed_records_count(&self) -> NonZeroUsize
 	{
 		self.value.records_count()
 	}
@@ -105,7 +105,7 @@ impl<Record: Sized> LeastRecentlyUsedListPointer<Record>
 		self.next = null_mut();
 	}
 	
-	unsafe fn attach_to_tail_of_least_recently_used_list(&mut self, least_recently_used_list_tail: &mut *mut LeastRecentlyUsedListPointer)
+	unsafe fn attach_to_tail_of_least_recently_used_list(&mut self, least_recently_used_list_tail: &mut *mut Self)
 	{
 		debug_assert!(self.previous.is_null());
 		debug_assert!(self.next.is_null());

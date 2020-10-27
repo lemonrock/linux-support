@@ -13,16 +13,18 @@ pub(crate) enum CacheEntry<Record: Sized>
 	Present(Present<Record>),
 }
 
-impl<Record: Sized> CacheEntry<Record>
+impl<Record: Sized> LeastRecentlyUsedCacheValue for CacheEntry<Record>
 {
 	#[inline(always)]
-	pub(crate) fn records_count(&self) -> usize
+	fn records_count(&self) -> NonZeroUsize
 	{
 		use self::CacheEntry::*;
 		
+		const One: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(1) };
+		
 		match self
 		{
-			AbsentUseOnce(_) | AbsentNegativelyCached(_, _) => 1,
+			AbsentUseOnce(_) | AbsentNegativelyCached(_, _) => One,
 			
 			Present(ref present) => present.records_count(),
 		}

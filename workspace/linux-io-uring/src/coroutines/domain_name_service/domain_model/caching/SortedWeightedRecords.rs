@@ -47,7 +47,7 @@ impl<Record: Sized> Iterator for SortedWeightedRecords<Record>
 		// (3) Loop over weighted records, finding the first record that has a `running_sum_of_weights` equal to or greater than the random `random_running_sum_of_weight`.
 		
 		// (3.1) Optimization to avoid loop if there is only one weighted record.
-		if unlikely!(length == 1)
+		if unlikely!(weighted_length == 1)
 		{
 			let (weight, record) = self.weighted.remove(0);
 			debug_assert_eq!(weight.get() as u64, self.current_sum_of_all_weighted);
@@ -123,7 +123,7 @@ impl<Record: Sized> SortedWeightedRecords<Record>
 		{
 			let weight = weight.into_non_zero_u16();
 			self.weighted.push((weight, record));
-			self.current_sum_of_all_weighted += (weight.get() as u64);
+			self.current_sum_of_all_weighted += weight.get() as u64;
 		}
 	}
 	
@@ -152,6 +152,35 @@ impl<Record: Sized> SortedWeightedRecords<Record>
 	fn record_count(&self) -> usize
 	{
 		self.weightless.len() + self.weighted.len()
+	}
+	
+	#[inline(always)]
+	fn map<NewRecord: Sized>(self, map: impl Fn(Record) -> NewRecord) -> SortedWeightedRecords<NewRecord>
+	{
+		SortedWeightedRecords
+		{
+			weightless:
+			{
+				let mut weightless = Vec::with_capacity(self.weightless.len());
+				for record in self.weightless
+				{
+					weightless.push(Rc::new(map(record)));
+				}
+				weightless
+			},
+			
+			weighted:
+			{
+				let mut weighted = Vec::with_capacity(self.weighted.len());
+				for (weight, record) in self.weighted
+				{
+					weighted.push((weight, Rc::new(map(record))));
+				}
+				weighted
+			},
+			
+			current_sum_of_all_weighted: self.current_sum_of_all_weighted,
+		}
 	}
 	
 	#[doc(hidden)]

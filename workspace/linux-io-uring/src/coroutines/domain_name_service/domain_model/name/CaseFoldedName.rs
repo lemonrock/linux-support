@@ -4,14 +4,14 @@
 
 /// A case-folded (normalized to lower case) name which consists of labels, including a terminal root label.
 #[derive(Default, Debug, Clone)]
-pub struct CaseFoldedName<'a>
+pub struct CaseFoldedName<'label>
 {
-	labels: Box<[CaseFoldedLabel<'a>]>,
+	labels: Box<[CaseFoldedLabel<'label>]>,
 	
 	name_length_including_trailing_periods_after_labels: NonZeroU8,
 }
 
-impl<'a, 'b> TryFrom<&'b [u8]> for CaseFoldedName<'a>
+impl<'label, 'b> TryFrom<&'b [u8]> for CaseFoldedName<'label>
 {
 	type Error = CaseFoldedNameParseError;
 	
@@ -44,7 +44,7 @@ impl<'a, 'b> TryFrom<&'b [u8]> for CaseFoldedName<'a>
 	}
 }
 
-impl<'a, 'message, 'b> From<&'b ParsedName<'message>> for CaseFoldedName<'a>
+impl<'label: 'message, 'message, 'b> From<&'b ParsedName<'message>> for CaseFoldedName<'label>
 {
 	#[inline(always)]
 	fn from(value: &'b ParsedName<'message>) -> Self
@@ -69,7 +69,7 @@ impl<'a, 'message, 'b> From<&'b ParsedName<'message>> for CaseFoldedName<'a>
 	}
 }
 
-impl<'a, 'message> From<ParsedName<'message>> for CaseFoldedName<'a>
+impl<'label: 'message, 'message> From<ParsedName<'message>> for CaseFoldedName<'label>
 {
 	#[inline(always)]
 	fn from(value: ParsedName<'message>) -> Self
@@ -78,9 +78,9 @@ impl<'a, 'message> From<ParsedName<'message>> for CaseFoldedName<'a>
 	}
 }
 
-impl<'a> Name for CaseFoldedName<'a>
+impl<'label> Name<'label> for CaseFoldedName<'label>
 {
-	type Label = CaseFoldedLabel;
+	type Label = CaseFoldedLabel<'label>;
 	
 	#[inline(always)]
 	fn parent(&self) -> Option<Self>
@@ -105,7 +105,7 @@ impl<'a> Name for CaseFoldedName<'a>
 	}
 	
 	#[inline(always)]
-	fn label(&self, index: u8) -> Cow<'a, Self::Label>
+	fn label(&self, index: u8) -> Cow<'label, Self::Label>
 	{
 		Cow::Borrowed(unsafe { self.labels.get_unchecked(index as usize) })
 	}
@@ -183,6 +183,13 @@ impl<'a, 'message> PartialOrd<ParsedName<'message>> for CaseFoldedName<'a>
 
 impl<'a> CaseFoldedName<'a>
 {
+	#[inline(always)]
+	pub(crate) fn map<'message>(parsed_name: ParsedName<'message>) -> Self
+	where 'a: 'message
+	{
+		Self::from(parsed_name)
+	}
+	
 	/// Push a child to the front of this name.
 	///
 	/// This will always succeed if this is a root, top level or second level name.
@@ -298,7 +305,7 @@ impl<'a> CaseFoldedName<'a>
 			{
 				NonZeroU8::new_unchecked
 				(
-					third_level_level_label.length_including_trailing_period().get()
+					third_level_label.length_including_trailing_period().get()
 					+ second_level_label.length_including_trailing_period().get()
 					+ top_level_label.length_including_trailing_period().get()
 					+ CaseFoldedLabel::Root.length_including_trailing_period().get()
@@ -356,7 +363,7 @@ impl CaseFoldedName<'static>
 	{
 		lazy_static!
 		{
-    		static ref SpecialUses: CaseFoldedName<'static> = Self::special_use_domain_names() & (&Self::rfc_7788_local_name_mistake()) & (&Self::recommended_local_names_in_rfc_6762_appendix_g()) & (&Self::iana_test_internationalized_domain_names());
+    		static ref SpecialUses: CaseFoldedName<'static> = CaseFoldedName::special_use_domain_names() & (&CaseFoldedName::rfc_7788_local_name_mistake()) & (&CaseFoldedName::recommended_local_names_in_rfc_6762_appendix_g()) & (&CaseFoldedName::iana_test_internationalized_domain_names());
     	}
 		
 		&SpecialUses
@@ -475,59 +482,59 @@ impl CaseFoldedName<'static>
 	{
 		hashset!
 		{
-			/// Language:  Arabic
-			/// Script: Arabic
-			/// Non-punycode name `.إختبار.`
+			// Language:  Arabic
+			// Script: Arabic
+			// Non-punycode name `.إختبار.`
 			Self::from("xn--kgbechtv"),
 			
-			/// Language: Persian
-			/// Script: Arabic
-			/// Non-punycode name `.آزمایشی.`
+			// Language: Persian
+			// Script: Arabic
+			// Non-punycode name `.آزمایشی.`
 			Self::from("xn--hgbk6aj7f53bba"),
 			
-			/// Language: Chinese
-			/// Script: Han (Simplified variant)
-			/// Non-punycode name `.测试.`
+			// Language: Chinese
+			// Script: Han (Simplified variant)
+			// Non-punycode name `.测试.`
 			Self::from("xn--0zwm56d"),
 			
-			/// Language: Chinese
-			/// Script: Han (Traditional variant)
-			/// Non-punycode name `.測試.`
+			// Language: Chinese
+			// Script: Han (Traditional variant)
+			// Non-punycode name `.測試.`
 			Self::from("xn--g6w251d"),
 			
-			/// Language: Russian
-			/// Script: Cyrillic
-			/// Non-punycode name `.испытание.`
+			// Language: Russian
+			// Script: Cyrillic
+			// Non-punycode name `.испытание.`
 			Self::from("xn--80akhbyknj4f"),
 			
-			/// Language: Hindi
-			/// Script: Devanagari (Nagari)
-			/// Non-punycode name `.परीक्षा.`
+			// Language: Hindi
+			// Script: Devanagari (Nagari)
+			// Non-punycode name `.परीक्षा.`
 			Self::from("xn--11b5bs3a9aj6g"),
 			
-			/// Language: Greek, Modern (1453-)
-			/// Script: Greek
-			/// Non-punycode name `.δοκιμή.`
+			// Language: Greek, Modern (1453-)
+			// Script: Greek
+			// Non-punycode name `.δοκιμή.`
 			Self::from("xn--jxalpdlp"),
 			
-			/// Language: Korean
-			/// Script: Hangul (Hangŭl, Hangeul)
-			/// Non-punycode name `.테스트.`
+			// Language: Korean
+			// Script: Hangul (Hangŭl, Hangeul)
+			// Non-punycode name `.테스트.`
 			Self::from("xn--9t4b11yi5a"),
 			
-			/// Language: Yiddish
-			/// Script: Hebrew
-			/// Non-punycode name `.טעסט.`
+			// Language: Yiddish
+			// Script: Hebrew
+			// Non-punycode name `.טעסט.`
 			Self::from("xn--deba0ad"),
 			
-			/// Language: Japanese
-			/// Script: Katakana
-			/// Non-punycode name `.テスト.`
+			// Language: Japanese
+			// Script: Katakana
+			// Non-punycode name `.テスト.`
 			Self::from("xn--zckzah"),
 			
-			/// Language: Tamil
-			/// Script: Tamil
-			/// Non-punycode name `.பரிட்சை.`
+			// Language: Tamil
+			// Script: Tamil
+			// Non-punycode name `.பரிட்சை.`
 			Self::from("xn--hlcj6aya9esc7a"),
 		}
 	}

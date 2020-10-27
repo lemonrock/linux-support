@@ -12,7 +12,7 @@ pub(crate) struct ParsedName<'message>
 	marker: PhantomData<&'message ()>
 }
 
-impl<'message> Name for ParsedName<'message>
+impl<'message> Name<'message> for ParsedName<'message>
 {
 	type Label = ParsedLabel<'message>;
 	
@@ -36,7 +36,7 @@ impl<'message> Name for ParsedName<'message>
 	#[inline(always)]
 	fn label(&self, index: u8) -> Cow<'message, Self::Label>
 	{
-		let (label_data_starts_at_pointer, label_length_excluding_trailing_period) = (unsafe { self.label_data_starts_at_pointers_and_label_length_excluding_trailing_period.get_unchecked(index as usize) });
+		let (label_data_starts_at_pointer, label_length_excluding_trailing_period) = unsafe { self.label_data_starts_at_pointers_and_label_length_excluding_trailing_period.get_unchecked(index as usize) };
 		
 		let label_data_starts_at_pointer = *label_data_starts_at_pointer;
 		let label_length_excluding_trailing_period = *label_length_excluding_trailing_period;
@@ -97,16 +97,16 @@ impl<'message> Hash for ParsedName<'message>
 	}
 }
 
-impl<'message, 'a> PartialEq<CaseFoldedName<'a>> for ParsedName<'message>
+impl<'message, 'label> PartialEq<CaseFoldedName<'label>> for ParsedName<'message>
 {
 	#[inline(always)]
-	fn eq(&self, rhs: &CaseFoldedName<'a>) -> bool
+	fn eq(&self, rhs: &CaseFoldedName<'label>) -> bool
 	{
 		self.equals(rhs)
 	}
 }
 
-impl<'message, 'a> PartialOrd<CaseFoldedNam<'a>> for ParsedName<'message>
+impl<'message, 'label> PartialOrd<CaseFoldedName<'label>> for ParsedName<'message>
 {
 	#[inline(always)]
 	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>

@@ -25,15 +25,15 @@ impl RecentMessageIdentifiers
 		
 		Self
 		{
-			recently_generated_random: HashSet::with_capacity(capacity),
+			recently_generated_random: HashSet::with_capacity(capacity_power_of_two),
 			recently_generated_ring_queue:
 			{
-				let mut most_recently_used = Vec::with_capacity(capacity);
-				unsafe { most_recently_used.set_len(capacity) };
+				let mut most_recently_used = Vec::with_capacity(capacity_power_of_two);
+				unsafe { most_recently_used.set_len(capacity_power_of_two) };
 				most_recently_used.into_boxed_slice()
 			},
-			capacity_power_of_two: capacity,
-			capacity_mask: capacity - 1,
+			capacity_power_of_two,
+			capacity_mask: capacity_power_of_two - 1,
 			recently_generated_ring_queue_head: 0,
 			recently_generated_ring_queue_tail: 0,
 		}
@@ -82,7 +82,7 @@ impl RecentMessageIdentifiers
 		debug_assert_ne!(self.recently_generated_ring_queue_tail, self.recently_generated_ring_queue_head);
 		
 		let tail_index = self.recently_generated_ring_queue_tail & self.capacity_mask;
-		let message_identifier = unsafe { self.recently_generated_ring_queue.get_unchecked(head_index) };
+		let message_identifier = unsafe { self.recently_generated_ring_queue.get_unchecked(tail_index) };
 		self.recently_generated_ring_queue_tail += 1;
 		
 		let was_present = self.recently_generated_random.remove(message_identifier);

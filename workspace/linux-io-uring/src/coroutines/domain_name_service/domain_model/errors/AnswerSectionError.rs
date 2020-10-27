@@ -61,7 +61,7 @@ impl<E: error::Error> From<ValidateMinimumRecordSizeAndParseNameAndResourceRecor
 impl<E: error::Error> From<ValidateMinimumRecordSizeAndParseNameAndResourceRecordTypeError> for AnswerSectionError<E>
 {
 	#[inline(always)]
-	fn from(value: HandleRecordType) -> Self
+	fn from(value: HandleRecordTypeError<E>) -> Self
 	{
 		AnswerSectionError::HandleRecordType(value)
 	}

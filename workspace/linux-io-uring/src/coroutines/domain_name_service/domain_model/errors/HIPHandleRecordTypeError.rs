@@ -36,7 +36,7 @@ impl error::Error for HIPHandleRecordTypeError
 		{
 			&IpsecLikePublicKeyHandleRecordType(ref error) => Some(error),
 			
-			&FirstRendezvousServerName(ref error) => Some(error),
+			&FirstRendezvousServerDomainName(ref error) => Some(error),
 			
 			_ => None,
 		}

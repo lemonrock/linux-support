@@ -5,7 +5,14 @@
 /// Visits different kinds of records.
 pub(crate) trait ResourceRecordVisitor<'message>
 {
+	/// Errors are of this type when visiting.
 	type Error: error::Error;
+	
+	/// Result of `finished()`.
+	type Finished: Sized;
+	
+	/// All records visited.
+	fn finished(self) -> Self::Finished;
 	
 	/// Visits a record of type `A`.
 	///

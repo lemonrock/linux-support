@@ -5,15 +5,14 @@
 pub trait Name<'label>: Sized
 {
 	#[doc(hidden)]
-	type Label: Label;
+	type Label: Label<'label>;
 	
 	/// Parent.
-	#[inline(always)]
 	fn parent(&self) -> Option<Self>;
 	
 	/// Ends with name?
 	#[inline(always)]
-	fn ends_with<RHS: Name>(&self, ends_with: &RHS) -> bool
+	fn ends_with<'ends_with_label, RHS: Name<'ends_with_label>>(&self, ends_with: &RHS) -> bool
 	{
 		if self.name_length_including_trailing_periods_after_labels() < ends_with.name_length_including_trailing_periods_after_labels()
 		{
@@ -47,7 +46,7 @@ pub trait Name<'label>: Sized
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn equals<RHS: Name>(&self, rhs: &RHS) -> bool
+	fn equals<'rhs_label, RHS: Name<'rhs_label>>(&self, rhs: &RHS) -> bool
 	{
 		if self.number_of_labels_including_root() != rhs.number_of_labels_including_root()
 		{
@@ -70,14 +69,14 @@ pub trait Name<'label>: Sized
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn partial_compare<RHS: Name>(&self, rhs: &RHS) -> Option<Ordering>
+	fn partial_compare<'rhs_label, RHS: Name<'rhs_label>>(&self, rhs: &RHS) -> Option<Ordering>
 	{
 		Some(self.compare(rhs))
 	}
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn compare<RHS: Name>(&self, rhs: &RHS) -> Ordering
+	fn compare<'rhs_label, RHS: Name<'rhs_label>>(&self, rhs: &RHS) -> Ordering
 	{
 		let left_length = self.number_of_labels_including_root().get();
 		let right_length = rhs.number_of_labels_including_root().get();
@@ -112,15 +111,12 @@ pub trait Name<'label>: Sized
 	}
 	
 	#[doc(hidden)]
-	#[inline(always)]
 	fn label(&self, index: u8) -> Cow<'label, Self::Label>;
 	
 	/// Number of labels.
-	#[inline(always)]
 	fn number_of_labels_including_root(&self) -> NonZeroU8;
 	
 	/// Length of name.
-	#[inline(always)]
 	fn name_length_including_trailing_periods_after_labels(&self) -> NonZeroU8;
 	
 	/// Is root?

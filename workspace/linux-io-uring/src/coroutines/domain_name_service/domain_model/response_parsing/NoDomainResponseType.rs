@@ -5,22 +5,26 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum NoDomainResponseType<'label, N: Name<'label>>
 {
+	/// RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 1.
 	NoDomainResponseType1
 	{
-		start_of_authority: (NegativeCacheUntil, StartOfAuthority<'label, N>),
+		start_of_authority: (CaseFoldedName<'static>, NegativeCacheUntil, StartOfAuthority<'label, N>),
 		
 		name_servers: Records<'label, N>,
 	},
 	
+	/// RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 2.
 	NoDomainResponseType2
 	{
-		start_of_authority: (NegativeCacheUntil, StartOfAuthority<'label, N>),
+		start_of_authority: (CaseFoldedName<'static>, NegativeCacheUntil, StartOfAuthority<'label, N>),
 	},
 	
 	// TODO: RFC 2308 Section 5: "Negative responses without SOA records SHOULD NOT be cached as there is no way to prevent the negative responses looping forever between a pair of servers even with a short TTL".
+	/// RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 3.
 	NoDomainResponseType3,
 	
 	// TODO: RFC 2308 Section 5: "Negative responses without SOA records SHOULD NOT be cached as there is no way to prevent the negative responses looping forever between a pair of servers even with a short TTL".
+	/// RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 4.
 	NoDomainResponseType4
 	{
 		name_servers: Records<'label, N>,

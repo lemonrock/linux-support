@@ -3,22 +3,30 @@
 
 
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct AuthorityResourceRecordVisitor<'message>
+pub(crate) struct AuthorityResourceRecordVisitor<'message, 'cache: 'message>
 {
-	canonical_name_chain: CanonicalNameChain<'message>,
+	canonical_name_chain: CanonicalNameChain<'message, 'cache>,
 	
 	/// *MUST* be for the parent of the final entry in the canonical name chain.
 	/// It is valid to have no records.
-	name_server_records: RefCell<Records<'message, ParsedName<'message>>>,
+	name_server_records: RefCell<Records<'cache, CaseFoldedName<'cache>>>,
 	
 	/// *MUST* be for the parent of the final entry in the canonical name chain.
 	/// It is valid to have no records.
-	start_of_authority_record: RefCell<Option<(NegativeCacheUntil, StartOfAuthority<'message, ParsedName<'message>>)>>,
+	start_of_authority_record: RefCell<Option<(CaseFoldedName<'cache>, NegativeCacheUntil, StartOfAuthority<'cache, CaseFoldedName<'cache>>)>>,
 }
 
-impl<'message> ResourceRecordVisitor<'message> for AuthorityResourceRecordVisitor<'message>
+impl<'message, 'cache: 'message> ResourceRecordVisitor<'message> for AuthorityResourceRecordVisitor<'message, 'cache>
 {
 	type Error = AuthorityError;
+	
+	type Finished = Self;
+	
+	#[inline(always)]
+	fn finished(self) -> Self::Finished
+	{
+		self
+	}
 	
 	#[inline(always)]
 	fn NS(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: ParsedName<'message>) -> Result<(), Self::Error>
@@ -29,7 +37,7 @@ impl<'message> ResourceRecordVisitor<'message> for AuthorityResourceRecordVisito
 		}
 		
 		let name_server_records = self.name_server_records.borrow_mut().deref_mut();
-		name_server_records.store_unprioritized_and_unweighted(cache_until, record);
+		name_server_records.store_unprioritized_and_unweighted(name, cache_until, CaseFoldedName::map(record));
 
 		Ok(())
 	}
@@ -47,7 +55,7 @@ impl<'message> ResourceRecordVisitor<'message> for AuthorityResourceRecordVisito
 		let start_of_authority_record = self.start_of_authority_record.borrow_mut().deref_mut();
 		if likely!(start_of_authority_record.is_none())
 		{
-			*start_of_authority_record = Some((negative_cache_until, start_of_authority));
+			*start_of_authority_record = Some((CaseFoldedName::map(name), negative_cache_until, record.into()));
 			Ok(())
 		}
 		else
@@ -57,10 +65,10 @@ impl<'message> ResourceRecordVisitor<'message> for AuthorityResourceRecordVisito
 	}
 }
 
-impl<'message> AuthorityResourceRecordVisitor<'message>
+impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache>
 {
 	#[inline(always)]
-	pub(crate) fn new(canonical_name_chain: CanonicalNameChain<'message>) -> Self
+	pub(crate) fn new(canonical_name_chain: CanonicalNameChain<'message, 'cache>) -> Self
 	{
 		Self
 		{
@@ -183,27 +191,11 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 	/// 		* `.			86400	IN	SOA	a.root-servers.net. …`.
 	/// 	* Additional
 	///
-	/// RFC 2308, Section 6 - Negative answers from the cache, Paragraph 3:-
-	/// "An implicit referral is characterised by `NS` records in the authority section referring the resolver towards a authoritative source.
-	/// `NXDOMAIN` types 1 and 4 responses contain implicit referrals as does `NODATA` type 1 response".
-	///
-	/// RFC 2308, Section 7.1 Server Failure (OPTIONAL):-
-	/// "\[A\] resolver MAY cache a server failure response.
-	/// If it does so it MUST NOT cache it for longer than five (5) minutes, and it MUST be cached against the specific query tuple `<query name, type, class, server IP address>`".
-	///
-	/// RFC 2308, Section 7.2 Dead / Unreachable Server (OPTIONAL):-
-	/// "Dead / Unreachable servers are servers that fail to respond in any way to a query or where the transport layer has provided an indication that the server does not exist or is unreachable
-	/// …
-	/// A server MAY cache a dead server indication.
-	/// If it does so it MUST NOT cache it for longer than five (5) minutes, and it MUST be cached against the specific query tuple `<query name, type, class, server IP address>` unless there was a transport layer indication that the server does not exist, in which case it applies to all queries to that specific IP address".
-	///
 	/// This logic *MUST NOT BE USED* for queries for anything that can occur in the Authority section, eg `CNAME`, `SOA`, `NS`, etc.
-	pub(crate) fn answer(self, answer_existence: AnswerExistence, answer_section_has_at_least_one_record_of_requested_data_type: bool) -> Result<(Answer<'message, ParsedName<'message>>, Records<'message, ParsedName<'message>>), AuthoritySectionError<AuthorityError>>
+	pub(crate) fn answer(self, answer_existence: AnswerExistence, answer_section_has_at_least_one_record_of_requested_data_type: bool) -> Result<(Answer<'cache, CaseFoldedName<'cache>>, Records<'cache, CaseFoldedName<'cache>>), AuthoritySectionError<AuthorityError>>
 	{
-		use self::Answer::*;
 		use self::NoDataResponseType::*;
 		use self::NoDomainResponseType::*;
-		use self::AnswerExistence::*;
 		
 		let has_a_start_of_authority_record = self.start_of_authority_record.borrow().is_some();
 		let has_name_server_records = !self.name_server_records.borrow().has_records();
@@ -231,24 +223,19 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 			// NODATA is really an Empty Non-Terminal Name (ENT; see RFC 7719), ie a domain name with no records but that exists.
 			(AnswerExistence::NoError(authoritative_or_authenticated_or_neither), false) =>
 			{
-				// RFC 2308, Section 2.2 No Data, paragraph 4: "It is possible to distinguish between a NODATA and a referral response by the presence of a SOA record in the authority section or the absence of NS records in the authority section".
 				match (has_a_start_of_authority_record, has_name_server_records)
 				{
-					// Section 2.2 No Data NODATA RESPONSE: TYPE 1.
 					(true, true) => Answer::NoData { response_type: NoDataResponseType1 { start_of_authority: self.start_of_authority_record.into_inner().unwrap(), name_servers: self.name_server_records.into_inner(), } },
 					
-					// Section 2.2 No Data NODATA RESPONSE: TYPE 2.
 					(true, false) => Answer::NoData { response_type: NoDataResponseType2 { start_of_authority: self.start_of_authority_record.into_inner().unwrap() } },
 					
-					// Section 2.2 No Data NODATA RESPONSE: TYPE 3.
 					(false, false) =>
 					{
 						guard_against_authoritative_answer_without_start_of_authority_record(authoritative_or_authenticated_or_neither);
 						Answer::NoData { response_type: NoDataResponseType3 { name_servers: self.name_server_records.into_inner() } }
 					},
 					
-					// Section 2.1 Name Error REFERRAL RESPONSE.
-					// Section 2.2 No Data REFERRAL RESPONSE.
+					// RFC 2308, Section 2.2 No Data, paragraph 4: "It is possible to distinguish between a NODATA and a referral response by the presence of a SOA record in the authority section or the absence of NS records in the authority section".
 					(false, true) => Answer::Referral { name_servers: self.name_server_records.into_inner() },
 				}
 			}
@@ -259,12 +246,11 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 			// This reply is for any QTYPE (eg A, AAAA, etc) that may later be queried for.
 			(AnswerExistence::NoDomain(authoritative_or_authenticated_or_neither), false) =>
 			{
-				let most_canonical_name = self.canonical_name_chain.most_canonical_name().clone();
+				let most_canonical_name = CaseFoldedName::map(self.canonical_name_chain.most_canonical_name().clone());
 				
 				// RFC 2308, Section 2.1 Name Error, paragraph 2: "It is possible to distinguish between a referral and a NXDOMAIN response by the presense of NXDOMAIN in the RCODE regardless of the presence of NS or SOA records in the authority section".
 				match (has_a_start_of_authority_record, has_name_server_records)
 				{
-					// Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 1.
 					(true, true) => Answer::NoDomain { response_type: NoDomainResponseType1 { start_of_authority: self.start_of_authority_record.into_inner().unwrap(), name_servers: self.name_server_records.into_inner(), }, most_canonical_name },
 					
 					// Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 2.

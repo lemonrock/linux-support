@@ -10,7 +10,7 @@ pub enum ValidateMinimumRecordSizeAndParseNameAndResourceRecordTypeError
 	ResourceRecordIsShorterThanMinimumSize,
 	
 	/// Resource record name did not parse.
-	ParsedNameParser(ParsedNameParserError),
+	ParsedName(ParsedNameParserError),
 	
 	/// A resource record is shorter than the minimum size (after parsing the Name).
 	ResourceRecordIsShorterThanMinimumSizeAfterParsingName,
@@ -34,7 +34,7 @@ impl error::Error for ValidateMinimumRecordSizeAndParseNameAndResourceRecordType
 		
 		match self
 		{
-			&ParsedNameParser(ref error) => Some(error),
+			&ParsedName(ref error) => Some(error),
 			
 			_ => None,
 		}
@@ -46,6 +46,6 @@ impl From<ParsedNameParserError> for ValidateMinimumRecordSizeAndParseNameAndRes
 	#[inline(always)]
 	fn from(value: ParsedNameParserError) -> Self
 	{
-		ValidateMinimumRecordSizeAndParseNameAndResourceRecordTypeError::ParsedNameParser(value)
+		ValidateMinimumRecordSizeAndParseNameAndResourceRecordTypeError::ParsedName(value)
 	}
 }

@@ -13,7 +13,7 @@ pub enum RRSIGHandleRecordTypeError
 	HasMoreThan126Labels(u8),
 	
 	/// Security algorithm error.
-	SecurityAlgorithm(SecurityAlgorithmHandleRecordTypeError),
+	SecurityAlgorithmFailed(SecurityAlgorithmHandleRecordTypeError),
 	
 	/// Signers name.
 	SignersName(ParsedNameParserError)
@@ -37,7 +37,7 @@ impl error::Error for RRSIGHandleRecordTypeError
 		
 		match self
 		{
-			&SecurityAlgorithm(ref error) => Some(error),
+			&SecurityAlgorithmFailed(ref error) => Some(error),
 			
 			&SignersName(ref error) => Some(error),
 			

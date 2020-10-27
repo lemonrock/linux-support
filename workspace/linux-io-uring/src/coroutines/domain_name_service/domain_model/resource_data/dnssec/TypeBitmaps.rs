@@ -75,7 +75,7 @@ impl TypeBitmaps
 	#[inline(always)]
 	pub(crate) fn parse_type_bitmaps(data_type: DataType, blocks: &[u8]) -> Result<Self, TypeBitmapsParseError>
 	{
-		use self::TypeBitmapsHandleRecordTypeError::*;
+		use self::TypeBitmapsParseError::*;
 		
 		let mut this: Self = unsafe { uninitialized() };
 

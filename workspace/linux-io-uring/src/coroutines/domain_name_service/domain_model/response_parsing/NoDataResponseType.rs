@@ -5,19 +5,22 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum NoDataResponseType<'label, N: Name<'label>>
 {
+	/// RFC 2308, Section 2.2 No Data NODATA RESPONSE: TYPE 1.
 	NoDataResponseType1
 	{
-		start_of_authority: (NegativeCacheUntil, StartOfAuthority<'label, N>),
+		start_of_authority: (CaseFoldedName<'static>, NegativeCacheUntil, StartOfAuthority<'label, N>),
 		
 		name_servers: Records<'label, N>,
 	},
 	
+	/// RFC 2308, Section 2.2 No Data NODATA RESPONSE: TYPE 2.
 	NoDataResponseType2
 	{
-		start_of_authority: (NegativeCacheUntil, StartOfAuthority<'label, N>),
+		start_of_authority: (CaseFoldedName<'static>, NegativeCacheUntil, StartOfAuthority<'label, N>),
 	},
 	
 	// TODO: RFC 2308 Section 5: "Negative responses without SOA records SHOULD NOT be cached as there is no way to prevent the negative responses looping forever between a pair of servers even with a short TTL".
+	/// RFC 2308, Section 2.2 No Data NODATA RESPONSE: TYPE 3.
 	NoDataResponseType3
 	{
 		name_servers: Records<'label, N>,

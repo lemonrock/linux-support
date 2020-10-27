@@ -48,7 +48,7 @@ impl TryFrom<NonZeroU8> for StackDepth
 impl StackDepth
 {
 	/// `sysctl_perf_event_max_stack` is a global static defined initially as `PERF_MAX_STACK_DEPTH`.
-	const PERF_MAX_STACK_DEPTH: u8 = (1 << ValueSizeU32::PAGE_SHIFT) as u8;
+	const PERF_MAX_STACK_DEPTH: u8 = 127;
 	
 	/// Inclusive maximum.
 	pub const InclusiveMaximum: Self = Self::new_unsafe(Self::PERF_MAX_STACK_DEPTH);

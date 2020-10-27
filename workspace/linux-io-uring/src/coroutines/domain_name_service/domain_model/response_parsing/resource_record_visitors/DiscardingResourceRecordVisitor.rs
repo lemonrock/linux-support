@@ -11,4 +11,12 @@ pub(crate) struct DiscardingResourceRecordVisitor<'message>
 impl<'message> ResourceRecordVisitor<'message> for DiscardingResourceRecordVisitor<'message>
 {
 	type Error = Infallible;
+	
+	type Finished = ();
+	
+	#[inline(always)]
+	fn finished(self) -> Self::Finished
+	{
+		()
+	}
 }

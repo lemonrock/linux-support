@@ -6,5 +6,5 @@
 #[repr(C, packed)]
 pub union LocationBody
 {
-	pub version_0: LocationBodyVersion0,
+	pub version_0: ManuallyDrop<LocationBodyVersion0>,
 }

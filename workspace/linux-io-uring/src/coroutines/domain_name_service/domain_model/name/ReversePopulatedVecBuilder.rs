@@ -16,7 +16,7 @@ struct ReversePopulatedVecBuilder<T>
 	copied: bool,
 }
 
-impl<T> Drop<T> for ReversePopulatedVecBuilder<T>
+impl<T> Drop for ReversePopulatedVecBuilder<T>
 {
 	#[inline(always)]
 	fn drop(&mut self)
@@ -112,7 +112,7 @@ impl<T> ReversePopulatedVecBuilder<T>
 	}
 }
 
-impl ReversePopulatedVecBuilder<CaseFoldedLabel>
+impl<'a> ReversePopulatedVecBuilder<CaseFoldedLabel<'a>>
 {
 	#[inline(always)]
 	fn try_push_root_label(&mut self, label: &[u8]) -> Result<NonZeroU8, CaseFoldedNameParseError>

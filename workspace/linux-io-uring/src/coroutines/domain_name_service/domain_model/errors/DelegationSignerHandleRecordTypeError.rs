@@ -16,7 +16,7 @@ pub enum DelegationSignerHandleRecordTypeError
 	HasADigestLengthThatIsIncorrectForTheDigestType(DataType, usize),
 	
 	/// Security algorithm error.
-	SecurityAlgorithm(SecurityAlgorithmHandleRecordTypeError),
+	SecurityAlgorithmFailed(SecurityAlgorithmHandleRecordTypeError),
 }
 
 impl Display for DelegationSignerHandleRecordTypeError
@@ -37,7 +37,7 @@ impl error::Error for DelegationSignerHandleRecordTypeError
 		
 		match self
 		{
-			&SecurityAlgorithm(ref error) => Some(error),
+			&SecurityAlgorithmFailed(ref error) => Some(error),
 			
 			_ => None,
 		}

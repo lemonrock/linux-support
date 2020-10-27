@@ -36,25 +36,25 @@
 /// The `query_name` was `www.microsoft.com.`.
 ///
 /// The function `validate_authority_section_name()` below will then validate that the `start_of_authority_name`, `dspb.akamaiedge.net.`, is the same as `parent`.
-pub(crate) struct CanonicalNameChain<'message>
+pub(crate) struct CanonicalNameChain<'message, 'cache: 'message>
 {
 	query_name: ParsedName<'message>,
 	
 	chain: IndexSet<ParsedName<'message>>,
 	
-	records: Records<'message, ParsedName<'message>>,
+	records: Records<'cache, CaseFoldedName<'cache>>,
 }
 
-impl<'message> Into<Records<'message, ParsedName<'message>>> for CanonicalNameChain<'message>
+impl<'message, 'cache: 'message> Into<Records<'cache, CaseFoldedName<'cache>>> for CanonicalNameChain<'message, 'cache>
 {
 	#[inline(always)]
-	fn into(self) -> Records<'message, ParsedName<'message>>
+	fn into(self) -> Records<'cache, CaseFoldedName<'cache>>
 	{
 		self.records
 	}
 }
 
-impl<'message> CanonicalNameChain<'message>
+impl<'message, 'cache: 'message> CanonicalNameChain<'message, 'cache>
 {
 	/// There is no standard limit for the number of links in a chain; the BIND software caps the number at 16.
 	///
@@ -73,12 +73,6 @@ impl<'message> CanonicalNameChain<'message>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn cache_records(self, cname_query_type_cache: &mut QueryTypeCache<CaseFoldedName>)
-	{
-		cname_query_type_cache.put_present(records)
-	}
-	
-	#[inline(always)]
 	pub(crate) fn most_canonical_name(&self) -> &'message ParsedName<'message>
 	{
 		let chain_length = self.chain.len();
@@ -94,7 +88,7 @@ impl<'message> CanonicalNameChain<'message>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn insert_link(&mut self, from: ParsedName<'message>, to: ParsedName<'message>) -> Result<(), CanonicalChainError>
+	pub(crate) fn insert_link(&mut self, from: ParsedName<'message>, to: ParsedName<'message>, cache_until: CacheUntil) -> Result<(), CanonicalChainError>
 	{
 		use self::CanonicalChainError::*;
 		
@@ -119,7 +113,7 @@ impl<'message> CanonicalNameChain<'message>
 			return Err(AddingNameToCanonicalNameChainCreatesALoop)
 		}
 		
-		Present::store_unprioritized_and_unweighted::<'message>(&mut self.records,name, cache_until, CaseFoldedName::from(to));
+		self.records.store_unprioritized_and_unweighted(from, cache_until, CaseFoldedName::map(to));
 		Ok(())
 	}
 	

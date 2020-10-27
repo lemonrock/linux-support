@@ -25,7 +25,7 @@ impl AuthoritativeOrAuthenticatedOrNeither
 	{
 		use self::AuthoritativeOrAuthenticatedOrNeither::*;
 		
-		match (is_authenticated, is_authoritative)
+		match (is_authoritative_answer, is_authenticated_data)
 		{
 			(true, true) => Err(MessageHeaderError::ResponseWasAuthoritativeButHasTheAuthenticatedDataBitSet),
 			

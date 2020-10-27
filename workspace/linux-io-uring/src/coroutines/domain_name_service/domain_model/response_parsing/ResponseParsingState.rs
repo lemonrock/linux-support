@@ -26,7 +26,7 @@ impl ResponseParsingState
 	}
 	
 	#[inline(always)]
-	pub(crate) fn validate_only_one_CNAME_record_in_answer_section_when_query_type_was_CNAME(&self) -> Result<(), AnswerSectionError>
+	pub(crate) fn validate_only_one_CNAME_record_in_answer_section_when_query_type_was_CNAME<E: error::Error>(&self) -> Result<(), AnswerSectionError<E>>
 	{
 		let number_of_cname_records_in_answer_section = self.number_of_cname_records_in_answer_section.get();
 		if unlikely!(number_of_cname_records_in_answer_section > 1)
@@ -40,7 +40,7 @@ impl ResponseParsingState
 	}
 	
 	#[inline(always)]
-	pub(crate) fn validate_only_one_DNAME_record_in_answer_section_when_query_type_was_DNAME(&self) -> Result<(), AnswerSectionError>
+	pub(crate) fn validate_only_one_DNAME_record_in_answer_section_when_query_type_was_DNAME<E: error::Error>(&self) -> Result<(), AnswerSectionError<E>>
 	{
 		let number_of_dname_records_in_answer_section = self.number_of_dname_records_in_answer_section.get();
 		if unlikely!(number_of_dname_records_in_answer_section > 1)

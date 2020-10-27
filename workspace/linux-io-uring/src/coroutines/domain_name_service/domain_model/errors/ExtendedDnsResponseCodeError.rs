@@ -209,12 +209,12 @@ impl ExtendedDnsResponseCodeError
 		use self::AnswerExistence::*;
 		use self::ExtendedDnsResponseCodeError::*;
 		
-		match ((extended_response_code_upper_8_bits as u16) << 4) | original_message_response_code_4_bits.into_u16()
+		match ((extended_response_code_upper_8_bits as u16) << 4) | rcode_lower_4_bits.into_u16()
 		{
-			/// No Error ('NoError' or `NOERROR` in older RFCs).
-			///
-			/// Defined in RFC 1035.
-			/// Restated in RFC 6895, Section 2.3 RCODE Assignment.
+			// No Error ('NoError' or `NOERROR` in older RFCs).
+			//
+			// Defined in RFC 1035.
+			// Restated in RFC 6895, Section 2.3 RCODE Assignment.
 			0 => Ok(NoError(authoritative_or_authenticated_or_neither)),
 			
 			1 => Err(Format),

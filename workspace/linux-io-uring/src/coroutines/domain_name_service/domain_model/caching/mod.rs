@@ -9,6 +9,8 @@ include!("CacheEntry.rs");
 include!("CacheResult.rs");
 include!("CacheUntil.rs");
 include!("Exists.rs");
+include!("LeastRecentlyUsedCache.rs");
+include!("LeastRecentlyUsedCacheValue.rs");
 include!("LeastRecentlyUsedListKeyReference.rs");
 include!("LeastRecentlyUsedListPointer.rs");
 include!("NegativeCacheUntil.rs");

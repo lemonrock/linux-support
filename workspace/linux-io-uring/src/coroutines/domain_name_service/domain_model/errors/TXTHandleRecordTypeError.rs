@@ -11,9 +11,6 @@ pub enum TXTHandleRecordTypeError
 	
 	/// Value `usize` is the character string index that failed.
 	CharacterStringLengthIncorrect(usize, CharacterStringLengthIncorrectError),
-	
-	/// After parsing resource data in a record of type `TXT`, there is unattributed data remaining.
-	WouldHaveUnusuedDataRemaining,
 }
 
 impl Display for TXTHandleRecordTypeError

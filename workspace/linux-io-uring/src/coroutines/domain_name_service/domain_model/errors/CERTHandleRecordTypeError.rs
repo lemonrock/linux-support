@@ -16,7 +16,7 @@ pub enum CERTHandleRecordTypeError
 	UsesAnExperimentalCertificateTypeValue(u16),
 
 	/// Security algorithm error.
-	SecurityAlgorithm(SecurityAlgorithmHandleRecordTypeError),
+	SecurityAlgorithmFailed(SecurityAlgorithmHandleRecordTypeError),
 }
 
 impl Display for CERTHandleRecordTypeError
@@ -37,7 +37,7 @@ impl error::Error for CERTHandleRecordTypeError
 		
 		match self
 		{
-			&SecurityAlgorithm(ref error) => Some(error),
+			&SecurityAlgorithmFailed(ref error) => Some(error),
 			
 			_ => None,
 		}

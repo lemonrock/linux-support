@@ -10,7 +10,6 @@ pub(crate) mod resource_record_visitors;
 
 include!("Answer.rs");
 include!("AnswerExistence.rs");
-include!("AnswerOutcome.rs");
 include!("AuthoritativeOrAuthenticatedOrNeither.rs");
 include!("CanonicalNameChain.rs");
 include!("DuplicateResourceRecordResponseParsing.rs");

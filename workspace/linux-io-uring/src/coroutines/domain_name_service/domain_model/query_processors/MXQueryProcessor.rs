@@ -2,39 +2,49 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[derive(Default)]
-pub(crate) struct MXQueryProcessor<'message>
+pub(crate) struct MXQueryProcessor<'cache>
 {
-	records: Records<'message, CaseFoldedName<'static>>,
+	records: Records<'cache, CaseFoldedName<'cache>>,
 }
 
-impl<'message> ResourceRecordVisitor<'message> for MXQueryProcessor
+impl<'message, 'cache: 'message> ResourceRecordVisitor<'message> for MXQueryProcessor<'cache>
 {
 	type Error = Infallible;
+	
+	type Finished = Records<'cache, CaseFoldedName<'cache>>;
+	
+	#[inline(always)]
+	fn finished(self) -> Self::Finished
+	{
+		self.records
+	}
 	
 	#[inline(always)]
 	fn MX(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: MailExchange<'message>) -> Result<(), Self::Error>
 	{
-		self.records.store_unweighted::<'message>(name, cache_until, record.preference, CaseFoldedName::from(record.mail_server_name));
+		self.records.store_unweighted::<'message>(name, cache_until, record.preference, CaseFoldedName::map::<'message>(record.mail_server_name));
 		Ok(())
 	}
 }
 
-impl<'message> QueryProcessor<'message> for MXQueryProcessor
+impl<'message, 'cache: 'message> QueryProcessor<'message, 'cache> for MXQueryProcessor<'cache>
 {
 	const DT: DataType = DataType::MX;
 	
-	type Record = CaseFoldedName<'static>;
+	type Record = CaseFoldedName<'cache>;
 	
 	#[inline(always)]
 	fn new() -> Self
 	{
-		Self::default()
+		Self
+		{
+			records: Records::with_capacity(4)
+		}
 	}
 	
 	#[inline(always)]
-	fn finish(self, cache: &mut QueryTypeCache<Self::Record>)
+	fn finish(finished: <Self as ResourceRecordVisitor<'message>>::Finished, cache: &mut Cache<'cache>)
 	{
-		cache.put_present::<'message>(self.records)
+		cache.mx_query_type_cache.put_present(finished)
 	}
 }

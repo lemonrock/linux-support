@@ -14,7 +14,26 @@ pub(crate) struct Present<Record: Sized>
 impl<Record: Sized> Present<Record>
 {
 	#[inline(always)]
-	fn records_count(&self) -> usize
+	fn map<NewRecord: Sized>(self, map: impl Fn(Record) -> NewRecord) -> Present<NewRecord>
+	{
+		Present
+		{
+			use_once: Self::btree_map_map(self.use_once, map),
+			
+			cached:
+			{
+				let mut cached = BTreeMap::new();
+				for (cache_until, btree_map) in self.cached
+				{
+					cached.insert(cache_until, Self::btree_map_map(btree_map));
+				}
+				cached
+			},
+		}
+	}
+	
+	#[inline(always)]
+	fn records_count(&self) -> NonZeroUsize
 	{
 		let mut records_count = Self::btree_map_records_count(&self.use_once);
 		
@@ -23,7 +42,8 @@ impl<Record: Sized> Present<Record>
 			records_count += Self::btree_map_records_count(records);
 		}
 		
-		records_count
+		debug_assert_ne!(records_count, 0);
+		unsafe { NonZeroUsize::new_unchecked(records_count) }
 	}
 	
 	fn retrieve(&mut self, now: NanosecondsSinceUnixEpoch) -> (CacheResult<Record>, Option<usize>)
@@ -123,10 +143,22 @@ impl<Record: Sized> Present<Record>
 	fn btree_map_records_count(btree_map: &BTreeMap<Priority, SortedWeightedRecords<Record>>) -> usize
 	{
 		let mut expired_record_count = 0;
-		for expired_sorted_weighed_records in expired_sorted_weighted_records_by_priority.values()
+		for expired_sorted_weighed_records in btree_map.values()
 		{
-			expired_record_count += expired_record.record_count()
+			expired_record_count += expired_sorted_weighed_records.record_count()
 		}
 		expired_record_count
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn btree_map_map<NewRecord: Sized>(btree_map: BTreeMap<Priority, SortedWeightedRecords<Record>>, map: impl Fn(Record) -> NewRecord) -> BTreeMap<Priority, SortedWeightedRecords<NewRecord>>
+	{
+		let mut new_btree_map = BTreeMap::new();
+		for (priority, sorted_weighted_records) in btree_map
+		{
+			new_btree_map.insert(priority, sorted_weighted_records.map(map));
+		}
+		new_btree_map
 	}
 }

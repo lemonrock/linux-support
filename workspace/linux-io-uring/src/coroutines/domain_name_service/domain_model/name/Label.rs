@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub trait Label<'a>
+pub trait Label<'label>
 {
 	/// Is the terminal root label?
 	#[inline(always)]
@@ -13,7 +13,7 @@ pub trait Label<'a>
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn equals<RHS: Label>(&self, rhs: &RHS) -> bool
+	fn equals<'rhs_label, RHS: Label<'rhs_label>>(&self, rhs: &RHS) -> bool
 	{
 		if self.len() != rhs.len()
 		{
@@ -36,14 +36,14 @@ pub trait Label<'a>
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn partial_compare<RHS: Label>(&self, rhs: &RHS) -> Option<Ordering>
+	fn partial_compare<'rhs_label, RHS: Label<'rhs_label>>(&self, rhs: &RHS) -> Option<Ordering>
 	{
 		Some(self.cmp(rhs))
 	}
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn compare<RHS: Label>(&self, rhs: &RHS) -> Ordering
+	fn compare<'rhs_label, RHS: Label<'rhs_label>>(&self, rhs: &RHS) -> Ordering
 	{
 		let left_length = self.len();
 		let right_length = rhs.len();

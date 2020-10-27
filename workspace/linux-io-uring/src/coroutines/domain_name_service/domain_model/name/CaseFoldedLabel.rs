@@ -11,7 +11,7 @@ impl<'a> TryFrom<Box<[u8]>> for CaseFoldedLabel<'a>
 	type Error = CaseFoldedLabelParseError;
 	
 	#[inline(always)]
-	fn try_from(value: Box<[u8]>) -> Result<Self, Self::Result>
+	fn try_from(value: Box<[u8]>) -> Result<Self, Self::Error>
 	{
 		Self::validate_bytes(&value[..])?;
 		Ok(Self(Cow::Owned(value.to_vec())))
@@ -23,7 +23,7 @@ impl<'a> TryFrom<Vec<u8>> for CaseFoldedLabel<'a>
 	type Error = CaseFoldedLabelParseError;
 	
 	#[inline(always)]
-	fn try_from(value: Vec<u8>) -> Result<Self, Self::Result>
+	fn try_from(value: Vec<u8>) -> Result<Self, Self::Error>
 	{
 		Self::validate_bytes(&value[..])?;
 		Ok(Self(Cow::Owned(value)))
@@ -35,7 +35,7 @@ impl<'a> TryFrom<&'a [u8]> for CaseFoldedLabel<'a>
 	type Error = CaseFoldedLabelParseError;
 	
 	#[inline(always)]
-	fn try_from(value: &'a [u8]) -> Result<Self, Self::Result>
+	fn try_from(value: &'a [u8]) -> Result<Self, Self::Error>
 	{
 		Self::validate_bytes(value)?;
 		Ok(Self(Cow::Borrowed(value)))
@@ -170,7 +170,7 @@ impl<'a> CaseFoldedLabel<'a>
 	#[inline(always)]
 	fn validate_bytes(slice: &[u8]) -> Result<(), CaseFoldedLabelParseError>
 	{
-		let length = value.len();
+		let length = slice.len();
 		
 		if unlikely!(length > Self::MaximumSize)
 		{
@@ -179,7 +179,7 @@ impl<'a> CaseFoldedLabel<'a>
 		
 		for index in 0 .. length
 		{
-			Self::validate_byte(unsafe { value.get_unchecked(index) })?
+			Self::validate_byte(unsafe { slice.get_unchecked(index) })?
 		}
 		
 		Ok(())

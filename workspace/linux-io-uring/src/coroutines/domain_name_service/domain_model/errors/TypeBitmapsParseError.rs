@@ -4,7 +4,7 @@
 
 /// TypeBitmaps parse error.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub enum TypeBitmapsHandleRecordTypeError
+pub enum TypeBitmapsParseError
 {
 	/// Resource data for resource record type `CSYNC`, `NSEC` or `NSEC3` has an incorrect length (value in tuple).
 	HasAnOverflowingBlockLength(DataType, usize),
@@ -22,7 +22,7 @@ pub enum TypeBitmapsHandleRecordTypeError
 	HasAnOverflowingBitmapLength(DataType, usize),
 }
 
-impl Display for TypeBitmapsHandleRecordTypeError
+impl Display for TypeBitmapsParseError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -31,6 +31,6 @@ impl Display for TypeBitmapsHandleRecordTypeError
 	}
 }
 
-impl error::Error for TypeBitmapsHandleRecordTypeError
+impl error::Error for TypeBitmapsParseError
 {
 }

@@ -13,7 +13,6 @@ use self::message::query::*;
 use self::message::resource_record::*;
 use self::name::*;
 use self::query_processors::*;
-use self::records::*;
 use self::resource_data::*;
 use self::resource_data::certificate::*;
 use self::resource_data::certification_authority_authorization::*;
