@@ -168,7 +168,7 @@ impl ResourceRecord
 		{
 			0x00 => match type_lower
 			{
-				MetaType::SIG0_lower => self.handle_obsolete_meta_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, MetaType::SIG0, "Only really useful for updates, which, frankly, are probably better done out-of-band than using DNS; regardless, when using DNS over TLS a client certificate is much more useful"),
+				MetaType::SIG0_lower => self.handle_obsolete_meta_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, MetaType::SIG0, "Only really useful for updates, which, frankly, are probably better done out-of-band than using DNS; regardless, when using DNS over TLS a client certificate is much more useful"),
 
 				DataType::A_lower => self.handle_A(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
@@ -209,9 +209,9 @@ impl ResourceRecord
 
 				DataType::TXT_lower => self.handle_TXT(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::RP_lower => self.handle_obsolete_or_very_obscure_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::RP, "Used in some rare circumstances; some legacy records may remain"),
+				DataType::RP_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::RP, "Used in some rare circumstances; some legacy records may remain"),
 
-				DataType::AFSDB_lower => self.handle_obsolete_or_very_obscure_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::AFSDB, "Replaced by use of SRV records; some legacy records may remain"),
+				DataType::AFSDB_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::AFSDB, "Replaced by use of SRV records; some legacy records may remain"),
 
 				DataType::X25_lower => self.handle_very_obsolete_record_type(DataType::X25),
 
@@ -223,9 +223,9 @@ impl ResourceRecord
 
 				DataType::NSAP_PTR_lower => self.handle_very_obsolete_record_type(DataType::NSAP_PTR),
 
-				DataType::SIG_lower => self.handle_obsolete_or_very_obscure_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::SIG, "Not used now SIG(0) is available; some legacy records may remain"),
+				DataType::SIG_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::SIG, "Not used now SIG(0) is available; some legacy records may remain"),
 
-				DataType::KEY_lower => self.handle_obsolete_or_very_obscure_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::KEY, "Replaced by IPSECKEY and various DNSSEC records; some legacy records may remain"),
+				DataType::KEY_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::KEY, "Replaced by IPSECKEY and various DNSSEC records; some legacy records may remain"),
 
 				DataType::PX_lower => self.handle_very_obsolete_record_type(DataType::PX),
 
@@ -259,7 +259,7 @@ impl ResourceRecord
 
 				MetaType::OPT_lower => Err(ResourceTypeInWrongSection(ExtendedDnsOptResourceRecordTypeIsNotPermittedOutsideOfAnAdditionalSection)),
 
-				DataType::APL_lower => self.handle_obsolete_or_very_obscure_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::APL, "Some legacy records may remain"),
+				DataType::APL_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::APL, "Some legacy records may remain"),
 
 				DataType::DS_lower => self.handle_DS(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
@@ -287,11 +287,11 @@ impl ResourceRecord
 
 				DataType::HIP_lower => self.handle_HIP(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_names, duplicate_resource_record_response_parsing),
 
-				DataType::NINFO_lower => self.handle_obsolete_or_very_obscure_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::NINFO, "No RFC or RFC draft and probably not deployed"),
+				DataType::NINFO_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::NINFO, "No RFC or RFC draft and probably not deployed"),
 
-				DataType::RKEY_lower => self.handle_obsolete_or_very_obscure_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::RKEY, "No RFC or RFC draft and probably not deployed"),
+				DataType::RKEY_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::RKEY, "No RFC or RFC draft and probably not deployed"),
 
-				DataType::TALINK_lower => self.handle_obsolete_or_very_obscure_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::TALINK, "No RFC or RFC draft and probably not deployed"),
+				DataType::TALINK_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::TALINK, "No RFC or RFC draft and probably not deployed"),
 
 				DataType::CDS_lower => self.handle_CDS(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
@@ -305,7 +305,7 @@ impl ResourceRecord
 
 				64 ..= 98 => self.handle_unassigned(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing, 0x00, type_lower),
 
-				DataType::SPF_lower => self.handle_obsolete_or_very_obscure_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::SPF, "RFC 7208 deprecated this record type; some legacy records may remain"),
+				DataType::SPF_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::SPF, "RFC 7208 deprecated this record type; some legacy records may remain"),
 
 				DataType::UINFO_lower => self.handle_very_obsolete_record_type(DataType::UINFO),
 
@@ -331,9 +331,9 @@ impl ResourceRecord
 
 				128 ..= 248 => Err(UnknownQueryTypeOrMetaType(0x00, type_lower)),
 
-				MetaType::TKEY_lower => self.handle_obsolete_meta_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, MetaType::TKEY, "Only really useful for updates, which, frankly, are probably better done out-of-band than using DNS; regardless, when using DNS over TLS a client certificate is much more useful"),
+				MetaType::TKEY_lower => self.handle_obsolete_meta_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, MetaType::TKEY, "Only really useful for updates, which, frankly, are probably better done out-of-band than using DNS; regardless, when using DNS over TLS a client certificate is much more useful"),
 
-				MetaType::TSIG_lower => self.handle_obsolete_meta_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, MetaType::TSIG, "Only really useful for updates, which, frankly, are probably better done out-of-band than using DNS; regardless, when using DNS over TLS a client certificate is much more useful"),
+				MetaType::TSIG_lower => self.handle_obsolete_meta_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, MetaType::TSIG, "Only really useful for updates, which, frankly, are probably better done out-of-band than using DNS; regardless, when using DNS over TLS a client certificate is much more useful"),
 
 				QueryType::IXFR_lower => Err(QueryTypeOutsideOfAQuestionSectionEntry(IXFR)),
 
@@ -363,9 +363,9 @@ impl ResourceRecord
 
 			0x80 => match type_lower
 			{
-				DataType::TA_lower => self.handle_obsolete_or_very_obscure_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::TA, "DNSSEC Trust Anchors were never widely deployed; some legacy records may remain"),
+				DataType::TA_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::TA, "DNSSEC Trust Anchors were never widely deployed; some legacy records may remain"),
 
-				DataType::DLV_lower => self.handle_obsolete_or_very_obscure_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::DLV, "DNSSEC Lookaside Validation is not longer supported now that all root nameservers support DNSSEC; some legacy records may remain"),
+				DataType::DLV_lower => self.handle_obsolete_or_very_obscure_record_type(end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::DLV, "DNSSEC Lookaside Validation is not longer supported now that all root nameservers support DNSSEC; some legacy records may remain"),
 
 				_ => self.handle_unassigned(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing, 0x80, type_lower),
 			},
@@ -378,14 +378,14 @@ impl ResourceRecord
 
 	/// Record types that died a very long time ago.
 	#[inline(always)]
-	fn handle_very_obsolete_record_type<'message, RRV: ResourceRecordVisitor<'message>>(&self, data_type: DataType) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn handle_very_obsolete_record_type<'message, E: error::Error>(&'message self, data_type: DataType) -> Result<usize, HandleRecordTypeError<E>>
 	{
 		Err(HandleRecordTypeError::VeryObsoleteResourceRecordType(data_type))
 	}
 
 	/// Record types that died, never became popular or widespread or never proceeded even to a RFC draft.
 	#[inline(always)]
-	fn handle_obsolete_or_very_obscure_record_type<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, data_type: DataType, _reason: &'static str) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn handle_obsolete_or_very_obscure_record_type<'message, E: error::Error>(&'message self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, data_type: DataType, _reason: &'static str) -> Result<usize, HandleRecordTypeError<E>>
 	{
 		let (_time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
 
@@ -394,7 +394,7 @@ impl ResourceRecord
 
 	/// Meta types, that, with the coming of DNS over TLS, are obsolete.
 	#[inline(always)]
-	fn handle_obsolete_meta_type<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, meta_type: MetaType, _reason: &'static str) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn handle_obsolete_meta_type<'message, E: error::Error>(&'message self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, meta_type: MetaType, _reason: &'static str) -> Result<usize, HandleRecordTypeError<E>>
 	{
 		let (_time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, meta_type, duplicate_resource_record_response_parsing)?;
 
@@ -2142,7 +2142,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn parse_internet_protocol_address_only<'message, E: error::Error, Address: Copy>(&self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, error: impl FnOnce(usize) -> HandleRecordTypeError<E>) -> Result<(CacheUntil, Address, usize), HandleRecordTypeError<E>>
+	fn parse_internet_protocol_address_only<'message, E: error::Error, Address: Copy>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, error: impl FnOnce(usize) -> HandleRecordTypeError<E>) -> Result<(CacheUntil, Address, usize), HandleRecordTypeError<E>>
 	{
 		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
 
@@ -2168,7 +2168,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn validate_minimum_record_size_and_parse_name_and_resource_record_type<'message>(&self, end_of_message_pointer: usize, parsed_names: &mut ParsedNames<'message>) -> Result<(ParsedName<'message>, usize, (u8, u8)), ValidateMinimumRecordSizeAndParseNameAndResourceRecordTypeError>
+	fn validate_minimum_record_size_and_parse_name_and_resource_record_type<'message>(&'message self, end_of_message_pointer: usize, parsed_names: &mut ParsedNames<'message>) -> Result<(ParsedName<'message>, usize, (u8, u8)), ValidateMinimumRecordSizeAndParseNameAndResourceRecordTypeError>
 	{
 		use self::ValidateMinimumRecordSizeAndParseNameAndResourceRecordTypeError::*;
 		
@@ -2191,7 +2191,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn validate_class_is_internet_and_get_cache_until_and_resource_data<'message>(&self, now: NanosecondsSinceUnixEpoch, resource_record_name: ParsedName<'message>, end_of_name_pointer: usize, end_of_message_pointer: usize, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<(CacheUntil, &[u8]), ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError>
+	fn validate_class_is_internet_and_get_cache_until_and_resource_data<'message>(&'message self, now: NanosecondsSinceUnixEpoch, resource_record_name: ParsedName<'message>, end_of_name_pointer: usize, end_of_message_pointer: usize, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<(CacheUntil, &'message [u8]), ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError>
 	{
 		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
 		
@@ -2199,7 +2199,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn validate_class_is_internet_and_get_time_to_live_and_resource_data<'message>(&self,  resource_record_name: ParsedName<'message>, end_of_name_pointer: usize, end_of_message_pointer: usize, data_type_or_meta_type: impl DataTypeOrMetaType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<(TimeInSeconds, &[u8]), ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError>
+	fn validate_class_is_internet_and_get_time_to_live_and_resource_data<'message>(&'message self, resource_record_name: ParsedName<'message>, end_of_name_pointer: usize, end_of_message_pointer: usize, data_type_or_meta_type: impl DataTypeOrMetaType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<(TimeInSeconds, &'message [u8]), ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError>
 	{
 		self.resource_record_class_is_internet(end_of_name_pointer)?;
 
@@ -2213,7 +2213,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn safely_access_resource_data(&self, end_of_name_pointer: usize, end_of_message_pointer: usize) -> Result<&[u8], ResourceDataLengthOverflowsError>
+	fn safely_access_resource_data<'message>(&'message self, end_of_name_pointer: usize, end_of_message_pointer: usize) -> Result<&'message [u8], ResourceDataLengthOverflowsError>
 	{
 		let resource_data_length = self.resource_data_length(end_of_name_pointer) as usize;
 		if unlikely!(end_of_name_pointer + resource_data_length > end_of_message_pointer)
@@ -2299,7 +2299,7 @@ impl ResourceRecord
 	}
 	
 	#[inline(always)]
-	fn handle_delegation_signer<'message, RRV: ResourceRecordVisitor<'message>>(&self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, ignored_callback: impl FnOnce(&mut RRV, ParsedName<'message>, DelegationSignerResourceRecordIgnoredBecauseReason), visit_callback: impl FnOnce(&mut RRV, ParsedName<'message>, CacheUntil, DelegationSigner<'message>) -> Result<(), RRV::Error>, permit_delete: bool, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, map_error: impl FnOnce(DelegationSignerHandleRecordTypeError) -> HandleRecordTypeError<RRV::Error>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn handle_delegation_signer<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, ignored_callback: impl FnOnce(&mut RRV, ParsedName<'message>, DelegationSignerResourceRecordIgnoredBecauseReason), visit_callback: impl FnOnce(&mut RRV, ParsedName<'message>, CacheUntil, DelegationSigner<'message>) -> Result<(), RRV::Error>, permit_delete: bool, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, map_error: impl FnOnce(DelegationSignerHandleRecordTypeError) -> HandleRecordTypeError<RRV::Error>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		use self::DelegationSignerHandleRecordTypeError::*;
 		
@@ -2328,7 +2328,7 @@ impl ResourceRecord
 			
 			Right(security_algorithm_rejected_because_reason) =>
 			{
-				ignored_callback(resource_record_visitor, resource_record_name, SecurityAlgorithmRejected(security_algorithm_rejected_because_reason))?;
+				ignored_callback(resource_record_visitor, resource_record_name, SecurityAlgorithmRejected(security_algorithm_rejected_because_reason));
 				return Ok(resource_data_end_pointer)
 			}
 		};
@@ -2342,7 +2342,7 @@ impl ResourceRecord
 	
 			1 =>
 			{
-				ignored_callback(resource_record_visitor, resource_record_name, DigestAlgorithmRejected(Sha1IsBroken))?;
+				ignored_callback(resource_record_visitor, resource_record_name, DigestAlgorithmRejected(Sha1IsBroken));
 				return Ok(resource_data_end_pointer)
 			}
 	
@@ -2350,7 +2350,7 @@ impl ResourceRecord
 	
 			3 =>
 			{
-				ignored_callback(resource_record_visitor, resource_record_name, DigestAlgorithmRejected(Gost94MayBeBroken))?;
+				ignored_callback(resource_record_visitor, resource_record_name, DigestAlgorithmRejected(Gost94MayBeBroken));
 				return Ok(resource_data_end_pointer)
 			}
 	
@@ -2358,7 +2358,7 @@ impl ResourceRecord
 	
 			_ =>
 			{
-				ignored_callback(resource_record_visitor, resource_record_name, DigestAlgorithmRejected(Unassigned(digest_type)))?;
+				ignored_callback(resource_record_visitor, resource_record_name, DigestAlgorithmRejected(Unassigned(digest_type)));
 				return Ok(resource_data_end_pointer)
 			}
 		};
@@ -2375,7 +2375,7 @@ impl ResourceRecord
 	}
 	
 	#[inline(always)]
-	fn guard_dns_key<'message, RRV: ResourceRecordVisitor<'message>>(&self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, ignored_callback: impl FnOnce(&mut RRV, ParsedName<'message>, DnsKeyResourceRecordIgnoredBecauseReason), visit_callback: impl FnOnce(&mut RRV, ParsedName<'message>, CacheUntil, DnsKey<'message>) -> Result<(), RRV::Error>, permit_delete: bool, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, map_error: impl FnOnce(DnsKeyHandleRecordTypeError) -> HandleRecordTypeError<RRV::Error>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn guard_dns_key<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, ignored_callback: impl FnOnce(&mut RRV, ParsedName<'message>, DnsKeyResourceRecordIgnoredBecauseReason), visit_callback: impl FnOnce(&mut RRV, ParsedName<'message>, CacheUntil, DnsKey<'message>) -> Result<(), RRV::Error>, permit_delete: bool, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, map_error: impl FnOnce(DnsKeyHandleRecordTypeError) -> HandleRecordTypeError<RRV::Error>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
 
@@ -2398,7 +2398,7 @@ impl ResourceRecord
 		let protocol = resource_data.u8(FlagsSize);
 		if unlikely!(protocol != 3)
 		{
-			resource_record_visitor.ignored_callback(resource_record_name, ProtocolWasNot3(protocol));
+			ignored_callback(resource_record_visitor, resource_record_name, ProtocolWasNot3(protocol));
 			return Ok(resource_data_end_pointer)
 		}
 
@@ -2484,9 +2484,9 @@ impl ResourceRecord
 		
 		let length = digest_data.len();
 		
-		if likely!(length == D::DigestSizeInBytes)
+		if length == D::DigestSizeInBytes
 		{
-			name(digest_data.start_pointer().unsafe_cast::<[u8; D::DigestSizeInBytes]>())
+			Ok(name(digest_data.start_pointer().unsafe_cast::<[u8; D::DigestSizeInBytes]>()))
 		}
 		else
 		{
@@ -2495,7 +2495,7 @@ impl ResourceRecord
 	}
 	
 	#[inline(always)]
-	fn ipsec_like_public_key<'message, RRV: ResourceRecordVisitor<'message>>(data_type: DataType, resource_record_visitor: &mut RRV, public_key_algorithm_type: u8, resource_data: &[u8], public_key_starts_at_offset: usize, public_key_length: usize, dsa_ignored_callback: impl FnOnce(&mut RRV), unassigned_ignored_callback: impl FnOnce(&mut RRV)) -> Result<Either<Option<PublicKey<'message>>, ()>, IpsecLikePublicKeyHandleRecordTypeError>
+	fn ipsec_like_public_key<'message, RRV: ResourceRecordVisitor<'message>>(data_type: DataType, resource_record_visitor: &mut RRV, public_key_algorithm_type: u8, resource_data: &'message [u8], public_key_starts_at_offset: usize, public_key_length: usize, dsa_ignored_callback: impl FnOnce(&mut RRV), unassigned_ignored_callback: impl FnOnce(&mut RRV)) -> Result<Either<Option<PublicKey<'message>>, ()>, IpsecLikePublicKeyHandleRecordTypeError>
 	{
 		use self::IpsecLikePublicKeyHandleRecordTypeError::*;
 		use self::PublicKey::*;

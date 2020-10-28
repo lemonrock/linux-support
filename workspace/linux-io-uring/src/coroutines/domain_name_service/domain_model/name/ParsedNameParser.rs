@@ -194,7 +194,7 @@ impl<'a, 'message: 'a> ParsedNameParser<'a, 'message>
 		
 		Self::validate_label_does_not_contain_a_period(label_data_starts_at_pointer, next_label_starts_at_pointer);
 		
-		self.label_data_starts_at_pointers_and_label_length_excluding_trailing_period.try_push((label_data_starts_at_pointer, label_length_excluding_trailing_period)).map_err(|_: CapacityError| LabelPointerCreatesADnsNameLongerThan127Labels)?;
+		self.label_data_starts_at_pointers_and_label_length_excluding_trailing_period.try_push((label_data_starts_at_pointer, label_length_excluding_trailing_period)).map_err(|_| LabelPointerCreatesADnsNameLongerThan127Labels)?;
 		
 		let is_terminal_root_label = label_length_excluding_trailing_period == 0;
 		if unlikely!(is_terminal_root_label)
@@ -224,7 +224,7 @@ impl<'a, 'message: 'a> ParsedNameParser<'a, 'message>
 		
 		self.name_length_including_trailing_periods_after_labels.checked_add(name_length_including_trailing_periods_after_labels).ok_or(CompressedLabelPointerCreatesADnsNameLongerThan255Bytes)?;
 		
-		self.label_data_starts_at_pointers_and_label_length_excluding_trailing_period.try_extend_from_slice(label_data_starts_at_pointers_and_label_length_excluding_trailing_period).map_err(|_: CapacityError| CompressedLabelPointerCreatesADnsNameLongerThan127Labels)?;
+		self.label_data_starts_at_pointers_and_label_length_excluding_trailing_period.try_extend_from_slice(label_data_starts_at_pointers_and_label_length_excluding_trailing_period).map_err(|_| CompressedLabelPointerCreatesADnsNameLongerThan127Labels)?;
 		
 		let next_label_starts_at_pointer = label_starts_at_pointer + LabelKind::CompressedOffsetPointerLabelKindSize;
 		if likely!(next_label_starts_at_pointer <= self.maximum_for_end_of_name_pointer)

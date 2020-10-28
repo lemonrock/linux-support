@@ -3,7 +3,7 @@
 
 
 /// A case-folded (normalized to lower case) name which consists of labels, including a terminal root label.
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct CaseFoldedName<'label>
 {
 	labels: Box<[CaseFoldedLabel<'label>]>,
@@ -63,7 +63,7 @@ impl<'label: 'message, 'message, 'b> From<&'b ParsedName<'message>> for CaseFold
 				for index in 0 .. value.number_of_labels_including_root().get()
 				{
 					let parsed_label_cow = value.label(index);
-					labels.push(CaseFoldedLabel::from(parsed_label_cow.deref()))
+					labels.push(CaseFoldedLabel::from(parsed_label_cow))
 				}
 				
 				labels.into_boxed_slice()
@@ -205,7 +205,7 @@ impl<'a> CaseFoldedName<'a>
 	{
 		use self::CaseFoldedNameParseError::*;
 		
-		if self.number_of_labels_including_root().get() == RawLabel::MaximumNumber
+		if self.number_of_labels_including_root().get() == (RawLabel::MaximumNumber as u8)
 		{
 			return Err(NumberOfLabelsExceed127)
 		}

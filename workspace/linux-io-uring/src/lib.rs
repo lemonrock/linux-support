@@ -36,7 +36,6 @@ use self::dogstatsd::*;
 use self::registered_buffers::*;
 use arrayvec::ArrayString;
 use arrayvec::ArrayVec;
-use arrayvec::CapacityError;
 use context_allocator::GlobalThreadAndCoroutineSwitchableAllocator;
 use context_allocator::LifetimeHint;
 use context_allocator::LocalAllocator;

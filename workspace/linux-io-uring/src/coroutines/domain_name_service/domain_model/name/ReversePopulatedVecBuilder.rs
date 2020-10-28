@@ -112,7 +112,7 @@ impl<T> ReversePopulatedVecBuilder<T>
 	}
 }
 
-impl<'a> ReversePopulatedVecBuilder<CaseFoldedLabel<'a>>
+impl<'cache> ReversePopulatedVecBuilder<CaseFoldedLabel<'cache>>
 {
 	#[inline(always)]
 	fn try_push_root_label(&mut self, label: &[u8]) -> Result<NonZeroU8, CaseFoldedNameParseError>
@@ -129,7 +129,7 @@ impl<'a> ReversePopulatedVecBuilder<CaseFoldedLabel<'a>>
 	}
 	
 	#[inline(always)]
-	fn try_push_non_empty_label(&mut self, label: &[u8], name_length_including_trailing_periods_after_labels: &mut NonZeroU8) -> Result<(), CaseFoldedNameParseError>
+	fn try_push_non_empty_label(&mut self, label: &'cache [u8], name_length_including_trailing_periods_after_labels: &mut NonZeroU8) -> Result<(), CaseFoldedNameParseError>
 	{
 		use self::CaseFoldedNameParseError::*;
 		

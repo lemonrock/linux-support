@@ -48,9 +48,35 @@ impl<'cache: 'message, 'message> From<ParsedLabel<'message>> for CaseFoldedLabel
 	#[inline(always)]
 	fn from(value: ParsedLabel<'message>) -> Self
 	{
+		Self::from(&value)
+	}
+}
+
+/// This clones the underlying data and case-folds.
+impl<'cache: 'message, 'message, 'a> From<Cow<'a, ParsedLabel<'message>>> for CaseFoldedLabel<'cache>
+{
+	#[inline(always)]
+	fn from(value: Cow<'a, ParsedLabel<'message>>) -> Self
+	{
+		use self::Cow::*;
+		
+		match value
+		{
+			Borrowed(value) => Self::from(value),
+			Owned(value) => Self::from(value),
+		}
+	}
+}
+
+/// This clones the underlying data and case-folds.
+impl<'cache: 'message, 'message, 'a> From<&'a ParsedLabel<'message>> for CaseFoldedLabel<'cache>
+{
+	#[inline(always)]
+	fn from(value: &'a ParsedLabel<'message>) -> Self
+	{
 		let length = value.len();
 		let capacity = length as usize;
-		let mut case_folded_bytes = Vec::with_capacity(capacity);
+		let mut case_folded_bytes: Vec<u8> = Vec::with_capacity(capacity);
 		
 		for index in 0 .. length
 		{
