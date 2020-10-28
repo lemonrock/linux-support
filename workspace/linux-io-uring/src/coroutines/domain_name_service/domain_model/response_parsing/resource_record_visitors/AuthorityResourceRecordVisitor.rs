@@ -233,7 +233,7 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 					
 					(false, false) =>
 					{
-						guard_against_authoritative_answer_without_start_of_authority_record(authoritative_or_authenticated_or_neither);
+						guard_against_authoritative_answer_without_start_of_authority_record(authoritative_or_authenticated_or_neither)?;
 						Answer::NoData { response_type: NoDataResponseType3 { name_servers: self.name_server_records.into_inner() } }
 					},
 					
@@ -261,14 +261,14 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 					// Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 3.
 					(false, false) =>
 					{
-						guard_against_authoritative_answer_without_start_of_authority_record(authoritative_or_authenticated_or_neither);
+						guard_against_authoritative_answer_without_start_of_authority_record(authoritative_or_authenticated_or_neither)?;
 						Answer::NoDomain { response_type: NoDomainResponseType3, most_canonical_name }
 					},
 					
 					// Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 4.
 					(false, true) =>
 					{
-						guard_against_authoritative_answer_without_start_of_authority_record(authoritative_or_authenticated_or_neither);
+						guard_against_authoritative_answer_without_start_of_authority_record(authoritative_or_authenticated_or_neither)?;
 						Answer::NoDomain { response_type: NoDomainResponseType4 { name_servers: self.name_server_records.into_inner() }, most_canonical_name }
 					},
 				}

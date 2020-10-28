@@ -192,7 +192,7 @@ impl<'a, 'message: 'a> ParsedNameParser<'a, 'message>
 		
 		let (label_data_starts_at_pointer, next_label_starts_at_pointer) = self.validate_label_length_does_not_cause_overflow(label_starts_at_pointer, label_length_excluding_trailing_period)?;
 		
-		Self::validate_label_does_not_contain_a_period(label_data_starts_at_pointer, next_label_starts_at_pointer);
+		Self::validate_label_does_not_contain_a_period(label_data_starts_at_pointer, next_label_starts_at_pointer)?;
 		
 		self.label_data_starts_at_pointers_and_label_length_excluding_trailing_period.try_push((label_data_starts_at_pointer, label_length_excluding_trailing_period)).map_err(|_| LabelPointerCreatesADnsNameLongerThan127Labels)?;
 		

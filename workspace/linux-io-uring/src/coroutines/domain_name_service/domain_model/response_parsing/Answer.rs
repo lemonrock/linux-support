@@ -36,9 +36,9 @@ impl<'label, N: Name<'label>> Answer<'label, N>
 		{
 			Answered => false,
 			
-			NoDomain { response_type: response_type, .. } => response_type.is_implicit_referral(),
+			NoDomain { response_type, .. } => response_type.is_implicit_referral(),
 			
-			NoData { response_type: response_type } => response_type.is_implicit_referral(),
+			NoData { response_type } => response_type.is_implicit_referral(),
 			
 			Referral { .. } => true,
 		}
