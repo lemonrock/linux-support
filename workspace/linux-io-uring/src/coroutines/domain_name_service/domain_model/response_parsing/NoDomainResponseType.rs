@@ -2,13 +2,13 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone)]
 enum NoDomainResponseType<'label, N: Name<'label>>
 {
 	/// RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 1.
 	NoDomainResponseType1
 	{
-		start_of_authority: (CaseFoldedName<'static>, NegativeCacheUntil, StartOfAuthority<'label, N>),
+		start_of_authority: (N, NegativeCacheUntil, StartOfAuthority<'label, N>),
 		
 		name_servers: Records<'label, N>,
 	},
@@ -16,7 +16,7 @@ enum NoDomainResponseType<'label, N: Name<'label>>
 	/// RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 2.
 	NoDomainResponseType2
 	{
-		start_of_authority: (CaseFoldedName<'static>, NegativeCacheUntil, StartOfAuthority<'label, N>),
+		start_of_authority: (N, NegativeCacheUntil, StartOfAuthority<'label, N>),
 	},
 	
 	// TODO: RFC 2308 Section 5: "Negative responses without SOA records SHOULD NOT be cached as there is no way to prevent the negative responses looping forever between a pair of servers even with a short TTL".

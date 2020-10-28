@@ -16,9 +16,9 @@ impl QuerySectionEntry
 
 	/// Validation of available buffer size is done before calling this.
 	#[inline(always)]
-	pub(crate) fn write_query_section_entry_for_query(query_section_pointer: usize, data_type: DataType, query_name: &CaseFoldedName<'static>) -> usize
+	pub(crate) fn write_query_section_entry_for_query(query_section_pointer: usize, data_type: DataType, query_name: &CaseFoldedName<'_>) -> usize
 	{
-		let mut current_pointer = query_name.copy_non_overlapping_to(query_section_pointer);
+		let mut current_pointer = query_name.copy_non_overlapping_to_without_case_folding(query_section_pointer);
 
 		current_pointer.set_u16_bytes(data_type.0);
 		current_pointer += Self::QueryTypeSize;

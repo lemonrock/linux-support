@@ -2,9 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub struct QueryTypeCache<'cache, Record: Sized>(LeastRecentlyUsedCache<'cache, CacheEntry<Record>>);
+pub struct QueryTypeCache<'cache, Record: Sized + Debug>(LeastRecentlyUsedCache<'cache, CacheEntry<'cache, Record>>);
 
-impl<'cache, Record: Sized> QueryTypeCache<'cache, Record>
+impl<'cache, Record: Sized + Debug> QueryTypeCache<'cache, Record>
 {
 	#[inline(always)]
 	pub(crate) fn new(maximum_records_count: NonZeroUsize) -> Self
@@ -14,7 +14,7 @@ impl<'cache, Record: Sized> QueryTypeCache<'cache, Record>
 	
 	/// Gets a result for the name.
 	#[inline(always)]
-	pub fn get(&mut self, name: &CaseFoldedName<'cache>, now: NanosecondsSinceUnixEpoch) -> CacheResult<Record>
+	pub fn get(&mut self, name: &CaseFoldedName<'cache>, now: NanosecondsSinceUnixEpoch) -> CacheResult<'cache, Record>
 	{
 		use self::CacheEntry::*;
 		use self::CacheResult::*;
@@ -63,7 +63,7 @@ impl<'cache, Record: Sized> QueryTypeCache<'cache, Record>
 	#[inline(always)]
 	pub(crate) fn put_name_error<'message>(&mut self, query_name: CaseFoldedName<'cache>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message, ParsedName<'message>>)
 	{
-		self.put_absent::<'message>(query_name, negative_cache_until, record)
+		self.put_absent(query_name, negative_cache_until, record)
 	}
 	
 	/// RFC 2308, Section 8 - Changes from RFC 1034, Paragraph 3: "The SOA record from the authority section MUST be cached. … No data indications must be cached against \[the\] `<query name, QTYPE, QCLASS>` tuple".
@@ -72,7 +72,7 @@ impl<'cache, Record: Sized> QueryTypeCache<'cache, Record>
 	#[inline(always)]
 	pub(crate) fn put_no_data<'message>(&mut self, query_name: CaseFoldedName<'cache>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message, ParsedName<'message>>)
 	{
-		self.put_absent::<'message>(query_name, negative_cache_until, record)
+		self.put_absent(query_name, negative_cache_until, record)
 	}
 	
 	#[inline(always)]

@@ -5,18 +5,21 @@
 /// Fast, but slightly insecure, random u16.
 #[allow(deprecated)]
 #[inline(always)]
-pub fn fast_slightly_insecure_random_u16() -> Result<u16, ()>
+pub fn fast_slightly_insecure_random_u16() -> u16
 {
 	let mut random_value= unsafe { uninitialized() };
 	
-	match unsafe { _rdrand16_step(&mut random_value) }
+	loop
 	{
-		0 => (),
-		
-		1 => return Err(()),
-		
-		unexpected @ _ => unreachable!("Intel _rdrand16_step() intrisnice returned a result other than 0 or 1: {}", unexpected)
-	};
+		match unsafe { _rdrand16_step(&mut random_value) }
+		{
+			0 => break,
+			
+			1 => continue,
+			
+			unexpected @ _ => unreachable!("Intel _rdrand16_step() intrisnice returned a result other than 0 or 1: {}", unexpected)
+		};
+	}
 	
-	Ok(random_value)
+	random_value
 }

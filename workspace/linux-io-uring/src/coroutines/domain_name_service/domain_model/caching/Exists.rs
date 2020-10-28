@@ -4,9 +4,9 @@
 
 /// Known to exist.
 #[derive(Debug)]
-pub struct Exists<Record: Sized>(BTreeMap<Priority, SortedWeightedRecords<Record>>);
+pub struct Exists<Record: Sized + Debug>(PriorityToSortedWeightedRecordsMap<Record>);
 
-impl<Record: Sized> Exists<Record>
+impl<Record: Sized + Debug> Exists<Record>
 {
 	/// Iterate destructively.
 	///
@@ -16,6 +16,6 @@ impl<Record: Sized> Exists<Record>
 	#[inline(always)]
 	pub fn into_iter(self) -> impl Iterator<Item=Rc<Record>>
 	{
-		self.0.into_iter().flat_map(|(_priority, sorted_weighted_records)| sorted_weighted_records)
+		(self.0).0.into_iter().flat_map(|(_priority, sorted_weighted_records)| sorted_weighted_records)
 	}
 }

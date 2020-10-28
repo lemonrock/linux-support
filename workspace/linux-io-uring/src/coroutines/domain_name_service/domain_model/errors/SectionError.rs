@@ -3,7 +3,7 @@
 
 
 /// Section error.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum SectionError<E: error::Error>
 {
 	/// Query section.
@@ -28,7 +28,7 @@ impl<E: error::Error> Display for SectionError<E>
 	}
 }
 
-impl<E: error::Error> error::Error for SectionError<E>
+impl<E: 'static + error::Error> error::Error for SectionError<E>
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>

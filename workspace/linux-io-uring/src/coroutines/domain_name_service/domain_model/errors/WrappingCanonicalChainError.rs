@@ -20,7 +20,7 @@ impl<E: error::Error> Display for WrappingCanonicalChainError<E>
 	}
 }
 
-impl<E: error::Error> error::Error for WrappingCanonicalChainError<E>
+impl<E: 'static + error::Error> error::Error for WrappingCanonicalChainError<E>
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>

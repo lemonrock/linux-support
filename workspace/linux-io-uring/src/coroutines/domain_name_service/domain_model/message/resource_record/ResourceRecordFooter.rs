@@ -22,11 +22,7 @@ impl ResourceRecordFooter
 	const ClassSize: usize = size_of::<BigEndianU16>();
 	const TimeToLiveSize: usize = size_of::<BigEndianI32>();
 	const ResourceDataLengthSize: usize = size_of::<BigEndianU16>();
-
-	const RequestorsUdpPayloadSize: usize = Self::ClassSize;
-	const ExtendedRCodeAndFlagsSize: usize = Self::TimeToLiveSize;
-	const OptionsSize: usize = Self::ResourceDataLengthSize;
-
+	
 	const MinimumSize: usize = Self::TypeSize + Self::ClassSize + Self::TimeToLiveSize + Self::ResourceDataLengthSize + ResourceData::MinimumSize;
 
 	#[inline(always)]

@@ -35,7 +35,8 @@ impl ResponseParsingState
 		}
 		else
 		{
-			self.number_of_cname_records_in_answer_section.set(number_of_cname_records_in_answer_section + 1)
+			self.number_of_cname_records_in_answer_section.set(number_of_cname_records_in_answer_section + 1);
+			Ok(())
 		}
 	}
 	
@@ -49,7 +50,8 @@ impl ResponseParsingState
 		}
 		else
 		{
-			self.number_of_dname_records_in_answer_section.set(number_of_dname_records_in_answer_section + 1)
+			self.number_of_dname_records_in_answer_section.set(number_of_dname_records_in_answer_section + 1);
+			Ok(())
 		}
 	}
 	

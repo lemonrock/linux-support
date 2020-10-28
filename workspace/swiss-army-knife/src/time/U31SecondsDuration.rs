@@ -37,6 +37,15 @@ impl TryFrom<u32> for U31SecondsDuration
 	}
 }
 
+impl Into<u32> for U31SecondsDuration
+{
+	#[inline(always)]
+	fn into(self) -> u32
+	{
+		self.0
+	}
+}
+
 impl Into<Duration> for U31SecondsDuration
 {
 	#[inline(always)]

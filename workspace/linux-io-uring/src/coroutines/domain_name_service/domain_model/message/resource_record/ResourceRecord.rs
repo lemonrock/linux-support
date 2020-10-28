@@ -27,19 +27,22 @@ impl ResourceRecord
 		const RootName: u8 = 0x00;
 		current_pointer.set_u8_byte(RootName);
 		current_pointer += 1;
-
+		
+		const ExtendsDnsRequestorsUdpPayloadSize: usize = ResourceRecordFooter::ClassSize;
 		current_pointer.set_u16_bytes(MetaType::OPT.0);
-		current_pointer += ResourceRecordFooter::DataSize;
+		current_pointer += ResourceRecordFooter::TypeSize;
 		
 		current_pointer.set_u16_bytes(Self::UdpRequestorsPayloadSizeBigEndianU16);
-		current_pointer += ResourceRecordFooter::RequestorsUdpPayloadSize;
-
+		current_pointer += ExtendsDnsRequestorsUdpPayloadSize;
+		
+		const ExtendedDnsExtendedRCodeAndFlagsSize: usize = ResourceRecordFooter::TimeToLiveSize;
 		current_pointer.set_u32_bytes(ExtendedResponseCodeAndFlags::new_for_query());
-		current_pointer += ResourceRecordFooter::ExtendedRCodeAndFlagsSize;
-
+		current_pointer += ExtendedDnsExtendedRCodeAndFlagsSize;
+		
+		const ExtendedDnsOptionsSize: usize = ResourceRecordFooter::ResourceDataLengthSize;
 		const NoOptions: BigEndianU16 = [0, 0];
 		current_pointer.set_u16_bytes(NoOptions);
-		current_pointer += ResourceRecordFooter::OptionsSize;
+		current_pointer += ExtendedDnsOptionsSize;
 		
 		current_pointer
 	}
@@ -165,15 +168,15 @@ impl ResourceRecord
 		{
 			0x00 => match type_lower
 			{
-				DataType::SIG0_lower => self.handle_obsolete_meta_type::<'message, RRV>(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::SIG0, "Only really useful for updates, which, frankly, are probably better done out-of-band than using DNS; regardless, when using DNS over TLS a client certificate is much more useful"),
+				DataType::SIG0_lower => self.handle_obsolete_meta_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::SIG0, "Only really useful for updates, which, frankly, are probably better done out-of-band than using DNS; regardless, when using DNS over TLS a client certificate is much more useful"),
 
 				DataType::A_lower => self.handle_A(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
 				DataType::NS_lower => self.handle_NS(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_names, duplicate_resource_record_response_parsing),
 
-				DataType::MD_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::MD),
+				DataType::MD_lower => self.handle_very_obsolete_record_type(DataType::MD),
 
-				DataType::MF_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::MF),
+				DataType::MF_lower => self.handle_very_obsolete_record_type(DataType::MF),
 
 				DataType::CNAME_lower => self.handle_CNAME(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_names, duplicate_resource_record_response_parsing, is_some_if_present_in_answer_section_and_true_if_was_queried_for),
 
@@ -186,61 +189,61 @@ impl ResourceRecord
 					Err(ResourceTypeInWrongSection(StartOfAuthorityResourceRecordTypeIsNotPermittedInThisSection))
 				},
 
-				DataType::MB_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::MB),
+				DataType::MB_lower => self.handle_very_obsolete_record_type(DataType::MB),
 
-				DataType::MG_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::MG),
+				DataType::MG_lower => self.handle_very_obsolete_record_type(DataType::MG),
 
-				DataType::MR_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::MR),
+				DataType::MR_lower => self.handle_very_obsolete_record_type(DataType::MR),
 
-				DataType::NULL_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::NULL),
+				DataType::NULL_lower => self.handle_very_obsolete_record_type(DataType::NULL),
 
-				DataType::WKS_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::WKS),
+				DataType::WKS_lower => self.handle_very_obsolete_record_type(DataType::WKS),
 
 				DataType::PTR_lower => self.handle_PTR(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_names, duplicate_resource_record_response_parsing),
 
 				DataType::HINFO_lower => self.handle_HINFO(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::MINFO_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::MINFO),
+				DataType::MINFO_lower => self.handle_very_obsolete_record_type(DataType::MINFO),
 
 				DataType::MX_lower => self.handle_MX(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_names, duplicate_resource_record_response_parsing),
 
 				DataType::TXT_lower => self.handle_TXT(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::RP_lower => self.handle_obsolete_or_very_obscure_record_type::<'message, RRV>(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::RP, "Used in some rare circumstances; some legacy records may remain"),
+				DataType::RP_lower => self.handle_obsolete_or_very_obscure_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::RP, "Used in some rare circumstances; some legacy records may remain"),
 
-				DataType::AFSDB_lower => self.handle_obsolete_or_very_obscure_record_type::<'message, RRV>(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::AFSDB, "Replaced by use of SRV records; some legacy records may remain"),
+				DataType::AFSDB_lower => self.handle_obsolete_or_very_obscure_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::AFSDB, "Replaced by use of SRV records; some legacy records may remain"),
 
-				DataType::X25_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::X25),
+				DataType::X25_lower => self.handle_very_obsolete_record_type(DataType::X25),
 
-				DataType::ISDN_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::ISDN),
+				DataType::ISDN_lower => self.handle_very_obsolete_record_type(DataType::ISDN),
 
-				DataType::RT_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::RT),
+				DataType::RT_lower => self.handle_very_obsolete_record_type(DataType::RT),
 
-				DataType::NSAP_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::NSAP),
+				DataType::NSAP_lower => self.handle_very_obsolete_record_type(DataType::NSAP),
 
-				DataType::NSAP_PTR_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::NSAP_PTR),
+				DataType::NSAP_PTR_lower => self.handle_very_obsolete_record_type(DataType::NSAP_PTR),
 
-				DataType::SIG_lower => self.handle_obsolete_or_very_obscure_record_type::<'message, RRV>(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::SIG, "Not used now SIG(0) is available; some legacy records may remain"),
+				DataType::SIG_lower => self.handle_obsolete_or_very_obscure_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::SIG, "Not used now SIG(0) is available; some legacy records may remain"),
 
-				DataType::KEY_lower => self.handle_obsolete_or_very_obscure_record_type::<'message, RRV>(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::KEY, "Replaced by IPSECKEY and various DNSSEC records; some legacy records may remain"),
+				DataType::KEY_lower => self.handle_obsolete_or_very_obscure_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::KEY, "Replaced by IPSECKEY and various DNSSEC records; some legacy records may remain"),
 
-				DataType::PX_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::PX),
+				DataType::PX_lower => self.handle_very_obsolete_record_type(DataType::PX),
 
-				DataType::GPOS_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::GPOS),
+				DataType::GPOS_lower => self.handle_very_obsolete_record_type(DataType::GPOS),
 
 				DataType::AAAA_lower => self.handle_AAAA(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
 				DataType::LOC_lower => self.handle_LOC(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::NXT_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::NXT),
+				DataType::NXT_lower => self.handle_very_obsolete_record_type(DataType::NXT),
 
-				DataType::EID_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::EID),
+				DataType::EID_lower => self.handle_very_obsolete_record_type(DataType::EID),
 
-				DataType::NIMLOC_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::NIMLOC),
+				DataType::NIMLOC_lower => self.handle_very_obsolete_record_type(DataType::NIMLOC),
 
 				DataType::SRV_lower => self.handle_SRV(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_names, duplicate_resource_record_response_parsing),
 
-				DataType::ATMA_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::ATMA),
+				DataType::ATMA_lower => self.handle_very_obsolete_record_type(DataType::ATMA),
 
 				DataType::NAPTR_lower => self.handle_NAPTR(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_names, duplicate_resource_record_response_parsing),
 
@@ -248,15 +251,15 @@ impl ResourceRecord
 
 				DataType::CERT_lower => self.handle_cert(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
-				DataType::A6_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::A6),
+				DataType::A6_lower => self.handle_very_obsolete_record_type(DataType::A6),
 
 				DataType::DNAME_lower => self.handle_DNAME(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_names, duplicate_resource_record_response_parsing, is_some_if_present_in_answer_section_and_true_if_was_queried_for),
 
-				DataType::SINK_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::SINK),
+				DataType::SINK_lower => self.handle_very_obsolete_record_type(DataType::SINK),
 
 				MetaType::OPT_lower => Err(ResourceTypeInWrongSection(ExtendedDnsOptResourceRecordTypeIsNotPermittedOutsideOfAnAdditionalSection)),
 
-				DataType::APL_lower => self.handle_obsolete_or_very_obscure_record_type::<'message, RRV>(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::APL, "Some legacy records may remain"),
+				DataType::APL_lower => self.handle_obsolete_or_very_obscure_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::APL, "Some legacy records may remain"),
 
 				DataType::DS_lower => self.handle_DS(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
@@ -284,11 +287,11 @@ impl ResourceRecord
 
 				DataType::HIP_lower => self.handle_HIP(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, parsed_names, duplicate_resource_record_response_parsing),
 
-				DataType::NINFO_lower => self.handle_obsolete_or_very_obscure_record_type::<'message, RRV>(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::NINFO, "No RFC or RFC draft and probably not deployed"),
+				DataType::NINFO_lower => self.handle_obsolete_or_very_obscure_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::NINFO, "No RFC or RFC draft and probably not deployed"),
 
-				DataType::RKEY_lower => self.handle_obsolete_or_very_obscure_record_type::<'message, RRV>(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::RKEY, "No RFC or RFC draft and probably not deployed"),
+				DataType::RKEY_lower => self.handle_obsolete_or_very_obscure_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::RKEY, "No RFC or RFC draft and probably not deployed"),
 
-				DataType::TALINK_lower => self.handle_obsolete_or_very_obscure_record_type::<'message, RRV>(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::TALINK, "No RFC or RFC draft and probably not deployed"),
+				DataType::TALINK_lower => self.handle_obsolete_or_very_obscure_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::TALINK, "No RFC or RFC draft and probably not deployed"),
 
 				DataType::CDS_lower => self.handle_CDS(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
@@ -302,15 +305,15 @@ impl ResourceRecord
 
 				64 ..= 98 => self.handle_unassigned(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing, 0x00, type_lower),
 
-				DataType::SPF_lower => self.handle_obsolete_or_very_obscure_record_type::<'message, RRV>(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::SPF, "RFC 7208 deprecated this record type; some legacy records may remain"),
+				DataType::SPF_lower => self.handle_obsolete_or_very_obscure_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::SPF, "RFC 7208 deprecated this record type; some legacy records may remain"),
 
-				DataType::UINFO_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::UINFO),
+				DataType::UINFO_lower => self.handle_very_obsolete_record_type(DataType::UINFO),
 
-				DataType::UID_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::UID),
+				DataType::UID_lower => self.handle_very_obsolete_record_type(DataType::UID),
 
-				DataType::GID_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::GID),
+				DataType::GID_lower => self.handle_very_obsolete_record_type(DataType::GID),
 
-				DataType::UNSPEC_lower => self.handle_very_obsolete_record_type::<'message, RRV>(DataType::UNSPEC),
+				DataType::UNSPEC_lower => self.handle_very_obsolete_record_type(DataType::UNSPEC),
 
 				DataType::NID_lower => self.handle_NID(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
@@ -328,9 +331,9 @@ impl ResourceRecord
 
 				128 ..= 248 => Err(UnknownQueryTypeOrMetaType(0x00, type_lower)),
 
-				MetaType::TKEY_lower => self.handle_obsolete_meta_type::<'message, RRV>(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::TKEY, "Only really useful for updates, which, frankly, are probably better done out-of-band than using DNS; regardless, when using DNS over TLS a client certificate is much more useful"),
+				MetaType::TKEY_lower => self.handle_obsolete_meta_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, MetaType::TKEY, "Only really useful for updates, which, frankly, are probably better done out-of-band than using DNS; regardless, when using DNS over TLS a client certificate is much more useful"),
 
-				MetaType::TSIG_lower => self.handle_obsolete_meta_type::<'message, RRV>(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::TSIG, "Only really useful for updates, which, frankly, are probably better done out-of-band than using DNS; regardless, when using DNS over TLS a client certificate is much more useful"),
+				MetaType::TSIG_lower => self.handle_obsolete_meta_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, MetaType::TSIG, "Only really useful for updates, which, frankly, are probably better done out-of-band than using DNS; regardless, when using DNS over TLS a client certificate is much more useful"),
 
 				QueryType::IXFR_lower => Err(QueryTypeOutsideOfAQuestionSectionEntry(IXFR)),
 
@@ -360,9 +363,9 @@ impl ResourceRecord
 
 			0x80 => match type_lower
 			{
-				DataType::TA_lower => self.handle_obsolete_or_very_obscure_record_type::<'message, RRV>(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::TA, "DNSSEC Trust Anchors were never widely deployed; some legacy records may remain"),
+				DataType::TA_lower => self.handle_obsolete_or_very_obscure_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::TA, "DNSSEC Trust Anchors were never widely deployed; some legacy records may remain"),
 
-				DataType::DLV_lower => self.handle_obsolete_or_very_obscure_record_type::<'message, RRV>(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::DLV, "DNSSEC Lookaside Validation is not longer supported now that all root nameservers support DNSSEC; some legacy records may remain"),
+				DataType::DLV_lower => self.handle_obsolete_or_very_obscure_record_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::DLV, "DNSSEC Lookaside Validation is not longer supported now that all root nameservers support DNSSEC; some legacy records may remain"),
 
 				_ => self.handle_unassigned(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing, 0x80, type_lower),
 			},
@@ -562,7 +565,7 @@ impl ResourceRecord
 		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::MX, duplicate_resource_record_response_parsing)?;
 
 		const PreferenceSize: usize = 2;
-		const MinimumMailServerNameSize: usize = ResourceRecord::MinimumNameSize;
+		const MinimumMailServerNameSize: usize = ParsedNameParser::NameMinimumSize;
 
 		let length = resource_data.len();
 
@@ -651,7 +654,7 @@ impl ResourceRecord
 		const PrioritySize: usize = 2;
 		const WeightSize: usize = 2;
 		const PortSize: usize = 2;
-		const MinimumTargetNameSize: usize = ResourceRecord::MinimumNameSize;
+		const MinimumTargetNameSize: usize = ParsedNameParser::NameMinimumSize;
 
 		let length = resource_data.len();
 		if unlikely!(length < PrioritySize + WeightSize + PortSize + MinimumTargetNameSize)
@@ -683,7 +686,7 @@ impl ResourceRecord
 		const MinimumFlagsSize: usize = ResourceRecord::MinimumCharacterStringSize;
 		const MinimumServicesSize: usize = ResourceRecord::MinimumCharacterStringSize;
 		const MinimumRegularExpressionSize: usize = ResourceRecord::MinimumCharacterStringSize;
-		const MinimumDomainNameSize: usize = ResourceRecord::MinimumNameSize;
+		const MinimumDomainNameSize: usize = ParsedNameParser::NameMinimumSize;
 
 		let length = resource_data.len();
 		if unlikely!(length < OrderSize + PreferenceSize + MinimumFlagsSize + MinimumServicesSize + MinimumRegularExpressionSize + MinimumDomainNameSize)
@@ -769,7 +772,7 @@ impl ResourceRecord
 		let length = resource_data.len();
 
 		const PreferenceSize: usize = 2;
-		const MinimumKeyExchangeServerNameSize: usize = ResourceRecord::MinimumNameSize;
+		const MinimumKeyExchangeServerNameSize: usize = ParsedNameParser::NameMinimumSize;
 
 		if unlikely!(length < PreferenceSize + MinimumKeyExchangeServerNameSize)
 		{
@@ -1031,7 +1034,7 @@ impl ResourceRecord
 
 		let length = resource_data.len();
 
-		const MinimumDNameSize: usize = ResourceRecord::MinimumNameSize;
+		const MinimumDNameSize: usize = ParsedNameParser::NameMinimumSize;
 
 		if unlikely!(length < MinimumDNameSize)
 		{
@@ -1249,7 +1252,7 @@ impl ResourceRecord
 		
 		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::NSEC, duplicate_resource_record_response_parsing)?;
 
-		const MinimumNextSecureNameSize: usize = ResourceRecord::MinimumNameSize;
+		const MinimumNextSecureNameSize: usize = ParsedNameParser::NameMinimumSize;
 
 		let length = resource_data.len();
 		if unlikely!(length < MinimumNextSecureNameSize + TypeBitmaps::MinimumTypeBitmapsSize)
@@ -1288,7 +1291,7 @@ impl ResourceRecord
 		const SignatureExpirationSize: usize = 4;
 		const SignatureInceptionSize: usize = 4;
 		const KeyTagSize: usize = 2;
-		const MinimumSignersNameSize: usize = ResourceRecord::MinimumNameSize;
+		const MinimumSignersNameSize: usize = ParsedNameParser::NameMinimumSize;
 		const MinimumSignatureSize: usize = 0;
 
 		let length = resource_data.len();
@@ -1658,7 +1661,7 @@ impl ResourceRecord
 		const PublicKeyLengthSize: usize = 2;
 		const MinimumHostIdentityTagLength: usize = 0;
 		const MinimumPublicKeyLength: usize = 0;
-		const MinimumNumberOfRendezvousServersIsOneSoMinimumNameSizeIsOne: usize = ResourceRecord::MinimumNameSize;
+		const MinimumNumberOfRendezvousServersIsOneSoMinimumNameSizeIsOne: usize = ParsedNameParser::NameMinimumSize;
 		const HostIdentityTagOffset: usize = HostIdentityTagLengthSize + PublicKeyAlgorithmTypeSize + PublicKeyLengthSize;
 
 		let length = resource_data.len();
@@ -1869,7 +1872,7 @@ impl ResourceRecord
 		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::LP, duplicate_resource_record_response_parsing)?;
 
 		const PreferenceSize: usize = 2;
-		const MinimumNameSize: usize = ResourceRecord::MinimumNameSize;
+		const MinimumNameSize: usize = ParsedNameParser::NameMinimumSize;
 
 		let length = resource_data.len();
 		if unlikely!(length < PreferenceSize + MinimumNameSize)
@@ -2198,7 +2201,7 @@ impl ResourceRecord
 	{
 		self.resource_record_class_is_internet(end_of_name_pointer)?;
 
-		let resource_data = self.safely_access_resource_data(end_of_name_pointer, end_of_message_pointer)?;
+		let resource_data = self.safely_access_resource_data(end_of_name_pointer, end_of_message_pointer).map_err(|error| ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError::ResourceDataLengthOverflows(data_type, error))?;
 		
 		duplicate_resource_record_response_parsing.encountered(data_type, &resource_record_name, resource_data)?;
 

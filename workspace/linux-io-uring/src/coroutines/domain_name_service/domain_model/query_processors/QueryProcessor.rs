@@ -6,7 +6,7 @@ pub trait QueryProcessor<'message, 'cache: 'message>: Sized + ResourceRecordVisi
 {
 	const DT: DataType;
 	
-	type Record: Sized;
+	type Record: Sized + Debug;
 	
 	fn new() -> Self;
 	

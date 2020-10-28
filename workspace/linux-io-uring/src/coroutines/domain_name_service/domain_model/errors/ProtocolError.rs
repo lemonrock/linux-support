@@ -3,7 +3,7 @@
 
 
 /// A protocol error.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum ProtocolError<E: error::Error>
 {
 	/// Message length.
@@ -22,7 +22,7 @@ impl<E: error::Error> Display for ProtocolError<E>
 	}
 }
 
-impl<E: error::Error> error::Error for ProtocolError<E>
+impl<E: 'static + error::Error> error::Error for ProtocolError<E>
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>

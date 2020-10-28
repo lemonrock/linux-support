@@ -2,7 +2,24 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) trait LeastRecentlyUsedCacheValue: Sized + Debug
+/// Fast, but slightly insecure, random u32.
+#[allow(deprecated)]
+#[inline(always)]
+pub fn fast_slightly_insecure_random_u32() -> u32
 {
-	fn records_count(&self) -> NonZeroUsize;
+	let mut random_value= unsafe { uninitialized() };
+	
+	loop
+	{
+		match unsafe { _rdrand32_step(&mut random_value) }
+		{
+			0 => break,
+			
+			1 => continue,
+			
+			unexpected @ _ => unreachable!("Intel _rdrand32_step() intrisnice returned a result other than 0 or 1: {}", unexpected)
+		};
+	}
+	
+	random_value
 }

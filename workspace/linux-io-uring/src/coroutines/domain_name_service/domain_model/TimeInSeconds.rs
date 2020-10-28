@@ -21,8 +21,8 @@ impl Ord for TimeInSeconds
 	#[inline(always)]
 	fn cmp(&self, rhs: &Self) -> Ordering
 	{
-		let left: u32 = self.into();
-		let right: u32 = self.into();
+		let left: u32 = (*self).into();
+		let right: u32 = (*rhs).into();
 		left.cmp(&right)
 	}
 }
@@ -32,8 +32,8 @@ impl PartialEq for TimeInSeconds
 	#[inline(always)]
 	fn eq(&self, rhs: &Self) -> bool
 	{
-		let left: u32 = self.into();
-		let right: u32 = self.into();
+		let left: u32 = (*self).into();
+		let right: u32 = (*rhs).into();
 		left.eq(&right)
 	}
 }
@@ -47,8 +47,18 @@ impl Hash for TimeInSeconds
 	#[inline(always)]
 	fn hash<H: Hasher>(&self, state: &mut H)
 	{
-		let seconds = self.into();
+		let seconds: U31SecondsDuration = (*self).into();
 		seconds.hash(state)
+	}
+}
+
+impl Into<u32> for TimeInSeconds
+{
+	#[inline(always)]
+	fn into(self) -> u32
+	{
+		let into: U31SecondsDuration = self.into();
+		into.into()
 	}
 }
 
@@ -59,15 +69,14 @@ impl Into<U31SecondsDuration> for TimeInSeconds
 	{
 		// RFC 2181, Section 8, paragraph 2: "Implementations should treat TTL values received with the most significant bit set as if the entire value received was zero".
 		let top_byte = unsafe { *(self.0).get_unchecked(0) };
-		let seconds = if likely!(top_byte & 0x80 == 0)
+		if likely!(top_byte & 0x80 == 0)
 		{
-			u32::from_be_bytes(self.0)
+			U31SecondsDuration::try_from(u32::from_be_bytes(self.0)).unwrap()
 		}
 		else
 		{
 			U31SecondsDuration::Zero
-		};
-		U31SecondsDuration::try_from(seconds).unwrap()
+		}
 	}
 }
 
@@ -79,7 +88,7 @@ impl TimeInSeconds
 	#[inline(always)]
 	pub fn cache_until(self, now: NanosecondsSinceUnixEpoch) -> Option<NanosecondsSinceUnixEpoch>
 	{
-		let u31_seconds_duration = self.into();
+		let u31_seconds_duration: U31SecondsDuration = self.into();
 		if unlikely!(u31_seconds_duration.is_zero())
 		{
 			None

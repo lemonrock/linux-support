@@ -181,6 +181,7 @@ use std::num::NonZeroU16;
 use std::num::NonZeroU32;
 use std::num::NonZeroU64;
 use std::num::NonZeroUsize;
+use std::ops::BitAnd;
 use std::ops::Deref;
 use std::ops::DerefMut;
 use std::path::PathBuf;

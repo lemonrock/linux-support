@@ -58,20 +58,6 @@ impl ExtendedResponseCodeAndFlags
 		self.upper_flag_bits() & Self::DnsSecFlagUpper != 0
 	}
 	
-	// Also known as `Z` or `z`.
-	#[inline(always)]
-	pub(crate) fn z(&self) -> Result<(), ExtendedDnsError>
-	{
-		if likely!(self.upper_flag_bits() | !Self::KnownExtendedFlagsUpper == 0 && self.lower_flag_bits() == 0)
-		{
-			Ok(())
-		}
-		else
-		{
-			Err(ExtendedDnsError::ExtendedDnsZFieldNotZero)
-		}
-	}
-
 	#[inline(always)]
 	fn upper_flag_bits(&self) -> u8
 	{

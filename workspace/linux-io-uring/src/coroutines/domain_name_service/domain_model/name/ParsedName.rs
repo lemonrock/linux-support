@@ -109,7 +109,7 @@ impl<'message, 'label> PartialEq<CaseFoldedName<'label>> for ParsedName<'message
 impl<'message, 'label> PartialOrd<CaseFoldedName<'label>> for ParsedName<'message>
 {
 	#[inline(always)]
-	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
+	fn partial_cmp(&self, rhs: &CaseFoldedName<'label>) -> Option<Ordering>
 	{
 		self.partial_compare(rhs)
 	}

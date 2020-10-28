@@ -87,4 +87,10 @@ impl<'message> Label<'message> for ParsedLabel<'message>
 	{
 		unsafe { self.0.get_unchecked(index as usize) }
 	}
+	
+	#[inline(always)]
+	fn bytes_pointer(&self) -> *const u8
+	{
+		self.0.as_ptr()
+	}
 }

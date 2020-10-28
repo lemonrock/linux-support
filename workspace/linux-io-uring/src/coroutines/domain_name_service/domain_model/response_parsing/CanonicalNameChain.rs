@@ -83,7 +83,7 @@ impl<'message, 'cache: 'message> CanonicalNameChain<'message, 'cache>
 		}
 		else
 		{
-			self.chain.get_index(chain_length - 1)
+			self.chain.get_index(chain_length - 1).unwrap()
 		}
 	}
 	
@@ -97,7 +97,7 @@ impl<'message, 'cache: 'message> CanonicalNameChain<'message, 'cache>
 			return Err(TooManyCanonicalNamesInChain(Self::MaximumChainLength))
 		}
 		
-		if self.most_canonical_name() != from
+		if self.most_canonical_name().ne(&from)
 		{
 			return Err(CanonicalNamesNotSorted)
 		}

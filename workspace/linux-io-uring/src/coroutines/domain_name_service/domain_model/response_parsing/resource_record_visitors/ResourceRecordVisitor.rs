@@ -6,7 +6,7 @@
 pub(crate) trait ResourceRecordVisitor<'message>
 {
 	/// Errors are of this type when visiting.
-	type Error: error::Error;
+	type Error: 'static + error::Error;
 	
 	/// Result of `finished()`.
 	type Finished: Sized;

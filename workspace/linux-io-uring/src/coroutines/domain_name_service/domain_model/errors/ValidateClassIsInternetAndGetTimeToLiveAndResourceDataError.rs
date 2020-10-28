@@ -44,12 +44,3 @@ impl error::Error for ValidateClassIsInternetAndGetTimeToLiveAndResourceDataErro
 		}
 	}
 }
-
-impl From<ResourceDataLengthOverflowsError> for ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError
-{
-	#[inline(always)]
-	fn from(value: ResourceDataLengthOverflowsError) -> Self
-	{
-		ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError::ResourceDataLengthOverflows(value)
-	}
-}

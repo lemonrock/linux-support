@@ -5,8 +5,8 @@
 /// Desgined to implement the `SRV` and `URI` prioritized, weighted records algorithm specified in RFC 2782, Page 3, "Weight", paragraph 2 to Page 4, paragraph 3, and, by extension, to support all other record kinds, including those that have a preference (eg `MX`) as well as those that don't (eg `A`).
 ///
 /// This implementation of that algorithm fails if there are `(2^64 - 1) / (2^16 - 1)` or more `self.weighted` records, which is not possible for DNS.
-#[derive(Debug, Clone)]
-pub(crate) struct SortedWeightedRecords<Record: Sized>
+#[derive(Debug)]
+pub(crate) struct SortedWeightedRecords<Record: Sized + Debug>
 {
 	weightless: Vec<Rc<Record>>,
 	
@@ -15,7 +15,23 @@ pub(crate) struct SortedWeightedRecords<Record: Sized>
 	current_sum_of_all_weighted: u64,
 }
 
-impl<Record: Sized> Iterator for SortedWeightedRecords<Record>
+impl<Record: Sized + Debug> Clone for SortedWeightedRecords<Record>
+{
+	#[inline(always)]
+	fn clone(&self) -> Self
+	{
+		Self
+		{
+			weightless: self.weightless.clone(),
+		
+			weighted: self.weighted.clone(),
+		
+			current_sum_of_all_weighted: self.current_sum_of_all_weighted,
+		}
+	}
+}
+
+impl<Record: Sized + Debug> Iterator for SortedWeightedRecords<Record>
 {
 	type Item = Rc<Record>;
 	
@@ -75,11 +91,12 @@ impl<Record: Sized> Iterator for SortedWeightedRecords<Record>
 	}
 }
 
-impl<Record: Sized> SortedWeightedRecords<Record>
+impl<Record: Sized + Debug> SortedWeightedRecords<Record>
 {
 	#[inline(always)]
 	fn new_for_one_record(weight: Weight, record: Record) -> Self
 	{
+		let record = Rc::new(record);
 		if likely!(weight.is_weightless())
 		{
 			Self
@@ -154,35 +171,6 @@ impl<Record: Sized> SortedWeightedRecords<Record>
 		self.weightless.len() + self.weighted.len()
 	}
 	
-	#[inline(always)]
-	fn map<NewRecord: Sized>(self, map: impl Fn(Record) -> NewRecord) -> SortedWeightedRecords<NewRecord>
-	{
-		SortedWeightedRecords
-		{
-			weightless:
-			{
-				let mut weightless = Vec::with_capacity(self.weightless.len());
-				for record in self.weightless
-				{
-					weightless.push(Rc::new(map(record)));
-				}
-				weightless
-			},
-			
-			weighted:
-			{
-				let mut weighted = Vec::with_capacity(self.weighted.len());
-				for (weight, record) in self.weighted
-				{
-					weighted.push((weight, Rc::new(map(record))));
-				}
-				weighted
-			},
-			
-			current_sum_of_all_weighted: self.current_sum_of_all_weighted,
-		}
-	}
-	
 	#[doc(hidden)]
 	#[inline(always)]
 	fn get_next_weight(&self, index: usize) -> u64
@@ -198,7 +186,7 @@ impl<Record: Sized> SortedWeightedRecords<Record>
 		const inclusive_minimum: u64 = 0;
 		
 		let inclusive_maximum = self.current_sum_of_all_weighted;
-		let random_value = fast_slightly_insecure_random_u64().unwrap();
+		let random_value = fast_slightly_insecure_random_u64();
 		
 		// Technically, not biased, if `InclusiveMaximum - InclusiveMinimum + 1` is a power of 2.
 		// See <https://ericlippert.com/2013/12/16/how-much-bias-is-introduced-by-the-remainder-technique/>

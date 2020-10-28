@@ -86,7 +86,7 @@ impl<'cache, V: LeastRecentlyUsedCacheValue> LeastRecentlyUsedListPointer<'cache
 		}
 		else
 		{
-			debug_assert_eq!(self, *least_recently_used_list_head);
+			debug_assert_eq!(self as *mut Self, *least_recently_used_list_head);
 			*least_recently_used_list_head = self.next;
 		}
 		
@@ -97,7 +97,7 @@ impl<'cache, V: LeastRecentlyUsedCacheValue> LeastRecentlyUsedListPointer<'cache
 		}
 		else
 		{
-			debug_assert_eq!(self, *least_recently_used_list_tail);
+			debug_assert_eq!(self as *mut Self, *least_recently_used_list_tail);
 			*least_recently_used_list_tail = self.previous;
 		}
 		
@@ -111,7 +111,7 @@ impl<'cache, V: LeastRecentlyUsedCacheValue> LeastRecentlyUsedListPointer<'cache
 		debug_assert!(self.next.is_null());
 		
 		let tail = *least_recently_used_list_tail;
-		debug_assert!((*tail.next).is_null());
+		debug_assert!((*tail).next.is_null());
 		
 		if likely!(!tail.is_null())
 		{

@@ -16,6 +16,7 @@ include!("LeastRecentlyUsedListPointer.rs");
 include!("NegativeCacheUntil.rs");
 include!("Present.rs");
 include!("Priority.rs");
+include!("PriorityToSortedWeightedRecordsMap.rs");
 include!("Records.rs");
 include!("QueryTypeCache.rs");
 include!("SortedWeightedRecords.rs");

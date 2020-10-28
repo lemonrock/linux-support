@@ -3,13 +3,13 @@
 
 
 #[derive(Debug)]
-pub enum CacheResult<Record: Sized>
+pub enum CacheResult<'cache, Record: Sized + Debug>
 {
 	/// Query for the data.
 	Nothing,
 	
 	/// Known to not exist.
-	DoesNotExist(Rc<StartOfAuthority<'static, CaseFoldedName<'static>>>),
+	DoesNotExist(Rc<StartOfAuthority<'cache, CaseFoldedName<'cache>>>),
 	
 	/// Known to exist.
 	Exists(Exists<Record>),

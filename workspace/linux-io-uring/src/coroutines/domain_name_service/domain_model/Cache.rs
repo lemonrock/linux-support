@@ -23,6 +23,8 @@ pub struct Cache<'cache>
 
 impl<'cache> Cache<'cache>
 {
+	// TODO: https://tools.ietf.org/html/rfc8914 Extended DNS errors.
+	
 	// RFC 1034, Section 3.6.2 Aliases and canonical names, Page 15, Paragraph 7: "Domain names in RRs which point at another name should always point at the primary name and not the alias".
 	// RFC 2181, Section 10.3, MX and NS records: "The domain name used as the value of a NS resource record, or part of the value of a MX resource record must not be an alias".
 	// RFC 2782, Page 4, "Target": "… the name MUST NOT be an alias …"
@@ -56,10 +58,10 @@ impl<'cache> Cache<'cache>
 	
 	pub fn mx_enquire_over_tcp_and_cache<'yielder, SD: SocketData>(&mut self, stream: &mut TlsClientStream<'yielder, SD>, query_name: CaseFoldedName<'cache>) -> Result<(), ProtocolError<Infallible>>
 	{
-		self.enquire_over_tcp_and_cache::<'yielder, '_, SD, MXQueryProcessor<'_, 'cache>>(stream, query_name)
+		self.enquire_over_tcp_and_cache::<SD, MXQueryProcessor>(stream, query_name)
 	}
 	
-	fn enquire_over_tcp_and_cache<'yielder, 'message, SD: SocketData, QP: QueryProcessor<'message, 'cache>>(&mut self, stream: &mut TlsClientStream<'yielder, SD>, query_name: CaseFoldedName<'cache>) -> Result<(), ProtocolError<Infallible>>
+	fn enquire_over_tcp_and_cache<'yielder, 'message, SD: SocketData, QP: QueryProcessor<'message, 'cache, Error=Infallible>>(&mut self, stream: &mut TlsClientStream<'yielder, SD>, query_name: CaseFoldedName<'cache>) -> Result<(), ProtocolError<Infallible>>
 	where 'cache: 'message
 	{
 		let message_identifier = self.recent_message_identifiers.next();

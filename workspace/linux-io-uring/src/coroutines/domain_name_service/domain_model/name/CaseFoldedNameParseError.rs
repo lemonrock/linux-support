@@ -13,6 +13,9 @@ pub enum CaseFoldedNameParseError
 	NonRootLabelWasEmpty,
 	
 	#[allow(missing_docs)]
+	TotalNameLengthWasEmpty,
+	
+	#[allow(missing_docs)]
 	TotalNameLengthExceed255Bytes,
 	
 	#[allow(missing_docs)]

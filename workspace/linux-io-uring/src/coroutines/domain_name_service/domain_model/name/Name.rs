@@ -2,13 +2,27 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub trait Name<'label>: Sized + Clone
+pub trait Name<'label>: Sized + Clone + Debug
 {
 	#[doc(hidden)]
 	type Label: Label<'label>;
 	
 	/// Parent.
 	fn parent(&self) -> Option<Self>;
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn copy_non_overlapping_to_without_case_folding(&self, start_of_name_pointer: usize) -> usize
+	{
+		let mut next_label_starts_at_pointer = start_of_name_pointer;
+		for index in 0 .. self.number_of_labels_including_root().get()
+		{
+			let label = self.label(index);
+			next_label_starts_at_pointer = label.copy_non_overlapping_to_without_case_folding(next_label_starts_at_pointer);
+		}
+		
+		next_label_starts_at_pointer
+	}
 	
 	/// Ends with name?
 	#[inline(always)]

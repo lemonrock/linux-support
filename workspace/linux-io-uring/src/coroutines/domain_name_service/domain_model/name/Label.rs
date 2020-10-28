@@ -12,6 +12,23 @@ pub trait Label<'label>: Clone
 	}
 	
 	#[doc(hidden)]
+	fn bytes_pointer(&self) -> *const u8;
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn copy_non_overlapping_to_without_case_folding(&self, start_of_label_pointer: usize) -> usize
+	{
+		let length = self.len();
+		start_of_label_pointer.set_u8_byte(length);
+		let label_data_starts_at_pointer = start_of_label_pointer + 1;
+		
+		let length_usize = length as usize;
+		unsafe { (label_data_starts_at_pointer as *mut u8).copy_from_nonoverlapping(self.bytes_pointer(), length_usize) };
+		
+		label_data_starts_at_pointer + length_usize
+	}
+	
+	#[doc(hidden)]
 	#[inline(always)]
 	fn equals<'rhs_label, RHS: Label<'rhs_label>>(&self, rhs: &RHS) -> bool
 	{

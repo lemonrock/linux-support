@@ -55,15 +55,15 @@ impl MessageHeader
 		
 		const AnswerCount: u16 = 0;
 		current_pointer.set_u16_bytes(AnswerCount.to_be_bytes());
-		current_pointer += Self::QueryCountSize;
+		current_pointer += Self::AnswerCountSize;
 		
 		const AuthorityCount: u16 = 0;
 		current_pointer.set_u16_bytes(AuthorityCount.to_be_bytes());
-		current_pointer += Self::QueryCountSize;
+		current_pointer += Self::AuthorityCountSize;
 		
 		const AdditionalCount: u16 = 1; // For EDNS(0) `OPT` record.
 		current_pointer.set_u16_bytes(AdditionalCount.to_be_bytes());
-		current_pointer += Self::AdditionalCount;
+		current_pointer += Self::AdditionalCountSize;
 		
 		current_pointer
 	}
@@ -327,7 +327,7 @@ impl MessageHeader
 			
 			_ => unreachable!(),
 		};
-		result.map_err(MessageHeaderError::ResponseOpcode)
+		result.map_err(|error| MessageHeaderError::ResponseOpcode(self.identifier, error))
 	}
 	
 	#[inline(always)]

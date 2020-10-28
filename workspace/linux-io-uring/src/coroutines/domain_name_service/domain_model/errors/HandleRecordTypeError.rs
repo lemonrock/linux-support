@@ -3,7 +3,7 @@
 
 
 /// Handle record type error.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum HandleRecordTypeError<E: error::Error>
 {
 	/// Resource record visitor returned an error handling the record data type.
@@ -148,7 +148,7 @@ impl<E: error::Error> Display for HandleRecordTypeError<E>
 	}
 }
 
-impl<E: error::Error> error::Error for HandleRecordTypeError<E>
+impl<E: 'static + error::Error> error::Error for HandleRecordTypeError<E>
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>

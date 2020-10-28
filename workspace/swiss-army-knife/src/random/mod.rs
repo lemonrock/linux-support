@@ -6,4 +6,5 @@ use super::*;
 
 
 #[cfg(target_arch = "x86_64")] include!("fast_slightly_insecure_random_u16.rs");
+#[cfg(target_arch = "x86_64")] include!("fast_slightly_insecure_random_u32.rs");
 #[cfg(target_arch = "x86_64")] include!("fast_slightly_insecure_random_u64.rs");

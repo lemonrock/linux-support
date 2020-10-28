@@ -18,7 +18,12 @@ impl<'label, 'b> TryFrom<&'b [u8]> for CaseFoldedName<'label>
 	#[inline(always)]
 	fn try_from(value: &'b [u8]) -> Result<Self, Self::Error>
 	{
-		if value.len() > ParsedNameParser::NameMaximumSize
+		if unlikely!(value.len() < ParsedNameParser::NameMinimumSize)
+		{
+			return Err(CaseFoldedNameParseError::TotalNameLengthWasEmpty)
+		}
+		
+		if unlikely!(value.len() > ParsedNameParser::NameMaximumSize)
 		{
 			return Err(CaseFoldedNameParseError::TotalNameLengthExceed255Bytes)
 		}
@@ -166,7 +171,7 @@ impl<'a> Hash for CaseFoldedName<'a>
 impl<'a, 'message> PartialEq<ParsedName<'message>> for CaseFoldedName<'a>
 {
 	#[inline(always)]
-	fn eq(&self, rhs: &CaseFoldedName) -> bool
+	fn eq(&self, rhs: &ParsedName<'message>) -> bool
 	{
 		self.equals(rhs)
 	}
@@ -175,7 +180,7 @@ impl<'a, 'message> PartialEq<ParsedName<'message>> for CaseFoldedName<'a>
 impl<'a, 'message> PartialOrd<ParsedName<'message>> for CaseFoldedName<'a>
 {
 	#[inline(always)]
-	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
+	fn partial_cmp(&self, rhs: &ParsedName<'message>) -> Option<Ordering>
 	{
 		self.partial_compare(rhs)
 	}
@@ -363,7 +368,7 @@ impl CaseFoldedName<'static>
 	{
 		lazy_static!
 		{
-    		static ref SpecialUses: CaseFoldedName<'static> = CaseFoldedName::special_use_domain_names() & (&CaseFoldedName::rfc_7788_local_name_mistake()) & (&CaseFoldedName::recommended_local_names_in_rfc_6762_appendix_g()) & (&CaseFoldedName::iana_test_internationalized_domain_names());
+    		static ref SpecialUses: CaseFoldedName<'static> = CaseFoldedName::special_use_domain_names().bitand(&CaseFoldedName::rfc_7788_local_name_mistake()).bitand(&CaseFoldedName::recommended_local_names_in_rfc_6762_appendix_g()).bitand(&CaseFoldedName::iana_test_internationalized_domain_names());
     	}
 		
 		&SpecialUses

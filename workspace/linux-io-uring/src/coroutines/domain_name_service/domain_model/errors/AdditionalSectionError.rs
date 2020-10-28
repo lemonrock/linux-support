@@ -3,7 +3,7 @@
 
 
 /// Additional section error.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum AdditionalSectionError<E: error::Error>
 {
 	/// Miscellaneous errors.
@@ -31,7 +31,7 @@ impl<E: error::Error> Display for AdditionalSectionError<E>
 	}
 }
 
-impl<E: error::Error> error::Error for AdditionalSectionError<E>
+impl<E: 'static + error::Error> error::Error for AdditionalSectionError<E>
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>

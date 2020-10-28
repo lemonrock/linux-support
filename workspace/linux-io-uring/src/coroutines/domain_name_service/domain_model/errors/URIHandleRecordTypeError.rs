@@ -3,7 +3,7 @@
 
 
 /// Handle `URI` record type error.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum URIHandleRecordTypeError
 {
 	/// Resource data for resource record type `URI` has an incorrect length (value in tuple).

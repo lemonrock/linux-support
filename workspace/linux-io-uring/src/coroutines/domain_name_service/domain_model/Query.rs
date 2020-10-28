@@ -13,7 +13,7 @@ pub struct Query<'cache>
 impl<'cache> Query<'cache>
 {
 	#[inline(always)]
-	pub fn enquire_over_tcp<'yielder, 'message, QP: QueryProcessor<'message, 'cache>, SD: SocketData>(stream: &mut TlsClientStream<'yielder, SD>, message_identifier: MessageIdentifier, query_name: CaseFoldedName<'cache>, cache: &mut Cache<'cache>) -> Result<(), ProtocolError<<QP as ResourceRecordVisitor<'message>>::Error>>
+	pub fn enquire_over_tcp<'yielder, 'message, QP: QueryProcessor<'message, 'cache>, SD: SocketData>(stream: &mut TlsClientStream<'yielder, SD>, message_identifier: MessageIdentifier, query_name: CaseFoldedName<'cache>, cache: &mut Cache<'cache>) -> Result<(), ProtocolError<QP::Error>>
 	where 'cache: 'message
 	{
 		let mut query = Query
@@ -131,7 +131,7 @@ impl<'cache> Query<'cache>
 	}
 	
 	#[inline(always)]
-	fn parse_query_section<'message>(&self, query_section_entry: &'message QuerySectionEntry, parsed_names: &mut ParsedNames, end_of_message_pointer: usize) -> Result<(usize, ParsedName<'message>), QuerySectionError>
+	fn parse_query_section<'message>(&self, query_section_entry: &'message QuerySectionEntry, parsed_names: &mut ParsedNames<'message>, end_of_message_pointer: usize) -> Result<(usize, ParsedName<'message>), QuerySectionError>
 	where 'cache: 'message
 	{
 		use self::QuerySectionError::*;
@@ -145,9 +145,9 @@ impl<'cache> Query<'cache>
 			return Err(ResponseWasForADifferentDataType)
 		}
 		
-		if unlikely!(self.query_name.name() != parsed_query_name)
+		if unlikely!(self.query_name != parsed_query_name)
 		{
-			Err(ResponseWasForADifferentName)
+			return Err(ResponseWasForADifferentName)
 		}
 		
 		let end_of_query_section = QuerySectionEntry::end_of_query_section(end_of_qname_pointer);

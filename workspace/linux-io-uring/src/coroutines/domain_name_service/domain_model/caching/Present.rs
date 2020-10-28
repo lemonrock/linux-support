@@ -2,51 +2,59 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[derive(Default)]
-pub(crate) struct Present<Record: Sized>
+#[derive(Debug)]
+pub(crate) struct Present<Record: Sized + Debug>
 {
 	/// One-time use.
-	use_once: BTreeMap<Priority, SortedWeightedRecords<Record>>,
+	use_once: PriorityToSortedWeightedRecordsMap<Record>,
 	
-	cached: BTreeMap<NanosecondsSinceUnixEpoch, BTreeMap<Priority, SortedWeightedRecords<Record>>>,
+	cached: BTreeMap<NanosecondsSinceUnixEpoch, PriorityToSortedWeightedRecordsMap<Record>>,
 }
 
-impl<Record: Sized> Present<Record>
+impl<Record: Sized + Debug> Clone for Present<Record>
 {
 	#[inline(always)]
-	fn map<NewRecord: Sized>(self, map: impl Fn(Record) -> NewRecord) -> Present<NewRecord>
+	fn clone(&self) -> Self
 	{
-		Present
+		Self
 		{
-			use_once: Self::btree_map_map(self.use_once, map),
-			
-			cached:
-			{
-				let mut cached = BTreeMap::new();
-				for (cache_until, btree_map) in self.cached
-				{
-					cached.insert(cache_until, Self::btree_map_map(btree_map));
-				}
-				cached
-			},
+			use_once: Clone::clone(&self.use_once),
+		
+			cached: self.cached.clone(),
 		}
 	}
-	
+}
+
+impl<Record: Sized + Debug> Default for Present<Record>
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self
+		{
+			use_once: PriorityToSortedWeightedRecordsMap::default(),
+			cached: BTreeMap::default(),
+		}
+	}
+}
+
+impl<Record: Sized + Debug> Present<Record>
+{
 	#[inline(always)]
 	fn records_count(&self) -> NonZeroUsize
 	{
-		let mut records_count = Self::btree_map_records_count(&self.use_once);
+		let mut records_count = self.use_once.records_count();
 		
 		for records in self.cached.values()
 		{
-			records_count += Self::btree_map_records_count(records);
+			records_count += records.records_count();
 		}
 		
 		debug_assert_ne!(records_count, 0);
 		unsafe { NonZeroUsize::new_unchecked(records_count) }
 	}
 	
-	fn retrieve(&mut self, now: NanosecondsSinceUnixEpoch) -> (CacheResult<Record>, Option<usize>)
+	fn retrieve<'cache>(&mut self, now: NanosecondsSinceUnixEpoch) -> (CacheResult<'cache, Record>, Option<usize>)
 	{
 		use self::CacheResult::Nothing;
 		
@@ -56,9 +64,9 @@ impl<Record: Sized> Present<Record>
 		
 		{
 			let expired = self.remove_expired_cached_entries(now);
-			for btree_map in expired.values()
+			for priority_to_sorted_weighted_records_map in expired.values()
 			{
-				expired_records_count += Self::btree_map_records_count(btree_map);
+				expired_records_count += priority_to_sorted_weighted_records_map.records_count();
 			}
 			drop(expired);
 		};
@@ -78,18 +86,24 @@ impl<Record: Sized> Present<Record>
 		}
 		else
 		{
-			for btree_map in self.cached.values()
+			for priority_to_sorted_weighted_records_map in self.cached.values()
 			{
-				for (priority, sorted_weighted_records) in btree_map
+				for (priority, sorted_weighted_records) in priority_to_sorted_weighted_records_map.iter()
 				{
 					debug_assert!(!sorted_weighted_records.is_empty(), "If sorted_weighted_records is empty, then we've populated `Present` incorrectly");
 					
 					use std::collections::btree_map::Entry::*;
 					match records_to_return.entry(*priority)
 					{
-						Vacant(vacant) => vacant.insert(Clone::clone(sorted_weighted_records)),
+						Vacant(vacant) =>
+						{
+							vacant.insert(sorted_weighted_records.clone());
+						},
 						
-						Occupied(occupied_from_use_once) => occupied_from_use_once.get_mut().append(sorted_weighted_records),
+						Occupied(occupied_from_use_once) =>
+						{
+							occupied_from_use_once.get_mut().append(sorted_weighted_records);
+						},
 					}
 				}
 			}
@@ -101,64 +115,19 @@ impl<Record: Sized> Present<Record>
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn remove_use_once_entries(&mut self) -> (BTreeMap<Priority, SortedWeightedRecords<Record>>, usize)
+	fn remove_use_once_entries(&mut self) -> (PriorityToSortedWeightedRecordsMap<Record>, usize)
 	{
 		let use_once = take(&mut self.use_once);
-		let expired_records_count = Self::btree_map_records_count(&use_once);
+		let expired_records_count = use_once.records_count();
 		(use_once, expired_records_count)
 	}
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn remove_expired_cached_entries(&mut self, now: NanosecondsSinceUnixEpoch) -> BTreeMap<NanosecondsSinceUnixEpoch, BTreeMap<Priority, SortedWeightedRecords<Record>>>
+	fn remove_expired_cached_entries(&mut self, now: NanosecondsSinceUnixEpoch) -> BTreeMap<NanosecondsSinceUnixEpoch, PriorityToSortedWeightedRecordsMap<Record>>
 	{
 		let should_still_be_cached = self.cached.split_off(&now);
 		let expired = replace(&mut self.cached, should_still_be_cached);
 		expired
-	}
-	
-	#[doc(hidden)]
-	#[inline(always)]
-	fn insert(btree_map: &mut BTreeMap<Priority, SortedWeightedRecords<Record>>, priority: Priority, weight: Weight, record: Record)
-	{
-		use std::collections::btree_map::Entry::*;
-		match btree_map.entry(priority)
-		{
-			Vacant(vacant) =>
-			{
-				vacant.insert(SortedWeightedRecords::new_for_one_record(weight, record));
-			},
-			
-			Occupied(occupied) =>
-			{
-				debug_assert!(!occupied.is_empty(), "If occupied is empty, then we've populated `Present` incorrectly");
-				
-				occupied.get_mut().add(weight, record)
-			},
-		}
-	}
-	
-	#[doc(hidden)]
-	#[inline(always)]
-	fn btree_map_records_count(btree_map: &BTreeMap<Priority, SortedWeightedRecords<Record>>) -> usize
-	{
-		let mut expired_record_count = 0;
-		for expired_sorted_weighed_records in btree_map.values()
-		{
-			expired_record_count += expired_sorted_weighed_records.record_count()
-		}
-		expired_record_count
-	}
-	
-	#[doc(hidden)]
-	#[inline(always)]
-	fn btree_map_map<NewRecord: Sized>(btree_map: BTreeMap<Priority, SortedWeightedRecords<Record>>, map: impl Fn(Record) -> NewRecord) -> BTreeMap<Priority, SortedWeightedRecords<NewRecord>>
-	{
-		let mut new_btree_map = BTreeMap::new();
-		for (priority, sorted_weighted_records) in btree_map
-		{
-			new_btree_map.insert(priority, sorted_weighted_records.map(map));
-		}
-		new_btree_map
 	}
 }

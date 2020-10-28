@@ -3,7 +3,7 @@
 
 
 /// Authority section error.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum AuthoritySectionError<E: error::Error>
 {
 	/// Miscellaneous errors.
@@ -31,7 +31,7 @@ impl<E: error::Error> Display for AuthoritySectionError<E>
 	}
 }
 
-impl<E: error::Error> error::Error for AuthoritySectionError<E>
+impl<E: 'static + error::Error> error::Error for AuthoritySectionError<E>
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>
@@ -54,7 +54,7 @@ impl<E: error::Error> From<ValidateMinimumRecordSizeAndParseNameAndResourceRecor
 	#[inline(always)]
 	fn from(value: ValidateMinimumRecordSizeAndParseNameAndResourceRecordTypeError) -> Self
 	{
-		AuthorityError::ValidateMinimumRecordSizeAndParseNameAndResourceRecordType(value)
+		AuthoritySectionError::ValidateMinimumRecordSizeAndParseNameAndResourceRecordType(value)
 	}
 }
 

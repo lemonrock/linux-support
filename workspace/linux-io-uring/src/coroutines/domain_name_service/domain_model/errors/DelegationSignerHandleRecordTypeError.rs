@@ -33,7 +33,7 @@ impl error::Error for DelegationSignerHandleRecordTypeError
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>
 	{
-		use self::RRSIGHandleRecordTypeError::*;
+		use self::DelegationSignerHandleRecordTypeError::*;
 		
 		match self
 		{

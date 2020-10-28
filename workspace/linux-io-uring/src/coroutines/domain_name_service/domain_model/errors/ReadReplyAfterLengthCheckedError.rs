@@ -3,7 +3,7 @@
 
 
 /// Read reply after length checked error.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum ReadReplyAfterLengthCheckedError<E: error::Error>
 {
 	/// Message header.
@@ -25,7 +25,7 @@ impl<E: error::Error> Display for ReadReplyAfterLengthCheckedError<E>
 	}
 }
 
-impl<E: error::Error> error::Error for ReadReplyAfterLengthCheckedError<E>
+impl<E: 'static + error::Error> error::Error for ReadReplyAfterLengthCheckedError<E>
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>
