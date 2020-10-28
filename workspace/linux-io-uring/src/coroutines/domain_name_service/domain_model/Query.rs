@@ -3,7 +3,7 @@
 
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Query<'cache>
+pub(crate) struct Query<'cache>
 {
 	message_identifier: MessageIdentifier,
 	data_type: DataType,
@@ -13,7 +13,7 @@ pub struct Query<'cache>
 impl<'cache> Query<'cache>
 {
 	#[inline(always)]
-	pub fn enquire_over_tcp<'yielder, QP: QueryProcessorX<'cache>, SD: SocketData>(stream: &mut TlsClientStream<'yielder, SD>, message_identifier: MessageIdentifier, query_name: CaseFoldedName<'cache>, cache: &mut Cache<'cache>) -> Result<(), ProtocolError<Infallible>>
+	pub(crate) fn enquire_over_tcp<'yielder, QP: QueryProcessor<'cache>, SD: SocketData>(stream: &mut TlsClientStream<'yielder, SD>, message_identifier: MessageIdentifier, query_name: CaseFoldedName<'cache>, cache: &mut Cache<'cache>) -> Result<(), ProtocolError<Infallible>>
 	{
 		let query = Query
 		{
@@ -27,7 +27,7 @@ impl<'cache> Query<'cache>
 	
 	#[allow(deprecated)]
 	#[inline(always)]
-	pub fn write_tcp_query<'yielder, SD: SocketData>(&self, stream: &mut TlsClientStream<'yielder, SD>)
+	pub(crate) fn write_tcp_query<'yielder, SD: SocketData>(&self, stream: &mut TlsClientStream<'yielder, SD>)
 	{
 		let mut buffer: [u8; TcpDnsMessage::MaximumQueryBufferSize] = unsafe { uninitialized() };
 
@@ -40,7 +40,7 @@ impl<'cache> Query<'cache>
 	
 	#[allow(deprecated)]
 	#[inline(always)]
-	pub fn read_tcp_reply<'yielder, QP: QueryProcessorX<'cache>, SD: SocketData>(&self, stream: &mut TlsClientStream<'yielder, SD>, cache: &mut Cache<'cache>) -> Result<(), ProtocolError<Infallible>>
+	pub(crate) fn read_tcp_reply<'yielder, QP: QueryProcessor<'cache>, SD: SocketData>(&self, stream: &mut TlsClientStream<'yielder, SD>, cache: &mut Cache<'cache>) -> Result<(), ProtocolError<Infallible>>
 	{
 		let mut buffer: [u8; ResourceRecord::UdpRequestorsPayloadSize] = unsafe { uninitialized() };
 		let message_length = Self::reply_message(stream, &mut buffer)?;

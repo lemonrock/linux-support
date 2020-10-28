@@ -5,7 +5,7 @@
 /// Data type.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(C, packed)]
-pub(crate) struct DataType(pub(crate) BigEndianU16);
+pub struct DataType(pub(crate) BigEndianU16);
 
 impl DataTypeOrMetaType for DataType
 {

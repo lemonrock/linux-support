@@ -2,13 +2,27 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+pub(crate) struct AQueryProcessorResourceRecordVisitor<'cache>
+{
+	records: Records<'cache, Ipv4Addr>,
+}
 
-
-include!("AAAAQueryProcessor.rs");
-include!("AAAAQueryProcessorResourceRecordVisitor.rs");
-include!("AQueryProcessor.rs");
-include!("AQueryProcessorResourceRecordVisitor.rs");
-include!("MXQueryProcessor.rs");
-include!("MXQueryProcessorResourceRecordVisitor.rs");
-include!("QueryProcessor.rs");
+impl<'cache: 'message, 'message> ResourceRecordVisitor<'message> for AQueryProcessorResourceRecordVisitor<'cache>
+{
+	type Error = Infallible;
+	
+	type Finished = Records<'cache, Ipv4Addr>;
+	
+	#[inline(always)]
+	fn finished(self) -> Self::Finished
+	{
+		self.records
+	}
+	
+	#[inline(always)]
+	fn A(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: Ipv4Addr) -> Result<(), Self::Error>
+	{
+		self.records.store_unprioritized_and_unweighted(&name, cache_until, record);
+		Ok(())
+	}
+}

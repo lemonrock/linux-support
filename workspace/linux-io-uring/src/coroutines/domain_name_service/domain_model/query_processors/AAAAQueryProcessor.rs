@@ -7,43 +7,26 @@ struct AAAAQueryProcessor<'cache>
 	records: Records<'cache, Ipv6Addr>,
 }
 
-impl<'message, 'cache: 'message> ResourceRecordVisitor<'message> for AAAAQueryProcessor<'cache>
+impl<'cache> QueryProcessor<'cache> for AAAAQueryProcessor<'cache>
 {
-	type Error = Infallible;
-	
-	type Finished = Records<'cache, Ipv6Addr>;
-	
-	#[inline(always)]
-	fn finished(self) -> Self::Finished
-	{
-		self.records
-	}
-	
-	#[inline(always)]
-	fn AAAA(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: Ipv6Addr) -> Result<(), Self::Error>
-	{
-		self.records.store_unprioritized_and_unweighted(&name, cache_until, record);
-		Ok(())
-	}
-}
-
-impl<'message, 'cache: 'message> QueryProcessor<'message, 'cache> for AAAAQueryProcessor<'cache>
-{
-	const DT: DataType = DataType::AAAA;
+	const DT: DataType = DataType::A;
 	
 	type Record = Ipv6Addr;
 	
-	#[inline(always)]
-	fn new() -> Self
+	type RRV<'message> where 'cache: 'message = AAAAQueryProcessorResourceRecordVisitor<'cache>;
+	
+	fn new<'message>() -> Self::RRV<'message>
+	where 'cache: 'message
 	{
-		Self
+		AAAAQueryProcessorResourceRecordVisitor
 		{
 			records: Records::with_capacity(8),
 		}
 	}
 	
 	#[inline(always)]
-	fn finish(finished: <Self as ResourceRecordVisitor<'message>>::Finished, cache: &mut Cache<'cache>)
+	fn finish<'message>(finished: <<Self as QueryProcessor<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished, cache: &mut Cache<'cache>)
+	where 'cache: 'message
 	{
 		cache.aaaa_query_type_cache.put_present(finished)
 	}

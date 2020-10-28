@@ -3,7 +3,7 @@
 
 
 #[derive(Debug, Clone)]
-enum NoDomainResponseType<'label, N: Name<'label>>
+pub(crate) enum NoDomainResponseType<'label, N: Name<'label>>
 {
 	/// RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 1.
 	NoDomainResponseType1

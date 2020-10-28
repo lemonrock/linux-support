@@ -4,9 +4,9 @@
 
 /// Location resource data.
 #[repr(C, packed)]
-pub struct Location
+pub(crate) struct Location
 {
 	version: u8,
 	
-	pub body: LocationBody,
+	body: LocationBody,
 }

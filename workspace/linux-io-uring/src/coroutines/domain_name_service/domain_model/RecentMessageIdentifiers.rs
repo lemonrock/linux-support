@@ -6,7 +6,7 @@
 ///
 /// * (a) minimize the risk that any upstream server can deduce a pattern to our requests.
 /// * (b) ensure a high likelihood that a message reply is for our request.
-pub struct RecentMessageIdentifiers
+pub(crate) struct RecentMessageIdentifiers
 {
 	recently_generated_random: HashSet<MessageIdentifier>,
 	recently_generated_ring_queue: Box<[MessageIdentifier]>,
@@ -19,7 +19,7 @@ pub struct RecentMessageIdentifiers
 impl RecentMessageIdentifiers
 {
 	#[inline(always)]
-	pub fn new(capacity_power_of_two: usize) -> Self
+	pub(crate) fn new(capacity_power_of_two: usize) -> Self
 	{
 		debug_assert_eq!(capacity_power_of_two, capacity_power_of_two.next_power_of_two(), "capacity was not a power of two");
 		

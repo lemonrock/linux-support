@@ -4,10 +4,12 @@
 
 /// Wrapping anonical chain error.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub(crate) enum WrappingCanonicalChainError<E: error::Error>
+pub enum WrappingCanonicalChainError<E: error::Error>
 {
+	/// Error.
 	CanonicalChain(CanonicalChainError),
-
+	
+	/// Error.
 	Wrapped(E)
 }
 

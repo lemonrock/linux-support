@@ -2,8 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// A parsed name.
 #[derive(Debug, Clone)]
-pub(crate) struct ParsedName<'message>
+pub struct ParsedName<'message>
 {
 	label_data_starts_at_pointers_and_label_length_excluding_trailing_period: ArrayVec<[(usize, u8); LabelMaximumNumber]>,
 	

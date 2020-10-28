@@ -4,7 +4,7 @@
 
 #[repr(C, packed)]
 #[derive(Copy, Clone)]
-union QueryTypeOrDataType
+pub(crate) union QueryTypeOrDataType
 {
 	query_type: QueryType,
 	data_type: DataType,

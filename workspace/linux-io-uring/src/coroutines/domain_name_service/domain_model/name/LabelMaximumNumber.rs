@@ -2,4 +2,5 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub const LabelMaximumNumber: usize = 127;
+/// Maximum number of labels.
+pub(crate) const LabelMaximumNumber: usize = 127;

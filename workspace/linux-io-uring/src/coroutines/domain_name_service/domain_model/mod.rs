@@ -35,28 +35,34 @@ use self::support::*;
 pub(crate) mod caching;
 
 
-pub(crate) mod character_strings;
+/// TXT-like character strings.
+pub mod character_strings;
 
 
-pub(crate) mod errors;
+/// Errors.
+pub mod errors;
 
 
 pub(crate) mod extended_dns;
 
 
-pub(crate) mod message;
+/// Message.
+pub mod message;
 
 
-pub(crate) mod name;
+/// Name.
+pub mod name;
 
 
 pub(crate) mod query_processors;
 
 
-pub(crate) mod resource_data;
+/// Resource data.
+pub mod resource_data;
 
 
-pub(crate) mod response_parsing;
+/// Response parsing.
+pub mod response_parsing;
 
 
 pub(crate) mod support;

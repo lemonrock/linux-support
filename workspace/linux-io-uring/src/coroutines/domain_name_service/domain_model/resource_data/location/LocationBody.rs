@@ -4,7 +4,7 @@
 
 /// Location resource data.
 #[repr(C, packed)]
-pub union LocationBody
+pub(crate) union LocationBody
 {
-	pub version_0: ManuallyDrop<LocationBodyVersion0>,
+	version_0: ManuallyDrop<LocationBodyVersion0>,
 }

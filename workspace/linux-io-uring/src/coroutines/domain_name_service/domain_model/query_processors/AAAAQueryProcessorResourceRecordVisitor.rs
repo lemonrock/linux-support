@@ -2,45 +2,27 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[derive(Debug)]
-pub(crate) enum Answer<'label, N: Name<'label>>
+pub(crate) struct AAAAQueryProcessorResourceRecordVisitor<'cache>
 {
-	Answered,
-	
-	NoDomain
-	{
-		response_type: NoDomainResponseType<'label, N>,
-		
-		most_canonical_name: N,
-	},
-
-	NoData
-	{
-		response_type: NoDataResponseType<'label, N>,
-	},
-	
-	Referral
-	{
-		name_servers: Records<'label, N>,
-	},
+	records: Records<'cache, Ipv6Addr>,
 }
 
-impl<'label, N: Name<'label>> Answer<'label, N>
+impl<'cache: 'message, 'message> ResourceRecordVisitor<'message> for AAAAQueryProcessorResourceRecordVisitor<'cache>
 {
+	type Error = Infallible;
+	
+	type Finished = Records<'cache, Ipv6Addr>;
+	
 	#[inline(always)]
-	fn is_referral(&self) -> bool
+	fn finished(self) -> Self::Finished
 	{
-		use self::Answer::*;
-		
-		match self
-		{
-			Answered => false,
-			
-			NoDomain { response_type, .. } => response_type.is_implicit_referral(),
-			
-			NoData { response_type } => response_type.is_implicit_referral(),
-			
-			Referral { .. } => true,
-		}
+		self.records
+	}
+	
+	#[inline(always)]
+	fn AAAA(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: Ipv6Addr) -> Result<(), Self::Error>
+	{
+		self.records.store_unprioritized_and_unweighted(&name, cache_until, record);
+		Ok(())
 	}
 }

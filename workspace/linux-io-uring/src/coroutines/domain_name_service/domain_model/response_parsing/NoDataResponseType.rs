@@ -3,7 +3,7 @@
 
 
 #[derive(Debug, Clone)]
-pub enum NoDataResponseType<'label, N: Name<'label>>
+pub(crate) enum NoDataResponseType<'label, N: Name<'label>>
 {
 	/// RFC 2308, Section 2.2 No Data NODATA RESPONSE: TYPE 1.
 	NoDataResponseType1

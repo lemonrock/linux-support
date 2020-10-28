@@ -38,7 +38,7 @@ pub enum CertificateAuthorityAuthorizationPropertyTag
 impl CertificateAuthorityAuthorizationPropertyTag
 {
 	#[inline(always)]
-	pub fn known_tag(tag_name: &[u8]) -> Option<&Option<Self>>
+	pub(crate) fn known_tag(tag_name: &[u8]) -> Option<&Option<Self>>
 	{
 		use self::CertificateAuthorityAuthorizationPropertyTag::*;
 		static KnownTags: Map<&'static [u8], Option<CertificateAuthorityAuthorizationPropertyTag>> = phf_map!

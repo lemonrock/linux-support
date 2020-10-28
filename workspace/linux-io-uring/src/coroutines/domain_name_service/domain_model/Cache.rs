@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// Cache.
 pub struct Cache<'cache>
 {
 	recent_message_identifiers: RecentMessageIdentifiers,
@@ -56,12 +57,13 @@ impl<'cache> Cache<'cache>
 	// If it does so it MUST NOT cache it for longer than five (5) minutes, and it MUST be cached against the specific query tuple `<query name, type, class, server IP address>` unless there was a transport layer indication that the server does not exist, in which case it applies to all queries to that specific IP address".
 	//
 	
+	/// MX.
 	pub fn mx_enquire_over_tcp_and_cache<'yielder, SD: SocketData>(&mut self, stream: &mut TlsClientStream<'yielder, SD>, query_name: CaseFoldedName<'cache>) -> Result<(), ProtocolError<Infallible>>
 	{
 		self.enquire_over_tcp_and_cache::<SD, MXQueryProcessor>(stream, query_name)
 	}
 	
-	fn enquire_over_tcp_and_cache<'yielder, SD: SocketData, QP: QueryProcessorX<'cache>>(&mut self, stream: &mut TlsClientStream<'yielder, SD>, query_name: CaseFoldedName<'cache>) -> Result<(), ProtocolError<Infallible>>
+	fn enquire_over_tcp_and_cache<'yielder, SD: SocketData, QP: QueryProcessor<'cache>>(&mut self, stream: &mut TlsClientStream<'yielder, SD>, query_name: CaseFoldedName<'cache>) -> Result<(), ProtocolError<Infallible>>
 	{
 		let message_identifier = self.recent_message_identifiers.next();
 		

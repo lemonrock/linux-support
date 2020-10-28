@@ -4,7 +4,7 @@
 
 /// Authoritative or Authenticated or Both.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) enum AuthoritativeOrAuthenticatedOrNeither
+pub enum AuthoritativeOrAuthenticatedOrNeither
 {
 	/// Only if the name server the query was sent to was the authoritative one for this domain.
 	///
