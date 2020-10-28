@@ -7,15 +7,17 @@
 #[repr(C, packed)]
 pub(crate) struct DataType(pub(crate) BigEndianU16);
 
+impl DataTypeOrMetaType for DataType
+{
+	#[inline(always)]
+	fn into_big_endian_u16(self) -> BigEndianU16
+	{
+		self.0
+	}
+}
+
 impl DataType
 {
-	/// Internet Protocol version 4 address.
-	///
-	/// Defined in RFC 1035.
-	pub(crate) const SIG0_higher: u8 = 0x00;
-	pub(crate) const SIG0_lower: u8 = 0;
-	pub(crate) const SIG0: Self = Self([Self::SIG0_higher, Self::SIG0_lower]);
-
 	/// Internet Protocol version 4 address.
 	///
 	/// Defined in RFC 1035.

@@ -7,8 +7,21 @@
 #[repr(C, packed)]
 pub(crate) struct MetaType(pub(crate) BigEndianU16);
 
+impl DataTypeOrMetaType for MetaType
+{
+	#[inline(always)]
+	fn into_big_endian_u16(self) -> BigEndianU16
+	{
+		self.0
+	}
+}
+
 impl MetaType
 {
+	pub(crate) const SIG0_higher: u8 = 0x00;
+	pub(crate) const SIG0_lower: u8 = 0;
+	pub(crate) const SIG0: Self = Self([Self::SIG0_higher, Self::SIG0_lower]);
+	
 	/// Defined in RFC 6891.
 	pub(crate) const OPT_higher: u8 = 0x00;
 	pub(crate) const OPT_lower: u8 = 41;

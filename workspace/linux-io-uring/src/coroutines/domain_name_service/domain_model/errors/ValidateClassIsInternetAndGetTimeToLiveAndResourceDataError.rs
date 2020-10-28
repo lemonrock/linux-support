@@ -14,10 +14,10 @@ pub enum ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError
 	ClassIsReservedUnassignedOrObsolete(DataType, BigEndianU16),
 	
 	/// Resource data length overflows the space available.
-	ResourceDataLengthOverflows(DataType, ResourceDataLengthOverflowsError),
+	ResourceDataLengthOverflows(BigEndianU16, ResourceDataLengthOverflowsError),
 	
 	/// A resource record was a duplicate (the same name, data type and resource data).
-	DuplicateResourceRecord(DataType),
+	DuplicateResourceRecord(BigEndianU16),
 }
 
 impl Display for ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError
@@ -38,7 +38,7 @@ impl error::Error for ValidateClassIsInternetAndGetTimeToLiveAndResourceDataErro
 		
 		match self
 		{
-			&ResourceDataLengthOverflows(_data_type, ref error) => Some(error),
+			&ResourceDataLengthOverflows(_data_or_meta_type, ref error) => Some(error),
 			
 			_ => None,
 		}

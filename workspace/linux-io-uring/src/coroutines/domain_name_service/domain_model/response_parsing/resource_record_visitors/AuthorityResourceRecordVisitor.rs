@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Default, Debug)]
 pub(crate) struct AuthorityResourceRecordVisitor<'message, 'cache: 'message>
 {
 	canonical_name_chain: CanonicalNameChain<'message, 'cache>,
@@ -31,7 +31,7 @@ impl<'message, 'cache: 'message> ResourceRecordVisitor<'message> for AuthorityRe
 	#[inline(always)]
 	fn NS(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: ParsedName<'message>) -> Result<(), Self::Error>
 	{
-		if unlikely!(self.canonical_name_chain.validate_authority_section_name(name))
+		if unlikely!(self.canonical_name_chain.validate_authority_section_name(&name))
 		{
 			return Err(AuthorityError::NameServerRecordInAuthoritySectionIsNotForFinalNameInCanonicalNameChain)
 		}
@@ -47,7 +47,7 @@ impl<'message, 'cache: 'message> ResourceRecordVisitor<'message> for AuthorityRe
 	{
 		use self::AuthorityError::*;
 		
-		if unlikely!(self.canonical_name_chain.validate_authority_section_name(name))
+		if unlikely!(self.canonical_name_chain.validate_authority_section_name(&name))
 		{
 			return Err(StartOfAuthorityRecordInAuthoritySectionIsNotForFinalNameInCanonicalNameChain)
 		}

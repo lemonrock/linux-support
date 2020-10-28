@@ -73,7 +73,7 @@ impl<'message, 'cache: 'message> CanonicalNameChain<'message, 'cache>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn most_canonical_name(&self) -> &'message ParsedName<'message>
+	pub(crate) fn most_canonical_name(&self) -> &ParsedName<'message>
 	{
 		let chain_length = self.chain.len();
 		

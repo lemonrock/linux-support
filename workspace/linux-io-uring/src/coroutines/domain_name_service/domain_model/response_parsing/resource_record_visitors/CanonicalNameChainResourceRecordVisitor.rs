@@ -267,7 +267,7 @@ impl<'message, 'cache: 'message, RRV: ResourceRecordVisitor<'message>> ResourceR
 	#[inline(always)]
 	fn IPSECKEY_ignored(&mut self, name: ParsedName<'message>, resource_record_ignored_because_reason: IpsecKeyResourceRecordIgnoredBecauseReason)
 	{
-		self.answer_section_resource_record_visitor.IPSECKEY_ignored(name, resource_record_ignored_because_reason).map_err(WrappingCanonicalChainError::Wrapped)
+		self.answer_section_resource_record_visitor.IPSECKEY_ignored(name, resource_record_ignored_because_reason)
 	}
 
 	/// Visits a record of type `NSEC`.
@@ -581,17 +581,17 @@ impl<'message, 'cache: 'message, RRV: ResourceRecordVisitor<'message>> ResourceR
 	///
 	/// Default implementation ignores it.
 	#[inline(always)]
-	fn handle_possible_future_standard(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: &'message [u8], _unsupported_resource_record_type: DataType) -> Result<(), Self::Error>
+	fn handle_possible_future_standard(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: &'message [u8], unsupported_resource_record_type: DataType) -> Result<(), Self::Error>
 	{
-		self.answer_section_resource_record_visitor.handle_possible_future_standard(name, cache_until, record).map_err(WrappingCanonicalChainError::Wrapped)
+		self.answer_section_resource_record_visitor.handle_possible_future_standard(name, cache_until, record, unsupported_resource_record_type).map_err(WrappingCanonicalChainError::Wrapped)
 	}
 
 	/// Visits an unassigned record type.
 	///
 	/// Default implementation ignores it.
 	#[inline(always)]
-	fn unassigned(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: &'message [u8], _unassigned_resource_record_type: DataType) -> Result<(), Self::Error>
+	fn unassigned(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: &'message [u8], unassigned_resource_record_type: DataType) -> Result<(), Self::Error>
 	{
-		self.answer_section_resource_record_visitor.unassigned(name, cache_until, record).map_err(WrappingCanonicalChainError::Wrapped)
+		self.answer_section_resource_record_visitor.unassigned(name, cache_until, record, unassigned_resource_record_type).map_err(WrappingCanonicalChainError::Wrapped)
 	}
 }

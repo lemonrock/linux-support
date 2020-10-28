@@ -2,8 +2,23 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 struct PriorityToSortedWeightedRecordsMap<Record: Sized + Debug>(BTreeMap<Priority, SortedWeightedRecords<Record>>);
+
+impl<Record: Sized + Debug> Clone for PriorityToSortedWeightedRecordsMap<Record>
+{
+	// NOTE: We cannot rely on `#[derive(Clone)]` or `BTreeMap.clone()` as both require `Record` to implement `Clone`; however, since `Record` is actually `Rc<Record>`, this constraint is not valid.
+	#[inline(always)]
+	fn clone(&self) -> Self
+	{
+		let mut btree_map = BTreeMap::new();
+		for (priority, sorted_weighted_records) in self.iter()
+		{
+			btree_map.insert(*priority, sorted_weighted_records.clone());
+		}
+		Self(btree_map)
+	}
+}
 
 impl<Record: Sized + Debug> Default for PriorityToSortedWeightedRecordsMap<Record>
 {
