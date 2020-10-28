@@ -15,6 +15,7 @@
 #![feature(const_if_match)]
 #![feature(core_intrinsics)]
 #![feature(const_panic)]
+#![feature(generic_associated_types)]
 #![feature(ip)]
 #![feature(thread_local)]
 

@@ -7,7 +7,32 @@ pub(crate) struct MXQueryProcessor<'cache>
 	records: Records<'cache, CaseFoldedName<'cache>>,
 }
 
-impl<'message, 'cache: 'message> ResourceRecordVisitor<'message> for MXQueryProcessor<'cache>
+// impl<'message, 'cache: 'message> ResourceRecordVisitor<'message> for MXQueryProcessor<'cache>
+// {
+// 	type Error = Infallible;
+//
+// 	type Finished = Records<'cache, CaseFoldedName<'cache>>;
+//
+// 	#[inline(always)]
+// 	fn finished(self) -> Self::Finished
+// 	{
+// 		self.records
+// 	}
+//
+// 	#[inline(always)]
+// 	fn MX(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: MailExchange<'message>) -> Result<(), Self::Error>
+// 	{
+// 		self.records.store_unweighted(&name, cache_until, record.preference, CaseFoldedName::map::<'message>(record.mail_server_name));
+// 		Ok(())
+// 	}
+// }
+
+struct MXQueryProcessorResourceRecordVisitor<'cache>
+{
+	records: Records<'cache, CaseFoldedName<'cache>>,
+}
+
+impl<'cache: 'message, 'message> ResourceRecordVisitor<'message> for MXQueryProcessorResourceRecordVisitor<'cache>
 {
 	type Error = Infallible;
 	
@@ -27,23 +52,26 @@ impl<'message, 'cache: 'message> ResourceRecordVisitor<'message> for MXQueryProc
 	}
 }
 
-impl<'message, 'cache: 'message> QueryProcessor<'message, 'cache> for MXQueryProcessor<'cache>
+impl<'cache> QueryProcessorX<'cache> for MXQueryProcessor<'cache>
 {
 	const DT: DataType = DataType::MX;
 	
 	type Record = CaseFoldedName<'cache>;
 	
-	#[inline(always)]
-	fn new() -> Self
+	type RRV<'message> where 'cache: 'message = MXQueryProcessorResourceRecordVisitor<'cache>;
+	
+	fn new<'message>() -> Self::RRV<'message>
+	where 'cache: 'message
 	{
-		Self
+		MXQueryProcessorResourceRecordVisitor
 		{
-			records: Records::with_capacity(4)
+			records: Records::with_capacity(4),
 		}
 	}
 	
 	#[inline(always)]
-	fn finish(finished: <Self as ResourceRecordVisitor<'message>>::Finished, cache: &mut Cache<'cache>)
+	fn finish<'message>(finished: <<Self as QueryProcessorX<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished, cache: &mut Cache<'cache>)
+	where 'cache: 'message
 	{
 		cache.mx_query_type_cache.put_present(finished)
 	}

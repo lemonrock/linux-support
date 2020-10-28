@@ -61,8 +61,7 @@ impl<'cache> Cache<'cache>
 		self.enquire_over_tcp_and_cache::<SD, MXQueryProcessor>(stream, query_name)
 	}
 	
-	fn enquire_over_tcp_and_cache<'yielder, 'message, SD: SocketData, QP: QueryProcessor<'message, 'cache, Error=Infallible>>(&mut self, stream: &mut TlsClientStream<'yielder, SD>, query_name: CaseFoldedName<'cache>) -> Result<(), ProtocolError<Infallible>>
-	where 'cache: 'message
+	fn enquire_over_tcp_and_cache<'yielder, SD: SocketData, QP: QueryProcessorX<'cache>>(&mut self, stream: &mut TlsClientStream<'yielder, SD>, query_name: CaseFoldedName<'cache>) -> Result<(), ProtocolError<Infallible>>
 	{
 		let message_identifier = self.recent_message_identifiers.next();
 		
