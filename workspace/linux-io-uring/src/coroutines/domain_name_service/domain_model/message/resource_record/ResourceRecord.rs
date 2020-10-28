@@ -1619,7 +1619,7 @@ impl ResourceRecord
 	{
 		use self::HandleRecordTypeError::*;
 		
-		let (resource_data_end_pointer, either) = self.handle_TLSA_or_SMIMEA::<RRV::Error>(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, DataType::TLSA, duplicate_resource_record_response_parsing, TLSA)?;
+		let (resource_data_end_pointer, either) = self.handle_TLSA_or_SMIMEA(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, DataType::TLSA, duplicate_resource_record_response_parsing, TLSA)?;
 
 		match either
 		{
@@ -1636,7 +1636,7 @@ impl ResourceRecord
 	{
 		use self::HandleRecordTypeError::*;
 		
-		let (resource_data_end_pointer, either) = self.handle_TLSA_or_SMIMEA::<RRV::Error>(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, DataType::SMIMEA, duplicate_resource_record_response_parsing, SMIMEA)?;
+		let (resource_data_end_pointer, either) = self.handle_TLSA_or_SMIMEA(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, DataType::SMIMEA, duplicate_resource_record_response_parsing, SMIMEA)?;
 
 		match either
 		{
@@ -2065,7 +2065,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_TLSA_or_SMIMEA<'message, E: error::Error>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, map_error: impl FnOnce() -> HandleRecordTypeError<E>) -> Result<(usize, Either<(CacheUntil, DnsBasedAuthenticationOfNamedEntities<'message>), DnsBasedAuthenticationOfNamedEntitiesResourceRecordIgnoredBecauseReason>), HandleRecordTypeError<E>>
+	fn handle_TLSA_or_SMIMEA<'message, E: error::Error>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, map_error: impl FnOnce(X509CertificateHandleRecordTypeError) -> HandleRecordTypeError<E>) -> Result<(usize, Either<(CacheUntil, DnsBasedAuthenticationOfNamedEntities<'message>), DnsBasedAuthenticationOfNamedEntitiesResourceRecordIgnoredBecauseReason>), HandleRecordTypeError<E>>
 	{
 		use self::X509CertificateHandleRecordTypeError::*;
 		
@@ -2168,7 +2168,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn validate_minimum_record_size_and_parse_name_and_resource_record_type<'message>(&self, end_of_message_pointer: usize, parsed_names: &mut ParsedNames) -> Result<(ParsedName<'message>, usize, (u8, u8)), ValidateMinimumRecordSizeAndParseNameAndResourceRecordTypeError>
+	fn validate_minimum_record_size_and_parse_name_and_resource_record_type<'message>(&self, end_of_message_pointer: usize, parsed_names: &mut ParsedNames<'message>) -> Result<(ParsedName<'message>, usize, (u8, u8)), ValidateMinimumRecordSizeAndParseNameAndResourceRecordTypeError>
 	{
 		use self::ValidateMinimumRecordSizeAndParseNameAndResourceRecordTypeError::*;
 		

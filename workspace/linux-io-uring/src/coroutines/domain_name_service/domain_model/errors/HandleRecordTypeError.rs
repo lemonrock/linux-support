@@ -117,6 +117,9 @@ pub enum HandleRecordTypeError<E: error::Error>
 	/// `CSYNC`.
 	CSYNC(CSYNCHandleRecordTypeError),
 	
+	/// `NID`.
+	NID(NIDHandleRecordTypeError),
+	
 	/// `L32`.
 	L32(L32HandleRecordTypeError),
 	
@@ -218,6 +221,8 @@ impl<E: 'static + error::Error> error::Error for HandleRecordTypeError<E>
 			&CDNSKEY(ref error) => Some(error),
 			
 			&CSYNC(ref error) => Some(error),
+			
+			&NID(ref error) => Some(error),
 			
 			&LP(ref error) => Some(error),
 			
@@ -429,6 +434,15 @@ impl<E: error::Error> From<L32HandleRecordTypeError> for HandleRecordTypeError<E
 	fn from(value: L32HandleRecordTypeError) -> Self
 	{
 		HandleRecordTypeError::L32(value)
+	}
+}
+
+impl<E: error::Error> From<NIDHandleRecordTypeError> for HandleRecordTypeError<E>
+{
+	#[inline(always)]
+	fn from(value: NIDHandleRecordTypeError) -> Self
+	{
+		HandleRecordTypeError::NID(value)
 	}
 }
 
