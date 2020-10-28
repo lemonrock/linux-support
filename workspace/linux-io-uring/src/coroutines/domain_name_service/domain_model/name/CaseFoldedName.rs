@@ -490,57 +490,57 @@ impl CaseFoldedName<'static>
 			// Language: Arabic.
 			// Script: Arabic
 			// Non-punycode name `.إختبار.`
-			Self::from(b"xn--kgbechtv"),
+			Self::from(b"xn--kgbechtv" as &[u8]),
 			
 			// Language: Persian.
 			// Script: Arabic.
 			// Non-punycode name `.آزمایشی.`.
-			Self::from(b"xn--hgbk6aj7f53bba"),
+			Self::from(b"xn--hgbk6aj7f53bba" as &[u8]),
 			
 			// Language: Chinese.
 			// Script: Han (Simplified variant).
 			// Non-punycode name `.测试.`.
-			Self::from(b"xn--0zwm56d"),
+			Self::from(b"xn--0zwm56d" as &[u8]),
 			
 			// Language: Chinese.
 			// Script: Han (Traditional variant).
 			// Non-punycode name `.測試.`.
-			Self::from(b"xn--g6w251d"),
+			Self::from(b"xn--g6w251d" as &[u8]),
 			
 			// Language: Russian.
 			// Script: Cyrillic.
 			// Non-punycode name `.испытание.`.
-			Self::from(b"xn--80akhbyknj4f"),
+			Self::from(b"xn--80akhbyknj4f" as &[u8]),
 			
 			// Language: Hindi.
 			// Script: Devanagari (Nagari).
 			// Non-punycode name `.परीक्षा.`.
-			Self::from(b"xn--11b5bs3a9aj6g"),
+			Self::from(b"xn--11b5bs3a9aj6g" as &[u8]),
 			
 			// Language: Greek, Modern (1453-).
 			// Script: Greek.
 			// Non-punycode name `.δοκιμή.`.
-			Self::from(b"xn--jxalpdlp"),
+			Self::from(b"xn--jxalpdlp" as &[u8]),
 			
 			// Language: Korean.
 			// Script: Hangul (Hangŭl, Hangeul).
 			// Non-punycode name `.테스트.`.
-			Self::from(b"xn--9t4b11yi5a"),
+			Self::from(b"xn--9t4b11yi5a" as &[u8]),
 			
 			// Language: Yiddish
 			// Script: Hebrew
 			// Non-punycode name `.טעסט.`
-			Self::from(b"xn--deba0ad"),
+			Self::from(b"xn--deba0ad" as &[u8]),
 			
 			// Language: Japanese.
 			// Script: Katakana.
 			// Non-punycode name `.テスト.`.
-			Self::from(b"xn--zckzah"),
+			Self::from(b"xn--zckzah" as &[u8]),
 			
 			// Language: Tamil.
 			// Script: Tamil.
 			// Non-punycode name `.பரிட்சை.`.
-			Self::from(b"xn--hlcj6aya9esc7a"),
+			Self::from(b"xn--hlcj6aya9esc7a" as &[u8]),
 		}
 	}
 	
