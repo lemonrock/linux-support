@@ -12,6 +12,17 @@ impl<'cache> NoDomainCache<'cache, Record>
 		Self(LeastRecentlyUsedCache::new(maximum_records_count))
 	}
 	
+	#[inline(always)]
+	pub fn has_no_domain(&mut self, name: &CaseFoldedName<'cache>)
+	{
+		let mut current = name;
+		while !current.is_root()
+		{
+			self.0.get(name)
+		}
+	}
+	
+	
 	/// Gets a result for the name.
 	#[inline(always)]
 	pub fn get(&mut self, name: &CaseFoldedName<'cache>, now: NanosecondsSinceUnixEpoch) -> CacheResult<Record>

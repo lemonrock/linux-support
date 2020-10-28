@@ -8,15 +8,22 @@ pub(crate) enum NoDomainResponseType<'label, N: Name<'label>>
 	/// RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 1.
 	NoDomainResponseType1
 	{
-		start_of_authority: (N, NegativeCacheUntil, StartOfAuthority<'label, N>),
+		authority_name: N,
 		
-		name_servers: Records<'label, N>,
+		/// This is for `authority_name`.
+		start_of_authority: (NegativeCacheUntil, StartOfAuthority<'label, N>),
+		
+		/// These are for `authority_name`.
+		name_servers: Present<N>,
 	},
 	
 	/// RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 2.
 	NoDomainResponseType2
 	{
-		start_of_authority: (N, NegativeCacheUntil, StartOfAuthority<'label, N>),
+		authority_name: N,
+		
+		/// This is for `authority_name`.
+		start_of_authority: (NegativeCacheUntil, StartOfAuthority<'label, N>),
 	},
 	
 	// TODO: RFC 2308 Section 5: "Negative responses without SOA records SHOULD NOT be cached as there is no way to prevent the negative responses looping forever between a pair of servers even with a short TTL".
@@ -27,7 +34,10 @@ pub(crate) enum NoDomainResponseType<'label, N: Name<'label>>
 	/// RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 4.
 	NoDomainResponseType4
 	{
-		name_servers: Records<'label, N>,
+		authority_name: N,
+		
+		/// These are for `authority_name`.
+		name_servers: Present<N>,
 	},
 }
 

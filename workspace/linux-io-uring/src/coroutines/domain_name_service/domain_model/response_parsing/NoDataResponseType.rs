@@ -8,23 +8,26 @@ pub(crate) enum NoDataResponseType<'label, N: Name<'label>>
 	/// RFC 2308, Section 2.2 No Data NODATA RESPONSE: TYPE 1.
 	NoDataResponseType1
 	{
-		start_of_authority: (N, NegativeCacheUntil, StartOfAuthority<'label, N>),
+		authority_name: N,
 		
-		name_servers: Records<'label, N>,
+		start_of_authority: (NegativeCacheUntil, StartOfAuthority<'label, N>),
+		
+		/// These are for `authority_name`.
+		name_servers: Present<N>,
 	},
 	
 	/// RFC 2308, Section 2.2 No Data NODATA RESPONSE: TYPE 2.
 	NoDataResponseType2
 	{
-		start_of_authority: (N, NegativeCacheUntil, StartOfAuthority<'label, N>),
+		authority_name: N,
+		
+		/// This is for `authority_name`.
+		start_of_authority: (NegativeCacheUntil, StartOfAuthority<'label, N>),
 	},
 	
 	// TODO: RFC 2308 Section 5: "Negative responses without SOA records SHOULD NOT be cached as there is no way to prevent the negative responses looping forever between a pair of servers even with a short TTL".
 	/// RFC 2308, Section 2.2 No Data NODATA RESPONSE: TYPE 3.
-	NoDataResponseType3
-	{
-		name_servers: Records<'label, N>,
-	},
+	NoDataResponseType3,
 }
 
 impl<'label, N: Name<'label>> NoDataResponseType<'label, N>

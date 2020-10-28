@@ -41,6 +41,30 @@ impl<Record: Sized + Debug> Default for Present<Record>
 impl<Record: Sized + Debug> Present<Record>
 {
 	#[inline(always)]
+	pub(crate) fn store_unprioritized_and_unweighted(&mut self, cache_until: CacheUntil, record: Record)
+	{
+		self.store_unweighted(cache_until, Priority::Unassigned, record)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn store_unweighted(&mut self, cache_until: CacheUntil, priority_or_preference: Priority, record: Record)
+	{
+		self.store(cache_until, priority_or_preference, Weight::Unassigned, record)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn store(&mut self, cache_until: CacheUntil, priority: Priority, weight: Weight, record: Record)
+	{
+		let priority_to_sorted_weighted_records_map = match cache_until
+		{
+			None => &mut self.use_once,
+			
+			Some(cache_until) => self.cached.entry(cache_until).or_insert_with(PriorityToSortedWeightedRecordsMap::default),
+		};
+		priority_to_sorted_weighted_records_map.insert(priority, weight, record);
+	}
+	
+	#[inline(always)]
 	fn records_count(&self) -> NonZeroUsize
 	{
 		let mut records_count = self.use_once.records_count();

@@ -11,17 +11,27 @@ pub(crate) enum Answer<'label, N: Name<'label>>
 	{
 		response_type: NoDomainResponseType<'label, N>,
 		
+		/// This is a direct child of `response_type.authority_name`.
 		most_canonical_name: N,
 	},
 
 	NoData
 	{
 		response_type: NoDataResponseType<'label, N>,
+		
+		/// This is a direct child of `response_type.authority_name`.
+		most_canonical_name: N,
 	},
 	
 	Referral
 	{
-		name_servers: Records<'label, N>,
+		authority_name: N,
+		
+		/// These are for `authority_name`.
+		name_servers: Present<N>,
+		
+		/// This is a direct child of `authority_name`.
+		most_canonical_name: N,
 	},
 }
 
@@ -38,7 +48,7 @@ impl<'label, N: Name<'label>> Answer<'label, N>
 			
 			NoDomain { response_type, .. } => response_type.is_implicit_referral(),
 			
-			NoData { response_type } => response_type.is_implicit_referral(),
+			NoData { response_type, .. } => response_type.is_implicit_referral(),
 			
 			Referral { .. } => true,
 		}

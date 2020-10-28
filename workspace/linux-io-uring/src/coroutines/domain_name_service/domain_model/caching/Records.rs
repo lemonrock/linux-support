@@ -41,29 +41,26 @@ impl<'cache, Record: Sized + Debug> Records<'cache, Record>
 	pub(crate) fn store_unprioritized_and_unweighted<'message>(&mut self, name: &ParsedName<'message>, cache_until: CacheUntil, record: Record)
 	where 'cache: 'message
 	{
-		self.store_unweighted(name, cache_until, Priority::Unassigned, record)
+		self.present(name).store_unprioritized_and_unweighted(cache_until, record)
 	}
 	
 	#[inline(always)]
 	pub(crate) fn store_unweighted<'message>(&mut self, name: &ParsedName<'message>, cache_until: CacheUntil, priority_or_preference: Priority, record: Record)
 	where 'cache: 'message
 	{
-		self.store(name, cache_until, priority_or_preference, Weight::Unassigned, record)
+		self.present(name).store_unweighted(cache_until, priority_or_preference, record)
 	}
 	
 	#[inline(always)]
 	pub(crate) fn store<'message>(&mut self, name: &ParsedName<'message>, cache_until: CacheUntil, priority: Priority, weight: Weight, record: Record)
 	where 'cache: 'message
 	{
-		let present = self.0.entry(CaseFoldedName::from(name)).or_insert_with(Present::default);
-		
-		let priority_to_sorted_weighted_records_map = match cache_until
-		{
-			None => &mut present.use_once,
-			
-			Some(cache_until) => present.cached.entry(cache_until).or_insert_with(PriorityToSortedWeightedRecordsMap::default),
-		};
-		priority_to_sorted_weighted_records_map.insert(priority, weight, record);
+		self.present(name).store(cache_until, priority, weight, record)
 	}
 	
+	#[inline(always)]
+	fn present<'message>(&mut self, name: &ParsedName<'message>) -> &mut Present<Record>
+	{
+		self.0.entry(CaseFoldedName::from(name)).or_insert_with(Present::default)
+	}
 }
