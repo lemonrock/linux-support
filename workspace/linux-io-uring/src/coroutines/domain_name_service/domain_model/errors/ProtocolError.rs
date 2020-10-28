@@ -34,8 +34,6 @@ impl<E: 'static + error::Error> error::Error for ProtocolError<E>
 			&MessageLength(ref error) => Some(error),
 			
 			&ReadReplyAfterLengthChecked(ref error) => Some(error),
-			
-			_ => None,
 		}
 	}
 }

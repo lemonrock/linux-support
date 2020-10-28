@@ -386,15 +386,15 @@ impl CaseFoldedLabel<'static>
 			
 			10 => Self::a,
 			
-			10 => Self::b,
+			11 => Self::b,
 			
-			10 => Self::c,
+			12 => Self::c,
 			
-			10 => Self::d,
+			13 => Self::d,
 			
-			10 => Self::e,
+			14 => Self::e,
 			
-			10 => Self::f,
+			15 => Self::f,
 			
 			_ => unreachable!("label {} was not a nibble")
 		}

@@ -10,6 +10,8 @@
 #![deny(unreachable_patterns)]
 #![feature(allocator_api)]
 #![feature(const_fn)]
+#![feature(const_fn_fn_ptr_basics)]
+#![feature(const_fn_transmute)]
 #![feature(const_if_match)]
 #![feature(core_intrinsics)]
 #![feature(const_panic)]

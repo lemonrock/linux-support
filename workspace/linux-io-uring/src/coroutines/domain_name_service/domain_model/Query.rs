@@ -16,7 +16,7 @@ impl<'cache> Query<'cache>
 	pub fn enquire_over_tcp<'yielder, 'message, QP: QueryProcessor<'message, 'cache>, SD: SocketData>(stream: &mut TlsClientStream<'yielder, SD>, message_identifier: MessageIdentifier, query_name: CaseFoldedName<'cache>, cache: &mut Cache<'cache>) -> Result<(), ProtocolError<QP::Error>>
 	where 'cache: 'message
 	{
-		let mut query = Query
+		let query = Query
 		{
 			message_identifier,
 			data_type: QP::DT,
@@ -36,7 +36,7 @@ impl<'cache> Query<'cache>
 
 		let buffer_length = TcpDnsMessage::write_query_tcp_message(buffer_pointer, self.message_identifier, self.data_type, &self.query_name);
 
-		stream.write_all_data(&buffer[..])
+		stream.write_all_data(&buffer[.. buffer_length])
 	}
 	
 	#[allow(deprecated)]
@@ -47,7 +47,7 @@ impl<'cache> Query<'cache>
 		let mut buffer: [u8; ResourceRecord::UdpRequestorsPayloadSize] = unsafe { uninitialized() };
 		let message_length = Self::reply_message(stream, &mut buffer)?;
 		let raw_dns_message = &buffer[.. message_length];
-		let mut answer_section_resource_record_visitor = QP::new();
+		let answer_section_resource_record_visitor = QP::new();
 		let (answer, canonical_name_chain_records, finished) = self.read_reply_after_message_length_checked(raw_dns_message, answer_section_resource_record_visitor).map_err(ProtocolError::ReadReplyAfterLengthChecked)?;
 		QP::result(cache, answer, canonical_name_chain_records, finished)
 	}

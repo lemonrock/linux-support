@@ -13,6 +13,6 @@ impl<'message> Digest<'message> for Sha2_512<'message>
 	#[inline(always)]
 	unsafe fn new_unchecked(digest_data: *const u8) -> Self
 	{
-		unsafe { Self(& * (digest_data as *const [u8; 512 / BitsInAByte])) }
+		Self(& * (digest_data as *const [u8; 512 / BitsInAByte]))
 	}
 }

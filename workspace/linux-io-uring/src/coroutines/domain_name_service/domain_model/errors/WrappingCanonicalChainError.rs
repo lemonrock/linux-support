@@ -32,8 +32,6 @@ impl<E: 'static + error::Error> error::Error for WrappingCanonicalChainError<E>
 			&CanonicalChain(ref error) => Some(error),
 			
 			&Wrapped(ref error) => Some(error),
-			
-			_ => None,
 		}
 	}
 }

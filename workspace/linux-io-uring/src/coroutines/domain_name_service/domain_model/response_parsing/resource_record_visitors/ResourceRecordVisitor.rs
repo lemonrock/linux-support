@@ -413,6 +413,7 @@ pub(crate) trait ResourceRecordVisitor<'message>
 	/// Default implementation does nothing.
 	///
 	/// Note that the algorithm `DS-Delete` is NOT validated.
+	#[allow(unused)]
 	#[inline(always)]
 	fn CDNSKEY(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: DnsKey<'message>) -> Result<(), Self::Error>
 	{

@@ -55,7 +55,7 @@ impl<'cache, V: LeastRecentlyUsedCacheValue> LeastRecentlyUsedListPointer<'cache
 	{
 		LeastRecentlyUsedListKeyReference
 		{
-			key: unsafe { NonNull::new_unchecked(&mut self.key) }
+			key: NonNull::new_unchecked(&mut self.key)
 		}
 	}
 	

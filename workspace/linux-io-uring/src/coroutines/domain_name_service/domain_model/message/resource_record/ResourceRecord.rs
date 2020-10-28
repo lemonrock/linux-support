@@ -2116,7 +2116,7 @@ impl ResourceRecord
 
 			2 => Self::guard_hash_digest_if_final_field(resource_data, DigestOffset, MatchingType::Sha2_512, |length| map_error(HasADigestLengthThatIsIncorrectForTheMatchingType(length)))?,
 
-			2 ..= 254 => return Ok((resource_data_end_pointer, Right(UnassignedMatchingType(raw_matching_type)))),
+			3 ..= 254 => return Ok((resource_data_end_pointer, Right(UnassignedMatchingType(raw_matching_type)))),
 
 			255 => return Ok((resource_data_end_pointer, Right(PrivateMatchingType))),
 		};
@@ -2486,7 +2486,8 @@ impl ResourceRecord
 		
 		if length == D::DigestSizeInBytes
 		{
-			Ok(name(D::new_unchecked(digest_data.as_ptr())))
+			let d = unsafe { D::new_unchecked(digest_data.as_ptr()) };
+			Ok(name(d))
 		}
 		else
 		{

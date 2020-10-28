@@ -34,8 +34,6 @@ impl error::Error for TXTHandleRecordTypeError
 			&CharacterStrings(ref error) => Some(error),
 			
 			&CharacterStringLengthIncorrect(_character_string_index, ref error) => Some(error),
-			
-			_ => None,
 		}
 	}
 }

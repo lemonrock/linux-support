@@ -87,7 +87,7 @@ impl<T> ReversePopulatedVecBuilder<T>
 		let mut vec = Vec::with_capacity(self.count);
 		unsafe
 		{
-			unsafe { copy_nonoverlapping(self.start_pointer(), vec.as_mut_ptr(), self.count) }
+			copy_nonoverlapping(self.start_pointer(), vec.as_mut_ptr(), self.count)
 			vec.set_len(self.count)
 		}
 		

@@ -44,8 +44,6 @@ impl<E: 'static + error::Error> error::Error for SectionError<E>
 			&AuthoritySection(ref error) => Some(error),
 			
 			&AdditionalSection(ref error) => Some(error),
-			
-			_ => None,
 		}
 	}
 }
