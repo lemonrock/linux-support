@@ -23,7 +23,7 @@ impl<'cache> Query<'cache>
 			query_name,
 		};
 		query.write_tcp_query(stream);
-		query.read_tcp_reply(stream, cache)
+		query.read_tcp_reply::<QP, SD>(stream, cache)
 	}
 	
 	#[allow(deprecated)]
