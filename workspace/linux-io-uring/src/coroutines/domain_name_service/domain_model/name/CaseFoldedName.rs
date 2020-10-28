@@ -11,12 +11,12 @@ pub struct CaseFoldedName<'label>
 	name_length_including_trailing_periods_after_labels: NonZeroU8,
 }
 
-impl<'label, 'b> TryFrom<&'b [u8]> for CaseFoldedName<'label>
+impl<'label> TryFrom<&'label [u8]> for CaseFoldedName<'label>
 {
 	type Error = CaseFoldedNameParseError;
 	
 	#[inline(always)]
-	fn try_from(value: &'b [u8]) -> Result<Self, Self::Error>
+	fn try_from(value: &'label [u8]) -> Result<Self, Self::Error>
 	{
 		if unlikely!(value.len() < ParsedNameParser::NameMinimumSize)
 		{

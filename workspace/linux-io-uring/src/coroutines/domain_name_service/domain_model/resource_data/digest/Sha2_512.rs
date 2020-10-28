@@ -6,7 +6,13 @@
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct Sha2_512<'message>(&'message [u8; 512 / BitsInAByte]);
 
-impl<'message> Digest for Sha2_512<'message>
+impl<'message> Digest<'message> for Sha2_512<'message>
 {
 	const DigestSizeInBits: usize = 512;
+	
+	#[inline(always)]
+	unsafe fn new_unchecked(digest_data: *const u8) -> Self
+	{
+		unsafe { Self(& * (digest_data as *const [u8; 512 / BitsInAByte])) }
+	}
 }

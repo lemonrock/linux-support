@@ -2478,7 +2478,7 @@ impl ResourceRecord
 	}
 	
 	#[inline(always)]
-	fn guard_hash_digest_if_final_field<D: Digest, N: Sized, E: error::Error>(resource_data: &[u8], digest_offset: usize, name: impl FnOnce(D) -> N, error: impl FnOnce(usize) -> HandleRecordTypeError<E>) -> Result<N, HandleRecordTypeError<E>>
+	fn guard_hash_digest_if_final_field<'message, D: Digest<'message>, N: Sized, E: error::Error>(resource_data: &'message [u8], digest_offset: usize, name: impl FnOnce(D) -> N, error: impl FnOnce(usize) -> HandleRecordTypeError<E>) -> Result<N, HandleRecordTypeError<E>>
 	{
 		let digest_data = &resource_data[digest_offset .. ];
 		
@@ -2486,7 +2486,7 @@ impl ResourceRecord
 		
 		if length == D::DigestSizeInBytes
 		{
-			Ok(name(digest_data.start_pointer().unsafe_cast::<[u8; D::DigestSizeInBytes]>()))
+			Ok(name(D::new_unchecked(digest_data.as_ptr())))
 		}
 		else
 		{
