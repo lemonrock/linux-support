@@ -266,6 +266,61 @@ impl CaseFoldedLabel<'static>
 	
 	const lan: Self = Self::new(b"lan");
 	
+	/// Language: Arabic.
+	/// Script: Arabic
+	/// Non-punycode name `.إختبار.`
+	const Arabic_Arabic: Self = Self::new(b"xn--kgbechtv");
+	
+	/// Language: Persian.
+	/// Script: Arabic.
+	/// Non-punycode name `.آزمایشی.`.
+	const Persian_Arabic: Self = Self::new(b"xn--hgbk6aj7f53bba");
+	
+	/// Language: Chinese.
+	/// Script: Han (Simplified variant).
+	/// Non-punycode name `.测试.`.
+	const Chinese_Han_Simplified: Self = Self::new(b"xn--0zwm56d");
+	
+	/// Language: Chinese.
+	/// Script: Han (Traditional variant).
+	/// Non-punycode name `.測試.`.
+	const Chinese_Han_Traditional: Self = Self::new(b"xn--g6w251d");
+	
+	/// Language: Russian.
+	/// Script: Cyrillic.
+	/// Non-punycode name `.испытание.`.
+	const Russion_Cyrillic: Self = Self::new(b"xn--80akhbyknj4f");
+	
+	/// Language: Hindi.
+	/// Script: Devanagari (Nagari).
+	/// Non-punycode name `.परीक्षा.`.
+	const Hindi_Devangari: Self = Self::new(b"xn--11b5bs3a9aj6g");
+	
+	/// Language: Greek, Modern (1453-).
+	/// Script: Greek.
+	/// Non-punycode name `.δοκιμή.`.
+	const Greek_Greek: Self = Self::new(b"xn--jxalpdlp");
+	
+	/// Language: Korean.
+	/// Script: Hangul (Hangŭl, Hangeul).
+	/// Non-punycode name `.테스트.`.
+	const Korean_Hangul: Self = Self::new(b"xn--9t4b11yi5a");
+	
+	/// Language: Yiddish
+	/// Script: Hebrew
+	/// Non-punycode name `.טעסט.`
+	const Yiddish_Hebrew: Self = Self::new(b"xn--deba0ad");
+	
+	/// Language: Japanese.
+	/// Script: Katakana.
+	/// Non-punycode name `.テスト.`.
+	const Japanese_Katakana: Self = Self::new(b"xn--zckzah");
+	
+	/// Language: Tamil.
+	/// Script: Tamil.
+	/// Non-punycode name `.பரிட்சை.`.
+	const Tamil_Tamil: Self = Self::new(b"xn--hlcj6aya9esc7a");
+	
 	const a: Self = Self::new(b"a");
 	
 	const b: Self = Self::new(b"b");

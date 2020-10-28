@@ -47,7 +47,7 @@ pub trait Name<'label>: Sized + Clone + Debug
 			
 			let our_label = unsafe { self.label(index) };
 			let ends_with_label = unsafe { ends_with.label(index) };
-			if our_label.deref() != ends_with_label.deref()
+			if !our_label.deref().equals(ends_with_label.deref())
 			{
 				return false
 			}
