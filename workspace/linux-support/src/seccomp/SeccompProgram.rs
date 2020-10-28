@@ -47,7 +47,7 @@ impl SeccompProgram
 	{
 		self.load_internal(log, disable_speculative_store_bypass_mitigation, true, false).map(|outcome| if unlikely!(outcome != 0)
 		{
-			unreachable!("outcome non-zero")
+			unreachable_code(format_args!("outcome non-zero"))
 		})
 	}
 
@@ -173,7 +173,7 @@ impl SeccompProgram
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from seccomp()", result)
+			unreachable_code(format_args!("Unexpected result {} from seccomp()", result))
 		}
 	}
 

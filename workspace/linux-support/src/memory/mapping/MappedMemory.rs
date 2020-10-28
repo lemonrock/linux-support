@@ -113,7 +113,7 @@ impl MappedMemory
 				unexpected @ _ => panic!("Unexpected error {} from mlock2()", unexpected)
 			}
 		} else {
-			unreachable!("Unexpected result {} from mlock2()", result)
+			unreachable_code(format_args!("Unexpected result {} from mlock2()", result))
 		}
 	}
 	
@@ -152,7 +152,7 @@ impl MappedMemory
 				unexpected @ _ => panic!("Unexpected error {} from munlock()", unexpected)
 			}
 		} else {
-			unreachable!("Unexpected result {} from mlock2()", result)
+			unreachable_code(format_args!("Unexpected result {} from mlock2()", result))
 		}
 	}
 	
@@ -187,7 +187,7 @@ impl MappedMemory
 		}
 		else
 		{
-			unreachable!("madvise() returned unexpected result {}", result)
+			unreachable_code(format_args!("madvise() returned unexpected result {}", result))
 		}
 	}
 	
@@ -222,7 +222,7 @@ impl MappedMemory
 		}
 		else
 		{
-			unreachable!("mprotect() returned unexpected result {}", result)
+			unreachable_code(format_args!("mprotect() returned unexpected result {}", result))
 		}
 	}
 	
@@ -269,7 +269,7 @@ impl MappedMemory
 		}
 		else
 		{
-			unreachable!("mprotect() returned unexpected result {}", result)
+			unreachable_code(format_args!("mprotect() returned unexpected result {}", result))
 		}
 	}
 	

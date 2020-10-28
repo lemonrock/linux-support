@@ -22,7 +22,7 @@ unsafe fn write_message_with_line_feed_escaped_truncated(mut write_to: *mut u8, 
 			
 			LineFeed => EscapedLineFeed,
 			
-			_ => unreachable!(),
+			_ => unreachable_code(format_args!("")),
 		}
 	}
 	

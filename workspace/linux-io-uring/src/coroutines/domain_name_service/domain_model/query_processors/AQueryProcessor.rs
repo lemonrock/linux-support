@@ -22,7 +22,7 @@ impl<'message, 'cache: 'message> ResourceRecordVisitor<'message> for AQueryProce
 	#[inline(always)]
 	fn A(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: Ipv4Addr) -> Result<(), Self::Error>
 	{
-		self.records.store_unprioritized_and_unweighted(name, cache_until, record);
+		self.records.store_unprioritized_and_unweighted(&name, cache_until, record);
 		Ok(())
 	}
 }

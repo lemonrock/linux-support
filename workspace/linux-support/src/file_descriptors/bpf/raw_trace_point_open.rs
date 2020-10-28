@@ -35,6 +35,6 @@ fn raw_trace_point_open(extended_bpf_program_file_descriptor: &ExtendedBpfProgra
 	}
 	else
 	{
-		unreachable!("Unexpected result `{}` from bpf(BPF_RAW_TRACEPOINT_OPEN)", result)
+		unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_RAW_TRACEPOINT_OPEN)", result))
 	}
 }

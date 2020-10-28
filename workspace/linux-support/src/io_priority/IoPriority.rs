@@ -165,7 +165,7 @@ impl IoPriority
 		}
 		else
 		{
-			unreachable!("Unexpected result of {} from ioprio_get()", result)
+			unreachable_code(format_args!("Unexpected result of {} from ioprio_get()", result))
 		}
 	}
 
@@ -267,7 +267,7 @@ impl IoPriority
 		}
 		else
 		{
-			unreachable!("Unexpected result of {} from ioprio_get()", result)
+			unreachable_code(format_args!("Unexpected result of {} from ioprio_get()", result))
 		}
 	}
 

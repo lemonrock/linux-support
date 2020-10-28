@@ -98,14 +98,14 @@ impl PerThreadSchedulerPolicyAndFlags
 
 				E2BIG => panic!("Size mismatch of sched_attr between userpace and kernel"),
 
-				EINVAL => unreachable!("attr is NULL; or pid is negative; or flags is not zero. Or, size is invalid; that is, it is smaller than the initial version of the sched_attr structure (48 bytes) or larger than the system page size"),
+				EINVAL => unreachable_code(format_args!("attr is NULL; or pid is negative; or flags is not zero. Or, size is invalid; that is, it is smaller than the initial version of the sched_attr structure (48 bytes) or larger than the system page size")),
 
-				unexpected @ _ => unreachable!("Unexpected error {} from sched_setattr()", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from sched_setattr()", unexpected)),
 			}
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from sched_setattr()", result)
+			unreachable_code(format_args!("Unexpected result {} from sched_setattr()", result))
 		}
 	}
 
@@ -210,13 +210,13 @@ impl PerThreadSchedulerPolicyAndFlags
 				EINVAL => panic!("`attr` is NULL; or `pid` is negative; or `flags` is not zero; `attr.sched_policy` is not one of the recognized policies; `attr.sched_flags` contains a flag other than `SCHED_FLAG_RESET_ON_FORK`; or `attr.sched_priority` is invalid; or `attr.sched_policy` is `SCHED_DEADLINE` and the deadline scheduling parameters in `attr` are invalid"),
 				E2BIG => panic!("The buffer specified by `size` and `attr` is larger than the kernel structure, and one or more of the excess bytes is nonzero"),
 
-				unexpected @ _ => unreachable!("Unexpected error {} from sched_getattr()", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from sched_getattr()", unexpected)),
 
 			}
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from sched_getattr()", result)
+			unreachable_code(format_args!("Unexpected result {} from sched_getattr()", result))
 		}
 	}
 }

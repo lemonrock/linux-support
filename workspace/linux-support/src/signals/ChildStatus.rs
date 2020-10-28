@@ -156,6 +156,6 @@ impl ChildStatus
 			)
 		}
 
-		unreachable!("Should not be a possible state")
+		unreachable_code(format_args!("Should not be a possible state"))
 	}
 }

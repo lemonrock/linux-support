@@ -41,12 +41,12 @@ impl RoundRobinInterval
 				EINVAL => panic!("Invalid pid"),
 				ENOSYS => panic!("The system call is not yet implemented (only on rather old kernels)"),
 
-				unexpected @ _ => unreachable!("Unexpected error {} from sched_rr_get_interval()", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from sched_rr_get_interval()", unexpected)),
 			}
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from sched_rr_get_interval()", result)
+			unreachable_code(format_args!("Unexpected result {} from sched_rr_get_interval()", result))
 		}
 	}
 }

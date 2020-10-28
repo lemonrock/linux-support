@@ -275,7 +275,7 @@ impl ExtendedDnsResponseCodeError
 			
 			error_code @ 3841 ..= 4095 => Err(ReservedForPrivateUse(error_code)),
 			
-			_ => unreachable!(),
+			_ => unreachable_code(format_args!("")),
 		}
 	}
 }

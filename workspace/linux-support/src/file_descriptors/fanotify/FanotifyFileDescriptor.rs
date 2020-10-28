@@ -87,13 +87,13 @@ impl FanotifyFileDescriptor
 					EPERM => PermissionDenied,
 					EINVAL => panic!("Invalid arguments"),
 					ENOSYS => panic!("The fanotify API is available only if the kernel was configured with `CONFIG_FANOTIFY`"),
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
 		else
 		{
-			unreachable!();
+			unreachable_code(format_args!(""));
 		}
 	}
 
@@ -123,13 +123,13 @@ impl FanotifyFileDescriptor
 					ENOMEM | ENOSPC => KernelWouldBeOutOfMemory,
 					ENOSYS => panic!("This kernel does not implement `fanotify_mark()`. The fanotify API is available only if the kernel was configured with `CONFIG_FANOTIFY`"),
 
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
 		else
 		{
-			unreachable!();
+			unreachable_code(format_args!(""));
 		}
 	}
 
@@ -159,13 +159,13 @@ impl FanotifyFileDescriptor
 					ENOMEM | ENOSPC => KernelWouldBeOutOfMemory,
 					ENOSYS => panic!("This kernel does not implement `fanotify_mark()`. The fanotify API is available only if the kernel was configured with `CONFIG_FANOTIFY`"),
 
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
 		else
 		{
-			unreachable!();
+			unreachable_code(format_args!(""));
 		}
 	}
 
@@ -204,13 +204,13 @@ impl FanotifyFileDescriptor
 					ENOMEM | ENOSPC => KernelWouldBeOutOfMemory,
 					ENOSYS => panic!("This kernel does not implement `fanotify_mark()`. The fanotify API is available only if the kernel was configured with `CONFIG_FANOTIFY`"),
 
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
 		else
 		{
-			unreachable!();
+			unreachable_code(format_args!(""));
 		}
 	}
 
@@ -268,7 +268,7 @@ impl FanotifyFileDescriptor
 
 				0 => panic!("End of file but we haven't closed the file descriptor"),
 
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 	}
@@ -319,7 +319,7 @@ impl FanotifyFileDescriptor
 
 				0 => panic!("End of file but we haven't closed the file descriptor"),
 
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 	}

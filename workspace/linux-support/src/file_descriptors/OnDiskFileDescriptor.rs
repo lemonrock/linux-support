@@ -24,7 +24,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from fstatvfs()", result)
+			unreachable_code(format_args!("Unexpected result {} from fstatvfs()", result))
 		}
 	}
 
@@ -54,7 +54,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from ioctl()", result)
+			unreachable_code(format_args!("Unexpected result {} from ioctl()", result))
 		}
 	}
 
@@ -82,7 +82,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from ioctl()", result)
+			unreachable_code(format_args!("Unexpected result {} from ioctl()", result))
 		}
 	}
 
@@ -105,7 +105,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 		else
 		{
-			unreachable!("ioctl() returned unexpected result {}", result)
+			unreachable_code(format_args!("ioctl() returned unexpected result {}", result))
 		}
 	}
 
@@ -127,7 +127,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 		else
 		{
-			unreachable!("ioctl() returned unexpected result {}", result)
+			unreachable_code(format_args!("ioctl() returned unexpected result {}", result))
 		}
 	}
 
@@ -150,7 +150,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 		else
 		{
-			unreachable!("ioctl() returned unexpected result {}", result)
+			unreachable_code(format_args!("ioctl() returned unexpected result {}", result))
 		}
 	}
 
@@ -172,7 +172,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 		else
 		{
-			unreachable!("ioctl() returned unexpected result {}", result)
+			unreachable_code(format_args!("ioctl() returned unexpected result {}", result))
 		}
 	}
 
@@ -203,7 +203,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 		else
 		{
-			unreachable!("fgetxattr() returned unexpected result {}", result)
+			unreachable_code(format_args!("fgetxattr() returned unexpected result {}", result))
 		}
 	}
 
@@ -260,7 +260,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 		else
 		{
-			unreachable!("fremovexattr() returned unexpected result {}", result)
+			unreachable_code(format_args!("fremovexattr() returned unexpected result {}", result))
 		}
 	}
 
@@ -285,7 +285,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 		else
 		{
-			unreachable!("fremovexattr() returned unexpected result {}", result)
+			unreachable_code(format_args!("fremovexattr() returned unexpected result {}", result))
 		}
 	}
 
@@ -310,7 +310,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 		else
 		{
-			unreachable!("flistxattr() returned unexpected result {}", result)
+			unreachable_code(format_args!("flistxattr() returned unexpected result {}", result))
 		}
 	}
 }

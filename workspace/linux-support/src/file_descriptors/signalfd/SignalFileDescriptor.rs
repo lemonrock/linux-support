@@ -88,7 +88,7 @@ impl SignalFileDescriptor
 					ENOMEM => KernelWouldBeOutOfMemory,
 					EINVAL => panic!("Invalid arguments"),
 					ENODEV => panic!("Could not mount (internal) anonymous inode device"),
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
@@ -119,7 +119,7 @@ impl SignalFileDescriptor
 					EBADF => panic!("Invalid signalfd"),
 					EINVAL => panic!("Invalid arguments"),
 					ENODEV => panic!("Could not mount (internal) anonymous inode device"),
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
@@ -183,7 +183,7 @@ impl SignalFileDescriptor
 
 				0 => panic!("End of file but we haven't closed the file descriptor"),
 
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 	}

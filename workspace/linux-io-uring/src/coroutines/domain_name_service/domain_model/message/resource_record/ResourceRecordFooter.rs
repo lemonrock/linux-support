@@ -75,9 +75,9 @@ impl ResourceRecordFooter
 	}
 
 	#[inline(always)]
-	fn resource_data(&mut self) -> &mut ResourceData
+	fn resource_data(&self) -> &ResourceData
 	{
-		&mut self.rdata
+		&self.rdata
 	}
 
 	#[inline(always)]

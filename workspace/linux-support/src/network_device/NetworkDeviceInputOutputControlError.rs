@@ -91,7 +91,7 @@ impl NetworkDeviceInputOutputControlError<Infallible>
 		{
 			Creation(error) => Creation(error),
 			
-			ControlOperation(_) => unreachable!(),
+			ControlOperation(_) => unreachable_code(format_args!("")),
 			
 			PermissionDenied => PermissionDenied,
 			

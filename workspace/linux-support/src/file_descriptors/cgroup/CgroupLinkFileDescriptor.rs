@@ -100,7 +100,7 @@ impl CgroupLinkFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_LINK_UPDATE)", result)
+			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_LINK_UPDATE)", result))
 		}
 	}
 }

@@ -225,7 +225,7 @@ impl<'a> TryFrom<&'a [u8]> for PciDeviceAddress
 					*character == b'.'
 				},
 
-				_ => unreachable!("Should not be possible"),
+				_ => unreachable_code(format_args!("Should not be possible")),
 			}
 		});
 

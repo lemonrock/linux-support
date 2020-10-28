@@ -28,12 +28,12 @@ impl Drop for InotifyWatchDescriptor
 				{
 					EBADF => panic!("`fd` is not a valid file descriptor"),
 					EINVAL => panic!("The watch descriptor `wd` is not valid; or `fd` is not an inotify file descriptor"),
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			}
 			else
 			{
-				unreachable!()
+				unreachable_code(format_args!(""))
 			}
 		}
 

@@ -47,7 +47,7 @@ pub trait Identifier: From<u32> + Into<u32> + Into<BpfCommandGetIdentifierValueO
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from bpf({:?})", result, Self::Next)
+			unreachable_code(format_args!("Unexpected result `{}` from bpf({:?})", result, Self::Next))
 		}
 	}
 }

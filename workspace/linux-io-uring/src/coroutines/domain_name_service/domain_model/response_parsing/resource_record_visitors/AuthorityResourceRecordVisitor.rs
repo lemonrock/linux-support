@@ -36,8 +36,9 @@ impl<'message, 'cache: 'message> ResourceRecordVisitor<'message> for AuthorityRe
 			return Err(AuthorityError::NameServerRecordInAuthoritySectionIsNotForFinalNameInCanonicalNameChain)
 		}
 		
-		let name_server_records = self.name_server_records.borrow_mut().deref_mut();
-		name_server_records.store_unprioritized_and_unweighted(name, cache_until, CaseFoldedName::map(record));
+		let mut name_server_records = self.name_server_records.borrow_mut();
+		let name_server_records = name_server_records.deref_mut();
+		name_server_records.store_unprioritized_and_unweighted(&name, cache_until, CaseFoldedName::map(record));
 
 		Ok(())
 	}
@@ -52,7 +53,8 @@ impl<'message, 'cache: 'message> ResourceRecordVisitor<'message> for AuthorityRe
 			return Err(StartOfAuthorityRecordInAuthoritySectionIsNotForFinalNameInCanonicalNameChain)
 		}
 		
-		let start_of_authority_record = self.start_of_authority_record.borrow_mut().deref_mut();
+		let mut start_of_authority_record = self.start_of_authority_record.borrow_mut();
+		let start_of_authority_record = start_of_authority_record.deref_mut();
 		if likely!(start_of_authority_record.is_none())
 		{
 			*start_of_authority_record = Some((CaseFoldedName::map(name), negative_cache_until, record.into()));

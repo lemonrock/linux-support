@@ -127,7 +127,7 @@ impl MapFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_MAP_GET_NEXT_KEY)", result)
+			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_MAP_GET_NEXT_KEY)", result))
 		}
 	}
 	
@@ -206,7 +206,7 @@ impl MapFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_MAP_LOOKUP_ELEM)", result)
+			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_MAP_LOOKUP_ELEM)", result))
 		}
 	}
 	
@@ -223,9 +223,9 @@ impl MapFileDescriptor
 			{
 				E2BIG => Err(()),
 				
-				EEXIST => unreachable!("Should not return `EEXIST` as flag `BPF_NOEXIST` not specified"),
+				EEXIST => unreachable_code(format_args!("Should not return `EEXIST` as flag `BPF_NOEXIST` not specified")),
 				
-				ENOENT => unreachable!("Should not return `ENOENT` as flag `BPF_EXIST` not specified"),
+				ENOENT => unreachable_code(format_args!("Should not return `ENOENT` as flag `BPF_EXIST` not specified")),
 				
 				ENOMEM => Err(()),
 				
@@ -247,9 +247,9 @@ impl MapFileDescriptor
 			{
 				E2BIG => Err(()),
 				
-				EEXIST => unreachable!("Should not return `EEXIST` as flag `BPF_NOEXIST` not specified"),
+				EEXIST => unreachable_code(format_args!("Should not return `EEXIST` as flag `BPF_NOEXIST` not specified")),
 				
-				ENOENT => unreachable!("Should not return `ENOENT` as flag `BPF_EXIST` not specified"),
+				ENOENT => unreachable_code(format_args!("Should not return `ENOENT` as flag `BPF_EXIST` not specified")),
 				
 				ENOMEM => Err(()),
 				
@@ -275,7 +275,7 @@ impl MapFileDescriptor
 				
 				EEXIST => Err(AlreadyPresent),
 				
-				ENOENT => unreachable!("Should not return `ENOENT` as flag `BPF_EXIST` not specified"),
+				ENOENT => unreachable_code(format_args!("Should not return `ENOENT` as flag `BPF_EXIST` not specified")),
 				
 				ENOMEM => Err(OutOfMemory),
 				
@@ -301,7 +301,7 @@ impl MapFileDescriptor
 				
 				EEXIST => Err(AlreadyPresent),
 				
-				ENOENT => unreachable!("Should not return `ENOENT` as flag `BPF_EXIST` not specified"),
+				ENOENT => unreachable_code(format_args!("Should not return `ENOENT` as flag `BPF_EXIST` not specified")),
 				
 				ENOMEM => Err(OutOfMemory),
 				
@@ -328,9 +328,9 @@ impl MapFileDescriptor
 			
 			Err(errno) => match errno.0
 			{
-				E2BIG => unreachable!("Should not return `E2BIG` as flag `BPF_NOEXIST` or `BPF_ANY` not specified"),
+				E2BIG => unreachable_code(format_args!("Should not return `E2BIG` as flag `BPF_NOEXIST` or `BPF_ANY` not specified")),
 				
-				EEXIST => unreachable!("Should not return `EEXIST` as flag `BPF_NOEXIST` not specified"),
+				EEXIST => unreachable_code(format_args!("Should not return `EEXIST` as flag `BPF_NOEXIST` not specified")),
 				
 				ENOENT => Err(()),
 				
@@ -350,9 +350,9 @@ impl MapFileDescriptor
 			
 			Err(errno) => match errno.0
 			{
-				E2BIG => unreachable!("Should not return `E2BIG` as flag `BPF_NOEXIST` or `BPF_ANY` not specified"),
+				E2BIG => unreachable_code(format_args!("Should not return `E2BIG` as flag `BPF_NOEXIST` or `BPF_ANY` not specified")),
 				
-				EEXIST => unreachable!("Should not return `EEXIST` as flag `BPF_NOEXIST` not specified"),
+				EEXIST => unreachable_code(format_args!("Should not return `EEXIST` as flag `BPF_NOEXIST` not specified")),
 				
 				ENOENT => Err(()),
 				
@@ -376,9 +376,9 @@ impl MapFileDescriptor
 			{
 				E2BIG => Err(()),
 				
-				EEXIST => unreachable!("Should not return `EEXIST` as flag `BPF_NOEXIST` not specified"),
+				EEXIST => unreachable_code(format_args!("Should not return `EEXIST` as flag `BPF_NOEXIST` not specified")),
 				
-				ENOENT => unreachable!("Should not return `ENOENT` as flag `BPF_EXIST` not specified"),
+				ENOENT => unreachable_code(format_args!("Should not return `ENOENT` as flag `BPF_EXIST` not specified")),
 				
 				ENOMEM => Err(()),
 				
@@ -421,7 +421,7 @@ impl MapFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_MAP_UPDATE)", result)
+			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_MAP_UPDATE)", result))
 		}
 	}
 	
@@ -462,7 +462,7 @@ impl MapFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_MAP_LOOKUP_AND_DELETE_ELEM)", result)
+			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_MAP_LOOKUP_AND_DELETE_ELEM)", result))
 		}
 	}
 	
@@ -501,7 +501,7 @@ impl MapFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_MAP_DELETE_ELEM)", result)
+			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_MAP_DELETE_ELEM)", result))
 		}
 	}
 	
@@ -544,7 +544,7 @@ impl MapFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_MAP_FREEZE)", result)
+			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_MAP_FREEZE)", result))
 		}
 	}
 	
@@ -618,7 +618,7 @@ impl MapFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_MAP_LOOKUP_BATCH)", result)
+			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_MAP_LOOKUP_BATCH)", result))
 		}
 	}
 	
@@ -692,7 +692,7 @@ impl MapFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_MAP_LOOKUP_AND_DELETE_BATCH)", result)
+			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_MAP_LOOKUP_AND_DELETE_BATCH)", result))
 		}
 	}
 	
@@ -742,7 +742,7 @@ impl MapFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_MAP_UPDATE_BATCH)", result)
+			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_MAP_UPDATE_BATCH)", result))
 		}
 	}
 	
@@ -784,7 +784,7 @@ impl MapFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_MAP_DELETE_BATCH)", result)
+			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_MAP_DELETE_BATCH)", result))
 		}
 	}
 	
@@ -834,7 +834,7 @@ impl MapFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_MAP_CREATE)", result)
+			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_MAP_CREATE)", result))
 		}
 	}
 }

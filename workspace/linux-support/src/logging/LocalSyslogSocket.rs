@@ -122,7 +122,7 @@ impl LocalSyslogSocket
 						continue
 					},
 					
-					WouldBlock => unreachable!("socket has been opened blocking"),
+					WouldBlock => unreachable_code(format_args!("socket has been opened blocking")),
 					
 					_ =>
 					{

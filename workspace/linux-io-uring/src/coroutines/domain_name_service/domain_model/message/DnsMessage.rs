@@ -19,7 +19,7 @@ impl DnsMessage
 	}
 
 	#[inline(always)]
-	pub(crate) fn query_section_entry(&mut self) -> &mut QuerySectionEntry
+	pub(crate) fn query_section_entry(&self) -> &QuerySectionEntry
 	{
 		let message_header_pointer = self.as_usize_pointer() + MessageHeader::Size;
 		message_header_pointer.unsafe_cast_mut::<QuerySectionEntry>()

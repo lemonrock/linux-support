@@ -29,7 +29,7 @@ pub trait Advise: AsRawFd + Seek + FileExt
 		}
 		else
 		{
-			unreachable!("Unexpected result {} for posix_fadvise()", result)
+			unreachable_code(format_args!("Unexpected result {} for posix_fadvise()", result))
 		}
 	}
 }

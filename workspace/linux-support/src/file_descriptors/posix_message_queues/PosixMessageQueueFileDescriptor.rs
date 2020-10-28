@@ -99,13 +99,13 @@ impl PosixMessageQueueFileDescriptor
 					EINVAL => panic!("The call would have blocked, and `abs_timeout` was invalid, either because `tv_sec` was less than zero, or because `tv_nsec` was less than zero or greater than 1000 million"),
 					ETIMEDOUT => panic!("The call timed out before a message could be transferred"),
 
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
 		else
 		{
-			unreachable!();
+			unreachable_code(format_args!(""));
 		}
 	}
 
@@ -137,13 +137,13 @@ impl PosixMessageQueueFileDescriptor
 					EINVAL => panic!("The call would have blocked, and `abs_timeout` was invalid, either because `tv_sec` was less than zero, or because `tv_nsec` was less than zero or greater than 1000 million"),
 					ETIMEDOUT => panic!("The call timed out before a message could be transferred"),
 
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
 		else
 		{
-			unreachable!();
+			unreachable_code(format_args!(""));
 		}
 	}
 
@@ -173,12 +173,12 @@ impl PosixMessageQueueFileDescriptor
 				EBADF => panic!("The message queue descriptor specified in `mqdes` is invalid"),
 				EINVAL => panic!("`newattr.mq_flags` contained set bits other than `O_NONBLOCK`"),
 
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 

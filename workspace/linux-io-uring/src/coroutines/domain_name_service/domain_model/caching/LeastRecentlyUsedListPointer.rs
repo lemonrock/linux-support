@@ -60,7 +60,7 @@ impl<'cache, V: LeastRecentlyUsedCacheValue> LeastRecentlyUsedListPointer<'cache
 	}
 	
 	#[inline(always)]
-	unsafe fn destroy(this: NonNull<Self>, least_recently_used_list_head: &mut *mut Self, least_recently_used_list_tail: &mut *mut Self, records_count: &mut usize)
+	unsafe fn destroy(mut this: NonNull<Self>, least_recently_used_list_head: &mut *mut Self, least_recently_used_list_tail: &mut *mut Self, records_count: &mut usize)
 	{
 		let instance = this.as_mut();
 		

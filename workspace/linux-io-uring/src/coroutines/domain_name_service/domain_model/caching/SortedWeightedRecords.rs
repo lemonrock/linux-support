@@ -87,7 +87,7 @@ impl<Record: Sized + Debug> Iterator for SortedWeightedRecords<Record>
 		
 		// (4) The range possible for `random_running_sum_of_weight` can not exceed `self.current_sum_of_all_weighted`.
 		// We can only get to here if we did not check for a length of `0` at (1).
-		unreachable!();
+		unreachable_code(format_args!(""));
 	}
 }
 

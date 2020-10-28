@@ -34,7 +34,7 @@ pub trait ExtendedSeek: AsRawFd + Seek + FileExt
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from lseek", result)
+			unreachable_code(format_args!("Unexpected result {} from lseek", result))
 		}
 	}
 }

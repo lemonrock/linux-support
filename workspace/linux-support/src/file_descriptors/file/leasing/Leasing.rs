@@ -35,7 +35,7 @@ pub trait Leasing: AsRawFd + Seek + FileExt
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from fcntl()", result)
+			unreachable_code(format_args!("Unexpected result {} from fcntl()", result))
 		}
 	}
 
@@ -64,7 +64,7 @@ pub trait Leasing: AsRawFd + Seek + FileExt
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from fcntl()", result)
+			unreachable_code(format_args!("Unexpected result {} from fcntl()", result))
 		}
 	}
 

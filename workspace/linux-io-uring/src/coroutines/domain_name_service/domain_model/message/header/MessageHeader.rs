@@ -325,7 +325,7 @@ impl MessageHeader
 			
 			opcode @ 7 ..= 15 => Err(Unassigned(opcode)),
 			
-			_ => unreachable!(),
+			_ => unreachable_code(format_args!("")),
 		};
 		result.map_err(|error| MessageHeaderError::ResponseOpcode(self.identifier, error))
 	}

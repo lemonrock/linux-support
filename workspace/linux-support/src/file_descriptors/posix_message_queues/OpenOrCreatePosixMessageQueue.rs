@@ -61,13 +61,13 @@ impl OpenOrCreatePosixMessageQueue
 
 							EINVAL => panic!("`name` is invalid in some way"),
 
-							_ => unreachable!(),
+							_ => unreachable_code(format_args!("")),
 						}
 					)
 				}
 				else
 				{
-					unreachable!();
+					unreachable_code(format_args!(""));
 				}
 			}
 
@@ -99,13 +99,13 @@ impl OpenOrCreatePosixMessageQueue
 
 							ENAMETOOLONG => panic!("`name` is too long"),
 
-							_ => unreachable!(),
+							_ => unreachable_code(format_args!("")),
 						}
 					)
 				}
 				else
 				{
-					unreachable!();
+					unreachable_code(format_args!(""));
 				}
 			}
 
@@ -139,13 +139,13 @@ impl OpenOrCreatePosixMessageQueue
 
 							EEXIST => panic!("queue already exists"),
 
-							_ => unreachable!(),
+							_ => unreachable_code(format_args!("")),
 						}
 					)
 				}
 				else
 				{
-					unreachable!();
+					unreachable_code(format_args!(""));
 				}
 			}
 		}

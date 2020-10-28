@@ -17,7 +17,7 @@ pub fn fast_slightly_insecure_random_u16() -> u16
 			
 			1 => continue,
 			
-			unexpected @ _ => unreachable!("Intel _rdrand16_step() intrisnice returned a result other than 0 or 1: {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Intel _rdrand16_step() intrinsic returned a result other than 0 or 1: {}", unexpected)),
 		};
 	}
 	

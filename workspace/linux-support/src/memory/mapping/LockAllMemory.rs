@@ -54,7 +54,7 @@ impl LockAllMemory
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from mlockall()", result)
+			unreachable_code(format_args!("Unexpected result {} from mlockall()", result))
 		}
 	}
 
@@ -78,7 +78,7 @@ impl LockAllMemory
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from munlockall()", result)
+			unreachable_code(format_args!("Unexpected result {} from munlockall()", result))
 		}
 	}
 }

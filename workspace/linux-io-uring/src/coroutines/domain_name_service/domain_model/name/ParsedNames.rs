@@ -44,9 +44,9 @@ impl<'message> ParsedNames<'message>
 					ParsedName::new
 					(
 						{
-							let mut label_data_starts_at_pointers_and_label_length_excluding_trailing_period = ArrayVec::new();
-							label_data_starts_at_pointers_and_label_length_excluding_trailing_period.try_extend_from_slice(&label_data_starts_at_pointers_and_label_length_excluding_trailing_period[index .. ]).unwrap();
-							label_data_starts_at_pointers_and_label_length_excluding_trailing_period
+							let mut new = ArrayVec::new();
+							new.try_extend_from_slice(&label_data_starts_at_pointers_and_label_length_excluding_trailing_period[index .. ]).unwrap();
+							new
 						},
 						name_length_including_trailing_period
 					)

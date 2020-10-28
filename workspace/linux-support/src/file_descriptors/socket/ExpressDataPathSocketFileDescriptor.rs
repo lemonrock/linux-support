@@ -134,12 +134,12 @@ impl ExpressDataPathSocketFileDescriptor
 				ENOTSOCK => panic!("The file descriptor umem_or_xsk_socket_file_descriptor does not refer to a socket"),
 				EOPNOTSUPP => panic!("Unsupported sockopt"),
 				
-				unexpected @ _ => unreachable!("Unexpected error {} from getsockopt()", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from getsockopt()", unexpected)),
 			}
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from getsockopt()", result);
+			unreachable_code(format_args!("Unexpected result {} from getsockopt()", result));
 		}
 	}
 	
@@ -163,12 +163,12 @@ impl ExpressDataPathSocketFileDescriptor
 				ENOPROTOOPT => panic!("The option is unknown at the level indicated"),
 				ENOTSOCK => panic!("The argument `sockfd` is a file, not a socket"),
 
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 		else
 		{
-			unreachable!();
+			unreachable_code(format_args!(""));
 		}
 	}
 	

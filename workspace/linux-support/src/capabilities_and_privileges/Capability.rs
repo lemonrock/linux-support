@@ -259,7 +259,7 @@ impl Capability
 			{
 				0 => Ok(false),
 				1 => Ok(true),
-				_ => unreachable!("Non-boolean result from `prctl()`")
+				_ => unreachable_code(format_args!("Non-boolean result from `prctl()`"))
 			},
 			|error_number| match error_number.0
 			{
@@ -284,7 +284,7 @@ impl Capability
 			{
 				0 => Ok(Some(false)),
 				1 => Ok(Some(true)),
-				_ => unreachable!("Non-boolean result from `prctl()`")
+				_ => unreachable_code(format_args!("Non-boolean result from `prctl()`"))
 			},
 			|error_number| match error_number.0
 			{

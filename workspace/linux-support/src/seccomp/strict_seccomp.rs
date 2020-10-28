@@ -25,6 +25,6 @@ pub fn strict_seccomp() -> io::Result<()>
 	}
 	else
 	{
-		unreachable!("seccomp() returned unexpected result {}", result)
+		unreachable_code(format_args!("seccomp() returned unexpected result {}", result))
 	}
 }

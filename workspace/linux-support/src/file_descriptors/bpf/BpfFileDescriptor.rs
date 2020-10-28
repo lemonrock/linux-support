@@ -51,7 +51,7 @@ pub trait BpfFileDescriptor: FileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_OBJ_GET_INFO_BY_FD)", result)
+			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_OBJ_GET_INFO_BY_FD)", result))
 		}
 	}
 	
@@ -86,7 +86,7 @@ pub trait BpfFileDescriptor: FileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_OBJ_PIN)", result)
+			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_OBJ_PIN)", result))
 		}
 	}
 	
@@ -130,7 +130,7 @@ pub trait BpfFileDescriptor: FileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_OBJ_GET)", result)
+			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_OBJ_GET)", result))
 		}
 	}
 	/// To file descriptor.
@@ -173,7 +173,7 @@ pub trait BpfFileDescriptor: FileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from bpf({:?})", result, Self::GetFileDescriptor)
+			unreachable_code(format_args!("Unexpected result `{}` from bpf({:?})", result, Self::GetFileDescriptor))
 		}
 	}
 }

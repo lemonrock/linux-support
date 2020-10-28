@@ -23,6 +23,6 @@ pub fn remove_ioport_privileges()
 	}
 	else
 	{
-		unreachable!("Unexpected result {} from iopl()", result)
+		unreachable_code(format_args!("Unexpected result {} from iopl()", result))
 	}
 }

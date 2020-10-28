@@ -31,6 +31,6 @@ fn set_ioport_permissions(range: RangeInclusive<u16>, enable: bool) -> Result<()
 	}
 	else
 	{
-		unreachable!("Unexpected result {} from ioperm()", result)
+		unreachable_code(format_args!("Unexpected result {} from ioperm()", result))
 	}
 }

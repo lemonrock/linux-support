@@ -90,7 +90,7 @@ impl SeccompUserNotificationFileDescriptor
 		}
 		else
 		{
-			unreachable!("ioctl() returned unexpected result {}", result);
+			unreachable_code(format_args!("ioctl() returned unexpected result {}", result));
 		}
 	}
 
@@ -113,7 +113,7 @@ impl SeccompUserNotificationFileDescriptor
 		}
 		else
 		{
-			unreachable!("ioctl returned unexpected result {}", result)
+			unreachable_code(format_args!("ioctl returned unexpected result {}", result))
 		}
 	}
 
@@ -145,7 +145,7 @@ impl SeccompUserNotificationFileDescriptor
 		}
 		else
 		{
-			unreachable!("ioctl() returned unexpected result {}", result);
+			unreachable_code(format_args!("ioctl() returned unexpected result {}", result));
 		}
 	}
 }

@@ -49,7 +49,7 @@ impl TimestampCounterSetting
 			}
 			else
 			{
-				unreachable!("Positive result")
+				unreachable_code(format_args!("Positive result"))
 			},
 			error_number_to_io_error,
 		)

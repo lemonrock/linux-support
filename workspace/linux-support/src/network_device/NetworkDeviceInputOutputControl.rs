@@ -36,7 +36,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			|ifreq| Ok(NetworkInterfaceIndex::try_from(unsafe { ifreq.ifr_ifru.ifru_ivalue })?),
 			|errno| match errno.0
 			{
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCGIFINDEX)", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from ioctl(SIOCGIFINDEX)", unexpected)),
 			}
 		)
 	}
@@ -53,7 +53,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			|ifreq| Ok(net_device_flags::from_bits_truncate(unsafe { ifreq.ifr_ifru.ifru_flags } as u32)),
 			|errno| match errno.0
 			{
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCGIFFLAGS)", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from ioctl(SIOCGIFFLAGS)", unexpected)),
 			}
 		)
 	}
@@ -84,7 +84,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			|_ifreq| Ok(()),
 			|errno| match errno.0
 			{
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCSIFFLAGS)", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from ioctl(SIOCSIFFLAGS)", unexpected)),
 			}
 		)
 	}
@@ -109,7 +109,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			{
 				ERANGE => Err(TransmissionQueueLengthOutOfRangeError),
 				
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCGIFINDEX)", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from ioctl(SIOCGIFINDEX)", unexpected)),
 			}
 		)
 	}
@@ -132,7 +132,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			{
 				ERANGE => Err(MaximumTransmissionUnitPayloadSizeOutOfRangeError),
 				
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCGIFINDEX)", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from ioctl(SIOCGIFINDEX)", unexpected)),
 			}
 		)
 	}
@@ -597,7 +597,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 				{
 					Err(Creation(error)) => return Err(Creation(error)),
 					
-					Err(ControlOperation(_infallible)) => unreachable!(),
+					Err(ControlOperation(_infallible)) => unreachable_code(format_args!("")),
 					
 					Err(PermissionDenied) => return Err(PermissionDenied),
 					
@@ -1233,7 +1233,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			|command| Ok(command),
 			|errno| match errno.0
 			{
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected)),
 			},
 			|mut command|
 			{
@@ -1567,6 +1567,6 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	#[inline(always)]
 	fn error_is_unreachable<V: Sized, E: error::Error + 'static>(errno: Errno) -> Result<Option<V>, E>
 	{
-		unreachable!("Unexpected error {} from ioctl(SIOCETHTOOL)", errno)
+		unreachable_code(format_args!("Unexpected error {} from ioctl(SIOCETHTOOL)", errno))
 	}
 }

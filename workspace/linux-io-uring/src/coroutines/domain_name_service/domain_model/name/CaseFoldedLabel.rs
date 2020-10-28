@@ -396,7 +396,7 @@ impl CaseFoldedLabel<'static>
 			
 			15 => Self::f,
 			
-			_ => unreachable!("label {} was not a nibble")
+			_ => unreachable_code_const("Nibble can not exceed 15"),
 		}
 	}
 	

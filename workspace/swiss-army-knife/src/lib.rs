@@ -12,6 +12,9 @@
 #![feature(allocator_api)]
 #![feature(const_fn)]
 #![feature(const_fn_transmute)]
+#![feature(const_fn_fn_ptr_basics)]
+#![feature(const_panic)]
+#![cfg_attr(not(debug_assertions), feature(const_unreachable_unchecked))]
 #![feature(core_intrinsics)]
 #![feature(llvm_asm)]
 #![feature(maybe_uninit_extra)]
@@ -64,6 +67,7 @@ use std::fmt::Display;
 use std::fmt::Formatter;
 use std::hash::Hash;
 use std::hash::Hasher;
+#[cfg(not(debug_assertions))] use std::hint::unreachable_unchecked;
 use std::io;
 use std::io::ErrorKind;
 use std::marker::PhantomData;
@@ -173,4 +177,6 @@ include!("ConstArrayVec.rs");
 include!("LoadNonAtomically.rs");
 include!("move_to_front_of_vec.rs");
 include!("StaticInitializedOnce.rs");
+include!("unreachable_code.rs");
+include!("unreachable_code_const.rs");
 include!("VariablySized.rs");

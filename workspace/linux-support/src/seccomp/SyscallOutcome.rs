@@ -61,7 +61,7 @@ impl SyscallOutcome
 		}
 		else
 		{
-			unreachable!("seccomp() returned unexpected result {}", result)
+			unreachable_code(format_args!("seccomp() returned unexpected result {}", result))
 		}
 	}
 }

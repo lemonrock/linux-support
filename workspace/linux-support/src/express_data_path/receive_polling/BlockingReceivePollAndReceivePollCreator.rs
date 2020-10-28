@@ -53,7 +53,7 @@ impl ReceivePoll for BlockingReceivePollAndReceivePollCreator
 			}
 			else
 			{
-				unreachable!("poll() returned unexpected result {}", result)
+				unreachable_code(format_args!("poll() returned unexpected result {}", result))
 			}
 		}
 	}

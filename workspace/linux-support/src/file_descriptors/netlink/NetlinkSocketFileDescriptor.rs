@@ -64,12 +64,12 @@ impl<Protocol: NetlinkProtocol> FromRawFd for NetlinkSocketFileDescriptor<Protoc
 				ENOPROTOOPT => panic!("The option is unknown at the level indicated"),
 				ENOTSOCK => panic!("The file descriptor sockfd does not refer to a socket"),
 				
-				unexpected @ _ => unreachable!("Unexpected error {} from getsockopt()", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from getsockopt()", unexpected)),
 			}
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from getsockopt()", result);
+			unreachable_code(format_args!("Unexpected result {} from getsockopt()", result));
 		}
 	}
 }
@@ -113,11 +113,11 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 			}
 			else if likely!((result as usize) < length)
 			{
-				unreachable!("Short ({}) send()", result)
+				unreachable_code(format_args!("Short ({}) send()", result))
 			}
 			else
 			{
-				unreachable!("Sent too many bytes ({}) from send()", result)
+				unreachable_code(format_args!("Sent too many bytes ({}) from send()", result))
 			}
 		}
 		else if likely!(result == -1)
@@ -126,7 +126,7 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from send()", result)
+			unreachable_code(format_args!("Unexpected result {} from send()", result))
 		}
 	}
 	
@@ -188,7 +188,7 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 				}
 				else
 				{
-					unreachable!("Unexpected result {} from recvfrom()", result)
+					unreachable_code(format_args!("Unexpected result {} from recvfrom()", result))
 				};
 			};
 			
@@ -232,7 +232,7 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 				}
 				else
 				{
-					unreachable!("Unexpected result {} from recvfrom()", result)
+					unreachable_code(format_args!("Unexpected result {} from recvfrom()", result))
 				};
 			};
 			

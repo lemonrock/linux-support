@@ -73,13 +73,13 @@ impl EPollFileDescriptor
 
 					EINVAL => panic!("Invalid value specified in flags"),
 
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 
@@ -113,12 +113,12 @@ impl EPollFileDescriptor
 				EFAULT => panic!("Memory for events was not writable"),
 				EINVAL => panic!("`epfd` is not an epoll file descriptor"),
 
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 		else
 		{
-			unreachable!();
+			unreachable_code(format_args!(""));
 		}
 	}
 
@@ -146,12 +146,12 @@ impl EPollFileDescriptor
 				EFAULT => panic!("Memory for events was not writable"),
 				EINVAL => panic!("`epfd` is not an epoll file descriptor"),
 
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 		else
 		{
-			unreachable!();
+			unreachable_code(format_args!(""));
 		}
 	}
 
@@ -192,13 +192,13 @@ impl EPollFileDescriptor
 					ELOOP => panic!("The supplied file descriptor is for an epoll instance and this operation would result in a circular loop of epoll instances monitoring one another"),
 					EPERM => panic!("The supplied file descriptor does not support epoll (perhaps it is an open regular file or the like)"),
 
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 
@@ -232,12 +232,12 @@ impl EPollFileDescriptor
 				ENOENT => panic!("The supplied file descriptor is not registered with this epoll instance"),
 				EPERM => panic!("The supplied file descriptor does not support epoll (perhaps it is an open regular file or the like)"),
 
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 
@@ -260,12 +260,12 @@ impl EPollFileDescriptor
 				ENOENT => panic!("The supplied file descriptor is not registered with this epoll instance"),
 				EPERM => panic!("The supplied file descriptor does not support epoll (perhaps it is an open regular file or the like)"),
 
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 

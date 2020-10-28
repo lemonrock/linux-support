@@ -103,13 +103,13 @@ impl<SD: SocketData> SendFile for StreamingSocketFileDescriptor<SD>
 					EFAULT => panic!("Bad address"),
 					EINVAL => panic!("Descriptor is not valid or locked, or an mmap(2)-like operation is not available for in_fd"),
 
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 
@@ -142,13 +142,13 @@ impl<SD: SocketData> SendFile for StreamingSocketFileDescriptor<SD>
 					EFAULT => panic!("Bad address"),
 					EINVAL => panic!("Descriptor is not valid or locked, or an mmap(2)-like operation is not available for in_fd"),
 
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 }
@@ -222,12 +222,12 @@ impl<SD: SocketData> StreamingSocketFileDescriptor<SD>
 				EINVAL => panic!("An invalid value was specified in `how`"),
 				ENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
 				ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 
@@ -283,12 +283,12 @@ impl<SD: SocketData> StreamingSocketFileDescriptor<SD>
 							ENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
 							ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
 							EOPNOTSUPP => panic!("Some flags in the `flags` argument are inappropriate for the socket type"),
-							_ => unreachable!(),
+							_ => unreachable_code(format_args!("")),
 						}
 					}
 					else
 					{
-						unreachable!()
+						unreachable_code(format_args!(""))
 					}
 				)
 			)
@@ -353,12 +353,12 @@ impl<SD: SocketData> StreamingSocketFileDescriptor<SD>
 							EMSGSIZE => panic!("The socket type requires that message be sent atomically, and the size of the message to be sent made this impossible"),
 							EISCONN => panic!("The connection-mode socket was connected already but a recipient was specified"),
 							EDESTADDRREQ => panic!("The socket is not connection-mode, and no peer address is set"),
-							_ => unreachable!(),
+							_ => unreachable_code(format_args!("")),
 						}
 					}
 					else
 					{
-						unreachable!()
+						unreachable_code(format_args!(""))
 					}
 				)
 			)

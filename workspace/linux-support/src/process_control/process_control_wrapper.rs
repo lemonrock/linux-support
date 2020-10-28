@@ -16,6 +16,6 @@ fn process_control_wrapper<V, E>(operation: i32, arg2: usize, arg3: usize, arg4:
 	}
 	else
 	{
-		unreachable!("Unexpected result {} from prctl()", result)
+		unreachable_code(format_args!("Unexpected result {} from prctl()", result))
 	}
 }

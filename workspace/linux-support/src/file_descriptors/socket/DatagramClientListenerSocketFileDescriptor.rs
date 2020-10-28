@@ -105,12 +105,12 @@ impl<SD: SocketData> DatagramClientListenerSocketFileDescriptor<SD>
 							ENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
 							ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
 							EOPNOTSUPP => panic!("Some flags in the `flags` argument are inappropriate for the socket type"),
-							_ => unreachable!(),
+							_ => unreachable_code(format_args!("")),
 						}
 					}
 					else
 					{
-						unreachable!()
+						unreachable_code(format_args!(""))
 					}
 				)
 			)
@@ -173,12 +173,12 @@ impl<SD: SocketData> DatagramClientListenerSocketFileDescriptor<SD>
 							EMSGSIZE => panic!("The socket type requires that message be sent atomically, and the size of the message to be sent made this impossible"),
 							EISCONN => panic!("The connection-mode socket was connected already but a recipient was specified"),
 							EDESTADDRREQ => panic!("The socket is not connection-mode, and no peer address is set"),
-							_ => unreachable!(),
+							_ => unreachable_code(format_args!("")),
 						}
 					}
 					else
 					{
-						unreachable!()
+						unreachable_code(format_args!(""))
 					}
 				)
 			)
@@ -220,13 +220,13 @@ impl<SD: SocketData> DatagramClientListenerSocketFileDescriptor<SD>
 					ENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
 					ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
 
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
 		else
 		{
-			unreachable!();
+			unreachable_code(format_args!(""));
 		}
 	}
 }

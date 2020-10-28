@@ -79,12 +79,12 @@ impl Groups
 				
 				EINVAL => panic!("size is less than the number of supplementary group IDs, but is not zero"),
 				
-				_ => unreachable!("Unexpected error {}", errno()),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error `{}`", unexpected)),
 			}
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from `getgroups()`", result)
+			unreachable_code(format_args!("Unexpected result {} from `getgroups()`", result))
 		}
 	}
 	
@@ -122,7 +122,7 @@ impl Groups
 		}
 		else
 		{
-			unreachable!("setgroups() returned an unexpected result of {}", result)
+			unreachable_code(format_args!("setgroups() returned an unexpected result of {}", result))
 		}
 	}
 }

@@ -64,7 +64,7 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 		}
 		else
 		{
-			unreachable!("Invalid result {} for get SO_INCOMING_CPU socket option", result)
+			unreachable_code(format_args!("Invalid result {} for get SO_INCOMING_CPU socket option", result))
 		}
 	}
 	
@@ -101,12 +101,12 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 				EINVAL => panic!("`addrlen` is invalid"),
 				ENOTSOCK => panic!("The file descriptor `sockfd` does not refer to a socket"),
 
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 		else
 		{
-			unreachable!();
+			unreachable_code(format_args!(""));
 		}
 	}
 	
@@ -135,12 +135,12 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 				ENOTSOCK => panic!("`sockfd` is not a socket file descriptor"),
 				EOPNOTSUPP => panic!("The socket is not of a type that supports the `listen()` operation"),
 
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 	
@@ -182,13 +182,13 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 					EFAULT => panic!("`addr` points outside the user's accessible address space"),
 					EAFNOSUPPORT => panic!("Invalid `sa_family_t` value"),
 
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 
@@ -215,12 +215,12 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 				ENOTSOCK => panic!("The argument `sockfd` is a file, not a socket"),
 				EOPNOTSUPP => panic!("Unsupported sockopt"),
 
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 		else
 		{
-			unreachable!();
+			unreachable_code(format_args!(""));
 		}
 	}
 
@@ -243,12 +243,12 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 				ENOPROTOOPT => panic!("The option is unknown at the level indicated"),
 				ENOTSOCK => panic!("The argument `sockfd` is a file, not a socket"),
 
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 		else
 		{
-			unreachable!();
+			unreachable_code(format_args!(""));
 		}
 	}
 
@@ -544,13 +544,13 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 					EOPNOTSUPP => panic!("The specified `protocol` does not support creation of socket pairs"),
 					EPROTONOSUPPORT => panic!("TThe specified `protocol` is not supported on this machine"),
 
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
 		else
 		{
-			unreachable!();
+			unreachable_code(format_args!(""));
 		}
 	}
 	
@@ -777,7 +777,7 @@ impl SocketFileDescriptor<sockaddr_un>
 		}
 		else if unlikely!(result < -1)
 		{
-			unreachable!();
+			unreachable_code(format_args!(""));
 		}
 
 		match message.first_header()
@@ -901,12 +901,12 @@ impl SocketFileDescriptor<sockaddr_un>
 							EMSGSIZE => panic!("The socket type requires that message be sent atomically, and the size of the message to be sent made this impossible"),
 							EISCONN => panic!("The connection-mode socket was connected already but a recipient was specified"),
 							EDESTADDRREQ => panic!("The socket is not connection-mode, and no peer address is set"),
-							_ => unreachable!(),
+							_ => unreachable_code(format_args!("")),
 						}
 					}
 					else
 					{
-						unreachable!()
+						unreachable_code(format_args!(""))
 					}
 				)
 			)

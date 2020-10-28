@@ -104,7 +104,7 @@ impl BpfTypeFormatFileDescriptor
 		}
 		else
 		{
-			unreachable!("result `{}` from bpf(BPF_BTF_LOAD) was unexpected", result)
+			unreachable_code(format_args!("result `{}` from bpf(BPF_BTF_LOAD) was unexpected", result))
 		}
 	}
 }

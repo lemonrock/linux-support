@@ -77,7 +77,7 @@ impl NetworkDeviceSocketFileDescriptor
 				
 				EPERM => panic!("Permission denied"),
 				
-				unexpected @ _ => unreachable!("Unexpected error {} from ioctl(SIOCGIFNAME)", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from ioctl(SIOCGIFNAME)", unexpected)),
 			}
 		)
 	}
@@ -151,7 +151,7 @@ impl NetworkDeviceSocketFileDescriptor
 				
 				ENOMEM => Err(OutOfKernelMemory),
 				
-				EFAULT => unreachable!("We passed a bad memory address"),
+				EFAULT => unreachable_code(format_args!("We passed a bad memory address")),
 				
 				_ => error_handler(errno).map_err(ControlOperation)
 			},
@@ -172,7 +172,7 @@ impl NetworkDeviceSocketFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from ioctl()", result)
+			unreachable_code(format_args!("Unexpected result {} from ioctl()", result))
 		}
 	}
 }

@@ -39,7 +39,7 @@ impl TransmitSend for NonBlockingTransmitSendAndTransmitSendCreator
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from `sendto()`", result)
+			unreachable_code(format_args!("Unexpected result `{}` from `sendto()`", result))
 		};
 	}
 }

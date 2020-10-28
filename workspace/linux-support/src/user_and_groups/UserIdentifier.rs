@@ -171,7 +171,7 @@ impl UserIdentifier
 		}
 		else
 		{
-			unreachable!("Invalid value `{}` in /proc/{:?}/loginuid", value, process_identifier)
+			unreachable_code(format_args!("Invalid value `{}` in /proc/{:?}/loginuid", value, process_identifier))
 		}
 	}
 	

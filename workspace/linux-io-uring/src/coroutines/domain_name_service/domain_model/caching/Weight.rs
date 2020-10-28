@@ -20,7 +20,6 @@ impl Weight
 	#[inline(always)]
 	const fn into_non_zero_u16(self) -> NonZeroU16
 	{
-		debug_assert_ne!(self.0, 0);
 		unsafe { NonZeroU16::new_unchecked(self.0) }
 	}
 	

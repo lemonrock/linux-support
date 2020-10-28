@@ -53,7 +53,7 @@ impl AssociationModeAndVersionNumberAndLeapIndicator
 				
 				0 | 4 ..= 7 => return Err(UnknownVersionNumber(version_number_raw)),
 				
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 		

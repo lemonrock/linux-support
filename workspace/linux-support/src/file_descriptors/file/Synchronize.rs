@@ -60,7 +60,7 @@ pub trait Synchronize: AsRawFd + Seek + FileExt
 		}
 		else
 		{
-			unreachable!("sync_file_range() returned a result of {}", result)
+			unreachable_code(format_args!("sync_file_range() returned a result of {}", result))
 		}
 	}
 
@@ -90,7 +90,7 @@ pub trait Synchronize: AsRawFd + Seek + FileExt
 		}
 		else
 		{
-			unreachable!("fdatasync() returned a result of {}", result)
+			unreachable_code(format_args!("fdatasync() returned a result of {}", result))
 		}
 	}
 
@@ -120,7 +120,7 @@ pub trait Synchronize: AsRawFd + Seek + FileExt
 		}
 		else
 		{
-			unreachable!("fsync() returned a result of {}", result)
+			unreachable_code(format_args!("fsync() returned a result of {}", result))
 		}
 	}
 
@@ -145,7 +145,7 @@ pub trait Synchronize: AsRawFd + Seek + FileExt
 		}
 		else
 		{
-			unreachable!("syncfs() returned a result of {}", result)
+			unreachable_code(format_args!("syncfs() returned a result of {}", result))
 		}
 	}
 

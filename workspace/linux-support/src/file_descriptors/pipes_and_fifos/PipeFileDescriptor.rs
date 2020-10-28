@@ -38,7 +38,7 @@ pub trait PipeFileDescriptor: FileDescriptor + OnDiskFileDescriptor + PipeLikeFi
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from fcntl(_, F_GETPIPE_SZ)", result)
+			unreachable_code(format_args!("Unexpected result {} from fcntl(_, F_GETPIPE_SZ)", result))
 		}
 	}
 
@@ -56,7 +56,7 @@ pub trait PipeFileDescriptor: FileDescriptor + OnDiskFileDescriptor + PipeLikeFi
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from fcntl(_, F_GETPIPE_SZ)", result)
+			unreachable_code(format_args!("Unexpected result {} from fcntl(_, F_GETPIPE_SZ)", result))
 		}
 	}
 
@@ -77,7 +77,7 @@ pub trait PipeFileDescriptor: FileDescriptor + OnDiskFileDescriptor + PipeLikeFi
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from ioctl(_, FIONREAD)", result)
+			unreachable_code(format_args!("Unexpected result {} from ioctl(_, FIONREAD)", result))
 		}
 	}
 }

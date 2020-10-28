@@ -35,12 +35,12 @@ fn bind_socket_with_length<SA>(socket_file_descriptor: &impl FileDescriptor, soc
 
 				EAFNOSUPPORT => panic!("Invalid `sa_family_t` value"),
 
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		)
 	}
 	else
 	{
-		unreachable!()
+		unreachable_code(format_args!(""))
 	}
 }

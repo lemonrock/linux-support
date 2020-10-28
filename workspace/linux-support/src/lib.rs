@@ -751,6 +751,7 @@ use swiss_army_knife::ConstArrayVec;
 use swiss_army_knife::LoadNonAtomically;
 use swiss_army_knife::move_to_front_of_vec;
 use swiss_army_knife::StaticInitializedOnce;
+use swiss_army_knife::unreachable_code;
 use swiss_army_knife::VariablySized;
 use swiss_army_knife::big_endian::BigEndianU16;
 use swiss_army_knife::big_endian::BigEndianU32;

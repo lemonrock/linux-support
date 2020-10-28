@@ -58,7 +58,7 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 							}
 						}
 						
-						_ => unreachable!(),
+						_ => unreachable_code(format_args!("")),
 					}
 				}
 			}
@@ -85,7 +85,7 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 					{
 						LineFeed => Self::replace(&mut message, &mut start_next_slice_index, index, b'n'),
 						
-						_ => unreachable!(),
+						_ => unreachable_code(format_args!("")),
 					}
 				}
 			}

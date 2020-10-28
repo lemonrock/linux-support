@@ -77,7 +77,7 @@ impl<'cache, V: LeastRecentlyUsedCacheValue> LeastRecentlyUsedCache<'cache, V>
 			
 			Some(pointer) =>
 			{
-				let pointer = *pointer;
+				let mut pointer = *pointer;
 				
 				let value = unsafe
 				{

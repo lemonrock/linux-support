@@ -117,7 +117,7 @@ pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 			}
 			else
 			{
-				unreachable!("Unexpected result `{}` from bpf(BPF_PROG_QUERY)", result)
+				unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_PROG_QUERY)", result))
 			}
 		}
 	}
@@ -206,7 +206,7 @@ pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_PROG_ATTACH)", result)
+			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_PROG_ATTACH)", result))
 		}
 	}
 	
@@ -285,7 +285,7 @@ pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_PROG_DETACH)", result)
+			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_PROG_DETACH)", result))
 		}
 	}
 }

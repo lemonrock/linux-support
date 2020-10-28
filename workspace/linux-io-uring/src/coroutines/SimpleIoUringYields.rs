@@ -57,7 +57,7 @@ impl SimpleIoUringYields
 				{
 					Ok(TrySubmissionQueueAgain) => continue,
 					
-					Ok(Submitted(_, _)) => unreachable!("Logic design flaw"),
+					Ok(Submitted(_, _)) => unreachable_code(format_args!("Logic design flaw")),
 					
 					Err(_kill_error) => return true
 				}
@@ -83,7 +83,7 @@ impl SimpleIoUringYields
 			
 			Ok(Submitted(_, _)) => panic!("Only `UserBits::Zero` is supported"),
 			
-			Ok(TrySubmissionQueueAgain) => unreachable!("Logic design flaw"),
+			Ok(TrySubmissionQueueAgain) => unreachable_code(format_args!("Logic design flaw")),
 			
 			Err(_kill_error) => Err(())
 		}

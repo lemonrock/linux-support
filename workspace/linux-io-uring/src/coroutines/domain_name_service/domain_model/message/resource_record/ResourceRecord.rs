@@ -387,7 +387,7 @@ impl ResourceRecord
 	#[inline(always)]
 	fn handle_obsolete_or_very_obscure_record_type<'message, E: error::Error>(&'message self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, data_type: DataType, _reason: &'static str) -> Result<usize, HandleRecordTypeError<E>>
 	{
-		let (_time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
+		let (_time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(&resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
 
 		Ok(resource_data.end_pointer())
 	}
@@ -396,7 +396,7 @@ impl ResourceRecord
 	#[inline(always)]
 	fn handle_obsolete_meta_type<'message, E: error::Error>(&'message self, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, meta_type: MetaType, _reason: &'static str) -> Result<usize, HandleRecordTypeError<E>>
 	{
-		let (_time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, meta_type, duplicate_resource_record_response_parsing)?;
+		let (_time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(&resource_record_name, end_of_name_pointer, end_of_message_pointer, meta_type, duplicate_resource_record_response_parsing)?;
 
 		Ok(resource_data.end_pointer())
 	}
@@ -405,7 +405,7 @@ impl ResourceRecord
 	#[inline(always)]
 	fn handle_possible_future_standard<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, data_type: DataType) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
 
 		resource_record_visitor.handle_possible_future_standard(resource_record_name, cache_until, resource_data, data_type).map_err(|error| HandleRecordTypeError::ResourceRecordVisitor(data_type, error))?;
 		Ok(resource_data.end_pointer())
@@ -416,7 +416,7 @@ impl ResourceRecord
 	fn handle_unassigned<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, type_upper: u8, type_lower: u8) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		let data_type = DataType([type_upper, type_lower]);
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
 
 		resource_record_visitor.unassigned(resource_record_name, cache_until, resource_data, DataType([type_upper, type_lower])).map_err(|error| HandleRecordTypeError::ResourceRecordVisitor(data_type, error))?;
 		Ok(resource_data.end_pointer())
@@ -427,7 +427,7 @@ impl ResourceRecord
 	{
 		use self::HandleRecordTypeError::*;
 		
-		let (cache_until, record, end_of_resource_data_pointer) = self.parse_internet_protocol_address_only(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, DataType::A, duplicate_resource_record_response_parsing, AHasAnIncorrectLength)?;
+		let (cache_until, record, end_of_resource_data_pointer) = self.parse_internet_protocol_address_only(now, end_of_name_pointer, end_of_message_pointer, &resource_record_name, DataType::A, duplicate_resource_record_response_parsing, AHasAnIncorrectLength)?;
 		resource_record_visitor.A(resource_record_name, cache_until, record).map_err(|error| ResourceRecordVisitor(DataType::A, error))?;
 		Ok(end_of_resource_data_pointer)
 	}
@@ -437,7 +437,7 @@ impl ResourceRecord
 	{
 		use self::HandleRecordTypeError::*;
 		
-		let (cache_until, record, end_of_resource_data_pointer) = self.parse_name_only(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, parsed_names, DataType::NS, duplicate_resource_record_response_parsing, NS)?;
+		let (cache_until, record, end_of_resource_data_pointer) = self.parse_name_only(now, end_of_name_pointer, end_of_message_pointer, &resource_record_name, parsed_names, DataType::NS, duplicate_resource_record_response_parsing, NS)?;
 		resource_record_visitor.NS(resource_record_name, cache_until, record).map_err(|error| ResourceRecordVisitor(DataType::NS, error))?;
 		Ok(end_of_resource_data_pointer)
 	}
@@ -447,7 +447,7 @@ impl ResourceRecord
 	{
 		use self::HandleRecordTypeError::*;
 		
-		let (cache_until, record, end_of_resource_data_pointer) = self.parse_name_only(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, parsed_names, DataType::CNAME, duplicate_resource_record_response_parsing, CNAME)?;
+		let (cache_until, record, end_of_resource_data_pointer) = self.parse_name_only(now, end_of_name_pointer, end_of_message_pointer, &resource_record_name, parsed_names, DataType::CNAME, duplicate_resource_record_response_parsing, CNAME)?;
 		resource_record_visitor.CNAME(resource_record_name, cache_until, record, is_some_if_present_in_answer_section_and_true_if_was_queried_for).map_err(|error| ResourceRecordVisitor(DataType::CNAME, error))?;
 		Ok(end_of_resource_data_pointer)
 	}
@@ -459,7 +459,7 @@ impl ResourceRecord
 		
 		response_parsing_state.parsing_a_soa_record()?;
 
-		let (resource_record_time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::SOA, duplicate_resource_record_response_parsing)?;
+		let (resource_record_time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(&resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::SOA, duplicate_resource_record_response_parsing)?;
 
 		let start_of_resource_data = resource_data.start_pointer();
 
@@ -512,7 +512,7 @@ impl ResourceRecord
 	{
 		use self::HandleRecordTypeError::*;
 		
-		let (cache_until, record, end_of_resource_data_pointer) = self.parse_name_only(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, parsed_names, DataType::PTR, duplicate_resource_record_response_parsing, PTR)?;
+		let (cache_until, record, end_of_resource_data_pointer) = self.parse_name_only(now, end_of_name_pointer, end_of_message_pointer, &resource_record_name, parsed_names, DataType::PTR, duplicate_resource_record_response_parsing, PTR)?;
 		resource_record_visitor.PTR(resource_record_name, cache_until, record).map_err(|error| ResourceRecordVisitor(DataType::PTR, error))?;
 		Ok(end_of_resource_data_pointer)
 	}
@@ -522,7 +522,7 @@ impl ResourceRecord
 	{
 		use self::HINFOHandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::HINFO, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::HINFO, duplicate_resource_record_response_parsing)?;
 
 		let length = resource_data.len();
 
@@ -562,7 +562,7 @@ impl ResourceRecord
 	{
 		use self::MXHandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::MX, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::MX, duplicate_resource_record_response_parsing)?;
 
 		const PreferenceSize: usize = 2;
 		const MinimumMailServerNameSize: usize = ParsedNameParser::NameMinimumSize;
@@ -589,7 +589,7 @@ impl ResourceRecord
 	{
 		use self::TXTHandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::TXT, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::TXT, duplicate_resource_record_response_parsing)?;
 
 		let mut character_strings = Vec::with_capacity(8);
 		for (character_string_index, character_string) in CharacterStringsIterator::new(resource_data).map_err(CharacterStrings)?.enumerate()
@@ -607,7 +607,7 @@ impl ResourceRecord
 	{
 		use self::HandleRecordTypeError::*;
 		
-		let (cache_until, record, end_of_resource_data_pointer) = self.parse_internet_protocol_address_only(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, DataType::AAAA, duplicate_resource_record_response_parsing, AAAAHasAnIncorrectLength)?;
+		let (cache_until, record, end_of_resource_data_pointer) = self.parse_internet_protocol_address_only(now, end_of_name_pointer, end_of_message_pointer, &resource_record_name, DataType::AAAA, duplicate_resource_record_response_parsing, AAAAHasAnIncorrectLength)?;
 		resource_record_visitor.AAAA(resource_record_name, cache_until, record).map_err(|error| ResourceRecordVisitor(DataType::AAAA, error))?;
 		Ok(end_of_resource_data_pointer)
 	}
@@ -617,7 +617,7 @@ impl ResourceRecord
 	{
 		use self::LOCHandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::LOC, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::LOC, duplicate_resource_record_response_parsing)?;
 
 		let length = resource_data.len();
 		if unlikely!(length == 0)
@@ -649,7 +649,7 @@ impl ResourceRecord
 	{
 		use self::SRVHandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::SRV, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::SRV, duplicate_resource_record_response_parsing)?;
 
 		const PrioritySize: usize = 2;
 		const WeightSize: usize = 2;
@@ -679,7 +679,7 @@ impl ResourceRecord
 	{
 		use self::NAPTRHandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::NAPTR, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::NAPTR, duplicate_resource_record_response_parsing)?;
 
 		const OrderSize: usize = 2;
 		const PreferenceSize: usize = 2;
@@ -767,7 +767,7 @@ impl ResourceRecord
 	{
 		use self::KXHandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::KX, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::KX, duplicate_resource_record_response_parsing)?;
 
 		let length = resource_data.len();
 
@@ -803,7 +803,7 @@ impl ResourceRecord
 	{
 		use self::CERTHandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::CERT, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::CERT, duplicate_resource_record_response_parsing)?;
 
 		use self::CertificateResourceRecordIgnoredBecauseReason::*;
 		use self::CertificateType::*;
@@ -1030,7 +1030,7 @@ impl ResourceRecord
 	{
 		use self::DNAMEHandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::DNAME, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::DNAME, duplicate_resource_record_response_parsing)?;
 
 		let length = resource_data.len();
 
@@ -1068,7 +1068,7 @@ impl ResourceRecord
 		use self::HandleRecordTypeError::*;
 		use self::SSHFPHandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::SSHFP, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::SSHFP, duplicate_resource_record_response_parsing)?;
 
 		use self::SshFingerprintDigest::*;
 		use self::SshFingerprintResourceRecordIgnoredBecauseReason::*;
@@ -1148,7 +1148,7 @@ impl ResourceRecord
 		use self::HandleRecordTypeError::*;
 		use self::IPSECKEYHandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::IPSECKEY, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::IPSECKEY, duplicate_resource_record_response_parsing)?;
 
 		use self::Gateway::*;
 		use self::IpsecKeyResourceRecordIgnoredBecauseReason::*;
@@ -1228,8 +1228,8 @@ impl ResourceRecord
 			resource_data,
 			public_key_starts_at_offset,
 			public_key_length,
-			|resource_record_visitor| resource_record_visitor.IPSECKEY_ignored(resource_record_name, PublicKeyAlgorithmDSAIsProbablyBroken),
-			|resource_record_visitor| resource_record_visitor.IPSECKEY_ignored(resource_record_name, PublicKeyAlgorithmUnassigned(public_key_algorithm_type))
+			|resource_record_visitor| resource_record_visitor.IPSECKEY_ignored(resource_record_name.clone(), PublicKeyAlgorithmDSAIsProbablyBroken),
+			|resource_record_visitor| resource_record_visitor.IPSECKEY_ignored(resource_record_name.clone(), PublicKeyAlgorithmUnassigned(public_key_algorithm_type))
 		).map_err(|error| IPSECKEY(IpsecLikePublicKeyHandleRecordType(error)))?
 		{
 			Left(public_key) => public_key,
@@ -1252,7 +1252,7 @@ impl ResourceRecord
 	{
 		use self::NSECHandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::NSEC, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::NSEC, duplicate_resource_record_response_parsing)?;
 
 		const MinimumNextSecureNameSize: usize = ParsedNameParser::NameMinimumSize;
 
@@ -1282,7 +1282,7 @@ impl ResourceRecord
 	{
 		use self::RRSIGHandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::RRSIG, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::RRSIG, duplicate_resource_record_response_parsing)?;
 
 		use self::ResourceRecordSetSignatureResourceRecordIgnoredBecauseReason::*;
 
@@ -1390,7 +1390,7 @@ impl ResourceRecord
 	{
 		use self::DHCIDHandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::DHCID, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::DHCID, duplicate_resource_record_response_parsing)?;
 
 		use self::DhcidResourceRecordIgnoredBecauseReason::*;
 		use self::HandleRecordTypeError::*;
@@ -1450,7 +1450,7 @@ impl ResourceRecord
 	{
 		use self::NSEC3HandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::NSEC3, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::NSEC3, duplicate_resource_record_response_parsing)?;
 
 		use self::NextSecureVersion3ResourceRecordIgnoredBecauseReason::*;
 
@@ -1552,7 +1552,7 @@ impl ResourceRecord
 	{
 		use self::NSEC3PARAMHandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::NSEC3PARAM, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::NSEC3PARAM, duplicate_resource_record_response_parsing)?;
 
 		use self::NextSecureVersion3ParametersResourceRecordIgnoredBecauseReason::*;
 
@@ -1619,7 +1619,7 @@ impl ResourceRecord
 	{
 		use self::HandleRecordTypeError::*;
 		
-		let (resource_data_end_pointer, either) = self.handle_TLSA_or_SMIMEA(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, DataType::TLSA, duplicate_resource_record_response_parsing, TLSA)?;
+		let (resource_data_end_pointer, either) = self.handle_TLSA_or_SMIMEA(now, end_of_name_pointer, end_of_message_pointer, &resource_record_name, DataType::TLSA, duplicate_resource_record_response_parsing, TLSA)?;
 
 		match either
 		{
@@ -1636,7 +1636,7 @@ impl ResourceRecord
 	{
 		use self::HandleRecordTypeError::*;
 		
-		let (resource_data_end_pointer, either) = self.handle_TLSA_or_SMIMEA(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, DataType::SMIMEA, duplicate_resource_record_response_parsing, SMIMEA)?;
+		let (resource_data_end_pointer, either) = self.handle_TLSA_or_SMIMEA(now, end_of_name_pointer, end_of_message_pointer, &resource_record_name, DataType::SMIMEA, duplicate_resource_record_response_parsing, SMIMEA)?;
 
 		match either
 		{
@@ -1654,7 +1654,7 @@ impl ResourceRecord
 		use self::HandleRecordTypeError::*;
 		use self::HIPHandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::HIP, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::HIP, duplicate_resource_record_response_parsing)?;
 
 		use self::HostIdentityProtocolResourceRecordIgnoredBecauseReason::*;
 
@@ -1691,8 +1691,8 @@ impl ResourceRecord
 			resource_data,
 			public_key_starts_at_offset,
 			public_key_length,
-			|resource_record_visitor| resource_record_visitor.HIP_ignored(resource_record_name, PublicKeyAlgorithmDSAIsProbablyBroken),
-			|resource_record_visitor| resource_record_visitor.HIP_ignored(resource_record_name, PublicKeyAlgorithmUnassigned(public_key_algorithm_type))
+			|resource_record_visitor| resource_record_visitor.HIP_ignored(resource_record_name.clone(), PublicKeyAlgorithmDSAIsProbablyBroken),
+			|resource_record_visitor| resource_record_visitor.HIP_ignored(resource_record_name.clone(), PublicKeyAlgorithmUnassigned(public_key_algorithm_type))
 		).map_err(|error| HIP(IpsecLikePublicKeyHandleRecordType(error)))?
 		{
 			Left(public_key) => public_key,
@@ -1735,7 +1735,7 @@ impl ResourceRecord
 	#[inline(always)]
 	fn handle_OPENPGPKEY<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::OPENPGPKEY, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::OPENPGPKEY, duplicate_resource_record_response_parsing)?;
 
 		resource_record_visitor.OPENPGPKEY(resource_record_name, cache_until, resource_data).map_err(|error| HandleRecordTypeError::ResourceRecordVisitor(DataType::OPENPGPKEY, error))?;
 		Ok(resource_data.end_pointer())
@@ -1746,7 +1746,7 @@ impl ResourceRecord
 	{
 		use self::CSYNCHandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::CSYNC, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::CSYNC, duplicate_resource_record_response_parsing)?;
 
 		use self::ChildSynchronizeResourceRecordIgnoredBecauseReason::*;
 
@@ -1793,7 +1793,7 @@ impl ResourceRecord
 	{
 		use self::NIDHandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::NID, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::NID, duplicate_resource_record_response_parsing)?;
 
 		const PreferenceSize: usize = 2;
 		const NodeIdentifierSize: usize = 8;
@@ -1819,7 +1819,7 @@ impl ResourceRecord
 	{
 		use self::L32HandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::L32, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::L32, duplicate_resource_record_response_parsing)?;
 
 		const PreferenceSize: usize = 2;
 		const LocatorSize: usize = 4;
@@ -1845,7 +1845,7 @@ impl ResourceRecord
 	{
 		use self::L64HandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::L64, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::L64, duplicate_resource_record_response_parsing)?;
 
 		const PreferenceSize: usize = 2;
 		const LocatorSize: usize = 8;
@@ -1871,7 +1871,7 @@ impl ResourceRecord
 	{
 		use self::LPHandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::LP, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::LP, duplicate_resource_record_response_parsing)?;
 
 		const PreferenceSize: usize = 2;
 		const MinimumNameSize: usize = ParsedNameParser::NameMinimumSize;
@@ -1911,7 +1911,7 @@ impl ResourceRecord
 	{
 		use self::EUI48HandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::EUI48, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::EUI48, duplicate_resource_record_response_parsing)?;
 
 		const Eui48Size: usize = 48 / ResourceRecord::BitsInAByte;
 
@@ -1932,7 +1932,7 @@ impl ResourceRecord
 	{
 		use self::EUI64HandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::EUI64, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::EUI64, duplicate_resource_record_response_parsing)?;
 
 		const Eui64Size: usize = 64 / ResourceRecord::BitsInAByte;
 
@@ -1953,7 +1953,7 @@ impl ResourceRecord
 	{
 		use self::URIHandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::URI, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::URI, duplicate_resource_record_response_parsing)?;
 
 		const PrioritySize: usize = 2;
 		const WeightSize: usize = 2;
@@ -1984,7 +1984,7 @@ impl ResourceRecord
 	{
 		use self::CAAHandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::CAA, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, DataType::CAA, duplicate_resource_record_response_parsing)?;
 
 		use self::CertificateAuthorityAuthorizationResourceRecordIgnoredBecauseReason::*;
 
@@ -2065,7 +2065,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_TLSA_or_SMIMEA<'message, E: error::Error>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, map_error: impl FnOnce(X509CertificateHandleRecordTypeError) -> HandleRecordTypeError<E>) -> Result<(usize, Either<(CacheUntil, DnsBasedAuthenticationOfNamedEntities<'message>), DnsBasedAuthenticationOfNamedEntitiesResourceRecordIgnoredBecauseReason>), HandleRecordTypeError<E>>
+	fn handle_TLSA_or_SMIMEA<'message, E: error::Error>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: &ParsedName<'message>, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, map_error: impl FnOnce(X509CertificateHandleRecordTypeError) -> HandleRecordTypeError<E>) -> Result<(usize, Either<(CacheUntil, DnsBasedAuthenticationOfNamedEntities<'message>), DnsBasedAuthenticationOfNamedEntitiesResourceRecordIgnoredBecauseReason>), HandleRecordTypeError<E>>
 	{
 		use self::X509CertificateHandleRecordTypeError::*;
 		
@@ -2142,7 +2142,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn parse_internet_protocol_address_only<'message, E: error::Error, Address: Copy>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, error: impl FnOnce(usize) -> HandleRecordTypeError<E>) -> Result<(CacheUntil, Address, usize), HandleRecordTypeError<E>>
+	fn parse_internet_protocol_address_only<'message, E: error::Error, Address: Copy>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: &ParsedName<'message>, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, error: impl FnOnce(usize) -> HandleRecordTypeError<E>) -> Result<(CacheUntil, Address, usize), HandleRecordTypeError<E>>
 	{
 		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
 
@@ -2159,7 +2159,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn parse_name_only<'message, E: error::Error>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, parsed_names: &mut ParsedNames<'message>, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, error: impl FnOnce(ParsedNameParserError) -> HandleRecordTypeError<E>) -> Result<(CacheUntil, ParsedName<'message>, usize), HandleRecordTypeError<E>>
+	fn parse_name_only<'message, E: error::Error>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: &ParsedName<'message>, parsed_names: &mut ParsedNames<'message>, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, error: impl FnOnce(ParsedNameParserError) -> HandleRecordTypeError<E>) -> Result<(CacheUntil, ParsedName<'message>, usize), HandleRecordTypeError<E>>
 	{
 		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
 
@@ -2191,21 +2191,21 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn validate_class_is_internet_and_get_cache_until_and_resource_data<'message>(&'message self, now: NanosecondsSinceUnixEpoch, resource_record_name: ParsedName<'message>, end_of_name_pointer: usize, end_of_message_pointer: usize, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<(CacheUntil, &'message [u8]), ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError>
+	fn validate_class_is_internet_and_get_cache_until_and_resource_data<'message>(&'message self, now: NanosecondsSinceUnixEpoch, resource_record_name: &ParsedName<'message>, end_of_name_pointer: usize, end_of_message_pointer: usize, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<(CacheUntil, &'message [u8]), ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError>
 	{
-		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
+		let (time_to_live, resource_data) = self.validate_class_is_internet_and_get_time_to_live_and_resource_data(&resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
 		
 		Ok((time_to_live.cache_until(now), resource_data))
 	}
 
 	#[inline(always)]
-	fn validate_class_is_internet_and_get_time_to_live_and_resource_data<'message>(&'message self, resource_record_name: ParsedName<'message>, end_of_name_pointer: usize, end_of_message_pointer: usize, data_type_or_meta_type: impl DataTypeOrMetaType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<(TimeInSeconds, &'message [u8]), ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError>
+	fn validate_class_is_internet_and_get_time_to_live_and_resource_data<'message>(&'message self, resource_record_name: &ParsedName<'message>, end_of_name_pointer: usize, end_of_message_pointer: usize, data_type_or_meta_type: impl DataTypeOrMetaType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<(TimeInSeconds, &'message [u8]), ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError>
 	{
 		self.resource_record_class_is_internet(end_of_name_pointer)?;
 
 		let resource_data = self.safely_access_resource_data(end_of_name_pointer, end_of_message_pointer).map_err(|error| ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError::ResourceDataLengthOverflows(data_type_or_meta_type.into_big_endian_u16(), error))?;
 		
-		duplicate_resource_record_response_parsing.encountered(data_type_or_meta_type, &resource_record_name, resource_data)?;
+		duplicate_resource_record_response_parsing.encountered(data_type_or_meta_type, resource_record_name, resource_data)?;
 
 		let time_to_live = self.time_to_live(end_of_name_pointer);
 		
@@ -2283,7 +2283,7 @@ impl ResourceRecord
 	#[inline(always)]
 	fn resource_data(&self, end_of_name_pointer: usize) -> &ResourceData
 	{
-		self.footer_mut(end_of_name_pointer).resource_data()
+		self.footer(end_of_name_pointer).resource_data()
 	}
 
 	#[inline(always)]
@@ -2293,17 +2293,11 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn footer_mut(&mut self, end_of_name_pointer: usize) -> &mut ResourceRecordFooter
-	{
-		end_of_name_pointer.unsafe_cast_mut::<ResourceRecordFooter>()
-	}
-	
-	#[inline(always)]
-	fn handle_delegation_signer<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, ignored_callback: impl FnOnce(&mut RRV, ParsedName<'message>, DelegationSignerResourceRecordIgnoredBecauseReason), visit_callback: impl FnOnce(&mut RRV, ParsedName<'message>, CacheUntil, DelegationSigner<'message>) -> Result<(), RRV::Error>, permit_delete: bool, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, map_error: impl FnOnce(DelegationSignerHandleRecordTypeError) -> HandleRecordTypeError<RRV::Error>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn handle_delegation_signer<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, ignored_callback: impl FnOnce(&mut RRV, ParsedName<'message>, DelegationSignerResourceRecordIgnoredBecauseReason), visit_callback: impl Fn(&mut RRV, ParsedName<'message>, CacheUntil, DelegationSigner<'message>) -> Result<(), RRV::Error>, permit_delete: bool, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, map_error: impl Fn(DelegationSignerHandleRecordTypeError) -> HandleRecordTypeError<RRV::Error>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		use self::DelegationSignerHandleRecordTypeError::*;
 		
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
 	
 		use self::DelegationSignerResourceRecordIgnoredBecauseReason::*;
 		use self::DigestAlgorithmRejectedBecauseReason::*;
@@ -2377,7 +2371,7 @@ impl ResourceRecord
 	#[inline(always)]
 	fn guard_dns_key<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, ignored_callback: impl FnOnce(&mut RRV, ParsedName<'message>, DnsKeyResourceRecordIgnoredBecauseReason), visit_callback: impl FnOnce(&mut RRV, ParsedName<'message>, CacheUntil, DnsKey<'message>) -> Result<(), RRV::Error>, permit_delete: bool, data_type: DataType, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, map_error: impl FnOnce(DnsKeyHandleRecordTypeError) -> HandleRecordTypeError<RRV::Error>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
-		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
+		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &resource_record_name, end_of_name_pointer, end_of_message_pointer, data_type, duplicate_resource_record_response_parsing)?;
 
 		use self::DnsKeyPurpose::*;
 		use self::DnsKeyResourceRecordIgnoredBecauseReason::*;

@@ -125,7 +125,7 @@ impl<'a> DirectoryEntryIterator<'a>
 		}
 		else
 		{
-			unreachable!("Invalid result {} from lseek()", result)
+			unreachable_code(format_args!("Invalid result {} from lseek()", result))
 		}
 	}
 

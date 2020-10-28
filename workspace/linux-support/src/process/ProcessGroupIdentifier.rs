@@ -128,12 +128,12 @@ impl ProcessGroupIdentifier
 			{
 				ESRCH | EPERM => Err(()),
 
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 
@@ -154,12 +154,12 @@ impl ProcessGroupIdentifier
 			{
 				ESRCH | EPERM => Err(()),
 
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 	
@@ -178,7 +178,7 @@ impl ProcessGroupIdentifier
 		}
 		else
 		{
-			unreachable!("Invalid value `{}` in /proc/{:?}/sessionid", value, process_identifier)
+			unreachable_code(format_args!("Invalid value `{}` in /proc/{:?}/sessionid", value, process_identifier))
 		}
 	}
 }

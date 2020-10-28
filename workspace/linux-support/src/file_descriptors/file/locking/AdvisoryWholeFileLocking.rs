@@ -43,7 +43,7 @@ pub trait AdvisoryWholeFileLocking: AsRawFd + Seek + FileExt
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from flock()", result)
+			unreachable_code(format_args!("Unexpected result {} from flock()", result))
 		}
 	}
 
@@ -85,7 +85,7 @@ pub trait AdvisoryWholeFileLocking: AsRawFd + Seek + FileExt
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from flock()", result)
+			unreachable_code(format_args!("Unexpected result {} from flock()", result))
 		}
 	}
 
@@ -124,7 +124,7 @@ pub trait AdvisoryWholeFileLocking: AsRawFd + Seek + FileExt
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from flock()", result)
+			unreachable_code(format_args!("Unexpected result {} from flock()", result))
 		}
 	}
 
@@ -163,7 +163,7 @@ pub trait AdvisoryWholeFileLocking: AsRawFd + Seek + FileExt
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from flock()", result)
+			unreachable_code(format_args!("Unexpected result {} from flock()", result))
 		}
 	}
 }

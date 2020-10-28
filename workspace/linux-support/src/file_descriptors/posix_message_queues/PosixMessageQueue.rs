@@ -38,13 +38,13 @@ pub trait PosixMessageQueue: AsRawFd + IntoRawFd + Sized
 
 					ENAMETOOLONG => panic!("`name` was too long"),
 
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 

@@ -98,7 +98,7 @@ impl SetMemoryPolicy
 			Ok(()) => return,
 			Err(EIO) => panic!("EIO should not occur"),
 			Err(EPERM) => panic!("EPERM should not occur"),
-			_ => unreachable!(),
+			_ => unreachable_code(format_args!("")),
 		}
 	}
 
@@ -116,7 +116,7 @@ impl SetMemoryPolicy
 			Ok(()) => Some(true),
 			Err(EIO) => Some(false),
 			Err(EPERM) => panic!("EPERM should not occur"),
-			_ => unreachable!(),
+			_ => unreachable_code(format_args!("")),
 		}
 	}
 
@@ -131,7 +131,7 @@ impl SetMemoryPolicy
 			Ok(()) => return,
 			Err(EIO) => panic!("EIO should not occur"),
 			Err(EPERM) => panic!("EPERM should not occur"),
-			_ => unreachable!(),
+			_ => unreachable_code(format_args!("")),
 		}
 	}
 
@@ -146,7 +146,7 @@ impl SetMemoryPolicy
 			Ok(()) => Ok(()),
 			Err(EIO) => Err(()),
 			Err(EPERM) => panic!("EPERM should not occur"),
-			_ => unreachable!(),
+			_ => unreachable_code(format_args!("")),
 		}
 	}
 
@@ -163,7 +163,7 @@ impl SetMemoryPolicy
 			Ok(()) => return,
 			Err(EIO) => panic!("EIO should not occur"),
 			Err(EPERM) => panic!("Current thread does not have the capability `CAP_SYS_NICE`"),
-			_ => unreachable!(),
+			_ => unreachable_code(format_args!("")),
 		}
 	}
 
@@ -180,7 +180,7 @@ impl SetMemoryPolicy
 			Ok(()) => Ok(()),
 			Err(EIO) => Err(()),
 			Err(EPERM) => panic!("Current thread does not have the capability `CAP_SYS_NICE`"),
-			_ => unreachable!(),
+			_ => unreachable_code(format_args!("")),
 		}
 	}
 

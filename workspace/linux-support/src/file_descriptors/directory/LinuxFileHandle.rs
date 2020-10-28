@@ -41,7 +41,7 @@ impl LinuxFileHandle
 		}
 		else
 		{
-			unreachable!("result {} was unexpected for open_by_handle_at()", result)
+			unreachable_code(format_args!("result {} was unexpected for open_by_handle_at()", result))
 		}
 	}
 }

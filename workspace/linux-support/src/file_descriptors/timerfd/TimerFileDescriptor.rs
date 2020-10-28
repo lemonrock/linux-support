@@ -70,7 +70,7 @@ impl TimerFileDescriptor
 					ENOMEM => KernelWouldBeOutOfMemory,
 					EINVAL => panic!("Invalid clockid or flags"),
 					ENODEV => panic!("Could not mount (internal) anonymous inode device"),
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
@@ -119,7 +119,7 @@ impl TimerFileDescriptor
 
 				0 => panic!("End of file but we haven't closed the file descriptor"),
 
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 	}
@@ -142,12 +142,12 @@ impl TimerFileDescriptor
 				EBADF => panic!("`fd` is not a valid file descriptor"),
 				EFAULT => panic!("curr_value` is not a valid pointer"),
 				EINVAL => panic!("`fd` is not a valid timerfd file descriptor"),
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 
@@ -241,7 +241,7 @@ impl TimerFileDescriptor
 		}
 		else
 		{
-			unreachable!("ioctl() returned unexpected result {}", result)
+			unreachable_code(format_args!("ioctl() returned unexpected result {}", result))
 		}
 	}
 
@@ -272,12 +272,12 @@ impl TimerFileDescriptor
 				EBADF => panic!("`fd` is not a valid file descriptor"),
 				EFAULT => panic!("`new_value` or `old_value` is not a valid pointer"),
 				EINVAL => panic!("arguments were invalid"),
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 }

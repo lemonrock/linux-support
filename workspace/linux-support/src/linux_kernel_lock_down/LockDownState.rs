@@ -107,7 +107,7 @@ impl LockDownState
 		
 		match self
 		{
-			Off => unreachable!("We should never be writing this value"),
+			Off => unreachable_code(format_args!("We should never be writing this value")),
 			
 			Integrity => b"integrity\n" as &[u8],
 			

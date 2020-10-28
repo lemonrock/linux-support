@@ -98,7 +98,7 @@ impl Signals
 			{
 				EFAULT => panic!("The `set` or `oldset` argument points outside the process's allocated address space"),
 				EINVAL => panic!("Either the value specified in `how` was invalid or the kernel does not support the size passed in `sigsetsize`"),
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 	}
@@ -118,12 +118,12 @@ impl Signals
 			match errno().0
 			{
 				EINVAL => panic!("Invalid arguments"),
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 		else
 		{
-			unreachable!();
+			unreachable_code(format_args!(""));
 		}
 	}
 }

@@ -19,11 +19,11 @@ pub fn system_information() -> sysinfo
 		{
 			EFAULT => panic!("info is not a valid address"),
 			
-			unexpected @ _ => unreachable!("Unexpected error {} from sysinfo()", unexpected),
+			unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from sysinfo()", unexpected)),
 		}
 	}
 	else
 	{
-		unreachable!("Unexpected result {} from sysinfo()", result);
+		unreachable_code(format_args!("Unexpected result {} from sysinfo()", result));
 	}
 }

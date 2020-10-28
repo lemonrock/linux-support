@@ -73,7 +73,7 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: 'static + MemorySize, GTACS
 				None => self.close_unwanted_connection(accepted_connection),
 			}
 
-			Ok(None) => unreachable!("Logic error: who cancelled our accept?"),
+			Ok(None) => unreachable_code(format_args!("Logic error: who cancelled our accept?")),
 
 			Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded) => log!(self, "PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded", "PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded", Normal, Error),
 			
@@ -81,7 +81,7 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: 'static + MemorySize, GTACS
 			
 			Err(KernelWouldBeOutOfMemory) => log!(self, "KernelWouldBeOutOfMemory", "KernelWouldBeOutOfMemory", Normal, Error),
 			
-			Err(Again) => unreachable!("Our socket is supposed to be blocking"),
+			Err(Again) => unreachable_code(format_args!("Our socket is supposed to be blocking")),
 			
 			Err(Interrupted) => log!(self, "Interrupted", "Interrupted", Low, Informational),
 			
@@ -148,7 +148,7 @@ impl<'yielder, SA: SocketAddress, CoroutineHeapSize: 'static + MemorySize, GTACS
 			
 			Some(true) => self.dog_stats_d.log(alert!("ConnectionDenied::CloseError", "ConnectionDenied", Low, Informational), format_args!("")),
 			
-			None => unreachable!("Logic error: who cancelled our close?"),
+			None => unreachable_code(format_args!("Logic error: who cancelled our close?")),
 		}
 		
 		false

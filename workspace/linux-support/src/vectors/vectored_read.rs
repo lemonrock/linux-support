@@ -51,12 +51,12 @@ macro_rules! vectored_read
 								libc::ENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
 								libc::ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
 								libc::EOPNOTSUPP => panic!("Some flags in the `flags` argument are inappropriate for the socket type"),
-								_ => unreachable!(),
+								unexpected @ _ => unreachable_code(format_args!("Unexpected error code {}", unexpected)),
 							}
 						}
 						else
 						{
-							unreachable!()
+							unreachable_code(format_args!("Unexpected result {}", result))
 						}
 					)
 				)

@@ -124,12 +124,12 @@ impl Write for SendPipeFileDescriptor
 							EFAULT => panic!("The write buffer pointer(s) point outside the process's address space"),
 							EINVAL => panic!("Invalid argument passed"),
 							EDESTADDRREQ => panic!("`fd` refers to a datagram socket for which a peer address has not been set using `connect()`"),
-							_ => unreachable!(),
+							_ => unreachable_code(format_args!("")),
 						}
 					}
 					else
 					{
-						unreachable!()
+						unreachable_code(format_args!(""))
 					}
 				)
 			)
@@ -204,13 +204,13 @@ impl SendPipeFileDescriptor
 					EFAULT => panic!("`pipefd` is not valid"),
 					EINVAL => panic!("Invalid value in `flags`"),
 
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 
@@ -283,7 +283,7 @@ impl SendPipeFileDescriptor
 					ENOSPC => panic!("`pathname` was to be created but the device containing `pathname` has no room for the new file"),
 					EPERM => panic!("The `O_NOATIME` flag was specified, but the effective user ID of the caller did not match the owner of the file and the caller was not privileged (`CAP_FOWNER`)"),
 
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
@@ -342,13 +342,13 @@ impl SendPipeFileDescriptor
 					EINVAL => panic!("The target filesystem doesn't support splicing; or the target file is opened in append mode; or neither of the file descriptors refers to a pipe; or an offset was given for nonseekable device (eg, a pipe); or `fd_in` and `fd_out` refer to the same pipe"),
 					ESPIPE => panic!("Either `off_in` or `off_out` was not `NULL`, but the corresponding file descriptor refers to a pipe"),
 
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 
@@ -409,13 +409,13 @@ impl SendPipeFileDescriptor
 					EINVAL => panic!("The target filesystem doesn't support splicing; or the target file is opened in append mode; or neither of the file descriptors refers to a pipe; or an offset was given for nonseekable device (eg, a pipe); or `fd_in` and `fd_out` refer to the same pipe"),
 					ESPIPE => panic!("Either `off_in` or `off_out` was not `NULL`, but the corresponding file descriptor refers to a pipe"),
 
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 
@@ -470,13 +470,13 @@ impl SendPipeFileDescriptor
 
 					EINVAL => panic!("`fd_in` and `fd_in` does not refer to a pipe; or `fd_in` and `fd_in` refer to the same pipe"),
 
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 
@@ -525,13 +525,13 @@ impl SendPipeFileDescriptor
 					EBADF => panic!("`fd` is either not valid, or doesn't refer to a pipe"),
 					EINVAL => panic!("`nr_segs` is greater than `IOV_MAX`; or memory not aligned if `SPLICE_F_GIFT` set"),
 
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 }

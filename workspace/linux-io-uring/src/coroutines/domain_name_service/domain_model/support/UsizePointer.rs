@@ -16,9 +16,9 @@ pub(crate) trait UsizePointer
 
 	fn set_u8_byte(self, value: u8);
 
-	fn set_u16_bytes(self, value: [u8; 2]);
+	fn set_u16_bytes(self, value: BigEndianU16);
 
-	fn set_u32_bytes(self, value: [u8; 4]);
+	fn set_u32_bytes(self, value: BigEndianU32);
 }
 
 impl UsizePointer for usize

@@ -28,7 +28,7 @@ impl MessageTemplate for Rfc3164MessageTemplate
 			10 => "Oct",
 			11 => "Nov",
 			12 => "Dec",
-			_ => unreachable!(),
+			_ => unreachable_code(format_args!("")),
 		};
 		
 		// eg `Feb  5 17:32:18`.

@@ -112,13 +112,13 @@ impl<SD: SocketData> StreamingServerListenerSocketFileDescriptor<SD>
 					ESOCKTNOSUPPORT => panic!("ESOCKTNOSUPPORT"),
 					EPROTONOSUPPORT => panic!("EPROTONOSUPPORT"),
 
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 }

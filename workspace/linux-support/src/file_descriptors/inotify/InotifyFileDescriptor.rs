@@ -69,7 +69,7 @@ impl InotifyFileDescriptor
 					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
 					ENOMEM => KernelWouldBeOutOfMemory,
 					EINVAL => panic!("Invalid arguments"),
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
@@ -132,13 +132,13 @@ impl InotifyFileDescriptor
 					EFAULT => panic!("`pathname` points outside of the process's accessible address space"),
 					EINVAL => panic!("The given event `mask` contains no valid events; or `fd` is not an inotify file descriptor"),
 
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 
@@ -186,7 +186,7 @@ impl InotifyFileDescriptor
 
 				0 => panic!("End of file but we haven't closed the file descriptor"),
 
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 	}

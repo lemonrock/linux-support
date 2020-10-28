@@ -53,7 +53,7 @@ pub trait FileDescriptor: Sized + Debug + AsRawFd + FromRawFd + IntoRawFd
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from fcntl()", result)
+			unreachable_code(format_args!("Unexpected result {} from fcntl()", result))
 		}
 	}
 
@@ -75,7 +75,7 @@ pub trait FileDescriptor: Sized + Debug + AsRawFd + FromRawFd + IntoRawFd
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from fcntl()", result)
+			unreachable_code(format_args!("Unexpected result {} from fcntl()", result))
 		}
 	}
 

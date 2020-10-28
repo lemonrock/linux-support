@@ -76,9 +76,9 @@ impl TracingFileDescriptor
 			Ok(raw_fd) => Ok(Self(raw_fd)),
 			Err(errno) => match errno
 			{
-				ENOENT => unreachable!(),
+				ENOENT => unreachable_code(format_args!("")),
 				ENOMEM => Err(()),
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 	}

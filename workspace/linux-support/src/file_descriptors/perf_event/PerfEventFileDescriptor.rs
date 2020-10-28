@@ -101,7 +101,7 @@ impl PerfEventFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from perf_event_open()", result)
+			unreachable_code(format_args!("Unexpected result `{}` from perf_event_open()", result))
 		}
 	}
 }

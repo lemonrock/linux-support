@@ -65,7 +65,7 @@ pub trait CopyFileRange: AsRawFd + Seek + FileExt
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from copy_file_range()", result)
+			unreachable_code(format_args!("Unexpected result {} from copy_file_range()", result))
 		}
 	}
 }

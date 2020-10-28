@@ -175,12 +175,12 @@ impl BaudRate
 			{
 				EINVAL => panic!("Baud was not valid (`& !CBAUD`)"),
 
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 }

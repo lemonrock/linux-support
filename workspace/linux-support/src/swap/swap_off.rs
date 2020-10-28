@@ -15,6 +15,6 @@ pub(crate) fn swap_off(nul_terminated_c_string: &[u8]) -> io::Result<()>
 	}
 	else
 	{
-		unreachable!("swapoff() returned unexpected result {}", result)
+		unreachable_code(format_args!("swapoff() returned unexpected result {}", result))
 	}
 }

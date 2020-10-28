@@ -197,7 +197,7 @@ impl sockaddr_un
 				}
 				else
 				{
-					unreachable!("Unexpected result {} from `unlink()`", result)
+					unreachable_code(format_args!("Unexpected result {} from `unlink()`", result))
 				}
 			},
 			
@@ -223,7 +223,7 @@ impl sockaddr_un
 				}
 				else
 				{
-					unreachable!("Unexpected result {} from `unlink()`", result)
+					unreachable_code(format_args!("Unexpected result {} from `unlink()`", result))
 				}
 			}
 		)

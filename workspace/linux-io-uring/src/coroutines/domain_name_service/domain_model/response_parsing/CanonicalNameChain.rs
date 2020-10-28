@@ -89,7 +89,7 @@ impl<'message, 'cache: 'message> CanonicalNameChain<'message, 'cache>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn insert_link(&mut self, from: ParsedName<'message>, to: ParsedName<'message>, cache_until: CacheUntil) -> Result<(), CanonicalChainError>
+	pub(crate) fn insert_link(&mut self, from: &ParsedName<'message>, cache_until: CacheUntil, to: &ParsedName<'message>) -> Result<(), CanonicalChainError>
 	{
 		use self::CanonicalChainError::*;
 		
@@ -98,12 +98,12 @@ impl<'message, 'cache: 'message> CanonicalNameChain<'message, 'cache>
 			return Err(TooManyCanonicalNamesInChain(Self::MaximumChainLength))
 		}
 		
-		if self.most_canonical_name().ne(&from)
+		if self.most_canonical_name().ne(from)
 		{
 			return Err(CanonicalNamesNotSorted)
 		}
 		
-		if to == self.query_name
+		if to.eq(&self.query_name)
 		{
 			return Err(CanonicalNameChainCanNotIncludeQueryNameAsItCreatesALoop)
 		}
@@ -114,7 +114,7 @@ impl<'message, 'cache: 'message> CanonicalNameChain<'message, 'cache>
 			return Err(AddingNameToCanonicalNameChainCreatesALoop)
 		}
 		
-		self.records.store_unprioritized_and_unweighted(from, cache_until, CaseFoldedName::map(to));
+		self.records.store_unprioritized_and_unweighted(from, cache_until, CaseFoldedName::from(to));
 		Ok(())
 	}
 	

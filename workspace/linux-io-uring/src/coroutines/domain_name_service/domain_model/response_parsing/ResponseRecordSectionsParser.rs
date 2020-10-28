@@ -92,7 +92,7 @@ impl<'message, 'cache: 'message> ResponseRecordSectionsParser<'message, 'cache>
 	}
 	
 	#[inline(always)]
-	fn loop_over_resource_records<E: error::Error>(&self, mut next_resource_record_pointer: usize, number_of_resource_records: u16, overflow_section_error: E, parse_method: impl Fn(&'message ResourceRecord) -> Result<usize, E>) -> Result<usize, E>
+	fn loop_over_resource_records<E: error::Error>(&self, mut next_resource_record_pointer: usize, number_of_resource_records: u16, overflow_section_error: E, mut parse_method: impl FnMut(&'message ResourceRecord) -> Result<usize, E>) -> Result<usize, E>
 	{
 		for _ in 0 .. number_of_resource_records
 		{

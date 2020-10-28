@@ -296,7 +296,7 @@ impl Nice
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from `setpriority()`", result)
+			unreachable_code(format_args!("Unexpected result `{}` from `setpriority()`", result))
 		}
 	}
 	
@@ -350,7 +350,7 @@ impl Nice
 			
 			ESRCH => Err(()),
 			
-			_ => unreachable!(),
+			_ => unreachable_code(format_args!("")),
 		}
 	}
 }

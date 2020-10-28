@@ -34,12 +34,12 @@ pub(crate) fn new_socket(domain: c_int, type_: c_int, protocol: c_int, non_block
 				EACCES => panic!("Permission denined"),
 				EAFNOSUPPORT => panic!("The implementation does not support the specified address family"),
 				EPROTONOSUPPORT => panic!("The protocol type or the specified protocol is not supported within this domain"),
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		)
 	}
 	else
 	{
-		unreachable!("Unexpected result {} from socket()", result)
+		unreachable_code(format_args!("Unexpected result {} from socket()", result))
 	}
 }

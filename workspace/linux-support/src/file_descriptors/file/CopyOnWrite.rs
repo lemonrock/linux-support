@@ -34,15 +34,15 @@ pub trait CopyOnWrite: AsRawFd + Seek + FileExt
 				EPERM => panic!("dest_fd is immutable"),
 				ETXTBSY => panic!("One of the files is a swap file. Swap files cannot share storage"),
 
-				EINVAL => unreachable!("The filesystem does not support reflinking the ranges of the given files. This error can also appear if either file descriptor represents a device, FIFO, or socket. Disk filesystems generally require the offset and length arguments to be aligned to the fundamental block size. XFS and Btrfs do not support overlapping reflink ranges in the same file."),
-				EISDIR => unreachable!("One of the files is a directory and the filesystem does not support shared regions in directories."),
+				EINVAL => unreachable_code(format_args!("The filesystem does not support reflinking the ranges of the given files. This error can also appear if either file descriptor represents a device, FIFO, or socket. Disk filesystems generally require the offset and length arguments to be aligned to the fundamental block size. XFS and Btrfs do not support overlapping reflink ranges in the same file.")),
+				EISDIR => unreachable_code(format_args!("One of the files is a directory and the filesystem does not support shared regions in directories.")),
 
 				_ => Err("other error from ioctl()")
 			}
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from ioctl()", result)
+			unreachable_code(format_args!("Unexpected result {} from ioctl()", result))
 		}
 	}
 
@@ -83,14 +83,14 @@ pub trait CopyOnWrite: AsRawFd + Seek + FileExt
 				EPERM => panic!("dest_fd is immutable"),
 				ETXTBSY => panic!("One of the files is a swap file. Swap files cannot share storage"),
 
-				EISDIR => unreachable!("One of the files is a directory and the filesystem does not support shared regions in directories."),
+				EISDIR => unreachable_code(format_args!("One of the files is a directory and the filesystem does not support shared regions in directories.")),
 
 				_ => Err("other error from ioctl()")
 			}
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from ioctl()", result)
+			unreachable_code(format_args!("Unexpected result {} from ioctl()", result))
 		}
 	}
 
@@ -124,7 +124,7 @@ pub trait CopyOnWrite: AsRawFd + Seek + FileExt
 				EPERM => panic!("dest_fd is immutable"),
 				ETXTBSY => panic!("One of the files is a swap file. Swap files cannot share storage"),
 
-				EISDIR => unreachable!("One of the files is a directory and the filesystem does not support shared regions in directories."),
+				EISDIR => unreachable_code(format_args!("One of the files is a directory and the filesystem does not support shared regions in directories.")),
 
 				_ => Err("other error from ioctl()")
 			}
@@ -132,7 +132,7 @@ pub trait CopyOnWrite: AsRawFd + Seek + FileExt
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from ioctl()", result)
+			unreachable_code(format_args!("Unexpected result {} from ioctl()", result))
 		}
 	}
 }

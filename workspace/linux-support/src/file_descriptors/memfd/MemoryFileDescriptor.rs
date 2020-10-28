@@ -348,7 +348,7 @@ impl MemoryFileDescriptor
 				EINVAL => panic!("The address in name points to invalid memory, or, flags included unknown bits, or, name was too long (The limit is 249 bytes, excluding the
   terminating null byte), or, both  MFD_HUGETLB and MFD_ALLOW_SEALING were specified in flags before Linux 4.16"),
 
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 		else
@@ -379,7 +379,7 @@ impl MemoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result from fcntl F_ADD_SEALS of `{}`", result)
+			unreachable_code(format_args!("Unexpected result from fcntl F_ADD_SEALS of `{}`", result))
 		}
 	}
 
@@ -403,7 +403,7 @@ impl MemoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result from fcntl F_ADD_SEALS of `{}`", result)
+			unreachable_code(format_args!("Unexpected result from fcntl F_ADD_SEALS of `{}`", result))
 		}
 	}
 	

@@ -63,7 +63,7 @@ impl<Record: Sized + Debug> PriorityToSortedWeightedRecordsMap<Record>
 				vacant.insert(SortedWeightedRecords::new_for_one_record(weight, record));
 			},
 			
-			Occupied(occupied) =>
+			Occupied(mut occupied) =>
 			{
 				let occupied = occupied.get_mut();
 				debug_assert!(!occupied.is_empty(), "If occupied is empty, then we've populated `Present` incorrectly");
@@ -74,7 +74,7 @@ impl<Record: Sized + Debug> PriorityToSortedWeightedRecordsMap<Record>
 	}
 	
 	#[inline(always)]
-	fn records_count(&mut self) -> usize
+	fn records_count(&self) -> usize
 	{
 		let mut expired_record_count = 0;
 		for expired_sorted_weighed_records in self.0.values()

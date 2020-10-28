@@ -280,11 +280,11 @@ impl HashFunctionFieldsConfiguration
 				
 				AH_ESP_V6_FLOW => IpsecOverInternetProtocolVersion6(IpsecHashFunctionFields::from(rxh)),
 				
-				AH_V4_FLOW | AH_V6_FLOW | ESP_V4_FLOW | ESP_V6_FLOW => unreachable!("Never specified in original ethtool syscall"),
+				AH_V4_FLOW | AH_V6_FLOW | ESP_V4_FLOW | ESP_V6_FLOW => unreachable_code(format_args!("Never specified in original ethtool syscall")),
 				
-				IPV4_USER_FLOW | IPV6_USER_FLOW => unreachable!("Never specified in original ethtool syscall and invalid as a hash key"),
+				IPV4_USER_FLOW | IPV6_USER_FLOW => unreachable_code(format_args!("Never specified in original ethtool syscall and invalid as a hash key")),
 				
-				_ => unreachable!("Invalid flow type"),
+				_ => unreachable_code(format_args!("Invalid flow type")),
 			},
 		
 			discard: rxh.contains(RXH::Discard),

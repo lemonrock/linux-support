@@ -4,3 +4,14 @@
 
 /// Big-endian (network byte order) u64.
 pub type BigEndianU64 = [u8; 8];
+
+impl FromNetworkEndianToNativeEndian for BigEndianU64
+{
+	type NumericType = u64;
+	
+	#[inline(always)]
+	fn from_network_endian_to_native_endian(self) -> Self::NumericType
+	{
+		Self::NumericType::from_be_bytes(self)
+	}
+}

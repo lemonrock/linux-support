@@ -432,7 +432,7 @@ impl MemoryMapEntryStatistics
 
 			Some(true) => Shared,
 
-			_ => unreachable!(),
+			_ => unreachable_code(format_args!("")),
 		};
 		if unlikely!(our_sharing != expected_sharing)
 		{

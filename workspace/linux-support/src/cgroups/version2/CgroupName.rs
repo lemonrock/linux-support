@@ -38,7 +38,7 @@ impl TryFrom<OsString> for CgroupName
 					Ok(Self(value))
 				}
 				
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 	}

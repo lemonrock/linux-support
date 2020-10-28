@@ -36,7 +36,7 @@ pub trait ReadAhead: AsRawFd + Seek + FileExt
 		}
 		else
 		{
-			unreachable!("Unexpected result {} for readahead()", result)
+			unreachable_code(format_args!("Unexpected result {} for readahead()", result))
 		}
 	}
 }

@@ -102,7 +102,7 @@ impl PathFileDescriptor
 		}
 		else
 		{
-			unreachable!("open() returned unexpected result {}", result)
+			unreachable_code(format_args!("open() returned unexpected result {}", result))
 		}
 	}
 

@@ -36,12 +36,12 @@ impl CompletionResponse
 				EINVAL => panic!("The target filesystem doesn't support splicing; or the target file is opened in append mode; or neither of the file descriptors refers to a pipe; or an offset was given for nonseekable device (eg, a pipe); or `fd_in` and `fd_out` refer to the same pipe"),
 				ESPIPE => panic!("Either `off_in` or `off_out` was not `NULL`, but the corresponding file descriptor refers to a pipe"),
 				
-				unexpected @ _ => unreachable!("Unexpected error code from splice completion of {}", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from splice completion of {}", unexpected)),
 			}
 		}
 		else
 		{
-			unreachable!("Unexpected result from splice completion of {}", result)
+			unreachable_code(format_args!("Unexpected result from splice completion of {}", result))
 		}
 	}
 	
@@ -79,12 +79,12 @@ impl CompletionResponse
 				EINVAL => panic!("fd is attached to an object which is unsuitable for reading; or the file was opened with the O_DIRECT flag, and either the address specified in buf, the value specified in count, or the file offset is not suitably aligned. Or, fd was created via a call to timerfd_create(2) and the wrong size buffer was given to read(); see timerfd_create(2) for further information. Or, whence is not valid. Or: the resulting file offset would be negative, or beyond the end of a seekable device. Or the sum of the iov_len values overflows an ssize_t value. Or, the vector count, iovcnt, is less than zero or greater than the permitted maximum."),
 				EOPNOTSUPP=> panic!("An unknown flag is specified in flags."),
 				
-				unexpected @ _ => unreachable!("Unexpected error code from read_vectored completion of {}", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from read_vectored completion of {}", unexpected)),
 			}
 		}
 		else
 		{
-			unreachable!("Unexpected result from read_vectored completion of {}", result)
+			unreachable_code(format_args!("Unexpected result from read_vectored completion of {}", result))
 		}
 	}
 	
@@ -122,12 +122,12 @@ impl CompletionResponse
 				EINVAL => panic!("fd is attached to an object which is unsuitable for reading; or the file was opened with the O_DIRECT flag, and either the address specified in buf, the value specified in count, or the file offset is not suitably aligned. Or, fd was created via a call to timerfd_create(2) and the wrong size buffer was given to read(); see timerfd_create(2) for further information. Or, whence is not valid. Or: the resulting file offset would be negative, or beyond the end of a seekable device. Or the sum of the iov_len values overflows an ssize_t value. Or, the vector count, iovcnt, is less than zero or greater than the permitted maximum."),
 				EOPNOTSUPP=> panic!("An unknown flag is specified in flags."),
 				
-				unexpected @ _ => unreachable!("Unexpected error code from read_fixed completion of {}", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from read_fixed completion of {}", unexpected)),
 			}
 		}
 		else
 		{
-			unreachable!("Unexpected result from read_fixed completion of {}", result)
+			unreachable_code(format_args!("Unexpected result from read_fixed completion of {}", result))
 		}
 	}
 	
@@ -166,12 +166,12 @@ impl CompletionResponse
 				EINVAL => panic!("fd is attached to an object which is unsuitable for reading; or the file was opened with the O_DIRECT flag, and either the address specified in buf, the value specified in count, or the file offset is not suitably aligned. Or, fd was created via a call to timerfd_create(2) and the wrong size buffer was given to read(); see timerfd_create(2) for further information. Or, whence is not valid. Or: the resulting file offset would be negative, or beyond the end of a seekable device."),
 				EISDIR => panic!("fd refers to a directory"),
 				
-				unexpected @ _ => unreachable!("Unexpected error code from read completion of {}", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from read completion of {}", unexpected)),
 			}
 		}
 		else
 		{
-			unreachable!("Unexpected result from read completion of {}", result)
+			unreachable_code(format_args!("Unexpected result from read completion of {}", result))
 		}
 	}
 	
@@ -213,12 +213,12 @@ impl CompletionResponse
 				ESPIPE=> panic!("fd is associated with a pipe, socket, or FIFO"),
 				EOPNOTSUPP=> panic!(" An unknown flag is specified in flags"),
 				
-				unexpected @ _ => unreachable!("Unexpected error code from write_vectored completion of {}", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from write_vectored completion of {}", unexpected)),
 			}
 		}
 		else
 		{
-			unreachable!("Unexpected result from write_vectored completion of {}", result)
+			unreachable_code(format_args!("Unexpected result from write_vectored completion of {}", result))
 		}
 	}
 	
@@ -260,12 +260,12 @@ impl CompletionResponse
 				ESPIPE=> panic!("fd is associated with a pipe, socket, or FIFO"),
 				EOPNOTSUPP=> panic!(" An unknown flag is specified in flags"),
 				
-				unexpected @ _ => unreachable!("Unexpected error code from write_fixed completion of {}", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from write_fixed completion of {}", unexpected)),
 			}
 		}
 		else
 		{
-			unreachable!("Unexpected result from write_fixed completion of {}", result)
+			unreachable_code(format_args!("Unexpected result from write_fixed completion of {}", result))
 		}
 	}
 	
@@ -308,12 +308,12 @@ impl CompletionResponse
 				EOVERFLOW=> panic!("The resulting file offset cannot be represented in an off_t"),
 				ESPIPE=> panic!("fd is associated with a pipe, socket, or FIFO"),
 				
-				unexpected @ _ => unreachable!("Unexpected error code from write completion of {}", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from write completion of {}", unexpected)),
 			}
 		}
 		else
 		{
-			unreachable!("Unexpected result from write completion of {}", result)
+			unreachable_code(format_args!("Unexpected result from write completion of {}", result))
 		}
 	}
 	
@@ -333,16 +333,16 @@ impl CompletionResponse
 				EFAULT => panic!("The array given as argument was not contained in the calling program's address space."),
 				EINVAL => panic!("The nfds value exceeds the RLIMIT_NOFILE value."),
 				
-				unexpected @ _ => unreachable!("Unexpected error code from poll_add completion of {}", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from poll_add completion of {}", unexpected)),
 			}
 			
 			value @ 0 ..= U16Maximum => match PollResponseFlags::from_bits(value as u16)
 			{
 				Some(poll_response_flags) => Ok(Some(poll_response_flags)),
-				None => unreachable!("Invalid PollResponse flags from poll_add completion of {}", value),
+				None => unreachable_code(format_args!("Invalid PollResponse flags from poll_add completion of {}", value)),
 			}
 			
-			unexpected @ _ => unreachable!("Unexpected result from poll_add completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from poll_add completion of {}", unexpected))
 		}
 	}
 	
@@ -364,12 +364,12 @@ impl CompletionResponse
 				
 				ENOENT => Err(false),
 				
-				unexpected @ _ => unreachable!("Unexpected error code from poll_cancel completion of {}", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from poll_cancel completion of {}", unexpected)),
 			}
 			
 			0 => Ok(Some(())),
 			
-			unexpected @ _ => unreachable!("Unexpected result from poll_cancel completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from poll_cancel completion of {}", unexpected))
 		}
 	}
 	
@@ -394,12 +394,12 @@ impl CompletionResponse
 				EBADF=> panic!("fd is not a valid open file descriptor."),
 				
 				
-				unexpected @ _ => unreachable!("Unexpected error code from file_synchronize completion of {}", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from file_synchronize completion of {}", unexpected)),
 			}
 			
 			0 => Ok(Some(())),
 			
-			unexpected @ _ => unreachable!("Unexpected result from file_synchronize completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from file_synchronize completion of {}", unexpected))
 		}
 	}
 	
@@ -443,7 +443,7 @@ impl CompletionResponse
 					ESOCKTNOSUPPORT => panic!("ESOCKTNOSUPPORT"),
 					EPROTONOSUPPORT => panic!("EPROTONOSUPPORT"),
 					
-					unexpected @ _ => unreachable!("Unexpected error code from accept4 completion of {}", unexpected),
+					unexpected @ _ => unreachable_code(format_args!("Unexpected error code from accept4 completion of {}", unexpected)),
 				};
 				Err(error)
 			}
@@ -469,7 +469,7 @@ impl CompletionResponse
 				)
 			}
 			
-			unexpected @ _ => unreachable!("Unexpected result from accept4 completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from accept4 completion of {}", unexpected))
 		}
 	}
 	
@@ -511,14 +511,14 @@ impl CompletionResponse
 					EFAULT => panic!("`addr` points outside the user's accessible address space"),
 					EAFNOSUPPORT => panic!("Invalid `sa_family_t` value"),
 					
-					unexpected @ _ => unreachable!("Unexpected error code from connect completion of {}", unexpected),
+					unexpected @ _ => unreachable_code(format_args!("Unexpected error code from connect completion of {}", unexpected)),
 				};
 				Err(error)
 			}
 			
 			0 => Ok(Some(())),
 			
-			unexpected @ _ => unreachable!("Unexpected result from connect completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from connect completion of {}", unexpected))
 		}
 	}
 	
@@ -563,7 +563,7 @@ impl CompletionResponse
 					ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
 					EOPNOTSUPP => panic!("Some flags in the `flags` argument are inappropriate for the socket type"),
 					
-					unexpected @ _ => unreachable!("Unexpected error code from receive completion of {}", unexpected),
+					unexpected @ _ => unreachable_code(format_args!("Unexpected error code from receive completion of {}", unexpected)),
 				};
 				Err(io::Error::from(error))
 			}
@@ -579,7 +579,7 @@ impl CompletionResponse
 			
 			length if length > 0 => Ok(Some(length as u32)),
 			
-			unexpected @ _ => unreachable!("Unexpected result from receive completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from receive completion of {}", unexpected))
 		}
 	}
 	
@@ -631,7 +631,7 @@ impl CompletionResponse
 					EISCONN => panic!("The connection-mode socket was connected already but a recipient was specified"),
 					EDESTADDRREQ => panic!("The socket is not connection-mode, and no peer address is set"),
 					
-					unexpected @ _ => unreachable!("Unexpected error code from send completion of {}", unexpected),
+					unexpected @ _ => unreachable_code(format_args!("Unexpected error code from send completion of {}", unexpected)),
 				};
 				Err(io::Error::from(error))
 			}
@@ -647,7 +647,7 @@ impl CompletionResponse
 			
 			length if length > 0 => Ok(Some(length as u32)),
 			
-			unexpected @ _ => unreachable!("Unexpected result from send completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from send completion of {}", unexpected))
 		}
 	}
 	
@@ -689,14 +689,14 @@ impl CompletionResponse
 					ENOTCONN=> panic!("Using recvmsg() for a connected socket which hasn't been connected"),
 					ECONNREFUSED=> panic!("Using recvmsg() for a connected socket"),
 					
-					unexpected @ _ => unreachable!("Unexpected error code from receive_message completion of {}", unexpected),
+					unexpected @ _ => unreachable_code(format_args!("Unexpected error code from receive_message completion of {}", unexpected)),
 				};
 				Err(error)
 			}
 			
 			length if length >= 0 => Ok(Some(length as u32)),
 			
-			unexpected @ _ => unreachable!("Unexpected result from receive_message completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from receive_message completion of {}", unexpected))
 		}
 	}
 	
@@ -744,14 +744,14 @@ impl CompletionResponse
 					EISCONN => panic!("The connection-mode socket was connected already but a recipient was specified"),
 					EDESTADDRREQ => panic!("The socket is not connection-mode, and no peer address is set"),
 					
-					unexpected @ _ => unreachable!("Unexpected error code from send_message completion of {}", unexpected),
+					unexpected @ _ => unreachable_code(format_args!("Unexpected error code from send_message completion of {}", unexpected)),
 				};
 				Err(io::Error::from(error))
 			}
 			
 			length if length >= 0 => Ok(Some(length as u32)),
 			
-			unexpected @ _ => unreachable!("Unexpected result from send_message completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from send_message completion of {}", unexpected))
 		}
 	}
 	
@@ -785,13 +785,13 @@ impl CompletionResponse
 					ELOOP => panic!("The supplied file descriptor is for an epoll instance and this operation would result in a circular loop of epoll instances monitoring one another"),
 					EPERM => panic!("The supplied file descriptor does not support epoll (perhaps it is an open regular file or the like)"),
 					
-					unexpected @ _ => unreachable!("Unexpected error code from epoll_control_add completion of {}", unexpected),
+					unexpected @ _ => unreachable_code(format_args!("Unexpected error code from epoll_control_add completion of {}", unexpected)),
 				}
 			}
 			
 			0 => Ok(Some(())),
 			
-			unexpected @ _ => unreachable!("Unexpected result from epoll_control_add completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from epoll_control_add completion of {}", unexpected))
 		}
 	}
 	
@@ -822,13 +822,13 @@ impl CompletionResponse
 					ENOENT => panic!("The supplied file descriptor is not registered with this epoll instance"),
 					EPERM => panic!("The supplied file descriptor does not support epoll (perhaps it is an open regular file or the like)"),
 					
-					unexpected @ _ => unreachable!("Unexpected error code from epoll_control_modify completion of {}", unexpected),
+					unexpected @ _ => unreachable_code(format_args!("Unexpected error code from epoll_control_modify completion of {}", unexpected)),
 				}
 			}
 			
 			0 => Ok(Some(())),
 			
-			unexpected @ _ => unreachable!("Unexpected result from epoll_control_modify completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from epoll_control_modify completion of {}", unexpected))
 		}
 	}
 	
@@ -855,13 +855,13 @@ impl CompletionResponse
 					ENOENT => panic!("The supplied file descriptor is not registered with this epoll instance"),
 					EPERM => panic!("The supplied file descriptor does not support epoll (perhaps it is an open regular file or the like)"),
 					
-					unexpected @ _ => unreachable!("Unexpected error code from epoll_control_delete completion of {}", unexpected),
+					unexpected @ _ => unreachable_code(format_args!("Unexpected error code from epoll_control_delete completion of {}", unexpected)),
 				}
 			}
 			
 			0 => Ok(Some(())),
 			
-			unexpected @ _ => unreachable!("Unexpected result from epoll_control_delete completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from epoll_control_delete completion of {}", unexpected))
 		}
 	}
 	
@@ -883,12 +883,12 @@ impl CompletionResponse
 				
 				EINTR | EAGAIN | ENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
 				
-				unexpected @ _ => unreachable!("Unexpected error code from cancel completion of {}", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from cancel completion of {}", unexpected)),
 			}
 			
 			0 => Ok(Some(())),
 			
-			unexpected @ _ => unreachable!("Unexpected result from cancel completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from cancel completion of {}", unexpected))
 		}
 	}
 	
@@ -904,12 +904,12 @@ impl CompletionResponse
 				
 				EINTR | EAGAIN | ENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
 				
-				unexpected @ _ => unreachable!("Unexpected error code from nop completion of {}", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from nop completion of {}", unexpected)),
 			}
 			
 			0 => Some(()),
 			
-			unexpected @ _ => unreachable!("Unexpected result from nop completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from nop completion of {}", unexpected))
 		}
 	}
 	
@@ -934,12 +934,12 @@ impl CompletionResponse
 				
 				EINTR | EAGAIN | ENOMEM => Err(()),
 				
-				unexpected @ _ => unreachable!("Unexpected error code from timeout completion of {}", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from timeout completion of {}", unexpected)),
 			}
 			
 			0 => Ok(Some(true)),
 			
-			unexpected @ _ => unreachable!("Unexpected result from timeout completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from timeout completion of {}", unexpected))
 		}
 	}
 	
@@ -962,12 +962,12 @@ impl CompletionResponse
 				
 				EINTR | EAGAIN | ENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
 				
-				unexpected @ _ => unreachable!("Unexpected error code from linked_timeout completion of {}", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from linked_timeout completion of {}", unexpected)),
 			}
 			
 			0 => Some(true),
 			
-			unexpected @ _ => unreachable!("Unexpected result from linked_timeout completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from linked_timeout completion of {}", unexpected))
 		}
 	}
 	
@@ -992,12 +992,12 @@ impl CompletionResponse
 				
 				EINTR | EAGAIN | ENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
 				
-				unexpected @ _ => unreachable!("Unexpected error code from cancel_timeout completion of {}", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from cancel_timeout completion of {}", unexpected)),
 			}
 			
 			0 => Ok(Some(())),
 			
-			unexpected @ _ => unreachable!("Unexpected result from cancel_timeout completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from cancel_timeout completion of {}", unexpected))
 		}
 	}
 	
@@ -1028,12 +1028,12 @@ impl CompletionResponse
 				EOPNOTSUPP => panic!("The filesystem containing the file referred to by fd does not support this operation; or the mode is not supported by the filesystem containing the file referred to by fd"),
 				EPERM => panic!("The file referred to by fd is marked immutable (see chattr(1)). Or mode specifies FALLOC_FL_PUNCH_HOLE or FALLOC_FL_COLLAPSE_RANGE or FALLOC_FL_INSERT_RANGE and the file referred to by fd is marked append-only (see chattr(1)). Or the operation was prevented by a file seal; see fcntl(2)."),
 				
-				unexpected @ _ => unreachable!("Unexpected error code from file_allocate completion of {}", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from file_allocate completion of {}", unexpected)),
 			}
 			
 			0 => Ok(Some(())),
 			
-			unexpected @ _ => unreachable!("Unexpected result from file_allocate completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from file_allocate completion of {}", unexpected))
 		}
 	}
 	
@@ -1054,12 +1054,12 @@ impl CompletionResponse
 				EBADF => panic!("fd is not a valid file descriptor"),
 				ESPIPE => panic!("The specified file descriptor refers to a pipe or FIFO (befor Linux 2.6.16, this was EINVAL)"),
 				
-				unexpected @ _ => unreachable!("Unexpected error code from file_advise completion of {}", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from file_advise completion of {}", unexpected)),
 			}
 			
 			0 => Some(()),
 			
-			unexpected @ _ => unreachable!("Unexpected result from file_advise completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from file_advise completion of {}", unexpected))
 		}
 	}
 	
@@ -1084,12 +1084,12 @@ impl CompletionResponse
 				EINVAL => panic!("flags specifies an invalid bit; or offset or nbytes is invalid"),
 				ESPIPE => panic!("fd refers to something other than a regular file, a block device, a directory, or a symbolic link"),
 				
-				unexpected @ _ => unreachable!("Unexpected error code from synchronize_file_range completion of {}", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from synchronize_file_range completion of {}", unexpected)),
 			}
 			
 			0 => Ok(Some(())),
 			
-			unexpected @ _ => unreachable!("Unexpected result from synchronize_file_range completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from synchronize_file_range completion of {}", unexpected))
 		}
 	}
 	
@@ -1112,7 +1112,7 @@ impl CompletionResponse
 			
 			0 => Ok(Some(())),
 			
-			unexpected @ _ => unreachable!("Unexpected result from memory_advise completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from memory_advise completion of {}", unexpected))
 		}
 	}
 	
@@ -1134,12 +1134,12 @@ impl CompletionResponse
 				
 				EBADF=> panic!("fd isn't a valid open file descriptor."),
 				
-				unexpected @ _ => unreachable!("Unexpected error code from close completion of {}", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from close completion of {}", unexpected)),
 			}
 			
 			0 => Some(true),
 			
-			unexpected @ _ => unreachable!("Unexpected result from close completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from close completion of {}", unexpected))
 		}
 	}
 	
@@ -1159,7 +1159,7 @@ impl CompletionResponse
 			
 			raw_file_descriptor if raw_file_descriptor >= 0 => Ok(Some(unsafe { Open::from_raw_fd(raw_file_descriptor) })),
 			
-			unexpected @ _ => unreachable!("Unexpected result from openat completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from openat completion of {}", unexpected))
 		}
 	}
 	
@@ -1180,7 +1180,7 @@ impl CompletionResponse
 			
 			raw_file_descriptor if raw_file_descriptor >= 0 => Ok(Some(unsafe { Open::from_raw_fd(raw_file_descriptor) })),
 			
-			unexpected @ _ => unreachable!("Unexpected result from openat2 completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from openat2 completion of {}", unexpected))
 		}
 	}
 	
@@ -1202,12 +1202,12 @@ impl CompletionResponse
 				EFAULT => panic!("pathname or statxbuf is NULL or points to a location outside the process's accessible address space"),
 				EINVAL => panic!("Invalid flag specified in flags. Or, reserved flag specified in mask. (Currently, there is one such flag, designated by the constant STATX__RESERVED, with the value 0x80000000U)."),
 				
-				unexpected @ _ => unreachable!("Unexpected error code from extended_metadata_for_path completion of {}", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from extended_metadata_for_path completion of {}", unexpected)),
 			}
 			
 			0 => Ok(Some(())),
 			
-			unexpected @ _ => unreachable!("Unexpected result from extended_metadata_for_path completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from extended_metadata_for_path completion of {}", unexpected))
 		}
 	}
 	
@@ -1231,12 +1231,12 @@ impl CompletionResponse
 				ENOENT => panic!("ENOENT A component of pathname does not exist, or pathname is an empty string and AT_EMPTY_PATH was not specified in flags."),
 				ENOTDIR => panic!("A component of the path prefix of pathname is not a directory or pathname is relative and dirfd is a file descriptor referring to a file other than a directory"),
 				
-				unexpected @ _ => unreachable!("Unexpected error code from extended_metadata_for_directory completion of {}", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from extended_metadata_for_directory completion of {}", unexpected)),
 			}
 			
 			0 => Ok(Some(())),
 			
-			unexpected @ _ => unreachable!("Unexpected result from extended_metadata_for_directory completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from extended_metadata_for_directory completion of {}", unexpected))
 		}
 	}
 	
@@ -1254,7 +1254,7 @@ impl CompletionResponse
 				
 				EINVAL => panic!("Unsupported"),
 				
-				unexpected @ _ => unreachable!("Unexpected error code from registered_file_descriptors_update completion of {}", unexpected),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from registered_file_descriptors_update completion of {}", unexpected)),
 			}
 			
 			count if count >= 0 =>
@@ -1263,7 +1263,7 @@ impl CompletionResponse
 				Some(count as u32)
 			}
 			
-			unexpected @ _ => unreachable!("Unexpected result from registered_file_descriptors_update completion of {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result from registered_file_descriptors_update completion of {}", unexpected))
 		}
 	}
 	

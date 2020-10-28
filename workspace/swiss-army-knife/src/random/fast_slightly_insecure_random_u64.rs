@@ -17,7 +17,7 @@ pub fn fast_slightly_insecure_random_u64() -> u64
 			
 			1 => continue,
 			
-			unexpected @ _ => unreachable!("Intel _rdrand64_step() intrisnice returned a result other than 0 or 1: {}", unexpected)
+			unexpected @ _ => unreachable_code(format_args!("Intel _rdrand64_step() intrinsic returned a result other than 0 or 1: {}", unexpected)),
 		};
 	}
 	

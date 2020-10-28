@@ -81,7 +81,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from open()", result)
+			unreachable_code(format_args!("Unexpected result {} from open()", result))
 		}
 	}
 
@@ -108,7 +108,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from openat()", result)
+			unreachable_code(format_args!("Unexpected result {} from openat()", result))
 		}
 	}
 
@@ -141,7 +141,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from openat2()", result)
+			unreachable_code(format_args!("Unexpected result {} from openat2()", result))
 		}
 	}
 
@@ -177,7 +177,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("result of openat() was unexpected value {}", result)
+			unreachable_code(format_args!("result of openat() was unexpected value {}", result))
 		}
 	}
 
@@ -219,7 +219,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("result of openat2() was unexpected value {}", result)
+			unreachable_code(format_args!("result of openat2() was unexpected value {}", result))
 		}
 	}
 
@@ -277,7 +277,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("result {} was unexpected for name_to_handle_at()", result)
+			unreachable_code(format_args!("result {} was unexpected for name_to_handle_at()", result))
 		}
 	}
 
@@ -310,7 +310,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from ioctl()", result)
+			unreachable_code(format_args!("Unexpected result {} from ioctl()", result))
 		}
 	}
 
@@ -328,7 +328,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from ioctl()", result)
+			unreachable_code(format_args!("Unexpected result {} from ioctl()", result))
 		}
 	}
 
@@ -381,7 +381,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from ioctl()", result)
+			unreachable_code(format_args!("Unexpected result {} from ioctl()", result))
 		}
 	}
 
@@ -400,7 +400,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from fchdir()", result)
+			unreachable_code(format_args!("Unexpected result {} from fchdir()", result))
 		}
 	}
 
@@ -479,7 +479,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("result of openat2() was unexpected value {}", result)
+			unreachable_code(format_args!("result of openat2() was unexpected value {}", result))
 		}
 	}
 
@@ -520,7 +520,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from fchmodat()", result)
+			unreachable_code(format_args!("Unexpected result {} from fchmodat()", result))
 		}
 	}
 
@@ -570,7 +570,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("utimensat() returned unexpected result {}", result)
+			unreachable_code(format_args!("utimensat() returned unexpected result {}", result))
 		}
 	}
 
@@ -621,7 +621,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from fchmodat()", result)
+			unreachable_code(format_args!("Unexpected result {} from fchmodat()", result))
 		}
 	}
 
@@ -667,7 +667,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("unlinkat() returned unexpected result {}", result)
+			unreachable_code(format_args!("unlinkat() returned unexpected result {}", result))
 		}
 	}
 
@@ -690,7 +690,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("unlinkat() returned unexpected result {}", result)
+			unreachable_code(format_args!("unlinkat() returned unexpected result {}", result))
 		}
 	}
 
@@ -716,7 +716,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("unlinkat() returned unexpected result {}", result)
+			unreachable_code(format_args!("unlinkat() returned unexpected result {}", result))
 		}
 	}
 
@@ -756,7 +756,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("execveat returned a value of `{}`", result)
+			unreachable_code(format_args!("execveat returned a value of `{}`", result))
 		}
 	}
 
@@ -821,7 +821,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("unlinkat() returned unexpected result {}", result)
+			unreachable_code(format_args!("unlinkat() returned unexpected result {}", result))
 		}
 	}
 
@@ -875,7 +875,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("fstatat() returned unexpected result {}", result)
+			unreachable_code(format_args!("fstatat() returned unexpected result {}", result))
 		}
 	}
 
@@ -913,7 +913,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("unlinkat() returned unexpected result {}", result)
+			unreachable_code(format_args!("unlinkat() returned unexpected result {}", result))
 		}
 	}
 
@@ -936,7 +936,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("mkdirat() returned unexpected result {}", result)
+			unreachable_code(format_args!("mkdirat() returned unexpected result {}", result))
 		}
 	}
 
@@ -1006,7 +1006,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable!("mknodat() returned unexpected result {}", result)
+			unreachable_code(format_args!("mknodat() returned unexpected result {}", result))
 		}
 	}
 

@@ -93,7 +93,7 @@ pub trait Sparseness: AsRawFd + Seek + FileExt
 			}
 			else
 			{
-				unreachable!("ioctl() failed with unexpected error {}", result)
+				unreachable_code(format_args!("ioctl() failed with unexpected error {}", result))
 			}
 		}
 	}

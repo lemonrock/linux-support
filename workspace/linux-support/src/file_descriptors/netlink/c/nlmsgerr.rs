@@ -31,7 +31,7 @@ impl nlmsgerr
 		}
 		else
 		{
-			unreachable!("error field is either negative or greater than 4095: {}", self.error)
+			unreachable_code(format_args!("error field is either negative or greater than 4095: {}", self.error))
 		}
 	}
 	
@@ -44,7 +44,7 @@ impl nlmsgerr
 		}
 		else
 		{
-			unreachable!("error field is either negative or greater than 4095: {}", self.error)
+			unreachable_code(format_args!("error field is either negative or greater than 4095: {}", self.error))
 		}
 	}
 }

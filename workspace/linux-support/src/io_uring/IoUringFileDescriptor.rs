@@ -135,7 +135,7 @@ impl IoUringFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from io_uring_setup()", result)
+			unreachable_code(format_args!("Unexpected result {} from io_uring_setup()", result))
 		}
 	}
 
@@ -208,7 +208,7 @@ impl IoUringFileDescriptor
 		}
 		else
 		{
-			unreachable!("io_uring_enter() returned unexpected result {}", result)
+			unreachable_code(format_args!("io_uring_enter() returned unexpected result {}", result))
 		}
 	}
 	
@@ -227,7 +227,7 @@ impl IoUringFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from io_uring_register()", result)
+			unreachable_code(format_args!("Unexpected result {} from io_uring_register()", result))
 		}
 	}
 
@@ -246,7 +246,7 @@ impl IoUringFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from io_uring_register()", result)
+			unreachable_code(format_args!("Unexpected result {} from io_uring_register()", result))
 		}
 	}
 
@@ -265,7 +265,7 @@ impl IoUringFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from io_uring_register()", result)
+			unreachable_code(format_args!("Unexpected result {} from io_uring_register()", result))
 		}
 	}
 
@@ -284,7 +284,7 @@ impl IoUringFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from io_uring_register()", result)
+			unreachable_code(format_args!("Unexpected result {} from io_uring_register()", result))
 		}
 	}
 
@@ -325,7 +325,7 @@ impl IoUringFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from io_uring_register()", result)
+			unreachable_code(format_args!("Unexpected result {} from io_uring_register()", result))
 		}
 	}
 
@@ -352,7 +352,7 @@ impl IoUringFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from io_uring_register()", result)
+			unreachable_code(format_args!("Unexpected result {} from io_uring_register()", result))
 		}
 	}
 
@@ -379,7 +379,7 @@ impl IoUringFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from io_uring_register()", result)
+			unreachable_code(format_args!("Unexpected result {} from io_uring_register()", result))
 		}
 	}
 
@@ -406,7 +406,7 @@ impl IoUringFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from io_uring_register()", result)
+			unreachable_code(format_args!("Unexpected result {} from io_uring_register()", result))
 		}
 	}
 
@@ -444,7 +444,7 @@ impl IoUringFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from io_uring_register()", result)
+			unreachable_code(format_args!("Unexpected result {} from io_uring_register()", result))
 		}
 	}
 
@@ -470,7 +470,7 @@ impl IoUringFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from io_uring_register()", result)
+			unreachable_code(format_args!("Unexpected result {} from io_uring_register()", result))
 		}
 	}
 	
@@ -493,7 +493,7 @@ impl IoUringFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from io_uring_register()", result)
+			unreachable_code(format_args!("Unexpected result {} from io_uring_register()", result))
 		}
 	}
 

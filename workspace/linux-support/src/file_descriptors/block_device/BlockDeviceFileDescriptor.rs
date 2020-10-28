@@ -121,12 +121,12 @@ impl Read for BlockDeviceFileDescriptor
 							EFAULT => panic!("The receive buffer pointer(s) point outside the process's address space"),
 							EINVAL => panic!("Invalid argument passed"),
 							EISDIR => panic!("`fd` refers to a directory"),
-							_ => unreachable!(),
+							_ => unreachable_code(format_args!("")),
 						}
 					}
 					else
 					{
-						unreachable!()
+						unreachable_code(format_args!(""))
 					}
 				)
 			)
@@ -194,12 +194,12 @@ impl Write for BlockDeviceFileDescriptor
 							EFAULT => panic!("The write buffer pointer(s) point outside the process's address space"),
 							EINVAL => panic!("Invalid argument passed"),
 							EDESTADDRREQ => panic!("`fd` refers to a datagram socket for which a peer address has not been set using `connect()`"),
-							_ => unreachable!(),
+							_ => unreachable_code(format_args!("")),
 						}
 					}
 					else
 					{
-						unreachable!()
+						unreachable_code(format_args!(""))
 					}
 				)
 			)
@@ -256,7 +256,7 @@ impl Seek for BlockDeviceFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from lseek", result)
+			unreachable_code(format_args!("Unexpected result {} from lseek", result))
 		}
 	}
 }
@@ -281,7 +281,7 @@ impl FileExt for BlockDeviceFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from pread()", result)
+			unreachable_code(format_args!("Unexpected result {} from pread()", result))
 		}
 	}
 
@@ -299,7 +299,7 @@ impl FileExt for BlockDeviceFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from pwrite()", result)
+			unreachable_code(format_args!("Unexpected result {} from pwrite()", result))
 		}
 	}
 }
@@ -358,7 +358,7 @@ impl BlockDeviceFileDescriptor
 					ENOSPC => panic!("`pathname` was to be created but the device containing `pathname` has no room for the new file"),
 					EPERM => panic!("The `O_NOATIME` flag was specified, but the effective user ID of the caller did not match the owner of the file and the caller was not privileged (`CAP_FOWNER`)"),
 
-					_ => unreachable!(),
+					_ => unreachable_code(format_args!("")),
 				}
 			)
 		}

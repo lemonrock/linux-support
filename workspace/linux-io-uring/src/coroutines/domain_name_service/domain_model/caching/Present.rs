@@ -100,7 +100,7 @@ impl<Record: Sized + Debug> Present<Record>
 							vacant.insert(sorted_weighted_records.clone());
 						},
 						
-						Occupied(occupied_from_use_once) =>
+						Occupied(mut occupied_from_use_once) =>
 						{
 							occupied_from_use_once.get_mut().append(sorted_weighted_records);
 						},

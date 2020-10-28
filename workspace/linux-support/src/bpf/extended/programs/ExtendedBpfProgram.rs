@@ -114,10 +114,10 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 				}
 				else
 				{
-					unreachable!()
+					unreachable_code(format_args!(""))
 				},
 				
-				EBADF => unreachable!(),
+				EBADF => unreachable_code(format_args!("")),
 				
 				EACCES | EINVAL | E2BIG =>
 				{
@@ -135,7 +135,7 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 		}
 		else
 		{
-			unreachable!("result `{}` from bpf(BPF_PROG_LOAD) was unexpected", result)
+			unreachable_code(format_args!("result `{}` from bpf(BPF_PROG_LOAD) was unexpected", result))
 		}
 	}
 	

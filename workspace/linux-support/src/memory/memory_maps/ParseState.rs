@@ -117,7 +117,7 @@ impl ParseState
 
 			FilePathFirstByte => self.validate_file(name, offset, block_device, inode),
 
-			_ => unreachable!(),
+			_ => unreachable_code(format_args!("")),
 		}
 	}
 

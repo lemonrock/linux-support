@@ -74,7 +74,7 @@ impl ProcessQueryInformation
 			}
 			else
 			{
-				unreachable!("Unexpected result `{}` from bpf(BPF_TASK_FD_QUERY)", result)
+				unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_TASK_FD_QUERY)", result))
 			}
 		}
 	}

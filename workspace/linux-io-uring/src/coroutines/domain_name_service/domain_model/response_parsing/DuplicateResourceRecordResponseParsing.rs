@@ -11,7 +11,7 @@ pub(crate) struct DuplicateResourceRecordResponseParsing<'message>
 impl<'message> DuplicateResourceRecordResponseParsing<'message>
 {
 	#[inline(always)]
-	pub(crate) fn encountered(&mut self, data_type_or_meta_type: impl DataTypeOrMetaType, resource_record_name: &ParsedName<'message>, resource_data: &'message [u8]) -> Result<(), ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError>
+	pub(crate) fn encountered(&self, data_type_or_meta_type: impl DataTypeOrMetaType, resource_record_name: &ParsedName<'message>, resource_data: &'message [u8]) -> Result<(), ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError>
 	{
 		let data_type_or_meta_type = data_type_or_meta_type.into_big_endian_u16();
 		let has_not_yet_been_encountered = self.already_encountered.borrow_mut().insert((data_type_or_meta_type, resource_record_name.clone(), resource_data));

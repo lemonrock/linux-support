@@ -54,7 +54,7 @@ impl PermittedEffectiveAndInheritableCapabilitySets
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from capget()", result)
+			unreachable_code(format_args!("Unexpected result {} from capget()", result))
 		}
 	}
 
@@ -108,7 +108,7 @@ impl PermittedEffectiveAndInheritableCapabilitySets
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from capget()", result)
+			unreachable_code(format_args!("Unexpected result {} from capget()", result))
 		}
 	}
 }

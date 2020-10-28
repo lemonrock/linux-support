@@ -79,7 +79,7 @@ impl RawTracePointFileDescriptor
 			{
 				ENOENT => Err(TracePointNameNotFound),
 				ENOMEM => Err(OutOfMemory),
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 	}

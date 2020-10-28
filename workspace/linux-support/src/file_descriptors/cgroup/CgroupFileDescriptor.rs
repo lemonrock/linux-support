@@ -128,7 +128,7 @@ impl CgroupFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_LINK_CREATE)", result)
+			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_LINK_CREATE)", result))
 		}
 	}
 }

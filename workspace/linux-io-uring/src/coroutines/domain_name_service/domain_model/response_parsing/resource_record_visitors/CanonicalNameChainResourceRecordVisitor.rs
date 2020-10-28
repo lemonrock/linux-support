@@ -31,9 +31,9 @@ impl<'message, 'cache: 'message, RRV: ResourceRecordVisitor<'message>> Canonical
 	/// Assumes that CNAME records in the answer section are sorted in chain order.
 	/// Whilst they don't have to be, only a poorly implemented server is likely to not do this.
 	#[inline(always)]
-	fn add_canonical_link(&mut self, from: ParsedName<'message>, cache_until: CacheUntil, to: ParsedName<'message>) -> Result<(), CanonicalChainError>
+	fn add_canonical_link(&mut self, from: &ParsedName<'message>, cache_until: CacheUntil, to: &ParsedName<'message>) -> Result<(), CanonicalChainError>
 	{
-		self.canonical_name_chain.insert_link(from, to, cache_until)
+		self.canonical_name_chain.insert_link(from, cache_until, to)
 	}
 }
 
@@ -87,7 +87,7 @@ impl<'message, 'cache: 'message, RRV: ResourceRecordVisitor<'message>> ResourceR
 		
 		if is_some_if_present_in_answer_section_and_true_if_was_queried_for == Some(false)
 		{
-			self.add_canonical_link(name, cache_until, record)?;
+			self.add_canonical_link(&name, cache_until, &record)?;
 		}
 		
 		self.answer_section_resource_record_visitor.CNAME(name, cache_until, record, is_some_if_present_in_answer_section_and_true_if_was_queried_for).map_err(WrappingCanonicalChainError::Wrapped)

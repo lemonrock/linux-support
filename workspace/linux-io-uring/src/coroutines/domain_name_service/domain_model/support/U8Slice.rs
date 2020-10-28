@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) trait U8Slice<'a>: Sized
+pub(crate) trait U8Slice<'a>: Sized + Copy
 {
 	#[inline(always)]
 	fn start_pointer(self) -> usize
@@ -126,7 +126,7 @@ pub(crate) trait U8Slice<'a>: Sized
 
 	#[doc(hidden)]
 	#[inline(always)]
-	fn len_(self) -> usize
+	fn len_(&self) -> usize
 	{
 		self.slice_().len()
 	}
@@ -144,15 +144,6 @@ impl<'a> U8Slice<'a> for &'a [u8]
 	}
 }
 
-impl<'a> U8Slice<'a> for &'a mut [u8]
-{
-	#[inline(always)]
-	fn slice_(self) -> &'a [u8]
-	{
-		self
-	}
-}
-
 impl<'a> U8Slice<'a> for &'a [u8; 2]
 {
 	#[inline(always)]
@@ -162,25 +153,7 @@ impl<'a> U8Slice<'a> for &'a [u8; 2]
 	}
 }
 
-impl<'a> U8Slice<'a> for &'a mut [u8; 2]
-{
-	#[inline(always)]
-	fn slice_(self) -> &'a [u8]
-	{
-		&self[..]
-	}
-}
-
 impl<'a> U8Slice<'a> for &'a [u8; 4]
-{
-	#[inline(always)]
-	fn slice_(self) -> &'a [u8]
-	{
-		&self[..]
-	}
-}
-
-impl<'a> U8Slice<'a> for &'a mut [u8; 4]
 {
 	#[inline(always)]
 	fn slice_(self) -> &'a [u8]

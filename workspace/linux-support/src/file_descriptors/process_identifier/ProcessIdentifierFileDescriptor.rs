@@ -84,7 +84,7 @@ impl ProcessIdentifierFileDescriptor
 				ENODEV => panic!("The anonymous inode filesystem is not available in this kernel"),
 				EINVAL => panic!("flags is not 0 or pid is not valid"),
 
-				_ => unreachable!(),
+				_ => unreachable_code(format_args!("")),
 			}
 		}
 		else
@@ -168,7 +168,7 @@ impl ProcessIdentifierFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result {} from pidfd_getfd()", result)
+			unreachable_code(format_args!("Unexpected result {} from pidfd_getfd()", result))
 		}
 	}
 }

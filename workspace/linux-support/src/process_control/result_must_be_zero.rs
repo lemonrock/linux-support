@@ -11,6 +11,6 @@ pub(crate) fn result_must_be_zero<E>(non_negative_result: i32) -> Result<(), E>
 	}
 	else
 	{
-		unreachable!("Positive result")
+		unreachable_code(format_args!("Positive result"))
 	}
 }

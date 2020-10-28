@@ -136,7 +136,7 @@ impl ExtendedBpfProgramFileDescriptor
 		}
 		else
 		{
-			unreachable!("Unexpected result `{}` from bpf(BPF_PROG_TEST_RUN)", result)
+			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_PROG_TEST_RUN)", result))
 		}
 	}
 }

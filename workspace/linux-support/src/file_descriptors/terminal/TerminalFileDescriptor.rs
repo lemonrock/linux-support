@@ -127,7 +127,7 @@ impl Write for TerminalFileDescriptor
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 }
@@ -269,7 +269,7 @@ impl TerminalFileDescriptor
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 
@@ -286,7 +286,7 @@ impl TerminalFileDescriptor
 		}
 		else
 		{
-			unreachable!()
+			unreachable_code(format_args!(""))
 		}
 	}
 }
