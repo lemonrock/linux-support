@@ -47,7 +47,7 @@ pub trait Name<'label>: Sized + Clone + Debug
 			
 			let our_label = unsafe { self.label(index) };
 			let ends_with_label = unsafe { ends_with.label(index) };
-			if our_label != ends_with_label
+			if our_label.deref() != ends_with_label.deref()
 			{
 				return false
 			}
@@ -72,7 +72,7 @@ pub trait Name<'label>: Sized + Clone + Debug
 			let left = unsafe { self.label(index) };
 			let right = unsafe { rhs.label(index) };
 			
-			if left.equals(&right)
+			if left.deref().equals(right.deref())
 			{
 				return false
 			}
@@ -102,7 +102,7 @@ pub trait Name<'label>: Sized + Clone + Debug
 			
 			use self::Ordering::*;
 			
-			match left.compare(&right)
+			match left.deref().compare(right.deref())
 			{
 				Less => return Less,
 				Equal => continue,

@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Location resource data.
+/// Location resource data using [WGS84](https://en.wikipedia.org/wiki/World_Geodetic_System#WGS84).
 #[repr(C, packed)]
 pub struct LocationBodyVersion0
 {
@@ -15,32 +15,16 @@ pub struct LocationBodyVersion0
 	/// Vertical precision.
 	pub vertical_precision: LocationCompressedCentimetres,
 	
-	/// The latitude of the center of the sphere described by `size()`, expressed as a 32-bit integer, most significant octet first (network standard byte order), in thousandths of a second of arc.
+	/// The latitude of the center of the sphere described by `size`, expressed as a 32-bit integer, most significant octet first (network standard byte order), in thousandths of a second of arc.
 	///
 	/// 2^31 represents the equator; numbers above that are north latitude.
-	pub unsigned_latitude: BigEndianI32,
+	pub unsigned_latitude: BigEndianU32,
 	
-	/// The longitude of the center of the sphere described by `size()`, expressed as a 32-bit integer, most significant octet first (network standard byte order), in thousandths of a second of arc.
+	/// The longitude of the center of the sphere described by `size`, expressed as a 32-bit integer, most significant octet first (network standard byte order), in thousandths of a second of arc.
 	///
-	/// 2^31 represents the equator; numbers above that are north latitude.
-	pub unsigned_longitude: BigEndianI32,
+	/// 2^31 represents the prime meridian; numbers above that are east longitude.
+	pub unsigned_longitude: BigEndianU32,
 	
-	/// The altitude of the center of the sphere described by by `size()`d, expressed as a 32-bit integer, most significant octet first (network standard byte order), in centimeters, from a base of 100,000m below the WGS 84 reference spheroid used by GPS.
-	pub unsigned_altitude: BigEndianI32,
-}
-
-impl LocationBodyVersion0
-{
-	#[inline(always)]
-	pub(crate) fn validate_is_version_0(&self) -> Result<(), LOCHandleRecordTypeError>
-	{
-		if likely!(self.version == 0)
-		{
-			Ok(())
-		}
-		else
-		{
-			Err(LOCHandleRecordTypeError::ResourceDataForTypeLOCHasAnIncorrectVersion(self.version))
-		}
-	}
+	/// The altitude of the center of the sphere described by `size`, expressed as a 32-bit integer, most significant octet first (network standard byte order), in centimeters, from a base of 100,000m below the WGS 84 reference spheroid used by GPS.
+	pub unsigned_altitude: BigEndianU32,
 }

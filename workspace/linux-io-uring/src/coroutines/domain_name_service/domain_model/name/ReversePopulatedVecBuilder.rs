@@ -77,7 +77,7 @@ impl<T> ReversePopulatedVecBuilder<T>
 		Ok(())
 	}
 	
-	/// NOTE: `copy_from_nonoverlapping()` is used in preference to `copy_from()` and re-use of the existing `temporary` Vec because:-
+	/// NOTE: `copy_nonoverlapping()` is used in preference to `copy()` and re-use of the existing `temporary` Vec because:-
 	///
 	/// * under the covers it uses the much more efficient `memcpy`.
 	/// * it simplifies the logic required in `drop()`.
@@ -87,7 +87,7 @@ impl<T> ReversePopulatedVecBuilder<T>
 		let mut vec = Vec::with_capacity(self.count);
 		unsafe
 		{
-			vec.as_mut_ptr().copy_from_nonoverlapping(self.start_pointer(), self.count);
+			unsafe { copy_nonoverlapping(self.start_pointer(), vec.as_mut_ptr(), self.count) }
 			vec.set_len(self.count)
 		}
 		
@@ -119,7 +119,7 @@ impl<'a> ReversePopulatedVecBuilder<CaseFoldedLabel<'a>>
 	{
 		if likely!(label.is_empty())
 		{
-			self.try_reverse_push(CaseFoldedLabel::try_from(b"").unwrap()).unwrap();
+			self.try_reverse_push(CaseFoldedLabel::Root).unwrap();
 			Ok(unsafe { NonZeroU8::new_unchecked(ParsedNameParser::SizeOfTrailingPeriod) })
 		}
 		else
@@ -139,7 +139,7 @@ impl<'a> ReversePopulatedVecBuilder<CaseFoldedLabel<'a>>
 		}
 		
 		Self::change_name_length_including_trailing_periods_after_labels(label, name_length_including_trailing_periods_after_labels)?;
-		self.try_reverse_push(CaseFoldedLabel::try_from(label)?).map_err(NumberOfLabelsExceed127)
+		self.try_reverse_push(CaseFoldedLabel::try_from(label)?).map_err(|_: ()| NumberOfLabelsExceed127)
 	}
 	
 	#[inline(always)]
@@ -147,11 +147,11 @@ impl<'a> ReversePopulatedVecBuilder<CaseFoldedLabel<'a>>
 	{
 		use self::CaseFoldedNameParseError::TotalNameLengthExceed255Bytes;
 		
-		let name_length_including_trailing_periods_after_labels = (*name_length_including_trailing_periods_after_labels).get();
-		let name_length_including_trailing_periods_after_labels = name_length_including_trailing_periods_after_labels.checked_add(ParsedNameParser::SizeOfTrailingPeriod).ok_or(TotalNameLengthExceed255Bytes)?;
-		let name_length_including_trailing_periods_after_labels = name_length_including_trailing_periods_after_labels.checked_add(label.len() as u8).ok_or(TotalNameLengthExceed255Bytes)?;
+		let name_length = (*name_length_including_trailing_periods_after_labels).get();
+		let name_length = name_length.checked_add(ParsedNameParser::SizeOfTrailingPeriod).ok_or(TotalNameLengthExceed255Bytes)?;
+		let name_length = name_length.checked_add(label.len() as u8).ok_or(TotalNameLengthExceed255Bytes)?;
 		
-		*name_length_including_trailing_periods_after_labels = unsafe { NonZeroU8::new_unchecked(name_length_including_trailing_periods_after_labels) };
+		*name_length_including_trailing_periods_after_labels = unsafe { NonZeroU8::new_unchecked(name_length) };
 		Ok(())
 	}
 }

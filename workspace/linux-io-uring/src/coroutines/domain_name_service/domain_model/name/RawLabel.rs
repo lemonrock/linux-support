@@ -37,9 +37,9 @@ impl RawLabel
 	#[inline(always)]
 	fn compressed_pointer_offset(&self) -> CompressedPointerOffset
 	{
-		let top_6_bits = (self.bitfield.bottom_6_bits() as u16) << 8;
+		let top_6_bits = (self.bitfield.bottom_6_bits_as_u8() as u16) << 8;
 		let bottom_8_bits = *self.bytes().unsafe_cast::<u8>() as u16;
-		let offset = CompressedPointerOffset(top_6_bits | bottom_8_bits);
+		CompressedPointerOffset(top_6_bits | bottom_8_bits)
 	}
 
 	#[inline(always)]

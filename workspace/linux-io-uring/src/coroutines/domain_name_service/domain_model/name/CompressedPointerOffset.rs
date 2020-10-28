@@ -19,7 +19,7 @@ impl TryFrom<usize> for CompressedPointerOffset
 		}
 		else
 		{
-			Ok(Self(value))
+			Ok(Self(value as u16))
 		}
 	}
 }

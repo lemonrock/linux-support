@@ -55,7 +55,7 @@ pub trait Label<'label>: Clone
 	#[inline(always)]
 	fn partial_compare<'rhs_label, RHS: Label<'rhs_label>>(&self, rhs: &RHS) -> Option<Ordering>
 	{
-		Some(self.cmp(rhs))
+		Some(self.compare(rhs))
 	}
 	
 	#[doc(hidden)]

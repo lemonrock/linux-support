@@ -34,7 +34,7 @@ impl SignatureTimestamp
 					NanosecondsSinceUnixEpoch::from_seconds_u32_before_next_wrap_around(signature_inception_seconds)
 				};
 				let signature_expiration_time = NanosecondsSinceUnixEpoch::from_seconds_u32_before_next_wrap_around(signature_expiration_seconds);
-				Some(Some(signature_inception_time, signature_expiration_time))
+				Some(Some((signature_inception_time, signature_expiration_time)))
 			}
 		}
 	}

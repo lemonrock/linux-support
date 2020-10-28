@@ -36,6 +36,7 @@
 /// The `query_name` was `www.microsoft.com.`.
 ///
 /// The function `validate_authority_section_name()` below will then validate that the `start_of_authority_name`, `dspb.akamaiedge.net.`, is the same as `parent`.
+#[derive(Debug)]
 pub(crate) struct CanonicalNameChain<'message, 'cache: 'message>
 {
 	query_name: ParsedName<'message>,

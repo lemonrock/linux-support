@@ -487,60 +487,60 @@ impl CaseFoldedName<'static>
 	{
 		hashset!
 		{
-			// Language:  Arabic
+			// Language: Arabic.
 			// Script: Arabic
 			// Non-punycode name `.إختبار.`
-			Self::from("xn--kgbechtv"),
+			Self::from(b"xn--kgbechtv"),
 			
-			// Language: Persian
-			// Script: Arabic
-			// Non-punycode name `.آزمایشی.`
-			Self::from("xn--hgbk6aj7f53bba"),
+			// Language: Persian.
+			// Script: Arabic.
+			// Non-punycode name `.آزمایشی.`.
+			Self::from(b"xn--hgbk6aj7f53bba"),
 			
-			// Language: Chinese
-			// Script: Han (Simplified variant)
-			// Non-punycode name `.测试.`
-			Self::from("xn--0zwm56d"),
+			// Language: Chinese.
+			// Script: Han (Simplified variant).
+			// Non-punycode name `.测试.`.
+			Self::from(b"xn--0zwm56d"),
 			
-			// Language: Chinese
-			// Script: Han (Traditional variant)
-			// Non-punycode name `.測試.`
-			Self::from("xn--g6w251d"),
+			// Language: Chinese.
+			// Script: Han (Traditional variant).
+			// Non-punycode name `.測試.`.
+			Self::from(b"xn--g6w251d"),
 			
-			// Language: Russian
-			// Script: Cyrillic
-			// Non-punycode name `.испытание.`
-			Self::from("xn--80akhbyknj4f"),
+			// Language: Russian.
+			// Script: Cyrillic.
+			// Non-punycode name `.испытание.`.
+			Self::from(b"xn--80akhbyknj4f"),
 			
-			// Language: Hindi
-			// Script: Devanagari (Nagari)
-			// Non-punycode name `.परीक्षा.`
-			Self::from("xn--11b5bs3a9aj6g"),
+			// Language: Hindi.
+			// Script: Devanagari (Nagari).
+			// Non-punycode name `.परीक्षा.`.
+			Self::from(b"xn--11b5bs3a9aj6g"),
 			
-			// Language: Greek, Modern (1453-)
-			// Script: Greek
-			// Non-punycode name `.δοκιμή.`
-			Self::from("xn--jxalpdlp"),
+			// Language: Greek, Modern (1453-).
+			// Script: Greek.
+			// Non-punycode name `.δοκιμή.`.
+			Self::from(b"xn--jxalpdlp"),
 			
-			// Language: Korean
-			// Script: Hangul (Hangŭl, Hangeul)
-			// Non-punycode name `.테스트.`
-			Self::from("xn--9t4b11yi5a"),
+			// Language: Korean.
+			// Script: Hangul (Hangŭl, Hangeul).
+			// Non-punycode name `.테스트.`.
+			Self::from(b"xn--9t4b11yi5a"),
 			
 			// Language: Yiddish
 			// Script: Hebrew
 			// Non-punycode name `.טעסט.`
-			Self::from("xn--deba0ad"),
+			Self::from(b"xn--deba0ad"),
 			
-			// Language: Japanese
-			// Script: Katakana
-			// Non-punycode name `.テスト.`
-			Self::from("xn--zckzah"),
+			// Language: Japanese.
+			// Script: Katakana.
+			// Non-punycode name `.テスト.`.
+			Self::from(b"xn--zckzah"),
 			
-			// Language: Tamil
-			// Script: Tamil
-			// Non-punycode name `.பரிட்சை.`
-			Self::from("xn--hlcj6aya9esc7a"),
+			// Language: Tamil.
+			// Script: Tamil.
+			// Non-punycode name `.பரிட்சை.`.
+			Self::from(b"xn--hlcj6aya9esc7a"),
 		}
 	}
 	
