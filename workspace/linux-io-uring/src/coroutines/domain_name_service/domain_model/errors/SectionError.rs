@@ -4,13 +4,13 @@
 
 /// Section error.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub enum SectionError<E: error::Error>
+pub enum SectionError<E: 'static + error::Error>
 {
 	/// Query section.
 	QuerySection(QuerySectionError),
 	
 	/// Answer section.
-	AnswerSection(AnswerSectionError<E>),
+	AnswerSection(AnswerSectionError<WrappingCanonicalChainError<E>>),
 	
 	/// Authority section.
 	AuthoritySection(AuthoritySectionError<AuthorityError>),
@@ -59,10 +59,10 @@ impl<E: error::Error> From<QuerySectionError> for SectionError<E>
 	}
 }
 
-impl<E: error::Error> From<AnswerSectionError<E>> for SectionError<E>
+impl<E: 'static + error::Error> From<AnswerSectionError<WrappingCanonicalChainError<E>>> for SectionError<E>
 {
 	#[inline(always)]
-	fn from(value: AnswerSectionError<E>) -> Self
+	fn from(value: AnswerSectionError<WrappingCanonicalChainError<E>>) -> Self
 	{
 		SectionError::AnswerSection(value)
 	}

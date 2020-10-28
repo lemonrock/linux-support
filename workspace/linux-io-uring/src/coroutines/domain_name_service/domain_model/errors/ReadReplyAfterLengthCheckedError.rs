@@ -4,7 +4,7 @@
 
 /// Read reply after length checked error.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub enum ReadReplyAfterLengthCheckedError<E: error::Error>
+pub enum ReadReplyAfterLengthCheckedError<E: 'static + error::Error>
 {
 	/// Message header.
 	MessageHeader(MessageHeaderError),

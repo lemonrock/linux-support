@@ -4,7 +4,7 @@
 
 /// A protocol error.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub enum ProtocolError<E: error::Error>
+pub enum ProtocolError<E: 'static + error::Error>
 {
 	/// Message length.
 	MessageLength(MessageLengthError),
