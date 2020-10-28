@@ -18,6 +18,9 @@ pub enum IPSECKEYHandleRecordTypeError
 	/// Resource data for resource record type `IPSECKEY` has an incorrect length (value in tuple).
 	HasTooShortALengthForDomainNameGateway(usize),
 	
+	/// Gateway domain name.
+	DomainNameGateway(ParsedNameParserError),
+	
 	/// Public key error.
 	IpsecLikePublicKeyHandleRecordType(IpsecLikePublicKeyHandleRecordTypeError)
 }
@@ -40,6 +43,8 @@ impl error::Error for IPSECKEYHandleRecordTypeError
 		
 		match self
 		{
+			&DomainNameGateway(ref error) => Some(error),
+			
 			&IpsecLikePublicKeyHandleRecordType(ref error) => Some(error),
 			
 			_ => None,

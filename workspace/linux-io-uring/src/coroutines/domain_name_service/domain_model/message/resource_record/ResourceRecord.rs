@@ -168,7 +168,7 @@ impl ResourceRecord
 		{
 			0x00 => match type_lower
 			{
-				MetaType::SIG0_lower => self.handle_obsolete_meta_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, DataType::SIG0, "Only really useful for updates, which, frankly, are probably better done out-of-band than using DNS; regardless, when using DNS over TLS a client certificate is much more useful"),
+				MetaType::SIG0_lower => self.handle_obsolete_meta_type(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, duplicate_resource_record_response_parsing, MetaType::SIG0, "Only really useful for updates, which, frankly, are probably better done out-of-band than using DNS; regardless, when using DNS over TLS a client certificate is much more useful"),
 
 				DataType::A_lower => self.handle_A(now, end_of_name_pointer, end_of_message_pointer, resource_record_name, resource_record_visitor, duplicate_resource_record_response_parsing),
 
@@ -603,7 +603,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_AAAA<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn handle_AAAA<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		use self::HandleRecordTypeError::*;
 		
@@ -613,7 +613,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_LOC<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn handle_LOC<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		use self::LOCHandleRecordTypeError::*;
 		
@@ -930,7 +930,7 @@ impl ResourceRecord
 		// NOTE: This behaviour violates RFC 6840, Section 5.6, Setting the DO Bit on Replies.
 		if unlikely!(!extended_response_code_and_flags.dnssec_ok())
 		{
-			Err(ExtendedDnsError::ResponseIgnoredDnsSec)
+			return Err(ExtendedDnsError::ResponseIgnoredDnsSec)
 		}
 		
 		response_parsing_state.parsed_an_edns_opt_record(ExtendedDnsResponseCodeError::parse_error_code(extended_response_code_and_flags.extended_response_code_upper_8_bits(), authoritative_or_authenticated_or_neither, rcode_lower_4_bits)?)?;
@@ -1026,7 +1026,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_DNAME<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, parsed_names: &mut ParsedNames<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, is_some_if_present_in_answer_section_and_true_if_was_queried_for: Option<bool>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn handle_DNAME<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, parsed_names: &mut ParsedNames<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, is_some_if_present_in_answer_section_and_true_if_was_queried_for: Option<bool>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		use self::DNAMEHandleRecordTypeError::*;
 		
@@ -1050,6 +1050,8 @@ impl ResourceRecord
 			Err(DataRemainingAfterDName)?
 		}
 
+		// ^ the trait `From<HandleRecordTypeError<<ResourceRecordVisitor<'message>>::Error>>` is not implemented for `:HandleRecordTypeError<<RRV::Error>`
+		//      |
 		resource_record_visitor.DNAME(resource_record_name, cache_until, record, is_some_if_present_in_answer_section_and_true_if_was_queried_for).map_err(|error| HandleRecordTypeError::ResourceRecordVisitor(DataType::DNAME, error))?;
 		Ok(end_of_resource_data_pointer)
 	}
@@ -1061,7 +1063,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_SSHFP<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn handle_SSHFP<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		use self::HandleRecordTypeError::*;
 		use self::SSHFPHandleRecordTypeError::*;
@@ -1204,7 +1206,7 @@ impl ResourceRecord
 
 				let resource_data_starts_at_pointer = resource_data.start_pointer();
 				let start_of_name_pointer = resource_data_starts_at_pointer + GatewayFieldStartsAtOffset;
-				let (domain_name, end_of_domain_name_pointer) = ParsedNameParser::parse_name_uncompressed(parsed_names, start_of_name_pointer, start_of_name_pointer + length - GatewayFieldStartsAtOffset, DataType::IPSECKEY)?;
+				let (domain_name, end_of_domain_name_pointer) = ParsedNameParser::parse_name_uncompressed(parsed_names, start_of_name_pointer, start_of_name_pointer + length - GatewayFieldStartsAtOffset, DataType::IPSECKEY).map_err(DomainNameGateway)?;
 
 				(end_of_domain_name_pointer - resource_data_starts_at_pointer, Some(DomainName(domain_name)))
 			}
@@ -1246,7 +1248,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_NSEC<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, parsed_names: &mut ParsedNames<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn handle_NSEC<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, parsed_names: &mut ParsedNames<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		use self::NSECHandleRecordTypeError::*;
 		
@@ -1740,7 +1742,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_CSYNC<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn handle_CSYNC<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		use self::CSYNCHandleRecordTypeError::*;
 		
@@ -1787,7 +1789,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_NID<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn handle_NID<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		use self::NIDHandleRecordTypeError::*;
 		
@@ -1813,7 +1815,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_L32<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn handle_L32<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		use self::L32HandleRecordTypeError::*;
 		
@@ -1839,7 +1841,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_L64<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn handle_L64<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		use self::L64HandleRecordTypeError::*;
 		
@@ -1865,7 +1867,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_LP<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, parsed_names: &mut ParsedNames<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn handle_LP<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, parsed_names: &mut ParsedNames<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		use self::LPHandleRecordTypeError::*;
 		
@@ -1905,7 +1907,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_EUI48<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn handle_EUI48<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		use self::EUI48HandleRecordTypeError::*;
 		
@@ -1926,7 +1928,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_EUI64<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn handle_EUI64<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		use self::EUI64HandleRecordTypeError::*;
 		
@@ -1947,7 +1949,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_uri<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn handle_uri<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		use self::URIHandleRecordTypeError::*;
 		
@@ -1978,7 +1980,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	fn handle_CAA<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut impl ResourceRecordVisitor<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
+	fn handle_CAA<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, resource_record_name: ParsedName<'message>, resource_record_visitor: &mut RRV, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		use self::CAAHandleRecordTypeError::*;
 		

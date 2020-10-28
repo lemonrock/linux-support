@@ -79,3 +79,12 @@ impl From<ExtendedDnsResponseCodeError> for ExtendedDnsError
 		ExtendedDnsError::ResponseCode(value)
 	}
 }
+
+impl From<ResourceDataLengthOverflowsError> for ExtendedDnsError
+{
+	#[inline(always)]
+	fn from(value: ResourceDataLengthOverflowsError) -> Self
+	{
+		ExtendedDnsError::ResourceDataLengthOverflows(value)
+	}
+}
