@@ -34,7 +34,7 @@ impl<'message> Name<'message> for ParsedName<'message>
 	}
 	
 	#[inline(always)]
-	fn label(&self, index: u8) -> Cow<'message, Self::Label>
+	fn label(&'message self, index: u8) -> Cow<'message, Self::Label>
 	{
 		let (label_data_starts_at_pointer, label_length_excluding_trailing_period) = unsafe { self.label_data_starts_at_pointers_and_label_length_excluding_trailing_period.get_unchecked(index as usize) };
 		

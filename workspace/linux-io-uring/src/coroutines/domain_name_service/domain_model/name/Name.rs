@@ -125,7 +125,7 @@ pub trait Name<'label>: Sized + Clone + Debug
 	}
 	
 	#[doc(hidden)]
-	fn label(&self, index: u8) -> Cow<'label, Self::Label>;
+	fn label(&'label self, index: u8) -> Cow<'label, Self::Label>;
 	
 	/// Number of labels.
 	fn number_of_labels_including_root(&self) -> NonZeroU8;

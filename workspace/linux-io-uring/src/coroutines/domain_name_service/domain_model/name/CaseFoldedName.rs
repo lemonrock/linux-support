@@ -110,7 +110,7 @@ impl<'label> Name<'label> for CaseFoldedName<'label>
 	}
 	
 	#[inline(always)]
-	fn label(&self, index: u8) -> Cow<'label, Self::Label>
+	fn label(&'label self, index: u8) -> Cow<'label, Self::Label>
 	{
 		Cow::Borrowed(unsafe { self.labels.get_unchecked(index as usize) })
 	}
@@ -205,7 +205,7 @@ impl<'a> CaseFoldedName<'a>
 	{
 		use self::CaseFoldedNameParseError::*;
 		
-		if self.labels.number_of_labels_including_root().get() == RawLabel::MaximumNumber
+		if self.number_of_labels_including_root().get() == RawLabel::MaximumNumber
 		{
 			return Err(NumberOfLabelsExceed127)
 		}
@@ -368,7 +368,7 @@ impl CaseFoldedName<'static>
 	{
 		lazy_static!
 		{
-    		static ref SpecialUses: CaseFoldedName<'static> = CaseFoldedName::special_use_domain_names().bitand(&CaseFoldedName::rfc_7788_local_name_mistake()).bitand(&CaseFoldedName::recommended_local_names_in_rfc_6762_appendix_g()).bitand(&CaseFoldedName::iana_test_internationalized_domain_names());
+    		static ref SpecialUses: HashSet<CaseFoldedName<'static>> = CaseFoldedName::special_use_domain_names().bitand(&CaseFoldedName::rfc_7788_local_name_mistake()).bitand(&CaseFoldedName::recommended_local_names_in_rfc_6762_appendix_g()).bitand(&CaseFoldedName::iana_test_internationalized_domain_names());
     	}
 		
 		&SpecialUses
@@ -406,8 +406,8 @@ impl CaseFoldedName<'static>
 			Self::fourth_level_unwrap(CaseFoldedLabel::byte(168), CaseFoldedLabel::byte(192), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
 			
 			// RFC 8880, Section 7.2, Names '170.0.0.192.in-addr.arpa' and '171.0.0.192.in-addr.arpa'.
-			Self::internet_protocol_version_4_pointer(Ipv4Addr::new(170, 0, 0, 192)),
-			Self::internet_protocol_version_4_pointer(Ipv4Addr::new(171, 0, 0, 192)),
+			Self::internet_protocol_version_4_pointer_unchecked(Ipv4Addr::new(170, 0, 0, 192)),
+			Self::internet_protocol_version_4_pointer_unchecked(Ipv4Addr::new(171, 0, 0, 192)),
 			
 			// RFC 6762, Section 12, Special Characteristics of Multicast DNS Domains.
 			Self::fourth_level_unwrap(CaseFoldedLabel::byte(254), CaseFoldedLabel::byte(169), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
