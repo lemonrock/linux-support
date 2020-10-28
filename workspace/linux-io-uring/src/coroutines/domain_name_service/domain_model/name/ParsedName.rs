@@ -17,7 +17,7 @@ impl<'message> Name<'message> for ParsedName<'message>
 	type Label = ParsedLabel<'message>;
 	
 	#[inline(always)]
-	fn parent(&self) -> Option<Self>
+	fn parent(&'message self) -> Option<Self>
 	{
 		if unlikely!(self.is_root())
 		{

@@ -88,7 +88,7 @@ impl<'label> Name<'label> for CaseFoldedName<'label>
 	type Label = CaseFoldedLabel<'label>;
 	
 	#[inline(always)]
-	fn parent(&self) -> Option<Self>
+	fn parent(&'label self) -> Option<Self>
 	{
 		if unlikely!(self.is_root())
 		{

@@ -8,11 +8,11 @@ pub trait Name<'label>: Sized + Clone + Debug
 	type Label: Label<'label>;
 	
 	/// Parent.
-	fn parent(&self) -> Option<Self>;
+	fn parent(&'label self) -> Option<Self>;
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn copy_non_overlapping_to_without_case_folding(&self, start_of_name_pointer: usize) -> usize
+	fn copy_non_overlapping_to_without_case_folding(&'label self, start_of_name_pointer: usize) -> usize
 	{
 		let mut next_label_starts_at_pointer = start_of_name_pointer;
 		for index in 0 .. self.number_of_labels_including_root().get()
@@ -26,7 +26,7 @@ pub trait Name<'label>: Sized + Clone + Debug
 	
 	/// Ends with name?
 	#[inline(always)]
-	fn ends_with<'ends_with_label, RHS: Name<'ends_with_label>>(&self, ends_with: &'ends_with_label RHS) -> bool
+	fn ends_with<'ends_with_label, RHS: Name<'ends_with_label>>(&'label self, ends_with: &'ends_with_label RHS) -> bool
 	{
 		if self.name_length_including_trailing_periods_after_labels() < ends_with.name_length_including_trailing_periods_after_labels()
 		{
@@ -45,8 +45,8 @@ pub trait Name<'label>: Sized + Clone + Debug
 		{
 			let index = length - 1;
 			
-			let our_label = unsafe { self.label(index) };
-			let ends_with_label = unsafe { ends_with.label(index) };
+			let our_label = self.label(index);
+			let ends_with_label = ends_with.label(index);
 			if !our_label.deref().equals(ends_with_label.deref())
 			{
 				return false
@@ -60,7 +60,7 @@ pub trait Name<'label>: Sized + Clone + Debug
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn equals<'rhs_label, RHS: Name<'rhs_label>>(&self, rhs: &'rhs_label RHS) -> bool
+	fn equals<'rhs_label, RHS: Name<'rhs_label>>(&'label self, rhs: &'rhs_label RHS) -> bool
 	{
 		if self.number_of_labels_including_root() != rhs.number_of_labels_including_root()
 		{
@@ -69,8 +69,8 @@ pub trait Name<'label>: Sized + Clone + Debug
 		
 		for index in 0 .. (self.number_of_labels_including_root().get())
 		{
-			let left = unsafe { self.label(index) };
-			let right = unsafe { rhs.label(index) };
+			let left = self.label(index);
+			let right = rhs.label(index);
 			
 			if left.deref().equals(right.deref())
 			{
@@ -83,22 +83,22 @@ pub trait Name<'label>: Sized + Clone + Debug
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn partial_compare<'rhs_label, RHS: Name<'rhs_label>>(&self, rhs: &'rhs_label RHS) -> Option<Ordering>
+	fn partial_compare<'rhs_label, RHS: Name<'rhs_label>>(&'label self, rhs: &'rhs_label RHS) -> Option<Ordering>
 	{
 		Some(self.compare(rhs))
 	}
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn compare<'rhs_label, RHS: Name<'rhs_label>>(&self, rhs: &'rhs_label RHS) -> Ordering
+	fn compare<'rhs_label, RHS: Name<'rhs_label>>(&'label self, rhs: &'rhs_label RHS) -> Ordering
 	{
 		let left_length = self.number_of_labels_including_root().get();
 		let right_length = rhs.number_of_labels_including_root().get();
 		
 		for index in 0 .. min(left_length, right_length)
 		{
-			let left = unsafe { self.label(index) };
-			let right = unsafe { rhs.label(index) };
+			let left = self.label(index);
+			let right = rhs.label(index);
 			
 			use self::Ordering::*;
 			
@@ -115,7 +115,7 @@ pub trait Name<'label>: Sized + Clone + Debug
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn hash_slice<H: Hasher>(&self, state: &mut H)
+	fn hash_slice<H: Hasher>(&'label self, state: &mut H)
 	{
 		for index in 0 .. (self.number_of_labels_including_root().get())
 		{
