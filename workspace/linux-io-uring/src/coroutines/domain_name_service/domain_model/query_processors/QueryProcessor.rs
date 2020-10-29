@@ -8,20 +8,58 @@ pub(crate) trait QueryProcessor<'cache>
 	
 	type Record: Sized + Debug;
 	
-	type RRV<'message>: ResourceRecordVisitor<'message, Error=Infallible, Finished=Records<'cache, Self::Record>>
+	type RRV<'message>: ResourceRecordVisitor<'message, Error=Infallible, Finished=Present<Self::Record>>
 	where 'cache: 'message;
 	
-	fn new<'message>() -> Self::RRV<'message>
+	fn new<'message>(query_name: &'message CaseFoldedName<'cache>) -> Self::RRV<'message>
 	where 'cache: 'message;
 	
-	fn finish<'message>(finished: <<Self as QueryProcessor<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished, cache: &mut Cache<'cache>)
+	fn answered<'message>(finished: <<Self as QueryProcessor<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished, query_name: &'message CaseFoldedName<'cache>, cache: &mut Cache<'cache>)
 	where 'cache: 'message;
 	
 	#[inline(always)]
-	fn result<'message>(cache: &mut Cache<'cache>, answer: Answer<'cache>, canonical_name_chain_records: Records<'cache, CaseFoldedName<'cache>>, finished: <<Self as QueryProcessor<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished)
+	fn result<'message>(query_name: &'message CaseFoldedName<'cache>, cache: &mut Cache<'cache>, answer: Answer<'cache>, canonical_name_chain_records: Records<'cache, CaseFoldedName<'cache>>, finished: <<Self as QueryProcessor<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished)
 	where 'cache: 'message
 	{
+		// TODO: This should update the no_domain_cache, as the domains now do exist!
 		cache.cname_query_type_cache.put_present(canonical_name_chain_records);
-		Self::finish(finished, cache);
+		
+		use self::Answer::*;
+		use self::NoDomainResponseType::*;
+		
+		match answer
+		{
+			Answered =>
+			{
+				debug_assert!(!finished.is_empty());
+				
+				Self::answered(finished, query_name, cache);
+			}
+			
+			// Be careful here - all the records of the cname chain bar most_canonical_name do exist, and so domain presence needs to be updated for them!!!
+			NoDomain { response_type, most_canonical_name } =>
+			{
+				debug_assert!(finished.is_empty());
+				
+				match response_type
+				{
+				
+				}
+				
+				//cache.no_domain_cache.put(query_name.clone(), )
+			}
+			
+			NoData { response_type, most_canonical_name } =>
+			{
+				debug_assert!(finished.is_empty());
+			
+			}
+			
+			Referral { referral, most_canonical_name } =>
+			{
+				debug_assert!(finished.is_empty());
+			
+			}
+		}
 	}
 }

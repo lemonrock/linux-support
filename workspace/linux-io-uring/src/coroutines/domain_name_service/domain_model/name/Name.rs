@@ -9,7 +9,7 @@ pub trait Name<'label>: Sized + Clone + Debug
 	type Label: Label<'label>;
 	
 	/// Parent.
-	fn parent(&'label self) -> Option<Self>;
+	fn parent(&self) -> Option<Self>;
 	
 	#[doc(hidden)]
 	#[inline(always)]

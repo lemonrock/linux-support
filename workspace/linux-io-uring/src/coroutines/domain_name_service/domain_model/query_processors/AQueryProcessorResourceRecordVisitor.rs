@@ -2,27 +2,33 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) struct AQueryProcessorResourceRecordVisitor<'cache>
+pub(crate) struct AQueryProcessorResourceRecordVisitor<'cache: 'message, 'message>
 {
-	records: Records<'cache, Ipv4Addr>,
+	query_name: &'message CaseFoldedName<'cache>,
+	present: Present<Ipv4Addr>,
 }
 
-impl<'cache: 'message, 'message> ResourceRecordVisitor<'message> for AQueryProcessorResourceRecordVisitor<'cache>
+impl<'cache: 'message, 'message> ResourceRecordVisitor<'message> for AQueryProcessorResourceRecordVisitor<'cache, 'message>
 {
 	type Error = Infallible;
 	
-	type Finished = Records<'cache, Ipv4Addr>;
+	type Finished = Present<Ipv4Addr>;
 	
 	#[inline(always)]
 	fn finished(self) -> Self::Finished
 	{
-		self.records
+		self.present
 	}
 	
 	#[inline(always)]
 	fn A(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: Ipv4Addr) -> Result<(), Self::Error>
 	{
-		self.records.store_unprioritized_and_unweighted(&name, cache_until, record);
+		if unlikely!(!name.eq(self.query_name))
+		{
+			return Ok(())
+		}
+		
+		self.present.store_unprioritized_and_unweighted(cache_until, record);
 		Ok(())
 	}
 }

@@ -33,36 +33,59 @@ impl<'cache> NoDomainCache<'cache>
 		}
 	}
 	
+	/// Does this name have a domain?
 	#[inline(always)]
-	pub fn has_no_domain(&mut self, name: &'cache CaseFoldedName<'cache>, now: NanosecondsSinceUnixEpoch) -> bool
+	pub fn recursive_existence(&mut self, name: &CaseFoldedName<'cache>, now: NanosecondsSinceUnixEpoch) -> NoDomainCacheResult
 	{
-		let mut current = Cow::Borrowed(name);
+		use self::NoDomainCacheResult::*;
 		
-		while !current.is_root()
+		if unlikely!(name.is_root())
 		{
-			if self.get(&current, now)
-			{
-				return Self::HasNoDomain
-			}
-			
-			current = Cow::Owned(name.parent().unwrap());
+			return DefinitivelyHasADomain
 		}
 		
-		Self::Missing
+		match self.existence(name, now)
+		{
+			DefinitivelyHasADomain => return DefinitivelyHasADomain,
+			DefinitivelyDoesNotHaveADomain => return DefinitivelyDoesNotHaveADomain,
+			Unknown => (),
+		}
+		
+		let mut current = name.parent().expect("Already tested for root");
+		while likely!(!current.is_root())
+		{
+			match self.existence(&current, now)
+			{
+				DefinitivelyHasADomain => return DefinitivelyHasADomain,
+				DefinitivelyDoesNotHaveADomain => return DefinitivelyDoesNotHaveADomain,
+				Unknown => (),
+			}
+			
+			current = current.parent().expect("Loop tests for root");
+		}
+		
+		DefinitivelyHasADomain
 	}
 	
 	/// Gets a result for the name.
 	#[inline(always)]
-	pub fn get(&mut self, name: &CaseFoldedName<'cache>, now: NanosecondsSinceUnixEpoch) -> bool
+	pub fn existence(&mut self, name: &CaseFoldedName<'cache>, now: NanosecondsSinceUnixEpoch) -> NoDomainCacheResult
 	{
+		use self::NoDomainCacheResult::*;
+		
+		if unlikely!(name.is_root())
+		{
+			return DefinitivelyHasADomain
+		}
+		
 		if self.always_valid_domain_names.contains(name)
 		{
-			return Self::Missing
+			return DefinitivelyHasADomain
 		}
 		
 		if self.never_valid_domain_names.contains(name)
 		{
-			return Self::HasNoDomain
+			return DefinitivelyDoesNotHaveADomain
 		}
 		
 		use self::NoDomainCacheEntry::*;
@@ -72,17 +95,17 @@ impl<'cache> NoDomainCache<'cache>
 		
 		let (present, remove_entry) = match self.least_recently_used_cache.get_mut(name)
 		{
-			None => return Self::Missing,
+			None => return Unknown,
 			
-			Some(&mut AbsentUseOnce) => (Self::HasNoDomain, RemoveEntry),
+			Some(&mut AbsentUseOnce) => (DefinitivelyDoesNotHaveADomain, RemoveEntry),
 			
 			Some(&mut Present(negative_cache_until)) => if negative_cache_until < now
 			{
-				(Self::Missing, RemoveEntry)
+				(Unknown, RemoveEntry)
 			}
 			else
 			{
-				(Self::HasNoDomain, KeepEntry)
+				(DefinitivelyDoesNotHaveADomain, KeepEntry)
 			},
 		};
 		

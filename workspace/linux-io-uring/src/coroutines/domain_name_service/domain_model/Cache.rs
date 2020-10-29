@@ -7,7 +7,7 @@ pub struct Cache<'cache>
 {
 	recent_message_identifiers: RecentMessageIdentifiers,
 	
-	//no_domain_cache: HashMap<CaseFoldedName<'cache>, NegativeCacheUntil>,
+	no_domain_cache: NoDomainCache<'cache>,
 	
 	cname_query_type_cache: QueryTypeCache<'cache, CaseFoldedName<'cache>>,
 	
@@ -65,8 +65,15 @@ impl<'cache> Cache<'cache>
 	
 	fn enquire_over_tcp_and_cache<'yielder, SD: SocketData, QP: QueryProcessor<'cache>>(&mut self, stream: &mut TlsClientStream<'yielder, SD>, query_name: CaseFoldedName<'cache>) -> Result<(), ProtocolError<Infallible>>
 	{
+		let now = NanosecondsSinceUnixEpoch::now();
+		
+		if self.no_domain_cache.recursive_existence(&query_name, now)
+		{
+			return Ok(())
+		}
+		
 		let message_identifier = self.recent_message_identifiers.next();
 		
-		Query::enquire_over_tcp::<QP, SD>(stream, message_identifier, query_name, self)
+		Query::enquire_over_tcp::<QP, SD>(stream, message_identifier, now, query_name, self)
 	}
 }

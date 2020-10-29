@@ -65,7 +65,13 @@ impl<Record: Sized + Debug> Present<Record>
 	}
 	
 	#[inline(always)]
-	fn records_count(&self) -> NonZeroUsize
+	pub(crate) fn is_empty(&self) -> bool
+	{
+		self.records_count_usize() == 0
+	}
+	
+	#[inline(always)]
+	fn records_count_usize(&self) -> usize
 	{
 		let mut records_count = self.use_once.records_count();
 		
@@ -74,6 +80,13 @@ impl<Record: Sized + Debug> Present<Record>
 			records_count += records.records_count();
 		}
 		
+		records_count
+	}
+	
+	#[inline(always)]
+	fn records_count(&self) -> NonZeroUsize
+	{
+		let records_count = self.records_count_usize();
 		debug_assert_ne!(records_count, 0);
 		unsafe { NonZeroUsize::new_unchecked(records_count) }
 	}

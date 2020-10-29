@@ -2,27 +2,33 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) struct MXQueryProcessorResourceRecordVisitor<'cache>
+pub(crate) struct MXQueryProcessorResourceRecordVisitor<'cache: 'message, 'message>
 {
-	records: Records<'cache, CaseFoldedName<'cache>>,
+	query_name: &'message CaseFoldedName<'cache>,
+	present: Present<CaseFoldedName<'cache>>,
 }
 
-impl<'cache: 'message, 'message> ResourceRecordVisitor<'message> for MXQueryProcessorResourceRecordVisitor<'cache>
+impl<'cache: 'message, 'message> ResourceRecordVisitor<'message> for MXQueryProcessorResourceRecordVisitor<'cache, 'message>
 {
 	type Error = Infallible;
 	
-	type Finished = Records<'cache, CaseFoldedName<'cache>>;
+	type Finished = Present<CaseFoldedName<'cache>>;
 	
 	#[inline(always)]
 	fn finished(self) -> Self::Finished
 	{
-		self.records
+		self.present
 	}
 	
 	#[inline(always)]
 	fn MX(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: MailExchange<'message>) -> Result<(), Self::Error>
 	{
-		self.records.store_unweighted(&name, cache_until, record.preference, CaseFoldedName::from(record.mail_server_name));
+		if unlikely!(!name.eq(self.query_name))
+		{
+			return Ok(())
+		}
+		
+		self.present.store_unweighted(cache_until, record.preference, CaseFoldedName::from(record.mail_server_name));
 		Ok(())
 	}
 }

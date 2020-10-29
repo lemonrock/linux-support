@@ -2,32 +2,30 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-struct AQueryProcessor<'cache>
-{
-	records: Records<'cache, Ipv4Addr>
-}
+struct AQueryProcessor;
 
-impl<'cache> QueryProcessor<'cache> for AQueryProcessor<'cache>
+impl<'cache> QueryProcessor<'cache> for AQueryProcessor
 {
 	const DT: DataType = DataType::A;
 	
 	type Record = Ipv4Addr;
 	
-	type RRV<'message> where 'cache: 'message = AQueryProcessorResourceRecordVisitor<'cache>;
+	type RRV<'message> where 'cache: 'message = AQueryProcessorResourceRecordVisitor<'cache, 'message>;
 	
-	fn new<'message>() -> Self::RRV<'message>
+	fn new<'message>(query_name: &'message CaseFoldedName<'cache>) -> Self::RRV<'message>
 	where 'cache: 'message
 	{
 		AQueryProcessorResourceRecordVisitor
 		{
-			records: Records::with_capacity(8),
+			query_name,
+			present: Present::default(),
 		}
 	}
 	
 	#[inline(always)]
-	fn finish<'message>(finished: <<Self as QueryProcessor<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished, cache: &mut Cache<'cache>)
+	fn answered<'message>(finished: <<Self as QueryProcessor<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished, query_name: &'message CaseFoldedName<'cache>, cache: &mut Cache<'cache>)
 	where 'cache: 'message
 	{
-		cache.a_query_type_cache.put_present(finished)
+		cache.a_query_type_cache.put_present_all_the_same_name(query_name, finished)
 	}
 }

@@ -6,7 +6,7 @@
 #[derive(Debug, Clone)]
 pub struct CaseFoldedName<'label>
 {
-	labels: Box<[CaseFoldedLabel<'label>]>,
+	labels: Arc<Box<[CaseFoldedLabel<'label>]>>,
 	
 	name_length_including_trailing_periods_after_labels: NonZeroU8,
 }
@@ -41,7 +41,7 @@ impl<'label> TryFrom<&'label [u8]> for CaseFoldedName<'label>
 		(
 			Self
 			{
-				labels: labels.to_vec().into_boxed_slice(),
+				labels: Arc::new(labels.to_vec().into_boxed_slice()),
 				
 				name_length_including_trailing_periods_after_labels,
 			}
@@ -66,7 +66,7 @@ impl<'label: 'message, 'message, 'b> From<&'b ParsedName<'message>> for CaseFold
 					labels.push(CaseFoldedLabel::from(parsed_label_cow))
 				}
 				
-				labels.into_boxed_slice()
+				Arc::new(labels.into_boxed_slice())
 			},
 			
 			name_length_including_trailing_periods_after_labels: value.name_length_including_trailing_periods_after_labels
@@ -88,7 +88,7 @@ impl<'label> Name<'label> for CaseFoldedName<'label>
 	type Label = CaseFoldedLabel<'label>;
 	
 	#[inline(always)]
-	fn parent(&'label self) -> Option<Self>
+	fn parent(&self) -> Option<Self>
 	{
 		if unlikely!(self.is_root())
 		{
@@ -101,7 +101,7 @@ impl<'label> Name<'label> for CaseFoldedName<'label>
 			(
 				Self
 				{
-					labels: (self.labels[1 .. ]).to_vec().into_boxed_slice(),
+					labels: Arc::new((&self.labels[1 .. ]).to_vec().into_boxed_slice()),
 					
 					name_length_including_trailing_periods_after_labels: unsafe { NonZeroU8::new_unchecked(self.name_length_including_trailing_periods_after_labels.get() - child_label_length) },
 				}
@@ -213,7 +213,7 @@ impl<'a> CaseFoldedName<'a>
 					let mut labels = Vec::with_capacity(self.labels.len() + 1);
 					labels.push(child);
 					labels.extend_from_slice(&self.labels[..]);
-					labels.into_boxed_slice()
+					Arc::new(labels.into_boxed_slice())
 				},
 				
 				name_length_including_trailing_periods_after_labels: unsafe { NonZeroU8::new_unchecked(name_length_including_trailing_periods_after_labels) },
@@ -235,10 +235,13 @@ impl<'a> CaseFoldedName<'a>
 				)
 			},
 			
-			labels: vec!
-			[
-				CaseFoldedLabel::Root
-			].into_boxed_slice(),
+			labels: Arc::new
+			(
+				vec!
+				[
+					CaseFoldedLabel::Root
+				].into_boxed_slice()
+			),
 		}
 	}
 	
@@ -258,11 +261,14 @@ impl<'a> CaseFoldedName<'a>
 				)
 			},
 			
-			labels: vec!
-			[
-				top_level_label,
-				CaseFoldedLabel::Root,
-			].into_boxed_slice(),
+			labels: Arc::new
+			(
+				vec!
+				[
+					top_level_label,
+					CaseFoldedLabel::Root,
+				].into_boxed_slice()
+			),
 		}
 	}
 	
@@ -283,12 +289,15 @@ impl<'a> CaseFoldedName<'a>
 				)
 			},
 		
-			labels: vec!
-			[
-				second_level_label,
-				top_level_label,
-				CaseFoldedLabel::Root
-			].into_boxed_slice(),
+			labels: Arc::new
+			(
+				vec!
+				[
+					second_level_label,
+					top_level_label,
+					CaseFoldedLabel::Root
+				].into_boxed_slice()
+			),
 		}
 	}
 	
@@ -310,13 +319,16 @@ impl<'a> CaseFoldedName<'a>
 				)
 			},
 		
-			labels: vec!
-			[
-				third_level_label,
-				second_level_label,
-				top_level_label,
-				CaseFoldedLabel::Root
-			].into_boxed_slice(),
+			labels: Arc::new
+			(
+				vec!
+				[
+					third_level_label,
+					second_level_label,
+					top_level_label,
+					CaseFoldedLabel::Root
+				].into_boxed_slice()
+			),
 		}
 	}
 	
@@ -438,16 +450,19 @@ impl CaseFoldedName<'static>
 				)
 			},
 		
-			labels: vec!
-			[
-				label3,
-				label2,
-				label1,
-				label0,
-				CaseFoldedLabel::in_addr,
-				CaseFoldedLabel::arpa,
-				CaseFoldedLabel::Root
-			].into_boxed_slice(),
+			labels: Arc::new
+			(
+				vec!
+				[
+					label3,
+					label2,
+					label1,
+					label0,
+					CaseFoldedLabel::in_addr,
+					CaseFoldedLabel::arpa,
+					CaseFoldedLabel::Root
+				].into_boxed_slice()
+			),
 		}
 	}
 	
@@ -543,44 +558,47 @@ impl CaseFoldedName<'static>
 				)
 			},
 			
-			labels: vec!
-			[
-				label31,
-				label30,
-				label29,
-				label28,
-				label27,
-				label26,
-				label25,
-				label24,
-				label23,
-				label22,
-				label21,
-				label20,
-				label19,
-				label18,
-				label17,
-				label16,
-				label15,
-				label14,
-				label13,
-				label12,
-				label11,
-				label10,
-				label9,
-				label8,
-				label7,
-				label6,
-				label5,
-				label4,
-				label3,
-				label2,
-				label1,
-				label0,
-				CaseFoldedLabel::in_addr,
-				CaseFoldedLabel::arpa,
-				CaseFoldedLabel::Root,
-			].into_boxed_slice(),
+			labels: Arc::new
+			(
+				vec!
+				[
+					label31,
+					label30,
+					label29,
+					label28,
+					label27,
+					label26,
+					label25,
+					label24,
+					label23,
+					label22,
+					label21,
+					label20,
+					label19,
+					label18,
+					label17,
+					label16,
+					label15,
+					label14,
+					label13,
+					label12,
+					label11,
+					label10,
+					label9,
+					label8,
+					label7,
+					label6,
+					label5,
+					label4,
+					label3,
+					label2,
+					label1,
+					label0,
+					CaseFoldedLabel::in_addr,
+					CaseFoldedLabel::arpa,
+					CaseFoldedLabel::Root,
+				].into_boxed_slice()
+			),
 		}
 	}
 	

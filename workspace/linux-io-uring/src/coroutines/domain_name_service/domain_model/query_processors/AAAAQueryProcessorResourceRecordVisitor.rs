@@ -2,27 +2,33 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) struct AAAAQueryProcessorResourceRecordVisitor<'cache>
+pub(crate) struct AAAAQueryProcessorResourceRecordVisitor<'cache: 'message, 'message>
 {
-	records: Records<'cache, Ipv6Addr>,
+	query_name: &'message CaseFoldedName<'cache>,
+	present: Present<Ipv6Addr>,
 }
 
-impl<'cache: 'message, 'message> ResourceRecordVisitor<'message> for AAAAQueryProcessorResourceRecordVisitor<'cache>
+impl<'cache: 'message, 'message> ResourceRecordVisitor<'message> for AAAAQueryProcessorResourceRecordVisitor<'cache, 'message>
 {
 	type Error = Infallible;
 	
-	type Finished = Records<'cache, Ipv6Addr>;
+	type Finished = Present<Ipv6Addr>;
 	
 	#[inline(always)]
 	fn finished(self) -> Self::Finished
 	{
-		self.records
+		self.present
 	}
 	
 	#[inline(always)]
 	fn AAAA(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: Ipv6Addr) -> Result<(), Self::Error>
 	{
-		self.records.store_unprioritized_and_unweighted(&name, cache_until, record);
+		if unlikely!(!name.eq(self.query_name))
+		{
+			return Ok(())
+		}
+		
+		self.present.store_unprioritized_and_unweighted(cache_until, record);
 		Ok(())
 	}
 }
