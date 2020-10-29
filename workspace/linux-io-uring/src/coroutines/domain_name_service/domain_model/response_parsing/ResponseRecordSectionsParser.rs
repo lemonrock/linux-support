@@ -38,7 +38,7 @@ impl<'message, 'cache: 'message> ResponseRecordSectionsParser<'message, 'cache>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn parse_answer_authority_and_additional_sections<RRV: ResourceRecordVisitor<'message>>(&mut self, next_resource_record_pointer: usize, query_name: ParsedName<'message>, authoritative_or_authenticated_or_neither: AuthoritativeOrAuthenticatedOrNeither, rcode_lower_4_bits: RCodeLower4Bits, answer_section_resource_record_visitor: RRV) -> Result<(usize, Answer<'cache, CaseFoldedName<'cache>>, Records<'cache, CaseFoldedName<'cache>>, RRV::Finished), SectionError<RRV::Error>>
+	pub(crate) fn parse_answer_authority_and_additional_sections<RRV: ResourceRecordVisitor<'message>>(&mut self, next_resource_record_pointer: usize, query_name: ParsedName<'message>, authoritative_or_authenticated_or_neither: AuthoritativeOrAuthenticatedOrNeither, rcode_lower_4_bits: RCodeLower4Bits, answer_section_resource_record_visitor: RRV) -> Result<(usize, Answer<'cache>, Records<'cache, CaseFoldedName<'cache>>, RRV::Finished), SectionError<RRV::Error>>
 	{
 		let (next_resource_record_pointer, (answer_section_resource_record_visitor_finished, canonical_name_chain), answer_section_has_at_least_one_record_of_requested_data_type) = self.parse_answer_section(next_resource_record_pointer, query_name, answer_section_resource_record_visitor)?;
 

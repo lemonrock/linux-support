@@ -217,8 +217,10 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 	/// 	* Authority
 	/// 		* `.			86400	IN	SOA	a.root-servers.net. …`.
 	/// 	* Additional
-	pub(crate) fn answer(self, answer_existence: AnswerExistence, answer_section_has_at_least_one_record_of_requested_data_type: bool) -> Result<(Answer<'cache, CaseFoldedName<'cache>>, Records<'cache, CaseFoldedName<'cache>>), AuthoritySectionError<AuthorityError>>
+	pub(crate) fn answer(self, answer_existence: AnswerExistence, answer_section_has_at_least_one_record_of_requested_data_type: bool) -> Result<(Answer<'cache>, Records<'cache, CaseFoldedName<'cache>>), AuthoritySectionError<AuthorityError>>
 	{
+		use self::AnswerExistence::*;
+		use self::Answer::*;
 		use self::NoDataResponseType::*;
 		use self::NoDomainResponseType::*;
 		
@@ -241,60 +243,134 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 		
 		let answer = match (answer_existence, answer_section_has_at_least_one_record_of_requested_data_type)
 		{
-			(AnswerExistence::NoError(_), true) => Answer::Answered,
+			(NoError(_), true) => Answer::Answered,
 			
 			// RFC 2308, Section 2.2 No Data, paragraph 1: "NODATA is indicated by an answer with the RCODE set to NOERROR and no relevant answers in the answer section".
 			//
 			// NODATA is really an Empty Non-Terminal Name (ENT; see RFC 7719), ie a domain name with no records but that exists.
-			(AnswerExistence::NoError(authoritative_or_authenticated_or_neither), false) =>
+			(NoError(authoritative_or_authenticated_or_neither), false) =>
 			{
-				let most_canonical_name = CaseFoldedName::from(self.canonical_name_chain.most_canonical_name());
+				let most_canonical_name = self.most_canonical_name();
 				
 				match (has_a_start_of_authority_record, has_name_server_records)
 				{
-					(true, true) => Answer::NoData { response_type: NoDataResponseType1 { authority_name: Self::authority_name(self.authority_name), start_of_authority: Self::start_of_authority(self.start_of_authority), name_servers: Self::name_servers(self.name_servers), }, most_canonical_name },
+					(true, true) => NoData
+					{
+						response_type: NoDataResponseType1
+						(
+							AuthorityNameStartOfAuthorityNameServers
+							{
+								authority_name: Self::authority_name(self.authority_name),
+								start_of_authority: Self::start_of_authority(self.start_of_authority),
+								name_servers: Self::name_servers(self.name_servers)
+							}
+						),
+						most_canonical_name
+					},
 					
-					(true, false) => Answer::NoData { response_type: NoDataResponseType2 { authority_name: Self::authority_name(self.authority_name), start_of_authority: Self::start_of_authority(self.start_of_authority) }, most_canonical_name },
+					(true, false) => NoData
+					{
+						response_type: NoDataResponseType2
+						(
+							AuthorityNameStartOfAuthority
+							{
+								authority_name: Self::authority_name(self.authority_name),
+								start_of_authority: Self::start_of_authority(self.start_of_authority)
+							}
+						),
+						most_canonical_name
+					},
 					
 					(false, false) =>
 					{
 						guard_against_authoritative_answer_without_start_of_authority_record(authoritative_or_authenticated_or_neither)?;
-						Answer::NoData { response_type: NoDataResponseType3, most_canonical_name }
+						NoData
+						{
+							response_type: NoDataResponseType3,
+							most_canonical_name
+						}
 					},
 					
 					// RFC 2308, Section 2.2 No Data, paragraph 4: "It is possible to distinguish between a NODATA and a referral response by the presence of a SOA record in the authority section or the absence of NS records in the authority section".
-					(false, true) => Answer::Referral { authority_name: Self::authority_name(self.authority_name), name_servers: Self::name_servers(self.name_servers), most_canonical_name },
+					(false, true) => Referral
+					{
+						referral: AuthorityNameNameServers
+						{
+							authority_name: Self::authority_name(self.authority_name),
+							name_servers: Self::name_servers(self.name_servers)
+						},
+						
+						most_canonical_name
+					},
 				}
 			}
 			
-			(AnswerExistence::NoDomain(_), true) => return Err(AuthoritySectionError::ResponseHadNoSuchDomainErrorCodeButContainsAnAnswer),
+			(NoSuchDomain(_), true) => return Err(AuthoritySectionError::ResponseHadNoSuchDomainErrorCodeButContainsAnAnswer),
 			
 			// NXDOMAIN means that child domains will not exist (eg if example.com. is NXDOMAIN, then www.example.com. is NXDOMAIN).
 			// This reply is for any QTYPE (eg A, AAAA, etc) that may later be queried for.
-			(AnswerExistence::NoDomain(authoritative_or_authenticated_or_neither), false) =>
+			(NoSuchDomain(authoritative_or_authenticated_or_neither), false) =>
 			{
-				let most_canonical_name = CaseFoldedName::from(self.canonical_name_chain.most_canonical_name());
+				let most_canonical_name = self.most_canonical_name();
 				
 				// RFC 2308, Section 2.1 Name Error, paragraph 2: "It is possible to distinguish between a referral and a NXDOMAIN response by the presense of NXDOMAIN in the RCODE regardless of the presence of NS or SOA records in the authority section".
 				match (has_a_start_of_authority_record, has_name_server_records)
 				{
-					(true, true) => Answer::NoDomain { response_type: NoDomainResponseType1 { authority_name: Self::authority_name(self.authority_name), start_of_authority: Self::start_of_authority(self.start_of_authority), name_servers: Self::name_servers(self.name_servers), }, most_canonical_name },
+					(true, true) => NoDomain
+					{
+						response_type: NoDomainResponseType1
+						(
+							AuthorityNameStartOfAuthorityNameServers
+							{
+								authority_name: Self::authority_name(self.authority_name),
+								start_of_authority: Self::start_of_authority(self.start_of_authority),
+								name_servers: Self::name_servers(self.name_servers)
+							}
+						),
+						most_canonical_name
+					},
 					
 					// Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 2.
-					(true, false) => Answer::NoDomain { response_type: NoDomainResponseType2 { authority_name: Self::authority_name(self.authority_name),start_of_authority: Self::start_of_authority(self.start_of_authority) }, most_canonical_name },
+					(true, false) => NoDomain
+					{
+						response_type: NoDomainResponseType2
+						(
+							AuthorityNameStartOfAuthority
+							{
+								authority_name: Self::authority_name(self.authority_name),
+								start_of_authority: Self::start_of_authority(self.start_of_authority)
+							}
+						),
+						most_canonical_name
+					},
 					
 					// Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 3.
 					(false, false) =>
 					{
 						guard_against_authoritative_answer_without_start_of_authority_record(authoritative_or_authenticated_or_neither)?;
-						Answer::NoDomain { response_type: NoDomainResponseType3, most_canonical_name }
+						NoDomain
+						{
+							response_type: NoDomainResponseType3,
+							most_canonical_name
+						}
 					},
 					
 					// Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 4.
 					(false, true) =>
 					{
 						guard_against_authoritative_answer_without_start_of_authority_record(authoritative_or_authenticated_or_neither)?;
-						Answer::NoDomain { response_type: NoDomainResponseType4 { authority_name: Self::authority_name(self.authority_name), name_servers: Self::name_servers(self.name_servers) }, most_canonical_name }
+						NoDomain
+						{
+							response_type: NoDomainResponseType4
+							(
+								AuthorityNameNameServers
+								{
+									authority_name: Self::authority_name(self.authority_name),
+									name_servers: Self::name_servers(self.name_servers)
+								}
+							),
+							most_canonical_name
+						}
 					},
 				}
 			}
@@ -302,6 +378,12 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 		
 		let canonical_records = self.canonical_name_chain.records;
 		Ok((answer, canonical_records))
+	}
+	
+	#[inline(always)]
+	fn most_canonical_name(&self) -> CaseFoldedName<'cache>
+	{
+		CaseFoldedName::from(self.canonical_name_chain.most_canonical_name())
 	}
 	
 	#[inline(always)]

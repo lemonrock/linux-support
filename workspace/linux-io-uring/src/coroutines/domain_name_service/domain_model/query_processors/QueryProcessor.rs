@@ -18,7 +18,7 @@ pub(crate) trait QueryProcessor<'cache>
 	where 'cache: 'message;
 	
 	#[inline(always)]
-	fn result<'message>(cache: &mut Cache<'cache>, answer: Answer<'cache, CaseFoldedName<'cache>>, canonical_name_chain_records: Records<'cache, CaseFoldedName<'cache>>, finished: <<Self as QueryProcessor<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished)
+	fn result<'message>(cache: &mut Cache<'cache>, answer: Answer<'cache>, canonical_name_chain_records: Records<'cache, CaseFoldedName<'cache>>, finished: <<Self as QueryProcessor<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished)
 	where 'cache: 'message
 	{
 		cache.cname_query_type_cache.put_present(canonical_name_chain_records);

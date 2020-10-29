@@ -2,21 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-
-
-pub(crate) mod resource_record_visitors;
-
-
-include!("Answer.rs");
-include!("AnswerExistence.rs");
-include!("AuthoritativeOrAuthenticatedOrNeither.rs");
-include!("AuthorityNameNameServers.rs");
-include!("AuthorityNameStartOfAuthority.rs");
-include!("AuthorityNameStartOfAuthorityNameServers.rs");
-include!("CanonicalNameChain.rs");
-include!("DuplicateResourceRecordResponseParsing.rs");
-include!("NoDataResponseType.rs");
-include!("NoDomainResponseType.rs");
-include!("ResponseParsingState.rs");
-include!("ResponseRecordSectionsParser.rs");
+pub(crate) struct AuthorityNameStartOfAuthority<'cache>
+{
+	pub(crate) authority_name: CaseFoldedName<'cache>,
+	
+	/// This is for `authority_name`.
+	pub(crate) start_of_authority: (NegativeCacheUntil, StartOfAuthority<'cache, CaseFoldedName<'cache>>),
+}

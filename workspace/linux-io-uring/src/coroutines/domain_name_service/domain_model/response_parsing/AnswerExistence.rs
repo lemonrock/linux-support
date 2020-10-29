@@ -8,5 +8,5 @@ pub(crate) enum AnswerExistence
 {
 	NoError(AuthoritativeOrAuthenticatedOrNeither),
 	
-	NoDomain(AuthoritativeOrAuthenticatedOrNeither),
+	NoSuchDomain(AuthoritativeOrAuthenticatedOrNeither),
 }

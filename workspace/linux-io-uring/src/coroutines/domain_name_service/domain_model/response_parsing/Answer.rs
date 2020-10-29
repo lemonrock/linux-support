@@ -3,39 +3,36 @@
 
 
 #[derive(Debug)]
-pub(crate) enum Answer<'label, N: Name<'label>>
+pub(crate) enum Answer<'cache>
 {
 	Answered,
 	
 	NoDomain
 	{
-		response_type: NoDomainResponseType<'label, N>,
+		response_type: NoDomainResponseType<'cache>,
 		
 		/// This is a direct child of `response_type.authority_name`.
-		most_canonical_name: N,
+		most_canonical_name: CaseFoldedName<'cache>,
 	},
 
 	NoData
 	{
-		response_type: NoDataResponseType<'label, N>,
+		response_type: NoDataResponseType<'cache>,
 		
 		/// This is a direct child of `response_type.authority_name`.
-		most_canonical_name: N,
+		most_canonical_name: CaseFoldedName<'cache>,
 	},
 	
 	Referral
 	{
-		authority_name: N,
-		
-		/// These are for `authority_name`.
-		name_servers: Present<N>,
+		referral: AuthorityNameNameServers<'cache>,
 		
 		/// This is a direct child of `authority_name`.
-		most_canonical_name: N,
+		most_canonical_name: CaseFoldedName<'cache>,
 	},
 }
 
-impl<'label, N: Name<'label>> Answer<'label, N>
+impl<'cache> Answer<'cache>
 {
 	#[inline(always)]
 	fn is_referral(&self) -> bool

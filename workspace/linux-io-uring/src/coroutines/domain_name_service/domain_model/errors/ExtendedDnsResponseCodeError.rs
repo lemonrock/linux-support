@@ -228,7 +228,7 @@ impl ExtendedDnsResponseCodeError
 			//
 			// Defined in RFC 1035.
 			// Restated in RFC 6895, Section 2.3 RCODE Assignment.
-			3 => Ok(NoDomain(authoritative_or_authenticated_or_neither)),
+			3 => Ok(NoSuchDomain(authoritative_or_authenticated_or_neither)),
 		
 			4 => Err(NotImplemented),
 		

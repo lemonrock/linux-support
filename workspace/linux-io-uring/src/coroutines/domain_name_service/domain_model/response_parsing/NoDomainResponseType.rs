@@ -6,45 +6,24 @@
 /// and
 /// RFC 2308 Section 5: "Negative responses without SOA records SHOULD NOT be cached as there is no way to prevent the negative responses looping forever between a pair of servers even with a short TTL".
 #[derive(Debug, Clone)]
-pub(crate) enum NoDomainResponseType<'label, N: Name<'label>>
+pub(crate) enum NoDomainResponseType<'cache>
 {
 	/// RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 1.
-	NoDomainResponseType1
-	{
-		authority_name: N,
-		
-		/// This is for `authority_name`.
-		start_of_authority: (NegativeCacheUntil, StartOfAuthority<'label, N>),
-		
-		/// These are for `authority_name`.
-		name_servers: Present<N>,
-	},
+	NoDomainResponseType1(AuthorityNameStartOfAuthorityNameServers<'cache>),
 	
 	/// RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 2.
 	///
 	/// RFC 2308, Section 2.1.1 Special Handling of Name Error, Paragraph 2: "… it is recommended that servers that are authoritative for the NXDOMAIN response only send TYPE 2 NXDOMAIN responses, …".
-	NoDomainResponseType2
-	{
-		authority_name: N,
-		
-		/// This is for `authority_name`.
-		start_of_authority: (NegativeCacheUntil, StartOfAuthority<'label, N>),
-	},
+	NoDomainResponseType2(AuthorityNameStartOfAuthority<'cache>),
 	
 	/// RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 3.
 	NoDomainResponseType3,
 	
 	/// RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 4.
-	NoDomainResponseType4
-	{
-		authority_name: N,
-		
-		/// These are for `authority_name`.
-		name_servers: Present<N>,
-	},
+	NoDomainResponseType4(AuthorityNameNameServers<'cache>),
 }
 
-impl<'label, N: Name<'label>> NoDomainResponseType<'label, N>
+impl<'cache> NoDomainResponseType<'cache>
 {
 	/// RFC 2308, Section 4 SOA Minimum Field, Paragraph 6, Page 9: "…  being the TTL to be used for negative responses, is the new defined meaning of the SOA minimum field".
 	#[inline(always)]
@@ -54,9 +33,11 @@ impl<'label, N: Name<'label>> NoDomainResponseType<'label, N>
 		
 		match self
 		{
-			&NoDomainResponseType1 { start_of_authority: (negative_cache_until, _), .. } | &NoDomainResponseType2 { start_of_authority: (negative_cache_until, _), .. } => negative_cache_until,
+			&NoDomainResponseType1(AuthorityNameStartOfAuthorityNameServers { start_of_authority: (negative_cache_until, _), .. }) => negative_cache_until,
 			
-			&NoDomainResponseType3 { .. } | &NoDomainResponseType4 { .. } => None,
+			&NoDomainResponseType2(AuthorityNameStartOfAuthority { start_of_authority: (negative_cache_until, _), .. }) => negative_cache_until,
+			
+			_ => None,
 		}
 	}
 	
@@ -68,9 +49,9 @@ impl<'label, N: Name<'label>> NoDomainResponseType<'label, N>
 		
 		match self
 		{
-			&NoDomainResponseType1 { .. } | &NoDomainResponseType4 { .. } => true,
+			&NoDomainResponseType1(_) | &NoDomainResponseType4(_) => true,
 			
-			&NoDomainResponseType2 { .. } | &NoDomainResponseType3 => false,
+			_ => false,
 		}
 	}
 }

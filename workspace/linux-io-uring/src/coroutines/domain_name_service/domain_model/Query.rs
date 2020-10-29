@@ -54,7 +54,7 @@ impl<'cache> Query<'cache>
 	}
 	
 	#[inline(always)]
-	fn read_reply_after_message_length_checked<'message, RRV: ResourceRecordVisitor<'message>>(&self, raw_dns_message: &'message [u8], answer_section_resource_record_visitor: RRV) -> Result<(Answer<'cache, CaseFoldedName<'cache>>, Records<'cache, CaseFoldedName<'cache>>, RRV::Finished), ReadReplyAfterLengthCheckedError<RRV::Error>>
+	fn read_reply_after_message_length_checked<'message, RRV: ResourceRecordVisitor<'message>>(&self, raw_dns_message: &'message [u8], answer_section_resource_record_visitor: RRV) -> Result<(Answer<'cache>, Records<'cache, CaseFoldedName<'cache>>, RRV::Finished), ReadReplyAfterLengthCheckedError<RRV::Error>>
 	where 'cache: 'message
 	{
 		let now = NanosecondsSinceUnixEpoch::now();
