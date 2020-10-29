@@ -46,15 +46,6 @@ pub(crate) struct CanonicalNameChain<'message, 'cache: 'message>
 	records: Records<'cache, CaseFoldedName<'cache>>,
 }
 
-impl<'message, 'cache: 'message> Into<Records<'cache, CaseFoldedName<'cache>>> for CanonicalNameChain<'message, 'cache>
-{
-	#[inline(always)]
-	fn into(self) -> Records<'cache, CaseFoldedName<'cache>>
-	{
-		self.records
-	}
-}
-
 impl<'message, 'cache: 'message> CanonicalNameChain<'message, 'cache>
 {
 	/// There is no standard limit for the number of links in a chain; the BIND software caps the number at 16.

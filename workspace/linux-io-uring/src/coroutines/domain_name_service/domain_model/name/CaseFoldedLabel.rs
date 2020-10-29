@@ -260,17 +260,9 @@ impl CaseFoldedLabel<'static>
 	
 	const example: Self = Self::new(b"example");
 	
-	const com: Self = Self::new(b"com");
-	
-	const net: Self = Self::new(b"net");
-	
-	const org: Self = Self::new(b"org");
-	
 	const invalid: Self = Self::new(b"invalid");
 	
 	const ipv4only: Self = Self::new(b"ipv4only");
-	
-	const arpa: Self = Self::new(b"arpa");
 	
 	const local: Self = Self::new(b"local");
 	
@@ -291,61 +283,6 @@ impl CaseFoldedLabel<'static>
 	const corp: Self = Self::new(b"corp");
 	
 	const lan: Self = Self::new(b"lan");
-	
-	/// Language: Arabic.
-	/// Script: Arabic
-	/// Non-punycode name `.إختبار.`
-	const Arabic_Arabic: Self = Self::new(b"xn--kgbechtv");
-	
-	/// Language: Persian.
-	/// Script: Arabic.
-	/// Non-punycode name `.آزمایشی.`.
-	const Persian_Arabic: Self = Self::new(b"xn--hgbk6aj7f53bba");
-	
-	/// Language: Chinese.
-	/// Script: Han (Simplified variant).
-	/// Non-punycode name `.测试.`.
-	const Chinese_Han_Simplified: Self = Self::new(b"xn--0zwm56d");
-	
-	/// Language: Chinese.
-	/// Script: Han (Traditional variant).
-	/// Non-punycode name `.測試.`.
-	const Chinese_Han_Traditional: Self = Self::new(b"xn--g6w251d");
-	
-	/// Language: Russian.
-	/// Script: Cyrillic.
-	/// Non-punycode name `.испытание.`.
-	const Russion_Cyrillic: Self = Self::new(b"xn--80akhbyknj4f");
-	
-	/// Language: Hindi.
-	/// Script: Devanagari (Nagari).
-	/// Non-punycode name `.परीक्षा.`.
-	const Hindi_Devangari: Self = Self::new(b"xn--11b5bs3a9aj6g");
-	
-	/// Language: Greek, Modern (1453-).
-	/// Script: Greek.
-	/// Non-punycode name `.δοκιμή.`.
-	const Greek_Greek: Self = Self::new(b"xn--jxalpdlp");
-	
-	/// Language: Korean.
-	/// Script: Hangul (Hangŭl, Hangeul).
-	/// Non-punycode name `.테스트.`.
-	const Korean_Hangul: Self = Self::new(b"xn--9t4b11yi5a");
-	
-	/// Language: Yiddish
-	/// Script: Hebrew
-	/// Non-punycode name `.טעסט.`
-	const Yiddish_Hebrew: Self = Self::new(b"xn--deba0ad");
-	
-	/// Language: Japanese.
-	/// Script: Katakana.
-	/// Non-punycode name `.テスト.`.
-	const Japanese_Katakana: Self = Self::new(b"xn--zckzah");
-	
-	/// Language: Tamil.
-	/// Script: Tamil.
-	/// Non-punycode name `.பரிட்சை.`.
-	const Tamil_Tamil: Self = Self::new(b"xn--hlcj6aya9esc7a");
 	
 	const a: Self = Self::new(b"a");
 	
@@ -1430,4 +1367,72 @@ impl CaseFoldedLabel<'static>
 	const _254: Self = Self::new(b"254");
 	
 	const _255: Self = Self::new(b"255");
+	
+	/// Language: Arabic.
+	/// Script: Arabic
+	/// Non-punycode name `.إختبار.`
+	/// Listed as a domain of type `test` in <https://www.iana.org/domains/root/db>.
+	const Arabic_Arabic: Self = Self::new(b"xn--kgbechtv");
+	
+	/// Language: Persian.
+	/// Script: Arabic.
+	/// Non-punycode name `.آزمایشی.`.
+	/// Listed as a domain of type `test` in <https://www.iana.org/domains/root/db>.
+	const Persian_Arabic: Self = Self::new(b"xn--hgbk6aj7f53bba");
+	
+	/// Language: Chinese.
+	/// Script: Han (Simplified variant).
+	/// Non-punycode name `.测试.`.
+	/// Listed as a domain of type `test` in <https://www.iana.org/domains/root/db>.
+	const Chinese_Han_Simplified: Self = Self::new(b"xn--0zwm56d");
+	
+	/// Language: Chinese.
+	/// Script: Han (Traditional variant).
+	/// Non-punycode name `.測試.`.
+	/// Listed as a domain of type `test` in <https://www.iana.org/domains/root/db>.
+	const Chinese_Han_Traditional: Self = Self::new(b"xn--g6w251d");
+	
+	/// Language: Russian.
+	/// Script: Cyrillic.
+	/// Non-punycode name `.испытание.`.
+	/// Listed as a domain of type `test` in <https://www.iana.org/domains/root/db>.
+	const Russion_Cyrillic: Self = Self::new(b"xn--80akhbyknj4f");
+	
+	/// Language: Hindi.
+	/// Script: Devanagari (Nagari).
+	/// Non-punycode name `.परीक्षा.`.
+	/// Listed as a domain of type `test` in <https://www.iana.org/domains/root/db>.
+	const Hindi_Devangari: Self = Self::new(b"xn--11b5bs3a9aj6g");
+	
+	/// Language: Greek, Modern (1453-).
+	/// Script: Greek.
+	/// Non-punycode name `.δοκιμή.`.
+	/// Listed as a domain of type `test` in <https://www.iana.org/domains/root/db>.
+	const Greek_Greek: Self = Self::new(b"xn--jxalpdlp");
+	
+	/// Language: Korean.
+	/// Script: Hangul (Hangŭl, Hangeul).
+	/// Non-punycode name `.테스트.`.
+	/// Listed as a domain of type `test` in <https://www.iana.org/domains/root/db>.
+	const Korean_Hangul: Self = Self::new(b"xn--9t4b11yi5a");
+	
+	/// Language: Yiddish
+	/// Script: Hebrew
+	/// Non-punycode name `.טעסט.`
+	/// Listed as a domain of type `test` in <https://www.iana.org/domains/root/db>.
+	const Yiddish_Hebrew: Self = Self::new(b"xn--deba0ad");
+	
+	/// Language: Japanese.
+	/// Script: Katakana.
+	/// Non-punycode name `.テスト.`.
+	/// Listed as a domain of type `test` in <https://www.iana.org/domains/root/db>.
+	const Japanese_Katakana: Self = Self::new(b"xn--zckzah");
+	
+	/// Language: Tamil.
+	/// Script: Tamil.
+	/// Non-punycode name `.பரிட்சை.`.
+	/// Listed as a domain of type `test` in <https://www.iana.org/domains/root/db>.
+	const Tamil_Tamil: Self = Self::new(b"xn--hlcj6aya9esc7a");
 }
+
+include!(concat!(env!("OUT_DIR"), "/CaseFoldedLabel.top-level-domains.rs"));

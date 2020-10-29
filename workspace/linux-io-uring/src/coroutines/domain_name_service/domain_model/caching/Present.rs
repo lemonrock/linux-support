@@ -78,9 +78,9 @@ impl<Record: Sized + Debug> Present<Record>
 		unsafe { NonZeroUsize::new_unchecked(records_count) }
 	}
 	
-	fn retrieve<'cache>(&mut self, now: NanosecondsSinceUnixEpoch) -> (CacheResult<'cache, Record>, Option<usize>)
+	fn retrieve<'cache>(&mut self, now: NanosecondsSinceUnixEpoch) -> (QueryTypeCacheResult<'cache, Record>, Option<usize>)
 	{
-		use self::CacheResult::Nothing;
+		use self::QueryTypeCacheResult::Nothing;
 		
 		const RemoveEntry: Option<usize> = None;
 		
@@ -105,7 +105,7 @@ impl<Record: Sized + Debug> Present<Record>
 			}
 			else
 			{
-				(CacheResult::Exists(Exists(records_to_return)), RemoveEntry)
+				(QueryTypeCacheResult::Exists(Exists(records_to_return)), RemoveEntry)
 			}
 		}
 		else
@@ -133,7 +133,7 @@ impl<Record: Sized + Debug> Present<Record>
 			}
 			
 			debug_assert!(!records_to_return.is_empty());
-			(CacheResult::Exists(Exists(records_to_return)), Some(expired_records_count))
+			(QueryTypeCacheResult::Exists(Exists(records_to_return)), Some(expired_records_count))
 		}
 	}
 	

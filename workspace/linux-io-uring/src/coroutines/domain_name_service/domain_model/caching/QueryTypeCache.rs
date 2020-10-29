@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub struct QueryTypeCache<'cache, Record: Sized + Debug>(LeastRecentlyUsedCache<'cache, CacheEntry<'cache, Record>>);
+pub struct QueryTypeCache<'cache, Record: Sized + Debug>(LeastRecentlyUsedCache<'cache, QueryTypeCacheEntry<'cache, Record>>);
 
 impl<'cache, Record: Sized + Debug> QueryTypeCache<'cache, Record>
 {
@@ -14,10 +14,10 @@ impl<'cache, Record: Sized + Debug> QueryTypeCache<'cache, Record>
 	
 	/// Gets a result for the name.
 	#[inline(always)]
-	pub fn get(&mut self, name: &CaseFoldedName<'cache>, now: NanosecondsSinceUnixEpoch) -> CacheResult<'cache, Record>
+	pub fn get(&mut self, name: &CaseFoldedName<'cache>, now: NanosecondsSinceUnixEpoch) -> QueryTypeCacheResult<'cache, Record>
 	{
-		use self::CacheEntry::*;
-		use self::CacheResult::*;
+		use self::QueryTypeCacheEntry::*;
+		use self::QueryTypeCacheResult::*;
 		
 		const RemoveEntry: Option<usize> = None;
 		
@@ -55,7 +55,7 @@ impl<'cache, Record: Sized + Debug> QueryTypeCache<'cache, Record>
 		let hash_map: HashMap<CaseFoldedName<'cache>, Present<Record>> = records.into();
 		for (key, present) in hash_map
 		{
-			self.0.put(key, CacheEntry::Present(present));
+			self.0.put(key, QueryTypeCacheEntry::Present(present));
 		}
 	}
 	
@@ -78,7 +78,7 @@ impl<'cache, Record: Sized + Debug> QueryTypeCache<'cache, Record>
 	#[inline(always)]
 	fn put_absent<'message>(&mut self, query_name: CaseFoldedName<'cache>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message, ParsedName<'message>>)
 	{
-		use self::CacheEntry::*;
+		use self::QueryTypeCacheEntry::*;
 		
 		let record = record.into();
 		

@@ -2,74 +2,101 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) struct NoDomainCache<'cache, Record: Sized + Debug>(LeastRecentlyUsedCache<'cache, (NegativeCacheUntil, )>);
-
-impl<'cache> NoDomainCache<'cache, Record>
+pub(crate) struct NoDomainCache<'cache>
 {
-	#[inline(always)]
-	pub(crate) fn new(maximum_records_count: NonZeroUsize) -> Self
-	{
-		Self(LeastRecentlyUsedCache::new(maximum_records_count))
-	}
+	always_valid_domain_names: HashSet<CaseFoldedName<'cache>>,
 	
+	never_valid_domain_names: HashSet<CaseFoldedName<'cache>>,
+	
+	least_recently_used_cache: LeastRecentlyUsedCache<'cache, NoDomainCacheEntry>,
+}
+
+impl<'cache> NoDomainCache<'cache>
+{
+	const Missing: bool = false;
+	
+	const HasNoDomain: bool = true;
+	
+	/// `always_valid_domain_names` and `never_valid_domain_names` must be disjoint.
 	#[inline(always)]
-	pub fn has_no_domain(&mut self, name: &CaseFoldedName<'cache>)
+	pub(crate) fn new(maximum_records_count: NonZeroUsize, always_valid_domain_names: HashSet<CaseFoldedName<'cache>>, never_valid_domain_names: HashSet<CaseFoldedName<'cache>>) -> Self
 	{
-		let mut current = name;
-		while !current.is_root()
+		debug_assert!(always_valid_domain_names.is_disjoint(&never_valid_domain_names));
+		
+		Self
 		{
-			self.0.get(name)
+			always_valid_domain_names,
+			
+			never_valid_domain_names,
+			
+			least_recently_used_cache: LeastRecentlyUsedCache::new(maximum_records_count)
 		}
 	}
 	
+	#[inline(always)]
+	pub fn has_no_domain(&mut self, name: &'cache CaseFoldedName<'cache>, now: NanosecondsSinceUnixEpoch) -> bool
+	{
+		let mut current = Cow::Borrowed(name);
+		
+		while !current.is_root()
+		{
+			if self.get(&current, now)
+			{
+				return Self::HasNoDomain
+			}
+			
+			current = Cow::Owned(name.parent().unwrap());
+		}
+		
+		Self::Missing
+	}
 	
 	/// Gets a result for the name.
 	#[inline(always)]
-	pub fn get(&mut self, name: &CaseFoldedName<'cache>, now: NanosecondsSinceUnixEpoch) -> CacheResult<Record>
+	pub fn get(&mut self, name: &CaseFoldedName<'cache>, now: NanosecondsSinceUnixEpoch) -> bool
 	{
-		use std::collections::hash_map::Entry::*;
-		
-		use self::CacheEntry::*;
-		use self::CacheResult::*;
-		
-		const RemoveEntry: Option<usize> = None;
-		
-		let (result, expired_records_count) = match self.0.get_mut(name)
+		if self.always_valid_domain_names.contains(name)
 		{
-			None => return Nothing,
+			return Self::Missing
+		}
+		
+		if self.never_valid_domain_names.contains(name)
+		{
+			return Self::HasNoDomain
+		}
+		
+		use self::NoDomainCacheEntry::*;
+		
+		const RemoveEntry: bool = true;
+		const KeepEntry: bool = false;
+		
+		let (present, remove_entry) = match self.least_recently_used_cache.get_mut(name)
+		{
+			None => return Self::Missing,
 			
-			Some(&mut AbsentUseOnce(ref record)) => (DoesNotExist(record.clone()), RemoveEntry),
+			Some(&mut AbsentUseOnce) => (Self::HasNoDomain, RemoveEntry),
 			
-			Some(&mut AbsentNegativelyCached(negative_cache_until, ref record)) => if negative_cache_until < now
+			Some(&mut Present(negative_cache_until)) => if negative_cache_until < now
 			{
-				(Nothing, RemoveEntry)
+				(Self::Missing, RemoveEntry)
 			}
 			else
 			{
-				(DoesNotExist(record.clone()), Some(0))
+				(Self::HasNoDomain, KeepEntry)
 			},
-			
-			Some(&mut Present(ref mut present)) => present.retrieve(now),
 		};
 		
-		match expired_records_count
+		if remove_entry
 		{
-			None => self.0.remove(name),
-			
-			Some(expired_records_count) => self.0.records_count -= expired_records_count,
+			self.least_recently_used_cache.remove(name)
 		}
 		
-		result
+		present
 	}
 	
 	#[inline(always)]
-	pub(crate) fn put_present<'message>(&mut self, records: Records<'message, Record>)
+	pub(crate) fn put<'message>(&mut self, name: CaseFoldedName<'cache>, negative_cache_until: NegativeCacheUntil)
 	{
-		let hash_map: HashMap<ParsedName<'message>, Present<OldRecord>> = records.into();
-		for (name, present) in hash_map
-		{
-			let key = CaseFoldedName::map(name);
-			self.0.put(key, CacheEntry::Present(present));
-		}
+		self.least_recently_used_cache.put(name, NoDomainCacheEntry::from(negative_cache_until));
 	}
 }

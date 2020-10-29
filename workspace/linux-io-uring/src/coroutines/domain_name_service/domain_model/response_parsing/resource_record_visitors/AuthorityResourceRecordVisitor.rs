@@ -11,12 +11,12 @@ pub(crate) struct AuthorityResourceRecordVisitor<'message, 'cache: 'message>
 	
 	/// *MUST* be for the parent of the final entry in the canonical name chain.
 	/// It is valid to have no records.
-	start_of_authority_record: RefCell<Option<(NegativeCacheUntil, StartOfAuthority<'cache, CaseFoldedName<'cache>>)>>,
+	start_of_authority: RefCell<Option<(NegativeCacheUntil, StartOfAuthority<'cache, CaseFoldedName<'cache>>)>>,
 	
 	/// *MUST* be for the parent of the final entry in the canonical name chain.
 	/// It is valid to have no records.
 	/// However, all records will have the same name (the parent of the final entry in the canonical name chain).
-	name_server_records: RefCell<Option<(Present<CaseFoldedName<'cache>>)>>,
+	name_servers: RefCell<Option<Present<CaseFoldedName<'cache>>>>,
 }
 
 impl<'message, 'cache: 'message> ResourceRecordVisitor<'message> for AuthorityResourceRecordVisitor<'message, 'cache>
@@ -42,15 +42,15 @@ impl<'message, 'cache: 'message> ResourceRecordVisitor<'message> for AuthorityRe
 		}
 		self.store_authority_name(name);
 		
-		let mut name_server_records = self.name_server_records.borrow_mut();
+		let mut name_server_records = self.name_servers.borrow_mut();
 		let name_server_records = name_server_records.deref_mut();
 		if unlikely!(name_server_records.is_none())
 		{
-			*name_server_records = Some((Present::default()));
+			*name_server_records = Some(Present::default());
 		}
 		
 		let present = name_server_records.as_mut().unwrap();
-		present.store_unprioritized_and_unweighted(cache_until, CaseFoldedName::map(record));
+		present.store_unprioritized_and_unweighted(cache_until, CaseFoldedName::from(record));
 
 		Ok(())
 	}
@@ -66,7 +66,7 @@ impl<'message, 'cache: 'message> ResourceRecordVisitor<'message> for AuthorityRe
 		}
 		self.store_authority_name(name);
 		
-		let mut start_of_authority_record = self.start_of_authority_record.borrow_mut();
+		let mut start_of_authority_record = self.start_of_authority.borrow_mut();
 		let start_of_authority_record = start_of_authority_record.deref_mut();
 		if likely!(start_of_authority_record.is_none())
 		{
@@ -89,19 +89,19 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 		{
 			canonical_name_chain,
 			authority_name: RefCell::new(None),
-			name_server_records: RefCell::new(None),
-			start_of_authority_record: RefCell::new(None)
+			name_servers: RefCell::new(None),
+			start_of_authority: RefCell::new(None)
 		}
 	}
 	
 	#[inline(always)]
 	fn store_authority_name(&self, authority_name: ParsedName<'message>)
 	{
-		let mut authority_name = self.authority_name.borrow_mut();
-		let authority_name = authority_name.deref_mut();
-		if likely!(authority_name.is_none())
+		let mut authority_name_borrowed = self.authority_name.borrow_mut();
+		let authority_name_borrowed = authority_name_borrowed.deref_mut();
+		if likely!(authority_name_borrowed.is_none())
 		{
-			*start_of_authority_record = Some(CaseFoldedName::map(name));
+			*authority_name_borrowed = Some(CaseFoldedName::from(authority_name));
 		}
 	}
 	
@@ -222,8 +222,8 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 		use self::NoDataResponseType::*;
 		use self::NoDomainResponseType::*;
 		
-		let has_a_start_of_authority_record = self.start_of_authority_record.borrow().is_some();
-		let has_name_server_records = !self.name_server_records.borrow().is_some();
+		let has_a_start_of_authority_record = self.start_of_authority.borrow().is_some();
+		let has_name_server_records = !self.name_servers.borrow().is_some();
 		
 		// RFC 2308, Section 3, Negative Answers from Authoritative Servers: "Name servers authoritative for a zone MUST include the SOA record of the zone in the authority section of the response when reporting an NXDOMAIN or indicating that no data of the requested type exists".
 		#[inline(always)]
@@ -248,13 +248,13 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 			// NODATA is really an Empty Non-Terminal Name (ENT; see RFC 7719), ie a domain name with no records but that exists.
 			(AnswerExistence::NoError(authoritative_or_authenticated_or_neither), false) =>
 			{
-				let most_canonical_name = self.most_canonical_name();
+				let most_canonical_name = CaseFoldedName::from(self.canonical_name_chain.most_canonical_name());
 				
 				match (has_a_start_of_authority_record, has_name_server_records)
 				{
-					(true, true) => Answer::NoData { response_type: NoDataResponseType1 { authority_name: self.authority_name(), start_of_authority: self.start_of_authority(), name_servers: self.name_servers(), }, most_canonical_name },
+					(true, true) => Answer::NoData { response_type: NoDataResponseType1 { authority_name: Self::authority_name(self.authority_name), start_of_authority: Self::start_of_authority(self.start_of_authority), name_servers: Self::name_servers(self.name_servers), }, most_canonical_name },
 					
-					(true, false) => Answer::NoData { response_type: NoDataResponseType2 { authority_name: self.authority_name(), start_of_authority: self.start_of_authority() }, most_canonical_name },
+					(true, false) => Answer::NoData { response_type: NoDataResponseType2 { authority_name: Self::authority_name(self.authority_name), start_of_authority: Self::start_of_authority(self.start_of_authority) }, most_canonical_name },
 					
 					(false, false) =>
 					{
@@ -263,7 +263,7 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 					},
 					
 					// RFC 2308, Section 2.2 No Data, paragraph 4: "It is possible to distinguish between a NODATA and a referral response by the presence of a SOA record in the authority section or the absence of NS records in the authority section".
-					(false, true) => Answer::Referral { authority_name: self.authority_name(), name_servers: self.name_servers(), most_canonical_name },
+					(false, true) => Answer::Referral { authority_name: Self::authority_name(self.authority_name), name_servers: Self::name_servers(self.name_servers), most_canonical_name },
 				}
 			}
 			
@@ -273,15 +273,15 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 			// This reply is for any QTYPE (eg A, AAAA, etc) that may later be queried for.
 			(AnswerExistence::NoDomain(authoritative_or_authenticated_or_neither), false) =>
 			{
-				let most_canonical_name = self.most_canonical_name();
+				let most_canonical_name = CaseFoldedName::from(self.canonical_name_chain.most_canonical_name());
 				
 				// RFC 2308, Section 2.1 Name Error, paragraph 2: "It is possible to distinguish between a referral and a NXDOMAIN response by the presense of NXDOMAIN in the RCODE regardless of the presence of NS or SOA records in the authority section".
 				match (has_a_start_of_authority_record, has_name_server_records)
 				{
-					(true, true) => Answer::NoDomain { response_type: NoDomainResponseType1 { authority_name: self.authority_name(), start_of_authority: self.start_of_authority(), name_servers: self.name_servers(), }, most_canonical_name },
+					(true, true) => Answer::NoDomain { response_type: NoDomainResponseType1 { authority_name: Self::authority_name(self.authority_name), start_of_authority: Self::start_of_authority(self.start_of_authority), name_servers: Self::name_servers(self.name_servers), }, most_canonical_name },
 					
 					// Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 2.
-					(true, false) => Answer::NoDomain { response_type: NoDomainResponseType2 { authority_name: self.authority_name(), start_of_authority: self.start_of_authority() }, most_canonical_name },
+					(true, false) => Answer::NoDomain { response_type: NoDomainResponseType2 { authority_name: Self::authority_name(self.authority_name),start_of_authority: Self::start_of_authority(self.start_of_authority) }, most_canonical_name },
 					
 					// Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 3.
 					(false, false) =>
@@ -294,36 +294,31 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 					(false, true) =>
 					{
 						guard_against_authoritative_answer_without_start_of_authority_record(authoritative_or_authenticated_or_neither)?;
-						Answer::NoDomain { response_type: NoDomainResponseType4 { authority_name: self.authority_name(), name_servers: self.name_servers() }, most_canonical_name }
+						Answer::NoDomain { response_type: NoDomainResponseType4 { authority_name: Self::authority_name(self.authority_name), name_servers: Self::name_servers(self.name_servers) }, most_canonical_name }
 					},
 				}
 			}
 		};
 		
-		Ok((answer, self.canonical_name_chain.into()))
+		let canonical_records = self.canonical_name_chain.records;
+		Ok((answer, canonical_records))
 	}
 	
 	#[inline(always)]
-	fn name_servers(self) -> Present<CaseFoldedName<'cache>>
+	fn authority_name(authority_name: RefCell<Option<CaseFoldedName<'cache>>>) -> CaseFoldedName<'cache>
 	{
-		self.name_server_records.into_inner().unwrap()
+		authority_name.into_inner().unwrap()
 	}
 	
 	#[inline(always)]
-	fn start_of_authority(self) -> (Option<NanosecondsSinceUnixEpoch>, StartOfAuthority<CaseFoldedName<'cache>>)
+	fn name_servers(name_servers: RefCell<Option<Present<CaseFoldedName<'cache>>>>) -> Present<CaseFoldedName<'cache>>
 	{
-		self.start_of_authority_record.into_inner().unwrap()
+		name_servers.into_inner().unwrap()
 	}
 	
 	#[inline(always)]
-	fn authority_name(self) -> CaseFoldedName<'cache>
+	fn start_of_authority(start_of_authority: RefCell<Option<(NegativeCacheUntil, StartOfAuthority<'cache, CaseFoldedName<'cache>>)>>) -> (Option<NanosecondsSinceUnixEpoch>, StartOfAuthority<'cache, CaseFoldedName<'cache>>)
 	{
-		self.authority_name.into_inner().unwrap()
-	}
-	
-	#[inline(always)]
-	fn most_canonical_name(self) -> CaseFoldedName<'cache>
-	{
-		CaseFoldedName::map(self.canonical_name_chain.most_canonical_name().clone())
+		start_of_authority.into_inner().unwrap()
 	}
 }

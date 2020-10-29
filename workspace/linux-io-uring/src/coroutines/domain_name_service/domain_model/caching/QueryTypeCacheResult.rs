@@ -3,7 +3,7 @@
 
 
 #[derive(Debug)]
-pub enum CacheResult<'cache, Record: Sized + Debug>
+pub enum QueryTypeCacheResult<'cache, Record: Sized + Debug>
 {
 	/// Query for the data.
 	Nothing,

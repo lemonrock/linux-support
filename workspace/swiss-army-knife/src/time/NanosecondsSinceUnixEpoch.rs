@@ -21,6 +21,11 @@ impl Add<U31SecondsDuration> for NanosecondsSinceUnixEpoch
 
 impl NanosecondsSinceUnixEpoch
 {
+	/// Maximum seconds.
+	///
+	/// Effectively infinity.
+	pub const MaximumSeconds: Self = Self::from_seconds_u64(u64::MAX);
+	
 	/// Now.
 	#[inline(always)]
 	pub fn now() -> Self

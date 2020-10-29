@@ -60,8 +60,8 @@ impl<'message, 'cache: 'message> Into<StartOfAuthority<'cache, CaseFoldedName<'c
 	{
 		StartOfAuthority
 		{
-			primary_name_server: CaseFoldedName::map(self.primary_name_server),
-			responsible_person_email_address: CaseFoldedName::map(self.responsible_person_email_address),
+			primary_name_server: CaseFoldedName::from(self.primary_name_server),
+			responsible_person_email_address: CaseFoldedName::from(self.responsible_person_email_address),
 			zone_file_serial_number: self.zone_file_serial_number,
 			referesh_interval: self.referesh_interval,
 			retry_interval: self.retry_interval,

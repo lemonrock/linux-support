@@ -188,13 +188,6 @@ impl<'a, 'message> PartialOrd<ParsedName<'message>> for CaseFoldedName<'a>
 
 impl<'a> CaseFoldedName<'a>
 {
-	#[inline(always)]
-	pub(crate) fn map<'message>(parsed_name: ParsedName<'message>) -> Self
-	where 'a: 'message
-	{
-		Self::from(parsed_name)
-	}
-	
 	/// Push a child to the front of this name.
 	///
 	/// This will always succeed if this is a root, top level or second level name.
@@ -333,174 +326,28 @@ impl<'a> CaseFoldedName<'a>
 	{
 		Self::third_level(third_level_label, second_level_label, top_level_label).child(fourth_level_label)
 	}
+	
+	#[inline(always)]
+	fn fourth_level_unwrap(fourth_level_label: CaseFoldedLabel<'a>, third_level_label: CaseFoldedLabel<'a>, second_level_label: CaseFoldedLabel<'a>, top_level_label: CaseFoldedLabel<'a>) -> Self
+	{
+		Self::third_level(third_level_label, second_level_label, top_level_label).child(fourth_level_label).unwrap()
+	}
+	
+	#[inline(always)]
+	fn fifth_level_unwrap(fifth_level_label: CaseFoldedLabel<'a>, fourth_level_label: CaseFoldedLabel<'a>, third_level_label: CaseFoldedLabel<'a>, second_level_label: CaseFoldedLabel<'a>, top_level_label: CaseFoldedLabel<'a>) -> Self
+	{
+		Self::fourth_level_unwrap(fourth_level_label, third_level_label, second_level_label, top_level_label).child(fifth_level_label).unwrap()
+	}
+	
+	#[inline(always)]
+	fn sixth_level_unwrap(sixth_level_label: CaseFoldedLabel<'a>, fifth_level_label: CaseFoldedLabel<'a>, fourth_level_label: CaseFoldedLabel<'a>, third_level_label: CaseFoldedLabel<'a>, second_level_label: CaseFoldedLabel<'a>, top_level_label: CaseFoldedLabel<'a>) -> Self
+	{
+		Self::fifth_level_unwrap(fifth_level_label, fourth_level_label, third_level_label, second_level_label, top_level_label).child(sixth_level_label).unwrap()
+	}
 }
 
 impl CaseFoldedName<'static>
 {
-	/// Ends with special use name.
-	pub fn ends_with_special_use(&self) -> bool
-	{
-		if self.is_root_or_special_use_name()
-		{
-			return true
-		}
-		
-		for special_use in Self::special_uses()
-		{
-			if self.ends_with(special_use)
-			{
-				return true
-			}
-		}
-		
-		false
-	}
-	
-	/// An exact match.
-	#[inline(always)]
-	pub fn is_root_or_special_use_name(&self) -> bool
-	{
-		self.is_root() || Self::special_uses().contains(self)
-	}
-	
-	#[inline(always)]
-	fn special_uses() -> &'static HashSet<Self>
-	{
-		lazy_static!
-		{
-    		static ref SpecialUses: HashSet<CaseFoldedName<'static>> = CaseFoldedName::special_use_domain_names().bitand(&CaseFoldedName::rfc_7788_local_name_mistake()).bitand(&CaseFoldedName::recommended_local_names_in_rfc_6762_appendix_g()).bitand(&CaseFoldedName::iana_test_internationalized_domain_names());
-    	}
-		
-		&SpecialUses
-	}
-	
-	/// Concept created by RFC 6761.
-	///
-	/// See <https://www.iana.org/assignments/special-use-domain-names/special-use-domain-names.xhtml>.
-	#[inline(always)]
-	pub fn special_use_domain_names() -> HashSet<Self>
-	{
-		hashset!
-		{
-			// Reference: RFC-ietf-6tisch-minimal-security-15.
-			Self::second_level(CaseFoldedLabel::_6tisch, CaseFoldedLabel::arpa),
-			
-			// RFC 6761, Section 6.1, Domain Name Reservation Considerations for Private Addresses.
-			Self::third_level(CaseFoldedLabel::byte(10), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
-			Self::fourth_level_unwrap(CaseFoldedLabel::byte(16), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
-			Self::fourth_level_unwrap(CaseFoldedLabel::byte(17), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
-			Self::fourth_level_unwrap(CaseFoldedLabel::byte(18), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
-			Self::fourth_level_unwrap(CaseFoldedLabel::byte(19), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
-			Self::fourth_level_unwrap(CaseFoldedLabel::byte(20), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
-			Self::fourth_level_unwrap(CaseFoldedLabel::byte(21), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
-			Self::fourth_level_unwrap(CaseFoldedLabel::byte(22), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
-			Self::fourth_level_unwrap(CaseFoldedLabel::byte(23), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
-			Self::fourth_level_unwrap(CaseFoldedLabel::byte(24), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
-			Self::fourth_level_unwrap(CaseFoldedLabel::byte(25), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
-			Self::fourth_level_unwrap(CaseFoldedLabel::byte(26), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
-			Self::fourth_level_unwrap(CaseFoldedLabel::byte(27), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
-			Self::fourth_level_unwrap(CaseFoldedLabel::byte(28), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
-			Self::fourth_level_unwrap(CaseFoldedLabel::byte(29), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
-			Self::fourth_level_unwrap(CaseFoldedLabel::byte(30), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
-			Self::fourth_level_unwrap(CaseFoldedLabel::byte(31), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
-			Self::fourth_level_unwrap(CaseFoldedLabel::byte(168), CaseFoldedLabel::byte(192), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
-			
-			// RFC 8880, Section 7.2, Names '170.0.0.192.in-addr.arpa' and '171.0.0.192.in-addr.arpa'.
-			Self::internet_protocol_version_4_pointer_unchecked(Ipv4Addr::new(170, 0, 0, 192)),
-			Self::internet_protocol_version_4_pointer_unchecked(Ipv4Addr::new(171, 0, 0, 192)),
-			
-			// RFC 6762, Section 12, Special Characteristics of Multicast DNS Domains.
-			Self::fourth_level_unwrap(CaseFoldedLabel::byte(254), CaseFoldedLabel::byte(169), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
-			Self::fifth_level_unwrap(CaseFoldedLabel::nibble(0x8), CaseFoldedLabel::nibble(0xE), CaseFoldedLabel::nibble(0xF), CaseFoldedLabel::ip6, CaseFoldedLabel::arpa),
-			Self::fifth_level_unwrap(CaseFoldedLabel::nibble(0x9), CaseFoldedLabel::nibble(0xE), CaseFoldedLabel::nibble(0xF), CaseFoldedLabel::ip6, CaseFoldedLabel::arpa),
-			Self::fifth_level_unwrap(CaseFoldedLabel::nibble(0xA), CaseFoldedLabel::nibble(0xE), CaseFoldedLabel::nibble(0xF), CaseFoldedLabel::ip6, CaseFoldedLabel::arpa),
-			Self::fifth_level_unwrap(CaseFoldedLabel::nibble(0xB), CaseFoldedLabel::nibble(0xE), CaseFoldedLabel::nibble(0xF), CaseFoldedLabel::ip6, CaseFoldedLabel::arpa),
-			
-			// RFC 8375.
-			Self::second_level(CaseFoldedLabel::home, CaseFoldedLabel::arpa),
-			
-			// RFC 6761, Section 6.5 Domain Name Reservation Considerations for Example Domains.
-			Self::top_level(CaseFoldedLabel::example),
-			Self::second_level(CaseFoldedLabel::example, CaseFoldedLabel::com),
-			Self::second_level(CaseFoldedLabel::example, CaseFoldedLabel::net),
-			Self::second_level(CaseFoldedLabel::example, CaseFoldedLabel::org),
-			
-			// RFC 6761, Section 6.4, Domain Name Reservation Considerations for "invalid.".
-			Self::top_level(CaseFoldedLabel::invalid),
-			
-			// RFC 8880, Section 7.1, Special Use Domain Name 'ipv4only.arpa'.
-			//
-			// See also RFC 7050.
-			//
-			// This domain name is valid only for Internet Protocol version 4.
-			// It is not valid only for Internet Protocol version 6.
-			// Furthermore, for Internet Protocol version 4, it has the fixed `A` records `192.0.0.170` and `192.0.0.171`; these are defined in the [IANA IPv5 Special-Purpose Address Registry](https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml).
-			Self::second_level(CaseFoldedLabel::ipv4only, CaseFoldedLabel::arpa),
-			
-			// RFC 6762, Section 12, Special Characteristics of Multicast DNS Domains.
-			Self::top_level(CaseFoldedLabel::local),
-			
-			// RFC 6761, Section 6.3, Domain Name Reservation Considerations for "localhost.".
-			Self::top_level(CaseFoldedLabel::localhost),
-			
-			// RFC 7686, Section 2, The ".onion" Special-Use Domain Name.
-			Self::top_level(CaseFoldedLabel::onion),
-			
-			// RFC 6761, Section 6.2, Domain Name Reservation Considerations for "test.".
-			Self::top_level(CaseFoldedLabel::test),
-		}
-	}
-	
-	/// Based on RFC 7788.
-	///
-	/// This usage has been deprecated by RFC 8375 replacing ".home." with ".home.arpa.".
-	/// However, it is also used by RFC 6762, Appendix G.
-	#[inline(always)]
-	pub fn rfc_7788_local_name_mistake() -> HashSet<Self>
-	{
-		hashset!
-		{
-			Self::top_level(CaseFoldedLabel::home),
-		}
-	}
-	
-	/// Based on RFC 6762, Appendix G: Private DNS Namespace.
-	///
-	/// This contains 'sepcial use' multicast DNS domain names in common use.
-	/// It excludes ".local." and ".home.".
-	#[inline(always)]
-	pub fn recommended_local_names_in_rfc_6762_appendix_g() -> HashSet<Self>
-	{
-		hashset!
-		{
-			Self::top_level(CaseFoldedLabel::intranet),
-			Self::top_level(CaseFoldedLabel::internal),
-			Self::top_level(CaseFoldedLabel::private),
-			Self::top_level(CaseFoldedLabel::corp),
-			Self::top_level(CaseFoldedLabel::lan),
-		}
-	}
-	
-	/// See <https://www.iana.org/domains/reserved>.
-	#[inline(always)]
-	pub fn iana_test_internationalized_domain_names() -> HashSet<Self>
-	{
-		hashset!
-		{
-			Self::top_level(CaseFoldedLabel::Arabic_Arabic),
-			Self::top_level(CaseFoldedLabel::Persian_Arabic),
-			Self::top_level(CaseFoldedLabel::Chinese_Han_Simplified),
-			Self::top_level(CaseFoldedLabel::Chinese_Han_Traditional),
-			Self::top_level(CaseFoldedLabel::Russion_Cyrillic),
-			Self::top_level(CaseFoldedLabel::Hindi_Devangari),
-			Self::top_level(CaseFoldedLabel::Greek_Greek),
-			Self::top_level(CaseFoldedLabel::Korean_Hangul),
-			Self::top_level(CaseFoldedLabel::Yiddish_Hebrew),
-			Self::top_level(CaseFoldedLabel::Japanese_Katakana),
-			Self::top_level(CaseFoldedLabel::Tamil_Tamil),
-		}
-	}
-	
 	/// A name suitable only for a `PTR` query.
 	///
 	/// Not all addresses are suitable, in particular, the following are rejected:-
@@ -737,21 +584,152 @@ impl CaseFoldedName<'static>
 		}
 	}
 	
+	/// Concept created by RFC 6761.
+	///
+	/// See <https://www.iana.org/assignments/special-use-domain-names/special-use-domain-names.xhtml>.
 	#[inline(always)]
-	fn fourth_level_unwrap(fourth_level_label: CaseFoldedLabel<'static>, third_level_label: CaseFoldedLabel<'static>, second_level_label: CaseFoldedLabel<'static>, top_level_label: CaseFoldedLabel<'static>) -> Self
+	pub fn special_use_domain_names() -> &'static HashSet<Self>
 	{
-		Self::third_level(third_level_label, second_level_label, top_level_label).child(fourth_level_label).unwrap()
+		lazy_static!
+		{
+			static ref special_use_domain_names: HashSet<CaseFoldedName<'static>> = hashset!
+			{
+				// Reference: RFC-ietf-6tisch-minimal-security-15.
+				CaseFoldedName::second_level(CaseFoldedLabel::_6tisch, CaseFoldedLabel::arpa),
+				
+				// RFC 6761, Section 6.1, Domain Name Reservation Considerations for Private Addresses.
+				CaseFoldedName::third_level(CaseFoldedLabel::byte(10), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
+				CaseFoldedName::fourth_level_unwrap(CaseFoldedLabel::byte(16), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
+				CaseFoldedName::fourth_level_unwrap(CaseFoldedLabel::byte(17), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
+				CaseFoldedName::fourth_level_unwrap(CaseFoldedLabel::byte(18), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
+				CaseFoldedName::fourth_level_unwrap(CaseFoldedLabel::byte(19), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
+				CaseFoldedName::fourth_level_unwrap(CaseFoldedLabel::byte(20), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
+				CaseFoldedName::fourth_level_unwrap(CaseFoldedLabel::byte(21), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
+				CaseFoldedName::fourth_level_unwrap(CaseFoldedLabel::byte(22), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
+				CaseFoldedName::fourth_level_unwrap(CaseFoldedLabel::byte(23), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
+				CaseFoldedName::fourth_level_unwrap(CaseFoldedLabel::byte(24), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
+				CaseFoldedName::fourth_level_unwrap(CaseFoldedLabel::byte(25), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
+				CaseFoldedName::fourth_level_unwrap(CaseFoldedLabel::byte(26), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
+				CaseFoldedName::fourth_level_unwrap(CaseFoldedLabel::byte(27), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
+				CaseFoldedName::fourth_level_unwrap(CaseFoldedLabel::byte(28), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
+				CaseFoldedName::fourth_level_unwrap(CaseFoldedLabel::byte(29), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
+				CaseFoldedName::fourth_level_unwrap(CaseFoldedLabel::byte(30), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
+				CaseFoldedName::fourth_level_unwrap(CaseFoldedLabel::byte(31), CaseFoldedLabel::byte(172), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
+				CaseFoldedName::fourth_level_unwrap(CaseFoldedLabel::byte(168), CaseFoldedLabel::byte(192), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
+				
+				// RFC 8880, Section 7.2, Names '170.0.0.192.in-addr.arpa' and '171.0.0.192.in-addr.arpa'.
+				CaseFoldedName::internet_protocol_version_4_pointer_unchecked(Ipv4Addr::new(170, 0, 0, 192)),
+				CaseFoldedName::internet_protocol_version_4_pointer_unchecked(Ipv4Addr::new(171, 0, 0, 192)),
+				
+				// RFC 6762, Section 12, Special Characteristics of Multicast DNS Domains.
+				CaseFoldedName::fourth_level_unwrap(CaseFoldedLabel::byte(254), CaseFoldedLabel::byte(169), CaseFoldedLabel::in_addr, CaseFoldedLabel::arpa),
+				CaseFoldedName::fifth_level_unwrap(CaseFoldedLabel::nibble(0x8), CaseFoldedLabel::nibble(0xE), CaseFoldedLabel::nibble(0xF), CaseFoldedLabel::ip6, CaseFoldedLabel::arpa),
+				CaseFoldedName::fifth_level_unwrap(CaseFoldedLabel::nibble(0x9), CaseFoldedLabel::nibble(0xE), CaseFoldedLabel::nibble(0xF), CaseFoldedLabel::ip6, CaseFoldedLabel::arpa),
+				CaseFoldedName::fifth_level_unwrap(CaseFoldedLabel::nibble(0xA), CaseFoldedLabel::nibble(0xE), CaseFoldedLabel::nibble(0xF), CaseFoldedLabel::ip6, CaseFoldedLabel::arpa),
+				CaseFoldedName::fifth_level_unwrap(CaseFoldedLabel::nibble(0xB), CaseFoldedLabel::nibble(0xE), CaseFoldedLabel::nibble(0xF), CaseFoldedLabel::ip6, CaseFoldedLabel::arpa),
+				
+				// RFC 8375.
+				CaseFoldedName::second_level(CaseFoldedLabel::home, CaseFoldedLabel::arpa),
+				
+				// RFC 6761, Section 6.5 Domain Name Reservation Considerations for Example Domains.
+				CaseFoldedName::top_level(CaseFoldedLabel::example),
+				CaseFoldedName::second_level(CaseFoldedLabel::example, CaseFoldedLabel::com),
+				CaseFoldedName::second_level(CaseFoldedLabel::example, CaseFoldedLabel::net),
+				CaseFoldedName::second_level(CaseFoldedLabel::example, CaseFoldedLabel::org),
+				
+				// RFC 6761, Section 6.4, Domain Name Reservation Considerations for "invalid.".
+				CaseFoldedName::top_level(CaseFoldedLabel::invalid),
+				
+				// RFC 8880, Section 7.1, Special Use Domain Name 'ipv4only.arpa'.
+				//
+				// See also RFC 7050.
+				//
+				// This domain name is valid only for Internet Protocol version 4.
+				// It is not valid only for Internet Protocol version 6.
+				// Furthermore, for Internet Protocol version 4, it has the fixed `A` records `192.0.0.170` and `192.0.0.171`; these are defined in the [IANA IPv5 Special-Purpose Address Registry](https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml).
+				CaseFoldedName::second_level(CaseFoldedLabel::ipv4only, CaseFoldedLabel::arpa),
+				
+				// RFC 6762, Section 12, Special Characteristics of Multicast DNS Domains.
+				CaseFoldedName::top_level(CaseFoldedLabel::local),
+				
+				// RFC 6761, Section 6.3, Domain Name Reservation Considerations for "localhost.".
+				CaseFoldedName::top_level(CaseFoldedLabel::localhost),
+				
+				// RFC 7686, Section 2, The ".onion" Special-Use Domain Name.
+				CaseFoldedName::top_level(CaseFoldedLabel::onion),
+				
+				// RFC 6761, Section 6.2, Domain Name Reservation Considerations for "test.".
+				CaseFoldedName::top_level(CaseFoldedLabel::test),
+			};
+		}
+		
+		&special_use_domain_names
 	}
 	
+	/// Based on RFC 7788.
+	///
+	/// This usage has been deprecated by RFC 8375 replacing ".home." with ".home.arpa.".
+	/// However, it is also used by RFC 6762, Appendix G.
 	#[inline(always)]
-	fn fifth_level_unwrap(fifth_level_label: CaseFoldedLabel<'static>, fourth_level_label: CaseFoldedLabel<'static>, third_level_label: CaseFoldedLabel<'static>, second_level_label: CaseFoldedLabel<'static>, top_level_label: CaseFoldedLabel<'static>) -> Self
+	pub fn rfc_7788_local_name_mistake() -> &'static HashSet<Self>
 	{
-		Self::fourth_level_unwrap(fourth_level_label, third_level_label, second_level_label, top_level_label).child(fifth_level_label).unwrap()
+		lazy_static!
+		{
+			static ref rfc_7788_local_name_mistake: HashSet<CaseFoldedName<'static>> = hashset!
+			{
+				CaseFoldedName::top_level(CaseFoldedLabel::home),
+			};
+		}
+		
+		&rfc_7788_local_name_mistake
 	}
 	
+	/// Based on RFC 6762, Appendix G: Private DNS Namespace.
+	///
+	/// This contains 'sepcial use' multicast DNS domain names in common use.
+	/// It excludes ".local." and ".home.".
 	#[inline(always)]
-	fn sixth_level_unwrap(sixth_level_label: CaseFoldedLabel<'static>, fifth_level_label: CaseFoldedLabel<'static>, fourth_level_label: CaseFoldedLabel<'static>, third_level_label: CaseFoldedLabel<'static>, second_level_label: CaseFoldedLabel<'static>, top_level_label: CaseFoldedLabel<'static>) -> Self
+	pub fn recommended_local_names_in_rfc_6762_appendix_g() -> &'static HashSet<Self>
 	{
-		Self::fifth_level_unwrap(fifth_level_label, fourth_level_label, third_level_label, second_level_label, top_level_label).child(sixth_level_label).unwrap()
+		lazy_static!
+		{
+			static ref recommended_local_names_in_rfc_6762_appendix_g: HashSet<CaseFoldedName<'static>> = hashset!
+			{
+				CaseFoldedName::top_level(CaseFoldedLabel::intranet),
+				CaseFoldedName::top_level(CaseFoldedLabel::internal),
+				CaseFoldedName::top_level(CaseFoldedLabel::private),
+				CaseFoldedName::top_level(CaseFoldedLabel::corp),
+				CaseFoldedName::top_level(CaseFoldedLabel::lan),
+			};
+		}
+		
+		&recommended_local_names_in_rfc_6762_appendix_g
+	}
+	
+	/// See <https://www.iana.org/domains/reserved>.
+	#[inline(always)]
+	pub fn iana_test_internationalized_domain_names() -> &'static HashSet<Self>
+	{
+		lazy_static!
+		{
+			static ref iana_test_internationalized_domain_names: HashSet<CaseFoldedName<'static>> = hashset!
+			{
+				CaseFoldedName::top_level(CaseFoldedLabel::Arabic_Arabic),
+				CaseFoldedName::top_level(CaseFoldedLabel::Persian_Arabic),
+				CaseFoldedName::top_level(CaseFoldedLabel::Chinese_Han_Simplified),
+				CaseFoldedName::top_level(CaseFoldedLabel::Chinese_Han_Traditional),
+				CaseFoldedName::top_level(CaseFoldedLabel::Russion_Cyrillic),
+				CaseFoldedName::top_level(CaseFoldedLabel::Hindi_Devangari),
+				CaseFoldedName::top_level(CaseFoldedLabel::Greek_Greek),
+				CaseFoldedName::top_level(CaseFoldedLabel::Korean_Hangul),
+				CaseFoldedName::top_level(CaseFoldedLabel::Yiddish_Hebrew),
+				CaseFoldedName::top_level(CaseFoldedLabel::Japanese_Katakana),
+				CaseFoldedName::top_level(CaseFoldedLabel::Tamil_Tamil),
+			};
+		}
+		
+		&iana_test_internationalized_domain_names
 	}
 }
+
+include!(concat!(env!("OUT_DIR"), "/CaseFoldedName.top-level-domains.rs"));

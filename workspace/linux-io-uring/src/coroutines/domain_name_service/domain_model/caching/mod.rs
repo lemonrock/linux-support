@@ -5,8 +5,6 @@
 use super::*;
 
 
-include!("CacheEntry.rs");
-include!("CacheResult.rs");
 include!("CacheUntil.rs");
 include!("Exists.rs");
 include!("LeastRecentlyUsedCache.rs");
@@ -14,10 +12,14 @@ include!("LeastRecentlyUsedCacheValue.rs");
 include!("LeastRecentlyUsedListKeyReference.rs");
 include!("LeastRecentlyUsedListPointer.rs");
 include!("NegativeCacheUntil.rs");
+include!("NoDomainCache.rs");
+include!("NoDomainCacheEntry.rs");
 include!("Present.rs");
 include!("Priority.rs");
 include!("PriorityToSortedWeightedRecordsMap.rs");
 include!("Records.rs");
 include!("QueryTypeCache.rs");
+include!("QueryTypeCacheEntry.rs");
+include!("QueryTypeCacheResult.rs");
 include!("SortedWeightedRecords.rs");
 include!("Weight.rs");

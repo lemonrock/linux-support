@@ -3,7 +3,7 @@
 
 
 #[derive(Debug)]
-pub(crate) enum CacheEntry<'cache, Record: Sized + Debug>
+pub(crate) enum QueryTypeCacheEntry<'cache, Record: Sized + Debug>
 {
 	/// One-time use.
 	AbsentUseOnce(Rc<StartOfAuthority<'cache, CaseFoldedName<'cache>>>),
@@ -14,12 +14,12 @@ pub(crate) enum CacheEntry<'cache, Record: Sized + Debug>
 	Present(Present<Record>),
 }
 
-impl<'cache, Record: Sized + Debug> LeastRecentlyUsedCacheValue for CacheEntry<'cache, Record>
+impl<'cache, Record: Sized + Debug> LeastRecentlyUsedCacheValue for QueryTypeCacheEntry<'cache, Record>
 {
 	#[inline(always)]
 	fn records_count(&self) -> NonZeroUsize
 	{
-		use self::CacheEntry::*;
+		use self::QueryTypeCacheEntry::*;
 		
 		const One: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(1) };
 		
