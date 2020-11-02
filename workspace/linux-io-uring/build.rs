@@ -90,7 +90,7 @@ fn write_case_folded_names(out_dir: &OsString, top_level_domains: &Vec<CaseFolde
 		writeln!(file, "\t{{")?;
 			writeln!(file, "\t\tlazy_static!")?;
 			writeln!(file, "\t\t{{")?;
-				writeln!(file, "\t\t\tstatic ref top_level_domain_names: HashSet<CaseFoldedName<'static>> = hashset!")?;
+				writeln!(file, "\t\t\tstatic ref top_level_domain_names: HashSet<CaseFoldedName<'static>> = fast_secure_hash_set!")?;
 				writeln!(file, "\t\t\t{{")?;
 				for case_folded_label in top_level_domains
 				{

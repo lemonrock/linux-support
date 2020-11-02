@@ -16,6 +16,7 @@
 #![feature(const_panic)]
 #![cfg_attr(not(debug_assertions), feature(const_unreachable_unchecked))]
 #![feature(core_intrinsics)]
+#![feature(extend_one)]
 #![feature(llvm_asm)]
 #![feature(maybe_uninit_extra)]
 
@@ -49,6 +50,7 @@ use std::alloc::dealloc;
 use std::alloc::Layout;
 use std::ascii::escape_default;
 use std::array::TryFromSliceError;
+use std::borrow::Borrow;
 use std::cell::UnsafeCell;
 use std::cmp::max;
 use std::cmp::min;
@@ -70,6 +72,7 @@ use std::hash::Hasher;
 #[cfg(not(debug_assertions))] use std::hint::unreachable_unchecked;
 use std::io;
 use std::io::ErrorKind;
+use std::iter::FromIterator;
 use std::marker::PhantomData;
 use std::mem::MaybeUninit;
 use std::mem::size_of;
@@ -77,6 +80,9 @@ use std::mem::transmute;
 #[allow(deprecated)] use std::mem::uninitialized;
 use std::num::NonZeroU32;
 use std::num::NonZeroU8;
+use std::ops::BitAnd;
+use std::ops::BitOr;
+use std::ops::BitXor;
 use std::ops::Deref;
 use std::ops::DerefMut;
 use std::ops::Add;
@@ -135,6 +141,9 @@ pub mod fixed_point_arithmetic;
 /// To pick the best spin lock for the compilation target, use the type alias `BestForCompilationTargetSpinLock`.
 pub mod hardware_optimized_spin_lock;
 
+
+/// Wrappers around the current best choices for a `HashMap` and `HashSet`.
+pub mod hash_map_and_hash_set;
 
 
 /// Intel hardware lock elision.

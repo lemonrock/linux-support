@@ -78,7 +78,7 @@ impl Configuration
 			
 			accept_child_thread_configuration: ThreadConfiguration::default(),
 			
-			accept_services: hashmap!
+			accept_services: fast_secure_hash_map!
 			{
 				SipOverTls => AcceptServiceConfiguration
 				{
@@ -107,12 +107,12 @@ impl Configuration
 						TransmissionControlProtocolServerListenerSettings::defaultish(UnixSocketAddress::from_abstract_name(port_number.to_string().as_bytes()).unwrap())
 					],
 					
-					permitted_unix_domain_group_identifiers: hashmap!
+					permitted_unix_domain_group_identifiers: fast_secure_hash_map!
 					[
 						GroupIdentifier::default() => Arc::new(AccessControlValue),
 					],
 					
-					permitted_unix_domain_user_identifiers: hashmap!
+					permitted_unix_domain_user_identifiers: fast_secure_hash_map!
 					[
 						UserIdentifier::default() => Arc::new(AccessControlValue),
 					],

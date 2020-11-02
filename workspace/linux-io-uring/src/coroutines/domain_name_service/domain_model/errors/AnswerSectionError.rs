@@ -3,7 +3,7 @@
 
 
 /// Answer section error.
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum AnswerSectionError<E: error::Error>
 {
 	/// Miscellaneous errors.
@@ -11,6 +11,9 @@ pub enum AnswerSectionError<E: error::Error>
 	
 	/// Handle record type error.
 	HandleRecordType(HandleRecordTypeError<E>),
+	
+	/// Resource record in answer section had a `resource_record_name` that did not match `query_name`, and the resource record was for the same query type, eg query for `example.com.` for `AAAAA`, get `example.net.` for `AAAA`.
+	ResourceRecordOwnerNameThatDiffersToQueryNameButMatchesQueryType(CaseFoldedName<'static>),
 	
 	/// More than one `CNAME` record exists in an answer section when a QueryType was `CNAME`.
 	MoreThanOneCNAMERecordIsNotValidInAnswerSectionForACNAMEQuery,

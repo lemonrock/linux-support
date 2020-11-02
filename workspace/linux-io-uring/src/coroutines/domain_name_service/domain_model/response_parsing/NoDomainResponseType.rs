@@ -25,22 +25,6 @@ pub(crate) enum NoDomainResponseType<'cache>
 
 impl<'cache> NoDomainResponseType<'cache>
 {
-	/// RFC 2308, Section 4 SOA Minimum Field, Paragraph 6, Page 9: "…  being the TTL to be used for negative responses, is the new defined meaning of the SOA minimum field".
-	#[inline(always)]
-	fn negative_cache_until_for_negative_response(&self) -> NegativeCacheUntil
-	{
-		use self::NoDomainResponseType::*;
-		
-		match self
-		{
-			&NoDomainResponseType1(AuthorityNameStartOfAuthorityNameServers { start_of_authority: (negative_cache_until, _), .. }) => negative_cache_until,
-			
-			&NoDomainResponseType2(AuthorityNameStartOfAuthority { start_of_authority: (negative_cache_until, _), .. }) => negative_cache_until,
-			
-			_ => None,
-		}
-	}
-	
 	/// RFC 2308, Section 6, Negative answers from the cache: "`NXDOMAIN` types 1 and 4 responses contain implicit referrals as does `NODATA` type 1 response".
 	#[inline(always)]
 	fn is_implicit_referral(&self) -> bool

@@ -118,6 +118,20 @@ impl<'cache> NoDomainCache<'cache>
 	}
 	
 	#[inline(always)]
+	pub(crate) fn put_use_once_if_no_better_record<'message>(&mut self, name: CaseFoldedName<'cache>, now: NanosecondsSinceUnixEpoch)
+	{
+		use self::NoDomainCacheResult::*;
+		
+		match self.existence(&name, now)
+		{
+			DefinitivelyHasADomain | DefinitivelyDoesNotHaveADomain => return,
+			_ => (),
+		}
+		
+		self.least_recently_used_cache.put(name, NoDomainCacheEntry::AbsentUseOnce);
+	}
+	
+	#[inline(always)]
 	pub(crate) fn put<'message>(&mut self, name: CaseFoldedName<'cache>, negative_cache_until: NegativeCacheUntil)
 	{
 		self.least_recently_used_cache.put(name, NoDomainCacheEntry::from(negative_cache_until));

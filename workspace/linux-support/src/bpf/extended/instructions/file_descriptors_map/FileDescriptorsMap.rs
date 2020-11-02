@@ -18,7 +18,7 @@ impl<FD: FileDescriptor> FileDescriptorsMap<FD>
 	#[inline(always)]
 	pub(crate) fn add(&mut self, program_name_or_map_name: ObjectName16, file_descriptor: FD) -> Result<Rc<FD>, FileDescriptorsMapAddError>
 	{
-		use std::collections::hash_map::Entry::*;
+		use self::FastSecureHashMapEntry::*;
 		
 		match self.0.entry(program_name_or_map_name)
 		{

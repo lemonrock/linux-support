@@ -23,6 +23,7 @@ static_assertions = "^1.1"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 arrayvec = { version = "^0.5.1", features = ["array-sizes-33-128", "array-sizes-129-255", "serde"] }
+hashbrown = { version = "^0.9.1", features = ["nightly", "serde", "inline-more", "ahash", "ahash-compile-time-rng" ] }
 libc = { version = "^0.2.69", features = ["const-extern-fn", "extra_traits", "std"] }
 likely = "^0.1.0"
 memchr = "^2.3.3"

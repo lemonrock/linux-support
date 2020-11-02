@@ -39,11 +39,14 @@
 #[derive(Debug)]
 pub(crate) struct CanonicalNameChain<'message, 'cache: 'message>
 {
-	query_name: ParsedName<'message>,
+	query_name: &'message ParsedName<'message>,
 	
 	chain: IndexSet<ParsedName<'message>>,
 	
-	records: Records<'cache, CaseFoldedName<'cache>>,
+	cname_records: Records<'cache, CaseFoldedName<'cache>>,
+	
+	/// RFC 6672, Section 3.2 Server Algorithm Step 3.C. implies in the final paragraph that multiple `DNAME` records can be included in an answer.
+	dname_records: Records<'cache, CaseFoldedName<'cache>>,
 }
 
 impl<'message, 'cache: 'message> CanonicalNameChain<'message, 'cache>
@@ -54,24 +57,26 @@ impl<'message, 'cache: 'message> CanonicalNameChain<'message, 'cache>
 	const MaximumChainLength: usize = 6;
 	
 	#[inline(always)]
-	pub(crate) fn new(query_name: ParsedName<'message>) -> Self
+	pub(crate) fn new(query_name: &'message ParsedName<'message>) -> Self
 	{
 		Self
 		{
 			query_name,
 			chain: IndexSet::with_capacity(Self::MaximumChainLength),
-			records: Records::with_capacity(3),
+			cname_records: Records::with_capacity(3),
+			dname_records: Records::with_capacity(1),
 		}
 	}
 	
 	#[inline(always)]
-	pub(crate) fn most_canonical_name(&self) -> &ParsedName<'message>
+	pub(crate) fn most_canonical_name<'a>(&'a self) -> &'a ParsedName<'message>
+	where 'message: 'a
 	{
 		let chain_length = self.chain.len();
 		
 		if unlikely!(chain_length == 0)
 		{
-			&self.query_name
+			self.query_name
 		}
 		else
 		{
@@ -94,7 +99,7 @@ impl<'message, 'cache: 'message> CanonicalNameChain<'message, 'cache>
 			return Err(CanonicalNamesNotSorted)
 		}
 		
-		if to.eq(&self.query_name)
+		if to.eq(self.query_name)
 		{
 			return Err(CanonicalNameChainCanNotIncludeQueryNameAsItCreatesALoop)
 		}
@@ -105,8 +110,14 @@ impl<'message, 'cache: 'message> CanonicalNameChain<'message, 'cache>
 			return Err(AddingNameToCanonicalNameChainCreatesALoop)
 		}
 		
-		self.records.store_unprioritized_and_unweighted(from, cache_until, CaseFoldedName::from(to));
+		self.cname_records.store_unprioritized_and_unweighted(from, cache_until, CaseFoldedName::from(to));
 		Ok(())
+	}
+	
+	#[inline(always)]
+	pub(crate) fn record_delegation_name(&mut self, from: &ParsedName<'message>, cache_until: CacheUntil, to: &ParsedName<'message>)
+	{
+		self.dname_records.store_unprioritized_and_unweighted(from, cache_until, CaseFoldedName::from(to));
 	}
 	
 	#[inline(always)]

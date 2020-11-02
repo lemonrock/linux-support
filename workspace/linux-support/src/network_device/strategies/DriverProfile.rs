@@ -352,7 +352,7 @@ impl DriverProfile
 			
 			supports_getting_and_setting_channels: true,
 			
-			supported_hash_function_names: hashset!
+			supported_hash_function_names: fast_secure_hash_set!
 			[
 				HashFunctionName::Toeplitz,
 				HashFunctionName::CyclicRedundancyCheck32,
@@ -431,7 +431,7 @@ impl DriverProfile
 				FeatureGroupChoice::enable_one(NETIF_F_LRO_BIT),
 			],
 			
-			driver_specific_flags_to_change: hashmap!
+			driver_specific_flags_to_change: fast_secure_hash_map!
 			[
 			],
 			
@@ -446,7 +446,7 @@ impl DriverProfile
 			
 			supports_getting_and_setting_channels: true,
 			
-			supported_hash_function_names: hashset!
+			supported_hash_function_names: fast_secure_hash_set!
 			[
 			],
 			
@@ -465,7 +465,7 @@ impl DriverProfile
 	{
 		let IXGBEVF_PRIV_FLAGS_LEGACY_RX = ObjectName32::try_from("legacy-rx").unwrap();
 		
-		let mut miscellaneous = hashset!
+		let mut miscellaneous = fast_secure_hash_set!
 		[
 			NETIF_F_GSO_PARTIAL_BIT,
 			NETIF_F_HW_VLAN_CTAG_FILTER_BIT,
@@ -505,7 +505,7 @@ impl DriverProfile
 				FeatureGroupChoice::enable(miscellaneous),
 			],
 			
-			driver_specific_flags_to_change: hashmap!
+			driver_specific_flags_to_change: fast_secure_hash_map!
 			[
 				IXGBEVF_PRIV_FLAGS_LEGACY_RX => false,
 			],
@@ -518,7 +518,7 @@ impl DriverProfile
 			
 			supports_getting_and_setting_channels: false,
 			
-			supported_hash_function_names: hashset!
+			supported_hash_function_names: fast_secure_hash_set!
 			[
 			],
 			

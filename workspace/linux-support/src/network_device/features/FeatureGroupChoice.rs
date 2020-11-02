@@ -204,7 +204,7 @@ impl FeatureGroupChoice
 	#[inline(always)]
 	pub fn enable_one(feature: Feature) -> Self
 	{
-		Self::enable(hashset! [feature])
+		Self::enable(fast_secure_hash_set! [feature])
 	}
 	
 	/// Enable.
@@ -218,7 +218,7 @@ impl FeatureGroupChoice
 	#[inline(always)]
 	pub fn disable_one(feature: Feature) -> Self
 	{
-		Self::disable(hashset! [feature])
+		Self::disable(fast_secure_hash_set! [feature])
 	}
 	
 	/// Disable.

@@ -3,15 +3,16 @@
 
 
 #[derive(Debug)]
-pub(crate) struct Present<Record: Sized + Debug>
+pub(crate) struct PresentMultiple<Record: Sized + Debug>
 {
 	/// One-time use.
 	use_once: PriorityToSortedWeightedRecordsMap<Record>,
 	
+	/// Cached.
 	cached: BTreeMap<NanosecondsSinceUnixEpoch, PriorityToSortedWeightedRecordsMap<Record>>,
 }
 
-impl<Record: Sized + Debug> Clone for Present<Record>
+impl<Record: Sized + Debug> Clone for PresentMultiple<Record>
 {
 	#[inline(always)]
 	fn clone(&self) -> Self
@@ -25,7 +26,7 @@ impl<Record: Sized + Debug> Clone for Present<Record>
 	}
 }
 
-impl<Record: Sized + Debug> Default for Present<Record>
+impl<Record: Sized + Debug> Default for PresentMultiple<Record>
 {
 	#[inline(always)]
 	fn default() -> Self
@@ -38,7 +39,7 @@ impl<Record: Sized + Debug> Default for Present<Record>
 	}
 }
 
-impl<Record: Sized + Debug> Present<Record>
+impl<Record: Sized + Debug> PresentMultiple<Record>
 {
 	#[inline(always)]
 	pub(crate) fn store_unprioritized_and_unweighted(&mut self, cache_until: CacheUntil, record: Record)

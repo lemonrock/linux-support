@@ -52,7 +52,7 @@ impl ThreadLocalAllocatorConfiguration
 			reserve_swap_space: false,
 			numa_memory_policy: self.numa_memory_policy(),
 			lock: Some(MemoryLockSettings::Normal),
-			advice: hashset!
+			advice: fast_secure_hash_set!
 			{
 				MemoryAdvice::DontFork
 			}

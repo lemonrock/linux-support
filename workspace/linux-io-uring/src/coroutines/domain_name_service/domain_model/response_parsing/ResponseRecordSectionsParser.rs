@@ -38,7 +38,7 @@ impl<'message, 'cache: 'message> ResponseRecordSectionsParser<'message, 'cache>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn parse_answer_authority_and_additional_sections<RRV: ResourceRecordVisitor<'message>>(&mut self, next_resource_record_pointer: usize, query_name: ParsedName<'message>, authoritative_or_authenticated_or_neither: AuthoritativeOrAuthenticatedOrNeither, rcode_lower_4_bits: RCodeLower4Bits, answer_section_resource_record_visitor: RRV) -> Result<(usize, Answer<'cache>, Records<'cache, CaseFoldedName<'cache>>, RRV::Finished), SectionError<RRV::Error>>
+	pub(crate) fn parse_answer_authority_and_additional_sections<RRV: ResourceRecordVisitor<'message>>(&mut self, next_resource_record_pointer: usize, query_name: &ParsedName<'message>, authoritative_or_authenticated_or_neither: AuthoritativeOrAuthenticatedOrNeither, rcode_lower_4_bits: RCodeLower4Bits, answer_section_resource_record_visitor: RRV) -> Result<(usize, Answer<'cache>, Records<'cache, CaseFoldedName<'cache>>, RRV::Finished), SectionError<RRV::Error>>
 	{
 		let (next_resource_record_pointer, (answer_section_resource_record_visitor_finished, canonical_name_chain), answer_section_has_at_least_one_record_of_requested_data_type) = self.parse_answer_section(next_resource_record_pointer, query_name, answer_section_resource_record_visitor)?;
 
@@ -52,14 +52,14 @@ impl<'message, 'cache: 'message> ResponseRecordSectionsParser<'message, 'cache>
 	}
 
 	#[inline(always)]
-	fn parse_answer_section<RRV: ResourceRecordVisitor<'message>>(&mut self, next_resource_record_pointer: usize, query_name: ParsedName<'message>, answer_section_resource_record_visitor: RRV) -> Result<(usize, (RRV::Finished, CanonicalNameChain<'message, 'cache>), bool), AnswerSectionError<WrappingCanonicalChainError<RRV::Error>>>
+	fn parse_answer_section<RRV: ResourceRecordVisitor<'message>>(&mut self, next_resource_record_pointer: usize, query_name: &ParsedName<'message>, answer_section_resource_record_visitor: RRV) -> Result<(usize, (RRV::Finished, CanonicalNameChain<'message, 'cache>), bool), AnswerSectionError<WrappingCanonicalChainError<RRV::Error>>>
 	{
 		let number_of_resource_records = self.message_header.number_of_resource_records_in_the_answer_section();
 
 		let mut resource_record_visitor = CanonicalNameChainAnswerSectionResourceRecordVisitor::new(answer_section_resource_record_visitor, query_name);
 		let mut answer_section_has_at_least_one_record_of_requested_data_type = true;
 		
-		let next_resource_record_pointer = self.loop_over_resource_records(next_resource_record_pointer, number_of_resource_records, AnswerSectionError::ResourceRecordsOverflowSection, |resource_record| resource_record.parse_answer_section_resource_record_in_response(self.now, self.data_type, self.end_of_message_pointer, self.parsed_names.borrow_mut().deref_mut(), &mut resource_record_visitor, &self.response_parsing_state, &self.duplicate_resource_record_response_parsing, &mut answer_section_has_at_least_one_record_of_requested_data_type))?;
+		let next_resource_record_pointer = self.loop_over_resource_records(next_resource_record_pointer, number_of_resource_records, AnswerSectionError::ResourceRecordsOverflowSection, |resource_record| resource_record.parse_answer_section_resource_record_in_response(self.now, self.data_type, self.end_of_message_pointer, self.parsed_names.borrow_mut().deref_mut(), &mut resource_record_visitor, &self.response_parsing_state, &self.duplicate_resource_record_response_parsing, &mut answer_section_has_at_least_one_record_of_requested_data_typ, query_namee))?;
 		
 		Ok((next_resource_record_pointer, resource_record_visitor.finished(), answer_section_has_at_least_one_record_of_requested_data_type))
 	}

@@ -43,7 +43,6 @@ use serde::Serialize;
 use std::alloc::Layout;
 use std::alloc::AllocRef;
 use std::alloc::AllocError;
-use std::collections::HashMap;
 use std::env::set_current_dir;
 use std::error;
 use std::fmt;
@@ -64,6 +63,8 @@ use std::process::exit;
 use std::ptr::NonNull;
 use std::ptr::null_mut;
 use std::str::FromStr;
+use swiss_army_knife::hash_map_and_hash_set::FastSecureHashMap as HashMap;
+use swiss_army_knife::hash_map_and_hash_set::FastSecureHashSet as HashSet;
 use swiss_army_knife::strings::ConstCStr;
 use swiss_army_knife::strings::path_to_cstring;
 

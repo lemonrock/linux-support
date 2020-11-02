@@ -5,14 +5,15 @@
 pub(crate) struct AQueryProcessorResourceRecordVisitor<'cache: 'message, 'message>
 {
 	query_name: &'message CaseFoldedName<'cache>,
-	present: Present<Ipv4Addr>,
+	
+	records: Records<'cache, Ipv4Addr>,
 }
 
 impl<'cache: 'message, 'message> ResourceRecordVisitor<'message> for AQueryProcessorResourceRecordVisitor<'cache, 'message>
 {
 	type Error = Infallible;
 	
-	type Finished = Present<Ipv4Addr>;
+	type Finished = Records<'cache, Ipv4Addr>;
 	
 	#[inline(always)]
 	fn finished(self) -> Self::Finished
@@ -23,12 +24,7 @@ impl<'cache: 'message, 'message> ResourceRecordVisitor<'message> for AQueryProce
 	#[inline(always)]
 	fn A(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: Ipv4Addr) -> Result<(), Self::Error>
 	{
-		if unlikely!(!name.eq(self.query_name))
-		{
-			return Ok(())
-		}
-		
-		self.present.store_unprioritized_and_unweighted(cache_until, record);
+		self.records.store_unprioritized_and_unweighted(&name, cache_until, record);
 		Ok(())
 	}
 }

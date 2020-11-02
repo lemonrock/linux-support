@@ -610,7 +610,7 @@ impl CaseFoldedName<'static>
 	{
 		lazy_static!
 		{
-			static ref special_use_domain_names: HashSet<CaseFoldedName<'static>> = hashset!
+			static ref special_use_domain_names: HashSet<CaseFoldedName<'static>> = fast_secure_hash_set!
 			{
 				// Reference: RFC-ietf-6tisch-minimal-security-15.
 				CaseFoldedName::second_level(CaseFoldedLabel::_6tisch, CaseFoldedLabel::arpa),
@@ -693,7 +693,7 @@ impl CaseFoldedName<'static>
 	{
 		lazy_static!
 		{
-			static ref rfc_7788_local_name_mistake: HashSet<CaseFoldedName<'static>> = hashset!
+			static ref rfc_7788_local_name_mistake: HashSet<CaseFoldedName<'static>> = fast_secure_hash_set!
 			{
 				CaseFoldedName::top_level(CaseFoldedLabel::home),
 			};
@@ -711,7 +711,7 @@ impl CaseFoldedName<'static>
 	{
 		lazy_static!
 		{
-			static ref recommended_local_names_in_rfc_6762_appendix_g: HashSet<CaseFoldedName<'static>> = hashset!
+			static ref recommended_local_names_in_rfc_6762_appendix_g: HashSet<CaseFoldedName<'static>> = fast_secure_hash_set!
 			{
 				CaseFoldedName::top_level(CaseFoldedLabel::intranet),
 				CaseFoldedName::top_level(CaseFoldedLabel::internal),
@@ -730,7 +730,7 @@ impl CaseFoldedName<'static>
 	{
 		lazy_static!
 		{
-			static ref iana_test_internationalized_domain_names: HashSet<CaseFoldedName<'static>> = hashset!
+			static ref iana_test_internationalized_domain_names: HashSet<CaseFoldedName<'static>> = fast_secure_hash_set!
 			{
 				CaseFoldedName::top_level(CaseFoldedLabel::Arabic_Arabic),
 				CaseFoldedName::top_level(CaseFoldedLabel::Persian_Arabic),

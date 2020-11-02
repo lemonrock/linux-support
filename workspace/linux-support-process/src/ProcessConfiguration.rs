@@ -37,7 +37,7 @@ impl ProcessConfiguration
 	#[inline(always)]
 	fn system_control_settings_default() -> HashMap<String, u64>
 	{
-		hashmap!
+		fast_secure_hash_map!
 		{
 			"vm.zone_reclaim_mode".to_string() => 0,
 			"vm.dirty_ratio".to_string() => 10,

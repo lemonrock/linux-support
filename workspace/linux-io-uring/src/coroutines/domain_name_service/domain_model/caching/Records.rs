@@ -3,7 +3,7 @@
 
 
 #[derive(Debug)]
-pub(crate) struct Records<'cache, Record: Sized + Debug>(HashMap<CaseFoldedName<'cache>, Present<Record>>);
+pub(crate) struct Records<'cache, Record: Sized + Debug>(HashMap<CaseFoldedName<'cache>, PresentMultiple<Record>>);
 
 impl<'cache, Record: Sized + Debug> Clone for Records<'cache, Record>
 {
@@ -14,10 +14,10 @@ impl<'cache, Record: Sized + Debug> Clone for Records<'cache, Record>
 	}
 }
 
-impl<'cache, Record: Sized + Debug> Into<HashMap<CaseFoldedName<'cache>, Present<Record>>> for Records<'cache, Record>
+impl<'cache, Record: Sized + Debug> Into<HashMap<CaseFoldedName<'cache>, PresentMultiple<Record>>> for Records<'cache, Record>
 {
 	#[inline(always)]
-	fn into(self) -> HashMap<CaseFoldedName<'cache>, Present<Record>>
+	fn into(self) -> HashMap<CaseFoldedName<'cache>, PresentMultiple<Record>>
 	{
 		self.0
 	}
@@ -59,8 +59,8 @@ impl<'cache, Record: Sized + Debug> Records<'cache, Record>
 	}
 	
 	#[inline(always)]
-	fn present<'message>(&mut self, name: &ParsedName<'message>) -> &mut Present<Record>
+	fn present<'message>(&mut self, name: &ParsedName<'message>) -> &mut PresentMultiple<Record>
 	{
-		self.0.entry(CaseFoldedName::from(name)).or_insert_with(Present::default)
+		self.0.entry(CaseFoldedName::from(name)).or_insert_with(PresentMultiple::default)
 	}
 }

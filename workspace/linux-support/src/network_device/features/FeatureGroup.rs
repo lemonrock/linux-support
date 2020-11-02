@@ -87,7 +87,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_SG_BIT,
 					NETIF_F_FRAGLIST_BIT,
@@ -105,7 +105,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_IP_CSUM_BIT,
 					NETIF_F_HW_CSUM_BIT,
@@ -126,7 +126,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_HW_VLAN_CTAG_TX_BIT,
 				}
@@ -143,7 +143,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_HW_VLAN_CTAG_RX_BIT,
 				}
@@ -160,7 +160,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_GSO_BIT,
 				}
@@ -177,7 +177,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_GRO_BIT,
 				}
@@ -194,7 +194,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_LRO_BIT,
 				}
@@ -220,7 +220,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_GSO_UDP_BIT,
 				}
@@ -237,7 +237,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_NTUPLE_BIT,
 				}
@@ -254,7 +254,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_RXHASH_BIT,
 				}
@@ -271,7 +271,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_RXCSUM_BIT,
 				}
@@ -288,7 +288,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_IP_CSUM_BIT,
 					NETIF_F_IPV6_CSUM_BIT,
@@ -306,7 +306,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_HW_CSUM_BIT,
 				}
@@ -333,7 +333,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_VLAN_CHALLENGED_BIT,
 					NETIF_F_LLTX_BIT,
@@ -393,7 +393,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_IP_CSUM_BIT,
 					NETIF_F_IPV6_CSUM_BIT,
@@ -412,7 +412,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_TSO_BIT,
 					NETIF_F_TSO6_BIT,
@@ -432,7 +432,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_FCOE_CRC_BIT,
 					NETIF_F_FCOE_MTU_BIT,
@@ -482,7 +482,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_NOCACHE_COPY_BIT,
 					NETIF_F_FSO_BIT,
@@ -500,7 +500,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_LRO_BIT,
 				}
@@ -517,7 +517,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_GSO_BIT,
 					NETIF_F_GRO_BIT,
@@ -535,7 +535,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_GRO_FRAGLIST_BIT,
 				}
@@ -552,7 +552,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_HW_VLAN_CTAG_FILTER_BIT,
 					NETIF_F_HW_VLAN_CTAG_RX_BIT,
@@ -574,7 +574,7 @@ impl FeatureGroup
 		{
 			static ref Static: FeatureGroup = FeatureGroup
 			(
-				hashset!
+				fast_secure_hash_set!
 				{
 					NETIF_F_GSO_GRE_BIT,
 					NETIF_F_GSO_GRE_CSUM_BIT,

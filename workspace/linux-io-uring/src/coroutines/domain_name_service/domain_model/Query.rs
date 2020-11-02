@@ -51,7 +51,7 @@ impl<'cache> Query<'cache>
 		
 		let answer_section_resource_record_visitor = QP::new(&self.query_name);
 		let (answer, canonical_name_chain_records, finished) = self.read_reply_after_message_length_checked(raw_dns_message, answer_section_resource_record_visitor).map_err(ProtocolError::ReadReplyAfterLengthChecked)?;
-		QP::result(&self.query_name, cache, answer, canonical_name_chain_records, finished);
+		QP::result(self.now, &self.query_name, cache, answer, canonical_name_chain_records, finished);
 		Ok(())
 	}
 	
@@ -70,7 +70,7 @@ impl<'cache> Query<'cache>
 		
 		let (next_resource_record_pointer, query_name) = self.parse_query_section(dns_message.query_section_entry(), &mut parsed_names, end_of_message_pointer).map_err(SectionError::QuerySection)?;
 		let mut response_record_sections_parser = ResponseRecordSectionsParser::new(self.now, self.data_type, end_of_message_pointer, message_header, parsed_names);
-		let (end_of_parsed_message_pointer, answer, canonical_name_records, answer_section_resource_record_visitor_finished) = response_record_sections_parser.parse_answer_authority_and_additional_sections(next_resource_record_pointer, query_name, authoritative_or_authenticated_or_neither, rcode_lower_4_bits, answer_section_resource_record_visitor)?;
+		let (end_of_parsed_message_pointer, answer, canonical_name_records, answer_section_resource_record_visitor_finished) = response_record_sections_parser.parse_answer_authority_and_additional_sections(next_resource_record_pointer, &query_name, authoritative_or_authenticated_or_neither, rcode_lower_4_bits, answer_section_resource_record_visitor)?;
 		
 		if unlikely!(end_of_parsed_message_pointer < end_of_message_pointer)
 		{

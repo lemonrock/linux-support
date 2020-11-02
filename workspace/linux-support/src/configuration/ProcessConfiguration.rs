@@ -620,7 +620,7 @@ impl ProcessConfiguration
 	fn optional_cpu_feature_checks_to_suppress_default() -> HashSet<OptionalCpuFeatureCheck>
 	{
 		#[cfg(target_arch = "x86_64")] use self::OptionalCpuFeatureCheck::*;
-		#[cfg(target_arch = "x86_64")] return hashset!
+		#[cfg(target_arch = "x86_64")] return fast_secure_hash_set!
 		{
 			has_rep_movsb_stosb,
 			has_prefetchw,
@@ -631,7 +631,7 @@ impl ProcessConfiguration
 			has_smap,
 		};
 
-		#[cfg(not(target_arch = "x86_64"))] return hashset!
+		#[cfg(not(target_arch = "x86_64"))] return fast_secure_hash_set!
 		{
 		};
 	}

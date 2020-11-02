@@ -52,7 +52,7 @@ impl<'cache, Record: Sized + Debug> QueryTypeCache<'cache, Record>
 	#[inline(always)]
 	pub(crate) fn put_present(&mut self, records: Records<'cache, Record>)
 	{
-		let hash_map: HashMap<CaseFoldedName<'cache>, Present<Record>> = records.into();
+		let hash_map: HashMap<CaseFoldedName<'cache>, PresentMultiple<Record>> = records.into();
 		for (key, present) in hash_map
 		{
 			self.0.put(key, QueryTypeCacheEntry::Present(present));
@@ -60,9 +60,9 @@ impl<'cache, Record: Sized + Debug> QueryTypeCache<'cache, Record>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn put_present_all_the_same_name(&mut self, query_name: &CaseFoldedName<'cache>, present: Present<Record>)
+	pub(crate) fn put_present_all_the_same_name(&mut self, name: CaseFoldedName<'cache>, present: PresentMultiple<Record>)
 	{
-		self.0.put(query_name.clone(), QueryTypeCacheEntry::Present(present))
+		self.0.put(name, QueryTypeCacheEntry::Present(present))
 	}
 	
 	/// RFC 2308, Section 8 - Changes from RFC 1034, Paragraph 3: "The SOA record from the authority section MUST be cached. Name error indications must be cached against the tuple `<query name, QCLASS>`".
@@ -82,7 +82,7 @@ impl<'cache, Record: Sized + Debug> QueryTypeCache<'cache, Record>
 	}
 	
 	#[inline(always)]
-	fn put_absent<'message>(&mut self, query_name: CaseFoldedName<'cache>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message, ParsedName<'message>>)
+	fn put_absent<'message>(&mut self, name: CaseFoldedName<'cache>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message, ParsedName<'message>>)
 	{
 		use self::QueryTypeCacheEntry::*;
 		
@@ -90,7 +90,7 @@ impl<'cache, Record: Sized + Debug> QueryTypeCache<'cache, Record>
 		
 		self.0.put
 		(
-			query_name,
+			name,
 			
 			match negative_cache_until
 			{

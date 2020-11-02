@@ -10,12 +10,14 @@ pub enum CanonicalChainError
 	TooManyCanonicalNamesInChain(usize),
 	
 	/// We rely on canonical chain links been sorted.
+	///
+	/// RFC 6672, Section 3.2 Server Algorithm Step 3.A. implies that canonical chain links will be sorted.
 	CanonicalNamesNotSorted,
 	
-	/// This avoid a CNAME loop.
+	/// This avoids a CNAME loop.
 	CanonicalNameChainCanNotIncludeQueryNameAsItCreatesALoop,
 	
-	/// This avoid a CNAME loop.
+	/// This avoids a CNAME loop.
 	AddingNameToCanonicalNameChainCreatesALoop,
 }
 

@@ -8,7 +8,7 @@ pub(crate) trait QueryProcessor<'cache>
 	
 	type Record: Sized + Debug;
 	
-	type RRV<'message>: ResourceRecordVisitor<'message, Error=Infallible, Finished=Present<Self::Record>>
+	type RRV<'message>: ResourceRecordVisitor<'message, Error=Infallible, Finished=Records<'cache, Self::Record>>
 	where 'cache: 'message;
 	
 	fn new<'message>(query_name: &'message CaseFoldedName<'cache>) -> Self::RRV<'message>
@@ -18,14 +18,27 @@ pub(crate) trait QueryProcessor<'cache>
 	where 'cache: 'message;
 	
 	#[inline(always)]
-	fn result<'message>(query_name: &'message CaseFoldedName<'cache>, cache: &mut Cache<'cache>, answer: Answer<'cache>, canonical_name_chain_records: Records<'cache, CaseFoldedName<'cache>>, finished: <<Self as QueryProcessor<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished)
+	fn result<'message>(now: NanosecondsSinceUnixEpoch, query_name: &'message CaseFoldedName<'cache>, cache: &mut Cache<'cache>, answer: Answer<'cache>, canonical_name_chain_records: Records<'cache, CaseFoldedName<'cache>>, finished: <<Self as QueryProcessor<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished)
 	where 'cache: 'message
 	{
+		/*
+			TODO: We can analyze the canonical name chain, and only store it for a TTL of the lowest member.
+			This prevents broken cname chains that then need look up of a member that has expired.
+			
+			
+			
+			So there is a domain cache, with doamins, viz:-
+			
+			HashMap<DomainName, CacheOfResourceRecordTypes>
+			
+		 */
+		
 		// TODO: This should update the no_domain_cache, as the domains now do exist!
 		cache.cname_query_type_cache.put_present(canonical_name_chain_records);
 		
 		use self::Answer::*;
 		use self::NoDomainResponseType::*;
+		use self::NoDataResponseType::*;
 		
 		match answer
 		{
@@ -33,6 +46,7 @@ pub(crate) trait QueryProcessor<'cache>
 			{
 				debug_assert!(!finished.is_empty());
 				
+				// TODO: This should update the no_domain_cache, as the domains now do exist!
 				Self::answered(finished, query_name, cache);
 			}
 			
@@ -43,22 +57,90 @@ pub(crate) trait QueryProcessor<'cache>
 				
 				match response_type
 				{
-				
+					NoDomainResponseType1(authority_name_start_of_authority_name_servers) =>
+					{
+						cache.no_domain_cache.put(most_canonical_name, authority_name_start_of_authority_name_servers.start_of_authority.0);
+						
+						// TODO: This should update the no_domain_cache, as the domains now do exist!
+						let mut present = PresentMultiple::default();
+						present.store_unprioritized_and_unweighted(authority_name_start_of_authority_name_servers.start_of_authority.0, authority_name_start_of_authority_name_servers.start_of_authority.1);
+						cache.soa_query_type_cache.put_present_all_the_same_name(authority_name_start_of_authority_name_servers.authority_name.clone(), present);
+						
+						// TODO: This should update the no_domain_cache, as the domains now do exist!
+						cache.ns_query_type_cache.put_present_all_the_same_name(authority_name_start_of_authority_name_servers.authority_name, authority_name_start_of_authority_name_servers.name_servers);
+						
+						// TODO: Referral.
+					}
+					
+					NoDomainResponseType2(authority_name_start_of_authority) =>
+					{
+						cache.no_domain_cache.put(most_canonical_name, authority_name_start_of_authority_name_servers.start_of_authority.0);
+						
+						// TODO: This should update the no_domain_cache, as the domains now do exist!
+						let mut present = PresentMultiple::default();
+						present.store_unprioritized_and_unweighted(authority_name_start_of_authority_name_servers.start_of_authority.0, authority_name_start_of_authority_name_servers.start_of_authority.1);
+						cache.soa_query_type_cache.put_present_all_the_same_name(authority_name_start_of_authority_name_servers.authority_name.clone(), present);
+					}
+					
+					NoDomainResponseType3 =>
+					{
+						// TODO: This should update the no_domain_cache, as the domains now do exist!
+						cache.no_domain_cache.put_use_once_if_no_better_record(most_canonical_name, now)
+					}
+					
+					NoDomainResponseType4(authority_name_name_servers) =>
+					{
+						cache.no_domain_cache.put_use_once_if_no_better_record(most_canonical_name, now);
+						
+						// TODO: This should update the no_domain_cache, as the domains now do exist!
+						cache.ns_query_type_cache.put_present_all_the_same_name(authority_name_start_of_authority_name_servers.authority_name, authority_name_start_of_authority_name_servers.name_servers)
+						
+						// TODO: Referral.
+					}
 				}
-				
-				//cache.no_domain_cache.put(query_name.clone(), )
 			}
 			
 			NoData { response_type, most_canonical_name } =>
 			{
 				debug_assert!(finished.is_empty());
-			
+				
+				match response_type
+				{
+					NoDataResponseType1(authority_name_start_of_authority_name_servers) =>
+					{
+						// TODO: This should update the no_domain_cache, as the domains now do exist!
+						let mut present = PresentMultiple::default();
+						present.store_unprioritized_and_unweighted(authority_name_start_of_authority_name_servers.start_of_authority.0, authority_name_start_of_authority_name_servers.start_of_authority.1);
+						cache.soa_query_type_cache.put_present_all_the_same_name(authority_name_start_of_authority_name_servers.authority_name.clone(), present);
+						
+						// TODO: This should update the no_domain_cache, as the domains now do exist!
+						cache.ns_query_type_cache.put_present_all_the_same_name(authority_name_start_of_authority_name_servers.authority_name, authority_name_start_of_authority_name_servers.name_servers);
+						
+						
+						
+						// TODO: Referral.
+					}
+				
+					NoDataResponseType2(authority_name_start_of_authority) =>
+					{
+						// TODO: This should update the no_domain_cache, as the domains now do exist!
+						let mut present = PresentMultiple::default();
+						present.store_unprioritized_and_unweighted(authority_name_start_of_authority_name_servers.start_of_authority.0, authority_name_start_of_authority_name_servers.start_of_authority.1);
+						cache.soa_query_type_cache.put_present_all_the_same_name(authority_name_start_of_authority_name_servers.authority_name.clone(), present);
+					}
+					
+					NoDataResponseType3 =>
+					{
+					
+					}
+				}
 			}
 			
 			Referral { referral, most_canonical_name } =>
 			{
 				debug_assert!(finished.is_empty());
-			
+				
+				// TODO: Referral.
 			}
 		}
 	}

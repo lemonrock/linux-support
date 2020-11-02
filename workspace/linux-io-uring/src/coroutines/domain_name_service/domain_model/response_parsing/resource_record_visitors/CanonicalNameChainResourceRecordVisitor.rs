@@ -12,7 +12,7 @@ pub(crate) struct CanonicalNameChainAnswerSectionResourceRecordVisitor<'message,
 impl<'message, 'cache: 'message, RRV: ResourceRecordVisitor<'message>> CanonicalNameChainAnswerSectionResourceRecordVisitor<'message, 'cache, RRV>
 {
 	#[inline(always)]
-	pub(crate) fn new(answer_section_resource_record_visitor: RRV, query_name: ParsedName<'message>) -> Self
+	pub(crate) fn new(answer_section_resource_record_visitor: RRV, query_name: &ParsedName<'message>) -> Self
 	{
 		Self
 		{
@@ -34,6 +34,12 @@ impl<'message, 'cache: 'message, RRV: ResourceRecordVisitor<'message>> Canonical
 	fn add_canonical_link(&mut self, from: &ParsedName<'message>, cache_until: CacheUntil, to: &ParsedName<'message>) -> Result<(), CanonicalChainError>
 	{
 		self.canonical_name_chain.insert_link(from, cache_until, to)
+	}
+	
+	#[inline(always)]
+	fn add_delegation_name(&mut self, from: &ParsedName<'message>, cache_until: CacheUntil, to: &ParsedName<'message>)
+	{
+		self.canonical_name_chain.record_delegation_name(from, cache_until, to)
 	}
 }
 
@@ -210,6 +216,11 @@ impl<'message, 'cache: 'message, RRV: ResourceRecordVisitor<'message>> ResourceR
 	fn DNAME(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: ParsedName<'message>, is_some_if_present_in_answer_section_and_true_if_was_queried_for: Option<bool>) -> Result<(), Self::Error>
 	{
 		debug_assert!(is_some_if_present_in_answer_section_and_true_if_was_queried_for.is_some());
+		
+		if is_some_if_present_in_answer_section_and_true_if_was_queried_for == Some(false)
+		{
+			self.add_delegation_name(&name, cache_until, &record);
+		}
 		
 		self.answer_section_resource_record_visitor.DNAME(name, cache_until, record, is_some_if_present_in_answer_section_and_true_if_was_queried_for).map_err(WrappingCanonicalChainError::Wrapped)
 	}

@@ -123,7 +123,7 @@ impl MappedMemorySettings
 	fn advice_default() -> HashSet<MemoryAdvice>
 	{
 		use self::MemoryAdvice::*;
-		hashset!
+		fast_secure_hash_set!
 		{
 			DontFork
 		}

@@ -219,7 +219,7 @@ impl<'a> PciDevice<'a>
 					{
 						let index = index as u32;
 						
-						use std::collections::hash_map::Entry::*;
+						use self::FastSecureHashMapEntry::*;
 						match parsed_resource_files.entry(index)
 						{
 							Occupied(mut occupied) => if has_write_combining_suffix

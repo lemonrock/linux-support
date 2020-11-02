@@ -18,7 +18,7 @@ impl<'cache> QueryProcessor<'cache> for AAAAQueryProcessor
 		AAAAQueryProcessorResourceRecordVisitor
 		{
 			query_name,
-			present: Present::default(),
+			present: PresentMultiple::default(),
 		}
 	}
 	
@@ -26,6 +26,6 @@ impl<'cache> QueryProcessor<'cache> for AAAAQueryProcessor
 	fn answered<'message>(finished: <<Self as QueryProcessor<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished, query_name: &'message CaseFoldedName<'cache>, cache: &mut Cache<'cache>)
 	where 'cache: 'message
 	{
-		cache.aaaa_query_type_cache.put_present_all_the_same_name(query_name, finished)
+		cache.aaaa_query_type_cache.put_present_all_the_same_name(query_name.clone(), finished)
 	}
 }

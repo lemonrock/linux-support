@@ -25,7 +25,7 @@ impl Default for BpfTypeFormatTypeIdentifiers
 		let mut this = Self
 		{
 			last_type_identifier: BpfTypeFormatTypeIdentifier::Void,
-			known_type_identifiers: maplit::hashmap!
+			known_type_identifiers: fast_secure_hash_map!
 			[
 				CVoidType.type_id => BpfTypeFormatTypeIdentifier::Void,
 			],

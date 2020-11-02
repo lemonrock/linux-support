@@ -5,11 +5,8 @@
 #[derive(Debug, Clone)]
 pub(crate) struct AuthorityNameStartOfAuthorityNameServers<'cache>
 {
-	pub(crate) authority_name: CaseFoldedName<'cache>,
-	
-	/// This is for `authority_name`.
-	pub(crate) start_of_authority: (NegativeCacheUntil, StartOfAuthority<'cache, CaseFoldedName<'cache>>),
+	pub(crate) authority_name_start_of_authority: AuthorityNameStartOfAuthority<'cache>,
 	
 	/// These are for `authority_name`.
-	pub(crate) name_servers: Present<CaseFoldedName<'cache>>,
+	pub(crate) name_servers: PresentMultiple<CaseFoldedName<'cache>>,
 }

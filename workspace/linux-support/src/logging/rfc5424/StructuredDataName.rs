@@ -57,7 +57,7 @@ impl StructuredDataName
 	{
 		lazy_static!
 		{
-    		static ref Denied: HashSet<u8> = hashset!
+    		static ref Denied: HashSet<u8> = fast_secure_hash_set!
 			{
 				b'=',
 				b']',

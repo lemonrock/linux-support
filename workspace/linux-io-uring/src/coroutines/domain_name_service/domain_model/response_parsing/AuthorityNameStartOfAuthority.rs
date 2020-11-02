@@ -8,5 +8,5 @@ pub(crate) struct AuthorityNameStartOfAuthority<'cache>
 	pub(crate) authority_name: CaseFoldedName<'cache>,
 	
 	/// This is for `authority_name`.
-	pub(crate) start_of_authority: (NegativeCacheUntil, StartOfAuthority<'cache, CaseFoldedName<'cache>>),
+	pub(crate) start_of_authority: PresentSolitary<StartOfAuthority<'cache, CaseFoldedName<'cache>>>,
 }

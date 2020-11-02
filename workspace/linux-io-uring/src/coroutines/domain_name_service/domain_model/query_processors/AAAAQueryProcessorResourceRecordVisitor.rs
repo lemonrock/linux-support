@@ -5,14 +5,15 @@
 pub(crate) struct AAAAQueryProcessorResourceRecordVisitor<'cache: 'message, 'message>
 {
 	query_name: &'message CaseFoldedName<'cache>,
-	present: Present<Ipv6Addr>,
+	
+	present: Records<'cache, Ipv6Addr>,
 }
 
 impl<'cache: 'message, 'message> ResourceRecordVisitor<'message> for AAAAQueryProcessorResourceRecordVisitor<'cache, 'message>
 {
 	type Error = Infallible;
 	
-	type Finished = Present<Ipv6Addr>;
+	type Finished = Records<'cache, Ipv6Addr>;
 	
 	#[inline(always)]
 	fn finished(self) -> Self::Finished
@@ -23,12 +24,7 @@ impl<'cache: 'message, 'message> ResourceRecordVisitor<'message> for AAAAQueryPr
 	#[inline(always)]
 	fn AAAA(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: Ipv6Addr) -> Result<(), Self::Error>
 	{
-		if unlikely!(!name.eq(self.query_name))
-		{
-			return Ok(())
-		}
-		
-		self.present.store_unprioritized_and_unweighted(cache_until, record);
+		self.records.store_unprioritized_and_unweighted(&name, cache_until, record);
 		Ok(())
 	}
 }

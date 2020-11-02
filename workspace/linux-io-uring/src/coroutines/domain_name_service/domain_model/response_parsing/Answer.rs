@@ -12,6 +12,8 @@ pub(crate) enum Answer<'cache>
 		response_type: NoDomainResponseType<'cache>,
 		
 		/// This is a direct child of `response_type.authority_name`.
+		///
+		/// This is the domain for which there is no domain.
 		most_canonical_name: CaseFoldedName<'cache>,
 	},
 
@@ -20,6 +22,8 @@ pub(crate) enum Answer<'cache>
 		response_type: NoDataResponseType<'cache>,
 		
 		/// This is a direct child of `response_type.authority_name`.
+		///
+		/// This is the domain for which there is no data.
 		most_canonical_name: CaseFoldedName<'cache>,
 	},
 	

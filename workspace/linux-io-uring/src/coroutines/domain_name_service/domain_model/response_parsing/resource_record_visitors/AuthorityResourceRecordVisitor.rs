@@ -11,12 +11,12 @@ pub(crate) struct AuthorityResourceRecordVisitor<'message, 'cache: 'message>
 	
 	/// *MUST* be for the parent of the final entry in the canonical name chain.
 	/// It is valid to have no records.
-	start_of_authority: RefCell<Option<(NegativeCacheUntil, StartOfAuthority<'cache, CaseFoldedName<'cache>>)>>,
+	start_of_authority: RefCell<Option<PresentSolitary<StartOfAuthority<'cache, CaseFoldedName<'cache>>>>>,
 	
 	/// *MUST* be for the parent of the final entry in the canonical name chain.
 	/// It is valid to have no records.
 	/// However, all records will have the same name (the parent of the final entry in the canonical name chain).
-	name_servers: RefCell<Option<Present<CaseFoldedName<'cache>>>>,
+	name_servers: RefCell<Option<PresentMultiple<CaseFoldedName<'cache>>>>,
 }
 
 impl<'message, 'cache: 'message> ResourceRecordVisitor<'message> for AuthorityResourceRecordVisitor<'message, 'cache>
@@ -46,7 +46,7 @@ impl<'message, 'cache: 'message> ResourceRecordVisitor<'message> for AuthorityRe
 		let name_server_records = name_server_records.deref_mut();
 		if unlikely!(name_server_records.is_none())
 		{
-			*name_server_records = Some(Present::default());
+			*name_server_records = Some(PresentMultiple::default());
 		}
 		
 		let present = name_server_records.as_mut().unwrap();
@@ -70,7 +70,28 @@ impl<'message, 'cache: 'message> ResourceRecordVisitor<'message> for AuthorityRe
 		let start_of_authority_record = start_of_authority_record.deref_mut();
 		if likely!(start_of_authority_record.is_none())
 		{
-			*start_of_authority_record = Some((negative_cache_until, record.into()));
+			*start_of_authority_record = Some
+			(
+				{
+					use self::PresentSolitary::*;
+					let record = record.into();
+					match negative_cache_until
+					{
+						None => UseOnce
+						{
+							record,
+						},
+						
+						Some(cached_until) => Cached
+						{
+							cached_until,
+							
+							record,
+						}
+					}
+				}
+			);
+			
 			Ok(())
 		}
 		else
@@ -260,8 +281,13 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 						(
 							AuthorityNameStartOfAuthorityNameServers
 							{
-								authority_name: Self::authority_name(self.authority_name),
-								start_of_authority: Self::start_of_authority(self.start_of_authority),
+								authority_name_start_of_authority: AuthorityNameStartOfAuthority
+								{
+									authority_name: Self::authority_name(self.authority_name),
+									
+									start_of_authority: Self::start_of_authority(self.start_of_authority),
+								},
+								
 								name_servers: Self::name_servers(self.name_servers)
 							}
 						),
@@ -275,6 +301,7 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 							AuthorityNameStartOfAuthority
 							{
 								authority_name: Self::authority_name(self.authority_name),
+								
 								start_of_authority: Self::start_of_authority(self.start_of_authority)
 							}
 						),
@@ -287,6 +314,7 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 						NoData
 						{
 							response_type: NoDataResponseType3,
+							
 							most_canonical_name
 						}
 					},
@@ -297,6 +325,7 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 						referral: AuthorityNameNameServers
 						{
 							authority_name: Self::authority_name(self.authority_name),
+							
 							name_servers: Self::name_servers(self.name_servers)
 						},
 						
@@ -322,8 +351,13 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 						(
 							AuthorityNameStartOfAuthorityNameServers
 							{
-								authority_name: Self::authority_name(self.authority_name),
-								start_of_authority: Self::start_of_authority(self.start_of_authority),
+								authority_name_start_of_authority: AuthorityNameStartOfAuthority
+								{
+									authority_name: Self::authority_name(self.authority_name),
+									
+									start_of_authority: Self::start_of_authority(self.start_of_authority),
+								},
+								
 								name_servers: Self::name_servers(self.name_servers)
 							}
 						),
@@ -376,7 +410,7 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 			}
 		};
 		
-		let canonical_records = self.canonical_name_chain.records;
+		let canonical_records = self.canonical_name_chain.cname_records;
 		Ok((answer, canonical_records))
 	}
 	
@@ -393,13 +427,13 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 	}
 	
 	#[inline(always)]
-	fn name_servers(name_servers: RefCell<Option<Present<CaseFoldedName<'cache>>>>) -> Present<CaseFoldedName<'cache>>
+	fn name_servers(name_servers: RefCell<Option<PresentMultiple<CaseFoldedName<'cache>>>>) -> PresentMultiple<CaseFoldedName<'cache>>
 	{
 		name_servers.into_inner().unwrap()
 	}
 	
 	#[inline(always)]
-	fn start_of_authority(start_of_authority: RefCell<Option<(NegativeCacheUntil, StartOfAuthority<'cache, CaseFoldedName<'cache>>)>>) -> (Option<NanosecondsSinceUnixEpoch>, StartOfAuthority<'cache, CaseFoldedName<'cache>>)
+	fn start_of_authority(start_of_authority: RefCell<Option<PresentSolitary<StartOfAuthority<'cache, CaseFoldedName<'cache>>>>>) -> PresentSolitary<StartOfAuthority<'cache, CaseFoldedName<'cache>>>
 	{
 		start_of_authority.into_inner().unwrap()
 	}

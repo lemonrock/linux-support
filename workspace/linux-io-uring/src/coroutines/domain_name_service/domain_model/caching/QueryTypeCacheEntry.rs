@@ -11,7 +11,7 @@ pub(crate) enum QueryTypeCacheEntry<'cache, Record: Sized + Debug>
 	/// Negatively cached.
 	AbsentNegativelyCached(NanosecondsSinceUnixEpoch, Rc<StartOfAuthority<'cache, CaseFoldedName<'cache>>>),
 	
-	Present(Present<Record>),
+	Present(PresentMultiple<Record>),
 }
 
 impl<'cache, Record: Sized + Debug> LeastRecentlyUsedCacheValue for QueryTypeCacheEntry<'cache, Record>

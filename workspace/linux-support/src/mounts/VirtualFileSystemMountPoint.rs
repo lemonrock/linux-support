@@ -32,7 +32,7 @@ pub trait VirtualFileSystemMountPoint: Sized
 	#[inline(always)]
 	fn mount_options() -> HashMap<Cow<'static, [u8]>, Option<Cow<'static, [u8]>>>
 	{
-		hashmap!
+		fast_secure_hash_map!
 		{
 			Cow::Borrowed(b"uid" as &[u8]) => Some(Cow::Borrowed(b"0" as &[u8])),
 			Cow::Borrowed(b"gid" as &[u8]) => Some(Cow::Borrowed(b"0" as &[u8])),

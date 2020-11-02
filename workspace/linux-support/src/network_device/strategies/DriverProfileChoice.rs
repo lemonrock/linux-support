@@ -68,7 +68,7 @@ impl DriverProfileChoice
 			static ref virtio_net: DriverProfile = DriverProfile::virtio_net();
 		}
 		
-		hashmap!
+		fast_secure_hash_map!
 		[
 			(Self::ena(), PciVendorAndDevice::Amazon_Ena_RESRV0) => Self::linux_only(&amazon_ena),
 			(Self::ena(), PciVendorAndDevice::Amazon_Ena_PF) => Self::linux_only(&amazon_ena),

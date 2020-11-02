@@ -59,7 +59,7 @@ impl GlobalLinuxKernelCommandLineConfiguration
 	fn optional_kernel_command_line_setting_check_to_suppress_default() -> HashSet<OptionalKernelCommandLineSettingCheck>
 	{
 		use self::OptionalKernelCommandLineSettingCheck::*;
-		hashset!
+		fast_secure_hash_set!
 		{
 			hashdist,
 			noaliencache,

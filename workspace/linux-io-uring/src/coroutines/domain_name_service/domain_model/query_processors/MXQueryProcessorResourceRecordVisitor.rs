@@ -5,30 +5,25 @@
 pub(crate) struct MXQueryProcessorResourceRecordVisitor<'cache: 'message, 'message>
 {
 	query_name: &'message CaseFoldedName<'cache>,
-	present: Present<CaseFoldedName<'cache>>,
+	records: Records<'cache, CaseFoldedName<'cache>>,
 }
 
 impl<'cache: 'message, 'message> ResourceRecordVisitor<'message> for MXQueryProcessorResourceRecordVisitor<'cache, 'message>
 {
 	type Error = Infallible;
 	
-	type Finished = Present<CaseFoldedName<'cache>>;
+	type Finished = Records<'cache, CaseFoldedName<'cache>>;
 	
 	#[inline(always)]
 	fn finished(self) -> Self::Finished
 	{
-		self.present
+		self.records
 	}
 	
 	#[inline(always)]
 	fn MX(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: MailExchange<'message>) -> Result<(), Self::Error>
 	{
-		if unlikely!(!name.eq(self.query_name))
-		{
-			return Ok(())
-		}
-		
-		self.present.store_unweighted(cache_until, record.preference, CaseFoldedName::from(record.mail_server_name));
+		self.records.store_unweighted(&name, cache_until, record.preference, CaseFoldedName::from(record.mail_server_name));
 		Ok(())
 	}
 }
