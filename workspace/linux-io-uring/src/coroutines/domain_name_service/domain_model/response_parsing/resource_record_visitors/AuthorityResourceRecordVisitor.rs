@@ -3,15 +3,15 @@
 
 
 #[derive(Debug)]
-pub(crate) struct AuthorityResourceRecordVisitor<'message, 'cache: 'message>
+pub(crate) struct AuthorityResourceRecordVisitor<'message>
 {
-	canonical_name_chain: CanonicalNameChain<'message, 'cache>,
+	canonical_name_chain: CanonicalNameChain<'message>,
 	
 	authority_name: RefCell<Option<EfficientCaseFoldedName>>,
 	
 	/// *MUST* be for the parent of the final entry in the canonical name chain.
 	/// It is valid to have no records.
-	start_of_authority: RefCell<Option<PresentSolitary<StartOfAuthority<'cache, EfficientCaseFoldedName>>>>,
+	start_of_authority: RefCell<Option<PresentSolitary<StartOfAuthority<'static, EfficientCaseFoldedName>>>>,
 	
 	/// *MUST* be for the parent of the final entry in the canonical name chain.
 	/// It is valid to have no records.
@@ -19,7 +19,7 @@ pub(crate) struct AuthorityResourceRecordVisitor<'message, 'cache: 'message>
 	name_servers: RefCell<Option<PresentMultiple<EfficientCaseFoldedName>>>,
 }
 
-impl<'message, 'cache: 'message> ResourceRecordVisitor<'message> for AuthorityResourceRecordVisitor<'message, 'cache>
+impl<'message> ResourceRecordVisitor<'message> for AuthorityResourceRecordVisitor<'message>
 {
 	type Error = AuthorityError;
 	
@@ -77,12 +77,14 @@ impl<'message, 'cache: 'message> ResourceRecordVisitor<'message> for AuthorityRe
 					let record = record.into();
 					match negative_cache_until
 					{
-						None => UseOnce
+						CacheUntil::UseOnce { as_of_now } => UseOnce
 						{
+							as_of_now,
+							
 							record,
 						},
 						
-						Some(cached_until) => Cached
+						CacheUntil::Cached { cached_until } => Cached
 						{
 							cached_until,
 							
@@ -101,10 +103,10 @@ impl<'message, 'cache: 'message> ResourceRecordVisitor<'message> for AuthorityRe
 	}
 }
 
-impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache>
+impl<'message> AuthorityResourceRecordVisitor<'message>
 {
 	#[inline(always)]
-	pub(crate) fn new(canonical_name_chain: CanonicalNameChain<'message, 'cache>) -> Self
+	pub(crate) fn new(canonical_name_chain: CanonicalNameChain<'message>) -> Self
 	{
 		Self
 		{
@@ -238,7 +240,7 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 	/// 	* Authority
 	/// 		* `.			86400	IN	SOA	a.root-servers.net. …`.
 	/// 	* Additional
-	pub(crate) fn answer(self, answer_existence: AnswerExistence, answer_section_has_at_least_one_record_of_requested_data_type: bool) -> Result<(Answer<'cache>, CanonicalNameChainRecords<'cache>, DelegationNameRecords<'cache>), AuthoritySectionError<AuthorityError>>
+	pub(crate) fn answer(self, answer_existence: AnswerExistence, answer_section_has_at_least_one_record_of_requested_data_type: bool) -> Result<(Answer, CanonicalNameChainRecords, DelegationNameRecords), AuthoritySectionError<AuthorityError>>
 	{
 		use self::AnswerExistence::*;
 		use self::Answer::*;
@@ -264,7 +266,7 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 		
 		let answer = match (answer_existence, answer_section_has_at_least_one_record_of_requested_data_type)
 		{
-			(NoError(_), true) => Answer::Answered,
+			(NoError(_), true) => Answer::Answered { most_canonical_name: self.most_canonical_name() },
 			
 			// RFC 2308, Section 2.2 No Data, paragraph 1: "NODATA is indicated by an answer with the RCODE set to NOERROR and no relevant answers in the answer section".
 			//
@@ -432,7 +434,7 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 	}
 	
 	#[inline(always)]
-	fn start_of_authority(start_of_authority: RefCell<Option<PresentSolitary<StartOfAuthority<'cache, EfficientCaseFoldedName>>>>) -> PresentSolitary<StartOfAuthority<'cache, EfficientCaseFoldedName>>
+	fn start_of_authority(start_of_authority: RefCell<Option<PresentSolitary<StartOfAuthority<'static, EfficientCaseFoldedName>>>>) -> PresentSolitary<StartOfAuthority<'static, EfficientCaseFoldedName>>
 	{
 		start_of_authority.into_inner().unwrap()
 	}

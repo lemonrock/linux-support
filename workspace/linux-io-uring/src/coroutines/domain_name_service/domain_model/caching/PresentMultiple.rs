@@ -92,7 +92,7 @@ impl<Record: Sized + Debug> PresentMultiple<Record>
 		unsafe { NonZeroUsize::new_unchecked(records_count) }
 	}
 	
-	fn retrieve<'cache>(&mut self, now: NanosecondsSinceUnixEpoch) -> (QueryTypeCacheResult<'cache, Record>, Option<usize>)
+	fn retrieve(&mut self, now: NanosecondsSinceUnixEpoch) -> (QueryTypeCacheResult<Record>, Option<usize>)
 	{
 		use self::QueryTypeCacheResult::Nothing;
 		

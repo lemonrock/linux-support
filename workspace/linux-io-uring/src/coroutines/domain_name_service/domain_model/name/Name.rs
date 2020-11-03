@@ -8,6 +8,19 @@ pub trait Name<'label>: Sized + Clone + Debug + Display + PartialEq + Eq + Parti
 	#[doc(hidden)]
 	type Label: Label<'label>;
 	
+	#[inline(always)]
+	fn last_label(&'label self) -> Option<Self::Label>
+	{
+		if unlikely!(self.is_root())
+		{
+			None
+		}
+		else
+		{
+			Some(self.label(self.number_of_labels_including_root().get() - 1))
+		}
+	}
+	
 	/// Display or debug.
 	#[inline(always)]
 	fn display(&self, f: &mut Formatter) -> fmt::Result
@@ -139,7 +152,7 @@ pub trait Name<'label>: Sized + Clone + Debug + Display + PartialEq + Eq + Parti
 	}
 	
 	#[doc(hidden)]
-	fn label(&'label self, index: u8) -> Cow<'label, Self::Label>;
+	fn label(&'label self, index: u8) -> Self::Label;
 	
 	/// Number of labels.
 	fn number_of_labels_including_root(&self) -> NonZeroU8;

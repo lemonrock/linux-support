@@ -3,7 +3,7 @@
 
 
 #[derive(Debug, Clone)]
-pub(crate) struct AuthorityNameNameServers<'cache>
+pub(crate) struct AuthorityNameNameServers
 {
 	pub(crate) authority_name: EfficientCaseFoldedName,
 	

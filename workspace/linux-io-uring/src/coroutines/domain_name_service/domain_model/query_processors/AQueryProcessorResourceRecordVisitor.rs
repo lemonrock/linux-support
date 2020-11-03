@@ -2,18 +2,18 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) struct AQueryProcessorResourceRecordVisitor<'cache: 'message, 'message>
+pub(crate) struct AQueryProcessorResourceRecordVisitor<'message>
 {
 	query_name: &'message EfficientCaseFoldedName,
 	
-	records: Records<'cache, Ipv4Addr>,
+	records: Records<Ipv4Addr>,
 }
 
-impl<'cache: 'message, 'message> ResourceRecordVisitor<'message> for AQueryProcessorResourceRecordVisitor<'cache, 'message>
+impl<'message> ResourceRecordVisitor<'message> for AQueryProcessorResourceRecordVisitor<'message>
 {
 	type Error = Infallible;
 	
-	type Finished = Records<'cache, Ipv4Addr>;
+	type Finished = Records<Ipv4Addr>;
 	
 	#[inline(always)]
 	fn finished(self) -> Self::Finished

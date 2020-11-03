@@ -111,14 +111,14 @@ impl<'message> Name<'message> for ParsedName<'message>
 	}
 	
 	#[inline(always)]
-	fn label(&'message self, index: u8) -> Cow<'message, Self::Label>
+	fn label(&'message self, index: u8) -> Self::Label
 	{
 		let (label_data_starts_at_pointer, label_length_excluding_trailing_period) = unsafe { self.label_data_starts_at_pointers_and_label_length_excluding_trailing_period.get_unchecked(index as usize) };
 		
 		let label_data_starts_at_pointer = *label_data_starts_at_pointer;
 		let label_length_excluding_trailing_period = *label_length_excluding_trailing_period;
 		
-		Cow::Owned(ParsedLabel(unsafe { from_raw_parts(label_data_starts_at_pointer as *const u8, label_length_excluding_trailing_period as usize) }))
+		ParsedLabel(unsafe { from_raw_parts(label_data_starts_at_pointer as *const u8, label_length_excluding_trailing_period as usize) })
 	}
 	
 	#[inline(always)]

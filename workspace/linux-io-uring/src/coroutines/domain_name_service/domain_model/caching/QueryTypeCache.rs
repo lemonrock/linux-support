@@ -50,7 +50,7 @@ impl<'cache, Record: Sized + Debug> QueryTypeCache<'cache, Record>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn put_present(&mut self, records: Records<'cache, Record>)
+	pub(crate) fn put_present(&mut self, records: Records<Record>)
 	{
 		let hash_map: HashMap<EfficientCaseFoldedName, PresentMultiple<Record>> = records.into();
 		for (key, present) in hash_map

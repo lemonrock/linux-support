@@ -2,14 +2,14 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) struct CanonicalNameChainAnswerSectionResourceRecordVisitor<'message, 'cache: 'message, RRV: ResourceRecordVisitor<'message>>
+pub(crate) struct CanonicalNameChainAnswerSectionResourceRecordVisitor<'message, RRV: ResourceRecordVisitor<'message>>
 {
 	answer_section_resource_record_visitor: RRV,
 	
-	canonical_name_chain: CanonicalNameChain<'message, 'cache>,
+	canonical_name_chain: CanonicalNameChain<'message>,
 }
 
-impl<'message, 'cache: 'message, RRV: ResourceRecordVisitor<'message>> CanonicalNameChainAnswerSectionResourceRecordVisitor<'message, 'cache, RRV>
+impl<'message, RRV: ResourceRecordVisitor<'message>> CanonicalNameChainAnswerSectionResourceRecordVisitor<'message, RRV>
 {
 	#[inline(always)]
 	pub(crate) fn new(answer_section_resource_record_visitor: RRV, query_name: &'message EfficientCaseFoldedName) -> Self
@@ -43,12 +43,12 @@ impl<'message, 'cache: 'message, RRV: ResourceRecordVisitor<'message>> Canonical
 	}
 }
 
-impl<'message, 'cache: 'message, RRV: ResourceRecordVisitor<'message>> ResourceRecordVisitor<'message> for CanonicalNameChainAnswerSectionResourceRecordVisitor<'message, 'cache, RRV>
+impl<'message, RRV: ResourceRecordVisitor<'message>> ResourceRecordVisitor<'message> for CanonicalNameChainAnswerSectionResourceRecordVisitor<'message, RRV>
 {
 	type Error = WrappingCanonicalChainError<RRV::Error>;
 	
 	/// Result of `finished()`.
-	type Finished = (RRV::Finished, CanonicalNameChain<'message, 'cache>);
+	type Finished = (RRV::Finished, CanonicalNameChain<'message>);
 	
 	/// All records visited.
 	fn finished(self) -> Self::Finished

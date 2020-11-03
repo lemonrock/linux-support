@@ -3,7 +3,7 @@
 
 
 #[derive(Debug)]
-pub(crate) struct ResponseRecordSectionsParser<'message, 'cache: 'message>
+pub(crate) struct ResponseRecordSectionsParser<'message>
 {
 	now: NanosecondsSinceUnixEpoch,
 	data_type: DataType,
@@ -17,7 +17,7 @@ pub(crate) struct ResponseRecordSectionsParser<'message, 'cache: 'message>
 	query_name: &'message EfficientCaseFoldedName,
 }
 
-impl<'message, 'cache: 'message> ResponseRecordSectionsParser<'message, 'cache>
+impl<'message> ResponseRecordSectionsParser<'message>
 {
 	#[inline(always)]
 	pub(crate) fn new(now: NanosecondsSinceUnixEpoch, data_type: DataType, end_of_message_pointer: usize, message_header: &'message MessageHeader, parsed_names: ParsedNames<'message>, query_name: &'message EfficientCaseFoldedName) -> Self
@@ -38,7 +38,7 @@ impl<'message, 'cache: 'message> ResponseRecordSectionsParser<'message, 'cache>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn parse_answer_authority_and_additional_sections<RRV: ResourceRecordVisitor<'message>>(&mut self, next_resource_record_pointer: usize, authoritative_or_authenticated_or_neither: AuthoritativeOrAuthenticatedOrNeither, rcode_lower_4_bits: RCodeLower4Bits, answer_section_resource_record_visitor: RRV) -> Result<(usize, Answer<'cache>, CanonicalNameChainRecords<'cache>, DelegationNameRecords<'cache>, RRV::Finished), SectionError<RRV::Error>>
+	pub(crate) fn parse_answer_authority_and_additional_sections<RRV: ResourceRecordVisitor<'message>>(&mut self, next_resource_record_pointer: usize, authoritative_or_authenticated_or_neither: AuthoritativeOrAuthenticatedOrNeither, rcode_lower_4_bits: RCodeLower4Bits, answer_section_resource_record_visitor: RRV) -> Result<(usize, Answer, CanonicalNameChainRecords, DelegationNameRecords, RRV::Finished), SectionError<RRV::Error>>
 	{
 		let (next_resource_record_pointer, (answer_section_resource_record_visitor_finished, canonical_name_chain), answer_section_has_at_least_one_record_of_requested_data_type) = self.parse_answer_section(next_resource_record_pointer, answer_section_resource_record_visitor)?;
 
@@ -52,7 +52,7 @@ impl<'message, 'cache: 'message> ResponseRecordSectionsParser<'message, 'cache>
 	}
 
 	#[inline(always)]
-	fn parse_answer_section<RRV: ResourceRecordVisitor<'message>>(&mut self, next_resource_record_pointer: usize, answer_section_resource_record_visitor: RRV) -> Result<(usize, (RRV::Finished, CanonicalNameChain<'message, 'cache>), bool), AnswerSectionError<WrappingCanonicalChainError<RRV::Error>>>
+	fn parse_answer_section<RRV: ResourceRecordVisitor<'message>>(&mut self, next_resource_record_pointer: usize, answer_section_resource_record_visitor: RRV) -> Result<(usize, (RRV::Finished, CanonicalNameChain<'message>), bool), AnswerSectionError<WrappingCanonicalChainError<RRV::Error>>>
 	{
 		let number_of_resource_records = self.message_header.number_of_resource_records_in_the_answer_section();
 
@@ -65,7 +65,7 @@ impl<'message, 'cache: 'message> ResponseRecordSectionsParser<'message, 'cache>
 	}
 
 	#[inline(always)]
-	fn parse_authority_section(&mut self, next_resource_record_pointer: usize, canonical_name_chain: CanonicalNameChain<'message, 'cache>) -> Result<(usize, AuthorityResourceRecordVisitor<'message, 'cache>), AuthoritySectionError<AuthorityError>>
+	fn parse_authority_section(&mut self, next_resource_record_pointer: usize, canonical_name_chain: CanonicalNameChain<'message>) -> Result<(usize, AuthorityResourceRecordVisitor<'message>), AuthoritySectionError<AuthorityError>>
 	{
 		let number_of_resource_records = self.message_header.number_of_resource_records_in_the_authority_records_section();
 

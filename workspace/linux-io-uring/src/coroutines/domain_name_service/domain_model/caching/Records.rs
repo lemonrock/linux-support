@@ -3,9 +3,9 @@
 
 
 #[derive(Debug)]
-pub(crate) struct Records<'cache, Record: Sized + Debug>(HashMap<EfficientCaseFoldedName, PresentMultiple<Record>>);
+pub(crate) struct Records<Record: Sized + Debug>(HashMap<EfficientCaseFoldedName, PresentMultiple<Record>>);
 
-impl<'cache, Record: Sized + Debug> Clone for Records<'cache, Record>
+impl<Record: Sized + Debug> Clone for Records<Record>
 {
 	#[inline(always)]
 	fn clone(&self) -> Self
@@ -14,7 +14,7 @@ impl<'cache, Record: Sized + Debug> Clone for Records<'cache, Record>
 	}
 }
 
-impl<'cache, Record: Sized + Debug> Into<HashMap<EfficientCaseFoldedName, PresentMultiple<Record>>> for Records<'cache, Record>
+impl<Record: Sized + Debug> Into<HashMap<EfficientCaseFoldedName, PresentMultiple<Record>>> for Records<Record>
 {
 	#[inline(always)]
 	fn into(self) -> HashMap<EfficientCaseFoldedName, PresentMultiple<Record>>
@@ -23,7 +23,7 @@ impl<'cache, Record: Sized + Debug> Into<HashMap<EfficientCaseFoldedName, Presen
 	}
 }
 
-impl<'cache, Record: Sized + Debug> Records<'cache, Record>
+impl<Record: Sized + Debug> Records<Record>
 {
 	#[inline(always)]
 	pub(crate) fn with_capacity(capacity: usize) -> Self
@@ -39,21 +39,18 @@ impl<'cache, Record: Sized + Debug> Records<'cache, Record>
 	
 	#[inline(always)]
 	pub(crate) fn store_unprioritized_and_unweighted<'message>(&mut self, name: &ParsedName<'message>, cache_until: CacheUntil, record: Record)
-	where 'cache: 'message
 	{
 		self.present(name).store_unprioritized_and_unweighted(cache_until, record)
 	}
 	
 	#[inline(always)]
 	pub(crate) fn store_unweighted<'message>(&mut self, name: &ParsedName<'message>, cache_until: CacheUntil, priority_or_preference: Priority, record: Record)
-	where 'cache: 'message
 	{
 		self.present(name).store_unweighted(cache_until, priority_or_preference, record)
 	}
 	
 	#[inline(always)]
 	pub(crate) fn store<'message>(&mut self, name: &ParsedName<'message>, cache_until: CacheUntil, priority: Priority, weight: Weight, record: Record)
-	where 'cache: 'message
 	{
 		self.present(name).store(cache_until, priority, weight, record)
 	}

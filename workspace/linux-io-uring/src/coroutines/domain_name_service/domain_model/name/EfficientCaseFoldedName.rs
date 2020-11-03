@@ -124,9 +124,9 @@ impl<'label> Name<'label> for EfficientCaseFoldedName
 	}
 	
 	#[inline(always)]
-	fn label(&'label self, index: u8) -> Cow<'label, Self::Label>
+	fn label(&'label self, index: u8) -> Self::Label
 	{
-		Cow::Owned(self.inner.label(index))
+		self.inner.label(index)
 	}
 	
 	#[inline(always)]

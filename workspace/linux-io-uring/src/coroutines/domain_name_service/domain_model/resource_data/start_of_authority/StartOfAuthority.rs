@@ -14,7 +14,9 @@ pub struct StartOfAuthority<'label, N: Name<'label>>
 	/// `RNAME`.
 	///
 	/// First label is the name `@`, eg `hostmaster.example.com.` is the email address `hostmaster@example.com`.
-	pub responsible_person_email_address: N,
+	///
+	/// This has been validated to be at least a second-level domain (ie at least `hostmaster@com`).
+	pub(crate) responsible_person_email_address: N,
 	
 	/// `SERIAL`.
 	///
@@ -53,10 +55,31 @@ pub struct StartOfAuthority<'label, N: Name<'label>>
 	pub(crate) marker: PhantomData<&'label ()>,
 }
 
-impl<'message, 'cache: 'message> Into<StartOfAuthority<'cache, EfficientCaseFoldedName>> for StartOfAuthority<'message, ParsedName<'message>>
+impl<'label, N: Name<'label>> StartOfAuthority<'label, N>
+{
+	/// eg `hostmaster` for `hostmaster@example.com`.
+	///
+	/// This has been validated to be at least a second-level domain (ie at least `hostmaster@com`).
+	#[inline(always)]
+	pub fn responsible_person_email_address_name(&'label self) -> N::Label
+	{
+		self.responsible_person_email_address.last_label().unwrap()
+	}
+	
+	/// eg `example.com` for `hostmaster@example.com`.
+	///
+	/// This has been validated to be at least a second-level domain (ie at least `hostmaster@com`).
+	#[inline(always)]
+	pub fn responsible_person_email_address_domain(&'label self) -> N
+	{
+		self.responsible_person_email_address.parent().unwrap()
+	}
+}
+
+impl<'message> Into<StartOfAuthority<'static, EfficientCaseFoldedName>> for StartOfAuthority<'message, ParsedName<'message>>
 {
 	#[inline(always)]
-	fn into(self) -> StartOfAuthority<'cache, EfficientCaseFoldedName>
+	fn into(self) -> StartOfAuthority<'static, EfficientCaseFoldedName>
 	{
 		StartOfAuthority
 		{

@@ -6,21 +6,21 @@
 /// and
 /// RFC 2308 Section 5: "Negative responses without SOA records SHOULD NOT be cached as there is no way to prevent the negative responses looping forever between a pair of servers even with a short TTL".
 #[derive(Debug, Clone)]
-pub(crate) enum NoDataResponseType<'cache>
+pub(crate) enum NoDataResponseType
 {
 	/// RFC 2308, Section 2.2 No Data NODATA RESPONSE: TYPE 1.
-	NoDataResponseType1(AuthorityNameStartOfAuthorityNameServers<'cache>),
+	NoDataResponseType1(AuthorityNameStartOfAuthorityNameServers),
 	
 	/// RFC 2308, Section 2.2 No Data NODATA RESPONSE: TYPE 2.
 	///
 	/// RFC 2308, Section 2.2.1 Special Handling of No Data, Paragraph 1: "… it is recommended that servers that are authoritative for the NODATA response only send TYPE 2 NODATA responses, …".
-	NoDataResponseType2(AuthorityNameStartOfAuthority<'cache>),
+	NoDataResponseType2(AuthorityNameStartOfAuthority),
 	
 	/// RFC 2308, Section 2.2 No Data NODATA RESPONSE: TYPE 3.
 	NoDataResponseType3,
 }
 
-impl<'cache> NoDataResponseType<'cache>
+impl NoDataResponseType
 {
 	/// RFC 2308, Section 6, Negative answers from the cache: "`NXDOMAIN` types 1 and 4 responses contain implicit referrals as does `NODATA` type 1 response".
 	#[inline(always)]

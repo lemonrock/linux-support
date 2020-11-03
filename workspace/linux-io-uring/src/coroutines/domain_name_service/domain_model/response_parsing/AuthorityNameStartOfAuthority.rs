@@ -3,10 +3,10 @@
 
 
 #[derive(Debug, Clone)]
-pub(crate) struct AuthorityNameStartOfAuthority<'cache>
+pub(crate) struct AuthorityNameStartOfAuthority
 {
-	pub(crate) authority_name: EfficientCaseFoldedName,
+	pub(crate) authority_name: DomainTarget,
 	
 	/// This is for `authority_name`.
-	pub(crate) start_of_authority: PresentSolitary<StartOfAuthority<'cache, EfficientCaseFoldedName>>,
+	pub(crate) start_of_authority: PresentSolitary<StartOfAuthority<'static, EfficientCaseFoldedName>>,
 }

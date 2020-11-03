@@ -8,7 +8,7 @@ pub(crate) trait QueryProcessor<'cache>
 	
 	type Record: Sized + Debug;
 	
-	type RRV<'message>: ResourceRecordVisitor<'message, Error=Infallible, Finished=Records<'cache, Self::Record>>
+	type RRV<'message>: ResourceRecordVisitor<'message, Error=Infallible, Finished=Records<Self::Record>>
 	where 'cache: 'message;
 	
 	fn new<'message>(query_name: &'message EfficientCaseFoldedName) -> Self::RRV<'message>
@@ -18,7 +18,7 @@ pub(crate) trait QueryProcessor<'cache>
 	where 'cache: 'message;
 	
 	#[inline(always)]
-	fn result<'message>(now: NanosecondsSinceUnixEpoch, query_name: &'message EfficientCaseFoldedName, cache: &mut Cache<'cache>, answer: Answer<'cache>, canonical_name_chain_records: CanonicalNameChainRecords<'cache>, delegation_name_records: DelegationNameRecords<'cache>, finished: <<Self as QueryProcessor<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished)
+	fn result<'message>(now: NanosecondsSinceUnixEpoch, query_name: &'message EfficientCaseFoldedName, cache: &mut Cache<'cache>, answer: Answer, canonical_name_chain_records: CanonicalNameChainRecords, delegation_name_records: DelegationNameRecords, finished: <<Self as QueryProcessor<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished)
 	where 'cache: 'message
 	{
 		/*

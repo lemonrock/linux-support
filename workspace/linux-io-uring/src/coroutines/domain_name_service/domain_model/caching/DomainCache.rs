@@ -6,7 +6,7 @@
 pub enum AnsweredError
 {
 	/// Can not be an alias because it is never a valid domain name or the domain name must always exist.
-	DomainNameCanNotBeAnAlias(Alias<'static>),
+	DomainNameCanNotBeAnAlias(Alias),
 }
 
 impl Display for AnsweredError
@@ -22,14 +22,14 @@ impl error::Error for AnsweredError
 {
 }
 
-pub(crate) struct DomainCache<'cache>
+pub(crate) struct DomainCache
 {
-	map: HashMap<AliasOrDomainTarget<'cache>, DomainCacheEntry<'cache>>
+	map: HashMap<AliasOrDomainTarget, DomainCacheEntry>
 }
 
-impl<'cache> DomainCache<'cache>
+impl DomainCache
 {
-	pub(crate) fn new(never_valid: Cow<'_, HashSet<DomainTarget<'cache>>>, top_level_domains: Cow<'_, HashSet<DomainTarget<'cache>>>, always_valid_private_domains: Cow<'_, HashSet<DomainTarget<'cache>>>) -> Self
+	pub(crate) fn new(never_valid: Cow<'_, HashSet<DomainTarget>>, top_level_domains: Cow<'_, HashSet<DomainTarget>>, always_valid_private_domains: Cow<'_, HashSet<DomainTarget>>) -> Self
 	{
 		use self::DomainCacheEntry::*;
 		
@@ -45,18 +45,18 @@ impl<'cache> DomainCache<'cache>
 		this
 	}
 	
-	fn over_write_never_valid<'a>(&mut self, never_valid: Cow<'a, HashSet<DomainTarget<'cache>>>)
+	fn over_write_never_valid(&mut self, never_valid: Cow<HashSet<DomainTarget>>)
 	{
 		self.over_write(never_valid, DomainCacheEntry::NeverValid)
 	}
 	
-	fn over_write_always_valid<'a>(&mut self, always_valid: Cow<'a, HashSet<DomainTarget<'cache>>>)
+	fn over_write_always_valid(&mut self, always_valid: Cow<HashSet<DomainTarget>>)
 	{
 		self.over_write(always_valid, DomainCacheEntry::AlwaysValid)
 	}
 	
 	#[inline(always)]
-	fn over_write<'a>(&mut self, domains: Cow<'a, HashSet<DomainTarget<'cache>>>, to_domain_cache_entry: impl Fn() -> DomainCacheEntry<'cache>)
+	fn over_write(&mut self, domains: Cow<HashSet<DomainTarget>>, to_domain_cache_entry: impl Fn() -> DomainCacheEntry)
 	{
 		use self::Cow::*;
 		match domains
@@ -73,21 +73,44 @@ impl<'cache> DomainCache<'cache>
 		}
 	}
 	
-	pub(crate) fn answered<'message, Record: Sized + Debug>(&mut self, now: NanosecondsSinceUnixEpoch, query_name: &'message EfficientCaseFoldedName, answer: Answer<cache>, canonical_name_chain_records: CanonicalNameChainRecords<'cache>, finished: Records<'cache, Record>, query: impl FnOnce(xxx) -> ()) -> Result<(), AnsweredError>
+	pub(crate) fn answered<'message, Record: Sized + Debug>(&mut self, now: NanosecondsSinceUnixEpoch, query_name: &'message EfficientCaseFoldedName, answer: Answer<cache>, canonical_name_chain_records: CanonicalNameChainRecords, delegation_name_records: DelegationNameRecords, finished: Records<Record>, query: impl FnOnce(xxx) -> ()) -> Result<(), AnsweredError>
 	{
-		use self::Answer::*;
 		use self::AnsweredError::*;
 		use self::NoDomainResponseType::*;
 		use self::NoDataResponseType::*;
 		use self::DomainCacheEntry::*;
 		
+		self.replace_canonical_name_chain_records(canonical_name_chain_records)?;
+		
 		match answer
 		{
-			Answered =>
+			Answer::Answered { most_canonical_name } =>
 			{
 				debug_assert!(!finished.is_empty());
 				
-				self.replace_canonical_name_chain_records(canonical_name_chain_records)?;
+				
+				//
+				
+				// // TODO: Now what?
+				// XXX: Now what?
+			},
+			
+			Answer::NoDomain { most_canonical_name, response_type} =>
+			{
+				debug_assert!(finished.is_empty());
+				
+			}
+			
+			Answer::NoData { most_canonical_name, response_type} =>
+			{
+				debug_assert!(finished.is_empty());
+				
+			}
+			
+			Answer::Referral { most_canonical_name, referral} =>
+			{
+				debug_assert!(finished.is_empty());
+				
 			}
 		}
 		
@@ -95,7 +118,7 @@ impl<'cache> DomainCache<'cache>
 	}
 	
 	#[inline(always)]
-	fn replace_canonical_name_chain_records(&mut self, canonical_name_chain_records: CanonicalNameChainRecords<'cache>) -> Result<(), AnsweredError>
+	fn replace_canonical_name_chain_records(&mut self, canonical_name_chain_records: CanonicalNameChainRecords) -> Result<(), AnsweredError>
 	{
 		// Check for problems before we mutate the map.
 		for alias in canonical_name_chain_records.keys()
@@ -132,13 +155,13 @@ impl<'cache> DomainCache<'cache>
 }
 
 /// This can resolve to either an alias or a domain.
-pub(crate) type Alias<'cache> = EfficientCaseFoldedName;
+pub(crate) type Alias = EfficientCaseFoldedName;
 
 /// This can resolve to either an alias or a domain.
-pub(crate) type AliasOrDomainTarget<'cache> = EfficientCaseFoldedName;
+pub(crate) type AliasOrDomainTarget = EfficientCaseFoldedName;
 
 /// This, when it resolves, can not resolve to `DomainCacheEntry::Alias`.
-pub(crate) type DomainTarget<'cache> = EfficientCaseFoldedName;
+pub(crate) type DomainTarget = EfficientCaseFoldedName;
 
 /// Canonical name chains are `QTYPE`-independent.
 ///
@@ -181,7 +204,7 @@ enum DomainCacheEntry<'cache>
 	/// Point 1 in RFC 2181, Section 10.1 `CNAME` resource records above.
 	Alias
 	{
-		target: PresentSolitary<AliasOrDomainTarget<'cache>>,
+		target: PresentSolitary<AliasOrDomainTarget>,
 	},
 	
 	/// Point 4 in RFC 2181, Section 10.1 `CNAME` resource records above.
@@ -206,7 +229,7 @@ impl<'cache> DomainCacheEntry<'cache>
 	}
 }
 
-enum NoDomainCacheEntry<'cache>
+enum NoDomainCacheEntry
 {
 	/// Corresponds to the *end* (final target) of the canonical name chain for:-
 	///
@@ -229,7 +252,7 @@ enum NoDomainCacheEntry<'cache>
 		/// * RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 1 (in which case the `authority_name` will point to `SOA` and `NS` records);
 		/// * RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 2 (in which case the `authority_name` will point to a `SOA` record);
 		/// * RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 4 (in which case the `authority_name` will point to `NS` records).
-		authority_name: Option<DomainTarget<'cache>>,
+		authority_name: Option<DomainTarget>,
 	},
 	
 	/// Corresponds to the *end* (final target) of the canonical name chain for:-
@@ -240,11 +263,11 @@ enum NoDomainCacheEntry<'cache>
 	{
 		cached_until: NanosecondsSinceUnixEpoch,
 		
-		authority_name: DomainTarget<'cache>,
+		authority_name: DomainTarget,
 	}
 }
 
-enum NoDataCacheEntry<'cache>
+enum NoDataCacheEntry
 {
 	/// Corresponds to the *end* (final target) of the canonical name chain for:-
 	///
@@ -265,7 +288,7 @@ enum NoDataCacheEntry<'cache>
 		///
 		/// * RFC 2308, Section 2.2 No Data NODATA RESPONSE: TYPE 1 (in which case the `authority_name` will point to `SOA` and `NS` records);
 		/// * RFC 2308, Section 2.2 No Data NODATA RESPONSE: TYPE 2 (in which case the `authority_name` will point to a `SOA` record).
-		authority_name: Option<DomainTarget<'cache>>,
+		authority_name: Option<DomainTarget>,
 	},
 	
 	/// Corresponds to the *end* (final target) of the canonical name chain for:-
@@ -276,35 +299,35 @@ enum NoDataCacheEntry<'cache>
 	{
 		cached_until: NanosecondsSinceUnixEpoch,
 		
-		authority_name: DomainTarget<'cache>,
+		authority_name: DomainTarget,
 	}
 }
 
-enum QueryTypeCacheMultiple<'cache, Record: Sized + Debug>
+enum QueryTypeCacheMultiple<Record: Sized + Debug>
 {
-	NoData(NoDataCacheEntry<'cache>),
+	NoData(NoDataCacheEntry),
 
-	Data(PresentMultiple<'cache, Record>)
+	Data(PresentMultiple<Record>)
 }
 
-enum QueryTypeCacheSolitary<'cache, Record: Sized + Debug>
+enum QueryTypeCacheSolitary<Record: Sized + Debug>
 {
-	NoData(NoDataCacheEntry<'cache>),
+	NoData(NoDataCacheEntry),
 
-	Data(PresentSolitary<'cache, Record>)
+	Data(PresentSolitary<Record>)
 }
 
 pub(crate) struct QueryTypesCache<'cache>
 {
-	ns: QueryTypeCacheMultiple<'cache, DomainTarget<'cache>>,
+	ns: QueryTypeCacheMultiple<DomainTarget>,
 	
-	soa: QueryTypeCacheSolitary<'cache, StartOfAuthority<'cache, DomainTarget<'cache>>>,
+	soa: QueryTypeCacheSolitary<StartOfAuthority<'static, DomainTarget>>,
 	
-	dname: QueryTypeCacheSolitary<'cache, DomainTarget<'cache>>,
+	dname: QueryTypeCacheSolitary<DomainTarget>,
 	
-	a: QueryTypeCacheMultiple<'cache, Ipv4Addr>,
+	a: QueryTypeCacheMultiple<Ipv4Addr>,
 	
-	aaaa: QueryTypeCacheMultiple<'cache, Ipv6Addr>,
+	aaaa: QueryTypeCacheMultiple<Ipv6Addr>,
 	
-	mx: QueryTypeCacheMultiple<'cache, DomainTarget<'cache>>,
+	mx: QueryTypeCacheMultiple<DomainTarget>,
 }

@@ -17,6 +17,12 @@ pub enum SOAHandleRecordTypeError
 	
 	/// Resource data for resource record type `SOA` has an invalid length after parsing `MNAME` and `RNAME`.
 	StartOfAuthorityIsIncorrectSizeAfterParsingMNameAndRName,
+
+	/// The `RNAME` is `.`.
+	ResponsiblePersonMailBoxIsRoot,
+
+	/// The `RNAME` is, say, `.com.`.
+	ResponsiblePersonMailBoxIsTopLevelDomain,
 }
 
 impl Display for SOAHandleRecordTypeError

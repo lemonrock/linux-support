@@ -3,7 +3,7 @@
 
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct Query<'cache>
+pub(crate) struct Query
 {
 	now: NanosecondsSinceUnixEpoch,
 	message_identifier: MessageIdentifier,
@@ -11,10 +11,10 @@ pub(crate) struct Query<'cache>
 	query_name: EfficientCaseFoldedName,
 }
 
-impl<'cache> Query<'cache>
+impl Query
 {
 	#[inline(always)]
-	pub(crate) fn enquire_over_tcp<'yielder, QP: QueryProcessor<'cache>, SD: SocketData>(stream: &mut TlsClientStream<'yielder, SD>, message_identifier: MessageIdentifier, now: NanosecondsSinceUnixEpoch, query_name: EfficientCaseFoldedName, cache: &mut Cache<'cache>) -> Result<(), ProtocolError<Infallible>>
+	pub(crate) fn enquire_over_tcp<'yielder, 'cache, QP: QueryProcessor<'cache>, SD: SocketData>(stream: &mut TlsClientStream<'yielder, SD>, message_identifier: MessageIdentifier, now: NanosecondsSinceUnixEpoch, query_name: EfficientCaseFoldedName, cache: &mut Cache<'cache>) -> Result<(), ProtocolError<Infallible>>
 	{
 		let query = Query
 		{
@@ -42,7 +42,7 @@ impl<'cache> Query<'cache>
 	
 	#[allow(deprecated)]
 	#[inline(always)]
-	pub(crate) fn read_tcp_reply<'yielder, QP: QueryProcessor<'cache>, SD: SocketData>(&self, stream: &mut TlsClientStream<'yielder, SD>, cache: &mut Cache<'cache>) -> Result<(), ProtocolError<Infallible>>
+	pub(crate) fn read_tcp_reply<'yielder, 'cache, QP: QueryProcessor<'cache>, SD: SocketData>(&self, stream: &mut TlsClientStream<'yielder, SD>, cache: &mut Cache<'cache>) -> Result<(), ProtocolError<Infallible>>
 	{
 		let mut buffer: [u8; ResourceRecord::UdpRequestorsPayloadSize] = unsafe { uninitialized() };
 		let message_length = Self::reply_message(stream, &mut buffer)?;
@@ -56,8 +56,7 @@ impl<'cache> Query<'cache>
 	}
 	
 	#[inline(always)]
-	fn read_reply_after_message_length_checked<'message, RRV: ResourceRecordVisitor<'message>>(&self, raw_dns_message: &'message [u8], answer_section_resource_record_visitor: RRV) -> Result<(Answer<'cache>, CanonicalNameChainRecords<'cache>, DelegationNameRecords<'cache>, RRV::Finished), ReadReplyAfterLengthCheckedError<RRV::Error>>
-	where 'cache: 'message
+	fn read_reply_after_message_length_checked<'message, RRV: ResourceRecordVisitor<'message>>(&self, raw_dns_message: &'message [u8], answer_section_resource_record_visitor: RRV) -> Result<(Answer, CanonicalNameChainRecords, DelegationNameRecords, RRV::Finished), ReadReplyAfterLengthCheckedError<RRV::Error>>
 	{
 		let dns_message = unsafe { &* (raw_dns_message.as_ptr() as *const DnsMessage) };
 		let message_header = dns_message.message_header();
@@ -133,7 +132,6 @@ impl<'cache> Query<'cache>
 	
 	#[inline(always)]
 	fn parse_query_section<'message>(&self, query_section_entry: &'message QuerySectionEntry, parsed_names: &mut ParsedNames<'message>, end_of_message_pointer: usize) -> Result<usize, QuerySectionError>
-	where 'cache: 'message
 	{
 		use self::QuerySectionError::*;
 		

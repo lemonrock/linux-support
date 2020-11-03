@@ -48,7 +48,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	pub(crate) fn parse_answer_section_resource_record_in_response<'cache: 'message, 'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, question_q_type: DataType, end_of_message_pointer: usize, parsed_names: &mut ParsedNames<'message>, resource_record_visitor: &mut RRV, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, answer_section_has_at_least_one_record_of_requested_data_type: &mut bool, query_name: &EfficientCaseFoldedName) -> Result<usize, AnswerSectionError<RRV::Error>>
+	pub(crate) fn parse_answer_section_resource_record_in_response<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, question_q_type: DataType, end_of_message_pointer: usize, parsed_names: &mut ParsedNames<'message>, resource_record_visitor: &mut RRV, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, answer_section_has_at_least_one_record_of_requested_data_type: &mut bool, query_name: &EfficientCaseFoldedName) -> Result<usize, AnswerSectionError<RRV::Error>>
 	{
 		use self::HandleRecordTypeError::ResourceTypeInWrongSection;
 		use self::ResourceTypeInWrongSectionError::ResourceRecordTypeIsNotValidInAnswerSectionIfNotRequestedByQuery;
@@ -471,6 +471,16 @@ impl ResourceRecord
 		
 		let (responsible_person_email_address, end_of_rname_pointer) = ParsedNameParser::parse_name_in_slice(DataType::SOA, parsed_names, &resource_data[(end_of_mname_pointer - start_of_resource_data) .. ]).map_err(ParseStartOfAuthorityRName)?;
 
+		if unlikely!(responsible_person_email_address.is_root())
+		{
+			Err(ResponsiblePersonMailBoxIsRoot)?
+		}
+		
+		if unlikely!(responsible_person_email_address.is_top_level())
+		{
+			Err(ResponsiblePersonMailBoxIsTopLevelDomain)?
+		}
+		
 		let end_of_resource_data = start_of_resource_data + resource_data.len();
 		if likely!((end_of_resource_data - end_of_rname_pointer) == size_of::<StartOfAuthorityFooter>())
 		{

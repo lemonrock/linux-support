@@ -2,17 +2,17 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) struct MXQueryProcessorResourceRecordVisitor<'cache: 'message, 'message>
+pub(crate) struct MXQueryProcessorResourceRecordVisitor<'message>
 {
 	query_name: &'message EfficientCaseFoldedName,
-	records: Records<'cache, EfficientCaseFoldedName>,
+	records: Records<DomainTarget>,
 }
 
-impl<'cache: 'message, 'message> ResourceRecordVisitor<'message> for MXQueryProcessorResourceRecordVisitor<'cache, 'message>
+impl<'message> ResourceRecordVisitor<'message> for MXQueryProcessorResourceRecordVisitor<'message>
 {
 	type Error = Infallible;
 	
-	type Finished = Records<'cache, EfficientCaseFoldedName>;
+	type Finished = Records<DomainTarget>;
 	
 	#[inline(always)]
 	fn finished(self) -> Self::Finished

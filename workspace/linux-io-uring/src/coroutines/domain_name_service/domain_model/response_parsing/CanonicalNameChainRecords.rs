@@ -2,4 +2,4 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) type CanonicalNameChainRecords<'cache> = IndexMap<Alias<'cache>, PresentSolitary<AliasOrDomainTarget<'cache>>>;
+pub(crate) type CanonicalNameChainRecords = IndexMap<Alias, PresentSolitary<AliasOrDomainTarget>>;

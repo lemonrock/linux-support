@@ -6,24 +6,24 @@
 /// and
 /// RFC 2308 Section 5: "Negative responses without SOA records SHOULD NOT be cached as there is no way to prevent the negative responses looping forever between a pair of servers even with a short TTL".
 #[derive(Debug, Clone)]
-pub(crate) enum NoDomainResponseType<'cache>
+pub(crate) enum NoDomainResponseType
 {
 	/// RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 1.
-	NoDomainResponseType1(AuthorityNameStartOfAuthorityNameServers<'cache>),
+	NoDomainResponseType1(AuthorityNameStartOfAuthorityNameServers),
 	
 	/// RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 2.
 	///
 	/// RFC 2308, Section 2.1.1 Special Handling of Name Error, Paragraph 2: "… it is recommended that servers that are authoritative for the NXDOMAIN response only send TYPE 2 NXDOMAIN responses, …".
-	NoDomainResponseType2(AuthorityNameStartOfAuthority<'cache>),
+	NoDomainResponseType2(AuthorityNameStartOfAuthority),
 	
 	/// RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 3.
 	NoDomainResponseType3,
 	
 	/// RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 4.
-	NoDomainResponseType4(AuthorityNameNameServers<'cache>),
+	NoDomainResponseType4(AuthorityNameNameServers),
 }
 
-impl<'cache> NoDomainResponseType<'cache>
+impl NoDomainResponseType
 {
 	/// RFC 2308, Section 6, Negative answers from the cache: "`NXDOMAIN` types 1 and 4 responses contain implicit referrals as does `NODATA` type 1 response".
 	#[inline(always)]

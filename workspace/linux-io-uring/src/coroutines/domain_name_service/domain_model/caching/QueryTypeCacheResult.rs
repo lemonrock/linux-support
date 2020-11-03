@@ -9,7 +9,7 @@ pub enum QueryTypeCacheResult<'cache, Record: Sized + Debug>
 	Nothing,
 	
 	/// Known to not exist.
-	DoesNotExist(Rc<StartOfAuthority<'cache, EfficientCaseFoldedName>>),
+	DoesNotExist(Rc<StartOfAuthority<'static, EfficientCaseFoldedName>>),
 	
 	/// Known to exist.
 	Exists(Exists<Record>),

@@ -37,17 +37,17 @@
 ///
 /// The function `validate_authority_section_name()` below will then validate that the `start_of_authority_name`, `dspb.akamaiedge.net.`, is the same as `parent`.
 #[derive(Debug)]
-pub(crate) struct CanonicalNameChain<'message, 'cache: 'message>
+pub(crate) struct CanonicalNameChain<'message>
 {
 	query_name: &'message EfficientCaseFoldedName,
 	
-	chain: CanonicalNameChainRecords<'cache>,
+	chain: CanonicalNameChainRecords,
 	
 	/// RFC 6672, Section 3.2 Server Algorithm Step 3.C. implies in the final paragraph that multiple `DNAME` records can be included in an answer.
-	delegation_name_records: DelegationNameRecords<'cache>,
+	delegation_name_records: DelegationNameRecords,
 }
 
-impl<'message, 'cache: 'message> CanonicalNameChain<'message, 'cache>
+impl<'message> CanonicalNameChain<'message>
 {
 	/// There is no standard limit for the number of links in a chain; the BIND software caps the number at 16.
 	///
@@ -69,15 +69,21 @@ impl<'message, 'cache: 'message> CanonicalNameChain<'message, 'cache>
 	pub(crate) fn most_canonical_name<'a>(&'a self) -> &'a EfficientCaseFoldedName
 	where 'message: 'a
 	{
-		let chain_length = self.chain.len();
+		Self::most_canonical_name_static::<'a>(self.query_name, &self.chain)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn most_canonical_name_static<'a>(query_name: &'a EfficientCaseFoldedName, canonical_name_chain_records: &'a CanonicalNameChainRecords) -> &'a EfficientCaseFoldedName
+	{
+		let chain_length = canonical_name_chain_records.len();
 		
 		if unlikely!(chain_length == 0)
 		{
-			self.query_name
+			query_name
 		}
 		else
 		{
-			let (_key, (_, ref last_name)) = self.chain.get_index(length - 1).unwrap();
+			let (_key, (_, ref last_name)) = canonical_name_chain_records.get_index(length - 1).unwrap();
 			last_name
 		}
 	}
