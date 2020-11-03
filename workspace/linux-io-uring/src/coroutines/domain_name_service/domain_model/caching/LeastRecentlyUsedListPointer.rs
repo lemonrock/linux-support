@@ -8,14 +8,14 @@ struct LeastRecentlyUsedListPointer<'cache, V: LeastRecentlyUsedCacheValue>
 	previous: *mut Self,
 	next: *mut Self,
 	
-	key: CaseFoldedName<'cache>,
+	key: EfficientCaseFoldedName,
 	value: V,
 }
 
 impl<'cache, V: LeastRecentlyUsedCacheValue> LeastRecentlyUsedListPointer<'cache, V>
 {
 	#[inline(always)]
-	unsafe fn new(least_recently_used_list_head: &mut *mut Self, least_recently_used_list_tail: &mut *mut Self, key: CaseFoldedName<'cache>, value: V) -> (LeastRecentlyUsedListKeyReference<'cache>, NonNull<Self>)
+	unsafe fn new(least_recently_used_list_head: &mut *mut Self, least_recently_used_list_tail: &mut *mut Self, key: EfficientCaseFoldedName, value: V) -> (LeastRecentlyUsedListKeyReference<'cache>, NonNull<Self>)
 	{
 		let mut this = Box::new
 		(

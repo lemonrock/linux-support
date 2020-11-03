@@ -6,10 +6,10 @@
 pub(crate) enum QueryTypeCacheEntry<'cache, Record: Sized + Debug>
 {
 	/// One-time use.
-	AbsentUseOnce(Rc<StartOfAuthority<'cache, CaseFoldedName<'cache>>>),
+	AbsentUseOnce(Rc<StartOfAuthority<'cache, EfficientCaseFoldedName>>),
 	
 	/// Negatively cached.
-	AbsentNegativelyCached(NanosecondsSinceUnixEpoch, Rc<StartOfAuthority<'cache, CaseFoldedName<'cache>>>),
+	AbsentNegativelyCached(NanosecondsSinceUnixEpoch, Rc<StartOfAuthority<'cache, EfficientCaseFoldedName>>),
 	
 	Present(PresentMultiple<Record>),
 }

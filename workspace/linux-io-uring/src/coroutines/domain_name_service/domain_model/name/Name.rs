@@ -3,10 +3,23 @@
 
 
 /// Name.
-pub trait Name<'label>: Sized + Clone + Debug
+pub trait Name<'label>: Sized + Clone + Debug + Display + PartialEq + Eq + PartialOrd + Ord + Hash
 {
 	#[doc(hidden)]
 	type Label: Label<'label>;
+	
+	/// Display or debug.
+	#[inline(always)]
+	fn display(&self, f: &mut Formatter) -> fmt::Result
+	{
+		for index in (0 .. self.number_of_labels_including_root().get()).rev()
+		{
+			let label = self.label(index);
+			label.display(f)?;
+			write!(f, ".")?;
+		}
+		Ok(())
+	}
 	
 	/// Parent.
 	fn parent(&self) -> Option<Self>;

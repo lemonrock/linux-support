@@ -3,7 +3,7 @@
 
 
 /// Label.
-pub trait Label<'label>: Clone
+pub trait Label<'label>: Clone + Debug + Display + PartialEq + Eq + PartialOrd + Ord + Hash
 {
 	/// Is the terminal root label?
 	#[inline(always)]
@@ -14,6 +14,18 @@ pub trait Label<'label>: Clone
 	
 	#[doc(hidden)]
 	fn bytes_pointer(&self) -> *const u8;
+	
+	/// Display or debug.
+	#[inline(always)]
+	fn display(&self, f: &mut Formatter) -> fmt::Result
+	{
+		for index in 0 .. self.len()
+		{
+			let character = char::from(self.get_unchecked_case_folded_byte(index));
+			f.write_char(character)?;
+		}
+		Ok(())
+	}
 	
 	#[doc(hidden)]
 	#[inline(always)]
@@ -95,6 +107,18 @@ pub trait Label<'label>: Clone
 	
 	#[doc(hidden)]
 	fn len(&self) -> u8;
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn not_root_length_checked(&self, label_offset: u8) -> u8
+	{
+		let label_length = self.len();
+		debug_assert_ne!(label_length, 0);
+		debug_assert!(label_length <= 63);
+		debug_assert!(label_offset.checked_add(label_length).is_some());
+		debug_assert!((label_offset + label_length) <= (EfficientCaseFoldedNameInner::LabelDataSize as u8));
+		label_length
+	}
 	
 	/// Length including trailing period.
 	#[inline(always)]

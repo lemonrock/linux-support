@@ -4,15 +4,15 @@
 
 pub(crate) struct MXQueryProcessorResourceRecordVisitor<'cache: 'message, 'message>
 {
-	query_name: &'message CaseFoldedName<'cache>,
-	records: Records<'cache, CaseFoldedName<'cache>>,
+	query_name: &'message EfficientCaseFoldedName,
+	records: Records<'cache, EfficientCaseFoldedName>,
 }
 
 impl<'cache: 'message, 'message> ResourceRecordVisitor<'message> for MXQueryProcessorResourceRecordVisitor<'cache, 'message>
 {
 	type Error = Infallible;
 	
-	type Finished = Records<'cache, CaseFoldedName<'cache>>;
+	type Finished = Records<'cache, EfficientCaseFoldedName>;
 	
 	#[inline(always)]
 	fn finished(self) -> Self::Finished
@@ -23,7 +23,7 @@ impl<'cache: 'message, 'message> ResourceRecordVisitor<'message> for MXQueryProc
 	#[inline(always)]
 	fn MX(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: MailExchange<'message>) -> Result<(), Self::Error>
 	{
-		self.records.store_unweighted(&name, cache_until, record.preference, CaseFoldedName::from(record.mail_server_name));
+		self.records.store_unweighted(&name, cache_until, record.preference, EfficientCaseFoldedName::from(record.mail_server_name));
 		Ok(())
 	}
 }

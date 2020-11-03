@@ -5,8 +5,8 @@
 #[derive(Debug, Clone)]
 pub(crate) struct AuthorityNameNameServers<'cache>
 {
-	pub(crate) authority_name: CaseFoldedName<'cache>,
+	pub(crate) authority_name: EfficientCaseFoldedName,
 	
 	/// These are for `authority_name`.
-	pub(crate) name_servers: PresentMultiple<CaseFoldedName<'cache>>,
+	pub(crate) name_servers: PresentMultiple<EfficientCaseFoldedName>,
 }

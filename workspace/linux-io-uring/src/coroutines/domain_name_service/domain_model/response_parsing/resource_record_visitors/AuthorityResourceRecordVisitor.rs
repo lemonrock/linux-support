@@ -7,16 +7,16 @@ pub(crate) struct AuthorityResourceRecordVisitor<'message, 'cache: 'message>
 {
 	canonical_name_chain: CanonicalNameChain<'message, 'cache>,
 	
-	authority_name: RefCell<Option<CaseFoldedName<'cache>>>,
+	authority_name: RefCell<Option<EfficientCaseFoldedName>>,
 	
 	/// *MUST* be for the parent of the final entry in the canonical name chain.
 	/// It is valid to have no records.
-	start_of_authority: RefCell<Option<PresentSolitary<StartOfAuthority<'cache, CaseFoldedName<'cache>>>>>,
+	start_of_authority: RefCell<Option<PresentSolitary<StartOfAuthority<'cache, EfficientCaseFoldedName>>>>,
 	
 	/// *MUST* be for the parent of the final entry in the canonical name chain.
 	/// It is valid to have no records.
 	/// However, all records will have the same name (the parent of the final entry in the canonical name chain).
-	name_servers: RefCell<Option<PresentMultiple<CaseFoldedName<'cache>>>>,
+	name_servers: RefCell<Option<PresentMultiple<EfficientCaseFoldedName>>>,
 }
 
 impl<'message, 'cache: 'message> ResourceRecordVisitor<'message> for AuthorityResourceRecordVisitor<'message, 'cache>
@@ -50,7 +50,7 @@ impl<'message, 'cache: 'message> ResourceRecordVisitor<'message> for AuthorityRe
 		}
 		
 		let present = name_server_records.as_mut().unwrap();
-		present.store_unprioritized_and_unweighted(cache_until, CaseFoldedName::from(record));
+		present.store_unprioritized_and_unweighted(cache_until, EfficientCaseFoldedName::from(record));
 
 		Ok(())
 	}
@@ -122,7 +122,7 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 		let authority_name_borrowed = authority_name_borrowed.deref_mut();
 		if likely!(authority_name_borrowed.is_none())
 		{
-			*authority_name_borrowed = Some(CaseFoldedName::from(authority_name));
+			*authority_name_borrowed = Some(EfficientCaseFoldedName::from(authority_name));
 		}
 	}
 	
@@ -238,7 +238,7 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 	/// 	* Authority
 	/// 		* `.			86400	IN	SOA	a.root-servers.net. …`.
 	/// 	* Additional
-	pub(crate) fn answer(self, answer_existence: AnswerExistence, answer_section_has_at_least_one_record_of_requested_data_type: bool) -> Result<(Answer<'cache>, Records<'cache, CaseFoldedName<'cache>>), AuthoritySectionError<AuthorityError>>
+	pub(crate) fn answer(self, answer_existence: AnswerExistence, answer_section_has_at_least_one_record_of_requested_data_type: bool) -> Result<(Answer<'cache>, CanonicalNameChainRecords<'cache>, DelegationNameRecords<'cache>), AuthoritySectionError<AuthorityError>>
 	{
 		use self::AnswerExistence::*;
 		use self::Answer::*;
@@ -410,30 +410,29 @@ impl<'message, 'cache: 'message> AuthorityResourceRecordVisitor<'message, 'cache
 			}
 		};
 		
-		let canonical_records = self.canonical_name_chain.cname_records;
-		Ok((answer, canonical_records))
+		Ok((answer, self.canonical_name_chain.chain, self.canonical_name_chain.delegation_name_records))
 	}
 	
 	#[inline(always)]
-	fn most_canonical_name(&self) -> CaseFoldedName<'cache>
+	fn most_canonical_name(&self) -> EfficientCaseFoldedName
 	{
-		CaseFoldedName::from(self.canonical_name_chain.most_canonical_name())
+		self.canonical_name_chain.most_canonical_name().clone()
 	}
 	
 	#[inline(always)]
-	fn authority_name(authority_name: RefCell<Option<CaseFoldedName<'cache>>>) -> CaseFoldedName<'cache>
+	fn authority_name(authority_name: RefCell<Option<EfficientCaseFoldedName>>) -> EfficientCaseFoldedName
 	{
 		authority_name.into_inner().unwrap()
 	}
 	
 	#[inline(always)]
-	fn name_servers(name_servers: RefCell<Option<PresentMultiple<CaseFoldedName<'cache>>>>) -> PresentMultiple<CaseFoldedName<'cache>>
+	fn name_servers(name_servers: RefCell<Option<PresentMultiple<EfficientCaseFoldedName>>>) -> PresentMultiple<EfficientCaseFoldedName>
 	{
 		name_servers.into_inner().unwrap()
 	}
 	
 	#[inline(always)]
-	fn start_of_authority(start_of_authority: RefCell<Option<PresentSolitary<StartOfAuthority<'cache, CaseFoldedName<'cache>>>>>) -> PresentSolitary<StartOfAuthority<'cache, CaseFoldedName<'cache>>>
+	fn start_of_authority(start_of_authority: RefCell<Option<PresentSolitary<StartOfAuthority<'cache, EfficientCaseFoldedName>>>>) -> PresentSolitary<StartOfAuthority<'cache, EfficientCaseFoldedName>>
 	{
 		start_of_authority.into_inner().unwrap()
 	}

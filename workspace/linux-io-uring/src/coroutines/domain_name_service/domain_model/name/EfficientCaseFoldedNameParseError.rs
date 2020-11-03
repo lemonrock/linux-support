@@ -4,16 +4,10 @@
 
 /// A parse erorr.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum CaseFoldedNameParseError
+pub enum EfficientCaseFoldedNameParseError
 {
 	#[allow(missing_docs)]
-	RootLabelWasNotEmpty,
-	
-	#[allow(missing_docs)]
 	NonRootLabelWasEmpty,
-	
-	#[allow(missing_docs)]
-	TotalNameLengthWasEmpty,
 	
 	#[allow(missing_docs)]
 	TotalNameLengthExceed255Bytes,
@@ -22,10 +16,10 @@ pub enum CaseFoldedNameParseError
 	NumberOfLabelsExceed127,
 	
 	#[allow(missing_docs)]
-	CaseFolderLabelParse(CaseFoldedLabelParseError),
+	CaseFoldedLabelParse(EfficientCaseFoldedLabelParseError),
 }
 
-impl Display for CaseFoldedNameParseError
+impl Display for EfficientCaseFoldedNameParseError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -34,27 +28,27 @@ impl Display for CaseFoldedNameParseError
 	}
 }
 
-impl error::Error for CaseFoldedNameParseError
+impl error::Error for EfficientCaseFoldedNameParseError
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>
 	{
-		use self::CaseFoldedNameParseError::*;
+		use self::EfficientCaseFoldedNameParseError::*;
 		
 		match self
 		{
-			&CaseFolderLabelParse(ref error) => Some(error),
+			&CaseFoldedLabelParse(ref error) => Some(error),
 			
 			_ => None,
 		}
 	}
 }
 
-impl From<CaseFoldedLabelParseError> for CaseFoldedNameParseError
+impl From<EfficientCaseFoldedLabelParseError> for EfficientCaseFoldedNameParseError
 {
 	#[inline(always)]
-	fn from(value: CaseFoldedLabelParseError) -> Self
+	fn from(value: EfficientCaseFoldedLabelParseError) -> Self
 	{
-		CaseFoldedNameParseError::CaseFolderLabelParse(value)
+		EfficientCaseFoldedNameParseError::CaseFoldedLabelParse(value)
 	}
 }

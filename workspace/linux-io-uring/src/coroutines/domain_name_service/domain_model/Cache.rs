@@ -9,17 +9,17 @@ pub struct Cache<'cache>
 	
 	no_domain_cache: NoDomainCache<'cache>,
 	
-	cname_query_type_cache: QueryTypeCache<'cache, CaseFoldedName<'cache>>,
+	cname_query_type_cache: QueryTypeCache<'cache, EfficientCaseFoldedName>,
 	
-	soa_query_type_cache: QueryTypeCache<'cache, StartOfAuthority<'cache, CaseFoldedName<'cache>>>,
+	soa_query_type_cache: QueryTypeCache<'cache, StartOfAuthority<'cache, EfficientCaseFoldedName>>,
 	
-	ns_query_type_cache: QueryTypeCache<'cache, CaseFoldedName<'cache>>,
+	ns_query_type_cache: QueryTypeCache<'cache, EfficientCaseFoldedName>,
 	
 	a_query_type_cache: QueryTypeCache<'cache, Ipv4Addr>,
 	
 	aaaa_query_type_cache: QueryTypeCache<'cache, Ipv6Addr>,
 	
-	mx_query_type_cache: QueryTypeCache<'cache, CaseFoldedName<'cache>>,
+	mx_query_type_cache: QueryTypeCache<'cache, EfficientCaseFoldedName>,
 }
 
 impl<'cache> Cache<'cache>
@@ -58,12 +58,12 @@ impl<'cache> Cache<'cache>
 	//
 	
 	/// MX.
-	pub fn mx_enquire_over_tcp_and_cache<'yielder, SD: SocketData>(&mut self, stream: &mut TlsClientStream<'yielder, SD>, query_name: CaseFoldedName<'cache>) -> Result<(), ProtocolError<Infallible>>
+	pub fn mx_enquire_over_tcp_and_cache<'yielder, SD: SocketData>(&mut self, stream: &mut TlsClientStream<'yielder, SD>, query_name: EfficientCaseFoldedName) -> Result<(), ProtocolError<Infallible>>
 	{
 		self.enquire_over_tcp_and_cache::<SD, MXQueryProcessor>(stream, query_name)
 	}
 	
-	fn enquire_over_tcp_and_cache<'yielder, SD: SocketData, QP: QueryProcessor<'cache>>(&mut self, stream: &mut TlsClientStream<'yielder, SD>, query_name: CaseFoldedName<'cache>) -> Result<(), ProtocolError<Infallible>>
+	fn enquire_over_tcp_and_cache<'yielder, SD: SocketData, QP: QueryProcessor<'cache>>(&mut self, stream: &mut TlsClientStream<'yielder, SD>, query_name: EfficientCaseFoldedName) -> Result<(), ProtocolError<Infallible>>
 	{
 		let now = NanosecondsSinceUnixEpoch::now();
 		

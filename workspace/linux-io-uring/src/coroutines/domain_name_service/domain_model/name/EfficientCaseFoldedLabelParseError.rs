@@ -4,7 +4,7 @@
 
 /// A parse erorr.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum CaseFoldedLabelParseError
+pub enum EfficientCaseFoldedLabelParseError
 {
 	#[allow(missing_docs)]
 	LabelExceeded63Bytes,
@@ -19,7 +19,7 @@ pub enum CaseFoldedLabelParseError
 	LabelContainedPeriod,
 }
 
-impl Display for CaseFoldedLabelParseError
+impl Display for EfficientCaseFoldedLabelParseError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -28,6 +28,6 @@ impl Display for CaseFoldedLabelParseError
 	}
 }
 
-impl error::Error for CaseFoldedLabelParseError
+impl error::Error for EfficientCaseFoldedLabelParseError
 {
 }

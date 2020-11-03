@@ -12,7 +12,7 @@ impl<'cache> QueryProcessor<'cache> for AQueryProcessor
 	
 	type RRV<'message> where 'cache: 'message = AQueryProcessorResourceRecordVisitor<'cache, 'message>;
 	
-	fn new<'message>(query_name: &'message CaseFoldedName<'cache>) -> Self::RRV<'message>
+	fn new<'message>(query_name: &'message EfficientCaseFoldedName) -> Self::RRV<'message>
 	where 'cache: 'message
 	{
 		AQueryProcessorResourceRecordVisitor
@@ -23,7 +23,7 @@ impl<'cache> QueryProcessor<'cache> for AQueryProcessor
 	}
 	
 	#[inline(always)]
-	fn answered<'message>(finished: <<Self as QueryProcessor<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished, query_name: &'message CaseFoldedName<'cache>, cache: &mut Cache<'cache>)
+	fn answered<'message>(finished: <<Self as QueryProcessor<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished, query_name: &'message EfficientCaseFoldedName, cache: &mut Cache<'cache>)
 	where 'cache: 'message
 	{
 		cache.a_query_type_cache.put_present_all_the_same_name(query_name.clone(), finished)

@@ -3,7 +3,7 @@
 
 
 /// A parsed name.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct ParsedName<'message>
 {
 	label_data_starts_at_pointers_and_label_length_excluding_trailing_period: ArrayVec<[(usize, u8); LabelMaximumNumber]>,
@@ -11,6 +11,82 @@ pub struct ParsedName<'message>
 	name_length_including_trailing_periods_after_labels: NonZeroU8,
 
 	marker: PhantomData<&'message ()>
+}
+
+impl<'message> Debug for ParsedName<'message>
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		self.display(f)
+	}
+}
+
+impl<'message> Display for ParsedName<'message>
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		self.display(f)
+	}
+}
+
+impl<'message> PartialEq for ParsedName<'message>
+{
+	#[inline(always)]
+	fn eq(&self, rhs: &Self) -> bool
+	{
+		self.equals(rhs)
+	}
+}
+
+impl<'message> Eq for ParsedName<'message>
+{
+}
+
+impl<'message> PartialOrd for ParsedName<'message>
+{
+	#[inline(always)]
+	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
+	{
+		self.partial_compare(rhs)
+	}
+}
+
+impl<'message> Ord for ParsedName<'message>
+{
+	#[inline(always)]
+	fn cmp(&self, rhs: &Self) -> Ordering
+	{
+		self.compare(rhs)
+	}
+}
+
+impl<'message> Hash for ParsedName<'message>
+{
+	#[inline(always)]
+	fn hash<H: Hasher>(&self, state: &mut H)
+	{
+		self.hash_slice(state)
+	}
+}
+
+impl<'message> PartialEq<EfficientCaseFoldedName> for ParsedName<'message>
+{
+	#[inline(always)]
+	fn eq(&self, rhs: &EfficientCaseFoldedName) -> bool
+	{
+		self.equals(rhs)
+	}
+}
+
+impl<'message> PartialOrd<EfficientCaseFoldedName> for ParsedName<'message>
+{
+	#[inline(always)]
+	fn partial_cmp(&self, rhs: &EfficientCaseFoldedName) -> Option<Ordering>
+	{
+		self.partial_compare(rhs)
+	}
 }
 
 impl<'message> Name<'message> for ParsedName<'message>
@@ -55,64 +131,6 @@ impl<'message> Name<'message> for ParsedName<'message>
 	fn name_length_including_trailing_periods_after_labels(&self) -> NonZeroU8
 	{
 		self.name_length_including_trailing_periods_after_labels
-	}
-}
-
-impl<'message> PartialEq for ParsedName<'message>
-{
-	#[inline(always)]
-	fn eq(&self, rhs: &Self) -> bool
-	{
-		self.equals(rhs)
-	}
-}
-
-impl<'message> Eq for ParsedName<'message>
-{
-}
-
-impl<'message> PartialOrd for ParsedName<'message>
-{
-	#[inline(always)]
-	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
-	{
-		self.partial_compare(rhs)
-	}
-}
-
-impl<'message> Ord for ParsedName<'message>
-{
-	#[inline(always)]
-	fn cmp(&self, rhs: &Self) -> Ordering
-	{
-		self.compare(rhs)
-	}
-}
-
-impl<'message> Hash for ParsedName<'message>
-{
-	#[inline(always)]
-	fn hash<H: Hasher>(&self, state: &mut H)
-	{
-		self.hash_slice(state)
-	}
-}
-
-impl<'message, 'label> PartialEq<CaseFoldedName<'label>> for ParsedName<'message>
-{
-	#[inline(always)]
-	fn eq(&self, rhs: &CaseFoldedName<'label>) -> bool
-	{
-		self.equals(rhs)
-	}
-}
-
-impl<'message, 'label> PartialOrd<CaseFoldedName<'label>> for ParsedName<'message>
-{
-	#[inline(always)]
-	fn partial_cmp(&self, rhs: &CaseFoldedName<'label>) -> Option<Ordering>
-	{
-		self.partial_compare(rhs)
 	}
 }
 

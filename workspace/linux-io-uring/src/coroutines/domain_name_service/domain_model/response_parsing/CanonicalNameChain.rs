@@ -39,14 +39,12 @@
 #[derive(Debug)]
 pub(crate) struct CanonicalNameChain<'message, 'cache: 'message>
 {
-	query_name: &'message ParsedName<'message>,
+	query_name: &'message EfficientCaseFoldedName,
 	
-	chain: IndexSet<ParsedName<'message>>,
-	
-	cname_records: Records<'cache, CaseFoldedName<'cache>>,
+	chain: CanonicalNameChainRecords<'cache>,
 	
 	/// RFC 6672, Section 3.2 Server Algorithm Step 3.C. implies in the final paragraph that multiple `DNAME` records can be included in an answer.
-	dname_records: Records<'cache, CaseFoldedName<'cache>>,
+	delegation_name_records: DelegationNameRecords<'cache>,
 }
 
 impl<'message, 'cache: 'message> CanonicalNameChain<'message, 'cache>
@@ -57,19 +55,18 @@ impl<'message, 'cache: 'message> CanonicalNameChain<'message, 'cache>
 	const MaximumChainLength: usize = 6;
 	
 	#[inline(always)]
-	pub(crate) fn new(query_name: &'message ParsedName<'message>) -> Self
+	pub(crate) fn new(query_name: &'message EfficientCaseFoldedName) -> Self
 	{
 		Self
 		{
 			query_name,
-			chain: IndexSet::with_capacity(Self::MaximumChainLength),
-			cname_records: Records::with_capacity(3),
-			dname_records: Records::with_capacity(1),
+			chain: CanonicalNameChainRecords::with_capacity(Self::MaximumChainLength),
+			delegation_name_records: Records::with_capacity(1),
 		}
 	}
 	
 	#[inline(always)]
-	pub(crate) fn most_canonical_name<'a>(&'a self) -> &'a ParsedName<'message>
+	pub(crate) fn most_canonical_name<'a>(&'a self) -> &'a EfficientCaseFoldedName
 	where 'message: 'a
 	{
 		let chain_length = self.chain.len();
@@ -80,7 +77,8 @@ impl<'message, 'cache: 'message> CanonicalNameChain<'message, 'cache>
 		}
 		else
 		{
-			self.chain.get_index(chain_length - 1).unwrap()
+			let (_key, (_, ref last_name)) = self.chain.get_index(length - 1).unwrap();
+			last_name
 		}
 	}
 	
@@ -89,14 +87,11 @@ impl<'message, 'cache: 'message> CanonicalNameChain<'message, 'cache>
 	{
 		use self::CanonicalChainError::*;
 		
-		if self.chain.len() == Self::MaximumChainLength
+		let length = self.chain.len();
+		
+		if length == Self::MaximumChainLength
 		{
 			return Err(TooManyCanonicalNamesInChain(Self::MaximumChainLength))
-		}
-		
-		if self.most_canonical_name().ne(from)
-		{
-			return Err(CanonicalNamesNotSorted)
 		}
 		
 		if to.eq(self.query_name)
@@ -104,20 +99,31 @@ impl<'message, 'cache: 'message> CanonicalNameChain<'message, 'cache>
 			return Err(CanonicalNameChainCanNotIncludeQueryNameAsItCreatesALoop)
 		}
 		
-		let ok = self.chain.insert(to.clone());
-		if unlikely!(!ok)
+		let most_canonical_name = self.most_canonical_name();
+		if most_canonical_name.ne(from)
 		{
-			return Err(AddingNameToCanonicalNameChainCreatesALoop)
+			return Err(CanonicalNamesNotSorted)
 		}
 		
-		self.cname_records.store_unprioritized_and_unweighted(from, cache_until, CaseFoldedName::from(to));
+		use self::IndexMapEntry::*;
+		match self.chain.entry(most_canonical_name.clone())
+		{
+			Occupied(_) => return Err(AddingNameToCanonicalNameChainCreatesALoop),
+			
+			Vacant(vacant) =>
+			{
+				let value = PresentSolitary::new(cache_until, EfficientCaseFoldedName::from(to));
+				vacant.insert(value);
+			},
+		};
+		
 		Ok(())
 	}
 	
 	#[inline(always)]
 	pub(crate) fn record_delegation_name(&mut self, from: &ParsedName<'message>, cache_until: CacheUntil, to: &ParsedName<'message>)
 	{
-		self.dname_records.store_unprioritized_and_unweighted(from, cache_until, CaseFoldedName::from(to));
+		self.delegation_name_records.store_unprioritized_and_unweighted(from, cache_until, EfficientCaseFoldedName::from(to));
 	}
 	
 	#[inline(always)]

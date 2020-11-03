@@ -11,14 +11,14 @@ pub(crate) trait QueryProcessor<'cache>
 	type RRV<'message>: ResourceRecordVisitor<'message, Error=Infallible, Finished=Records<'cache, Self::Record>>
 	where 'cache: 'message;
 	
-	fn new<'message>(query_name: &'message CaseFoldedName<'cache>) -> Self::RRV<'message>
+	fn new<'message>(query_name: &'message EfficientCaseFoldedName) -> Self::RRV<'message>
 	where 'cache: 'message;
 	
-	fn answered<'message>(finished: <<Self as QueryProcessor<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished, query_name: &'message CaseFoldedName<'cache>, cache: &mut Cache<'cache>)
+	fn answered<'message>(finished: <<Self as QueryProcessor<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished, query_name: &'message EfficientCaseFoldedName, cache: &mut Cache<'cache>)
 	where 'cache: 'message;
 	
 	#[inline(always)]
-	fn result<'message>(now: NanosecondsSinceUnixEpoch, query_name: &'message CaseFoldedName<'cache>, cache: &mut Cache<'cache>, answer: Answer<'cache>, canonical_name_chain_records: Records<'cache, CaseFoldedName<'cache>>, finished: <<Self as QueryProcessor<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished)
+	fn result<'message>(now: NanosecondsSinceUnixEpoch, query_name: &'message EfficientCaseFoldedName, cache: &mut Cache<'cache>, answer: Answer<'cache>, canonical_name_chain_records: CanonicalNameChainRecords<'cache>, delegation_name_records: DelegationNameRecords<'cache>, finished: <<Self as QueryProcessor<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished)
 	where 'cache: 'message
 	{
 		/*

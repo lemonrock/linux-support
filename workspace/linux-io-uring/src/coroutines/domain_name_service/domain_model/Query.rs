@@ -8,13 +8,13 @@ pub(crate) struct Query<'cache>
 	now: NanosecondsSinceUnixEpoch,
 	message_identifier: MessageIdentifier,
 	data_type: DataType,
-	query_name: CaseFoldedName<'cache>,
+	query_name: EfficientCaseFoldedName,
 }
 
 impl<'cache> Query<'cache>
 {
 	#[inline(always)]
-	pub(crate) fn enquire_over_tcp<'yielder, QP: QueryProcessor<'cache>, SD: SocketData>(stream: &mut TlsClientStream<'yielder, SD>, message_identifier: MessageIdentifier, now: NanosecondsSinceUnixEpoch, query_name: CaseFoldedName<'cache>, cache: &mut Cache<'cache>) -> Result<(), ProtocolError<Infallible>>
+	pub(crate) fn enquire_over_tcp<'yielder, QP: QueryProcessor<'cache>, SD: SocketData>(stream: &mut TlsClientStream<'yielder, SD>, message_identifier: MessageIdentifier, now: NanosecondsSinceUnixEpoch, query_name: EfficientCaseFoldedName, cache: &mut Cache<'cache>) -> Result<(), ProtocolError<Infallible>>
 	{
 		let query = Query
 		{
@@ -50,13 +50,13 @@ impl<'cache> Query<'cache>
 		
 		
 		let answer_section_resource_record_visitor = QP::new(&self.query_name);
-		let (answer, canonical_name_chain_records, finished) = self.read_reply_after_message_length_checked(raw_dns_message, answer_section_resource_record_visitor).map_err(ProtocolError::ReadReplyAfterLengthChecked)?;
-		QP::result(self.now, &self.query_name, cache, answer, canonical_name_chain_records, finished);
+		let (answer, canonical_name_chain_records, delegation_name_records, finished) = self.read_reply_after_message_length_checked(raw_dns_message, answer_section_resource_record_visitor).map_err(ProtocolError::ReadReplyAfterLengthChecked)?;
+		QP::result(self.now, &self.query_name, cache, answer, canonical_name_chain_records, delegation_name_records, finished);
 		Ok(())
 	}
 	
 	#[inline(always)]
-	fn read_reply_after_message_length_checked<'message, RRV: ResourceRecordVisitor<'message>>(&self, raw_dns_message: &'message [u8], answer_section_resource_record_visitor: RRV) -> Result<(Answer<'cache>, Records<'cache, CaseFoldedName<'cache>>, RRV::Finished), ReadReplyAfterLengthCheckedError<RRV::Error>>
+	fn read_reply_after_message_length_checked<'message, RRV: ResourceRecordVisitor<'message>>(&self, raw_dns_message: &'message [u8], answer_section_resource_record_visitor: RRV) -> Result<(Answer<'cache>, CanonicalNameChainRecords<'cache>, DelegationNameRecords<'cache>, RRV::Finished), ReadReplyAfterLengthCheckedError<RRV::Error>>
 	where 'cache: 'message
 	{
 		let dns_message = unsafe { &* (raw_dns_message.as_ptr() as *const DnsMessage) };
@@ -68,16 +68,16 @@ impl<'cache> Query<'cache>
 		
 		let end_of_message_pointer = raw_dns_message.end_pointer();
 		
-		let (next_resource_record_pointer, query_name) = self.parse_query_section(dns_message.query_section_entry(), &mut parsed_names, end_of_message_pointer).map_err(SectionError::QuerySection)?;
-		let mut response_record_sections_parser = ResponseRecordSectionsParser::new(self.now, self.data_type, end_of_message_pointer, message_header, parsed_names);
-		let (end_of_parsed_message_pointer, answer, canonical_name_records, answer_section_resource_record_visitor_finished) = response_record_sections_parser.parse_answer_authority_and_additional_sections(next_resource_record_pointer, &query_name, authoritative_or_authenticated_or_neither, rcode_lower_4_bits, answer_section_resource_record_visitor)?;
+		let next_resource_record_pointer = self.parse_query_section(dns_message.query_section_entry(), &mut parsed_names, end_of_message_pointer).map_err(SectionError::QuerySection)?;
+		let mut response_record_sections_parser = ResponseRecordSectionsParser::new(self.now, self.data_type, end_of_message_pointer, message_header, parsed_names, &self.query_name);
+		let (end_of_parsed_message_pointer, answer, canonical_name_records, delegation_name_records, answer_section_resource_record_visitor_finished) = response_record_sections_parser.parse_answer_authority_and_additional_sections(next_resource_record_pointer, authoritative_or_authenticated_or_neither, rcode_lower_4_bits, answer_section_resource_record_visitor)?;
 		
 		if unlikely!(end_of_parsed_message_pointer < end_of_message_pointer)
 		{
 			return Err(ReadReplyAfterLengthCheckedError::MessageHadUnparsedBytesAtEnd(self.message_identifier))
 		}
 		
-		Ok((answer, canonical_name_records, answer_section_resource_record_visitor_finished))
+		Ok((answer, canonical_name_records, delegation_name_records, answer_section_resource_record_visitor_finished))
 	}
 	
 	#[allow(deprecated)]
@@ -132,7 +132,7 @@ impl<'cache> Query<'cache>
 	}
 	
 	#[inline(always)]
-	fn parse_query_section<'message>(&self, query_section_entry: &'message QuerySectionEntry, parsed_names: &mut ParsedNames<'message>, end_of_message_pointer: usize) -> Result<(usize, ParsedName<'message>), QuerySectionError>
+	fn parse_query_section<'message>(&self, query_section_entry: &'message QuerySectionEntry, parsed_names: &mut ParsedNames<'message>, end_of_message_pointer: usize) -> Result<usize, QuerySectionError>
 	where 'cache: 'message
 	{
 		use self::QuerySectionError::*;
@@ -152,7 +152,7 @@ impl<'cache> Query<'cache>
 		}
 		
 		let end_of_query_section = QuerySectionEntry::end_of_query_section(end_of_qname_pointer);
-		Ok((end_of_query_section, parsed_query_name))
+		Ok(end_of_query_section)
 	}
 	
 }

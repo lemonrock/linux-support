@@ -15,6 +15,8 @@ include!("AuthorityNameNameServers.rs");
 include!("AuthorityNameStartOfAuthority.rs");
 include!("AuthorityNameStartOfAuthorityNameServers.rs");
 include!("CanonicalNameChain.rs");
+include!("CanonicalNameChainRecords.rs");
+include!("DelegationNameRecords.rs");
 include!("DuplicateResourceRecordResponseParsing.rs");
 include!("NoDataResponseType.rs");
 include!("NoDomainResponseType.rs");

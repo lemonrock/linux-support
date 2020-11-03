@@ -6,6 +6,7 @@ use super::*;
 
 
 include!("CacheUntil.rs");
+include!("DomainCache.rs");
 include!("Exists.rs");
 include!("LeastRecentlyUsedCache.rs");
 include!("LeastRecentlyUsedCacheValue.rs");

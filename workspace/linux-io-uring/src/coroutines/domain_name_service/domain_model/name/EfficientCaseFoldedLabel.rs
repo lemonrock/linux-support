@@ -2,92 +2,37 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A case-folded (normalized to lower case) label.
-#[derive(Default, Debug, Clone)]
-pub struct CaseFoldedLabel<'cache>(Cow<'cache, [u8]>);
+#[derive(Copy, Clone)]
+struct EfficientCaseFoldedLabel<'a>(&'a [u8]);
 
-impl<'cache> TryFrom<Box<[u8]>> for CaseFoldedLabel<'cache>
+impl Default for EfficientCaseFoldedLabel<'static>
 {
-	type Error = CaseFoldedLabelParseError;
-	
 	#[inline(always)]
-	fn try_from(value: Box<[u8]>) -> Result<Self, Self::Error>
+	fn default() -> Self
 	{
-		Self::validate_bytes(&value[..])?;
-		Ok(Self(Cow::Owned(value.to_vec())))
+		Self::Root
 	}
 }
 
-impl<'cache> TryFrom<Vec<u8>> for CaseFoldedLabel<'cache>
+impl<'a> Debug for EfficientCaseFoldedLabel<'a>
 {
-	type Error = CaseFoldedLabelParseError;
-	
 	#[inline(always)]
-	fn try_from(value: Vec<u8>) -> Result<Self, Self::Error>
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
 	{
-		Self::validate_bytes(&value[..])?;
-		Ok(Self(Cow::Owned(value)))
+		self.display(f)
 	}
 }
 
-impl<'cache> TryFrom<&'cache [u8]> for CaseFoldedLabel<'cache>
+impl<'a> Display for EfficientCaseFoldedLabel<'a>
 {
-	type Error = CaseFoldedLabelParseError;
-	
 	#[inline(always)]
-	fn try_from(value: &'cache [u8]) -> Result<Self, Self::Error>
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
 	{
-		Self::validate_bytes(value)?;
-		Ok(Self(Cow::Borrowed(value)))
+		self.display(f)
 	}
 }
 
-/// This clones the underlying data and case-folds.
-impl<'cache: 'message, 'message> From<ParsedLabel<'message>> for CaseFoldedLabel<'cache>
-{
-	#[inline(always)]
-	fn from(value: ParsedLabel<'message>) -> Self
-	{
-		Self::from(&value)
-	}
-}
-
-/// This clones the underlying data and case-folds.
-impl<'cache: 'message, 'message, 'a> From<Cow<'a, ParsedLabel<'message>>> for CaseFoldedLabel<'cache>
-{
-	#[inline(always)]
-	fn from(value: Cow<'a, ParsedLabel<'message>>) -> Self
-	{
-		use self::Cow::*;
-		
-		match value
-		{
-			Borrowed(value) => Self::from(value),
-			Owned(value) => Self::from(value),
-		}
-	}
-}
-
-/// This clones the underlying data and case-folds.
-impl<'cache: 'message, 'message, 'a> From<&'a ParsedLabel<'message>> for CaseFoldedLabel<'cache>
-{
-	#[inline(always)]
-	fn from(value: &'a ParsedLabel<'message>) -> Self
-	{
-		let length = value.len();
-		let capacity = length as usize;
-		let mut case_folded_bytes: Vec<u8> = Vec::with_capacity(capacity);
-		
-		for index in 0 .. length
-		{
-			unsafe { *(case_folded_bytes.as_mut_ptr().add(index as usize)) = value.get_unchecked_case_folded_byte(index) };
-		}
-		unsafe { case_folded_bytes.set_len(capacity) }
-		Self(Cow::Owned(case_folded_bytes))
-	}
-}
-
-impl<'cache> PartialEq for CaseFoldedLabel<'cache>
+impl<'a> PartialEq for EfficientCaseFoldedLabel<'a>
 {
 	#[inline(always)]
 	fn eq(&self, rhs: &Self) -> bool
@@ -96,11 +41,11 @@ impl<'cache> PartialEq for CaseFoldedLabel<'cache>
 	}
 }
 
-impl<'cache> Eq for CaseFoldedLabel<'cache>
+impl<'a> Eq for EfficientCaseFoldedLabel<'a>
 {
 }
 
-impl<'cache> PartialOrd for CaseFoldedLabel<'cache>
+impl<'a> PartialOrd for EfficientCaseFoldedLabel<'a>
 {
 	#[inline(always)]
 	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
@@ -109,7 +54,7 @@ impl<'cache> PartialOrd for CaseFoldedLabel<'cache>
 	}
 }
 
-impl<'cache> Ord for CaseFoldedLabel<'cache>
+impl<'a> Ord for EfficientCaseFoldedLabel<'a>
 {
 	#[inline(always)]
 	fn cmp(&self, rhs: &Self) -> Ordering
@@ -118,7 +63,7 @@ impl<'cache> Ord for CaseFoldedLabel<'cache>
 	}
 }
 
-impl<'cache> Hash for CaseFoldedLabel<'cache>
+impl<'a> Hash for EfficientCaseFoldedLabel<'a>
 {
 	#[inline(always)]
 	fn hash<H: Hasher>(&self, state: &mut H)
@@ -127,7 +72,7 @@ impl<'cache> Hash for CaseFoldedLabel<'cache>
 	}
 }
 
-impl<'cache: 'message, 'message> PartialEq<ParsedLabel<'message>> for CaseFoldedLabel<'cache>
+impl<'a, 'message> PartialEq<ParsedLabel<'message>> for EfficientCaseFoldedLabel<'a>
 {
 	#[inline(always)]
 	fn eq(&self, rhs: &ParsedLabel<'message>) -> bool
@@ -136,7 +81,7 @@ impl<'cache: 'message, 'message> PartialEq<ParsedLabel<'message>> for CaseFolded
 	}
 }
 
-impl<'cache: 'message, 'message> PartialOrd<ParsedLabel<'message>> for CaseFoldedLabel<'cache>
+impl<'a, 'message> PartialOrd<ParsedLabel<'message>> for EfficientCaseFoldedLabel<'a>
 {
 	#[inline(always)]
 	fn partial_cmp(&self, rhs: &ParsedLabel<'message>) -> Option<Ordering>
@@ -145,8 +90,14 @@ impl<'cache: 'message, 'message> PartialOrd<ParsedLabel<'message>> for CaseFolde
 	}
 }
 
-impl<'cache> Label<'cache> for CaseFoldedLabel<'cache>
+impl<'a> Label<'a> for EfficientCaseFoldedLabel<'a>
 {
+	#[inline(always)]
+	fn bytes_pointer(&self) -> *const u8
+	{
+		self.0.as_ptr()
+	}
+	
 	#[inline(always)]
 	fn len(&self) -> u8
 	{
@@ -164,49 +115,30 @@ impl<'cache> Label<'cache> for CaseFoldedLabel<'cache>
 	{
 		unsafe { self.0.get_unchecked(index as usize) }
 	}
+}
+
+impl<'a> TryFrom<&'a [u8]> for EfficientCaseFoldedLabel
+{
+	type Error = EfficientCaseFoldedLabelParseError;
 	
 	#[inline(always)]
-	fn bytes_pointer(&self) -> *const u8
+	fn try_from(value: &'a [u8]) -> Result<Self, Self::Error>
 	{
-		self.0.as_ptr()
+		Self::validate_bytes(value)?;
+		Ok(Self(value))
 	}
 }
 
-impl<'cache> CaseFoldedLabel<'cache>
+impl<'a> EfficientCaseFoldedLabel<'a>
 {
-	const MaximumSize: usize = 63;
-	
-	/// Clones and case folds.
 	#[inline(always)]
-	pub fn new_cloned_and_case_folded(value: &[u8]) -> Result<Self, CaseFoldedLabelParseError>
-	{
-		let length = value.len();
-		
-		if unlikely!(length > Self::MaximumSize)
-		{
-			return Err(CaseFoldedLabelParseError::LabelExceeded63Bytes)
-		}
-		
-		let mut bytes = value.to_vec();
-		for byte in bytes.iter_mut()
-		{
-			if unlikely!(*byte == b'.')
-			{
-				return Err(CaseFoldedLabelParseError::LabelContainedPeriod)
-			}
-			*byte = case_fold_byte(byte)
-		}
-		Ok(Self(Cow::Owned(bytes)))
-	}
-	
-	#[inline(always)]
-	fn validate_bytes(slice: &[u8]) -> Result<(), CaseFoldedLabelParseError>
+	fn validate_bytes(slice: &[u8]) -> Result<(), EfficientCaseFoldedLabelParseError>
 	{
 		let length = slice.len();
 		
 		if unlikely!(length > Self::MaximumSize)
 		{
-			return Err(CaseFoldedLabelParseError::LabelExceeded63Bytes)
+			return Err(EfficientCaseFoldedLabelParseError::LabelExceeded63Bytes)
 		}
 		
 		for index in 0 .. length
@@ -218,15 +150,17 @@ impl<'cache> CaseFoldedLabel<'cache>
 	}
 	
 	#[inline(always)]
-	fn validate_byte(byte: &u8) -> Result<(), CaseFoldedLabelParseError>
+	fn validate_byte(byte: &u8) -> Result<(), EfficientCaseFoldedLabelParseError>
 	{
+		use self::EfficientCaseFoldedLabelParseError::*;
+		
 		if unlikely!(Self::is_upper_case(byte))
 		{
-			Err(CaseFoldedLabelParseError::LabelContainedUppercaseBytes)
+			Err(LabelContainedUppercaseBytes)
 		}
 		else if unlikely!(*byte == b'.')
 		{
-			Err(CaseFoldedLabelParseError::LabelContainedPeriod)
+			Err(LabelContainedPeriod)
 		}
 		else
 		{
@@ -242,15 +176,15 @@ impl<'cache> CaseFoldedLabel<'cache>
 	}
 }
 
-impl CaseFoldedLabel<'static>
+impl EfficientCaseFoldedLabel<'static>
 {
 	#[inline(always)]
 	const fn new(label: &'static [u8]) -> Self
 	{
-		Self(Cow::Borrowed(label))
+		Self(label)
 	}
 	
-	const Root: Self = Self::new(b"");
+	const Root: Self = Self(b"");
 	
 	const _6tisch: Self = Self::new(b"6tisch");
 	
@@ -1435,4 +1369,4 @@ impl CaseFoldedLabel<'static>
 	const Tamil_Tamil: Self = Self::new(b"xn--hlcj6aya9esc7a");
 }
 
-include!(concat!(env!("OUT_DIR"), "/CaseFoldedLabel.top-level-domains.rs"));
+include!(concat!(env!("OUT_DIR"), "/EfficientCaseFoldedLabel.top-level-domains.rs"));

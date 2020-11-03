@@ -8,6 +8,8 @@ pub(crate) enum PresentSolitary<Record: Sized + Debug>
 	/// One-time use.
 	UseOnce
 	{
+		as_of_now: NanosecondsSinceUnixEpoch,
+		
 		record: Record,
 	},
 
@@ -17,5 +19,21 @@ pub(crate) enum PresentSolitary<Record: Sized + Debug>
 		cached_until: NanosecondsSinceUnixEpoch,
 		
 		record: Record,
+	}
+}
+
+impl<Record: Sized + Debug> PresentSolitary<Record>
+{
+	#[inline(always)]
+	pub(crate) fn new(cache_until: CacheUntil, record: Record) -> Self
+	{
+		use self::PresentSolitary::*;
+		
+		match cache_until
+		{
+			CacheUntil::UseOnce { as_of_now } => UseOnce { as_of_now, record },
+			
+			CacheUntil::Cached { cached_until } => Cached { cached_until, record }
+		}
 	}
 }

@@ -14,7 +14,7 @@ pub(crate) enum Answer<'cache>
 		/// This is a direct child of `response_type.authority_name`.
 		///
 		/// This is the domain for which there is no domain.
-		most_canonical_name: CaseFoldedName<'cache>,
+		most_canonical_name: EfficientCaseFoldedName,
 	},
 
 	NoData
@@ -24,7 +24,7 @@ pub(crate) enum Answer<'cache>
 		/// This is a direct child of `response_type.authority_name`.
 		///
 		/// This is the domain for which there is no data.
-		most_canonical_name: CaseFoldedName<'cache>,
+		most_canonical_name: EfficientCaseFoldedName,
 	},
 	
 	Referral
@@ -32,7 +32,7 @@ pub(crate) enum Answer<'cache>
 		referral: AuthorityNameNameServers<'cache>,
 		
 		/// This is a direct child of `authority_name`.
-		most_canonical_name: CaseFoldedName<'cache>,
+		most_canonical_name: EfficientCaseFoldedName,
 	},
 }
 

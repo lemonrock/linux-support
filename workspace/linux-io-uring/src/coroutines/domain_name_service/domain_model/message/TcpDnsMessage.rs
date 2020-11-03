@@ -17,7 +17,7 @@ impl TcpDnsMessage
 
 	/// Validation of available buffer size is done before calling this.
 	#[inline(always)]
-	pub(crate) fn write_query_tcp_message(buffer_pointer: usize, message_identifier: MessageIdentifier, data_type: DataType, query_name: &CaseFoldedName) -> usize
+	pub(crate) fn write_query_tcp_message(buffer_pointer: usize, message_identifier: MessageIdentifier, data_type: DataType, query_name: &EfficientCaseFoldedName) -> usize
 	{
 		let message_pointer = buffer_pointer + Self::TcpBufferLengthSize;
 

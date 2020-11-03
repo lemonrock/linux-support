@@ -86,16 +86,24 @@ impl TimeInSeconds
 	///
 	/// Returns `None` if should not be cached.
 	#[inline(always)]
-	pub fn cache_until(self, now: NanosecondsSinceUnixEpoch) -> Option<NanosecondsSinceUnixEpoch>
+	pub fn cache_until(self, now: NanosecondsSinceUnixEpoch) -> CacheUntil
 	{
+		use self::CacheUntil::*;
+		
 		let u31_seconds_duration: U31SecondsDuration = self.into();
 		if unlikely!(u31_seconds_duration.is_zero())
 		{
-			None
+			UseOnce
+			{
+				as_of_now: now,
+			}
 		}
 		else
 		{
-			Some(now + u31_seconds_duration)
+			Cached
+			{
+				cached_until: now + u31_seconds_duration
+			}
 		}
 	}
 }

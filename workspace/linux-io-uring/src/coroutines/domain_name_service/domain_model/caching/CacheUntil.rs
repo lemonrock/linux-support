@@ -2,4 +2,16 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) type CacheUntil = Option<NanosecondsSinceUnixEpoch>;
+#[derive(Debug, Copy, `clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub(crate) enum CacheUntil
+{
+	UseOnce
+	{
+		as_of_now: NanosecondsSinceUnixEpoch,
+	},
+
+	Cached
+	{
+		cached_until: NanosecondsSinceUnixEpoch,
+	}
+}

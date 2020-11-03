@@ -12,7 +12,7 @@ pub(crate) struct CanonicalNameChainAnswerSectionResourceRecordVisitor<'message,
 impl<'message, 'cache: 'message, RRV: ResourceRecordVisitor<'message>> CanonicalNameChainAnswerSectionResourceRecordVisitor<'message, 'cache, RRV>
 {
 	#[inline(always)]
-	pub(crate) fn new(answer_section_resource_record_visitor: RRV, query_name: &ParsedName<'message>) -> Self
+	pub(crate) fn new(answer_section_resource_record_visitor: RRV, query_name: &'message EfficientCaseFoldedName) -> Self
 	{
 		Self
 		{

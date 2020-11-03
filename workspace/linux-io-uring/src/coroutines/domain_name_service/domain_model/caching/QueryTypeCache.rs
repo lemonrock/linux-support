@@ -14,7 +14,7 @@ impl<'cache, Record: Sized + Debug> QueryTypeCache<'cache, Record>
 	
 	/// Gets a result for the name.
 	#[inline(always)]
-	pub fn get(&mut self, name: &CaseFoldedName<'cache>, now: NanosecondsSinceUnixEpoch) -> QueryTypeCacheResult<'cache, Record>
+	pub fn get(&mut self, name: &EfficientCaseFoldedName, now: NanosecondsSinceUnixEpoch) -> QueryTypeCacheResult<'cache, Record>
 	{
 		use self::QueryTypeCacheEntry::*;
 		use self::QueryTypeCacheResult::*;
@@ -52,7 +52,7 @@ impl<'cache, Record: Sized + Debug> QueryTypeCache<'cache, Record>
 	#[inline(always)]
 	pub(crate) fn put_present(&mut self, records: Records<'cache, Record>)
 	{
-		let hash_map: HashMap<CaseFoldedName<'cache>, PresentMultiple<Record>> = records.into();
+		let hash_map: HashMap<EfficientCaseFoldedName, PresentMultiple<Record>> = records.into();
 		for (key, present) in hash_map
 		{
 			self.0.put(key, QueryTypeCacheEntry::Present(present));
@@ -60,14 +60,14 @@ impl<'cache, Record: Sized + Debug> QueryTypeCache<'cache, Record>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn put_present_all_the_same_name(&mut self, name: CaseFoldedName<'cache>, present: PresentMultiple<Record>)
+	pub(crate) fn put_present_all_the_same_name(&mut self, name: EfficientCaseFoldedName, present: PresentMultiple<Record>)
 	{
 		self.0.put(name, QueryTypeCacheEntry::Present(present))
 	}
 	
 	/// RFC 2308, Section 8 - Changes from RFC 1034, Paragraph 3: "The SOA record from the authority section MUST be cached. Name error indications must be cached against the tuple `<query name, QCLASS>`".
 	#[inline(always)]
-	pub(crate) fn put_name_error<'message>(&mut self, query_name: CaseFoldedName<'cache>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message, ParsedName<'message>>)
+	pub(crate) fn put_name_error<'message>(&mut self, query_name: EfficientCaseFoldedName, negative_cache_until: CacheUntil, record: StartOfAuthority<'message, ParsedName<'message>>)
 	{
 		self.put_absent(query_name, negative_cache_until, record)
 	}
@@ -76,13 +76,13 @@ impl<'cache, Record: Sized + Debug> QueryTypeCache<'cache, Record>
 	///
 	/// However, since we only query for `QCLASS` `IN` internet and never support any other type, this is effectively the same behaviour we must implement as for `self.put_name_error()`.
 	#[inline(always)]
-	pub(crate) fn put_no_data<'message>(&mut self, query_name: CaseFoldedName<'cache>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message, ParsedName<'message>>)
+	pub(crate) fn put_no_data<'message>(&mut self, query_name: EfficientCaseFoldedName, negative_cache_until: CacheUntil, record: StartOfAuthority<'message, ParsedName<'message>>)
 	{
 		self.put_absent(query_name, negative_cache_until, record)
 	}
 	
 	#[inline(always)]
-	fn put_absent<'message>(&mut self, name: CaseFoldedName<'cache>, negative_cache_until: CacheUntil, record: StartOfAuthority<'message, ParsedName<'message>>)
+	fn put_absent<'message>(&mut self, name: EfficientCaseFoldedName, negative_cache_until: CacheUntil, record: StartOfAuthority<'message, ParsedName<'message>>)
 	{
 		use self::QueryTypeCacheEntry::*;
 		

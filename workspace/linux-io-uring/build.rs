@@ -63,9 +63,9 @@ pub fn main() -> io::Result<()>
 
 fn write_case_folded_labels(out_dir: &OsString, top_level_domains: &Vec<CaseFoldedLabel>) -> io::Result<()>
 {
-	let mut file = BufWriter::new(File::create(&Path::new(&out_dir).join("CaseFoldedLabel.top-level-domains.rs"))?);
+	let mut file = BufWriter::new(File::create(&Path::new(&out_dir).join("EfficientCaseFoldedLabel.top-level-domains.rs"))?);
 	
-	writeln!(file, "impl CaseFoldedLabel<'static>")?;
+	writeln!(file, "impl EfficientCaseFoldedLabel<'static>")?;
 	writeln!(file, "{{")?;
 	
 		for case_folded_label in top_level_domains
@@ -80,8 +80,8 @@ fn write_case_folded_labels(out_dir: &OsString, top_level_domains: &Vec<CaseFold
 
 fn write_case_folded_names(out_dir: &OsString, top_level_domains: &Vec<CaseFoldedLabel>, version_and_updated_at: &str) -> io::Result<()>
 {
-	let mut file = BufWriter::new(File::create(&Path::new(&out_dir).join("CaseFoldedName.top-level-domains.rs"))?);
-	writeln!(file, "impl CaseFoldedName<'static>")?;
+	let mut file = BufWriter::new(File::create(&Path::new(&out_dir).join("EfficientCaseFoldedName.top-level-domains.rs"))?);
+	writeln!(file, "impl EfficientCaseFoldedName<'static>")?;
 	writeln!(file, "{{")?;
 	
 		from_iana_comment(&mut file, version_and_updated_at)?;
@@ -90,11 +90,11 @@ fn write_case_folded_names(out_dir: &OsString, top_level_domains: &Vec<CaseFolde
 		writeln!(file, "\t{{")?;
 			writeln!(file, "\t\tlazy_static!")?;
 			writeln!(file, "\t\t{{")?;
-				writeln!(file, "\t\t\tstatic ref top_level_domain_names: HashSet<CaseFoldedName<'static>> = fast_secure_hash_set!")?;
+				writeln!(file, "\t\t\tstatic ref top_level_domain_names: HashSet<EfficientCaseFoldedName<'static>> = fast_secure_hash_set!")?;
 				writeln!(file, "\t\t\t{{")?;
 				for case_folded_label in top_level_domains
 				{
-					writeln!(file, "\t\t\t\tCaseFoldedName::{}().clone(),", case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit())?;
+					writeln!(file, "\t\t\t\tEfficientCaseFoldedName::{}().clone(),", case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit())?;
 				}
 				writeln!(file, "\t\t\t}};")?;
 				writeln!(file, "\t\t\t")?;
@@ -112,7 +112,7 @@ fn write_case_folded_names(out_dir: &OsString, top_level_domains: &Vec<CaseFolde
 			writeln!(file, "\t{{")?;
 			writeln!(file, "\t\tlazy_static!")?;
 			writeln!(file, "\t\t{{")?;
-				writeln!(file, "\t\t\tstatic ref {}: CaseFoldedName<'static> = CaseFoldedName::top_level(CaseFoldedLabel::{});", case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit(), case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit())?;
+				writeln!(file, "\t\t\tstatic ref {}: EfficientCaseFoldedName<'static> = EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::{});", case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit(), case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit())?;
 			writeln!(file, "\t\t}}")?;
 			writeln!(file, "\t\t")?;
 			writeln!(file, "\t\t&{}", case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit())?;

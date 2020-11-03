@@ -4,9 +4,9 @@
 
 pub(crate) struct NoDomainCache<'cache>
 {
-	always_valid_domain_names: HashSet<CaseFoldedName<'cache>>,
+	always_valid_domain_names: HashSet<EfficientCaseFoldedName>,
 	
-	never_valid_domain_names: HashSet<CaseFoldedName<'cache>>,
+	never_valid_domain_names: HashSet<EfficientCaseFoldedName>,
 	
 	least_recently_used_cache: LeastRecentlyUsedCache<'cache, NoDomainCacheEntry>,
 }
@@ -19,7 +19,7 @@ impl<'cache> NoDomainCache<'cache>
 	
 	/// `always_valid_domain_names` and `never_valid_domain_names` must be disjoint.
 	#[inline(always)]
-	pub(crate) fn new(maximum_records_count: NonZeroUsize, always_valid_domain_names: HashSet<CaseFoldedName<'cache>>, never_valid_domain_names: HashSet<CaseFoldedName<'cache>>) -> Self
+	pub(crate) fn new(maximum_records_count: NonZeroUsize, always_valid_domain_names: HashSet<EfficientCaseFoldedName>, never_valid_domain_names: HashSet<EfficientCaseFoldedName>) -> Self
 	{
 		debug_assert!(always_valid_domain_names.is_disjoint(&never_valid_domain_names));
 		
@@ -35,7 +35,7 @@ impl<'cache> NoDomainCache<'cache>
 	
 	/// Does this name have a domain?
 	#[inline(always)]
-	pub fn recursive_existence(&mut self, name: &CaseFoldedName<'cache>, now: NanosecondsSinceUnixEpoch) -> NoDomainCacheResult
+	pub fn recursive_existence(&mut self, name: &EfficientCaseFoldedName, now: NanosecondsSinceUnixEpoch) -> NoDomainCacheResult
 	{
 		use self::NoDomainCacheResult::*;
 		
@@ -69,7 +69,7 @@ impl<'cache> NoDomainCache<'cache>
 	
 	/// Gets a result for the name.
 	#[inline(always)]
-	pub fn existence(&mut self, name: &CaseFoldedName<'cache>, now: NanosecondsSinceUnixEpoch) -> NoDomainCacheResult
+	pub fn existence(&mut self, name: &EfficientCaseFoldedName, now: NanosecondsSinceUnixEpoch) -> NoDomainCacheResult
 	{
 		use self::NoDomainCacheResult::*;
 		
@@ -118,7 +118,7 @@ impl<'cache> NoDomainCache<'cache>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn put_use_once_if_no_better_record<'message>(&mut self, name: CaseFoldedName<'cache>, now: NanosecondsSinceUnixEpoch)
+	pub(crate) fn put_use_once_if_no_better_record<'message>(&mut self, name: EfficientCaseFoldedName, now: NanosecondsSinceUnixEpoch)
 	{
 		use self::NoDomainCacheResult::*;
 		
@@ -132,7 +132,7 @@ impl<'cache> NoDomainCache<'cache>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn put<'message>(&mut self, name: CaseFoldedName<'cache>, negative_cache_until: NegativeCacheUntil)
+	pub(crate) fn put<'message>(&mut self, name: EfficientCaseFoldedName, negative_cache_until: NegativeCacheUntil)
 	{
 		self.least_recently_used_cache.put(name, NoDomainCacheEntry::from(negative_cache_until));
 	}

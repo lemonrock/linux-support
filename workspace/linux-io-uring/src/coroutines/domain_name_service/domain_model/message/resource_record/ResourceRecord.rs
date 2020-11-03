@@ -48,7 +48,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	pub(crate) fn parse_answer_section_resource_record_in_response<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, question_q_type: DataType, end_of_message_pointer: usize, parsed_names: &mut ParsedNames<'message>, resource_record_visitor: &mut RRV, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, answer_section_has_at_least_one_record_of_requested_data_type: &mut bool, query_name: &ParsedName<'message>) -> Result<usize, AnswerSectionError<RRV::Error>>
+	pub(crate) fn parse_answer_section_resource_record_in_response<'cache: 'message, 'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, question_q_type: DataType, end_of_message_pointer: usize, parsed_names: &mut ParsedNames<'message>, resource_record_visitor: &mut RRV, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, answer_section_has_at_least_one_record_of_requested_data_type: &mut bool, query_name: &EfficientCaseFoldedName) -> Result<usize, AnswerSectionError<RRV::Error>>
 	{
 		use self::HandleRecordTypeError::ResourceTypeInWrongSection;
 		use self::ResourceTypeInWrongSectionError::ResourceRecordTypeIsNotValidInAnswerSectionIfNotRequestedByQuery;
@@ -65,7 +65,7 @@ impl ResourceRecord
 		{
 			if owner_name.ne(query_name)
 			{
-				return Err(AnswerSectionError::ResourceRecordOwnerNameThatDiffersToQueryNameButMatchesQueryType(CaseFoldedName::from(query_name)))
+				return Err(AnswerSectionError::ResourceRecordOwnerNameThatDiffersToQueryNameButMatchesQueryType(EfficientCaseFoldedName::from(owner_name)))
 			}
 			*answer_section_has_at_least_one_record_of_requested_data_type = true;
 			

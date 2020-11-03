@@ -4,7 +4,7 @@
 
 pub(crate) struct AQueryProcessorResourceRecordVisitor<'cache: 'message, 'message>
 {
-	query_name: &'message CaseFoldedName<'cache>,
+	query_name: &'message EfficientCaseFoldedName,
 	
 	records: Records<'cache, Ipv4Addr>,
 }

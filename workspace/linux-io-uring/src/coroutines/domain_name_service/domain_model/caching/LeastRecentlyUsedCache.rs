@@ -48,7 +48,7 @@ impl<'cache, V: LeastRecentlyUsedCacheValue> LeastRecentlyUsedCache<'cache, V>
 	}
 	
 	#[inline(always)]
-	fn put(&mut self, key: CaseFoldedName<'cache>, value: V)
+	fn put(&mut self, key: EfficientCaseFoldedName, value: V)
 	{
 		let adds_records_count = value.records_count();
 		
@@ -68,7 +68,7 @@ impl<'cache, V: LeastRecentlyUsedCacheValue> LeastRecentlyUsedCache<'cache, V>
 	}
 	
 	#[inline(always)]
-	fn get_mut(&mut self, key: &CaseFoldedName<'cache>) -> Option<&mut V>
+	fn get_mut(&mut self, key: &EfficientCaseFoldedName) -> Option<&mut V>
 	{
 		let key = Self::key(key);
 		match self.cache.get(&key)
@@ -93,7 +93,7 @@ impl<'cache, V: LeastRecentlyUsedCacheValue> LeastRecentlyUsedCache<'cache, V>
 	}
 	
 	#[inline(always)]
-	fn remove(&mut self, key: &CaseFoldedName<'cache>)
+	fn remove(&mut self, key: &EfficientCaseFoldedName)
 	{
 		let key = Self::key(key);
 		if let Some(removed) = self.cache.remove(&key)
@@ -125,9 +125,9 @@ impl<'cache, V: LeastRecentlyUsedCacheValue> LeastRecentlyUsedCache<'cache, V>
 	}
 	
 	#[inline(always)]
-	fn key(key: &CaseFoldedName<'cache>) -> LeastRecentlyUsedListKeyReference<'cache>
+	fn key(key: &EfficientCaseFoldedName) -> LeastRecentlyUsedListKeyReference<'cache>
 	{
-		let key = unsafe { NonNull::new_unchecked(key as *const CaseFoldedName<'cache> as *mut CaseFoldedName<'cache>) };
+		let key = unsafe { NonNull::new_unchecked(key as *const EfficientCaseFoldedName as *mut EfficientCaseFoldedName) };
 		LeastRecentlyUsedListKeyReference { key }
 	}
 }

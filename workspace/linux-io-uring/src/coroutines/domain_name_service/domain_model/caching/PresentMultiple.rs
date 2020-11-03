@@ -58,9 +58,9 @@ impl<Record: Sized + Debug> PresentMultiple<Record>
 	{
 		let priority_to_sorted_weighted_records_map = match cache_until
 		{
-			None => &mut self.use_once,
+			CacheUntil::UseOnce { as_of_now } => &mut self.use_once,
 			
-			Some(cache_until) => self.cached.entry(cache_until).or_insert_with(PriorityToSortedWeightedRecordsMap::default),
+			CacheUntil::Cached { cached_until } => self.cached.entry(cached_until).or_insert_with(PriorityToSortedWeightedRecordsMap::default),
 		};
 		priority_to_sorted_weighted_records_map.insert(priority, weight, record);
 	}

@@ -53,15 +53,15 @@ pub struct StartOfAuthority<'label, N: Name<'label>>
 	pub(crate) marker: PhantomData<&'label ()>,
 }
 
-impl<'message, 'cache: 'message> Into<StartOfAuthority<'cache, CaseFoldedName<'cache>>> for StartOfAuthority<'message, ParsedName<'message>>
+impl<'message, 'cache: 'message> Into<StartOfAuthority<'cache, EfficientCaseFoldedName>> for StartOfAuthority<'message, ParsedName<'message>>
 {
 	#[inline(always)]
-	fn into(self) -> StartOfAuthority<'cache, CaseFoldedName<'cache>>
+	fn into(self) -> StartOfAuthority<'cache, EfficientCaseFoldedName>
 	{
 		StartOfAuthority
 		{
-			primary_name_server: CaseFoldedName::from(self.primary_name_server),
-			responsible_person_email_address: CaseFoldedName::from(self.responsible_person_email_address),
+			primary_name_server: EfficientCaseFoldedName::from(self.primary_name_server),
+			responsible_person_email_address: EfficientCaseFoldedName::from(self.responsible_person_email_address),
 			zone_file_serial_number: self.zone_file_serial_number,
 			referesh_interval: self.referesh_interval,
 			retry_interval: self.retry_interval,

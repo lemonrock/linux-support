@@ -7,8 +7,35 @@
 /// Maximum length is 63.
 ///
 /// If empty (length of 0) then this represents the Root, terminal label.
-#[derive(Debug, Copy, Clone)]
+#[derive(Copy, Clone)]
 pub struct ParsedLabel<'message>(&'message [u8]);
+
+impl Default for ParsedLabel<'static>
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self::Root
+	}
+}
+
+impl<'message> Debug for ParsedLabel<'message>
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		self.display(f)
+	}
+}
+
+impl<'message> Display for ParsedLabel<'message>
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		self.display(f)
+	}
+}
 
 impl<'message> PartialEq for ParsedLabel<'message>
 {
@@ -50,26 +77,32 @@ impl<'message> Hash for ParsedLabel<'message>
 	}
 }
 
-// impl<'message, 'cache: 'message> PartialEq<CaseFoldedLabel<'cache>> for ParsedLabel<'cache>
-// {
-// 	#[inline(always)]
-// 	fn eq(&self, rhs: &CaseFoldedLabel<'cache>) -> bool
-// 	{
-// 		self.equals(rhs)
-// 	}
-// }
-//
-// impl<'message, 'cache: 'message> PartialOrd<CaseFoldedLabel<'cache>> for ParsedLabel<'message>
-// {
-// 	#[inline(always)]
-// 	fn partial_cmp(&self, rhs: &CaseFoldedLabel<'cache>) -> Option<Ordering>
-// 	{
-// 		self.partial_compare(rhs)
-// 	}
-// }
+impl<'message> PartialEq<EfficientCaseFoldedLabel> for ParsedLabel<'message>
+{
+	#[inline(always)]
+	fn eq(&self, rhs: &EfficientCaseFoldedLabel) -> bool
+	{
+		self.equals(rhs)
+	}
+}
+
+impl<'message> PartialOrd<EfficientCaseFoldedLabel> for ParsedLabel<'message>
+{
+	#[inline(always)]
+	fn partial_cmp(&self, rhs: &EfficientCaseFoldedLabel) -> Option<Ordering>
+	{
+		self.partial_compare(rhs)
+	}
+}
 
 impl<'message> Label<'message> for ParsedLabel<'message>
 {
+	#[inline(always)]
+	fn bytes_pointer(&self) -> *const u8
+	{
+		self.0.as_ptr()
+	}
+	
 	#[inline(always)]
 	fn len(&self) -> u8
 	{
@@ -87,10 +120,9 @@ impl<'message> Label<'message> for ParsedLabel<'message>
 	{
 		unsafe { self.0.get_unchecked(index as usize) }
 	}
-	
-	#[inline(always)]
-	fn bytes_pointer(&self) -> *const u8
-	{
-		self.0.as_ptr()
-	}
+}
+
+impl ParsedLabel<'static>
+{
+	const Root: Self = Self(b"");
 }

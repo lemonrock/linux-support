@@ -8,5 +8,5 @@ pub(crate) struct AuthorityNameStartOfAuthorityNameServers<'cache>
 	pub(crate) authority_name_start_of_authority: AuthorityNameStartOfAuthority<'cache>,
 	
 	/// These are for `authority_name`.
-	pub(crate) name_servers: PresentMultiple<CaseFoldedName<'cache>>,
+	pub(crate) name_servers: PresentMultiple<EfficientCaseFoldedName>,
 }
