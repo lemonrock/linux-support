@@ -3,6 +3,7 @@
 
 
 /// Location resource data using [WGS84](https://en.wikipedia.org/wiki/World_Geodetic_System#WGS84).
+#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[repr(C, packed)]
 pub struct LocationBodyVersion0
 {

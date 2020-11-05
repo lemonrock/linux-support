@@ -4,27 +4,27 @@
 
 /// A `SRV` record.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct ServiceLocation<'message>
+pub struct ServiceLocation<'label, N: Name<'label>>
 {
-	/// Priority.
-	///
-	/// RFC 2782: "A client MUST attempt to contact the target host with the lowest-numbered priority it can reach; target hosts with the same priority SHOULD be tried in an order defined by the weight field".
-	pub priority: Priority,
-
-	/// Weight.
-	///
-	/// Indicative of load on the server at a point in time, or, more crudely, relative performance of different servers.
-	///
-	/// RFC 2782: "Larger weights SHOULD be given a proportionately higher probability of being selected".
-	///
-	/// Larger weights imply less loading.
-	pub weight: Weight,
-
 	/// TCP, UDP or SCTP port for the service.
 	pub port: u16,
 
 	/// Must not be an alias; should not use name compression; a value of '.' (ie Root) means the service is unavailable.
-	///
-	/// The interaction with round-robin `A` or `AAAA` records is unclear.
-	pub target: ParsedName<'message>,
+	pub target: N,
+	
+	pub(crate) marker: PhantomData<&'label ()>,
+}
+
+impl<'message> Into<ServiceLocation<'static, EfficientCaseFoldedName>> for ServiceLocation<'message, ParsedName<'message>>
+{
+	#[inline(always)]
+	fn into(self) -> ServiceLocation<'static, EfficientCaseFoldedName>
+	{
+		ServiceLocation
+		{
+			port: self.port,
+			target: EfficientCaseFoldedName::from(self.target),
+			marker: PhantomData,
+		}
+	}
 }

@@ -2,19 +2,35 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A string length in a text record (one of either `HINFO`, `TXT` or `NAPTR`) was longer than that permitted by the resource data (`RDATA`) length (`RDLEN`).
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub struct CharacterStringLengthIncorrectError;
+/// Arbitrary bytes parsed from a message.
+#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+pub struct ParsedBytes<'message>(&'message [u8]);
 
-impl Display for CharacterStringLengthIncorrectError
+impl<'message> HasTypeEquality for ParsedBytes<'message>
 {
+	type TypeEquality = ParsedTypeEquality;
+}
+
+impl<'message> OwnedOrParsedBytes for ParsedBytes<'message>
+{
+}
+
+impl<'message> Deref for ParsedBytes<'message>
+{
+	type Target = [u8];
+	
 	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	fn deref(&self) -> &Self::Target
 	{
-		Debug::fmt(self, f)
+		self.0
 	}
 }
 
-impl error::Error for CharacterStringLengthIncorrectError
+impl<'message> From<&'message [u8]> for ParsedBytes<'message>
 {
+	#[inline(always)]
+	fn from(value: &'message [u8]) -> Self
+	{
+		Self(value)
+	}
 }

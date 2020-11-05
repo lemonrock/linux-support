@@ -240,7 +240,7 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 	/// 	* Authority
 	/// 		* `.			86400	IN	SOA	a.root-servers.net. …`.
 	/// 	* Additional
-	pub(crate) fn answer(self, answer_existence: AnswerExistence, answer_section_has_at_least_one_record_of_requested_data_type: bool) -> Result<(Answer, CanonicalNameChainRecords, DelegationNameRecords), AuthoritySectionError<AuthorityError>>
+	pub(crate) fn answer(self, answer_existence: AnswerExistence, answer_section_has_at_least_one_record_of_requested_data_type: bool, as_of_now: NanosecondsSinceUnixEpoch) -> Result<(Answer, CanonicalNameChainRecords, DelegationNameRecords), AuthoritySectionError<AuthorityError>>
 	{
 		use self::AnswerExistence::*;
 		use self::Answer::*;
@@ -386,7 +386,7 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 						guard_against_authoritative_answer_without_start_of_authority_record(authoritative_or_authenticated_or_neither)?;
 						NoDomain
 						{
-							response_type: NoDomainResponseType3,
+							response_type: NoDomainResponseType3 { as_of_now },
 							most_canonical_name
 						}
 					},
@@ -398,14 +398,15 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 						NoDomain
 						{
 							response_type: NoDomainResponseType4
-							(
-								AuthorityNameNameServers
+							{
+								authority_name_name_servers: AuthorityNameNameServers
 								{
 									authority_name: Self::authority_name(self.authority_name),
-									name_servers: Self::name_servers(self.name_servers)
-								}
-							),
-							most_canonical_name
+									name_servers: Self::name_servers(self.name_servers),
+								},
+								as_of_now,
+							},
+							most_canonical_name,
 						}
 					},
 				}

@@ -2,18 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[repr(C, packed)]
-struct CharacterString
+/// A legacy way of encoding text used by `TXT`, `NAPTR` and `HINFO` records only.
+pub trait CharacterString: HasTypeEquality + Debug + Clone + PartialEq + Eq + PartialOrd + Ord + Hash + Deref<Target=[u8]>
 {
-	pub(crate) length: u8,
-	bytes: UpTo255Bytes,
-}
-
-impl CharacterString
-{
-	#[inline(always)]
-	fn as_slice(&self, length: usize) -> &[u8]
-	{
-		(&self.bytes).unsafe_cast_slice::<u8>(length)
-	}
 }

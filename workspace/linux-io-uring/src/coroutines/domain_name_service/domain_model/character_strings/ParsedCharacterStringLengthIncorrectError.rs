@@ -2,13 +2,19 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A naming authority pointer with a domain name.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct NamingAuthorityPointerWithDomainName<'message>
-{
-	/// Header.
-	pub header: NamingAuthorityPointerHeader<'message>,
+/// A string length in a text record (one of either `HINFO`, `TXT` or `NAPTR`) was longer than that permitted by the resource data (`RDATA`) length (`RDLEN`).
+#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+pub struct ParsedCharacterStringLengthIncorrectError;
 
-	/// Will never be empty (0 bytes long).
-	pub domain_name: ParsedName<'message>,
+impl Display for ParsedCharacterStringLengthIncorrectError
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
+impl error::Error for ParsedCharacterStringLengthIncorrectError
+{
 }

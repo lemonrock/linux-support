@@ -2,40 +2,21 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Weight.
+/// Priority.
+///
+/// Ranks above Weight.
+/// Ranks below Order.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub struct Weight(pub u16);
+pub struct Priority(pub u16);
 
-impl Weight
+impl Priority
 {
 	pub(crate) const Unassigned: Self = Self(0);
 	
 	#[inline(always)]
-	const fn is_weightless(self) -> bool
+	pub(crate) const fn expand_range_of_u8(precendence: u8) -> Self
 	{
-		self.0 == 0
-	}
-	
-	#[inline(always)]
-	const fn into_non_zero_u16(self) -> NonZeroU16
-	{
-		unsafe { NonZeroU16::new_unchecked(self.0) }
-	}
-	
-	#[inline(always)]
-	fn zero_or_not_compare(&self, rhs: &Self) -> Ordering
-	{
-		let left = self.0;
-		let right = rhs.0;
-		
-		use self::Ordering::*;
-		match (left, right)
-		{
-			(0, 0) => Equal,
-			(0, _) => Less,
-			(_, 0) => Greater,
-			(_, _) => Equal,
-		}
+		Self((precendence as u16) << 8)
 	}
 }

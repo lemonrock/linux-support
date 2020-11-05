@@ -4,7 +4,7 @@
 
 /// An Elliptic Curve Digital Signature Algorithm (ECDSA) public key in the format stated in RFC 6605 and RFC 8005.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct EcDsaPublicKey<'a>
+pub struct EcDsaPublicKey<OOPB: OwnedOrParsedBytes>
 {
 	/// `Q` is a simple bit string that represents the uncompressed form of a curve point, `(x, y)`.
 	///
@@ -18,5 +18,5 @@ pub struct EcDsaPublicKey<'a>
 	/// * If 96 bytes long, then this is for a `P-384` curve and each co-ordinate (`x` or `y`) is an integer encoded as 48 octets.
 	///
 	/// These lengths are currently validated.
-	pub Q: &'a [u8],
+	pub Q: OOPB,
 }

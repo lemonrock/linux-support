@@ -7,7 +7,7 @@ fn case_fold_byte(byte: &u8) -> u8
 {
 	match *byte
 	{
-		byte @ b'A' ..= b'Z' => byte - 0x20,
+		byte @ b'A' ..= b'Z' => case_fold_upper_case_byte_to_lower_case_byte(byte),
 		byte @ _ => byte
 	}
 }

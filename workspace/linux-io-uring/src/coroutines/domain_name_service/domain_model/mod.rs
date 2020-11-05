@@ -12,7 +12,9 @@ use self::message::header::*;
 use self::message::query::*;
 use self::message::resource_record::*;
 use self::name::*;
+use self::owned_or_parsed::*;
 use self::query_processors::*;
+use self::records::*;
 use self::resource_data::*;
 use self::resource_data::certificate::*;
 use self::resource_data::certification_authority_authorization::*;
@@ -30,6 +32,10 @@ use self::resource_data::start_of_authority::*;
 use self::response_parsing::*;
 use self::response_parsing::resource_record_visitors::*;
 use self::support::*;
+
+
+/// Arbitrary bytes that can exist in records.
+pub mod arbitrary_bytes;
 
 
 pub(crate) mod caching;
@@ -54,7 +60,15 @@ pub mod message;
 pub mod name;
 
 
+/// Arbitrary sized data that can exist in records.
+pub mod owned_or_parsed;
+
+
 pub(crate) mod query_processors;
+
+
+/// Various structures for organising collections of records.
+pub mod records;
 
 
 /// Resource data.

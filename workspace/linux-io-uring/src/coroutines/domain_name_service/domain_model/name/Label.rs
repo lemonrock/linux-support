@@ -3,7 +3,7 @@
 
 
 /// Label.
-pub trait Label<'label>: Clone + Debug + Display + PartialEq + Eq + PartialOrd + Ord + Hash
+pub trait Label<'label>: HasTypeEquality + Clone + Debug + Display + PartialEq + Eq + PartialOrd + Ord + Hash
 {
 	/// Is the terminal root label?
 	#[inline(always)]

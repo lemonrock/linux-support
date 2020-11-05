@@ -3,16 +3,48 @@
 
 
 /// A SHA-2 512 digest.
-#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub struct Sha2_512<'message>(&'message [u8; 512 / BitsInAByte]);
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+pub struct Sha2_512(Array512Bits);
 
-impl<'message> Digest<'message> for Sha2_512<'message>
+impl Deref for Sha2_512
 {
+	type Target = Array512Bits;
+	
+	#[inline(always)]
+	fn deref(&self) -> &Self::Target
+	{
+		&self.0
+	}
+}
+
+impl AsRef<[u8]> for Sha2_512
+{
+	#[inline(always)]
+	fn as_ref(&self) -> &[u8]
+	{
+		self.0.as_ref()
+	}
+}
+
+impl Borrow<[u8]> for Sha2_512
+{
+	#[inline(always)]
+	fn borrow(&self) -> &[u8]
+	{
+		self.0.borrow()
+	}
+}
+
+impl Digest for Sha2_512
+{
+	type Array = Array512Bits;
+	
 	const DigestSizeInBits: usize = 512;
 	
 	#[inline(always)]
-	unsafe fn new_unchecked(digest_data: *const u8) -> Self
+	unsafe fn new_unchecked<'message>(digest_data: &'message [u8]) -> &'message Self
 	{
-		Self(& * (digest_data as *const [u8; 512 / BitsInAByte]))
+		let digest = &* (digest_data as *const Self::Array);
+		transmute (digest_data as &Self)
 	}
 }

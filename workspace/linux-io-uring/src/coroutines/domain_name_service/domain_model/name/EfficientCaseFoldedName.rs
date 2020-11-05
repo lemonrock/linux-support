@@ -109,9 +109,14 @@ impl<'message> PartialOrd<ParsedName<'message>> for EfficientCaseFoldedName
 	}
 }
 
+impl HasTypeEquality for EfficientCaseFoldedName
+{
+	type TypeEquality = OwnedTypeEquality;
+}
+
 impl<'label> Name<'label> for EfficientCaseFoldedName
 {
-	type Label = EfficentCaseFoldedLabel<'label>;
+	type Label = EfficientCaseFoldedLabel<'label>;
 	
 	#[inline(always)]
 	fn parent(&self) -> Option<Self>

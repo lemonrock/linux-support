@@ -3,26 +3,26 @@
 
 
 /// See <https://www.iana.org/assignments/dane-parameters/dane-parameters.xhtml>
-pub enum MatchingType<'message>
+pub enum MatchingType<OOPB: OwnedOrParsedBytes<TypeEquality=TE>, SHA2_256: OwnedOrParsed<Sha2_256, TypeEquality=TE>, SHA2_512: OwnedOrParsed<Sha2_512, TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
 {
 	/// 'Full'.
 	///
 	/// No hash used; an exact match is required.
 	///
 	/// Defined by RFC 6698.
-	NoHashUsed(&'message [u8]),
+	NoHashUsed(OOPB),
 
 	/// 'SHA2-256'.
 	///
 	/// 256 bit hash by SHA2; an exact match of SHA2-256 hash digests is required.
 	///
 	/// Defined by RFC 6234.
-	Sha2_256(Sha2_256<'message>),
+	Sha2_256(SHA2_256),
 
 	/// 'SHA2-512'.
 	///
 	/// 512 bit hash by SHA2; an exact match of SHA2-512 hash digests is required.
 	///
 	/// Defined by RFC 6234.
-	Sha2_512(Sha2_512<'message>),
+	Sha2_512(SHA2_512),
 }

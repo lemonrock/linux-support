@@ -4,8 +4,8 @@
 
 /// See <https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dhcid-rr-digest-type-codes>
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum DhcidDigest<'message>
+pub enum DhcidDigest<SHA2_256: OwnedOrParsed<Sha2_256>>
 {
 	/// 'SHA2-256'.
-	Sha2_256(Sha2_256<'message>),
+	Sha2_256(Sha2_256<SHA2_256>),
 }

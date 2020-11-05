@@ -5,16 +5,21 @@
 /// Represents a `Locator` for ILNPv6 along with its preference.
 ///
 /// Used in a `L32` record; similar in purpose to an `A` record.
+///
+/// Has the same syntax and semantics as a 64-bit Internet Protocol version 6 routing prefix.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Locator64
-{
-	/// Indicates the owner name's relative preference for record among other records associated with this owner name.
-	///
-	/// Lower preference values are preferred over higher preference values.
-	pub preference: u16,
+#[repr(transparent)]
+pub struct Locator64([u8; 8]);
 
-	/// `Locator64`.
-	///
-	/// Has the same syntax and semantics as a 64-bit Internet Protocol version 6 routing prefix.
-	pub locator: [u8; 8],
+impl Display for NodeIdentifier
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "{:04X}:", (self.0 >> 48) as u16)?;
+		write!(f, "{:04X}:", ((self.0 & 0x0000_FFFF_0000_0000) >> 32) as u16)?;
+		write!(f, "{:04X}:", ((self.0 & 0x0000_0000_FFFF_0000) >> 16) as u16)?;
+		write!(f, "{:04X}", (self.0 & 0x0000_0000_0000_FFFF) as u16)?;
+		Ok(())
+	}
 }

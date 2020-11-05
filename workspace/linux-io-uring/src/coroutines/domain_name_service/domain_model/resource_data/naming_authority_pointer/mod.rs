@@ -5,6 +5,7 @@
 use super::*;
 
 
-include!("NamingAuthorityPointerHeader.rs");
-include!("NamingAuthorityPointerWithDomainName.rs");
-include!("NamingAuthorityPointerWithRegularExpression.rs");
+include!("CaseFoldedNamingAuthorityProtocol.rs");
+include!("CaseFoldedNamingAuthorityResolutionService.rs");
+include!("NamingAuthorityMutuallyExclusiveFlag.rs");
+include!("NamingAuthorityPointer.rs");

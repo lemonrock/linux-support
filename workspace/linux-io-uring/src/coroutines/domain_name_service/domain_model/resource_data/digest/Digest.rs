@@ -2,11 +2,13 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) trait Digest<'message>: Sized
+pub(crate) trait Digest: PartialEq + Eq + PartialOrd + Ord + Hash + Deref<Target=Self::Array> + AsRef<[u8]> + Borrow<[u8]>
 {
+	type Array;
+	
 	const DigestSizeInBits: usize;
 	
 	const DigestSizeInBytes: usize = Self::DigestSizeInBits / BitsInAByte;
 	
-	unsafe fn new_unchecked(digest_data: *const u8) -> Self;
+	unsafe fn new_unchecked<'message>(digest_data: &'message [u8]) -> &'message Self;
 }

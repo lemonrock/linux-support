@@ -61,10 +61,11 @@ pub mod ssh_fingerprint;
 pub mod start_of_authority;
 
 
+/// `TXT` record support.
+pub mod text;
+
+
 include!("HostInformation.rs");
-include!("KeyExchange.rs");
-include!("MailExchange.rs");
 include!("OpenPgpRfc4880TransferablePublicKey.rs");
 include!("ResourceData.rs");
 include!("ServiceLocation.rs");
-include!("Uri.rs");

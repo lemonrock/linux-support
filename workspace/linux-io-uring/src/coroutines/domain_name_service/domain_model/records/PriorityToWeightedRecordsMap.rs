@@ -3,9 +3,9 @@
 
 
 #[derive(Debug)]
-struct PriorityToSortedWeightedRecordsMap<Record: Sized + Debug>(BTreeMap<Priority, SortedWeightedRecords<Record>>);
+struct PriorityToWeightedRecordsMap<Record: Sized + Debug>(BTreeMap<Priority, WeightedRecords<Record>>);
 
-impl<Record: Sized + Debug> Clone for PriorityToSortedWeightedRecordsMap<Record>
+impl<Record: Sized + Debug> Clone for PriorityToWeightedRecordsMap<Record>
 {
 	// NOTE: We cannot rely on `#[derive(Clone)]` or `BTreeMap.clone()` as both require `Record` to implement `Clone`; however, since `Record` is actually `Rc<Record>`, this constraint is not valid.
 	#[inline(always)]
@@ -20,7 +20,7 @@ impl<Record: Sized + Debug> Clone for PriorityToSortedWeightedRecordsMap<Record>
 	}
 }
 
-impl<Record: Sized + Debug> Default for PriorityToSortedWeightedRecordsMap<Record>
+impl<Record: Sized + Debug> Default for PriorityToWeightedRecordsMap<Record>
 {
 	#[inline(always)]
 	fn default() -> Self
@@ -29,9 +29,9 @@ impl<Record: Sized + Debug> Default for PriorityToSortedWeightedRecordsMap<Recor
 	}
 }
 
-impl<Record: Sized + Debug> Deref for PriorityToSortedWeightedRecordsMap<Record>
+impl<Record: Sized + Debug> Deref for PriorityToWeightedRecordsMap<Record>
 {
-	type Target = BTreeMap<Priority, SortedWeightedRecords<Record>>;
+	type Target = BTreeMap<Priority, WeightedRecords<Record>>;
 	
 	#[inline(always)]
 	fn deref(&self) -> &Self::Target
@@ -40,7 +40,7 @@ impl<Record: Sized + Debug> Deref for PriorityToSortedWeightedRecordsMap<Record>
 	}
 }
 
-impl<Record: Sized + Debug> DerefMut for PriorityToSortedWeightedRecordsMap<Record>
+impl<Record: Sized + Debug> DerefMut for PriorityToWeightedRecordsMap<Record>
 {
 	#[inline(always)]
 	fn deref_mut(&mut self) -> &mut Self::Target
@@ -49,7 +49,7 @@ impl<Record: Sized + Debug> DerefMut for PriorityToSortedWeightedRecordsMap<Reco
 	}
 }
 
-impl<Record: Sized + Debug> PriorityToSortedWeightedRecordsMap<Record>
+impl<Record: Sized + Debug> PriorityToWeightedRecordsMap<Record>
 {
 	#[inline(always)]
 	fn insert(&mut self, priority: Priority, weight: Weight, record: Record)
@@ -60,7 +60,7 @@ impl<Record: Sized + Debug> PriorityToSortedWeightedRecordsMap<Record>
 		{
 			Vacant(vacant) =>
 			{
-				vacant.insert(SortedWeightedRecords::new_for_one_record(weight, record));
+				vacant.insert(WeightedRecords::new_for_one_record(weight, record));
 			},
 			
 			Occupied(mut occupied) =>

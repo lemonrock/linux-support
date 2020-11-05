@@ -3,11 +3,11 @@
 
 
 /// Digest.
-pub enum DnsSecDigest<'message>
+pub enum DnsSecDigest<SHA2_256: OwnedOrParsed<Sha2_256, TypeEquality=TE>, SHA2_384: OwnedOrParsed<Sha2_384, TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
 {
 	/// SHA2-256 digest.
-	Sha2_256(Sha2_256<'message>),
-
+	Sha2_256(SHA2_256),
+	
 	/// SHA2-384 digest.
-	Sha2_384(Sha2_384<'message>),
+	Sha2_384(SHA2_384),
 }

@@ -95,6 +95,11 @@ impl<'message> PartialOrd<EfficientCaseFoldedLabel> for ParsedLabel<'message>
 	}
 }
 
+impl<'message> HasTypeEquality for ParsedLabel<'message>
+{
+	type TypeEquality = ParsedTypeEquality;
+}
+
 impl<'message> Label<'message> for ParsedLabel<'message>
 {
 	#[inline(always)]

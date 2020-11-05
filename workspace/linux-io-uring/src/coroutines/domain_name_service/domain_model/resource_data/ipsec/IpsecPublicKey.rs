@@ -6,14 +6,11 @@
 ///
 /// It seems to be valid to have both `gateway` and `public_key` as `None`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct IpsecPublicKey<'a>
+pub struct IpsecPublicKey<'label, N: Name<'label, TypeEquality=TE>, OOPB: OwnedOrParsedBytes<TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
 {
-	/// Precedence, interpreted similarly to a `MX` record precendence (but a smaller range of possible values).
-	pub precedence: u8,
-
 	/// Gateway.
-	pub gateway: Option<Gateway<'a>>,
+	pub gateway: Option<Gateway<'label, N>>,
 
 	/// Public key, if any.
-	pub public_key: Option<PublicKey<'a>>,
+	pub public_key: Option<PublicKey<OOPB>>,
 }

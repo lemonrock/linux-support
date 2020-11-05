@@ -4,19 +4,21 @@
 
 /// Host Identity Protocol (`HIP`) resource record data.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct HostIdentityProtocol<'message>
+pub struct HostIdentityProtocol<'label, N: Name<'label, TypeEquality=TE>, OOPB: OwnedOrParsedBytes<TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
 {
 	/// Host identitiy tag (HIT).
-	pub host_identity_tag: &'message [u8],
+	pub host_identity_tag: OOPB,
 
 	/// Public key.
-	pub public_key: Option<PublicKey<'message>>,
+	pub public_key: Option<PublicKey<OOPB>>,
 
 	/// At least one rendezvous server is present.
-	pub first_rendezvous_server_domain_name: ParsedName<'message>,
+	pub first_rendezvous_server_domain_name: N,
 
 	/// May be empty.
 	///
-	/// Recipients *SHOULD* parse this to make sure the names are valid.
-	pub remaining_rendezvous_server_domain_names: &'message [u8],
+	/// Validated to not contain duplicates of the `first_rendezvous_server_domain_name`.
+	pub remaining_rendezvous_server_domain_names: IndexSet<N>,
+
+	pub(crate) marker: PhantomData<&'label ()>,
 }

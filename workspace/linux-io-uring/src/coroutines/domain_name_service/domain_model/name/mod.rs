@@ -6,6 +6,8 @@ use super::*;
 
 
 include!("case_fold_byte.rs");
+include!("case_fold_upper_case_byte_to_lower_case_byte.rs");
+include!("CaseFoldOffset.rs");
 include!("CompressedPointerOffset.rs");
 include!("EfficientCaseFoldedLabel.rs");
 include!("EfficientCaseFoldedLabelParseError.rs");

@@ -4,10 +4,10 @@
 
 /// See <https://www.iana.org/assignments/dns-sshfp-rr-parameters/dns-sshfp-rr-parameters.xhtml>
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum SshFingerprintDigest<'message>
+pub enum SshFingerprintDigest<SHA2_256: OwnedOrParsed<Sha2_256>>
 {
 	/// 'SHA2-256'.
 	///
 	/// Defined by RFC 6594.
-	Sha2_256(Sha2_256<'message>),
+	Sha2_256(SHA2_256),
 }

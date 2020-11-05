@@ -10,7 +10,7 @@ pub enum TXTHandleRecordTypeError
 	CharacterStrings(NoCharacterStringsError),
 	
 	/// Value `usize` is the character string index that failed.
-	CharacterStringLengthIncorrect(usize, CharacterStringLengthIncorrectError),
+	ParsedCharacterStringLengthIncorrect(usize, ParsedCharacterStringLengthIncorrectError),
 }
 
 impl Display for TXTHandleRecordTypeError
@@ -33,7 +33,7 @@ impl error::Error for TXTHandleRecordTypeError
 		{
 			&CharacterStrings(ref error) => Some(error),
 			
-			&CharacterStringLengthIncorrect(_character_string_index, ref error) => Some(error),
+			&ParsedCharacterStringLengthIncorrect(_character_string_index, ref error) => Some(error),
 		}
 	}
 }

@@ -3,7 +3,7 @@
 
 
 /// A delegation signer.
-pub struct DelegationSigner<'a>
+pub struct DelegationSigner<SHA2_256: OwnedOrParsed<Sha2_256, TypeEquality=TE>, SHA2_384: OwnedOrParsed<Sha2_384, TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
 {
 	/// Key tag.
 	pub key_tag: KeyTag,
@@ -12,5 +12,5 @@ pub struct DelegationSigner<'a>
 	pub security_algorithm: SecurityAlgorithm,
 
 	/// Digest.
-	pub digest: DnsSecDigest<'a>,
+	pub digest: DnsSecDigest<SHA2_256, SHA2_384, TE>,
 }

@@ -4,16 +4,16 @@
 
 /// Iterates over character strings.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct CharacterStringsIterator<'a>
+pub struct ParsedCharacterStringsIterator<'message>
 {
 	next_string_starts_at_pointer: usize,
 	end_of_resource_data_pointer: usize,
-	marker: PhantomData<&'a ()>,
+	marker: PhantomData<&'message ()>,
 }
 
-impl<'a> Iterator for CharacterStringsIterator<'a>
+impl<'message> Iterator for ParsedCharacterStringsIterator<'message>
 {
-	type Item = Result<&'a [u8], CharacterStringLengthIncorrectError>;
+	type Item = Result<ParsedCharacterString<'message>, ParsedCharacterStringLengthIncorrectError>;
 
 	#[inline(always)]
 	fn next(&mut self) -> Option<Self::Item>
@@ -23,26 +23,26 @@ impl<'a> Iterator for CharacterStringsIterator<'a>
 			return None
 		}
 
-		let text_string = self.next_string_starts_at_pointer.unsafe_cast::<CharacterString>();
+		let text_string = self.next_string_starts_at_pointer.unsafe_cast::<RawCharacterString>();
 		self.next_string_starts_at_pointer += 1;
 
 		let length = text_string.length as usize;
 		let result = if unlikely!(self.next_string_starts_at_pointer + length > self.end_of_resource_data_pointer)
 		{
-			Err(CharacterStringLengthIncorrectError)
+			Err(ParsedCharacterStringLengthIncorrectError)
 		}
 		else
 		{
-			Ok(text_string.as_slice(length))
+			Ok(ParsedCharacterString(text_string.as_slice(length)))
 		};
 		Some(result)
 	}
 }
 
-impl<'a> CharacterStringsIterator<'a>
+impl<'message> ParsedCharacterStringsIterator<'message>
 {
 	#[inline(always)]
-	pub(crate) fn new(resource_data: &'a [u8]) -> Result<Self, NoCharacterStringsError>
+	pub(crate) fn new(resource_data: &'message [u8]) -> Result<Self, NoCharacterStringsError>
 	{
 		let length = resource_data.len();
 		if unlikely!(length == 0)
@@ -70,7 +70,7 @@ impl<'a> CharacterStringsIterator<'a>
 	}
 
 	#[inline(always)]
-	pub(crate) fn remaining_resource_data(&'a self) -> &'a [u8]
+	pub(crate) fn remaining_resource_data(&'message self) -> &'message [u8]
 	{
 		self.next_string_starts_at_pointer.unsafe_cast_slice::<u8>(self.end_of_resource_data_pointer - self.next_string_starts_at_pointer)
 	}

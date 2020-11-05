@@ -599,4 +599,93 @@ impl DataType
 	{
 		unsafe { transmute(self) }
 	}
+	
+	// "Well-known" types as defind by RFC 3597, Section 4 Domain Name Compression, paragraph 2 by reference to RFC 1035: "it is hereby specified that only the RR types defined in RFC1035 are to be considered "well-known"".
+	#[inline(always)]
+	pub(crate) const fn is_well_known(self) -> bool
+	{
+		match self
+		{
+			Self::CNAME => true,
+			
+			Self::HINFO => true,
+			
+			Self::MB => true,
+			
+			Self::MD => true,
+			
+			Self::MF => true,
+			
+			Self::MG => true,
+			
+			Self::MINFO => true,
+			
+			Self::MR => true,
+			
+			Self::MX => true,
+			
+			Self::NULL => true,
+			
+			Self::NS => true,
+			
+			Self::SOA => true,
+			
+			Self::TXT => true,
+			
+			_ => false,
+		}
+	}
+	
+	#[allow(dead_code)]
+	#[inline(always)]
+	pub(crate) const fn rfc_3597_permits_legacy_compression_of_domain_names_in_sent_resource_data(self) -> bool
+	{
+		match self
+		{
+			// Previously permitted, but disallowed by RFC 3597, Section 4 Domain Name Compression, paragraph 3.
+			
+			// Was previously permited by RFC 2163, Section 4 The new DNS resource record for MIXER mapping rules: PX.
+			Self::PX => false,
+			
+			// Was previously permited by RFC 2535, Section 4.1.7 Signer's Name Field.
+			Self::SIG => false,
+			
+			// Was previously permited by RFC 2535, Section 5.2 NXT RDATA Format.
+			Self::NXT => false,
+			
+			// "Well-known" types as defind by RFC 3597, Section 4 Domain Name Compression, paragraph 2 by reference to RFC 1035: "it is hereby specified that only the RR types defined in RFC1035 are to be considered "well-known"".
+			//  RFC 3597, Section 4 Domain Name Compression, paragraph 2 defines the permitted set by using a confusing double-negative: "… servers MUST NOT compress domain names embedded in the RDATA of types that are … not well-known".
+			// Note that not all of the "well-known" types actually can contain domain names.
+			_ => self.is_well_known(),
+		}
+	}
+	#[inline(always)]
+	pub(crate) const fn rfc_3597_permits_legacy_compression_of_domain_names_in_received_resource_data(self) -> bool
+	{
+		match self
+		{
+			// RFC 3597, Section 4 Domain Name Compression, paragraph 4: "Receiving servers … SHOULD also decompress RRs of type RP, AFSDB, RT, SIG, PX, NXT, NAPTR, and SRV (although the current specification of the SRV RR in RFC2782 prohibits compression, RFC2052 mandated it, and some servers following that earlier specification are still in use)".
+			
+			Self::RP => true,
+			
+			Self::AFSDB => true,
+			
+			Self::RT => true,
+			
+			Self::SIG => true,
+			
+			Self::PX => true,
+			
+			Self::NXT => true,
+			
+			Self::NAPTR => true,
+			
+			Self::SRV => true,
+			
+			// "Well-known" types as defind by RFC 3597, Section 4 Domain Name Compression, paragraph 2 by reference to RFC 1035: "it is hereby specified that only the RR types defined in RFC1035 are to be considered "well-known"".
+			// RFC 3597, Section 4 Domain Name Compression, paragraph 4: "Receiving servers MUST decompress domain names in RRs of well-known type"/
+			// Note that not all of the "well-known" types actually can contain domain names.
+			_ => self.is_well_known()
+		}
+	}
 }

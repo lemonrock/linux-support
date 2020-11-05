@@ -21,9 +21,9 @@ impl<'message> ResourceRecordVisitor<'message> for MXQueryProcessorResourceRecor
 	}
 	
 	#[inline(always)]
-	fn MX(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: MailExchange<'message>) -> Result<(), Self::Error>
+	fn MX(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, preference: Priority, mail_server_name: ParsedName<'message>) -> Result<(), Self::Error>
 	{
-		self.records.store_unweighted(&name, cache_until, record.preference, EfficientCaseFoldedName::from(record.mail_server_name));
+		self.records.store_unweighted(&name, cache_until, preference, EfficientCaseFoldedName::from(mail_server_name));
 		Ok(())
 	}
 }

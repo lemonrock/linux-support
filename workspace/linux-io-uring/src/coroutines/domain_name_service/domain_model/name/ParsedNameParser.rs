@@ -80,15 +80,24 @@ impl<'a, 'message: 'a> ParsedNameParser<'a, 'message>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn parse_name_uncompressed(parsed_names: &'a mut ParsedNames<'message>, start_of_name_pointer: usize, resource_data_end_pointer: usize, data_type: DataType) -> Result<(ParsedName<'message>, usize), ParsedNameParserError>
+	pub(crate) fn parse_name_in_resource_record(data_type: DataType, parsed_names: &'a mut ParsedNames<'message>, start_of_name_pointer: usize, resource_data_end_pointer: usize) -> Result<(ParsedName<'message>, usize), ParsedNameParserError>
 	{
-		Self::parse_name(Some(ParsedNameParserError::CompressedNameLabelsAreDisallowedInThisResourceRecord(data_type)), parsed_names, start_of_name_pointer, resource_data_end_pointer)
+		let compressed_name_presence_error = if unlikely!(data_type.rfc_3597_permits_legacy_compression_of_domain_names_in_received_resource_data())
+		{
+			None
+		}
+		else
+		{
+			Some(ParsedNameParserError::CompressedNameLabelsAreDisallowedInThisResourceRecord(data_type))
+		};
+		
+		Self::parse_name(compressed_name_presence_error, parsed_names, start_of_name_pointer, resource_data_end_pointer)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn parse_name_in_slice_with_nothing_left(data_type: DataType, parsed_names: &'a mut ParsedNames<'message>, slice: &'message [u8]) -> Result<ParsedName<'message>, ParsedNameParserError>
+	pub(crate) fn parse_name_in_resource_record_slice_with_nothing_left(data_type: DataType, parsed_names: &'a mut ParsedNames<'message>, slice: &'message [u8]) -> Result<ParsedName<'message>, ParsedNameParserError>
 	{
-		let (parsed_name, end_of_name_pointer) = Self::parse_name_in_slice(data_type, parsed_names, slice)?;
+		let (parsed_name, end_of_name_pointer) = Self::parse_name_in_resource_record_slice(data_type, parsed_names, slice)?;
 		
 		let end_of_data_section_containing_name_pointer = (unsafe { slice.as_ptr().add(slice.len()) }) as usize;
 		if likely!(end_of_data_section_containing_name_pointer == end_of_name_pointer)
@@ -102,7 +111,7 @@ impl<'a, 'message: 'a> ParsedNameParser<'a, 'message>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn parse_name_in_slice(data_type: DataType, parsed_names: &'a mut ParsedNames<'message>, slice: &'message [u8]) -> Result<(ParsedName<'message>, usize), ParsedNameParserError>
+	pub(crate) fn parse_name_in_resource_record_slice(data_type: DataType, parsed_names: &'a mut ParsedNames<'message>, slice: &'message [u8]) -> Result<(ParsedName<'message>, usize), ParsedNameParserError>
 	{
 		let start_of_name_pointer = slice.as_ptr() as usize;
 		let end_of_data_section_containing_name_pointer = (unsafe { slice.as_ptr().add(slice.len()) }) as usize;

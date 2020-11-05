@@ -4,11 +4,11 @@
 
 /// A SSH public key fingerprint.
 #[derive(Debug)]
-pub struct PublicKeyFingerprint<'a>
+pub struct PublicKeyFingerprint<SHA2_256: OwnedOrParsed<Sha2_256>>
 {
 	/// Public key algorithm.
 	pub public_key_algorithm: SshPublicKeyAlgorithm,
 
 	/// Public key digest.
-	pub public_key_digest: SshFingerprintDigest<'a>,
+	pub public_key_digest: SshFingerprintDigest<SHA2_256>,
 }

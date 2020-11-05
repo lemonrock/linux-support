@@ -5,8 +5,13 @@
 use super::*;
 
 
+include!("Array160Bits.rs");
+include!("Array256Bits.rs");
+include!("Array384Bits.rs");
+include!("Array512Bits.rs");
 include!("BitsInAByte.rs");
 include!("Digest.rs");
+include!("Sha1.rs");
 include!("Sha2_256.rs");
 include!("Sha2_384.rs");
 include!("Sha2_512.rs");

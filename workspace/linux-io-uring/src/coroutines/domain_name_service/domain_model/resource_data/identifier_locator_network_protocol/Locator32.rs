@@ -5,16 +5,17 @@
 /// Represents a `Locator` for ILNPv4 along with its preference.
 ///
 /// Used in a `L32` record; logically equivalent to an `A` record.
+///
+/// Identical on-the-wire to the `ADDRESS` field of an existing DNS `A` record.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Locator32
-{
-	/// Indicates the owner name's relative preference for record among other records associated with this owner name.
-	///
-	/// Lower preference values are preferred over higher preference values.
-	pub preference: u16,
+#[repr(transparent)]
+pub struct Locator32(Ipv4Addr);
 
-	/// `Locator32`.
-	///
-	/// Identical on-the-wire to the `ADDRESS` field of an existing DNS `A` record.
-	pub locator: Ipv4Addr,
+impl Display for NodeIdentifier
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "{}", self.0)
+	}
 }

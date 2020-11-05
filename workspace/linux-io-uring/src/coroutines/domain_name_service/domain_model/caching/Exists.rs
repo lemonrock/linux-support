@@ -4,7 +4,7 @@
 
 /// Known to exist.
 #[derive(Debug)]
-pub struct Exists<Record: Sized + Debug>(PriorityToSortedWeightedRecordsMap<Record>);
+pub struct Exists<Record: Sized + Debug>(PriorityToWeightedRecordsMap<Record>);
 
 impl<Record: Sized + Debug> Exists<Record>
 {

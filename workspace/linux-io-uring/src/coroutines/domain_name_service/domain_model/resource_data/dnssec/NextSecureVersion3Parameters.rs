@@ -4,7 +4,7 @@
 
 /// Next secure version 3 parameters (`NSEC3PARAM`).
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct NextSecureVersion3Parameters<'a>
+pub struct NextSecureVersion3Parameters<OOPB: OwnedOrParsedBytes>
 {
 	/// Hash algorithm number (validated).
 	pub hash_algorithm_number: u8,
@@ -13,7 +13,7 @@ pub struct NextSecureVersion3Parameters<'a>
 	pub iterations: u16,
 
 	/// Salt.
-	pub salt: &'a [u8],
+	pub salt: OOPB,
 }
 
 impl<'a> NextSecureVersion3Parameters<'a>

@@ -14,6 +14,12 @@ pub enum HIPHandleRecordTypeError
 	
 	/// First rendezvous server domain name.
 	FirstRendezvousServerDomainName(ParsedNameParserError),
+	
+	/// Subsequent rendezvous server domain name.
+	SubsequentRendezvousServerDomainName(ParsedNameParserError),
+	
+	/// Duplicate rendezvous server domain name.
+	DuplicateRendezvousServerDomainName,
 }
 
 impl Display for HIPHandleRecordTypeError
@@ -37,6 +43,8 @@ impl error::Error for HIPHandleRecordTypeError
 			&IpsecLikePublicKeyHandleRecordType(ref error) => Some(error),
 			
 			&FirstRendezvousServerDomainName(ref error) => Some(error),
+			
+			&SubsequentRendezvousServerDomainName(ref error) => Some(error),
 			
 			_ => None,
 		}

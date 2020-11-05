@@ -16,13 +16,13 @@ pub enum HINFOHandleRecordTypeError
 	CpuDataMissing(usize),
 	
 	/// CPU character string was invalid.
-	CpuDataCharacterString(CharacterStringLengthIncorrectError),
+	CpuDataCharacterString(ParsedCharacterStringLengthIncorrectError),
 	
 	/// Resource data for resource record type `HINFO` has too short a length after checking length of OS field (value in tuple).
 	OsDataMissing(usize),
 	
 	/// OS character string was invalid.
-	OsDataCharacterString(CharacterStringLengthIncorrectError),
+	OsDataCharacterString(ParsedCharacterStringLengthIncorrectError),
 	
 	/// After parsing resource data in a record of type `HINFO`, there is unattributed data remaining.
 	WouldHaveUnusuedDataRemaining,

@@ -3,10 +3,10 @@
 
 
 /// Name.
-pub trait Name<'label>: Sized + Clone + Debug + Display + PartialEq + Eq + PartialOrd + Ord + Hash
+pub trait Name<'label>: HasTypeEquality + Sized + Clone + Debug + Display + PartialEq + Eq + PartialOrd + Ord + Hash
 {
 	#[doc(hidden)]
-	type Label: Label<'label>;
+	type Label: Label<'label, TypeEquality=Self::TypeEquality>;
 	
 	#[inline(always)]
 	fn last_label(&'label self) -> Option<Self::Label>

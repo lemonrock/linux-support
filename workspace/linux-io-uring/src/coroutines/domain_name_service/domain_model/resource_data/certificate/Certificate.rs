@@ -4,7 +4,7 @@
 
 /// A certificate.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Certificate<'a>
+pub struct Certificate<OOPB: OwnedOrParsedBytes>
 {
 	/// Key tag.
 	pub key_tag: KeyTag,
@@ -13,5 +13,19 @@ pub struct Certificate<'a>
 	pub security_algorithm: SecurityAlgorithm,
 
 	/// Certificate type and data.
-	pub certificate_type: CertificateType<'a>,
+	pub certificate_type: CertificateType<OOPB>,
+}
+
+impl<'message> Into<Certificate<OwnedBytes>> for Certificate<ParsedBytes<'message>>
+{
+	#[inline(always)]
+	fn into(self) -> Certificate<OwnedBytes>
+	{
+		Certificate
+		{
+			key_tag: self.key_tag,
+			security_algorithm: self.security_algorithm,
+			certificate_type: self.certificate_type.into(),
+		}
+	}
 }

@@ -89,6 +89,11 @@ impl<'message> PartialOrd<EfficientCaseFoldedName> for ParsedName<'message>
 	}
 }
 
+impl<'message> HasTypeEquality for ParsedName<'message>
+{
+	type TypeEquality = ParsedTypeEquality;
+}
+
 impl<'message> Name<'message> for ParsedName<'message>
 {
 	type Label = ParsedLabel<'message>;

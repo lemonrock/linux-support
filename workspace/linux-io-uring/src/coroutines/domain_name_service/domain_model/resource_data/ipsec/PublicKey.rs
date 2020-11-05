@@ -4,11 +4,11 @@
 
 /// An `IPSECKEY` or `HIP` resource record public key.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum PublicKey<'message>
+pub enum PublicKey<OOPB: OwnedOrParsedBytes>
 {
 	/// A RSA public key.
-	RSA(RsaPublicKey<'message>),
+	RSA(RsaPublicKey<OOPB>),
 
 	/// A ECDSA (Elliptic Curve DSA) public key.
-	ECDSA(EcDsaPublicKey<'message>),
+	ECDSA(EcDsaPublicKey<OOPB>),
 }

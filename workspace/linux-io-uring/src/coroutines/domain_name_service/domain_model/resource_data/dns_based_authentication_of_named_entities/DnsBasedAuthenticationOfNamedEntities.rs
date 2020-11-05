@@ -3,7 +3,7 @@
 
 
 /// DNS-based Authentication of Named Entities (DANE) record data.
-pub struct DnsBasedAuthenticationOfNamedEntities<'a>
+pub struct DnsBasedAuthenticationOfNamedEntities<OOPB: OwnedOrParsedBytes<TypeEquality=TE>, SHA2_256: OwnedOrParsed<Sha2_256, TypeEquality=TE>, SHA2_512: OwnedOrParsed<Sha2_512, TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
 {
 	/// Certificate usage.
 	pub certificate_usage: CertificateUsage,
@@ -12,5 +12,5 @@ pub struct DnsBasedAuthenticationOfNamedEntities<'a>
 	pub selector: Selector,
 
 	/// Matching type.
-	pub matching_type: MatchingType<'a>,
+	pub matching_type: MatchingType<OOPB, SHA2_256, SHA2_512, TE>,
 }

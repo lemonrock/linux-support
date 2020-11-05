@@ -3,4 +3,4 @@
 
 
 /// An OpenPGP RFC4880 transferable public key 'blob' of raw bytes (ie without basic-64 encoding or ASCII armor encoding).
-pub type OpenPgpRfc4880TransferablePublicKey<'a> = &'a [u8];
+pub struct OpenPgpRfc4880TransferablePublicKey<OOPB>(pub OOPB);

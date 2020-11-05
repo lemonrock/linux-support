@@ -4,7 +4,7 @@
 
 /// A DNS key.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct DnsKey<'a>
+pub struct DnsKey<OOPB: OwnedOrParsedBytes>
 {
 	/// Computed key tag.
 	pub computed_key_tag: KeyTag,
@@ -16,5 +16,5 @@ pub struct DnsKey<'a>
 	pub security_algorithm: SecurityAlgorithm,
 
 	/// Certificate type and data.
-	pub public_key: &'a [u8],
+	pub public_key: OOPB,
 }

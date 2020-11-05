@@ -65,6 +65,11 @@ impl<'message> CanonicalNameChain<'message>
 		}
 	}
 	
+	pub(crate) fn validate_records(records) -> Result<(), X>
+	{
+	
+	}
+	
 	#[inline(always)]
 	pub(crate) fn most_canonical_name<'a>(&'a self) -> &'a EfficientCaseFoldedName
 	where 'message: 'a

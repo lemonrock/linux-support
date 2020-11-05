@@ -2,13 +2,14 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Key exchange data.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct KeyExchange<'message>
-{
-	/// Preference.
-	pub preference: u16,
+use super::*;
 
-	/// Key exchange server name.
-	pub key_exchange_server_name: ParsedName<'message>,
-}
+
+include!("Order.rs");
+include!("PresentMultiple.rs");
+include!("PresentSolitary.rs");
+include!("Priority.rs");
+include!("PriorityToWeightedRecordsMap.rs");
+include!("Records.rs");
+include!("WeightedRecords.rs");
+include!("Weight.rs");

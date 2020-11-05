@@ -17,10 +17,18 @@ pub(crate) enum NoDomainResponseType
 	NoDomainResponseType2(AuthorityNameStartOfAuthority),
 	
 	/// RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 3.
-	NoDomainResponseType3,
+	NoDomainResponseType3
+	{
+		as_of_now: NanosecondsSinceUnixEpoch,
+	},
 	
 	/// RFC 2308, Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 4.
-	NoDomainResponseType4(AuthorityNameNameServers),
+	NoDomainResponseType4
+	{
+		as_of_now: NanosecondsSinceUnixEpoch,
+		
+		authority_name_name_servers: AuthorityNameNameServers
+	},
 }
 
 impl NoDomainResponseType
@@ -33,7 +41,7 @@ impl NoDomainResponseType
 		
 		match self
 		{
-			&NoDomainResponseType1(_) | &NoDomainResponseType4(_) => true,
+			&NoDomainResponseType1(_) | &NoDomainResponseType4 { .. } => true,
 			
 			_ => false,
 		}

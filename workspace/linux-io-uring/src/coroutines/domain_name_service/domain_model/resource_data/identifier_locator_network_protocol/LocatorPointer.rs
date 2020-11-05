@@ -5,16 +5,8 @@
 /// Represents a locator pointer along with its preference.
 ///
 /// Used in a `LP` record.
+///
+/// Must not be the same as the `Name` of the resource record it is associated with (this is validated before being passed to `ResourceRecordVisitor.LP()`).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct LocatorPointer<'message>
-{
-	/// Indicates the owner name's relative preference for record among other records associated with this owner name.
-	///
-	/// Lower preference values are preferred over higher preference values.
-	pub preference: u16,
-
-	/// `Name`.
-	///
-	/// Must not be the same as the `Name` of the resource record it is associated with (this is validated before being passed to `ResourceRecordVisitor.LP()`).
-	pub domain_name: ParsedName<'message>,
-}
+#[repr(transparent)]
+pub struct LocatorPointer<'label, N: Name<'label>>(N, PhantomData<&'label ()>);

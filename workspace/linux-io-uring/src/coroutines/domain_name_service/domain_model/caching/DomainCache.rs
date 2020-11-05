@@ -7,6 +7,12 @@ pub enum AnsweredError
 {
 	/// Can not be an alias because it is never a valid domain name or the domain name must always exist.
 	DomainNameCanNotBeAnAlias(Alias),
+	
+	/// Domain name must exist because it is never a valid domain name or the domain name must always exist.
+	DomainNameCanNotNotExist(DomainTarget),
+	
+	/// Domain name is never valid.
+	DomainNameCanNotNotHaveRecords(AliasOrDomainTarget),
 }
 
 impl Display for AnsweredError
@@ -73,12 +79,13 @@ impl DomainCache
 		}
 	}
 	
-	pub(crate) fn answered<'message, Record: Sized + Debug>(&mut self, now: NanosecondsSinceUnixEpoch, query_name: &'message EfficientCaseFoldedName, answer: Answer<cache>, canonical_name_chain_records: CanonicalNameChainRecords, delegation_name_records: DelegationNameRecords, finished: Records<Record>, query: impl FnOnce(xxx) -> ()) -> Result<(), AnsweredError>
+	// TODO: `query` will not work for CNAME, DNAME or SOA.
+	pub(crate) fn answered<'message, Record: Sized + Debug>(&mut self, now: NanosecondsSinceUnixEpoch, query_name: &'message EfficientCaseFoldedName, answer: Answer<cache>, canonical_name_chain_records: CanonicalNameChainRecords, delegation_name_records: DelegationNameRecords, finished: Records<Record>, query: impl FnOnce(&mut QueryTypesCache) -> (&mut QueryTypeCacheMultiple<Record>)) -> Result<(), AnsweredError>
 	{
 		use self::AnsweredError::*;
+		use self::FastSecureHashMapEntry::*;
 		use self::NoDomainResponseType::*;
 		use self::NoDataResponseType::*;
-		use self::DomainCacheEntry::*;
 		
 		self.replace_canonical_name_chain_records(canonical_name_chain_records)?;
 		
@@ -89,28 +96,44 @@ impl DomainCache
 				debug_assert!(!finished.is_empty());
 				
 				
-				//
 				
-				// // TODO: Now what?
-				// XXX: Now what?
+				
+				self.can_have_records(&most_canonical_name)?;
+				// // TODO: Now what? - finished is for multiple names, but we should only store records for answers given for the end of the cname chain.
+				// Other answers should probably have not been returned?
+				// We can intercept this at RRV::fn finished(self) -> Self::Finished after
+				query(TODO_query_types_cache).store(most_canonical_name, finished)
 			},
 			
 			Answer::NoDomain { most_canonical_name, response_type} =>
 			{
 				debug_assert!(finished.is_empty());
 				
+				NoDomainCacheEntry::store(most_canonical_name, response_type, self)?;
+				
+				// // TODO: Implicit referral!
 			}
 			
 			Answer::NoData { most_canonical_name, response_type} =>
 			{
 				debug_assert!(finished.is_empty());
 				
+				self.can_have_records(&most_canonical_name)?;
+				// // TODO: Now what?
+				query(TODO_query_types_cache).empty(most_canonical_name)
+				
+				// // TODO: Implicit referral!
 			}
 			
 			Answer::Referral { most_canonical_name, referral} =>
 			{
 				debug_assert!(finished.is_empty());
 				
+				let authority_name = referral.authority_name;
+				self.can_have_records(&authority_name)?;
+				self.store_name_servers_unchecked(authority_name, referral.name_servers);
+				
+				// // TODO: referral!
 			}
 		}
 		
@@ -123,13 +146,7 @@ impl DomainCache
 		// Check for problems before we mutate the map.
 		for alias in canonical_name_chain_records.keys()
 		{
-			if let Some(domain_cache_entry) = self.map.get(alias)
-			{
-				if unlikely!(domain_cache_entry.can_not_be_replaced_by_alias())
-				{
-					return Err(AnsweredError::DomainNameCanNotBeAnAlias(alias.static_clone()))
-				}
-			}
+			self.can_be_an_alias(alias)?;
 		}
 		
 		for (alias, target) in canonical_name_chain_records
@@ -150,6 +167,57 @@ impl DomainCache
 			}
 		}
 		
+		Ok(())
+	}
+	
+	#[inline(always)]
+	fn store_start_of_authority_unchecked(&mut self, authority_name: DomainTarget, start_of_authority: PresentSolitary<StartOfAuthority<'static, EfficientCaseFoldedName>>)
+	{
+		xxx;
+	}
+	
+	#[inline(always)]
+	fn store_name_servers_unchecked(&mut self, authority_name: DomainTarget, name_servers: PresentMultiple<DomainTarget>)
+	{
+		xxx;
+	}
+	
+	#[inline(always)]
+	fn can_be_an_alias(&self, alias: &Alias) -> Result<(), AnsweredError>
+	{
+		if let Some(domain_cache_entry) = self.map.get(alias)
+		{
+			if unlikely!(domain_cache_entry.can_not_be_replaced_by_alias())
+			{
+				return Err(AnsweredError::DomainNameCanNotBeAnAlias(alias.clone()))
+			}
+		}
+		Ok(())
+	}
+	
+	#[inline(always)]
+	fn can_be_replaced_by_no_domain(&self, domain_target: &DomainTarget) -> Result<(), AnsweredError>
+	{
+		if let Some(entry) = self.map.get(domain_target)
+		{
+			if unlikely!(domain_cache_entry.can_not_be_replaced_by_no_domain())
+			{
+				return Err(AnsweredError::DomainNameCanNotNotExist(most_canonical_name))
+			}
+		}
+		Ok(())
+	}
+	
+	#[inline(always)]
+	fn can_have_records(&self, alias_or_domain_target: &AliasOrDomainTarget) -> Result<(), AnsweredError>
+	{
+		if let Some(entry) = self.map.get(alias_or_domain_target)
+		{
+			if unlikely!(domain_cache_entry.can_not_have_records())
+			{
+				return Err(AnsweredError::DomainNameCanNotNotHaveRecords(most_canonical_name))
+			}
+		}
 		Ok(())
 	}
 }
@@ -187,7 +255,7 @@ enum DomainCacheEntry<'cache>
 	AlwaysValid
 	{
 		/// Cache of `QTYPE`.
-		cache: QueryTypesCache<'cache>,
+		cache: QueryTypesCache,
 	},
 	
 	/// Valid domains that may, at some point, cease to exist.
@@ -196,7 +264,7 @@ enum DomainCacheEntry<'cache>
 	CurrentlyValid
 	{
 		/// Cache of `QTYPE`.
-		cache: QueryTypesCache<'cache>,
+		cache: QueryTypesCache,
 	},
 	
 	/// A canonical name (`CNAME`) record.
@@ -210,10 +278,10 @@ enum DomainCacheEntry<'cache>
 	/// Point 4 in RFC 2181, Section 10.1 `CNAME` resource records above.
 	///
 	/// Only can occur if we receive an `Answer::NoDomain` for a domain that is neither `NeverValid` or `Valid { always_valid: false }`.
-	NoDomain(NoDomainCacheEntry<'cache>),
+	NoDomain(NoDomainCacheEntry),
 }
 
-impl<'cache> DomainCacheEntry<'cache>
+impl DomainCacheEntry
 {
 	#[inline(always)]
 	fn can_not_be_replaced_by_alias(&self) -> bool
@@ -224,6 +292,32 @@ impl<'cache> DomainCacheEntry<'cache>
 		{
 			&NeverValid | AlwaysValid { .. } => true,
 		
+			_ => false,
+		}
+	}
+	
+	#[inline(always)]
+	fn can_not_be_replaced_by_no_domain(&self) -> bool
+	{
+		use self::DomainCacheEntry::*;
+		
+		match self
+		{
+			&NeverValid | AlwaysValid { .. } => true,
+		
+			_ => false,
+		}
+	}
+	
+	#[inline(always)]
+	fn can_not_have_records(&self) -> bool
+	{
+		use self::DomainCacheEntry::*;
+		
+		match self
+		{
+			&NeverValid => true,
+			
 			_ => false,
 		}
 	}
@@ -265,6 +359,111 @@ enum NoDomainCacheEntry
 		
 		authority_name: DomainTarget,
 	}
+}
+
+impl NoDomainCacheEntry
+{
+	#[inline(always)]
+	fn store(most_canonical_name: DomainTarget, response_type: NoDomainResponseType, domain_cache: &mut DomainCache) -> Result<(), AnsweredError>
+	{
+		use self::NoDomainCacheEntry::*;
+		use self::NoDomainResponseType::*;
+		
+		domain_cache.can_be_replaced_by_no_domain(&most_canonical_name)?;
+		
+		let no_domain_cache_entry = match response_type
+		{
+			// TODO: is_implicit_referral
+			NoDomainResponseType1(authority_name_start_of_authority_name_servers) =>
+			{
+				let no_domain_cache_entry = Self::validate_authority_name_can_have_records_then_store(authority_name_start_of_authority_name_servers.authority_name_start_of_authority, domain_cache, |domain_cache, authority_name|
+				{
+					domain_cache.store_name_servers_unchecked(authority_name.clone(), authority_name_start_of_authority_name_servers.name_servers);
+					authority_name
+				})?;
+				no_domain_cache_entry
+			}
+			
+			NoDomainResponseType2(authority_name_start_of_authority) => Self::validate_authority_name_can_have_records_then_store(authority_name_start_of_authority, domain_cache, |_, authority_name| authority_name)?,
+			
+			// RFC 2308 Section 5: "Negative responses without SOA records SHOULD NOT be cached as there is no way to prevent the negative responses looping forever between a pair of servers even with a short TTL".
+			NoDomainResponseType3 { as_of_now } => UseOnce
+			{
+				as_of_now,
+				authority_name: None
+			},
+			
+			// RFC 2308 Section 5: "Negative responses without SOA records SHOULD NOT be cached as there is no way to prevent the negative responses looping forever between a pair of servers even with a short TTL".
+			// TODO: is_implicit_referral
+			NoDomainResponseType4 { as_of_now, authority_name_name_servers } =>
+			{
+				let authority_name = authority_name_name_servers.authority_name;
+				domain_cache.can_have_records(&authority_name)?;
+				domain_cache.store_name_servers_unchecked(authority_name.clone(), authority_name_name_servers.name_servers);
+				
+				UseOnce
+				{
+					as_of_now,
+					authority_name: Some(authority_name)
+				}
+			}
+		};
+		
+		domain_cache.store_no_domain_unchecked
+		(
+			most_canonical_name,
+			no_domain_cache_entry,
+		);
+		
+		Ok(())
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn validate_authority_name_can_have_records_then_store(authority_name_start_of_authority: AuthorityNameStartOfAuthority, domain_cache: &mut DomainCache, store_name_servers_unchecked: impl FnOnce(&mut DomainCache, DomainTarget) -> DomainTarget) -> Result<Self, AnsweredError>
+	{
+		use self::NoDomainCacheEntry::*;
+		
+		let authority_name = authority_name_start_of_authority.authority_name;
+		domain_cache.can_have_records(&authority_name)?;
+		let authority_name = store_name_servers_unchecked(domain_cache, authority_name);
+		
+		let (no_domain_cache_entry, start_of_authority) = match authority_name_start_of_authority.start_of_authority
+		{
+			PresentSolitary::UseOnce { as_of_now, record } =>
+			{
+				(
+					UseOnce
+					{
+						as_of_now,
+						
+						authority_name: Some(authority_name.clone()),
+					},
+					
+					PresentSolitary::UseOnce { as_of_now, record }
+				)
+			}
+			
+			PresentSolitary::Cached { cached_until, record } =>
+			{
+				(
+					Cached
+					{
+						cached_until,
+						
+						authority_name: authority_name.clone(),
+					},
+					
+					PresentSolitary::Cached { cached_until, record }
+				)
+			}
+		};
+		
+		domain_cache.store_start_of_authority_unchecked(authority_name, start_of_authority);
+		
+		Ok(no_domain_cache_entry)
+	}
+	
 }
 
 enum NoDataCacheEntry
@@ -317,7 +516,7 @@ enum QueryTypeCacheSolitary<Record: Sized + Debug>
 	Data(PresentSolitary<Record>)
 }
 
-pub(crate) struct QueryTypesCache<'cache>
+pub(crate) struct QueryTypesCache
 {
 	ns: QueryTypeCacheMultiple<DomainTarget>,
 	

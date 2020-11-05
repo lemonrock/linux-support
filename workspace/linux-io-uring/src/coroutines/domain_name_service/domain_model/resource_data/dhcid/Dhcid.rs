@@ -4,11 +4,11 @@
 
 /// A DHCID.
 #[derive(Debug)]
-pub struct Dhcid<'a>
+pub struct Dhcid<SHA2_256: OwnedOrParsed<Sha2_256>>
 {
 	/// Identifier type.
 	pub identifier_type: IdentifierType,
 
 	/// Digest.
-	pub digest: DhcidDigest<'a>,
+	pub digest: DhcidDigest<SHA2_256>,
 }

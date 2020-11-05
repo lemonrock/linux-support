@@ -6,7 +6,7 @@
 ///
 /// This implementation of that algorithm fails if there are `(2^64 - 1) / (2^16 - 1)` or more `self.weighted` records, which is not possible for DNS.
 #[derive(Debug)]
-pub(crate) struct SortedWeightedRecords<Record: Sized + Debug>
+pub(crate) struct WeightedRecords<Record: Sized + Debug>
 {
 	weightless: Vec<Rc<Record>>,
 	
@@ -15,7 +15,7 @@ pub(crate) struct SortedWeightedRecords<Record: Sized + Debug>
 	current_sum_of_all_weighted: u64,
 }
 
-impl<Record: Sized + Debug> Clone for SortedWeightedRecords<Record>
+impl<Record: Sized + Debug> Clone for WeightedRecords<Record>
 {
 	#[inline(always)]
 	fn clone(&self) -> Self
@@ -31,7 +31,7 @@ impl<Record: Sized + Debug> Clone for SortedWeightedRecords<Record>
 	}
 }
 
-impl<Record: Sized + Debug> Iterator for SortedWeightedRecords<Record>
+impl<Record: Sized + Debug> Iterator for WeightedRecords<Record>
 {
 	type Item = Rc<Record>;
 	
@@ -42,7 +42,7 @@ impl<Record: Sized + Debug> Iterator for SortedWeightedRecords<Record>
 		let weighted_length = self.weighted.len();
 		
 		// (1) We have no weighted records, so we can only choose a record from the weightless list.
-		// In practice, only `SRV` and `URI` records will be weighted, so this is an effective optimization.
+		// In practice, only `SRV`, `NAPTR` and `URI` records will be weighted, so this is an effective optimization.
 		if weighted_length == 0
 		{
 			debug_assert_eq!(self.current_sum_of_all_weighted, 0);
@@ -91,7 +91,7 @@ impl<Record: Sized + Debug> Iterator for SortedWeightedRecords<Record>
 	}
 }
 
-impl<Record: Sized + Debug> SortedWeightedRecords<Record>
+impl<Record: Sized + Debug> WeightedRecords<Record>
 {
 	#[inline(always)]
 	fn new_for_one_record(weight: Weight, record: Record) -> Self

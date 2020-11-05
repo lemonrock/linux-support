@@ -6,32 +6,45 @@
 ///
 /// Brought back from obscurity by RFC 8482.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct HostInformation<'a>
+pub struct HostInformation<CS: CharacterString>
 {
 	/// `CPU` field.
 	///
 	/// In RFC 8482, this will be `RFC8482`.
-	pub cpu: &'a [u8],
+	pub cpu: CS,
 
 	/// `OS` field.
 	///
 	/// In RFC 8482, this will be ``.
-	pub os: &'a [u8],
+	pub os: CS,
 }
 
-impl<'a> HostInformation<'a>
+impl<CS: CharacterString> HostInformation<CS>
 {
 	/// Is this a RFC 8482 answer to the `ANY` / `*` `QTYPE` question?
 	#[inline(always)]
 	pub fn is_rfc_8482_answer_to_any_question(&self) -> bool
 	{
-		self.cpu == b"RFC8482" && self.os.is_empty()
+		self.cpu.deref() == b"RFC8482" && self.os.is_empty()
 	}
 
 	/// Is this a CloudFlare answer to the `ANY` / `*` `QTYPE` question?
 	#[inline(always)]
 	pub fn is_cloudflare_answer_to_any_question(&self) -> bool
 	{
-		self.cpu == b"ANY obsoleted" && self.os == b"See draft-ietf-dnsop-refuse-any"
+		self.cpu.deref() == b"ANY obsoleted" && self.os == b"See draft-ietf-dnsop-refuse-any"
+	}
+}
+
+impl<'message> Into<HostInformation<OwnedCharacterString>> for HostInformation<ParsedCharacterString<'message>>
+{
+	#[inline(always)]
+	fn into(self) -> HostInformation<OwnedCharacterString>
+	{
+		HostInformation
+		{
+			cpu: self.cpu.into(),
+			os: self.os.into(),
+		}
 	}
 }

@@ -4,8 +4,8 @@
 
 /// A next secure version 3 (`NSEC3`) hash.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum NextSecureVersion3Hash<'a>
+pub enum NextSecureVersion3Hash<SHA1: OwnedOrParsed<Sha1>>
 {
 	/// SHA-1 digest.
-	Sha_1(&'a [u8; 160 / 8])
+	Sha_1(SHA1)
 }

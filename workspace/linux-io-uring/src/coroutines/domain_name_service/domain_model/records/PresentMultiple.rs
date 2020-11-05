@@ -6,10 +6,10 @@
 pub(crate) struct PresentMultiple<Record: Sized + Debug>
 {
 	/// One-time use.
-	use_once: PriorityToSortedWeightedRecordsMap<Record>,
+	use_once: PriorityToWeightedRecordsMap<Record>,
 	
 	/// Cached.
-	cached: BTreeMap<NanosecondsSinceUnixEpoch, PriorityToSortedWeightedRecordsMap<Record>>,
+	cached: BTreeMap<NanosecondsSinceUnixEpoch, PriorityToWeightedRecordsMap<Record>>,
 }
 
 impl<Record: Sized + Debug> Clone for PresentMultiple<Record>
@@ -33,7 +33,7 @@ impl<Record: Sized + Debug> Default for PresentMultiple<Record>
 	{
 		Self
 		{
-			use_once: PriorityToSortedWeightedRecordsMap::default(),
+			use_once: PriorityToWeightedRecordsMap::default(),
 			cached: BTreeMap::default(),
 		}
 	}
@@ -60,7 +60,7 @@ impl<Record: Sized + Debug> PresentMultiple<Record>
 		{
 			CacheUntil::UseOnce { as_of_now } => &mut self.use_once,
 			
-			CacheUntil::Cached { cached_until } => self.cached.entry(cached_until).or_insert_with(PriorityToSortedWeightedRecordsMap::default),
+			CacheUntil::Cached { cached_until } => self.cached.entry(cached_until).or_insert_with(PriorityToWeightedRecordsMap::default),
 		};
 		priority_to_sorted_weighted_records_map.insert(priority, weight, record);
 	}
@@ -153,7 +153,7 @@ impl<Record: Sized + Debug> PresentMultiple<Record>
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn remove_use_once_entries(&mut self) -> (PriorityToSortedWeightedRecordsMap<Record>, usize)
+	fn remove_use_once_entries(&mut self) -> (PriorityToWeightedRecordsMap<Record>, usize)
 	{
 		let use_once = take(&mut self.use_once);
 		let expired_records_count = use_once.records_count();
@@ -162,7 +162,7 @@ impl<Record: Sized + Debug> PresentMultiple<Record>
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn remove_expired_cached_entries(&mut self, now: NanosecondsSinceUnixEpoch) -> BTreeMap<NanosecondsSinceUnixEpoch, PriorityToSortedWeightedRecordsMap<Record>>
+	fn remove_expired_cached_entries(&mut self, now: NanosecondsSinceUnixEpoch) -> BTreeMap<NanosecondsSinceUnixEpoch, PriorityToWeightedRecordsMap<Record>>
 	{
 		let should_still_be_cached = self.cached.split_off(&now);
 		let expired = replace(&mut self.cached, should_still_be_cached);

@@ -6,19 +6,19 @@
 ///
 /// RFC 4025 Section 2.6 Final Paragraph increases the maximum size of `exponent` and `modulus` to 65,535 bytes (lifting the restrction of 4096 bits in RFC 3110 Section 2).
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct RsaPublicKey<'a>
+pub struct RsaPublicKey<OOPB: OwnedOrParsedBytes>
 {
 	/// An unsigned variable length integer.
 	///
 	/// Must not start with leading zeros (`0x00`) but this is not validated or checked when data is received.
 	///
 	/// Will never have a length of `0`.
-	pub exponent: &'a [u8],
+	pub exponent: OOPB,
 
 	/// An unsigned variable length integer.
 	///
 	/// Must not start with leading zeros (`0x00`) but this is not validated or checked when data is received.
 	///
 	/// Will never have a length of `0`.
-	pub modulus: &'a [u8],
+	pub modulus: OOPB,
 }

@@ -4,7 +4,7 @@
 
 /// Next secure version 3 (`NSEC3`).
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct NextSecureVersion3<'a>
+pub struct NextSecureVersion3<SHA1: OwnedOrParsed<Sha1>>
 {
 	/// Opt-Out.
 	pub opt_out: bool,
@@ -16,7 +16,7 @@ pub struct NextSecureVersion3<'a>
 	pub salt: &'a [u8],
 
 	/// Next owner name, hashed.
-	pub next_hashed_owner_name: NextSecureVersion3Hash<'a>,
+	pub next_hashed_owner_name: NextSecureVersion3Hash<SHA1>,
 
 	/// Type bitmaps.
 	pub type_bitmaps: TypeBitmaps,

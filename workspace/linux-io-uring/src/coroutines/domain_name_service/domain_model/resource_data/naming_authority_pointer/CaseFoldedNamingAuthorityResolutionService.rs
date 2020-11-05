@@ -2,13 +2,22 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Mail exchange data.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct MailExchange<'message>
-{
-	/// Preference.
-	pub preference: Priority,
+/// Validated, case-folded string that:-
+///
+/// * Can not be empty;
+/// * Has a first ASCII byte of `a` to `z` inclusive.
+/// * If 2 or more bytes long, has second and subsequent ASCII bytes of `a` to `z` inclusive or `0` to `9` inclusive.
+/// * Is a maximum of 32 bytes.
+#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+pub struct CaseFoldedNamingAuthorityResolutionService(Box<[u8]>);
 
-	/// Mail server name.
-	pub mail_server_name: ParsedName<'message>,
+impl Deref for CaseFoldedNamingAuthorityResolutionService
+{
+	type Target = [u8];
+	
+	#[inline(always)]
+	fn deref(&self) -> &Self::Target
+	{
+		self.0.deref()
+	}
 }

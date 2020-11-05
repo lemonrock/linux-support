@@ -23,43 +23,40 @@ definition of DS digest algorithm 0.  The same argument applies to
 [RFC4034], Section 2.1.2."
 ```
 
-## We need to fix the parsing of HIP resource server names.
 
+/*
 
-# Handlers
+	TODO: Sort out CertificateAuthorityAuthorization into enums with values.
+	TODO: Add Into<> functions a la StartOfAuthority
+	
+	TODO: DNS extended errors: https://tools.ietf.org/html/rfc8914
+	TODO: PTR - should these be solitary?
+	
+	TODO: S-NAPTR (Straightforward-NAPTR) Parameters
+	    https://www.iana.org/assignments/s-naptr-parameters/s-naptr-parameters.xhtml
+	    Seem to have a new flag "D"
+	    Seem to have both domain name and regexp: https://tools.ietf.org/html/rfc7553#section-5.2
+	
+	?https://www.rfc-editor.org/rfc/rfc8499.html#? TTLs in a RRSet must match?
+	
+	Revisit PresentSolitary, PresentMultiple and turn into:-
+	
+	Solitary
+	
+	MultipleSorted (A, AAAA, etc)
+	    * RFC 6724, Section 6 Destination Address Selection for sorting IPv4 / IPv6 address lists for A and AAAA.
+	    * Others needing a sort order:-
+		    PublicKeyFingerprint
+		    DnsBasedAuthenticationOfNamedEntities
+	
+	MultipleOrderedThenPrioritized (NAPTR)
+	    * ?Need to preserve the sort key (Order) for future insertions?
+	
+	MultiplePrioritized (MX, KX, NID, L32, L64, LP, IPSECKEY [u8])
+	
+	MultiplePrioritizedThenWeighted (SRV, URI)
 
-* in practice, we'll implement dedicated handlers for the various resource records of interest.
-
-* Not allowed to be aliases
-    * NS
-    * SOA
-    * ?PTR
-    * MX
-    * ?KX
-    * SRV
-    * ?URI
-* Useful
-    * A (done)
-    * AAAA (done)
-    * MX
-    * PTR
-    * NS
-    * LOC
-    * SRV
-    * URI
-    * TXT
-    * CAA
-    * TLSA
-    * SMIMEA
-
-
-
-# Bugs
-
-* NS, SOA, PTR, MX, ?KX, SRV are not allowed to be aliases.
-* Looking up A can give a CNAME.
-* Looking up AAAA can give a CNAME.
-* Looking up PTR can give a CNAME.
+ */
 
 # Other
 
@@ -82,12 +79,3 @@ definition of DS digest algorithm 0.  The same argument applies to
         * Could use the `services` database (via `/etc/services`) for a back-up for `SRV` / `URI` look up.
 * Special handling of Wildcards
     * See <https://tools.ietf.org/html/rfc4592> for examples like `*.live.com`
-* Known records
-    * ipv4only.arpa.
-* RFC 3484 IPv4 sort list
-* RFC 6724 IPv6 sort list
-* RFC 3484 / 6764 destination address selection.
-    * Rules 3, 4, and 7 should be omitted for having excessive runtime and code size cost and dubious benefit.
-* Special validations
-    - PTR queries are invalid for link-local domains such as "254.169.in-addr.arpa." and the IPv6 link-local reverse mapping domains "8.e.f.ip6.arpa.", "9.e.f.ip6.arpa.", "a.e.f.ip6.arpa.", and "b.e.f.ip6.arpa.".
-    - PTR queries which are not for *.in-addr.arpa. or *.ip6.arpa. or do not fit the format (4 labels or 32 labels). Think also about multicast addresses, etc.

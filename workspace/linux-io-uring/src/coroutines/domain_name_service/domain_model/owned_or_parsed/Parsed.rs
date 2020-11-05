@@ -2,14 +2,32 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A naming authority pointer with a regular expression.
-pub struct NamingAuthorityPointerWithRegularExpression<'a>
-{
-	/// Header.
-	pub header: NamingAuthorityPointerHeader<'a>,
+/// Arbitrary data parsed from a message.
+#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[repr(transparent)]
+pub struct Parsed<'message, OOPV>(&'message OOPV);
 
-	/// Regular expression, up to 255 bytes long.
-	///
-	/// Will never be empty (0 bytes long).
-	pub regular_expression: &'a [u8],
+impl<'message, OOPV: Clone> HasTypeEquality for Parsed<'message, OOPV>
+{
+	type TypeEquality = ParsedTypeEquality;
+}
+
+impl<'message, OOPV> Deref for Parsed<'message, OOPV>
+{
+	type Target = OOPV;
+	
+	#[inline(always)]
+	fn deref(&self) -> &Self::Target
+	{
+		self.0
+	}
+}
+
+impl<'message, OOPV> From<&'message OOPV> for Parsed<'message, OOPV>
+{
+	#[inline(always)]
+	fn from(value: &'message OOPV) -> Self
+	{
+		Self(value)
+	}
 }

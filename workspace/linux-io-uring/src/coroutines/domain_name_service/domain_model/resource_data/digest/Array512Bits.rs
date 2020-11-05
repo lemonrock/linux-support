@@ -2,12 +2,5 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Priority.
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(transparent)]
-pub struct Priority(pub u16);
-
-impl Priority
-{
-	pub(crate) const Unassigned: Self = Self(0);
-}
+/// Array of 512 bits.
+pub type Array512Bits = [u8; 512 / BitsInAByte];
