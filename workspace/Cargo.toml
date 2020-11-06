@@ -6,6 +6,7 @@
 members = [
 	"context-allocator",
 	"context-coroutine",
+	"likely",
     "linux-io-uring",
     "linux-io-uring-main",
     "linux-support",

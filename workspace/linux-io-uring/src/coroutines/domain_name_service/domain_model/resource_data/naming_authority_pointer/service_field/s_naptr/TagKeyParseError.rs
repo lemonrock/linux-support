@@ -2,13 +2,25 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-
-
-include!("NamingAuthorityMutuallyExclusiveFlag.rs");
-include!("NamingAuthorityPointer.rs");
-include!("NamingAuthorityResourceRecordIgnoredReason.rs");
-
-
-/// This is also called `SERVICE` and `SERVICES` even though it always contains a combination of values.
-pub mod service_field;
+/// A tag key parse error.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum TagKeyParseError
+{
+	#[allow(missing_docs)]
+	CanNotBeEmpty,
+	
+	#[allow(missing_docs)]
+	CanNotExceed32Bytes(usize),
+	
+	#[allow(missing_docs)]
+	FirstByteCanNotBeNumeric(u8),
+	
+	#[allow(missing_docs)]
+	FirstByteCanNotBeSymbol(u8),
+	
+	#[allow(missing_docs)]
+	FirstByteOutOfRange(u8),
+	
+	#[allow(missing_docs)]
+	SubsequentByteOutOfRange(u8, NonZeroU8),
+}

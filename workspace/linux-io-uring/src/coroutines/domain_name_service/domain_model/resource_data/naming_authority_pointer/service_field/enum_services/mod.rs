@@ -2,22 +2,19 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Validated, case-folded string that:-
-///
-/// * Can not be empty;
-/// * Has a first ASCII byte of `a` to `z` inclusive.
-/// * If 2 or more bytes long, has second and subsequent ASCII bytes of `a` to `z` inclusive or `0` to `9` inclusive.
-/// * Is a maximum of 32 bytes.
-#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub struct CaseFoldedNamingAuthorityResolutionService(Box<[u8]>);
+use super::*;
 
-impl Deref for CaseFoldedNamingAuthorityResolutionService
-{
-	type Target = [u8];
-	
-	#[inline(always)]
-	fn deref(&self) -> &Self::Target
-	{
-		self.0.deref()
-	}
-}
+
+include!("EnumService.rs");
+include!("EmailEnumServiceSubType.rs");
+include!("EmsEnumServiceSubType.rs");
+include!("EnumUriScheme.rs");
+include!("FaxEnumServiceSubType.rs");
+include!("FileServiceServiceSubType.rs");
+include!("PstnEnumServiceSubType.rs");
+include!("ToEnumUriScheme.rs");
+include!("WebEnumServiceSubType.rs");
+include!("UnifiedMessagingEnumServiceSubType.rs");
+include!("VoiceEnumServiceSubType.rs");
+include!("VoiceMessageEnumServiceSubType.rs");
+include!("VpimEnumServiceSubType.rs");

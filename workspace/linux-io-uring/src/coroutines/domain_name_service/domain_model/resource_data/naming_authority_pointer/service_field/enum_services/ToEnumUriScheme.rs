@@ -2,13 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-
-
-include!("NamingAuthorityMutuallyExclusiveFlag.rs");
-include!("NamingAuthorityPointer.rs");
-include!("NamingAuthorityResourceRecordIgnoredReason.rs");
-
-
-/// This is also called `SERVICE` and `SERVICES` even though it always contains a combination of values.
-pub mod service_field;
+/// To an (Enum) URI scheme.
+pub trait ToEnumUriScheme
+{
+	/// To an (Enum) URI scheme.
+	fn to_uri_scheme(self) -> EnumUriScheme;
+}

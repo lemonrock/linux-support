@@ -39,46 +39,8 @@ pub enum NAPTRHandleRecordTypeError
 	/// Resource data for resource record type `NAPTR` has both a regular expression and a domain name.
 	HasBothARegularExpressionAndADomainName,
 
-	/// A flag byte must be `A` to `Z` inclusive (or its lower case equivalent) or `0` to `9` inclusive.
-	FlagByteIsNotInRange(byte),
-
-	/// A flag byte of `0` to `9` inclusive is for local experimentation.
-	///
-	/// Whilst this is not supposed to be an error, we choose to make it so as it seems likely this either a bad mistake or hacking.
-	NumericFlagBytesAreForLocalExpermination(u8),
-
-	/// After 20 years since RFC 2915, the us of alphabetic bytes other than `s`, `a`, `u` and `p` hase not been defined.
-	///
-	/// The value of `u8` will be `a` to `z` inclusive less `s`, `a`, `u` and `p`.
-	///
-	/// Whilst this is not supposed to be an error, we choose to make it so as it seems likely this either a bad mistake or hacking.
-	UndefinedAlphabeticFlagByte(u8),
-	
-	/// More than one mutually exclusive flag.
-	MultipleMutuallyExclusiveFlags,
-	
-	/// A protocol or resolution service can not be empty.
-	ProtocolOrResolutionServiceCanNotBeEmpty,
-	
-	/// A protocol or resolution service can not be longer than 32 bytes.
-	FirstByteInProtocolOrResolutionServiceLongerThan32Bytes(usize),
-	
-	/// A valud byte of `0` to `9` inclusive is invalid for the first byte
-	///
-	/// The value of `u8` will be `0` to `9` inclusive.
-	FirstByteInProtocolOrResolutionServiceCanNotBeNumeric(u8),
-	
-	/// A valud byte of `0` to `9` inclusive is invalid for the first byte
-	///
-	/// The value of `u8` will be the non-alphanumeric value.
-	/// The value of `usize` will be the index it occurs at.
-	ByteInProtocolOrResolutionServiceCanNotBeNonAlphanumeric(u8, usize),
-
-	/// There was more than one resolution service of the same name once case-folded.
-	DuplicateResolutionService,
-
-	/// There was no protocol but a terminal flag was specified.
-	ProtocolMustBeSpecifiedIfATerminalFlagIsSpecified,
+	/// Flag byte was not alphanumeric
+	FlagByteNotAlphanumeric(u8),
 }
 
 impl Display for NAPTRHandleRecordTypeError

@@ -72,6 +72,8 @@ impl<'a, 'message: 'a> ParsedNameParser<'a, 'message>
 	
 	pub(crate) const NameMaximumSize: usize = 255;
 	
+	pub(crate) const RootNameSize: usize = Self::NameMinimumSize;
+	
 	#[inline(always)]
 	pub(crate) fn parse_name(compressed_name_presence_error: Option<ParsedNameParserError>, parsed_names: &'a mut ParsedNames<'message>, start_of_name_pointer: usize, end_of_data_section_containing_name_pointer: usize) -> Result<(ParsedName<'message>, usize), ParsedNameParserError>
 	{

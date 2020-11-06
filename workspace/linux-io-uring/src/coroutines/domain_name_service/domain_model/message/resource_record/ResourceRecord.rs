@@ -713,140 +713,102 @@ impl ResourceRecord
 
 		let mut character_strings_iterator = ParsedCharacterStringsIterator::new(&resource_data[(OrderSize + PreferenceSize) .. ]).map_err(CharacterStrings)?;
 		
-		#[inline(always)]
-		fn parse_flags<'message>(flags: ParsedCharacterString<'message>) -> Result<Option<NamingAuthorityMutuallyExclusiveFlag>, NAPTRHandleRecordTypeError>
+		let raw_flags = character_strings_iterator.next().ok_or(IsMissingFlags)?.map_err(FlagsCharacterString)?;
+		let raw_services = character_strings_iterator.next().ok_or(IsMissingServices)?.map_err(ServicesCharacterString)?;
+		let raw_regular_expression = character_strings_iterator.next().ok_or(IsMissingRegularExpression)?.map_err(RegularExpressionCharacterString)?;
+		
+		let remaining_resource_data = character_strings_iterator.remaining_resource_data();
+		
+		let replacement_domain_name_or_raw_regular_expression =
 		{
+			let start_of_replacement_name_pointer = remaining_resource_data.start_pointer();
+			let remaining_resource_data_length = remaining_resource_data.len();
+			
 			#[inline(always)]
-			fn validate_flag_byte(byte: &u8) -> Result<u8, NAPTRHandleRecordTypeError>
+			fn parse_replacement_domain_name<'message>(parsed_names: &mut ParsedNames<'message>, start_of_replacement_name_pointer: usize, remaining_resource_data_length: usize) -> Result<ParsedName<'message>, NAPTRHandleRecordTypeError>
 			{
-				let byte = *byte;
-				match byte
-				{
-					b'A' ..= b'Z' => Ok(case_fold_upper_case_byte_to_lower_case_byte(byte)),
-					
-					b'a' ..= b'z' => Ok(byte),
-					
-					b'0' ..= b'9' => Ok(byte),
-					
-					_ => Err(FlagByteIsNotInRange(byte))
-				}
-			}
-			
-			use self::NamingAuthorityMutuallyExclusiveFlag::*;
-			
-			// Whilst RFC 2915, Section 2 NAPTR RR Format, Flags, paragraph 2 permits multiple flags and non-mutually exclusive flags.
-			// However, after 20 years, no such flags have been defined; hence this logic.
-			let mut mutually_exclusive_flag: Option<NamingAuthorityMutuallyExclusiveFlag> = None;
-			
-			for byte in flags.deref()
-			{
-				let case_folded_flag_byte = validate_flag_byte(byte)?;
-				let parsed_flag = match case_folded_flag_byte
-				{
-					b's' => S,
-					b'a' => A,
-					b'u' => U,
-					b'p' => P,
-					
-					case_folded_flag_byte @ b'0' ..= b'9' => return Err(NumericFlagBytesAreForLocalExpermination(case_folded_flag_byte)),
-					
-					case_folded_flag_byte @ _ => return Err(UndefinedAlphabeticFlagByte(case_folded_flag_byte)),
-				};
+				let resource_data_end_pointer = start_of_replacement_name_pointer + remaining_resource_data_length;
 				
-				if mutually_exclusive_flag.is_none()
+				let (domain_name, end_of_name_pointer) = ParsedNameParser::parse_name_in_resource_record(DataType::NAPTR, parsed_names, start_of_replacement_name_pointer, resource_data_end_pointer).map_err(DomainName)?;
+				if likely!(end_of_name_pointer == resource_data_end_pointer)
 				{
-					mutually_exclusive_flag = Some(parsed_flag)
+					Ok(domain_name)
 				}
 				else
 				{
-					return Err(MultipleMutuallyExclusiveFlags)
-				};
+					Err(HasDataLeftOver)
+				}
 			}
 			
-			Ok(mutually_exclusive_flag)
-			
-		}
-		let mutually_exclusive_flag = parse_flags(character_strings_iterator.next().ok_or(IsMissingFlags)?.map_err(FlagsCharacterString)?)?;
-		
-		// Implementation based on RFC 2915, Section 2 NAPTR RR Format, Service, paragraph 3 (page 6).
-		#[inline(always)]
-		fn parse_service<'message>(service: ParsedCharacterString<'message>) -> Result<(Option<CaseFoldedNamingAuthorityProtocol>, HashSet<CaseFoldedNamingAuthorityResolutionService>), NAPTRHandleRecordTypeError>
-		{
-			#[inline(always)]
-			fn parse_protocol_or_resolution_service(bytes: &[u8]) -> Result<Box<[u8]>, NAPTRHandleRecordTypeError>
+			if raw_regular_expression.is_empty()
 			{
-				let length = bytes.len();
-				if unlikely!(length == 0)
-				{
-					return Err(ProtocolOrResolutionServiceCanNotBeEmpty)
-				}
-				if unlikely!(length > 32)
-				{
-					return Err(FirstByteInProtocolOrResolutionServiceLongerThan32Bytes(length))
-				}
-				
-				let mut vec = Vec::with_capacity(length);
-				unsafe { vec.set_len(length) };
-				
-				let case_folded_byte = match unsafe { * bytes.get_unchecked(0) }
-				{
-					byte @ b'A' ..= b'Z' => case_fold_upper_case_byte_to_lower_case_byte(byte),
-					byte @ b'a' ..= b'z' => byte,
-					byte @ b'0' ..= b'9' => Err(FirstByteInProtocolOrResolutionServiceCanNotBeNumeric(byte)),
-					byte @ _ => return Err(ByteInProtocolOrResolutionServiceCanNotBeNonAlphanumeric(byte, 0))
-				};
-				unsafe { * vec.get_unchecked_mut(0) = case_folded_byte };
-				
-				for index in 1 .. length
-				{
-					let case_folded_byte = match unsafe { * bytes.get_unchecked(index) }
-					{
-						byte @ b'A' ..= b'Z' => case_fold_upper_case_byte_to_lower_case_byte(byte),
-						byte @ b'a' ..= b'z' => byte,
-						byte @ _ => return Err(ByteInProtocolOrResolutionServiceCanNotBeNonAlphanumeric(byte, index))
-					};
-					unsafe { * vec.get_unchecked_mut(index) = case_folded_byte };
-				}
-				
-				Ok(vec.into_boxed_slice())
-			}
-			
-			let service = service.deref();
-			if service.is_empty()
-			{
-				return Ok((None, HashSet::default()))
-			}
-			
-			const ResolutionServicePrefix: u8 = b'+';
-			
-			let (protocol, resolution_services_iterator) = if (unsafe { *service.get_unchecked(0) }) == ResolutionServicePrefix
-			{
-				(None, (&service[1 .. ]).split_bytes(ResolutionServicePrefix))
+				Left(parse_replacement_domain_name(parsed_names, start_of_replacement_name_pointer, remaining_resource_data_length)?)
 			}
 			else
 			{
-				let mut iterator = resolution_service_bytes.split_bytes(b'+');
-				let protocol = CaseFoldedNamingAuthorityProtocol(parse_protocol_or_resolution_service(iterator.next().unwrap())?);
-				(Some(protocol), iterator)
-			};
-			
-			let mut resolution_services = HashSet::new();
-			for resolution_service_bytes in resolution_services_iterator
-			{
-				let new = resolution_services.insert(CaseFoldedNamingAuthorityResolutionService(parse_protocol_or_resolution_service(resolution_service_bytes)?));
-				let is_duplicate = !new;
-				if unlikely!(is_duplicate)
+				// RFC 4848, Section 3 Sample U-NAPTR DNS Records implies that the replacement field (domain name) should be empty.
+				// RFC 3403, Section 6.1 URN Example shows the replacement field as a root domain name.
+				// Consequently, we accommodate both.
+				match remaining_resource_data_length
 				{
-					return Err(DuplicateResolutionService)
-				}
+					// RFC 4848, Section 3.
+					0 => Right(raw_regular_expression),
+					
+					// RFC 3403, Section 6.1.
+					// A root domain name can only occupy one byte, but we can't just check the byte has a label length byte of `0x00`, because obsoleted RFCs permitted this replacement domain name to be compressed.
+					1 => if likely!(parse_replacement_domain_name(parsed_names, start_of_replacement_name_pointer, remaining_resource_data_length)?.is_root())
+					{
+						Right(raw_regular_expression)
+					}
+					else
+					{
+						Err(HasBothARegularExpressionAndADomainName)?
+					}
+					
+					_ => Err(HasBothARegularExpressionAndADomainName)?
+				};
 			}
-			
-			Ok((protocol, resolution_services))
-		}
+		};
 		
-		let (protocol, resolution_services) = parse_service(character_strings_iterator.next().ok_or(IsMissingServices)?.map_err(ServicesCharacterString)?)?;
+		let resource_data_end_pointer = resource_data.end_pointer();
+		
+		let mutually_exclusive_flag = match NamingAuthorityMutuallyExclusiveFlag::parse_flags(raw_flags)?
+		{
+			Left(mutually_exclusive_flag) => mutually_exclusive_flag,
+			
+			Right(ignored_reason) =>
+			{
+				resource_record_visitor.NAPTR_ignored(owner_name, ignored_reason);
+				return Ok(resource_data_end_pointer)
+			}
+		};
+		
+		
+		
+		/*
+
+
+
+
+
+		So, a possible design
+		
+		pub enum TransportProtocol
+		{
+		}
+
+
+
+
+		 */
+		
+		
+		
+		
+		let (protocol, resolution_services) = CaseFoldedNamingAuthorityProtocol::parse_services(raw_services)?;
 		
 		//  RFC 2915, Section 2 NAPTR RR Format, Service, paragraph 1: "A protocol MUST be specified if the flags field states that the NAPTR is terminal".
+		// See also redefinitions by RFCs 3401 to 3404 inclusive.
 		if let Some(mutually_exclusive_flag) = mutually_exclusive_flag
 		{
 			if unlikely!(mutually_exclusive_flag.is_terminal() && protocol.is_none())
@@ -855,39 +817,6 @@ impl ResourceRecord
 			}
 		}
 		
-		let regular_expression = character_strings_iterator.next().ok_or(IsMissingRegularExpression)?.map_err(RegularExpressionCharacterString)?;
-
-		let remaining_resource_data = character_strings_iterator.remaining_resource_data();
-		let start_of_name_pointer = remaining_resource_data.start_pointer();
-		let resource_data_end_pointer = start_of_name_pointer + remaining_resource_data.len();
-
-		let domain_name_or_regular_expression = if regular_expression.is_empty()
-		{
-			let (domain_name, end_of_name_pointer) = ParsedNameParser::parse_name_in_resource_record(DataType::NAPTR, parsed_names, start_of_name_pointer, resource_data_end_pointer).map_err(DomainName)?;
-			if unlikely!(end_of_name_pointer != resource_data_end_pointer)
-			{
-				Err(HasDataLeftOver)?
-			}
-			
-			Left(domain_name)
-		}
-		else
-		{
-			let end_of_name_pointer = start_of_name_pointer + 1;
-
-			if unlikely!(end_of_name_pointer != resource_data_end_pointer)
-			{
-				Err(HasDataLeftOver)?
-			}
-
-			let domain_name_byte = start_of_name_pointer.dereference_u8();
-			if unlikely!(domain_name_byte != 0)
-			{
-				Err(HasBothARegularExpressionAndADomainName)?
-			}
-
-			Right(regular_expression)
-		};
 		
 		let record = NamingAuthorityPointer
 		{

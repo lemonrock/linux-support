@@ -5,10 +5,7 @@
 use super::*;
 
 
-include!("NamingAuthorityMutuallyExclusiveFlag.rs");
-include!("NamingAuthorityPointer.rs");
-include!("NamingAuthorityResourceRecordIgnoredReason.rs");
-
-
-/// This is also called `SERVICE` and `SERVICES` even though it always contains a combination of values.
-pub mod service_field;
+include!("DiameterLegacyResolutionService.rs");
+include!("Rfc2483LegacyResolutionService.rs");
+include!("SipLegacyResolutionService.rs");
+include!("SipSecureLegacyResolutionService.rs");

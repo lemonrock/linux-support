@@ -16,3 +16,6 @@
 [submodule "workspace/terminate"]
 	path = workspace/terminate
 	url = https://github.com/lemonrock/terminate
+[submodule "workspace/likely"]
+	path = workspace/likely
+	url = https://github.com/lemonrock/likely

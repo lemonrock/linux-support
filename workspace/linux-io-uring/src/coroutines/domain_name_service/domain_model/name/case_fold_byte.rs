@@ -3,7 +3,7 @@
 
 
 #[inline(always)]
-fn case_fold_byte(byte: &u8) -> u8
+pub(crate) fn case_fold_byte(byte: &u8) -> u8
 {
 	match *byte
 	{

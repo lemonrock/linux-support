@@ -2,13 +2,21 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+/// SIP (insecure) legacy transport protocol.
+///
+/// Only one of these may be present.
+#[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Ord, Hash)]
+pub enum SipLegacyResolutionService
+{
+	/// TCP.
+	D2T,
 
+	/// UDP.
+	D2U,
 
-include!("NamingAuthorityMutuallyExclusiveFlag.rs");
-include!("NamingAuthorityPointer.rs");
-include!("NamingAuthorityResourceRecordIgnoredReason.rs");
+	/// SCTP.
+	D2S,
 
-
-/// This is also called `SERVICE` and `SERVICES` even though it always contains a combination of values.
-pub mod service_field;
+	/// Web Socket (WS).
+	D2W,
+}

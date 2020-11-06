@@ -27,7 +27,7 @@ context-allocator = { path = "../context-allocator", version = "0.3.0" }
 either = { version = "^1.5.3", features = ["serde"] }
 lazy_static = "^1.4.0"
 libc = { version = "^0.2.69", features = ["const-extern-fn", "extra_traits", "std"] }
-likely = "^0.1.0"
+likely = { version = "^0.2.0", path = "../likely" }
 linux-support = { path = "../linux-support", version = "0.0.2" }
 magic-ring-buffer = { path = "../magic-ring-buffer", version = "0.2.0" }
 memchr = "^2.3.3"

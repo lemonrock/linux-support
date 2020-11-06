@@ -135,6 +135,15 @@ pub(crate) trait ResourceRecordVisitor<'message>
 	{
 		Ok(())
 	}
+	
+	/// Visits a record of type `NAPTR` which was ignored.
+	///
+	/// Default implementation does nothing.
+	#[allow(unused)]
+	#[inline(always)]
+	fn NAPTR_ignored(&mut self, name: ParsedName<'message>, resource_record_ignored_because_reason: NamingAuthorityResourceRecordIgnoredReason)
+	{
+	}
 
 	/// Visits a record of type `KX`.
 	///

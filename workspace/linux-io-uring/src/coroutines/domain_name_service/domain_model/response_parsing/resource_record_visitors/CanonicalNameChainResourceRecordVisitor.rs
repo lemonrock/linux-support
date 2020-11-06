@@ -130,7 +130,13 @@ impl<'message, RRV: ResourceRecordVisitor<'message, Finished=Records<Record>>, R
 	#[inline(always)]
 	fn NAPTR(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, order: Order, preference: Priority, record: NamingAuthorityPointer<ParsedName<'message>, ParsedCharacterString<'message>, ParsedTypeEquality>) -> Result<(), Self::Error>
 	{
-		self.answer_section_resource_record_visitor.NAPTR_domain_name(name, cache_until, order, preference, record).map_err(WrappingCanonicalChainError::Wrapped)
+		self.answer_section_resource_record_visitor.NAPTR(name, cache_until, order, preference, record).map_err(WrappingCanonicalChainError::Wrapped)
+	}
+	
+	#[inline(always)]
+	fn NAPTR_ignored(&mut self, name: ParsedName<'message>, resource_record_ignored_because_reason: NamingAuthorityResourceRecordIgnoredReason)
+	{
+		self.answer_section_resource_record_visitor.NAPTR_ignored(name, resource_record_ignored_because_reason)
 	}
 
 	#[inline(always)]

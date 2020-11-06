@@ -2,13 +2,17 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+/// Diameter (AAA) legacy transport protocol.
+///
+/// Only one of these may be present.
+///
+/// See RFC 3588, Section 11.6 NAPTR Service Fields.
+#[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Ord, Hash)]
+pub enum DiameterLegacyResolutionService
+{
+	/// TCP.
+	D2T,
 
-
-include!("NamingAuthorityMutuallyExclusiveFlag.rs");
-include!("NamingAuthorityPointer.rs");
-include!("NamingAuthorityResourceRecordIgnoredReason.rs");
-
-
-/// This is also called `SERVICE` and `SERVICES` even though it always contains a combination of values.
-pub mod service_field;
+	/// SCTP.
+	D2S,
+}

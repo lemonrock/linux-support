@@ -1,30 +1,12 @@
 
 # Outstanding parser issues
 
-## Need to validate the data for DS-Delete when using CDS and CDNSKEY records
-
-```
-The contents of the CDS or CDNSKEY RRset MUST contain one RR and only
-contain the exact fields as shown below.
-
-CDS 0 0 0 0
-
-CDNSKEY 0 3 0 0
-
-The keying material payload is represented by a single 0.  This
-record is signed in the same way as regular CDS/CDNSKEY RRsets are
-signed.
-
-Strictly speaking, the CDS record could be "CDS X 0 X 0" as only the
-DNSKEY algorithm is what signals the DELETE operation, but for
-clarity, the "0 0 0 0" notation is mandated -- this is not a
-definition of DS digest algorithm 0.  The same argument applies to
-"CDNSKEY 0 3 0 0"; the value 3 in the second field is mandated by
-[RFC4034], Section 2.1.2."
-```
-
-
 /*
+    TODO: Additional weird arpa zones
+        e164.arpa ?
+        uri.arpa (RFC 3405)
+        urn.arpa (RFC 3405) Dynamic Delegation Discovery System (DDDS)
+        See https://www.iana.org/domains/arpa?ref=hackernoon.com
 
 	TODO: Sort out CertificateAuthorityAuthorization into enums with values.
 	TODO: Add Into<> functions a la StartOfAuthority
@@ -32,10 +14,16 @@ definition of DS digest algorithm 0.  The same argument applies to
 	TODO: DNS extended errors: https://tools.ietf.org/html/rfc8914
 	TODO: PTR - should these be solitary?
 	
-	TODO: S-NAPTR (Straightforward-NAPTR) Parameters
-	    https://www.iana.org/assignments/s-naptr-parameters/s-naptr-parameters.xhtml
-	    Seem to have a new flag "D"
-	    Seem to have both domain name and regexp: https://tools.ietf.org/html/rfc7553#section-5.2
+	TODO DNS Names that are underscored
+	    - are they enumservices https://www.iana.org/assignments/enum-services/enum-services.xhtml#enum-services-1 ?  RFC 6117 and RFC 6118 https://tools.ietf.org/html/rfc6118
+	    - https://tools.ietf.org/html/rfc8552 Scoped Interpretation of DNS Resource Records through  "Underscored" Naming of Attribute Leaves
+		
+	https://tools.ietf.org/html/rfc6116
+	    Telephone number mapping E.164 uses NAPTR
+	       Compound value: "E2U+voice:tel+sms:tel".
+	       non-terminal should have an empty SERVICE field; S-NAPTR however a populated SERVICE field is allowed.
+	
+	    
 	
 	?https://www.rfc-editor.org/rfc/rfc8499.html#? TTLs in a RRSet must match?
 	

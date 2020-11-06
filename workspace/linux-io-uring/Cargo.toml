@@ -38,6 +38,8 @@ phf = { version = "^0.8.0", features = ["macros"] }
 phf_macros = { version = "^0.8.0" }
 serde = { version = "^1.0", features = ["derive", "rc"] }
 socket-access-control = { path = "../socket-access-control", version = "^0.0.0"}
+strum = "^0.19.2"
+strum_macros = "^0.19.2"
 swiss-army-knife = { version = "0.0.0", path = "../swiss-army-knife" }
 terminate = { path = "../terminate", version = "^0.2.0" }
 uriparse = "^0.6.3"

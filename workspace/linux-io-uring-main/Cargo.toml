@@ -25,7 +25,7 @@ static_assertions = "^1.1"
 [target.'cfg(target_os = "linux")'.dependencies]
 clap = "^2.33.1"
 context-allocator = { path = "../context-allocator", version = "^0.3.0" }
-likely = "^0.1.0"
+likely = { version = "^0.2.0", path = "../likely" }
 linux-io-uring = { path = "../linux-io-uring", version = "^0.0.2" }
 linux-support = { path = "../linux-support", version = "^0.0.2" }
 magic-ring-buffer = { path = "../magic-ring-buffer", version = "^0.2.0" }

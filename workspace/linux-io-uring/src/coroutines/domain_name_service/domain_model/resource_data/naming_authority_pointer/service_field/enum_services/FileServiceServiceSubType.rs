@@ -2,13 +2,34 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+#[allow(missing_docs)]
+#[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Ord, Hash)]
+#[derive(EnumCount, EnumIter, IntoStaticStr)]
+pub enum FileServiceServiceSubType
+{
+	#[allow(missing_docs)]
+	ftp,
+}
 
+impl ToEnumUriScheme for FileServiceServiceSubType
+{
+	#[inline(always)]
+	fn to_uri_scheme(self) -> EnumUriScheme
+	{
+		use self::FaxEnumServiceSubType::*;
+		
+		match self
+		{
+			ftp => EnumUriScheme::ftp,
+		}
+	}
+}
 
-include!("NamingAuthorityMutuallyExclusiveFlag.rs");
-include!("NamingAuthorityPointer.rs");
-include!("NamingAuthorityResourceRecordIgnoredReason.rs");
-
-
-/// This is also called `SERVICE` and `SERVICES` even though it always contains a combination of values.
-pub mod service_field;
+impl Default for FileServiceServiceSubType
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		FileServiceServiceSubType::ftp
+	}
+}

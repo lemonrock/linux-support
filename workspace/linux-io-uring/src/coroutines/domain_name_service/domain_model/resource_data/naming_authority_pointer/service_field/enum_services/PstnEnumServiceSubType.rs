@@ -2,13 +2,30 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+#[allow(missing_docs)]
+#[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Ord, Hash)]
+#[derive(EnumCount, EnumIter, IntoStaticStr)]
+pub enum PstnEnumServiceSubType
+{
+	#[allow(missing_docs)]
+	sip,
+	
+	#[allow(missing_docs)]
+	tel,
+}
 
-
-include!("NamingAuthorityMutuallyExclusiveFlag.rs");
-include!("NamingAuthorityPointer.rs");
-include!("NamingAuthorityResourceRecordIgnoredReason.rs");
-
-
-/// This is also called `SERVICE` and `SERVICES` even though it always contains a combination of values.
-pub mod service_field;
+impl ToEnumUriScheme for PstnEnumServiceSubType
+{
+	#[inline(always)]
+	fn to_uri_scheme(self) -> EnumUriScheme
+	{
+		use self::PstnEnumServiceSubType::*;
+		
+		match self
+		{
+			sip => EnumUriScheme::sip,
+			
+			tel => EnumUriScheme::tel,
+		}
+	}
+}

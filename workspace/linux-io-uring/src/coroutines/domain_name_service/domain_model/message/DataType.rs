@@ -253,7 +253,7 @@ impl DataType
 	///
 	/// Used by Session Initiation Protocol (SIP) in various complex ways in conjunction with `SRV` records.
 	///
-	/// Defined by RFC 2915, RFC 2168 and RFC 3403.
+	/// Defined by RFC 2915 (as redefined by RFCs 3401 to 3404 inclusive), RFC 2168 and RFC 3403.
 	pub(crate) const NAPTR_higher: u8 = 0x00;
 	pub(crate) const NAPTR_lower: u8 = 35;
 	pub(crate) const NAPTR: Self = Self([Self::NAPTR_higher, Self::NAPTR_lower]);
