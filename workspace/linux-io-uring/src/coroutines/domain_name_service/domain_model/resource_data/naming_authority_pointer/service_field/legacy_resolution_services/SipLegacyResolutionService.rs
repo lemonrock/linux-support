@@ -5,7 +5,7 @@
 /// SIP (insecure) legacy transport protocol.
 ///
 /// Only one of these may be present.
-#[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum SipLegacyResolutionService
 {
 	/// TCP.
@@ -19,4 +19,25 @@ pub enum SipLegacyResolutionService
 
 	/// Web Socket (WS).
 	D2W,
+}
+
+impl ToNamingAuthorityCommonTransportProtocol for DiameterLegacyResolutionService
+{
+	#[inline(always)]
+	fn to_naming_authority_common_transport_protocol(self) -> NamingAuthorityCommonTransportProtocol
+	{
+		use self::SipLegacyResolutionService::*;
+		use self::NamingAuthorityCommonTransportProtocol::*;
+		
+		match self
+		{
+			D2T => TCP,
+			
+			D2U => UDP,
+			
+			D2S => SCTP,
+			
+			D2W => WebSocket,
+		}
+	}
 }

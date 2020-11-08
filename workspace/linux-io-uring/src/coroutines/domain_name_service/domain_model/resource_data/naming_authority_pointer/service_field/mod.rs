@@ -19,8 +19,9 @@ pub mod legacy_resolution_services;
 pub mod s_naptr;
 
 
-include!("CaseFoldedNamingAuthorityProtocol.rs");
-include!("CaseFoldedNamingAuthorityResolutionService.rs");
+include!("NamingAuthorityCommonTransportProtocol.rs");
 include!("ProtocolOrResolutionServiceParseError.rs");
-include!("ServiceFieldParser.rs");
+include!("ServiceField.rs");
 include!("ServiceFieldParseError.rs");
+include!("ServiceFieldParser.rs");
+include!("ToNamingAuthorityCommonTransportProtocol.rs");

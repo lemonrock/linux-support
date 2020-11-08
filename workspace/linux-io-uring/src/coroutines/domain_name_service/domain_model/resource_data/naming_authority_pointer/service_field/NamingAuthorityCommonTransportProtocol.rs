@@ -2,11 +2,28 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+/// An attempt to synthesize the various ways a transport protocol is represent by NAPTR records!
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+pub enum NamingAuthorityCommonTransportProtocol
+{
+	/// TCP.
+	TCP,
+	
+	/// UDP.
+	UDP,
 
+	/// SCTP.
+	SCTP,
 
-include!("ModernDiameterTransportProtocol.rs");
-include!("NamingAuthorityApplicationProtocolTag.rs");
-include!("NamingAuthorityApplicationServiceTag.rs");
-include!("TagKey.rs");
-include!("TagKeyParseError.rs");
+	/// TLS over TCP.
+	TLS_over_TCP,
+	
+	/// DTLS over SCTP.
+	DTLS_over_SCTP,
+	
+	/// Web Socket (WS)
+	WebSocket,
+	
+	/// Web Socket (WS) over HTTPS.
+	WebSocketSecure,
+}

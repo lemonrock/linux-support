@@ -2,34 +2,50 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Diameter (AAA) legacy transport protocol.
+/// This is a subset of IANA-registered application service tags at <https://www.iana.org/assignments/s-naptr-parameters/s-naptr-parameters.xhtml#s-naptr-parameters-2>.
 ///
-/// Only one of these may be present.
-///
-/// See RFC 3588, Section 11.6 NAPTR Service Fields.
+/// Format defined by RFC 3958, Section 6.5 Service Parameters.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum DiameterLegacyResolutionService
+pub enum ModernDiameterTransportProtocol
 {
-	/// TCP.
-	D2T,
-
-	/// SCTP.
-	D2S,
+	/// `diameter.dtls.sctp`.
+	///
+	/// Defined by RFC 6733.
+	diameter_dtls_sctp,
+	
+	/// `diameter.sctp`.
+	///
+	/// Defined by RFC 6408.
+	diameter_sctp,
+	
+	/// `diameter.tcp`.
+	///
+	/// Defined by RFC 6408.
+	diameter_tcp,
+	
+	/// `diameter.tls.tcp`.
+	///
+	/// Defined by RFC 6408.
+	diameter_tls_tcp,
 }
 
-impl ToNamingAuthorityCommonTransportProtocol for DiameterLegacyResolutionService
+impl ToNamingAuthorityCommonTransportProtocol for ModernDiameterTransportProtocol
 {
 	#[inline(always)]
 	fn to_naming_authority_common_transport_protocol(self) -> NamingAuthorityCommonTransportProtocol
 	{
-		use self::DiameterLegacyResolutionService::*;
+		use self::ModernDiameterTransportProtocol::*;
 		use self::NamingAuthorityCommonTransportProtocol::*;
 		
 		match self
 		{
-			D2T => TCP,
+			diameter_dtls_sctp => DTLS_over_SCTP,
 			
-			D2S => SCTP,
+			diameter_sctp => SCTP,
+			
+			diameter_tcp => TCP,
+			
+			diameter_tls_tcp => TLS_over_TCP,
 		}
 	}
 }

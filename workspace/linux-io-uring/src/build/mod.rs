@@ -2,11 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+pub(super) mod naptr_service_parser;
 
 
-include!("ModernDiameterTransportProtocol.rs");
-include!("NamingAuthorityApplicationProtocolTag.rs");
-include!("NamingAuthorityApplicationServiceTag.rs");
-include!("TagKey.rs");
-include!("TagKeyParseError.rs");
+pub(super) mod top_level_domains;

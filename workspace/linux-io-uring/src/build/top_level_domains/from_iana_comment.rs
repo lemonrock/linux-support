@@ -2,11 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-
-
-include!("ModernDiameterTransportProtocol.rs");
-include!("NamingAuthorityApplicationProtocolTag.rs");
-include!("NamingAuthorityApplicationServiceTag.rs");
-include!("TagKey.rs");
-include!("TagKeyParseError.rs");
+fn from_iana_comment(file: &mut BufWriter<File>, version_and_updated_at: &str) -> io::Result<()>
+{
+	writeln!(file, "\t///")?;
+	writeln!(file, "\t/// From [IANA](https://data.iana.org/TLD/tlds-alpha-by-domain.txt) as of `{}`.", version_and_updated_at)?;
+	Ok(())
+}

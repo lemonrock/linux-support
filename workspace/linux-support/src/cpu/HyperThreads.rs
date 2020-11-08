@@ -284,7 +284,7 @@ impl HyperThreads
 			{
 				EINVAL => Err("The affinity bit mask mask contains no processors that are currently physically on the system and permitted to the process according to any restrictions that may be imposed by the cpuset mechanism described in cpuset(7)".to_string()),
 
-				ESRCH => if unlikely!(thread_identifier == pthread_self())
+				ESRCH => if unlikely!(thread_identifier == unsafe { pthread_self() })
 				{
 					panic!("Can not set our own thread affinity")
 				}

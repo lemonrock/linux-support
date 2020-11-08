@@ -311,7 +311,7 @@ impl DogStatsDTag
 				return Err(format!("{} is empty", description))
 			}
 			
-			if unlikely!((* bytes.get_unchecked(bytes.len() - 1)) == Colon)
+			if unlikely!((unsafe { * bytes.get_unchecked(bytes.len() - 1) }) == Colon)
 			{
 				return Err(format!("{} `{:?}` ends with colon", description, bytes))
 			}

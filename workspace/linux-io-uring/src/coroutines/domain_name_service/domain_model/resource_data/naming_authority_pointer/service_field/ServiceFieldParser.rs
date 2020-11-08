@@ -16,31 +16,46 @@ const OPENBRACE: u8 = b'{';
 
 macro_rules! byte_match
 {
-    ($self: ident $($upper: ident $(| $lower: ident)* => $block: expr)*) =>
-    {
-        match
-        {
-    	    let current_index = $self.current_index();
-    	    
-    		if current_index >= $self.length()
-    		{
-    			return $self.parse_s_naptr()
-    		}
-    		else
-    		{
-    			let byte = * $self.byte_ref_unchecked(current_index);
-    			$self.current_index.set(current_index + 1);
-    			byte
-    		}
-        }
-        {
-            byte @ NUL ..= ASTERISK | byte @ COMMA | byte @ SLASH | byte @ SEMICOLON ..= LESSTHAN | byte @ GREATERTHAN ..= AT | byte @ OPENSQUAREBRACKET ..= BACKTICK | byte @ OPENBRACE ..= 0xFF => return Err(ServiceFieldParseError::OutOfRange(byte, $self.current_index() - 1)),
-        
-            $($upper $(| $lower)* => $block,)*
-            
-			_ => $self.parse_s_naptr(),
-        }
-    }
+	($self: ident) =>
+	{
+		byte_match!($self @)
+	};
+	
+	($self: ident @ $($upper: ident $(| $lower: ident)* => $block: expr)*) =>
+	{
+		byte_match!($self parse_s_naptr @ $($upper $(| $lower)* => $block)*)
+	};
+	
+	($self: ident $empty: ident @ $($upper: ident $(| $lower: ident)* => $block: expr)*) =>
+	{
+		byte_match!($self $empty parse_s_naptr @ $($upper $(| $lower)* => $block)*)
+	};
+	
+	($self: ident $empty: ident $default: ident @ $($upper: ident $(| $lower: ident)* => $block: expr)*) =>
+	{
+		match
+		{
+			let current_index = $self.current_index();
+			
+			if unlikely!(current_index >= $self.length())
+			{
+				return $self.$empty()
+			}
+			else
+			{
+				let byte = * $self.byte_ref_unchecked(current_index);
+				$self.current_index.set(current_index + 1);
+				byte
+			}
+		}
+		{
+			byte @ NUL ..= ASTERISK | byte @ COMMA | byte @ SLASH | byte @ SEMICOLON ..= LESSTHAN | byte @ GREATERTHAN ..= AT | byte @ OPENSQUAREBRACKET ..= BACKTICK | byte @ OPENBRACE ..= 0xFF => return Err(ServiceFieldParseError::OutOfRange(byte, $self.current_index() - 1)),
+		
+			$($upper $(| $lower)* => $block,)*
+			
+			_ => $self.$default(),
+		}
+	};
 }
 
 const HYPHEN: u8 = b'-';
@@ -65,6 +80,8 @@ const T: u8 = b'T';
 const t: u8 = b't';
 const U: u8 = b'U';
 const u: u8 = b'u';
+const W: u8 = b'W';
+const w: u8 = b'w';
 
 pub(super) struct ServiceFieldParser<'message>
 {
@@ -89,13 +106,13 @@ impl<'message> ServiceFieldParser<'message>
 	/// service-parms = [ [app-service] *(":" app-protocol)]
 	/// app-service   = experimental-service  / iana-registered-service
 	/// app-protocol  = experimental-protocol / iana-registered-protocol
-	/// experimental-service      = "x-" 1*30ALPHANUMSYM
-	/// experimental-protocol     = "x-" 1*30ALPHANUMSYM
+	/// experimental-service	  = "x-" 1*30ALPHANUMSYM
+	/// experimental-protocol	 = "x-" 1*30ALPHANUMSYM
 	/// iana-registered-service   = ALPHA *31ALPHANUMSYM
 	/// iana-registered-protocol  = ALPHA *31ALPHANUMSYM
-	/// ALPHA         =  %x41-5A / %x61-7A   ; A-Z / a-z
-	/// DIGIT         =  %x30-39 ; 0-9
-	/// SYM           =  %x2B / %x2D / %x2E  ; "+" / "-" / "."
+	/// ALPHA		 =  %x41-5A / %x61-7A   ; A-Z / a-z
+	/// DIGIT		 =  %x30-39 ; 0-9
+	/// SYM		   =  %x2B / %x2D / %x2E  ; "+" / "-" / "."
 	/// ALPHANUMSYM   =  ALPHA / DIGIT / SYM
 	/// ; The app-service and app-protocol tags are limited to 32
 	/// ; characters and must start with an alphabetic character.
@@ -120,8 +137,8 @@ impl<'message> ServiceFieldParser<'message>
 	/// RFC 3404, Section 4.4 Services Parameters
 	///
 	/// service_field = [ [protocol] *("+" rs)]
-	/// protocol      = ALPHA *31ALPHANUM
-	/// rs            = ALPHA *31ALPHANUM
+	/// protocol	  = ALPHA *31ALPHANUM
+	/// rs			= ALPHA *31ALPHANUM
 	/// ; The protocol and rs fields are limited to 32
 	/// ; characters and must start with an alphabetic.
 	///
@@ -138,98 +155,306 @@ impl<'message> ServiceFieldParser<'message>
 	///  servicespec   = "+" enumservice
 	///  enumservice   = type 0*(subtypespec)
 	///  subtypespec   = ":" subtype
-	///  type          = 1*32(ALPHA / DIGIT / "-")
-	///  subtype       = 1*32(ALPHA / DIGIT / "-")
+	///  type		  = 1*32(ALPHA / DIGIT / "-")
+	///  subtype	   = 1*32(ALPHA / DIGIT / "-")
 	///
 	/// In other words, a non-optional "E2U" (used to denote ENUM only
 	/// Rewrite Rules in order to mitigate record collisions) is followed by
 	/// one or more Enumservices that indicate the class of functionality a
 	/// given end point offers.  Each Enumservice is indicated by an initial
 	/// '+' character.
-    pub(super) fn parse(&self) -> Result<Option<()>, ServiceFieldParseError>
-    {
-        byte_match!
-        (
-            self
-            
-            A | a => byte_match!
-            (
-                self
-                
-                A | a => byte_match!
-                (
-                	self
-                	
-                	A | a => byte_match!
-                	(
-                		self
-                		
-                		PLUS => self.parse_legacy_diameter()
-                	)
-                )
-            )
-            
-            E | e => byte_match!
-            (
-                self
-            )
-        )
-    }
-
-	#[inline(always)]
-	fn parse_legacy_diameter(&self) -> Result<Option<()>, ServiceFieldParseError>
+	pub(super) fn parse(&self) -> Result<Option<ServiceField>, ServiceFieldParseError>
 	{
-		const DiameterTemplate: &'static [u8] = b"AAA+nnn";
-		const DiameterTemplateLength: usize = DiameterTemplate.len();
-		
-		if unlikely!(self.length() ==
-		
-		unimplemented!()
+		byte_match!
+		(
+			self @
+			
+			// `A`.
+			A | a => byte_match!
+			(
+				self @
+				
+				// `AA`.
+				A | a => byte_match!
+				(
+					self @
+					
+					// `AAA`.
+					A | a => byte_match!
+					(
+						self
+						
+						parse_s_naptr_modern_diamter_aaa @
+						
+						// `AAA+`
+						PLUS => self.parse_legacy_diameter_or_s_naptr_modern_diameter_or_radius()
+						
+					)
+				)
+			)
+			
+			// `E`.
+			E | e => byte_match!
+			(
+				self @
+				
+				// `E2`.
+				_2 => byte_match!
+				(
+					self @
+					
+					// `E2U`.
+					U | u => byte_match!
+					(
+						self @
+						
+						// `E2U+`
+						PLUS => self.parse_legacy_enum_service()
+						
+					)
+				)
+			)
+			
+			// `S`.
+			S | s => byte_match!
+			(
+				self @
+				
+				// `SI`.
+				I | i => byte_match!
+				(
+					self @
+					
+					// `SIP`.
+					P | p => byte_match!
+					(
+						self @
+						
+						// `SIP+`
+						PLUS => self.parse_legacy_sip()
+						
+					)
+					
+					// `SIPS`.
+					S | s => byte_match!
+					(
+						self @
+						
+						// `SIPS+`
+						PLUS => self.parse_legacy_sip_secure()
+						
+					)
+				)
+			)
+		)
 	}
 	
 	#[inline(always)]
-	fn parse_legacy_enumservice(&self) -> Result<Option<()>, ServiceFieldParseError>
+	fn parse_legacy_diameter_or_s_naptr_modern_diameter_or_radius(&self) -> Result<Option<ServiceField>, ServiceFieldParseError>
+	{
+		use self::ServiceField::LegacyDiameter;
+		use self::DiameterLegacyResolutionService::*;
+		
+		const LegacyDiameterTemplate: &'static [u8] = b"AAA+D2n";
+		const LegacyDiameterTemplateLength: usize = LegacyDiameterTemplate.len();
+		
+		if likely!(self.length() == LegacyDiameterTemplateLength)
+		{
+			byte_match!
+			(
+				self unreachable parse_s_naptr_modern_diameter_or_radius_with_plus_sign @
+				
+				// `AAA+D`.
+				D | d => byte_match!
+				(
+					self @
+					
+					// `AAA+D2`.
+					_2 => byte_match!
+					(
+						self @
+						
+						// `AAA+D2T`: Legacy diameter over TCP.
+						T | t => Ok(Some(LegacyDiameter(D2T)))
+						
+						// `AAA+D2S`: Legacy diameter over SCTP.
+						S | s => Ok(Some(LegacyDiameter(D2S)))
+					)
+				)
+			)
+		}
+		// Draft RFC <https://tools.ietf.org/html/draft-jones-dime-extended-naptr-01> made use of an extension with `+AP`.
+		// However, this draft, which eventually became RFC 6408, dropped this idea and moved to `S-NAPTR` instead.
+		else
+		{
+			self.parse_s_naptr_modern_diameter_or_radius_with_plus_sign()
+		}
+	}
+	
+	/// Is just `aaa`.
+	#[inline(always)]
+	fn parse_s_naptr_modern_diamter_aaa(&self) -> Result<Option<ServiceField>, ServiceFieldParseError>
+	{
+		Ok(Some(ServiceField::ModernDiameter { application_identifier: None, transport_protocols: HashSet::default() }))
+	}
+	
+	#[inline(always)]
+	fn unreachable(&self) -> Result<Option<ServiceField>, ServiceFieldParseError>
+	{
+		unreachable_code_const("Validated length greater than next byte")
+	}
+	
+	#[inline(always)]
+	fn parse_legacy_sip(&self) -> Result<Option<ServiceField>, ServiceFieldParseError>
+	{
+		use self::ServiceField::LegacySip;
+		use self::SipLegacyResolutionService::*;
+		
+		const LegacySipTemplate: &'static [u8] = b"SIP+nnn";
+		const LegacySipTemplateLength: usize = LegacySipTemplate.len();
+		
+		if likely!(self.length() == LegacySipTemplateLength)
+		{
+			byte_match!
+			(
+				self unreachable @
+				
+				// `SIP+D`.
+				D | d => byte_match!
+				(
+					self @
+					
+					// `SIP+D2`.
+					_2 => byte_match!
+					(
+						self @
+						
+						// `SIP+D2T`: SIP over TCP.
+						T | t => Ok(Some(LegacySip(D2T)))
+						
+						// `SIP+D2U`: SIP over UDP.
+						U | u => Ok(Some(LegacySip(D2U)))
+						
+						// `SIP+D2S`: SIP over SCTP.
+						S | s => Ok(Some(LegacySip(D2S)))
+						
+						// `SIP+D2W`: SIP over Web Socket (WS).
+						W | w => Ok(Some(LegacySip(D2W)))
+					)
+				)
+			)
+		}
+		else
+		{
+			self.parse_s_naptr()
+		}
+	}
+	
+	#[inline(always)]
+	fn parse_legacy_sip_secure(&self) -> Result<Option<ServiceField>, ServiceFieldParseError>
+	{
+		use self::ServiceField::LegacySipSecure;
+		use self::SipSecureLegacyResolutionService::*;
+		
+		const LegacySipsTemplate: &'static [u8] = b"SIPS+nnn";
+		const LegacySipsTemplateLength: usize = LegacySipsTemplate.len();
+		
+		if likely!(self.length() == LegacySipsTemplateLength)
+		{
+			byte_match!
+			(
+				self unreachable @
+				
+				// `SIPS+D`.
+				D | d => byte_match!
+				(
+					self @
+					
+					// `SIPS+D2`.
+					_2 => byte_match!
+					(
+						self @
+						
+						// `SIPS+D2T`: SIPS over TCP.
+						T | t => Ok(Some(LegacySipSecure(D2T)))
+						
+						// `SIPS+D2S`: SIPS over SCTP.
+						S | s => Ok(Some(LegacySipSecure(D2S)))
+						
+						// `SIPS+D2W`: SIPS over Web Socket (WS).
+						W | w => Ok(Some(LegacySipSecure(D2W)))
+					)
+				)
+			)
+		}
+		else
+		{
+			self.parse_s_naptr()
+		}
+	}
+	
+	#[inline(always)]
+	fn parse_legacy_enum_service(&self) -> Result<Option<ServiceField>, ServiceFieldParseError>
 	{
 		const ShortestE2UTemplate: &'static [u8] = b"E2U+im";
 		const ShortestE2ULength: usize = ShortestE2UTemplate.len();
 		
-		unimplemented!()
+		if self.length() < ShortestE2ULength
+		{
+			self.parse_s_naptr()
+		}
+		else
+		{
+			unimplemented!()
+		}
 	}
 	
+	/// Could be `aaa+apX` (diameter) or one of the radius protocols `aaa+acct`, `aaa+auth` or `aaa+dynauth` or something new.
 	#[inline(always)]
-	fn parse_legacy_sip(&self) -> Result<Option<()>, ServiceFieldParseError>
+	fn parse_s_naptr_modern_diameter_or_radius_with_plus_sign(&self) -> Result<Option<ServiceField>, ServiceFieldParseError>
 	{
-		const SipTemplate: &'static [u8] = b"SIP+nnn";
-		const SipTemplateLength: usize = SipTemplate.len();
+		let map: HashMap<X, X>;
 		
-	    unimplemented!()
-	}
-	
-	#[inline(always)]
-	fn parse_legacy_sip_secure(&self) -> Result<Option<()>, ServiceFieldParseError>
-	{
-		const SipsTemplate: &'static [u8] = b"SIPS+nnn";
-		const SipsTemplateLength: usize = SipsTemplate.len();
+		let mut hasher = map.hasher().build_hasher();
 		
-		unimplemented!()
+		for byte in [b'a', b'a', b'a', b'+'].iter()
+		{
+			byte.hash(&mut hasher)
+		}
+		
+		// TODO: Consider using nom, eg with the alt!: https://docs.rs/nom/6.0.0/nom/macro.alt.html
+		// https://github.com/Geal/nom/blob/master/doc/choosing_a_combinator.md
+		
+		// TODO: codegen
+		/*
+			For each possible string combination, generation all the permutations of upper and lower case
+			Then sort them
+			Then match byte-by-byte, with lots of duplicate code paths.
+			
+			eg "SIP+D2W" and "AAA+D2W" and "aaa+ap1:diameter_dtls_sctp" and "aaa+ap1:diameter_tls_tcp"
+			- generate all permutations of string; put into a BTreeSet
+			
+			- also the "x-"
+			
+			- also all the enumservice palavers.
+			
+			
+			Then do match parsing, but, instead of going byte-by-byte, consider going u64, u32, u16, u8 blocks at a time?
+		
+		
+		 */
 	}
 	
 	#[inline(always)]
-	fn parse_s_naptr(&self) -> Result<Option<()>, ServiceFieldParseError>
+	fn parse_s_naptr(&self) -> Result<Option<ServiceField>, ServiceFieldParseError>
 	{
-	    unimplemented!()
+		unimplemented!()
 	}
 	
 	#[inline(always)]
 	fn byte_ref_unchecked(&self, index: usize) -> &u8
 	{
 		unsafe { self.service_field_bytes.get_unchecked(index) }
-	}
-	
-	#[inline(always)]
-	fn cast<T>(&self) -> &T
-	{
-		unsafe { & * (self.service_field_bytes.as_ptr() as *const T) }
 	}
 	
 	#[inline(always)]
@@ -241,96 +466,6 @@ impl<'message> ServiceFieldParser<'message>
 	#[inline(always)]
 	fn current_index(&self) -> usize
 	{
-	    self.current_index.get()
-	}
-}
-
-impl<'message> ServiceFieldParser<'message>
-{
-	pub(super) fn parse(&self) -> Result<Option<()>, ServiceFieldParseError>
-	{
-		match byte!(self, 0)
-		{
-			// `A`.
-			A | a => match byte!(self, 1)
-			{
-				// `AA`.
-				A | a => match byte!(self, 2)
-				{
-					// `AAA`.
-					A | a => match byte!(3)
-					{
-						// `AAA+`: Probably legacy diameter.
-						PLUS => match byte!(4)
-						{
-							// `AAA+D`.
-							D | d => match byte!(5)
-							{
-								// `AAA+D2`.
-								_2 => match byte!(6)
-								{
-									// `AAA+D2T`: Probably legacy diameter over TCP.
-									T | t => if likely!(self.length() == DiameterTemplateLength)
-									{
-										Ok(Some(DiameterLegacyResolutionService::D2T))
-									} else {
-										// Draft RFC <https://tools.ietf.org/html/draft-jones-dime-extended-naptr-01> made use of an extension with `+AP`.
-										// However, this draft, which eventually became RFC 6408, dropped this idea and moved to `S-NAPTR` instead.
-										self.parse_s_naptr()
-									},
-									
-									// `AAA+D2S`: Probably legacy diameter over SCTP.
-									S | s => if likely!(self.length() == DiameterTemplateLength)
-									{
-										Ok(Some(DiameterLegacyResolutionService::D2S))
-									} else {
-										// Draft RFC <https://tools.ietf.org/html/draft-jones-dime-extended-naptr-01> made use of an extension with `+AP`.
-										// However, this draft, which eventually became RFC 6408, dropped this idea and moved to `S-NAPTR` instead.
-										self.parse_s_naptr()
-									},
-								}
-							}
-						}
-					}
-				}
-			}
-			
-			// `E`.
-			E | e => match byte!(self, 1)
-			{
-				// `E2`.
-				_2 => match byte!(2)
-				{
-					// `E2U`.
-					U | u => match byte!(self, 3)
-					{
-						// `E2U+`: Probably legacy enumservice.
-						PLUS => self.parse_legacy_enumservice(),
-					}
-				}
-			}
-			
-			// `S`.
-			S | s => match byte!(self, 1)
-			{
-				// `SI`.
-				I | i => match byte!(self, 2)
-				{
-					// `SIP`.
-					P | p => match byte!(self, 3)
-					{
-						// `SIP+`: Probably 'legacy' SIP.
-						PLUS => self.parse_legacy_sip(),
-						
-						// `SIPS`.
-						S | s => match byte!(self, 4)
-						{
-							// `SIPS+`: Probably 'legacy' SIP secure.
-							PLUS => self.parse_legacy_sip_secure()
-						}
-					}
-				}
-			}
-		}
+		self.current_index.get()
 	}
 }

@@ -5,7 +5,7 @@
 /// SIPS (SIP Secure) legacy transport protocol.
 ///
 /// Only one of these may be present.
-#[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum SipSecureLegacyResolutionService
 {
 	/// TCP.
@@ -16,4 +16,23 @@ pub enum SipSecureLegacyResolutionService
 
 	/// Web Socket (WS).
 	D2W,
+}
+
+impl ToNamingAuthorityCommonTransportProtocol for SipSecureLegacyResolutionService
+{
+	#[inline(always)]
+	fn to_naming_authority_common_transport_protocol(self) -> NamingAuthorityCommonTransportProtocol
+	{
+		use self::SipSecureLegacyResolutionService::*;
+		use self::NamingAuthorityCommonTransportProtocol::*;
+		
+		match self
+		{
+			D2T => TLS_over_TCP,
+			
+			D2S => DTLS_over_SCTP,
+			
+			D2W => WebSocketSecure,
+		}
+	}
 }

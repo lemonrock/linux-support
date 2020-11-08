@@ -2,11 +2,15 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-
-
-include!("ModernDiameterTransportProtocol.rs");
-include!("NamingAuthorityApplicationProtocolTag.rs");
-include!("NamingAuthorityApplicationServiceTag.rs");
-include!("TagKey.rs");
-include!("TagKeyParseError.rs");
+#[derive(Debug)]
+pub enum QueryTypeCacheResult<'cache, Record: Sized + Debug>
+{
+	/// Query for the data.
+	Nothing,
+	
+	/// Known to not exist.
+	DoesNotExist(Rc<StartOfAuthority<'static, EfficientCaseFoldedName>>),
+	
+	/// Known to exist.
+	Exists(Exists<Record>),
+}

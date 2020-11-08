@@ -27,15 +27,15 @@ use self::resource_data::identifier_locator_network_protocol::*;
 use self::resource_data::ipsec::*;
 use self::resource_data::location::*;
 use self::resource_data::naming_authority_pointer::*;
+use self::resource_data::naming_authority_pointer::service_field::*;
+use self::resource_data::naming_authority_pointer::service_field::enum_services::*;
+use self::resource_data::naming_authority_pointer::service_field::legacy_resolution_services::*;
+use self::resource_data::naming_authority_pointer::service_field::s_naptr::*;
 use self::resource_data::ssh_fingerprint::*;
 use self::resource_data::start_of_authority::*;
 use self::response_parsing::*;
 use self::response_parsing::resource_record_visitors::*;
 use self::support::*;
-
-
-/// Arbitrary bytes that can exist in records.
-pub mod arbitrary_bytes;
 
 
 pub(crate) mod caching;

@@ -84,7 +84,7 @@ impl PciBusAddress
 		
 		let file_name_bytes = file_name.into_vec();
 		
-		if unlikely!(*file_name_bytes.get_unchecked(4) != b':')
+		if unlikely!(unsafe { *file_name_bytes.get_unchecked(4) != b':' })
 		{
 			return None
 		}
@@ -141,7 +141,7 @@ impl PciBusAddress
 					continue
 				}
 				
-				if unlikely!(*file_name_bytes.get_unchecked(7) != b':')
+				if unlikely!(unsafe { *file_name_bytes.get_unchecked(7) != b':' })
 				{
 					continue
 				}

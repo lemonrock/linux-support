@@ -9,6 +9,7 @@ include!("fast_secure_hash_map.rs");
 include!("fast_secure_hash_set.rs");
 
 
+include!("FastSecureHashBuilder.rs");
 include!("FastSecureHashMap.rs");
 include!("FastSecureHashMapEntry.rs");
 include!("FastSecureHashSet.rs");

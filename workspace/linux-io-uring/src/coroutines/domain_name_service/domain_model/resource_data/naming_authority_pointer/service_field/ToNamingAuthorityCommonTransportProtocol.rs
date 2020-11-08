@@ -2,11 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-
-
-include!("ModernDiameterTransportProtocol.rs");
-include!("NamingAuthorityApplicationProtocolTag.rs");
-include!("NamingAuthorityApplicationServiceTag.rs");
-include!("TagKey.rs");
-include!("TagKeyParseError.rs");
+/// An attempt to synthesize the various ways a transport protocol is represent by NAPTR records!
+pub trait ToNamingAuthorityCommonTransportProtocol
+{
+	/// An attempt to synthesize the various ways a transport protocol is represent by NAPTR records!
+	fn to_naming_authority_common_transport_protocol(self) -> NamingAuthorityCommonTransportProtocol;
+}
