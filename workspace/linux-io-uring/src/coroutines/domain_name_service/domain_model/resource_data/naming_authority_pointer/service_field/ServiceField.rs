@@ -19,7 +19,7 @@ pub enum ServiceField
 		/// Transport protocols.
 		///
 		/// Can legitimately be empty.
-		transport_protocols: HashSet<ModernDiameterTransportProtocol>,
+		transport_protocols: &'static HashSet<ModernDiameterTransportProtocol>,
 	},
 	
 	/// Legacy diameter.

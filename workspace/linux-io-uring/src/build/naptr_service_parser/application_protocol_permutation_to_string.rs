@@ -2,12 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-
-
-include!("ModernDiameterApplicationIdentifier.rs");
-include!("ModernDiameterTransportProtocol.rs");
-include!("NamingAuthorityApplicationProtocolTag.rs");
-include!("NamingAuthorityApplicationServiceTag.rs");
-include!("TagKey.rs");
-include!("TagKeyParseError.rs");
+fn application_protocol_permutation_to_string(application_protocol_permutation: &Permutation<&'static str>) -> String
+{
+	let mut string = String::with_capacity(256);
+	for element in application_protocol_permutation
+	{
+		string.push_str(&format!(":{}", *element))
+	}
+	string
+}

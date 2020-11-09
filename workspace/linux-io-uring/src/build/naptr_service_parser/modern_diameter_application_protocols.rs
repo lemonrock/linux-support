@@ -2,12 +2,22 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-
-
-include!("ModernDiameterApplicationIdentifier.rs");
-include!("ModernDiameterTransportProtocol.rs");
-include!("NamingAuthorityApplicationProtocolTag.rs");
-include!("NamingAuthorityApplicationServiceTag.rs");
-include!("TagKey.rs");
-include!("TagKeyParseError.rs");
+// First defined in RFC 6408.
+// Subset of <https://www.iana.org/assignments/s-naptr-parameters/s-naptr-parameters.xhtml#s-naptr-parameters-2>.
+fn modern_diameter_application_protocols() -> HashMap<&'static str, &'static str>
+{
+	hashmap!
+	{
+		// RFC 6733.
+		"diameter.dtls.sctp" => "diameter_dtls_sctp",
+		
+		// RFC 6408.
+		"diameter.sctp" => "diameter_sctp",
+		
+		// RFC 6408.
+		"diameter.tcp" =>  "tcp",
+		
+		// RFC 6408.
+		"diameter.tls.tcp" => "tls_tcp",
+	}
+}
