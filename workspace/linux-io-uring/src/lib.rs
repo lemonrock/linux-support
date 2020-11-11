@@ -8,6 +8,7 @@
 #![deny(missing_docs)]
 #![deny(unconditional_recursion)]
 #![deny(unreachable_patterns)]
+#![feature(arbitrary_enum_discriminant)]
 #![feature(allocator_api)]
 #![feature(const_fn)]
 #![feature(const_fn_fn_ptr_basics)]

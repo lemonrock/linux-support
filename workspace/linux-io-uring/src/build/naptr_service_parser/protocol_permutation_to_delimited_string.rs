@@ -2,12 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-// RFC 3588, Section 11.6 NAPTR Service Fields.
-fn legacy_diameter() -> HashMap<&'static str, &'static str>
+fn protocol_permutation_to_delimited_string(delimiter: char, protocol_permutation: &Permutation<&'static str>) -> String
 {
-	hashmap!
+	let mut string = String::with_capacity(MaximumServiceFieldSize);
+	for element in protocol_permutation
 	{
-		"AAA+D2T" => "LegacyDiameter { resolution_service: DiameterResolutionService::D2T }",
-		"AAA+D2S" => "LegacyDiameter { resolution_service: DiameterResolutionService::D2S }",
+		string.push_str(&format!("{}{}", delimiter, *element))
 	}
+	string
 }

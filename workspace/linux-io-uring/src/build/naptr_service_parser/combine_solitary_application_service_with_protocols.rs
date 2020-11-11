@@ -8,7 +8,7 @@ fn combine_solitary_application_service_with_protocols(service_field_enum_member
 	
 	for (application_protocol_permutation, transport_protocols_hash_set_static_name) in application_protocol_permutations.iter()
 	{
-		let key = format!("{}{}", application_service, application_protocol_permutation_to_colon_delimited_string(application_protocol_permutation));
+		let key = format!("{}{}", application_service, protocol_permutation_to_delimited_string(':', application_protocol_permutation));
 		
 		if key.len() > MaximumServiceFieldSize
 		{

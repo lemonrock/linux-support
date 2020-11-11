@@ -8,19 +8,23 @@ fn internet_registry_information_service(code: &mut Code) -> io::Result<HashMap<
 	(
 		combine_multiple_application_services_with_protocols
 		(
+			HashMap::default(),
+			
 			"InternetRegistryInformationService",
 			
 			"registry_type",
 			
+			"InternetRegistryInformationServiceRegistryType",
+			
 			hashmap!
 			{
-				"AREG1" => "InternetRegistryInformationServiceRegistryType::Address",
+				"AREG1" => "Address",
 				
-				"DCHK1" => "InternetRegistryInformationServiceRegistryType::DomainAvailabilityCheck",
+				"DCHK1" => "DomainAvailabilityCheck",
 				
-				"DREG1" => "InternetRegistryInformationServiceRegistryType::DomainRegistry",
+				"DREG1" => "DomainRegistry",
 				
-				"EREG1" => "InternetRegistryInformationServiceRegistryType::EnumRegistry",
+				"EREG1" => "EnumRegistry",
 			},
 			
 			AllCombinationsAndPermutationsOfApplicationProtocols::process

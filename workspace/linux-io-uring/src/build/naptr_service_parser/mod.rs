@@ -27,21 +27,20 @@ pub(super) mod trie;
 
 
 include!("application_layer_traffic_optimization.rs");
-include!("application_protocol_permutation_to_colon_delimited_string.rs");
 include!("ApplicationServiceTag.rs");
 include!("centralized_conferencing.rs");
 include!("Code.rs");
 include!("combine_multiple_application_services_with_protocols.rs");
 include!("combine_solitary_application_service_with_protocols.rs");
+include!("diameter.rs");
 include!("enum_.rs");
 include!("GenerateParseTree.rs");
 include!("internet_registry_information_service.rs");
-include!("legacy_diameter.rs");
 include!("local_location_information_server.rs");
 include!("location_to_service_translation_protocol.rs");
 include!("main.rs");
 include!("MaximumServiceFieldSize.rs");
-include!("modern_diameter.rs");
+include!("protocol_permutation_to_delimited_string.rs");
 include!("radius.rs");
 include!("session_initiation_protocol_user_agent_configuration.rs");
 include!("traversal_using_relays_around_network_address_translation.rs");

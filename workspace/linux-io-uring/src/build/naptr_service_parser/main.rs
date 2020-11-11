@@ -12,11 +12,10 @@ pub fn main(manifest_dir: &OsString, out_dir: &OsString) -> io::Result<()>
 	let mut all = NaiveTrie::new();
 	all.add(application_layer_traffic_optimization());
 	all.add(centralized_conferencing());
+	all.add(diameter(&mut code)?);
 	all.add(internet_registry_information_service(&mut code)?);
-	all.add(legacy_diameter());
 	all.add(local_location_information_server());
 	all.add(location_to_service_translation_protocol()?);
-	all.add(modern_diameter(&mut code)?);
 	all.add(radius(&mut code)?);
 	all.add(session_initiation_protocol());
 	all.add(session_initiation_protocol_user_agent_configuration());

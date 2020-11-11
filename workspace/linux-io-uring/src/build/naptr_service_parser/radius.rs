@@ -8,17 +8,21 @@ fn radius(code: &mut Code) -> io::Result<HashMap<String, String>>
 	(
 		combine_multiple_application_services_with_protocols
 		(
+			HashMap::default(),
+			
 			"Radius",
 			
 			"traffic_identifier",
 			
+			"RadiusTrafficIdentifier",
+			
 			hashmap!
 			{
-				"aaa+auth" => "RadiusTrafficIdentifier::Authentication",
+				"aaa+auth" => "Authentication",
 				
-				"aaa+acct" => "RadiusTrafficIdentifier::Accounting",
+				"aaa+acct" => "Accounting",
 				
-				"aaa+dynauth" => "RadiusTrafficIdentifier::DynamicAuthorization",
+				"aaa+dynauth" => "DynamicAuthorization",
 			},
 			
 			AllCombinationsAndPermutationsOfApplicationProtocols::process

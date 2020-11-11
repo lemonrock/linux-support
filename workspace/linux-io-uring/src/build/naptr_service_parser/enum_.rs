@@ -18,7 +18,7 @@ fn enumservices_and_subtypes() -> HashMap<&'static str, (&'static str, HashMap<&
 	
 	hashmap!
 	{
-		"+acct" =>
+		"acct" =>
 		(
 			"EnumService::acct",
 			"",
@@ -27,7 +27,7 @@ fn enumservices_and_subtypes() -> HashMap<&'static str, (&'static str, HashMap<&
 			}
 		),
 		
-		"+email" =>
+		"email" =>
 		(
 			"EnumService::email",
 			"EmailEnumServiceSubType",
@@ -37,7 +37,7 @@ fn enumservices_and_subtypes() -> HashMap<&'static str, (&'static str, HashMap<&
 			}
 		),
 		
-		"+ems" =>
+		"ems" =>
 		(
 			"EnumService::ems",
 			"EmsEnumServiceSubType",

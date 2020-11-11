@@ -50,17 +50,6 @@ pub enum ServiceField
 	/// The URI must be HTTP, HTTPS or FTP.
 	NoSolicit,
 	
-	/// Legacy "Full" NAPTR (ie not S-NAPTR or U-NAPTR).
-	///
-	/// Legacy diameter using S-NAPTR which has been replaced (see `Diameter`).
-	///
-	/// Seems to be valid for `A` and `S` flags, but not `U`.
-	LegacyDiameter
-	{
-		/// Resolution service (proxy for transport protocol).
-		resolution_service: DiameterResolutionService,
-	},
-	
 	/// S-NAPTR.
 	///
 	/// Diameter using S-NAPTR.
@@ -72,12 +61,12 @@ pub enum ServiceField
 	/// Seems to be valid for `A` and `S` flags, but not `U`.
 	Diameter
 	{
-		/// An IANA-registered application identifier.
-		application_identifier: Option<DiameterApplicationIdentifier>,
+		/// An IANA-registered application identifier, or `Unspecified` if not known.
+		application_identifier: DiameterApplicationIdentifier,
 	
 		/// Transport protocols.
 		///
-		/// Can legitimately be empty.
+		/// Can legitimately be empty, unless `application_identifier` is `DiameterApplicationIdentifier::Unspecified { legacy: true }`, in which case either one of `DiameterTransportProtocol::TCP` or `DiameterTransportProtocol::SCTP` will be present.
 		transport_protocols: &'static HashSet<DiameterTransportProtocol>,
 	},
 	

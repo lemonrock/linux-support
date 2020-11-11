@@ -2,22 +2,26 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-fn combine_multiple_application_services_with_protocols(service_field_enum_member_name: &'static str, subtype_field_name: &'static str, application_services: HashMap<ApplicationServiceTag, &'static str>, application_protocol_permutations: Vec<(Permutation<&'static str>, HashSetStaticName)>) -> HashMap<String, String>
+fn combine_multiple_application_services_with_protocols(fixed: HashMap<&'static str, &'static str>, service_field_enum_member_name: &'static str, subtype_field_name: &'static str, subtype_enum_type: &'static str, application_services: HashMap<ApplicationServiceTag, &'static str>, application_protocol_permutations: Vec<(Permutation<&'static str>, HashSetStaticName)>) -> HashMap<String, String>
 {
 	let mut result = HashMap::with_capacity(1024);
+	for (key, value) in fixed
+	{
+		result.insert(key.to_string(), value.to_string());
+	}
 	
 	for (application_service, subtype_identifier) in application_services
 	{
 		for (application_protocol_permutation, transport_protocols_hash_set_static_name) in application_protocol_permutations.iter()
 		{
-			let key = format!("{}{}", application_service, application_protocol_permutation_to_colon_delimited_string(application_protocol_permutation));
+			let key = format!("{}{}", application_service, protocol_permutation_to_delimited_string(':', application_protocol_permutation));
 			
 			if key.len() > MaximumServiceFieldSize
 			{
 				continue
 			}
 			
-			let value = format!("{} {{ {}: {}, transport_protocols: &{} }}", service_field_enum_member_name, subtype_field_name, subtype_identifier, transport_protocols_hash_set_static_name);
+			let value = format!("{} {{ {}: {}::{}, transport_protocols: &{} }}", service_field_enum_member_name, subtype_field_name, subtype_enum_type, subtype_identifier, transport_protocols_hash_set_static_name);
 			result.insert(key, value)
 		}
 	}

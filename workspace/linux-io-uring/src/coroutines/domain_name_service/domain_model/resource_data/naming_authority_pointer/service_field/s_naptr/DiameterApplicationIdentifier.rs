@@ -7,6 +7,13 @@
 #[repr(u32)]
 pub enum DiameterApplicationIdentifier
 {
+	/// Unofficial, represents the `aaa` application service tag without an application identifier (`+ap`).
+	Unspecified
+	{
+		/// Was either `AAA+D2T` or `AAA+D2S`.
+		legacy: bool,
+	},
+	
 	/// `NASREQ`.
 	///
 	/// Defined by RFC 6408, Section 7.1.

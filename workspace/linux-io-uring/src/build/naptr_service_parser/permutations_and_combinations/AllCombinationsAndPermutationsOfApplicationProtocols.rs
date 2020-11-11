@@ -52,60 +52,60 @@ impl<'a> AllCombinationsAndPermutationsOfApplicationProtocols<'a>
 	{
 		let (all_combinations, all_permutations_per_combination) = AllPermutationsOfASet::from_hash_map(&application_protocols);
 		
-		let mut permutations_with_combination_index = Vec::with_capacity(1024);
-		let mut combination_index = 0;
+		let mut permutations_with_same_combination = Vec::with_capacity(1024);
 		for (combination, permutations_per_combination) in all_combinations.into_iter().zip(all_permutations_per_combination.into_iter())
 		{
-			let (hash_set_static_name, hash_set_static_definition) = self.transport_protocols_hash_set_static_name_and_definition(combination_index, combination);
+			let (hash_set_static_name, hash_set_static_definition) = self.transport_protocols_hash_set_static_name_and_definition(combination);
 			self.push_str(&hash_set_static_definition)?;
 			
 			for permutations in permutations_per_combination
 			{
-				permutations_with_combination_index.push((permutations, hash_set_static_name))
+				permutations_with_same_combination.push((permutations, hash_set_static_name))
 			}
-			
-			combination_index += 1;
 		}
 		
-		Ok(permutations_with_combination_index)
+		Ok(permutations_with_same_combination)
 	}
 	
-	fn transport_protocols_hash_set_static_name_and_definition(&self, combination_index: usize, combination: Combination<&'static str, &'static str>) -> (HashSetStaticName, String)
+	fn transport_protocols_hash_set_static_name_and_definition(&self, combination: Combination<&'static str, &'static str>) -> (HashSetStaticName, String)
 	{
-		let transport_protocols_hash_set_static_name = format!("{}_combination_{}", self.prefix, combination_index);
+		let (hash_set_static_name, hash_set_expression) = self.hash_set_static_name_and_expression_for_combination(combination);
+		let lazy_static_hash_set_expression = format!("lazy_static! {{ static ref {0}: HashSet<{1}> = {2}; }}", &transport_protocols_hash_set_static_name, self.application_protocol_enum_name, hash_set_expression);
 		
-		let combination_function_definition = format!("lazy_static! {{ static ref {0}: HashSet<{1}> = {2}; }}", &transport_protocols_hash_set_static_name, self.application_protocol_enum_name, self.hash_set_expression_for_combination(combination));
-		
-		(transport_protocols_hash_set_static_name, combination_function_definition)
+		(transport_protocols_hash_set_static_name, lazy_static_hash_set_expression)
 	}
 	
 	// TODO: Could this be a PHF hash set?
-	fn hash_set_expression_for_combination(&self, combination: Combination<&'static str, &'static str>) -> String
+	fn hash_set_static_name_and_expression_for_combination(&self, combination: Combination<&'static str, &'static str>) -> (HashSetStaticName, String)
 	{
+		let mut hash_set_static_name = format!(self.prefix, "_combination");
 		if combination.is_empty()
 		{
-			String::from("HashSet::new()")
+			(hash_set_static_name, String::from("HashSet::new()"))
 		}
 		else
 		{
-			let mut expression = String::from("hashset! { ");
+			let mut hash_set_expression = String::from("hashset! { ");
 			let mut after_first = false;
 			for (_, application_protocol_enum_member) in combination
 			{
+				hash_set_static_name.push('_');
+				hash_set_static_name.push_str(application_protocol_enum_member);
+				
 				if after_first
 				{
-					expression.push_str(", ");
+					hash_set_expression.push_str(", ");
 				}
 				else
 				{
 					after_first = true;
 				}
-				expression.push_str(self.application_protocol_enum_name);
-				expression.push_str("::");
-				expression.push_str(application_protocol_enum_member);
+				hash_set_expression.push_str(self.application_protocol_enum_name);
+				hash_set_expression.push_str("::");
+				hash_set_expression.push_str(application_protocol_enum_member);
 			}
-			expression.push_str(" };");
-			expression
+			hash_set_expression.push_str(" };");
+			(hash_set_static_name, hash_set_expression)
 		}
 	}
 }
