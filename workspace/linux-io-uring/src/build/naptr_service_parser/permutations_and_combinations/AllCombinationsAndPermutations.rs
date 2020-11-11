@@ -2,16 +2,16 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(super) struct AllCombinationsAndPermutationsOfApplicationProtocols<'a>
+pub(super) struct AllCombinationsAndPermutations<'a>
 {
 	code: &'a mut Code,
 	
-	prefix: &'static str,
+	prefix: &'a str,
 	
 	application_protocol_enum_name: &'static str
 }
 
-impl<'a> Deref for AllCombinationsAndPermutationsOfApplicationProtocols<'a>
+impl<'a> Deref for AllCombinationsAndPermutations<'a>
 {
 	type Target = Code;
 	
@@ -22,7 +22,7 @@ impl<'a> Deref for AllCombinationsAndPermutationsOfApplicationProtocols<'a>
 	}
 }
 
-impl<'a> DerefMut for AllCombinationsAndPermutationsOfApplicationProtocols<'a>
+impl<'a> DerefMut for AllCombinationsAndPermutations<'a>
 {
 	#[inline(always)]
 	fn deref_mut(&mut self) -> &mut Self::Target
@@ -31,14 +31,14 @@ impl<'a> DerefMut for AllCombinationsAndPermutationsOfApplicationProtocols<'a>
 	}
 }
 
-impl<'a> AllCombinationsAndPermutationsOfApplicationProtocols<'a>
+impl<'a> AllCombinationsAndPermutations<'a>
 {
-	pub(super) fn process(code: &'a mut Code, prefix: &'static str, application_protocol_enum_name: &'static str, application_protocols: HashMap<&'static str, &'static str>) -> io::Result<Vec<(Permutation<&'static str>, HashSetStaticName)>>
+	pub(super) fn process(code: &'a mut Code, prefix: &'a str, application_protocol_enum_name: &'static str, application_protocols: HashMap<&'static str, &'static str>) -> io::Result<Vec<(Permutation<&'static str>, HashOrIndexSetStaticName)>>
 	{
 		Self::new(code, prefix, application_protocol_enum_name).all_combinations_and_permutations_of_application_protocols(application_protocols)
 	}
 	
-	fn new(code: &'a mut Code, prefix: &'static str, application_protocol_enum_name: &'static str) -> Self
+	fn new(code: &'a mut Code, prefix: &'a str, application_protocol_enum_name: &'static str) -> Self
 	{
 		Self
 		{
@@ -48,9 +48,9 @@ impl<'a> AllCombinationsAndPermutationsOfApplicationProtocols<'a>
 		}
 	}
 	
-	fn all_combinations_and_permutations_of_application_protocols(mut self, application_protocols: HashMap<&'static str, &'static str>) -> io::Result<Vec<(Permutation<&'static str>, HashSetStaticName)>>
+	fn all_combinations_and_permutations_of_application_protocols(mut self, application_protocols: HashMap<&'static str, &'static str>) -> io::Result<Vec<(Permutation<&'static str>, HashOrIndexSetStaticName)>>
 	{
-		let (all_combinations, all_permutations_per_combination) = AllPermutationsOfASet::from_hash_map(&application_protocols);
+		let (all_combinations, all_permutations_per_combination) = AllPermutationsOfASet::from_hash_map(&application_protocols, true);
 		
 		let mut permutations_with_same_combination = Vec::with_capacity(1024);
 		for (combination, permutations_per_combination) in all_combinations.into_iter().zip(all_permutations_per_combination.into_iter())
@@ -67,7 +67,7 @@ impl<'a> AllCombinationsAndPermutationsOfApplicationProtocols<'a>
 		Ok(permutations_with_same_combination)
 	}
 	
-	fn transport_protocols_hash_set_static_name_and_definition(&self, combination: Combination<&'static str, &'static str>) -> (HashSetStaticName, String)
+	fn transport_protocols_hash_set_static_name_and_definition(&self, combination: Combination<&'static str, &'static str>) -> (HashOrIndexSetStaticName, String)
 	{
 		let (hash_set_static_name, hash_set_expression) = self.hash_set_static_name_and_expression_for_combination(combination);
 		let lazy_static_hash_set_expression = format!("lazy_static! {{ static ref {0}: HashSet<{1}> = {2}; }}", &transport_protocols_hash_set_static_name, self.application_protocol_enum_name, hash_set_expression);
@@ -76,7 +76,7 @@ impl<'a> AllCombinationsAndPermutationsOfApplicationProtocols<'a>
 	}
 	
 	// TODO: Could this be a PHF hash set?
-	fn hash_set_static_name_and_expression_for_combination(&self, combination: Combination<&'static str, &'static str>) -> (HashSetStaticName, String)
+	fn hash_set_static_name_and_expression_for_combination(&self, combination: Combination<&'static str, &'static str>) -> (HashOrIndexSetStaticName, String)
 	{
 		let mut hash_set_static_name = format!(self.prefix, "_combination");
 		if combination.is_empty()

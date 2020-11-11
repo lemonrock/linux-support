@@ -75,7 +75,7 @@ fn diameter(code: &mut Code) -> io::Result<HashMap<String, String>>
 				"aaa+ap4294967295" => "Relay",
 			},
 			
-			AllCombinationsAndPermutationsOfApplicationProtocols::process
+			AllCombinationsAndPermutations::process
 			(
 				code,
 				

@@ -13,6 +13,7 @@ pub fn main(manifest_dir: &OsString, out_dir: &OsString) -> io::Result<()>
 	all.add(application_layer_traffic_optimization());
 	all.add(centralized_conferencing());
 	all.add(diameter(&mut code)?);
+	all.add(enum_(&mut code)?);
 	all.add(internet_registry_information_service(&mut code)?);
 	all.add(local_location_information_server());
 	all.add(location_to_service_translation_protocol()?);

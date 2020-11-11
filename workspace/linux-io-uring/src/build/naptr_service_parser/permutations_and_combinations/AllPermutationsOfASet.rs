@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-struct AllPermutationsOfASet<'a, Element: 'a + Clone, V: 'a + Clone>
+pub(super) struct AllPermutationsOfASet<'a, Element: 'a + Clone, V: 'a + Clone>
 {
 	inputs: &'a [Input<Element, V>],
 	
@@ -13,10 +13,10 @@ struct AllPermutationsOfASet<'a, Element: 'a + Clone, V: 'a + Clone>
 
 impl<'a, Element: 'a + Clone, V: 'a + Clone> AllPermutationsOfASet<'a, Element, V>
 {
-	fn from_hash_map<V>(hash_map: &HashMap<Element, V>) -> (Vec<Combination<Element, V>>, Vec<Permutations<Element>>)
+	pub(super) fn from_hash_map<V>(hash_map: &HashMap<Element, V>, include_empty_combination: bool) -> (Vec<Combination<Element, V>>, Vec<Permutations<Element>>)
 	{
 		let inputs = Self::into_vec_from_hash_map(hash_map);
-		Self::new(&inputs[..]).all()
+		Self::new(&inputs[..]).all(include_empty_combination)
 	}
 	
 	fn into_vec_from_hash_map<V>(hash_map: &HashMap<Element, V>) -> Vec<Input<Element, V>>
@@ -46,7 +46,7 @@ impl<'a, Element: 'a + Clone, V: 'a + Clone> AllPermutationsOfASet<'a, Element, 
 		}
 	}
 	
-	fn all(mut self) -> (Vec<Combination<Element, V>>, Vec<Permutations<Element>>)
+	fn all(mut self, include_empty_combination: bool) -> (Vec<Combination<Element, V>>, Vec<Permutations<Element>>)
 	{
 		let n = self.inputs.len();
 		
@@ -60,7 +60,7 @@ impl<'a, Element: 'a + Clone, V: 'a + Clone> AllPermutationsOfASet<'a, Element, 
 			{
 				match index
 				{
-					0 => self.combinations_size_of_slice_0(),
+					0 if include_empty_combination => self.combinations_size_of_slice_0(),
 	
 					1 => self.combinations_size_of_slice_1(),
 	

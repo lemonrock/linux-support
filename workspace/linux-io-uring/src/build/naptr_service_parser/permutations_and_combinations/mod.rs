@@ -10,9 +10,9 @@ use std::ops::DerefMut;
 
 
 include!("AllPermutationsOfASet.rs");
-include!("AllCombinationsAndPermutationsOfApplicationProtocols.rs");
+include!("AllCombinationsAndPermutations.rs");
 include!("Combination.rs");
-include!("HashSetStaticName.rs");
+include!("HashOrIndexSetStaticName.rs");
 include!("Permutation.rs");
 include!("Permutations.rs");
 include!("Input.rs");

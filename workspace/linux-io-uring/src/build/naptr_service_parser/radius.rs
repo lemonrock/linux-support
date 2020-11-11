@@ -25,7 +25,7 @@ fn radius(code: &mut Code) -> io::Result<HashMap<String, String>>
 				"aaa+dynauth" => "DynamicAuthorization",
 			},
 			
-			AllCombinationsAndPermutationsOfApplicationProtocols::process
+			AllCombinationsAndPermutations::process
 			(
 				code,
 				

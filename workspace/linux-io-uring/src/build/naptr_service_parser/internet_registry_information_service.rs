@@ -27,7 +27,7 @@ fn internet_registry_information_service(code: &mut Code) -> io::Result<HashMap<
 				"EREG1" => "EnumRegistry",
 			},
 			
-			AllCombinationsAndPermutationsOfApplicationProtocols::process
+			AllCombinationsAndPermutations::process
 			(
 				code,
 				

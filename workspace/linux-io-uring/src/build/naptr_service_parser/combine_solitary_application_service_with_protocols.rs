@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-fn combine_solitary_application_service_with_protocols(service_field_enum_member_name: &'static str, application_service: ApplicationServiceTag, application_protocol_permutations: Vec<(Permutation<&'static str>, HashSetStaticName)>) -> HashMap<String, String>
+fn combine_solitary_application_service_with_protocols(service_field_enum_member_name: &'static str, application_service: ApplicationServiceTag, application_protocol_permutations: Vec<(Permutation<&'static str>, HashOrIndexSetStaticName)>) -> HashMap<String, String>
 {
 	let mut result = HashMap::with_capacity(1024);
 	

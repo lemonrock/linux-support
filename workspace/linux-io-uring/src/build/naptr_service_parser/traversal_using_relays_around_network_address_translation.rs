@@ -12,7 +12,7 @@ fn traversal_using_relays_around_network_address_translation(code: &mut Code) ->
 			
 			"RELAY",
 			
-			AllCombinationsAndPermutationsOfApplicationProtocols::process
+			AllCombinationsAndPermutations::process
 			(
 				code,
 				
