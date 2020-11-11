@@ -834,4 +834,4 @@ impl EfficientCaseFoldedName
 	}
 }
 
-include!(concat!(env!("OUT_DIR"), "/EfficientCaseFoldedName.top-level-domains.rs"));
+include!(concat!(env!("OUT_DIR"), "/EfficientCaseFoldedName.top_level_domains.rs"));

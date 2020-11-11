@@ -2,20 +2,18 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::new_buf_writer;
-use std::ffi::OsString;
-use std::io;
-use std::fs::File;
-use std::fs::read;
-use std::io::BufWriter;
-use std::io::Write;
-use std::path::Path;
-
-
-include!("CaseFoldedLabel.rs");
-include!("from_iana_comment.rs");
-include!("main.rs");
-include!("top_level_domains.rs");
-include!("TopLevelDomainsRelativeFilePath.rs");
-include!("write_case_folded_labels.rs");
-include!("write_case_folded_names.rs");
+/// RFC 6503, Section 12.4 DNS Registrations.
+///
+/// `LIS` stands for 'Local Location Information Server'.
+///
+/// `HELD` is an acronym for HTTP-Enabled Location Delivery.
+fn local_location_information_server() -> HashMap<&'static str, &'static str>
+{
+	hashmap!
+	{
+		"LIS:HELD" => "LocalLocationInformationServer { transport_protocol: Some(LocalLocationInformationServerTransportProtocol::HELD) }",
+		
+		// This is probably not intended by the authors of RFC 6503 but is permitted by RFC 3958.
+		"LIS" =>  "LocalLocationInformationServer { transport_protocol: None }",
+	}
+}

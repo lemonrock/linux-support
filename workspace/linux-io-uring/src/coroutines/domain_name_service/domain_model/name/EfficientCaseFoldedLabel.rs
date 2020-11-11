@@ -1374,4 +1374,4 @@ impl EfficientCaseFoldedLabel<'static>
 	const Tamil_Tamil: Self = Self::new(b"xn--hlcj6aya9esc7a");
 }
 
-include!(concat!(env!("OUT_DIR"), "/EfficientCaseFoldedLabel.top-level-domains.rs"));
+include!(concat!(env!("OUT_DIR"), "/EfficientCaseFoldedLabel.top_level_domains.rs"));

@@ -7,7 +7,7 @@ fn legacy_diameter() -> HashMap<&'static str, &'static str>
 {
 	hashmap!
 	{
-		"AAA+D2T" => "LegacyDiameter(DiameterLegacyResolutionService::D2T)",
-		"AAA+D2S" => "LegacyDiameter(DiameterLegacyResolutionService::D2T)",
+		"AAA+D2T" => "LegacyDiameter { resolution_service: DiameterResolutionService::D2T }",
+		"AAA+D2S" => "LegacyDiameter { resolution_service: DiameterResolutionService::D2S }",
 	}
 }

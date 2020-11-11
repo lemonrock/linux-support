@@ -2,20 +2,16 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::new_buf_writer;
-use std::ffi::OsString;
-use std::io;
-use std::fs::File;
-use std::fs::read;
-use std::io::BufWriter;
-use std::io::Write;
-use std::path::Path;
-
-
-include!("CaseFoldedLabel.rs");
-include!("from_iana_comment.rs");
-include!("main.rs");
-include!("top_level_domains.rs");
-include!("TopLevelDomainsRelativeFilePath.rs");
-include!("write_case_folded_labels.rs");
-include!("write_case_folded_names.rs");
+/// This is a subset of IANA-registered application service tags at <https://www.iana.org/assignments/s-naptr-parameters/s-naptr-parameters.xhtml#s-naptr-parameters-2>.
+///
+/// Format defined by RFC 3958, Section 6.5 Service Parameters.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum CentralizedConferencingTransportProtocol
+{
+	/// `CCMP`.
+	///
+	/// Defined by RFC 6503.
+	///
+	/// The protocol itself operates over either HTTP or HTTPS.
+	CCMP,
+}

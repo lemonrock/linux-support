@@ -2,32 +2,35 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#![allow(non_snake_case)]
-#![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
-#![allow(missing_docs)]
-#![deny(unconditional_recursion)]
-#![deny(unreachable_patterns)]
-
-
-
-use std::env::var_os;
-use std::io;
-
-
-#[path = "src/build/mod.rs"]
-pub mod build;
-
-
-/// Build.
-pub fn main() -> io::Result<()>
+/// Defined in various RFCS, including 3982, 4414, 4698 and 5144.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum InternetRegistryInformationServiceRegistryType
 {
-	let manifest_dir = var_os("CARGO_MANIFEST_DIR").unwrap();
-	let out_dir = var_os("OUT_DIR").unwrap();
+	/// `AREG1`.
+	///
+	/// Address Registry (`areg`) Type.
+	///
+	/// Defined by RFC 4698.
+	Address,
 	
-	build::rerun_if_changed::main(&manifest_dir, &out_dir)?;
-	build::top_level_domains::main(&manifest_dir, &out_dir)?;
-	build::naptr_service_parser::main(&manifest_dir, &out_dir)?;
+	/// `DCHK1`.
+	///
+	/// Domain Availability Check (`DCHK`) Registry Type.
+	///
+	/// Defined by RFC 5144.
+	DomainAvailabilityCheck,
 	
-	Ok(())
+	/// `DREG1`.
+	///
+	/// Domain Registry (`dreg`) Type.
+	///
+	/// Defined by RFC 3982.
+	DomainRegistry,
+	
+	/// `EREG1`.
+	///
+	/// ENUM Registry Type.
+	///
+	/// Defined by RFC 4414.
+	EnumRegistry,
 }

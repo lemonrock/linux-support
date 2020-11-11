@@ -9,14 +9,17 @@ use super::*;
 pub mod enum_services;
 
 
-/// Legacy resolution services that fit the ABNF for the `rs` production in RFC 3404, Section 4.4 Services Parameters.
-pub mod legacy_resolution_services;
+/// Resolution services that fit the ABNF for the `rs` production in RFC 3404, Section 4.4 Services Parameters.
+pub mod resolution_services;
 
 
 /// Application services and protocols as first defined by RFC 3958 (`S-NAPTR`), Section 6.5 Service Parameters and registered with IANA at <https://www.iana.org/assignments/s-naptr-parameters/s-naptr-parameters.xhtml>.
 ///
 /// Includes definitions for both `S-NAPTR` and `U-NAPTR`.
 pub mod s_naptr;
+
+
+include!(concat!(env!("OUT_DIR"), "/naptr_service_field_parse.naptr_service_parser.rs"));
 
 
 include!("NamingAuthorityCommonTransportProtocol.rs");

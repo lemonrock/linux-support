@@ -16,7 +16,7 @@
 #[strum_discriminants(derive(Hash))]
 pub enum EnumService
 {
-	/// This Enumservice indicates that the resource   can be identified by the associated `acct` URI RFC 7565.
+	/// This Enumservice indicates that the resource can be identified by the associated `acct` URI RFC 7565.
 	///
 	/// Class: Application-Based, Ancillary
 	/// Type: `acct`

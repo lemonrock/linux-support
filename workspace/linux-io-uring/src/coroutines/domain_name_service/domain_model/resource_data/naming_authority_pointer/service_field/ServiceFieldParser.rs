@@ -253,7 +253,7 @@ impl<'message> ServiceFieldParser<'message>
 	fn parse_legacy_diameter_or_s_naptr_modern_diameter_or_radius(&self) -> Result<Option<ServiceField>, ServiceFieldParseError>
 	{
 		use self::ServiceField::LegacyDiameter;
-		use self::DiameterLegacyResolutionService::*;
+		use self::DiameterResolutionService::*;
 		
 		const LegacyDiameterTemplate: &'static [u8] = b"AAA+D2n";
 		const LegacyDiameterTemplateLength: usize = LegacyDiameterTemplate.len();
@@ -295,7 +295,7 @@ impl<'message> ServiceFieldParser<'message>
 	#[inline(always)]
 	fn parse_s_naptr_modern_diamter_aaa(&self) -> Result<Option<ServiceField>, ServiceFieldParseError>
 	{
-		Ok(Some(ServiceField::ModernDiameter { application_identifier: None, transport_protocols: HashSet::default() }))
+		Ok(Some(ServiceField::Diameter { application_identifier: None, transport_protocols: HashSet::default() }))
 	}
 	
 	#[inline(always)]
@@ -307,8 +307,8 @@ impl<'message> ServiceFieldParser<'message>
 	#[inline(always)]
 	fn parse_legacy_sip(&self) -> Result<Option<ServiceField>, ServiceFieldParseError>
 	{
-		use self::ServiceField::LegacySip;
-		use self::SipLegacyResolutionService::*;
+		use self::ServiceField::SessionInitiationProtocol;
+		use self::SessionInitiationProtocolResolutionService::*;
 		
 		const LegacySipTemplate: &'static [u8] = b"SIP+nnn";
 		const LegacySipTemplateLength: usize = LegacySipTemplate.len();
@@ -330,16 +330,16 @@ impl<'message> ServiceFieldParser<'message>
 						self @
 						
 						// `SIP+D2T`: SIP over TCP.
-						T | t => Ok(Some(LegacySip(D2T)))
+						T | t => Ok(Some(SessionInitiationProtocol(TCP)))
 						
 						// `SIP+D2U`: SIP over UDP.
-						U | u => Ok(Some(LegacySip(D2U)))
+						U | u => Ok(Some(SessionInitiationProtocol(UDP)))
 						
 						// `SIP+D2S`: SIP over SCTP.
-						S | s => Ok(Some(LegacySip(D2S)))
+						S | s => Ok(Some(SessionInitiationProtocol(SCTP)))
 						
 						// `SIP+D2W`: SIP over Web Socket (WS).
-						W | w => Ok(Some(LegacySip(D2W)))
+						W | w => Ok(Some(SessionInitiationProtocol(WebSocket)))
 					)
 				)
 			)
@@ -353,7 +353,6 @@ impl<'message> ServiceFieldParser<'message>
 	#[inline(always)]
 	fn parse_legacy_sip_secure(&self) -> Result<Option<ServiceField>, ServiceFieldParseError>
 	{
-		use self::ServiceField::LegacySipSecure;
 		use self::SipSecureLegacyResolutionService::*;
 		
 		const LegacySipsTemplate: &'static [u8] = b"SIPS+nnn";

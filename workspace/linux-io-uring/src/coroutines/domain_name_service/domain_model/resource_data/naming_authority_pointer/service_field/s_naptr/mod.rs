@@ -5,9 +5,14 @@
 use super::*;
 
 
-include!("ModernDiameterApplicationIdentifier.rs");
-include!("ModernDiameterTransportProtocol.rs");
-include!("NamingAuthorityApplicationProtocolTag.rs");
-include!("NamingAuthorityApplicationServiceTag.rs");
-include!("TagKey.rs");
-include!("TagKeyParseError.rs");
+include!("CentralizedConferencingTransportProtocol.rs");
+include!("DiameterApplicationIdentifier.rs");
+include!("DiameterTransportProtocol.rs");
+include!("HypertextTransportProtocol.rs");
+include!("InternetRegistryInformationServiceRegistryType.rs");
+include!("InternetRegistryInformationServiceTransportProtocol.rs");
+include!("LocalLocationInformationServerTransportProtocol.rs");
+include!("LocationToServiceTranslationProtocolProfile.rs");
+include!("RadiusTrafficIdentifier.rs");
+include!("RadiusTransportProtocol.rs");
+include!("TraversalUsingRelaysAroundNetworkAddressTranslationTransportProtocol.rs");

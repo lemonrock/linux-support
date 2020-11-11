@@ -29,7 +29,7 @@ use self::resource_data::location::*;
 use self::resource_data::naming_authority_pointer::*;
 use self::resource_data::naming_authority_pointer::service_field::*;
 use self::resource_data::naming_authority_pointer::service_field::enum_services::*;
-use self::resource_data::naming_authority_pointer::service_field::legacy_resolution_services::*;
+use self::resource_data::naming_authority_pointer::service_field::resolution_services::*;
 use self::resource_data::naming_authority_pointer::service_field::s_naptr::*;
 use self::resource_data::ssh_fingerprint::*;
 use self::resource_data::start_of_authority::*;

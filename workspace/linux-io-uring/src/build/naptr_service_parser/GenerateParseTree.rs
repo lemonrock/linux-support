@@ -4,9 +4,29 @@
 
 struct GenerateParseTree<'a>
 {
-	code: &'a mut String,
+	code: &'a mut Code,
 	
 	stack_depth: usize,
+}
+
+impl<'a> Deref for GenerateParseTree<'a>
+{
+	type Target = Code;
+	
+	#[inline(always)]
+	fn deref(&self) -> &Self::Target
+	{
+		self.code
+	}
+}
+
+impl<'a> DerefMut for GenerateParseTree<'a>
+{
+	#[inline(always)]
+	fn deref_mut(&mut self) -> &mut Self::Target
+	{
+		self.code
+	}
 }
 
 impl<'a> GenerateParseTree<'a>
@@ -21,21 +41,12 @@ impl<'a> GenerateParseTree<'a>
 		}
 	}
 
-	fn generate(mut self, trie: &NaiveTrie<String>)
+	fn generate(mut self, trie: &NaiveTrie<String>) -> io::Result<()>
 	{
-		self.push_line("fn parse(services_field: &[u8]) -> Result<Either<IgnoreServiceFieldReason>, ServiceFieldParseError>");
-		self.push_line("{");
-		self.push_function_line("use self::IgnoreServiceFieldReason::*;");
-		self.push_function_line("use self::ServiceField::*;");
-		self.push_function_line("use self::ServiceFieldParseError::*;");
-		self.push_function_line("");
-		self.push_function_line("let length = services_field.len();");
-		self.push_function_line("");
-		self.generate_recursive(&trie);
-		self.push_line("}");
+		self.generate_recursive(&trie)
 	}
 
-	fn generate_recursive(&mut self, naive_trie_node: &NaiveTrieNode<String>)
+	fn generate_recursive(&mut self, naive_trie_node: &NaiveTrieNode<String>) -> io::Result<()>
 	{
 		let byte_index = self.stack_depth;
 
@@ -54,105 +65,49 @@ impl<'a> GenerateParseTree<'a>
 			}
 		};
 		
-		self.push_str(&format!("match (if length == {} {{ return {} }} else {{ unsafe {{ *services_field.get_unchecked({}) }} }})", byte_index, exact_match_string, byte_index));
-		self.push_new_line();
-		self.push_tab_indented_line("{");
+		self.push_str(&format!("match (if length == {} {{ return {} }} else {{ unsafe {{ *services_field.get_unchecked({}) }} }})", byte_index, exact_match_string, byte_index))?;
+		self.push_new_line()?;
+		self.push_tab_indented_line("{")?;
 		
 		for (case_folded_ascii_byte, child_naive_trie_node) in naive_trie_node.iter()
 		{
-			self.push_match_pattern(case_folded_ascii_byte);
+			self.push_match_pattern(case_folded_ascii_byte)?;
 			
 			self.stack_depth += 1;
-			self.generate_recursive(child_naive_trie_node);
+			self.generate_recursive(child_naive_trie_node)?;
 			self.stack_depth -= 1;
 		}
 		
 		let always_invalid_bytes = "byte @ 0x00 ..= b'*' | byte @ b',' | byte @ b'/' | byte @ b';' ..= b'<' | byte @ b'>' ..= b'@' | byte @ b'[' ..= b'`' | byte @ b'{' ..= 0xFF";
-		self.push_tab_indented_line(&format!("\t{} => Err(ServiceFieldParseError::OutOfRange(byte, {})),", always_invalid_bytes, byte_index));
-		self.push_tab_indented_line("");
-		self.push_tab_indented_line(&format!("\t_ => {},", NoMatchingPattern));
+		self.push_tab_indented_line(&format!("\t{} => Err(ServiceFieldParseError::OutOfRange(byte, {})),", always_invalid_bytes, byte_index))?;
+		self.push_tab_indented_line("")?;
+		self.push_tab_indented_line(&format!("\t_ => {},", NoMatchingPattern))?;
 		
 		if self.stack_depth == 0
 		{
-			self.push_tab_indented_line("}");
+			self.push_tab_indented_line("}")?;
 		}
 		else
 		{
-			self.push_tab_indented_line("},");
-			self.push_tab_indented_line("");
+			self.push_tab_indented_line("},")?;
+			self.push_tab_indented_line("")?;
 		}
+		
+		Ok(())
 	}
 	
-	fn push_match_pattern(&mut self, case_folded_ascii_byte: u8)
+	fn push_match_pattern(&mut self, case_folded_ascii_byte: u8) -> io::Result<()>
 	{
-		self.push_tabs();
-		self.push_tab();
-		self.push_str("b'");
-		self.push_byte_as_char(case_folded_ascii_byte);
+		self.push_tabs()?;
+		self.push_tab()?;
+		self.push_str("b'")?;
+		self.push_byte(case_folded_ascii_byte)?;
 		if matches!(case_folded_ascii_byte, b'a' ..= b'z')
 		{
-			self.push_str("' | b'");
-			self.push_byte_as_char(case_folded_ascii_byte - 0x20);
+			self.push_str("' | b'")?;
+			self.push_byte(case_folded_ascii_byte - 0x20)?;
 		}
-		self.push_str("'");
-		self.push_str(" => ");
-	}
-	
-	fn push_function_line(&mut self, value: &str)
-	{
-		self.push_tab();
-		self.push_line(value)
-	}
-	
-	fn push_line(&mut self, value: &str)
-	{
-		self.push_str(value);
-		self.push_new_line()
-	}
-	
-	fn push_tab_indented_line(&mut self, value: &str)
-	{
-		self.push_tab_indented(value);
-		self.push_new_line()
-	}
-	
-	fn push_tab_indented(&mut self, value: &str)
-	{
-		self.push_tabs();
-		self.push_str(value);
-	}
-	
-	fn push_new_line(&mut self)
-	{
-		self.push_char('\n');
-	}
-	
-	fn push_tabs(&mut self)
-	{
-		self.push_tab();
-		for _ in 0 .. self.stack_depth
-		{
-			self.push_tab();
-		}
-	}
-	
-	fn push_tab(&mut self)
-	{
-		self.push_char('\t');
-	}
-	
-	fn push_byte_as_char(&mut self, byte: u8)
-	{
-		self.push_char(char::from(byte))
-	}
-	
-	fn push_char(&mut self, value: char)
-	{
-		self.code.push(value)
-	}
-	
-	fn push_str(&mut self, value: &str)
-	{
-		self.code.push_str(value)
+		self.push_str("'")?;
+		self.push_str(" => ")
 	}
 }

@@ -2,27 +2,92 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-fn modern_diameter(code: &mut Code) -> HashMap<String, String>
+fn modern_diameter(code: &mut Code) -> io::Result<HashMap<String, String>>
 {
-	let mut result = HashMap::with_capacity(1024);
-	
-	let application_protocol_permutations = all_combinations_and_permutations_of_modern_diameter_application_protocols(code);
-	
-	for (application_service, application_identifier) in modern_diameter_application_services()
-	{
-		for (application_protocol_permutation, combination_function_name) in application_protocol_permutations.iter()
-		{
-			let key = format!("{}{}", application_service, application_protocol_permutation_to_string(application_protocol_permutation));
+	Ok
+	(
+		combine_multiple_application_services_with_protocols
+		(
+			"Diameter",
 			
-			if key.len() > MaximumServiceFieldSize
+			"application_ientifier",
+			
+			hashmap!
 			{
-				continue
-			}
+				"aaa" => "None",
+				
+				"aaa+ap1" => "Some(DiameterApplicationIdentifier::NASREQ)",
+				
+				"aaa+ap2" => "Some(DiameterApplicationIdentifier::MobileInternetProtocolVersion4)",
+				
+				"aaa+ap3" => "Some(DiameterApplicationIdentifier::BaseAccounting)",
+				
+				"aaa+ap4" => "Some(DiameterApplicationIdentifier::CreditControl)",
+				
+				"aaa+ap5" => "Some(DiameterApplicationIdentifier::ExtensibleAuthenticationProtocol)",
+				
+				"aaa+ap6" => "Some(DiameterApplicationIdentifier::SessionInitiationProtocol)",
+				
+				"aaa+ap7" => "Some(DiameterApplicationIdentifier::MobileInternetProtocolVersion6WithInternetKeyExchangeVersion4AndExtensibleAuthenticationProtocol)",
+				
+				"aaa+ap8" => "Some(DiameterApplicationIdentifier::MobileInternetProtocolVersion6AuthenticationProtocol)",
+				
+				"aaa+ap9" => "Some(DiameterApplicationIdentifier::QualityOfService)",
+				
+				"aaa+ap16777250" => "Some(DiameterApplicationIdentifier::_3rdGenerationPartnershipProjectSTa)",
+				
+				"aaa+ap16777251" => "Some(DiameterApplicationIdentifier::_3rdGenerationPartnershipProjectS6a)",
+				
+				"aaa+ap16777264" => "Some(DiameterApplicationIdentifier::_3rdGenerationPartnershipProjectSWm)",
+				
+				"aaa+ap16777267" => "Some(DiameterApplicationIdentifier::_3rdGenerationPartnershipProjectS9)",
+				
+				"aaa+ap16777281" => "Some(DiameterApplicationIdentifier::WNAAADA)",
+				
+				"aaa+ap16777282" => "Some(DiameterApplicationIdentifier::WNADA)",
+				
+				"aaa+ap16777283" => "Some(DiameterApplicationIdentifier::WM4DA)",
+				
+				"aaa+ap16777284" => "Some(DiameterApplicationIdentifier::WM6DA)",
+				
+				"aaa+ap16777285" => "Some(DiameterApplicationIdentifier::WDDA)",
+				
+				"aaa+ap16777286" => "Some(DiameterApplicationIdentifier::WLAADA)",
+				
+				"aaa+ap16777287" => "Some(DiameterApplicationIdentifier::W_PCC_R3_P)",
+				
+				"aaa+ap16777288" => "Some(DiameterApplicationIdentifier::W_PCC_R3_OFC)",
+				
+				"aaa+ap16777289" => "Some(DiameterApplicationIdentifier::W_PCC_R3_OFC_PRIME)",
+				
+				"aaa+ap16777290" => "Some(DiameterApplicationIdentifier::W_PCC_R3_OC)",
+				
+				"aaa+ap4294967295" => "Some(DiameterApplicationIdentifier::Relay)",
+			},
 			
-			let value = format!("ModernDiameter {{ application_identifier: {}, transport_protocols: {} }}", application_identifier, combination_function_name);
-			result.insert(key, value)
-		}
-	}
-	
-	result
+			AllCombinationsAndPermutationsOfApplicationProtocols::process
+			(
+				code,
+				
+				"modern_diameter",
+				
+				"DiameterTransportProtocol",
+				
+				hashmap!
+				{
+					// RFC 6733.
+					"diameter.dtls.sctp" => "diameter_dtls_sctp",
+					
+					// RFC 6408.
+					"diameter.sctp" => "diameter_sctp",
+					
+					// RFC 6408.
+					"diameter.tcp" =>  "diameter_tcp",
+					
+					// RFC 6408.
+					"diameter.tls.tcp" => "diameter_tls_tcp",
+				}
+			)?
+		)
+	)
 }

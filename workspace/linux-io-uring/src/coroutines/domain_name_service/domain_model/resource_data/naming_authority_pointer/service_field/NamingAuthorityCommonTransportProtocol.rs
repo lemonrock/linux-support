@@ -18,6 +18,9 @@ pub enum NamingAuthorityCommonTransportProtocol
 	/// TLS over TCP.
 	TLS_over_TCP,
 	
+	/// DTLS over UDP.
+	DTLS_over_UDP,
+	
 	/// DTLS over SCTP.
 	DTLS_over_SCTP,
 	

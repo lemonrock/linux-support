@@ -4,17 +4,17 @@
 
 fn write_case_folded_labels(out_dir: &OsString, top_level_domains: &Vec<CaseFoldedLabel>) -> io::Result<()>
 {
-	let mut file = BufWriter::new(File::create(&Path::new(&out_dir).join("EfficientCaseFoldedLabel.top-level-domains.rs"))?);
+	let mut writer = new_buf_writer(out_dir, "EfficientCaseFoldedLabel.top_level_domains.rs")?;
 	
-	writeln!(file, "impl EfficientCaseFoldedLabel<'static>")?;
-	writeln!(file, "{{")?;
+	writeln!(writer, "impl EfficientCaseFoldedLabel<'static>")?;
+	writeln!(writer, "{{")?;
 	
 		for case_folded_label in top_level_domains
 		{
-			writeln!(file, "\tconst {}: Self = Self::new(b\"{}\");", case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit(), case_folded_label.as_str())?;
+			writeln!(writer, "\tconst {}: Self = Self::new(b\"{}\");", case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit(), case_folded_label.as_str())?;
 		}
 	
-	writeln!(file, "}}")?;
+	writeln!(writer, "}}")?;
 	
 	Ok(())
 }

@@ -4,46 +4,47 @@
 
 fn write_case_folded_names(out_dir: &OsString, top_level_domains: &Vec<CaseFoldedLabel>, version_and_updated_at: &str) -> io::Result<()>
 {
-	let mut file = BufWriter::new(File::create(&Path::new(&out_dir).join("EfficientCaseFoldedName.top-level-domains.rs"))?);
-	writeln!(file, "impl EfficientCaseFoldedName<'static>")?;
-	writeln!(file, "{{")?;
+	let mut writer = new_buf_writer(out_dir, "EfficientCaseFoldedName.top_level_domains.rs")?;
 	
-		from_iana_comment(&mut file, version_and_updated_at)?;
-		writeln!(file, "\t#[inline(always)]")?;
-		writeln!(file, "\tpub fn top_level_domain_names() -> &'static HashSet<Self>")?;
-		writeln!(file, "\t{{")?;
-			writeln!(file, "\t\tlazy_static!")?;
-			writeln!(file, "\t\t{{")?;
-				writeln!(file, "\t\t\tstatic ref top_level_domain_names: HashSet<EfficientCaseFoldedName<'static>> = fast_secure_hash_set!")?;
-				writeln!(file, "\t\t\t{{")?;
+	writeln!(writer, "impl EfficientCaseFoldedName<'static>")?;
+	writeln!(writer, "{{")?;
+	
+		from_iana_comment(&mut writer, version_and_updated_at)?;
+		writeln!(writer, "\t#[inline(always)]")?;
+		writeln!(writer, "\tpub fn top_level_domain_names() -> &'static HashSet<Self>")?;
+		writeln!(writer, "\t{{")?;
+			writeln!(writer, "\t\tlazy_static!")?;
+			writeln!(writer, "\t\t{{")?;
+				writeln!(writer, "\t\t\tstatic ref top_level_domain_names: HashSet<EfficientCaseFoldedName<'static>> = fast_secure_hash_set!")?;
+				writeln!(writer, "\t\t\t{{")?;
 				for case_folded_label in top_level_domains
 				{
-					writeln!(file, "\t\t\t\tEfficientCaseFoldedName::{}().clone(),", case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit())?;
+					writeln!(writer, "\t\t\t\tEfficientCaseFoldedName::{}().clone(),", case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit())?;
 				}
-				writeln!(file, "\t\t\t}};")?;
-				writeln!(file, "\t\t\t")?;
-			writeln!(file, "\t\t}}")?;
-			writeln!(file, "\t\t&top_level_domain_names")?;
-		writeln!(file, "\t}}")?;
+				writeln!(writer, "\t\t\t}};")?;
+				writeln!(writer, "\t\t\t")?;
+			writeln!(writer, "\t\t}}")?;
+			writeln!(writer, "\t\t&top_level_domain_names")?;
+		writeln!(writer, "\t}}")?;
 	
 		for case_folded_label in top_level_domains
 		{
-			writeln!(file)?;
-			writeln!(file, "\t/// `{}.`", case_folded_label.as_str())?;
-			from_iana_comment(&mut file, version_and_updated_at)?;
-			writeln!(file, "\t#[inline(always)]")?;
-			writeln!(file, "\tpub fn {}() -> &'static Self", case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit())?;
-			writeln!(file, "\t{{")?;
-			writeln!(file, "\t\tlazy_static!")?;
-			writeln!(file, "\t\t{{")?;
-				writeln!(file, "\t\t\tstatic ref {}: EfficientCaseFoldedName<'static> = EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::{});", case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit(), case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit())?;
-			writeln!(file, "\t\t}}")?;
-			writeln!(file, "\t\t")?;
-			writeln!(file, "\t\t&{}", case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit())?;
-			writeln!(file, "\t}}")?;
+			writeln!(writer)?;
+			writeln!(writer, "\t/// `{}.`", case_folded_label.as_str())?;
+			from_iana_comment(&mut writer, version_and_updated_at)?;
+			writeln!(writer, "\t#[inline(always)]")?;
+			writeln!(writer, "\tpub fn {}() -> &'static Self", case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit())?;
+			writeln!(writer, "\t{{")?;
+			writeln!(writer, "\t\tlazy_static!")?;
+			writeln!(writer, "\t\t{{")?;
+				writeln!(writer, "\t\t\tstatic ref {}: EfficientCaseFoldedName<'static> = EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::{});", case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit(), case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit())?;
+			writeln!(writer, "\t\t}}")?;
+			writeln!(writer, "\t\t")?;
+			writeln!(writer, "\t\t&{}", case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit())?;
+			writeln!(writer, "\t}}")?;
 		}
 	
-	writeln!(file, "}}")?;
+	writeln!(writer, "}}")?;
 	
 	Ok(())
 }
