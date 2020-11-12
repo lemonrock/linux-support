@@ -5,11 +5,27 @@
 struct Code
 {
 	writer: BufWriter<File>,
+	stack_depth: usize,
 }
 
 impl Code
 {
-	fn push_function_start(mut self) -> io::Result<()>
+	fn stack_depth(&self) -> usize
+	{
+		self.stack_depth
+	}
+	
+	fn increment_stack_depth(&mut self)
+	{
+		self.stack_depth += 1
+	}
+	
+	fn decrement_stack_depth(&mut self)
+	{
+		self.stack_depth -= 1
+	}
+	
+	fn push_function_start(&mut self) -> io::Result<()>
 	{
 		self.push_line("fn naptr_service_field_parse(services_field: &[u8]) -> Result<Either<IgnoreServiceFieldReason>, ServiceFieldParseError>")?;
 		self.push_line("{")?;
@@ -49,7 +65,7 @@ impl Code
 	fn push_tab_indented(&mut self, value: &str) -> io::Result<()>
 	{
 		self.push_tabs()?;
-		self.push_str(value);
+		self.push_str(value)
 	}
 	
 	fn push_new_line(&mut self) -> io::Result<()>

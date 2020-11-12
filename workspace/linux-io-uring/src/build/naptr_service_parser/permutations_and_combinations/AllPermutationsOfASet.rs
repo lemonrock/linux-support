@@ -2,37 +2,21 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(super) struct AllPermutationsOfASet<'a, Element: 'a + Clone, V: 'a + Clone>
+pub(super) struct AllPermutationsOfASet<'a, Element: 'a, V: 'a>
 {
-	inputs: &'a [Input<Element, V>],
+	inputs: &'a IndexMap<Element, V>,
 	
-	all_possible_combinations_for_length: Vec<Combination<Element, V>>,
-	
-	all_possible_permutations_for_length_at_combination: Vec<Permutations<Element>>,
+	all_possible_combinations_and_permutations_for_combination_for_length: Vec<(Combination<'a, Element, V>, Permutations<'a, Element, V>)>,
 }
 
-impl<'a, Element: 'a + Clone, V: 'a + Clone> AllPermutationsOfASet<'a, Element, V>
+impl<'a, Element: 'a, V: 'a> AllPermutationsOfASet<'a, Element, V>
 {
-	pub(super) fn from_hash_map<V>(hash_map: &HashMap<Element, V>, include_empty_combination: bool) -> (Vec<Combination<Element, V>>, Vec<Permutations<Element>>)
+	pub(super) fn from_index_map(inputs: &'a IndexMap<Element, V>, include_empty_combination: bool) -> Vec<(Combination<'a, Element, V>, Permutations<'a, Element, V>)>
 	{
-		let inputs = Self::into_vec_from_hash_map(hash_map);
-		Self::new(&inputs[..]).all(include_empty_combination)
+		Self::new(inputs).all(include_empty_combination)
 	}
 	
-	fn into_vec_from_hash_map<V>(hash_map: &HashMap<Element, V>) -> Vec<Input<Element, V>>
-	{
-		let length = hash_map.len();
-		let mut vec = Vec::with_capacity(length);
-		for (element, value) in hash_map
-		{
-			let element = element.clone();
-			let value = value.clone();
-			vec.push((element, value));
-		}
-		vec
-	}
-	
-	fn new(inputs: &'a [Input<Element, V>]) -> Self
+	fn new(inputs: &'a IndexMap<Element, V>) -> Self
 	{
 		let capacity = 2usize.pow(inputs.len() as u32);
 		
@@ -40,15 +24,13 @@ impl<'a, Element: 'a + Clone, V: 'a + Clone> AllPermutationsOfASet<'a, Element, 
 		{
 			inputs,
 			
-			all_possible_combinations_for_length: Vec::with_capacity(capacity),
-			
-			all_possible_permutations_for_length_at_combination: Vec::with_capacity(capacity),
+			all_possible_combinations_and_permutations_for_combination_for_length: Vec::with_capacity(capacity),
 		}
 	}
 	
-	fn all(mut self, include_empty_combination: bool) -> (Vec<Combination<Element, V>>, Vec<Permutations<Element>>)
+	fn all(mut self, include_empty_combination: bool) -> Vec<(Combination<'a, Element, V>, Permutations<'a, Element, V>)>
 	{
-		let n = self.inputs.len();
+		let n = self.n();
 		
 		for index in 0 ..= n
 		{
@@ -73,7 +55,7 @@ impl<'a, Element: 'a + Clone, V: 'a + Clone> AllPermutationsOfASet<'a, Element, 
 			}
 		}
 		
-		(self.all_possible_combinations_for_length, self.all_possible_permutations_for_length_at_combination)
+		self.all_possible_combinations_and_permutations_for_combination_for_length
 	}
 	
 	#[inline(always)]
@@ -95,44 +77,52 @@ impl<'a, Element: 'a + Clone, V: 'a + Clone> AllPermutationsOfASet<'a, Element, 
 	}
 	
 	#[inline(always)]
-	fn permute(&mut self, mut combination: Combination<Element, V>)
+	fn record_combination(&mut self, combination: Combination<'a, Element, V>)
 	{
-		let k = combination.len();
-		let mut result = Vec::with_capacity(Self::factorial(k));
-		self.permute_using_heaps_algorithm(&mut combination, k, &mut result);
-		self.all_possible_permutations_for_length_at_combination.push(result)
+		let permutations_for_combination = self.permute(&combination);
+		self.all_possible_combinations_and_permutations_for_combination_for_length.push((combination, permutations_for_combination))
+	}
+	
+	#[inline(always)]
+	fn permute(&mut self, combination: &Combination<'a, Element, V>) -> Vec<Permutation<'a, Element, V>>
+	{
+		let mut current_permutation_for_combination = combination.clone();
+		let k = current_permutation_for_combination.len();
+		let mut permutations_for_combination = Vec::with_capacity(Self::factorial(k));
+		Self::permute_using_heaps_algorithm(&mut current_permutation_for_combination, k, &mut permutations_for_combination);
+		permutations_for_combination
 	}
 	
 	/// [Heap's Algorithm](https://en.wikipedia.org/wiki/Heap%27s_algorithm).
-	fn permute_using_heaps_algorithm(&mut self, values: &mut [Input<Element, V>], k: usize, result: &mut Permutations<Element>)
+	fn permute_using_heaps_algorithm(current_permutation_for_combination: &mut [Input<'a, Element, V>], k: usize, permutations_for_combination: &mut Permutations<'a, Element, V>)
 	{
 		if k <= 1
 		{
-			let mut new_values = Vec::with_capacity(values.len());
-			for (element, _) in values
+			let mut permutation = Vec::with_capacity(current_permutation_for_combination.len());
+			for element_and_value in current_permutation_for_combination
 			{
-				new_values.push(element.clone());
+				permutation.push(*element_and_value);
 			}
-			result.push(new_values);
+			permutations_for_combination.push(permutation);
 		}
 		else
 		{
 			let new_k = k - 1;
-			self.permute_using_heaps_algorithm(values, new_k, result);
+			Self::permute_using_heaps_algorithm(current_permutation_for_combination, new_k, permutations_for_combination);
 			
 			for index in 0 .. new_k
 			{
 				let is_even = k % 2 == 0;
 				if is_even
 				{
-					values.swap(index, new_k);
+					current_permutation_for_combination.swap(index, new_k);
 				}
 				else
 				{
-					values.swap(0, new_k);
+					current_permutation_for_combination.swap(0, new_k);
 				}
 				
-				self.permute_using_heaps_algorithm(values, new_k, result);
+				Self::permute_using_heaps_algorithm(current_permutation_for_combination, new_k, permutations_for_combination);
 			}
 		}
 	}
@@ -216,7 +206,7 @@ impl<'a, Element: 'a + Clone, V: 'a + Clone> AllPermutationsOfASet<'a, Element, 
 	
 	fn combinations_size_of_slice_k(&mut self, k: usize)
 	{
-		let mut combination: Combination<Element, V> = Vec::with_capacity(k);
+		let mut combination: Combination<'a, Element, V> = Vec::with_capacity(k);
 		unsafe { combination.set_len(k) };
 		
 		let n = self.n();
@@ -230,15 +220,20 @@ impl<'a, Element: 'a + Clone, V: 'a + Clone> AllPermutationsOfASet<'a, Element, 
 	/// * `["A", "B", "C", "D"]`
 	fn combinations_size_of_slice_len(&mut self)
 	{
-		let combination = self.inputs.to_vec();
+		let mut combination = Vec::with_capacity(self.n());
+		for index in 0 .. self.n()
+		{
+			combination.push(self.value(index));
+		}
+		
 		self.record_combination(combination);
 	}
 
-	fn terminate_or_recursive_loop(&mut self, temporary_combination: &mut Combination<Element, V>, outer_index: usize, outer_exclusive_end_index: usize, depth: usize)
+	fn terminate_or_recursive_loop(&mut self, temporary_combination: &mut Combination<'a, Element, V>, outer_index: usize, outer_exclusive_end_index: usize, depth: usize)
 	{
 		let start_index = outer_index + 1;
 		let exclusive_end_index = outer_exclusive_end_index + 1;
-		let terminal_loop = exclusive_end_index == self.inputs.len();
+		let terminal_loop = exclusive_end_index == self.n();
 		
 		if terminal_loop
 		{
@@ -255,7 +250,7 @@ impl<'a, Element: 'a + Clone, V: 'a + Clone> AllPermutationsOfASet<'a, Element, 
 	}
 	
 	#[inline(always)]
-	fn recursive_loop(&mut self, temporary_combination: &mut Combination<Element, V>, start_index: usize, exclusive_end_index: usize, depth: usize)
+	fn recursive_loop(&mut self, temporary_combination: &mut Combination<'a, Element, V>, start_index: usize, exclusive_end_index: usize, depth: usize)
 	{
 		for index in start_index .. exclusive_end_index
 		{
@@ -265,16 +260,9 @@ impl<'a, Element: 'a + Clone, V: 'a + Clone> AllPermutationsOfASet<'a, Element, 
 	}
 	
 	#[inline(always)]
-	fn set_temporary_combination_value(&self, combination: &mut Combination<Element, V>, depth: usize, index: usize)
+	fn set_temporary_combination_value(&self, combination: &mut Combination<'a, Element, V>, depth: usize, index: usize)
 	{
 		unsafe { * combination.get_unchecked_mut(depth) = self.value(index) }
-	}
-	
-	#[inline(always)]
-	fn record_combination(&mut self, combination: Combination<Element, V>)
-	{
-		self.all_possible_combinations_for_length.push(combination.clone());
-		self.permute(combination)
 	}
 	
 	#[inline(always)]
@@ -284,8 +272,8 @@ impl<'a, Element: 'a + Clone, V: 'a + Clone> AllPermutationsOfASet<'a, Element, 
 	}
 	
 	#[inline(always)]
-	fn value(&self, index: usize) -> Input<Element, V>
+	fn value(&self, index: usize) -> Input<'a, Element, V>
 	{
-		unsafe { self.inputs.get_unchecked(index).clone() }
+		self.inputs.get_index(index).unwrap()
 	}
 }

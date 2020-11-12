@@ -20,7 +20,7 @@ fn traversal_using_relays_around_network_address_translation(code: &mut Code) ->
 				
 				"TraversalUsingRelaysAroundNetworkAddressTranslationTransportProtocol",
 				
-				hashmap!
+				&indexmap!
 				{
 					"turn.dtls" => "turn_dtls",
 					

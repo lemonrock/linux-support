@@ -5,8 +5,6 @@
 struct GenerateParseTree<'a>
 {
 	code: &'a mut Code,
-	
-	stack_depth: usize,
 }
 
 impl<'a> Deref for GenerateParseTree<'a>
@@ -36,8 +34,6 @@ impl<'a> GenerateParseTree<'a>
 		Self
 		{
 			code,
-			
-			stack_depth: 0,
 		}
 	}
 
@@ -48,7 +44,7 @@ impl<'a> GenerateParseTree<'a>
 
 	fn generate_recursive(&mut self, naive_trie_node: &NaiveTrieNode<String>) -> io::Result<()>
 	{
-		let byte_index = self.stack_depth;
+		let byte_index = self.stack_depth();
 
 		const NoMatchingPattern: &str = "Ok(Right(NoMatchingPattern))";
 		
@@ -73,9 +69,9 @@ impl<'a> GenerateParseTree<'a>
 		{
 			self.push_match_pattern(case_folded_ascii_byte)?;
 			
-			self.stack_depth += 1;
+			self.increment_stack_depth();
 			self.generate_recursive(child_naive_trie_node)?;
-			self.stack_depth -= 1;
+			self.decrement_stack_depth();
 		}
 		
 		let always_invalid_bytes = "byte @ 0x00 ..= b'*' | byte @ b',' | byte @ b'/' | byte @ b';' ..= b'<' | byte @ b'>' ..= b'@' | byte @ b'[' ..= b'`' | byte @ b'{' ..= 0xFF";
@@ -83,7 +79,7 @@ impl<'a> GenerateParseTree<'a>
 		self.push_tab_indented_line("")?;
 		self.push_tab_indented_line(&format!("\t_ => {},", NoMatchingPattern))?;
 		
-		if self.stack_depth == 0
+		if self.stack_depth() == 0
 		{
 			self.push_tab_indented_line("}")?;
 		}

@@ -2,12 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-fn protocol_permutation_to_delimited_string(delimiter: char, protocol_permutation: &Permutation<&'static str>) -> String
+fn protocol_permutation_to_delimited_string<'a, Element: AsRef<str>, V>(delimiter: char, protocol_permutation: &Permutation<'a, Element, V>) -> String
 {
 	let mut string = String::with_capacity(MaximumServiceFieldSize);
-	for element in protocol_permutation
+	for &(element, _value) in protocol_permutation
 	{
-		string.push_str(&format!("{}{}", delimiter, *element))
+		string.push_str(&format!("{}{}", delimiter, element.as_ref()))
 	}
 	string
 }

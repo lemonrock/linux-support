@@ -33,7 +33,7 @@ impl<'a> DerefMut for AllCombinationsAndPermutations<'a>
 
 impl<'a> AllCombinationsAndPermutations<'a>
 {
-	pub(super) fn process(code: &'a mut Code, prefix: &'a str, application_protocol_enum_name: &'static str, application_protocols: HashMap<&'static str, &'static str>) -> io::Result<Vec<(Permutation<&'static str>, HashOrIndexSetStaticName)>>
+	pub(super) fn process<'b, Element, V: AsRef<str>>(code: &'a mut Code, prefix: &'a str, application_protocol_enum_name: &'static str, application_protocols: &'b IndexMap<Element, V>) -> io::Result<Vec<(Permutation<'b, Element, V>, Rc<HashOrIndexSetStaticName>)>>
 	{
 		Self::new(code, prefix, application_protocol_enum_name).all_combinations_and_permutations_of_application_protocols(application_protocols)
 	}
@@ -48,40 +48,40 @@ impl<'a> AllCombinationsAndPermutations<'a>
 		}
 	}
 	
-	fn all_combinations_and_permutations_of_application_protocols(mut self, application_protocols: HashMap<&'static str, &'static str>) -> io::Result<Vec<(Permutation<&'static str>, HashOrIndexSetStaticName)>>
+	fn all_combinations_and_permutations_of_application_protocols<'b, Element, V: AsRef<str>>(mut self, application_protocols: &'b IndexMap<Element, V>) -> io::Result<Vec<(Permutation<'b, Element, V>, Rc<HashOrIndexSetStaticName>)>>
 	{
-		let (all_combinations, all_permutations_per_combination) = AllPermutationsOfASet::from_hash_map(&application_protocols, true);
+		let all_possible_combinations_and_permutations_for_combination_for_length = AllPermutationsOfASet::from_index_map(application_protocols, true);
 		
 		let mut permutations_with_same_combination = Vec::with_capacity(1024);
-		for (combination, permutations_per_combination) in all_combinations.into_iter().zip(all_permutations_per_combination.into_iter())
+		for (combination, permutations_per_combination) in all_possible_combinations_and_permutations_for_combination_for_length
 		{
 			let (hash_set_static_name, hash_set_static_definition) = self.transport_protocols_hash_set_static_name_and_definition(combination);
 			self.push_str(&hash_set_static_definition)?;
 			
 			for permutations in permutations_per_combination
 			{
-				permutations_with_same_combination.push((permutations, hash_set_static_name))
+				permutations_with_same_combination.push((permutations, hash_set_static_name.clone()))
 			}
 		}
 		
 		Ok(permutations_with_same_combination)
 	}
 	
-	fn transport_protocols_hash_set_static_name_and_definition(&self, combination: Combination<&'static str, &'static str>) -> (HashOrIndexSetStaticName, String)
+	fn transport_protocols_hash_set_static_name_and_definition<'b, Element, V: AsRef<str>>(&self, combination: Combination<'b, Element, V>) -> (Rc<HashOrIndexSetStaticName>, String)
 	{
 		let (hash_set_static_name, hash_set_expression) = self.hash_set_static_name_and_expression_for_combination(combination);
-		let lazy_static_hash_set_expression = format!("lazy_static! {{ static ref {0}: HashSet<{1}> = {2}; }}", &transport_protocols_hash_set_static_name, self.application_protocol_enum_name, hash_set_expression);
+		let lazy_static_hash_set_expression = format!("lazy_static! {{ static ref {0}: HashSet<{1}> = {2}; }}", &hash_set_static_name, self.application_protocol_enum_name, hash_set_expression);
 		
-		(transport_protocols_hash_set_static_name, lazy_static_hash_set_expression)
+		(hash_set_static_name, lazy_static_hash_set_expression)
 	}
 	
 	// TODO: Could this be a PHF hash set?
-	fn hash_set_static_name_and_expression_for_combination(&self, combination: Combination<&'static str, &'static str>) -> (HashOrIndexSetStaticName, String)
+	fn hash_set_static_name_and_expression_for_combination<'b, Element, V: AsRef<str>>(&self, combination: Combination<'b, Element, V>) -> (Rc<HashOrIndexSetStaticName>, String)
 	{
-		let mut hash_set_static_name = format!(self.prefix, "_combination");
+		let mut hash_set_static_name = format!("{}_combination", self.prefix);
 		if combination.is_empty()
 		{
-			(hash_set_static_name, String::from("HashSet::new()"))
+			(Rc::new(hash_set_static_name), String::from("HashSet::new()"))
 		}
 		else
 		{
@@ -89,6 +89,8 @@ impl<'a> AllCombinationsAndPermutations<'a>
 			let mut after_first = false;
 			for (_, application_protocol_enum_member) in combination
 			{
+				let application_protocol_enum_member = application_protocol_enum_member.as_ref();
+				
 				hash_set_static_name.push('_');
 				hash_set_static_name.push_str(application_protocol_enum_member);
 				
@@ -105,7 +107,7 @@ impl<'a> AllCombinationsAndPermutations<'a>
 				hash_set_expression.push_str(application_protocol_enum_member);
 			}
 			hash_set_expression.push_str(" };");
-			(hash_set_static_name, hash_set_expression)
+			(Rc::new(hash_set_static_name), hash_set_expression)
 		}
 	}
 }

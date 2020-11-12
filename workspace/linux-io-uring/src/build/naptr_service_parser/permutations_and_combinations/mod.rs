@@ -3,10 +3,11 @@
 
 
 use super::Code;
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use std::io;
 use std::ops::Deref;
 use std::ops::DerefMut;
+use std::rc::Rc;
 
 
 include!("AllPermutationsOfASet.rs");

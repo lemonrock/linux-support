@@ -6,8 +6,11 @@
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
 #![allow(missing_docs)]
+#![deny(dead_code)]
+#![deny(unused_must_use)]
 #![deny(unconditional_recursion)]
 #![deny(unreachable_patterns)]
+#![deny(unused_must_use)]
 
 
 

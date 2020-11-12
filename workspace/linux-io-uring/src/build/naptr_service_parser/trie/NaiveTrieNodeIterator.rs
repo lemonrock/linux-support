@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-struct NaiveTrieNodeIterator<'a, V>
+pub(super) struct NaiveTrieNodeIterator<'a, V>
 {
 	naive_trie_node: &'a NaiveTrieNode<V>,
 	index: usize,

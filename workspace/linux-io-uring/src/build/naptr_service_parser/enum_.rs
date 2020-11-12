@@ -12,31 +12,21 @@ type SubTypeSpec = String;
 
 fn enum_(code: &mut Code) -> io::Result<HashMap<String, String>>
 {
-	let sub_type_permutations = sub_type_permutations(code)?;
+	let sub_types = sub_types();
+	let sub_type_permutations = sub_type_permutations(&sub_types);
 	
-	let mut type_permutations_input = HashMap::new();
+	let mut type_permutations_input = IndexMap::new();
 	for (naptr_type, (enum_service_member, enum_service_sub_type_type_option)) in enumservices()
 	{
 		if let Some(enum_service_sub_type_type) = enum_service_sub_type_type_option
 		{
 			let permutations = sub_type_permutations.get(enum_service_sub_type_type).unwrap();
-			for (permutation_index, &(ref naptr_sub_type_to_enum_service_sub_type_member, ref sub_type_spec, ref permutation)) in permutations.into_iter().enumerate()
+			for (ref sub_type_spec, ref permutation) in permutations
 			{
 				let mut ordered_enum_services = Vec::with_capacity(4);
-				let mut after_first = false;
-				for naptr_sub_type in permutation
+				for &(_naptr_sub_type, enum_service_sub_type_member) in permutation
 				{
-					if after_first
-					{
-						ordered_enum_services.push_str(", ");
-					}
-					else
-					{
-						after_first = true;
-					}
-					
-					let enum_service_sub_type_member = naptr_sub_type_to_enum_service_sub_type_member.get(naptr_sub_type).unwrap();
-					ordered_enum_services.push(format!("EnumService::{}({}::{})", enum_service_member, enum_service_sub_type_type, enum_service_sub_type_member))?;
+					ordered_enum_services.push(format!("EnumService::{}({}::{})", enum_service_member, enum_service_sub_type_type, *enum_service_sub_type_member));
 				}
 				
 				let servicespec = format!("+{}{}", naptr_type, sub_type_spec);
@@ -51,61 +41,61 @@ fn enum_(code: &mut Code) -> io::Result<HashMap<String, String>>
 		}
 	}
 	
-	let (_, all_permutations) = AllPermutationsOfASet::from_hash_map(&type_permutations_input, false);
+	let all_possible_combinations_and_permutations_for_combination_for_length = AllPermutationsOfASet::from_index_map(&type_permutations_input, false);
 	
 	let mut result = HashMap::new();
 	let mut permutation_index = 0;
-	for some_permutations in all_permutations
+	for (_combination, mut permutations_per_combination) in all_possible_combinations_and_permutations_for_combination_for_length
 	{
-		for permutation in some_permutations
+		for mut permutation in permutations_per_combination.drain(..)
 		{
 			let mut service_field = String::from("E2U");
 			let mut enum_services = Vec::with_capacity(16);
-			for servicespec in permutation
+			for (servicespec, ordered_enum_services) in permutation.drain(..)
 			{
 				service_field.push_str(&servicespec);
-				let mut ordered_enum_services = type_permutations_input.remove(&servicespec).unwrap();
-				enum_services.append(&mut ordered_enum_services);
+				enum_services.extend_from_slice(&ordered_enum_services[..]);
 			}
 			let index_set_name = index_set_definition(code, permutation_index, enum_services)?;
 			permutation_index += 1;
 			
-			result.insert(service_field, format!("Enum {{ enum_services: &{} }}", index_set_name))
+			let old = result.insert(service_field, format!("Enum {{ enum_services: &{} }}", index_set_name));
+			debug_assert!(old.is_none());
 		}
 	}
 	
 	Ok(result)
 }
 
-fn sub_type_permutations(code: &mut Code) -> io::Result<HashMap<EnumServiceSubTypeType, Vec<(HashMap<NaptrSubType, EnumServiceSubTypeMember>, SubTypeSpec, Permutation<&'static str>)>>>
+fn sub_type_permutations<'a>(sub_types: &'a HashMap<EnumServiceSubTypeType, IndexMap<NaptrSubType, EnumServiceSubTypeMember>>) -> HashMap<EnumServiceSubTypeType, Vec<(SubTypeSpec, Permutation<'a, &'static str, &'static str>)>>
 {
-	let sub_types = sub_types();
 	let mut sub_type_permutations = HashMap::with_capacity(sub_types.len());
 	
 	for (enum_service_sub_type_type, naptr_sub_type_to_enum_service_sub_type_member) in sub_types
 	{
-		let (_, all_permutations) = AllPermutationsOfASet::from_hash_map(&naptr_sub_type_to_enum_service_sub_type_member, false);
+		let all_possible_combinations_and_permutations_for_combination_for_length = AllPermutationsOfASet::from_index_map(&naptr_sub_type_to_enum_service_sub_type_member, false);
 		
 		let mut permutations = Vec::with_capacity(128);
-		for some_permutations in all_permutations
+		for (_combination, permutations_per_combination) in all_possible_combinations_and_permutations_for_combination_for_length
 		{
-			for permutation in some_permutations
+			for permutation in permutations_per_combination
 			{
-				let subtype_spec = subtype_spec(enum_service_sub_type_type, &permutation)?;
-				permutations.push((naptr_sub_type_to_enum_service_sub_type_member, subtype_spec, permutation));
+				let subtype_spec = subtype_spec(&permutation);
+				permutations.push((subtype_spec, permutation));
 			}
 		}
 		
-		sub_type_permutations.insert(enum_service_sub_type_type, permutations)
+		let old = sub_type_permutations.insert(*enum_service_sub_type_type, permutations);
+		debug_assert!(old.is_none());
 	}
 	
-	Ok(sub_type_permutations)
+	sub_type_permutations
 }
 
-fn subtype_spec(enum_service_sub_type_type: EnumServiceSubTypeType, permutation: &Permutation<NaptrSubType>) -> SubTypeSpec
+fn subtype_spec<'a>(permutation: &Permutation<'a, NaptrSubType, EnumServiceSubTypeMember>) -> SubTypeSpec
 {
 	let mut subtype_spec = String::with_capacity(MaximumServiceFieldSize);
-	for naptr_sub_type in permutation
+	for &(naptr_sub_type, _) in permutation
 	{
 		subtype_spec.push(':');
 		subtype_spec.push_str(*naptr_sub_type);
@@ -121,18 +111,18 @@ fn index_set_definition(code: &mut Code, permutation_index: usize, enum_services
 	code.push_tab_indented_line("")?;
 	
 	let mut after_first = false;
-	for enum_services in enum_services
+	for enum_service in enum_services
 	{
 		if after_first
 		{
-			code.push_str(", ");
+			code.push_str(", ")?;
 		}
 		else
 		{
 			after_first = true;
 		}
 		
-		code.push_str(enum_service)?;
+		code.push_str(&enum_service)?;
 	}
 	
 	code.push_tab_indented_line("} };")?;
@@ -141,16 +131,16 @@ fn index_set_definition(code: &mut Code, permutation_index: usize, enum_services
 	Ok(index_set_name)
 }
 
-fn sub_types() -> HashMap<EnumServiceSubTypeType, HashMap<NaptrSubType, EnumServiceSubTypeMember>>
+fn sub_types() -> HashMap<EnumServiceSubTypeType, IndexMap<NaptrSubType, EnumServiceSubTypeMember>>
 {
 	hashmap!
 	{
-		"EmailEnumServiceSubType" => hashmap!
+		"EmailEnumServiceSubType" => indexmap!
 		{
 			"mailto" => "mailto"
 		},
 	
-		"EmsEnumServiceSubType" => hashmap!
+		"EmsEnumServiceSubType" => indexmap!
 		{
 			"mailto" => "mailto",
 			"tel" => "tel",

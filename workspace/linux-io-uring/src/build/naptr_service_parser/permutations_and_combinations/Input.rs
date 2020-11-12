@@ -2,4 +2,5 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-type Input<Element, V> = (Element, V);
+#[allow(type_alias_bounds)]
+type Input<'a, Element: 'a, V: 'a> = (&'a Element, &'a V);

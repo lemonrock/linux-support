@@ -13,12 +13,9 @@ impl RerunBuildIfChanged
 	
 	pub fn new(manifest_dir: &OsString) -> Self
 	{
-		let build_folder_path = PathBuf::from(manifest_dir.to_owned());
-		build_folder_path.join(Self::PathPrefix);
-		
 		Self
 		{
-			build_folder_path,
+			build_folder_path: PathBuf::from(manifest_dir.to_owned()).join(Self::PathPrefix),
 		}
 	}
 	
@@ -38,7 +35,7 @@ impl RerunBuildIfChanged
 			let metadata = rerun_item_path.symlink_metadata()?;
 			if metadata.file_type().is_dir()
 			{
-				self.process_directory(&rerun_item_path)
+				self.process_directory(&rerun_item_path)?;
 			}
 			else
 			{
@@ -53,7 +50,7 @@ impl RerunBuildIfChanged
 	{
 		let relative_path_below_build = rerun_item_path.strip_prefix(&self.build_folder_path).unwrap();
 		
-		let (separator, path_below_src_build) = if relative_path_below_build_path.as_os_str().is_empty()
+		let (separator, path_below_src_build) = if relative_path_below_build.as_os_str().is_empty()
 		{
 			("", "")
 		}

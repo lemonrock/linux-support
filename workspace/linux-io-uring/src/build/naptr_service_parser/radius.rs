@@ -33,7 +33,7 @@ fn radius(code: &mut Code) -> io::Result<HashMap<String, String>>
 				
 				"RadiusTransportProtocol",
 				
-				hashmap!
+				&indexmap!
 				{
 					// RFC 7585.
 					"radius.dtls.udp" => "radius_dtls_udp",

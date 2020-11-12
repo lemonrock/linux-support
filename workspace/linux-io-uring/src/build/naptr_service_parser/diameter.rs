@@ -83,7 +83,7 @@ fn diameter(code: &mut Code) -> io::Result<HashMap<String, String>>
 				
 				"DiameterTransportProtocol",
 				
-				hashmap!
+				&indexmap!
 				{
 					// RFC 6733.
 					"diameter.dtls.sctp" => "diameter_dtls_sctp",

@@ -19,6 +19,7 @@ edition = '2018'
 version = "0.0.2"
 
 [build-dependencies]
+indexmap = { version = "^1.5.0", features = [] }
 maplit = "^1.0.2"
 
 [dependencies]

@@ -7,11 +7,15 @@ fn location_to_service_translation_protocol() -> HashMap<&'static str, &'static 
 	hashmap!
 	{
 		"LoST:http" => "LocationToServiceTranslationProtocol { profile: LocationToServiceTranslationProtocolProfile::Generic, transport_protocol: Some(HypertextTransportProtocol::http) }",
+		
 		"LoST:https" => "LocationToServiceTranslationProtocol { profile: LocationToServiceTranslationProtocolProfile::Generic, transport_protocol: Some(HypertextTransportProtocol::https) }",
+		
 		"LoST" => "LocationToServiceTranslationProtocol { profile: LocationToServiceTranslationProtocolProfile::Generic, transport_protocol: None }",
 		
-		"LoST:http" => "LocationToServiceTranslationProtocol { profile: LocationToServiceTranslationProtocolProfile::ValidationOnly, transport_protocol: Some(HypertextTransportProtocol::http) }",
-		"LoST:https" => "LocationToServiceTranslationProtocol { profile: LocationToServiceTranslationProtocolProfile::ValidationOnly, transport_protocol: Some(HypertextTransportProtocol::https) }",
-		"LoST" => "LocationToServiceTranslationProtocol { profile: LocationToServiceTranslationProtocolProfile::ValidationOnly, transport_protocol: None }",
+		"LoST-Validation:http" => "LocationToServiceTranslationProtocol { profile: LocationToServiceTranslationProtocolProfile::ValidationOnly, transport_protocol: Some(HypertextTransportProtocol::http) }",
+		
+		"LoST-Validation:https" => "LocationToServiceTranslationProtocol { profile: LocationToServiceTranslationProtocolProfile::ValidationOnly, transport_protocol: Some(HypertextTransportProtocol::https) }",
+		
+		"LoST-Validation" => "LocationToServiceTranslationProtocol { profile: LocationToServiceTranslationProtocolProfile::ValidationOnly, transport_protocol: None }",
 	}
 }

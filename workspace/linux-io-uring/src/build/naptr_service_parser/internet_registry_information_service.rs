@@ -35,7 +35,7 @@ fn internet_registry_information_service(code: &mut Code) -> io::Result<HashMap<
 				
 				"InternetRegistryInformationServiceTransportProtocol",
 				
-				hashmap!
+				&indexmap!
 				{
 					// Defined by RFC 3983.
 					"iris.beep" => "iris_beep",
