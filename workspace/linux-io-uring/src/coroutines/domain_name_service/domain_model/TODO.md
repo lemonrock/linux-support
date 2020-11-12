@@ -8,22 +8,24 @@
         urn.arpa (RFC 3405) Dynamic Delegation Discovery System (DDDS)
         See https://www.iana.org/domains/arpa?ref=hackernoon.com
 
+    TODO: Fix canonical name chain for not just parent, but any ancestor (grand parent, great-great granparent, etc)
+        dig NAPTR 4.3.2.1.6.7.9.8.6.4.e164.arpa
+        6.4.e164.arpa.		90	IN	SOA	nic.gota.net. enum-registry.gotanet.se. 2020022701 10800 1800 3600000 3600
+        
+        dig NAPTR 3.2.1.0.5.5.5.9.9.9.1.e164.arpa. 
+        e164.arpa.		90	IN	SOA	pri.authdns.ripe.net. dns.ripe.net. 1581072354 3600 600 864000 3600 
+
 	TODO: Sort out CertificateAuthorityAuthorization into enums with values.
 	TODO: Add Into<> functions a la StartOfAuthority
 	
 	TODO: DNS extended errors: https://tools.ietf.org/html/rfc8914
 	TODO: PTR - should these be solitary?
 	
+	TODO: TXT records.
+	
 	TODO DNS Names that are underscored
 	    - are they enumservices https://www.iana.org/assignments/enum-services/enum-services.xhtml#enum-services-1 ?  RFC 6117 and RFC 6118 https://tools.ietf.org/html/rfc6118
 	    - https://tools.ietf.org/html/rfc8552 Scoped Interpretation of DNS Resource Records through  "Underscored" Naming of Attribute Leaves
-		
-	https://tools.ietf.org/html/rfc6116
-	    Telephone number mapping E.164 uses NAPTR
-	       Compound value: "E2U+voice:tel+sms:tel".
-	       non-terminal should have an empty SERVICE field; S-NAPTR however a populated SERVICE field is allowed.
-	
-	    
 	
 	?https://www.rfc-editor.org/rfc/rfc8499.html#? TTLs in a RRSet must match?
 	

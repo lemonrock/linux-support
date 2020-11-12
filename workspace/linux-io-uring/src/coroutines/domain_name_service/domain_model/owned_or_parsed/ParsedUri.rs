@@ -2,19 +2,35 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+/// URI parsed from a message.
+#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+pub struct ParsedUri<'message>(Uri<'message>);
 
+impl<'message> HasTypeEquality for ParsedUri<'message>
+{
+	type TypeEquality = ParsedTypeEquality;
+}
 
-include!("HasTypeEquality.rs");
-include!("Owned.rs");
-include!("OwnedBytes.rs");
-include!("OwnedTypeEquality.rs");
-include!("OwnedOrParsed.rs");
-include!("OwnedOrParsedBytes.rs");
-include!("OwnedOrParsedTypeEquality.rs");
-include!("OwnedOrParsedUri.rs");
-include!("OwnedUri.rs");
-include!("Parsed.rs");
-include!("ParsedBytes.rs");
-include!("ParsedTypeEquality.rs");
-include!("ParsedUri.rs");
+impl<'message> OwnedOrParsedUri for ParsedUri<'message>
+{
+}
+
+impl<'message> Deref for ParsedUri<'message>
+{
+	type Target = Uri<'message>;
+	
+	#[inline(always)]
+	fn deref(&self) -> &Self::Target
+	{
+		&self.0
+	}
+}
+
+impl<'message> From<Uri<'message>> for ParsedUri<'message>
+{
+	#[inline(always)]
+	fn from(value: Uri<'message>) -> Self
+	{
+		Self(value)
+	}
+}

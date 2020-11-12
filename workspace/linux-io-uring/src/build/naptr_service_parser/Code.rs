@@ -27,9 +27,9 @@ impl Code
 	
 	fn push_function_start(&mut self) -> io::Result<()>
 	{
-		self.push_line("fn naptr_service_field_parse(services_field: &[u8]) -> Result<Either<IgnoreServiceFieldReason>, ServiceFieldParseError>")?;
+		self.push_line("fn naptr_service_field_parse(services_field: &[u8]) -> Result<Either<ServiceField, IgnoreServiceFieldReason>, ServiceFieldParseError>")?;
 		self.push_line("{")?;
-		self.push_function_line("use self::IgnoreServiceFieldReason::*;")?;
+		self.push_function_line("use self::IgnoredServiceFieldReason::*;")?;
 		self.push_function_line("use self::ServiceField::*;")?;
 		self.push_function_line("use self::ServiceFieldParseError::*;")?;
 		self.push_function_line("")?;

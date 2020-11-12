@@ -15,15 +15,6 @@ pub enum NamingAuthorityResourceRecordIgnoredReason
 	/// More than one flag.
 	MultipleFlags,
 
-	#[allow(missing_docs)]
-	ExperimentalApplicationProtocolTag(TagKey),
-	
-	#[allow(missing_docs)]
-	ExperimentalApplicationServviceTag(TagKey),
-
-	#[allow(missing_docs)]
-	UnregisteredApplicationProtocolTag(TagKey),
-	
-	#[allow(missing_docs)]
-	UnregisteredApplicationServviceTag(TagKey),
+	/// Ignore service field.
+	IgnoredServiceField(IgnoreServiceFieldReason),
 }

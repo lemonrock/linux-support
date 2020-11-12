@@ -2,19 +2,35 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+/// Owned URI.
+#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+pub struct OwnedUri(URI<'static>);
 
+impl HasTypeEquality for OwnedUri
+{
+	type TypeEquality = OwnedTypeEquality;
+}
 
-include!("HasTypeEquality.rs");
-include!("Owned.rs");
-include!("OwnedBytes.rs");
-include!("OwnedTypeEquality.rs");
-include!("OwnedOrParsed.rs");
-include!("OwnedOrParsedBytes.rs");
-include!("OwnedOrParsedTypeEquality.rs");
-include!("OwnedOrParsedUri.rs");
-include!("OwnedUri.rs");
-include!("Parsed.rs");
-include!("ParsedBytes.rs");
-include!("ParsedTypeEquality.rs");
-include!("ParsedUri.rs");
+impl OwnedOrParsedUri for OwnedUri
+{
+}
+
+impl Deref for OwnedUri
+{
+	type Target = URI<'static>;
+	
+	#[inline(always)]
+	fn deref(&self) -> &Self::Target
+	{
+		&self.0
+	}
+}
+
+impl<'message> From<ParsedUri<'message>> for OwnedUri
+{
+	#[inline(always)]
+	fn from(value: ParsedUri<'message>) -> Self
+	{
+		Self(value.into_owned())
+	}
+}

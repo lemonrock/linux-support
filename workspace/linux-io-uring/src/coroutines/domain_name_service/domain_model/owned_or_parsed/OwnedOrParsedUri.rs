@@ -2,19 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
-
-
-include!("HasTypeEquality.rs");
-include!("Owned.rs");
-include!("OwnedBytes.rs");
-include!("OwnedTypeEquality.rs");
-include!("OwnedOrParsed.rs");
-include!("OwnedOrParsedBytes.rs");
-include!("OwnedOrParsedTypeEquality.rs");
-include!("OwnedOrParsedUri.rs");
-include!("OwnedUri.rs");
-include!("Parsed.rs");
-include!("ParsedBytes.rs");
-include!("ParsedTypeEquality.rs");
-include!("ParsedUri.rs");
+/// Arbitrary byte data that occurs in resource records that may exist for longer than a message.
+pub trait OwnedOrParsedUri: HasTypeEquality + Debug + Clone + PartialEq + Eq + PartialOrd + Ord + Hash
+{
+}

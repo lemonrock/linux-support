@@ -140,6 +140,8 @@ impl<'message> CanonicalNameChain<'message>
 	#[inline(always)]
 	fn validate_authority_section_name(&self, authority_section_name: &ParsedName<'message>) -> bool
 	{
+		xxxx; // not quite true, eg `dig +NAPTR 4.3.2.1.6.7.9.8.6.4.e164.arpa` gives an SOA `6.4.e164.arpa.		90	IN	SOA	nic.gota.net. enum-registry.gotanet.se. 2020022701 10800 1800 3600000 3600`.
+		
 		match self.most_canonical_name().parent()
 		{
 			Some(ref most_canonical_name_parent) => authority_section_name.eq(most_canonical_name_parent),

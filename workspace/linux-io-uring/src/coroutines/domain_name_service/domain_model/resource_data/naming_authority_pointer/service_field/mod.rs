@@ -19,12 +19,12 @@ pub mod resolution_services;
 pub mod s_naptr;
 
 
-include!(concat!(env!("OUT_DIR"), "/naptr_service_field_parse.naptr_service_parser.rs"));
-
-
+include!("IgnoredServiceFieldReason.rs");
 include!("NamingAuthorityCommonTransportProtocol.rs");
-include!("ProtocolOrResolutionServiceParseError.rs");
+include!("Replacement.rs");
 include!("ServiceField.rs");
-include!("ServiceFieldParseError.rs");
 include!("ServiceFieldParser.rs");
 include!("ToNamingAuthorityCommonTransportProtocol.rs");
+
+
+include!(concat!(env!("OUT_DIR"), "/naptr_service_field_parse.naptr_service_parser.rs"));

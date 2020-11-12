@@ -16,7 +16,6 @@ pub fn main(_manifest_dir: &OsString, out_dir: &OsString) -> io::Result<()>
 	all.add(application_layer_traffic_optimization());
 	all.add(centralized_conferencing());
 	all.add(diameter(&mut code)?);
-	all.add(enum_(&mut code)?);
 	all.add(internet_registry_information_service(&mut code)?);
 	all.add(local_location_information_server());
 	all.add(location_to_service_translation_protocol());
@@ -24,13 +23,18 @@ pub fn main(_manifest_dir: &OsString, out_dir: &OsString) -> io::Result<()>
 	all.add(session_initiation_protocol());
 	all.add(session_initiation_protocol_user_agent_configuration());
 	all.add(traversal_using_relays_around_network_address_translation(&mut code)?);
+	all.add(enum_(&mut code)?);
 	
 	let generate_parse_tree = GenerateParseTree::new(&mut code);
 	generate_parse_tree.generate(&all)?;
 	
 	code.push_function_end()?;
 	
+	xxxx;
+	
 	// TODO: https://tools.ietf.org/html/rfc2169 THTTP
+	// TODO: finish enum service definitions (there seems to be an insane amount).
+	// TODO: lazy static is very dangerous in coroutine environments!
 	
 	Ok(())
 }

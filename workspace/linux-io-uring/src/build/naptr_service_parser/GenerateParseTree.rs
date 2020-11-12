@@ -75,7 +75,7 @@ impl<'a> GenerateParseTree<'a>
 		}
 		
 		let always_invalid_bytes = "byte @ 0x00 ..= b'*' | byte @ b',' | byte @ b'/' | byte @ b';' ..= b'<' | byte @ b'>' ..= b'@' | byte @ b'[' ..= b'`' | byte @ b'{' ..= 0xFF";
-		self.push_tab_indented_line(&format!("\t{} => Err(ServiceFieldParseError::OutOfRange(byte, {})),", always_invalid_bytes, byte_index))?;
+		self.push_tab_indented_line(&format!("\t{} => Err(OutOfRange(byte, {})),", always_invalid_bytes, byte_index))?;
 		self.push_tab_indented_line("")?;
 		self.push_tab_indented_line(&format!("\t_ => {},", NoMatchingPattern))?;
 		

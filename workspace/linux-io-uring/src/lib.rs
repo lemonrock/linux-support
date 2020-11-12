@@ -227,6 +227,7 @@ use swiss_army_knife::split::SplitBytes;
 use swiss_army_knife::time::NanosecondsSinceUnixEpoch;
 use swiss_army_knife::time::U31SecondsDuration;
 use terminate::Terminate;
+use uriparse::Scheme;
 use uriparse::URI;
 use uriparse::URIError;
 

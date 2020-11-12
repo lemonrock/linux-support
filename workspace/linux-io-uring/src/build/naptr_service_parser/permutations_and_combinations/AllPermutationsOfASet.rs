@@ -42,7 +42,10 @@ impl<'a, Element: 'a, V: 'a> AllPermutationsOfASet<'a, Element, V>
 			{
 				match index
 				{
-					0 if include_empty_combination => self.combinations_size_of_slice_0(),
+					0 => if include_empty_combination
+					{
+						self.combinations_size_of_slice_0()
+					},
 	
 					1 => self.combinations_size_of_slice_1(),
 	
@@ -262,7 +265,7 @@ impl<'a, Element: 'a, V: 'a> AllPermutationsOfASet<'a, Element, V>
 	#[inline(always)]
 	fn set_temporary_combination_value(&self, combination: &mut Combination<'a, Element, V>, depth: usize, index: usize)
 	{
-		unsafe { * combination.get_unchecked_mut(depth) = self.value(index) }
+		*(combination.get_mut(depth).unwrap()) = self.value(index)
 	}
 	
 	#[inline(always)]

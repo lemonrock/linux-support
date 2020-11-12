@@ -107,26 +107,22 @@ fn index_set_definition(code: &mut Code, permutation_index: usize, enum_services
 {
 	let index_set_name = format!("enum_{}", permutation_index);
 	
-	code.push_tab_indented_line(&format!("lazy_static! {{ static ref {}: IndexSet<EnumService> = indexset! {{ ", &index_set_name))?;
-	code.push_tab_indented_line("")?;
 	
-	let mut after_first = false;
-	for enum_service in enum_services
-	{
-		if after_first
+	code.push_function_line("lazy_static!")?;
+	code.push_function_line("{")?;
+	code.increment_stack_depth();
+		code.push_tab_indented_line(&format!("static ref {0}: HashSet<EnumService> = indexset!", &index_set_name))?;
+		code.push_tab_indented_line("{")?;
+		code.increment_stack_depth();
+		for enum_service in enum_services
 		{
-			code.push_str(", ")?;
+			code.push_tab_indented_line(&format!("{}, ", enum_service))?;
 		}
-		else
-		{
-			after_first = true;
-		}
-		
-		code.push_str(&enum_service)?;
-	}
-	
-	code.push_tab_indented_line("} };")?;
-	code.push_new_line()?;
+		code.decrement_stack_depth();
+		code.push_tab_indented_line("};")?;
+	code.decrement_stack_depth();
+	code.push_function_line("}")?;
+	code.push_function_line("")?;
 	
 	Ok(index_set_name)
 }

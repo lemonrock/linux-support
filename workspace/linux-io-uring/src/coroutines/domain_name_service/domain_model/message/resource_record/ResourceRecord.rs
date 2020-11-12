@@ -783,39 +783,40 @@ impl ResourceRecord
 			}
 		};
 		
-		
-		
-		/*
-
-
-
-
-
-		So, a possible design
-		
-		pub enum TransportProtocol
+		let service_field = match naptr_service_field_parse(raw_services.deref())?
 		{
-		}
-
-
-
-
-		 */
-		
-		
-		
+			Left(service_field) =>
+			{
+				// Helping out IDE type inference because `naptr_service_field_parse()` is a build (code) generated function.
+				let service_field: ServiceField = service_field;
+				
+				service_field.validate_mutually_exclusive_flags(mutually_exclusive_flag, replacement_domain_name_or_raw_regular_expression);
+				
+				
+				//  RFC 2915, Section 2 NAPTR RR Format, Service, paragraph 1: "A protocol MUST be specified if the flags field states that the NAPTR is terminal".
+				// See also redefinitions by RFCs 3401 to 3404 inclusive.
+				if let Some(mutually_exclusive_flag) = mutually_exclusive_flag
+				{
+					if unlikely!(mutually_exclusive_flag.is_terminal() && protocol.is_none())
+					{
+						Err(ServiceFieldMustBeSpecifiedIfATerminalFlagIsSpecified)?
+					}
+				}
+				
+				// TODO: Validate URI, flags, etc match definition.
+				
+				service_field
+			},
+			
+			Right(ignore_service_field_reason) =>
+			{
+				resource_record_visitor.NAPTR_ignored(owner_name, NamingAuthorityResourceRecordIgnoredReason::IgnoredServiceField(ignored_service_field_reason));
+				return Ok(resource_data_end_pointer)
+			}
+		};
 		
 		let (protocol, resolution_services) = CaseFoldedNamingAuthorityProtocol::parse_services(raw_services)?;
 		
-		//  RFC 2915, Section 2 NAPTR RR Format, Service, paragraph 1: "A protocol MUST be specified if the flags field states that the NAPTR is terminal".
-		// See also redefinitions by RFCs 3401 to 3404 inclusive.
-		if let Some(mutually_exclusive_flag) = mutually_exclusive_flag
-		{
-			if unlikely!(mutually_exclusive_flag.is_terminal() && protocol.is_none())
-			{
-				Err(ProtocolMustBeSpecifiedIfATerminalFlagIsSpecified)?
-			}
-		}
 		
 		
 		let record = NamingAuthorityPointer

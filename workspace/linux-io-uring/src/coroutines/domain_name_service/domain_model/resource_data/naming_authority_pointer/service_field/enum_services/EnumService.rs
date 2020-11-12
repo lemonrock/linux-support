@@ -6,7 +6,14 @@
 ///
 /// From <https://www.iana.org/assignments/enum-services/enum-services.xhtml#enum-services-1>
 ///
-/// An Enum service.
+/// An ENUM (E.164 number to URI mapping) service.
+///
+/// For a real, working example use `dig -t naptr 4.4.2.2.3.3.5.6.8.1.4.4.e164.arpa` for `+44 1865 332244`:-
+///
+/// ```bash
+/// 4.4.2.2.3.3.5.6.8.1.4.4.e164.arpa. 86400 IN NAPTR 100 20 "u" "E2U+pstn:tel" "!^(.*)$!tel:\\1!" .
+/// 4.4.2.2.3.3.5.6.8.1.4.4.e164.arpa. 86400 IN NAPTR 100 10 "u" "E2U+sip" "!^\\+441865332(.*)$!sip:\\1@nominet.org.uk!" .
+/// ```
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Ord, Hash)]
 #[derive(EnumCount, EnumIter, IntoStaticStr)]
 #[derive(EnumDiscriminants)]

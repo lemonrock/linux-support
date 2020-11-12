@@ -29,8 +29,8 @@ pub fn main() -> io::Result<()>
 	let out_dir = var_os("OUT_DIR").unwrap();
 	
 	build::rerun_if_changed::main(&manifest_dir, &out_dir)?;
-	build::top_level_domains::main(&manifest_dir, &out_dir)?;
 	build::naptr_service_parser::main(&manifest_dir, &out_dir)?;
+	build::top_level_domains::main(&manifest_dir, &out_dir)?;
 	
 	Ok(())
 }
