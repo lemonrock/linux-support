@@ -41,22 +41,21 @@ impl<'a> GenerateParseTree<'a>
 	{
 		self.generate_recursive(&trie)
 	}
-
+		
 	fn generate_recursive(&mut self, naive_trie_node: &NaiveTrieNode<String>) -> io::Result<()>
 	{
 		let byte_index = self.stack_depth();
 
 		const NoMatchingPattern: &str = "Ok(Right(NoMatchingPattern))";
 		
-		let exact_match_string = if byte_index == 0
+		let exact_match_string = match byte_index
 		{
-			String::from("Ok(Left(None))")
-		}
-		else
-		{
-			match naive_trie_node.value()
+			0 => String::from("Ok(Left(None))"),
+			
+			_ => match naive_trie_node.value()
 			{
 				None => String::from(NoMatchingPattern),
+				
 				Some(value) => format!("Ok(Left(Some({})))", value.as_str()),
 			}
 		};

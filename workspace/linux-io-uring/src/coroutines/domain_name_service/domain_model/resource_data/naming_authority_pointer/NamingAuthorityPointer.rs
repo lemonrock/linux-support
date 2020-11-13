@@ -4,7 +4,7 @@
 
 /// A naming authority pointer record.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct NamingAuthorityPointer<'label, N: Name<'label, TypeEquality=TE>, CS: CharacterString<TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
+pub struct NamingAuthorityPointer<'label, N: Name<'label, TypeEquality=TE>, OOPU: OwnedOrParsedUri<TypeEquality=TE>, CS: CharacterString<TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
 {
 	/// Mutually exclusive flag, if any.
 	pub mutually_exclusive_flag: Option<NamingAuthorityMutuallyExclusiveFlag>,
@@ -26,12 +26,10 @@ pub struct NamingAuthorityPointer<'label, N: Name<'label, TypeEquality=TE>, CS: 
 	/// * is validated to not be empty.
 	/// * is validated to be up to 255 bytes long.
 	/// * does not have its syntax validated (although this may change in the future).
-	pub domain_name_or_regular_expression: Either<N, CS>,
-
-	pub(crate) marker: PhantomData<&'label ()>,
+	pub replacement: Replacement<'label, N, OOPU, CS, TE>,
 }
 
-impl<'message> Into<NamingAuthorityPointer<'static, EfficientCaseFoldedName, OwnedCharacterString>> for NamingAuthorityPointer<'message, ParsedName<'message>, ParsedCharacterString<'message>>
+impl<'message> Into<NamingAuthorityPointer<'static, EfficientCaseFoldedName, OwnedUri, OwnedCharacterString>> for NamingAuthorityPointer<'message, ParsedName<'message>, ParsedUri<'message>, ParsedCharacterString<'message>>
 {
 	#[inline(always)]
 	fn into(self) -> NamingAuthorityPointer<'static, EfficientCaseFoldedName, OwnedCharacterString>
@@ -41,12 +39,7 @@ impl<'message> Into<NamingAuthorityPointer<'static, EfficientCaseFoldedName, Own
 			mutually_exclusive_flag: self.mutually_exclusive_flag,
 			protocol: self.protocol,
 			resolution_services: self.resolution_services,
-			domain_name_or_regular_expression: match self.domain_name_or_regular_expression
-			{
-				Left(domain_name) => Left(EfficientCaseFoldedName::from(domain_name)),
-				Right(regular_expression) => Right(regular_expression.into()),
-			},
-			marker: PhantomData,
+			replacement: replacement.into(),
 		}
 	}
 }

@@ -131,7 +131,7 @@ pub(crate) trait ResourceRecordVisitor<'message>
 	/// Default implementation does nothing.
 	#[allow(unused)]
 	#[inline(always)]
-	fn NAPTR(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, order: Order, preference: Priority, record: NamingAuthorityPointer<ParsedName<'message>, ParsedCharacterString<'message>, ParsedTypeEquality>) -> Result<(), Self::Error>
+	fn NAPTR(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, order: Order, preference: Priority, record: NamingAuthorityPointer<ParsedName<'message>, ParsedUri<'message>, ParsedCharacterString<'message>, ParsedTypeEquality>) -> Result<(), Self::Error>
 	{
 		Ok(())
 	}

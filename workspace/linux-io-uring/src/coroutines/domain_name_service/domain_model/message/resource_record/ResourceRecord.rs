@@ -783,32 +783,40 @@ impl ResourceRecord
 			}
 		};
 		
-		let service_field = match naptr_service_field_parse(raw_services.deref())?
+		let replacement = match naptr_service_field_parse(raw_services.deref())?
 		{
-			Left(service_field) =>
+			Left(Some(service_field)) =>
 			{
 				// Helping out IDE type inference because `naptr_service_field_parse()` is a build (code) generated function.
 				let service_field: ServiceField = service_field;
-				
-				service_field.validate_mutually_exclusive_flags(mutually_exclusive_flag, replacement_domain_name_or_raw_regular_expression);
-				
-				
-				//  RFC 2915, Section 2 NAPTR RR Format, Service, paragraph 1: "A protocol MUST be specified if the flags field states that the NAPTR is terminal".
-				// See also redefinitions by RFCs 3401 to 3404 inclusive.
-				if let Some(mutually_exclusive_flag) = mutually_exclusive_flag
+				match service_field.validate_mutually_exclusive_flags(mutually_exclusive_flag, replacement_domain_name_or_raw_regular_expression)
 				{
-					if unlikely!(mutually_exclusive_flag.is_terminal() && protocol.is_none())
+					Left(replacement) => (),
+					
+					Right(ignored_service_field_reason) =>
 					{
-						Err(ServiceFieldMustBeSpecifiedIfATerminalFlagIsSpecified)?
+						resource_record_visitor.NAPTR_ignored(owner_name, NamingAuthorityResourceRecordIgnoredReason::IgnoredServiceField(ignored_service_field_reason));
+						return Ok(resource_data_end_pointer)
 					}
 				}
-				
-				// TODO: Validate URI, flags, etc match definition.
-				
-				service_field
 			},
 			
-			Right(ignore_service_field_reason) =>
+			// If this is a terminal record then we're really stuck
+			// If this is non-terminal record then we may need to
+			Left(None) => match mutually_exclusive_flag
+			{
+				// eg `dig NAPTR http.uri.arpa` (also `ftp.uri.arpa` and `mailto.uri.arpa`) which returns a complex regular expression.
+				None => Replacement::from_replacement_domain_name_or_raw_regular_expression(replacement_domain_name_or_raw_regular_expression),
+				
+				Some(flag) =>
+				{
+					resource_record_visitor.NAPTR_ignored(owner_name, NamingAuthorityResourceRecordIgnoredReason::IgnoredServiceField(NamingAuthorityResourceRecordIgnoredReason::EmptyServiceFieldForTerminalRecord(flag)));
+					return Ok(resource_data_end_pointer)
+				}
+				
+			}
+			
+			Right(ignored_service_field_reason) =>
 			{
 				resource_record_visitor.NAPTR_ignored(owner_name, NamingAuthorityResourceRecordIgnoredReason::IgnoredServiceField(ignored_service_field_reason));
 				return Ok(resource_data_end_pointer)
@@ -817,15 +825,12 @@ impl ResourceRecord
 		
 		let (protocol, resolution_services) = CaseFoldedNamingAuthorityProtocol::parse_services(raw_services)?;
 		
-		
-		
 		let record = NamingAuthorityPointer
 		{
 			mutually_exclusive_flag,
 			protocol,
 			resolution_services,
-			domain_name_or_regular_expression,
-			marker: PhantomData,
+			replacement,
 		};
 		
 		resource_record_visitor.NAPTR(owner_name, cache_until, order, preference, record).map_err(|error| HandleRecordTypeError::ResourceRecordVisitor(DataType::NAPTR, error))?;

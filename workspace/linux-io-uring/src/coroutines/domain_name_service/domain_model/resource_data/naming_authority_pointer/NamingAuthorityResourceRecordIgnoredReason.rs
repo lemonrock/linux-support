@@ -15,6 +15,9 @@ pub enum NamingAuthorityResourceRecordIgnoredReason
 	/// More than one flag.
 	MultipleFlags,
 
-	/// Ignore service field.
-	IgnoredServiceField(IgnoreServiceFieldReason),
+	/// Ignored service field.
+	IgnoredServiceField(IgnoredServiceFieldReason),
+
+	/// Could this actually be permissible for the `P` flag?
+	EmptyServiceFieldForTerminalRecord(NamingAuthorityMutuallyExclusiveFlag),
 }

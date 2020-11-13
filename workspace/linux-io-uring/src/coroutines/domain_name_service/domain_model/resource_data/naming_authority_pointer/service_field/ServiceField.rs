@@ -183,15 +183,15 @@ pub enum ServiceField
 
 impl ServiceField
 {
-	pub(crate) fn validate_mutually_exclusive_flags<'message>(&self, mutually_exclusive_flag: Option<NamingAuthorityMutuallyExclusiveFlag>, regular_expression: Either<ParsedName<'message>, ParsedCharacterString<'message>>) -> Result<Replacement<'message, ParsedName<'message>, ParsedUri<'message>, ParsedCharacterString<'message>>, IgnoreServiceFieldReason>
+	pub(crate) fn validate_mutually_exclusive_flags<'message>(&self, mutually_exclusive_flag: Option<NamingAuthorityMutuallyExclusiveFlag>, replacement_domain_name_or_raw_regular_expression: Either<ParsedName<'message>, ParsedCharacterString<'message>>) -> Result<Replacement<'message, ParsedName<'message>, ParsedUri<'message>, ParsedCharacterString<'message>>, IgnoredServiceFieldReason>
 	{
 		use self::HypertextTransportProtocol::*;
-		use self::IgnoreServiceFieldReason::*;
+		use self::IgnoredServiceFieldReason::*;
 		use self::NamingAuthorityMutuallyExclusiveFlag::*;
 		use self::Replacement::*;
 		use self::ServiceField::*;
 		
-		match (self, mutually_exclusive_flag, regular_expression)
+		match (self, mutually_exclusive_flag, replacement_domain_name_or_raw_regular_expression)
 		{
 			(&Enum { .. }, None, Left(domain_name)) => Ok(DomainName(domain_name)),
 			(&Enum { .. }, None, Right(_)) => Err(NonTerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::Enum)),
@@ -322,9 +322,9 @@ impl ServiceField
 	
 	/// See RFC 4095, Section 2 The No-Solicit NAPTR Application, page 4.
 	/// If `valid_protocol` is `None`, then both `HTTP` and `HTTPS` are considered valid.
-	fn is_valid_no_solicit_regular_expression_uri<'message>(regular_expression: ParsedCharacterString<'message>) -> Result<Replacement<'message, ParsedName<'message>, ParsedUri<'message>, ParsedCharacterString<'message>>, IgnoreServiceFieldReason>
+	fn is_valid_no_solicit_regular_expression_uri<'message>(regular_expression: ParsedCharacterString<'message>) -> Result<Replacement<'message, ParsedName<'message>, ParsedUri<'message>, ParsedCharacterString<'message>>, IgnoredServiceFieldReason>
 	{
-		use self::IgnoreServiceFieldReason::*;
+		use self::IgnoredServiceFieldReason::*;
 		
 		// At least 3 bytes long for 3 delimiter characters.
 		const DelimiterCharacterLength: usize = 1;
@@ -369,9 +369,9 @@ impl ServiceField
 	
 	/// See RFC 4848, Section 2.2 Permitted Regular Expressions.
 	/// If `valid_protocol` is `None`, then both `HTTP` and `HTTPS` are considered valid.
-	fn is_valid_u_naptr_regular_expression_uri<'message>(service_field_kind: ServiceFieldKind, regular_expression: ParsedCharacterString<'message>, valid_protocol: Option<HypertextTransportProtocol>) -> Result<Replacement<'message, ParsedName<'message>, ParsedUri<'message>, ParsedCharacterString<'message>>, IgnoreServiceFieldReason>
+	fn is_valid_u_naptr_regular_expression_uri<'message>(service_field_kind: ServiceFieldKind, regular_expression: ParsedCharacterString<'message>, valid_protocol: Option<HypertextTransportProtocol>) -> Result<Replacement<'message, ParsedName<'message>, ParsedUri<'message>, ParsedCharacterString<'message>>, IgnoredServiceFieldReason>
 	{
-		use self::IgnoreServiceFieldReason::*;
+		use self::IgnoredServiceFieldReason::*;
 		
 		// `u-naptr-regexp = "!.*!"<URI>"!"`.
 		const Prefix: &'static [u8] = b"!.*!";

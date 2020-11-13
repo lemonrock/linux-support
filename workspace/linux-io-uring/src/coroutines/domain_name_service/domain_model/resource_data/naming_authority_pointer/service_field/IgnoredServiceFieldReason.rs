@@ -4,7 +4,7 @@
 
 /// Why was a `NAPTR` service field ignored?
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum IgnoreServiceFieldReason
+pub enum IgnoredServiceFieldReason
 {
 	/// No known matching pattern.
 	NoMatchingPattern,
@@ -65,7 +65,7 @@ pub enum IgnoreServiceFieldReason
 	NoSolicitRegularExpressionHasAnInvalidDelimiterCharacter(u8),
 }
 
-impl Display for IgnoreServiceFieldReason
+impl Display for IgnoredServiceFieldReason
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -74,12 +74,12 @@ impl Display for IgnoreServiceFieldReason
 	}
 }
 
-impl error::Error for IgnoreServiceFieldReason
+impl error::Error for IgnoredServiceFieldReason
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>
 	{
-		use self::IgnoreServiceFieldReason::*;
+		use self::IgnoredServiceFieldReason::*;
 		
 		match self
 		{
