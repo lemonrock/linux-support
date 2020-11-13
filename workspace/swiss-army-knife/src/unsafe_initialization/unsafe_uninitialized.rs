@@ -7,6 +7,6 @@
 pub fn unsafe_uninitialized<T>() -> T
 {
 	unsafe { assert_uninit_valid::<T>(); }
-	let mut u = MaybeUninit::<T>::uninit();
+	let u = MaybeUninit::<T>::uninit();
 	unsafe { u.assume_init() }
 }

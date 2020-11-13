@@ -86,7 +86,7 @@ impl LinuxStringEscapeSequence
 	}
 
 	#[inline(always)]
-	fn unescape_if_escaped(escape_sequences: &[Self], index: usize, mut remaining_bytes: &mut [u8], unescaped_length: &mut usize)
+	fn unescape_if_escaped(escape_sequences: &[Self], index: usize, remaining_bytes: &mut [u8], unescaped_length: &mut usize)
 	{
 		let inclusive_start_index = index + 1;
 		let exclusive_end_index = inclusive_start_index + Self::RemainingEscapeSequenceLength;

@@ -174,7 +174,6 @@ use std::mem::replace;
 use std::mem::size_of;
 use std::mem::take;
 use std::mem::transmute;
-use std::mem::zeroed;
 use std::net::IpAddr;
 use std::net::Ipv4Addr;
 use std::net::Ipv6Addr;

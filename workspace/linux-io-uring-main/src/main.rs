@@ -88,7 +88,6 @@ use std::io::BufReader;
 use std::marker::PhantomData;
 use std::mem::size_of;
 use std::mem::transmute;
-use std::mem::zeroed;
 use std::net::SocketAddrV4;
 use std::net::SocketAddrV6;
 use std::net::Ipv6Addr;

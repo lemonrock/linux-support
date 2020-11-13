@@ -21,7 +21,7 @@ impl TryFrom<u8> for StackDepth
 		}
 		else
 		{
-			Self::try_from(non_new_non_zero_u8(value))
+			Self::try_from(new_non_zero_u8(value))
 		}
 	}
 }

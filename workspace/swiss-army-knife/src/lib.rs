@@ -11,9 +11,10 @@
 #![feature(alloc_layout_extra)]
 #![feature(allocator_api)]
 #![feature(const_fn)]
-#![feature(const_fn_transmute)]
 #![feature(const_fn_fn_ptr_basics)]
+#![feature(const_fn_transmute)]
 #![feature(const_panic)]
+#![feature(const_ptr_is_null)]
 #![cfg_attr(not(debug_assertions), feature(const_unreachable_unchecked))]
 #![feature(core_intrinsics)]
 #![feature(extend_one)]
@@ -80,7 +81,6 @@ use std::marker::PhantomData;
 use std::mem::size_of;
 use std::mem::transmute;
 use std::mem::MaybeUninit;
-use std::mem::zeroed;
 use std::num::NonZeroI128;
 use std::num::NonZeroI16;
 use std::num::NonZeroI32;

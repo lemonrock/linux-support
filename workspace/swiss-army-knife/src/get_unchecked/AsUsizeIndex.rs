@@ -54,3 +54,14 @@ impl AsUsizeIndex for u64
 		self as usize
 	}
 }
+
+/// Implemented as the default type assigned to an integer by Rust is `i32`, so this makes it possible to use literal numerics for indices.
+impl AsUsizeIndex for i32
+{
+	#[inline(always)]
+	fn as_usize(self) -> usize
+	{
+		debug_assert!(self >= 0);
+		self as usize
+	}
+}

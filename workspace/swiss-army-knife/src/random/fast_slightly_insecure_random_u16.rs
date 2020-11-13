@@ -7,7 +7,7 @@
 #[inline(always)]
 pub fn fast_slightly_insecure_random_u16() -> u16
 {
-	let mut random_value= unsafe_uninitialized();
+	let mut random_value = unsafe_uninitialized();
 	
 	loop
 	{

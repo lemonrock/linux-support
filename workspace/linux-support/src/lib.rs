@@ -768,8 +768,6 @@ use swiss_army_knife::error_support::io_error_permission_denied;
 use swiss_army_knife::error_support::io_error_timed_out;
 use swiss_army_knife::get_unchecked::AsUsizeIndex;
 use swiss_army_knife::get_unchecked::GetUnchecked;
-use swiss_army_knife::get_unchecked::GetUncheckedMut;
-use swiss_army_knife::get_unchecked::GetUncheckedValue;
 use swiss_army_knife::hardware_optimized_spin_lock::BestForCompilationTargetSpinLock;
 use swiss_army_knife::hardware_optimized_spin_lock::SpinLock;
 use swiss_army_knife::hash_map_and_hash_set::FastSecureHashMap as HashMap;

@@ -70,7 +70,7 @@ impl VerifierLog
 		
 		let mut messages_buffer: Vec<c_char> = Vec::with_capacity(buffer_size);
 		unsafe { messages_buffer.set_len(buffer_size) };
-		messages_buffer.set_unchecked_mut_safe(0, b'\0' as i8);
+		messages_buffer.set_unchecked_mut_safe(0u8, b'\0' as i8);
 		
 		Self
 		{

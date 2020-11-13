@@ -4,5 +4,3 @@
 
 include!("AsUsizeIndex.rs");
 include!("GetUnchecked.rs");
-include!("GetUncheckedMut.rs");
-include!("GetUncheckedValue.rs");

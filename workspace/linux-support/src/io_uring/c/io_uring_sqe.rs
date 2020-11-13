@@ -61,6 +61,6 @@ impl io_uring_sqe
 		self.len = length;
 		self.user_data = user_data.into_u64();
 		self.anonymous_4.anonymous_1.personality = personality;
-		unsafe { self.anonymous_4.__pad2 = zeroed() }
+		self.anonymous_4.__pad2 = unsafe_zeroed()
 	}
 }

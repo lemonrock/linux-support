@@ -3,6 +3,7 @@
 
 
 use super::*;
+use super::super::non_zero::*;
 
 
 include!("ParseNumber.rs");

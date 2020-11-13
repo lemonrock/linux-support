@@ -59,6 +59,7 @@ impl Signals
 	#[inline(always)]
 	pub fn to_complement_sigset_t(&self) -> sigset_t
 	{
+		let mut set = unsafe_uninitialized();
 		unsafe
 		{
 			sigfillset(&mut set);
@@ -74,6 +75,7 @@ impl Signals
 	#[inline(always)]
 	pub fn to_sigset_t(&self) -> sigset_t
 	{
+		let mut set = unsafe_uninitialized();
 		unsafe
 		{
 			sigemptyset(&mut set);

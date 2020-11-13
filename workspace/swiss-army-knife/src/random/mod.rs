@@ -3,6 +3,7 @@
 
 
 use super::*;
+use super::unsafe_initialization::*;
 
 
 #[cfg(target_arch = "x86_64")] include!("fast_slightly_insecure_random_u16.rs");

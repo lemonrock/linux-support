@@ -7,9 +7,27 @@ pub trait GetUnchecked<T>
 {
 	/// Like `get_unchecked()`, but, if debug assertions are configured, checks and panics.
 	fn get_unchecked_safe<AUI: AsUsizeIndex>(&self, index: AUI) -> &T;
+	
+	/// Like `self[index] = value` but unchecked unless debug assertions are configured.
+	#[inline(always)]
+	fn set_unchecked_mut_safe<AUI: AsUsizeIndex>(&mut self, index: AUI, value: T)
+	{
+		*self.get_unchecked_mut_safe(index) = value
+	}
+	
+	/// Like `get_unchecked_mut()`, but, if debug assertions are configured, checks and panics.
+	fn get_unchecked_mut_safe<AUI: AsUsizeIndex>(&mut self, index: AUI) -> &mut T;
+	
+	/// Like `get_unchecked()`, but, if debug assertions are configured, checks and panics.
+	#[inline(always)]
+	fn get_unchecked_value_safe<AUI: AsUsizeIndex>(&self, index: AUI) -> T
+	where T: Copy
+	{
+		* self.get_unchecked_safe(index)
+	}
 }
 
-impl<'a, T: 'a> GetUnchecked<T> for &'a [T]
+impl<T> GetUnchecked<T> for [T]
 {
 	#[inline(always)]
 	fn get_unchecked_safe<AUI: AsUsizeIndex>(&self, index: AUI) -> &T
@@ -18,37 +36,12 @@ impl<'a, T: 'a> GetUnchecked<T> for &'a [T]
 		debug_assert!(index < self.len());
 		unsafe { self.get_unchecked(index) }
 	}
-}
-
-impl<'a, T: 'a> GetUnchecked<T> for &'a mut [T]
-{
+	
 	#[inline(always)]
-	fn get_unchecked_safe<AUI: AsUsizeIndex>(&self, index: AUI) -> &T
+	fn get_unchecked_mut_safe<AUI: AsUsizeIndex>(&mut self, index: AUI) -> &mut T
 	{
 		let index = index.as_usize();
 		debug_assert!(index < self.len());
-		unsafe { self.get_unchecked(index) }
-	}
-}
-
-impl<T> GetUnchecked<T> for Vec<T>
-{
-	#[inline(always)]
-	fn get_unchecked_safe<AUI: AsUsizeIndex>(&self, index: AUI) -> &T
-	{
-		let index = index.as_usize();
-		debug_assert!(index < self.len());
-		unsafe { self.get_unchecked(index) }
-	}
-}
-
-impl<T> GetUnchecked<T> for Box<[T]>
-{
-	#[inline(always)]
-	fn get_unchecked_safe<AUI: AsUsizeIndex>(&self, index: AUI) -> &T
-	{
-		let index = index.as_usize();
-		debug_assert!(index < self.len());
-		unsafe { self.get_unchecked(index) }
+		unsafe { self.get_unchecked_mut(index) }
 	}
 }

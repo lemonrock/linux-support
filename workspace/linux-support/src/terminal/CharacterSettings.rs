@@ -74,7 +74,7 @@ impl CharacterSettings
 		let settings = &mut terminal_options.c_cc;
 		for (character, setting) in self.0.iter()
 		{
-			*settings.get_unchecked_mut_safe((*character)) = *setting;
+			settings.set_unchecked_mut_safe(*character, *setting)
 		}
 	}
 
