@@ -44,6 +44,6 @@ impl statx
 		self.stx_btime.zero_padding();
 		self.stx_ctime.zero_padding();
 		self.stx_mtime.zero_padding();
-		self.__statx_pad2 = unsafe { zeroed() };
+		self.__statx_pad2 = unsafe_zeroed();
 	}
 }

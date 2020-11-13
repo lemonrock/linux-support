@@ -13,5 +13,5 @@ impl RegisteredBufferIndex
 	pub const InclusiveMaximum: Self = Self(Self::ExclusiveMaximum.get() - 1);
 	
 	/// Exclusive maximum.
-	pub const ExclusiveMaximum: NonZeroU16 = unsafe { NonZeroU16::new_unchecked(1024) };
+	pub const ExclusiveMaximum: NonZeroU16 = new_non_zero_u16(1_024);
 }

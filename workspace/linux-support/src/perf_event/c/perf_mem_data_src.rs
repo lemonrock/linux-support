@@ -15,7 +15,7 @@ impl Default for perf_mem_data_src
 	#[inline(always)]
 	fn default() -> Self
 	{
-		unsafe { zeroed() }
+		unsafe_zeroed()
 	}
 }
 

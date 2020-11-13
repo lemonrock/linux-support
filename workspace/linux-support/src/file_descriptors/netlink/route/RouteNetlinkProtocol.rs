@@ -160,9 +160,9 @@ impl RouteNetlinkProtocol
 			ifa_index: filter_by_network_interface_index,
 			
 			// Must all be zero (seems mad that the same struct is used for both requests and replies).
-			ifa_prefixlen: unsafe { zeroed() },
-			ifa_flags: unsafe { zeroed() },
-			ifa_scope: unsafe { zeroed() },
+			ifa_prefixlen: unsafe_zeroed(),
+			ifa_flags: unsafe_zeroed(),
+			ifa_scope: unsafe_zeroed(),
 		};
 		Self::new_get_request_message(route_netlink_message_type, NetlinkGetRequestMessageFlags::Dump, body)
 	}

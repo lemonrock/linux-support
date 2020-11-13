@@ -45,9 +45,9 @@ impl ethtool_ts_info
 			so_timestamping: 0,
 			phc_index: 0,
 			tx_types: 0,
-			tx_reserved: unsafe { zeroed() },
+			tx_reserved: unsafe_zeroed(),
 			rx_filters: 0,
-			rx_reserved: unsafe { zeroed() },
+			rx_reserved: unsafe_zeroed(),
 		}
 	}
 	

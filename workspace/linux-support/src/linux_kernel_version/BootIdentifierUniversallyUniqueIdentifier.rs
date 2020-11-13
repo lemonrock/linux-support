@@ -31,7 +31,6 @@ impl FromBytes for BootIdentifierUniversallyUniqueIdentifier
 	type Error = ParseNumberError;
 	
 	/// eg `033acd7c-b7ab-43a2-b973-1ccc461ffdd2`.
-	#[allow(deprecated)]
 	fn from_bytes(bytes: &[u8]) -> Result<Self, Self::Error>
 	{
 		use self::ParseNumberError::*;
@@ -53,7 +52,7 @@ impl FromBytes for BootIdentifierUniversallyUniqueIdentifier
 			{
 				let numeric_value_nibble =
 				{
-					let byte = unsafe { *piece.get_unchecked(nibble_index) };
+					let byte = piece.get_unchecked_value_safe(nibble_index);
 					
 					let subtract = match byte
 					{
@@ -73,7 +72,7 @@ impl FromBytes for BootIdentifierUniversallyUniqueIdentifier
 				else
 				{
 					numeric_value_byte |= numeric_value_nibble;
-					unsafe { *uuid_big_endian_bytes.get_unchecked_mut(*uuid_index) = numeric_value_byte };
+					uuid_big_endian_bytes.set_unchecked_mut_safe(*uuid_index, numeric_value_byte);
 					uuid_index.add_assign(1);
 					numeric_value_byte = 0;
 				}
@@ -83,7 +82,7 @@ impl FromBytes for BootIdentifierUniversallyUniqueIdentifier
 		}
 		
 		let mut uuid_index = 0;
-		let mut uuid_big_endian_bytes = unsafe { uninitialized() };
+		let mut uuid_big_endian_bytes = unsafe_uninitialized();
 		parse_piece(&mut iterator, &mut uuid_index, &mut uuid_big_endian_bytes, 8)?;
 		parse_piece(&mut iterator, &mut uuid_index, &mut uuid_big_endian_bytes, 4)?;
 		parse_piece(&mut iterator, &mut uuid_index, &mut uuid_big_endian_bytes, 4)?;

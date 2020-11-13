@@ -20,7 +20,7 @@ pub trait ChunkSize: Default + Debug + Copy + PartialEq + Eq + PartialOrd + Ord 
 	{
 		let number_of_chunks = number_of_chunks.get() as u64;
 		let chunk_size: u64 = self.into();
-		unsafe { NonZeroU64::new_unchecked(number_of_chunks * chunk_size) }
+		new_non_zero_u64(number_of_chunks * chunk_size)
 	}
 	
 	#[doc(hidden)]

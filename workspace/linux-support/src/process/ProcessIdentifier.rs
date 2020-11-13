@@ -24,7 +24,7 @@ impl Default for ProcessIdentifier
 	{
 		let pid = unsafe { getpid() };
 		debug_assert!(pid > 0);
-		Self(unsafe { NonZeroI32::new_unchecked(pid)})
+		Self(new_non_zero_i32(pid))
 	}
 }
 
@@ -37,7 +37,7 @@ impl TryFrom<pid_t> for ProcessIdentifier
 	{
 		if likely!(value > 0)
 		{
-			Ok(Self(unsafe { NonZeroI32::new_unchecked(value)}))
+			Ok(Self(new_non_zero_i32(value)))
 		}
 		else
 		{
@@ -98,7 +98,7 @@ impl ParseNumber for ProcessIdentifier
 		}
 		else
 		{
-			Ok(Self(unsafe { NonZeroI32::new_unchecked(pid) }))
+			Ok(Self(new_non_zero_i32(pid)))
 		}
 	}
 }
@@ -119,7 +119,7 @@ impl ParseNumberOption for ProcessIdentifier
 		}
 		else
 		{
-			Ok(Some(ProcessIdentifier(unsafe { NonZeroI32::new_unchecked(pid) })))
+			Ok(Some(ProcessIdentifier(new_non_zero_i32(pid))))
 		}
 	}
 }
@@ -127,14 +127,13 @@ impl ParseNumberOption for ProcessIdentifier
 impl ProcessIdentifier
 {
 	/// Init process.
-	pub const Init: Self = Self(unsafe { NonZeroI32::new_unchecked(1) });
+	pub const Init: Self = Self(new_non_zero_i32(1));
 	
 	/// Get child subreapear process; `None` implies disabled.
 	#[inline(always)]
-	#[allow(deprecated)]
 	pub fn get_current_process_child_subreaper_process() -> Result<Option<Self>, Errno>
 	{
-		let mut attribute: i32 = unsafe { uninitialized() };
+		let mut attribute: i32 = unsafe_uninitialized();
 		process_control_wrapper2
 		(
 			PR_GET_CHILD_SUBREAPER,
@@ -147,7 +146,7 @@ impl ProcessIdentifier
 				}
 				else
 				{
-					Ok(Some(Self(unsafe { NonZeroI32::new_unchecked(attribute) })))
+					Ok(Some(Self(new_non_zero_i32(attribute))))
 				}
 			}
 			else

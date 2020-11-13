@@ -253,7 +253,7 @@ impl TryFrom<u8> for RealTimePriority
 		{
 			return Err(WasZero)
 		}
-		Self::try_from(unsafe { NonZeroU8::new_unchecked(value) })
+		Self::try_from(new_non_zero_u8(value))
 	}
 }
 
@@ -262,7 +262,7 @@ impl Into<NonZeroU8> for RealTimePriority
 	#[inline(always)]
 	fn into(self) -> NonZeroU8
 	{
-		unsafe { NonZeroU8::new_unchecked(self as u8) }
+		new_non_zero_u8(self as u8)
 	}
 }
 
@@ -305,7 +305,7 @@ impl ParseNumberOption for RealTimePriority
 		}
 		else
 		{
-			Ok(Some(RealTimePriority::try_from(unsafe { NonZeroU8::new_unchecked(value) })?))
+			Ok(Some(RealTimePriority::try_from(new_non_zero_u8(value))?))
 		}
 	}
 }

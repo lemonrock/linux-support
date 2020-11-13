@@ -179,7 +179,7 @@ impl<NAT: NetlinkAttributeType> rtattr<NAT>
 		for index in 0 ..length
 		{
 			let key = unsafe { transmute(index) };
-			socket_memory_information.insert(key, unsafe { *slice.get_unchecked(index) });
+			socket_memory_information.insert(key, slice.get_unchecked_value_safe(index));
 		}
 		Ok(socket_memory_information)
 	}

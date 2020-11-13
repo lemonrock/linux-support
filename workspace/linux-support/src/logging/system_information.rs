@@ -3,11 +3,10 @@
 
 
 /// ***SLOW*** as it uses a syscall whose results than have to be parsed by libc!
-#[allow(deprecated)]
 #[inline(always)]
 pub fn system_information() -> sysinfo
 {
-	let mut system_information = unsafe { uninitialized() };
+	let mut system_information = unsafe_uninitialized();
 	let result = unsafe { sysinfo(&mut system_information) };
 	if likely!(result == 0)
 	{

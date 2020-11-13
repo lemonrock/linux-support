@@ -17,7 +17,7 @@ impl<SA: SocketAddress, CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static
 	
 	const LifetimeHint: LifetimeHint = LifetimeHint::LongLived;
 	
-	const HeapMemoryAllocatorBlockSizeHint: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(64) };
+	const HeapMemoryAllocatorBlockSizeHint: NonZeroUsize = new_non_zero_usize(64);
 	
 	#[inline(always)]
 	fn coroutine(coroutine_instance_handle: CoroutineInstanceHandle, yielder: Yielder<Self::ResumeArguments, Self::Yields, Self::Complete>, start_arguments: Self::StartArguments) -> Self::Complete

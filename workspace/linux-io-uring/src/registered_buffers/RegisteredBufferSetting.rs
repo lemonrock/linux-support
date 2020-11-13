@@ -25,7 +25,7 @@ impl<BufferSize: MemorySize> RegisteredBufferSetting<BufferSize>
 	
 	const MaximumRegisteredBufferSize: u64 = 1024 * Self::OneMegabyte;
 	
-	const MaximumRegisteredBufferSizeNonZeroU32: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(Self::MaximumRegisteredBufferSize as u32) };
+	const MaximumRegisteredBufferSizeNonZeroU32: NonZeroU32 = new_non_zero_u32(Self::MaximumRegisteredBufferSize as u32);
 	
 	/// Assumes a 1Gb maximum sized buffer.
 	#[inline(always)]
@@ -41,7 +41,7 @@ impl<BufferSize: MemorySize> RegisteredBufferSetting<BufferSize>
 		debug_assert!(maximum_registered_buffer_size <= Self::MaximumRegisteredBufferSizeNonZeroU32, "buffer_size is too large");
 		
 		let buffer_size: u32 = size_of::<BufferSize>().try_into().expect("too many subdivisions for this buffer_size");
-		unsafe { NonZeroU32::new_unchecked(maximum_registered_buffer_size.get() / buffer_size) }
+		new_non_zero_u32(maximum_registered_buffer_size.get() / buffer_size)
 	}
 	
 	/// No registered buffers.
@@ -50,7 +50,7 @@ impl<BufferSize: MemorySize> RegisteredBufferSetting<BufferSize>
 	{
 		Self
 		{
-			number_of_buffers_per_registered_buffer: unsafe { NonZeroU32::new_unchecked(1) },
+			number_of_buffers_per_registered_buffer: new_non_zero_u32(1),
 			number_of_registered_buffers: 0,
 			marker: PhantomData,
 		}
@@ -60,7 +60,7 @@ impl<BufferSize: MemorySize> RegisteredBufferSetting<BufferSize>
 	#[inline(always)]
 	pub fn maximum_registered_buffer_size(maximum: NonZeroU32) -> Self
 	{
-		Self::new(Self::maximum_number_of_buffers_per_registered_buffer_of_size(maximum), unsafe { NonZeroU16::new_unchecked(1) })
+		Self::new(Self::maximum_number_of_buffers_per_registered_buffer_of_size(maximum), new_non_zero_u16(1))
 	}
 	
 	/// New instance.
@@ -119,6 +119,6 @@ impl<BufferSize: MemorySize> RegisteredBufferSetting<BufferSize>
 	#[inline(always)]
 	fn ideal_maximum_number_of_elements(&self) -> NonZeroU64
 	{
-		unsafe { NonZeroU64::new_unchecked(self.number_of_buffers_per_registered_buffer.get() as u64) }
+		new_non_zero_u64(self.number_of_buffers_per_registered_buffer.get() as u64)
 	}
 }

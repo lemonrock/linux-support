@@ -25,7 +25,7 @@ impl TryFrom<OsString> for CgroupName
 		{
 			None => Ok(Self(value)),
 			
-			Some(index) => match unsafe { *bytes.get_unchecked(index) }
+			Some(index) => match bytes.get_unchecked_value_safe(index)
 			{
 				b'/' => Err("Can not contain the directory separator '/'"),
 				

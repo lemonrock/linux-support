@@ -38,22 +38,22 @@ impl TryFrom<NonZeroU32> for NumberOfSockets
 impl NumberOfSockets
 {
 	/// Inclusive minimum.
-	pub const InclusiveMinimum: Self = Self(unsafe { NonZeroU32::new_unchecked(1) });
+	pub const InclusiveMinimum: Self = Self(new_non_zero_u32(1));
 	
 	/// Inclusive maximum.
-	pub const InclusiveMaximum: Self = Self(unsafe { NonZeroU32::new_unchecked(i32::MAX as u32) });
+	pub const InclusiveMaximum: Self = Self(new_non_zero_u32(i32::MAX as u32));
 	
 	/// Safe construction.
 	#[inline(always)]
 	pub const fn from_u16(value: NonZeroU16) -> Self
 	{
-		Self(unsafe { NonZeroU32::new_unchecked(value.get() as u32) })
+		Self(new_non_zero_u32(value.get() as u32))
 	}
 	
 	/// Typical default.
 	///
 	/// From `/proc/sys/net/ipv4/tcp_max_orphans`.
-	pub const UsualDefaultGlobalMaximumOrphans: Self = Self(unsafe { NonZeroU32::new_unchecked(4096) });
+	pub const UsualDefaultGlobalMaximumOrphans: Self = Self(new_non_zero_u32(4_096));
 	
 	/// Value of `/proc/sys/net/ipv4/tcp_max_orphans`.
 	#[inline(always)]
@@ -89,7 +89,7 @@ impl NumberOfSockets
 	/// Typical default.
 	///
 	/// From `/proc/sys/net/ipv4/tcp_max_tw_buckets`.
-	pub const UsualDefaultGlobalMaximumTimeWait: Self = Self(unsafe { NonZeroU32::new_unchecked(4096) });
+	pub const UsualDefaultGlobalMaximumTimeWait: Self = Self(new_non_zero_u32(4_096));
 	
 	/// Value of `/proc/sys/net/ipv4/tcp_max_tw_buckets`.
 	#[inline(always)]

@@ -36,7 +36,7 @@ impl From<pid_t> for ThreadIdentifierChoice
 		}
 		else
 		{
-			Other(ThreadIdentifier::from(unsafe { NonZeroI32::new_unchecked(value) }))
+			Other(ThreadIdentifier::from(new_non_zero_i32(value)))
 		}
 	}
 }

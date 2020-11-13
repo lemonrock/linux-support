@@ -150,7 +150,7 @@ impl ChildStatus
 			(
 				Signalled
 				{
-					signal: Signal::parse_raw_signal_number_non_zero_u7(unsafe { NonZeroU8::new_unchecked(raw_signal_number_u7) })?,
+					signal: Signal::parse_raw_signal_number_non_zero_u7(new_non_zero_u8(raw_signal_number_u7))?,
 					core_dump: WCOREDUMP,
 				}
 			)

@@ -53,6 +53,6 @@ impl IoUringSettings
 	#[inline(always)]
 	const fn number_of_submission_queue_entries_default() -> NonZeroU16
 	{
-		unsafe { NonZeroU16::new_unchecked(32768) }
+		new_non_zero_u16(32_768)
 	}
 }

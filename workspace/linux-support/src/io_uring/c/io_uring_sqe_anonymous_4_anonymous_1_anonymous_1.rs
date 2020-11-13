@@ -20,7 +20,7 @@ impl Default for io_uring_sqe_anonymous_4_anonymous_1_anonymous_1
 	#[inline(always)]
 	fn default() -> Self
 	{
-		unsafe { zeroed() }
+		unsafe_zeroed()
 	}
 }
 

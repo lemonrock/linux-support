@@ -2,4 +2,4 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) const OneMegabyte: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(1024 * 1024) };
+pub(crate) const OneMegabyte: NonZeroU32 = new_non_zero_u32(1024 * 1024);

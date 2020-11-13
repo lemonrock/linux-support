@@ -23,7 +23,7 @@ pub trait PipeFileDescriptor: FileDescriptor + OnDiskFileDescriptor + PipeLikeFi
 		let result = unsafe { fcntl(self.as_raw_fd(), F_SETPIPE_SZ, new_capacity.get() as i32) };
 		if likely!(result > 0)
 		{
-			Ok(unsafe { NonZeroU32::new_unchecked(result as u32) })
+			Ok(new_non_zero_u32(result as u32))
 		}
 		else if likely!(result == -1)
 		{
@@ -48,7 +48,7 @@ pub trait PipeFileDescriptor: FileDescriptor + OnDiskFileDescriptor + PipeLikeFi
 		let result = unsafe { fcntl(self.as_raw_fd(), F_GETPIPE_SZ) };
 		if likely!(result > 0)
 		{
-			unsafe { NonZeroU32::new_unchecked(result as u32) }
+			new_non_zero_u32(result as u32)
 		}
 		else if likely!(result == -1)
 		{
@@ -61,11 +61,10 @@ pub trait PipeFileDescriptor: FileDescriptor + OnDiskFileDescriptor + PipeLikeFi
 	}
 
 	/// Will never exceed `i32::MAX as usize`.
-	#[allow(deprecated)]
 	#[inline(always)]
 	fn get_number_of_unread_bytes(&self) -> usize
 	{
-		let mut count: i32 = unsafe { uninitialized() };
+		let mut count: i32 = unsafe_uninitialized();
 		let result = unsafe { ioctl(self.as_raw_fd(), FIONREAD, &mut count) };
 		if likely!(result == 0)
 		{

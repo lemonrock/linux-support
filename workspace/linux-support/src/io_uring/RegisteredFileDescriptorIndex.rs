@@ -21,5 +21,5 @@ impl RegisteredFileDescriptorIndex
 	pub const InclusiveMaximum: Self = RegisteredFileDescriptorIndex(Self::IORING_MAX_FIXED_FILES - 1);
 
 	/// Exclusive maximum.
-	pub const ExclusiveMaximum: NonZeroU64 = unsafe { NonZeroU64::new_unchecked(Self::IORING_MAX_FIXED_FILES as u64) };
+	pub const ExclusiveMaximum: NonZeroU64 = new_non_zero_u64(Self::IORING_MAX_FIXED_FILES as u64);
 }

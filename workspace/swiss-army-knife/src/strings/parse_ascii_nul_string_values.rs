@@ -16,7 +16,7 @@ pub fn parse_ascii_nul_string_values<D: Default, F: Fn(&mut D, &[u8]) -> Result<
 	const AsciiNul: u8 = b'\0';
 
 	let final_byte_index = length - 1;
-	let final_byte = unsafe { *bytes.get_unchecked(final_byte_index) };
+	let final_byte = bytes.get_unchecked_value_safe(final_byte_index);
 	if unlikely!(final_byte != AsciiNul)
 	{
 		return Err("bytes must end with an Ascii NUL");

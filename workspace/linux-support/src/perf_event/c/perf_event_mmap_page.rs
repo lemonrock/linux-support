@@ -36,7 +36,7 @@ impl Default for perf_event_mmap_page
 	#[inline(always)]
 	fn default() -> Self
 	{
-		unsafe { zeroed() }
+		unsafe_zeroed()
 	}
 }
 

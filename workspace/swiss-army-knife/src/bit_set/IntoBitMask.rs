@@ -38,7 +38,7 @@ impl<'a, BSA: BitSetAware> IntoLineFeedTerminatedByteString<'a> for IntoBitMask<
 		{
 			if likely!(word_index > 0)
 			{
-				unsafe { * bytes.get_unchecked_mut(bytes_index) = b',' };
+				bytes.set_unchecked_mut_safe(bytes_index, b',');
 				bytes_index -= 1;
 			}
 

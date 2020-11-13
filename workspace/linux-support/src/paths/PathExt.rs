@@ -295,6 +295,6 @@ impl PathExt for Path
 			return Err(io_error_other("Empty files can not be memory-mapped"))
 		}
 
-		MappedMemory::from_file(&file, offset, unsafe { NonZeroU64::new_unchecked(length) }, address_hint, protection, sharing, huge_memory_page_size, prefault, reserve_swap_space, defaults).map_err(io_error_other)
+		MappedMemory::from_file(&file, offset, new_non_zero_u64(length), address_hint, protection, sharing, huge_memory_page_size, prefault, reserve_swap_space, defaults).map_err(io_error_other)
 	}
 }

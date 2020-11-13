@@ -49,7 +49,6 @@ impl<Body: NetlinkRequestMessageBody> NetlinkRequestMessage<Body>
 		NetlinkRequestMessage::new_request_message(message_type, NetlinkSpecificMessageFlags { new_request: flags }, body)
 	}
 	
-	#[allow(deprecated)]
 	#[inline(always)]
 	fn new_request_message(message_type: NetlinkMessageType, netlink_specific_message_flags: NetlinkSpecificMessageFlags, body: Body) -> Self
 	{
@@ -60,7 +59,7 @@ impl<Body: NetlinkRequestMessageBody> NetlinkRequestMessage<Body>
 				nlmsg_len: nlmsghdr::NLMSG_LENGTH(size_of::<Body>()) as u32,
 				nlmsg_type: message_type,
 				nlmsg_flags: NetlinkMessageFlags::new(NetlinkCommonMessageFlags::Request, netlink_specific_message_flags),
-				nlmsg_seq: unsafe { uninitialized() },
+				nlmsg_seq: unsafe_uninitialized(),
 				nlmsg_pid: PortIdentifier::current_process(),
 			},
 			body,

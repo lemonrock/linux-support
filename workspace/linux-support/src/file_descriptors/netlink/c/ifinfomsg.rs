@@ -48,7 +48,7 @@ impl ifinfomsg
 		{
 			ifi_family: AF_PACKET as u8,
 			__ifi_pad: 0,
-			ifi_type: unsafe { zeroed() },
+			ifi_type: unsafe_zeroed(),
 			ifi_index: None,
 			ifi_flags: net_device_flags::empty(),
 			ifi_change: 0,
@@ -62,7 +62,7 @@ impl ifinfomsg
 		{
 			ifi_family: AF_INET as u8,
 			__ifi_pad: 0,
-			ifi_type: unsafe { zeroed() },
+			ifi_type: unsafe_zeroed(),
 			ifi_index: Some(network_interface_index),
 			ifi_flags: net_device_flags::empty(),
 			ifi_change: 0,

@@ -22,13 +22,13 @@ impl Default for MaximumUnixDomainSocketDatagramQueueLength
 impl MaximumUnixDomainSocketDatagramQueueLength
 {
 	/// From `/proc/sys/net/unix/max_dgram_qlen`.
-	pub const Default: Self = Self(unsafe { NonZeroU16::new_unchecked(10) });
+	pub const Default: Self = Self(new_non_zero_u16(10));
 	
 	/// Inclusive minimum.
-	pub const InclusiveMinimum: Self = Self(unsafe { NonZeroU16::new_unchecked(1) });
+	pub const InclusiveMinimum: Self = Self(new_non_zero_u16(1));
 	
 	/// Inclusive maximum.
-	pub const InclusiveMaximum: Self = Self(unsafe { NonZeroU16::new_unchecked(u16::MAX) });
+	pub const InclusiveMaximum: Self = Self(new_non_zero_u16(u16::MAX));
 	
 	/// Value of `/proc/sys/net/ipv4/max_dgram_qlen`.
 	#[inline(always)]

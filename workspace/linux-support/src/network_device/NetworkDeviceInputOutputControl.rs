@@ -470,7 +470,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 						Some(statistic_name) => statistic_name,
 					};
 					
-					statistics.insert(statistic_name.clone(), unsafe { *statistics_array.get_unchecked(index) });
+					statistics.insert(statistic_name.clone(), statistics_array.get_unchecked_value_safe(index));
 				}
 				Ok(Some(statistics))
 			},
@@ -575,7 +575,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 				cmd: ETHTOOL_SWOL,
 				supported: WAKE::empty(),
 				wolopts: WAKE::empty(),
-				sopass: unsafe { zeroed() }
+				sopass: unsafe_zeroed()
 			},
 			|_command| Ok(()),
 			Self::error_is_unreachable,
@@ -636,10 +636,9 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			let array = command.array_elements_mut();
 			for (index, coalsece_configuration) in queue_identifiers.values().enumerate()
 			{
-				unsafe
-				{
-					let pointer = array.get_unchecked_mut(index) as *mut ethtool_coalesce;
-					pointer.write(coalsece_configuration.as_ethtool_coalesce()) }
+				let pointer = array.get_unchecked_mut_safe(index) as *mut ethtool_coalesce;
+				let ethtool_coalesce = coalsece_configuration.as_ethtool_coalesce();
+				unsafe { pointer.write(ethtool_coalesce) }
 			}
 		}
 		
@@ -718,8 +717,8 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 				cmd: ETHTOOL_GRXRINGS,
 				flow_type: 0,
 				data: 0,
-				fs: unsafe { zeroed() },
-				rule_count_or_rss_context: unsafe { zeroed() },
+				fs: unsafe_zeroed(),
+				rule_count_or_rss_context: unsafe_zeroed(),
 				rule_locs: Default::default()
 			},
 			|command| QueueCount::try_from(command.data),
@@ -1142,7 +1141,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		let mut string_sets = HashMap::with_capacity(supported_string_sets_lengths.len());
 		for (index, supported_string_set) in supported_string_sets.enumerate()
 		{
-			let number_of_strings = unsafe { *supported_string_sets_lengths.get_unchecked(index) };
+			let number_of_strings = supported_string_sets_lengths.get_unchecked_value_safe(index);
 			let string_set = match self.get_string_set_known_length(supported_string_set, number_of_strings).map_err(|error| error.map_error())?
 			{
 				None => return Ok(None),
@@ -1393,7 +1392,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 				cmd: ETHTOOL_GWOL,
 				supported: WAKE::empty(),
 				wolopts: WAKE::empty(),
-				sopass: unsafe { zeroed() }
+				sopass: unsafe_zeroed()
 			},
 			|command| Ok(Some(command.to_wake_on_lan_information())),
 			Self::error_is_unreachable,

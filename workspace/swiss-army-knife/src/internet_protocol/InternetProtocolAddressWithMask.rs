@@ -59,7 +59,7 @@ impl<IPA: InternetProtocolAddress> InternetProtocolAddressWithMask<IPA>
 		Self
 		{
 			internet_protocol_address,
-			mask_length_in_bits: unsafe { NonZeroU32::new_unchecked(mask_length_in_bits as u32) }
+			mask_length_in_bits: new_non_zero_u32(mask_length_in_bits as u32)
 		}
 	}
 	
@@ -70,7 +70,7 @@ impl<IPA: InternetProtocolAddress> InternetProtocolAddressWithMask<IPA>
 		Self
 		{
 			internet_protocol_address: IPA::LocalHost,
-			mask_length_in_bits: unsafe { NonZeroU32::new_unchecked(IPA::InclusiveMaximumPrefixLength as u32) },
+			mask_length_in_bits: new_non_zero_u32(IPA::InclusiveMaximumPrefixLength as u32),
 		}
 	}
 	
@@ -78,7 +78,7 @@ impl<IPA: InternetProtocolAddress> InternetProtocolAddressWithMask<IPA>
 	#[inline(always)]
 	pub fn mask_length_in_bits(&self) -> NonZeroU8
 	{
-		unsafe { NonZeroU8::new_unchecked(self.mask_length_in_bits.get() as u8) }
+		new_non_zero_u8(self.mask_length_in_bits.get() as u8)
 	}
 	
 	/// Internet Protocol address.

@@ -61,7 +61,7 @@ impl IndirectionTable
 		
 		if hash_index < indirection_table_size
 		{
-			let remaining_weight = unsafe { NonZeroU32::new_unchecked(indirection_table_size - hash_index) };
+			let remaining_weight = new_non_zero_u32(indirection_table_size - hash_index);
 			weight_queue_strategy.allocate_some_remaining_weight(remaining_weight, &mut indirection_table, number_of_receive_queues)
 		}
 		

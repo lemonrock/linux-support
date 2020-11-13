@@ -37,7 +37,7 @@ impl IntelligentInputOutputProgrammingInterface
 		match programming_interface
 		{
 			0x00 => Some(MessageFifoAtOffset0x00),
-			_ => Some(ArchitectureSpecification1DotZero(unsafe { NonZeroU8::new_unchecked(programming_interface) })),
+			_ => Some(ArchitectureSpecification1DotZero(new_non_zero_u8(programming_interface))),
 		}
 	}
 }

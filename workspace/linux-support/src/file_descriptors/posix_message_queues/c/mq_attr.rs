@@ -42,14 +42,13 @@ impl mq_attr
 	#[inline(always)]
 	pub(crate) fn for_create(optional_message_queue_create_settings: &OptionalPosixMessageQueueCreateSettings) -> Self
 	{
-		#[allow(deprecated)]
 		Self
 		{
-			mq_flags: unsafe { uninitialized() },
+			mq_flags: unsafe_uninitialized(),
 			mq_maxmsg: optional_message_queue_create_settings.maximum_number_of_enqueued_messages,
 			mq_msgsize: optional_message_queue_create_settings.maximum_message_size_in_bytes,
-			mq_curmsgs: unsafe { uninitialized() },
-			pad: unsafe { uninitialized() },
+			mq_curmsgs: unsafe_uninitialized(),
+			pad: unsafe_uninitialized(),
 		}
 	}
 

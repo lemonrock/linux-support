@@ -92,7 +92,7 @@ impl SeccompProgram
 		}
 		else
 		{
-			Err(ThreadIdentifier::from(unsafe { NonZeroI32::new_unchecked(outcome) }))
+			Err(ThreadIdentifier::from(new_non_zero_i32(outcome)))
 		})
 	}
 

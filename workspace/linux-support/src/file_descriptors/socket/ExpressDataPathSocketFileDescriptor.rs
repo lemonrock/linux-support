@@ -107,12 +107,11 @@ impl ExpressDataPathSocketFileDescriptor
 	}
 	
 	#[inline(always)]
-	#[allow(deprecated)]
 	fn get_xdp_socket_option<V: Sized>(&self, xdp_socket_option: i32, validate_length_unchanged: bool) -> V
 	{
 		let OptLen: u32 = size_of::<V>() as u32;
 		
-		let mut value: V = unsafe { uninitialized() };
+		let mut value: V = unsafe_uninitialized();
 		let mut size = OptLen;
 		let result = unsafe { getsockopt(self.as_raw_fd(), SOL_XDP, xdp_socket_option, &mut value as *mut V as *mut c_void, &mut size) };
 		if likely!(result == 0)

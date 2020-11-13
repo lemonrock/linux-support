@@ -60,8 +60,6 @@ impl IoUringFileDescriptor
 	/// Using a kernel thread requires the `CAP_SYS_ADMIN` capability.
 	/// `number_of_submission_queue_entries` can be thought of as the submission queue depth; it is clamped to a maximum of 32,768.
 	/// `number_of_completion_queue_entries` can be thought of as the completion queue depth; if unspecified, it defaults to double the `number_of_submission_queue_entries` up to a maximum of 65,536.
-	///
-	#[allow(deprecated)]
 	fn new(number_of_submission_queue_entries: NonZeroU16, number_of_completion_queue_entries: Option<NonZeroU32>, kernel_submission_queue_thread_configuration: Option<&LinuxKernelSubmissionQueuePollingThreadConfiguration>, shared_work_queue: Option<&Self>) -> io::Result<(Self, io_uring_params)>
 	{
 		const IORING_MAX_ENTRIES: u32 = 32768;
@@ -77,7 +75,7 @@ impl IoUringFileDescriptor
 			// Specified if `flags` contains `SetupFlags::CompletionQueueSize`.
 			cq_entries: match number_of_completion_queue_entries
 			{
-				None => unsafe { uninitialized() },
+				None => unsafe_uninitialized(),
 				Some(number_of_completion_queue_entries) =>
 				{
 					flags |= SetupFlags::CompletionQueueSize;
@@ -98,16 +96,16 @@ impl IoUringFileDescriptor
 			}
 			else
 			{
-				unsafe { zeroed() }
+				unsafe_zeroed()
 			},
 
 			flags,
 
-			features: unsafe { zeroed() },
-			resv: unsafe { zeroed() },
-			sq_entries: unsafe { uninitialized() },
-			sq_off: unsafe { uninitialized() },
-			cq_off: unsafe { uninitialized() },
+			features: unsafe_zeroed(),
+			resv: unsafe_zeroed(),
+			sq_entries: unsafe_uninitialized(),
+			sq_off: unsafe_uninitialized(),
+			cq_off: unsafe_uninitialized(),
 		};
 
 		let result = io_uring_setup(number_of_submission_queue_entries, &mut parameters);
@@ -454,7 +452,7 @@ impl IoUringFileDescriptor
 		let result = self.register::<()>(RegisterOperation::RegisterPersonality, null_mut(), 0);
 		if likely!(result > 0 && result <= (u16::MAX as i32))
 		{
-			Ok(PersonalityCredentialsIdentifier(unsafe { NonZeroU16::new_unchecked(result as u16) }))
+			Ok(PersonalityCredentialsIdentifier(new_non_zero_u16(result as u16)))
 		}
 		else if likely!(result == -1)
 		{

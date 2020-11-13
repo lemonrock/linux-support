@@ -175,7 +175,7 @@ impl<Record: Sized + Debug> WeightedRecords<Record>
 	#[inline(always)]
 	fn get_next_weight(&self, index: usize) -> u64
 	{
-		let (weight, _record) = unsafe { self.weighted.get_unchecked(index) };
+		let (weight, _record) = self.weighted.get_unchecked_safe(index);
 		(*weight).get() as u64
 	}
 	

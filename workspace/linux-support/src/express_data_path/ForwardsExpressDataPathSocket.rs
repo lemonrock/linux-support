@@ -51,7 +51,7 @@ pub trait ForwardsExpressDataPathSocket<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth<
 		{
 			0 => return,
 			
-			non_zero => unsafe { NonZeroU32::new_unchecked(non_zero) }
+			non_zero => new_non_zero_u32(non_zero)
 		};
 		
 		self.initiate_transmit_processing_by_kernel_if_transmit_queue_needs_wake_up();

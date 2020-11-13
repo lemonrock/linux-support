@@ -43,7 +43,7 @@ impl CommonTransmitQueueConfiguration
 			
 			minimum_current_byte_limit: Some(None),
 			
-			maximum_current_byte_limit: Some(unsafe { NonZeroU64::new_unchecked(1879048192) }),
+			maximum_current_byte_limit: Some(new_non_zero_u64(1879048192)),
 			
 			current_byte_limit: Some(None)
 		}

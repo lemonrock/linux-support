@@ -11,8 +11,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 	#[inline(always)]
 	fn underlying_file_system_metadata(&self) -> io::Result<FileSystemMetadata>
 	{
-		#[allow(deprecated)]
-		let mut statvfs: statvfs = unsafe { uninitialized() };
+		let mut statvfs: statvfs = unsafe_uninitialized();
 		let result = unsafe { fstatvfs(self.as_raw_fd(), &mut statvfs) };
 		if likely!(result == 0)
 		{
@@ -92,8 +91,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 	#[inline(always)]
 	fn get_inode_generation_number(&self) -> io::Result<InodeGenerationNumber>
 	{
-		#[allow(deprecated)]
-		let mut inode_generation_number = unsafe { uninitialized() };
+		let mut inode_generation_number = unsafe_uninitialized();
 		let result = unsafe { ioctl (self.as_raw_fd(), FS_IOC_GETVERSION, &mut inode_generation_number) };
 		if likely!(result == 0)
 		{
@@ -137,8 +135,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 	#[inline(always)]
 	fn get_inode_flags(&self) -> io::Result<InodeFlags>
 	{
-		#[allow(deprecated)]
-		let mut attributes = unsafe { uninitialized() };
+		let mut attributes = unsafe_uninitialized();
 		let result = unsafe { ioctl (self.as_raw_fd(), FS_IOC_GETFLAGS, &mut attributes) };
 		if likely!(result == 0)
 		{

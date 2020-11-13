@@ -135,7 +135,7 @@ impl AlignedU64
 			(
 				ArrayOfElementsWhoseSizeVariesByLinuxVersion
 				{
-					pointer: unsafe { NonNull::new_unchecked(pointer) },
+					pointer: new_non_null(pointer),
 					number_of_elements: size as usize,
 					element_size_for_this_version_of_linux: element_size as usize
 				}

@@ -39,7 +39,7 @@ impl TryFrom<u16> for KeySize
 		}
 		else
 		{
-			let non_zero = unsafe { NonZeroU16::new_unchecked(value) };
+			let non_zero = new_non_zero_u16(value);
 			Self::try_from(non_zero)
 		}
 	}
@@ -74,13 +74,13 @@ impl KeySize
 	#[inline(always)]
 	const fn new_unsafe(value: u16) -> Self
 	{
-		Self(unsafe { NonZeroU16::new_unchecked(value) })
+		Self(new_non_zero_u16(value))
 	}
 	
 	#[inline(always)]
 	pub(crate) const fn to_non_zero_u32(self) -> NonZeroU32
 	{
-		unsafe { NonZeroU32::new_unchecked(self.0.get() as u32) }
+		new_non_zero_u32(self.0.get() as u32)
 	}
 	
 	#[inline(always)]

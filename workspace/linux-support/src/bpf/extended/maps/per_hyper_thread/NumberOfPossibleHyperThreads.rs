@@ -23,7 +23,7 @@ impl NumberOfPossibleHyperThreads
 			unsafe { NumberOfPossibleHyperThreads = number_of_possible_hyper_threads };
 		}
 		
-		Self(unsafe { NonZeroUsize::new_unchecked(number_of_possible_hyper_threads) })
+		Self(new_non_zero_usize(number_of_possible_hyper_threads))
 	}
 	
 	#[inline(always)]

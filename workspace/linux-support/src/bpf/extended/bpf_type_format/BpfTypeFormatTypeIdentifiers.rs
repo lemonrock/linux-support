@@ -160,7 +160,7 @@ impl BpfTypeFormatTypeIdentifiers
 		let start_overwriting_at = self.reserve::<btf_param>(vlen);
 		for index in 0 .. vlen
 		{
-			let &(parameter_name, parameter_type) = unsafe { parameters.get_unchecked(index as usize) };
+			let &(parameter_name, parameter_type) = parameters.get_unchecked_safe(index);
 			
 			let param = btf_param
 			{
@@ -220,7 +220,7 @@ impl BpfTypeFormatTypeIdentifiers
 		let start_overwriting_at = self.reserve::<btf_member>(vlen);
 		for index in 0 .. vlen
 		{
-			let field = unsafe { fields.get_unchecked(index as usize) };
+			let field = fields.get_unchecked_safe(index as usize);
 			let member = field.to_btf_member(self, index)?;
 			self.overwrite(member, start_overwriting_at, index)
 		}

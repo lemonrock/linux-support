@@ -41,7 +41,7 @@ impl InternetProtocolVersion4MediumIdentifier
 			
 			0 => Sole,
 			
-			identifier @ _ => MoreThanOne { identifier: unsafe { NonZeroU32::new_unchecked(identifier as u32) }},
+			identifier @ _ => MoreThanOne { identifier: new_non_zero_u32(identifier as u32)},
 		}
 	}
 }

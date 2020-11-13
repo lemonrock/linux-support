@@ -28,15 +28,14 @@ impl Clone for ThreadIdentifiers
 
 impl ThreadIdentifiers
 {
-	#[allow(deprecated)]
 	#[inline(always)]
 	pub(crate) fn new() -> Self
 	{
 		Self
 		{
 			thread_identifier_and_pthread_t_available_barrier: SimpleBarrier::new(),
-			thread_identifier: Arc::new(AtomicI32::new(unsafe { uninitialized() })),
-			pthread_t: Arc::new(AtomicU64::new(unsafe { uninitialized() })),
+			thread_identifier: Arc::new(AtomicI32::new(unsafe_uninitialized())),
+			pthread_t: Arc::new(AtomicU64::new(unsafe_uninitialized())),
 			current_thread: current(),
 		}
 	}
@@ -64,12 +63,11 @@ impl ThreadIdentifiers
 		values
 	}
 
-	#[allow(deprecated)]
 	#[inline(always)]
 	fn reuse(&self)
 	{
 		self.thread_identifier_and_pthread_t_available_barrier.reuse();
-		self.thread_identifier.store(unsafe { uninitialized() }, Release);
-		self.pthread_t.store(unsafe { uninitialized() }, Release);
+		self.thread_identifier.store(unsafe_uninitialized(), Release);
+		self.pthread_t.store(unsafe_uninitialized(), Release);
 	}
 }

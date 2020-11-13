@@ -13,13 +13,12 @@ pub struct PendingAcceptConnection<SD: SocketData>
 impl<SD: SocketData> PendingAcceptConnection<SD>
 {
 	/// New.
-	#[allow(deprecated)]
 	#[inline(always)]
 	pub fn new() -> Self
 	{
 		Self
 		{
-			peer_address: unsafe { uninitialized() },
+			peer_address: unsafe_uninitialized(),
 			peer_address_length: Self::SocketDataLength(),
 		}
 	}

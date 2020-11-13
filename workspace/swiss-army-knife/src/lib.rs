@@ -33,6 +33,7 @@ assert_cfg!(target_os = "linux");
 assert_cfg!(target_pointer_width = "64");
 
 
+use self::non_zero::new_non_null;
 #[cfg(target_arch = "x86_64")] use std::arch::x86_64::_rdrand16_step;
 #[cfg(target_arch = "x86_64")] use std::arch::x86_64::_rdrand32_step;
 #[cfg(target_arch = "x86_64")] use std::arch::x86_64::_rdrand64_step;
@@ -70,16 +71,28 @@ use std::fmt::Formatter;
 use std::hash::Hash;
 use std::hash::Hasher;
 #[cfg(not(debug_assertions))] use std::hint::unreachable_unchecked;
+use std::intrinsics::assert_uninit_valid;
+use std::intrinsics::assert_zero_valid;
 use std::io;
 use std::io::ErrorKind;
 use std::iter::FromIterator;
 use std::marker::PhantomData;
-use std::mem::MaybeUninit;
 use std::mem::size_of;
 use std::mem::transmute;
-#[allow(deprecated)] use std::mem::uninitialized;
+use std::mem::MaybeUninit;
+use std::mem::zeroed;
+use std::num::NonZeroI128;
+use std::num::NonZeroI16;
+use std::num::NonZeroI32;
+use std::num::NonZeroI64;
+use std::num::NonZeroI8;
+use std::num::NonZeroIsize;
+use std::num::NonZeroU128;
+use std::num::NonZeroU16;
 use std::num::NonZeroU32;
+use std::num::NonZeroU64;
 use std::num::NonZeroU8;
+use std::num::NonZeroUsize;
 use std::ops::BitAnd;
 use std::ops::BitOr;
 use std::ops::BitXor;
@@ -122,6 +135,10 @@ pub mod big_endian;
 pub mod bit_set;
 
 
+/// Allows the use of slice methods `get_unchecked()` and `get_unchecked_mut()` such that when compiling with debug assertions access is checked.
+pub mod get_unchecked;
+
+
 /// Error support.
 pub mod error_support;
 
@@ -162,6 +179,10 @@ pub mod intel_hardware_lock_elision;
 pub mod internet_protocol;
 
 
+/// Non zero numerics support.
+pub mod non_zero;
+
+
 /// Path utilities.
 pub mod path;
 
@@ -180,6 +201,10 @@ pub mod strings;
 
 /// Time utilities.
 pub mod time;
+
+
+/// Unsafe initialization of memory.
+pub mod unsafe_initialization;
 
 
 include!("ConstArrayVec.rs");

@@ -31,7 +31,7 @@ impl ArrayOfElementsWhoseSizeVariesByLinuxVersion
 	
 	/// Get, unchecked.
 	#[inline(always)]
-	pub unsafe fn get_unchecked(&self, index: usize) -> &[u8]
+	pub unsafe fn get_unchecked_safe(&self, index: usize) -> &[u8]
 	{
 		debug_assert!(index < self.number_of_elements);
 		

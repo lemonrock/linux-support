@@ -40,8 +40,7 @@ impl MemoryPolicy
 	#[inline(always)]
 	pub fn get_current_thread_memory_policy() -> (Self, MemoryPolicyDynamism)
 	{
-		#[allow(deprecated)]
-		let mut mode: i32 = unsafe { uninitialized() };
+		let mut mode: i32 = unsafe_uninitialized();
 		Self::guard_result(get_mempolicy(&mut mode, null_mut(), 0, null(), GetMemoryPolicyFlags::empty()));
 
 		Self::mode_to_flags(mode)
@@ -66,8 +65,7 @@ impl MemoryPolicy
 	#[inline(always)]
 	pub fn get_memory_policy_for_memory(address: NonNull<u8>) -> (Self, MemoryPolicyDynamism, BitSet<NumaNode>)
 	{
-		#[allow(deprecated)]
-		let mut mode: i32 = unsafe { uninitialized() };
+		let mut mode: i32 = unsafe_uninitialized();
 		let mut bit_set = unsafe { BitSet::new_uninitialized() };
 		let (pointer, length) = bit_set.to_raw_parts_mut();
 
@@ -83,8 +81,7 @@ impl MemoryPolicy
 	#[inline(always)]
 	pub fn get_numa_node_for_memory(address: NonNull<u8>) -> NumaNode
 	{
-		#[allow(deprecated)]
-		let mut mode = unsafe { uninitialized() };
+		let mut mode = unsafe_uninitialized();
 		Self::guard_result(get_mempolicy(&mut mode, null_mut(), 0, address.as_ptr() as *mut c_void, GetMemoryPolicyFlags::MPOL_F_NODE | GetMemoryPolicyFlags::MPOL_F_ADDR));
 
 		NumaNode::try_from(mode).unwrap()
@@ -102,8 +99,7 @@ impl MemoryPolicy
 			return None
 		}
 
-		#[allow(deprecated)]
-		let mut mode = unsafe { uninitialized() };
+		let mut mode = unsafe_uninitialized();
 		Self::guard_result(get_mempolicy(&mut mode, null_mut(), 0, null(), GetMemoryPolicyFlags::MPOL_F_NODE));
 
 		Some(NumaNode::try_from(mode).unwrap())

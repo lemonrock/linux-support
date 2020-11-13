@@ -57,7 +57,7 @@ impl TryFrom<u32> for IntelIxgbevfInterruptThrottleRate
 		}
 		else
 		{
-			Self::try_from(unsafe { NonZeroU32::new_unchecked(value) })
+			Self::try_from(new_non_zero_u32(value))
 		}
 	}
 }
@@ -83,6 +83,6 @@ impl IntelIxgbevfInterruptThrottleRate
 	#[inline(always)]
 	const fn new_unchecked(value: u32) -> Self
 	{
-		Self(unsafe { NonZeroU32::new_unchecked(value) })
+		Self(new_non_zero_u32(value))
 	}
 }

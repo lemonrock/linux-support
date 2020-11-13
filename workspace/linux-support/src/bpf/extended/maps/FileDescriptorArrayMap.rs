@@ -42,7 +42,6 @@ impl<FD: UsedAsValueInArrayMapDescriptor> FileDescriptorArrayMap<FD>
 	}
 	
 	/// Removes a file descriptor.
-	#[allow(deprecated)]
 	pub fn delete(&self, index: u32) -> Result<bool, Errno>
 	{
 		self.map_file_descriptor.delete(&index)
@@ -69,7 +68,6 @@ impl<FD: ProvidesIdentifierWhenUsedAsValueInArrayMapDescriptor> FileDescriptorAr
 	/// Returns an identifier.
 	///
 	/// It may be that this *always* returns `Some(identifier)` and the `identifier` may not be valid; the Linux API isn't documented at all and the source code in Linux is the usual C spaghetti.
-	#[allow(deprecated)]
 	pub fn get(&self, index: u32) -> Option<FD::Identifier>
 	{
 		self.map_file_descriptor.get(&index).map(|raw_identifier| FD::Identifier::from(raw_identifier))

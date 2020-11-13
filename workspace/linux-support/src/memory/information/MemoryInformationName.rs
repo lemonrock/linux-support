@@ -312,7 +312,6 @@ impl MemoryInformationName
 	///
 	/// This list is NOT definitive; names come and go.
 	#[inline(always)]
-	#[allow(deprecated)]
 	pub(crate) fn parse(value: &[u8], memory_information_name_prefix: &[u8]) -> MemoryInformationName
 	{
 		use self::MemoryInformationName::*;

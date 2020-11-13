@@ -248,8 +248,7 @@ impl DirectoryFileDescriptor
 	{
 		let mut file_handle = file_handle::new();
 
-		#[allow(deprecated)]
-		let mut mount_id = unsafe { uninitialized() };
+		let mut mount_id = unsafe_uninitialized();
 		let flags = flags | if unlikely!(do_not_dereference_path_if_it_is_a_symlink)
 		{
 			0
@@ -806,8 +805,7 @@ impl DirectoryFileDescriptor
 			0
 		};
 
-		#[allow(deprecated)]
-		let mut statx: statx = unsafe { uninitialized() };
+		let mut statx: statx = unsafe_uninitialized();
 
 		let result = statx_(self.as_raw_fd(), path.as_ptr(), flags as u32, extended_metadata_wanted.bits, &mut statx);
 		if likely!(result == 0)
@@ -862,8 +860,7 @@ impl DirectoryFileDescriptor
 			0
 		};
 
-		#[allow(deprecated)]
-		let mut buffer = unsafe { uninitialized() };
+		let mut buffer = unsafe_uninitialized();
 		let result = unsafe { fstatat(self.as_raw_fd(), path.as_ptr(), &mut buffer, flags) };
 		if likely!(result == 0)
 		{
@@ -1026,14 +1023,14 @@ impl DirectoryFileDescriptor
 	fn non_empty_path(path: &CStr) -> NonNull<c_char>
 	{
 		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
-
-		unsafe { NonNull::new_unchecked(path.as_ptr() as *mut _) }
+		
+		new_non_null(path.as_ptr() as *mut _)
 	}
 
 	#[inline(always)]
 	fn empty_path() -> NonNull<c_char>
 	{
 		const EmptyPath: &'static [u8] = b"\0";
-		unsafe { NonNull::new_unchecked(EmptyPath.as_ptr() as *const u8 as *const c_char as *mut _) }
+		new_non_null(EmptyPath.as_ptr() as *const u8 as *const c_char as *mut _)
 	}
 }

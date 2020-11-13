@@ -130,7 +130,7 @@ impl Environment
 				debug_assert_ne!(length, 0);
 				if likely!(length == 1)
 				{
-					let value = unsafe { list.get_unchecked(0) };
+					let value = list.get_unchecked_safe(0);
 					value.as_ref().map(|value| &value[..])
 				}
 				else

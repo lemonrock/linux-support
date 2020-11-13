@@ -77,7 +77,7 @@ impl<Numeric: Into<usize>, CoroutineHeapSize: MemorySize, GTACSA: 'static + Glob
 	#[inline(always)]
 	fn get_internal(cache: &mut Vec<AdditionalDogStatsDTag<CoroutineHeapSize, GTACSA>>, index: usize) -> AdditionalDogStatsDTag<CoroutineHeapSize, GTACSA>
 	{
-		let tag_reference = unsafe { cache.get_unchecked(index) };
+		let tag_reference = cache.get_unchecked_safe(index);
 		tag_reference.clone()
 	}
 }

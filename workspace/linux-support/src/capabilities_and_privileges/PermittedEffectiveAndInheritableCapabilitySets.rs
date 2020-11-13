@@ -28,7 +28,7 @@ impl PermittedEffectiveAndInheritableCapabilitySets
 	pub fn get(thread_identifier: ThreadIdentifier) -> io::Result<Self>
 	{
 		let mut header = __user_cap_header_struct::new(thread_identifier);
-		let mut data: [__user_cap_data_struct; 2] = unsafe { zeroed() };
+		let mut data: [__user_cap_data_struct; 2] = unsafe_zeroed();
 		let result = unsafe { capget(&mut header as *mut _ as *mut _, &mut data as *mut _ as *mut _) };
 		if likely!(result == 0)
 		{
@@ -76,7 +76,7 @@ impl PermittedEffectiveAndInheritableCapabilitySets
 			(index, 1 << (bit_index as u32))
 		}
 
-		let mut data: [__user_cap_data_struct; 2] = unsafe { zeroed() };
+		let mut data: [__user_cap_data_struct; 2] = unsafe_zeroed();
 
 		for capability in self.permitted.iterate()
 		{

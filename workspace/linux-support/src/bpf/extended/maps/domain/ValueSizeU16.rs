@@ -39,8 +39,7 @@ impl TryFrom<u16> for ValueSizeU16
 		}
 		else
 		{
-			let non_zero = unsafe { NonZeroU16::new_unchecked(value) };
-			Self::try_from(non_zero)
+			Self::try_from(new_non_zero_u16(value))
 		}
 	}
 }
@@ -79,13 +78,13 @@ impl ValueSizeU16
 	#[inline(always)]
 	const fn new_unsafe(value: u16) -> Self
 	{
-		Self(unsafe { NonZeroU16::new_unchecked(value) })
+		Self(new_non_zero_u16(value))
 	}
 	
 	#[inline(always)]
 	pub(crate) const fn to_non_zero_u32(self) -> NonZeroU32
 	{
-		unsafe { NonZeroU32::new_unchecked(self.0.get() as u32) }
+		new_non_zero_u32(self.0.get() as u32)
 	}
 	
 	#[inline(always)]

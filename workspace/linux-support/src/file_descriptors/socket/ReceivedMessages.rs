@@ -41,32 +41,29 @@ impl<'a, SD: SocketData> ReceivedMessages<'a, SD>
 	pub fn received_message_unchecked<'s: 'a>(&'s self, index: usize) -> Result<(&'a [u8], &'s SD, bool), ()>
 	{
 		debug_assert!(index < self.received_message_helpers.len(), "index `{}` is larger than self.message_helpers.len() `{}`", index, self.received_message_helpers.len());
-
-		unsafe
+		
+		let multi_message_header = self.multi_message_headers.get_unchecked_safe(index);
+		
+		let flags = multi_message_header.msg_hdr.msg_flags;
+		
+		let is_sctp_like_end_of_record = if likely!(flags == 0)
 		{
-			let multi_message_header = self.multi_message_headers.get_unchecked(index);
-
-			let flags = multi_message_header.msg_hdr.msg_flags;
-
-			let is_sctp_like_end_of_record = if likely!(flags == 0)
-			{
-				false
-			}
-			else if likely!(flags == MSG_EOR)
-			{
-				true
-			}
-			else
-			{
-				return Err(())
-			};
-
-			let length = multi_message_header.msg_len as usize;
-
-			let received_message_helper = self.received_message_helpers.get_unchecked(index);
-
-			Ok((&received_message_helper.receive_buffer[0 .. length], &received_message_helper.remote_peer_address, is_sctp_like_end_of_record))
+			false
 		}
+		else if likely!(flags == MSG_EOR)
+		{
+			true
+		}
+		else
+		{
+			return Err(())
+		};
+		
+		let length = multi_message_header.msg_len as usize;
+		
+		let received_message_helper = self.received_message_helpers.get_unchecked_safe(index);
+		
+		Ok((&received_message_helper.receive_buffer[0 .. length], &received_message_helper.remote_peer_address, is_sctp_like_end_of_record))
 	}
 
 	/// Capacity.

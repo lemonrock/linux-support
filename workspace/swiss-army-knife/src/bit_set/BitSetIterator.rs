@@ -21,7 +21,7 @@ impl<'a, BSA: BitSetAware> Iterator for BitSetIterator<'a, BSA>
 	{
 		while likely!(self.word_index != self.bit_set.0.len())
 		{
-			let word = * unsafe { self.bit_set.0.get_unchecked(self.word_index) };
+			let word = * self.bit_set.0.get_unchecked_safe(self.word_index);
 
 			// Short-cut.
 			if likely!(word == 0)

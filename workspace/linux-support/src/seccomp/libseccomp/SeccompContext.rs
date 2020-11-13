@@ -28,7 +28,7 @@ impl SeccompContext
 		}
 		else
 		{
-			Ok(Self(unsafe { NonNull::new_unchecked(context) }))
+			Ok(Self(new_non_null(context)))
 		}
 	}
 

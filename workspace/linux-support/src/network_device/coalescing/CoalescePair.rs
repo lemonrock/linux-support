@@ -42,6 +42,6 @@ impl CoalescePair
 	{
 		microseconds: None,
 		
-		maximum_frames: Some(unsafe { NonZeroU32::new_unchecked(1) }),
+		maximum_frames: Some(new_non_zero_u32(1)),
 	};
 }

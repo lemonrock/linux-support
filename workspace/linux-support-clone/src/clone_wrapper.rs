@@ -78,7 +78,7 @@ pub(crate) fn clone_wrapper<T>(child_process: extern "C" fn(Box<T>) -> (), top_o
 
 	if likely!(result_code > 0)
 	{
-		Ok(ProcessIdentifier::from(unsafe { NonZeroI32::new_unchecked(result_code) }))
+		Ok(ProcessIdentifier::from(new_non_zero_i32(result_code)))
 	}
 	else if likely!(result_code == -1)
 	{

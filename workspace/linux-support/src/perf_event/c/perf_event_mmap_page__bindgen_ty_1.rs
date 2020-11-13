@@ -15,7 +15,7 @@ impl Default for perf_event_mmap_page__bindgen_ty_1
 	#[inline(always)]
 	fn default() -> Self
 	{
-		unsafe { zeroed() }
+		unsafe_zeroed()
 	}
 }
 

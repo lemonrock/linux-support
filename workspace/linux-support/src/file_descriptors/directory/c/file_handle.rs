@@ -23,15 +23,14 @@ pub(super) struct file_handle
 
 impl file_handle
 {
-	#[allow(deprecated)]
 	#[inline(always)]
 	pub(super) fn new() -> Self
 	{
 		Self
 		{
 			handle_bytes: MAX_HANDLE_SZ as u32,
-			handle_type: unsafe { uninitialized() },
-			f_handle: unsafe { uninitialized() },
+			handle_type: unsafe_uninitialized(),
+			f_handle: unsafe_uninitialized(),
 		}
 	}
 }

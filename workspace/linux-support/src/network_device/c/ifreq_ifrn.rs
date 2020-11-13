@@ -15,7 +15,7 @@ impl Default for ifreq_ifrn
 	#[inline(always)]
 	fn default() -> Self
 	{
-		unsafe { zeroed() }
+		unsafe_zeroed()
 	}
 }
 

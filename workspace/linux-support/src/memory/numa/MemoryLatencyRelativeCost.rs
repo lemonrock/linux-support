@@ -27,7 +27,7 @@ impl TryFrom<u8> for MemoryLatencyRelativeCost
 		}
 		else
 		{
-			Self::try_from(unsafe { NonZeroU8::new_unchecked(value) })
+			Self::try_from(new_non_zero_u8(value))
 		}
 	}
 }
@@ -81,8 +81,8 @@ impl ParseNumber for MemoryLatencyRelativeCost
 impl MemoryLatencyRelativeCost
 {
 	/// Inclusive minimum.
-	pub const InclusiveMinimum: Self = Self(unsafe { NonZeroU8::new_unchecked(10) });
+	pub const InclusiveMinimum: Self = Self(new_non_zero_u8(10));
 
 	/// Inclusive maximum.
-	pub const InclusiveMaximum: Self = Self(unsafe { NonZeroU8::new_unchecked(255) });
+	pub const InclusiveMaximum: Self = Self(new_non_zero_u8(255));
 }

@@ -45,7 +45,7 @@ impl TryFrom<u8> for MaximumTransmissionUnitPayloadSize
 		}
 		else
 		{
-			Self::try_from(unsafe { NonZeroU16::new_unchecked(value as u16) })
+			Self::try_from(new_non_zero_u16(value as u16))
 		}
 	}
 }
@@ -63,7 +63,7 @@ impl TryFrom<u16> for MaximumTransmissionUnitPayloadSize
 		}
 		else
 		{
-			Self::try_from(unsafe { NonZeroU16::new_unchecked(value) })
+			Self::try_from(new_non_zero_u16(value))
 		}
 	}
 }
@@ -107,7 +107,7 @@ impl TryFrom<u64> for MaximumTransmissionUnitPayloadSize
 		}
 		else
 		{
-			Self::try_from(unsafe { NonZeroU16::new_unchecked(value as u16) })
+			Self::try_from(new_non_zero_u16(value as u16))
 		}
 	}
 }
@@ -162,7 +162,7 @@ impl MaximumTransmissionUnitPayloadSize
 	#[inline(always)]
 	const fn new_unchecked(value: u16) -> Self
 	{
-		Self(unsafe { NonZeroU16::new_unchecked(value) })
+		Self(new_non_zero_u16(value))
 	}
 	
 	/// Overhead of 18 bytes for a frame, including a trailing Frame Check Sequence (FCS).

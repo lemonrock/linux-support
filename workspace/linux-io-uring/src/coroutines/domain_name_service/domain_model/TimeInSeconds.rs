@@ -68,7 +68,7 @@ impl Into<U31SecondsDuration> for TimeInSeconds
 	fn into(self) -> U31SecondsDuration
 	{
 		// RFC 2181, Section 8 Time to Live (TTL), paragraph 2: "Implementations should treat TTL values received with the most significant bit set as if the entire value received was zero".
-		let top_byte = unsafe { *(self.0).get_unchecked(0) };
+		let top_byte = self.0.get_unchecked_safe_value(0);
 		if likely!(top_byte & 0x80 == 0)
 		{
 			U31SecondsDuration::try_from(u32::from_be_bytes(self.0)).unwrap()

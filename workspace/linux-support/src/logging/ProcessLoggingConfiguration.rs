@@ -148,6 +148,6 @@ impl ProcessLoggingConfiguration
 	#[inline(always)]
 	const fn logging_buffer_size_default() -> NonZeroUsize
 	{
-		unsafe { NonZeroUsize::new_unchecked(8192) }
+		new_non_zero_usize(8192)
 	}
 }

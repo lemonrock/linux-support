@@ -43,7 +43,7 @@ pub trait TransmitsExpressDataPathSocket<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth
 		{
 			for relative_frame_index in RelativeFrameIndex::relative_frame_indices(number_of_frames_to_transmit)
 			{
-				let frame_reference = unsafe { frames_to_transmit.get_unchecked(relative_frame_index.into_usize()) };
+				let frame_reference = frames_to_transmit.get_unchecked_safe(relative_frame_index);
 				let transmit_frame_descriptor_bitfield = frame_reference.transmit_frame_descriptor_bitfield(self.user_memory());
 				self.transmit_queue().set_transmit_descriptor_from_frame(transmit_queue_index, relative_frame_index, transmit_frame_descriptor_bitfield, frame_reference.length_of_packet)
 			}
@@ -98,7 +98,7 @@ pub trait TransmitsExpressDataPathSocket<'a, ROTOB: 'a + ReceiveOrTransmitOrBoth
 		let requested_number_of_frames = match self.common().outstanding_frames_to_transmit()
 		{
 			0 => return,
-			non_zero => unsafe { NonZeroU32::new_unchecked(non_zero) }
+			non_zero => new_non_zero_u32(non_zero)
 		};
 		
 		self.initiate_transmit_processing_by_kernel_if_transmit_queue_needs_wake_up();

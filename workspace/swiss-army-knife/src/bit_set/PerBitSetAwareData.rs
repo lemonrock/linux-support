@@ -146,15 +146,15 @@ impl<BSA: BitSetAware, PerBitSetAware> PerBitSetAwareData<BSA, PerBitSetAware>
 		{
 			return None
 		}
-		unsafe { self.data.get_unchecked(i).as_ref() }
+		self.data.get_unchecked_safe(i).as_ref()
 	}
 
 	/// Gets the data for a particular BitSetAware.
 	#[inline(always)]
-	pub unsafe fn get_unchecked(&self, bit_set_aware: BSA) -> &PerBitSetAware
+	pub fn get_unchecked_safe(&self, bit_set_aware: BSA) -> &PerBitSetAware
 	{
 		let i: usize = bit_set_aware.into();
-		self.data.get_unchecked(i).as_ref().unwrap()
+		self.data.get_unchecked_safe(i).as_ref().unwrap()
 	}
 
 	/// Gets the data for a particular BitSetAware; if no datum for that gets a datum for `default_bit_set_aware`.
@@ -171,7 +171,7 @@ impl<BSA: BitSetAware, PerBitSetAware> PerBitSetAwareData<BSA, PerBitSetAware>
 			return self.get_or_default_bit_set_aware(default_bit_set_aware)
 		}
 		
-		if let Some(datum) = unsafe { self.data.get_unchecked(i).as_ref() }
+		if let Some(datum) = self.data.get_unchecked_safe(i).as_ref()
 		{
 			return (datum, bit_set_aware)
 		}
@@ -188,7 +188,7 @@ impl<BSA: BitSetAware, PerBitSetAware> PerBitSetAwareData<BSA, PerBitSetAware>
 		}
 		else
 		{
-			unsafe { self.get_unchecked(default_bit_set_aware) }
+			self.get_unchecked_safe(default_bit_set_aware)
 		};
 		(datum, default_bit_set_aware)
 	}
@@ -233,7 +233,7 @@ impl<BSA: BitSetAware, PerBitSetAware> PerBitSetAwareData<BSA, PerBitSetAware>
 		self.bit_set.iterate().map(move |bit_set_aware|
 		{
 			let i: usize = bit_set_aware.into();
-			let element = unsafe { self.data.get_unchecked(i) };
+			let element = self.data.get_unchecked_safe(i);
 			(bit_set_aware, element.as_ref().unwrap())
 		})
 	}
@@ -251,7 +251,7 @@ impl<BSA: BitSetAware, PerBitSetAware> PerBitSetAwareData<BSA, PerBitSetAware>
 				None => None,
 				Some(bit_set_aware) =>
 				{
-					Some(mapper(bit_set_aware, unsafe { self.get_unchecked(bit_set_aware) }))
+					Some(mapper(bit_set_aware, self.get_unchecked_safe(bit_set_aware)))
 				}
 			};
 			mapped_data.push(new_per_bit_set_aware);
@@ -279,7 +279,7 @@ impl<BSA: BitSetAware, PerBitSetAware> PerBitSetAwareData<BSA, PerBitSetAware>
 				Some(bit_set_aware) =>
 				{
 					let i: usize = bit_set_aware.into();
-					let x = unsafe { self.data.get_unchecked_mut(i) };
+					let x = self.data.get_unchecked_mut_safe(i);
 					Some(mapper(bit_set_aware, x.take().unwrap()))
 				}
 			};

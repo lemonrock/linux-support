@@ -55,7 +55,6 @@ pub enum HashFunctionFields
 
 impl HashFunctionFields
 {
-	#[allow(deprecated)]
 	pub(crate) fn to_ethtool_rxnfc(&self, receive_side_scaling_context: Option<ContextIdentifier>, discard: bool) -> ethtool_rxnfc
 	{
 		let (actual_flow_type, mut data_field) = self.to_actual_flow_type_and_data_field();
@@ -85,9 +84,9 @@ impl HashFunctionFields
 			
 			data: data_field.bits,
 			
-			fs: unsafe { uninitialized() },
+			fs: unsafe_uninitialized(),
 			
-			rule_locs: unsafe { uninitialized() },
+			rule_locs: unsafe_uninitialized(),
 		}
 	}
 	

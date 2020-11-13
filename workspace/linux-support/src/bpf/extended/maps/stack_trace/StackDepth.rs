@@ -21,8 +21,7 @@ impl TryFrom<u8> for StackDepth
 		}
 		else
 		{
-			let non_zero = unsafe { NonZeroU8::new_unchecked(value) };
-			Self::try_from(non_zero)
+			Self::try_from(non_new_non_zero_u8(value))
 		}
 	}
 }
@@ -56,7 +55,7 @@ impl StackDepth
 	#[inline(always)]
 	pub(crate) const fn to_non_zero_u32<SF: StackFrame>(self) -> NonZeroU32
 	{
-		unsafe { NonZeroU32::new_unchecked((self.0.get() as u32) * (size_of::<SF>() as u32)) }
+		new_non_zero_u32((self.0.get() as u32) * (size_of::<SF>() as u32))
 	}
 	
 	#[inline(always)]
@@ -68,6 +67,6 @@ impl StackDepth
 	#[inline(always)]
 	const fn new_unsafe(value: u8) -> Self
 	{
-		Self(unsafe { NonZeroU8::new_unchecked(value) })
+		Self(new_non_zero_u8(value))
 	}
 }

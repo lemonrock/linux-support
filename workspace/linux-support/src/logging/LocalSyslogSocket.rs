@@ -164,7 +164,7 @@ impl LocalSyslogSocket
 	fn write_terminal_line_feed_to_buffer(&mut self, written_length: usize) -> usize
 	{
 		const LineFeed: u8 = b'\n';
-		unsafe { * self.buffer.get_unchecked_mut(written_length) = LineFeed };
+		self.buffer.set_unchecked_mut_safe(written_length, LineFeed);
 		written_length + 1
 	}
 	

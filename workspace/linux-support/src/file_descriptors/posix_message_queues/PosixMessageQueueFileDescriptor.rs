@@ -114,8 +114,7 @@ impl PosixMessageQueueFileDescriptor
 	/// Fails with a panic if the `message_buffer` is too small for the queue's configured message size.
 	pub(crate) fn receive(&self, message_buffer: &mut [u8]) -> Result<(usize, PosixMessagePriority), StructReadError>
 	{
-		#[allow(deprecated)]
-		let mut priority = unsafe { uninitialized() };
+		let mut priority = unsafe_uninitialized();
 		let result = unsafe { mq_timedreceive(self.0, message_buffer.as_mut_ptr() as *mut _ as *mut _, message_buffer.len(), &mut priority, null()) } ;
 		if likely!(result >= 0)
 		{
@@ -159,7 +158,7 @@ impl PosixMessageQueueFileDescriptor
 	#[inline(always)]
 	pub(crate) fn queue_attributes(&self) -> mq_attr
 	{
-		let mut attributes = unsafe { zeroed() };
+		let mut attributes = unsafe_zeroed();
 		let result = unsafe { mq_getattr(self.as_raw_fd(), &mut attributes) };
 
 		if likely!(result == 0)

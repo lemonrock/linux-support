@@ -23,7 +23,7 @@ impl ControlMessageBufferSizeInBytes
 	/// Typical value.
 	///
 	/// From `/proc/sys/net/core/optmem_max`.
-	pub const UsualGlobalMaximum: Self = Self(unsafe { NonZeroU32::new_unchecked(212_992) });
+	pub const UsualGlobalMaximum: Self = Self(new_non_zero_u32(212_992));
 	
 	/// Default is `Self::UsualGlobalDefault`.
 	///

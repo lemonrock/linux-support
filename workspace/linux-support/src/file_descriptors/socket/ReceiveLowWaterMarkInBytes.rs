@@ -42,11 +42,11 @@ impl Default for ReceiveLowWaterMarkInBytes
 impl ReceiveLowWaterMarkInBytes
 {
 	/// Default.
-	pub const Default: Self = Self(unsafe { NonZeroU32::new_unchecked(1) });
+	pub const Default: Self = Self(new_non_zero_u32(1));
 	
 	/// Minimum.
 	pub const InclusiveMinimum: Self = Self::Default;
 	
 	/// Maximum.
-	pub const InclusiveMaximum: Self = Self(unsafe { NonZeroU32::new_unchecked(i32::MAX as u32) });
+	pub const InclusiveMaximum: Self = Self(new_non_zero_u32(i32::MAX as u32));
 }

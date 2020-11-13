@@ -30,7 +30,7 @@ impl Default for sockaddr_in
 			sin_family: AF_INET as sa_family_t,
 			sin_port: 0,
 			sin_addr: Default::default(),
-			sin_zero: unsafe { zeroed() },
+			sin_zero: unsafe_zeroed(),
 		}
 	}
 }

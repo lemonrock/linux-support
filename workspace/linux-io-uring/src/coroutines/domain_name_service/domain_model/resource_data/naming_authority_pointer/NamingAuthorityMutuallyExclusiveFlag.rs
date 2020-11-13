@@ -94,7 +94,7 @@ impl NamingAuthorityMutuallyExclusiveFlag
 			
 			1 =>
 			{
-				let flag_byte = unsafe { *raw_flags.deref().get_unchecked(0) };
+				let flag_byte = raw_flags.deref().get_unchecked_value_safe(0);
 				match flag_byte
 				{
 					b'S' | b's' => Ok(Left(Some(S))),

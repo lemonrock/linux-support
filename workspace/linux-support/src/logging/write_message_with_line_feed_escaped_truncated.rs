@@ -16,7 +16,7 @@ unsafe fn write_message_with_line_feed_escaped_truncated(mut write_to: *mut u8, 
 		const EscapedSlash: [u8; EscapeSequenceLength] = [Slash, Slash];
 		const EscapedLineFeed: [u8; EscapeSequenceLength] = [Slash, LineFeed];
 		
-		match unsafe { * remaining_bytes.get_unchecked(character_to_escape_index) }
+		match remaining_bytes.get_unchecked_value_safe(character_to_escape_index)
 		{
 			Slash => EscapedSlash,
 			

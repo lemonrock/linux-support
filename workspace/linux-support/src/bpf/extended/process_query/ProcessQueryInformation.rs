@@ -41,8 +41,8 @@ impl ProcessQueryInformation
 			flags: 0,
 			buf_len: buffer.len() as u32,
 			buf: AlignedU64::from(buffer.as_mut_ptr()),
-			prog_id: unsafe { zeroed() },
-			fd_type: unsafe { zeroed() },
+			prog_id: unsafe_zeroed(),
+			fd_type: unsafe_zeroed(),
 			probe_offset: 0,
 			probe_addr: 0
 		};

@@ -105,7 +105,7 @@ impl TryFrom<u16> for QueueCount
 		}
 		else
 		{
-			Self::try_from(unsafe { NonZeroU16::new_unchecked(value) })
+			Self::try_from(new_non_zero_u16(value))
 		}
 	}
 }
@@ -142,7 +142,7 @@ impl TryFrom<NonZeroU32> for QueueCount
 		}
 		else
 		{
-			Self::try_from(unsafe { NonZeroU16::new_unchecked(value as u16)})
+			Self::try_from(new_non_zero_u16(value as u16))
 		}
 	}
 }
@@ -152,7 +152,7 @@ impl Into<NonZeroU32> for QueueCount
 	#[inline(always)]
 	fn into(self) -> NonZeroU32
 	{
-		unsafe { NonZeroU32::new_unchecked(self.0.get() as u32) }
+		new_non_zero_u32(self.0.get() as u32)
 	}
 }
 
@@ -222,7 +222,7 @@ impl QueueCount
 	#[inline(always)]
 	pub(crate) const fn new_unchecked(value: u16) -> Self
 	{
-		Self(unsafe { NonZeroU16::new_unchecked(value) })
+		Self(new_non_zero_u16(value))
 	}
 	
 	/// Queue identifiers.
@@ -249,7 +249,7 @@ impl QueueCount
 		}
 		else
 		{
-			(non_zero_number_of_hyper_threads, Self(unsafe { NonZeroU16::new_unchecked(length as u16) }))
+			(non_zero_number_of_hyper_threads, Self(new_non_zero_u16(length as u16)))
 		}
 	}
 	

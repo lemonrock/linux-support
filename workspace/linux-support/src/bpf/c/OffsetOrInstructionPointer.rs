@@ -18,7 +18,7 @@ impl Default for OffsetOrInstructionPointer
 	#[inline(always)]
 	fn default() -> Self
 	{
-		unsafe { zeroed() }
+		unsafe_zeroed()
 	}
 }
 

@@ -48,8 +48,8 @@ impl LockDownState
 			if length >= 2
 			{
 				let last_index = length - 1;
-				let first = unsafe { *raw_bytes.get_unchecked(0) };
-				let last = unsafe { *raw_bytes.get_unchecked(last_index) };
+				let first = raw_bytes.get_unchecked_value_safe(0);
+				let last = raw_bytes.get_unchecked_value_safe(last_index);
 				if first == b'[' && last == b']'
 				{
 					use self::LockDownState::*;

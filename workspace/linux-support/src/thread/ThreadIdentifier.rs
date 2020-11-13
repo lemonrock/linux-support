@@ -17,7 +17,7 @@ impl Default for ThreadIdentifier
 	{
 		let tid = gettid.syscall0() as i32;
 		debug_assert!(tid > 0);
-		Self(unsafe { NonZeroI32::new_unchecked(tid)})
+		Self(new_non_zero_i32(tid))
 	}
 }
 
@@ -30,7 +30,7 @@ impl TryFrom<pid_t> for ThreadIdentifier
 	{
 		if likely!(value > 0)
 		{
-			Ok(Self(unsafe { NonZeroI32::new_unchecked(value)}))
+			Ok(Self(new_non_zero_i32(value)))
 		}
 		else
 		{
@@ -109,7 +109,7 @@ impl ParseNumber for ThreadIdentifier
 		}
 		else
 		{
-			Ok(Self(unsafe { NonZeroI32::new_unchecked(tid) }))
+			Ok(Self(new_non_zero_i32(tid)))
 		}
 	}
 }
@@ -130,7 +130,7 @@ impl ParseNumberOption for ThreadIdentifier
 		}
 		else
 		{
-			Ok(Some(ThreadIdentifier(unsafe { NonZeroI32::new_unchecked(tid) })))
+			Ok(Some(ThreadIdentifier(new_non_zero_i32(tid))))
 		}
 	}
 }

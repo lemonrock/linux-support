@@ -24,7 +24,7 @@ impl TryFrom<NonZeroU32> for NotSentLowWaterInBytes
 		{
 			return Err(ParseNumberError::TooLarge)
 		}
-		Ok(Self(Some(unsafe { NonZeroI32::new_unchecked(value as i32) })))
+		Ok(Self(Some(new_non_zero_i32(value as i32))))
 	}
 }
 
@@ -99,7 +99,7 @@ impl NotSentLowWaterInBytes
 	}
 	
 	/// Maximum.
-	pub const InclusiveMaximum: Self = Self(Some(unsafe { NonZeroI32::new_unchecked(i32::MAX) }));
+	pub const InclusiveMaximum: Self = Self(Some(new_non_zero_i32(i32::MAX)));
 	
 	/// Typical value; off.
 	///

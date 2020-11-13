@@ -16,7 +16,7 @@ pub(crate) trait Bit: Sized
 	{
 		let (word_index, bit) = self.to_word_index_and_relative_bit_in_word();
 		
-		let fields = unsafe { bit_set.get_unchecked(word_index) };
+		let fields = bit_set.get_unchecked_safe(word_index);
 		let word = field_locator(fields);
 		
 		(word & bit) != 0
@@ -33,7 +33,7 @@ pub(crate) trait Bit: Sized
 	{
 		let (word_index, bit) = self.to_word_index_and_relative_bit_in_word();
 		
-		let fields = unsafe { bit_set.get_unchecked_mut(word_index) };
+		let fields = bit_set.get_unchecked_mut_safe(word_index);
 		let word = field_locator(fields);
 		
 		*word = *word | bit
@@ -50,7 +50,7 @@ pub(crate) trait Bit: Sized
 	{
 		let (word_index, bit) = self.to_word_index_and_relative_bit_in_word();
 		
-		let fields = unsafe { bit_set.get_unchecked_mut(word_index) };
+		let fields = bit_set.get_unchecked_mut_safe(word_index);
 		let word = field_locator(fields);
 		
 		*word = *word & !bit;

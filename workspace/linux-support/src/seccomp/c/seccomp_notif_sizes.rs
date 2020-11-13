@@ -20,14 +20,13 @@ impl seccomp_notif_sizes
 {
 	/// Used to get actual sizes.
 	#[inline(always)]
-	#[allow(deprecated)]
 	fn get_listener_notification_sizes() -> &'static seccomp_notif_sizes
 	{
 		lazy_static!
 		{
     		static ref Sizes: seccomp_notif_sizes =
     		{
-				let mut sizes: seccomp_notif_sizes = unsafe { uninitialized() };
+				let mut sizes: seccomp_notif_sizes = unsafe_uninitialized();
 				let result = seccomp(SECCOMP_GET_NOTIF_SIZES, 0, &mut sizes as *mut seccomp_notif_sizes as *mut _);
 				if result == 0
 				{

@@ -42,13 +42,13 @@ impl ReorderingThreshold
 	/// From `/proc/sys/net/ipv4/tcp_reordering`.
 	///
 	/// Default is 3.
-	pub const Default: Self = Self(unsafe { NonZeroU8::new_unchecked(3) });
+	pub const Default: Self = Self(new_non_zero_u8(3));
 	
 	/// Inclusive minimum.
-	pub const InclusiveMinimum: Self = Self(unsafe { NonZeroU8::new_unchecked(1) });
+	pub const InclusiveMinimum: Self = Self(new_non_zero_u8(1));
 	
 	/// Inclusive maximum.
-	pub const InclusiveMaximum: Self = Self(unsafe { NonZeroU8::new_unchecked(i8::MAX as u8) });
+	pub const InclusiveMaximum: Self = Self(new_non_zero_u8(i8::MAX as u8));
 	
 	/// Value of `/proc/sys/net/ipv4/tcp_reordering`.
 	#[inline(always)]

@@ -15,7 +15,7 @@ impl Default for ProcessGroupIdentifier
 	{
 		let pid = unsafe { getpgid(0) };
 		debug_assert!(pid > 0);
-		Self(unsafe { NonZeroI32::new_unchecked(pid)})
+		Self(new_non_zero_i32(pid))
 	}
 }
 
@@ -28,7 +28,7 @@ impl TryFrom<pid_t> for ProcessGroupIdentifier
 	{
 		if likely!(value > 0)
 		{
-			Ok(Self(unsafe { NonZeroI32::new_unchecked(value)}))
+			Ok(Self(new_non_zero_i32(value)))
 		}
 		else
 		{
@@ -80,7 +80,7 @@ impl ParseNumber for ProcessGroupIdentifier
 		}
 		else
 		{
-			Ok(Self(unsafe { NonZeroI32::new_unchecked(pid) }))
+			Ok(Self(new_non_zero_i32(pid)))
 		}
 	}
 }
@@ -106,7 +106,7 @@ impl ParseNumberOption for ProcessGroupIdentifier
 		}
 		else
 		{
-			Ok(Some(ProcessGroupIdentifier(unsafe { NonZeroI32::new_unchecked(pid) })))
+			Ok(Some(ProcessGroupIdentifier(new_non_zero_i32(pid))))
 		}
 	}
 }
@@ -120,7 +120,7 @@ impl ProcessGroupIdentifier
 		let result = unsafe { getpgid(process_identifier.into()) };
 		if likely!(result == 0)
 		{
-			Ok(Self(unsafe { NonZeroI32::new_unchecked(result)}))
+			Ok(Self(new_non_zero_i32(result)))
 		}
 		else if likely!(result == -1)
 		{
@@ -146,7 +146,7 @@ impl ProcessGroupIdentifier
 		let result = unsafe { getsid(process_identifier.into()) };
 		if likely!(result == 0)
 		{
-			Ok(Self(unsafe { NonZeroI32::new_unchecked(result)}))
+			Ok(Self(new_non_zero_i32(result)))
 		}
 		else if likely!(result == -1)
 		{
@@ -174,7 +174,7 @@ impl ProcessGroupIdentifier
 		}
 		else if value > 0 && value <= (i32::MAX as u32)
 		{
-			Ok(Some(Self(unsafe { NonZeroI32::new_unchecked(value as i32)})))
+			Ok(Some(Self(new_non_zero_i32(value as i32))))
 		}
 		else
 		{

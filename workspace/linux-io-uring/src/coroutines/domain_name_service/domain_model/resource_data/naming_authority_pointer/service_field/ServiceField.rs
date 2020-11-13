@@ -337,9 +337,9 @@ impl ServiceField
 			return Err(ExpectedANoSolicitRegularExpression)
 		}
 		
-		let first_delimiter_character = unsafe { * regular_expression.get_unchecked(0) };
-		let second_delimiter_character = unsafe { * regular_expression.get_unchecked(1) };
-		let last_delimiter_character = unsafe { * regular_expression.get_unchecked(regular_expression_length - 1) };
+		let first_delimiter_character = regular_expression.get_unchecked_value_safe(0);
+		let second_delimiter_character = regular_expression.get_unchecked_value_safe(1);
+		let last_delimiter_character = regular_expression.get_unchecked_value_safe(regular_expression_length - 1);
 		
 		if unlikely!(first_delimiter_character != second_delimiter_character || second_delimiter_character != last_delimiter_character)
 		{

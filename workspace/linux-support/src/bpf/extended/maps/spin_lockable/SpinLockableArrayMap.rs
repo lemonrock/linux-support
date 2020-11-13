@@ -61,9 +61,8 @@ impl<V: 'static + Copy + HasReflectionInformation> SpinLockableArrayMap<V>
 	}
 	
 	/// Update existing.
-	#[allow(deprecated)]
 	pub fn set(&self, index: u32, value: V)
 	{
-		self.0.set_locked(index, SpinLockableValue { spin_lock: unsafe { uninitialized() }, value })
+		self.0.set_locked(index, SpinLockableValue { spin_lock: unsafe_uninitialized(), value })
 	}
 }

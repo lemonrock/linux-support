@@ -376,7 +376,7 @@ impl<'a> IoUring<'a>
 	#[inline(always)]
 	fn size<T: Sized>(left: u32, number_of_entries: u32) -> NonZeroU64
 	{
-		unsafe { NonZeroU64::new_unchecked((left as u64) + ((number_of_entries * (size_of::<T>() as u32)) as u64)) }
+		new_non_zero_u64((left as u64) + ((number_of_entries * (size_of::<T>() as u32)) as u64))
 	}
 
 	#[inline(always)]

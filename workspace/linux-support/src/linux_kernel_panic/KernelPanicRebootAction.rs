@@ -31,7 +31,7 @@ impl Default for KernelPanicRebootAction
 	#[inline(always)]
 	fn default() -> Self
 	{
-		KernelPanicRebootAction::AfterSomeSeconds { seconds: unsafe { NonZeroU32::new_unchecked(120) } }
+		KernelPanicRebootAction::AfterSomeSeconds { seconds: new_non_zero_u32(120) }
 	}
 }
 

@@ -71,13 +71,12 @@ impl TypeBitmaps
 	///
 	/// Since type codes (0x00, 127) to (0x00, 255) are for query types and meta types, we can re-use the data occupied by them (16 bytes) for other types.
 	/// Currently, only type codes (0x01, 0) and (0x01, 1) are usefuly defined; all other blocks can be ignored.
-	#[allow(deprecated)]
 	#[inline(always)]
 	pub(crate) fn parse_type_bitmaps(data_type: DataType, blocks: &[u8]) -> Result<Self, TypeBitmapsParseError>
 	{
 		use self::TypeBitmapsParseError::*;
 		
-		let mut this: Self = unsafe { uninitialized() };
+		let mut this: Self = unsafe_uninitialized();
 
 		let blocks_length = blocks.len();
 		let mut block_starts_at = 0;
@@ -149,7 +148,7 @@ impl TypeBitmaps
 
 		if unlikely!(!have_seen_window_number_0)
 		{
-			this.type_codes_0x0000_to_0x007F = unsafe { zeroed() }
+			this.type_codes_0x0000_to_0x007F = unsafe_zeroed()
 		}
 
 		Ok(this)

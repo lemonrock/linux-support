@@ -30,7 +30,7 @@ impl ParseNumber for RetriesOrphan
 			}
 			else
 			{
-				Retries(unsafe { NonZeroU8::new_unchecked(value) })
+				Retries(new_non_zero_u8(value))
 			}
 		)
 	}

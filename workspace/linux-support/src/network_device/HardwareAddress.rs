@@ -34,7 +34,6 @@ impl<'a> TryFrom<&'a [u8]> for HardwareAddress
 {
 	type Error = String;
 	
-	#[allow(deprecated)]
 	#[inline(always)]
 	fn try_from(value: &'a [u8]) -> Result<Self, Self::Error>
 	{
@@ -49,7 +48,7 @@ impl<'a> TryFrom<&'a [u8]> for HardwareAddress
 		}
 		else
 		{
-			let mut bytes: [u8; HardwareAddress::MaximumLength.get()] = unsafe { uninitialized() };
+			let mut bytes: [u8; HardwareAddress::MaximumLength.get()] = unsafe_uninitialized();
 			unsafe { bytes.as_mut_ptr().copy_from_nonoverlapping(value.as_ptr(), length) };
 			let buffer = ConstArrayVec
 			{
@@ -64,11 +63,11 @@ impl<'a> TryFrom<&'a [u8]> for HardwareAddress
 impl HardwareAddress
 {
 	/// Minimum length.
-	pub const MinimumLength: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(1) };
+	pub const MinimumLength: NonZeroUsize = new_non_zero_usize(1);
 	
 	/// Maximum length.
-	pub const MaximumLength: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(MAX_ADDR_LEN) };
+	pub const MaximumLength: NonZeroUsize = new_non_zero_usize(MAX_ADDR_LEN);
 	
 	/// Ethernet Media Access Control (MAC) hardware address length (`6`).
-	pub const EthernetMediaAccessControlLength: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(6) };
+	pub const EthernetMediaAccessControlLength: NonZeroUsize = new_non_zero_usize(6);
 }

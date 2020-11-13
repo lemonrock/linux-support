@@ -65,6 +65,6 @@ impl CurrentTimerSlackNanoseconds
 	#[inline(always)]
 	const fn new_unsafe(nanoseconds: usize) -> Self
 	{
-		Self(unsafe { NonZeroUsize::new_unchecked(nanoseconds) })
+		Self(new_non_zero_usize(nanoseconds))
 	}
 }

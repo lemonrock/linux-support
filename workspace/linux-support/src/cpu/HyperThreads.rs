@@ -61,7 +61,7 @@ impl TryInto<(cpu_set_t, usize)> for HyperThreads
 
 		let cpu_set =
 		{
-			#[allow(deprecated)] let mut cpu_set = unsafe { uninitialized() };
+			let mut cpu_set = unsafe_uninitialized();
 			let (pointer, length) = self.to_raw_parts();
 			let cpu_set_usize_pointer = &mut cpu_set as *mut cpu_set_t as *mut usize;
 			unsafe { pointer.copy_to_nonoverlapping(cpu_set_usize_pointer, length) };

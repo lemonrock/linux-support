@@ -234,7 +234,7 @@ signed_parse_number!(isize);
 
 macro_rules! parse_non_zero_number
 {
-	($non_zero_type: ty, $type: ident) =>
+	($non_zero_type: ty, $type: ident, $constructor: path) =>
 	{
 		impl ParseNumber for $non_zero_type
 		{
@@ -246,7 +246,7 @@ macro_rules! parse_non_zero_number
 				{
 					return Err(ParseNumberError::WasZero)
 				}
-				Ok(unsafe { <$non_zero_type>::new_unchecked(value) })
+				Ok($constructor(value))
 			}
 		}
 
@@ -262,24 +262,24 @@ macro_rules! parse_non_zero_number
 				}
 				else
 				{
-					Ok(Some(unsafe { <$non_zero_type>::new_unchecked(value) }))
+					Ok(Some($constructor(value)))
 				}
 			}
 		}
 	}
 }
-parse_non_zero_number!(std::num::NonZeroU8, u8);
-parse_non_zero_number!(std::num::NonZeroU16, u16);
-parse_non_zero_number!(std::num::NonZeroU32, u32);
-parse_non_zero_number!(std::num::NonZeroU64, u64);
-parse_non_zero_number!(std::num::NonZeroU128, u128);
-parse_non_zero_number!(std::num::NonZeroUsize, usize);
-parse_non_zero_number!(std::num::NonZeroI8, i8);
-parse_non_zero_number!(std::num::NonZeroI16, i16);
-parse_non_zero_number!(std::num::NonZeroI32, i32);
-parse_non_zero_number!(std::num::NonZeroI64, i64);
-parse_non_zero_number!(std::num::NonZeroI128, i128);
-parse_non_zero_number!(std::num::NonZeroIsize, isize);
+parse_non_zero_number!(std::num::NonZeroU8, u8, new_non_zero_u8);
+parse_non_zero_number!(std::num::NonZeroU16, u16, new_non_zero_u16);
+parse_non_zero_number!(std::num::NonZeroU32, u32, new_non_zero_u32);
+parse_non_zero_number!(std::num::NonZeroU64, u64, new_non_zero_u64);
+parse_non_zero_number!(std::num::NonZeroU128, u128, new_non_zero_u128);
+parse_non_zero_number!(std::num::NonZeroUsize, usize, new_non_zero_usize);
+parse_non_zero_number!(std::num::NonZeroI8, i8, new_non_zero_i8);
+parse_non_zero_number!(std::num::NonZeroI16, i16, new_non_zero_i16);
+parse_non_zero_number!(std::num::NonZeroI32, i32, new_non_zero_i32);
+parse_non_zero_number!(std::num::NonZeroI64, i64, new_non_zero_i64);
+parse_non_zero_number!(std::num::NonZeroI128, i128, new_non_zero_i128);
+parse_non_zero_number!(std::num::NonZeroIsize, isize, new_non_zero_isize);
 
 impl<P: ParseNumberOption> ParseNumber for Option<P>
 {

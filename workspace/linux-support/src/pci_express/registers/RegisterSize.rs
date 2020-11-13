@@ -49,7 +49,7 @@ impl RegisterSize for u32
 	#[inline(always)]
 	fn as_non_null(pointer: usize) -> NonNull<Self>
 	{
-		unsafe { NonNull::new_unchecked(pointer as *mut Self) }
+		new_non_null(pointer as *mut Self)
 	}
 }
 
@@ -66,6 +66,6 @@ impl RegisterSize for u64
 	#[inline(always)]
 	fn as_non_null(pointer: usize) -> NonNull<Self>
 	{
-		unsafe { NonNull::new_unchecked(pointer as *mut Self) }
+		new_non_null(pointer as *mut Self)
 	}
 }

@@ -34,7 +34,7 @@ impl Default for FileDescriptorKind
 	#[inline(always)]
 	fn default() -> Self
 	{
-		unsafe { zeroed() }
+		unsafe_zeroed()
 	}
 }
 

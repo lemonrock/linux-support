@@ -49,7 +49,7 @@ impl ReceiveBufferSizeInBytes
 	/// Typical value.
 	///
 	/// From `/proc/sys/net/core/rmem_max`.
-	pub const UsualGlobalMaximum: Self = Self(unsafe { NonZeroU32::new_unchecked(212_992) });
+	pub const UsualGlobalMaximum: Self = Self(new_non_zero_u32(212_992));
 	
 	/// Default is `Self::UsualGlobalMaximum`.
 	///
@@ -83,7 +83,7 @@ impl ReceiveBufferSizeInBytes
 	/// Typical value.
 	///
 	/// From `/proc/sys/net/core/rmem_default`.
-	pub const UsualGlobalDefault: Self = Self(unsafe { NonZeroU32::new_unchecked(212_992) });
+	pub const UsualGlobalDefault: Self = Self(new_non_zero_u32(212_992));
 	
 	/// Default is `Self::UsualGlobalDefault`.
 	///
@@ -117,17 +117,17 @@ impl ReceiveBufferSizeInBytes
 	/// Inclusive minimum.
 	///
 	/// From `/proc/sys/net/ipv4/tcp_rmem`, first column (one-based).
-	pub const UsualInclusiveMinimumForTransmissionControlProtocol: Self = Self(unsafe { NonZeroU32::new_unchecked(4_096) });
+	pub const UsualInclusiveMinimumForTransmissionControlProtocol: Self = Self(new_non_zero_u32(4_096));
 	
 	/// Typical value.
 	///
 	/// From `/proc/sys/net/ipv4/tcp_rmem`, second column (one-based); this value can be adjusted.
-	pub const UsualGlobalDefaultForTransmissionControlProtocol: Self = Self(unsafe { NonZeroU32::new_unchecked(131_072) });
+	pub const UsualGlobalDefaultForTransmissionControlProtocol: Self = Self(new_non_zero_u32(131_072));
 	
 	/// Inclusive maximum.
 	///
 	/// From `/proc/sys/net/ipv4/tcp_rmem`, third column (one-based).
-	pub const UsualInclusiveMaximumForTransmissionControlProtocol: Self = Self(unsafe { NonZeroU32::new_unchecked(6_291_456) });
+	pub const UsualInclusiveMaximumForTransmissionControlProtocol: Self = Self(new_non_zero_u32(6_291_456));
 	
 	/// Default values are `Self::UsualInclusiveMinimumForTransmissionControlProtocol`, `Self::UsualGlobalDefaultForTransmissionControlProtocol` and `Self::UsualInclusiveMaximumForTransmissionControlProtocol`.
 	///
@@ -172,7 +172,7 @@ impl ReceiveBufferSizeInBytes
 	}
 	
 	/// Upper limit on maximum values.
-	pub const InclusiveMaximumMaximum: Self = Self(unsafe { NonZeroU32::new_unchecked(i32::MAX as u32) });
+	pub const InclusiveMaximumMaximum: Self = Self(new_non_zero_u32(i32::MAX as u32));
 	
 	#[inline(always)]
 	const fn adjust_for_tcp_set_sock_opt(self) -> u32

@@ -33,7 +33,7 @@ impl Default for sockaddr_in6
 			sin6_family: AF_INET6 as sa_family_t,
 			sin6_port: 0,
 			sin6_flowinfo: 0,
-			sin6_addr: unsafe { zeroed() },
+			sin6_addr: unsafe_zeroed(),
 			sin6_scope_id: 0,
 		}
 	}

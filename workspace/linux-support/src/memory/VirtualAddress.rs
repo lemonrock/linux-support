@@ -139,7 +139,7 @@ impl<T> Into<NonNull<T>> for VirtualAddress
 	#[inline(always)]
 	fn into(self) -> NonNull<T>
 	{
-		unsafe { NonNull::new_unchecked(self.0 as *mut T) }
+		new_non_null(self.0 as *mut T)
 	}
 }
 
@@ -148,7 +148,7 @@ impl Into<NonZeroU64> for VirtualAddress
 	#[inline(always)]
 	fn into(self) -> NonZeroU64
 	{
-		unsafe { NonZeroU64::new_unchecked(self.0 as u64) }
+		new_non_zero_u64(self.0 as u64)
 	}
 }
 
@@ -469,7 +469,7 @@ impl VirtualAddress
 		debug_assert_eq!(offset % align_of::<T>(), 0, "misaligned access");
 		debug_assert_ne!(self.0 + offset, 0, "A zero address and zero offset is not permitted");
 
-		unsafe { NonNull::new_unchecked((self.0 as *mut T).add(offset)) }
+		unsafe { new_non_null((self.0 as *mut T).add(offset)) }
 	}
 
 	/// Pointer.

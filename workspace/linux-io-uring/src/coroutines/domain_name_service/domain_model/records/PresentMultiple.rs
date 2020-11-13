@@ -88,8 +88,7 @@ impl<Record: Sized + Debug> PresentMultiple<Record>
 	fn records_count(&self) -> NonZeroUsize
 	{
 		let records_count = self.records_count_usize();
-		debug_assert_ne!(records_count, 0);
-		unsafe { NonZeroUsize::new_unchecked(records_count) }
+		new_non_zero_usize(records_count)
 	}
 	
 	fn retrieve(&mut self, now: NanosecondsSinceUnixEpoch) -> (QueryTypeCacheResult<Record>, Option<usize>)

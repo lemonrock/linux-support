@@ -27,11 +27,10 @@ impl Query
 		query.read_tcp_reply::<QP, SD>(stream, cache)
 	}
 	
-	#[allow(deprecated)]
 	#[inline(always)]
 	pub(crate) fn write_tcp_query<'yielder, SD: SocketData>(&self, stream: &mut TlsClientStream<'yielder, SD>)
 	{
-		let mut buffer: [u8; TcpDnsMessage::MaximumQueryBufferSize] = unsafe { uninitialized() };
+		let mut buffer: [u8; TcpDnsMessage::MaximumQueryBufferSize] = unsafe_uninitialized();
 
 		let buffer_pointer = (&mut buffer[..]).start_pointer();
 
@@ -40,11 +39,10 @@ impl Query
 		stream.write_all_data(&buffer[.. buffer_length])
 	}
 	
-	#[allow(deprecated)]
 	#[inline(always)]
 	pub(crate) fn read_tcp_reply<'yielder, 'cache, QP: QueryProcessor<'cache>, SD: SocketData>(&self, stream: &mut TlsClientStream<'yielder, SD>, cache: &mut Cache<'cache>) -> Result<(), ProtocolError<Infallible>>
 	{
-		let mut buffer: [u8; ResourceRecord::UdpRequestorsPayloadSize] = unsafe { uninitialized() };
+		let mut buffer: [u8; ResourceRecord::UdpRequestorsPayloadSize] = unsafe_uninitialized();
 		let message_length = Self::reply_message(stream, &mut buffer)?;
 		let raw_dns_message = &buffer[.. message_length];
 		
@@ -79,7 +77,6 @@ impl Query
 		Ok((answer, canonical_name_records, delegation_name_records, answer_section_resource_record_visitor_finished))
 	}
 	
-	#[allow(deprecated)]
 	#[inline(always)]
 	fn reply_message<'yielder, SD: SocketData>(stream: &mut TlsClientStream<'yielder, SD>, buffer: &mut [u8; ResourceRecord::UdpRequestorsPayloadSize]) -> Result<usize, MessageLengthError>
 	{
@@ -88,13 +85,12 @@ impl Query
 		Ok(message_length)
 	}
 	
-	#[allow(deprecated)]
 	#[inline(always)]
 	fn tcp_reply_message_length<'yielder, SD: SocketData>(stream: &mut TlsClientStream<'yielder, SD>) -> Result<usize, MessageLengthError>
 	{
 		use self::MessageLengthError::*;
 		
-		let mut length_buffer: BigEndianU16 = unsafe { uninitialized() };
+		let mut length_buffer: BigEndianU16 = unsafe_uninitialized();
 		stream.read_all_data(&mut length_buffer[..]);
 		let message_length_big_endian: BigEndianU16 = (&length_buffer[0 .. TcpDnsMessage::TcpBufferLengthSize]).try_into().unwrap();
 		let message_length = u16::from_be_bytes(message_length_big_endian) as usize;

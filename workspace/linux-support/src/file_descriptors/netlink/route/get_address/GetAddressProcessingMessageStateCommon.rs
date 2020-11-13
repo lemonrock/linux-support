@@ -82,7 +82,7 @@ impl GetAddressProcessingMessageStateCommon
 		}
 		else if mask_length_in_bits <= IPA::InclusiveMaximumPrefixLength
 		{
-			Ok(Some(unsafe { NonZeroU8::new_unchecked(mask_length_in_bits) }))
+			Ok(Some(new_non_zero_u8(mask_length_in_bits)))
 		}
 		else
 		{

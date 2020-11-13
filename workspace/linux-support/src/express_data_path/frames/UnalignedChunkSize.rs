@@ -43,7 +43,7 @@ impl Into<NonZeroU32> for UnalignedChunkSize
 	fn into(self) -> NonZeroU32
 	{
 		let value = self.0.get();
-		unsafe { NonZeroU32::new_unchecked(value as u32) }
+		new_non_zero_u32(value as u32)
 	}
 }
 
@@ -82,7 +82,7 @@ impl TryFrom<u16> for UnalignedChunkSize
 		}
 		else
 		{
-			Self::try_from(unsafe { NonZeroU16::new_unchecked(value) })
+			Self::try_from(new_non_zero_u16(value))
 		}
 	}
 }
@@ -198,6 +198,6 @@ impl UnalignedChunkSize
 	#[inline(always)]
 	const fn new_unchecked(value: u16) -> Self
 	{
-		Self(unsafe { NonZeroU16::new_unchecked(value) })
+		Self(new_non_zero_u16(value))
 	}
 }

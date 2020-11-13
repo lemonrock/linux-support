@@ -74,7 +74,7 @@ impl CharacterSettings
 		let settings = &mut terminal_options.c_cc;
 		for (character, setting) in self.0.iter()
 		{
-			*(unsafe { settings.get_unchecked_mut((*character) as usize) }) = *setting;
+			*settings.get_unchecked_mut_safe((*character)) = *setting;
 		}
 	}
 
@@ -87,7 +87,7 @@ impl CharacterSettings
 
 		for character in Character::iter()
 		{
-			let raw_value = *(unsafe {settings.get_unchecked(character as usize) });
+			let raw_value = settings.get_unchecked_value_safe(character);
 			this.insert(character, raw_value);
 		}
 

@@ -62,8 +62,7 @@ impl<SD: SocketData> StreamingServerListenerSocketFileDescriptor<SD>
 		use self::SocketAcceptError::*;
 		use self::ConnectionFailedReason::*;
 
-		#[allow(deprecated)]
-		let mut peer_address: SD = unsafe { uninitialized() };
+		let mut peer_address: SD = unsafe_uninitialized();
 		let mut peer_address_length = PendingAcceptConnection::<SD>::SocketDataLength();
 
 		let result = unsafe { accept4(self.as_raw_fd(), &mut peer_address as *mut _ as *mut _, &mut peer_address_length, SOCK_NONBLOCK | SOCK_CLOEXEC) };

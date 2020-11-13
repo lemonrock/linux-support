@@ -47,7 +47,7 @@ impl<Subcommand: Copy + EthtoolCommand> ethtool_per_queue_op<Subcommand>
 		let mut number_of_queues = 0;
 		for word_index in 0 .. self.queue_mask.len()
 		{
-			let word = unsafe { *self.queue_mask.get_unchecked(word_index) };
+			let word = self.queue_mask.get_unchecked_value_safe(word_index);
 			number_of_queues += word.count_ones();
 		}
 		number_of_queues
@@ -65,7 +65,7 @@ impl VariablySizedEthtoolCommandWrapper<ethtool_per_queue_op<ethtool_coalesce>>
 		let mut subcommands_index = 0;
 		for word_index in 0 .. self.queue_mask.len()
 		{
-			let word = unsafe { *self.queue_mask.get_unchecked(word_index) };
+			let word = self.queue_mask.get_unchecked_value_safe(word_index);
 			for bit_in_word in 0 .. U32SizeInBits
 			{
 				let bit_value = (1 << bit_in_word) as u32;
@@ -73,7 +73,7 @@ impl VariablySizedEthtoolCommandWrapper<ethtool_per_queue_op<ethtool_coalesce>>
 				{
 					let queue_identifier = bit_in_word + (word_index * U32SizeInBits);
 					let queue_identifier = QueueIdentifier::from_validated_u16(queue_identifier as u16);
-					let coalesce_configuration = (unsafe { subcommands.get_unchecked(subcommands_index) }).as_coalesce_configuration()?;
+					let coalesce_configuration = subcommands.get_unchecked_safe(subcommands_index).as_coalesce_configuration()?;
 					coalesce_configurations.insert(queue_identifier, coalesce_configuration);
 					subcommands_index += 1;
 				}
@@ -127,20 +127,18 @@ impl ethtool_per_queue_op<ethtool_coalesce>
 		)
 	}
 	
-	#[allow(deprecated)]
 	#[inline(always)]
 	fn all_queue_identifiers_to_queue_mask(maximum_number_of_queues: QueueCount) -> [u32; QueueMaskSize]
 	{
 		let maximum_number_of_queues: usize = maximum_number_of_queues.into();
 		
-		let mut queue_mask: [u32; QueueMaskSize] = unsafe { zeroed() };
+		let mut queue_mask: [u32; QueueMaskSize] = unsafe_zeroed();
 		let number_of_wholly_populated_words = maximum_number_of_queues / U32SizeInBits;
 		unsafe { queue_mask.as_mut_ptr().write_bytes(0xFF, number_of_wholly_populated_words) };
 		
 		let bit_set_in_last_word =  (1 << ((maximum_number_of_queues % U32SizeInBits) as u32)) - 1;
 		
-		let word = unsafe { queue_mask.get_unchecked_mut(number_of_wholly_populated_words) };
-		*word = bit_set_in_last_word;
+		queue_mask.set_unchecked_mut_safe(number_of_wholly_populated_words, bit_set_in_last_word);
 		
 		queue_mask
 	}
@@ -148,12 +146,12 @@ impl ethtool_per_queue_op<ethtool_coalesce>
 	#[inline(always)]
 	fn queue_identifiers_to_queue_mask<'a>(queue_identifiers: impl 'a + Iterator<Item=&'a QueueIdentifier>) -> [u32; QueueMaskSize]
 	{
-		let mut queue_mask: [u32; QueueMaskSize] = unsafe { zeroed() };
+		let mut queue_mask: [u32; QueueMaskSize] = unsafe_zeroed();
 		for queue_identifier in queue_identifiers
 		{
 			let queue_identifier: u16 = (*queue_identifier).into();
 			let word_index = (queue_identifier as usize) / U32SizeInBits;
-			let word = unsafe { queue_mask.get_unchecked_mut(word_index) };
+			let word = queue_mask.get_unchecked_mut_safe(word_index);
 			let bit_index_in_word = ((queue_identifier as usize) % U32SizeInBits) as u32;
 			*word = (*word) | 1 << bit_index_in_word;
 		}

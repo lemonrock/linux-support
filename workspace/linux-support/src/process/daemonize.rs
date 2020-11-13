@@ -27,7 +27,7 @@ pub fn daemonize(dev_path: &DevPath)
 		let result = unsafe { setsid() };
 		if likely!(result > 0)
 		{
-			return ProcessGroupIdentifier(unsafe { NonZeroI32::new_unchecked(result) })
+			return ProcessGroupIdentifier(new_non_zero_i32(result))
 		}
 		else if likely!(result == -1)
 		{

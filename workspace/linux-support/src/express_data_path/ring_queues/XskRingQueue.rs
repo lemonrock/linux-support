@@ -44,7 +44,7 @@ impl<XRQK: XskRingQueueKind, D: Descriptor> XskRingQueue<XRQK, D>
 	#[inline(always)]
 	fn ring_entry_mut(&self, index: RingQueueEntryIndex) -> NonNull<D>
 	{
-		unsafe { NonNull::new_unchecked(self.ring_entry_raw(index)) }
+		new_non_null(unsafe { self.ring_entry_raw(index) })
 	}
 	
 	#[inline(always)]
@@ -384,7 +384,7 @@ impl<D: Descriptor> XskRingQueue<ConsumerXskRingQueueKind, D>
 			let cached_consumer = self.cached_consumer();
 			let index = cached_consumer;
 			self.set_cached_consumer(cached_consumer + entries);
-			Some((unsafe { NonZeroU32::new_unchecked(entries) }, RingQueueIndex(index)))
+			Some((new_non_zero_u32(entries), RingQueueIndex(index)))
 		}
 	}
 	

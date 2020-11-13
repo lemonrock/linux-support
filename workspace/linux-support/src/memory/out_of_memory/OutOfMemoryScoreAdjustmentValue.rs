@@ -45,6 +45,6 @@ impl OutOfMemoryScoreAdjustmentValue
 	
 	const fn new_unchecked(value: u16) -> Self
 	{
-		Self(unsafe { NonZeroU16::new_unchecked(value) })
+		Self(new_non_zero_u16(value))
 	}
 }

@@ -28,7 +28,7 @@ impl Default for bpf_attr
 	#[inline(always)]
 	fn default() -> Self
 	{
-		unsafe { zeroed() }
+		unsafe_zeroed()
 	}
 }
 

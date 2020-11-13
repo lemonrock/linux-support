@@ -57,8 +57,8 @@ impl StatM
 
 			let field = match columns.next()
 			{
-				None => return Err(MissingField { index: unsafe { NonZeroU8::new_unchecked(index) }, name }),
-				Some(bytes) => NumberOfPages::from_bytes(bytes).map_err(|cause| ParseNumber { index: unsafe { NonZeroU8::new_unchecked(index) }, name, cause})?,
+				None => return Err(MissingField { index: new_non_zero_u8(index), name }),
+				Some(bytes) => NumberOfPages::from_bytes(bytes).map_err(|cause| ParseNumber { index: new_non_zero_u8(index), name, cause})?,
 			};
 			Ok(field)
 		}
@@ -73,7 +73,7 @@ impl StatM
 			}
 			else
 			{
-				Err(StatMParseError::FieldWasNotZero { index: unsafe { NonZeroU8::new_unchecked(index) }, name })
+				Err(StatMParseError::FieldWasNotZero { index: new_non_zero_u8(index), name })
 			}
 		}
 

@@ -89,12 +89,11 @@ impl MapFileDescriptor
 	///
 	/// Returns `None` if the `key` is the last one (ie `capacity() - 1`).
 	#[inline(always)]
-	#[allow(deprecated)]
 	pub fn get_next_key<K: Copy>(&self, key: *const K) -> Result<Option<K>, Errno>
 	{
 		debug_assert_ne!(size_of::<K>(), 0);
 		
-		let mut next_key = unsafe { uninitialized() };
+		let mut next_key = unsafe_uninitialized();
 		
 		let mut attr = bpf_attr::default();
 		attr.map_change = BpfCommandMapChange
@@ -131,14 +130,13 @@ impl MapFileDescriptor
 		}
 	}
 	
-	#[allow(deprecated)]
 	#[inline(always)]
 	pub(crate) fn get<K: Copy, V: Copy>(&self, key: &K) -> Option<V>
 	{
 		debug_assert_ne!(size_of::<V>(), 0);
 		
-		let mut value: V = unsafe { uninitialized() };
-		let found = self.get_internal(key, unsafe { NonNull::new_unchecked(&mut value) });
+		let mut value: V = unsafe_uninitialized();
+		let found = self.get_internal(key, new_non_null(&mut value));
 		if found
 		{
 			Some(value)
@@ -169,7 +167,7 @@ impl MapFileDescriptor
 	#[inline(always)]
 	pub(crate) fn get_variably_sized_vector<K: Copy, V: Copy>(&self, key: &K, allocate_values: &mut Vec<V>) -> bool
 	{
-		self.get_internal(key, unsafe { NonNull::new_unchecked(allocate_values.as_mut_ptr()) })
+		self.get_internal(key, new_non_null(allocate_values.as_mut_ptr()))
 	}
 	
 	#[inline(always)]
@@ -425,14 +423,13 @@ impl MapFileDescriptor
 		}
 	}
 	
-	#[allow(deprecated)]
 	#[inline(always)]
 	pub(crate) fn lookup_and_delete<K: Copy, V: Copy>(&self, key: &K) -> Result<Option<V>, Errno>
 	{
 		debug_assert_ne!(size_of::<K>(), 0);
 		debug_assert_ne!(size_of::<V>(), 0);
 		
-		let mut value: V = unsafe { uninitialized() };
+		let mut value: V = unsafe_uninitialized();
 		
 		let mut attr = bpf_attr::default();
 		attr.map_change = BpfCommandMapChange
@@ -468,7 +465,6 @@ impl MapFileDescriptor
 	
 	/// Returns `Ok(true)` if `key` was present.
 	#[inline(always)]
-	#[allow(deprecated)]
 	pub(crate) fn delete<K: Copy>(&self, key: &K) -> Result<bool, Errno>
 	{
 		debug_assert_ne!(size_of::<K>(), 0);
@@ -570,7 +566,6 @@ impl MapFileDescriptor
 	
 	/// Returns `(values_filled, start of next batch position, more_entries_to_return)`.
 	/// `values_filled.len()` may be less than `keys.len()`.
-	#[allow(deprecated)]
 	#[inline(always)]
 	pub(crate) fn lookup_batch<K: Copy>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K], values: AlignedU64) -> Result<(u32, OpaqueBatchPosition<K>, bool), Errno>
 	{
@@ -578,7 +573,7 @@ impl MapFileDescriptor
 		assert_ne!(keys_length, 0, "There must be at least one key");
 		debug_assert!(keys_length <= u32::MAX as usize);
 		
-		let mut out_batch: OpaqueBatchPosition<K> = unsafe { uninitialized() };
+		let mut out_batch: OpaqueBatchPosition<K> = unsafe_uninitialized();
 		
 		let mut attr = bpf_attr::default();
 		attr.batch = BpfCommandMapBatch
@@ -644,7 +639,6 @@ impl MapFileDescriptor
 	
 	/// Returns `(values_filled, start of next batch position, more_entries_to_return)`.
 	/// `values_filled.len()` may be less than `keys.len()`.
-	#[allow(deprecated)]
 	#[inline(always)]
 	fn lookup_and_delete_batch<K: Copy>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K], values: AlignedU64) -> Result<(u32, OpaqueBatchPosition<K>, bool), Errno>
 	{
@@ -652,7 +646,7 @@ impl MapFileDescriptor
 		assert_ne!(keys_length, 0, "There must be at least one key");
 		debug_assert!(keys_length <= u32::MAX as usize);
 		
-		let mut out_batch: OpaqueBatchPosition<K> = unsafe { uninitialized() };
+		let mut out_batch: OpaqueBatchPosition<K> = unsafe_uninitialized();
 		
 		let mut attr = bpf_attr::default();
 		attr.batch = BpfCommandMapBatch

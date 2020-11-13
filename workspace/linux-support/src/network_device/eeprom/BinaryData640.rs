@@ -14,11 +14,10 @@ pub struct BinaryData640
 impl<'a> From<&'a [u8]> for BinaryData640
 {
 	#[inline(always)]
-	#[allow(deprecated)]
 	fn from(binary_data: &'a [u8]) -> Self
 	{
 		let slice = &binary_data[.. BinaryData640::LargeSize];
-		let mut binary_data: [u8; BinaryData640::LargeSize] = unsafe { uninitialized() };
+		let mut binary_data: [u8; BinaryData640::LargeSize] = unsafe_uninitialized();
 		unsafe { binary_data.as_mut_ptr().copy_from_nonoverlapping(slice.as_ptr(), BinaryData640::LargeSize) }
 		Self { binary_data }
 	}
@@ -27,7 +26,6 @@ impl<'a> From<&'a [u8]> for BinaryData640
 impl From<Vec<u8>> for BinaryData640
 {
 	#[inline(always)]
-	#[allow(deprecated)]
 	fn from(binary_data: Vec<u8>) -> Self
 	{
 		Self::from(&binary_data[.. BinaryData640::LargeSize])

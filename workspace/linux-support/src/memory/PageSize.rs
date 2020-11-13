@@ -91,21 +91,21 @@ impl PageSize
 	#[inline(always)]
 	pub const fn size_in_kilobytes(self) -> NonZeroKilobyte
 	{
-		unsafe { NonZeroU64::new_unchecked((self as u64) / 1_024) }
+		new_non_zero_u64((self as u64) / 1_024)
 	}
 
 	/// Size in bytes.
 	#[inline(always)]
 	pub const fn size_in_bytes(self) -> NonZeroU64
 	{
-		unsafe { NonZeroU64::new_unchecked(self as u64) }
+		new_non_zero_u64(self as u64)
 	}
 
 	/// Non-zero number of pages from non-zero number of bytes, rounded up.
 	#[inline(always)]
 	pub fn non_zero_number_of_pages_from_non_zero_number_of_bytes_rounded_up(self, number_of_bytes: NonZeroU64) -> NonZeroNumberOfPages
 	{
-		unsafe { NonZeroU64::new_unchecked(self.number_of_pages_from_number_of_bytes_rounded_up(number_of_bytes.get())) }
+		new_non_zero_u64(self.number_of_pages_from_number_of_bytes_rounded_up(number_of_bytes.get()))
 	}
 
 	/// Number of pages from number of bytes, rounded up.
@@ -120,7 +120,7 @@ impl PageSize
 	#[inline(always)]
 	pub fn non_zero_number_of_bytes_rounded_up_to_multiple_of_page_size(self, number_of_bytes: NonZeroU64) -> NonZeroU64
 	{
-		unsafe { NonZeroU64::new_unchecked(self.number_of_bytes_rounded_up_to_multiple_of_page_size(number_of_bytes.get())) }
+		new_non_zero_u64(self.number_of_bytes_rounded_up_to_multiple_of_page_size(number_of_bytes.get()))
 	}
 
 	/// Number of bytes rounded up to number of pages.

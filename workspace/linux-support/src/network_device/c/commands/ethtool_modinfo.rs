@@ -36,7 +36,7 @@ impl ethtool_modinfo
 			cmd: ETHTOOL_GMODULEINFO,
 			type_: 0,
 			eeprom_len: 0,
-			reserved: unsafe { zeroed() },
+			reserved: unsafe_zeroed(),
 		}
 	}
 }

@@ -25,7 +25,7 @@ impl Default for epoll_data_t
 	#[inline(always)]
 	fn default() -> Self
 	{
-		unsafe { zeroed() }
+		unsafe_zeroed()
 	}
 }
 

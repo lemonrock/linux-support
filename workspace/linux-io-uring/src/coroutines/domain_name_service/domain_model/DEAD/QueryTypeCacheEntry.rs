@@ -21,7 +21,7 @@ impl<'cache, Record: Sized + Debug> LeastRecentlyUsedCacheValue for QueryTypeCac
 	{
 		use self::QueryTypeCacheEntry::*;
 		
-		const One: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(1) };
+		const One: NonZeroUsize = new_non_zero_usize(1);
 		
 		match self
 		{

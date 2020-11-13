@@ -41,7 +41,7 @@ impl<'a, SD: 'a + SocketData> ReceiveMessage<'a, SD>
 				message_iovlength as u32 as i32,
 				message_control.as_mut_ptr() as *mut c_void,
 				message_control_length as u32,
-				unsafe { uninitialized() },
+				unsafe_uninitialized(),
 			),
 			pending_accept_connection,
 			buffers,

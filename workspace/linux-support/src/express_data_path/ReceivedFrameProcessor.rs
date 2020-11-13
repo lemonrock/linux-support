@@ -28,7 +28,7 @@ pub trait ReceivedFrameProcessor
 	#[inline(always)]
 	fn maximum_number_of_frames(&self) -> NonZeroU32
 	{
-		unsafe { NonZeroU32::new_unchecked(16) }
+		new_non_zero_u32(16)
 	}
 	
 	/// `received_number_of_frames` will always be less than or equal to `self.maximum_number_of_frames()`.

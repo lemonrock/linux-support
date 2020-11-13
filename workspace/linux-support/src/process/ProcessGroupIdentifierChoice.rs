@@ -34,7 +34,7 @@ impl From<pid_t> for ProcessGroupIdentifierChoice
 		}
 		else
 		{
-			Other(ProcessGroupIdentifier::from(unsafe { NonZeroI32::new_unchecked(value) }))
+			Other(ProcessGroupIdentifier::from(new_non_zero_i32(value)))
 		}
 	}
 }

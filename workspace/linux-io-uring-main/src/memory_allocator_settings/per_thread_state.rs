@@ -6,5 +6,5 @@
 pub(crate) fn per_thread_state() -> NonNull<PerThreadState<CoroutineHeapSize, CoroutineLocalAllocator, ThreadLocalAllocator>>
 {
 	#[thread_local] static mut PerThreadState: PerThreadState<CoroutineHeapSize, CoroutineLocalAllocator, ThreadLocalAllocator> = PerThreadState::empty();
-	unsafe { NonNull::new_unchecked(&mut PerThreadState) }
+	new_non_null(unsafe { &mut PerThreadState })
 }

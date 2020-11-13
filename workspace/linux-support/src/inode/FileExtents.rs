@@ -27,7 +27,6 @@ impl FileExtents
 
 	const SizeOfExtent: usize = size_of::<fiemap_extent>();
 
-	#[allow(deprecated)]
 	#[inline(always)]
 	pub(crate) fn new(initial_number_of_extents_to_retrieve: NonZeroU32, logical_range_in_bytes: RangeInclusive<u64>, retrieve_file_extents_flags: RetrieveFileExtentsFlags, flags: u32) -> Self
 	{
@@ -51,7 +50,7 @@ impl FileExtents
 					fm_start: start,
 					fm_length: length,
 					fm_flags: retrieve_file_extents_flags.bits() | flags,
-					fm_mapped_extents: uninitialized(),
+					fm_mapped_extents: unsafe_uninitialized(),
 					fm_extent_count: number_of_extents_to_retrieve,
 					fm_reserved: 0,
 					fm_extents: []
@@ -115,7 +114,7 @@ impl FileExtents
 		{
 			if number_of_extents_present == self.fm_extent_count()
 			{
-				let last_extent = unsafe { self.extents().get_unchecked(number_of_extents_present as usize - 1) };
+				let last_extent = self.extents().get_unchecked_safe(number_of_extents_present as usize - 1);
 				last_extent.flags().contains(FileExtentFlags::Last)
 			}
 			else

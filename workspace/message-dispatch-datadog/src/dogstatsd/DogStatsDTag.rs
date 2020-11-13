@@ -311,7 +311,7 @@ impl DogStatsDTag
 				return Err(format!("{} is empty", description))
 			}
 			
-			if unlikely!((unsafe { * bytes.get_unchecked(bytes.len() - 1) }) == Colon)
+			if unlikely!(bytes.get_unchecked_value_safe(bytes.len() - 1) == Colon)
 			{
 				return Err(format!("{} `{:?}` ends with colon", description, bytes))
 			}
@@ -349,7 +349,7 @@ impl DogStatsDTag
 			return Err(format!("Length `{}` exceeds maximum of {} in `{:?}`", length, Self::Length, bytes))
 		}
 		
-		match unsafe { * bytes.get_unchecked(0) }
+		match bytes.get_unchecked_value_safe(0)
 		{
 			b'A' ..= b'Z' => (),
 			b'a' ..= b'z' => (),
@@ -375,7 +375,7 @@ impl DogStatsDTag
 			}
 		}
 		
-		match unsafe { * bytes.get_unchecked(final_byte_index) }
+		match bytes.get_unchecked_value_safe(final_byte_index)
 		{
 			b'0' ..= b'9' => (),
 			b'A' ..= b'Z' => (),

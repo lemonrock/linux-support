@@ -123,7 +123,7 @@ impl<'label> Name<'label> for EfficientCaseFoldedName
 	{
 		self.inner.parent().map(|(inner, child_label_length)| Self
 		{
-			name_length_including_trailing_periods_after_labels: unsafe { NonZeroU8::new_unchecked(self.name_length_including_trailing_periods_after_labels.get() - (child_label_length_excluding_trailing_period.get() + 1)) },
+			name_length_including_trailing_periods_after_labels: new_non_zero_u8(self.name_length_including_trailing_periods_after_labels.get() - (child_label_length_excluding_trailing_period.get() + 1)),
 			inner
 		})
 	}
@@ -169,7 +169,6 @@ impl<'message> From<ParsedName<'message>> for EfficientCaseFoldedName
 
 impl<'a, 'message> From<&'a ParsedName<'message>> for EfficientCaseFoldedName
 {
-	#[allow(deprecated)]
 	#[inline(always)]
 	fn from(name: &'a ParsedName<'message>) -> Self
 	{
@@ -234,16 +233,15 @@ impl EfficientCaseFoldedName
 		}
 		
 		let name_length_including_trailing_periods_after_labels = self.name_length_including_trailing_periods_after_labels().get().checked_add(child.length_including_trailing_period().get()).ok_or(TotalNameLengthExceed255Bytes)?;
-		Ok(unsafe { NonZeroU8::new_unchecked(name_length_including_trailing_periods_after_labels) })
+		Ok(new_non_zero_u8(name_length_including_trailing_periods_after_labels))
 	}
 	
 	/// From a name.
-	#[allow(deprecated)]
 	#[inline(always)]
 	pub fn from_name<'label>(name: &impl Name<'label>) -> Self
 	{
 		let mut label_offsets_and_lengths_excluding_root: ArrayVec<[(u8, NonZeroU8); EfficientCaseFoldedNameInner::LabelsCount]> = ArrayVec::new();
-		let mut label_data: [u8; EfficientCaseFoldedNameInner::LabelDataSize] = unsafe { uninitialized() };
+		let mut label_data: [u8; EfficientCaseFoldedNameInner::LabelDataSize] = unsafe_uninitialized();
 		
 		let mut label_offset = 0u8;
 		
@@ -262,11 +260,11 @@ impl EfficientCaseFoldedName
 			
 			for byte_index in 0 .. label_length
 			{
-				let case_folded_byte = label.get_unchecked_case_folded_byte(byte_index);
+				let case_folded_byte = label.get_unchecked_safe_case_folded_byte(byte_index);
 				unsafe { label_data.as_mut_ptr().add((label_offset + byte_index) as usize).write(case_folded_byte) }
 			}
 			
-			unsafe { label_offsets_and_lengths_excluding_root.push_unchecked((label_offset, unsafe { NonZeroU8::new_unchecked(label_length) })) };
+			unsafe { label_offsets_and_lengths_excluding_root.push_unchecked((label_offset, new_non_zero_u8(label_length))) };
 			label_offset += label_length;
 		}
 		
@@ -281,7 +279,6 @@ impl EfficientCaseFoldedName
 	/// Converts from a byte string, case folding to lower case as needed.
 	///
 	/// Supports byte strings that may omit the final (root) trailing period, viz supports both `example.com` and `example.com.`.
-	#[allow(deprecated)]
 	#[inline(always)]
 	pub fn from_byte_string_ending_with_optional_trailing_period(byte_string: &[u8]) -> Result<Self, EfficientCaseFoldedNameParseError>
 	{
@@ -303,7 +300,7 @@ impl EfficientCaseFoldedName
 		const TrailingPeriod: u8 = b'.';
 		
 		let last_index = byte_string_length - 1;
-		let ends_with_trailing_period = (unsafe { *byte_string.get_unchecked(last_index) }) == TrailingPeriod;
+		let ends_with_trailing_period = byte_string.get_unchecked_safe_value(last_index) == TrailingPeriod;
 		let byte_string_to_split = if ends_with_trailing_period
 		{
 			&byte_string[0 .. ]
@@ -315,7 +312,7 @@ impl EfficientCaseFoldedName
 		
 		let mut name_length_including_trailing_periods_after_labels = ParsedNameParser::SizeOfTrailingPeriod;
 		let mut label_offsets_and_lengths_excluding_root = ArrayVec::new();
-		let mut label_data: [u8; EfficientCaseFoldedNameInner::LabelDataSize] = unsafe { uninitialized() };
+		let mut label_data: [u8; EfficientCaseFoldedNameInner::LabelDataSize] = unsafe_uninitialized();
 		let mut label_offset = 0;
 		for label_top_level_domain_first in byte_string_to_split.split_bytes_reverse(TrailingPeriod)
 		{
@@ -330,10 +327,10 @@ impl EfficientCaseFoldedName
 			}
 			for byte_index in 0 .. label_length
 			{
-				let case_folded_byte = case_fold_byte(unsafe { label_top_level_domain_first.get_unchecked(byte_index as usize) });
+				let case_folded_byte = case_fold_byte(label_top_level_domain_first.get_unchecked_safe(byte_index));
 				unsafe { label_data.get_mut_ptr().add((label_offset + byte_index) as usize).write(case_folded_byte) }
 			}
-			label_offsets_and_lengths_excluding_root.try_push((label_offset, unsafe { NonZeroU8::new_unchecked(label_length) })).map_err(|_| NumberOfLabelsExceed127)?;
+			label_offsets_and_lengths_excluding_root.try_push((label_offset, new_non_zero_u8(label_length))).map_err(|_| NumberOfLabelsExceed127)?;
 			label_offset += label_length;
 			name_length_including_trailing_periods_after_labels += (label_length + ParsedNameParser::SizeOfTrailingPeriod);
 		}
@@ -342,7 +339,7 @@ impl EfficientCaseFoldedName
 		(
 			Self
 			{
-				name_length_including_trailing_periods_after_labels: unsafe { NonZeroU8::new_unchecked(name_length_including_trailing_periods_after_labels) },
+				name_length_including_trailing_periods_after_labels: new_non_zero_u8(name_length_including_trailing_periods_after_labels),
 				inner: EfficientCaseFoldedNameInner::new(label_offsets_and_lengths_excluding_root, label_data)
 			}
 		)
@@ -354,7 +351,7 @@ impl EfficientCaseFoldedName
 	{
 		Self
 		{
-			name_length_including_trailing_periods_after_labels: unsafe { NonZeroU8::new_unchecked(1) },
+			name_length_including_trailing_periods_after_labels: new_non_zero_u8(1),
 			
 			inner: EfficientCaseFoldedNameInner::root(),
 		}
@@ -367,14 +364,11 @@ impl EfficientCaseFoldedName
 		Self
 		{
 			// Can be unchecked addition as maximum length is `(63 + 1) + (0 + 1) < 255`.
-			name_length_including_trailing_periods_after_labels: unsafe
-			{
-				NonZeroU8::new_unchecked
-				(
-					top_level_label.length_including_trailing_period().get()
-					+ EfficientCaseFoldedLabel::Root.length_including_trailing_period().get()
-				)
-			},
+			name_length_including_trailing_periods_after_labels: new_non_zero_u8
+			(
+				top_level_label.length_including_trailing_period().get()
+				+ EfficientCaseFoldedLabel::Root.length_including_trailing_period().get()
+			),
 			
 			inner: EfficientCaseFoldedNameInner::collect_excluding_root(&[top_level_label]),
 		}
@@ -387,15 +381,12 @@ impl EfficientCaseFoldedName
 		Self
 		{
 			// Can be unchecked addition as maximum length is `((63 + 1) * 2) + (0 + 1) < 255`.
-			name_length_including_trailing_periods_after_labels: unsafe
-			{
-				NonZeroU8::new_unchecked
-				(
-					second_level_label.length_including_trailing_period().get()
-					+ top_level_label.length_including_trailing_period().get()
-					+ EfficientCaseFoldedLabel::Root.length_including_trailing_period().get()
-				)
-			},
+			name_length_including_trailing_periods_after_labels: new_non_zero_u8
+			(
+				second_level_label.length_including_trailing_period().get()
+				+ top_level_label.length_including_trailing_period().get()
+				+ EfficientCaseFoldedLabel::Root.length_including_trailing_period().get()
+			),
 			
 			inner: EfficientCaseFoldedNameInner::collect_excluding_root(&[second_level_label, top_level_label]),
 		}
@@ -408,16 +399,13 @@ impl EfficientCaseFoldedName
 		Self
 		{
 			// Can be unchecked addition as maximum length is `((63 + 1) * 3) + (0 + 1) < 255`.
-			name_length_including_trailing_periods_after_labels: unsafe
-			{
-				NonZeroU8::new_unchecked
-				(
-					third_level_label.length_including_trailing_period().get()
-					+ second_level_label.length_including_trailing_period().get()
-					+ top_level_label.length_including_trailing_period().get()
-					+ EfficientCaseFoldedLabel::Root.length_including_trailing_period().get()
-				)
-			},
+			name_length_including_trailing_periods_after_labels: new_non_zero_u8
+			(
+				third_level_label.length_including_trailing_period().get()
+				+ second_level_label.length_including_trailing_period().get()
+				+ top_level_label.length_including_trailing_period().get()
+				+ EfficientCaseFoldedLabel::Root.length_including_trailing_period().get()
+			),
 			
 			inner: EfficientCaseFoldedNameInner::collect_excluding_root(&[third_level_label, second_level_label, top_level_label]),
 		}
@@ -514,7 +502,7 @@ impl EfficientCaseFoldedName
 		#[inline(always)]
 		fn label(octets: &[u8; 4], index: usize) -> EfficientCaseFoldedLabel<'static>
 		{
-			EfficientCaseFoldedLabel::byte(*unsafe { octets.get_unchecked(index) })
+			EfficientCaseFoldedLabel::byte(octets.get_unchecked_safe_value(index))
 		}
 		
 		let label3 = label(&octets, 3);
@@ -524,19 +512,16 @@ impl EfficientCaseFoldedName
 		
 		Self
 		{
-			name_length_including_trailing_periods_after_labels: unsafe
-			{
-				NonZeroU8::new_unchecked
-				(
-					label3.length_including_trailing_period().get()
-					+ label2.length_including_trailing_period().get()
-					+ label1.length_including_trailing_period().get()
-					+ label0.length_including_trailing_period().get()
-					+ EfficientCaseFoldedLabel::in_addr.length_including_trailing_period().get()
-					+ EfficientCaseFoldedLabel::arpa.length_including_trailing_period().get()
-					+ EfficientCaseFoldedLabel::Root.length_including_trailing_period().get()
-				)
-			},
+			name_length_including_trailing_periods_after_labels: new_non_zero_u8
+			(
+				label3.length_including_trailing_period().get()
+				+ label2.length_including_trailing_period().get()
+				+ label1.length_including_trailing_period().get()
+				+ label0.length_including_trailing_period().get()
+				+ EfficientCaseFoldedLabel::in_addr.length_including_trailing_period().get()
+				+ EfficientCaseFoldedLabel::arpa.length_including_trailing_period().get()
+				+ EfficientCaseFoldedLabel::Root.length_including_trailing_period().get()
+			),
 		
 			inner: EfficientCaseFoldedNameInner::collect_excluding_root
 			(
@@ -606,8 +591,8 @@ impl EfficientCaseFoldedName
 		#[inline(always)]
 		fn label_pair(octets: &[u8; 16], index: usize) -> (EfficientCaseFoldedLabel<'static>, EfficientCaseFoldedLabel<'static>)
 		{
-			let label1 = EfficientCaseFoldedLabel::nibble((*unsafe { octets.get_unchecked(index) }) & 0b1111);
-			let label0 = EfficientCaseFoldedLabel::nibble((*unsafe { octets.get_unchecked(index) }) >> 4);
+			let label1 = EfficientCaseFoldedLabel::nibble(octets.get_unchecked_safe_value(index) & 0b1111);
+			let label0 = EfficientCaseFoldedLabel::nibble(octets.get_unchecked_safe_value(index) >> 4);
 			(label1, label0)
 		}
 		
@@ -633,16 +618,13 @@ impl EfficientCaseFoldedName
 		
 		Self
 		{
-			name_length_including_trailing_periods_after_labels: unsafe
-			{
-				NonZeroU8::new_unchecked
-				(
-					(NibbleLabelSize * NumberOfNibbles)
-					+ EfficientCaseFoldedLabel::in_addr.length_including_trailing_period().get()
-					+ EfficientCaseFoldedLabel::arpa.length_including_trailing_period().get()
-					+ EfficientCaseFoldedLabel::Root.length_including_trailing_period().get()
-				)
-			},
+			name_length_including_trailing_periods_after_labels: non_new_non_zero_u8
+			(
+				(NibbleLabelSize * NumberOfNibbles)
+				+ EfficientCaseFoldedLabel::in_addr.length_including_trailing_period().get()
+				+ EfficientCaseFoldedLabel::arpa.length_including_trailing_period().get()
+				+ EfficientCaseFoldedLabel::Root.length_including_trailing_period().get()
+			),
 			
 			inner: EfficientCaseFoldedNameInner::collect_excluding_root
 			(

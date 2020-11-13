@@ -28,9 +28,9 @@ impl<Value> Point<Value>
 	{
 		debug_assert_ne!(remaining_bytes.len(), 0);
 		
-		let index = (unsafe { *remaining_bytes.get_unchecked(0) }) as usize;
+		let index = remaining_bytes.get_unchecked_value_safe(0) as usize;
 		
-		let match_entry = unsafe { self.matches.get_unchecked(index) };
+		let match_entry = self.matches.get_unchecked_safe(index);
 		
 		if let Some(ref more_specific) = match_entry.more_specific
 		{
@@ -64,17 +64,17 @@ impl<Value> Point<Value>
 	{
 		debug_assert_ne!(remaining_bytes.len(), 0);
 		
-		let byte = unsafe { *remaining_bytes.get_unchecked(0) };
+		let byte = remaining_bytes.get_unchecked_value_safe(0);
 		
 		let remaining_mask_length_in_bits = remaining_mask_length_in_bits.get();
 		if remaining_mask_length_in_bits > BitsInAByte
 		{
-			let match_entry = unsafe { self.matches.get_unchecked_mut(byte as usize) };
+			let match_entry = self.matches.get_unchecked_mut_safe(byte);
 			if match_entry.more_specific.is_none()
 			{
 				match_entry.more_specific = Some(Box::new(Self::new()))
 			}
-			match_entry.more_specific.as_mut().unwrap().add(&remaining_bytes[1 .. ], unsafe { NonZeroU8::new_unchecked(remaining_mask_length_in_bits - BitsInAByte) }, value)
+			match_entry.more_specific.as_mut().unwrap().add(&remaining_bytes[1 .. ], new_non_zero_u8(remaining_mask_length_in_bits - BitsInAByte), value)
 		}
 		else
 		{
@@ -89,7 +89,7 @@ impl<Value> Point<Value>
 			{
 				let can_match_byte = must_match_upper + can_match_lower;
 				
-				let match_entry = unsafe { self.matches.get_unchecked_mut(can_match_byte as usize) };
+				let match_entry = self.matches.get_unchecked_mut_safe(can_match_byte);
 				match_entry.partial = Some(value.clone())
 			}
 		}

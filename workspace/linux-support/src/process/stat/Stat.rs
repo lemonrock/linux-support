@@ -303,7 +303,7 @@ impl Stat
 			}
 			else
 			{
-				Ok(Some(ProcessIdentifier::from(unsafe { NonZeroI32::new_unchecked(value as i32) })))
+				Ok(Some(ProcessIdentifier::from(new_non_zero_i32(value as i32))))
 			}
 		}
 		
@@ -320,7 +320,7 @@ impl Stat
 			}
 			else
 			{
-				Ok(ProcessIdentifier::from(unsafe { NonZeroI32::new_unchecked(value as i32) }))
+				Ok(ProcessIdentifier::from(new_non_zero_i32(value as i32)))
 			}
 		}
 		
@@ -347,7 +347,7 @@ impl Stat
 			}
 			else
 			{
-				Ok(ProcessGroupIdentifier::from(unsafe { NonZeroI32::new_unchecked(value as i32) }))
+				Ok(ProcessGroupIdentifier::from(new_non_zero_i32(value as i32)))
 			}
 		}
 		

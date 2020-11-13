@@ -69,8 +69,8 @@ impl ResourceEntry
 			(
 				Self
 				{
-					inclusive_start: unsafe { NonNull::new_unchecked(start as *mut u8) },
-					inclusive_end: unsafe { NonNull::new_unchecked(end as *mut u8) },
+					inclusive_start: new_non_null(start as *mut u8),
+					inclusive_end: new_non_null(end as *mut u8),
 					flags,
 				}
 			)
@@ -88,7 +88,7 @@ impl ResourceEntry
 		}
 		else
 		{
-			Ok(unsafe { NonNull::new_unchecked(value as *mut u8) })
+			Ok(new_non_null(value as *mut u8))
 		}
 	}
 	

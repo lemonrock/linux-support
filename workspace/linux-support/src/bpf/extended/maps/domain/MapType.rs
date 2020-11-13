@@ -339,17 +339,17 @@ impl<'map_of_maps_template_file_descriptor> MapType<'map_of_maps_template_file_d
 		use self::bpf_map_type::*;
 		use self::MapType::*;
 		
-		const UnusedKeySize: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(1) };
-		const KeySizeOfU32: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(size_of::<u32>() as u32) };
-		const KeySizeOfRawFd: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(size_of::<RawFd>() as u32) };
-		const KeySizeOfAlignedU64: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(size_of::<AlignedU64>() as u32) };
+		const UnusedKeySize: NonZeroU32 = new_non_zero_u32(1);
+		const KeySizeOfU32: NonZeroU32 = new_non_zero_u32(size_of::<u32>() as u32);
+		const KeySizeOfRawFd: NonZeroU32 = new_non_zero_u32(size_of::<RawFd>() as u32);
+		const KeySizeOfAlignedU64: NonZeroU32 = new_non_zero_u32(size_of::<AlignedU64>() as u32);
 		const ValueSizeOfU32: NonZeroU32 = KeySizeOfU32;
-		const ValueSizeOfU64: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(size_of::<u64>() as u32) };
-		const ValueSizeOfRawFd: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(size_of::<RawFd>() as u32) };
-		const ValueSizeOfBpfCgroupStorageKey: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(size_of::<bpf_cgroup_storage_key>() as u32) };
-		const ValueSizeOptionNetworkInterfaceIndex: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(size_of::<Option<NetworkInterfaceIndex>>() as u32) };
-		const ValueSizeOfLongestPrefixMatchTrieInternetProtocolVersion4: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(size_of::<bpf_lpm_trie_key>() as u32 + 4) };
-		const ValueSizeOfLongestPrefixMatchTrieInternetProtocolVersion6: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(size_of::<bpf_lpm_trie_key>() as u32 + 16) };
+		const ValueSizeOfU64: NonZeroU32 = new_non_zero_u32(size_of::<u64>() as u32);
+		const ValueSizeOfRawFd: NonZeroU32 = new_non_zero_u32(size_of::<RawFd>() as u32);
+		const ValueSizeOfBpfCgroupStorageKey: NonZeroU32 = new_non_zero_u32(size_of::<bpf_cgroup_storage_key>() as u32);
+		const ValueSizeOptionNetworkInterfaceIndex: NonZeroU32 = new_non_zero_u32(size_of::<Option<NetworkInterfaceIndex>>() as u32);
+		const ValueSizeOfLongestPrefixMatchTrieInternetProtocolVersion4: NonZeroU32 = new_non_zero_u32(size_of::<bpf_lpm_trie_key>() as u32 + 4);
+		const ValueSizeOfLongestPrefixMatchTrieInternetProtocolVersion6: NonZeroU32 = new_non_zero_u32(size_of::<bpf_lpm_trie_key>() as u32 + 16);
 		const NoNumaNode: u32 = 0;
 		const NoInnerMapFileDescriptor: RawFd = 0;
 		

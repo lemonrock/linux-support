@@ -35,7 +35,7 @@ impl<'line> Iterator for StatFieldIterator<'line>
 				
 				Some(0) => Err(NoCharactersBeforeOpenBracket),
 				
-				Some(index) => if unsafe { *self.line.get_unchecked(index - 1) } != Space
+				Some(index) => if self.line.get_unchecked_value_safe(index - 1) != Space
 				{
 					Err(NoSpaceBeforeOpenBracket)
 				}
@@ -56,7 +56,7 @@ impl<'line> Iterator for StatFieldIterator<'line>
 				{
 					Err(NoCharactersAfterCloseBracket)
 				}
-				else if unsafe { *self.line.get_unchecked(index + 1) } != Space
+				else if self.line.get_unchecked_value_safe(index + 1) != Space
 				{
 					Err(NoSpaceAfterCloseBracket)
 				}
@@ -116,7 +116,7 @@ impl<'line> StatFieldIterator<'line>
 				StatParseError::ObsoleteFieldValueWasNotZero
 				{
 					name,
-					value: unsafe { NonZeroU64::new_unchecked(value) },
+					value: new_non_zero_u64(value),
 				}
 			)
 		}

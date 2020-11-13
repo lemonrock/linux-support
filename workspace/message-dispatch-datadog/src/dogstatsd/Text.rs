@@ -37,7 +37,7 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 				{
 					None => break message,
 					
-					Some(index) => match unsafe { * bytes.get_unchecked(index) }
+					Some(index) => match bytes.get_unchecked_value_safe(index)
 					{
 						LineFeed => Self::replace(&mut message, &mut start_next_slice_index, index, b'n'),
 						
@@ -47,7 +47,7 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 						}
 						else
 						{
-							let previous_byte = unsafe { * bytes.get_unchecked(index - 1) };
+							let previous_byte = bytes.get_unchecked_value_safe(index - 1);
 							if unlikely!(previous_byte == m)
 							{
 								Self::replace(&mut message, &mut start_next_slice_index, index, Colon)
@@ -81,7 +81,7 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 				{
 					None => break message,
 					
-					Some(index) => match unsafe { * bytes.get_unchecked(index) }
+					Some(index) => match bytes.get_unchecked_value_safe(index)
 					{
 						LineFeed => Self::replace(&mut message, &mut start_next_slice_index, index, b'n'),
 						
@@ -143,7 +143,7 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 	#[inline(always)]
 	fn replace(message: &mut Vec<u8>, start_next_slice_index: &mut usize, index: usize, byte: u8)
 	{
-		unsafe { *message.get_unchecked_mut(index) = b'\\' };
+		message.set_unchecked_mut_safe(index, b'\\');
 		message.insert(index + 1, byte);
 		Self::escaped(start_next_slice_index, index)
 	}

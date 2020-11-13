@@ -67,7 +67,7 @@ impl<'yielder, SD: SocketData, CoroutineHeapSize: 'static + MemorySize, GTACSA: 
 	
 	pub(crate) fn prepare_receive_buffer() -> [u8; NetworkTimeProtocolMessage::PacketSize]
 	{
-		unsafe { uninitialized() }
+		unsafe_uninitialized()
 	}
 	
 	#[inline(always)]

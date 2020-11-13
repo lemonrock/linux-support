@@ -21,7 +21,7 @@ impl Default for if_settings_ifsu
 	#[inline(always)]
 	fn default() -> Self
 	{
-		unsafe { zeroed() }
+		unsafe_zeroed()
 	}
 }
 

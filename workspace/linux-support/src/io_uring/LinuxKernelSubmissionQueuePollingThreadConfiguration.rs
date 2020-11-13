@@ -19,13 +19,12 @@ pub struct LinuxKernelSubmissionQueuePollingThreadConfiguration
 
 impl LinuxKernelSubmissionQueuePollingThreadConfiguration
 {
-	#[allow(deprecated)]
 	#[inline(always)]
 	fn configure(configuration: Option<&LinuxKernelSubmissionQueuePollingThreadConfiguration>, mut flags: SetupFlags) -> (u32, u32, SetupFlags)
 	{
 		match configuration
 		{
-			None => (unsafe { uninitialized() }, unsafe { uninitialized() }, flags),
+			None => (unsafe_uninitialized(), unsafe_uninitialized(), flags),
 			
 			Some(&Self { thread_runs_on, put_thread_to_sleep_after_milliseconds }) =>
 			{
@@ -35,7 +34,7 @@ impl LinuxKernelSubmissionQueuePollingThreadConfiguration
 				
 				let put_thread_to_sleep_after_milliseconds = match put_thread_to_sleep_after_milliseconds
 				{
-					None => unsafe { uninitialized() },
+					None => unsafe_uninitialized(),
 					
 					Some(put_thread_to_sleep_after_milliseconds) =>
 					{

@@ -42,13 +42,13 @@ impl MaximumSynAckRetransmits
 	/// Default is 5.
 	///
 	/// From `/proc/sys/net/ipv4/tcp_synack_retries`.
-	pub const Default: Self = Self(unsafe { NonZeroU8::new_unchecked(5) });
+	pub const Default: Self = Self(new_non_zero_u8(5));
 	
 	/// Inclusive minimum.
-	pub const InclusiveMinimum: Self = Self(unsafe { NonZeroU8::new_unchecked(1) });
+	pub const InclusiveMinimum: Self = Self(new_non_zero_u8(1));
 	
 	/// Inclusive maximum.
-	pub const InclusiveMaximum: Self = Self(unsafe { NonZeroU8::new_unchecked(i8::MAX as u8) });
+	pub const InclusiveMaximum: Self = Self(new_non_zero_u8(i8::MAX as u8));
 	
 	/// Value of `/proc/sys/net/ipv4/tcp_synack_retries`.
 	#[inline(always)]

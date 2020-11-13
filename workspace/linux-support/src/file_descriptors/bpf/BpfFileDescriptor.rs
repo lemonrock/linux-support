@@ -24,11 +24,10 @@ pub trait BpfFileDescriptor: FileDescriptor
 	fn access_permissions_to_open_flags(access: Self::Access) -> u32;
 	
 	/// Get information.
-	#[allow(deprecated)]
 	#[inline(always)]
 	fn get_information(&self) -> Result<Self::Information, Errno>
 	{
-		let mut information: Self::Information = unsafe { uninitialized() };
+		let mut information: Self::Information = unsafe_uninitialized();
 		
 		let mut attr = bpf_attr::default();
 		attr.info = BpfCommandObjectGetInformationByFileDescriptor

@@ -232,6 +232,6 @@ impl ProgramType
 	
 	fn ignored() -> bpf_attach_type
 	{
-		unsafe { zeroed() }
+		unsafe_zeroed()
 	}
 }

@@ -27,7 +27,6 @@ impl Deduplicate
 
 	const SizeOfDeduplicateRangeInformation: usize = size_of::<file_dedupe_range_info>();
 
-	#[allow(deprecated)]
 	#[inline(always)]
 	pub(crate) fn new<COW: CopyOnWrite>(from_logical_range_in_bytes: RangeInclusive<u64>, to_files_and_their_logical_offsets: &[(&COW, u64)]) -> Self
 	{
@@ -76,17 +75,14 @@ impl Deduplicate
 		let array = deduplicate.array_mut();
 		for (index, &(to, to_logical_offset)) in to_files_and_their_logical_offsets.iter().enumerate()
 		{
-			unsafe
+			array.set_unchecked_mut_safe(index, file_dedupe_range_info
 			{
-				* array.get_unchecked_mut(index) = file_dedupe_range_info
-				{
-					dest_fd: to.as_raw_fd() as i64,
-					dest_offset: to_logical_offset,
-					bytes_deduped: uninitialized(),
-					status: uninitialized(),
-					reserved: 0
-				}
-			}
+				dest_fd: to.as_raw_fd() as i64,
+				dest_offset: to_logical_offset,
+				bytes_deduped: unsafe_uninitialized(),
+				status: unsafe_uninitialized(),
+				reserved: 0
+			});
 		}
 
 		deduplicate

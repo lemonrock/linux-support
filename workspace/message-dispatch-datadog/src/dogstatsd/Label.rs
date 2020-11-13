@@ -81,7 +81,7 @@ impl Label
 		
 		let mut digits_count = 0;
 		
-		match unsafe { * label.get_unchecked(0) }
+		match label.get_unchecked_value_safe(0)
 		{
 			b'0' ..= b'9' => digits_count += 1,
 			b'A' ..= b'Z' => (),
@@ -104,7 +104,7 @@ impl Label
 			}
 		}
 		
-		match unsafe { * label.get_unchecked(final_byte_index) }
+		match label.get_unchecked_value_safe(final_byte_index)
 		{
 			b'0' ..= b'9' => digits_count += 1,
 			b'A' ..= b'Z' => (),

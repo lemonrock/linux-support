@@ -49,7 +49,7 @@ impl TryFrom<u32> for NetworkInterfaceIndex
 		}
 		else
 		{
-			Ok(Self(unsafe { NonZeroU32::new_unchecked(value) }))
+			Ok(Self(new_non_zero_u32(value)))
 		}
 	}
 }
@@ -71,7 +71,7 @@ impl TryFrom<i32> for NetworkInterfaceIndex
 		}
 		else
 		{
-			Ok(Self(unsafe { NonZeroU32::new_unchecked(value as u32) }))
+			Ok(Self(new_non_zero_u32(value as u32)))
 		}
 	}
 }

@@ -61,7 +61,7 @@ impl<'a> GenerateParseTree<'a>
 			}
 		};
 		
-		self.push_str(&format!("match (if length == {} {{ return {} }} else {{ unsafe {{ *services_field.get_unchecked({}) }} }})", byte_index, exact_match_string, byte_index))?;
+		self.push_str(&format!("match (if length == {} {{ return {} }} else {{ *services_field.get_unchecked_safe({}) }})", byte_index, exact_match_string, byte_index))?;
 		self.push_new_line()?;
 		self.push_tab_indented_line("{")?;
 		

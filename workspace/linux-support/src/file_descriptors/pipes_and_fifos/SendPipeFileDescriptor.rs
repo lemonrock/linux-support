@@ -184,8 +184,7 @@ impl SendPipeFileDescriptor
 	#[inline(always)]
 	pub fn new_anonymous_pipe() -> Result<(Self, ReceivePipeFileDescriptor), CreationError>
 	{
-		#[allow(deprecated)]
-		let mut pipe_file_descriptors = unsafe { uninitialized() };
+		let mut pipe_file_descriptors = unsafe_uninitialized();
 		let result = unsafe { pipe2(&mut pipe_file_descriptors, O_NONBLOCK | O_CLOEXEC) };
 		if likely!(result == 0)
 		{

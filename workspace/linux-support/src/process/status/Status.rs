@@ -475,7 +475,7 @@ impl Status
 		let file_path = proc_path.process_file_path(process_identifier, "status");
 		let reader = file_path.read_raw()?;
 
-		#[allow(deprecated, invalid_value)] let mut this: Self = unsafe { uninitialized() };
+		#[allow(deprecated, invalid_value)] let mut this: Self = unsafe_uninitialized();
 		unsafe { write(&mut this.currently_dumping_core, None) };
 		unsafe { write(&mut this.thread_no_new_privileges_bit, None) };
 		unsafe { write(&mut this.speculation_store_bypass, None) };

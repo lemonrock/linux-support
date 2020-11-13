@@ -485,22 +485,19 @@ impl NumaNode
 	#[inline(always)]
 	pub fn memory_information(self, sys_path: &SysPath, flush_per_cpu_statistics_first: Option<&ProcPath>) -> Option<MemoryInformation>
 	{
-		#[allow(deprecated)] let mut buffer: [u8; 11] = unsafe { uninitialized() };
+		let mut buffer: [u8; 11] = unsafe_uninitialized();
 
 		let memory_information_name_prefix =
 		{
-			unsafe { *buffer.get_unchecked_mut(10) = b' ' };
+			buffer.set_unchecked_mut_safe(10, b' ');
 
 			let last_decimal_digit_index = self.0.decimal(9, &mut buffer);
 
-			unsafe
-			{
-				*buffer.get_unchecked_mut(last_decimal_digit_index - 5) = b'N';
-				*buffer.get_unchecked_mut(last_decimal_digit_index - 4) = b'o';
-				*buffer.get_unchecked_mut(last_decimal_digit_index - 3) = b'd';
-				*buffer.get_unchecked_mut(last_decimal_digit_index - 2) = b'e';
-				*buffer.get_unchecked_mut(last_decimal_digit_index - 1) = b' ';
-			}
+			buffer.set_unchecked_mut_safe(last_decimal_digit_index - 5, b'N');
+			buffer.set_unchecked_mut_safe(last_decimal_digit_index - 4, b'o');
+			buffer.set_unchecked_mut_safe(last_decimal_digit_index - 3, b'd');
+			buffer.set_unchecked_mut_safe(last_decimal_digit_index - 2, b'e');
+			buffer.set_unchecked_mut_safe(last_decimal_digit_index - 1, b' ');
 
 			&buffer[last_decimal_digit_index - 5 .. ]
 		};

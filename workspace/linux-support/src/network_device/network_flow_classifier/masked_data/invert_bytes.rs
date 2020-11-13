@@ -8,6 +8,6 @@ fn invert_bytes(underlying: &mut [u8])
 {
 	for index in 0 .. underlying.len()
 	{
-		invert_byte(unsafe { underlying.get_unchecked_mut(index) });
+		invert_byte(underlying.get_unchecked_mut_safe(index));
 	}
 }

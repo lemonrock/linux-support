@@ -165,7 +165,7 @@ impl<'name> ProgramLinesParser<'name>
 			{
 				for from_program_counter in jump_instructions_to_resolve_program_counter
 				{
-					let jump_instruction_to_resolve = unsafe { instructions.get_unchecked_mut(from_program_counter.0) };
+					let jump_instruction_to_resolve = instructions.get_unchecked_mut_safe(from_program_counter.0);
 					if unlikely!(jump_instruction_to_resolve.is_relative_call())
 					{
 						let offset = name_program_counter.i32_offset(from_program_counter)?;
@@ -217,7 +217,7 @@ impl<'name> ProgramLinesParser<'name>
 	#[inline(always)]
 	fn one_instruction(&mut self, one_instruction: bpf_insn) -> Result<(), ParseError>
 	{
-		const One: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(1) };
+		const One: NonZeroUsize = new_non_zero_usize(1);
 		self.maximum_instructions_guard(One)?;
 		
 		self.instructions.push(one_instruction);
@@ -227,7 +227,7 @@ impl<'name> ProgramLinesParser<'name>
 	#[inline(always)]
 	fn two_instructions(&mut self, two_instructions: [bpf_insn; 2]) -> Result<(), ParseError>
 	{
-		const Two: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(2) };
+		const Two: NonZeroUsize = new_non_zero_usize(2);
 		self.maximum_instructions_guard(Two)?;
 		
 		self.instructions.extend_from_slice(&two_instructions[..]);

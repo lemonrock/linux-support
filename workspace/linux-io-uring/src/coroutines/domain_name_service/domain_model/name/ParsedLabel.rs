@@ -115,15 +115,15 @@ impl<'message> Label<'message> for ParsedLabel<'message>
 	}
 	
 	#[inline(always)]
-	fn get_unchecked_case_folded_byte(&self, index: u8) -> u8
+	fn get_unchecked_safe_case_folded_byte(&self, index: u8) -> u8
 	{
-		case_fold_byte(self.get_unchecked(index))
+		case_fold_byte(self.get_unchecked_safe(index))
 	}
 	
 	#[inline(always)]
-	fn get_unchecked(&self, index: u8) -> &u8
+	fn get_unchecked_safe(&self, index: u8) -> &u8
 	{
-		unsafe { self.0.get_unchecked(index as usize) }
+		self.0.get_unchecked_safe(index)
 	}
 }
 

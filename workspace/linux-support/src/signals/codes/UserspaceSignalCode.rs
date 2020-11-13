@@ -68,7 +68,7 @@ impl UserspaceSignalCode
 			SI_ASYNCIO => PosixAsynchronousIo,
 			SI_DETHREAD => Dethread,
 			SI_ASYNCNL => AsynchronousNameLookUp,
-			other @ _ => Other(unsafe { NonZeroI32::new_unchecked(other) }),
+			other @ _ => Other(new_non_zero_i32(other)),
 		}
 	}
 }

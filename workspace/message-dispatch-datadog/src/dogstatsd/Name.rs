@@ -33,7 +33,7 @@ impl Name
 			return Err(format!("Length `{}` exceeds maximum of {} in `{}`", length, Self::Length, name))
 		}
 		
-		match unsafe { * bytes.get_unchecked(0) }
+		match bytes.get_unchecked_value_safe(0)
 		{
 			b'A' ..= b'Z' => (),
 			b'a' ..= b'z' => (),

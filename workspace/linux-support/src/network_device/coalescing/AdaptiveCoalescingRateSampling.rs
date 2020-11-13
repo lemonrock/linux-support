@@ -27,7 +27,7 @@ impl AdaptiveCoalescingRateSampling
 {
 	const One: Self = Self
 	{
-		interval_in_seconds: Some(unsafe { NonZeroU32::new_unchecked(1) }),
+		interval_in_seconds: Some(new_non_zero_u32(1)),
 	};
 	
 	#[inline(always)]

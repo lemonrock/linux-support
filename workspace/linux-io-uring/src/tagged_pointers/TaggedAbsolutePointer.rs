@@ -27,7 +27,7 @@ impl<T: Sized> TaggedAbsolutePointer<T>
 	#[inline(always)]
 	const fn into_absolute_pointer(self) -> NonNull<T>
 	{
-		unsafe { NonNull::new_unchecked((self.0 & Self::AbsolutePointerBitMask) as usize as *mut T) }
+		new_non_null((self.0 & Self::AbsolutePointerBitMask) as usize as *mut T)
 	}
 	
 	#[inline(always)]

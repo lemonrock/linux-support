@@ -25,6 +25,15 @@ impl Into<usize> for RelativeFrameIndex
 	}
 }
 
+impl AsUsizeIndex for RelativeFrameIndex
+{
+	#[inline(always)]
+	fn as_usize(self) -> usize
+	{
+		self.into_usize()
+	}
+}
+
 impl RelativeFrameIndex
 {
 	/// To u32.

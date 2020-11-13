@@ -189,7 +189,7 @@ impl SubmissionQueueRing
 	#[inline(always)]
 	fn array_element(&self, index: u32) -> NonNull<u32>
 	{
-		unsafe { NonNull::new_unchecked(self.array.as_ptr().add(index as usize)) }
+		unsafe { new_non_null(self.array.as_ptr().add(index as usize)) }
 	}
 
 	#[inline(always)]

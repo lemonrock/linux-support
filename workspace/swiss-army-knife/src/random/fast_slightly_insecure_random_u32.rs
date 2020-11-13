@@ -7,7 +7,7 @@
 #[inline(always)]
 pub fn fast_slightly_insecure_random_u32() -> u32
 {
-	let mut random_value= unsafe { uninitialized() };
+	let mut random_value= unsafe_uninitialized();
 	
 	loop
 	{

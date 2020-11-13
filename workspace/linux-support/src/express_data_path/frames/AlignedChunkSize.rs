@@ -101,7 +101,7 @@ impl ChunkSize for AlignedChunkSize
 			debug_assert!(chunks_per_page <= (u32::MAX as u64));
 			chunks_per_page as u32
 		};
-		unsafe { NonZeroU32::new_unchecked((number_of_chunks.get() + chunks_per_page - 1) / chunks_per_page) }
+		new_non_zero_u32((number_of_chunks.get() + chunks_per_page - 1) / chunks_per_page)
 	}
 	
 	#[doc(hidden)]
@@ -163,7 +163,7 @@ impl AlignedChunkSize
 	#[inline(always)]
 	pub(crate) const fn into_non_zero_u32(self) -> NonZeroU32
 	{
-		unsafe { NonZeroU32::new_unchecked(1 << (self as u8 as u32)) }
+		new_non_zero_u32(1 << (self as u8 as u32))
 	}
 	
 	#[inline(always)]

@@ -44,7 +44,7 @@ impl<T> VariablySized<T>
 	{
 		let layout = unsafe { Layout::from_size_align_unchecked(size, 8) };
 		let pointer = unsafe { alloc_zeroed(layout.clone()) };
-		Self(unsafe { NonNull::new_unchecked(pointer as *mut T) }, layout)
+		Self(new_non_null(pointer as *mut T), layout)
 	}
 
 	/// Zero (uninitialize).

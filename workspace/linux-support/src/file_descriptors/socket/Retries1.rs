@@ -47,10 +47,10 @@ impl Default for Retries1
 impl Retries1
 {
 	/// Minimum.
-	pub const InclusiveMinimum: Self = Self(unsafe { NonZeroU8::new_unchecked(3) });
+	pub const InclusiveMinimum: Self = Self(new_non_zero_u8(3));
 	
 	/// Maximum.
-	pub const InclusiveMaximum: Self = Self(unsafe { NonZeroU8::new_unchecked(u8::MAX) });
+	pub const InclusiveMaximum: Self = Self(new_non_zero_u8(u8::MAX));
 	
 	/// Default is 3.
 	///

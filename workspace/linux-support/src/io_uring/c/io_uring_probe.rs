@@ -23,17 +23,16 @@ pub(super) struct io_uring_probe
 
 impl io_uring_probe
 {
-	#[allow(deprecated)]
 	#[inline(always)]
 	pub(super) fn new() -> Self
 	{
 		Self
 		{
-			last_op: unsafe { uninitialized() },
+			last_op: unsafe_uninitialized(),
 			ops_len: IORING_OP::IORING_OP_LAST as u8,
-			resv: unsafe { zeroed() },
-			resv2: unsafe { zeroed() },
-			ops: unsafe { uninitialized() },
+			resv: unsafe_zeroed(),
+			resv2: unsafe_zeroed(),
+			ops: unsafe_uninitialized(),
 		}
 	}
 

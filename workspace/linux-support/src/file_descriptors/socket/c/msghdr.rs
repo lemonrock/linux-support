@@ -41,7 +41,7 @@ impl Default for msghdr
 	#[inline(always)]
 	fn default() -> Self
 	{
-		unsafe { zeroed() }
+		unsafe_zeroed()
 	}
 }
 
@@ -65,17 +65,16 @@ impl msghdr
 	#[cfg(target_pointer_width = "64")]
 	pub(crate) fn new(msg_name: *mut c_void, msg_namelen: socklen_t, msg_iov: *mut iovec, msg_iovlen: i32, msg_control: *mut c_void, msg_controllen: socklen_t, msg_flags: c_int) -> Self
 	{
-		#[allow(deprecated)]
 		Self
 		{
 			msg_name,
 			msg_namelen,
 			msg_iov,
 			msg_iovlen,
-			__pad1: unsafe { uninitialized() },
+			__pad1: unsafe_uninitialized(),
 			msg_control,
 			msg_controllen,
-			__pad2: unsafe { uninitialized() },
+			__pad2: unsafe_uninitialized(),
 			msg_flags,
 		}
 	}

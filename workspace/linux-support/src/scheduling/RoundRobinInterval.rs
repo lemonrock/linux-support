@@ -21,10 +21,9 @@ impl RoundRobinInterval
 {
 	/// Returns `None` if the process identifier wasn't for an extant process with permissions.
 	#[inline(always)]
-	#[allow(deprecated)]
 	pub fn for_process(process_identifier: ProcessIdentifierChoice) -> Option<Self>
 	{
-		let mut time = unsafe { uninitialized() };
+		let mut time = unsafe_uninitialized();
 		let result = unsafe { sched_rr_get_interval(process_identifier.into(), &mut time) };
 		if likely!(result == 0)
 		{

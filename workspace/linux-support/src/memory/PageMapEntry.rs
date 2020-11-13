@@ -82,8 +82,7 @@ impl PageMapEntry
 		
 		file.seek(virtual_page_frame_number.into())?;
 
-		#[allow(deprecated)]
-		let mut buffer: [u8; 8] = unsafe { uninitialized() };
+		let mut buffer: [u8; 8] = unsafe_uninitialized();
 		file.read_exact(&mut buffer)?;
 		
 		Ok(PageMapEntry(u64::from_ne_bytes(buffer)))

@@ -329,7 +329,7 @@ macro_rules! object_name
 					return Err(ObjectNameFromBytesError::Empty)
 				}
 				
-				let expected_ascii_null = unsafe { *value.get_unchecked(length_including_ascii_null - 1) };
+				let expected_ascii_null = value.get_unchecked_value_safe(length_including_ascii_null - 1);
 				if unlikely!(expected_ascii_null != Self::AsciiNull)
 				{
 					return Err(ObjectNameFromBytesError::DoesNotEndWithAsciiNull)

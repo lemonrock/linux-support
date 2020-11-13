@@ -18,7 +18,7 @@ impl Default for BpfCommandMapChange
 	#[inline(always)]
 	fn default() -> Self
 	{
-		unsafe { zeroed() }
+		unsafe_zeroed()
 	}
 }
 

@@ -39,12 +39,12 @@ impl Default for Retries2
 impl Retries2
 {
 	/// Maximum.
-	pub const InclusiveMaximum: Self = Self(unsafe { NonZeroU8::new_unchecked(u8::MAX) });
+	pub const InclusiveMaximum: Self = Self(new_non_zero_u8(u8::MAX));
 	
 	/// Default is 15.
 	///
 	/// From `/proc/sys/net/ipv4/tcp_retries2`.
-	pub const UsualGlobalDefault: Self = Self(unsafe { NonZeroU8::new_unchecked(15) });
+	pub const UsualGlobalDefault: Self = Self(new_non_zero_u8(15));
 	
 	/// Default is `Self::UsualGlobalDefault`.
 	///

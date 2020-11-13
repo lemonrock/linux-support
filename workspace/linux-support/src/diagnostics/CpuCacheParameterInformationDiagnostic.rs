@@ -58,7 +58,7 @@ impl CpuCacheParameterInformationDiagnostic
 				level: match cache_parameter_info.level()
 				{
 					0 => return None,
-					non_zero => unsafe { NonZeroU8::new_unchecked(non_zero) },
+					non_zero => new_non_zero_u8(non_zero),
 				},
 				
 				is_self_initializing: cache_parameter_info.is_self_initializing(),

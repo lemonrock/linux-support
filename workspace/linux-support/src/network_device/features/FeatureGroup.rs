@@ -213,7 +213,6 @@ impl FeatureGroup
 	/// Ethtool setting is `ufo` or `udp-fragmentation-offload`.
 	#[inline(always)]
 	#[deprecated]
-	#[allow(deprecated)]
 	pub fn ethtool_ufo() -> &'static Self
 	{
 		lazy_static!
@@ -326,7 +325,6 @@ impl FeatureGroup
 	///
 	/// This is not a complete list but just those that are device-independent.
 	#[inline(always)]
-	#[allow(deprecated)]
 	pub fn NETIF_F_NEVER_CHANGE() -> &'static Self
 	{
 		lazy_static!

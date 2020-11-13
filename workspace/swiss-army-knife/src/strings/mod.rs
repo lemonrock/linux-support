@@ -3,6 +3,7 @@
 
 
 use super::*;
+use super::get_unchecked::*;
 use self::parse_number::*;
 use self::to_number::NumberAsBytes;
 use crate::split::SplitBytes;

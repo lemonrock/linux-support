@@ -110,15 +110,15 @@ impl<'a> Label<'a> for EfficientCaseFoldedLabel<'a>
 	}
 	
 	#[inline(always)]
-	fn get_unchecked_case_folded_byte(&self, index: u8) -> u8
+	fn get_unchecked_safe_case_folded_byte(&self, index: u8) -> u8
 	{
-		*self.get_unchecked(index)
+		self.get_unchecked_value_safe(index)
 	}
 	
 	#[inline(always)]
-	fn get_unchecked(&self, index: u8) -> &u8
+	fn get_unchecked_safe(&self, index: u8) -> &u8
 	{
-		unsafe { self.0.get_unchecked(index as usize) }
+		self.0.get_unchecked_safe(index)
 	}
 }
 
@@ -148,7 +148,7 @@ impl<'a> EfficientCaseFoldedLabel<'a>
 		
 		for index in 0 .. length
 		{
-			Self::validate_byte(unsafe { slice.get_unchecked(index) })?
+			Self::validate_byte(slice.get_unchecked_safe(index))?
 		}
 		
 		Ok(())

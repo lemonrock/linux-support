@@ -65,6 +65,8 @@ use std::ptr::null_mut;
 use std::str::FromStr;
 use swiss_army_knife::hash_map_and_hash_set::FastSecureHashMap as HashMap;
 use swiss_army_knife::hash_map_and_hash_set::FastSecureHashSet as HashSet;
+use swiss_army_knife::non_zero::new_non_null;
+use swiss_army_knife::non_zero::new_non_zero_i32;
 use swiss_army_knife::strings::ConstCStr;
 use swiss_army_knife::strings::path_to_cstring;
 

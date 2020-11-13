@@ -31,7 +31,7 @@ impl<'message> ParsedNames<'message>
 		while length != 0
 		{
 			let index = length - 1;
-			let (label_data_starts_at_pointer, label_length_excluding_trailing_period) = unsafe { *label_data_starts_at_pointers_and_label_length_excluding_trailing_period.get_unchecked(index) };
+			let (label_data_starts_at_pointer, label_length_excluding_trailing_period) = label_data_starts_at_pointers_and_label_length_excluding_trailing_period.get_unchecked_value_safe(index);
 			let label_length_including_trailing_period = label_length_excluding_trailing_period + ParsedNameParser::SizeOfTrailingPeriod;
 			
 			name_length_including_trailing_period += label_length_including_trailing_period;

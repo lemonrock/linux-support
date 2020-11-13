@@ -127,7 +127,7 @@ impl NetworkTimeProtocolMessage
 	#[inline(always)]
 	fn receive_packet_buffer() -> [u8; Self::PacketSize]
 	{
-		let packet_buffer: [u8; Self::PacketSize] = unsafe { zeroed() };
+		let packet_buffer: [u8; Self::PacketSize] = unsafe_zeroed();
 		packet_buffer
 	}
 	
@@ -136,11 +136,11 @@ impl NetworkTimeProtocolMessage
 	{
 		use self::NetworkTimeProtocolMessageServerReplyParseError::*;
 		
-		let leap_indicator = AssociationModeAndVersionNumberAndLeapIndicator::parse_into_constituent_bitfields(unsafe { *packet.get_unchecked(0) })?;
+		let leap_indicator = AssociationModeAndVersionNumberAndLeapIndicator::parse_into_constituent_bitfields(packet.get_unchecked_value_safe(0))?;
 		
-		let server_reply = unsafe { &* (packet.as_ptr() as *const Self) };
+		let server_reply = unsafe { & * (packet.as_ptr() as *const Self) };
 		
-		let server_stratum = ServerStratum::parse_server_reply(Stratum::parse_server_reply(unsafe { *packet.get_unchecked(1) })?, server_reply, sent_poll)?;
+		let server_stratum = ServerStratum::parse_server_reply(Stratum::parse_server_reply(packet.get_unchecked_value_safe(1))?, server_reply, sent_poll)?;
 		
 		let (round_trip_delay, system_clock_offset, next_server_reference_timestamp) = server_reply.simple_parse_server_reply_after_basic_validation(sent_transmit_timestamp)?;
 		

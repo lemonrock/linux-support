@@ -58,7 +58,7 @@ pub trait Sparseness: AsRawFd + Seek + FileExt
 	#[inline(always)]
 	fn get_extents(&self, logical_range_in_bytes: RangeInclusive<u64>, retrieve_file_extents_flags: RetrieveFileExtentsFlags, flags: u32) -> io::Result<Either<FileExtents, u32>>
 	{
-		const InitialGuessOfNumberOfExtents: NonZeroU32 = unsafe { NonZeroU32::new_unchecked(4) };
+		const InitialGuessOfNumberOfExtents: NonZeroU32 = new_non_zero_u32(4);
 		let mut file_extents = FileExtents::new(InitialGuessOfNumberOfExtents, logical_range_in_bytes, retrieve_file_extents_flags, flags);
 
 		// Loop until we retrieve all file extents in one call.

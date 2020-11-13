@@ -21,7 +21,6 @@ pub struct SendMessage<'a, SD: 'a + SocketData>
 impl<'a, SD: 'a + SocketData> SendMessage<'a, SD>
 {
 	/// New.
-	#[allow(deprecated)]
 	#[inline(always)]
 	pub fn new(pending_accept_connection: &'a PendingAcceptConnection<SD>, buffers: &'a [&'a [u8]], message_control: &'a mut [u8], send_flags: SendFlags) -> Self
 	{

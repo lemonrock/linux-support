@@ -94,7 +94,6 @@ impl TimestampUpdate
 		*self = SystemTime::now().into()
 	}
 
-	#[allow(deprecated)]
 	#[inline(always)]
 	fn to_timespec(&self) -> timespec
 	{
@@ -102,8 +101,8 @@ impl TimestampUpdate
 
 		match self
 		{
-			&DoNotChange => timespec { tv_sec: unsafe { uninitialized() }, tv_nsec: UTIME_OMIT },
-			&Now => timespec { tv_sec: unsafe { uninitialized() }, tv_nsec: UTIME_NOW },
+			&DoNotChange => timespec { tv_sec: unsafe_uninitialized(), tv_nsec: UTIME_OMIT },
+			&Now => timespec { tv_sec: unsafe_uninitialized(), tv_nsec: UTIME_NOW },
 			&At { absolute_seconds_since_unix_epoch, relative_nanoseconds } => timespec { tv_sec: absolute_seconds_since_unix_epoch.try_into().expect("We can not support times greater than i64::MAX"), tv_nsec: relative_nanoseconds as i64 },
 		}
 	}

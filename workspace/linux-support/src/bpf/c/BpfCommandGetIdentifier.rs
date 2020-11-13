@@ -17,7 +17,7 @@ impl Default for BpfCommandGetIdentifier
 	#[inline(always)]
 	fn default() -> Self
 	{
-		unsafe { zeroed() }
+		unsafe_zeroed()
 	}
 }
 

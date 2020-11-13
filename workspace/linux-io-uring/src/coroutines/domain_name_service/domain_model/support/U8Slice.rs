@@ -121,7 +121,7 @@ pub(crate) trait U8Slice<'a>: Sized + Copy
 	#[inline(always)]
 	fn get_<T>(self, offset: usize) -> *const T
 	{
-		(unsafe { self.slice_().get_unchecked(offset) }).unsafe_cast::<T>()
+		self.slice_().get_unchecke_safed(offset).unsafe_cast::<T>()
 	}
 
 	#[doc(hidden)]

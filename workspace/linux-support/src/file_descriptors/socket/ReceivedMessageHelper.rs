@@ -16,7 +16,7 @@ impl<'a, SD: SocketData> ReceivedMessageHelper<'a, SD>
 		Self
 		{
 			receive_buffer,
-			remote_peer_address: unsafe { zeroed() },
+			remote_peer_address: unsafe_zeroed(),
 		}
 	}
 
@@ -32,11 +32,10 @@ impl<'a, SD: SocketData> ReceivedMessageHelper<'a, SD>
 				c_iovec
 			};
 
-			#[allow(deprecated)]
 			mmsghdr
 			{
-				msg_hdr: msghdr::new(&mut self.remote_peer_address as *mut _ as *mut _, size_of::<SD>() as u32, c_iovec, 1, null_mut(), 0, uninitialized()),
-				msg_len: uninitialized(),
+				msg_hdr: msghdr::new(&mut self.remote_peer_address as *mut _ as *mut _, size_of::<SD>() as u32, c_iovec, 1, null_mut(), 0, unsafe_uninitialized()),
+				msg_len: unsafe_uninitialized(),
 			}
 		}
 	}

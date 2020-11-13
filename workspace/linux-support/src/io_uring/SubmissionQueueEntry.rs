@@ -652,7 +652,7 @@ impl SubmissionQueueEntry
 	#[inline(always)]
 	fn zero_buf_index(self)
 	{
-		self.anonymous_4().anonymous_1.anonymous_1.buf_index = unsafe { zeroed() }
+		self.anonymous_4().anonymous_1.anonymous_1.buf_index = unsafe_zeroed()
 	}
 	
 	#[inline(always)]
@@ -686,14 +686,14 @@ impl SubmissionQueueEntry
 	{
 		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
 		
-		unsafe { NonNull::new_unchecked(path.as_ptr() as *mut _) }
+		new_non_null(path.as_ptr() as *mut _)
 	}
 	
 	#[inline(always)]
 	fn empty_path() -> NonNull<c_char>
 	{
 		const EmptyPath: &'static [u8] = b"\0";
-		unsafe { NonNull::new_unchecked(EmptyPath.as_ptr() as *const u8 as *const c_char as *mut _) }
+		new_non_null(EmptyPath.as_ptr() as *const u8 as *const c_char as *mut _)
 	}
 
 	#[inline(always)]

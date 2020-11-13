@@ -116,6 +116,8 @@ use swiss_army_knife::fixed_point_arithmetic::Unsigned3232FixedPoint;
 use swiss_army_knife::hash_map_and_hash_set::FastSecureHashMap as HashMap;
 use swiss_army_knife::internet_protocol::InternetProtocolAddress;
 use swiss_army_knife::internet_protocol::InternetProtocolAddressWithMask;
+use swiss_army_knife::non_zero::new_non_null;
+use swiss_army_knife::non_zero::new_non_zero_u32;
 use terminate::Terminate;
 
 

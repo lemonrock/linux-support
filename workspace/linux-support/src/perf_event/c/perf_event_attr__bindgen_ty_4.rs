@@ -17,7 +17,7 @@ impl Default for perf_event_attr__bindgen_ty_4
 {
 	fn default() -> Self
 	{
-		unsafe { zeroed() }
+		unsafe_zeroed()
 	}
 }
 

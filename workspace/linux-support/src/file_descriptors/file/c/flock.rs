@@ -35,7 +35,7 @@ impl flock
 		{
 			-1 => None,
 			0 => Some(ProcessIdentifierChoice::Current),
-			pid if pid > 0 => Some(ProcessIdentifierChoice::Other(ProcessIdentifier::from(unsafe { NonZeroI32::new_unchecked(pid) }))),
+			pid if pid > 0 => Some(ProcessIdentifierChoice::Other(ProcessIdentifier::from(new_non_zero_i32(pid)))),
 			unexpected @ _ => panic!("Unexpected pid {}", unexpected),
 		};
 
@@ -52,7 +52,7 @@ impl flock
 	#[inline(always)]
 	pub(super) fn new_for_per_process_lock_type(lock_type: i32, start: ExtendedSeekFrom, length: i64) -> Self
 	{
-		Self::new(lock_type, start, length, unsafe { uninitialized() })
+		Self::new(lock_type, start, length, unsafe_uninitialized())
 	}
 
 	#[inline(always)]

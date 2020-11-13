@@ -26,7 +26,7 @@ impl Default for sockaddr_un
 		Self
 		{
 			sun_family: AF_UNIX as sa_family_t,
-			sun_path: unsafe { zeroed() },
+			sun_path: unsafe_zeroed(),
 		}
 	}
 }
@@ -203,12 +203,11 @@ impl sockaddr_un
 			
 			|path_bytes_excluding_terminating_ascii_null|
 			{
-				#[allow(deprecated)]
 				let copy = unsafe
 				{
-					let mut copy: [u8; Self::PathLengthWithTerminatingAsciiNull] = uninitialized();
+					let mut copy: [u8; Self::PathLengthWithTerminatingAsciiNull] = unsafe_uninitialized();
 					copy.as_mut_ptr().copy_from_nonoverlapping(path_bytes_excluding_terminating_ascii_null.as_ptr(), sockaddr_un::PathLength);
-					*copy.get_unchecked_mut(sockaddr_un::PathLength) = Self::AsciiNull;
+					copy.set_unchecked_mut_safe(sockaddr_un::PathLength, Self::AsciiNull);
 					copy
 				};
 				
@@ -277,7 +276,7 @@ impl sockaddr_un
 	#[inline(always)]
 	fn is_abstract(&self) -> bool
 	{
-		let first_byte = unsafe { *self.sun_path.get_unchecked(0) };
+		let first_byte = self.sun_path.get_unchecked_value_safe(0);
 		first_byte == Self::AsciiNull
 	}
 	

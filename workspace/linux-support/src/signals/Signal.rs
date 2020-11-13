@@ -271,10 +271,9 @@ impl Signal
 	
 	/// Get parent death signal; `None` implies disabled.
 	#[inline(always)]
-	#[allow(deprecated)]
 	pub fn get_current_process_parent_death_signal() -> io::Result<Option<Self>>
 	{
-		let mut parent_death_signal_number: i32 = unsafe { uninitialized() };
+		let mut parent_death_signal_number: i32 = unsafe_uninitialized();
 		process_control_wrapper2
 		(
 			PR_GET_PDEATHSIG,
@@ -418,7 +417,7 @@ impl Signal
 
 			Self::InclusiveMinimum ..= Self::InclusiveMaximum => Ok(unsafe { transmute(raw_signal_number_u8) }),
 
-			_ => Err(U8SignalNumberWasOutOfRange { raw_signal_number: unsafe { NonZeroU8::new_unchecked(raw_signal_number_u8) } }),
+			_ => Err(U8SignalNumberWasOutOfRange { raw_signal_number: new_non_zero_u8(raw_signal_number_u8) }),
 		}
 	}
 
@@ -471,12 +470,12 @@ impl Signal
 
 				Self::InclusiveMinimum ..= Self::InclusiveMaximum => Ok(unsafe { transmute(raw_signal_number_u8) }),
 
-				_ => Err(U32SignalNumberWasOutOfRange { raw_signal_number: unsafe { NonZeroU32::new_unchecked(raw_signal_number_u32) } }),
+				_ => Err(U32SignalNumberWasOutOfRange { raw_signal_number: new_non_zero_u32(raw_signal_number_u32) }),
 			}
 		}
 		else
 		{
-			Err(U32SignalNumberWasOutOfRange { raw_signal_number: unsafe { NonZeroU32::new_unchecked(raw_signal_number_u32) } })
+			Err(U32SignalNumberWasOutOfRange { raw_signal_number: new_non_zero_u32(raw_signal_number_u32) })
 		}
 	}
 

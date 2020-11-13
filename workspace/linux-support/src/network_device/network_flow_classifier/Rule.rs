@@ -61,7 +61,7 @@ impl Rule
 	#[allow(dead_code)]
 	pub(crate) fn to_ethtool_flow_specification(&self, has_receive_side_scaling_context: bool) -> ethtool_rx_flow_spec
 	{
-		let mut ethtool_flow_specification: ethtool_rx_flow_spec = unsafe { zeroed() };
+		let mut ethtool_flow_specification: ethtool_rx_flow_spec = unsafe_zeroed();
 		
 		let (mut flow_type, (data, mask), destination_media_access_control_address_extended_flow) = self.basic_flow.actual_flow_type_and_data_and_masks();
 		

@@ -14,11 +14,10 @@ pub struct BinaryData256
 impl<'a> From<&'a [u8]> for BinaryData256
 {
 	#[inline(always)]
-	#[allow(deprecated)]
 	fn from(binary_data: &'a [u8]) -> Self
 	{
 		let slice = &binary_data[.. BinaryData256::PageSize];
-		let mut binary_data: [u8; BinaryData256::PageSize] = unsafe { uninitialized() };
+		let mut binary_data: [u8; BinaryData256::PageSize] = unsafe_uninitialized();
 		unsafe { binary_data.as_mut_ptr().copy_from_nonoverlapping(slice.as_ptr(), BinaryData640::LargeSize) }
 		Self { binary_data }
 	}

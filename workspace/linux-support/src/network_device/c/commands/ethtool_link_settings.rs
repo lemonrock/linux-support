@@ -127,7 +127,7 @@ impl ethtool_link_settings
 	#[inline(always)]
 	pub(crate) fn to_get_link_mode_masks_nwords() -> Self
 	{
-		let mut this: Self = unsafe { zeroed() };
+		let mut this: Self = unsafe_zeroed();
 		this.cmd = ETHTOOL_GLINKSETTINGS;
 		this
 	}
@@ -135,7 +135,7 @@ impl ethtool_link_settings
 	#[inline(always)]
 	pub(crate) fn to_get(negative_link_mode_masks_nwords_from_to_get_link_mode_masks_nwords: i8) -> Self
 	{
-		let mut this: Self = unsafe { zeroed() };
+		let mut this: Self = unsafe_zeroed();
 		this.cmd = ETHTOOL_GLINKSETTINGS;
 		this.link_mode_masks_nwords = -negative_link_mode_masks_nwords_from_to_get_link_mode_masks_nwords;
 		this
@@ -165,7 +165,6 @@ impl ethtool_link_settings
 		self.link_mode_bit_set(2)
 	}
 	
-	#[allow(deprecated)]
 	#[inline(always)]
 	fn link_mode_bit_set(&self, field_index: usize) -> LinkModeBitSet
 	{
@@ -176,7 +175,7 @@ impl ethtool_link_settings
 		
 		let offset = field_index * length;
 		
-		let mut link_mode_bit_set_array: [BitSetWord; LinkModeBitSet::__ETHTOOL_LINK_MODE_MASK_NU32] = unsafe { uninitialized() };
+		let mut link_mode_bit_set_array: [BitSetWord; LinkModeBitSet::__ETHTOOL_LINK_MODE_MASK_NU32] = unsafe_uninitialized();
 		unsafe
 		{
 			link_mode_bit_set_array.as_mut_ptr().copy_from_nonoverlapping(self.link_mode_masks.as_ptr().add(offset), length);

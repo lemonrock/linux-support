@@ -102,7 +102,7 @@ impl PrimaryPciBusAddress
 				return None
 			}
 			
-			let should_be_period = unsafe { * file_name_bytes.get_unchecked(11) };
+			let should_be_period = file_name_bytes.get_unchecked_value_safe(11);
 			if unlikely!(should_be_period != b'.')
 			{
 				return None

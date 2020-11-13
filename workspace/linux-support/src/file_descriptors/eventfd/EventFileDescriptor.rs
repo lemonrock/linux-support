@@ -107,8 +107,7 @@ impl EventFileDescriptor
 	#[inline(always)]
 	pub fn read(&self) -> Result<u64, StructReadError>
 	{
-		#[allow(deprecated)]
-		let mut value: u64 = unsafe { uninitialized() };
+		let mut value: u64 = unsafe_uninitialized();
 
 		const SizeOfRead: usize = size_of::<u64>();
 

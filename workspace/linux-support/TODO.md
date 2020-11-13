@@ -8,6 +8,14 @@
 * Use CLOCK_TAI instead of CLOCK_REALTIME in some Unix-epoch code, eg
     * <https://superuser.com/questions/1156693/is-there-a-way-of-getting-correct-clock-tai-on-linux> for setting the TAI offset.
 
+
+## Remove lazy_static!
+
+lazy_static! is very dangerous in environments where coroutine memory allocators are in use.
+We should probably have a lazy static initializer, using a pre-allocated block of memory.
+COuld use new Lazy / OnceCell.
+
+
 ## How to use XDP
 
 * Load maps and programs from ELF files, copy code in `ip` tool that bypasses libbpf

@@ -302,7 +302,7 @@ impl MappedMemory
 	#[inline(always)]
 	pub fn owns_reference<E>(&self, reference: &E) -> bool
 	{
-		self.owns_non_null(unsafe { NonNull::new_unchecked(reference as *const E as *mut E as *mut u8) })
+		self.owns_non_null(new_non_null(reference as *const E as *mut E as *mut u8))
 	}
 	
 	/// Owns this non-null.

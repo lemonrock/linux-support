@@ -42,7 +42,7 @@ impl<T: Tunable> ethtool_tunable<T>
 			id: T::Identifier,
 			type_id: T::TypeIdentifier,
 			len: size_of::<T>() as u32,
-			data: unsafe { zeroed() },
+			data: unsafe_zeroed(),
 		}
 	}
 	

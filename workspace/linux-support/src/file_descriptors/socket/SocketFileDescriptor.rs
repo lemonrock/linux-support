@@ -71,7 +71,6 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 	/// ***SLOW***.
 	///
 	/// Use a system call.
-	#[allow(deprecated)]
 	#[inline(always)]
 	pub fn information(&self) -> tcp_info
 	{
@@ -82,7 +81,7 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 	#[inline(always)]
 	pub fn local_address(&self) -> Result<(SD, usize), ()>
 	{
-		let mut socket_address = unsafe { zeroed() };
+		let mut socket_address = unsafe_zeroed();
 		let mut socket_address_length = size_of::<SD>() as u32;
 		let result = unsafe { getsockname(self.0, &mut socket_address as *mut _ as *mut _, &mut socket_address_length) };
 
@@ -195,8 +194,7 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 	#[inline(always)]
 	fn get_socket_option<T>(&self, level: c_int, optname: c_int) -> T
 	{
-		#[allow(deprecated)]
-		let mut value: T = unsafe { uninitialized() };
+		let mut value: T = unsafe_uninitialized();
 		let mut value_length = size_of::<T>() as u32;
 		let result = unsafe { getsockopt(self.0, level, optname, &mut value as *mut _ as *mut _, &mut value_length) };
 
@@ -515,16 +513,15 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 		const domain: c_int = AF_UNIX;
 		const ethernet_protocol: c_int = 0;
 
-		#[allow(deprecated)]
-		let mut sv = unsafe { uninitialized() };
+		let mut sv = unsafe_uninitialized();
 		let result = unsafe { socketpair(domain, Self::type_and_flags(type_, blocking), ethernet_protocol, &mut sv) };
 
 		if likely!(result == 0)
 		{
-			let lefthand = SocketFileDescriptor(unsafe { *sv.get_unchecked(0) }, PhantomData);
+			let lefthand = SocketFileDescriptor(sv.get_unchecked_value_safe(0), PhantomData);
 			lefthand.set_send_buffer_size_unix_domain_socket(lefthand_send_buffer_size_in_bytes);
 
-			let righthand = SocketFileDescriptor(unsafe { *sv.get_unchecked(1) }, PhantomData);
+			let righthand = SocketFileDescriptor(sv.get_unchecked_value_safe(1), PhantomData);
 			righthand.set_send_buffer_size_unix_domain_socket(righthand_send_buffer_size_in_bytes);
 
 			Ok((lefthand, righthand))

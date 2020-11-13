@@ -75,13 +75,12 @@ impl UserOrGroupIdentifier for UserIdentifier
 		Self(unsafe { geteuid() })
 	}
 
-	#[allow(deprecated)]
 	#[inline(always)]
 	fn current_real_effective_and_saved_set() -> (Self, Self, Self)
 	{
-		let mut real: uid_t = unsafe { uninitialized() };
-		let mut effective: uid_t = unsafe { uninitialized() };
-		let mut saved_set: uid_t = unsafe { uninitialized() };
+		let mut real: uid_t = unsafe_uninitialized();
+		let mut effective: uid_t = unsafe_uninitialized();
+		let mut saved_set: uid_t = unsafe_uninitialized();
 		let result = unsafe { getresuid(&mut real, &mut effective, &mut saved_set) };
 		if likely!(result == 0)
 		{

@@ -19,11 +19,10 @@ impl PerThreadSchedulerPolicyAndFlags
 {
 	/// Returns `Ok((Self, resets-on-fork))` if successful.
 	#[inline(always)]
-	#[allow(deprecated)]
 	pub fn get_for_thread(thread_identifier: ThreadIdentifierChoice) -> Result<Self, &'static str>
 	{
 		const FlagsIsAlwaysZero: u32 = 0;
-		let mut parameters = unsafe { uninitialized() };
+		let mut parameters = unsafe_uninitialized();
 		let result = sched_getattr(thread_identifier.into(), &mut parameters, SCHED_ATTR_SIZE_VER0, FlagsIsAlwaysZero);
 
 		if likely!(result == 0)

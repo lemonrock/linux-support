@@ -25,7 +25,7 @@ impl<'a, BSA: BitSetAware> Iterator for BitSetIncludingEmptyIterator<'a, BSA>
 			return None
 		}
 
-		let word = * unsafe { self.bit_set.0.get_unchecked(self.word_index) };
+		let word = * self.bit_set.0.get_unchecked_safe(self.word_index);
 		let outcome = if word & (1 << self.relative_bit_index_within_word) == 0
 		{
 			None

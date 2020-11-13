@@ -36,7 +36,7 @@ impl From<pid_t> for ProcessIdentifierChoice
 		}
 		else
 		{
-			Other(ProcessIdentifier::from(unsafe { NonZeroI32::new_unchecked(value) }))
+			Other(ProcessIdentifier::from(new_non_zero_i32(value)))
 		}
 	}
 }

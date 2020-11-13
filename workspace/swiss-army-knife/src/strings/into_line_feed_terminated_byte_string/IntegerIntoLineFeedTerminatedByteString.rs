@@ -38,7 +38,7 @@ macro_rules! integer_into_line_feed_terminated_byte_string
 				const LastIndex: usize = Maximum - 1;
 
 				#[allow(deprecated)]
-				let mut buffer: [u8; Maximum] = unsafe { uninitialized() };
+				let mut buffer: [u8; Maximum] = unsafe_uninitialized();
 				buffer[LastIndex] = b'\n';
 
 				let index = self.octal(LastIndex - SizeOfLineFeed, &mut buffer[..]);
@@ -54,7 +54,7 @@ macro_rules! integer_into_line_feed_terminated_byte_string
 				const LastIndex: usize = Maximum - 1;
 
 				#[allow(deprecated)]
-				let mut buffer: [u8; Maximum] = unsafe { uninitialized() };
+				let mut buffer: [u8; Maximum] = unsafe_uninitialized();
 				buffer[LastIndex] = b'\n';
 
 				let index = self.decimal(LastIndex - SizeOfLineFeed, &mut buffer[..]);
@@ -70,7 +70,7 @@ macro_rules! integer_into_line_feed_terminated_byte_string
 				const LastIndex: usize = Maximum - 1;
 
 				#[allow(deprecated)]
-				let mut buffer: [u8; Maximum] = unsafe { uninitialized() };
+				let mut buffer: [u8; Maximum] = unsafe_uninitialized();
 				buffer[LastIndex] = b'\n';
 
 				let index = self.lower_case_hexadecimal(LastIndex - SizeOfLineFeed, &mut buffer[..]);
@@ -86,7 +86,7 @@ macro_rules! integer_into_line_feed_terminated_byte_string
 				const LastIndex: usize = Maximum - 1;
 
 				#[allow(deprecated)]
-				let mut buffer: [u8; Maximum] = unsafe { uninitialized() };
+				let mut buffer: [u8; Maximum] = unsafe_uninitialized();
 				buffer[LastIndex] = b'\n';
 
 				let index = self.lower_case_hexadecimal(LastIndex - SizeOfLineFeed, &mut buffer[..]);
@@ -104,7 +104,7 @@ macro_rules! integer_into_line_feed_terminated_byte_string
 				const LastIndex: usize = Maximum - 1;
 
 				#[allow(deprecated)]
-				let mut buffer: [u8; Maximum] = unsafe { uninitialized() };
+				let mut buffer: [u8; Maximum] = unsafe_uninitialized();
 				buffer[LastIndex] = b'\n';
 
 				let index = self.upper_case_hexadecimal(LastIndex - SizeOfLineFeed, &mut buffer[..]);
@@ -120,7 +120,7 @@ macro_rules! integer_into_line_feed_terminated_byte_string
 				const LastIndex: usize = Maximum - 1;
 
 				#[allow(deprecated)]
-				let mut buffer: [u8; Maximum] = unsafe { uninitialized() };
+				let mut buffer: [u8; Maximum] = unsafe_uninitialized();
 				buffer[LastIndex] = b'\n';
 
 				let index = self.upper_case_hexadecimal(LastIndex - SizeOfLineFeed, &mut buffer[..]);

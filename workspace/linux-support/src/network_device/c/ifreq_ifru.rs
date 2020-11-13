@@ -77,7 +77,7 @@ impl Default for ifreq_ifru
 	#[inline(always)]
 	fn default() -> Self
 	{
-		unsafe { zeroed() }
+		unsafe_zeroed()
 	}
 }
 

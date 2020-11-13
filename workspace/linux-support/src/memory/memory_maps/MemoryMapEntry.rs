@@ -196,7 +196,7 @@ impl MemoryMapEntry
 											value
 										}
 									};
-									unsafe { NonZeroU64::new_unchecked(map_count_maximum) }
+									new_non_zero_u64(map_count_maximum)
 								},
 								swap_cache: swap_cache.unwrap_or(0),
 								active: if pages_are_hugetlb_pages
@@ -556,7 +556,7 @@ impl MemoryMapEntry
 	{
 		use self::Sharing::*;
 
-		let sharing = match unsafe { *field_bytes.get_unchecked(3) }
+		let sharing = match field_bytes.get_unchecked_value_safe(3)
 		{
 			b'p' => Private,
 			b's' => Shared,

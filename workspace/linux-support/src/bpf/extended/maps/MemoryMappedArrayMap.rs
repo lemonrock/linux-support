@@ -63,7 +63,7 @@ impl<V: Copy> MemoryMappedArrayMap<V>
 		let array_map = ArrayMap::new_system_wide_internal(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, maximum_entries, access_permissions, numa_node, MemoryMap::MemoryMap)?;
 		
 		let length = defaults.default_page_size().number_of_bytes_rounded_up_to_multiple_of_page_size((maximum_entries.to_u32() as u64) * (size_of::<V>() as u64));
-		let length = unsafe { NonZeroU64::new_unchecked(length) };
+		let length = new_non_zero_u64(length);
 		
 		use self::AccessPermissions::*;
 		use self::Protection::*;

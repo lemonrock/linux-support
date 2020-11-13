@@ -51,7 +51,7 @@ impl<FFQ: FreeFrameQueue> UserMemory<FFQ>
 		let number_of_frames = number_of_frames as u32;
 		debug_assert!(number_of_frames <= self.number_of_chunks.get());
 		
-		unsafe { NonZeroU32::new_unchecked(number_of_frames) }
+		new_non_zero_u32(number_of_frames)
 	}
 	
 	#[inline(always)]

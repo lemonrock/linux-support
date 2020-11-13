@@ -38,7 +38,7 @@ pub trait SysfsQueue<'a>: Sized + PartialEq + Eq + Hash
 		{
 			return Err(ParseNumberError::DoesNotStartWithPrefix { prefix })
 		}
-		if unsafe { * file_name.get_unchecked(prefix_length) } != Hyphen
+		if file_name.get_unchecked_value_safe(prefix_length) != Hyphen
 		{
 			return Err(ParseNumberError::InvalidByte { byte: Hyphen })
 		}

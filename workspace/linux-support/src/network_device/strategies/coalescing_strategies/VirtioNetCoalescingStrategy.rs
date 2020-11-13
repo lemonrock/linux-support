@@ -20,7 +20,7 @@ impl CoalescingStrategy for VirtioNetCoalescingStrategy
 				{
 					microseconds: None,
 					
-					maximum_frames: Some(unsafe { NonZeroU32::new_unchecked(1) })
+					maximum_frames: Some(new_non_zero_u32(1))
 				},
 				
 				transmit: CoalescePair
@@ -29,7 +29,7 @@ impl CoalescingStrategy for VirtioNetCoalescingStrategy
 					
 					maximum_frames: if transmit_coalescing_preference.enable_napi_weight
 					{
-						Some(unsafe { NonZeroU32::new_unchecked(1) })
+						Some(new_non_zero_u32(1))
 					}
 					else
 					{

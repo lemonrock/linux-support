@@ -51,11 +51,11 @@ impl<'cache, V: LeastRecentlyUsedCacheValue> LeastRecentlyUsedListPointer<'cache
 	}
 	
 	#[inline(always)]
-	unsafe fn key_reference(&mut self) -> LeastRecentlyUsedListKeyReference<'cache>
+	fn key_reference(&mut self) -> LeastRecentlyUsedListKeyReference<'cache>
 	{
 		LeastRecentlyUsedListKeyReference
 		{
-			key: NonNull::new_unchecked(&mut self.key)
+			key: new_non_null(&mut self.key)
 		}
 	}
 	

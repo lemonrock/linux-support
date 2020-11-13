@@ -35,14 +35,13 @@ impl inotify_event
 	#[inline(always)]
 	pub(crate) fn unpopulated() -> Self
 	{
-		#[allow(deprecated)]
 		Self
 		{
-			wd: unsafe { uninitialized() },
-			mask: unsafe { uninitialized() },
+			wd: unsafe_uninitialized(),
+			mask: unsafe_uninitialized(),
 			cookie: 0,
 			len: 0,
-			name: unsafe { zeroed() },
+			name: unsafe_zeroed(),
 		}
 	}
 

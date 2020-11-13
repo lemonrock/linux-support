@@ -69,7 +69,7 @@ impl RecentMessageIdentifiers
 	fn add_most_recently_generated(&mut self, message_identifier: MessageIdentifier)
 	{
 		let head_index = self.recently_generated_ring_queue_head & self.capacity_mask;
-		unsafe { *self.recently_generated_ring_queue.get_unchecked_mut(head_index) = message_identifier };
+		self.recently_generated_ring_queue.set_unchecked_mut_safe(head_index, message_identifier);
 		self.recently_generated_ring_queue_head += 1;
 		
 		let was_not_present = self.recently_generated_random.insert(message_identifier);
@@ -82,7 +82,7 @@ impl RecentMessageIdentifiers
 		debug_assert_ne!(self.recently_generated_ring_queue_tail, self.recently_generated_ring_queue_head);
 		
 		let tail_index = self.recently_generated_ring_queue_tail & self.capacity_mask;
-		let message_identifier = unsafe { self.recently_generated_ring_queue.get_unchecked(tail_index) };
+		let message_identifier = self.recently_generated_ring_queue.get_unchecked_safe(tail_index);
 		self.recently_generated_ring_queue_tail += 1;
 		
 		let was_present = self.recently_generated_random.remove(message_identifier);

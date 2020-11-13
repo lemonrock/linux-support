@@ -32,7 +32,7 @@ impl JustInTimeMemoryAllocationLimitSizeInBytes
 	/// Typical value.
 	///
 	/// From `/proc/sys/net/core/bpf_jit_limit`.
-	pub const UsualGlobalMaximum: Self = Self(unsafe { NonZeroU32::new_unchecked(264_241_152) });
+	pub const UsualGlobalMaximum: Self = Self(new_non_zero_u32(264_241_152));
 	
 	/// Default is `Self::UsualGlobalDefault`.
 	///

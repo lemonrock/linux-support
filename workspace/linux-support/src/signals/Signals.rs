@@ -61,7 +61,6 @@ impl Signals
 	{
 		unsafe
 		{
-			#[allow(deprecated)] let mut set = uninitialized();
 			sigfillset(&mut set);
 			for exclude_signal in self.iterate()
 			{
@@ -77,7 +76,6 @@ impl Signals
 	{
 		unsafe
 		{
-			#[allow(deprecated)] let mut set = uninitialized();
 			sigemptyset(&mut set);
 			for signal in self.iterate()
 			{
@@ -106,8 +104,7 @@ impl Signals
 	#[inline(always)]
 	pub(crate) fn filled_signal_mask() -> sigset_t
 	{
-		#[allow(deprecated)]
-		let mut signal_mask = unsafe { uninitialized() };
+		let mut signal_mask = unsafe_uninitialized();
 		let result = unsafe {  sigfillset(&mut signal_mask) };
 		if likely!(result == 0)
 		{

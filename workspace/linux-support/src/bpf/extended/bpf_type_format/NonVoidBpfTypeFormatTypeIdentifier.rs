@@ -27,6 +27,6 @@ impl NonVoidBpfTypeFormatTypeIdentifier
 	#[inline(always)]
 	const fn new_from_u32(value: u32) -> Self
 	{
-		Self(unsafe { NonZeroU32::new_unchecked(value) })
+		Self(new_non_zero_u32(value))
 	}
 }

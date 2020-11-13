@@ -84,11 +84,10 @@ impl ProvidesIdentifierWhenUsedAsValueInArrayMapDescriptor for ExtendedBpfProgra
 impl ExtendedBpfProgramFileDescriptor
 {
 	/// Test run.
-	#[allow(deprecated)]
 	pub fn test_run<C: Sized>(&self, context: &C, test_data: &[u8], expected_output_data_length: usize, repetitions: NonZeroU32) -> Result<TestRunResults<C>, Errno>
 	{
 		let mut attr = bpf_attr::default();
-		let mut context_out: C = unsafe { uninitialized() };
+		let mut context_out: C = unsafe_uninitialized();
 		let mut data_out = Vec::with_capacity(expected_output_data_length);
 		attr.test = BpfCommandProgramTestRun
 		{

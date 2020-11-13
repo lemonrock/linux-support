@@ -771,8 +771,8 @@ impl LinuxKernelCommandLineParameters
 			{
 				debug_assert_ne!(list.len(), 0, "list has no elements");
 				assert_eq!(list.len(), 1, "more than one value for parameter");
-
-				(unsafe { list.get_unchecked(0) }).as_ref().map(|value| &value[..])
+				
+				list.get_unchecked_safe(0).as_ref().map(|value| &value[..])
 			}
 		}
 	}
@@ -792,7 +792,7 @@ impl LinuxKernelCommandLineParameters
 
 				for index in 0 .. list.len()
 				{
-					strings.push((unsafe { list.get_unchecked(index) }).as_ref().map(|value| &value[..]).unwrap())
+					strings.push(list.get_unchecked_safe(index).as_ref().map(|value| &value[..]).unwrap())
 				}
 
 				Some(strings)

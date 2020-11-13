@@ -127,7 +127,7 @@ impl<'cache, V: LeastRecentlyUsedCacheValue> LeastRecentlyUsedCache<'cache, V>
 	#[inline(always)]
 	fn key(key: &EfficientCaseFoldedName) -> LeastRecentlyUsedListKeyReference<'cache>
 	{
-		let key = unsafe { NonNull::new_unchecked(key as *const EfficientCaseFoldedName as *mut EfficientCaseFoldedName) };
+		let key = new_non_null(key as *const EfficientCaseFoldedName as *mut EfficientCaseFoldedName);
 		LeastRecentlyUsedListKeyReference { key }
 	}
 }

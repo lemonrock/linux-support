@@ -140,3 +140,12 @@ pub enum Character
 	/// When the terminal mode is `TerminalMode::NonCanonical` then this specifies the timeout in deciseconds for a read.
 	ReadTimeOut = VTIME,
 }
+
+impl AsUsizeIndex for Character
+{
+	#[inline(always)]
+	fn as_usize(self) -> usize
+	{
+		self as usize
+	}
+}

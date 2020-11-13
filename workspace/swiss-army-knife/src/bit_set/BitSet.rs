@@ -208,7 +208,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 		}
 		else
 		{
-			let word_pointer = unsafe { self.word_mut(word_index) };
+			let word_pointer = self.word_mut(word_index);
 			let current = *word_pointer;
 			let preserve_lower_bits_mask = (1 << relative_bit_index_within_word) - 1;
 			*word_pointer = current & preserve_lower_bits_mask;
@@ -401,7 +401,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 			return
 		}
 
-		let word_pointer = unsafe { self.word_mut(word_index) };
+		let word_pointer = self.word_mut(word_index);
 		let current = *word_pointer;
 		*word_pointer = current & !(1 << relative_bit_index_within_word)
 	}
@@ -452,7 +452,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 
 		for word_index in 0 .. other_length
 		{
-			let our_word_pointer = unsafe { self.word_mut(word_index) };
+			let our_word_pointer = self.word_mut(word_index);
 			let our_word = *our_word_pointer;
 			let other_word = other.get_word(word_index);
 
@@ -486,7 +486,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 
 		for word_index in 0 .. min(our_length, other_length)
 		{
-			let our_word_pointer = unsafe { self.word_mut(word_index) };
+			let our_word_pointer = self.word_mut(word_index);
 			let our_word = *our_word_pointer;
 			let other_word = other.get_word(word_index);
 
@@ -508,7 +508,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	pub fn new_from_u64(bits: u64) -> Self
 	{
 		let mut bit_set = Self::new_set_length(1);
-		unsafe { bit_set.set_u64_unchecked(0, bits) };
+		bit_set.set_u64_unchecked(0, bits);
 		bit_set
 	}
 
@@ -550,25 +550,25 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	/// Sets the byte at a byte (not bit) index to all bits in the byte.
 	#[cfg(target_pointer_width = "64")]
 	#[inline(always)]
-	pub(crate) unsafe fn set_u64_unchecked(&mut self, u64_index: usize, bits: u64)
+	pub(crate) fn set_u64_unchecked(&mut self, u64_index: usize, bits: u64)
 	{
 		self.set_word(u64_index, bits as usize)
 	}
 
 	#[inline(always)]
-	pub(crate) unsafe fn set_word(&mut self, word_index: usize, bits: usize)
+	pub(crate) fn set_word(&mut self, word_index: usize, bits: usize)
 	{
 		*self.word_mut(word_index) = bits
 	}
 
 	#[inline(always)]
-	pub(crate) unsafe fn word_mut(&mut self, word_index: usize) -> &mut usize
+	pub(crate) fn word_mut(&mut self, word_index: usize) -> &mut usize
 	{
 		debug_assert!(word_index < Self::MaximumNumberOfUsizeWords);
 
 		debug_assert!(word_index < self.capacity_in_words());
 
-		self.0.get_unchecked_mut(word_index)
+		self.0.get_unchecked_mut_safe(word_index)
 	}
 
 	/// Provides a pointer and a length suitable for some Linux API calls.
@@ -685,7 +685,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	#[inline(always)]
 	fn add_internal(&mut self, word_index: usize, relative_bit_index_within_word: usize)
 	{
-		let pointer = unsafe { self.word_mut(word_index) };
+		let pointer = self.word_mut(word_index);
 		let word = *pointer;
 		*pointer = word | (1 << relative_bit_index_within_word)
 	}
@@ -693,7 +693,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 	#[inline(always)]
 	fn get_word(&self, word_index: usize) -> usize
 	{
-		unsafe { *self.0.get_unchecked(word_index) }
+		*self.0.get_unchecked_safe(word_index)
 	}
 
 	#[inline(always)]

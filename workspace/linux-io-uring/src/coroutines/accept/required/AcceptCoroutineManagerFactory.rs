@@ -90,6 +90,6 @@ impl<'a, CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThread
 		{
 			length as u64
 		};
-		unsafe { NonZeroU64::new_unchecked(ideal_maximum_number_of_coroutines) }
+		new_non_zero_u64(ideal_maximum_number_of_coroutines)
 	}
 }

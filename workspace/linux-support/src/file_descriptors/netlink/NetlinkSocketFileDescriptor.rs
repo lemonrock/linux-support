@@ -42,11 +42,10 @@ impl<Protocol: NetlinkProtocol> IntoRawFd for NetlinkSocketFileDescriptor<Protoc
 
 impl<Protocol: NetlinkProtocol> FromRawFd for NetlinkSocketFileDescriptor<Protocol>
 {
-	#[allow(deprecated)]
 	#[inline(always)]
 	unsafe fn from_raw_fd(fd: RawFd) -> Self
 	{
-		let mut protocol: c_int = uninitialized();
+		let mut protocol: c_int = unsafe_uninitialized();
 		let mut size = size_of::<c_int>() as u32;
 		let result = getsockopt(fd, SOL_SOCKET, SO_PROTOCOL, &mut protocol as *mut i32 as *mut c_void, &mut size);
 		if likely!(result == 0)
@@ -130,7 +129,6 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 		}
 	}
 	
-	#[allow(deprecated)]
 	fn receive_replies(&self, reply_receiver: &mut impl ReplyReceiver<Protocol>)
 	{
 		/// Default used by `libnl`.

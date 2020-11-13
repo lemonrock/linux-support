@@ -28,10 +28,10 @@ impl Default for ThreadLocalAllocatorConfiguration
 	{
 		Self
 		{
-			heap_size: unsafe { NonZeroU64::new_unchecked(1024 * 1024 * 1024) },
+			heap_size: new_non_zero_u64(1024 * 1024 * 1024),
 			inclusive_maximum_bytes_wasted: 0,
 			strict_numa_memory_policy: false,
-			block_size_hint: unsafe { NonZeroUsize::new_unchecked(64) },
+			block_size_hint: new_non_zero_usize(64),
 		}
 	}
 }

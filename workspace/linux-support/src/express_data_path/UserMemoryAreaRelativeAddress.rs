@@ -21,7 +21,7 @@ impl TryInto<NonZeroU64> for UserMemoryAreaRelativeAddress
 		}
 		else
 		{
-			Ok(unsafe { NonZeroU64::new_unchecked(value) })
+			Ok(new_non_zero_u64(value))
 		}
 	}
 }

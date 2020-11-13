@@ -44,7 +44,7 @@ impl LinuxStringEscapeSequence
 	pub fn new(unescaped_byte: u8) -> Self
 	{
 		#[allow(deprecated)]
-		let mut octal_sequence_left_padded_with_zero: [u8; 3] = unsafe { uninitialized() };
+		let mut octal_sequence_left_padded_with_zero: [u8; 3] = unsafe_uninitialized();
 		let mut byte_index = unescaped_byte.octal(2, &mut octal_sequence_left_padded_with_zero);
 		while byte_index != 0
 		{
@@ -86,7 +86,7 @@ impl LinuxStringEscapeSequence
 	}
 
 	#[inline(always)]
-	fn unescape_if_escaped(escape_sequences: &[Self], index: usize, remaining_bytes: &mut [u8], unescaped_length: &mut usize)
+	fn unescape_if_escaped(escape_sequences: &[Self], index: usize, mut remaining_bytes: &mut [u8], unescaped_length: &mut usize)
 	{
 		let inclusive_start_index = index + 1;
 		let exclusive_end_index = inclusive_start_index + Self::RemainingEscapeSequenceLength;
@@ -98,7 +98,7 @@ impl LinuxStringEscapeSequence
 			{
 				unsafe
 				{
-					*remaining_bytes.get_unchecked_mut(index) = escape_sequence.unescaped_byte;
+					remaining_bytes.set_unchecked_mut_safe(index, escape_sequence.unescaped_byte);
 					let from = remaining_bytes.as_ptr().add(exclusive_end_index);
 					let to = remaining_bytes.as_mut_ptr().add(inclusive_start_index);
 					from.copy_to(to, remaining_bytes.len() - exclusive_end_index);

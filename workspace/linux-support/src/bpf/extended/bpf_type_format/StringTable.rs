@@ -84,7 +84,7 @@ impl StringTable
 		
 		for index in 0 .. (bytes_length - 1)
 		{
-			let byte = unsafe { bytes.get_unchecked_mut(index) };
+			let byte = bytes.get_unchecked_mut_safe(index);
 			let is_valid = match *byte
 			{
 				b'A' ..= b'Z' => true,

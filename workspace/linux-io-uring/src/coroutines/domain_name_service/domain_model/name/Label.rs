@@ -21,7 +21,7 @@ pub trait Label<'label>: HasTypeEquality + Clone + Debug + Display + PartialEq +
 	{
 		for index in 0 .. self.len()
 		{
-			let character = char::from(self.get_unchecked_case_folded_byte(index));
+			let character = char::from(self.get_unchecked_safe_case_folded_byte(index));
 			f.write_char(character)?;
 		}
 		Ok(())
@@ -52,8 +52,8 @@ pub trait Label<'label>: HasTypeEquality + Clone + Debug + Display + PartialEq +
 		
 		for index in 0 .. self.len()
 		{
-			let left = self.get_unchecked_case_folded_byte(index);
-			let right = rhs.get_unchecked_case_folded_byte(index);
+			let left = self.get_unchecked_safe_case_folded_byte(index);
+			let right = rhs.get_unchecked_safe_case_folded_byte(index);
 			
 			if left != right
 			{
@@ -80,8 +80,8 @@ pub trait Label<'label>: HasTypeEquality + Clone + Debug + Display + PartialEq +
 		
 		for index in 0 .. min(left_length, right_length)
 		{
-			let left = self.get_unchecked_case_folded_byte(index);
-			let right = rhs.get_unchecked_case_folded_byte(index);
+			let left = self.get_unchecked_safe_case_folded_byte(index);
+			let right = rhs.get_unchecked_safe_case_folded_byte(index);
 			
 			use self::Ordering::*;
 			match left.cmp(&right)
@@ -101,7 +101,7 @@ pub trait Label<'label>: HasTypeEquality + Clone + Debug + Display + PartialEq +
 	{
 		for index in 0 .. self.len()
 		{
-			self.get_unchecked_case_folded_byte(index).hash(state)
+			self.get_unchecked_safe_case_folded_byte(index).hash(state)
 		}
 	}
 	
@@ -124,7 +124,7 @@ pub trait Label<'label>: HasTypeEquality + Clone + Debug + Display + PartialEq +
 	#[inline(always)]
 	fn length_including_trailing_period(&self) -> NonZeroU8
 	{
-		unsafe { NonZeroU8::new_unchecked(self.len() + ParsedNameParser::SizeOfTrailingPeriod) }
+		non_new_non_zero_u8(self.len() + ParsedNameParser::SizeOfTrailingPeriod)
 	}
 	
 	/// Is probably an internationalized domain name (IDN)?
@@ -138,7 +138,7 @@ pub trait Label<'label>: HasTypeEquality + Clone + Debug + Display + PartialEq +
 		let length = self.len();
 		if length >= 5
 		{
-			*self.get_unchecked(0) == b'x' && *self.get_unchecked(1) == b'n' && *self.get_unchecked(2) == b'-' && *self.get_unchecked(3) == b'-'
+			self.get_unchecked_safe_value(0) == b'x' && *elf.get_unchecked_safe_value(1) == b'n' && self.get_unchecked_safe_value(2) == b'-' && self.get_unchecked_safe_value(3) == b'-'
 		}
 		else
 		{
@@ -147,8 +147,14 @@ pub trait Label<'label>: HasTypeEquality + Clone + Debug + Display + PartialEq +
 	}
 	
 	#[doc(hidden)]
-	fn get_unchecked_case_folded_byte(&self, index: u8) -> u8;
+	fn get_unchecked_safe_case_folded_byte(&self, index: u8) -> u8;
 	
 	#[doc(hidden)]
-	fn get_unchecked(&self, index: u8) -> &u8;
+	fn get_unchecked_safe_value(&self, index: u8) -> u8
+	{
+		* self.get_unchecked_safe(index)
+	}
+	
+	#[doc(hidden)]
+	fn get_unchecked_safe(&self, index: u8) -> &u8;
 }

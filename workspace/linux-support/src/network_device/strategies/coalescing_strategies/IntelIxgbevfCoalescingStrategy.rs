@@ -27,7 +27,7 @@ impl CoalescingStrategy for IntelIxgbevfCoalescingStrategy
 						}
 						else
 						{
-							Some(unsafe { NonZeroU32::new_unchecked(value) })
+							Some(new_non_zero_u32(value))
 						}
 					},
 					
@@ -45,7 +45,7 @@ impl CoalescingStrategy for IntelIxgbevfCoalescingStrategy
 						}
 						else
 						{
-							Some(unsafe { NonZeroU32::new_unchecked(value) })
+							Some(new_non_zero_u32(value))
 						}
 					}
 					else
