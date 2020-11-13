@@ -36,5 +36,11 @@ pub fn main(_manifest_dir: &OsString, out_dir: &OsString) -> io::Result<()>
 	// TODO: finish enum service definitions (there seems to be an insane amount).
 	// TODO: lazy static is very dangerous in coroutine environments!
 	
+	/*
+		RFC 3405.
+			dig NAPTR http.uri.arpa
+				
+	 */
+	
 	Ok(())
 }

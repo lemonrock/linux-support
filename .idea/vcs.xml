@@ -5,6 +5,7 @@
     <mapping directory="$PROJECT_DIR$/.cargo" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/workspace/context-allocator" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/workspace/context-coroutine" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/workspace/likely" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/workspace/magic-ring-buffer" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/workspace/message-dispatch" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/workspace/terminate" vcs="Git" />
