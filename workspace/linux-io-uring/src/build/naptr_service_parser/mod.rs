@@ -28,6 +28,7 @@ pub(super) mod trie;
 
 include!("application_layer_traffic_optimization.rs");
 include!("ApplicationServiceTag.rs");
+include!("business_document_metadata_service_location.rs");
 include!("centralized_conferencing.rs");
 include!("Code.rs");
 include!("combine_multiple_application_services_with_protocols.rs");
