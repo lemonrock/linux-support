@@ -7,11 +7,11 @@ fn application_layer_traffic_optimization() -> HashMap<&'static str, &'static st
 {
 	hashmap!
 	{
-		"ALTO:http" => "ApplicationLayerTrafficOptimization { transport_protocol: Some(HypertextTransportProtocol::http) }",
+		"ALTO:http" => "ApplicationLayerTrafficOptimization { transport_protocol: Some(http), uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord::parse_ApplicationLayerTrafficOptimization(replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag, Some(http))? }",
 		
-		"ALTO:https" => "ApplicationLayerTrafficOptimization { transport_protocol: Some(HypertextTransportProtocol::https) }",
+		"ALTO:https" => "ApplicationLayerTrafficOptimization { transport_protocol: Some(https)), uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord::parse_ApplicationLayerTrafficOptimization(replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag, Some(https))? }",
 		
 		// This is probably not intended by the authors of RFC 7286 but is permitted by RFC 3958.
-		"ALTO" =>  "ApplicationLayerTrafficOptimization { transport_protocol: None }",
+		"ALTO" =>  "ApplicationLayerTrafficOptimization { transport_protocol: None, uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord::parse_ApplicationLayerTrafficOptimization(replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag, None)? }",
 	}
 }

@@ -2,23 +2,13 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A service field parse error.
+/// Defined in OASIS standard: [Business Document Metadata Service Location Version 1.0](https://docs.oasis-open.org/bdxr/BDX-Location/v1.0/BDX-Location-v1.0.html).
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum ServiceFieldParseError
+pub enum BusinessDocumentMetadataServiceLocationProfile
 {
-	/// A byte was not in the range `0 ..= 9 | A ..= Z | a ..= z | + | - | . | :`.
-	OutOfRange(u8, usize),
-}
-
-impl Display for ServiceFieldParseError
-{
-	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter) -> fmt::Result
-	{
-		Debug::fmt(self, f)
-	}
-}
-
-impl error::Error for ServiceFieldParseError
-{
+	/// `Register`.
+	Register,
+	
+	/// `Meta`.
+	Meta,
 }

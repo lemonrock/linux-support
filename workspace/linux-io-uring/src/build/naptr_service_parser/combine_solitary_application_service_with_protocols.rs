@@ -15,7 +15,7 @@ fn combine_solitary_application_service_with_protocols<'a>(service_field_enum_me
 			continue
 		}
 		
-		let value = format!("{} {{ transport_protocols: &{} }}", service_field_enum_member_name, transport_protocols_hash_set_static_name);
+		let value = format!("{0} {{ transport_protocols: &{1}, query_for_next: QueryForNext::parse(ServiceFieldKind::{0}, replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)? }}", service_field_enum_member_name, transport_protocols_hash_set_static_name);
 		let old = result.insert(key, value);
 		debug_assert!(old.is_none());
 	}

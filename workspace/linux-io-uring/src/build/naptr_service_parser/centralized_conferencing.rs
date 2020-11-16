@@ -11,13 +11,13 @@ fn centralized_conferencing() -> HashMap<&'static str, &'static str>
 {
 	hashmap!
 	{
-		"XCON:CCMP" => "CentralizedConferencing { transport_protocol: Some(CentralizedConferencingTransportProtocol::CCMP) }",
+		"XCON:CCMP" => "CentralizedConferencing { transport_protocol: Some(CentralizedConferencingTransportProtocol::CCMP), uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord::parse_CentralizedConferencing(replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)? }",
 		
 		// This is probably not intended by the authors of RFC 6503 but is permitted by RFC 3958.
-		"XCON" =>  "CentralizedConferencing { transport_protocol: None }",
+		"XCON" =>  "CentralizedConferencing { transport_protocol: None, uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord::parse_CentralizedConferencing(replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)? }",
 		
 		// This format violates RFC 3958 but is given in all examples in RFC 6503, Section 7 Locating a Conference Server.
 		// Hence it may exist in the wild.
-		"XCON-CCMP" => "CentralizedConferencing { transport_protocol: Some(CentralizedConferencingTransportProtocol::CCMP) }",
+		"XCON-CCMP" => "CentralizedConferencing { transport_protocol: Some(CentralizedConferencingTransportProtocol::CCMP), uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord::parse_CentralizedConferencing(replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)? }",
 	}
 }

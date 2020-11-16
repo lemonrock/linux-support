@@ -21,7 +21,7 @@ fn combine_multiple_application_services_with_protocols<'a>(fixed: HashMap<&'sta
 				continue
 			}
 			
-			let value = format!("{} {{ {}: {}::{}, transport_protocols: &{} }}", service_field_enum_member_name, subtype_field_name, subtype_enum_type, subtype_identifier, transport_protocols_hash_set_static_name);
+			let value = format!("{0} {{ {1}: {2}::{3}, transport_protocols: &{4}, query_for_next: QueryForNext::parse(ServiceFieldKind::{0}, replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)? }}", service_field_enum_member_name, subtype_field_name, subtype_enum_type, subtype_identifier, transport_protocols_hash_set_static_name);
 			let old = result.insert(key, value);
 			debug_assert!(old.is_none());
 		}

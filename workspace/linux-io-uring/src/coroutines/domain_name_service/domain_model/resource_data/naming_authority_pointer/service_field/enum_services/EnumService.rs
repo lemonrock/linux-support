@@ -420,7 +420,7 @@ pub enum EnumService
 	/// * E2U+vpim:mailto Service unavailable of email addresses where only the telephone number was previously known.
 	///
 	/// Specified in RFC 4238 and RFC 6118.
-	vpim,
+	vpim(VpimEnumServiceSubType),
 
 	/// This Enumservice indicates that the resource identified by the associated URI is capable of being a source of information.
 	/// It has to be noted that the kind of information retrieved can be manifold.
@@ -508,6 +508,8 @@ impl ToEnumUriScheme for EnumService
 			voice(sub_type) => sub_type.to_uri_scheme(),
 			
 			voicemsg(sub_type) => sub_type.to_uri_scheme(),
+			
+			vpim(sub_type) => sub_type.to_uri_scheme(),
 			
 			web(sub_type) => sub_type.to_uri_scheme(),
 			

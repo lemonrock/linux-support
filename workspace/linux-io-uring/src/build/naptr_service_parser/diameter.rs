@@ -11,9 +11,9 @@ fn diameter(code: &mut Code) -> io::Result<HashMap<String, String>>
 			// RFC 3588, Section 11.6 NAPTR Service Fields.
 			hashmap!
 			{
-				"AAA+D2T" => "Diameter { application_identifier: DiameterApplicationIdentifier::Unspecified { legacy: true }, transport_protocols: &diameter_combination_diameter_tcp }",
+				"AAA+D2T" => "Diameter { application_identifier: DiameterApplicationIdentifier::Unspecified { legacy: true }, transport_protocols: &diameter_combination_diameter_tcp, query_for_next: QueryForNext::parse(ServiceFieldKind::Diameter, replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)? }",
 		
-				"AAA+D2S" => "Diameter { application_identifier: DiameterApplicationIdentifier::Unspecified { legacy: true }, transport_protocols: &diameter_combination_diameter_sctp }",
+				"AAA+D2S" => "Diameter { application_identifier: DiameterApplicationIdentifier::Unspecified { legacy: true }, transport_protocols: &diameter_combination_diameter_sctp, query_for_next: QueryForNext::parse(ServiceFieldKind::Diameter, replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)? }",
 			},
 			
 			"Diameter",

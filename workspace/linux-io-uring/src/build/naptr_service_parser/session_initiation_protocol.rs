@@ -8,24 +8,24 @@ fn session_initiation_protocol() -> HashMap<&'static str, &'static str>
 	hashmap!
 	{
 		// RFC 3263, Section 4.1 Selecting a Transport Protocol.
-		"SIP+D2T" => "SessionInitiationProtocol { resolution_service: SessionInitiationProtocolResolutionService::TCP }",
+		"SIP+D2T" => "SessionInitiationProtocol { resolution_service: SessionInitiationProtocolResolutionService::TCP, query_for_next: QueryResourceRecord::parse(ServiceFieldKind::SessionInitiationProtocol, replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)? }",
 		
 		// RFC 3263, Section 4.1 Selecting a Transport Protocol.
-		"SIPS+D2T" => "SessionInitiationProtocol { resolution_service: SessionInitiationProtocolResolutionService::TLS_over_TCP }",
+		"SIPS+D2T" => "SessionInitiationProtocol { resolution_service: SessionInitiationProtocolResolutionService::TLS_over_TCP, query_for_next: QueryResourceRecord::parse(ServiceFieldKind::SessionInitiationProtocol, replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)? }",
 		
 		// RFC 3263, Section 4.1 Selecting a Transport Protocol.
-		"SIP+D2U" => "SessionInitiationProtocol { resolution_service: SessionInitiationProtocolResolutionService::UDP }",
+		"SIP+D2U" => "SessionInitiationProtocol { resolution_service: SessionInitiationProtocolResolutionService::UDP, query_for_next: QueryResourceRecord::parse(ServiceFieldKind::SessionInitiationProtocol, replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)? }",
 		
 		// RFC 3263, Section 4.1 Selecting a Transport Protocol.
-		"SIP+D2S" => "SessionInitiationProtocol { resolution_service: SessionInitiationProtocolResolutionService::SCTP }",
+		"SIP+D2S" => "SessionInitiationProtocol { resolution_service: SessionInitiationProtocolResolutionService::SCTP, query_for_next: QueryResourceRecord::parse(ServiceFieldKind::SessionInitiationProtocol, replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)? }",
 		
 		// RFC 3263, Section 4.1 Selecting a Transport Protocol.
-		"SIPS+D2S" => "SessionInitiationProtocol { resolution_service: SipSecureLegacyResolutionService::DTLS_over_SCTP }",
+		"SIPS+D2S" => "SessionInitiationProtocol { resolution_service: SipSecureLegacyResolutionService::DTLS_over_SCTP, query_for_next: QueryResourceRecord::parse(ServiceFieldKind::SessionInitiationProtocol, replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)? }",
 		
 		// RFC 7118.
-		"SIP+D2W" => "SessionInitiationProtocol { resolution_service: SessionInitiationProtocolResolutionService::WebSocket }",
+		"SIP+D2W" => "SessionInitiationProtocol { resolution_service: SessionInitiationProtocolResolutionService::WebSocket, query_for_next: QueryResourceRecord::parse(ServiceFieldKind::SessionInitiationProtocol, replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)? }",
 		
 		// RFC 7118.
-		"SIPS+D2W" => "SessionInitiationProtocol { resolution_service: SipSecureLegacyResolutionService::WebSocketSecure }",
+		"SIPS+D2W" => "SessionInitiationProtocol { resolution_service: SipSecureLegacyResolutionService::WebSocketSecure, query_for_next: QueryResourceRecord::parse(ServiceFieldKind::SessionInitiationProtocol, replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)? }",
 	}
 }

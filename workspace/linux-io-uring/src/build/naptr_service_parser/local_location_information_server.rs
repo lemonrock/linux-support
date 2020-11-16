@@ -11,9 +11,9 @@ fn local_location_information_server() -> HashMap<&'static str, &'static str>
 {
 	hashmap!
 	{
-		"LIS:HELD" => "LocalLocationInformationServer { transport_protocol: Some(LocalLocationInformationServerTransportProtocol::HELD) }",
+		"LIS:HELD" => "LocalLocationInformationServer { transport_protocol: Some(LocalLocationInformationServerTransportProtocol::HELD), uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord::parse_LocalLocationInformationServer(replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)? }",
 		
 		// This is probably not intended by the authors of RFC 6503 but is permitted by RFC 3958.
-		"LIS" =>  "LocalLocationInformationServer { transport_protocol: None }",
+		"LIS" =>  "LocalLocationInformationServer { transport_protocol: None, uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord::parse_LocalLocationInformationServer(replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)? }",
 	}
 }

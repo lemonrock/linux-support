@@ -692,6 +692,7 @@ impl ResourceRecord
 	fn handle_NAPTR<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, end_of_name_pointer: usize, end_of_message_pointer: usize, owner_name: ParsedName<'message>, resource_record_visitor: &mut RRV, parsed_names: &mut ParsedNames<'message>, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, HandleRecordTypeError<RRV::Error>>
 	{
 		use self::NAPTRHandleRecordTypeError::*;
+		use self::NamingAuthorityResourceRecordIgnoredReason::*;
 		
 		let (cache_until, resource_data) = self.validate_class_is_internet_and_get_cache_until_and_resource_data(now, &owner_name, end_of_name_pointer, end_of_message_pointer, DataType::NAPTR, duplicate_resource_record_response_parsing)?;
 
@@ -783,42 +784,18 @@ impl ResourceRecord
 			}
 		};
 		
-		let replacement = match naptr_service_field_parse(raw_services.deref())?
+		let service_field = match naptr_service_field_parse(raw_services.deref(), replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)
 		{
-			Left(Some(service_field)) =>
+			Ok(service_field) =>
 			{
 				// Helping out IDE type inference because `naptr_service_field_parse()` is a build (code) generated function.
 				let service_field: ServiceField = service_field;
-				match service_field.validate_mutually_exclusive_flags(mutually_exclusive_flag, replacement_domain_name_or_raw_regular_expression)
-				{
-					Left(replacement) => (),
-					
-					Right(ignored_service_field_reason) =>
-					{
-						resource_record_visitor.NAPTR_ignored(owner_name, NamingAuthorityResourceRecordIgnoredReason::IgnoredServiceField(ignored_service_field_reason));
-						return Ok(resource_data_end_pointer)
-					}
-				}
-			},
-			
-			// If this is a terminal record then we're really stuck
-			// If this is non-terminal record then we may need to
-			Left(None) => match mutually_exclusive_flag
-			{
-				// eg `dig NAPTR http.uri.arpa` (also `ftp.uri.arpa` and `mailto.uri.arpa`) which returns a complex regular expression.
-				None => Replacement::from_replacement_domain_name_or_raw_regular_expression(replacement_domain_name_or_raw_regular_expression),
-				
-				Some(flag) =>
-				{
-					resource_record_visitor.NAPTR_ignored(owner_name, NamingAuthorityResourceRecordIgnoredReason::IgnoredServiceField(NamingAuthorityResourceRecordIgnoredReason::EmptyServiceFieldForTerminalRecord(flag)));
-					return Ok(resource_data_end_pointer)
-				}
-				
+				service_field
 			}
 			
-			Right(ignored_service_field_reason) =>
+			Err(ignored_service_field_reason) =>
 			{
-				resource_record_visitor.NAPTR_ignored(owner_name, NamingAuthorityResourceRecordIgnoredReason::IgnoredServiceField(ignored_service_field_reason));
+				resource_record_visitor.NAPTR_ignored(owner_name, IgnoredServiceField(ignored_service_field_reason));
 				return Ok(resource_data_end_pointer)
 			}
 		};
@@ -830,7 +807,7 @@ impl ResourceRecord
 			mutually_exclusive_flag,
 			protocol,
 			resolution_services,
-			replacement,
+			service_field,
 		};
 		
 		resource_record_visitor.NAPTR(owner_name, cache_until, order, preference, record).map_err(|error| HandleRecordTypeError::ResourceRecordVisitor(DataType::NAPTR, error))?;

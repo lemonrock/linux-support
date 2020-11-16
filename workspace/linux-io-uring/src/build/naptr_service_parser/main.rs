@@ -14,11 +14,13 @@ pub fn main(_manifest_dir: &OsString, out_dir: &OsString) -> io::Result<()>
 	
 	let mut all = NaiveTrie::new();
 	all.add(application_layer_traffic_optimization());
+	all.add(business_document_metadata_service_location());
 	all.add(centralized_conferencing());
 	all.add(diameter(&mut code)?);
 	all.add(internet_registry_information_service(&mut code)?);
 	all.add(local_location_information_server());
 	all.add(location_to_service_translation_protocol());
+	all.add(no_solicit());
 	all.add(radius(&mut code)?);
 	all.add(session_initiation_protocol());
 	all.add(session_initiation_protocol_user_agent_configuration());
@@ -32,20 +34,9 @@ pub fn main(_manifest_dir: &OsString, out_dir: &OsString) -> io::Result<()>
 	
 	xxxx;
 	
+	// TODO: When returning ServiceField2, need to parse URI / check flags. these can populate the relevant fields by just calling functions.
+	
 	// TODO: Consider passing in the flag to the parse, so we can short-circuit a lot of decisions on valid record and regexp combinations.
-	
-	// TODO: finish enum service definitions (there seems to be an insane amount).
-	// TODO: lazy static is very dangerous in coroutine environments!
-	
-	/*
-	 ftp.uri.arpa
-	 mailto.uri.arpa
-	 
-		RFC 3405.
-			dig NAPTR http.uri.arpa
-				non-terminal record with a regex and no service field
-			
-	 */
 	
 	Ok(())
 }

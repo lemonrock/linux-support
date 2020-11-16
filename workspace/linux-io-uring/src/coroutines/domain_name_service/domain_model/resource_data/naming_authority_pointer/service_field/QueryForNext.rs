@@ -2,19 +2,16 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Why was a `NAPTR` record ignored?
+/// What resource records to query for next.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum NamingAuthorityResourceRecordIgnoredReason
+pub enum QueryForNext
 {
-	/// A flag byte of `0` to `9` inclusive is for local experimentation.
-	NumericFlagBytesAreForLocalExpermination(u8),
+	/// Query for `SRV` records.
+	SRV,
 	
-	/// After 20 years since RFC 2915 (as redefined by RFCs 3401 to 3404 inclusive), the use of bytes other than `s`, `a`, `d`, `u`, `p`, `S`, `A`, `D`, `U`, `P` and `0` to `9` has not been defined.
-	UndefinedAlphaFlagByte(u8),
+	/// Query for `A` records.
+	A,
 	
-	/// More than one flag.
-	MultipleFlags,
-
-	/// Ignored service field.
-	IgnoredServiceField(IgnoredServiceFieldReason),
+	/// Query for `URI` records.
+	URI,
 }

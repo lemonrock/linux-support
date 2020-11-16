@@ -19,14 +19,8 @@ pub struct NamingAuthorityPointer<'label, N: Name<'label, TypeEquality=TE>, OOPU
 	/// Can be empty.
 	pub resolution_services: HashSet<CaseFoldedNamingAuthorityResolutionService>,
 	
-	/// `domain_name` is `Either::Left`.
-	///
-	/// `regular_expression` is `Either::Right`:-
-	///
-	/// * is validated to not be empty.
-	/// * is validated to be up to 255 bytes long.
-	/// * does not have its syntax validated (although this may change in the future).
-	pub replacement: Replacement<'label, N, OOPU, CS, TE>,
+	/// Combination of flags, domain name, regular expression and service field.
+	pub service_field: ServiceField<'label, N, OOPU, CS, TE>,
 }
 
 impl<'message> Into<NamingAuthorityPointer<'static, EfficientCaseFoldedName, OwnedUri, OwnedCharacterString>> for NamingAuthorityPointer<'message, ParsedName<'message>, ParsedUri<'message>, ParsedCharacterString<'message>>
@@ -39,7 +33,7 @@ impl<'message> Into<NamingAuthorityPointer<'static, EfficientCaseFoldedName, Own
 			mutually_exclusive_flag: self.mutually_exclusive_flag,
 			protocol: self.protocol,
 			resolution_services: self.resolution_services,
-			replacement: replacement.into(),
+			service_field: service_field.into(),
 		}
 	}
 }

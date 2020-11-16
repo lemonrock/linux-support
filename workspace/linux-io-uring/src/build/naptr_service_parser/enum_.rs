@@ -59,7 +59,8 @@ fn enum_(code: &mut Code) -> io::Result<HashMap<String, String>>
 			let index_set_name = index_set_definition(code, permutation_index, enum_services)?;
 			permutation_index += 1;
 			
-			let old = result.insert(service_field, format!("Enum {{ enum_services: &{} }}", index_set_name));
+			// service_field_kind: ServiceFieldKind,
+			let old = result.insert(service_field, format!("Enum {{ enum_services: &{}, domain_name_or_regular_expression: RegularExpressionResolvingToUriOrQueryUriResourceRecord::parse(ServiceFieldKind::Enum, replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)? }}", index_set_name));
 			debug_assert!(old.is_none());
 		}
 	}
@@ -141,6 +142,56 @@ fn sub_types() -> HashMap<EnumServiceSubTypeType, IndexMap<NaptrSubType, EnumSer
 			"mailto" => "mailto",
 			"tel" => "tel",
 		},
+	
+		"FaxEnumServiceSubType" => indexmap!
+		{
+			"tel" => "tel",
+		},
+	
+		"FileServiceServiceSubType" => indexmap!
+		{
+			"ftp" => "ftp",
+		},
+	
+		"WebEnumServiceSubType" => indexmap!
+		{
+			"http" => "http",
+			"https" => "https",
+		},
+	
+		"PstnEnumServiceSubType" => indexmap!
+		{
+			"sip" => "sip",
+			"tel" => "tel",
+		},
+	
+		"UnifiedMessagingEnumServiceSubType" => indexmap!
+		{
+			"http" => "http",
+			"https" => "https",
+			"sip" => "sip",
+			"sips" => "sips",
+		},
+	
+		"VoiceEnumServiceSubType" => indexmap!
+		{
+			"tel" => "tel",
+		},
+	
+		"VoiceMessageEnumServiceSubType" => indexmap!
+		{
+			"http" => "http",
+			"https" => "https",
+			"sip" => "sip",
+			"sips" => "sips",
+			"tel" => "tel",
+		},
+	
+		"VpimEnumServiceSubType" => indexmap!
+		{
+			"ldap" => "ldap",
+			"mailto" => "mailto",
+		},
 	}
 }
 
@@ -164,6 +215,132 @@ fn enumservices() -> HashMap<&'static str, (&'static str, Option<EnumServiceSubT
 		(
 			"ems",
 			Some("EmsEnumServiceSubType"),
+		),
+		
+		"fax" =>
+		(
+			"fax",
+			Some("FaxEnumServiceSubType"),
+		),
+		
+		"ft" =>
+		(
+			"ft",
+			Some("FileServiceServiceSubType"),
+		),
+		
+		"h323" =>
+		(
+			"h323",
+			None,
+		),
+		
+		"iax" =>
+		(
+			"iax",
+			None,
+		),
+		
+		"ical-access" =>
+		(
+			"ical_access",
+			Some("WebEnumServiceSubType"),
+		),
+		
+		"ical-sched" =>
+		(
+			"ical_sched",
+			Some("EmailEnumServiceSubType"),
+		),
+		
+		"ifax" =>
+		(
+			"ifax",
+			Some("EmailEnumServiceSubType"),
+		),
+		
+		"im" =>
+		(
+			"im",
+			None,
+		),
+		
+		"mms" =>
+		(
+			"mms",
+			Some("EmsEnumServiceSubType"),
+		),
+		
+		"pres" =>
+		(
+			"pres",
+			None,
+		),
+		
+		"pstn" =>
+		(
+			"pstn",
+			Some("PstnEnumServiceSubType"),
+		),
+		
+		"sip" =>
+		(
+			"sip",
+			None,
+		),
+		
+		"sms" =>
+		(
+			"sms",
+			Some("EmsEnumServiceSubType"),
+		),
+		
+		"unifmsg" =>
+		(
+			"unifmsg",
+			Some("UnifiedMessagingEnumServiceSubType"),
+		),
+		
+		"vcard" =>
+		(
+			"vcard",
+			Some("WebEnumServiceSubType"),
+		),
+		
+		"videomsg" =>
+		(
+			"videomsg",
+			Some("UnifiedMessagingEnumServiceSubType"),
+		),
+		
+		"voice" =>
+		(
+			"voice",
+			Some("VoiceEnumServiceSubType"),
+		),
+		
+		"voicemsg" =>
+		(
+			"voicemsg",
+			Some("VoiceMessageEnumServiceSubType"),
+		),
+		
+		"vpim" =>
+		(
+			"vpim",
+			Some("VpimEnumServiceSubType"),
+		),
+		
+		"web" =>
+		(
+			"web",
+			Some("WebEnumServiceSubType"),
+		),
+		
+		"xmpp" =>
+		(
+			"xmpp",
+			None,
 		),
 	}
 }

@@ -5,6 +5,8 @@
 use super::*;
 
 
+include!("BusinessDocumentMetadataServiceLocationProfile.rs");
+include!("BusinessDocumentMetadataServiceLocationTransportProtocol.rs");
 include!("CentralizedConferencingTransportProtocol.rs");
 include!("DiameterApplicationIdentifier.rs");
 include!("DiameterTransportProtocol.rs");

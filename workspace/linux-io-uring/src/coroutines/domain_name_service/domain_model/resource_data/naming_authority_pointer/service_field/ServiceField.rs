@@ -9,8 +9,15 @@
 #[strum_discriminants(derive(PartialOrd))]
 #[strum_discriminants(derive(Ord))]
 #[strum_discriminants(derive(Hash))]
-pub enum ServiceField
+pub enum ServiceField<'label, N: Name<'label, TypeEquality=TE>, OOPU: OwnedOrParsedUri<TypeEquality=TE>, CS: CharacterString<TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
 {
+	/// A non-terminal, empty service field is one without any terminal flags *or* the `P` flag.
+	NonTerminalAndEmpty
+	{
+		/// Most of the time, a domain name is returned that then should be queried for `NAPTR`
+		domain_name_or_regular_expression: RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord<'label, N, CS>,
+	},
+	
 	/// Legacy "Full" NAPTR (ie not S-NAPTR or U-NAPTR).
 	///
 	/// See RFC 6116.
@@ -22,7 +29,31 @@ pub enum ServiceField
 	Enum
 	{
 		/// Will never be empty.
-		enum_services: &'static IndexSet<EnumService>
+		enum_services: &'static IndexSet<EnumService>,
+		
+		/// Either a regular expression which resolves to an URI is provided, or a domain is provided which should be queried for `URI` resource records.
+		///
+		/// The later is highly unlikely.
+		domain_name_or_regular_expression: RegularExpressionResolvingToUriOrQueryUriResourceRecord<'label, N, CS>,
+	},
+	
+	/// Unofficial (unregistered witbh IANA) use of U-NAPTR which uses U-NAPTR-incompatible regular expressions.
+	///
+	/// See [Business Document Metadata Service Location Version 1.0](https://docs.oasis-open.org/bdxr/BDX-Location/v1.0/BDX-Location-v1.0.html).
+	BusinessDocumentMetadataServiceLocation
+	{
+		/// Collaboration-Protocol Profile and Agreement  CPPA
+		profile: BusinessDocumentMetadataServiceLocationProfile,
+		
+		/// Transport protocol.
+		///
+		/// Can legitimately be empty as per RFC 3958 but the above specification does not seem to permit this.
+		transport_protocol: BusinessDocumentMetadataServiceLocationTransportProtocol,
+		
+		/// Either a regular expression which resolves to an URI is provided, or a domain is provided which should be queried for `URI` resource records.
+		///
+		/// The later is highly unlikely.
+		domain_name_or_regular_expression: RegularExpressionResolvingToUriOrQueryUriResourceRecord<'label, N, CS>,
 	},
 	
 	/// Legacy "Full" NAPTR (ie not S-NAPTR or U-NAPTR).
@@ -32,6 +63,9 @@ pub enum ServiceField
 	{
 		/// Resolution service (proxy for transport protocol).
 		resolution_service: SessionInitiationProtocolResolutionService,
+	
+		/// What to query for next at `domain_name`.
+		query_for_next: QueryResourceRecord<'label, N>,
 	},
 	
 	/// U-NAPTR.
@@ -42,9 +76,14 @@ pub enum ServiceField
 	///
 	/// Only supports the U-NAPTR flag `U` (and thus, by implication `D`).
 	///
-	/// The URI must be HTTPS.
-	/// There is never a transport protocol.
-	SessionInitiationProtocolUserAgentConfiguration,
+	/// The URI will be HTTPS (this is validated).
+	SessionInitiationProtocolUserAgentConfiguration
+	{
+		/// Either a URI is provided, or a domain is provided which should be queried for `URI` resource records.
+		///
+		/// The later is highly unlikely.
+		uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord<'label, N, OOPU>,
+	},
 	
 	/// U-NATPR-like.
 	///
@@ -54,8 +93,14 @@ pub enum ServiceField
 	///
 	/// Only supports the U-NAPTR flag `U` (and thus, by implication `D`).
 	///
-	/// The URI must be HTTP, HTTPS or FTP.
-	NoSolicit,
+	/// The URI will be HTTP, HTTPS or FTP (this is validated).
+	NoSolicit
+	{
+		/// Either a URI is provided, or a domain is provided which should be queried for `URI` resource records.
+		///
+		/// The later is highly unlikely.
+		uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord<'label, N, OOPU>,
+	},
 	
 	/// S-NAPTR.
 	///
@@ -75,6 +120,9 @@ pub enum ServiceField
 		///
 		/// Can legitimately be empty, unless `application_identifier` is `DiameterApplicationIdentifier::Unspecified { legacy: true }`, in which case either one of `DiameterTransportProtocol::TCP` or `DiameterTransportProtocol::SCTP` will be present.
 		transport_protocols: &'static HashSet<DiameterTransportProtocol>,
+		
+		/// What to query for next at `domain_name`.
+		query_for_next: QueryResourceRecord<'label, N>,
 	},
 	
 	/// S-NAPTR.
@@ -95,6 +143,9 @@ pub enum ServiceField
 		///
 		/// Can legitimately be empty.
 		transport_protocols: &'static HashSet<RadiusTransportProtocol>,
+		
+		/// What to query for next at `domain_name`.
+		query_for_next: QueryResourceRecord<'label, N>,
 	},
 	
 	/// U-NAPTR.
@@ -103,10 +154,15 @@ pub enum ServiceField
 	///
 	/// Only supports the U-NAPTR flag `U` (and thus, by implication `D`).
 	///
-	/// The URI must be either HTTP or HTTPS.
+	/// The URI must be either HTTP or HTTPS (this is validated).
 	CentralizedConferencing
 	{
 		transport_protocol: Option<CentralizedConferencingTransportProtocol>,
+		
+		/// Either a URI is provided, or a domain is provided which should be queried for `URI` resource records.
+		///
+		/// The later is highly unlikely.
+		uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord<'label, N, OOPU>,
 	},
 	
 	/// U-NAPTR.
@@ -115,10 +171,15 @@ pub enum ServiceField
 	///
 	/// Only supports the U-NAPTR flag `U` (and thus, by implication `D`).
 	///
-	/// The URI must be either HTTP or HTTPS.
+	/// The URI must be either HTTP or HTTPS (this is validated).
 	LocalLocationInformationServer
 	{
 		transport_protocol: Option<LocalLocationInformationServerTransportProtocol>,
+		
+		/// Either a URI is provided, or a domain is provided which should be queried for `URI` resource records.
+		///
+		/// The later is highly unlikely.
+		uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord<'label, N, OOPU>,
 	},
 	
 	/// S-NAPTR.
@@ -132,6 +193,9 @@ pub enum ServiceField
 		///
 		/// Can legitimately be empty (default protocol is now XPC).
 		transport_protocols: &'static HashSet<InternetRegistryInformationServiceTransportProtocol>,
+		
+		/// What to query for next at `domain_name`.
+		query_for_next: QueryResourceRecord<'label, N>,
 	},
 	
 	/// U-NAPTR.
@@ -140,16 +204,21 @@ pub enum ServiceField
 	///
 	/// Only supports the U-NAPTR flag `U` (and thus, by implication `D`).
 	///
-	/// The URI must be either HTTP or HTTPS and presumably should match the transport protocol.
+	/// The URI must be either HTTP or HTTPS (this is validated) and should match the transport protocol (this is validated).
 	LocationToServiceTranslationProtocol
 	{
 		/// Is this a generic LoST server, ot one that just performs validation?
 		profile: LocationToServiceTranslationProtocolProfile,
 		
-		/// Transport protocols.
+		/// Transport protocol.
 		///
 		/// Can legitimately be empty.
 		transport_protocol: Option<HypertextTransportProtocol>,
+		
+		/// Either a URI is provided, or a domain is provided which should be queried for `URI` resource records.
+		///
+		/// The later is highly unlikely.
+		uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord<'label, N, OOPU>,
 	},
 	
 	/// S-NAPTR.
@@ -163,6 +232,9 @@ pub enum ServiceField
 		///
 		/// Can legitimately be empty.
 		transport_protocols: &'static HashSet<TraversalUsingRelaysAroundNetworkAddressTranslationTransportProtocol>,
+		
+		/// What to query for next at `domain_name`.
+		query_for_next: QueryResourceRecord<'label, N>,
 	},
 	
 	/// U-NAPTR.
@@ -171,251 +243,57 @@ pub enum ServiceField
 	///
 	/// Only supports the U-NAPTR flag `U` (and thus, by implication `D`).
 	///
-	/// The URI must be either HTTP or HTTPS and presumably should match the transport protocol.
+	/// The URI must be either HTTP or HTTPS (this is validated) and should match the transport protocol (this is validated).
 	ApplicationLayerTrafficOptimization
 	{
-		/// Transport protocols.
+		/// Transport protocol.
 		///
 		/// Can legitimately be empty.
 		transport_protocol: Option<HypertextTransportProtocol>,
+		
+		/// Either a URI is provided, or a domain is provided which should be queried for `URI` resource records.
+		///
+		/// The later is highly unlikely.
+		uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord<'label, N, OOPU>,
 	},
 }
 
-impl ServiceField
+impl<'message> Into<ServiceField<'static, EfficientCaseFoldedName, OwnedUri, OwnedCharacterString>> for ServiceField<'message, ParsedName<'message>, ParsedUri<'message>, ParsedCharacterString<'message>>
 {
-	pub(crate) fn validate_mutually_exclusive_flags<'message>(&self, mutually_exclusive_flag: Option<NamingAuthorityMutuallyExclusiveFlag>, replacement_domain_name_or_raw_regular_expression: Either<ParsedName<'message>, ParsedCharacterString<'message>>) -> Result<Replacement<'message, ParsedName<'message>, ParsedUri<'message>, ParsedCharacterString<'message>>, IgnoredServiceFieldReason>
+	#[inline(always)]
+	fn into(self) -> ServiceField<'static, EfficientCaseFoldedName, OwnedUri, OwnedCharacterString>
 	{
-		use self::HypertextTransportProtocol::*;
-		use self::IgnoredServiceFieldReason::*;
-		use self::NamingAuthorityMutuallyExclusiveFlag::*;
-		use self::Replacement::*;
 		use self::ServiceField::*;
 		
-		match (self, mutually_exclusive_flag, replacement_domain_name_or_raw_regular_expression)
+		match self
 		{
-			(&Enum { .. }, None, Left(domain_name)) => Ok(DomainName(domain_name)),
-			(&Enum { .. }, None, Right(_)) => Err(NonTerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::Enum)),
-			(&Enum { .. }, Some(P), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::Enum, P)),
-			(&Enum { .. }, Some(D), Right(_)) => Err(DFlagFieldMustNotHaveARegularExpression(ServiceFieldKind::Enum)),
-			(&Enum { .. }, Some(S), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::Enum, S)),
-			(&Enum { .. }, Some(A), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::Enum, A)),
-			(&Enum { .. }, Some(U), Left(_)) => Err(RequiresAnUNaptrRegularExpression(ServiceFieldKind::Enum)),
-			(&Enum { .. }, Some(U), Some(regular_expression)) => Ok(UnvalidatedRegularExpression(regular_expression)),
-			(&Enum { .. }, Some(D), Left(domain_name)) => Ok(DomainName(domain_name)),
+			NonTerminalAndEmpty { domain_name_or_regular_expression } => NonTerminalAndEmpty { domain_name_or_regular_expression: domain_name_or_regular_expression.into() },
 			
-			(&SessionInitiationProtocol { .. }, None, Left(domain_name)) => Ok(DomainName(domain_name)),
-			(&SessionInitiationProtocol { .. }, None, Right(_)) => Err(NonTerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::SessionInitiationProtocol)),
-			(&SessionInitiationProtocol { .. }, Some(P), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::SessionInitiationProtocol, P)),
-			(&SessionInitiationProtocol { .. }, Some(D), Right(_)) => Err(DFlagFieldMustNotHaveARegularExpression(ServiceFieldKind::SessionInitiationProtocol)),
-			(&SessionInitiationProtocol { .. }, Some(S), Left(domain_name)) => Ok(DomainName(domain_name)),
-			(&SessionInitiationProtocol { .. }, Some(S), Right(_)) => Err(TerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::SessionInitiationProtocol, S)),
-			(&SessionInitiationProtocol { .. }, Some(A), Left(domain_name)) => Ok(DomainName(domain_name)),
-			(&SessionInitiationProtocol { .. }, Some(A), Right(_)) => Err(TerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::SessionInitiationProtocol, S)),
-			(&SessionInitiationProtocol { .. }, Some(U), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::NoSolicit, U)),
-			(&SessionInitiationProtocol { .. }, Some(D), Left(domain_name)) => Ok(DomainName(domain_name)),
+			Enum { enum_services, domain_name_or_regular_expression } => Enum { enum_services, domain_name_or_regular_expression: domain_name_or_regular_expression.into(), },
 			
-			(&SessionInitiationProtocolUserAgentConfiguration, None, Left(domain_name)) => Ok(DomainName(domain_name)),
-			(&SessionInitiationProtocolUserAgentConfiguration, None, Right(_)) => Err(NonTerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::SessionInitiationProtocolUserAgentConfiguration)),
-			(&SessionInitiationProtocolUserAgentConfiguration, Some(P), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::SessionInitiationProtocolUserAgentConfiguration, P)),
-			(&SessionInitiationProtocolUserAgentConfiguration, Some(D), Right(_)) => Err(DFlagFieldMustNotHaveARegularExpression(ServiceFieldKind::SessionInitiationProtocolUserAgentConfiguration)),
-			(&SessionInitiationProtocolUserAgentConfiguration, Some(S), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::SessionInitiationProtocolUserAgentConfiguration, S)),
-			(&SessionInitiationProtocolUserAgentConfiguration, Some(A), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::SessionInitiationProtocolUserAgentConfiguration, A)),
-			(&SessionInitiationProtocolUserAgentConfiguration, Some(U), Left(_)) => Err(RequiresAnUNaptrRegularExpression(ServiceFieldKind::SessionInitiationProtocolUserAgentConfiguration)),
-			(&SessionInitiationProtocolUserAgentConfiguration, Some(U), Some(regular_expression)) => Self::is_valid_u_naptr_regular_expression_uri(ServiceFieldKind::SessionInitiationProtocolUserAgentConfiguration, regular_expression, Some(https)),
-			(&SessionInitiationProtocolUserAgentConfiguration, Some(D), Left(domain_name)) => Ok(DomainName(domain_name)),
+			BusinessDocumentMetadataServiceLocation { profile, transport_protocol, domain_name_or_regular_expression } => BusinessDocumentMetadataServiceLocation { profile, transport_protocol, domain_name_or_regular_expression: domain_name_or_regular_expression.into(), },
 			
-			(&NoSolicit, None, Left(domain_name)) => Ok(DomainName(domain_name)),
-			(&NoSolicit, None, Right(_)) => Err(NonTerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::NoSolicit)),
-			(&NoSolicit, Some(P), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::NoSolicit, P)),
-			(&NoSolicit, Some(D), Right(_)) => Err(DFlagFieldMustNotHaveARegularExpression(ServiceFieldKind::NoSolicit)),
-			(&NoSolicit, Some(S), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::NoSolicit, S)),
-			(&NoSolicit, Some(A), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::NoSolicit, A)),
-			(&NoSolicit, Some(U), Some(regular_expression)) => Self::is_valid_no_solicit_regular_expression_uri(regular_expression),
-			(&NoSolicit, Some(D), Left(domain_name)) => Ok(DomainName(domain_name)),
+			SessionInitiationProtocol { resolution_service, query_for_next } => SessionInitiationProtocol { resolution_service, query_for_next: query_for_next.into(), },
+		
+			SessionInitiationProtocolUserAgentConfiguration { uri_or_query_for_uri_resource_record_next } => SessionInitiationProtocolUserAgentConfiguration { uri_or_query_for_uri_resource_record_next: uri_or_query_for_uri_resource_record_next.into(), },
 			
-			(&Diameter { .. }, None, Left(domain_name)) => Ok(DomainName(domain_name)),
-			(&Diameter { .. }, None, Right(_)) => Err(NonTerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::Diameter)),
-			(&Diameter { .. }, Some(P), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::Diameter, P)),
-			(&Diameter { .. }, Some(D), Right(_)) => Err(DFlagFieldMustNotHaveARegularExpression(ServiceFieldKind::Diameter)),
-			(&Diameter { .. }, Some(S), Left(domain_name)) => Ok(DomainName(domain_name)),
-			(&Diameter { .. }, Some(S), Right(_)) => Err(TerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::Diameter, S)),
-			(&Diameter { .. }, Some(A), Left(domain_name)) => Ok(DomainName(domain_name)),
-			(&Diameter { .. }, Some(A), Right(_)) => Err(TerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::Diameter, S)),
-			(&Diameter { .. }, Some(U), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::NoSolicit, U)),
-			(&Diameter { .. }, Some(D), Left(domain_name)) => Ok(DomainName(domain_name)),
+			NoSolicit { uri_or_query_for_uri_resource_record_next } => NoSolicit { uri_or_query_for_uri_resource_record_next: uri_or_query_for_uri_resource_record_next.into(), },
 			
-			(&Radius { .. }, None, Left(domain_name)) => Ok(DomainName(domain_name)),
-			(&Radius { .. }, None, Right(_)) => Err(NonTerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::Radius)),
-			(&Radius { .. }, Some(P), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::Radius, P)),
-			(&Radius { .. }, Some(D), Right(_)) => Err(DFlagFieldMustNotHaveARegularExpression(ServiceFieldKind::Radius)),
-			(&Radius { .. }, Some(S), Left(domain_name)) => Ok(DomainName(domain_name)),
-			(&Radius { .. }, Some(S), Right(_)) => Err(TerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::Radius, S)),
-			(&Radius { .. }, Some(A), Left(domain_name)) => Ok(DomainName(domain_name)),
-			(&Radius { .. }, Some(A), Right(_)) => Err(TerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::Radius, S)),
-			(&Radius { .. }, Some(U), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::NoSolicit, U)),
-			(&Radius { .. }, Some(D), Left(domain_name)) => Ok(DomainName(domain_name)),
+			Diameter { application_identifier, transport_protocols, query_for_next } => Diameter { application_identifier, transport_protocols, query_for_next: query_for_next.into(), },
 			
-			(&CentralizedConferencing { .. }, None, Left(domain_name)) => Ok(DomainName(domain_name)),
-			(&CentralizedConferencing { .. }, None, Right(_)) => Err(NonTerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::CentralizedConferencing)),
-			(&CentralizedConferencing { .. }, Some(P), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::CentralizedConferencing, P)),
-			(&CentralizedConferencing { .. }, Some(D), Right(_)) => Err(DFlagFieldMustNotHaveARegularExpression(ServiceFieldKind::CentralizedConferencing)),
-			(&CentralizedConferencing { .. }, Some(S), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::CentralizedConferencing, S)),
-			(&CentralizedConferencing { .. }, Some(A), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::CentralizedConferencing, A)),
-			(&CentralizedConferencing { .. }, Some(U), Left(_)) => Err(RequiresAnUNaptrRegularExpression(ServiceFieldKind::CentralizedConferencing)),
-			(&CentralizedConferencing { .. }, Some(U), Some(regular_expression)) => Self::is_valid_u_naptr_regular_expression_uri(ServiceFieldKind::CentralizedConferencing, regular_expression, None),
-			(&CentralizedConferencing { .. }, Some(D), Left(domain_name)) => Ok(DomainName(domain_name)),
+			Radius { traffic_identifier, transport_protocols, query_for_next } => Radius { traffic_identifier, transport_protocols, query_for_next: query_for_next.into(), },
 			
-			(&LocalLocationInformationServer { .. }, None, Left(domain_name)) => Ok(DomainName(domain_name)),
-			(&LocalLocationInformationServer { .. }, None, Right(_)) => Err(NonTerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::LocalLocationInformationServer)),
-			(&LocalLocationInformationServer { .. }, Some(P), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::LocalLocationInformationServer, P)),
-			(&LocalLocationInformationServer { .. }, Some(D), Right(_)) => Err(DFlagFieldMustNotHaveARegularExpression(ServiceFieldKind::LocalLocationInformationServer)),
-			(&LocalLocationInformationServer { .. }, Some(S), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::LocalLocationInformationServer, S)),
-			(&LocalLocationInformationServer { .. }, Some(A), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::LocalLocationInformationServer, A)),
-			(&LocalLocationInformationServer { .. }, Some(U), Left(_)) => Err(RequiresAnUNaptrRegularExpression(ServiceFieldKind::LocalLocationInformationServer)),
-			(&LocalLocationInformationServer { .. }, Some(U), Some(regular_expression)) => Self::is_valid_u_naptr_regular_expression_uri(ServiceFieldKind::LocalLocationInformationServer, regular_expression, None),
-			(&LocalLocationInformationServer { .. }, Some(D), Left(domain_name)) => Ok(DomainName(domain_name)),
+			CentralizedConferencing { transport_protocol, uri_or_query_for_uri_resource_record_next } => CentralizedConferencing { transport_protocol, uri_or_query_for_uri_resource_record_next: uri_or_query_for_uri_resource_record_next.into(), },
 			
-			(&InternetRegistryInformationService { .. }, None, Left(domain_name)) => Ok(DomainName(domain_name)),
-			(&InternetRegistryInformationService { .. }, None, Right(_)) => Err(NonTerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::InternetRegistryInformationService)),
-			(&InternetRegistryInformationService { .. }, Some(P), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::InternetRegistryInformationService, P)),
-			(&InternetRegistryInformationService { .. }, Some(D), Right(_)) => Err(DFlagFieldMustNotHaveARegularExpression(ServiceFieldKind::InternetRegistryInformationService)),
-			(&InternetRegistryInformationService { .. }, Some(S), Left(domain_name)) => Ok(DomainName(domain_name)),
-			(&InternetRegistryInformationService { .. }, Some(S), Right(_)) => Err(TerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::InternetRegistryInformationService, S)),
-			(&InternetRegistryInformationService { .. }, Some(A), Left(domain_name)) => Ok(DomainName(domain_name)),
-			(&InternetRegistryInformationService { .. }, Some(A), Right(_)) => Err(TerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::InternetRegistryInformationService, S)),
-			(&InternetRegistryInformationService { .. }, Some(U), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::NoSolicit, U)),
-			(&InternetRegistryInformationService { .. }, Some(D), Left(domain_name)) => Ok(DomainName(domain_name)),
+			LocalLocationInformationServer { transport_protocol, uri_or_query_for_uri_resource_record_next } => LocalLocationInformationServer { transport_protocol, uri_or_query_for_uri_resource_record_next: uri_or_query_for_uri_resource_record_next.into(), },
 			
-			(&LocationToServiceTranslationProtocol { .. }, None, Left(domain_name)) => Ok(DomainName(domain_name)),
-			(&LocationToServiceTranslationProtocol { .. }, None, Right(_)) => Err(NonTerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::LocationToServiceTranslationProtocol)),
-			(&LocationToServiceTranslationProtocol { .. }, Some(P), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::LocationToServiceTranslationProtocol, P)),
-			(&LocationToServiceTranslationProtocol { .. }, Some(D), Right(_)) => Err(DFlagFieldMustNotHaveARegularExpression(ServiceFieldKind::LocationToServiceTranslationProtocol)),
-			(&LocationToServiceTranslationProtocol { .. }, Some(S), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::LocationToServiceTranslationProtocol, S)),
-			(&LocationToServiceTranslationProtocol { .. }, Some(A), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::LocationToServiceTranslationProtocol, A)),
-			(&LocationToServiceTranslationProtocol { .. }, Some(U), Left(_)) => Err(RequiresAnUNaptrRegularExpression(ServiceFieldKind::LocationToServiceTranslationProtocol)),
-			(&LocationToServiceTranslationProtocol { transport_protocol, .. }, Some(U), Some(regular_expression)) => Self::is_valid_u_naptr_regular_expression_uri(ServiceFieldKind::LocationToServiceTranslationProtocol, regular_expression, transport_protocol),
-			(&LocationToServiceTranslationProtocol { .. }, Some(D), Left(domain_name)) => Ok(DomainName(domain_name)),
+			InternetRegistryInformationService { registry_type, transport_protocols, query_for_next } => InternetRegistryInformationService { registry_type, transport_protocols, query_for_next: query_for_next.into(), },
 			
-			(&TraversalUsingRelaysAroundNetworkAddressTranslation { .. }, None, Left(domain_name)) => Ok(DomainName(domain_name)),
-			(&TraversalUsingRelaysAroundNetworkAddressTranslation { .. }, None, Right(_)) => Err(NonTerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::TraversalUsingRelaysAroundNetworkAddressTranslation)),
-			(&TraversalUsingRelaysAroundNetworkAddressTranslation { .. }, Some(P), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::TraversalUsingRelaysAroundNetworkAddressTranslation, P)),
-			(&TraversalUsingRelaysAroundNetworkAddressTranslation { .. }, Some(D), Right(_)) => Err(DFlagFieldMustNotHaveARegularExpression(ServiceFieldKind::TraversalUsingRelaysAroundNetworkAddressTranslation)),
-			(&TraversalUsingRelaysAroundNetworkAddressTranslation { .. }, Some(S), Left(domain_name)) => Ok(DomainName(domain_name)),
-			(&TraversalUsingRelaysAroundNetworkAddressTranslation { .. }, Some(S), Right(_)) => Err(TerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::TraversalUsingRelaysAroundNetworkAddressTranslation, S)),
-			(&TraversalUsingRelaysAroundNetworkAddressTranslation { .. }, Some(A), Left(domain_name)) => Ok(DomainName(domain_name)),
-			(&TraversalUsingRelaysAroundNetworkAddressTranslation { .. }, Some(A), Right(_)) => Err(TerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::TraversalUsingRelaysAroundNetworkAddressTranslation, S)),
-			(&TraversalUsingRelaysAroundNetworkAddressTranslation { .. }, Some(U), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::NoSolicit, U)),
-			(&TraversalUsingRelaysAroundNetworkAddressTranslation { .. }, Some(D), Left(domain_name)) => Ok(DomainName(domain_name)),
+			LocationToServiceTranslationProtocol { profile, transport_protocol, uri_or_query_for_uri_resource_record_next } => LocationToServiceTranslationProtocol { profile, transport_protocol, uri_or_query_for_uri_resource_record_next: uri_or_query_for_uri_resource_record_next.into(), },
 			
-			(&ApplicationLayerTrafficOptimization { .. }, None, Left(domain_name)) => Ok(DomainName(domain_name)),
-			(&ApplicationLayerTrafficOptimization { .. }, None, Right(_)) => Err(NonTerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind::ApplicationLayerTrafficOptimization)),
-			(&ApplicationLayerTrafficOptimization { .. }, Some(P), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::ApplicationLayerTrafficOptimization, P)),
-			(&ApplicationLayerTrafficOptimization { .. }, Some(D), Right(_)) => Err(DFlagFieldMustNotHaveARegularExpression(ServiceFieldKind::ApplicationLayerTrafficOptimization)),
-			(&ApplicationLayerTrafficOptimization { .. }, Some(S), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::ApplicationLayerTrafficOptimization, S)),
-			(&ApplicationLayerTrafficOptimization { .. }, Some(A), _) => Err(DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind::ApplicationLayerTrafficOptimization, A)),
-			(&ApplicationLayerTrafficOptimization { .. }, Some(U), Left(_)) => Err(RequiresAnUNaptrRegularExpression(ServiceFieldKind::ApplicationLayerTrafficOptimization)),
-			(&ApplicationLayerTrafficOptimization { transport_protocol, .. }, Some(U), Some(regular_expression)) => Self::is_valid_u_naptr_regular_expression_uri(ServiceFieldKind::ApplicationLayerTrafficOptimization, regular_expression, transport_protocol),
-			(&ApplicationLayerTrafficOptimization { .. }, Some(U)) => Ok(()),
-			(&ApplicationLayerTrafficOptimization { .. }, Some(D), Left(domain_name)) => Ok(DomainName(domain_name)),
+			TraversalUsingRelaysAroundNetworkAddressTranslation { transport_protocols, query_for_next } => TraversalUsingRelaysAroundNetworkAddressTranslation { transport_protocols, query_for_next: query_for_next.into(), },
+			
+			ApplicationLayerTrafficOptimization { transport_protocol, uri_or_query_for_uri_resource_record_next } => ApplicationLayerTrafficOptimization { transport_protocol, uri_or_query_for_uri_resource_record_next: uri_or_query_for_uri_resource_record_next.into(), },
 		}
-	}
-	
-	/// See RFC 4095, Section 2 The No-Solicit NAPTR Application, page 4.
-	/// If `valid_protocol` is `None`, then both `HTTP` and `HTTPS` are considered valid.
-	fn is_valid_no_solicit_regular_expression_uri<'message>(regular_expression: ParsedCharacterString<'message>) -> Result<Replacement<'message, ParsedName<'message>, ParsedUri<'message>, ParsedCharacterString<'message>>, IgnoredServiceFieldReason>
-	{
-		use self::IgnoredServiceFieldReason::*;
-		
-		// At least 3 bytes long for 3 delimiter characters.
-		const DelimiterCharacterLength: usize = 1;
-		const MinimumRegularExpressionLength: usize = DelimiterCharacterLength + DelimiterCharacterLength + DelimiterCharacterLength;
-		
-		let regular_expression_length = regular_expression.len();
-		
-		if unlikely!(regular_expression_length < MinimumRegularExpressionLength)
-		{
-			return Err(ExpectedANoSolicitRegularExpression)
-		}
-		
-		let first_delimiter_character = regular_expression.get_unchecked_value_safe(0);
-		let second_delimiter_character = regular_expression.get_unchecked_value_safe(1);
-		let last_delimiter_character = regular_expression.get_unchecked_value_safe(regular_expression_length - 1);
-		
-		if unlikely!(first_delimiter_character != second_delimiter_character || second_delimiter_character != last_delimiter_character)
-		{
-			return Err(ExpectedANoSolicitRegularExpressionToHaveTheSameDelimiterCharacter { first_delimiter_character, second_delimiter_character, last_delimiter_character })
-		}
-		
-		match first_delimiter_character
-		{
-			b'/' | b'!' => (),
-			b'1' ..= b'9' | b'i' => return Err(NoSolicitRegularExpressionHasAnInvalidDelimiterCharacter(first_delimiter_character)),
-			_ => (),
-		};
-		
-		let target_uri = URI::try_from(&regular_expression[(DelimiterCharacterLength + DelimiterCharacterLength) .. (regular_expression_length - DelimiterCharacterLength)]).map_err(|error| InvalidTargetUri(error, ServiceFieldKind::NoSolicit))?;
-		
-		use self::Scheme::*;
-		match target_uri.scheme()
-		{
-			&HTTP => (),
-			&HTTPS => (),
-			&FTP => (),
-			other @ _ => return Err(NoSolicitRegularExpressionUriIsNotHttpOrHttpsOrFtp(other.into_owned())),
-		};
-		
-		Ok(Replacement::UniformResourceIdentifier(ParsedUri::from(target_uri)))
-	}
-	
-	/// See RFC 4848, Section 2.2 Permitted Regular Expressions.
-	/// If `valid_protocol` is `None`, then both `HTTP` and `HTTPS` are considered valid.
-	fn is_valid_u_naptr_regular_expression_uri<'message>(service_field_kind: ServiceFieldKind, regular_expression: ParsedCharacterString<'message>, valid_protocol: Option<HypertextTransportProtocol>) -> Result<Replacement<'message, ParsedName<'message>, ParsedUri<'message>, ParsedCharacterString<'message>>, IgnoredServiceFieldReason>
-	{
-		use self::IgnoredServiceFieldReason::*;
-		
-		// `u-naptr-regexp = "!.*!"<URI>"!"`.
-		const Prefix: &'static [u8] = b"!.*!";
-		const Suffix: &'static [u8] = b"!";
-		const PrefixLength: usize = Prefix.len();
-		const SuffixLength: usize = Suffix.len();
-		
-		const MinimumRegularExpressionLength: usize = PrefixLength + SuffixLength;
-		
-		let regular_expression_length = regular_expression.len();
-		
-		if unlikely!(regular_expression_length < MinimumRegularExpressionLength)
-		{
-			return Err(ExpectedAnUNaptrRegularExpression(service_field_kind))
-		}
-		
-		if unlikely!(&regular_expression[0 .. PrefixLength] != Prefix)
-		{
-			return Err(UNaptrRegularExpressionDoesNotStartWithCorrectPrefix(service_field_kind))
-		}
-		
-		let suffix_starts_at_index = (regular_expression_length - SuffixLength);
-		if unlikely!(&regular_expression[suffix_starts_at_index ..] != Suffix)
-		{
-			return Err(UNaptrRegularExpressionDoesNotEndWithCorrectSuffix(service_field_kind))
-		}
-		
-		let target_uri = URI::try_from(&regular_expression[PrefixLength .. suffix_starts_at_index]).map_err(|error| InvalidTargetUri(error, service_field_kind))?;
-		
-		use self::Scheme::*;
-		use self::HypertextTransportProtocol::*;
-		match (valid_protocol, target_uri.scheme())
-		{
-			(None, &HTTP) => (),
-			(None, &HTTPS) => (),
-			(None, other @ _) => return Err(UNaptrRegularExpressionUriIsNotHttpOrHttps(service_field_kind, other.into_owned())),
-			
-			(Some(http), &HTTP) => (),
-			(Some(http), other @ _) => return Err(UNaptrRegularExpressionUriIsNotHttp(service_field_kind, other.into_owned())),
-			
-			(Some(https), &HTTPS) => (),
-			(Some(https), other @ _) => return Err(UNaptrRegularExpressionUriIsNotHttps(service_field_kind, other.into_owned())),
-		};
-		
-		Ok(Replacement::UniformResourceIdentifier(ParsedUri::from(target_uri)))
 	}
 }

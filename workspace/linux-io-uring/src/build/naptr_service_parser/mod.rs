@@ -40,6 +40,7 @@ include!("local_location_information_server.rs");
 include!("location_to_service_translation_protocol.rs");
 include!("main.rs");
 include!("MaximumServiceFieldSize.rs");
+include!("no_solicit.rs");
 include!("protocol_permutation_to_delimited_string.rs");
 include!("radius.rs");
 include!("session_initiation_protocol.rs");

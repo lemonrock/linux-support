@@ -6,23 +6,42 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum IgnoredServiceFieldReason
 {
+	/// A byte was not in the range `0 ..= 9 | A ..= Z | a ..= z | + | - | . | :`.
+	OutOfRange(u8, usize),
+	
 	/// No known matching pattern.
 	NoMatchingPattern,
 
-	#[allow(missing_docs)]
-	NonTerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind),
+	/// Invald combination.
+	InvalidCombinationOfDomainNameAndFlag(ServiceFieldKind, Option<NamingAuthorityMutuallyExclusiveFlag>),
 
-	#[allow(missing_docs)]
-	TerminalServiceFieldMustNotHaveARegularExpression(ServiceFieldKind, NamingAuthorityMutuallyExclusiveFlag),
-
-	#[allow(missing_docs)]
-	DFlagFieldMustNotHaveARegularExpression(ServiceFieldKind),
+	/// Invald combination.
+	InvalidCombinationOfRegularExpressionAndFlag(ServiceFieldKind, Option<NamingAuthorityMutuallyExclusiveFlag>),
+	
+	/// Invalid target URI.
+	InvalidTargetUri(ServiceFieldKind, URIError),
 	
 	#[allow(missing_docs)]
-	DoesNotSupportMutuallyExclusiveFlag(ServiceFieldKind, NamingAuthorityMutuallyExclusiveFlag),
+	NoSolicitRegularExpressionUriIsNotHttpOrHttpsOrFtp(Scheme<'static>),
 	
-	/// Requires a U-NAPTR regular expression.
-	RequiresAnUNaptrRegularExpression(ServiceFieldKind),
+	#[allow(missing_docs)]
+	ExpectedANoSolicitRegularExpression,
+	
+	#[allow(missing_docs)]
+	ExpectedANoSolicitRegularExpressionToHaveTheSameDelimiterCharacter
+	{
+		/// First delimiter character.
+		first_delimiter_character: u8,
+		
+		/// Second delimiter character.
+		second_delimiter_character: u8,
+		
+		/// Third delimiter character.
+		last_delimiter_character: u8,
+	},
+	
+	#[allow(missing_docs)]
+	NoSolicitRegularExpressionHasAnInvalidDelimiterCharacter(u8),
 	
 	#[allow(missing_docs)]
 	ExpectedAnUNaptrRegularExpression(ServiceFieldKind),
@@ -41,28 +60,6 @@ pub enum IgnoredServiceFieldReason
 	
 	#[allow(missing_docs)]
 	UNaptrRegularExpressionUriIsNotHttps(ServiceFieldKind, Scheme<'static>),
-	
-	#[allow(missing_docs)]
-	NoSolicitRegularExpressionUriIsNotHttpOrHttpsOrFtp(Scheme<'static>),
-	
-	/// Invalid target URI.
-	InvalidTargetUri(URIError, ServiceFieldKind),
-	
-	#[allow(missing_docs)]
-	ExpectedANoSolicitRegularExpression,
-	
-	#[allow(missing_docs)]
-	ExpectedANoSolicitRegularExpressionToHaveTheSameDelimiterCharacter
-	{
-		first_delimiter_character: u8,
-		
-		second_delimiter_character: u8,
-		
-		last_delimiter_character: u8,
-	},
-
-	#[allow(missing_docs)]
-	NoSolicitRegularExpressionHasAnInvalidDelimiterCharacter(u8),
 }
 
 impl Display for IgnoredServiceFieldReason
