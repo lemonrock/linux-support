@@ -20,15 +20,11 @@ pub mod s_naptr;
 
 
 include!("IgnoredServiceFieldReason.rs");
-include!("NamingAuthorityCommonTransportProtocol.rs");
 include!("RegularExpressionResolvingToUriOrQueryNaptrResourceRecord.rs");
 include!("RegularExpressionResolvingToUriOrQueryUriResourceRecord.rs");
-include!("Replacement.rs");
 include!("QueryForNext.rs");
 include!("QueryResourceRecord.rs");
-include!("ServiceField.rs");
-include!("ToNamingAuthorityCommonTransportProtocol.rs");
 include!("UriOrQueryUriResourceRecord.rs");
 
 
-include!(concat!(env!("OUT_DIR"), "/naptr_service_field_parse.naptr_service_parser.rs"));
+include!(concat!(env!("OUT_DIR"), "/naming_authority_pointer_service_field_parse.naptr_service_parser.rs"));

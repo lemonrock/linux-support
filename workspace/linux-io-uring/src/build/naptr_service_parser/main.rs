@@ -6,7 +6,7 @@ pub fn main(_manifest_dir: &OsString, out_dir: &OsString) -> io::Result<()>
 {
 	let mut code = Code
 	{
-		writer: new_buf_writer(out_dir, "naptr_service_field_parse.naptr_service_parser.rs")?,
+		writer: new_buf_writer(out_dir, "naming_authority_pointer_service_field_parse.naptr_service_parser.rs")?,
 		stack_depth: 0,
 	};
 	
@@ -31,12 +31,6 @@ pub fn main(_manifest_dir: &OsString, out_dir: &OsString) -> io::Result<()>
 	generate_parse_tree.generate(&all)?;
 	
 	code.push_function_end()?;
-	
-	xxxx;
-	
-	// TODO: When returning ServiceField2, need to parse URI / check flags. these can populate the relevant fields by just calling functions.
-	
-	// TODO: Consider passing in the flag to the parse, so we can short-circuit a lot of decisions on valid record and regexp combinations.
 	
 	Ok(())
 }

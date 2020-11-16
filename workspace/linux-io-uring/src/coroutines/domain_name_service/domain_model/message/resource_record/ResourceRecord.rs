@@ -784,13 +784,13 @@ impl ResourceRecord
 			}
 		};
 		
-		let service_field = match naptr_service_field_parse(raw_services.deref(), replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)
+		let record = match naming_authority_pointer_service_field_parse(raw_services.deref(), replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)
 		{
-			Ok(service_field) =>
+			Ok(naming_authority_pointer) =>
 			{
 				// Helping out IDE type inference because `naptr_service_field_parse()` is a build (code) generated function.
-				let service_field: ServiceField = service_field;
-				service_field
+				let naming_authority_pointer: NamingAuthorityPointer = naming_authority_pointer;
+				naming_authority_pointer
 			}
 			
 			Err(ignored_service_field_reason) =>
@@ -798,16 +798,6 @@ impl ResourceRecord
 				resource_record_visitor.NAPTR_ignored(owner_name, IgnoredServiceField(ignored_service_field_reason));
 				return Ok(resource_data_end_pointer)
 			}
-		};
-		
-		let (protocol, resolution_services) = CaseFoldedNamingAuthorityProtocol::parse_services(raw_services)?;
-		
-		let record = NamingAuthorityPointer
-		{
-			mutually_exclusive_flag,
-			protocol,
-			resolution_services,
-			service_field,
 		};
 		
 		resource_record_visitor.NAPTR(owner_name, cache_until, order, preference, record).map_err(|error| HandleRecordTypeError::ResourceRecordVisitor(DataType::NAPTR, error))?;

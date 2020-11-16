@@ -5,6 +5,4 @@
 use super::*;
 
 
-include!("DiameterResolutionService.rs");
-include!("Rfc2483ResolutionService.rs");
 include!("SessionInitiationProtocolResolutionService.rs");

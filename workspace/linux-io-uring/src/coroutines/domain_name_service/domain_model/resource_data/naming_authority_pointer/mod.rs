@@ -5,9 +5,11 @@
 use super::*;
 
 
+include!("NamingAuthorityCommonTransportProtocol.rs");
 include!("NamingAuthorityMutuallyExclusiveFlag.rs");
 include!("NamingAuthorityPointer.rs");
 include!("NamingAuthorityResourceRecordIgnoredReason.rs");
+include!("ToNamingAuthorityCommonTransportProtocol.rs");
 
 
 /// This is also called `SERVICE` and `SERVICES` even though it always contains a combination of values.

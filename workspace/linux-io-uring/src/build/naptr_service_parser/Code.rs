@@ -27,11 +27,11 @@ impl Code
 	
 	fn push_function_start(&mut self) -> io::Result<()>
 	{
-		self.push_line("fn naptr_service_field_parse<'message>(services_field: &[u8], replacement_domain_name_or_raw_regular_expression: Either<ParsedName<'message>, ParsedCharacterString<'message>>, mutually_exclusive_flag: Option<NamingAuthorityMutuallyExclusiveFlag>) -> Result<ServiceField, IgnoredServiceFieldReason>")?;
+		self.push_line("fn naptr_service_field_parse<'message>(services_field: &[u8], replacement_domain_name_or_raw_regular_expression: Either<ParsedName<'message>, ParsedCharacterString<'message>>, mutually_exclusive_flag: Option<NamingAuthorityMutuallyExclusiveFlag>) -> Result<NamingAuthorityPointer, IgnoredServiceFieldReason>")?;
 		self.push_line("{")?;
 		self.push_function_line("use self::HypertextTransportProtocol::*;")?;
 		self.push_function_line("use self::IgnoredServiceFieldReason::*;")?;
-		self.push_function_line("use self::ServiceField::*;")?;
+		self.push_function_line("use self::NamingAuthorityPointer::*;")?;
 		self.push_function_line("")?;
 		self.push_function_line("let length = services_field.len();")?;
 		self.push_function_line("")?;
