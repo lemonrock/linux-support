@@ -18,6 +18,18 @@ impl<N: Name> ParsedRecord for NameServerName<N>
 	{
 		NameServerName::new(EfficientCaseFoldedName::from(self.0))
 	}
+	
+	#[inline(always)]
+	fn store(cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>)
+	{
+		cache.NS = QueryTypeCache::data(records.cache_until(), records.into());
+	}
+	
+	#[inline(always)]
+	fn no_data(cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
+	{
+		cache.NS = QueryTypeCache::no_data(negative_cache_until);
+	}
 }
 
 impl<N: Name> NameServerName<N>

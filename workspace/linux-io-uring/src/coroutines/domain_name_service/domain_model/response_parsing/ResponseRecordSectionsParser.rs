@@ -38,7 +38,7 @@ impl<'message> ResponseRecordSectionsParser<'message>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn parse_answer_authority_and_additional_sections<RRV: ResourceRecordVisitor<'message, Finished=OwnerNameToRecords<'message, PR>>, PR: ParsedRecord>(&mut self, next_resource_record_pointer: usize, authoritative_or_authenticated_or_neither: AuthoritativeOrAuthenticatedOrNeither, rcode_lower_4_bits: RCodeLower4Bits, answer_section_resource_record_visitor: RRV) -> Result<(usize, Answer<PR>, CanonicalNameChainRecords, DelegationNames), SectionError<RRV::Error>>
+	pub(crate) fn parse_answer_authority_and_additional_sections<RRV: ResourceRecordVisitor<'message, Finished=OwnerNameToRecords<'message, PR>>, PR: ParsedRecord>(&mut self, next_resource_record_pointer: usize, authoritative_or_authenticated_or_neither: AuthoritativeOrAuthenticatedOrNeither, rcode_lower_4_bits: RCodeLower4Bits, answer_section_resource_record_visitor: RRV) -> Result<(usize, Answer<PR>, CanonicalNameChain<'message>, DelegationNames), SectionError<RRV::Error>>
 	{
 		let (next_resource_record_pointer, records, canonical_name_chain) = self.parse_answer_section(next_resource_record_pointer, answer_section_resource_record_visitor)?;
 		
@@ -46,7 +46,7 @@ impl<'message> ResponseRecordSectionsParser<'message>
 
 		let (next_resource_record_pointer, answer_existence) = self.parse_additional_section(next_resource_record_pointer, authoritative_or_authenticated_or_neither, rcode_lower_4_bits)?;
 		
-		let (answer, canonical_name_records, delegation_names) = authority_resource_record_visitor.answer(answer_existence, records, self.now)?;
+		let (answer, canonical_name_chain) = authority_resource_record_visitor.answer(answer_existence, records, self.now)?;
 		
 		Ok((next_resource_record_pointer, answer, canonical_name_records, delegation_names))
 	}

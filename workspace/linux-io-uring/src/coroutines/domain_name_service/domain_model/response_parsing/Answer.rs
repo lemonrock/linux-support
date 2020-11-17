@@ -7,36 +7,36 @@ pub(crate) enum Answer<PR: ParsedRecord>
 {
 	Answered
 	{
-		/// This is the domain for which there are records (eg `AAAA`).
-		most_canonical_name: EfficientCaseFoldedName,
+		// This is the domain for which there are records (eg `AAAA`).
+		//most_canonical_name: EfficientCaseFoldedName,
 	
 		records: OwnerNameToRecordsValue<PR>,
 	},
 	
 	NoDomain
 	{
-		/// This is a direct child of `response_type.authority_name`.
-		///
-		/// This is the domain for which there is no domain.
-		most_canonical_name: EfficientCaseFoldedName,
+		// This is a child of `response_type.authority_name`.
+		//
+		// This is the domain for which there is no domain.
+		//most_canonical_name: EfficientCaseFoldedName,
 		
 		response_type: NoDomainResponseType,
 	},
 
 	NoData
 	{
-		/// This is a direct child of `response_type.authority_name`.
-		///
-		/// This is the domain for which there is no data.
-		most_canonical_name: EfficientCaseFoldedName,
+		// This is a child of `response_type.authority_name`.
+		//
+		// This is the domain for which there is no data.
+		//most_canonical_name: EfficientCaseFoldedName,
 		
 		response_type: NoDataResponseType,
 	},
 	
 	Referral
 	{
-		/// This is a direct child of `authority_name`.
-		most_canonical_name: EfficientCaseFoldedName,
+		// This is a child of `authority_name`.
+		//most_canonical_name: EfficientCaseFoldedName,
 		
 		referral: AuthorityNameNameServers,
 	},

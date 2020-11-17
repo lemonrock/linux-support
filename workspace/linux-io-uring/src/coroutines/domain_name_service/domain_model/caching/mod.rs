@@ -20,4 +20,5 @@ include!("LeastRecentlyUsedListPointer.rs");
 include!("NegativeCacheUntil.rs");
 include!("____NoDataCacheEntry.rs");
 include!("NoDomainCacheEntry.rs");
+include!("QueryTypeCache.rs");
 include!("QueryTypesCache.rs");

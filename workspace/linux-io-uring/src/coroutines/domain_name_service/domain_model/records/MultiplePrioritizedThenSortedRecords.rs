@@ -13,7 +13,6 @@
 /// * LP.
 pub(crate) struct MultiplePrioritizedThenSortedRecords<R: OwnedRecord + Ord>
 {
-	cache_until: CacheUntil,
 	records: PriorityToSortedRecordsMap<R>,
 }
 
@@ -24,7 +23,6 @@ impl<PR: ParsedRecord<OrderPriorityAndWeight=Priority, OwnedRecord=OR>, OR: Owne
 	{
 		Self
 		{
-			cache_until: value.cache_until,
 			records:
 			{
 				let mut records = PriorityToSortedRecordsMap::default();

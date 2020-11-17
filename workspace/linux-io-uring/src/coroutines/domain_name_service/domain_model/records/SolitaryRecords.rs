@@ -9,8 +9,8 @@
 /// * Not used for `CNAME`.
 pub(crate) struct SolitaryRecords<OR: OwnedRecord + Ord>
 {
-	negative_cache_until: NegativeCacheUntil,
-	record: OR,
+	pub(crate) negative_cache_until: NegativeCacheUntil,
+	pub(crate) record: OR,
 }
 
 impl<OR: OwnedRecord + Ord> SolitaryRecords<OR>

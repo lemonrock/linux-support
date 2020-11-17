@@ -33,7 +33,7 @@ impl<'message, PR: ParsedRecord> OwnerNameToRecords<'message, PR>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn filter(self, most_canonical_name: &EfficientCaseFoldedName) -> Option<OwnerNameToRecordsValue<ParsedRecord>>
+	pub(crate) fn filter(self, most_canonical_name: &EfficientCaseFoldedName) -> Option<OwnerNameToRecordsValue<PR>>
 	{
 		self.0.remove(&EitherName::EfficientCaseFolded(most_canonical_name.clone()))
 	}

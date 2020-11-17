@@ -12,12 +12,10 @@ pub(crate) trait QueryProcessor
 	
 	fn new<'message>(query_name: &'message EfficientCaseFoldedName) -> Self::RRV<'message>;
 	
-	fn store_records_in_query_types_cache<'message>(query_types_cache: &mut QueryTypesCache, records: OwnerNameToRecordValue<Self::PR<'message>>);
-	
 	#[inline(always)]
-	fn result<'message>(now: NanosecondsSinceUnixEpoch, query_name: &'message EfficientCaseFoldedName, domain_cache: &mut DomainCache, answer: Answer<Self::PR<'message>>, canonical_name_chain_records: CanonicalNameChainRecords, delegation_names: DelegationNames) -> Result<(), AnsweredError>
+	fn result<'message>(now: NanosecondsSinceUnixEpoch, domain_cache: &mut DomainCache, answer: Answer<Self::PR<'message>>, canonical_name_chain: CanonicalNameChain<'message>) -> Result<(), AnsweredError>
 	{
-		domain_cache.answered(now, query_name, domain_cache, answer, canonical_name_chain_records, delegation_names, Self::store_records_in_query_types_cache)
+		domain_cache.answered(now, domain_cache, answer, canonical_name_chain)
 		
 		
 		

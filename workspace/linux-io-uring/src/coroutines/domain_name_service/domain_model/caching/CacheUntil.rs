@@ -18,6 +18,8 @@ pub(crate) enum CacheUntil
 
 impl CacheUntil
 {
+	pub(crate) const Highest: Self = CacheUntil::Cached { cached_until: NanosecondsSinceUnixEpoch::MaximumSeconds };
+	
 	#[inline(always)]
 	pub(crate) fn update(&mut self, right: Self)
 	{
@@ -31,7 +33,7 @@ impl CacheUntil
 			
 			(Cached { ..}, UseOnce { .. }) => *self = right,
 			
-			(Cached { cached_until: cached_until_left}, Cached { cached_until: cached_until_right }) => if right < less
+			(Cached { cached_until: cached_until_left}, Cached { cached_until: cached_until_right }) => if cached_until_right < cached_until_left
 			{
 				*self = right;
 			},

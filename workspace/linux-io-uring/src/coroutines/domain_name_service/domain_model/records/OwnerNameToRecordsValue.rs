@@ -12,6 +12,19 @@ pub(crate) struct OwnerNameToRecordsValue<PR: ParsedRecord>
 impl<PR: ParsedRecord> OwnerNameToRecordsValue<PR>
 {
 	#[inline(always)]
+	pub(crate) fn solitary(self) -> PR
+	{
+		debug_assert_eq!(self.records.len(), 1);
+		self.records.pop().unwrap().0
+	}
+	
+	#[inline(always)]
+	pub(crate) fn cache_until(&self) -> CacheUntil
+	{
+		self.cache_until
+	}
+	
+	#[inline(always)]
 	fn new_for_one(cache_until: CacheUntil, record: PR, order_priority_and_weight: PR::OrderPriorityAndWeight) -> Self
 	{
 		Self

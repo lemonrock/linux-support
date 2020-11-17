@@ -27,6 +27,18 @@ impl<'message> ParsedRecord for MailServerName<ParsedName<'message>>
 	{
 		MailServerName::new(EfficientCaseFoldedName::from(self.0))
 	}
+	
+	#[inline(always)]
+	fn store(cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>)
+	{
+		cache.MX = QueryTypeCache::data(records.cache_until(), records.into());
+	}
+	
+	#[inline(always)]
+	fn no_data(cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
+	{
+		cache.MX = QueryTypeCache::no_data(negative_cache_until);
+	}
 }
 
 impl<N: Name> MailServerName<N>

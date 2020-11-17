@@ -72,6 +72,20 @@ impl<'message> ParsedRecord for StartOfAuthority<ParsedName<'message>>
 			expire_interval: self.expire_interval,
 		}
 	}
+	
+	#[inline(always)]
+	fn store(cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>)
+	{
+		let cache_until = records.cache_until();
+		
+		cache.SOA = QueryTypeCache::data(cache_until, records.solitary().into_owned_record());
+	}
+	
+	#[inline(always)]
+	fn no_data(cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
+	{
+		cache.SOA = QueryTypeCache::no_data(negative_cache_until);
+	}
 }
 
 impl<N: Name> StartOfAuthority<N>

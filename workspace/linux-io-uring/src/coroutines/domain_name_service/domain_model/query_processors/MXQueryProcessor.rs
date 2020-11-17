@@ -22,7 +22,7 @@ impl QueryProcessor for MXQueryProcessor
 	}
 	
 	#[inline(always)]
-	fn store_records_in_query_types_cache<'message>(query_types_cache: &mut QueryTypesCache, records: OwnerNameToRecordValue<Self::PR<'message>>)
+	fn store_records_in_query_types_cache<'message>(query_types_cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self::PR<'message>>)
 	{
 		query_types_cache.store_MX(records)
 	}

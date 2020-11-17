@@ -43,7 +43,17 @@ enum DomainCacheEntry<'cache>
 	/// Point 1 in RFC 2181, Section 10.1 `CNAME` resource records above.
 	Alias
 	{
-		target: SolitaryRecords<AliasOrDomainTarget>,
+		/// Skips to the end of the canonical name chain.
+		///
+		/// Cached until is for the lowest TTL value in the canonical name chain.
+		///
+		/// Can be the same target as `original_target`.
+		///
+		/// Note that there may be an `Alias` at the end of the canonical chain (this is possible as the DNS itself changes).
+		flattened_target: SolitaryRecords<AliasOrDomainTarget>,
+		
+		/// Target of alias.
+		original_target: AliasOrDomainTarget,
 	},
 	
 	/// Point 4 in RFC 2181, Section 10.1 `CNAME` resource records above.
@@ -55,10 +65,18 @@ enum DomainCacheEntry<'cache>
 impl DomainCacheEntry
 {
 	#[inline(always)]
-	fn answered<PR: ParsedRecord>(store_records_in_query_types_cache: impl FnOnce(&mut QueryTypesCache, OwnerNameToRecordValue<PR>), records: OwnerNameToRecordsValue<PR>) -> Self
+	fn store<PR: ParsedRecord>(records: OwnerNameToRecordsValue<PR>) -> Self
 	{
 		let mut cache = QueryTypesCache::default();
-		store_records_in_query_types_cache(&mut cache, records);
+		PR::store(&mut cache, records);
+		DomainCacheEntry::CurrentlyValid { cache }
+	}
+	
+	#[inline(always)]
+	fn no_data<PR: ParsedRecord>(negative_cache_until: NegativeCacheUntil) -> Self
+	{
+		let mut cache = QueryTypesCache::default();
+		PR::no_data(&mut cache, negative_cache_until);
 		DomainCacheEntry::CurrentlyValid { cache }
 	}
 	

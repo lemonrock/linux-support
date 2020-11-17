@@ -8,7 +8,6 @@
 /// * URI.
 pub(crate) struct MultiplePrioritizedThenWeightedRecords<OR: OwnedRecord>
 {
-	cache_until: CacheUntil,
 	records: PriorityToWeightedRecordsMap<OR>,
 }
 
@@ -19,7 +18,6 @@ impl<PR: ParsedRecord<OrderPriorityAndWeight=(Priority, Weight), OwnedRecord=OR>
 	{
 		Self
 		{
-			cache_until: value.cache_until,
 			records:
 			{
 				let mut records = PriorityToWeightedRecordsMap::default();

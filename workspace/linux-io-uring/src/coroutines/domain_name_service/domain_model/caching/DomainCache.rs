@@ -25,7 +25,7 @@ impl DomainCache
 		this
 	}
 	
-	pub(crate) fn answered<'message, PR: ParsedRecord>(&mut self, now: NanosecondsSinceUnixEpoch, query_name: &'message EfficientCaseFoldedName, domain_cache: &mut DomainCache, answer: Answer<Self::PR<'message>>, canonical_name_chain_records: CanonicalNameChainRecords, delegation_names: DelegationNames, store_records_in_query_types_cache: impl FnOnce(&mut QueryTypesCache, OwnerNameToRecordValue<PR>)) -> Result<(), AnsweredError>
+	pub(crate) fn answered<'message, PR: ParsedRecord>(&mut self, now: NanosecondsSinceUnixEpoch, domain_cache: &mut DomainCache, answer: Answer<PR>, canonical_name_chain: CanonicalNameChain<'message>) -> Result<(), AnsweredError>
 	{
 		use self::AnsweredError::*;
 		use self::DomainCacheEntry::*;
@@ -33,19 +33,19 @@ impl DomainCache
 		use self::NoDomainResponseType::*;
 		use self::NoDataResponseType::*;
 		
-		self.replace_canonical_name_chain_records(canonical_name_chain_records)?;
+		let most_canonical_name = self.replace_canonical_name_chain(canonical_name_chain)?;
 		
 		match answer
 		{
-			Answer::Answered { most_canonical_name, records } =>
+			Answer::Answered { records } =>
 			{
 				debug_assert!(!records.is_empty());
 				
-				match self.map.entry(most_canonical_name)
+				match self.map.entry(most_canonical_name.clone())
 				{
 					Vacant(vacant) =>
 					{
-						vacant.insert(DomainCacheEntry::answered(store_records_in_query_types_cache, records))
+						vacant.insert(DomainCacheEntry::store(sriaqtc, records))
 					}
 					
 					Occupied(occupied) =>
@@ -54,37 +54,61 @@ impl DomainCache
 						{
 							&mut NeverValid => return Err(DomainNameCanNotNotHaveRecords(occupied.replace_key())),
 							
-							&mut AlwaysValid { ref mut cache } => store_records_in_query_types_cache(cache, records),
+							&mut AlwaysValid { ref mut cache } => PR::store(cache, records),
 							
-							&mut CurrentlyValid { ref mut cache } => store_records_in_query_types_cache(cache, records),
+							&mut CurrentlyValid { ref mut cache } => PR::store(cache, records),
 							
-							x @ &mut Alias { .. } => *x = DomainCacheEntry::answered(store_records_in_query_types_cache, records),
+							x @ &mut Alias { .. } => *x = DomainCacheEntry::store(records),
 							
-							x @ &mut NoDomain(_) => *x = DomainCacheEntry::answered(store_records_in_query_types_cache, records),
+							x @ &mut NoDomain(_) => *x = DomainCacheEntry::store(records),
 						}
 					}
 				}
 			},
 			
-			Answer::NoDomain { most_canonical_name, response_type} =>
+			Answer::NoDomain { response_type} =>
 			{
-				// The most_canonical_name is not necessarily the child of the authority name; it can be a grandchild, etc, and so we could infer that the intermediate domains are NXDOMAIN, too.
+				// TODO: The most_canonical_name is not necessarily the child of the authority name; it can be a grandchild, etc, and so we could infer that the intermediate domains are NXDOMAIN, too.
 				
+				// TODO: Verify this code.
 				NoDomainCacheEntry::store(most_canonical_name, response_type, self)?;
 				
 				// // TODO: Implicit referral!
 			}
 			
-			Answer::NoData { most_canonical_name, response_type} =>
+			Answer::NoData { response_type} =>
 			{
-				self.guard_can_have_records(&most_canonical_name)?;
-				// // TODO: Now what?
-				store_records_in_query_types_cache(TODO_query_types_cache).empty(most_canonical_name)
+				// TODO: Store SOA and NS.
+				xxx;
 				
 				// // TODO: Implicit referral!
+				
+				match self.map.entry(most_canonical_name.clone())
+				{
+					Vacant(vacant) =>
+					{
+						vacant.insert(DomainCacheEntry::no_data(records))
+					}
+					
+					Occupied(occupied) =>
+					{
+						match occupied.get_mut()
+						{
+							&mut NeverValid => return Err(DomainNameCanNotNotHaveRecords(occupied.replace_key())),
+							
+							&mut AlwaysValid { ref mut cache } => PR::no_data(cache, records),
+							
+							&mut CurrentlyValid { ref mut cache } => PR::no_data(cache, records),
+							
+							x @ &mut Alias { .. } => *x = DomainCacheEntry::no_data(records),
+							
+							x @ &mut NoDomain(_) => *x = DomainCacheEntry::no_data(records),
+						}
+					}
+				}
 			}
 			
-			Answer::Referral { most_canonical_name, referral} =>
+			Answer::Referral { referral} =>
 			{
 				let authority_name = referral.authority_name;
 				self.guard_can_have_records(&authority_name)?;
@@ -125,24 +149,32 @@ impl DomainCache
 		}
 	}
 	
-	/*
-		TODO: Canonical name chain
-			- For each entry in the chain, store a direct (rather than multiple hops) with the lowest TTL.
-		
-	 */
 	#[inline(always)]
-	fn replace_canonical_name_chain_records(&mut self, canonical_name_chain_records: CanonicalNameChainRecords) -> Result<(), AnsweredError>
+	fn replace_canonical_name_chain<'message>(&mut self, canonical_name_chain: CanonicalNameChain<'message>) -> Result<EfficientCaseFoldedName, AnsweredError>
 	{
+		let most_canonical_name = canonical_name_chain.most_canonical_name().clone();
+		let canonical_name_chain_records = canonical_name_chain.into();
+		
 		// Check for problems before we mutate the map.
 		for alias in canonical_name_chain_records.keys()
 		{
 			self.guard_can_be_an_alias(alias)?;
 		}
 		
-		for (alias, target) in canonical_name_chain_records
+		let mut lowest_negative_cache_until = NegativeCacheUntil::Highest;
+		for (alias, target) in canonical_name_chain_records.into_iter().rev()
 		{
+			let target: SolitaryRecords<EfficientCaseFoldedName> = target;
+			lowest_negative_cache_until.update(target.negative_cache_until);
+			
+			let value = DomainCacheEntry::Alias
+			{
+				flattened_target: SolitaryRecords::new(lowest_negative_cache_until, most_canonical_name.clone()),
+				original_target: target.record,
+			};
+			
 			use self::FastSecureHashMapEntry::*;
-			let value = DomainCacheEntry::Alias { target };
+			
 			match self.map.entry(alias)
 			{
 				Occupied(occupied) =>
@@ -157,7 +189,7 @@ impl DomainCache
 			}
 		}
 		
-		Ok(())
+		Ok(most_canonical_name)
 	}
 	
 	#[inline(always)]

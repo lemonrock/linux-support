@@ -222,7 +222,7 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 	/// 	* Authority
 	/// 		* `.			86400	IN	SOA	a.root-servers.net. …`.
 	/// 	* Additional
-	pub(crate) fn answer<PR: ParsedRecord>(self, answer_existence: AnswerExistence, records: Option<OwnerNameToRecordsValue<ParsedRecord>>, as_of_now: NanosecondsSinceUnixEpoch) -> Result<(Answer<PR>, CanonicalNameChainRecords, DelegationNames), AuthoritySectionError<AuthorityError>>
+	pub(crate) fn answer<PR: ParsedRecord>(self, answer_existence: AnswerExistence, records: Option<OwnerNameToRecordsValue<PR>>, as_of_now: NanosecondsSinceUnixEpoch) -> Result<(Answer<PR>, CanonicalNameChain<'message>), AuthoritySectionError<AuthorityError>>
 	{
 		use self::AnswerExistence::*;
 		use self::Answer::*;
@@ -248,15 +248,13 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 		
 		let answer = match (answer_existence, records)
 		{
-			(NoError(_), Some(records)) => Answer::Answered { most_canonical_name: self.most_canonical_name(), records },
+			(NoError(_), Some(records)) => Answered { records },
 			
 			// RFC 2308, Section 2.2 No Data, paragraph 1: "NODATA is indicated by an answer with the RCODE set to NOERROR and no relevant answers in the answer section".
 			//
 			// NODATA is really an Empty Non-Terminal Name (ENT; see RFC 7719), ie a domain name with no records but that exists.
 			(NoError(authoritative_or_authenticated_or_neither), None) =>
 			{
-				let most_canonical_name = self.most_canonical_name();
-				
 				match (has_a_start_of_authority_record, has_name_server_records)
 				{
 					(true, true) => NoData
@@ -274,8 +272,7 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 								
 								name_servers: Self::name_servers(self.name_servers)
 							}
-						),
-						most_canonical_name
+						)
 					},
 					
 					(true, false) => NoData
@@ -288,8 +285,7 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 								
 								start_of_authority: Self::start_of_authority(self.start_of_authority)
 							}
-						),
-						most_canonical_name
+						)
 					},
 					
 					(false, false) =>
@@ -298,8 +294,6 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 						NoData
 						{
 							response_type: NoDataResponseType3,
-							
-							most_canonical_name
 						}
 					},
 					
@@ -311,9 +305,7 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 							authority_name: Self::authority_name(self.authority_name),
 							
 							name_servers: Self::name_servers(self.name_servers)
-						},
-						
-						most_canonical_name
+						}
 					},
 				}
 			}
@@ -324,8 +316,6 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 			// This reply is for any QTYPE (eg A, AAAA, etc) that may later be queried for.
 			(NoSuchDomain(authoritative_or_authenticated_or_neither), None) =>
 			{
-				let most_canonical_name = self.most_canonical_name();
-				
 				// RFC 2308, Section 2.1 Name Error, paragraph 2: "It is possible to distinguish between a referral and a NXDOMAIN response by the presense of NXDOMAIN in the RCODE regardless of the presence of NS or SOA records in the authority section".
 				match (has_a_start_of_authority_record, has_name_server_records)
 				{
@@ -344,8 +334,7 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 								
 								name_servers: Self::name_servers(self.name_servers)
 							}
-						),
-						most_canonical_name
+						)
 					},
 					
 					// Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 2.
@@ -358,8 +347,7 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 								authority_name: Self::authority_name(self.authority_name),
 								start_of_authority: Self::start_of_authority(self.start_of_authority)
 							}
-						),
-						most_canonical_name
+						)
 					},
 					
 					// Section 2.1 Name Error NXDOMAIN RESPONSE: TYPE 3.
@@ -369,7 +357,6 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 						NoDomain
 						{
 							response_type: NoDomainResponseType3 { as_of_now },
-							most_canonical_name
 						}
 					},
 					
@@ -387,21 +374,14 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 									name_servers: Self::name_servers(self.name_servers),
 								},
 								as_of_now,
-							},
-							most_canonical_name,
+							}
 						}
 					},
 				}
 			}
 		};
 		
-		Ok((answer, self.canonical_name_chain.chain, self.canonical_name_chain.delegation_names))
-	}
-	
-	#[inline(always)]
-	fn most_canonical_name(&self) -> EfficientCaseFoldedName
-	{
-		self.canonical_name_chain.most_canonical_name().clone()
+		Ok((answer, self.canonical_name_chain))
 	}
 	
 	#[inline(always)]

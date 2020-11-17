@@ -34,6 +34,18 @@ impl<'message> ParsedRecord for HostInformation<ParsedCharacterString<'message>>
 			os: self.os.into(),
 		}
 	}
+	
+	#[inline(always)]
+	fn store(cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>)
+	{
+		cache.HINFO = QueryTypeCache::data(records.cache_until(), records.into());
+	}
+	
+	#[inline(always)]
+	fn no_data(cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
+	{
+		cache.HINFO = QueryTypeCache::no_data(negative_cache_until);
+	}
 }
 
 impl<CS: CharacterString> HostInformation<CS>

@@ -47,6 +47,15 @@ pub(crate) struct CanonicalNameChain<'message>
 	delegation_names: DelegationNames,
 }
 
+impl<'message> Into<CanonicalNameChainRecords> for CanonicalNameChain<'message>
+{
+	#[inline(always)]
+	fn into(self) -> CanonicalNameChainRecords
+	{
+		self.chain
+	}
+}
+
 impl<'message> CanonicalNameChain<'message>
 {
 	/// There is no standard limit for the number of links in a chain; the BIND software caps the number at 16.

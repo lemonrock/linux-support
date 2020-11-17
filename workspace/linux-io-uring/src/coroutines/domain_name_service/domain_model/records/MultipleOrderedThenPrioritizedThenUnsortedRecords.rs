@@ -7,7 +7,6 @@
 /// * NAPTR.
 pub(crate) struct MultipleOrderedThenPrioritizedThenUnsortedRecords<OR: OwnedRecord>
 {
-	cache_until: CacheUntil,
 	records: BTreeMap<Order, PriorityToUnsortedRecordsMap<OR>>,
 }
 
@@ -18,7 +17,6 @@ impl<PR: ParsedRecord<OrderPriorityAndWeight=(Order, Priority), OwnedRecord=OR>,
 	{
 		Self
 		{
-			cache_until: value.cache_until,
 			records:
 			{
 				let mut records = BTreeMap::default();

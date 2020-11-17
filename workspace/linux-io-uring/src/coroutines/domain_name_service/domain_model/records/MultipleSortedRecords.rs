@@ -9,7 +9,6 @@
 /// * `NS`.
 pub(crate) struct MultipleSortedRecords<OR: OwnedRecord + Ord>
 {
-	cache_until: CacheUntil,
 	records: BTreeSet<OR>,
 }
 
@@ -20,7 +19,6 @@ impl<PR: ParsedRecord<OrderPriorityAndWeight=(), OwnedRecord=OR>, OR: OwnedRecor
 	{
 		Self
 		{
-			cache_until: value.cache_until,
 			records:
 			{
 				let mut records = BTreeSet::new();

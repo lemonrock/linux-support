@@ -15,6 +15,10 @@ pub(crate) trait ParsedRecord: Sized + Debug
 	{
 		self
 	}
+	
+	fn store(cache: &mut QueryTypesCache, records: Self);
+	
+	fn no_data(cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil);
 }
 
 impl ParsedRecord for Ipv4Addr
@@ -28,6 +32,18 @@ impl ParsedRecord for Ipv4Addr
 	{
 		self
 	}
+	
+	#[inline(always)]
+	fn store(cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>)
+	{
+		cache.A = QueryTypeCache::data(records.cache_until(), records.into());
+	}
+	
+	#[inline(always)]
+	fn no_data(cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
+	{
+		cache.A = QueryTypeCache::no_data(negative_cache_until);
+	}
 }
 
 impl ParsedRecord for Ipv6Addr
@@ -40,5 +56,17 @@ impl ParsedRecord for Ipv6Addr
 	fn into_owned_record(self) -> Self::OwnedRecord
 	{
 		self
+	}
+	
+	#[inline(always)]
+	fn store(cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>)
+	{
+		cache.AAAA = QueryTypeCache::data(records.cache_until(), records.into());
+	}
+	
+	#[inline(always)]
+	fn no_data(cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
+	{
+		cache.AAAA = QueryTypeCache::no_data(negative_cache_until);
 	}
 }

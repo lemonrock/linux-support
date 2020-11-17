@@ -2,17 +2,24 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#[derive(Debug)]
 pub(crate) struct QueryTypesCache
 {
-	NS: Option<MultipleSortedRecords<NameServerName<DomainTarget>>>,
+	pub(crate) A: QueryTypeCache<MultipleSortedRecords<Ipv4Addr>>,
 	
-	SOA: Option<SolitaryRecords<StartOfAuthority<DomainTarget>>>,
+	pub(crate) NS: QueryTypeCache<MultipleSortedRecords<DomainTarget>>,
 	
-	A: Option<MultipleSortedRecords<Ipv4Addr>>,
+	pub(crate) SOA: QueryTypeCache<StartOfAuthority<DomainTarget>>,
 	
-	AAAA: Option<MultipleSortedRecords<Ipv6Addr>>,
+	pub(crate) AAAA: QueryTypeCache<MultipleSortedRecords<Ipv6Addr>>,
 	
-	MX: Option<MultiplePrioritizedThenSortedRecords<MailServerName<DomainTarget>>>,
+	pub(crate) MX: QueryTypeCache<MultiplePrioritizedThenSortedRecords<MailServerName<DomainTarget>>>,
+	
+	pub(crate) HINFO: QueryTypeCache<MultipleSortedRecords<HostInformation<OwnedCharacterString>>>,
+	
+	// pub(crate) SRV: QueryTypeCache<MultiplePrioritizedThenWeightedRecords<ServiceLocation<DomainTarget>>>,
+	//
+	// pub(crate) NAPTR: QueryTypeCache<MultipleOrderedThenPrioritizedThenUnsortedRecords<NamingAuthorityPointer<DomainTarget, OwnedUri, OwnedCharacterString, OwnedTypeEquality>>>,
 }
 
 impl Default for QueryTypesCache
@@ -22,32 +29,14 @@ impl Default for QueryTypesCache
 	{
 		Self
 		{
-			NS: None,
-			SOA: None,
-			A: None,
-			AAAA: None,
-			MX: None
+			A: QueryTypeCache::default(),
+			NS: QueryTypeCache::default(),
+			SOA: QueryTypeCache::default(),
+			AAAA: QueryTypeCache::default(),
+			MX: QueryTypeCache::default(),
+			HINFO: QueryTypeCache::default(),
+			// SRV: QueryTypeCache::default(),
+			// NAPTR: QueryTypeCache::default(),
 		}
-	}
-}
-
-impl QueryTypesCache
-{
-	#[inline(always)]
-	pub(crate) fn store_A(&mut self, records: OwnerNameToRecordValue<Ipv4Addr>)
-	{
-		self.A = Some(records.into())
-	}
-	
-	#[inline(always)]
-	pub(crate) fn store_AAAA(&mut self, records: OwnerNameToRecordValue<Ipv6Addr>)
-	{
-		self.AAAA = Some(records.into())
-	}
-	
-	#[inline(always)]
-	pub(crate) fn store_MX<'message>(&mut self, records: OwnerNameToRecordValue<MailServerName<ParsedName<'message>>>)
-	{
-		self.MX = Some(records.into())
 	}
 }
