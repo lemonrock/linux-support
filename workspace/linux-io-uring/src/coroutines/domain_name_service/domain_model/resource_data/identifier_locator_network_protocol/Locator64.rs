@@ -9,7 +9,7 @@
 /// Has the same syntax and semantics as a 64-bit Internet Protocol version 6 routing prefix.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub struct Locator64([u8; 8]);
+pub struct Locator64(pub [u8; 8]);
 
 impl Display for NodeIdentifier
 {

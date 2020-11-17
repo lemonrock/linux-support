@@ -4,33 +4,41 @@
 
 pub fn main(_manifest_dir: &OsString, out_dir: &OsString) -> io::Result<()>
 {
-	let mut code = Code
+	let mut naming_authority_pointer_service_field_parse = Code::<StringOrE164Value>::new(out_dir, "naming_authority_pointer_service_field_parse")?;
+	naming_authority_pointer_service_field_parse.push_function_start()?;
 	{
-		writer: new_buf_writer(out_dir, "naming_authority_pointer_service_field_parse.naptr_service_parser.rs")?,
-		stack_depth: 0,
-	};
+		let mut all = NaiveTrie::new();
+		
+		all.add_e164_for_enum();
+		
+		all.add(application_layer_traffic_optimization());
+		all.add(business_document_metadata_service_location());
+		all.add(centralized_conferencing());
+		all.add(diameter(&mut naming_authority_pointer_service_field_parse)?);
+		all.add(internet_registry_information_service(&mut naming_authority_pointer_service_field_parse)?);
+		all.add(local_location_information_server());
+		all.add(location_to_service_translation_protocol());
+		all.add(no_solicit());
+		all.add(radius(&mut naming_authority_pointer_service_field_parse)?);
+		all.add(session_initiation_protocol());
+		all.add(session_initiation_protocol_user_agent_configuration());
+		all.add(traversal_using_relays_around_network_address_translation(&mut naming_authority_pointer_service_field_parse)?);
+		
+		let generate_parse_tree = GenerateParseTree::new(&mut naming_authority_pointer_service_field_parse);
+		generate_parse_tree.generate(&all)?;
+	}
+	naming_authority_pointer_service_field_parse.push_function_end()?;
 	
-	code.push_function_start()?;
+	let mut e164_naming_authority_pointer_service_field_parse_servicespec = Code::<VecEnumServices>::new(out_dir, "e164_naming_authority_pointer_service_field_parse_servicespec")?;
+	e164_naming_authority_pointer_service_field_parse_servicespec.push_function_start()?;
+	{
+		let all_enum = enum_::enum_();
+		
+		let generate_parse_tree = GenerateParseTree::new(&mut e164_naming_authority_pointer_service_field_parse_servicespec);
+		generate_parse_tree.generate(&all_enum)?;
+	}
+	e164_naming_authority_pointer_service_field_parse_servicespec.push_function_end()?;
 	
-	let mut all = NaiveTrie::new();
-	all.add(application_layer_traffic_optimization());
-	all.add(business_document_metadata_service_location());
-	all.add(centralized_conferencing());
-	all.add(diameter(&mut code)?);
-	all.add(internet_registry_information_service(&mut code)?);
-	all.add(local_location_information_server());
-	all.add(location_to_service_translation_protocol());
-	all.add(no_solicit());
-	all.add(radius(&mut code)?);
-	all.add(session_initiation_protocol());
-	all.add(session_initiation_protocol_user_agent_configuration());
-	all.add(traversal_using_relays_around_network_address_translation(&mut code)?);
-	all.add(enum_(&mut code)?);
-	
-	let generate_parse_tree = GenerateParseTree::new(&mut code);
-	generate_parse_tree.generate(&all)?;
-	
-	code.push_function_end()?;
 	
 	Ok(())
 }

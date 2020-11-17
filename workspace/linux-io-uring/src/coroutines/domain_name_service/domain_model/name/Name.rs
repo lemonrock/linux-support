@@ -3,13 +3,25 @@
 
 
 /// Name.
-pub trait Name<'label>: HasTypeEquality + Sized + Clone + Debug + Display + PartialEq + Eq + PartialOrd + Ord + Hash
+pub trait Name: HasTypeEquality + Sized + Clone + Debug + Display + PartialEq + Eq + PartialOrd + Ord + Hash
 {
 	#[doc(hidden)]
-	type Label: Label<'label, TypeEquality=Self::TypeEquality>;
+	type Label<'label>: Label<'label, TypeEquality=Self::TypeEquality>;
+	
+	/// Parent.
+	fn parent(&self) -> Option<Self>;
+	
+	#[doc(hidden)]
+	fn label<'label>(&'label self, index: u8) -> Self::Label<'label>;
+	
+	/// Number of labels.
+	fn number_of_labels_including_root(&self) -> NonZeroU8;
+	
+	/// Length of name.
+	fn name_length_including_trailing_periods_after_labels(&self) -> NonZeroU8;
 	
 	#[inline(always)]
-	fn last_label(&'label self) -> Option<Self::Label>
+	fn last_label<'label>(&'label self) -> Option<Self::Label<'label>>
 	{
 		if unlikely!(self.is_root())
 		{
@@ -23,7 +35,7 @@ pub trait Name<'label>: HasTypeEquality + Sized + Clone + Debug + Display + Part
 	
 	/// Display or debug.
 	#[inline(always)]
-	fn display(&self, f: &mut Formatter) -> fmt::Result
+	fn display<'label>(&'label self, f: &mut Formatter) -> fmt::Result
 	{
 		for index in (0 .. self.number_of_labels_including_root().get()).rev()
 		{
@@ -34,12 +46,9 @@ pub trait Name<'label>: HasTypeEquality + Sized + Clone + Debug + Display + Part
 		Ok(())
 	}
 	
-	/// Parent.
-	fn parent(&self) -> Option<Self>;
-	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn copy_non_overlapping_to_without_case_folding(&'label self, start_of_name_pointer: usize) -> usize
+	fn copy_non_overlapping_to_without_case_folding<'label>(&'label self, start_of_name_pointer: usize) -> usize
 	{
 		let mut next_label_starts_at_pointer = start_of_name_pointer;
 		for index in 0 .. self.number_of_labels_including_root().get()
@@ -53,7 +62,7 @@ pub trait Name<'label>: HasTypeEquality + Sized + Clone + Debug + Display + Part
 	
 	/// Ends with name?
 	#[inline(always)]
-	fn ends_with<'ends_with_label, RHS: Name<'ends_with_label>>(&'label self, ends_with: &'ends_with_label RHS) -> bool
+	fn ends_with<'label, 'ends_with_label, RHS: Name>(&'label self, ends_with: &'ends_with_label RHS) -> bool
 	{
 		if self.name_length_including_trailing_periods_after_labels() < ends_with.name_length_including_trailing_periods_after_labels()
 		{
@@ -87,7 +96,7 @@ pub trait Name<'label>: HasTypeEquality + Sized + Clone + Debug + Display + Part
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn equals<'rhs_label, RHS: Name<'rhs_label>>(&'label self, rhs: &'rhs_label RHS) -> bool
+	fn equals<'label, 'rhs_label, RHS: Name>(&'label self, rhs: &'rhs_label RHS) -> bool
 	{
 		if self.number_of_labels_including_root() != rhs.number_of_labels_including_root()
 		{
@@ -110,14 +119,14 @@ pub trait Name<'label>: HasTypeEquality + Sized + Clone + Debug + Display + Part
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn partial_compare<'rhs_label, RHS: Name<'rhs_label>>(&'label self, rhs: &'rhs_label RHS) -> Option<Ordering>
+	fn partial_compare<'label, 'rhs_label, RHS: Name>(&'label self, rhs: &'rhs_label RHS) -> Option<Ordering>
 	{
 		Some(self.compare(rhs))
 	}
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn compare<'rhs_label, RHS: Name<'rhs_label>>(&'label self, rhs: &'rhs_label RHS) -> Ordering
+	fn compare<'label, 'rhs_label, RHS: Name>(&'label self, rhs: &'rhs_label RHS) -> Ordering
 	{
 		let left_length = self.number_of_labels_including_root().get();
 		let right_length = rhs.number_of_labels_including_root().get();
@@ -142,7 +151,7 @@ pub trait Name<'label>: HasTypeEquality + Sized + Clone + Debug + Display + Part
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn hash_slice<H: Hasher>(&'label self, state: &mut H)
+	fn hash_slice<'label, H: Hasher>(&'label self, state: &mut H)
 	{
 		for index in 0 .. (self.number_of_labels_including_root().get())
 		{
@@ -150,15 +159,6 @@ pub trait Name<'label>: HasTypeEquality + Sized + Clone + Debug + Display + Part
 			label.hash_slice(state)
 		}
 	}
-	
-	#[doc(hidden)]
-	fn label(&'label self, index: u8) -> Self::Label;
-	
-	/// Number of labels.
-	fn number_of_labels_including_root(&self) -> NonZeroU8;
-	
-	/// Length of name.
-	fn name_length_including_trailing_periods_after_labels(&self) -> NonZeroU8;
 	
 	/// Is root?
 	///

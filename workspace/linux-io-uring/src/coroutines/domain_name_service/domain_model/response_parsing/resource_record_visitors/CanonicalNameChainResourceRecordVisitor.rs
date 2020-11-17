@@ -2,14 +2,14 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) struct CanonicalNameChainAnswerSectionResourceRecordVisitor<'message, RRV: ResourceRecordVisitor<'message, Finished=Records<Record>>, Record: Sized + Debug>
+pub(crate) struct CanonicalNameChainAnswerSectionResourceRecordVisitor<'message, RRV: ResourceRecordVisitor<'message, Finished=OwnerNameToRecords<'message, R>>, R: ParsedRecord>
 {
 	answer_section_resource_record_visitor: RRV,
 	
 	canonical_name_chain: CanonicalNameChain<'message>,
 }
 
-impl<'message, RRV: ResourceRecordVisitor<'message, Finished=Records<Record>>, Record: Sized + Debug> CanonicalNameChainAnswerSectionResourceRecordVisitor<'message, RRV, Record>
+impl<'message, RRV: ResourceRecordVisitor<'message, Finished=OwnerNameToRecords<'message, R>>, R: ParsedRecord> CanonicalNameChainAnswerSectionResourceRecordVisitor<'message, RRV, R>
 {
 	#[inline(always)]
 	pub(crate) fn new(answer_section_resource_record_visitor: RRV, query_name: &'message EfficientCaseFoldedName) -> Self
@@ -37,13 +37,13 @@ impl<'message, RRV: ResourceRecordVisitor<'message, Finished=Records<Record>>, R
 	}
 	
 	#[inline(always)]
-	fn add_delegation_name(&mut self, from: &ParsedName<'message>, cache_until: CacheUntil, to: &ParsedName<'message>)
+	fn store_delegation_name(&mut self, from: &ParsedName<'message>, cache_until: CacheUntil, to: &ParsedName<'message>) -> Result<(), CanonicalChainError>
 	{
-		self.canonical_name_chain.record_delegation_name(from, cache_until, to)
+		self.canonical_name_chain.store_delegation_name(from, cache_until, to)
 	}
 }
 
-impl<'message, RRV: ResourceRecordVisitor<'message, Finished=Records<Record>>, Record: Sized + Debug> ResourceRecordVisitor<'message> for CanonicalNameChainAnswerSectionResourceRecordVisitor<'message, RRV, Record>
+impl<'message, RRV: ResourceRecordVisitor<'message, Finished=OwnerNameToRecords<'message, R>>, R: ParsedRecord> ResourceRecordVisitor<'message> for CanonicalNameChainAnswerSectionResourceRecordVisitor<'message, RRV, R>
 {
 	type Error = WrappingCanonicalChainError<RRV::Error>;
 	
@@ -61,13 +61,13 @@ impl<'message, RRV: ResourceRecordVisitor<'message, Finished=Records<Record>>, R
 	}
 
 	#[inline(always)]
-	fn NS(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: ParsedName<'message>) -> Result<(), Self::Error>
+	fn NS(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: NameServerName<ParsedName<'message>>) -> Result<(), Self::Error>
 	{
 		self.answer_section_resource_record_visitor.NS(name, cache_until, record).map_err(WrappingCanonicalChainError::Wrapped)
 	}
 
 	#[inline(always)]
-	fn SOA(&mut self, name: ParsedName<'message>, negative_cache_until: NegativeCacheUntil, record: StartOfAuthority<'message, ParsedName<'message>>) -> Result<(), Self::Error>
+	fn SOA(&mut self, name: ParsedName<'message>, negative_cache_until: NegativeCacheUntil, record: StartOfAuthority<ParsedName<'message>>) -> Result<(), Self::Error>
 	{
 		self.answer_section_resource_record_visitor.SOA(name, negative_cache_until, record).map_err(WrappingCanonicalChainError::Wrapped)
 	}
@@ -92,7 +92,7 @@ impl<'message, RRV: ResourceRecordVisitor<'message, Finished=Records<Record>>, R
 	}
 
 	#[inline(always)]
-	fn MX(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, preference: Priority, mail_server_name: ParsedName<'message>) -> Result<(), Self::Error>
+	fn MX(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, preference: Priority, mail_server_name: MailServerName<ParsedName<'message>>) -> Result<(), Self::Error>
 	{
 		self.answer_section_resource_record_visitor.MX(name, cache_until, preference, mail_server_name).map_err(WrappingCanonicalChainError::Wrapped)
 	}
@@ -164,7 +164,7 @@ impl<'message, RRV: ResourceRecordVisitor<'message, Finished=Records<Record>>, R
 		
 		if is_some_if_present_in_answer_section_and_true_if_was_queried_for == Some(false)
 		{
-			self.add_delegation_name(&name, cache_until, &record);
+			self.store_delegation_name(&name, cache_until, &record)?;
 		}
 		
 		self.answer_section_resource_record_visitor.DNAME(name, cache_until, record, is_some_if_present_in_answer_section_and_true_if_was_queried_for).map_err(WrappingCanonicalChainError::Wrapped)
@@ -195,7 +195,7 @@ impl<'message, RRV: ResourceRecordVisitor<'message, Finished=Records<Record>>, R
 	}
 
 	#[inline(always)]
-	fn IPSECKEY(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, precedence: Priority, record: IpsecPublicKey<'message, ParsedName<'message>, ParsedBytes<'message>, ParsedTypeEquality>) -> Result<(), Self::Error>
+	fn IPSECKEY(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, precedence: Priority, record: IpsecPublicKey<ParsedName<'message>, ParsedBytes<'message>, ParsedTypeEquality>) -> Result<(), Self::Error>
 	{
 		self.answer_section_resource_record_visitor.IPSECKEY(name, cache_until, precedence, record).map_err(WrappingCanonicalChainError::Wrapped)
 	}
@@ -207,13 +207,13 @@ impl<'message, RRV: ResourceRecordVisitor<'message, Finished=Records<Record>>, R
 	}
 
 	#[inline(always)]
-	fn NSEC(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: NextSecure<'message, ParsedName<'message>>) -> Result<(), Self::Error>
+	fn NSEC(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: NextSecure<ParsedName<'message>>) -> Result<(), Self::Error>
 	{
 		self.answer_section_resource_record_visitor.NSEC(name, cache_until, record).map_err(WrappingCanonicalChainError::Wrapped)
 	}
 
 	#[inline(always)]
-	fn RRSIG(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: ResourceRecordSetSignature<'message, ParsedName<'message>, ParsedBytes<'message>, ParsedTypeEquality>, is_some_if_present_in_answer_section_and_true_if_was_queried_for: Option<bool>) -> Result<(), Self::Error>
+	fn RRSIG(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: ResourceRecordSetSignature<ParsedName<'message>, ParsedBytes<'message>, ParsedTypeEquality>, is_some_if_present_in_answer_section_and_true_if_was_queried_for: Option<bool>) -> Result<(), Self::Error>
 	{
 		debug_assert!(is_some_if_present_in_answer_section_and_true_if_was_queried_for.is_some());
 		
@@ -301,7 +301,7 @@ impl<'message, RRV: ResourceRecordVisitor<'message, Finished=Records<Record>>, R
 	}
 
 	#[inline(always)]
-	fn HIP(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: HostIdentityProtocol<'message, ParsedName<'message>, ParsedBytes<'message>, ParsedTypeEquality>) -> Result<(), Self::Error>
+	fn HIP(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: HostIdentityProtocol<ParsedName<'message>, ParsedBytes<'message>, ParsedTypeEquality>) -> Result<(), Self::Error>
 	{
 		self.answer_section_resource_record_visitor.HIP(name, cache_until, record).map_err(WrappingCanonicalChainError::Wrapped)
 	}
@@ -373,7 +373,7 @@ impl<'message, RRV: ResourceRecordVisitor<'message, Finished=Records<Record>>, R
 	}
 
 	#[inline(always)]
-	fn LP(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, preference: Priority, record: LocatorPointer<'message, ParsedName<'message>>) -> Result<(), Self::Error>
+	fn LP(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, preference: Priority, record: LocatorPointer<ParsedName<'message>>) -> Result<(), Self::Error>
 	{
 		self.answer_section_resource_record_visitor.LP(name, cache_until, preference, record).map_err(WrappingCanonicalChainError::Wrapped)
 	}

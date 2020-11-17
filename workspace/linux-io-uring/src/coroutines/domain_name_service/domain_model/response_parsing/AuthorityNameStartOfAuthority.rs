@@ -8,5 +8,5 @@ pub(crate) struct AuthorityNameStartOfAuthority
 	pub(crate) authority_name: DomainTarget,
 	
 	/// This is for `authority_name`.
-	pub(crate) start_of_authority: PresentSolitary<StartOfAuthority<'static, EfficientCaseFoldedName>>,
+	pub(crate) start_of_authority: SolitaryRecords<StartOfAuthority<EfficientCaseFoldedName>>,
 }

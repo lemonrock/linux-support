@@ -3,6 +3,7 @@
 
 
 use super::Code;
+use super::GenerateParseTreeCallback;
 use indexmap::IndexMap;
 use std::io;
 use std::ops::Deref;
@@ -14,6 +15,6 @@ include!("AllPermutationsOfASet.rs");
 include!("AllCombinationsAndPermutations.rs");
 include!("Combination.rs");
 include!("HashOrIndexSetStaticName.rs");
+include!("Input.rs");
 include!("Permutation.rs");
 include!("Permutations.rs");
-include!("Input.rs");

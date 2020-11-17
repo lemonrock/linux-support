@@ -44,7 +44,7 @@ pub(crate) struct CanonicalNameChain<'message>
 	chain: CanonicalNameChainRecords,
 	
 	/// RFC 6672, Section 3.2 Server Algorithm Step 3.C. implies in the final paragraph that multiple `DNAME` records can be included in an answer.
-	delegation_name_records: DelegationNameRecords,
+	delegation_names: DelegationNames,
 }
 
 impl<'message> CanonicalNameChain<'message>
@@ -61,13 +61,8 @@ impl<'message> CanonicalNameChain<'message>
 		{
 			query_name,
 			chain: CanonicalNameChainRecords::with_capacity(Self::MaximumChainLength),
-			delegation_name_records: Records::with_capacity(1),
+			delegation_names: DelegationNames::with_capacity(1),
 		}
-	}
-	
-	pub(crate) fn validate_records(records) -> Result<(), X>
-	{
-	
 	}
 	
 	#[inline(always)]
@@ -123,7 +118,7 @@ impl<'message> CanonicalNameChain<'message>
 			
 			Vacant(vacant) =>
 			{
-				let value = PresentSolitary::new(cache_until, EfficientCaseFoldedName::from(to));
+				let value = SolitaryRecords::new(cache_until, EfficientCaseFoldedName::from(to));
 				vacant.insert(value);
 			},
 		};
@@ -132,19 +127,20 @@ impl<'message> CanonicalNameChain<'message>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn record_delegation_name(&mut self, from: &ParsedName<'message>, cache_until: CacheUntil, to: &ParsedName<'message>)
+	pub(crate) fn store_delegation_name(&mut self, from: &ParsedName<'message>, cache_until: CacheUntil, to: &ParsedName<'message>) -> Result<(), CanonicalChainError>
 	{
-		self.delegation_name_records.store_unprioritized_and_unweighted(from, cache_until, EfficientCaseFoldedName::from(to));
+		self.delegation_names.store(from, cache_until, to)
 	}
 	
+	/// Usually, the parent of the QNAME (or the most canonical name if there is a chain) must match the authority name, eg query for `www.example.com.`, the SOA or NS authority name should be `example.com.`.
+	///
+	/// However, any ancestor is valid if intermediate domains do not exist, for example, query for NAPTR for `4.3.2.1.6.7.9.8.6.4.e164.arpa.`, the SOA is for `6.4.e164.arpa.`
 	#[inline(always)]
 	fn validate_authority_section_name(&self, authority_section_name: &ParsedName<'message>) -> bool
 	{
-		xxxx; // not quite true, eg `dig +NAPTR 4.3.2.1.6.7.9.8.6.4.e164.arpa` gives an SOA `6.4.e164.arpa.		90	IN	SOA	nic.gota.net. enum-registry.gotanet.se. 2020022701 10800 1800 3600000 3600`.
-		
 		match self.most_canonical_name().parent()
 		{
-			Some(ref most_canonical_name_parent) => authority_section_name.eq(most_canonical_name_parent),
+			Some(ref most_canonical_name_parent) => most_canonical_name_parent.ends_with(authority_section_name),
 			
 			// Very rare; only if we queried for root or the CNAME chain points to root (why)?
 			None => authority_section_name.is_root(),

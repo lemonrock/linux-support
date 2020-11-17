@@ -5,14 +5,15 @@
 pub(crate) struct MXQueryProcessorResourceRecordVisitor<'message>
 {
 	query_name: &'message EfficientCaseFoldedName,
-	records: Records<DomainTarget>,
+	
+	records: OwnerNameToRecords<MailServerName<ParsedName<'message>>, Priority>,
 }
 
 impl<'message> ResourceRecordVisitor<'message> for MXQueryProcessorResourceRecordVisitor<'message>
 {
 	type Error = Infallible;
 	
-	type Finished = Records<DomainTarget>;
+	type Finished = OwnerNameToRecords<MailServerName<ParsedName<'message>>>;
 	
 	#[inline(always)]
 	fn finished(self) -> Self::Finished
@@ -21,9 +22,9 @@ impl<'message> ResourceRecordVisitor<'message> for MXQueryProcessorResourceRecor
 	}
 	
 	#[inline(always)]
-	fn MX(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, preference: Priority, mail_server_name: ParsedName<'message>) -> Result<(), Self::Error>
+	fn MX(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, preference: Priority, mail_server_name: MailServerName<ParsedName<'message>>) -> Result<(), Self::Error>
 	{
-		self.records.store_unweighted(&name, cache_until, preference, EfficientCaseFoldedName::from(mail_server_name));
+		self.records.add(name, cache_until, mail_server_name, preference);
 		Ok(())
 	}
 }

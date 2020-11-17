@@ -3,12 +3,14 @@
 
 
 #[derive(Debug)]
-pub(crate) enum Answer
+pub(crate) enum Answer<PR: ParsedRecord>
 {
 	Answered
 	{
 		/// This is the domain for which there are records (eg `AAAA`).
 		most_canonical_name: EfficientCaseFoldedName,
+	
+		records: OwnerNameToRecordsValue<PR>,
 	},
 	
 	NoDomain
@@ -40,7 +42,7 @@ pub(crate) enum Answer
 	},
 }
 
-impl Answer
+impl<PR: ParsedRecord> Answer<PR>
 {
 	#[inline(always)]
 	fn is_referral(&self) -> bool

@@ -9,7 +9,7 @@
 /// * `Enum`.
 /// * `BusinessDocumentMetadataServiceLocation`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum RegularExpressionResolvingToUriOrQueryUriResourceRecord<'label, N: Name<'label, TypeEquality=TE>, CS: CharacterString<TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
+pub enum RegularExpressionResolvingToUriOrQueryUriResourceRecord<N: Name<TypeEquality=TE>, CS: CharacterString<TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
 {
 	/// A regular expression that resolves to an URI.
 	UnvalidatedRegularExpression(CS),
@@ -19,13 +19,13 @@ pub enum RegularExpressionResolvingToUriOrQueryUriResourceRecord<'label, N: Name
 	/// This will be the case if a `D` flag was present.
 	///
 	/// This is very unlikely.
-	DomainName((N, PhantomData<&'label ()>)),
+	DomainName(N),
 }
 
-impl<'message> Into<RegularExpressionResolvingToUriOrQueryUriResourceRecord<'static, EfficientCaseFoldedName, OwnedCharacterString>> for RegularExpressionResolvingToUriOrQueryUriResourceRecord<'message, ParsedName<'message>, ParsedCharacterString<'message>>
+impl<'message> Into<RegularExpressionResolvingToUriOrQueryUriResourceRecord<EfficientCaseFoldedName, OwnedCharacterString>> for RegularExpressionResolvingToUriOrQueryUriResourceRecord<ParsedName<'message>, ParsedCharacterString<'message>>
 {
 	#[inline(always)]
-	fn into(self) -> RegularExpressionResolvingToUriOrQueryUriResourceRecord<'static, EfficientCaseFoldedName, OwnedCharacterString>
+	fn into(self) -> RegularExpressionResolvingToUriOrQueryUriResourceRecord<EfficientCaseFoldedName, OwnedCharacterString>
 	{
 		use self::RegularExpressionResolvingToUriOrQueryUriResourceRecord::*;
 		
@@ -33,12 +33,12 @@ impl<'message> Into<RegularExpressionResolvingToUriOrQueryUriResourceRecord<'sta
 		{
 			UnvalidatedRegularExpression(regular_expression) => UnvalidatedRegularExpression(OwnedCharacterString::from(regular_expression)),
 			
-			DomainName(domain_name) => DomainName((EfficientCaseFoldedName::from(domain_name), PhantomData)),
+			DomainName(domain_name) => DomainName(EfficientCaseFoldedName::from(domain_name)),
 		}
 	}
 }
 
-impl<'message> RegularExpressionResolvingToUriOrQueryUriResourceRecord<'message, ParsedName<'message>, ParsedCharacterString<'message>>
+impl<'message> RegularExpressionResolvingToUriOrQueryUriResourceRecord<ParsedName<'message>, ParsedCharacterString<'message>>
 {
 	#[inline(always)]
 	fn parse(service_field_kind: ServiceFieldKind, replacement_domain_name_or_raw_regular_expression: Either<ParsedName<'message>, ParsedCharacterString<'message>>, mutually_exclusive_flag: Option<NamingAuthorityMutuallyExclusiveFlag>) -> Result<Self, IgnoredServiceFieldReason>
@@ -49,7 +49,7 @@ impl<'message> RegularExpressionResolvingToUriOrQueryUriResourceRecord<'message,
 		
 		match (replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)
 		{
-			(Left(domain_name), Some(D)) => Ok(DomainName((domain_name, PhantomData))),
+			(Left(domain_name), Some(D)) => Ok(DomainName(domain_name)),
 			
 			(Left(_), _) => Err(InvalidCombinationOfDomainNameAndFlag(service_field_kind, mutually_exclusive_flag)),
 			

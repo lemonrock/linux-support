@@ -66,6 +66,8 @@ pub mod text;
 
 
 include!("HostInformation.rs");
+include!("MailServerName.rs");
+include!("NameServerName.rs");
 include!("OpenPgpRfc4880TransferablePublicKey.rs");
 include!("ResourceData.rs");
 include!("ServiceLocation.rs");

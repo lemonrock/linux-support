@@ -7,6 +7,6 @@
 /// Used in a `LP` record.
 ///
 /// Must not be the same as the `Name` of the resource record it is associated with (this is validated before being passed to `ResourceRecordVisitor.LP()`).
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub struct LocatorPointer<'label, N: Name<'label>>(N, PhantomData<&'label ()>);
+pub struct LocatorPointer<N: Name>(pub N);

@@ -11,12 +11,12 @@ pub(crate) struct AuthorityResourceRecordVisitor<'message>
 	
 	/// *MUST* be for the parent of the final entry in the canonical name chain.
 	/// It is valid to have no records.
-	start_of_authority: RefCell<Option<PresentSolitary<StartOfAuthority<'static, EfficientCaseFoldedName>>>>,
+	start_of_authority: RefCell<Option<SolitaryRecords<StartOfAuthority<EfficientCaseFoldedName>>>>,
 	
 	/// *MUST* be for the parent of the final entry in the canonical name chain.
 	/// It is valid to have no records.
 	/// However, all records will have the same name (the parent of the final entry in the canonical name chain).
-	name_servers: RefCell<Option<PresentMultiple<EfficientCaseFoldedName>>>,
+	name_servers: RefCell<Option<MultipleSortedRecords<NameServerName<EfficientCaseFoldedName>>>>,
 }
 
 impl<'message> ResourceRecordVisitor<'message> for AuthorityResourceRecordVisitor<'message>
@@ -32,7 +32,7 @@ impl<'message> ResourceRecordVisitor<'message> for AuthorityResourceRecordVisito
 	}
 	
 	#[inline(always)]
-	fn NS(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: ParsedName<'message>) -> Result<(), Self::Error>
+	fn NS(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: NameServerName<ParsedName<'message>>) -> Result<(), Self::Error>
 	{
 		use self::AuthorityError::*;
 		
@@ -42,21 +42,25 @@ impl<'message> ResourceRecordVisitor<'message> for AuthorityResourceRecordVisito
 		}
 		self.store_authority_name(name);
 		
+		let name_server_name = record.into();
+		
 		let mut name_server_records = self.name_servers.borrow_mut();
 		let name_server_records = name_server_records.deref_mut();
 		if unlikely!(name_server_records.is_none())
 		{
-			*name_server_records = Some(PresentMultiple::default());
+			*name_server_records = Some(MultipleSortedRecords::new(cache_until, name_server_name));
+		}
+		else
+		{
+			let name_server_records = name_server_records.as_mut().unwrap();
+			name_server_records.add(cache_until, name_server_name);
 		}
 		
-		let present = name_server_records.as_mut().unwrap();
-		present.store_unprioritized_and_unweighted(cache_until, EfficientCaseFoldedName::from(record));
-
 		Ok(())
 	}
 
 	#[inline(always)]
-	fn SOA(&mut self, name: ParsedName<'message>, negative_cache_until: NegativeCacheUntil, record: StartOfAuthority<'message, ParsedName<'message>>) -> Result<(), Self::Error>
+	fn SOA(&mut self, name: ParsedName<'message>, negative_cache_until: NegativeCacheUntil, record: StartOfAuthority<ParsedName<'message>>) -> Result<(), Self::Error>
 	{
 		use self::AuthorityError::*;
 		
@@ -70,29 +74,7 @@ impl<'message> ResourceRecordVisitor<'message> for AuthorityResourceRecordVisito
 		let start_of_authority_record = start_of_authority_record.deref_mut();
 		if likely!(start_of_authority_record.is_none())
 		{
-			*start_of_authority_record = Some
-			(
-				{
-					use self::PresentSolitary::*;
-					let record = record.into();
-					match negative_cache_until
-					{
-						CacheUntil::UseOnce { as_of_now } => UseOnce
-						{
-							as_of_now,
-							
-							record,
-						},
-						
-						CacheUntil::Cached { cached_until } => Cached
-						{
-							cached_until,
-							
-							record,
-						}
-					}
-				}
-			);
+			*start_of_authority_record = Some(SolitaryRecords::new(negative_cache_until, record.into()));
 			
 			Ok(())
 		}
@@ -240,7 +222,7 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 	/// 	* Authority
 	/// 		* `.			86400	IN	SOA	a.root-servers.net. …`.
 	/// 	* Additional
-	pub(crate) fn answer(self, answer_existence: AnswerExistence, answer_section_has_at_least_one_record_of_requested_data_type: bool, as_of_now: NanosecondsSinceUnixEpoch) -> Result<(Answer, CanonicalNameChainRecords, DelegationNameRecords), AuthoritySectionError<AuthorityError>>
+	pub(crate) fn answer<PR: ParsedRecord>(self, answer_existence: AnswerExistence, records: Option<OwnerNameToRecordsValue<ParsedRecord>>, as_of_now: NanosecondsSinceUnixEpoch) -> Result<(Answer<PR>, CanonicalNameChainRecords, DelegationNames), AuthoritySectionError<AuthorityError>>
 	{
 		use self::AnswerExistence::*;
 		use self::Answer::*;
@@ -264,14 +246,14 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 			}
 		}
 		
-		let answer = match (answer_existence, answer_section_has_at_least_one_record_of_requested_data_type)
+		let answer = match (answer_existence, records)
 		{
-			(NoError(_), true) => Answer::Answered { most_canonical_name: self.most_canonical_name() },
+			(NoError(_), Some(records)) => Answer::Answered { most_canonical_name: self.most_canonical_name(), records },
 			
 			// RFC 2308, Section 2.2 No Data, paragraph 1: "NODATA is indicated by an answer with the RCODE set to NOERROR and no relevant answers in the answer section".
 			//
 			// NODATA is really an Empty Non-Terminal Name (ENT; see RFC 7719), ie a domain name with no records but that exists.
-			(NoError(authoritative_or_authenticated_or_neither), false) =>
+			(NoError(authoritative_or_authenticated_or_neither), None) =>
 			{
 				let most_canonical_name = self.most_canonical_name();
 				
@@ -336,11 +318,11 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 				}
 			}
 			
-			(NoSuchDomain(_), true) => return Err(AuthoritySectionError::ResponseHadNoSuchDomainErrorCodeButContainsAnAnswer),
+			(NoSuchDomain(_), Some(_)) => return Err(AuthoritySectionError::ResponseHadNoSuchDomainErrorCodeButContainsAnAnswer),
 			
 			// NXDOMAIN means that child domains will not exist (eg if example.com. is NXDOMAIN, then www.example.com. is NXDOMAIN).
 			// This reply is for any QTYPE (eg A, AAAA, etc) that may later be queried for.
-			(NoSuchDomain(authoritative_or_authenticated_or_neither), false) =>
+			(NoSuchDomain(authoritative_or_authenticated_or_neither), None) =>
 			{
 				let most_canonical_name = self.most_canonical_name();
 				
@@ -413,7 +395,7 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 			}
 		};
 		
-		Ok((answer, self.canonical_name_chain.chain, self.canonical_name_chain.delegation_name_records))
+		Ok((answer, self.canonical_name_chain.chain, self.canonical_name_chain.delegation_names))
 	}
 	
 	#[inline(always)]
@@ -429,13 +411,13 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 	}
 	
 	#[inline(always)]
-	fn name_servers(name_servers: RefCell<Option<PresentMultiple<EfficientCaseFoldedName>>>) -> PresentMultiple<EfficientCaseFoldedName>
+	fn name_servers(name_servers: RefCell<Option<MultipleSortedRecords<NameServerName<EfficientCaseFoldedName>>>>) -> MultipleSortedRecords<NameServerName<EfficientCaseFoldedName>>
 	{
 		name_servers.into_inner().unwrap()
 	}
 	
 	#[inline(always)]
-	fn start_of_authority(start_of_authority: RefCell<Option<PresentSolitary<StartOfAuthority<'static, EfficientCaseFoldedName>>>>) -> PresentSolitary<StartOfAuthority<'static, EfficientCaseFoldedName>>
+	fn start_of_authority(start_of_authority: RefCell<Option<SolitaryRecords<StartOfAuthority<EfficientCaseFoldedName>>>>) -> SolitaryRecords<StartOfAuthority<EfficientCaseFoldedName>>
 	{
 		start_of_authority.into_inner().unwrap()
 	}

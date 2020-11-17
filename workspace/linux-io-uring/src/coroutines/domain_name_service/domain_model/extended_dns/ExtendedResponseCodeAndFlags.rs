@@ -47,7 +47,7 @@ impl ExtendedResponseCodeAndFlags
 		}
 		else
 		{
-			Err(ExtendedDnsError::UnsupportedExtendedDnsVersion(non_new_non_zero_u8(version)))
+			Err(ExtendedDnsError::UnsupportedExtendedDnsVersion(new_non_zero_u8(version)))
 		}
 	}
 	

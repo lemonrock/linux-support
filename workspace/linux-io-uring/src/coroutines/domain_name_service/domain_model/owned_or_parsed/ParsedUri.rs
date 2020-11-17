@@ -4,7 +4,7 @@
 
 /// URI parsed from a message.
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub struct ParsedUri<'message>(Uri<'message>);
+pub struct ParsedUri<'message>(URI<'message>);
 
 impl<'message> HasTypeEquality for ParsedUri<'message>
 {
@@ -17,7 +17,7 @@ impl<'message> OwnedOrParsedUri for ParsedUri<'message>
 
 impl<'message> Deref for ParsedUri<'message>
 {
-	type Target = Uri<'message>;
+	type Target = URI<'message>;
 	
 	#[inline(always)]
 	fn deref(&self) -> &Self::Target
@@ -26,10 +26,10 @@ impl<'message> Deref for ParsedUri<'message>
 	}
 }
 
-impl<'message> From<Uri<'message>> for ParsedUri<'message>
+impl<'message> From<URI<'message>> for ParsedUri<'message>
 {
 	#[inline(always)]
-	fn from(value: Uri<'message>) -> Self
+	fn from(value: URI<'message>) -> Self
 	{
 		Self(value)
 	}

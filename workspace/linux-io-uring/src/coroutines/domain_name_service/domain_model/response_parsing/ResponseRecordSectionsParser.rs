@@ -38,38 +38,33 @@ impl<'message> ResponseRecordSectionsParser<'message>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn parse_answer_authority_and_additional_sections<RRV: ResourceRecordVisitor<'message, Finished=Records<Record>>, Record: Sized + Debug>(&mut self, next_resource_record_pointer: usize, authoritative_or_authenticated_or_neither: AuthoritativeOrAuthenticatedOrNeither, rcode_lower_4_bits: RCodeLower4Bits, answer_section_resource_record_visitor: RRV) -> Result<(usize, Answer, CanonicalNameChainRecords, DelegationNameRecords, RRV::Finished), SectionError<RRV::Error>>
+	pub(crate) fn parse_answer_authority_and_additional_sections<RRV: ResourceRecordVisitor<'message, Finished=OwnerNameToRecords<'message, PR>>, PR: ParsedRecord>(&mut self, next_resource_record_pointer: usize, authoritative_or_authenticated_or_neither: AuthoritativeOrAuthenticatedOrNeither, rcode_lower_4_bits: RCodeLower4Bits, answer_section_resource_record_visitor: RRV) -> Result<(usize, Answer<PR>, CanonicalNameChainRecords, DelegationNames), SectionError<RRV::Error>>
 	{
-		let (next_resource_record_pointer, (records, canonical_name_chain), answer_section_has_at_least_one_record_of_requested_data_type) = self.parse_answer_section(next_resource_record_pointer, answer_section_resource_record_visitor)?;
+		let (next_resource_record_pointer, records, canonical_name_chain) = self.parse_answer_section(next_resource_record_pointer, answer_section_resource_record_visitor)?;
 		
 		let (next_resource_record_pointer, authority_resource_record_visitor) = self.parse_authority_section(next_resource_record_pointer, canonical_name_chain)?;
 
 		let (next_resource_record_pointer, answer_existence) = self.parse_additional_section(next_resource_record_pointer, authoritative_or_authenticated_or_neither, rcode_lower_4_bits)?;
-
-		let (answer, canonical_name_records, delegation_name_records) = authority_resource_record_visitor.answer(answer_existence, answer_section_has_at_least_one_record_of_requested_data_type, self.now)?;
 		
+		let (answer, canonical_name_records, delegation_names) = authority_resource_record_visitor.answer(answer_existence, records, self.now)?;
 		
-		
-		// TODO: FIlter `answer_section_resource_record_visitor_finished` by most_canonical_name; if other records are present, barf!
-		
-		
-		
-		Ok((next_resource_record_pointer, answer, canonical_name_records, delegation_name_records, records))
+		Ok((next_resource_record_pointer, answer, canonical_name_records, delegation_names))
 	}
 
 	#[inline(always)]
-	fn parse_answer_section<RRV: ResourceRecordVisitor<'message, Finished=Records<Record>>, Record: Sized + Debug>(&mut self, next_resource_record_pointer: usize, answer_section_resource_record_visitor: RRV) -> Result<(usize, (RRV::Finished, CanonicalNameChain<'message>), bool), AnswerSectionError<WrappingCanonicalChainError<RRV::Error>>>
+	fn parse_answer_section<RRV: ResourceRecordVisitor<'message, Finished=OwnerNameToRecords<'message, PR>>, PR: ParsedRecord>(&mut self, next_resource_record_pointer: usize, answer_section_resource_record_visitor: RRV) -> Result<(usize, Option<OwnerNameToRecordsValue<PR>>, CanonicalNameChain<'message>), AnswerSectionError<WrappingCanonicalChainError<RRV::Error>>>
 	{
 		let number_of_resource_records = self.message_header.number_of_resource_records_in_the_answer_section();
 
 		let mut resource_record_visitor = CanonicalNameChainAnswerSectionResourceRecordVisitor::new(answer_section_resource_record_visitor, self.query_name);
-		let mut answer_section_has_at_least_one_record_of_requested_data_type = true;
 		
-		let next_resource_record_pointer = self.loop_over_resource_records(next_resource_record_pointer, number_of_resource_records, AnswerSectionError::ResourceRecordsOverflowSection, |resource_record| resource_record.parse_answer_section_resource_record_in_response(self.now, self.data_type, self.end_of_message_pointer, self.parsed_names.borrow_mut().deref_mut(), &mut resource_record_visitor, &self.response_parsing_state, &self.duplicate_resource_record_response_parsing, &mut answer_section_has_at_least_one_record_of_requested_data_type, self.query_name))?;
+		let next_resource_record_pointer = self.loop_over_resource_records(next_resource_record_pointer, number_of_resource_records, AnswerSectionError::ResourceRecordsOverflowSection, |resource_record| resource_record.parse_answer_section_resource_record_in_response(self.now, self.data_type, self.end_of_message_pointer, self.parsed_names.borrow_mut().deref_mut(), &mut resource_record_visitor, &self.response_parsing_state, &self.duplicate_resource_record_response_parsing))?;
 		
 		let (records, canonical_name_chain) = resource_record_visitor.finished();
 		
-		Ok((next_resource_record_pointer, resource_record_visitor.finished(), answer_section_has_at_least_one_record_of_requested_data_type))
+		let records = records.filter(canonical_name_chain.most_canonical_name());
+		
+		Ok((next_resource_record_pointer, records, canonical_name_chain))
 	}
 
 	#[inline(always)]

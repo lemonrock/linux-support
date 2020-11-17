@@ -124,7 +124,7 @@ pub trait Label<'label>: HasTypeEquality + Clone + Debug + Display + PartialEq +
 	#[inline(always)]
 	fn length_including_trailing_period(&self) -> NonZeroU8
 	{
-		non_new_non_zero_u8(self.len() + ParsedNameParser::SizeOfTrailingPeriod)
+		new_non_zero_u8(self.len() + ParsedNameParser::SizeOfTrailingPeriod)
 	}
 	
 	/// Is probably an internationalized domain name (IDN)?
@@ -138,7 +138,7 @@ pub trait Label<'label>: HasTypeEquality + Clone + Debug + Display + PartialEq +
 		let length = self.len();
 		if length >= 5
 		{
-			self.get_unchecked_safe_value(0) == b'x' && *elf.get_unchecked_safe_value(1) == b'n' && self.get_unchecked_safe_value(2) == b'-' && self.get_unchecked_safe_value(3) == b'-'
+			self.get_unchecked_safe_value(0) == b'x' && *self.get_unchecked_safe_value(1) == b'n' && self.get_unchecked_safe_value(2) == b'-' && self.get_unchecked_safe_value(3) == b'-'
 		}
 		else
 		{

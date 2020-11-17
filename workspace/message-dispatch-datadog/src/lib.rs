@@ -69,8 +69,6 @@ use std::time::SystemTime;
 use swiss_army_knife::ConstArrayVec;
 use swiss_army_knife::unreachable_code;
 use swiss_army_knife::get_unchecked::GetUnchecked;
-use swiss_army_knife::get_unchecked::GetUncheckedMut;
-use swiss_army_knife::get_unchecked::GetUncheckedValue;
 use swiss_army_knife::split::SplitBytes;
 
 

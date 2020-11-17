@@ -94,9 +94,9 @@ impl<'message> HasTypeEquality for ParsedName<'message>
 	type TypeEquality = ParsedTypeEquality;
 }
 
-impl<'message> Name<'message> for ParsedName<'message>
+impl<'message> Name for ParsedName<'message>
 {
-	type Label = ParsedLabel<'message>;
+	type Label<'label> = ParsedLabel<'label>;
 	
 	#[inline(always)]
 	fn parent(&self) -> Option<Self>
@@ -116,7 +116,7 @@ impl<'message> Name<'message> for ParsedName<'message>
 	}
 	
 	#[inline(always)]
-	fn label(&'message self, index: u8) -> Self::Label
+	fn label<'label>(&'label self, index: u8) -> Self::Label<'label>
 	{
 		let (label_data_starts_at_pointer, label_length_excluding_trailing_period) = self.label_data_starts_at_pointers_and_label_length_excluding_trailing_period.get_unchecked_value_safe(index);
 		
@@ -126,7 +126,7 @@ impl<'message> Name<'message> for ParsedName<'message>
 	#[inline(always)]
 	fn number_of_labels_including_root(&self) -> NonZeroU8
 	{
-		non_new_non_zero_u8(self.label_data_starts_at_pointers_and_label_length_excluding_trailing_period.len() as u8)
+		new_non_zero_u8(self.label_data_starts_at_pointers_and_label_length_excluding_trailing_period.len() as u8)
 	}
 	
 	#[inline(always)]
@@ -146,7 +146,7 @@ impl<'message> ParsedName<'message>
 		Self
 		{
 			label_data_starts_at_pointers_and_label_length_excluding_trailing_period,
-			name_length_including_trailing_periods_after_labels: non_new_non_zero_u8(name_length_including_trailing_periods_after_labels),
+			name_length_including_trailing_periods_after_labels: new_non_zero_u8(name_length_including_trailing_periods_after_labels),
 			marker: PhantomData,
 		}
 	}

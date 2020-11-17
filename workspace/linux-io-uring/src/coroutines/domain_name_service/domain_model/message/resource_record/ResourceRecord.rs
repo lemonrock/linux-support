@@ -48,7 +48,7 @@ impl ResourceRecord
 	}
 
 	#[inline(always)]
-	pub(crate) fn parse_answer_section_resource_record_in_response<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, question_q_type: DataType, end_of_message_pointer: usize, parsed_names: &mut ParsedNames<'message>, resource_record_visitor: &mut RRV, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>, answer_section_has_at_least_one_record_of_requested_data_type: &mut bool, query_name: &EfficientCaseFoldedName) -> Result<usize, AnswerSectionError<RRV::Error>>
+	pub(crate) fn parse_answer_section_resource_record_in_response<'message, RRV: ResourceRecordVisitor<'message>>(&'message self, now: NanosecondsSinceUnixEpoch, question_q_type: DataType, end_of_message_pointer: usize, parsed_names: &mut ParsedNames<'message>, resource_record_visitor: &mut RRV, response_parsing_state: &ResponseParsingState, duplicate_resource_record_response_parsing: &DuplicateResourceRecordResponseParsing<'message>) -> Result<usize, AnswerSectionError<RRV::Error>>
 	{
 		use self::HandleRecordTypeError::ResourceTypeInWrongSection;
 		use self::ResourceTypeInWrongSectionError::ResourceRecordTypeIsNotValidInAnswerSectionIfNotRequestedByQuery;
@@ -63,12 +63,6 @@ impl ResourceRecord
 		
 		if likely!(resource_record_type_matches_query_type)
 		{
-			if owner_name.ne(query_name)
-			{
-				return Err(AnswerSectionError::ResourceRecordOwnerNameThatDiffersToQueryNameButMatchesQueryType(EfficientCaseFoldedName::from(owner_name)))
-			}
-			*answer_section_has_at_least_one_record_of_requested_data_type = true;
-			
 			// This is a list of record types, which, when asked for in a query, are only allowed to occur once or never in the answer section.
 			match (resource_record_type_higher, resource_record_type_lower)
 			{
@@ -442,7 +436,7 @@ impl ResourceRecord
 		use self::HandleRecordTypeError::*;
 		
 		let (cache_until, record, end_of_resource_data_pointer) = self.parse_name_only(now, end_of_name_pointer, end_of_message_pointer, &owner_name, parsed_names, DataType::NS, duplicate_resource_record_response_parsing, NS)?;
-		resource_record_visitor.NS(owner_name, cache_until, record).map_err(|error| ResourceRecordVisitor(DataType::NS, error))?;
+		resource_record_visitor.NS(owner_name, cache_until, NameServerName::new(record)).map_err(|error| ResourceRecordVisitor(DataType::NS, error))?;
 		Ok(end_of_resource_data_pointer)
 	}
 
@@ -508,7 +502,6 @@ impl ResourceRecord
 				referesh_interval: footer.refresh_interval.into(),
 				retry_interval: footer.retry_interval.into(),
 				expire_interval: footer.expire_interval.into(),
-				marker: PhantomData,
 			};
 			
 			resource_record_visitor.SOA(owner_name, negative_cache_until, record).map_err(|error| HandleRecordTypeError::ResourceRecordVisitor(DataType::SOA, error))?;
@@ -590,7 +583,7 @@ impl ResourceRecord
 		
 		
 		let preference = Priority(resource_data.u16(0));
-		let mail_server_name = ParsedNameParser::parse_name_in_resource_record_slice_with_nothing_left(DataType::MX, parsed_names, &resource_data[PreferenceSize .. ]).map_err(MailServerName)?;
+		let mail_server_name = MailServerName::new(ParsedNameParser::parse_name_in_resource_record_slice_with_nothing_left(DataType::MX, parsed_names, &resource_data[PreferenceSize .. ]).map_err(MailServerName)?);
 
 		resource_record_visitor.MX(owner_name, cache_until, preference, mail_server_name).map_err(|error| HandleRecordTypeError::ResourceRecordVisitor(DataType::MX, error))?;
 		Ok(resource_data.end_pointer())
@@ -681,7 +674,6 @@ impl ResourceRecord
 		{
 			port: resource_data.u16(PrioritySize + WeightSize),
 			target: ParsedNameParser::parse_name_in_resource_record_slice_with_nothing_left(DataType::SRV, parsed_names, &resource_data[(PrioritySize + WeightSize + PortSize) .. ]).map_err(ServiceName)?,
-			marker: PhantomData,
 		};
 
 		resource_record_visitor.SRV(owner_name, cache_until, priority, weight, record).map_err(|error| HandleRecordTypeError::ResourceRecordVisitor(DataType::SRV, error))?;
@@ -822,6 +814,8 @@ impl ResourceRecord
 			Err(HasTooShortALength(length))?
 		}
 
+		let preference = Priority(resource_data.u16(0));
+		
 		let resource_data_end_pointer = resource_data.end_pointer();
 
 		let (key_exchange_server_name, end_of_key_exchange_server_name) = ParsedNameParser::parse_name_in_resource_record(DataType::KX, parsed_names, resource_data.start_pointer() + PreferenceSize, resource_data_end_pointer).map_err(KeyExchangeServerName)?;
@@ -1250,7 +1244,7 @@ impl ResourceRecord
 				let start_of_name_pointer = resource_data_starts_at_pointer + GatewayFieldStartsAtOffset;
 				let (domain_name, end_of_domain_name_pointer) = ParsedNameParser::parse_name_in_resource_record(DataType::IPSECKEY, parsed_names, start_of_name_pointer, start_of_name_pointer + length - GatewayFieldStartsAtOffset).map_err(DomainNameGateway)?;
 
-				(end_of_domain_name_pointer - resource_data_starts_at_pointer, Some(DomainName(domain_name, PhantomData)))
+				(end_of_domain_name_pointer - resource_data_starts_at_pointer, Some(DomainName(domain_name)))
 			}
 
 			_ =>
@@ -1314,7 +1308,6 @@ impl ResourceRecord
 		{
 			next_domain_name,
 			type_bitmaps: TypeBitmaps::parse_type_bitmaps(DataType::NSEC, &resource_data[(end_of_next_domain_name_pointer - resource_data_pointer) .. ]).map_err(TypeBitmapsParse)?,
-			marker: PhantomData,
 		};
 
 		resource_record_visitor.NSEC(owner_name, cache_until, record).map_err(|error| HandleRecordTypeError::ResourceRecordVisitor(DataType::NSEC, error))?;
@@ -1416,7 +1409,6 @@ impl ResourceRecord
 			signers_name,
 			signature: ParsedBytes::from(&resource_data[signature_offset .. ]),
 			rrsig_rdata_excluding_signature_field: ParsedBytes::from(&resource_data[ .. signature_offset]),
-			marker: PhantomData,
 		};
 
 		resource_record_visitor.RRSIG(owner_name, cache_until, record, is_some_if_present_in_answer_section_and_true_if_was_queried_for).map_err(|error| HandleRecordTypeError::ResourceRecordVisitor(DataType::RRSIG, error))?;
@@ -1774,8 +1766,6 @@ impl ResourceRecord
 			first_rendezvous_server_domain_name,
 
 			remaining_rendezvous_server_domain_names,
-		
-			marker: PhantomData,
 		};
 
 		resource_record_visitor.HIP(owner_name, cache_until, record).map_err(|error| ResourceRecordVisitor(DataType::HIP, error))?;
@@ -1950,7 +1940,7 @@ impl ResourceRecord
 		}
 		
 		let preference = Priority(resource_data.u16(0));
-		let record = LocatorPointer(domain_name, PhantomData);
+		let record = LocatorPointer(domain_name);
 
 		resource_record_visitor.LP(owner_name, cache_until, preference, record).map_err(|error| HandleRecordTypeError::ResourceRecordVisitor(DataType::LP, error))?;
 		Ok(resource_data_end_pointer)

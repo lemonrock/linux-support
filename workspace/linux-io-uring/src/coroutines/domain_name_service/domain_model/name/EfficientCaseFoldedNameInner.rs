@@ -78,9 +78,9 @@ impl EfficientCaseFoldedNameInner
 					let label_length = label.not_root_length_checked(label_offset);
 					
 					unsafe { label_data.as_mut_ptr().add(label_offset as usize).copy_from_nonoverlapping(label.bytes_pointer(), label_length as usize) };
-					label_offsets_and_lengths_excluding_root.push((label_offset, non_new_non_zero_u8(label_length)));
+					label_offsets_and_lengths_excluding_root.push((label_offset, new_non_zero_u8(label_length)));
 					
-					label_offset += label_len
+					label_offset += label_length
 				}
 				
 				Self::new(label_offsets_and_lengths_excluding_root, label_data)
@@ -109,7 +109,7 @@ impl EfficientCaseFoldedNameInner
 	#[inline(always)]
 	fn number_of_labels_including_root(&self) -> NonZeroU8
 	{
-		non_new_non_zero_u8((self.label_offsets_and_lengths_excluding_root.len() as u8) + 1)
+		new_non_zero_u8((self.label_offsets_and_lengths_excluding_root.len() as u8) + 1)
 	}
 	
 	#[inline(always)]
@@ -121,7 +121,7 @@ impl EfficientCaseFoldedNameInner
 		}
 		else
 		{
-			let (label_offset, label_length_exluding_trailing_period) = self.label_offset_and_length_excluding_root(non_new_non_zero_u8(label_index));
+			let (label_offset, label_length_exluding_trailing_period) = self.label_offset_and_length_excluding_root(new_non_zero_u8(label_index));
 			let label_offset = label_offset as usize;
 			let label_length_exluding_trailing_period = label_length_exluding_trailing_period.get() as usize;
 			EfficientCaseFoldedLabel(&self.label_data[label_offset .. (label_offset + label_length_exluding_trailing_period)])
@@ -186,7 +186,7 @@ impl EfficientCaseFoldedNameInner
 	#[inline(always)]
 	fn child_clone(&self, child: EfficientCaseFoldedLabel) -> Arc<Self>
 	{
-		debug_assert_ne!(child.is_root());
+		debug_assert!(!child.is_root());
 		
 		let mut label_data: [u8; Self::LabelDataSize] = unsafe_uninitialized();
 		
@@ -221,7 +221,7 @@ impl EfficientCaseFoldedNameInner
 	#[inline(always)]
 	fn child_mutate(&mut self, child: EfficientCaseFoldedLabel)
 	{
-		debug_assert_ne!(child.is_root());
+		debug_assert!(child.is_root());
 		
 		if unlikely!(self.is_root())
 		{
@@ -254,7 +254,7 @@ impl EfficientCaseFoldedNameInner
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn copy_to_new_label_data(new_label_data: &mut [u8; Self::LabelDataSize] child: EfficientCaseFoldedLabel)
+	fn copy_to_new_label_data(new_label_data: &mut [u8; Self::LabelDataSize], child: EfficientCaseFoldedLabel)
 	{
 		unsafe { new_label_data.as_mut_ptr().copy_from_nonoverlapping(child.bytes_pointer(), child.len() as usize) };
 	}
@@ -263,7 +263,7 @@ impl EfficientCaseFoldedNameInner
 	#[inline(always)]
 	fn push_child_to_label_offsets_and_lengths_excluding_root(label_offsets_and_lengths_excluding_root: &mut ArrayVec<[(u8, NonZeroU8); Self::LabelsCount]>, child: EfficientCaseFoldedLabel, old_label_data_length: u8)
 	{
-		label_offsets_and_lengths_excluding_root.push((old_label_data_length, non_new_non_zero_u8(child.len())));
+		label_offsets_and_lengths_excluding_root.push((old_label_data_length, new_non_zero_u8(child.len())));
 	}
 	
 	#[doc(hidden)]

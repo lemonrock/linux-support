@@ -4,28 +4,26 @@
 
 pub(crate) struct MXQueryProcessor;
 
-impl<'cache> QueryProcessor<'cache> for MXQueryProcessor
+impl QueryProcessor for MXQueryProcessor
 {
 	const DT: DataType = DataType::MX;
 	
-	type Record = EfficientCaseFoldedName;
+	type PR<'message> = MailServerName<ParsedName<'message>>;
 	
-	type RRV<'message> where 'cache: 'message = MXQueryProcessorResourceRecordVisitor<'cache, 'message>;
+	type RRV<'message> = MXQueryProcessorResourceRecordVisitor<'message>;
 	
 	fn new<'message>(query_name: &'message EfficientCaseFoldedName) -> Self::RRV<'message>
-	where 'cache: 'message
 	{
 		MXQueryProcessorResourceRecordVisitor
 		{
 			query_name,
-			present: PresentMultiple::default(),
+			records: OwnerNameToRecords::default(),
 		}
 	}
 	
 	#[inline(always)]
-	fn answered<'message>(finished: <<Self as QueryProcessor<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished, query_name: &'message EfficientCaseFoldedName, cache: &mut Cache<'cache>)
-	where 'cache: 'message
+	fn store_records_in_query_types_cache<'message>(query_types_cache: &mut QueryTypesCache, records: OwnerNameToRecordValue<Self::PR<'message>>)
 	{
-		cache.mx_query_type_cache.put_present_all_the_same_name(query_name.clone(), finished)
+		query_types_cache.store_MX(records)
 	}
 }

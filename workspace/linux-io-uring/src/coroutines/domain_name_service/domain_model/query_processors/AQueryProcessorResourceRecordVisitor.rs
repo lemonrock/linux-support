@@ -6,25 +6,25 @@ pub(crate) struct AQueryProcessorResourceRecordVisitor<'message>
 {
 	query_name: &'message EfficientCaseFoldedName,
 	
-	records: Records<Ipv4Addr>,
+	records: OwnerNameToRecords<Ipv4Addr, ()>,
 }
 
 impl<'message> ResourceRecordVisitor<'message> for AQueryProcessorResourceRecordVisitor<'message>
 {
 	type Error = Infallible;
 	
-	type Finished = Records<Ipv4Addr>;
+	type Finished = OwnerNameToRecords<Ipv4Addr>;
 	
 	#[inline(always)]
 	fn finished(self) -> Self::Finished
 	{
-		self.present
+		self.records
 	}
 	
 	#[inline(always)]
 	fn A(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: Ipv4Addr) -> Result<(), Self::Error>
 	{
-		self.records.store_unprioritized_and_unweighted(&name, cache_until, record);
+		self.records.add(name, cache_until, record, ());
 		Ok(())
 	}
 }

@@ -6,7 +6,7 @@ fn location_to_service_translation_protocol() -> HashMap<&'static str, &'static 
 {
 	hashmap!
 	{
-		"LoST:http" => "LocationToServiceTranslationProtocol { profile: LocationToServiceTranslationProtocolProfile::Generic, transport_protocol: Some(http), ), uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord::parse_LocationToServiceTranslationProtocol(replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag, Some(http))? }",
+		"LoST:http" => "LocationToServiceTranslationProtocol { profile: LocationToServiceTranslationProtocolProfile::Generic, transport_protocol: Some(http), uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord::parse_LocationToServiceTranslationProtocol(replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag, Some(http))? }",
 		
 		"LoST:https" => "LocationToServiceTranslationProtocol { profile: LocationToServiceTranslationProtocolProfile::Generic, transport_protocol: Some(https), uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord::parse_LocationToServiceTranslationProtocol(replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag, Some(https))? }",
 		

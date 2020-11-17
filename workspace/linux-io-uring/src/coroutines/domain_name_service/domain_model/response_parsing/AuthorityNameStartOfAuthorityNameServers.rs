@@ -8,5 +8,5 @@ pub(crate) struct AuthorityNameStartOfAuthorityNameServers
 	pub(crate) authority_name_start_of_authority: AuthorityNameStartOfAuthority,
 	
 	/// These are for `authority_name`.
-	pub(crate) name_servers: PresentMultiple<EfficientCaseFoldedName>,
+	pub(crate) name_servers: MultipleSortedRecords<NameServerName<EfficientCaseFoldedName>>,
 }

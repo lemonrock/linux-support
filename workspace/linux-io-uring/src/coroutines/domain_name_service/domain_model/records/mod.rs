@@ -5,11 +5,21 @@
 use super::*;
 
 
+include!("_____PresentMultiple.rs");
+include!("CanonicalNameChainRecords.rs");
+include!("MultipleOrderedThenPrioritizedThenUnsortedRecords.rs");
+include!("MultiplePrioritizedThenSortedRecords.rs");
+include!("MultiplePrioritizedThenWeightedRecords.rs");
+include!("MultipleSortedRecords.rs");
 include!("Order.rs");
-include!("PresentMultiple.rs");
-include!("PresentSolitary.rs");
+include!("OwnedRecord.rs");
+include!("OwnerNameToRecords.rs");
+include!("OwnerNameToRecordsValue.rs");
+include!("ParsedRecord.rs");
 include!("Priority.rs");
+include!("PriorityToSortedRecordsMap.rs");
+include!("PriorityToUnsortedRecordsMap.rs");
 include!("PriorityToWeightedRecordsMap.rs");
-include!("Records.rs");
+include!("SolitaryRecords.rs");
 include!("WeightedRecords.rs");
 include!("Weight.rs");

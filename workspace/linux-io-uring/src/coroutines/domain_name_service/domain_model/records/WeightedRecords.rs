@@ -6,16 +6,16 @@
 ///
 /// This implementation of that algorithm fails if there are `(2^64 - 1) / (2^16 - 1)` or more `self.weighted` records, which is not possible for DNS.
 #[derive(Debug)]
-pub(crate) struct WeightedRecords<Record: Sized + Debug>
+pub(crate) struct WeightedRecords<OR: OwnedRecord>
 {
-	weightless: Vec<Rc<Record>>,
+	weightless: Vec<Rc<OR>>,
 	
-	weighted: Vec<(NonZeroU16, Rc<Record>)>,
+	weighted: Vec<(NonZeroU16, Rc<OR>)>,
 	
 	current_sum_of_all_weighted: u64,
 }
 
-impl<Record: Sized + Debug> Clone for WeightedRecords<Record>
+impl<OR: OwnedRecord> Clone for WeightedRecords<OR>
 {
 	#[inline(always)]
 	fn clone(&self) -> Self
@@ -31,9 +31,9 @@ impl<Record: Sized + Debug> Clone for WeightedRecords<Record>
 	}
 }
 
-impl<Record: Sized + Debug> Iterator for WeightedRecords<Record>
+impl<OR: OwnedRecord> Iterator for WeightedRecords<OR>
 {
-	type Item = Rc<Record>;
+	type Item = Rc<OR>;
 	
 	/// Approach designed to support RFC 2782, Page 3, "Weight", paragraph 2 to Page 4, paragraph 3.
 	#[inline(always)]
@@ -91,10 +91,10 @@ impl<Record: Sized + Debug> Iterator for WeightedRecords<Record>
 	}
 }
 
-impl<Record: Sized + Debug> WeightedRecords<Record>
+impl<OR: ParsedRecord> WeightedRecords<OR>
 {
 	#[inline(always)]
-	fn new_for_one_record(weight: Weight, record: Record) -> Self
+	fn new_for_one_record(weight: Weight, record: OR) -> Self
 	{
 		let record = Rc::new(record);
 		if likely!(weight.is_weightless())
@@ -129,7 +129,7 @@ impl<Record: Sized + Debug> WeightedRecords<Record>
 	}
 	
 	#[inline(always)]
-	fn add(&mut self, weight: Weight, record: Record)
+	fn add(&mut self, weight: Weight, record: OR)
 	{
 		let record = Rc::new(record);
 		if likely!(weight.is_weightless())

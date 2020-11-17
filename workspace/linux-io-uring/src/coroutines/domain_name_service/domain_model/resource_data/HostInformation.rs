@@ -19,6 +19,23 @@ pub struct HostInformation<CS: CharacterString>
 	pub os: CS,
 }
 
+impl<'message> ParsedRecord for HostInformation<ParsedCharacterString<'message>>
+{
+	type OrderPriorityAndWeight = ();
+	
+	type OwnedRecord = HostInformation<OwnedCharacterString>;
+	
+	#[inline(always)]
+	fn into_owned_record(self) -> Self::OwnedRecord
+	{
+		HostInformation
+		{
+			cpu: self.cpu.into(),
+			os: self.os.into(),
+		}
+	}
+}
+
 impl<CS: CharacterString> HostInformation<CS>
 {
 	/// Is this a RFC 8482 answer to the `ANY` / `*` `QTYPE` question?
@@ -33,18 +50,5 @@ impl<CS: CharacterString> HostInformation<CS>
 	pub fn is_cloudflare_answer_to_any_question(&self) -> bool
 	{
 		self.cpu.deref() == b"ANY obsoleted" && self.os == b"See draft-ietf-dnsop-refuse-any"
-	}
-}
-
-impl<'message> Into<HostInformation<OwnedCharacterString>> for HostInformation<ParsedCharacterString<'message>>
-{
-	#[inline(always)]
-	fn into(self) -> HostInformation<OwnedCharacterString>
-	{
-		HostInformation
-		{
-			cpu: self.cpu.into(),
-			os: self.os.into(),
-		}
 	}
 }

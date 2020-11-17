@@ -19,6 +19,7 @@ pub mod resolution_services;
 pub mod s_naptr;
 
 
+include!("e164_naming_authority_pointer_service_field_parse.rs");
 include!("IgnoredServiceFieldReason.rs");
 include!("RegularExpressionResolvingToUriOrQueryNaptrResourceRecord.rs");
 include!("RegularExpressionResolvingToUriOrQueryUriResourceRecord.rs");

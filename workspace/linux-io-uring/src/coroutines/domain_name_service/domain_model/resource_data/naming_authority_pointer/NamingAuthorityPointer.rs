@@ -9,13 +9,13 @@
 #[strum_discriminants(derive(PartialOrd))]
 #[strum_discriminants(derive(Ord))]
 #[strum_discriminants(derive(Hash))]
-pub enum NamingAuthorityPointer<'label, N: Name<'label, TypeEquality=TE>, OOPU: OwnedOrParsedUri<TypeEquality=TE>, CS: CharacterString<TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
+pub enum NamingAuthorityPointer<N: Name<TypeEquality=TE>, OOPU: OwnedOrParsedUri<TypeEquality=TE>, CS: CharacterString<TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
 {
 	/// A non-terminal, empty service field is one without any terminal flags *or* the `P` flag.
 	NonTerminalAndEmpty
 	{
 		/// Most of the time, a domain name is returned that then should be queried for `NAPTR`
-		domain_name_or_regular_expression: RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord<'label, N, CS>,
+		domain_name_or_regular_expression: RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord<N, CS>,
 	},
 	
 	/// Legacy "Full" NAPTR (ie not S-NAPTR or U-NAPTR).
@@ -29,12 +29,12 @@ pub enum NamingAuthorityPointer<'label, N: Name<'label, TypeEquality=TE>, OOPU: 
 	Enum
 	{
 		/// Will never be empty.
-		enum_services: &'static IndexSet<EnumService>,
+		enum_services: IndexSet<EnumService>,
 		
 		/// Either a regular expression which resolves to an URI is provided, or a domain is provided which should be queried for `URI` resource records.
 		///
 		/// The later is highly unlikely.
-		domain_name_or_regular_expression: RegularExpressionResolvingToUriOrQueryUriResourceRecord<'label, N, CS>,
+		domain_name_or_regular_expression: RegularExpressionResolvingToUriOrQueryUriResourceRecord<N, CS>,
 	},
 	
 	/// Unofficial (unregistered witbh IANA) use of U-NAPTR which uses U-NAPTR-incompatible regular expressions.
@@ -53,7 +53,7 @@ pub enum NamingAuthorityPointer<'label, N: Name<'label, TypeEquality=TE>, OOPU: 
 		/// Either a regular expression which resolves to an URI is provided, or a domain is provided which should be queried for `URI` resource records.
 		///
 		/// The later is highly unlikely.
-		domain_name_or_regular_expression: RegularExpressionResolvingToUriOrQueryUriResourceRecord<'label, N, CS>,
+		domain_name_or_regular_expression: RegularExpressionResolvingToUriOrQueryUriResourceRecord<N, CS>,
 	},
 	
 	/// Legacy "Full" NAPTR (ie not S-NAPTR or U-NAPTR).
@@ -65,7 +65,7 @@ pub enum NamingAuthorityPointer<'label, N: Name<'label, TypeEquality=TE>, OOPU: 
 		resolution_service: SessionInitiationProtocolResolutionService,
 	
 		/// What to query for next at `domain_name`.
-		query_for_next: QueryResourceRecord<'label, N>,
+		query_for_next: QueryResourceRecord<N>,
 	},
 	
 	/// U-NAPTR.
@@ -82,7 +82,7 @@ pub enum NamingAuthorityPointer<'label, N: Name<'label, TypeEquality=TE>, OOPU: 
 		/// Either a URI is provided, or a domain is provided which should be queried for `URI` resource records.
 		///
 		/// The later is highly unlikely.
-		uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord<'label, N, OOPU>,
+		uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord<N, OOPU>,
 	},
 	
 	/// U-NATPR-like.
@@ -99,7 +99,7 @@ pub enum NamingAuthorityPointer<'label, N: Name<'label, TypeEquality=TE>, OOPU: 
 		/// Either a URI is provided, or a domain is provided which should be queried for `URI` resource records.
 		///
 		/// The later is highly unlikely.
-		uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord<'label, N, OOPU>,
+		uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord<N, OOPU>,
 	},
 	
 	/// S-NAPTR.
@@ -122,7 +122,7 @@ pub enum NamingAuthorityPointer<'label, N: Name<'label, TypeEquality=TE>, OOPU: 
 		transport_protocols: &'static HashSet<DiameterTransportProtocol>,
 		
 		/// What to query for next at `domain_name`.
-		query_for_next: QueryResourceRecord<'label, N>,
+		query_for_next: QueryResourceRecord<N>,
 	},
 	
 	/// S-NAPTR.
@@ -145,7 +145,7 @@ pub enum NamingAuthorityPointer<'label, N: Name<'label, TypeEquality=TE>, OOPU: 
 		transport_protocols: &'static HashSet<RadiusTransportProtocol>,
 		
 		/// What to query for next at `domain_name`.
-		query_for_next: QueryResourceRecord<'label, N>,
+		query_for_next: QueryResourceRecord<N>,
 	},
 	
 	/// U-NAPTR.
@@ -162,7 +162,7 @@ pub enum NamingAuthorityPointer<'label, N: Name<'label, TypeEquality=TE>, OOPU: 
 		/// Either a URI is provided, or a domain is provided which should be queried for `URI` resource records.
 		///
 		/// The later is highly unlikely.
-		uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord<'label, N, OOPU>,
+		uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord<N, OOPU>,
 	},
 	
 	/// U-NAPTR.
@@ -179,7 +179,7 @@ pub enum NamingAuthorityPointer<'label, N: Name<'label, TypeEquality=TE>, OOPU: 
 		/// Either a URI is provided, or a domain is provided which should be queried for `URI` resource records.
 		///
 		/// The later is highly unlikely.
-		uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord<'label, N, OOPU>,
+		uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord<N, OOPU>,
 	},
 	
 	/// S-NAPTR.
@@ -195,7 +195,7 @@ pub enum NamingAuthorityPointer<'label, N: Name<'label, TypeEquality=TE>, OOPU: 
 		transport_protocols: &'static HashSet<InternetRegistryInformationServiceTransportProtocol>,
 		
 		/// What to query for next at `domain_name`.
-		query_for_next: QueryResourceRecord<'label, N>,
+		query_for_next: QueryResourceRecord<N>,
 	},
 	
 	/// U-NAPTR.
@@ -218,7 +218,7 @@ pub enum NamingAuthorityPointer<'label, N: Name<'label, TypeEquality=TE>, OOPU: 
 		/// Either a URI is provided, or a domain is provided which should be queried for `URI` resource records.
 		///
 		/// The later is highly unlikely.
-		uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord<'label, N, OOPU>,
+		uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord<N, OOPU>,
 	},
 	
 	/// S-NAPTR.
@@ -234,7 +234,7 @@ pub enum NamingAuthorityPointer<'label, N: Name<'label, TypeEquality=TE>, OOPU: 
 		transport_protocols: &'static HashSet<TraversalUsingRelaysAroundNetworkAddressTranslationTransportProtocol>,
 		
 		/// What to query for next at `domain_name`.
-		query_for_next: QueryResourceRecord<'label, N>,
+		query_for_next: QueryResourceRecord<N>,
 	},
 	
 	/// U-NAPTR.
@@ -254,14 +254,14 @@ pub enum NamingAuthorityPointer<'label, N: Name<'label, TypeEquality=TE>, OOPU: 
 		/// Either a URI is provided, or a domain is provided which should be queried for `URI` resource records.
 		///
 		/// The later is highly unlikely.
-		uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord<'label, N, OOPU>,
+		uri_or_query_for_uri_resource_record_next: UriOrQueryUriResourceRecord<N, OOPU>,
 	},
 }
 
-impl<'message> Into<NamingAuthorityPointer<'static, EfficientCaseFoldedName, OwnedUri, OwnedCharacterString>> for ServiceField<'message, ParsedName<'message>, ParsedUri<'message>, ParsedCharacterString<'message>>
+impl<'message> Into<NamingAuthorityPointer<EfficientCaseFoldedName, OwnedUri, OwnedCharacterString>> for NamingAuthorityPointer<ParsedName<'message>, ParsedUri<'message>, ParsedCharacterString<'message>>
 {
 	#[inline(always)]
-	fn into(self) -> NamingAuthorityPointer<'static, EfficientCaseFoldedName, OwnedUri, OwnedCharacterString>
+	fn into(self) -> NamingAuthorityPointer<EfficientCaseFoldedName, OwnedUri, OwnedCharacterString>
 	{
 		use self::NamingAuthorityPointer::*;
 		

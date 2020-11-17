@@ -4,9 +4,9 @@
 
 /// Known to exist.
 #[derive(Debug)]
-pub struct Exists<Record: Sized + Debug>(PriorityToWeightedRecordsMap<Record>);
+pub struct Exists<R: ParsedRecord>(PriorityToWeightedRecordsMap<R>);
 
-impl<Record: Sized + Debug> Exists<Record>
+impl<R: ParsedRecord> Exists<ParsedRecord>
 {
 	/// Iterate destructively.
 	///
@@ -14,7 +14,7 @@ impl<Record: Sized + Debug> Exists<Record>
 	///
 	/// Does not implement `IntoIterator` as we do not know `IntoIterator::IntoIter`'s type.
 	#[inline(always)]
-	pub fn into_iter(self) -> impl Iterator<Item=Rc<Record>>
+	pub fn into_iter(self) -> impl Iterator<Item=Rc<ParsedRecord>>
 	{
 		(self.0).0.into_iter().flat_map(|(_priority, sorted_weighted_records)| sorted_weighted_records)
 	}

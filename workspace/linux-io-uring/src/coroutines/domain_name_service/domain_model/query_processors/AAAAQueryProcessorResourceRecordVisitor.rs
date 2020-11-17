@@ -6,25 +6,25 @@ pub(crate) struct AAAAQueryProcessorResourceRecordVisitor<'message>
 {
 	query_name: &'message EfficientCaseFoldedName,
 	
-	present: Records<Ipv6Addr>,
+	records: OwnerNameToRecords<Ipv6Addr, ()>,
 }
 
 impl<'message> ResourceRecordVisitor<'message> for AAAAQueryProcessorResourceRecordVisitor<'message>
 {
 	type Error = Infallible;
 	
-	type Finished = Records<Ipv6Addr>;
+	type Finished = OwnerNameToRecords<Ipv6Addr>;
 	
 	#[inline(always)]
 	fn finished(self) -> Self::Finished
 	{
-		self.present
+		self.records
 	}
 	
 	#[inline(always)]
 	fn AAAA(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: Ipv6Addr) -> Result<(), Self::Error>
 	{
-		self.records.store_unprioritized_and_unweighted(&name, cache_until, record);
+		self.records.add(name, cache_until, record, ());
 		Ok(())
 	}
 }

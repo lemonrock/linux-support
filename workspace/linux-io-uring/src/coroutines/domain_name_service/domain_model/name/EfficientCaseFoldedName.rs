@@ -114,14 +114,14 @@ impl HasTypeEquality for EfficientCaseFoldedName
 	type TypeEquality = OwnedTypeEquality;
 }
 
-impl<'label> Name<'label> for EfficientCaseFoldedName
+impl Name for EfficientCaseFoldedName
 {
-	type Label = EfficientCaseFoldedLabel<'label>;
+	type Label<'label> = EfficientCaseFoldedLabel<'label>;
 	
 	#[inline(always)]
 	fn parent(&self) -> Option<Self>
 	{
-		self.inner.parent().map(|(inner, child_label_length)| Self
+		self.inner.parent().map(|(inner, child_label_length_excluding_trailing_period)| Self
 		{
 			name_length_including_trailing_periods_after_labels: new_non_zero_u8(self.name_length_including_trailing_periods_after_labels.get() - (child_label_length_excluding_trailing_period.get() + 1)),
 			inner
@@ -129,7 +129,7 @@ impl<'label> Name<'label> for EfficientCaseFoldedName
 	}
 	
 	#[inline(always)]
-	fn label(&'label self, index: u8) -> Self::Label
+	fn label<'label>(&'label self, index: u8) -> Self::Label
 	{
 		self.inner.label(index)
 	}
@@ -618,7 +618,7 @@ impl EfficientCaseFoldedName
 		
 		Self
 		{
-			name_length_including_trailing_periods_after_labels: non_new_non_zero_u8
+			name_length_including_trailing_periods_after_labels: new_non_zero_u8
 			(
 				(NibbleLabelSize * NumberOfNibbles)
 				+ EfficientCaseFoldedLabel::in_addr.length_including_trailing_period().get()

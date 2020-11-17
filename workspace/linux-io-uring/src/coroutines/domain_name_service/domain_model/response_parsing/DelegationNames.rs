@@ -3,37 +3,27 @@
 
 
 #[derive(Debug)]
-pub(crate) enum PresentSolitary<Record: Sized + Debug>
-{
-	/// One-time use.
-	UseOnce
-	{
-		as_of_now: NanosecondsSinceUnixEpoch,
-		
-		record: Record,
-	},
+pub(crate) struct DelegationNames(HashMap<EfficientCaseFoldedName, (CacheUntil, EfficientCaseFoldedName)>);
 
-	/// Cached.
-	Cached
-	{
-		cached_until: NanosecondsSinceUnixEpoch,
-		
-		record: Record,
-	}
-}
-
-impl<Record: Sized + Debug> PresentSolitary<Record>
+impl DelegationNames
 {
 	#[inline(always)]
-	pub(crate) fn new(cache_until: CacheUntil, record: Record) -> Self
+	pub(crate) fn with_capacity(capacity: usize) -> Self
 	{
-		use self::PresentSolitary::*;
-		
-		match cache_until
+		Self(HashMap::with_capacity(capacity))
+	}
+	
+	#[inline(always)]
+	pub(crate) fn store<'message>(&mut self, from: &ParsedName<'message>, cache_until: CacheUntil, to: &ParsedName<'message>) -> Result<(), CanonicalChainError>
+	{
+		let old = self.0.insert(EfficientCaseFoldedName::from(from), (cache_until, EfficientCaseFoldedName::from(to)));
+		if unlikely!(old.is_some())
 		{
-			CacheUntil::UseOnce { as_of_now } => UseOnce { as_of_now, record },
-			
-			CacheUntil::Cached { cached_until } => Cached { cached_until, record }
+			Err(CanonicalChainError::MoreThanOneDNAMEWithTheSameOwnerName)
+		}
+		else
+		{
+			Ok(())
 		}
 	}
 }

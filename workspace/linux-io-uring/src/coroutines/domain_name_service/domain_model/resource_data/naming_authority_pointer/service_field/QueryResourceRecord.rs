@@ -12,34 +12,30 @@
 /// * `InternetRegistryInformationService`.
 /// * `TraversalUsingRelaysAroundNetworkAddressTranslation`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct QueryResourceRecord<'label, N: Name<'label>>
+pub struct QueryResourceRecord<N: Name>
 {
 	/// Domain name.
 	pub domain_name: N,
 	
 	/// What to query for next at `domain_name`.
 	pub query_for_next: QueryForNext,
-
-	pub(crate) marker: PhantomData<&'label ()>,
 }
 
-impl<'message> Into<QueryResourceRecord<'static, EfficientCaseFoldedName>> for QueryResourceRecord<'message, ParsedName<'message>>
+impl<'message> Into<QueryResourceRecord<EfficientCaseFoldedName>> for QueryResourceRecord<ParsedName<'message>>
 {
 	#[inline(always)]
-	fn into(self) -> QueryResourceRecord<'static, EfficientCaseFoldedName>
+	fn into(self) -> QueryResourceRecord<EfficientCaseFoldedName>
 	{
 		QueryResourceRecord
 		{
 			domain_name: EfficientCaseFoldedName::from(self.domain_name),
 			
 			query_for_next: self.query_for_next,
-		
-			marker: PhantomData,
 		}
 	}
 }
 
-impl<'message> QueryResourceRecord<'message, ParsedName<'message>>
+impl<'message> QueryResourceRecord<ParsedName<'message>>
 {
 	#[inline(always)]
 	fn new(domain_name: ParsedName<'message>, query_for_next: QueryForNext) -> Result<Self, IgnoredServiceFieldReason>
@@ -50,7 +46,6 @@ impl<'message> QueryResourceRecord<'message, ParsedName<'message>>
 			{
 				domain_name,
 				query_for_next,
-				marker: PhantomData,
 			}
 		)
 	}

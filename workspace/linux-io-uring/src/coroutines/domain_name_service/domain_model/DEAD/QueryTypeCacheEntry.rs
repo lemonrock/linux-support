@@ -3,18 +3,18 @@
 
 
 #[derive(Debug)]
-pub(crate) enum QueryTypeCacheEntry<'cache, Record: Sized + Debug>
+pub(crate) enum QueryTypeCacheEntry<'cache, Record: Record>
 {
 	/// One-time use.
-	AbsentUseOnce(Rc<StartOfAuthority<'static, EfficientCaseFoldedName>>),
+	AbsentUseOnce(Rc<StartOfAuthority<EfficientCaseFoldedName>>),
 	
 	/// Negatively cached.
-	AbsentNegativelyCached(NanosecondsSinceUnixEpoch, Rc<StartOfAuthority<'static, EfficientCaseFoldedName>>),
+	AbsentNegativelyCached(NanosecondsSinceUnixEpoch, Rc<StartOfAuthority<EfficientCaseFoldedName>>),
 	
 	Present(PresentMultiple<Record>),
 }
 
-impl<'cache, Record: Sized + Debug> LeastRecentlyUsedCacheValue for QueryTypeCacheEntry<'cache, Record>
+impl<'cache, Record: Record> LeastRecentlyUsedCacheValue for QueryTypeCacheEntry<'cache, Record>
 {
 	#[inline(always)]
 	fn records_count(&self) -> NonZeroUsize

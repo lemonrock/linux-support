@@ -4,28 +4,26 @@
 
 struct AQueryProcessor;
 
-impl<'cache> QueryProcessor<'cache> for AQueryProcessor
+impl QueryProcessor for AQueryProcessor
 {
 	const DT: DataType = DataType::A;
 	
-	type Record = Ipv4Addr;
+	type PR<'message> = Ipv4Addr;
 	
-	type RRV<'message> where 'cache: 'message = AQueryProcessorResourceRecordVisitor<'cache, 'message>;
+	type RRV<'message> = AQueryProcessorResourceRecordVisitor<'message>;
 	
 	fn new<'message>(query_name: &'message EfficientCaseFoldedName) -> Self::RRV<'message>
-	where 'cache: 'message
 	{
 		AQueryProcessorResourceRecordVisitor
 		{
 			query_name,
-			present: PresentMultiple::default(),
+			records: OwnerNameToRecords::default(),
 		}
 	}
 	
 	#[inline(always)]
-	fn answered<'message>(finished: <<Self as QueryProcessor<'cache>>::RRV<'message> as ResourceRecordVisitor<'message>>::Finished, query_name: &'message EfficientCaseFoldedName, cache: &mut Cache<'cache>)
-	where 'cache: 'message
+	fn store_records_in_query_types_cache<'message>(query_types_cache: &mut QueryTypesCache, records: OwnerNameToRecordValue<Self::PR<'message>>)
 	{
-		cache.a_query_type_cache.put_present_all_the_same_name(query_name.clone(), finished)
+		query_types_cache.store_A(records)
 	}
 }

@@ -4,7 +4,7 @@
 
 /// This value will have been validated to be correct for the Service Field.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum UriOrQueryUriResourceRecord<'label, N: Name<'label, TypeEquality=TE>, OOPU: OwnedOrParsedUri<TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
+pub enum UriOrQueryUriResourceRecord<N: Name<TypeEquality=TE>, OOPU: OwnedOrParsedUri<TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
 {
 	/// An URI.
 	///
@@ -18,13 +18,13 @@ pub enum UriOrQueryUriResourceRecord<'label, N: Name<'label, TypeEquality=TE>, O
 	/// This will be the case if a `D` flag was present.
 	///
 	/// This is very unlikely.
-	DomainName((N, PhantomData<&'label ()>)),
+	DomainName((N)),
 }
 
-impl<'message> Into<Replacement<'static, EfficientCaseFoldedName, OwnedUri>> for UriOrQueryUriResourceRecord<'message, ParsedName<'message>, ParsedUri<'message>>
+impl<'message> Into<Replacement<EfficientCaseFoldedName, OwnedUri>> for UriOrQueryUriResourceRecord<ParsedName<'message>, ParsedUri<'message>>
 {
 	#[inline(always)]
-	fn into(self) -> UriOrQueryUriResourceRecord<'static, EfficientCaseFoldedName, OwnedUri>
+	fn into(self) -> UriOrQueryUriResourceRecord<EfficientCaseFoldedName, OwnedUri>
 	{
 		use self::UriOrQueryUriResourceRecord::*;
 		
@@ -32,12 +32,12 @@ impl<'message> Into<Replacement<'static, EfficientCaseFoldedName, OwnedUri>> for
 		{
 			UniformResourceIdentifier(uri) => UniformResourceIdentifier(OwnedUri::from(uri)),
 			
-			DomainName(domain_name) => DomainName((EfficientCaseFoldedName::from(domain_name), PhantomData)),
+			DomainName(domain_name) => DomainName(EfficientCaseFoldedName::from(domain_name)),
 		}
 	}
 }
 
-impl<'message> UriOrQueryUriResourceRecord<'message, ParsedName<'message>, ParsedUri<'message>>
+impl<'message> UriOrQueryUriResourceRecord<ParsedName<'message>, ParsedUri<'message>>
 {
 	#[inline(always)]
 	fn parse_SessionInitiationProtocolUserAgentConfiguration(replacement_domain_name_or_raw_regular_expression: Either<ParsedName<'message>, ParsedCharacterString<'message>>, mutually_exclusive_flag: Option<NamingAuthorityMutuallyExclusiveFlag>) -> Result<Self, IgnoredServiceFieldReason>
@@ -86,7 +86,7 @@ impl<'message> UriOrQueryUriResourceRecord<'message, ParsedName<'message>, Parse
 		
 		match (replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)
 		{
-			(Left(domain_name), Some(D)) => Ok(DomainName((domain_name, PhantomData))),
+			(Left(domain_name), Some(D)) => Ok(DomainName(domain_name)),
 			
 			(Left(_), _) => Err(InvalidCombinationOfDomainNameAndFlag(service_field_kind, mutually_exclusive_flag)),
 			

@@ -29,7 +29,7 @@ pub(crate) trait ResourceRecordVisitor<'message>
 	/// Default implementation does nothing.
 	#[allow(unused)]
 	#[inline(always)]
-	fn NS(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: ParsedName<'message>) -> Result<(), Self::Error>
+	fn NS(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: NameServerName<ParsedName<'message>>) -> Result<(), Self::Error>
 	{
 		Ok(())
 	}
@@ -39,7 +39,7 @@ pub(crate) trait ResourceRecordVisitor<'message>
 	/// Default implementation does nothing.
 	#[allow(unused)]
 	#[inline(always)]
-	fn SOA(&mut self, name: ParsedName<'message>, negative_cache_until: NegativeCacheUntil, record: StartOfAuthority<'message, ParsedName<'message>>) -> Result<(), Self::Error>
+	fn SOA(&mut self, name: ParsedName<'message>, negative_cache_until: NegativeCacheUntil, record: StartOfAuthority<ParsedName<'message>>) -> Result<(), Self::Error>
 	{
 		Ok(())
 	}
@@ -69,7 +69,7 @@ pub(crate) trait ResourceRecordVisitor<'message>
 	/// Default implementation does nothing.
 	#[allow(unused)]
 	#[inline(always)]
-	fn MX(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, preference: Priority, mail_server_name: ParsedName<'message>) -> Result<(), Self::Error>
+	fn MX(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, preference: Priority, mail_server_name: MailServerName<ParsedName<'message>>) -> Result<(), Self::Error>
 	{
 		Ok(())
 	}
@@ -121,7 +121,7 @@ pub(crate) trait ResourceRecordVisitor<'message>
 	/// Default implementation does nothing.
 	#[allow(unused)]
 	#[inline(always)]
-	fn SRV(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, priority: Priority, weight: Weight, record: ServiceLocation<'message>) -> Result<(), Self::Error>
+	fn SRV(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, priority: Priority, weight: Weight, record: ServiceLocation<ParsedName<'message>>) -> Result<(), Self::Error>
 	{
 		Ok(())
 	}
@@ -229,7 +229,7 @@ pub(crate) trait ResourceRecordVisitor<'message>
 	/// Note that the leading bytes of the exponent and modulus are unchecked for a RSA public key.
 	#[allow(unused)]
 	#[inline(always)]
-	fn IPSECKEY(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, precedence: Priority, record: IpsecPublicKey<'message, ParsedName<'message>, ParsedBytes<'message>, ParsedTypeEquality>) -> Result<(), Self::Error>
+	fn IPSECKEY(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, precedence: Priority, record: IpsecPublicKey<ParsedName<'message>, ParsedBytes<'message>, ParsedTypeEquality>) -> Result<(), Self::Error>
 	{
 		Ok(())
 	}
@@ -248,7 +248,7 @@ pub(crate) trait ResourceRecordVisitor<'message>
 	/// Default implementation does nothing.
 	#[allow(unused)]
 	#[inline(always)]
-	fn NSEC(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: NextSecure<'message, ParsedName<'message>>) -> Result<(), Self::Error>
+	fn NSEC(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: NextSecure<ParsedName<'message>>) -> Result<(), Self::Error>
 	{
 		Ok(())
 	}
@@ -258,7 +258,7 @@ pub(crate) trait ResourceRecordVisitor<'message>
 	/// Default implementation does nothing.
 	#[allow(unused)]
 	#[inline(always)]
-	fn RRSIG(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: ResourceRecordSetSignature<'message, ParsedName<'message>, ParsedBytes<'message>, ParsedTypeEquality>, is_some_if_present_in_answer_section_and_true_if_was_queried_for: Option<bool>) -> Result<(), Self::Error>
+	fn RRSIG(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: ResourceRecordSetSignature<ParsedName<'message>, ParsedBytes<'message>, ParsedTypeEquality>, is_some_if_present_in_answer_section_and_true_if_was_queried_for: Option<bool>) -> Result<(), Self::Error>
 	{
 		Ok(())
 	}
@@ -393,7 +393,7 @@ pub(crate) trait ResourceRecordVisitor<'message>
 	/// Default implementation does nothing.
 	#[allow(unused)]
 	#[inline(always)]
-	fn HIP(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: HostIdentityProtocol<'message, ParsedName<'message>, ParsedBytes<'message>, ParsedTypeEquality>) -> Result<(), Self::Error>
+	fn HIP(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: HostIdentityProtocol<ParsedName<'message>, ParsedBytes<'message>, ParsedTypeEquality>) -> Result<(), Self::Error>
 	{
 		Ok(())
 	}
@@ -513,7 +513,7 @@ pub(crate) trait ResourceRecordVisitor<'message>
 	/// Default implementation does nothing.
 	#[allow(unused)]
 	#[inline(always)]
-	fn LP(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, preference: Priority, record: LocatorPointer<'message, ParsedName<'message>>) -> Result<(), Self::Error>
+	fn LP(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, preference: Priority, record: LocatorPointer<ParsedName<'message>>) -> Result<(), Self::Error>
 	{
 		Ok(())
 	}

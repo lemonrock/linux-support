@@ -4,13 +4,11 @@
 
 /// Next secure (`NSEC`).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct NextSecure<'label, N: Name<'label>>
+pub struct NextSecure<N: Name>
 {
 	/// Next domain name.
 	pub next_domain_name: N,
 
 	/// Type bitmaps.
 	pub type_bitmaps: TypeBitmaps,
-
-	pub(crate) marker: PhantomData,
 }

@@ -3,24 +3,9 @@
 
 
 #[derive(Debug)]
-struct PriorityToWeightedRecordsMap<Record: Sized + Debug>(BTreeMap<Priority, WeightedRecords<Record>>);
+struct PriorityToWeightedRecordsMap<OR: OwnedRecord>(BTreeMap<Priority, WeightedRecords<OR>>);
 
-impl<Record: Sized + Debug> Clone for PriorityToWeightedRecordsMap<Record>
-{
-	// NOTE: We cannot rely on `#[derive(Clone)]` or `BTreeMap.clone()` as both require `Record` to implement `Clone`; however, since `Record` is actually `Rc<Record>`, this constraint is not valid.
-	#[inline(always)]
-	fn clone(&self) -> Self
-	{
-		let mut btree_map = BTreeMap::new();
-		for (priority, sorted_weighted_records) in self.iter()
-		{
-			btree_map.insert(*priority, sorted_weighted_records.clone());
-		}
-		Self(btree_map)
-	}
-}
-
-impl<Record: Sized + Debug> Default for PriorityToWeightedRecordsMap<Record>
+impl<OR: OwnedRecord> Default for PriorityToWeightedRecordsMap<OR>
 {
 	#[inline(always)]
 	fn default() -> Self
@@ -29,9 +14,9 @@ impl<Record: Sized + Debug> Default for PriorityToWeightedRecordsMap<Record>
 	}
 }
 
-impl<Record: Sized + Debug> Deref for PriorityToWeightedRecordsMap<Record>
+impl<OR: OwnedRecord> Deref for PriorityToWeightedRecordsMap<OR>
 {
-	type Target = BTreeMap<Priority, WeightedRecords<Record>>;
+	type Target = BTreeMap<Priority, WeightedRecords<OR>>;
 	
 	#[inline(always)]
 	fn deref(&self) -> &Self::Target
@@ -40,7 +25,7 @@ impl<Record: Sized + Debug> Deref for PriorityToWeightedRecordsMap<Record>
 	}
 }
 
-impl<Record: Sized + Debug> DerefMut for PriorityToWeightedRecordsMap<Record>
+impl<OR: OwnedRecord> DerefMut for PriorityToWeightedRecordsMap<OR>
 {
 	#[inline(always)]
 	fn deref_mut(&mut self) -> &mut Self::Target
@@ -49,10 +34,10 @@ impl<Record: Sized + Debug> DerefMut for PriorityToWeightedRecordsMap<Record>
 	}
 }
 
-impl<Record: Sized + Debug> PriorityToWeightedRecordsMap<Record>
+impl<OR: OwnedRecord> PriorityToWeightedRecordsMap<OR>
 {
 	#[inline(always)]
-	fn insert(&mut self, priority: Priority, weight: Weight, record: Record)
+	fn add(&mut self, priority: Priority, weight: Weight, record: OR)
 	{
 		use std::collections::btree_map::Entry::*;
 		
@@ -66,21 +51,10 @@ impl<Record: Sized + Debug> PriorityToWeightedRecordsMap<Record>
 			Occupied(mut occupied) =>
 			{
 				let occupied = occupied.get_mut();
-				debug_assert!(!occupied.is_empty(), "If occupied is empty, then we've populated `Present` incorrectly");
+				debug_assert!(!occupied.is_empty(), "If occupied is empty, then we've populated `PriorityToWeightedRecordsMap` incorrectly");
 				
 				occupied.add(weight, record)
 			},
 		}
-	}
-	
-	#[inline(always)]
-	fn records_count(&self) -> usize
-	{
-		let mut expired_record_count = 0;
-		for expired_sorted_weighed_records in self.0.values()
-		{
-			expired_record_count += expired_sorted_weighed_records.record_count()
-		}
-		expired_record_count
 	}
 }

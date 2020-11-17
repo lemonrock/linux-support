@@ -2,17 +2,46 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #[derive(Debug)]
-pub(crate) struct PresentMultiple<Record: Sized + Debug>
+pub(crate) struct PresentMultiple<R: ParsedRecord>
 {
 	/// One-time use.
-	use_once: PriorityToWeightedRecordsMap<Record>,
+	use_once: PriorityToWeightedRecordsMap<R>,
 	
 	/// Cached.
-	cached: BTreeMap<NanosecondsSinceUnixEpoch, PriorityToWeightedRecordsMap<Record>>,
+	cached: BTreeMap<NanosecondsSinceUnixEpoch, PriorityToWeightedRecordsMap<R>>,
 }
 
-impl<Record: Sized + Debug> Clone for PresentMultiple<Record>
+impl<R: ParsedRecord> Clone for PresentMultiple<R>
 {
 	#[inline(always)]
 	fn clone(&self) -> Self
@@ -26,7 +55,7 @@ impl<Record: Sized + Debug> Clone for PresentMultiple<Record>
 	}
 }
 
-impl<Record: Sized + Debug> Default for PresentMultiple<Record>
+impl<R: ParsedRecord> Default for PresentMultiple<R>
 {
 	#[inline(always)]
 	fn default() -> Self
@@ -39,22 +68,22 @@ impl<Record: Sized + Debug> Default for PresentMultiple<Record>
 	}
 }
 
-impl<Record: Sized + Debug> PresentMultiple<Record>
+impl<R: ParsedRecord> PresentMultiple<R>
 {
 	#[inline(always)]
-	pub(crate) fn store_unprioritized_and_unweighted(&mut self, cache_until: CacheUntil, record: Record)
+	pub(crate) fn store_unprioritized_and_unweighted(&mut self, cache_until: CacheUntil, record: R)
 	{
 		self.store_unweighted(cache_until, Priority::Unassigned, record)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn store_unweighted(&mut self, cache_until: CacheUntil, priority_or_preference: Priority, record: Record)
+	pub(crate) fn store_unweighted(&mut self, cache_until: CacheUntil, priority_or_preference: Priority, record: R)
 	{
 		self.store(cache_until, priority_or_preference, Weight::Unassigned, record)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn store(&mut self, cache_until: CacheUntil, priority: Priority, weight: Weight, record: Record)
+	pub(crate) fn store(&mut self, cache_until: CacheUntil, priority: Priority, weight: Weight, record: R)
 	{
 		let priority_to_sorted_weighted_records_map = match cache_until
 		{
@@ -91,7 +120,7 @@ impl<Record: Sized + Debug> PresentMultiple<Record>
 		new_non_zero_usize(records_count)
 	}
 	
-	fn retrieve(&mut self, now: NanosecondsSinceUnixEpoch) -> (QueryTypeCacheResult<Record>, Option<usize>)
+	fn retrieve(&mut self, now: NanosecondsSinceUnixEpoch) -> (QueryTypeCacheResult<ParsedRecord>, Option<usize>)
 	{
 		use self::QueryTypeCacheResult::Nothing;
 		
@@ -152,7 +181,7 @@ impl<Record: Sized + Debug> PresentMultiple<Record>
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn remove_use_once_entries(&mut self) -> (PriorityToWeightedRecordsMap<Record>, usize)
+	fn remove_use_once_entries(&mut self) -> (PriorityToWeightedRecordsMap<ParsedRecord>, usize)
 	{
 		let use_once = take(&mut self.use_once);
 		let expired_records_count = use_once.records_count();
@@ -161,7 +190,7 @@ impl<Record: Sized + Debug> PresentMultiple<Record>
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn remove_expired_cached_entries(&mut self, now: NanosecondsSinceUnixEpoch) -> BTreeMap<NanosecondsSinceUnixEpoch, PriorityToWeightedRecordsMap<Record>>
+	fn remove_expired_cached_entries(&mut self, now: NanosecondsSinceUnixEpoch) -> BTreeMap<NanosecondsSinceUnixEpoch, PriorityToWeightedRecordsMap<ParsedRecord>>
 	{
 		let should_still_be_cached = self.cached.split_off(&now);
 		let expired = replace(&mut self.cached, should_still_be_cached);

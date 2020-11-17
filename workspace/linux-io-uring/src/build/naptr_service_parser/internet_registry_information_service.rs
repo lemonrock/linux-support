@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-fn internet_registry_information_service(code: &mut Code) -> io::Result<HashMap<String, String>>
+fn internet_registry_information_service(code: &mut Code<impl GenerateParseTreeCallback>) -> io::Result<HashMap<String, String>>
 {
 	Ok
 	(

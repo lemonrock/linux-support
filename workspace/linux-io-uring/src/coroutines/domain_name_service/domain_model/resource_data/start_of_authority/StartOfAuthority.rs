@@ -4,7 +4,7 @@
 
 /// Start of Authority (`SOA`) data.
 #[derive(Debug, Clone)]
-pub struct StartOfAuthority<'label, N: Name<'label>>
+pub struct StartOfAuthority<N: Name>
 {
 	/// `MNAME`.
 	///
@@ -51,35 +51,16 @@ pub struct StartOfAuthority<'label, N: Name<'label>>
 	///
 	/// A typical value is between 2 weeks (1,209,600 seconds) and 4 weeks (2,419,200 seconds).
 	pub expire_interval: U31SecondsDuration,
-
-	pub(crate) marker: PhantomData<&'label ()>,
 }
 
-impl<'label, N: Name<'label>> StartOfAuthority<'label, N>
+impl<'message> ParsedRecord for StartOfAuthority<ParsedName<'message>>
 {
-	/// eg `hostmaster` for `hostmaster@example.com`.
-	///
-	/// This has been validated to be at least a second-level domain (ie at least `hostmaster@com`).
-	#[inline(always)]
-	pub fn responsible_person_email_address_name(&'label self) -> N::Label
-	{
-		self.responsible_person_email_address.last_label().unwrap()
-	}
+	type OrderPriorityAndWeight = ();
 	
-	/// eg `example.com` for `hostmaster@example.com`.
-	///
-	/// This has been validated to be at least a second-level domain (ie at least `hostmaster@com`).
+	type OwnedRecord = StartOfAuthority<EfficientCaseFoldedName>;
+	
 	#[inline(always)]
-	pub fn responsible_person_email_address_domain(&'label self) -> N
-	{
-		self.responsible_person_email_address.parent().unwrap()
-	}
-}
-
-impl<'message> Into<StartOfAuthority<'static, EfficientCaseFoldedName>> for StartOfAuthority<'message, ParsedName<'message>>
-{
-	#[inline(always)]
-	fn into(self) -> StartOfAuthority<'static, EfficientCaseFoldedName>
+	fn into_owned_record(self) -> Self::OwnedRecord
 	{
 		StartOfAuthority
 		{
@@ -89,7 +70,27 @@ impl<'message> Into<StartOfAuthority<'static, EfficientCaseFoldedName>> for Star
 			referesh_interval: self.referesh_interval,
 			retry_interval: self.retry_interval,
 			expire_interval: self.expire_interval,
-			marker: PhantomData,
 		}
+	}
+}
+
+impl<N: Name> StartOfAuthority<N>
+{
+	/// eg `hostmaster` for `hostmaster@example.com`.
+	///
+	/// This has been validated to be at least a second-level domain (ie at least `hostmaster@com`).
+	#[inline(always)]
+	pub fn responsible_person_email_address_name<'label>(&'label self) -> N::Label<'label>
+	{
+		self.responsible_person_email_address.last_label().unwrap()
+	}
+	
+	/// eg `example.com` for `hostmaster@example.com`.
+	///
+	/// This has been validated to be at least a second-level domain (ie at least `hostmaster@com`).
+	#[inline(always)]
+	pub fn responsible_person_email_address_domain(&self) -> N
+	{
+		self.responsible_person_email_address.parent().unwrap()
 	}
 }

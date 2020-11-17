@@ -4,7 +4,7 @@
 
 /// A resource record set signature (`RRSIG`).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct ResourceRecordSetSignature<'label, N: Name<'label, TypeEquality=TE>, OOPB: OwnedOrParsedBytes<TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
+pub struct ResourceRecordSetSignature<N: Name<TypeEquality=TE>, OOPB: OwnedOrParsedBytes<TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
 {
 	/// Type covered.
 	///
@@ -31,6 +31,4 @@ pub struct ResourceRecordSetSignature<'label, N: Name<'label, TypeEquality=TE>, 
 
 	/// Required for verifying a signature.
 	pub rrsig_rdata_excluding_signature_field: OOPB,
-
-	pub(crate) marker: PhantomData,
 }

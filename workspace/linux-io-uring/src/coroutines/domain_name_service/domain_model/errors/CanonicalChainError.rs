@@ -19,6 +19,9 @@ pub enum CanonicalChainError
 	
 	/// This avoids a CNAME loop.
 	AddingNameToCanonicalNameChainCreatesALoop,
+
+	/// Duplicate DNAME.
+	MoreThanOneDNAMEWithTheSameOwnerName,
 }
 
 impl Display for CanonicalChainError

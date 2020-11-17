@@ -6,10 +6,10 @@
 ///
 /// It seems to be valid to have both `gateway` and `public_key` as `None`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct IpsecPublicKey<'label, N: Name<'label, TypeEquality=TE>, OOPB: OwnedOrParsedBytes<TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
+pub struct IpsecPublicKey<N: Name<TypeEquality=TE>, OOPB: OwnedOrParsedBytes<TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
 {
 	/// Gateway.
-	pub gateway: Option<Gateway<'label, N>>,
+	pub gateway: Option<Gateway<N>>,
 
 	/// Public key, if any.
 	pub public_key: Option<PublicKey<OOPB>>,

@@ -9,7 +9,7 @@
 /// Identical on-the-wire to the `ADDRESS` field of an existing DNS `A` record.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub struct Locator32(Ipv4Addr);
+pub struct Locator32(pub Ipv4Addr);
 
 impl Display for NodeIdentifier
 {

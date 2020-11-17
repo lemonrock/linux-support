@@ -5,11 +5,19 @@
 use super::*;
 
 
+include!("Alias.rs");
+include!("AliasOrDomainTarget.rs");
+include!("AnsweredError.rs");
 include!("CacheUntil.rs");
 include!("DomainCache.rs");
+include!("DomainCacheEntry.rs");
+include!("DomainTarget.rs");
 include!("Exists.rs");
 include!("LeastRecentlyUsedCache.rs");
 include!("LeastRecentlyUsedCacheValue.rs");
 include!("LeastRecentlyUsedListKeyReference.rs");
 include!("LeastRecentlyUsedListPointer.rs");
 include!("NegativeCacheUntil.rs");
+include!("____NoDataCacheEntry.rs");
+include!("NoDomainCacheEntry.rs");
+include!("QueryTypesCache.rs");

@@ -4,27 +4,24 @@
 
 /// A `SRV` record.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct ServiceLocation<'label, N: Name<'label>>
+pub struct ServiceLocation<N: Name>
 {
 	/// TCP, UDP or SCTP port for the service.
 	pub port: u16,
 
 	/// Must not be an alias; should not use name compression; a value of '.' (ie Root) means the service is unavailable.
 	pub target: N,
-	
-	pub(crate) marker: PhantomData<&'label ()>,
 }
 
-impl<'message> Into<ServiceLocation<'static, EfficientCaseFoldedName>> for ServiceLocation<'message, ParsedName<'message>>
+impl<'message> Into<ServiceLocation<EfficientCaseFoldedName>> for ServiceLocation<ParsedName<'message>>
 {
 	#[inline(always)]
-	fn into(self) -> ServiceLocation<'static, EfficientCaseFoldedName>
+	fn into(self) -> ServiceLocation<EfficientCaseFoldedName>
 	{
 		ServiceLocation
 		{
 			port: self.port,
 			target: EfficientCaseFoldedName::from(self.target),
-			marker: PhantomData,
 		}
 	}
 }

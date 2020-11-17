@@ -2,14 +2,14 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-struct GenerateParseTree<'a>
+struct GenerateParseTree<'a, GPTC: GenerateParseTreeCallback>
 {
-	code: &'a mut Code,
+	code: &'a mut Code<GPTC>,
 }
 
-impl<'a> Deref for GenerateParseTree<'a>
+impl<'a, GPTC: GenerateParseTreeCallback> Deref for GenerateParseTree<'a, GPTC>
 {
-	type Target = Code;
+	type Target = Code<GPTC>;
 	
 	#[inline(always)]
 	fn deref(&self) -> &Self::Target
@@ -18,7 +18,7 @@ impl<'a> Deref for GenerateParseTree<'a>
 	}
 }
 
-impl<'a> DerefMut for GenerateParseTree<'a>
+impl<'a, GPTC: GenerateParseTreeCallback> DerefMut for GenerateParseTree<'a, GPTC>
 {
 	#[inline(always)]
 	fn deref_mut(&mut self) -> &mut Self::Target
@@ -27,9 +27,9 @@ impl<'a> DerefMut for GenerateParseTree<'a>
 	}
 }
 
-impl<'a> GenerateParseTree<'a>
+impl<'a, GPTC: GenerateParseTreeCallback> GenerateParseTree<'a, GPTC>
 {
-	fn new(code: &'a mut Code) -> Self
+	fn new(code: &'a mut Code<GPTC>) -> Self
 	{
 		Self
 		{
@@ -37,30 +37,18 @@ impl<'a> GenerateParseTree<'a>
 		}
 	}
 
-	fn generate(mut self, trie: &NaiveTrie<String>) -> io::Result<()>
+	fn generate(mut self, trie: &NaiveTrie<GPTC>) -> io::Result<()>
 	{
 		self.generate_recursive(&trie)
 	}
 	
-	fn generate_recursive(&mut self, naive_trie_node: &NaiveTrieNode<String>) -> io::Result<()>
+	fn generate_recursive(&mut self, naive_trie_node: &NaiveTrieNode<GPTC>) -> io::Result<()>
 	{
 		let byte_index = self.stack_depth();
 
-		const NoMatchingPattern: &str = "Err(NoMatchingPattern)";
+		let (length_comparison, exact_match_string) = GPTC::length_comparison_and_exact_match_string(byte_index, naive_trie_node.value());
 		
-		let exact_match_string = match byte_index
-		{
-			0 => String::from("RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord::parse(replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)"),
-			
-			_ => match naive_trie_node.value()
-			{
-				None => String::from(NoMatchingPattern),
-				
-				Some(value) => format!("Ok({})", value.as_str()),
-			}
-		};
-		
-		self.push_str(&format!("match (if length == {} {{ return {} }} else {{ *services_field.get_unchecked_safe({}) }})", byte_index, exact_match_string, byte_index))?;
+		self.push_str(&format!("match if length {} {} {{ return {} }} else {{ *services_field.get_unchecked_safe({}) }}", length_comparison, byte_index, exact_match_string, byte_index))?;
 		self.push_new_line()?;
 		self.push_tab_indented_line("{")?;
 		
@@ -76,7 +64,7 @@ impl<'a> GenerateParseTree<'a>
 		let always_invalid_bytes = "byte @ 0x00 ..= b'*' | byte @ b',' | byte @ b'/' | byte @ b';' ..= b'<' | byte @ b'>' ..= b'@' | byte @ b'[' ..= b'`' | byte @ b'{' ..= 0xFF";
 		self.push_tab_indented_line(&format!("\t{} => Err(OutOfRange(byte, {})),", always_invalid_bytes, byte_index))?;
 		self.push_tab_indented_line("")?;
-		self.push_tab_indented_line(&format!("\t_ => {},", NoMatchingPattern))?;
+		self.push_tab_indented_line(&format!("\t_ => {},", GPTC::NoMatchingPattern))?;
 		
 		if self.stack_depth() == 0
 		{

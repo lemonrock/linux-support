@@ -18,6 +18,7 @@ impl<'a, Element: 'a, V: 'a> AllPermutationsOfASet<'a, Element, V>
 	
 	fn new(inputs: &'a IndexMap<Element, V>) -> Self
 	{
+		eprintln!("XXX:{}", inputs.len() as u32);
 		let capacity = 2usize.pow(inputs.len() as u32);
 		
 		Self

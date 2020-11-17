@@ -5,13 +5,13 @@
 use super::*;
 
 
-// TODO: Will need to case-folded
-#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub struct Key<OOPB: OwnedOrParsedBytes>(OOPB);
-
-
-/// As defined by RFC 6763.
-pub struct DnsServiceDiscoveryAttribute
+// // TODO: Will need to case-folded
+// #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+// pub struct Key<OOPB: OwnedOrParsedBytes>(OOPB);
+//
+//
+// /// As defined by RFC 6763.
+// pub struct DnsServiceDiscoveryAttribute
 
 /*
 	"global underscored node name"

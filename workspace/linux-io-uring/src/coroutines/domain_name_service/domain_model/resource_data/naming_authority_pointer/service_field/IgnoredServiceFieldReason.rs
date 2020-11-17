@@ -60,6 +60,15 @@ pub enum IgnoredServiceFieldReason
 	
 	#[allow(missing_docs)]
 	UNaptrRegularExpressionUriIsNotHttps(ServiceFieldKind, Scheme<'static>),
+	
+	#[allow(missing_docs)]
+	EmptyEnumServicespec,
+	
+	#[allow(missing_docs)]
+	NoMatchingEnumServicespec,
+	
+	#[allow(missing_docs)]
+	DuplicateEnumService(EnumService)
 }
 
 impl Display for IgnoredServiceFieldReason

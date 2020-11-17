@@ -4,7 +4,7 @@
 
 /// Host Identity Protocol (`HIP`) resource record data.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct HostIdentityProtocol<'label, N: Name<'label, TypeEquality=TE>, OOPB: OwnedOrParsedBytes<TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
+pub struct HostIdentityProtocol<N: Name<TypeEquality=TE>, OOPB: OwnedOrParsedBytes<TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
 {
 	/// Host identitiy tag (HIT).
 	pub host_identity_tag: OOPB,
@@ -19,6 +19,4 @@ pub struct HostIdentityProtocol<'label, N: Name<'label, TypeEquality=TE>, OOPB: 
 	///
 	/// Validated to not contain duplicates of the `first_rendezvous_server_domain_name`.
 	pub remaining_rendezvous_server_domain_names: IndexSet<N>,
-
-	pub(crate) marker: PhantomData<&'label ()>,
 }

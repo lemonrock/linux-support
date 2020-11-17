@@ -2,18 +2,18 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(super) struct AllCombinationsAndPermutations<'a>
+pub(super) struct AllCombinationsAndPermutations<'a, GPTC: GenerateParseTreeCallback>
 {
-	code: &'a mut Code,
+	code: &'a mut Code<GPTC>,
 	
 	prefix: &'a str,
 	
 	application_protocol_enum_name: &'static str
 }
 
-impl<'a> Deref for AllCombinationsAndPermutations<'a>
+impl<'a, GPTC: GenerateParseTreeCallback> Deref for AllCombinationsAndPermutations<'a, GPTC>
 {
-	type Target = Code;
+	type Target = Code<GPTC>;
 	
 	#[inline(always)]
 	fn deref(&self) -> &Self::Target
@@ -22,7 +22,7 @@ impl<'a> Deref for AllCombinationsAndPermutations<'a>
 	}
 }
 
-impl<'a> DerefMut for AllCombinationsAndPermutations<'a>
+impl<'a, GPTC: GenerateParseTreeCallback> DerefMut for AllCombinationsAndPermutations<'a, GPTC>
 {
 	#[inline(always)]
 	fn deref_mut(&mut self) -> &mut Self::Target
@@ -31,14 +31,14 @@ impl<'a> DerefMut for AllCombinationsAndPermutations<'a>
 	}
 }
 
-impl<'a> AllCombinationsAndPermutations<'a>
+impl<'a, GPTC: GenerateParseTreeCallback> AllCombinationsAndPermutations<'a, GPTC>
 {
-	pub(super) fn process<'b, Element, V: AsRef<str>>(code: &'a mut Code, prefix: &'a str, application_protocol_enum_name: &'static str, application_protocols: &'b IndexMap<Element, V>) -> io::Result<Vec<(Permutation<'b, Element, V>, Rc<HashOrIndexSetStaticName>)>>
+	pub(super) fn process<'b, Element, V: AsRef<str>>(code: &'a mut Code<GPTC>, prefix: &'a str, application_protocol_enum_name: &'static str, application_protocols: &'b IndexMap<Element, V>) -> io::Result<Vec<(Permutation<'b, Element, V>, Rc<HashOrIndexSetStaticName>)>>
 	{
 		Self::new(code, prefix, application_protocol_enum_name).all_combinations_and_permutations_of_application_protocols(application_protocols)
 	}
 	
-	fn new(code: &'a mut Code, prefix: &'a str, application_protocol_enum_name: &'static str) -> Self
+	fn new(code: &'a mut Code<GPTC>, prefix: &'a str, application_protocol_enum_name: &'static str) -> Self
 	{
 		Self
 		{
@@ -75,7 +75,7 @@ impl<'a> AllCombinationsAndPermutations<'a>
 		self.push_function_line("lazy_static!")?;
 		self.push_function_line("{")?;
 		self.increment_stack_depth();
-			self.push_tab_indented_line(&format!("static ref {0}: HashSet<{1}> = hashset!", &hash_set_static_name, application_protocol_enum_name))?;
+			self.push_tab_indented_line(&format!("static ref {0}: HashSet<{1}> = fast_secure_hash_set!", &hash_set_static_name, application_protocol_enum_name))?;
 			self.push_tab_indented_line("{")?;
 			self.increment_stack_depth();
 			for line in hash_set_lines

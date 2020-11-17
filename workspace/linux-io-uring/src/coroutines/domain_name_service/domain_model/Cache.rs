@@ -11,7 +11,7 @@ pub struct Cache<'cache>
 	
 	cname_query_type_cache: QueryTypeCache<'cache, EfficientCaseFoldedName>,
 	
-	soa_query_type_cache: QueryTypeCache<'cache, StartOfAuthority<'static, EfficientCaseFoldedName>>,
+	soa_query_type_cache: QueryTypeCache<'cache, StartOfAuthority<EfficientCaseFoldedName>>,
 	
 	ns_query_type_cache: QueryTypeCache<'cache, EfficientCaseFoldedName>,
 	

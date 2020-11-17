@@ -10,7 +10,7 @@
 ///
 /// * `NonTerminalAndEmpty`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord<'label, N: Name<'label, TypeEquality=TE>, CS: CharacterString<TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
+pub enum RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord<N: Name<TypeEquality=TE>, CS: CharacterString<TypeEquality=TE>, TE: OwnedOrParsedTypeEquality>
 {
 	/// A regular expression that resolves to an domain name.
 	///
@@ -27,13 +27,13 @@ pub enum RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord<'label
 	/// This is very likely.
 	///
 	/// This also includes the only known `urn.arpa` domain, `pin.urn.arpa` (which resolves to a non-existent domain).
-	DomainName((N, PhantomData<&'label ()>)),
+	DomainName(N),
 }
 
-impl<'message> Into<RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord<'static, EfficientCaseFoldedName, OwnedCharacterString>> for RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord<'message, ParsedName<'message>, ParsedCharacterString<'message>>
+impl<'message> Into<RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord<EfficientCaseFoldedName, OwnedCharacterString>> for RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord<ParsedName<'message>, ParsedCharacterString<'message>>
 {
 	#[inline(always)]
-	fn into(self) -> RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord<'static, EfficientCaseFoldedName, OwnedCharacterString>
+	fn into(self) -> RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord<EfficientCaseFoldedName, OwnedCharacterString>
 	{
 		use self::RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord::*;
 		
@@ -41,12 +41,12 @@ impl<'message> Into<RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRe
 		{
 			UnvalidatedRegularExpression(regular_expression) => UnvalidatedRegularExpression(OwnedCharacterString::from(regular_expression)),
 			
-			DomainName(domain_name) => DomainName((EfficientCaseFoldedName::from(domain_name), PhantomData)),
+			DomainName(domain_name) => DomainName(EfficientCaseFoldedName::from(domain_name)),
 		}
 	}
 }
 
-impl<'message> RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord<'message, ParsedName<'message>, ParsedCharacterString<'message>>
+impl<'message> RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord<ParsedName<'message>, ParsedCharacterString<'message>>
 {
 	#[inline(always)]
 	fn parse(replacement_domain_name_or_raw_regular_expression: Either<ParsedName<'message>, ParsedCharacterString<'message>>, mutually_exclusive_flag: Option<NamingAuthorityMutuallyExclusiveFlag>) -> Result<Self, IgnoredServiceFieldReason>
@@ -58,7 +58,7 @@ impl<'message> RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord<
 		
 		match (replacement_domain_name_or_raw_regular_expression, mutually_exclusive_flag)
 		{
-			(Left(domain_name), None) => Ok(DomainName((domain_name, PhantomData))),
+			(Left(domain_name), None) => Ok(DomainName(domain_name)),
 			
 			(Left(_), _) => Err(InvalidCombinationOfDomainNameAndFlag(NonTerminalAndEmpty, mutually_exclusive_flag)),
 			
