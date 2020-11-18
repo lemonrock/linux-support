@@ -25,7 +25,7 @@ impl DomainCache
 		this
 	}
 	
-	pub(crate) fn answered<'message, PR: ParsedRecord>(&mut self, now: NanosecondsSinceUnixEpoch, domain_cache: &mut DomainCache, answer: Answer<PR>, canonical_name_chain: CanonicalNameChain<'message>) -> Result<(), AnsweredError>
+	pub(crate) fn answered<'message, PR: ParsedRecord>(&mut self, answer: Answer<PR>, canonical_name_chain: CanonicalNameChain<'message>) -> Result<(), AnsweredError>
 	{
 		use self::AnsweredError::*;
 		use self::DomainCacheEntry::*;
@@ -33,35 +33,21 @@ impl DomainCache
 		use self::NoDomainResponseType::*;
 		use self::NoDataResponseType::*;
 		
-		// TODO: This needs to be transactional!!! - we need to check for other replacements first!
-		let most_canonical_name = self.replace_canonical_name_chain(canonical_name_chain)?;
+		let (most_canonical_name, canonical_name_chain_records) = self.guard_replace_canonical_name_chain(canonical_name_chain)?;
 		
-		match answer
+		let is_referral = match answer
 		{
-			Answer::Answered { records } =>
-			{
-				self.store_data(most_canonical_name, records)?;
-			}
+			Answer::Answered { records } => self.store_data(&most_canonical_name, records)?,
 			
-			// TODO: Implicit referral!
-			Answer::NoDomain { response_type} =>
-			{
-				// TODO: The most_canonical_name is not necessarily the child of the authority name; it can be a grandchild, etc, and so we could infer that the intermediate domains are NXDOMAIN, too.
-				self.store_no_domain(most_canonical_name, response_type)?;
-			}
+			// TODO: The most_canonical_name is not necessarily the child of the authority name; it can be a grandchild, etc, and so we could infer that the intermediate domains are NXDOMAIN, too.
+			Answer::NoDomain { response_type} => self.store_no_domain(&most_canonical_name, response_type)?,
 			
-			// TODO: Implicit referral!
-			Answer::NoData { response_type} =>
-			{
-				self.store_no_data::<PR>(most_canonical_name, response_type)?;
-			}
+			Answer::NoData { response_type} => self.store_no_data::<PR>(&most_canonical_name, response_type)?,
 			
-			// TODO: referral!
-			Answer::Referral { referral} =>
-			{
-				self.store_referral(referral)?;
-			}
-		}
+			Answer::Referral { referral} => self.store_referral(referral)?,
+		};
+		
+		self.replace_canonical_name_chain(&most_canonical_name, canonical_name_chain_records);
 		
 		Ok(())
 	}
@@ -97,9 +83,10 @@ impl DomainCache
 	}
 	
 	#[inline(always)]
-	fn replace_canonical_name_chain<'message>(&mut self, canonical_name_chain: CanonicalNameChain<'message>) -> Result<EfficientCaseFoldedName, AnsweredError>
+	fn guard_replace_canonical_name_chain<'message>(&self, canonical_name_chain: CanonicalNameChain<'message>) -> Result<(EfficientCaseFoldedName, CanonicalNameChainRecords), AnsweredError>
 	{
 		let most_canonical_name = canonical_name_chain.most_canonical_name().clone();
+		
 		let canonical_name_chain_records = canonical_name_chain.into();
 		
 		// Check for problems before we mutate the map.
@@ -107,6 +94,14 @@ impl DomainCache
 		{
 			self.guard_can_be_an_alias(alias)?;
 		}
+		
+		Ok((most_canonical_name, canonical_name_chain_records))
+	}
+	
+	#[inline(always)]
+	fn replace_canonical_name_chain(&mut self, most_canonical_name: &EfficientCaseFoldedName, canonical_name_chain_records: CanonicalNameChainRecords)
+	{
+		let most_canonical_name = canonical_name_chain.most_canonical_name().clone();
 		
 		let mut lowest_negative_cache_until = NegativeCacheUntil::Highest;
 		for (alias, target) in canonical_name_chain_records.into_iter().rev()
@@ -136,18 +131,18 @@ impl DomainCache
 			}
 		}
 		
-		Ok(most_canonical_name)
+		Ok(())
 	}
 	
 	#[inline(always)]
-	fn store_data<PR: ParsedRecord>(&mut self, most_canonical_name: DomainTarget, records: OwnerNameToRecordsValue<PR>) -> Result<(), AnsweredError>
+	fn store_data<PR: ParsedRecord>(&mut self, most_canonical_name: &DomainTarget, records: OwnerNameToRecordsValue<PR>) -> Result<bool, AnsweredError>
 	{
 		use self::DomainCacheEntry::*;
 		use self::FastSecureHashMapEntry::*;
 		
 		debug_assert!(!records.is_empty());
 		
-		match self.map.entry(most_canonical_name)
+		match self.map.entry(most_canonical_name.clone())
 		{
 			Vacant(vacant) =>
 			{
@@ -171,36 +166,36 @@ impl DomainCache
 			}
 		}
 		
-		Ok(())
+		Ok(false)
 	}
 	
 	#[inline(always)]
-	fn store_no_data<PR: ParsedRecord>(&mut self, most_canonical_name: DomainTarget, response_type: NoDataResponseType) -> Result<(), AnsweredError>
+	fn store_no_data<PR: ParsedRecord>(&mut self, most_canonical_name: &DomainTarget, response_type: NoDataResponseType) -> Result<bool, AnsweredError>
 	{
 		use self::DomainCacheEntry::*;
 		use self::FastSecureHashMapEntry::*;
 		use self::NoDataResponseType::*;
 		
 		// TODO: Can guard by getting .entry() just once.
-		self.guard_can_be_replaced_by_no_data(&most_canonical_name)?;
+		self.guard_can_be_replaced_by_no_data(most_canonical_name)?;
 		
-		let negative_cache_until = match response_type
+		let (negative_cache_until, is_referral) = match response_type
 		{
-			// TODO: is_implicit_referral
+			// RFC 2308, Section 6, Negative answers from the cache: "`NXDOMAIN` types 1 and 4 responses contain implicit referrals as does `NODATA` type 1 response".
 			NoDataResponseType1(authority_name_start_of_authority_name_servers) =>
 			{
 				let (start_of_authority, _) = self.guard_authority_name_can_have_records_then_store_start_of_authority_and_name_servers(authority_name_start_of_authority_name_servers)?;
-				start_of_authority.negative_cache_until
+				(start_of_authority.negative_cache_until, true)
 			},
 			
 			NoDataResponseType2(authority_name_start_of_authority) =>
 			{
 				let (start_of_authority, _) = self.guard_authority_name_can_have_records_then_store_start_of_authority(authority_name_start_of_authority)?;
-				start_of_authority.negative_cache_until
+				(start_of_authority.negative_cache_until, false)
 			},
 			
 			// RFC 2308 Section 5: "Negative responses without SOA records SHOULD NOT be cached as there is no way to prevent the negative responses looping forever between a pair of servers even with a short TTL".
-			NoDataResponseType3 { as_of_now } => CacheUntil::UseOnce { as_of_now },
+			NoDataResponseType3 { as_of_now } => (CacheUntil::UseOnce { as_of_now }, false),
 		};
 		
 		match self.map.entry(most_canonical_name.clone())
@@ -227,40 +222,40 @@ impl DomainCache
 			}
 		}
 		
-		Ok(())
+		Ok(is_referral)
 	}
 	
 	#[inline(always)]
-	fn store_no_domain(&mut self, most_canonical_name: DomainTarget, response_type: NoDomainResponseType) -> Result<(), AnsweredError>
+	fn store_no_domain(&mut self, most_canonical_name: &DomainTarget, response_type: NoDomainResponseType) -> Result<bool, AnsweredError>
 	{
 		use self::NoDomainResponseType::*;
 		
-		self.guard_can_be_replaced_by_no_domain(&most_canonical_name)?;
+		self.guard_can_be_replaced_by_no_domain(most_canonical_name)?;
 		
-		let no_domain_cache_entry = match response_type
+		let (no_domain_cache_entry, is_referral) = match response_type
 		{
-			// TODO: is_implicit_referral
+			// RFC 2308, Section 6, Negative answers from the cache: "`NXDOMAIN` types 1 and 4 responses contain implicit referrals as does `NODATA` type 1 response".
 			NoDomainResponseType1(authority_name_start_of_authority_name_servers) =>
 			{
 				let start_of_authority_and_authority_name = self.guard_authority_name_can_have_records_then_store_start_of_authority_and_name_servers(authority_name_start_of_authority_name_servers)?;
-				NoDomainCacheEntry::no_domain_cache_entry(start_of_authority_and_authority_name)
+				(NoDomainCacheEntry::no_domain_cache_entry(start_of_authority_and_authority_name), true)
 			},
 			
 			NoDomainResponseType2(authority_name_start_of_authority) =>
 			{
 				let start_of_authority_and_authority_name = self.guard_authority_name_can_have_records_then_store_start_of_authority(authority_name_start_of_authority)?;
-				NoDomainCacheEntry::no_domain_cache_entry(start_of_authority_and_authority_name)
+				(NoDomainCacheEntry::no_domain_cache_entry(start_of_authority_and_authority_name), false)
 			},
 			
 			// RFC 2308 Section 5: "Negative responses without SOA records SHOULD NOT be cached as there is no way to prevent the negative responses looping forever between a pair of servers even with a short TTL".
-			NoDomainResponseType3 { as_of_now } => NoDomainCacheEntry::use_once_without_authority_name(as_of_now),
+			NoDomainResponseType3 { as_of_now } => (NoDomainCacheEntry::use_once_without_authority_name(as_of_now), false),
 			
-			// TODO: is_implicit_referral
+			// RFC 2308, Section 6, Negative answers from the cache: "`NXDOMAIN` types 1 and 4 responses contain implicit referrals as does `NODATA` type 1 response".
 			// RFC 2308 Section 5: "Negative responses without SOA records SHOULD NOT be cached as there is no way to prevent the negative responses looping forever between a pair of servers even with a short TTL".
 			NoDomainResponseType4 { as_of_now, authority_name_name_servers } =>
 			{
 				let authority_name = self.guard_authority_name_can_have_records_then_store_name_servers(authority_name_name_servers)?;
-				NoDomainCacheEntry::use_once_with_authority_name(as_of_now, authority_name)
+				(NoDomainCacheEntry::use_once_with_authority_name(as_of_now, authority_name), true)
 			},
 		};
 		
@@ -270,14 +265,14 @@ impl DomainCache
 			no_domain_cache_entry,
 		);
 		
-		Ok(())
+		Ok(is_referral)
 	}
 	
 	#[inline(always)]
-	fn store_referral(&mut self, referral: AuthorityNameNameServers) -> Result<(), AnsweredError>
+	fn store_referral(&mut self, referral: AuthorityNameNameServers) -> Result<bool, AnsweredError>
 	{
 		let _authority_name = self.guard_authority_name_can_have_records_then_store_name_servers(referral)?;
-		Ok(())
+		Ok(true)
 	}
 	
 	#[inline(always)]
@@ -335,7 +330,7 @@ impl DomainCache
 	}
 	
 	#[inline(always)]
-	fn store_no_domain_unchecked(&mut self, most_canonical_name: DomainTarget, no_domain_cache_entry: NoDomainCacheEntry)
+	fn store_no_domain_unchecked(&mut self, most_canonical_name: &DomainTarget, no_domain_cache_entry: NoDomainCacheEntry)
 	{
 		xxx;
 	}

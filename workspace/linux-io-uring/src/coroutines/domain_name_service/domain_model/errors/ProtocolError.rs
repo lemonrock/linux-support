@@ -9,8 +9,11 @@ pub enum ProtocolError<E: 'static + error::Error>
 	/// Message length.
 	MessageLength(MessageLengthError),
 	
-	/// Read reply after lenght checked.
+	/// Read reply after length checked.
 	ReadReplyAfterLengthChecked(ReadReplyAfterLengthCheckedError<E>),
+	
+	/// Answered error.
+	Answered(AnsweredError),
 }
 
 impl<E: error::Error> Display for ProtocolError<E>
@@ -34,6 +37,8 @@ impl<E: 'static + error::Error> error::Error for ProtocolError<E>
 			&MessageLength(ref error) => Some(error),
 			
 			&ReadReplyAfterLengthChecked(ref error) => Some(error),
+			
+			&Answered(ref error) => Some(error),
 		}
 	}
 }
@@ -44,5 +49,14 @@ impl<E: error::Error> From<MessageLengthError> for ProtocolError<E>
 	fn from(value: MessageLengthError) -> Self
 	{
 		ProtocolError::MessageLength(value)
+	}
+}
+
+impl<E: error::Error> From<AnsweredError> for ProtocolError<E>
+{
+	#[inline(always)]
+	fn from(value: AnsweredError) -> Self
+	{
+		ProtocolError::Answered(AnsweredError)
 	}
 }

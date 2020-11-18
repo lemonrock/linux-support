@@ -49,7 +49,7 @@ impl Query
 		
 		let answer_section_resource_record_visitor = QP::new(&self.query_name);
 		let (answer, canonical_name_chain) = self.read_reply_after_message_length_checked(raw_dns_message, answer_section_resource_record_visitor).map_err(ProtocolError::ReadReplyAfterLengthChecked)?;
-		QP::result(self.now, domain_cache, answer, canonical_name_chain);
+		domain_cache.answered(answer, canonical_name_chain)?;
 		Ok(())
 	}
 	

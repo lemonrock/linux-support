@@ -41,23 +41,3 @@ pub(crate) enum Answer<PR: ParsedRecord>
 		referral: AuthorityNameNameServers,
 	},
 }
-
-impl<PR: ParsedRecord> Answer<PR>
-{
-	#[inline(always)]
-	fn is_referral(&self) -> bool
-	{
-		use self::Answer::*;
-		
-		match self
-		{
-			Answered => false,
-			
-			NoDomain { response_type, .. } => response_type.is_implicit_referral(),
-			
-			NoData { response_type, .. } => response_type.is_implicit_referral(),
-			
-			Referral { .. } => true,
-		}
-	}
-}

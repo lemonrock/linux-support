@@ -22,20 +22,3 @@ pub(crate) enum NoDataResponseType
 		as_of_now: NanosecondsSinceUnixEpoch,
 	},
 }
-
-impl NoDataResponseType
-{
-	/// RFC 2308, Section 6, Negative answers from the cache: "`NXDOMAIN` types 1 and 4 responses contain implicit referrals as does `NODATA` type 1 response".
-	#[inline(always)]
-	fn is_implicit_referral(&self) -> bool
-	{
-		use self::NoDataResponseType::*;
-		
-		match self
-		{
-			&NoDataResponseType1(_) => true,
-			
-			_ => false,
-		}
-	}
-}
