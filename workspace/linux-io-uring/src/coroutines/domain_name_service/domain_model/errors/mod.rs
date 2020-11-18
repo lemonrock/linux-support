@@ -11,6 +11,7 @@ include!("AuthorityError.rs");
 include!("AuthoritySectionError.rs");
 include!("CanonicalChainError.rs");
 include!("CAAHandleRecordTypeError.rs");
+include!("CacheStoreError.rs");
 include!("CERTHandleRecordTypeError.rs");
 include!("CSYNCHandleRecordTypeError.rs");
 include!("DelegationSignerHandleRecordTypeError.rs");

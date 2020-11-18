@@ -11,7 +11,7 @@
 /// + one or more records exist, none being `CNAME` records,
 /// + the name exists, but has no associated RRs of any type,
 /// + the name does not exist at all".
-enum DomainCacheEntry<'cache>
+enum DomainCacheEntry
 {
 	/// Domains that can never be valid, eg `example.com.`.
 	NeverValid,

@@ -11,9 +11,13 @@
 /// * L32.
 /// * L64.
 /// * LP.
-pub(crate) struct MultiplePrioritizedThenSortedRecords<R: OwnedRecord + Ord>
+pub struct MultiplePrioritizedThenSortedRecords<R: OwnedRecord + Ord>
 {
 	records: PriorityToSortedRecordsMap<R>,
+}
+
+impl<OR: OwnedRecord> OwnedRecords<OR> for MultiplePrioritizedThenSortedRecords<OR>
+{
 }
 
 impl<PR: ParsedRecord<OrderPriorityAndWeight=Priority, OwnedRecord=OR>, OR: OwnedRecord + Ord> From<OwnerNameToRecordsValue<PR>> for MultiplePrioritizedThenSortedRecords<OR>

@@ -4,4 +4,29 @@
 
 pub(crate) trait OwnedRecord: Sized + Debug
 {
+	type OwnedRecords: OwnedRecords<Self>;
+	
+	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>;
+}
+
+impl OwnedRecord for Ipv4Addr
+{
+	type OwnedRecords = MultipleSortedRecords<Self>;
+	
+	#[inline(always)]
+	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>
+	{
+		&mut query_types_cache.A
+	}
+}
+
+impl OwnedRecord for Ipv6Addr
+{
+	type OwnedRecords = MultipleSortedRecords<Self>;
+	
+	#[inline(always)]
+	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>
+	{
+		&mut query_types_cache.AAAA
+	}
 }

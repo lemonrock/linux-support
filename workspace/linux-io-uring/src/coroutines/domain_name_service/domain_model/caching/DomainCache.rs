@@ -25,9 +25,53 @@ impl DomainCache
 		this
 	}
 	
-	pub(crate) fn answered<'message, PR: ParsedRecord>(&mut self, answer: Answer<PR>, canonical_name_chain: CanonicalNameChain<'message>) -> Result<(), AnsweredError>
+	pub(crate) fn get_not_resolving_aliases<'a, OR: OwnedRecord>(&self, domain_target: DomainTarget, now: NanosecondsSinceUnixEpoch) -> Option<GetNotResolvingAliasesResult<'a, OR::OwnedRecords, OR>>
 	{
-		use self::AnsweredError::*;
+		use self::FastSecureHashMapEntry::*;
+		
+		match self.map.entry(domain_target)
+		{
+			Vacant(_) => None,
+			
+			Occupied(occupied) =>
+			{
+				use self::DomainCacheEntry::*;
+				
+				let (result, remove) = match occupied.get_mut()
+				{
+					NeverValid => (Some(GetNotResolvingAliasesResult::NeverValid), Keep),
+					
+					AlwaysValid { query_types_cache } => (GetNotResolvingAliasesResult::valid(query_types_cache, now), Keep),
+					
+					CurrentlyValid { query_types_cache } =>
+					{
+						let result = GetNotResolvingAliasesResult::valid(query_types_cache, now);
+						(result, query_types_cache.is_empty())
+					}
+					
+					Alias { flattened_target, .. } => GetNotResolvingAliasesResult::match_cache_until(flattened_target.negative_cache_until, now, || Some(GetNotResolvingAliasesResult::Alias(&flattened_target.record))),
+					
+					NoDomain(no_domain_cache_entry) => match no_domain_cache_entry
+					{
+						&NoDomainCacheEntry::UseOnce { as_of_now, .. } => GetNotResolvingAliasesResult::if_as_of_now(as_of_now, now, || Some(GetNotResolvingAliasesResult::NoDomain)),
+						
+						&NoDomainCacheEntry::Cached { cached_until, .. } => GetNotResolvingAliasesResult::if_cached_until(cached_until, now, || Some(GetNotResolvingAliasesResult::NoDomain)),
+					},
+				};
+				
+				if remove
+				{
+					occupied.remove();
+				}
+				
+				result
+			}
+		}
+	}
+	
+	pub(crate) fn answered<'message, PR: ParsedRecord>(&mut self, answer: Answer<PR>, canonical_name_chain: CanonicalNameChain<'message>) -> Result<(), CacheStoreError>
+	{
+		use self::CacheStoreError::*;
 		use self::DomainCacheEntry::*;
 		use self::FastSecureHashMapEntry::*;
 		use self::NoDomainResponseType::*;
@@ -83,7 +127,7 @@ impl DomainCache
 	}
 	
 	#[inline(always)]
-	fn guard_replace_canonical_name_chain<'message>(&self, canonical_name_chain: CanonicalNameChain<'message>) -> Result<(EfficientCaseFoldedName, CanonicalNameChainRecords), AnsweredError>
+	fn guard_replace_canonical_name_chain<'message>(&self, canonical_name_chain: CanonicalNameChain<'message>) -> Result<(EfficientCaseFoldedName, CanonicalNameChainRecords), CacheStoreError>
 	{
 		let most_canonical_name = canonical_name_chain.most_canonical_name().clone();
 		
@@ -130,12 +174,10 @@ impl DomainCache
 				}
 			}
 		}
-		
-		Ok(())
 	}
 	
 	#[inline(always)]
-	fn store_data<PR: ParsedRecord>(&mut self, most_canonical_name: &DomainTarget, records: OwnerNameToRecordsValue<PR>) -> Result<bool, AnsweredError>
+	fn store_data<PR: ParsedRecord>(&mut self, most_canonical_name: &DomainTarget, records: OwnerNameToRecordsValue<PR>) -> Result<bool, CacheStoreError>
 	{
 		use self::DomainCacheEntry::*;
 		use self::FastSecureHashMapEntry::*;
@@ -153,11 +195,9 @@ impl DomainCache
 			{
 				match occupied.get_mut()
 				{
-					&mut NeverValid => return Err(AnsweredError::DomainNameCanNotNotHaveRecords(occupied.replace_key())),
+					NeverValid => return Err(CacheStoreError::DomainNameCanNotNotHaveRecords(occupied.replace_key())),
 					
-					&mut AlwaysValid { ref mut query_types_cache } => PR::store(query_types_cache, records),
-					
-					&mut CurrentlyValid { ref mut query_types_cache } => PR::store(query_types_cache, records),
+					AlwaysValid { query_types_cache } | CurrentlyValid { query_types_cache } => PR::store(query_types_cache, records),
 					
 					x @ &mut Alias { .. } => *x = DomainCacheEntry::store(records),
 					
@@ -170,7 +210,7 @@ impl DomainCache
 	}
 	
 	#[inline(always)]
-	fn store_no_data<PR: ParsedRecord>(&mut self, most_canonical_name: &DomainTarget, response_type: NoDataResponseType) -> Result<bool, AnsweredError>
+	fn store_no_data<PR: ParsedRecord>(&mut self, most_canonical_name: &DomainTarget, response_type: NoDataResponseType) -> Result<bool, CacheStoreError>
 	{
 		use self::DomainCacheEntry::*;
 		use self::FastSecureHashMapEntry::*;
@@ -209,11 +249,9 @@ impl DomainCache
 			{
 				match occupied.get_mut()
 				{
-					&mut NeverValid => return Err(AnsweredError::DomainNameCanNotNotHaveRecords(occupied.replace_key())),
+					NeverValid => return Err(CacheStoreError::DomainNameCanNotNotHaveRecords(occupied.replace_key())),
 					
-					&mut AlwaysValid { ref mut query_types_cache } => PR::no_data(query_types_cache, negative_cache_until),
-					
-					&mut CurrentlyValid { ref mut query_types_cache } => PR::no_data(query_types_cache, negative_cache_until),
+					AlwaysValid { query_types_cache } | CurrentlyValid { query_types_cache }  => PR::no_data(query_types_cache, negative_cache_until),
 					
 					x @ &mut Alias { .. } => *x = DomainCacheEntry::no_data(negative_cache_until),
 					
@@ -226,13 +264,13 @@ impl DomainCache
 	}
 	
 	#[inline(always)]
-	fn store_no_domain(&mut self, most_canonical_name: &DomainTarget, response_type: NoDomainResponseType) -> Result<bool, AnsweredError>
+	fn store_no_domain(&mut self, most_canonical_name: &DomainTarget, response_type: NoDomainResponseType) -> Result<bool, CacheStoreError>
 	{
 		use self::NoDomainResponseType::*;
 		
 		self.guard_can_be_replaced_by_no_domain(most_canonical_name)?;
 		
-		let (no_domain_cache_entry, is_referral) = match response_type
+		let ((no_domain_cache_entry, authority_name_number_of_labels_including_root), is_referral) = match response_type
 		{
 			// RFC 2308, Section 6, Negative answers from the cache: "`NXDOMAIN` types 1 and 4 responses contain implicit referrals as does `NODATA` type 1 response".
 			NoDomainResponseType1(authority_name_start_of_authority_name_servers) =>
@@ -259,24 +297,63 @@ impl DomainCache
 			},
 		};
 		
-		self.store_no_domain_unchecked
-		(
-			most_canonical_name,
-			no_domain_cache_entry,
-		);
+		// Intermediate domains between most_canonical_name and authority_name may not exist.
+		// eg `dig -t naptr 4.4.2.2.3.3.5.6.8.1.4.6.e164.arpa.` gives a `NoDomainResponseType2` response with a SOA owner name of `e164.arpa.`.
+		// This means all the intermediate domains 4.2.2.3.3.5.6.8.1.4.6.e164.arpa to 6.e164.arpa do not exist.
+		match authority_name_number_of_labels_including_root
+		{
+			None => self.store_no_domain_unchecked
+			(
+				most_canonical_name,
+				no_domain_cache_entry,
+			),
+			
+			Some(authority_name_number_of_labels_including_root) =>
+			{
+				let authority_name_number_of_labels_including_root = authority_name_number_of_labels_including_root.get();
+				let one_above_authority_name = authority_name_number_of_labels_including_root + 1;
+				let mut intermediate_domain = Cow::Borrowed(most_canonical_name);
+				loop
+				{
+					let intermediate_domain_number_of_labels_including_root = intermediate_domain.number_of_labels_including_root().get();
+					debug_assert!(intermediate_domain_number_of_labels_including_root > authority_name_number_of_labels_including_root);
+					
+					if intermediate_domain_number_of_labels_including_root == one_above_authority_name
+					{
+						self.store_no_domain_unchecked
+						(
+							intermediate_domain.deref(),
+							no_domain_cache_entry,
+						);
+						
+						break
+					}
+					else
+					{
+						self.store_no_domain_unchecked
+						(
+							intermediate_domain.deref(),
+							no_domain_cache_entry.clone(),
+						);
+						
+						intermediate_domain = Cow::Owned(domain_name.parent().unwrap());
+					}
+				}
+			}
+		}
 		
 		Ok(is_referral)
 	}
 	
 	#[inline(always)]
-	fn store_referral(&mut self, referral: AuthorityNameNameServers) -> Result<bool, AnsweredError>
+	fn store_referral(&mut self, referral: AuthorityNameNameServers) -> Result<bool, CacheStoreError>
 	{
 		let _authority_name = self.guard_authority_name_can_have_records_then_store_name_servers(referral)?;
 		Ok(true)
 	}
 	
 	#[inline(always)]
-	fn guard_authority_name_can_have_records_then_store_start_of_authority_and_name_servers(&mut self, authority_name_start_of_authority_name_servers: AuthorityNameStartOfAuthorityNameServers) -> Result<(SolitaryRecords<StartOfAuthority<EfficientCaseFoldedName>>, DomainTarget), AnsweredError>
+	fn guard_authority_name_can_have_records_then_store_start_of_authority_and_name_servers(&mut self, authority_name_start_of_authority_name_servers: AuthorityNameStartOfAuthorityNameServers) -> Result<(SolitaryRecords<StartOfAuthority<EfficientCaseFoldedName>>, DomainTarget), CacheStoreError>
 	{
 		let authority_name_start_of_authority = authority_name_start_of_authority_name_servers.authority_name_start_of_authority;
 		let name_servers = authority_name_start_of_authority_name_servers.name_servers;
@@ -285,13 +362,13 @@ impl DomainCache
 	}
 	
 	#[inline(always)]
-	fn guard_authority_name_can_have_records_then_store_start_of_authority(&mut self, authority_name_start_of_authority: AuthorityNameStartOfAuthority) -> Result<(SolitaryRecords<StartOfAuthority<EfficientCaseFoldedName>>, DomainTarget), AnsweredError>
+	fn guard_authority_name_can_have_records_then_store_start_of_authority(&mut self, authority_name_start_of_authority: AuthorityNameStartOfAuthority) -> Result<(SolitaryRecords<StartOfAuthority<EfficientCaseFoldedName>>, DomainTarget), CacheStoreError>
 	{
 		self.guard_authority_name_can_have_records_then_store_start_of_authority_and_optionally_name_servers(authority_name_start_of_authority, |_, _| ())
 	}
 	
 	#[inline(always)]
-	fn guard_authority_name_can_have_records_then_store_name_servers(&mut self, authority_name_name_servers: AuthorityNameNameServers) -> Result<DomainTarget, AnsweredError>
+	fn guard_authority_name_can_have_records_then_store_name_servers(&mut self, authority_name_name_servers: AuthorityNameNameServers) -> Result<DomainTarget, CacheStoreError>
 	{
 		let authority_name = authority_name_name_servers.authority_name;
 		let name_servers = authority_name_name_servers.name_servers;
@@ -304,7 +381,7 @@ impl DomainCache
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn guard_authority_name_can_have_records_then_store_start_of_authority_and_optionally_name_servers(&mut self, authority_name_start_of_authority: AuthorityNameStartOfAuthority, store_name_servers_unchecked: impl FnOnce(&mut DomainCache, &DomainTarget)) -> Result<(SolitaryRecords<StartOfAuthority<EfficientCaseFoldedName>>, DomainTarget), AnsweredError>
+	fn guard_authority_name_can_have_records_then_store_start_of_authority_and_optionally_name_servers(&mut self, authority_name_start_of_authority: AuthorityNameStartOfAuthority, store_name_servers_unchecked: impl FnOnce(&mut DomainCache, &DomainTarget)) -> Result<(SolitaryRecords<StartOfAuthority<EfficientCaseFoldedName>>, DomainTarget), CacheStoreError>
 	{
 		let authority_name = authority_name_start_of_authority.authority_name;
 		let start_of_authority = authority_name_start_of_authority.start_of_authority;
@@ -336,45 +413,45 @@ impl DomainCache
 	}
 	
 	#[inline(always)]
-	fn guard_can_be_an_alias(&self, alias: &Alias) -> Result<(), AnsweredError>
+	fn guard_can_be_an_alias(&self, alias: &Alias) -> Result<(), CacheStoreError>
 	{
 		if let Some(domain_cache_entry) = self.map.get(alias)
 		{
 			if unlikely!(domain_cache_entry.can_not_be_replaced_by_alias())
 			{
-				return Err(AnsweredError::DomainNameCanNotBeAnAlias(alias.clone()))
+				return Err(CacheStoreError::DomainNameCanNotBeAnAlias(alias.clone()))
 			}
 		}
 		Ok(())
 	}
 	
 	#[inline(always)]
-	fn guard_can_be_replaced_by_no_data(&self, domain_target: &DomainTarget) -> Result<(), AnsweredError>
+	fn guard_can_be_replaced_by_no_data(&self, domain_target: &DomainTarget) -> Result<(), CacheStoreError>
 	{
 		self.guard_can_have_records(domain_target)
 	}
 	
 	#[inline(always)]
-	fn guard_can_be_replaced_by_no_domain(&self, domain_target: &DomainTarget) -> Result<(), AnsweredError>
+	fn guard_can_be_replaced_by_no_domain(&self, domain_target: &DomainTarget) -> Result<(), CacheStoreError>
 	{
 		if let Some(domain_cache_entry) = self.map.get(domain_target)
 		{
 			if unlikely!(domain_cache_entry.can_not_be_replaced_by_no_domain())
 			{
-				return Err(AnsweredError::DomainNameCanNotNotExist(most_canonical_name))
+				return Err(CacheStoreError::DomainNameCanNotNotExist(most_canonical_name))
 			}
 		}
 		Ok(())
 	}
 	
 	#[inline(always)]
-	fn guard_can_have_records(&self, alias_or_domain_target: &AliasOrDomainTarget) -> Result<(), AnsweredError>
+	fn guard_can_have_records(&self, alias_or_domain_target: &AliasOrDomainTarget) -> Result<(), CacheStoreError>
 	{
 		if let Some(domain_cache_entry) = self.map.get(alias_or_domain_target)
 		{
 			if unlikely!(domain_cache_entry.can_not_have_records())
 			{
-				return Err(AnsweredError::DomainNameCanNotNotHaveRecords(most_canonical_name))
+				return Err(CacheStoreError::DomainNameCanNotNotHaveRecords(most_canonical_name))
 			}
 		}
 		Ok(())

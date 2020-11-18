@@ -12,8 +12,8 @@ pub enum ProtocolError<E: 'static + error::Error>
 	/// Read reply after length checked.
 	ReadReplyAfterLengthChecked(ReadReplyAfterLengthCheckedError<E>),
 	
-	/// Answered error.
-	Answered(AnsweredError),
+	/// Cache store.
+	CacheStore(CacheStoreError),
 }
 
 impl<E: error::Error> Display for ProtocolError<E>
@@ -38,7 +38,7 @@ impl<E: 'static + error::Error> error::Error for ProtocolError<E>
 			
 			&ReadReplyAfterLengthChecked(ref error) => Some(error),
 			
-			&Answered(ref error) => Some(error),
+			&CacheStore(ref error) => Some(error),
 		}
 	}
 }
@@ -52,11 +52,11 @@ impl<E: error::Error> From<MessageLengthError> for ProtocolError<E>
 	}
 }
 
-impl<E: error::Error> From<AnsweredError> for ProtocolError<E>
+impl<E: error::Error> From<CacheStoreError> for ProtocolError<E>
 {
 	#[inline(always)]
-	fn from(value: AnsweredError) -> Self
+	fn from(value: CacheStoreError) -> Self
 	{
-		ProtocolError::Answered(AnsweredError)
+		ProtocolError::CacheStore(AnsweredError)
 	}
 }

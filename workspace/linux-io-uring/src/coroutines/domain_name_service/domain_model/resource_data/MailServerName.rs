@@ -31,13 +31,24 @@ impl<'message> ParsedRecord for MailServerName<ParsedName<'message>>
 	#[inline(always)]
 	fn store(query_types_cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>)
 	{
-		query_types_cache.MX = QueryTypeCache::data(records.cache_until(), records.into());
+		query_types_cache.MX = Some(QueryTypeCache::data(records.cache_until(), records.into()));
 	}
 	
 	#[inline(always)]
 	fn no_data(query_types_cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
 	{
-		query_types_cache.MX = QueryTypeCache::no_data(negative_cache_until);
+		query_types_cache.MX = Some(QueryTypeCache::no_data(negative_cache_until));
+	}
+}
+
+impl OwnedRecord for MailServerName<EfficientCaseFoldedName>
+{
+	type OwnedRecords = MultiplePrioritizedThenSortedRecords<Self>;
+	
+	#[inline(always)]
+	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>
+	{
+		&mut query_types_cache.MX
 	}
 }
 

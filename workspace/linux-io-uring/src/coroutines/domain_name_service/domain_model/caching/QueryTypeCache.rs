@@ -3,28 +3,15 @@
 
 
 #[derive(Debug)]
-pub(crate) struct QueryTypeCache<Records>
+pub(crate) struct QueryTypeCache<ORs: OwnedRecords<OR>, OR: OwnedRecord>
 {
 	cache_until: CacheUntil,
 	
-	/// If `None`, then this is a negativeluy cached `NoData` answer.
-	data: Option<Records>
+	/// If `None`, then this is a negatively cached `NoData` answer.
+	data: Option<ORs>
 }
 
-impl<Records> Default for QueryTypeCache<Records>
-{
-	#[inline(always)]
-	fn default() -> Self
-	{
-		Self
-		{
-			cache_until: CacheUntil::UseOnce { as_of_now: NanosecondsSinceUnixEpoch::MinimumSeconds },
-			data: None
-		}
-	}
-}
-
-impl<Records> QueryTypeCache<Records>
+impl<ORs: OwnedRecords<OR>, OR: OwnedRecord> QueryTypeCache<ORs, OR>
 {
 	#[inline(always)]
 	pub(crate) fn data(cache_until: CacheUntil, records: Records) -> Self

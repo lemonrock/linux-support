@@ -14,7 +14,7 @@ pub(crate) struct Query
 impl Query
 {
 	#[inline(always)]
-	pub(crate) fn enquire_over_tcp<'yielder, 'cache, QP: QueryProcessor<'cache>, SD: SocketData>(stream: &mut TlsClientStream<'yielder, SD>, message_identifier: MessageIdentifier, now: NanosecondsSinceUnixEpoch, query_name: EfficientCaseFoldedName, domain_cache: &mut DomainCache) -> Result<(), ProtocolError<Infallible>>
+	pub(crate) fn enquire_over_tcp<'yielder, SD: SocketData, QP: QueryProcessor>(stream: &mut TlsClientStream<'yielder, SD>, message_identifier: MessageIdentifier, now: NanosecondsSinceUnixEpoch, query_name: EfficientCaseFoldedName, domain_cache: &mut DomainCache) -> Result<(), ProtocolError<Infallible>>
 	{
 		let query = Query
 		{
@@ -40,7 +40,7 @@ impl Query
 	}
 	
 	#[inline(always)]
-	pub(crate) fn read_tcp_reply<'yielder, 'cache, QP: QueryProcessor<'cache>, SD: SocketData>(&self, stream: &mut TlsClientStream<'yielder, SD>, domain_cache: &mut DomainCache) -> Result<(), ProtocolError<Infallible>>
+	pub(crate) fn read_tcp_reply<'yielder, SD: SocketData, QP: QueryProcessor>(&self, stream: &mut TlsClientStream<'yielder, SD>, domain_cache: &mut DomainCache) -> Result<(), ProtocolError<Infallible>>
 	{
 		let mut buffer: [u8; ResourceRecord::UdpRequestorsPayloadSize] = unsafe_uninitialized();
 		let message_length = Self::reply_message(stream, &mut buffer)?;

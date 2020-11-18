@@ -5,9 +5,13 @@
 /// For the record type:-
 ///
 /// * NAPTR.
-pub(crate) struct MultipleOrderedThenPrioritizedThenUnsortedRecords<OR: OwnedRecord>
+pub struct MultipleOrderedThenPrioritizedThenUnsortedRecords<OR: OwnedRecord>
 {
 	records: BTreeMap<Order, PriorityToUnsortedRecordsMap<OR>>,
+}
+
+impl<OR: OwnedRecord> OwnedRecords<OR> for MultipleOrderedThenPrioritizedThenUnsortedRecords<OR>
+{
 }
 
 impl<PR: ParsedRecord<OrderPriorityAndWeight=(Order, Priority), OwnedRecord=OR>, OR: OwnedRecord> From<OwnerNameToRecordsValue<PR>> for MultipleOrderedThenPrioritizedThenUnsortedRecords<OR>

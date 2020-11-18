@@ -53,6 +53,10 @@ pub struct StartOfAuthority<N: Name>
 	pub expire_interval: U31SecondsDuration,
 }
 
+impl OwnedRecords<EfficientCaseFoldedName> for StartOfAuthority<EfficientCaseFoldedName>
+{
+}
+
 impl<'message> ParsedRecord for StartOfAuthority<ParsedName<'message>>
 {
 	type OrderPriorityAndWeight = ();
@@ -78,13 +82,24 @@ impl<'message> ParsedRecord for StartOfAuthority<ParsedName<'message>>
 	{
 		let cache_until = records.cache_until();
 		
-		query_types_cache.SOA = QueryTypeCache::data(cache_until, records.solitary().into_owned_record());
+		query_types_cache.SOA = Some(QueryTypeCache::data(cache_until, records.solitary().into_owned_record()));
 	}
 	
 	#[inline(always)]
 	fn no_data(query_types_cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
 	{
-		query_types_cache.SOA = QueryTypeCache::no_data(negative_cache_until);
+		query_types_cache.SOA = Some(QueryTypeCache::no_data(negative_cache_until));
+	}
+}
+
+impl OwnedRecord for StartOfAuthority<EfficientCaseFoldedName>
+{
+	type OwnedRecords = Self;
+	
+	#[inline(always)]
+	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>
+	{
+		&mut query_types_cache.SOA
 	}
 }
 

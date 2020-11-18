@@ -38,13 +38,24 @@ impl<'message> ParsedRecord for HostInformation<ParsedCharacterString<'message>>
 	#[inline(always)]
 	fn store(query_types_cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>)
 	{
-		query_types_cache.HINFO = QueryTypeCache::data(records.cache_until(), records.into());
+		query_types_cache.HINFO = Some(QueryTypeCache::data(records.cache_until(), records.into()));
 	}
 	
 	#[inline(always)]
 	fn no_data(query_types_cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
 	{
-		query_types_cache.HINFO = QueryTypeCache::no_data(negative_cache_until);
+		query_types_cache.HINFO = Some(QueryTypeCache::no_data(negative_cache_until));
+	}
+}
+
+impl OwnedRecord for HostInformation<OwnedCharacterString>
+{
+	type OwnedRecords = MultipleSortedRecords<Self>;
+	
+	#[inline(always)]
+	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>
+	{
+		&mut query_types_cache.HINFO
 	}
 }
 

@@ -11,12 +11,9 @@ pub(crate) trait ParsedRecord: Sized + Debug
 	type OwnedRecord: OwnedRecord;
 	
 	#[inline(always)]
-	fn into_owned_record(self) -> Self::OwnedRecord
-	{
-		self
-	}
+	fn into_owned_record(self) -> Self::OwnedRecord;
 	
-	fn store(query_types_cache: &mut QueryTypesCache, records: Self);
+	fn store(query_types_cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>);
 	
 	fn no_data(query_types_cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil);
 }

@@ -6,9 +6,13 @@
 ///
 /// * SRV.
 /// * URI.
-pub(crate) struct MultiplePrioritizedThenWeightedRecords<OR: OwnedRecord>
+pub struct MultiplePrioritizedThenWeightedRecords<OR: OwnedRecord>
 {
 	records: PriorityToWeightedRecordsMap<OR>,
+}
+
+impl<OR: OwnedRecord> OwnedRecords<OR> for MultiplePrioritizedThenWeightedRecords<OR>
+{
 }
 
 impl<PR: ParsedRecord<OrderPriorityAndWeight=(Priority, Weight), OwnedRecord=OR>, OR: OwnedRecord> From<OwnerNameToRecordsValue<PR>> for MultiplePrioritizedThenWeightedRecords<OR>

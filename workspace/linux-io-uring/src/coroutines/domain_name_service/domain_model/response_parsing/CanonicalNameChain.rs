@@ -17,7 +17,7 @@
 /// In this example, the `most_canonical_name` is `e13678.dspb.akamaiedge.net.` and its `parent` is `dspb.akamaiedge.net.`.
 /// The `query_name` was `www.microsoft.com.`.
 ///
-/// An example where a SOA authority is returned because the record type does not exist, eg for `dig MX www.microsofot.com`:-
+/// An example where a SOA authority is returned because the record type does not exist, eg for `dig MX www.microsoft.com`:-
 ///
 /// ```bash
 /// ;; QUESTION SECTION:

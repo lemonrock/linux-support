@@ -5,21 +5,21 @@
 #[derive(Debug)]
 pub(crate) struct QueryTypesCache
 {
-	pub(crate) A: QueryTypeCache<MultipleSortedRecords<Ipv4Addr>>,
+	pub(crate) A: Option<QueryTypeCache<MultipleSortedRecords<Ipv4Addr>>>,
 	
-	pub(crate) NS: QueryTypeCache<MultipleSortedRecords<DomainTarget>>,
+	pub(crate) NS: Option<QueryTypeCache<MultipleSortedRecords<NameServerName<DomainTarget>>>>,
 	
-	pub(crate) SOA: QueryTypeCache<StartOfAuthority<DomainTarget>>,
+	pub(crate) SOA: Option<QueryTypeCache<StartOfAuthority<DomainTarget>>>,
 	
-	pub(crate) AAAA: QueryTypeCache<MultipleSortedRecords<Ipv6Addr>>,
+	pub(crate) AAAA: Option<QueryTypeCache<MultipleSortedRecords<Ipv6Addr>>>,
 	
-	pub(crate) MX: QueryTypeCache<MultiplePrioritizedThenSortedRecords<MailServerName<DomainTarget>>>,
+	pub(crate) MX: Option<QueryTypeCache<MultiplePrioritizedThenSortedRecords<MailServerName<DomainTarget>>>>,
 	
-	pub(crate) HINFO: QueryTypeCache<MultipleSortedRecords<HostInformation<OwnedCharacterString>>>,
+	pub(crate) HINFO: Option<QueryTypeCache<MultipleSortedRecords<HostInformation<OwnedCharacterString>>>>,
 	
-	// pub(crate) SRV: QueryTypeCache<MultiplePrioritizedThenWeightedRecords<ServiceLocation<DomainTarget>>>,
+	// pub(crate) SRV: Option<QueryTypeCache<MultiplePrioritizedThenWeightedRecords<ServiceLocation<DomainTarget>>>>,
 	//
-	// pub(crate) NAPTR: QueryTypeCache<MultipleOrderedThenPrioritizedThenUnsortedRecords<NamingAuthorityPointer<DomainTarget, OwnedUri, OwnedCharacterString, OwnedTypeEquality>>>,
+	// pub(crate) NAPTR: Option<QueryTypeCache<MultipleOrderedThenPrioritizedThenUnsortedRecords<NamingAuthorityPointer<DomainTarget, OwnedUri, OwnedCharacterString, OwnedTypeEquality>>>>,
 }
 
 impl Default for QueryTypesCache
@@ -29,14 +29,23 @@ impl Default for QueryTypesCache
 	{
 		Self
 		{
-			A: QueryTypeCache::default(),
-			NS: QueryTypeCache::default(),
-			SOA: QueryTypeCache::default(),
-			AAAA: QueryTypeCache::default(),
-			MX: QueryTypeCache::default(),
-			HINFO: QueryTypeCache::default(),
-			// SRV: QueryTypeCache::default(),
-			// NAPTR: QueryTypeCache::default(),
+			A: None,
+			NS: None,
+			SOA: None,
+			AAAA: None,
+			MX: None,
+			HINFO: None,
+			// SRV: None,
+			// NAPTR: None,
 		}
+	}
+}
+
+impl QueryTypesCache
+{
+	#[inline(always)]
+	fn is_empty(&self) -> bool
+	{
+		self.A.is_none() && self.NS.is_none() && self.SOA.is_none() && self.AAAA.is_none() && self.MX.is_none() && self.HINFO.is_none()
 	}
 }

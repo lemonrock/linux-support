@@ -3,7 +3,7 @@
 
 
 #[derive(Debug)]
-pub enum AnsweredError
+pub enum CacheStoreError
 {
 	/// Can not be an alias because it is never a valid domain name or the domain name must always exist.
 	DomainNameCanNotBeAnAlias(Alias),
@@ -15,7 +15,7 @@ pub enum AnsweredError
 	DomainNameCanNotNotHaveRecords(AliasOrDomainTarget),
 }
 
-impl Display for AnsweredError
+impl Display for CacheStoreError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -24,6 +24,6 @@ impl Display for AnsweredError
 	}
 }
 
-impl error::Error for AnsweredError
+impl error::Error for CacheStoreError
 {
 }
