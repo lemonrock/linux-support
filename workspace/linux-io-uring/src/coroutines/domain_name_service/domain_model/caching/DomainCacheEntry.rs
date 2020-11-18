@@ -26,7 +26,7 @@ enum DomainCacheEntry<'cache>
 	AlwaysValid
 	{
 		/// Cache of `QTYPE`.
-		cache: QueryTypesCache,
+		query_types_cache: QueryTypesCache,
 	},
 	
 	/// Valid domains that may, at some point, cease to exist.
@@ -35,7 +35,7 @@ enum DomainCacheEntry<'cache>
 	CurrentlyValid
 	{
 		/// Cache of `QTYPE`.
-		cache: QueryTypesCache,
+		query_types_cache: QueryTypesCache,
 	},
 	
 	/// A canonical name (`CNAME`) record.
@@ -67,17 +67,17 @@ impl DomainCacheEntry
 	#[inline(always)]
 	fn store<PR: ParsedRecord>(records: OwnerNameToRecordsValue<PR>) -> Self
 	{
-		let mut cache = QueryTypesCache::default();
-		PR::store(&mut cache, records);
-		DomainCacheEntry::CurrentlyValid { cache }
+		let mut query_types_cache = QueryTypesCache::default();
+		PR::store(&mut query_types_cache, records);
+		DomainCacheEntry::CurrentlyValid { query_types_cache }
 	}
 	
 	#[inline(always)]
 	fn no_data<PR: ParsedRecord>(negative_cache_until: NegativeCacheUntil) -> Self
 	{
-		let mut cache = QueryTypesCache::default();
-		PR::no_data(&mut cache, negative_cache_until);
-		DomainCacheEntry::CurrentlyValid { cache }
+		let mut query_types_cache = QueryTypesCache::default();
+		PR::no_data(&mut query_types_cache, negative_cache_until);
+		DomainCacheEntry::CurrentlyValid { query_types_cache }
 	}
 	
 	#[inline(always)]

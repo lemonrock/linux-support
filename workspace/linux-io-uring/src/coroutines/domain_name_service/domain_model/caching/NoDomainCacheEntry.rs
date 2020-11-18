@@ -43,76 +43,34 @@ enum NoDomainCacheEntry
 impl NoDomainCacheEntry
 {
 	#[inline(always)]
-	fn store(most_canonical_name: DomainTarget, response_type: NoDomainResponseType, domain_cache: &mut DomainCache) -> Result<(), AnsweredError>
+	fn no_domain_cache_entry((start_of_authority, authority_name): (SolitaryRecords<StartOfAuthority<EfficientCaseFoldedName>>, DomainTarget)) -> NoDomainCacheEntry
 	{
 		use self::NoDomainCacheEntry::*;
-		use self::NoDomainResponseType::*;
-		
-		domain_cache.guard_can_be_replaced_by_no_domain(&most_canonical_name)?;
-		
-		let no_domain_cache_entry = match response_type
+		match start_of_authority.negative_cache_until
 		{
-			// TODO: is_implicit_referral
-			NoDomainResponseType1(authority_name_start_of_authority_name_servers) =>
-			{
-				let no_domain_cache_entry = Self::validate_authority_name_can_have_records_then_store(authority_name_start_of_authority_name_servers.authority_name_start_of_authority, domain_cache, |domain_cache, authority_name|
-				{
-					domain_cache.store_name_servers_unchecked(authority_name.clone(), authority_name_start_of_authority_name_servers.name_servers);
-					authority_name
-				})?;
-				no_domain_cache_entry
-			}
+			CacheUntil::UseOnce { as_of_now } => UseOnce { as_of_now, authority_name: Some(authority_name) },
 			
-			NoDomainResponseType2(authority_name_start_of_authority) => Self::validate_authority_name_can_have_records_then_store(authority_name_start_of_authority, domain_cache, |_, authority_name| authority_name)?,
-			
-			// RFC 2308 Section 5: "Negative responses without SOA records SHOULD NOT be cached as there is no way to prevent the negative responses looping forever between a pair of servers even with a short TTL".
-			NoDomainResponseType3 { as_of_now } => UseOnce
-			{
-				as_of_now,
-				authority_name: None
-			},
-			
-			// RFC 2308 Section 5: "Negative responses without SOA records SHOULD NOT be cached as there is no way to prevent the negative responses looping forever between a pair of servers even with a short TTL".
-			// TODO: is_implicit_referral
-			NoDomainResponseType4 { as_of_now, authority_name_name_servers } =>
-			{
-				let authority_name = authority_name_name_servers.authority_name;
-				domain_cache.guard_can_have_records(&authority_name)?;
-				domain_cache.store_name_servers_unchecked(authority_name.clone(), authority_name_name_servers.name_servers);
-				
-				UseOnce
-				{
-					as_of_now,
-					authority_name: Some(authority_name)
-				}
-			}
-		};
-		
-		domain_cache.store_no_domain_unchecked
-		(
-			most_canonical_name,
-			no_domain_cache_entry,
-		);
-		
-		Ok(())
+			CacheUntil::Cached { cached_until } => Cached { cached_until, authority_name },
+		}
 	}
 	
-	#[doc(hidden)]
 	#[inline(always)]
-	fn validate_authority_name_can_have_records_then_store(authority_name_start_of_authority: AuthorityNameStartOfAuthority, domain_cache: &mut DomainCache, store_name_servers_unchecked: impl FnOnce(&mut DomainCache, DomainTarget) -> DomainTarget) -> Result<Self, AnsweredError>
+	fn use_once_without_authority_name(as_of_now: NanosecondsSinceUnixEpoch) -> NoDomainCacheEntry
 	{
-		use self::NoDomainCacheEntry::*;
-		
-		let authority_name = authority_name_start_of_authority.authority_name;
-		domain_cache.guard_can_have_records(&authority_name)?;
-		let authority_name = store_name_servers_unchecked(domain_cache, authority_name);
-		
-		let no_domain_cache_entry = authority_name_start_of_authority.start_of_authority.no_domain_cache_entry(authority_name.clone());
-		let start_of_authority = authority_name_start_of_authority.start_of_authority;
-		
-		domain_cache.store_start_of_authority_unchecked(authority_name, start_of_authority);
-		
-		Ok(no_domain_cache_entry)
+		NoDomainCacheEntry::UseOnce
+		{
+			as_of_now,
+			authority_name: None
+		}
 	}
 	
+	#[inline(always)]
+	fn use_once_with_authority_name(as_of_now: NanosecondsSinceUnixEpoch, authority_name: DomainTarget) -> NoDomainCacheEntry
+	{
+		NoDomainCacheEntry::UseOnce
+		{
+			as_of_now,
+			authority_name: Some(authority_name)
+		}
+	}
 }

@@ -16,9 +16,9 @@ pub(crate) trait ParsedRecord: Sized + Debug
 		self
 	}
 	
-	fn store(cache: &mut QueryTypesCache, records: Self);
+	fn store(query_types_cache: &mut QueryTypesCache, records: Self);
 	
-	fn no_data(cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil);
+	fn no_data(query_types_cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil);
 }
 
 impl ParsedRecord for Ipv4Addr
@@ -34,15 +34,15 @@ impl ParsedRecord for Ipv4Addr
 	}
 	
 	#[inline(always)]
-	fn store(cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>)
+	fn store(query_types_cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>)
 	{
-		cache.A = QueryTypeCache::data(records.cache_until(), records.into());
+		query_types_cache.A = QueryTypeCache::data(records.cache_until(), records.into());
 	}
 	
 	#[inline(always)]
-	fn no_data(cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
+	fn no_data(query_types_cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
 	{
-		cache.A = QueryTypeCache::no_data(negative_cache_until);
+		query_types_cache.A = QueryTypeCache::no_data(negative_cache_until);
 	}
 }
 
@@ -59,14 +59,14 @@ impl ParsedRecord for Ipv6Addr
 	}
 	
 	#[inline(always)]
-	fn store(cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>)
+	fn store(query_types_cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>)
 	{
-		cache.AAAA = QueryTypeCache::data(records.cache_until(), records.into());
+		query_types_cache.AAAA = QueryTypeCache::data(records.cache_until(), records.into());
 	}
 	
 	#[inline(always)]
-	fn no_data(cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
+	fn no_data(query_types_cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
 	{
-		cache.AAAA = QueryTypeCache::no_data(negative_cache_until);
+		query_types_cache.AAAA = QueryTypeCache::no_data(negative_cache_until);
 	}
 }

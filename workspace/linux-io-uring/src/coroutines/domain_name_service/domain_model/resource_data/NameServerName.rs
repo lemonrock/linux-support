@@ -20,15 +20,15 @@ impl<N: Name> ParsedRecord for NameServerName<N>
 	}
 	
 	#[inline(always)]
-	fn store(cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>)
+	fn store(query_types_cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>)
 	{
-		cache.NS = QueryTypeCache::data(records.cache_until(), records.into());
+		query_types_cache.NS = QueryTypeCache::data(records.cache_until(), records.into());
 	}
 	
 	#[inline(always)]
-	fn no_data(cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
+	fn no_data(query_types_cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
 	{
-		cache.NS = QueryTypeCache::no_data(negative_cache_until);
+		query_types_cache.NS = QueryTypeCache::no_data(negative_cache_until);
 	}
 }
 

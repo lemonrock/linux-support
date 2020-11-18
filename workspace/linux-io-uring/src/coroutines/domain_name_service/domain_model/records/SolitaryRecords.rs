@@ -7,13 +7,14 @@
 /// * `SOA`.
 /// * Possibly `DNAME`.
 /// * Not used for `CNAME`.
-pub(crate) struct SolitaryRecords<OR: OwnedRecord + Ord>
+#[derive(Clone)]
+pub(crate) struct SolitaryRecords<OR: OwnedRecord + Ord + Clone>
 {
 	pub(crate) negative_cache_until: NegativeCacheUntil,
 	pub(crate) record: OR,
 }
 
-impl<OR: OwnedRecord + Ord> SolitaryRecords<OR>
+impl<OR: OwnedRecord + Ord + Clone> SolitaryRecords<OR>
 {
 	#[inline(always)]
 	pub(crate) const fn new(negative_cache_until: NegativeCacheUntil, record: OR) -> Self
@@ -22,19 +23,6 @@ impl<OR: OwnedRecord + Ord> SolitaryRecords<OR>
 		{
 			negative_cache_until,
 			record
-		}
-	}
-	
-	#[inline(always)]
-	pub(crate) fn no_domain_cache_entry(&self, authority_name: DomainTarget) -> NoDomainCacheEntry
-	{
-		use self::CacheUntil::*;
-		
-		match self.negative_cache_until
-		{
-			UseOnce { as_of_now } => NoDomainCacheEntry::UseOnce { as_of_now, authority_name: Some(authority_name) },
-			
-			Cached { cached_until } => NoDomainCacheEntry::Cached { cached_until, authority_name },
 		}
 	}
 }

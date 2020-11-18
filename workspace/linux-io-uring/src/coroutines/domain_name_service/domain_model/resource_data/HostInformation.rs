@@ -36,15 +36,15 @@ impl<'message> ParsedRecord for HostInformation<ParsedCharacterString<'message>>
 	}
 	
 	#[inline(always)]
-	fn store(cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>)
+	fn store(query_types_cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>)
 	{
-		cache.HINFO = QueryTypeCache::data(records.cache_until(), records.into());
+		query_types_cache.HINFO = QueryTypeCache::data(records.cache_until(), records.into());
 	}
 	
 	#[inline(always)]
-	fn no_data(cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
+	fn no_data(query_types_cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
 	{
-		cache.HINFO = QueryTypeCache::no_data(negative_cache_until);
+		query_types_cache.HINFO = QueryTypeCache::no_data(negative_cache_until);
 	}
 }
 

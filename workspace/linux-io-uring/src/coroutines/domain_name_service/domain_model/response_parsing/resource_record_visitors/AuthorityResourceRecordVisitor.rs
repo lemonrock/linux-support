@@ -293,7 +293,10 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 						guard_against_authoritative_answer_without_start_of_authority_record(authoritative_or_authenticated_or_neither)?;
 						NoData
 						{
-							response_type: NoDataResponseType3,
+							response_type: NoDataResponseType3
+							{
+								as_of_now
+							},
 						}
 					},
 					

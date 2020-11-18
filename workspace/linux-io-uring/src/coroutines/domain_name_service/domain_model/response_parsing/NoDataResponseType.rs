@@ -17,7 +17,10 @@ pub(crate) enum NoDataResponseType
 	NoDataResponseType2(AuthorityNameStartOfAuthority),
 	
 	/// RFC 2308, Section 2.2 No Data NODATA RESPONSE: TYPE 3.
-	NoDataResponseType3,
+	NoDataResponseType3
+	{
+		as_of_now: NanosecondsSinceUnixEpoch,
+	},
 }
 
 impl NoDataResponseType
