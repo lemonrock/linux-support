@@ -78,17 +78,9 @@ impl<'message> ParsedRecord for StartOfAuthority<ParsedName<'message>>
 	}
 	
 	#[inline(always)]
-	fn store(query_types_cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>)
+	fn into_owned_records(records: OwnerNameToRecordsValue<Self>) -> <Self::OwnedRecord as OwnedRecord>::OwnedRecords
 	{
-		let cache_until = records.cache_until();
-		
-		query_types_cache.SOA = Some(QueryTypeCache::data(cache_until, records.solitary().into_owned_record()));
-	}
-	
-	#[inline(always)]
-	fn no_data(query_types_cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
-	{
-		query_types_cache.SOA = Some(QueryTypeCache::no_data(negative_cache_until));
+		records.solitary().into_owned_record()
 	}
 }
 

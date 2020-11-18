@@ -397,7 +397,30 @@ impl DomainCache
 	#[inline(always)]
 	fn store_start_of_authority_unchecked(&mut self, authority_name: &DomainTarget, start_of_authority: &SolitaryRecords<StartOfAuthority<EfficientCaseFoldedName>>)
 	{
-		xxx;
+		use self::FastSecureHashMapEntry::*;
+		use self::DomainCacheEntry::*;
+		
+		match self.map.entry(authority_name.clone())
+		{
+			Vacant(vacant) =>
+			{
+				vacant.insert(DomainCacheEntry::store::<StartOfAuthority<ParsedName<'_>>>(negative_cache_until))
+			}
+			
+			Occupied(occupied) =>
+			{
+				match occupied.get_mut()
+				{
+					NeverValid => panic!("Should have been checked"),
+					
+					AlwaysValid { query_types_cache } | CurrentlyValid { query_types_cache }  => StartOfAuthority::<ParsedName<'_>>::store(query_types_cache, start_of_authority),
+					
+					x @ &mut Alias { .. } => *x = DomainCacheEntry::store::<StartOfAuthority<ParsedName<'_>>>(start_of_authority),
+					
+					x @ &mut NoDomain(_) => *x = DomainCacheEntry::store::<StartOfAuthority<ParsedName<'_>>>(start_of_authority),
+				}
+			}
+		}
 	}
 	
 	#[inline(always)]
@@ -409,7 +432,7 @@ impl DomainCache
 	#[inline(always)]
 	fn store_no_domain_unchecked(&mut self, most_canonical_name: &DomainTarget, no_domain_cache_entry: NoDomainCacheEntry)
 	{
-		xxx;
+		self.map.insert(most_canonical_name.clone(), DomainCacheEntry::NoDomain(no_domain_cache_entry));
 	}
 	
 	#[inline(always)]

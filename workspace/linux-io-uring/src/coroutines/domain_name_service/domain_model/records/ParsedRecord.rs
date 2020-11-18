@@ -13,9 +13,19 @@ pub(crate) trait ParsedRecord: Sized + Debug
 	#[inline(always)]
 	fn into_owned_record(self) -> Self::OwnedRecord;
 	
-	fn store(query_types_cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>);
+	fn into_owned_records(records: OwnerNameToRecordsValue<Self>) -> <Self::OwnedRecord as OwnedRecord>::OwnedRecords;
 	
-	fn no_data(query_types_cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil);
+	#[inline(always)]
+	fn store(query_types_cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>)
+	{
+		Self::OwnedRecord::store(query_types_cache, Self::into_owned_records(records))
+	}
+	
+	#[inline(always)]
+	fn no_data(query_types_cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
+	{
+		Self::OwnedRecord::no_data(query_types_cache, negative_cache_until)
+	}
 }
 
 impl ParsedRecord for Ipv4Addr
@@ -31,15 +41,9 @@ impl ParsedRecord for Ipv4Addr
 	}
 	
 	#[inline(always)]
-	fn store(query_types_cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>)
+	fn into_owned_records(records: OwnerNameToRecordsValue<Self>) -> <Self::OwnedRecord as OwnedRecord>::OwnedRecords
 	{
-		query_types_cache.A = QueryTypeCache::data(records.cache_until(), records.into());
-	}
-	
-	#[inline(always)]
-	fn no_data(query_types_cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
-	{
-		query_types_cache.A = QueryTypeCache::no_data(negative_cache_until);
+		MultipleSortedRecords::<Self>::from(records)
 	}
 }
 
@@ -56,14 +60,8 @@ impl ParsedRecord for Ipv6Addr
 	}
 	
 	#[inline(always)]
-	fn store(query_types_cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>)
+	fn into_owned_records(records: OwnerNameToRecordsValue<Self>) -> <Self::OwnedRecord as OwnedRecord>::OwnedRecords
 	{
-		query_types_cache.AAAA = QueryTypeCache::data(records.cache_until(), records.into());
-	}
-	
-	#[inline(always)]
-	fn no_data(query_types_cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
-	{
-		query_types_cache.AAAA = QueryTypeCache::no_data(negative_cache_until);
+		MultipleSortedRecords::<Self>::from(records)
 	}
 }

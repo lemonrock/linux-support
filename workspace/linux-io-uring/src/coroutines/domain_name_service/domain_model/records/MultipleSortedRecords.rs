@@ -12,10 +12,6 @@ pub struct MultipleSortedRecords<OR: OwnedRecord + Ord>
 	records: BTreeSet<OR>,
 }
 
-impl<OR: OwnedRecord> OwnedRecords<OR> for MultipleSortedRecords<OR>
-{
-}
-
 impl<PR: ParsedRecord<OrderPriorityAndWeight=(), OwnedRecord=OR>, OR: OwnedRecord + Ord> From<OwnerNameToRecordsValue<PR>> for MultipleSortedRecords<OR>
 {
 	#[inline(always)]

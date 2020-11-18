@@ -14,22 +14,28 @@ pub(crate) struct QueryTypeCache<ORs: OwnedRecords<OR>, OR: OwnedRecord>
 impl<ORs: OwnedRecords<OR>, OR: OwnedRecord> QueryTypeCache<ORs, OR>
 {
 	#[inline(always)]
-	pub(crate) fn data(cache_until: CacheUntil, records: Records) -> Self
+	pub(crate) fn data(cache_until: CacheUntil, records: Records) -> Option<Self>
 	{
-		Self
-		{
-			cache_until,
-			data: Some(records)
-		}
+		Some
+		(
+			Self
+			{
+				cache_until,
+				data: Some(records)
+			}
+		)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn no_data(negative_cache_until: CacheUntil) -> Self
+	pub(crate) fn no_data(negative_cache_until: CacheUntil) -> Option<Self>
 	{
-		Self
-		{
-			cache_until: negative_cache_until,
-			data: None
-		}
+		Some
+		(
+			Self
+			{
+				cache_until: negative_cache_until,
+				data: None
+			}
+		)
 	}
 }
