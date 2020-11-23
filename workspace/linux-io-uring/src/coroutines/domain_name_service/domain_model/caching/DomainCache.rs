@@ -2,14 +2,55 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) struct DomainCache
+use std::panic::UnwindSafe;
+
+pub(crate) struct DomainCache<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, CoroutineHeapSize: MemorySize>
 {
-	map: HashMap<AliasOrDomainTarget, DomainCacheEntry>
+	map: HashMap<AliasOrDomainTarget, DomainCacheEntry>,
+	gtacsa: &'static GTACSA,
+	our_usage: Cell<u64>,
+	marker: PhantomData<CoroutineHeapSize>,
 }
 
-impl DomainCache
+// TODO: ipv4only.arpa is very special
+	// Has no subdomains; has AAAA records with a NAT64 prefix.
+// TODO: Also: server failure RFC 2308 Section 7.1 / 7.2.
+// TODO: Can we optimize the use of guards and map.entry()
+// TODO: Cache by size, list by cache expiry but also keep some sort of LRU count?
+// TODO: How to compute size?
+	// A custom memory allocator.
+	/*
+		Box - owned character string
+		Arc - efficient case folded name
+		BTreeMap
+		BTreeSet
+		URI
+			Uses Vec
+		
+		DomainCache should be thread local for now.
+		So we need to control the memory allocator to be thread local.
+		This is actually the default operating state for a thread UNLESS it is a coroutine.
+		
+		TODO: What about GloballyAllocated?
+		
+		TODO: Switch all Authority stuff to ParsedName not owned stuff?
+		
+		
+	 */
+// TODO: lazy_static users in uriparse and crossbeam-utils
+// TODO: All memory allocations need to be made using the thread-local allocator or the global allocator (if using Arc in EfficientCaseFoldedName)
+// TODO: Actually querying.
+// TODO: Analyze errors to deduce server failures, bad records, etc. (we want to store a bad record indicator) - probably caching HandleRecordTypeError.
+
+impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, CoroutineHeapSize: MemorySize> DomainCache<GTACSA, CoroutineHeapSize>
 {
-	pub(crate) fn new(never_valid: Cow<'_, HashSet<DomainTarget>>, top_level_domains: Cow<'_, HashSet<DomainTarget>>, always_valid_private_domains: Cow<'_, HashSet<DomainTarget>>) -> Self
+	#[inline(always)]
+	fn callback_with_thread_local_allocator_detailing_memory_usage<F: FnOnce() -> R + UnwindSafe, R>(&self, callback: F)
+	{
+		self.gtacsa.callback_with_thread_local_allocator_detailing_memory_usage(&self.our_usage, callback)
+	}
+	
+	pub(crate) fn new(never_valid: Cow<'_, HashSet<DomainTarget>>, top_level_domains: Cow<'_, HashSet<DomainTarget>>, always_valid_private_domains: Cow<'_, HashSet<DomainTarget>>, nat64_prefixes_for_ipv4only_arpa: Vec<()>) -> Self
 	{
 		use self::DomainCacheEntry::*;
 		
@@ -22,16 +63,27 @@ impl DomainCache
 		this.over_write_always_valid(top_level_domains);
 		this.over_write_always_valid(always_valid_private_domains);
 		
+		// TODO: there is another category: "fixed".
+		// TODO: Add Fixed
+		
 		this
 	}
 	
-	pub(crate) fn get_not_resolving_aliases<'a, OR: OwnedRecord>(&self, domain_target: DomainTarget, now: NanosecondsSinceUnixEpoch) -> Option<GetNotResolvingAliasesResult<'a, OR::OwnedRecords, OR>>
+	pub(crate) fn get_not_resolving_aliases<'a, OR: OwnedRecord>(&'a mut self, domain_target: DomainTarget, now: NanosecondsSinceUnixEpoch) -> Option<GetNotResolvingAliasesResult<'a, OR::OwnedRecords, OR>>
 	{
 		use self::FastSecureHashMapEntry::*;
 		
 		match self.map.entry(domain_target)
 		{
-			Vacant(_) => None,
+			Vacant(occupied) =>
+			{
+				let parent = match vacant.into_key().parent()
+				{
+					None => return None,
+					Some(parent) => parent,
+				};
+				return self.get_not_resolving_aliases_recursively_check_if_parent_is_a_non_existent_domain(parent, now)
+			}
 			
 			Occupied(occupied) =>
 			{
@@ -41,15 +93,71 @@ impl DomainCache
 				{
 					NeverValid => (Some(GetNotResolvingAliasesResult::NeverValid), Keep),
 					
-					AlwaysValid { query_types_cache } => (GetNotResolvingAliasesResult::valid(query_types_cache, now), Keep),
+					Fixed { either_query_types_fixed_or_flattened_target_alias } => (Some(GetNotResolvingAliasesResult::fixed(either_query_types_fixed_or_flattened_target_alias)), Keep),
 					
-					CurrentlyValid { query_types_cache } =>
+					&mut Valid { always_valid: true, ref mut query_types_cache } =>
+					{
+						let result = GetNotResolvingAliasesResult::valid(query_types_cache, now);
+						(result, Keep)
+					}
+					
+					&mut Valid { always_valid: false, ref mut query_types_cache } =>
 					{
 						let result = GetNotResolvingAliasesResult::valid(query_types_cache, now);
 						(result, query_types_cache.is_empty())
 					}
 					
 					Alias { flattened_target, .. } => GetNotResolvingAliasesResult::match_cache_until(flattened_target.negative_cache_until, now, || Some(GetNotResolvingAliasesResult::Alias(&flattened_target.record))),
+					
+					NoDomain(no_domain_cache_entry) => match no_domain_cache_entry
+					{
+						&NoDomainCacheEntry::UseOnce { as_of_now, .. } => GetNotResolvingAliasesResult::if_as_of_now(as_of_now, now, || Some(GetNotResolvingAliasesResult::NoDomain)),
+						
+						&NoDomainCacheEntry::Cached { cached_until, .. } => GetNotResolvingAliasesResult::if_cached_until(cached_until, now, || Some(GetNotResolvingAliasesResult::NoDomain)),
+					},
+				};
+				
+				if remove
+				{
+					occupied.remove();
+				}
+				
+				result
+			}
+		}
+	}
+	
+	// Either NeverValid or NoDomain.
+	fn get_not_resolving_aliases_recursively_check_if_parent_is_a_non_existent_domain<'a, OR: OwnedRecord>(&'a mut self, parent: DomainTarget, now: NanosecondsSinceUnixEpoch) -> Option<GetNotResolvingAliasesResult<'a, OR::OwnedRecords, OR>>
+	{
+		use self::FastSecureHashMapEntry::*;
+		
+		if unlikely!(parent.is_root())
+		{
+			return None
+		}
+		
+		match self.map.entry(parent)
+		{
+			Vacant(vacant) =>
+			{
+				let grand_parent = vacant.into_key().parent().expect("Already checked domain_target.is_root()");
+				return self.get_not_resolving_aliases_recursively_check_if_parent_is_a_non_existent_domain(grand_parent, now)
+			}
+			
+			Occupied(occupied) =>
+			{
+				use self::DomainCacheEntry::*;
+				
+				let (xxx, remove) = match occupied.get_mut()
+				{
+					NeverValid => (Some(GetNotResolvingAliasesResult::NeverValid), Keep),
+					
+					Fixed { .. } => return None,
+					
+					Valid { always_valid, query_types_cache } => (None, Keep),
+					
+					Alias { .. } => (None, Keep),
 					
 					NoDomain(no_domain_cache_entry) => match no_domain_cache_entry
 					{
@@ -83,7 +191,6 @@ impl DomainCache
 		{
 			Answer::Answered { records } => self.store_data(&most_canonical_name, records)?,
 			
-			// TODO: The most_canonical_name is not necessarily the child of the authority name; it can be a grandchild, etc, and so we could infer that the intermediate domains are NXDOMAIN, too.
 			Answer::NoDomain { response_type} => self.store_no_domain(&most_canonical_name, response_type)?,
 			
 			Answer::NoData { response_type} => self.store_no_data::<PR>(&most_canonical_name, response_type)?,
@@ -188,7 +295,7 @@ impl DomainCache
 		{
 			Vacant(vacant) =>
 			{
-				vacant.insert(DomainCacheEntry::store(records))
+				vacant.insert(DomainCacheEntry::store_parsed(records))
 			}
 			
 			Occupied(occupied) =>
@@ -197,11 +304,13 @@ impl DomainCache
 				{
 					NeverValid => return Err(CacheStoreError::DomainNameCanNotNotHaveRecords(occupied.replace_key())),
 					
-					AlwaysValid { query_types_cache } | CurrentlyValid { query_types_cache } => PR::store(query_types_cache, records),
+					Fixed { .. } => return Err(CacheStoreError::DomainNameIsFixed(occupied.replace_key())),
 					
-					x @ &mut Alias { .. } => *x = DomainCacheEntry::store(records),
+					Valid { query_types_cache, .. } => PR::store(query_types_cache, records),
 					
-					x @ &mut NoDomain(_) => *x = DomainCacheEntry::store(records),
+					x @ &mut Alias { .. } => *x = DomainCacheEntry::store_parsed(records),
+					
+					x @ &mut NoDomain(_) => *x = DomainCacheEntry::store_parsed(records),
 				}
 			}
 		}
@@ -251,7 +360,9 @@ impl DomainCache
 				{
 					NeverValid => return Err(CacheStoreError::DomainNameCanNotNotHaveRecords(occupied.replace_key())),
 					
-					AlwaysValid { query_types_cache } | CurrentlyValid { query_types_cache }  => PR::no_data(query_types_cache, negative_cache_until),
+					Fixed { .. } => return Err(CacheStoreError::DomainNameIsFixed(occupied.replace_key())),
+					
+					Valid { query_types_cache, .. }  => PR::no_data(query_types_cache, negative_cache_until),
 					
 					x @ &mut Alias { .. } => *x = DomainCacheEntry::no_data(negative_cache_until),
 					
@@ -400,11 +511,12 @@ impl DomainCache
 		use self::FastSecureHashMapEntry::*;
 		use self::DomainCacheEntry::*;
 		
+		let records = start_of_authority.into_owned_record();
 		match self.map.entry(authority_name.clone())
 		{
 			Vacant(vacant) =>
 			{
-				vacant.insert(DomainCacheEntry::store::<StartOfAuthority<ParsedName<'_>>>(negative_cache_until))
+				vacant.insert(DomainCacheEntry::store_owned::<StartOfAuthority<EfficientCaseFoldedName>>(records));
 			}
 			
 			Occupied(occupied) =>
@@ -413,11 +525,11 @@ impl DomainCache
 				{
 					NeverValid => panic!("Should have been checked"),
 					
-					AlwaysValid { query_types_cache } | CurrentlyValid { query_types_cache }  => StartOfAuthority::<ParsedName<'_>>::store(query_types_cache, start_of_authority),
+					Valid { query_types_cache, .. }  => StartOfAuthority::<EfficientCaseFoldedName>::store(query_types_cache, records),
 					
-					x @ &mut Alias { .. } => *x = DomainCacheEntry::store::<StartOfAuthority<ParsedName<'_>>>(start_of_authority),
+					x @ &mut Alias { .. } => *x = DomainCacheEntry::store_owned::<StartOfAuthority<EfficientCaseFoldedName>>(records),
 					
-					x @ &mut NoDomain(_) => *x = DomainCacheEntry::store::<StartOfAuthority<ParsedName<'_>>>(start_of_authority),
+					x @ &mut NoDomain(_) => *x = DomainCacheEntry::store_owned::<StartOfAuthority<EfficientCaseFoldedName>>(records),
 				}
 			}
 		}
@@ -426,7 +538,30 @@ impl DomainCache
 	#[inline(always)]
 	fn store_name_servers_unchecked(&mut self, authority_name: &DomainTarget, name_servers: MultipleSortedRecords<NameServerName<EfficientCaseFoldedName>>)
 	{
-		xxx;
+		use self::FastSecureHashMapEntry::*;
+		use self::DomainCacheEntry::*;
+		
+		match self.map.entry(authority_name.clone())
+		{
+			Vacant(vacant) =>
+			{
+				vacant.insert(DomainCacheEntry::store_owned::<NameServerName<EfficientCaseFoldedName>>(name_servers));
+			}
+			
+			Occupied(occupied) =>
+			{
+				match occupied.get_mut()
+				{
+					NeverValid => panic!("Should have been checked"),
+					
+					Valid { query_types_cache, .. }  => NameServerName::<EfficientCaseFoldedName>::store(query_types_cache, records),
+					
+					x @ &mut Alias { .. } => *x = DomainCacheEntry::store_owned::<NameServerName<EfficientCaseFoldedName>>(name_servers),
+					
+					x @ &mut NoDomain(_) => *x = DomainCacheEntry::store_owned::<NameServerName<EfficientCaseFoldedName>>(name_servers),
+				}
+			}
+		}
 	}
 	
 	#[inline(always)]

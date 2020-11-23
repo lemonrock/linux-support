@@ -51,6 +51,12 @@ impl OwnedRecord for HostInformation<OwnedCharacterString>
 	{
 		&mut query_types_cache.HINFO
 	}
+	
+	#[inline(always)]
+	fn retrieve_fixed(query_types_fixed: &QueryTypesFixed) -> Option<&Self::OwnedRecords>
+	{
+		None
+	}
 }
 
 impl<CS: CharacterString> HostInformation<CS>

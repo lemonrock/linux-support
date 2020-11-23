@@ -11,9 +11,9 @@
 /// * L32.
 /// * L64.
 /// * LP.
-pub struct MultiplePrioritizedThenSortedRecords<R: OwnedRecord + Ord>
+pub struct MultiplePrioritizedThenSortedRecords<OR: OwnedRecord + Ord>
 {
-	records: PriorityToSortedRecordsMap<R>,
+	records: PriorityToSortedRecordsMap<OR>,
 }
 
 impl<OR: OwnedRecord> OwnedRecords<OR> for MultiplePrioritizedThenSortedRecords<OR>

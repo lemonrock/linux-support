@@ -5,7 +5,9 @@
 use super::*;
 
 
+include!("AAAAHandleRecordTypeError.rs");
 include!("AdditionalSectionError.rs");
+include!("AHandleRecordTypeError.rs");
 include!("AnswerSectionError.rs");
 include!("AuthorityError.rs");
 include!("AuthoritySectionError.rs");

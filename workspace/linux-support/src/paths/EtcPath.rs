@@ -40,6 +40,13 @@ impl EtcPath
 		self.file_path("group")
 	}
 
+	/// `/etc/hosts`.
+	#[inline(always)]
+	pub fn hosts(&self) -> PathBuf
+	{
+		self.file_path("hosts")
+	}
+
 	/// File path.
 	#[inline(always)]
 	pub fn file_path(&self, file_name: &str) -> PathBuf

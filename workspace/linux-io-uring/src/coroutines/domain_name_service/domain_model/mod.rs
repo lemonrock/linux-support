@@ -6,11 +6,13 @@ use super::*;
 use self::caching::*;
 use self::character_strings::*;
 use self::errors::*;
+use self::etc::*;
 use self::extended_dns::*;
 use self::message::*;
 use self::message::header::*;
 use self::message::query::*;
 use self::message::resource_record::*;
+use self::memory::*;
 use self::name::*;
 use self::owned_or_parsed::*;
 use self::query_processors::*;
@@ -49,7 +51,15 @@ pub mod character_strings;
 pub mod errors;
 
 
+/// Support for `/etc/hosts`, `/etc/resolv.conf` and the like.
+pub mod etc;
+
+
 pub(crate) mod extended_dns;
+
+
+/// Types to replace the common use of memory with one that has a specific allocator.
+pub mod heap_memory;
 
 
 /// Message.

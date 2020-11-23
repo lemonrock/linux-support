@@ -16,24 +16,31 @@ enum DomainCacheEntry
 	/// Domains that can never be valid, eg `example.com.`.
 	NeverValid,
 
-	/// Irrespective of TTLs, etc, a domain that is always valid.
+	/// Domains that have fixed, unchanging data that should never be recursively queried.
 	///
-	/// Typically used for the root and all top-level domains.
+	/// By definition, fixed domains can not have subdomains.
 	///
-	/// Also used for, say, private hosted zones in Amazon Route 53.
-	///
-	/// Only occurs for `Answer::Answered` or `Answer::NoData`.
-	AlwaysValid
+	/// Best example is `ipv4only.arpa` and its associated `PTR` domains.
+	Fixed
 	{
-		/// Cache of `QTYPE`.
-		query_types_cache: QueryTypesCache,
+		/// Either a cache of `QTYPE` or a flattened target (alias) (usually as the result of parsing an `/etc/hosts` file).
+		either_query_types_fixed_or_flattened_target_alias: Either<QueryTypesFixed, DomainTarget>,
 	},
 	
 	/// Valid domains that may, at some point, cease to exist.
 	///
 	/// Only occurs for `Answer::Answered` or `Answer::NoData`.
-	CurrentlyValid
+	Valid
 	{
+		/// Irrespective of TTLs, etc, a domain that is always valid.
+		///
+		/// Typically used for the root and all top-level domains.
+		///
+		/// Also used for, say, private hosted zones in Amazon Route 53.
+		///
+		/// Only occurs for `Answer::Answered` or `Answer::NoData`.
+		always_valid: bool,
+		
 		/// Cache of `QTYPE`.
 		query_types_cache: QueryTypesCache,
 	},
@@ -65,11 +72,11 @@ enum DomainCacheEntry
 impl DomainCacheEntry
 {
 	#[inline(always)]
-	fn store<PR: ParsedRecord>(records: OwnerNameToRecordsValue<PR>) -> Self
+	fn store_parsed<PR: ParsedRecord>(records: OwnerNameToRecordsValue<PR>) -> Self
 	{
 		let mut query_types_cache = QueryTypesCache::default();
 		PR::store(&mut query_types_cache, records);
-		DomainCacheEntry::CurrentlyValid { query_types_cache }
+		DomainCacheEntry::Valid { always_valid: false, query_types_cache }
 	}
 	
 	#[inline(always)]
@@ -77,7 +84,15 @@ impl DomainCacheEntry
 	{
 		let mut query_types_cache = QueryTypesCache::default();
 		PR::no_data(&mut query_types_cache, negative_cache_until);
-		DomainCacheEntry::CurrentlyValid { query_types_cache }
+		DomainCacheEntry::Valid { always_valid: false, query_types_cache }
+	}
+	
+	#[inline(always)]
+	fn store_owned<OR: OwnedRecord>(records: OR::OwnedRecords) -> Self
+	{
+		let mut query_types_cache = QueryTypesCache::default();
+		OR::store(&mut query_types_cache, records);
+		DomainCacheEntry::Valid { always_valid: false, query_types_cache }
 	}
 	
 	#[inline(always)]
@@ -87,7 +102,7 @@ impl DomainCacheEntry
 		
 		match self
 		{
-			&NeverValid | AlwaysValid { .. } => true,
+			&NeverValid | Fixed { ..} | Valid { always_valid: true, .. } => true,
 		
 			_ => false,
 		}
@@ -100,7 +115,7 @@ impl DomainCacheEntry
 		
 		match self
 		{
-			&NeverValid | AlwaysValid { .. } => true,
+			&NeverValid | Fixed { ..}  | Valid { always_valid: true, .. } => true,
 		
 			_ => false,
 		}
@@ -113,7 +128,7 @@ impl DomainCacheEntry
 		
 		match self
 		{
-			&NeverValid => true,
+			&NeverValid | Fixed { ..}  => true,
 			
 			_ => false,
 		}

@@ -93,6 +93,12 @@ impl OwnedRecord for StartOfAuthority<EfficientCaseFoldedName>
 	{
 		&mut query_types_cache.SOA
 	}
+	
+	#[inline(always)]
+	fn retrieve_fixed(query_types_fixed: &QueryTypesFixed) -> Option<&Self::OwnedRecords>
+	{
+		None
+	}
 }
 
 impl<N: Name> StartOfAuthority<N>

@@ -2,12 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// This design is intended to cut down on the pointer chasing that occurs in a `CaseFoldedName` to try to make names more CPU cache friendly, and to make construction and cloning faster.
+/// This design is intended to cut down on the pointer chasing that occurs to try to make names more CPU cache friendly, and to make construction and cloning faster.
 pub struct EfficientCaseFoldedName
 {
 	name_length_including_trailing_periods_after_labels: NonZeroU8,
 	
-	inner: Arc<EfficientCaseFoldedNameInner>,
+	inner: Rc<EfficientCaseFoldedNameInner>,
 }
 
 impl Default for EfficientCaseFoldedName
@@ -46,7 +46,7 @@ impl Clone for EfficientCaseFoldedName
 		{
 			name_length_including_trailing_periods_after_labels: self.name_length_including_trailing_periods_after_labels,
 			
-			inner: Arc::clone(&self.inner)
+			inner: Rc::clone(&self.inner)
 		}
 	}
 }
@@ -178,6 +178,45 @@ impl<'a, 'message> From<&'a ParsedName<'message>> for EfficientCaseFoldedName
 
 impl EfficientCaseFoldedName
 {
+	/// If `etc_host_name` has no parent domains, then it is made a child subdomain of `self`.
+	///
+	/// Otherwise it is converted to a FQDN.
+	pub fn convert_etc_hosts_name(&self, etc_host_name: &[u8]) -> Result<Self, EfficientCaseFoldedNameParseError>
+	{
+		if etc_host_name.is_empty()
+		{
+			return Ok(Self::root())
+		}
+		
+		let child = Self::from_byte_string_ending_with_optional_trailing_period(canonical_name.as_bytes())?;
+		
+		if etc_host_name.get_unchecked_value_safe(etc_host_name.len() - 1) == b'.'
+		{
+			return Ok(child)
+		}
+		else if child.is_top_level()
+		{
+			self.child(child.last_label().unwrap())
+		}
+		else
+		{
+			Ok(child)
+		}
+	}
+	
+	/// Prepends `relative_name`.
+	pub(crate) fn prepend_relative_name(&self, relative_name: &Self) -> Result<Self, X>
+	{
+		let mut this = self.clone();
+		
+		for index in 1 .. relative_name.number_of_labels_including_root().get()
+		{
+			this.child_mutate(relative_name.label(index))
+		}
+		
+		Ok(this)
+	}
+	
 	/// Push a child to the front of this name.
 	///
 	/// This will always succeed if this is a root, top level or second level name.

@@ -5,15 +5,7 @@
 use super::*;
 
 
-include!("Alias.rs");
-include!("AliasOrDomainTarget.rs");
-include!("CacheUntil.rs");
-include!("DomainCache.rs");
-include!("DomainCacheEntry.rs");
-include!("DomainTarget.rs");
-include!("GetNotResolvingAliasesResult.rs");
-include!("NegativeCacheUntil.rs");
-include!("NoDomainCacheEntry.rs");
-include!("QueryTypeCache.rs");
-include!("QueryTypesCache.rs");
-include!("QueryTypesFixed.rs");
+include!("parse_etc_hosts.rs");
+include!("ParseEtcHostsError.rs");
+include!("ParseEtcResolvConfError.rs");
+include!("ResolvConf.rs");

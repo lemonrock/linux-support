@@ -31,3 +31,24 @@ impl<PR: ParsedRecord<OrderPriorityAndWeight=(), OwnedRecord=OR>, OR: OwnedRecor
 		}
 	}
 }
+
+impl<OR: OwnedRecord + Ord> MultipleSortedRecords<OR>
+{
+	#[inline(always)]
+	pub(crate) fn single(owned_record: OR) -> Self
+	{
+		Self
+		{
+			records: btreeset!
+			{
+				owned_record
+			}
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn add(&mut self, owned_record: OR)
+	{
+		self.records.insert(owned_record);
+	}
+}

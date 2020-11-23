@@ -44,6 +44,12 @@ impl OwnedRecord for MailServerName<EfficientCaseFoldedName>
 	{
 		&mut query_types_cache.MX
 	}
+	
+	#[inline(always)]
+	fn retrieve_fixed(query_types_fixed: &QueryTypesFixed) -> Option<&Self::OwnedRecords>
+	{
+		None
+	}
 }
 
 impl<N: Name> MailServerName<N>

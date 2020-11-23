@@ -2,18 +2,23 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+/// Handle `A` record type error.
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+pub enum AHandleRecordTypeError
+{
+	/// Resource data for resource record type `A` has an incorrect length (value in tuple).
+	HasAnIncorrectLength(usize),
+}
 
+impl Display for AHandleRecordTypeError
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
 
-include!("Alias.rs");
-include!("AliasOrDomainTarget.rs");
-include!("CacheUntil.rs");
-include!("DomainCache.rs");
-include!("DomainCacheEntry.rs");
-include!("DomainTarget.rs");
-include!("GetNotResolvingAliasesResult.rs");
-include!("NegativeCacheUntil.rs");
-include!("NoDomainCacheEntry.rs");
-include!("QueryTypeCache.rs");
-include!("QueryTypesCache.rs");
-include!("QueryTypesFixed.rs");
+impl error::Error for AHandleRecordTypeError
+{
+}

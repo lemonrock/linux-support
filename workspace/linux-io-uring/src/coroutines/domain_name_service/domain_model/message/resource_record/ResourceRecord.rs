@@ -425,7 +425,7 @@ impl ResourceRecord
 	{
 		use self::HandleRecordTypeError::*;
 		
-		let (cache_until, record, end_of_resource_data_pointer) = self.parse_internet_protocol_address_only(now, end_of_name_pointer, end_of_message_pointer, &owner_name, DataType::A, duplicate_resource_record_response_parsing, AHasAnIncorrectLength)?;
+		let (cache_until, record, end_of_resource_data_pointer) = self.parse_internet_protocol_address_only(now, end_of_name_pointer, end_of_message_pointer, &owner_name, DataType::A, duplicate_resource_record_response_parsing, |length| A(AHandleRecordTypeError::HasAnIncorrectLength(length)))?;
 		resource_record_visitor.A(owner_name, cache_until, record).map_err(|error| ResourceRecordVisitor(DataType::A, error))?;
 		Ok(end_of_resource_data_pointer)
 	}
@@ -612,7 +612,7 @@ impl ResourceRecord
 	{
 		use self::HandleRecordTypeError::*;
 		
-		let (cache_until, record, end_of_resource_data_pointer) = self.parse_internet_protocol_address_only(now, end_of_name_pointer, end_of_message_pointer, &owner_name, DataType::AAAA, duplicate_resource_record_response_parsing, AAAAHasAnIncorrectLength)?;
+		let (cache_until, record, end_of_resource_data_pointer) = self.parse_internet_protocol_address_only(now, end_of_name_pointer, end_of_message_pointer, &owner_name, DataType::AAAA, duplicate_resource_record_response_parsing, |length| AAAA(AAAAHandleRecordTypeError::HasAnIncorrectLength(length)))?;
 		resource_record_visitor.AAAA(owner_name, cache_until, record).map_err(|error| ResourceRecordVisitor(DataType::AAAA, error))?;
 		Ok(end_of_resource_data_pointer)
 	}

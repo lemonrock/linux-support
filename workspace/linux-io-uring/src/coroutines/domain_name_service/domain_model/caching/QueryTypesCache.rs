@@ -17,6 +17,11 @@ pub(crate) struct QueryTypesCache
 	
 	pub(crate) HINFO: Option<QueryTypeCache<MultipleSortedRecords<HostInformation<OwnedCharacterString>>>>,
 	
+	// /// RFC 1034, Page 15, implies that `PTR` records SHOULD not point to aliases, but does not require this.
+	// ///
+	// /// RFC 2317, however, encourages the use of CNAME for classless subdivision.
+	// pub(crate) PTR: Option<QueryTypeCache<MultipleSortedRecords<NameServerName<AliasOrDomainTarget>>>>,
+	
 	// pub(crate) SRV: Option<QueryTypeCache<MultiplePrioritizedThenWeightedRecords<ServiceLocation<DomainTarget>>>>,
 	//
 	// pub(crate) NAPTR: Option<QueryTypeCache<MultipleOrderedThenPrioritizedThenUnsortedRecords<NamingAuthorityPointer<DomainTarget, OwnedUri, OwnedCharacterString, OwnedTypeEquality>>>>,

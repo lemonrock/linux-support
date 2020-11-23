@@ -13,6 +13,9 @@ pub enum CacheStoreError
 	
 	/// Domain name is never valid.
 	DomainNameCanNotNotHaveRecords(AliasOrDomainTarget),
+	
+	/// Domain name is fixed.
+	DomainNameIsFixed(AliasOrDomainTarget),
 }
 
 impl Display for CacheStoreError

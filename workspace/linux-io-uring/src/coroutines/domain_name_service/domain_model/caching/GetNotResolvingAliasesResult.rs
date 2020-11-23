@@ -12,8 +12,6 @@ pub enum GetNotResolvingAliasesResult<'a, ORs: 'a + OwnedRecords<OR>, OR: OwnedR
 	
 	/// There is an alias to resolve.
 	///
-	/// Use the same value of `now`.
-	///
 	/// Wherever possible, this is flattened.
 	Alias(&'a AliasOrDomainTarget),
 	
@@ -30,6 +28,24 @@ const Remove: bool = true;
 
 impl<'a, ORs: 'a + OwnedRecords<OR>, OR: OwnedRecord> GetNotResolvingAliasesResult<'a, ORs, OR>
 {
+	#[inline(always)]
+	fn fixed(query_types_fixed: &Either<QueryTypesFixed, Alias>) -> Self
+	{
+		use self::GetNotResolvingAliasesResult::*;
+		
+		match query_types_fixed
+		{
+			Left(ref query_types_fixed) => match OR::retrieve_fixed(query_types_fixed)
+			{
+				None => NoData,
+				
+				Some(data) => Data(data),
+			},
+			
+			Right(ref alias) => Alias(alias),
+		}
+	}
+	
 	#[inline(always)]
 	fn valid(query_types_cache: &'a mut QueryTypesCache, now: NanosecondsSinceUnixEpoch) -> Option<Self>
 	{

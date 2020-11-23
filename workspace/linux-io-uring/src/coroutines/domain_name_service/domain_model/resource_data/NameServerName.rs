@@ -35,6 +35,12 @@ impl OwnedRecord for NameServerName<EfficientCaseFoldedName>
 	{
 		&mut query_types_cache.NS
 	}
+	
+	#[inline(always)]
+	fn retrieve_fixed(query_types_fixed: &QueryTypesFixed) -> Option<&Self::OwnedRecords>
+	{
+		None
+	}
 }
 
 impl<N: Name> NameServerName<N>

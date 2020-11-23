@@ -8,6 +8,8 @@ pub(crate) trait OwnedRecord: Sized + Debug
 	
 	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>;
 	
+	fn retrieve_fixed(query_types_fixed: &QueryTypesFixed) -> Option<&Self::OwnedRecords>;
+	
 	#[inline(always)]
 	fn store(query_types_cache: &mut QueryTypesCache, records: Self::OwnedRecords)
 	{
@@ -34,6 +36,12 @@ impl OwnedRecord for Ipv4Addr
 	{
 		&mut query_types_cache.A
 	}
+	
+	#[inline(always)]
+	fn retrieve_fixed(query_types_fixed: &QueryTypesFixed) -> Option<&Self::OwnedRecords>
+	{
+		query_types_fixed.A.as_ref()
+	}
 }
 
 impl OwnedRecord for Ipv6Addr
@@ -44,5 +52,11 @@ impl OwnedRecord for Ipv6Addr
 	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>
 	{
 		&mut query_types_cache.AAAA
+	}
+	
+	#[inline(always)]
+	fn retrieve_fixed(query_types_fixed: &QueryTypesFixed) -> Option<&Self::OwnedRecords>
+	{
+		query_types_fixed.AAAA.as_ref()
 	}
 }

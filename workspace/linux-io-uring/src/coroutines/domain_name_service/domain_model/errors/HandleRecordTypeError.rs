@@ -15,9 +15,6 @@ pub enum HandleRecordTypeError<E: error::Error>
 	/// Miscellaneous.
 	ValidateClassIsInternetAndGetTimeToLiveAndResourceData(ValidateClassIsInternetAndGetTimeToLiveAndResourceDataError),
 	
-	/// Resource data for resource record type `A` has an incorrect length (value in tuple).
-	AHasAnIncorrectLength(usize),
-	
 	/// Resource type in wrong section.
 	ResourceTypeInWrongSection(ResourceTypeInWrongSectionError),
 	
@@ -29,6 +26,9 @@ pub enum HandleRecordTypeError<E: error::Error>
 	
 	/// Query type outside of a question section entry.
 	QueryTypeOutsideOfAQuestionSectionEntry(QueryTypeOutsideOfAQuestionSectionEntryError),
+	
+	/// Error parsing an `A` record type.
+	A(AHandleRecordTypeError),
 	
 	/// Error parsing a name for a `NS` record type.
 	NS(ParsedNameParserError),
@@ -51,8 +51,8 @@ pub enum HandleRecordTypeError<E: error::Error>
 	/// `TXT`.
 	TXT(TXTHandleRecordTypeError),
 	
-	/// Resource data for resource record type `AAAA` has an incorrect length (value in tuple).
-	AAAAHasAnIncorrectLength(usize),
+	/// Error parsing an `AAAA` record type.
+	AAAA(AAAAHAndleRecordTypeError),
 	
 	/// `LOC`.
 	LOC(LOCHandleRecordTypeError),
@@ -168,6 +168,8 @@ impl<E: 'static + error::Error> error::Error for HandleRecordTypeError<E>
 			
 			&QueryTypeOutsideOfAQuestionSectionEntry(ref error) => Some(error),
 			
+			&A(ref error) => Some(error),
+			
 			&NS(ref error) => Some(error),
 			
 			&CNAME(ref error) => Some(error),
@@ -179,6 +181,10 @@ impl<E: 'static + error::Error> error::Error for HandleRecordTypeError<E>
 			&HINFO(ref error) => Some(error),
 			
 			&MX(ref error) => Some(error),
+			
+			&TXT(ref error) => Some(error),
+			
+			&AAAA(ref error) => Some(error),
 			
 			&LOC(ref error) => Some(error),
 			

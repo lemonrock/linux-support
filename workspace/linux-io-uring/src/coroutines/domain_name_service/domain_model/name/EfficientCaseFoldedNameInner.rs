@@ -46,9 +46,9 @@ impl EfficientCaseFoldedNameInner
 	const LabelDataSize: usize = 250;
 	
 	#[inline(always)]
-	fn new(label_offsets_and_lengths_excluding_root: ArrayVec<[(u8, NonZeroU8); Self::LabelsCount]>, label_data: [u8; Self::LabelDataSize]) -> Arc<Self>
+	fn new(label_offsets_and_lengths_excluding_root: ArrayVec<[(u8, NonZeroU8); Self::LabelsCount]>, label_data: [u8; Self::LabelDataSize]) -> Rc<Self>
 	{
-		Arc::new
+		Rc::new
 		(
 			Self
 			{
@@ -60,7 +60,7 @@ impl EfficientCaseFoldedNameInner
 	}
 	
 	#[inline(always)]
-	fn collect_excluding_root(labels_excluding_root_top_level_domain_last: &[EfficientCaseFoldedLabel]) -> Arc<Self>
+	fn collect_excluding_root(labels_excluding_root_top_level_domain_last: &[EfficientCaseFoldedLabel]) -> Rc<Self>
 	{
 		debug_assert!(labels_excluding_root_top_level_domain_last.len() <= Self::LabelsCount);
 		
@@ -89,14 +89,14 @@ impl EfficientCaseFoldedNameInner
 	}
 	
 	#[inline(always)]
-	fn root() -> Arc<Self>
+	fn root() -> Rc<Self>
 	{
 		lazy_static!
 		{
-			static ref root: Arc<EfficientCaseFoldedNameInner> = EfficientCaseFoldedNameInner::new(ArrayVec::new(), unsafe_uninitialized());
+			static ref root: Rc<EfficientCaseFoldedNameInner> = EfficientCaseFoldedNameInner::new(ArrayVec::new(), unsafe_uninitialized());
 		}
 		
-		let this: &'static Arc<Self> = &root;
+		let this: &'static Rc<Self> = &root;
 		this.clone()
 	}
 	
@@ -144,7 +144,7 @@ impl EfficientCaseFoldedNameInner
 	///
 	/// Requires a memory copy.
 	#[inline(always)]
-	fn parent(&self) -> Option<(Arc<Self>, NonZeroU8)>
+	fn parent(&self) -> Option<(Rc<Self>, NonZeroU8)>
 	{
 		match self.number_of_labels_including_root().get()
 		{
@@ -184,7 +184,7 @@ impl EfficientCaseFoldedNameInner
 	}
 	
 	#[inline(always)]
-	fn child_clone(&self, child: EfficientCaseFoldedLabel) -> Arc<Self>
+	fn child_clone(&self, child: EfficientCaseFoldedLabel) -> Rc<Self>
 	{
 		debug_assert!(!child.is_root());
 		
