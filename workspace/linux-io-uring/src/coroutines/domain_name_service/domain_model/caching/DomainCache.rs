@@ -42,6 +42,9 @@ pub(crate) struct DomainCache<GTACSA: GlobalThreadAndCoroutineSwitchableAllocato
 // TODO: Actually querying.
 // TODO: Analyze errors to deduce server failures, bad records, etc. (we want to store a bad record indicator) - probably caching HandleRecordTypeError.
 
+
+
+
 impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, CoroutineHeapSize: MemorySize> DomainCache<GTACSA, CoroutineHeapSize>
 {
 	#[inline(always)]
@@ -50,7 +53,7 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 		self.gtacsa.callback_with_thread_local_allocator_detailing_memory_usage(&self.our_usage, callback)
 	}
 	
-	pub(crate) fn new(never_valid: Cow<'_, HashSet<DomainTarget>>, top_level_domains: Cow<'_, HashSet<DomainTarget>>, always_valid_private_domains: Cow<'_, HashSet<DomainTarget>>, nat64_prefixes_for_ipv4only_arpa: Vec<()>) -> Self
+	pub(crate) fn new(never_valid: Cow<'_, HashSet<DomainTarget>>, top_level_domains: Cow<'_, HashSet<DomainTarget>>, always_valid_private_domains: Cow<'_, HashSet<DomainTarget>>, etc_path: &EtcPath, default_domain_name: &EfficientCaseFoldedName) -> Self
 	{
 		use self::DomainCacheEntry::*;
 		
@@ -64,7 +67,19 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 		this.over_write_always_valid(always_valid_private_domains);
 		
 		// TODO: there is another category: "fixed".
-		// TODO: Add Fixed
+		// TODO: ipv4only.arpa
+			// Parent domains are never valid
+			// Only A and AAAA and PTR records are valid
+			// A is always hardcoded
+			// PTR is a fixed list
+			// Can be handled by just making it an always valid domain.
+		// TODO: AAAA records vary by interface! (actually, because of CDNs, so do other records types)
+		
+		// TODO: Add PTR reverse entries for /etc/hosts.
+		
+		// TODO: ParseEtcHostsError
+		let x = parse_etc_hosts(etc_path, default_domain_name)?;
+		dasdasdas;
 		
 		this
 	}

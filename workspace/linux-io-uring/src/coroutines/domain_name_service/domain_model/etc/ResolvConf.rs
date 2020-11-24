@@ -107,11 +107,7 @@ impl ResolvConf
 		
 		let mut this: ResolvConf = ResolvConf::defaultish(ArrayVec::new(), ArrayVec::new());
 		
-		let etc_hosts_file_path = etc_path.hosts();
-		if etc_hosts_file_path.exists()
-		{
-			this.parse_etc_resolv_conf(etc_hosts_file_path)?;
-		}
+		this.parse_etc_resolv_conf(etc_path)?;
 		
 		this.apply_environment_variable_overrides()?;
 		
@@ -219,42 +215,23 @@ impl ResolvConf
 	}
 	
 	/// This uses the same logic as glibc and as documented in man 5 resolv.conf.
-	///
-	/// It seems odd.
+	#[inline(always)]
 	fn default_domain_name() -> Result<EfficientCaseFoldedName, EfficientCaseFoldedNameParseError>
 	{
-		let mut x: utsname = unsafe_uninitialized();
-		let result = unsafe { uname(&mut x) };
-		if likely!(result == 0)
-		{
-			const Size: usize = 65;
-			let nodename: [u8; Size] = unsafe { transmute(x.nodename) };
-			let length = memchr(0x00, &nodename[..]).unwrap_or(Size);
-			
-			let valid = &nodename[.. length];
-			let host_name = EfficientCaseFoldedName::from_byte_string_ending_with_optional_trailing_period(valid)?;
-			Ok(host_name.parent().unwrap_or_else(EfficientCaseFoldedName::root))
-		}
-		else if likely!(result == -1)
-		{
-			match errno().0
-			{
-				EFAULT => unreachable_code(format_args!("Invald buffer")),
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error `{}` from `uname()`", result))
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result `{}` from `uname()`", result))
-		}
+		Ok(DefaultDomainNameChoice::uname_host_name()?.unwrap_or_else(EfficientCaseFoldedName::root))
 	}
 	
-	fn parse_etc_resolv_conf(&mut self, etc_hosts_file_path: PathBuf) -> Result<(), ParseEtcResolvConfError>
+	fn parser(etc_path: &EtcPath, mut callback: impl for<'a> FnMut(&'a str, SplitWhitespace<'a>, usize) -> Result<(), ParseEtcResolvConfError>) -> Result<(), ParseEtcResolvConfError>
 	{
 		use self::ParseEtcResolvConfError::*;
 		
-		let raw = etc_hosts_file_path.read_raw()?;
+		let etc_resolv_conf_file_path = etc_path.resolv_conf();
+		if !etc_resolv_conf_file_path.exists()
+		{
+			return Ok(())
+		}
+		
+		let raw = etc_resolv_conf_file_path.read_raw()?;
 		let string: String = String::from_utf8(raw.into_vec())?;
 		
 		for (line_index, line) in string.split_terminator(b'\n').enumerate()
@@ -273,56 +250,105 @@ impl ResolvConf
 			
 			let mut fields = line.split_whitespace();
 			let keyword = fields.next().unwrap();
-			match keyword
-			{
-				"nameserver" =>
-				{
-					let raw_internet_protocol_address = fields.next().ok_or(MissingNameserverInternetProtocolAddress { line_index })?;
-					let nameserver = IpAddr::from_str(raw_internet_protocol_address).map_err(|error| InvalidNameserverInternetProtocolAddress { line_index, error })?;
-					let _not_an_error_to_have_more_than_3 = self.nameservers.try_push(nameserver);
-				}
-				
-				"search" => self.parse_search_domains(fields, line_index, true),
-				
-				"domain" =>
-				{
-					let search_domain_name = fields.next().ok_or(MissingDomainName { line_index } )?;
-					let search_domain = EfficientCaseFoldedName::from_byte_string_ending_with_optional_trailing_period(search_domain_name.as_bytes()).map_err(|error| InvalidDomainName { line_index, error })?;
-					self.search_domains.push(search_domain);
-				}
-				
-				"sortlist" =>
-				{
-					let mut has_at_least_one_entry = false;
-					
-					for (sort_list_pair_index, sort_list_pair) in fields.enumerate()
-					{
-						let mut split = sort_list_pair.splitn(2, '/');
-						let internet_protocol_address = IpAddr::from_str(split.next().unwrap()).map_err(|error| InvalidSortListInternetProtocolAddress { line_index, sort_list_pair_index, error })?;
-						
-						let mask = split.next();
-						use self::IpAddr::*;
-						match internet_protocol_address
-						{
-							V4(v4) => Left((v4, Self::internet_protocol_version4_mask(line_index, sort_list_pair_index, mask)?)),
-							
-							V6(v6) => Right((v6, Self::internet_protocol_version6_mask(line_index, sort_list_pair_index, mask)?)),
-						}
-					}
-					
-					if !has_at_least_one_entry
-					{
-						return Err(MissingSortList { line_index })
-					}
-				}
-				
-				"options" => this.parse_options(fields, line_index),
-				
-				_ => continue,
-			}
+			callback(keyword, fields, line_index)?;
 		}
 		
 		Ok(())
+	}
+	
+	#[inline(always)]
+	fn parse_keyword<'a>(&mut self, keyword: &'a str, mut fields: SplitWhitespace<'a>, line_index: usize) -> Result<(), ParseEtcResolvConfError>
+	{
+		use self::ParseEtcResolvConfError::*;
+		
+		match keyword
+		{
+			"nameserver" =>
+			{
+				let raw_internet_protocol_address = fields.next().ok_or(MissingNameserverInternetProtocolAddress { line_index })?;
+				let nameserver = IpAddr::from_str(raw_internet_protocol_address).map_err(|error| InvalidNameserverInternetProtocolAddress { line_index, error })?;
+				let _not_an_error_to_have_more_than_3 = self.nameservers.try_push(nameserver);
+			}
+			
+			"search" => self.parse_search_domains(fields, line_index, true),
+			
+			"domain" =>
+			{
+				let search_domain_name = fields.next().ok_or(MissingDomainName { line_index } )?;
+				let search_domain = EfficientCaseFoldedName::from_byte_string_ending_with_optional_trailing_period(search_domain_name.as_bytes()).map_err(|error| InvalidDomainName { line_index, error })?;
+				let _not_an_error_to_have_too_many = self.search_domains.try_push(search_domain);
+			}
+			
+			"sortlist" =>
+			{
+				let mut has_at_least_one_entry = false;
+				
+				for (sort_list_pair_index, sort_list_pair) in fields.enumerate()
+				{
+					let mut split = sort_list_pair.splitn(2, '/');
+					let internet_protocol_address = IpAddr::from_str(split.next().unwrap()).map_err(|error| InvalidSortListInternetProtocolAddress { line_index, sort_list_pair_index, error })?;
+					
+					let mask = split.next();
+					use self::IpAddr::*;
+					let sort_list_pair = match internet_protocol_address
+					{
+						V4(v4) => Left((v4, Self::internet_protocol_version4_mask(line_index, sort_list_pair_index, mask)?)),
+						
+						V6(v6) => Right((v6, Self::internet_protocol_version6_mask(line_index, sort_list_pair_index, mask)?)),
+					};
+					let _not_an_error_to_have_too_many = self.sort_list.try_push(sort_list_pair);
+				}
+				
+				if !has_at_least_one_entry
+				{
+					return Err(MissingSortList { line_index })
+				}
+			}
+			
+			"options" => self.parse_options(fields, line_index),
+			
+			_ => (),
+		}
+		
+		Ok(())
+	}
+	
+	fn parse_domain<'a>(keyword: &'a str, mut fields: SplitWhitespace<'a>, line_index: usize, domain: &mut Option<(EfficientCaseFoldedName, bool)>) -> Result<(), ParseEtcResolvConfError>
+	{
+		const HasDomain: bool = true;
+		const HasSearch: bool = false;
+		match domain
+		{
+			Some((_, HasDomain)) => return Ok(()),
+			_ => (),
+		}
+		
+		#[inline(always)]
+		fn process(mut fields: SplitWhitespace<'a>, line_index: usize, domain: &mut Option<(EfficientCaseFoldedName, bool)>, has: bool) -> Result<(), ParseEtcResolvConfError>
+		{
+			use self::ParseEtcResolvConfError::*;
+			
+			let search_domain_name = fields.next().ok_or(MissingDomainName { line_index } )?;
+			let search_domain = EfficientCaseFoldedName::from_byte_string_ending_with_optional_trailing_period(search_domain_name.as_bytes()).map_err(|error| InvalidDomainName { line_index, error })?;
+			*domain = Some((search_domain, has));
+			Ok(())
+		}
+		
+		match keyword
+		{
+			"domain" => process(fields, line_index, domain, HasDomain),
+			
+			"search" => process(fields, line_index, domain, HasSearch),
+			
+			_ => (),
+		}
+		
+		Ok(())
+	}
+	
+	fn parse_etc_resolv_conf(&mut self, etc_path: &EtcPath) -> Result<(), ParseEtcResolvConfError>
+	{
+		Self::parser(etc_path, |keyword, fields, line_index| self.parse_keyword(keyword, fields, line_index))
 	}
 	
 	#[inline(always)]
@@ -334,7 +360,7 @@ impl ResolvConf
 		for (search_domain_index, search_domain_name) in fields.enumerate()
 		{
 			let search_domain = EfficientCaseFoldedName::from_byte_string_ending_with_optional_trailing_period(search_domain_name.as_bytes()).map_err(|error| InvalidSearchName { line_index, search_domain_index, error })?;
-			self.search_domains.push(search_domain);
+			let _not_an_error_to_have_too_many = self.search_domains.try_push(search_domain);
 			has_at_least_one_entry = true;
 		}
 		
@@ -515,24 +541,58 @@ impl ResolvConf
 		Ok(())
 	}
 	
+	const LOCALDOMAIN: &'static str = "LOCALDOMAIN";
+	
+	const RES_OPTIONS: &'static str = "RES_OPTIONS";
+	
 	/// Uses the values of `LOCALDOMAIN` and `RES_OPTIONS` to override values set by parsing `/etc/resolv.conf`.
 	fn apply_environment_variable_overrides(&mut self) -> Result<(), ParseEtcResolvConfError>
 	{
 		use self::ParseEtcResolvConfError::EnvironmentVariableIsNotUtf8;
 		
-		if let Some(value) = var_os("LOCALDOMAIN")
+		if let Some(value) = var_os(Self::LOCALDOMAIN)
 		{
-			let local_domain = value.into_string().map_err(|_| Err(EnvironmentVariableIsNotUtf8 { name: "LOCALDOMAIN" }))?;
+			let local_domain = value.into_string().map_err(|_| Err(EnvironmentVariableIsNotUtf8 { name: Self::LOCALDOMAIN }))?;
 			self.search_domains.clear();
 			self.parse_search_domains(local_domain.split_whitespace(), 0, false)
 		}
 		
 		if let Some(value) = var_os("RES_OPTIONS")
 		{
-			let options = value.into_string().map_err(|_| Err(EnvironmentVariableIsNotUtf8 { name: "RES_OPTIONS" }))?;
+			let options = value.into_string().map_err(|_| Err(EnvironmentVariableIsNotUtf8 { name: Self::RES_OPTIONS }))?;
 			self.parse_options(options.split_whitespace(), 0)
 		}
 		
 		Ok(())
+	}
+	
+	#[inline(always)]
+	fn as_default_domain_name_choice(etc_path: &EtcPath) -> EfficientCaseFoldedName
+	{
+		use self::ParseEtcResolvConfError::EnvironmentVariableIsNotUtf8;
+		
+		if let Some(value) = var_os(Self::LOCALDOMAIN)
+		{
+			if let Ok(local_domain) = value.into_string()
+			{
+				let first = local_domain.split_whitespace().next().unwrap();
+				if let Ok(domain_name) = EfficientCaseFoldedName::from_byte_string_ending_with_optional_trailing_period(first.as_bytes())
+				{
+					return domain_name
+				}
+			}
+		}
+		
+		let mut domain = None;
+		let result = ResolvConf::parser(etc_path, |keyword, fields, line_index| ResolvConf::parse_domain(keyword, fields, line_index, &mut domain));
+		if result.is_ok()
+		{
+			if let Some((domain_name, _has)) = domain
+			{
+				return domain_name
+			}
+		}
+		
+		Self::default_domain_name().ok_or_else(EfficientCaseFoldedName::root)
 	}
 }

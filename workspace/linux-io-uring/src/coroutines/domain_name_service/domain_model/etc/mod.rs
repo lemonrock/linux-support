@@ -3,8 +3,11 @@
 
 
 use super::*;
+use linux_support::paths::ProcPath;
 
 
+include!("DefaultDomainNameChoice.rs");
+include!("DefaultHostNameChoice.rs");
 include!("parse_etc_hosts.rs");
 include!("ParseEtcHostsError.rs");
 include!("ParseEtcResolvConfError.rs");

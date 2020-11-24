@@ -188,7 +188,7 @@ impl EfficientCaseFoldedName
 			return Ok(Self::root())
 		}
 		
-		let child = Self::from_byte_string_ending_with_optional_trailing_period(canonical_name.as_bytes())?;
+		let child = Self::from_byte_string_ending_with_optional_trailing_period(etc_host_name.as_bytes())?;
 		
 		if etc_host_name.get_unchecked_value_safe(etc_host_name.len() - 1) == b'.'
 		{
@@ -215,6 +215,12 @@ impl EfficientCaseFoldedName
 		}
 		
 		Ok(this)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn last_label_as_host_name(&self) -> Option<HostNameLabel>
+	{
+		self.last_label().map(|last_label| HostNameLabel(last_label.0.to_vec().into_boxed_slice()))
 	}
 	
 	/// Push a child to the front of this name.

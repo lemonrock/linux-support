@@ -15,6 +15,7 @@ include!("EfficientCaseFoldedName.rs");
 include!("EfficientCaseFoldedNameInner.rs");
 include!("EfficientCaseFoldedNameParseError.rs");
 include!("EitherName.rs");
+include!("HostNameLabel.rs");
 include!("Label.rs");
 include!("LabelKind.rs");
 include!("LabelMaximumNumber.rs");
