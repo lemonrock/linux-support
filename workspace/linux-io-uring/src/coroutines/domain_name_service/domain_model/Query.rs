@@ -3,18 +3,18 @@
 
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct Query
+pub(crate) struct Query<'query_name>
 {
 	now: NanosecondsSinceUnixEpoch,
 	message_identifier: MessageIdentifier,
 	data_type: DataType,
-	query_name: EfficientCaseFoldedName,
+	query_name: &'query_name FullyQualifiedDomainName,
 }
 
-impl Query
+impl<'query_name> Query<'query_name>
 {
 	#[inline(always)]
-	pub(crate) fn enquire_over_tcp<'yielder, SD: SocketData, QP: QueryProcessor>(stream: &mut TlsClientStream<'yielder, SD>, message_identifier: MessageIdentifier, now: NanosecondsSinceUnixEpoch, query_name: EfficientCaseFoldedName, domain_cache: &mut DomainCache) -> Result<(), ProtocolError<Infallible>>
+	pub(crate) fn enquire_over_tcp<'yielder, SD: SocketData, QP: QueryProcessor>(stream: &mut TlsClientStream<'yielder, SD>, message_identifier: MessageIdentifier, now: NanosecondsSinceUnixEpoch, query_name: &'query_name FullyQualifiedDomainName, domain_cache: &mut DomainCache) -> Result<(), ProtocolError<Infallible>>
 	{
 		let query = Query
 		{
@@ -34,7 +34,7 @@ impl Query
 
 		let buffer_pointer = (&mut buffer[..]).start_pointer();
 
-		let buffer_length = TcpDnsMessage::write_query_tcp_message(buffer_pointer, self.message_identifier, self.data_type, &self.query_name);
+		let buffer_length = TcpDnsMessage::write_query_tcp_message(buffer_pointer, self.message_identifier, self.data_type, self.query_name);
 
 		stream.write_all_data(&buffer[.. buffer_length])
 	}
@@ -47,7 +47,7 @@ impl Query
 		let raw_dns_message = &buffer[.. message_length];
 		
 		
-		let answer_section_resource_record_visitor = QP::new(&self.query_name);
+		let answer_section_resource_record_visitor = QP::new(self.query_name);
 		let (answer, canonical_name_chain) = self.read_reply_after_message_length_checked(raw_dns_message, answer_section_resource_record_visitor).map_err(ProtocolError::ReadReplyAfterLengthChecked)?;
 		domain_cache.answered(answer, canonical_name_chain)?;
 		Ok(())
@@ -66,7 +66,7 @@ impl Query
 		let end_of_message_pointer = raw_dns_message.end_pointer();
 		
 		let next_resource_record_pointer = self.parse_query_section(dns_message.query_section_entry(), &mut parsed_names, end_of_message_pointer).map_err(SectionError::QuerySection)?;
-		let mut response_record_sections_parser = ResponseRecordSectionsParser::new(self.now, self.data_type, end_of_message_pointer, message_header, parsed_names, &self.query_name);
+		let mut response_record_sections_parser = ResponseRecordSectionsParser::new(self.now, self.data_type, end_of_message_pointer, message_header, parsed_names, self.query_name);
 		let (end_of_parsed_message_pointer, answer, canonical_name_chain) = response_record_sections_parser.parse_answer_authority_and_additional_sections(next_resource_record_pointer, authoritative_or_authenticated_or_neither, rcode_lower_4_bits, answer_section_resource_record_visitor)?;
 		
 		if unlikely!(end_of_parsed_message_pointer < end_of_message_pointer)
@@ -140,7 +140,7 @@ impl Query
 			return Err(ResponseWasForADifferentDataType)
 		}
 		
-		if unlikely!(self.query_name != parsed_query_name)
+		if unlikely!(self.query_name.ne(&parsed_query_name))
 		{
 			return Err(ResponseWasForADifferentName)
 		}
@@ -148,5 +148,4 @@ impl Query
 		let end_of_query_section = QuerySectionEntry::end_of_query_section(end_of_qname_pointer);
 		Ok(end_of_query_section)
 	}
-	
 }

@@ -3,12 +3,18 @@
 
 
 use super::*;
-use linux_support::paths::ProcPath;
 
 
 include!("DefaultDomainNameChoice.rs");
 include!("DefaultHostNameChoice.rs");
-include!("parse_etc_hosts.rs");
-include!("ParseEtcHostsError.rs");
+include!("DomainCacheBuilder.rs");
+include!("DomainCacheBuilderConfiguration.rs");
+include!("DomainCacheBuilderConfigurationError.rs");
+include!("DomainCacheBuilderError.rs");
+include!("HostConf.rs");
+include!("HostsParseOptions.rs");
+include!("ParseHostsError.rs");
+include!("ParseEtcHostConfError.rs");
 include!("ParseEtcResolvConfError.rs");
 include!("ResolvConf.rs");
+include!("SearchListIterator.rs");

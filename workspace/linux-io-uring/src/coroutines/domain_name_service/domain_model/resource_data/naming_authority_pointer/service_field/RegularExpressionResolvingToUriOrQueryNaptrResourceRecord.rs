@@ -30,10 +30,10 @@ pub enum RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord<N: Nam
 	DomainName(N),
 }
 
-impl<'message> Into<RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord<EfficientCaseFoldedName, OwnedCharacterString>> for RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord<ParsedName<'message>, ParsedCharacterString<'message>>
+impl<'message> Into<RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord<FullyQualifiedDomainName, OwnedCharacterString>> for RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord<ParsedName<'message>, ParsedCharacterString<'message>>
 {
 	#[inline(always)]
-	fn into(self) -> RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord<EfficientCaseFoldedName, OwnedCharacterString>
+	fn into(self) -> RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord<FullyQualifiedDomainName, OwnedCharacterString>
 	{
 		use self::RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRecord::*;
 		
@@ -41,7 +41,7 @@ impl<'message> Into<RegularExpressionResolvingToDomainNameOrQueryNaptrResourceRe
 		{
 			UnvalidatedRegularExpression(regular_expression) => UnvalidatedRegularExpression(OwnedCharacterString::from(regular_expression)),
 			
-			DomainName(domain_name) => DomainName(EfficientCaseFoldedName::from(domain_name)),
+			DomainName(domain_name) => DomainName(FullyQualifiedDomainName::from(domain_name)),
 		}
 	}
 }

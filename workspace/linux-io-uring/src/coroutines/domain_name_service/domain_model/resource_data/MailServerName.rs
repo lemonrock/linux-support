@@ -4,28 +4,20 @@
 
 /// A mail server name.
 #[derive(Clone, Debug, Display, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct MailServerName<N: Name>(pub N);
-
-impl<'message> Into<MailServerName<EfficientCaseFoldedName>> for MailServerName<ParsedName<'message>>
-{
-	#[inline(always)]
-	fn into(self) -> MailServerName<EfficientCaseFoldedName>
-	{
-		MailServerName::new(EfficientCaseFoldedName::from(self.0))
-	}
-}
 
 impl<'message> ParsedRecord for MailServerName<ParsedName<'message>>
 {
 	type OrderPriorityAndWeight = Priority;
 	
-	type OwnedRecord = MailServerName<EfficientCaseFoldedName>;
+	type OwnedRecord = MailServerName<DomainTarget>;
 	
 	#[inline(always)]
 	fn into_owned_record(self) -> Self::OwnedRecord
 	{
-		MailServerName::new(EfficientCaseFoldedName::from(self.0))
+		MailServerName::new(DomainTarget::from(self.0))
 	}
 	
 	#[inline(always)]
@@ -35,7 +27,7 @@ impl<'message> ParsedRecord for MailServerName<ParsedName<'message>>
 	}
 }
 
-impl OwnedRecord for MailServerName<EfficientCaseFoldedName>
+impl OwnedRecord for MailServerName<DomainTarget>
 {
 	type OwnedRecords = MultiplePrioritizedThenSortedRecords<Self>;
 	

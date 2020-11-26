@@ -29,20 +29,20 @@ const Remove: bool = true;
 impl<'a, ORs: 'a + OwnedRecords<OR>, OR: OwnedRecord> GetNotResolvingAliasesResult<'a, ORs, OR>
 {
 	#[inline(always)]
-	fn fixed(query_types_fixed: &Either<QueryTypesFixed, Alias>) -> Self
+	fn fixed(query_types_fixed: &FixedDomainCacheEntry) -> Self
 	{
 		use self::GetNotResolvingAliasesResult::*;
 		
 		match query_types_fixed
 		{
-			Left(ref query_types_fixed) => match OR::retrieve_fixed(query_types_fixed)
+			FixedDomainCacheEntry::QueryTypesFixed(ref query_types_fixed) => match OR::retrieve_fixed(query_types_fixed)
 			{
 				None => NoData,
 				
 				Some(data) => Data(data),
 			},
 			
-			Right(ref alias) => Alias(alias),
+			FixedDomainCacheEntry::Alias(ref alias) => Alias(alias),
 		}
 	}
 	

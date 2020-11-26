@@ -22,10 +22,10 @@ pub enum RegularExpressionResolvingToUriOrQueryUriResourceRecord<N: Name<TypeEqu
 	DomainName(N),
 }
 
-impl<'message> Into<RegularExpressionResolvingToUriOrQueryUriResourceRecord<EfficientCaseFoldedName, OwnedCharacterString>> for RegularExpressionResolvingToUriOrQueryUriResourceRecord<ParsedName<'message>, ParsedCharacterString<'message>>
+impl<'message> Into<RegularExpressionResolvingToUriOrQueryUriResourceRecord<FullyQualifiedDomainName, OwnedCharacterString>> for RegularExpressionResolvingToUriOrQueryUriResourceRecord<ParsedName<'message>, ParsedCharacterString<'message>>
 {
 	#[inline(always)]
-	fn into(self) -> RegularExpressionResolvingToUriOrQueryUriResourceRecord<EfficientCaseFoldedName, OwnedCharacterString>
+	fn into(self) -> RegularExpressionResolvingToUriOrQueryUriResourceRecord<FullyQualifiedDomainName, OwnedCharacterString>
 	{
 		use self::RegularExpressionResolvingToUriOrQueryUriResourceRecord::*;
 		
@@ -33,7 +33,7 @@ impl<'message> Into<RegularExpressionResolvingToUriOrQueryUriResourceRecord<Effi
 		{
 			UnvalidatedRegularExpression(regular_expression) => UnvalidatedRegularExpression(OwnedCharacterString::from(regular_expression)),
 			
-			DomainName(domain_name) => DomainName(EfficientCaseFoldedName::from(domain_name)),
+			DomainName(domain_name) => DomainName(FullyQualifiedDomainName::from(domain_name)),
 		}
 	}
 }

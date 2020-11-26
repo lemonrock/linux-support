@@ -2,9 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Error when parsing `/etc/hosts`.
+/// Error when parsing `/etc/hosts` or similar.
 #[derive(Debug)]
-pub enum ParseEtcHostsError
+pub enum ParseHostsError
 {
 	#[allow(missing_docs)]
 	CouldNotRead(io::Error),
@@ -30,7 +30,7 @@ pub enum ParseEtcHostsError
 	},
 	
 	#[allow(missing_docs)]
-	InvalidCanonicalOrAliasName
+	InvalidCanonicalName
 	{
 		/// Which line? (zero-based).
 		line_index: usize,
@@ -40,43 +40,50 @@ pub enum ParseEtcHostsError
 	},
 	
 	#[allow(missing_docs)]
-	CanonicalNameWasPreviouslyDefinedAsAnAlias
+	InvalidAliasName
 	{
 		/// Which line? (zero-based).
 		line_index: usize,
 		
-		#[allow(missing_docs)]
-		canonical_name: EfficientCaseFoldedName,
+		/// Which alias? (zero-based).
+		alias_index: usize,
 		
 		#[allow(missing_docs)]
-		previously_defined_alias: EfficientCaseFoldedName,
+		error: EfficientCaseFoldedNameParseError,
 	},
 	
 	#[allow(missing_docs)]
-	AliasNameWasPreviouslyDefinedAsACanonicalName
+	CanonicalName
 	{
 		/// Which line? (zero-based).
 		line_index: usize,
 		
 		#[allow(missing_docs)]
-		alias_name: EfficientCaseFoldedName,
+		error: DomainCacheBuilderError,
 	},
 	
 	#[allow(missing_docs)]
-	AliasNameWasPreviouslyDefinedWithADifferentTargetName
+	AliasName
 	{
 		/// Which line? (zero-based).
 		line_index: usize,
 		
-		#[allow(missing_docs)]
-		alias_name: EfficientCaseFoldedName,
+		/// Which alias? (zero-based).
+		alias_index: usize,
 		
 		#[allow(missing_docs)]
-		previously_defined_alias: EfficientCaseFoldedName,
+		error: DomainCacheBuilderError,
 	},
+	
+	#[allow(missing_docs)]
+	MoreThanOneCanonicalNameInHostAliasesFile
+	{
+		/// Which line? (zero-based).
+		line_index: usize,
+	}
 }
 
-impl Display for ParseEtcHostsError
+impl Display for ParseHostsError
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -85,12 +92,12 @@ impl Display for ParseEtcHostsError
 	}
 }
 
-impl error::Error for ParseEtcHostsError
+impl error::Error for ParseHostsError
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>
 	{
-		use self::ParseEtcHostsError::*;
+		use self::ParseHostsError::*;
 		
 		match self
 		{
@@ -100,27 +107,33 @@ impl error::Error for ParseEtcHostsError
 			
 			InvalidInternetProtocolAddress { ref error, .. } => Some(error),
 			
-			InvalidCanonicalOrAliasName { ref error, .. } => Some(error),
+			InvalidCanonicalName { ref error, .. } => Some(error),
+			
+			InvalidAliasName { ref error, .. } => Some(error),
+			
+			CanonicalName { ref error, .. } => Some(error),
+			
+			AliasName { ref error, .. } => Some(error),
 			
 			_ => None,
 		}
 	}
 }
 
-impl From<io::Error> for ParseEtcHostsError
+impl From<io::Error> for ParseHostsError
 {
 	#[inline(always)]
 	fn from(value: io::Error) -> Self
 	{
-		ParseEtcHostsError::CouldNotRead(value)
+		ParseHostsError::CouldNotRead(value)
 	}
 }
 
-impl From<FromUtf8Error> for ParseEtcHostsError
+impl From<FromUtf8Error> for ParseHostsError
 {
 	#[inline(always)]
 	fn from(value: FromUtf8Error) -> Self
 	{
-		ParseEtcHostsError::IsNotUtf8(value)
+		ParseHostsError::IsNotUtf8(value)
 	}
 }

@@ -2,8 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// A label.
 #[derive(Copy, Clone)]
-struct EfficientCaseFoldedLabel<'a>(&'a [u8]);
+pub struct EfficientCaseFoldedLabel<'a>(&'a [u8]);
 
 impl Default for EfficientCaseFoldedLabel<'static>
 {
@@ -189,51 +190,53 @@ impl EfficientCaseFoldedLabel<'static>
 		Self(label)
 	}
 	
-	const Root: Self = Self(b"");
+	pub(crate) const Root: Self = Self(b"");
 	
-	const _6tisch: Self = Self::new(b"6tisch");
+	pub(crate) const _6tisch: Self = Self::new(b"6tisch");
 	
-	const in_addr: Self = Self::new(b"in-addr");
+	pub(crate) const in_addr: Self = Self::new(b"in-addr");
 	
-	const ip6: Self = Self::new(b"ip6");
+	pub(crate) const ip6: Self = Self::new(b"ip6");
 	
-	const example: Self = Self::new(b"example");
+	pub(crate) const example: Self = Self::new(b"example");
 	
-	const invalid: Self = Self::new(b"invalid");
+	pub(crate) const invalid: Self = Self::new(b"invalid");
 	
-	const ipv4only: Self = Self::new(b"ipv4only");
+	pub(crate) const ipv4only: Self = Self::new(b"ipv4only");
 	
-	const local: Self = Self::new(b"local");
+	pub(crate) const local: Self = Self::new(b"local");
 	
-	const localhost: Self = Self::new(b"localhost");
+	pub(crate) const localdomain: Self = Self::new(b"localdomain");
 	
-	const onion: Self = Self::new(b"onion");
+	pub(crate) const localhost: Self = Self::new(b"localhost");
 	
-	const test: Self = Self::new(b"test");
+	pub(crate) const onion: Self = Self::new(b"onion");
 	
-	const home: Self = Self::new(b"home");
+	pub(crate) const test: Self = Self::new(b"test");
 	
-	const intranet: Self = Self::new(b"intranet");
+	pub(crate) const home: Self = Self::new(b"home");
 	
-	const internal: Self = Self::new(b"internal");
+	pub(crate) const intranet: Self = Self::new(b"intranet");
 	
-	const private: Self = Self::new(b"private");
+	pub(crate) const internal: Self = Self::new(b"internal");
 	
-	const corp: Self = Self::new(b"corp");
+	pub(crate) const private: Self = Self::new(b"private");
 	
-	const lan: Self = Self::new(b"lan");
+	pub(crate) const corp: Self = Self::new(b"corp");
 	
-	const a: Self = Self::new(b"a");
+	pub(crate) const lan: Self = Self::new(b"lan");
 	
-	const b: Self = Self::new(b"b");
+	pub(crate) const a: Self = Self::new(b"a");
 	
-	const c: Self = Self::new(b"c");
+	pub(crate) const b: Self = Self::new(b"b");
 	
-	const d: Self = Self::new(b"d");
+	pub(crate) const c: Self = Self::new(b"c");
 	
-	const e: Self = Self::new(b"e");
+	pub(crate) const d: Self = Self::new(b"d");
 	
-	const f: Self = Self::new(b"f");
+	pub(crate) const e: Self = Self::new(b"e");
+	
+	pub(crate) const f: Self = Self::new(b"f");
 	
 	#[inline(always)]
 	const fn nibble(label: u8) -> Self
@@ -795,583 +798,583 @@ impl EfficientCaseFoldedLabel<'static>
 		}
 	}
 	
-	const _0: Self = Self::new(b"0");
+	pub(crate) const _0: Self = Self::new(b"0");
 	
-	const _1: Self = Self::new(b"1");
+	pub(crate) const _1: Self = Self::new(b"1");
 	
-	const _2: Self = Self::new(b"2");
+	pub(crate) const _2: Self = Self::new(b"2");
 	
-	const _3: Self = Self::new(b"3");
+	pub(crate) const _3: Self = Self::new(b"3");
 	
-	const _4: Self = Self::new(b"4");
+	pub(crate) const _4: Self = Self::new(b"4");
 	
-	const _5: Self = Self::new(b"5");
+	pub(crate) const _5: Self = Self::new(b"5");
 	
-	const _6: Self = Self::new(b"6");
+	pub(crate) const _6: Self = Self::new(b"6");
 	
-	const _7: Self = Self::new(b"7");
+	pub(crate) const _7: Self = Self::new(b"7");
 	
-	const _8: Self = Self::new(b"8");
+	pub(crate) const _8: Self = Self::new(b"8");
 	
-	const _9: Self = Self::new(b"9");
+	pub(crate) const _9: Self = Self::new(b"9");
 	
-	const _10: Self = Self::new(b"10");
+	pub(crate) const _10: Self = Self::new(b"10");
 	
-	const _11: Self = Self::new(b"11");
+	pub(crate) const _11: Self = Self::new(b"11");
 	
-	const _12: Self = Self::new(b"12");
+	pub(crate) const _12: Self = Self::new(b"12");
 	
-	const _13: Self = Self::new(b"13");
+	pub(crate) const _13: Self = Self::new(b"13");
 	
-	const _14: Self = Self::new(b"14");
+	pub(crate) const _14: Self = Self::new(b"14");
 	
-	const _15: Self = Self::new(b"15");
+	pub(crate) const _15: Self = Self::new(b"15");
 	
-	const _16: Self = Self::new(b"16");
+	pub(crate) const _16: Self = Self::new(b"16");
 	
-	const _17: Self = Self::new(b"17");
+	pub(crate) const _17: Self = Self::new(b"17");
 	
-	const _18: Self = Self::new(b"18");
+	pub(crate) const _18: Self = Self::new(b"18");
 	
-	const _19: Self = Self::new(b"19");
+	pub(crate) const _19: Self = Self::new(b"19");
 	
-	const _20: Self = Self::new(b"20");
+	pub(crate) const _20: Self = Self::new(b"20");
 	
-	const _21: Self = Self::new(b"21");
+	pub(crate) const _21: Self = Self::new(b"21");
 	
-	const _22: Self = Self::new(b"22");
+	pub(crate) const _22: Self = Self::new(b"22");
 	
-	const _23: Self = Self::new(b"23");
+	pub(crate) const _23: Self = Self::new(b"23");
 	
-	const _24: Self = Self::new(b"24");
+	pub(crate) const _24: Self = Self::new(b"24");
 	
-	const _25: Self = Self::new(b"25");
+	pub(crate) const _25: Self = Self::new(b"25");
 	
-	const _26: Self = Self::new(b"26");
+	pub(crate) const _26: Self = Self::new(b"26");
 	
-	const _27: Self = Self::new(b"27");
+	pub(crate) const _27: Self = Self::new(b"27");
 	
-	const _28: Self = Self::new(b"28");
+	pub(crate) const _28: Self = Self::new(b"28");
 	
-	const _29: Self = Self::new(b"29");
+	pub(crate) const _29: Self = Self::new(b"29");
 	
-	const _30: Self = Self::new(b"30");
+	pub(crate) const _30: Self = Self::new(b"30");
 	
-	const _31: Self = Self::new(b"31");
+	pub(crate) const _31: Self = Self::new(b"31");
 	
-	const _32: Self = Self::new(b"32");
+	pub(crate) const _32: Self = Self::new(b"32");
 	
-	const _33: Self = Self::new(b"33");
+	pub(crate) const _33: Self = Self::new(b"33");
 	
-	const _34: Self = Self::new(b"34");
+	pub(crate) const _34: Self = Self::new(b"34");
 	
-	const _35: Self = Self::new(b"35");
+	pub(crate) const _35: Self = Self::new(b"35");
 	
-	const _36: Self = Self::new(b"36");
+	pub(crate) const _36: Self = Self::new(b"36");
 	
-	const _37: Self = Self::new(b"37");
+	pub(crate) const _37: Self = Self::new(b"37");
 	
-	const _38: Self = Self::new(b"38");
+	pub(crate) const _38: Self = Self::new(b"38");
 	
-	const _39: Self = Self::new(b"39");
+	pub(crate) const _39: Self = Self::new(b"39");
 	
-	const _40: Self = Self::new(b"40");
+	pub(crate) const _40: Self = Self::new(b"40");
 	
-	const _41: Self = Self::new(b"41");
+	pub(crate) const _41: Self = Self::new(b"41");
 	
-	const _42: Self = Self::new(b"42");
+	pub(crate) const _42: Self = Self::new(b"42");
 	
-	const _43: Self = Self::new(b"43");
+	pub(crate) const _43: Self = Self::new(b"43");
 	
-	const _44: Self = Self::new(b"44");
+	pub(crate) const _44: Self = Self::new(b"44");
 	
-	const _45: Self = Self::new(b"45");
+	pub(crate) const _45: Self = Self::new(b"45");
 	
-	const _46: Self = Self::new(b"46");
+	pub(crate) const _46: Self = Self::new(b"46");
 	
-	const _47: Self = Self::new(b"47");
+	pub(crate) const _47: Self = Self::new(b"47");
 	
-	const _48: Self = Self::new(b"48");
+	pub(crate) const _48: Self = Self::new(b"48");
 	
-	const _49: Self = Self::new(b"49");
+	pub(crate) const _49: Self = Self::new(b"49");
 	
-	const _50: Self = Self::new(b"50");
+	pub(crate) const _50: Self = Self::new(b"50");
 	
-	const _51: Self = Self::new(b"51");
+	pub(crate) const _51: Self = Self::new(b"51");
 	
-	const _52: Self = Self::new(b"52");
+	pub(crate) const _52: Self = Self::new(b"52");
 	
-	const _53: Self = Self::new(b"53");
+	pub(crate) const _53: Self = Self::new(b"53");
 	
-	const _54: Self = Self::new(b"54");
+	pub(crate) const _54: Self = Self::new(b"54");
 	
-	const _55: Self = Self::new(b"55");
+	pub(crate) const _55: Self = Self::new(b"55");
 	
-	const _56: Self = Self::new(b"56");
+	pub(crate) const _56: Self = Self::new(b"56");
 	
-	const _57: Self = Self::new(b"57");
+	pub(crate) const _57: Self = Self::new(b"57");
 	
-	const _58: Self = Self::new(b"58");
+	pub(crate) const _58: Self = Self::new(b"58");
 	
-	const _59: Self = Self::new(b"59");
+	pub(crate) const _59: Self = Self::new(b"59");
 	
-	const _60: Self = Self::new(b"60");
+	pub(crate) const _60: Self = Self::new(b"60");
 	
-	const _61: Self = Self::new(b"61");
+	pub(crate) const _61: Self = Self::new(b"61");
 	
-	const _62: Self = Self::new(b"62");
+	pub(crate) const _62: Self = Self::new(b"62");
 	
-	const _63: Self = Self::new(b"63");
+	pub(crate) const _63: Self = Self::new(b"63");
 	
-	const _64: Self = Self::new(b"64");
+	pub(crate) const _64: Self = Self::new(b"64");
 	
-	const _65: Self = Self::new(b"65");
+	pub(crate) const _65: Self = Self::new(b"65");
 	
-	const _66: Self = Self::new(b"66");
+	pub(crate) const _66: Self = Self::new(b"66");
 	
-	const _67: Self = Self::new(b"67");
+	pub(crate) const _67: Self = Self::new(b"67");
 	
-	const _68: Self = Self::new(b"68");
+	pub(crate) const _68: Self = Self::new(b"68");
 	
-	const _69: Self = Self::new(b"69");
+	pub(crate) const _69: Self = Self::new(b"69");
 	
-	const _70: Self = Self::new(b"70");
+	pub(crate) const _70: Self = Self::new(b"70");
 	
-	const _71: Self = Self::new(b"71");
+	pub(crate) const _71: Self = Self::new(b"71");
 	
-	const _72: Self = Self::new(b"72");
+	pub(crate) const _72: Self = Self::new(b"72");
 	
-	const _73: Self = Self::new(b"73");
+	pub(crate) const _73: Self = Self::new(b"73");
 	
-	const _74: Self = Self::new(b"74");
+	pub(crate) const _74: Self = Self::new(b"74");
 	
-	const _75: Self = Self::new(b"75");
+	pub(crate) const _75: Self = Self::new(b"75");
 	
-	const _76: Self = Self::new(b"76");
+	pub(crate) const _76: Self = Self::new(b"76");
 	
-	const _77: Self = Self::new(b"77");
+	pub(crate) const _77: Self = Self::new(b"77");
 	
-	const _78: Self = Self::new(b"78");
+	pub(crate) const _78: Self = Self::new(b"78");
 	
-	const _79: Self = Self::new(b"79");
+	pub(crate) const _79: Self = Self::new(b"79");
 	
-	const _80: Self = Self::new(b"80");
+	pub(crate) const _80: Self = Self::new(b"80");
 	
-	const _81: Self = Self::new(b"81");
+	pub(crate) const _81: Self = Self::new(b"81");
 	
-	const _82: Self = Self::new(b"82");
+	pub(crate) const _82: Self = Self::new(b"82");
 	
-	const _83: Self = Self::new(b"83");
+	pub(crate) const _83: Self = Self::new(b"83");
 	
-	const _84: Self = Self::new(b"84");
+	pub(crate) const _84: Self = Self::new(b"84");
 	
-	const _85: Self = Self::new(b"85");
+	pub(crate) const _85: Self = Self::new(b"85");
 	
-	const _86: Self = Self::new(b"86");
+	pub(crate) const _86: Self = Self::new(b"86");
 	
-	const _87: Self = Self::new(b"87");
+	pub(crate) const _87: Self = Self::new(b"87");
 	
-	const _88: Self = Self::new(b"88");
+	pub(crate) const _88: Self = Self::new(b"88");
 	
-	const _89: Self = Self::new(b"89");
+	pub(crate) const _89: Self = Self::new(b"89");
 	
-	const _90: Self = Self::new(b"90");
+	pub(crate) const _90: Self = Self::new(b"90");
 	
-	const _91: Self = Self::new(b"91");
+	pub(crate) const _91: Self = Self::new(b"91");
 	
-	const _92: Self = Self::new(b"92");
+	pub(crate) const _92: Self = Self::new(b"92");
 	
-	const _93: Self = Self::new(b"93");
+	pub(crate) const _93: Self = Self::new(b"93");
 	
-	const _94: Self = Self::new(b"94");
+	pub(crate) const _94: Self = Self::new(b"94");
 	
-	const _95: Self = Self::new(b"95");
+	pub(crate) const _95: Self = Self::new(b"95");
 	
-	const _96: Self = Self::new(b"96");
+	pub(crate) const _96: Self = Self::new(b"96");
 	
-	const _97: Self = Self::new(b"97");
+	pub(crate) const _97: Self = Self::new(b"97");
 	
-	const _98: Self = Self::new(b"98");
+	pub(crate) const _98: Self = Self::new(b"98");
 	
-	const _99: Self = Self::new(b"99");
+	pub(crate) const _99: Self = Self::new(b"99");
 	
-	const _100: Self = Self::new(b"100");
+	pub(crate) const _100: Self = Self::new(b"100");
 	
-	const _101: Self = Self::new(b"101");
+	pub(crate) const _101: Self = Self::new(b"101");
 	
-	const _102: Self = Self::new(b"102");
+	pub(crate) const _102: Self = Self::new(b"102");
 	
-	const _103: Self = Self::new(b"103");
+	pub(crate) const _103: Self = Self::new(b"103");
 	
-	const _104: Self = Self::new(b"104");
+	pub(crate) const _104: Self = Self::new(b"104");
 	
-	const _105: Self = Self::new(b"105");
+	pub(crate) const _105: Self = Self::new(b"105");
 	
-	const _106: Self = Self::new(b"106");
+	pub(crate) const _106: Self = Self::new(b"106");
 	
-	const _107: Self = Self::new(b"107");
+	pub(crate) const _107: Self = Self::new(b"107");
 	
-	const _108: Self = Self::new(b"108");
+	pub(crate) const _108: Self = Self::new(b"108");
 	
-	const _109: Self = Self::new(b"109");
+	pub(crate) const _109: Self = Self::new(b"109");
 	
-	const _110: Self = Self::new(b"110");
+	pub(crate) const _110: Self = Self::new(b"110");
 	
-	const _111: Self = Self::new(b"111");
+	pub(crate) const _111: Self = Self::new(b"111");
 	
-	const _112: Self = Self::new(b"112");
+	pub(crate) const _112: Self = Self::new(b"112");
 	
-	const _113: Self = Self::new(b"113");
+	pub(crate) const _113: Self = Self::new(b"113");
 	
-	const _114: Self = Self::new(b"114");
+	pub(crate) const _114: Self = Self::new(b"114");
 	
-	const _115: Self = Self::new(b"115");
+	pub(crate) const _115: Self = Self::new(b"115");
 	
-	const _116: Self = Self::new(b"116");
+	pub(crate) const _116: Self = Self::new(b"116");
 	
-	const _117: Self = Self::new(b"117");
+	pub(crate) const _117: Self = Self::new(b"117");
 	
-	const _118: Self = Self::new(b"118");
+	pub(crate) const _118: Self = Self::new(b"118");
 	
-	const _119: Self = Self::new(b"119");
+	pub(crate) const _119: Self = Self::new(b"119");
 	
-	const _120: Self = Self::new(b"120");
+	pub(crate) const _120: Self = Self::new(b"120");
 	
-	const _121: Self = Self::new(b"121");
+	pub(crate) const _121: Self = Self::new(b"121");
 	
-	const _122: Self = Self::new(b"122");
+	pub(crate) const _122: Self = Self::new(b"122");
 	
-	const _123: Self = Self::new(b"123");
+	pub(crate) const _123: Self = Self::new(b"123");
 	
-	const _124: Self = Self::new(b"124");
+	pub(crate) const _124: Self = Self::new(b"124");
 	
-	const _125: Self = Self::new(b"125");
+	pub(crate) const _125: Self = Self::new(b"125");
 	
-	const _126: Self = Self::new(b"126");
+	pub(crate) const _126: Self = Self::new(b"126");
 	
-	const _127: Self = Self::new(b"127");
+	pub(crate) const _127: Self = Self::new(b"127");
 	
-	const _128: Self = Self::new(b"128");
+	pub(crate) const _128: Self = Self::new(b"128");
 	
-	const _129: Self = Self::new(b"129");
+	pub(crate) const _129: Self = Self::new(b"129");
 	
-	const _130: Self = Self::new(b"130");
+	pub(crate) const _130: Self = Self::new(b"130");
 	
-	const _131: Self = Self::new(b"131");
+	pub(crate) const _131: Self = Self::new(b"131");
 	
-	const _132: Self = Self::new(b"132");
+	pub(crate) const _132: Self = Self::new(b"132");
 	
-	const _133: Self = Self::new(b"133");
+	pub(crate) const _133: Self = Self::new(b"133");
 	
-	const _134: Self = Self::new(b"134");
+	pub(crate) const _134: Self = Self::new(b"134");
 	
-	const _135: Self = Self::new(b"135");
+	pub(crate) const _135: Self = Self::new(b"135");
 	
-	const _136: Self = Self::new(b"136");
+	pub(crate) const _136: Self = Self::new(b"136");
 	
-	const _137: Self = Self::new(b"137");
+	pub(crate) const _137: Self = Self::new(b"137");
 	
-	const _138: Self = Self::new(b"138");
+	pub(crate) const _138: Self = Self::new(b"138");
 	
-	const _139: Self = Self::new(b"139");
+	pub(crate) const _139: Self = Self::new(b"139");
 	
-	const _140: Self = Self::new(b"140");
+	pub(crate) const _140: Self = Self::new(b"140");
 	
-	const _141: Self = Self::new(b"141");
+	pub(crate) const _141: Self = Self::new(b"141");
 	
-	const _142: Self = Self::new(b"142");
+	pub(crate) const _142: Self = Self::new(b"142");
 	
-	const _143: Self = Self::new(b"143");
+	pub(crate) const _143: Self = Self::new(b"143");
 	
-	const _144: Self = Self::new(b"144");
+	pub(crate) const _144: Self = Self::new(b"144");
 	
-	const _145: Self = Self::new(b"145");
+	pub(crate) const _145: Self = Self::new(b"145");
 	
-	const _146: Self = Self::new(b"146");
+	pub(crate) const _146: Self = Self::new(b"146");
 	
-	const _147: Self = Self::new(b"147");
+	pub(crate) const _147: Self = Self::new(b"147");
 	
-	const _148: Self = Self::new(b"148");
+	pub(crate) const _148: Self = Self::new(b"148");
 	
-	const _149: Self = Self::new(b"149");
+	pub(crate) const _149: Self = Self::new(b"149");
 	
-	const _150: Self = Self::new(b"150");
+	pub(crate) const _150: Self = Self::new(b"150");
 	
-	const _151: Self = Self::new(b"151");
+	pub(crate) const _151: Self = Self::new(b"151");
 	
-	const _152: Self = Self::new(b"152");
+	pub(crate) const _152: Self = Self::new(b"152");
 	
-	const _153: Self = Self::new(b"153");
+	pub(crate) const _153: Self = Self::new(b"153");
 	
-	const _154: Self = Self::new(b"154");
+	pub(crate) const _154: Self = Self::new(b"154");
 	
-	const _155: Self = Self::new(b"155");
+	pub(crate) const _155: Self = Self::new(b"155");
 	
-	const _156: Self = Self::new(b"156");
+	pub(crate) const _156: Self = Self::new(b"156");
 	
-	const _157: Self = Self::new(b"157");
+	pub(crate) const _157: Self = Self::new(b"157");
 	
-	const _158: Self = Self::new(b"158");
+	pub(crate) const _158: Self = Self::new(b"158");
 	
-	const _159: Self = Self::new(b"159");
+	pub(crate) const _159: Self = Self::new(b"159");
 	
-	const _160: Self = Self::new(b"160");
+	pub(crate) const _160: Self = Self::new(b"160");
 	
-	const _161: Self = Self::new(b"161");
+	pub(crate) const _161: Self = Self::new(b"161");
 	
-	const _162: Self = Self::new(b"162");
+	pub(crate) const _162: Self = Self::new(b"162");
 	
-	const _163: Self = Self::new(b"163");
+	pub(crate) const _163: Self = Self::new(b"163");
 	
-	const _164: Self = Self::new(b"164");
+	pub(crate) const _164: Self = Self::new(b"164");
 	
-	const _165: Self = Self::new(b"165");
+	pub(crate) const _165: Self = Self::new(b"165");
 	
-	const _166: Self = Self::new(b"166");
+	pub(crate) const _166: Self = Self::new(b"166");
 	
-	const _167: Self = Self::new(b"167");
+	pub(crate) const _167: Self = Self::new(b"167");
 	
-	const _168: Self = Self::new(b"168");
+	pub(crate) const _168: Self = Self::new(b"168");
 	
-	const _169: Self = Self::new(b"169");
+	pub(crate) const _169: Self = Self::new(b"169");
 	
-	const _170: Self = Self::new(b"170");
+	pub(crate) const _170: Self = Self::new(b"170");
 	
-	const _171: Self = Self::new(b"171");
+	pub(crate) const _171: Self = Self::new(b"171");
 	
-	const _172: Self = Self::new(b"172");
+	pub(crate) const _172: Self = Self::new(b"172");
 	
-	const _173: Self = Self::new(b"173");
+	pub(crate) const _173: Self = Self::new(b"173");
 	
-	const _174: Self = Self::new(b"174");
+	pub(crate) const _174: Self = Self::new(b"174");
 	
-	const _175: Self = Self::new(b"175");
+	pub(crate) const _175: Self = Self::new(b"175");
 	
-	const _176: Self = Self::new(b"176");
+	pub(crate) const _176: Self = Self::new(b"176");
 	
-	const _177: Self = Self::new(b"177");
+	pub(crate) const _177: Self = Self::new(b"177");
 	
-	const _178: Self = Self::new(b"178");
+	pub(crate) const _178: Self = Self::new(b"178");
 	
-	const _179: Self = Self::new(b"179");
+	pub(crate) const _179: Self = Self::new(b"179");
 	
-	const _180: Self = Self::new(b"180");
+	pub(crate) const _180: Self = Self::new(b"180");
 	
-	const _181: Self = Self::new(b"181");
+	pub(crate) const _181: Self = Self::new(b"181");
 	
-	const _182: Self = Self::new(b"182");
+	pub(crate) const _182: Self = Self::new(b"182");
 	
-	const _183: Self = Self::new(b"183");
+	pub(crate) const _183: Self = Self::new(b"183");
 	
-	const _184: Self = Self::new(b"184");
+	pub(crate) const _184: Self = Self::new(b"184");
 	
-	const _185: Self = Self::new(b"185");
+	pub(crate) const _185: Self = Self::new(b"185");
 	
-	const _186: Self = Self::new(b"186");
+	pub(crate) const _186: Self = Self::new(b"186");
 	
-	const _187: Self = Self::new(b"187");
+	pub(crate) const _187: Self = Self::new(b"187");
 	
-	const _188: Self = Self::new(b"188");
+	pub(crate) const _188: Self = Self::new(b"188");
 	
-	const _189: Self = Self::new(b"189");
+	pub(crate) const _189: Self = Self::new(b"189");
 	
-	const _190: Self = Self::new(b"190");
+	pub(crate) const _190: Self = Self::new(b"190");
 	
-	const _191: Self = Self::new(b"191");
+	pub(crate) const _191: Self = Self::new(b"191");
 	
-	const _192: Self = Self::new(b"192");
+	pub(crate) const _192: Self = Self::new(b"192");
 	
-	const _193: Self = Self::new(b"193");
+	pub(crate) const _193: Self = Self::new(b"193");
 	
-	const _194: Self = Self::new(b"194");
+	pub(crate) const _194: Self = Self::new(b"194");
 	
-	const _195: Self = Self::new(b"195");
+	pub(crate) const _195: Self = Self::new(b"195");
 	
-	const _196: Self = Self::new(b"196");
+	pub(crate) const _196: Self = Self::new(b"196");
 	
-	const _197: Self = Self::new(b"197");
+	pub(crate) const _197: Self = Self::new(b"197");
 	
-	const _198: Self = Self::new(b"198");
+	pub(crate) const _198: Self = Self::new(b"198");
 	
-	const _199: Self = Self::new(b"199");
+	pub(crate) const _199: Self = Self::new(b"199");
 	
-	const _200: Self = Self::new(b"200");
+	pub(crate) const _200: Self = Self::new(b"200");
 	
-	const _201: Self = Self::new(b"201");
+	pub(crate) const _201: Self = Self::new(b"201");
 	
-	const _202: Self = Self::new(b"202");
+	pub(crate) const _202: Self = Self::new(b"202");
 	
-	const _203: Self = Self::new(b"203");
+	pub(crate) const _203: Self = Self::new(b"203");
 	
-	const _204: Self = Self::new(b"204");
+	pub(crate) const _204: Self = Self::new(b"204");
 	
-	const _205: Self = Self::new(b"205");
+	pub(crate) const _205: Self = Self::new(b"205");
 	
-	const _206: Self = Self::new(b"206");
+	pub(crate) const _206: Self = Self::new(b"206");
 	
-	const _207: Self = Self::new(b"207");
+	pub(crate) const _207: Self = Self::new(b"207");
 	
-	const _208: Self = Self::new(b"208");
+	pub(crate) const _208: Self = Self::new(b"208");
 	
-	const _209: Self = Self::new(b"209");
+	pub(crate) const _209: Self = Self::new(b"209");
 	
-	const _210: Self = Self::new(b"210");
+	pub(crate) const _210: Self = Self::new(b"210");
 	
-	const _211: Self = Self::new(b"211");
+	pub(crate) const _211: Self = Self::new(b"211");
 	
-	const _212: Self = Self::new(b"212");
+	pub(crate) const _212: Self = Self::new(b"212");
 	
-	const _213: Self = Self::new(b"213");
+	pub(crate) const _213: Self = Self::new(b"213");
 	
-	const _214: Self = Self::new(b"214");
+	pub(crate) const _214: Self = Self::new(b"214");
 	
-	const _215: Self = Self::new(b"215");
+	pub(crate) const _215: Self = Self::new(b"215");
 	
-	const _216: Self = Self::new(b"216");
+	pub(crate) const _216: Self = Self::new(b"216");
 	
-	const _217: Self = Self::new(b"217");
+	pub(crate) const _217: Self = Self::new(b"217");
 	
-	const _218: Self = Self::new(b"218");
+	pub(crate) const _218: Self = Self::new(b"218");
 	
-	const _219: Self = Self::new(b"219");
+	pub(crate) const _219: Self = Self::new(b"219");
 	
-	const _220: Self = Self::new(b"220");
+	pub(crate) const _220: Self = Self::new(b"220");
 	
-	const _221: Self = Self::new(b"221");
+	pub(crate) const _221: Self = Self::new(b"221");
 	
-	const _222: Self = Self::new(b"222");
+	pub(crate) const _222: Self = Self::new(b"222");
 	
-	const _223: Self = Self::new(b"223");
+	pub(crate) const _223: Self = Self::new(b"223");
 	
-	const _224: Self = Self::new(b"224");
+	pub(crate) const _224: Self = Self::new(b"224");
 	
-	const _225: Self = Self::new(b"225");
+	pub(crate) const _225: Self = Self::new(b"225");
 	
-	const _226: Self = Self::new(b"226");
+	pub(crate) const _226: Self = Self::new(b"226");
 	
-	const _227: Self = Self::new(b"227");
+	pub(crate) const _227: Self = Self::new(b"227");
 	
-	const _228: Self = Self::new(b"228");
+	pub(crate) const _228: Self = Self::new(b"228");
 	
-	const _229: Self = Self::new(b"229");
+	pub(crate) const _229: Self = Self::new(b"229");
 	
-	const _230: Self = Self::new(b"230");
+	pub(crate) const _230: Self = Self::new(b"230");
 	
-	const _231: Self = Self::new(b"231");
+	pub(crate) const _231: Self = Self::new(b"231");
 	
-	const _232: Self = Self::new(b"232");
+	pub(crate) const _232: Self = Self::new(b"232");
 	
-	const _233: Self = Self::new(b"233");
+	pub(crate) const _233: Self = Self::new(b"233");
 	
-	const _234: Self = Self::new(b"234");
+	pub(crate) const _234: Self = Self::new(b"234");
 	
-	const _235: Self = Self::new(b"235");
+	pub(crate) const _235: Self = Self::new(b"235");
 	
-	const _236: Self = Self::new(b"236");
+	pub(crate) const _236: Self = Self::new(b"236");
 	
-	const _237: Self = Self::new(b"237");
+	pub(crate) const _237: Self = Self::new(b"237");
 	
-	const _238: Self = Self::new(b"238");
+	pub(crate) const _238: Self = Self::new(b"238");
 	
-	const _239: Self = Self::new(b"239");
+	pub(crate) const _239: Self = Self::new(b"239");
 	
-	const _240: Self = Self::new(b"240");
+	pub(crate) const _240: Self = Self::new(b"240");
 	
-	const _241: Self = Self::new(b"241");
+	pub(crate) const _241: Self = Self::new(b"241");
 	
-	const _242: Self = Self::new(b"242");
+	pub(crate) const _242: Self = Self::new(b"242");
 	
-	const _243: Self = Self::new(b"243");
+	pub(crate) const _243: Self = Self::new(b"243");
 	
-	const _244: Self = Self::new(b"244");
+	pub(crate) const _244: Self = Self::new(b"244");
 	
-	const _245: Self = Self::new(b"245");
+	pub(crate) const _245: Self = Self::new(b"245");
 	
-	const _246: Self = Self::new(b"246");
+	pub(crate) const _246: Self = Self::new(b"246");
 	
-	const _247: Self = Self::new(b"247");
+	pub(crate) const _247: Self = Self::new(b"247");
 	
-	const _248: Self = Self::new(b"248");
+	pub(crate) const _248: Self = Self::new(b"248");
 	
-	const _249: Self = Self::new(b"249");
+	pub(crate) const _249: Self = Self::new(b"249");
 	
-	const _250: Self = Self::new(b"250");
+	pub(crate) const _250: Self = Self::new(b"250");
 	
-	const _251: Self = Self::new(b"251");
+	pub(crate) const _251: Self = Self::new(b"251");
 	
-	const _252: Self = Self::new(b"252");
+	pub(crate) const _252: Self = Self::new(b"252");
 	
-	const _253: Self = Self::new(b"253");
+	pub(crate) const _253: Self = Self::new(b"253");
 	
-	const _254: Self = Self::new(b"254");
+	pub(crate) const _254: Self = Self::new(b"254");
 	
-	const _255: Self = Self::new(b"255");
+	pub(crate) const _255: Self = Self::new(b"255");
 	
 	/// Language: Arabic.
 	/// Script: Arabic
 	/// Non-punycode name `.إختبار.`
 	/// Listed as a domain of type `test` in <https://www.iana.org/domains/root/db>.
-	const Arabic_Arabic: Self = Self::new(b"xn--kgbechtv");
+	pub(crate) const Arabic_Arabic: Self = Self::new(b"xn--kgbechtv");
 	
 	/// Language: Persian.
 	/// Script: Arabic.
 	/// Non-punycode name `.آزمایشی.`.
 	/// Listed as a domain of type `test` in <https://www.iana.org/domains/root/db>.
-	const Persian_Arabic: Self = Self::new(b"xn--hgbk6aj7f53bba");
+	pub(crate) const Persian_Arabic: Self = Self::new(b"xn--hgbk6aj7f53bba");
 	
 	/// Language: Chinese.
 	/// Script: Han (Simplified variant).
 	/// Non-punycode name `.测试.`.
 	/// Listed as a domain of type `test` in <https://www.iana.org/domains/root/db>.
-	const Chinese_Han_Simplified: Self = Self::new(b"xn--0zwm56d");
+	pub(crate) const Chinese_Han_Simplified: Self = Self::new(b"xn--0zwm56d");
 	
 	/// Language: Chinese.
 	/// Script: Han (Traditional variant).
 	/// Non-punycode name `.測試.`.
 	/// Listed as a domain of type `test` in <https://www.iana.org/domains/root/db>.
-	const Chinese_Han_Traditional: Self = Self::new(b"xn--g6w251d");
+	pub(crate) const Chinese_Han_Traditional: Self = Self::new(b"xn--g6w251d");
 	
 	/// Language: Russian.
 	/// Script: Cyrillic.
 	/// Non-punycode name `.испытание.`.
 	/// Listed as a domain of type `test` in <https://www.iana.org/domains/root/db>.
-	const Russion_Cyrillic: Self = Self::new(b"xn--80akhbyknj4f");
+	pub(crate) const Russion_Cyrillic: Self = Self::new(b"xn--80akhbyknj4f");
 	
 	/// Language: Hindi.
 	/// Script: Devanagari (Nagari).
 	/// Non-punycode name `.परीक्षा.`.
 	/// Listed as a domain of type `test` in <https://www.iana.org/domains/root/db>.
-	const Hindi_Devangari: Self = Self::new(b"xn--11b5bs3a9aj6g");
+	pub(crate) const Hindi_Devangari: Self = Self::new(b"xn--11b5bs3a9aj6g");
 	
 	/// Language: Greek, Modern (1453-).
 	/// Script: Greek.
 	/// Non-punycode name `.δοκιμή.`.
 	/// Listed as a domain of type `test` in <https://www.iana.org/domains/root/db>.
-	const Greek_Greek: Self = Self::new(b"xn--jxalpdlp");
+	pub(crate) const Greek_Greek: Self = Self::new(b"xn--jxalpdlp");
 	
 	/// Language: Korean.
 	/// Script: Hangul (Hangŭl, Hangeul).
 	/// Non-punycode name `.테스트.`.
 	/// Listed as a domain of type `test` in <https://www.iana.org/domains/root/db>.
-	const Korean_Hangul: Self = Self::new(b"xn--9t4b11yi5a");
+	pub(crate) const Korean_Hangul: Self = Self::new(b"xn--9t4b11yi5a");
 	
 	/// Language: Yiddish
 	/// Script: Hebrew
 	/// Non-punycode name `.טעסט.`
 	/// Listed as a domain of type `test` in <https://www.iana.org/domains/root/db>.
-	const Yiddish_Hebrew: Self = Self::new(b"xn--deba0ad");
+	pub(crate) const Yiddish_Hebrew: Self = Self::new(b"xn--deba0ad");
 	
 	/// Language: Japanese.
 	/// Script: Katakana.
 	/// Non-punycode name `.テスト.`.
 	/// Listed as a domain of type `test` in <https://www.iana.org/domains/root/db>.
-	const Japanese_Katakana: Self = Self::new(b"xn--zckzah");
+	pub(crate) const Japanese_Katakana: Self = Self::new(b"xn--zckzah");
 	
 	/// Language: Tamil.
 	/// Script: Tamil.
 	/// Non-punycode name `.பரிட்சை.`.
 	/// Listed as a domain of type `test` in <https://www.iana.org/domains/root/db>.
-	const Tamil_Tamil: Self = Self::new(b"xn--hlcj6aya9esc7a");
+	pub(crate) const Tamil_Tamil: Self = Self::new(b"xn--hlcj6aya9esc7a");
 }
 
 include!(concat!(env!("OUT_DIR"), "/EfficientCaseFoldedLabel.top_level_domains.rs"));

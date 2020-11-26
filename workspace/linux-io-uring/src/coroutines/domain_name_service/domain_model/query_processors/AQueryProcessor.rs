@@ -12,7 +12,7 @@ impl QueryProcessor for AQueryProcessor
 	
 	type RRV<'message> = AQueryProcessorResourceRecordVisitor<'message>;
 	
-	fn new<'message>(query_name: &'message EfficientCaseFoldedName) -> Self::RRV<'message>
+	fn new<'message>(query_name: &'message FullyQualifiedDomainName) -> Self::RRV<'message>
 	{
 		AQueryProcessorResourceRecordVisitor
 		{

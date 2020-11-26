@@ -16,7 +16,7 @@ impl QuerySectionEntry
 
 	/// Validation of available buffer size is done before calling this.
 	#[inline(always)]
-	pub(crate) fn write_query_section_entry_for_query(query_section_pointer: usize, data_type: DataType, query_name: &EfficientCaseFoldedName) -> usize
+	pub(crate) fn write_query_section_entry_for_query(query_section_pointer: usize, data_type: DataType, query_name: &FullyQualifiedDomainName) -> usize
 	{
 		let mut current_pointer = query_name.copy_non_overlapping_to_without_case_folding(query_section_pointer);
 

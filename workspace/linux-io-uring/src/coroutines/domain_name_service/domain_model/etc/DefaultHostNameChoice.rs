@@ -90,8 +90,8 @@ impl DefaultHostNameChoice
 			
 			Ok(Some(linux_kernel_host_name)) =>
 			{
-				let name = EfficientCaseFoldedName::from_byte_string_ending_with_optional_trailing_period(&linux_kernel_host_name[..])?;
-				Ok(name.last_label_as_host_name())
+				let name = FullyQualifiedDomainName::from_byte_string_ending_with_optional_trailing_period(&linux_kernel_host_name[..])?;
+				Ok(name.host_name())
 			}
 		}
 	}
@@ -105,8 +105,8 @@ impl DefaultHostNameChoice
 			let length = memchr(0x00, &nodename[..]).unwrap_or(Self::Size);
 			
 			let valid = &nodename[.. length];
-			let possibly_fully_qualified_host_name = EfficientCaseFoldedName::from_byte_string_ending_with_optional_trailing_period(valid)?;
-			Ok(possibly_fully_qualified_host_name.last_label_as_host_name())
+			let possibly_fully_qualified_host_name = FullyQualifiedDomainName::from_byte_string_ending_with_optional_trailing_period(valid)?;
+			Ok(possibly_fully_qualified_host_name.host_name())
 		})
 	}
 	
@@ -131,7 +131,7 @@ impl DefaultHostNameChoice
 				{
 					continue
 				}
-				return Ok(EfficientCaseFoldedName::from_byte_string_ending_with_optional_trailing_period(line)?.last_label_as_host_name())
+				return Ok(FullyQualifiedDomainName::from_byte_string_ending_with_optional_trailing_period(line)?.host_name())
 			}
 		}
 		
@@ -160,7 +160,7 @@ impl DefaultHostNameChoice
 			CStr::from_ptr(host.h_name)
 		};
 		
-		Ok(EfficientCaseFoldedName::from_byte_string_ending_with_optional_trailing_period(host_name.to_bytes())?.last_label_as_host_name())
+		Ok(FullyQualifiedDomainName::from_byte_string_ending_with_optional_trailing_period(host_name.to_bytes())?.host_name())
 	}
 	
 	#[inline(always)]

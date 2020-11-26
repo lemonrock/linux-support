@@ -150,4 +150,17 @@ impl<'message> ParsedName<'message>
 			marker: PhantomData,
 		}
 	}
+	
+	#[inline(always)]
+	pub(crate) fn guard_target_name_does_not_point_to_ptr_special_domain<E: error::Error>(&self) -> Result<(), HandleRecordTypeError<E>>
+	{
+		if unlikely!(self.is_special_ptr_domain())
+		{
+			Err(HandleRecordTypeError::TargetNameIsToSpecialPtrDomain)
+		}
+		else
+		{
+			Ok(())
+		}
+	}
 }

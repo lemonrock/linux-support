@@ -5,7 +5,8 @@
 /// Desgined to implement the `SRV` and `URI` prioritized, weighted records algorithm specified in RFC 2782, Page 3, "Weight", paragraph 2 to Page 4, paragraph 3, and, by extension, to support all other record kinds, including those that have a preference (eg `MX`) as well as those that don't (eg `A`).
 ///
 /// This implementation of that algorithm fails if there are `(2^64 - 1) / (2^16 - 1)` or more `self.weighted` records, which is not possible for DNS.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
+#[derive(Deserialize, Serialize)]
 pub(crate) struct WeightedRecords<OR: OwnedRecord>
 {
 	weightless: Vec<Rc<OR>>,

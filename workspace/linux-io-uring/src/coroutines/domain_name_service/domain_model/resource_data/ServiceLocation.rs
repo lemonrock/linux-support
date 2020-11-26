@@ -13,10 +13,10 @@ pub struct ServiceLocation<N: Name>
 	pub target: N,
 }
 
-impl<'message> Into<ServiceLocation<EfficientCaseFoldedName>> for ServiceLocation<ParsedName<'message>>
+impl<'message> Into<ServiceLocation<FullyQualifiedDomainName>> for ServiceLocation<ParsedName<'message>>
 {
 	#[inline(always)]
-	fn into(self) -> ServiceLocation<EfficientCaseFoldedName>
+	fn into(self) -> ServiceLocation<FullyQualifiedDomainName>
 	{
 		ServiceLocation
 		{

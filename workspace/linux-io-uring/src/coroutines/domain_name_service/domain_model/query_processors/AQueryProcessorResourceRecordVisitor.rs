@@ -4,7 +4,7 @@
 
 pub(crate) struct AQueryProcessorResourceRecordVisitor<'message>
 {
-	query_name: &'message EfficientCaseFoldedName,
+	query_name: &'message FullyQualifiedDomainName,
 	
 	records: OwnerNameToRecords<Ipv4Addr, ()>,
 }

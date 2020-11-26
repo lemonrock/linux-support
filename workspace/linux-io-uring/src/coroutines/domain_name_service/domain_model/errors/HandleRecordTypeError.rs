@@ -27,6 +27,17 @@ pub enum HandleRecordTypeError<E: error::Error>
 	/// Query type outside of a question section entry.
 	QueryTypeOutsideOfAQuestionSectionEntry(QueryTypeOutsideOfAQuestionSectionEntryError),
 	
+	/// A target domain name ends with (or equals) `in-addr.arpa` or `ip6.arpa`.
+	///
+	/// This is not valid for anything apart from probably:-
+	///
+	/// * `CNAME` records.
+	/// * `DNAME` records.
+	/// * `NSEC` records.
+	/// * `RRSIG` records.
+	/// * `NSEC3` records.
+	TargetNameIsToSpecialPtrDomain,
+	
 	/// Error parsing an `A` record type.
 	A(AHandleRecordTypeError),
 	

@@ -3,4 +3,4 @@
 
 
 /// This can resolve to either an alias or a domain.
-pub(crate) type AliasOrDomainTarget = EfficientCaseFoldedName;
+pub(crate) type AliasOrDomainTarget = FullyQualifiedDomainName;

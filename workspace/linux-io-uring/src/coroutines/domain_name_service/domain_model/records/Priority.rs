@@ -7,6 +7,7 @@
 /// Ranks above Weight.
 /// Ranks below Order.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct Priority(pub u16);
 

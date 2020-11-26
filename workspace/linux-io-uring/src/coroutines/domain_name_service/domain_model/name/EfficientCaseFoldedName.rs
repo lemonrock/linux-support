@@ -3,6 +3,7 @@
 
 
 /// This design is intended to cut down on the pointer chasing that occurs to try to make names more CPU cache friendly, and to make construction and cloning faster.
+#[derive(Deserialize, Serialize)]
 pub struct EfficientCaseFoldedName
 {
 	name_length_including_trailing_periods_after_labels: NonZeroU8,
@@ -178,47 +179,31 @@ impl<'a, 'message> From<&'a ParsedName<'message>> for EfficientCaseFoldedName
 
 impl EfficientCaseFoldedName
 {
-	/// If `etc_host_name` has no parent domains, then it is made a child subdomain of `self`.
-	///
-	/// Otherwise it is converted to a FQDN.
-	pub fn convert_etc_hosts_name(&self, etc_host_name: &[u8]) -> Result<Self, EfficientCaseFoldedNameParseError>
-	{
-		if etc_host_name.is_empty()
-		{
-			return Ok(Self::root())
-		}
-		
-		let child = Self::from_byte_string_ending_with_optional_trailing_period(etc_host_name.as_bytes())?;
-		
-		if etc_host_name.get_unchecked_value_safe(etc_host_name.len() - 1) == b'.'
-		{
-			return Ok(child)
-		}
-		else if child.is_top_level()
-		{
-			self.child(child.last_label().unwrap())
-		}
-		else
-		{
-			Ok(child)
-		}
-	}
-	
 	/// Prepends `relative_name`.
-	pub(crate) fn prepend_relative_name(&self, relative_name: &Self) -> Result<Self, X>
+	pub fn prepend_relative_name(&self, relative_name: &RelativeDomainName) -> Result<Self, EfficientCaseFoldedNameParseError>
 	{
 		let mut this = self.clone();
 		
-		for index in 1 .. relative_name.number_of_labels_including_root().get()
+		let inner = relative_name.as_ref();
+		
+		for index in 1 .. inner.number_of_labels_including_root().get()
 		{
-			this.child_mutate(relative_name.label(index))
+			this.child_mutate(inner.label(index))
 		}
 		
 		Ok(this)
 	}
 	
+	/// Prepends `host_name`.
 	#[inline(always)]
-	pub(crate) fn last_label_as_host_name(&self) -> Option<HostNameLabel>
+	pub fn prepend_host_name(&self, host_name: &HostNameLabel) -> Result<Self, EfficientCaseFoldedNameParseError>
+	{
+		self.child(host_name.as_label())
+	}
+	
+	/// Host name.
+	#[inline(always)]
+	pub fn host_name(&self) -> Option<HostNameLabel>
 	{
 		self.last_label().map(|last_label| HostNameLabel(last_label.0.to_vec().into_boxed_slice()))
 	}
@@ -723,141 +708,15 @@ impl EfficientCaseFoldedName
 		{
 			static ref special_use_domain_names: HashSet<EfficientCaseFoldedName<'static>> = fast_secure_hash_set!
 			{
-				// Reference: RFC-ietf-6tisch-minimal-security-15.
-				EfficientCaseFoldedName::second_level(EfficientCaseFoldedLabel::_6tisch, EfficientCaseFoldedLabel::arpa),
-				
-				// RFC 6761, Section 6.1, Domain Name Reservation Considerations for Private Addresses.
-				EfficientCaseFoldedName::third_level(EfficientCaseFoldedLabel::byte(10), EfficientCaseFoldedLabel::in_addr, EfficientCaseFoldedLabel::arpa),
-				EfficientCaseFoldedName::fourth_level_unwrap(EfficientCaseFoldedLabel::byte(16), EfficientCaseFoldedLabel::byte(172), EfficientCaseFoldedLabel::in_addr, EfficientCaseFoldedLabel::arpa),
-				EfficientCaseFoldedName::fourth_level_unwrap(EfficientCaseFoldedLabel::byte(17), EfficientCaseFoldedLabel::byte(172), EfficientCaseFoldedLabel::in_addr, EfficientCaseFoldedLabel::arpa),
-				EfficientCaseFoldedName::fourth_level_unwrap(EfficientCaseFoldedLabel::byte(18), EfficientCaseFoldedLabel::byte(172), EfficientCaseFoldedLabel::in_addr, EfficientCaseFoldedLabel::arpa),
-				EfficientCaseFoldedName::fourth_level_unwrap(EfficientCaseFoldedLabel::byte(19), EfficientCaseFoldedLabel::byte(172), EfficientCaseFoldedLabel::in_addr, EfficientCaseFoldedLabel::arpa),
-				EfficientCaseFoldedName::fourth_level_unwrap(EfficientCaseFoldedLabel::byte(20), EfficientCaseFoldedLabel::byte(172), EfficientCaseFoldedLabel::in_addr, EfficientCaseFoldedLabel::arpa),
-				EfficientCaseFoldedName::fourth_level_unwrap(EfficientCaseFoldedLabel::byte(21), EfficientCaseFoldedLabel::byte(172), EfficientCaseFoldedLabel::in_addr, EfficientCaseFoldedLabel::arpa),
-				EfficientCaseFoldedName::fourth_level_unwrap(EfficientCaseFoldedLabel::byte(22), EfficientCaseFoldedLabel::byte(172), EfficientCaseFoldedLabel::in_addr, EfficientCaseFoldedLabel::arpa),
-				EfficientCaseFoldedName::fourth_level_unwrap(EfficientCaseFoldedLabel::byte(23), EfficientCaseFoldedLabel::byte(172), EfficientCaseFoldedLabel::in_addr, EfficientCaseFoldedLabel::arpa),
-				EfficientCaseFoldedName::fourth_level_unwrap(EfficientCaseFoldedLabel::byte(24), EfficientCaseFoldedLabel::byte(172), EfficientCaseFoldedLabel::in_addr, EfficientCaseFoldedLabel::arpa),
-				EfficientCaseFoldedName::fourth_level_unwrap(EfficientCaseFoldedLabel::byte(25), EfficientCaseFoldedLabel::byte(172), EfficientCaseFoldedLabel::in_addr, EfficientCaseFoldedLabel::arpa),
-				EfficientCaseFoldedName::fourth_level_unwrap(EfficientCaseFoldedLabel::byte(26), EfficientCaseFoldedLabel::byte(172), EfficientCaseFoldedLabel::in_addr, EfficientCaseFoldedLabel::arpa),
-				EfficientCaseFoldedName::fourth_level_unwrap(EfficientCaseFoldedLabel::byte(27), EfficientCaseFoldedLabel::byte(172), EfficientCaseFoldedLabel::in_addr, EfficientCaseFoldedLabel::arpa),
-				EfficientCaseFoldedName::fourth_level_unwrap(EfficientCaseFoldedLabel::byte(28), EfficientCaseFoldedLabel::byte(172), EfficientCaseFoldedLabel::in_addr, EfficientCaseFoldedLabel::arpa),
-				EfficientCaseFoldedName::fourth_level_unwrap(EfficientCaseFoldedLabel::byte(29), EfficientCaseFoldedLabel::byte(172), EfficientCaseFoldedLabel::in_addr, EfficientCaseFoldedLabel::arpa),
-				EfficientCaseFoldedName::fourth_level_unwrap(EfficientCaseFoldedLabel::byte(30), EfficientCaseFoldedLabel::byte(172), EfficientCaseFoldedLabel::in_addr, EfficientCaseFoldedLabel::arpa),
-				EfficientCaseFoldedName::fourth_level_unwrap(EfficientCaseFoldedLabel::byte(31), EfficientCaseFoldedLabel::byte(172), EfficientCaseFoldedLabel::in_addr, EfficientCaseFoldedLabel::arpa),
-				EfficientCaseFoldedName::fourth_level_unwrap(EfficientCaseFoldedLabel::byte(168), EfficientCaseFoldedLabel::byte(192), EfficientCaseFoldedLabel::in_addr, EfficientCaseFoldedLabel::arpa),
 				
 				// RFC 8880, Section 7.2, Names '170.0.0.192.in-addr.arpa' and '171.0.0.192.in-addr.arpa'.
 				EfficientCaseFoldedName::internet_protocol_version_4_pointer_unchecked(Ipv4Addr::new(170, 0, 0, 192)),
 				EfficientCaseFoldedName::internet_protocol_version_4_pointer_unchecked(Ipv4Addr::new(171, 0, 0, 192)),
 				
-				// RFC 6762, Section 12, Special Characteristics of Multicast DNS Domains.
-				EfficientCaseFoldedName::fourth_level_unwrap(EfficientCaseFoldedLabel::byte(254), EfficientCaseFoldedLabel::byte(169), EfficientCaseFoldedLabel::in_addr, EfficientCaseFoldedLabel::arpa),
-				EfficientCaseFoldedName::fifth_level_unwrap(EfficientCaseFoldedLabel::nibble(0x8), EfficientCaseFoldedLabel::nibble(0xE), EfficientCaseFoldedLabel::nibble(0xF), EfficientCaseFoldedLabel::ip6, EfficientCaseFoldedLabel::arpa),
-				EfficientCaseFoldedName::fifth_level_unwrap(EfficientCaseFoldedLabel::nibble(0x9), EfficientCaseFoldedLabel::nibble(0xE), EfficientCaseFoldedLabel::nibble(0xF), EfficientCaseFoldedLabel::ip6, EfficientCaseFoldedLabel::arpa),
-				EfficientCaseFoldedName::fifth_level_unwrap(EfficientCaseFoldedLabel::nibble(0xA), EfficientCaseFoldedLabel::nibble(0xE), EfficientCaseFoldedLabel::nibble(0xF), EfficientCaseFoldedLabel::ip6, EfficientCaseFoldedLabel::arpa),
-				EfficientCaseFoldedName::fifth_level_unwrap(EfficientCaseFoldedLabel::nibble(0xB), EfficientCaseFoldedLabel::nibble(0xE), EfficientCaseFoldedLabel::nibble(0xF), EfficientCaseFoldedLabel::ip6, EfficientCaseFoldedLabel::arpa),
-				
-				// RFC 8375.
-				EfficientCaseFoldedName::second_level(EfficientCaseFoldedLabel::home, EfficientCaseFoldedLabel::arpa),
-				
-				// RFC 6761, Section 6.5 Domain Name Reservation Considerations for Example Domains.
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::example),
-				EfficientCaseFoldedName::second_level(EfficientCaseFoldedLabel::example, EfficientCaseFoldedLabel::com),
-				EfficientCaseFoldedName::second_level(EfficientCaseFoldedLabel::example, EfficientCaseFoldedLabel::net),
-				EfficientCaseFoldedName::second_level(EfficientCaseFoldedLabel::example, EfficientCaseFoldedLabel::org),
-				
-				// RFC 6761, Section 6.4, Domain Name Reservation Considerations for "invalid.".
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::invalid),
-				
-				// RFC 8880, Section 7.1, Special Use Domain Name 'ipv4only.arpa'.
-				//
-				// See also RFC 7050.
-				//
-				// This domain name is valid only for Internet Protocol version 4.
-				// It is not valid only for Internet Protocol version 6.
-				// Furthermore, for Internet Protocol version 4, it has the fixed `A` records `192.0.0.170` and `192.0.0.171`; these are defined in the [IANA IPv5 Special-Purpose Address Registry](https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml).
-				EfficientCaseFoldedName::second_level(EfficientCaseFoldedLabel::ipv4only, EfficientCaseFoldedLabel::arpa),
-				
-				// RFC 6762, Section 12, Special Characteristics of Multicast DNS Domains.
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::local),
-				
-				// RFC 6761, Section 6.3, Domain Name Reservation Considerations for "localhost.".
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::localhost),
-				
-				// RFC 7686, Section 2, The ".onion" Special-Use Domain Name.
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::onion),
-				
-				// RFC 6761, Section 6.2, Domain Name Reservation Considerations for "test.".
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::test),
 			};
 		}
 		
 		&special_use_domain_names
-	}
-	
-	/// Based on RFC 7788.
-	///
-	/// This usage has been deprecated by RFC 8375 replacing ".home." with ".home.arpa.".
-	/// However, it is also used by RFC 6762, Appendix G.
-	#[inline(always)]
-	pub fn rfc_7788_local_name_mistake() -> &'static HashSet<Self>
-	{
-		lazy_static!
-		{
-			static ref rfc_7788_local_name_mistake: HashSet<EfficientCaseFoldedName<'static>> = fast_secure_hash_set!
-			{
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::home),
-			};
-		}
-		
-		&rfc_7788_local_name_mistake
-	}
-	
-	/// Based on RFC 6762, Appendix G: Private DNS Namespace.
-	///
-	/// This contains 'sepcial use' multicast DNS domain names in common use.
-	/// It excludes ".local." and ".home.".
-	#[inline(always)]
-	pub fn recommended_local_names_in_rfc_6762_appendix_g() -> &'static HashSet<Self>
-	{
-		lazy_static!
-		{
-			static ref recommended_local_names_in_rfc_6762_appendix_g: HashSet<EfficientCaseFoldedName<'static>> = fast_secure_hash_set!
-			{
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::intranet),
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::internal),
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::private),
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::corp),
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::lan),
-			};
-		}
-		
-		&recommended_local_names_in_rfc_6762_appendix_g
-	}
-	
-	/// See <https://www.iana.org/domains/reserved>.
-	#[inline(always)]
-	pub fn iana_test_internationalized_domain_names() -> &'static HashSet<Self>
-	{
-		lazy_static!
-		{
-			static ref iana_test_internationalized_domain_names: HashSet<EfficientCaseFoldedName> = fast_secure_hash_set!
-			{
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::Arabic_Arabic),
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::Persian_Arabic),
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::Chinese_Han_Simplified),
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::Chinese_Han_Traditional),
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::Russion_Cyrillic),
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::Hindi_Devangari),
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::Greek_Greek),
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::Korean_Hangul),
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::Yiddish_Hebrew),
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::Japanese_Katakana),
-				EfficientCaseFoldedName::top_level(EfficientCaseFoldedLabel::Tamil_Tamil),
-			};
-		}
-		
-		&iana_test_internationalized_domain_names
 	}
 }
 

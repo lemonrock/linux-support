@@ -4,6 +4,7 @@
 
 /// Default domain name choice.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
 pub enum DefaultDomainNameChoice
 {
 	/// Uses the logic for determing the search list in `/etc/resolv.conf`.
@@ -15,7 +16,7 @@ pub enum DefaultDomainNameChoice
 	/// * Then prefers the first search domain of the first occurrence of `search` in `/etc/resolv.conf`.
 	/// * Then uses `LinuxKernelHostName`.
 	/// * Then uses root (`.`).
-	ResolvConf,
+	EtcResolvConf,
 	
 	/// Just use `.`.
 	Root,
@@ -66,7 +67,12 @@ pub enum DefaultDomainNameChoice
 	GetHostByName,
 	
 	/// Specific.
-	Fixed(EfficientCaseFoldedName),
+	Fixed(FullyQualifiedDomainName),
+
+	/// Use the first occurrence of the `trim` keyword in `/etc/host.conf` (with any values in the environment variables taking preference).
+	///
+	/// This file is rare and the setting is rarely used.
+	EtcHostConfTrim,
 }
 
 impl Default for DefaultDomainNameChoice
@@ -74,7 +80,7 @@ impl Default for DefaultDomainNameChoice
 	#[inline(always)]
 	fn default() -> Self
 	{
-		DefaultDomainNameChoice::ResolvConf
+		DefaultDomainNameChoice::EtcResolvConf
 	}
 }
 
@@ -84,7 +90,7 @@ impl DefaultDomainNameChoice
 	///
 	/// Errors are swallowed.
 	#[inline(always)]
-	pub fn resolve_until_one_works(choices: &[Self], proc_path: &ProcPath, etc_path: &EtcPath) -> EfficientCaseFoldedName
+	pub fn resolve_until_one_works<'a>(choices: impl Iterator<Item=&'a Self> + 'a, proc_path: &ProcPath, etc_path: &EtcPath) -> FullyQualifiedDomainName
 	{
 		for choice in choices
 		{
@@ -94,21 +100,21 @@ impl DefaultDomainNameChoice
 			}
 		}
 		
-		EfficientCaseFoldedName::root()
+		FullyQualifiedDomainName::root()
 	}
 	
 	/// Resolves the default domain name.
 	///
 	/// Any recoverable errors in processing are swallowed and `None` is returned.
-	pub fn resolve(&self, proc_path: &ProcPath, etc_path: &EtcPath) -> Result<Option<EfficientCaseFoldedName>, EfficientCaseFoldedNameParseError>
+	pub fn resolve(&self, proc_path: &ProcPath, etc_path: &EtcPath) -> Result<Option<FullyQualifiedDomainName>, EfficientCaseFoldedNameParseError>
 	{
 		use self::DefaultDomainNameChoice::*;
 		
 		match self
 		{
-			ResolvConf => Self::resolv_conf(etc_path),
+			EtcResolvConf => Self::resolv_conf(etc_path),
 			
-			Root => Ok(Some(EfficientCaseFoldedName::root())),
+			Root => Ok(Some(FullyQualifiedDomainName::root())),
 			
 			LinuxKernelHostName => Self::linux_kernel_host_name(proc_path),
 			
@@ -123,11 +129,13 @@ impl DefaultDomainNameChoice
 			GetHostByName => Self::get_host_by_name(),
 			
 			Fixed(ref name) => Ok(Some(name.clone())),
+			
+			EtcHostConfTrim => Self::etc_host_conf_trim(etc_path),
 		}
 	}
 	
 	#[inline(always)]
-	fn linux_kernel_host_name(proc_path: &ProcPath) -> Result<Option<EfficientCaseFoldedName>, EfficientCaseFoldedNameParseError>
+	fn linux_kernel_host_name(proc_path: &ProcPath) -> Result<Option<FullyQualifiedDomainName>, EfficientCaseFoldedNameParseError>
 	{
 		match linux_support::linux_kernel_version::LinuxKernelHostName::new(proc_path)
 		{
@@ -137,14 +145,14 @@ impl DefaultDomainNameChoice
 			
 			Ok(Some(linux_kernel_host_name)) =>
 			{
-				let name = EfficientCaseFoldedName::from_byte_string_ending_with_optional_trailing_period(&linux_kernel_host_name[..])?;
+				let name = FullyQualifiedDomainName::from_byte_string_ending_with_optional_trailing_period(&linux_kernel_host_name[..])?;
 				Ok(name.parent())
 			}
 		}
 	}
 	
 	#[inline(always)]
-	fn linux_kernel_domain_name(proc_path: &ProcPath) -> Result<Option<EfficientCaseFoldedName>, EfficientCaseFoldedNameParseError>
+	fn linux_kernel_domain_name(proc_path: &ProcPath) -> Result<Option<FullyQualifiedDomainName>, EfficientCaseFoldedNameParseError>
 	{
 		match linux_support::linux_kernel_version::LinuxKernelDomainName::new(proc_path)
 		{
@@ -154,14 +162,14 @@ impl DefaultDomainNameChoice
 			
 			Ok(Some(linux_kernel_domain_name)) =>
 			{
-				let name = EfficientCaseFoldedName::from_byte_string_ending_with_optional_trailing_period(&linux_kernel_domain_name[..])?;
+				let name = FullyQualifiedDomainName::from_byte_string_ending_with_optional_trailing_period(&linux_kernel_domain_name[..])?;
 				Ok(Some(name))
 			}
 		}
 	}
 	
 	#[inline(always)]
-	fn uname_host_name() -> Result<Option<EfficientCaseFoldedName>, EfficientCaseFoldedNameParseError>
+	fn uname_host_name() -> Result<Option<FullyQualifiedDomainName>, EfficientCaseFoldedNameParseError>
 	{
 		DefaultHostNameChoice::use_uname(|buffer|
 		{
@@ -169,13 +177,13 @@ impl DefaultDomainNameChoice
 			let length = memchr(0x00, &nodename[..]).unwrap_or(Self::Size);
 			
 			let valid = &nodename[.. length];
-			let possibly_fully_qualified_host_name = EfficientCaseFoldedName::from_byte_string_ending_with_optional_trailing_period(valid)?;
+			let possibly_fully_qualified_host_name = FullyQualifiedDomainName::from_byte_string_ending_with_optional_trailing_period(valid)?;
 			Ok(possibly_fully_qualified_host_name.parent())
 		})
 	}
 	
 	#[inline(always)]
-	fn uname_domain_name() -> Result<Option<EfficientCaseFoldedName>, EfficientCaseFoldedNameParseError>
+	fn uname_domain_name() -> Result<Option<FullyQualifiedDomainName>, EfficientCaseFoldedNameParseError>
 	{
 		DefaultHostNameChoice::use_uname(|buffer|
 		{
@@ -183,13 +191,13 @@ impl DefaultDomainNameChoice
 			let length = memchr(0x00, &domainname[..]).unwrap_or(Self::Size);
 			
 			let valid = &domainname[.. length];
-			let possibly_fully_qualified_host_name = EfficientCaseFoldedName::from_byte_string_ending_with_optional_trailing_period(valid)?;
+			let possibly_fully_qualified_host_name = FullyQualifiedDomainName::from_byte_string_ending_with_optional_trailing_period(valid)?;
 			Ok(Some(possibly_fully_qualified_host_name))
 		})
 	}
 	
 	#[inline(always)]
-	fn etc_dnsdomainname(etc_path: &EtcPath) -> Result<Option<EfficientCaseFoldedName>, EfficientCaseFoldedNameParseError>
+	fn etc_dnsdomainname(etc_path: &EtcPath) -> Result<Option<FullyQualifiedDomainName>, EfficientCaseFoldedNameParseError>
 	{
 		let file_path = etc_path.hostname();
 		if unlikely!(!file_path.exists())
@@ -209,7 +217,7 @@ impl DefaultDomainNameChoice
 				{
 					continue
 				}
-				return Ok(Some(EfficientCaseFoldedName::from_byte_string_ending_with_optional_trailing_period(line)?))
+				return Ok(Some(FullyQualifiedDomainName::from_byte_string_ending_with_optional_trailing_period(line)?))
 			}
 		}
 		
@@ -218,7 +226,7 @@ impl DefaultDomainNameChoice
 	
 	/// This uses the same logic as the `hostname` binary.
 	#[inline(always)]
-	fn get_host_by_name() -> Result<Option<EfficientCaseFoldedName>, EfficientCaseFoldedNameParseError>
+	fn get_host_by_name() -> Result<Option<FullyQualifiedDomainName>, EfficientCaseFoldedNameParseError>
 	{
 		let nodename = Self::use_uname(|buffer| buffer.nodename);
 		if nodename.get_unchecked_value_safe(0) = 0x00
@@ -238,12 +246,26 @@ impl DefaultDomainNameChoice
 			CStr::from_ptr(host.h_name)
 		};
 		
-		Ok(Some(EfficientCaseFoldedName::from_byte_string_ending_with_optional_trailing_period(host_name.to_bytes())?))
+		Ok(Some(FullyQualifiedDomainName::from_byte_string_ending_with_optional_trailing_period(host_name.to_bytes())?))
 	}
 	
 	#[inline(always)]
-	fn resolv_conf(etc_path: &EtcPath) -> Result<Option<EfficientCaseFoldedName>, EfficientCaseFoldedNameParseError>
+	fn resolv_conf(etc_path: &EtcPath) -> Result<Option<FullyQualifiedDomainName>, EfficientCaseFoldedNameParseError>
 	{
 		Ok(Some(ResolvConf::as_default_domain_name_choice(etc_path)))
+	}
+	
+	#[inline(always)]
+	fn etc_host_conf_trim(etc_path: &EtcPath) -> Result<Option<FullyQualifiedDomainName>, EfficientCaseFoldedNameParseError>
+	{
+		if let Ok(host_conf) = HostConf::from_environment()
+		{
+			if !host_conf.trim_domains.is_empty()
+			{
+				return Ok(Some(host_conf.trim_domains.get_unchecked_safe(0).clone()))
+			}
+		}
+		
+		Ok(None)
 	}
 }

@@ -10,7 +10,7 @@ pub(crate) struct QueryTypesFixed
 	
 	pub(crate) AAAA: Option<MultipleSortedRecords<Ipv6Addr>>,
 	
-	pub(crate) PTR: Option<MultipleSortedRecords<NameServerName<AliasOrDomainTarget>>>,
+	pub(crate) PTR: Option<MultipleSortedRecords<PointerName<AliasOrDomainTarget>>>,
 }
 
 impl Default for QueryTypesFixed
@@ -42,6 +42,17 @@ impl QueryTypesFixed
 			V6(v6) => query_types_fixed.AAAA = Some(MultipleSortedRecords::single(v6)),
 		}
 		query_types_fixed
+	}
+	
+	#[inline(always)]
+	pub(crate) fn new_local_internet_protocol_addresses() -> Self
+	{
+		Self
+		{
+			A: Some(MultipleSortedRecords::single(Ipv4Addr::LOCALHOST)),
+			AAAA: Some(MultipleSortedRecords::single(Ipv6Addr::LOCALHOST)),
+			PTR: None,
+		}
 	}
 	
 	#[inline(always)]

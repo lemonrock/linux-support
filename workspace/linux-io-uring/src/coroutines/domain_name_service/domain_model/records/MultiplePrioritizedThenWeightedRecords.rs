@@ -6,6 +6,8 @@
 ///
 /// * SRV.
 /// * URI.
+#[derive(Debug, Clone)]
+#[derive(Deserialize, Serialize)]
 pub struct MultiplePrioritizedThenWeightedRecords<OR: OwnedRecord>
 {
 	records: PriorityToWeightedRecordsMap<OR>,

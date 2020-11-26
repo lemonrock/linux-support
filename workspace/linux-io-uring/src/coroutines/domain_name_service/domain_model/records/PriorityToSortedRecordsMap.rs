@@ -2,7 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
+#[derive(Deserialize, Serialize)]
 struct PriorityToSortedRecordsMap<OR: ParsedRecord>(BTreeMap<Priority, BTreeSet<OR>>);
 
 impl<OR: OwnedRecord> Default for PriorityToSortedRecordsMap<OR>

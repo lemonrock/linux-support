@@ -12,10 +12,16 @@ pub struct ResolvConf
 	///
 	/// Uses a historic cap of 6.
 	/// The musl libc limits to 256 bytes (including ASCII NULs).
-	search_domains: ArrayVec<[EfficientCaseFoldedName; Self::MaximumSearchDomains]>,
+	///
+	/// It is good security practice to avoid search domains that are not locally administered (viz, domains should either be one of the recognized local domains or a domain that is owned and administered by us).
+	search_domains: ArrayVec<[FullyQualifiedDomainName; Self::MaximumSearchDomains]>,
 	
 	/// A sort list.
-	sort_list: ArrayVec<[Either<(Ipv4Addr, Option<NonZeroU8>), (Ipv6Addr, Option<NonZeroU8>)>; Self::MaximumSortList]>,
+	///
+	/// If the netmask is missing, it "default to the natural netmask of the net" according to the NetBSD man pages.
+	///
+	/// Does that mean it defaults to the CIDR mask? No such thing exists for Internet Protocol version 6.
+	sort_list: ArrayVec<[(Ipv4Addr, Option<NonZeroU8>); Self::MaximumSortList]>,
 	
 	/// Default is 1.
 	///
@@ -32,16 +38,8 @@ pub struct ResolvConf
 	/// Maximum is 5.
 	attempts: NonZeroU8,
 	
-	/// Ignored glibc option `debug`.
-	debug: bool,
-	
 	/// Ignored glibc option `rotate`.
 	rotate: bool,
-	
-	/// Ignored glibc option `no-check-names`.
-	///
-	/// We always check labels and names but are quite lenient.
-	no_check_names: bool,
 	
 	/// Ignored glibc option ` single-request`.
 	single_request: bool,
@@ -65,6 +63,19 @@ pub struct ResolvConf
 	/// We always set the `AD` bit.
 	trust_ad: bool,
 	
+	/// Ignored glibc option `edns0`.
+	edns0: bool,
+	
+	/// Ignored glibc option `debug`.
+	#[deprecated]
+	debug: bool,
+	
+	/// Ignored glibc option `no-check-names`.
+	///
+	/// We always check labels and names but are quite lenient.
+	#[deprecated]
+	no_check_names: bool,
+	
 	/// Ignored glibc option `inet6`.
 	#[deprecated]
 	inet6: bool,
@@ -76,14 +87,6 @@ pub struct ResolvConf
 	/// Ignored glibc option `ip6-dotint`.
 	#[deprecated]
 	ip6_dotint: bool,
-	
-	/// Ignored glibc option `no-ip6-dotint`.
-	#[deprecated]
-	no_ip6_dotint: bool,
-	
-	/// Ignored glibc option `edns0`.
-	#[deprecated]
-	edns0: bool,
 }
 
 impl ResolvConf
@@ -100,8 +103,10 @@ impl ResolvConf
 	const DefaultNameserver: IpAddr = IpAddr::V4(Ipv4Addr::LOCALHOST);
 	
 	/// New instance.
+	///
+	/// Ordinarily `default_domain_name` is found using `DefaultDomainNameChoice::uname_host_name()` with a fallback to `FullyQualifiedDomainName::root()`.
 	#[inline(always)]
-	pub fn new_from_environment(etc_path: &EtcPath) -> Result<Self, ParseEtcResolvConfError>
+	pub fn new_from_environment(etc_path: &EtcPath, default_domain_name: &FullyQualifiedDomainName) -> Result<Self, ParseEtcResolvConfError>
 	{
 		use self::ParseEtcResolvConfError::*;
 		
@@ -118,57 +123,33 @@ impl ResolvConf
 		
 		if this.search_domains.is_empty()
 		{
-			this.search_domains.push(Self::default_search_domain()?);
+			this.search_domains.push(default_domain_name.clone());
 			
 		}
 		
 		Ok(this)
 	}
 	
-	/// This uses the musl libc logic: "queries with fewer dots than the ndots configuration variable are processed with search first then tried literally (just like glibc), but those with at least as many dots as ndots are only tried in the global namespace (never falling back to search, which glibc would do if the name is not found in the global DNS namespace).
-	/// This difference comes from a consistency requirement not to return different results subject to transient failures or to global DNS namespace changes outside of one’s control (addition of new TLDs)".
-	pub fn search_list(&self, possibly_relative_name: &[u8]) -> Result<Vec<EfficientCaseFoldedName>, EfficientCaseFoldedNameParseError>
+	#[inline(always)]
+	pub(crate) fn always_valid_locally_administered_domains(&self) -> HashSet<FullyQualifiedDomainName>
 	{
-		if possibly_relative_name.is_empty()
+		let mut always_valid_locally_administered_domains = HashSet::with_capacity(self.search_domains.len());
+		for search_domain in self.search_domains
 		{
-			return Ok
-			(
-				vec!
-				[
-					EfficientCaseFoldedName::root()
-				]
-			)
+			let search_domain: &FullyQualifiedDomainName = search_domain;
+			always_valid_locally_administered_domains.insert(search_domain.clone());
 		}
-		
-		let as_is = EfficientCaseFoldedName::from_byte_string_ending_with_optional_trailing_period(possibly_relative_name)?;
-		
-		let ends_with_a_period = possibly_relative_name.get_unchecked_value_safe(possibly_relative_name.len() - 1) == b'.';
-		
-		if ends_with_a_period
-		{
-			return Ok(vec![as_is])
-		}
-		
-		let query_number_of_periods = possibly_relative_name.split_bytes(b'.').count() - 1;
-		
-		if query_number_of_periods < (self.ndots as usize)
-		{
-			let mut search_list = Vec::with_capacity(1 + self.search_domains.len());
-			for search_domain in self.search_domains
-			{
-				search_list.push(search_domain.prepend_relative_name(&as_is));
-			}
-			search_list.push(as_is);
-			Ok(search_list)
-		}
-		else
-		{
-			Ok(vec![as_is])
-		}
+		always_valid_locally_administered_domains
 	}
 	
 	#[inline(always)]
-	fn defaultish(nameservers: ArrayVec<[IpAddr; Self::MaximumNameservers]>, search_domains: ArrayVec<[EfficientCaseFoldedName; Self::MaximumSearchDomains]>) -> Self
+	fn number_of_periods(&self) -> u8
+	{
+		self.ndots
+	}
+	
+	#[inline(always)]
+	fn defaultish(nameservers: ArrayVec<[IpAddr; Self::MaximumNameservers]>, search_domains: ArrayVec<[FullyQualifiedDomainName; Self::MaximumSearchDomains]>) -> Self
 	{
 		Self
 		{
@@ -208,20 +189,11 @@ impl ResolvConf
 			
 			ip6_dotint: false,
 			
-			no_ip6_dotint: false,
-			
 			edns0: false
 		}
 	}
 	
-	/// This uses the same logic as glibc and as documented in man 5 resolv.conf.
-	#[inline(always)]
-	fn default_domain_name() -> Result<EfficientCaseFoldedName, EfficientCaseFoldedNameParseError>
-	{
-		Ok(DefaultDomainNameChoice::uname_host_name()?.unwrap_or_else(EfficientCaseFoldedName::root))
-	}
-	
-	fn parser(etc_path: &EtcPath, mut callback: impl for<'a> FnMut(&'a str, SplitWhitespace<'a>, usize) -> Result<(), ParseEtcResolvConfError>) -> Result<(), ParseEtcResolvConfError>
+	fn parser(etc_path: &EtcPath, mut callback: impl for<'whitespace> FnMut(&'whitespace str, SplitWhitespace<'whitespace>, usize) -> Result<(), ParseEtcResolvConfError>) -> Result<(), ParseEtcResolvConfError>
 	{
 		use self::ParseEtcResolvConfError::*;
 		
@@ -257,7 +229,37 @@ impl ResolvConf
 	}
 	
 	#[inline(always)]
-	fn parse_keyword<'a>(&mut self, keyword: &'a str, mut fields: SplitWhitespace<'a>, line_index: usize) -> Result<(), ParseEtcResolvConfError>
+	fn push_nameserver(&mut self, nameserver: IpAddr)
+	{
+		if self.nameservers.contains(&nameserver)
+		{
+			return
+		}
+		let _not_an_error_to_have_too_many = self.nameservers.try_push(nameserver);
+	}
+	
+	#[inline(always)]
+	fn push_search_domain(&mut self, search_domain: FullyQualifiedDomainName)
+	{
+		if self.search_domains.contains(&search_domain)
+		{
+			return
+		}
+		let _not_an_error_to_have_too_many = self.search_domains.try_push(search_domain);
+	}
+	
+	#[inline(always)]
+	fn push_sort_list_pair(&mut self, sort_list_pair: (Ipv4Addr, Option<NonZeroU8>))
+	{
+		if self.sort_list.contains(&sort_list_pair)
+		{
+			return
+		}
+		let _not_an_error_to_have_too_many = self.sort_list.try_push(sort_list_pair);
+	}
+	
+	#[inline(always)]
+	fn parse_keyword<'whitespace>(&mut self, keyword: &'whitespace str, mut fields: SplitWhitespace<'whitespace>, line_index: usize) -> Result<(), ParseEtcResolvConfError>
 	{
 		use self::ParseEtcResolvConfError::*;
 		
@@ -267,16 +269,18 @@ impl ResolvConf
 			{
 				let raw_internet_protocol_address = fields.next().ok_or(MissingNameserverInternetProtocolAddress { line_index })?;
 				let nameserver = IpAddr::from_str(raw_internet_protocol_address).map_err(|error| InvalidNameserverInternetProtocolAddress { line_index, error })?;
-				let _not_an_error_to_have_more_than_3 = self.nameservers.try_push(nameserver);
+				self.push_nameserver(nameserver)
 			}
 			
 			"search" => self.parse_search_domains(fields, line_index, true),
 			
 			"domain" =>
 			{
+				self.search_domains.clear();
+				
 				let search_domain_name = fields.next().ok_or(MissingDomainName { line_index } )?;
-				let search_domain = EfficientCaseFoldedName::from_byte_string_ending_with_optional_trailing_period(search_domain_name.as_bytes()).map_err(|error| InvalidDomainName { line_index, error })?;
-				let _not_an_error_to_have_too_many = self.search_domains.try_push(search_domain);
+				let search_domain = FullyQualifiedDomainName::from_byte_string_ending_with_optional_trailing_period(search_domain_name.as_bytes()).map_err(|error| InvalidDomainName { line_index, error })?;
+				self.push_search_domain(search_domain)
 			}
 			
 			"sortlist" =>
@@ -285,18 +289,13 @@ impl ResolvConf
 				
 				for (sort_list_pair_index, sort_list_pair) in fields.enumerate()
 				{
-					let mut split = sort_list_pair.splitn(2, '/');
-					let internet_protocol_address = IpAddr::from_str(split.next().unwrap()).map_err(|error| InvalidSortListInternetProtocolAddress { line_index, sort_list_pair_index, error })?;
+					let mut split = sort_list_pair.splitn(2, |character| *character == '/' || *character == '&');
 					
-					let mask = split.next();
-					use self::IpAddr::*;
-					let sort_list_pair = match internet_protocol_address
-					{
-						V4(v4) => Left((v4, Self::internet_protocol_version4_mask(line_index, sort_list_pair_index, mask)?)),
-						
-						V6(v6) => Right((v6, Self::internet_protocol_version6_mask(line_index, sort_list_pair_index, mask)?)),
-					};
-					let _not_an_error_to_have_too_many = self.sort_list.try_push(sort_list_pair);
+					let internet_protocol_address = Ipv4Addr::from_str(split.next().unwrap()).map_err(|error| InvalidSortListInternetProtocolVersion4Address { line_index, sort_list_pair_index, error })?;
+					
+					let netmask = Self::internet_protocol_version4_mask(line_index, sort_list_pair_index, split.next())?;
+					
+					self.push_sort_list_pair((internet_protocol_address, netmask))
 				}
 				
 				if !has_at_least_one_entry
@@ -313,7 +312,7 @@ impl ResolvConf
 		Ok(())
 	}
 	
-	fn parse_domain<'a>(keyword: &'a str, mut fields: SplitWhitespace<'a>, line_index: usize, domain: &mut Option<(EfficientCaseFoldedName, bool)>) -> Result<(), ParseEtcResolvConfError>
+	fn parse_domain<'whitespace>(keyword: &'whitespace str, mut fields: SplitWhitespace<'whitespace>, line_index: usize, domain: &mut Option<(FullyQualifiedDomainName, bool)>) -> Result<(), ParseEtcResolvConfError>
 	{
 		const HasDomain: bool = true;
 		const HasSearch: bool = false;
@@ -324,12 +323,12 @@ impl ResolvConf
 		}
 		
 		#[inline(always)]
-		fn process(mut fields: SplitWhitespace<'a>, line_index: usize, domain: &mut Option<(EfficientCaseFoldedName, bool)>, has: bool) -> Result<(), ParseEtcResolvConfError>
+		fn process(mut fields: SplitWhitespace<'whitespace>, line_index: usize, domain: &mut Option<(FullyQualifiedDomainName, bool)>, has: bool) -> Result<(), ParseEtcResolvConfError>
 		{
 			use self::ParseEtcResolvConfError::*;
 			
 			let search_domain_name = fields.next().ok_or(MissingDomainName { line_index } )?;
-			let search_domain = EfficientCaseFoldedName::from_byte_string_ending_with_optional_trailing_period(search_domain_name.as_bytes()).map_err(|error| InvalidDomainName { line_index, error })?;
+			let search_domain = FullyQualifiedDomainName::from_byte_string_ending_with_optional_trailing_period(search_domain_name.as_bytes()).map_err(|error| InvalidDomainName { line_index, error })?;
 			*domain = Some((search_domain, has));
 			Ok(())
 		}
@@ -354,13 +353,15 @@ impl ResolvConf
 	#[inline(always)]
 	fn parse_search_domains(&mut self, mut fields: SplitWhitespace, line_index: usize, force_at_least_one_entry: bool) -> Result<(), ParseEtcResolvConfError>
 	{
+		self.search_domains.clear();
+		
 		use self::ParseEtcResolvConfError::*;
 		
 		let mut has_at_least_one_entry = false;
 		for (search_domain_index, search_domain_name) in fields.enumerate()
 		{
-			let search_domain = EfficientCaseFoldedName::from_byte_string_ending_with_optional_trailing_period(search_domain_name.as_bytes()).map_err(|error| InvalidSearchName { line_index, search_domain_index, error })?;
-			let _not_an_error_to_have_too_many = self.search_domains.try_push(search_domain);
+			let search_domain = FullyQualifiedDomainName::from_byte_string_ending_with_optional_trailing_period(search_domain_name.as_bytes()).map_err(|error| InvalidSearchName { line_index, search_domain_index, error })?;
+			self.push_search_domain(search_domain);
 			has_at_least_one_entry = true;
 		}
 		
@@ -385,16 +386,6 @@ impl ResolvConf
 	fn internet_protocol_version4_mask(line_index: usize, sort_list_pair_index: usize, mask: Option<&str>) -> Result<Option<NonZeroU8>, ParseEtcResolvConfError>
 	{
 		Self::internet_protocol_version_mask::<Ipv4Addr, _>(line_index, sort_list_pair_index, mask, |internet_protocol_mask|
-		{
-			let octets = internet_protocol_mask.octets();
-			Self::octets_to_set_bits(line_index, sort_list_pair_index, &octets[..])
-		})
-	}
-	
-	#[inline(always)]
-	fn internet_protocol_version6_mask(line_index: usize, sort_list_pair_index: usize, mask: Option<&str>) -> Result<Option<NonZeroU8>, ParseEtcResolvConfError>
-	{
-		Self::internet_protocol_version_mask::<Ipv6Addr, _>(line_index, sort_list_pair_index, mask, |internet_protocol_mask|
 		{
 			let octets = internet_protocol_mask.octets();
 			Self::octets_to_set_bits(line_index, sort_list_pair_index, &octets[..])
@@ -469,6 +460,17 @@ impl ResolvConf
 		}
 		
 		#[inline(always)]
+		fn option_should_have_not_a_value_inverted(field: &mut bool, line_index: usize, option_name: &[u8], option_value: Option<&[u8]>) -> Result<(), ParseEtcResolvConfError>
+		{
+			if option_value.is_some()
+			{
+				return Err(OptionShouldNotHaveAValue { line_index, option_name: option_name.to_vec().into_boxed_slice() })
+			}
+			*field = false;
+			Ok(())
+		}
+		
+		#[inline(always)]
 		fn option_should_have_a_value<V>(field: &mut V, line_index: usize, option_name: &[u8], option_value: Option<&[u8]>, maximum: u8, for_zero: impl FnOnce() -> V, convert: impl FnOnce(u8) -> V) -> Result<(), ParseEtcResolvConfError>
 		{
 			let option_value = option_value.ok_or(OptionShouldHaveAValue { line_index, option_name: option_name.to_vec().into_boxed_slice() })?;
@@ -500,8 +502,6 @@ impl ResolvConf
 			
 			match option_name
 			{
-				b"debug" => option_should_have_not_a_value(&mut self.debug, line_index, option_name, option_value),
-				
 				b"ndots" => option_should_have_a_value(&mut self.ndots, line_index, option_name, option_value, 15, || 0, |value| value),
 				
 				b"timeout" => option_should_have_a_value(&mut self.timeout, line_index, option_name, option_value, 30, || new_non_zero_u8(1), |value| new_non_zero_u8(value)),
@@ -510,15 +510,12 @@ impl ResolvConf
 				
 				b"rotate" => option_should_have_not_a_value(&mut self.rotate, line_index, option_name, option_value),
 				
+				b"debug" => option_should_have_not_a_value(&mut self.debug, line_index, option_name, option_value),
 				b"no-check-names" => option_should_have_not_a_value(&mut self.no_check_names, line_index, option_name, option_value),
-				
 				b"inet6" => option_should_have_not_a_value(&mut self.inet6, line_index, option_name, option_value),
-				
 				b"ip6-bytestring" => option_should_have_not_a_value(&mut self.ip6_bytestring, line_index, option_name, option_value),
-				
 				b"ip6-dotint" => option_should_have_not_a_value(&mut self.ip6_dotint, line_index, option_name, option_value),
-				
-				b"no-ip6-dotint" => option_should_have_not_a_value(&mut self.no_ip6_dotint, line_index, option_name, option_value),
+				b"no-ip6-dotint" => option_should_have_not_a_value_inverted(&mut self.ip6_dotint, line_index, option_name, option_value),
 				
 				b"edns0" => option_should_have_not_a_value(&mut self.edns0, line_index, option_name, option_value),
 				
@@ -527,6 +524,7 @@ impl ResolvConf
 				b"single-request-reopen" => option_should_have_not_a_value(&mut self.single_request_reopen, line_index, option_name, option_value),
 				
 				b"no-tld-query" => option_should_have_not_a_value(&mut self.no_tld_query, line_index, option_name, option_value),
+				b"no_tld_query" => option_should_have_not_a_value(&mut self.no_tld_query, line_index, option_name, option_value),
 				
 				b"use-vc" => option_should_have_not_a_value(&mut self.use_vc, line_index, option_name, option_value),
 				
@@ -553,7 +551,6 @@ impl ResolvConf
 		if let Some(value) = var_os(Self::LOCALDOMAIN)
 		{
 			let local_domain = value.into_string().map_err(|_| Err(EnvironmentVariableIsNotUtf8 { name: Self::LOCALDOMAIN }))?;
-			self.search_domains.clear();
 			self.parse_search_domains(local_domain.split_whitespace(), 0, false)
 		}
 		
@@ -567,16 +564,14 @@ impl ResolvConf
 	}
 	
 	#[inline(always)]
-	fn as_default_domain_name_choice(etc_path: &EtcPath) -> EfficientCaseFoldedName
+	fn as_default_domain_name_choice(etc_path: &EtcPath) -> FullyQualifiedDomainName
 	{
-		use self::ParseEtcResolvConfError::EnvironmentVariableIsNotUtf8;
-		
 		if let Some(value) = var_os(Self::LOCALDOMAIN)
 		{
 			if let Ok(local_domain) = value.into_string()
 			{
 				let first = local_domain.split_whitespace().next().unwrap();
-				if let Ok(domain_name) = EfficientCaseFoldedName::from_byte_string_ending_with_optional_trailing_period(first.as_bytes())
+				if let Ok(domain_name) = FullyQualifiedDomainName::from_byte_string_ending_with_optional_trailing_period(first.as_bytes())
 				{
 					return domain_name
 				}
@@ -593,6 +588,12 @@ impl ResolvConf
 			}
 		}
 		
-		Self::default_domain_name().ok_or_else(EfficientCaseFoldedName::root)
+		/// This uses the same logic as glibc and as documented in man 5 resolv.conf.
+		if let Ok(Some(domain_name)) = DefaultDomainNameChoice::uname_host_name()
+		{
+			return domain_name
+		}
+		
+		FullyQualifiedDomainName::root()
 	}
 }

@@ -11,20 +11,15 @@ fn write_case_folded_names(out_dir: &OsString, top_level_domains: &Vec<CaseFolde
 	
 		from_iana_comment(&mut writer, version_and_updated_at)?;
 		writeln!(writer, "\t#[inline(always)]")?;
-		writeln!(writer, "\tpub fn top_level_domain_names() -> &'static HashSet<Self>")?;
+		writeln!(writer, "\tpub fn top_level_domain_names() -> HashSet<Self>")?;
 		writeln!(writer, "\t{{")?;
-			writeln!(writer, "\t\tlazy_static!")?;
-			writeln!(writer, "\t\t{{")?;
-				writeln!(writer, "\t\t\tstatic ref top_level_domain_names: HashSet<EfficientCaseFoldedName<'static>> = fast_secure_hash_set!")?;
-				writeln!(writer, "\t\t\t{{")?;
-				for case_folded_label in top_level_domains
-				{
-					writeln!(writer, "\t\t\t\tEfficientCaseFoldedName::{}().clone(),", case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit())?;
-				}
-				writeln!(writer, "\t\t\t}};")?;
-				writeln!(writer, "\t\t\t")?;
-			writeln!(writer, "\t\t}}")?;
-			writeln!(writer, "\t\t&top_level_domain_names")?;
+			writeln!(writer, "\t\tfast_secure_hash_set!")?;
+			writeln!(writer, "\t\t[")?;
+			for case_folded_label in top_level_domains
+			{
+				writeln!(writer, "\t\t\tEfficientCaseFoldedName::{}().clone(),", case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit())?;
+			}
+			writeln!(writer, "\t\t]")?;
 		writeln!(writer, "\t}}")?;
 	
 		for case_folded_label in top_level_domains

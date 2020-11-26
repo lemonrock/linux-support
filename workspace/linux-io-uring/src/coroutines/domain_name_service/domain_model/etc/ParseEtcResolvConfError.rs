@@ -80,7 +80,7 @@ pub enum ParseEtcResolvConfError
 	},
 	
 	#[allow(missing_docs)]
-	InvalidSortListInternetProtocolAddress
+	InvalidSortListInternetProtocolVersion4Address
 	{
 		/// Which line? (zero-based).
 		line_index: usize,
@@ -177,7 +177,7 @@ impl error::Error for ParseEtcResolvConfError
 			
 			InvalidDomainName { ref error, .. } => Some(error),
 			
-			InvalidSortListInternetProtocolAddress { ref error, .. } => Some(error),
+			InvalidSortListInternetProtocolVersion4Address { ref error, .. } => Some(error),
 			
 			InvalidSortListInternetProtocolMask { ref error, .. } => Some(error),
 			

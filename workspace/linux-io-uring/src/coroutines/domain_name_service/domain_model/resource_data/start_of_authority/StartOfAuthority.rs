@@ -4,6 +4,7 @@
 
 /// Start of Authority (`SOA`) data.
 #[derive(Debug, Clone)]
+#[derive(Deserialize, Serialize)]
 pub struct StartOfAuthority<N: Name>
 {
 	/// `MNAME`.
@@ -68,7 +69,7 @@ impl<'message> ParsedRecord for StartOfAuthority<ParsedName<'message>>
 	{
 		StartOfAuthority
 		{
-			primary_name_server: EfficientCaseFoldedName::from(self.primary_name_server),
+			primary_name_server: FullyQualifiedDomainName::from(self.primary_name_server),
 			responsible_person_email_address: EfficientCaseFoldedName::from(self.responsible_person_email_address),
 			zone_file_serial_number: self.zone_file_serial_number,
 			referesh_interval: self.referesh_interval,

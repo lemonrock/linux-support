@@ -258,10 +258,10 @@ pub enum NamingAuthorityPointer<N: Name<TypeEquality=TE>, OOPU: OwnedOrParsedUri
 	},
 }
 
-impl<'message> Into<NamingAuthorityPointer<EfficientCaseFoldedName, OwnedUri, OwnedCharacterString>> for NamingAuthorityPointer<ParsedName<'message>, ParsedUri<'message>, ParsedCharacterString<'message>>
+impl<'message> Into<NamingAuthorityPointer<FullyQualifiedDomainName, OwnedUri, OwnedCharacterString>> for NamingAuthorityPointer<ParsedName<'message>, ParsedUri<'message>, ParsedCharacterString<'message>>
 {
 	#[inline(always)]
-	fn into(self) -> NamingAuthorityPointer<EfficientCaseFoldedName, OwnedUri, OwnedCharacterString>
+	fn into(self) -> NamingAuthorityPointer<FullyQualifiedDomainName, OwnedUri, OwnedCharacterString>
 	{
 		use self::NamingAuthorityPointer::*;
 		

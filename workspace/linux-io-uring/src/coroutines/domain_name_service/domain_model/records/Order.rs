@@ -8,6 +8,7 @@
 ///
 /// Only a concept for `NAPTR` records.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct Order(pub u16);
 

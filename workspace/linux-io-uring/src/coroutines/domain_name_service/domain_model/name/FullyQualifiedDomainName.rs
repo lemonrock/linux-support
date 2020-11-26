@@ -2,5 +2,5 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// This can resolve to either an alias or a domain.
-pub(crate) type Alias = FullyQualifiedDomainName;
+/// A fully-qualified domain name.
+pub type FullyQualifiedDomainName = EfficientCaseFoldedName;

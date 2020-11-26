@@ -7,6 +7,8 @@
 /// * `A`.
 /// * `AAAA`.
 /// * `NS`.
+#[derive(Debug, Clone)]
+#[derive(Deserialize, Serialize)]
 pub struct MultipleSortedRecords<OR: OwnedRecord + Ord>
 {
 	records: BTreeSet<OR>,

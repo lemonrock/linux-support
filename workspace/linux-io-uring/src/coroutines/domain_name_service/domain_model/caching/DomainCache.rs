@@ -2,8 +2,6 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use std::panic::UnwindSafe;
-
 pub(crate) struct DomainCache<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, CoroutineHeapSize: MemorySize>
 {
 	map: HashMap<AliasOrDomainTarget, DomainCacheEntry>,
@@ -12,37 +10,40 @@ pub(crate) struct DomainCache<GTACSA: GlobalThreadAndCoroutineSwitchableAllocato
 	marker: PhantomData<CoroutineHeapSize>,
 }
 
-// TODO: ipv4only.arpa is very special
-	// Has no subdomains; has AAAA records with a NAT64 prefix.
+// TODO:
+	// There must be an instance per-interface, as things like ipv4only.arpa and CDNs change records depending on interface.
+	// ipv4only.arpa has AAAA records with a NAT64 prefix and fixed A records.
+
+// TODO: Analyze errors to deduce server failures, bad records, etc. (we want to store a bad record indicator) - probably caching HandleRecordTypeError.
 // TODO: Also: server failure RFC 2308 Section 7.1 / 7.2.
+
 // TODO: Can we optimize the use of guards and map.entry()
 // TODO: Cache by size, list by cache expiry but also keep some sort of LRU count?
 // TODO: How to compute size?
-	// A custom memory allocator.
-	/*
-		Box - owned character string
-		Arc - efficient case folded name
-		BTreeMap
-		BTreeSet
-		URI
-			Uses Vec
-		
-		DomainCache should be thread local for now.
-		So we need to control the memory allocator to be thread local.
-		This is actually the default operating state for a thread UNLESS it is a coroutine.
-		
-		TODO: What about GloballyAllocated?
-		
-		TODO: Switch all Authority stuff to ParsedName not owned stuff?
-		
-		
-	 */
+// TODO: Switch all Authority stuff to ParsedName not owned stuff?
+
 // TODO: lazy_static users in uriparse and crossbeam-utils
-// TODO: All memory allocations need to be made using the thread-local allocator or the global allocator (if using Arc in EfficientCaseFoldedName)
+// TODO: All memory allocations need to be made using the thread-local allocator
 // TODO: Actually querying.
-// TODO: Analyze errors to deduce server failures, bad records, etc. (we want to store a bad record indicator) - probably caching HandleRecordTypeError.
 
+// TODO: PTR records. These are very special; there is no good reason for a PTR domain name to ever have any other record types.
+// TODO: Likewise, any target name that is a ip6.arpa or the like is very likely to be wrong.
+/*
+	RFC 2317 style PTR records can use CNAMEs for delegation, but the CNAME must still be within the in-addr.arpa / ip6.arpa root?
+	
+	eg 88.7.4.62.in-addr.arpa. 86400   IN      CNAME   88.64-27.7.4.62.in-addr.arpa.  for a /27 network.
 
+	In the original RFC, a `/` was used instead of a `-`.
+	
+	
+	Multiple PTR records.
+	
+	Real example for google.com using 172.217.20.142, query 142.20.217.172.in-addr.arpa:-
+142.20.217.172.in-addr.arpa. 28311 IN	PTR	lhr48s20-in-f14.1e100.net.
+142.20.217.172.in-addr.arpa. 28311 IN	PTR	muc11s10-in-f14.1e100.net.
+142.20.217.172.in-addr.arpa. 28311 IN	PTR	fra07s27-in-f142.1e100.net.
+	
+ */
 
 
 impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, CoroutineHeapSize: MemorySize> DomainCache<GTACSA, CoroutineHeapSize>
@@ -53,35 +54,16 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 		self.gtacsa.callback_with_thread_local_allocator_detailing_memory_usage(&self.our_usage, callback)
 	}
 	
-	pub(crate) fn new(never_valid: Cow<'_, HashSet<DomainTarget>>, top_level_domains: Cow<'_, HashSet<DomainTarget>>, always_valid_private_domains: Cow<'_, HashSet<DomainTarget>>, etc_path: &EtcPath, default_domain_name: &EfficientCaseFoldedName) -> Self
+	#[inline(always)]
+	pub(crate) fn new(map: HashMap<FullyQualifiedDomainName, DomainCacheEntry>, gtacsa: &'static GTACSA) -> Self
 	{
-		use self::DomainCacheEntry::*;
-		
-		let mut this = Self
+		Self
 		{
-			map: HashMap::with_capacity(never_valid.len() + top_level_domains.len() + always_valid_private_domains.len()),
-		};
-		
-		this.over_write_never_valid(never_valid);
-		this.over_write_always_valid(top_level_domains);
-		this.over_write_always_valid(always_valid_private_domains);
-		
-		// TODO: there is another category: "fixed".
-		// TODO: ipv4only.arpa
-			// Parent domains are never valid
-			// Only A and AAAA and PTR records are valid
-			// A is always hardcoded
-			// PTR is a fixed list
-			// Can be handled by just making it an always valid domain.
-		// TODO: AAAA records vary by interface! (actually, because of CDNs, so do other records types)
-		
-		// TODO: Add PTR reverse entries for /etc/hosts.
-		
-		// TODO: ParseEtcHostsError
-		let x = parse_etc_hosts(etc_path, default_domain_name)?;
-		dasdasdas;
-		
-		this
+			map,
+			gtacsa,
+			our_usage: Cell::new(0),
+			marker: PhantomData,
+		}
 	}
 	
 	pub(crate) fn get_not_resolving_aliases<'a, OR: OwnedRecord>(&'a mut self, domain_target: DomainTarget, now: NanosecondsSinceUnixEpoch) -> Option<GetNotResolvingAliasesResult<'a, OR::OwnedRecords, OR>>
@@ -108,15 +90,15 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 				{
 					NeverValid => (Some(GetNotResolvingAliasesResult::NeverValid), Keep),
 					
-					Fixed { either_query_types_fixed_or_flattened_target_alias } => (Some(GetNotResolvingAliasesResult::fixed(either_query_types_fixed_or_flattened_target_alias)), Keep),
+					Fixed { fixed_domain_cache_entry, .. } => (Some(GetNotResolvingAliasesResult::fixed(fixed_domain_cache_entry)), Keep),
 					
-					&mut Valid { always_valid: true, ref mut query_types_cache } =>
+					&mut Valid { always_valid: true, ref mut query_types_cache, .. } =>
 					{
 						let result = GetNotResolvingAliasesResult::valid(query_types_cache, now);
 						(result, Keep)
 					}
 					
-					&mut Valid { always_valid: false, ref mut query_types_cache } =>
+					&mut Valid { always_valid: false, ref mut query_types_cache, subdomains_are_never_valid: false } =>
 					{
 						let result = GetNotResolvingAliasesResult::valid(query_types_cache, now);
 						(result, query_types_cache.is_empty())
@@ -142,7 +124,6 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 		}
 	}
 	
-	// Either NeverValid or NoDomain.
 	fn get_not_resolving_aliases_recursively_check_if_parent_is_a_non_existent_domain<'a, OR: OwnedRecord>(&'a mut self, parent: DomainTarget, now: NanosecondsSinceUnixEpoch) -> Option<GetNotResolvingAliasesResult<'a, OR::OwnedRecords, OR>>
 	{
 		use self::FastSecureHashMapEntry::*;
@@ -164,13 +145,17 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 			{
 				use self::DomainCacheEntry::*;
 				
-				let (xxx, remove) = match occupied.get_mut()
+				let (result, remove) = match occupied.get_mut()
 				{
 					NeverValid => (Some(GetNotResolvingAliasesResult::NeverValid), Keep),
 					
-					Fixed { .. } => return None,
+					Fixed { subdomains_implicitly_resolve_to_the_same_record_as_this_one: true, fixed_domain_cache_entry }  => (Some(GetNotResolvingAliasesResult::fixed(fixed_domain_cache_entry)), Keep),
 					
-					Valid { always_valid, query_types_cache } => (None, Keep),
+					Fixed { subdomains_implicitly_resolve_to_the_same_record_as_this_one: false, .. } => (Some(GetNotResolvingAliasesResult::NeverValid), Keep),
+					
+					Valid { always_valid: true, subdomains_are_never_valid: true, .. } => (Some(GetNotResolvingAliasesResult::NeverValid), Keep),
+					
+					Valid { .. } => (None, Keep),
 					
 					Alias { .. } => (None, Keep),
 					
@@ -219,37 +204,7 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 	}
 	
 	#[inline(always)]
-	fn over_write_never_valid(&mut self, never_valid: Cow<HashSet<DomainTarget>>)
-	{
-		self.over_write(never_valid, DomainCacheEntry::NeverValid)
-	}
-	
-	#[inline(always)]
-	fn over_write_always_valid(&mut self, always_valid: Cow<HashSet<DomainTarget>>)
-	{
-		self.over_write(always_valid, DomainCacheEntry::AlwaysValid)
-	}
-	
-	#[inline(always)]
-	fn over_write(&mut self, domains: Cow<HashSet<DomainTarget>>, to_domain_cache_entry: impl Fn() -> DomainCacheEntry)
-	{
-		use self::Cow::*;
-		match domains
-		{
-			Owned(domains) => for domain in domains
-			{
-				self.map.insert(domain, to_domain_cache_entry())
-			},
-			
-			Borrowed(domains) => for domain in domains
-			{
-				self.map.insert(domain.clone(), to_domain_cache_entry())
-			},
-		}
-	}
-	
-	#[inline(always)]
-	fn guard_replace_canonical_name_chain<'message>(&self, canonical_name_chain: CanonicalNameChain<'message>) -> Result<(EfficientCaseFoldedName, CanonicalNameChainRecords), CacheStoreError>
+	fn guard_replace_canonical_name_chain<'message>(&self, canonical_name_chain: CanonicalNameChain<'message>) -> Result<(FullyQualifiedDomainName, CanonicalNameChainRecords), CacheStoreError>
 	{
 		let most_canonical_name = canonical_name_chain.most_canonical_name().clone();
 		
@@ -265,14 +220,14 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 	}
 	
 	#[inline(always)]
-	fn replace_canonical_name_chain(&mut self, most_canonical_name: &EfficientCaseFoldedName, canonical_name_chain_records: CanonicalNameChainRecords)
+	fn replace_canonical_name_chain(&mut self, most_canonical_name: &FullyQualifiedDomainName, canonical_name_chain_records: CanonicalNameChainRecords)
 	{
 		let most_canonical_name = canonical_name_chain.most_canonical_name().clone();
 		
 		let mut lowest_negative_cache_until = NegativeCacheUntil::Highest;
 		for (alias, target) in canonical_name_chain_records.into_iter().rev()
 		{
-			let target: SolitaryRecords<EfficientCaseFoldedName> = target;
+			let target: SolitaryRecords<FullyQualifiedDomainName> = target;
 			lowest_negative_cache_until.update(target.negative_cache_until);
 			
 			let value = DomainCacheEntry::Alias
@@ -479,7 +434,7 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 	}
 	
 	#[inline(always)]
-	fn guard_authority_name_can_have_records_then_store_start_of_authority_and_name_servers(&mut self, authority_name_start_of_authority_name_servers: AuthorityNameStartOfAuthorityNameServers) -> Result<(SolitaryRecords<StartOfAuthority<EfficientCaseFoldedName>>, DomainTarget), CacheStoreError>
+	fn guard_authority_name_can_have_records_then_store_start_of_authority_and_name_servers(&mut self, authority_name_start_of_authority_name_servers: AuthorityNameStartOfAuthorityNameServers) -> Result<(SolitaryRecords<StartOfAuthority<FullyQualifiedDomainName>>, DomainTarget), CacheStoreError>
 	{
 		let authority_name_start_of_authority = authority_name_start_of_authority_name_servers.authority_name_start_of_authority;
 		let name_servers = authority_name_start_of_authority_name_servers.name_servers;
@@ -488,7 +443,7 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 	}
 	
 	#[inline(always)]
-	fn guard_authority_name_can_have_records_then_store_start_of_authority(&mut self, authority_name_start_of_authority: AuthorityNameStartOfAuthority) -> Result<(SolitaryRecords<StartOfAuthority<EfficientCaseFoldedName>>, DomainTarget), CacheStoreError>
+	fn guard_authority_name_can_have_records_then_store_start_of_authority(&mut self, authority_name_start_of_authority: AuthorityNameStartOfAuthority) -> Result<(SolitaryRecords<StartOfAuthority<FullyQualifiedDomainName>>, DomainTarget), CacheStoreError>
 	{
 		self.guard_authority_name_can_have_records_then_store_start_of_authority_and_optionally_name_servers(authority_name_start_of_authority, |_, _| ())
 	}
@@ -507,7 +462,7 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn guard_authority_name_can_have_records_then_store_start_of_authority_and_optionally_name_servers(&mut self, authority_name_start_of_authority: AuthorityNameStartOfAuthority, store_name_servers_unchecked: impl FnOnce(&mut DomainCache, &DomainTarget)) -> Result<(SolitaryRecords<StartOfAuthority<EfficientCaseFoldedName>>, DomainTarget), CacheStoreError>
+	fn guard_authority_name_can_have_records_then_store_start_of_authority_and_optionally_name_servers(&mut self, authority_name_start_of_authority: AuthorityNameStartOfAuthority, store_name_servers_unchecked: impl FnOnce(&mut DomainCache, &DomainTarget)) -> Result<(SolitaryRecords<StartOfAuthority<FullyQualifiedDomainName>>, DomainTarget), CacheStoreError>
 	{
 		let authority_name = authority_name_start_of_authority.authority_name;
 		let start_of_authority = authority_name_start_of_authority.start_of_authority;
@@ -521,7 +476,7 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 	}
 	
 	#[inline(always)]
-	fn store_start_of_authority_unchecked(&mut self, authority_name: &DomainTarget, start_of_authority: &SolitaryRecords<StartOfAuthority<EfficientCaseFoldedName>>)
+	fn store_start_of_authority_unchecked(&mut self, authority_name: &DomainTarget, start_of_authority: &SolitaryRecords<StartOfAuthority<FullyQualifiedDomainName>>)
 	{
 		use self::FastSecureHashMapEntry::*;
 		use self::DomainCacheEntry::*;
@@ -531,7 +486,7 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 		{
 			Vacant(vacant) =>
 			{
-				vacant.insert(DomainCacheEntry::store_owned::<StartOfAuthority<EfficientCaseFoldedName>>(records));
+				vacant.insert(DomainCacheEntry::store_owned::<StartOfAuthority<FullyQualifiedDomainName>>(records));
 			}
 			
 			Occupied(occupied) =>
@@ -540,18 +495,18 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 				{
 					NeverValid => panic!("Should have been checked"),
 					
-					Valid { query_types_cache, .. }  => StartOfAuthority::<EfficientCaseFoldedName>::store(query_types_cache, records),
+					Valid { query_types_cache, .. }  => StartOfAuthority::<FullyQualifiedDomainName>::store(query_types_cache, records),
 					
-					x @ &mut Alias { .. } => *x = DomainCacheEntry::store_owned::<StartOfAuthority<EfficientCaseFoldedName>>(records),
+					x @ &mut Alias { .. } => *x = DomainCacheEntry::store_owned::<StartOfAuthority<FullyQualifiedDomainName>>(records),
 					
-					x @ &mut NoDomain(_) => *x = DomainCacheEntry::store_owned::<StartOfAuthority<EfficientCaseFoldedName>>(records),
+					x @ &mut NoDomain(_) => *x = DomainCacheEntry::store_owned::<StartOfAuthority<FullyQualifiedDomainName>>(records),
 				}
 			}
 		}
 	}
 	
 	#[inline(always)]
-	fn store_name_servers_unchecked(&mut self, authority_name: &DomainTarget, name_servers: MultipleSortedRecords<NameServerName<EfficientCaseFoldedName>>)
+	fn store_name_servers_unchecked(&mut self, authority_name: &DomainTarget, name_servers: MultipleSortedRecords<NameServerName<FullyQualifiedDomainName>>)
 	{
 		use self::FastSecureHashMapEntry::*;
 		use self::DomainCacheEntry::*;
@@ -560,7 +515,7 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 		{
 			Vacant(vacant) =>
 			{
-				vacant.insert(DomainCacheEntry::store_owned::<NameServerName<EfficientCaseFoldedName>>(name_servers));
+				vacant.insert(DomainCacheEntry::store_owned::<NameServerName<FullyQualifiedDomainName>>(name_servers));
 			}
 			
 			Occupied(occupied) =>
@@ -569,11 +524,11 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 				{
 					NeverValid => panic!("Should have been checked"),
 					
-					Valid { query_types_cache, .. }  => NameServerName::<EfficientCaseFoldedName>::store(query_types_cache, records),
+					Valid { query_types_cache, .. }  => NameServerName::<FullyQualifiedDomainName>::store(query_types_cache, records),
 					
-					x @ &mut Alias { .. } => *x = DomainCacheEntry::store_owned::<NameServerName<EfficientCaseFoldedName>>(name_servers),
+					x @ &mut Alias { .. } => *x = DomainCacheEntry::store_owned::<NameServerName<FullyQualifiedDomainName>>(name_servers),
 					
-					x @ &mut NoDomain(_) => *x = DomainCacheEntry::store_owned::<NameServerName<EfficientCaseFoldedName>>(name_servers),
+					x @ &mut NoDomain(_) => *x = DomainCacheEntry::store_owned::<NameServerName<FullyQualifiedDomainName>>(name_servers),
 				}
 			}
 		}

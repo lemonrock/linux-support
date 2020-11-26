@@ -10,5 +10,5 @@ pub(crate) trait QueryProcessor
 	
 	type RRV<'message>: ResourceRecordVisitor<'message, Error=(), Finished=OwnerNameToRecords<'message, Self::PR<'message>>>;
 	
-	fn new<'message>(query_name: &'message EfficientCaseFoldedName) -> Self::RRV<'message>;
+	fn new<'message>(query_name: &'message FullyQualifiedDomainName) -> Self::RRV<'message>;
 }

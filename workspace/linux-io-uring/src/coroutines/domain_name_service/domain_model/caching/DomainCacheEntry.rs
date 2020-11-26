@@ -11,20 +11,22 @@
 /// + one or more records exist, none being `CNAME` records,
 /// + the name exists, but has no associated RRs of any type,
 /// + the name does not exist at all".
-enum DomainCacheEntry
+#[derive(Debug)]
+pub(crate) enum DomainCacheEntry
 {
 	/// Domains that can never be valid, eg `example.com.`.
 	NeverValid,
 
 	/// Domains that have fixed, unchanging data that should never be recursively queried.
-	///
-	/// By definition, fixed domains can not have subdomains.
-	///
-	/// Best example is `ipv4only.arpa` and its associated `PTR` domains.
 	Fixed
 	{
+		/// This is `true` for `*.localhost` and `*.localhost.domain`.
+		///
+		/// For all other usages (eg entries parsed from `/etc/hosts`), this should be `false`, in which case subdomains will resolve as `NeverValid`.
+		subdomains_implicitly_resolve_to_the_same_record_as_this_one: bool,
+		
 		/// Either a cache of `QTYPE` or a flattened target (alias) (usually as the result of parsing an `/etc/hosts` file).
-		either_query_types_fixed_or_flattened_target_alias: Either<QueryTypesFixed, DomainTarget>,
+		fixed_domain_cache_entry: FixedDomainCacheEntry,
 	},
 	
 	/// Valid domains that may, at some point, cease to exist.
@@ -40,6 +42,11 @@ enum DomainCacheEntry
 		///
 		/// Only occurs for `Answer::Answered` or `Answer::NoData`.
 		always_valid: bool,
+		
+		/// For special addresses like `ipv4only.arpa`, subdomains are never valid.
+		///
+		/// Only valid if `always_valid` is `true` (sic).
+		subdomains_are_never_valid: bool,
 		
 		/// Cache of `QTYPE`.
 		query_types_cache: QueryTypesCache,
@@ -72,11 +79,81 @@ enum DomainCacheEntry
 impl DomainCacheEntry
 {
 	#[inline(always)]
+	pub(crate) const fn always_valid_domain_name() -> Self
+	{
+		DomainCacheEntry::Valid
+		{
+			always_valid: true,
+			
+			subdomains_are_never_valid: false,
+			
+			query_types_cache: Default::default()
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn always_valid_domain_name_but_subdomains_are_not_valid_domain_names(query_types_cache: QueryTypesCache) -> Self
+	{
+		DomainCacheEntry::Valid
+		{
+			always_valid: true,
+			
+			subdomains_are_never_valid: true,
+		
+			query_types_cache
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn fixed_local_machine_only() -> Self
+	{
+		DomainCacheEntry::Fixed
+		{
+			subdomains_implicitly_resolve_to_the_same_record_as_this_one: true,
+			
+			fixed_domain_cache_entry: FixedDomainCacheEntry::new_local_internet_protocol_addresses(),
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn fixed_internet_protocol_address(internet_protocol_address: IpAddr) -> Self
+	{
+		DomainCacheEntry::Fixed
+		{
+			subdomains_implicitly_resolve_to_the_same_record_as_this_one: false,
+			
+			fixed_domain_cache_entry: FixedDomainCacheEntry::query_types_fixed(internet_protocol_address)
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn fixed_internet_protocol_address_potentially_blocked(internet_protocol_address: Option<IpAddr>) -> Self
+	{
+		match internet_protocol_address
+		{
+			Some(internet_protocol_address) => Self::fixed_internet_protocol_address(internet_protocol_address),
+			
+			None => DomainCacheEntry::NeverValid,
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn fixed_alias(canonical_name: &DomainTarget) -> Self
+	{
+		DomainCacheEntry::Fixed
+		{
+			subdomains_implicitly_resolve_to_the_same_record_as_this_one: false,
+			
+			fixed_domain_cache_entry: FixedDomainCacheEntry::alias(canonical_name)
+		}
+	}
+	
+	#[inline(always)]
 	fn store_parsed<PR: ParsedRecord>(records: OwnerNameToRecordsValue<PR>) -> Self
 	{
 		let mut query_types_cache = QueryTypesCache::default();
 		PR::store(&mut query_types_cache, records);
-		DomainCacheEntry::Valid { always_valid: false, query_types_cache }
+		DomainCacheEntry::Valid { always_valid: false, subdomains_are_never_valid: false, query_types_cache }
 	}
 	
 	#[inline(always)]
@@ -84,7 +161,7 @@ impl DomainCacheEntry
 	{
 		let mut query_types_cache = QueryTypesCache::default();
 		PR::no_data(&mut query_types_cache, negative_cache_until);
-		DomainCacheEntry::Valid { always_valid: false, query_types_cache }
+		DomainCacheEntry::Valid { always_valid: false, subdomains_are_never_valid: false, query_types_cache }
 	}
 	
 	#[inline(always)]
@@ -92,7 +169,7 @@ impl DomainCacheEntry
 	{
 		let mut query_types_cache = QueryTypesCache::default();
 		OR::store(&mut query_types_cache, records);
-		DomainCacheEntry::Valid { always_valid: false, query_types_cache }
+		DomainCacheEntry::Valid { always_valid: false, subdomains_are_never_valid: false, query_types_cache }
 	}
 	
 	#[inline(always)]

@@ -5,6 +5,8 @@
 /// For the record type:-
 ///
 /// * NAPTR.
+#[derive(Debug, Clone)]
+#[derive(Deserialize, Serialize)]
 pub struct MultipleOrderedThenPrioritizedThenUnsortedRecords<OR: OwnedRecord>
 {
 	records: BTreeMap<Order, PriorityToUnsortedRecordsMap<OR>>,

@@ -46,11 +46,19 @@ impl EtcPath
 	{
 		self.file_path("hosts")
 	}
+	
 	/// `/etc/resolv.conf`.
 	#[inline(always)]
 	pub fn resolv_conf(&self) -> PathBuf
 	{
-		self.file_path("resolv_conf")
+		self.file_path("resolv.conf")
+	}
+	
+	/// `/etc/host.conf`.
+	#[inline(always)]
+	pub fn host_conf(&self) -> PathBuf
+	{
+		self.file_path("host.conf")
 	}
 
 	/// `/etc/hostname`.

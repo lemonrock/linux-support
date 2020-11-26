@@ -3,4 +3,4 @@
 
 
 /// This, when it resolves, can not resolve to `DomainCacheEntry::Alias`.
-pub(crate) type DomainTarget = EfficientCaseFoldedName;
+pub(crate) type DomainTarget = FullyQualifiedDomainName;

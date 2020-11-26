@@ -6,6 +6,7 @@
 ///
 /// Brought back from obscurity by RFC 8482.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 pub struct HostInformation<CS: CharacterString>
 {
 	/// `CPU` field.

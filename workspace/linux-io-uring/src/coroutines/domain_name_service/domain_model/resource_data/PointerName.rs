@@ -2,49 +2,49 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A name server name.
+/// A pointer name.
 #[derive(Clone, Debug, Display, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
-pub struct NameServerName<N: Name>(pub N);
+pub struct PointerName<N: Name>(pub N);
 
-impl<'message> ParsedRecord for NameServerName<ParsedName<'message>>
+impl<'message> ParsedRecord for PointerName<ParsedName<'message>>
 {
 	type OrderPriorityAndWeight = Priority;
 	
-	type OwnedRecord = NameServerName<DomainTarget>;
+	type OwnedRecord = PointerName<AliasOrDomainTarget>;
 	
 	#[inline(always)]
 	fn into_owned_record(self) -> Self::OwnedRecord
 	{
-		NameServerName::new(DomainTarget::from(self.0))
+		PointerName::new(AliasOrDomainTarget::from(self.0))
 	}
 	
 	#[inline(always)]
 	fn into_owned_records(records: OwnerNameToRecordsValue<Self>) -> <Self::OwnedRecord as OwnedRecord>::OwnedRecords
 	{
-		MultipleSortedRecords::<NameServerName<DomainTarget>>::from(records)
+		MultipleSortedRecords::<PointerName<AliasOrDomainTarget>>::from(records)
 	}
 }
 
-impl OwnedRecord for NameServerName<DomainTarget>
+impl OwnedRecord for PointerName<AliasOrDomainTarget>
 {
-	type OwnedRecords = MultipleSortedRecords<Self>;
+	type OwnedRecords = MultipleSortedRecords<PointerName<AliasOrDomainTarget>>;
 	
 	#[inline(always)]
 	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>
 	{
-		&mut query_types_cache.NS
+		&mut query_types_cache.PTR
 	}
 	
 	#[inline(always)]
 	fn retrieve_fixed(query_types_fixed: &QueryTypesFixed) -> Option<&Self::OwnedRecords>
 	{
-		None
+		query_types_fixed.PTR.as_ref()
 	}
 }
 
-impl<N: Name> NameServerName<N>
+impl<N: Name> PointerName<N>
 {
 	#[inline(always)]
 	pub(crate) const fn new(name: N) -> Self

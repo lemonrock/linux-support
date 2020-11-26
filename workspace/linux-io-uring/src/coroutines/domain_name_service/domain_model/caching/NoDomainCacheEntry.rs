@@ -44,7 +44,7 @@ enum NoDomainCacheEntry
 impl NoDomainCacheEntry
 {
 	#[inline(always)]
-	fn no_domain_cache_entry((start_of_authority, authority_name): (SolitaryRecords<StartOfAuthority<EfficientCaseFoldedName>>, DomainTarget)) -> (NoDomainCacheEntry, Option<NonZeroU8>)
+	fn no_domain_cache_entry((start_of_authority, authority_name): (SolitaryRecords<StartOfAuthority<FullyQualifiedDomainName>>, DomainTarget)) -> (NoDomainCacheEntry, Option<NonZeroU8>)
 	{
 		let number_of_labels_including_root = authority_name.number_of_labels_including_root();
 		use self::NoDomainCacheEntry::*;

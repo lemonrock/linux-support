@@ -11,7 +11,7 @@ fn write_case_folded_labels(out_dir: &OsString, top_level_domains: &Vec<CaseFold
 	
 		for case_folded_label in top_level_domains
 		{
-			writeln!(writer, "\tconst {}: Self = Self::new(b\"{}\");", case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit(), case_folded_label.as_str())?;
+			writeln!(writer, "\tpub(crate) const {}: Self = Self::new(b\"{}\");", case_folded_label.with_hyphens_as_underscores_and_leading_underscore_if_starts_with_digit(), case_folded_label.as_str())?;
 		}
 	
 	writeln!(writer, "}}")?;

@@ -11,6 +11,8 @@
 /// * L32.
 /// * L64.
 /// * LP.
+#[derive(Debug, Clone)]
+#[derive(Deserialize, Serialize)]
 pub struct MultiplePrioritizedThenSortedRecords<OR: OwnedRecord + Ord>
 {
 	records: PriorityToSortedRecordsMap<OR>,

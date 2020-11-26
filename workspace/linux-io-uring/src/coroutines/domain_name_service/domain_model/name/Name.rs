@@ -33,15 +33,35 @@ pub trait Name: HasTypeEquality + Sized + Clone + Debug + Display + PartialEq + 
 		}
 	}
 	
-	/// Display or debug.
+	#[doc(hidden)]
 	#[inline(always)]
 	fn display<'label>(&'label self, f: &mut Formatter) -> fmt::Result
 	{
-		for index in (0 .. self.number_of_labels_including_root().get()).rev()
+		const top_level_label_index: u8 = 1;
+		for index in (top_level_label_index .. self.number_of_labels_including_root().get()).rev()
 		{
 			let label = self.label(index);
 			label.display(f)?;
+			
 			write!(f, ".")?;
+		}
+		Ok(())
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn display_without_trailing_period<'label>(&'label self, f: &mut Formatter) -> fmt::Result
+	{
+		const top_level_label_index: u8 = 1;
+		for index in (top_level_label_index .. self.number_of_labels_including_root().get()).rev()
+		{
+			let label = self.label(index);
+			label.display(f)?;
+			
+			if likely!(index != top_level_label_index)
+			{
+				write!(f, ".")?;
+			}
 		}
 		Ok(())
 	}
@@ -58,6 +78,24 @@ pub trait Name: HasTypeEquality + Sized + Clone + Debug + Display + PartialEq + 
 		}
 		
 		next_label_starts_at_pointer
+	}
+	
+	/// Does this domain name end with (or equal) `in-addr.arpa` or `ip6.arpa`?
+	#[inline(always)]
+	fn is_special_ptr_domain(&self) -> bool
+	{
+		if self.number_of_labels_including_root().get() < 3
+		{
+			return false
+		}
+		
+		if self.label(1) != EfficientCaseFoldedLabel::arpa
+		{
+			return false
+		}
+		
+		let second_level_label = self.label(2);
+		second_level_label == EfficientCaseFoldedLabel::in_addr || second_level_label == EfficientCaseFoldedLabel::ip6
 	}
 	
 	/// Ends with name?

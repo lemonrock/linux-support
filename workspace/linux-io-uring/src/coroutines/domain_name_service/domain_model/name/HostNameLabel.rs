@@ -5,8 +5,30 @@
 /// A host name can not be empty.
 ///
 /// It is, effectively, an owned Label.
+///
+/// Also known as an UnqualifiedSingle Label Domain Name.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct HostNameLabel(Box<[u8]>);
+
+impl<'a> From<EfficientCaseFoldedLabel<'a>> for HostNameLabel
+{
+	#[inline(always)]
+	fn from(value: EfficientCaseFoldedLabel<'a>) -> Result<Self, Self::Error>
+	{
+		Self(value.0.to_vec().into_boxed_slice())
+	}
+}
+
+impl<'a> TryFrom<&'a [u8]> for HostNameLabel
+{
+	type Error = EfficientCaseFoldedLabelParseError;
+	
+	#[inline(always)]
+	fn try_from(value: &'a [u8]) -> Result<Self, Self::Error>
+	{
+		Ok(Self::from(EfficientCaseFoldedLabel::try_from(value)?))
+	}
+}
 
 impl Deref for HostNameLabel
 {
@@ -71,6 +93,18 @@ impl<'a> Label<'a> for HostNameLabel
 
 impl HostNameLabel
 {
+	#[inline(always)]
+	pub fn from_fully_qualified_domain_name(fully_qualified_domain_name: &FullyQualifiedDomainName) -> Option<Self>
+	{
+		fully_qualified_domain_name.host_name()
+	}
+	
+	#[inline(always)]
+	pub fn from_relative_domain_name(relative_domain_name: &RelativeDomainName) -> Self
+	{
+		relative_domain_name.host_name()
+	}
+	
 	/// Localhost.
 	#[inline(always)]
 	pub fn localhost() -> Self
@@ -83,5 +117,11 @@ impl HostNameLabel
 	pub fn as_label<'a>(&'a self) -> EfficientCaseFoldedLabel<'a>
 	{
 		EfficientCaseFoldedLabel(&self.0[..])
+	}
+	
+	#[inline(always)]
+	pub(crate) fn as_fully_qualified_domain_name(&self) -> FullyQualifiedDomainName
+	{
+		FullyQualifiedDomainName::top_level(self.as_label())
 	}
 }

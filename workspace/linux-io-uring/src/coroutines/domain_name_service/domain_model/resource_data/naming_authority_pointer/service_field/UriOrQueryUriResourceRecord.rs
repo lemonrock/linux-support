@@ -21,10 +21,10 @@ pub enum UriOrQueryUriResourceRecord<N: Name<TypeEquality=TE>, OOPU: OwnedOrPars
 	DomainName((N)),
 }
 
-impl<'message> Into<Replacement<EfficientCaseFoldedName, OwnedUri>> for UriOrQueryUriResourceRecord<ParsedName<'message>, ParsedUri<'message>>
+impl<'message> Into<UriOrQueryUriResourceRecord<FullyQualifiedDomainName, OwnedUri>> for UriOrQueryUriResourceRecord<ParsedName<'message>, ParsedUri<'message>>
 {
 	#[inline(always)]
-	fn into(self) -> UriOrQueryUriResourceRecord<EfficientCaseFoldedName, OwnedUri>
+	fn into(self) -> UriOrQueryUriResourceRecord<FullyQualifiedDomainName, OwnedUri>
 	{
 		use self::UriOrQueryUriResourceRecord::*;
 		
@@ -32,7 +32,7 @@ impl<'message> Into<Replacement<EfficientCaseFoldedName, OwnedUri>> for UriOrQue
 		{
 			UniformResourceIdentifier(uri) => UniformResourceIdentifier(OwnedUri::from(uri)),
 			
-			DomainName(domain_name) => DomainName(EfficientCaseFoldedName::from(domain_name)),
+			DomainName(domain_name) => DomainName(FullyQualifiedDomainName::from(domain_name)),
 		}
 	}
 }

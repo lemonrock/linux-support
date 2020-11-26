@@ -3,6 +3,7 @@
 
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[serde(Deserialize, Serialize)]
 pub(crate) enum CacheUntil
 {
 	UseOnce

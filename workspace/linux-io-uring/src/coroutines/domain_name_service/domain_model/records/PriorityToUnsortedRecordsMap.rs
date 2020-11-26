@@ -2,7 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
+#[derive(Deserialize, Serialize)]
 struct PriorityToUnsortedRecordsMap<OR: ParsedRecord>(BTreeMap<Priority, Vec<OR>>);
 
 impl<OR: OwnedRecord> Deref for PriorityToUnsortedRecordsMap<OR>

@@ -4,6 +4,7 @@
 
 /// Owned character string.
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
 pub struct OwnedCharacterString(Box<[u8]>);
 
 impl HasTypeEquality for OwnedCharacterString

@@ -4,7 +4,7 @@
 
 pub(crate) struct MXQueryProcessorResourceRecordVisitor<'message>
 {
-	query_name: &'message EfficientCaseFoldedName,
+	query_name: &'message FullyQualifiedDomainName,
 	
 	records: OwnerNameToRecords<MailServerName<ParsedName<'message>>, Priority>,
 }

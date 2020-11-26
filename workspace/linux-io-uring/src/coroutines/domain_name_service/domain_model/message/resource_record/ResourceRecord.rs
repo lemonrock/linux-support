@@ -436,6 +436,9 @@ impl ResourceRecord
 		use self::HandleRecordTypeError::*;
 		
 		let (cache_until, record, end_of_resource_data_pointer) = self.parse_name_only(now, end_of_name_pointer, end_of_message_pointer, &owner_name, parsed_names, DataType::NS, duplicate_resource_record_response_parsing, NS)?;
+		
+		record.guard_target_name_does_not_point_to_ptr_special_domain()?;
+		
 		resource_record_visitor.NS(owner_name, cache_until, NameServerName::new(record)).map_err(|error| ResourceRecordVisitor(DataType::NS, error))?;
 		Ok(end_of_resource_data_pointer)
 	}
@@ -463,8 +466,10 @@ impl ResourceRecord
 
 		let (primary_name_server, end_of_mname_pointer) = ParsedNameParser::parse_name_in_resource_record_slice(DataType::SOA, parsed_names, resource_data).map_err(ParseStartOfAuthorityMName)?;
 		
+		primary_name_server.guard_target_name_does_not_point_to_ptr_special_domain()?;
+		
 		let (responsible_person_email_address, end_of_rname_pointer) = ParsedNameParser::parse_name_in_resource_record_slice(DataType::SOA, parsed_names, &resource_data[(end_of_mname_pointer - start_of_resource_data) .. ]).map_err(ParseStartOfAuthorityRName)?;
-
+		
 		if unlikely!(responsible_person_email_address.is_root())
 		{
 			Err(ResponsiblePersonMailBoxIsRoot)?
@@ -474,6 +479,8 @@ impl ResourceRecord
 		{
 			Err(ResponsiblePersonMailBoxIsTopLevelDomain)?
 		}
+		
+		responsible_person_email_address.parent().unwrap().guard_target_name_does_not_point_to_ptr_special_domain()?;
 		
 		let end_of_resource_data = start_of_resource_data + resource_data.len();
 		if likely!((end_of_resource_data - end_of_rname_pointer) == size_of::<StartOfAuthorityFooter>())
@@ -520,6 +527,9 @@ impl ResourceRecord
 		use self::HandleRecordTypeError::*;
 		
 		let (cache_until, record, end_of_resource_data_pointer) = self.parse_name_only(now, end_of_name_pointer, end_of_message_pointer, &owner_name, parsed_names, DataType::PTR, duplicate_resource_record_response_parsing, PTR)?;
+		
+		record.guard_target_name_does_not_point_to_ptr_special_domain()?;
+		
 		resource_record_visitor.PTR(owner_name, cache_until, record).map_err(|error| ResourceRecordVisitor(DataType::PTR, error))?;
 		Ok(end_of_resource_data_pointer)
 	}
@@ -581,10 +591,12 @@ impl ResourceRecord
 			Err(HasTooShortALength(length))?
 		}
 		
-		
 		let preference = Priority(resource_data.u16(0));
-		let mail_server_name = MailServerName::new(ParsedNameParser::parse_name_in_resource_record_slice_with_nothing_left(DataType::MX, parsed_names, &resource_data[PreferenceSize .. ]).map_err(MailServerName)?);
-
+		
+		let name = ParsedNameParser::parse_name_in_resource_record_slice_with_nothing_left(DataType::MX, parsed_names, &resource_data[PreferenceSize..]).map_err(MailServerName)?;
+		name.guard_target_name_does_not_point_to_ptr_special_domain()?;
+		let mail_server_name = MailServerName::new(name);
+		
 		resource_record_visitor.MX(owner_name, cache_until, preference, mail_server_name).map_err(|error| HandleRecordTypeError::ResourceRecordVisitor(DataType::MX, error))?;
 		Ok(resource_data.end_pointer())
 	}
@@ -670,10 +682,12 @@ impl ResourceRecord
 		let priority = Priority(resource_data.u16(0));
 		let weight = Weight(resource_data.u16(PrioritySize));
 		
+		let target = ParsedNameParser::parse_name_in_resource_record_slice_with_nothing_left(DataType::SRV, parsed_names, &resource_data[(PrioritySize + WeightSize + PortSize)..]).map_err(ServiceName)?;
+		target.guard_target_name_does_not_point_to_ptr_special_domain()?;
 		let record = ServiceLocation
 		{
 			port: resource_data.u16(PrioritySize + WeightSize),
-			target: ParsedNameParser::parse_name_in_resource_record_slice_with_nothing_left(DataType::SRV, parsed_names, &resource_data[(PrioritySize + WeightSize + PortSize) .. ]).map_err(ServiceName)?,
+			target,
 		};
 
 		resource_record_visitor.SRV(owner_name, cache_until, priority, weight, record).map_err(|error| HandleRecordTypeError::ResourceRecordVisitor(DataType::SRV, error))?;
@@ -735,7 +749,9 @@ impl ResourceRecord
 			
 			if raw_regular_expression.is_empty()
 			{
-				Left(parse_replacement_domain_name(parsed_names, start_of_replacement_name_pointer, remaining_resource_data_length)?)
+				let name = parse_replacement_domain_name(parsed_names, start_of_replacement_name_pointer, remaining_resource_data_length)?;
+				name.guard_target_name_does_not_point_to_ptr_special_domain()?;
+				Left(name)
 			}
 			else
 			{
@@ -819,6 +835,7 @@ impl ResourceRecord
 		let resource_data_end_pointer = resource_data.end_pointer();
 
 		let (key_exchange_server_name, end_of_key_exchange_server_name) = ParsedNameParser::parse_name_in_resource_record(DataType::KX, parsed_names, resource_data.start_pointer() + PreferenceSize, resource_data_end_pointer).map_err(KeyExchangeServerName)?;
+		key_exchange_server_name.guard_target_name_does_not_point_to_ptr_special_domain()?;
 
 		if unlikely!(end_of_key_exchange_server_name != resource_data_end_pointer)
 		{
@@ -1081,7 +1098,7 @@ impl ResourceRecord
 		let end_of_resource_data_pointer = resource_data.end_pointer();
 
 		let (record, end_of_dname_pointer) = ParsedNameParser::parse_name_in_resource_record(DataType::DNAME, parsed_names, resource_data.start_pointer(), end_of_resource_data_pointer).map_err(DomainName)?;
-
+		
 		if unlikely!(end_of_dname_pointer != end_of_dname_pointer)
 		{
 			Err(DataRemainingAfterDName)?
@@ -1253,7 +1270,9 @@ impl ResourceRecord
 				return Ok(resource_data_end_pointer)
 			}
 		};
-
+		
+		gateway.guard_target_name_does_not_point_to_ptr_special_domain()?;
+		
 		let public_key_algorithm_type = resource_data.u8(PrecedenceSize + GatewayTypeSize);
 		let public_key_length = length - public_key_starts_at_offset;
 		let public_key = match Self::ipsec_like_public_key
@@ -1734,6 +1753,7 @@ impl ResourceRecord
 
 		let start_of_name_pointer = resource_data.start_pointer() + HostIdentityTagOffset + host_identity_tag_length + public_key_length;
 		let (first_rendezvous_server_domain_name, end_of_first_rendezvous_server_domain_name) = ParsedNameParser::parse_name_in_resource_record(DataType::HIP, parsed_names, start_of_name_pointer, resource_data_end_pointer).map_err(FirstRendezvousServerDomainName)?;
+		first_rendezvous_server_domain_name.guard_target_name_does_not_point_to_ptr_special_domain()?;
 
 		let remaining_rendezvous_servers_length = resource_data_end_pointer - end_of_first_rendezvous_server_domain_name;
 		
@@ -1748,12 +1768,15 @@ impl ResourceRecord
 				Err(DuplicateRendezvousServerDomainName)?
 			}
 			
+			subsequent_rendezvous_server_domain_name.guard_target_name_does_not_point_to_ptr_special_domain()?;
+			
 			let new = remaining_rendezvous_server_domain_names.insert(subsequent_rendezvous_server_domain_name);
 			let duplicate = !new;
 			if unlikely!(duplicate)
 			{
 				Err(DuplicateRendezvousServerDomainName)?
 			}
+			
 			start_of_name_pointer = end_of_subsequent_rendezvous_server_domain_name;
 		}
 
@@ -1938,6 +1961,8 @@ impl ResourceRecord
 		{
 			Err(HasDomainNameSameAsRecordName)?
 		}
+		
+		domain_name.guard_target_name_does_not_point_to_ptr_special_domain()?;
 		
 		let preference = Priority(resource_data.u16(0));
 		let record = LocatorPointer(domain_name);

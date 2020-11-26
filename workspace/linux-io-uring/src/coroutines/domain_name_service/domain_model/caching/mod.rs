@@ -11,6 +11,7 @@ include!("CacheUntil.rs");
 include!("DomainCache.rs");
 include!("DomainCacheEntry.rs");
 include!("DomainTarget.rs");
+include!("FixedDomainCacheEntry.rs");
 include!("GetNotResolvingAliasesResult.rs");
 include!("NegativeCacheUntil.rs");
 include!("NoDomainCacheEntry.rs");

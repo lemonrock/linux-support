@@ -21,14 +21,14 @@ pub struct QueryResourceRecord<N: Name>
 	pub query_for_next: QueryForNext,
 }
 
-impl<'message> Into<QueryResourceRecord<EfficientCaseFoldedName>> for QueryResourceRecord<ParsedName<'message>>
+impl<'message> Into<QueryResourceRecord<FullyQualifiedDomainName>> for QueryResourceRecord<ParsedName<'message>>
 {
 	#[inline(always)]
-	fn into(self) -> QueryResourceRecord<EfficientCaseFoldedName>
+	fn into(self) -> QueryResourceRecord<FullyQualifiedDomainName>
 	{
 		QueryResourceRecord
 		{
-			domain_name: EfficientCaseFoldedName::from(self.domain_name),
+			domain_name: FullyQualifiedDomainName::from(self.domain_name),
 			
 			query_for_next: self.query_for_next,
 		}

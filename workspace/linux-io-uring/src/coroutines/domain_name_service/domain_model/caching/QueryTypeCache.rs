@@ -2,7 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
+#[serde(Deserialize, Serialize)]
 pub(crate) struct QueryTypeCache<ORs: OwnedRecords<OR>, OR: OwnedRecord>
 {
 	cache_until: CacheUntil,
@@ -13,6 +14,14 @@ pub(crate) struct QueryTypeCache<ORs: OwnedRecords<OR>, OR: OwnedRecord>
 
 impl<ORs: OwnedRecords<OR>, OR: OwnedRecord> QueryTypeCache<ORs, OR>
 {
+	const Forever: CacheUntil = CacheUntil::Cached { cached_until: NanosecondsSinceUnixEpoch::MaximumSeconds };
+	
+	#[inline(always)]
+	pub(crate) fn data_forever(records: Records) -> Option<Self>
+	{
+		Self::data(Self::Forever, records)
+	}
+	
 	#[inline(always)]
 	pub(crate) fn data(cache_until: CacheUntil, records: Records) -> Option<Self>
 	{
@@ -24,6 +33,12 @@ impl<ORs: OwnedRecords<OR>, OR: OwnedRecord> QueryTypeCache<ORs, OR>
 				data: Some(records)
 			}
 		)
+	}
+	
+	#[inline(always)]
+	pub(crate) const fn no_data_forever() -> Option<Self>
+	{
+		Self::no_data(Self::Forever)
 	}
 	
 	#[inline(always)]
