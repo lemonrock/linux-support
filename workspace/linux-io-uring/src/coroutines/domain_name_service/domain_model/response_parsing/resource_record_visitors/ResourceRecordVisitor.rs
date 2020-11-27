@@ -91,7 +91,7 @@ pub(crate) trait ResourceRecordVisitor<'message>
 	/// Default implementation does nothing.
 	#[allow(unused)]
 	#[inline(always)]
-	fn TXT(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: Vec<ParsedCharacterString<'message>>) -> Result<(), Self::Error>
+	fn TXT(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: Text<ParsedCharacterString<'message>>) -> Result<(), Self::Error>
 	{
 		Ok(())
 	}

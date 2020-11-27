@@ -48,6 +48,12 @@ impl OwnedRecord for Text<OwnedCharacterString>
 impl<'message> Text<ParsedCharacterString<'message>>
 {
 	#[inline(always)]
+	pub(crate) const fn new(strings: Vec<ParsedCharacterString<'message>>) -> Self
+	{
+		Self(strings)
+	}
+	
+	#[inline(always)]
 	fn into_owned_record(self) -> Text<OwnedCharacterString>
 	{
 		let length = self.0.len();

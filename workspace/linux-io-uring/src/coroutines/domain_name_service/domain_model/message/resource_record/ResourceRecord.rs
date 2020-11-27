@@ -614,8 +614,10 @@ impl ResourceRecord
 			let character_string = character_string.map_err(|error| ParsedCharacterStringLengthIncorrect(character_string_index, error))?;
 			character_strings.push(character_string)
 		}
+		character_strings.shrink_to_fit();
 		
-		resource_record_visitor.TXT(owner_name, cache_until, character_strings).map_err(|error| HandleRecordTypeError::ResourceRecordVisitor(DataType::TXT, error))?;
+		let record = Text::new(character_strings);
+		resource_record_visitor.TXT(owner_name, cache_until, record).map_err(|error| HandleRecordTypeError::ResourceRecordVisitor(DataType::TXT, error))?;
 		Ok(resource_data.end_pointer())
 	}
 
