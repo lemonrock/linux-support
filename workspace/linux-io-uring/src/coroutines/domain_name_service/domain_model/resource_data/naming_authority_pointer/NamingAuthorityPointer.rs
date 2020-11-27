@@ -296,22 +296,47 @@ impl<'message> ParsedRecord for NamingAuthorityPointer<ParsedName<'message>, Par
 		let mut accumulating_order_count = 0usize;
 		let mut accumulating_order_count_for_index = 0;
 		let mut accumulating_order_count_for_order = *initial_order;
+		let mut accumulating_priority_count = 0usize;
+		let mut accumulating_priority_count_for_index = 0;
+		let mut accumulating_priority_count_for_priority = *initial_priority;
 		for (parsed_record, (order, priority)) in parsed_records.into_iter()
 		{
 			if order == accumulating_order_count_for_order
 			{
-				accumulating_order_count += 1
+				accumulating_order_count += 1;
+				
+				if priority == accumulating_priority_count_for_priority
+				{
+					accumulating_priority_count += 1;
+				}
+				else
+				{
+					debug_assert!(priority > accumulating_priority_count_for_priority);
+					debug_assert!(accumulating_priority_count_for_index < index);
+					
+					owned_records.get_unchecked_mut_safe(accumulating_priority_count_for_index).set_priority_count(accumulating_priority_count);
+					
+					accumulating_priority_count = 1;
+					accumulating_priority_count_for_index = index;
+					accumulating_priority_count_for_priority = priority;
+				}
 			}
 			else
 			{
 				debug_assert!(order > accumulating_order_count_for_order);
 				debug_assert!(accumulating_order_count_for_index < index);
+				debug_assert!(priority > accumulating_priority_count_for_priority);
+				debug_assert!(accumulating_priority_count_for_index < index);
 				
 				owned_records.get_unchecked_mut_safe(accumulating_order_count_for_index).set_order_count(accumulating_order_count);
+				owned_records.get_unchecked_mut_safe(accumulating_priority_count_for_index).set_priority_count(accumulating_priority_count);
 				
 				accumulating_order_count = 1;
 				accumulating_order_count_for_index = index;
 				accumulating_order_count_for_order = order;
+				accumulating_priority_count = 1;
+				accumulating_priority_count_for_index = index;
+				accumulating_priority_count_for_priority = priority;
 			}
 			
 			let owned_record = parsed_record.into_owned_record();
@@ -323,6 +348,7 @@ impl<'message> ParsedRecord for NamingAuthorityPointer<ParsedName<'message>, Par
 		
 		// Safe because `NoData` is a special case; there is always at least one record and so `accumulating_order_count` will never be `0`.
 		owned_records.get_unchecked_mut_safe(accumulating_order_count_for_index).set_order_count(accumulating_order_count);
+		owned_records.get_unchecked_mut_safe(accumulating_priority_count_for_index).set_priority_count(accumulating_priority_count);
 		
 		MultipleOrderedThenPrioritizedThenUnsortedRecords::new(owned_records)
 	}
