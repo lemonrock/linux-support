@@ -2,39 +2,22 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Desgined to implement the `SRV` and `URI` prioritized, weighted records algorithm specified in RFC 2782, Page 3, "Weight", paragraph 2 to Page 4, paragraph 3, and, by extension, to support all other record kinds, including those that have a preference (eg `MX`) as well as those that don't (eg `A`).
+/// An iterator that randomly selects by weighting.
 ///
-/// This implementation of that algorithm fails if there are `(2^64 - 1) / (2^16 - 1)` or more `self.weighted` records, which is not possible for DNS.
-#[derive(Debug, Clone)]
-#[derive(Deserialize, Serialize)]
-pub(crate) struct WeightedRecords<OR: OwnedRecord>
+/// Approach designed to support RFC 2782, Page 3, "Weight", paragraph 2 to Page 4, paragraph 3.
+#[derive(Debug)]
+pub struct MultiplePrioritizedThenWeightedRecordsIteratorPriorityIterator<'a, OR: OwnedRecord + 'a>
 {
-	weightless: Vec<Rc<OR>>,
+	weightless: Vec<&'a OR>,
 	
-	weighted: Vec<(NonZeroU16, Rc<OR>)>,
+	weighted: Vec<(NonZeroU16, &'a OR)>,
 	
 	current_sum_of_all_weighted: u64,
 }
 
-impl<OR: OwnedRecord> Clone for WeightedRecords<OR>
+impl<'a, OR: OwnedRecord + 'a> Iterator for MultiplePrioritizedThenWeightedRecordsIteratorPriorityIterator<'a, OR>
 {
-	#[inline(always)]
-	fn clone(&self) -> Self
-	{
-		Self
-		{
-			weightless: self.weightless.clone(),
-		
-			weighted: self.weighted.clone(),
-		
-			current_sum_of_all_weighted: self.current_sum_of_all_weighted,
-		}
-	}
-}
-
-impl<OR: OwnedRecord> Iterator for WeightedRecords<OR>
-{
-	type Item = Rc<OR>;
+	type Item = &'a OR;
 	
 	/// Approach designed to support RFC 2782, Page 3, "Weight", paragraph 2 to Page 4, paragraph 3.
 	#[inline(always)]
@@ -43,7 +26,6 @@ impl<OR: OwnedRecord> Iterator for WeightedRecords<OR>
 		let weighted_length = self.weighted.len();
 		
 		// (1) We have no weighted records, so we can only choose a record from the weightless list.
-		// In practice, only `SRV`, `NAPTR` and `URI` records will be weighted, so this is an effective optimization.
 		if weighted_length == 0
 		{
 			debug_assert_eq!(self.current_sum_of_all_weighted, 0);
@@ -92,92 +74,38 @@ impl<OR: OwnedRecord> Iterator for WeightedRecords<OR>
 	}
 }
 
-impl<OR: ParsedRecord> WeightedRecords<OR>
+impl<'a, OR: OwnedRecord + 'a> MultiplePrioritizedThenWeightedRecordsIteratorPriorityIterator<'a, OR>
 {
-	#[inline(always)]
-	fn new_for_one_record(weight: Weight, record: OR) -> Self
+	fn new(source: &'a Vec<MultiplePrioritizedThenWeightedRecordsItem<OR>>, next_priority_index: usize, exclusive_last_priority_index: usize) -> Self
 	{
-		let record = Rc::new(record);
-		if likely!(weight.is_weightless())
+		let maximum_size = exclusive_last_priority_index - next_priority_index;
+		
+		let mut weightless = Vec::with_capacity(maximum_size);
+		let mut weighted = Vec::with_capacity(maximum_size);
+		let mut current_sum_of_all_weighted = 0;
+		
+		for index in next_priority_index .. exclusive_last_priority_index
 		{
-			Self
+			let item = source.get_unchecked_safe(index);
+			let record = &item.record;
+			if item.weight.is_weightless()
 			{
-				weightless: vec!
-				[
-					record
-				],
-				
-				weighted: Vec::default(),
-			
-				current_sum_of_all_weighted: 0,
+				weightless.push(record)
+			}
+			else
+			{
+				let weight = weight.into_non_zero_u16();
+				weighted.push((weight, record));
+				current_sum_of_all_weighted += weight.get() as u64;
 			}
 		}
-		else
+		
+		Self
 		{
-			let weight_non_zero_u16 = weight.into_non_zero_u16();
-			Self
-			{
-				weightless: Vec::default(),
-				
-				weighted: vec!
-				[
-					(weight.into_non_zero_u16(), record)
-				],
-				
-				current_sum_of_all_weighted: weight_non_zero_u16.get() as u64,
-			}
+			weightless,
+			weighted,
+			current_sum_of_all_weighted,
 		}
-	}
-	
-	#[inline(always)]
-	fn add(&mut self, weight: Weight, record: OR)
-	{
-		let record = Rc::new(record);
-		if likely!(weight.is_weightless())
-		{
-			self.weightless.push(record)
-		}
-		else
-		{
-			let weight = weight.into_non_zero_u16();
-			self.weighted.push((weight, record));
-			self.current_sum_of_all_weighted += weight.get() as u64;
-		}
-	}
-	
-	#[inline(always)]
-	fn append(&mut self, append: &Self)
-	{
-		if self.is_empty()
-		{
-			*self = Clone::clone(append);
-		}
-		else
-		{
-			self.current_sum_of_all_weighted += append.current_sum_of_all_weighted;
-			self.weightless.extend_from_slice(&append.weightless[..]);
-			self.weighted.extend_from_slice(&append.weighted[..]);
-		}
-	}
-	
-	#[inline(always)]
-	fn is_empty(&self) -> bool
-	{
-		self.weighted.is_empty() && self.weightless.is_empty()
-	}
-	
-	#[inline(always)]
-	fn record_count(&self) -> usize
-	{
-		self.weightless.len() + self.weighted.len()
-	}
-	
-	#[doc(hidden)]
-	#[inline(always)]
-	fn get_next_weight(&self, index: usize) -> u64
-	{
-		let (weight, _record) = self.weighted.get_unchecked_safe(index);
-		(*weight).get() as u64
 	}
 	
 	#[doc(hidden)]
@@ -194,5 +122,13 @@ impl<OR: ParsedRecord> WeightedRecords<OR>
 		let biased_uniform_distributed = inclusive_minimum + (random_value % (inclusive_maximum - inclusive_minimum + 1));
 		
 		biased_uniform_distributed
+	}
+	
+	#[doc(hidden)]
+	#[inline(always)]
+	fn get_next_weight(&self, index: usize) -> u64
+	{
+		let (weight, _record) = self.weighted.get_unchecked_safe(index);
+		(*weight).get() as u64
 	}
 }

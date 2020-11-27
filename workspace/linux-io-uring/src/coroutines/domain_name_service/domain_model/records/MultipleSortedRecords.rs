@@ -11,37 +11,26 @@
 #[derive(Deserialize, Serialize)]
 pub struct MultipleSortedRecords<OR: OwnedRecord + Ord>
 {
-	records: BTreeSet<OR>,
-}
-
-impl<PR: ParsedRecord<OrderPriorityAndWeight=(), OwnedRecord=OR>, OR: OwnedRecord + Ord> From<OwnerNameToRecordsValue<PR>> for MultipleSortedRecords<OR>
-{
-	#[inline(always)]
-	fn from(value: OwnerNameToRecordsValue<PR>) -> Self
-	{
-		Self
-		{
-			records:
-			{
-				let mut records = BTreeSet::new();
-				for (record, _) in value.records
-				{
-					records.insert(record.into_owned_record())
-				}
-				records
-			},
-		}
-	}
+	records: Vec<OR>,
 }
 
 impl<OR: OwnedRecord + Ord> MultipleSortedRecords<OR>
 {
 	#[inline(always)]
+	pub(crate) const fn new(records: Vec<OR>) -> Self
+	{
+		Self
+		{
+			records
+		}
+	}
+	
+	#[inline(always)]
 	pub(crate) fn single(owned_record: OR) -> Self
 	{
 		Self
 		{
-			records: btreeset!
+			records: vec!
 			{
 				owned_record
 			}
@@ -49,8 +38,21 @@ impl<OR: OwnedRecord + Ord> MultipleSortedRecords<OR>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn add(&mut self, owned_record: OR)
+	pub(crate) fn add_inefficient(&mut self, owned_record: OR)
 	{
-		self.records.insert(owned_record);
+		self.records.push(owned_record);
+		self.records.sort_unstable()
+	}
+	
+	/// Iterate.
+	#[inline(always)]
+	pub fn iterate<'a>(&'a self) -> MultipleSortedRecordsIterator<'a, OR>
+	{
+		MultipleSortedRecordsIterator
+		{
+			source: &self.records,
+			
+			next_index: 0,
+		}
 	}
 }

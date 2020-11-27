@@ -2,14 +2,14 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) struct CanonicalNameChainAnswerSectionResourceRecordVisitor<'message, RRV: ResourceRecordVisitor<'message, Finished=OwnerNameToRecords<'message, R>>, R: ParsedRecord>
+pub(crate) struct CanonicalNameChainAnswerSectionResourceRecordVisitor<'message, RRV: ResourceRecordVisitor<'message, Finished=OwnerNameToParsedRecords<'message, R>>, R: ParsedRecord>
 {
 	answer_section_resource_record_visitor: RRV,
 	
 	canonical_name_chain: CanonicalNameChain<'message>,
 }
 
-impl<'message, RRV: ResourceRecordVisitor<'message, Finished=OwnerNameToRecords<'message, R>>, R: ParsedRecord> CanonicalNameChainAnswerSectionResourceRecordVisitor<'message, RRV, R>
+impl<'message, RRV: ResourceRecordVisitor<'message, Finished=OwnerNameToParsedRecords<'message, R>>, R: ParsedRecord> CanonicalNameChainAnswerSectionResourceRecordVisitor<'message, RRV, R>
 {
 	#[inline(always)]
 	pub(crate) fn new(answer_section_resource_record_visitor: RRV, query_name: &'message EfficientCaseFoldedName) -> Self
@@ -43,7 +43,7 @@ impl<'message, RRV: ResourceRecordVisitor<'message, Finished=OwnerNameToRecords<
 	}
 }
 
-impl<'message, RRV: ResourceRecordVisitor<'message, Finished=OwnerNameToRecords<'message, R>>, R: ParsedRecord> ResourceRecordVisitor<'message> for CanonicalNameChainAnswerSectionResourceRecordVisitor<'message, RRV, R>
+impl<'message, RRV: ResourceRecordVisitor<'message, Finished=OwnerNameToParsedRecords<'message, R>>, R: ParsedRecord> ResourceRecordVisitor<'message> for CanonicalNameChainAnswerSectionResourceRecordVisitor<'message, RRV, R>
 {
 	type Error = WrappingCanonicalChainError<RRV::Error>;
 	

@@ -53,7 +53,7 @@ impl<'message> ResourceRecordVisitor<'message> for AuthorityResourceRecordVisito
 		else
 		{
 			let name_server_records = name_server_records.as_mut().unwrap();
-			name_server_records.add(cache_until, name_server_name);
+			name_server_records.add_inefficient(cache_until, name_server_name);
 		}
 		
 		Ok(())
@@ -222,7 +222,7 @@ impl<'message> AuthorityResourceRecordVisitor<'message>
 	/// 	* Authority
 	/// 		* `.			86400	IN	SOA	a.root-servers.net. …`.
 	/// 	* Additional
-	pub(crate) fn answer<PR: ParsedRecord>(self, answer_existence: AnswerExistence, records: Option<OwnerNameToRecordsValue<PR>>, as_of_now: NanosecondsSinceUnixEpoch) -> Result<(Answer<PR>, CanonicalNameChain<'message>), AuthoritySectionError<AuthorityError>>
+	pub(crate) fn answer<PR: ParsedRecord>(self, answer_existence: AnswerExistence, records: Option<OwnerNameToParsedRecordsValue<PR>>, as_of_now: NanosecondsSinceUnixEpoch) -> Result<(Answer<PR>, CanonicalNameChain<'message>), AuthoritySectionError<AuthorityError>>
 	{
 		use self::AnswerExistence::*;
 		use self::Answer::*;

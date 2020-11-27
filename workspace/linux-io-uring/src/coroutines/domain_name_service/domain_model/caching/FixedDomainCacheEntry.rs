@@ -5,7 +5,7 @@
 #[derive(Debug)]
 pub(crate) enum FixedDomainCacheEntry
 {
-	/// `A` and `AAAA` records.
+	/// `A`, `AAAA` and `PTR` records.
 	///
 	/// Used for records in, say, `/etc/hosts`.
 	QueryTypesFixed(QueryTypesFixed),
@@ -27,7 +27,13 @@ impl FixedDomainCacheEntry
 	#[inline(always)]
 	pub(crate) fn query_types_fixed(internet_protocol_address: IpAddr) -> Self
 	{
-		FixedDomainCacheEntry::QueryTypesFixed(QueryTypesFixed::new(internet_protocol_address))
+		FixedDomainCacheEntry::QueryTypesFixed(QueryTypesFixed::new_internet_protocol_address(internet_protocol_address))
+	}
+	
+	#[inline(always)]
+	pub(crate) fn pointer(canonical_name: &DomainTarget) -> Self
+	{
+		FixedDomainCacheEntry::QueryTypesFixed(QueryTypesFixed::pointer(canonical_name))
 	}
 	
 	#[inline(always)]

@@ -6,14 +6,14 @@ pub(crate) struct AAAAQueryProcessorResourceRecordVisitor<'message>
 {
 	query_name: &'message FullyQualifiedDomainName,
 	
-	records: OwnerNameToRecords<Ipv6Addr, ()>,
+	records: OwnerNameToParsedRecords<Ipv6Addr, ()>,
 }
 
 impl<'message> ResourceRecordVisitor<'message> for AAAAQueryProcessorResourceRecordVisitor<'message>
 {
 	type Error = Infallible;
 	
-	type Finished = OwnerNameToRecords<Ipv6Addr>;
+	type Finished = OwnerNameToParsedRecords<Ipv6Addr>;
 	
 	#[inline(always)]
 	fn finished(self) -> Self::Finished

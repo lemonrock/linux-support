@@ -15,29 +15,33 @@
 #[derive(Deserialize, Serialize)]
 pub struct MultiplePrioritizedThenSortedRecords<OR: OwnedRecord + Ord>
 {
-	records: PriorityToSortedRecordsMap<OR>,
+	records: Vec<MultiplePrioritizedThenSortedRecordsItem<OR>>,
 }
 
 impl<OR: OwnedRecord> OwnedRecords<OR> for MultiplePrioritizedThenSortedRecords<OR>
 {
 }
 
-impl<PR: ParsedRecord<OrderPriorityAndWeight=Priority, OwnedRecord=OR>, OR: OwnedRecord + Ord> From<OwnerNameToRecordsValue<PR>> for MultiplePrioritizedThenSortedRecords<OR>
+impl<OR: OwnedRecord> MultiplePrioritizedThenSortedRecords<OR>
 {
 	#[inline(always)]
-	fn from(value: OwnerNameToRecordsValue<PR>) -> Self
+	pub(crate) const fn new(records: Vec<MultiplePrioritizedThenSortedRecordsItem<OR>>) -> Self
 	{
 		Self
 		{
-			records:
-			{
-				let mut records = PriorityToSortedRecordsMap::default();
-				for (record, priority) in value.records
-				{
-					records.add(priority, record.into_owned_record())
-				}
-				records
-			},
+			records
+		}
+	}
+	
+	/// Iterate.
+	#[inline(always)]
+	pub fn iterate<'a>(&'a self) -> MultiplePrioritizedThenSortedRecordsIterator<'a, OR>
+	{
+		MultiplePrioritizedThenSortedRecordsIterator
+		{
+			source: &self.records,
+			
+			next_priority_starts_at_index: 0
 		}
 	}
 }

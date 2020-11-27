@@ -65,21 +65,7 @@ impl<'message> ParsedRecord for StartOfAuthority<ParsedName<'message>>
 	type OwnedRecord = StartOfAuthority<EfficientCaseFoldedName>;
 	
 	#[inline(always)]
-	fn into_owned_record(self) -> Self::OwnedRecord
-	{
-		StartOfAuthority
-		{
-			primary_name_server: FullyQualifiedDomainName::from(self.primary_name_server),
-			responsible_person_email_address: EfficientCaseFoldedName::from(self.responsible_person_email_address),
-			zone_file_serial_number: self.zone_file_serial_number,
-			referesh_interval: self.referesh_interval,
-			retry_interval: self.retry_interval,
-			expire_interval: self.expire_interval,
-		}
-	}
-	
-	#[inline(always)]
-	fn into_owned_records(records: OwnerNameToRecordsValue<Self>) -> <Self::OwnedRecord as OwnedRecord>::OwnedRecords
+	fn into_owned_records(records: OwnerNameToParsedRecordsValue<Self>) -> <Self::OwnedRecord as OwnedRecord>::OwnedRecords
 	{
 		records.solitary().into_owned_record()
 	}
@@ -93,12 +79,6 @@ impl OwnedRecord for StartOfAuthority<EfficientCaseFoldedName>
 	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>
 	{
 		&mut query_types_cache.SOA
-	}
-	
-	#[inline(always)]
-	fn retrieve_fixed(query_types_fixed: &QueryTypesFixed) -> Option<&Self::OwnedRecords>
-	{
-		None
 	}
 }
 
@@ -120,5 +100,22 @@ impl<N: Name> StartOfAuthority<N>
 	pub fn responsible_person_email_address_domain(&self) -> N
 	{
 		self.responsible_person_email_address.parent().unwrap()
+	}
+}
+
+impl<'message> StartOfAuthority<ParsedName<'message>>
+{
+	#[inline(always)]
+	fn into_owned_record(self) -> Self::OwnedRecord
+	{
+		StartOfAuthority
+		{
+			primary_name_server: FullyQualifiedDomainName::from(self.primary_name_server),
+			responsible_person_email_address: EfficientCaseFoldedName::from(self.responsible_person_email_address),
+			zone_file_serial_number: self.zone_file_serial_number,
+			referesh_interval: self.referesh_interval,
+			retry_interval: self.retry_interval,
+			expire_interval: self.expire_interval,
+		}
 	}
 }

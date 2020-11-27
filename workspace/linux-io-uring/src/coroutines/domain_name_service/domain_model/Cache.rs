@@ -18,6 +18,34 @@ impl Cache
 		self.enquire_over_tcp_and_cache::<SD, MXQueryProcessor>(stream, query_name)
 	}
 	
+	pub fn get_search_name<'a, 'resolv_conf, OR: OwnedRecord>(&'a mut self, search_name: SearchName, now: NanosecondsSinceUnixEpoch, resolv_conf: &'resolv_conf ResolvConf, harden_using_iana_ssac_advisory_on_search_list_processing: bool) -> Result<Option<GetNotResolvingAliasesResult<'a, OR::OwnedRecords, OR>>, EfficientCaseFoldedNameParseError>
+	{
+		for domain_target in search_name.iterate_fully_qualified_domain_names(resolv_conf, harden_using_iana_ssac_advisory_on_search_list_processing)
+		{
+			let domain_target = domain_target?;
+			
+			
+		}
+		
+		Ok(())
+	}
+	
+	/// If this isn't a valid Internet Protocol address to look up then `None` is returned.
+	/// If the address is valid but there are no results, `Some(None)` is returned.
+	#[inline(always)]
+	pub(crate) fn get_internet_protocol_version_4_address_not_resolving_aliases<'a>(&'a mut self, internet_protocol_address: Ipv4Addr, now: NanosecondsSinceUnixEpoch) -> Option<Option<GetNotResolvingAliasesResult<'a, MultipleSortedRecords<PointerName<DomainTarget>>, PointerName<DomainTarget>>>>
+	{
+		xxx
+	}
+	
+	/// If this isn't a valid Internet Protocol address to look up then `None` is returned.
+	/// If the address is valid but there are no results, `Some(None)` is returned.
+	#[inline(always)]
+	pub(crate) fn get_internet_protocol_version_6_address_not_resolving_aliases<'a>(&'a mut self, internet_protocol_address: Ipv6Addr, now: NanosecondsSinceUnixEpoch) -> Option<Option<GetNotResolvingAliasesResult<'a, MultipleSortedRecords<PointerName<DomainTarget>>, PointerName<DomainTarget>>>>
+	{
+		xxx
+	}
+	
 	fn enquire_over_tcp_and_cache<'yielder, SD: SocketData, QP: QueryProcessor>(&mut self, stream: &mut TlsClientStream<'yielder, SD>, query_name: &FullyQualifiedDomainName) -> Result<(), ProtocolError<Infallible>>
 	{
 		let now = NanosecondsSinceUnixEpoch::now();

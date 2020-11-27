@@ -4,24 +4,34 @@
 
 pub(crate) trait OwnedRecord: Sized + Debug + DeserializeOwned + Serialize
 {
+	const SubdomainsAreNeverValid: bool = false;
+	
 	type OwnedRecords: OwnedRecords<Self>;
 	
 	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>;
 	
-	fn retrieve_fixed(query_types_fixed: &QueryTypesFixed) -> Option<&Self::OwnedRecords>;
+	#[inline(always)]
+	fn retrieve_fixed(query_types_fixed: &QueryTypesFixed) -> Option<&Self::OwnedRecords>
+	{
+		None
+	}
 	
 	#[inline(always)]
-	fn store(query_types_cache: &mut QueryTypesCache, records: Self::OwnedRecords)
+	fn store(subdomains_are_never_valid: NonNull<bool>, query_types_cache: &mut QueryTypesCache, records: Self::OwnedRecords)
 	{
 		let query_type_cache = Self::retrieve(query_types_cache);
+		
+		unsafe { * subdomains_are_never_valid.as_ptr() = Self::SubdomainsAreNeverValid };
 		
 		*query_type_cache = QueryTypeCache::data(records.cache_until(), records)
 	}
 	
 	#[inline(always)]
-	fn no_data(query_types_cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
+	fn no_data(subdomains_are_never_valid: NonNull<bool>, query_types_cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
 	{
 		let query_type_cache = Self::retrieve(query_types_cache);
+		
+		unsafe { * subdomains_are_never_valid.as_ptr() = Self::SubdomainsAreNeverValid };
 		
 		*query_type_cache = QueryTypeCache::no_data(negative_cache_until);
 	}

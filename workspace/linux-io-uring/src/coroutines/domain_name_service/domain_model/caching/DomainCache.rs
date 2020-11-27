@@ -12,39 +12,33 @@ pub(crate) struct DomainCache<GTACSA: GlobalThreadAndCoroutineSwitchableAllocato
 
 // TODO:
 	// There must be an instance per-interface, as things like ipv4only.arpa and CDNs change records depending on interface.
-	// ipv4only.arpa has AAAA records with a NAT64 prefix and fixed A records.
 
 // TODO: Analyze errors to deduce server failures, bad records, etc. (we want to store a bad record indicator) - probably caching HandleRecordTypeError.
 // TODO: Also: server failure RFC 2308 Section 7.1 / 7.2.
 
 // TODO: Can we optimize the use of guards and map.entry()
-// TODO: Cache by size, list by cache expiry but also keep some sort of LRU count?
-// TODO: How to compute size?
 // TODO: Switch all Authority stuff to ParsedName not owned stuff?
 
 // TODO: lazy_static users in uriparse and crossbeam-utils
 // TODO: All memory allocations need to be made using the thread-local allocator
 // TODO: Actually querying.
 
-// TODO: PTR records. These are very special; there is no good reason for a PTR domain name to ever have any other record types.
-// TODO: Likewise, any target name that is a ip6.arpa or the like is very likely to be wrong.
 /*
-	RFC 2317 style PTR records can use CNAMEs for delegation, but the CNAME must still be within the in-addr.arpa / ip6.arpa root?
+	TODO: LRU cache or Random Eviction Cache
 	
-	eg 88.7.4.62.in-addr.arpa. 86400   IN      CNAME   88.64-27.7.4.62.in-addr.arpa.  for a /27 network.
-
-	In the original RFC, a `/` was used instead of a `-`.
-	
-	
-	Multiple PTR records.
-	
-	Real example for google.com using 172.217.20.142, query 142.20.217.172.in-addr.arpa:-
-142.20.217.172.in-addr.arpa. 28311 IN	PTR	lhr48s20-in-f14.1e100.net.
-142.20.217.172.in-addr.arpa. 28311 IN	PTR	muc11s10-in-f14.1e100.net.
-142.20.217.172.in-addr.arpa. 28311 IN	PTR	fra07s27-in-f142.1e100.net.
-	
+		- Calculate size change on usage
+		- It is possible, although unusual, for size change to be negative (eg Hashbrown map has freed up space).
+		
+		Have a List (BTreeMap) with expiry dates in order; on each operation, chop the expiry dates.
+			- Will need a pointer to the records (or, in the case of valid) inside of records affected.
+		
+		BUT,
+			Need an efficient way of determining NXDOMAIN and potentially *.localhost.localdomain (which seems an odd concept).
+			
+			
  */
 
+// TODO: Get rid of BTreeMap / Set for holding records, and rely on a sorted Vec. Far more memory efficient.
 
 impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, CoroutineHeapSize: MemorySize> DomainCache<GTACSA, CoroutineHeapSize>
 {
@@ -64,6 +58,22 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 			our_usage: Cell::new(0),
 			marker: PhantomData,
 		}
+	}
+	
+	/// If this isn't a valid Internet Protocol address to look up then `None` is returned.
+	/// If the address is valid but there are no results, `Some(None)` is returned.
+	#[inline(always)]
+	pub(crate) fn get_internet_protocol_version_4_address_not_resolving_aliases<'a>(&'a mut self, internet_protocol_address: Ipv4Addr, now: NanosecondsSinceUnixEpoch) -> Option<Option<GetNotResolvingAliasesResult<'a, MultipleSortedRecords<PointerName<DomainTarget>>, PointerName<DomainTarget>>>>
+	{
+		DomainTarget::internet_protocol_version_4_pointer(internet_protocol_address).map(|domain_target| self.get_not_resolving_aliases(domain_target, now))
+	}
+	
+	/// If this isn't a valid Internet Protocol address to look up then `None` is returned.
+	/// If the address is valid but there are no results, `Some(None)` is returned.
+	#[inline(always)]
+	pub(crate) fn get_internet_protocol_version_6_address_not_resolving_aliases<'a>(&'a mut self, internet_protocol_address: Ipv6Addr, now: NanosecondsSinceUnixEpoch) -> Option<Option<GetNotResolvingAliasesResult<'a, MultipleSortedRecords<PointerName<DomainTarget>>, PointerName<DomainTarget>>>>
+	{
+		DomainTarget::internet_protocol_version_6_pointer(internet_protocol_address).map(|domain_target| self.get_not_resolving_aliases(domain_target, now))
 	}
 	
 	pub(crate) fn get_not_resolving_aliases<'a, OR: OwnedRecord>(&'a mut self, domain_target: DomainTarget, now: NanosecondsSinceUnixEpoch) -> Option<GetNotResolvingAliasesResult<'a, OR::OwnedRecords, OR>>
@@ -98,7 +108,7 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 						(result, Keep)
 					}
 					
-					&mut Valid { always_valid: false, ref mut query_types_cache, subdomains_are_never_valid: false } =>
+					&mut Valid { always_valid: false, ref mut query_types_cache, .. } =>
 					{
 						let result = GetNotResolvingAliasesResult::valid(query_types_cache, now);
 						(result, query_types_cache.is_empty())
@@ -149,13 +159,13 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 				{
 					NeverValid => (Some(GetNotResolvingAliasesResult::NeverValid), Keep),
 					
-					Fixed { subdomains_implicitly_resolve_to_the_same_record_as_this_one: true, fixed_domain_cache_entry }  => (Some(GetNotResolvingAliasesResult::fixed(fixed_domain_cache_entry)), Keep),
+					Fixed { subdomains_implicitly_resolve_to_the_same_record_as_this_one: true, .. }  => (Some(GetNotResolvingAliasesResult::Alias(occupied.key())), Keep),
 					
 					Fixed { subdomains_implicitly_resolve_to_the_same_record_as_this_one: false, .. } => (Some(GetNotResolvingAliasesResult::NeverValid), Keep),
 					
-					Valid { always_valid: true, subdomains_are_never_valid: true, .. } => (Some(GetNotResolvingAliasesResult::NeverValid), Keep),
+					Valid { subdomains_are_never_valid: true, .. } => (Some(GetNotResolvingAliasesResult::NeverValid), Keep),
 					
-					Valid { .. } => (None, Keep),
+					Valid { subdomains_are_never_valid: false, .. } => (None, Keep),
 					
 					Alias { .. } => (None, Keep),
 					
@@ -254,7 +264,7 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 	}
 	
 	#[inline(always)]
-	fn store_data<PR: ParsedRecord>(&mut self, most_canonical_name: &DomainTarget, records: OwnerNameToRecordsValue<PR>) -> Result<bool, CacheStoreError>
+	fn store_data<PR: ParsedRecord>(&mut self, most_canonical_name: &DomainTarget, records: OwnerNameToParsedRecordsValue<PR>) -> Result<bool, CacheStoreError>
 	{
 		use self::DomainCacheEntry::*;
 		use self::FastSecureHashMapEntry::*;
@@ -276,7 +286,7 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 					
 					Fixed { .. } => return Err(CacheStoreError::DomainNameIsFixed(occupied.replace_key())),
 					
-					Valid { query_types_cache, .. } => PR::store(query_types_cache, records),
+					Valid { subdomains_are_never_valid, query_types_cache, .. } => PR::store(NonNull::from(subdomains_are_never_valid), query_types_cache, records),
 					
 					x @ &mut Alias { .. } => *x = DomainCacheEntry::store_parsed(records),
 					
@@ -332,7 +342,7 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 					
 					Fixed { .. } => return Err(CacheStoreError::DomainNameIsFixed(occupied.replace_key())),
 					
-					Valid { query_types_cache, .. }  => PR::no_data(query_types_cache, negative_cache_until),
+					Valid { subdomains_are_never_valid, query_types_cache, .. }  => PR::no_data(NonNull::from(subdomains_are_never_valid), query_types_cache, negative_cache_until),
 					
 					x @ &mut Alias { .. } => *x = DomainCacheEntry::no_data(negative_cache_until),
 					
@@ -495,7 +505,7 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 				{
 					NeverValid => panic!("Should have been checked"),
 					
-					Valid { query_types_cache, .. }  => StartOfAuthority::<FullyQualifiedDomainName>::store(query_types_cache, records),
+					Valid { subdomains_are_never_valid, query_types_cache, .. }  => StartOfAuthority::<FullyQualifiedDomainName>::store(NonNull::from(subdomains_are_never_valid), query_types_cache, records),
 					
 					x @ &mut Alias { .. } => *x = DomainCacheEntry::store_owned::<StartOfAuthority<FullyQualifiedDomainName>>(records),
 					
@@ -524,7 +534,7 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 				{
 					NeverValid => panic!("Should have been checked"),
 					
-					Valid { query_types_cache, .. }  => NameServerName::<FullyQualifiedDomainName>::store(query_types_cache, records),
+					Valid { subdomains_are_never_valid, query_types_cache, .. }  => NameServerName::<FullyQualifiedDomainName>::store(NonNull::from(subdomains_are_never_valid), query_types_cache, records),
 					
 					x @ &mut Alias { .. } => *x = DomainCacheEntry::store_owned::<NameServerName<FullyQualifiedDomainName>>(name_servers),
 					

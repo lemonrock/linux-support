@@ -2,29 +2,34 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) struct AQueryProcessorResourceRecordVisitor<'message>
+#[derive(Debug)]
+pub(crate) struct MultiplePrioritizedThenSortedRecordsItem<OR: OwnedRecord>
 {
-	query_name: &'message FullyQualifiedDomainName,
+	priority: Priority,
 	
-	records: OwnerNameToParsedRecords<Ipv4Addr, ()>,
+	priority_count: Option<NonZeroUsize>,
+	
+	record: OR,
 }
 
-impl<'message> ResourceRecordVisitor<'message> for AQueryProcessorResourceRecordVisitor<'message>
+impl<OR: OwnedRecord> MultiplePrioritizedThenSortedRecordsItem<OR>
 {
-	type Error = Infallible;
-	
-	type Finished = OwnerNameToParsedRecords<Ipv4Addr>;
-	
 	#[inline(always)]
-	fn finished(self) -> Self::Finished
+	pub(crate) const fn new(priority: Priority, record: OR) -> Self
 	{
-		self.records
+		Self
+		{
+			priority,
+			priority_count: None,
+			record,
+		}
 	}
 	
 	#[inline(always)]
-	fn A(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: Ipv4Addr) -> Result<(), Self::Error>
+	pub(crate) fn set_priority_count(&mut self, priority_count: usize)
 	{
-		self.records.add(name, cache_until, record, ());
-		Ok(())
+		debug_assert!(self.priority_count.is_none());
+		
+		self.priority_count = Some(new_non_zero_usize(priority_count))
 	}
 }

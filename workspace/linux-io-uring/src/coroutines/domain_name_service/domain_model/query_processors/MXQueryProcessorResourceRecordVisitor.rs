@@ -6,14 +6,14 @@ pub(crate) struct MXQueryProcessorResourceRecordVisitor<'message>
 {
 	query_name: &'message FullyQualifiedDomainName,
 	
-	records: OwnerNameToRecords<MailServerName<ParsedName<'message>>, Priority>,
+	records: OwnerNameToParsedRecords<MailServerName<ParsedName<'message>>, Priority>,
 }
 
 impl<'message> ResourceRecordVisitor<'message> for MXQueryProcessorResourceRecordVisitor<'message>
 {
 	type Error = Infallible;
 	
-	type Finished = OwnerNameToRecords<MailServerName<ParsedName<'message>>>;
+	type Finished = OwnerNameToParsedRecords<MailServerName<ParsedName<'message>>>;
 	
 	#[inline(always)]
 	fn finished(self) -> Self::Finished

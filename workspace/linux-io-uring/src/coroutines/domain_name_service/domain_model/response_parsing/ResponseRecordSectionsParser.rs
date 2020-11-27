@@ -38,7 +38,7 @@ impl<'message> ResponseRecordSectionsParser<'message>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn parse_answer_authority_and_additional_sections<RRV: ResourceRecordVisitor<'message, Finished=OwnerNameToRecords<'message, PR>>, PR: ParsedRecord>(&mut self, next_resource_record_pointer: usize, authoritative_or_authenticated_or_neither: AuthoritativeOrAuthenticatedOrNeither, rcode_lower_4_bits: RCodeLower4Bits, answer_section_resource_record_visitor: RRV) -> Result<(usize, Answer<PR>, CanonicalNameChain<'message>, DelegationNames), SectionError<RRV::Error>>
+	pub(crate) fn parse_answer_authority_and_additional_sections<RRV: ResourceRecordVisitor<'message, Finished=OwnerNameToParsedRecords<'message, PR>>, PR: ParsedRecord>(&mut self, next_resource_record_pointer: usize, authoritative_or_authenticated_or_neither: AuthoritativeOrAuthenticatedOrNeither, rcode_lower_4_bits: RCodeLower4Bits, answer_section_resource_record_visitor: RRV) -> Result<(usize, Answer<PR>, CanonicalNameChain<'message>, DelegationNames), SectionError<RRV::Error>>
 	{
 		let (next_resource_record_pointer, records, canonical_name_chain) = self.parse_answer_section(next_resource_record_pointer, answer_section_resource_record_visitor)?;
 		
@@ -52,7 +52,7 @@ impl<'message> ResponseRecordSectionsParser<'message>
 	}
 
 	#[inline(always)]
-	fn parse_answer_section<RRV: ResourceRecordVisitor<'message, Finished=OwnerNameToRecords<'message, PR>>, PR: ParsedRecord>(&mut self, next_resource_record_pointer: usize, answer_section_resource_record_visitor: RRV) -> Result<(usize, Option<OwnerNameToRecordsValue<PR>>, CanonicalNameChain<'message>), AnswerSectionError<WrappingCanonicalChainError<RRV::Error>>>
+	fn parse_answer_section<RRV: ResourceRecordVisitor<'message, Finished=OwnerNameToParsedRecords<'message, PR>>, PR: ParsedRecord>(&mut self, next_resource_record_pointer: usize, answer_section_resource_record_visitor: RRV) -> Result<(usize, Option<OwnerNameToParsedRecordsValue<PR>>, CanonicalNameChain<'message>), AnswerSectionError<WrappingCanonicalChainError<RRV::Error>>>
 	{
 		let number_of_resource_records = self.message_header.number_of_resource_records_in_the_answer_section();
 

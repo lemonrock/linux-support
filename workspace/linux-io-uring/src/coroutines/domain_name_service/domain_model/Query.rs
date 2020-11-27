@@ -54,7 +54,7 @@ impl<'query_name> Query<'query_name>
 	}
 	
 	#[inline(always)]
-	fn read_reply_after_message_length_checked<'message, RRV: ResourceRecordVisitor<'message, Finished=OwnerNameToRecords<'message, PR>>, PR: ParsedRecord>(&self, raw_dns_message: &'message [u8], answer_section_resource_record_visitor: RRV) -> Result<(Answer<PR>, CanonicalNameChain<'message>), ReadReplyAfterLengthCheckedError<RRV::Error>>
+	fn read_reply_after_message_length_checked<'message, RRV: ResourceRecordVisitor<'message, Finished=OwnerNameToParsedRecords<'message, PR>>, PR: ParsedRecord>(&self, raw_dns_message: &'message [u8], answer_section_resource_record_visitor: RRV) -> Result<(Answer<PR>, CanonicalNameChain<'message>), ReadReplyAfterLengthCheckedError<RRV::Error>>
 	{
 		let dns_message = unsafe { &* (raw_dns_message.as_ptr() as *const DnsMessage) };
 		let message_header = dns_message.message_header();

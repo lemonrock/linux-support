@@ -2,29 +2,38 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) struct AQueryProcessorResourceRecordVisitor<'message>
+/// For record types such as:-
+///
+/// * `TXT`.
+///
+/// Where the original upstream sort order needs to be retained.
+#[derive(Debug, Clone)]
+#[derive(Deserialize, Serialize)]
+pub struct MultipleUnsortedRecords<OR: OwnedRecord + Ord>
 {
-	query_name: &'message FullyQualifiedDomainName,
-	
-	records: OwnerNameToParsedRecords<Ipv4Addr, ()>,
+	records: Vec<OR>,
 }
 
-impl<'message> ResourceRecordVisitor<'message> for AQueryProcessorResourceRecordVisitor<'message>
+impl<OR: OwnedRecord + Ord> MultipleUnsortedRecords<OR>
 {
-	type Error = Infallible;
-	
-	type Finished = OwnerNameToParsedRecords<Ipv4Addr>;
-	
 	#[inline(always)]
-	fn finished(self) -> Self::Finished
+	pub(crate) const fn new(records: Vec<OR>) -> Self
 	{
-		self.records
+		Self
+		{
+			records
+		}
 	}
 	
+	/// Iterate.
 	#[inline(always)]
-	fn A(&mut self, name: ParsedName<'message>, cache_until: CacheUntil, record: Ipv4Addr) -> Result<(), Self::Error>
+	pub fn iterate<'a>(&'a self) -> MultipleUnsortedRecordsIterator<'a, OR>
 	{
-		self.records.add(name, cache_until, record, ());
-		Ok(())
+		MultipleUnsortedRecordsIterator
+		{
+			source: &self.records,
+			
+			next_index: 0,
+		}
 	}
 }

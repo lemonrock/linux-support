@@ -21,6 +21,13 @@ pub enum DomainCacheBuilderError
 	},
 	
 	#[allow(missing_docs)]
+	InternetProtocolAddressPointerNameWasPreviouslyDefinedAsSomethingElse
+	{
+		#[allow(missing_docs)]
+		internet_protocol_address_pointer_name: FullyQualifiedDomainName,
+	},
+	
+	#[allow(missing_docs)]
 	CanonicalNameWasPreviouslyDefinedAsAnAlias
 	{
 		#[allow(missing_docs)]

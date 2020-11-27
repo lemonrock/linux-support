@@ -3,13 +3,13 @@
 
 
 #[derive(Debug)]
-pub(crate) struct OwnerNameToRecordsValue<PR: ParsedRecord>
+pub(crate) struct OwnerNameToParsedRecordsValue<PR: ParsedRecord>
 {
 	cache_until: CacheUntil,
 	records: Vec<(PR, PR::OrderPriorityAndWeight)>
 }
 
-impl<PR: ParsedRecord> OwnerNameToRecordsValue<PR>
+impl<PR: ParsedRecord> OwnerNameToParsedRecordsValue<PR>
 {
 	#[inline(always)]
 	pub(crate) fn solitary(self) -> PR
@@ -45,5 +45,83 @@ impl<PR: ParsedRecord> OwnerNameToRecordsValue<PR>
 	{
 		self.cache_until.update(cache_until);
 		self.records.push((record, order_priority_and_weight))
+	}
+	
+	#[inline(always)]
+	pub(crate) fn records(self) -> Vec<(PR, PR::OrderPriorityAndWeight)>
+	{
+		self.records
+	}
+}
+
+impl<PR: ParsedRecord<OrderPriorityAndWeight=(Priority, Weight)>> OwnerNameToParsedRecordsValue<PR>
+{
+	#[inline(always)]
+	fn sort(mut self)
+	{
+		self.records.sort_unstable_by(|left, right|
+		{
+			use self::Ordering::Equal;
+			
+			let (left_parsed_record, (left_priority, left_weight)) = left;
+			let (right_parsed_record, (right_priority, right_weight)) = right;
+			
+			let priority_ordering = left_priority.cmp(right_priority);
+			
+			if priority_ordering != Ordering::Equal
+			{
+				return priority_ordering
+			}
+			
+			match (left_weight, right_weight)
+			{
+			
+			}
+		})
+	}
+}
+
+impl<PR: ParsedRecord<OrderPriorityAndWeight=Priority> + Ord> OwnerNameToParsedRecordsValue<PR>
+{
+	#[inline(always)]
+	fn sort(mut self)
+	{
+		self.records.sort_unstable_by(|left, right|
+		{
+			use self::Ordering::Equal;
+			
+			let (left_parsed_record, left_priority) = left;
+			let (right_parsed_record, right_priority) = right;
+			
+			let priority_ordering = left_priority.cmp(right_priority);
+			
+			if priority_ordering != Ordering::Equal
+			{
+				return priority_ordering
+			}
+			
+			left_parsed_record.cmp(right_parsed_record)
+		})
+	}
+}
+
+impl<PR: ParsedRecord<OrderPriorityAndWeight=(Order, Priority)>> OwnerNameToParsedRecordsValue<PR>
+{
+	#[inline(always)]
+	fn sort(mut self)
+	{
+		self.records.sort_unstable_by(|left, right|
+		{
+			let (left_parsed_record, (left_order, left_priority)) = left;
+			let (right_parsed_record, (right_order, right_priority)) = right;
+			
+			let order_ordering = left_order.cmp(right_order);
+			if order_ordering != Ordering::Equal
+			{
+				return order_ordering
+			}
+			
+			left_priority.cmp(right_priority)
+		})
 	}
 }

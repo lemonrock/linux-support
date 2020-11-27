@@ -10,7 +10,7 @@ pub(crate) enum Answer<PR: ParsedRecord>
 		// This is the domain for which there are records (eg `AAAA`).
 		//most_canonical_name: EfficientCaseFoldedName,
 	
-		records: OwnerNameToRecordsValue<PR>,
+		records: OwnerNameToParsedRecordsValue<PR>,
 	},
 	
 	NoDomain

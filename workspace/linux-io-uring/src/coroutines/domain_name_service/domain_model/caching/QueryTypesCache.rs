@@ -18,11 +18,13 @@ pub(crate) struct QueryTypesCache
 	
 	pub(crate) HINFO: Option<QueryTypeCache<MultipleSortedRecords<HostInformation<OwnedCharacterString>>>>,
 	
-	pub(crate) PTR: Option<QueryTypeCache<MultipleSortedRecords<PointerName<AliasOrDomainTarget>>>>,
+	pub(crate) PTR: Option<QueryTypeCache<MultipleSortedRecords<PointerName<DomainTarget>>>>,
 	
-	// pub(crate) SRV: Option<QueryTypeCache<MultiplePrioritizedThenWeightedRecords<ServiceLocation<DomainTarget>>>>,
-	//
-	// pub(crate) NAPTR: Option<QueryTypeCache<MultipleOrderedThenPrioritizedThenUnsortedRecords<NamingAuthorityPointer<DomainTarget, OwnedUri, OwnedCharacterString, OwnedTypeEquality>>>>,
+	pub(crate) TXT: Option<QueryTypeCache<MultipleUnsortedRecords<Text<OwnedCharacterString>>>>,
+	
+	pub(crate) SRV: Option<QueryTypeCache<MultiplePrioritizedThenWeightedRecords<ServiceLocation<DomainTarget>>>>,
+	
+	pub(crate) NAPTR: Option<QueryTypeCache<MultipleOrderedThenPrioritizedThenUnsortedRecords<NamingAuthorityPointer<DomainTarget, OwnedUri, OwnedCharacterString, OwnedTypeEquality>>>>,
 }
 
 impl Default for QueryTypesCache
@@ -46,9 +48,11 @@ impl Default for QueryTypesCache
 			
 			PTR: None,
 			
-			// SRV: None,
+			TXT: None,
 			
-			// NAPTR: None,
+			SRV: None,
+			
+			NAPTR: None,
 		}
 	}
 }
@@ -58,7 +62,15 @@ impl QueryTypesCache
 	#[inline(always)]
 	fn is_empty(&self) -> bool
 	{
-		self.A.is_none() && self.NS.is_none() && self.SOA.is_none() && self.AAAA.is_none() && self.MX.is_none() && self.HINFO.is_none()
+		self.A.is_none()
+			&& self.NS.is_none()
+			&& self.SOA.is_none()
+			&& self.AAAA.is_none()
+			&& self.MX.is_none()
+			&& self.HINFO.is_none()
+			&& self.TXT.is_none()
+			&& self.SRV.is_none()
+			&& self.NAPTR.is_none()
 	}
 	
 	pub(crate) fn for_ipv4only_arpa() -> Self
@@ -68,7 +80,7 @@ impl QueryTypesCache
 			A:
 			{
 				let mut records = MultipleSortedRecords::single(Ipv4Addr::new(192, 0, 0, 170));
-				records.add(Ipv4Addr::new(192, 0, 0, 171));
+				records.add_inefficient(Ipv4Addr::new(192, 0, 0, 171));
 				QueryTypeCache::data_forever(records)
 			},
 			
@@ -83,6 +95,41 @@ impl QueryTypesCache
 			HINFO: QueryTypeCache::no_data_forever(),
 			
 			PTR: QueryTypeCache::no_data_forever(),
+			
+			TXT: QueryTypeCache::no_data_forever(),
+			
+			SRV: QueryTypeCache::no_data_forever(),
+			
+			NAPTR: QueryTypeCache::no_data_forever(),
+		}
+	}
+	
+	/// As per RFC 8880, Section 7.2, Names '170.0.0.192.in‑addr.arpa' and '171.0.0.192.in‑addr.arpa'.
+	///
+	/// In practice, the domain `192.in-addr.arpa` reports `NXDOMAIN`.
+	pub(crate) fn pointer_for_ipv4only_arpa() -> Self
+	{
+		Self
+		{
+			A: QueryTypeCache::no_data_forever(),
+			
+			NS: QueryTypeCache::no_data_forever(),
+			
+			SOA: QueryTypeCache::no_data_forever(),
+			
+			AAAA: QueryTypeCache::no_data_forever(),
+			
+			MX: QueryTypeCache::no_data_forever(),
+			
+			HINFO: QueryTypeCache::no_data_forever(),
+			
+			PTR: QueryTypeCache::data_forever(MultipleSortedRecords::single(PointerName::new(EfficientCaseFoldedName::second_level(EfficientCaseFoldedLabel::ipv4only, EfficientCaseFoldedLabel::arpa)))),
+			
+			TXT: QueryTypeCache::no_data_forever(),
+			
+			SRV: QueryTypeCache::no_data_forever(),
+			
+			NAPTR: QueryTypeCache::no_data_forever(),
 		}
 	}
 }

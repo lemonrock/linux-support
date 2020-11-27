@@ -12,24 +12,35 @@ impl<'message> ParsedRecord for PointerName<ParsedName<'message>>
 {
 	type OrderPriorityAndWeight = Priority;
 	
-	type OwnedRecord = PointerName<AliasOrDomainTarget>;
+	type OwnedRecord = PointerName<DomainTarget>;
 	
 	#[inline(always)]
-	fn into_owned_record(self) -> Self::OwnedRecord
+	fn into_owned_records(records: OwnerNameToParsedRecordsValue<Self>) -> <Self::OwnedRecord as OwnedRecord>::OwnedRecords
 	{
-		PointerName::new(AliasOrDomainTarget::from(self.0))
-	}
-	
-	#[inline(always)]
-	fn into_owned_records(records: OwnerNameToRecordsValue<Self>) -> <Self::OwnedRecord as OwnedRecord>::OwnedRecords
-	{
-		MultipleSortedRecords::<PointerName<AliasOrDomainTarget>>::from(records)
+		let mut parsed_records = records.records();
+		
+		let length = parsed_records.len();
+		let mut owned_records = Vec::with_capacity(length);
+		unsafe{ owned_records.set_len(length) };
+		
+		let mut index = 0;
+		for (parsed_record, _) in parsed_records
+		{
+			let owned_record: PointerName<DomainTarget> = PointerName::new(AliasOrDomainTarget::from(parsed_record.0));
+			unsafe { owned_records.as_mut_ptr().add(index).write(owned_record) }
+			index + 1;
+		}
+		
+		owned_records.sort_unstable();
+		MultipleSortedRecords::new(owned_records)
 	}
 }
 
-impl OwnedRecord for PointerName<AliasOrDomainTarget>
+impl OwnedRecord for PointerName<DomainTarget>
 {
-	type OwnedRecords = MultipleSortedRecords<PointerName<AliasOrDomainTarget>>;
+	const SubdomainsAreNeverValid: bool = true;
+	
+	type OwnedRecords = MultipleSortedRecords<PointerName<DomainTarget>>;
 	
 	#[inline(always)]
 	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>

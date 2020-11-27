@@ -3,9 +3,9 @@
 
 
 #[derive(Default, Debug)]
-pub(crate) struct OwnerNameToRecords<'message, PR: ParsedRecord>(HashMap<EitherName<'message>, OwnerNameToRecordsValue<PR>>);
+pub(crate) struct OwnerNameToParsedRecords<'message, PR: ParsedRecord>(HashMap<EitherName<'message>, OwnerNameToParsedRecordsValue<PR>>);
 
-impl<'message, PR: ParsedRecord> OwnerNameToRecords<'message, PR>
+impl<'message, PR: ParsedRecord> OwnerNameToParsedRecords<'message, PR>
 {
 	#[inline(always)]
 	pub(crate) fn with_capacity(capacity: usize) -> Self
@@ -22,7 +22,7 @@ impl<'message, PR: ParsedRecord> OwnerNameToRecords<'message, PR>
 		{
 			Vacant(vacant) =>
 			{
-				vacant.insert(OwnerNameToRecordsValue::new_for_one(cache_until, record, order_priority_and_weight));
+				vacant.insert(OwnerNameToParsedRecordsValue::new_for_one(cache_until, record, order_priority_and_weight));
 			}
 			
 			Occupied(occupied) =>
@@ -33,7 +33,7 @@ impl<'message, PR: ParsedRecord> OwnerNameToRecords<'message, PR>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn filter(self, most_canonical_name: &EfficientCaseFoldedName) -> Option<OwnerNameToRecordsValue<PR>>
+	pub(crate) fn filter(self, most_canonical_name: &EfficientCaseFoldedName) -> Option<OwnerNameToParsedRecordsValue<PR>>
 	{
 		self.0.remove(&EitherName::EfficientCaseFolded(most_canonical_name.clone()))
 	}

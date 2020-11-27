@@ -105,8 +105,6 @@ impl<'a> DomainCacheBuilder<'a>
 			Vacant(vacant) =>
 			{
 				vacant.insert(DomainCacheEntry::fixed_internet_protocol_address_potentially_blocked(internet_protocol_address));
-				
-				Ok(())
 			}
 			
 			Occupied(occupied) =>
@@ -115,25 +113,64 @@ impl<'a> DomainCacheBuilder<'a>
 				{
 					(None, NeverValid) => Ok(()),
 					
-					(Some(_), NeverValid) => Err(CanonicalNameWasPreviouslyBlockedButNowIsDefined { canonical_name: occupied.replace_key() }),
+					(Some(_), NeverValid) => return Err(CanonicalNameWasPreviouslyBlockedButNowIsDefined { canonical_name: occupied.replace_key() }),
 					
 					(Some(internet_protocol_address), Fixed { fixed_domain_cache_entry: FixedDomainCacheEntry::QueryTypesFixed(query_types_fixed), .. }) =>
 					{
 						query_types_fixed.add_internet_protocol_address(internet_protocol_address);
-						
-						Ok(())
 					}
 					
-					(None, Fixed { fixed_domain_cache_entry: FixedDomainCacheEntry::QueryTypesFixed(_), .. }) => Err(CanonicalNameWasPreviouslyDefinedButNowIsBlocked { canonical_name: occupied.replace_key() }),
+					(None, Fixed { fixed_domain_cache_entry: FixedDomainCacheEntry::QueryTypesFixed(_), .. }) => return Err(CanonicalNameWasPreviouslyDefinedButNowIsBlocked { canonical_name: occupied.replace_key() }),
 					
-					(_, Fixed { fixed_domain_cache_entry: FixedDomainCacheEntry::Alias(alias), .. }) => Err(CanonicalNameWasPreviouslyDefinedAsAnAlias { canonical_name: occupied.replace_key(), previously_defined_alias: alias.clone() }),
+					(_, Fixed { fixed_domain_cache_entry: FixedDomainCacheEntry::Alias(alias), .. }) => return Err(CanonicalNameWasPreviouslyDefinedAsAnAlias { canonical_name: occupied.replace_key(), previously_defined_alias: alias.clone() }),
 					
 					_ => panic!("Unexpected former entry"),
 				}
 			}
 		}
 		
+		if let Some(internet_protocol_address) = internet_protocol_address
+		{
+			self.add_pointer_record(canonical_name, internet_protocol_address)?;
+		}
+		
 		Ok(())
+	}
+	
+	#[inline(always)]
+	pub(crate) fn add_pointer_record(&mut self, canonical_name: &DomainTarget, internet_protocol_address: IpAddr) -> Result<(), DomainCacheBuilderError>
+	{
+		use self::FastSecureHashMapEntry::*;
+		use self::DomainCacheBuilderError::*;
+		
+		use self::IpAddr::*;
+		
+		let domain_name = match internet_protocol_address
+		{
+			V4(v4) => EfficientCaseFoldedName::internet_protocol_version_4_pointer_unchecked(v4),
+			
+			V6(v6) => EfficientCaseFoldedName::internet_protocol_version_6_pointer_unchecked(v6),
+		};
+		
+		match self.map.entry(domain_name)
+		{
+			Vacant(vacant) =>
+			{
+				vacant.insert(DomainCacheEntry::fixed_pointer(canonical_name));
+				
+				Ok(())
+			}
+			
+			Occupied(occupied) => if let DomainCacheEntry::Fixed { fixed_domain_cache_entry: FixedDomainCacheEntry::QueryTypesFixed(query_types_fixed), .. } = occupied.get_mut()
+			{
+				let pointers = query_types_fixed.PTR.as_mut().ok_or(InternetProtocolAddressPointerNameWasPreviouslyDefinedAsSomethingElse { internet_protocol_address_pointer_name: occupied.replace_key() })?;
+				pointers.add_inefficient(PointerName::new(canonical_name.clone()))
+			}
+			else
+			{
+				Err(InternetProtocolAddressPointerNameWasPreviouslyDefinedAsSomethingElse { internet_protocol_address_pointer_name: occupied.replace_key() })
+			}
+		}
 	}
 	
 	#[inline(always)]
@@ -183,6 +220,8 @@ impl<'a> DomainCacheBuilder<'a>
 	#[inline(always)]
 	pub(crate) fn always_valid_domain_names(&mut self, top_level_domain_names: &HashSet<DomainTarget>, always_valid_locally_administered_domains: &HashSet<DomainTarget>)
 	{
+		self.overwrite_always_valid_domain_name(EfficientCaseFoldedName::root());
+		
 		for always_valid_domain_name in top_level_domain_names.iter()
 		{
 			self.overwrite_always_valid_domain_name(always_valid_domain_name.clone())
@@ -208,7 +247,7 @@ impl<'a> DomainCacheBuilder<'a>
 	{
 		for local_machine_only_domain_name in local_machine_only_domain_names.iter()
 		{
-			self.overwrite_local_machine_only_domain_name(local_machine_only_domain_name.clone())
+			self.overwrite_local_machine_only_domain_name(local_machine_only_domain_name)
 		}
 	}
 	
@@ -238,9 +277,12 @@ impl<'a> DomainCacheBuilder<'a>
 	}
 	
 	#[inline(always)]
-	fn overwrite_local_machine_only_domain_name(&mut self, local_machine_only_domain_name: DomainTarget)
+	fn overwrite_local_machine_only_domain_name(&mut self, local_machine_only_domain_name: &DomainTarget)
 	{
-		self.overwrite(local_machine_only_domain_name, DomainCacheEntry::fixed_local_machine_only())
+		self.overwrite(local_machine_only_domain_name.clone(), DomainCacheEntry::fixed_local_machine_only());
+		
+		self.overwrite(EfficientCaseFoldedName::internet_protocol_version_4_pointer_unchecked(Ipv4Addr::LOCALHOST), DomainCacheEntry::fixed_pointer(local_machine_only_domain_name));
+		self.overwrite(EfficientCaseFoldedName::internet_protocol_version_6_pointer_unchecked(Ipv6Addr::LOCALHOST), DomainCacheEntry::fixed_pointer(local_machine_only_domain_name));
 	}
 	
 	#[inline(always)]

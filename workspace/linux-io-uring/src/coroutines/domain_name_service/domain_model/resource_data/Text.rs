@@ -2,29 +2,15 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Host information.
-///
-/// Brought back from obscurity by RFC 8482.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Deserialize, Serialize)]
-pub struct HostInformation<CS: CharacterString>
-{
-	/// `CPU` field.
-	///
-	/// In RFC 8482, this will be `RFC8482`.
-	pub cpu: CS,
+/// `TXT` record.
+#[derive(Debug, Clone)]
+pub struct Text<CS: CharacterString>(Vec<CS>);
 
-	/// `OS` field.
-	///
-	/// In RFC 8482, this will be ``.
-	pub os: CS,
-}
-
-impl<'message> ParsedRecord for HostInformation<ParsedCharacterString<'message>>
+impl<'message> ParsedRecord for Text<ParsedCharacterString<'message>>
 {
 	type OrderPriorityAndWeight = ();
 	
-	type OwnedRecord = HostInformation<OwnedCharacterString>;
+	type OwnedRecord = Text<OwnedCharacterString>;
 	
 	#[inline(always)]
 	fn into_owned_records(records: OwnerNameToParsedRecordsValue<Self>) -> <Self::OwnedRecord as OwnedRecord>::OwnedRecords
@@ -38,44 +24,55 @@ impl<'message> ParsedRecord for HostInformation<ParsedCharacterString<'message>>
 		let mut index = 0;
 		for (parsed_record, _) in parsed_records
 		{
-			let owned_record: HostInformation<OwnedCharacterString> = HostInformation
-			{
-				cpu: parsed_record.cpu.into(),
-				os: parsed_record.os.into(),
-			};
+			let owned_record = parsed_record.into_owned_record();
 			unsafe { owned_records.as_mut_ptr().add(index).write(owned_record) }
 			index + 1;
 		}
 		
 		owned_records.sort_unstable();
-		MultipleSortedRecords::new(owned_records)
+		MultipleUnsortedRecords::new(owned_records)
 	}
 }
 
-impl OwnedRecord for HostInformation<OwnedCharacterString>
+impl OwnedRecord for Text<OwnedCharacterString>
 {
-	type OwnedRecords = MultipleSortedRecords<Self>;
+	type OwnedRecords = MultipleUnsortedRecords<Self>;
 	
 	#[inline(always)]
 	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>
 	{
-		&mut query_types_cache.HINFO
+		&mut query_types_cache.TXT
 	}
 }
 
-impl<CS: CharacterString> HostInformation<CS>
+impl<'message> Text<ParsedCharacterString<'message>>
 {
-	/// Is this a RFC 8482 answer to the `ANY` / `*` `QTYPE` question?
 	#[inline(always)]
-	pub fn is_rfc_8482_answer_to_any_question(&self) -> bool
+	fn into_owned_record(self) -> Text<OwnedCharacterString>
 	{
-		self.cpu.deref() == b"RFC8482" && self.os.is_empty()
+		let length = self.0.len();
+		let mut owned_character_strings = Vec::with_capacity(length);
+		unsafe{ owned_character_strings.set_len(length) };
+		
+		let mut index = 0;
+		for parsed_character_string in self.0
+		{
+			let owned_character_string = OwnedCharacterString::from(parsed_character_string);
+			unsafe { owned_character_strings.as_mut_ptr().add(index).write(owned_character_string) }
+			index + 1;
+		}
+		
+		Text(owned_character_strings)
 	}
+}
 
-	/// Is this a CloudFlare answer to the `ANY` / `*` `QTYPE` question?
+impl Deref for Text<OwnedCharacterString>
+{
+	type Target = [OwnedCharacterString];
+	
 	#[inline(always)]
-	pub fn is_cloudflare_answer_to_any_question(&self) -> bool
+	fn deref(&self) -> &Self::Target
 	{
-		self.cpu.deref() == b"ANY obsoleted" && self.os == b"See draft-ietf-dnsop-refuse-any"
+		&self.0[..]
 	}
 }

@@ -202,7 +202,11 @@ impl DomainCacheBuilderConfiguration
 			//
 			// See also RFC 7050.
 			// Furthermore, for Internet Protocol version 4, it has the fixed `A` records `192.0.0.170` and `192.0.0.171`; these are defined in the [IANA IPv5 Special-Purpose Address Registry](https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml).
-			EfficientCaseFoldedName::second_level(EfficientCaseFoldedLabel::ipv4only, EfficientCaseFoldedLabel::arpa) => QueryTypesCache::for_ipv4only_arpa()
+			EfficientCaseFoldedName::second_level(EfficientCaseFoldedLabel::ipv4only, EfficientCaseFoldedLabel::arpa) => QueryTypesCache::for_ipv4only_arpa(),
+			
+			// RFC 8880, Section 7.2, Names '170.0.0.192.in-addr.arpa' and '171.0.0.192.in-addr.arpa'.
+			EfficientCaseFoldedName::internet_protocol_version_4_pointer_unchecked(Ipv4Addr::new(170, 0, 0, 192)) => QueryTypesCache::pointer_for_ipv4only_arpa(),
+			EfficientCaseFoldedName::internet_protocol_version_4_pointer_unchecked(Ipv4Addr::new(171, 0, 0, 192)) => QueryTypesCache::pointer_for_ipv4only_arpa(),
 		]
 	}
 	

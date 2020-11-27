@@ -58,7 +58,9 @@ impl<'resolv_conf, 'search_name: 'next, 'next> SearchListIterator<'resolv_conf, 
 			},
 		
 			search_name,
-		
+			
+			harden_using_iana_ssac_advisory_on_search_list_processing,
+			
 			marker: PhantomData,
 		}
 	}

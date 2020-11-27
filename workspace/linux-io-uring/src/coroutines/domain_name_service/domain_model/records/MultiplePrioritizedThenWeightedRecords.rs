@@ -10,29 +10,33 @@
 #[derive(Deserialize, Serialize)]
 pub struct MultiplePrioritizedThenWeightedRecords<OR: OwnedRecord>
 {
-	records: PriorityToWeightedRecordsMap<OR>,
+	records: Vec<MultiplePrioritizedThenWeightedRecordsItem<OR>>,
 }
 
 impl<OR: OwnedRecord> OwnedRecords<OR> for MultiplePrioritizedThenWeightedRecords<OR>
 {
 }
 
-impl<PR: ParsedRecord<OrderPriorityAndWeight=(Priority, Weight), OwnedRecord=OR>, OR: OwnedRecord> From<OwnerNameToRecordsValue<PR>> for MultiplePrioritizedThenWeightedRecords<OR>
+impl<OR: OwnedRecord> MultiplePrioritizedThenWeightedRecords<OR>
 {
 	#[inline(always)]
-	fn from(value: OwnerNameToRecordsValue<PR>) -> Self
+	pub(crate) const fn new(records: Vec<MultiplePrioritizedThenWeightedRecordsItem<OR>>) -> Self
 	{
 		Self
 		{
-			records:
-			{
-				let mut records = PriorityToWeightedRecordsMap::default();
-				for (record, (priority, weight)) in value.records
-				{
-					records.add(priority, weight, record.into_owned_record())
-				}
-				records
-			},
+			records
+		}
+	}
+	
+	/// Iterate.
+	#[inline(always)]
+	pub fn iterate<'a>(&'a self) -> MultiplePrioritizedThenWeightedRecordsIterator<'a, OR>
+	{
+		MultiplePrioritizedThenWeightedRecordsIterator
+		{
+			source: &self.records,
+			
+			next_priority_starts_at_index: 0
 		}
 	}
 }

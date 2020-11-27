@@ -19,11 +19,13 @@ pub struct HostConf
 	/// Ignored option `nospoof`.
 	///
 	/// Not supported by glibc.
+	#[deprecated]
 	nospoof: bool,
 	
 	/// Ignored option `alert`.
 	///
 	/// Not supported by glibc.
+	#[deprecated]
 	alert: bool,
 	
 	/// Search domains.

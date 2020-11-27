@@ -10,21 +10,18 @@ pub(crate) trait ParsedRecord: Sized + Debug
 	
 	type OwnedRecord: OwnedRecord;
 	
-	#[inline(always)]
-	fn into_owned_record(self) -> Self::OwnedRecord;
-	
-	fn into_owned_records(records: OwnerNameToRecordsValue<Self>) -> <Self::OwnedRecord as OwnedRecord>::OwnedRecords;
+	fn into_owned_records(records: OwnerNameToParsedRecordsValue<Self>) -> <Self::OwnedRecord as OwnedRecord>::OwnedRecords;
 	
 	#[inline(always)]
-	fn store(query_types_cache: &mut QueryTypesCache, records: OwnerNameToRecordsValue<Self>)
+	fn store(subdomains_are_never_valid: NonNull<bool>, query_types_cache: &mut QueryTypesCache, records: OwnerNameToParsedRecordsValue<Self>)
 	{
-		Self::OwnedRecord::store(query_types_cache, Self::into_owned_records(records))
+		Self::OwnedRecord::store(subdomains_are_never_valid, query_types_cache, Self::into_owned_records(records))
 	}
 	
 	#[inline(always)]
-	fn no_data(query_types_cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
+	fn no_data(subdomains_are_never_valid: NonNull<bool>, query_types_cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
 	{
-		Self::OwnedRecord::no_data(query_types_cache, negative_cache_until)
+		Self::OwnedRecord::no_data(subdomains_are_never_valid, query_types_cache, negative_cache_until)
 	}
 }
 
@@ -35,15 +32,12 @@ impl ParsedRecord for Ipv4Addr
 	type OwnedRecord = Self;
 	
 	#[inline(always)]
-	fn into_owned_record(self) -> Self::OwnedRecord
+	fn into_owned_records(records: OwnerNameToParsedRecordsValue<Self>) -> <Self::OwnedRecord as OwnedRecord>::OwnedRecords
 	{
-		self
-	}
-	
-	#[inline(always)]
-	fn into_owned_records(records: OwnerNameToRecordsValue<Self>) -> <Self::OwnedRecord as OwnedRecord>::OwnedRecords
-	{
-		MultipleSortedRecords::<Self>::from(records)
+		let mut owned_records: Vec<Self> = unsafe { transmute(records.records()) };
+		owned_records.sort_unstable();
+		
+		MultipleSortedRecords::new(owned_records)
 	}
 }
 
@@ -54,14 +48,11 @@ impl ParsedRecord for Ipv6Addr
 	type OwnedRecord = Self;
 	
 	#[inline(always)]
-	fn into_owned_record(self) -> Self::OwnedRecord
+	fn into_owned_records(records: OwnerNameToParsedRecordsValue<Self>) -> <Self::OwnedRecord as OwnedRecord>::OwnedRecords
 	{
-		self
-	}
-	
-	#[inline(always)]
-	fn into_owned_records(records: OwnerNameToRecordsValue<Self>) -> <Self::OwnedRecord as OwnedRecord>::OwnedRecords
-	{
-		MultipleSortedRecords::<Self>::from(records)
+		let mut owned_records: Vec<Self> = unsafe { transmute(records.records()) };
+		owned_records.sort_unstable();
+		
+		MultipleSortedRecords::new(owned_records)
 	}
 }

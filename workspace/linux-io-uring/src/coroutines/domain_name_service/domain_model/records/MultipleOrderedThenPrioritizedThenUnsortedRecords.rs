@@ -9,46 +9,33 @@
 #[derive(Deserialize, Serialize)]
 pub struct MultipleOrderedThenPrioritizedThenUnsortedRecords<OR: OwnedRecord>
 {
-	records: BTreeMap<Order, PriorityToUnsortedRecordsMap<OR>>,
+	records: Vec<MultipleOrderedThenPrioritizedThenUnsortedRecordsItem<OR>>,
 }
 
 impl<OR: OwnedRecord> OwnedRecords<OR> for MultipleOrderedThenPrioritizedThenUnsortedRecords<OR>
 {
 }
 
-impl<PR: ParsedRecord<OrderPriorityAndWeight=(Order, Priority), OwnedRecord=OR>, OR: OwnedRecord> From<OwnerNameToRecordsValue<PR>> for MultipleOrderedThenPrioritizedThenUnsortedRecords<OR>
+impl<OR: OwnedRecord> MultipleOrderedThenPrioritizedThenUnsortedRecords<OR>
 {
 	#[inline(always)]
-	fn from(value: OwnerNameToRecordsValue<PR>) -> Self
+	pub(crate) const fn new(records: Vec<MultipleOrderedThenPrioritizedThenUnsortedRecordsItem<OR>>) -> Self
 	{
 		Self
 		{
-			records:
-			{
-				let mut records = BTreeMap::default();
-				for (record, (order, priority)) in value.records
-				{
-					use std::collections::btree_map::Entry::*;
-					
-					let record = record.into_owned_record();
-					match records.entry(order)
-					{
-						Vacant(vacant) =>
-						{
-							vacant.insert(PriorityToUnsortedRecordsMap::new_for_one(priority, record));
-						},
-						
-						Occupied(mut occupied) =>
-						{
-							let occupied = occupied.get_mut();
-							debug_assert!(!occupied.is_empty(), "If occupied is empty, then we've populated `PriorityToSortedRecordsMap` incorrectly");
-							
-							occupied.add(priority, record);
-						},
-					}
-				}
-				records
-			},
+			records
+		}
+	}
+	
+	/// Iterate.
+	#[inline(always)]
+	pub fn iterate<'a>(&'a self) -> MultipleOrderedThenPrioritizedThenUnsortedRecordsIterator<'a, OR>
+	{
+		MultipleOrderedThenPrioritizedThenUnsortedRecordsIterator
+		{
+			source: &self.records,
+			
+			next_order_starts_at_index: 0
 		}
 	}
 }

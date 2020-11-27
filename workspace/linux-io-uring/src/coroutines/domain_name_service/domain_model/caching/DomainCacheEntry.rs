@@ -37,15 +37,11 @@ pub(crate) enum DomainCacheEntry
 		/// Irrespective of TTLs, etc, a domain that is always valid.
 		///
 		/// Typically used for the root and all top-level domains.
-		///
-		/// Also used for, say, private hosted zones in Amazon Route 53.
-		///
-		/// Only occurs for `Answer::Answered` or `Answer::NoData`.
 		always_valid: bool,
 		
 		/// For special addresses like `ipv4only.arpa`, subdomains are never valid.
 		///
-		/// Only valid if `always_valid` is `true` (sic).
+		/// Also, for PTR domains, sub-domains of pointers can never be valid.
 		subdomains_are_never_valid: bool,
 		
 		/// Cache of `QTYPE`.
@@ -138,6 +134,17 @@ impl DomainCacheEntry
 	}
 	
 	#[inline(always)]
+	pub(crate) const fn fixed_pointer(canonical_name: &DomainTarget) -> Self
+	{
+		DomainCacheEntry::Fixed
+		{
+			subdomains_implicitly_resolve_to_the_same_record_as_this_one: false,
+			
+			fixed_domain_cache_entry: FixedDomainCacheEntry::pointer(canonical_name)
+		}
+	}
+	
+	#[inline(always)]
 	pub(crate) const fn fixed_alias(canonical_name: &DomainTarget) -> Self
 	{
 		DomainCacheEntry::Fixed
@@ -149,27 +156,30 @@ impl DomainCacheEntry
 	}
 	
 	#[inline(always)]
-	fn store_parsed<PR: ParsedRecord>(records: OwnerNameToRecordsValue<PR>) -> Self
+	fn store_parsed<PR: ParsedRecord>(records: OwnerNameToParsedRecordsValue<PR>) -> Self
 	{
 		let mut query_types_cache = QueryTypesCache::default();
-		PR::store(&mut query_types_cache, records);
-		DomainCacheEntry::Valid { always_valid: false, subdomains_are_never_valid: false, query_types_cache }
+		let mut subdomains_are_never_valid: bool = unsafe_uninitialized();
+		PR::store(NonNull::from(&mut subdomains_are_never_valid), &mut query_types_cache, records);
+		DomainCacheEntry::Valid { always_valid: false, subdomains_are_never_valid, query_types_cache }
 	}
 	
 	#[inline(always)]
 	fn no_data<PR: ParsedRecord>(negative_cache_until: NegativeCacheUntil) -> Self
 	{
 		let mut query_types_cache = QueryTypesCache::default();
-		PR::no_data(&mut query_types_cache, negative_cache_until);
-		DomainCacheEntry::Valid { always_valid: false, subdomains_are_never_valid: false, query_types_cache }
+		let mut subdomains_are_never_valid: bool = unsafe_uninitialized();
+		PR::no_data(NonNull::from(&mut subdomains_are_never_valid), &mut query_types_cache, negative_cache_until);
+		DomainCacheEntry::Valid { always_valid: false, subdomains_are_never_valid, query_types_cache }
 	}
 	
 	#[inline(always)]
 	fn store_owned<OR: OwnedRecord>(records: OR::OwnedRecords) -> Self
 	{
 		let mut query_types_cache = QueryTypesCache::default();
-		OR::store(&mut query_types_cache, records);
-		DomainCacheEntry::Valid { always_valid: false, subdomains_are_never_valid: false, query_types_cache }
+		let mut subdomains_are_never_valid: bool = unsafe_uninitialized();
+		OR::store(NonNull::from(&mut subdomains_are_never_valid), &mut query_types_cache, records);
+		DomainCacheEntry::Valid { always_valid: false, subdomains_are_never_valid, query_types_cache }
 	}
 	
 	#[inline(always)]

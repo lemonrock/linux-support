@@ -471,22 +471,20 @@ impl EfficientCaseFoldedName
 	/// Not all addresses are suitable, in particular, the following are rejected:-
 	///
 	/// * Private.
-	/// * Loopback.
 	/// * Link-Local.
 	/// * Broadcast.
 	/// * Documentation.
 	/// * The unspecified address `0.0.0.0/32`.
 	/// * Reserved.
 	/// * Benchmarking.
+	///
+	/// The following are not rejected:-
+	///
+	/// * Loopback.
 	#[inline(always)]
 	pub fn internet_protocol_version_4_pointer(address: Ipv4Addr) -> Option<Self>
 	{
 		if address.is_private()
-		{
-			return None
-		}
-		
-		if address.is_loopback()
 		{
 			return None
 		}
@@ -525,7 +523,7 @@ impl EfficientCaseFoldedName
 	}
 	
 	#[inline(always)]
-	fn internet_protocol_version_4_pointer_unchecked(address: Ipv4Addr) -> Self
+	pub(crate) fn internet_protocol_version_4_pointer_unchecked(address: Ipv4Addr) -> Self
 	{
 		let octets = address.octets();
 		
@@ -571,20 +569,19 @@ impl EfficientCaseFoldedName
 	///
 	/// Not all addresses are suitable, in particular, the following are rejected:-
 	///
-	/// * Loopback.
 	/// * Documentation.
 	/// * The unspecified addres.
 	/// * Multicast
 	/// * Unicast link-local.
 	/// * Unicast site-local.
+	///
+	/// The following are not rejected:-
+	///
+	/// * Loopback.
+	/// * Unicast Global.
 	#[inline(always)]
 	pub fn internet_protocol_version_6_pointer(address: Ipv6Addr) -> Option<Self>
 	{
-		if address.is_loopback()
-		{
-			return None
-		}
-		
 		if address.is_documentation()
 		{
 			return None
@@ -614,7 +611,7 @@ impl EfficientCaseFoldedName
 	}
 	
 	#[inline(always)]
-	fn internet_protocol_version_6_pointer_unchecked(address: Ipv6Addr) -> Self
+	pub(crate) fn internet_protocol_version_6_pointer_unchecked(address: Ipv6Addr) -> Self
 	{
 		let octets = address.octets();
 		
@@ -696,27 +693,6 @@ impl EfficientCaseFoldedName
 				]
 			),
 		}
-	}
-	
-	/// Concept created by RFC 6761.
-	///
-	/// See <https://www.iana.org/assignments/special-use-domain-names/special-use-domain-names.xhtml>.
-	#[inline(always)]
-	pub fn special_use_domain_names() -> &'static HashSet<Self>
-	{
-		lazy_static!
-		{
-			static ref special_use_domain_names: HashSet<EfficientCaseFoldedName<'static>> = fast_secure_hash_set!
-			{
-				
-				// RFC 8880, Section 7.2, Names '170.0.0.192.in-addr.arpa' and '171.0.0.192.in-addr.arpa'.
-				EfficientCaseFoldedName::internet_protocol_version_4_pointer_unchecked(Ipv4Addr::new(170, 0, 0, 192)),
-				EfficientCaseFoldedName::internet_protocol_version_4_pointer_unchecked(Ipv4Addr::new(171, 0, 0, 192)),
-				
-			};
-		}
-		
-		&special_use_domain_names
 	}
 }
 

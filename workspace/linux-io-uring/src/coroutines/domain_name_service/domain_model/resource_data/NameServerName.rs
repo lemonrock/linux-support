@@ -10,20 +10,29 @@ pub struct NameServerName<N: Name>(pub N);
 
 impl<'message> ParsedRecord for NameServerName<ParsedName<'message>>
 {
-	type OrderPriorityAndWeight = Priority;
+	type OrderPriorityAndWeight = ();
 	
 	type OwnedRecord = NameServerName<DomainTarget>;
 	
 	#[inline(always)]
-	fn into_owned_record(self) -> Self::OwnedRecord
+	fn into_owned_records(records: OwnerNameToParsedRecordsValue<Self>) -> <Self::OwnedRecord as OwnedRecord>::OwnedRecords
 	{
-		NameServerName::new(DomainTarget::from(self.0))
-	}
-	
-	#[inline(always)]
-	fn into_owned_records(records: OwnerNameToRecordsValue<Self>) -> <Self::OwnedRecord as OwnedRecord>::OwnedRecords
-	{
-		MultipleSortedRecords::<NameServerName<DomainTarget>>::from(records)
+		let mut parsed_records = records.records();
+		
+		let length = parsed_records.len();
+		let mut owned_records = Vec::with_capacity(length);
+		unsafe{ owned_records.set_len(length) };
+		
+		let mut index = 0;
+		for (parsed_record, _) in parsed_records
+		{
+			let owned_record: NameServerName<DomainTarget> = NameServerName::new(DomainTarget::from(parsed_record.0));
+			unsafe { owned_records.as_mut_ptr().add(index).write(owned_record) }
+			index + 1;
+		}
+		
+		owned_records.sort_unstable();
+		MultipleSortedRecords::new(owned_records)
 	}
 }
 
@@ -35,12 +44,6 @@ impl OwnedRecord for NameServerName<DomainTarget>
 	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>
 	{
 		&mut query_types_cache.NS
-	}
-	
-	#[inline(always)]
-	fn retrieve_fixed(query_types_fixed: &QueryTypesFixed) -> Option<&Self::OwnedRecords>
-	{
-		None
 	}
 }
 

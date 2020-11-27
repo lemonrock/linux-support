@@ -10,7 +10,7 @@ pub(crate) struct QueryTypesFixed
 	
 	pub(crate) AAAA: Option<MultipleSortedRecords<Ipv6Addr>>,
 	
-	pub(crate) PTR: Option<MultipleSortedRecords<PointerName<AliasOrDomainTarget>>>,
+	pub(crate) PTR: Option<MultipleSortedRecords<PointerName<DomainTarget>>>,
 }
 
 impl Default for QueryTypesFixed
@@ -30,7 +30,7 @@ impl Default for QueryTypesFixed
 impl QueryTypesFixed
 {
 	#[inline(always)]
-	pub(crate) fn new(internet_protocol_address: IpAddr) -> Self
+	pub(crate) fn new_internet_protocol_address(internet_protocol_address: IpAddr) -> Self
 	{
 		use self::IpAddr::*;
 		
@@ -41,6 +41,16 @@ impl QueryTypesFixed
 			
 			V6(v6) => query_types_fixed.AAAA = Some(MultipleSortedRecords::single(v6)),
 		}
+		query_types_fixed
+	}
+	
+	#[inline(always)]
+	pub(crate) fn pointer(canonical_name: &DomainTarget) -> Self
+	{
+		let mut query_types_fixed = QueryTypesFixed::default();
+		
+		query_types_fixed.PTR = Some(MultipleSortedRecords::single(PointerName::new(canonical_name.clone())));
+		
 		query_types_fixed
 	}
 	
@@ -69,7 +79,7 @@ impl QueryTypesFixed
 			}
 			else
 			{
-				self.A.as_mut().unwrap().add(v4)
+				self.A.as_mut().unwrap().add_inefficient(v4)
 			},
 			
 			V6(v6) =>if self.AAAA.is_none()
@@ -79,7 +89,7 @@ impl QueryTypesFixed
 			}
 			else
 			{
-				self.AAAA.as_mut().unwrap().add(v6)
+				self.AAAA.as_mut().unwrap().add_inefficient(v6)
 			},
 		}
 	}

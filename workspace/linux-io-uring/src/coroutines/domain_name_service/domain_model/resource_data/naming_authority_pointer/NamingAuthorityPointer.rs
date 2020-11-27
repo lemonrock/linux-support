@@ -258,10 +258,91 @@ pub enum NamingAuthorityPointer<N: Name<TypeEquality=TE>, OOPU: OwnedOrParsedUri
 	},
 }
 
-impl<'message> Into<NamingAuthorityPointer<FullyQualifiedDomainName, OwnedUri, OwnedCharacterString>> for NamingAuthorityPointer<ParsedName<'message>, ParsedUri<'message>, ParsedCharacterString<'message>>
+impl<'message> ParsedRecord for NamingAuthorityPointer<ParsedName<'message>, ParsedUri<'message>, ParsedCharacterString<'message>, ParsedTypeEquality>
+{
+	type OrderPriorityAndWeight = (Order, Priority);
+	
+	type OwnedRecord = NamingAuthorityPointer<DomainTarget, OwnedUri, OwnedCharacterString, OwnedTypeEquality>;
+	
+	#[inline(always)]
+	fn into_owned_records(records: OwnerNameToParsedRecordsValue<Self>) -> <Self::OwnedRecord as OwnedRecord>::OwnedRecords
+	{
+		let mut parsed_records = records.records();
+		parsed_records.sort_unstable_by(|left, right|
+		{
+			use self::Ordering::Equal;
+			
+			let (left_parsed_record, left_order, left_priority) = left;
+			let (right_parsed_record, right_order, right_priority) = right;
+			
+			let order_ordering = left_order.cmp(right_order);
+			
+			if order_ordering != Ordering::Equal
+			{
+				return order_ordering
+			}
+			
+			left_priority.cmp(right_priority)
+		});
+		
+		let length = parsed_records.len();
+		let mut owned_records: Vec<MultipleOrderedThenPrioritizedThenUnsortedRecordsItem<NamingAuthorityPointer<DomainTarget, OwnedUri, OwnedCharacterString, OwnedTypeEquality>>> = Vec::with_capacity(length);
+		unsafe { owned_records.set_len(length) };
+		
+		// Safe because `NoData` is a special case; there is always at least one record.
+		let (_, (initial_order, initial_priority)) = parsed_records.get_unchecked_safe(0);
+		
+		let mut index = 0;
+		let mut accumulating_order_count = 0usize;
+		let mut accumulating_order_count_for_index = 0;
+		let mut accumulating_order_count_for_order = *initial_order;
+		for (parsed_record, (order, priority)) in parsed_records.into_iter()
+		{
+			if order == accumulating_order_count_for_order
+			{
+				accumulating_order_count += 1
+			}
+			else
+			{
+				debug_assert!(order > accumulating_order_count_for_order);
+				debug_assert!(accumulating_order_count_for_index < index);
+				
+				owned_records.get_unchecked_mut_safe(accumulating_order_count_for_index).set_order_count(accumulating_order_count);
+				
+				accumulating_order_count = 1;
+				accumulating_order_count_for_index = index;
+				accumulating_order_count_for_order = order;
+			}
+			
+			let owned_record = parsed_record.into_owned_record();
+			let item = MultipleOrderedThenPrioritizedThenUnsortedRecordsItem::new(order, priority, owned_record);
+			unsafe { owned_records.as_mut_ptr().add(index).write(item) }
+			
+			index + 1;
+		}
+		
+		// Safe because `NoData` is a special case; there is always at least one record and so `accumulating_order_count` will never be `0`.
+		owned_records.get_unchecked_mut_safe(accumulating_order_count_for_index).set_order_count(accumulating_order_count);
+		
+		MultipleOrderedThenPrioritizedThenUnsortedRecords::new(owned_records)
+	}
+}
+
+impl OwnedRecord for NamingAuthorityPointer<DomainTarget, OwnedUri, OwnedCharacterString, OwnedTypeEquality>
+{
+	type OwnedRecords = MultipleOrderedThenPrioritizedThenUnsortedRecords<Self>;
+	
+	#[inline(always)]
+	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>
+	{
+		&mut query_types_cache.NAPTR
+	}
+}
+
+impl<'message> NamingAuthorityPointer<ParsedName<'message>, ParsedUri<'message>, ParsedCharacterString<'message>, ParsedTypeEquality>
 {
 	#[inline(always)]
-	fn into(self) -> NamingAuthorityPointer<FullyQualifiedDomainName, OwnedUri, OwnedCharacterString>
+	fn into_owned_record(self) -> NamingAuthorityPointer<FullyQualifiedDomainName, OwnedUri, OwnedCharacterString, OwnedTypeEquality>
 	{
 		use self::NamingAuthorityPointer::*;
 		
