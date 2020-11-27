@@ -29,3 +29,42 @@ pub struct LocationBodyVersion0
 	/// The altitude of the center of the sphere described by `size`, expressed as a 32-bit integer, most significant octet first (network standard byte order), in centimeters, from a base of 100,000m below the WGS 84 reference spheroid used by GPS.
 	pub unsigned_altitude: BigEndianU32,
 }
+
+impl<'message> ParsedRecord for &'message LocationBodyVersion0
+{
+	type OrderPriorityAndWeight = ();
+	
+	type OwnedRecord = Self;
+	
+	#[inline(always)]
+	fn into_owned_records(records: OwnerNameToParsedRecordsValue<Self>) -> <Self::OwnedRecord as OwnedRecord>::OwnedRecords
+	{
+		let mut parsed_records = records.records();
+		
+		let length = parsed_records.len();
+		let mut owned_records = Vec::with_capacity(length);
+		unsafe{ owned_records.set_len(length) };
+		
+		let mut index = 0;
+		for (parsed_record, _) in parsed_records
+		{
+			let owned_record: LocationBodyVersion0 = parsed_record.clone();
+			unsafe { owned_records.as_mut_ptr().add(index).write(owned_record) }
+			index + 1;
+		}
+		
+		owned_records.sort_unstable();
+		MultipleUnsortedRecords::new(owned_records)
+	}
+}
+
+impl OwnedRecord for LocationBodyVersion0
+{
+	type OwnedRecords = MultipleUnsortedRecords<Self>;
+	
+	#[inline(always)]
+	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>
+	{
+		&mut query_types_cache.LOC_version_0
+	}
+}

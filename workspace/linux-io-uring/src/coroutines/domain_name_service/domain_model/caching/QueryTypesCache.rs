@@ -12,8 +12,6 @@ pub(crate) struct QueryTypesCache
 	
 	pub(crate) SOA: Option<QueryTypeCache<StartOfAuthority<DomainTarget>>>,
 	
-	pub(crate) AAAA: Option<QueryTypeCache<MultipleSortedRecords<Ipv6Addr>>>,
-	
 	pub(crate) MX: Option<QueryTypeCache<MultiplePrioritizedThenSortedRecords<MailServerName<DomainTarget>>>>,
 	
 	pub(crate) HINFO: Option<QueryTypeCache<MultipleSortedRecords<HostInformation<OwnedCharacterString>>>>,
@@ -21,6 +19,10 @@ pub(crate) struct QueryTypesCache
 	pub(crate) PTR: Option<QueryTypeCache<MultipleSortedRecords<PointerName<DomainTarget>>>>,
 	
 	pub(crate) TXT: Option<QueryTypeCache<MultipleUnsortedRecords<Text<OwnedCharacterString>>>>,
+	
+	pub(crate) AAAA: Option<QueryTypeCache<MultipleSortedRecords<Ipv6Addr>>>,
+	
+	pub(crate) LOC_version_0: Option<QueryTypeCache<MultipleUnsortedRecords<LocationBodyVersion0>>>,
 	
 	pub(crate) SRV: Option<QueryTypeCache<MultiplePrioritizedThenWeightedRecords<ServiceLocation<DomainTarget>>>>,
 	
@@ -40,8 +42,6 @@ impl Default for QueryTypesCache
 			
 			SOA: None,
 			
-			AAAA: None,
-			
 			MX: None,
 			
 			HINFO: None,
@@ -49,6 +49,10 @@ impl Default for QueryTypesCache
 			PTR: None,
 			
 			TXT: None,
+			
+			AAAA: None,
+			
+			LOC_version_0: None,
 			
 			SRV: None,
 			
@@ -65,10 +69,11 @@ impl QueryTypesCache
 		self.A.is_none()
 			&& self.NS.is_none()
 			&& self.SOA.is_none()
-			&& self.AAAA.is_none()
 			&& self.MX.is_none()
 			&& self.HINFO.is_none()
 			&& self.TXT.is_none()
+			&& self.AAAA.is_none()
+			&& self.LOC_version_0.is_none()
 			&& self.SRV.is_none()
 			&& self.NAPTR.is_none()
 	}
@@ -88,8 +93,6 @@ impl QueryTypesCache
 			
 			SOA: QueryTypeCache::no_data_forever(),
 			
-			AAAA: QueryTypeCache::no_data_forever(),
-			
 			MX: QueryTypeCache::no_data_forever(),
 			
 			HINFO: QueryTypeCache::no_data_forever(),
@@ -97,6 +100,10 @@ impl QueryTypesCache
 			PTR: QueryTypeCache::no_data_forever(),
 			
 			TXT: QueryTypeCache::no_data_forever(),
+			
+			AAAA: QueryTypeCache::no_data_forever(),
+			
+			LOC_version_0: QueryTypeCache::no_data_forever(),
 			
 			SRV: QueryTypeCache::no_data_forever(),
 			
@@ -117,8 +124,6 @@ impl QueryTypesCache
 			
 			SOA: QueryTypeCache::no_data_forever(),
 			
-			AAAA: QueryTypeCache::no_data_forever(),
-			
 			MX: QueryTypeCache::no_data_forever(),
 			
 			HINFO: QueryTypeCache::no_data_forever(),
@@ -126,6 +131,10 @@ impl QueryTypesCache
 			PTR: QueryTypeCache::data_forever(MultipleSortedRecords::single(PointerName::new(EfficientCaseFoldedName::second_level(EfficientCaseFoldedLabel::ipv4only, EfficientCaseFoldedLabel::arpa)))),
 			
 			TXT: QueryTypeCache::no_data_forever(),
+			
+			AAAA: QueryTypeCache::no_data_forever(),
+			
+			LOC_version_0: QueryTypeCache::no_data_forever(),
 			
 			SRV: QueryTypeCache::no_data_forever(),
 			

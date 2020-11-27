@@ -8,9 +8,9 @@ pub(crate) struct QueryTypesFixed
 {
 	pub(crate) A: Option<MultipleSortedRecords<Ipv4Addr>>,
 	
-	pub(crate) AAAA: Option<MultipleSortedRecords<Ipv6Addr>>,
-	
 	pub(crate) PTR: Option<MultipleSortedRecords<PointerName<DomainTarget>>>,
+	
+	pub(crate) AAAA: Option<MultipleSortedRecords<Ipv6Addr>>,
 }
 
 impl Default for QueryTypesFixed
@@ -21,8 +21,10 @@ impl Default for QueryTypesFixed
 		Self
 		{
 			A: None,
-			AAAA: None,
+			
 			PTR: None,
+			
+			AAAA: None,
 		}
 	}
 }
@@ -60,8 +62,10 @@ impl QueryTypesFixed
 		Self
 		{
 			A: Some(MultipleSortedRecords::single(Ipv4Addr::LOCALHOST)),
-			AAAA: Some(MultipleSortedRecords::single(Ipv6Addr::LOCALHOST)),
+			
 			PTR: None,
+			
+			AAAA: Some(MultipleSortedRecords::single(Ipv6Addr::LOCALHOST)),
 		}
 	}
 	
