@@ -15,13 +15,7 @@ pub(crate) trait ParsedRecord: Sized + Debug
 	#[inline(always)]
 	fn store(subdomains_are_never_valid: NonNull<bool>, query_types_cache: &mut QueryTypesCache, records: OwnerNameToParsedRecordsValue<Self>)
 	{
-		Self::OwnedRecord::store(subdomains_are_never_valid, query_types_cache, Self::into_owned_records(records))
-	}
-	
-	#[inline(always)]
-	fn no_data(subdomains_are_never_valid: NonNull<bool>, query_types_cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
-	{
-		Self::OwnedRecord::no_data(subdomains_are_never_valid, query_types_cache, negative_cache_until)
+		query_types_cache.store(subdomains_are_never_valid, Self::into_owned_records(records))
 	}
 }
 

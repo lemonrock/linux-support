@@ -76,7 +76,13 @@ impl OwnedRecord for StartOfAuthority<EfficientCaseFoldedName>
 	type OwnedRecords = Self;
 	
 	#[inline(always)]
-	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>
+	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &Option<QueryTypeCache<Self::OwnedRecords>>
+	{
+		&query_types_cache.SOA
+	}
+	
+	#[inline(always)]
+	fn retrieve_mut(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>
 	{
 		&mut query_types_cache.SOA
 	}

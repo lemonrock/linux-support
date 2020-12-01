@@ -241,6 +241,7 @@ use swiss_army_knife::get_unchecked::GetUnchecked;
 use swiss_army_knife::hash_map_and_hash_set::FastSecureHashMap as HashMap;
 use swiss_army_knife::hash_map_and_hash_set::FastSecureHashMapEntry;
 use swiss_army_knife::hash_map_and_hash_set::FastSecureHashSet as HashSet;
+use swiss_army_knife::hash_map_and_hash_set::FastSecureRawMutHashMapEntry;
 //use swiss_army_knife::internet_protocol::InternetProtocolAddress;
 use swiss_army_knife::internet_protocol::InternetProtocolAddressWithMask;
 use swiss_army_knife::non_zero::new_non_null;

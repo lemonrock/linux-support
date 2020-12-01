@@ -23,7 +23,7 @@ impl<ORs: OwnedRecords<OR>, OR: OwnedRecord> QueryTypeCache<ORs, OR>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn data(cache_until: CacheUntil, records: Records) -> Option<Self>
+	pub(crate) fn data(cache_until: CacheUntil, records: ORs) -> Option<Self>
 	{
 		Some
 		(
@@ -52,5 +52,11 @@ impl<ORs: OwnedRecords<OR>, OR: OwnedRecord> QueryTypeCache<ORs, OR>
 				data: None
 			}
 		)
+	}
+	
+	#[inline(always)]
+	fn expired(option: &mut Option<Self>)
+	{
+		*option = None
 	}
 }

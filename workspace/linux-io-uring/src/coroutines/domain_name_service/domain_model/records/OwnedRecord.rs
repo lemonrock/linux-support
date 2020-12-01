@@ -8,32 +8,14 @@ pub(crate) trait OwnedRecord: Sized + Debug + DeserializeOwned + Serialize
 	
 	type OwnedRecords: OwnedRecords<Self>;
 	
-	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>;
+	fn retrieve(query_types_cache: &QueryTypesCache) -> &Option<QueryTypeCache<Self::OwnedRecords>>;
+	
+	fn retrieve_mut(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>;
 	
 	#[inline(always)]
 	fn retrieve_fixed(query_types_fixed: &QueryTypesFixed) -> Option<&Self::OwnedRecords>
 	{
 		None
-	}
-	
-	#[inline(always)]
-	fn store(subdomains_are_never_valid: NonNull<bool>, query_types_cache: &mut QueryTypesCache, records: Self::OwnedRecords)
-	{
-		let query_type_cache = Self::retrieve(query_types_cache);
-		
-		unsafe { * subdomains_are_never_valid.as_ptr() = Self::SubdomainsAreNeverValid };
-		
-		*query_type_cache = QueryTypeCache::data(records.cache_until(), records)
-	}
-	
-	#[inline(always)]
-	fn no_data(subdomains_are_never_valid: NonNull<bool>, query_types_cache: &mut QueryTypesCache, negative_cache_until: NegativeCacheUntil)
-	{
-		let query_type_cache = Self::retrieve(query_types_cache);
-		
-		unsafe { * subdomains_are_never_valid.as_ptr() = Self::SubdomainsAreNeverValid };
-		
-		*query_type_cache = QueryTypeCache::no_data(negative_cache_until);
 	}
 }
 
@@ -42,7 +24,13 @@ impl OwnedRecord for Ipv4Addr
 	type OwnedRecords = MultipleSortedRecords<Self>;
 	
 	#[inline(always)]
-	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>
+	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &Option<QueryTypeCache<Self::OwnedRecords>>
+	{
+		&query_types_cache.A
+	}
+	
+	#[inline(always)]
+	fn retrieve_mut(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>
 	{
 		&mut query_types_cache.A
 	}
@@ -59,7 +47,13 @@ impl OwnedRecord for Ipv6Addr
 	type OwnedRecords = MultipleSortedRecords<Self>;
 	
 	#[inline(always)]
-	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>
+	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &Option<QueryTypeCache<Self::OwnedRecords>>
+	{
+		&query_types_cache.AAAA
+	}
+	
+	#[inline(always)]
+	fn retrieve_mut(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>
 	{
 		&mut query_types_cache.AAAA
 	}

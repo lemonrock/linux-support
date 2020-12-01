@@ -43,7 +43,13 @@ impl OwnedRecord for PointerName<DomainTarget>
 	type OwnedRecords = MultipleSortedRecords<PointerName<DomainTarget>>;
 	
 	#[inline(always)]
-	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>
+	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &Option<QueryTypeCache<Self::OwnedRecords>>
+	{
+		&query_types_cache.PTR
+	}
+	
+	#[inline(always)]
+	fn retrieve_mut(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>
 	{
 		&mut query_types_cache.PTR
 	}

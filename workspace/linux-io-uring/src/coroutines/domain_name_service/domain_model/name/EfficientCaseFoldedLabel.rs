@@ -6,6 +6,17 @@
 #[derive(Copy, Clone)]
 pub struct EfficientCaseFoldedLabel<'a>(&'a [u8]);
 
+impl<'a> Deref for EfficientCaseFoldedLabel<'a>
+{
+	type Target = [u8];
+	
+	#[inline(always)]
+	fn deref(&self) -> &Self::Target
+	{
+		self.0
+	}
+}
+
 impl Default for EfficientCaseFoldedLabel<'static>
 {
 	#[inline(always)]

@@ -2,64 +2,41 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) struct DomainCache<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, CoroutineHeapSize: MemorySize>
+pub(crate) struct DomainCache2<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, CoroutineHeapSize: MemorySize>
 {
-	map: HashMap<AliasOrDomainTarget, DomainCacheEntry>,
+	root: ZoneCut,
+	
 	gtacsa: &'static GTACSA,
+	
 	our_usage: Cell<u64>,
+	
 	marker: PhantomData<CoroutineHeapSize>,
 }
 
-// TODO:
-	// There must be an instance per-interface, as things like ipv4only.arpa and CDNs change records depending on interface.
-
-// TODO: Analyze errors to deduce server failures, bad records, etc. (we want to store a bad record indicator) - probably caching HandleRecordTypeError.
-// TODO: Also: server failure RFC 2308 Section 7.1 / 7.2.
-
-// TODO: Can we optimize the use of guards and map.entry()
-// TODO: Switch all Authority stuff to ParsedName not owned stuff?
-
-// TODO: lazy_static users in uriparse and crossbeam-utils
-// TODO: All memory allocations need to be made using the thread-local allocator
-// TODO: Actually querying.
-
-/*
-	TODO: LRU cache or Random Eviction Cache
-	
-		- Calculate size change on usage
-		- It is possible, although unusual, for size change to be negative (eg Hashbrown map has freed up space).
-		
-		Have a List (BTreeMap) with expiry dates in order; on each operation, chop the expiry dates.
-			- Will need a pointer to the records (or, in the case of valid) inside of records affected.
-		
-		BUT,
-			Need an efficient way of determining NXDOMAIN and potentially *.localhost.localdomain (which seems an odd concept).
-			
-	TODO: FInding NXDOMAIN quicker
-	
-		- One possibility is to use a Radix tree (eg a Patricia Tree); however, it is dubious if these are particularly efficient
-		
-		- One possibility is to search from root, ie root -> top-level -> second-level; stop when either Vacant or NoDomain
-		
-		- If doing this, then it is probably efficient to not use one HashMap, rather:-
-		
-		HashMap<TopLevelDomain, HashMap<SecondLevelDomain, XXX>>
-			- superficially this seems worse, but, in practice we only need to hash on the Efficient Label, not re-hash on re-created keys.
- */
-
-
-
-
-impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, CoroutineHeapSize: MemorySize> DomainCache<GTACSA, CoroutineHeapSize>
+impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, CoroutineHeapSize: MemorySize> DomainCache2<GTACSA, CoroutineHeapSize>
 {
 	#[inline(always)]
 	pub(crate) fn new(map: HashMap<FullyQualifiedDomainName, DomainCacheEntry>, gtacsa: &'static GTACSA) -> Self
 	{
+		XXXXX;
+		
+		for (key, value) in map
+		{
+			if key.is_root()
+			{
+				debug_assert!(value dadadasd);
+			}
+			// TODO: Create root and everything in it!!!
+			// TODO: Do this with gtacsa callback so we can track memory usage and get an accurate initial value, but we're not doing anything else.
+			
+			// TODO: Add answered() logic from original DomainCache.
+		}
+		
 		Self
 		{
-			map,
+			root: XXX,
 			gtacsa,
-			our_usage: Cell::new(0),
+			our_usage: Cell::new(XXXX),
 			marker: PhantomData,
 		}
 	}
@@ -437,6 +414,8 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 		}
 	}
 	
+	// TODO: Fix this and those above using self.map
+	// TODO: This is the first of the inset
 	#[inline(always)]
 	fn store_no_domain_unchecked(&mut self, most_canonical_name: &DomainTarget, no_domain_cache_entry: NoDomainCacheEntry)
 	{
@@ -446,7 +425,7 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 	#[inline(always)]
 	fn guard_can_be_an_alias(&self, alias: &Alias) -> Result<(), CacheStoreError>
 	{
-		if let Some(domain_cache_entry) = self.map.get(alias)
+		if let Some(domain_cache_entry) = self.root.get_domain_cache_entry(alias)
 		{
 			if unlikely!(domain_cache_entry.can_not_be_replaced_by_alias())
 			{
@@ -465,11 +444,11 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 	#[inline(always)]
 	fn guard_can_be_replaced_by_no_domain(&self, domain_target: &DomainTarget) -> Result<(), CacheStoreError>
 	{
-		if let Some(domain_cache_entry) = self.map.get(domain_target)
+		if let Some(domain_cache_entry) = self.root.get_domain_cache_entry(domain_target)
 		{
 			if unlikely!(domain_cache_entry.can_not_be_replaced_by_no_domain())
 			{
-				return Err(CacheStoreError::DomainNameCanNotNotExist(most_canonical_name))
+				return Err(CacheStoreError::DomainNameCanNotNotExist(domain_target.clone()))
 			}
 		}
 		Ok(())
@@ -478,11 +457,11 @@ impl<GTACSA: GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, Cor
 	#[inline(always)]
 	fn guard_can_have_records(&self, alias_or_domain_target: &AliasOrDomainTarget) -> Result<(), CacheStoreError>
 	{
-		if let Some(domain_cache_entry) = self.map.get(alias_or_domain_target)
+		if let Some(domain_cache_entry) = self.root.get_domain_cache_entry(alias_or_domain_target)
 		{
 			if unlikely!(domain_cache_entry.can_not_have_records())
 			{
-				return Err(CacheStoreError::DomainNameCanNotNotHaveRecords(most_canonical_name))
+				return Err(CacheStoreError::DomainNameCanNotNotHaveRecords(alias_or_domain_target.clone()))
 			}
 		}
 		Ok(())

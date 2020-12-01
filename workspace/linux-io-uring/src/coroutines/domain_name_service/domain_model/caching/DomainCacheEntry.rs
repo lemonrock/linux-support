@@ -169,7 +169,7 @@ impl DomainCacheEntry
 	{
 		let mut query_types_cache = QueryTypesCache::default();
 		let mut subdomains_are_never_valid: bool = unsafe_uninitialized();
-		PR::no_data(NonNull::from(&mut subdomains_are_never_valid), &mut query_types_cache, negative_cache_until);
+		query_types_cache.no_data::<PR>(NonNull::from(&mut subdomains_are_never_valid), negative_cache_until);
 		DomainCacheEntry::Valid { always_valid: false, subdomains_are_never_valid, query_types_cache }
 	}
 	
@@ -178,7 +178,7 @@ impl DomainCacheEntry
 	{
 		let mut query_types_cache = QueryTypesCache::default();
 		let mut subdomains_are_never_valid: bool = unsafe_uninitialized();
-		OR::store(NonNull::from(&mut subdomains_are_never_valid), &mut query_types_cache, records);
+		query_types_cache.store(NonNull::from(&mut subdomains_are_never_valid), records);
 		DomainCacheEntry::Valid { always_valid: false, subdomains_are_never_valid, query_types_cache }
 	}
 	

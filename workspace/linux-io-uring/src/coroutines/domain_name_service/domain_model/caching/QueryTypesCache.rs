@@ -6,6 +6,8 @@
 #[serde(Deserialize, Serialize)]
 pub(crate) struct QueryTypesCache
 {
+	fields_that_are_some: u8,
+	
 	pub(crate) A: Option<QueryTypeCache<MultipleSortedRecords<Ipv4Addr>>>,
 	
 	pub(crate) NS: Option<QueryTypeCache<MultipleSortedRecords<NameServerName<DomainTarget>>>>,
@@ -36,6 +38,8 @@ impl Default for QueryTypesCache
 	{
 		Self
 		{
+			fields_that_are_some: 0,
+			
 			A: None,
 			
 			NS: None,
@@ -64,24 +68,76 @@ impl Default for QueryTypesCache
 impl QueryTypesCache
 {
 	#[inline(always)]
+	pub(crate) fn store<ORs: OwnedRecords<OR>, OR: OwnedRecord>(&mut self, subdomains_are_never_valid: NonNull<bool>, records: ORs)
+	{
+		let query_type_cache = OR::retrieve_mut(self);
+		let increment = query_type_cache.is_none() as u8;
+		
+		unsafe { * subdomains_are_never_valid.as_ptr() = OR::SubdomainsAreNeverValid };
+		
+		*query_type_cache = QueryTypeCache::data(records.cache_until(), records);
+		self.fields_that_are_some += increment;
+	}
+	
+	#[inline(always)]
+	pub(crate) fn no_data<OR: OwnedRecord>(&mut self, subdomains_are_never_valid: NonNull<bool>, negative_cache_until: NegativeCacheUntil)
+	{
+		let query_type_cache = OR::retrieve_mut(self);
+		let decrement = query_type_cache.is_some() as u8;
+		
+		unsafe { * subdomains_are_never_valid.as_ptr() = OR::SubdomainsAreNeverValid };
+		
+		*query_type_cache = QueryTypeCache::no_data(negative_cache_until);
+		self.fields_that_are_some -= decrement;
+	}
+	
+	#[inline(always)]
+	fn expired(&mut self, query_types_cache_field: QueryTypesCacheField)
+	{
+		use self::QueryTypesCacheField::*;
+		
+		debug_assert_ne!(self.fields_that_are_some, 0);
+		
+		match query_types_cache_field
+		{
+			A => QueryTypeCache::expired(&mut self.A),
+			
+			NS => QueryTypeCache::expired(&mut self.NS),
+			
+			SOA => QueryTypeCache::expired(&mut self.SOA),
+			
+			MX => QueryTypeCache::expired(&mut self.MX),
+			
+			HINFO => QueryTypeCache::expired(&mut self.HINFO),
+			
+			PTR => QueryTypeCache::expired(&mut self.PTR),
+			
+			TXT => QueryTypeCache::expired(&mut self.TXT),
+			
+			AAAA => QueryTypeCache::expired(&mut self.AAAA),
+			
+			LOC_version_0 => QueryTypeCache::expired(&mut self.LOC_version_0),
+			
+			SRV => QueryTypeCache::expired(&mut self.SRV),
+			
+			NAPTR => QueryTypeCache::expired(&mut self.NAPTR),
+		}
+		
+		self.fields_that_are_some -= 1;
+	}
+	
+	#[inline(always)]
 	fn is_empty(&self) -> bool
 	{
-		self.A.is_none()
-			&& self.NS.is_none()
-			&& self.SOA.is_none()
-			&& self.MX.is_none()
-			&& self.HINFO.is_none()
-			&& self.TXT.is_none()
-			&& self.AAAA.is_none()
-			&& self.LOC_version_0.is_none()
-			&& self.SRV.is_none()
-			&& self.NAPTR.is_none()
+		self.fields_that_are_some == 0
 	}
 	
 	pub(crate) fn for_ipv4only_arpa() -> Self
 	{
 		Self
 		{
+			fields_that_are_some: 1,
+			
 			A:
 			{
 				let mut records = MultipleSortedRecords::single(Ipv4Addr::new(192, 0, 0, 170));
@@ -118,6 +174,8 @@ impl QueryTypesCache
 	{
 		Self
 		{
+			fields_that_are_some: 1,
+			
 			A: QueryTypeCache::no_data_forever(),
 			
 			NS: QueryTypeCache::no_data_forever(),

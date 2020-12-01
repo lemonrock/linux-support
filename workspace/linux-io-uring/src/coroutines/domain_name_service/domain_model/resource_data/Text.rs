@@ -39,7 +39,13 @@ impl OwnedRecord for Text<OwnedCharacterString>
 	type OwnedRecords = MultipleUnsortedRecords<Self>;
 	
 	#[inline(always)]
-	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>
+	fn retrieve(query_types_cache: &mut QueryTypesCache) -> &Option<QueryTypeCache<Self::OwnedRecords>>
+	{
+		&query_types_cache.TXT
+	}
+	
+	#[inline(always)]
+	fn retrieve_mut(query_types_cache: &mut QueryTypesCache) -> &mut Option<QueryTypeCache<Self::OwnedRecords>>
 	{
 		&mut query_types_cache.TXT
 	}
