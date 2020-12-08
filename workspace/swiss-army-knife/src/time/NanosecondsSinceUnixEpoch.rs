@@ -6,7 +6,7 @@
 ///
 /// Internally modelled as a `Duration` offset from the Unix Epoch.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[serde(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize)]
 pub struct NanosecondsSinceUnixEpoch(Duration);
 
 impl Add<U31SecondsDuration> for NanosecondsSinceUnixEpoch
