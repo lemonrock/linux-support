@@ -33,4 +33,4 @@ magic-ring-buffer = { path = "../magic-ring-buffer", version = "0.2.0" }
 memchr = "^2.3.3"
 message-dispatch = { path = "../message-dispatch", version = "0.2.0" }
 serde = { version = "^1.0", features = ["derive", "rc"] }
-swiss-army-knife = { version = "0.0.0", path = "../swiss-army-knife" }
+swiss-army-knife = { version = "0.0.1", path = "../swiss-army-knife" }
