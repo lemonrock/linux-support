@@ -30,7 +30,6 @@
 
 
 use static_assertions::assert_cfg;
-assert_cfg!(target_os = "linux");
 assert_cfg!(target_pointer_width = "64");
 
 
