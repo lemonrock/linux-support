@@ -32,7 +32,7 @@ pub mod configuration;
 
 
 /// Controllers.
-pub mod Controllers_;
+pub mod controllers;
 
 
 /// Statistics.
