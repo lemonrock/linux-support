@@ -32,7 +32,7 @@ pub mod configuration;
 
 
 /// Controllers.
-pub mod controllers;
+pub mod Controllers_;
 
 
 /// Statistics.
@@ -44,7 +44,7 @@ include!("CgroupMountPoint.rs");
 include!("CgroupName.rs");
 include!("child_cgroup_names.rs");
 include!("Controller.rs");
-include!("Controllers.rs");
+include!("Controllers_.rs");
 include!("ControllersFileError.rs");
 include!("MaximumNumber.rs");
 include!("NonRootCgroup.rs");

@@ -27,12 +27,12 @@ clap = "^2.33.1"
 context-allocator = { path = "../context-allocator", version = "^0.3.0" }
 likely = { version = "^0.2.0", path = "../likely" }
 linux-io-uring = { path = "../linux-io-uring", version = "^0.0.2" }
-linux-support = { path = "../linux-support", version = "^0.0.2" }
+linux-support = { version = "^0.0.2", path = "../linux-support" }
 magic-ring-buffer = { path = "../magic-ring-buffer", version = "^0.2.0" }
 message-dispatch = { path = "../message-dispatch", version = "^0.2.0" }
 maplit = "^1.0.2"
 serde = { version = "^1.0", features = ["derive", "rc"] }
 serde_json = "^1.0.55"
 socket-access-control = { path = "../socket-access-control", version = "^0.0.0" }
-swiss-army-knife = { path = "../swiss-army-knife", version = "^0.0.0" }
+swiss-army-knife = { version = "0.0.1", path = "../swiss-army-knife" }
 terminate = { path = "../terminate", version = "^0.2.0" }
