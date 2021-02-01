@@ -917,6 +917,11 @@ pub mod io_priority;
 pub mod io_uring;
 
 
+/// ioctl support, including const fn for creating ioctl constants.
+pub mod ioctl;
+
+
+
 /// Basic (for security) access io I/O ports on mip64, powerpc64 and x86_64.
 #[cfg(any(target_arch = "mips64", target_arch = "powerpc64", target_arch = "x86_64"))] pub mod ioports;
 

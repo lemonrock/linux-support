@@ -17,7 +17,6 @@ use crate::process_control::{SecureBits, process_control_wrapper2, result_must_b
 use crate::scheduling::Nice;
 use crate::scheduling::PerThreadSchedulerPolicyAndFlags;
 use crate::speculation_mitigation::*;
-use crate::syscall::SYS::gettid;
 use crate::time::CurrentTimerSlackNanoseconds;
 
 

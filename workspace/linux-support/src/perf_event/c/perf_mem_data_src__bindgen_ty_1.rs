@@ -6,7 +6,7 @@
 #[derive(Debug, Default, Copy, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) struct perf_mem_data_src__bindgen_ty_1
 {
-	pub(crate) _bitfield_1: __BindgenBitfieldUnit<[u8; 8usize], u32>,
+	pub(crate) _bitfield_1: __BindgenBitfieldUnit<[u8; 8], u32>,
 }
 
 #[allow(dead_code)]

@@ -15,7 +15,12 @@ impl Default for ThreadIdentifier
 	#[inline(always)]
 	fn default() -> Self
 	{
-		let tid = gettid.syscall0() as i32;
+		extern "C"
+		{
+			fn gettid() -> pid_t;
+		}
+		
+		let tid = unsafe { gettid() };
 		debug_assert!(tid > 0);
 		Self(new_non_zero_i32(tid))
 	}

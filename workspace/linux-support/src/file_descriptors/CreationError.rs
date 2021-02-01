@@ -26,7 +26,7 @@ pub enum CreationError
 	/// `ENOMEM` or sometimes `ENOSPC`.
 	KernelWouldBeOutOfMemory = ENOMEM,
 
-	/// Occurs for fanotify if the caller lacks the `CAP_SYS_ADMIN` capability.
+	/// Occurs for fanotify if the caller lacks the `CAP_SYS_ADMIN` capability (or, for userfaultfd, the `CAP_SYS_PTRACE` or `/proc/sys/vm/unprivileged_userfaultfd` has the value `0`).
 	///
 	/// Occurs for the opening or creation of POSIX message queues, either because of file mode permissions or because the settings for creation (eg maximum message size) are too large (or, on Linux before 3.5, too small).
 	///

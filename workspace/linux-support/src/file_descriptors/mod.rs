@@ -194,6 +194,10 @@ pub mod terminal;
 pub mod timerfd;
 
 
+/// userfaultfd file descriptors.
+pub mod userfaultfd;
+
+
 include!("close_all_open_file_descriptors_apart_from_standard.rs");
 include!("CreationError.rs");
 include!("FileDescriptor.rs");
