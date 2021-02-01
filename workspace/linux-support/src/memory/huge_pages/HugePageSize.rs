@@ -243,36 +243,7 @@ impl HugePageSize
 			return None
 		}
 	}
-
-	#[inline(always)]
-	pub(crate) fn mmap_or_memfd_flag_bits_and_page_size(hugetlb_flag: i32, setting: Option<Option<Self>>, defaults: &DefaultPageSizeAndHugePageSizes) -> (i32, PageSizeOrHugePageSize)
-	{
-		use self::PageSizeOrHugePageSize::*;
-
-		#[inline(always)]
-		fn no_huge_page(defaults: &DefaultPageSizeAndHugePageSizes) -> (i32, PageSizeOrHugePageSize)
-		{
-			(0, PageSize(defaults.default_page_size()))
-		}
-
-		match setting
-		{
-			None => no_huge_page(defaults),
-
-			Some(None) => match defaults.default_huge_page_size()
-			{
-				Some(huge_page_size) => (hugetlb_flag, HugePageSize(huge_page_size)),
-				None => no_huge_page(defaults)
-			},
-
-			Some(Some(huge_page_size)) => match defaults.this_or_next_smaller_supported_huge_page_size(huge_page_size)
-			{
-				Some(huge_page_size) => (hugetlb_flag | huge_page_size.mmap_and_memfd_flags_bits(), HugePageSize(huge_page_size)),
-				None => no_huge_page(defaults)
-			},
-		}
-	}
-
+	
 	/// Default huge page size.
 	///
 	/// Usually 2Mb on x86_64 (but controlled by kernel command line options).

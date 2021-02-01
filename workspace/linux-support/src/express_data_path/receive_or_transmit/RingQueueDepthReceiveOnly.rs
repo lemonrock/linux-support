@@ -54,12 +54,12 @@ impl<RPC: ReceivePollCreator> CreateReceiveOrTransmitOrBoth for RingQueueDepthRe
 	}
 	
 	#[inline(always)]
-	fn create_receive_or_transmit_or_both(self, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, defaults: &DefaultPageSizeAndHugePageSizes, memory_map_offsets: &xdp_mmap_offsets, receive_queue_identifier: QueueIdentifier, redirect_map_and_attached_program: &RedirectMapAndAttachedProgram, arguments: Self::Arguments) -> Result<Self::ReceiveOrTransmitOrBoth, ExpressDataPathSocketCreationError>
+	fn create_receive_or_transmit_or_both(self, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, default_page_size: PageSize, memory_map_offsets: &xdp_mmap_offsets, receive_queue_identifier: QueueIdentifier, redirect_map_and_attached_program: &RedirectMapAndAttachedProgram, arguments: Self::Arguments) -> Result<Self::ReceiveOrTransmitOrBoth, ExpressDataPathSocketCreationError>
 	{
 		let receive_ring_queue_depth = self.0;
 		let common = CommonReceiveOnly::new
 		(
-			ReceiveQueue::from_receive_memory_map_offsets(express_data_path_socket_file_descriptor, memory_map_offsets, receive_ring_queue_depth, defaults),
+			ReceiveQueue::from_receive_memory_map_offsets(express_data_path_socket_file_descriptor, memory_map_offsets, receive_ring_queue_depth, default_page_size),
 			arguments.create(express_data_path_socket_file_descriptor),
 			receive_queue_identifier,
 		);

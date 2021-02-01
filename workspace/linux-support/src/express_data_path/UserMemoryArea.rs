@@ -20,11 +20,11 @@ impl Deref for UserMemoryArea
 impl UserMemoryArea
 {
 	#[inline(always)]
-	fn new(number_of_chunks: NonZeroU32, chunk_size: impl ChunkSize, huge_memory_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, ExpressDataPathSocketCreationError>
+	fn new(number_of_chunks: NonZeroU32, chunk_size: impl ChunkSize, page_size_or_huge_page_size_settings: &PageSizeOrHugePageSizeSettings) -> Result<Self, ExpressDataPathSocketCreationError>
 	{
 		let length = chunk_size.user_memory_area_length(number_of_chunks);
 		
-		let mapped_memory = MappedMemory::anonymous(length, AddressHint::any(), Protection::ReadWrite, Sharing::Private, huge_memory_page_size, false, false, defaults).map_err(ExpressDataPathSocketCreationError::CouldNotCreateUserMemory)?;
+		let mapped_memory = MappedMemory::anonymous(length, AddressHint::any(), Protection::ReadWrite, Sharing::Private, false, false, page_size_or_huge_page_size_settings).map_err(ExpressDataPathSocketCreationError::CouldNotCreateUserMemory)?;
 		mapped_memory.zero();
 		Ok(Self(mapped_memory))
 	}

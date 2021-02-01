@@ -4,7 +4,6 @@
 
 use super::*;
 use super::PciDevice;
-use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
 use crate::paths::PathExt;
 
 

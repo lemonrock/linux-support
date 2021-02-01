@@ -105,7 +105,7 @@ impl ChunkSize for AlignedChunkSize
 	}
 	
 	#[doc(hidden)]
-	fn validate_user_memory(_huge_memory_page_size: Option<Option<HugePageSize>>)
+	fn validate_user_memory(_user_memory_area_page_size_or_huge_page_size_settings: &PageSizeOrHugePageSizeSettings)
 	{
 	}
 	

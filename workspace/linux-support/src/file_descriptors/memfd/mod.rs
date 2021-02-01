@@ -8,9 +8,7 @@ use super::file::leasing::Leasing;
 use super::file::locking::*;
 use super::pipes_and_fifos::SpliceRecipient;
 use super::pipes_and_fifos::SpliceSender;
-use crate::memory::huge_pages::HugePageSize;
-use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
-use crate::memory::huge_pages::PageSizeOrHugePageSize;
+use crate::memory::huge_pages::PageSizeOrHugePageSizeSettings;
 
 
 include!("FileSeals.rs");

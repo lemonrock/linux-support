@@ -111,9 +111,9 @@ impl ChunkSize for UnalignedChunkSize
 	}
 	
 	#[doc(hidden)]
-	fn validate_user_memory(huge_memory_page_size: Option<Option<HugePageSize>>)
+	fn validate_user_memory(user_memory_area_page_size_or_huge_page_size_settings: &PageSizeOrHugePageSizeSettings)
 	{
-		debug_assert!(huge_memory_page_size.is_some(), "When using XdpUmemRegFlagsUnalignedChunks in `flags`, Huge Pages must be used");
+		debug_assert!(user_memory_area_page_size_or_huge_page_size_settings.is_using_huge_pages(), "When using XdpUmemRegFlagsUnalignedChunks in `flags`, Huge Pages must be used");
 	}
 	
 	#[inline(always)]

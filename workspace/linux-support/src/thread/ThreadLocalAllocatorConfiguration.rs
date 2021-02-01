@@ -42,12 +42,12 @@ impl ThreadLocalAllocatorConfiguration
 	#[inline(always)]
 	pub fn mapped_memory_settings(&self, defaults: &DefaultPageSizeAndHugePageSizes) -> MappedMemorySettings
 	{
-		MappedMemorySettings
+		let mapped_memory_configuration = MappedMemoryConfiguration
 		{
 			address_hint: AddressHint::any(),
 			protection: Protection::ReadWrite,
 			sharing: Sharing::Private,
-			huge_memory_page_size: self.huge_memory_page_size(defaults),
+			page_size_preference: self.page_size_preference(defaults),
 			prefault: true,
 			reserve_swap_space: false,
 			numa_memory_policy: self.numa_memory_policy(),
@@ -55,14 +55,23 @@ impl ThreadLocalAllocatorConfiguration
 			advice: fast_secure_hash_set!
 			{
 				MemoryAdvice::DontFork
-			}
-		}
+			},
+		};
+		
+		mapped_memory_configuration.into_settings(defaults)
 	}
 	
 	#[inline(always)]
-	fn huge_memory_page_size(&self, defaults: &DefaultPageSizeAndHugePageSizes) -> Option<Option<HugePageSize>>
+	fn page_size_preference(&self, defaults: &DefaultPageSizeAndHugePageSizes) -> PageSizePreference
 	{
-		defaults.best_fit_huge_page_size_if_any(self.heap_size.get(), self.inclusive_maximum_bytes_wasted).map(|huge_page_size| Some(huge_page_size))
+		use self::PageSizePreference::*;
+		
+		match defaults.best_fit_huge_page_size_if_any(self.heap_size.get(), self.inclusive_maximum_bytes_wasted)
+		{
+			None => DefaultPageSize,
+			
+			Some(huge_page_size) => PreferredHugePageSize(huge_page_size),
+		}
 	}
 	
 	#[inline(always)]

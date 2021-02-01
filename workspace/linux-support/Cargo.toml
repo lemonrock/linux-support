@@ -16,7 +16,7 @@ include = ["README.md", "LICENSE", "COPYRIGHT", "src/**/*.rs", "Cargo.toml", "ru
 readme = "README.md"
 publish = true
 edition = '2018'
-version = "0.0.3"
+version = "0.0.4"
 
 [dependencies]
 const_fn_assert = "^0.1.2"

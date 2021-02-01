@@ -13,9 +13,9 @@ pub type FillQueue = XskRingQueue<ProducerXskRingQueueKind, FrameDescriptorBitfi
 impl FillQueue
 {
 	#[inline(always)]
-	pub(crate) fn from_fill_memory_map_offsets<FOCOBRQD: FillOrCompletionOrBothRingQueueDepths>(user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, memory_map_offsets: &xdp_mmap_offsets, fill_ring_queue_depth: RingQueueDepth, defaults: &DefaultPageSizeAndHugePageSizes) -> Self
+	pub(crate) fn from_fill_memory_map_offsets<FOCOBRQD: FillOrCompletionOrBothRingQueueDepths>(user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, memory_map_offsets: &xdp_mmap_offsets, fill_ring_queue_depth: RingQueueDepth, default_page_size: PageSize) -> Self
 	{
-		Self::from_ring_queue_offsets(user_memory_socket_file_descriptor, memory_map_offsets.fill_ring_offsets(), fill_ring_queue_depth, defaults, XDP_UMEM_PGOFF_FILL_RING)
+		Self::from_ring_queue_offsets(user_memory_socket_file_descriptor, memory_map_offsets.fill_ring_offsets(), fill_ring_queue_depth, default_page_size, XDP_UMEM_PGOFF_FILL_RING)
 	}
 	
 	/// Originally based on `xsk_populate_fill_ring()` in Linux source `samples/bpf/xdpsock_user.c`.

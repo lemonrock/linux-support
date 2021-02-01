@@ -28,9 +28,10 @@ impl ResourceEntry
 	}
 
 	#[inline(always)]
-	pub(crate) fn memory_map<'a>(pci_device: &PciDevice<'a>, resource_index: u8, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<MemoryMappedResource, io::Error>
+	pub(crate) fn memory_map<'a>(pci_device: &PciDevice<'a>, resource_index: u8, default_page_size: PageSize) -> Result<MemoryMappedResource, io::Error>
 	{
-		pci_device.device_file_or_folder_path(&format!("resource{:?}", resource_index)).memory_map_read_write(0, AddressHint::any(), Sharing::Private, None, false, false, defaults).map(|memory_mapped_file| MemoryMappedResource(memory_mapped_file))
+		let page_size_or_huge_page_size_settings = PageSizeOrHugePageSizeSettings::for_default_page_size(default_page_size);
+		pci_device.device_file_or_folder_path(&format!("resource{:?}", resource_index)).memory_map_read_write(0, AddressHint::any(), Sharing::Private, false, false, &page_size_or_huge_page_size_settings).map(|memory_mapped_file| MemoryMappedResource(memory_mapped_file))
 	}
 
 	/// A typical line might be `0x0000000000008200 0x000000000000823f 0x0000000000040101`.

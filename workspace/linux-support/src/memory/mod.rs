@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use self::huge_pages::HugePageSize;
 use super::*;
 use crate::paths::ProcPath;
 use crate::process::ProcessIdentifierChoice;
@@ -53,6 +54,7 @@ include!("NumberOfPages.rs");
 include!("PageMap.rs");
 include!("PageMapEntry.rs");
 include!("PageSize.rs");
+include!("PageSizePreference.rs");
 include!("PhysicalAddress.rs");
 include!("PhysicalPageFrameNumber.rs");
 include!("VirtualAddress.rs");

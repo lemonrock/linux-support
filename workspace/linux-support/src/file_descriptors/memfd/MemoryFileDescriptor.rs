@@ -301,11 +301,10 @@ impl MemoryFileDescriptor
 	///
 	/// Supported since Linux 3.17.
 	/// However, support for `allow_sealing_operations` with `huge_page_size` has only existed since Linux 4.16.
-	pub fn open_anonymous_memory_as_file(non_unique_name_for_debugging_purposes: &CStr, allow_sealing_operations: bool, huge_page_size: Option<Option<HugePageSize>>, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<(Self, PageSizeOrHugePageSize), CreationError>
+	pub fn open_anonymous_memory_as_file(non_unique_name_for_debugging_purposes: &CStr, allow_sealing_operations: bool, page_size_or_huge_page_size_settings: &PageSizeOrHugePageSizeSettings) -> Result<Self, CreationError>
 	{
 		const MFD_CLOEXEC: u32 = 0x0001;
 		const MFD_ALLOW_SEALING: u32 = 0x0002;
-		const MFD_HUGETLB: i32 = 0x0004;
 
 		extern "C"
 		{
@@ -320,8 +319,8 @@ impl MemoryFileDescriptor
 		{
 			0
 		};
-
-		let (huge_page_size_flags, page_size) = HugePageSize::mmap_or_memfd_flag_bits_and_page_size(MFD_HUGETLB, huge_page_size, defaults);
+		
+		let (huge_page_size_flags, _page_size_or_huge_page_size) = page_size_or_huge_page_size_settings.memfd_flag_bits_and_page_size();
 
 		let flags = MFD_CLOEXEC | sealing_flags | huge_page_size_flags as u32;
 
@@ -329,7 +328,7 @@ impl MemoryFileDescriptor
 
 		if likely!(result == 0)
 		{
-			return Ok((unsafe { Self::from_raw_fd(result) }, page_size))
+			return Ok(unsafe { Self::from_raw_fd(result) })
 		}
 		else if likely!(result == -1)
 		{

@@ -20,6 +20,7 @@ include!("GlobalHugePagePoolSize.rs");
 include!("HugePageSize.rs");
 include!("HugePagePoolStatistics.rs");
 include!("PageSizeOrHugePageSize.rs");
+include!("PageSizeOrHugePageSizeSettings.rs");
 include!("TransparentHugePageDefragmentationChoice.rs");
 include!("TransparentHugePageRegularMemoryChoice.rs");
 include!("TransparentHugePageSharedMemoryChoice.rs");

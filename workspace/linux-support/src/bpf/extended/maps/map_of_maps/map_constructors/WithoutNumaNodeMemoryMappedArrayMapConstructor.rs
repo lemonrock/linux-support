@@ -16,12 +16,12 @@ impl<V: Copy> MapConstructor for WithoutNumaNodeMemoryMappedArrayMapConstructor<
 	
 	type InvariantArguments = ();
 	
-	type VariableArguments = Rc<DefaultPageSizeAndHugePageSizes>;
+	type VariableArguments = PageSize;
 	
 	#[inline(always)]
 	fn construct(map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: Self::AccessPermissions, _arguments_that_end_up_in_map_flags: Self::InvariantArguments, variable_arguments: Self::VariableArguments) -> Result<Self::Map, MapCreationError>
 	{
-		let defaults = variable_arguments;
-		MemoryMappedArrayMap::new(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, maximum_entries, access_permissions, None, &defaults)
+		let default_page_size = variable_arguments;
+		MemoryMappedArrayMap::new(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, maximum_entries, access_permissions, None, default_page_size)
 	}
 }

@@ -18,6 +18,7 @@ include!("AddressHint.rs");
 include!("ExtendedProtection.rs");
 include!("LockAllMemory.rs");
 include!("MappedMemory.rs");
+include!("MappedMemoryConfiguration.rs");
 include!("MappedMemorySettings.rs");
 include!("MemoryAdvice.rs");
 include!("MemoryLockSettings.rs");

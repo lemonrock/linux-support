@@ -50,7 +50,7 @@ pub trait ChunkSize: Default + Debug + Copy + PartialEq + Eq + PartialOrd + Ord 
 	fn round_up_number_of_chunks_to_a_multiple_that_fits_exactly_into_multiple_pages(self, number_of_chunks: NonZeroU32) -> NonZeroU32;
 	
 	#[doc(hidden)]
-	fn validate_user_memory(huge_memory_page_size: Option<Option<HugePageSize>>);
+	fn validate_user_memory(user_memory_area_page_size_or_huge_page_size_settings: &PageSizeOrHugePageSizeSettings);
 	
 	#[doc(hidden)]
 	fn received_relative_addresses_and_offsets(received_descriptor: &FrameDescriptor, frame_headroom: FrameHeadroom) -> RelativeAddressesAndOffsets;

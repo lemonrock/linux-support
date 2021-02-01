@@ -11,12 +11,13 @@ use self::resources::Resources;
 use crate::cpu::*;
 use crate::network_device::*;
 use crate::linux_kernel_modules::*;
-use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
+use crate::memory::huge_pages::PageSizeOrHugePageSizeSettings;
 use crate::memory::mapping::*;
 use crate::memory::numa::NumaNode;
 use crate::paths::*;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 use crate::interrupt_request::InterruptRequest;
+use crate::memory::PageSize;
 
 
 /// Classifications.

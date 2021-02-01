@@ -26,6 +26,7 @@ use crate::file_descriptors::socket::c::*;
 use crate::file_descriptors::terminal::TerminalFileDescriptor;
 use crate::io_priority::CompressedIoPriority;
 use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
+use crate::memory::huge_pages::PageSizeOrHugePageSizeSettings;
 use crate::memory::mapping::*;
 use crate::poll::*;
 

@@ -14,9 +14,9 @@ pub type ReceiveQueue = XskRingQueue<ConsumerXskRingQueueKind, FrameDescriptor>;
 impl ReceiveQueue
 {
 	#[inline(always)]
-	pub(super) fn from_receive_memory_map_offsets(express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, memory_map_offsets: &xdp_mmap_offsets, receive_ring_queue_depth: RingQueueDepth, defaults: &DefaultPageSizeAndHugePageSizes) -> Self
+	pub(super) fn from_receive_memory_map_offsets(express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, memory_map_offsets: &xdp_mmap_offsets, receive_ring_queue_depth: RingQueueDepth, default_page_size: PageSize) -> Self
 	{
-		Self::from_ring_queue_offsets(express_data_path_socket_file_descriptor, memory_map_offsets.receive_ring_offsets(), receive_ring_queue_depth, defaults, XDP_PGOFF_RX_RING)
+		Self::from_ring_queue_offsets(express_data_path_socket_file_descriptor, memory_map_offsets.receive_ring_offsets(), receive_ring_queue_depth, default_page_size, XDP_PGOFF_RX_RING)
 	}
 	
 	/// Based on `xsk_ring_cons__rx_desc()` in Linux source `tools/lib/bpf/xsk.h`.

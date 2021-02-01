@@ -65,11 +65,12 @@ impl<'a> PciDevice<'a>
 
 	/// Configuration space.
 	#[inline(always)]
-	pub fn configuration_space(&self, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Option<MemoryMappedConfigurationSpace>, io::Error>
+	pub fn configuration_space(&self, default_page_size: PageSize) -> Result<Option<MemoryMappedConfigurationSpace>, io::Error>
 	{
 		if let Some(config_file_path) = self.config_file_path()
 		{
-			let memory_mapped_file = config_file_path.memory_map_read_write(0, AddressHint::any(), Sharing::Private, None, false, false, defaults)?;
+			let page_size_or_huge_page_size_settings = PageSizeOrHugePageSizeSettings::for_default_page_size(default_page_size);
+			let memory_mapped_file = config_file_path.memory_map_read_write(0, AddressHint::any(), Sharing::Private, false, false, &page_size_or_huge_page_size_settings)?;
 			
 			Ok(Some(MemoryMappedConfigurationSpace(memory_mapped_file)))
 		}

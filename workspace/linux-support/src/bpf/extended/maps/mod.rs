@@ -17,8 +17,9 @@ use crate::file_descriptors::perf_event::PerfEventFileDescriptor;
 use crate::file_descriptors::socket::*;
 use crate::file_descriptors::socket::c::*;
 use crate::memory::mapping::*;
-use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
+use crate::memory::huge_pages::PageSizeOrHugePageSizeSettings;
 use crate::network_device::NetworkInterfaceIndex;
+use crate::memory::PageSize;
 
 
 /// Domain

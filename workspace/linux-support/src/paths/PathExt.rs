@@ -75,7 +75,7 @@ pub trait PathExt
 	fn entries_in_folder_path<BSA: BitSetAware>(&self) -> Result<Option<BitSet<BSA>>, io::Error>;
 
 	/// Memory map a file read-write.
-	fn memory_map_read_write<'a>(&self, offset: u64, address_hint: AddressHint, sharing: Sharing, huge_memory_page_size: Option<Option<HugePageSize>>, prefault: bool, reserve_swap_space: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<MappedMemory>;
+	fn memory_map_read_write<'a>(&self, offset: u64, address_hint: AddressHint, sharing: Sharing, prefault: bool, reserve_swap_space: bool, page_size_or_huge_page_size_settings: &PageSizeOrHugePageSizeSettings) -> io::Result<MappedMemory>;
 }
 
 impl PathExt for Path
@@ -276,7 +276,7 @@ impl PathExt for Path
 	}
 
 	#[inline(always)]
-	fn memory_map_read_write<'a>(&self, offset: u64, address_hint: AddressHint, sharing: Sharing, huge_memory_page_size: Option<Option<HugePageSize>>, prefault: bool, reserve_swap_space: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<MappedMemory>
+	fn memory_map_read_write<'a>(&self, offset: u64, address_hint: AddressHint, sharing: Sharing, prefault: bool, reserve_swap_space: bool, page_size_or_huge_page_size_settings: &PageSizeOrHugePageSizeSettings) -> io::Result<MappedMemory>
 	{
 		const protection: Protection = Protection::ReadWrite;
 		let file = protection.adjust_open_options_to_match(&mut OpenOptions::new()).open(self)?;
@@ -295,6 +295,6 @@ impl PathExt for Path
 			return Err(io_error_other("Empty files can not be memory-mapped"))
 		}
 
-		MappedMemory::from_file(&file, offset, new_non_zero_u64(length), address_hint, protection, sharing, huge_memory_page_size, prefault, reserve_swap_space, defaults).map_err(io_error_other)
+		MappedMemory::from_file(&file, offset, new_non_zero_u64(length), address_hint, protection, sharing, prefault, reserve_swap_space, page_size_or_huge_page_size_settings).map_err(io_error_other)
 	}
 }

@@ -14,9 +14,9 @@ pub type TransmitQueue = XskRingQueue<ProducerXskRingQueueKind, FrameDescriptor>
 impl TransmitQueue
 {
 	#[inline(always)]
-	pub(super) fn from_transmit_memory_map_offsets(express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, memory_map_offsets: &xdp_mmap_offsets, transmit_ring_queue_depth: RingQueueDepth, defaults: &DefaultPageSizeAndHugePageSizes) -> Self
+	pub(super) fn from_transmit_memory_map_offsets(express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, memory_map_offsets: &xdp_mmap_offsets, transmit_ring_queue_depth: RingQueueDepth, default_page_size: PageSize) -> Self
 	{
-		Self::from_ring_queue_offsets(express_data_path_socket_file_descriptor, memory_map_offsets.transmit_ring_offsets(), transmit_ring_queue_depth, defaults, XDP_PGOFF_TX_RING)
+		Self::from_ring_queue_offsets(express_data_path_socket_file_descriptor, memory_map_offsets.transmit_ring_offsets(), transmit_ring_queue_depth, default_page_size, XDP_PGOFF_TX_RING)
 	}
 	
 	#[inline(always)]

@@ -383,8 +383,14 @@ impl<'a> IoUring<'a>
 	fn map_memory(io_uring_file_descriptor: &IoUringFileDescriptor, size: NonZeroU64, offset: u64, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<MappedMemory, IoUringCreationError>
 	{
 		const OneMegabyte: u64 = 1024 * 1024;
-		let huge_memory_page_size = defaults.best_fit_huge_page_size_if_any(size.get(), OneMegabyte).map(|huge_page_size| Some(huge_page_size));
-		let mapped_memory = MappedMemory::from_file(io_uring_file_descriptor, offset, size, AddressHint::any(), Protection::ReadWrite, Sharing::Shared, huge_memory_page_size, true, false, defaults)?;
+		
+		let page_size_or_huge_page_size_settings = match defaults.best_fit_huge_page_size_if_any(size.get(), OneMegabyte)
+		{
+			None => PageSizeOrHugePageSizeSettings::for_page_size(defaults),
+			Some(huge_page_size) => PageSizeOrHugePageSizeSettings::for_huge_page_size(huge_page_size),
+		};
+		
+		let mapped_memory = MappedMemory::from_file(io_uring_file_descriptor, offset, size, AddressHint::any(), Protection::ReadWrite, Sharing::Shared, true, false, &page_size_or_huge_page_size_settings)?;
 
 		mapped_memory.advise(MemoryAdvice::DontFork).map_err(IoUringCreationError::CouldNotAdviseDontFork)?;
 

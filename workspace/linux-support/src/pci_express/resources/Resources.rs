@@ -25,14 +25,14 @@ impl<'a> Resources<'a>
 {
 	/// Memory map resource.
 	#[inline(always)]
-	pub fn memory_map(&self, resource_index: u8, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Option<MemoryMappedResource>, io::Error>
+	pub fn memory_map(&self, resource_index: u8, default_page_size: PageSize) -> Result<Option<MemoryMappedResource>, io::Error>
 	{
 		if !self.resources.contains_key(&resource_index)
 		{
 			return Ok(None)
 		}
 
-		ResourceEntry::memory_map(self.pci_device, resource_index, defaults).map(|resource| Some(resource))
+		ResourceEntry::memory_map(self.pci_device, resource_index, default_page_size).map(|resource| Some(resource))
 	}
 
 	/*

@@ -65,17 +65,17 @@ impl MappedMemory
 	///
 	/// If `address_hint`, on x86_64, has `constrain_to_first_2Gb` as `true`, and the resultant `address + length` once rounded would exceed 2Gb, then a panic occurs.
 	#[inline(always)]
-	pub fn anonymous(length: NonZeroU64, address_hint: AddressHint, protection: Protection, sharing: Sharing, huge_memory_page_size: Option<Option<HugePageSize>>, prefault: bool, reserve_swap_space: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, CreationError>
+	pub fn anonymous(length: NonZeroU64, address_hint: AddressHint, protection: Protection, sharing: Sharing, prefault: bool, reserve_swap_space: bool, page_size_or_huge_page_size_settings: &PageSizeOrHugePageSizeSettings) -> Result<Self, CreationError>
 	{
-		Self::new::<File>(None, length, address_hint, protection, sharing, huge_memory_page_size, prefault, reserve_swap_space, defaults)
+		Self::new::<File>(None, length, address_hint, protection, sharing, prefault, reserve_swap_space, page_size_or_huge_page_size_settings)
 	}
 	
 	/// As for `anonymous()`, but `offset` will be rounded up to page size.
 	/// If `rounded_up(offset) + rounded_up(length)` exceeds the length of the underlying file, then the resultant memory after the end of the file will be filled with `0x00`.
 	#[inline(always)]
-	pub fn from_file<F: MemoryMappableFileDescriptor>(file_descriptor: &F, offset: u64, length: NonZeroU64, address_hint: AddressHint, protection: Protection, sharing: Sharing, huge_memory_page_size: Option<Option<HugePageSize>>, prefault: bool, reserve_swap_space: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, CreationError>
+	pub fn from_file<F: MemoryMappableFileDescriptor>(file_descriptor: &F, offset: u64, length: NonZeroU64, address_hint: AddressHint, protection: Protection, sharing: Sharing, prefault: bool, reserve_swap_space: bool, page_size_or_huge_page_size_settings: &PageSizeOrHugePageSizeSettings) -> Result<Self, CreationError>
 	{
-		Self::new(Some((file_descriptor, offset)), length, address_hint, protection, sharing, huge_memory_page_size, prefault, reserve_swap_space, defaults)
+		Self::new(Some((file_descriptor, offset)), length, address_hint, protection, sharing, prefault, reserve_swap_space, page_size_or_huge_page_size_settings)
 	}
 	
 	/// Returns `Ok(true)` if memory was locked.
@@ -139,7 +139,8 @@ impl MappedMemory
 		if likely!(result == 0)
 		{
 			Ok(true)
-		} else if likely!(result == -1)
+		}
+		else if likely!(result == -1)
 		{
 			match errno().0
 			{
@@ -393,18 +394,18 @@ impl MappedMemory
 	}
 	
 	#[inline(always)]
-	fn new<F: MemoryMappableFileDescriptor>(anonymous_or_file_descriptor: Option<(&F, u64)>, length: NonZeroU64, address_hint: AddressHint, protection: Protection, sharing: Sharing, huge_page_size: Option<Option<HugePageSize>>, prefault: bool, reserve_swap_space: bool, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, CreationError>
+	fn new<F: MemoryMappableFileDescriptor>(anonymous_or_file_descriptor: Option<(&F, u64)>, length: NonZeroU64, address_hint: AddressHint, protection: Protection, sharing: Sharing, prefault: bool, reserve_swap_space: bool, page_size_or_huge_page_size_settings: &PageSizeOrHugePageSizeSettings) -> Result<Self, CreationError>
 	{
-		let (huge_page_size_flags, page_size) = HugePageSize::mmap_or_memfd_flag_bits_and_page_size(MAP_HUGETLB, huge_page_size, defaults);
+		let (huge_page_size_flags, page_size_or_huge_page_size) = page_size_or_huge_page_size_settings.mmap_flag_bits_and_page_size();
 		
-		let length_in_bytes = page_size.non_zero_number_of_bytes_rounded_up_to_multiple_of_page_size(length).get();
+		let length_in_bytes = page_size_or_huge_page_size.non_zero_number_of_bytes_rounded_up_to_multiple_of_page_size(length).get();
 		
-		let (address, address_flags) = address_hint.to_address_and_flags(page_size, length_in_bytes);
+		let (address, address_flags) = address_hint.to_address_and_flags(page_size_or_huge_page_size, length_in_bytes);
 		
 		let (file_descriptor, anonymous_flags, offset_in_bytes) = match anonymous_or_file_descriptor
 		{
 			None => (-1, MAP_ANONYMOUS, 0),
-			Some((file, offset_in_bytes)) => (file.as_raw_fd(), 0, page_size.number_of_bytes_rounded_up_to_multiple_of_page_size(offset_in_bytes)),
+			Some((file, offset_in_bytes)) => (file.as_raw_fd(), 0, page_size_or_huge_page_size.number_of_bytes_rounded_up_to_multiple_of_page_size(offset_in_bytes)),
 		};
 		
 		let prefault_flags = if prefault
@@ -459,7 +460,7 @@ impl MappedMemory
 				{
 					virtual_address: VirtualAddress::from(result),
 					size: length_in_bytes as usize,
-					page_size,
+					page_size: page_size_or_huge_page_size,
 				},
 			)
 		}
@@ -489,7 +490,7 @@ impl MappedMemory
 	///
 	/// Returns `None` if `preferred_buffer_size` exceeds `2^63`.
 	#[inline(always)]
-	pub fn size_suitable_for_a_power_of_two_ring_queue(preferred_buffer_size: NonZeroU64, defaults: &DefaultPageSizeAndHugePageSizes, inclusive_maximum_bytes_wasted: u64) -> Option<(u64, Option<Option<HugePageSize>>)>
+	pub fn size_suitable_for_a_power_of_two_ring_queue(preferred_buffer_size: NonZeroU64, defaults: &DefaultPageSizeAndHugePageSizes, inclusive_maximum_bytes_wasted: u64) -> Option<(u64, PageSizeOrHugePageSizeSettings)>
 	{
 		let buffer_size_power_of_two_at_least_one_page = match Self::round_buffer_size_up_to_power_of_two(preferred_buffer_size)
 		{
@@ -499,8 +500,9 @@ impl MappedMemory
 		
 		let (buffer_size, huge_page_size) = match defaults.best_fit_huge_page_size_if_any(buffer_size_power_of_two_at_least_one_page, inclusive_maximum_bytes_wasted)
 		{
-			None => (buffer_size_power_of_two_at_least_one_page, None),
-			Some(huge_page_size) => (huge_page_size.number_of_bytes_rounded_up_to_multiple_of_page_size(buffer_size_power_of_two_at_least_one_page), Some(Some(huge_page_size)))
+			None => (buffer_size_power_of_two_at_least_one_page, PageSizeOrHugePageSizeSettings::for_page_size(defaults)),
+			
+			Some(huge_page_size) => (huge_page_size.number_of_bytes_rounded_up_to_multiple_of_page_size(buffer_size_power_of_two_at_least_one_page), PageSizeOrHugePageSizeSettings::for_huge_page_size(huge_page_size))
 		};
 		
 		Some((buffer_size, huge_page_size))

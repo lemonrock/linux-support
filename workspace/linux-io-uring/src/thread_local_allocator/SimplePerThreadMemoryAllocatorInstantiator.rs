@@ -21,7 +21,7 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 		let (defaults, global_allocator) = instantiation_arguments.as_ref();
 		
 		let thread_allocator_memory_settings = thread_local_allocator_configuration.mapped_memory_settings(defaults);
-		let memory_source = MemoryMapSource::new(thread_local_allocator_configuration.heap_size, thread_allocator_memory_settings, defaults)?;
+		let memory_source = MemoryMapSource::new(thread_local_allocator_configuration.heap_size, thread_allocator_memory_settings)?;
 		let thread_local_allocator = GTACSA::ThreadLocalAllocator::new_local_allocator(memory_source, LifetimeHint::LongLived, thread_local_allocator_configuration.block_size_hint);
 		
 		let global_allocator = *global_allocator;

@@ -3,6 +3,7 @@
 
 
 use super::*;
+use crate::memory::PageSize;
 
 
 include!("CreateReceiveOrTransmitOrBothRingQueueDepths.rs");

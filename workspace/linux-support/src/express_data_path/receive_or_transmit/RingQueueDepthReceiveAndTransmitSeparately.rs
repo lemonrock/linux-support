@@ -64,7 +64,7 @@ impl<RPC: ReceivePollCreator, TSC: TransmitSendCreator> CreateReceiveOrTransmitO
 	}
 	
 	#[inline(always)]
-	fn create_receive_or_transmit_or_both(self, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, defaults: &DefaultPageSizeAndHugePageSizes, memory_map_offsets: &xdp_mmap_offsets, receive_queue_identifier: QueueIdentifier, redirect_map_and_attached_program: &RedirectMapAndAttachedProgram, arguments: Self::Arguments) -> Result<Self::ReceiveOrTransmitOrBoth, ExpressDataPathSocketCreationError>
+	fn create_receive_or_transmit_or_both(self, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, default_page_size: PageSize, memory_map_offsets: &xdp_mmap_offsets, receive_queue_identifier: QueueIdentifier, redirect_map_and_attached_program: &RedirectMapAndAttachedProgram, arguments: Self::Arguments) -> Result<Self::ReceiveOrTransmitOrBoth, ExpressDataPathSocketCreationError>
 	{
 		let (receive_poll_creator, transmit_send_creator) = arguments;
 		
@@ -72,8 +72,8 @@ impl<RPC: ReceivePollCreator, TSC: TransmitSendCreator> CreateReceiveOrTransmitO
 		(
 			CommonReceiveAndTransmitSeparately::new
 			(
-				self.0.create_receive_or_transmit_or_both(express_data_path_socket_file_descriptor, defaults, memory_map_offsets, receive_queue_identifier, redirect_map_and_attached_program, receive_poll_creator)?,
-				self.1.create_receive_or_transmit_or_both(express_data_path_socket_file_descriptor, defaults, memory_map_offsets, receive_queue_identifier, redirect_map_and_attached_program, transmit_send_creator)?,
+				self.0.create_receive_or_transmit_or_both(express_data_path_socket_file_descriptor, default_page_size, memory_map_offsets, receive_queue_identifier, redirect_map_and_attached_program, receive_poll_creator)?,
+				self.1.create_receive_or_transmit_or_both(express_data_path_socket_file_descriptor, default_page_size, memory_map_offsets, receive_queue_identifier, redirect_map_and_attached_program, transmit_send_creator)?,
 			)
 		)
 	}
