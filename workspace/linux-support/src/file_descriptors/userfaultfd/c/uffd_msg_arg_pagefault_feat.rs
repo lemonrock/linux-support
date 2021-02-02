@@ -6,5 +6,8 @@
 #[derive(Copy, Clone)]
 pub(super) union uffd_msg_arg_pagefault_feat
 {
-	pub(super) ptid: u32,
+	/// Will only be populated if the `Features::ThreadIdentifier` is enabled.
+	///
+	/// Linux specified this is `u32` but it would seem to be `pid_t`.
+	pub(super) ptid: Option<ThreadIdentifier>,
 }

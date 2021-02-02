@@ -2,6 +2,7 @@
 // Copyright © 2021 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+
 /// Represents an user fault instance.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct UserFaultFileDescriptor(RawFd);
@@ -44,6 +45,24 @@ impl FromRawFd for UserFaultFileDescriptor
 
 impl FileDescriptor for UserFaultFileDescriptor
 {
+}
+
+impl Into<Arc<Self>> for UserFaultFileDescriptor
+{
+	#[inline(always)]
+	fn into(self) -> Arc<Self>
+	{
+		Arc::new(self)
+	}
+}
+
+impl Into<PollingUserFaultFileDescriptor> for UserFaultFileDescriptor
+{
+	#[inline(always)]
+	fn into(self) -> PollingUserFaultFileDescriptor
+	{
+		PollingUserFaultFileDescriptor(self.into())
+	}
 }
 
 impl UserFaultFileDescriptor
@@ -200,7 +219,7 @@ impl UserFaultFileDescriptor
 				
 				EINVAL => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or either the start or the len field of the ufdio_range structure was not a multiple of the system page size; or the len field was zero; or these fields were otherwise invalid; or, there as an incompatible mapping in the specified address range; or, there was no mapping in the specified address range"),
 				
-				ENOMEM => Err(CreationError:KernelWouldBeOutOfMemory),
+				ENOMEM => Err(CreationError::KernelWouldBeOutOfMemory),
 				
 				_ => panic!("Unexpect errno `{}` from userfaultfd ioctl(UFFDIO_UNREGISTER)", errno),
 			}
@@ -210,8 +229,9 @@ impl UserFaultFileDescriptor
 	/// Called from polling thread.
 	///
 	/// Ideally should be done after `poll()` or `epoll()`.
+	/// Errors such as `POLLERR` are apparently possibly.
 	#[inline(always)]
-	pub fn read_events<'a>(&self, events: &'a mut [uffd_msg]) -> &'a [uffd_msg]
+	pub fn read_events<'a>(&self, events: &'a mut [uffd_msg]) -> usize
 	{
 		const MessageSize: usize = size_of::<uffd_msg>();
 		
@@ -223,7 +243,7 @@ impl UserFaultFileDescriptor
 			let number_of_messages = (result as usize) / MessageSize;
 			debug_assert!(number_of_messages <= maximum_number_of_messages_to_read);
 			
-			&events[.. number_of_messages]
+			number_of_messages
 		}
 		else if likely!(result == -1)
 		{
@@ -263,20 +283,13 @@ impl UserFaultFileDescriptor
 		{
 			match self.make_ioctl(UFFDIO_COPY, &mut copy)
 			{
-				Ok(()) =>
-				{
-					debug_assert_eq!(copy.copy as u64, length);
-					return Ok(())
-				}
+				Ok(()) => return Ok(()),
 				
 				Err(errno) => match errno.0
 				{
 					EAGAIN =>
 					{
 						let bytes_copied = copy.copy as u64;
-						
-						debug_assert!(bytes_copied < length);
-						// Not asserted, but `bytes_copied` should by page aligned.
 						
 						copy.dst += bytes_copied;
 						copy.src += bytes_copied;
@@ -327,20 +340,13 @@ impl UserFaultFileDescriptor
 		{
 			match self.make_ioctl(UFFDIO_ZEROPAGE, &mut copy)
 			{
-				Ok(()) =>
-				{
-					debug_assert_eq!(copy.zeropage as u64, length);
-					return Ok(())
-				}
+				Ok(()) => return Ok(()),
 				
 				Err(errno) => match errno.0
 				{
 					EAGAIN =>
 					{
 						let bytes_copied = copy.zeropage as u64;
-						
-						debug_assert!(bytes_copied < length);
-						// Not asserted, but `bytes_copied` should by page aligned.
 						
 						copy.range.start += bytes_copied;
 						copy.range.len -= bytes_copied;
@@ -415,7 +421,7 @@ impl UserFaultFileDescriptor
 		{
 			range: Self::to_uffdio_range(to_mapped_absolute_memory_range),
 			
-			mode,
+			mode: write_protect_mode,
 		};
 		
 		loop

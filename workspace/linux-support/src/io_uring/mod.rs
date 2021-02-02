@@ -29,6 +29,7 @@ use crate::memory::huge_pages::DefaultHugePageSizes;
 use crate::memory::huge_pages::PageSizeOrHugePageSizeSettings;
 use crate::memory::mapping::*;
 use crate::poll::*;
+use crate::memory::{RelativeMemoryRange, AbsoluteMemoryRange};
 
 
 mod c;

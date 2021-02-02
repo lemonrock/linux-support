@@ -2,24 +2,30 @@
 // Copyright © 2021 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// User fault event.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-#[repr(u8)]
-#[non_exhaustive]
-enum UserFaultEvent
+/// Handle user fault events.
+pub trait UserFaultEventHandler
 {
 	/// A page fault occurred on a registered memory range.
-	PageFault = UFFD_EVENT_PAGEFAULT,
-
+	///
+	/// `thread_identifier` is only `Some()` if `Features::ThreadIdentifier` was requested and supported.
+	fn page_fault(&mut self, virtual_address: VirtualAddress, page_fault_event_flags: PageFaultEventFlags, thread_identifier: Option<ThreadIdentifier>);
+	
 	/// The process has forked.
-	Fork = UFFD_EVENT_FORK,
-
+	fn fork(&mut self, child_process_user_fault_file_descriptor: FileDescriptorCopy<UserFaultFileDescriptor>);
+	
 	/// The process used `mremap()` on a registered memory range.
-	Remap = UFFD_EVENT_REMAP,
-
+	fn remap(&mut self, from_mapped_absolute_memory_range: FastAbsoluteMemoryRange, to: VirtualAddress);
+	
 	/// The process used `madvise(MADV_DONT_NEED)` or `madvise(MADV_REMOVE)` on a registered memory range.
-	Remove = UFFD_EVENT_REMOVE,
+	fn remove(&mut self, from_mapped_absolute_memory_range: FastAbsoluteMemoryRange);
 	
 	/// The process used `munmap()` on a registered memory range.
-	Unmap = UFFD_EVENT_UNMAP,
+	fn unmap(&mut self);
+	
+	/// An unknown event (not currently possible).
+	#[allow(dead_code)]
+	fn future_unsupported_event(&mut self, reserved1: u64, reserved2: u64, reserved3: u64)
+	{
+		panic!("Future unsupported event")
+	}
 }

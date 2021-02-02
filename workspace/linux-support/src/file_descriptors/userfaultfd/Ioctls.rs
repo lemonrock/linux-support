@@ -10,35 +10,35 @@ bitflags!
 	pub struct Ioctls: u64
 	{
 		/// Register memory.
-		const Register = _UFFDIO_REGISTER;
+		const Register = 1 << _UFFDIO_REGISTER;
 		
 		/// Unregister memory.
 		///
 		/// Only available for registered memory.
-		const Unregister = _UFFDIO_UNREGISTER;
+		const Unregister = 1 << _UFFDIO_UNREGISTER;
 		
 		/// API.
-		const ApplicationProgrammerInterface = _UFFDIO_API;
+		const ApplicationProgrammerInterface = 1 << _UFFDIO_API;
 		
 		/// Wake.
 		///
 		/// Only available for registered memory.
-		const Wake = _UFFDIO_WAKE;
+		const Wake = 1 << _UFFDIO_WAKE;
 		
 		/// Copy.
 		///
 		/// Only available for registered memory.
-		const Copy = _UFFDIO_COPY;
+		const Copy = 1 << _UFFDIO_COPY;
 		
 		/// Zero page copy.
 		///
 		/// Only available for registered memory which does not use huge pages.
-		const ZeroPageCopy = _UFFDIO_ZEROPAGE;
+		const ZeroPageCopy = 1 << _UFFDIO_ZEROPAGE;
 		
 		/// Write Protect.
 		///
 		/// Only available for registered memory which does not use huge pages and if `RegisterMode::AllowWriteProtectedCopying` was specified on registration.
-		const WriteProtectOnCopy = _UFFDIO_WRITEPROTECT;
+		const WriteProtectOnCopy = 1 << _UFFDIO_WRITEPROTECT;
 		
 		/// Equivalent to `UFFD_API_IOCTLS` (which has not been defined in this module).
 		const ApplicationProgrammerInterfaces = Self::ApplicationProgrammerInterface.bits | Self::Register.bits | Self::Unregister.bits;

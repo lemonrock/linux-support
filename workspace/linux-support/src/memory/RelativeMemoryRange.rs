@@ -41,7 +41,7 @@ where VirtualAddress: Add<T, Output=VirtualAddress>
 	}
 }
 
-impl<T: AsPrimitive + SaturatingSub + Unsigned + SaturatingAdd + One> RelativeMemoryRange for RangeInclusive<T>
+impl<T: AsPrimitive<usize> + SaturatingSub + Unsigned + SaturatingAdd + One> RelativeMemoryRange for RangeInclusive<T>
 where VirtualAddress: Add<T, Output=VirtualAddress>
 {
 	#[inline(always)]
@@ -72,7 +72,7 @@ impl RelativeMemoryRange for RangeFull
 	}
 }
 
-impl<T: AsPrimitive + SaturatingSub + Unsigned> RelativeMemoryRange for RangeFrom<T>
+impl<T: AsPrimitive<usize> + SaturatingSub + Unsigned> RelativeMemoryRange for RangeFrom<T>
 where VirtualAddress: Add<T, Output=VirtualAddress>
 {
 	#[inline(always)]

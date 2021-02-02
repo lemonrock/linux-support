@@ -12,6 +12,8 @@ bitflags!
 		/// When registering memory, request tracking of missing pages (missing pages are those that have not yet been faulted in).
 		///
 		/// Useful for allocated-on-demand anonymous mapped memory.
+		///
+		/// If used, then either `copy()` or `zero_page_copy()` __MUST__ be used before the thread with the page fault wakes up.
 		const Missing = UFFDIO_REGISTER_MODE_MISSING;
 		
 		/// Track page faults on write-protected pages (WP).

@@ -31,7 +31,6 @@ use crate::file_descriptors::netlink::route::RouteNetlinkProtocol;
 use crate::file_descriptors::netlink::route::get_link::GetLinkMessageData;
 use crate::file_descriptors::socket::*;
 use crate::file_descriptors::socket::c::*;
-use crate::memory::PageSize;
 use crate::memory::VirtualAddress;
 use crate::memory::huge_pages::PageSizeOrHugePageSizeSettings;
 use crate::memory::mapping::*;

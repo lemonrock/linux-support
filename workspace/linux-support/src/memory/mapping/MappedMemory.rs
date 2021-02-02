@@ -500,7 +500,7 @@ impl MappedMemory
 	#[inline(always)]
 	pub fn sub_range(&self, range: impl RelativeMemoryRange) -> FastAbsoluteMemoryRange
 	{
-		let (inclusive_absolute_start, length) = self.sub_range_inner(relative_range);
+		let (inclusive_absolute_start, length) = self.sub_range_inner(range);
 		
 		FastAbsoluteMemoryRange
 		{

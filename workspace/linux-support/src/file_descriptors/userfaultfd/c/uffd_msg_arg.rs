@@ -14,5 +14,5 @@ pub(super) union uffd_msg_arg
 	
 	pub(super) remove: uffd_msg_arg_remove,
 	
-	reserved: uffd_msg_arg_reserved,
+	pub(super) reserved: uffd_msg_arg_reserved,
 }

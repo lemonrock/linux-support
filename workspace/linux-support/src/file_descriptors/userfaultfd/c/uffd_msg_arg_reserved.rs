@@ -4,11 +4,11 @@
 
 #[repr(C)]
 #[derive(Default, Debug, Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
-struct uffd_msg_arg_reserved
+pub(super) struct uffd_msg_arg_reserved
 {
-	reserved1: u64,
+	pub(super) reserved1: u64,
 	
-	reserved2: u64,
+	pub(super) reserved2: u64,
 	
-	reserved3: u64,
+	pub(super) reserved3: u64,
 }

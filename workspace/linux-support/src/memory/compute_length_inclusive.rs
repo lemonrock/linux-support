@@ -3,7 +3,7 @@
 
 
 #[inline(always)]
-fn compute_length_inclusive<T: AsPrimitive + SaturatingSub + Unsigned + SaturatingAdd + One>(exclusive_start: T, inclusive_end: T, original_length: usize) -> usize
+fn compute_length_inclusive<T: AsPrimitive<usize> + SaturatingSub + Unsigned + SaturatingAdd + One>(exclusive_start: T, inclusive_end: T, original_length: usize) -> usize
 {
 	let length: usize = inclusive_end.saturating_add(one::<T>()).saturating_sub(&exclusive_start).as_();
 	debug_assert!(length <= original_length);

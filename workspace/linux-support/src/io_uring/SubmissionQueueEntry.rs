@@ -448,13 +448,12 @@ impl SubmissionQueueEntry
 	
 	/// Caller must hold onto, *but may move*, `mapped_memory` until completion, or, if the parameters features flag `ParametersFeatureFlags::SubmitStable` is set, until the `SubmissionQueueEntry` has been consumed.
 	#[inline(always)]
-	pub fn prepare_memory_advise(self, user_data: impl UserData, options: SubmissionQueueEntryOptions, personality: Option<PersonalityCredentialsIdentifier>, mapped_memory: &MappedMemory, offset: usize, length: u32, advice: MemoryAdvice)
+	pub fn prepare_memory_advise(self, user_data: impl UserData, options: SubmissionQueueEntryOptions, personality: Option<PersonalityCredentialsIdentifier>, mapped_memory: MappedMemorySubrange<impl RelativeMemoryRange>, advice: MemoryAdvice)
 	{
-		let (start, length) = relative_range.compute_and_debug_assert_page_aligned(self.virtual_address, self.size);
+		let (start, length) = mapped_memory.inclusive_absolute_start_and_length_u64();
+		debug_assert!(length <= (u32::MAX) as u64);
 		
-		mapped_memory.guard_range(&(offset .. (length as usize)));
-		
-		self.prepare(user_data, options.into_flags(), personality, CompressedIoPriority::Irrelevant, IORING_OP_MADVISE, FileDescriptorKind::Irrelevant, mapped_memory.virtual_address().add(offset).into(), length, 0);
+		self.prepare(user_data, options.into_flags(), personality, CompressedIoPriority::Irrelevant, IORING_OP_MADVISE, FileDescriptorKind::Irrelevant, start, length as u32, 0);
 		self.set_advice(FileOrMemoryAdvice { memory: advice  });
 		self.zero_buf_index()
 	}

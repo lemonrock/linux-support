@@ -176,6 +176,6 @@ impl<'a, T: 'a + Into<VirtualAddress>> AbsoluteMemoryRange for &'a RangeInclusiv
 	fn length(self) -> usize
 	{
 		let end: VirtualAddress = self.end().into();
-		(end.saturating_increment() - self.inclusive_absolute_start())
+		end.saturating_increment() - self.inclusive_absolute_start()
 	}
 }

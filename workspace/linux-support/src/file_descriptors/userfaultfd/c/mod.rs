@@ -6,8 +6,8 @@ use super::*;
 use crate::ioctl::_IOWR;
 use crate::ioctl::_IOR;
 use crate::syscall::SYS;
-use bitflags::bitflags;
 use std::os::unix::io::RawFd;
+use crate::thread::ThreadIdentifier;
 
 
 include!("_UFFDIO.rs");

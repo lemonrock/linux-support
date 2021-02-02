@@ -35,15 +35,20 @@ impl ReceivePoll for BlockingReceivePollAndReceivePollCreator
 		loop
 		{
 			let result = unsafe { poll(self.0.as_mut_ptr(), Self::NumberOfPolledFileDescriptors as u64, Self::DefaultTimeoutInMilliseconds) };
-			if likely!(result >= 0)
+			if likely!(result > 0)
 			{
 				return
+			}
+			else if likely!(result == 0)
+			{
+				continue
 			}
 			else if likely!(result == -1)
 			{
 				let errno = errno();
 				match errno.0
 				{
+					// On Linux, `EAGAIN` is not supposed to be possible as the result is `0`.
 					EINTR | ENOMEM | EAGAIN => continue,
 					EFAULT => panic!("fds points outside the process's accessible address space. The array given as argument was not contained in the calling program's address space."),
 					EINVAL => panic!("The nfds value exceeds the RLIMIT_NOFILE value"),

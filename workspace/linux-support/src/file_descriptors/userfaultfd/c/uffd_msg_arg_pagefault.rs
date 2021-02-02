@@ -6,7 +6,7 @@
 #[derive(Copy, Clone)]
 pub(super) struct uffd_msg_arg_pagefault
 {
-	pub(super) flags: u64,
+	pub(super) flags: PageFaultEventFlags,
 	
 	pub(super) address: u64,
 	

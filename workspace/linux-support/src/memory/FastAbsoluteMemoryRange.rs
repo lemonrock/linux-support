@@ -6,8 +6,8 @@
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct FastAbsoluteMemoryRange
 {
-	inclusive_absolute_start: VirtualAddress,
-	length: usize,
+	pub inclusive_absolute_start: VirtualAddress,
+	pub length: usize,
 }
 
 impl<'a, Subrange: RelativeMemoryRange> From<(&'a MappedMemory, Subrange)> for FastAbsoluteMemoryRange
@@ -24,10 +24,10 @@ impl<'a, Subrange: RelativeMemoryRange> From<(&'a MappedMemory, Subrange)> for F
 	}
 }
 
-impl<'a> From<MappedMemorySubrange<'a>> for FastAbsoluteMemoryRange
+impl<'a, Subrange: RelativeMemoryRange> From<MappedMemorySubrange<'a, Subrange>> for FastAbsoluteMemoryRange
 {
 	#[inline(always)]
-	fn from(from: MappedMemorySubrange<'a>) -> Self
+	fn from(from: MappedMemorySubrange<'a, Subrange>) -> Self
 	{
 		let (inclusive_absolute_start, length) = from.inclusive_absolute_start_and_length();
 		Self

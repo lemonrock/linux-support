@@ -4,17 +4,24 @@
 
 use super::*;
 use self::c::*;
-use crate::memory::AbsoluteMemoryRange;
+use crate::memory::{AbsoluteMemoryRange, FastAbsoluteMemoryRange};
 use crate::memory::VirtualAddress;
+use crate::poll::PollRequestFlags;
+use crate::poll::PollResponseFlags;
+use crate::thread::ThreadIdentifier;
 
 
 mod c;
 
 
-include!("CopyMode.rs");include!("Features.rs");
+include!("CopyMode.rs");
+include!("Features.rs");
 include!("Ioctls.rs");
+include!("PageFaultEventFlags.rs");
+include!("PollingUserFaultFileDescriptor.rs");
 include!("RegisterMode.rs");
 include!("UserFaultEvent.rs");
+include!("UserFaultEventHandler.rs");
 include!("UserFaultFileDescriptor.rs");
 include!("WriteProtectMode.rs");
 include!("ZeroPageMode.rs");

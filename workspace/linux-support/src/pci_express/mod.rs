@@ -17,7 +17,6 @@ use crate::memory::numa::NumaNode;
 use crate::paths::*;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 use crate::interrupt_request::InterruptRequest;
-use crate::memory::PageSize;
 
 
 /// Classifications.
