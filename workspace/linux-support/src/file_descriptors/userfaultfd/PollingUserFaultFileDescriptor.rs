@@ -157,7 +157,7 @@ impl<UFEH: UserFaultEventHandler, T: Terminate> PollingUserFaultFileDescriptor<U
 			
 			Remove => self.user_fault_event_handler.remove(Self::remove_to_mapped_absolute_memory_range(arg)),
 			
-			Unmap => self.user_fault_event_handler.remove(Self::remove_to_mapped_absolute_memory_range(arg)),
+			Unmap => self.user_fault_event_handler.unmap(Self::remove_to_mapped_absolute_memory_range(arg)),
 			
 			_ =>
 			{

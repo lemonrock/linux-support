@@ -20,7 +20,7 @@ pub trait UserFaultEventHandler
 	fn remove(&mut self, from_mapped_absolute_memory_range: FastAbsoluteMemoryRange);
 	
 	/// The process used `munmap()` on a registered memory range.
-	fn unmap(&mut self);
+	fn unmap(&mut self, from_mapped_absolute_memory_range: FastAbsoluteMemoryRange);
 	
 	/// An unknown event (not currently possible).
 	#[allow(dead_code)]
