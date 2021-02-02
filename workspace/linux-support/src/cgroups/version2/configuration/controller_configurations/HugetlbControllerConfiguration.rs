@@ -13,7 +13,7 @@ impl ControllerConfiguration for HugetlbControllerConfiguration
 	const Controller: Controller = Controller::hugetlb;
 	
 	#[inline(always)]
-	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup>, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
+	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup>, defaults: &DefaultHugePageSizes) -> io::Result<()>
 	{
 		for (huge_page_size, per_huge_page_size_hugetlb_controller_configuration) in self.0.iter()
 		{

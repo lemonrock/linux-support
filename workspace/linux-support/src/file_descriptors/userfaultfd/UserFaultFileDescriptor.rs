@@ -118,52 +118,89 @@ impl UserFaultFileDescriptor
 				
 				EINVAL => panic!("Already initialized or bad arguments to ioctl"),
 				
-				EFAULT => panic!("Could not copy user memory"),
+				EFAULT => panic!("argp does not point to a valid memory address"),
 				
 				_ => panic!("Unexpect errno `{}` from userfaultfd ioctl(UFFDIO_API)", errno),
 			}
 		}
 	}
 	
-	/// Register memory range.
+	/// Register memory range that has previously been mapped with `mmap()`.
+	///
+	/// Returns the `Ioctl` operations permitted on the memory, which always fall into one of three sets which can be known without examing the return type:-
+	///
+	/// * Those suitable for memory backed by huge pages: always `Ioctls::HugePages`.
+	/// * Those suitable for memory backed by regular pages: always `Ioctls::RegularPages`.
+	/// * Those suitable for memory backed by regular pages and `register_mode` including `RegisterMode::AllowWriteProtectedCopying`: always `Ioctls::RegularPagesWithWriteProtectOnCopy`.
+	///
+	/// Returns errors:-
+	///
+	/// * `KernelWouldBeOutOfMemory` if `ENOMEM` occurs (this may be because the memory has become unmapped).
+	/// * `PermissionDenied` if `EPERM` occurs; this is typically because the mapped memory is `MAP_SHARED` and the process does not have write permissions to the underlying file (this includes checking file seals); writes can occur even for read-only files because of the way `copy()` is allowed to copy into sparse file holes.
+	///
+	/// `mapped_memory`:-
+	///
+	/// * must be page-aligned to memory mapped using `mmap()`; if using huge pages, then they must be aligned to the huge page alignment of that memory.
+	/// * can be a sub range of memory mapped using `mmap()`.
+	///
+	/// Note that if the mapped memory is using huge-pages then only 'basic' `Ioctls` are allowed.
 	#[inline(always)]
-	pub fn register_memory_range(&self, start: VirtualAddress, length: u64, mode: RegisterMode) -> Ioctls
+	pub fn register_memory_range(&self, mapped_absolute_memory_range: impl AbsoluteMemoryRange, register_mode: RegisterMode) -> Result<Ioctls, CreationError>
 	{
-		let mut register = uffdio_register::new(start, length, mode);
+		use self::CreationError::*;
+		
+		let mut register = uffdio_register
+		{
+			range: Self::to_uffdio_range(mapped_absolute_memory_range),
+			mode: register_mode,
+			ioctls: Ioctls::empty()
+		};
 		match self.make_ioctl(UFFDIO_REGISTER, &mut register)
 		{
-			Ok(()) => register.ioctls,
+			Ok(()) => Ok(register.ioctls),
 			
 			Err(errno) => match errno.0
 			{
+				ENOMEM => Err(KernelWouldBeOutOfMemory),
+				
+				EPERM => Err(PermissionDenied),
+				
 				EBUSY => panic!("A mapping in the specified range is registered with another userfaultfd object"),
 				
-				EFAULT => panic!("argp refers to an address that is outside the calling process's accessible address space"),
+				EFAULT => panic!("argp does not point to a valid memory address"),
 				
-				EINVAL => panic!("An invalid or unsupported bit was specified in the mode field; or the mode field was zero; or there is no mapping in the specified address range; or range.start or range.len is not a multiple of the system page size; or, range.len is zero; or these fields are otherwise invalid; or there as an incompatible mapping in the specified address range"),
+				EINVAL => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or an invalid or unsupported bit was specified in the mode field; or the mode field was zero; or there is no mapping in the specified address range; or range.start or range.len is not a multiple of the system page size (or huge page size); or, range.len is zero; or these fields are otherwise invalid; or there as an incompatible mapping in the specified address range, ie one that does not support userfaults"),
 				
 				_ => panic!("Unexpect errno `{}` from userfaultfd ioctl(UFFDIO_REGISTER)", errno),
 			}
 		}
 	}
 	
-	/// Unregister memory range.
+	/// Unregister memory range that has previously been registered with `self.register_memory_range()`.
+	///
+	/// `mapped_memory`:-
+	///
+	/// * must be page-aligned to memory mapped using `mmap()`; if using huge pages, then they must be aligned to the huge page alignment of that memory.
+	/// * can be a sub range of memory mapped using `mmap()`.
+	///
+	/// Returns errors:-
+	///
+	/// * `KernelWouldBeOutOfMemory` if `ENOMEM` occurs (this may be because the memory has become unmapped).
 	#[inline(always)]
-	pub fn unregister_memory_range(&self, start: VirtualAddress, length: u64)
+	pub fn unregister_memory_range(&self, mapped_absolute_memory_range: impl AbsoluteMemoryRange) -> Result<(), CreationError>
 	{
-		let mut range = uffdio_range
-		{
-			start: start.into(),
-		
-			len: length
-		};
+		let mut range = Self::to_uffdio_range(mapped_absolute_memory_range);
 		match self.make_ioctl(UFFDIO_UNREGISTER, &mut range)
 		{
-			Ok(()) => (),
+			Ok(()) => Ok(()),
 			
 			Err(errno) => match errno.0
 			{
-				EINVAL => panic!("Either the start or the len field of the ufdio_range structure was not a multiple of the system page size; or the len field was zero; or these fields were otherwise invalid; or, there as an incompatible mapping in the specified address range; or, there was no mapping in the specified address range"),
+				EFAULT => panic!("argp does not point to a valid memory address"),
+				
+				EINVAL => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or either the start or the len field of the ufdio_range structure was not a multiple of the system page size; or the len field was zero; or these fields were otherwise invalid; or, there as an incompatible mapping in the specified address range; or, there was no mapping in the specified address range"),
+				
+				ENOMEM => Err(CreationError:KernelWouldBeOutOfMemory),
 				
 				_ => panic!("Unexpect errno `{}` from userfaultfd ioctl(UFFDIO_UNREGISTER)", errno),
 			}
@@ -198,17 +235,26 @@ impl UserFaultFileDescriptor
 		}
 	}
 	
-	/// Called from polling thread.
+	/// Called from polling thread; loops until all bytes copied.
 	///
-	/// `from`, `to` and `length` must be page-aligned (with the page size being of the same huge page size if appropriate).
+	/// `to_mapped_absolute_memory_range` and `from` must be:-
+	///
+	/// * page-aligned.
+	/// * encapsulated within a registered memory range (with the page size being of the same huge page size if appropriate).
+	///
+	/// `to_mapped_absolute_memory_range`:-
+	///
+	/// * can be a sub range of memory mapped using `mmap()`.
 	#[inline(always)]
-	pub fn copy(&self, from: VirtualAddress, to: VirtualAddress, length: u64, copy_mode: CopyMode) -> Result<(), &'static str>
+	pub fn copy(&self, to_mapped_absolute_memory_range: impl AbsoluteMemoryRange, copy_mode: CopyMode, from: VirtualAddress) -> Result<(), &'static str>
 	{
+		let (dst, len) = to_mapped_absolute_memory_range.inclusive_absolute_start_and_length_u64();
+		
 		let mut copy = uffdio_copy
 		{
-			dst: to.into(),
+			dst,
 			src: from.into(),
-			len: length,
+			len,
 			mode: copy_mode,
 			copy: 0,
 		};
@@ -237,14 +283,15 @@ impl UserFaultFileDescriptor
 						copy.len -= bytes_copied;
 					}
 					
-					EINVAL => panic!("Memory addresses or length not aligned to page size or are outside of permitted range for process or invalid copy mode"),
+					EFAULT => panic!("argp does not point to a valid memory address"),
 					
-					EFAULT => panic!("Could not copy user memory"),
+					EINVAL => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or memory addresses or length not aligned to page size or are outside of permitted range for process or invalid copy mode"),
 					
 					ENOENT => return Err("The faulting process has changed its virtual memory layout simultaneously with an outstanding UFFDIO_COPY operation"),
 					
-					/// `ENOSPC` was only returned for Linux version 4.11 until Linux version 4.13.
-					ENOSPC | ESRCH => return Err("The faulting process has exited at the time of a UFFDIO_COPY operation"),
+					ESRCH => return Err("The faulting process has exited at the time of a UFFDIO_COPY operation"),
+					
+					ENOSPC => panic!("`ENOSPC` was only returned for Linux version 4.11 until Linux version 4.13"),
 					
 					_ => panic!("Unexpect errno `{}` from userfaultfd ioctl(UFFDIO_COPY)", errno),
 				}
@@ -252,21 +299,26 @@ impl UserFaultFileDescriptor
 		}
 	}
 	
-	/// Called from polling thread.
+	/// Called from polling thread; loops until all bytes copied.
 	///
 	/// Writes zeroes to page(s) (logically, copies from pages of zeroes).
 	///
-	/// `to` and `length` must be page-aligned (with the page size being of the same huge page size if appropriate).
+	/// __NOTE: This API is not supported by Linux for registered memory using huge pages__.
+	///
+	/// `to_mapped_absolute_memory_range` must be:-
+	///
+	/// * page-aligned.
+	/// * encapsulated within a registered memory range.
+	///
+	/// `to_mapped_absolute_memory_range`:-
+	///
+	/// * can be a sub range of memory mapped using `mmap()`.
 	#[inline(always)]
-	pub fn zero_page(&self, to: VirtualAddress, length: u64, zero_page_mode: ZeroPageMode) -> Result<(), &'static str>
+	pub fn copy_zero_page(&self, to_mapped_absolute_memory_range: impl AbsoluteMemoryRange, zero_page_mode: ZeroPageMode) -> Result<(), &'static str>
 	{
 		let mut copy = uffdio_zeropage
 		{
-			range: uffdio_range
-			{
-				start: to.into(),
-				len: length,
-			},
+			range: Self::to_uffdio_range(to_mapped_absolute_memory_range),
 			mode: zero_page_mode,
 			zeropage: 0
 		};
@@ -294,13 +346,16 @@ impl UserFaultFileDescriptor
 						copy.range.len -= bytes_copied;
 					}
 					
-					EINVAL => panic!("Memory addresses or length not aligned to page size or are outside of permitted range for process or invalid zero page mode"),
+					EFAULT => panic!("argp does not point to a valid memory address"),
 					
-					EFAULT => panic!("Could not copy user memory"),
+					EINVAL => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or memory addresses or length not aligned to page size or are outside of permitted range for process or invalid zero page mode"),
 					
 					ENOENT => return Err("The faulting process has changed its virtual memory layout simultaneously with an outstanding UFFDIO_ZEROPAGE operation"),
 					
 					ESRCH => return Err("The faulting process has exited at the time of a UFFDIO_ZEROPAGE operation"),
+					
+					// Not officially documented but may have been possible.
+					ENOSPC => panic!("`ENOSPC` was only returned for Linux version 4.11 until Linux version 4.13"),
 					
 					_ => panic!("Unexpect errno `{}` from userfaultfd ioctl(UFFDIO_ZEROPAGE)", errno),
 				}
@@ -308,7 +363,92 @@ impl UserFaultFileDescriptor
 		}
 	}
 	
-	// TODO: UFFDIO_WAKE, UFFDIO_WRITEPROTECT?
+	/// Called from polling thread.
+	///
+	/// Wake up the thread waiting for page fault resolution.
+	///
+	/// Used after calling either `copy()` or `copy_zero_page()` or both once or more with a mode of `DoNotWakeUp`.
+	///
+	/// `to_mapped_absolute_memory_range` must be:-
+	///
+	/// * page-aligned.
+	/// * encapsulated within a registered memory range.
+	///
+	/// `to_mapped_absolute_memory_range`:-
+	///
+	/// * can be a sub range of memory mapped using `mmap()`.
+	#[inline(always)]
+	pub fn wake_up_after_copy(&self, to_mapped_absolute_memory_range: impl AbsoluteMemoryRange)
+	{
+		let mut wake_up = Self::to_uffdio_range(to_mapped_absolute_memory_range);
+		
+		match self.make_ioctl(UFFDIO_WAKE, &mut wake_up)
+		{
+			Ok(()) => (),
+			
+			Err(errno) => match errno.0
+			{
+				EFAULT => panic!("argp does not point to a valid memory address"),
+				
+				EINVAL => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or memory addresses or length not aligned to page size or are outside of permitted range for process"),
+				
+				_ => panic!("Unexpect errno `{}` from userfaultfd ioctl(UFFDIO_WAKE)", errno),
+			}
+		}
+	}
+	
+	/// Called from polling thread; loops until complete.
+	///
+	/// `to_mapped_absolute_memory_range` must be:-
+	///
+	/// * page-aligned.
+	/// * encapsulated within a registered memory range.
+	/// * have been __registered__ (`self.register_mapped_memory()`) with `register_mode` containing `RegiserMode::WriteProtect`.
+	///
+	/// `to_mapped_absolute_memory_range`:-
+	///
+	/// * can be a sub range of memory mapped using `mmap()`.
+	#[inline(always)]
+	pub fn wake_up_after_copy_write_protect(&self, to_mapped_absolute_memory_range: impl AbsoluteMemoryRange, write_protect_mode: WriteProtectMode)
+	{
+		let mut write_protect = uffdio_writeprotect
+		{
+			range: Self::to_uffdio_range(to_mapped_absolute_memory_range),
+			
+			mode,
+		};
+		
+		loop
+		{
+			match self.make_ioctl(UFFDIO_UNREGISTER, &mut write_protect)
+			{
+				Ok(()) => return,
+				
+				Err(errno) => match errno.0
+				{
+					EAGAIN => continue,
+					
+					EFAULT => panic!("argp does not point to a valid memory address"),
+					
+					EINVAL => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or either the start or the len field of the ufdio_range structure was not a multiple of the system page size; or the len field was zero; or these fields were otherwise invalid; or, there as an incompatible mapping in the specified address range; or, there was no mapping in the specified address range"),
+					
+					_ => panic!("Unexpect errno `{}` from userfaultfd ioctl(UFFDIO_UNREGISTER)", errno),
+				}
+			}
+		}
+	}
+	
+	#[inline(always)]
+	fn to_uffdio_range(to_mapped_absolute_memory_range: impl AbsoluteMemoryRange) -> uffdio_range
+	{
+		let (start, len) = to_mapped_absolute_memory_range.inclusive_absolute_start_and_length_u64();
+		
+		uffdio_range
+		{
+			start,
+			len,
+		}
+	}
 	
 	#[inline(always)]
 	fn make_ioctl<V>(&self, request: u64, value: &mut V) -> Result<(), Errno>

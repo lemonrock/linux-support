@@ -75,7 +75,7 @@ impl GlobalConfiguration
 {
 	/// Configures.
 	#[inline(always)]
-	pub fn configure(&self, sys_path: &SysPath, proc_path: &ProcPath, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<(), GlobalConfigurationError>
+	pub fn configure(&self, sys_path: &SysPath, proc_path: &ProcPath, defaults: &DefaultHugePageSizes) -> Result<(), GlobalConfigurationError>
 	{
 		use self::GlobalConfigurationError::*;
 		

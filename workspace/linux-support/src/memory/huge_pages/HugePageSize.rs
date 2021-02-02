@@ -200,7 +200,7 @@ impl HugePageSize
 	{
 		const Scalar: u64 = 2048;
 
-		let minimum_gigantic_huge_page = (PageSize::current() as u64) * Scalar;
+		let minimum_gigantic_huge_page = (PageSize::default() as u64) * Scalar;
 		self.size_in_bytes().get() >= minimum_gigantic_huge_page
 	}
 

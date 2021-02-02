@@ -22,7 +22,7 @@ pub struct ExpressDataPathInstance<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFram
 impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ExpressDataPathInstance<ROTOB, FFQ>
 {
 	/// Converts to single-threaded owned instance.
-	pub fn owned<RingQueueDepths: CreateReceiveOrTransmitOrBoth<ReceiveOrTransmitOrBoth=ROTOB>>(self, receive_or_transmit_or_both_ring_queue_depths: RingQueueDepths, queue_identifier: QueueIdentifier, default_page_size: PageSize, arguments: RingQueueDepths::Arguments) -> Result<OwnedExpressDataPathSocket<ROTOB, FFQ>, ExpressDataPathSocketCreationError>
+	pub fn owned<RingQueueDepths: CreateReceiveOrTransmitOrBoth<ReceiveOrTransmitOrBoth=ROTOB>>(self, receive_or_transmit_or_both_ring_queue_depths: RingQueueDepths, queue_identifier: QueueIdentifier, arguments: RingQueueDepths::Arguments) -> Result<OwnedExpressDataPathSocket<ROTOB, FFQ>, ExpressDataPathSocketCreationError>
 	{
 		Ok
 		(
@@ -33,7 +33,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ExpressDataPathInstanc
 					let user_memory_socket_file_descriptor = self.user_memory.user_memory_socket_file_descriptor();
 					let express_data_path_socket_file_descriptor = user_memory_socket_file_descriptor;
 				
-					CommonExpressDataPathSocket::new(express_data_path_socket_file_descriptor, self.network_interface_index, receive_or_transmit_or_both_ring_queue_depths, XdpSocketAddressFlags::empty(), self.force_copy, self.force_zero_copy, user_memory_socket_file_descriptor, queue_identifier, default_page_size, &self.redirect_map_and_attached_program, arguments)?
+					CommonExpressDataPathSocket::new(express_data_path_socket_file_descriptor, self.network_interface_index, receive_or_transmit_or_both_ring_queue_depths, XdpSocketAddressFlags::empty(), self.force_copy, self.force_zero_copy, user_memory_socket_file_descriptor, queue_identifier, &self.redirect_map_and_attached_program, arguments)?
 				},
 				
 				instance: ManuallyDrop::new(self),
@@ -56,7 +56,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ExpressDataPathInstanc
 	}
 	
 	#[inline(always)]
-	fn shared<RingQueueDepths: CreateReceiveOrTransmitOrBoth<ReceiveOrTransmitOrBoth=ROTOB>>(&self, receive_or_transmit_or_both_ring_queue_depths: RingQueueDepths, queue_identifier: QueueIdentifier, default_page_size: PageSize, arguments: RingQueueDepths::Arguments, instance: &ShareableExpressDataPathInstance<RingQueueDepths::ReceiveOrTransmitOrBoth, FFQ>, express_data_path_socket_file_descriptor: ExpressDataPathSocketFileDescriptor) -> Result<SharedExpressDataPathSocket<ROTOB, FFQ>, ExpressDataPathSocketCreationError>
+	fn shared<RingQueueDepths: CreateReceiveOrTransmitOrBoth<ReceiveOrTransmitOrBoth=ROTOB>>(&self, receive_or_transmit_or_both_ring_queue_depths: RingQueueDepths, queue_identifier: QueueIdentifier, arguments: RingQueueDepths::Arguments, instance: &ShareableExpressDataPathInstance<RingQueueDepths::ReceiveOrTransmitOrBoth, FFQ>, express_data_path_socket_file_descriptor: ExpressDataPathSocketFileDescriptor) -> Result<SharedExpressDataPathSocket<ROTOB, FFQ>, ExpressDataPathSocketCreationError>
 	{
 		use self::ExpressDataPathSocketCreationError::*;
 		
@@ -75,7 +75,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ExpressDataPathInstanc
 				{
 					let user_memory_socket_file_descriptor = self.user_memory.user_memory_socket_file_descriptor();
 					
-					CommonExpressDataPathSocket::new(&express_data_path_socket_file_descriptor, self.network_interface_index, receive_or_transmit_or_both_ring_queue_depths, XdpSocketAddressFlags::SharedUserMemory, self.force_copy, self.force_zero_copy, user_memory_socket_file_descriptor, queue_identifier, default_page_size, redirect_map_and_attached_program, arguments)?
+					CommonExpressDataPathSocket::new(&express_data_path_socket_file_descriptor, self.network_interface_index, receive_or_transmit_or_both_ring_queue_depths, XdpSocketAddressFlags::SharedUserMemory, self.force_copy, self.force_zero_copy, user_memory_socket_file_descriptor, queue_identifier, redirect_map_and_attached_program, arguments)?
 				},
 				
 				instance: instance.clone(),
@@ -99,11 +99,11 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ExpressDataPathInstanc
 	
 	/// New instance.
 	#[inline(always)]
-	pub fn new<RingQueueDepths: FillOrCompletionOrBothRingQueueDepths + CreateReceiveOrTransmitOrBoth<ReceiveOrTransmitOrBoth=ROTOB>>(number_of_chunks: NonZeroU32, frame_headroom: FrameHeadroom, chunk_size: FFQ::CS, fill_or_completion_or_both_ring_queue_depths: RingQueueDepths, default_page_size: PageSize, user_memory_area_page_size_or_huge_page_size_settings: &PageSizeOrHugePageSizeSettings,  redirect_map_and_attached_program: Either<RedirectMapAndAttachedProgramSettings, RedirectMapAndAttachedProgram>, network_interface_name: NetworkInterfaceName, force_copy: bool, force_zero_copy: bool) -> Result<Self, ExpressDataPathSocketCreationError>
+	pub fn new<RingQueueDepths: FillOrCompletionOrBothRingQueueDepths + CreateReceiveOrTransmitOrBoth<ReceiveOrTransmitOrBoth=ROTOB>>(number_of_chunks: NonZeroU32, frame_headroom: FrameHeadroom, chunk_size: FFQ::CS, fill_or_completion_or_both_ring_queue_depths: RingQueueDepths, user_memory_area_page_size_or_huge_page_size_settings: &PageSizeOrHugePageSizeSettings,  redirect_map_and_attached_program: Either<RedirectMapAndAttachedProgramSettings, RedirectMapAndAttachedProgram>, network_interface_name: NetworkInterfaceName, force_copy: bool, force_zero_copy: bool) -> Result<Self, ExpressDataPathSocketCreationError>
 	{
 		let (network_interface_index, maximum_transmission_unit_payload_size) = Self::network_interface_index_and_maximum_transmission_unit_payload_size(network_interface_name)?;
 		
-		let user_memory = ManuallyDrop::new(UserMemory::new(number_of_chunks, chunk_size, frame_headroom, maximum_transmission_unit_payload_size, fill_or_completion_or_both_ring_queue_depths, user_memory_area_page_size_or_huge_page_size_settings, default_page_size)?);
+		let user_memory = ManuallyDrop::new(UserMemory::new(number_of_chunks, chunk_size, frame_headroom, maximum_transmission_unit_payload_size, fill_or_completion_or_both_ring_queue_depths, user_memory_area_page_size_or_huge_page_size_settings)?);
 		
 		Ok
 		(

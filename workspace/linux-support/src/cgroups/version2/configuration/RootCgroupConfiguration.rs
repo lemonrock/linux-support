@@ -20,7 +20,7 @@ pub struct RootCgroupConfiguration
 
 impl RootCgroupConfiguration
 {
-	pub(crate) fn configure(&self, mount_point: &CgroupMountPoint, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
+	pub(crate) fn configure(&self, mount_point: &CgroupMountPoint, defaults: &DefaultHugePageSizes) -> io::Result<()>
 	{
 		let cgroup = Rc::new(RootCgroup);
 		

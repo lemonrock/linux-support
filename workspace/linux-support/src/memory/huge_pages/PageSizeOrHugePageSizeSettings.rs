@@ -42,16 +42,9 @@ impl PageSizeOrHugePageSizeSettings
 	
 	/// Settings for page size, not huge page size.
 	#[inline(always)]
-	pub fn for_page_size(defaults: &DefaultPageSizeAndHugePageSizes) -> Self
+	pub fn for_current_page_size() -> Self
 	{
-		Self::for_default_page_size(defaults.default_page_size())
-	}
-	
-	/// Settings for page size, not huge page size.
-	#[inline(always)]
-	pub fn for_default_page_size(default_page_size: PageSize) -> Self
-	{
-		Self::new(0, 0, PageSizeOrHugePageSize::PageSize(default_page_size))
+		Self::new(0, 0, PageSizeOrHugePageSize::PageSize(PageSize::default()))
 	}
 	
 	/// Settings for huge page size.
@@ -76,26 +69,26 @@ impl PageSizeOrHugePageSizeSettings
 	/// * `Some(None)`: Use the default huge page size if huge pages are supported, otherwise fallback to the default page size.
 	/// * `Some(Some())`: Use the specified huge page size if possible, falling back to a supported page size smaller than that specified, and, if not possible, fallback to the default page size.
 	#[inline(always)]
-	pub fn from(page_size_preference: PageSizePreference, defaults: &DefaultPageSizeAndHugePageSizes) -> Self
+	pub fn from(page_size_preference: PageSizePreference, defaults: &DefaultHugePageSizes) -> Self
 	{
 		use self::PageSizePreference::*;
 		
 		match page_size_preference
 		{
-			DefaultPageSize => Self::for_page_size(defaults),
+			DefaultPageSize => Self::for_current_page_size(),
 
 			DefaultHugePageSize => match defaults.default_huge_page_size()
 			{
 				Some(default_huge_page_size) => Self::for_default_huge_page_size(default_huge_page_size),
 				
-				None => Self::for_page_size(defaults)
+				None => Self::for_current_page_size()
 			},
 			
 			PreferredHugePageSize(huge_page_size) => match defaults.this_or_next_smaller_supported_huge_page_size(huge_page_size)
 			{
 				Some(huge_page_size) => Self::for_huge_page_size(huge_page_size),
 				
-				None => Self::for_page_size(defaults)
+				None => Self::for_current_page_size()
 			},
 		}
 	}

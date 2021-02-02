@@ -4,14 +4,14 @@
 
 use super::*;
 use self::c::*;
+use crate::memory::AbsoluteMemoryRange;
 use crate::memory::VirtualAddress;
 
 
 mod c;
 
 
-include!("CopyMode.rs");
-include!("Features.rs");
+include!("CopyMode.rs");include!("Features.rs");
 include!("Ioctls.rs");
 include!("RegisterMode.rs");
 include!("UserFaultEvent.rs");

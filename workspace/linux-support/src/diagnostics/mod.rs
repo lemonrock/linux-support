@@ -77,7 +77,7 @@ use crate::linux_kernel_modules::LinuxKernelModulesList;
 use crate::linux_kernel_version::LinuxKernelDomainName;
 use crate::linux_kernel_version::LinuxKernelHostName;
 use crate::linux_kernel_version::LinuxKernelVersion;
-use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
+use crate::memory::huge_pages::DefaultHugePageSizes;
 use crate::memory::huge_pages::GlobalHugePagePoolSize;
 use crate::memory::huge_pages::HugePagePoolStatistics;
 use crate::memory::huge_pages::HugePageSize;

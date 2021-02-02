@@ -20,6 +20,7 @@ include!("LockAllMemory.rs");
 include!("MappedMemory.rs");
 include!("MappedMemoryConfiguration.rs");
 include!("MappedMemorySettings.rs");
+include!("MappedMemorySubrange.rs");
 include!("MemoryAdvice.rs");
 include!("MemoryLockSettings.rs");
 include!("MemoryMapError.rs");

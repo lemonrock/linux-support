@@ -7,21 +7,70 @@
 /// This is the same as the value returned from `malloc()`, a `*mut T` pointer, a `&T` reference, etc.
 ///
 /// No checks are made for its validity.
+///
+/// It supports conversion of `Into<NonNull>` and `Into<NonZero*>` without checking (except in debug builds) that the value is not zero.
+/// This is a breach of the contract of the `Into` trait, but is considered acceptable as testing every time for a condition that is highly unlikely to have arisen is expensive.
+/// If this matters to you, use the equivalent `TryInto` implementations or `Into<Option<NonZero*>>` implementations.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct VirtualAddress(usize);
 
-impl<T> From<NonNull<T>> for VirtualAddress
+impl<T: ?Sized> From<NonNull<[T]>> for VirtualAddress
+{
+	#[inline(always)]
+	fn from(value: NonNull<[T]>) -> Self
+	{
+		Self(value.as_mut_ptr() as usize)
+	}
+}
+
+impl<'a, T: 'a + ?Sized> From<&'a [T]> for VirtualAddress
+{
+	#[inline(always)]
+	fn from(value: &'a [T]) -> Self
+	{
+		Self(value.as_ptr() as usize)
+	}
+}
+
+impl<'a, T: 'a + ?Sized> From<&'a mut [T]> for VirtualAddress
+{
+	#[inline(always)]
+	fn from(value: &'a mut [T]) -> Self
+	{
+		Self(value.as_ptr() as usize)
+	}
+}
+
+impl<'a, T> From<*const [T]> for VirtualAddress
+{
+	#[inline(always)]
+	fn from(value: *const [T]) -> Self
+	{
+		Self(value.as_ptr() as usize)
+	}
+}
+
+impl<'a, T> From<*mut [T]> for VirtualAddress
+{
+	#[inline(always)]
+	fn from(value: *mut [T]) -> Self
+	{
+		Self(value.as_ptr() as usize)
+	}
+}
+
+impl<T: Sized> From<NonNull<T>> for VirtualAddress
 {
 	#[inline(always)]
 	fn from(value: NonNull<T>) -> Self
 	{
-		VirtualAddress(value.as_ptr() as usize)
+		Self(value.as_ptr() as usize)
 	}
 }
 
-impl<T> From<Option<NonNull<T>>> for VirtualAddress
+impl<T: Sized> From<Option<NonNull<T>>> for VirtualAddress
 {
 	#[inline(always)]
 	fn from(value: Option<NonNull<T>>) -> Self
@@ -31,43 +80,43 @@ impl<T> From<Option<NonNull<T>>> for VirtualAddress
 			None => 0,
 			Some(value) => value.as_ptr() as usize,
 		};
-		VirtualAddress(address)
+		Self(address)
 	}
 }
 
-impl<T> Into<Option<NonNull<T>>> for VirtualAddress
-{
-	#[inline(always)]
-	fn into(self) -> Option<NonNull<T>>
-	{
-		NonNull::new(self.0 as *mut T)
-	}
-}
-
-impl<'a, T: 'a> From<&'a T> for VirtualAddress
+impl<'a, T: 'a + Sized> From<&'a T> for VirtualAddress
 {
 	#[inline(always)]
 	fn from(value: &'a T) -> Self
 	{
-		VirtualAddress(value as *const T as usize)
+		Self(value as *const T as usize)
 	}
 }
 
-impl<'a, T: 'a> From<&'a mut T> for VirtualAddress
+impl<'a, T: 'a + Sized> From<&'a mut T> for VirtualAddress
 {
 	#[inline(always)]
 	fn from(value: &'a mut T) -> Self
 	{
-		VirtualAddress(value as *mut T as usize)
+		Self(value as *mut T as usize)
 	}
 }
 
-impl<T> From<*const T> for VirtualAddress
+impl<T: Sized> From<*const T> for VirtualAddress
 {
 	#[inline(always)]
 	fn from(value: *const T) -> Self
 	{
-		VirtualAddress(value as usize)
+		Self(value as usize)
+	}
+}
+
+impl<T: Sized> From<*mut T> for VirtualAddress
+{
+	#[inline(always)]
+	fn from(value: *mut T) -> Self
+	{
+		Self(value as usize)
 	}
 }
 
@@ -76,7 +125,7 @@ impl From<usize> for VirtualAddress
 	#[inline(always)]
 	fn from(value: usize) -> Self
 	{
-		VirtualAddress(value)
+		Self(value)
 	}
 }
 
@@ -85,11 +134,47 @@ impl From<u64> for VirtualAddress
 	#[inline(always)]
 	fn from(value: u64) -> Self
 	{
-		VirtualAddress(value as usize)
+		Self(value as usize)
 	}
 }
 
-impl<T> Into<*const T> for VirtualAddress
+impl<T: ?Sized> Into<Option<NonNull<T>>> for VirtualAddress
+{
+	#[inline(always)]
+	fn into(self) -> Option<NonNull<T>>
+	{
+		NonNull::new(self.0 as *mut T)
+	}
+}
+
+impl<T: ?Sized> Into<NonNull<T>> for VirtualAddress
+{
+	#[inline(always)]
+	fn into(self) -> NonNull<T>
+	{
+		new_non_null(self.0 as *mut T)
+	}
+}
+
+impl<T: ?Sized> TryInto<NonNull<T>> for VirtualAddress
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_into(self) -> Result<NonNull<T>, Self::Error>
+	{
+		if self.0 == 0
+		{
+			Err(ParseNumberError::WasZero)
+		}
+		else
+		{
+			Ok(self.into())
+		}
+	}
+}
+
+impl<T: ?Sized> Into<*const T> for VirtualAddress
 {
 	#[inline(always)]
 	fn into(self) -> *const T
@@ -98,16 +183,7 @@ impl<T> Into<*const T> for VirtualAddress
 	}
 }
 
-impl<T> From<*mut T> for VirtualAddress
-{
-	#[inline(always)]
-	fn from(value: *mut T) -> Self
-	{
-		VirtualAddress(value as usize)
-	}
-}
-
-impl<T> Into<*mut T> for VirtualAddress
+impl<T: ?Sized> Into<*mut T> for VirtualAddress
 {
 	#[inline(always)]
 	fn into(self) -> *mut T
@@ -116,12 +192,48 @@ impl<T> Into<*mut T> for VirtualAddress
 	}
 }
 
-impl Into<u64> for VirtualAddress
+impl Into<u128> for VirtualAddress
 {
 	#[inline(always)]
-	fn into(self) -> u64
+	fn into(self) -> u128
 	{
-		self.0 as u64
+		self.0 as u128
+	}
+}
+
+impl Into<NonZeroU128> for VirtualAddress
+{
+	#[inline(always)]
+	fn into(self) -> NonZeroU128
+	{
+		new_non_zero_u128(self.0 as u128)
+	}
+}
+
+impl Into<Option<NonZeroU128>> for VirtualAddress
+{
+	#[inline(always)]
+	fn into(self) -> Option<NonZeroU128>
+	{
+		NonZeroU128::new(self.0 as u128)
+	}
+}
+
+impl TryInto<NonZeroU128> for VirtualAddress
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_into(self) -> Result<NonZeroU128, Self::Error>
+	{
+		if self.0 == 0
+		{
+			Err(ParseNumberError::WasZero)
+		}
+		else
+		{
+			Ok(self.into())
+		}
 	}
 }
 
@@ -134,12 +246,48 @@ impl Into<usize> for VirtualAddress
 	}
 }
 
-impl<T> Into<NonNull<T>> for VirtualAddress
+impl Into<NonZeroUsize> for VirtualAddress
 {
 	#[inline(always)]
-	fn into(self) -> NonNull<T>
+	fn into(self) -> NonZeroUsize
 	{
-		new_non_null(self.0 as *mut T)
+		new_non_zero_usize(self.0)
+	}
+}
+
+impl Into<Option<NonZeroUsize>> for VirtualAddress
+{
+	#[inline(always)]
+	fn into(self) -> Option<NonZeroUsize>
+	{
+		NonZeroUsize::new(self.0)
+	}
+}
+
+impl TryInto<NonZeroUsize> for VirtualAddress
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_into(self) -> Result<NonZeroUsize, Self::Error>
+	{
+		if self.0 == 0
+		{
+			Err(ParseNumberError::WasZero)
+		}
+		else
+		{
+			Ok(self.into())
+		}
+	}
+}
+
+impl Into<u64> for VirtualAddress
+{
+	#[inline(always)]
+	fn into(self) -> u64
+	{
+		self.0 as u64
 	}
 }
 
@@ -152,6 +300,33 @@ impl Into<NonZeroU64> for VirtualAddress
 	}
 }
 
+impl Into<Option<NonZeroU64>> for VirtualAddress
+{
+	#[inline(always)]
+	fn into(self) -> Option<NonZeroU64>
+	{
+		NonZeroU64::new(self.0 as u64)
+	}
+}
+
+impl TryInto<NonZeroU64> for VirtualAddress
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_into(self) -> Result<NonZeroU64, Self::Error>
+	{
+		if self.0 == 0
+		{
+			Err(ParseNumberError::WasZero)
+		}
+		else
+		{
+			Ok(self.into())
+		}
+	}
+}
+
 impl Add<usize> for VirtualAddress
 {
 	type Output = Self;
@@ -159,7 +334,7 @@ impl Add<usize> for VirtualAddress
 	#[inline(always)]
 	fn add(self, rhs: usize) -> Self::Output
 	{
-		VirtualAddress(self.0 + rhs)
+		Self(self.0 + rhs)
 	}
 }
 
@@ -179,7 +354,7 @@ impl Sub<usize> for VirtualAddress
 	#[inline(always)]
 	fn sub(self, rhs: usize) -> Self::Output
 	{
-		VirtualAddress(self.0 - rhs)
+		Self(self.0 - rhs)
 	}
 }
 
@@ -199,7 +374,7 @@ impl Add<NonZeroUsize> for VirtualAddress
 	#[inline(always)]
 	fn add(self, rhs: NonZeroUsize) -> Self::Output
 	{
-		VirtualAddress(self.0 + rhs.get())
+		Self(self.0 + rhs.get())
 	}
 }
 
@@ -219,7 +394,7 @@ impl Sub<NonZeroUsize> for VirtualAddress
 	#[inline(always)]
 	fn sub(self, rhs: NonZeroUsize) -> Self::Output
 	{
-		VirtualAddress(self.0 - rhs.get())
+		Self(self.0 - rhs.get())
 	}
 }
 
@@ -239,7 +414,7 @@ impl Add<NonZeroU64> for VirtualAddress
 	#[inline(always)]
 	fn add(self, rhs: NonZeroU64) -> Self::Output
 	{
-		VirtualAddress(self.0 + rhs.get() as usize)
+		Self(self.0 + rhs.get() as usize)
 	}
 }
 
@@ -259,7 +434,7 @@ impl Sub<NonZeroU64> for VirtualAddress
 	#[inline(always)]
 	fn sub(self, rhs: NonZeroU64) -> Self::Output
 	{
-		VirtualAddress(self.0 - rhs.get() as usize)
+		Self(self.0 - rhs.get() as usize)
 	}
 }
 
@@ -279,7 +454,7 @@ impl Add<u64> for VirtualAddress
 	#[inline(always)]
 	fn add(self, rhs: u64) -> Self::Output
 	{
-		VirtualAddress(self.0 + rhs as usize)
+		Self(self.0 + rhs as usize)
 	}
 }
 
@@ -299,7 +474,7 @@ impl Sub<u64> for VirtualAddress
 	#[inline(always)]
 	fn sub(self, rhs: u64) -> Self::Output
 	{
-		VirtualAddress(self.0 - rhs as usize)
+		Self(self.0 - rhs as usize)
 	}
 }
 
@@ -319,7 +494,7 @@ impl Add<NonZeroU32> for VirtualAddress
 	#[inline(always)]
 	fn add(self, rhs: NonZeroU32) -> Self::Output
 	{
-		VirtualAddress(self.0 + rhs.get() as usize)
+		Self(self.0 + rhs.get() as usize)
 	}
 }
 
@@ -339,7 +514,7 @@ impl Sub<NonZeroU32> for VirtualAddress
 	#[inline(always)]
 	fn sub(self, rhs: NonZeroU32) -> Self::Output
 	{
-		VirtualAddress(self.0 - rhs.get() as usize)
+		Self(self.0 - rhs.get() as usize)
 	}
 }
 
@@ -359,7 +534,7 @@ impl Add<u32> for VirtualAddress
 	#[inline(always)]
 	fn add(self, rhs: u32) -> Self::Output
 	{
-		VirtualAddress(self.0 + rhs as usize)
+		Self(self.0 + rhs as usize)
 	}
 }
 
@@ -379,7 +554,7 @@ impl Sub<u32> for VirtualAddress
 	#[inline(always)]
 	fn sub(self, rhs: u32) -> Self::Output
 	{
-		VirtualAddress(self.0 - rhs as usize)
+		Self(self.0 - rhs as usize)
 	}
 }
 
@@ -392,10 +567,170 @@ impl SubAssign<u32> for VirtualAddress
 	}
 }
 
+impl Add<NonZeroU16> for VirtualAddress
+{
+	type Output = Self;
+	
+	#[inline(always)]
+	fn add(self, rhs: NonZeroU16) -> Self::Output
+	{
+		Self(self.0 + rhs.get() as usize)
+	}
+}
+
+impl AddAssign<NonZeroU16> for VirtualAddress
+{
+	#[inline(always)]
+	fn add_assign(&mut self, rhs: NonZeroU16)
+	{
+		self.0 += rhs.get() as usize
+	}
+}
+
+impl Sub<NonZeroU16> for VirtualAddress
+{
+	type Output = Self;
+	
+	#[inline(always)]
+	fn sub(self, rhs: NonZeroU16) -> Self::Output
+	{
+		Self(self.0 - rhs.get() as usize)
+	}
+}
+
+impl SubAssign<NonZeroU16> for VirtualAddress
+{
+	#[inline(always)]
+	fn sub_assign(&mut self, rhs: NonZeroU16)
+	{
+		self.0 -= rhs.get() as usize
+	}
+}
+
+impl Add<u16> for VirtualAddress
+{
+	type Output = Self;
+	
+	#[inline(always)]
+	fn add(self, rhs: u16) -> Self::Output
+	{
+		Self(self.0 + rhs as usize)
+	}
+}
+
+impl AddAssign<u16> for VirtualAddress
+{
+	#[inline(always)]
+	fn add_assign(&mut self, rhs: u16)
+	{
+		self.0 += rhs as usize
+	}
+}
+
+impl Sub<u16> for VirtualAddress
+{
+	type Output = Self;
+	
+	#[inline(always)]
+	fn sub(self, rhs: u16) -> Self::Output
+	{
+		Self(self.0 - rhs as usize)
+	}
+}
+
+impl SubAssign<u16> for VirtualAddress
+{
+	#[inline(always)]
+	fn sub_assign(&mut self, rhs: u16)
+	{
+		self.0 -= rhs as usize
+	}
+}
+
+impl Add<NonZeroU8> for VirtualAddress
+{
+	type Output = Self;
+	
+	#[inline(always)]
+	fn add(self, rhs: NonZeroU8) -> Self::Output
+	{
+		Self(self.0 + rhs.get() as usize)
+	}
+}
+
+impl AddAssign<NonZeroU8> for VirtualAddress
+{
+	#[inline(always)]
+	fn add_assign(&mut self, rhs: NonZeroU8)
+	{
+		self.0 += rhs.get() as usize
+	}
+}
+
+impl Sub<NonZeroU8> for VirtualAddress
+{
+	type Output = Self;
+	
+	#[inline(always)]
+	fn sub(self, rhs: NonZeroU8) -> Self::Output
+	{
+		Self(self.0 - rhs.get() as usize)
+	}
+}
+
+impl SubAssign<NonZeroU8> for VirtualAddress
+{
+	#[inline(always)]
+	fn sub_assign(&mut self, rhs: NonZeroU8)
+	{
+		self.0 -= rhs.get() as usize
+	}
+}
+
+impl Add<u8> for VirtualAddress
+{
+	type Output = Self;
+	
+	#[inline(always)]
+	fn add(self, rhs: u8) -> Self::Output
+	{
+		Self(self.0 + rhs as usize)
+	}
+}
+
+impl AddAssign<u8> for VirtualAddress
+{
+	#[inline(always)]
+	fn add_assign(&mut self, rhs: u8)
+	{
+		self.0 += rhs as usize
+	}
+}
+
+impl Sub<u8> for VirtualAddress
+{
+	type Output = Self;
+	
+	#[inline(always)]
+	fn sub(self, rhs: u8) -> Self::Output
+	{
+		Self(self.0 - rhs as usize)
+	}
+}
+
+impl SubAssign<u8> for VirtualAddress
+{
+	#[inline(always)]
+	fn sub_assign(&mut self, rhs: u8)
+	{
+		self.0 -= rhs as usize
+	}
+}
+
 impl Sub<Self> for VirtualAddress
 {
 	type Output = usize;
-
+	
 	#[inline(always)]
 	fn sub(self, rhs: Self) -> Self::Output
 	{
@@ -424,20 +759,34 @@ impl ParseNumberOption for VirtualAddress
 		}
 		else
 		{
-			Ok(Some(VirtualAddress(value)))
+			Ok(Some(Self(value)))
 		}
 	}
 }
 
 impl VirtualAddress
 {
+	/// Saturating subtraction.
+	#[inline(always)]
+	pub fn saturating_sub(self, rhs: Self) -> usize
+	{
+		Self(self.0.saturating_sub(rhs.0))
+	}
+	
+	/// Saturating addition of 1.
+	#[inline(always)]
+	fn saturating_increment(self) -> Self
+	{
+		Self(self.0.saturating_add(1))
+	}
+	
 	/// Relative offset from the start of the system page containing this virtual address.
 	///
 	/// May be zero, but will always be less than the system page size.
 	#[inline(always)]
 	pub fn offset_from_start_of_page(self) -> usize
 	{
-		self.0 % PageSize::current() as usize
+		self.0 % PageSize::default() as usize
 	}
 	
 	/// The address of the page which contains this physical address.
@@ -445,7 +794,7 @@ impl VirtualAddress
 	#[inline(always)]
 	pub fn first_address_in_page(self) -> Self
 	{
-		VirtualAddress(self.0 & !(PageSize::current() as usize - 1))
+		Self(self.0 & !(PageSize::default() as usize - 1))
 	}
 	
 	/// This function will translate virtual addresses to physical addresses.

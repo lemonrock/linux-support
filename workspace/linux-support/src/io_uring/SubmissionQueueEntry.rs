@@ -450,6 +450,8 @@ impl SubmissionQueueEntry
 	#[inline(always)]
 	pub fn prepare_memory_advise(self, user_data: impl UserData, options: SubmissionQueueEntryOptions, personality: Option<PersonalityCredentialsIdentifier>, mapped_memory: &MappedMemory, offset: usize, length: u32, advice: MemoryAdvice)
 	{
+		let (start, length) = relative_range.compute_and_debug_assert_page_aligned(self.virtual_address, self.size);
+		
 		mapped_memory.guard_range(&(offset .. (length as usize)));
 		
 		self.prepare(user_data, options.into_flags(), personality, CompressedIoPriority::Irrelevant, IORING_OP_MADVISE, FileDescriptorKind::Irrelevant, mapped_memory.virtual_address().add(offset).into(), length, 0);

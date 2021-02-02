@@ -15,7 +15,7 @@ impl MappedMemorySettings
 {
 	/// Create a new instance.
 	#[inline(always)]
-	pub fn new(configuration: MappedMemoryConfiguration, defaults: &DefaultPageSizeAndHugePageSizes) -> Self
+	pub fn new(configuration: MappedMemoryConfiguration, defaults: &DefaultHugePageSizes) -> Self
 	{
 		Self
 		{

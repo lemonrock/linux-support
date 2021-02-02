@@ -2,19 +2,18 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Default page sizes.
+/// Default huge page sizes.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct DefaultPageSizeAndHugePageSizes
+pub struct DefaultHugePageSizes
 {
-	default_page_size: PageSize,
 	default_huge_page_size: Option<HugePageSize>,
 	transparent_huge_page_size: Option<HugePageSize>,
 	supported_huge_page_sizes: BTreeSet<HugePageSize>,
 }
 
-impl DefaultPageSizeAndHugePageSizes
+impl DefaultHugePageSizes
 {
 	/// New instance.
 	///
@@ -49,8 +48,6 @@ impl DefaultPageSizeAndHugePageSizes
 		(
 			Self
 			{
-				default_page_size: PageSize::current(),
-	
 				default_huge_page_size: parse_and_return_if_supported(&supported_huge_page_sizes, ||
 				{
 					let memory_information = MemoryInformation::parse_global(proc_path, false).map_err(io_error_invalid_data)?;
@@ -63,14 +60,7 @@ impl DefaultPageSizeAndHugePageSizes
 			}
 		)
 	}
-
-	/// Default page size.
-	#[inline(always)]
-	pub fn default_page_size(&self) -> PageSize
-	{
-		self.default_page_size
-	}
-
+	
 	/// This will return `None` if the kernel was compiled without `CONFIG_HUGETLBFS`, `sysfs` was not mounted or the default huge page size is not one of `supported_huge_page_sizes()`.
 	#[inline(always)]
 	pub fn default_huge_page_size(&self) -> Option<HugePageSize>

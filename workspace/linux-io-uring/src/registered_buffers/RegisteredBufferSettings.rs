@@ -36,7 +36,7 @@ impl Clone for RegisteredBufferSettings
 
 impl RegisteredBufferSettings
 {
-	pub(crate) fn create_and_register(&self, defaults: &DefaultPageSizeAndHugePageSizes, io_uring: &IoUring) -> Result<RegisteredBuffers, IoUringSetupError>
+	pub(crate) fn create_and_register(&self, defaults: &DefaultHugePageSizes, io_uring: &IoUring) -> Result<RegisteredBuffers, IoUringSetupError>
 	{
 		let registered_buffers = RegisteredBuffers::new(self, defaults)?;
 		registered_buffers.register(io_uring).map_err(IoUringSetupError::RegisteringBuffers)?;

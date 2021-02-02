@@ -16,7 +16,7 @@ impl<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndC
 	pub(crate) fn new
 	(
 		global_allocator: &'static GTACSA,
-		defaults: &DefaultPageSizeAndHugePageSizes,
+		defaults: &DefaultHugePageSizes,
 		io_uring: &Rc<IoUring<'static>>,
 		queues: &Queues<(), DequeuedMessageProcessingError>,
 		our_hyper_thread: HyperThread,

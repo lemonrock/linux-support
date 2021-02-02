@@ -150,10 +150,6 @@ COuld use new Lazy / OnceCell.
 * See <http://man7.org/linux/man-pages/man5/acl.5.html>
 
 
-#### `userfaultfd`
-
-* See <http://man7.org/linux/man-pages/man2/userfaultfd.2.html>
-
 
 /*
 	Operation combinations

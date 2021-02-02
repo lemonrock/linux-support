@@ -152,7 +152,7 @@ impl Configuration
 	
 	/// Configure.
 	#[inline(always)]
-	pub(crate) fn configure(&self, run_as_daemon: bool, global_computed_scheduling_affinity: Option<&GlobalComputedSchedulingConfiguration>, process_affinity: Option<&HyperThreads>) -> Result<(Arc<impl Terminate>, DefaultPageSizeAndHugePageSizes), ConfigurationError>
+	pub(crate) fn configure(&self, run_as_daemon: bool, global_computed_scheduling_affinity: Option<&GlobalComputedSchedulingConfiguration>, process_affinity: Option<&HyperThreads>) -> Result<(Arc<impl Terminate>, DefaultHugePageSizes), ConfigurationError>
 	{
 		let defaults = self.file_system_layout.defaults().unwrap();
 		let terminate = self.process_configuration.configure(run_as_daemon, &self.file_system_layout, &defaults, &mut DogStatsDStaticInitialization, global_computed_scheduling_affinity, process_affinity)?;
@@ -170,7 +170,7 @@ impl Configuration
 	
 	/// Execute.
 	#[inline(always)]
-	pub(crate) fn execute<T: Terminate + 'static, MainThreadFunction: ThreadFunction, ChildThreadFunction: ThreadFunction>(self, terminate: Arc<T>, main_thread: ThreadSettings<MainThreadFunction>, child_threads: Vec<ThreadSettings<ChildThreadFunction>>, defaults: DefaultPageSizeAndHugePageSizes) -> Result<(), ConfigurationError>
+	pub(crate) fn execute<T: Terminate + 'static, MainThreadFunction: ThreadFunction, ChildThreadFunction: ThreadFunction>(self, terminate: Arc<T>, main_thread: ThreadSettings<MainThreadFunction>, child_threads: Vec<ThreadSettings<ChildThreadFunction>>, defaults: DefaultHugePageSizes) -> Result<(), ConfigurationError>
 	{
 		let instantiation_arguments = Arc::new((defaults, &SwitchableGlobalAllocator));
 		Ok(self.process_executor.execute_securely::<T, MainThreadFunction, ChildThreadFunction, SimplePerThreadMemoryAllocatorInstantiator<CoroutineHeapSize, GTACSA>>(&self.file_system_layout, terminate, main_thread, child_threads, instantiation_arguments)?)

@@ -40,7 +40,7 @@ impl ThreadLocalAllocatorConfiguration
 {
 	/// Mapped memory settings.
 	#[inline(always)]
-	pub fn mapped_memory_settings(&self, defaults: &DefaultPageSizeAndHugePageSizes) -> MappedMemorySettings
+	pub fn mapped_memory_settings(&self, defaults: &DefaultHugePageSizes) -> MappedMemorySettings
 	{
 		let mapped_memory_configuration = MappedMemoryConfiguration
 		{
@@ -62,7 +62,7 @@ impl ThreadLocalAllocatorConfiguration
 	}
 	
 	#[inline(always)]
-	fn page_size_preference(&self, defaults: &DefaultPageSizeAndHugePageSizes) -> PageSizePreference
+	fn page_size_preference(&self, defaults: &DefaultHugePageSizes) -> PageSizePreference
 	{
 		use self::PageSizePreference::*;
 		

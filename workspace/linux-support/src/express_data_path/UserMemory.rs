@@ -127,7 +127,7 @@ impl<FFQ: FreeFrameQueue> UserMemory<FFQ>
 	///
 	/// If using an AlignedChunkSize, `number_of_chunks` must be an exact multiple of the number that would fit in a page.
 	/// Thus we round it up if necessary.
-	fn new<FOCOBRQD: FillOrCompletionOrBothRingQueueDepths>(number_of_chunks: NonZeroU32, chunk_size: FFQ::CS, frame_headroom: FrameHeadroom, maximum_transmission_unit_payload_size: MaximumTransmissionUnitPayloadSize, fill_or_completion_or_both_ring_queue_depths: FOCOBRQD, user_memory_area_page_size_or_huge_page_size_settings: &PageSizeOrHugePageSizeSettings, default_page_size: PageSize) -> Result<Self, ExpressDataPathSocketCreationError>
+	fn new<FOCOBRQD: FillOrCompletionOrBothRingQueueDepths>(number_of_chunks: NonZeroU32, chunk_size: FFQ::CS, frame_headroom: FrameHeadroom, maximum_transmission_unit_payload_size: MaximumTransmissionUnitPayloadSize, fill_or_completion_or_both_ring_queue_depths: FOCOBRQD, user_memory_area_page_size_or_huge_page_size_settings: &PageSizeOrHugePageSizeSettings) -> Result<Self, ExpressDataPathSocketCreationError>
 	{
 		use self::ExpressDataPathSocketCreationError::*;
 		
@@ -153,7 +153,7 @@ impl<FFQ: FreeFrameQueue> UserMemory<FFQ>
 		user_memory_socket_file_descriptor.register_user_space_memory(&configuration, fill_ring_queue_depth, completion_ring_queue_depth);
 		let memory_map_offsets = user_memory_socket_file_descriptor.get_memory_map_offsets();
 		
-		let fill_queue = XskRingQueue::from_fill_memory_map_offsets::<FOCOBRQD>(&user_memory_socket_file_descriptor, &memory_map_offsets, fill_ring_queue_depth, default_page_size);
+		let fill_queue = XskRingQueue::from_fill_memory_map_offsets::<FOCOBRQD>(&user_memory_socket_file_descriptor, &memory_map_offsets, fill_ring_queue_depth);
 		
 		// Linux documentation (`Documentation/networking/af_xdp.rst`, currently section `XDP_{RX|TX|UMEM_FILL|UMEM_COMPLETION}_RING setsockopts`) recommends not populating the fill queue if only doing transmit.
 		if FOCOBRQD::SupportsReceive
@@ -166,7 +166,7 @@ impl<FFQ: FreeFrameQueue> UserMemory<FFQ>
 			Self
 			{
 				fill_queue,
-				completion_queue: XskRingQueue::from_completion_memory_map_offsets(&user_memory_socket_file_descriptor, &memory_map_offsets, completion_ring_queue_depth, default_page_size),
+				completion_queue: XskRingQueue::from_completion_memory_map_offsets(&user_memory_socket_file_descriptor, &memory_map_offsets, completion_ring_queue_depth),
 				user_memory_area: ManuallyDrop::new(user_memory_area),
 				user_memory_socket_file_descriptor: ManuallyDrop::new(user_memory_socket_file_descriptor),
 				chunk_size,

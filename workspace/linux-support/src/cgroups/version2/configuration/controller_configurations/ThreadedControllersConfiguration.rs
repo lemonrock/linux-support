@@ -26,7 +26,7 @@ pub struct ThreadedControllersConfiguration
 
 impl ControllersConfiguration for ThreadedControllersConfiguration
 {
-	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup>, available_controllers: &Controllers, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
+	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup>, available_controllers: &Controllers, defaults: &DefaultHugePageSizes) -> io::Result<()>
 	{
 		configure_controller(&self.cpu, mount_point, cgroup, available_controllers, defaults)?;
 		

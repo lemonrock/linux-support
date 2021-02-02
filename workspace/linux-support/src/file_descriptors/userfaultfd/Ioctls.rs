@@ -9,34 +9,51 @@ bitflags!
 	#[serde(deny_unknown_fields)]
 	pub struct Ioctls: u64
 	{
-		/// Register
+		/// Register memory.
 		const Register = _UFFDIO_REGISTER;
 		
-		/// Register
+		/// Unregister memory.
+		///
+		/// Only available for registered memory.
 		const Unregister = _UFFDIO_UNREGISTER;
 		
 		/// API.
 		const ApplicationProgrammerInterface = _UFFDIO_API;
 		
 		/// Wake.
+		///
+		/// Only available for registered memory.
 		const Wake = _UFFDIO_WAKE;
 		
 		/// Copy.
+		///
+		/// Only available for registered memory.
 		const Copy = _UFFDIO_COPY;
 		
-		/// Zero page.
-		const ZeroPage = _UFFDIO_ZEROPAGE;
+		/// Zero page copy.
+		///
+		/// Only available for registered memory which does not use huge pages.
+		const ZeroPageCopy = _UFFDIO_ZEROPAGE;
 		
 		/// Write Protect.
-		const WriteProtect = _UFFDIO_WRITEPROTECT;
+		///
+		/// Only available for registered memory which does not use huge pages and if `RegisterMode::AllowWriteProtectedCopying` was specified on registration.
+		const WriteProtectOnCopy = _UFFDIO_WRITEPROTECT;
 		
 		/// Equivalent to `UFFD_API_IOCTLS` (which has not been defined in this module).
-		const ApplicationProgrammerInterfaces = Self::Register.bits | Self::Unregister.bits | Self::ApplicationProgrammerInterface.bits;
+		const ApplicationProgrammerInterfaces = Self::ApplicationProgrammerInterface.bits | Self::Register.bits | Self::Unregister.bits;
 		
 		/// Equivalent to `UFFD_API_RANGE_IOCTLS_BASIC` (which has not been defined in this module).
-		const ApplicationProgrammerInterfacesRangeBasic = Self::Wake.bits | Self::Copy.bits;
+		///
+		/// All registered memory can use these ioctls.
+		const HugePages = Self::Wake.bits | Self::Copy.bits;
+		
+		/// Only registed memory that is not using huge pages can use these ioctls.
+		const RegularPages = Self::HugePages.bits | Self::ZeroPage.bits;
 		
 		/// Equivalent to `UFFD_API_RANGE_IOCTLS` (which has not been defined in this module).
-		const ApplicationProgrammerInterfacesRange = Self::ApplicationProgrammerInterfacesRangeBasic.bits | Self::ZeroPage.bits | Self::WriteProtect.bits;
+		///
+		/// Only registed memory that is not using huge pages can use these ioctls and was registered with `register_mode` containing `RegisterMode::AllowWriteProtectedCopying`.
+		const RegularPagesWithWriteProtectOnCopy = Self::RegularPages.bits | Self::WriteProtect.bits;
 	}
 }

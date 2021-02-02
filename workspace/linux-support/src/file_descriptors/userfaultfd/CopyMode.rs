@@ -14,8 +14,7 @@ bitflags!
 		
 		/// Write Protect (WP).
 		///
-		/// "\[this\] will map the page write protected on the fly.
-		/// \[It\] is available only if the write protected ioctl is implemented for the range according to the `uffdio_register.ioctls`".
+		/// Only for mapped memory that does not use huge pages and was registered with `RegisterMode::AllowWriteProtectedCopying`.
 		const WriteProtect = UFFDIO_COPY_MODE_WP;
 	}
 }

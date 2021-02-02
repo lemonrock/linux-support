@@ -28,7 +28,7 @@ pub struct IoUringSettings
 
 impl IoUringSettings
 {
-	fn setup(self, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<(Rc<IoUring<'static>>, RegisteredBuffers), IoUringSetupError>
+	fn setup(self, defaults: &DefaultHugePageSizes) -> Result<(Rc<IoUring<'static>>, RegisteredBuffers), IoUringSetupError>
 	{
 		let io_uring = IoUring::new(defaults, self.number_of_submission_queue_entries, self.number_of_completion_queue_entries, self.kernel_submission_queue_thread_configuration.as_ref(), None)?;
 		

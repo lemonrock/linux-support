@@ -58,11 +58,11 @@ impl<V: Copy> MemoryMappedArrayMap<V>
 	
 	/// New instance.
 	#[inline(always)]
-	pub fn new(map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>, default_page_size: PageSize) -> Result<Self, MapCreationError>
+	pub fn new(map_file_descriptors: &mut FileDescriptorsMap<MapFileDescriptor>, map_name: &MapName, parsed_bpf_type_format_map_data: Option<&ParsedBpfTypeFormatMapData>, maximum_entries: MaximumEntries, access_permissions: AccessPermissions, numa_node: Option<NumaNode>) -> Result<Self, MapCreationError>
 	{
 		let array_map = ArrayMap::new_system_wide_internal(map_file_descriptors, map_name, parsed_bpf_type_format_map_data, maximum_entries, access_permissions, numa_node, MemoryMap::MemoryMap)?;
 		
-		let length = default_page_size.number_of_bytes_rounded_up_to_multiple_of_page_size((maximum_entries.to_u32() as u64) * (size_of::<V>() as u64));
+		let length = PageSize::default().number_of_bytes_rounded_up_to_multiple_of_page_size((maximum_entries.to_u32() as u64) * (size_of::<V>() as u64));
 		let length = new_non_zero_u64(length);
 		
 		use self::AccessPermissions::*;
@@ -78,7 +78,7 @@ impl<V: Copy> MemoryMappedArrayMap<V>
 			KernelReadAndWriteUserspaceReadWrite => ReadWrite,
 		};
 		
-		let page_size_or_huge_page_size_settings = PageSizeOrHugePageSizeSettings::for_default_page_size(default_page_size);
+		let page_size_or_huge_page_size_settings = PageSizeOrHugePageSizeSettings::for_current_page_size();
 		let mapped_memory = MappedMemory::from_file(array_map.map_file_descriptor.deref(), 0, length, AddressHint::any(), protection, Sharing::Shared, false, false, &page_size_or_huge_page_size_settings).unwrap();
 		
 		Ok

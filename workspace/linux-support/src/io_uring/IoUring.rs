@@ -19,7 +19,7 @@ impl<'a> IoUring<'a>
 	///
 	/// This is an expensive operation involving several system calls.
 	#[inline(always)]
-	pub fn new(defaults: &DefaultPageSizeAndHugePageSizes, number_of_submission_queue_entries: NonZeroU16, number_of_completion_queue_entries: Option<NonZeroU32>, kernel_submission_queue_thread_configuration: Option<&LinuxKernelSubmissionQueuePollingThreadConfiguration>, shared_work_queue: Option<&'a IoUring>) -> Result<Self, IoUringCreationError>
+	pub fn new(defaults: &DefaultHugePageSizes, number_of_submission_queue_entries: NonZeroU16, number_of_completion_queue_entries: Option<NonZeroU32>, kernel_submission_queue_thread_configuration: Option<&LinuxKernelSubmissionQueuePollingThreadConfiguration>, shared_work_queue: Option<&'a IoUring>) -> Result<Self, IoUringCreationError>
 	{
 		let shared_work_queue = shared_work_queue.map(|io_uring| &io_uring.io_uring_file_descriptor);
 		let (io_uring_file_descriptor, parameters) = IoUringFileDescriptor::new(number_of_submission_queue_entries, number_of_completion_queue_entries, kernel_submission_queue_thread_configuration, shared_work_queue).map_err(IoUringCreationError::CouldNotCreateIoUringFileDescriptor)?;
@@ -331,7 +331,7 @@ impl<'a> IoUring<'a>
 	}
 
 	#[inline(always)]
-	fn construct(io_uring_file_descriptor: IoUringFileDescriptor, parameters: &io_uring_params, defaults: &DefaultPageSizeAndHugePageSizes, shared_work_queue: Option<&'a IoUringFileDescriptor>) -> Result<Self, IoUringCreationError>
+	fn construct(io_uring_file_descriptor: IoUringFileDescriptor, parameters: &io_uring_params, defaults: &DefaultHugePageSizes, shared_work_queue: Option<&'a IoUringFileDescriptor>) -> Result<Self, IoUringCreationError>
 	{
 		let actual_number_of_submission_queue_entries = parameters.sq_entries;
 		let actual_number_of_completion_queue_entries = parameters.cq_entries;
@@ -354,7 +354,7 @@ impl<'a> IoUring<'a>
 		)
 	}
 
-	fn submission_queue_entries_mmap(io_uring_file_descriptor: &IoUringFileDescriptor, actual_number_of_submission_queue_entries: u32, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<(MappedMemory, NonZeroU64), IoUringCreationError>
+	fn submission_queue_entries_mmap(io_uring_file_descriptor: &IoUringFileDescriptor, actual_number_of_submission_queue_entries: u32, defaults: &DefaultHugePageSizes) -> Result<(MappedMemory, NonZeroU64), IoUringCreationError>
 	{
 		let submission_queue_entries_size = Self::size::<io_uring_sqe>(0, actual_number_of_submission_queue_entries);
 
@@ -362,7 +362,7 @@ impl<'a> IoUring<'a>
 		Ok((mapped_memory, submission_queue_entries_size))
 	}
 
-	fn submission_queue_and_completion_queue_mmap(io_uring_file_descriptor: &IoUringFileDescriptor, actual_number_of_submission_queue_entries: u32, actual_number_of_completion_queue_entries: u32, submission_queue_offsets: &io_sqring_offsets, completion_queue_offsets: &io_cqring_offsets, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<(MappedMemory, NonZeroU64, NonZeroU64), IoUringCreationError>
+	fn submission_queue_and_completion_queue_mmap(io_uring_file_descriptor: &IoUringFileDescriptor, actual_number_of_submission_queue_entries: u32, actual_number_of_completion_queue_entries: u32, submission_queue_offsets: &io_sqring_offsets, completion_queue_offsets: &io_cqring_offsets, defaults: &DefaultHugePageSizes) -> Result<(MappedMemory, NonZeroU64, NonZeroU64), IoUringCreationError>
 	{
 		let submission_queue_size = Self::size::<u32>(submission_queue_offsets.array, actual_number_of_submission_queue_entries);
 		let completion_queue_size = Self::size::<io_uring_cqe>(completion_queue_offsets.cqes, actual_number_of_completion_queue_entries);
@@ -380,13 +380,13 @@ impl<'a> IoUring<'a>
 	}
 
 	#[inline(always)]
-	fn map_memory(io_uring_file_descriptor: &IoUringFileDescriptor, size: NonZeroU64, offset: u64, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<MappedMemory, IoUringCreationError>
+	fn map_memory(io_uring_file_descriptor: &IoUringFileDescriptor, size: NonZeroU64, offset: u64, defaults: &DefaultHugePageSizes) -> Result<MappedMemory, IoUringCreationError>
 	{
 		const OneMegabyte: u64 = 1024 * 1024;
 		
 		let page_size_or_huge_page_size_settings = match defaults.best_fit_huge_page_size_if_any(size.get(), OneMegabyte)
 		{
-			None => PageSizeOrHugePageSizeSettings::for_page_size(defaults),
+			None => PageSizeOrHugePageSizeSettings::for_current_page_size(),
 			Some(huge_page_size) => PageSizeOrHugePageSizeSettings::for_huge_page_size(huge_page_size),
 		};
 		

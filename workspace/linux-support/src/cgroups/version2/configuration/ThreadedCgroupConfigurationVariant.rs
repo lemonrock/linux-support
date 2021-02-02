@@ -26,7 +26,7 @@ impl Default for ThreadedCgroupConfigurationVariant
 
 impl CgroupConfigurationVariant for ThreadedCgroupConfigurationVariant
 {
-	fn configure<C: Cgroup>(&self, mount_point: &CgroupMountPoint, cgroup: Rc<C>, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
+	fn configure<C: Cgroup>(&self, mount_point: &CgroupMountPoint, cgroup: Rc<C>, defaults: &DefaultHugePageSizes) -> io::Result<()>
 	{
 		use self::ThreadedCgroupConfigurationVariant::*;
 		

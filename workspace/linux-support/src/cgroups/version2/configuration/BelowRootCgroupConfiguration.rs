@@ -20,7 +20,7 @@ pub enum BelowRootCgroupConfiguration
 impl ChildCgroupConfiguration for BelowRootCgroupConfiguration
 {
 	#[inline(always)]
-	fn configure<C: Cgroup>(&self, mount_point: &CgroupMountPoint, parent: &Rc<C>, name: &CgroupName, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
+	fn configure<C: Cgroup>(&self, mount_point: &CgroupMountPoint, parent: &Rc<C>, name: &CgroupName, defaults: &DefaultHugePageSizes) -> io::Result<()>
 	{
 		use self::BelowRootCgroupConfiguration::*;
 		

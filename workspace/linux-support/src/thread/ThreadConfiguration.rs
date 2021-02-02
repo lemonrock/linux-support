@@ -87,7 +87,7 @@ impl ThreadConfiguration
 		T: std::marker::Send + 'static,
 		PTMAI::InstantiationArguments: 'static,
 	{
-		let stack_size = self.stack_size.get() * PageSize::current().size_in_bytes().get();
+		let stack_size = self.stack_size.get() * PageSize::default().size_in_bytes().get();
 		let numa_memory_policy = self.numa_memory_policy.clone();
 		let disable_transparent_huge_pages = self.disable_transparent_huge_pages;
 		let current_timer_slack = self.current_timer_slack;
@@ -202,6 +202,6 @@ impl ThreadConfiguration
 	fn stack_size_default() -> NonZeroNumberOfPages
 	{
 		const _2MB: u64 = 2_048 * 1_024;
-		unsafe { NonZeroNumberOfPages::new_unchecked(_2MB / PageSize::current().size_in_bytes().get()) }
+		unsafe { NonZeroNumberOfPages::new_unchecked(_2MB / PageSize::default().size_in_bytes().get()) }
 	}
 }

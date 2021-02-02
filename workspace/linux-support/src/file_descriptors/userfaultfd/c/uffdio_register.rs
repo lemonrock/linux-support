@@ -6,30 +6,10 @@
 #[derive(Default, Debug, Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub(super) struct uffdio_register
 {
-	range: uffdio_range,
+	pub(super) range: uffdio_range,
 	
-	mode: RegisterMode,
+	pub(super) mode: RegisterMode,
 	
 	/// `ioctls` is written by the ioctl.
 	pub(super) ioctls: Ioctls,
-}
-
-impl uffdio_register
-{
-	#[inline(always)]
-	pub(super) fn new(start: VirtualAddress, length: u64, mode: RegisterMode) -> Self
-	{
-		Self
-		{
-			range: uffdio_range
-			{
-				start: start.into(),
-				len: length
-			},
-			
-			mode,
-			
-			ioctls: Ioctls::empty()
-		}
-	}
 }

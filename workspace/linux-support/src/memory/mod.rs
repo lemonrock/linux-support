@@ -3,6 +3,8 @@
 
 
 use self::huge_pages::HugePageSize;
+use self::mapping::MappedMemory;
+use self::mapping::MappedMemorySubrange;
 use super::*;
 use crate::paths::ProcPath;
 use crate::process::ProcessIdentifierChoice;
@@ -46,6 +48,10 @@ pub mod page_map;
 pub mod system_v_shared_memory;
 
 
+include!("AbsoluteMemoryRange.rs");
+include!("compute_length_inclusive.rs");
+include!("compute_length_exclusive.rs");
+include!("FastAbsoluteMemoryRange.rs");
 include!("HasVirtualAddress.rs");
 include!("Kilobyte.rs");
 include!("NonZeroKilobyte.rs");
@@ -57,5 +63,6 @@ include!("PageSize.rs");
 include!("PageSizePreference.rs");
 include!("PhysicalAddress.rs");
 include!("PhysicalPageFrameNumber.rs");
+include!("RelativeMemoryRange.rs");
 include!("VirtualAddress.rs");
 include!("VirtualPageFrameNumber.rs");

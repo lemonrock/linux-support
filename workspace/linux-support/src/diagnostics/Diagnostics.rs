@@ -11,7 +11,7 @@ pub struct Diagnostics
 	pub file_system_layout: FileSystemLayout,
 	
 	/// Page and Huge Page Sizes.
-	pub defaults: DiagnosticUnobtainableResult<DefaultPageSizeAndHugePageSizes>,
+	pub defaults: DiagnosticUnobtainableResult<DefaultHugePageSizes>,
 	
 	/// Users and groups.
 	pub users_and_groups: UsersAndGroupsDiagnostics,

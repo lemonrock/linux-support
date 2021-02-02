@@ -29,7 +29,7 @@ impl Default for DomainCgroupConfigurationVariant
 
 impl CgroupConfigurationVariant for DomainCgroupConfigurationVariant
 {
-	fn configure<C: Cgroup>(&self, mount_point: &CgroupMountPoint, cgroup: Rc<C>, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
+	fn configure<C: Cgroup>(&self, mount_point: &CgroupMountPoint, cgroup: Rc<C>, defaults: &DefaultHugePageSizes) -> io::Result<()>
 	{
 		use self::DomainCgroupConfigurationVariant::*;
 		

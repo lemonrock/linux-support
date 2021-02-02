@@ -89,14 +89,13 @@ impl MappedMemory
 	/// Returns `Ok(true)` if memory was locked.
 	/// Returns `Ok(false)` if only some (or none) of memory was locked but locking can be retried.
 	///
-	/// `range.start` must be a multiple of `PageSize::current()`.
+	/// `range.start` must be a multiple of `PageSize::default()`.
 	#[inline(always)]
-	pub fn lock_range(&self, memory_lock_settings: MemoryLockSettings, range: Range<usize>) -> io::Result<bool>
+	pub fn lock_range(&self, memory_lock_settings: MemoryLockSettings, relative_range: impl RelativeMemoryRange) -> io::Result<bool>
 	{
-		debug_assert!(range.end <= self.size);
-		debug_assert!(PageSize::is_an_exact_page_size_multiple_of_current_usize(range.start));
+		let (start, length) = self.sub_range_inner(relative_range);
 		
-		let result = unsafe { mlock2(self.virtual_address.add(range.start).into(), range.end - range.start, memory_lock_settings as u32) };
+		let result = unsafe { mlock2(start.into(), length, memory_lock_settings as u32) };
 		if likely!(result == 0)
 		{
 			Ok(true)
@@ -112,7 +111,9 @@ impl MappedMemory
 				
 				unexpected @ _ => panic!("Unexpected error {} from mlock2()", unexpected)
 			}
-		} else {
+		}
+		else
+		{
 			unreachable_code(format_args!("Unexpected result {} from mlock2()", result))
 		}
 	}
@@ -128,14 +129,13 @@ impl MappedMemory
 	/// Returns `Ok(true)` if memory was unlocked.
 	/// Returns `Ok(false)` if only some (or none) of memory was unlocked but unlocking can be retried.
 	///
-	/// `range.start` must be a multiple of `PageSize::current()`.
+	/// `range.start` must be a multiple of `PageSize::default()`.
 	#[inline(always)]
-	pub fn unlock_range(&self, range: Range<usize>) -> io::Result<bool>
+	pub fn unlock_range(&self, relative_range: impl RelativeMemoryRange) -> io::Result<bool>
 	{
-		debug_assert!(range.end <= self.size);
-		debug_assert!(PageSize::is_an_exact_page_size_multiple_of_current_usize(range.start));
+		let (start, length) = self.sub_range_inner(relative_range);
 		
-		let result = unsafe { munlock(self.virtual_address.add(range.start).into(), range.end - range.start) };
+		let result = unsafe { munlock(start.into(), length) };
 		if likely!(result == 0)
 		{
 			Ok(true)
@@ -152,7 +152,9 @@ impl MappedMemory
 				
 				unexpected @ _ => panic!("Unexpected error {} from munlock()", unexpected)
 			}
-		} else {
+		}
+		else
+		{
 			unreachable_code(format_args!("Unexpected result {} from mlock2()", result))
 		}
 	}
@@ -170,14 +172,13 @@ impl MappedMemory
 	///
 	/// If the Linux kernel wasn't compiled with `CONFIG_ADVISE_SYSCALLS`, this system call will fail.
 	///
-	/// `range.start` must be a multiple of `PageSize::current()`.
+	/// `range.start` must be a multiple of `PageSize::default()`.
 	#[inline(always)]
-	pub fn advise_range(&self, advice: MemoryAdvice, range: Range<usize>) -> io::Result<()>
+	pub fn advise_range(&self, advice: MemoryAdvice, relative_range: impl RelativeMemoryRange) -> io::Result<()>
 	{
-		debug_assert!(range.end <= self.size);
-		debug_assert!(PageSize::is_an_exact_page_size_multiple_of_current_usize(range.start));
+		let (start, length) = self.sub_range_inner(relative_range);
 		
-		let result = unsafe { madvise(self.virtual_address.add(range.start).into(), range.end - range.start, advice as i32) };
+		let result = unsafe { madvise(start.into(), length, advice as i32) };
 		if likely!(result == 0)
 		{
 			Ok(())
@@ -205,14 +206,13 @@ impl MappedMemory
 	/// Does not support combining the PowerPC-only `PROT_SAO` flag with other flags to minimize syscalls, sorry.
 	/// Does not support combining the deprecated `PROT_GROWSUP` and `PROT_GROWSDOWN` flags with other flags to minimize syscalls, sorry.
 	///
-	/// `range.start` must be a multiple of `PageSize::current()`.
+	/// `range.start` must be a multiple of `PageSize::default()`.
 	#[inline(always)]
-	pub fn change_protection_range(&self, protection: ExtendedProtection, range: Range<usize>) -> io::Result<()>
+	pub fn change_protection_range(&self, protection: ExtendedProtection, relative_range: impl RelativeMemoryRange) -> io::Result<()>
 	{
-		debug_assert!(range.end <= self.size);
-		debug_assert!(PageSize::is_an_exact_page_size_multiple_of_current_usize(range.start));
+		let (start, length) = self.sub_range_inner(relative_range);
 		
-		let result = unsafe { mprotect(self.virtual_address.add(range.start).into(), range.end - range.start, protection as i32) };
+		let result = unsafe { mprotect(start.into(), length, protection as i32) };
 		if likely!(result == 0)
 		{
 			Ok(())
@@ -240,13 +240,13 @@ impl MappedMemory
 	///
 	/// Returns `Err()` if `synchronize` asked to invalidate and a memory lock exists which covers all or part of `range`.
 	///
-	/// `range.start` must be a multiple of `PageSize::current()`.
+	/// `range.start` must be a multiple of `PageSize::default()`.
 	#[inline(always)]
-	pub fn synchronize_with_backing_file_range(&self, synchronize: SynchronizeFlags, range: Range<usize>) -> Result<(), ()>
+	pub fn synchronize_with_backing_file_range(&self, synchronize: SynchronizeFlags, relative_range: impl RelativeMemoryRange) -> Result<(), ()>
 	{
-		self.guard_range(&range);
+		let (start, length) = self.sub_range_inner(relative_range);
 		
-		let result = unsafe { msync(self.virtual_address.add(range.start).into(), range.end - range.start, synchronize as i32) };
+		let result = unsafe { msync(start.into(), length, synchronize as i32) };
 		if likely!(result == 0)
 		{
 			Ok(())
@@ -272,6 +272,22 @@ impl MappedMemory
 		{
 			unreachable_code(format_args!("mprotect() returned unexpected result {}", result))
 		}
+	}
+	/// Zeros all mapped memory.
+	#[inline(always)]
+	pub fn zero(&self)
+	{
+		let pointer: *mut u8 = self.virtual_address.into();
+		unsafe { pointer.write_bytes(0x00, self.size) }
+	}
+	
+	/// Zeros range.
+	#[inline(always)]
+	pub fn zero_range(&self, range: impl RelativeMemoryRange)
+	{
+		let (start, length) = self.sub_range_inner(range);
+		let pointer: *mut u8 = start.into();
+		unsafe { pointer.write_bytes(0x00, length) }
 	}
 	
 	/// Remap memory.
@@ -355,14 +371,6 @@ impl MappedMemory
 	pub fn number_of_pages(&self) -> usize
 	{
 		self.size / (self.page_size_in_bytes().get() as usize)
-	}
-	
-	/// Zeros all mapped memory.
-	#[inline(always)]
-	pub fn zero(&self)
-	{
-		let pointer: *mut u8 = self.virtual_address.into();
-		unsafe { pointer.write_bytes(0x00, self.size) }
 	}
 	
 	/// Removes page of `self.page_size` (which might be huge pages) from the end of this mapping.
@@ -486,11 +494,32 @@ impl MappedMemory
 		unsafe { write_volatile(pointer, value) }
 	}
 	
+	/// Finds a sub range.
+	///
+	/// Checks that it is page aligned in debug builds.
+	#[inline(always)]
+	pub fn sub_range(&self, range: impl RelativeMemoryRange) -> FastAbsoluteMemoryRange
+	{
+		let (inclusive_absolute_start, length) = self.sub_range_inner(relative_range);
+		
+		FastAbsoluteMemoryRange
+		{
+			inclusive_absolute_start,
+			length
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn sub_range_inner(&self, range: impl RelativeMemoryRange) -> (VirtualAddress, usize)
+	{
+		range.compute_and_debug_assert_page_aligned(self.virtual_address, self.size)
+	}
+	
 	/// Returns the chosen size that best fits huge pages and the chosen huge page setting to use.
 	///
 	/// Returns `None` if `preferred_buffer_size` exceeds `2^63`.
 	#[inline(always)]
-	pub fn size_suitable_for_a_power_of_two_ring_queue(preferred_buffer_size: NonZeroU64, defaults: &DefaultPageSizeAndHugePageSizes, inclusive_maximum_bytes_wasted: u64) -> Option<(u64, PageSizeOrHugePageSizeSettings)>
+	pub fn size_suitable_for_a_power_of_two_ring_queue(preferred_buffer_size: NonZeroU64, defaults: &DefaultHugePageSizes, inclusive_maximum_bytes_wasted: u64) -> Option<(u64, PageSizeOrHugePageSizeSettings)>
 	{
 		let buffer_size_power_of_two_at_least_one_page = match Self::round_buffer_size_up_to_power_of_two(preferred_buffer_size)
 		{
@@ -500,7 +529,7 @@ impl MappedMemory
 		
 		let (buffer_size, huge_page_size) = match defaults.best_fit_huge_page_size_if_any(buffer_size_power_of_two_at_least_one_page, inclusive_maximum_bytes_wasted)
 		{
-			None => (buffer_size_power_of_two_at_least_one_page, PageSizeOrHugePageSizeSettings::for_page_size(defaults)),
+			None => (buffer_size_power_of_two_at_least_one_page, PageSizeOrHugePageSizeSettings::for_current_page_size()),
 			
 			Some(huge_page_size) => (huge_page_size.number_of_bytes_rounded_up_to_multiple_of_page_size(buffer_size_power_of_two_at_least_one_page), PageSizeOrHugePageSizeSettings::for_huge_page_size(huge_page_size))
 		};
@@ -517,7 +546,7 @@ impl MappedMemory
 	#[inline(always)]
 	fn round_buffer_size_up_to_smallest_page_size(buffer_size_power_of_two: u64) -> u64
 	{
-		PageSize::current().number_of_bytes_rounded_up_to_multiple_of_page_size(buffer_size_power_of_two)
+		PageSize::default().number_of_bytes_rounded_up_to_multiple_of_page_size(buffer_size_power_of_two)
 	}
 
 	/// Pointer to value.
@@ -572,12 +601,5 @@ impl MappedMemory
 		{
 			panic!("munmap() failed with an unexpected exit code of {:?}", result)
 		}
-	}
-
-	#[inline(always)]
-	pub(crate) fn guard_range(&self, range: &Range<usize>)
-	{
-		debug_assert!(range.end <= self.size);
-		debug_assert!(PageSize::is_an_exact_page_size_multiple_of_current_usize(range.start))
 	}
 }

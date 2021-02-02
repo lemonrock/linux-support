@@ -3,7 +3,7 @@
 
 
 use super::*;
-use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
+use crate::memory::huge_pages::DefaultHugePageSizes;
 
 
 include!("AllControllersConfiguration.rs");

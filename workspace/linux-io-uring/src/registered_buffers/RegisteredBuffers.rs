@@ -23,7 +23,7 @@ impl RegisteredBuffers
 {
 	/// New instance.
 	#[inline(always)]
-	pub fn new(settings: &RegisteredBufferSettings, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Self, RegisteredBuffersCreationError>
+	pub fn new(settings: &RegisteredBufferSettings, defaults: &DefaultHugePageSizes) -> Result<Self, RegisteredBuffersCreationError>
 	{
 		let mut buffers_count = 0;
 		

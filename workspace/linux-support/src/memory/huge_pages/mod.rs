@@ -15,7 +15,7 @@ use crate::process_control::{process_control_wrapper2, result_must_be_zero};
 
 
 include!("change_transparent_huge_pages.rs");
-include!("DefaultPageSizeAndHugePageSizes.rs");
+include!("DefaultHugePageSizes.rs");
 include!("GlobalHugePagePoolSize.rs");
 include!("HugePageSize.rs");
 include!("HugePagePoolStatistics.rs");

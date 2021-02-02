@@ -5,7 +5,7 @@
 #[doc(hidden)]
 pub trait ControllersConfiguration
 {
-	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup>, available_controllers: &Controllers, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>;
+	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup>, available_controllers: &Controllers, defaults: &DefaultHugePageSizes) -> io::Result<()>;
 	
 	fn to_desired_controllers(&self) -> Controllers;
 }

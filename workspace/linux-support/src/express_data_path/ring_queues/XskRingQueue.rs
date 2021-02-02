@@ -54,9 +54,9 @@ impl<XRQK: XskRingQueueKind, D: Descriptor> XskRingQueue<XRQK, D>
 	}
 	
 	#[inline(always)]
-	fn from_ring_queue_offsets(express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, ring_queue_offsets: &xdp_ring_offset, ring_queue_depth: RingQueueDepth, default_page_size: PageSize, offset: u64) -> Self
+	fn from_ring_queue_offsets(express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, ring_queue_offsets: &xdp_ring_offset, ring_queue_depth: RingQueueDepth, offset: u64) -> Self
 	{
-		let page_size_or_huge_page_size_settings = PageSizeOrHugePageSizeSettings::for_default_page_size(default_page_size);
+		let page_size_or_huge_page_size_settings = PageSizeOrHugePageSizeSettings::for_current_page_size();
 		
 		let length = ring_queue_offsets.length_of_memory_to_map::<D>(ring_queue_depth);
 		let memory = MappedMemory::from_file(express_data_path_socket_file_descriptor, offset, length, AddressHint::any(), Protection::ReadWrite, Sharing::Shared, true, false, &page_size_or_huge_page_size_settings).expect("Could not memory map XDP fill ring queue");

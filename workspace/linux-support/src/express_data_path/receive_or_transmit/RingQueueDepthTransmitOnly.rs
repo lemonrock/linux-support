@@ -54,13 +54,13 @@ impl<TSC: TransmitSendCreator> CreateReceiveOrTransmitOrBoth for RingQueueDepthT
 	}
 	
 	#[inline(always)]
-	fn create_receive_or_transmit_or_both(self, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, default_page_size: PageSize, memory_map_offsets: &xdp_mmap_offsets, _queue_identifier: QueueIdentifier, _redirect_map_and_attached_program: &RedirectMapAndAttachedProgram, arguments: Self::Arguments) -> Result<Self::ReceiveOrTransmitOrBoth, ExpressDataPathSocketCreationError>
+	fn create_receive_or_transmit_or_both(self, express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, memory_map_offsets: &xdp_mmap_offsets, _queue_identifier: QueueIdentifier, _redirect_map_and_attached_program: &RedirectMapAndAttachedProgram, arguments: Self::Arguments) -> Result<Self::ReceiveOrTransmitOrBoth, ExpressDataPathSocketCreationError>
 	{
 		Ok
 		(
 			CommonTransmitOnly::new
 			(
-				TransmitQueue::from_transmit_memory_map_offsets(express_data_path_socket_file_descriptor, memory_map_offsets, self.0, default_page_size),
+				TransmitQueue::from_transmit_memory_map_offsets(express_data_path_socket_file_descriptor, memory_map_offsets, self.0),
 				arguments.create(express_data_path_socket_file_descriptor)
 			)
 		)

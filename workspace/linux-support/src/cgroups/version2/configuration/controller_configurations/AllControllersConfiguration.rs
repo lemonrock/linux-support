@@ -17,7 +17,7 @@ pub struct AllControllersConfiguration
 
 impl ControllersConfiguration for AllControllersConfiguration
 {
-	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup>, available_controllers: &Controllers, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
+	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup>, available_controllers: &Controllers, defaults: &DefaultHugePageSizes) -> io::Result<()>
 	{
 		self.threaded.configure(mount_point, cgroup, available_controllers, defaults)?;
 		self.domain.configure(mount_point, cgroup, available_controllers, defaults)

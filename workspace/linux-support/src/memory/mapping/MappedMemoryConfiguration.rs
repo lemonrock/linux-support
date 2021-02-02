@@ -66,7 +66,7 @@ impl MappedMemoryConfiguration
 {
 	/// Turns into settings.
 	#[inline(always)]
-	pub fn into_settings(self, defaults: &DefaultPageSizeAndHugePageSizes) -> MappedMemorySettings
+	pub fn into_settings(self, defaults: &DefaultHugePageSizes) -> MappedMemorySettings
 	{
 		MappedMemorySettings::new(self, defaults)
 	}

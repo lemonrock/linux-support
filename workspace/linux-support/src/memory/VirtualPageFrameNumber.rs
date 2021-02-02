@@ -12,7 +12,7 @@ impl From<VirtualAddress> for VirtualPageFrameNumber
 	fn from(value: VirtualAddress) -> Self
 	{
 		let into: usize = value.into();
-		VirtualPageFrameNumber(into / PageSize::current() as usize)
+		VirtualPageFrameNumber(into / PageSize::default() as usize)
 	}
 }
 

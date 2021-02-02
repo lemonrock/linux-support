@@ -132,7 +132,7 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 	fn receive_replies(&self, reply_receiver: &mut impl ReplyReceiver<Protocol>)
 	{
 		/// Default used by `libnl`.
-		const InitialBufferSize: usize = (4 * PageSize::current().size_in_bytes().get()) as usize;
+		const InitialBufferSize: usize = (4 * PageSize::default().size_in_bytes().get()) as usize;
 		let mut buffer = Vec::with_capacity(InitialBufferSize);
 		
 		let mut multipart_message_identifier: Option<MultipartMessagePartIdentification> = None;

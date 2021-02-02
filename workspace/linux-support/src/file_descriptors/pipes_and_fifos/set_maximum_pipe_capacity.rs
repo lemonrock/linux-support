@@ -10,7 +10,7 @@
 #[inline(always)]
 pub fn set_maximum_pipe_capacity(proc_path: &ProcPath, maximum_pipe_capacity: NonZeroU32) -> io::Result<()>
 {
-	debug_assert!(PageSize::current().size_in_bytes().get() as u32 <= maximum_pipe_capacity.get(), "maximum_pipe_capacity {} can not be less than system page size", maximum_pipe_capacity);
+	debug_assert!(PageSize::default().size_in_bytes().get() as u32 <= maximum_pipe_capacity.get(), "maximum_pipe_capacity {} can not be less than system page size", maximum_pipe_capacity);
 
 	assert_effective_user_id_is_root("Change /proc/sys/fs/pipe-max-size");
 

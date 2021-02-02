@@ -146,7 +146,7 @@ impl Environment
 	{
 		let c_strings_as_fragments_to_combine = self.iter().flat_map(|(name, list_of_values)| list_of_values.iter().map(move |value| (name, value)));
 
-		NulTerminatedCStringArray::new(c_strings_as_fragments_to_combine, PageSize::current())
+		NulTerminatedCStringArray::new(c_strings_as_fragments_to_combine, PageSize::default())
 	}
 
 	#[inline(always)]

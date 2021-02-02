@@ -78,7 +78,7 @@ impl<BufferSize: MemorySize> RegisteredBufferSetting<BufferSize>
 		}
 	}
 	
-	fn create_buffers(&self, buffers_count: &mut u16, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<Box<[RegisteredBuffer<BufferSize>]>, RegisteredBuffersCreationError>
+	fn create_buffers(&self, buffers_count: &mut u16, defaults: &DefaultHugePageSizes) -> Result<Box<[RegisteredBuffer<BufferSize>]>, RegisteredBuffersCreationError>
 	{
 		let number_of_buffers = self.number_of_registered_buffers;
 		let mut buffers = Vec::with_capacity(number_of_buffers as usize);
@@ -103,7 +103,7 @@ impl<BufferSize: MemorySize> RegisteredBufferSetting<BufferSize>
 	}
 	
 	#[inline(always)]
-	fn create_ring_queue(&self, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<ReferenceCountedLargeRingQueue<BufferSize>, RegisteredBuffersCreationError>
+	fn create_ring_queue(&self, defaults: &DefaultHugePageSizes) -> Result<ReferenceCountedLargeRingQueue<BufferSize>, RegisteredBuffersCreationError>
 	{
 		let large_ring_queue = ReferenceCountedLargeRingQueue::new(self.ideal_maximum_number_of_elements(), defaults, Self::OneMegabyte, true)?;
 		if unlikely!(large_ring_queue.size_in_bytes() > Self::MaximumRegisteredBufferSize)

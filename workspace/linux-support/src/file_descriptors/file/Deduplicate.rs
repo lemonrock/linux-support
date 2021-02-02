@@ -43,7 +43,7 @@ impl Deduplicate
 		};
 		if cfg!(debug_assertions)
 		{
-			let page_size: usize = PageSize::current().into();
+			let page_size: usize = PageSize::default().into();
 			debug_assert!(size <= page_size, "to_files_and_their_logical_offsets has too many elements (more than 127 on a system with a 4Kb page size); it causes an internal size to exceed page size");
 		}
 

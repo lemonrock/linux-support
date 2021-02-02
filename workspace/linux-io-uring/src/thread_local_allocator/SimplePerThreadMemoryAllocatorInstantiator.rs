@@ -11,7 +11,7 @@ pub struct SimplePerThreadMemoryAllocatorInstantiator<CoroutineHeapSize: MemoryS
 
 impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize> + Send> PerThreadMemoryAllocatorInstantiator for SimplePerThreadMemoryAllocatorInstantiator<CoroutineHeapSize, GTACSA>
 {
-	type InstantiationArguments = (DefaultPageSizeAndHugePageSizes, &'static GTACSA);
+	type InstantiationArguments = (DefaultHugePageSizes, &'static GTACSA);
 	
 	type ThreadDropGuard = SimplePerThreadMemoryAllocatorInstantiatorDropGuard<CoroutineHeapSize, GTACSA>;
 	

@@ -23,7 +23,7 @@ pub struct DomainControllersConfiguration
 
 impl DomainControllersConfiguration
 {
-	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup>, available_controllers: &Controllers, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
+	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup>, available_controllers: &Controllers, defaults: &DefaultHugePageSizes) -> io::Result<()>
 	{
 		configure_controller(&self.io, mount_point, cgroup, available_controllers, defaults)?;
 		

@@ -101,7 +101,7 @@ use linux_support::io_uring::SubmissionQueueEntryOptions;
 use linux_support::linux_kernel_version::LinuxKernelDomainName;
 use linux_support::linux_kernel_version::LinuxKernelHostName;
 use linux_support::logging::AdditionalLoggingConfiguration;
-use linux_support::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
+use linux_support::memory::huge_pages::DefaultHugePageSizes;
 use linux_support::memory::mapping::MemoryMapError;
 use linux_support::paths::EtcPath;
 use linux_support::paths::PathExt;

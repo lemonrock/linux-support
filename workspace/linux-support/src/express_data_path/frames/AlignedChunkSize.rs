@@ -88,7 +88,7 @@ impl ChunkSize for AlignedChunkSize
 	{
 		let chunks_per_page =
 		{
-			let page_size = PageSize::current().size_in_bytes().get();
+			let page_size = PageSize::default().size_in_bytes().get();
 			
 			if cfg!(debug_assertions)
 			{

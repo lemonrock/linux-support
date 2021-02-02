@@ -63,7 +63,7 @@ impl PhysicalAddress
 	#[inline(always)]
 	pub fn offset_from_start_of_page(self) -> u64
 	{
-		self.0 % (PageSize::current() as u64)
+		self.0 % (PageSize::default() as u64)
 	}
 	
 	/// The address of the page which contains this physical address.
@@ -71,6 +71,6 @@ impl PhysicalAddress
 	#[inline(always)]
 	pub fn first_address_in_page(self) -> Self
 	{
-		PhysicalAddress(self.0 & !((PageSize::current() as u64) - 1))
+		PhysicalAddress(self.0 & !((PageSize::default() as u64) - 1))
 	}
 }

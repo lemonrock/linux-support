@@ -20,6 +20,6 @@ impl Into<PhysicalAddress> for PhysicalPageFrameNumber
 	#[inline(always)]
 	fn into(self) -> PhysicalAddress
 	{
-		PhysicalAddress(self.0 * (PageSize::current() as u64))
+		PhysicalAddress(self.0 * (PageSize::default() as u64))
 	}
 }

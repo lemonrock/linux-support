@@ -67,7 +67,7 @@ impl Default for PageSize
 	#[inline(always)]
 	fn default() -> Self
 	{
-		Self::current()
+		Self::default()
 	}
 }
 
@@ -77,7 +77,7 @@ impl PageSize
 	#[inline(always)]
 	pub fn is_an_exact_page_size_multiple_of_current_usize(value: usize) -> bool
 	{
-		Self::current().is_an_exact_page_size_multiple_usize(value)
+		Self::default().is_an_exact_page_size_multiple_usize(value)
 	}
 
 	/// Exact page size multiple?
@@ -150,7 +150,7 @@ impl PageSize
 	/// On powerpc64, riscv64, sparc64 and x86_64, the value is trully constant; otherwise, it is effectively constant and is derived from data passed when an executable is first loaded.
 	#[cfg(any(target_arch = "powerpc64", target_arch = "riscv64", target_arch = "x86_64"))]
 	#[inline(always)]
-	pub const fn current() -> Self
+	pub const fn default() -> Self
 	{
 		Self::_4Kb
 	}
@@ -160,7 +160,7 @@ impl PageSize
 	/// On powerpc64, sparc64 and x86_64, the value is trully constant; otherwise, it is effectively constant and is derived from data passed when an executable is first loaded.
 	#[cfg(target_arch = "sparc64")]
 	#[inline(always)]
-	pub const fn current() -> Self
+	pub const fn default() -> Self
 	{
 		Self::_8Kb
 	}
@@ -170,7 +170,7 @@ impl PageSize
 	/// On powerpc64, sparc64 and x86_64, the value is trully constant; otherwise, it is effectively constant and is derived from data passed when an executable is first loaded.
 	#[cfg(not(any(target_arch = "powerpc64", target_arch = "riscv64", target_arch = "sparc64", target_arch = "x86_64")))]
 	#[inline(always)]
-	pub fn current() -> Self
+	pub fn default() -> Self
 	{
 		// `getpagesize()` is faster than `sysconf(_SC_PAGESIZE)` on musl libc systems.
 		unsafe { transmute(getpagesize() as usize) }

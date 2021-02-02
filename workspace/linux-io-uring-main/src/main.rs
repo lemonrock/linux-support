@@ -49,7 +49,7 @@ use linux_support::cpu::HyperThreads;
 use linux_support::file_descriptors::socket::UnixSocketAddress;
 use linux_support::file_descriptors::socket::c::in_addr;
 use linux_support::file_descriptors::socket::c::in6_addr;
-use linux_support::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
+use linux_support::memory::huge_pages::DefaultHugePageSizes;
 use linux_support::network_device::NetworkInterfaceName;
 use linux_support::network_device::strategies::DevicePreferences;
 use linux_support::network_device::strategies::DriverProfile;

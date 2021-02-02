@@ -7,7 +7,7 @@
 #[derive(Debug)]
 pub struct ThreadLoopInitiation<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: 'static + MemorySize>
 {
-	pub defaults: DefaultPageSizeAndHugePageSizes,
+	pub defaults: DefaultHugePageSizes,
 	pub global_allocator: &'static GTACSA,
 	pub queues: Queues<(), DequeuedMessageProcessingError>,
 	pub signal_mask: Signals,
@@ -58,7 +58,7 @@ impl<CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndC
 	#[inline(always)]
 	pub fn new
 	(
-		defaults: DefaultPageSizeAndHugePageSizes,
+		defaults: DefaultHugePageSizes,
 		global_allocator: &'static GTACSA,
 		queues: Queues<(), DequeuedMessageProcessingError>,
 		signal_mask: Signals,

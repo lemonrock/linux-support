@@ -4,7 +4,7 @@
 
 use self::controller_configurations::*;
 use super::*;
-use crate::memory::huge_pages::DefaultPageSizeAndHugePageSizes;
+use crate::memory::huge_pages::DefaultHugePageSizes;
 
 
 /// Controller configuration.

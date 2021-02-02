@@ -13,7 +13,7 @@ impl ControllerConfiguration for DebugControllerConfiguration
 	const Controller: Controller = Controller::perf_event;
 	
 	#[inline(always)]
-	fn configure(&self, _mount_point: &CgroupMountPoint, _cgroup: &Rc<NonRootCgroup>, _defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
+	fn configure(&self, _mount_point: &CgroupMountPoint, _cgroup: &Rc<NonRootCgroup>, _defaults: &DefaultHugePageSizes) -> io::Result<()>
 	{
 		Ok(())
 	}

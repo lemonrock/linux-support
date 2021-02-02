@@ -17,7 +17,7 @@ impl ControllerConfiguration for RdmaControllerConfiguration
 	const Controller: Controller = Controller::rdma;
 	
 	#[inline(always)]
-	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup>, _defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>
+	fn configure(&self, mount_point: &CgroupMountPoint, cgroup: &Rc<NonRootCgroup>, _defaults: &DefaultHugePageSizes) -> io::Result<()>
 	{
 		cgroup.write_rdma_maximum(mount_point, &self.maximum)
 	}

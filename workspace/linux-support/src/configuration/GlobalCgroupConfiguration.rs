@@ -15,7 +15,7 @@ pub struct GlobalCgroupConfiguration
 impl GlobalCgroupConfiguration
 {
 	/// Configures.
-	pub fn configure(&self, sys_path: &SysPath, proc_path: &ProcPath, defaults: &DefaultPageSizeAndHugePageSizes) -> Result<(), GlobalCgroupConfigurationError>
+	pub fn configure(&self, sys_path: &SysPath, proc_path: &ProcPath, defaults: &DefaultHugePageSizes) -> Result<(), GlobalCgroupConfigurationError>
 	{
 		use self::GlobalCgroupConfigurationError::*;
 		

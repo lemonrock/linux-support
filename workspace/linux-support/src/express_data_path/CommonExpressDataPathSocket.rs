@@ -9,7 +9,7 @@ pub struct CommonExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth>(ROTOB);
 impl<ROTOB: ReceiveOrTransmitOrBoth> CommonExpressDataPathSocket<ROTOB>
 {
 	/// Based on `libbpf`'s `xsk_socket__create()`.
-	fn new<RingQueueDepths: CreateReceiveOrTransmitOrBoth<ReceiveOrTransmitOrBoth=ROTOB>>(express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, network_interface_index: NetworkInterfaceIndex, receive_or_transmit_or_both_ring_queue_depths: RingQueueDepths, owned_or_shared: XdpSocketAddressFlags, force_copy: bool, force_zero_copy: bool, user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, queue_identifier: QueueIdentifier, default_page_size: PageSize, redirect_map_and_attached_program: &RedirectMapAndAttachedProgram, arguments: RingQueueDepths::Arguments) -> Result<ManuallyDrop<Self>, ExpressDataPathSocketCreationError>
+	fn new<RingQueueDepths: CreateReceiveOrTransmitOrBoth<ReceiveOrTransmitOrBoth=ROTOB>>(express_data_path_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, network_interface_index: NetworkInterfaceIndex, receive_or_transmit_or_both_ring_queue_depths: RingQueueDepths, owned_or_shared: XdpSocketAddressFlags, force_copy: bool, force_zero_copy: bool, user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, queue_identifier: QueueIdentifier, redirect_map_and_attached_program: &RedirectMapAndAttachedProgram, arguments: RingQueueDepths::Arguments) -> Result<ManuallyDrop<Self>, ExpressDataPathSocketCreationError>
 	{
 		// NOTE: Needs to happen before the socket is bound below.
 		let receive_or_transmit_or_both =
@@ -19,7 +19,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth> CommonExpressDataPathSocket<ROTOB>
 			// NOTE: Valid memory map offsets are not available until the socket options in `ring_queue_depths.set_ring_queue_depths()` have been set.
 			let memory_map_offsets = express_data_path_socket_file_descriptor.get_memory_map_offsets();
 			
-			receive_or_transmit_or_both_ring_queue_depths.create_receive_or_transmit_or_both(express_data_path_socket_file_descriptor, default_page_size, &memory_map_offsets, queue_identifier, redirect_map_and_attached_program, arguments)
+			receive_or_transmit_or_both_ring_queue_depths.create_receive_or_transmit_or_both(express_data_path_socket_file_descriptor, &memory_map_offsets, queue_identifier, redirect_map_and_attached_program, arguments)
 		}?;
 		
 		{

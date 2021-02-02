@@ -177,7 +177,7 @@ impl UnalignedChunkSize
 	#[cfg(any(target_arch = "powerpc64", target_arch = "riscv64", target_arch = "sparc64", target_arch = "x86_64"))]
 	pub const fn inclusive_maximum() -> Self
 	{
-		Self::new_unchecked(PageSize::current() as u16)
+		Self::new_unchecked(PageSize::default() as u16)
 	}
 	
 	/// Inclusive maximum (page size).
@@ -185,7 +185,7 @@ impl UnalignedChunkSize
 	#[cfg(not(any(target_arch = "powerpc64", target_arch = "riscv64", target_arch = "sparc64", target_arch = "x86_64")))]
 	pub fn inclusive_maximum() -> Self
 	{
-		Self::new_unchecked(PageSize::current() as u16)
+		Self::new_unchecked(PageSize::default() as u16)
 	}
 	
 	/// To `u32`.

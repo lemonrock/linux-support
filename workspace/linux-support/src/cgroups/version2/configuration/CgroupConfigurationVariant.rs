@@ -6,7 +6,7 @@
 pub trait CgroupConfigurationVariant: Default
 {
 	#[doc(hidden)]
-	fn configure<C: Cgroup>(&self, mount_point: &CgroupMountPoint, cgroup: Rc<C>, defaults: &DefaultPageSizeAndHugePageSizes) -> io::Result<()>;
+	fn configure<C: Cgroup>(&self, mount_point: &CgroupMountPoint, cgroup: Rc<C>, defaults: &DefaultHugePageSizes) -> io::Result<()>;
 	
 	#[doc(hidden)]
 	fn desired_controllers_and_our_depth(&self, all_desired_controllers_in_parent: Controllers) -> (Controllers, usize);

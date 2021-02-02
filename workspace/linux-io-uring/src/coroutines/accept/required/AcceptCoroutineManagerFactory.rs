@@ -5,7 +5,7 @@
 pub(crate) struct AcceptCoroutineManagerFactory<'a, CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>, AcceptStackSize: MemorySize>
 {
 	global_allocator: &'static GTACSA,
-	defaults: &'a DefaultPageSizeAndHugePageSizes,
+	defaults: &'a DefaultHugePageSizes,
 	io_uring: &'a Rc<IoUring<'static>>,
 	queues: &'a Queues<(), DequeuedMessageProcessingError>,
 	dog_stats_d_publisher: &'a DogStatsDPublisher<CoroutineHeapSize, GTACSA>,
@@ -21,7 +21,7 @@ impl<'a, CoroutineHeapSize: 'static + MemorySize, GTACSA: 'static + GlobalThread
 	pub(crate) fn new
 	(
 		global_allocator: &'static GTACSA,
-		defaults: &'a DefaultPageSizeAndHugePageSizes,
+		defaults: &'a DefaultHugePageSizes,
 		io_uring: &'a Rc<IoUring<'static>>,
 		queues: &'a Queues<(), DequeuedMessageProcessingError>,
 		dog_stats_d_publisher: &'a DogStatsDPublisher<CoroutineHeapSize, GTACSA>,

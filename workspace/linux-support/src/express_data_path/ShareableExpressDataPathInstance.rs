@@ -38,7 +38,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ShareableExpressDataPa
 	///
 	/// A potential bug: ***`queue_identifier` is not checked to see if it used by another instance of `SharedReceiveTransmitMemoryRingQueues`***.
 	/// Adding such a check is possible but is tedious.
-	pub fn share<RingQueueDepths: CreateReceiveOrTransmitOrBoth<ReceiveOrTransmitOrBoth=ROTOB>>(&self, receive_or_transmit_or_both_ring_queue_depths: RingQueueDepths, queue_identifier: QueueIdentifier, default_page_size: PageSize, arguments: RingQueueDepths::Arguments) -> Result<SharedExpressDataPathSocket<ROTOB, FFQ>, ExpressDataPathSocketCreationError>
+	pub fn share<RingQueueDepths: CreateReceiveOrTransmitOrBoth<ReceiveOrTransmitOrBoth=ROTOB>>(&self, receive_or_transmit_or_both_ring_queue_depths: RingQueueDepths, queue_identifier: QueueIdentifier, arguments: RingQueueDepths::Arguments) -> Result<SharedExpressDataPathSocket<ROTOB, FFQ>, ExpressDataPathSocketCreationError>
 	{
 		let is_first =
 		{
@@ -70,7 +70,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ShareableExpressDataPa
 			ExpressDataPathSocketFileDescriptor::new().map_err(ExpressDataPathSocketCreationError::CouldNotCreateUserMemorySocketFileDescriptor)?
 		};
 		
-		self.express_data_path_instance().shared(receive_or_transmit_or_both_ring_queue_depths, queue_identifier, default_page_size, arguments, self, express_data_path_socket_file_descriptor)
+		self.express_data_path_instance().shared(receive_or_transmit_or_both_ring_queue_depths, queue_identifier, arguments, self, express_data_path_socket_file_descriptor)
 	}
 }
 

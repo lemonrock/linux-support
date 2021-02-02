@@ -30,6 +30,8 @@
 #![feature(step_trait_ext)]
 #![feature(thread_id_value)]
 #![feature(thread_local)]
+#![feature(slice_ptr_len)]
+#![feature(slice_ptr_get)]
 
 
 //! #linux-support
@@ -555,6 +557,14 @@ use memchr::memchr;
 use memchr::memchr_iter;
 use memchr::memrchr;
 use memoffset::offset_of;
+use num_traits::AsPrimitive;
+use num_traits::One;
+use num_traits::one;
+use num_traits::SaturatingAdd;
+use num_traits::SaturatingSub;
+use num_traits::Unsigned;
+use num_traits::Zero;
+use num_traits::zero;
 use serde::Deserialize;
 use serde::Deserializer;
 use serde::Serialize;
@@ -654,6 +664,7 @@ use std::net::SocketAddr;
 use std::net::SocketAddrV4;
 use std::net::SocketAddrV6;
 use std::num::NonZeroI32;
+use std::num::NonZeroU128;
 use std::num::NonZeroU16;
 use std::num::NonZeroU32;
 use std::num::NonZeroU64;
@@ -672,7 +683,11 @@ use std::ops::Div;
 use std::ops::Mul;
 use std::ops::Not;
 use std::ops::Range;
+use std::ops::RangeFull;
+use std::ops::RangeFrom;
 use std::ops::RangeInclusive;
+use std::ops::RangeTo;
+use std::ops::RangeToInclusive;
 use std::ops::Shl;
 use std::ops::Shr;
 use std::ops::Sub;
@@ -778,10 +793,11 @@ use swiss_army_knife::internet_protocol::InternetProtocolAddress;
 use swiss_army_knife::internet_protocol::InternetProtocolAddressWithMask;
 use swiss_army_knife::non_zero::new_non_null;
 use swiss_army_knife::non_zero::new_non_zero_i32;
-use swiss_army_knife::non_zero::new_non_zero_u8;
+use swiss_army_knife::non_zero::new_non_zero_u128;
 use swiss_army_knife::non_zero::new_non_zero_u16;
 use swiss_army_knife::non_zero::new_non_zero_u32;
 use swiss_army_knife::non_zero::new_non_zero_u64;
+use swiss_army_knife::non_zero::new_non_zero_u8;
 use swiss_army_knife::non_zero::new_non_zero_usize;
 use swiss_army_knife::path::path_bytes_without_trailing_nul;
 use swiss_army_knife::path::PathBufExt;

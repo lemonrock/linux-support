@@ -9,9 +9,9 @@ pub type CompletionQueue = XskRingQueue<ConsumerXskRingQueueKind, FrameDescripto
 impl CompletionQueue
 {
 	#[inline(always)]
-	pub(crate) fn from_completion_memory_map_offsets(user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, memory_map_offsets: &xdp_mmap_offsets, completion_ring_queue_depth: RingQueueDepth, default_page_size: PageSize) -> Self
+	pub(crate) fn from_completion_memory_map_offsets(user_memory_socket_file_descriptor: &ExpressDataPathSocketFileDescriptor, memory_map_offsets: &xdp_mmap_offsets, completion_ring_queue_depth: RingQueueDepth) -> Self
 	{
-		Self::from_ring_queue_offsets(user_memory_socket_file_descriptor, memory_map_offsets.completion_ring_offsets(), completion_ring_queue_depth, default_page_size, XDP_UMEM_PGOFF_COMPLETION_RING)
+		Self::from_ring_queue_offsets(user_memory_socket_file_descriptor, memory_map_offsets.completion_ring_offsets(), completion_ring_queue_depth, XDP_UMEM_PGOFF_COMPLETION_RING)
 	}
 	
 	#[inline(always)]
