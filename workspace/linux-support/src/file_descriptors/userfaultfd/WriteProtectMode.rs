@@ -6,14 +6,38 @@
 ///
 /// "Write protecting a region (`WP=1`) is unrelated to page faults, therefore `DONTWAKE` flag is meaningless with WP=1.
 /// Removing write protection (`WP=0`) in response to a page fault wakes the faulting task unless `DONTWAKE` is set".
+#[derive(Debug, Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
 #[repr(u64)]
-pub enum WriteProtectMode
+enum WriteProtectMode
 {
-	WakeUpWithoutWriteProtect = 0,
+	/// This can only be used if the memory range it is applied to has previously been write-protected with with `EnableWriteProtectionAndTheRaisingOfWriteProtectionEventsAndThenWakeUp`.
+	///
+	/// This is normally used when handling a page fault event.
+	DisableWriteProtectionAndTheSettingOfThWriteProtectionFaultInPageFaultEventFlagsAndThenWakeUp = 0,
 	
-	/// "set the flag to avoid waking up any wait thread after the operation succeeds".
-	DoNotWakeUpWithoutWriteProtect = UFFDIO_WRITEPROTECT_MODE_DONTWAKE,
+	/// This can only be used if the memory range it is applied to has previously been write-protected with with `EnableWriteProtectionAndTheRaisingOfWriteProtectionEventsAndThenWakeUp`.
+	///
+	/// This is normally used when handling a page fault event; a separate ioctl call to `UserFaultFileDescriptor.wake_up_memory_range()` will need to be made for the memory range.
+	DisableWriteProtectionAndTheSettingOfThWriteProtectionFaultInPageFaultEventFlagsAndThenDoNotWakeUp = UFFDIO_WRITEPROTECT_MODE_DONTWAKE,
 	
-	/// "set the flag to write protect a range, unset the flag to undo protection of a range which was previously write protected".
-	WakeUpWithWriteProtect = UFFDIO_WRITEPROTECT_MODE_WP,
+	/// Enable write protection and write protection events.
+	///
+	/// Enabling write protection is unrelated to page faults.
+	EnableWriteProtectionAndTheRaisingOfWriteProtectionEventsAndThenWakeUp = UFFDIO_WRITEPROTECT_MODE_WP,
+}
+
+impl WriteProtectMode
+{
+	#[inline(always)]
+	fn disable(wake_up_after_disabling_write_protection: bool) -> Self
+	{
+		if wake_up_after_disabling_write_protection
+		{
+			WriteProtectMode::DisableWriteProtectionAndTheSettingOfThWriteProtectionFaultInPageFaultEventFlagsAndThenWakeUp
+		}
+		else
+		{
+			WriteProtectMode::DisableWriteProtectionAndTheSettingOfThWriteProtectionFaultInPageFaultEventFlagsAndThenDoNotWakeUp
+		}
+	}
 }

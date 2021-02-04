@@ -3,7 +3,7 @@
 
 
 /// If this was a write fault.
-pub(super) const UFFD_PAGEFAULT_FLAG_WRITE: u32 = 1 << 0;
+pub(super) const UFFD_PAGEFAULT_FLAG_WRITE: u64 = 1 << 0;
 
 /// If reason is `VM_UFFD_WP`.
-pub(super) const UFFD_PAGEFAULT_FLAG_WP: u32 = 1 << 1;
+pub(super) const UFFD_PAGEFAULT_FLAG_WP: u64 = 1 << 1;

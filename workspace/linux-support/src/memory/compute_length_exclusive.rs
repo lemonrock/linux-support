@@ -3,9 +3,9 @@
 
 
 #[inline(always)]
-fn compute_length_exclusive<T: AsPrimitive + SaturatingSub + Unsigned>(inclusive_start: T, exclusive_end: T, original_length: usize) -> usize
+fn compute_length_exclusive(inclusive_start: usize, exclusive_end: usize, original_length: usize) -> usize
 {
-	let length: usize = exclusive_end.saturating_sub(&inclusive_start).as_();
+	let length = exclusive_end.saturating_sub(inclusive_start);
 	debug_assert!(length <= original_length);
 	length
 }

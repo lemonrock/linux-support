@@ -7,9 +7,26 @@ bitflags!
 	/// Zero page mode.
 	#[derive(Deserialize, Serialize)]
 	#[serde(deny_unknown_fields)]
-	pub struct ZeroPageMode: u64
+	struct ZeroPageMode: u64
 	{
 		/// Do not wake up.
 		const DoNotWakeUp = UFFDIO_ZEROPAGE_MODE_DONTWAKE;
+	}
+}
+
+impl Default for ZeroPageMode
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self::empty()
+	}
+}
+
+impl ZeroPageMode
+{
+	const fn new(wake_up_suspended_thread_that_page_faulted_in_registered_memory_subrange: bool) -> Self
+	{
+		unsafe { ZeroPageMode::from_bits_unchecked((!wake_up_suspended_thread_that_page_faulted_in_registered_memory_subrange) as u64) }
 	}
 }

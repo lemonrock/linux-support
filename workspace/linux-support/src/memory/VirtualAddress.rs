@@ -10,13 +10,13 @@
 ///
 /// It supports conversion of `Into<NonNull>` and `Into<NonZero*>` without checking (except in debug builds) that the value is not zero.
 /// This is a breach of the contract of the `Into` trait, but is considered acceptable as testing every time for a condition that is highly unlikely to have arisen is expensive.
-/// If this matters to you, use the equivalent `TryInto` implementations or `Into<Option<NonZero*>>` implementations.
+/// If this matters to you, use the equivalent `Into<NonNull>` and `Into<Option<NonZero*>>` implementations.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct VirtualAddress(usize);
 
-impl<T: ?Sized> From<NonNull<[T]>> for VirtualAddress
+impl<T: Sized> From<NonNull<[T]>> for VirtualAddress
 {
 	#[inline(always)]
 	fn from(value: NonNull<[T]>) -> Self
@@ -25,7 +25,7 @@ impl<T: ?Sized> From<NonNull<[T]>> for VirtualAddress
 	}
 }
 
-impl<'a, T: 'a + ?Sized> From<&'a [T]> for VirtualAddress
+impl<'a, T: 'a + Sized> From<&'a [T]> for VirtualAddress
 {
 	#[inline(always)]
 	fn from(value: &'a [T]) -> Self
@@ -34,7 +34,7 @@ impl<'a, T: 'a + ?Sized> From<&'a [T]> for VirtualAddress
 	}
 }
 
-impl<'a, T: 'a + ?Sized> From<&'a mut [T]> for VirtualAddress
+impl<'a, T: 'a + Sized> From<&'a mut [T]> for VirtualAddress
 {
 	#[inline(always)]
 	fn from(value: &'a mut [T]) -> Self
@@ -48,7 +48,7 @@ impl<'a, T> From<*const [T]> for VirtualAddress
 	#[inline(always)]
 	fn from(value: *const [T]) -> Self
 	{
-		Self(value.as_ptr() as usize)
+		Self(value as *const T as usize)
 	}
 }
 
@@ -57,7 +57,7 @@ impl<'a, T> From<*mut [T]> for VirtualAddress
 	#[inline(always)]
 	fn from(value: *mut [T]) -> Self
 	{
-		Self(value.as_ptr() as usize)
+		Self(value as *mut T as usize)
 	}
 }
 
@@ -138,7 +138,7 @@ impl From<u64> for VirtualAddress
 	}
 }
 
-impl<T: ?Sized> Into<Option<NonNull<T>>> for VirtualAddress
+impl<T: Sized> Into<Option<NonNull<T>>> for VirtualAddress
 {
 	#[inline(always)]
 	fn into(self) -> Option<NonNull<T>>
@@ -147,7 +147,7 @@ impl<T: ?Sized> Into<Option<NonNull<T>>> for VirtualAddress
 	}
 }
 
-impl<T: ?Sized> Into<NonNull<T>> for VirtualAddress
+impl<T: Sized> Into<NonNull<T>> for VirtualAddress
 {
 	#[inline(always)]
 	fn into(self) -> NonNull<T>
@@ -156,25 +156,7 @@ impl<T: ?Sized> Into<NonNull<T>> for VirtualAddress
 	}
 }
 
-impl<T: ?Sized> TryInto<NonNull<T>> for VirtualAddress
-{
-	type Error = ParseNumberError;
-	
-	#[inline(always)]
-	fn try_into(self) -> Result<NonNull<T>, Self::Error>
-	{
-		if self.0 == 0
-		{
-			Err(ParseNumberError::WasZero)
-		}
-		else
-		{
-			Ok(self.into())
-		}
-	}
-}
-
-impl<T: ?Sized> Into<*const T> for VirtualAddress
+impl<T: Sized> Into<*const T> for VirtualAddress
 {
 	#[inline(always)]
 	fn into(self) -> *const T
@@ -183,7 +165,7 @@ impl<T: ?Sized> Into<*const T> for VirtualAddress
 	}
 }
 
-impl<T: ?Sized> Into<*mut T> for VirtualAddress
+impl<T: Sized> Into<*mut T> for VirtualAddress
 {
 	#[inline(always)]
 	fn into(self) -> *mut T
@@ -219,24 +201,6 @@ impl Into<Option<NonZeroU128>> for VirtualAddress
 	}
 }
 
-impl TryInto<NonZeroU128> for VirtualAddress
-{
-	type Error = ParseNumberError;
-	
-	#[inline(always)]
-	fn try_into(self) -> Result<NonZeroU128, Self::Error>
-	{
-		if self.0 == 0
-		{
-			Err(ParseNumberError::WasZero)
-		}
-		else
-		{
-			Ok(self.into())
-		}
-	}
-}
-
 impl Into<usize> for VirtualAddress
 {
 	#[inline(always)]
@@ -264,24 +228,6 @@ impl Into<Option<NonZeroUsize>> for VirtualAddress
 	}
 }
 
-impl TryInto<NonZeroUsize> for VirtualAddress
-{
-	type Error = ParseNumberError;
-	
-	#[inline(always)]
-	fn try_into(self) -> Result<NonZeroUsize, Self::Error>
-	{
-		if self.0 == 0
-		{
-			Err(ParseNumberError::WasZero)
-		}
-		else
-		{
-			Ok(self.into())
-		}
-	}
-}
-
 impl Into<u64> for VirtualAddress
 {
 	#[inline(always)]
@@ -306,24 +252,6 @@ impl Into<Option<NonZeroU64>> for VirtualAddress
 	fn into(self) -> Option<NonZeroU64>
 	{
 		NonZeroU64::new(self.0 as u64)
-	}
-}
-
-impl TryInto<NonZeroU64> for VirtualAddress
-{
-	type Error = ParseNumberError;
-	
-	#[inline(always)]
-	fn try_into(self) -> Result<NonZeroU64, Self::Error>
-	{
-		if self.0 == 0
-		{
-			Err(ParseNumberError::WasZero)
-		}
-		else
-		{
-			Ok(self.into())
-		}
 	}
 }
 
@@ -770,7 +698,7 @@ impl VirtualAddress
 	#[inline(always)]
 	pub fn saturating_sub(self, rhs: Self) -> usize
 	{
-		Self(self.0.saturating_sub(rhs.0))
+		self.0.saturating_sub(rhs.0)
 	}
 	
 	/// Saturating addition of 1.

@@ -7,10 +7,10 @@ pub trait RelativeMemoryRange
 {
 	/// Computes start and length, checking in debug builds that the values are page aligned.
 	#[inline(always)]
-	fn compute_and_debug_assert_page_aligned(self, absolute_inclusive_start: VirtualAddress, original_length: usize) -> (VirtualAddress, usize)
+	fn compute_and_debug_assert_page_aligned(&self, absolute_inclusive_start: VirtualAddress, original_length: usize) -> (VirtualAddress, usize)
 	{
 		let computed_start = self.compute_inclusive_absolute_start(absolute_inclusive_start);
-		debug_assert!(PageSize::is_an_exact_page_size_multiple_of_current_usize(computed_start.into()), "computed_start `{}` is not page aligned". computed_start);
+		debug_assert!(PageSize::is_an_exact_page_size_multiple_of_current_usize(computed_start.into()), "computed_start `{:?}` is not page aligned", computed_start);
 		
 		let computed_length = self.compute_length(original_length);
 		debug_assert!(PageSize::is_an_exact_page_size_multiple_of_current_usize(computed_length), "computed_length `{}` is not page aligned", computed_length);
@@ -25,35 +25,35 @@ pub trait RelativeMemoryRange
 	fn compute_length(&self, original_length: usize) -> usize;
 }
 
-impl<T: AsPrimitive + SaturatingSub + Unsigned> RelativeMemoryRange for Range<T>
+impl<T: AsPrimitive<usize> + Unsigned> RelativeMemoryRange for Range<T>
 where VirtualAddress: Add<T, Output=VirtualAddress>
 {
 	#[inline(always)]
 	fn compute_inclusive_absolute_start(&self, original_absolute_inclusive_start: VirtualAddress) -> VirtualAddress
 	{
-		original_absolute_inclusive_start.add(self.start)
+		original_absolute_inclusive_start + self.start
 	}
 	
 	#[inline(always)]
 	fn compute_length(&self, original_length: usize) -> usize
 	{
-		compute_length_exclusive(self.start, self.end, original_length)
+		compute_length_exclusive(self.start.as_(), self.end.as_(), original_length)
 	}
 }
 
-impl<T: AsPrimitive<usize> + SaturatingSub + Unsigned + SaturatingAdd + One> RelativeMemoryRange for RangeInclusive<T>
+impl<T: AsPrimitive<usize> + Unsigned + Copy> RelativeMemoryRange for RangeInclusive<T>
 where VirtualAddress: Add<T, Output=VirtualAddress>
 {
 	#[inline(always)]
 	fn compute_inclusive_absolute_start(&self, original_absolute_inclusive_start: VirtualAddress) -> VirtualAddress
 	{
-		original_absolute_inclusive_start.add(self.start())
+		original_absolute_inclusive_start + *self.start()
 	}
 	
 	#[inline(always)]
 	fn compute_length(&self, original_length: usize) -> usize
 	{
-		compute_length_inclusive(self.start(), self.end(), original_length)
+		compute_length_inclusive((*self.start()).as_(), (*self.end()).as_(), original_length)
 	}
 }
 
@@ -72,13 +72,13 @@ impl RelativeMemoryRange for RangeFull
 	}
 }
 
-impl<T: AsPrimitive<usize> + SaturatingSub + Unsigned> RelativeMemoryRange for RangeFrom<T>
+impl<T: AsPrimitive<usize> + Unsigned> RelativeMemoryRange for RangeFrom<T>
 where VirtualAddress: Add<T, Output=VirtualAddress>
 {
 	#[inline(always)]
 	fn compute_inclusive_absolute_start(&self, original_absolute_inclusive_start: VirtualAddress) -> VirtualAddress
 	{
-		original_absolute_inclusive_start.add(self.start)
+		original_absolute_inclusive_start + self.start
 	}
 	
 	#[inline(always)]
@@ -88,7 +88,7 @@ where VirtualAddress: Add<T, Output=VirtualAddress>
 	}
 }
 
-impl<T: AsPrimitive + SaturatingSub + Unsigned + Zero> RelativeMemoryRange for RangeTo<T>
+impl<T: AsPrimitive<usize> + Unsigned> RelativeMemoryRange for RangeTo<T>
 where VirtualAddress: Add<T, Output=VirtualAddress>
 {
 	#[inline(always)]
@@ -100,11 +100,11 @@ where VirtualAddress: Add<T, Output=VirtualAddress>
 	#[inline(always)]
 	fn compute_length(&self, original_length: usize) -> usize
 	{
-		compute_length_exclusive(zero::<T>(), self.end, original_length)
+		compute_length_exclusive(0, self.end.as_(), original_length)
 	}
 }
 
-impl<T: AsPrimitive + SaturatingSub + Unsigned + SaturatingAdd + One + Zero> RelativeMemoryRange for RangeToInclusive<T>
+impl<T: AsPrimitive<usize> + Unsigned> RelativeMemoryRange for RangeToInclusive<T>
 where VirtualAddress: Add<T, Output=VirtualAddress>
 {
 	#[inline(always)]
@@ -116,6 +116,6 @@ where VirtualAddress: Add<T, Output=VirtualAddress>
 	#[inline(always)]
 	fn compute_length(&self, original_length: usize) -> usize
 	{
-		compute_length_inclusive(zero::<T>(), self.end, original_length)
+		compute_length_inclusive(0, self.end.as_(), original_length)
 	}
 }

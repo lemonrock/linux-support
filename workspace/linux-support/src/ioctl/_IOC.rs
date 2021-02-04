@@ -2,7 +2,7 @@
 // Copyright © 2021 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-const fn _IOC(a: u64, b: u64, c: u64, d: u64) -> u64
+const fn _IOC(a: u32, b: u32, c: u32, d: usize) -> i32
 {
-	a << 30 | b << 8 | c | d << 16
+	(a << 30 | b << 8 | c | (d as u32) << 16) as i32
 }

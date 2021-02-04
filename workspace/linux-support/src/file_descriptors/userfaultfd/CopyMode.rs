@@ -7,14 +7,31 @@ bitflags!
 	/// Copy mode.
 	#[derive(Deserialize, Serialize)]
 	#[serde(deny_unknown_fields)]
-	pub struct CopyMode: u64
+	struct CopyMode: u64
 	{
 		/// Do not wake up.
 		const DoNotWakeUp = UFFDIO_COPY_MODE_DONTWAKE;
 		
 		/// Write Protect (WP).
 		///
-		/// Only for mapped memory that does not use huge pages and was registered with `RegisterMode::AllowWriteProtectedCopying`.
+		/// Only for mapped memory registered with `PageFaultEventNotificationSetting::IfWriteProtectedPageAccess` or similar.
 		const WriteProtect = UFFDIO_COPY_MODE_WP;
+	}
+}
+
+impl Default for CopyMode
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self::empty()
+	}
+}
+
+impl CopyMode
+{
+	const fn new(wake_up_suspended_thread_that_page_faulted_in_registered_memory_subrange: bool, write_protect: bool) -> Self
+	{
+		unsafe { CopyMode::from_bits_unchecked(((!wake_up_suspended_thread_that_page_faulted_in_registered_memory_subrange) as u64) | ((write_protect as u64) << 1)) }
 	}
 }

@@ -100,6 +100,13 @@ pub trait FileDescriptor: Sized + Debug + AsRawFd + FromRawFd + IntoRawFd
 			panic!("Unexpected result from fcntl F_SETFL of `{}`", result)
 		}
 	}
+	
+	/// Is this file descriptor non-blocking?
+	#[inline(always)]
+	fn is_non_blocking(&self) -> bool
+	{
+		self.get_o_flags() & O_NONBLOCK != 0
+	}
 
 	#[doc(hidden)]
 	#[inline(always)]

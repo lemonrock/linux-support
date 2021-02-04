@@ -93,7 +93,7 @@ impl MappedMemory
 	#[inline(always)]
 	pub fn lock_range(&self, memory_lock_settings: MemoryLockSettings, relative_range: impl RelativeMemoryRange) -> io::Result<bool>
 	{
-		let (start, length) = self.sub_range_inner(relative_range);
+		let (start, length) = self.sub_range_inner(&relative_range);
 		
 		let result = unsafe { mlock2(start.into(), length, memory_lock_settings as u32) };
 		if likely!(result == 0)
@@ -133,7 +133,7 @@ impl MappedMemory
 	#[inline(always)]
 	pub fn unlock_range(&self, relative_range: impl RelativeMemoryRange) -> io::Result<bool>
 	{
-		let (start, length) = self.sub_range_inner(relative_range);
+		let (start, length) = self.sub_range_inner(&relative_range);
 		
 		let result = unsafe { munlock(start.into(), length) };
 		if likely!(result == 0)
@@ -176,7 +176,7 @@ impl MappedMemory
 	#[inline(always)]
 	pub fn advise_range(&self, advice: MemoryAdvice, relative_range: impl RelativeMemoryRange) -> io::Result<()>
 	{
-		let (start, length) = self.sub_range_inner(relative_range);
+		let (start, length) = self.sub_range_inner(&relative_range);
 		
 		let result = unsafe { madvise(start.into(), length, advice as i32) };
 		if likely!(result == 0)
@@ -210,7 +210,7 @@ impl MappedMemory
 	#[inline(always)]
 	pub fn change_protection_range(&self, protection: ExtendedProtection, relative_range: impl RelativeMemoryRange) -> io::Result<()>
 	{
-		let (start, length) = self.sub_range_inner(relative_range);
+		let (start, length) = self.sub_range_inner(&relative_range);
 		
 		let result = unsafe { mprotect(start.into(), length, protection as i32) };
 		if likely!(result == 0)
@@ -244,7 +244,7 @@ impl MappedMemory
 	#[inline(always)]
 	pub fn synchronize_with_backing_file_range(&self, synchronize: SynchronizeFlags, relative_range: impl RelativeMemoryRange) -> Result<(), ()>
 	{
-		let (start, length) = self.sub_range_inner(relative_range);
+		let (start, length) = self.sub_range_inner(&relative_range);
 		
 		let result = unsafe { msync(start.into(), length, synchronize as i32) };
 		if likely!(result == 0)
@@ -285,7 +285,7 @@ impl MappedMemory
 	#[inline(always)]
 	pub fn zero_range(&self, range: impl RelativeMemoryRange)
 	{
-		let (start, length) = self.sub_range_inner(range);
+		let (start, length) = self.sub_range_inner(&range);
 		let pointer: *mut u8 = start.into();
 		unsafe { pointer.write_bytes(0x00, length) }
 	}
@@ -500,17 +500,12 @@ impl MappedMemory
 	#[inline(always)]
 	pub fn sub_range(&self, range: impl RelativeMemoryRange) -> FastAbsoluteMemoryRange
 	{
-		let (inclusive_absolute_start, length) = self.sub_range_inner(range);
-		
-		FastAbsoluteMemoryRange
-		{
-			inclusive_absolute_start,
-			length
-		}
+		let (inclusive_absolute_start, length) = self.sub_range_inner(&range);
+		FastAbsoluteMemoryRange::new(inclusive_absolute_start, length)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn sub_range_inner(&self, range: impl RelativeMemoryRange) -> (VirtualAddress, usize)
+	pub(crate) fn sub_range_inner(&self, range: &impl RelativeMemoryRange) -> (VirtualAddress, usize)
 	{
 		range.compute_and_debug_assert_page_aligned(self.virtual_address, self.size)
 	}

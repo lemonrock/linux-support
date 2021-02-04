@@ -3,7 +3,7 @@
 
 
 #[repr(C)]
-#[derive(Default, Debug, Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub(super) struct uffdio_writeprotect
 {
 	pub(super) range: uffdio_range,

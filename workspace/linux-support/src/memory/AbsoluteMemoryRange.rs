@@ -5,7 +5,7 @@
 /// Represents an absolute range of memory.
 ///
 /// Note that this is implemented for `(&MappedMemory, impl RelativeMemoryRange)` and `MappedMemorySubrange` for convenience, but use of these is best avoided as they are inefficient to use repeatedly on the same data (ie they don't memoize).
-pub trait AbsoluteMemoryRange
+pub trait AbsoluteMemoryRange: Sized
 {
 	/// Convenience method.
 	///
@@ -13,7 +13,7 @@ pub trait AbsoluteMemoryRange
 	///
 	/// If the memory range represents huge-page backed memory, result must be huge-page aligned.
 	#[inline(always)]
-	fn inclusive_absolute_start_and_length_u64(self, to_mapped_absolute_memory_range: impl AbsoluteMemoryRange) -> (u64, u64)
+	fn inclusive_absolute_start_and_length_u64(self) -> (u64, u64)
 	{
 		let (start, length) = self.inclusive_absolute_start_and_length();
 		(start.into(), length as u64)
@@ -24,14 +24,7 @@ pub trait AbsoluteMemoryRange
 	/// Result must be page-aligned.
 	///
 	/// If the memory range represents huge-page backed memory, result must be huge-page aligned.
-	#[inline(always)]
-	fn inclusive_absolute_start_and_length(self, to_mapped_absolute_memory_range: impl AbsoluteMemoryRange) -> (VirtualAddress, usize)
-	{
-		(
-			self.inclusive_absolute_start(),
-			self.length()
-		)
-	}
+	fn inclusive_absolute_start_and_length(self) -> (VirtualAddress, usize);
 	
 	/// Start.
 	///
@@ -55,26 +48,35 @@ pub trait AbsoluteMemoryRange
 impl<'a, Subrange: RelativeMemoryRange> AbsoluteMemoryRange for (&'a MappedMemory, Subrange)
 {
 	#[inline(always)]
-	fn inclusive_absolute_start_and_length(self, to_mapped_absolute_memory_range: impl AbsoluteMemoryRange) -> (VirtualAddress, usize)
+	fn inclusive_absolute_start_and_length(self) -> (VirtualAddress, usize)
 	{
-		self.0.sub_range_inner(self.1)
+		self.0.sub_range_inner(&self.1)
 	}
 	
 	#[inline(always)]
 	fn inclusive_absolute_start(self) -> VirtualAddress
 	{
-		self.0.sub_range(self.1).inclusive_absolute_start
+		self.0.sub_range_inner(&self.1).0
 	}
 	
 	#[inline(always)]
 	fn length(self) -> usize
 	{
-		self.0.sub_range(self.1).length
+		self.0.sub_range_inner(&self.1).1
 	}
 }
 
-impl<T: ?Sized> AbsoluteMemoryRange for NonNull<[T]>
+impl<T: Sized> AbsoluteMemoryRange for NonNull<[T]>
 {
+	#[inline(always)]
+	fn inclusive_absolute_start_and_length(self) -> (VirtualAddress, usize)
+	{
+		(
+			self.inclusive_absolute_start(),
+			self.length()
+		)
+	}
+	
 	#[inline(always)]
 	fn inclusive_absolute_start(self) -> VirtualAddress
 	{
@@ -88,8 +90,17 @@ impl<T: ?Sized> AbsoluteMemoryRange for NonNull<[T]>
 	}
 }
 
-impl<'a, T: 'a + ?Sized> AbsoluteMemoryRange for &'a [T]
+impl<'a, T: 'a + Sized> AbsoluteMemoryRange for &'a [T]
 {
+	#[inline(always)]
+	fn inclusive_absolute_start_and_length(self) -> (VirtualAddress, usize)
+	{
+		(
+			self.inclusive_absolute_start(),
+			self.length()
+		)
+	}
+	
 	#[inline(always)]
 	fn inclusive_absolute_start(self) -> VirtualAddress
 	{
@@ -103,8 +114,17 @@ impl<'a, T: 'a + ?Sized> AbsoluteMemoryRange for &'a [T]
 	}
 }
 
-impl<'a, T: 'a + ?Sized> AbsoluteMemoryRange for &'a mut [T]
+impl<'a, T: 'a + Sized> AbsoluteMemoryRange for &'a mut [T]
 {
+	#[inline(always)]
+	fn inclusive_absolute_start_and_length(self) -> (VirtualAddress, usize)
+	{
+		(
+			self.inclusive_absolute_start(),
+			self.length()
+		)
+	}
+	
 	#[inline(always)]
 	fn inclusive_absolute_start(self) -> VirtualAddress
 	{
@@ -118,12 +138,21 @@ impl<'a, T: 'a + ?Sized> AbsoluteMemoryRange for &'a mut [T]
 	}
 }
 
-impl<T: ?Sized> AbsoluteMemoryRange for *const [T]
+impl<T: Sized> AbsoluteMemoryRange for *const [T]
 {
+	#[inline(always)]
+	fn inclusive_absolute_start_and_length(self) -> (VirtualAddress, usize)
+	{
+		(
+			self.inclusive_absolute_start(),
+			self.length()
+		)
+	}
+	
 	#[inline(always)]
 	fn inclusive_absolute_start(self) -> VirtualAddress
 	{
-		VirtualAddress::from(self.as_ptr())
+		VirtualAddress::from(self)
 	}
 	
 	#[inline(always)]
@@ -133,12 +162,21 @@ impl<T: ?Sized> AbsoluteMemoryRange for *const [T]
 	}
 }
 
-impl<T: ?Sized> AbsoluteMemoryRange for *mut [T]
+impl<T: Sized> AbsoluteMemoryRange for *mut [T]
 {
+	#[inline(always)]
+	fn inclusive_absolute_start_and_length(self) -> (VirtualAddress, usize)
+	{
+		(
+			self.inclusive_absolute_start(),
+			self.length()
+		)
+	}
+	
 	#[inline(always)]
 	fn inclusive_absolute_start(self) -> VirtualAddress
 	{
-		VirtualAddress::from(self.as_ptr())
+		VirtualAddress::from(self)
 	}
 	
 	#[inline(always)]
@@ -148,8 +186,18 @@ impl<T: ?Sized> AbsoluteMemoryRange for *mut [T]
 	}
 }
 
-impl<'a, T: 'a + Into<VirtualAddress>> AbsoluteMemoryRange for &'a Range<T>
+impl<T: Into<VirtualAddress>> AbsoluteMemoryRange for Range<T>
 {
+	#[inline(always)]
+	fn inclusive_absolute_start_and_length(self) -> (VirtualAddress, usize)
+	{
+		let Range { start, end } = self;
+		let inclusive_absolute_start = start.into();
+		let exclusive_end = end.into();
+		let length = exclusive_end.saturating_sub(inclusive_absolute_start);
+		(inclusive_absolute_start, length)
+	}
+	
 	#[inline(always)]
 	fn inclusive_absolute_start(self) -> VirtualAddress
 	{
@@ -159,13 +207,75 @@ impl<'a, T: 'a + Into<VirtualAddress>> AbsoluteMemoryRange for &'a Range<T>
 	#[inline(always)]
 	fn length(self) -> usize
 	{
-		let end: VirtualAddress = self.end.into();
-		end.saturating_sub(self.inclusive_absolute_start())
+		let Range { start, end } = self;
+		let inclusive_absolute_start = start.into();
+		let exclusive_end = end.into();
+		exclusive_end.saturating_sub(inclusive_absolute_start)
+	}
+}
+
+impl<'a, T: 'a + Into<VirtualAddress> + Clone> AbsoluteMemoryRange for &'a Range<T>
+{
+	#[inline(always)]
+	fn inclusive_absolute_start_and_length(self) -> (VirtualAddress, usize)
+	{
+		let Range { start, end } = self.clone();
+		let inclusive_absolute_start = start.into();
+		let exclusive_end = end.into();
+		let length = exclusive_end.saturating_sub(inclusive_absolute_start);
+		(inclusive_absolute_start, length)
+	}
+	
+	#[inline(always)]
+	fn inclusive_absolute_start(self) -> VirtualAddress
+	{
+		self.start.clone().into()
+	}
+	
+	#[inline(always)]
+	fn length(self) -> usize
+	{
+		let exclusive_end = self.end.clone().into();
+		exclusive_end.saturating_sub(self.inclusive_absolute_start())
+	}
+}
+
+impl<T: Into<VirtualAddress>> AbsoluteMemoryRange for RangeInclusive<T>
+{
+	#[inline(always)]
+	fn inclusive_absolute_start_and_length(self) -> (VirtualAddress, usize)
+	{
+		let inclusive_absolute_start = self.start().into();
+		let end: VirtualAddress = self.end().into();
+		let length = end.saturating_increment() - inclusive_absolute_start;
+		(inclusive_absolute_start, length)
+	}
+	
+	#[inline(always)]
+	fn inclusive_absolute_start(self) -> VirtualAddress
+	{
+		self.start().into()
+	}
+	
+	#[inline(always)]
+	fn length(self) -> usize
+	{
+		let end: VirtualAddress = self.end().into();
+		end.saturating_increment() - self.inclusive_absolute_start()
 	}
 }
 
 impl<'a, T: 'a + Into<VirtualAddress>> AbsoluteMemoryRange for &'a RangeInclusive<T>
 {
+	#[inline(always)]
+	fn inclusive_absolute_start_and_length(self) -> (VirtualAddress, usize)
+	{
+		let inclusive_absolute_start = self.start().into();
+		let end: VirtualAddress = self.end().into();
+		let length = end.saturating_increment() - inclusive_absolute_start;
+		(inclusive_absolute_start, length)
+	}
+	
 	#[inline(always)]
 	fn inclusive_absolute_start(self) -> VirtualAddress
 	{

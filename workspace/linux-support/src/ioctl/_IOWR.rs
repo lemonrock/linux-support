@@ -3,7 +3,7 @@
 
 
 /// `_IOWR(a, b, c)`.
-pub const fn _IOWR<c>(a: u64, b: u64) -> u64
+pub const fn _IOWR<c>(a: u32, b: u32) -> i32
 {
-	_IOC(_IOC_READ | _IOC_WRITE, a, b, size_of::<c>() as u64)
+	_IOC(_IOC_READ | _IOC_WRITE, a, b, size_of::<c>())
 }

@@ -47,36 +47,34 @@ impl FileDescriptor for UserFaultFileDescriptor
 {
 }
 
-impl Into<Arc<Self>> for UserFaultFileDescriptor
-{
-	#[inline(always)]
-	fn into(self) -> Arc<Self>
-	{
-		Arc::new(self)
-	}
-}
-
-impl Into<PollingUserFaultFileDescriptor> for UserFaultFileDescriptor
-{
-	#[inline(always)]
-	fn into(self) -> PollingUserFaultFileDescriptor
-	{
-		PollingUserFaultFileDescriptor(self.into())
-	}
-}
-
 impl UserFaultFileDescriptor
 {
 	/// Creates a new non-blocking instance which is closed-on-exec.
 	///
 	/// `user_mode_only` should normally be `true`.
-	/// `requested_features` should normally not contain `UFFD_FEATURE_EVENT_FORK` unless the caller has the `CAP_SYS_PTRACE` capability (will result in `EFAULT` to the api ioctl).
+	/// `requested_features` should normally not contain `Feature::RaiseForkEvents` unless the caller has the `CAP_SYS_PTRACE` capability (will result in `EFAULT` to the api ioctl).
+	///
+	/// On return:-
+	///
+	/// * `.0` is an instance of an `UserFaultFileDescriptor`.
+	/// * `.1` is a list of supported features for the `UserFaultFileDescriptor`; it is always `Feature::all()` if running on Linux version 5.11.
+	/// * `.2` is a list of supported input-outout control requests ('ioctl's); it is always `SupportedInputOutputControlRequests::ApplicationProgrammerInterfaces`.
 	#[inline(always)]
-	pub fn new(user_mode_only: bool, requested_features: Features) -> Result<(Self, Features, Ioctls), CreationError>
+	pub fn new(user_mode_only: bool, requested_features: Features) -> Result<(Self, Features, SupportedInputOutputControlRequests), CreationError>
 	{
 		let this = Self::create(user_mode_only)?;
 		let (features, ioctls) = this.initialize(requested_features)?;
 		Ok((this, features, ioctls))
+	}
+	
+	/// Creates a polling instance.
+	#[inline(always)]
+	pub fn polling<UFEH: UserFaultEventHandler, T: Terminate>(self, terminate: &Arc<T>, initial_number_of_events_to_read_at_once: NonZeroUsize, user_fault_event_handler_constructor: impl FnOnce(FileDescriptorCopy<UserFaultFileDescriptor>) -> UFEH) -> (Arc<Self>, PollingUserFaultFileDescriptor<UFEH, T>)
+	{
+		let file_descriptor = Arc::new(self);
+		let file_descriptor_copy = FileDescriptorCopy::new(file_descriptor.0);
+		let polling = PollingUserFaultFileDescriptor::new(&file_descriptor, terminate, initial_number_of_events_to_read_at_once, user_fault_event_handler_constructor(file_descriptor_copy));
+		(file_descriptor, polling)
 	}
 	
 	#[inline(always)]
@@ -102,13 +100,15 @@ impl UserFaultFileDescriptor
 			
 			match errno().0
 			{
-				EINVAL => Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
+				EMFILE => Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
 				
 				ENFILE => Err(SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded),
 				
 				ENOMEM => Err(KernelWouldBeOutOfMemory),
 				
 				EPERM => Err(PermissionDenied),
+				
+				EINVAL => panic!("Invalid combination of flags"),
 				
 				unexpected @ _ => panic!("Unexpected error number '{}'", unexpected),
 			}
@@ -121,10 +121,12 @@ impl UserFaultFileDescriptor
 	
 	/// Obtains API details.
 	///
-	/// Features is always `UFFD_API_FEATURES`.
-	/// Ioctls is always `UFFD_API_IOCTLS`.
+	/// On return:-
+	///
+	/// * `.0` is a list of supported features; it is always `Feature::all()` if running on Linux version 5.11.
+	/// * `.1` is a list of supported input-output control requests ('ioctl's); it is always `SupportedInputOutputControlRequests::ApplicationProgrammerInterfaces`.
 	#[inline(always)]
-	fn initialize(&self, requested_features: Features) -> Result<(Features, Ioctls), CreationError>
+	fn initialize(&self, requested_features: Features) -> Result<(Features, SupportedInputOutputControlRequests), CreationError>
 	{
 		let mut api = uffdio_api::new(requested_features);
 		match self.make_ioctl(UFFDIO_API, &mut api)
@@ -137,9 +139,62 @@ impl UserFaultFileDescriptor
 				
 				EINVAL => panic!("Already initialized or bad arguments to ioctl"),
 				
-				EFAULT => panic!("argp does not point to a valid memory address"),
+				EFAULT => panic!("`argp` does not point to a valid memory address"),
 				
 				_ => panic!("Unexpect errno `{}` from userfaultfd ioctl(UFFDIO_API)", errno),
+			}
+		}
+	}
+	
+	/// Called from polling thread; loops until does not receive `EINTR`.
+	///
+	/// Ideally should be done after `poll()` or `epoll()`.
+	/// Assumes that `self` still has the flag `O_NONBLOCK` (checked for in debug builds).
+	///
+	/// Only ever returns `0` if the underlying read returned `EAGAIN`; a return of `0` does not mean end-of-file (EOF).
+	#[inline(always)]
+	fn non_blocking_read_events<'a>(&self, events: &'a mut [uffd_msg]) -> usize
+	{
+		debug_assert!(self.is_non_blocking());
+		
+		const MessageSize: usize = size_of::<uffd_msg>();
+		
+		let maximum_number_of_messages_to_read = events.len();
+		let buf = events.as_mut_ptr() as *mut c_void;
+		loop
+		{
+			let result = unsafe { libc::read(self.0, buf, MessageSize * maximum_number_of_messages_to_read) };
+			if likely!(result > 0)
+			{
+				let bytes_read = result as usize;
+				
+				let number_of_messages = bytes_read / MessageSize;
+				debug_assert!(number_of_messages <= maximum_number_of_messages_to_read, "Read more than the size of events (?how)");
+				debug_assert_eq!(bytes_read % MessageSize, 0, "Partial read of a message (?how)");
+				
+				return number_of_messages
+			}
+			else if likely!(result == -1)
+			{
+				let errno = errno();
+				match errno.0
+				{
+					EINTR => continue,
+					
+					// Occurs internally in `userfaultfd_ctx_read()` in Linux source if `no_wait` is true.
+					// Is only then returned to user space if no messages have been read at all and the file descriptor is non-blocking.
+					EAGAIN => return 0,
+					
+					EINVAL => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or size of `buf` was less than the size of `struct uffd_msg`"),
+					
+					EFAULT => panic!("`buf` does not point to a valid memory address"),
+					
+					_ => panic!("Unexpect errno `{}` from userfaultfd non-blocking read()", errno),
+				}
+			}
+			else
+			{
+				panic!("Unexpected result {}", result);
 			}
 		}
 	}
@@ -148,31 +203,34 @@ impl UserFaultFileDescriptor
 	///
 	/// Returns the `Ioctl` operations permitted on the memory, which always fall into one of three sets which can be known without examing the return type:-
 	///
-	/// * Those suitable for memory backed by huge pages: always `Ioctls::HugePages`.
-	/// * Those suitable for memory backed by regular pages: always `Ioctls::RegularPages`.
-	/// * Those suitable for memory backed by regular pages and `register_mode` including `RegisterMode::AllowWriteProtectedCopying`: always `Ioctls::RegularPagesWithWriteProtectOnCopy`.
+	/// * Those suitable for memory backed by huge pages: always `SupportedInputOutputControlRequests::HugePages`.
+	/// * Those suitable for memory backed by regular pages: always `SupportedInputOutputControlRequests::RegularPages`.
+	/// * Those suitable for memory backed by regular pages and `register_mode` including `PageFaultEventNotificationSetting::RaisePageFaultEventIfWriteProtectedPageAccessed`: always `SupportedInputOutputControlRequests::RegularPagesWithWriteProtectOnCopy`.
 	///
 	/// Returns errors:-
 	///
 	/// * `KernelWouldBeOutOfMemory` if `ENOMEM` occurs (this may be because the memory has become unmapped).
-	/// * `PermissionDenied` if `EPERM` occurs; this is typically because the mapped memory is `MAP_SHARED` and the process does not have write permissions to the underlying file (this includes checking file seals); writes can occur even for read-only files because of the way `copy()` is allowed to copy into sparse file holes.
+	/// * `PermissionDenied` if `EPERM` occurs
+	/// 	* the underlying 'vma' flags for `registered_memory_subrange` do not contain `VM_MAYWRITE` (which is related to Linux's COW of memory pages).
+	/// 	* `PageFaultEventNotificationSetting::RaisePageFaultEventIfWriteProtectedPageAccessed` was specified and `registered_memory_subrange` is a hugetlbfs mapping or a shmem mapping.
 	///
 	/// `mapped_memory`:-
 	///
 	/// * must be page-aligned to memory mapped using `mmap()`; if using huge pages, then they must be aligned to the huge page alignment of that memory.
 	/// * can be a sub range of memory mapped using `mmap()`.
+	/// * if anonymous, must currently be `MAP_PRIVATE` (ie not have the 'vma' flag `VM_SHARED`).
 	///
-	/// Note that if the mapped memory is using huge-pages then only 'basic' `Ioctls` are allowed.
+	/// Note that if the mapped memory is using hugepagetlbfs then only 'basic' `SupportedInputOutputControlRequests` are allowed.
 	#[inline(always)]
-	pub fn register_memory_range(&self, mapped_absolute_memory_range: impl AbsoluteMemoryRange, register_mode: RegisterMode) -> Result<Ioctls, CreationError>
+	pub fn register_registered_memory_subrange(&self, mapped_absolute_registered_memory_subrange: impl AbsoluteMemoryRange, registration_settings: PageFaultEventNotificationSetting) -> Result<SupportedInputOutputControlRequests, CreationError>
 	{
 		use self::CreationError::*;
 		
 		let mut register = uffdio_register
 		{
-			range: Self::to_uffdio_range(mapped_absolute_memory_range),
-			mode: register_mode,
-			ioctls: Ioctls::empty()
+			range: Self::to_uffdio_range(mapped_absolute_registered_memory_subrange),
+			mode: registration_settings,
+			ioctls: SupportedInputOutputControlRequests::empty()
 		};
 		match self.make_ioctl(UFFDIO_REGISTER, &mut register)
 		{
@@ -186,7 +244,7 @@ impl UserFaultFileDescriptor
 				
 				EBUSY => panic!("A mapping in the specified range is registered with another userfaultfd object"),
 				
-				EFAULT => panic!("argp does not point to a valid memory address"),
+				EFAULT => panic!("`argp` does not point to a valid memory address"),
 				
 				EINVAL => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or an invalid or unsupported bit was specified in the mode field; or the mode field was zero; or there is no mapping in the specified address range; or range.start or range.len is not a multiple of the system page size (or huge page size); or, range.len is zero; or these fields are otherwise invalid; or there as an incompatible mapping in the specified address range, ie one that does not support userfaults"),
 				
@@ -195,7 +253,7 @@ impl UserFaultFileDescriptor
 		}
 	}
 	
-	/// Unregister memory range that has previously been registered with `self.register_memory_range()`.
+	/// Unregister memory range that has previously been registered with `self.register_registered_memory_subrange()`.
 	///
 	/// `mapped_memory`:-
 	///
@@ -206,16 +264,16 @@ impl UserFaultFileDescriptor
 	///
 	/// * `KernelWouldBeOutOfMemory` if `ENOMEM` occurs (this may be because the memory has become unmapped).
 	#[inline(always)]
-	pub fn unregister_memory_range(&self, mapped_absolute_memory_range: impl AbsoluteMemoryRange) -> Result<(), CreationError>
+	pub fn unregister_registered_memory_subrange(&self, mapped_absolute_registered_memory_subrange: impl AbsoluteMemoryRange) -> Result<(), CreationError>
 	{
-		let mut range = Self::to_uffdio_range(mapped_absolute_memory_range);
+		let mut range = Self::to_uffdio_range(mapped_absolute_registered_memory_subrange);
 		match self.make_ioctl(UFFDIO_UNREGISTER, &mut range)
 		{
 			Ok(()) => Ok(()),
 			
 			Err(errno) => match errno.0
 			{
-				EFAULT => panic!("argp does not point to a valid memory address"),
+				EFAULT => panic!("`argp` does not point to a valid memory address"),
 				
 				EINVAL => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or either the start or the len field of the ufdio_range structure was not a multiple of the system page size; or the len field was zero; or these fields were otherwise invalid; or, there as an incompatible mapping in the specified address range; or, there was no mapping in the specified address range"),
 				
@@ -226,61 +284,39 @@ impl UserFaultFileDescriptor
 		}
 	}
 	
-	/// Called from polling thread.
-	///
-	/// Ideally should be done after `poll()` or `epoll()`.
-	/// Errors such as `POLLERR` are apparently possibly.
-	#[inline(always)]
-	pub fn read_events<'a>(&self, events: &'a mut [uffd_msg]) -> usize
-	{
-		const MessageSize: usize = size_of::<uffd_msg>();
-		
-		let maximum_number_of_messages_to_read = events.len();
-		let mut buf = events as *mut uffd_msg as *mut c_void;
-		let result = unsafe { libc::read(self.0, buf, MessageSize * maximum_number_of_messages_to_read) };
-		if likely!(result >= 0)
-		{
-			let number_of_messages = (result as usize) / MessageSize;
-			debug_assert!(number_of_messages <= maximum_number_of_messages_to_read);
-			
-			number_of_messages
-		}
-		else if likely!(result == -1)
-		{
-			panic!("userfaultfd read failed with `{}`", errno());
-		}
-		else
-		{
-			panic!("Unexpected result {}", result);
-		}
-	}
-	
 	/// Called from polling thread; loops until all bytes copied.
 	///
-	/// `to_mapped_absolute_memory_range` and `from` must be:-
+	/// `registered_memory_subrange` and `from` must be:-
 	///
 	/// * page-aligned.
 	/// * encapsulated within a registered memory range (with the page size being of the same huge page size if appropriate).
 	///
-	/// `to_mapped_absolute_memory_range`:-
+	/// `registered_memory_subrange`:-
 	///
 	/// * can be a sub range of memory mapped using `mmap()`.
+	///
+	/// If `write_protect` is `true`:-
+	///
+	/// * causes `EINVAL` if the 'vma' flags does not contain the flag `VM_UFFD_WP`, ie the registered memory was not registered to support write protection page fault notification.
+	/// * only seems to make an effective difference on x86_64.
 	#[inline(always)]
-	pub fn copy(&self, to_mapped_absolute_memory_range: impl AbsoluteMemoryRange, copy_mode: CopyMode, from: VirtualAddress) -> Result<(), &'static str>
+	pub fn copy_registered_memory_subrange(&self, registered_memory_subrange: impl AbsoluteMemoryRange, copy_starting_from: VirtualAddress, wake_up_suspended_thread_that_page_faulted_in_registered_memory_subrange: bool, write_protect: bool) -> Result<(), CopyError>
 	{
-		let (dst, len) = to_mapped_absolute_memory_range.inclusive_absolute_start_and_length_u64();
+		let (dst, len) = registered_memory_subrange.inclusive_absolute_start_and_length_u64();
 		
 		let mut copy = uffdio_copy
 		{
 			dst,
-			src: from.into(),
+			src: copy_starting_from.into(),
 			len,
-			mode: copy_mode,
+			mode: CopyMode::new(wake_up_suspended_thread_that_page_faulted_in_registered_memory_subrange, write_protect),
 			copy: 0,
 		};
 		
 		loop
 		{
+			use self::CopyError::*;
+			
 			match self.make_ioctl(UFFDIO_COPY, &mut copy)
 			{
 				Ok(()) => return Ok(()),
@@ -296,15 +332,20 @@ impl UserFaultFileDescriptor
 						copy.len -= bytes_copied;
 					}
 					
-					EFAULT => panic!("argp does not point to a valid memory address"),
+					EINTR => continue,
+					
+					ENOENT => return Err(FaultingProcessHasChangedItsMemoryLayout),
+					
+					// `ENOSPC` is historic for Linux versions 4.11 to 4.13 inclusive.
+					ESRCH | ENOSPC => return Err(FaultingProcessHasExited),
+					
+					ENOMEM => return Err(LinuxKernelIsOutOfMemory),
+					
+					EEXIST => return Err(DestinationMemoryStructuresSuchAsVmaDoNotExist),
+					
+					EFAULT => panic!("`argp` does not point to a valid memory address"),
 					
 					EINVAL => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or memory addresses or length not aligned to page size or are outside of permitted range for process or invalid copy mode"),
-					
-					ENOENT => return Err("The faulting process has changed its virtual memory layout simultaneously with an outstanding UFFDIO_COPY operation"),
-					
-					ESRCH => return Err("The faulting process has exited at the time of a UFFDIO_COPY operation"),
-					
-					ENOSPC => panic!("`ENOSPC` was only returned for Linux version 4.11 until Linux version 4.13"),
 					
 					_ => panic!("Unexpect errno `{}` from userfaultfd ioctl(UFFDIO_COPY)", errno),
 				}
@@ -318,26 +359,28 @@ impl UserFaultFileDescriptor
 	///
 	/// __NOTE: This API is not supported by Linux for registered memory using huge pages__.
 	///
-	/// `to_mapped_absolute_memory_range` must be:-
+	/// `registered_memory_subrange` must be:-
 	///
 	/// * page-aligned.
 	/// * encapsulated within a registered memory range.
 	///
-	/// `to_mapped_absolute_memory_range`:-
+	/// `registered_memory_subrange`:-
 	///
 	/// * can be a sub range of memory mapped using `mmap()`.
 	#[inline(always)]
-	pub fn copy_zero_page(&self, to_mapped_absolute_memory_range: impl AbsoluteMemoryRange, zero_page_mode: ZeroPageMode) -> Result<(), &'static str>
+	pub fn zero_registered_memory_subrange(&self, registered_memory_subrange: impl AbsoluteMemoryRange, wake_up_suspended_thread_that_page_faulted_in_registered_memory_subrange: bool) -> Result<(), CopyError>
 	{
 		let mut copy = uffdio_zeropage
 		{
-			range: Self::to_uffdio_range(to_mapped_absolute_memory_range),
-			mode: zero_page_mode,
+			range: Self::to_uffdio_range(registered_memory_subrange),
+			mode: ZeroPageMode::new(wake_up_suspended_thread_that_page_faulted_in_registered_memory_subrange),
 			zeropage: 0
 		};
 		
 		loop
 		{
+			use self::CopyError::*;
+			
 			match self.make_ioctl(UFFDIO_ZEROPAGE, &mut copy)
 			{
 				Ok(()) => return Ok(()),
@@ -352,16 +395,20 @@ impl UserFaultFileDescriptor
 						copy.range.len -= bytes_copied;
 					}
 					
-					EFAULT => panic!("argp does not point to a valid memory address"),
+					EINTR => continue,
+					
+					ENOENT => return Err(FaultingProcessHasChangedItsMemoryLayout),
+					
+					// `ENOSPC` is historic for Linux versions 4.11 to 4.13 inclusive.
+					ESRCH | ENOSPC => return Err(FaultingProcessHasExited),
+					
+					ENOMEM => return Err(LinuxKernelIsOutOfMemory),
+					
+					EEXIST => return Err(DestinationMemoryStructuresSuchAsVmaDoNotExist),
+					
+					EFAULT => panic!("`argp` does not point to a valid memory address"),
 					
 					EINVAL => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or memory addresses or length not aligned to page size or are outside of permitted range for process or invalid zero page mode"),
-					
-					ENOENT => return Err("The faulting process has changed its virtual memory layout simultaneously with an outstanding UFFDIO_ZEROPAGE operation"),
-					
-					ESRCH => return Err("The faulting process has exited at the time of a UFFDIO_ZEROPAGE operation"),
-					
-					// Not officially documented but may have been possible.
-					ENOSPC => panic!("`ENOSPC` was only returned for Linux version 4.11 until Linux version 4.13"),
 					
 					_ => panic!("Unexpect errno `{}` from userfaultfd ioctl(UFFDIO_ZEROPAGE)", errno),
 				}
@@ -373,20 +420,20 @@ impl UserFaultFileDescriptor
 	///
 	/// Wake up the thread waiting for page fault resolution.
 	///
-	/// Used after calling either `copy()` or `copy_zero_page()` or both once or more with a mode of `DoNotWakeUp`.
+	/// Used after calling either `copy_registered_memory_subrange()` or `zero_registered_memory_subrange()` or both once or more with a mode of `DoNotWakeUp`.
 	///
-	/// `to_mapped_absolute_memory_range` must be:-
+	/// `registered_memory_subrange` must be:-
 	///
 	/// * page-aligned.
 	/// * encapsulated within a registered memory range.
 	///
-	/// `to_mapped_absolute_memory_range`:-
+	/// `registered_memory_subrange`:-
 	///
 	/// * can be a sub range of memory mapped using `mmap()`.
 	#[inline(always)]
-	pub fn wake_up_after_copy(&self, to_mapped_absolute_memory_range: impl AbsoluteMemoryRange)
+	pub fn wake_up_suspended_thread_that_page_faulted_in_registered_memory_subrange(&self, registered_memory_subrange: impl AbsoluteMemoryRange)
 	{
-		let mut wake_up = Self::to_uffdio_range(to_mapped_absolute_memory_range);
+		let mut wake_up = Self::to_uffdio_range(registered_memory_subrange);
 		
 		match self.make_ioctl(UFFDIO_WAKE, &mut wake_up)
 		{
@@ -394,7 +441,7 @@ impl UserFaultFileDescriptor
 			
 			Err(errno) => match errno.0
 			{
-				EFAULT => panic!("argp does not point to a valid memory address"),
+				EFAULT => panic!("`argp` does not point to a valid memory address"),
 				
 				EINVAL => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or memory addresses or length not aligned to page size or are outside of permitted range for process"),
 				
@@ -403,38 +450,89 @@ impl UserFaultFileDescriptor
 		}
 	}
 	
-	/// Called from polling thread; loops until complete.
+	/*
+	Write Protect Notifications
+	
+	This is equivalent to (but faster than) using mprotect and a SIGSEGV signal handler.
+	
+	Firstly you need to register a range with PageFaultEventNotificationSetting::IfWriteProtectedPageAccess or similar.
+	- Instead of using mprotect(2) you use ioctl(UFFDIO_WRITEPROTECT) with mode WriteProtectMode::WakeUpWithWriteProtect.
+	- The ioctl(UFFDIO_WRITEPROTECT) range can be the same as or a subrange of the registered memory.
+	- You can write protect as many subranges as you like (inside the registered range).
+	- Then, in the thread reading from uffd the struct will have the PageFaultEventFlags::WriteProtectFault flag set.
+	
+	- Now you send ioctl(UFFDIO_WRITEPROTECT) again with mode NOT SET to WriteProtectMode::WakeUpWithWriteProtect.
+	- This wakes up the thread which will continue to run with writes.
+	- This allows you to do the bookkeeping about the write in the uffd reading thread before the ioctl.
+	
+	If you registered with PageFaultEventNotificationSetting::BothIfMissingAndIfWriteProtectedPageAccess then you need to think about the sequence in which you supply a page and undo write protect.
+	Note that there is a difference between writes into a WP area and into a !WP area.
+	The former will have UFFD_PAGEFAULT_FLAG_WP set, the latter UFFD_PAGEFAULT_FLAG_WRITE.
+	The latter did not fail on protection but you still need to supply a page when UFFDIO_REGISTER_MODE_MISSING was used.
+	 */
+	/// Called from main or polling thread; loops until complete.
 	///
-	/// `to_mapped_absolute_memory_range` must be:-
+	/// `registered_memory_subrange` must be:-
 	///
 	/// * page-aligned.
 	/// * encapsulated within a registered memory range.
 	/// * have been __registered__ (`self.register_mapped_memory()`) with `register_mode` containing `RegiserMode::WriteProtect`.
 	///
-	/// `to_mapped_absolute_memory_range`:-
+	/// `registered_memory_subrange`:-
 	///
 	/// * can be a sub range of memory mapped using `mmap()`.
+	///
+	/// Return an error if the `registered_memory_subrange` no longer exists or is suitable (is shared (`VM_SHARED`), is not anonymous).
 	#[inline(always)]
-	pub fn wake_up_after_copy_write_protect(&self, to_mapped_absolute_memory_range: impl AbsoluteMemoryRange, write_protect_mode: WriteProtectMode)
+	pub fn enable_write_protection_of_registered_memory_subrange_and_wake_up_registered_memory_subrange(&self, registered_memory_subrange: impl AbsoluteMemoryRange)-> Result<(), ()>
+	{
+		self.write_protect_registered_memory_subrange_and_wake_up_registered_memory_subrange(registered_memory_subrange, WriteProtectMode::EnableWriteProtectionAndTheRaisingOfWriteProtectionEventsAndThenWakeUp)
+	}
+	
+	/// Called from polling thread, typically in `UserFaultEventHandler::page_fault()`; loops until complete.
+	///
+	/// `registered_memory_subrange` must be:-
+	///
+	/// * page-aligned.
+	/// * encapsulated within a registered memory range.
+	/// * have been __registered__ (`self.register_mapped_memory()`) with `register_mode` containing `RegiserMode::WriteProtect`.
+	///
+	/// `registered_memory_subrange`:-
+	///
+	/// * can be a sub range of memory mapped using `mmap()`.
+	///
+	/// Return an error if the `registered_memory_subrange` no longer exists or is suitable (is shared ('vma' fag `VM_SHARED`), is not anonymous, 'vma' does not have flag `VM_UFFD_WP` (this occurs if the memory was not registered with `PageFaultEventNotificationSetting::RaisePageFaultEventIfWriteProtectedPageAccessed`.).
+	///
+	/// Disabling write protection *removes* the flag `VM_WRITE` from the 'vma'.
+	#[inline(always)]
+	pub fn disable_write_protection_of_registered_memory_subrange(&self, registered_memory_subrange: impl AbsoluteMemoryRange, wake_up_after_disabling_write_protection: bool) -> Result<(), ()>
+	{
+		self.write_protect_registered_memory_subrange_and_wake_up_registered_memory_subrange(registered_memory_subrange, WriteProtectMode::disable(wake_up_after_disabling_write_protection))
+	}
+	
+	#[inline(always)]
+	fn write_protect_registered_memory_subrange_and_wake_up_registered_memory_subrange(&self, registered_memory_subrange: impl AbsoluteMemoryRange, write_protect_mode: WriteProtectMode) -> Result<(), ()>
 	{
 		let mut write_protect = uffdio_writeprotect
 		{
-			range: Self::to_uffdio_range(to_mapped_absolute_memory_range),
+			range: Self::to_uffdio_range(registered_memory_subrange),
 			
 			mode: write_protect_mode,
 		};
 		
 		loop
 		{
-			match self.make_ioctl(UFFDIO_UNREGISTER, &mut write_protect)
+			match self.make_ioctl(UFFDIO_WRITEPROTECT, &mut write_protect)
 			{
-				Ok(()) => return,
+				Ok(()) => return Ok(()),
 				
 				Err(errno) => match errno.0
 				{
 					EAGAIN => continue,
 					
-					EFAULT => panic!("argp does not point to a valid memory address"),
+					ENOENT => return Err(()),
+					
+					EFAULT => panic!("`argp` does not point to a valid memory address"),
 					
 					EINVAL => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or either the start or the len field of the ufdio_range structure was not a multiple of the system page size; or the len field was zero; or these fields were otherwise invalid; or, there as an incompatible mapping in the specified address range; or, there was no mapping in the specified address range"),
 					
@@ -445,9 +543,9 @@ impl UserFaultFileDescriptor
 	}
 	
 	#[inline(always)]
-	fn to_uffdio_range(to_mapped_absolute_memory_range: impl AbsoluteMemoryRange) -> uffdio_range
+	fn to_uffdio_range(registered_memory_subrange: impl AbsoluteMemoryRange) -> uffdio_range
 	{
-		let (start, len) = to_mapped_absolute_memory_range.inclusive_absolute_start_and_length_u64();
+		let (start, len) = registered_memory_subrange.inclusive_absolute_start_and_length_u64();
 		
 		uffdio_range
 		{
@@ -457,9 +555,9 @@ impl UserFaultFileDescriptor
 	}
 	
 	#[inline(always)]
-	fn make_ioctl<V>(&self, request: u64, value: &mut V) -> Result<(), Errno>
+	fn make_ioctl<V>(&self, request: i32, value: &mut V) -> Result<(), Errno>
 	{
-		let result = unsafe { ioctl(self.0, UFFDIO_API, value as *mut V as *mut c_void) };
+		let result = unsafe { ioctl(self.0, request, value as *mut V as *mut c_void) };
 		if likely!(result == 0)
 		{
 			Ok(())

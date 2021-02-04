@@ -6,8 +6,8 @@
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct FastAbsoluteMemoryRange
 {
-	pub inclusive_absolute_start: VirtualAddress,
-	pub length: usize,
+	inclusive_absolute_start: VirtualAddress,
+	length: usize,
 }
 
 impl<'a, Subrange: RelativeMemoryRange> From<(&'a MappedMemory, Subrange)> for FastAbsoluteMemoryRange
@@ -16,11 +16,7 @@ impl<'a, Subrange: RelativeMemoryRange> From<(&'a MappedMemory, Subrange)> for F
 	fn from(from: (&'a MappedMemory, Subrange)) -> Self
 	{
 		let (inclusive_absolute_start, length) = from.inclusive_absolute_start_and_length();
-		Self
-		{
-			inclusive_absolute_start,
-			length,
-		}
+		Self::new(inclusive_absolute_start, length)
 	}
 }
 
@@ -30,11 +26,7 @@ impl<'a, Subrange: RelativeMemoryRange> From<MappedMemorySubrange<'a, Subrange>>
 	fn from(from: MappedMemorySubrange<'a, Subrange>) -> Self
 	{
 		let (inclusive_absolute_start, length) = from.inclusive_absolute_start_and_length();
-		Self
-		{
-			inclusive_absolute_start,
-			length,
-		}
+		Self::new(inclusive_absolute_start, length)
 	}
 }
 
@@ -43,21 +35,18 @@ impl<T: Into<VirtualAddress>> From<Range<T>> for FastAbsoluteMemoryRange
 	#[inline(always)]
 	fn from(from: Range<T>) -> Self
 	{
-		Self::from(&from)
+		let (inclusive_absolute_start, length) = from.inclusive_absolute_start_and_length();
+		Self::new(inclusive_absolute_start, length)
 	}
 }
 
-impl<'a, T: 'a + Into<VirtualAddress>> From<&'a Range<T>> for FastAbsoluteMemoryRange
+impl<'a, T: 'a + Into<VirtualAddress> + Clone> From<&'a Range<T>> for FastAbsoluteMemoryRange
 {
 	#[inline(always)]
 	fn from(from: &'a Range<T>) -> Self
 	{
 		let (inclusive_absolute_start, length) = from.inclusive_absolute_start_and_length();
-		Self
-		{
-			inclusive_absolute_start,
-			length,
-		}
+		Self::new(inclusive_absolute_start, length)
 	}
 }
 
@@ -70,22 +59,27 @@ impl<T: Into<VirtualAddress>> From<RangeInclusive<T>> for FastAbsoluteMemoryRang
 	}
 }
 
-impl<'a, T: Into<VirtualAddress>> From<&'a RangeInclusive<T>> for FastAbsoluteMemoryRange
+impl<'a, T: 'a + Into<VirtualAddress>> From<&'a RangeInclusive<T>> for FastAbsoluteMemoryRange
 {
 	#[inline(always)]
 	fn from(from: &'a RangeInclusive<T>) -> Self
 	{
 		let (inclusive_absolute_start, length) = from.inclusive_absolute_start_and_length();
-		Self
-		{
-			inclusive_absolute_start,
-			length,
-		}
+		Self::new(inclusive_absolute_start, length)
 	}
 }
 
 impl AbsoluteMemoryRange for FastAbsoluteMemoryRange
 {
+	#[inline(always)]
+	fn inclusive_absolute_start_and_length(self) -> (VirtualAddress, usize)
+	{
+		(
+			self.inclusive_absolute_start(),
+			self.length()
+		)
+	}
+	
 	#[inline(always)]
 	fn inclusive_absolute_start(self) -> VirtualAddress
 	{
@@ -101,12 +95,13 @@ impl AbsoluteMemoryRange for FastAbsoluteMemoryRange
 
 impl FastAbsoluteMemoryRange
 {
-	/// Constructs for a sub range of a mapped memory.
-	///
-	/// `range` must be page aligned (checked in debug builds).
-	#[inline(always)]
-	pub fn sub_range_of_mapped_memory(mapped_memory: &MappedMemory, range: impl RelativeMemoryRange) -> FastAbsoluteMemoryRange
+	/// Create a new instance.
+	pub const fn new(inclusive_absolute_start: VirtualAddress, length: usize) -> Self
 	{
-		mapped_memory.sub_range(range)
+		Self
+		{
+			inclusive_absolute_start,
+			length,
+		}
 	}
 }

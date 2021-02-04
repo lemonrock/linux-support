@@ -18,8 +18,8 @@ bitflags!
 		
 		/// Write protect fault (if supported and requested
 		///
-		/// Only set if `Features::ReceivePageFaultWriteProtectEvents` was requested and supported..
-		const WriteProtectFault = UFFD_PAGEFAULT_FLAG_WP;
+		/// Only set if `Feature::ReceivePageFaultWriteProtectEvents` was requested and supported when registering memory.
+		const WriteProtectionFault = UFFD_PAGEFAULT_FLAG_WP;
 	}
 }
 
@@ -37,5 +37,12 @@ impl PageFaultEventFlags
 	pub fn was_write_fault(self) -> bool
 	{
 		self.contains(Self::WriteFault)
+	}
+	
+	/// Was this a write protection fault?
+	#[inline(always)]
+	pub fn was_write_protection_fault(self) -> bool
+	{
+		self.contains(Self::WriteProtectionFault)
 	}
 }

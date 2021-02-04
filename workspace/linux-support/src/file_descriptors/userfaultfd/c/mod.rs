@@ -11,6 +11,7 @@ use crate::thread::ThreadIdentifier;
 
 
 include!("_UFFDIO.rs");
+include!("UFFD_API_FEATURES.rs");
 include!("UFFDIO.rs");
 include!("UFFDIO_.rs");
 include!("UFFD_EVENT.rs");

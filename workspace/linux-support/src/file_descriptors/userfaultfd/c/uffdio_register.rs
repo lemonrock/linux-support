@@ -8,8 +8,8 @@ pub(super) struct uffdio_register
 {
 	pub(super) range: uffdio_range,
 	
-	pub(super) mode: RegisterMode,
+	pub(super) mode: PageFaultEventNotificationSetting,
 	
 	/// `ioctls` is written by the ioctl.
-	pub(super) ioctls: Ioctls,
+	pub(super) ioctls: SupportedInputOutputControlRequests,
 }

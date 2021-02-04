@@ -9,17 +9,22 @@
 enum UserFaultEvent
 {
 	/// A page fault occurred on a registered memory range.
+	#[allow(dead_code)]
 	PageFault = UFFD_EVENT_PAGEFAULT,
 
 	/// The process has forked.
+	#[allow(dead_code)]
 	Fork = UFFD_EVENT_FORK,
 
 	/// The process used `mremap()` on a registered memory range.
+	#[allow(dead_code)]
 	Remap = UFFD_EVENT_REMAP,
 
 	/// The process used `madvise(MADV_DONT_NEED)` or `madvise(MADV_REMOVE)` on a registered memory range.
+	#[allow(dead_code)]
 	Remove = UFFD_EVENT_REMOVE,
 	
 	/// The process used `munmap()` on a registered memory range.
+	#[allow(dead_code)]
 	Unmap = UFFD_EVENT_UNMAP,
 }

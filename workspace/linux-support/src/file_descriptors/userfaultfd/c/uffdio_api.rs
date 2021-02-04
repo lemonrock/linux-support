@@ -17,14 +17,14 @@ pub(super) struct uffdio_api
 	/// Available ioctl() operations (output).
 	///
 	/// `ioctls` is written by the ioctl.
-	pub(super) ioctls: Ioctls,
+	pub(super) ioctls: SupportedInputOutputControlRequests,
 }
 
 impl uffdio_api
 {
 	const UFFD_API: u64 = UFFDIO;
 	
-	pub(super) const fn new(requested_features: Features) -> Self
+	pub(super) fn new(requested_features: Features) -> Self
 	{
 		Self
 		{

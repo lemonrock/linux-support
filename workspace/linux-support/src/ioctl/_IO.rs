@@ -3,7 +3,7 @@
 
 
 /// `_IO(a, b)`.
-pub const fn _IO(a: u64, b: u64) -> u64
+pub const fn _IO(a: u32, b: u32) -> i32
 {
 	_IOC(_IOC_NONE, a, b, 0)
 }

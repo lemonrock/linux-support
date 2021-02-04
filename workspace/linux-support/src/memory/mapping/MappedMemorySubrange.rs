@@ -18,21 +18,42 @@ impl<'a, Subrange: RelativeMemoryRange> From<(&'a MappedMemory, Subrange)> for M
 impl<'a, Subrange: RelativeMemoryRange> AbsoluteMemoryRange for MappedMemorySubrange<'a, Subrange>
 {
 	#[inline(always)]
-	fn inclusive_absolute_start_and_length(self, to_mapped_absolute_memory_range: impl AbsoluteMemoryRange) -> (VirtualAddress, usize)
+	fn inclusive_absolute_start_and_length(self) -> (VirtualAddress, usize)
 	{
-		self.0.sub_range_inner(self.1)
+		self.0.sub_range_inner(&self.1)
 	}
 	
 	#[inline(always)]
 	fn inclusive_absolute_start(self) -> VirtualAddress
 	{
-		self.0.sub_range(self.1).inclusive_absolute_start
+		self.0.sub_range_inner(&self.1).0
 	}
 	
 	#[inline(always)]
 	fn length(self) -> usize
 	{
-		self.0.sub_range(self.1).length
+		self.0.sub_range_inner(&self.1).1
+	}
+}
+
+impl<'a: 'b, 'b, Subrange: RelativeMemoryRange> AbsoluteMemoryRange for &'b MappedMemorySubrange<'a, Subrange>
+{
+	#[inline(always)]
+	fn inclusive_absolute_start_and_length(self) -> (VirtualAddress, usize)
+	{
+		self.0.sub_range_inner(&self.1)
+	}
+	
+	#[inline(always)]
+	fn inclusive_absolute_start(self) -> VirtualAddress
+	{
+		self.0.sub_range_inner(&self.1).0
+	}
+	
+	#[inline(always)]
+	fn length(self) -> usize
+	{
+		self.0.sub_range_inner(&self.1).1
 	}
 }
 
@@ -122,7 +143,7 @@ impl<'a, Subrange: RelativeMemoryRange + Copy> MappedMemorySubrange<'a, Subrange
 		{
 			return false
 		}
-		let end = self.virtual_address.offset_in_bytes(length).into();
+		let end = self.virtual_address().offset_in_bytes(length).into();
 		pointer < end
 	}
 	
