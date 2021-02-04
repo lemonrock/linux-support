@@ -49,7 +49,61 @@ impl FileDescriptor for UserFaultFileDescriptor
 
 impl UserFaultFileDescriptor
 {
-	/// Creates a new non-blocking instance which is closed-on-exec.
+	/// Creates a new blocking instance which is closed-on-exec suitable for monitoring the current process.
+	///
+	/// Internally creates a thread which should *NEVER* be `join()`'ed; it must run until application exit (the easiest way to do this is to `forget()` `.1`).
+	/// `user_fault_event_handler_constructor` will be called on the created thread, not the thread executing `new_blocking()`.
+	/// For maximum performance, consider using a per-thread memory allocator and arranging for the created thread to execute on a different CPU to the main thread.
+	///
+	/// `user_mode_only` should normally be `true`.
+	/// `requested_features` should normally not contain `Feature::RaiseForkEvents` unless the caller has the `CAP_SYS_PTRACE` capability (will result in `EFAULT` to the api ioctl).
+	///
+	/// On return:-
+	///
+	/// * `.0` is an instance of an `UserFaultFileDescriptor`.
+	/// * `.1` is a join handler for a blocking instance of an executing `BlockingUserFaultFileDescriptor` running on a separate thread.
+	/// * `.2` is a list of supported features for the `UserFaultFileDescriptor`; it is always `Feature::all()` if running on Linux version 5.11.
+	/// * `.3` is a list of supported input-outout control requests ('ioctl's); it is always `SupportedInputOutputControlRequests::ApplicationProgrammerInterfaces`.
+	#[cold]
+	pub fn new_blocking<UFEH: UserFaultEventHandler>(user_mode_only: bool, requested_features: Features, initial_number_of_events_to_read_at_once: NonZeroUsize, user_fault_event_handler_constructor: impl FnOnce(FileDescriptorCopy<UserFaultFileDescriptor>) -> UFEH + Send + 'static, thread_builder: Builder) -> Result<(Arc<Self>, JoinHandle<()>, Features, SupportedInputOutputControlRequests), BlockingUserFaultFileDescriptorCreationError>
+	{
+		let (this, features, ioctls) = Self::new(false, user_mode_only, requested_features)?;
+		
+		let file_descriptor_clone = this.clone();
+		
+		let join_handle = thread_builder.spawn(move ||
+		{
+			let file_descriptor_copy = FileDescriptorCopy::new(file_descriptor_clone.0);
+			let user_fault_event_handler = user_fault_event_handler_constructor(file_descriptor_copy);
+			let mut blocking_user_fault_file_descriptor = BlockingUserFaultFileDescriptor::new(&file_descriptor_clone, initial_number_of_events_to_read_at_once, user_fault_event_handler);
+			blocking_user_fault_file_descriptor.read_and_handle_events()
+		})?;
+		
+		Ok((this, join_handle, features, ioctls))
+	}
+	
+	/// Creates a new non-blocking instance which is closed-on-exec suitable for monitoring non-cooperative processes.
+	///
+	/// `user_mode_only` should normally be `true`.
+	/// `requested_features` should normally not contain `Feature::RaiseForkEvents` unless the caller has the `CAP_SYS_PTRACE` capability (will result in `EFAULT` to the api ioctl).
+	/// `user_fault_event_handler_constructor` will be called on the thread executing `new_blocking()`.
+	///
+	/// On return:-
+	///
+	/// * `.0` is an instance of an `UserFaultFileDescriptor`.
+	/// * `.1` is a non-blocking instance of a `NonBlockingUserFaultFileDescriptor` suitable for use on a separate polling thread.
+	/// * `.2` is a list of supported features for the `UserFaultFileDescriptor`; it is always `Feature::all()` if running on Linux version 5.11.
+	/// * `.3` is a list of supported input-outout control requests ('ioctl's); it is always `SupportedInputOutputControlRequests::ApplicationProgrammerInterfaces`.
+	#[cold]
+	pub fn new_non_blocking<UFEH: UserFaultEventHandler, T: Terminate>(user_mode_only: bool, requested_features: Features, initial_number_of_events_to_read_at_once: NonZeroUsize, user_fault_event_handler_constructor: impl FnOnce(FileDescriptorCopy<UserFaultFileDescriptor>) -> UFEH, terminate: &Arc<T>) -> Result<(Arc<Self>, NonBlockingUserFaultFileDescriptor<UFEH, T>, Features, SupportedInputOutputControlRequests), CreationError>
+	{
+		let (this, features, ioctls) = Self::new(true, user_mode_only, requested_features)?;
+		let file_descriptor_copy = FileDescriptorCopy::new(this.0);
+		let non_blocking_user_fault_file_descriptor = NonBlockingUserFaultFileDescriptor::new(&this, initial_number_of_events_to_read_at_once, user_fault_event_handler_constructor(file_descriptor_copy), terminate);
+		Ok((this, non_blocking_user_fault_file_descriptor, features, ioctls))
+	}
+	
+	/// Creates a new instance.
 	///
 	/// `user_mode_only` should normally be `true`.
 	/// `requested_features` should normally not contain `Feature::RaiseForkEvents` unless the caller has the `CAP_SYS_PTRACE` capability (will result in `EFAULT` to the api ioctl).
@@ -59,40 +113,35 @@ impl UserFaultFileDescriptor
 	/// * `.0` is an instance of an `UserFaultFileDescriptor`.
 	/// * `.1` is a list of supported features for the `UserFaultFileDescriptor`; it is always `Feature::all()` if running on Linux version 5.11.
 	/// * `.2` is a list of supported input-outout control requests ('ioctl's); it is always `SupportedInputOutputControlRequests::ApplicationProgrammerInterfaces`.
-	#[inline(always)]
-	pub fn new(user_mode_only: bool, requested_features: Features) -> Result<(Self, Features, SupportedInputOutputControlRequests), CreationError>
+	#[cold]
+	pub fn new(non_blocking: bool, user_mode_only: bool, requested_features: Features) -> Result<(Arc<Self>, Features, SupportedInputOutputControlRequests), CreationError>
 	{
-		let this = Self::create(user_mode_only)?;
+		let this = Self::create(non_blocking, user_mode_only)?;
 		let (features, ioctls) = this.initialize(requested_features)?;
 		Ok((this, features, ioctls))
 	}
 	
-	/// Creates a polling instance.
 	#[inline(always)]
-	pub fn polling<UFEH: UserFaultEventHandler, T: Terminate>(self, terminate: &Arc<T>, initial_number_of_events_to_read_at_once: NonZeroUsize, user_fault_event_handler_constructor: impl FnOnce(FileDescriptorCopy<UserFaultFileDescriptor>) -> UFEH) -> (Arc<Self>, PollingUserFaultFileDescriptor<UFEH, T>)
+	fn create(non_blocking: bool, user_mode_only: bool) -> Result<Arc<Self>, CreationError>
 	{
-		let file_descriptor = Arc::new(self);
-		let file_descriptor_copy = FileDescriptorCopy::new(file_descriptor.0);
-		let polling = PollingUserFaultFileDescriptor::new(&file_descriptor, terminate, initial_number_of_events_to_read_at_once, user_fault_event_handler_constructor(file_descriptor_copy));
-		(file_descriptor, polling)
-	}
-	
-	#[inline(always)]
-	fn create(user_mode_only: bool) -> Result<Self, CreationError>
-	{
-		const AlwaysOnFlags: i32 = O_CLOEXEC | O_NONBLOCK;
-		let flags = if likely!(user_mode_only)
+		let flags =
 		{
-			AlwaysOnFlags | UFFD_USER_MODE_ONLY
-		}
-		else
-		{
-			AlwaysOnFlags
+			let mut flags = O_CLOEXEC;
+			if non_blocking
+			{
+				flags |= O_NONBLOCK
+			}
+			if user_mode_only
+			{
+				flags |= UFFD_USER_MODE_ONLY
+			}
+			flags
 		};
+		
 		let result = userfaultfd(flags);
 		if likely!(result >= 0)
 		{
-			Ok(Self(result))
+			Ok(Arc::new(Self(result)))
 		}
 		else if likely!(result == -1)
 		{
@@ -146,59 +195,6 @@ impl UserFaultFileDescriptor
 		}
 	}
 	
-	/// Called from polling thread; loops until does not receive `EINTR`.
-	///
-	/// Ideally should be done after `poll()` or `epoll()`.
-	/// Assumes that `self` still has the flag `O_NONBLOCK` (checked for in debug builds).
-	///
-	/// Only ever returns `0` if the underlying read returned `EAGAIN`; a return of `0` does not mean end-of-file (EOF).
-	#[inline(always)]
-	fn non_blocking_read_events<'a>(&self, events: &'a mut [uffd_msg]) -> usize
-	{
-		debug_assert!(self.is_non_blocking());
-		
-		const MessageSize: usize = size_of::<uffd_msg>();
-		
-		let maximum_number_of_messages_to_read = events.len();
-		let buf = events.as_mut_ptr() as *mut c_void;
-		loop
-		{
-			let result = unsafe { libc::read(self.0, buf, MessageSize * maximum_number_of_messages_to_read) };
-			if likely!(result > 0)
-			{
-				let bytes_read = result as usize;
-				
-				let number_of_messages = bytes_read / MessageSize;
-				debug_assert!(number_of_messages <= maximum_number_of_messages_to_read, "Read more than the size of events (?how)");
-				debug_assert_eq!(bytes_read % MessageSize, 0, "Partial read of a message (?how)");
-				
-				return number_of_messages
-			}
-			else if likely!(result == -1)
-			{
-				let errno = errno();
-				match errno.0
-				{
-					EINTR => continue,
-					
-					// Occurs internally in `userfaultfd_ctx_read()` in Linux source if `no_wait` is true.
-					// Is only then returned to user space if no messages have been read at all and the file descriptor is non-blocking.
-					EAGAIN => return 0,
-					
-					EINVAL => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or size of `buf` was less than the size of `struct uffd_msg`"),
-					
-					EFAULT => panic!("`buf` does not point to a valid memory address"),
-					
-					_ => panic!("Unexpect errno `{}` from userfaultfd non-blocking read()", errno),
-				}
-			}
-			else
-			{
-				panic!("Unexpected result {}", result);
-			}
-		}
-	}
-	
 	/// Register memory range that has previously been mapped with `mmap()`.
 	///
 	/// Returns the `Ioctl` operations permitted on the memory, which always fall into one of three sets which can be known without examing the return type:-
@@ -222,13 +218,13 @@ impl UserFaultFileDescriptor
 	///
 	/// Note that if the mapped memory is using hugepagetlbfs then only 'basic' `SupportedInputOutputControlRequests` are allowed.
 	#[inline(always)]
-	pub fn register_registered_memory_subrange(&self, mapped_absolute_registered_memory_subrange: impl AbsoluteMemoryRange, registration_settings: PageFaultEventNotificationSetting) -> Result<SupportedInputOutputControlRequests, CreationError>
+	pub fn register_memory_subrange(&self, mapped_absolute_memory_subrange: impl AbsoluteMemoryRange, registration_settings: PageFaultEventNotificationSetting) -> Result<SupportedInputOutputControlRequests, CreationError>
 	{
 		use self::CreationError::*;
 		
 		let mut register = uffdio_register
 		{
-			range: Self::to_uffdio_range(mapped_absolute_registered_memory_subrange),
+			range: Self::to_uffdio_range(mapped_absolute_memory_subrange),
 			mode: registration_settings,
 			ioctls: SupportedInputOutputControlRequests::empty()
 		};
@@ -264,9 +260,9 @@ impl UserFaultFileDescriptor
 	///
 	/// * `KernelWouldBeOutOfMemory` if `ENOMEM` occurs (this may be because the memory has become unmapped).
 	#[inline(always)]
-	pub fn unregister_registered_memory_subrange(&self, mapped_absolute_registered_memory_subrange: impl AbsoluteMemoryRange) -> Result<(), CreationError>
+	pub fn unregister_memory_subrange(&self, mapped_absolute_memory_subrange: impl AbsoluteMemoryRange) -> Result<(), CreationError>
 	{
-		let mut range = Self::to_uffdio_range(mapped_absolute_registered_memory_subrange);
+		let mut range = Self::to_uffdio_range(mapped_absolute_memory_subrange);
 		match self.make_ioctl(UFFDIO_UNREGISTER, &mut range)
 		{
 			Ok(()) => Ok(()),

@@ -15,14 +15,17 @@ use crate::thread::ThreadIdentifier;
 mod c;
 
 
+include!("BlockingUserFaultFileDescriptor.rs");
+include!("BlockingUserFaultFileDescriptorCreationError.rs");
 include!("CopyError.rs");
 include!("CopyMode.rs");
+include!("EventReaderAndHandler.rs");
 include!("Feature.rs");
 include!("Features.rs");
 include!("InputOutputControlRequest.rs");
+include!("NonBlockingUserFaultFileDescriptor.rs");
 include!("PageFaultEventFlags.rs");
 include!("PageFaultEventNotificationSetting.rs");
-include!("PollingUserFaultFileDescriptor.rs");
 include!("SupportedInputOutputControlRequests.rs");
 include!("UserFaultEvent.rs");
 include!("UserFaultEventHandler.rs");

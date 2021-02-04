@@ -101,6 +101,13 @@ pub trait FileDescriptor: Sized + Debug + AsRawFd + FromRawFd + IntoRawFd
 		}
 	}
 	
+	/// Is this file descriptor blocking?
+	#[inline(always)]
+	fn is_blocking(&self) -> bool
+	{
+		self.get_o_flags() & O_NONBLOCK == 0
+	}
+	
 	/// Is this file descriptor non-blocking?
 	#[inline(always)]
 	fn is_non_blocking(&self) -> bool
