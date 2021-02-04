@@ -69,7 +69,7 @@ impl<'a> PciDevice<'a>
 	{
 		if let Some(config_file_path) = self.config_file_path()
 		{
-			let page_size_or_huge_page_size_settings = PageSizeOrHugePageSizeSettings::for_current_page_size();
+			let page_size_or_huge_page_size_settings = PageSizeOrHugePageSizeSettings::for_default_page_size();
 			let memory_mapped_file = config_file_path.memory_map_read_write(0, AddressHint::any(), Sharing::Private, false, false, &page_size_or_huge_page_size_settings)?;
 			
 			Ok(Some(MemoryMappedConfigurationSpace(memory_mapped_file)))

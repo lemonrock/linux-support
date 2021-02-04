@@ -78,7 +78,7 @@ impl<V: Copy> MemoryMappedArrayMap<V>
 			KernelReadAndWriteUserspaceReadWrite => ReadWrite,
 		};
 		
-		let page_size_or_huge_page_size_settings = PageSizeOrHugePageSizeSettings::for_current_page_size();
+		let page_size_or_huge_page_size_settings = PageSizeOrHugePageSizeSettings::for_default_page_size();
 		let mapped_memory = MappedMemory::from_file(array_map.map_file_descriptor.deref(), 0, length, AddressHint::any(), protection, Sharing::Shared, false, false, &page_size_or_huge_page_size_settings).unwrap();
 		
 		Ok

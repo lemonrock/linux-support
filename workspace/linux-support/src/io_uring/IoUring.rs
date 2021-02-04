@@ -386,7 +386,7 @@ impl<'a> IoUring<'a>
 		
 		let page_size_or_huge_page_size_settings = match defaults.best_fit_huge_page_size_if_any(size.get(), OneMegabyte)
 		{
-			None => PageSizeOrHugePageSizeSettings::for_current_page_size(),
+			None => PageSizeOrHugePageSizeSettings::for_default_page_size(),
 			Some(huge_page_size) => PageSizeOrHugePageSizeSettings::for_huge_page_size(huge_page_size),
 		};
 		

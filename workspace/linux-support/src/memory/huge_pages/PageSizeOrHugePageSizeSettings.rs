@@ -42,7 +42,7 @@ impl PageSizeOrHugePageSizeSettings
 	
 	/// Settings for page size, not huge page size.
 	#[inline(always)]
-	pub fn for_current_page_size() -> Self
+	pub fn for_default_page_size() -> Self
 	{
 		Self::new(0, 0, PageSizeOrHugePageSize::PageSize(PageSize::default()))
 	}
@@ -75,20 +75,20 @@ impl PageSizeOrHugePageSizeSettings
 		
 		match page_size_preference
 		{
-			DefaultPageSize => Self::for_current_page_size(),
+			DefaultPageSize => Self::for_default_page_size(),
 
 			DefaultHugePageSize => match defaults.default_huge_page_size()
 			{
 				Some(default_huge_page_size) => Self::for_default_huge_page_size(default_huge_page_size),
 				
-				None => Self::for_current_page_size()
+				None => Self::for_default_page_size()
 			},
 			
 			PreferredHugePageSize(huge_page_size) => match defaults.this_or_next_smaller_supported_huge_page_size(huge_page_size)
 			{
 				Some(huge_page_size) => Self::for_huge_page_size(huge_page_size),
 				
-				None => Self::for_current_page_size()
+				None => Self::for_default_page_size()
 			},
 		}
 	}

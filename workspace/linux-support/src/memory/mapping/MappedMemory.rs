@@ -524,7 +524,7 @@ impl MappedMemory
 		
 		let (buffer_size, huge_page_size) = match defaults.best_fit_huge_page_size_if_any(buffer_size_power_of_two_at_least_one_page, inclusive_maximum_bytes_wasted)
 		{
-			None => (buffer_size_power_of_two_at_least_one_page, PageSizeOrHugePageSizeSettings::for_current_page_size()),
+			None => (buffer_size_power_of_two_at_least_one_page, PageSizeOrHugePageSizeSettings::for_default_page_size()),
 			
 			Some(huge_page_size) => (huge_page_size.number_of_bytes_rounded_up_to_multiple_of_page_size(buffer_size_power_of_two_at_least_one_page), PageSizeOrHugePageSizeSettings::for_huge_page_size(huge_page_size))
 		};
