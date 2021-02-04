@@ -5,7 +5,7 @@
 /// A structure to be used on a dedicated thread for uncooperative monitoring of processes.
 pub struct NonBlockingUserFaultFileDescriptor<UFEH: UserFaultEventHandler, T: Terminate>
 {
-	event_reader_and_handler: EventReaderAndHandler<UFEH>,
+	event_reader_and_handler: EventReaderAndDispatcher<UFEH>,
 	file_descriptor: Arc<UserFaultFileDescriptor>,
 	poll: [pollfd; 1],
 	terminate: Arc<T>,
@@ -22,7 +22,7 @@ impl<UFEH: UserFaultEventHandler, T: Terminate> NonBlockingUserFaultFileDescript
 	{
 		Self
 		{
-			event_reader_and_handler: EventReaderAndHandler::new(file_descriptor, initial_number_of_events_to_read_at_once, user_fault_event_handler),
+			event_reader_and_handler: EventReaderAndDispatcher::new(file_descriptor, initial_number_of_events_to_read_at_once, user_fault_event_handler),
 			file_descriptor: file_descriptor.clone(),
 			poll:
 			[
@@ -93,7 +93,7 @@ impl<UFEH: UserFaultEventHandler, T: Terminate> NonBlockingUserFaultFileDescript
 	{
 		while self.should_continue()
 		{
-			let more_events_to_read_immediately = self.event_reader_and_handler.read_and_handle_events_non_blocking();
+			let more_events_to_read_immediately = self.event_reader_and_handler.read_and_dispatch_events_non_blocking();
 			
 			if unlikely!(more_events_to_read_immediately)
 			{

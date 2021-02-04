@@ -5,18 +5,40 @@
 /// Handle user fault events.
 pub trait UserFaultEventHandler
 {
-	/// A page fault occurred on a registered memory range.
+	/// A missing write page fault occurred on a registered memory range.
 	///
-	/// The thread causing this page fault is suspended and will be resumed ('woken up') when we call one of a number of ioctls with 'WakeUp' made explicit.
+	/// Called if the memory in `address_access_that_caused_page_fault` was within a range registered with `PageFaultEventNotificationSetting::IfMissing` or `PageFaultEventNotificationSetting::BothIfMissingAndIfWriteProtectedPageAccess`.
 	///
-	/// If the memory for `address_access_that_caused_page_fault` was registered with `PageFaultEventNotificationSetting::RaisePageFaultEventIfMissing` then the `UserFaultEventHandler` should ensure `copy_memory_range()` or `zero_memory_range()` (the latter is particularly important if the `virtual_address` is for a range notified with the `remove()` event) is called and the thread causing the page fault event is then woken up.
-	///
+	/// The thread causing this page fault is suspended and will be resumed ('woken up') when we call either `UserFaultFileDescriptor.copy_registered_memory_subrange(wake_up_suspended_thread_that_page_faulted_in_registered_memory_subrange = true)`, `UserFaultFileDescriptor.zero_registered_memory_subrange(wake_up_suspended_thread_that_page_faulted_in_registered_memory_subrange = true)` or `UserFaultFileDescriptor.wake_up_suspended_thread_that_page_faulted_in_registered_memory_subrange()`.
+	///  then the `UserFaultEventHandler` should ensure `copy_memory_range()` or `zero_memory_range()` (the latter is particularly important if the `virtual_address` is for a range notified with the `remove()` event) is called and the thread causing the page fault event is then woken up.
 	/// `address_access_that_caused_page_fault` is not necessarily page aligned, it can be anywhere from the inclusive start of the page to the inclusive end of the page (eg, for a 4Kb page, anywhere from offset 0 inclusive to offset 4091 inclusive).
-	///
 	/// `thread_identifier` is `Some` if the `Feature::ThreadIdentifier` is requested (and supported by Linux) for a user fault file descriptor in `UserFaultFileDescriptor::new()`.
 	///
 	/// __NOTE__: This event handler method will NOT BE CALLED if the feature `Feature::DoNotRaisePageFaultEventsButRaiseSIGBUSSignalInstead` is requested (and supported by Linux) for a user fault file descriptor in `UserFaultFileDescriptor::new()`.
-	fn page_fault(&mut self, address_access_that_caused_page_fault: VirtualAddress, page_fault_event_flags: PageFaultEventFlags, thread_identifier: Option<ThreadIdentifier>);
+	fn missing_write_page_fault(&mut self, address_access_that_caused_page_fault: VirtualAddress, thread_identifier: Option<ThreadIdentifier>);
+	
+	/// A missing read page fault occurred on a registered memory range.
+	///
+	/// Called if the memory in `address_access_that_caused_page_fault` was within a range registered with `PageFaultEventNotificationSetting::IfMissing` or `PageFaultEventNotificationSetting::BothIfMissingAndIfWriteProtectedPageAccess`.
+	///
+	/// The thread causing this page fault is suspended and will be resumed ('woken up') when we call either `UserFaultFileDescriptor.copy_registered_memory_subrange(wake_up_suspended_thread_that_page_faulted_in_registered_memory_subrange = true)`, `UserFaultFileDescriptor.zero_registered_memory_subrange(wake_up_suspended_thread_that_page_faulted_in_registered_memory_subrange = true)` or `UserFaultFileDescriptor.wake_up_suspended_thread_that_page_faulted_in_registered_memory_subrange()`.
+	///  then the `UserFaultEventHandler` should ensure `copy_memory_range()` or `zero_memory_range()` (the latter is particularly important if the `virtual_address` is for a range notified with the `remove()` event) is called and the thread causing the page fault event is then woken up.
+	/// `address_access_that_caused_page_fault` is not necessarily page aligned, it can be anywhere from the inclusive start of the page to the inclusive end of the page (eg, for a 4Kb page, anywhere from offset 0 inclusive to offset 4091 inclusive).
+	/// `thread_identifier` is `Some` if the `Feature::ThreadIdentifier` is requested (and supported by Linux) for a user fault file descriptor in `UserFaultFileDescriptor::new()`.
+	///
+	/// __NOTE__: This event handler method will NOT BE CALLED if the feature `Feature::DoNotRaisePageFaultEventsButRaiseSIGBUSSignalInstead` is requested (and supported by Linux) for a user fault file descriptor in `UserFaultFileDescriptor::new()`.
+	fn missing_read_page_fault(&mut self, address_access_that_caused_page_fault: VirtualAddress, thread_identifier: Option<ThreadIdentifier>);
+	
+	/// The thread causing this page fault is suspended and will be resumed ('woken up') when we call `UserFaultFileDescriptor.disable_write_protection_of_registered_memory_subrange(true)`.
+	///
+	/// Called if the memory in `address_access_that_caused_page_fault` was within a range registered with `PageFaultEventNotificationSetting::IfWriteProtectedPageAccess` or `PageFaultEventNotificationSetting::BothIfMissingAndIfWriteProtectedPageAccess`.
+	///
+	/// If the memory for `address_access_that_caused_page_fault` was registered with `PageFaultEventNotificationSetting::RaisePageFaultEventIfMissing` then the `UserFaultEventHandler` should ensure `copy_memory_range()` or `zero_memory_range()` (the latter is particularly important if the `virtual_address` is for a range notified with the `remove()` event) is called and the thread causing the page fault event is then woken up.
+	/// `address_access_that_caused_page_fault` is not necessarily page aligned, it can be anywhere from the inclusive start of the page to the inclusive end of the page (eg, for a 4Kb page, anywhere from offset 0 inclusive to offset 4091 inclusive).
+	/// `thread_identifier` is `Some` if the `Feature::ThreadIdentifier` is requested (and supported by Linux) for a user fault file descriptor in `UserFaultFileDescriptor::new()`.
+	///
+	/// __NOTE__: This event handler method will NOT BE CALLED if the feature `Feature::DoNotRaisePageFaultEventsButRaiseSIGBUSSignalInstead` is requested (and supported by Linux) for a user fault file descriptor in `UserFaultFileDescriptor::new()`.
+	fn write_protection_page_fault(&mut self, address_access_that_caused_page_fault: VirtualAddress, thread_identifier: Option<ThreadIdentifier>);
 	
 	/// The process has forked.
 	///

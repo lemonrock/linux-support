@@ -5,7 +5,7 @@
 /// A structure to be used on a dedicated thread for cooperative monitoring of the current process.
 pub struct BlockingUserFaultFileDescriptor<UFEH: UserFaultEventHandler>
 {
-	event_reader_and_handler: EventReaderAndHandler<UFEH>,
+	event_reader_and_handler: EventReaderAndDispatcher<UFEH>,
 }
 
 impl<UFEH: UserFaultEventHandler> BlockingUserFaultFileDescriptor<UFEH>
@@ -15,7 +15,7 @@ impl<UFEH: UserFaultEventHandler> BlockingUserFaultFileDescriptor<UFEH>
 	{
 		Self
 		{
-			event_reader_and_handler: EventReaderAndHandler::new(file_descriptor, initial_number_of_events_to_read_at_once, user_fault_event_handler),
+			event_reader_and_handler: EventReaderAndDispatcher::new(file_descriptor, initial_number_of_events_to_read_at_once, user_fault_event_handler),
 		}
 	}
 	
@@ -24,7 +24,7 @@ impl<UFEH: UserFaultEventHandler> BlockingUserFaultFileDescriptor<UFEH>
 	{
 		loop
 		{
-			self.event_reader_and_handler.read_and_handle_events_blocking()
+			self.event_reader_and_handler.read_and_dispatch_events_blocking()
 		}
 	}
 }

@@ -13,12 +13,12 @@ enum WriteProtectMode
 	/// This can only be used if the memory range it is applied to has previously been write-protected with with `EnableWriteProtectionAndTheRaisingOfWriteProtectionEventsAndThenWakeUp`.
 	///
 	/// This is normally used when handling a page fault event.
-	DisableWriteProtectionAndTheSettingOfThWriteProtectionFaultInPageFaultEventFlagsAndThenWakeUp = 0,
+	DisableWriteProtectionAndTheSettingOfThWriteProtectionFaultInPageFaultEventTypeAndThenWakeUp = 0,
 	
 	/// This can only be used if the memory range it is applied to has previously been write-protected with with `EnableWriteProtectionAndTheRaisingOfWriteProtectionEventsAndThenWakeUp`.
 	///
 	/// This is normally used when handling a page fault event; a separate ioctl call to `UserFaultFileDescriptor.wake_up_memory_range()` will need to be made for the memory range.
-	DisableWriteProtectionAndTheSettingOfThWriteProtectionFaultInPageFaultEventFlagsAndThenDoNotWakeUp = UFFDIO_WRITEPROTECT_MODE_DONTWAKE,
+	DisableWriteProtectionAndTheSettingOfThWriteProtectionFaultInPageFaultEventTypeAndThenDoNotWakeUp = UFFDIO_WRITEPROTECT_MODE_DONTWAKE,
 	
 	/// Enable write protection and write protection events.
 	///
@@ -33,11 +33,11 @@ impl WriteProtectMode
 	{
 		if wake_up_after_disabling_write_protection
 		{
-			WriteProtectMode::DisableWriteProtectionAndTheSettingOfThWriteProtectionFaultInPageFaultEventFlagsAndThenWakeUp
+			WriteProtectMode::DisableWriteProtectionAndTheSettingOfThWriteProtectionFaultInPageFaultEventTypeAndThenWakeUp
 		}
 		else
 		{
-			WriteProtectMode::DisableWriteProtectionAndTheSettingOfThWriteProtectionFaultInPageFaultEventFlagsAndThenDoNotWakeUp
+			WriteProtectMode::DisableWriteProtectionAndTheSettingOfThWriteProtectionFaultInPageFaultEventTypeAndThenDoNotWakeUp
 		}
 	}
 }

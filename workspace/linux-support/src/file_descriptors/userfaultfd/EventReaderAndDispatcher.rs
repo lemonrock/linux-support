@@ -2,14 +2,14 @@
 // Copyright © 2021 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-struct EventReaderAndHandler<UFEH: UserFaultEventHandler>
+struct EventReaderAndDispatcher<UFEH: UserFaultEventHandler>
 {
 	file_descriptor: Arc<UserFaultFileDescriptor>,
 	user_fault_event_handler: UFEH,
 	events: Vec<uffd_msg>,
 }
 
-impl<UFEH: UserFaultEventHandler> EventReaderAndHandler<UFEH>
+impl<UFEH: UserFaultEventHandler> EventReaderAndDispatcher<UFEH>
 {
 	#[inline(always)]
 	fn new(file_descriptor: &Arc<UserFaultFileDescriptor>, initial_number_of_events_to_read_at_once: NonZeroUsize, user_fault_event_handler: UFEH) -> Self
@@ -29,18 +29,18 @@ impl<UFEH: UserFaultEventHandler> EventReaderAndHandler<UFEH>
 	}
 	
 	#[inline(always)]
-	fn read_and_handle_events_blocking(&mut self)
+	fn read_and_dispatch_events_blocking(&mut self)
 	{
 		let number_of_messages = self.blocking_read_events();
-		self.handle_events(number_of_messages.get());
+		self.dispatch_events(number_of_messages.get());
 	}
 	
 	/// Returns `true` if it is believed there are more events to read immediately.
 	#[inline(always)]
-	fn read_and_handle_events_non_blocking(&mut self) -> bool
+	fn read_and_dispatch_events_non_blocking(&mut self) -> bool
 	{
 		let number_of_messages = self.non_blocking_read_events();
-		self.handle_events(number_of_messages)
+		self.dispatch_events(number_of_messages)
 	}
 	
 	#[inline(always)]
@@ -121,11 +121,11 @@ impl<UFEH: UserFaultEventHandler> EventReaderAndHandler<UFEH>
 	}
 	
 	#[inline(always)]
-	fn handle_events(&mut self, number_of_messages: usize) -> bool
+	fn dispatch_events(&mut self, number_of_messages: usize) -> bool
 	{
 		for index in 0 .. number_of_messages
 		{
-			Self::handle_event(self.events.get_unchecked_safe(index), &mut self.user_fault_event_handler)
+			Self::dispatch_event(self.events.get_unchecked_safe(index), &mut self.user_fault_event_handler)
 		}
 		
 		if unlikely!(number_of_messages == self.events.capacity())
@@ -140,7 +140,7 @@ impl<UFEH: UserFaultEventHandler> EventReaderAndHandler<UFEH>
 	}
 	
 	#[inline(always)]
-	fn handle_event(event: &uffd_msg, user_fault_event_handler: &mut UFEH)
+	fn dispatch_event(event: &uffd_msg, user_fault_event_handler: &mut UFEH)
 	{
 		use self::UserFaultEvent::*;
 		
@@ -150,8 +150,18 @@ impl<UFEH: UserFaultEventHandler> EventReaderAndHandler<UFEH>
 		{
 			PageFault =>
 			{
-				let (address_access_that_caused_page_fault, page_fault_event_flags, thread_identifier) = Self::page_fault_arguments(arg);
-				user_fault_event_handler.page_fault(address_access_that_caused_page_fault, page_fault_event_flags, thread_identifier)
+				let (page_fault_event_type, address_access_that_caused_page_fault, thread_identifier) = Self::page_fault_arguments(arg);
+				
+				use self::PageFaultEventType::*;
+				
+				match page_fault_event_type
+				{
+					MissingReadFault => user_fault_event_handler.missing_read_page_fault(address_access_that_caused_page_fault, thread_identifier),
+					
+					MissingWriteFault => user_fault_event_handler.missing_write_page_fault(address_access_that_caused_page_fault, thread_identifier),
+					
+					WriteProtectionFault => user_fault_event_handler.write_protection_page_fault(address_access_that_caused_page_fault, thread_identifier),
+				}
 			}
 			
 			Fork => user_fault_event_handler.fork(Self::fork_arguments(arg)),
@@ -169,13 +179,13 @@ impl<UFEH: UserFaultEventHandler> EventReaderAndHandler<UFEH>
 	}
 	
 	#[inline(always)]
-	fn page_fault_arguments(arg: uffd_msg_arg) -> (VirtualAddress, PageFaultEventFlags, Option<ThreadIdentifier>)
+	fn page_fault_arguments(arg: uffd_msg_arg) -> (PageFaultEventType, VirtualAddress, Option<ThreadIdentifier>)
 	{
 		let page_fault = unsafe { arg.pagefault };
+		let page_fault_event_type = page_fault.flags;
 		let address_access_that_caused_page_fault = VirtualAddress::from(page_fault.address);
-		let page_fault_event_flags = page_fault.flags;
 		let thread_identifier = unsafe { page_fault.feat.ptid };
-		(address_access_that_caused_page_fault, page_fault_event_flags, thread_identifier)
+		(page_fault_event_type, address_access_that_caused_page_fault, thread_identifier)
 	}
 	
 	#[inline(always)]

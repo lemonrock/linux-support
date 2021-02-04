@@ -2,13 +2,15 @@
 // Copyright © 2021 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub(super) struct uffd_msg_arg_pagefault
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+#[repr(u64)]
+enum PageFaultEventType
 {
-	pub(super) flags: PageFaultEventType,
+	MissingReadFault = 0,
 	
-	pub(super) address: u64,
-	
-	pub(super) feat: uffd_msg_arg_pagefault_feat,
+	MissingWriteFault = UFFD_PAGEFAULT_FLAG_WRITE,
+
+	WriteProtectionFault = UFFD_PAGEFAULT_FLAG_WRITE | UFFD_PAGEFAULT_FLAG_WP,
 }

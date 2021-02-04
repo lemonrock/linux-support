@@ -455,7 +455,7 @@ impl UserFaultFileDescriptor
 	- Instead of using mprotect(2) you use ioctl(UFFDIO_WRITEPROTECT) with mode WriteProtectMode::WakeUpWithWriteProtect.
 	- The ioctl(UFFDIO_WRITEPROTECT) range can be the same as or a subrange of the registered memory.
 	- You can write protect as many subranges as you like (inside the registered range).
-	- Then, in the thread reading from uffd the struct will have the PageFaultEventFlags::WriteProtectFault flag set.
+	- Then, in the thread reading from uffd the struct will have the PageFaultEventType::WriteProtectFault flag set.
 	
 	- Now you send ioctl(UFFDIO_WRITEPROTECT) again with mode NOT SET to WriteProtectMode::WakeUpWithWriteProtect.
 	- This wakes up the thread which will continue to run with writes.
