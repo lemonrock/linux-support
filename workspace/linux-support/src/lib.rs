@@ -32,6 +32,7 @@
 #![feature(thread_local)]
 #![feature(slice_ptr_len)]
 #![feature(slice_ptr_get)]
+#![feature(once_cell)]
 
 
 //! #linux-support
@@ -644,6 +645,7 @@ use std::io::Write;
 use std::io::stderr;
 use std::io::stdin;
 use std::io::stdout;
+use std::lazy::SyncOnceCell;
 use std::marker::PhantomData;
 use std::mem::ManuallyDrop;
 use std::mem::align_of;

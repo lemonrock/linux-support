@@ -15,9 +15,22 @@ pub struct DefaultHugePageSizes
 
 impl DefaultHugePageSizes
 {
+	/// Obtains the default huge page sizes assuming a standard location for `/sys` and `/proc`.
+	#[inline(always)]
+	pub fn default_huge_page_sizes_assuming_standard_file_system_layout() -> &'static DefaultHugePageSizes
+	{
+		static Defaults: SyncOnceCell<DefaultHugePageSizes> = SyncOnceCell::new();
+		
+		let result = Defaults.get_or_try_init(||
+		{
+			let sys_path = SysPath::default();
+			let proc_path = ProcPath::default();
+			DefaultHugePageSizes::new(&sys_path, &proc_path)
+		});
+		result.expect("Could not parse suitable files in /proc and /sys to obtain page size information")
+	}
+	
 	/// New instance.
-	///
-	/// Should be good enough to use in a lazy_static.
 	#[inline(always)]
 	pub fn new(sys_path: &SysPath, proc_path: &ProcPath) -> io::Result<Self>
 	{
