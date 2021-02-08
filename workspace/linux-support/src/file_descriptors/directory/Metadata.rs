@@ -129,7 +129,8 @@ impl Metadata
 	{
 		D::from(self.0.st_rdev)
 	}
-
+	
+	#[cfg_attr(target_env = "musl", allow(deprecated))]
 	#[inline(always)]
 	fn timestamp_value(sec: time_t, nsec: c_long) -> SystemTime
 	{

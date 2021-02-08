@@ -535,7 +535,7 @@ use libc::sync;
 use libc::sync_file_range;
 use libc::sysconf;
 use libc::sysinfo;
-use libc::time_t;
+#[cfg_attr(target_env = "musl", allow(deprecated))] use libc::time_t;
 use libc::timespec;
 use libc::timeval;
 use libc::uid_t;
