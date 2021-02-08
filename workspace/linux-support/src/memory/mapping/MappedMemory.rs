@@ -335,7 +335,7 @@ impl MappedMemory
 		let original_size = self.size;
 		let page_size = self.page_size;
 		
-		let (to_address, flags, new_virtual_address) = RemapMemoryHint::to_address_and_flags_for_move_to_fixed_address(page_size, original_virtual_address, virtual_address_required, MREMAP_DONTUNMAP);
+		let (to_address, flags, new_virtual_address) = RemapMemoryHint::to_address_and_flags_for_move_to_fixed_address(page_size, virtual_address_required, MREMAP_DONTUNMAP);
 		self.remap_inner(new_non_zero_u64(original_size as u64), to_address, flags, new_virtual_address)?;
 		
 		Ok

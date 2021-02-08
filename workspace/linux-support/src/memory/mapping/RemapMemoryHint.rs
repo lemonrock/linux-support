@@ -37,12 +37,12 @@ impl RemapMemoryHint
 
 			&MayMove => (null_mut(), MREMAP_MAYMOVE, virtual_address),
 
-			&MoveToFixedAddress { virtual_address_required } => Self::to_address_and_flags_for_move_to_fixed_address(page_size, virtual_address, virtual_address_required, 0)
+			&MoveToFixedAddress { virtual_address_required } => Self::to_address_and_flags_for_move_to_fixed_address(page_size, virtual_address_required, 0)
 		}
 	}
 
 	#[inline(always)]
-	fn to_address_and_flags_for_move_to_fixed_address(page_size: PageSizeOrHugePageSize, virtual_address: VirtualAddress, virtual_address_required: VirtualAddress, additional_flag: i32) -> (*mut c_void, i32, VirtualAddress)
+	fn to_address_and_flags_for_move_to_fixed_address(page_size: PageSizeOrHugePageSize, virtual_address_required: VirtualAddress, additional_flag: i32) -> (*mut c_void, i32, VirtualAddress)
 	{
 		let address = Self::round_up_virtual_address_to_page_boundary(page_size, virtual_address_required);
 		(address.into(), MREMAP_MAYMOVE | MREMAP_FIXED | additional_flag, address)
