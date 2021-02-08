@@ -295,18 +295,89 @@ impl MappedMemory
 	/// `new_size` is rounded up to the mapping's page size.
 	///
 	/// If `new_size` is larger than the existing size, the new pages are mapped in already zeroed.
+	///
+	/// * Returns `Err(true)` if a signal interrupted.
+	/// * Returns `Err(false)` if process is out-of-memory (eg too many mappings, too large a memory mapping, process has a rlimit).
 	#[inline(always)]
-	pub fn remap(&mut self, new_size: NonZeroU64, hints: RemapMemoryHints) -> Result<(), ()>
+	pub fn remap(&mut self, new_size: NonZeroU64, hints: RemapMemoryHint) -> Result<(), bool>
+	{
+		let (to_address, flags, new_virtual_address) = hints.to_address_and_flags(self.page_size, self.virtual_address);
+		self.remap_inner(new_size, to_address, flags, new_virtual_address)
+	}
+	
+	/// This is a specialization of `remap()` to support the `MREMAP_DONTUNMAP` operation, which is a specialized form the of the `RemapMemoryHints::MoveToFixedAddress`.
+	///
+	/// One use case is to prevent any thread in the process re-using the virtual address range preserved by this mapping.
+	///
+	/// This is available from Linux version 5.7 onwards.
+	///
+	/// Returned value is the original mapping.
+	///
+	/// * The original mapping will be equivalent to a mmap'd private anonymous mapping.
+	/// * then `MREMAP_DONTUNMAP` is specified.
+	/// * If the mapping is not currently a private anonymous mapping, the remap will error.
+	/// * Any monitoring UserFaultFileDescriptor will receive events for the new mapping, not the original.
+	///
+	/// `virtual_address_required`:-
+	///
+	/// * Must be equal to or greater than `/proc/sys/vm/mmap_min_addr`.
+	/// * Must be a multiple of the regular or huge page sized used.
+	/// * Must not overlap.
+	///
+	/// * Returns `Err(true)` if a signal interrupted.
+	/// * Returns `Err(false)` if process is out-of-memory (eg too many mappings, too large a memory mapping, process has a rlimit).
+	#[inline(always)]
+	pub fn remap_and_keep_original_mapping(&mut self, virtual_address_required: VirtualAddress) -> Result<Self, bool>
+	{
+		const MREMAP_DONTUNMAP: i32 = 4;
+		
+		let original_virtual_address = self.virtual_address;
+		let original_size = self.size;
+		let page_size = self.page_size;
+		
+		let (to_address, flags, new_virtual_address) = RemapMemoryHint::to_address_and_flags_for_move_to_fixed_address(page_size, original_virtual_address, virtual_address_required, MREMAP_DONTUNMAP);
+		self.remap_inner(new_non_zero_u64(original_size as u64), to_address, flags, new_virtual_address)?;
+		
+		Ok
+		(
+			Self
+			{
+				virtual_address: original_virtual_address,
+				size: original_size,
+				page_size
+			}
+		)
+	}
+	
+	/// Remap memory.
+	///
+	/// `new_size` is rounded up to the mapping's page size.
+	///
+	/// If `new_size` is larger than the existing size, the new pages are mapped in already zeroed.
+	#[inline(always)]
+	fn remap_inner(&mut self, new_size: NonZeroU64, to_address: *mut c_void, flags: i32, new_virtual_address: VirtualAddress) -> Result<(), bool>
 	{
 		let old_size = self.size;
 		let new_size = self.page_size.number_of_bytes_rounded_up_to_multiple_of_page_size(new_size.get()) as usize;
 		
-		let (to_address, flags, new_virtual_address) = hints.to_address_and_flags(self.page_size, self.virtual_address);
-		
 		let result = unsafe { mremap(self.virtual_address.into(), old_size, new_size, flags, to_address) };
 		if unlikely!(result == MAP_FAILED)
 		{
-			return Err(())
+			let errno = errno();
+			return match errno.0
+			{
+				EINTR => Err(true),
+				
+				ENOMEM => Err(false),
+				
+				EAGAIN => Err(false),
+				
+				EFAULT => panic!("Some address in the range old_address to old_address+old_size is an invalid virtual memory address for this process.  You can also get EFAULT even if there exist mappings that cover the whole address space requested, but those mappings are of different types"),
+				
+				EINVAL => panic!("See man 2 remap for a very long list of reasons"),
+				
+				_ => panic!("Unexpected error {:?} from mremap()", errno),
+			}
 		}
 		
 		self.size = new_size;

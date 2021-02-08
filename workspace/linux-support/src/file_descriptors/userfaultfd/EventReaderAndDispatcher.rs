@@ -150,17 +150,17 @@ impl<UFEH: UserFaultEventHandler> EventReaderAndDispatcher<UFEH>
 		{
 			PageFault =>
 			{
-				let (page_fault_event_type, address_access_that_caused_page_fault, thread_identifier) = Self::page_fault_arguments(arg);
+				let (page_fault_event_type, page_aligned_address_of_page_that_caused_page_fault, thread_identifier) = Self::page_fault_arguments(arg);
 				
 				use self::PageFaultEventType::*;
 				
 				match page_fault_event_type
 				{
-					MissingReadFault => user_fault_event_handler.missing_read_page_fault(address_access_that_caused_page_fault, thread_identifier),
+					MissingReadFault => user_fault_event_handler.missing_read_page_fault(page_aligned_address_of_page_that_caused_page_fault, thread_identifier),
 					
-					MissingWriteFault => user_fault_event_handler.missing_write_page_fault(address_access_that_caused_page_fault, thread_identifier),
+					MissingWriteFault => user_fault_event_handler.missing_write_page_fault(page_aligned_address_of_page_that_caused_page_fault, thread_identifier),
 					
-					WriteProtectionFault => user_fault_event_handler.write_protection_page_fault(address_access_that_caused_page_fault, thread_identifier),
+					WriteProtectionFault => user_fault_event_handler.write_protection_page_fault(page_aligned_address_of_page_that_caused_page_fault, thread_identifier),
 				}
 			}
 			
@@ -183,9 +183,9 @@ impl<UFEH: UserFaultEventHandler> EventReaderAndDispatcher<UFEH>
 	{
 		let page_fault = unsafe { arg.pagefault };
 		let page_fault_event_type = page_fault.flags;
-		let address_access_that_caused_page_fault = VirtualAddress::from(page_fault.address);
+		let page_aligned_address_of_page_that_caused_page_fault = VirtualAddress::from(page_fault.address);
 		let thread_identifier = unsafe { page_fault.feat.ptid };
-		(page_fault_event_type, address_access_that_caused_page_fault, thread_identifier)
+		(page_fault_event_type, page_aligned_address_of_page_that_caused_page_fault, thread_identifier)
 	}
 	
 	#[inline(always)]

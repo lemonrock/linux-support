@@ -25,6 +25,6 @@ include!("MemoryAdvice.rs");
 include!("MemoryLockSettings.rs");
 include!("MemoryMapError.rs");
 include!("Protection.rs");
-include!("RemapMemoryHints.rs");
+include!("RemapMemoryHint.rs");
 include!("Sharing.rs");
 include!("SynchronizeFlags.rs");
