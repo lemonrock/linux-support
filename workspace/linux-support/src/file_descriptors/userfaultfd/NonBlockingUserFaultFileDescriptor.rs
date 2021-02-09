@@ -3,26 +3,26 @@
 
 
 /// A structure to be used on a dedicated thread for uncooperative monitoring of processes.
-pub struct NonBlockingUserFaultFileDescriptor<UFEH: UserFaultEventHandler, T: Terminate>
+pub struct NonBlockingUserFaultFileDescriptor<ERAD: EventsReaderAndDispatcher, T: Terminate>
 {
-	event_reader_and_handler: EventReaderAndDispatcher<UFEH>,
+	event_reader_and_handler: ERAD,
 	file_descriptor: Arc<UserFaultFileDescriptor>,
 	poll: [pollfd; 1],
 	terminate: Arc<T>,
 }
 
-impl<UFEH: UserFaultEventHandler, T: Terminate> NonBlockingUserFaultFileDescriptor<UFEH, T>
+impl<ERAD: EventsReaderAndDispatcher, T: Terminate> NonBlockingUserFaultFileDescriptor<UFEH, T>
 {
 	const DefaultTimeoutInMilliseconds: i32 = 1000;
 	
 	const TerminatedError: Result<(), ()> = Err(());
 	
 	#[inline(always)]
-	fn new(file_descriptor: &Arc<UserFaultFileDescriptor>, initial_number_of_events_to_read_at_once: NonZeroUsize, user_fault_event_handler: UFEH, terminate: &Arc<T>) -> Self
+	fn new(file_descriptor: &Arc<UserFaultFileDescriptor>, event_reader_and_handler: ERAD, terminate: &Arc<T>) -> Self
 	{
 		Self
 		{
-			event_reader_and_handler: EventReaderAndDispatcher::new(file_descriptor, initial_number_of_events_to_read_at_once, user_fault_event_handler),
+			event_reader_and_handler,
 			file_descriptor: file_descriptor.clone(),
 			poll:
 			[

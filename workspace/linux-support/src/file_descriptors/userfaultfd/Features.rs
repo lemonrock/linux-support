@@ -14,33 +14,24 @@ bitflags!
 		
 		/// Typically all possible features for this version of Linux.
 		const ApplicationProgrammerInterface = UFFD_API_FEATURES;
+		
+		/// Raising write protect events and giving a thread identifier.
+		const AllPageFaultEventFeaturesWithoutThreadIdentifier = Feature::RaisePageFaultWriteProtectEvents as u64;
+		
+		/// Raising write protect events and giving a thread identifier.
+		const AllPageFaultEventFeaturesWithThreadIdentifier = Self::AllPageFaultEventFeaturesWithoutThreadIdentifier.bits | (Feature::ThreadIdentifier as u64);
+		
+		/// These features are effectively incompatible with single-threaded use, as they raise events that do not block the raising thread.
+		const FeaturesIncompatibleWithSingleThreadedUse = (Feature::RaiseForkEvents as u64) | (Feature::SupportEvRaiseRemapEventsharedMemory as u64) | (Feature::RaiseMAdviseDoNotNeedOrRemoveEvents as u64) | (Feature::RaiseUnmapEvents as u64) | (Feature::DoNotRaisePageFaultEventsButRaiseSIGBUSSignalInstead as u64);
 	}
 }
 
 impl Features
 {
-	/// Request all features except raising fork events.
 	#[inline(always)]
-	pub fn request_all_page_fault_event_features() -> Self
+	fn does_not_have_requested_features_incompatible_with_single_threaded_blocking_use(self) -> bool
 	{
-		use self::Feature::*;
-		
-		let mut features = Self::empty();
-		features.request_feature(RaisePageFaultWriteProtectEvents);
-		features.request_feature(ThreadIdentifier);
-		features
-	}
-	
-	/// Request all features except raising fork events.
-	#[inline(always)]
-	pub fn request_all_features_except_raising_fork_events_and_sigbus_signalling() -> Self
-	{
-		use self::Feature::*;
-		
-		let mut all = Self::ApplicationProgrammerInterface;
-		all.do_not_request_feature(RaiseForkEvents);
-		all.do_not_request_feature(DoNotRaisePageFaultEventsButRaiseSIGBUSSignalInstead);
-		all
+		!requested_features.intersects(Features::FeaturesIncompatibleWithSingleThreadedUse)
 	}
 	
 	/// Supports a feature?
@@ -57,7 +48,7 @@ impl Features
 		self.insert(unsafe { transmute(feature) })
 	}
 	
-	/// Do not equest a feature.
+	/// Do not request a feature.
 	#[inline(always)]
 	pub fn do_not_request_feature(&mut self, feature: Feature)
 	{

@@ -33,6 +33,8 @@
 #![feature(slice_ptr_len)]
 #![feature(slice_ptr_get)]
 #![feature(once_cell)]
+#![feature(nonnull_slice_from_raw_parts)]
+#![feature(maybe_uninit_ref)]
 
 
 //! #linux-support
@@ -648,6 +650,7 @@ use std::io::stdout;
 use std::lazy::SyncOnceCell;
 use std::marker::PhantomData;
 use std::mem::ManuallyDrop;
+use std::mem::MaybeUninit;
 use std::mem::align_of;
 use std::mem::forget;
 use std::mem::size_of;

@@ -2,29 +2,16 @@
 // Copyright © 2021 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// A structure to be used on a dedicated thread for cooperative monitoring of the current process.
-struct BlockingUserFaultFileDescriptor<ERAD: EventsReaderAndDispatcher>
+pub(super) trait EventsReaderAndDispatcher
 {
-	event_reader_and_dispatcher: ERAD,
-}
-
-impl<ERAD: EventsReaderAndDispatcher> BlockingUserFaultFileDescriptor<ERAD>
-{
-	#[inline(always)]
-	fn new(events_reader_and_dispatcher: ERAD) -> Self
-	{
-		Self
-		{
-			event_reader_and_dispatcher,
-		}
-	}
+	fn read_and_dispatch_events_blocking(&mut self);
 	
+	/// Returns `true` if it is believed there are more events to read immediately.
+	///
+	/// Not necessarily implemented.
 	#[inline(always)]
-	fn read_and_handle_events(&mut self)
+	fn read_and_dispatch_events_non_blocking(&mut self) -> bool
 	{
-		loop
-		{
-			self.event_reader_and_dispatcher.read_and_dispatch_events_blocking()
-		}
+		panic!("Not supported")
 	}
 }

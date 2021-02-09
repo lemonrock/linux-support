@@ -23,7 +23,7 @@ const_fn_assert = "^0.1.2"
 static_assertions = "^1.1"
 
 [target.'cfg(target_os = "linux")'.dependencies]
-linux-support = { version = "^0.0.8", path = "../linux-support" }
+linux-support = { version = "^0.0.9", path = "../linux-support" }
 strum = "^0.19.2"
 strum_macros = "^0.19.2"
 swiss-army-knife = { version = "0.0.1", path = "../swiss-army-knife" }

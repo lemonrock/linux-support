@@ -4,6 +4,7 @@
 
 use super::*;
 use self::c::*;
+use self::events_reader_and_dispatcher::*;
 use crate::memory::AbsoluteMemoryRange;
 use crate::memory::FastAbsoluteMemoryRange;
 use crate::memory::VirtualAddress;
@@ -15,11 +16,13 @@ use crate::thread::ThreadIdentifier;
 mod c;
 
 
+mod events_reader_and_dispatcher;
+
+
 include!("BlockingUserFaultFileDescriptor.rs");
 include!("BlockingUserFaultFileDescriptorCreationError.rs");
 include!("CopyError.rs");
 include!("CopyMode.rs");
-include!("EventReaderAndDispatcher.rs");
 include!("Feature.rs");
 include!("Features.rs");
 include!("InputOutputControlRequest.rs");

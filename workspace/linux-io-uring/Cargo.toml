@@ -35,7 +35,7 @@ indexmap = { version = "^1.5.0", features = ["serde-1"] }
 lazy_static = "^1.4.0"
 libc = { version = "^0.2.69", features = ["const-extern-fn", "extra_traits", "std"] }
 likely = { version = "^0.1.0" }
-linux-support = { version = "^0.0.8", path = "../linux-support" }
+linux-support = { version = "^0.0.9", path = "../linux-support" }
 magic-ring-buffer = { path = "../magic-ring-buffer", version = "^0.2.0" }
 memchr = "^2.3.3"
 message-dispatch = { path = "../message-dispatch", version = "0.2.0" }

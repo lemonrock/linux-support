@@ -31,6 +31,9 @@ pub enum Feature
 	/// Since Linux version 4.11.
 	RaiseMAdviseDoNotNeedOrRemoveEvents = UFFD_FEATURE_EVENT_REMOVE,
 	
+	/// `munmap()`.
+	RaiseUnmapEvents = UFFD_FEATURE_EVENT_UNMAP,
+	
 	/// Support events on hugetlbfs memory.
 	///
 	/// Since Linux version 4.11.
@@ -62,9 +65,6 @@ pub enum Feature
 	/// 1. by adding `SupportEventsOnHugetlbfs` to the `uffdio_api.features` before calling `UFFDIO_API`, an error will be returned by `UFFDIO_API` on a kernel without hugetlbfs support.
 	/// 2. the `SupportEventsOnHugetlbfs` can not be added in `uffdio_api.features` and instead it will be set by the kernel in the `uffdio_api.features` if the kernel supports it, so userland can later check if the feature flag is present in `uffdio_api.features` after `UFFDIO_API` succeeded".
 	SupportEventsOnSharedMemory = UFFD_FEATURE_MISSING_SHMEM,
-	
-	/// `munmap()`.
-	RaiseUnmapEvents = UFFD_FEATURE_EVENT_UNMAP,
 	
 	/// Do not receive events for page faults but have them signalled with signal `SIGBUS`.
 	///
