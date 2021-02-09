@@ -16,7 +16,8 @@ use crate::thread::ThreadIdentifier;
 mod c;
 
 
-mod events_reader_and_dispatcher;
+/// Supporting logic for reading and dispatching events.
+pub mod events_reader_and_dispatcher;
 
 
 include!("BlockingUserFaultFileDescriptor.rs");

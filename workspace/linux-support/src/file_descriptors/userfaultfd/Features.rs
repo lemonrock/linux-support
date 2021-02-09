@@ -22,7 +22,7 @@ bitflags!
 		const AllPageFaultEventFeaturesWithThreadIdentifier = Self::AllPageFaultEventFeaturesWithoutThreadIdentifier.bits | (Feature::ThreadIdentifier as u64);
 		
 		/// These features are effectively incompatible with single-threaded use, as they raise events that do not block the raising thread.
-		const FeaturesIncompatibleWithSingleThreadedUse = (Feature::RaiseForkEvents as u64) | (Feature::SupportEvRaiseRemapEventsharedMemory as u64) | (Feature::RaiseMAdviseDoNotNeedOrRemoveEvents as u64) | (Feature::RaiseUnmapEvents as u64) | (Feature::DoNotRaisePageFaultEventsButRaiseSIGBUSSignalInstead as u64);
+		const FeaturesIncompatibleWithSingleThreadedUse = (Feature::RaiseForkEvents as u64) | (Feature::RaiseRemapEvents as u64) | (Feature::RaiseMAdviseDoNotNeedOrRemoveEvents as u64) | (Feature::RaiseUnmapEvents as u64) | (Feature::DoNotRaisePageFaultEventsButRaiseSIGBUSSignalInstead as u64);
 	}
 }
 
@@ -31,7 +31,7 @@ impl Features
 	#[inline(always)]
 	fn does_not_have_requested_features_incompatible_with_single_threaded_blocking_use(self) -> bool
 	{
-		!requested_features.intersects(Features::FeaturesIncompatibleWithSingleThreadedUse)
+		!self.intersects(Features::FeaturesIncompatibleWithSingleThreadedUse)
 	}
 	
 	/// Supports a feature?

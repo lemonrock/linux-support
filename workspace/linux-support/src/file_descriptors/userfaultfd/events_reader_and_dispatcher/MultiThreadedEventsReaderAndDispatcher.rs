@@ -2,7 +2,8 @@
 // Copyright © 2021 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(super) struct MultiThreadedEventsReaderAndDispatcher<UFEH: UserFaultEventHandler>
+/// Event reader and dispatcher.
+pub struct MultiThreadedEventsReaderAndDispatcher<UFEH: UserFaultEventHandler>
 {
 	event_reader: EventReader,
 	event_dispatcher: EventDispatcher<UFEH>,
@@ -14,14 +15,16 @@ impl<UFEH: UserFaultEventHandler> EventsReaderAndDispatcher for MultiThreadedEve
 	#[inline(always)]
 	fn read_and_dispatch_events_blocking(&mut self)
 	{
-		let number_of_messages = self.event_reader.blocking_read_events(self.buffer());
+		let buffer = self.buffer();
+		let number_of_messages = self.event_reader.blocking_read_events(buffer);
 		self.dispatch_events(number_of_messages.get());
 	}
 	
 	#[inline(always)]
 	fn read_and_dispatch_events_non_blocking(&mut self) -> bool
 	{
-		let number_of_messages = self.event_reader.non_blocking_read_events(self.buffer());
+		let buffer = self.buffer();
+		let number_of_messages = self.event_reader.non_blocking_read_events(buffer);
 		self.dispatch_events(number_of_messages)
 	}
 }

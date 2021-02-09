@@ -2,7 +2,6 @@
 // Copyright © 2021 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[derive(Copy, Clone)]
 struct EventReader
 {
 	file_descriptor: Arc<UserFaultFileDescriptor>,
@@ -48,7 +47,7 @@ impl EventReader
 	}
 	
 	#[inline(always)]
-	fn read_events(self, buffer: NonNull<[uffd_msg]>, handle_EAGAIN: impl Fn() -> usize) -> usize
+	fn read_events(&self, buffer: NonNull<[uffd_msg]>, handle_EAGAIN: impl Fn() -> usize) -> usize
 	{
 		let buffer_pointer = buffer.as_mut_ptr() as *mut c_void;
 		let maximum_number_of_messages_to_read = buffer.len();

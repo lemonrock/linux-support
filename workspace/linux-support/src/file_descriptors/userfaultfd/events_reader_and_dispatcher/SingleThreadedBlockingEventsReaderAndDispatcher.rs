@@ -36,10 +36,4 @@ impl<UFEH: UserFaultEventHandler> SingleThreadedBlockingEventsReaderAndDispatche
 			event_dispatcher: EventDispatcher::new(user_fault_event_handler),
 		}
 	}
-	
-	#[inline(always)]
-	fn buffer(&mut self) -> NonNull<[uffd_msg]>
-	{
-		NonNull::slice_from_raw_parts(new_non_null(self.buffer.as_mut_ptr()), self.buffer.capacity())
-	}
 }

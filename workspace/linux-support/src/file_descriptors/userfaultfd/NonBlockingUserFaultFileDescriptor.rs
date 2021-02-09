@@ -5,24 +5,24 @@
 /// A structure to be used on a dedicated thread for uncooperative monitoring of processes.
 pub struct NonBlockingUserFaultFileDescriptor<ERAD: EventsReaderAndDispatcher, T: Terminate>
 {
-	event_reader_and_handler: ERAD,
+	event_reader_and_dispatcher: ERAD,
 	file_descriptor: Arc<UserFaultFileDescriptor>,
 	poll: [pollfd; 1],
 	terminate: Arc<T>,
 }
 
-impl<ERAD: EventsReaderAndDispatcher, T: Terminate> NonBlockingUserFaultFileDescriptor<UFEH, T>
+impl<ERAD: EventsReaderAndDispatcher, T: Terminate> NonBlockingUserFaultFileDescriptor<ERAD, T>
 {
 	const DefaultTimeoutInMilliseconds: i32 = 1000;
 	
 	const TerminatedError: Result<(), ()> = Err(());
 	
 	#[inline(always)]
-	fn new(file_descriptor: &Arc<UserFaultFileDescriptor>, event_reader_and_handler: ERAD, terminate: &Arc<T>) -> Self
+	fn new(file_descriptor: &Arc<UserFaultFileDescriptor>, event_reader_and_dispatcher: ERAD, terminate: &Arc<T>) -> Self
 	{
 		Self
 		{
-			event_reader_and_handler,
+			event_reader_and_dispatcher,
 			file_descriptor: file_descriptor.clone(),
 			poll:
 			[
@@ -93,7 +93,7 @@ impl<ERAD: EventsReaderAndDispatcher, T: Terminate> NonBlockingUserFaultFileDesc
 	{
 		while self.should_continue()
 		{
-			let more_events_to_read_immediately = self.event_reader_and_handler.read_and_dispatch_events_non_blocking();
+			let more_events_to_read_immediately = self.event_reader_and_dispatcher.read_and_dispatch_events_non_blocking();
 			
 			if unlikely!(more_events_to_read_immediately)
 			{

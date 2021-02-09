@@ -2,8 +2,10 @@
 // Copyright © 2021 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(super) trait EventsReaderAndDispatcher
+#[doc(hidden)]
+pub trait EventsReaderAndDispatcher
 {
+	#[doc(hidden)]
 	fn read_and_dispatch_events_blocking(&mut self);
 	
 	/// Returns `true` if it is believed there are more events to read immediately.

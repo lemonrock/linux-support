@@ -3,28 +3,16 @@
 
 
 /// A structure to be used on a dedicated thread for cooperative monitoring of the current process.
-struct BlockingUserFaultFileDescriptor<ERAD: EventsReaderAndDispatcher>
-{
-	event_reader_and_dispatcher: ERAD,
-}
+struct BlockingUserFaultFileDescriptor<ERAD: EventsReaderAndDispatcher>(ERAD);
 
 impl<ERAD: EventsReaderAndDispatcher> BlockingUserFaultFileDescriptor<ERAD>
 {
-	#[inline(always)]
-	fn new(events_reader_and_dispatcher: ERAD) -> Self
-	{
-		Self
-		{
-			event_reader_and_dispatcher,
-		}
-	}
-	
 	#[inline(always)]
 	fn read_and_handle_events(&mut self)
 	{
 		loop
 		{
-			self.event_reader_and_dispatcher.read_and_dispatch_events_blocking()
+			self.0.read_and_dispatch_events_blocking()
 		}
 	}
 }
