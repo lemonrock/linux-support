@@ -20,7 +20,7 @@ impl<T, A: Allocator> Drop for OwnedBox<T, A>
 	#[inline(always)]
 	fn drop(&mut self)
 	{
-		unsafe { self.allocator.AllocRef_dealloc(self.pointer_to_t.cast(), Self::layout()) };
+		unsafe { self.allocator.Alloc_deallocate(self.pointer_to_t.cast(), Self::layout()) };
 	}
 }
 
@@ -37,7 +37,7 @@ impl<T, A: Allocator> OwnedBox<T, A>
 	pub fn new(t: T, allocator: &Rc<A>) -> Result<Self, AllocError>
 	{
 		let layout = Self::layout();
-		let pointer_to_x = allocator.AllocRef_alloc(Self::layout())?.as_non_null_ptr().cast();
+		let pointer_to_x = allocator.Alloc_allocate(Self::layout())?.as_non_null_ptr().cast();
 		
 		unsafe { copy_nonoverlapping(&t, pointer_to_x.as_ptr(), layout.size()) }
 		

@@ -226,14 +226,15 @@ impl PageSizeOrHugePageSize
 		}
 	}
 	
+	/// From kilobytes (non-zero).
 	#[inline(always)]
-	fn from_kilobytes_non_zero(kilobytes: NonZeroU64) -> Option<Self>
+	pub fn from_kilobytes_non_zero(kilobytes: NonZeroU64) -> Option<Self>
 	{
 		Self::from_kilobytes(kilobytes.get())
 	}
-
-	#[inline(always)]
-	pub(crate) fn from_kilobytes(kilobytes: u64) -> Option<Self>
+	
+	/// From kilobytes.
+	pub fn from_kilobytes(kilobytes: u64) -> Option<Self>
 	{
 		if let Some(page_size) = PageSize::from_kilobytes(kilobytes)
 		{

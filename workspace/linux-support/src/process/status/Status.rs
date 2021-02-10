@@ -561,7 +561,7 @@ impl Status
 	fn parse_optional_statistics_and_future_statistics(&mut self, statistic_name: &[u8], statistic_value: &[u8], zero_based_line_number: usize) -> Result<(), StatusFileParseError>
 	{
 		use self::StatusFileParseError::*;
-		use self::StatusStatisticParseError::DuplicatedStatistic;;
+		use self::StatusStatisticParseError::DuplicatedStatistic;
 
 		#[inline(always)]
 		fn parse_optional_statistic<S>(statistic: &mut Option<S>, statistic_value: &[u8], zero_based_line_number: usize, parse: impl FnOnce(&[u8]) -> Result<S, StatusStatisticParseError>) -> Result<(), StatusFileParseError>

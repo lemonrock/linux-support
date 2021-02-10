@@ -26,12 +26,12 @@ impl CompletionQueueRing
 		let memory = submission_queue_and_completion_queue.virtual_address();
 		Self
 		{
-			head: memory.pointer_to::<AtomicU32>(completion_queue_offsets.head as usize),
-			tail: memory.pointer_to::<AtomicU32>(completion_queue_offsets.head as usize),
-			ring_mask: memory.pointer_to::<u32>(completion_queue_offsets.head as usize),
-			ring_entries: memory.pointer_to::<u32>(completion_queue_offsets.head as usize),
-			overflow: memory.pointer_to::<AtomicU32>(completion_queue_offsets.head as usize),
-			completion_queue_entries: memory.pointer_to::<io_uring_cqe>(completion_queue_offsets.cqes as usize),
+			head: memory.aligned_pointer_to_value::<AtomicU32>(completion_queue_offsets.head as usize),
+			tail: memory.aligned_pointer_to_value::<AtomicU32>(completion_queue_offsets.head as usize),
+			ring_mask: memory.aligned_pointer_to_value::<u32>(completion_queue_offsets.head as usize),
+			ring_entries: memory.aligned_pointer_to_value::<u32>(completion_queue_offsets.head as usize),
+			overflow: memory.aligned_pointer_to_value::<AtomicU32>(completion_queue_offsets.head as usize),
+			completion_queue_entries: memory.aligned_pointer_to_value::<io_uring_cqe>(completion_queue_offsets.cqes as usize),
 		}
 	}
 

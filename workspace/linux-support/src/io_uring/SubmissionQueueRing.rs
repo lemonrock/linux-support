@@ -37,13 +37,13 @@ impl SubmissionQueueRing
 		let memory = submission_queue_and_completion_queue.virtual_address();
 		let this = Self
 		{
-			head: memory.pointer_to::<AtomicU32>(submission_queue_offsets.head as usize),
-			tail: memory.pointer_to::<AtomicU32>(submission_queue_offsets.head as usize),
-			ring_mask: memory.pointer_to::<u32>(submission_queue_offsets.head as usize),
-			ring_entries: memory.pointer_to::<u32>(submission_queue_offsets.head as usize),
-			flags: memory.pointer_to::<AtomicU32>(submission_queue_offsets.head as usize),
-			dropped: memory.pointer_to::<AtomicU32>(submission_queue_offsets.head as usize),
-			array: memory.pointer_to::<u32>(submission_queue_offsets.head as usize),
+			head: memory.aligned_pointer_to_value::<AtomicU32>(submission_queue_offsets.head as usize),
+			tail: memory.aligned_pointer_to_value::<AtomicU32>(submission_queue_offsets.head as usize),
+			ring_mask: memory.aligned_pointer_to_value::<u32>(submission_queue_offsets.head as usize),
+			ring_entries: memory.aligned_pointer_to_value::<u32>(submission_queue_offsets.head as usize),
+			flags: memory.aligned_pointer_to_value::<AtomicU32>(submission_queue_offsets.head as usize),
+			dropped: memory.aligned_pointer_to_value::<AtomicU32>(submission_queue_offsets.head as usize),
+			array: memory.aligned_pointer_to_value::<u32>(submission_queue_offsets.head as usize),
 			submission_queue_entries,
 		};
 		this.set_up_one_to_one_mapping_from_array_to_submission_queue_entry();
@@ -97,7 +97,7 @@ impl SubmissionQueueRing
 	#[inline(always)]
 	fn next_submission_queue_entry(&self, tail: u32, ring_mask: u32, using_kernel_submission_queue_poll: bool, using_io_poll: bool) -> SubmissionQueueEntry
 	{
-		let pointer = self.submission_queue_entries.virtual_address().pointer_to((tail & ring_mask) as usize);
+		let pointer = self.submission_queue_entries.virtual_address().aligned_pointer_to_value((tail & ring_mask) as usize);
 		SubmissionQueueEntry
 		{
 			pointer,

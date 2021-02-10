@@ -34,6 +34,7 @@ pub(crate) enum IFA
 	/// Valid for delete address for:-
 	// * IPv4.
 	// * IPv6.
+	#[allow(dead_code)]
 	IFA_LOCAL = 2,
 	
 	///
@@ -51,6 +52,7 @@ pub(crate) enum IFA
 	///
 	/// Valid for delete address for:-
 	// * IPv4.
+	#[allow(dead_code)]
 	IFA_BROADCAST = 4,
 	
 	/// Only valid for `RTM_GETANYCAST` for Internet Protocol version 6.
@@ -58,6 +60,7 @@ pub(crate) enum IFA
 	/// See `inet6_fill_ifacaddr()` in Linux source `addrconf.c`.
 	///
 	/// If present, then the only other attributes present will be `IFA_CACHEINFO` and optionally `IFA_TARGET_NETNSID`.
+	#[allow(dead_code)]
 	IFA_ANYCAST = 5,
 	
 	/// Valid for get address for:-
@@ -74,6 +77,7 @@ pub(crate) enum IFA
 	/// See `inet6_fill_ifmcaddr()` in Linux source `addrconf.c`.
 	///
 	/// If present, then the only other attributes present will be `IFA_CACHEINFO` and optionally `IFA_TARGET_NETNSID`.
+	#[allow(dead_code)]
 	IFA_MULTICAST = 7,
 	
 	/// `IFA_FLAGS` is a `u32` attribute that replaces the `u8` field `ifa_flags` in `ifaddrmsg`.

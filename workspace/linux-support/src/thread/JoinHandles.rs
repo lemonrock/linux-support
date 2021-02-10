@@ -112,7 +112,7 @@ impl JoinHandles
 							while likely!(terminate_catch_unwind.should_continue())
 							{
 								thread_loop_body_function.invoke(&terminate_catch_unwind);
-								spin_loop_hint()
+								busy_wait_spin_loop_hint()
 							}
 						}
 					)

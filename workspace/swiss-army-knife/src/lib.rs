@@ -120,7 +120,6 @@ use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering::Acquire;
 use std::sync::atomic::Ordering::Relaxed;
 use std::sync::atomic::Ordering::Release;
-use std::sync::atomic::spin_loop_hint;
 use std::time::Duration;
 use std::time::SystemTime;
 

@@ -319,14 +319,17 @@ impl PageSize
 		}
 	}
 	
+	
+	/// From kilobytes (non-zero).
 	#[inline(always)]
-	pub(crate) fn from_non_zero_kilobytes(kilobytes: NonZeroU64) -> Option<Self>
+	pub fn from_non_zero_kilobytes(kilobytes: NonZeroU64) -> Option<Self>
 	{
 		Self::from_kilobytes(kilobytes.get())
 	}
 	
+	/// From kilobytes.
 	#[inline(always)]
-	pub(crate) fn from_kilobytes(kilobytes: u64) -> Option<Self>
+	pub fn from_kilobytes(kilobytes: u64) -> Option<Self>
 	{
 		use self::PageSize::*;
 		

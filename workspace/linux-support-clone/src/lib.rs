@@ -9,6 +9,7 @@
 #![deny(unreachable_patterns)]
 #![feature(allocator_api)]
 #![feature(core_intrinsics)]
+#![feature(slice_ptr_get)]
 
 
 //! #linux-support-clone
@@ -41,7 +42,7 @@ use linux_support::signals::Signal;
 use serde::Deserialize;
 use serde::Serialize;
 use std::alloc::Layout;
-use std::alloc::AllocRef;
+use std::alloc::Allocator;
 use std::alloc::AllocError;
 use std::env::set_current_dir;
 use std::error;

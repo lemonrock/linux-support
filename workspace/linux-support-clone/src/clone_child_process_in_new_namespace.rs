@@ -3,7 +3,7 @@
 
 
 /// Clone a child process in a new namespace.
-pub fn clone_child_process_in_new_namespace<CPF: ChildProcessFunction, A: AllocRef>(proc_path: &ProcPath, child_stack_allocator: &mut A, child_process_stack_size: usize, child_process_argument: CPF::ChildProcessArgument, new_root: PathBuf) -> Result<(ProcessIdentifier, SendPipeFileDescriptor), CouldNotStartChildProcessError>
+pub fn clone_child_process_in_new_namespace<CPF: ChildProcessFunction, A: Alloc>(proc_path: &ProcPath, child_stack_allocator: &A, child_process_stack_size: usize, child_process_argument: CPF::ChildProcessArgument, new_root: PathBuf) -> Result<(ProcessIdentifier, SendPipeFileDescriptor), CouldNotStartChildProcessError>
 {
 	let (mut send_pipe_file_descriptor, receive_pipe_file_descriptor) = anonymous_pipe_between_parent_and_child()?;
 

@@ -28,7 +28,7 @@ impl SpinLock for AtomicBoolSpinLock
 		{
 			while self.is_locked()
 			{
-				spin_loop_hint();
+				busy_wait_spin_loop_hint();
 			}
 		}
 	}

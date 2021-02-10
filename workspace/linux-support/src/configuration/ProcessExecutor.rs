@@ -67,7 +67,7 @@ impl ProcessExecutor
 		while likely!(terminate.should_continue())
 		{
 			main_thread_loop_body_function.invoke(&terminate);
-			spin_loop_hint()
+			busy_wait_spin_loop_hint()
 		}
 
 		drop(main_thread_loop_body_function);

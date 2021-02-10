@@ -20,10 +20,13 @@ pub(crate) enum IFLA_XDP
 	#[allow(dead_code)]
 	IFLA_XDP_PROG_ID = 4,
 	
+	#[allow(dead_code)]
 	IFLA_XDP_DRV_PROG_ID = 5,
 	
+	#[allow(dead_code)]
 	IFLA_XDP_SKB_PROG_ID = 6,
 	
+	#[allow(dead_code)]
 	IFLA_XDP_HW_PROG_ID = 7,
 	
 	IFLA_XDP_EXPECTED_FD = 8,

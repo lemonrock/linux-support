@@ -16,7 +16,7 @@ include = ["README.md", "LICENSE", "COPYRIGHT", "src/**/*.rs", "Cargo.toml", "ru
 readme = "README.md"
 publish = false
 edition = '2018'
-version = "0.0.2"
+version = "0.0.3"
 
 [build-dependencies]
 indexmap = { version = "^1.5.0", features = [] }
@@ -28,24 +28,24 @@ static_assertions = "^1.1"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 arrayvec = { version = "^0.5.1", features = ["array-sizes-33-128", "array-sizes-129-255", "serde"] }
-context-allocator = { path = "../context-allocator", version = "^0.3.0" }
-context-coroutine = { path = "../context-coroutine", version = "3.2.0" }
+context-allocator = { version = "^0.3.1", path = "../context-allocator" }
+context-coroutine = { version = "^3.2.1", path = "../context-coroutine" }
 either = { version = "^1.5.3", features = ["serde"] }
 indexmap = { version = "^1.5.0", features = ["serde-1"] }
 lazy_static = "^1.4.0"
 libc = { version = "^0.2.69", features = ["const-extern-fn", "extra_traits", "std"] }
 likely = { version = "^0.1.0" }
 linux-support = { version = "^0.0.10", path = "../linux-support" }
-magic-ring-buffer = { path = "../magic-ring-buffer", version = "^0.2.0" }
+magic-ring-buffer = { version = "^0.3.1", path = "../magic-ring-buffer" }
 memchr = "^2.3.3"
-message-dispatch = { path = "../message-dispatch", version = "0.2.0" }
-message-dispatch-datadog = { path = "../message-dispatch-datadog", version = "0.2.0" }
+message-dispatch = { version = "0.2.0", path = "../message-dispatch" }
+message-dispatch-datadog = { version = "0.2.0", path = "../message-dispatch-datadog" }
 phf = { version = "^0.8.0", features = ["macros"] }
 phf_macros = { version = "^0.8.0" }
 serde = { version = "^1.0", features = ["derive", "rc"] }
-socket-access-control = { path = "../socket-access-control", version = "^0.0.0"}
+socket-access-control = { version = "^0.0.0", path = "../socket-access-control" }
 strum = "^0.19.2"
 strum_macros = "^0.19.2"
-swiss-army-knife = { version = "0.0.1", path = "../swiss-army-knife" }
-terminate = { path = "../terminate", version = "^0.2.0" }
+swiss-army-knife = { version = "0.0.2", path = "../swiss-army-knife" }
+terminate = { version = "^0.2.1", path = "../terminate" }
 uriparse = "^0.6.3"

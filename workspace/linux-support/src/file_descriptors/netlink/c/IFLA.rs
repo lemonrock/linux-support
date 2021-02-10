@@ -30,6 +30,7 @@ pub(crate) enum IFLA
 	/// Used in `RTM_GETLINK`.
 	/// Used in `RTM_NEWLINK`.
 	/// Used in `RTM_SETLINK`.
+	#[allow(dead_code)]
 	IFLA_BROADCAST = 2,
 	
 	/// Used in `RTM_GETLINK`.
@@ -393,6 +394,7 @@ pub(crate) enum IFLA
 	/// Permanent hardware address ('burned in' MAC).
 	///
 	/// Used in `RTM_GETLINK`.
+	#[allow(dead_code)]
 	IFLA_PERM_ADDRESS = 54,
 	
 	/// Nested.

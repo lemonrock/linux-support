@@ -644,7 +644,7 @@ impl MappedMemory
 	#[inline(always)]
 	fn mut_pointer_to<T>(&self, offset: usize) -> *mut T
 	{
-		self.virtual_address.pointer_to(offset).as_ptr()
+		self.virtual_address.aligned_pointer_to_value(offset).as_ptr()
 	}
 
 	#[inline(always)]

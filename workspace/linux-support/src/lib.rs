@@ -3,38 +3,42 @@
 
 
 #![allow(incomplete_features)]
+#![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
 #![deny(missing_docs)]
 #![deny(unconditional_recursion)]
 #![deny(unreachable_patterns)]
+
 #![feature(alloc_layout_extra)]
 #![feature(allocator_api)]
 #![feature(cell_leak)]
 #![feature(const_fn)]
+#![feature(const_fn_fn_ptr_basics)]
 #![feature(const_fn_transmute)]
 #![feature(const_fn_union)]
-#![feature(core_intrinsics)]
 #![feature(const_maybe_uninit_as_ptr)]
+#![feature(const_mut_refs)]
+#![feature(const_ptr_offset)]
 #![feature(const_ptr_offset_from)]
 #![feature(const_raw_ptr_deref)]
 #![feature(const_raw_ptr_to_usize_cast)]
 #![feature(const_type_id)]
+#![feature(core_intrinsics)]
 #![feature(llvm_asm)]
 #![feature(maybe_uninit_extra)]
+#![feature(maybe_uninit_ref)]
 #![feature(never_type)]
+#![feature(nonnull_slice_from_raw_parts)]
+#![feature(once_cell)]
 #![feature(read_initializer)]
+#![feature(slice_ptr_get)]
+#![feature(slice_ptr_len)]
 #![feature(specialization)]
 #![feature(step_trait)]
 #![feature(step_trait_ext)]
 #![feature(thread_id_value)]
 #![feature(thread_local)]
-#![feature(slice_ptr_len)]
-#![feature(slice_ptr_get)]
-#![feature(once_cell)]
-#![feature(nonnull_slice_from_raw_parts)]
-#![feature(maybe_uninit_ref)]
 
 
 //! #linux-support
@@ -79,6 +83,8 @@ use const_fn_assert::cfn_assert;
 use const_fn_assert::cfn_assert_eq;
 use const_fn_assert::cfn_assert_ne;
 use const_fn_assert::cfn_debug_assert;
+use const_fn_assert::cfn_debug_assert_eq;
+use const_fn_assert::cfn_debug_assert_ne;
 use crossbeam_queue::ArrayQueue;
 use either::Either;
 use either::Either::Left;
@@ -734,7 +740,6 @@ use std::sync::atomic::AtomicU32;
 use std::sync::atomic::AtomicU64;
 use std::sync::atomic::Ordering::Acquire;
 use std::sync::atomic::Ordering::Release;
-use std::sync::atomic::spin_loop_hint;
 use std::thread::Builder;
 use std::thread::JoinHandle;
 use std::thread::Thread;
@@ -785,6 +790,7 @@ use swiss_army_knife::error_support::io_error_timed_out;
 use swiss_army_knife::get_unchecked::AsUsizeIndex;
 use swiss_army_knife::get_unchecked::GetUnchecked;
 use swiss_army_knife::hardware_optimized_spin_lock::BestForCompilationTargetSpinLock;
+use swiss_army_knife::hardware_optimized_spin_lock::busy_wait_spin_loop_hint;
 use swiss_army_knife::hardware_optimized_spin_lock::SpinLock;
 use swiss_army_knife::hash_map_and_hash_set::FastSecureHashMap as HashMap;
 use swiss_army_knife::hash_map_and_hash_set::FastSecureHashMapEntry;

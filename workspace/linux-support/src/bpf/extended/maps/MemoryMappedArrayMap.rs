@@ -53,7 +53,7 @@ impl<V: Copy> MemoryMappedArrayMap<V>
 	{
 		debug_assert!(index < self.capacity().get());
 		
-		self.mapped_memory.virtual_address().pointer_to((index as usize) * size_of::<V>())
+		self.mapped_memory.virtual_address().aligned_pointer_to_value((index as usize) * size_of::<V>())
 	}
 	
 	/// New instance.
