@@ -220,36 +220,40 @@ impl HugePageSize
 	}
 
 	/// Non-zero number of pages from non-zero number of bytes, rounded up.
-	#[inline(always)]
 	pub fn non_zero_number_of_pages_from_non_zero_number_of_bytes_rounded_up(self, number_of_bytes: NonZeroU64) -> NonZeroNumberOfPages
 	{
 		new_non_zero_u64(self.number_of_pages_from_number_of_bytes_rounded_up(number_of_bytes.get()))
 	}
 
 	/// Number of pages from number of bytes, rounded up.
-	#[inline(always)]
-	pub fn number_of_pages_from_number_of_bytes_rounded_up(self, number_of_bytes: u64) -> NumberOfPages
+	pub const fn number_of_pages_from_number_of_bytes_rounded_up(self, number_of_bytes: u64) -> NumberOfPages
 	{
 		let size_in_bytes = self.size_in_bytes().get();
 		(number_of_bytes + size_in_bytes - 1) / size_in_bytes
 	}
 
 	/// Non-zero number of bytes rounded up to number of pages.
-	#[inline(always)]
-	pub fn non_zero_number_of_bytes_rounded_up_to_multiple_of_page_size(self, number_of_bytes: NonZeroU64) -> NonZeroU64
+	pub const fn non_zero_number_of_bytes_rounded_up_to_multiple_of_page_size(self, number_of_bytes: NonZeroU64) -> NonZeroU64
 	{
 		new_non_zero_u64(self.number_of_bytes_rounded_up_to_multiple_of_page_size(number_of_bytes.get()))
 	}
 
 	/// Number of bytes rounded up to number of pages.
-	#[inline(always)]
-	pub fn number_of_bytes_rounded_up_to_multiple_of_page_size(self, number_of_bytes: u64) -> u64
+	pub const fn number_of_bytes_rounded_up_to_multiple_of_page_size(self, number_of_bytes: u64) -> u64
 	{
 		let size_in_bytes = self.size_in_bytes().get();
 		((number_of_bytes + size_in_bytes - 1) / size_in_bytes) * size_in_bytes
 	}
 
 	/// Is this considered a gigantic huge page?
+	#[cfg(any(target_arch = "powerpc64", target_arch = "riscv64", target_arch = "sparc64", target_arch = "x86_64"))]
+	pub const fn can_have_a_dynamic_huge_page_pool(self) -> bool
+	{
+		!self.is_a_gigantic_huge_page()
+	}
+
+	/// Is this considered a gigantic huge page?
+	#[cfg(not(any(target_arch = "powerpc64", target_arch = "riscv64", target_arch = "sparc64", target_arch = "x86_64")))]
 	#[inline(always)]
 	pub fn can_have_a_dynamic_huge_page_pool(self) -> bool
 	{
@@ -257,12 +261,25 @@ impl HugePageSize
 	}
 
 	/// Is this considered a gigantic huge page?
+	#[cfg(any(target_arch = "powerpc64", target_arch = "riscv64", target_arch = "sparc64", target_arch = "x86_64"))]
+	pub const fn is_a_gigantic_huge_page(self) -> bool
+	{
+		self.is_a_gigantic_huge_page_inner(PageSize::default())
+	}
+	
+	/// Is this considered a gigantic huge page?
+	#[cfg(not(any(target_arch = "powerpc64", target_arch = "riscv64", target_arch = "sparc64", target_arch = "x86_64")))]
 	#[inline(always)]
 	pub fn is_a_gigantic_huge_page(self) -> bool
 	{
+		self.is_a_gigantic_huge_page_inner(PageSize::default())
+	}
+	
+	const fn is_a_gigantic_huge_page_inner(self, page_size: PageSize) -> bool
+	{
 		const Scalar: u64 = 2048;
-
-		let minimum_gigantic_huge_page = (PageSize::default() as u64) * Scalar;
+		
+		let minimum_gigantic_huge_page = (page_size as u64) * Scalar;
 		self.size_in_bytes().get() >= minimum_gigantic_huge_page
 	}
 

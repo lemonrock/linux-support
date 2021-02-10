@@ -438,22 +438,19 @@ impl MappedMemory
 	}
 	
 	/// Virtual address.
-	#[inline(always)]
-	pub fn virtual_address(&self) -> VirtualAddress
+	pub const fn virtual_address(&self) -> VirtualAddress
 	{
 		self.virtual_address
 	}
 	
 	/// Mapped page size used.
-	#[inline(always)]
-	pub fn page_size(&self) -> PageSizeOrHugePageSize
+	pub const fn page_size(&self) -> PageSizeOrHugePageSize
 	{
 		self.page_size
 	}
 	
 	/// Mapped size in bytes.
-	#[inline(always)]
-	pub fn mapped_size_in_bytes(&self) -> usize
+	pub const fn mapped_size_in_bytes(&self) -> usize
 	{
 		self.size
 	}

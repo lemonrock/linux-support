@@ -750,8 +750,7 @@ impl VirtualAddress
 	}
 
 	/// Pointer.
-	#[inline(always)]
-	pub fn offset_in_bytes(self, offset_in_bytes: usize) -> Self
+	pub const fn offset_in_bytes(self, offset_in_bytes: usize) -> Self
 	{
 		self + offset_in_bytes
 	}

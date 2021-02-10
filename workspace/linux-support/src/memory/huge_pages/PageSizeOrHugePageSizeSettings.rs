@@ -41,10 +41,23 @@ impl PageSizeOrHugePageSizeSettings
 	}
 	
 	/// Settings for page size, not huge page size.
+	#[cfg(any(target_arch = "powerpc64", target_arch = "riscv64", target_arch = "sparc64", target_arch = "x86_64"))]
+	pub const fn for_default_page_size() -> Self
+	{
+		Self::for_page_size(PageSize::default())
+	}
+	
+	/// Settings for page size, not huge page size.
+	#[cfg(not(any(target_arch = "powerpc64", target_arch = "riscv64", target_arch = "sparc64", target_arch = "x86_64")))]
 	#[inline(always)]
 	pub fn for_default_page_size() -> Self
 	{
-		Self::new(0, 0, PageSizeOrHugePageSize::PageSize(PageSize::default()))
+		Self::for_page_size(PageSize::default())
+	}
+	
+	const fn for_page_size(page_size: PageSize) -> Self
+	{
+		Self::new(0, 0, PageSizeOrHugePageSize::PageSize(page_size))
 	}
 	
 	/// Settings for huge page size.

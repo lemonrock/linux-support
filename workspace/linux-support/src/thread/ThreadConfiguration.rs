@@ -202,6 +202,6 @@ impl ThreadConfiguration
 	fn stack_size_default() -> NonZeroNumberOfPages
 	{
 		const _2MB: u64 = 2_048 * 1_024;
-		unsafe { NonZeroNumberOfPages::new_unchecked(_2MB / PageSize::default().size_in_bytes().get()) }
+		new_non_zero_u64(_2MB / PageSize::default().size_in_bytes().get())
 	}
 }
