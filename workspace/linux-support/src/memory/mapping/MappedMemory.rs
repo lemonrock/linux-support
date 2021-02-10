@@ -44,6 +44,27 @@ impl DerefMut for MappedMemory
 	}
 }
 
+impl<'a> AbsoluteMemoryRange for &'a MemoryRange
+{
+	#[inline(always)]
+	fn inclusive_absolute_start_and_length(self) -> (VirtualAddress, usize)
+	{
+		(self.inclusive_absolute_start(), self.length())
+	}
+	
+	#[inline(always)]
+	fn inclusive_absolute_start(self) -> VirtualAddress
+	{
+		self.virtual_address()
+	}
+	
+	#[inline(always)]
+	fn length(self) -> usize
+	{
+		self.mapped_size_in_bytes()
+	}
+}
+
 impl MappedMemory
 {
 	/// Creates a new mapping.

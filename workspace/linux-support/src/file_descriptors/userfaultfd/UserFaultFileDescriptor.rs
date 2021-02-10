@@ -252,14 +252,14 @@ impl UserFaultFileDescriptor
 	///
 	/// Note that if the mapped memory is using hugepagetlbfs then only 'basic' `SupportedInputOutputControlRequests` are allowed.
 	#[inline(always)]
-	pub fn register_memory_subrange(&self, mapped_absolute_memory_subrange: impl AbsoluteMemoryRange, registration_settings: PageFaultEventNotificationSetting) -> Result<SupportedInputOutputControlRequests, CreationError>
+	pub fn register_memory_subrange(&self, mapped_absolute_memory_subrange: impl AbsoluteMemoryRange, page_fault_event_notification_setting: PageFaultEventNotificationSetting) -> Result<SupportedInputOutputControlRequests, CreationError>
 	{
 		use self::CreationError::*;
 		
 		let mut register = uffdio_register
 		{
 			range: Self::to_uffdio_range(mapped_absolute_memory_subrange),
-			mode: registration_settings,
+			mode: page_fault_event_notification_setting,
 			ioctls: SupportedInputOutputControlRequests::empty()
 		};
 		match self.make_ioctl(UFFDIO_REGISTER, &mut register)
@@ -320,15 +320,20 @@ impl UserFaultFileDescriptor
 	///
 	/// * page-aligned.
 	/// * encapsulated within a registered memory range (with the page size being of the same huge page size if appropriate).
+	/// * encapsulated with a single 'vma'.
 	///
-	/// `registered_memory_subrange`:-
+	/// `registered_memory_subrange` can be:-
 	///
-	/// * can be a sub range of memory mapped using `mmap()`.
+	/// * a sub range of memory mapped using `mmap()`.
+	///
+	/// `registered_memory_subrange` must not be:-
+	///
+	/// * backed by transparent huge pages (THP).
 	///
 	/// If `write_protect` is `true`:-
 	///
 	/// * causes `EINVAL` if the 'vma' flags does not contain the flag `VM_UFFD_WP`, ie the registered memory was not registered to support write protection page fault notification.
-	/// * only seems to make an effective difference on x86_64.
+	/// * as of Linux 5.11 does not seem to be supported for anything other than x86_64!
 	#[inline(always)]
 	pub fn copy_registered_memory_subrange(&self, registered_memory_subrange: impl AbsoluteMemoryRange, copy_starting_from: VirtualAddress, wake_up_suspended_thread_that_page_faulted_in_registered_memory_subrange: bool, write_protect: bool) -> Result<(), CopyError>
 	{
@@ -393,6 +398,11 @@ impl UserFaultFileDescriptor
 	///
 	/// * page-aligned.
 	/// * encapsulated within a registered memory range.
+	/// * encapsulated with a single 'vma'.
+	///
+	/// `registered_memory_subrange` must not be:-
+	///
+	/// * huge-page backed, including by transparent huge pages (THP).
 	///
 	/// `registered_memory_subrange`:-
 	///
@@ -456,6 +466,7 @@ impl UserFaultFileDescriptor
 	///
 	/// * page-aligned.
 	/// * encapsulated within a registered memory range.
+	/// * encapsulated with a single 'vma'.
 	///
 	/// `registered_memory_subrange`:-
 	///
@@ -502,11 +513,15 @@ impl UserFaultFileDescriptor
 	 */
 	/// Called from main or polling thread; loops until complete.
 	///
+	/// As of Linux 5.11 does not seem to be supported for anything other than x86_64!
+	///
 	/// `registered_memory_subrange` must be:-
 	///
 	/// * page-aligned.
 	/// * encapsulated within a registered memory range.
 	/// * have been __registered__ (`self.register_mapped_memory()`) with `register_mode` containing `RegiserMode::WriteProtect`.
+	/// * private anonymous memory (`mmap()`d without a file descriptor and `MAP_PRIVATE`); it can not be shared.
+	/// * encapsulated with a single 'vma'.
 	///
 	/// `registered_memory_subrange`:-
 	///
@@ -521,15 +536,19 @@ impl UserFaultFileDescriptor
 	
 	/// Called from polling thread, typically in `UserFaultEventHandler::page_fault()`; loops until complete.
 	///
+	/// As of Linux 5.11 does not seem to be supported for anything other than x86_64!
+	///
 	/// `registered_memory_subrange` must be:-
 	///
 	/// * page-aligned.
 	/// * encapsulated within a registered memory range.
 	/// * have been __registered__ (`self.register_mapped_memory()`) with `register_mode` containing `RegiserMode::WriteProtect`.
+	/// * private anonymous memory (`mmap()`d without a file descriptor and `MAP_PRIVATE`); it can not be shared.
 	///
-	/// `registered_memory_subrange`:-
+	/// `registered_memory_subrange`can be:-
 	///
-	/// * can be a sub range of memory mapped using `mmap()`.
+	/// * a sub range of memory mapped using `mmap()`.
+	/// * backed by huge pages.
 	///
 	/// Return an error if the `registered_memory_subrange` no longer exists or is suitable (is shared ('vma' fag `VM_SHARED`), is not anonymous, 'vma' does not have flag `VM_UFFD_WP` (this occurs if the memory was not registered with `PageFaultEventNotificationSetting::RaisePageFaultEventIfWriteProtectedPageAccessed`.).
 	///
