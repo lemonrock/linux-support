@@ -100,12 +100,30 @@ pub enum HugePageSize
 	_16GB = 16_777_216 * 1_024,
 }
 
+impl Into<NonZeroU64> for HugePageSize
+{
+	#[inline(always)]
+	fn into(self) -> NonZeroU64
+	{
+		self.into_non_zero_u64()
+	}
+}
+
 impl Into<u64> for HugePageSize
 {
 	#[inline(always)]
 	fn into(self) -> u64
 	{
-		self as u64
+		self.into_u64()
+	}
+}
+
+impl Into<NonZeroUsize> for HugePageSize
+{
+	#[inline(always)]
+	fn into(self) -> NonZeroUsize
+	{
+		self.into_non_zero_usize()
 	}
 }
 
@@ -114,7 +132,51 @@ impl Into<usize> for HugePageSize
 	#[inline(always)]
 	fn into(self) -> usize
 	{
-		self as u64 as usize
+		self.into_usize()
+	}
+}
+
+impl TryFrom<NonZeroU64> for HugePageSize
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: NonZeroU64) -> Result<Self, Self::Error>
+	{
+		Self::from_non_zero_bytes(value).ok_or(ParseNumberError::OutOfRange)
+	}
+}
+
+impl TryFrom<u64> for HugePageSize
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: u64) -> Result<Self, Self::Error>
+	{
+		Self::from_bytes(value).ok_or(ParseNumberError::OutOfRange)
+	}
+}
+
+impl TryFrom<NonZeroUsize> for HugePageSize
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: NonZeroUsize) -> Result<Self, Self::Error>
+	{
+		Self::try_from(value.get())
+	}
+}
+
+impl TryFrom<usize> for HugePageSize
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: usize) -> Result<Self, Self::Error>
+	{
+		Self::try_from(value as u64)
 	}
 }
 
@@ -304,15 +366,46 @@ impl HugePageSize
 		
 		supported
 	}
+	
+	#[inline(always)]
+	pub(crate) fn from_non_zero_bytes(value: NonZeroU64) -> Option<Self>
+	{
+		Self::from_bytes(value.get())
+	}
 
 	#[inline(always)]
-	fn from_non_zero_kilobytes(value: NonZeroU64) -> Option<Self>
+	pub(crate) fn from_bytes(value: u64) -> Option<Self>
+	{
+		use self::HugePageSize::*;
+
+		match value
+		{
+			65_536 => Some(_64KB),
+			524_288 => Some(_512KB),
+			1_048_576 => Some(_1MB),
+			2_097152 => Some(_2MB),
+			4_194_304 => Some(_4MB),
+			8_388_608 => Some(_8MB),
+			16_777_216 => Some(_16MB),
+			33_554_432 => Some(_32MB),
+			268_435_456 => Some(_256MB),
+			536_870_912 => Some(_512MB),
+			1_073_741_824 => Some(_1GB),
+			2_147_483_648 => Some(_2GB),
+			17_179_869_184 => Some(_16GB),
+
+			_ => None,
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn from_non_zero_kilobytes(value: NonZeroU64) -> Option<Self>
 	{
 		Self::from_kilobytes(value.get())
 	}
 
 	#[inline(always)]
-	fn from_kilobytes(value: u64) -> Option<Self>
+	pub(crate) fn from_kilobytes(value: u64) -> Option<Self>
 	{
 		use self::HugePageSize::*;
 
@@ -352,5 +445,29 @@ impl HugePageSize
 	const fn log_base_2_of_bytes(self) -> u64
 	{
 		(self as u64).trailing_zeros() as u64
+	}
+	
+	/// Into a `NonZeroU64`.
+	pub const fn into_non_zero_u64(self) -> NonZeroU64
+	{
+		new_non_zero_u64(self as u64)
+	}
+	
+	/// Into an `u64`.
+	pub const fn into_u64(self) -> u64
+	{
+		self as u64
+	}
+	
+	/// Into a `NonZeroUsize`.
+	pub const fn into_non_zero_usize(self) -> NonZeroUsize
+	{
+		new_non_zero_usize(self.into_usize())
+	}
+	
+	/// Into an `usize`.
+	pub const fn into_usize(self) -> usize
+	{
+		self.into_u64() as usize
 	}
 }

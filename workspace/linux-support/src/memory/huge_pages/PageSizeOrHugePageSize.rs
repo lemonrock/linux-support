@@ -15,6 +15,21 @@ pub enum PageSizeOrHugePageSize
 	HugePageSize(HugePageSize),
 }
 
+impl Into<NonZeroU64> for PageSizeOrHugePageSize
+{
+	#[inline(always)]
+	fn into(self) -> NonZeroU64
+	{
+		use self::PageSizeOrHugePageSize::*;
+
+		match self
+		{
+			PageSize(page_size) => page_size.into_non_zero_u64(),
+			HugePageSize(huge_page_size) => huge_page_size.into_non_zero_u64(),
+		}
+	}
+}
+
 impl Into<u64> for PageSizeOrHugePageSize
 {
 	#[inline(always)]
@@ -24,8 +39,23 @@ impl Into<u64> for PageSizeOrHugePageSize
 
 		match self
 		{
-			PageSize(page_size) => page_size.into(),
-			HugePageSize(huge_page_size) => huge_page_size.into(),
+			PageSize(page_size) => page_size.into_u64(),
+			HugePageSize(huge_page_size) => huge_page_size.into_u64(),
+		}
+	}
+}
+
+impl Into<NonZeroUsize> for PageSizeOrHugePageSize
+{
+	#[inline(always)]
+	fn into(self) -> NonZeroUsize
+	{
+		use self::PageSizeOrHugePageSize::*;
+		
+		match self
+		{
+			PageSize(page_size) => page_size.into_non_zero_usize(),
+			HugePageSize(huge_page_size) => huge_page_size.into_non_zero_usize(),
 		}
 	}
 }
@@ -36,12 +66,56 @@ impl Into<usize> for PageSizeOrHugePageSize
 	fn into(self) -> usize
 	{
 		use self::PageSizeOrHugePageSize::*;
-
+		
 		match self
 		{
-			PageSize(page_size) => page_size.into(),
-			HugePageSize(huge_page_size) => huge_page_size.into(),
+			PageSize(page_size) => page_size.into_usize(),
+			HugePageSize(huge_page_size) => huge_page_size.into_usize(),
 		}
+	}
+}
+
+impl TryFrom<NonZeroU64> for PageSizeOrHugePageSize
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: NonZeroU64) -> Result<Self, Self::Error>
+	{
+		Self::from_bytes_non_zero(value).ok_or(ParseNumberError::OutOfRange)
+	}
+}
+
+impl TryFrom<u64> for PageSizeOrHugePageSize
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: u64) -> Result<Self, Self::Error>
+	{
+		Self::from_bytes(value).ok_or(ParseNumberError::OutOfRange)
+	}
+}
+
+impl TryFrom<NonZeroUsize> for PageSizeOrHugePageSize
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: NonZeroUsize) -> Result<Self, Self::Error>
+	{
+		Self::try_from(value.get())
+	}
+}
+
+impl TryFrom<usize> for PageSizeOrHugePageSize
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: usize) -> Result<Self, Self::Error>
+	{
+		Self::try_from(value as u64)
 	}
 }
 
@@ -127,6 +201,35 @@ impl PageSizeOrHugePageSize
 			PageSize(page_size) => page_size.is_a_gigantic_huge_page(),
 			HugePageSize(huge_page_size) => huge_page_size.is_a_gigantic_huge_page(),
 		}
+	}
+
+	#[inline(always)]
+	fn from_bytes_non_zero(bytes: NonZeroU64) -> Option<Self>
+	{
+		Self::from_bytes(value.get())
+	}
+
+	#[inline(always)]
+	pub(crate) fn from_bytes(bytes: u64) -> Option<Self>
+	{
+		if let Some(page_size) = PageSize::from_bytes(value)
+		{
+			Some(PageSizeOrHugePageSize::PageSize(page_size))
+		}
+		else if let Some(huge_page_size) = HugePageSize::from_bytes(value)
+		{
+			Some(PageSizeOrHugePageSize::HugePageSize(huge_page_size))
+		}
+		else
+		{
+			None
+		}
+	}
+	
+	#[inline(always)]
+	fn from_kilobytes_non_zero(bytes: NonZeroU64) -> Option<Self>
+	{
+		Self::from_kilobytes(value.get())
 	}
 
 	#[inline(always)]

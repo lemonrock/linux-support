@@ -44,12 +44,30 @@ pub enum PageSize
 	_64Kb = 65_536,
 }
 
+impl Into<NonZeroU64> for PageSize
+{
+	#[inline(always)]
+	fn into(self) -> NonZeroU64
+	{
+		self.into_non_zero_u64()
+	}
+}
+
 impl Into<u64> for PageSize
 {
 	#[inline(always)]
 	fn into(self) -> u64
 	{
-		self as u64
+		self.into_u64()
+	}
+}
+
+impl Into<NonZeroUsize> for PageSize
+{
+	#[inline(always)]
+	fn into(self) -> NonZeroUsize
+	{
+		self.into_non_zero_usize()
 	}
 }
 
@@ -58,7 +76,69 @@ impl Into<usize> for PageSize
 	#[inline(always)]
 	fn into(self) -> usize
 	{
-		self as u64 as usize
+		self.into_usize()
+	}
+}
+
+impl Into<NonZeroU32> for PageSize
+{
+	#[inline(always)]
+	fn into(self) -> NonZeroU32
+	{
+		self.into_non_zero_u32()
+	}
+}
+
+impl Into<u32> for PageSize
+{
+	#[inline(always)]
+	fn into(self) -> u32
+	{
+		self.into_u32()
+	}
+}
+
+impl TryFrom<NonZeroU64> for PageSize
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: NonZeroU64) -> Result<Self, Self::Error>
+	{
+		Self::from_non_zero_bytes(value).ok_or(ParseNumberError::OutOfRange)
+	}
+}
+
+impl TryFrom<u64> for PageSize
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: u64) -> Result<Self, Self::Error>
+	{
+		Self::from_bytes(value).ok_or(ParseNumberError::OutOfRange)
+	}
+}
+
+impl TryFrom<NonZeroUsize> for PageSize
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: NonZeroUsize) -> Result<Self, Self::Error>
+	{
+		Self::try_from(value.get())
+	}
+}
+
+impl TryFrom<usize> for PageSize
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: usize) -> Result<Self, Self::Error>
+	{
+		Self::try_from(value as u64)
 	}
 }
 
@@ -73,6 +153,42 @@ impl Default for PageSize
 
 impl PageSize
 {
+	/// Into a `NonZeroU64`.
+	pub const fn into_non_zero_u64(self) -> NonZeroU64
+	{
+		new_non_zero_u64(self as u64)
+	}
+	
+	/// Into an `u64`.
+	pub const fn into_u64(self) -> u64
+	{
+		self as u64
+	}
+	
+	/// Into a `NonZeroUsize`.
+	pub const fn into_non_zero_usize(self) -> NonZeroUsize
+	{
+		new_non_zero_usize(self.into_usize())
+	}
+	
+	/// Into an `usize`.
+	pub const fn into_usize(self) -> usize
+	{
+		self.into_u64() as usize
+	}
+	
+	/// Into a `NonZeroU32`.
+	pub const fn into_non_zero_u32(self) -> NonZeroU32
+	{
+		new_non_zero_u32(self.into_u32())
+	}
+	
+	/// Into an `u32`.
+	pub const fn into_u32(self) -> u32
+	{
+		self.into_u64() as u32
+	}
+	
 	/// Exact page size multiple?
 	#[inline(always)]
 	pub fn is_an_exact_page_size_multiple_of_current_usize(value: usize) -> bool
@@ -175,24 +291,57 @@ impl PageSize
 		// `getpagesize()` is faster than `sysconf(_SC_PAGESIZE)` on musl libc systems.
 		unsafe { transmute(getpagesize() as usize) }
 	}
-
+	
+	#[inline(always)]
+	pub(crate) fn from_non_zero_bytes(value: NonZeroU64) -> Option<Self>
+	{
+		Self::from_bytes(value.get())
+	}
+	
+	#[inline(always)]
+	pub(crate) fn from_bytes(value: u64) -> Option<Self>
+	{
+		use self::PageSize::*;
+		
+		match value
+		{
+			4_096 => Some(_4Kb),
+			
+			#[cfg(any(target_arch = "mips64", target_arch = "sparc64"))] 8_192 => Some(_8Kb),
+			
+			#[cfg(any(target_arch = "aarch64", target_arch = "mips64"))] 16_384 => Some(_16Kb),
+			
+			#[cfg(target_arch = "mips64")] 32_768 => Some(_32Kb),
+			
+			#[cfg(any(target_arch = "aarch64", target_arch = "mips64"))] 65_536 => Some(_64Kb),
+			
+			_ => None,
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn from_non_zero_kilobytes(value: NonZeroU64) -> Option<Self>
+	{
+		Self::from_kilobytes(value.get())
+	}
+	
 	#[inline(always)]
 	pub(crate) fn from_kilobytes(value: u64) -> Option<Self>
 	{
 		use self::PageSize::*;
-
+		
 		match value
 		{
-			4_096 => Some(_4Kb),
-
-			#[cfg(any(target_arch = "mips64", target_arch = "sparc64"))] 8_192 => Some(_8Kb),
-
-			#[cfg(any(target_arch = "aarch64", target_arch = "mips64"))] 16_384 => Some(_16Kb),
-
-			#[cfg(target_arch = "mips64")] 32_768 => Some(_32Kb),
-
-			#[cfg(any(target_arch = "aarch64", target_arch = "mips64"))] 65_536 => Some(_64Kb),
-
+			4 => Some(_4Kb),
+			
+			#[cfg(any(target_arch = "mips64", target_arch = "sparc64"))] 8 => Some(_8Kb),
+			
+			#[cfg(any(target_arch = "aarch64", target_arch = "mips64"))] 16 => Some(_16Kb),
+			
+			#[cfg(target_arch = "mips64")] 32 => Some(_32Kb),
+			
+			#[cfg(any(target_arch = "aarch64", target_arch = "mips64"))] 64 => Some(_64Kb),
+			
 			_ => None,
 		}
 	}
