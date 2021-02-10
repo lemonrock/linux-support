@@ -206,17 +206,17 @@ impl PageSizeOrHugePageSize
 	#[inline(always)]
 	fn from_bytes_non_zero(bytes: NonZeroU64) -> Option<Self>
 	{
-		Self::from_bytes(value.get())
+		Self::from_bytes(bytes.get())
 	}
 
 	#[inline(always)]
 	pub(crate) fn from_bytes(bytes: u64) -> Option<Self>
 	{
-		if let Some(page_size) = PageSize::from_bytes(value)
+		if let Some(page_size) = PageSize::from_bytes(bytes)
 		{
 			Some(PageSizeOrHugePageSize::PageSize(page_size))
 		}
-		else if let Some(huge_page_size) = HugePageSize::from_bytes(value)
+		else if let Some(huge_page_size) = HugePageSize::from_bytes(bytes)
 		{
 			Some(PageSizeOrHugePageSize::HugePageSize(huge_page_size))
 		}
@@ -227,19 +227,19 @@ impl PageSizeOrHugePageSize
 	}
 	
 	#[inline(always)]
-	fn from_kilobytes_non_zero(bytes: NonZeroU64) -> Option<Self>
+	fn from_kilobytes_non_zero(kilobytes: NonZeroU64) -> Option<Self>
 	{
-		Self::from_kilobytes(value.get())
+		Self::from_kilobytes(kilobytes.get())
 	}
 
 	#[inline(always)]
-	pub(crate) fn from_kilobytes(value: u64) -> Option<Self>
+	pub(crate) fn from_kilobytes(kilobytes: u64) -> Option<Self>
 	{
-		if let Some(page_size) = PageSize::from_kilobytes(value)
+		if let Some(page_size) = PageSize::from_kilobytes(kilobytes)
 		{
 			Some(PageSizeOrHugePageSize::PageSize(page_size))
 		}
-		else if let Some(huge_page_size) = HugePageSize::from_kilobytes(value)
+		else if let Some(huge_page_size) = HugePageSize::from_kilobytes(kilobytes)
 		{
 			Some(PageSizeOrHugePageSize::HugePageSize(huge_page_size))
 		}

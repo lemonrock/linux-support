@@ -293,17 +293,17 @@ impl PageSize
 	}
 	
 	#[inline(always)]
-	pub(crate) fn from_non_zero_bytes(value: NonZeroU64) -> Option<Self>
+	pub(crate) fn from_non_zero_bytes(bytes: NonZeroU64) -> Option<Self>
 	{
-		Self::from_bytes(value.get())
+		Self::from_bytes(bytes.get())
 	}
 	
 	#[inline(always)]
-	pub(crate) fn from_bytes(value: u64) -> Option<Self>
+	pub(crate) fn from_bytes(bytes: u64) -> Option<Self>
 	{
 		use self::PageSize::*;
 		
-		match value
+		match bytes
 		{
 			4_096 => Some(_4Kb),
 			
@@ -320,17 +320,17 @@ impl PageSize
 	}
 	
 	#[inline(always)]
-	pub(crate) fn from_non_zero_kilobytes(value: NonZeroU64) -> Option<Self>
+	pub(crate) fn from_non_zero_kilobytes(kilobytes: NonZeroU64) -> Option<Self>
 	{
-		Self::from_kilobytes(value.get())
+		Self::from_kilobytes(kilobytes.get())
 	}
 	
 	#[inline(always)]
-	pub(crate) fn from_kilobytes(value: u64) -> Option<Self>
+	pub(crate) fn from_kilobytes(kilobytes: u64) -> Option<Self>
 	{
 		use self::PageSize::*;
 		
-		match value
+		match kilobytes
 		{
 			4 => Some(_4Kb),
 			

@@ -368,17 +368,17 @@ impl HugePageSize
 	}
 	
 	#[inline(always)]
-	pub(crate) fn from_non_zero_bytes(value: NonZeroU64) -> Option<Self>
+	pub(crate) fn from_non_zero_bytes(bytes: NonZeroU64) -> Option<Self>
 	{
-		Self::from_bytes(value.get())
+		Self::from_bytes(bytes.get())
 	}
 
 	#[inline(always)]
-	pub(crate) fn from_bytes(value: u64) -> Option<Self>
+	pub(crate) fn from_bytes(bytes: u64) -> Option<Self>
 	{
 		use self::HugePageSize::*;
 
-		match value
+		match bytes
 		{
 			65_536 => Some(_64KB),
 			524_288 => Some(_512KB),
@@ -399,17 +399,17 @@ impl HugePageSize
 	}
 	
 	#[inline(always)]
-	pub(crate) fn from_non_zero_kilobytes(value: NonZeroU64) -> Option<Self>
+	pub(crate) fn from_non_zero_kilobytes(kilobytes: NonZeroU64) -> Option<Self>
 	{
-		Self::from_kilobytes(value.get())
+		Self::from_kilobytes(kilobytes.get())
 	}
 
 	#[inline(always)]
-	pub(crate) fn from_kilobytes(value: u64) -> Option<Self>
+	pub(crate) fn from_kilobytes(kilobytes: u64) -> Option<Self>
 	{
 		use self::HugePageSize::*;
 
-		match value
+		match kilobytes
 		{
 			64 => Some(_64KB),
 			512 => Some(_512KB),
