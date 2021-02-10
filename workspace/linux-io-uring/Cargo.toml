@@ -38,14 +38,14 @@ likely = { version = "^0.1.0" }
 linux-support = { version = "^0.0.10", path = "../linux-support" }
 magic-ring-buffer = { version = "^0.3.1", path = "../magic-ring-buffer" }
 memchr = "^2.3.3"
-message-dispatch = { version = "0.2.0", path = "../message-dispatch" }
-message-dispatch-datadog = { version = "0.2.0", path = "../message-dispatch-datadog" }
+message-dispatch = { version = "^0.2.0", path = "../message-dispatch" }
+message-dispatch-datadog = { version = "^0.2.0", path = "../message-dispatch-datadog" }
 phf = { version = "^0.8.0", features = ["macros"] }
 phf_macros = { version = "^0.8.0" }
 serde = { version = "^1.0", features = ["derive", "rc"] }
 socket-access-control = { version = "^0.0.0", path = "../socket-access-control" }
 strum = "^0.19.2"
 strum_macros = "^0.19.2"
-swiss-army-knife = { version = "0.0.2", path = "../swiss-army-knife" }
+swiss-army-knife = { version = "^0.0.2", path = "../swiss-army-knife" }
 terminate = { version = "^0.2.1", path = "../terminate" }
 uriparse = "^0.6.3"
