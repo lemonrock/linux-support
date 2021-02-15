@@ -320,9 +320,9 @@ impl MappedMemory
 	/// * Returns `Err(true)` if a signal interrupted.
 	/// * Returns `Err(false)` if process is out-of-memory (eg too many mappings, too large a memory mapping, process has a rlimit).
 	#[inline(always)]
-	pub fn remap(&mut self, new_size: NonZeroU64, hints: RemapMemoryHint) -> Result<(), bool>
+	pub fn remap(&mut self, new_size: NonZeroU64, hint: RemapMemoryHint) -> Result<(), bool>
 	{
-		let (to_address, flags, new_virtual_address) = hints.to_address_and_flags(self.page_size, self.virtual_address);
+		let (to_address, flags, new_virtual_address) = hint.to_address_and_flags(self.page_size, self.virtual_address);
 		self.remap_inner(new_size, to_address, flags, new_virtual_address)
 	}
 	

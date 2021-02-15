@@ -579,7 +579,6 @@ use serde::de::Visitor;
 use serde_big_array::big_array;
 use serde_bytes::ByteBuf;
 use std::any::TypeId;
-#[cfg(all(target_arch = "x86_64", target_feature = "popcnt"))] use std::arch::x86_64::_mm_popcnt_u64;
 use std::array::TryFromSliceError;
 use std::borrow::Borrow;
 use std::borrow::BorrowMut;
