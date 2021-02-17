@@ -26,4 +26,4 @@ static_assertions = "^1.1"
 linux-support = { version = "^0.0.11", path = "../linux-support" }
 strum = "^0.19.2"
 strum_macros = "^0.19.2"
-swiss-army-knife = { version = "^0.0.3", path = "../swiss-army-knife" }
+swiss-army-knife = { version = "^0.0.4", path = "../swiss-army-knife" }

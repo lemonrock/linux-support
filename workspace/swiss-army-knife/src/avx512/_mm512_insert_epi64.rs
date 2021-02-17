@@ -6,5 +6,5 @@
 #[inline(always)]
 pub unsafe fn _mm512_insert_epi64(a: __m512i, i: i64, index: i32) -> __m512i
 {
-	_mm512_mask_set1_epi64(target, 1 << index, i)
+	_mm512_mask_set1_epi64(a, 1 << index, i)
 }
