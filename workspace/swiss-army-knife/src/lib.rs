@@ -20,6 +20,7 @@
 #![feature(extend_one)]
 #![feature(llvm_asm)]
 #![feature(maybe_uninit_extra)]
+#![feature(asm)]
 
 
 //! #linux-support
@@ -122,6 +123,11 @@ use std::sync::atomic::Ordering::Relaxed;
 use std::sync::atomic::Ordering::Release;
 use std::time::Duration;
 use std::time::SystemTime;
+
+
+/// AVX512 support, including functions one might assume to be present as intrinsics provided by Intel but aren't.
+#[cfg(all(target_arch = "x86_64", target_feature = "avx512f"))]
+pub mod avx512;
 
 
 /// Big-endian definitions.
