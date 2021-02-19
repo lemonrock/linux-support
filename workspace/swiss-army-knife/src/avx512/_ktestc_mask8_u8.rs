@@ -2,26 +2,29 @@
 // Copyright © 2021 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Calculates the population count of 8 `u64`s pointed to be source pointer; loads directly from memory.
+/// This function is missing from Rust as of version 1.51.
 ///
-/// Similar to the intrinsic `_mm512_popcnt_epi64()` but loads directly from memory.
-#[cfg(target_feature = "avx512vpopcntdq")]
+/// Internally, sets `CF` (Carry Flag) in `EFLAGS` by doing `b AND NOT a == 0` (Intel calls this `ANDN`).
+/// Hence the `c` after `ktest` in the intrinsic function's name.
+#[cfg(target_feature = "avx512dq")]
 #[inline(always)]
-pub unsafe fn _mm512_popcnt_epi64_load_unaligned(source_pointer: *const __m512i) -> __m512i
+pub unsafe fn _ktestc_mask8_u8(a: __mmask8, b: __mmask8) -> bool
 {
+	let mut out: bool;
 	asm!
 	(
-		"vpopcntq {zmm_out}, zmmword ptr [{memory}]",
-	
-		zmm_out = lateout(zmm_reg) population_counts,
-		memory = in(reg) source_pointer,
-	
+		"ktestb {k0} {k1}",
+		"setb {cf}",
+		
+		k0 = in(kreg) a,
+		k1 = in(kreg) b,
+		cf = out(reg_byte) out,
+		
 		options
 		(
-			pure,readonly,
-			preserves_flags,
+			pure,nomem,
 			nostack,
 		),
 	);
-	population_counts
+	transmute(out)
 }

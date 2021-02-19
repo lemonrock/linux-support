@@ -9,20 +9,19 @@
 #[inline(always)]
 pub unsafe fn _mm512_popcnt_epi8_load_unaligned(source_pointer: *const __m512i) -> __m512i
 {
-	unsafe
-	{
-		asm!
+	asm!
+	(
+		"vpopcntb {zmm_out}, zmmword ptr [{memory}]",
+	
+		zmm_out = lateout(zmm_reg) population_counts,
+		memory = in(reg) source_pointer,
+	
+		options
 		(
-			"vpopcntb {zmm_out}, zmmword ptr [{memory}]",
-			zmm_out = lateout(zmm_reg) population_counts,
-			memory = in(reg) source_pointer,
-			options
-			(
-				pure,readonly,
-				preserves_flags,
-				nostack,
-			),
-		);
-	}
+			pure,readonly,
+			preserves_flags,
+			nostack,
+		),
+	);
 	population_counts
 }

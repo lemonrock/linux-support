@@ -28,4 +28,4 @@ libc = { version = "^0.2.69", features = ["const-extern-fn", "extra_traits", "st
 likely = { version = "^0.2.0", path = "../likely" }
 linux-support = { version = "^0.0.11", path = "../linux-support" }
 serde = { version = "1.0", features = ["derive"] }
-swiss-army-knife = { version = "^0.0.4", path = "../swiss-army-knife" }
+swiss-army-knife = { version = "^0.0.5", path = "../swiss-army-knife" }

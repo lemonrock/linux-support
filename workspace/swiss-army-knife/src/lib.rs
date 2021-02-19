@@ -2,14 +2,15 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+#![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
 #![deny(missing_docs)]
 #![deny(unconditional_recursion)]
 #![deny(unreachable_patterns)]
 #![feature(alloc_layout_extra)]
 #![feature(allocator_api)]
+#![feature(asm)]
 #![feature(const_fn)]
 #![feature(const_fn_fn_ptr_basics)]
 #![feature(const_fn_transmute)]
@@ -20,7 +21,6 @@
 #![feature(extend_one)]
 #![feature(llvm_asm)]
 #![feature(maybe_uninit_extra)]
-#![feature(asm)]
 
 
 //! #linux-support

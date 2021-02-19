@@ -2,26 +2,12 @@
 // Copyright © 2021 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Calculates the population count of 8 `u64`s pointed to be source pointer; loads directly from memory.
+/// Provides a function missing in AVX512F.
 ///
-/// Similar to the intrinsic `_mm512_popcnt_epi64()` but loads directly from memory.
-#[cfg(target_feature = "avx512vpopcntdq")]
+/// Inefficient.
+#[cfg(target_feature = "avx512bw")]
 #[inline(always)]
-pub unsafe fn _mm512_popcnt_epi64_load_unaligned(source_pointer: *const __m512i) -> __m512i
+pub unsafe fn _mm512_reduce_add_epu8(a: __m512i) -> u64
 {
-	asm!
-	(
-		"vpopcntq {zmm_out}, zmmword ptr [{memory}]",
-	
-		zmm_out = lateout(zmm_reg) population_counts,
-		memory = in(reg) source_pointer,
-	
-		options
-		(
-			pure,readonly,
-			preserves_flags,
-			nostack,
-		),
-	);
-	population_counts
+	_mm512_reduce_add_epi64(_mm512_sad_epu8(a, _mm512_setzero_si512())) as u64
 }

@@ -10,21 +10,20 @@
 pub unsafe fn _mm512_maskz_popcnt_epi8_load_unaligned(source_pointer: *const __m512i, k: __mmask64) -> __m512i
 {
 	let mut population_counts: __m512i;
-	unsafe
-	{
-		asm!
+	asm!
+	(
+		"vpopcntb {zmm_out} {{{k}}}, zmmword ptr [{memory}]",
+	
+		zmm_out = lateout(zmm_reg) population_counts,
+		memory = in(reg) source_pointer,
+		k = in(kreg) k,
+	
+		options
 		(
-			"vpopcntb {zmm_out} {{{k}}}, zmmword ptr [{memory}]",
-			zmm_out = lateout(zmm_reg) population_counts,
-			memory = in(reg) source_pointer,
-			k = in(kreg) k,
-			options
-			(
-				pure,readonly,
-				preserves_flags,
-				nostack,
-			),
-		);
-	}
+			pure,readonly,
+			preserves_flags,
+			nostack,
+		),
+	);
 	population_counts
 }

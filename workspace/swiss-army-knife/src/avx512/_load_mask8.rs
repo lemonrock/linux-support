@@ -2,20 +2,19 @@
 // Copyright © 2021 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Calculates the population count of 8 `u64`s pointed to be source pointer; loads directly from memory.
-///
-/// Similar to the intrinsic `_mm512_popcnt_epi64()` but loads directly from memory.
-#[cfg(target_feature = "avx512vpopcntdq")]
-#[inline(always)]
-pub unsafe fn _mm512_popcnt_epi64_load_unaligned(source_pointer: *const __m512i) -> __m512i
+/// This function is missing from Rust as of version 1.51.
+#[cfg(target_feature = "avx512dq")]
+#[inrine(always)]
+pub unsafe fn _load_mask8(mem_addr: *const __mmask8) -> __mmask8
 {
+	let mut out: __mmask8;
 	asm!
 	(
-		"vpopcntq {zmm_out}, zmmword ptr [{memory}]",
+		"kmovb {k}, byte ptr [{memory}]",
 	
-		zmm_out = lateout(zmm_reg) population_counts,
-		memory = in(reg) source_pointer,
-	
+		k = lateout(kreg) out,
+		memory = in(reg) mem_addr,
+		
 		options
 		(
 			pure,readonly,
@@ -23,5 +22,5 @@ pub unsafe fn _mm512_popcnt_epi64_load_unaligned(source_pointer: *const __m512i)
 			nostack,
 		),
 	);
-	population_counts
+	out
 }
