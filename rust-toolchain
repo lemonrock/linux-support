@@ -1,0 +1,4 @@
+[toolchain]
+channel = "nightly-2021-01-30"
+components = [ "rustc", "cargo", "rust-std", "rustfmt", "rust-docs", "rust-src" ]
+targets = [ "aarch64-unknown-linux-musl", "x86_64-apple-darwin", "x86_64-unknown-linux-musl" ]

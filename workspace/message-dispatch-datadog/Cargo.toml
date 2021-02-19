@@ -15,7 +15,7 @@ exclude = ["*"]
 include = ["README.md", "LICENSE", "COPYRIGHT", "src/**/*.rs", "Cargo.toml", "rustfmt.toml", "clippy.toml"]
 readme = "README.md"
 publish = true
-edition = '2018'
+edition = "2018"
 version = "0.2.0"
 
 [dependencies]
