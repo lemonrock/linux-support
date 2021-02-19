@@ -4,7 +4,7 @@
 
 /// This function is missing from Rust as of version 1.51.
 #[cfg(target_feature = "avx512dq")]
-#[inrine(always)]
+#[inline(always)]
 pub unsafe fn _load_mask8(mem_addr: *const __mmask8) -> __mmask8
 {
 	let mut out: __mmask8;

@@ -6,6 +6,6 @@
 #[inline(always)]
 pub unsafe fn _mm512_cvtsi512_si32(a: __m512i) -> i32
 {
-	let b: __v16si = unsafe { transmute(a) };
+	let b: __v16si = transmute(a);
 	b.get_unchecked_value_safe(0)
 }

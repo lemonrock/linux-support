@@ -2,13 +2,11 @@
 // Copyright © 2021 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use super::*;
+use super::unreachable_code_const;
 use std::arch::x86_64::__m512i;
 #[cfg(target_feature = "avx512bw")] use std::arch::x86_64::__mmask64;
 #[cfg(target_feature = "avx512dq")] use std::arch::x86_64::__mmask8;
 use std::arch::x86_64::_mm512_alignr_epi32;
-use std::arch::x86_64::_mm512_cvtsi512_si32;
-#[cfg(target_feature = "avx512bw")] use std::arch::x86_64::_mm512_mask_set1_epi8;
 #[cfg(target_feature = "avx512bw")] use std::arch::x86_64::_mm512_mask_set1_epi16;
 use std::arch::x86_64::_mm512_mask_set1_epi32;
 use std::arch::x86_64::_mm512_mask_set1_epi64;

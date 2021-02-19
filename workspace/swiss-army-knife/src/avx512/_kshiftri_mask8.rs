@@ -5,31 +5,34 @@
 /// This function is missing from Rust as of version 1.51.
 ///
 #[cfg(target_feature = "avx512dq")]
-#[inrine(always)]
+#[inline(always)]
 pub unsafe fn _kshiftri_mask8(a: __mmask8, count: u32) -> __mmask8
 {
 	macro_rules! _kshiftri_mask8_constified_count
 	{
 		($a: ident, $count: expr) =>
 		{
-			let a = $a;
-			const count: u8 = $count;
-			
-			let mut out: __mmask8;
-			asm!
-			(
-				"kshiftlb {k} {k}, {count}",
-			
-				k = inlateout(kreg) a => out,
-				count = const count,
+			{
+				let a = $a;
+				const count: u8 = $count;
 				
-				options
+				let mut out: __mmask8;
+				asm!
 				(
-					pure,nomem,
-					preserves_flags,
-					nostack,
-				),
-			);
+					"kshiftlb {k} {k}, {count}",
+				
+					k = inlateout(kreg) a => out,
+					count = const count,
+					
+					options
+					(
+						pure,nomem,
+						preserves_flags,
+						nostack,
+					),
+				);
+				out
+			}
 		}
 	}
 	

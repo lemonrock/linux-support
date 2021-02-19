@@ -10,7 +10,7 @@
 #[inline(always)]
 pub unsafe fn _ktestc_mask8_u8(a: __mmask8, b: __mmask8) -> bool
 {
-	let mut out: bool;
+	let mut out: i8;
 	asm!
 	(
 		"ktestb {k0} {k1}",

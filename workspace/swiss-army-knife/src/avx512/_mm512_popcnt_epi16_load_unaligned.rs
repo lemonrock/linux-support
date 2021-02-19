@@ -9,6 +9,7 @@
 #[inline(always)]
 pub unsafe fn _mm512_popcnt_epi16_load_unaligned(source_pointer: *const __m512i) -> __m512i
 {
+	let mut population_counts;
 	asm!
 	(
 		"vpopcntw {zmm_out}, zmmword ptr [{memory}]",

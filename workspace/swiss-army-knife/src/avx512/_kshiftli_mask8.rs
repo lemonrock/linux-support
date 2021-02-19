@@ -12,24 +12,27 @@ pub unsafe fn _kshiftli_mask8(a: __mmask8, count: u32) -> __mmask8
 	{
 		($a: ident, $count: expr) =>
 		{
-			let a = $a;
-			const count: u8 = $count;
-			
-			let mut out: __mmask8;
-			asm!
-			(
-				"kshiftlb {k} {k}, {count}",
-			
-				k = inlateout(kreg) a => out,
-				count = const count,
+			{
+				let a = $a;
+				const count: u8 = $count;
 				
-				options
+				let mut out: __mmask8;
+				asm!
 				(
-					pure,nomem,
-					preserves_flags,
-					nostack,
-				),
-			);
+					"kshiftlb {k} {k}, {count}",
+				
+					k = inlateout(kreg) a => out,
+					count = const count,
+					
+					options
+					(
+						pure,nomem,
+						preserves_flags,
+						nostack,
+					),
+				);
+				out
+			}
 		}
 	}
 	

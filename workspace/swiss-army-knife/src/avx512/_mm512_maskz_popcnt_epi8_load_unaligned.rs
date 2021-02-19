@@ -5,7 +5,7 @@
 /// Calculates the population count of 64 `u8`s pointed to be source pointer; loads directly from memory.
 ///
 /// Similar to the intrinsic `_mm512_maskz_popcnt_epi8()` but loads directly from memory.
-#[cfg(target_feature = "avx512bitalg", target_feature = "avx512bw")]
+#[cfg(all(target_feature = "avx512bitalg", target_feature = "avx512bw"))]
 #[inline(always)]
 pub unsafe fn _mm512_maskz_popcnt_epi8_load_unaligned(source_pointer: *const __m512i, k: __mmask64) -> __m512i
 {
