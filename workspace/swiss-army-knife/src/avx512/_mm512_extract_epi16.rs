@@ -6,11 +6,47 @@
 ///
 /// Inefficient.
 ///
-/// Even though the return type is `i32`, the value fits in an `u8`.
+/// Even though the return type is `i32`, the value fits in an `u16`.
 #[inline(always)]
-pub unsafe fn _mm512_extract_epi8(a: __m512i, index: i32) -> i32
+pub unsafe fn _mm512_extract_epi16<const index: i32>(a: __m512i) -> i32
 {
-	let shift = if (index % 4) == 0
+	macro_rules! _mm512_extract_epi32_const_index
+	{
+		($index_divided_by_2: expr) =>
+		{
+			_mm512_extract_epi32::<$index_divided_by_2>(a)
+		}
+	}
+	
+	// Rust does not allow:-
+	// ```
+	// const Epi32Index: i32 = index / 2;
+	// _mm512_extract_epi32::<Epi32Index>(a)
+	// ```
+	//
+	// Hence this horror.
+	let result = match index
+	{
+		0 ..= 1 => _mm512_extract_epi32_const_index!(0),
+		2 ..= 3 => _mm512_extract_epi32_const_index!(1),
+		4 ..= 5 => _mm512_extract_epi32_const_index!(2),
+		6 ..= 7 => _mm512_extract_epi32_const_index!(3),
+		8 ..= 9 => _mm512_extract_epi32_const_index!(4),
+		10 ..= 11 => _mm512_extract_epi32_const_index!(5),
+		12 ..= 13 => _mm512_extract_epi32_const_index!(6),
+		14 ..= 15 => _mm512_extract_epi32_const_index!(7),
+		16 ..= 17 => _mm512_extract_epi32_const_index!(8),
+		18 ..= 19 => _mm512_extract_epi32_const_index!(9),
+		20 ..= 21 => _mm512_extract_epi32_const_index!(10),
+		22 ..= 23 => _mm512_extract_epi32_const_index!(11),
+		24 ..= 25 => _mm512_extract_epi32_const_index!(12),
+		26 ..= 27 => _mm512_extract_epi32_const_index!(13),
+		28 ..= 29 => _mm512_extract_epi32_const_index!(14),
+		30 ..= 31 => _mm512_extract_epi32_const_index!(15),
+		_ => panic!("index {} not supported", index)
+	};
+	
+	let shift = if (index % 2) == 0
 	{
 		0
 	}
@@ -19,5 +55,5 @@ pub unsafe fn _mm512_extract_epi8(a: __m512i, index: i32) -> i32
 		16
 	};
 	
-	(_mm512_extract_epi32(a, index / 4) >> shift) & 0xFF
+	(result >> shift) & 0xFFFF
 }
