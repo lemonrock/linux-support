@@ -21,6 +21,7 @@
 #![feature(extend_one)]
 #![feature(llvm_asm)]
 #![feature(maybe_uninit_extra)]
+#![cfg_attr(all(target_arch = "x86_64", target_feature = "sse2"), feature(stdarch))]
 #![cfg_attr(all(target_arch = "x86_64", target_feature = "avx512f"), feature(stdsimd))]
 
 
@@ -126,6 +127,10 @@ use std::time::Duration;
 use std::time::SystemTime;
 
 
+/// AVX2 support, including functions one might assume to be present as intrinsics provided by Intel but aren't.
+#[cfg(all(target_arch = "x86_64", target_feature = "avx2"))]
+pub mod avx2;
+
 /// AVX512 support, including functions one might assume to be present as intrinsics provided by Intel but aren't.
 #[cfg(all(target_arch = "x86_64", target_feature = "avx512f"))]
 pub mod avx512;
@@ -194,6 +199,11 @@ pub mod path;
 
 /// Random.
 pub mod random;
+
+
+/// SSE2 support, including functions one might assume to be present as intrinsics provided by Intel but aren't.
+#[cfg(all(target_arch = "x86_64", target_feature = "sse2"))]
+pub mod sse2;
 
 
 /// Split performance utilities.
