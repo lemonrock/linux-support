@@ -6,19 +6,24 @@
 #[cfg(target_feature = "sse2")] use crate::sse2::_mm_reduce_add_epu8;
 #[cfg(target_feature = "sse2")] use std::arch::x86_64::_mm_add_epi32;
 #[cfg(target_feature = "sse2")] use std::arch::x86_64::_mm_add_epi64;
+use crate::unreachable_code_const;
 use std::arch::x86_64::__m256i;
 use std::arch::x86_64::_mm256_add_epi64;
 use std::arch::x86_64::_mm256_blend_pd;
 use std::arch::x86_64::_mm256_castpd_si256;
 use std::arch::x86_64::_mm256_castsi256_pd;
+use std::arch::x86_64::_mm256_castsi256_ps;
 use std::arch::x86_64::_mm256_castsi256_si128;
 use std::arch::x86_64::_mm256_extracti128_si256;
+use std::arch::x86_64::_mm256_movemask_pd;
+use std::arch::x86_64::_mm256_movemask_ps;
 use std::arch::x86_64::_mm256_shuffle_epi32;
 use std::arch::x86_64::_mm_cvtsi128_si64;
-use crate::unreachable_code_const;
 
 
 include!("_mm256_blend_epi64.rs");
+include!("_mm256_movemask_epi32.rs");
+include!("_mm256_movemask_epi64.rs");
 include!("_mm256_reduce_add_epi64.rs");
 include!("_mm256_reduce_add_epu8.rs");
 include!("_mm256_reduce_add_epu32.rs");
