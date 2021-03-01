@@ -94,7 +94,7 @@ impl Check for CompiledCpuFeatureCheck
 	#[inline(always)]
 	fn check(self, check_arguments: &Self::CheckArguments) -> bool
 	{
-		#[allow(unused_variables)] let &(ref feature_information, ref _extended_function_information, ref extended_feature_information) = check_arguments;
+		#[allow(unused_variables)] let &(ref feature_information, ref extended_function_information, ref extended_feature_information) = check_arguments;
 
 		#[allow(unused_imports)] use self::CompiledCpuFeatureCheck::*;
 
@@ -106,13 +106,13 @@ impl Check for CompiledCpuFeatureCheck
 			#[cfg(target_feature = "has_fma")] has_fma => feature_information.has_fma(),
 			#[cfg(target_feature = "hle")] has_hle => feature_information.has_hle(),
 			#[cfg(target_feature = "rtm")] has_rtm => feature_information.has_rtm(),
-			#[cfg(target_feature = "bmi1")] has_bmi1 => feature_information.has_bmi1(),
-			#[cfg(target_feature = "bmi2")] has_bmi2 => feature_information.has_bmi2(),
+			#[cfg(target_feature = "bmi1")] has_bmi1 => extended_feature_information.has_bmi1(),
+			#[cfg(target_feature = "bmi2")] has_bmi2 => extended_feature_information.has_bmi2(),
 			#[cfg(target_feature = "adx")] has_adx => extended_feature_information.has_adx(),
 			#[cfg(target_feature = "rdrand")] has_rdrand => feature_information.has_rdrand(), // Properly `target_feature = "rdrand"`, but not correctly encoded by Rust.
-			#[cfg(target_feature = "rdseed")] has_rdseed => feature_information.has_rdseet(), // `has_rdseet()` (sic) - typo in `raw_cpuid` crate.
+			#[cfg(target_feature = "rdseed")] has_rdseed => extended_feature_information.has_rdseed(), // `has_rdseet()` (sic) - typo in `raw_cpuid` crate.
 			#[cfg(target_feature = "movbe")] has_movbe => feature_information.has_movbe(),
-			#[cfg(target_feature = "lzcnt")] has_lzcnt => feature_information.has_lzcnt(),
+			#[cfg(target_feature = "lzcnt")] has_lzcnt => extended_function_information.has_lzcnt(),
 			#[cfg(target_feature = "clflushopt")] has_clflushopt => extended_feature_information.has_clflushopt(),
 			_dummy_to_fix_bug_in_EnumMessage_macro => true,
 		}

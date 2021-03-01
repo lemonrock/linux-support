@@ -61,7 +61,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> ShareableExpressDataPa
 					
 					Ok(None) | Err(CreationError::KernelWouldBeOutOfMemory) => continue,
 					
-					Err(error) => panic!(error),
+					Err(error) => panic!("{}", error),
 				}
 			}
 		}

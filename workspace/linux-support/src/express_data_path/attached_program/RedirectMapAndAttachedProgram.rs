@@ -182,7 +182,7 @@ impl RedirectMapAndAttachedProgram
 					
 					Ok(None) | Err(CreationError::KernelWouldBeOutOfMemory) => continue,
 					
-					Err(error) => panic!(error),
+					Err(error) => panic!("{}", error),
 				}
 			}
 		}

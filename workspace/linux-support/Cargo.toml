@@ -16,7 +16,7 @@ include = ["README.md", "LICENSE", "COPYRIGHT", "src/**/*.rs", "Cargo.toml", "ru
 readme = "README.md"
 publish = true
 edition = "2018"
-version = "0.0.11"
+version = "0.0.12"
 
 [dependencies]
 const_fn_assert = "^0.1.2"
@@ -43,12 +43,12 @@ maplit = "^1.0.2"
 memchr = "^2.3.3"
 memoffset = { version = "^0.5.6", features = ["unstable_const"] }
 num-traits = { version = "^0.2.14", features = ["std", "i128"] }
-raw-cpuid = "^8.1.1"
+raw-cpuid = "^9.0.0"
 serde = { version = "^1.0", features = ["derive", "rc"] }
 serde_bytes = "^0.11.3"
 serde-big-array = "^0.3.0"
 streaming-iterator = "^0.1.5"
 strum = "^0.19.2"
 strum_macros = "^0.19.2"
-swiss-army-knife = { version = "^0.0.10", path = "../swiss-army-knife" }
+swiss-army-knife = { version = "^0.0.11", path = "../swiss-army-knife" }
 terminate = { version = "^0.2.1", path = "../terminate" }

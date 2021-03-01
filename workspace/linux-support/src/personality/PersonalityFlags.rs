@@ -203,7 +203,7 @@ impl PersonalityFlags
 		{
 			EINVAL => Err(()),
 
-			unexpected @ _ => panic!(format!("Unexpected error number from 'personality' of '{:?}'", unexpected)),
+			unexpected @ _ => panic!("Unexpected error number from 'personality' of '{:?}'", unexpected),
 		}
 	}
 }

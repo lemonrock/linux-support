@@ -15,38 +15,18 @@ extern crate serde_derive;
 #[macro_use]
 extern crate bitflags;
 
-/// Provides `cpuid` on stable by linking against a C implementation.
-#[cfg(not(feature = "use_arch"))]
-pub mod native_cpuid {
-    use super::CpuIdResult;
-
-    extern "C" {
-        fn cpuid(a: *mut u32, b: *mut u32, c: *mut u32, d: *mut u32);
-    }
-
-    pub fn cpuid_count(mut eax: u32, mut ecx: u32) -> CpuIdResult {
-        let mut ebx = 0u32;
-        let mut edx = 0u32;
-
-        unsafe {
-            cpuid(&mut eax, &mut ebx, &mut ecx, &mut edx);
-        }
-
-        CpuIdResult { eax, ebx, ecx, edx }
-    }
-}
-
 /// Uses Rust's `cpuid` function from the `arch` module.
-#[cfg(feature = "use_arch")]
 pub mod native_cpuid {
     use super::CpuIdResult;
 
-    #[cfg(target_arch = "x86")]
+    #[cfg(all(target_arch = "x86", not(target_env = "sgx"), target_feature = "sse"))]
     use core::arch::x86 as arch;
-    #[cfg(target_arch = "x86_64")]
+    #[cfg(all(target_arch = "x86_64", not(target_env = "sgx")))]
     use core::arch::x86_64 as arch;
 
     pub fn cpuid_count(a: u32, c: u32) -> CpuIdResult {
+        // Safety: CPUID is supported on all x86_64 CPUs and all x86 CPUs with
+        // SSE, but not by SGX.
         let result = unsafe { self::arch::__cpuid_count(a, c) };
 
         CpuIdResult {
@@ -60,7 +40,7 @@ pub mod native_cpuid {
 
 use core::cmp::min;
 use core::fmt;
-use core::mem::transmute;
+use core::mem::size_of;
 use core::slice;
 use core::str;
 
@@ -83,11 +63,6 @@ macro_rules! cpuid {
     ($eax:expr, $ecx:expr) => {
         $crate::native_cpuid::cpuid_count($eax as u32, $ecx as u32)
     };
-}
-
-fn as_bytes(v: &u32) -> &[u8] {
-    let start = v as *const u32 as *const u8;
-    unsafe { slice::from_raw_parts(start, 4) }
 }
 
 fn get_bits(r: u32, from: u32, to: u32) -> u32 {
@@ -137,6 +112,7 @@ pub struct CpuId {
 /// Low-level data-structure to store result of cpuid instruction.
 #[derive(Copy, Clone, Debug, Default)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[repr(C)]
 pub struct CpuIdResult {
     /// Return value EAX register
     pub eax: u32,
@@ -585,6 +561,7 @@ impl CpuId {
 
 #[derive(Debug, Default)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[repr(C)]
 pub struct VendorInfo {
     ebx: u32,
     edx: u32,
@@ -594,11 +571,14 @@ pub struct VendorInfo {
 impl VendorInfo {
     /// Return vendor identification as human readable string.
     pub fn as_string<'a>(&'a self) -> &'a str {
+        let brand_string_start = self as *const VendorInfo as *const u8;
         unsafe {
-            let brand_string_start = self as *const VendorInfo as *const u8;
-            let slice = slice::from_raw_parts(brand_string_start, 3 * 4);
-            let byte_array: &'a [u8] = transmute(slice);
-            str::from_utf8_unchecked(byte_array)
+            // Safety: VendorInfo is laid out with repr(C).
+            let slice: &'a [u8] = slice::from_raw_parts(brand_string_start, size_of::<VendorInfo>());
+            // Safety: The field is specified to be ASCII, and the only safe
+            // way to construct VendorInfo is from real CPUID data or the
+            // Default implementation.
+            str::from_utf8_unchecked(slice)
         }
     }
 }
@@ -636,7 +616,14 @@ impl Iterator for CacheInfoIter {
             _ => unreachable!(),
         };
 
-        let byte = as_bytes(&reg)[byte_index as usize];
+        let byte = match byte_index {
+            0 => reg,
+            1 => reg >> 8,
+            2 => reg >> 16,
+            3 => reg >> 24,
+            _ => unreachable!(),
+        } as u8;
+
         if byte == 0 {
             self.current += 1;
             return self.next();
@@ -4027,19 +4014,21 @@ impl Iterator for SoCVendorAttributesIter {
 
 #[derive(Debug, Default)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[repr(C)]
 pub struct SoCVendorBrand {
-    #[allow(dead_code)]
     data: [CpuIdResult; 3],
 }
 
 impl SoCVendorBrand {
     pub fn as_string<'a>(&'a self) -> &'a str {
+        let brand_string_start = self as *const SoCVendorBrand as *const u8;
         unsafe {
-            let brand_string_start = self as *const SoCVendorBrand as *const u8;
-            let slice =
-                slice::from_raw_parts(brand_string_start, core::mem::size_of::<SoCVendorBrand>());
-            let byte_array: &'a [u8] = transmute(slice);
-            str::from_utf8_unchecked(byte_array)
+            // Safety: SoCVendorBrand is laid out with repr(C).
+            let slice: &'a [u8] = slice::from_raw_parts(brand_string_start, size_of::<SoCVendorBrand>());
+            // Safety: The field is specified to be ASCII, and the only safe
+            // way to construct SoCVendorBrand is from real CPUID data or the
+            // Default implementation.
+            str::from_utf8_unchecked(slice)
         }
     }
 }
@@ -4152,18 +4141,18 @@ impl ExtendedFunctionInfo {
     /// Retrieve processor brand string.
     pub fn processor_brand_string<'a>(&'a self) -> Option<&'a str> {
         if self.leaf_is_supported(EAX_EXTENDED_BRAND_STRING) {
-            Some(unsafe {
-                let brand_string_start = &self.data[2] as *const CpuIdResult as *const u8;
-                let mut slice = slice::from_raw_parts(brand_string_start, 3 * 4 * 4);
+            let brand_string_start = &self.data[2] as *const CpuIdResult as *const u8;
+            // Safety: CpuIdResult is laid out with repr(C), and the array
+            // self.data contains 9 continguous elements.
+            let slice: &'a [u8] = unsafe { slice::from_raw_parts(brand_string_start, 3 * size_of::<CpuIdResult>()) };
 
-                match slice.iter().position(|&x| x == 0) {
-                    Some(index) => slice = slice::from_raw_parts(brand_string_start, index),
-                    None => (),
-                }
+            // Brand terminated at nul byte or end, whichever comes first.
+            let slice = slice.split(|&x| x == 0).next().unwrap();
 
-                let byte_array: &'a [u8] = transmute(slice);
-                str::from_utf8_unchecked(byte_array)
-            })
+            // Safety: Field is specified to be ASCII, and the only safe way
+            // to construct ExtendedFunctionInfo is from real CPUID data
+            // or the Default implementation.
+            Some(unsafe { str::from_utf8_unchecked(slice) })
         } else {
             None
         }
