@@ -4,7 +4,7 @@
 
 /// Based on <https://github.com/WojciechMula/sse-popcount/blob/master/popcnt-avx2-lookup.cpp>.
 #[inline(always)]
-unsafe fn _mm256_popcnt_epi8(a: __m256i) -> __m256i
+pub unsafe fn _mm256_popcnt_epi8(a: __m256i) -> __m256i
 {
 	// This is a table of nibbles.
 	//
