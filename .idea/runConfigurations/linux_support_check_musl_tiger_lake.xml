@@ -9,7 +9,7 @@
     <option name="backtrace" value="FULL" />
     <envs>
       <env name="CROSS_COMPILE" value="x86_64-linux-musl-" />
-      <env name="RUSTFLAGS" value="-C target-cpu tigerlake" />
+      <env name="RUSTFLAGS" value="-C target-cpu=tigerlake" />
     </envs>
     <option name="isRedirectInput" value="false" />
     <option name="redirectInputPath" value="" />
