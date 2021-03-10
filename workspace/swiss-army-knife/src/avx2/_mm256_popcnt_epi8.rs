@@ -4,7 +4,7 @@
 
 /// Based on <https://github.com/WojciechMula/sse-popcount/blob/master/popcnt-avx2-lookup.cpp>.
 #[inline(always)]
-unsafe fn _mm256_popcnt_epi8(a: _m256i) -> __m256i
+unsafe fn _mm256_popcnt_epi8(a: __m256i) -> __m256i
 {
 	// This is a table of nibbles.
 	//
@@ -24,10 +24,10 @@ unsafe fn _mm256_popcnt_epi8(a: _m256i) -> __m256i
 	
 	let nibble_mask = _mm256_set1_epi8(0x0F);
 	
-	let low_nibble = _mm256_and_si256(vec, nibble_mask);
+	let low_nibble = _mm256_and_si256(a, nibble_mask);
 	let low_nibble_population_count = _mm256_shuffle_epi8(lookup_table, low_nibble);
 	
-	let high_nibble = _mm256_and_si256(_mm256_srli_epi16(vec, 4), nibble_mask);
+	let high_nibble = _mm256_and_si256(_mm256_srli_epi16(a, 4), nibble_mask);
 	let high_nibble_population_count = _mm256_shuffle_epi8(lookup_table, high_nibble);
 	
 	_mm256_add_epi8(low_nibble_population_count, high_nibble_population_count)
