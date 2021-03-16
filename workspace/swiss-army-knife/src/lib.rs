@@ -127,15 +127,6 @@ use std::time::Duration;
 use std::time::SystemTime;
 
 
-/// AVX2 support, including functions one might assume to be present as intrinsics provided by Intel but aren't.
-#[cfg(all(target_arch = "x86_64", target_feature = "avx2"))]
-pub mod avx2;
-
-/// AVX512 support, including functions one might assume to be present as intrinsics provided by Intel but aren't.
-#[cfg(all(target_arch = "x86_64", target_feature = "avx512f"))]
-pub mod avx512;
-
-
 /// Big-endian definitions.
 pub mod big_endian;
 
@@ -201,9 +192,8 @@ pub mod path;
 pub mod random;
 
 
-/// SSE2 support, including functions one might assume to be present as intrinsics provided by Intel but aren't.
-#[cfg(all(target_arch = "x86_64", target_feature = "sse2"))]
-pub mod sse2;
+/// Compatible implementations of SIMD intrinsics either not written by Intel (but seem as if they should exist) or backwards-compatible implementations of SIMD intrinsics present in later CPU target features (eg a 8-bit popcnt).
+pub mod simd_compatibility;
 
 
 /// Split performance utilities.

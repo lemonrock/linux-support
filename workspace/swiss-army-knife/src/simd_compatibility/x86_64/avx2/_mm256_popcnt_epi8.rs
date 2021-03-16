@@ -3,10 +3,12 @@
 
 
 /// Based on <https://github.com/WojciechMula/sse-popcount/blob/master/popcnt-avx2-lookup.cpp>.
+///
+/// Only efficient if `lookup_table` and `nibble_mask` are inlined and hoisted out of any loop by the compiler.
 #[inline(always)]
 pub unsafe fn _mm256_popcnt_epi8(a: __m256i) -> __m256i
 {
-	// This is a table of nibbles.
+	// This is a look up table (LUT) of nibbles.
 	//
 	// It is divided into two 128-bit lanes of identical look up values as `_mm256_shuffle_epi8()` operates on 128-bit lanes.
 	let lookup_table = _mm256_setr_epi8

@@ -26,8 +26,6 @@ impl Default for U64LaneIndex
 
 impl U64LaneIndex
 {
-	const BitsPerLane: u8 = 64;
-	
 	/// Use this function via the macro `shuffle_and_blend_with_zeros!`.
 	///
 	/// `source_of_lane*` is the source lane from `value` to be placed into position in the newly `shuffled` vector after shuffling.

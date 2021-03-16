@@ -8,9 +8,7 @@ pub unsafe fn _mm256_lane_crossing_right_shift_upto_64_bits(data: __m256i, right
 {
 	use self::U64LaneIndex::*;
 	
-	const MaximumShift: u8 = U64LaneIndex::BitsPerLane;
-	
-	debug_assert!(right_shift_number_of_bits <= MaximumShift);
+	debug_assert!(right_shift_number_of_bits <= MaximumLaneCrossingShift);
 	
 	// In shifting right, we lose bits that need to be rotated out but in the lane below ourselves.
 	let shift_right_all_64_bit_lanes = _mm256_srli_epi64(data, right_shift_number_of_bits as i32);
@@ -19,7 +17,7 @@ pub unsafe fn _mm256_lane_crossing_right_shift_upto_64_bits(data: __m256i, right
 	// We rotate them to the lane below ourselves (eg Lane 1 goes to Lane 0).
 	// We don't want Lane 0 at all.
 	// We set Lane 3 to zero (we shift in zeroes).
-	let carry_out_of_shift_right = _mm256_slli_epi64(data, (MaximumShift - right_shift_number_of_bits) as i32);
+	let carry_out_of_shift_right = _mm256_slli_epi64(data, (MaximumLaneCrossingShift - right_shift_number_of_bits) as i32);
 	let right_rotated_64_bits_with_top_lane_zeroed = shuffle_and_blend_with_zeros!(carry_out_of_shift_right, None, Some(Lane3), Some(Lane2), Some(Lane1));
 	
 	// Combine right shift bits and the bits rotated into the lane above.
