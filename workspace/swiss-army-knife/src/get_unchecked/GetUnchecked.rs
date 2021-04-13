@@ -25,6 +25,12 @@ pub trait GetUnchecked<T>
 	{
 		* self.get_unchecked_safe(index)
 	}
+	
+	/// Applies a range without bounds checks.
+	fn get_unchecked_range_safe<AUR: AsUsizeRange<T>>(&self, range: AUR) -> &[T];
+	
+	/// Applies a range without bounds checks.
+	fn get_unchecked_range_mut_safe<AUR: AsUsizeRange<T>>(&mut self, range: AUR) -> &mut [T];
 }
 
 impl<T> GetUnchecked<T> for [T]
@@ -43,5 +49,31 @@ impl<T> GetUnchecked<T> for [T]
 		let index = index.as_usize();
 		debug_assert!(index < self.len());
 		unsafe { self.get_unchecked_mut(index) }
+	}
+	
+	#[inline(always)]
+	fn get_unchecked_range_safe<AUR: AsUsizeRange<T>>(&self, range: AUR) -> &[T]
+	{
+		if cfg!(debug_assertions)
+		{
+			range.get_checked_range_ref(self).unwrap()
+		}
+		else
+		{
+			unsafe { & * range.get_unchecked_range_ref(self) }
+		}
+	}
+	
+	#[inline(always)]
+	fn get_unchecked_range_mut_safe<AUR: AsUsizeRange<T>>(&mut self, range: AUR) -> &mut [T]
+	{
+		if cfg!(debug_assertions)
+		{
+			range.get_checked_range_mut(self).unwrap()
+		}
+		else
+		{
+			unsafe { &mut * range.get_unchecked_range_mut(self) }
+		}
 	}
 }

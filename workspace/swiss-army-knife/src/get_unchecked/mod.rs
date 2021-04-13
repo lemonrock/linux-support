@@ -2,5 +2,14 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use std::ops::RangeInclusive;
+use std::ops::RangeFrom;
+use std::ops::RangeFull;
+use std::ops::Range;
+use std::ops::RangeToInclusive;
+use std::slice::SliceIndex;
+
+
 include!("AsUsizeIndex.rs");
+include!("AsUsizeRange.rs");
 include!("GetUnchecked.rs");

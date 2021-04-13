@@ -21,6 +21,7 @@
 #![feature(extend_one)]
 #![feature(llvm_asm)]
 #![feature(maybe_uninit_extra)]
+#![feature(slice_index_methods)]
 #![cfg_attr(all(target_arch = "x86_64", target_feature = "sse2"), feature(stdarch))]
 #![cfg_attr(all(target_arch = "x86_64", target_feature = "avx512f"), feature(stdsimd))]
 

@@ -18,6 +18,15 @@ impl AsUsizeIndex for usize
 	}
 }
 
+impl<'a, AUI: AsUsizeIndex + Copy> AsUsizeIndex for &'a AUI
+{
+	#[inline(always)]
+	fn as_usize(self) -> usize
+	{
+		(*self).as_usize()
+	}
+}
+
 impl AsUsizeIndex for u8
 {
 	#[inline(always)]
