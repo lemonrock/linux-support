@@ -35,7 +35,7 @@ crossbeam-queue = { version = "^0.2.3" }
 either = { version = "^1.5.3", features = ["serde"] }
 errno = "^0.2"
 lazy_static = "^1.4.0"
-libc = { version = "^0.2.69", features = ["const-extern-fn", "extra_traits", "std"] }
+libc = { version = "^0.2.93", features = ["const-extern-fn", "extra_traits", "std"] }
 libc-extra = "^0.3.2"
 likely = { version = "^0.2.0", path = "../likely" }
 indexmap = { version = "^1.5.0", features = ["serde-1"] }

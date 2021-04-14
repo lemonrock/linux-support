@@ -33,7 +33,7 @@ context-coroutine = { version = "^3.2.1", path = "../context-coroutine" }
 either = { version = "^1.5.3", features = ["serde"] }
 indexmap = { version = "^1.5.0", features = ["serde-1"] }
 lazy_static = "^1.4.0"
-libc = { version = "^0.2.69", features = ["const-extern-fn", "extra_traits", "std"] }
+libc = { version = "^0.2.93", features = ["const-extern-fn", "extra_traits", "std"] }
 likely = { version = "^0.1.0" }
 linux-support = { version = "^0.0.16", path = "../linux-support" }
 magic-ring-buffer = { version = "^0.3.1", path = "../magic-ring-buffer" }
