@@ -2,7 +2,6 @@
 // Copyright © 2021 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-
 /// Represents an user fault instance.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct UserFaultFileDescriptor(RawFd);
@@ -51,9 +50,21 @@ impl UserFaultFileDescriptor
 {
 	/// Creates a new blocking instance which is closed-on-exec suitable for monitoring the current process as long as it is single-threaded.
 	///
+	/// Makes assumptions of usage.
+	#[inline(always)]
+	pub fn new_user_mode_single_threaded_blocking_registered_memory<UFEH: UserFaultEventHandler + 'static, UFEHC: FnOnce(Arc<RegisteredMemory>) -> UFEH + Send + 'static>(requested_features: Features, user_fault_event_handler_constructor: UFEHC, thread_stack_size: usize, registered_memory_number_of_pages: NonZeroUsize) -> Result<(Arc<RegisteredMemory>, JoinHandle<()>, Features, SupportedInputOutputControlRequests), BlockingUserFaultFileDescriptorCreationError<RegisteredMemoryCreationError>>
+	{
+		let thread_builder = Builder::new().name("UserFaultHandler".to_string()).stack_size(thread_stack_size);
+		
+		Self::new_single_threaded_blocking(true, requested_features, |user_fault_file_descriptor| RegisteredMemory::new(user_fault_file_descriptor.clone(), registered_memory_number_of_pages), user_fault_event_handler_constructor, thread_builder)
+	}
+	
+	/// Creates a new blocking instance which is closed-on-exec suitable for monitoring the current process as long as it is single-threaded.
+	///
 	/// Only suitable if monitoring only page faults.
 	///
 	/// Internally creates a thread which should *NEVER* be `join()`'ed; it must run until application exit (the easiest way to do this is to `forget()` `.1`).
+	/// `uffd_constructor` will be called on the calling thread; it can simply return `Self` or an instance of `RegisteredMemory`.
 	/// `user_fault_event_handler_constructor` will be called on the created thread, not the thread executing `new_blocking()`.
 	/// For maximum performance, consider using a per-thread memory allocator and arranging for the created thread to execute on a different CPU to the main thread.
 	///
@@ -62,21 +73,22 @@ impl UserFaultFileDescriptor
 	///
 	/// On return:-
 	///
-	/// * `.0` is an instance of an `UserFaultFileDescriptor`.
-	/// * `.1` is a join handler for a blocking instance of an executing `BlockingUserFaultFileDescriptor` running on a separate thread.
+	/// * `.0` is a wrapped instance of an `UserFaultFileDescriptor` (eg `RegisteredMemory`); this can be safely dropped.
+	/// * `.1` is a join handler for a blocking instance of an executing `BlockingUserFaultFileDescriptor` running on a separate thread; this can be safely dropped if joining is never needed.
 	/// * `.2` is a list of supported features for the `UserFaultFileDescriptor`; it is always `Feature::all()` if running on Linux version 5.11.
-	/// * `.3` is a list of supported input-outout control requests ('ioctl's); it is always `SupportedInputOutputControlRequests::ApplicationProgrammerInterfaces`.
+	/// * `.3` is a list of supported input-outout control requests (`ioctl`s); it is always `SupportedInputOutputControlRequests::ApplicationProgrammerInterfaces`.
 	#[cold]
-	pub fn new_single_threaded_blocking<UFEH: UserFaultEventHandler + 'static>(user_mode_only: bool, requested_features: Features, user_fault_event_handler_constructor: impl FnOnce(FileDescriptorCopy<UserFaultFileDescriptor>) -> UFEH + Send + 'static, thread_builder: Builder) -> Result<(Arc<Self>, JoinHandle<()>, Features, SupportedInputOutputControlRequests), BlockingUserFaultFileDescriptorCreationError>
+	pub fn new_single_threaded_blocking<UFEH: UserFaultEventHandler + 'static, UFFD: AsRef<Arc<UserFaultFileDescriptor>>, UFFDE: error::Error, UFFDC: FnOnce(&Arc<Self>) -> Result<UFFD, UFFDE>, UFEHC: FnOnce(Arc<UFFD>) -> UFEH + Send + 'static>(user_mode_only: bool, requested_features: Features, uffd_constructor: UFFDC, user_fault_event_handler_constructor: UFEHC, thread_builder: Builder) -> Result<(Arc<UFFD>, JoinHandle<()>, Features, SupportedInputOutputControlRequests), BlockingUserFaultFileDescriptorCreationError<UFFDE>>
 	{
 		debug_assert!(requested_features.does_not_have_requested_features_incompatible_with_single_threaded_blocking_use(), "requested_features {:?} contains features incompatible with single-threaded blocking use {:?}", requested_features, Features::FeaturesIncompatibleWithSingleThreadedUse);
 		
-		Self::new_blocking(user_mode_only, requested_features, SingleThreadedBlockingEventsReaderAndDispatcher::new, user_fault_event_handler_constructor, thread_builder)
+		Self::new_blocking(user_mode_only, requested_features, uffd_constructor, user_fault_event_handler_constructor, thread_builder, SingleThreadedBlockingEventsReaderAndDispatcher::new)
 	}
 	
 	/// Creates a new blocking instance which is closed-on-exec suitable for monitoring the current process, particularly if it is multi-threaded.
 	///
 	/// Internally creates a thread which should *NEVER* be `join()`'ed; it must run until application exit (the easiest way to do this is to `forget()` `.1`).
+	/// `uffd_constructor` will be called on the calling thread; it can simply return `Self` or an instance of `RegisteredMemory`.
 	/// `user_fault_event_handler_constructor` will be called on the created thread, not the thread executing `new_blocking()`.
 	/// For maximum performance, consider using a per-thread memory allocator and arranging for the created thread to execute on a different CPU to the main thread.
 	///
@@ -85,33 +97,39 @@ impl UserFaultFileDescriptor
 	///
 	/// On return:-
 	///
-	/// * `.0` is an instance of an `UserFaultFileDescriptor`.
-	/// * `.1` is a join handler for a blocking instance of an executing `BlockingUserFaultFileDescriptor` running on a separate thread.
+	/// * `.0` is a wrapped instance of an `UserFaultFileDescriptor` (eg `RegisteredMemory`); this can be safely dropped.
+	/// * `.1` is a join handler for a blocking instance of an executing `BlockingUserFaultFileDescriptor` running on a separate thread; this can be safely dropped if joining is never needed.
 	/// * `.2` is a list of supported features for the `UserFaultFileDescriptor`; it is always `Feature::all()` if running on Linux version 5.11.
-	/// * `.3` is a list of supported input-outout control requests ('ioctl's); it is always `SupportedInputOutputControlRequests::ApplicationProgrammerInterfaces`.
+	/// * `.3` is a list of supported input-outout control requests (`ioctl`s); it is always `SupportedInputOutputControlRequests::ApplicationProgrammerInterfaces`.
 	#[cold]
-	pub fn new_multi_threaded_blocking<UFEH: UserFaultEventHandler>(user_mode_only: bool, requested_features: Features, user_fault_event_handler_constructor: impl FnOnce(FileDescriptorCopy<UserFaultFileDescriptor>) -> UFEH + Send + 'static, thread_builder: Builder, initial_number_of_events_to_read_at_once: NonZeroUsize) -> Result<(Arc<Self>, JoinHandle<()>, Features, SupportedInputOutputControlRequests), BlockingUserFaultFileDescriptorCreationError>
+	pub fn new_multi_threaded_blocking<UFEH: UserFaultEventHandler, UFFD: AsRef<Arc<UserFaultFileDescriptor>>, UFFDE: error::Error, UFFDC: FnOnce(&Arc<Self>) -> Result<UFFD, UFFDE>, UFEHC: FnOnce(Arc<UFFD>) -> UFEH + Send + 'static>(user_mode_only: bool, requested_features: Features, uffd_constructor: UFFDC, user_fault_event_handler_constructor: UFEHC, thread_builder: Builder, initial_number_of_events_to_read_at_once: NonZeroUsize) -> Result<(Arc<UFFD>, JoinHandle<()>, Features, SupportedInputOutputControlRequests), BlockingUserFaultFileDescriptorCreationError<UFFDE>>
 	{
-		Self::new_blocking(user_mode_only, requested_features, move |file_descriptor, user_fault_event_handler| MultiThreadedEventsReaderAndDispatcher::new(file_descriptor, user_fault_event_handler, initial_number_of_events_to_read_at_once), user_fault_event_handler_constructor, thread_builder)
+		Self::new_blocking(user_mode_only, requested_features, uffd_constructor, user_fault_event_handler_constructor, thread_builder, move |file_descriptor, user_fault_event_handler| MultiThreadedEventsReaderAndDispatcher::new(file_descriptor, user_fault_event_handler, initial_number_of_events_to_read_at_once))
 	}
 	
 	#[inline(always)]
-	fn new_blocking<UFEH: UserFaultEventHandler, ERAD: EventsReaderAndDispatcher>(user_mode_only: bool, requested_features: Features, events_reader_and_dispatcher_constructor: impl FnOnce(&Arc<UserFaultFileDescriptor>, UFEH) -> ERAD + Send + 'static, user_fault_event_handler_constructor: impl FnOnce(FileDescriptorCopy<UserFaultFileDescriptor>) -> UFEH + Send + 'static, thread_builder: Builder) -> Result<(Arc<Self>, JoinHandle<()>, Features, SupportedInputOutputControlRequests), BlockingUserFaultFileDescriptorCreationError>
+	fn new_blocking<UFEH: UserFaultEventHandler, UFFD: AsRef<Arc<UserFaultFileDescriptor>>, UFFDE: error::Error, UFFDC: FnOnce(&Arc<Self>) -> Result<UFFD, UFFDE>, ERAD: EventsReaderAndDispatcher, UFEHC: FnOnce(Arc<UFFD>) -> UFEH + Send + 'static, ERADC: FnOnce(&Arc<UserFaultFileDescriptor>, UFEH) -> ERAD + Send + 'static>(user_mode_only: bool, requested_features: Features, uffd_constructor: UFFDC, user_fault_event_handler_constructor: UFEHC, thread_builder: Builder, events_reader_and_dispatcher_constructor: ERADC) -> Result<(Arc<UFFD>, JoinHandle<()>, Features, SupportedInputOutputControlRequests), BlockingUserFaultFileDescriptorCreationError<UFFDE>>
 	{
 		let (this, features, ioctls) = Self::new(false, user_mode_only, requested_features)?;
 		
-		let file_descriptor_clone = this.clone();
+		let uffd = match uffd_constructor(&this)
+		{
+			Ok(uffd) => Arc::new(uffd),
+			
+			Err(uffde) => return Err(BlockingUserFaultFileDescriptorCreationError::Wrapper(uffde))
+		};
+		
+		let uffd_clone = uffd.clone();
 		
 		let join_handle = thread_builder.spawn(move ||
 		{
-			let file_descriptor_copy = FileDescriptorCopy::new(file_descriptor_clone.0);
-			let user_fault_event_handler = user_fault_event_handler_constructor(file_descriptor_copy);
-			let event_reader_and_dispatcher = events_reader_and_dispatcher_constructor(&file_descriptor_clone, user_fault_event_handler);
+			let user_fault_event_handler = user_fault_event_handler_constructor(uffd_clone);
+			let event_reader_and_dispatcher = events_reader_and_dispatcher_constructor(&this, user_fault_event_handler);
 			let mut blocking_user_fault_file_descriptor = BlockingUserFaultFileDescriptor(event_reader_and_dispatcher);
 			blocking_user_fault_file_descriptor.read_and_handle_events()
 		})?;
 		
-		Ok((this, join_handle, features, ioctls))
+		Ok((uffd, join_handle, features, ioctls))
 	}
 	
 	/// Creates a new non-blocking instance which is closed-on-exec suitable for monitoring non-cooperative processes.

@@ -85,6 +85,7 @@
       <w>sigs</w>
       <w>sockaddr</w>
       <w>strdup</w>
+      <w>subrange</w>
       <w>timewait</w>
       <w>tonode</w>
       <w>unextended</w>
