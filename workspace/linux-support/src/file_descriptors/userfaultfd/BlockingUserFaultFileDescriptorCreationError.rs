@@ -4,7 +4,7 @@
 
 /// Creation error.
 #[derive(Debug)]
-pub enum BlockingUserFaultFileDescriptorCreationError<UFFDE: error::Error>
+pub enum BlockingUserFaultFileDescriptorCreationError<UFFDE: error::Error + 'static>
 {
 	/// Creation.
 	Creation(CreationError),
@@ -16,7 +16,7 @@ pub enum BlockingUserFaultFileDescriptorCreationError<UFFDE: error::Error>
 	ThreadSpawn(io::Error),
 }
 
-impl<UFFDE: error::Error> Display for BlockingUserFaultFileDescriptorCreationError<UFFDE>
+impl<UFFDE: error::Error + 'static> Display for BlockingUserFaultFileDescriptorCreationError<UFFDE>
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -25,7 +25,7 @@ impl<UFFDE: error::Error> Display for BlockingUserFaultFileDescriptorCreationErr
 	}
 }
 
-impl<UFFDE: error::Error> error::Error for BlockingUserFaultFileDescriptorCreationError<UFFDE>
+impl<UFFDE: error::Error + 'static> error::Error for BlockingUserFaultFileDescriptorCreationError<UFFDE>
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>
@@ -43,7 +43,7 @@ impl<UFFDE: error::Error> error::Error for BlockingUserFaultFileDescriptorCreati
 	}
 }
 
-impl<UFFDE: error::Error> From<CreationError> for BlockingUserFaultFileDescriptorCreationError<UFFDE>
+impl<UFFDE: error::Error + 'static> From<CreationError> for BlockingUserFaultFileDescriptorCreationError<UFFDE>
 {
 	#[inline(always)]
 	fn from(from: CreationError) -> Self
@@ -52,7 +52,7 @@ impl<UFFDE: error::Error> From<CreationError> for BlockingUserFaultFileDescripto
 	}
 }
 
-impl<UFFDE: error::Error> From<io::Error> for BlockingUserFaultFileDescriptorCreationError<UFFDE>
+impl<UFFDE: error::Error + 'static> From<io::Error> for BlockingUserFaultFileDescriptorCreationError<UFFDE>
 {
 	#[inline(always)]
 	fn from(from: io::Error) -> Self

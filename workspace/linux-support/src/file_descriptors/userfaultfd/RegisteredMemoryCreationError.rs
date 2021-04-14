@@ -6,10 +6,13 @@
 #[derive(Debug)]
 pub enum RegisteredMemoryCreationError
 {
+	/// Could not map memory.
 	MappingMemory(CreationError),
 	
+	/// Could not use memory advice.
 	CouldNotAdvise(io::Error, MemoryAdvice),
 	
+	/// Registration.
 	Registration(CreationError),
 }
 

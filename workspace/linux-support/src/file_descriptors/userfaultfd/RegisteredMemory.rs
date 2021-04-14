@@ -18,7 +18,7 @@ impl Drop for RegisteredMemory
 	#[cold]
 	fn drop(&mut self)
 	{
-		self.user_fault_file_descriptor().unregister_memory_subrange(&self.very_large_range_of_mapped_memory);
+		let _swallow_error = self.user_fault_file_descriptor().unregister_memory_subrange(& * self.very_large_range_of_mapped_memory);
 		
 		unsafe { ManuallyDrop::drop(&mut self.very_large_range_of_mapped_memory) };
 	}
@@ -39,12 +39,10 @@ impl RegisteredMemory
 	#[cold]
 	pub fn new(user_fault_file_descriptor: Arc<UserFaultFileDescriptor>, number_of_pages: NonZeroUsize) -> Result<Self, RegisteredMemoryCreationError>
 	{
-		use self::RegisteredMemoryCreationError::*;
-		
 		let length = PageSizeOperations::number_of_bytes_from_number_of_pages(number_of_pages.get());
 		
-		let very_large_range_of_mapped_memory = Self::very_large_range_of_mapped_memory(length).map_err(MappingMemory)?;
-		let supported_input_output_control_requests_for_registered_memory = user_fault_file_descriptor.register_memory_subrange(&very_large_range_of_mapped_memory, PageFaultEventNotificationSetting::BothIfMissingAndIfWriteProtectedPageAccess).map_err(Registration)?;
+		let very_large_range_of_mapped_memory = Self::very_large_range_of_mapped_memory(length)?;
+		let supported_input_output_control_requests_for_registered_memory = user_fault_file_descriptor.register_memory_subrange(&very_large_range_of_mapped_memory, PageFaultEventNotificationSetting::BothIfMissingAndIfWriteProtectedPageAccess).map_err(RegisteredMemoryCreationError::Registration)?;
 		
 		assert!(supported_input_output_control_requests_for_registered_memory.contains(SupportedInputOutputControlRequests::RegularPagesWithWriteProtectOnCopy), "supported_input_output_control_requests {:?} lacking basic essential ioctls {:?}", supported_input_output_control_requests_for_registered_memory, SupportedInputOutputControlRequests::RegularPagesWithWriteProtectOnCopy);
 		
@@ -90,7 +88,7 @@ impl RegisteredMemory
 				let mut virtual_address = our_virtual_address;
 				loop
 				{
-					self.copy(virtual_address, PageAtATime, false, true, PageSizeOperations::zero_page_for_write_protected_copies());
+					self.copy(virtual_address, PageAtATime, false, true, PageSizeOperations::zero_page_for_write_protected_copies())?;
 					
 					virtual_address = virtual_address.offset_in_bytes(page_size_in_bytes);
 					if unlikely!(virtual_address == end_virtual_address)
@@ -98,6 +96,7 @@ impl RegisteredMemory
 						break
 					}
 				}
+				Ok(())
 			}
 		}
 		else
@@ -161,20 +160,20 @@ impl RegisteredMemory
 	
 	#[cfg(debug_assertions)]
 	#[inline(always)]
-	const fn start_virtual_address(&self) -> VirtualAddress
+	fn start_virtual_address(&self) -> VirtualAddress
 	{
 		self.very_large_range_of_mapped_memory.virtual_address()
 	}
 	
 	#[cfg(debug_assertions)]
 	#[inline(always)]
-	const fn end_virtual_address(&self) -> VirtualAddress
+	fn end_virtual_address(&self) -> VirtualAddress
 	{
 		self.start_virtual_address().offset_in_bytes(self.very_large_range_of_mapped_memory.mapped_size_in_bytes())
 	}
 	
 	#[inline(always)]
-	const fn user_fault_file_descriptor(&self) -> &UserFaultFileDescriptor
+	fn user_fault_file_descriptor(&self) -> &UserFaultFileDescriptor
 	{
 		self.user_fault_file_descriptor.deref()
 	}

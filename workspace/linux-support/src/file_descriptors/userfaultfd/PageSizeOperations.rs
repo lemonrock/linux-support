@@ -35,13 +35,6 @@ impl PageSizeOperations
 	}
 	
 	#[inline(always)]
-	const fn number_of_pages_from_number_of_bytes_rounded_up(number_of_bytes: usize) -> usize
-	{
-		let page_size_in_bytes = Self::page_size_in_bytes();
-		(number_of_bytes + page_size_in_bytes - 1) / page_size_in_bytes
-	}
-	
-	#[inline(always)]
 	const fn page_size_in_bytes() -> usize
 	{
 		Self::page_size().into_usize()
