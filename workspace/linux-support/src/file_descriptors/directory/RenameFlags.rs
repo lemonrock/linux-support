@@ -13,14 +13,14 @@ pub enum RenameFlags
 	/// Atomically exchanges name with another one; both must exist.
 	///
 	/// Equivalent to `RENAME_EXCHANGE`.
-	AtomicallySwapName = RENAME_EXCHANGE,
+	AtomicallySwapName = RENAME_EXCHANGE as i32,
 
 	/// Don't overwrite `to_path` of the rename.
 	///
 	/// Return an error if `to_path` already exists.
 	///
 	/// Equivalent to `RENAME_NOREPLACE`.
-	NoReplace = RENAME_NOREPLACE,
+	NoReplace = RENAME_NOREPLACE as i32,
 
 	/// Requires the process to have the `CAP_MKNOD` capability.
 	///
@@ -40,8 +40,8 @@ pub enum RenameFlags
 	/// (Note that other union/overlay domain may employ different methods for storing whiteout entries; specifically, BSD union mount  employs a separate inode type, `DT_WHT`, which, while supported by some filesystems available in Linux, such as CODA and XFS, is ignored by the kernel's whiteout support code, as of Linux 4.19, at least).
 	///
 	/// Equivalent to `RENAME_WHITEOUT`.
-	Whiteout = RENAME_WHITEOUT,
+	Whiteout = RENAME_WHITEOUT as i32,
 
 	/// Equivalent to `RENAME_NOREPLACE | RENAME_WHITEOUT`.
-	NoReplaceAndWhiteout = RENAME_NOREPLACE | RENAME_WHITEOUT,
+	NoReplaceAndWhiteout = (RENAME_NOREPLACE | RENAME_WHITEOUT) as i32,
 }
