@@ -85,7 +85,7 @@ impl EventReader
 					EFAULT => panic!("`buf` does not point to a valid memory address"),
 					
 					// Internally, `read()` calls `userfaultfd_read()` which calls `userfaultfd_ctx_read()` which calls `resolve_userfault_fork()` which calls `anon_inode_getfd()` and this can error (?with what).
-					// This  code path seems to only be possible if fork events can be raised.
+					// This code path seems to only be possible if fork events can be raised.
 					_ => panic!("Unexpect errno `{}` from userfaultfd non-blocking read()", errno),
 				}
 			}

@@ -8,7 +8,7 @@ pub trait PerThreadMemoryAllocatorInstantiator: Send + Sync
 	/// Arguments to pass to instantiate.
 	type InstantiationArguments: Send + Sync;
 	
-	/// Dropped when the thead is finished, even after a panic.
+	/// Dropped when the thread is finished, even after a panic.
 	///
 	/// Ensures that any thread local memory is then dropped.
 	type ThreadDropGuard: Sized;

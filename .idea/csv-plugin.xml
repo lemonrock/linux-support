@@ -10,6 +10,20 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/workspace/linux-support/src/thread/PerThreadMemoryAllocatorInstantiator.rs">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/workspace/linux-support/src/thread/ThreadConfigurationForRunningThread.rs">
+          <value>
+            <Attribute>
+              <option name="separator" value="&#9;" />
+            </Attribute>
+          </value>
+        </entry>
       </map>
     </option>
   </component>

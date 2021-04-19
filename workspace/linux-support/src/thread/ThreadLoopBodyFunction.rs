@@ -3,7 +3,7 @@
 
 
 /// The body of a while loop which checks that the thread should continue running.
-pub trait ThreadLoopBodyFunction
+pub trait ThreadLoopBodyFunction: Sized
 {
 	/// Invoke.
 	///
@@ -13,4 +13,20 @@ pub trait ThreadLoopBodyFunction
 	///
 	/// Use `terminate` if implementing a signal handler, say.
 	fn invoke<T: Terminate>(&mut self, terminate: &Arc<T>);
+	
+	/// Terminated.
+	fn terminated(self);
+	
+	/// Executes a loop, calling `invoke` as long as `terminate' permits continuation.
+	#[inline(always)]
+	fn execute_loop<T: Terminate>(mut self, terminate: &Arc<T>)
+	{
+		while likely!(terminate.should_continue())
+		{
+			self.invoke(&terminate);
+			busy_wait_spin_loop_hint()
+		}
+		
+		self.terminated();
+	}
 }

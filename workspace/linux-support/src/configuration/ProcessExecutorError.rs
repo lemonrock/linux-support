@@ -25,10 +25,10 @@ pub enum ProcessExecutorError
 	CouldNotSetChildSubreaper(Errno),
 
 	#[allow(missing_docs)]
-	CouldNotConfigureChildThreads(ThreadConfigurationError),
+	CouldNotConfigureChildThreads(SpawnedThreadError),
 
 	#[allow(missing_docs)]
-	CouldNotConfigureMainThread(ThreadConfigurationError),
+	CouldNotConfigureMainThread(MainThreadConfigurationError),
 
 	#[allow(missing_docs)]
 	TerminatedDueToPanicOrIrrecoverableError,
@@ -79,5 +79,23 @@ impl From<UserAndGroupChoiceError> for ProcessExecutorError
 	fn from(cause: UserAndGroupChoiceError) -> Self
 	{
 		ProcessExecutorError::UserAndGroupChoice(cause)
+	}
+}
+
+impl From<SpawnedThreadError> for ProcessExecutorError
+{
+	#[inline(always)]
+	fn from(cause: SpawnedThreadError) -> Self
+	{
+		ProcessExecutorError::CouldNotConfigureChildThreads(cause)
+	}
+}
+
+impl From<MainThreadConfigurationError> for ProcessExecutorError
+{
+	#[inline(always)]
+	fn from(cause: MainThreadConfigurationError) -> Self
+	{
+		ProcessExecutorError::CouldNotConfigureMainThread(cause)
 	}
 }

@@ -61,6 +61,7 @@ use crate::time::TimestampCounterSetting;
 use crate::time::c::tzset;
 use crate::user_and_groups::*;
 use crate::linux_kernel_modules::parameters::{LinuxKernelModuleParameterName, ModuleParameterValueChoice};
+use crate::thread::thread_barrier::WaitForSecurityLockDown;
 
 
 /// Checks.
