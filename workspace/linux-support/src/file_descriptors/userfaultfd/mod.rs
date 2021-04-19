@@ -17,7 +17,9 @@ use crate::memory::mapping::Protection;
 use crate::memory::mapping::Sharing;
 use crate::poll::PollRequestFlags;
 use crate::poll::PollResponseFlags;
+use crate::thread::ThreadFunction;
 use crate::thread::ThreadIdentifier;
+use crate::thread::ThreadLoopBodyFunction;
 
 
 mod c;
@@ -27,14 +29,17 @@ mod c;
 pub mod events_reader_and_dispatcher;
 
 
+include!("BlockingThreadFunction.rs");include!("BlockingThreadLoopBodyFunction.rs");
 include!("BlockingUserFaultFileDescriptor.rs");
 include!("BlockingUserFaultFileDescriptorCreationError.rs");
 include!("CopyError.rs");
 include!("CopyMode.rs");
 include!("Feature.rs");
 include!("Features.rs");
+include!("FeaturesAndSupportedInputOutputControlRequestsForApplicationProgrammerInterfaceValidator.rs");
 include!("InputOutputControlRequest.rs");
 include!("NonBlockingUserFaultFileDescriptor.rs");
+include!("NonBlockingUserFaultFileDescriptorCreationError.rs");
 include!("PageFaultEventType.rs");
 include!("PageFaultEventNotificationSetting.rs");
 include!("PageSizeOperations.rs");

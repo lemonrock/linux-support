@@ -15,7 +15,10 @@ pub trait ThreadLoopBodyFunction: Sized
 	fn invoke<T: Terminate>(&mut self, terminate: &Arc<T>);
 	
 	/// Terminated.
-	fn terminated(self);
+	#[inline(always)]
+	fn terminated(self)
+	{
+	}
 	
 	/// Executes a loop, calling `invoke` as long as `terminate' permits continuation.
 	#[inline(always)]

@@ -34,7 +34,7 @@ pub enum ThreadConfigurationError
 	CouldNotSetSchedulerPolicyAndFlags(&'static str),
 	
 	#[allow(missing_docs)]
-	ThreadFunctionInitializationFailed(anyhow::Error),
+	ThreadFunctionInitializationFailed(Box<dyn error::Error + Send + Sync + 'static>),
 	
 	#[allow(missing_docs)]
 	Capabilities(ThreadCapabilitiesConfigurationError),

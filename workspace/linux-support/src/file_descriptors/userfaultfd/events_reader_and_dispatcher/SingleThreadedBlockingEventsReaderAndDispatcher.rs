@@ -2,7 +2,8 @@
 // Copyright © 2021 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(super) struct SingleThreadedBlockingEventsReaderAndDispatcher<UFEH: UserFaultEventHandler>
+#[doc(hidden)]
+pub struct SingleThreadedBlockingEventsReaderAndDispatcher<UFEH: UserFaultEventHandler>
 {
 	event_reader: EventReader,
 	event_dispatcher: EventDispatcher<UFEH>,

@@ -4,19 +4,16 @@
 
 /// Creation error.
 #[derive(Debug)]
-pub enum BlockingUserFaultFileDescriptorCreationError<ValidationError: error::Error + 'static, UFFDWE: error::Error + 'static>
+pub enum NonBlockingUserFaultFileDescriptorCreationError<ValidationError: error::Error + 'static>
 {
 	/// Creation.
 	Creation(CreationError),
-	
+
 	/// Validation.
 	Validation(ValidationError),
-	
-	/// Wrapper.
-	WrapperConstruction(UFFDWE),
 }
 
-impl<ValidationError: error::Error + 'static, UFFDWE: error::Error + 'static> Display for BlockingUserFaultFileDescriptorCreationError<ValidationError, UFFDWE>
+impl<ValidationError: error::Error + 'static> Display for NonBlockingUserFaultFileDescriptorCreationError<ValidationError>
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -25,29 +22,27 @@ impl<ValidationError: error::Error + 'static, UFFDWE: error::Error + 'static> Di
 	}
 }
 
-impl<ValidationError: error::Error + 'static, UFFDWE: error::Error + 'static> error::Error for BlockingUserFaultFileDescriptorCreationError<ValidationError, UFFDWE>
+impl<ValidationError: error::Error + 'static> error::Error for NonBlockingUserFaultFileDescriptorCreationError<ValidationError>
 {
 	#[inline(always)]
 	fn source(&self) -> Option<&(dyn error::Error + 'static)>
 	{
-		use self::BlockingUserFaultFileDescriptorCreationError::*;
+		use self::NonBlockingUserFaultFileDescriptorCreationError::*;
 		
 		match self
 		{
 			Creation(ref cause) => Some(cause),
 			
 			Validation(ref cause) => Some(cause),
-			
-			WrapperConstruction(ref cause) => Some(cause),
 		}
 	}
 }
 
-impl<ValidationError: error::Error + 'static, UFFDWE: error::Error + 'static> From<CreationError> for BlockingUserFaultFileDescriptorCreationError<ValidationError, UFFDWE>
+impl<ValidationError: error::Error + 'static> From<CreationError> for NonBlockingUserFaultFileDescriptorCreationError<ValidationError>
 {
 	#[inline(always)]
 	fn from(from: CreationError) -> Self
 	{
-		BlockingUserFaultFileDescriptorCreationError::Creation(from)
+		NonBlockingUserFaultFileDescriptorCreationError::Creation(from)
 	}
 }

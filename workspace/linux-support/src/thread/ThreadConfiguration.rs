@@ -80,7 +80,7 @@ impl ThreadConfiguration
 	///
 	/// `stack_size` is ignored and not changed.
 	#[inline(always)]
-	pub fn configure_main_thread<PTMAI: PerThreadMemoryAllocatorInstantiator>(&self, instantiation_arguments: Arc<PTMAI::InstantiationArguments>, proc_path: &ProcPath, affinity: &HyperThreads) -> Result<PTMAI::ThreadDropGuard, MainThreadConfigurationError>
+	pub fn configure_main_thread<PTMAI: PerThreadMemoryAllocatorInstantiator>(&self, instantiation_arguments: Arc<PTMAI::InstantiationArguments>, proc_path: &ProcPath, affinity: Option<&HyperThreads>) -> Result<PTMAI::ThreadDropGuard, MainThreadConfigurationError>
 	{
 		self.name.set_thread_name(ProcessIdentifierChoice::Current, ThreadIdentifier::default(), proc_path).map_err(MainThreadConfigurationError::CouldNotSetThreadName)?;
 		
@@ -101,7 +101,7 @@ impl ThreadConfiguration
 	/// * because some thread specific values are best set from the thread creating the spawned thread in order to better receive panics and avoid Arcs or clones of data structures otherwise passed to the spawned thread.
 	/// * Because setting capabilities and seccomp can only occur once a thread has done some initialization work (eg opening a network connection, after which it needs to drop privileged port access).
 	#[inline(always)]
-	pub fn spawn<PTMAI: PerThreadMemoryAllocatorInstantiator, TF: ThreadFunction, T: Terminate + 'static>(&self, instantiation_arguments: &Arc<PTMAI::InstantiationArguments>, thread_function: TF, affinity: &HyperThreads, start_logging: bool, terminate: &Arc<T>, wait_for_security_lock_down: &mut WaitForSecurityLockDown) -> Result<SpawnedThread<()>, SpawnedThreadError>
+	pub fn spawn<PTMAI: PerThreadMemoryAllocatorInstantiator, TF: ThreadFunction, T: Terminate + 'static>(&self, instantiation_arguments: &Arc<PTMAI::InstantiationArguments>, thread_function: TF, affinity: Option<&HyperThreads>, start_logging: bool, terminate: &Arc<T>, wait_for_security_lock_down: &mut WaitForSecurityLockDown) -> Result<SpawnedThread<()>, SpawnedThreadError>
 	where PTMAI::InstantiationArguments: 'static,
 	{
 		let wait_for_security_lock_down_waiter = wait_for_security_lock_down.waiter(terminate);
@@ -116,7 +116,11 @@ impl ThreadConfiguration
 			let indirect_branch_speculation_mitigation_control = self.indirect_branch_speculation_mitigation_control;
 			let thread_local_allocator_configuration = self.thread_local_allocator_configuration.clone();
 			let instantiation_arguments = instantiation_arguments.clone();
-			let affinity_between_threads_hack = affinity as *const HyperThreads as usize;
+			let affinity_between_threads_hack = match affinity
+			{
+				None => 0,
+				Some(affinity) => affinity as *const HyperThreads as usize,
+			};
 			let nice = self.nice;
 			let io_priority = self.io_priority;
 			let thread_scheduler = self.thread_scheduler.clone();
@@ -181,7 +185,16 @@ impl ThreadConfiguration
 	#[inline(always)]
 	fn configure_and_initialized_spawned_thread<PTMAI: PerThreadMemoryAllocatorInstantiator, TF: ThreadFunction, T: Terminate + 'static>(numa_memory_policy: Option<SetMemoryPolicy>, disable_transparent_huge_pages: Option<bool>, current_timer_slack: Option<Option<CurrentTimerSlackNanoseconds>>, store_bypass_speculation_mitigation_control: Option<StoreBypassSpeculationMitigationControlChangeOperation>, indirect_branch_speculation_mitigation_control: Option<IndirectBranchSpeculationMitigationControlChangeOperation>, thread_local_allocator_configuration: Arc<ThreadLocalAllocatorConfiguration>, instantiation_arguments: Arc<PTMAI::InstantiationArguments>, start_logging: bool, affinity_between_threads_hack: usize, nice: Option<Nice>, io_priority: Option<IoPriority>, thread_scheduler: Arc<PerThreadSchedulerPolicyAndFlags>, capabilities: Option<Arc<ThreadCapabilitiesConfiguration>>, thread_function: TF) -> Result<(TF::TLBF, PTMAI::ThreadDropGuard), ThreadConfigurationError>
 	{
-		let thread_local_allocator_drop_guard = Self::most_thread_configuration::<PTMAI>(numa_memory_policy.as_ref(), disable_transparent_huge_pages, current_timer_slack, store_bypass_speculation_mitigation_control, indirect_branch_speculation_mitigation_control, thread_local_allocator_configuration, instantiation_arguments, start_logging, unsafe { & * (affinity_between_threads_hack as *const HyperThreads) }, nice, io_priority, &thread_scheduler)?;
+		let affinity = if affinity_between_threads_hack == 0
+		{
+			None
+		}
+		else
+		{
+			Some(unsafe { & * (affinity_between_threads_hack as *const HyperThreads) })
+		};
+		
+		let thread_local_allocator_drop_guard = Self::most_thread_configuration::<PTMAI>(numa_memory_policy.as_ref(), disable_transparent_huge_pages, current_timer_slack, store_bypass_speculation_mitigation_control, indirect_branch_speculation_mitigation_control, thread_local_allocator_configuration, instantiation_arguments, start_logging, affinity, nice, io_priority, &thread_scheduler)?;
 		
 		let thread_loop_body_function = thread_function.initialize().map_err(ThreadConfigurationError::ThreadFunctionInitializationFailed)?;
 		
@@ -191,7 +204,7 @@ impl ThreadConfiguration
 	}
 	
 	#[inline(always)]
-	fn most_thread_configuration<PTMAI: PerThreadMemoryAllocatorInstantiator>(numa_memory_policy: Option<&SetMemoryPolicy>, disable_transparent_huge_pages: Option<bool>, current_timer_slack: Option<Option<CurrentTimerSlackNanoseconds>>, store_bypass_speculation_mitigation_control: Option<StoreBypassSpeculationMitigationControlChangeOperation>, indirect_branch_speculation_mitigation_control: Option<IndirectBranchSpeculationMitigationControlChangeOperation>, thread_local_allocator_configuration: Arc<ThreadLocalAllocatorConfiguration>, instantiation_arguments: Arc<PTMAI::InstantiationArguments>, start_logging: bool, affinity: &HyperThreads, nice: Option<Nice>, io_priority: Option<IoPriority>, thread_scheduler: &PerThreadSchedulerPolicyAndFlags) -> Result<PTMAI::ThreadDropGuard, ThreadConfigurationError>
+	fn most_thread_configuration<PTMAI: PerThreadMemoryAllocatorInstantiator>(numa_memory_policy: Option<&SetMemoryPolicy>, disable_transparent_huge_pages: Option<bool>, current_timer_slack: Option<Option<CurrentTimerSlackNanoseconds>>, store_bypass_speculation_mitigation_control: Option<StoreBypassSpeculationMitigationControlChangeOperation>, indirect_branch_speculation_mitigation_control: Option<IndirectBranchSpeculationMitigationControlChangeOperation>, thread_local_allocator_configuration: Arc<ThreadLocalAllocatorConfiguration>, instantiation_arguments: Arc<PTMAI::InstantiationArguments>, start_logging: bool, affinity: Option<&HyperThreads>, nice: Option<Nice>, io_priority: Option<IoPriority>, thread_scheduler: &PerThreadSchedulerPolicyAndFlags) -> Result<PTMAI::ThreadDropGuard, ThreadConfigurationError>
 	{
 		use self::ThreadConfigurationError::*;
 		
@@ -233,6 +246,7 @@ impl ThreadConfiguration
 		
 		let thread_identifier = ThreadIdentifier::default();
 		
+		if let Some(affinity) = affinity
 		{
 			let pthread_t = unsafe { pthread_self() };
 			affinity.set_thread_affinity(pthread_t).map_err(CouldNotSetThreadAffinity)?;

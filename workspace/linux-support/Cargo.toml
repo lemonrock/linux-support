@@ -27,7 +27,6 @@ default = []
 libseccomp = []
 
 [target.'cfg(target_os = "linux")'.dependencies]
-anyhow = "^1.0.40"
 arrayvec = { version = "^0.5.1", features = ["array-sizes-33-128", "array-sizes-129-255", "serde"] }
 bitflags = "^1.0"
 bit-vec = "^0.6.1"

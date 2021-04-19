@@ -26,7 +26,7 @@ impl<'a, TF: ThreadFunction> ThreadSettings<'a, TF>
 		let ThreadSettings { thread_configuration, ref affinity, thread_function } = self;
 		
 		let terminate = spawned_threads.terminate_ref();
-		let result = thread_configuration.spawn::<PTMAI, TF, T>(instantiation_arguments, thread_function, affinity, start_logging, terminate, wait_for_security_lock_down);
+		let result = thread_configuration.spawn::<PTMAI, TF, T>(instantiation_arguments, thread_function, Some(affinity), start_logging, terminate, wait_for_security_lock_down);
 		let (mut spawned_threads, spawned_thread) = spawned_threads.continue_or_terminate(result)?;
 		spawned_threads.push(spawned_thread);
 		Ok(spawned_threads)
@@ -37,7 +37,7 @@ impl<'a, TF: ThreadFunction> ThreadSettings<'a, TF>
 	{
 		let ThreadSettings { thread_configuration, ref affinity, thread_function } = self;
 		
-		let result = thread_configuration.configure_main_thread::<PTMAI>(instantiation_arguments, proc_path, affinity);
+		let result = thread_configuration.configure_main_thread::<PTMAI>(instantiation_arguments, proc_path, Some(affinity));
 		let (spawned_threads, thread_local_allocator_drop_guard) = spawned_threads.continue_or_terminate(result)?;
 		
 		let result = thread_function.initialize();
