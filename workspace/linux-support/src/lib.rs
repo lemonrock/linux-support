@@ -658,7 +658,7 @@ use std::lazy::SyncOnceCell;
 use std::marker::PhantomData;
 use std::mem::ManuallyDrop;
 use std::mem::MaybeUninit;
-use std::mem::align_of;
+#[cfg(debug_assertions)] use std::mem::align_of;
 use std::mem::forget;
 use std::mem::size_of;
 use std::mem::transmute;

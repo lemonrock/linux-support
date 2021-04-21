@@ -158,14 +158,12 @@ impl RegisteredMemory
 		FastAbsoluteMemoryRange::new(virtual_address, PageSizeOperations::number_of_bytes_from_number_of_pages(number_of_pages.get()))
 	}
 	
-	#[cfg(debug_assertions)]
 	#[inline(always)]
 	fn start_virtual_address(&self) -> VirtualAddress
 	{
 		self.very_large_range_of_mapped_memory.virtual_address()
 	}
 	
-	#[cfg(debug_assertions)]
 	#[inline(always)]
 	fn end_virtual_address(&self) -> VirtualAddress
 	{

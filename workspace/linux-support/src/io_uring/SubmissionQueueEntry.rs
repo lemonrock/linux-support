@@ -739,10 +739,17 @@ impl SubmissionQueueEntry
 		value as *mut T as usize as u64
 	}
 	
+	#[cfg(debug_assertions)]
 	#[inline(always)]
 	fn guard_not_using_io_poll(&self)
 	{
 		debug_assert!(!self.using_io_poll, "Using SetupFlags::IoPoll");
+	}
+	
+	#[cfg(not(debug_assertions))]
+	#[inline(always)]
+	fn guard_not_using_io_poll(&self)
+	{
 	}
 	
 	#[inline(always)]

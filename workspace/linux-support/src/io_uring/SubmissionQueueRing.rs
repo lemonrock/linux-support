@@ -93,7 +93,8 @@ impl SubmissionQueueRing
 		self.store_tail_atomically(tail);
 		Ok(())
 	}
-
+	
+	#[cfg_attr(not(debug_assertions), allow(unused))]
 	#[inline(always)]
 	fn next_submission_queue_entry(&self, tail: u32, ring_mask: u32, using_kernel_submission_queue_poll: bool, using_io_poll: bool) -> SubmissionQueueEntry
 	{
