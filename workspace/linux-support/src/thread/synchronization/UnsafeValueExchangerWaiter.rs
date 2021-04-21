@@ -2,30 +2,21 @@
 // Copyright © 2021 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[derive(Debug)]
-pub(super) struct SimpleTwoThreadBarrierWaiter<V: Debug + Send + Sync + 'static, T: Terminate + 'static>
-{
-	inner: SimpleTwoThreadBarrier<V>,
-	
-	terminate: Arc<T>,
-}
+#[repr(transparent)]
+pub(super) struct UnsafeValueExchangerWaiter<'v, V>(&'v UnsafeValueExchanger<V>);
 
-impl<V: Debug + Send + Sync + 'static, T: Terminate + 'static> SimpleTwoThreadBarrierWaiter<V, T>
+impl<'v, V> UnsafeValueExchangerWaiter<'v, V>
 {
 	#[inline(always)]
-	pub(super) fn wait(self) -> Result<V, ()>
+	pub(super) fn wait(self) -> V
 	{
-		while self.inner.lock.load(Acquire) == SimpleTwoThreadBarrier::<V>::BarrierNotYetReached
+		self.0.debug_assert_has_been_split();
+		
+		while self.0.lock_is_not_yet_reached()
 		{
-			if unlikely!(self.terminate.should_finish())
-			{
-				return Err(())
-			}
-			
 			park()
 		}
 		
-		let mut value_to_transfer = Arc::try_unwrap(self.inner.value_to_transfer).unwrap();
-		Ok(value_to_transfer.take().unwrap())
+		self.0.take_value()
 	}
 }

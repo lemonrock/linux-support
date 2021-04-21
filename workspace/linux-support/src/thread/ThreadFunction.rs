@@ -15,5 +15,5 @@ pub trait ThreadFunction: std::marker::Send + std::marker::Sync + 'static
 	/// At this point the thread will have been bound to a specific `HyperThread`(s) and so per-thread optimizations can take place, eg creating a thread-specific memory allocator, using code that needs per-hyper-thread lightweight locks, etc.
 	/// At this point the thread will still be running as the original invoking user and may have some capabilities (eg to open raw sockets).
 	/// It will not yet have a final seccomp profile applied.
-	fn initialize(self) -> Result<Self::TLBF, Box<dyn error::Error + Send + Sync + 'static>>;
+	fn initialize(self) -> Result<Self::TLBF, Box<dyn error::Error + 'static>>;
 }

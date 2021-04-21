@@ -34,10 +34,13 @@ pub enum ThreadConfigurationError
 	CouldNotSetSchedulerPolicyAndFlags(&'static str),
 	
 	#[allow(missing_docs)]
-	ThreadFunctionInitializationFailed(Box<dyn error::Error + Send + Sync + 'static>),
+	ThreadFunctionInitializationFailed(Box<dyn error::Error + 'static>),
 	
 	#[allow(missing_docs)]
 	Capabilities(ThreadCapabilitiesConfigurationError),
+	
+	#[allow(missing_docs)]
+	Panicked(Box<dyn Any + Send + 'static>)
 }
 
 impl Display for ThreadConfigurationError
@@ -79,6 +82,8 @@ impl error::Error for ThreadConfigurationError
 			&ThreadFunctionInitializationFailed(ref cause) => Some(cause.as_ref()),
 			
 			&Capabilities(ref cause) => Some(cause),
+			
+			&Panicked(..) => None,
 		}
 	}
 }

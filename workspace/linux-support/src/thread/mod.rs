@@ -2,7 +2,7 @@
 // Copyright © 2016-2019 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use self::thread_barrier::*;
+use self::synchronization::*;
 use super::*;
 use crate::cpu::HyperThreads;
 use crate::capabilities_and_privileges::*;
@@ -25,8 +25,8 @@ use crate::time::CurrentTimerSlackNanoseconds;
 use crate::file_descriptors::socket::NewSocketClientError;
 
 
-/// Thread barriers.
-pub mod thread_barrier;
+/// Thread synchronization.
+pub mod synchronization;
 
 
 include!("configure_global_panic_hook.rs");

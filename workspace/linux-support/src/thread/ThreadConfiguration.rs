@@ -105,41 +105,55 @@ impl ThreadConfiguration
 	where PTMAI::InstantiationArguments: 'static,
 	{
 		let wait_for_security_lock_down_waiter = wait_for_security_lock_down.waiter(terminate);
-		let (spawned_thread_identifier_has_been_set_waiter, spawned_thread_identifier_has_been_set_releaser) = SimpleTwoThreadBarrier::new(terminate);
+		
+		let unsafe_value_exchanger = UnsafeValueExchanger::new();
+		let (spawned_thread_identifier_has_been_set_releaser, spawned_thread_identifier_has_been_set_waiter) = unsafe_value_exchanger.split();
 		
 		let thread_code =
 		{
-			let numa_memory_policy = self.numa_memory_policy.clone();
-			let disable_transparent_huge_pages = self.disable_transparent_huge_pages;
-			let current_timer_slack = self.current_timer_slack;
-			let store_bypass_speculation_mitigation_control = self.store_bypass_speculation_mitigation_control;
-			let indirect_branch_speculation_mitigation_control = self.indirect_branch_speculation_mitigation_control;
-			let thread_local_allocator_configuration = self.thread_local_allocator_configuration.clone();
-			let instantiation_arguments = instantiation_arguments.clone();
-			let affinity_between_threads_hack = match affinity
+			let configuration_closure =
 			{
-				None => 0,
-				Some(affinity) => affinity as *const HyperThreads as usize,
+				let numa_memory_policy = self.numa_memory_policy.clone();
+				let disable_transparent_huge_pages = self.disable_transparent_huge_pages;
+				let current_timer_slack = self.current_timer_slack;
+				let store_bypass_speculation_mitigation_control = self.store_bypass_speculation_mitigation_control;
+				let indirect_branch_speculation_mitigation_control = self.indirect_branch_speculation_mitigation_control;
+				let thread_local_allocator_configuration = self.thread_local_allocator_configuration.clone();
+				let instantiation_arguments = instantiation_arguments.clone();
+				let affinity_between_threads_hack = match affinity
+				{
+					None => 0,
+					Some(affinity) => affinity as *const HyperThreads as usize,
+				};
+				let nice = self.nice;
+				let io_priority = self.io_priority;
+				let thread_scheduler = self.thread_scheduler.clone();
+				let capabilities = self.capabilities.clone();
+				move ||
+				{
+					match catch_unwind(AssertUnwindSafe(|| Self::configure_and_initialized_spawned_thread::<PTMAI, TF, T>(numa_memory_policy, disable_transparent_huge_pages, current_timer_slack, store_bypass_speculation_mitigation_control, indirect_branch_speculation_mitigation_control, thread_local_allocator_configuration, instantiation_arguments, start_logging, affinity_between_threads_hack, nice, io_priority, thread_scheduler, capabilities, thread_function)))
+					{
+						Ok(result) => result,
+						
+						Err(panic_payload) => Err(ThreadConfigurationError::Panicked(panic_payload)),
+					}
+				}
 			};
-			let nice = self.nice;
-			let io_priority = self.io_priority;
-			let thread_scheduler = self.thread_scheduler.clone();
-			let capabilities = self.capabilities.clone();
+			
 			let terminate = terminate.clone();
-			let spawning_thread = current();
 			move ||
 			{
-				let (thread_loop_body_function, thread_local_allocator_drop_guard) = match Self::configure_and_initialized_spawned_thread::<PTMAI, TF, T>(numa_memory_policy, disable_transparent_huge_pages, current_timer_slack, store_bypass_speculation_mitigation_control, indirect_branch_speculation_mitigation_control, thread_local_allocator_configuration, instantiation_arguments, start_logging, affinity_between_threads_hack, nice, io_priority, thread_scheduler, capabilities, thread_function)
+				let (thread_loop_body_function, thread_local_allocator_drop_guard) = match configuration_closure()
 				{
 					Ok((thread_loop_body_function, thread_local_allocator_drop_guard)) =>
 					{
-						spawned_thread_identifier_has_been_set_releaser.store_and_release(Ok(ThreadIdentifier::default()), &spawning_thread);
+						spawned_thread_identifier_has_been_set_releaser.release(Ok(ThreadIdentifier::default()));
 						(thread_loop_body_function, thread_local_allocator_drop_guard)
 					},
 					
 					Err(error) =>
 					{
-						spawned_thread_identifier_has_been_set_releaser.store_and_release(Err(error), &spawning_thread);
+						spawned_thread_identifier_has_been_set_releaser.release(Err(error));
 						return
 					}
 				};
@@ -154,7 +168,7 @@ impl ThreadConfiguration
 		let join_handle = self.spawn_catching_panics(terminate.clone(), thread_code)?;
 		yield_now();
 		
-		let thread_identifier = spawned_thread_identifier_has_been_set_waiter.wait().map_err(|()| SpawnedThreadError::SpawnedThreadTerminatedBeforeSettingThreadIdentifier)??;
+		let thread_identifier = spawned_thread_identifier_has_been_set_waiter.wait()?;
 		let spawned_thread = SpawnedThread
 		{
 			join_handle,
@@ -167,7 +181,7 @@ impl ThreadConfiguration
 		Ok(spawned_thread)
 	}
 	
-	fn spawn_catching_panics<T: Terminate + Send + Sync + 'static>(&self, terminate: Arc<T>, thread_code: impl FnOnce() + Send + Sync + 'static) -> Result<JoinHandle<()>, SpawnedThreadError>
+	fn spawn_catching_panics<T: Terminate + 'static>(&self, terminate: Arc<T>, thread_code: impl FnOnce() + Send + 'static) -> Result<JoinHandle<()>, SpawnedThreadError>
 	{
 		self.builder().spawn
 		(

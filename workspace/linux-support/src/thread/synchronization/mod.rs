@@ -7,6 +7,6 @@ use super::*;
 
 include!("WaitForSecurityLockDown.rs");
 include!("WaitForSecurityLockDownWaiter.rs");
-include!("SimpleTwoThreadBarrier.rs");
-include!("SimpleTwoThreadBarrierWaiter.rs");
-include!("SimpleTwoThreadBarrierReleaser.rs");
+include!("UnsafeValueExchanger.rs");
+include!("UnsafeValueExchangerReleaser.rs");
+include!("UnsafeValueExchangerWaiter.rs");

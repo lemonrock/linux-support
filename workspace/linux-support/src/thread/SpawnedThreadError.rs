@@ -10,9 +10,6 @@ pub enum SpawnedThreadError
 	CouldNotSpawnThread(io::Error),
 	
 	#[allow(missing_docs)]
-	SpawnedThreadTerminatedBeforeSettingThreadIdentifier,
-	
-	#[allow(missing_docs)]
 	CouldNotConfigure(ThreadConfigurationError),
 }
 
@@ -35,8 +32,6 @@ impl error::Error for SpawnedThreadError
 		match self
 		{
 			&CouldNotSpawnThread(ref cause) => Some(cause),
-			
-			&SpawnedThreadTerminatedBeforeSettingThreadIdentifier => None,
 
 			&CouldNotConfigure(ref cause) => Some(cause),
 		}

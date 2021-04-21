@@ -17,7 +17,7 @@ impl<UFEH: UserFaultEventHandler + Send + Sync + 'static, ERAD: EventsReaderAndD
 	type TLBF = BlockingThreadLoopBodyFunction<ERAD>;
 	
 	#[inline(always)]
-	fn initialize(self) -> Result<Self::TLBF, Box<dyn error::Error + Send + Sync + 'static>>
+	fn initialize(self) -> Result<Self::TLBF, Box<dyn error::Error + 'static>>
 	{
 		Ok
 		(
