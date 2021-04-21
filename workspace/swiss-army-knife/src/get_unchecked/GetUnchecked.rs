@@ -51,29 +51,31 @@ impl<T> GetUnchecked<T> for [T]
 		unsafe { self.get_unchecked_mut(index) }
 	}
 	
+	#[cfg(debug_assertions)]
 	#[inline(always)]
 	fn get_unchecked_range_safe<AUR: AsUsizeRange<T>>(&self, range: AUR) -> &[T]
 	{
-		if cfg!(debug_assertions)
-		{
-			range.get_checked_range_ref(self).unwrap()
-		}
-		else
-		{
-			unsafe { & * range.get_unchecked_range_ref(self) }
-		}
+		range.get_checked_range_ref(self).unwrap()
 	}
 	
+	#[cfg(not(debug_assertions))]
+	#[inline(always)]
+	fn get_unchecked_range_safe<AUR: AsUsizeRange<T>>(&self, range: AUR) -> &[T]
+	{
+		unsafe { & * range.get_unchecked_range_ref(self) }
+	}
+	
+	#[cfg(debug_assertions)]
 	#[inline(always)]
 	fn get_unchecked_range_mut_safe<AUR: AsUsizeRange<T>>(&mut self, range: AUR) -> &mut [T]
 	{
-		if cfg!(debug_assertions)
-		{
-			range.get_checked_range_mut(self).unwrap()
-		}
-		else
-		{
-			unsafe { &mut * range.get_unchecked_range_mut(self) }
-		}
+		range.get_checked_range_mut(self).unwrap()
+	}
+	
+	#[cfg(not(debug_assertions))]
+	#[inline(always)]
+	fn get_unchecked_range_mut_safe<AUR: AsUsizeRange<T>>(&mut self, range: AUR) -> &mut [T]
+	{
+		unsafe { &mut * range.get_unchecked_range_mut(self) }
 	}
 }
