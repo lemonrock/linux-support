@@ -59,7 +59,7 @@ impl RegisteredMemory
 	
 	/// Returns memory to the Linux Kernel using `madvise(MADV_FREE)` by setting the dirty bit in the page table entry (PTE).
 	///
-	/// Trying to read or write to the requested memory range after thus call *may* cause a user page fault.
+	/// Trying to read or write to the requested memory range after this call *may* cause a user page fault.
 	///
 	/// The user page fault will only occur if the memory has subsequently been used for something else by the Linux kernel.
 	#[inline(always)]
@@ -70,7 +70,7 @@ impl RegisteredMemory
 	
 	/// Returns memory to the Linux Kernel using `madvise(MADV_DONTNEED)`.
 	///
-	/// Trying to read or write to the requested memory range after thus call will cause a user page fault.
+	/// Trying to read or write to the requested memory range after this call will cause a user page fault.
 	///
 	/// Expensive.
 	#[inline(always)]
@@ -85,7 +85,7 @@ impl RegisteredMemory
 	#[inline(always)]
 	pub fn copy(&self, our_virtual_address: VirtualAddress, number_of_pages: NonZeroUsize, wake_up_suspended_thread_that_page_faulted_in_registered_memory_subrange: bool, write_protect: bool, copy_starting_from: VirtualAddress) -> Result<(), CopyError>
 	{
-		let registered_memory_subrange = self.registered_memory_subrange(our_virtual_address, number_of_pages);
+		let registered_memory_subrange = self.registered_memory_subrange_checked(our_virtual_address, number_of_pages);
 		self.user_fault_file_descriptor().copy_registered_memory_subrange(registered_memory_subrange, copy_starting_from, wake_up_suspended_thread_that_page_faulted_in_registered_memory_subrange, write_protect)
 	}
 	
@@ -155,36 +155,41 @@ impl RegisteredMemory
 	#[inline(always)]
 	fn advise(&self, our_virtual_address: VirtualAddress, number_of_pages: NonZeroUsize, advice: MemoryAdvice) -> io::Result<()>
 	{
-		let registered_memory_subrange = self.registered_memory_subrange(our_virtual_address, number_of_pages);
-		self.very_large_range_of_mapped_memory.advise_range(advice, registered_memory_subrange)
+		self.very_large_range_of_mapped_memory.advise_range(advice, self.mapped_memory_subrange_checked(our_virtual_address, number_of_pages))
+	}
+	
+	#[inline(always)]
+	fn mapped_memory_subrange_checked(&self, virtual_address: VirtualAddress, number_of_pages: NonZeroUsize) -> Range<usize>
+	{
+		self.registered_memory_subrange_checked(virtual_address, number_of_pages).into_range(self.start_virtual_address())
 	}
 	
 	#[inline(always)]
 	fn registered_memory_subrange_checked(&self, virtual_address: VirtualAddress, number_of_pages: NonZeroUsize) -> FastAbsoluteMemoryRange
 	{
+		let number_of_bytes_in_subrange = Self::number_of_bytes_from_number_of_pages(number_of_pages);
+		
 		if cfg!(debug_assertions)
 		{
-			let number_of_bytes_in_subrange = PageSizeOperations::number_of_bytes_from_number_of_pages(number_of_pages.get());
-			
 			debug_assert!(self.start_virtual_address() <= virtual_address);
 			debug_assert!(self.end_virtual_address() >= virtual_address.offset_in_bytes(number_of_bytes_in_subrange));
 		}
 		
-		self.registered_memory_subrange(virtual_address, number_of_pages)
+		FastAbsoluteMemoryRange::new(virtual_address, number_of_bytes_in_subrange)
 	}
 	
 	#[cfg(any(target_arch = "powerpc64", target_arch = "riscv64", target_arch = "sparc64", target_arch = "x86_64"))]
 	#[inline(always)]
-	const fn registered_memory_subrange(&self, virtual_address: VirtualAddress, number_of_pages: NonZeroUsize) -> FastAbsoluteMemoryRange
+	const fn number_of_bytes_from_number_of_pages(number_of_pages: NonZeroUsize) -> usize
 	{
-		FastAbsoluteMemoryRange::new(virtual_address, PageSizeOperations::number_of_bytes_from_number_of_pages(number_of_pages.get()))
+		PageSizeOperations::number_of_bytes_from_number_of_pages(number_of_pages.get())
 	}
 	
 	#[cfg(not(any(target_arch = "powerpc64", target_arch = "riscv64", target_arch = "sparc64", target_arch = "x86_64")))]
 	#[inline(always)]
-	fn registered_memory_subrange(&self, virtual_address: VirtualAddress, number_of_pages: NonZeroUsize) -> FastAbsoluteMemoryRange
+	fn number_of_bytes_from_number_of_pages(number_of_pages: NonZeroUsize) -> usize
 	{
-		FastAbsoluteMemoryRange::new(virtual_address, PageSizeOperations::number_of_bytes_from_number_of_pages(number_of_pages.get()))
+		PageSizeOperations::number_of_bytes_from_number_of_pages(number_of_pages.get())
 	}
 	
 	#[inline(always)]

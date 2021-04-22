@@ -263,7 +263,7 @@ impl PageSize
 
 	/// A very slightly faster function to get page size than `sysconf(_SC_PAGESIZE)` on musl libc systems.
 	///
-	/// On powerpc64, riscv64, sparc64 and x86_64, the value is trully constant; otherwise, it is effectively constant and is derived from data passed when an executable is first loaded.
+	/// On powerpc64, riscv64, sparc64 and x86_64, the value is truly constant; otherwise, it is effectively constant and is derived from data passed when an executable is first loaded.
 	#[cfg(any(target_arch = "powerpc64", target_arch = "riscv64", target_arch = "x86_64"))]
 	#[inline(always)]
 	pub const fn default() -> Self
@@ -273,7 +273,7 @@ impl PageSize
 
 	/// A very slightly faster function to get page size than `sysconf(_SC_PAGESIZE)` on musl libc systems.
 	///
-	/// On powerpc64, sparc64 and x86_64, the value is trully constant; otherwise, it is effectively constant and is derived from data passed when an executable is first loaded.
+	/// On powerpc64, sparc64 and x86_64, the value is truly constant; otherwise, it is effectively constant and is derived from data passed when an executable is first loaded.
 	#[cfg(target_arch = "sparc64")]
 	#[inline(always)]
 	pub const fn default() -> Self
@@ -283,7 +283,7 @@ impl PageSize
 
 	/// A very slightly faster function to get page size than `sysconf(_SC_PAGESIZE)` on musl libc systems.
 	///
-	/// On powerpc64, sparc64 and x86_64, the value is trully constant; otherwise, it is effectively constant and is derived from data passed when an executable is first loaded.
+	/// On powerpc64, sparc64 and x86_64, the value is truly constant; otherwise, it is effectively constant and is derived from data passed when an executable is first loaded.
 	#[cfg(not(any(target_arch = "powerpc64", target_arch = "riscv64", target_arch = "sparc64", target_arch = "x86_64")))]
 	#[inline(always)]
 	pub fn default() -> Self

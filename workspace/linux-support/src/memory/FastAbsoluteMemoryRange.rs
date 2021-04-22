@@ -104,4 +104,13 @@ impl FastAbsoluteMemoryRange
 			length,
 		}
 	}
+	
+	/// Into an inclusive `Range`.
+	#[inline(always)]
+	pub fn into_range(self, start_virtual_address: VirtualAddress) -> Range<usize>
+	{
+		debug_assert!(start_virtual_address <= self.inclusive_absolute_start);
+		
+		self.inclusive_absolute_start.difference(start_virtual_address) .. self.length
+	}
 }

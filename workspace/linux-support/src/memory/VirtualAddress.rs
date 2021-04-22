@@ -710,10 +710,32 @@ impl VirtualAddress
 		self.0 - rhs.0
 	}
 	
-	/// Adds an offset.
+	/// Adds an offset (number of bytes).
 	pub const fn offset_in_bytes(self, offset_in_bytes: usize) -> Self
 	{
 		Self(self.0 + offset_in_bytes)
+	}
+	
+	/// Adds an offset (number of pages).
+	#[cfg(any(target_arch = "powerpc64", target_arch = "riscv64", target_arch = "sparc64", target_arch = "x86_64"))]
+	#[inline(always)]
+	pub const fn offset_in_number_of_pages(self, number_of_pages: usize) -> Self
+	{
+		self.offset_in_number_of_pages_inner(number_of_pages, PageSize::default())
+	}
+	
+	#[cfg(not(any(target_arch = "powerpc64", target_arch = "riscv64", target_arch = "sparc64", target_arch = "x86_64")))]
+	#[inline(always)]
+	pub fn offset_in_number_of_pages(self)
+	{
+		self.offset_in_number_of_pages_inner(number_of_pages, PageSize::default())
+	}
+	
+	#[inline(always)]
+	const fn offset_in_number_of_pages_inner(self, number_of_pages: usize, page_size: PageSize) -> Self
+	{
+		let page_size = page_size.size_in_bytes().get() as usize;
+		self.offset_in_bytes(number_of_pages * page_size)
 	}
 	
 	/// Saturating addition of 1.
