@@ -57,6 +57,28 @@ impl RegisteredMemory
 		)
 	}
 	
+	/// Returns memory to the Linux Kernel using `madvise(MADV_FREE)` by setting the dirty bit in the page table entry (PTE).
+	///
+	/// Trying to read or write to the requested memory range after thus call *may* cause a user page fault.
+	///
+	/// The user page fault will only occur if the memory has subsequently been used for something else by the Linux kernel.
+	#[inline(always)]
+	pub fn soft_remove_from_user_faulted_memory(&self, our_virtual_address: VirtualAddress, number_of_pages: NonZeroUsize) -> io::Result<()>
+	{
+		self.advise(our_virtual_address, number_of_pages, MemoryAdvice::Free)
+	}
+	
+	/// Returns memory to the Linux Kernel using `madvise(MADV_DONTNEED)`.
+	///
+	/// Trying to read or write to the requested memory range after thus call will cause a user page fault.
+	///
+	/// Expensive.
+	#[inline(always)]
+	pub fn hard_remove_from_user_faulted_memory(&self, our_virtual_address: VirtualAddress, number_of_pages: NonZeroUsize) -> io::Result<()>
+	{
+		self.advise(our_virtual_address, number_of_pages, MemoryAdvice::DontNeed)
+	}
+	
 	/// Copy to a range of registered memory that has yet to be 'faulted in'.
 	///
 	/// `copy_starting_from` does not need to be registered memory.
@@ -128,6 +150,13 @@ impl RegisteredMemory
 	{
 		let registered_memory_subrange = self.registered_memory_subrange_checked(our_virtual_address, number_of_pages);
 		self.user_fault_file_descriptor().disable_write_protection_of_registered_memory_subrange(registered_memory_subrange, wake_up_suspended_thread_that_page_faulted_in_registered_memory_subrange)
+	}
+	
+	#[inline(always)]
+	fn advise(&self, our_virtual_address: VirtualAddress, number_of_pages: NonZeroUsize, advice: MemoryAdvice) -> io::Result<()>
+	{
+		let registered_memory_subrange = self.registered_memory_subrange(our_virtual_address, number_of_pages);
+		self.very_large_range_of_mapped_memory.advise_range(advice, registered_memory_subrange)
 	}
 	
 	#[inline(always)]
