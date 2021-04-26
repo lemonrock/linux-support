@@ -21,7 +21,7 @@ version = "0.2.0"
 [dependencies]
 static_assertions = "^1.1"
 
-[target.'cfg(target_os = "linux")'.dependencies]
+[target.'cfg(all(target_os = "linux", target_pointer_width = "64"))'.dependencies]
 arrayvec = { version = "^0.5.1", features = ["array-sizes-33-128", "array-sizes-129-255", "serde"] }
 context-allocator = { version = "^0.3.1", path = "../context-allocator" }
 either = { version = "^1.5.3", features = ["serde"] }

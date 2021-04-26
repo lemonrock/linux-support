@@ -21,7 +21,7 @@ version = "0.0.0"
 [dependencies]
 static_assertions = "^1.0"
 
-[target.'cfg(target_os = "linux")'.dependencies]
+[target.'cfg(all(target_os = "linux", target_pointer_width = "64"))'.dependencies]
 bitflags = "^1.0"
 errno = "^0.2"
 libc = { version = "^0.2.93", features = ["const-extern-fn", "extra_traits", "std"] }

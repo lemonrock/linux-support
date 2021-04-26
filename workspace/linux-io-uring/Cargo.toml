@@ -23,11 +23,11 @@ indexmap = { version = "^1.5.0", features = [] }
 maplit = "^1.0.2"
 
 [dependencies]
-const_fn_assert = "^0.1.2"
 static_assertions = "^1.1"
 
-[target.'cfg(target_os = "linux")'.dependencies]
+[target.'cfg(all(target_os = "linux", target_pointer_width = "64"))'.dependencies]
 arrayvec = { version = "^0.5.1", features = ["array-sizes-33-128", "array-sizes-129-255", "serde"] }
+const_fn_assert = "^0.1.2"
 context-allocator = { version = "^0.3.1", path = "../context-allocator" }
 context-coroutine = { version = "^3.2.1", path = "../context-coroutine" }
 either = { version = "^1.5.3", features = ["serde"] }

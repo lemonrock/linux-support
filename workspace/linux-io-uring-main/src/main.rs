@@ -11,6 +11,11 @@
 #![feature(thread_local)]
 
 
+use static_assertions::assert_cfg;
+assert_cfg!(target_os = "linux");
+assert_cfg!(target_pointer_width = "64");
+
+
 use self::application_configuration::*;
 use self::command_line::*;
 use self::memory_allocator_settings::*;
