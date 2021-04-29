@@ -392,7 +392,14 @@ impl<'a> IoUring<'a>
 		
 		let mapped_memory = MappedMemory::from_file(io_uring_file_descriptor, offset, size, AddressHint::any(), Protection::ReadWrite, Sharing::Shared, true, false, &page_size_or_huge_page_size_settings)?;
 
-		mapped_memory.advise(MemoryAdvice::DontFork).map_err(IoUringCreationError::CouldNotAdviseDontFork)?;
+		loop
+		{
+			let succeeded = mapped_memory.advise(MemoryAdvice::DontFork).map_err(IoUringCreationError::CouldNotAdviseDontFork)?;
+			if likely!(succeeded)
+			{
+				break
+			}
+		}
 
 		Ok(mapped_memory)
 	}

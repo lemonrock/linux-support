@@ -10,7 +10,7 @@ pub enum IoUringCreationError
 	CouldNotMemoryMap(CreationError),
 
 	#[allow(missing_docs)]
-	CouldNotAdviseDontFork(io::Error),
+	CouldNotAdviseDontFork(MemoryAdviceError),
 
 	#[allow(missing_docs)]
 	CouldNotCreateIoUringFileDescriptor(io::Error),

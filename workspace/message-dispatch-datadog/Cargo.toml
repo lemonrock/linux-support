@@ -28,7 +28,7 @@ either = { version = "^1.5.3", features = ["serde"] }
 lazy_static = "^1.4.0"
 libc = { version = "^0.2.93", features = ["const-extern-fn", "extra_traits", "std"] }
 likely = { version = "^0.2.0", path = "../likely" }
-linux-support = { version = "^0.0.20", path = "../linux-support" }
+linux-support = { version = "^0.0.21", path = "../linux-support" }
 magic-ring-buffer = { version = "^0.3.1", path = "../magic-ring-buffer" }
 memchr = "^2.3.3"
 message-dispatch = { version = "^0.2.0", path = "../message-dispatch" }

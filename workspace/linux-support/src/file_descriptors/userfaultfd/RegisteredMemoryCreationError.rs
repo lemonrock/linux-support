@@ -10,7 +10,7 @@ pub enum RegisteredMemoryCreationError
 	MappingMemory(CreationError),
 	
 	/// Could not use memory advice.
-	CouldNotAdvise(io::Error, MemoryAdvice),
+	CouldNotAdvise(MemoryAdviceError, MemoryAdvice),
 	
 	/// Registration.
 	Registration(CreationError),

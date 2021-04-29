@@ -19,7 +19,7 @@ pub enum MemoryMapError
 	CouldNotLockAllMappedMemory,
 
 	#[allow(missing_docs)]
-	CouldNotApplyMemoryAdvice(io::Error, MemoryAdvice),
+	CouldNotApplyMemoryAdvice(MemoryAdviceError, MemoryAdvice),
 }
 
 impl Display for MemoryMapError

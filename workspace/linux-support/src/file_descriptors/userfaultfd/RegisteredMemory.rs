@@ -63,7 +63,7 @@ impl RegisteredMemory
 	///
 	/// The user page fault will only occur if the memory has subsequently been used for something else by the Linux kernel.
 	#[inline(always)]
-	pub fn soft_remove_from_user_faulted_memory(&self, our_virtual_address: VirtualAddress, number_of_pages: NonZeroUsize) -> io::Result<()>
+	pub fn soft_remove_from_user_faulted_memory(&self, our_virtual_address: VirtualAddress, number_of_pages: NonZeroUsize) -> Result<(), MemoryAdviceError>
 	{
 		self.advise(our_virtual_address, number_of_pages, MemoryAdvice::Free)
 	}
@@ -74,7 +74,7 @@ impl RegisteredMemory
 	///
 	/// Expensive.
 	#[inline(always)]
-	pub fn hard_remove_from_user_faulted_memory(&self, our_virtual_address: VirtualAddress, number_of_pages: NonZeroUsize) -> io::Result<()>
+	pub fn hard_remove_from_user_faulted_memory(&self, our_virtual_address: VirtualAddress, number_of_pages: NonZeroUsize) -> Result<(), MemoryAdviceError>
 	{
 		self.advise(our_virtual_address, number_of_pages, MemoryAdvice::DontNeed)
 	}
@@ -153,9 +153,17 @@ impl RegisteredMemory
 	}
 	
 	#[inline(always)]
-	fn advise(&self, our_virtual_address: VirtualAddress, number_of_pages: NonZeroUsize, advice: MemoryAdvice) -> io::Result<()>
+	fn advise(&self, our_virtual_address: VirtualAddress, number_of_pages: NonZeroUsize, advice: MemoryAdvice) -> Result<(), MemoryAdviceError>
 	{
-		self.very_large_range_of_mapped_memory.advise_range(advice, self.mapped_memory_subrange_checked(our_virtual_address, number_of_pages))
+		loop
+		{
+			let succeeded = self.very_large_range_of_mapped_memory.advise_range(advice, self.mapped_memory_subrange_checked(our_virtual_address, number_of_pages))?;
+			if likely!(succeeded)
+			{
+				return Ok(())
+			}
+		}
+		
 	}
 	
 	#[inline(always)]
@@ -227,8 +235,15 @@ impl RegisteredMemory
 		
 		for advice in Advice.iter()
 		{
-			let advice = *advice;
-			mapped_memory.advise(advice).map_err(|cause| CouldNotAdvise(cause, advice))?;
+			loop
+			{
+				let advice = *advice;
+				let succeeded = mapped_memory.advise(advice).map_err(|cause| CouldNotAdvise(cause, advice))?;
+				if likely!(succeeded)
+				{
+					break
+				}
+			}
 		}
 		
 		Ok(mapped_memory)

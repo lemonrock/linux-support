@@ -106,7 +106,14 @@ impl MappedMemoryConfiguration
 
 		for &advice in self.advice.iter()
 		{
-			mapped_memory.advise(advice).map_err(|cause| CouldNotApplyMemoryAdvice(cause, advice))?
+			loop
+			{
+				let succeeded = mapped_memory.advise(advice).map_err(|cause| CouldNotApplyMemoryAdvice(cause, advice))?;
+				if likely!(succeeded)
+				{
+					break
+				}
+			}
 		}
 
 		Ok(mapped_memory)

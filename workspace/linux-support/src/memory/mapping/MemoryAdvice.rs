@@ -192,13 +192,13 @@ pub enum MemoryAdvice
 	/// This feature is intended for testing of memory error-handling code.
 	///
 	/// Since Linux 2.6.32.
-	HardwarePoision = MADV_HWPOISON,
+	HardwarePoison = MADV_HWPOISON,
 
 	/// Soft offline the pages in the range specified by `addr` and `length`.
 	///
 	/// Only available if the kernel has been built with `CONFIG_MEMORY_FAILURE`.
 	///
-	/// The memory of each page in the specified range is  preserved (ie, when next accessed, the same content will be  visible, but in a new physical page frame), and the original page is offlined (ie, no longer used, and taken out of  normal memory management).
+	/// The memory of each page in the specified range is preserved (ie, when next accessed, the same content will be visible, but in a new physical page frame), and the original page is offlined (ie, no longer used, and taken out of  normal memory management).
 	/// The effect of this operation is invisible to (ie, does not change the semantics of) the calling process.
 	///
 	/// This feature is intended for testing of memory error-handling code.

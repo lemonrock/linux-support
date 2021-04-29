@@ -11,9 +11,15 @@
       <w>deserialise</w>
       <w>deserialiser</w>
       <w>dlid</w>
+      <w>dont</w>
+      <w>eacces</w>
+      <w>eagain</w>
+      <w>ebadf</w>
       <w>ebusy</w>
       <w>edeadlk</w>
       <w>einval</w>
+      <w>enomem</w>
+      <w>eperm</w>
       <w>epfd</w>
       <w>epoll</w>
       <w>errormsg</w>
@@ -34,6 +40,7 @@
       <w>libfabric</w>
       <w>libibverbs</w>
       <w>libnuma</w>
+      <w>madvise</w>
       <w>maskp</w>
       <w>maxevents</w>
       <w>mbind</w>
@@ -44,6 +51,7 @@
       <w>memcpy</w>
       <w>memmove</w>
       <w>memset</w>
+      <w>mergeable</w>
       <w>mlogpool</w>
       <w>mmutex</w>
       <w>mobjpool</w>
@@ -89,6 +97,7 @@
       <w>timewait</w>
       <w>tonode</w>
       <w>unextended</w>
+      <w>unmergeable</w>
       <w>unsubscribes</w>
       <w>upto</w>
       <w>werror</w>

@@ -10,7 +10,7 @@ use crate::memory::FastAbsoluteMemoryRange;
 use crate::memory::PageSize;
 use crate::memory::VirtualAddress;
 use crate::memory::huge_pages::PageSizeOrHugePageSizeSettings;
-use crate::memory::mapping::AddressHint;
+use crate::memory::mapping::{AddressHint, MemoryAdviceError};
 use crate::memory::mapping::MappedMemory;
 use crate::memory::mapping::MemoryAdvice;
 use crate::memory::mapping::Protection;

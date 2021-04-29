@@ -120,7 +120,8 @@ impl MappedMemory
 		if likely!(result == 0)
 		{
 			Ok(true)
-		} else if likely!(result == -1)
+		}
+		else if likely!(result == -1)
 		{
 			match errno().0
 			{
@@ -167,9 +168,9 @@ impl MappedMemory
 			{
 				EAGAIN => Ok(false),
 				
-				ENOMEM => panic!("the caller had a nonzero RLIMIT_MEMLOCK soft resource limit, but tried to lock more memory than the limit permitted. This limit is not enforced if the process is privileged (CAP_IPC_LOCK). Or, Some of the specified address range does not correspond to mapped pages in the address space of the process. Or, Locking or unlocking a region would result in the total number of mappings with distinct attributes (eg, locked versus unlocked) exceeding the allowed maximum.  (For example, unlocking a range in the middle of a currently locked mapping would result in three mappings: two locked mappings at each end and an unlocked mapping in the middle)"),
-				EPERM => panic!("The caller is not privileged, but needs privilege (CAP_IPC_LOCK) to perform the requested operation."),
-				EINVAL => panic!("The result of the addition addr+len was less than addr (eg, the addition may have resulted in an overflow)."),
+				ENOMEM => panic!("the caller had a nonzero RLIMIT_MEMLOCK soft resource limit, but tried to lock more memory than the limit permitted. This limit is not enforced if the process is privileged (CAP_IPC_LOCK). Or, Some of the specified address range does not correspond to mapped pages in the address space of the process. Or, Locking or unlocking a region would result in the total number of mappings with distinct attributes (eg, locked versus unlocked) exceeding the allowed maximum. (For example, unlocking a range in the middle of a currently locked mapping would result in three mappings: two locked mappings at each end and an unlocked mapping in the middle)"),
+				EPERM => panic!("The caller is not privileged, but needs privilege (CAP_IPC_LOCK) to perform the requested operation"),
+				EINVAL => panic!("The result of the addition addr+len was less than addr (eg, the addition may have resulted in an overflow)"),
 				
 				unexpected @ _ => panic!("Unexpected error {} from munlock()", unexpected)
 			}
@@ -184,9 +185,9 @@ impl MappedMemory
 	///
 	/// If the Linux kernel wasn't compiled with `CONFIG_ADVISE_SYSCALLS`, this system call will fail.
 	#[inline(always)]
-	pub fn advise(&self, advice: MemoryAdvice) -> io::Result<()>
+	pub fn advise(&self, advice: MemoryAdvice) -> Result<bool, MemoryAdviceError>
 	{
-		self.advise_range(advice, 0..self.size)
+		self.advise_range(advice, 0 .. self.size)
 	}
 	
 	/// Advise Linux kernel of usage of this memory.
@@ -195,18 +196,69 @@ impl MappedMemory
 	///
 	/// `range.start` must be a multiple of `PageSize::default()`.
 	#[inline(always)]
-	pub fn advise_range(&self, advice: MemoryAdvice, relative_range: impl RelativeMemoryRange) -> io::Result<()>
+	pub fn advise_range(&self, advice: MemoryAdvice, relative_range: impl RelativeMemoryRange) -> Result<bool, MemoryAdviceError>
 	{
 		let (start, length) = self.sub_range_inner(&relative_range);
 		
 		let result = unsafe { madvise(start.into(), length, advice as i32) };
 		if likely!(result == 0)
 		{
-			Ok(())
+			Ok(true)
 		}
 		else if likely!(result == -1)
 		{
-			Err(io::Error::last_os_error())
+			use self::MemoryAdvice::*;
+			use self::MemoryAdviceError::*;
+			
+			let error_number = errno();
+			let error = match error_number.0
+			{
+				EACCES => match advice
+				{
+					Remove => NotASharedWritableMapping,
+					
+					_ => panic!("Unexpected error EACCES from madvise() for advice {:?}", advice),
+				},
+				
+				EAGAIN => return Ok(false),
+				
+				EBADF => MemoryMapsSomethingWhichIsNotAFile,
+				
+				EINVAL => match advice
+				{
+					DontNeed | Remove => LockedPagesOrHugePagesOrPfnPagesAreNotSupportedForDontNeedOrRemove,
+					
+					Mergeable | Unmergeable => MergeablePagesAreUnsupported,
+					
+					Free | WipeOnFork => FileBackedPagesOrHugePagesOrSharedPagesOrPfnPagesAreNotSupportedForFreeOrWipeOnFork,
+					
+					_ => panic!("addr is not page-aligned or length is negative, or advice is not valid"),
+				},
+				
+				EIO => match advice
+				{
+					WillNeed => ProcessMaximumResidentSetSizeWouldBeExceededForWillNeed,
+					
+					_ => panic!("Unexpected error EIO from madvise() for advice {:?}", advice),
+				},
+				
+				ENOMEM => match advice
+				{
+					WillNeed => NotEnoughMemoryForWillNeed,
+					
+					_ => panic!("Unexpected error ENOMEM from madvise() for advice {:?}", advice),
+				},
+				
+				EPERM => match advice
+				{
+					HardwarePoison => PermissionDeniedForHardwarePoison,
+					
+					_ => panic!("Unexpected error EPERM from madvise() for advice {:?}", advice),
+				},
+				
+				_ => panic!("Unexpected error {} from madvise() for advice {:?}", error_number, advice),
+			};
+			Err(error)
 		}
 		else
 		{

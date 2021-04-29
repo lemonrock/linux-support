@@ -79,7 +79,7 @@ impl<'a, Subrange: RelativeMemoryRange + Copy> MappedMemorySubrange<'a, Subrange
 	///
 	/// If the Linux kernel wasn't compiled with `CONFIG_ADVISE_SYSCALLS`, this system call will fail.
 	#[inline(always)]
-	pub fn advise(&self, advice: MemoryAdvice) -> io::Result<()>
+	pub fn advise(&self, advice: MemoryAdvice) -> Result<bool, MemoryAdviceError>
 	{
 		self.0.advise_range(advice, self.1)
 	}
