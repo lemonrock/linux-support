@@ -99,6 +99,31 @@ impl MappedMemory
 		Self::new(Some((file_descriptor, offset)), length, address_hint, protection, sharing, prefault, reserve_swap_space, page_size_or_huge_page_size_settings)
 	}
 	
+	/// Forgets the allocation, returning its address, size and page size.
+	///
+	/// We cause a memory leak if `Self::from_raw()` is not called.
+	#[inline(always)]
+	pub fn into_raw(self) -> (VirtualAddress, usize, PageSizeOrHugePageSize)
+	{
+		let Self { virtual_address, size, page_size } = self;
+		forget(self);
+		(virtual_address, size, page_size)
+	}
+	
+	/// Models an allocation from address, size and page size.
+	///
+	/// Ideally the values specified have come from `Self::into_raw()`.
+	#[inline(always)]
+	pub const unsafe fn from_raw(virtual_address: VirtualAddress, size: usize, page_size: PageSizeOrHugePageSize) -> Self
+	{
+		Self
+		{
+			virtual_address,
+			size,
+			page_size,
+		}
+	}
+	
 	/// Returns `Ok(true)` if memory was locked.
 	/// Returns `Ok(false)` if only some (or none) of memory was locked but locking can be retried.
 	#[inline(always)]
