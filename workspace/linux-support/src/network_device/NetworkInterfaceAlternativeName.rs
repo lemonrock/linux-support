@@ -48,19 +48,19 @@ impl Into<ObjectName128> for NetworkInterfaceAlternativeName
 	}
 }
 
-impl<'a> Into<[c_char; ObjectName128::MaximumLengthIncludingAsciiNull]> for &'a NetworkInterfaceAlternativeName
+impl<'a> Into<[c_char; 128]> for &'a NetworkInterfaceAlternativeName
 {
 	#[inline(always)]
-	fn into(self) -> [c_char; ObjectName128::MaximumLengthIncludingAsciiNull]
+	fn into(self) -> [c_char; 128]
 	{
 		self.to_object_name()
 	}
 }
 
-impl Into<[c_char; ObjectName128::MaximumLengthIncludingAsciiNull]> for NetworkInterfaceAlternativeName
+impl Into<[c_char; 128]> for NetworkInterfaceAlternativeName
 {
 	#[inline(always)]
-	fn into(self) -> [c_char; ObjectName128::MaximumLengthIncludingAsciiNull]
+	fn into(self) -> [c_char; 128]
 	{
 		self.0.into_object_name()
 	}

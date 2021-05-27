@@ -6,7 +6,7 @@
 ///
 /// This should ordinarily be the `ProcessIdentifier`.
 #[repr(transparent)]
-pub struct ProcessIdentifierOrName(ArrayVec<[PrintableAsciiCharacter; 128]>);
+pub struct ProcessIdentifierOrName(ArrayVec<PrintableAsciiCharacter, 128>);
 
 impl Deref for ProcessIdentifierOrName
 {

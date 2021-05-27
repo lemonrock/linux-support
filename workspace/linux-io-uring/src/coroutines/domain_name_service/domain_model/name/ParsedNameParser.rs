@@ -59,7 +59,7 @@ pub(crate) struct ParsedNameParser<'a, 'message: 'a>
 	parsed_names: &'a mut ParsedNames<'message>,
 	start_of_name_pointer: usize,
 	maximum_for_end_of_name_pointer: usize,
-	label_data_starts_at_pointers_and_label_length_excluding_trailing_period: ArrayVec<[(usize, u8); LabelMaximumNumber]>,
+	label_data_starts_at_pointers_and_label_length_excluding_trailing_period: ArrayVec<(usize, u8), LabelMaximumNumber>,
 	name_length_including_trailing_periods_after_labels: u8,
 }
 

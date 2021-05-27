@@ -8,7 +8,7 @@
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
-pub struct HardwareAddress(ArrayVec<[u8; HardwareAddress::MaximumLength.get()]>);
+pub struct HardwareAddress(ArrayVec<u8, {HardwareAddress::MaximumLength.get()}>);
 
 impl Deref for HardwareAddress
 {
@@ -21,10 +21,10 @@ impl Deref for HardwareAddress
 	}
 }
 
-impl From<ArrayVec<[u8; Self::MaximumLength.get()]>> for HardwareAddress
+impl From<ArrayVec<u8, {HardwareAddress::MaximumLength.get()}>> for HardwareAddress
 {
 	#[inline(always)]
-	fn from(value: ArrayVec<[u8; HardwareAddress::MaximumLength.get()]>) -> Self
+	fn from(value: ArrayVec<u8, {HardwareAddress::MaximumLength.get()}>) -> Self
 	{
 		Self(value)
 	}
@@ -48,14 +48,7 @@ impl<'a> TryFrom<&'a [u8]> for HardwareAddress
 		}
 		else
 		{
-			let mut bytes: [u8; HardwareAddress::MaximumLength.get()] = unsafe_uninitialized();
-			unsafe { bytes.as_mut_ptr().copy_from_nonoverlapping(value.as_ptr(), length) };
-			let buffer = ConstArrayVec
-			{
-				xs: bytes,
-				len: length as u8,
-			};
-			Ok(Self(unsafe { transmute(buffer) }))
+			Ok(Self(ArrayVec::try_from(value).unwrap()))
 		}
 	}
 }

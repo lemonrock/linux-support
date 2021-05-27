@@ -31,7 +31,7 @@ pub struct HostConf
 	/// Search domains.
 	///
 	/// Uses a historic cap of 4 (`TRIMDOMAINS_MAX`).
-	trim_domains: ArrayVec<[FullyQualifiedDomainName; HostConf::MaximumTrimDomains]>,
+	trim_domains: ArrayVec<FullyQualifiedDomainName, HostConf::MaximumTrimDomains>,
 }
 
 impl Default for HostConf

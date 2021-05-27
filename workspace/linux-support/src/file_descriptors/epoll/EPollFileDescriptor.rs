@@ -281,7 +281,7 @@ impl EPollFileDescriptor
 		struct InformationIterator
 		{
 			buffered_reader: Option<BufReader<File>>,
-			bytes_read: ArrayVec<[u8; MaximumBytesPerLine]>,
+			bytes_read: ArrayVec<u8, MaximumBytesPerLine>,
 		}
 
 		impl Iterator for InformationIterator
@@ -374,7 +374,7 @@ impl EPollFileDescriptor
 		let mut buffered_reader = BufReader::new(File::open(&format!("/proc/{}/fdinfo/{}", process_identifier as u32, self.0 as u32))?);
 
 		const MaximumBytesPerLine: usize = 256;
-		let mut bytes_read: ArrayVec<[u8; MaximumBytesPerLine]> = ArrayVec::new();
+		let mut bytes_read: ArrayVec<u8, MaximumBytesPerLine> = ArrayVec::new();
 
 		let header = FileDescriptorInformationHeader
 		{

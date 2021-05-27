@@ -47,7 +47,7 @@ pub(crate) trait ExtendFromSlice: AsRef<[u8]>
 	fn empty(&mut self);
 }
 
-impl<A: Array<Item=u8>> ExtendFromSlice for ArrayVec<A>
+impl<const CAP: usize> ExtendFromSlice for ArrayVec<u8, CAP>
 {
 	#[inline(always)]
 	fn read_until_delimiter_populating_buffer_with_bytes_read_excluding_delimiter<R: BufRead + ?Sized>(&mut self, buf_read: &mut R, delimiter: u8) -> io::Result<usize>

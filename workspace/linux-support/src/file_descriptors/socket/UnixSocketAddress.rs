@@ -22,7 +22,7 @@ pub enum UnixSocketAddress<FilePath: AsRef<Path>>
 	Abstract
 	{
 		/// An abstract name of zero or more bytes.
-		abstract_name: ArrayVec<[u8; sockaddr_un::PathLength - 1]>,
+		abstract_name: ArrayVec<u8, {sockaddr_un::PathLength - 1}>,
 	}
 }
 

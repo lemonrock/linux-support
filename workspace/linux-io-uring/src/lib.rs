@@ -37,7 +37,6 @@ use self::coroutines::accept::required::*;
 use self::coroutines::accept::specific::*;
 use self::dogstatsd::*;
 use self::registered_buffers::*;
-use arrayvec::ArrayString;
 use arrayvec::ArrayVec;
 use context_allocator::GlobalThreadAndCoroutineSwitchableAllocator;
 use context_allocator::LifetimeHint;

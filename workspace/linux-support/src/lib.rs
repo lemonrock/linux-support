@@ -55,6 +55,7 @@ assert_cfg!(target_pointer_width = "64");
 
 use crate::cpu::HyperThread;
 use crate::memory::numa::NumaNode;
+use crate::paths::PathExt;
 #[cfg(target_arch = "x86_64")] use raw_cpuid::CacheInfo;
 #[cfg(target_arch = "x86_64")] use raw_cpuid::CacheInfoType;
 #[cfg(target_arch = "x86_64")] use raw_cpuid::CacheType;
@@ -70,7 +71,6 @@ use crate::memory::numa::NumaNode;
 #[cfg(target_arch = "x86_64")] use raw_cpuid::L2Associativity;
 #[cfg(target_arch = "x86_64")] use raw_cpuid::SgxSectionInfo;
 #[cfg(target_arch = "x86_64")] use raw_cpuid::TopologyType;
-use arrayvec::Array;
 use arrayvec::ArrayVec;
 use arrayvec::CapacityError;
 use bitflags::bitflags;
@@ -764,7 +764,6 @@ use strum_macros::IntoStaticStr;
 use swiss_army_knife::bit_set_aware;
 use swiss_army_knife::fast_secure_hash_map;
 use swiss_army_knife::fast_secure_hash_set;
-use swiss_army_knife::ConstArrayVec;
 use swiss_army_knife::LoadNonAtomically;
 use swiss_army_knife::move_to_front_of_vec;
 use swiss_army_knife::StaticInitializedOnce;
@@ -837,10 +836,6 @@ use terminate::ParsedPanic;
 use terminate::ParsedPanicErrorLogger;
 use terminate::SimpleTerminate;
 use terminate::Terminate;
-use crate::paths::PathExt;
-
-
-include!("object_name.rs");
 
 
 /// Vectored reads and writes.
@@ -860,7 +855,7 @@ pub mod bpf;
 pub mod capabilities_and_privileges;
 
 
-/// Coredump settings.
+/// Core dump settings.
 pub mod coredump;
 
 
@@ -1098,6 +1093,7 @@ include!("__BindgenBitFieldUnit.rs");
 include!("__IncompleteArrayField.rs");
 include!("current_numa_node_and_hyper_thread.rs");
 include!("ENOTSUPP.rs");
+include!("ObjectName.rs");
 include!("ObjectName16.rs");
 include!("ObjectName32.rs");
 include!("ObjectName128.rs");

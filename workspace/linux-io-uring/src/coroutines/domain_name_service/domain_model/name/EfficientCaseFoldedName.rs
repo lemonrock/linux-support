@@ -270,7 +270,7 @@ impl EfficientCaseFoldedName
 	#[inline(always)]
 	pub fn from_name<'label>(name: &impl Name<'label>) -> Self
 	{
-		let mut label_offsets_and_lengths_excluding_root: ArrayVec<[(u8, NonZeroU8); EfficientCaseFoldedNameInner::LabelsCount]> = ArrayVec::new();
+		let mut label_offsets_and_lengths_excluding_root: ArrayVec<(u8, NonZeroU8), EfficientCaseFoldedNameInner::LabelsCount> = ArrayVec::new();
 		let mut label_data: [u8; EfficientCaseFoldedNameInner::LabelDataSize] = unsafe_uninitialized();
 		
 		let mut label_offset = 0u8;

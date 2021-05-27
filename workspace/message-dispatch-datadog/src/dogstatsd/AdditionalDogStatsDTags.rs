@@ -4,7 +4,7 @@
 
 /// Atomically-allocated for tags not known statically but which are often long-lived.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct AdditionalDogStatsDTags<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>(ArrayVec<[AdditionalDogStatsDTag<CoroutineHeapSize, GTACSA>; 4]>);
+pub struct AdditionalDogStatsDTags<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>>(ArrayVec<AdditionalDogStatsDTag<CoroutineHeapSize, GTACSA>, 4>);
 
 impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSwitchableAllocator<CoroutineHeapSize>> AdditionalDogStatsDTags<CoroutineHeapSize, GTACSA>
 {

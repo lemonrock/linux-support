@@ -23,7 +23,7 @@ impl<'message> ParsedNames<'message>
 		}
 	}
 	
-	fn register(&mut self, label_data_starts_at_pointers_and_label_length_excluding_trailing_period: &ArrayVec<[(usize, u8); LabelMaximumNumber]>)
+	fn register(&mut self, label_data_starts_at_pointers_and_label_length_excluding_trailing_period: &ArrayVec<(usize, u8), LabelMaximumNumber>)
 	{
 		let mut name_length_including_trailing_period = 0;
 		

@@ -2,17 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-object_name!
-(
-	ObjectName32,
-	u8,
-	31,
-	/// A Linux EthTool string.
-	///
-	/// Relies on the fact that the following are all the same length:-
-	///
-	/// * `ETHTOOL_FWVERS_LEN`.
-	/// * `ETHTOOL_BUSINFO_LEN`.
-	/// * `ETHTOOL_EROMVERS_LEN`.
-	/// * `ETH_GSTRING_LEN`.
-);
+/// A Linux EthTool string.
+///
+/// Relies on the fact that the following are all the same length:-
+///
+/// * `ETHTOOL_FWVERS_LEN`.
+/// * `ETHTOOL_BUSINFO_LEN`.
+/// * `ETHTOOL_EROMVERS_LEN`.
+/// * `ETH_GSTRING_LEN`.
+pub type ObjectName32 = ObjectName::<32>;

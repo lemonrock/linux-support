@@ -17,7 +17,7 @@
 /// A tag can be a key-value pair, such as `my_tag:my_value` but is subject to the above rules; the value is considered to be the remainder of the tag after the first colon.
 /// Consquently values can not be empty or end with a colon.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct DogStatsDTag(ArrayVec<[u8; Self::Length]>);
+pub struct DogStatsDTag(ArrayVec<u8, Self::Length>);
 
 static mut process_name: Option<DogStatsDTag> = None;
 

@@ -34,7 +34,7 @@ impl PrintableAsciiCharacter
 	const Space: Self = Self(b' ');
 	
 	#[inline(always)]
-	fn push_raw_slice_into_array_vec<A: Array<Item=Self>>(raw_slice: &[u8], array_vec: &mut ArrayVec<A>) -> Result<(), PrintableAsciiCharacterPushError>
+	fn push_raw_slice_into_array_vec<const CAP: usize>(raw_slice: &[u8], array_vec: &mut ArrayVec<Self, CAP>) -> Result<(), PrintableAsciiCharacterPushError>
 	{
 		lazy_static!
 		{
@@ -44,7 +44,7 @@ impl PrintableAsciiCharacter
 	}
 	
 	#[inline(always)]
-	fn push_raw_slice_into_array_vec_with_additional_restrictions<A: Array<Item=Self>>(raw_slice: &[u8], array_vec: &mut ArrayVec<A>, denied: &HashSet<u8>) -> Result<(), PrintableAsciiCharacterPushError>
+	fn push_raw_slice_into_array_vec_with_additional_restrictions<const CAP: usize>(raw_slice: &[u8], array_vec: &mut ArrayVec<Self, CAP>, denied: &HashSet<u8>) -> Result<(), PrintableAsciiCharacterPushError>
 	{
 		use self::PrintableAsciiCharacterPushError::*;
 		
@@ -57,13 +57,13 @@ impl PrintableAsciiCharacter
 			let raw = *raw;
 			
 			let this: Self = raw.try_into().map_err(|_| NotAPrintableAsciiCharacter(raw))?;
-			this.push_into_array_vec::<A>(array_vec)?
+			this.push_into_array_vec::<CAP>(array_vec)?
 		}
 		Ok(())
 	}
 	
 	#[inline(always)]
-	fn push_into_array_vec<A: Array<Item=Self>>(self, array_vec: &mut ArrayVec<A>) -> Result<(), CapacityError<PrintableAsciiCharacter>>
+	fn push_into_array_vec<const CAP: usize>(self, array_vec: &mut ArrayVec<Self, CAP>) -> Result<(), CapacityError<PrintableAsciiCharacter>>
 	{
 		array_vec.try_push(self)
 	}

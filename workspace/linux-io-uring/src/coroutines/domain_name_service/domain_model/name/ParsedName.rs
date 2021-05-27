@@ -6,7 +6,7 @@
 #[derive(Clone)]
 pub struct ParsedName<'message>
 {
-	label_data_starts_at_pointers_and_label_length_excluding_trailing_period: ArrayVec<[(usize, u8); LabelMaximumNumber]>,
+	label_data_starts_at_pointers_and_label_length_excluding_trailing_period: ArrayVec<(usize, u8), LabelMaximumNumber>,
 	
 	name_length_including_trailing_periods_after_labels: NonZeroU8,
 
@@ -139,7 +139,7 @@ impl<'message> Name for ParsedName<'message>
 impl<'message> ParsedName<'message>
 {
 	#[inline(always)]
-	pub(crate) fn new(label_data_starts_at_pointers_and_label_length_excluding_trailing_period: ArrayVec<[(usize, u8); LabelMaximumNumber]>, name_length_including_trailing_periods_after_labels: u8) -> Self
+	pub(crate) fn new(label_data_starts_at_pointers_and_label_length_excluding_trailing_period: ArrayVec<(usize, u8), LabelMaximumNumber>, name_length_including_trailing_periods_after_labels: u8) -> Self
 	{
 		debug_assert_ne!(name_length_including_trailing_periods_after_labels, 0);
 		

@@ -6,7 +6,7 @@
 /// This difference comes from a consistency requirement not to return different results subject to transient failures or to global DNS namespace changes outside of one’s control (addition of new TLDs)".
 pub struct SearchListIterator<'resolv_conf, 'search_name: 'next, 'next>
 {
-	search_domains: &'resolv_conf ArrayVec<[FullyQualifiedDomainName; Self::MaximumSearchDomains]>,
+	search_domains: &'resolv_conf ArrayVec<FullyQualifiedDomainName, Self::MaximumSearchDomains>,
 	
 	next_search_domain_index: usize,
 	

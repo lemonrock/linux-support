@@ -4,7 +4,7 @@
 
 /// Tags.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct DogStatsDTags(ArrayVec<[&'static DogStatsDTag; 16]>);
+pub struct DogStatsDTags(ArrayVec<&'static DogStatsDTag, 16>);
 
 impl DogStatsDTags
 {
@@ -45,35 +45,17 @@ impl DogStatsDTags
 	
 	const Ten: u8 = 10;
 	
-	/// Static-friendly method.
 	#[inline(always)]
-	const fn from_10(tags: [&'static DogStatsDTag; Self::Ten as usize]) -> Self
+	fn from_10(tags: [&'static DogStatsDTag; Self::Ten as usize]) -> Self
 	{
-		let inner = ConstArrayVec
+		let mut array_vec = ArrayVec::new();
+		for index in 0 .. tags.len()
 		{
-			xs:
-			[
-				tags[0],
-				tags[1],
-				tags[2],
-				tags[3],
-				tags[4],
-				tags[5],
-				tags[6],
-				tags[7],
-				tags[8],
-				tags[9],
-				Self::uninitialized(),
-				Self::uninitialized(),
-				Self::uninitialized(),
-				Self::uninitialized(),
-				Self::uninitialized(),
-				Self::uninitialized(),
-			],
-			len: Self::Ten,
-		};
+			let tag = tags.get_unchecked_value_safe(index);
+			unsafe { array_vec.push_unchecked(tag) };
+		}
 		
-		Self(unsafe { transmute(inner) })
+		Self(array_vec)
 	}
 	
 	const fn uninitialized() -> &'static DogStatsDTag

@@ -6,21 +6,21 @@
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
-pub struct PhysicalIdentifier(ArrayVec<[u8; PhysicalIdentifier::MaximumLength]>);
+pub struct PhysicalIdentifier(ArrayVec<u8, {PhysicalIdentifier::MaximumLength}>);
 
-impl From<ArrayVec<[u8; PhysicalIdentifier::MaximumLength]>> for PhysicalIdentifier
+impl From<ArrayVec<u8, {Self::MaximumLength}>> for PhysicalIdentifier
 {
 	#[inline(always)]
-	fn from(value: ArrayVec<[u8; PhysicalIdentifier::MaximumLength]>) -> Self
+	fn from(value: ArrayVec<u8, {Self::MaximumLength}>) -> Self
 	{
 		Self(value)
 	}
 }
 
-impl Into<ArrayVec<[u8; PhysicalIdentifier::MaximumLength]>> for PhysicalIdentifier
+impl Into<ArrayVec<u8, {Self::MaximumLength}>> for PhysicalIdentifier
 {
 	#[inline(always)]
-	fn into(self) -> ArrayVec<[u8; PhysicalIdentifier::MaximumLength]>
+	fn into(self) -> ArrayVec<u8, {Self::MaximumLength}>
 	{
 		self.0
 	}
@@ -65,7 +65,7 @@ impl FromBytes for PhysicalIdentifier
 
 impl Deref for PhysicalIdentifier
 {
-	type Target = ArrayVec<[u8; Self::MaximumLength]>;
+	type Target = ArrayVec<u8, {Self::MaximumLength}>;
 	
 	#[inline(always)]
 	fn deref(&self) -> &Self::Target

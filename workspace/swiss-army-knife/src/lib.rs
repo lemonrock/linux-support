@@ -21,7 +21,11 @@
 #![feature(extend_one)]
 #![feature(llvm_asm)]
 #![feature(maybe_uninit_extra)]
+#![feature(maybe_uninit_slice)]
+#![feature(maybe_uninit_uninit_array)]
 #![feature(slice_index_methods)]
+#![feature(try_reserve)]
+#![feature(maybe_uninit_array_assume_init)]
 #![cfg_attr(all(target_arch = "x86_64", target_feature = "sse2"), feature(stdarch))]
 #![cfg_attr(all(target_arch = "x86_64", target_feature = "avx512f"), feature(stdsimd))]
 
@@ -38,10 +42,6 @@ assert_cfg!(target_pointer_width = "64");
 
 
 use self::non_zero::new_non_null;
-#[cfg(target_arch = "x86_64")] use std::arch::x86_64::_rdrand16_step;
-#[cfg(target_arch = "x86_64")] use std::arch::x86_64::_rdrand32_step;
-#[cfg(target_arch = "x86_64")] use std::arch::x86_64::_rdrand64_step;
-use arrayvec::Array;
 use libc::c_char;
 use likely::likely;
 use likely::unlikely;
@@ -51,10 +51,14 @@ use serde::Deserialize;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use std::alloc::alloc_zeroed;
+use std::alloc::AllocError;
 use std::alloc::dealloc;
 use std::alloc::Layout;
-use std::ascii::escape_default;
+#[cfg(target_arch = "x86_64")] use std::arch::x86_64::_rdrand16_step;
+#[cfg(target_arch = "x86_64")] use std::arch::x86_64::_rdrand32_step;
+#[cfg(target_arch = "x86_64")] use std::arch::x86_64::_rdrand64_step;
 use std::array::TryFromSliceError;
+use std::ascii::escape_default;
 use std::borrow::Borrow;
 use std::cell::UnsafeCell;
 use std::cmp::max;
@@ -213,7 +217,10 @@ pub mod time;
 pub mod unsafe_initialization;
 
 
-include!("ConstArrayVec.rs");
+/// `Vec` extensions.
+pub mod vec;
+
+
 include!("LoadNonAtomically.rs");
 include!("move_to_front_of_vec.rs");
 include!("StaticInitializedOnce.rs");

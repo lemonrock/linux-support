@@ -15,7 +15,7 @@ macro_rules! alert
 			
 			lazy_static!
 			{
-				static ref AggregationKey: ArrayString<[u8; 100]> = ArrayString::from($aggregation_key).unwrap();
+				static ref AggregationKey: ArrayString<100> = ArrayString::from($aggregation_key).unwrap();
 			}
 			
 			#[thread_local] static mut Template: Option<EventTemplate> = None;

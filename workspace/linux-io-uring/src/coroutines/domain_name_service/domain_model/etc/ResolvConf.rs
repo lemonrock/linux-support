@@ -6,7 +6,7 @@
 pub struct ResolvConf
 {
 	/// There will always be at least one name server (the default is `127.0.0.1`).
-	nameservers: ArrayVec<[IpAddr; Self::MaximumNameservers]>,
+	nameservers: ArrayVec<IpAddr, Self::MaximumNameservers>,
 	
 	/// Search domains.
 	///
@@ -14,14 +14,14 @@ pub struct ResolvConf
 	/// The musl libc limits to 256 bytes (including ASCII NULs).
 	///
 	/// It is good security practice to avoid search domains that are not locally administered (viz, domains should either be one of the recognized local domains or a domain that is owned and administered by us).
-	search_domains: ArrayVec<[FullyQualifiedDomainName; Self::MaximumSearchDomains]>,
+	search_domains: ArrayVec<FullyQualifiedDomainName, Self::MaximumSearchDomains>,
 	
 	/// A sort list.
 	///
 	/// If the netmask is missing, it "default to the natural netmask of the net" according to the NetBSD man pages.
 	///
 	/// Does that mean it defaults to the CIDR mask? No such thing exists for Internet Protocol version 6.
-	sort_list: ArrayVec<[(Ipv4Addr, Option<NonZeroU8>); Self::MaximumSortList]>,
+	sort_list: ArrayVec<(Ipv4Addr, Option<NonZeroU8>), Self::MaximumSortList>,
 	
 	/// Default is 1.
 	///
@@ -149,7 +149,7 @@ impl ResolvConf
 	}
 	
 	#[inline(always)]
-	fn defaultish(nameservers: ArrayVec<[IpAddr; Self::MaximumNameservers]>, search_domains: ArrayVec<[FullyQualifiedDomainName; Self::MaximumSearchDomains]>) -> Self
+	fn defaultish(nameservers: ArrayVec<IpAddr, Self::MaximumNameservers>, search_domains: ArrayVec<FullyQualifiedDomainName, Self::MaximumSearchDomains>) -> Self
 	{
 		Self
 		{

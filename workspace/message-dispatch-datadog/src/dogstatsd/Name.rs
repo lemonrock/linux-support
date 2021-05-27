@@ -10,7 +10,7 @@
 /// * Must not exceed 200 bytes; fewer than 100 is preferred for metric names and 100 bytes is the maximum for service checks.
 /// * Can not be empty.
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub struct Name(ArrayString<[u8; Self::Length]>);
+pub struct Name(ArrayString<Self::Length>);
 
 impl Name
 {

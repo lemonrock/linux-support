@@ -25,7 +25,6 @@ assert_cfg!(target_os = "linux");
 assert_cfg!(target_pointer_width = "64");
 
 
-use arrayvec::Array;
 use arrayvec::ArrayString;
 use arrayvec::ArrayVec;
 use context_allocator::GloballyAllocated;
@@ -36,6 +35,7 @@ use either::Either::Right;
 use lazy_static::lazy_static;
 use libc::pid_t;
 use likely::unlikely;
+use linux_support::linux_kernel_version::BootIdentifierUniversallyUniqueIdentifier;
 use linux_support::linux_kernel_version::LinuxKernelDomainName;
 use linux_support::linux_kernel_version::LinuxKernelHostName;
 use linux_support::memory::numa::NumaNode;
@@ -66,7 +66,6 @@ use std::rc::Rc;
 use std::sync::Arc;
 use std::time::Duration;
 use std::time::SystemTime;
-use swiss_army_knife::ConstArrayVec;
 use swiss_army_knife::unreachable_code;
 use swiss_army_knife::get_unchecked::GetUnchecked;
 use swiss_army_knife::split::SplitBytes;

@@ -2,14 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-object_name!
-(
-	ObjectName128,
-	u8,
-	127,
-	/// A string.
-	///
-	/// Relies on the fact that the following are all the same length:-
-	///
-	/// * `ALTIFNAMSIZ`.
-);
+/// A string.
+///
+/// Relies on the fact that the following are all the same length:-
+///
+/// * `ALTIFNAMSIZ`.
+pub type ObjectName128 = ObjectName::<128>;

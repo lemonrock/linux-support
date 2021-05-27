@@ -24,7 +24,7 @@ struct EfficientCaseFoldedNameInner
 	/// Thus the offset for the top-level domain (`com`) is always `0`; all other domains can never have an offset of `0`, and their offsets must always be greater than that of the previous entry.
 	///
 	/// Lengths are stored excluding the trailing period's length of `1`.
-	label_offsets_and_lengths_excluding_root: ArrayVec<[(u8, NonZeroU8); EfficientCaseFoldedNameInner::LabelsCount]>,
+	label_offsets_and_lengths_excluding_root: ArrayVec<(u8, NonZeroU8), EfficientCaseFoldedNameInner::LabelsCount>,
 	
 	/// A label can not exceed 63 bytes; all labels must have one byte except root.
 	///
@@ -47,7 +47,7 @@ impl EfficientCaseFoldedNameInner
 	const LabelDataSize: usize = 250;
 	
 	#[inline(always)]
-	fn new(label_offsets_and_lengths_excluding_root: ArrayVec<[(u8, NonZeroU8); Self::LabelsCount]>, label_data: [u8; Self::LabelDataSize]) -> Rc<Self>
+	fn new(label_offsets_and_lengths_excluding_root: ArrayVec<(u8, NonZeroU8), Self::LabelsCount>, label_data: [u8; Self::LabelDataSize]) -> Rc<Self>
 	{
 		Rc::new
 		(
@@ -262,7 +262,7 @@ impl EfficientCaseFoldedNameInner
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn push_child_to_label_offsets_and_lengths_excluding_root(label_offsets_and_lengths_excluding_root: &mut ArrayVec<[(u8, NonZeroU8); Self::LabelsCount]>, child: EfficientCaseFoldedLabel, old_label_data_length: u8)
+	fn push_child_to_label_offsets_and_lengths_excluding_root(label_offsets_and_lengths_excluding_root: &mut ArrayVec<(u8, NonZeroU8), Self::LabelsCount>, child: EfficientCaseFoldedLabel, old_label_data_length: u8)
 	{
 		label_offsets_and_lengths_excluding_root.push((old_label_data_length, new_non_zero_u8(child.len())));
 	}

@@ -14,7 +14,7 @@ pub struct PrivateEnterpriseNumber
 	pub private_enterprise_number: u32,
 	
 	/// Any sub-domain numbering.
-	pub sub_domain: ArrayVec<[u32; 4]>
+	pub sub_domain: ArrayVec<u32, 4>
 }
 
 impl Display for PrivateEnterpriseNumber

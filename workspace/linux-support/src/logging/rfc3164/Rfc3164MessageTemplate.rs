@@ -5,7 +5,7 @@
 /// Represents a RFC 3164 message template, which just needs a timestamp and message.
 pub struct Rfc3164MessageTemplate
 {
-	before_timestamp: ArrayVec<[u8; 5]>,
+	before_timestamp: ArrayVec<u8, 5>,
 	after_timestamp: Vec<u8>,
 }
 

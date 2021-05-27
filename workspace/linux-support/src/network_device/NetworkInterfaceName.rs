@@ -57,19 +57,19 @@ impl AsRef<Path> for NetworkInterfaceName
 	}
 }
 
-impl<'a> Into<[c_char; ObjectName16::MaximumLengthIncludingAsciiNull]> for &'a NetworkInterfaceName
+impl<'a> Into<[c_char; 16]> for &'a NetworkInterfaceName
 {
 	#[inline(always)]
-	fn into(self) -> [c_char; ObjectName16::MaximumLengthIncludingAsciiNull]
+	fn into(self) -> [c_char; 16]
 	{
 		self.to_object_name()
 	}
 }
 
-impl Into<[c_char; ObjectName16::MaximumLengthIncludingAsciiNull]> for NetworkInterfaceName
+impl Into<[c_char; 16]> for NetworkInterfaceName
 {
 	#[inline(always)]
-	fn into(self) -> [c_char; ObjectName16::MaximumLengthIncludingAsciiNull]
+	fn into(self) -> [c_char; 16]
 	{
 		self.0.into_object_name()
 	}

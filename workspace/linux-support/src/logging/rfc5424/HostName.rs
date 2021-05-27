@@ -5,7 +5,7 @@
 /// Is not permitted to be empty.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub struct HostName(ArrayVec<[PrintableAsciiCharacter; 255]>);
+pub struct HostName(ArrayVec<PrintableAsciiCharacter, 255>);
 
 impl Deref for HostName
 {

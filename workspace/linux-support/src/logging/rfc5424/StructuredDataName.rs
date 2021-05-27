@@ -4,7 +4,7 @@
 
 /// Is not permitted to be empty.
 #[repr(transparent)]
-pub struct StructuredDataName(ArrayVec<[PrintableAsciiCharacter; 32]>);
+pub struct StructuredDataName(ArrayVec<PrintableAsciiCharacter, 32>);
 
 impl Deref for StructuredDataName
 {
@@ -53,7 +53,7 @@ impl StructuredDataName
 	
 	/// ***SLOW***.
 	#[inline(always)]
-	fn push_raw_slice(raw_slice: &[u8], inner: &mut ArrayVec<[PrintableAsciiCharacter; 32]>) -> Result<(), PrintableAsciiCharacterPushError>
+	fn push_raw_slice(raw_slice: &[u8], inner: &mut ArrayVec<PrintableAsciiCharacter, 32>) -> Result<(), PrintableAsciiCharacterPushError>
 	{
 		lazy_static!
 		{

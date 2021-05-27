@@ -35,19 +35,19 @@ impl Into<ObjectName32> for BusDeviceAddress
 	}
 }
 
-impl<'a> Into<[c_char; ObjectName32::MaximumLengthIncludingAsciiNull]> for &'a BusDeviceAddress
+impl<'a> Into<[c_char; 32]> for &'a BusDeviceAddress
 {
 	#[inline(always)]
-	fn into(self) -> [c_char; ObjectName32::MaximumLengthIncludingAsciiNull]
+	fn into(self) -> [c_char; 32]
 	{
 		self.to_object_name()
 	}
 }
 
-impl Into<[c_char; ObjectName32::MaximumLengthIncludingAsciiNull]> for BusDeviceAddress
+impl Into<[c_char; 32]> for BusDeviceAddress
 {
 	#[inline(always)]
-	fn into(self) -> [c_char; ObjectName32::MaximumLengthIncludingAsciiNull]
+	fn into(self) -> [c_char; 32]
 	{
 		self.0.into_object_name()
 	}

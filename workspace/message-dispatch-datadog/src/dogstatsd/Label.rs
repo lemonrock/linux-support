@@ -4,7 +4,7 @@
 
 /// Based on the maximum label size in DNS of 63 bytes, not DataDog documentation.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Label(ArrayVec<[u8; Self::Length]>);
+pub struct Label(ArrayVec<u8, Self::Length>);
 
 static mut host_name: Option<Label> = None;
 

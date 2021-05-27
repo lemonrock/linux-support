@@ -6,7 +6,7 @@
 ///
 /// Should be qualifier to `Facility` which is scoped by `ApplicationName`.
 #[repr(transparent)]
-pub struct MessageIdentifier(ArrayVec<[PrintableAsciiCharacter; 32]>);
+pub struct MessageIdentifier(ArrayVec<PrintableAsciiCharacter, 32>);
 
 impl Deref for MessageIdentifier
 {

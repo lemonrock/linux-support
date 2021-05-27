@@ -24,7 +24,7 @@ pub struct EventTemplate
 	pub alert_type: EventAlertType,
 	
 	/// A key used for aggregating events.
-	pub aggregation_key: Option<&'static ArrayString<[u8; 100]>>,
+	pub aggregation_key: Option<&'static ArrayString<100>>,
 	
 	/// Source type name.
 	pub source_type_name: Option<SourceTypeName>,
@@ -34,7 +34,7 @@ impl EventTemplate
 {
 	/// A new alert with common tags.
 	#[inline(always)]
-	pub fn new_alert_with_common_tags(title: &str, priority: EventPriority, alert_type: EventAlertType, aggregation_key: &'static ArrayString<[u8; 100]>) -> Self
+	pub fn new_alert_with_common_tags(title: &str, priority: EventPriority, alert_type: EventAlertType, aggregation_key: &'static ArrayString<100>) -> Self
 	{
 		Self
 		{
