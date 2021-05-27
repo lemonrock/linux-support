@@ -13,8 +13,8 @@
 #![feature(alloc_layout_extra)]
 #![feature(allocator_api)]
 #![feature(cell_leak)]
-#![feature(const_fn)]
 #![feature(const_fn_fn_ptr_basics)]
+#![feature(const_fn_trait_bound)]
 #![feature(const_fn_transmute)]
 #![feature(const_fn_union)]
 #![feature(const_maybe_uninit_as_ptr)]
@@ -718,6 +718,7 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::process::Stdio;
 use std::process::exit;
+use std::ptr::addr_of;
 use std::ptr::NonNull;
 use std::ptr::null;
 use std::ptr::null_mut;

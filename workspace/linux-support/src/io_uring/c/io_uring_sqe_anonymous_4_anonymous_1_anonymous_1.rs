@@ -29,7 +29,7 @@ impl Debug for io_uring_sqe_anonymous_4_anonymous_1_anonymous_1
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
 	{
-		write!(f, "io_uring_sqe_anonymous_4_anonymous_1_anonymous_1({:?})", unsafe { self.buf_index })
+		write!(f, "io_uring_sqe_anonymous_4_anonymous_1_anonymous_1({:?})", self.buf_index())
 	}
 }
 
@@ -38,7 +38,7 @@ impl PartialEq for io_uring_sqe_anonymous_4_anonymous_1_anonymous_1
 	#[inline(always)]
 	fn eq(&self, other: &Self) -> bool
 	{
-		unsafe { self.buf_index == other.buf_index }
+		self.buf_index() == other.buf_index()
 	}
 }
 
@@ -51,7 +51,7 @@ impl PartialOrd for io_uring_sqe_anonymous_4_anonymous_1_anonymous_1
 	#[inline(always)]
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering>
 	{
-		unsafe { self.buf_index.partial_cmp(&other.buf_index) }
+		self.buf_index().partial_cmp(&other.buf_index())
 	}
 }
 
@@ -60,7 +60,7 @@ impl Ord for io_uring_sqe_anonymous_4_anonymous_1_anonymous_1
 	#[inline(always)]
 	fn cmp(&self, other: &Self) -> Ordering
 	{
-		unsafe { self.buf_index.cmp(&other.buf_index) }
+		self.buf_index().cmp(&other.buf_index())
 	}
 }
 
@@ -69,6 +69,16 @@ impl Hash for io_uring_sqe_anonymous_4_anonymous_1_anonymous_1
 	#[inline(always)]
 	fn hash<H>(&self, state: &mut H) where H: Hasher
 	{
-		unsafe { self.buf_index.hash(state) }
+		self.buf_index().hash(state)
+	}
+}
+
+impl io_uring_sqe_anonymous_4_anonymous_1_anonymous_1
+{
+	#[inline(always)]
+	fn buf_index(&self) -> RegisteredBufferIndex
+	{
+		let unaligned_pointer = unsafe { addr_of!(self.buf_index) };
+		unsafe { unaligned_pointer.read_unaligned() }
 	}
 }
