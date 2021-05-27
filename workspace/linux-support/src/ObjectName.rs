@@ -224,17 +224,6 @@ impl<'a, const MaximumLengthIncludingAsciiNull: usize> TryFrom<&'a [c_char]> for
 	}
 }
 
-impl<const MaximumLengthIncludingAsciiNull: usize> TryFrom<[u8; MaximumLengthIncludingAsciiNull]> for ObjectName<MaximumLengthIncludingAsciiNull>
-{
-	type Error = ObjectNameFromBytesError;
-	
-	#[inline(always)]
-	fn try_from(value: [u8; MaximumLengthIncludingAsciiNull]) -> Result<Self, Self::Error>
-	{
-		Self::try_from(value)
-	}
-}
-
 impl<const MaximumLengthIncludingAsciiNull: usize> TryFrom<[c_char; MaximumLengthIncludingAsciiNull]> for ObjectName<MaximumLengthIncludingAsciiNull>
 {
 	type Error = ObjectNameFromBytesError;
@@ -242,7 +231,7 @@ impl<const MaximumLengthIncludingAsciiNull: usize> TryFrom<[c_char; MaximumLengt
 	#[inline(always)]
 	fn try_from(value: [c_char; MaximumLengthIncludingAsciiNull]) -> Result<Self, Self::Error>
 	{
-		let length_including_ascii_nul = match Self::index_of_ascii_null_c_char(&value[..])
+		let length_including_ascii_nul = match Self::index_of_ascii_null_c_char(&value)
 		{
 			Some(index) => index + 1,
 			None => return Err(ObjectNameFromBytesError::DoesNotEndWithAsciiNull),
@@ -289,17 +278,6 @@ impl<'a, const MaximumLengthIncludingAsciiNull: usize> TryFrom<&'a [c_char; Maxi
 			array_vec.set_len(length_including_ascii_nul)
 		}
 		Ok(Self(array_vec))
-	}
-}
-
-impl<const MaximumLengthIncludingAsciiNull: usize> TryFrom<ArrayVec<u8, MaximumLengthIncludingAsciiNull>> for ObjectName<MaximumLengthIncludingAsciiNull>
-{
-	type Error = ObjectNameFromBytesError;
-	
-	#[inline(always)]
-	fn try_from(value: ArrayVec<u8, MaximumLengthIncludingAsciiNull>) -> Result<Self, Self::Error>
-	{
-		Self::try_from(value)
 	}
 }
 
