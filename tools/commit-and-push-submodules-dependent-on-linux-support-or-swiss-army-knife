@@ -7,7 +7,6 @@ set -e
 set -u
 set -f
 
-program_name="prepare-sample-configuration"
 
 _program_path_find()
 {
@@ -107,17 +106,24 @@ _program_path_find()
 
 cd "$(_program_path_find)" 1>/dev/null 2>/dev/null
 
-for sub_module in context-allocator context-coroutine magic-ring-buffer message-dispatch
-do
-	cd "$sub_module" 1>/dev/null 2>/dev/null
+main()
+{
+	cd "../workspace" 1>/dev/null 2>/dev/null
 	
-		git add -A . || true
-		
-		git commit -m "Updating linux-support version" || true
-		
-		git push || true
+	for sub_module in context-allocator context-coroutine magic-ring-buffer message-dispatch
+	do
+		cd "$sub_module" 1>/dev/null 2>/dev/null
 	
-	cd -  1>/dev/null 2>/dev/null
+			git add -A . || true
+		
+			git commit -m "Updating linux-support or swiss-army-knife version" || true
+		
+			git push || true
+	
+		cd -  1>/dev/null 2>/dev/null
 
-	git add -A "$sub_module" || true
-done
+		git add -A "$sub_module" || true
+	done
+}
+
+main "$@"
