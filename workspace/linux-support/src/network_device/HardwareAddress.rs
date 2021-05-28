@@ -2,13 +2,16 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// Intermediate constant as Rust at the time of writing didn't like expressions for const generics.
+pub const HardwareAddressLength: usize = HardwareAddress::MaximumLength.get();
+
 /// A hardware address.
 ///
 /// Nearly always an Ethernet Media Access Control (MAC) hardware address with a length of `6`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
-pub struct HardwareAddress(ArrayVec<u8, {HardwareAddress::MaximumLength.get()}>);
+pub struct HardwareAddress(ArrayVec<u8, HardwareAddressLength>);
 
 impl Deref for HardwareAddress
 {
@@ -21,10 +24,10 @@ impl Deref for HardwareAddress
 	}
 }
 
-impl From<ArrayVec<u8, {HardwareAddress::MaximumLength.get()}>> for HardwareAddress
+impl From<ArrayVec<u8, HardwareAddressLength>> for HardwareAddress
 {
 	#[inline(always)]
-	fn from(value: ArrayVec<u8, {HardwareAddress::MaximumLength.get()}>) -> Self
+	fn from(value: ArrayVec<u8, HardwareAddressLength>) -> Self
 	{
 		Self(value)
 	}

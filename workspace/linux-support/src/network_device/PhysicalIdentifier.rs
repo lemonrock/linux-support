@@ -2,25 +2,28 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+/// Intermediate constant as Rust at the time of writing didn't like expressions for const generics.
+pub const PhysicalIdentifierLength: usize = PhysicalIdentifier::MaximumLength;
+
 /// A physical identifier.
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
-pub struct PhysicalIdentifier(ArrayVec<u8, {PhysicalIdentifier::MaximumLength}>);
+pub struct PhysicalIdentifier(ArrayVec<u8, PhysicalIdentifierLength>);
 
-impl From<ArrayVec<u8, {Self::MaximumLength}>> for PhysicalIdentifier
+impl From<ArrayVec<u8, PhysicalIdentifierLength>> for PhysicalIdentifier
 {
 	#[inline(always)]
-	fn from(value: ArrayVec<u8, {Self::MaximumLength}>) -> Self
+	fn from(value: ArrayVec<u8, PhysicalIdentifierLength>) -> Self
 	{
 		Self(value)
 	}
 }
 
-impl Into<ArrayVec<u8, {Self::MaximumLength}>> for PhysicalIdentifier
+impl Into<ArrayVec<u8, PhysicalIdentifierLength>> for PhysicalIdentifier
 {
 	#[inline(always)]
-	fn into(self) -> ArrayVec<u8, {Self::MaximumLength}>
+	fn into(self) -> ArrayVec<u8, PhysicalIdentifierLength>
 	{
 		self.0
 	}
@@ -65,7 +68,7 @@ impl FromBytes for PhysicalIdentifier
 
 impl Deref for PhysicalIdentifier
 {
-	type Target = ArrayVec<u8, {Self::MaximumLength}>;
+	type Target = ArrayVec<u8, PhysicalIdentifierLength>;
 	
 	#[inline(always)]
 	fn deref(&self) -> &Self::Target

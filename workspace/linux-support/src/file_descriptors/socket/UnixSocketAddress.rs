@@ -2,6 +2,9 @@
 // Copyright © 2018-2019 The developers of file-descriptors. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/file-descriptors/master/COPYRIGHT.
 
 
+/// Intermediate constant as Rust at the time of writing didn't like expressions for const generics.
+pub const AbstractNameLength: usize = sockaddr_un::PathLength - 1;
+
 /// An Unix socket address.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
@@ -22,7 +25,7 @@ pub enum UnixSocketAddress<FilePath: AsRef<Path>>
 	Abstract
 	{
 		/// An abstract name of zero or more bytes.
-		abstract_name: ArrayVec<u8, {sockaddr_un::PathLength - 1}>,
+		abstract_name: ArrayVec<u8, AbstractNameLength>,
 	}
 }
 
