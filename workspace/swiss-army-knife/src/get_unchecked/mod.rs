@@ -6,6 +6,7 @@ use std::ops::RangeInclusive;
 use std::ops::RangeFrom;
 use std::ops::RangeFull;
 use std::ops::Range;
+use std::ops::RangeTo;
 use std::ops::RangeToInclusive;
 use std::slice::SliceIndex;
 

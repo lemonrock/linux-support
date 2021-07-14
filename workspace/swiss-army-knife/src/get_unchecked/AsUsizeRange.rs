@@ -86,6 +86,35 @@ impl<T, AUI: AsUsizeIndex> AsUsizeRange<T> for RangeFrom<AUI>
 	}
 }
 
+impl<T, AUI: AsUsizeIndex> AsUsizeRange<T> for RangeTo<AUI>
+{
+	#[cfg(debug_assertions)]
+	#[inline(always)]
+	fn get_checked_range_ref(self, slice: &[T]) -> Option<&[T]>
+	{
+		(.. self.end.as_usize()).get(slice)
+	}
+	
+	#[cfg(debug_assertions)]
+	#[inline(always)]
+	fn get_checked_range_mut(self, slice: &mut [T]) -> Option<&mut [T]>
+	{
+		(.. self.end.as_usize()).get_mut(slice)
+	}
+	
+	#[inline(always)]
+	unsafe fn get_unchecked_range_ref(self, slice: *const [T]) -> *const [T]
+	{
+		(.. self.end.as_usize()).get_unchecked(slice)
+	}
+	
+	#[inline(always)]
+	unsafe fn get_unchecked_range_mut(self, slice: *mut [T]) -> *mut [T]
+	{
+		(.. self.end.as_usize()).get_unchecked_mut(slice)
+	}
+}
+
 impl<T> AsUsizeRange<T> for RangeFull
 {
 	#[cfg(debug_assertions)]

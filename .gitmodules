@@ -3,19 +3,19 @@
 	url = https://github.com/lemonrock/.cargo.git
 [submodule "workspace/magic-ring-buffer"]
 	path = workspace/magic-ring-buffer
-	url = https://github.com/lemonrock/magic-ring-buffer
+	url = git@github.com:lemonrock/magic-ring-buffer.git
 [submodule "workspace/message-dispatch"]
 	path = workspace/message-dispatch
-	url = https://github.com/lemonrock/message-dispatch
+	url = git@github.com:lemonrock/message-dispatch.git
 [submodule "workspace/context-allocator"]
 	path = workspace/context-allocator
-	url = https://github.com/lemonrock/context-allocator
+	url = git@github.com:lemonrock/context-allocator.git
 [submodule "workspace/context-coroutine"]
 	path = workspace/context-coroutine
-	url = https://github.com/lemonrock/context-coroutine
+	url = git@github.com:lemonrock/context-coroutine.git
 [submodule "workspace/terminate"]
 	path = workspace/terminate
-	url = https://github.com/lemonrock/terminate
+	url = git@github.com:lemonrock/terminate.git
 [submodule "workspace/likely"]
 	path = workspace/likely
-	url = https://github.com/lemonrock/likely
+	url = git@github.com:lemonrock/likely.git
