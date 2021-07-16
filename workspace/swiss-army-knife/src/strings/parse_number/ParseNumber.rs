@@ -114,14 +114,14 @@ pub trait ParseNumber: Sized
 	#[inline(always)]
 	fn parse_hexadecimal_number_lower_case(bytes: &[u8]) -> Result<Self, ParseNumberError>
 	{
-		Self::parse_number_known_case(bytes, Radix::Decimal, NonNumericDigitCase::Lower)
+		Self::parse_number_known_case(bytes, Radix::Hexdecimal, NonNumericDigitCase::Lower)
 	}
 
 	/// Parses an upper-case hexadecimal number.
 	#[inline(always)]
 	fn parse_hexadecimal_number_upper_case(bytes: &[u8]) -> Result<Self, ParseNumberError>
 	{
-		Self::parse_number_known_case(bytes, Radix::Decimal, NonNumericDigitCase::Upper)
+		Self::parse_number_known_case(bytes, Radix::Hexdecimal, NonNumericDigitCase::Upper)
 	}
 
 	/// Parses a hexadecimal number with any mixture of alphabet casing.
