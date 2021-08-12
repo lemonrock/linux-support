@@ -683,6 +683,7 @@
     <inspection_tool class="ConvertPairConstructorToToFunction" enabled="true" level="INFORMATION" enabled_by_default="true" />
     <inspection_tool class="ConvertReferenceToLambda" enabled="true" level="INFORMATION" enabled_by_default="true" />
     <inspection_tool class="ConvertSecondaryConstructorToPrimary" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="ConvertToBasicLatin" enabled="false" level="INFORMATION" enabled_by_default="false" />
     <inspection_tool class="ConvertToStringTemplate" enabled="true" level="INFO" enabled_by_default="true" />
     <inspection_tool class="ConvertTryFinallyToUseCall" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
     <inspection_tool class="ConvertTwoComparisonsToRangeCheck" enabled="true" level="INFO" enabled_by_default="true" />
@@ -690,6 +691,7 @@
     <inspection_tool class="CopyWithoutNamedArguments" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
     <inspection_tool class="CovariantEquals" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="CrateNotFound" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="CrateVersionInvalid" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="CsvValidation" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="CustomClassloader" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="CustomSecurityManager" enabled="false" level="WARNING" enabled_by_default="false" />
@@ -1133,6 +1135,7 @@
     <inspection_tool class="InconsistentLineSeparators" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="InconsistentListItems" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
     <inspection_tool class="InconsistentResourceBundle" enabled="true" level="ERROR" enabled_by_default="true" />
+    <inspection_tool class="InconsistentTextBlockIndent" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="IncrementDecrementUsedAsExpression" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="IndexOfReplaceableByContains" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="IndexZeroUsage" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -1267,6 +1270,9 @@
     <inspection_tool class="JoinDeclarationAndAssignmentJava" enabled="true" level="INFORMATION" enabled_by_default="true" />
     <inspection_tool class="Json5StandardCompliance" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="JsonDuplicatePropertyKeys" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="JsonPathEvaluateUnknownKey" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="JsonPathUnknownFunction" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="JsonPathUnknownOperator" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="JsonSchemaCompliance" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="JsonSchemaDeprecation" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="JsonSchemaRefReference" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -1369,6 +1375,7 @@
     <inspection_tool class="MatchFunctionSignature" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="MathRandomCastToInt" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="MayBeConstant" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
+    <inspection_tool class="MeaninglessRecordAnnotationInspection" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="MemberVisibilityCanBePrivate" enabled="true" level="INFO" enabled_by_default="true" />
     <inspection_tool class="MetaAnnotationWithoutRuntimeRetention" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="MethodCallInLoopCondition" enabled="false" level="WARNING" enabled_by_default="false" />
@@ -1677,6 +1684,7 @@
     <inspection_tool class="PointlessIndexOfComparison" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="PointlessNullCheck" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="PossibleListItem" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
+    <inspection_tool class="PreviewFeature" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="PrimitiveArrayArgumentToVariableArgMethod" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="PrivateMemberAccessBetweenOuterAndInnerClass" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="PrivatePropertyName" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
@@ -1734,6 +1742,7 @@
     <inspection_tool class="RPasteToPaste0Inspection" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="RRedundantConcatenationInspection" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="RRedundantSemicolonInspection" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="RStudioAPISourceMarkerInspection" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="RTripleColonToDoubleColonInspection" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="RUnresolvedReference" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="RUnsafeSequenceInspection" enabled="false" level="WARNING" enabled_by_default="false" />
@@ -1823,6 +1832,7 @@
     <inspection_tool class="RegExpRepeatedSpace" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="RegExpSingleCharAlternation" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="RegExpUnexpectedAnchor" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="RegExpUnnecessaryNonCapturingGroup" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="RemoveCurlyBracesFromTemplate" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
     <inspection_tool class="RemoveEmptyClassBody" enabled="true" level="INFO" enabled_by_default="true" />
     <inspection_tool class="RemoveEmptyParenthesesFromAnnotationEntry" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
@@ -1932,6 +1942,7 @@
     <inspection_tool class="RsModuleNaming" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="RsNeedlessLifetimes" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
     <inspection_tool class="RsNonExhaustiveMatch" enabled="true" level="ERROR" enabled_by_default="true" />
+    <inspection_tool class="RsNonShorthandFieldPatterns" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="RsReassignImmutable" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="RsRedundantElse" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="RsSelfConvention" enabled="false" level="WARNING" enabled_by_default="false" />
@@ -1947,11 +1958,14 @@
     <inspection_tool class="RsTypeAliasNaming" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="RsTypeCheck" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="RsTypeParameterNaming" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="RsUnknownCrateTypes" enabled="false" level="ERROR" enabled_by_default="false" />
+    <inspection_tool class="RsUnreachableCode" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="RsUnreachablePatterns" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="RsUnresolvedReference" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="RsVariableMutable" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="RsVariableNaming" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="RsWhileTrueLoop" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
+    <inspection_tool class="RsWrongGenericArgumentsNumber" enabled="false" level="ERROR" enabled_by_default="false" />
     <inspection_tool class="RsWrongLifetimeParametersNumber" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="RsWrongTypeArgumentsNumber" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="RsWrongTypeParametersNumber" enabled="true" level="ERROR" enabled_by_default="true" />
@@ -2035,6 +2049,7 @@
     <inspection_tool class="SingletonConstructor" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="SizeReplaceableByIsEmpty" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="SleepWhileHoldingLock" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="SlowAbstractSetRemoveAll" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="SocketResource" enabled="false" level="WARNING" enabled_by_default="false">
       <option name="insideTryAllowed" value="false" />
     </inspection_tool>
@@ -2153,6 +2168,7 @@
     <inspection_tool class="SynchronizeOnLock" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="SynchronizeOnNonFinalField" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="SynchronizeOnThis" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="SynchronizeOnValueBasedClass" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="SynchronizedMethod" enabled="false" level="WARNING" enabled_by_default="false">
       <option name="m_includeNativeMethods" value="true" />
       <option name="ignoreSynchronizedSuperMethods" value="true" />
@@ -2216,6 +2232,7 @@
     </inspection_tool>
     <inspection_tool class="TooBroadThrows" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="TrailingSpacesInProperty" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="TrailingWhitespacesInTextBlock" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="TransientFieldInNonSerializableClass" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="TransientFieldNotInitialized" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="TrivialFunctionalExpressionUsage" enabled="true" level="WARNING" enabled_by_default="true" />

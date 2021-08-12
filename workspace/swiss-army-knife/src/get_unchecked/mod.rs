@@ -2,6 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use std::num::NonZeroU8;
+use std::num::NonZeroU16;
+use std::num::NonZeroU32;
+#[cfg(target_pointer_width = "64")] use std::num::NonZeroU64;
 use std::ops::RangeInclusive;
 use std::ops::RangeFrom;
 use std::ops::RangeFull;

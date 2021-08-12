@@ -74,3 +74,40 @@ impl AsUsizeIndex for i32
 		self as usize
 	}
 }
+
+impl AsUsizeIndex for NonZeroU8
+{
+	#[inline(always)]
+	fn as_usize(self) -> usize
+	{
+		self.get().as_usize()
+	}
+}
+
+impl AsUsizeIndex for NonZeroU16
+{
+	#[inline(always)]
+	fn as_usize(self) -> usize
+	{
+		self.get().as_usize()
+	}
+}
+
+impl AsUsizeIndex for NonZeroU32
+{
+	#[inline(always)]
+	fn as_usize(self) -> usize
+	{
+		self.get().as_usize()
+	}
+}
+
+#[cfg(target_pointer_width = "64")]
+impl AsUsizeIndex for NonZeroU64
+{
+	#[inline(always)]
+	fn as_usize(self) -> usize
+	{
+		self.get().as_usize()
+	}
+}
