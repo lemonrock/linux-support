@@ -10,7 +10,7 @@ pub enum Radix
 	Binary = 2,
 	Octal = 8,
 	Decimal = 10,
-	Hexdecimal = 16,
+	Hexadecimal = 16,
 	Base32 = 32,
 	Base36 = 36,
 }

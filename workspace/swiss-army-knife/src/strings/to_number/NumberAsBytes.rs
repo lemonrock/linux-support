@@ -18,19 +18,19 @@ pub trait NumberAsBytes: Sized
 	{
 		self.number_as_bytes(bytes_index, bytes, Radix::Decimal, NonNumericDigitCase::Lower)
 	}
-
+	
 	/// Hexadecimal using lower case alphabetic digits.
 	#[inline(always)]
 	fn lower_case_hexadecimal(self, bytes_index: usize, bytes: &mut [u8]) -> usize
 	{
-		self.number_as_bytes(bytes_index, bytes, Radix::Hexdecimal, NonNumericDigitCase::Upper)
+		self.number_as_bytes(bytes_index, bytes, Radix::Hexadecimal, NonNumericDigitCase::Upper)
 	}
 
 	/// Hexadecimal using upper case alphabetic digits.
 	#[inline(always)]
 	fn upper_case_hexadecimal(self, bytes_index: usize, bytes: &mut [u8]) -> usize
 	{
-		self.number_as_bytes(bytes_index, bytes, Radix::Hexdecimal, NonNumericDigitCase::Upper)
+		self.number_as_bytes(bytes_index, bytes, Radix::Hexadecimal, NonNumericDigitCase::Upper)
 	}
 
 	/// Number as bytes.

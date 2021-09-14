@@ -30,7 +30,7 @@ impl Add<u32> for AlignedFrameNumber
 	}
 }
 
-unsafe impl Step for AlignedFrameNumber
+impl Step for AlignedFrameNumber
 {
 	fn steps_between(start: &Self, end: &Self) -> Option<usize>
 	{

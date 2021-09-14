@@ -14,6 +14,9 @@ pub trait VecExt<T>
 	/// Done this way instead of repeated `push()` or specialized `extend()` to minimize `if` checks for each `push()` and give LLVM's loop unrolling a chance to optimize.
 	fn new_populated_fallibly<Populator: FnOnce(usize) -> Result<T, AllocError> + Copy>(capacity: usize, populator: Populator) -> Result<Vec<T>, AllocError>;
 	
+	/// Push without checking capacity.
+	fn push_unchecked(&mut self, value: T);
+	
 	#[doc(hidden)]
 	fn set_length(&mut self, length: usize);
 }
@@ -67,6 +70,18 @@ impl<T> VecExt<T> for Vec<T>
 		}
 		vec.set_length(capacity);
 		Ok(vec)
+	}
+	
+	#[inline(always)]
+	fn push_unchecked(&mut self, value: T)
+	{
+		let length = self.len();
+		unsafe
+		{
+			let end = self.as_mut_ptr().add(length);
+			ptr::write(end, value);
+			self.set_len(length + 1);
+		}
 	}
 	
 	#[inline(always)]

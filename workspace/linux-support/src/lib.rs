@@ -36,7 +36,6 @@
 #![feature(slice_ptr_len)]
 #![feature(specialization)]
 #![feature(step_trait)]
-#![feature(step_trait_ext)]
 #![feature(thread_id_value)]
 #![feature(thread_local)]
 

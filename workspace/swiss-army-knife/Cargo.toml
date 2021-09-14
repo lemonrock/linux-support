@@ -16,12 +16,13 @@ include = ["README.md", "LICENSE", "COPYRIGHT", "src/**/*.rs", "Cargo.toml", "ru
 readme = "README.md"
 publish = true
 edition = "2018"
-version = "0.0.22"
+version = "0.0.23"
 
 [dependencies]
 static_assertions = "^1.1"
 
 [target.'cfg(target_pointer_width = "64")'.dependencies]
+arrayvec = { version = "^0.7.0", features = ["std", "serde"] }
 hashbrown = { version = "^0.9.1", features = ["nightly", "serde", "raw", "inline-more", "ahash", "ahash-compile-time-rng" ] }
 libc = { version = "^0.2.93", features = ["const-extern-fn", "extra_traits", "std"] }
 likely = { version = "^0.2.0", path = "../likely" }

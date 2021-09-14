@@ -42,6 +42,8 @@ assert_cfg!(target_pointer_width = "64");
 
 
 use self::non_zero::new_non_null;
+use arrayvec::ArrayVec;
+use arrayvec::CapacityError;
 use libc::c_char;
 use likely::likely;
 use likely::unlikely;
@@ -64,6 +66,7 @@ use std::cell::UnsafeCell;
 use std::cmp::max;
 use std::cmp::min;
 use std::cmp::Ordering;
+use std::collections::TryReserveError;
 use std::convert::TryFrom;
 use std::convert::TryInto;
 use std::borrow::Cow;
@@ -121,9 +124,11 @@ use std::ops::IndexMut;
 use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
 use std::path::PathBuf;
+use std::ptr;
 use std::ptr::NonNull;
 use std::ptr::null;
 use std::ptr::write_bytes;
+use std::slice::from_raw_parts_mut;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering::Acquire;
 use std::sync::atomic::Ordering::Relaxed;

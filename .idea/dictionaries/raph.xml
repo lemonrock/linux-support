@@ -62,6 +62,7 @@
       <w>msync</w>
       <w>musl</w>
       <w>nack</w>
+      <w>nadsf</w>
       <w>nbyte</w>
       <w>nelems</w>
       <w>nonblock</w>
