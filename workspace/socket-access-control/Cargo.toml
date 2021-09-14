@@ -26,4 +26,4 @@ const_fn_assert = "^0.1.2"
 linux-support = { version = "^0.0.25", path = "../linux-support" }
 strum = "^0.19.2"
 strum_macros = "^0.19.2"
-swiss-army-knife = { version = "^0.0.23", path = "../swiss-army-knife" }
+swiss-army-knife = { version = "^0.0.24", path = "../swiss-army-knife" }

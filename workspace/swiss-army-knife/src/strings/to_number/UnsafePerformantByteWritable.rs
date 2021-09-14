@@ -17,3 +17,13 @@ impl<'a, BW: ByteWritable> ByteWritable for UnsafePerformantByteWritable<'a, BW>
 		self.0.push_byte(byte)
 	}
 }
+
+impl<'a, BW: ByteWritable> UnsafePerformantByteWritable<'a, BW>
+{
+	/// Create a new instance.
+	#[inline(always)]
+	pub const fn new(byte_writable: &'a mut BW) -> Self
+	{
+		Self(byte_writable)
+	}
+}
