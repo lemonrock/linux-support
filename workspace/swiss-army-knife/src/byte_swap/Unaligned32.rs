@@ -5,15 +5,6 @@
 /// An unaligned 32-bit value, either an integer (signed or unsigned) or a 32-bit IEEE-754 value.
 pub type Unaligned32 = [u8; 4];
 
-impl ByteSwapUnalignedMemory for [Unaligned32]
-{
-	#[inline(always)]
-	fn byte_swap(&mut self)
-	{
-		Unaligned32::byte_swap_unaligned_memory(self)
-	}
-}
-
 impl Unaligned for Unaligned32
 {
 	#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "ssse3"))]

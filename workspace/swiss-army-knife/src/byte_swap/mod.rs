@@ -2,7 +2,6 @@
 // Copyright © 2021 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-
 use super::*;
 use crate::get_unchecked::GetUnchecked;
 use cfg_if::cfg_if;
@@ -89,7 +88,6 @@ cfg_if!
 
 
 include!("BytesVector.rs");
-include!("ByteSwapUnalignedMemory.rs");
 include!("BytesVector128Size.rs");
 include!("BytesVector256Size.rs");
 include!("BytesVector512Size.rs");

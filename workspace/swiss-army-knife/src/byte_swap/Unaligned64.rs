@@ -5,15 +5,6 @@
 /// An unaligned 64-bit value, either an integer (signed or unsigned) or a 64-bit IEEE-754 value.
 pub type Unaligned64 = [u8; 8];
 
-impl ByteSwapUnalignedMemory for [Unaligned64]
-{
-	#[inline(always)]
-	fn byte_swap(&mut self)
-	{
-		Unaligned64::byte_swap_unaligned_memory(self)
-	}
-}
-
 impl Unaligned for Unaligned64
 {
 	#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "ssse3"))]
@@ -22,7 +13,6 @@ impl Unaligned for Unaligned64
 		 8,  9, 10, 11, 12, 13, 14, 15,
 		 0,  1,  2,  3,  4,  5,  6,  7,
 	];
-	
 	
 	#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "avx", target_feature = "avx2"))]
 	const ShuffleControlMask256: [i8; BytesVector256Size] =

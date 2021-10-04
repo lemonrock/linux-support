@@ -5,15 +5,6 @@
 /// An unaligned 16-bit value, usually an integer (signed or unsigned).
 pub type Unaligned16 = [u8; 2];
 
-impl ByteSwapUnalignedMemory for [Unaligned16]
-{
-	#[inline(always)]
-	fn byte_swap(&mut self)
-	{
-		Unaligned16::byte_swap_unaligned_memory(self)
-	}
-}
-
 impl Unaligned for Unaligned16
 {
 	#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "ssse3"))]

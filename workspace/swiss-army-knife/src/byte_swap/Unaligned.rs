@@ -2,18 +2,48 @@
 // Copyright © 2021 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// This trait exists because Rust's standard library does not abstract methods common across primitive integers into a trait, eg `fn swap_bytes()`.
-trait Unaligned: Debug + Copy + Eq + Ord + Hash
+/// Byte swap (change endian order of) an array of unaligned memory.
+///
+/// Byte swapping works irrespective of whether a value is signed or unsigned.
+pub trait Unaligned: Debug + Copy + Eq + Ord + Hash
 {
+	#[doc(hidden)]
 	#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "ssse3"))]
 	const ShuffleControlMask128: [i8; BytesVector128Size];
 	
+	#[doc(hidden)]
 	#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "avx", target_feature = "avx2"))]
 	const ShuffleControlMask256: [i8; BytesVector256Size];
 	
+	#[doc(hidden)]
 	#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "avx512f", target_feature = "avx512bw"))]
 	const ShuffleControlMask512: [i8; BytesVector512Size];
 	
+	/// Converts from little endian to native endian.
+	///
+	/// Does nothing on a little endian CPU architecture.
+	#[inline(always)]
+	fn byte_swap_unaligned_memory_from_little_endian_to_native_endian(unaligned_memory: &mut [Self])
+	{
+		if cfg!(target_endian = "big")
+		{
+			Self::byte_swap_unaligned_memory(unaligned_memory)
+		}
+	}
+	
+	/// Converts from big endian to native endian.
+	///
+	/// Does nothing on a big endian CPU architecture.
+	#[inline(always)]
+	fn byte_swap_unaligned_memory_from_big_endian_to_native_endian(unaligned_memory: &mut [Self])
+	{
+		if cfg!(target_endian = "little")
+		{
+			Self::byte_swap_unaligned_memory(unaligned_memory)
+		}
+	}
+	
+	/// Byte swap unaligned memory.
 	#[allow(unused_mut)]
 	#[inline(always)]
 	fn byte_swap_unaligned_memory(mut unaligned_memory: &mut [Self])
@@ -38,6 +68,7 @@ trait Unaligned: Debug + Copy + Eq + Ord + Hash
 		Self::swap_remaining_using_architecture_byte_swap_instruction(unaligned_memory)
 	}
 	
+	#[doc(hidden)]
 	#[inline(always)]
 	fn swap_remaining_using_architecture_byte_swap_instruction(unaligned_memory: &mut [Self])
 	{
@@ -48,6 +79,7 @@ trait Unaligned: Debug + Copy + Eq + Ord + Hash
 		}
 	}
 	
+	#[doc(hidden)]
 	#[inline(always)]
 	fn swap_using_architecture_byte_swap_instruction(&mut self)
 	{
@@ -55,12 +87,15 @@ trait Unaligned: Debug + Copy + Eq + Ord + Hash
 		*self = Self::into_any_endian_bytes(aligned)
 	}
 	
+	#[doc(hidden)]
 	type Aligned: Copy;
 	
-	/// Should be optimized to use the `MOVBE` instruction when available on x86 and x86_64.
+	#[doc(hidden)]
 	fn load_and_swap_from_any_endian_bytes(&self) -> Self::Aligned;
 	
+	#[doc(hidden)]
 	fn into_any_endian_bytes(aligned: Self::Aligned) -> Self;
 	
+	#[doc(hidden)]
 	fn pointer(&self) -> *const Self::Aligned;
 }
