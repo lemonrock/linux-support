@@ -143,6 +143,10 @@ use std::time::SystemTime;
 pub mod big_endian;
 
 
+/// SIMD-accelerated for byte swapping large areas of memory.
+pub mod byte_swap;
+
+
 /// A set of types to support the use of bit sets in Linux APIs and files.
 #[macro_use]
 pub mod bit_set;
