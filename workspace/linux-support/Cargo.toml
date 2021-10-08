@@ -50,5 +50,5 @@ serde-big-array = "^0.3.0"
 streaming-iterator = "^0.1.5"
 strum = "^0.19.2"
 strum_macros = "^0.19.2"
-swiss-army-knife = { version = "^0.0.27", path = "../swiss-army-knife" }
+swiss-army-knife = { version = "^0.0.28", path = "../swiss-army-knife" }
 terminate = { version = "^0.2.1", path = "../terminate" }
