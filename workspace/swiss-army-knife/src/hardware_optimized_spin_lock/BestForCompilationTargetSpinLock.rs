@@ -3,9 +3,7 @@
 
 
 /// The best spin lock for the compilation target.
-#[cfg(target_arch = "x86_64")]
-pub type BestForCompilationTargetSpinLock = IntelHardwareOptimizedLockSpinLock;
-
-/// The best spin lock for the compilation target.
-#[cfg(not(target_arch = "x86_64"))]
+///
+/// At one time, this used a spin lock optimized using Intel's TSX (Hardware Lock Elision, HLE) instructions.
+/// These instructions are effectively broken and Intel have removed from recent chips.
 pub type BestForCompilationTargetSpinLock = AtomicBoolSpinLock;

@@ -13,9 +13,7 @@
 #![feature(asm)]
 #![feature(const_fn_fn_ptr_basics)]
 #![feature(const_fn_trait_bound)]
-#![feature(const_fn_transmute)]
 #![feature(const_mut_refs)]
-#![feature(const_panic)]
 #![feature(const_ptr_is_null)]
 #![feature(const_ptr_offset_from)]
 #![cfg_attr(not(debug_assertions), feature(const_unreachable_unchecked))]
@@ -26,7 +24,6 @@
 #![feature(maybe_uninit_slice)]
 #![feature(maybe_uninit_uninit_array)]
 #![feature(slice_index_methods)]
-#![feature(try_reserve)]
 #![feature(maybe_uninit_array_assume_init)]
 #![cfg_attr(all(target_arch = "x86_64", target_feature = "sse2"), feature(stdarch))]
 #![cfg_attr(all(target_arch = "x86_64", target_feature = "avx512f"), feature(stdsimd))]
@@ -64,7 +61,6 @@ use std::alloc::Layout;
 use std::array::TryFromSliceError;
 use std::ascii::escape_default;
 use std::borrow::Borrow;
-use std::cell::UnsafeCell;
 use std::cmp::max;
 use std::cmp::min;
 use std::cmp::Ordering;
@@ -170,26 +166,12 @@ pub mod fixed_point_arithmetic;
 
 /// Spin lock.
 ///
-/// An Intel hardware-optimized spin lock that uses Hardware Lock Elision (HLE) and a non-CAS based spin lock (an OR lock) as a fast fallback.
-/// The intel spin lock, `HardwareLockElisionSpinLock`, is only available on a `x86_64` targets.
 /// To pick the best spin lock for the compilation target, use the type alias `BestForCompilationTargetSpinLock`.
 pub mod hardware_optimized_spin_lock;
 
 
 /// Wrappers around the current best choices for a `HashMap` and `HashSet`.
 pub mod hash_map_and_hash_set;
-
-
-/// Intel hardware lock elision.
-///
-/// From wikipedia: "Hardware Lock Elision (HLE) adds two new instruction prefixes, XACQUIRE and XRELEASE. These two prefixes reuse the opcodes of the existing REPNE / REPE prefixes (F2H / F3H). On processors that do not support TSX/TSX-NI, REPNE / REPE prefixes are ignored on instructions for which the XACQUIRE / XRELEASE are valid, thus enabling backward compatibility".
-///
-/// The naming of the intrinsics follows that in Andi Kleen's [tsx-tools](https://github.com/andikleen/tsx-tools).
-/// Intrinsics are available for `u8`, `u16`, `u32`, and, for x86_64, `u64`.
-/// These intrinsics can be thought of as providing additional memory orderings to Rust's `Relaxed`, `Release`, `Acquire` and `SeqCst`.
-/// They closely model the intent of [GCC's built in atomic instrincs](https://gcc.gnu.org/onlinedocs/gcc/_005f_005fatomic-Builtins.html).
-#[cfg(target_arch = "x86_64")]
-pub mod intel_hardware_lock_elision;
 
 
 /// Internet protocol.

@@ -3,12 +3,9 @@
 
 
 use super::*;
-use crate::intel_hardware_lock_elision::__hle_acquire_exchange_n1;
-use crate::intel_hardware_lock_elision::__hle_release_store_n1;
 
 
 include!("AtomicBoolSpinLock.rs");
 include!("BestForCompilationTargetSpinLock.rs");
 include!("busy_wait_spin_loop_hint.rs");
-#[cfg(target_arch = "x86_64")] include!("IntelHardwareOptimizedLockSpinLock.rs");
 include!("SpinLock.rs");

@@ -3,6 +3,6 @@
 
 
 #[cfg(all(target_feature = "avx512f", target_feature = "avx512bitalg", target_feature = "avx512vl"))] pub use std::arch::x86_64::_mm_popcnt_epi8;
-#[cfg(all(target_feature = "avx2", not(all(target_feature = "avx512f", target_feature = "avx512bitalg", target_feature = "avx512vl"))))] pub use avx2::_mm_popcnt_epi8;
+#[cfg(all(target_feature = "avx2", not(all(target_feature = "avx512f", target_feature = "avx512bitalg", target_feature = "avx512vl"))))] pub use ssse3::_mm_popcnt_epi8; // TODO: It should be possible to create an AVX2 variant.
 #[cfg(all(target_feature = "ssse3", not(target_feature = "avx2"), not(all(target_feature = "avx512f", target_feature = "avx512bitalg", target_feature = "avx512vl"))))] pub use ssse3::_mm_popcnt_epi8;
 #[cfg(all(target_feature = "sse2", not(target_feature = "ssse3"), not(target_feature = "avx2"), not(all(target_feature = "avx512f", target_feature = "avx512bitalg", target_feature = "avx512vl"))))] pub use sse2::_mm_popcnt_epi8;
