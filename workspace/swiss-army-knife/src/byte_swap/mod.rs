@@ -3,6 +3,7 @@
 
 
 use super::*;
+use std::arch::asm;
 use crate::get_unchecked::GetUnchecked;
 use cfg_if::cfg_if;
 #[cfg(all(target_arch = "x86_64", target_feature = "ssse3"))] use std::arch::x86_64::__m128i as BytesVector128;
