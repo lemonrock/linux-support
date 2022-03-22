@@ -24,6 +24,9 @@
 #![cfg_attr(all(target_arch = "x86_64", target_feature = "avx512f"), feature(stdsimd))]
 
 
+#![feature(asm_const)]
+
+
 //! #linux-support
 //!
 //! This library provides wrappers and additional functionality to make use of a panoply of miscellaneous Linux (and, sometimes, POSIX) features.
