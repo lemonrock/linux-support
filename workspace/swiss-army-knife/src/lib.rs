@@ -130,6 +130,10 @@ use std::time::Duration;
 use std::time::SystemTime;
 
 
+/// Definitions of single byte constants.
+pub mod a_to_z;
+
+
 /// Big-endian definitions.
 pub mod big_endian;
 
