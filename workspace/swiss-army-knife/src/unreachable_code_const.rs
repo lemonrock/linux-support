@@ -10,7 +10,7 @@
 #[allow(non_fmt_panic)]
 pub const fn unreachable_code_const(explanation: &'static str) -> !
 {
-	panic!(explanation)
+	panic!("{}", explanation)
 }
 
 /// Unreachable code, suitable for constant functions.

@@ -25,6 +25,19 @@
 
 
 #![feature(asm_const)]
+#![feature(const_deref)]
+#![feature(const_intrinsic_copy)]
+#![feature(const_maybe_uninit_as_mut_ptr)]
+#![feature(const_refs_to_cell)]
+#![feature(const_slice_from_raw_parts)]
+#![feature(const_slice_ptr_len)]
+#![feature(const_trait_impl)]
+#![feature(const_try)]
+#![feature(nonnull_slice_from_raw_parts)]
+#![feature(slice_ptr_get)]
+#![feature(slice_ptr_len)]
+#![feature(try_reserve_kind)]
+#![feature(untagged_unions)]
 
 
 //! #linux-support
@@ -148,6 +161,10 @@ pub mod byte_swap;
 /// A set of types to support the use of bit sets in Linux APIs and files.
 #[macro_use]
 pub mod bit_set;
+
+
+/// A `SmallVec`-like structure which can be constructed at build time (i.e. has `const` constructors).
+pub mod const_small_vec;
 
 
 /// Allows the use of slice methods `get_unchecked()` and `get_unchecked_mut()` such that when compiling with debug assertions access is checked.
