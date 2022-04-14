@@ -143,6 +143,7 @@ impl<T: Clone, const N: usize> Clone for ConstSmallVec<T, N>
 				Ok(allocation) => allocation,
 			};
 			
+			let from = from.as_ptr();
 			let to = allocation.as_mut_ptr() as *mut T;
 			unsafe { copy_nonoverlapping(from, to, current_length) };
 			
@@ -221,7 +222,7 @@ impl<T, const N: usize> const Default for ConstSmallVec<T, N>
 	}
 }
 
-impl<T, const N: usize> const Deref for ConstSmallVec<T, N>
+impl<T, const N: usize> Deref for ConstSmallVec<T, N>
 {
 	type Target = [T];
 	
@@ -313,6 +314,7 @@ impl<T, const N: usize> ConstSmallVec<T, N>
 		let pointer = memory.as_mut_ptr();
 		unsafe { pointer.add(length).write(element) };
 		*length_ref_mut = length + 1;
+		
 		Ok(())
 	}
 	
@@ -340,6 +342,7 @@ impl<T, const N: usize> ConstSmallVec<T, N>
 		let new_capacity = NGC::calculate::<T>(current_capacity, required_capacity)?;
 		let new_layout = Self::new_layout(new_capacity)?;
 		let allocator = Self::allocator();
+		
 		let allocation = match allocator.allocate(new_layout)
 		{
 			Err(alloc_error) => return Self::alloc_error(alloc_error, new_layout),
@@ -356,8 +359,9 @@ impl<T, const N: usize> ConstSmallVec<T, N>
 		}
 		
 		self.stack_without_length_or_heap.set_heap(Heap::from_pointer_and_length(pointer, current_length));
+		let length_ref_mut = self.stack_without_length_or_heap.heap_mut().length_ref_mut();
 		
-		Ok((NonNull::slice_from_raw_parts(pointer, new_capacity), current_length, self.stack_without_length_or_heap.heap_mut().length_ref_mut()))
+		Ok((NonNull::slice_from_raw_parts(pointer, new_capacity), current_length, length_ref_mut))
 	}
 	
 	#[inline(always)]

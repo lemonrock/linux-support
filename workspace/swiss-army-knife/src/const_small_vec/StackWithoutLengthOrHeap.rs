@@ -35,7 +35,7 @@ impl<T, const N: usize> StackWithoutLengthOrHeap<T, N>
 	#[inline(always)]
 	fn set_heap(&mut self, heap: Heap<T>)
 	{
-		self.heap = heap
+		unsafe { self.heap = heap }
 	}
 	
 	#[inline(always)]
@@ -51,10 +51,9 @@ impl<T, const N: usize> StackWithoutLengthOrHeap<T, N>
 	}
 	
 	#[inline(always)]
-	const fn heap(&self) -> Heap<T>
+	const fn heap(&self) -> &Heap<T>
 	{
-		let heap = unsafe { &self.heap };
-		Heap(heap.0)
+		unsafe { &self.heap }
 	}
 	
 	#[inline(always)]
