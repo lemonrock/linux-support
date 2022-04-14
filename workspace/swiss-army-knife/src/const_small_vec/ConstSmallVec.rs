@@ -47,35 +47,6 @@ impl<T, const N: usize> const From<[T; N]> for ConstSmallVec<T, N>
 	}
 }
 
-impl<'a, T: Copy, const N: usize> const From<&'a [T]> for ConstSmallVec<T, N>
-{
-	/// Will panic if `value.len()` exceeds `N` (unless `T` is zero-sized).
-	#[inline(always)]
-	fn from(slice: &'a [T]) -> Self
-	{
-		let length_of_stack = slice.len();
-		if length_of_stack > Self::capacity_of_stack()
-		{
-			panic!("Stack capacity exceeded")
-		}
-		
-		let mut stack_without_length = MaybeUninit::uninit();
-		let to = stack_without_length.as_mut_ptr() as *mut T;
-		let from = slice.as_ptr();
-		unsafe { copy_nonoverlapping(from, to, length_of_stack) }
-		
-		Self
-		{
-			length_of_stack_or_capacity_of_heap: length_of_stack,
-			
-			stack_without_length_or_heap: StackWithoutLengthOrHeap
-			{
-				stack_without_length: StackWithoutLength::from(stack_without_length),
-			},
-		}
-	}
-}
-
 impl<T, const N: usize> From<Vec<T>> for ConstSmallVec<T, N>
 {
 	#[inline(always)]
@@ -286,27 +257,45 @@ impl<T, const N: usize> const DerefMut for ConstSmallVec<T, N>
 	}
 }
 
+impl<T: Copy, const N: usize> ConstSmallVec<T, N>
+{
+	/// Will panic if `slice.len()` exceeds `N` (unless `T` is zero-sized).
+	#[inline(always)]
+	pub const fn from_panic_slice(slice: &[T]) -> Self
+	{
+		Self::from_panic(slice)
+	}
+	
+}
+
 impl<T, const N: usize> ConstSmallVec<T, N>
 {
 	/// Will panic if `M` exceeds `N` (unless `T` is zero-sized).
 	#[inline(always)]
-	pub const fn from_panic<const M: usize>(array: [T; M]) -> Self
+	pub const fn from_panic_array<const M: usize>(array: [T; M]) -> Self
 	{
-		if M > Self::capacity_of_stack()
+		let this = Self::from_panic(array.as_slice());
+		let _forget = ManuallyDrop::new(array);
+		this
+	}
+	
+	#[inline(always)]
+	const fn from_panic(slice: &[T]) -> Self
+	{
+		let length_of_stack = slice.len();
+		if length_of_stack > Self::capacity_of_stack()
 		{
-			panic!("Stack capacity exceeded")
+			panic!("slice is too large to allocate on the stack, and heap allocation is not possible at build time")
 		}
 		
 		let mut stack_without_length = MaybeUninit::uninit();
 		let to = stack_without_length.as_mut_ptr() as *mut T;
-		let from = array.as_ptr();
-		unsafe { copy_nonoverlapping(from, to, M) }
-		
-		let _forget = ManuallyDrop::new(array);
+		let from = slice.as_ptr();
+		unsafe { copy_nonoverlapping(from, to, length_of_stack) };
 		
 		Self
 		{
-			length_of_stack_or_capacity_of_heap: Self::capacity_of_stack(),
+			length_of_stack_or_capacity_of_heap: length_of_stack,
 			
 			stack_without_length_or_heap: StackWithoutLengthOrHeap
 			{
