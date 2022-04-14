@@ -263,7 +263,8 @@ impl<T, const N: usize> const Deref for ConstSmallVec<T, N>
 		}
 		else
 		{
-			self.stack_without_length_or_heap.stack_without_length().slice(self.length_of_stack_or_capacity_of_heap)
+			let length_of_stack = self.length_of_stack();
+			self.stack_without_length_or_heap.stack_without_length().slice(length_of_stack)
 		}
 	}
 }
