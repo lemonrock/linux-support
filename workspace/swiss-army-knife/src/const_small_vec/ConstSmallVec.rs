@@ -17,13 +17,15 @@ impl<T, const N: usize> Drop for ConstSmallVec<T, N>
 	{
 		if self.has_spilled_to_heap()
 		{
-			let heap = self.stack_without_length_or_heap.heap();
-			let capacity = self.capacity_of_heap();
-			drop(heap.into_vec(capacity))
+			let to_drop = self.stack_without_length_or_heap.heap_mut().slice_mut();
+			unsafe { drop_in_place(to_drop) };
+			
+			self.deallocate_heap();
 		}
 		else
 		{
 			let length = self.length_of_stack();
+			
 			let to_drop = self.stack_without_length_or_heap.stack_without_length_mut().slice_mut(length);
 			unsafe { drop_in_place(to_drop) }
 		}
@@ -96,23 +98,56 @@ impl<T, const N: usize> TryFrom<ConstSmallVec<T, N>> for Vec<T>
 	#[inline(always)]
 	fn try_from(const_small_vec: ConstSmallVec<T, N>) -> Result<Self, Self::Error>
 	{
-		let slice = const_small_vec.deref();
-		let from = slice.as_ptr();
-		let length = slice.len();
-		
-		let mut vec = Vec::new();
-		if let Err(error) = vec.try_reserve(length)
+		let vec = if const_small_vec.has_spilled_to_heap()
 		{
-			return Err(error)
+			let x = const_small_vec.stack_without_length_or_heap.heap();
+			let (pointer, length) = x.pointer_and_length();
+			let capacity = const_small_vec.capacity_of_heap();
+			unsafe { Vec::from_raw_parts(pointer.as_ptr(), length, capacity) }
 		}
-		
-		let to = vec.as_mut_ptr();
-		unsafe
+		else
 		{
-			copy_nonoverlapping(from, to, length);
-			vec.set_len(length);
-		}
+			let from = const_small_vec.stack_without_length_or_heap.stack_without_length().pointer();
+			let length = const_small_vec.length_of_stack();
+			
+			let mut vec = Vec::new();
+			vec.try_reserve(length)?;
+			
+			let to = vec.as_mut_ptr();
+			unsafe
+			{
+				copy_nonoverlapping(from, to, length);
+				vec.set_len(length);
+			}
+			vec
+		};
+		let _forget = ManuallyDrop::new(const_small_vec);
 		Ok(vec)
+	}
+}
+
+impl<T: Debug, const N: usize> const TryFrom<ConstSmallVec<T, N>> for [T; N]
+{
+	type Error = IntoArrayError<T, N>;
+	
+	#[inline(always)]
+	fn try_from(mut const_small_vec: ConstSmallVec<T, N>) -> Result<Self, Self::Error>
+	{
+		use IntoArrayError::*;
+		
+		if const_small_vec.has_spilled_to_heap()
+		{
+			return Err(HasSpilledToHeap(const_small_vec))
+		}
+		let length = const_small_vec.length_of_stack();
+		if length != N
+		{
+			return Err(StackTooShort(const_small_vec))
+		}
+		
+		let array = const_small_vec.stack_without_length_or_heap.take_array();
+		let _ = ManuallyDrop::new(const_small_vec);
+		Ok(array)
 	}
 }
 
@@ -222,7 +257,7 @@ impl<T, const N: usize> const Default for ConstSmallVec<T, N>
 	}
 }
 
-impl<T, const N: usize> Deref for ConstSmallVec<T, N>
+impl<T, const N: usize> const Deref for ConstSmallVec<T, N>
 {
 	type Target = [T];
 	
@@ -258,6 +293,42 @@ impl<T, const N: usize> const DerefMut for ConstSmallVec<T, N>
 	}
 }
 
+impl<T, const N: usize> const AsRef<[T]> for ConstSmallVec<T, N>
+{
+	#[inline(always)]
+	fn as_ref(&self) -> &[T]
+	{
+		self.deref()
+	}
+}
+
+impl<T, const N: usize> const AsMut<[T]> for ConstSmallVec<T, N>
+{
+	#[inline(always)]
+	fn as_mut(&mut self) -> &mut [T]
+	{
+		self.deref_mut()
+	}
+}
+
+impl<T, const N: usize> const Borrow<[T]> for ConstSmallVec<T, N>
+{
+	#[inline(always)]
+	fn borrow(&self) -> &[T]
+	{
+		self.deref()
+	}
+}
+
+impl<T, const N: usize> const BorrowMut<[T]> for ConstSmallVec<T, N>
+{
+	#[inline(always)]
+	fn borrow_mut(&mut self) -> &mut [T]
+	{
+		self.deref_mut()
+	}
+}
+
 impl<T: Copy, const N: usize> ConstSmallVec<T, N>
 {
 	/// Will panic if `slice.len()` exceeds `N` (unless `T` is zero-sized).
@@ -266,7 +337,6 @@ impl<T: Copy, const N: usize> ConstSmallVec<T, N>
 	{
 		Self::from_panic(slice)
 	}
-	
 }
 
 impl<T, const N: usize> ConstSmallVec<T, N>
@@ -280,6 +350,70 @@ impl<T, const N: usize> ConstSmallVec<T, N>
 		this
 	}
 	
+	/// Tries to turn into an array of length `M`.
+	/// Fails if:-
+	/// * Has spilled to heap (`self.len() > N`).
+	/// * `M > N` or, if `size_of::<T>() == 0`, `M > usize::MAX`.
+	/// * `M > self.len()`.
+	#[inline(always)]
+	pub fn try_into_array<const M: usize>(mut self) -> Result<[T; M], IntoArrayMError>
+	{
+		use IntoArrayMError::*;
+		
+		let m_array = if self.has_spilled_to_heap()
+		{
+			let (pointer, length_of_heap) = self.stack_without_length_or_heap.heap().pointer_and_length();
+			
+			if M > length_of_heap
+			{
+				return Err(MExceedsLength)
+			}
+			
+			let mut m_array: MaybeUninit<[T; M]> = MaybeUninit::uninit();
+			
+			let heap_pointer = pointer.as_ptr();
+			
+			{
+				let to = m_array.as_mut_ptr().cast::<T>();
+				unsafe { copy_nonoverlapping(heap_pointer as *const T, to, M) }
+			}
+			
+			{
+				let from = unsafe { heap_pointer.add(M) };
+				let range_to_drop = unsafe { from_raw_parts_mut(from, length_of_heap - M) };
+				unsafe { drop_in_place(range_to_drop) };
+			}
+			
+			self.deallocate_heap();
+			
+			unsafe { m_array.assume_init() }
+		}
+		else
+		{
+			let length_of_stack = self.length_of_stack();
+			if M > length_of_stack
+			{
+				return Err(MExceedsLength)
+			}
+			
+			let stack_without_length = self.stack_without_length_or_heap.stack_without_length_mut();
+			let stack_pointer = stack_without_length.pointer_mut();
+			
+			{
+				let from = unsafe { stack_pointer.add(M) };
+				let range_to_drop = unsafe { from_raw_parts_mut(from, length_of_stack - M) };
+				unsafe { drop_in_place(range_to_drop) };
+			}
+			
+			{
+				let m_array_pointer = stack_pointer.cast::<[T; M]>();
+				unsafe { read(m_array_pointer) }
+			}
+		};
+		let _ = ManuallyDrop::new(self);
+		Ok(m_array)
+	}
+
 	#[inline(always)]
 	const fn from_panic(slice: &[T]) -> Self
 	{
@@ -303,6 +437,27 @@ impl<T, const N: usize> ConstSmallVec<T, N>
 				stack_without_length: StackWithoutLength::from(stack_without_length),
 			},
 		}
+	}
+	
+	/// Constant function suitable for use at compile time.
+	///
+	/// Can fail with an `Err()` if there is not enough memory to allocate on the stack, i.e. the length (`len()`) is already equal to or greater than `N`.
+	#[inline(always)]
+	pub const fn try_stack_push(&mut self, element: T) -> Result<(), T>
+	{
+		if self.has_spilled_to_heap_or_stack_is_full()
+		{
+			return Err(element)
+		}
+		
+		let length = self.length_of_stack();
+		{
+			let pointer = self.stack_without_length_or_heap.stack_without_length_mut().pointer_mut();
+			unsafe { pointer.add(length).write(element) }
+		}
+		*self.length_of_stack_ref_mut() = length + 1;
+		
+		Ok(())
 	}
 	
 	/// Optimized reservation followed by push.
@@ -408,14 +563,12 @@ impl<T, const N: usize> ConstSmallVec<T, N>
 	}
 	
 	#[inline(always)]
-	fn new_layout(new_capacity: usize) -> Result<Layout, TryReserveError>
+	fn deallocate_heap(&mut self)
 	{
-		match Layout::array::<T>(new_capacity)
-		{
-			Err(_layout_error) => Err(TryReserveErrorKind::CapacityOverflow.into()),
-			
-			Ok(new_layout) => Self::guard_allocation_does_exceed_isize_max_on_16_bit_and_32_bit_platforms(new_layout),
-		}
+		let pointer = self.stack_without_length_or_heap.heap().non_null_pointer().cast::<u8>();
+		let current_layout = Self::current_layout(self.capacity_of_heap());
+		let allocator = Self::allocator();
+		unsafe { allocator.deallocate(pointer, current_layout) };
 	}
 	
 	/// We need to guarantee we don't ever allocate `> isize::MAX` bytes.
@@ -435,6 +588,20 @@ impl<T, const N: usize> ConstSmallVec<T, N>
 		Ok(new_layout)
 	}
 	
+	#[inline(always)]
+	fn new_layout(new_capacity: usize) -> Result<Layout, TryReserveError>
+	{
+		match Layout::array::<T>(new_capacity)
+		{
+			Err(_layout_error) => Err(TryReserveErrorKind::CapacityOverflow.into()),
+			
+			Ok(new_layout) => Self::guard_allocation_does_exceed_isize_max_on_16_bit_and_32_bit_platforms(new_layout),
+		}
+	}
+	
+	/// Equivalent to `new_layout()` but does not raise an error.
+	///
+	/// Internally, `Layout::array()` calls the same logic as is below but with a checked multiplication.
 	#[inline(always)]
 	const fn current_layout(current_capacity: usize) -> Layout
 	{
@@ -486,6 +653,12 @@ impl<T, const N: usize> ConstSmallVec<T, N>
 	const fn has_spilled_to_heap(&self) -> bool
 	{
 		self.length_of_stack_or_capacity_of_heap > Self::capacity_of_stack()
+	}
+	
+	#[inline(always)]
+	const fn has_spilled_to_heap_or_stack_is_full(&self) -> bool
+	{
+		self.length_of_stack_or_capacity_of_heap >= Self::capacity_of_stack()
 	}
 	
 	#[inline(always)]

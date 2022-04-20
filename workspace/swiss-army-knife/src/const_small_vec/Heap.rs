@@ -55,14 +55,6 @@ impl<T> Heap<T>
 	}
 	
 	#[inline(always)]
-	fn into_vec(&self, capacity: usize) -> Vec<T>
-	{
-		let (pointer, length) = self.pointer_and_length();
-		let ptr = pointer.as_ptr();
-		unsafe { Vec::from_raw_parts(ptr, length, capacity) }
-	}
-	
-	#[inline(always)]
 	const fn pointer_and_length(&self) -> (NonNull<T>, usize)
 	{
 		(self.non_null_pointer(), self.length())

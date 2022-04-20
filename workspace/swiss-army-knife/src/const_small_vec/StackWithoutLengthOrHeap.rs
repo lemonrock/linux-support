@@ -39,6 +39,27 @@ impl<T, const N: usize> StackWithoutLengthOrHeap<T, N>
 	}
 	
 	#[inline(always)]
+	const fn take_array(&mut self) -> [T; N]
+	{
+		let stack_without_length = self.stack_without_length_mut();
+		let inner = &stack_without_length.0;
+		
+		// Replacement for `ManuallyDrop::take()`, which isn't constant.
+		let maybe_uninit_array =
+		{
+			if size_of::<ManuallyDrop<MaybeUninit<[T; N]>>>() != size_of::<MaybeUninit<[T; N]>>()
+			{
+				panic!("ManuallyDrop size has changed from that assumed")
+			}
+			// Pointer to the `ManuallyDrop::value` field.
+			let pointer_to_inner_value = (inner as *const ManuallyDrop<MaybeUninit<[T; N]>>).cast::<MaybeUninit<[T; N]>>();
+			unsafe { read(pointer_to_inner_value) }
+		};
+		
+		unsafe { maybe_uninit_array.assume_init() }
+	}
+	
+	#[inline(always)]
 	const fn stack_without_length(&self) -> &StackWithoutLength<T, N>
 	{
 		unsafe { &self.stack_without_length }
