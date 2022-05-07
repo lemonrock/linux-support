@@ -17,7 +17,8 @@ impl CStringExt for CString
 	#[inline(always)]
 	fn from_fixed_length_buffer_ascii_nul_terminated(mut buffer: Vec<c_char>) -> CString
 	{
-		let index = memchr(b'\0', unsafe { transmute(&buffer[..]) }).expect("final element was not ASCII null");
+		let x: &[u8] = unsafe { transmute(&buffer[..]) };
+		let index = x.memchr(b'\0').expect("final element was not ASCII null");
 		unsafe { buffer.set_len(index + 1) };
 		let c_string_inner = buffer.into_boxed_slice();
 		unsafe { transmute(c_string_inner) }
@@ -26,7 +27,8 @@ impl CStringExt for CString
 	#[inline(always)]
 	fn from_fixed_length_buffer_optionally_ascii_nul_terminated(mut buffer: Vec<c_char>) -> CString
 	{
-		match memchr(b'\0', unsafe { transmute(&buffer[..]) })
+		let x: &[u8] = unsafe { transmute(&buffer[..]) };
+		match x.memchr(b'\0')
 		{
 			Some(index) =>
 			{

@@ -13,6 +13,8 @@ use std::ops::Range;
 use std::ops::RangeTo;
 use std::ops::RangeToInclusive;
 use std::slice::SliceIndex;
+use std::str::from_utf8_unchecked;
+use std::str::from_utf8_unchecked_mut;
 
 
 include!("AsUsizeIndex.rs");

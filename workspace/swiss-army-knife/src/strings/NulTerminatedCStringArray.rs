@@ -74,7 +74,7 @@ impl NulTerminatedCStringArray
 	#[inline(always)]
 	fn push_fragment(&mut self, bytes: &[u8])
 	{
-		debug_assert!(memchr(b'\0', bytes).is_none(), "Embedded ASCII NUL");
+		debug_assert!(bytes.memchr(b'\0').is_none(), "Embedded ASCII NUL");
 
 		let bytes_length = bytes.len();
 		self.buffer.reserve(bytes_length);

@@ -26,7 +26,7 @@ impl FromBytes for TimeStalledPercentage
 	{
 		use self::ParseNumberError::*;
 		
-		let index = memchr(b'.', bytes).ok_or(TooShort)?;
+		let index = bytes.memchr(b'.').ok_or(TooShort)?;
 		
 		Ok
 		(

@@ -1,5 +1,5 @@
-// This file is part of olympus-xmp. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/raphaelcohn/olympus-xmp/master/COPYRIGHT. No part of olympus-xmp, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
-// Copyright © 2022 The developers of olympus-xmp. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/raphaelcohn/olympus-xmp/master/COPYRIGHT.
+// This file is part of linux-support. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT. No part of linux-support, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+// Copyright © 2022 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
 include!("A_.rs");
@@ -7,9 +7,12 @@ include!("Ampersand.rs");
 include!("Apostrophe.rs");
 include!("Asterisk.rs");
 include!("AtSign.rs");
+include!("Backslash.rs");
+include!("Backspace.rs");
 include!("B_.rs");
 include!("C_.rs");
 include!("Caret.rs");
+include!("CarriageReturn.rs");
 include!("CloseAngleBracket.rs");
 include!("CloseRoundBracket.rs");
 include!("CloseSquareBracket.rs");
@@ -22,6 +25,7 @@ include!("E_.rs");
 include!("ExclamationMark.rs");
 include!("EqualsSign.rs");
 include!("F_.rs");
+include!("FormFeed.rs");
 include!("G_.rs");
 include!("H_.rs");
 include!("Hash.rs");

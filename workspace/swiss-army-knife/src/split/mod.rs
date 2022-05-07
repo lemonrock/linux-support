@@ -3,6 +3,7 @@
 
 
 use super::*;
+use super::memchr::MemoryCharacter;
 
 
 include!("SplitBytes.rs");

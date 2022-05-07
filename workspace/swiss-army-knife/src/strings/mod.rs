@@ -7,7 +7,8 @@ use super::get_unchecked::*;
 use super::unsafe_initialization::*;
 use self::parse_number::*;
 use self::to_number::NumberAsBytes;
-use crate::split::SplitBytes;
+use super::split::SplitBytes;
+use super::memchr::MemoryCharacter;
 
 
 include!("c_string_pointer_to_path_buf.rs");

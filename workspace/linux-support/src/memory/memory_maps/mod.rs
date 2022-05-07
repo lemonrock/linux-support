@@ -11,6 +11,7 @@ use super::*;
 use super::huge_pages::*;
 use super::information::MemoryInformationUnit;
 use super::mapping::*;
+use swiss_army_knife::memchr::MemoryCharacter;
 
 
 include!("CleanDirtyAndHuge.rs");

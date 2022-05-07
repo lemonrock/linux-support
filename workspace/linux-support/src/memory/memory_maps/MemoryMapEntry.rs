@@ -281,8 +281,8 @@ impl MemoryMapEntry
 		let (set_memory_policy_bytes, memory_policy_dynamism_bytes, numa_node_bit_mask_bytes) =
 		{
 			let field_bytes = fields.next().ok_or(MissingRequiredField { zero_based_line_number, zero_based_field_index: 1, name: "memory_policy" })?;
-			let equals_index = memchr(b'=', field_bytes);
-			let colon_index = memrchr(b':', field_bytes);
+			let equals_index = field_bytes.memchr(b'=');
+			let colon_index = field_bytes.memrchr(b':');
 
 			const Nothing: &'static [u8] = b"";
 			match (equals_index, colon_index)
@@ -476,7 +476,7 @@ impl MemoryMapEntry
 	{
 		if let Some(field_bytes) = next_field
 		{
-			match memchr(b'=', field_bytes)
+			match field_bytes.memchr(b'=')
 			{
 				None => Err(NumaMapKeyValueDidNotHaveEqualsSign),
 

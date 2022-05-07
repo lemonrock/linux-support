@@ -110,7 +110,7 @@ impl MemoryMapEntryStatistics
 
 			let (statistic_name, remaining_line_bytes) =
 			{
-				let colon_index = memchr(b':', line_bytes).ok_or(StatisticMissingColon { zero_based_line_number })?;
+				let colon_index = line_bytes.memchr(b':').ok_or(StatisticMissingColon { zero_based_line_number })?;
 				(&line_bytes[0 .. colon_index], &line_bytes[colon_index + 1 ..])
 			};
 
@@ -457,7 +457,7 @@ impl MemoryMapEntryStatistics
 			(remaining_line_bytes, Count)
 		};
 
-		let statistic_value_start_index = memrchr(b' ', space_value_bytes).ok_or(StatisticMissingSpaceAfterColon { zero_based_line_number })?;
+		let statistic_value_start_index = space_value_bytes.memrchr(b' ').ok_or(StatisticMissingSpaceAfterColon { zero_based_line_number })?;
 		let statistic_value_bytes = &space_value_bytes[statistic_value_start_index .. ];
 
 		Ok((statistic_value_bytes, memory_information_unit))

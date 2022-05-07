@@ -27,5 +27,5 @@ cfg-if = "1.0.0"
 hashbrown = { version = "^0.9.1", features = ["nightly", "serde", "raw", "inline-more", "ahash", "ahash-compile-time-rng" ] }
 libc = { version = "^0.2.93", features = ["const-extern-fn", "extra_traits", "std"] }
 likely = { version = "^0.2.0", path = "../likely" }
-memchr = "^2.3.3"
+memchr = "^2.5.0"
 serde = { version = "^1.0", features = ["derive", "rc"] }

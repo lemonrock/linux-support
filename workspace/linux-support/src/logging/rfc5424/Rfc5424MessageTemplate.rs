@@ -157,7 +157,7 @@ impl Rfc5424MessageTemplate
 		let mut inclusive_from_index = 0;
 		loop
 		{
-			match memchr3(b'=', b']', b'"', haystack)
+			match haystack.memchr3(b'=', b']', b'"')
 			{
 				None =>
 				{

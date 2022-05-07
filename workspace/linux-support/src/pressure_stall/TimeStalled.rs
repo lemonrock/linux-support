@@ -55,7 +55,7 @@ impl FromBytes for TimeStalled
 		
 		for field in bytes.split_bytes(b' ')
 		{
-			let index = memchr(b'=', field).ok_or(io_error_invalid_data("Missing `=`"))?;
+			let index = field.memchr(b'=').ok_or(io_error_invalid_data("Missing `=`"))?;
 			let field_name = &field[ .. index];
 			let field_value = &field[(index + 1) .. ];
 			match field_name
@@ -90,7 +90,7 @@ impl TimeStalled
 {
 	pub(crate) fn parse_line(line_without_line_feed: &[u8]) -> io::Result<(&[u8], Self)>
 	{
-		let index = memchr(b' ', line_without_line_feed).ok_or(io_error_invalid_data("Missing data"))?;
+		let index = line_without_line_feed.memchr(b' ').ok_or(io_error_invalid_data("Missing data"))?;
 		let name = &line_without_line_feed[ .. index];
 		let data = &line_without_line_feed[(index + 1) .. ];
 		let time_stalled = Self::from_bytes(data)?;

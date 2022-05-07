@@ -33,7 +33,7 @@ impl<'a> Iterator for SplitBytesNIterator<'a>
 			return Some(self.bytes)
 		}
 		
-		match memchr(self.needle, self.bytes)
+		match self.bytes.memchr(self.needle)
 		{
 			None =>
 			{

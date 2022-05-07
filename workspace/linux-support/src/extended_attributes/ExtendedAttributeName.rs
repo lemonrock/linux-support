@@ -29,6 +29,6 @@ impl<'a> ExtendedAttributeName<'a>
 	pub fn namespace_and_relative_name(&self) -> (Option<ExtendedAttributeNamespace<'a>>, &[u8])
 	{
 		let bytes = self.0.to_bytes();
-		memchr(b'.', bytes).map(|index| (Some(ExtendedAttributeNamespace(&bytes[0 .. index])), &bytes[index + 1 .. ])).unwrap_or((None, bytes))
+		bytes.memchr(b'.').map(|index| (Some(ExtendedAttributeNamespace(&bytes[0 .. index])), &bytes[index + 1 .. ])).unwrap_or((None, bytes))
 	}
 }

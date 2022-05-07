@@ -16,7 +16,7 @@ pub(crate) fn extract_space_terminated_value_from_slice<'a, Value, Error>(remain
 	}
 
 	let remaining_bytes = &remaining_bytes[prefix_including_colon_and_whitespace.len() .. ];
-	let raw_value = match memchr(b' ', remaining_bytes)
+	let raw_value = match remaining_bytes.memchr(b' ')
 	{
 		None => remaining_bytes,
 

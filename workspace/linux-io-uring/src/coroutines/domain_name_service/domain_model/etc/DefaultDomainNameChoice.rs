@@ -174,7 +174,7 @@ impl DefaultDomainNameChoice
 		DefaultHostNameChoice::use_uname(|buffer|
 		{
 			let nodename: [u8; DefaultHostNameChoice::Size] = unsafe { transmute(buffer.nodename) };
-			let length = memchr(0x00, &nodename[..]).unwrap_or(Self::Size);
+			let length = (&nodename[..]).memchr(0x00).unwrap_or(Self::Size);
 			
 			let valid = &nodename[.. length];
 			let possibly_fully_qualified_host_name = FullyQualifiedDomainName::from_byte_string_ending_with_optional_trailing_period(valid)?;
@@ -188,7 +188,7 @@ impl DefaultDomainNameChoice
 		DefaultHostNameChoice::use_uname(|buffer|
 		{
 			let domainname: [u8; DefaultHostNameChoice::Size] = unsafe { transmute(buffer.domainname) };
-			let length = memchr(0x00, &domainname[..]).unwrap_or(Self::Size);
+			let length = (&domainname[..]).memchr(0x00).unwrap_or(Self::Size);
 			
 			let valid = &domainname[.. length];
 			let possibly_fully_qualified_host_name = FullyQualifiedDomainName::from_byte_string_ending_with_optional_trailing_period(valid)?;

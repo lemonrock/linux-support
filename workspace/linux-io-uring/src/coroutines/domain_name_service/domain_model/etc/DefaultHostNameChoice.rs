@@ -102,7 +102,7 @@ impl DefaultHostNameChoice
 		Self::use_uname(|buffer|
 		{
 			let nodename: [u8; Self::Size] = unsafe { transmute(buffer.nodename) };
-			let length = memchr(0x00, &nodename[..]).unwrap_or(Self::Size);
+			let length = (&nodename[..]).memchr(0x00).unwrap_or(Self::Size);
 			
 			let valid = &nodename[.. length];
 			let possibly_fully_qualified_host_name = FullyQualifiedDomainName::from_byte_string_ending_with_optional_trailing_period(valid)?;

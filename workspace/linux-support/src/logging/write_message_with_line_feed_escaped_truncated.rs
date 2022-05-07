@@ -40,7 +40,7 @@ unsafe fn write_message_with_line_feed_escaped_truncated(mut write_to: *mut u8, 
 	let mut remaining_bytes = message.as_bytes();
 	while !remaining_bytes.is_empty()
 	{
-		match memchr2(LineFeed, Slash, remaining_bytes)
+		match remaining_bytes.memchr2(LineFeed, Slash)
 		{
 			None => return write_slice_truncated(write_to, remaining_bytes, end_pointer),
 			

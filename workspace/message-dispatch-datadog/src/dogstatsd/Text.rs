@@ -33,7 +33,7 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 				const Colon: u8 = b':';
 				const m: u8 = b'm';
 				let bytes = &message[start_next_slice_index..];
-				match memchr2(LineFeed, Colon, bytes)
+				match bytes.memchr2(LineFeed, Colon)
 				{
 					None => break message,
 					
@@ -77,7 +77,7 @@ impl<CoroutineHeapSize: MemorySize, GTACSA: 'static + GlobalThreadAndCoroutineSw
 				
 				const LineFeed: u8 = b'\n';
 				let bytes = &message[start_next_slice_index..];
-				match memchr(LineFeed, bytes)
+				match bytes.memchr(LineFeed)
 				{
 					None => break message,
 					

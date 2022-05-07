@@ -21,7 +21,7 @@ impl TryFrom<OsString> for CgroupName
 		}
 		
 		let bytes = value.as_bytes();
-		match memchr2(b'/', b'.', bytes)
+		match bytes.memchr2(b'/', b'.')
 		{
 			None => Ok(Self(value)),
 			

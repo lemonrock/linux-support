@@ -3,6 +3,7 @@
 
 
 use super::*;
+use swiss_army_knife::memchr::MemoryCharacter;
 
 
 include!("DefaultDomainNameChoice.rs");

@@ -524,6 +524,6 @@ impl<const MaximumLengthIncludingAsciiNull: usize> ObjectName<MaximumLengthInclu
 	#[inline(always)]
 	fn index_of_ascii_null(haystack: &[u8]) -> Option<usize>
 	{
-		memchr(Self::AsciiNull as u8, haystack)
+		haystack.memchr(Self::AsciiNull as u8)
 	}
 }

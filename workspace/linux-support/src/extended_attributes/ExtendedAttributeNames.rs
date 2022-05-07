@@ -30,7 +30,7 @@ impl<'a> Iterator for ExtendedAttributeNames<'a>
 			return None
 		}
 
-		let ends_at_index = memchr(b'\0', &self.buffer[self.next_name_inclusive_starts_at .. ]).expect("Bug in data from Linux kernel; lacks terminating ASCII NUL");
+		let ends_at_index = (&self.buffer[self.next_name_inclusive_starts_at .. ]).memchr(b'\0').expect("Bug in data from Linux kernel; lacks terminating ASCII NUL");
 		let inclusive_ends_at = ends_at_index + 1;
 		let bytes_with_nul = &self.buffer[self.next_name_inclusive_starts_at .. inclusive_ends_at];
 

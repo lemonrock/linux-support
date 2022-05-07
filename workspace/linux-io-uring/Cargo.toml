@@ -37,7 +37,7 @@ libc = { version = "^0.2.93", features = ["const-extern-fn", "extra_traits", "st
 likely = { version = "^0.1.0" }
 linux-support = { version = "^0.0.26", path = "../linux-support" }
 magic-ring-buffer = { version = "^0.3.1", path = "../magic-ring-buffer" }
-memchr = "^2.3.3"
+memchr = "^2.5.0"
 message-dispatch = { version = "^0.2.0", path = "../message-dispatch" }
 message-dispatch-datadog = { version = "^0.2.0", path = "../message-dispatch-datadog" }
 phf = { version = "^0.8.0", features = ["macros"] }

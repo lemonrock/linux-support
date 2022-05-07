@@ -33,10 +33,10 @@ impl FromBytes for SwapLine
 		#[inline(always)]
 		fn file_path_field_and_remaining_fields(bytes: &[u8]) -> io::Result<(&[u8], &[u8])>
 		{
-			let index = memchr(b' ', bytes).ok_or(io_error_invalid_data("Path field not terminated by spaces"))?;
+			let index = bytes.memchr(b' ').ok_or(io_error_invalid_data("Path field not terminated by spaces"))?;
 			let file_path_field = &bytes[.. index];
 			
-			let last_index_of_file_path_field = memrchr(b' ', bytes).unwrap();
+			let last_index_of_file_path_field = bytes.memrchr(b' ').unwrap();
 			let start_of_tab_separated_fields = last_index_of_file_path_field + 1;
 			let remaining_fields = &bytes[start_of_tab_separated_fields .. ];
 			

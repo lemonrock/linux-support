@@ -6,6 +6,7 @@ use super::*;
 use self::event::*;
 use self::metric::*;
 use self::service_check::*;
+use swiss_army_knife::memchr::MemoryCharacter;
 
 
 /// Event.

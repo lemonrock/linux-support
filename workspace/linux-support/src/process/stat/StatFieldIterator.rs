@@ -29,7 +29,7 @@ impl<'line> Iterator for StatFieldIterator<'line>
 		
 		let result = match self.next_field_index
 		{
-			0 => match memchr(OpenBracket, self.line)
+			0 => match self.line.memchr(OpenBracket)
 			{
 				None => Err(NoOpenBracket),
 				
@@ -48,7 +48,7 @@ impl<'line> Iterator for StatFieldIterator<'line>
 				},
 			},
 			
-			1 => match memrchr(CloseBracket, self.line)
+			1 => match self.line.memrchr(CloseBracket)
 			{
 				None => Err(NoCloseBracket),
 				
@@ -69,7 +69,7 @@ impl<'line> Iterator for StatFieldIterator<'line>
 				}
 			}
 			
-			_ => match memchr(Space, self.line)
+			_ => match self.line.memchr(Space)
 			{
 				None =>
 				{

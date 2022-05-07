@@ -25,7 +25,7 @@ impl<'a> Iterator for SplitBytesIterator<'a>
 			return None
 		}
 		
-		match memchr(self.needle, self.bytes)
+		match self.bytes.memchr(self.needle)
 		{
 			None =>
 			{

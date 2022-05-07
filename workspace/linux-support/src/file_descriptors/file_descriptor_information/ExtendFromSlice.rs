@@ -71,7 +71,7 @@ impl<const CAP: usize> ExtendFromSlice for ArrayVec<u8, CAP>
 					},
 				};
 
-				let delimiter_index = memchr(delimiter, available_slice);
+				let delimiter_index = available_slice.memchr(delimiter);
 
 				let index = delimiter_index.unwrap_or(available_slice.len());
 				self.extend_from_slice(&available_slice[0 .. index])?;

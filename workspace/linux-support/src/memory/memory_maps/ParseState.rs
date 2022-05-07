@@ -107,7 +107,7 @@ impl ParseState
 
 		let (name, name_first_byte) =
 		{
-			let name_starts_at = memchr2(SpecialFileNameFirstByte, FilePathFirstByte, field_bytes).ok_or(self.missing_required_field("file_name"))?;
+			let name_starts_at = field_bytes.memchr2(SpecialFileNameFirstByte, FilePathFirstByte).ok_or(self.missing_required_field("file_name"))?;
 			(&field_bytes[name_starts_at.. ], field_bytes.get_unchecked_value_safe(name_starts_at))
 		};
 

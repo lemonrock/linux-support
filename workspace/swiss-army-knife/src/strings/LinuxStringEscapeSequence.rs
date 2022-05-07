@@ -68,7 +68,7 @@ impl LinuxStringEscapeSequence
 			while likely!(remaining_bytes.len() >= Self::EscapeSequenceLength)
 			{
 				const StartOfEscapeSequence: u8 = b'\\';
-				let index = match memchr(StartOfEscapeSequence, &remaining_bytes[ .. remaining_bytes.len() - Self::RemainingEscapeSequenceLength])
+				let index = match (&remaining_bytes[ .. remaining_bytes.len() - Self::RemainingEscapeSequenceLength]).memchr(StartOfEscapeSequence)
 				{
 					None => break,
 					Some(index) => index,

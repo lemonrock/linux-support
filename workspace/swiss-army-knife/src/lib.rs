@@ -24,8 +24,13 @@
 #![cfg_attr(all(target_arch = "x86_64", target_feature = "avx512f"), feature(stdsimd))]
 
 
+#![feature(adt_const_params)]
+#![feature(arbitrary_enum_discriminant)]
 #![feature(asm_const)]
+#![feature(const_char_convert)]
+#![feature(const_convert)]
 #![feature(const_deref)]
+#![feature(const_discriminant)]
 #![feature(const_intrinsic_copy)]
 #![feature(const_maybe_uninit_as_mut_ptr)]
 #![feature(const_ptr_offset)]
@@ -60,8 +65,6 @@ use arrayvec::CapacityError;
 use libc::c_char;
 use likely::likely;
 use likely::unlikely;
-use memchr::memchr;
-use memchr::memrchr;
 use serde::Deserialize;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -186,6 +189,10 @@ pub mod exponents_of_two;
 pub mod fixed_point_arithmetic;
 
 
+/// From variant for unchecked const construction.
+pub mod from_unchecked;
+
+
 /// Spin lock.
 ///
 /// To pick the best spin lock for the compilation target, use the type alias `BestForCompilationTargetSpinLock`.
@@ -198,6 +205,10 @@ pub mod hash_map_and_hash_set;
 
 /// Internet protocol.
 pub mod internet_protocol;
+
+
+/// Memchr wrappers.
+pub mod memchr;
 
 
 /// Non zero numerics support.
@@ -230,6 +241,10 @@ pub mod time;
 
 /// Unsafe initialization of memory.
 pub mod unsafe_initialization;
+
+
+/// Efficient (more so than Rust std) UTF-8 parsing and encoding.
+pub mod utf8;
 
 
 /// `Vec` extensions.

@@ -27,10 +27,24 @@ pub trait GetUnchecked<T>
 	}
 	
 	/// Applies a range without bounds checks.
-	fn get_unchecked_range_safe<AUR: AsUsizeRange<T>>(&self, range: AUR) -> &[T];
+	fn get_unchecked_range_safe<AUR: AsUsizeRange<T>>(&self, range: AUR) -> &Self;
 	
 	/// Applies a range without bounds checks.
-	fn get_unchecked_range_mut_safe<AUR: AsUsizeRange<T>>(&mut self, range: AUR) -> &mut [T];
+	fn get_unchecked_range_mut_safe<AUR: AsUsizeRange<T>>(&mut self, range: AUR) -> &mut Self;
+	
+	/// Gets a range from start up to but excluding `index` without bounds checks.
+	#[inline(always)]
+	fn before_index(&self, index: usize) -> &Self
+	{
+		self.get_unchecked_range_safe(.. index)
+	}
+	
+	/// Gets a range from after index` (excluding `index`) up to and including the end without bounds checks.
+	#[inline(always)]
+	fn after_index(&self, index: usize) -> &Self
+	{
+		self.get_unchecked_range_safe((index + 1) ..)
+	}
 }
 
 impl<T> GetUnchecked<T> for [T]
@@ -53,29 +67,62 @@ impl<T> GetUnchecked<T> for [T]
 	
 	#[cfg(debug_assertions)]
 	#[inline(always)]
-	fn get_unchecked_range_safe<AUR: AsUsizeRange<T>>(&self, range: AUR) -> &[T]
+	fn get_unchecked_range_safe<AUR: AsUsizeRange<T>>(&self, range: AUR) -> &Self
 	{
 		range.get_checked_range_ref(self).unwrap()
 	}
 	
 	#[cfg(not(debug_assertions))]
 	#[inline(always)]
-	fn get_unchecked_range_safe<AUR: AsUsizeRange<T>>(&self, range: AUR) -> &[T]
+	fn get_unchecked_range_safe<AUR: AsUsizeRange<T>>(&self, range: AUR) -> &Self
 	{
 		unsafe { & * range.get_unchecked_range_ref(self) }
 	}
 	
 	#[cfg(debug_assertions)]
 	#[inline(always)]
-	fn get_unchecked_range_mut_safe<AUR: AsUsizeRange<T>>(&mut self, range: AUR) -> &mut [T]
+	fn get_unchecked_range_mut_safe<AUR: AsUsizeRange<T>>(&mut self, range: AUR) -> &mut Self
 	{
 		range.get_checked_range_mut(self).unwrap()
 	}
 	
 	#[cfg(not(debug_assertions))]
 	#[inline(always)]
-	fn get_unchecked_range_mut_safe<AUR: AsUsizeRange<T>>(&mut self, range: AUR) -> &mut [T]
+	fn get_unchecked_range_mut_safe<AUR: AsUsizeRange<T>>(&mut self, range: AUR) -> &mut Self
 	{
 		unsafe { &mut * range.get_unchecked_range_mut(self) }
+	}
+}
+
+impl GetUnchecked<u8> for str
+{
+	#[inline(always)]
+	fn get_unchecked_safe<AUI: AsUsizeIndex>(&self, index: AUI) -> &u8
+	{
+		let as_bytes = self.as_bytes();
+		as_bytes.get_unchecked_safe(index)
+	}
+	
+	#[inline(always)]
+	fn get_unchecked_mut_safe<AUI: AsUsizeIndex>(&mut self, index: AUI) -> &mut u8
+	{
+		let as_bytes = unsafe { self.as_bytes_mut() };
+		as_bytes.get_unchecked_mut_safe(index)
+	}
+	
+	#[inline(always)]
+	fn get_unchecked_range_safe<AUR: AsUsizeRange<u8>>(&self, range: AUR) -> &Self
+	{
+		let as_bytes = self.as_bytes();
+		let slice = as_bytes.get_unchecked_range_safe(range);
+		unsafe { from_utf8_unchecked(slice) }
+	}
+	
+	#[inline(always)]
+	fn get_unchecked_range_mut_safe<AUR: AsUsizeRange<u8>>(&mut self, range: AUR) -> &mut Self
+	{
+		let as_bytes = unsafe { self.as_bytes_mut() };
+		let slice = as_bytes.get_unchecked_range_mut_safe(range);
+		unsafe { from_utf8_unchecked_mut(slice) }
 	}
 }
