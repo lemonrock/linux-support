@@ -339,6 +339,29 @@ impl<T: Copy, const N: usize> ConstSmallVec<T, N>
 	}
 }
 
+impl<T: TryToOwn + TryToOwnInPlace, const N: usize> TryToOwn for ConstSmallVec<T, N>
+{
+	type TryToOwned = ConstSmallVec<T::TryToOwned, N>;
+	
+	#[inline(always)]
+	fn try_to_own(mut self) -> Result<Self::TryToOwned, TryReserveError>
+	{
+		self.try_to_own_in_place()?;
+		let copy = unsafe { transmute_copy(&mut self) };
+		let _ = ManuallyDrop::new(self);
+		Ok(copy)
+	}
+}
+
+impl<T: TryToOwnInPlace, const N: usize> TryToOwnInPlace for ConstSmallVec<T, N>
+{
+	#[inline(always)]
+	fn try_to_own_in_place(&mut self) -> Result<(), TryReserveError>
+	{
+		self.deref_mut().try_to_own_in_place()
+	}
+}
+
 impl<T, const N: usize> ConstSmallVec<T, N>
 {
 	/// Will panic if `M` exceeds `N` (unless `T` is zero-sized).

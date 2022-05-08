@@ -37,6 +37,8 @@ use std::ptr::read;
 use std::slice::from_raw_parts;
 use std::slice::from_raw_parts_mut;
 use super::non_zero::new_non_null;
+use super::try_to_own::TryToOwn;
+use super::try_to_own::TryToOwnInPlace;
 
 
 include!("required_capacity.rs");
