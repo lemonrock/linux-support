@@ -169,6 +169,10 @@ pub mod byte_swap;
 pub mod bit_set;
 
 
+/// Definition of single character constants.
+pub mod chars;
+
+
 /// A `SmallVec`-like structure which can be constructed at build time (i.e. has `const` constructors).
 pub mod const_small_vec;
 
