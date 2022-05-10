@@ -23,7 +23,7 @@ pub trait PopFirst<T>
 	fn pop_first_internal<R, Ok: FnOnce(T) -> R>(&mut self, ok: Ok, error: R) -> R;
 }
 
-impl<'a, GU: GetUnchecked<T>, T: Copy> PopFirst<T> for &'a GU
+impl<'a, GU: GetUnchecked<T> + ?Sized, T: Copy> PopFirst<T> for &'a GU
 {
 	#[inline(always)]
 	fn pop_first_internal<R, Ok: FnOnce(T) -> R>(&mut self, ok: Ok, error: R) -> R
