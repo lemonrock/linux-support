@@ -3,7 +3,7 @@
 
 
 /// Like `get_unchecked()`, but, if debug assertions are configured, checks and panics.
-pub trait GetUnchecked<T>
+pub trait GetUnchecked<T>: AsRef<[T]>
 {
 	/// Like `get_unchecked()`, but, if debug assertions are configured, checks and panics.
 	fn get_unchecked_safe<AUI: AsUsizeIndex>(&self, index: AUI) -> &T;

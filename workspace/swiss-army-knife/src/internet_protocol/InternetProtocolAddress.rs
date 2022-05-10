@@ -5,7 +5,7 @@
 /// An Internet Protocol (IP) version 4 or version 6 address.
 pub trait InternetProtocolAddress: Default + Debug + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash + Serialize + for<'de> Deserialize<'de>
 {
-	/// Inclusive aximum prefix (netmask / subnet) length.
+	/// Inclusive maximum prefix (netmask / subnet) length.
 	const InclusiveMaximumPrefixLength: u8;
 	
 	/// Address family, eg `AF_INET`.

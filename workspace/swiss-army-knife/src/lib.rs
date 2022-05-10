@@ -173,6 +173,10 @@ pub mod bit_set;
 pub mod const_small_vec;
 
 
+/// Extension methods for slices.
+pub mod get_checked;
+
+
 /// Allows the use of slice methods `get_unchecked()` and `get_unchecked_mut()` such that when compiling with debug assertions access is checked.
 pub mod get_unchecked;
 

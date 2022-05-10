@@ -13,15 +13,20 @@ use crate::non_zero::new_non_null;
 use crate::non_zero::new_non_zero_usize;
 use encode_utf8::encode_utf8_callback;
 use encode_utf8::PercentEncodeUtf8;
-use utf8_sequence::Utf8Sequence;
-use utf8_sequence::Utf8SequenceAndCharacter;
-use utf8_sequence::Utf8SequenceEnum;
 use std::borrow::Cow;
 use std::collections::TryReserveError;
 use std::convert::Infallible;
 use std::fmt::Debug;
+use std::hint::unreachable_unchecked;
+use std::marker::PhantomData;
 use std::mem::transmute;
 use std::num::NonZeroUsize;
+use std::ptr::NonNull;
+use std::slice::from_raw_parts;
+use std::str::from_utf8_unchecked;
+use utf8_sequence::Utf8Sequence;
+use utf8_sequence::Utf8SequenceAndCharacter;
+use utf8_sequence::Utf8SequenceEnum;
 
 
 mod byte_provider;
@@ -34,6 +39,9 @@ mod encode_utf8;
 pub mod utf8_sequence;
 
 
+include!("push_utf8_sequence_enum_n.rs");
+
+
 include!("encode_utf8_percent_encoded.rs");
 include!("is_ascii_byte.rs");
 include!("is_ascii_character.rs");
@@ -43,4 +51,5 @@ include!("Utf8CharacterLength.rs");
 include!("x80.rs");
 include!("x80Char.rs");
 include!("UnvalidatedDecodeUtf8Sequences.rs");
+include!("Utf8SequencesParser.rs");
 include!("ValidatedDecodeUtf8Sequences.rs");
