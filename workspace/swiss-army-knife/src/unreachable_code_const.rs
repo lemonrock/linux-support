@@ -7,7 +7,7 @@
 /// A constant function that, in a release build, allows the compiler to optimize away the code path calling this function.
 #[cfg(debug_assertions)]
 #[inline(always)]
-#[allow(non_fmt_panic)]
+#[allow(non_fmt_panics)]
 pub const fn unreachable_code_const(explanation: &'static str) -> !
 {
 	panic!("{}", explanation)

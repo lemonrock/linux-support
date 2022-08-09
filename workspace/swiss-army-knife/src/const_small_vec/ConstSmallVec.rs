@@ -41,10 +41,7 @@ impl<T, const N: usize> const From<[T; N]> for ConstSmallVec<T, N>
 		{
 			length_of_stack_or_capacity_of_heap: Self::capacity_of_stack(),
 
-			stack_without_length_or_heap: StackWithoutLengthOrHeap
-			{
-				stack_without_length: StackWithoutLength::from(MaybeUninit::new(array)),
-			}
+			stack_without_length_or_heap: StackWithoutLengthOrHeap::from(MaybeUninit::new(array)),
 		}
 	}
 }
@@ -70,10 +67,7 @@ impl<T, const N: usize> From<Vec<T>> for ConstSmallVec<T, N>
 			{
 				length_of_stack_or_capacity_of_heap: length_of_stack,
 				
-				stack_without_length_or_heap: StackWithoutLengthOrHeap
-				{
-					stack_without_length: StackWithoutLength::from(stack_without_length),
-				}
+				stack_without_length_or_heap: StackWithoutLengthOrHeap::from(stack_without_length),
 			}
 		}
 		else
@@ -82,10 +76,7 @@ impl<T, const N: usize> From<Vec<T>> for ConstSmallVec<T, N>
 			{
 				length_of_stack_or_capacity_of_heap: vec.capacity(),
 				
-				stack_without_length_or_heap: StackWithoutLengthOrHeap
-				{
-					heap: Heap::from_vec(vec),
-				},
+				stack_without_length_or_heap: StackWithoutLengthOrHeap::from(Heap::from_vec(vec)),
 			}
 		}
 	}
@@ -186,10 +177,7 @@ impl<T: Clone, const N: usize> Clone for ConstSmallVec<T, N>
 			{
 				length_of_stack_or_capacity_of_heap: current_capacity,
 			
-				stack_without_length_or_heap: StackWithoutLengthOrHeap
-				{
-					heap: Heap::from_pointer_and_length(allocation.as_non_null_ptr().cast(), current_capacity)
-				}
+				stack_without_length_or_heap: StackWithoutLengthOrHeap::from(Heap::from_pointer_and_length(allocation.as_non_null_ptr().cast(), current_capacity)),
 			}
 		}
 		else
@@ -455,10 +443,7 @@ impl<T, const N: usize> ConstSmallVec<T, N>
 		{
 			length_of_stack_or_capacity_of_heap: length_of_stack,
 			
-			stack_without_length_or_heap: StackWithoutLengthOrHeap
-			{
-				stack_without_length: StackWithoutLength::from(stack_without_length),
-			},
+			stack_without_length_or_heap: StackWithoutLengthOrHeap::from(stack_without_length),
 		}
 	}
 	

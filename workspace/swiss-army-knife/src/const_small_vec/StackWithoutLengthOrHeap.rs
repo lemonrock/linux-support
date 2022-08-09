@@ -4,9 +4,9 @@
 
 union StackWithoutLengthOrHeap<T, const N: usize>
 {
-	stack_without_length: StackWithoutLength<T, N>,
+	stack_without_length: ManuallyDrop<StackWithoutLength<T, N>>,
 	
-	heap: Heap<T>,
+	heap: ManuallyDrop<Heap<T>>,
 }
 
 impl<T, const N: usize> Clone for StackWithoutLengthOrHeap<T, N>
@@ -25,7 +25,31 @@ impl<T, const N: usize> const Default for StackWithoutLengthOrHeap<T, N>
 	{
 		Self
 		{
-			stack_without_length: StackWithoutLength::default(),
+			stack_without_length: ManuallyDrop::new(StackWithoutLength::default()),
+		}
+	}
+}
+
+impl<T, const N: usize> const From<MaybeUninit<[T; N]>> for StackWithoutLengthOrHeap<T, N>
+{
+	#[inline(always)]
+	fn from(stack_without_length: MaybeUninit<[T; N]>) -> Self
+	{
+		Self
+		{
+			stack_without_length: ManuallyDrop::new(StackWithoutLength::from(stack_without_length))
+		}
+	}
+}
+
+impl<T, const N: usize> const From<Heap<T>> for StackWithoutLengthOrHeap<T, N>
+{
+	#[inline(always)]
+	fn from(heap: Heap<T>) -> Self
+	{
+		Self
+		{
+			heap: ManuallyDrop::new(heap)
 		}
 	}
 }
@@ -35,7 +59,7 @@ impl<T, const N: usize> StackWithoutLengthOrHeap<T, N>
 	#[inline(always)]
 	fn set_heap(&mut self, heap: Heap<T>)
 	{
-		unsafe { self.heap = heap }
+		unsafe { *self.heap = heap }
 	}
 	
 	#[inline(always)]
@@ -51,9 +75,7 @@ impl<T, const N: usize> StackWithoutLengthOrHeap<T, N>
 			{
 				panic!("ManuallyDrop size has changed from that assumed")
 			}
-			// Pointer to the `ManuallyDrop::value` field.
-			let pointer_to_inner_value = (inner as *const ManuallyDrop<MaybeUninit<[T; N]>>).cast::<MaybeUninit<[T; N]>>();
-			unsafe { read(pointer_to_inner_value) }
+			unsafe { read(inner) }
 		};
 		
 		unsafe { maybe_uninit_array.assume_init() }

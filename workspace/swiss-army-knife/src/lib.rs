@@ -31,13 +31,11 @@
 #![feature(const_convert)]
 #![feature(const_deref)]
 #![feature(const_discriminant)]
-#![feature(const_intrinsic_copy)]
 #![feature(const_maybe_uninit_as_mut_ptr)]
-#![feature(const_ptr_offset)]
 #![feature(const_ptr_read)]
 #![feature(const_ptr_write)]
 #![feature(const_refs_to_cell)]
-#![feature(const_slice_from_raw_parts)]
+#![feature(const_slice_from_raw_parts_mut)]
 #![feature(const_slice_ptr_len)]
 #![feature(const_trait_impl)]
 #![feature(const_try)]
@@ -45,7 +43,6 @@
 #![feature(slice_ptr_get)]
 #![feature(slice_ptr_len)]
 #![feature(try_reserve_kind)]
-#![feature(untagged_unions)]
 
 
 //! #linux-support

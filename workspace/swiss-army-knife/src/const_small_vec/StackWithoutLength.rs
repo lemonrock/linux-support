@@ -2,7 +2,8 @@
 // Copyright © 2022 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-struct StackWithoutLength<T, const N: usize>(ManuallyDrop<MaybeUninit<[T; N]>>);
+#[repr(transparent)]
+struct StackWithoutLength<T, const N: usize>(MaybeUninit<[T; N]>);
 
 impl<T, const N: usize> const Default for StackWithoutLength<T, N>
 {
@@ -18,7 +19,7 @@ impl<T, const N: usize> const From<MaybeUninit<[T; N]>> for StackWithoutLength<T
 	#[inline(always)]
 	fn from(stack_without_length: MaybeUninit<[T; N]>) -> Self
 	{
-		Self(ManuallyDrop::new(stack_without_length))
+		Self(stack_without_length)
 	}
 }
 
