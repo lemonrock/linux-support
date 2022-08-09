@@ -260,6 +260,11 @@ pub mod utf8;
 pub mod vec;
 
 
+/// x86_64 support
+#[cfg(target_arch = "x86_64")]
+pub mod x86_64;
+
+
 include!("LoadNonAtomically.rs");
 include!("move_to_front_of_vec.rs");
 include!("StaticInitializedOnce.rs");

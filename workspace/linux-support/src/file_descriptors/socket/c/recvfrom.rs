@@ -2,7 +2,6 @@
 // Copyright © 2018-2019 The developers of file-descriptors. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/file-descriptors/master/COPYRIGHT.
 
 
-/// The flags argument to a recv() call is a bitwise or of the constants starting `MSG_*`.
 #[link(name = "c")]
 extern "C"
 {

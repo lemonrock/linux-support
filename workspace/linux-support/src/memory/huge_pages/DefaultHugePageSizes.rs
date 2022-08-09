@@ -19,7 +19,7 @@ impl DefaultHugePageSizes
 	#[inline(always)]
 	pub fn default_huge_page_sizes_assuming_standard_file_system_layout() -> &'static DefaultHugePageSizes
 	{
-		static Defaults: SyncOnceCell<DefaultHugePageSizes> = SyncOnceCell::new();
+		static Defaults: OnceLock<DefaultHugePageSizes> = OnceLock::new();
 		
 		let result = Defaults.get_or_try_init(||
 		{

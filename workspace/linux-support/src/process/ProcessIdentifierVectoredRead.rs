@@ -37,10 +37,4 @@ impl<'a> Read for ProcessIdentifierVectoredRead<'a>
 	{
 		VectoredRead::read_vectored(self, unsafe { transmute(bufs) })
 	}
-
-	#[inline(always)]
-	unsafe fn initializer(&self) -> Initializer
-	{
-		Initializer::nop()
-	}
 }

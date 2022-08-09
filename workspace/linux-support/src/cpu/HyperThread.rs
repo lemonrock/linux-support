@@ -22,6 +22,7 @@ impl Into<u16> for HyperThread
 impl BitSetAware for HyperThread
 {
 	/// Maximum value of `CONFIG_NR_CPUS`.
+	/// On x86_64, can not exceed `2^12 - 1`.
 	const LinuxMaximum: u32 = 8192;
 
 	const InclusiveMinimum: Self = Self(0);

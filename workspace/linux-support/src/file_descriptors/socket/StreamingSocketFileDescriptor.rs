@@ -169,12 +169,6 @@ impl<SD: SocketData> Read for StreamingSocketFileDescriptor<SD>
 	{
 		VectoredRead::read_vectored(self, unsafe { transmute(bufs) })
 	}
-
-	#[inline(always)]
-	unsafe fn initializer(&self) -> Initializer
-	{
-		Initializer::nop()
-	}
 }
 
 impl<SD: SocketData> Write for StreamingSocketFileDescriptor<SD>

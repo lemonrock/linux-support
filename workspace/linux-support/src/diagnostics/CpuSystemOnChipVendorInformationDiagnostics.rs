@@ -32,7 +32,12 @@ impl CpuSystemOnChipVendorInformationDiagnostics
 			
 			stepping_id: soc_vendor_info.get_stepping_id(),
 			
-			vendor_brand: soc_vendor_info.get_vendor_brand().as_string().to_string(),
+			vendor_brand: match soc_vendor_info.get_vendor_brand()
+			{
+				None => "",
+				
+				Some(vendor_brand) => vendor_brand.as_string()
+			}.to_string(),
 			
 			vendor_attributes: soc_vendor_info.get_vendor_attributes().map(|iterator|
 			{

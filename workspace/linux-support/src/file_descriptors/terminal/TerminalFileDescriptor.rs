@@ -84,12 +84,6 @@ impl Read for TerminalFileDescriptor
 	{
 		VectoredRead::read_vectored(self, unsafe { transmute(bufs) })
 	}
-
-	#[inline(always)]
-	unsafe fn initializer(&self) -> Initializer
-	{
-		self.0.initializer()
-	}
 }
 
 impl Write for TerminalFileDescriptor

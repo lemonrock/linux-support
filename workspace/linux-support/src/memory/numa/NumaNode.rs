@@ -29,6 +29,7 @@ impl BitSetAware for NumaNode
 	/// Internally, code in Linux checks that `number of nodes x 4 <= page size`.
 	/// This is to handle writing the `distance` files in sysfs (see `node_read_distance()` in `drivers/base/node.c`).
 	/// This logic, on x86_64, caps the maximum number of nodes to 1024, which is also the maximum here.
+	/// On x86_64, can not exceed `2^12 - 1`.
 	const LinuxMaximum: u32 = 1 << Self::LinuxMaximumFor_CONFIG_NUMA_SHIFT;
 
 	const InclusiveMinimum: Self = Self(0);

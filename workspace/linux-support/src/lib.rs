@@ -13,25 +13,13 @@
 #![feature(alloc_layout_extra)]
 #![feature(allocator_api)]
 #![feature(cell_leak)]
-#![feature(const_fn_fn_ptr_basics)]
-#![feature(const_fn_trait_bound)]
-#![feature(const_fn_transmute)]
-#![feature(const_fn_union)]
-#![feature(const_maybe_uninit_as_ptr)]
 #![feature(const_mut_refs)]
-#![feature(const_ptr_offset)]
 #![feature(const_ptr_offset_from)]
-#![feature(const_raw_ptr_deref)]
-#![feature(const_raw_ptr_to_usize_cast)]
 #![feature(const_type_id)]
 #![feature(core_intrinsics)]
-#![feature(llvm_asm)]
-#![feature(maybe_uninit_extra)]
-#![feature(maybe_uninit_ref)]
 #![feature(never_type)]
 #![feature(nonnull_slice_from_raw_parts)]
 #![feature(once_cell)]
-#![feature(read_initializer)]
 #![feature(slice_ptr_get)]
 #![feature(slice_ptr_len)]
 #![feature(specialization)]
@@ -636,7 +624,6 @@ use std::io::BufRead;
 use std::io::BufReader;
 use std::io::BufWriter;
 use std::io::ErrorKind;
-use std::io::Initializer;
 use std::io::IoSlice;
 use std::io::IoSliceMut;
 use std::io::Read;
@@ -649,7 +636,7 @@ use std::io::Write;
 use std::io::stderr;
 use std::io::stdin;
 use std::io::stdout;
-use std::lazy::SyncOnceCell;
+use std::sync::OnceLock;
 use std::marker::PhantomData;
 use std::mem::ManuallyDrop;
 use std::mem::MaybeUninit;
@@ -726,6 +713,7 @@ use std::rc::Rc;
 use std::rc::Weak;
 use std::slice::from_raw_parts;
 use std::slice::from_raw_parts_mut;
+use std::arch::asm;
 use std::str::Utf8Error;
 use std::str::from_utf8;
 use std::str::from_utf8_unchecked;

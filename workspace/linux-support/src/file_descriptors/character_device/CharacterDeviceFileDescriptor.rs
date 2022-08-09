@@ -140,12 +140,6 @@ impl Read for CharacterDeviceFileDescriptor
 	{
 		VectoredRead::read_vectored(self, unsafe { transmute(bufs) })
 	}
-
-	#[inline(always)]
-	unsafe fn initializer(&self) -> Initializer
-	{
-		Initializer::nop()
-	}
 }
 
 impl Write for CharacterDeviceFileDescriptor

@@ -11,7 +11,7 @@ macro_rules! extended_metadata_field
 {
 	($self: ident, $field: ident, $bit: ident) =>
 	{
-		extended_metadata_field!($self, $field, $bit, |v| v);
+		extended_metadata_field!($self, $field, $bit, |v| v)
 	};
 
 	($self: ident, $field: ident, $bit: ident, $transform: expr) =>

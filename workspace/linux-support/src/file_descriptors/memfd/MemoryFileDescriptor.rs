@@ -58,12 +58,6 @@ impl Read for MemoryFileDescriptor
 	{
 		Read::read_vectored(&mut self.0, bufs)
 	}
-
-	#[inline(always)]
-	unsafe fn initializer(&self) -> Initializer
-	{
-		self.0.initializer()
-	}
 }
 
 impl Seek for MemoryFileDescriptor
