@@ -25,14 +25,16 @@ use crate::file_descriptors::socket::*;
 use crate::file_descriptors::socket::c::*;
 use crate::file_descriptors::terminal::TerminalFileDescriptor;
 use crate::io_priority::CompressedIoPriority;
+use crate::memory::RelativeMemoryRange;
+use crate::memory::AbsoluteMemoryRange;
 use crate::memory::huge_pages::DefaultHugePageSizes;
 use crate::memory::huge_pages::PageSizeOrHugePageSizeSettings;
 use crate::memory::mapping::*;
+use crate::syscall::SystemCallNumber;
 use crate::poll::*;
-use crate::memory::{RelativeMemoryRange, AbsoluteMemoryRange};
 
 
-mod c;
+pub(crate) mod c;
 
 
 mod non_null;

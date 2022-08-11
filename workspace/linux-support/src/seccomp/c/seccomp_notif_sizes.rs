@@ -27,7 +27,7 @@ impl seccomp_notif_sizes
     		static ref Sizes: seccomp_notif_sizes =
     		{
 				let mut sizes: seccomp_notif_sizes = unsafe_uninitialized();
-				let result = seccomp(SECCOMP_GET_NOTIF_SIZES, 0, &mut sizes as *mut seccomp_notif_sizes as *mut _);
+				let result = SystemCallNumber::system_call_seccomp(SECCOMP_GET_NOTIF_SIZES, 0, &mut sizes as *mut seccomp_notif_sizes as *mut _);
 				if result == 0
 				{
 					sizes

@@ -3,13 +3,10 @@
 
 
 use super::*;
-use crate::syscall::SYS;
 
 
 include!("IOPRIO_.BestEffort.rs");
 include!("IOPRIO_.rs");
 include!("IOPRIO_CLASS.rs");
-include!("ioprio_get.rs");
-include!("ioprio_set.rs");
 include!("ioprio_valid.rs");
 include!("IOPRIO_WHO.rs");

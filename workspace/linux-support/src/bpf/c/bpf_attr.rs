@@ -44,10 +44,10 @@ impl Debug for bpf_attr
 impl bpf_attr
 {
 	#[inline(always)]
-	pub(crate) fn syscall(&mut self, command: bpf_cmd) -> i32
+	pub(crate) fn syscall(&mut self, command: bpf_cmd) -> c_int
 	{
-		const Size: u32 = size_of::<bpf_attr>() as u32;
+		const size: u32 = size_of::<bpf_attr>() as u32;
 		
-		bpf(command, self, Size)
+		SystemCallNumber::system_call_bpf::<size>(command, self)
 	}
 }

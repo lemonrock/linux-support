@@ -4,7 +4,7 @@
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(C)]
-pub(super) struct sched_attr
+pub(crate) struct sched_attr
 {
 	/// Size of this structure.
 	///

@@ -16,12 +16,12 @@ use crate::file_descriptors::bpf::BpfFileDescriptor;
 use crate::file_descriptors::bpf::MapFileDescriptor;
 use crate::inode::Inode;
 use crate::network_device::NetworkInterfaceIndex;
-use crate::syscall::SYS;
+use crate::syscall::SystemCallNumber;
 use crate::user_and_groups::UserIdentifier;
 
 
-include!("AlignedU64.rs");include!("ArrayOfElementsWhoseSizeVariesByLinuxVersion.rs");
-include!("bpf.rs");
+include!("AlignedU64.rs");
+include!("ArrayOfElementsWhoseSizeVariesByLinuxVersion.rs");
 include!("BPF_.rs");
 include!("bpf_attach_type.rs");
 include!("bpf_attr.rs");

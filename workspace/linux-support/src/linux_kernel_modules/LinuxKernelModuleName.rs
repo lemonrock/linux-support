@@ -244,10 +244,45 @@ impl LinuxKernelModuleName
 	{
 		let name: CString = self.into();
 		const flags: c_long = O_NONBLOCK as c_long;
-
-		match SYS::delete_module.syscall2(name.as_ptr() as usize, flags as usize)
+		
+		let system_call_result = SystemCallNumber::system_call_delete_module(name.as_c_str(), flags);
+		
+		use crate::syscall::{SystemCallErrorNumber, SystemCallResultOkValue};
+		
+		if system_call_result.is_ok()
+		{
+			// get the usize value.
+			if the_usize_value == 0
+			{
+			
+			}
+			else
+			{
+				panic!("syscall(SYS_delete_module) returned illegal value '{}'", illegal)
+			}
+		}
+		else
+		{
+			let result: Result<SystemCallResultOkValue, SystemCallErrorNumber> = system_call_result.into();
+			match (unsafe { result.unwrap_err_unchecked() }).into_errno().0
+			{
+				// Would be nice to just be able to match on some constants or enumerated range of values.
+				
+				EPERM => Err(io_error_permission_denied("permission denied")),
+				EBUSY => Err(io_error_permission_denied("busy")),
+				ENOENT => Ok(false),
+				EWOULDBLOCK => Err(io_error_permission_denied("In use")),
+				
+				EFAULT => panic!("EFAULT should not occur"),
+				
+				unknown @ _ => panic!("syscall(SYS_delete_module) failed with illegal error code '{}'", unknown),
+			}
+		}
+		
+		match system_call_result
 		{
 			0 => Ok(true),
+			
 			-1 => match errno().0
 			{
 				EPERM => Err(io_error_permission_denied("permission denied")),
@@ -259,6 +294,7 @@ impl LinuxKernelModuleName
 
 				unknown @ _ => panic!("syscall(SYS_delete_module) failed with illegal error code '{}'", unknown),
 			},
+			
 			illegal @ _ => panic!("syscall(SYS_delete_module) returned illegal value '{}'", illegal),
 		}
 	}

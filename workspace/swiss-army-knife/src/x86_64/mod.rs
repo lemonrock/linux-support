@@ -2,9 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[cfg(target_arch = "x86_64")] use std::arch::asm;
+use std::arch::asm;
+use std::arch::x86_64::__rdtscp;
 use std::mem::MaybeUninit;
 
 
+include!("IA32_TSC_AUX.rs");
+include!("ProcessorTimestampCounter.rs");
 include!("rdpid.rs");
-include!("rstscp.rs");
+include!("rdtscp.rs");

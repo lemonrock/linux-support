@@ -6,7 +6,7 @@ bitflags!
 {
 	/// Flags for `get_mempolicy()`.
 	#[allow(missing_docs)]
-	struct GetMemoryPolicyFlags: u32
+	pub(crate) struct GetMemoryPolicyFlags: u32
 	{
 		/// Return next 'il' node or node of address (whatever that means).
 		///

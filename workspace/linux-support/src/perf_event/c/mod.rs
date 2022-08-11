@@ -3,7 +3,6 @@
 
 
 use super::*;
-use crate::syscall::SYS;
 
 
 include!("_bindgen_ty_1.rs");
@@ -26,7 +25,6 @@ include!("perf_event_ioc_flags.rs");
 include!("perf_event_mmap_page.rs");
 include!("perf_event_mmap_page__bindgen_ty_1.rs");
 include!("perf_event_mmap_page__bindgen_ty_1__bindgen_ty_1.rs");
-include!("perf_event_open.rs");
 include!("perf_event_query_bpf.rs");
 include!("perf_event_read_format.rs");
 include!("perf_event_sample_format.rs");

@@ -19,7 +19,7 @@ macro_rules! bit_set_aware
 				{
 					Err(BitSetAwareTryFromU16Error::default())
 				}
-				else if unlikely!((value as u32) >= Self::LinuxMaximum)
+				else if unlikely!((value as u32) >= (Self::LinuxExclusiveMaximum as u32))
 				{
 					Err(BitSetAwareTryFromU16Error::default())
 				}
@@ -41,7 +41,7 @@ macro_rules! bit_set_aware
 				{
 					Err(BitSetAwareTryFromU16Error::default())
 				}
-				else if unlikely!(value >= (Self::LinuxMaximum as usize))
+				else if unlikely!(value >= (Self::LinuxExclusiveMaximum as usize))
 				{
 					Err(BitSetAwareTryFromU16Error::default())
 				}
@@ -62,7 +62,7 @@ macro_rules! bit_set_aware
 				{
 					Err(ParseNumberError::TooSmall)
 				}
-				else if unlikely!((value as u32) >= Self::LinuxMaximum)
+				else if unlikely!((value as u32) >= (Self::LinuxExclusiveMaximum as u32))
 				{
 					Err(ParseNumberError::TooLarge)
 				}

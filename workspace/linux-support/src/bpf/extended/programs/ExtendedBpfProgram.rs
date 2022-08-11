@@ -119,12 +119,9 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 				
 				EBADF => unreachable_code(format_args!("")),
 				
-				EACCES | EINVAL | E2BIG =>
-				{
-					Err(InvalidProgram(verifier_log.map(|verifier_log| verifier_log.into())))
-				}
+				EACCES | EINVAL | E2BIG => Err(InvalidProgram(verifier_log.map(|verifier_log| verifier_log.into()))),
 				
-				ENOMEM=> Err(OutOfMemoryOrResources),
+				ENOMEM => Err(OutOfMemoryOrResources),
 				
 				EPERM => Err(PermissionDenied),
 					

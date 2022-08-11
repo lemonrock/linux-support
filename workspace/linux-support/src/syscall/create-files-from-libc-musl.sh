@@ -44,14 +44,14 @@ create_constant_files()
 	done
 }
 
-create_SYS_include_file()
+create_include_file()
 {
 	{
 		print_header
 
 		cat <<EOF
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum SYS
+pub enum SystemCalls
 {
 EOF
 
@@ -66,10 +66,10 @@ EOF
 		cat <<EOF
 }
 EOF
-	} >SYS.constants.rs
+	} >SystemCalls.constants.rs
 }
 
 LOCATION_OF_MUSL=./musl
 prepare
 create_constant_files
-create_SYS_include_file
+create_include_file

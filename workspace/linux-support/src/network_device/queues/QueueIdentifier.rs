@@ -30,18 +30,18 @@ impl Into<i16> for QueueIdentifier
 
 impl BitSetAware for QueueIdentifier
 {
-	const LinuxMaximum: u32 = MAX_NUM_QUEUE as u32;
+	const LinuxExclusiveMaximum: u16 = MAX_NUM_QUEUE;
 
 	const InclusiveMinimum: Self = Self(0);
 
-	const InclusiveMaximum: Self = Self((Self::LinuxMaximum - 1) as u16);
+	const InclusiveMaximum: Self = Self((Self::LinuxExclusiveMaximum - 1) as u16);
 
 	const Prefix: &'static [u8] = b"(irrelevant)";
 
 	#[inline(always)]
 	fn from_validated_u16(value: u16) -> Self
 	{
-		debug_assert!((value as u32) < Self::LinuxMaximum);
+		debug_assert!(value < Self::LinuxExclusiveMaximum);
 
 		Self(value)
 	}

@@ -43,11 +43,14 @@
 #![feature(slice_ptr_get)]
 #![feature(slice_ptr_len)]
 #![feature(try_reserve_kind)]
+#![feature(step_trait)]
 
 
-//! #linux-support
+//! #swiss-army-knife
 //!
-//! This library provides wrappers and additional functionality to make use of a panoply of miscellaneous Linux (and, sometimes, POSIX) features.
+//! This library provides common utilities.
+//!
+//! It is designed to be used only on 64-bit systems.
 //!
 //! See <https://github.com/lemonrock/linux-support> for far more detail.
 

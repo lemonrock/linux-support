@@ -22,19 +22,19 @@ impl Into<u16> for HyperThread
 impl BitSetAware for HyperThread
 {
 	/// Maximum value of `CONFIG_NR_CPUS`.
-	/// On x86_64, can not exceed `2^12 - 1`.
-	const LinuxMaximum: u32 = 8192;
+	/// On x86_64, can not exceed `2^12 - 1` (`4096`).
+	const LinuxExclusiveMaximum: u16 = 8192;
 
 	const InclusiveMinimum: Self = Self(0);
 
-	const InclusiveMaximum: Self = Self((Self::LinuxMaximum - 1) as u16);
+	const InclusiveMaximum: Self = Self((Self::LinuxExclusiveMaximum - 1) as u16);
 
 	const Prefix: &'static [u8] = b"cpu";
 
 	#[inline(always)]
 	fn from_validated_u16(value: u16) -> Self
 	{
-		debug_assert!((value as u32) < Self::LinuxMaximum);
+		debug_assert!(value < Self::LinuxExclusiveMaximum);
 
 		Self(value)
 	}
@@ -118,10 +118,12 @@ impl HyperThread
 
 	/// Current hyper thread index that this thread is running on.
 	///
-	/// Unless this thread has been scheduled to only run on this hyper thread, then the result is close to useless.
+	/// Unless this thread has been scheduled to only run on this hyper thread, then the result is close to useless - as by the time this function returns, the thread could have switched.
+	/// Newer GNU libc implementations use a thread-local static which is updated by the OS; older versions and MUSL use vDSO.
 	///
-	/// Prefer `current()`.
+	/// On modern CPUs, it is preferable to use `HyperThread::current().1`.
 	#[deprecated]
+	#[inline(always)]
 	pub fn current_hyper_thread() -> Self
 	{
 		let result = unsafe { sched_getcpu() };
@@ -130,9 +132,9 @@ impl HyperThread
 		debug_assert!(result <= u16::MAX as i32, "sched_getcpu() was too large");
 		let result = result as u16;
 
-		debug_assert!((result as u32) < Self::LinuxMaximum);
+		debug_assert!(result < Self::LinuxExclusiveMaximum);
 
-		Self(result as u16)
+		Self(result)
 	}
 
 	/// Value of `CONFIG_NR_CPUS`.
@@ -155,9 +157,9 @@ impl HyperThread
 		{
 			1
 		}
-		else if result > Self::LinuxMaximum as c_long
+		else if result > Self::LinuxExclusiveMaximum as c_long
 		{
-			Self::LinuxMaximum as u16
+			Self::LinuxExclusiveMaximum as u16
 		}
 		else
 		{

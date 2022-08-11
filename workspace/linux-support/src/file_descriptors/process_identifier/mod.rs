@@ -4,9 +4,9 @@
 
 use super::*;
 use crate::process::ProcessIdentifierChoice;
-use crate::syscall::SYS::pidfd_open;
-use crate::syscall::SYS::pidfd_getfd;
-use crate::syscall::SYS::pidfd_send_signal;
+use crate::syscall::SystemCallNumber::pidfd_open;
+use crate::syscall::SystemCallNumber::pidfd_getfd;
+use crate::syscall::SystemCallNumber::pidfd_send_signal;
 use crate::signals::Signal;
 
 

@@ -18,7 +18,7 @@ pub struct SeccompConfiguration
 	#[serde(default)] pub log_not_allowed_actions: bool,
 
 	/// System calls to rules.
-	#[serde(default)] pub rules: HashMap<SYS, Rule>,
+	#[serde(default)] pub rules: HashMap<SystemCallNumber, Rule>,
 }
 
 impl SeccompConfiguration

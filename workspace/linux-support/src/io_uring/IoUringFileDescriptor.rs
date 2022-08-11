@@ -108,7 +108,7 @@ impl IoUringFileDescriptor
 			cq_off: unsafe_uninitialized(),
 		};
 
-		let result = io_uring_setup(number_of_submission_queue_entries, &mut parameters);
+		let result = SystemCallNumber::system_call_io_uring_setup(number_of_submission_queue_entries, &mut parameters);
 		if likely!(result >= 0)
 		{
 			let features = parameters.features;
@@ -178,7 +178,7 @@ impl IoUringFileDescriptor
 			}
 		}
 
-		let result = io_uring_enter(self.raw_file_descriptor, to_submit, minimum_wanted_to_complete, flags, unsafe { transmute(temporary_thread_signal_mask) });
+		let result = SystemCallNumber::system_call_io_uring_enter(self.raw_file_descriptor, to_submit, minimum_wanted_to_complete, flags, unsafe { transmute(temporary_thread_signal_mask) });
 		if likely!(result >= 0)
 		{
 			Ok(result as u32)
@@ -512,6 +512,6 @@ impl IoUringFileDescriptor
 	#[inline(always)]
 	fn register<Argument>(&self, register_operation: RegisterOperation, arguments: *mut Argument, length: u32) -> i32
 	{
-		io_uring_register(self.raw_file_descriptor, register_operation, arguments as *mut c_void, length)
+		SystemCallNumber::system_call_io_uring_register(self.raw_file_descriptor, register_operation, arguments as *mut c_void, length)
 	}
 }

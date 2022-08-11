@@ -162,7 +162,7 @@ impl SeccompProgram
 			filter: self.as_mut_ptr(),
 		};
 
-		let result = seccomp(SECCOMP_SET_MODE_FILTER, flags, &mut program as *mut sock_fprog as *mut _);
+		let result = SystemCallNumber::system_call_seccomp(SECCOMP_SET_MODE_FILTER, flags, &mut program as *mut sock_fprog as *mut _);
 		if likely!(result >= 0)
 		{
 			Ok(result)
@@ -188,7 +188,7 @@ impl SeccompProgram
 
 	/// Not efficient.
 	#[inline(always)]
-	pub fn disallow_only_these_syscalls(&mut self, syscalls: &IndexSet<SYS>, undefined: &Vec<Range<u32>>)
+	pub fn disallow_only_these_syscalls(&mut self, syscalls: &IndexSet<SystemCallNumber>, undefined: &Vec<Range<u32>>)
 	{
 		self.load_syscall_number();
 
@@ -208,7 +208,7 @@ impl SeccompProgram
 
 	/// Higher code density than `disallow_only_these_syscalls()`.
 	#[inline(always)]
-	pub fn disallow_only_these_syscalls_256_or_fewer(&mut self, syscalls: &IndexSet<SYS>, undefined: &Vec<Range<u32>>)
+	pub fn disallow_only_these_syscalls_256_or_fewer(&mut self, syscalls: &IndexSet<SystemCallNumber>, undefined: &Vec<Range<u32>>)
 	{
 		self.load_syscall_number();
 
@@ -278,20 +278,20 @@ impl SeccompProgram
 	#[inline(always)]
 	fn disallow_lower(&mut self)
 	{
-		self.jump_if_greater_than_or_equal_to_constant(SYS::InclusiveMinimum as usize as u32, 1, 0);
+		self.jump_if_greater_than_or_equal_to_constant(SystemCallNumber::InclusiveMinimum as usize as u32, 1, 0);
 		self.return_kill_the_process()
 	}
 
 	#[inline(always)]
 	fn disallow_upper(&mut self)
 	{
-		self.jump_if_greater_than_constant(SYS::InclusiveMaximum as usize as u32, 0, 1);
+		self.jump_if_greater_than_constant(SystemCallNumber::InclusiveMaximum as usize as u32, 0, 1);
 		self.return_kill_the_process()
 	}
 
 	/// Not efficient.
 	#[inline(always)]
-	pub fn allow_only_these_syscalls(&mut self, syscalls: &IndexSet<SYS>)
+	pub fn allow_only_these_syscalls(&mut self, syscalls: &IndexSet<SystemCallNumber>)
 	{
 		self.load_syscall_number();
 
@@ -307,7 +307,7 @@ impl SeccompProgram
 
 	/// Higher code density than `allow_only_these_syscalls()`.
 	#[inline(always)]
-	pub fn allow_only_these_syscalls_256_or_fewer(&mut self, syscalls: &IndexSet<SYS>)
+	pub fn allow_only_these_syscalls_256_or_fewer(&mut self, syscalls: &IndexSet<SystemCallNumber>)
 	{
 		self.load_syscall_number();
 

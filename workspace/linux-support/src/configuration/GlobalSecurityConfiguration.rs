@@ -76,7 +76,7 @@ pub struct GlobalSecurityConfiguration
 	///
 	/// And the following in `/proc/sys/abi` are hardened if present:-
 	///
-	/// * `vsyscall32` (turned off).
+	/// * `vsystem_call_32` (turned off).
 	///
 	/// And the following in `/proc/sys/debug` are hardened if present:-
 	///
@@ -282,7 +282,7 @@ impl GlobalSecurityConfiguration
 			harden_value_u8(proc_path, ProcPath::sys_vm_file_path, "unprivileged_userfaultfd", 0)?;
 			harden_value_u8(proc_path, ProcPath::sys_vm_file_path, "vfs_cache_pressure", 100)?;
 			
-			harden_value_u8(proc_path, ProcPath::sys_abi_file_path, "vsyscall32", 0)?;
+			harden_value_u8(proc_path, ProcPath::sys_abi_file_path, "vsystem_call_32", 0)?;
 			
 			harden_value_u8(proc_path, ProcPath::sys_debug_file_path, "exception-trace", 1)?;
 			harden_value_u8(proc_path, ProcPath::sys_debug_file_path, "kprobes-optimization", 1)?;

@@ -3,12 +3,9 @@
 
 
 use super::*;
-use crate::syscall::SYS;
 
 
 include!("sched_attr.rs");
 include!("SCHED_.rs");
 include!("SCHED_ATTR_SIZE_VER0.rs");
 include!("SCHED_FLAG_.rs");
-include!("sched_getattr.rs");
-include!("sched_setattr.rs");

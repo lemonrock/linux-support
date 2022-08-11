@@ -7,13 +7,14 @@ use self::c::*;
 use crate::paths::*;
 use crate::process::ProcessIdentifierChoice;
 use crate::process::ProcessGroupIdentifierChoice;
+use crate::syscall::SystemCallNumber;
 use crate::thread::ThreadIdentifier;
 use crate::thread::ThreadIdentifierChoice;
 use crate::user_and_groups::UserIdentifier;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 
 
-mod c;
+pub(crate) mod c;
 
 
 include!("LatencyScaling.rs");

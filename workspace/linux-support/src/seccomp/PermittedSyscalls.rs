@@ -16,13 +16,13 @@
 pub enum PermittedSyscalls
 {
 	/// Only these syscalls will be allowed.
-	Allow(IndexSet<SYS>),
+	Allow(IndexSet<SystemCallNumber>),
 
 	/// Disallows all `known` syscalls, all `undefined` syscalls and any syscalls below `SYS::InclusiveMinimum` and above `SYS::InclusiveMaximum`.
 	Disallow
 	{
 		/// Known syscalls to disallow.
-		known: IndexSet<SYS>,
+		known: IndexSet<SystemCallNumber>,
 
 		/// 'Undefined' syscalls to disallow.
 		///
@@ -37,11 +37,11 @@ impl Default for PermittedSyscalls
 	#[inline(always)]
 	fn default() -> Self
 	{
-		use self::SYS::*;
+		use self::SystemCallNumber::*;
 
 		PermittedSyscalls::Disallow
 		{
-			undefined: SYS::Undefined.to_vec(),
+			undefined: SystemCallNumber::Undefined.to_vec(),
 
 			known: indexset!
 			{

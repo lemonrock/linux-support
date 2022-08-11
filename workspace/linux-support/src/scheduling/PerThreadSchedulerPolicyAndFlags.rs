@@ -23,7 +23,7 @@ impl PerThreadSchedulerPolicyAndFlags
 	{
 		const FlagsIsAlwaysZero: u32 = 0;
 		let mut parameters = unsafe_uninitialized();
-		let result = sched_getattr(thread_identifier.into(), &mut parameters, SCHED_ATTR_SIZE_VER0, FlagsIsAlwaysZero);
+		let result = SystemCallNumber::system_call_sched_getattr(thread_identifier.into(), &mut parameters, SCHED_ATTR_SIZE_VER0, FlagsIsAlwaysZero);
 
 		if likely!(result == 0)
 		{
@@ -192,7 +192,7 @@ impl PerThreadSchedulerPolicyAndFlags
 		};
 
 		const FlagsIsAlwaysZero: u32 = 0;
-		let result = sched_setattr(thread_identifier.into(), &mut parameters, FlagsIsAlwaysZero);
+		let result = SystemCallNumber::system_call_sched_setattr(thread_identifier.into(), &mut parameters, FlagsIsAlwaysZero);
 
 		if likely!(result == 0)
 		{

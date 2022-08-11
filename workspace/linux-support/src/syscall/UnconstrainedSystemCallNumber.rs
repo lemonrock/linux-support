@@ -7,7 +7,7 @@
 pub union UnconstrainedSystemCallNumber
 {
 	/// Known value.
-	pub known: SYS,
+	pub known: SystemCallNumber,
 
 	/// As returned for `SIGSYS` in `signalfd_siginfo`.
 	pub signalfd: i32,

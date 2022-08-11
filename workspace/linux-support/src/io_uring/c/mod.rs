@@ -4,8 +4,6 @@
 
 use super::*;
 use crate::memory::mapping::MemoryAdvice;
-use crate::signals::c::_NSIG;
-use crate::syscall::SYS;
 
 
 include!("__kernel_rwf_t.rs");
@@ -17,14 +15,11 @@ include!("FileOrMemoryAdvice.rs");
 include!("io_cqring_offsets.rs");
 include!("io_sqring_offsets.rs");
 include!("io_uring_cqe.rs");
-include!("io_uring_enter.rs");
 include!("io_uring_files_update.rs");
 include!("IO_URING_OP_.rs");
 include!("io_uring_params.rs");
 include!("io_uring_probe.rs");
 include!("io_uring_probe_op.rs");
-include!("io_uring_register.rs");
-include!("io_uring_setup.rs");
 include!("io_uring_sqe.rs");
 include!("io_uring_sqe_anonymous_1.rs");
 include!("io_uring_sqe_anonymous_2.rs");

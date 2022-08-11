@@ -6,7 +6,7 @@
 /// Copied back with updated info on success
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(C)]
-pub(super) struct io_uring_params
+pub(crate) struct io_uring_params
 {
 	pub(super) sq_entries: u32,
 

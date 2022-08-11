@@ -193,7 +193,7 @@ impl UserFaultFileDescriptor
 			flags
 		};
 		
-		let result = userfaultfd(flags);
+		let result = SystemCallNumber::system_call_userfaultfd(flags);
 		if likely!(result >= 0)
 		{
 			Ok(Arc::new(Self(result)))

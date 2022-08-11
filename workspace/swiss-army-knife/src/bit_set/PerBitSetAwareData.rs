@@ -119,19 +119,19 @@ impl<BSA: BitSetAware, PerBitSetAware> PerBitSetAwareData<BSA, PerBitSetAware>
 		let (minimum, maximum) = constructor.size_hint();
 		if let Some(maximum) = maximum
 		{
-			let safety_threshold = BSA::LinuxMaximum as usize;
+			let safety_threshold = BSA::LinuxExclusiveMaximum as usize;
 			if maximum > minimum && maximum < safety_threshold
 			{
 				maximum
 			}
 			else
 			{
-				BSA::LinuxMaximum as usize
+				BSA::LinuxExclusiveMaximum as usize
 			}
 		}
 		else
 		{
-			BSA::LinuxMaximum as usize
+			BSA::LinuxExclusiveMaximum as usize
 		}
 	}
 	

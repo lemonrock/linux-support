@@ -4,7 +4,7 @@
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(i32)]
-pub(super) enum IOPRIO_WHO
+pub(crate) enum IOPRIO_WHO
 {
 	IOPRIO_WHO_PROCESS = 1,
 	IOPRIO_WHO_PGRP = 2,

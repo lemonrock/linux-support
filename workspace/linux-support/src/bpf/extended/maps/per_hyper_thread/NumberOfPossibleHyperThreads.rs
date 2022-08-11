@@ -19,7 +19,7 @@ impl NumberOfPossibleHyperThreads
 		{
 			number_of_possible_hyper_threads = HyperThreads::number_of_possible_hyper_threads_unless_there_are_missing_possible_hyper_threads(sys_path).expect("Strange Linux system with `/sys/devices/system/cpu/possible` using a CPU mask with some HyperThreads not possible");
 			assert_ne!(number_of_possible_hyper_threads, 0, "Number of possible HyperThreads is zero");
-			assert!(number_of_possible_hyper_threads < HyperThread::LinuxMaximum as usize);
+			assert!(number_of_possible_hyper_threads < HyperThread::LinuxExclusiveMaximum as usize);
 			unsafe { NumberOfPossibleHyperThreads = number_of_possible_hyper_threads };
 		}
 		

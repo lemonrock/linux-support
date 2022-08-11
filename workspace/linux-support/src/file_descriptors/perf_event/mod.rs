@@ -6,7 +6,7 @@ use super::*;
 use super::bpf::ProcessQueryableFileDescriptor;
 use crate::perf_event::*;
 use crate::perf_event::c::*;
-
+use crate::syscall::SystemCallNumber;
 
 
 include!("PerfEventFileDescriptor.rs");

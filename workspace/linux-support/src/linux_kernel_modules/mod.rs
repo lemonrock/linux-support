@@ -8,7 +8,7 @@ use crate::file_descriptors::path::PathFileDescriptor;
 use crate::paths::*;
 use crate::pci_express::PciDeviceAddress;
 use crate::user_and_groups::*;
-use crate::syscall::SYS;
+use crate::syscall::SystemCallNumber;
 
 
 /// Parameters.

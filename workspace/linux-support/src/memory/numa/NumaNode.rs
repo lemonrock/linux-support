@@ -29,19 +29,19 @@ impl BitSetAware for NumaNode
 	/// Internally, code in Linux checks that `number of nodes x 4 <= page size`.
 	/// This is to handle writing the `distance` files in sysfs (see `node_read_distance()` in `drivers/base/node.c`).
 	/// This logic, on x86_64, caps the maximum number of nodes to 1024, which is also the maximum here.
-	/// On x86_64, can not exceed `2^12 - 1`.
-	const LinuxMaximum: u32 = 1 << Self::LinuxMaximumFor_CONFIG_NUMA_SHIFT;
+	/// An upper bound on x86_64 is also `2^12 - 1`, the maximum value encoded into the IA32_TSC_AUX MSR.
+	const LinuxExclusiveMaximum: u16 = 1 << Self::LinuxMaximumFor_CONFIG_NUMA_SHIFT;
 
 	const InclusiveMinimum: Self = Self(0);
 
-	const InclusiveMaximum: Self = Self((Self::LinuxMaximum - 1) as u16);
+	const InclusiveMaximum: Self = Self(Self::LinuxExclusiveMaximum - 1);
 
 	const Prefix: &'static [u8] = b"node";
 
 	#[inline(always)]
 	fn from_validated_u16(value: u16) -> Self
 	{
-		debug_assert!((value as u32) < Self::LinuxMaximum);
+		debug_assert!(value < Self::LinuxExclusiveMaximum);
 
 		Self(value)
 	}
@@ -60,7 +60,7 @@ impl TryFrom<i32> for NumaNode
 		{
 			Err(TooSmall)
 		}
-		else if unlikely!(value >= Self::LinuxMaximum as i32)
+		else if unlikely!(value >= Self::LinuxExclusiveMaximum as i32)
 		{
 			Err(TooLarge)
 		}
@@ -73,7 +73,7 @@ impl TryFrom<i32> for NumaNode
 
 impl NumaNode
 {
-	pub(crate) const LinuxMaximumFor_CONFIG_NUMA_SHIFT: u32 = 10;
+	pub(crate) const LinuxMaximumFor_CONFIG_NUMA_SHIFT: u16 = 10;
 
 	/// Reads the hyper thread and NUMA node of the currently executing CPU from the `IA32_TSC_AUX` model state register, which Linux populates.
 	#[inline(always)]
@@ -182,7 +182,7 @@ impl NumaNode
 			Greater => (Cow::Borrowed(from), Cow::Owned(from.extend_clone_to(from_length))),
 		};
 
-		let result = migrate_pages(process_identifier.into(), from_length, from.as_ref().to_raw_parts().0, to.as_ref().to_raw_parts().0);
+		let result = SystemCallNumber::system_call_migrate_pages(process_identifier.into(), from_length, from.as_ref().to_raw_parts().0, to.as_ref().to_raw_parts().0);
 
 		if likely!(result == 0)
 		{
@@ -245,7 +245,7 @@ impl NumaNode
 
 		let mut status: Vec<Self> = Vec::with_capacity(count);
 
-		let result = c::move_pages(process_identifier.into(), count, pages.as_ptr() as *const *const c_void, null(), status.as_mut_ptr() as *mut i32, MemoryBindFlags::empty());
+		let result = SystemCallNumber::system_call_move_pages(process_identifier.into(), count, pages.as_ptr() as *const *const c_void, null(), status.as_mut_ptr() as *mut i32, MemoryBindFlags::empty());
 
 		if likely!(result == 0)
 		{
@@ -323,7 +323,7 @@ impl NumaNode
 		{
 			MemoryBindFlags::MPOL_MF_MOVE
 		};
-		let result = c::move_pages(process_identifier.into(), count, pages.as_ptr() as *const *const c_void, nodes.as_ptr(), status.as_mut_ptr() as *mut i32, flags);
+		let result = SystemCallNumber::system_call_move_pages(process_identifier.into(), count, pages.as_ptr() as *const *const c_void, nodes.as_ptr(), status.as_mut_ptr() as *mut i32, flags);
 
 		if likely!(result == 0)
 		{
@@ -411,7 +411,7 @@ impl NumaNode
 	#[inline(always)]
 	pub fn distances(self, sys_path: &SysPath) -> Option<Option<HashMap<NumaNode, MemoryLatencyRelativeCost>>>
 	{
-		const LinuxMaximum: usize = NumaNode::LinuxMaximum as usize;
+		const LinuxMaximum: usize = NumaNode::LinuxExclusiveMaximum as usize;
 
 		fn parser(file_path: &Path, mut online_numa_nodes: BitSetIterator<NumaNode>) -> io::Result<Option<HashMap<NumaNode, MemoryLatencyRelativeCost>>>
 		{

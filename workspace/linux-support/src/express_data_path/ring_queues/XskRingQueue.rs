@@ -2,6 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use std::arch::asm;
+
 #[doc(hidden)]
 #[derive(Debug)]
 pub struct XskRingQueue<XRQK: XskRingQueueKind, D: Descriptor>
@@ -164,114 +166,68 @@ impl<XRQK: XskRingQueueKind, D: Descriptor> XskRingQueue<XRQK, D>
 		unsafe { *self.flags.as_ref() }
 	}
 	
-	#[cfg(target_arch = "x86_64")]
+	/// Read memory barrier.
 	#[inline(always)]
 	fn libbpf_smp_rmb()
 	{
-		Self::memory_barrier()
-	}
-	
-	#[cfg(target_arch = "aarch64")]
-	#[inline(always)]
-	fn libbpf_smp_rmb()
-	{
+		#[cfg(target_arch = "x86_64")] Self::x86_64_memory_barrier();
+		#[cfg(target_arch = "aarch64")]
 		unsafe
 		{
-			llvm_asm!
+			/// Data Memory Barrier (DMB) inner shareable, reads (loads) only.
+			asm!
 			(
-				"
-					dmb ishld
-				"
-				:
-				:
-				:
-					"memory"
-				:
-					"volatile"
-			);
+				"dmb ishld",
+				options(preserves_flags, nostack)
+			)
 		}
 	}
 	
-	#[cfg(target_arch = "x86_64")]
+	/// Write memory barrier.
 	#[inline(always)]
 	fn libbpf_smp_wmb()
 	{
-		Self::memory_barrier()
-	}
-	
-	#[cfg(target_arch = "aarch64")]
-	#[inline(always)]
-	fn libbpf_smp_wmb()
-	{
+		#[cfg(target_arch = "x86_64")] Self::x86_64_memory_barrier();
+		#[cfg(target_arch = "aarch64")]
 		unsafe
 		{
-			llvm_asm!
+			/// Data Memory Barrier (DMB) inner shareable, writes (stores) only.
+			asm!
 			(
-				"
-					dmb ishst
-				"
-				:
-				:
-				:
-					"memory"
-				:
-					"volatile"
-			);
+				"dmb ishst",
+				options(preserves_flags, nostack)
+			)
+		}
+	}
+	
+	/// Read-Write memory barrier.
+	#[inline(always)]
+	fn libbpf_smp_rwmb()
+	{
+		#[cfg(target_arch = "x86_64")] Self::x86_64_memory_barrier();
+		#[cfg(target_arch = "aarch64")]
+		unsafe
+		{
+			/// Data Memory Barrier (DMB) inner shareable, both reads (loads) and writes (stores).
+			asm!
+			(
+				"dmb ish",
+				options(preserves_flags, nostack)
+			)
 		}
 	}
 	
 	#[cfg(target_arch = "x86_64")]
 	#[inline(always)]
-	fn libbpf_smp_rwmb()
-	{
-		Self::memory_barrier()
-	}
-	
-	#[cfg(target_arch = "aarch64")]
-	#[inline(always)]
-	fn libbpf_smp_rwmb()
-	{
-		Self::memory_barrier()()
-	}
-	
-	#[cfg(target_arch = "x86_64")]
-	#[inline(always)]
-	fn memory_barrier()
-	{
-		// This can probably be converted to use `std::sync::atomic::compiler_fence()` if we can find documentation explicitly detailing which `Ordering` to use; it may be that `Ordering` does not ultimately matter.
-		unsafe
-		{
-			llvm_asm!
-			(
-				""
-				:
-				:
-				:
-					"memory"
-				:
-					"volatile"
-			);
-		}
-	}
-	
-	#[cfg(target_arch = "aarch64")]
-	#[inline(always)]
-	fn memory_barrier()
+	fn x86_64_memory_barrier()
 	{
 		unsafe
 		{
-			llvm_asm!
+			asm!
 			(
-				"
-					dmb ish
-				"
-				:
-				:
-				:
-					"memory"
-				:
-					"volatile"
-			);
+				"",
+				options(preserves_flags, nostack)
+			)
 		}
 	}
 }

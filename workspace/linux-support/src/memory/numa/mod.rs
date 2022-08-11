@@ -7,15 +7,17 @@ use self::c::*;
 use super::PageSize;
 use super::huge_pages::*;
 use super::information::*;
-use crate::cpu::{HyperThread, HyperThreads};
+use crate::cpu::HyperThread;
+use crate::cpu::HyperThreads;
 use crate::current_numa_node_and_hyper_thread;
 use crate::paths::*;
 use crate::process::*;
 use crate::process::status::Status;
+use crate::syscall::SystemCallNumber;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 
 
-mod c;
+pub(crate) mod c;
 
 
 include!("GetMemoryPolicyFlags.rs");

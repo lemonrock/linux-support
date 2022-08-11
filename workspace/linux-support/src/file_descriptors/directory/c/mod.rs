@@ -16,8 +16,6 @@ include!("fstrim_range.rs");
 include!("name_to_handle_at.rs");
 include!("open_by_handle_at.rs");
 include!("open_how.rs");
-include!("openat2.rs");
-include!("renameat2.rs");
 include!("statx.rs");
 include!("STATX_.rs");
 include!("statx_timestamp.rs");

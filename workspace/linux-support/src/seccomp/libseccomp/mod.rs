@@ -4,7 +4,7 @@
 
 use super::*;
 use self::c::*;
-use crate::syscall::SYS;
+use crate::syscall::SystemCallNumber;
 
 
 #[doc(hidden)]

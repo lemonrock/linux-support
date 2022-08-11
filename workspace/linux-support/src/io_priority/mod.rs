@@ -6,11 +6,12 @@ use super::*;
 use self::c::*;
 use crate::process::ProcessIdentifierChoice;
 use crate::process::ProcessGroupIdentifierChoice;
+use crate::syscall::SystemCallNumber;
 use crate::thread::ThreadIdentifier;
 use crate::user_and_groups::UserIdentifier;
 
 
-mod c;
+pub(crate) mod c;
 
 
 include!("CompressedIoPriority.rs");

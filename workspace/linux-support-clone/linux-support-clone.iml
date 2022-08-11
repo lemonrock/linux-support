@@ -7,19 +7,8 @@
       <sourceFolder url="file://$MODULE_DIR$/examples" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/benches" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../linux-support/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../linux-support/examples" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../linux-support/tests" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../linux-support/benches" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../terminate/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../terminate/examples" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../terminate/tests" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../terminate/benches" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../swiss-army-knife/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/.cargo" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
-      <excludeFolder url="file://$MODULE_DIR$/../linux-support/target" />
-      <excludeFolder url="file://$MODULE_DIR$/../terminate/target" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
   </component>

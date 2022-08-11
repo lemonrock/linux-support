@@ -7,11 +7,10 @@ use crate::VariablySized;
 use super::UserNotificationFlags;
 use crate::process::ProcessIdentifier;
 use crate::signals::AuditArchitecture;
-use crate::syscall::SYS;
+use crate::syscall::SystemCallNumber;
 
 
 include!("PR_SET_SECCOMP.rs");
-include!("seccomp.rs");
 include!("SECCOMP_.rs");
 include!("seccomp_data.rs");
 include!("SECCOMP_FILTER_FLAG_.rs");

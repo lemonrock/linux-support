@@ -4,7 +4,7 @@
 
 bitflags!
 {
-	pub(super) struct EnterFlags: u32
+	pub(crate) struct EnterFlags: u32
 	{
 		const GetEvents = IORING_ENTER_GETEVENTS;
 

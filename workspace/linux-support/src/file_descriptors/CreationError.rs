@@ -12,19 +12,19 @@ pub enum CreationError
 	/// For epoll creation, this can also be because the per-user limit on the number of epoll instances imposed by `/proc/sys/fs/epoll/max_user_watches` would be exceeded.
 	///
 	/// For inotify creation, this can also be because the per-user limit on the number of epoll instances imposed by `/proc/sys/fs/inotify/max_user_instances` would be exceeded.
-	PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded = EMFILE,
+	PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded = EMFILE.into(),
 
 	/// The system-wide limit on the total number of open files would be exceeded.
 	///
 	/// For POSIX message queues, this can also be caused if a process would exceed `/proc/sys/fs/mqueue/queues_max` and does not have the capability `CAP_SYS_RESOURCE`.
 	///
 	/// `ENFILE` or sometimes `ENOSPC`.
-	SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded = ENFILE,
+	SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded = ENFILE.into(),
 
 	/// Kernel would be out of memory.
 	///
 	/// `ENOMEM` or sometimes `ENOSPC`.
-	KernelWouldBeOutOfMemory = ENOMEM,
+	KernelWouldBeOutOfMemory = ENOMEM.into(),
 
 	/// Occurs for fanotify if the caller lacks the `CAP_SYS_ADMIN` capability (or, for userfaultfd, the `CAP_SYS_PTRACE` or `/proc/sys/vm/unprivileged_userfaultfd` has the value `0`).
 	///
@@ -33,12 +33,12 @@ pub enum CreationError
 	/// For memory mappings, an executable mapping is desired for a file opened on a file system mounted noexec or prevented by a file seal.
 	///
 	/// For process_vm_readv or process_vm_writev, can not access process.
-	PermissionDenied = EPERM,
+	PermissionDenied = EPERM.into(),
 
 	/// Occurs for pidfd if the pid does not exist.
 	///
 	/// For process_vm_readv or process_vm_writev, can not access process.
-	ProcessForProcessIdentifierDoesNotExist = ESRCH,
+	ProcessForProcessIdentifierDoesNotExist = ESRCH.into(),
 }
 
 impl Display for CreationError

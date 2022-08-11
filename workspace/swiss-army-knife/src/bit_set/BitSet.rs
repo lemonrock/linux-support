@@ -23,7 +23,7 @@ impl<BSA: BitSetAware> BitSet<BSA>
 {
 	const BitsInAWord: usize = BitsInAByte * size_of::<usize>();
 
-	const MaximumNumberOfUsizeWords: usize = (BSA::LinuxMaximum as usize + Self::BitsInAWord - 1) / Self::BitsInAWord;
+	const MaximumNumberOfUsizeWords: usize = (BSA::LinuxExclusiveMaximum as usize + Self::BitsInAWord - 1) / Self::BitsInAWord;
 
 	/// Creates a new empty bit set (all bits are initially zero) of the maximum possible size.
 	#[inline(always)]

@@ -8,7 +8,7 @@ use crate::devices::*;
 use crate::environment::Environment;
 use crate::file_systems::*;
 use crate::inode::*;
-use crate::syscall::SYS;
+use crate::syscall::SystemCallNumber;
 use crate::user_and_groups::*;
 
 

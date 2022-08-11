@@ -14,7 +14,7 @@
 #[inline(always)]
 pub fn strict_seccomp() -> io::Result<()>
 {
-	let result = seccomp(SECCOMP_SET_MODE_STRICT, 0, null_mut());
+	let result = SystemCallNumber::system_call_seccomp(SECCOMP_SET_MODE_STRICT, 0, null_mut());
 	if likely!(result == 0)
 	{
 		Ok(())

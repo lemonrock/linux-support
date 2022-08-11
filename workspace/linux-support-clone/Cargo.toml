@@ -23,7 +23,7 @@ static_assertions = "^1.0"
 
 [target.'cfg(all(target_os = "linux", target_pointer_width = "64"))'.dependencies]
 bitflags = "^1.0"
-errno = "^0.2"
+errno = "^0.2.8"
 libc = { version = "^0.2.93", features = ["const-extern-fn", "extra_traits", "std"] }
 likely = { version = "^0.2.0", path = "../likely" }
 linux-support = { version = "^0.0.26", path = "../linux-support" }

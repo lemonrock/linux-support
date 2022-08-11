@@ -4,7 +4,7 @@
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u32)]
-pub(super) enum RegisterOperation
+pub(crate) enum RegisterOperation
 {
 	RegisterPersonality = IORING_REGISTER_PERSONALITY,
 
@@ -28,4 +28,3 @@ pub(super) enum RegisterOperation
 
 	RegisterProbe = IORING_REGISTER_PROBE,
 }
-

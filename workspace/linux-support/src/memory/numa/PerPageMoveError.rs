@@ -8,29 +8,29 @@
 pub enum PerPageMoveError
 {
 	/// Can only be moved if move all specified.
-	PageIsMappedByMultipleProcesses = EACCES,
+	PageIsMappedByMultipleProcesses = EACCES.into(),
 
 	/// This occurs if a page is undergoing I/O or another kernel subsystem is holding a reference to the page.
-	BusyTryAgainLater = EBUSY,
+	BusyTryAgainLater = EBUSY.into(),
 
 	/// This is a zero page or the memory area is not mapped by the process.
-	Fault = EFAULT,
+	Fault = EFAULT.into(),
 
 	/// Unable to write back a page.
 	///
 	/// The page has to be written back in order to move it since the page is dirty and the filesystem does not provide a migration function that would allow the move of dirty pages.
-	CanNotWriteBackPage = EIO,
+	CanNotWriteBackPage = EIO.into(),
 
 	/// A dirty page cannot be moved.
 	///
 	/// The filesystem does not provide a migration function and has no ability to write back pages.
-	DirtyPageCanNotBeMoved = EINVAL,
+	DirtyPageCanNotBeMoved = EINVAL.into(),
 
 	/// Not present
-	PageIsNotPresent = ENOENT,
+	PageIsNotPresent = ENOENT.into(),
 
 	/// Unable to allocate memory on target node.
-	OutOfMemoryOnTargetNode = ENOMEM,
+	OutOfMemoryOnTargetNode = ENOMEM.into(),
 }
 
 impl Display for PerPageMoveError

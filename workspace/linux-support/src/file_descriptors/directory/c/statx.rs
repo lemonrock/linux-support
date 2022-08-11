@@ -2,12 +2,6 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-#[inline(always)]
-pub(super) fn statx_(dirfd: c_int, filename: *const c_char, flags: c_uint, mask: c_uint, buffer: *mut statx) -> c_int
-{
-	SYS::statx.syscall5(dirfd as usize, filename as usize, flags as usize, mask as usize, buffer as usize) as i32
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(crate) struct statx
 {

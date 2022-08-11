@@ -66,7 +66,7 @@ impl SetMemoryPolicy
 			}
 		};
 
-		let result = set_mempolicy(set_memory_policy, nodemask, maxnode);
+		let result = SystemCallNumber::system_call_set_mempolicy(set_memory_policy, nodemask, maxnode);
 
 		if likely!(result == 0)
 		{
@@ -211,7 +211,7 @@ impl SetMemoryPolicy
 		};
 
 		let mode = policy;
-		let result = mbind(address.as_ptr() as *mut c_void, length, mode, nodemask, maxnode, memory_bind_flags);
+		let result = SystemCallNumber::system_call_mbind(address.as_ptr() as *mut c_void, length, mode, nodemask, maxnode, memory_bind_flags);
 
 		if likely!(result == 0)
 		{

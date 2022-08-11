@@ -7,7 +7,7 @@ use self::c::*;
 use crate::bpf::classic::ClassicBpfProgram;
 use crate::bpf::c::*;
 use crate::signals::AuditArchitecture;
-use crate::syscall::SYS;
+use crate::syscall::SystemCallNumber;
 use crate::thread::ThreadIdentifier;
 use crate::file_descriptors::seccomp_user_notification::SeccompUserNotificationFileDescriptor;
 use crate::process_control::{process_control_wrapper2, result_must_be_zero};

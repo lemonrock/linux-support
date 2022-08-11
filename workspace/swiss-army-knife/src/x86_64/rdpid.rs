@@ -3,9 +3,8 @@
 
 
 /// Returns the value of the `IA32_TSC_AUX` MSR.
-#[cfg(target_arch = "x86_64")]
 #[inline(always)]
-pub fn rdpid() -> u32
+pub fn rdpid() -> IA32_TSC_AUX
 {
 	let mut pid: u64;
 	unsafe
@@ -17,5 +16,5 @@ pub fn rdpid() -> u32
 			options(att_syntax)
 		)
 	};
-	pid as u32
+	IA32_TSC_AUX(pid as u32)
 }

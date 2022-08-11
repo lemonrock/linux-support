@@ -130,7 +130,7 @@ impl DirectoryFileDescriptor
 			mode: 0,
 			resolve: path_resolution.bits,
 		};
-		let result = openat2(self.as_raw_fd(), path.as_ptr(), &mut how, size_of::<open_how>());
+		let result = SystemCallNumber::system_call_openat2(self.as_raw_fd(), path.as_ptr(), &mut how, size_of::<open_how>());
 		if likely!(result >= 0)
 		{
 			Ok(Self(result as RawFd))
@@ -208,7 +208,7 @@ impl DirectoryFileDescriptor
 			mode: mode as u64,
 			resolve: path_resolution.bits,
 		};
-		let result = openat2(self.as_raw_fd(), path, &mut how, size_of::<open_how>());
+		let result = SystemCallNumber::system_call_openat2(self.as_raw_fd(), path, &mut how, size_of::<open_how>());
 		if likely!(result >= 0)
 		{
 			Ok(unsafe { File::from_raw_fd(result as RawFd) })
@@ -704,7 +704,7 @@ impl DirectoryFileDescriptor
 		debug_assert!(!from_path.to_bytes().is_empty(), "Empty from_path is not permitted");
 		debug_assert!(!to_path.to_bytes().is_empty(), "Empty to_path is not permitted");
 
-		let result = renameat2(self.as_raw_fd(), from_path.as_ptr(), to.as_raw_fd(), to_path.as_ptr(), rename_flags as i32);
+		let result = SystemCallNumber::system_call_renameat2(self.as_raw_fd(), from_path.as_ptr(), to.as_raw_fd(), to_path.as_ptr(), rename_flags as i32);
 		if likely!(result == 0)
 		{
 			Ok(())
@@ -807,7 +807,7 @@ impl DirectoryFileDescriptor
 
 		let mut statx: statx = unsafe_uninitialized();
 
-		let result = statx_(self.as_raw_fd(), path.as_ptr(), flags as u32, extended_metadata_wanted.bits, &mut statx);
+		let result = SystemCallNumber::system_call_statx(self.as_raw_fd(), path.as_ptr(), flags as u32, extended_metadata_wanted.bits, &mut statx);
 		if likely!(result == 0)
 		{
 			statx.zero_padding();

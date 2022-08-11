@@ -65,7 +65,7 @@ impl ProcessIdentifierFileDescriptor
 	{
 		let pid: pid_t = process_identifier.into();
 		const flags: u32 = 0;
-		let result = pidfd_open.syscall2(pid as usize, flags as usize);
+		let result = pidfd_open.system_call_2(pid as usize, flags as usize);
 		if likely!(result >= 0)
 		{
 			Ok(Self(result as RawFd))
@@ -108,7 +108,7 @@ impl ProcessIdentifierFileDescriptor
 			None => null(),
 		};
 		const flags: u32 = 0;
-		let result = pidfd_send_signal.syscall4(self.0 as usize, signo as usize, information as usize, flags as usize);
+		let result = pidfd_send_signal.system_call_4(self.0 as usize, signo as usize, information as usize, flags as usize);
 
 		if likely!(result == 0)
 		{
@@ -144,7 +144,7 @@ impl ProcessIdentifierFileDescriptor
 	pub fn duplicate_file_descriptor_from_other_process<FD: AsRawFd + FromRawFd>(&self, other_process_file_descriptor: &FD) -> Result<FD, CreationError>
 	{
 		const Flags: u32 = 0;
-		let result = pidfd_getfd.syscall3(self.as_raw_fd() as usize, other_process_file_descriptor.as_raw_fd() as usize, Flags as usize) as i32;
+		let result = pidfd_getfd.system_call_3(self.as_raw_fd() as usize, other_process_file_descriptor.as_raw_fd() as usize, Flags as usize) as i32;
 		if likely!(result >= 0)
 		{
 			Ok(unsafe { FD::from_raw_fd(result) })

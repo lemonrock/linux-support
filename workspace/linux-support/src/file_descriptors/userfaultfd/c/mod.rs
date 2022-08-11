@@ -5,7 +5,6 @@
 use super::*;
 use crate::ioctl::_IOWR;
 use crate::ioctl::_IOR;
-use crate::syscall::SYS;
 use std::os::unix::io::RawFd;
 use crate::thread::ThreadIdentifier;
 
@@ -36,4 +35,3 @@ include!("uffdio_range.rs");
 include!("uffdio_register.rs");
 include!("uffdio_writeprotect.rs");
 include!("uffdio_zeropage.rs");
-include!("userfaultfd.rs");

@@ -7,41 +7,8 @@
       <sourceFolder url="file://$MODULE_DIR$/examples" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/benches" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../context-coroutine/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../context-coroutine/examples" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../context-coroutine/tests" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../context-coroutine/benches" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../context-allocator/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../context-allocator/examples" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../context-allocator/tests" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../context-allocator/benches" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../linux-support/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../linux-support/examples" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../linux-support/tests" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../linux-support/benches" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../message-dispatch/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../message-dispatch/examples" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../message-dispatch/tests" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../message-dispatch/benches" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../magic-ring-buffer/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../magic-ring-buffer/examples" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../magic-ring-buffer/tests" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../magic-ring-buffer/benches" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../terminate/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../terminate/examples" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../terminate/tests" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../terminate/benches" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/../socket-access-control/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../swiss-army-knife/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../message-dispatch-datadog/src" isTestSource="false" />
-      <excludeFolder url="file://$MODULE_DIR$/../context-allocator/target" />
-      <excludeFolder url="file://$MODULE_DIR$/../context-coroutine/target" />
       <excludeFolder url="file://$MODULE_DIR$/.cargo" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
-      <excludeFolder url="file://$MODULE_DIR$/../linux-support/target" />
-      <excludeFolder url="file://$MODULE_DIR$/../magic-ring-buffer/target" />
-      <excludeFolder url="file://$MODULE_DIR$/../message-dispatch/target" />
-      <excludeFolder url="file://$MODULE_DIR$/../terminate/target" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
