@@ -16,7 +16,7 @@ pub enum LinuxPciUserspaceKernelDriverModule
 	/// Intel specific Userspace Input/Output PCI driver for their 1GbE controllers ('igb'); only shipped with DPDK.
 	igb_uio,
 
-	/// Intel specifc virtual function (VF) Userspace Input/Output PCI driver; only shipped with DPDK.
+	/// Intel specific virtual function (VF) Userspace Input/Output PCI driver; only shipped with DPDK.
 	vfio_pci,
 }
 

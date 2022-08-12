@@ -84,7 +84,7 @@ include!("ReceivedFrameProcessor.rs");
 include!("ReceiveProcessingOutcome.rs");
 include!("ReceivesExpressDataPathSocket.rs");
 include!("SharedExpressDataPathSocket.rs");
-include!("SpecializationHackOfDropToOvercomeComplierErrorE0367ExpressDataPathSocket.rs");
+include!("SpecializationHackOfDropToOvercomeCompilerErrorE0367ExpressDataPathSocket.rs");
 include!("ShareableExpressDataPathInstance.rs");
 include!("TransmitsExpressDataPathSocket.rs");
 include!("UserMemory.rs");

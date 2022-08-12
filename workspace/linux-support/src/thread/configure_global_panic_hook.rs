@@ -4,7 +4,7 @@
 
 /// Should only ever be invoked *once* from the main thread that started the process.
 ///
-/// Does not terminate the process unless the panic hook itself panicked (a double panic), in which case the exit code is `71` (BSD exit code `EX_OSERR`) and the proces *immediately exits* without clean up.
+/// Does not terminate the process unless the panic hook itself panicked (a double panic), in which case the exit code is `71` (BSD exit code `EX_OSERR`) and the process *immediately exits* without clean up.
 #[inline(always)]
 pub fn configure_global_panic_hook(terminate: &Arc<impl Terminate + 'static>)
 {

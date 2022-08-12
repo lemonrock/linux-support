@@ -17,7 +17,7 @@ fn bind_socket_with_length<SA>(socket_file_descriptor: &impl FileDescriptor, soc
 	{
 		Err
 		(
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EACCES => PermissionDenied,
 				EADDRINUSE => AddressInUse,

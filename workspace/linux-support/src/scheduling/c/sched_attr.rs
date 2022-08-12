@@ -41,13 +41,13 @@ pub(crate) struct sched_attr
 
 	/// Value needed when `sched_policy` is `SCHED_DEADLINE`.
 	///
-	/// This field specifies the "Deadline" parameter for deadline sheduling.
+	/// This field specifies the "Deadline" parameter for deadline scheduling.
 	/// The value is expressed in nanoseconds.
 	pub(super) sched_deadline: u64,
 
 	/// Value needed when `sched_policy` is `SCHED_DEADLINE`.
 	///
-	/// This field specifies the "Period" parameter for deadline sheduling.
+	/// This field specifies the "Period" parameter for deadline scheduling.
 	/// The value is expressed in nanoseconds.
 	pub(super) sched_period: u64,
 }

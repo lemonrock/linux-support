@@ -182,7 +182,7 @@ pub(crate) const fn BPF_RVAL(code: u16) -> u16
 /// Source is Accumulator (`X`).
 pub(crate) const BPF_A: u16 = 0x10;
 
-/// Miscellanous op.
+/// Miscellaneous operation.
 #[allow(dead_code)]
 #[inline(always)]
 pub(crate) const fn BPF_MISCOP(code: u16) -> u16
@@ -190,8 +190,8 @@ pub(crate) const fn BPF_MISCOP(code: u16) -> u16
 	code & 0xF8
 }
 
-/// Miscellanous op.
+/// Miscellaneous operation.
 pub(crate) const BPF_TAX: u16 = 0x00;
 
-/// Miscellanous op.
+/// Miscellaneous operation.
 pub(crate) const BPF_TXA: u16 = 0x80;

@@ -78,7 +78,7 @@ impl<FFQ: FreeFrameQueue> UserMemory<FFQ>
 	#[inline(always)]
 	pub(crate) fn frame_to_transmit_our_frame_headroom_ethernet_packet(&self, frame_identifier: <<FFQ as FreeFrameQueue>::CS as ChunkSize>::FrameIdentifier) -> (&mut [u8], &mut [u8])
 	{
-		let mut relative_addresses_and_offsets = self.chunk_size.transmit_relative_addesses_and_offsets(self.frame_headroom, frame_identifier, 0);
+		let mut relative_addresses_and_offsets = self.chunk_size.transmit_relative_addresses_and_offsets(self.frame_headroom, frame_identifier, 0);
 		relative_addresses_and_offsets.length_of_packet = relative_addresses_and_offsets.minimum_tailroom_length(self.chunk_size);
 		
 		let user_memory_area = self.user_memory_area.deref();

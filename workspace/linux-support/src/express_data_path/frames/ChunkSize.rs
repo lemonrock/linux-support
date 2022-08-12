@@ -29,9 +29,9 @@ pub trait ChunkSize: Default + Debug + Copy + PartialEq + Eq + PartialOrd + Ord 
 	{
 		let value: usize = self.into();
 		
-		let mininum_required_frame_size = frame_headroom.with_xdp_packet_headroom_before_frame_headroom() + maximum_transmission_unit_payload_size.frame_size_including_trailing_frame_check_sequence();
+		let minimum_required_frame_size = frame_headroom.with_xdp_packet_headroom_before_frame_headroom() + maximum_transmission_unit_payload_size.frame_size_including_trailing_frame_check_sequence();
 		
-		value.cmp(&mininum_required_frame_size)
+		value.cmp(&minimum_required_frame_size)
 	}
 	
 	#[doc(hidden)]
@@ -74,5 +74,5 @@ pub trait ChunkSize: Default + Debug + Copy + PartialEq + Eq + PartialOrd + Ord 
 	fn transmit_frame_descriptor_bitfield(self, frame_headroom: FrameHeadroom, frame_identifier: Self::FrameIdentifier) -> FrameDescriptorBitfield;
 	
 	#[doc(hidden)]
-	fn transmit_relative_addesses_and_offsets(self, frame_headroom: FrameHeadroom, frame_identifier: Self::FrameIdentifier, length_of_packet: usize) -> RelativeAddressesAndOffsets;
+	fn transmit_relative_addresses_and_offsets(self, frame_headroom: FrameHeadroom, frame_identifier: Self::FrameIdentifier, length_of_packet: usize) -> RelativeAddressesAndOffsets;
 }

@@ -149,19 +149,19 @@ impl ChunkSize for UnalignedChunkSize
 	#[inline(always)]
 	fn fill_frame_descriptor_bitfield(self, frame_headroom: FrameHeadroom, frame_identifier: Self::FrameIdentifier) -> FrameDescriptorBitfield
 	{
-		let relative_addesses_and_offsets = RelativeAddressesAndOffsets::for_transmitted_frame_descriptor(frame_identifier, frame_headroom, 0);
-		relative_addesses_and_offsets.fill_frame_descriptor_bitfield_if_unaligned()
+		let relative_addresses_and_offsets = RelativeAddressesAndOffsets::for_transmitted_frame_descriptor(frame_identifier, frame_headroom, 0);
+		relative_addresses_and_offsets.fill_frame_descriptor_bitfield_if_unaligned()
 	}
 	
 	#[inline(always)]
 	fn transmit_frame_descriptor_bitfield(self, frame_headroom: FrameHeadroom, frame_identifier: Self::FrameIdentifier) -> FrameDescriptorBitfield
 	{
-		let relative_addesses_and_offsets = self.transmit_relative_addesses_and_offsets(frame_headroom, frame_identifier, 0);
-		relative_addesses_and_offsets.transmit_frame_descriptor_bitfield_if_unaligned()
+		let relative_addresses_and_offsets = self.transmit_relative_addresses_and_offsets(frame_headroom, frame_identifier, 0);
+		relative_addresses_and_offsets.transmit_frame_descriptor_bitfield_if_unaligned()
 	}
 	
 	#[inline(always)]
-	fn transmit_relative_addesses_and_offsets(self, frame_headroom: FrameHeadroom, frame_identifier: Self::FrameIdentifier, length_of_packet: usize) -> RelativeAddressesAndOffsets
+	fn transmit_relative_addresses_and_offsets(self, frame_headroom: FrameHeadroom, frame_identifier: Self::FrameIdentifier, length_of_packet: usize) -> RelativeAddressesAndOffsets
 	{
 		RelativeAddressesAndOffsets::for_transmitted_frame_descriptor(frame_identifier, frame_headroom, length_of_packet)
 	}

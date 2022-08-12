@@ -38,19 +38,19 @@ macro_rules! vectored_read
 						}
 						else if likely!(result == -1)
 						{
-							match errno().0
+							match SystemCallErrorNumber::from_errno()
 							{
-								libc::EAGAIN => WouldBlock,
-								libc::EINTR => Interrupted,
-								libc::ENOMEM => Other,
-								libc::ECONNRESET => ConnectionReset,
-								libc::ECONNREFUSED => ConnectionRefused,
-								libc::EBADF => panic!("The argument `sockfd` is an invalid descriptor"),
-								libc::EFAULT => panic!("The receive buffer pointer(s) point outside the process's address space"),
-								libc::EINVAL => panic!("Invalid argument passed"),
-								libc::ENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
-								libc::ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
-								libc::EOPNOTSUPP => panic!("Some flags in the `flags` argument are inappropriate for the socket type"),
+								EAGAIN => WouldBlock,
+								EINTR => Interrupted,
+								ENOMEM => Other,
+								ECONNRESET => ConnectionReset,
+								ECONNREFUSED => ConnectionRefused,
+								EBADF => panic!("The argument `sockfd` is an invalid descriptor"),
+								EFAULT => panic!("The receive buffer pointer(s) point outside the process's address space"),
+								EINVAL => panic!("Invalid argument passed"),
+								ENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
+								ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
+								EOPNOTSUPP => panic!("Some flags in the `flags` argument are inappropriate for the socket type"),
 								unexpected @ _ => unreachable_code(format_args!("Unexpected error code {}", unexpected)),
 							}
 						}

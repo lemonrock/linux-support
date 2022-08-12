@@ -4,7 +4,7 @@
 
 /// Commands to get or set RX flow classification rules.
 ///
-/// The special locations dicussed below are the values:-
+/// The special locations discussed below are the values:-
 ///
 /// * `RX_CLS_LOC_ANY`.
 /// * `RX_CLS_LOC_FIRST`.
@@ -33,7 +33,7 @@ pub(crate) struct ethtool_rxnfc
 	///
 	/// For `ETHTOOL_GRXRINGS`, the number of receive ring queues on return.
 	///
-	/// For `ETHTOOL_GRXCLSRLCNT`, if non-zero on return, then it is the size of the rule table or'd with the flag `RX_CLS_LOC_SPECIAL` if the dirver supports any special location values. If `RX_CLS_LOC_SPECIAL` is not set then the driver does not support special locaton values.
+	/// For `ETHTOOL_GRXCLSRLCNT`, if non-zero on return, then it is the size of the rule table or-ed with the flag `RX_CLS_LOC_SPECIAL` if the driver supports any special location values. If `RX_CLS_LOC_SPECIAL` is not set then the driver does not support special location values.
 	///
 	/// For `ETHTOOL_GRXCLSRLALL`, on return, the size of the rule table.
 	pub(crate) data: u64,
@@ -45,7 +45,7 @@ pub(crate) struct ethtool_rxnfc
 	/// * `fs` contains the rule on return.
 	/// * `rule_count_or_rss_context.rss_context` contains the context associated with the rule if `fs.flow_type` includes the `FLOW_RSS` flag.
 	///
-	/// For `ETHTOOL_SRXCLSRLINS`, `fs` specifies the rule to add or upate.
+	/// For `ETHTOOL_SRXCLSRLINS`, `fs` specifies the rule to add or update.
 	/// On entry, `fs.location` either specifies the location to use or is a special location value (the `RX_CLS_LOC_SPECIAL` flag is set).
 	/// On return, `fs.location` is the actual rule location.
 	/// If `fs.flow_type` includes the `FLOW_RSS` flag, `rule_count_or_rss_context.rss_context` is the rule's context.

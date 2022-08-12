@@ -152,9 +152,9 @@ impl ChunkSize for AlignedChunkSize
 	}
 	
 	#[inline(always)]
-	fn transmit_relative_addesses_and_offsets(self, frame_headroom: FrameHeadroom, frame_identifier: Self::FrameIdentifier, length_of_packet: usize) -> RelativeAddressesAndOffsets
+	fn transmit_relative_addresses_and_offsets(self, frame_headroom: FrameHeadroom, frame_identifier: Self::FrameIdentifier, length_of_packet: usize) -> RelativeAddressesAndOffsets
 	{
-		frame_identifier.transmit_relative_addesses_and_offsets(self, frame_headroom, length_of_packet)
+		frame_identifier.transmit_relative_addresses_and_offsets(self, frame_headroom, length_of_packet)
 	}
 }
 

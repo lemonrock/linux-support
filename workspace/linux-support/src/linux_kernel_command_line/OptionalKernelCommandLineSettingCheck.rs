@@ -49,11 +49,11 @@ impl Check for OptionalKernelCommandLineSettingCheck
 
 		match self
 		{
-			hashdist => kernel_command_line_parameters.hashdist() == Some(false),
-			noaliencache => !kernel_command_line_parameters.noaliencache(),
+			hashdist => kernel_command_line_parameters.numa_hash_dist() == Some(false),
+			noaliencache => !kernel_command_line_parameters.numa_no_alien_cache(),
 			skew_tick => kernel_command_line_parameters.skew_tick() == Some(true),
 			numa_zonelist_order => kernel_command_line_parameters.numa_zonelist_order().is_none(),
-			#[cfg(target_arch = "x86_64")] noxsaveopt => !kernel_command_line_parameters.noxsaveopt(),
+			#[cfg(target_arch = "x86_64")] noxsaveopt => !kernel_command_line_parameters.no_xsaveopt(),
 			#[cfg(target_arch = "x86_64")] idle_poll => kernel_command_line_parameters.idle() == Some(b"poll"),
 		}
 	}

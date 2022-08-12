@@ -51,14 +51,14 @@ pub enum Character
 
 	/// Specifies the `ERASE2` character.
 	///
-	///  When the terminal mode is `TerminalMode::Canonical` the `ERASE2` will not be passed as input and thes the previous not-yet-erased character will be erased unless it is beyond end-of-file or beginning-of-line.
+	///  When the terminal mode is `TerminalMode::Canonical` the `ERASE2` will not be passed as input and the previous not-yet-erased character will be erased unless it is beyond end-of-file or beginning-of-line.
 	#[cfg(any(target_os = "dragonfly", target_os = "freebsd", target_os = "openbsd"))] ERASE2 = VERASE2,
 
-	/// Specifies the `ERASE` character (also known as 'rubout').
+	/// Specifies the `ERASE` character (also known as 'rub out').
 	///
 	/// Usually this is the ASCII `DEL` character, but can also be `#`, `Control-H` and octal 10.
 	///
-	///  When the terminal mode is `TerminalMode::Canonical` the `ERASE` will not be passed as input and thes the previous not-yet-erased character will be erased unless it is beyond end-of-file or beginning-of-line.
+	///  When the terminal mode is `TerminalMode::Canonical` the `ERASE` will not be passed as input and the previous not-yet-erased character will be erased unless it is beyond end-of-file or beginning-of-line.
 	ERASE = VERASE,
 
 	/// Specifies the interrupt `INTR` character.

@@ -93,7 +93,7 @@ impl<SD: SocketData> SendFile for StreamingSocketFileDescriptor<SD>
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EAGAIN | ENOMEM => WouldBlock,
 					EINTR => Interrupted,
@@ -132,7 +132,7 @@ impl<SD: SocketData> SendFile for StreamingSocketFileDescriptor<SD>
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EAGAIN | ENOMEM => WouldBlock,
 					EINTR => Interrupted,
@@ -210,7 +210,7 @@ impl<SD: SocketData> StreamingSocketFileDescriptor<SD>
 		}
 		else if likely!(result != -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EBADF => panic!("The argument `sockfd` is an invalid descriptor"),
 				EINVAL => panic!("An invalid value was specified in `how`"),
@@ -233,7 +233,7 @@ impl<SD: SocketData> StreamingSocketFileDescriptor<SD>
 	/// * `WouldBlock`.
 	/// * `Interrupted`.
 	/// * `Other` (which is for when the kernel reports `ENOMEM`, ie it is out of memory).
-	/// * `ConnectionReset` (seems to be posible in some circumstances for Unix domain sockets).
+	/// * `ConnectionReset` (seems to be possible in some circumstances for Unix domain sockets).
 	/// * `ConnectionRefused` (only can happen for TCP client sockets; can not happen for sockets `accept()`ed by a server listener).
 	#[inline(always)]
 	pub fn receive_from(&self, buf: &mut [u8]) -> io::Result<usize>
@@ -264,7 +264,7 @@ impl<SD: SocketData> StreamingSocketFileDescriptor<SD>
 					}
 					else if likely!(result == -1)
 					{
-						match errno().0
+						match SystemCallErrorNumber::from_errno()
 						{
 							EAGAIN => WouldBlock,
 							EINTR => Interrupted,
@@ -330,7 +330,7 @@ impl<SD: SocketData> StreamingSocketFileDescriptor<SD>
 					}
 					else if likely!(result == -1)
 					{
-						match errno().0
+						match SystemCallErrorNumber::from_errno()
 						{
 							EAGAIN => WouldBlock,
 							EINTR => Interrupted,
@@ -397,7 +397,7 @@ impl StreamingSocketFileDescriptor<sockaddr_un>
 
 	/// Tries to send credentials to a remote peer over an Unix Domain Socket.
 	///
-	/// Useful for complex scenarios where a priveleged (eg root) process wants to use different credentials to those it would default to.
+	/// Useful for complex scenarios where a privileged (eg root) process wants to use different credentials to those it would default to.
 	///
 	/// `process_identifier`: Process identifier (also known as `pid`). Unless the process has capability `CAP_SYS_ADMIN`, this must be its own `process_identifier`.
 	/// `user_identifier`: User identifier (also known as `uid`). Unless the process has capability `CAP_SETUID`, this must be its own `user_identifier`, effective `user_identifier` or saved-set `user_identifier`.

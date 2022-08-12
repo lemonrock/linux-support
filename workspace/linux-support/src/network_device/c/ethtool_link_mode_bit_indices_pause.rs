@@ -26,7 +26,7 @@
 #[repr(u32)]
 pub enum ethtool_link_mode_bit_indices_pause
 {
-	/// If this bit is set, the link supports either symmaetic, transmit or receive pausing.
+	/// If this bit is set, the link supports either symmetric, transmit or receive pausing.
 	///
 	/// String set value is `Pause`.
 	#[serde(rename = "Pause")] ETHTOOL_LINK_MODE_Pause_BIT = 13,
@@ -34,5 +34,5 @@ pub enum ethtool_link_mode_bit_indices_pause
 	/// If this bit is set and
 	///
 	/// String set value is `Asym_Pause`.
-	#[serde(rename = "AsymetricPause")] ETHTOOL_LINK_MODE_Asym_Pause_BIT = 14,
+	#[serde(rename = "AsymmetricPause")] ETHTOOL_LINK_MODE_Asym_Pause_BIT = 14,
 }

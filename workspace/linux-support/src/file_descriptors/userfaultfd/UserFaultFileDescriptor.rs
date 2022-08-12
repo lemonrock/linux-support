@@ -168,7 +168,7 @@ impl UserFaultFileDescriptor
 	///
 	/// * `.0` is an instance of an `UserFaultFileDescriptor`.
 	/// * `.1` is a list of supported features for the `UserFaultFileDescriptor`; it is always `Feature::all()` if running on Linux version 5.11.
-	/// * `.2` is a list of supported input-output control requests ('ioctl's); it is always `SupportedInputOutputControlRequests::ApplicationProgrammerInterfaces`.
+	/// * `.2` is a list of supported input-output control requests (ioctl); it is always `SupportedInputOutputControlRequests::ApplicationProgrammerInterfaces`.
 	pub fn new(non_blocking: bool, user_mode_only: bool, requested_features: Features) -> Result<(Arc<Self>, Features, SupportedInputOutputControlRequests), CreationError>
 	{
 		let this = Self::create(non_blocking, user_mode_only)?;
@@ -202,7 +202,7 @@ impl UserFaultFileDescriptor
 		{
 			use self::CreationError::*;
 			
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EMFILE => Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
 				
@@ -228,7 +228,7 @@ impl UserFaultFileDescriptor
 	/// On return:-
 	///
 	/// * `.0` is a list of supported features; it is always `Feature::all()` if running on Linux version 5.11.
-	/// * `.1` is a list of supported input-output control requests ('ioctl's); it is always `SupportedInputOutputControlRequests::ApplicationProgrammerInterfaces`.
+	/// * `.1` is a list of supported input-output control requests (ioctl); it is always `SupportedInputOutputControlRequests::ApplicationProgrammerInterfaces`.
 	#[inline(always)]
 	fn initialize(&self, requested_features: Features) -> Result<(Features, SupportedInputOutputControlRequests), CreationError>
 	{
@@ -237,22 +237,19 @@ impl UserFaultFileDescriptor
 		{
 			Ok(()) => Ok((api.features, api.ioctls)),
 			
-			Err(errno) => match errno.0
-			{
-				EPERM => Err(CreationError::PermissionDenied),
-				
-				EINVAL => panic!("Already initialized or bad arguments to ioctl"),
-				
-				EFAULT => panic!("`argp` does not point to a valid memory address"),
-				
-				_ => panic!("Unexpect errno `{}` from userfaultfd ioctl(UFFDIO_API)", errno),
-			}
+			Err(EPERM) => Err(CreationError::PermissionDenied),
+			
+			Err(EINVAL) => panic!("Already initialized or bad arguments to ioctl"),
+			
+			Err(EFAULT) => panic!("`argp` does not point to a valid memory address"),
+			
+			Err(unexpected) => panic!("Unexpected error_number `{}` from userfaultfd ioctl(UFFDIO_API)", unexpected),
 		}
 	}
 	
 	/// Register memory range that has previously been mapped with `mmap()`.
 	///
-	/// Returns the `Ioctl` operations permitted on the memory, which always fall into one of three sets which can be known without examing the return type:-
+	/// Returns the `Ioctl` operations permitted on the memory, which always fall into one of three sets which can be known without examining the return type:-
 	///
 	/// * Those suitable for memory backed by huge pages: always `SupportedInputOutputControlRequests::HugePages`.
 	/// * Those suitable for memory backed by regular pages: always `SupportedInputOutputControlRequests::RegularPages`.
@@ -287,20 +284,17 @@ impl UserFaultFileDescriptor
 		{
 			Ok(()) => Ok(register.ioctls),
 			
-			Err(errno) => match errno.0
-			{
-				ENOMEM => Err(KernelWouldBeOutOfMemory),
-				
-				EPERM => Err(PermissionDenied),
-				
-				EBUSY => panic!("A mapping in the specified range is registered with another userfaultfd object"),
-				
-				EFAULT => panic!("`argp` does not point to a valid memory address"),
-				
-				EINVAL => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or an invalid or unsupported bit was specified in the mode field; or the mode field was zero; or there is no mapping in the specified address range; or range.start or range.len is not a multiple of the system page size (or huge page size); or, range.len is zero; or these fields are otherwise invalid; or there as an incompatible mapping in the specified address range, ie one that does not support userfaults"),
-				
-				_ => panic!("Unexpect errno `{}` from userfaultfd ioctl(UFFDIO_REGISTER)", errno),
-			}
+			Err(ENOMEM) => Err(KernelWouldBeOutOfMemory),
+			
+			Err(EPERM) => Err(PermissionDenied),
+			
+			Err(EBUSY) => panic!("A mapping in the specified range is registered with another userfaultfd object"),
+			
+			Err(EFAULT) => panic!("`argp` does not point to a valid memory address"),
+			
+			Err(EINVAL) => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or an invalid or unsupported bit was specified in the mode field; or the mode field was zero; or there is no mapping in the specified address range; or range.start or range.len is not a multiple of the system page size (or huge page size); or, range.len is zero; or these fields are otherwise invalid; or there as an incompatible mapping in the specified address range, ie one that does not support userfaults"),
+			
+			Err(unexpected) => panic!("Unexpected error_number `{}` from userfaultfd ioctl(UFFDIO_REGISTER)", unexpected),
 		}
 	}
 	
@@ -322,16 +316,13 @@ impl UserFaultFileDescriptor
 		{
 			Ok(()) => Ok(()),
 			
-			Err(errno) => match errno.0
-			{
-				EFAULT => panic!("`argp` does not point to a valid memory address"),
-				
-				EINVAL => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or either the start or the len field of the ufdio_range structure was not a multiple of the system page size; or the len field was zero; or these fields were otherwise invalid; or, there as an incompatible mapping in the specified address range; or, there was no mapping in the specified address range"),
-				
-				ENOMEM => Err(CreationError::KernelWouldBeOutOfMemory),
-				
-				_ => panic!("Unexpect errno `{}` from userfaultfd ioctl(UFFDIO_UNREGISTER)", errno),
-			}
+			Err(EFAULT) => panic!("`argp` does not point to a valid memory address"),
+			
+			Err(EINVAL) => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or either the start or the len field of the ufdio_range structure was not a multiple of the system page size; or the len field was zero; or these fields were otherwise invalid; or, there as an incompatible mapping in the specified address range; or, there was no mapping in the specified address range"),
+			
+			Err(ENOMEM) => Err(CreationError::KernelWouldBeOutOfMemory),
+			
+			Err(unexpected) => panic!("Unexpected error_number `{}` from userfaultfd ioctl(UFFDIO_UNREGISTER)", unexpected),
 		}
 	}
 	
@@ -377,34 +368,31 @@ impl UserFaultFileDescriptor
 			{
 				Ok(()) => return Ok(()),
 				
-				Err(errno) => match errno.0
+				Err(EAGAIN) =>
 				{
-					EAGAIN =>
-					{
-						let bytes_copied = copy.copy as u64;
-						
-						copy.dst += bytes_copied;
-						copy.src += bytes_copied;
-						copy.len -= bytes_copied;
-					}
+					let bytes_copied = copy.copy as u64;
 					
-					EINTR => continue,
-					
-					ENOENT => return Err(FaultingProcessHasChangedItsMemoryLayout),
-					
-					// `ENOSPC` is historic for Linux versions 4.11 to 4.13 inclusive.
-					ESRCH | ENOSPC => return Err(FaultingProcessHasExited),
-					
-					ENOMEM => return Err(LinuxKernelIsOutOfMemory),
-					
-					EEXIST => return Err(DestinationMemoryStructuresSuchAsVmaDoNotExist),
-					
-					EFAULT => panic!("`argp` does not point to a valid memory address"),
-					
-					EINVAL => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or memory addresses or length not aligned to page size or are outside of permitted range for process or invalid copy mode"),
-					
-					_ => panic!("Unexpect errno `{}` from userfaultfd ioctl(UFFDIO_COPY)", errno),
+					copy.dst += bytes_copied;
+					copy.src += bytes_copied;
+					copy.len -= bytes_copied;
 				}
+				
+				Err(EINTR) => continue,
+				
+				Err(ENOENT) => return Err(FaultingProcessHasChangedItsMemoryLayout),
+				
+				// `ENOSPC` is historic for Linux versions 4.11 to 4.13 inclusive.
+				Err(ESRCH | ENOSPC) => return Err(FaultingProcessHasExited),
+				
+				Err(ENOMEM) => return Err(LinuxKernelIsOutOfMemory),
+				
+				Err(EEXIST) => return Err(DestinationMemoryStructuresSuchAsVmaDoNotExist),
+				
+				Err(EFAULT) => panic!("`argp` does not point to a valid memory address"),
+				
+				Err(EINVAL) => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or memory addresses or length not aligned to page size or are outside of permitted range for process or invalid copy mode"),
+				
+				Err(unexpected) => panic!("Unexpected error_number `{}` from userfaultfd ioctl(UFFDIO_COPY)", unexpected),
 			}
 		}
 	}
@@ -446,33 +434,30 @@ impl UserFaultFileDescriptor
 			{
 				Ok(()) => return Ok(()),
 				
-				Err(errno) => match errno.0
+				Err(EAGAIN) =>
 				{
-					EAGAIN =>
-					{
-						let bytes_copied = copy.zeropage as u64;
-						
-						copy.range.start += bytes_copied;
-						copy.range.len -= bytes_copied;
-					}
+					let bytes_copied = copy.zeropage as u64;
 					
-					EINTR => continue,
-					
-					ENOENT => return Err(FaultingProcessHasChangedItsMemoryLayout),
-					
-					// `ENOSPC` is historic for Linux versions 4.11 to 4.13 inclusive.
-					ESRCH | ENOSPC => return Err(FaultingProcessHasExited),
-					
-					ENOMEM => return Err(LinuxKernelIsOutOfMemory),
-					
-					EEXIST => return Err(DestinationMemoryStructuresSuchAsVmaDoNotExist),
-					
-					EFAULT => panic!("`argp` does not point to a valid memory address"),
-					
-					EINVAL => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or memory addresses or length not aligned to page size or are outside of permitted range for process or invalid zero page mode"),
-					
-					_ => panic!("Unexpect errno `{}` from userfaultfd ioctl(UFFDIO_ZEROPAGE)", errno),
+					copy.range.start += bytes_copied;
+					copy.range.len -= bytes_copied;
 				}
+				
+				Err(EINTR) => continue,
+				
+				Err(ENOENT) => return Err(FaultingProcessHasChangedItsMemoryLayout),
+				
+				// `ENOSPC` is historic for Linux versions 4.11 to 4.13 inclusive.
+				Err(ESRCH | ENOSPC) => return Err(FaultingProcessHasExited),
+				
+				Err(ENOMEM) => return Err(LinuxKernelIsOutOfMemory),
+				
+				Err(EEXIST) => return Err(DestinationMemoryStructuresSuchAsVmaDoNotExist),
+				
+				Err(EFAULT) => panic!("`argp` does not point to a valid memory address"),
+				
+				Err(EINVAL) => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or memory addresses or length not aligned to page size or are outside of permitted range for process or invalid zero page mode"),
+				
+				Err(unexpected) => panic!("Unexpected error_number `{}` from userfaultfd ioctl(UFFDIO_ZEROPAGE)", unexpected),
 			}
 		}
 	}
@@ -501,14 +486,11 @@ impl UserFaultFileDescriptor
 		{
 			Ok(()) => (),
 			
-			Err(errno) => match errno.0
-			{
-				EFAULT => panic!("`argp` does not point to a valid memory address"),
-				
-				EINVAL => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or memory addresses or length not aligned to page size or are outside of permitted range for process"),
-				
-				_ => panic!("Unexpect errno `{}` from userfaultfd ioctl(UFFDIO_WAKE)", errno),
-			}
+			Err(EFAULT) => panic!("`argp` does not point to a valid memory address"),
+			
+			Err(EINVAL) => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or memory addresses or length not aligned to page size or are outside of permitted range for process"),
+			
+			Err(unexpected) => panic!("Unexpected error_number `{}` from userfaultfd ioctl(UFFDIO_WAKE)", unexpected),
 		}
 	}
 	
@@ -540,7 +522,7 @@ impl UserFaultFileDescriptor
 	///
 	/// * page-aligned.
 	/// * encapsulated within a registered memory range.
-	/// * have been __registered__ (`self.register_mapped_memory()`) with `register_mode` containing `RegiserMode::WriteProtect`.
+	/// * have been __registered__ (`self.register_mapped_memory()`) with `register_mode` containing `RegisterMode::WriteProtect`.
 	/// * private anonymous memory (`mmap()`d without a file descriptor and `MAP_PRIVATE`); it can not be shared.
 	/// * encapsulated with a single 'vma'.
 	///
@@ -563,7 +545,7 @@ impl UserFaultFileDescriptor
 	///
 	/// * page-aligned.
 	/// * encapsulated within a registered memory range.
-	/// * have been __registered__ (`self.register_mapped_memory()`) with `register_mode` containing `RegiserMode::WriteProtect`.
+	/// * have been __registered__ (`self.register_mapped_memory()`) with `register_mode` containing `RegisterMode::WriteProtect`.
 	/// * private anonymous memory (`mmap()`d without a file descriptor and `MAP_PRIVATE`); it can not be shared.
 	///
 	/// `registered_memory_subrange`can be:-
@@ -596,18 +578,15 @@ impl UserFaultFileDescriptor
 			{
 				Ok(()) => return Ok(()),
 				
-				Err(errno) => match errno.0
-				{
-					EAGAIN => continue,
-					
-					ENOENT => return Err(()),
-					
-					EFAULT => panic!("`argp` does not point to a valid memory address"),
-					
-					EINVAL => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or either the start or the len field of the ufdio_range structure was not a multiple of the system page size; or the len field was zero; or these fields were otherwise invalid; or, there as an incompatible mapping in the specified address range; or, there was no mapping in the specified address range"),
-					
-					_ => panic!("Unexpect errno `{}` from userfaultfd ioctl(UFFDIO_UNREGISTER)", errno),
-				}
+				Err(EAGAIN) => continue,
+				
+				Err(ENOENT) => return Err(()),
+				
+				Err(EFAULT) => panic!("`argp` does not point to a valid memory address"),
+				
+				Err(EINVAL) => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or either the start or the len field of the ufdio_range structure was not a multiple of the system page size; or the len field was zero; or these fields were otherwise invalid; or, there as an incompatible mapping in the specified address range; or, there was no mapping in the specified address range"),
+				
+				Err(unexpected) => panic!("Unexpected error_number `{}` from userfaultfd ioctl(UFFDIO_UNREGISTER)", unexpected),
 			}
 		}
 	}
@@ -627,7 +606,7 @@ impl UserFaultFileDescriptor
 	#[inline(always)]
 	fn make_ioctl<V>(&self, request: i32, value: &mut V) -> Result<(), Errno>
 	{
-		let result = unsafe { ioctl(self.0, request, value as *mut V as *mut c_void) };
+		let result = unsafe { ioctl(self.0, request as _, value as *mut V as *mut c_void) };
 		if likely!(result == 0)
 		{
 			Ok(())

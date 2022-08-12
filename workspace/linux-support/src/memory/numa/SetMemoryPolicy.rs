@@ -74,7 +74,7 @@ impl SetMemoryPolicy
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EFAULT => panic!("part of or all of the memory range specified by nodemask and maxnode points outside your accessible address space."),
 				EINVAL => panic!("mode is invalid. Or, mode is MPOL_DEFAULT and nodemask is nonempty, or mode is MPOL_BIND or MPOL_INTERLEAVE and nodemask is empty. Or, maxnode specifies more than a page worth of bits. Or, nodemask specifies one or more node IDs that are greater than the maximum supported node ID. Or, none of the node IDs specified by nodemask are on-line and allowed by the process's current cpuset context, or none of the specified nodes contain memory. Or, the mode argument specified both MPOL_F_STATIC_NODES and MPOL_F_RELATIVE_NODES."),
@@ -219,7 +219,7 @@ impl SetMemoryPolicy
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EFAULT => panic!("part of or all of the memory range specified by nodemask and maxnode points outside your accessible address space."),
 				EINVAL => panic!("An invalid value was specified for flags or mode; or addr + len was less than addr; or addr is not a multiple of the system page size. Or, mode is MPOL_DEFAULT and nodemask specified a nonempty set; or mode is MPOL_BIND or MPOL_INTERLEAVE and nodemask is empty. Or, maxnode exceeds a kernel-imposed limit. Or, nodemask specifies one or more node IDs that are greater than the maximum supported node ID. Or, none of the node IDs specified by nodemask are on-line and allowed by the thread's current cpuset context, or none of the specified nodes contain memory. Or, the mode argument specified both MPOL_F_STATIC_NODES and MPOL_F_RELATIVE_NODES."),

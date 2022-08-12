@@ -55,7 +55,7 @@ pub struct InternetProtocolVersion6DeviceConfiguration
 	
 	/// Default is `TEMP_PREFERRED_LIFETIME` (`86,400`).
 	/// Infinity is `INFINITY_LIFE_TIME` (`0xFFFF_FFFF`).
-	pub temporary_address_prefered_lifetime: InternetProtocolAddressLifetime,
+	pub temporary_address_preferred_lifetime: InternetProtocolAddressLifetime,
 	
 	/// Default is `REGEN_MAX_RETRY`.
 	pub regen_maximum_retry: u32,

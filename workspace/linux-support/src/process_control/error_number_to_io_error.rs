@@ -3,7 +3,7 @@
 
 
 #[inline(always)]
-pub(crate) fn error_number_to_io_error<V>(error_number: Errno) -> io::Result<V>
+pub(crate) fn error_number_to_io_error<V>(error_number: SystemCallErrorNumber) -> io::Result<V>
 {
 	Err(error_number.into())
 }

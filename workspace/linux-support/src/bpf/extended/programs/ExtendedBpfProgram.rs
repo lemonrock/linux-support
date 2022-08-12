@@ -106,7 +106,7 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 		{
 			use self::ProgramLoadError::*;
 			
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOSPC => if log_level > 0
 				{

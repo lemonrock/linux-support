@@ -248,7 +248,7 @@ pub const TXDGPC: RegisterDefinition<ReadOnlyCounterResetOnReadRegister<u32>, u3
 /// Receive DMA Statistic Counter Control.
 pub const RXDSTATCTRL: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::singleton(0x02F40);
 
-/// Receive Undersize Count.
+/// Receive Under size Count.
 pub const RUC: RegisterDefinition<ReadOnlyCounterResetOnReadRegister<u32>, u32> = RegisterDefinition::singleton(0x040A4);
 
 /// Receive Fragment Count.
@@ -304,3 +304,6 @@ pub const TXDCTL: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefi
 
 /// Transmit Descriptor Completion Write Back Address Low.
 pub const TDWBAL: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::array(0x06038, 0x40, 0, 127);
+
+/// Transmit Descriptor Completion Write Back Address High.
+pub const TDWBAH: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::array(0x0603C, 0x40, 0, 127);

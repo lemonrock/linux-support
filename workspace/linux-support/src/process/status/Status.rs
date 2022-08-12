@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+//noinspection SpellCheckingInspection
 /// Status statistics for `/proc/self/status` or `/proc/<identifier>/status`.
 ///
 /// `VmPMD` is not tested for (it was removed in Linux 4.15).
@@ -38,7 +39,7 @@ pub struct Status
 	///
 	/// None if the Linux kernel wasn't configured with `CONFIG_NUMA_BALANCING`.
 	///
-	/// Sincee Linux 3.13.
+	/// Since Linux 3.13.
 	pub numa_group_identifier: Option<ProcessIdentifier>,
 
 	/// Process identifier.

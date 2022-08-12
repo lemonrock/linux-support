@@ -85,7 +85,7 @@ pub(crate) fn clone_wrapper<T>(child_process: extern "C" fn(Box<T>) -> (), top_o
 		const ERESTARTNOINTR: i32 = 513;
 
 		use self::CloneError::*;
-		match errno().0
+		match SystemCallErrorNumber::from_errno()
 		{
 			EAGAIN => Err(MaximumNumberOfProcessesExceeded),
 			ENOMEM => Err(InsufficientMemoryToAllocateChildTask),

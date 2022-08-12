@@ -10,7 +10,7 @@ extern "C"
 	/// The `msg_len` argument specifies the length of the message pointed to by `msg_ptr`; this length must be less than or equal to the queue's `mq_msgsize` attribute.
 	/// Zero-length messages are allowed.
 	///
-	/// The `msg_prio` argument is a nonnegative integer that specifies the priority of this message.
+	/// The `msg_prio` argument is a non-negative integer that specifies the priority of this message.
 	/// PosixMessages are placed on the queue in decreasing order of priority, with newer messages of the same priority being placed after older messages with the same priority.
 	///
 	/// If the message queue is already full (the number of messages on the queue equals the queue's `mq_maxmsg` attribute) then the call instead fails immediately with the error `EAGAIN`.

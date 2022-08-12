@@ -13,7 +13,7 @@ pub struct GlobalKernelPanicConfiguration
 	/// Defaults to 120 seconds.
 	///
 	/// Requires root.
-	pub panic_timout_in_seconds: Option<KernelPanicRebootAction>,
+	pub panic_time_out_in_seconds: Option<KernelPanicRebootAction>,
 
 	/// Defaults to false.
 	///
@@ -33,17 +33,17 @@ pub struct GlobalKernelPanicConfiguration
 	/// Defaults to false.
 	///
 	/// Requires root.
-	pub panic_on_io_non_maskable_interupt: Option<bool>,
+	pub panic_on_io_non_maskable_interrupt: Option<bool>,
 
 	/// Defaults to true but for security should be set to false.
 	///
 	/// Requires root.
-	pub panic_on_unknown_non_maskable_interupt: Option<bool>,
+	pub panic_on_unknown_non_maskable_interrupt: Option<bool>,
 
 	/// Defaults to true but for security should be set to false.
 	///
 	/// Requires root.
-	pub panic_on_unrecovered_non_maskable_interupt: Option<bool>,
+	pub panic_on_unrecovered_non_maskable_interrupt: Option<bool>,
 
 	/// Defaults to false and only usually available if the kernel has been compiled for debugging.
 	///
@@ -93,13 +93,13 @@ impl GlobalKernelPanicConfiguration
 	{
 		use self::GlobalKernelPanicConfigurationError::*;
 
-		set_proc_sys_kernel_value(proc_path, "panic", self.panic_timout_in_seconds, CouldNotChangePanicTimeout)?;
-		set_proc_sys_kernel_value(proc_path, "panic_on_oops", self.panic_timout_in_seconds, CouldNotChangePanicOnOops)?;
+		set_proc_sys_kernel_value(proc_path, "panic", self.panic_time_out_in_seconds, CouldNotChangePanicTimeout)?;
+		set_proc_sys_kernel_value(proc_path, "panic_on_oops", self.panic_time_out_in_seconds, CouldNotChangePanicOnOops)?;
 		set_proc_sys_kernel_value(proc_path, "panic_on_rcu_stall", self.panic_on_rcu_stall, CouldNotChangePanicOnRcuStall)?;
 		set_proc_sys_kernel_value(proc_path, "panic_on_warn", self.panic_on_warn, CouldNotChangePanicOnWarn)?;
-		set_proc_sys_kernel_value(proc_path, "panic_on_io_nmi", self.panic_on_io_non_maskable_interupt, CouldNotChangePanicOnIoNonMaskableInterrupt)?;
-		set_proc_sys_kernel_value(proc_path, "unknown_nmi_panic", self.panic_on_unknown_non_maskable_interupt, CouldNotChangePanicOnUnknownNonMaskableInterrupt)?;
-		set_proc_sys_kernel_value(proc_path, "panic_on_unrecovered_nmi", self.panic_on_unrecovered_non_maskable_interupt, CouldNotChangePanicOnUnrecoverableNonMaskableInterrupt)?;
+		set_proc_sys_kernel_value(proc_path, "panic_on_io_nmi", self.panic_on_io_non_maskable_interrupt, CouldNotChangePanicOnIoNonMaskableInterrupt)?;
+		set_proc_sys_kernel_value(proc_path, "unknown_nmi_panic", self.panic_on_unknown_non_maskable_interrupt, CouldNotChangePanicOnUnknownNonMaskableInterrupt)?;
+		set_proc_sys_kernel_value(proc_path, "panic_on_unrecovered_nmi", self.panic_on_unrecovered_non_maskable_interrupt, CouldNotChangePanicOnUnrecoverableNonMaskableInterrupt)?;
 		set_proc_sys_kernel_value(proc_path, "panic_on_stackoverflow", self.panic_on_stack_overflow, CouldNotChangePanicOnStackOverflow)?;
 		set_proc_sys_kernel_value(proc_path, "panic_on_hung_task", self.panic_on_stack_overflow, CouldNotChangePanicOnHungTask)?;
 		set_proc_sys_vm_value(proc_path, "memory_failure_recovery", self.panic_on_memory_check_failure.map(|value| !value), CouldNotChangePanicOnMemoryFailure)?;

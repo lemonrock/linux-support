@@ -6,7 +6,7 @@
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub enum UniveralSerialBusControllerProgrammingInterface
+pub enum UniversalSerialBusControllerProgrammingInterface
 {
 	/// Universal Host Controller Specification (UHCI).
 	///
@@ -35,12 +35,12 @@ pub enum UniveralSerialBusControllerProgrammingInterface
 	Device = 0xFE,
 }
 
-impl UniveralSerialBusControllerProgrammingInterface
+impl UniversalSerialBusControllerProgrammingInterface
 {
 	#[inline(always)]
 	pub(crate) fn parse(programming_interface: u8) -> Option<Self>
 	{
-		use self::UniveralSerialBusControllerProgrammingInterface::*;
+		use self::UniversalSerialBusControllerProgrammingInterface::*;
 
 		match programming_interface
 		{

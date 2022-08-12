@@ -46,3 +46,6 @@ pub const MPRC: RegisterDefinition<ReadOnlyCounterResetOnReadRegister<u32>, u32>
 
 /// Multicast Packets Transmitted Count.
 pub const MPTC: RegisterDefinition<ReadOnlyCounterResetOnReadRegister<u32>, u32> = RegisterDefinition::singleton(0x040F0);
+
+/// Receive Checksum Control.
+pub const RXCSUM: RegisterDefinition<ReadOnlyCounterResetOnReadRegister<u32>, u32> = RegisterDefinition::singleton(0x05000);

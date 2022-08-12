@@ -28,14 +28,14 @@ pub enum ExtendedProtection
 	///
 	/// This flag cannot be used securely because using it means that collisions with other allocations cannot be avoided.
 	///
-	/// It is unclear what happens if this flag is applied to memory mmap'd with `MAP_GROWSDOWN` or previously protected with `Self::GrowsDown`.
+	/// It is unclear what happens if this flag is applied to memory mmap-ed with `MAP_GROWSDOWN` or previously protected with `Self::GrowsDown`.
 	GrowsUp = PROT_GROWSUP,
 
 	/// Grows down.
 	///
 	/// This flag cannot be used securely because using it means that collisions with other allocations cannot be avoided.
 	///
-	/// It is unclear what happens if this flag is applied to memory mmap'd with `MAP_GROWSDOWN` or previously protected with `Self::GrowsUp`.
+	/// It is unclear what happens if this flag is applied to memory mmap-ed with `MAP_GROWSDOWN` or previously protected with `Self::GrowsUp`.
 	GrowsDown = PROT_GROWSDOWN,
 
 	/// Since Linux 2.6.26.

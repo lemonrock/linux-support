@@ -15,7 +15,7 @@ pub enum KnownFacility
 	kernel_messages = 0,
 	
 	/// user-level messages.
-	user_level_mmessages = 1,
+	user_level_messages = 1,
 	
 	/// mail system.
 	mail_system = 2,

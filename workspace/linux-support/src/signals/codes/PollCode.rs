@@ -29,7 +29,7 @@ pub enum PollCode
 	/// Known as `POLL_IN` in Linux sources.
 	IoError = 4,
 
-	/// Priority input available (eg TCP's deprecated out-of-band urgent data).
+	/// Priority input available (eg TCP 's deprecated out-of-band urgent data).
 	///
 	/// Known as `POLL_PRI` in Linux sources.
 	PriorityInput = 5,

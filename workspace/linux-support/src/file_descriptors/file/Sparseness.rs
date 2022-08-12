@@ -13,7 +13,7 @@ pub trait Sparseness: AsRawFd + Seek + FileExt
 	/// It can not be empty.
 	/// Returned extents `fiemap_extent` may have a `logical_range_in_bytes()` that starts before or ends after this value.
 	///
-	/// If successeful, `Ok(Left(FileExtents))` is returned.
+	/// If successful, `Ok(Left(FileExtents))` is returned.
 	/// If the choice of flags in `retrieve_file_extents_flags` is not supported, `Ok(Right(RetrieveFileExtentsFlags))` with supported flags is returned.
 	#[inline(always)]
 	fn get_file_extents(&self, logical_range_in_bytes: RangeInclusive<u64>, retrieve_file_extents_flags: RetrieveFileExtentsFlags) -> io::Result<Either<FileExtents, RetrieveFileExtentsFlags>>
@@ -35,7 +35,7 @@ pub trait Sparseness: AsRawFd + Seek + FileExt
 	/// It can not be empty.
 	/// Returned extents `fiemap_extent` may have a `logical_range_in_bytes()` that starts before or ends after this value.
 	///
-	/// If successeful, `Ok(Left(FileExtents))` is returned.
+	/// If successful, `Ok(Left(FileExtents))` is returned.
 	/// If the choice of flags in `retrieve_file_extents_flags` is not supported, `Ok(Right(RetrieveFileExtentsFlags))` with supported flags is returned.
 	#[inline(always)]
 	fn get_extended_attribute_extents(&self, logical_range_in_bytes: RangeInclusive<u64>, retrieve_file_extents_flags: RetrieveFileExtentsFlags) -> io::Result<Either<FileExtents, RetrieveFileExtentsFlags>>
@@ -78,7 +78,7 @@ pub trait Sparseness: AsRawFd + Seek + FileExt
 			}
 			else if likely!(result == -1)
 			{
-				return match errno().0
+				return match SystemCallErrorNumber::from_errno()
 				{
 					EBADR =>
 					{

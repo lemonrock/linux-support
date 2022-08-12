@@ -73,7 +73,7 @@ impl ProcessIdentifierFileDescriptor
 		else if likely!(result == -1)
 		{
 			use self::CreationError::*;
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EMFILE => Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
 				ENFILE => Err(SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded),
@@ -118,7 +118,7 @@ impl ProcessIdentifierFileDescriptor
 		{
 			use self::SendSignalError::*;
 
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EPERM => Err(PermissionDenied),
 
@@ -153,14 +153,14 @@ impl ProcessIdentifierFileDescriptor
 		{
 			use self::CreationError::*;
 
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EMFILE => Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
 				ENFILE => Err(SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded),
 				EPERM => Err(PermissionDenied),
 				ESRCH => Err(ProcessForProcessIdentifierDoesNotExist),
 
-				EBADF => panic!("pidfd is not a valid PID file descriptor, or targetfd is not an open file descriptor in the process referred to by pidfd"),
+				EBADF => panic!("pidfd is not a valid PID file descriptor, or target fd is not an open file descriptor in the process referred to by pidfd"),
 				EINVAL => panic!("flags is not 0"),
 
 				unexpected @ _ => panic!("Unexpected error {} from pidfd_getfd()", unexpected)

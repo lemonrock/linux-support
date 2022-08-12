@@ -12,7 +12,7 @@
 /// #[repr(C)]
 /// struct rtgenmsg
 /// {
-/// 	rtgen_family: c_uchar,
+/// 	rtgen_family: libc::c_uchar,
 /// }
 /// ```
 pub trait NetlinkRequestMessageBody: Sized

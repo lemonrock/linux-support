@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+//noinspection SpellCheckingInspection
 /// Flow specification for IPsec over IPv4.
 ///
 /// This can be used to specify an IPsec transport or tunnel over IPv4.

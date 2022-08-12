@@ -12,7 +12,7 @@ pub struct ReceiveCoalescingPreference
 	///
 	/// Used by Amazon ENA.
 	/// Can be any possible value.
-	pub preferred_micoseconds_interval: u32,
+	pub preferred_microseconds_interval: u32,
 	
 	/// Interrupt Throttle Rate (ITR) setting.
 	///

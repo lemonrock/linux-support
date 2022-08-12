@@ -40,8 +40,6 @@ pub struct CpuExtendedFeatureInformationDiagnostics
 	
 	pub has_rdseed: bool,
 	
-	pub has_rdseet: bool,
-	
 	pub has_adx: bool,
 	
 	pub has_smap: bool,
@@ -125,8 +123,6 @@ impl CpuExtendedFeatureInformationDiagnostics
 			
 			has_rdseed: extended_features.has_rdseed(),
 			
-			has_rdseet: extended_features.has_rdseet(),
-			
 			has_adx: extended_features.has_adx(),
 			
 			has_smap: extended_features.has_smap(),
@@ -173,5 +169,3 @@ impl CpuExtendedFeatureInformationDiagnostics
 		})
 	}
 }
-			
-

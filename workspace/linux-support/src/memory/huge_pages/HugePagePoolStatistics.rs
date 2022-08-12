@@ -73,7 +73,7 @@ impl HugePagePoolStatistics
 		}
 
 		const FreeHugePagesFileName: &'static str = "free_hugepages";
-		const SurpulusHugePagesFileName: &'static str = "surplus_hugepages";
+		const SurplusHugePagesFileName: &'static str = "surplus_hugepages";
 		const ReservedHugePagesFileName: &'static str = "resv_hugepages";
 
 		Some
@@ -88,7 +88,7 @@ impl HugePagePoolStatistics
 				}
 				else
 				{
-					Some(read(base_path_ref, SurpulusHugePagesFileName))
+					Some(read(base_path_ref, SurplusHugePagesFileName))
 				},
 			}
 		)

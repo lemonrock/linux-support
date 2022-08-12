@@ -19,7 +19,7 @@ pub(crate) struct ethtool_usrip6_spec
 	/// Traffic Class.
 	pub(crate) tclass: u8,
 	
-	/// Transport protocol number (nexthdr after any Extension Headers).
+	/// Transport protocol number (next header after any Extension Headers).
 	pub(crate) l4_proto: u8,
 }
 

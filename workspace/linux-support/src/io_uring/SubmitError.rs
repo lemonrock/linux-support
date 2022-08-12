@@ -11,7 +11,7 @@ pub enum SubmitError
 	/// The application should wait for some completions and try again.
 	TryAgain,
 
-	/// The application is attempting to overcommit the number of requests it can have pending.
+	/// The application is attempting to over-commit the number of requests it can have pending.
 	///
 	/// The application should wait for some completions and try again.
 	///

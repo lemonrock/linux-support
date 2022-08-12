@@ -5,6 +5,6 @@
 #[link(name = "c")]
 extern "C"
 {
-	/// Like `epoll()`, but takes a `sigmask` to atomically change the current pthread's signal mask for the duration of the call to `epoll_wait()`.
+	/// Like `epoll()`, but takes a `sigmask` to atomically change the current pthread 's signal mask for the duration of the call to `epoll_wait()`.
 	pub(crate) fn epoll_pwait(epfd: RawFd, events: *mut epoll_event, maxevents: c_int, timeout: c_int, sigmask: *const sigset_t) -> c_int;
 }

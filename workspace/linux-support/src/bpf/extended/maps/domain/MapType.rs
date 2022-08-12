@@ -253,7 +253,7 @@ pub(crate) enum MapType<'map_of_maps_template_file_descriptor>
 	/// HyperThread array map.
 	///
 	/// Primary use is a map for XDP BPF helper call `bpf_redirect_map()` to redirect to another HyperThread.
-	/// This allows for 10G wirespeed pre-filtering using BPF!
+	/// This allows for 10G wire speed pre-filtering using BPF!
 	///
 	/// Key size is `size_of::<u32>()`.
 	/// Value size is `size_of::<u32>()` (4) but is actually a `NumaNode`.

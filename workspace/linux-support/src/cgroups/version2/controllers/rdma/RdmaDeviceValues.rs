@@ -4,7 +4,7 @@
 
 /// A RDMA (or InfiniBand, IB) device's values.
 ///
-/// Depending on context, these are either the current values or the configured maximima.
+/// Depending on context, these are either the current values or the configured maxima.
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 pub struct RdmaDeviceValues

@@ -4,7 +4,7 @@
 
 /// Represents a fanotify instance.
 ///
-/// fanotify requires the `CAP_SYS_ADMIN` capability, so is only suitable for priveleged processes or those running as root.
+/// fanotify requires the `CAP_SYS_ADMIN` capability, so is only suitable for privileged processes or those running as root.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct FanotifyFileDescriptor(RawFd);
 
@@ -79,7 +79,7 @@ impl FanotifyFileDescriptor
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
 					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
@@ -115,7 +115,7 @@ impl FanotifyFileDescriptor
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EBADF => panic!("An invalid file descriptor was passed in `fanotify_fd`"),
 					EINVAL => panic!("An invalid value was passed in `flags` or `mask`, or `fanotify_fd` was not an fanotify file descriptor, or the fanotify file descriptor was opened with `FAN_CLASS_NOTIF` and mask contains a flag for permission events (`FAN_OPEN_PERM` or `FAN_ACCESS_PERM`)"),
@@ -151,7 +151,7 @@ impl FanotifyFileDescriptor
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EBADF => panic!("An invalid file descriptor was passed in `fanotify_fd`"),
 					EINVAL => panic!("An invalid value was passed in `flags` or `mask`, or `fanotify_fd` was not an fanotify file descriptor, or the fanotify file descriptor was opened with `FAN_CLASS_NOTIF` and mask contains a flag for permission events (`FAN_OPEN_PERM` or `FAN_ACCESS_PERM`)"),
@@ -196,7 +196,7 @@ impl FanotifyFileDescriptor
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EBADF => panic!("An invalid file descriptor was passed in `fanotify_fd`"),
 					EINVAL => panic!("An invalid value was passed in `flags` or `mask`, or `fanotify_fd` was not an fanotify file descriptor, or the fanotify file descriptor was opened with `FAN_CLASS_NOTIF` and mask contains a flag for permission events (`FAN_OPEN_PERM` or `FAN_ACCESS_PERM`)"),
@@ -250,8 +250,7 @@ impl FanotifyFileDescriptor
 			{
 				-1 =>
 				{
-					let error_number = errno();
-					match error_number.0
+					match SystemCallErrorNumber::from_errno()
 					{
 						EAGAIN => Err(WouldBlock),
 						ECANCELED => Err(Cancelled),
@@ -261,8 +260,8 @@ impl FanotifyFileDescriptor
 						EFAULT => panic!("`buf` is outside your accessible address space"),
 						EINVAL => panic!("`fd` is attached to an object which is unsuitable for reading OR was created via a call to `timerfd_create()` and the wrong size buffer was given to `read()`"),
 						EISDIR => panic!("`fd` refers to a directory"),
-
-						_ => panic!("Unexpected error `{}`", error_number),
+						
+						error_number @ _ => panic!("Unexpected error `{}`", error_number),
 					}
 				}
 
@@ -298,8 +297,7 @@ impl FanotifyFileDescriptor
 			{
 				-1 =>
 				{
-					let error_number = errno();
-					match error_number.0
+					match SystemCallErrorNumber::from_errno()
 					{
 						EAGAIN => Err(WouldBlock),
 						ECANCELED => Err(Cancelled),
@@ -312,8 +310,8 @@ impl FanotifyFileDescriptor
 						EDQUOT => panic!("out of quota"),
 						EDESTADDRREQ => panic!("EDESTADDRREQ!"),
 						EFBIG => panic!("EFBIG!"),
-
-						_ => panic!("Unexpected error `{}`", error_number),
+						
+						error_number @ _ => panic!("Unexpected error `{}`", error_number),
 					}
 				}
 

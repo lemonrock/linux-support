@@ -42,9 +42,9 @@ pub struct CpuInformationDiagnostics
 
 	pub timestamp_counter_information: Option<CpuTimestampCounterInformationDiagnostics>,
 
-	pub procesor_frequency_information: Option<CpuProcessorFrequencyInformationDiagnostics>,
+	pub processor_frequency_information: Option<CpuProcessorFrequencyInformationDiagnostics>,
 
-	pub deterministic_address_translation_information: Option<Vec<CpuDeterministicAddressTranslationInformationDiagonostic>>,
+	pub deterministic_address_translation_information: Option<Vec<CpuDeterministicAddressTranslationInformationDiagnostic>>,
 
 	pub system_on_chip_vendor_information: Option<CpuSystemOnChipVendorInformationDiagnostics>,
 
@@ -121,9 +121,9 @@ impl CpuInformationDiagnostics
 			
 			timestamp_counter_information: CpuTimestampCounterInformationDiagnostics::gather(&cpu_id),
 			
-			procesor_frequency_information: CpuProcessorFrequencyInformationDiagnostics::gather(&cpu_id),
+			processor_frequency_information: CpuProcessorFrequencyInformationDiagnostics::gather(&cpu_id),
 		
-			deterministic_address_translation_information: CpuDeterministicAddressTranslationInformationDiagonostic::gather(&cpu_id),
+			deterministic_address_translation_information: CpuDeterministicAddressTranslationInformationDiagnostic::gather(&cpu_id),
 			
 			system_on_chip_vendor_information: CpuSystemOnChipVendorInformationDiagnostics::gather(&cpu_id),
 			

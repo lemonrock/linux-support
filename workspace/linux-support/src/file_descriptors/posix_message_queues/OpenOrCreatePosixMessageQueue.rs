@@ -45,7 +45,7 @@ impl OpenOrCreatePosixMessageQueue
 				{
 					Err
 					(
-						match errno().0
+						match SystemCallErrorNumber::from_errno()
 						{
 							EACCES => PermissionDenied,
 
@@ -83,7 +83,7 @@ impl OpenOrCreatePosixMessageQueue
 				{
 					Err
 					(
-						match errno().0
+						match SystemCallErrorNumber::from_errno()
 						{
 							EACCES => PermissionDenied,
 
@@ -121,7 +121,7 @@ impl OpenOrCreatePosixMessageQueue
 				{
 					Err
 					(
-						match errno().0
+						match SystemCallErrorNumber::from_errno()
 						{
 							EACCES => PermissionDenied,
 

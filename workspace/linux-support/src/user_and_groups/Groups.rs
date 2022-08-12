@@ -46,7 +46,7 @@ impl Groups
 	
 	/// Current supplementary.
 	///
-	/// *SLOW*; makes two syscalls and two mallocs.
+	/// *SLOW*; makes two syscalls and two `malloc()` calls.
 	pub fn current_supplementary() -> Self
 	{
 		let supplementary_groups = Self::current_supplementary_group_identifiers();
@@ -73,7 +73,7 @@ impl Groups
 		}
 		else if result == -1
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EFAULT => panic!("list has an invalid address"),
 				
@@ -107,7 +107,7 @@ impl Groups
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EFAULT => panic!("list has an invalid address"),
 				

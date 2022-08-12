@@ -114,7 +114,7 @@ impl Read for CharacterDeviceFileDescriptor
 					}
 					else if likely!(result == -1)
 					{
-						match errno().0
+						match SystemCallErrorNumber::from_errno()
 						{
 							EAGAIN => WouldBlock,
 							EINTR => Interrupted,
@@ -180,7 +180,7 @@ impl Write for CharacterDeviceFileDescriptor
 					}
 					else if likely!(result == -1)
 					{
-						match errno().0
+						match SystemCallErrorNumber::from_errno()
 						{
 							EAGAIN => WouldBlock,
 							EINTR => Interrupted,
@@ -246,7 +246,7 @@ impl CharacterDeviceFileDescriptor
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EACCES => Common(PermissionDenied),
 					EMFILE => Common(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),

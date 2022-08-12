@@ -24,7 +24,7 @@ pub trait ReplyReceiver<Protocol: NetlinkProtocol>
 	
 	/// End of a set of messages, called after either `start_of_set_of_messages()` or `message()`.
 	///
-	/// `Ok(true)` if dump was interrrupted.
+	/// `Ok(true)` if dump was interrupted.
 	/// `Ok(false)` if everything was good or an acknowledgment was received.
 	/// `Err(Errno)` for an error code from the netlink request message processing code.
 	fn end_of_set_of_messages(&mut self, result: Result<bool, Errno>);

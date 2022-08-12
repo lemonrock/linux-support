@@ -132,7 +132,8 @@ impl FileType
 	{
 		unsafe { transmute(value & S_IFMT) }
 	}
-
+	
+	//noinspection SpellCheckingInspection
 	#[inline(always)]
 	fn from_dtype(d_type: c_uchar) -> Self
 	{

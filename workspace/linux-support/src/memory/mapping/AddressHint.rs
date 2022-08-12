@@ -72,11 +72,11 @@ impl AddressHint
 	
 	/// Convenience constructor for `Fixed`.
 	#[inline(always)]
-	pub fn fixed(virtual_address_base: VirtualAddress, virtal_address_offset: u64) -> Self
+	pub fn fixed(virtual_address_base: VirtualAddress, virtual_address_offset: u64) -> Self
 	{
 		AddressHint::Fixed
 		{
-			virtual_address_required: virtual_address_base + virtal_address_offset,
+			virtual_address_required: virtual_address_base + virtual_address_offset,
 		}
 	}
 

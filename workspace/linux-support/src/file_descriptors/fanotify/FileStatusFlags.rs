@@ -6,7 +6,7 @@ bitflags!
 {
 	/// Flags control the status of a newly opened file descriptor by fanotify.
 	///
-	/// Before Linux 3.18 the features these flags imply was very buggily implemented.
+	/// Before Linux 3.18 the features these flags imply was very buggy.
 	pub struct FileStatusFlags: u32
 	{
 		/// Enable support for files exceeding 2 GB.

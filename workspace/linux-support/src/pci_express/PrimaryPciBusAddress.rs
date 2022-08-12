@@ -90,7 +90,7 @@ impl PrimaryPciBusAddress
 			
 			let file_name_bytes = file_name.into_vec();
 			
-			// `file_name` is of the format `XXXX:YY:AA.B` where `XXXX` is a hexadecimal domain, `YY` is a hexadecimal bus, `AA` is a hexadecimal devid and `B` is a hexadcimal function.
+			// `file_name` is of the format `XXXX:YY:AA.B` where `XXXX` is a hexadecimal domain, `YY` is a hexadecimal bus, `AA` is a hexadecimal devid and `B` is a hexadecimal function.
 			const Template: &'static [u8] = b"XXXX:YY:AA.B";
 			if file_name_bytes.len() != Template.len()
 			{

@@ -25,7 +25,7 @@ pub(crate) const SECCOMP_SET_MODE_STRICT: u32 = 0;
 /// This argument is a pointer to a `sock_fprog`; it can be designed to filter arbitrary system calls and system call arguments.
 /// If the filter is invalid, `seccomp()` fails, returning `EINVAL` in `errno`.
 ///
-/// Filters are inheritated across `clone()`, `fork()` and `execve()`.
+/// Filters are inherited across `clone()`, `fork()` and `execve()`.
 ///
 /// In order to use the `SECCOMP_SET_MODE_FILTER` operation, either the calling thread must have the `CAP_SYS_ADMIN` capability in its user namespace, or the thread must already have the `no_new_privs` bit set.
 /// Otherwise, the `SECCOMP_SET_MODE_FILTER` operation fails and returns `EACCES` in `errno`.

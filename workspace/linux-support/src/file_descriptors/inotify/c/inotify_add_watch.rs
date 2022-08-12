@@ -18,7 +18,7 @@ extern "C"
 	/// These reads fetch `inotify_event` structures.
 	/// The watch descriptor inside this structure identifies the object for which the event occurred.
 	///
-	/// On success, `inotify_add_watch()` returns a nonnegative watch descriptor.
+	/// On success, `inotify_add_watch()` returns a non-negative watch descriptor.
 	/// On error `-1` is returned and `errno` is set appropriately.
 	///
 	/// Errors documented to be returned from `inotify_add_watch()` in `errno`:-

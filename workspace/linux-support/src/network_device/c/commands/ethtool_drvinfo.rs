@@ -2,9 +2,10 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+//noinspection SpellCheckingInspection
 /// General driver and device information.
 ///
-/// Users can use the `ETHTOOL_GSSET_INFO` command to get the number ofstrings in any of the string sets (`SS`):-
+/// Users can use the `ETHTOOL_GSSET_INFO` command to get the number of strings in any of the string sets (`SS`):-
 ///
 /// * `ethtool_stringset::ETH_SS_PRIV_FLAGS`.
 /// * `ethtool_stringset::ETH_SS_STATS`.

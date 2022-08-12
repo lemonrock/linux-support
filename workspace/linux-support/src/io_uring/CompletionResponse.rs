@@ -33,7 +33,7 @@ impl CompletionResponse
 				EINTR => Err(Interrupted),
 				
 				EBADF => panic!("One or both file descriptors are not valid, or do not have proper read-write mode"),
-				EINVAL => panic!("The target filesystem doesn't support splicing; or the target file is opened in append mode; or neither of the file descriptors refers to a pipe; or an offset was given for nonseekable device (eg, a pipe); or `fd_in` and `fd_out` refer to the same pipe"),
+				EINVAL => panic!("The target filesystem doesn't support splicing; or the target file is opened in append mode; or neither of the file descriptors refers to a pipe; or an offset was given for a non-seekable device (eg, a pipe); or `fd_in` and `fd_out` refer to the same pipe"),
 				ESPIPE => panic!("Either `off_in` or `off_out` was not `NULL`, but the corresponding file descriptor refers to a pipe"),
 				
 				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from splice completion of {}", unexpected)),
@@ -534,7 +534,7 @@ impl CompletionResponse
 	/// * `WouldBlock`.
 	/// * `Interrupted`.
 	/// * `Other` (which is for when the kernel reports `ENOMEM`, ie it is out of memory).
-	/// * `ConnectionReset` (seems to be posible in some circumstances for Unix domain sockets).
+	/// * `ConnectionReset` (seems to be possible in some circumstances for Unix domain sockets).
 	/// * `ConnectionRefused` (only can happen for TCP client sockets; can not happen for sockets `accept()`ed by a server listener).
 	///
 	/// Can not return `Ok(Some(value))` with `value` greater than `i32::MAX as u32`.
@@ -834,7 +834,7 @@ impl CompletionResponse
 	
 	/// Returns `Ok(None)` if cancelled.
 	///
-	/// Returns `Err(())` if the interupted or out of kernel memory.
+	/// Returns `Err(())` if the interrupted or out of kernel memory.
 	#[inline(always)]
 	pub fn epoll_control_delete(self) -> Result<Option<()>, ()>
 	{
@@ -1002,7 +1002,7 @@ impl CompletionResponse
 	}
 	
 	/// Returns `Ok(None)` if cancelled (not sure this is possible).
-	/// Returns an `Err(true)` if interupted by a signal or file is currently being executed.
+	/// Returns an `Err(true)` if interrupted by a signal or file is currently being executed.
 	/// Returns an `Err(false)` if out-of-disk space.
 	#[inline(always)]
 	pub fn file_allocate(self) -> Result<Option<()>, bool>
@@ -1052,7 +1052,7 @@ impl CompletionResponse
 				
 				EINVAL => panic!("An invalid value was specified for advice"),
 				EBADF => panic!("fd is not a valid file descriptor"),
-				ESPIPE => panic!("The specified file descriptor refers to a pipe or FIFO (befor Linux 2.6.16, this was EINVAL)"),
+				ESPIPE => panic!("The specified file descriptor refers to a pipe or FIFO (before Linux 2.6.16, this was EINVAL)"),
 				
 				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from file_advise completion of {}", unexpected)),
 			}
@@ -1081,7 +1081,7 @@ impl CompletionResponse
 				EINTR | EAGAIN => panic!("EINTR / EAGAIN - are these possible?"),
 				
 				EBADF => panic!("fd is not a valid file descriptor"),
-				EINVAL => panic!("flags specifies an invalid bit; or offset or nbytes is invalid"),
+				EINVAL => panic!("flags specifies an invalid bit; or offset or n bytes is invalid"),
 				ESPIPE => panic!("fd refers to something other than a regular file, a block device, a directory, or a symbolic link"),
 				
 				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from synchronize_file_range completion of {}", unexpected)),

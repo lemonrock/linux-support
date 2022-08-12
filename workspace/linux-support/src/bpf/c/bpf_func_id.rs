@@ -109,7 +109,7 @@ pub enum bpf_func_id
 	/// * `telnet` is the name of the current task.
 	/// * `470` is the PID of the current task.
 	/// * `001` is the CPU number on which the task is running.
-	/// * In `.N..`, each character refers to a set of  options (whether irqs are enabled, scheduling options, whether hard/softirqs are running, level of   preempt_disabled respectively). `N` means that `TIF_NEED_RESCHED` and `PREEMPT_NEED_RESCHED` are set.
+	/// * In `.N..`, each character refers to a set of  options (whether IRQs are enabled, scheduling options, whether hard or sort IRQs are running, level of   preempt_disabled respectively). `N` means that `TIF_NEED_RESCHED` and `PREEMPT_NEED_RESCHED` are set.
 	/// * `419421.045894` is a timestamp.
 	/// * `0x00000001` is a fake value used by BPF for the instruction pointer register.
 	/// * `<formatted msg>` is the message formatted with `fmt`.
@@ -237,7 +237,7 @@ pub enum bpf_func_id
 	/// If the call succeeds, the kernel immediately runs the first instruction of the new program.
 	/// This is not a function call,and it never returns to the previous program.
 	/// If the call fails, then the helper has no effect, and the caller continues to run its subsequent instructions.
-	/// A call can fail if thedestination program for the jump does not exist (ie `index` is superior to the number of entries in `prog_array_map`), or if the maximum number of tail calls has been reached for this chain of programs.
+	/// A call can fail if the destination program for the jump does not exist (ie `index` is superior to the number of entries in `prog_array_map`), or if the maximum number of tail calls has been reached for this chain of programs.
 	/// This limit is defined in the kernel by the macro `MAX_TAIL_CALL_CNT` (not accessible to user space), which is currently set to 32.
 	///
 	///
@@ -481,7 +481,7 @@ pub enum bpf_func_id
 	/// Retrieve the realm or the route, that is to say the `tclassid` field of the destination for the `skb`.
 	/// The identifier retrieved is a user-provided tag, similar to the one used with the `net_cls` cgroup (see the description for the `bpf_get_cgroup_classid()` helper), but here this tag is held by a route (a destination entry), not by a task.
 	///
-	/// Retrieving this identifier works with the clsact TC egress hook (see also `man 8 tc-bpf`), or alternatively on conventional classful egress qdiscs, but not on TC ingress path.
+	/// Retrieving this identifier works with the `clsact` TC egress hook (see also `man 8 tc-bpf`), or alternatively on conventional classful egress qdiscs, but not on TC ingress path.
 	/// In case of `clsact` TC egress hook, this has the advantage that, internally, the destination entry has not been dropped yet in the transmit path.
 	/// Therefore, the destination entry does not need to be artificially held via `netif_keep_dst()` for a classful qdisc until the `skb` is freed.
 	///
@@ -1252,7 +1252,7 @@ pub enum bpf_func_id
 	///
 	/// For example, this helper can be used in the following cases:-
 	///
-	/// * A single `sendmsg()` or `sendfile()` system call contains multiple logical messages that the eBPF program is upposed to read and for which it should apply a verdict.
+	/// * A single `sendmsg()` or `sendfile()` system call contains multiple logical messages that the eBPF program is supposed to read and for which it should apply a verdict.
 	/// * An eBPF program only cares to read the first `bytes` of a `msg`. If the message has a large payload, then setting up and calling the eBPF program repeatedly for all bytes, even though the verdict is already known, would create unnecessary overhead.
 	///
 	/// When called from within an eBPF program, the helper sets a counter internal to the BPF infrastructure, that is used to apply the last verdict to the next `bytes`.
@@ -1293,7 +1293,7 @@ pub enum bpf_func_id
 	/// For socket policies, pull in non-linear data from user space for `msg` and set pointers `msg->data` and `msg->data_end` to `start` and `end` bytes offsets into `msg`, respectively.
 	///
 	/// If a program of type `BPF_PROG_TYPE_SK_MSG` is run on a `msg` it can only parse data that the (`data`, `data_end`) pointers have already consumed.
-	/// For `sendmsg()` hooks this is likely the first scatterlist element.
+	/// For `sendmsg()` hooks this is likely the first scatter-list element.
 	/// But for calls relying on the `sendpage` handler (eg `sendfile()`) this will be the range (`0`, `0`) because the data is shared with user space and by default the objective is to avoid allowing user space to modify data while (or after) eBPF verdict is being decided.
 	/// This helper can be used to pull in data and to set the start and end pointer to given values.
 	/// Data will be copied if necessary (ie if data was not linear and if start and end pointers do not point to the same chunk).
@@ -1370,13 +1370,13 @@ pub enum bpf_func_id
 	///
 	/// Return a user or a kernel stack in bpf program provided buffer.
 	/// To achieve this, the helper needs `ctx`, which is a pointer to the context on which the tracing program is executed.
-	/// To store the stacktrace, the bpf program provides `buf` with a nonnegative `size`.
+	/// To store the stacktrace, the bpf program provides `buf` with a non-negative `size`.
 	///
 	/// The last argument, `flags`, holds the number of stack frames to skip (from 0 to 255), masked with `BPF_F_SKIP_FIELD_MASK`.
 	/// The next bits can be used to set the following flags:-
 	///
 	/// * `BPF_F_USER_STACK`: Collect a user space stack instead of a kernel stack.
-	/// * `BPF_F_USER_BUILD_ID`: Collect buildid+offset instead of ips for user stack, only valid if `BPF_F_USER_STACK` is also specified.
+	/// * `BPF_F_USER_BUILD_ID`: Collect buildid + offset instead of ips for user stack, only valid if `BPF_F_USER_STACK` is also specified.
 	///
 	/// `bpf_get_stack()` can collect up to`PERF_MAX_STACK_DEPTH` both kernel and user frames, subject to sufficient large buffer size.
 	/// Note that this limit can be controlled with the `sysctl` program, and that it should be manually increased in order to profile long user stacks (such as stacks for Java programs).
@@ -1482,7 +1482,7 @@ pub enum bpf_func_id
 	/// # Description
 	///
 	/// This helper is used in programs implementing policies at the skb socket level.
-	/// If the sk_buff `skb` is allowed to pass (ie if the verdeict eBPF program returns `SK_PASS`), redirect it to the socket referenced by `map` (of type `BPF_MAP_TYPE_SOCKHASH`) using hash `key`.
+	/// If the sk_buff `skb` is allowed to pass (ie if the verdict eBPF program returns `SK_PASS`), redirect it to the socket referenced by `map` (of type `BPF_MAP_TYPE_SOCKHASH`) using hash `key`.
 	/// Both ingress and egress interfaces can be used for redirection.
 	/// The `BPF_F_INGRESS` value in `flags` is used to make the distinction (ingress path is selected if the flag is present, egress otherwise).
 	/// This is the only flag supported for now.
@@ -1504,7 +1504,7 @@ pub enum bpf_func_id
 	///
 	/// * `BPF_LWT_ENCAP_SEG6`: IPv6 encapsulation with Segment Routing Header (`struct ipv6_sr_hdr`). `hdr` only contains the SRH, the IPv6 header is computed by the kernel.
 	/// * `BPF_LWT_ENCAP_SEG6_INLINE`: Only works if `skb` contains an IPv6 packet. Insert a Segment Routing Header (`struct ipv6_sr_hdr`) inside the IPv6 header.
-	/// * `BPF_LWT_ENCAP_IP`: IP encapsulation (GRE/GUE/IPIP/etc). The outer headert be IPv4 or IPv6, followed by zero or more additional headers, up to `LWT_BPF_MAX_HEADROOM` total bytes in all prepended headers. Please note that if `skb_is_gso(skb)` is true, no more than two headers can be prepended, and the inner header, if prepended resent, should be either GRE or UDP/GUE.
+	/// * `BPF_LWT_ENCAP_IP`: IP encapsulation (GRE/GUE/IPIP/etc). The outer header to be IPv4 or IPv6, followed by zero or more additional headers, up to `LWT_BPF_MAX_HEADROOM` total bytes in all prepended headers. Please note that if `skb_is_gso(skb)` is true, no more than two headers can be prepended, and the inner header, if prepended resent, should be either GRE or UDP/GUE.
 	///
 	/// `BPF_LWT_ENCAP_SEG6` types can be called by BPF programs of type `BPF_PROG_TYPE_LWT_IN`; `BPF_LWT_ENCAP_IP` type can be called by bpf programs of types `BPF_PROG_TYPE_LWT_IN` and `BPF_PROG_TYPE_LWT_XMIT`.
 	///

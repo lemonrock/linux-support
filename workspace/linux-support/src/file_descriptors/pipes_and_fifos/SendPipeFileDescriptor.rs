@@ -114,7 +114,7 @@ impl Write for SendPipeFileDescriptor
 					}
 					else if likely!(result == -1)
 					{
-						match errno().0
+						match SystemCallErrorNumber::from_errno()
 						{
 							EAGAIN => WouldBlock,
 							EINTR => Interrupted,
@@ -196,7 +196,7 @@ impl SendPipeFileDescriptor
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
 					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
@@ -251,7 +251,7 @@ impl SendPipeFileDescriptor
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EACCES => Common(PermissionDenied),
 					EMFILE => Common(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
@@ -331,14 +331,14 @@ impl SendPipeFileDescriptor
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EAGAIN | ENOMEM => WouldBlock,
 
 					EINTR => Interrupted,
 
 					EBADF => panic!("One or both file descriptors are not valid, or do not have proper read-write mode"),
-					EINVAL => panic!("The target filesystem doesn't support splicing; or the target file is opened in append mode; or neither of the file descriptors refers to a pipe; or an offset was given for nonseekable device (eg, a pipe); or `fd_in` and `fd_out` refer to the same pipe"),
+					EINVAL => panic!("The target filesystem doesn't support splicing; or the target file is opened in append mode; or neither of the file descriptors refers to a pipe; or an offset was given for a non-seekable device (eg, a pipe); or `fd_in` and `fd_out` refer to the same pipe"),
 					ESPIPE => panic!("Either `off_in` or `off_out` was not `NULL`, but the corresponding file descriptor refers to a pipe"),
 
 					_ => unreachable_code(format_args!("")),
@@ -398,14 +398,14 @@ impl SendPipeFileDescriptor
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EAGAIN | ENOMEM => WouldBlock,
 
 					EINTR => Interrupted,
 
 					EBADF => panic!("One or both file descriptors are not valid, or do not have proper read-write mode"),
-					EINVAL => panic!("The target filesystem doesn't support splicing; or the target file is opened in append mode; or neither of the file descriptors refers to a pipe; or an offset was given for nonseekable device (eg, a pipe); or `fd_in` and `fd_out` refer to the same pipe"),
+					EINVAL => panic!("The target filesystem doesn't support splicing; or the target file is opened in append mode; or neither of the file descriptors refers to a pipe; or an offset was given for a non-seekable device (eg, a pipe); or `fd_in` and `fd_out` refer to the same pipe"),
 					ESPIPE => panic!("Either `off_in` or `off_out` was not `NULL`, but the corresponding file descriptor refers to a pipe"),
 
 					_ => unreachable_code(format_args!("")),
@@ -461,7 +461,7 @@ impl SendPipeFileDescriptor
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EAGAIN | ENOMEM => WouldBlock,
 
@@ -515,7 +515,7 @@ impl SendPipeFileDescriptor
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EAGAIN | ENOMEM => WouldBlock,
 

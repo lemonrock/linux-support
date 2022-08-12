@@ -38,7 +38,7 @@ pub enum PageCluster
 	#[serde(rename = "128")] OneHundredAndTwentyEightPages = 7,
 	
 	/// 256 pages.
-	#[serde(rename = "256")] TwoHunderedAndFiftySixPages = 8,
+	#[serde(rename = "256")] TwoHundredAndFiftySixPages = 8,
 	
 	/// 512 pages (one huge page on x86_64 and most other 64-bit systems).
 	#[serde(rename = "512")] FiveHundredAndTwelvePages = 9,
@@ -83,7 +83,7 @@ impl PageCluster
 			
 			7 => OneHundredAndTwentyEightPages,
 			
-			8 => TwoHunderedAndFiftySixPages,
+			8 => TwoHundredAndFiftySixPages,
 			
 			9 => FiveHundredAndTwelvePages,
 			

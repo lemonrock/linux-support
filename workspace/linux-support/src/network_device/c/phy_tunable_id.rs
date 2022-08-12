@@ -34,7 +34,7 @@ pub(crate) enum phy_tunable_id
 	/// Ethtool setting is `fast-link-down`.
 	ETHTOOL_PHY_FAST_LINK_DOWN = 2,
 	
-	/// Energy Detect Power Down (EDPD) is a feature supported by some PHYs, where the PHY's RX & TX blocks are put into a low-power mode when there is no link detected (typically the cable is un-plugged).
+	/// Energy Detect Power Down (EDPD) is a feature supported by some PHYs, where the PHY 's RX & TX blocks are put into a low-power mode when there is no link detected (typically the cable is un-plugged).
 	///
 	/// For RX, only a minimal link-detection is available, and for TX the PHY wakes up to send link pulses to avoid any lock-ups in case the peer PHY may also be running in EDPD mode.
 	///

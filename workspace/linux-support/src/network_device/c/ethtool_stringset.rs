@@ -26,7 +26,7 @@ pub enum ethtool_stringset
 	/// Device feature names.
 	#[serde(rename = "Device Feature")] ETH_SS_FEATURES = 4,
 	
-	/// RSS hssh function names.
+	/// RSS hash function names.
 	#[serde(rename = "RSS Hash Function")] ETH_SS_RSS_HASH_FUNCS = 5,
 	
 	/// ?Tunable names?

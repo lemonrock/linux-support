@@ -37,7 +37,7 @@ pub struct GlobalSecurityConfiguration
 	/// And the following in `/proc/sys/kernel/random` are hardened if present:-
 	///
 	/// * `read_wakeup_threshold` (forced to default of 64 bits of entropy).
-	/// * `urandom_min_reseed_secs` (forced to 15 seconds from a default of 60 seconds; ignored after Linux 4.8 but support may be readded).
+	/// * `urandom_min_reseed_secs` (forced to 15 seconds from a default of 60 seconds; ignored after Linux 4.8 but support may be added in the future).
 	/// * `write_wakeup_threshold` (forced to default of 896 bits of entropy).
 	///
 	/// And the following in `/proc/sys/kernel/seccomp` are hardened if present:-
@@ -111,9 +111,9 @@ pub struct GlobalSecurityConfiguration
 	/// Default value is 65,536.
 	///
 	/// A value like 1,000 is probably more sensible.
-	pub maximum_memory_maps_per_proces: Option<u32>,
+	pub maximum_memory_maps_per_process: Option<u32>,
 	
-	/// Hardens JIT'd eBPF programs using the file `/proc/sys/net/core/bpf_jit_harden`.
+	/// Hardens JIT-ed eBPF programs using the file `/proc/sys/net/core/bpf_jit_harden`.
 	pub harden_jit_ebpf: Option<JustInTimeCompilationHardening>,
 
 	/// Disables kexec loading of new kernel images until reboot.
@@ -159,7 +159,7 @@ impl GlobalSecurityConfiguration
 		}
 		
 		#[inline(always)]
-		fn hardden_seccomp_logging(proc_path: &ProcPath) -> Result<(), GlobalSecurityConfigurationError>
+		fn harden_seccomp_logging(proc_path: &ProcPath) -> Result<(), GlobalSecurityConfigurationError>
 		{
 			let actions_available = proc_path.sys_kernel_seccomp_file_path("actions_avail").read_raw_without_line_feed().map_err(|cause| CouldNotHarden { cause, proc_sys_kernel_file: "actions_avail" })?;
 			
@@ -254,7 +254,7 @@ impl GlobalSecurityConfiguration
 			harden_value_u8(proc_path, ProcPath::sys_kernel_random_file_path, "urandom_min_reseed_secs", 15)?;
 			harden_value_u32(proc_path, ProcPath::sys_kernel_random_file_path, "write_wakeup_threshold", WriteWakeUpThresholdInBitsOfEntry)?;
 			
-			hardden_seccomp_logging(proc_path)?;
+			harden_seccomp_logging(proc_path)?;
 			
 			harden_value_u8(proc_path, ProcPath::sys_fs_file_path, "protected_fifos", 2)?;
 			harden_value_u8(proc_path, ProcPath::sys_fs_file_path, "protected_hardlinks", 1)?;
@@ -305,7 +305,7 @@ impl GlobalSecurityConfiguration
 		
 		set_proc_sys_fs_value(proc_path, "mount-max", self.maximum_file_system_mounts.map(UnpaddedDecimalInteger), CouldNotSetMaximumNumberOfFileSystemMounts)?;
 		
-		set_proc_sys_vm_value(proc_path, "max_map_count", self.maximum_memory_maps_per_proces.map(UnpaddedDecimalInteger), CouldNotSetMaximumNumberOfMemoryMapsPerProcess)?;
+		set_proc_sys_vm_value(proc_path, "max_map_count", self.maximum_memory_maps_per_process.map(UnpaddedDecimalInteger), CouldNotSetMaximumNumberOfMemoryMapsPerProcess)?;
 		
 		set_value(proc_path, |proc_path, value| value.set_value(proc_path), self.harden_jit_ebpf, CouldNotHardenJitOfBpfPrograms)?;
 		

@@ -25,7 +25,7 @@ bitflags!
 		/// Therefore verifier notifies JIT back-ends that it is safe to ignore clearing high 32-bit for these instructions.
 		/// This saves some back-ends a lot of code-gen.
 		/// However such optimization is not necessary on some arches, for example x86_64, arm64 etc, whose JIT back-ends hence hasn't used verifier's analysis result.
-		/// But, we really want to have a way to be able to verify the correctness of the described optimization on* x86_64 on which testsuites are frequently exercised.
+		/// But, we really want to have a way to be able to verify the correctness of the described optimization on* x86_64 on which test suites are frequently exercised.
 		///
 		/// So, this flag is introduced.
 		/// Once it is set, verifier will randomize high 32-bit for those instructions who has been identified as safe to ignore them

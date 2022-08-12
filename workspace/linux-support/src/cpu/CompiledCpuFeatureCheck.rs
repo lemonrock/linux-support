@@ -110,7 +110,7 @@ impl Check for CompiledCpuFeatureCheck
 			#[cfg(target_feature = "bmi2")] has_bmi2 => extended_feature_information.has_bmi2(),
 			#[cfg(target_feature = "adx")] has_adx => extended_feature_information.has_adx(),
 			#[cfg(target_feature = "rdrand")] has_rdrand => feature_information.has_rdrand(), // Properly `target_feature = "rdrand"`, but not correctly encoded by Rust.
-			#[cfg(target_feature = "rdseed")] has_rdseed => extended_feature_information.has_rdseed(), // `has_rdseet()` (sic) - typo in `raw_cpuid` crate.
+			#[cfg(target_feature = "rdseed")] has_rdseed => extended_feature_information.has_rdseed(), // `has_rdseed()` (sic) - typo in `raw_cpuid` crate.
 			#[cfg(target_feature = "movbe")] has_movbe => feature_information.has_movbe(),
 			#[cfg(target_feature = "lzcnt")] has_lzcnt => extended_function_information.has_lzcnt(),
 			#[cfg(target_feature = "clflushopt")] has_clflushopt => extended_feature_information.has_clflushopt(),

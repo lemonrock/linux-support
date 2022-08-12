@@ -3,7 +3,7 @@
 
 
 #[inline(always)]
-fn process_control_wrapper<V, E>(operation: i32, arg2: usize, arg3: usize, arg4: usize, arg5: usize, ok_handler: impl FnOnce(i32) -> Result<V, E>, err_handler: impl FnOnce(Errno) -> Result<V, E>) -> Result<V, E>
+fn process_control_wrapper<V, E>(operation: i32, arg2: usize, arg3: usize, arg4: usize, arg5: usize, ok_handler: impl FnOnce(i32) -> Result<V, E>, err_handler: impl FnOnce(SystemCallErrorNumber) -> Result<V, E>) -> Result<V, E>
 {
 	let result = unsafe { prctl(operation, arg2, arg3, arg4, arg5) };
 	if likely!(result >= 0)
@@ -12,7 +12,7 @@ fn process_control_wrapper<V, E>(operation: i32, arg2: usize, arg3: usize, arg4:
 	}
 	else if likely!(result == -1)
 	{
-		err_handler(errno())
+		err_handler(SystemCallErrorNumber::from_errno())
 	}
 	else
 	{

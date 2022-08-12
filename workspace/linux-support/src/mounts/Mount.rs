@@ -63,7 +63,7 @@ impl<'a> Mount<'a>
 		{
 			0 => Ok(()),
 			
-			-1 => match errno().0
+			-1 => match SystemCallErrorNumber::from_errno()
 			{
 				EAGAIN =>
 					{

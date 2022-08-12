@@ -91,7 +91,7 @@ impl PerThreadSchedulerPolicyAndFlags
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ESRCH => Err("The thread whose ID is pid could not be found"),
 
@@ -108,7 +108,7 @@ impl PerThreadSchedulerPolicyAndFlags
 		}
 	}
 
-	/// Returns an error if permission was denied (eg trying to access anotbher process' thread without necessary permissions) or a deadline scheduler could not be brought into use.
+	/// Returns an error if permission was denied (eg trying to access another process' thread without necessary permissions) or a deadline scheduler could not be brought into use.
 	///
 	/// Set the process' nice value using `ProcessNice` before using this.
 	#[inline(always)]
@@ -200,7 +200,7 @@ impl PerThreadSchedulerPolicyAndFlags
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EPERM => Err("Permission denied, or, for deadline tasks, the CPU affinity mask of the thread (pid) does not include all CPUS in the current cgroup (or system)"),
 				EBUSY => Err("Deadline scheduler admission control failure (?)"),

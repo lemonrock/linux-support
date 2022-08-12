@@ -45,6 +45,7 @@ assert_cfg!(target_pointer_width = "64");
 use crate::cpu::HyperThread;
 use crate::memory::numa::NumaNode;
 use crate::paths::PathExt;
+use crate::syscall::SystemCallErrorNumber;
 use crate::syscall::SystemCallErrorNumber::E2BIG;
 use crate::syscall::SystemCallErrorNumber::EACCES;
 use crate::syscall::SystemCallErrorNumber::EADDRINUSE;
@@ -92,6 +93,7 @@ use crate::syscall::SystemCallErrorNumber::ENOTBLK;
 use crate::syscall::SystemCallErrorNumber::ENOTCONN;
 use crate::syscall::SystemCallErrorNumber::ENOTDIR;
 use crate::syscall::SystemCallErrorNumber::ENOTSOCK;
+use crate::syscall::SystemCallErrorNumber::ENOTSUPP;
 use crate::syscall::SystemCallErrorNumber::ENOTTY;
 use crate::syscall::SystemCallErrorNumber::ENXIO;
 use crate::syscall::SystemCallErrorNumber::EOPNOTSUPP;
@@ -982,7 +984,7 @@ pub mod logging;
 /// * Proper, modern Linux support for huge pages and mapping huge pages into memory.
 /// * Memory usage and insight.
 /// * A Linux-specific wrapper for mmap and related functionality that makes it *much* harder to misconfigure.
-/// * Wrapper types for virtual and physical addreses.
+/// * Wrapper types for virtual and physical addresses.
 /// * Wrapper types for number of pages.
 /// * Efficient enums for page size and huge page sizes.
 /// * Insight into memory maps
@@ -1002,7 +1004,7 @@ pub mod namespaces;
 pub mod network_device;
 
 
-/// Perf(ormance) Event.
+/// Performance Event.
 pub mod perf_event;
 
 
@@ -1083,7 +1085,6 @@ pub mod user_and_groups;
 include!("__BindgenBitFieldUnit.rs");
 include!("__IncompleteArrayField.rs");
 include!("current_numa_node_and_hyper_thread.rs");
-include!("ENOTSUPP.rs");
 include!("ObjectName.rs");
 include!("ObjectName16.rs");
 include!("ObjectName32.rs");

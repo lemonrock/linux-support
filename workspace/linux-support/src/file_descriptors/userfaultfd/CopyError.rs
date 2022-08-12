@@ -15,7 +15,7 @@ pub enum CopyError
 	#[allow(missing_docs)]
 	LinuxKernelIsOutOfMemory,
 	
-	/// Happens due to `EEXIST` occuring inside various functions in the Linux source file `mm/userfault.c`:-
+	/// Happens due to `EEXIST` occurring inside various functions in the Linux source file `mm/userfault.c`:-
 	///
 	/// * No destination page table entry;
 	/// * Destination page is or becomes Transparent Huge Page (THP).

@@ -78,7 +78,7 @@ impl EventFileDescriptor
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
 					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
@@ -125,7 +125,7 @@ impl EventFileDescriptor
 				{
 					use self::StructReadError::*;
 
-					match errno().0
+					match SystemCallErrorNumber::from_errno()
 					{
 						EAGAIN => Err(WouldBlock),
 						ECANCELED => Err(Cancelled),
@@ -136,7 +136,7 @@ impl EventFileDescriptor
 						EINVAL => panic!("`fd` is attached to an object which is unsuitable for reading OR was created via a call to `timerfd_create()` and the wrong size buffer was given to `read()`"),
 						EISDIR => panic!("`fd` refers to a directory"),
 
-						_ => panic!("Unexpected error `{}`", errno()),
+						unexpected @ _ => panic!("Unexpected error `{}`", unexpected),
 					}
 				}
 
@@ -169,8 +169,7 @@ impl EventFileDescriptor
 			{
 				-1 =>
 				{
-					let error_number = errno();
-					match error_number.0
+					match SystemCallErrorNumber::from_errno()
 					{
 						EAGAIN => Err(WouldBlock),
 						ECANCELED => Err(Cancelled),
@@ -183,8 +182,8 @@ impl EventFileDescriptor
 						EDQUOT => panic!("out of quota"),
 						EDESTADDRREQ => panic!("EDESTADDRREQ!"),
 						EFBIG => panic!("EFBIG!"),
-
-						_ => panic!("Unexpected error `{}`", error_number),
+						
+						error_number @ _ => panic!("Unexpected error `{}`", error_number),
 					}
 				}
 

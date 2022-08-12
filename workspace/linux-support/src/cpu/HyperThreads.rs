@@ -159,7 +159,7 @@ impl HyperThreads
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EINVAL => Err("The affinity bit mask mask contains no processors that are currently physically on the system and permitted to the process according to any restrictions that may be imposed by the cpuset mechanism described in man cpuset(7)".to_string()),
 				
@@ -192,7 +192,7 @@ impl HyperThreads
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EINVAL => Err("The affinity bit mask mask contains no processors that are currently physically on the system and permitted to the process according to any restrictions that may be imposed by the cpuset mechanism described in man cpuset(7)".to_string()),
 
@@ -245,9 +245,9 @@ impl HyperThreads
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
-				EINVAL => Err("pusetsize is smaller than the size of the affinity mask used by the kernel".to_string()),
+				EINVAL => Err("setsize is smaller than the size of the affinity mask used by the kernel".to_string()),
 				
 				ESRCH => Ok(None),
 
@@ -280,7 +280,7 @@ impl HyperThreads
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EINVAL => Err("The affinity bit mask mask contains no processors that are currently physically on the system and permitted to the process according to any restrictions that may be imposed by the cpuset mechanism described in cpuset(7)".to_string()),
 
@@ -440,7 +440,7 @@ impl HyperThreads
 	
 	/// Mirrors `num_possible_cpus()` in the Linux kernel but with a twist.
 	///
-	/// There is a design flaw in BPF's `PER_CPU` maps such that access a particular CPU's value is incorrect if `/sys/devices/system/cpu/possible` has a CPU mask which does not include all possible CPUs!
+	/// There is a design flaw in BPF 's `PER_CPU` maps such that access a particular CPU's value is incorrect if `/sys/devices/system/cpu/possible` has a CPU mask which does not include all possible CPUs!
 	///
 	/// It is too hard to engage with the libbpf mailing list at <https://lore.kernel.org/bpf/>.
 	#[inline(always)]

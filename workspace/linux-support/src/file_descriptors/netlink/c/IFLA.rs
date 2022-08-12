@@ -236,7 +236,7 @@ pub(crate) enum IFLA
 	/// Used in `RTM_GETLINK`.
 	/// Used in `RTM_NEWLINK`.
 	/// Used in `RTM_SETLINK`.
-	/// Used in `RTM_DELLINK` if `ifi_index` is `None` in `ifinfomsg` and `IFLA_IFNAME` and `IFLA_ALT_IFNAAME` are not specified.
+	/// Used in `RTM_DELLINK` if `ifi_index` is `None` in `ifinfomsg` and `IFLA_IFNAME` and `IFLA_ALT_IFNAME` are not specified.
 	#[allow(dead_code)]
 	IFLA_GROUP = 27,
 	
@@ -246,7 +246,7 @@ pub(crate) enum IFLA
 	#[allow(dead_code)]
 	IFLA_NET_NS_FD = 28,
 	
-	/// "Extended infomation mask, PCI Virtual Functions, etc".
+	/// "Extended information mask, PCI Virtual Functions, etc".
 	/// 
 	/// `u32`.
 	/// 

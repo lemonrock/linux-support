@@ -28,7 +28,7 @@ extern "C"
 /// A settable system-wide real-time clock.
 pub(crate) const CLOCK_REALTIME: c_int = 0;
 
-/// A nonsettable monotonically increasing clock that measures time from some unspecified point in the past that does not change after system startup.
+/// A unsettable monotonically increasing clock that measures time from some unspecified point in the past that does not change after system startup.
 pub(crate) const CLOCK_MONOTONIC: c_int = 1;
 
 /// Like `CLOCK_MONOTONIC`, this is a monotonically increasing clock.
@@ -63,4 +63,3 @@ pub(crate) const TFD_NONBLOCK: c_int = O_NONBLOCK;
 ///
 /// Since Linux 2.6.27.
 pub(crate) const TFD_CLOEXEC: c_int = O_CLOEXEC;
-

@@ -63,7 +63,7 @@ impl InotifyFileDescriptor
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
 					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
@@ -121,7 +121,7 @@ impl InotifyFileDescriptor
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EACCES => PermissionDenied,
 					ENOMEM => KernelWouldBeOutOfMemory,
@@ -168,8 +168,7 @@ impl InotifyFileDescriptor
 			{
 				-1 =>
 				{
-					let error_number = errno();
-					match error_number.0
+					match SystemCallErrorNumber::from_errno()
 					{
 						EAGAIN => Err(WouldBlock),
 						ECANCELED => Err(Cancelled),
@@ -179,8 +178,8 @@ impl InotifyFileDescriptor
 						EFAULT => panic!("`buf` is outside your accessible address space"),
 						EINVAL => panic!("`fd` is attached to an object which is unsuitable for reading OR was created via a call to `timerfd_create()` and the wrong size buffer was given to `read()`"),
 						EISDIR => panic!("`fd` refers to a directory"),
-
-						_ => panic!("Unexpected error `{}`", error_number),
+						
+						error_number @ _ => panic!("Unexpected error `{}`", error_number),
 					}
 				}
 

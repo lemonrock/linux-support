@@ -20,6 +20,6 @@ pub enum NET_ADDR
 	/// Address is stolen from another device.
 	#[serde(rename = "stolen")] NET_ADDR_STOLEN = 2,
 	
-	/// Adddress has been set using `dev_set_mac_address()`.
+	/// Address has been set using `dev_set_mac_address()`.
 	#[serde(rename = "set")] NET_ADDR_SET = 3,
 }

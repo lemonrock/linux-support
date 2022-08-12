@@ -8,7 +8,7 @@ pub const VFGEN_RSTAT: RegisterDefinition<ReadWriteRegister<u32>, u32> = Registe
 /// VF Interrupt Dynamic Control Zero.
 pub const VFINT_DYN_CTL0: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::singleton(0x00005C00);
 
-/// VF MailBox Transmit Queu e Base Address Low.
+/// VF MailBox Transmit Queue e Base Address Low.
 pub const VF_ATQBAL: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::singleton(0x00007C00);
 
 /// VF MailBox Transmit Queue Base Address High.
@@ -46,3 +46,6 @@ pub const VFINT_ITR0: RegisterDefinition<ReadWriteRegister<u32>, u32> = Register
 
 /// Transmit Queue Tail.
 pub const QTX_TAIL: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::array(0x00000000, 0x4, 0, 255);
+
+/// Receive Queue Tail.
+pub const QRX_TAIL: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::array(0x00002000, 0x4, 0, 255);

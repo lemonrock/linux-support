@@ -130,7 +130,7 @@ use crate::network_device::receive_side_scaling::hash_function_fields::*;
 include!("CommonCgroupVersion2Diagnostics.rs");
 #[cfg(target_arch = "x86_64")] include!("CpuCacheInformationDiagnostic.rs");
 #[cfg(target_arch = "x86_64")] include!("CpuCacheParameterInformationDiagnostic.rs");
-#[cfg(target_arch = "x86_64")] include!("CpuDeterministicAddressTranslationInformationDiagonostic.rs");
+#[cfg(target_arch = "x86_64")] include!("CpuDeterministicAddressTranslationInformationDiagnostic.rs");
 #[cfg(target_arch = "x86_64")] include!("CpuExtendedFeatureInformationDiagnostics.rs");
 #[cfg(target_arch = "x86_64")] include!("CpuExtendedFunctionInformationDiagnostics.rs");
 #[cfg(target_arch = "x86_64")] include!("CpuExtendedStateInformationDiagnostics.rs");

@@ -14,7 +14,7 @@ pub struct EnergyEfficientEthernetInformation
 	/// The speeds we're advertising to our link partner.
 	pub speeds_advertising_to_our_link_partner: HashSet<LegacySpeed>,
 	
-	/// The speeds our link parner is advertising to us.
+	/// The speeds our link partner is advertising to us.
 	pub speeds_link_partner_advertising_to_us: HashSet<LegacySpeed>,
 	
 	/// Is active?

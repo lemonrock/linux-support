@@ -43,6 +43,7 @@ pub struct CpuExtendedFunctionInformationDiagnostics
 
 impl CpuExtendedFunctionInformationDiagnostics
 {
+	//noinspection SpellCheckingInspection
 	fn gather(cpu_id: &CpuId) -> Option<Self>
 	{
 		use self::L2Associativity::*;
@@ -94,5 +95,3 @@ impl CpuExtendedFunctionInformationDiagnostics
 	})
 	}
 }
-			
-

@@ -106,11 +106,11 @@ impl PageSizeOrHugePageSizeSettings
 		}
 	}
 	
-	const fn new(mmmap_flag_bits: i32, memfd_flag_bits: i32, page_size_or_huge_page_size: PageSizeOrHugePageSize) -> Self
+	const fn new(mmap_flag_bits: i32, memfd_flag_bits: i32, page_size_or_huge_page_size: PageSizeOrHugePageSize) -> Self
 	{
 		Self
 		{
-			mmap_flag_bits: mmmap_flag_bits,
+			mmap_flag_bits,
 			
 			memfd_flag_bits,
 			

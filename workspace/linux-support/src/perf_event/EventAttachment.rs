@@ -13,7 +13,7 @@ pub enum EventAttachment<'file_descriptor>
 	
 	/// Attach event to a specific process on all HyperThreads.
 	///
-	/// This is a proces event; the event follows whatever CPUs the process gets scheduled on.
+	/// This is a process event; the event follows whatever CPUs the process gets scheduled on.
 	SpecificProcessAllHyperThreads(ProcessIdentifierChoice),
 	
 	/// Attach event to a specific process on a specific HyperThread.

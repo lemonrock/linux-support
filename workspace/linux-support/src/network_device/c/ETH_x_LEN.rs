@@ -10,6 +10,6 @@ pub(crate) const ETH_DATA_LEN: usize = 1500;
 #[allow(dead_code)]
 pub(crate) const ETH_FRAME_LEN: usize = 1514;
 
-/// Octets in the Frame Check Seequence (FCS).
+/// Octets in the Frame Check Sequence (FCS).
 #[allow(dead_code)]
 pub(crate) const ETH_FCS_LEN: usize = 4;

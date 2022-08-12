@@ -28,7 +28,7 @@ pub struct GlobalNetworkDeviceConfiguration
 	/// Whilst there is one setting, each transmission queue is affected.
 	///
 	/// Default on Linux is 1000 for Ethernet devices.
-	/// A value of 128 has been suggested for some improvement in reducing bufferbloat.
+	/// A value of 128 has been suggested for some improvement in reducing buffer bloat.
 	///
 	/// Support is independent of driver (eg Amazon ENA) and depends on configuration Traffic Class; currently only the `pfifo_fast` traffic class uses this value.
 	#[serde(default)] pub transmission_queue_length: Option<u32>,
@@ -214,7 +214,7 @@ pub struct GlobalNetworkDeviceConfiguration
 	/// This could be done semi-generically using an algorithm that picks a key size, hash function and RETA table given known card supported values (existing configuration and number of receive queue rings), NUMA settings and CPU counts.
 	///
 	/// Older network devices may only support changing the indirection (RETA) table.
-	/// Passing `HashFunctionConfiguration` with all fields as `None` effectively does a result to defaults, if the network device supports that, or, for an older device, if supported, reseting the indirection (RETA) table to defaults.
+	/// Passing `HashFunctionConfiguration` with all fields as `None` effectively does a result to defaults, if the network device supports that, or, for an older device, if supported, resetting the indirection (RETA) table to defaults.
 	///
 	/// This is always configured after changes to the number of channels, as changes to channels resets RSS hash configuration on some cards (eg Mellanox).
 	///

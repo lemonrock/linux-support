@@ -27,7 +27,7 @@ pub trait ReadAhead: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EINVAL => Err(()),
 				EBADF => panic!("fd is not a valid file descriptor or is not open for reading"),

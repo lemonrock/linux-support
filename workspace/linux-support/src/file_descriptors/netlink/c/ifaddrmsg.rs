@@ -4,7 +4,7 @@
 
 /// Used for `RTM_NEWADDR`, `RTM_DELADDR` and `RTM_GETADDR`.
 ///
-/// In addition, the attribute `IFA_TARGET_NETNSID` can be specified after this header in `RTM_GETADDR` to filter by `NetNamespaceIdentifer`.
+/// In addition, the attribute `IFA_TARGET_NETNSID` can be specified after this header in `RTM_GETADDR` to filter by `NetNamespaceIdentifier`.
 #[repr(C)]
 pub(crate) struct ifaddrmsg
 {

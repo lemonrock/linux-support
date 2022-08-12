@@ -63,7 +63,7 @@ pub(crate) struct ethtool_link_settings
 	/// May be writable if multiple PHYs or physical connectors are fitted or the driver does detect if multiple PHYs or physical connectors are fitted, especially if `autoneg` is `AUTONEG_DISABLE`.
 	pub(crate) phy_address: u8,
 
-	/// Enable/disable autonegotiation and auto-detection.
+	/// Enable/disable auto-negotiation and auto-detection.
 	///
 	/// Either `AUTONEG_DISABLE` or `AUTONEG_ENABLE`.
 	pub(crate) autoneg: AUTONEG,
@@ -141,7 +141,7 @@ impl ethtool_link_settings
 		this
 	}
 	
-	/// `supported` is a bit set with each bit meaning given by `ethtool_link_mode_bit_indices` for the link modes, physical connectors and other link features for which the interface supports autonegotiation or auto-detection.
+	/// `supported` is a bit set with each bit meaning given by `ethtool_link_mode_bit_indices` for the link modes, physical connectors and other link features for which the interface supports auto-negotiation or auto-detection.
 	///
 	/// Read-only.
 	pub(crate) fn supported(&self) -> LinkModeBitSet
@@ -149,7 +149,7 @@ impl ethtool_link_settings
 		self.link_mode_bit_set(0)
 	}
 	
-	/// `advertising` is a bit set with each bit meaning given by `ethtool_link_mode_bit_indices` for the link modes, physical connectors and other link features that are advertised through autonegotiation or enabled for auto-detection.
+	/// `advertising` is a bit set with each bit meaning given by `ethtool_link_mode_bit_indices` for the link modes, physical connectors and other link features that are advertised through auto-negotiation or enabled for auto-detection.
 	///
 	/// Read-write.
 	pub(crate) fn advertising(&self) -> LinkModeBitSet
@@ -157,7 +157,7 @@ impl ethtool_link_settings
 		self.link_mode_bit_set(1)
 	}
 	
-	/// `lp_advertising` is a bit set with each bit meaning given by `ethtool_link_mode_bit_indices` for the link modes, physical connectors and other link features that the link partner advertised through autonegotiation.
+	/// `lp_advertising` is a bit set with each bit meaning given by `ethtool_link_mode_bit_indices` for the link modes, physical connectors and other link features that the link partner advertised through auto-negotiation.
 	///
 	/// Read-only.
 	pub(crate) fn lp_advertising(&self) -> LinkModeBitSet

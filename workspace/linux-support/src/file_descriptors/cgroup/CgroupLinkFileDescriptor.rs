@@ -83,7 +83,7 @@ impl CgroupLinkFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EINVAL => panic!("Invalid attr or invalid attach type"),
 				EPERM => if currently_attached_program.is_none()

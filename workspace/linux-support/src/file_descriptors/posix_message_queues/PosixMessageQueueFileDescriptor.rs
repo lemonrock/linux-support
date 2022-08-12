@@ -89,7 +89,7 @@ impl PosixMessageQueueFileDescriptor
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EAGAIN => WouldBlock,
 					EINTR => Interrupted,
@@ -126,7 +126,7 @@ impl PosixMessageQueueFileDescriptor
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EAGAIN => WouldBlock,
 					EINTR => Interrupted,
@@ -167,7 +167,7 @@ impl PosixMessageQueueFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EBADF => panic!("The message queue descriptor specified in `mqdes` is invalid"),
 				EINVAL => panic!("`newattr.mq_flags` contained set bits other than `O_NONBLOCK`"),

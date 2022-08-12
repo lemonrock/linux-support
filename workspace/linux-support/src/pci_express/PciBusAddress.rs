@@ -175,7 +175,7 @@ impl PciBusAddress
 	/// Bus.
 	fn bus(&self, canonical_parent_folder_path_of_pci_bus_folder_path: PathBuf) -> io::Result<PciBus>
 	{
-		debug_assert!(canonical_parent_folder_path_of_pci_bus_folder_path.is_absolute(), "Not an absolute path. This isn't a perfect check: whilst a canonical path is always absolute, the reverse is not ncessarily true");
+		debug_assert!(canonical_parent_folder_path_of_pci_bus_folder_path.is_absolute(), "Not an absolute path. This isn't a perfect check: whilst a canonical path is always absolute, the reverse is not necessarily true");
 		
 		Ok
 		(

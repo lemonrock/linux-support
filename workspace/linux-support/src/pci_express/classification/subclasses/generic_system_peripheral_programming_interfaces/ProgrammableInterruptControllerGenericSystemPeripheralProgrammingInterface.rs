@@ -2,12 +2,12 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Programmamble Interrupt Controller (PIC).
+/// Programmable Interrupt Controller (PIC).
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 #[repr(u8)]
-pub enum ProgrammambleInterruptControllerGenericSystemPeripheralProgrammingInterface
+pub enum ProgrammableInterruptControllerGenericSystemPeripheralProgrammingInterface
 {
 	/// Generic 8259.
 	Generic8259 = 0x00,
@@ -20,7 +20,7 @@ pub enum ProgrammambleInterruptControllerGenericSystemPeripheralProgrammingInter
 
 	/// I/O APIC.
 	///
-	/// The Base Address register at offset 10h is used to request a minimum of 32 bytes of non-prefetchable memory.
+	/// The Base Address register at offset 10h is used to request a minimum of 32 bytes of non-prefetch-able memory.
 	/// Two registers within that space are located at Base+00h (I/O Select register) and Base+10h (I/O Window register).
 	IoApic = 0x10,
 
@@ -28,12 +28,12 @@ pub enum ProgrammambleInterruptControllerGenericSystemPeripheralProgrammingInter
 	IoXApic = 0x20,
 }
 
-impl ProgrammambleInterruptControllerGenericSystemPeripheralProgrammingInterface
+impl ProgrammableInterruptControllerGenericSystemPeripheralProgrammingInterface
 {
 	#[inline(always)]
 	pub(crate) fn parse(programming_interface: u8) -> Option<Self>
 	{
-		use self::ProgrammambleInterruptControllerGenericSystemPeripheralProgrammingInterface::*;
+		use self::ProgrammableInterruptControllerGenericSystemPeripheralProgrammingInterface::*;
 
 		match programming_interface
 		{

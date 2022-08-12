@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+//noinspection SpellCheckingInspection
 /// 'Device Type'.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
@@ -12,7 +13,7 @@ pub enum ARPHRD
 	#[serde(rename = "NETROM")] ARPHRD_NETROM = 0,
 	
 	/// Ethernet 10Mbps.
-	#[serde(rename = "Ethernet 10Mpbs")] ARPHRD_ETHER = 1,
+	#[serde(rename = "Ethernet 10 Mpbs")] ARPHRD_ETHER = 1,
 	
 	/// Experimental Ethernet.
 	#[serde(rename = "EETHER")] ARPHRD_EETHER = 2,

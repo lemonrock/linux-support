@@ -22,7 +22,7 @@ pub enum ProcessState
 	/// Before Linux 2.6.33, this also covered `TracingStop` below.
 	Stopped,
 
-	/// Stopped while Traching.
+	/// Stopped while tracing.
 	///
 	/// Linux 2.6.33 onward.
 	TracingStop,

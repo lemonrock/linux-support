@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-pub(crate) struct AcnowledgmentOnlyReplyReceiver<Protocol: NetlinkProtocol>
+pub(crate) struct AcknowledgmentOnlyReplyReceiver<Protocol: NetlinkProtocol>
 {
 	expected_message_identification: MultipartMessagePartIdentification,
 	start_of_set_of_messages_called: bool,
@@ -10,7 +10,7 @@ pub(crate) struct AcnowledgmentOnlyReplyReceiver<Protocol: NetlinkProtocol>
 	marker: PhantomData<Protocol>,
 }
 
-impl<Protocol: NetlinkProtocol> ReplyReceiver<Protocol> for AcnowledgmentOnlyReplyReceiver<Protocol>
+impl<Protocol: NetlinkProtocol> ReplyReceiver<Protocol> for AcknowledgmentOnlyReplyReceiver<Protocol>
 {
 	#[inline(always)]
 	fn start_of_set_of_messages(&mut self, message_identification: &MultipartMessagePartIdentification)
@@ -68,7 +68,7 @@ impl<Protocol: NetlinkProtocol> ReplyReceiver<Protocol> for AcnowledgmentOnlyRep
 	}
 }
 
-impl<Protocol: NetlinkProtocol> AcnowledgmentOnlyReplyReceiver<Protocol>
+impl<Protocol: NetlinkProtocol> AcknowledgmentOnlyReplyReceiver<Protocol>
 {
 	#[inline(always)]
 	pub(crate) const fn new(expected_message_identification: MultipartMessagePartIdentification) -> Self

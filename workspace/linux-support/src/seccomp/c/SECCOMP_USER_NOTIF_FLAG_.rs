@@ -15,5 +15,5 @@
 /// Similar precautions should be applied when stacking `SECCOMP_RET_USER_NOTIF` or `SECCOMP_RET_TRACE`.
 /// For `SECCOMP_RET_USER_NOTIF` filters acting on the same syscall, the most recently added filter takes precedence.
 /// This means that the new `SECCOMP_RET_USER_NOTIF` filter can override any `SECCOMP_IOCTL_NOTIF_SEND` from earlier filters, essentially allowing all such filtered syscalls to be executed by sending the response `SECCOMP_USER_NOTIF_FLAG_CONTINUE`.
-/// Note that `SECCOMP_RET_TRACE` can equally be overriden by `SECCOMP_USER_NOTIF_FLAG_CONTINUE`.
+/// Note that `SECCOMP_RET_TRACE` can equally be overridden by `SECCOMP_USER_NOTIF_FLAG_CONTINUE`.
 pub(crate) const SECCOMP_USER_NOTIF_FLAG_CONTINUE: u32 = 1 << 0;

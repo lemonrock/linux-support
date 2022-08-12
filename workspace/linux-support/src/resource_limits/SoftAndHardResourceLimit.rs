@@ -82,7 +82,7 @@ impl SoftAndHardResourceLimit
 		{
 			0 => Ok(()),
 
-			-1 => match errno().0
+			-1 => match SystemCallErrorNumber::from_errno()
 			{
 				EPERM => Err(PermissionDeniedOrTriedToIncreaseAboveMaximumNumberOfFileDescriptors),
 				EINVAL => Err(LimitWasTooLarge),
@@ -108,7 +108,7 @@ impl SoftAndHardResourceLimit
 		{
 			0 => (),
 
-			-1 => match errno().0
+			-1 => match SystemCallErrorNumber::from_errno()
 			{
 				EPERM => panic!("Permission denied"),
 

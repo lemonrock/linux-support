@@ -574,7 +574,7 @@ impl SubmissionQueueEntry
 	/// In effect, give the Linux kernel a block of contiguous memory divided into `number_of_buffers` (any remainder is lost but recoverable when `buffers` is freed; panics though in debug).
 	///
 	/// Buffers so provided only work for `read()`, `readv()`, `recv()`, and `recvmsg()`.
-	/// All bufffers must have the same `length`.
+	/// All buffers must have the same `length`.
 	/// If `number_of_buffers` is not zero, the buffer identifier will be incremented by one for `number_of_buffers - 1`.
 	/// `buffer_identifier` can be zero.
 	/// `buffer_identifier` is namespaced by `buffer_group_identifier`.

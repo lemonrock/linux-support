@@ -53,7 +53,7 @@ pub enum InputModeFlag
 	EnableParityChecking = INPCK,
 
 	/// Strips off the eighth bit of every character.
-	StripOffEigthBitOfEveryCharacter = ISTRIP,
+	StripOffEighthBitOfEveryCharacter = ISTRIP,
 
 	/// Enable any character to restart output.
 	///

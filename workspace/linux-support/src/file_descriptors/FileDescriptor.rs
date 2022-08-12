@@ -20,7 +20,7 @@ pub trait FileDescriptor: Sized + Debug + AsRawFd + FromRawFd + IntoRawFd
 	///
 	/// Forces the new file descriptor to be close-on-exec.
 	///
-	/// Returns `None` if interupted by a signal or would be blocked.
+	/// Returns `None` if interrupted by a signal or would be blocked.
 	///
 	/// NOTE: This does not use the `dup()`, `dup2()` or `dup3()` system calls but `fcntl()`.
 	#[inline(always)]
@@ -36,7 +36,7 @@ pub trait FileDescriptor: Sized + Debug + AsRawFd + FromRawFd + IntoRawFd
 			use self::CreationError::*;
 
 			// Errors are a bit of a guess based on a reading of the manpages of `dup()` and `fcntl()`.
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EBUSY | EINTR | EAGAIN => Ok(None),
 
@@ -71,7 +71,7 @@ pub trait FileDescriptor: Sized + Debug + AsRawFd + FromRawFd + IntoRawFd
 		}
 		else if likely!(result == -1)
 		{
-			panic!("Error `{}` from fcntl()", errno())
+			panic!("Error `{}` from fcntl()", SystemCallErrorNumber::from_errno())
 		}
 		else
 		{
@@ -93,11 +93,11 @@ pub trait FileDescriptor: Sized + Debug + AsRawFd + FromRawFd + IntoRawFd
 		}
 		else if likely!(result == -1)
 		{
-			panic!("Error from fcntl F_SETFL with `{}`", errno())
+			panic!("Error from fcntl F_SETFL with `{}`", SystemCallErrorNumber::from_errno())
 		}
 		else
 		{
-			panic!("Unexpected result from fcntl F_SETFL of `{}`", result)
+			panic!("Unexpected result from fcntl F_SETFL of `{}`", SystemCallErrorNumber::from_errno())
 		}
 	}
 	
@@ -133,7 +133,7 @@ pub trait FileDescriptor: Sized + Debug + AsRawFd + FromRawFd + IntoRawFd
 		}
 		else if likely!(result == -1)
 		{
-			panic!("Error from fcntl F_GETFL with `{}`", errno())
+			panic!("Error from fcntl F_GETFL with `{}`", SystemCallErrorNumber::from_errno())
 		}
 		else
 		{
@@ -148,7 +148,7 @@ pub trait FileDescriptor: Sized + Debug + AsRawFd + FromRawFd + IntoRawFd
 		let file_descriptor_flags = unsafe { fcntl (self.as_raw_fd(), F_GETFD) };
 		if unlikely!(file_descriptor_flags < 0)
 		{
-			panic!("Error getting file descriptor flags `{}`", errno())
+			panic!("Error getting file descriptor flags `{}`", SystemCallErrorNumber::from_errno())
 		}
 		file_descriptor_flags
 	}

@@ -124,7 +124,7 @@ impl ProcessGroupIdentifier
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ESRCH | EPERM => Err(()),
 
@@ -150,7 +150,7 @@ impl ProcessGroupIdentifier
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ESRCH | EPERM => Err(()),
 

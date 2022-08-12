@@ -283,7 +283,7 @@ impl Nice
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ESRCH => Err(()),
 				
@@ -338,7 +338,7 @@ impl Nice
 		set_errno(Errno(0));
 		let result = unsafe { getpriority(which, who) };
 		
-		match errno().0
+		match SystemCallErrorNumber::from_errno()
 		{
 			0 => match result
 			{

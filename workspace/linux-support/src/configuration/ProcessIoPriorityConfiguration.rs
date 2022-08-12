@@ -4,7 +4,7 @@
 
 /// Ionice settings for the current process.
 ///
-/// Defaults to aggresive promotion of the current process.
+/// Defaults to aggressive promotion of the current process.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]

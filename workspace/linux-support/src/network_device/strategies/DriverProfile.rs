@@ -181,7 +181,7 @@ impl DriverProfile
 	
 	fn queue_configuration(&self, network_device_input_output_control_driver_profile: &NetworkDeviceInputOutputControlDriverProfile, network_interface_name: &NetworkInterfaceName, pci_device: &PciDevice, all_pci_buses: &HashMap<PciBusAddress, io::Result<PciBusDetails>>, device_name_guess: &[u8], device_preferences: &DevicePreferences, interrupt_request_affinities: &mut InterruptRequestAffinities) -> Result<(QueueCount, Option<SetToSpecificValueOrMaximize<Channels>>, HashMap<QueueIdentifier, GlobalNetworkDeviceReceiveQueueConfiguration>, HashMap<QueueIdentifier, GlobalNetworkDeviceTransmitQueueConfiguration>, usize, HyperThread, HyperThreads), DriverProfileError>
 	{
-		let (administrative_queue_hyper_thread, (associated_hyper_threads_for_paired_receive_transmit_queue_pairs, associated_hyper_threads_for_paired_receive_transmit_queue_pairs_count)) = Self::adminstrative_queue_hyper_thread_and_associated_hyper_threads_for_paired_receive_transmit_queue_pairs_and_maximum_receive_transmit_queue_count(network_interface_name, pci_device, all_pci_buses)?;
+		let (administrative_queue_hyper_thread, (associated_hyper_threads_for_paired_receive_transmit_queue_pairs, associated_hyper_threads_for_paired_receive_transmit_queue_pairs_count)) = Self::administrative_queue_hyper_thread_and_associated_hyper_threads_for_paired_receive_transmit_queue_pairs_and_maximum_receive_transmit_queue_count(network_interface_name, pci_device, all_pci_buses)?;
 		
 		let (paired_receive_transmit_queue_count, number_of_channels) = if self.supports_getting_and_setting_channels
 		{
@@ -219,7 +219,7 @@ impl DriverProfile
 	}
 	
 	#[inline(always)]
-	fn adminstrative_queue_hyper_thread_and_associated_hyper_threads_for_paired_receive_transmit_queue_pairs_and_maximum_receive_transmit_queue_count(network_interface_name: &NetworkInterfaceName, pci_device: &PciDevice, all_pci_buses: &HashMap<PciBusAddress, io::Result<PciBusDetails>>) -> Result<(HyperThread, (HyperThreads, QueueCount)), DriverProfileError>
+	fn administrative_queue_hyper_thread_and_associated_hyper_threads_for_paired_receive_transmit_queue_pairs_and_maximum_receive_transmit_queue_count(network_interface_name: &NetworkInterfaceName, pci_device: &PciDevice, all_pci_buses: &HashMap<PciBusAddress, io::Result<PciBusDetails>>) -> Result<(HyperThread, (HyperThreads, QueueCount)), DriverProfileError>
 	{
 		let mut associated_hyper_threads = pci_device.validated_associated_hyper_threads(all_pci_buses);
 		let actual_number = associated_hyper_threads.len();

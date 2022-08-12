@@ -46,7 +46,7 @@ impl Default for DevicePreferences
 			
 			receive_coalescing_preference: ReceiveCoalescingPreference
 			{
-				preferred_micoseconds_interval: 0,
+				preferred_microseconds_interval: 0,
 				
 				interrupt_throttle_rate_setting: IntelIxgbevfInterruptThrottleRateSetting::Dynamic,
 			
@@ -55,7 +55,7 @@ impl Default for DevicePreferences
 			
 			transmit_coalescing_preference: TransmitCoalescingPreference
 			{
-				preferred_micoseconds_interval: 64,
+				preferred_microseconds_interval: 64,
 				
 				interrupt_throttle_rate_setting: IntelIxgbevfInterruptThrottleRateSetting::Dynamic,
 				

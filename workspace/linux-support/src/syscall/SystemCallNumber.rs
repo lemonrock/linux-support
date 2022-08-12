@@ -2451,96 +2451,6 @@ pub enum SystemCallNumber
 	#[allow(missing_docs)] #[cfg(target_arch = "x86_64")] writev = 20,
 }
 
-impl const From<SystemCallNumber> for SystemCallNumber
-{
-	#[inline(always)]
-	fn from(value: SystemCallNumber) -> Self
-	{
-		SystemCallNumber::from(value.as_usize())
-	}
-}
-
-impl const From<u8> for SystemCallNumber
-{
-	#[inline(always)]
-	fn from(raw_value: u8) -> Self
-	{
-		Self(raw_value as usize)
-	}
-}
-
-impl const From<u16> for SystemCallNumber
-{
-	#[inline(always)]
-	fn from(raw_value: u16) -> Self
-	{
-		Self(raw_value as usize)
-	}
-}
-
-impl const From<u32> for SystemCallNumber
-{
-	#[inline(always)]
-	fn from(raw_value: u32) -> Self
-	{
-		Self(raw_value as usize)
-	}
-}
-
-impl const From<usize> for SystemCallNumber
-{
-	#[inline(always)]
-	fn from(raw_value: usize) -> Self
-	{
-		Self(raw_value)
-	}
-}
-
-impl const From<NonZeroU8> for SystemCallNumber
-{
-	#[inline(always)]
-	fn from(raw_value: NonZeroU8) -> Self
-	{
-		Self::from(raw_value.get())
-	}
-}
-
-impl const From<NonZeroU16> for SystemCallNumber
-{
-	#[inline(always)]
-	fn from(raw_value: NonZeroU16) -> Self
-	{
-		Self::from(raw_value.get())
-	}
-}
-
-impl const From<NonZeroU32> for SystemCallNumber
-{
-	#[inline(always)]
-	fn from(raw_value: NonZeroU32) -> Self
-	{
-		Self::from(raw_value.get())
-	}
-}
-
-impl const From<NonZeroUsize> for SystemCallNumber
-{
-	#[inline(always)]
-	fn from(raw_value: NonZeroUsize) -> Self
-	{
-		Self::from(raw_value.get())
-	}
-}
-
-impl const From<SystemCallNumber> for usize
-{
-	#[inline(always)]
-	fn from(system_call_number: SystemCallNumber) -> Self
-	{
-		system_call_number.0
-	}
-}
-
 impl const AsUsizeIndex for SystemCallNumber
 {
 	#[inline(always)]
@@ -2549,20 +2459,6 @@ impl const AsUsizeIndex for SystemCallNumber
 		self.0
 	}
 }
-
-impl SystemCallNumber
-{
-	/// Generic system call equivalent to libc's `long syscall(long n, ...)` function.
-	#[inline(always)]
-	pub unsafe fn system_call<SCA: SystemCallArguments>(self, arguments: SCA) -> SystemCallResult
-	{
-		arguments.system_call(self.into())
-	}
-}
-
-#[cfg(target_arch = "aarch64")] include!("SystemCallNumber.aarch64.rs");
-#[cfg(target_arch = "riscv64")] include!("SystemCallNumber.riscv64.rs");
-#[cfg(target_arch = "x86_64")] include!("SystemCallNumber.x86_64.rs");
 
 impl SystemCallNumber
 {
@@ -2649,8 +2545,19 @@ impl SystemCallNumber
 	];
 }
 
+#[cfg(target_arch = "aarch64")] include!("SystemCallNumber.aarch64.rs");
+#[cfg(target_arch = "riscv64")] include!("SystemCallNumber.riscv64.rs");
+#[cfg(target_arch = "x86_64")] include!("SystemCallNumber.x86_64.rs");
+
 impl SystemCallNumber
 {
+	/// Generic system call equivalent to libc's `long syscall(long n, ...)` function.
+	#[inline(always)]
+	pub unsafe fn system_call<SCA: SystemCallArguments>(self, arguments: SCA) -> SystemCallResult
+	{
+		arguments.system_call(self)
+	}
+	
 	#[inline(always)]
 	pub(crate) fn system_call_bpf<const size: u32>(cmd: bpf_cmd, attr: &mut bpf_attr) -> c_int
 	{

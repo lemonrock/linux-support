@@ -32,7 +32,7 @@ pub(crate) struct ethtool_channels
 	
 	/// Multi-purpose channels.
 	///
-	/// These have simulataneously receive and transmit queues.
+	/// These have simultaneously receive and transmit queues.
 	///
 	/// Read only.
 	pub(crate) max_combined: Option<QueueCount>,

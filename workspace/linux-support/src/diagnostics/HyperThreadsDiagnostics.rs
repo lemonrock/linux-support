@@ -75,12 +75,12 @@ impl HyperThreadsDiagnostics
 			
 			present: wrap_panic(sys_path, HyperThreads::present).map(|hyper_threads|
 			{
-				let mut hyper_thread_diagnotiscs = HashMap::with_capacity(hyper_threads.len());
+				let mut hyper_thread_diagnostics = HashMap::with_capacity(hyper_threads.len());
 				for hyper_thread in hyper_threads.iterate()
 				{
-					hyper_thread_diagnotiscs.insert(hyper_thread, HyperThreadDiagnostic::gather(sys_path, hyper_thread));
+					hyper_thread_diagnostics.insert(hyper_thread, HyperThreadDiagnostic::gather(sys_path, hyper_thread));
 				}
-				hyper_thread_diagnotiscs
+				hyper_thread_diagnostics
 			}),
 			
 			work_queue_affinity: work_queue_affinity.map_err(DiagnosticUnobtainable::from),

@@ -5,7 +5,7 @@
 #[link(name = "c")]
 extern "C"
 {
-	/// `shutdown()` is most useful for initiating TCP's `FIN` state machine, and so freeing up resources inside Linux.
+	/// `shutdown()` is most useful for initiating TCP 's `FIN` state machine, and so freeing up resources inside Linux.
 	///
 	/// There is very little advantages in half-close, especially when sockets are used with upper layer protocols such as TLS, as these can do reads when a logical write is required, and vice-versa.
 	///

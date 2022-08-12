@@ -12,7 +12,7 @@ const SECURE_NOROOT: u32 = 0;
 const SECURE_NOROOT_LOCKED: u32 = 1;
 
 /// When set, setuid to/from uid 0 does not trigger capability-"fixup".
-/// When unset, to provide compatiblility with old programs relying on set*uid to gain/lose privilege, transitions to/from uid 0 cause capabilities to be gained/lost.
+/// When unset, to provide compatibility with old programs relying on set*uid to gain/lose privilege, transitions to/from uid 0 cause capabilities to be gained/lost.
 const SECURE_NO_SETUID_FIXUP: u32 = 2;
 
 /// Make bit-2 immutable.

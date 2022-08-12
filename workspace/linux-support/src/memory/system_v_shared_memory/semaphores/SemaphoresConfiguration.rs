@@ -6,7 +6,7 @@
 #[derive(Default, Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
-pub struct SempahoresConfiguration
+pub struct SemaphoresConfiguration
 {
 	/// `SEMMSL`.
 	pub maximum_number_of_semaphores_per_array: u32,
@@ -21,7 +21,7 @@ pub struct SempahoresConfiguration
 	pub maximum_number_of_arrays: u32,
 }
 
-impl FromBytes for SempahoresConfiguration
+impl FromBytes for SemaphoresConfiguration
 {
 	type Error = ParseNumberError;
 
@@ -48,7 +48,7 @@ impl FromBytes for SempahoresConfiguration
 		)
 	}
 }
-impl SempahoresConfiguration
+impl SemaphoresConfiguration
 {
 	/// Read from `/proc/sys/kernel/sem`.
 	#[inline(always)]

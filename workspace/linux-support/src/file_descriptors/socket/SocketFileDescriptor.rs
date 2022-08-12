@@ -91,7 +91,7 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOBUFS => Err(()),
 
@@ -127,7 +127,7 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EADDRINUSE => Err(SocketListenError::AddressInUse),
 				EBADF => panic!("`sockfd` is not a valid descriptor"),
@@ -163,7 +163,7 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 		{
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EACCES | EPERM => PermissionDenied,
 					EADDRINUSE => AddressInUse,
@@ -204,7 +204,7 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EBADF => panic!("The argument `sockfd` is not a valid descriptor"),
 				EFAULT => panic!("The address pointed to by `optval` is not in a valid part of the process address space"),
@@ -233,7 +233,7 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EBADF => panic!("The argument `sockfd` is not a valid descriptor"),
 				EFAULT => panic!("The address pointed to by `optval` is not in a valid part of the process address space"),
@@ -532,7 +532,7 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
 					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
@@ -756,7 +756,7 @@ impl SocketFileDescriptor<sockaddr_un>
 		{
 			use self::StructReadError::*;
 
-			let read_error = match errno().0
+			let read_error = match SystemCallErrorNumber::from_errno()
 			{
 				EAGAIN => WouldBlock,
 				ECANCELED => Cancelled,
@@ -767,7 +767,7 @@ impl SocketFileDescriptor<sockaddr_un>
 				EINVAL => panic!("`fd` is attached to an object which is unsuitable for reading OR was created via a call to `timerfd_create()` and the wrong size buffer was given to `read()`"),
 				EISDIR => panic!("`fd` refers to a directory"),
 
-				_ => panic!("Unexpected error `{}`", errno()),
+				unexpected @ _ => panic!("Unexpected error `{}`", unexpected),
 			};
 
 			return Err(Read(read_error))
@@ -881,7 +881,7 @@ impl SocketFileDescriptor<sockaddr_un>
 					}
 					else if likely!(result == -1)
 					{
-						match errno().0
+						match SystemCallErrorNumber::from_errno()
 						{
 							EAGAIN => WouldBlock,
 							EINTR => Interrupted,
@@ -1088,7 +1088,7 @@ impl SocketFileDescriptor<sockaddr_un>
 		debug_assert!(path_bytes_length < sockaddr_un::PathLength, "Path converted to bytes is equal to or more than sockaddr_un::PathLength bytes long");
 		unsafe { socket_data.sun_path.as_mut_ptr().copy_from_nonoverlapping(path_bytes.as_ptr() as *const _, path_bytes_length) };
 
-		// length is offsetof(struct sockaddr_un, sun_path) + strlen(sun_path) + 1
+		// length is `offset_of(struct sockaddr_un, sun_path) + strlen(sun_path) + 1`.
 		(socket_data, size_of::<sa_family_t>() + path_bytes_length + 1)
 	}
 
@@ -1102,7 +1102,7 @@ impl SocketFileDescriptor<sockaddr_un>
 
 		unsafe { socket_data.sun_path.as_mut_ptr().copy_from_nonoverlapping(abstract_name.as_ptr().add(1) as *const _, path_bytes_length) };
 
-		// length is offsetof(struct sockaddr_un, sun_path) + strlen(sun_path) + 1
+		// length is `offset_of(struct sockaddr_un, sun_path) + strlen(sun_path) + 1`.
 		(socket_data, size_of::<sa_family_t>() + path_bytes_length + 1)
 	}
 }

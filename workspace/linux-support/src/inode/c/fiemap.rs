@@ -6,10 +6,15 @@
 pub(crate) struct fiemap
 {
 	pub(crate) fm_start: u64,
+	
 	pub(crate) fm_length: u64,
+	
 	pub(crate) fm_flags: u32,
+	
 	pub(crate) fm_mapped_extents: u32,
+	
 	pub(crate) fm_extent_count: u32,
+	
 	pub(crate) fm_reserved: u32,
 
 	/// Actually a variable-length end-of-struct array field.

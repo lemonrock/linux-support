@@ -570,7 +570,7 @@ impl<'a> PciDevice<'a>
 	///
 	/// May report CPUs that don't actually exist; refine list against that known for a NUMA node.
 	///
-	/// On a test machine, with one hyper thread, reports that hyper threads 0 through 31 were assocated.
+	/// On a test machine, with one hyper thread, reports that hyper threads 0 through 31 were associated.
 	///
 	/// Panics if file unreadable.
 	///

@@ -25,14 +25,14 @@ impl CoalescingStrategy for AmazonEnaCoalescingStrategy
 			{
 				receive: CoalescePair
 				{
-					microseconds: unsafe { transmute(receive_coalescing_preference.preferred_micoseconds_interval) },
+					microseconds: unsafe { transmute(receive_coalescing_preference.preferred_microseconds_interval) },
 					
 					maximum_frames: None
 				},
 				
 				transmit: CoalescePair
 				{
-					microseconds: unsafe { transmute(transmit_coalescing_preference.preferred_micoseconds_interval) },
+					microseconds: unsafe { transmute(transmit_coalescing_preference.preferred_microseconds_interval) },
 					
 					maximum_frames: None,
 				},

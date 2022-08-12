@@ -8,8 +8,8 @@
 #[serde(deny_unknown_fields)]
 pub enum GenericSystemPeripheral
 {
-	/// Programmamble Interrupt Controller (PIC).
-	ProgrammambleInterruptController(ProgrammambleInterruptControllerGenericSystemPeripheralProgrammingInterface),
+	/// Programmable Interrupt Controller (PIC).
+	ProgrammableInterruptController(ProgrammableInterruptControllerGenericSystemPeripheralProgrammingInterface),
 	
 	/// Direct Memory Access (DMA) Controller.
 	DirectMemoryAccessController(DirectMemoryAccessControllerGenericSystemPeripheralProgrammingInterface),
@@ -31,7 +31,7 @@ pub enum GenericSystemPeripheral
 	/// Root complex event collector.
 	///
 	/// # Note
-	/// Some versions of the PCI Express Base Specificationdefined Root Complex Event Collectors to use Sub-class 06h.
+	/// Some versions of the PCI Express Base Specification defined Root Complex Event Collectors to use Sub-class 06h.
 	/// Implementations are permitted to use Sub-class 06h for this purpose, but this practice is strongly discouraged.
 	/// The Device/Port Type field value can be used to accurately identify all Root Complex Event Collectors.
 	RootComplexEventCollector,
@@ -49,7 +49,7 @@ impl GenericSystemPeripheral
 
 		match self
 		{
-			ProgrammambleInterruptController(programming_interface) => programming_interface as u8,
+			ProgrammableInterruptController(programming_interface) => programming_interface as u8,
 			DirectMemoryAccessController(programming_interface) => programming_interface as u8,
 			SystemTimer(programming_interface) => programming_interface as u8,
 			RealTimeClockController(programming_interface) => programming_interface as u8,
@@ -65,7 +65,7 @@ impl GenericSystemPeripheral
 
 		match value
 		{
-			0x00 => programming_interface!(ProgrammambleInterruptController, programming_interface, ProgrammambleInterruptControllerGenericSystemPeripheralProgrammingInterface),
+			0x00 => programming_interface!(ProgrammableInterruptController, programming_interface, ProgrammableInterruptControllerGenericSystemPeripheralProgrammingInterface),
 			0x01 => programming_interface!(DirectMemoryAccessController, programming_interface, DirectMemoryAccessControllerGenericSystemPeripheralProgrammingInterface),
 			0x02 => programming_interface!(SystemTimer, programming_interface, SystemTimerGenericSystemPeripheralProgrammingInterface),
 			0x03 => programming_interface!(RealTimeClockController, programming_interface, RealTimeClockControllerGenericSystemPeripheralProgrammingInterface),
@@ -85,7 +85,7 @@ impl GenericSystemPeripheral
 
 		match self
 		{
-			ProgrammambleInterruptController(_) => 0x00,
+			ProgrammableInterruptController(_) => 0x00,
 			DirectMemoryAccessController(_) => 0x01,
 			SystemTimer(_) => 0x02,
 			RealTimeClockController(_) => 0x03,

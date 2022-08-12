@@ -11,7 +11,7 @@ pub struct OwnedExpressDataPathSocket<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeF
 	instance: ManuallyDrop<ExpressDataPathInstance<ROTOB, FFQ>>,
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> SpecializationHackOfDropToOvercomeComplierErrorE0367ExpressDataPathSocket for OwnedExpressDataPathSocket<ROTOB, FFQ>
+impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> SpecializationHackOfDropToOvercomeCompilerErrorE0367ExpressDataPathSocket for OwnedExpressDataPathSocket<ROTOB, FFQ>
 {
 	#[inline(always)]
 	default fn specialization_of_drop(&mut self)
@@ -20,7 +20,7 @@ impl<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue> SpecializationHackOfDr
 	}
 }
 
-impl<ROTOB: ReceiveOrTransmitOrBoth<RP=RP> + Receives<CommonReceiveOnly<RP>>, FFQ: FreeFrameQueue, RP: ReceivePoll> SpecializationHackOfDropToOvercomeComplierErrorE0367ExpressDataPathSocket for OwnedExpressDataPathSocket<ROTOB, FFQ>
+impl<ROTOB: ReceiveOrTransmitOrBoth<RP=RP> + Receives<CommonReceiveOnly<RP>>, FFQ: FreeFrameQueue, RP: ReceivePoll> SpecializationHackOfDropToOvercomeCompilerErrorE0367ExpressDataPathSocket for OwnedExpressDataPathSocket<ROTOB, FFQ>
 {
 	#[inline(always)]
 	fn specialization_of_drop(&mut self)

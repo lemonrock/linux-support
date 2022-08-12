@@ -81,7 +81,7 @@ extern
 	/// * `arg_cnt`:  the number of elements in the `arg_array` parameter.
 	/// * `arg_array`: array of `scmp_arg_cmp` structs.
 	///
-	/// This function adds a series of new argument/value checks to the seccomp filter for the given syscall; multiple argument/value checks can be specified and they will be chained together (AND'd together) in the filter.
+	/// This function adds a series of new argument/value checks to the seccomp filter for the given syscall; multiple argument/value checks can be specified and they will be chained together (AND-ed together) in the filter.
 	/// If the specified rule can not be represented on the architecture the function will fail.
 	/// Returns zero on success, negative values on failure.
 	pub(crate) fn seccomp_rule_add_exact_array(ctx: *mut scmp_filter_ctx, action: u32, syscall: c_int, arg_cnt: c_uint, arg_array: *const scmp_arg_cmp) -> c_int;

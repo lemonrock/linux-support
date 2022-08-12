@@ -6,4 +6,4 @@
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
-pub struct NetNamespaceIdentifer(pub i32);
+pub struct NetNamespaceIdentifier(pub i32);

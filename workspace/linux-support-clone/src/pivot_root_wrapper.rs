@@ -15,7 +15,7 @@ fn pivot_root_wrapper(new_root: &Path, put_old: &Path)
 	}
 	else if likely!(result == -1)
 	{
-		match errno().0
+		match SystemCallErrorNumber::from_errno()
 		{
 			EBUSY => panic!("`new_root` or `put_old` are on the current root file system, or a file system is already mounted on `put_old`"),
 			EINVAL => panic!("`put_old` is not underneath `new_root`"),

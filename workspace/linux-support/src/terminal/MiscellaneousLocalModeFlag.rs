@@ -39,7 +39,7 @@ pub enum MiscellaneousLocalModeFlag
 
 	/// If set then an alternate word-erase algorithm is used when the `WERASE` character is entered.
 	///
-	/// Instead of moving backward until the previous white space character, this flag causes the `WERASE` character to move backward until the first nonalphanumeric character is encountered.
+	/// Instead of moving backward until the previous white space character, this flag causes the `WERASE` character to move backward until the first non-alphanumeric character is encountered.
 	///
 	/// Equivalent to the `ALTWERASE` flag.
 	#[cfg(any(target_os = "dragonfly", target_os = "freebsd", target_os = "ios", target_os = "macos", target_os = "openbsd"))] AlternativeWordEraseAlgorithm = ALTWERASE,

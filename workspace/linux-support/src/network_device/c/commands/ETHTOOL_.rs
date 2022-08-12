@@ -34,7 +34,7 @@ pub(crate) const ETHTOOL_GMSGLVL: u32 = 0x00000007;
 /// Set driver message level.
 pub(crate) const ETHTOOL_SMSGLVL: u32 = 0x00000008;
 
-/// Restart autonegotiation.
+/// Restart auto-negotiation.
 #[allow(dead_code)]
 pub(crate) const ETHTOOL_NWAY_RST: u32 = 0x00000009;
 

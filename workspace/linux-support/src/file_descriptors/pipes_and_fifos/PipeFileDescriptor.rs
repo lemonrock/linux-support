@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of file-descriptors. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/file-descriptors/master/COPYRIGHT.
 
 
-/// Extensions for a pipe file descriptor to make it useful for clone'd processes.
+/// Extensions for a pipe file descriptor to make it useful for cloned processes.
 pub trait PipeFileDescriptor: FileDescriptor + OnDiskFileDescriptor + PipeLikeFileDescriptor
 {
 	/// Clones a pipe file descriptor so the pipe is accessible in a child process.
@@ -10,7 +10,7 @@ pub trait PipeFileDescriptor: FileDescriptor + OnDiskFileDescriptor + PipeLikeFi
 
 	/// Changes the pipe capacity.
 	///
-	/// Proceses with the capability `CAP_SYS_RESOURCE` may not set the capacity to greater than `maximum_pipe_capacity()`.
+	/// Processes with the capability `CAP_SYS_RESOURCE` may not set the capacity to greater than `maximum_pipe_capacity()`.
 	///
 	/// The value used may be rounded up by the Linux kernel (currently, the allocation is the next higher power-of-two page-size multiple of the requested size).
 	///
@@ -28,7 +28,7 @@ pub trait PipeFileDescriptor: FileDescriptor + OnDiskFileDescriptor + PipeLikeFi
 		else if likely!(result == -1)
 		{
 			use self::ChangeCapacityError::*;
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EPERM => Err(PermissionDenied),
 				EBUSY => Err(WouldReduceCapacityBelowThatInUse),
@@ -52,7 +52,7 @@ pub trait PipeFileDescriptor: FileDescriptor + OnDiskFileDescriptor + PipeLikeFi
 		}
 		else if likely!(result == -1)
 		{
-			panic!("Unexpected error {}", errno());
+			panic!("Unexpected error {}", SystemCallErrorNumber::from_errno());
 		}
 		else
 		{
@@ -72,7 +72,7 @@ pub trait PipeFileDescriptor: FileDescriptor + OnDiskFileDescriptor + PipeLikeFi
 		}
 		else if likely!(result == -1)
 		{
-			panic!("Unexpected error {}", errno());
+			panic!("Unexpected error {}", SystemCallErrorNumber::from_errno());
 		}
 		else
 		{

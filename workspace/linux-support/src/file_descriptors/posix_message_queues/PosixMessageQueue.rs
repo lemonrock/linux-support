@@ -30,7 +30,7 @@ pub trait PosixMessageQueue: AsRawFd + IntoRawFd + Sized
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EACCES => PermissionDenied,
 

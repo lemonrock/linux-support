@@ -8,7 +8,7 @@
 #[serde(deny_unknown_fields)]
 pub enum SpeculationStoreBypassStatus
 {
-	/// Linux errored internally with `EINVAL`!
+	/// Linux erred internally with `EINVAL`!
 	Unknown,
 
 	/// `prctl(PR_SPEC_STORE_BYPASS)` is `PR_SPEC_NOT_AFFECTED`.

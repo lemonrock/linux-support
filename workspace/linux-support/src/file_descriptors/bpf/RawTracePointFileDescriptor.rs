@@ -75,10 +75,12 @@ impl RawTracePointFileDescriptor
 		match raw_trace_point_open(extended_bpf_program_file_descriptor, name)
 		{
 			Ok(raw_fd) => Ok(Self(raw_fd)),
+			
 			Err(errno) => match errno
 			{
 				ENOENT => Err(TracePointNameNotFound),
 				ENOMEM => Err(OutOfMemory),
+				
 				_ => unreachable_code(format_args!("")),
 			}
 		}

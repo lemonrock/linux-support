@@ -17,13 +17,13 @@ pub trait CopyFileRange: AsRawFd + Seek + FileExt
 	/// After a copy, the seek position of `self` will have changed by the numbers of bytes `Ok(number of bytes copied)`.
 	///
 	/// `from_offset`, if `Some(offset)`, causes reads to start from the position in the file read from `offset`.
-	/// It will be updated by `Ok(number of bytes copied)` after a copy, but the file read from's current (seek) position will be unchanged.
+	/// It will be updated by `Ok(number of bytes copied)` after a copy, but the file read from 's current (seek) position will be unchanged.
 	///
 	/// `to_offset`, if `None`, causes writes to start from the current (seek) position in the file written `to`.
 	/// After a copy, the seek position of `self` will have changed by the numbers of bytes `Ok(number of bytes copied)`.
 	///
 	/// `to_offset`, if `Some(offset)`, causes writes to start from the position in the file written to `offset`.
-	/// It will be updated by `Ok(number of bytes copied)` after a copy, but the file written to's current (seek) position will be unchanged.
+	/// It will be updated by `Ok(number of bytes copied)` after a copy, but the file written to 's current (seek) position will be unchanged.
 	///
 	/// Returns `Ok(number of bytes copied)` on success.
 	/// `Err(true)` if a non-permanent failure (out of kernel memory, low-level IO failure) occurred.
@@ -47,7 +47,7 @@ pub trait CopyFileRange: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EIO | ENOMEM => Err(true),
 				ENOSPC | EXDEV => Err(false),

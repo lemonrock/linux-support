@@ -81,7 +81,7 @@ impl SignalFileDescriptor
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
 					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
@@ -111,7 +111,7 @@ impl SignalFileDescriptor
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
 					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
@@ -163,8 +163,7 @@ impl SignalFileDescriptor
 			{
 				-1 =>
 				{
-					let error_number = errno();
-					match error_number.0
+					match SystemCallErrorNumber::from_errno()
 					{
 						EAGAIN => Err(WouldBlock),
 						ECANCELED => Err(Cancelled),
@@ -176,8 +175,8 @@ impl SignalFileDescriptor
 						EISDIR => panic!("`fd` refers to a directory"),
 
 						// ERESTARTSYS is possible but should not occur.
-
-						_ => panic!("Unexpected error `{}`", error_number),
+						
+						error_number @ _ => panic!("Unexpected error `{}`", error_number),
 					}
 				}
 

@@ -17,7 +17,7 @@ extern "C"
 	///
 	/// Flags can be either `0` or `EPOLL_CLOEXEC`.
 	///
-	/// On success, these system calls return a nonnegative file descriptor.
+	/// On success, these system calls return a non-negative file descriptor.
 	//  On error, -1 is returned, and `errno` is set to indicate the error.
 	///
 	/// Errors documented to be returned from `epoll_ctl()` in `errno`:-

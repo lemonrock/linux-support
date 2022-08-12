@@ -89,7 +89,7 @@ impl MapFileDescriptor
 	///
 	/// Returns `None` if the `key` is the last one (ie `capacity() - 1`).
 	#[inline(always)]
-	pub fn get_next_key<K: Copy>(&self, key: *const K) -> Result<Option<K>, Errno>
+	pub fn get_next_key<K: Copy>(&self, key: *const K) -> Result<Option<K>, SystemCallErrorNumber>
 	{
 		debug_assert_ne!(size_of::<K>(), 0);
 		
@@ -114,14 +114,13 @@ impl MapFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			let errno = errno();
-			match errno.0
+			match SystemCallErrorNumber::from_errno()
 			{
 				// "If key is the last element, -1 is returned and errno is set to ENOENT'.
 				ENOENT => Ok(None),
 				
 				// "Other possible errno values are ENOMEM, EFAULT, EPERM, and EINVAL".
-				_ => Err(errno)
+				other @ _ => Err(other)
 			}
 		}
 		else
@@ -194,12 +193,13 @@ impl MapFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			let errno = errno();
-			match errno.0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOENT => false,
+				
 				ENOTSUPP | EOPNOTSUPP => panic!("Operation is unsupported"),
-				_ => panic!("Unexpected error {}", errno)
+				
+				unexpected @ _ => panic!("Unexpected error {}", unexpected)
 			}
 		}
 		else
@@ -217,7 +217,7 @@ impl MapFileDescriptor
 		{
 			Ok(()) => Ok(()),
 			
-			Err(errno) => match errno.0
+			Err(error_number) => match error_number
 			{
 				E2BIG => Err(()),
 				
@@ -227,7 +227,7 @@ impl MapFileDescriptor
 				
 				ENOMEM => Err(()),
 				
-				_ => panic!("Unexpected error `{}`", errno),
+				_ => panic!("Unexpected error `{}`", error_number),
 			}
 		}
 	}
@@ -241,7 +241,7 @@ impl MapFileDescriptor
 		{
 			Ok(()) => Ok(()),
 			
-			Err(errno) => match errno.0
+			Err(error_number) => match error_number
 			{
 				E2BIG => Err(()),
 				
@@ -251,7 +251,7 @@ impl MapFileDescriptor
 				
 				ENOMEM => Err(()),
 				
-				_ => panic!("Unexpected error `{}`", errno),
+				_ => panic!("Unexpected error `{}`", error_number),
 			}
 		}
 	}
@@ -267,7 +267,7 @@ impl MapFileDescriptor
 		{
 			Ok(()) => Ok(()),
 			
-			Err(errno) => match errno.0
+			Err(error_number) => match error_number
 			{
 				E2BIG => Err(MaximumCapacityReached),
 				
@@ -277,7 +277,7 @@ impl MapFileDescriptor
 				
 				ENOMEM => Err(OutOfMemory),
 				
-				_ => panic!("Unexpected error `{}`", errno),
+				_ => panic!("Unexpected error `{}`", error_number),
 			}
 		}
 	}
@@ -293,7 +293,7 @@ impl MapFileDescriptor
 		{
 			Ok(()) => Ok(()),
 			
-			Err(errno) => match errno.0
+			Err(error_number) => match error_number
 			{
 				E2BIG => Err(MaximumCapacityReached),
 				
@@ -303,7 +303,7 @@ impl MapFileDescriptor
 				
 				ENOMEM => Err(OutOfMemory),
 				
-				_ => panic!("Unexpected error `{}`", errno),
+				_ => panic!("Unexpected error `{}`", error_number),
 			}
 		}
 	}
@@ -324,7 +324,7 @@ impl MapFileDescriptor
 		{
 			Ok(()) => Ok(()),
 			
-			Err(errno) => match errno.0
+			Err(error_number) => match error_number
 			{
 				E2BIG => unreachable_code(format_args!("Should not return `E2BIG` as flag `BPF_NOEXIST` or `BPF_ANY` not specified")),
 				
@@ -332,7 +332,7 @@ impl MapFileDescriptor
 				
 				ENOENT => Err(()),
 				
-				_ => panic!("Unexpected error `{}`", errno),
+				_ => panic!("Unexpected error `{}`", error_number),
 			}
 		}
 	}
@@ -346,7 +346,7 @@ impl MapFileDescriptor
 		{
 			Ok(()) => Ok(()),
 			
-			Err(errno) => match errno.0
+			Err(error_number) => match error_number
 			{
 				E2BIG => unreachable_code(format_args!("Should not return `E2BIG` as flag `BPF_NOEXIST` or `BPF_ANY` not specified")),
 				
@@ -354,7 +354,7 @@ impl MapFileDescriptor
 				
 				ENOENT => Err(()),
 				
-				_ => panic!("Unexpected error `{}`", errno),
+				_ => panic!("Unexpected error `{}`", error_number),
 			}
 		}
 	}
@@ -370,7 +370,7 @@ impl MapFileDescriptor
 		{
 			Ok(()) => Ok(()),
 			
-			Err(errno) => match errno.0
+			Err(error_number) => match error_number
 			{
 				E2BIG => Err(()),
 				
@@ -380,13 +380,13 @@ impl MapFileDescriptor
 				
 				ENOMEM => Err(()),
 				
-				_ => panic!("Unexpected error `{}`", errno),
+				_ => panic!("Unexpected error `{}`", error_number),
 			}
 		}
 	}
 	
 	#[inline(always)]
-	fn update<K: Copy, V: Copy>(&self, key: &K, value: *const V, flags: BPF_MAP_UPDATE_ELEM_flags, lock_flags: LockFlags) -> Result<(), Errno>
+	fn update<K: Copy, V: Copy>(&self, key: &K, value: *const V, flags: BPF_MAP_UPDATE_ELEM_flags, lock_flags: LockFlags) -> Result<(), SystemCallErrorNumber>
 	{
 		debug_assert_ne!(size_of::<K>(), 0);
 		debug_assert_ne!(size_of::<V>(), 0);
@@ -410,11 +410,11 @@ impl MapFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			let errno = errno();
-			match errno.0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOTSUPP | EOPNOTSUPP => panic!("Operation is unsupported"),
-				_ => Err(errno)
+				
+				other @ _ => Err(other)
 			}
 		}
 		else
@@ -424,7 +424,7 @@ impl MapFileDescriptor
 	}
 	
 	#[inline(always)]
-	pub(crate) fn lookup_and_delete<K: Copy, V: Copy>(&self, key: &K) -> Result<Option<V>, Errno>
+	pub(crate) fn lookup_and_delete<K: Copy, V: Copy>(&self, key: &K) -> Result<Option<V>, SystemCallErrorNumber>
 	{
 		debug_assert_ne!(size_of::<K>(), 0);
 		debug_assert_ne!(size_of::<V>(), 0);
@@ -450,11 +450,11 @@ impl MapFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			let errno = errno();
-			match errno.0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOENT => Ok(None),
-				_ => Err(errno)
+				
+				other @ _ => Err(other)
 			}
 		}
 		else
@@ -465,7 +465,7 @@ impl MapFileDescriptor
 	
 	/// Returns `Ok(true)` if `key` was present.
 	#[inline(always)]
-	pub(crate) fn delete<K: Copy>(&self, key: &K) -> Result<bool, Errno>
+	pub(crate) fn delete<K: Copy>(&self, key: &K) -> Result<bool, SystemCallErrorNumber>
 	{
 		debug_assert_ne!(size_of::<K>(), 0);
 		
@@ -488,11 +488,11 @@ impl MapFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			let errno = errno();
-			match errno.0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOENT => Ok(false),
-				_ => Err(errno)
+				
+				other @ _ => Err(other)
 			}
 		}
 		else
@@ -529,13 +529,17 @@ impl MapFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EINVAL => panic!("Invalid attr"),
+				
 				ENOTSUPP => panic!("Not supported for maps of type `BPF_MAP_TYPE_STRUCT_OPS`"),
+				
 				EBUSY => panic!("Already frozen"),
+				
 				EPERM => panic!("Permission denied"),
-				errno @ _ => panic!("Unexpected error `{}`", errno),
+				
+				unexpected @ _ => panic!("Unexpected error `{}`", unexpected),
 			}
 		}
 		else
@@ -567,7 +571,7 @@ impl MapFileDescriptor
 	/// Returns `(values_filled, start of next batch position, more_entries_to_return)`.
 	/// `values_filled.len()` may be less than `keys.len()`.
 	#[inline(always)]
-	pub(crate) fn lookup_batch<K: Copy>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K], values: AlignedU64) -> Result<(u32, OpaqueBatchPosition<K>, bool), Errno>
+	pub(crate) fn lookup_batch<K: Copy>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K], values: AlignedU64) -> Result<(u32, OpaqueBatchPosition<K>, bool), SystemCallErrorNumber>
 	{
 		let keys_length = keys.len();
 		assert_ne!(keys_length, 0, "There must be at least one key");
@@ -600,15 +604,11 @@ impl MapFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			let errno = errno();
-			match errno.0
+			match SystemCallErrorNumber::from_errno()
 			{
-				ENOENT =>
-				{
-					Ok((count, out_batch, false))
-				},
+				ENOENT => Ok((count, out_batch, false)),
 				
-				_ => Err(errno),
+				other @ _ => Err(other),
 			}
 		}
 		else
@@ -640,7 +640,7 @@ impl MapFileDescriptor
 	/// Returns `(values_filled, start of next batch position, more_entries_to_return)`.
 	/// `values_filled.len()` may be less than `keys.len()`.
 	#[inline(always)]
-	fn lookup_and_delete_batch<K: Copy>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K], values: AlignedU64) -> Result<(u32, OpaqueBatchPosition<K>, bool), Errno>
+	fn lookup_and_delete_batch<K: Copy>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K], values: AlignedU64) -> Result<(u32, OpaqueBatchPosition<K>, bool), SystemCallErrorNumber>
 	{
 		let keys_length = keys.len();
 		assert_ne!(keys_length, 0, "There must be at least one key");
@@ -673,15 +673,11 @@ impl MapFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			let errno = errno();
-			match errno.0
+			match SystemCallErrorNumber::from_errno()
 			{
-				ENOENT =>
-				{
-					Ok((count, out_batch, false))
-				},
+				ENOENT => Ok((count, out_batch, false)),
 				
-				_ => Err(errno),
+				other @ _ => Err(other),
 			}
 		}
 		else
@@ -741,7 +737,7 @@ impl MapFileDescriptor
 	}
 	
 	/// Returns `(count_of_entries_filled, more_entries_to_return)`.
-	pub(crate) fn delete_batch<K: Copy>(&self, keys: &[K]) -> Result<(usize, bool), Errno>
+	pub(crate) fn delete_batch<K: Copy>(&self, keys: &[K]) -> Result<(usize, bool), SystemCallErrorNumber>
 	{
 		let keys_length = keys.len();
 		assert_ne!(keys_length, 0, "There must be at least one key");
@@ -768,12 +764,11 @@ impl MapFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			let errno = errno();
-			match errno.0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOENT => Ok((count as usize, false)),
 				
-				_ => Err(errno),
+				other @ _ => Err(other),
 			}
 		}
 		else

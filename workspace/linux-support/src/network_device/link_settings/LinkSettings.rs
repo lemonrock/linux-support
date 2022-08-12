@@ -53,7 +53,7 @@ pub struct LinkSettings
 	/// For clause 45 PHYs this is the `PRTAD`.
 	pub(crate) phy_address: u8,
 	
-	/// Enable/disable autonegotiation and auto-detection.
+	/// Enable/disable auto-negotiation and auto-detection.
 	pub(crate) auto_negotiation: AUTONEG,
 	
 	/// Bitmask of `ETH_MDIO_SUPPORTS` flags for the `MDIO` protocols supported by the interface.

@@ -71,13 +71,13 @@ impl NetworkDeviceSocketFileDescriptor
 				},
 			},
 			|ifreq| Ok(NetworkInterfaceName::from(ObjectName16::try_from(unsafe { ifreq.ifr_ifrn.ifrn_name })?)),
-			|errno| match errno.0
+			|error_number| match error_number
 			{
 				ENODEV | ENXIO => Ok(None),
 				
 				EPERM => panic!("Permission denied"),
 				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from ioctl(SIOCGIFNAME)", unexpected)),
+				_ => unreachable_code(format_args!("Unexpected error {} from ioctl(SIOCGIFNAME)", error_number)),
 			}
 		)
 	}
@@ -108,7 +108,7 @@ impl NetworkDeviceSocketFileDescriptor
 	}
 	
 	#[inline(always)]
-	pub(crate) fn ifreq<V: Sized, E: error::Error + 'static>(&self, request: i32, mut ifreq: ifreq, ok_handler: impl FnOnce(ifreq) -> Result<V, E>, error_handler: impl FnOnce(Errno) -> Result<Option<V>, E>) -> Result<Option<V>, NetworkDeviceInputOutputControlError<E>>
+	pub(crate) fn ifreq<V: Sized, E: error::Error + 'static>(&self, request: i32, mut ifreq: ifreq, ok_handler: impl FnOnce(ifreq) -> Result<V, E>, error_handler: impl FnOnce(SystemCallErrorNumber) -> Result<Option<V>, E>) -> Result<Option<V>, NetworkDeviceInputOutputControlError<E>>
 	{
 		use self::NetworkDeviceInputOutputControlError::*;
 		
@@ -116,12 +116,12 @@ impl NetworkDeviceSocketFileDescriptor
 		{
 			Ok(()) => Ok(Some(ok_handler(ifreq).map_err(ControlOperation)?)),
 			
-			Err(errno) => error_handler(errno).map_err(ControlOperation),
+			Err(error_number) => error_handler(error_number).map_err(ControlOperation),
 		}
 	}
 	
 	#[inline(always)]
-	pub(crate) fn ethtool_command<C: EthtoolCommand, V: Sized, E: error::Error + 'static>(&self, network_interface_name: NetworkInterfaceName, mut command: C, ok_handler: impl FnOnce(C) -> Result<V, E>, error_handler: impl FnOnce(Errno) -> Result<Option<V>, E>, not_supported: impl FnOnce(C) -> V) -> Result<Option<V>, NetworkDeviceInputOutputControlError<E>>
+	pub(crate) fn ethtool_command<C: EthtoolCommand, V: Sized, E: error::Error + 'static>(&self, network_interface_name: NetworkInterfaceName, mut command: C, ok_handler: impl FnOnce(C) -> Result<V, E>, error_handler: impl FnOnce(SystemCallErrorNumber) -> Result<Option<V>, E>, not_supported: impl FnOnce(C) -> V) -> Result<Option<V>, NetworkDeviceInputOutputControlError<E>>
 	{
 		let mut ifr = ifreq
 		{
@@ -141,25 +141,22 @@ impl NetworkDeviceSocketFileDescriptor
 		{
 			Ok(()) => Ok(Some(ok_handler(command).map_err(ControlOperation)?)),
 			
-			Err(errno) => match errno.0
-			{
-				ENODEV | ENXIO => Ok(None),
-				
-				EOPNOTSUPP => Ok(Some(not_supported(command))),
-				
-				EPERM => Err(PermissionDenied),
-				
-				ENOMEM => Err(OutOfKernelMemory),
-				
-				EFAULT => unreachable_code(format_args!("We passed a bad memory address")),
-				
-				_ => error_handler(errno).map_err(ControlOperation)
-			},
+			Err(ENODEV | ENXIO) => Ok(None),
+			
+			Err(EOPNOTSUPP) => Ok(Some(not_supported(command))),
+			
+			Err(EPERM) => Err(PermissionDenied),
+			
+			Err(ENOMEM) => Err(OutOfKernelMemory),
+			
+			Err(EFAULT) => unreachable_code(format_args!("We passed a bad memory address")),
+			
+			Err(other) => error_handler(other).map_err(ControlOperation),
 		}
 	}
 	
 	#[inline(always)]
-	fn input_output_control(&self, request: i32, ifreq: &mut ifreq) -> Result<(), Errno>
+	fn input_output_control(&self, request: i32, ifreq: &mut ifreq) -> Result<(), SystemCallErrorNumber>
 	{
 		let result = unsafe { ioctl(self.as_raw_fd(), request, ifreq as *mut _ as *mut c_void) };
 		if likely!(result == 0)
@@ -168,7 +165,7 @@ impl NetworkDeviceSocketFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			Err(errno())
+			Err(SystemCallErrorNumber::from_errno())
 		}
 		else
 		{

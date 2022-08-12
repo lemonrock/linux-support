@@ -13,7 +13,7 @@ pub(crate) struct GetAddressProcessingMessageStateCommon
 	
 	address_scope: rt_scope,
 	
-	pub(crate) target_net_namespace_identifier: Option<NetNamespaceIdentifer>,
+	pub(crate) target_net_namespace_identifier: Option<NetNamespaceIdentifier>,
 	
 	/// Mandatory.
 	pub(crate) cache_information: Option<ifa_cacheinfo>,
@@ -47,7 +47,7 @@ impl GetAddressProcessingMessageStateCommon
 	#[inline(always)]
 	pub(crate) fn to_processed_message<IPA: InternetProtocolAddress>(self) -> Result<GetAddressMessageDataCommon, String>
 	{
-		let (temporary_address_valid_lifetime, temporary_address_prefered_lifetime, temporary_address_created_timestamp, temporary_address_updated_timestamp) = self.cache_information()?;
+		let (temporary_address_valid_lifetime, temporary_address_preferred_lifetime, temporary_address_created_timestamp, temporary_address_updated_timestamp) = self.cache_information()?;
 		
 		Ok
 		(
@@ -63,7 +63,7 @@ impl GetAddressProcessingMessageStateCommon
 				
 				temporary_address_valid_lifetime,
 				
-				temporary_address_prefered_lifetime,
+				temporary_address_preferred_lifetime,
 				
 				temporary_address_created_timestamp,
 				
@@ -93,7 +93,7 @@ impl GetAddressProcessingMessageStateCommon
 	#[inline(always)]
 	fn cache_information(&self) -> Result<(InternetProtocolAddressLifetime, InternetProtocolAddressLifetime, CacheTimestampInHundrethsOfSeconds, CacheTimestampInHundrethsOfSeconds), String>
 	{
-		let ifa_cacheinfo { ref ifa_prefered, ref ifa_valid, ref cstamp, ref tstamp } = self.cache_information.as_ref().ok_or(format!("Linux kernel bug - missing cache_information"))?;
-		Ok((*ifa_prefered, *ifa_valid, *cstamp, *tstamp))
+		let ifa_cacheinfo { ifa_preferred: ref ifa_preferred, ref ifa_valid, cstamp: ref c_stamp, tstamp: ref t_stamp } = self.cache_information.as_ref().ok_or(format!("Linux kernel bug - missing cache_information"))?;
+		Ok((*ifa_preferred, *ifa_valid, *c_stamp, *t_stamp))
 	}
 }

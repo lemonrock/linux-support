@@ -3,7 +3,7 @@
 
 
 use super::*;
-use crate::network_device::{NetworkInterfaceName, NetNamespaceIdentifer, InternetProtocolAddressLifetime};
+use crate::network_device::{NetworkInterfaceName, NetNamespaceIdentifier, InternetProtocolAddressLifetime};
 
 
 include!("CacheTimestampInHundrethsOfSeconds.rs");

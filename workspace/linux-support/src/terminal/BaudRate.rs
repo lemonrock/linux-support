@@ -171,7 +171,7 @@ impl BaudRate
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EINVAL => panic!("Baud was not valid (`& !CBAUD`)"),
 

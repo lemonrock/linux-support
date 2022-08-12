@@ -63,7 +63,7 @@ impl TimerFileDescriptor
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
 					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
@@ -100,8 +100,7 @@ impl TimerFileDescriptor
 			{
 				-1 =>
 				{
-					let error_number = errno();
-					match error_number.0
+					match SystemCallErrorNumber::from_errno()
 					{
 						EAGAIN => Err(WouldBlock),
 						ECANCELED => Err(Cancelled),
@@ -111,8 +110,8 @@ impl TimerFileDescriptor
 						EFAULT => panic!("`buf` is outside your accessible address space"),
 						EINVAL => panic!("`fd` is attached to an object which is unsuitable for reading OR was created via a call to `timerfd_create()` and the wrong size buffer was given to `read()`"),
 						EISDIR => panic!("`fd` refers to a directory"),
-
-						_ => panic!("Unexpected error `{}`", error_number),
+						
+						error_number @ _ => panic!("Unexpected error `{}`", error_number),
 					}
 				}
 
@@ -135,7 +134,7 @@ impl TimerFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EBADF => panic!("`fd` is not a valid file descriptor"),
 				EFAULT => panic!("curr_value` is not a valid pointer"),
@@ -264,7 +263,7 @@ impl TimerFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EBADF => panic!("`fd` is not a valid file descriptor"),
 				EFAULT => panic!("`new_value` or `old_value` is not a valid pointer"),

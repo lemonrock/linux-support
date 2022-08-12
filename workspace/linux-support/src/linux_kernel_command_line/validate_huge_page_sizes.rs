@@ -15,23 +15,23 @@ pub(crate) fn validate_huge_page_sizes(linux_kernel_command_line_parameters: &Li
 {
 	if cpu_supports_1gb_pages
 	{
-		if !linux_kernel_command_line_parameters.gbpages()
+		if !linux_kernel_command_line_parameters.gigabyte_huge_pages()
 		{
 			return Err("Kernel should have `gbpages`")
 		}
 
-		if linux_kernel_command_line_parameters.nogbpages()
+		if linux_kernel_command_line_parameters.no_gigabyte_huge_pages()
 		{
 			return Err("Kernel should not have `nogbpages`")
 		}
 
-		match linux_kernel_command_line_parameters.default_hugepagesz()
+		match linux_kernel_command_line_parameters.default_huge_page_size()
 		{
 			Some(b"1G") => (),
 			_ => return Err("Kernel should have `default_hugepagesz=1G` for this CPU"),
 		}
 
-		let huge_page_sizes = linux_kernel_command_line_parameters.hugepagesz().ok_or("Kernel should have `hugepagesz` for this CPU")?;
+		let huge_page_sizes = linux_kernel_command_line_parameters.huge_page_size().ok_or("Kernel should have `hugepagesz` for this CPU")?;
 
 		let hugepages = linux_kernel_command_line_parameters.hugepages().ok_or("Kernel should have `hugepages` for this CPU")?;
 
@@ -50,19 +50,19 @@ pub(crate) fn validate_huge_page_sizes(linux_kernel_command_line_parameters: &Li
 	}
 	else
 	{
-		if linux_kernel_command_line_parameters.gbpages()
+		if linux_kernel_command_line_parameters.gigabyte_huge_pages()
 		{
 			return Err("Kernel should not have `gbpages`")
 		}
 
-		match linux_kernel_command_line_parameters.default_hugepagesz()
+		match linux_kernel_command_line_parameters.default_huge_page_size()
 		{
 			None | Some(b"2M") => (),
 
 			_ => return Err("Kernel should have `default_hugepagesz=2M` for this CPU"),
 		}
 
-		let huge_page_sizes_option = linux_kernel_command_line_parameters.hugepagesz();
+		let huge_page_sizes_option = linux_kernel_command_line_parameters.huge_page_size();
 		let hugepages_option = linux_kernel_command_line_parameters.hugepages();
 
 		if huge_page_sizes_option.is_none() && hugepages_option.is_some() || huge_page_sizes_option.is_none() && hugepages_option.is_some()

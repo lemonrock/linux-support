@@ -23,7 +23,7 @@ impl SendFile for File
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EAGAIN | ENOMEM => WouldBlock,
 					EINTR => Interrupted,
@@ -62,7 +62,7 @@ impl SendFile for File
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EAGAIN | ENOMEM => WouldBlock,
 					EINTR => Interrupted,

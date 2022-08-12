@@ -13,9 +13,9 @@ pub struct EtcPasswdRecordDiagnostic
 	/// Group identifier.
 	pub group_identifier: GroupIdentifier,
 	
-	/// GECOS ("General Electric Comprehensive Operating System", also known as GCOS when owned by Honeywell) or comment field.
+	/// GECOS ("General Electric Comprehensive Operating System", also known as GECOS when owned by Honeywell) or comment field.
 	///
-	/// One of the original designers of Unix, Denis Ritchie, has, paraphrased, called this field 'not elegent' - it was originally a hack.
+	/// One of the original designers of Unix, Denis Ritchie, has, paraphrased, called this field 'not elegant' - it was originally a hack.
 	///
 	/// Often empty, might be the same as `UserName` or comma-separated, eg `Linux User,,,`.
 	pub gecos: Vec<u8>,

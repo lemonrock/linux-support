@@ -2,6 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// "Operation is not supported".
-/// Not supposed to be returned to userspace.
-pub(crate) const ENOTSUPP: i32 = 524;
+/// Implementations of `Drop::drop()` forward to `SpecializationHackOfDropToOvercomeCompilerErrorE0367ExpressDataPathSocket::specialization_of_drop()` which allows `drop` to be specialized.
+trait SpecializationHackOfDropToOvercomeCompilerErrorE0367ExpressDataPathSocket
+{
+	/// Allows specialization (use of `default` keyword) of `Drop::drop()` with `default fn drop(&mut self)` is not allowed by Rust for reasons that I do not know (I suspect to permit one destructor implementation).
+	fn specialization_of_drop(&mut self);
+}

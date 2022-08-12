@@ -34,7 +34,7 @@ pub enum RenameFlags
 	/// A whiteout on an upper layer will effectively hide a matching file in the lower layer, making it appear as if the file didn't exist.
 	///
 	/// When a file that exists on the lower layer is renamed, the file is first copied up (if not already on the upper layer) and then renamed on the upper, read-write layer.
-	/// At the same time, the source file needs to be "whiteouted" (so that the version of the source file in the lower layer is rendered invisible).  The whole operation needs to be done atomically.
+	/// At the same time, the source file needs to be "whiteout"-ed (so that the version of the source file in the lower layer is rendered invisible).  The whole operation needs to be done atomically.
 	///
 	/// When not part of a union/overlay, the whiteout appears as a character device with a {0,0} device number.
 	/// (Note that other union/overlay domain may employ different methods for storing whiteout entries; specifically, BSD union mount  employs a separate inode type, `DT_WHT`, which, while supported by some filesystems available in Linux, such as CODA and XFS, is ignored by the kernel's whiteout support code, as of Linux 4.19, at least).

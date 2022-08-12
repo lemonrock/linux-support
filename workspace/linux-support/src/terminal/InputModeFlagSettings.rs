@@ -21,7 +21,7 @@ impl Default for InputModeFlagSettings
 		this.insert(IgnoreBreakCondition, Off);
 		this.insert(SignalInterruptOnBreak, Off);
 		this.insert(MarkParityErrors, Off);
-		this.insert(StripOffEigthBitOfEveryCharacter, Off);
+		this.insert(StripOffEighthBitOfEveryCharacter, Off);
 		this.insert(MapNewLineToCarriageReturn, Off);
 		this.insert(IgnoreCarriageReturn, Off);
 		this.insert(MapCarriageReturnToNewLine, Off);

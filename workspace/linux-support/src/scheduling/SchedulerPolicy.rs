@@ -38,7 +38,7 @@ pub enum SchedulerPolicy
 	/// This policy is similar to `Normal` in that it schedules the process according to its dynamic priority (based on the nice value).
 	/// The difference is that this policy will cause the scheduler to always assume that the process is CPU-intensive.
 	/// Consequently, the scheduler will apply a small scheduling penalty with respect to wakeup behaviour, so that this process is mildly disfavored in scheduling decisions.
-	/// This policy is useful for workloads that are noninteractive, but do not want to lower their nice value, and for workloads that want a deterministic scheduling policy without interactivity causing extra preemptions (between the workload's tasks).
+	/// This policy is useful for workloads that are non-interactive, but do not want to lower their nice value, and for workloads that want a deterministic scheduling policy without interactivity causing extra preemptions (between the workload's tasks).
 	Batch(Nice),
 
 	/// The standard (and default) round-robin time-sharing scheduler.

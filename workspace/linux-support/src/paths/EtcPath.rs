@@ -47,6 +47,7 @@ impl EtcPath
 		self.file_path("hosts")
 	}
 	
+	//noinspection SpellCheckingInspection
 	/// `/etc/resolv.conf`.
 	#[inline(always)]
 	pub fn resolv_conf(&self) -> PathBuf

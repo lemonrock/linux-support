@@ -34,7 +34,7 @@ impl seccomp_notif_sizes
 				}
 				else if unlikely!(result == -1)
 				{
-					panic!("seccomp() failed with {}", errno())
+					panic!("seccomp() failed with {}", SystemCallErrorNumber::from_errno())
 				}
 				else
 				{

@@ -4,7 +4,7 @@
 
 /// Extended attribute name.
 ///
-/// Limited to 255 bytes (?exluding terminal NUL?) by Linux.
+/// Limited to 255 bytes (?excluding terminal NUL?) by Linux.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct ExtendedAttributeName<'a>(&'a CStr);

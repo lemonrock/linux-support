@@ -156,7 +156,7 @@ impl<'a> IoUring<'a>
 		self.io_uring_file_descriptor.register_event_file_descriptor_for_only_asynchronous_notifications(event_file_descriptor)
 	}
 	
-	/// Unregister an event file desscriptor.
+	/// Unregister an event file descriptor.
 	///
 	/// The event file descriptor is automatically released on drop.
 	///

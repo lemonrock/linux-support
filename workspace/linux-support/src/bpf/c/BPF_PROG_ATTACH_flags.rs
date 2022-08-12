@@ -30,13 +30,13 @@ bitflags!
 	///
 	/// Example:-
 	/// ```bash
-	/// cgrp1 (MULTI progs A, B) ->
-	///    cgrp2 (OVERRIDE prog C) ->
-	///      cgrp3 (MULTI prog D) ->
-	///        cgrp4 (OVERRIDE prog E) ->
-	///          cgrp5 (NONE prog F)
+	/// cgroup1 (MULTI progs A, B) ->
+	///    cgroup2 (OVERRIDE prog C) ->
+	///      cgroup3 (MULTI prog D) ->
+	///        cgroup4 (OVERRIDE prog E) ->
+	///          cgroup5 (NONE prog F)
 	/// ```
-	/// the event in cgrp5 triggers execution of F,D,A,B in that order.
+	/// the event in cgroup5 triggers execution of F,D,A,B in that order.
 	/// if prog F is detached, the execution is E,D,A,B
 	/// if prog F and D are detached, the execution is E,A,B
 	/// if prog F, E and D are detached, the execution is C,A,B

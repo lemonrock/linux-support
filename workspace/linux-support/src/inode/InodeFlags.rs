@@ -16,7 +16,7 @@ bitflags!
 		/// Allow the file to be undeleted if it is deleted.
 		///
 		/// When a file with this attribute set is deleted, its contents are saved.
-		/// This allows the user to ask for its undeletion.
+		/// This allows the user to ask for its un-deletion.
 		///
 		/// Inherited by files and subdirectories if set on a directory.
 		///
@@ -61,7 +61,7 @@ bitflags!
 
 		/// The file is immutable: no changes are permitted to the file contents or metadata (permissions, timestamps, ownership, link count and so on).
 		/// (This restriction applies even to the superuser).
-		/// Additonally, it cannot be deleted or renamed, no link can be created to this file, most of the file's metadata can not be modified, and the file can not be opened in write mode.
+		/// Additionally, it cannot be deleted or renamed, no link can be created to this file, most of the file's metadata can not be modified, and the file can not be opened in write mode.
 		///
 		/// Only a process with the `CAP_LINUX_IMMUTABLE` capability can set or clear this attribute.
 		///
@@ -154,11 +154,11 @@ bitflags!
 
 		/// Enable journaling of file data on ext3 and ext4 filesystems.
 		///
-		/// Only a procss with the `CAP_SYS_RESOURCE` capability can set this flag.
+		/// Only a process with the `CAP_SYS_RESOURCE` capability can set this flag.
 		///
 		/// On a filesystem that is journaling in ordered mode (mount option: `data=ordered`) or writeback mode (mount option: `data=writeback`), setting this flag enables journaling of data updates on a per-file basis (ie as if the mount option `data=journal` was specified).
 		///
-		/// If the file system is journalling in journal mode (sic) (mount option: `data=journal`) then this flag has no effect.
+		/// If the file system is journaling in journal mode (sic) (mount option: `data=journal`) then this flag has no effect.
 		///
 		/// Setting this flag forces all written data to go to the filesystems journal before being transferred to the file.
 		///

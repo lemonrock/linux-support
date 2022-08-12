@@ -64,7 +64,7 @@ impl<IPA: InternetProtocolAddress> GetAddressProcessingMessageStateUnicastCommon
 		let interface_flags = common.interface_flags;
 		let common = common.to_processed_message::<IPA>()?;
 		
-		// Based on convuluted logic in musl libc `getifaddrs.c`.
+		// Based on convoluted logic in musl libc `getifaddrs.c`.
 		let source_address_and_point_to_point_peer_destination_address = match (self.address, self.local_address)
 		{
 			(None, None) => None,

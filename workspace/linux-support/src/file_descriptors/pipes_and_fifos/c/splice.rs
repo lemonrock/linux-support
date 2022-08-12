@@ -32,7 +32,7 @@ extern "C"
 	/// * `EINVAL`: The target filesystem doesn't support splicing.
 	/// * `EINVAL`: The target file is opened in append mode.
 	/// * `EINVAL`: Neither of the file descriptors refers to a pipe.
-	/// * `EINVAL`: An offset was given for nonseekable device (eg, a pipe).
+	/// * `EINVAL`: An offset was given for a non-seekable device (eg, a pipe).
 	/// * `EINVAL`: `fd_in` and `fd_out` refer to the same pipe.
 	/// * `ENOMEM`: Out of memory.
 	/// * `ESPIPE`: Either `off_in` or `off_out` was not `NULL`, but the corresponding file descriptor refers to a pipe.

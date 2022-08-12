@@ -21,7 +21,7 @@ pub enum InternetProtocolVersion4AddressResolutionProtocolAnnounce
 	
 	/// Always use the best local address for this target.
 	///
-	/// In this mode we ignore the source address in the IP packet and try to selecta  local address that we prefer for talks with the target host.
+	/// In this mode we ignore the source address in the IP packet and try to select a local address that we prefer for talks with the target host.
 	/// Such a local address is selected by looking for primary IP addresses on all our subnets on the outgoing interface that include the target IP address.
 	/// If no suitable local address is found we select the first local address we have on the outgoing interface or on all other interfaces, with the hope we will receive a reply for our request and even sometimes no matter the source IP address we announce.
 	Level2 = 2,

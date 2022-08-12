@@ -25,8 +25,8 @@ impl<'a, SD: 'a + SocketData> ReceiveMessage<'a, SD>
 	#[inline(always)]
 	pub fn new(pending_accept_connection: &'a mut PendingAcceptConnection<SD>, buffers: &'a [&'a mut [u8]], message_control: &'a mut [u8]) -> Self
 	{
-		let message_iovlength = buffers.len();
-		debug_assert!(message_iovlength <= i32::MAX as usize);
+		let message_iov_length = buffers.len();
+		debug_assert!(message_iov_length <= i32::MAX as usize);
 
 		let message_control_length = message_control.len();
 		debug_assert!(message_control_length <= u32::MAX as usize);
@@ -38,7 +38,7 @@ impl<'a, SD: 'a + SocketData> ReceiveMessage<'a, SD>
 				&mut pending_accept_connection.peer_address as *mut SD as *mut c_void,
 				pending_accept_connection.peer_address_length,
 				buffers.as_ptr() as *mut iovec,
-				message_iovlength as u32 as i32,
+				message_iov_length as u32 as i32,
 				message_control.as_mut_ptr() as *mut c_void,
 				message_control_length as u32,
 				unsafe_uninitialized(),

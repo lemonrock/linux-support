@@ -17,7 +17,7 @@ pub enum PortConnector
 		
 		/// MDI(-X) control.
 		///
-		/// If MDI(-X) control is not implemented, the valud will be `ETH_TP_MDI::ETH_TP_MDI_INVALID`.
+		/// If MDI(-X) control is not implemented, the value will be `ETH_TP_MDI::ETH_TP_MDI_INVALID`.
 		mdi_x_control: ETH_TP_MDI,
 	},
 	

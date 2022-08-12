@@ -4,7 +4,7 @@
 
 /// Used to create per-thread (Shared) sockets.
 ///
-/// No need to hold onto an instance once all desired shared sockts have been created.
+/// No need to hold onto an instance once all desired shared sockets have been created.
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct ShareableExpressDataPathInstance<ROTOB: ReceiveOrTransmitOrBoth, FFQ: FreeFrameQueue>(Arc<(ExpressDataPathInstance<ROTOB, FFQ>, BestForCompilationTargetSpinLock, BestForCompilationTargetSpinLock, Mutex<HashSet<QueueIdentifier>>)>);

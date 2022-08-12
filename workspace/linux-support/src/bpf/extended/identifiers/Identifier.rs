@@ -39,10 +39,10 @@ pub trait Identifier: From<u32> + Into<u32> + Into<BpfCommandGetIdentifierValueO
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOENT => None,
-				unexpected @ _ => panic!("Unexpected errror {}", unexpected),
+				unexpected @ _ => panic!("Unexpected error {}", unexpected),
 			}
 		}
 		else

@@ -89,7 +89,7 @@ RXCTRL      0x03000 -               RW    Receive Control
 RXDGPC      0x02F50 -               RC    DMA Good Receive Packet Counter
 TXDGPC      0x087A0 -               RC    DMA Good Transmit Packet Counter
 RXDSTATCTRL 0x02F40 -               RW    Receive DMA Statistic Counter Control
-RUC         0x040A4 -               RC    Receive Undersize Count
+RUC         0x040A4 -               RC    Receive Under size Count
 RFC         0x040A8 -               RC    Receive Fragment Count
 ROC         0x040AC -               RC    Receive Oversize Count
 RJC         0x040B0 -               RC    Receive Jabber Count

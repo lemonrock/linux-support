@@ -27,7 +27,7 @@ pub(crate) struct InternetProtocolVersion6DeviceConfigurationGetLinkProcessMessa
 	
 	pub(crate) temporary_address_valid_lifetime: Option<InternetProtocolAddressLifetime>,
 	
-	pub(crate) temporary_address_prefered_lifetime: Option<InternetProtocolAddressLifetime>,
+	pub(crate) temporary_address_preferred_lifetime: Option<InternetProtocolAddressLifetime>,
 	
 	pub(crate) regen_maximum_retry: Option<u32>,
 	
@@ -149,7 +149,7 @@ impl InternetProtocolVersion6DeviceConfigurationGetLinkProcessMessageState
 				
 				temporary_address_valid_lifetime: self.temporary_address_valid_lifetime.ok_or(format!("Linux kernel bug - missing temporary_address_valid_lifetime"))?,
 				
-				temporary_address_prefered_lifetime: self.temporary_address_prefered_lifetime.ok_or(format!("Linux kernel bug - missing temporary_address_prefered_lifetime"))?,
+				temporary_address_preferred_lifetime: self.temporary_address_preferred_lifetime.ok_or(format!("Linux kernel bug - missing temporary_address_preferred_lifetime"))?,
 				
 				regen_maximum_retry: self.regen_maximum_retry.ok_or(format!("Linux kernel bug - missing regen_maximum_retry"))?,
 				

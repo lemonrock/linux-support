@@ -18,7 +18,7 @@ bitflags!
 		const NoRootLocked = SECBIT_NOROOT_LOCKED;
 
 		/// When set, setuid to/from uid 0 does not trigger capability-"fixup".
-		/// When unset, to provide compatiblility with old programs relying on set*uid to gain/lose privilege, transitions to/from uid 0 cause capabilities to be gained/lost.
+		/// When unset, to provide compatibility with old programs relying on set*uid to gain/lose privilege, transitions to/from uid 0 cause capabilities to be gained/lost.
 		const NoSetUidFixUpOn = SECBIT_NO_SETUID_FIXUP;
 
 		/// Lock for `NoSetUidFixUp`.

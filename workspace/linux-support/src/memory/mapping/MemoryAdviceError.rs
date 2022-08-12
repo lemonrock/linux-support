@@ -40,7 +40,7 @@ pub enum MemoryAdviceError
 	/// The process does not have the capability `CAP_SYS_ADMIN`.
 	PermissionDeniedForHardwarePoison,
 
-	// EGAIN
+	// EAGAIN
 	// EBADF
 	// EINVAL addr is not page-aligned or length is negative. advice is not a valid.
 	// ENOMEM Addresses in the specified range are not currently mapped, or are outside the address space of the process.

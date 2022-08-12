@@ -41,7 +41,7 @@ use crate::memory::numa::NumaZoneReclaimMode;
 use crate::memory::out_of_memory::*;
 use crate::memory::system_v_shared_memory::memory_segments::*;
 use crate::memory::system_v_shared_memory::message_queues::*;
-use crate::memory::system_v_shared_memory::semaphores::SempahoresConfiguration;
+use crate::memory::system_v_shared_memory::semaphores::SemaphoresConfiguration;
 use crate::mounts::Mounts;
 use crate::network_device::*;
 use crate::network_device::receive_side_scaling::*;

@@ -64,13 +64,13 @@ pub struct GetLinkProcessingMessageState
 	
 	pub(crate) carrier_down_count: Option<u32>,
 	
-	pub(crate) target_net_namespace_identifier: Option<NetNamespaceIdentifer>,
+	pub(crate) target_net_namespace_identifier: Option<NetNamespaceIdentifier>,
 	
-	pub(crate) linked_net_namespace_identifier: Option<NetNamespaceIdentifer>,
+	pub(crate) linked_net_namespace_identifier: Option<NetNamespaceIdentifier>,
 	
 	pub(crate) linked_network_interface_index: Option<Option<NetworkInterfaceIndex>>,
 	
-	pub(crate) new_net_namespace_identifier: Option<NetNamespaceIdentifer>,
+	pub(crate) new_net_namespace_identifier: Option<NetNamespaceIdentifier>,
 	
 	pub(crate) new_network_interface_index: Option<NetworkInterfaceIndex>,
 	

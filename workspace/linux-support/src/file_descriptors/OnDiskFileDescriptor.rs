@@ -192,7 +192,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 		else if likely!(result == 0)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENODATA => Ok(None),
 				_ => Err(io::Error::last_os_error()),
@@ -240,7 +240,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENODATA if flags == XATTR_REPLACE =>
 				{
@@ -274,7 +274,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENODATA => Ok(false),
 				_ => Err(io::Error::last_os_error()),

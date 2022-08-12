@@ -3,7 +3,7 @@
 
 
 #[inline(always)]
-pub(crate) fn process_control_wrapper3<V, E>(operation: i32, arg2: usize, arg3: usize, ok_handler: impl FnOnce(i32) -> Result<V, E>, err_handler: impl FnOnce(Errno) -> Result<V, E>) -> Result<V, E>
+pub(crate) fn process_control_wrapper3<V, E>(operation: i32, arg2: usize, arg3: usize, ok_handler: impl FnOnce(i32) -> Result<V, E>, err_handler: impl FnOnce(SystemCallErrorNumber) -> Result<V, E>) -> Result<V, E>
 {
 	process_control_wrapper(operation, arg2, arg3, 0, 0, ok_handler, err_handler)
 }

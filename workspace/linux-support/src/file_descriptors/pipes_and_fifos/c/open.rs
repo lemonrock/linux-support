@@ -10,7 +10,7 @@ extern "C"
 	/// The argument flags must include one of the following access modes: `O_RDONLY`, `O_WRONLY`, or `O_RDWR`.
 	/// These request opening the file read-only, write-only, or read/write, respectively.
 	///
-	/// In addition, zero or more file creation `flags` and file status `flags` can be bitwise-or'd in flags.
+	/// In addition, zero or more file creation `flags` and file status `flags` can be bitwise-or-ed in flags.
 	///
 	/// `open()` returns the new file descriptor, or `-1` if an error occurred (in which case, `errno` is set appropriately).
 	///

@@ -25,7 +25,7 @@ pub trait CopyOnWrite: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EBADF => Err("The filesystem which src_fd resides on does not support reflink OR src_fd is not open for reading; dest_fd is not open for writing or is open for append-only writes"),
 				EOPNOTSUPP => Err("This can appear if the filesystem does not support reflinking either file descriptor, or if either file descriptor refers to special inodes"),
@@ -73,7 +73,7 @@ pub trait CopyOnWrite: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EBADF => Err("The filesystem which src_fd resides on does not support reflink OR src_fd is not open for reading; dest_fd is not open for writing or is open for append-only writes"),
 				EINVAL => Err("The filesystem does not support reflinking the ranges of the given files. This error can also appear if either file descriptor represents a device, FIFO, or socket. Disk filesystems generally require the offset and length arguments to be aligned to the fundamental block size. XFS and Btrfs do not support overlapping reflink ranges in the same file."),
@@ -113,10 +113,10 @@ pub trait CopyOnWrite: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EBADF => Err("The filesystem which src_fd resides on does not support deduplication OR src_fd is not open for reading; dest_fd is not open for writing or is open for append-only writes."),
-				EINVAL => Err("The filesystem does not support deduplicating the ranges of the given files. This error can also appear if either file descriptor represents a device, FIFO, or socket. Diskfilesystems generally require the offset and length argumentsto be aligned to the fundamental block size. Neither Btrfs nor XFS support overlapping deduplication ranges in the same file"),
+				EINVAL => Err("The filesystem does not support deduplicating the ranges of the given files. This error can also appear if either file descriptor represents a device, FIFO, or socket. Disk filesystems generally require the offset and length arguments to be aligned to the fundamental block size. Neither Btrfs nor XFS support overlapping deduplication ranges in the same file"),
 				ENOMEM => Err("The kernel was unable to allocate sufficient memory to perform the operation or dest_count is so large that the input argument description spans more than a single page of memory"),
 				EOPNOTSUPP => Err("TThis can appear if the filesystem does not support deduplicating either file descriptor, or if either file descriptor refers to special inodes."),
 				EXDEV => Err("dest_fd and src_fd are not on the same mounted filesystem"),

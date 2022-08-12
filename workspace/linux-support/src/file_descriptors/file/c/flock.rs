@@ -22,8 +22,11 @@ impl flock
 		let advisory_record_lock = match self.l_type as i32
 		{
 			F_UNLCK => return Ok(()),
+			
 			F_RDLCK => Read,
+			
 			F_WRLCK => Write,
+			
 			unknown @ _ => panic!("Unknown l_type {}", unknown),
 		};
 

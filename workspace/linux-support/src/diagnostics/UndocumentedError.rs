@@ -4,7 +4,7 @@
 
 /// Undocumented error.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub struct UndocumentedError(pub Errno);
+pub struct UndocumentedError(pub SystemCallErrorNumber);
 
 impl Display for UndocumentedError
 {

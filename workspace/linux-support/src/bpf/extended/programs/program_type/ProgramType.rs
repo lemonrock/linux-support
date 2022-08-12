@@ -9,7 +9,7 @@
 #[serde(deny_unknown_fields)]
 pub enum ProgramType
 {
-	/// Also known as in libpbf as `scoket_filter`.
+	/// Also known as in libpbf as `socket_filter`.
 	/// Also known as the ELF section `socket`.
 	///
 	/// The capability `CAP_SYS_ADMIN` is required.

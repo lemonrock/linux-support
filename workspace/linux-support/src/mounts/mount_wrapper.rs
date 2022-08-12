@@ -37,7 +37,7 @@ pub fn mount_wrapper<'a>(source: &CStr, mount_point: &Path, file_system_type: &F
 	{
 		0 => Ok(()),
 
-		-1 => match errno().0
+		-1 => match SystemCallErrorNumber::from_errno()
 		{
 			EACCES => Err(io_error_not_found("Component of mount path to mount does not exist")),
 			ENOENT => Err(io_error_not_found("Mount path had an empty or non-existent component")),

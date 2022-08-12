@@ -34,10 +34,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		(
 			SIOCGIFINDEX,
 			|ifreq| Ok(NetworkInterfaceIndex::try_from(unsafe { ifreq.ifr_ifru.ifru_ivalue })?),
-			|errno| match errno.0
-			{
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from ioctl(SIOCGIFINDEX)", unexpected)),
-			}
+			|error_number| unreachable_code(format_args!("Unexpected error {} from ioctl(SIOCGIFINDEX)", error_number)),
 		)
 	}
 	
@@ -51,10 +48,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		(
 			SIOCGIFFLAGS,
 			|ifreq| Ok(net_device_flags::from_bits_truncate(unsafe { ifreq.ifr_ifru.ifru_flags } as u32)),
-			|errno| match errno.0
-			{
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from ioctl(SIOCGIFFLAGS)", unexpected)),
-			}
+			|error_number| unreachable_code(format_args!("Unexpected error {} from ioctl(SIOCGIFFLAGS)", error_number)),
 		)
 	}
 	
@@ -82,10 +76,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 				ifru_flags: flags_bits_to_set as i16,
 			},
 			|_ifreq| Ok(()),
-			|errno| match errno.0
-			{
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from ioctl(SIOCSIFFLAGS)", unexpected)),
-			}
+			|error_number| unreachable_code(format_args!("Unexpected error {} from ioctl(SIOCSIFFLAGS)", error_number)),
 		)
 	}
 	
@@ -105,7 +96,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 				ifru_ivalue: transmission_queue_length.try_into().map_err(|_| TransmissionQueueLengthOutOfRangeError)?,
 			},
 			|_ifreq| Ok(()),
-			|errno| match errno.0
+			|error_number| match error_number
 			{
 				ERANGE => Err(TransmissionQueueLengthOutOfRangeError),
 				
@@ -128,7 +119,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 				ifru_mtu: maximum_transmission_unit.into(),
 			},
 			|_ifreq| Ok(()),
-			|errno| match errno.0
+			|error_number| match error_number
 			{
 				ERANGE => Err(MaximumTransmissionUnitPayloadSizeOutOfRangeError),
 				
@@ -144,7 +135,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		(
 			ethtool_link_settings::to_get_link_mode_masks_nwords(),
 			|command| Ok(Some((command.cmd, command.link_mode_masks_nwords))),
-			|errno| Err(UndocumentedError(errno)),
+			|error_number| Err(UndocumentedError(error_number)),
 			|_command| None,
 		)?
 		{
@@ -162,7 +153,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		(
 			ethtool_link_settings::to_get(link_mode_masks_nwords),
 			|command| Ok(Some(command)),
-			|errno| Err(UndocumentedError(errno)),
+			|error_number| Err(UndocumentedError(error_number)),
 			|_command| None,
 		)?
 		{
@@ -246,7 +237,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 				data: 0
 			},
 			|command| Ok(Some(command.data != 0)),
-			|errno| Err(UndocumentedError(errno)),
+			|error_number| Err(UndocumentedError(error_number)),
 			|_command| None,
 		)
 	}
@@ -271,7 +262,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 					}
 				)
 			),
-			|errno| Err(UndocumentedError(errno)),
+			|error_number| Err(UndocumentedError(error_number)),
 			|_command| None,
 		)
 	}
@@ -295,7 +286,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 				
 				Ok(Some(NetworkDeviceRegisters { version, binary_data }))
 			},
-			|errno| Err(UndocumentedError(errno)),
+			|error_number| Err(UndocumentedError(error_number)),
 			|_command| None,
 		)
 	}
@@ -320,7 +311,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 				
 				Ok(Some(ExpansionEepromBinaryData { device_version, magic_cookie, binary_data }))
 			},
-			|errno| Err(UndocumentedError(errno)),
+			|error_number| Err(UndocumentedError(error_number)),
 			|_command| None,
 		)
 	}
@@ -332,7 +323,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		(
 			ethtool_modinfo::get(),
 			|command| Ok(Some((command.type_, command.eeprom_len))),
-			|errno| Err(UndocumentedError(errno)),
+			|error_number| Err(UndocumentedError(error_number)),
 			|_command| None,
 		)?
 		{
@@ -354,7 +345,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		(
 			ethtool_eeprom::get_module_eeprom(length),
 			|command| Ok(Some(command.array_elements().to_vec())),
-			|errno| Err(UndocumentedError(errno)),
+			|error_number| Err(UndocumentedError(error_number)),
 			|_command| None,
 		)?
 		{
@@ -400,7 +391,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		(
 			ethtool_dump::get_flag(),
 			|command| Ok(Some((command.flag, command.version, command.array_length()))),
-			|errno| Err(UndocumentedError(errno)),
+			|error_number| Err(UndocumentedError(error_number)),
 			|_command| None,
 		)?
 		{
@@ -418,7 +409,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		(
 			ethtool_dump::get_data(length),
 			|command| Ok(Some(command.array_elements().to_vec().into_boxed_slice())),
-			|errno| Err(UndocumentedError(errno)),
+			|error_number| Err(UndocumentedError(error_number)),
 			|_command| None,
 		)?
 		{
@@ -474,7 +465,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 				}
 				Ok(Some(statistics))
 			},
-			|errno| Err(UndocumentedError(errno)),
+			|error_number| Err(UndocumentedError(error_number)),
 			|_command| None,
 		)
 	}
@@ -489,7 +480,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		(
 			ethtool_tunable::new_get(),
 			|tunable| Ok(Some(tunable.data)),
-			|errno| Err(UndocumentedError(errno)),
+			|error_number| Err(UndocumentedError(error_number)),
 			|_command| None,
 		)
 	}
@@ -506,11 +497,11 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		(
 			ethtool_tunable::new_set(tunable),
 			|_command| Ok(()),
-			|errno| match errno.0
+			|error_number| match error_number
 			{
 				ERANGE => Err(TunableOutOfRangeError),
 				
-				_ => Self::error_is_unreachable(errno),
+				_ => Self::error_is_unreachable(error_number),
 			},
 			|_command| (),
 		)
@@ -634,10 +625,10 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		let mut command = ethtool_per_queue_op::coalesce_set(queue_identifiers.keys());
 		{
 			let array = command.array_elements_mut();
-			for (index, coalsece_configuration) in queue_identifiers.values().enumerate()
+			for (index, coalesce_configuration) in queue_identifiers.values().enumerate()
 			{
 				let pointer = array.get_unchecked_mut_safe(index) as *mut ethtool_coalesce;
-				let ethtool_coalesce = coalsece_configuration.as_ethtool_coalesce();
+				let ethtool_coalesce = coalesce_configuration.as_ethtool_coalesce();
 				unsafe { pointer.write(ethtool_coalesce) }
 			}
 		}
@@ -646,7 +637,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		(
 			command,
 			|_command| Ok(()),
-			|errno| Err(UndocumentedError(errno)),
+			|error_number| Err(UndocumentedError(error_number)),
 			|_command| (),
 		)
 	}
@@ -672,7 +663,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		(
 			command,
 			|_command| Ok(()),
-			|errno| Err(UndocumentedError(errno)),
+			|error_number| Err(UndocumentedError(error_number)),
 			|_command| (),
 		)
 	}
@@ -680,28 +671,28 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	#[allow(missing_docs)]
 	pub fn maximize_receive_ring_queues_and_transmit_ring_queue_depths(&self) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
-		let maximima = match self.receive_ring_queues_and_transmit_ring_queue_depths()?
+		let maxima = match self.receive_ring_queues_and_transmit_ring_queue_depths()?
 		{
 			None => return Ok(None),
 			Some(None)  => return Ok(Some(())),
-			Some(Some((_current, maximima))) => maximima,
+			Some(Some((_current, maxima))) => maxima,
 		};
 		
-		self.set_receive_ring_queues_and_transmit_ring_queue_depths(&maximima)
+		self.set_receive_ring_queues_and_transmit_ring_queue_depths(&maxima)
 	}
 	
 	/// NOTE: If a RX flow indirection table is configured (`netif_is_rxfh_configured()`) and the number of receive channels (combined + receive only) is reduced then `EINVAL` is returned.
 	/// NOTE: If XDP user memory is in use against a channel (a queue to XDP) and the number of channels is reduced (which should not happen) `EINVAL` is returned.
 	pub fn maximize_number_of_channels(&self) -> Result<Option<()>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
-		let maximima = match self.number_of_channels()?
+		let maxima = match self.number_of_channels()?
 		{
 			None => return Ok(None),
 			Some(None)  => return Ok(Some(())),
-			Some(Some((_current, maximima))) => maximima,
+			Some(Some((_current, maxima))) => maxima,
 		};
 		
-		self.set_number_of_channels(&maximima)
+		self.set_number_of_channels(&maxima)
 	}
 	
 	/// The ring queue count can legitimately be zero.
@@ -750,12 +741,12 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		(
 			receive_side_scaling_flow_hash_key_configuration.to_ethtool_rxnfc(receive_side_scaling_context),
 			|_command| Ok(true),
-			|errno| match errno.0
+			|error_number| match error_number
 			{
 				// An unsupported setting should give `EOPNOTSUPP` but a bug in the Amazon ENA driver (and maybe others) will give `EINVAL`.
 				EINVAL => Ok(Some(false)),
 				
-				_ => Err(UndocumentedError(errno)),
+				_ => Err(UndocumentedError(error_number)),
 			},
 			|_command| false,
 		)
@@ -1230,7 +1221,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		(
 			ethtool_gfeatures::new(),
 			|command| Ok(command),
-			|errno| match errno.0
+			|error_number| match error_number
 			{
 				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected)),
 			},
@@ -1423,7 +1414,8 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		)
 	}
 	
-	/// Queue depths, current and maximima.
+	/// Queue depths, current and maxima
+	/// .
 	#[inline(always)]
 	pub fn receive_ring_queues_and_transmit_ring_queue_depths(&self) -> Result<Option<Option<(PendingQueueDepths, PendingQueueDepths)>>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
@@ -1444,9 +1436,9 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			|ring_parameters|
 			{
 				let current = PendingQueueDepths::new(ring_parameters.rx_pending, ring_parameters.rx_jumbo_pending, ring_parameters.rx_mini_pending, ring_parameters.tx_pending);
-				let maximima = PendingQueueDepths::new(ring_parameters.rx_max_pending, ring_parameters.rx_mini_max_pending, ring_parameters.rx_jumbo_max_pending, ring_parameters.tx_max_pending);
+				let maxima = PendingQueueDepths::new(ring_parameters.rx_max_pending, ring_parameters.rx_mini_max_pending, ring_parameters.rx_jumbo_max_pending, ring_parameters.tx_max_pending);
 				
-				Ok(Some((current, maximima)))
+				Ok(Some((current, maxima)))
 			},
 			Self::error_is_unreachable,
 			|_command| None
@@ -1477,7 +1469,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 		)
 	}
 	
-	/// Number of channels, current and maximima.
+	/// Number of channels, current and maxima.
 	#[inline(always)]
 	pub fn number_of_channels(&self) -> Result<Option<Option<(Channels, Channels)>>, NetworkDeviceInputOutputControlError<Infallible>>
 	{
@@ -1498,8 +1490,8 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			|command|
 			{
 				let current = Channels::new(command.combined_count, command.rx_count, command.tx_count, command.other_count);
-				let maximima = Channels::new(command.max_combined, command.max_rx, command.max_tx, command.max_other);
-				Ok(Some((current, maximima)))
+				let maxima = Channels::new(command.max_combined, command.max_rx, command.max_tx, command.max_other);
+				Ok(Some((current, maxima)))
 			},
 			Self::error_is_unreachable,
 			|_command| None
@@ -1540,19 +1532,19 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	}
 	
 	#[inline(always)]
-	fn ifreq_from_name<V: Sized, E: error::Error + 'static>(&self, request: i32, ok_handler: impl FnOnce(ifreq) -> Result<V, E>, error_handler: impl FnOnce(Errno) -> Result<Option<V>, E>) -> Result<Option<V>, NetworkDeviceInputOutputControlError<E>>
+	fn ifreq_from_name<V: Sized, E: error::Error + 'static>(&self, request: i32, ok_handler: impl FnOnce(ifreq) -> Result<V, E>, error_handler: impl FnOnce(SystemCallErrorNumber) -> Result<Option<V>, E>) -> Result<Option<V>, NetworkDeviceInputOutputControlError<E>>
 	{
 		self.network_device_socket_file_descriptor.ifreq_from_name(request, self.network_interface_name(), ok_handler, error_handler)
 	}
 	
 	#[inline(always)]
-	fn set_ifreq_from_name<V: Sized, E: error::Error + 'static>(&self, request: i32, ifr_ifru: ifreq_ifru, ok_handler: impl FnOnce(ifreq) -> Result<V, E>, error_handler: impl FnOnce(Errno) -> Result<Option<V>, E>) -> Result<Option<V>, NetworkDeviceInputOutputControlError<E>>
+	fn set_ifreq_from_name<V: Sized, E: error::Error + 'static>(&self, request: i32, ifr_ifru: ifreq_ifru, ok_handler: impl FnOnce(ifreq) -> Result<V, E>, error_handler: impl FnOnce(SystemCallErrorNumber) -> Result<Option<V>, E>) -> Result<Option<V>, NetworkDeviceInputOutputControlError<E>>
 	{
 		self.network_device_socket_file_descriptor.set_ifreq_from_name(request, self.network_interface_name(), ifr_ifru, ok_handler, error_handler)
 	}
 	
 	#[inline(always)]
-	fn ethtool_command<C: EthtoolCommand, V: Sized, E: error::Error + 'static>(&self, command: C, ok_handler: impl FnOnce(C) -> Result<V, E>, error_handler: impl FnOnce(Errno) -> Result<Option<V>, E>, not_supported: impl FnOnce(C) -> V) -> Result<Option<V>, NetworkDeviceInputOutputControlError<E>>
+	fn ethtool_command<C: EthtoolCommand, V: Sized, E: error::Error + 'static>(&self, command: C, ok_handler: impl FnOnce(C) -> Result<V, E>, error_handler: impl FnOnce(SystemCallErrorNumber) -> Result<Option<V>, E>, not_supported: impl FnOnce(C) -> V) -> Result<Option<V>, NetworkDeviceInputOutputControlError<E>>
 	{
 		self.network_device_socket_file_descriptor.ethtool_command(self.network_interface_name(), command, ok_handler, error_handler, not_supported)
 	}
@@ -1564,8 +1556,8 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 	}
 	
 	#[inline(always)]
-	fn error_is_unreachable<V: Sized, E: error::Error + 'static>(errno: Errno) -> Result<Option<V>, E>
+	fn error_is_unreachable<V: Sized, E: error::Error + 'static>(error_number: SystemCallErrorNumber) -> Result<Option<V>, E>
 	{
-		unreachable_code(format_args!("Unexpected error {} from ioctl(SIOCETHTOOL)", errno))
+		unreachable_code(format_args!("Unexpected error {} from ioctl(SIOCETHTOOL)", error_number))
 	}
 }

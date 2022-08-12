@@ -27,7 +27,7 @@ impl MemoryMappedConfigurationSpace
 
 	/// Overwrite command register bits.
 	#[inline(always)]
-	pub fn enable_direct_memory_acess_bus_mastering(&self)
+	pub fn enable_direct_memory_access_bus_mastering(&self)
 	{
 		self.overwrite_command_register_bits(Command::BusMasterEnable)
 	}

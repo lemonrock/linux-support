@@ -86,8 +86,8 @@ impl<'a> NetworkDeviceInputOutputControlDriverProfile<'a>
 	#[inline(always)]
 	fn maximum_paired_receive_transmit_queue_count(&self) -> Result<QueueCount, DriverProfileError>
 	{
-		let (_current, maximima) = self.parse_result(self.number_of_channels(), |error| CouldNotGetNumberOfChannels { network_interface_name: self.network_interface_name(), error })?.ok_or(DoesNotSupportNumberOfChannels { network_interface_name: self.network_interface_name() })?;
-		maximima.receive_and_transmit_channels_count.ok_or(DoesNotSupportCombinedChannels { network_interface_name: self.network_interface_name() })
+		let (_current, maxima) = self.parse_result(self.number_of_channels(), |error| CouldNotGetNumberOfChannels { network_interface_name: self.network_interface_name(), error })?.ok_or(DoesNotSupportNumberOfChannels { network_interface_name: self.network_interface_name() })?;
+		maxima.receive_and_transmit_channels_count.ok_or(DoesNotSupportCombinedChannels { network_interface_name: self.network_interface_name() })
 	}
 	
 	#[inline(always)]

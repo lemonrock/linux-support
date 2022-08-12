@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+//noinspection SpellCheckingInspection
 /// Statistics for this memory map entry.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Deserialize, Serialize)]
@@ -42,6 +43,7 @@ pub struct MemoryMapEntryStatistics
 	pub vm_flags: HashSet<VmFlag>,
 }
 
+//noinspection SpellCheckingInspection
 impl MemoryMapEntryStatistics
 {
 	/*
@@ -74,6 +76,7 @@ impl MemoryMapEntryStatistics
 		First line is identical to /proc/<pid>/maps, and is not handled below.
 		It is assumed that the lines are pointing to a statistic name; statistics are assumed to always end with `VmFlags`.
 	*/
+	//noinspection SpellCheckingInspection
 	fn parse_statistics_lines<'a>(lines: &mut impl Iterator<Item=(usize, &'a [u8])>, memory_range: Range<VirtualAddress>, our_protection: Protection, our_sharing: Sharing) -> Result<Self, MemoryMapParseError>
 	{
 		use self::MemoryMapParseError::*;

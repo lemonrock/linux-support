@@ -4,7 +4,7 @@
 
 /// A marker trait to bring together all the properties of a pipe-like file descriptor (ie a pipe or character device).
 ///
-/// Use this in conjunction with the marker traits `SpliceSender` and `SpliceRecipient` to distinguish whether a splice-like method supports the use of input or output offets.
+/// Use this in conjunction with the marker traits `SpliceSender` and `SpliceRecipient` to distinguish whether a splice-like method supports the use of input or output offsets.
 ///
 /// Implementors are not allowed to implement `SeekableFileDescriptor`.
 pub trait PipeLikeFileDescriptor: FileDescriptor

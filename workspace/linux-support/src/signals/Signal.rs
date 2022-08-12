@@ -286,7 +286,7 @@ impl Signal
 				}
 				else if parent_death_signal_number < 0
 				{
-					Err(io_error_invalid_data("Negative parent deatch signal number"))
+					Err(io_error_invalid_data("Negative parent detach signal number"))
 				}
 				else
 				{

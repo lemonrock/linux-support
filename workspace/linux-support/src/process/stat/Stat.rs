@@ -45,61 +45,61 @@ pub struct Stat
 
 	/// The number of faults the process has made which have not required loading a memory page from disk.
 	///
-	/// A zero value usually means the statistic is temporarily unvailable.
+	/// A zero value usually means the statistic is temporarily unavailable.
 	pub number_of_minor_page_faults: usize,
 
 	/// The number of faults the process's waited-for-children have made which have not required loading a memory page from disk.
 	///
-	/// A zero value usually means the statistic is temporarily unvailable.
+	/// A zero value usually means the statistic is temporarily unavailable.
 	pub number_of_minor_page_faults_for_waited_for_children: usize,
 
 	/// The number of major faults the process has made which have required loading a memory page from disk.
 	///
-	/// A zero value usually means the statistic is temporarily unvailable.
+	/// A zero value usually means the statistic is temporarily unavailable.
 	pub number_of_major_page_faults: usize,
 
 	/// The number of major faults the process's waited-for-children have made which have required loading a memory page from disk.
 	///
-	/// A zero value usually means the statistic is temporarily unvailable.
+	/// A zero value usually means the statistic is temporarily unavailable.
 	pub number_of_major_page_faults_for_waited_for_children: usize,
 
 	/// Amount of time that the process has been scheduled in user mode.
 	///
 	/// This includes guest time, `guest_time` (time spent running a virtual CPU), so that applications that are not aware of the `guest_time` field do not lose that time from their calculations.
 	///
-	/// A zero value usually means the statistic is temporarily unvailable.
+	/// A zero value usually means the statistic is temporarily unavailable.
 	pub user_mode_time: ClockTicks,
 
 	/// Amount of time that the process has been scheduled in kernel mode.
 	///
-	/// A zero value usually means the statistic is temporarily unvailable.
+	/// A zero value usually means the statistic is temporarily unavailable.
 	pub kernel_mode_time: ClockTicks,
 
 	/// Guest time of the process (time spent running a virtual CPU for a guest operating system).
 	///
-	/// A zero value usually means the statistic is temporarily unvailable.
+	/// A zero value usually means the statistic is temporarily unavailable.
 	pub guest_time: ClockTicks,
 
 	/// Amount of time that the process's waited-for-children have been scheduled in user mode.
 	///
 	/// This includes guest time, `guest_time_for_waited_for_children` (time spent running a virtual CPU), so that applications that are not aware of the `guest_time_for_waited_for_children` field do not lose that time from their calculations.
 	///
-	/// A zero value usually means the statistic is temporarily unvailable.
+	/// A zero value usually means the statistic is temporarily unavailable.
 	pub user_mode_time_for_waited_for_children: ClockTicks,
 
 	/// Amount of time that the process' waited-for-children have been scheduled in kernel mode.
 	///
-	/// A zero value usually means the statistic is temporarily unvailable.
+	/// A zero value usually means the statistic is temporarily unavailable.
 	pub kernel_mode_time_for_waited_for_children: ClockTicks,
 
 	/// Amount of time that the process's waited-for-children have been scheduled in user mode. (time spent running a virtual CPU for a guest operating system).
 	///
-	/// A zero value usually means the statistic is temporarily unvailable.
+	/// A zero value usually means the statistic is temporarily unavailable.
 	pub guest_time_for_waited_for_children: ClockTicks,
 
 	/// Aggregated block I/O delays.
 	///
-	/// A zero value usually means the statistic is temporarily unvailable.
+	/// A zero value usually means the statistic is temporarily unavailable.
 	pub aggregated_block_io_delays: ClockTicks,
 
 	/// Normal tasks are centered around 0, value goes from -16 to +15.
@@ -112,7 +112,7 @@ pub struct Stat
 
 	/// Number of threads.
 	///
-	/// A `None` value usually means the statistic is temporarily unvailable.
+	/// A `None` value usually means the statistic is temporarily unavailable.
 	pub num_threads: Option<NonZeroUsize>,
 
 	/// Relative time the process started after boot.
@@ -120,7 +120,7 @@ pub struct Stat
 
 	/// Virtual memory size in bytes.
 	///
-	/// A zero value means the statistic is unvailable.
+	/// A zero value means the statistic is unavailable.
 	pub virtual_memory_size_in_bytes: u64,
 
 	/// Resident Set Size (RSS) in pages.
@@ -129,14 +129,14 @@ pub struct Stat
 	/// This is just the pages which count toward text, data, or stack space.
 	/// This does not include pages which have not been demand-loaded in, or which are swapped out.
 	///
-	/// A zero value means the statistic is unvailable.
+	/// A zero value means the statistic is unavailable.
 	pub resident_set_size: NumberOfPages,
 
 	/// Resident Set Size (RSS) soft limit in bytes.
 	///
 	/// See the description of `RLIMIT_RSS` in `man 2 getrlimit()`.
 	///
-	/// A zero value usually means the statistic is temporarily unvailable.
+	/// A zero value usually means the statistic is temporarily unavailable.
 	pub resident_set_size_soft_limit_in_bytes: u64,
 
 	/// The address above which program text can run.
@@ -180,7 +180,7 @@ pub struct Stat
 	///
 	/// Obsolete as does not include real-time signals.
 	///
-	/// A zero value usually means the statistic is temporarily unvailable.
+	/// A zero value usually means the statistic is temporarily unavailable.
 	#[deprecated]
 	pub ignored_non_real_time_signals: Signals,
 
@@ -188,7 +188,7 @@ pub struct Stat
 	///
 	/// Obsolete as does not include real-time signals.
 	///
-	/// A zero value usually means the statistic is temporarily unvailable.
+	/// A zero value usually means the statistic is temporarily unavailable.
 	#[deprecated]
 	pub caught_non_real_time_signals: Signals,
 

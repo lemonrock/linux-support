@@ -24,7 +24,7 @@ impl Drop for InotifyWatchDescriptor
 			}
 			else if likely!(result == -1)
 			{
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EBADF => panic!("`fd` is not a valid file descriptor"),
 					EINVAL => panic!("The watch descriptor `wd` is not valid; or `fd` is not an inotify file descriptor"),
@@ -76,4 +76,3 @@ impl InotifyWatchDescriptor
 		self.watch_descriptor == watch_descriptor
 	}
 }
-

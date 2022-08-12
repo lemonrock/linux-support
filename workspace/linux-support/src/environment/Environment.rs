@@ -59,7 +59,7 @@ impl Environment
 	///
 	/// Returns `None` if this pointer is `NULL`.
 	///
-	/// This method *CAN NOT BE TRULLY THREAD SAFE* if another thread modifies the libc global static `environ`.
+	/// This method *CAN NOT BE TRULY THREAD SAFE* if another thread modifies the libc global static `environ`.
 	#[inline(always)]
 	pub fn from_environ_pointer() -> Option<Self>
 	{

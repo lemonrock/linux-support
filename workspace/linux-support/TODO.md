@@ -13,7 +13,7 @@
 
 lazy_static! is very dangerous in environments where coroutine memory allocators are in use.
 We should probably have a lazy static initializer, using a pre-allocated block of memory.
-COuld use new Lazy / OnceCell.
+Could use new Lazy / OnceCell.
 
 
 ## How to use XDP
@@ -74,7 +74,7 @@ COuld use new Lazy / OnceCell.
 ### `/proc/sys` sysctls remaining to consider
 
 
-#### Memory (lowmem)
+#### Memory (low mem)
 
 * `vm/lowmem_reserve_ratio`.
 
@@ -108,7 +108,7 @@ COuld use new Lazy / OnceCell.
 * `acct`:-
     acct:
     
-    highwater lowwater frequency
+    high water low water frequency
     
     If BSD-style process accounting is enabled these values control
     its behaviour. If free space on filesystem where the log lives
@@ -124,7 +124,7 @@ COuld use new Lazy / OnceCell.
 * `perf_event_max_contexts_per_stack`
 * `perf_event_max_sample_rate`
 * `perf_event_mlock_kb`
-* `pty/` (maximum number of pseudoterminals)
+* `pty/` (maximum number of pseudo-terminals)
 * `sched_domain/` (far too complicated)
 * `keys/` (constrains memory usage of encryption keys in the kernel)
 * `usermodehelper/` ?

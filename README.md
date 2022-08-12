@@ -2,7 +2,7 @@
 
 [linux-support] is a Rust crate for comprehensive Linux support for namespaces, cgroups, processes, scheduling, parsing a vast number of files in `/proc` and `/sys`, signals, hyper threads, CPUS, NUMA nodes, io-uring, io scheduling priority, unusual file descriptors (including pid descriptors and userfaultfd), seccomp BPF filters (including a Rust abstraction), PCI devices, atomic file renames, and much, much more.
 
-It is intended to be a holistic, very strongly typed and properly modelled library for working with Linux's non-POSIX features, with a particular focus on being a support library for a secure root daemon running a userspace networking stack that I'm developing. As a result, it's highly opionated; it happily makes use of unsafe code, nightly features and `uninitialized()`.
+It is intended to be a holistic, very strongly typed and properly modelled library for working with Linux's non-POSIX features, with a particular focus on being a support library for a secure root daemon running a userspace networking stack that I'm developing. As a result, it's highly opinionated; it happily makes use of unsafe code, nightly features and `uninitialized()`.
 
 File descriptors, process and vectored-io are tightly integrated.
 
@@ -68,10 +68,10 @@ It is not intended to replace [nix](https://crates.io/crates/nix), but as an alt
 	* Copy-on-write clones and deduplication.
 	* Adding extended seeks for data and holes.
 	* Finding file extents and sparseness (for efficient copies, say)
-	* Three different kinds of advisory file locks (whole file, per-proces record and the newer and better per open file description record).
+	* Three different kinds of advisory file locks (whole file, per-process record and the newer and better per open file description record).
 	* `copy_file_range`.
 	* File leases.
-	* Comprehensive range of file sychronizations, from just a range to every filesystem.
+	* Comprehensive range of file synchronizations, from just a range to every filesystem.
 * Linux Personality.
     * Get for any process as well as current.
     * Execution domains (legacy feature).

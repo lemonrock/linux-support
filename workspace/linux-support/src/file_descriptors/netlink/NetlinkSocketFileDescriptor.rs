@@ -55,7 +55,7 @@ impl<Protocol: NetlinkProtocol> FromRawFd for NetlinkSocketFileDescriptor<Protoc
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EBADF => panic!("The argument sockfd is not a valid file descriptor"),
 				EFAULT => panic!(" The address pointed to by optval is not in a valid part of the process address space. For getsockopt(), this error may also be returned if optlen is not in a valid part of the process address space."),
@@ -164,7 +164,7 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 				}
 				else if likely!(result == -1)
 				{
-					match errno().0
+					match SystemCallErrorNumber::from_errno()
 					{
 						EINTR => continue,
 						
@@ -208,7 +208,7 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 				}
 				else if likely!(result == -1)
 				{
-					match errno().0
+					match SystemCallErrorNumber::from_errno()
 					{
 						EINTR => continue,
 						
@@ -252,7 +252,7 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 					let expected_sequence_of_multi_part_messages = multipart_message_identifier.as_ref().unwrap();
 					if unlikely!(expected_sequence_of_multi_part_messages != &multipart_message_part_identification)
 					{
-						panic!("Multipart netlink message sequence of message parts terminated abrutly")
+						panic!("Multipart netlink message sequence of message parts terminated abruptly")
 					}
 				}
 				

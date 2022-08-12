@@ -118,7 +118,7 @@ impl RedirectMapAndAttachedProgram
 		let network_interface_name = NetworkInterfaceName::try_from(network_interface_index)?;
 		
 		use self::AttachProgramError::*;
-		let (current, _maximima) = NetworkDeviceInputOutputControl::new(Cow::Owned(network_interface_name))?.number_of_channels().map_err(CouldNotGetNumberOfChannels)?.ok_or(NoSuchNetworkInterfaceIndex(network_interface_index))?.unwrap_or((Channels::Unsupported, Channels::Unsupported));
+		let (current, _maxima) = NetworkDeviceInputOutputControl::new(Cow::Owned(network_interface_name))?.number_of_channels().map_err(CouldNotGetNumberOfChannels)?.ok_or(NoSuchNetworkInterfaceIndex(network_interface_index))?.unwrap_or((Channels::Unsupported, Channels::Unsupported));
 		Ok(current)
 	}
 	

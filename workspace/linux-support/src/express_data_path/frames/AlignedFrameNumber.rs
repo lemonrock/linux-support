@@ -4,7 +4,7 @@
 
 /// A frame number; a relative location in user memory of an (Ethernet) frame (packets).
 ///
-/// Frames in user memory do not include a trailing ethernet frame check sequeunces (FCS).
+/// Frames in user memory do not include a trailing ethernet frame check sequences (FCS).
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct AlignedFrameNumber(u32);
 
@@ -75,7 +75,7 @@ impl AlignedFrameNumber
 	}
 	
 	#[inline(always)]
-	pub(crate) fn transmit_relative_addesses_and_offsets(self, aligned_chunk_size: AlignedChunkSize, frame_headroom: FrameHeadroom, length_of_packet: usize) -> RelativeAddressesAndOffsets
+	pub(crate) fn transmit_relative_addresses_and_offsets(self, aligned_chunk_size: AlignedChunkSize, frame_headroom: FrameHeadroom, length_of_packet: usize) -> RelativeAddressesAndOffsets
 	{
 		RelativeAddressesAndOffsets::for_transmitted_frame_descriptor(self.orig_addr_if_aligned(aligned_chunk_size), frame_headroom, length_of_packet)
 	}
@@ -91,9 +91,9 @@ impl AlignedFrameNumber
 	
 	#[allow(dead_code)]
 	#[inline(always)]
-	pub(crate) fn from_relative_addresses_and_offsets_if_aligned(relative_addresss_and_offsets: RelativeAddressesAndOffsets, aligned_chunk_size: AlignedChunkSize) -> Self
+	pub(crate) fn from_relative_addresses_and_offsets_if_aligned(relative_addresses_and_offsets: RelativeAddressesAndOffsets, aligned_chunk_size: AlignedChunkSize) -> Self
 	{
-		let absolute_frame_index = relative_addresss_and_offsets.orig_addr / aligned_chunk_size;
+		let absolute_frame_index = relative_addresses_and_offsets.orig_addr / aligned_chunk_size;
 		debug_assert!(absolute_frame_index <= (u32::MAX as u64));
 		Self(absolute_frame_index as u32)
 	}

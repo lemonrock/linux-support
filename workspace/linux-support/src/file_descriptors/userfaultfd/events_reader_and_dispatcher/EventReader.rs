@@ -69,8 +69,7 @@ impl EventReader
 			}
 			else if likely!(result == -1)
 			{
-				let errno = errno();
-				match errno.0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EINTR => continue,
 					
@@ -86,7 +85,7 @@ impl EventReader
 					
 					// Internally, `read()` calls `userfaultfd_read()` which calls `userfaultfd_ctx_read()` which calls `resolve_userfault_fork()` which calls `anon_inode_getfd()` and this can error (?with what).
 					// This code path seems to only be possible if fork events can be raised.
-					_ => panic!("Unexpect errno `{}` from userfaultfd non-blocking read()", errno),
+					unexpected @ _ => panic!("Unexpected error_number `{}` from userfaultfd non-blocking read()", unexpected),
 				}
 			}
 			else if likely!(result == 0)

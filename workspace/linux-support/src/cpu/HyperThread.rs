@@ -173,18 +173,18 @@ impl HyperThread
 	#[inline(always)]
 	pub fn isolated(&self, linux_kernel_command_line: &LinuxKernelCommandLineParameters, isolated_cpus_required: bool) -> Result<HyperThreads, &'static str>
 	{
-		if let Some((isolated_cpu_flags, isolated_cpus)) = linux_kernel_command_line.isolcpus()
+		if let Some((isolated_cpu_flags, isolated_cpus)) = linux_kernel_command_line.isolated_cpus()
 		{
 			if !isolated_cpu_flags.contains(&IsolatedCpuFlags::Domain)
 			{
 				return Err("Kernel parameter `isolcpus` does not contain (or imply) the domain flag")
 			}
 
-			let rcu_nocbs = linux_kernel_command_line.rcu_nocbs().ok_or("Kernel parameter `rcu_nocbs` should be specified because isolcpus was specified")?;
+			let rcu_nocbs = linux_kernel_command_line.rcu_no_callbacks().ok_or("Kernel parameter `rcu_nocbs` should be specified because isolcpus was specified")?;
 
-			let nohz_full = linux_kernel_command_line.nohz_full().ok_or("Kernel parameter `nohz_full` should be specified because isolcpus was specified")?;
+			let nohz_full = linux_kernel_command_line.no_hz_full().ok_or("Kernel parameter `nohz_full` should be specified because isolcpus was specified")?;
 
-			// let irqaffinity = linux_kernel_command_line.irqaffinity().ok_or("Kernel parameter `irqaffinity` should be specified because isolcpus was specified")?;
+			// let irq_affinity = linux_kernel_command_line.irq_affinity().ok_or("Kernel parameter `irq affinity` should be specified because isolcpus was specified")?;
 
 			if isolated_cpus != rcu_nocbs
 			{

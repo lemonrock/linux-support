@@ -13,7 +13,7 @@ bitflags!
 	/// High-Priority data includes:-
 	///
 	/// * Out-of-band data on a TCP socket (see `tcp(7)`).
-	/// * A pseudoterminal master in packet mode has seen a state change on the slave (see `ioctl_tty(2)`).
+	/// * A pseudo-terminal master in packet mode has seen a state change on the slave (see `ioctl_tty(2)`).
 	/// * A `cgroup.events` file has been modified (see `cgroups(7)`).
 	pub struct PollRequestFlags: u16
 	{

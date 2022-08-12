@@ -19,7 +19,7 @@
 ///
 /// Rejecting connections is a good thing if your program is written to accept new connections as fast as it reasonably can.
 /// If the backlog fills up despite your program’s best efforts, it means your server has hit its load limit.
-/// If the stack were to accept more connections, your program wouldn’t be able to handle them as well as it should, so the client will think your server is hanging.
+/// If the stack were to accept more connections, your program would not be able to handle them as well as it should, so the client will think your server is hanging.
 /// At least if the connection is rejected, the client will know the server is too busy and will try again later.
 ///
 /// The proper value for listen()’s backlog parameter depends on how many connections you expect to see in the time between accept() calls.

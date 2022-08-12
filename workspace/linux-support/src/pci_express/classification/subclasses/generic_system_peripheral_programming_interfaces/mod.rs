@@ -6,6 +6,6 @@ use super::*;
 
 
 include!("DirectMemoryAccessControllerGenericSystemPeripheralProgrammingInterface.rs");
-include!("ProgrammambleInterruptControllerGenericSystemPeripheralProgrammingInterface.rs");
+include!("ProgrammableInterruptControllerGenericSystemPeripheralProgrammingInterface.rs");
 include!("RealTimeClockControllerGenericSystemPeripheralProgrammingInterface.rs");
 include!("SystemTimerGenericSystemPeripheralProgrammingInterface.rs");

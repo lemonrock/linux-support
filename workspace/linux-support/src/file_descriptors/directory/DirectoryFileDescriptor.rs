@@ -372,7 +372,7 @@ impl DirectoryFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EBADF | ENOTTY | EOPNOTSUPP => Ok(false),
 				_ => Err(io::Error::last_os_error()),
@@ -612,7 +612,7 @@ impl DirectoryFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EACCES  | ENOENT | ENOTDIR | EROFS => Ok(false),
 				other @ _ => Err(io::Error::from_raw_os_error(other)),

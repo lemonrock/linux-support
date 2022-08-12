@@ -33,7 +33,7 @@ pub enum SignalRaising
 	/// Equivalent to the `ISIG` flag.
 	Raise = ISIG,
 
-	/// Like `SignalRaising::Raise`, but the flusing on input and output queues does not occur.
+	/// Like `SignalRaising::Raise`, but the flushing on input and output queues does not occur.
 	///
 	/// Equivalent to the flag combination `ISIG | NOFLSH`.
 	RaiseWithoutFlush = ISIG | NOFLSH,

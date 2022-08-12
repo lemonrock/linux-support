@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+//noinspection SpellCheckingInspection
 /// Serial bus.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
@@ -18,7 +19,7 @@ pub enum SerialBusController
 	SSA,
 	
 	/// USB.
-	UniversalSerialBus(UniveralSerialBusControllerProgrammingInterface),
+	UniversalSerialBus(UniversalSerialBusControllerProgrammingInterface),
 
 	/// Fibre Channel.
 	FibreChannel,
@@ -74,7 +75,7 @@ impl SerialBusController
 			0x00 => programming_interface!(FireWire, programming_interface, FireWireSerialBusControllerProgrammingInterface),
 			0x01 => zero_programming_interface!(AccessBus, programming_interface),
 			0x02 => zero_programming_interface!(SSA, programming_interface),
-			0x03 => programming_interface!(UniversalSerialBus, programming_interface, UniveralSerialBusControllerProgrammingInterface),
+			0x03 => programming_interface!(UniversalSerialBus, programming_interface, UniversalSerialBusControllerProgrammingInterface),
 			0x04 => zero_programming_interface!(FibreChannel, programming_interface),
 			0x05 => zero_programming_interface!(SmBus, programming_interface),
 			0x06 => zero_programming_interface!(InfiniBand, programming_interface),

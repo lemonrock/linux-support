@@ -45,15 +45,14 @@ impl ReceivePoll for BlockingReceivePollAndReceivePollCreator
 			}
 			else if likely!(result == -1)
 			{
-				let errno = errno();
-				match errno.0
+				match SystemCallErrorNumber::from_errno()
 				{
 					// On Linux, `EAGAIN` is not supposed to be possible as the result is `0`.
 					EINTR | ENOMEM | EAGAIN => continue,
 					EFAULT => panic!("fds points outside the process's accessible address space. The array given as argument was not contained in the calling program's address space."),
 					EINVAL => panic!("The nfds value exceeds the RLIMIT_NOFILE value"),
 					
-					_ => panic!("Unexpected errno `{}`", errno)
+					unexpected @ _ => panic!("Unexpected error_number `{}`", unexpected)
 				}
 			}
 			else

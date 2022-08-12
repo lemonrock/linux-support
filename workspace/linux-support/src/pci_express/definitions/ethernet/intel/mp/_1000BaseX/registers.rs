@@ -130,3 +130,6 @@ pub const TDT: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinit
 
 /// Transmit Descriptor Control Queue.
 pub const TXDCTL: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::array(0xe028, 0x40, 0, 7);
+
+/// Transmit DCA CTRL Register Queue.
+pub const TXCTL: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::array(0xe014, 0x40, 0, 7);

@@ -20,7 +20,7 @@ fn set_ioport_permissions(range: RangeInclusive<u16>, enable: bool) -> Result<()
 	}
 	else if likely!(result == -1)
 	{
-		match errno().0
+		match SystemCallErrorNumber::from_errno()
 		{
 			EINVAL => Err("Invalid values for from or num"),
 			EPERM => Err("The calling thread has insufficient privilege"),

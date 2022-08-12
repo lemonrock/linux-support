@@ -152,13 +152,13 @@ impl BpfTypeFormatTypeIdentifiers
 	{
 		let &FunctionPrototype { parameters, return_type , .. } = function_prototype;
 		
-		let (parameters, vlen) = Self::guard_number_of_fields(parameters, BpfTypeFormatError::FunctionHasTooManyParameters)?;
+		let (parameters, v_length) = Self::guard_number_of_fields(parameters, BpfTypeFormatError::FunctionHasTooManyParameters)?;
 		
 		let return_type_identifier = self.get_or_create_type_identifier(return_type)?;
-		let function_prototype_type_identifier = self.write_btf_header_unlinked_to_type_identifier(btf_type::function_prototype(vlen, return_type_identifier))?;
+		let function_prototype_type_identifier = self.write_btf_header_unlinked_to_type_identifier(btf_type::function_prototype(v_length, return_type_identifier))?;
 		
-		let start_overwriting_at = self.reserve::<btf_param>(vlen);
-		for index in 0 .. vlen
+		let start_overwriting_at = self.reserve::<btf_param>(v_length);
+		for index in 0 ..v_length
 		{
 			let &(parameter_name, parameter_type) = parameters.get_unchecked_safe(index);
 			

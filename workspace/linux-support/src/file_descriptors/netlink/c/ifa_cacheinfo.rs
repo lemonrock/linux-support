@@ -10,7 +10,7 @@ pub(crate) struct ifa_cacheinfo
 	/// Temporary preferred address lifetime.
 	///
 	/// `Infinite` for a permanent address.
-	pub(crate) ifa_prefered: InternetProtocolAddressLifetime,
+	pub(crate) ifa_preferred: InternetProtocolAddressLifetime,
 	
 	/// Temporary valid address lifetime.
 	///

@@ -20,7 +20,7 @@ pub enum MemoryMapEntryKind
 		/// Inode.
 		inode: Inode,
 
-		/// Not unambigious, because Linux escapes the path badly:-
+		/// Not unambiguous, because Linux escapes the path badly:-
 		///
 		/// * Using an octal escape sequence of four characters for newline of `\012` but nothing for `\` (see `mangle_path()` in `seq_file.c` in the Linux sources).
 		/// * By appending ` (deleted)` for deleted files (so file paths that genuinely end in ` (deleted)` are mistakenly interpreted.

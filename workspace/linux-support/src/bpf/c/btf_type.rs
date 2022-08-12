@@ -14,7 +14,7 @@ pub(crate) struct btf_type<ExtraData: Sized>
 	
 	/// `info` is a bit set:-
 	///
-	/// * bits 0-15: `vlen` (eg number of `BTF_KIND_STRUCT`'s members).
+	/// * bits 0-15: `v_length` (eg number of `BTF_KIND_STRUCT`'s members).
 	/// * bits 16-23: unused.
 	/// * bits 24-27: `kind` (eg `BTF_KIND_INT`, `BTF_KIND_PTR`, `BTF_KIND_ARRAY`, etc).
 	/// * bits 28-30: unused.
@@ -37,7 +37,7 @@ impl<ExtraData: Sized> btf_type<ExtraData>
 	
 	#[allow(dead_code)]
 	#[inline(always)]
-	fn vlen(&self) -> u16
+	fn v_length(&self) -> u16
 	{
 		Self::BTF_INFO_VLEN(self.info)
 	}
@@ -68,9 +68,9 @@ impl<ExtraData: Sized> btf_type<ExtraData>
 	}
 	
 	#[inline(always)]
-	const fn info(kind: BpfTypeFormatKind, vlen: u16, kind_flag: bool) -> u32
+	const fn info(kind: BpfTypeFormatKind, v_length: u16, kind_flag: bool) -> u32
 	{
-		((kind_flag as u32) << 31) | ((kind as u8 as u32) << 24) | (vlen as u32)
+		((kind_flag as u32) << 31) | ((kind as u8 as u32) << 24) | (v_length as u32)
 	}
 	
 	#[inline(always)]
@@ -103,12 +103,12 @@ impl btf_type<__IncompleteArrayField<btf_param>>
 	///
 	/// Assumes `kind_flag` is `true`.
 	#[inline(always)]
-	pub(crate) fn function_prototype(vlen: u16, return_type: BpfTypeFormatTypeIdentifier) -> Self
+	pub(crate) fn function_prototype(v_length: u16, return_type: BpfTypeFormatTypeIdentifier) -> Self
 	{
 		Self
 		{
 			name_off: 0,
-			info: Self::info(BpfTypeFormatKind::FunctionPrototype, vlen, false),
+			info: Self::info(BpfTypeFormatKind::FunctionPrototype, v_length, false),
 			btf_type_size_or_type: BpfTypeFormatTypeSizeOrTypeIdentifier
 			{
 				type_identifier: return_type,
@@ -124,14 +124,14 @@ impl btf_type<__IncompleteArrayField<btf_enum>>
 	///
 	/// Assumes `kind_flag` is `true`.
 	#[inline(always)]
-	pub(crate) fn r#enum(offset_of_name_into_string_section: Option<NonZeroU32>, vlen: u16) -> Result<Self, BpfTypeFormatError>
+	pub(crate) fn r#enum(offset_of_name_into_string_section: Option<NonZeroU32>, v_length: u16) -> Result<Self, BpfTypeFormatError>
 	{
 		Ok
 		(
 			Self
 			{
 				name_off: Self::guard_offset_of_name_into_string_section(offset_of_name_into_string_section)?,
-				info: Self::info(BpfTypeFormatKind::Enumeration, vlen, false),
+				info: Self::info(BpfTypeFormatKind::Enumeration, v_length, false),
 				btf_type_size_or_type: BpfTypeFormatTypeSizeOrTypeIdentifier
 				{
 					size: size_of::<i32>() as u32,
@@ -145,7 +145,7 @@ impl btf_type<__IncompleteArrayField<btf_enum>>
 impl btf_type<__IncompleteArrayField<btf_member>>
 {
 	#[inline(always)]
-	pub(crate) fn struct_or_union(offset_of_name_into_string_section: Option<NonZeroU32>, vlen: u16, size: u32, is_union: bool) -> Result<Self, BpfTypeFormatError>
+	pub(crate) fn struct_or_union(offset_of_name_into_string_section: Option<NonZeroU32>, v_length: u16, size: u32, is_union: bool) -> Result<Self, BpfTypeFormatError>
 	{
 		let kind = if is_union
 		{
@@ -160,7 +160,7 @@ impl btf_type<__IncompleteArrayField<btf_member>>
 			Self
 			{
 				name_off: Self::guard_offset_of_name_into_string_section(offset_of_name_into_string_section)?,
-				info: Self::info(kind, vlen, true),
+				info: Self::info(kind, v_length, true),
 				btf_type_size_or_type: BpfTypeFormatTypeSizeOrTypeIdentifier
 				{
 					size,

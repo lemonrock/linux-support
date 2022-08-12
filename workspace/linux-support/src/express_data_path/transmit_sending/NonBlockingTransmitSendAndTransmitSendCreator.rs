@@ -29,8 +29,7 @@ impl TransmitSend for NonBlockingTransmitSendAndTransmitSendCreator
 		}
 		else if likely!(result == -1)
 		{
-			let errno = errno();
-			match errno.0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOBUFS | EAGAIN | EBUSY | ENETDOWN => return,
 				

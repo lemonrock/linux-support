@@ -6,6 +6,8 @@
 pub(super) struct fstrim_range
 {
 	pub(super) start: u64,
+	
 	pub(super) len: u64,
+	
 	pub(super) minlin: u64,
 }

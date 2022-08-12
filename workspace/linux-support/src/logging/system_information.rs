@@ -14,7 +14,7 @@ pub fn system_information() -> sysinfo
 	}
 	else if likely!(result == -1)
 	{
-		match errno().0
+		match SystemCallErrorNumber::from_errno()
 		{
 			EFAULT => panic!("info is not a valid address"),
 			

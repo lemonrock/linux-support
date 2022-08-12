@@ -227,7 +227,7 @@ impl ProcessConfiguration
 		self.compact_memory(proc_path)?;
 		
 		// This *SHOULD* be configured before configuring logging.
-		// This *MUST* be called before `configure_global_panic_hook()` which uses backtraces depedant on environment variable settings.
+		// This *MUST* be called before `configure_global_panic_hook()` which uses backtraces dependant on environment variable settings.
 		self.set_environment_variables_to_minimum_required_and_force_time_zone_to_utc(etc_path)?;
 		
 		// This *MUST* be called before `configure_logging` as `configure_logging` opens sockets (eg to `/dev/log`) that are closed-on-exec and refers to process identifiers (pids).
@@ -269,7 +269,7 @@ impl ProcessConfiguration
 		#[cfg(any(target_arch = "mips64", target_arch = "powerpc64", target_arch = "x86_64"))] Self::secure_io_ports();
 
 		// This *MUST* be called before creating new threads.
-		// This *MUST* be called before loading Seccomp filters for uprivileged processes.
+		// This *MUST* be called before loading Seccomp filters for unprivileged processes.
 		// This *MUST* be called before executing programs that might be setuid/setgid or have file capabilities.
 		// This prevents `execve()` granting additional capabilities.
 		change_no_new_privileges(true).map_err(CouldNotPreventTheGrantingOfNoNewPrivileges)?;

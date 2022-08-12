@@ -18,7 +18,7 @@ pub trait RelativeMemoryRange
 		(computed_start, computed_length)
 	}
 	
-	/// Computes the absolute inclusize start.
+	/// Computes the absolute inclusive start.
 	fn compute_inclusive_absolute_start(&self, absolute_inclusive_start: VirtualAddress) -> VirtualAddress;
 	
 	/// Computes the length.

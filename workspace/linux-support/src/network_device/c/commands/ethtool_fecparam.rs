@@ -15,7 +15,7 @@ pub(crate) struct ethtool_fecparam
 	
 	/// Bitmask of supported or configured FEC modes (enum `ethtool_fec_config_bits`).
 	///
-	/// Drivers should reject setting `ETHTOOL_FEC_AUTO_BIT` when autoneogotiation is disabled (or not supported) for the link.
+	/// Drivers should reject setting `ETHTOOL_FEC_AUTO_BIT` when auto-negotiation is disabled (or not supported) for the link.
 	pub(crate) fec: BitSetWord,
 	
 	/// Reserved for future extensions, eg a FEC bypass feature.

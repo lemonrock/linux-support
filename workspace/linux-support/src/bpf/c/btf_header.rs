@@ -21,7 +21,7 @@ pub(crate) struct btf_header
 	
 	/// Type (identifier) section (table) offset relative to the end of the `bpf_header` record.
 	///
-	/// Must be a multiple of `4`; no need to check this ordinarily as all pointers and malloc'd memory blobs are a multiple of `8` on 64-bit systems.
+	/// Must be a multiple of `4`; no need to check this ordinarily as all pointers and malloc-ed memory blobs are a multiple of `8` on 64-bit systems.
 	///
 	/// See the Linux kernel function `btf_parse_type_sec()`.
 	type_off: u32,

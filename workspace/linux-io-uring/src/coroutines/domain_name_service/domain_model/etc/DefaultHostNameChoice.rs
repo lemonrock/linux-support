@@ -174,7 +174,7 @@ impl DefaultHostNameChoice
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EFAULT => unreachable_code(format_args!("Invald buffer")),
 				

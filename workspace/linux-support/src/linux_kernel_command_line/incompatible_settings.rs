@@ -5,12 +5,12 @@
 #[inline(always)]
 pub(crate) fn incompatible_settings(linux_kernel_command_line_parameters: &LinuxKernelCommandLineParameters) -> Result<(), &'static str>
 {
-	if linux_kernel_command_line_parameters.norandmaps()
+	if linux_kernel_command_line_parameters.no_random_maps()
 	{
 		return Err("Kernel has `norandmaps` enabled; this isn't secure")
 	}
 
-	if linux_kernel_command_line_parameters.nokaslr()
+	if linux_kernel_command_line_parameters.no_kaslr()
 	{
 		return Err("Kernel has `nokaslr` enabled; this isn't secure")
 	}
@@ -20,12 +20,12 @@ pub(crate) fn incompatible_settings(linux_kernel_command_line_parameters: &Linux
 		return Err("Kernel has `movable_node` enabled; this isn't compatible with this application")
 	}
 
-	if linux_kernel_command_line_parameters.nosmp()
+	if linux_kernel_command_line_parameters.no_smp()
 	{
 		return Err("Kernel has `nosmp` enabled; this disables support for parallel CPUs")
 	}
 
-	if linux_kernel_command_line_parameters.maxcpus() == Some(0)
+	if linux_kernel_command_line_parameters.maximum_cpus() == Some(0)
 	{
 		return Err("Kernel has `maxcpus=0`; this disables support for parallel CPUs")
 	}
@@ -42,27 +42,27 @@ pub(crate) fn incompatible_settings(linux_kernel_command_line_parameters: &Linux
 
 	#[cfg(target_arch = "x86_64")]
 	{
-		if linux_kernel_command_line_parameters.noapic()
+		if linux_kernel_command_line_parameters.no_apic()
 		{
 			return Err("Kernel has `noapic` enabled")
 		}
 
-		if linux_kernel_command_line_parameters.disableapic()
+		if linux_kernel_command_line_parameters.disable_apic()
 		{
 			return Err("Kernel has `disableapic` enabled")
 		}
 
-		if linux_kernel_command_line_parameters.nolapic()
+		if linux_kernel_command_line_parameters.no_l_apic()
 		{
 			return Err("Kernel has `nolapic` enabled")
 		}
 
-		if linux_kernel_command_line_parameters.noapictimer()
+		if linux_kernel_command_line_parameters.no_apic_timer()
 		{
 			return Err("Kernel has `noapictimer` enabled")
 		}
 
-		if linux_kernel_command_line_parameters.nospectre_v2()
+		if linux_kernel_command_line_parameters.no_spectre_v2()
 		{
 			return Err("Kernel has `nospectre_v2` enabled; this is wrong")
 		}
@@ -107,17 +107,17 @@ pub(crate) fn incompatible_settings(linux_kernel_command_line_parameters: &Linux
 			_ => return Err("Unrecognised Kernel NUMA options"),
 		}
 
-		if linux_kernel_command_line_parameters.nohugeiomap()
+		if linux_kernel_command_line_parameters.no_huge_iomap()
 		{
 			return Err("Kernel has `nohugeiomap` enabled; this disables huge pages for IO")
 		}
 
-		if linux_kernel_command_line_parameters.notsc()
+		if linux_kernel_command_line_parameters.no_tsc()
 		{
 			return Err("Kernel has `notsc` enabled; this disables support for the Time Stamp Counter, TSC")
 		}
 
-		if linux_kernel_command_line_parameters.nohpet()
+		if linux_kernel_command_line_parameters.no_high_precision_event_timer()
 		{
 			return Err("Kernel has `nohpet` enabled; this disables support for the High Precision Event Timer, HPET")
 		}
@@ -130,12 +130,12 @@ pub(crate) fn incompatible_settings(linux_kernel_command_line_parameters: &Linux
 			}
 		}
 
-		if linux_kernel_command_line_parameters.nopat()
+		if linux_kernel_command_line_parameters.no_pat()
 		{
 			return Err("Kernel has `nopat` enabled; this isn't useful")
 		}
 
-		if let Some(noexec_enabled) = linux_kernel_command_line_parameters.noexec()
+		if let Some(noexec_enabled) = linux_kernel_command_line_parameters.no_execute()
 		{
 			if !noexec_enabled
 			{
@@ -151,7 +151,7 @@ pub(crate) fn incompatible_settings(linux_kernel_command_line_parameters: &Linux
 			}
 		}
 
-		if let Some(vdso32_enabled) = linux_kernel_command_line_parameters.vdso32()
+		if let Some(vdso32_enabled) = linux_kernel_command_line_parameters.vdso_32()
 		{
 			if !vdso32_enabled
 			{
@@ -159,7 +159,7 @@ pub(crate) fn incompatible_settings(linux_kernel_command_line_parameters: &Linux
 			}
 		}
 
-		if linux_kernel_command_line_parameters.noinvpcid()
+		if linux_kernel_command_line_parameters.no_inv_pci_d()
 		{
 			return Err("Kernel has `noinvpcid` enabled; this isn't useful")
 		}
@@ -167,7 +167,7 @@ pub(crate) fn incompatible_settings(linux_kernel_command_line_parameters: &Linux
 
 	#[cfg(target_arch = "x86_64")]
 	{
-		if linux_kernel_command_line_parameters.nopti()
+		if linux_kernel_command_line_parameters.no_pti()
 		{
 			return Err("Kernel has `nopti` enabled; this is wrong")
 		}
@@ -192,12 +192,12 @@ pub(crate) fn incompatible_settings(linux_kernel_command_line_parameters: &Linux
 
 			Some(b"emulate") => return Err("Kernel vsyscall should be disabled with `vsycall=none` not `vsyscall=emulate`"),
 
-			Some(b"native") => return Err("Kernel vsyscall mitigration has been disabled; this is wrong"),
+			Some(b"native") => return Err("Kernel vsyscall migration has been disabled; this is wrong"),
 
 			_ => return Err("Kernel vsyscall mitigation not recognised"),
 		}
 
-		if linux_kernel_command_line_parameters.nopcid()
+		if linux_kernel_command_line_parameters.no_pci_d()
 		{
 			return Err("Kernel has `nopcid` enabled; this isn't useful")
 		}
@@ -208,12 +208,12 @@ pub(crate) fn incompatible_settings(linux_kernel_command_line_parameters: &Linux
 			_ => (),
 		}
 
-		if linux_kernel_command_line_parameters.nox2apic()
+		if linux_kernel_command_line_parameters.no_x2_apic()
 		{
 			return Err("Kernel has `nox2apic` enabled")
 		}
 
-		if let Some(noexec32_enabled) = linux_kernel_command_line_parameters.noexec32()
+		if let Some(noexec32_enabled) = linux_kernel_command_line_parameters.no_execute_32()
 		{
 			if !noexec32_enabled
 			{

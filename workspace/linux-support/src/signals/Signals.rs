@@ -114,7 +114,7 @@ impl Signals
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EINVAL => panic!("Invalid arguments"),
 				_ => unreachable_code(format_args!("")),

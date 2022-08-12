@@ -31,7 +31,7 @@ pub struct GlobalOutOfMemoryConfiguration
 	/// Requires root.
 	pub over_commit_reserved_kilobytes_for_administrator_users: Option<Kilobytes>,
 	
-	/// A value of 128Mb is suitable for `OverCommitPolicy::Never`; alternatively, a value of 0Kb to allow oner user (unprivileged) process to use all memory bar that reserved by `over_commit_reserved_kilobytes_for_administrator_users`.
+	/// A value of 128Mb is suitable for `OverCommitPolicy::Never`; alternatively, a value of 0Kb to allow one user (unprivileged) process to use all memory bar that reserved by `over_commit_reserved_kilobytes_for_administrator_users`.
 	///
 	/// Normal users are those users without the `CAP_SYS_ADMIN` capability.
 	///

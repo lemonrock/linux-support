@@ -261,7 +261,7 @@ impl<D: Descriptor> XskRingQueue<ProducerXskRingQueueKind, D>
 		// Refresh the local (cached) tail pointer
 		//
 		// `cached_consumer` is `ring_queue_depth` bigger than the real consumer pointer so that this addition can be avoided in the more frequently executed code that computes `free_entries` in the beginning of this function.
-		// Without this optimization it whould have been `free_entries = cached_producer - cached_consumer + ring_queue_depth`.
+		// Without this optimization it should have been `free_entries = cached_producer - cached_consumer + ring_queue_depth`.
 		let cached_consumer = self.consumer() + self.ring_queue_depth as u32;
 		self.set_cached_consumer(cached_consumer);
 		

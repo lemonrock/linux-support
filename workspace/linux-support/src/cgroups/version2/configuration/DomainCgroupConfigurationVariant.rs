@@ -14,7 +14,7 @@ pub enum DomainCgroupConfigurationVariant
 	/// A `NonRootCgroupType::ThreadedDomain` with children that can only have threads.
 	ThreadedDomain(ChildrenCgroupConfiguration<ThreadedCgroupConfiguration>),
 	
-	/// A `NonRootCgroupType::Domain` with no children and just proceses.
+	/// A `NonRootCgroupType::Domain` with no children and just processes.
 	Leaf(Migration<ProcessIdentifierChoice>),
 }
 

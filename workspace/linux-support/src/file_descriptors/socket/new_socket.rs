@@ -25,13 +25,13 @@ pub(crate) fn new_socket(domain: c_int, type_: c_int, protocol: c_int, non_block
 
 		Err
 		(
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
 				ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
 				ENOBUFS | ENOMEM => KernelWouldBeOutOfMemory,
 				EINVAL => panic!("Invalid arguments"),
-				EACCES => panic!("Permission denined"),
+				EACCES => panic!("Permission denied"),
 				EAFNOSUPPORT => panic!("The implementation does not support the specified address family"),
 				EPROTONOSUPPORT => panic!("The protocol type or the specified protocol is not supported within this domain"),
 				_ => unreachable_code(format_args!("")),

@@ -118,7 +118,7 @@ impl CgroupFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EINVAL => panic!("Invalid attr or invalid attach type"),
 				EPERM => panic!("Permission denied"),

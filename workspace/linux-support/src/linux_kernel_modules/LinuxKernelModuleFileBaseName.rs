@@ -69,7 +69,7 @@ impl LinuxKernelModuleFileBaseName
 		{
 			0 => Ok(true),
 
-			-1 => match errno().0
+			-1 => match SystemCallErrorNumber::from_errno()
 			{
 				EPERM => Err(io_error_permission_denied("permission denied")),
 				unknown @ _ => Err(io_error_other(format!("Error Code was '{}'", unknown))),

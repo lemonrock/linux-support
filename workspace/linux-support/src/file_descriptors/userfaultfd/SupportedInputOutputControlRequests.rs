@@ -17,12 +17,12 @@ bitflags!
 		/// All registered memory can use these ioctls.
 		const HugePages = (InputOutputControlRequest::Wake as u64) | (InputOutputControlRequest::Copy as u64);
 		
-		/// Only registed memory that is not using huge pages can use these ioctls.
+		/// Only registered memory that is not using huge pages can use these ioctls.
 		const RegularPages = Self::HugePages.bits | (InputOutputControlRequest::ZeroPageCopy as u64);
 		
 		/// Equivalent to `UFFD_API_RANGE_IOCTLS` (which has not been defined in this module).
 		///
-		/// Only registed memory that is not using huge pages can use these ioctls and was registered with `register_mode` containing `PageFaultEventNotificationSetting::RaisePageFaultEventIfWriteProtectedPageAccessed`.
+		/// Only registered memory that is not using huge pages can use these ioctls and was registered with `register_mode` containing `PageFaultEventNotificationSetting::RaisePageFaultEventIfWriteProtectedPageAccessed`.
 		const RegularPagesWithWriteProtectOnCopy = Self::RegularPages.bits | (InputOutputControlRequest::WriteProtect as u64);
 	}
 }

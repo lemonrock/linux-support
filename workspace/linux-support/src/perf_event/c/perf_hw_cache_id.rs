@@ -8,11 +8,17 @@
 pub(crate) enum perf_hw_cache_id
 {
 	PERF_COUNT_HW_CACHE_L1D = 0,
+	
 	PERF_COUNT_HW_CACHE_L1I = 1,
+	
 	PERF_COUNT_HW_CACHE_LL = 2,
+	
 	PERF_COUNT_HW_CACHE_DTLB = 3,
+	
 	PERF_COUNT_HW_CACHE_ITLB = 4,
+	
 	PERF_COUNT_HW_CACHE_BPU = 5,
+	
 	PERF_COUNT_HW_CACHE_NODE = 6,
 }
 

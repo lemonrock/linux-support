@@ -136,7 +136,7 @@ pub enum MandatoryCpuFeatureCheck
 
 	#[cfg(target_arch = "x86_64")]
 	#[allow(missing_docs)]
-	#[strum(message = "Floating point and SIMD instruction sets", detailed_message = "CPU architecture does not support essential SIMD (Suplemental SSE3, aka SSSE3)")]
+	#[strum(message = "Floating point and SIMD instruction sets", detailed_message = "CPU architecture does not support essential SIMD (Supplemental SSE3, aka SSSE3)")]
 	has_ssse3,
 
 	#[cfg(target_arch = "x86_64")]

@@ -43,7 +43,7 @@
 /// * This is the superset for the inheritable capabilities that the thread may have *unless* it has the `CAP_SETPCAP` capability in its effective set.
 /// * Once a thread drops a capabilities from its permitted set, it can never regain it *unless* it `execve()`s a program with either:-
 ///		* file capabilities set
-/// 	* setuid/segid bits set.
+/// 	* setuid/setgid bits set.
 ///
 ///
 /// ## Effective
@@ -54,7 +54,7 @@
 ///
 /// ## Inheritable
 ///
-/// * This is a set of capabilities it is deseired to be preserved across an `execve()`.
+/// * This is a set of capabilities it is desired to be preserved across an `execve()`.
 /// * They are `ANDed` with the file capability's `Inheritable` set then `ORed` with the file capability's `Permitted` set to create the resultant `Permitted` set for a thread after `execve()`.
 /// * Ordinarily, non-root programs lose their capabilities on `execve()` unless using `Ambient` capabilities.
 ///
@@ -69,7 +69,7 @@
 ///
 /// * This is a set of capabilities that are preserved across an `execve()` of a program *unless* it `execve()`s a program with either:-
 ///		* file capabilities set
-/// 	* setuid/segid bits set.
+/// 	* setuid/setgid bits set.
 /// * In which case the new capabilities are applied.
 /// * No capability can never be ambient if it is not both:-
 ///		* `Permitted`
@@ -207,7 +207,7 @@ impl Capability
 			PR_CAP_AMBIENT_RAISE as usize,
 			self as usize,
 			result_must_be_zero,
-			|error_number| match error_number.0
+			|system_call_error_number| match system_call_error_number
 			{
 				EPERM => Err(PermissionDenied),
 				EINVAL => Err(CapabilityNotKnownByThisLinuxKernel),
@@ -232,7 +232,7 @@ impl Capability
 			PR_CAP_AMBIENT_LOWER as usize,
 			self as usize,
 			result_must_be_zero,
-			|error_number| match error_number.0
+			|system_call_error_number| match system_call_error_number
 			{
 				EPERM => Err(PermissionDenied),
 				EINVAL => Err(CapabilityNotKnownByThisLinuxKernel),
@@ -261,7 +261,7 @@ impl Capability
 				1 => Ok(true),
 				_ => unreachable_code(format_args!("Non-boolean result from `prctl()`"))
 			},
-			|error_number| match error_number.0
+			|system_call_error_number| match system_call_error_number
 			{
 				EINVAL => Err(CapabilityNotKnownByThisLinuxKernel),
 				
@@ -286,7 +286,7 @@ impl Capability
 				1 => Ok(Some(true)),
 				_ => unreachable_code(format_args!("Non-boolean result from `prctl()`"))
 			},
-			|error_number| match error_number.0
+			|system_call_error_number| match system_call_error_number
 			{
 				EINVAL => Ok(None),
 				
@@ -307,7 +307,7 @@ impl Capability
 			PR_CAPBSET_DROP,
 			self as usize,
 			result_must_be_zero,
-			|error_number| match error_number.0
+			|system_call_error_number| match system_call_error_number
 			{
 				EPERM => Err(()),
 				EINVAL => panic!("Kernel does not support 'file' capabilities. Or capability `{:?}` is not a valid capability on this kernel", self),

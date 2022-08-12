@@ -134,7 +134,6 @@ pub(crate) enum RTM_
 	RTM_DELVLAN = 113,
 
 	RTM_GETVLAN = 114,
-
 }
 
 impl RTM_

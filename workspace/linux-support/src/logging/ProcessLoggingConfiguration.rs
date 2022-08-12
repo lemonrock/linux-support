@@ -79,7 +79,7 @@ impl ProcessLoggingConfiguration
 	/// Legacy `syslog()` is problematic:-
 	///
 	/// * It makes two syscalls, `getpid()` and `send()` for every message logged;
-	/// * It is dubious as to whether it is trully thread safe;
+	/// * It is dubious as to whether it is truly thread safe;
 	/// * It does not support re-trying in some circumstances which are recoverable;
 	/// * It is hardcoded to `/dev/log`.
 	#[inline(always)]

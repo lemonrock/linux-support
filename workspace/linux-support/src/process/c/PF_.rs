@@ -70,7 +70,7 @@ pub(crate) const PF_RANDOMIZE: u32 = 0x00400000;
 /// Allowed to write to swap.
 pub(crate) const PF_SWAPWRITE: u32 = 0x00800000;
 
-/// I'm an Usermodehelper process.
+/// I'm an usermode helper process.
 pub(crate) const PF_UMH: u32 = 0x02000000;
 
 /// Userland is not allowed to meddle with cpus_mask.

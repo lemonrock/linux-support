@@ -12,7 +12,7 @@ pub fn remove_ioport_privileges()
 	}
 	else if likely!(result == -1)
 	{
-		match errno().0
+		match SystemCallErrorNumber::from_errno()
 		{
 			EINVAL => panic!("level is greater than 3"),
 			ENOSYS => panic!("This call is unimplemented (it should be)"),

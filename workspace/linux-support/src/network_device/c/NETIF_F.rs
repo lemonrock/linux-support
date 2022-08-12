@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+//noinspection SpellCheckingInspection
 /// Found in Linux source at `include/linux/netdev_features.h`.
 ///
 /// Strings are in the `ethtool_stringset::ETH_SS_FEATURES` string set.
@@ -352,7 +353,7 @@ pub enum NETIF_F
     #[serde(rename = "rx-checksum")]
 	NETIF_F_RXCSUM_BIT = 40,
 	
-	/// Use no-cache copyfromuser.
+	/// Use no-cache copy from user.
 	///
 	/// String set value is `tx-nocache-copy`.
     #[serde(rename = "tx-nocache-copy")]
@@ -370,7 +371,7 @@ pub enum NETIF_F
     #[serde(rename = "rx-fcs")]
 	NETIF_F_RXFCS_BIT = 43,
 	
-	/// Receive errored frames too.
+	/// Receive erred frames too.
 	///
 	/// String set value is `rx-all`.
     #[serde(rename = "rx-all")]

@@ -17,6 +17,7 @@ pub struct CpuHypervisorInformationDiagnostics
 
 impl CpuHypervisorInformationDiagnostics
 {
+	//noinspection SpellCheckingInspection
 	fn gather(cpu_id: &CpuId) -> Option<Self>
 	{
 		use self::Hypervisor::*;

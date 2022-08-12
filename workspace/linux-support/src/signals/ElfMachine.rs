@@ -2,6 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+//noinspection SpellCheckingInspection
 /// These constants define the various ELF target machines.
 ///
 /// This list is a subset from Linux; for a full set, see <https://github.com/bminor/musl/blob/524e76f17b296ce36c2fb1a1469e814a045ec957/include/elf.h>.

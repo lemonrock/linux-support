@@ -17,14 +17,14 @@ impl CompletionQueue
 	#[inline(always)]
 	pub(crate) fn get_completed_frame_descriptor_bitfield(&self, completion_queue_index: RingQueueIndex, relative_frame_index: RelativeFrameIndex) -> FrameDescriptorBitfield
 	{
-		*self.completion_adddress(completion_queue_index + relative_frame_index)
+		*self.completion_address(completion_queue_index + relative_frame_index)
 	}
 	
 	/// Based on `xsk_ring_cons__comp_addr()` in Linux source `tools/lib/bpf/xsk.h`.
 	///
 	/// What we get back is the original value of xdp_desc.addr.
 	#[inline(always)]
-	fn completion_adddress(&self, index: RingQueueEntryIndex) -> &FrameDescriptorBitfield
+	fn completion_address(&self, index: RingQueueEntryIndex) -> &FrameDescriptorBitfield
 	{
 		self.ring_entry(index)
 	}

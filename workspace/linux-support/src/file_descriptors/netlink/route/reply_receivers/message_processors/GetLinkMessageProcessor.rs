@@ -24,7 +24,7 @@ impl MessageProcessor for GetLinkMessageProcessor
 		{
 			NEWLINK | DELLINK => Ok(()),
 			
-			_ => Err(format!("Unexpeced message type `{:?}`", message_type)),
+			_ => Err(format!("Unexpected message type `{:?}`", message_type)),
 		}
 	}
 	
@@ -102,7 +102,7 @@ impl MessageProcessor for GetLinkMessageProcessor
 			(false, false, IFLA_PHYS_PORT_NAME) => set_field_error(&mut processing_message_state.physical_port_name, message_attribute, rtattr::get_attribute_value_c_string)?,
 			(false, false, IFLA_PHYS_SWITCH_ID) => set_field_error(&mut processing_message_state.physical_switch_identifier, message_attribute, rtattr::get_attribute_value_physical_identifier)?,
 			
-			// Option, Virtual function (VF) information; `IFLA_VFINFO_LIST` has a numebr of entries which is `IFLA_NUM_VF`.
+			// Option, Virtual function (VF) information; `IFLA_VFINFO_LIST` has a number of entries which is `IFLA_NUM_VF`.
 			(false, false, IFLA_NUM_VF) => set_field_error(&mut processing_message_state.number_of_virtual_functions, message_attribute, rtattr::get_attribute_value_u32)?,
 			//(true, false, IFLA_VFINFO_LIST) => set_field_error(&mut processing_message_state.physical_port_identifier, message_attribute, rtattr::get_attribute_value_u32)?,
 			
@@ -530,6 +530,7 @@ impl GetLinkMessageProcessor
 		processing_message_state.to_processed_message()
 	}
 	
+	//noinspection SpellCheckingInspection
 	fn process_IFLA_INET6_CONF(nested_attributes: &[u8]) -> Result<InternetProtocolVersion6DeviceConfiguration, String>
 	{
 		let mut processing_message_state = InternetProtocolVersion6DeviceConfigurationGetLinkProcessMessageState::default();
@@ -568,7 +569,7 @@ impl GetLinkMessageProcessor
 				
 				(false, false, DEVCONF_TEMP_VALID_LFT) => set_field_error(&mut processing_message_state.temporary_address_valid_lifetime, message_attribute, rtattr::get_attribute_value_internet_protocol_address_lifetime)?,
 				
-				(false, false, DEVCONF_TEMP_PREFERED_LFT) => set_field_error(&mut processing_message_state.temporary_address_prefered_lifetime, message_attribute, rtattr::get_attribute_value_internet_protocol_address_lifetime)?,
+				(false, false, DEVCONF_TEMP_PREFERED_LFT) => set_field_error(&mut processing_message_state.temporary_address_preferred_lifetime, message_attribute, rtattr::get_attribute_value_internet_protocol_address_lifetime)?,
 				
 				(false, false, DEVCONF_REGEN_MAX_RETRY) => set_field_error(&mut processing_message_state.regen_maximum_retry, message_attribute, rtattr::get_attribute_value_u32)?,
 				

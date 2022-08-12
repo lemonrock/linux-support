@@ -29,15 +29,15 @@ pub enum IllegalInstructionCode
 	/// Known as `ILL_ILLTRP` in Linux sources.
 	IllegalTrap = 4,
 
-	/// Priveleged opcode (eg using a ring 0 opcode in ring 3 on x86).
+	/// Privileged opcode (eg using a ring 0 opcode in ring 3 on x86).
 	///
 	/// Known as `ILL_PRVOPC` in Linux sources.
-	PrivelegedOpcode = 5,
+	PrivilegedOpcode = 5,
 
-	/// Priveleged register (eg using a ring 0 only register in ring 3 on x86).
+	/// Privileged register (eg using a ring 0 only register in ring 3 on x86).
 	///
 	/// Known as `ILL_PRVOPC` in Linux sources.
-	PrivelegedRegister = 6,
+	PrivilegedRegister = 6,
 
 	/// Coprocessor error.
 	///

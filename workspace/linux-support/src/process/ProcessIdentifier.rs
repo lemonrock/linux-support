@@ -129,7 +129,7 @@ impl ProcessIdentifier
 	/// Init process.
 	pub const Init: Self = Self(new_non_zero_i32(1));
 	
-	/// Get child subreapear process; `None` implies disabled.
+	/// Get child subreaper process; `None` implies disabled.
 	#[inline(always)]
 	pub fn get_current_process_child_subreaper_process() -> Result<Option<Self>, Errno>
 	{
@@ -157,7 +157,7 @@ impl ProcessIdentifier
 		)
 	}
 	
-	/// Changes the child subrepear process; `None` resets.
+	/// Changes the child subreaper process; `None` resets.
 	#[inline(always)]
 	pub fn set_current_process_child_subreaper_process(process_identifier: Option<ProcessIdentifier>) -> Result<(), Errno>
 	{
@@ -294,7 +294,7 @@ impl ProcessIdentifier
 		{
 			use self::CreationError::*;
 
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOMEM => Err(KernelWouldBeOutOfMemory),
 				EPERM => Err(PermissionDenied),
@@ -353,7 +353,7 @@ impl ProcessIdentifier
 		{
 			use self::CreationError::*;
 
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOMEM => Err(KernelWouldBeOutOfMemory),
 				EPERM => Err(PermissionDenied),

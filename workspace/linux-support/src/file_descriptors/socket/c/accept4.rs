@@ -21,7 +21,7 @@ extern "C"
 	/// If `flags` is 0, then `accept4()` is the same as `accept()`.
 	/// `flags` can be a bitwise or of `SOCK_NONBLOCK` or `SOCK_CLOEXEC`.
 	///
-	/// On success, returns a nonnegative integer that is a descriptor for the accepted socket.
+	/// On success, returns a non-negative integer that is a descriptor for the accepted socket.
 	/// On error, `-1` is returned, and `errno` is set appropriately.
 	///
 	/// The known errors that can be set in `errno` are:-

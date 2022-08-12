@@ -72,7 +72,7 @@ impl DatagramServerListenerSocketFileDescriptor<sockaddr_un>
 
 	/// Tries to send credentials to a remote peer over an Unix Domain Socket.
 	///
-	/// Useful for complex scenarios where a priveleged (eg root) process wants to use different credentials to those it would default to.
+	/// Useful for complex scenarios where a privileged (eg root) process wants to use different credentials to those it would default to.
 	///
 	/// `process_identifier`: Process identifier (also known as `pid`). Unless the process has capability `CAP_SYS_ADMIN`, this must be its own `process_identifier`.
 	/// `user_identifier`: User identifier (also known as `uid`). Unless the process has capability `CAP_SETUID`, this must be its own `user_identifier`, effective `user_identifier` or saved-set `user_identifier`.

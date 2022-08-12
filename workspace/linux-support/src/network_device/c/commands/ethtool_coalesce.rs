@@ -101,7 +101,7 @@ pub(crate) struct ethtool_coalesce
 	/// Driver must support `ETHTOOL_COALESCE_TX_USECS_LOW` if this is `Some`.
 	pub(crate) tx_coalesce_usecs_low: Option<NonZeroU32>,
 
-	/// Maximum nuumber of packets to be sent before a transmit interrupt, when the packet rate is below `pkt_rate_low`.
+	/// Maximum number of packets to be sent before a transmit interrupt, when the packet rate is below `pkt_rate_low`.
 	///
 	/// Driver must support `ETHTOOL_COALESCE_TX_MAX_FRAMES_LOW` if this is `Some`.
 	pub(crate) tx_max_coalesced_frames_low: Option<NonZeroU32>,

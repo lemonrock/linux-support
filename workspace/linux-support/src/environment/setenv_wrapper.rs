@@ -13,7 +13,7 @@ fn setenv_wrapper(name: ConstCStr, value: &CStr, overwrite: bool)
 	}
 	else if likely!(result == -1)
 	{
-		match errno().0
+		match SystemCallErrorNumber::from_errno()
 		{
 			EINVAL => panic!("name is NULL, points to a string of length 0, or contains an '=' character"),
 			ENOMEM => panic!("Insufficient memory to add a new variable to the environment"),

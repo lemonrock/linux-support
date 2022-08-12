@@ -6,7 +6,7 @@
 #[derive(Debug)]
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct CpuDeterministicAddressTranslationInformationDiagonostic
+pub struct CpuDeterministicAddressTranslationInformationDiagnostic
 {
 	pub cache_type: String,
 	
@@ -31,7 +31,7 @@ pub struct CpuDeterministicAddressTranslationInformationDiagonostic
 	pub max_addressable_ids: u16,
 }
 
-impl CpuDeterministicAddressTranslationInformationDiagonostic
+impl CpuDeterministicAddressTranslationInformationDiagnostic
 {
 	fn gather(cpu_id: &CpuId) -> Option<Vec<Self>>
 	{

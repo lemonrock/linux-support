@@ -40,7 +40,7 @@ bitflags!
 		const STICKY_TIMEOUTS = 0x4000000;
 
 		/// With this flag set use `0xC0000000` as the offset at which to search a virtual memory chunk on `mmap()`.
-		/// With this falg unset, use `0xFFFFE000` instead.
+		/// With this flag unset, use `0xFFFFE000` instead.
 		const ADDR_LIMIT_3GB = 0x8000000;
 
 		/// Linux personality.
@@ -165,7 +165,7 @@ impl PersonalityFlags
 		self == PersonalityFlags::PER_LINUX
 	}
 
-	/// Gets the current process domain exection model.
+	/// Gets the current process domain execution model.
 	#[inline(always)]
 	pub fn current() -> Result<Self, ()>
 	{
@@ -173,7 +173,7 @@ impl PersonalityFlags
 		Self::personality(SpecialFlagPattern)
 	}
 
-	/// Gets a process' current process domain exection model.
+	/// Gets a process' current process domain execution model.
 	#[inline(always)]
 	pub fn for_process(proc_path: &ProcPath, process_identifier: ProcessIdentifierChoice) -> io::Result<Self>
 	{
@@ -199,7 +199,7 @@ impl PersonalityFlags
 			return Ok(Self::from_bits(result).expect("Invalid bits in previous personality flags"))
 		}
 
-		match errno().0
+		match SystemCallErrorNumber::from_errno()
 		{
 			EINVAL => Err(()),
 

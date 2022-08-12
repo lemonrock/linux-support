@@ -124,7 +124,7 @@ impl ExpressDataPathSocketFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EBADF => panic!("The argument umem_or_xsk_socket_file_descriptor is not a valid file descriptor"),
 				EFAULT => panic!(" The address pointed to by optval is not in a valid part of the process address space. For getsockopt(), this error may also be returned if optlen is not in a valid part of the process address space."),
@@ -154,7 +154,7 @@ impl ExpressDataPathSocketFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EBADF => panic!("The argument `sockfd` is not a valid descriptor"),
 				EFAULT => panic!("The address pointed to by `optval` is not in a valid part of the process address space"),

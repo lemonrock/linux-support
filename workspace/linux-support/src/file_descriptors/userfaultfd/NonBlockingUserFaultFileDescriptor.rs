@@ -67,8 +67,7 @@ impl<ERAD: EventsReaderAndDispatcher, T: Terminate> NonBlockingUserFaultFileDesc
 				
 				-1 =>
 				{
-					let errno = errno();
-					match errno.0
+					match SystemCallErrorNumber::from_errno()
 					{
 						// On Linux as opposed to the POSIX standard, `EAGAIN` is not possible as the result is `0`.
 						EINTR | ENOMEM => continue,
@@ -77,7 +76,7 @@ impl<ERAD: EventsReaderAndDispatcher, T: Terminate> NonBlockingUserFaultFileDesc
 						
 						EINVAL => panic!("The `nfds` value exceeds the `RLIMIT_NOFILE` value"),
 						
-						_ => panic!("Unexpected errno `{}`", errno)
+						unexpected @ _ => panic!("Unexpected error_number `{}`", unexpected),
 					}
 				}
 				

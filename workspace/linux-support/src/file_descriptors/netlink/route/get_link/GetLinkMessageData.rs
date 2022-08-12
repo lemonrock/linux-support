@@ -165,12 +165,12 @@ pub struct GetLinkMessageData
 	pub protocol_down_and_reason_code: Option<Option<NonZeroU32>>,
 	
 	/// Target net namespace identifier.
-	pub target_net_namespace_identifier: Option<NetNamespaceIdentifer>,
+	pub target_net_namespace_identifier: Option<NetNamespaceIdentifier>,
 	
 	/// Linked net namespace identifier.
 	///
 	/// Also available at `/sys/class/net/<network_interface_name>/iflink`.
-	pub linked_net_namespace_identifier: Option<NetNamespaceIdentifer>,
+	pub linked_net_namespace_identifier: Option<NetNamespaceIdentifier>,
 	
 	/// Linked network interface index.
 	///
@@ -178,7 +178,7 @@ pub struct GetLinkMessageData
 	pub linked_network_interface_index: Option<Option<NetworkInterfaceIndex>>,
 	
 	/// New net namespace identifier.
-	pub new_net_namespace_identifier: Option<NetNamespaceIdentifer>,
+	pub new_net_namespace_identifier: Option<NetNamespaceIdentifier>,
 	
 	/// New network interface index.
 	pub new_network_interface_index: Option<NetworkInterfaceIndex>,
@@ -201,7 +201,7 @@ pub struct GetLinkMessageData
 	/// The length of the two addresses is available at `/sys/class/net/<network_interface_name>/addr_len`.
 	/// Formatted in lower-case colon-separated hexadecimal, eg `00:1c:42:9e:fc:bb`.
 	///
-	/// More information about `Some(hardware_addresses.0)` is avaliable at  `/sys/class/net/<network_interface_name>/addr_assign_type` which is a value of type `HardwareAddressType`.
+	/// More information about `Some(hardware_addresses.0)` is available at `/sys/class/net/<network_interface_name>/addr_assign_type` which is a value of type `HardwareAddressType`.
 	/// See also `NetworkInterfaceName.assigned_hardware_address_type()`.
 	pub address_and_broadcast_and_permanent_address: Option<(HardwareAddress, HardwareAddress, Option<HardwareAddress>)>,
 	

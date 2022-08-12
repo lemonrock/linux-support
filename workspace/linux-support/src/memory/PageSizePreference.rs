@@ -13,7 +13,7 @@ pub enum PageSizePreference
 	///
 	/// * Always 4Kb on:-
 	/// 	* powerpc64.
-	/// 	* risvc64.
+	/// 	* riscv64.
 	/// 	* x86_64.
 	/// * Always 8Kb on:-
 	/// 	* sparc64

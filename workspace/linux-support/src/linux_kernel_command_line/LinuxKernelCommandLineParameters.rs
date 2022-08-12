@@ -33,14 +33,14 @@ impl LinuxKernelCommandLineParameters
 
 	/// `noautogroup`.
 	#[inline(always)]
-	pub fn noautogroup(&self) -> bool
+	pub fn no_autogroup(&self) -> bool
 	{
 		self.is_present_with_no_value(b"noautogroup")
 	}
 
 	/// `noexec`.
 	#[inline(always)]
-	pub fn noexec(&self) -> Option<bool>
+	pub fn no_execute(&self) -> Option<bool>
 	{
 		self.get_value(b"noexec").map(|value|
 		{
@@ -55,7 +55,7 @@ impl LinuxKernelCommandLineParameters
 
 	/// `noexec32`.
 	#[inline(always)]
-	pub fn noexec32(&self) -> Option<bool>
+	pub fn no_execute_32(&self) -> Option<bool>
 	{
 		self.get_value(b"noexec32").map(|value|
 		{
@@ -115,7 +115,7 @@ impl LinuxKernelCommandLineParameters
 
 	/// `vdso32`.
 	#[inline(always)]
-	pub fn vdso32(&self) -> Option<bool>
+	pub fn vdso_32(&self) -> Option<bool>
 	{
 		self.get_value(b"vdso32").map(|value|
 		{
@@ -135,7 +135,7 @@ impl LinuxKernelCommandLineParameters
 	/// Note in the latter example there isn't a separate delimiter separating the flags from the list, so one has to be have some truly revolting parsing code, which is what we do (`IsolatedCpuFlags::split_flags_and_cpu_list`).
 	/// If no flags are specified then `domain` is implied.
 	#[inline(always)]
-	pub fn isolcpus(&self) -> Option<(HashSet<IsolatedCpuFlags>, HyperThreads)>
+	pub fn isolated_cpus(&self) -> Option<(HashSet<IsolatedCpuFlags>, HyperThreads)>
 	{
 		self.get_value(b"isolcpus").map(|value|
 		{
@@ -173,7 +173,7 @@ impl LinuxKernelCommandLineParameters
 	/// Setting this to `0-(N-1)` where `N` is the number of hyper threaded CPUs shifts all RCU callbacks from softirq context during interrupt handling (on whatever specific CPU involved) to kernel threads (on any CPU).
 	/// This is only possible if the kernel was built with `CONFIG_RCU_NOCB_CPU_ALL`.
 	#[inline(always)]
-	pub fn rcu_nocbs(&self) -> Option<HyperThreads>
+	pub fn rcu_no_callbacks(&self) -> Option<HyperThreads>
 	{
 		self.get_value(b"rcu_nocbs").map(Self::parse_hyper_thread_list)
 	}
@@ -182,7 +182,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Ordinarily should match `rcu_nocbs`.
 	#[inline(always)]
-	pub fn nohz_full(&self) -> Option<HyperThreads>
+	pub fn no_hz_full(&self) -> Option<HyperThreads>
 	{
 		self.get_value(b"nohz_full").map(Self::parse_hyper_thread_list)
 	}
@@ -191,7 +191,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// This should probably not be set.
 	#[inline(always)]
-	pub fn irqaffinity(&self) -> Option<HyperThreads>
+	pub fn irq_affinity(&self) -> Option<HyperThreads>
 	{
 		self.get_value(b"irqaffinity").map(Self::parse_hyper_thread_list)
 	}
@@ -204,7 +204,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// S/390 equivalent is `nosmt`.
 	#[inline(always)]
-	pub fn nosmp(&self) -> bool
+	pub fn no_smp(&self) -> bool
 	{
 		self.is_present_with_no_value(b"nosmp")
 	}
@@ -217,11 +217,11 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Rarely used in practice.
 	///
-	/// S/390 equivalent is `smt` (altohugh the zero value is not supported in this case).
+	/// S/390 equivalent is `smt` (although the zero value is not supported in this case).
 	///
 	/// See <https://www.kernel.org/doc/Documentation/core-api/cpu_hotplug.rst>.
 	#[inline(always)]
-	pub fn maxcpus(&self) -> Option<u16>
+	pub fn maximum_cpus(&self) -> Option<u16>
 	{
 		self.get_value_parsed(b"maxcpus")
 	}
@@ -234,7 +234,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// See <https://www.kernel.org/doc/Documentation/core-api/cpu_hotplug.rst>.
 	#[inline(always)]
-	pub fn nr_cpus(&self) -> Option<u16>
+	pub fn number_of_cpus(&self) -> Option<u16>
 	{
 		self.get_value_parsed(b"nr_cpus")
 	}
@@ -261,7 +261,7 @@ impl LinuxKernelCommandLineParameters
 
 	/// NUMA `hashdist`.
 	#[inline(always)]
-	pub fn hashdist(&self) -> Option<bool>
+	pub fn numa_hash_dist(&self) -> Option<bool>
 	{
 		self.get_value(b"hashdist").map(|value|
 		{
@@ -349,7 +349,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Rarely used in practice.
 	#[inline(always)]
-	pub fn nopcid(&self) -> bool
+	pub fn no_pci_d(&self) -> bool
 	{
 		self.is_present_with_no_value(b"nopcid")
 	}
@@ -358,7 +358,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Rarely used in practice.
 	#[inline(always)]
-	pub fn noinvpcid(&self) -> bool
+	pub fn no_inv_pci_d(&self) -> bool
 	{
 		self.is_present_with_no_value(b"noinvpcid")
 	}
@@ -367,7 +367,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Rarely used in practice.
 	#[inline(always)]
-	pub fn norandmaps(&self) -> bool
+	pub fn no_random_maps(&self) -> bool
 	{
 		self.is_present_with_no_value(b"norandmaps")
 	}
@@ -378,7 +378,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Rarely used in practice.
 	#[inline(always)]
-	pub fn noapic(&self) -> bool
+	pub fn no_apic(&self) -> bool
 	{
 		self.is_present_with_no_value(b"noapic")
 	}
@@ -387,7 +387,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Rarely used in practice.
 	#[inline(always)]
-	pub fn disableapic(&self) -> bool
+	pub fn disable_apic(&self) -> bool
 	{
 		self.is_present_with_no_value(b"disableapic")
 	}
@@ -396,7 +396,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Rarely used in practice.
 	#[inline(always)]
-	pub fn nolapic(&self) -> bool
+	pub fn no_l_apic(&self) -> bool
 	{
 		self.is_present_with_no_value(b"nolapic")
 	}
@@ -405,7 +405,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Rarely used in practice.
 	#[inline(always)]
-	pub fn noapictimer(&self) -> bool
+	pub fn no_apic_timer(&self) -> bool
 	{
 		self.is_present_with_no_value(b"noapictimer")
 	}
@@ -416,7 +416,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Rarely used in practice.
 	#[inline(always)]
-	pub fn nox2apic(&self) -> bool
+	pub fn no_x2_apic(&self) -> bool
 	{
 		self.is_present_with_no_value(b"nox2apic")
 	}
@@ -425,7 +425,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Rarely used in practice.
 	#[inline(always)]
-	pub fn nopat(&self) -> bool
+	pub fn no_pat(&self) -> bool
 	{
 		self.is_present_with_no_value(b"nopat")
 	}
@@ -434,7 +434,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Rarely used in practice.
 	#[inline(always)]
-	pub fn noxsaveopt(&self) -> bool
+	pub fn no_xsaveopt(&self) -> bool
 	{
 		self.is_present_with_no_value(b"noxsaveopt")
 	}
@@ -443,7 +443,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Rarely used in practice.
 	#[inline(always)]
-	pub fn noaliencache(&self) -> bool
+	pub fn numa_no_alien_cache(&self) -> bool
 	{
 		self.is_present_with_no_value(b"noaliencache")
 	}
@@ -461,18 +461,18 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Rarely used in practice.
 	#[inline(always)]
-	pub fn nokaslr(&self) -> bool
+	pub fn no_kaslr(&self) -> bool
 	{
 		self.is_present_with_no_value(b"nokaslr")
 	}
 
 	/// `nospectre_v2`.
 	///
-	/// Stupid command line option so that benchmarkers can game results and idiots 'apparently' increase performance.
+	/// Stupid command line option so that benchmarkers can game results and idiots can 'apparently' increase performance.
 	///
 	/// Rarely used in practice.
 	#[inline(always)]
-	pub fn nospectre_v2(&self) -> bool
+	pub fn no_spectre_v2(&self) -> bool
 	{
 		self.is_present_with_no_value(b"nospectre_v2")
 	}
@@ -486,11 +486,11 @@ impl LinuxKernelCommandLineParameters
 
 	/// `nopti`.
 	///
-	/// Stupid command line option so that benchmarkers can game results and idiots 'apparently' increase performance.
+	/// Stupid command line option so that benchmarkers can game results and idiots can 'apparently' increase performance.
 	///
 	/// Rarely used in practice.
 	#[inline(always)]
-	pub fn nopti(&self) -> bool
+	pub fn no_pti(&self) -> bool
 	{
 		self.is_present_with_no_value(b"nopti")
 	}
@@ -515,7 +515,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Rarely used in practice.
 	#[inline(always)]
-	pub fn nohugeiomap(&self) -> bool
+	pub fn no_huge_iomap(&self) -> bool
 	{
 		self.is_present_with_no_value(b"nohugeiomap")
 	}
@@ -526,7 +526,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Rarely used in practice.
 	#[inline(always)]
-	pub fn notsc(&self) -> bool
+	pub fn no_tsc(&self) -> bool
 	{
 		self.is_present_with_no_value(b"notsc")
 	}
@@ -537,7 +537,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Rarely used in practice.
 	#[inline(always)]
-	pub fn nohpet(&self) -> bool
+	pub fn no_high_precision_event_timer(&self) -> bool
 	{
 		self.is_present_with_no_value(b"nohpet")
 	}
@@ -581,14 +581,14 @@ impl LinuxKernelCommandLineParameters
 
 	/// `default_hugepagesz`.
 	#[inline(always)]
-	pub fn default_hugepagesz(&self) -> Option<&[u8]>
+	pub fn default_huge_page_size(&self) -> Option<&[u8]>
 	{
 		self.get_value(b"default_hugepagesz")
 	}
 
 	/// `hugepagesz`.
 	#[inline(always)]
-	pub fn hugepagesz(&self) -> Option<Vec<&[u8]>>
+	pub fn huge_page_size(&self) -> Option<Vec<&[u8]>>
 	{
 		self.get_values(b"hugepagesz")
 	}
@@ -602,7 +602,7 @@ impl LinuxKernelCommandLineParameters
 
 	/// Detects if SELinux is enabled or disabled.
 	#[inline(always)]
-	pub fn selinux(&self) -> Option<bool>
+	pub fn se_linux(&self) -> Option<bool>
 	{
 		self.get_value(b"selinux").map(|selinux|
 		{
@@ -634,7 +634,7 @@ impl LinuxKernelCommandLineParameters
 
 	/// `nomodeset`.
 	#[inline(always)]
-	pub fn nomodeset(&self) -> bool
+	pub fn no_mode_set(&self) -> bool
 	{
 		self.is_present_with_no_value(b"nomodeset")
 	}
@@ -672,14 +672,14 @@ impl LinuxKernelCommandLineParameters
 
 	/// Mount root file system read only, `ro`.
 	#[inline(always)]
-	pub fn ro(&self) -> bool
+	pub fn read_only(&self) -> bool
 	{
 		self.is_present_with_no_value(b"ro")
 	}
 
 	/// Mount root file system read write, `rw`.
 	#[inline(always)]
-	pub fn rw(&self) -> bool
+	pub fn read_write(&self) -> bool
 	{
 		self.is_present_with_no_value(b"rw")
 	}
@@ -688,7 +688,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// See <https://www.kernel.org/doc/Documentation/x86/x86_64/boot-options.txt>.
 	#[inline(always)]
-	pub fn nogbpages(&self) -> bool
+	pub fn no_gigabyte_huge_pages(&self) -> bool
 	{
 		self.is_present_with_no_value(b"nogbpages")
 	}
@@ -697,7 +697,7 @@ impl LinuxKernelCommandLineParameters
 	//	///
 	//	/// See <https://www.kernel.org/doc/Documentation/x86/x86_64/boot-options.txt>.
 	#[inline(always)]
-	pub fn gbpages(&self) -> bool
+	pub fn gigabyte_huge_pages(&self) -> bool
 	{
 		self.is_present_with_no_value(b"gbpages")
 	}
@@ -724,7 +724,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Returns eg `ext4`.
 	#[inline(always)]
-	pub fn rootfstype(&self) -> Option<FileSystemType>
+	pub fn root_filesystem_type(&self) -> Option<FileSystemType>
 	{
 		self.get_value(b"rootfstype").map(|value| FileSystemType::from_byte_slice(value))
 	}

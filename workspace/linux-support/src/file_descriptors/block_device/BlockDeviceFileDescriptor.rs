@@ -112,7 +112,7 @@ impl Read for BlockDeviceFileDescriptor
 					}
 					else if likely!(result == -1)
 					{
-						match errno().0
+						match SystemCallErrorNumber::from_errno()
 						{
 							EAGAIN => WouldBlock,
 							EINTR => Interrupted,
@@ -178,7 +178,7 @@ impl Write for BlockDeviceFileDescriptor
 					}
 					else if likely!(result == -1)
 					{
-						match errno().0
+						match SystemCallErrorNumber::from_errno()
 						{
 							EAGAIN => WouldBlock,
 							EINTR => Interrupted,
@@ -329,7 +329,7 @@ impl BlockDeviceFileDescriptor
 
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EACCES => Common(PermissionDenied),
 					EMFILE => Common(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),

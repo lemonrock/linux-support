@@ -97,7 +97,7 @@ pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 			}
 			else if likely!(result == -1)
 			{
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					// Only returned as of Linux 5.6 for CgroupFileDescriptor.
 					ENOSPC =>
@@ -193,7 +193,7 @@ pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EINVAL => panic!("Invalid attr or invalid attachment type to attach"),
 				EPERM => panic!("Permission denied"),
@@ -276,7 +276,7 @@ pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EINVAL => panic!("Invalid attr or invalid attachment type to detach"),
 				EPERM => panic!("Permission denied"),

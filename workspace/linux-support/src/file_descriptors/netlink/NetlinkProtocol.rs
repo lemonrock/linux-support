@@ -31,7 +31,7 @@ pub trait NetlinkProtocol: Debug + Sized
 	/// New new request message.
 	fn new_new_request_message<Body: NetlinkRequestMessageBody>(message_type: Self::MessageType, flags: NetlinkNewRequestMessageFlags, body: Body) -> NetlinkRequestMessage<Body>;
 	
-	/// Make a a reuest and get and an acknowledgment or error.
+	/// Make a a request and get and an acknowledgment or error.
 	#[inline(always)]
 	fn make_request_and_get_acknowledgment_or_error<Body: NetlinkRequestMessageBody>(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, mut request: NetlinkRequestMessage<Body>) -> Result<(), Errno>
 	{
@@ -39,7 +39,7 @@ pub trait NetlinkProtocol: Debug + Sized
 		
 		let message_identification = MultipartMessagePartIdentification::from_linux_kernel(sequence_number);
 		
-		let mut reply_receiver = AcnowledgmentOnlyReplyReceiver::new(message_identification);
+		let mut reply_receiver = AcknowledgmentOnlyReplyReceiver::new(message_identification);
 		netlink_socket_file_descriptor.receive_replies(&mut reply_receiver);
 		reply_receiver.acknowledgment()
 	}

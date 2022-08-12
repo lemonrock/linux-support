@@ -1,6 +1,6 @@
 VFGEN_RSTAT       0x00008800 -            RW   VF Reset Status
 VFINT_DYN_CTL0    0x00005C00 -            RW   VF Interrupt Dynamic Control Zero
-VF_ATQBAL         0x00007C00 -            RW   VF MailBox Transmit Queu e Base Address Low
+VF_ATQBAL         0x00007C00 -            RW   VF MailBox Transmit Queue e Base Address Low
 VF_ATQBAH         0x00007800 -            RW   VF MailBox Transmit Queue Base Address High
 VF_ATQLEN         0x00006800 -            RW   VF MailBox Transmit Queue Length
 VF_ATQH           0x00006400 -            RW   VF MailBox Transmit Head

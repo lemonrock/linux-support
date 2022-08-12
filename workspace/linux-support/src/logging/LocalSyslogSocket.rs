@@ -128,11 +128,11 @@ impl LocalSyslogSocket
 					{
 						if self.reconnect().is_err()
 						{
-							return Err("Errored and could not reconnect")
+							return Err("Error occurred and could not reconnect")
 						}
 						if buffer.len() != buffer_length
 						{
-							return Err("Errored, reconnected but partial log message send has occurred")
+							return Err("Error occurred then reconnected but partial log message send has occurred")
 						}
 						continue
 					}

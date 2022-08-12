@@ -63,7 +63,7 @@ impl EPollFileDescriptor
 		{
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
 
@@ -105,7 +105,7 @@ impl EPollFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EINTR => Err(EPollWaitError::Interrupted),
 
@@ -138,7 +138,7 @@ impl EPollFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EINTR => Err(EPollWaitError::Interrupted),
 
@@ -180,7 +180,7 @@ impl EPollFileDescriptor
 		{
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					ENOMEM => ThereWasInsufficientKernelMemory,
 
@@ -223,7 +223,7 @@ impl EPollFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOMEM => Err(EPollModifyError::ThereWasInsufficientKernelMemory),
 
@@ -251,7 +251,7 @@ impl EPollFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOMEM => panic!("Examination of the Linux source code fs/eventpoll.c suggests `ENOMEM` should not occur for `EPOLL_CTL_DEL`"),
 

@@ -10,7 +10,7 @@ pub enum TimerClock
 	/// A settable system-wide real-time clock.
 	RealTime = CLOCK_REALTIME,
 
-	/// A nonsettable monotonically increasing clock that measures time from some unspecified point in the past that does not change after system startup.
+	/// A unsettable monotonically increasing clock that measures time from some unspecified point in the past that does not change after system startup.
 	Monotonic = CLOCK_MONOTONIC,
 
 	/// Like `Monotonic`, this is a monotonically increasing clock.

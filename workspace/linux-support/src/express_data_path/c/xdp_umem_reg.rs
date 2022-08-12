@@ -26,7 +26,7 @@ pub(crate) struct xdp_umem_reg
 
 impl xdp_umem_reg
 {
-	/// `memory` must be page-aligned (technically, it does not need to mmap'd but in practice it is easier to ensure it is page-aligned; it is also likely to be a large allocation for which `malloc()` is not appropriate).
+	/// `memory` must be page-aligned (technically, it does not need to mmap-ed but in practice it is easier to ensure it is page-aligned; it is also likely to be a large allocation for which `malloc()` is not appropriate).
 	/// `frame_headroom` is usually `0`.
 	#[inline(always)]
 	pub(super) fn new(memory: &UserMemoryArea, chunk_size: impl ChunkSize, frame_headroom: FrameHeadroom, flags: XdpUmemRegFlags) -> Self

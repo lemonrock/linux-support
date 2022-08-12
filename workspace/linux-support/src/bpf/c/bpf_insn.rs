@@ -387,7 +387,7 @@ impl bpf_insn
 	///
 	/// "Conditional jumps against registers, `if (destination_register 'op' source_register) goto pc + offset`".
 	///
-	/// Uses a 64-bit comparision.
+	/// Uses a 64-bit comparison.
 	#[inline(always)]
 	pub const fn conditional_jump64(jump_operation: JumpOperation, destination_register: Register, source_register: Register, program_counter_offset: i16) -> Self
 	{
@@ -405,7 +405,7 @@ impl bpf_insn
 	///
 	/// "Conditional jumps against registers, `if (destination_register 'op' source_register) goto pc + offset`".
 	///
-	/// Uses a 32-bit comparision of the lower 64-bits of registers.
+	/// Uses a 32-bit comparison of the lower 64-bits of registers.
 	#[inline(always)]
 	pub const fn conditional_jump32(jump_operation: JumpOperation, destination_register: Register, source_register: Register, program_counter_offset: i16) -> Self
 	{
@@ -423,7 +423,7 @@ impl bpf_insn
 	///
 	/// "Conditional jumps against immediates, `if (destination_register 'op' immediate) goto pc + offset`".
 	///
-	/// Uses a 64-bit comparision.
+	/// Uses a 64-bit comparison.
 	#[inline(always)]
 	pub const fn conditional_jump64_immediate(jump_operation: JumpOperation, destination_register: Register, immediate: i32, program_counter_offset: i16) -> Self
 	{
@@ -441,7 +441,7 @@ impl bpf_insn
 	///
 	/// "Conditional jumps against immediates, `if (destination_register 'op' immediate) goto pc + offset`".
 	///
-	/// Uses a 32-bit comparision of the lower 64-bits of registers.
+	/// Uses a 32-bit comparison of the lower 64-bits of registers.
 	#[inline(always)]
 	pub const fn conditional_jump32_immediate(jump_operation: JumpOperation, destination_register: Register, immediate: i32, program_counter_offset: i16) -> Self
 	{

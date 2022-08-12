@@ -7,7 +7,7 @@ pub trait Allocate: AsRawFd + Seek + FileExt
 {
 	/// Allocates space on disk for future writes to succeed.
 	///
-	/// Returns an `Err(true)` if interupted by a signal or file is currently being executed.
+	/// Returns an `Err(true)` if interrupted by a signal or file is currently being executed.
 	/// Returns an `Err(false)` if out-of-disk space.
 	fn allocate(&self, offset: u64, length: NonZeroU64, mode: AllocationMode) -> Result<(), bool>
 	{
@@ -18,7 +18,7 @@ pub trait Allocate: AsRawFd + Seek + FileExt
 		}
 		else
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EINTR => Err(true),
 				ENOSPC => Err(false),

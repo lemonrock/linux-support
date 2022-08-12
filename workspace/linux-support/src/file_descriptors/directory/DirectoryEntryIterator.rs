@@ -56,7 +56,7 @@ impl<'a> StreamingIterator for DirectoryEntryIterator<'a>
 
 					EBADF => panic!("Invalid file descriptor fd"),
 					EFAULT => panic!("Argument points outside the calling process's address space"),
-					EINVAL => panic!("Result bufferfer is too small"),
+					EINVAL => panic!("Result buffer is too small"),
 					ENOTDIR => panic!("File descriptor does not refer to a directory"),
 
 					_ => panic!("Unexpected error {} from from getdents()", error_number)

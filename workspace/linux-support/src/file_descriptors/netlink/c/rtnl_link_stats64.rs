@@ -71,12 +71,12 @@ pub struct rtnl_link_stats64
 	/// Also available at `/sys/class/net/<network_interface_name>/statistics/rx_over_errors`.
 	pub rx_over_errors: u64,
 	
-	/// Detailed receive error: recved pkt with crc error.
+	/// Detailed receive error: received pkt with crc error.
 	///
 	/// Also available at `/sys/class/net/<network_interface_name>/statistics/rx_crc_errors`.
 	pub rx_crc_errors: u64,
 	
-	/// Detailed receive error: recveived frame alignment error.
+	/// Detailed receive error: received frame alignment error.
 	///
 	/// Also available at `/sys/class/net/<network_interface_name>/statistics/rx_frame_errors`.
 	pub rx_frame_errors: u64,
@@ -131,4 +131,3 @@ pub struct rtnl_link_stats64
 	/// Also available at `/sys/class/net/<network_interface_name>/statistics/rx_nohandler`.
 	pub rx_nohandler: u64,
 }
-

@@ -12,7 +12,7 @@ fn kill_wrapper(child_process_identifier: ProcessIdentifier)
 	}
 	else if likely!(result == -1)
 	{
-		match errno().0
+		match SystemCallErrorNumber::from_errno()
 		{
 			ESRCH => return,
 			EINVAL => panic!("EINVAL from `kill()`"),

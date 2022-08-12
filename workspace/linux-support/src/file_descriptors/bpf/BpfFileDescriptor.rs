@@ -146,7 +146,7 @@ pub trait BpfFileDescriptor: FileDescriptor
 	/// `access_permissions` are only validated for `MapIdentifier`; otherwise it must be `()`.
 	/// `MapIdentifier` usage requires the capability `CAP_SYS_ADMIN`.
 	#[inline(always)]
-	fn from_identifier(identifier: Self::Identifier, access_permissions: Self::Access) -> Result<Option<Self>, Errno>
+	fn from_identifier(identifier: Self::Identifier, access_permissions: Self::Access) -> Result<Option<Self>, SystemCallErrorNumber>
 	{
 		let mut attr = bpf_attr::default();
 		attr.get_identifier = BpfCommandGetIdentifier
@@ -163,11 +163,11 @@ pub trait BpfFileDescriptor: FileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			let errno = errno();
-			match errno.0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOENT => Ok(None),
-				_ => Err(errno)
+				
+				other @ _ => Err(other)
 			}
 		}
 		else

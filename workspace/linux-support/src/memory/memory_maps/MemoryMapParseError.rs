@@ -8,7 +8,7 @@ pub enum MemoryMapParseError
 {
 	/// Mismatched lines in `/proc/<pid>/smaps` (or `/proc/<pid>/maps`), `/proc/<pid>/numa_maps` and`/sys/devices/system/online` .
 	///
-	/// This can occur legitimately in rare occassions where:-
+	/// This can occur legitimately in rare occasions where:-
 	///
 	/// * the list of maps has changed in reading one file and then another;
 	/// * the list of online NUMA nodes has changed between reading it from `/sys/devices/system/online` and reading `/proc/<pid>/numa_maps`.
@@ -359,7 +359,7 @@ pub enum MemoryMapParseError
 	#[allow(missing_docs)]
 	NumaMapKeyValueDidNotHaveEqualsSign,
 
-	/// The mapmax value is only written by Linux if it exceeds 1.
+	/// The map maximum value is only written by Linux if it exceeds 1.
 	NumaMapMaxValueWasZeroOrOne,
 
 	/// The active value is only written by Linux if it exceeds 0 and huge pages are not present.

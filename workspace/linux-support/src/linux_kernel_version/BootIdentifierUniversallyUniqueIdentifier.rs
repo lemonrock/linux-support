@@ -37,7 +37,7 @@ impl FromBytes for BootIdentifierUniversallyUniqueIdentifier
 		
 		let mut iterator = bytes.split_bytes_n(5, b'-');
 		
-		/// A piece of tehe UUID, eg `033acd7c`.
+		/// A piece of the UUID, eg `033acd7c`.
 		#[inline(always)]
 		fn parse_piece<'a>(iterator: &mut impl Iterator<Item=&'a [u8]>, uuid_index: &mut usize, uuid_big_endian_bytes: &mut BigEndianU128, expected_length: usize) -> Result<(), ParseNumberError>
 		{

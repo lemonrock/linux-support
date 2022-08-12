@@ -39,7 +39,7 @@ extern "C"
 	///
 	/// * `EINVAL`: An invalid value was passed in `flags` or `event_f_flags`. `FAN_ALL_INIT_FLAGS` defines all allowable bits for `flags`.
 	/// * `EMFILE`: The number of fanotify groups for this user exceeds 128.
-	/// * `EMFILE`: The per-process limit on the number of open file descriptorshas been reached.
+	/// * `EMFILE`: The per-process limit on the number of open file descriptors has been reached.
 	/// * `ENOMEM`: The allocation of memory for the notification group failed.
 	/// * `ENOSYS`: This kernel does not implement `fanotify_init()`. The fanotify API is available only if the kernel was configured with `CONFIG_FANOTIFY`.
 	/// * `EPERM`: The operation is not permitted because the caller lacks the `CAP_SYS_ADMIN` capability.

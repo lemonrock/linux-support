@@ -19,11 +19,11 @@ pub trait Advise: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EINVAL => panic!("An invalid value was specified for advice"),
 				EBADF => panic!("fd is not a valid file descriptor"),
-				ESPIPE => panic!("The specified file descriptor refers to a pipe or FIFO (befor Linux 2.6.16, this was EINVAL)"),
+				ESPIPE => panic!("The specified file descriptor refers to a pipe or FIFO (before Linux 2.6.16, this was EINVAL)"),
 				unexpected @ _ => panic!("Unexpected error {} for posix_fadvise()", unexpected),
 			}
 		}

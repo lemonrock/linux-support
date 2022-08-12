@@ -2,7 +2,7 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-/// Group of features suppored by network device.
+/// Group of features supported by network device.
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
 #[repr(transparent)]
 #[derive(Deserialize, Serialize)]

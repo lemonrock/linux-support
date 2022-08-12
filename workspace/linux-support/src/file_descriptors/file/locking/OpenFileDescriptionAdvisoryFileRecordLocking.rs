@@ -42,7 +42,7 @@ pub trait OpenFileDescriptionAdvisoryFileRecordLocking: AsRawFd + Seek + FileExt
 		else if likely!(result == -1)
 		{
 			use self::AdvisoryFileRecordLock::*;
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EACCES | EAGAIN => Ok(false),
 				ENOLCK => Err(()),
@@ -85,7 +85,7 @@ pub trait OpenFileDescriptionAdvisoryFileRecordLocking: AsRawFd + Seek + FileExt
 		else if likely!(result == -1)
 		{
 			use self::AdvisoryFileRecordLock::*;
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOLCK => Err(false),
 				EINTR => Ok(false),
@@ -124,7 +124,7 @@ pub trait OpenFileDescriptionAdvisoryFileRecordLocking: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EACCES | EAGAIN => false,
 				EBADF => panic!("File descriptor was not valid"),
@@ -158,7 +158,7 @@ pub trait OpenFileDescriptionAdvisoryFileRecordLocking: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EINTR => false,
 				EBADF => panic!("File descriptor was not open or appropriate"),
@@ -198,7 +198,7 @@ pub trait OpenFileDescriptionAdvisoryFileRecordLocking: AsRawFd + Seek + FileExt
 		else if likely!(result == -1)
 		{
 			use self::AdvisoryFileRecordLock::*;
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EBADF => match advisory_file_record_lock
 				{

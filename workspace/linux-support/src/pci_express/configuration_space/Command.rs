@@ -34,7 +34,7 @@ bitflags!
 		/// Controls the ability of a PCI Express Endpoint to issue Memory and I/O Read/Write Requests, and the ability of a Root or Switch Port to forward Memory and I/O Read/Write Requests in the Upstream direction.
 		///
 		/// ## Endpoints
-		/// When this bit is set (`1`), the PCI Express Function is allowed toissue Memory or I/O Requests.
+		/// When this bit is set (`1`), the PCI Express Function is allowed to issue Memory or I/O Requests.
 		/// When this bit is clear (`0`), the PCI Express Function is not allowed to issue any Memory or I/O Requests.
 		/// Note that as MSI/MSI-X interrupt Messages are in-band memory writes, setting the Bus Master Enable bit to `0` disables MSI/MSI-X interrupt Messages as well.
 		/// Requests other than Memory or I/O Requests are not controlled by this bit.

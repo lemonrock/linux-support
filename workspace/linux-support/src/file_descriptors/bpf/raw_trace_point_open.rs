@@ -5,7 +5,7 @@
 /// Despite its function name, this function (a) attaches and (b) attaches to things other than raw trace points.
 /// Good ol'Linux.
 #[inline(always)]
-fn raw_trace_point_open(extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor, name: AlignedU64) -> Result<RawFd, i32>
+fn raw_trace_point_open(extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor, name: AlignedU64) -> Result<RawFd, SystemCallErrorNumber>
 {
 	let mut attr = bpf_attr::default();
 	attr.raw_tracepoint = BpfCommandRawTracePointOpen
@@ -21,7 +21,7 @@ fn raw_trace_point_open(extended_bpf_program_file_descriptor: &ExtendedBpfProgra
 	}
 	else if likely!(result == -1)
 	{
-		match errno().0
+		match SystemCallErrorNumber::from_errno()
 		{
 			ENOENT => Err(ENOENT),
 			ENOMEM => Err(ENOMEM),

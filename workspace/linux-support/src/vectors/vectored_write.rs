@@ -37,7 +37,7 @@ macro_rules! vectored_write
 						}
 						else if likely!(result == -1)
 						{
-							match errno().0
+							match SystemCallErrorNumber::from_errno()
 							{
 								libc::EAGAIN => WouldBlock,
 								libc::EINTR => Interrupted,

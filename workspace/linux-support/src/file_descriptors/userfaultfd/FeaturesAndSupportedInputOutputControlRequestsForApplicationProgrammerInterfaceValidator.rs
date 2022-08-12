@@ -11,7 +11,7 @@ pub trait FeaturesAndSupportedInputOutputControlRequestsForApplicationProgrammer
 	/// Validates.
 	///
 	/// * `features` is a list of supported features for the `UserFaultFileDescriptor`; it is always `Feature::all()` if running on Linux version 5.11.
-	/// * `supported_input_output_control_requests_for_application_programmer_interface` is a list of supported input-output control requests ('ioctl's); it is always `SupportedInputOutputControlRequests::ApplicationProgrammerInterfaces`.
+	/// * `supported_input_output_control_requests_for_application_programmer_interface` is a list of supported input-output control requests (ioctl); it is always `SupportedInputOutputControlRequests::ApplicationProgrammerInterfaces`.
 	fn validate(self, features: Features, supported_input_output_control_requests_for_application_programmer_interface: SupportedInputOutputControlRequests) -> Result<(), Self::Error>;
 }
 

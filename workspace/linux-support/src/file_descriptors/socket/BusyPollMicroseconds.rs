@@ -39,7 +39,7 @@ impl BusyPollMicroseconds
 	/// This sets the default value of the `SO_BUSY_POLL` socket option.
 	///
 	/// Low latency busy poll timeout for socket reads (needs `CONFIG_NET_RX_BUSY_POLL`).
-	/// Approximate time in microsecondes to busy loop waiting for packets on the device queue.
+	/// Approximate time in microseconds to busy loop waiting for packets on the device queue.
 	///
 	/// Can be set or overridden per socket by setting socket option `SO_BUSY_POLL`, which is the preferred method of enabling.
 	/// If you need to enable the feature globally a value of 50 is recommended.

@@ -302,7 +302,7 @@ impl signalfd_siginfo
 		{
 			address: VirtualAddress::from(self.ssi_addr),
 			#[cfg(any(target_arch = "mips64", target_arch = "sparc64"))] trap_number: self.ssi_trapno,
-			#[cfg(any(target_arch = "arrch64", target_arch = "powerpc64"))] trap_number: self.ssi_errno,
+			#[cfg(any(target_arch = "aarch64", target_arch = "powerpc64"))] trap_number: self.ssi_errno,
 			fault_code: fault_code(code)
 		})
 	}

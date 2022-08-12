@@ -367,7 +367,7 @@ impl InterruptRequest
 		HyperThreads(self.proc_file_path(proc_path, file_name).read_hyper_thread_or_numa_node_list().unwrap())
 	}
 	
-	// Annoningly, Linux does not output "\n" for an empty value for actions and name but "".
+	// Annoyingly, Linux does not output "\n" for an empty value for actions and name but "".
 	#[inline(always)]
 	fn raw_data_if_empty(file_path: PathBuf) -> io::Result<Option<Vec<u8>>>
 	{

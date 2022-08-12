@@ -10,7 +10,7 @@ pub trait AdvisoryWholeFileLocking: AsRawFd + Seek + FileExt
 	///
 	/// These *MAY NOT WORK* on files on NFS shares and non-local file systems; Linux kernel support is inconsistent and difficult to deduce.
 	///
-	/// If the underlying file descriptor is duplicated (including inheritated unclosed) by a child process, the lock is also inheritated.
+	/// If the underlying file descriptor is duplicated (including inherited unclosed) by a child process, the lock is also inherited.
 	/// Likewise, if a lock is released on a file descriptor, it is released on all duplicates.
 	/// This is *NOT* true if two separate file descriptors are created using `open()`.
 	///
@@ -30,7 +30,7 @@ pub trait AdvisoryWholeFileLocking: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOLCK => Err(()),
 				EWOULDBLOCK => Ok(false),
@@ -51,7 +51,7 @@ pub trait AdvisoryWholeFileLocking: AsRawFd + Seek + FileExt
 	///
 	/// These *MAY NOT WORK* on files on NFS shares and non-local file systems; Linux kernel support is inconsistent and difficult to deduce.
 	///
-	/// If the underlying file descriptor is duplicated (including inheritated unclosed) by a child process, the lock is also inheritated.
+	/// If the underlying file descriptor is duplicated (including inherited unclosed) by a child process, the lock is also inherited.
 	/// Likewise, if a lock is released on a file descriptor, it is released on all duplicates.
 	/// This is *NOT* true if two separate file descriptors are created using `open()`.
 	///
@@ -72,7 +72,7 @@ pub trait AdvisoryWholeFileLocking: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EINTR => Ok(false),
 				ENOLCK => Err(()),
@@ -93,7 +93,7 @@ pub trait AdvisoryWholeFileLocking: AsRawFd + Seek + FileExt
 	///
 	/// These *MAY NOT WORK* on files on NFS shares and non-local file systems; Linux kernel support is inconsistent and difficult to deduce.
 	///
-	/// If the underlying file descriptor is duplicated (including inheritated unclosed) by a child process, the lock is also inheritated.
+	/// If the underlying file descriptor is duplicated (including inherited unclosed) by a child process, the lock is also inherited.
 	/// Likewise, if a lock is released on a file descriptor, it is released on all duplicates.
 	/// This is *NOT* true if two separate file descriptors are created using `open()`.
 	///
@@ -111,7 +111,7 @@ pub trait AdvisoryWholeFileLocking: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EWOULDBLOCK => false,
 				EINTR => panic!("Should not be possible to interrupt with a signal as non-blocking"),
@@ -132,7 +132,7 @@ pub trait AdvisoryWholeFileLocking: AsRawFd + Seek + FileExt
 	///
 	/// These *MAY NOT WORK* on files on NFS shares and non-local file systems; Linux kernel support is inconsistent and difficult to deduce.
 	///
-	/// If the underlying file descriptor is duplicated (including inheritated unclosed) by a child process, the lock is also inheritated.
+	/// If the underlying file descriptor is duplicated (including inherited unclosed) by a child process, the lock is also inherited.
 	/// Likewise, if a lock is released on a file descriptor, it is released on all duplicates.
 	/// This is *NOT* true if two separate file descriptors are created using `open()`.
 	///
@@ -150,7 +150,7 @@ pub trait AdvisoryWholeFileLocking: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EINTR => false,
 				EWOULDBLOCK => panic!("The file is locked and the LOCK_NB flag was selected"),

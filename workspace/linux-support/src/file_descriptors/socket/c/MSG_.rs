@@ -35,6 +35,7 @@ pub(crate) const MSG_PEEK: c_int = 0x0002;
 /// This is defined only for protocol families that route; packet sockets do not.
 pub(crate) const MSG_DONTROUTE: c_int = 0x0004;
 
+//noinspection SpellCheckingInspection
 /// Send flag.
 ///
 /// Synonym of `MSG_DONTROUTE` used by DECnet, which has been orphaned in Linux since 2010.
@@ -153,7 +154,7 @@ pub(crate) const MSG_RST: c_int = 0x1000;
 ///
 /// The error is supplied in a `sock_extended_err` structure:-
 ///
-/// ```
+/// ```bash
 /// #define SO_EE_ORIGIN_NONE 0
 /// #define SO_EE_ORIGIN_LOCAL 1
 /// #define SO_EE_ORIGIN_ICMP 2

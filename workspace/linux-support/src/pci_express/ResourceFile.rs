@@ -11,7 +11,7 @@ pub struct ResourceFile
 	/// Zero-based index (internally, Linux uses an i32).
 	pub index: u32,
 
-	/// Is this a write-combining (WC) resource that can be prefeteched?
+	/// Is this a write-combining (WC) resource that can be prefetched?
 	pub write_combining: bool,
 }
 

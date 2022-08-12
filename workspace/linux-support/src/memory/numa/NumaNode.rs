@@ -192,7 +192,7 @@ impl NumaNode
 		{
 			use self::PageMoveError::*;
 
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EACCES => Err(TargetNodeNotAllowed),
 
@@ -256,7 +256,7 @@ impl NumaNode
 		{
 			use self::PageMoveError::*;
 
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EACCES => panic!("TargetNodeNotAllowed"),
 
@@ -334,7 +334,7 @@ impl NumaNode
 		{
 			use self::PageMoveError::*;
 
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EACCES => Err(TargetNodeNotAllowed),
 

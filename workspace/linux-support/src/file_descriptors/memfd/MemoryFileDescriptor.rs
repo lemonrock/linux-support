@@ -270,7 +270,7 @@ impl MemoryFileDescriptor
 	/// * As an alternative to using `/tmp`, `tmpfs` or `O_TMPFILE` if there is no intention to link a file into the file system;
 	/// * To use file sealing (see <http://man7.org/linux/man-pages/man2/fcntl.2.html>); particularly `F_SEAL_FUTURE_WRITE` for a shared memory buffer.
 	///
-	/// The file can be mmap'd and the file descriptor passed to other processes like any other.
+	/// The file can be mmap-ed and the file descriptor passed to other processes like any other.
 	///
 	/// The initial size of the file is set to 0.
 	///
@@ -280,7 +280,7 @@ impl MemoryFileDescriptor
 	/// It does not have to be unique.
 	///
 	/// `allow_sealing_operations`:  If true, then the `fcntl()` `F_ADD_SEALS` and `F_GET_SEALS` operations are supported; the initial set of seals is empty.
-	/// If not specifed, then the initial set of seals will be `F_SEAL_SEAL`, meaning that no other seals can be set on the file.
+	/// If not specified, then the initial set of seals will be `F_SEAL_SEAL`, meaning that no other seals can be set on the file.
 	///
 	/// `huge_page_size` supports the following:-
 	///
@@ -328,7 +328,7 @@ impl MemoryFileDescriptor
 		{
 			use self::CreationError::*;
 
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EMFILE => Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
 
@@ -361,7 +361,7 @@ impl MemoryFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EPERM => Err(()),
 
@@ -387,7 +387,7 @@ impl MemoryFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EINVAL => panic!("This is not a memfd"),
 

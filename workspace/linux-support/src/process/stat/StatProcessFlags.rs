@@ -75,7 +75,7 @@ bitflags!
 		/// Allowed to write to swap.
 		const AllowedToSwapOnWrite = PF_SWAPWRITE;
 		
-		/// I'm an Usermodehelper process.
+		/// I'm an usermode helper process.
 		const UsermodeHelperProcess = PF_UMH;
 		
 		/// Userland is not allowed to meddle with cpus_mask.

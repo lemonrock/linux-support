@@ -154,7 +154,7 @@ impl IoPriority
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EPERM => Err(true),
 				ESRCH => Err(false),
@@ -256,7 +256,7 @@ impl IoPriority
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EPERM => Err(true),
 				ESRCH => Err(false),

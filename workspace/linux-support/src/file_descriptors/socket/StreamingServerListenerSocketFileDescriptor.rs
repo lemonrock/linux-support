@@ -88,7 +88,7 @@ impl<SD: SocketData> StreamingServerListenerSocketFileDescriptor<SD>
 		{
 			Err
 			(
-				match errno().0
+				match SystemCallErrorNumber::from_errno()
 				{
 					EAGAIN => Again,
 

@@ -182,7 +182,7 @@ pub enum MemoryAdvice
 	/// .
 	PageOut = MADV_PAGEOUT,
 
-	/// Poison the pages in the range specified by `addr` and `lengt`h and handle subsequent references to those pages like a hardware memory corruption.
+	/// Poison the pages in the range specified by `addr` and `length` and handle subsequent references to those pages like a hardware memory corruption.
 	///
 	/// Only available if the kernel has been built with `CONFIG_MEMORY_FAILURE`.
 	///

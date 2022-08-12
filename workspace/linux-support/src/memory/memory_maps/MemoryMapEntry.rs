@@ -274,7 +274,7 @@ impl MemoryMapEntry
 		VirtualAddress::parse_hexadecimal_number_lower_case(from_bytes).map_err(|cause| CouldNotParseNumberField { zero_based_line_number, zero_based_field_index: 1, name: "memory_policy", cause })
 	}
 
-	/// Can be `None` in the vary rare circumstance Linux returns `unknown` (which is a Linux bug that can occur because of the lack of storng typing inside the Linux code base).
+	/// Can be `None` in the vary rare circumstance Linux returns `unknown` (which is a Linux bug that can occur because of the lack of strong typing inside the Linux code base).
 	#[inline(always)]
 	fn parse_numa_memory_policy_details<'a>(fields: &mut impl Iterator<Item=&'a [u8]>, zero_based_line_number: usize) -> Result<NumaMemoryPolicyDetails, MemoryMapParseError>
 	{

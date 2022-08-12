@@ -54,7 +54,7 @@ pub(super) const CODA_SUPER_MAGIC: u32 = 0x73757245;
 #[allow(dead_code)]
 pub(super) const CRAMFS_MAGIC: u32 = 0x28CD3D45;
 
-/// Magic number with the wrong endianess.
+/// Magic number with the wrong endianness.
 #[allow(dead_code)]
 pub(super) const CRAMFS_MAGIC_WEND: u32 = 0x453DCD28;
 

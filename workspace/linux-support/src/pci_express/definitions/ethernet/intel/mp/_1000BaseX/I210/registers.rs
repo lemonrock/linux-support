@@ -49,3 +49,6 @@ pub const PQMPRC: RegisterDefinition<ReadOnlyCounterNotResetOnReadRegister<u32>,
 
 /// Manageability EEPROM-Mode Control Register.
 pub const EEMNGCTL: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::singleton(0x12030);
+
+/// EEPROM-Mode Control Register.
+pub const EEC: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::singleton(0x12010);

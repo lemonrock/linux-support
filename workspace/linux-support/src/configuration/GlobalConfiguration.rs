@@ -27,7 +27,7 @@ pub struct GlobalConfiguration
 	pub system_v_message_queue: GlobalSystemVMessageQueueConfiguration,
 	
 	/// Requires root.
-	pub system_v_semaphore: Option<SempahoresConfiguration>,
+	pub system_v_semaphore: Option<SemaphoresConfiguration>,
 	
 	/// Requires root.
 	pub inotify: GlobalInotifyConfiguration,

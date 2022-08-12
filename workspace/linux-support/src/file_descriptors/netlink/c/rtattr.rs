@@ -94,9 +94,9 @@ impl<NAT: NetlinkAttributeType> rtattr<NAT>
 	}
 	
 	#[inline(always)]
-	pub(super) fn get_attribute_value_net_namespace_identifier(&self) -> Result<NetNamespaceIdentifer, TryFromSliceError>
+	pub(super) fn get_attribute_value_net_namespace_identifier(&self) -> Result<NetNamespaceIdentifier, TryFromSliceError>
 	{
-		self.get_attribute_value_i32().map(NetNamespaceIdentifer)
+		self.get_attribute_value_i32().map(NetNamespaceIdentifier)
 	}
 	
 	#[inline(always)]

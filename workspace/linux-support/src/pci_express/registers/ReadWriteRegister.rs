@@ -46,11 +46,11 @@ impl<RS: RegisterSize> ReadWriteRegister<RS>
 	#[inline(always)]
 	pub fn write_bits(&self, start: RS, length: RS, bits: RS) -> RS
 	{
-		let tmp = self.read();
-		let offmask = !(RS::bitmask(length) << start);
-		let tmp = tmp & offmask;
-		let tmp = tmp | (bits << start);
-		self.write(tmp)
+		let temp = self.read();
+		let offset_mask = !(RS::bitmask(length) << start);
+		let temp = temp & offset_mask;
+		let temp = temp | (bits << start);
+		self.write(temp)
 	}
 
 	/// Write byte.

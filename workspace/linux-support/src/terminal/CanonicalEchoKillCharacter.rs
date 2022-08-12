@@ -48,7 +48,7 @@ impl Default for CanonicalEchoKillCharacter
 impl CanonicalEchoKillCharacter
 {
 	#[inline(always)]
-	pub(crate) fn interprete_mode_flags(current_flags: tcflag_t) -> Self
+	pub(crate) fn interpret_mode_flags(current_flags: tcflag_t) -> Self
 	{
 		use self::CanonicalEchoKillCharacter::*;
 

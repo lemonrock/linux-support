@@ -77,7 +77,7 @@ impl MappedMemory
 	/// If the defaults indicate `huge_memory_page_size` `Some(None)` is not supported, they then the mapping will not use huge pages.
 	///
 	/// Linux's `MAP_LOCKED` and `MAP_GROWSDOWN` are not supported.
-	/// `MAP_LOCKED` is a more 'extreme' variant of `prefault` that does not have as strong a g'tee as `mlock()`.
+	/// `MAP_LOCKED` is a more 'extreme' variant of `prefault` that does not have as strong a guarantee as `mlock()`.
 	///
 	/// If using a file descriptor created using `MemoryFileDescriptor::open_anonymous_memory_as_file()`, then the value of `huge_memory_page_size` must be the same as used in the call to `MemoryFileDescriptor::open_anonymous_memory_as_file()`.
 	///
@@ -148,7 +148,7 @@ impl MappedMemory
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EAGAIN => Ok(false),
 				
@@ -189,7 +189,7 @@ impl MappedMemory
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EAGAIN => Ok(false),
 				
@@ -235,8 +235,7 @@ impl MappedMemory
 			use self::MemoryAdvice::*;
 			use self::MemoryAdviceError::*;
 			
-			let error_number = errno();
-			let error = match error_number.0
+			let error = match SystemCallErrorNumber::from_errno()
 			{
 				EACCES => match advice
 				{
@@ -281,7 +280,7 @@ impl MappedMemory
 					_ => panic!("Unexpected error EPERM from madvise() for advice {:?}", advice),
 				},
 				
-				_ => panic!("Unexpected error {} from madvise() for advice {:?}", error_number, advice),
+				error_number @ _ => panic!("Unexpected error {} from madvise() for advice {:?}", error_number, advice),
 			};
 			Err(error)
 		}
@@ -352,7 +351,7 @@ impl MappedMemory
 		else if likely!(result == -1)
 		{
 			use self::SynchronizeFlags::*;
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EBUSY => match synchronize
 				{
@@ -411,7 +410,7 @@ impl MappedMemory
 	///
 	/// Returned value is the original mapping.
 	///
-	/// * The original mapping will be equivalent to a mmap'd private anonymous mapping.
+	/// * The original mapping will be equivalent to a mmap-ed private anonymous mapping.
 	/// * then `MREMAP_DONTUNMAP` is specified.
 	/// * If the mapping is not currently a private anonymous mapping, the remap will error.
 	/// * Any monitoring UserFaultFileDescriptor will receive events for the new mapping, not the original.
@@ -461,8 +460,7 @@ impl MappedMemory
 		let result = unsafe { mremap(self.virtual_address.into(), old_size, new_size, flags, to_address) };
 		if unlikely!(result == MAP_FAILED)
 		{
-			let errno = errno();
-			return match errno.0
+			return match SystemCallErrorNumber::from_errno()
 			{
 				EINTR => Err(true),
 				
@@ -474,7 +472,7 @@ impl MappedMemory
 				
 				EINVAL => panic!("See man 2 remap for a very long list of reasons"),
 				
-				_ => panic!("Unexpected error {:?} from mremap()", errno),
+				unexpected @ _ => panic!("Unexpected error {:?} from mremap()", unexpected),
 			}
 		}
 		
@@ -607,7 +605,7 @@ impl MappedMemory
 		{
 			use self::CreationError::*;
 			
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOMEM => Err(KernelWouldBeOutOfMemory),
 				ENFILE => Err(SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded),
@@ -756,7 +754,7 @@ impl MappedMemory
 		else if likely!(result == -1)
 		{
 			// `ENOMEM` can occur if a memory mapping is 'split' with the central section unmapped.
-			panic!("munmap() returned an error of {}", errno())
+			panic!("munmap() returned an error of {}", SystemCallErrorNumber::from_errno())
 		}
 		else
 		{

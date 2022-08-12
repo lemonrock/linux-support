@@ -9,8 +9,8 @@ pub enum StatusStatisticParseError
 	/// No value.
 	NoValue,
 
-	/// Value was not preceeded by a horizontal tab.
-	ValueNotPreceededByHorizontalTab,
+	/// Value was not preceded by a horizontal tab.
+	ValueNotPrecededByHorizontalTab,
 
 	/// Length was invalid.
 	InvalidLength,
@@ -63,7 +63,7 @@ impl error::Error for StatusStatisticParseError
 		{
 			&NoValue => None,
 
-			&ValueNotPreceededByHorizontalTab => None,
+			&ValueNotPrecededByHorizontalTab => None,
 
 			&InvalidLength => None,
 

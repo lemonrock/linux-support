@@ -73,3 +73,6 @@ pub const VT_CTL: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefi
 
 /// Transmit Switch Control.
 pub const TXSWC: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::singleton(0x05ACC);
+
+/// Function Active and Power State to MNG.
+pub const FACTPS: RegisterDefinition<ReadWriteRegister<u32>, u32> = RegisterDefinition::singleton(0x05B30);

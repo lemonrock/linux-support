@@ -24,7 +24,7 @@ pub trait Leasing: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EINTR => false,
 				EBADF => panic!("fd is not an open file descriptor"),
@@ -53,7 +53,7 @@ pub trait Leasing: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EINTR => false,
 				EBADF => panic!("fd is not an open file descriptor"),
@@ -71,7 +71,7 @@ pub trait Leasing: AsRawFd + Seek + FileExt
 	/// Releases a file lease.
 	///
 	/// Returns `Some` if this open file description holds a lease or `None` if it doesn't.
-	/// Returns an error if interupted by a signal.
+	/// Returns an error if interrupted by a signal.
 	#[inline(always)]
 	fn get_current_lease(&self) -> Result<Option<Lease>, ()>
 	{
@@ -83,7 +83,7 @@ pub trait Leasing: AsRawFd + Seek + FileExt
 			F_WRLCK => Ok(Some(Write)),
 			F_UNLCK => Ok(None),
 
-			-1 => match errno().0
+			-1 => match SystemCallErrorNumber::from_errno()
 			{
 				EINTR => Err(()),
 				EBADF => panic!("fd is not an open file descriptor"),

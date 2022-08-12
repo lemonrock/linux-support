@@ -40,7 +40,7 @@ impl ProcessDiagnostics
 	{
 		Self
 		{
-			process_group_identifier: process_identifier.process_group_identifier().map_err(|_: ()| DiagnosticUnobtainable(format!("Could not obtain orocess group identifier"))),
+			process_group_identifier: process_identifier.process_group_identifier().map_err(|_: ()| DiagnosticUnobtainable(format!("Could not obtain process group identifier"))),
 			
 			session_identifier: process_identifier.session_identifier().map_err(|_: ()| DiagnosticUnobtainable(format!("Could not obtain session identifier"))),
 			

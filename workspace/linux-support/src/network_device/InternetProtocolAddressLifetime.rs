@@ -37,7 +37,7 @@ impl InternetProtocolAddressLifetime
 	/// Default temporary preferred (`TEMP_PREFERRED_LIFETIME`).
 	pub const DefaultTemporaryPreferred: Self = Self(86_400);
 	
-	/// `temporary_address_prefered_lifetime`.
+	/// `temporary_address_preferred_lifetime`.
 	///
 	/// Default is `TEMP_PREFERRED_LIFETIME` (`86,400`).
 	/// Infinity is `INFINITY_LIFE_TIME` (`0xFFFF_FFFF`).

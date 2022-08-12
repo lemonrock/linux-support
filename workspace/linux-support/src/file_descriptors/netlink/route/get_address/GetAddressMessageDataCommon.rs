@@ -31,13 +31,13 @@ pub struct GetAddressMessageDataCommon
 	pub address_scope: rt_scope,
 	
 	#[allow(missing_docs)]
-	pub target_net_namespace_identifier: Option<NetNamespaceIdentifer>,
+	pub target_net_namespace_identifier: Option<NetNamespaceIdentifier>,
 	
 	#[allow(missing_docs)]
 	pub temporary_address_valid_lifetime: InternetProtocolAddressLifetime,
 	
 	#[allow(missing_docs)]
-	pub temporary_address_prefered_lifetime: InternetProtocolAddressLifetime,
+	pub temporary_address_preferred_lifetime: InternetProtocolAddressLifetime,
 	
 	#[allow(missing_docs)]
 	pub temporary_address_created_timestamp: CacheTimestampInHundrethsOfSeconds,

@@ -187,7 +187,7 @@ impl IoUringFileDescriptor
 		{
 			use self::SubmitError::*;
 
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				EAGAIN => Err(TryAgain),
 				EBUSY => Err(Busy),
@@ -312,7 +312,7 @@ impl IoUringFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOMEM => Err(()),
 				ENXIO => panic!("io_uring is being torn down"),
@@ -338,7 +338,7 @@ impl IoUringFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOMEM => Err(false),
 				EINTR => Err(true),
@@ -365,7 +365,7 @@ impl IoUringFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOMEM => Err(false),
 				EINTR => Err(true),
@@ -392,7 +392,7 @@ impl IoUringFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOMEM => Err(false),
 				EINTR => Err(true),
@@ -428,7 +428,7 @@ impl IoUringFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOMEM => Err(()),
 
@@ -456,7 +456,7 @@ impl IoUringFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOMEM => Err(()),
 
@@ -481,7 +481,7 @@ impl IoUringFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENXIO => panic!("io_uring is being torn down"),
 				EINVAL => panic!("Invalid personality credentials identifier"),

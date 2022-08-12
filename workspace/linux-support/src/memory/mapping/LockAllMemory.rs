@@ -43,7 +43,7 @@ impl LockAllMemory
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOMEM => panic!("the caller had a nonzero RLIMIT_MEMLOCK soft resource limit, but tried to lock more memory than the limit permitted. This limit is not enforced if the process is privileged (CAP_IPC_LOCK)."),
 				EPERM => panic!("The caller is not privileged, but needs privilege (CAP_IPC_LOCK) to perform the requested operation."),
@@ -67,7 +67,7 @@ impl LockAllMemory
 		}
 		else if likely!(result == -1)
 		{
-			match errno().0
+			match SystemCallErrorNumber::from_errno()
 			{
 				ENOMEM => panic!("the caller had a nonzero RLIMIT_MEMLOCK soft resource limit, but tried to lock more memory than the limit permitted. This limit is not enforced if the process is privileged (CAP_IPC_LOCK)."),
 				EPERM => panic!("The caller is not privileged, but needs privilege (CAP_IPC_LOCK) to perform the requested operation. Or, (Linux 2.6.8 and earlier) The caller was not privileged (CAP_IPC_LOCK)"),

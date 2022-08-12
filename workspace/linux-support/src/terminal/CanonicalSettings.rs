@@ -108,7 +108,7 @@ impl CanonicalSettings
 			echo_new_line: current_flags & ECHONL != 0,
 			external_processing: current_flags & EXTPROC != 0,
 			print_before_erase: current_flags & (ECHO | ECHOPRT) != 0,
-			echo_kill_character: CanonicalEchoKillCharacter::interprete_mode_flags(current_flags)
+			echo_kill_character: CanonicalEchoKillCharacter::interpret_mode_flags(current_flags)
 		}
 	}
 }
