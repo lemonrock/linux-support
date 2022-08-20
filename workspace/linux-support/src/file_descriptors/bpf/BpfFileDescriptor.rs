@@ -25,7 +25,7 @@ pub trait BpfFileDescriptor: FileDescriptor
 	
 	/// Get information.
 	#[inline(always)]
-	fn get_information(&self) -> Result<Self::Information, Errno>
+	fn get_information(&self) -> Result<Self::Information, SystemCallErrorNumber>
 	{
 		let mut information: Self::Information = unsafe_uninitialized();
 		
@@ -46,7 +46,7 @@ pub trait BpfFileDescriptor: FileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			Err(errno())
+			Err(SystemCallErrorNumber::from_errno())
 		}
 		else
 		{
@@ -60,7 +60,7 @@ pub trait BpfFileDescriptor: FileDescriptor
 	///
 	/// cf `bpf_obj_pin()`.
 	#[inline(always)]
-	fn pin_to_path(&self, mount_point: &BpfMountPoint, relative_path: &OsStr) -> Result<(), Errno>
+	fn pin_to_path(&self, mount_point: &BpfMountPoint, relative_path: &OsStr) -> Result<(), SystemCallErrorNumber>
 	{
 		let path = mount_point.with_relative_path(relative_path);
 		let mut path = path_bytes_without_trailing_nul(&path).to_vec();
@@ -81,7 +81,7 @@ pub trait BpfFileDescriptor: FileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			Err(errno())
+			Err(SystemCallErrorNumber::from_errno())
 		}
 		else
 		{
@@ -95,7 +95,7 @@ pub trait BpfFileDescriptor: FileDescriptor
 	///
 	/// cf `bpf_obj_get()`.
 	#[inline(always)]
-	fn get_pinned_relative_path(mount_point: &BpfMountPoint, relative_path: &OsStr, access_permissions: KernelOnlyAccessPermissions) -> Result<Self, Errno>
+	fn get_pinned_relative_path(mount_point: &BpfMountPoint, relative_path: &OsStr, access_permissions: KernelOnlyAccessPermissions) -> Result<Self, SystemCallErrorNumber>
 	{
 		let absolute_path = mount_point.with_relative_path(relative_path);
 		Self::get_pinned_absolute_path(&absolute_path, access_permissions)
@@ -105,7 +105,7 @@ pub trait BpfFileDescriptor: FileDescriptor
 	///
 	/// cf `bpf_obj_get()`.
 	#[inline(always)]
-	fn get_pinned_absolute_path(absolute_path: &impl AsRef<Path>, access_permissions: KernelOnlyAccessPermissions) -> Result<Self, Errno>
+	fn get_pinned_absolute_path(absolute_path: &impl AsRef<Path>, access_permissions: KernelOnlyAccessPermissions) -> Result<Self, SystemCallErrorNumber>
 	{
 		let mut path = path_bytes_without_trailing_nul(&absolute_path).to_vec();
 		path.push(b'\0');
@@ -125,7 +125,7 @@ pub trait BpfFileDescriptor: FileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			Err(errno())
+			Err(SystemCallErrorNumber::from_errno())
 		}
 		else
 		{
@@ -136,7 +136,7 @@ pub trait BpfFileDescriptor: FileDescriptor
 	///
 	/// `MapIdentifier` usage requires the capability `CAP_SYS_ADMIN`.
 	#[inline(always)]
-	fn from_identifier_with_access_defaults(identifier: Self::Identifier) -> Result<Option<Self>, Errno>
+	fn from_identifier_with_access_defaults(identifier: Self::Identifier) -> Result<Option<Self>, SystemCallErrorNumber>
 	{
 		Self::from_identifier(identifier, Self::DefaultAccess)
 	}

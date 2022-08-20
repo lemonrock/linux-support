@@ -4,7 +4,7 @@
 
 /// Seccomp is disabled after this call.
 #[inline(always)]
-pub fn disabled_seccomp() -> Result<(), Errno>
+pub fn disabled_seccomp() -> Result<(), SystemCallErrorNumber>
 {
 	process_control_wrapper2(PR_SET_SECUREBITS,SECCOMP_MODE_DISABLED as usize,result_must_be_zero,Err)
 }

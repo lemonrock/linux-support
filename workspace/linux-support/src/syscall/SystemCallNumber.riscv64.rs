@@ -11,7 +11,7 @@ impl SystemCallNumber
 		asm!
 		(
 			"ecall",
-			in("a7") self.0,
+			in("a7") (self as usize),
 			lateout("a0") result,
 		);
 		SystemCallResult(result)
@@ -24,7 +24,7 @@ impl SystemCallNumber
 		asm!
 		(
 			"ecall",
-			in("a7") self.0,
+			in("a7") (self as usize),
 			in("a0") a,
 			lateout("a0") result,
 		);
@@ -38,7 +38,7 @@ impl SystemCallNumber
 		asm!
 		(
 			"ecall",
-			in("a7") self.0,
+			in("a7") (self as usize),
 			in("a0") a,
 			in("a1") b,
 			lateout("a0") result,
@@ -53,7 +53,7 @@ impl SystemCallNumber
 		asm!
 		(
 			"ecall",
-			in("a7") self.0,
+			in("a7") (self as usize),
 			in("a0") a,
 			in("a1") b,
 			in("a2") b,
@@ -69,7 +69,7 @@ impl SystemCallNumber
 		asm!
 		(
 			"ecall",
-			in("a7") self.0,
+			in("a7") (self as usize),
 			in("a0") a,
 			in("a1") b,
 			in("a2") b,
@@ -86,7 +86,7 @@ impl SystemCallNumber
 		asm!
 		(
 			"ecall",
-			in("a7") self.0,
+			in("a7") (self as usize),
 			in("a0") a,
 			in("a1") b,
 			in("a2") b,
@@ -104,7 +104,7 @@ impl SystemCallNumber
 		asm!
 		(
 			"ecall",
-			in("a7") self.0,
+			in("a7") (self as usize),
 			in("a0") a,
 			in("a1") b,
 			in("a2") b,

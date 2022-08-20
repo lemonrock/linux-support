@@ -22,13 +22,15 @@ impl PerThreadSchedulerPolicyAndFlags
 	pub fn get_for_thread(thread_identifier: ThreadIdentifierChoice) -> Result<Self, &'static str>
 	{
 		const FlagsIsAlwaysZero: u32 = 0;
-		let mut parameters = unsafe_uninitialized();
-		let result = SystemCallNumber::system_call_sched_getattr(thread_identifier.into(), &mut parameters, SCHED_ATTR_SIZE_VER0, FlagsIsAlwaysZero);
+		let mut parameters = MaybeUninit::uninit();
+		let result = system_call_sched_getattr(thread_identifier.into(), new_non_null(parameters.as_mut_ptr()), SCHED_ATTR_SIZE_VER0, FlagsIsAlwaysZero);
 
 		if likely!(result == 0)
 		{
 			use self::SchedulerPolicy::*;
-
+			
+			let parameters = unsafe { parameters.assume_init() };
+			
 			#[inline(always)]
 			fn nice(parameters: &sched_attr) -> Result<Nice, &'static str>
 			{
@@ -192,7 +194,7 @@ impl PerThreadSchedulerPolicyAndFlags
 		};
 
 		const FlagsIsAlwaysZero: u32 = 0;
-		let result = SystemCallNumber::system_call_sched_setattr(thread_identifier.into(), &mut parameters, FlagsIsAlwaysZero);
+		let result = system_call_sched_setattr(thread_identifier.into(), &mut parameters, FlagsIsAlwaysZero);
 
 		if likely!(result == 0)
 		{

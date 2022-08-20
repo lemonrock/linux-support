@@ -9,7 +9,7 @@ trait ExtendedBerkeleyPacketFilterIdentifierDiagnostic: Sized
 	fn map(information: <Self::BFD as BpfFileDescriptor>::Information) -> Self;
 	
 	#[inline(always)]
-	fn gather(file_descriptor: &Self::BFD) -> Result<Self, Errno>
+	fn gather(file_descriptor: &Self::BFD) -> Result<Self, SystemCallErrorNumber>
 	{
 		file_descriptor.get_information().map(Self::map)
 	}
@@ -36,7 +36,7 @@ trait ExtendedBerkeleyPacketFilterIdentifierDiagnostic: Sized
 	/// A returned value of `Err()` implies that the file path itself is not one of `ExtendedBpfProgramFileDescriptor`, `BpfTypeFormatFileDescriptor`, or `MapFileDescriptor`, or does not exist or is not a file.
 	fn gather_from_pinned_object(absolute_path: &impl AsRef<Path>) -> DiagnosticUnobtainableResult<Option<Self>>
 	{
-		let file_descriptor = Self::BFD::get_pinned_absolute_path(absolute_path, KernelOnlyAccessPermissions::KernelReadAndWriteUserspaceReadWrite).map_err(|errno| DiagnosticUnobtainable::from(format!("Could not open pinned Extended BPF file descriptor: {}", errno)))?;
+		let file_descriptor = Self::BFD::get_pinned_absolute_path(absolute_path, KernelOnlyAccessPermissions::KernelReadAndWriteUserspaceReadWrite).map_err(|SystemCallErrorNumber| DiagnosticUnobtainable::from(format!("Could not open pinned Extended BPF file descriptor: {}", SystemCallErrorNumber)))?;
 		Ok(Self::gather(&file_descriptor).ok())
 	}
 }

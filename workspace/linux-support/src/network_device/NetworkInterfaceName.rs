@@ -290,14 +290,14 @@ impl NetworkInterfaceName
 		{
 			Ok(value) => value,
 			
-			Err(error) => return if error.raw_os_error() == Some(EINVAL) || error.kind() == ErrorKind::InvalidInput
+			Err(error) => return if SystemCallErrorNumber::try_from(error) == Ok(EINVAL) || error.kind() == ErrorKind::InvalidInput
 			{
 				Ok(NET_NAME::NET_NAME_UNKNOWN)
 			}
 			else
 			{
 				Err(error)
-			}
+			},
 		};
 		
 		if (value as usize) >= NET_NAME::COUNT

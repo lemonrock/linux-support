@@ -42,7 +42,7 @@ impl<V: Copy> SocketStorageMap<V>
 	
 	/// Freeze.
 	#[inline(always)]
-	pub fn freeze(&self) -> Result<(), Errno>
+	pub fn freeze(&self) -> Result<(), SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.freeze()
 	}
@@ -77,7 +77,7 @@ impl<V: Copy> SocketStorageMap<V>
 	
 	/// Removes.
 	#[inline(always)]
-	pub fn delete<SD: SocketData>(&self, key: &SocketFileDescriptor<SD>) -> Result<bool, Errno>
+	pub fn delete<SD: SocketData>(&self, key: &SocketFileDescriptor<SD>) -> Result<bool, SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.delete(&key.as_raw_fd())
 	}

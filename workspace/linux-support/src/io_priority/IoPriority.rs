@@ -147,7 +147,7 @@ impl IoPriority
 	#[inline(always)]
 	fn get(which: impl Into<i32>, who: IOPRIO_WHO) -> Result<Self, bool>
 	{
-		let result = SystemCallNumber::system_call_ioprio_get(which.into(), who);
+		let result = system_call_ioprio_get(which.into(), who);
 		if likely!(result >= 0)
 		{
 			Ok(Self::parse_ioprio_result(result).unwrap().expect("Should never be NONE"))
@@ -249,7 +249,7 @@ impl IoPriority
 	#[inline(always)]
 	fn change(which: impl Into<i32>, who: IOPRIO_WHO, value: u16) -> Result<(), bool>
 	{
-		let result = SystemCallNumber::system_call_ioprio_set(which.into(), who, value);
+		let result = system_call_ioprio_set(which.into(), who, value);
 		if likely!(result == 0)
 		{
 			Ok(())

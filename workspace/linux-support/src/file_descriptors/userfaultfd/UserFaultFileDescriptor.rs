@@ -193,7 +193,7 @@ impl UserFaultFileDescriptor
 			flags
 		};
 		
-		let result = SystemCallNumber::system_call_userfaultfd(flags);
+		let result = system_call_userfaultfd(flags);
 		if likely!(result >= 0)
 		{
 			Ok(Arc::new(Self(result)))
@@ -604,7 +604,7 @@ impl UserFaultFileDescriptor
 	}
 	
 	#[inline(always)]
-	fn make_ioctl<V>(&self, request: i32, value: &mut V) -> Result<(), Errno>
+	fn make_ioctl<V>(&self, request: i32, value: &mut V) -> Result<(), SystemCallErrorNumber>
 	{
 		let result = unsafe { ioctl(self.0, request as _, value as *mut V as *mut c_void) };
 		if likely!(result == 0)
@@ -613,7 +613,7 @@ impl UserFaultFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			Err(errno())
+			Err(SystemCallErrorNumber::from_errno())
 		}
 		else
 		{

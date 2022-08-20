@@ -28,7 +28,7 @@ pub enum MapCreationError
 	MapFileDescriptorAdd(FileDescriptorsMapAddError),
 
 	#[allow(missing_docs)]
-	CreateFailed(Errno),
+	CreateFailed(SystemCallErrorNumber),
 }
 
 impl Display for MapCreationError

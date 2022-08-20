@@ -182,7 +182,7 @@ impl NumaNode
 			Greater => (Cow::Borrowed(from), Cow::Owned(from.extend_clone_to(from_length))),
 		};
 
-		let result = SystemCallNumber::system_call_migrate_pages(process_identifier.into(), from_length, from.as_ref().to_raw_parts().0, to.as_ref().to_raw_parts().0);
+		let result = system_call_migrate_pages(process_identifier.into(), from_length, from.as_ref().to_raw_parts().0, to.as_ref().to_raw_parts().0);
 
 		if likely!(result == 0)
 		{
@@ -245,7 +245,7 @@ impl NumaNode
 
 		let mut status: Vec<Self> = Vec::with_capacity(count);
 
-		let result = SystemCallNumber::system_call_move_pages(process_identifier.into(), count, pages.as_ptr() as *const *const c_void, null(), status.as_mut_ptr() as *mut i32, MemoryBindFlags::empty());
+		let result = system_call_move_pages(process_identifier.into(), count, pages.as_ptr() as *const *const c_void, null(), status.as_mut_ptr() as *mut i32, MemoryBindFlags::empty());
 
 		if likely!(result == 0)
 		{
@@ -323,7 +323,7 @@ impl NumaNode
 		{
 			MemoryBindFlags::MPOL_MF_MOVE
 		};
-		let result = SystemCallNumber::system_call_move_pages(process_identifier.into(), count, pages.as_ptr() as *const *const c_void, nodes.as_ptr(), status.as_mut_ptr() as *mut i32, flags);
+		let result = system_call_move_pages(process_identifier.into(), count, pages.as_ptr() as *const *const c_void, nodes.as_ptr(), status.as_mut_ptr() as *mut i32, flags);
 
 		if likely!(result == 0)
 		{

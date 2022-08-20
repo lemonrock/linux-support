@@ -22,7 +22,7 @@ impl<FD: UsedAsValueInArrayMapDescriptor> FileDescriptorArrayMap<FD>
 	
 	/// Freeze.
 	#[inline(always)]
-	pub fn freeze(&self) -> Result<(), Errno>
+	pub fn freeze(&self) -> Result<(), SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.freeze()
 	}
@@ -42,7 +42,7 @@ impl<FD: UsedAsValueInArrayMapDescriptor> FileDescriptorArrayMap<FD>
 	}
 	
 	/// Removes a file descriptor.
-	pub fn delete(&self, index: u32) -> Result<bool, Errno>
+	pub fn delete(&self, index: u32) -> Result<bool, SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.delete(&index)
 	}

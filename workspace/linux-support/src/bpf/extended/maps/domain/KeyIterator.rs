@@ -12,7 +12,7 @@ pub struct KeyIterator<'map_file_descriptor, K: Copy>
 
 impl<'map_file_descriptor, K: Copy> Iterator for KeyIterator<'map_file_descriptor, K>
 {
-	type Item = Result<K, Errno>;
+	type Item = Result<K, SystemCallErrorNumber>;
 	
 	#[inline(always)]
 	fn next(&mut self) -> Option<Self::Item>
@@ -25,7 +25,7 @@ impl<'map_file_descriptor, K: Copy> Iterator for KeyIterator<'map_file_descripto
 		
 		let next_key = match self.map_file_descriptor.get_next_key(&current_key)
 		{
-			Err(errno) => return Some(Err(errno)),
+			Err(SystemCallErrorNumber) => return Some(Err(SystemCallErrorNumber)),
 			Ok(next_key) => next_key,
 		};
 		self.current_key = next_key;
@@ -36,7 +36,7 @@ impl<'map_file_descriptor, K: Copy> Iterator for KeyIterator<'map_file_descripto
 impl<'map_file_descriptor, K: Copy> KeyIterator<'map_file_descriptor, K>
 {
 	#[inline(always)]
-	pub(crate) fn new(map_file_descriptor: &'map_file_descriptor MapFileDescriptor) -> Result<Self, Errno>
+	pub(crate) fn new(map_file_descriptor: &'map_file_descriptor MapFileDescriptor) -> Result<Self, SystemCallErrorNumber>
 	{
 		let first_key = map_file_descriptor.get_next_key(null())?;
 		

@@ -31,13 +31,13 @@ pub enum AttachProgramError
 	GetLinksUsingNetlink(String),
 	
 	#[allow(missing_docs)]
-	CouldNotGetExistingProgramFileDescriptor(Errno),
+	CouldNotGetExistingProgramFileDescriptor(SystemCallErrorNumber),
 	
 	/// This may be because the program has subsequently been detached; in that sense, not a true error but difficult to handle.
 	NoExistingExpressDataPathProgramForAttachedExtendedBpfProgramFileDescriptor,
 	
 	#[allow(missing_docs)]
-	CouldNotGetExistingProgramInformation(Errno),
+	CouldNotGetExistingProgramInformation(SystemCallErrorNumber),
 	
 	#[allow(missing_docs)]
 	ExistingAttachedProgramHasWrongProgramTypeForExpressDataPath,
@@ -52,7 +52,7 @@ pub enum AttachProgramError
 	SocketCreation(CreationError),
 	
 	#[allow(missing_docs)]
-	CouldNotAttachXdpProgram(Errno),
+	CouldNotAttachXdpProgram(SystemCallErrorNumber),
 }
 
 impl Display for AttachProgramError

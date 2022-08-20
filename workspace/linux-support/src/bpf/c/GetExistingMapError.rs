@@ -7,10 +7,10 @@
 pub enum GetExistingMapError
 {
 	#[allow(missing_docs)]
-	CouldNotGetExistingMapFileDescriptor(Errno),
+	CouldNotGetExistingMapFileDescriptor(SystemCallErrorNumber),
 	
 	#[allow(missing_docs)]
-	CouldNotGetExistingMapInformation(Errno),
+	CouldNotGetExistingMapInformation(SystemCallErrorNumber),
 }
 
 impl Display for GetExistingMapError

@@ -29,13 +29,13 @@ impl StoreBypassSpeculationMitigationControlChangeOperation
 	/// * `EPERM` if speculation mitigation has been force disabled.
 	/// * `ERANGE` if an unsupported speculation mitigation strategy is used.
 	#[inline(always)]
-	pub fn change_for_current_thread(self) -> Result<(), Errno>
+	pub fn change_for_current_thread(self) -> Result<(), SystemCallErrorNumber>
 	{
 		Self::change(PR_SPEC_STORE_BYPASS, self as i32)
 	}
 	
 	#[inline(always)]
-	fn change(subcommand: usize, setting: i32) -> Result<(), Errno>
+	fn change(subcommand: usize, setting: i32) -> Result<(), SystemCallErrorNumber>
 	{
 		process_control_wrapper3(PR_SET_SPECULATION_CTRL,subcommand,setting as usize,result_must_be_zero,Err)
 	}

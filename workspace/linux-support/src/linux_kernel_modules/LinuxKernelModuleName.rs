@@ -277,7 +277,7 @@ impl LinuxKernelModuleName
 		// 	}
 		// }
 		
-		let system_call_result = SystemCallNumber::system_call_delete_module(name.as_c_str(), flags);
+		let system_call_result = system_call_delete_module(name.as_c_str(), flags);
 		match system_call_result
 		{
 			0 => Ok(true),

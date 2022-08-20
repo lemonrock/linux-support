@@ -779,6 +779,7 @@ use swiss_army_knife::error_support::io_error_not_found;
 use swiss_army_knife::error_support::io_error_other;
 use swiss_army_knife::error_support::io_error_permission_denied;
 use swiss_army_knife::error_support::io_error_timed_out;
+use swiss_army_knife::from_unchecked::FromUnchecked;
 use swiss_army_knife::get_unchecked::AsUsizeIndex;
 use swiss_army_knife::get_unchecked::GetUnchecked;
 use swiss_army_knife::hardware_optimized_spin_lock::BestForCompilationTargetSpinLock;

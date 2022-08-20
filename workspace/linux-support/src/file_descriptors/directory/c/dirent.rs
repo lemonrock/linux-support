@@ -3,7 +3,7 @@
 
 
 #[repr(C)]
-pub(super) struct dirent
+pub(crate) struct dirent
 {
 	pub(super) d_ino: ino_t,
 	pub(super) d_off: off_t,

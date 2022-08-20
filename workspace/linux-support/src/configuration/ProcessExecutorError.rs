@@ -16,13 +16,13 @@ pub enum ProcessExecutorError
 	UserAndGroupChoice(UserAndGroupChoiceError),
 
 	#[allow(missing_docs)]
-	CouldNotDisableDumpable(Errno),
+	CouldNotDisableDumpable(SystemCallErrorNumber),
 
 	#[allow(missing_docs)]
-	CouldNotSetParentDeathSignal(Errno),
+	CouldNotSetParentDeathSignal(SystemCallErrorNumber),
 
 	#[allow(missing_docs)]
-	CouldNotSetChildSubreaper(Errno),
+	CouldNotSetChildSubreaper(SystemCallErrorNumber),
 
 	#[allow(missing_docs)]
 	CouldNotConfigureChildThreads(SpawnedThreadError),

@@ -40,7 +40,7 @@ impl<MC: MapConstructor> MapsOfMapArrayMap<MC>
 	
 	/// Freeze.
 	#[inline(always)]
-	pub fn freeze(&self) -> Result<(), Errno>
+	pub fn freeze(&self) -> Result<(), SystemCallErrorNumber>
 	{
 		self.underlying.freeze()
 	}
@@ -63,7 +63,7 @@ impl<MC: MapConstructor> MapsOfMapArrayMap<MC>
 	
 	/// Removes a map.
 	#[inline(always)]
-	pub fn delete(&self, index: u32) -> Result<bool, Errno>
+	pub fn delete(&self, index: u32) -> Result<bool, SystemCallErrorNumber>
 	{
 		self.underlying.delete(index)
 	}

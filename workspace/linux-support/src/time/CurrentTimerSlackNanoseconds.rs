@@ -45,19 +45,19 @@ impl CurrentTimerSlackNanoseconds
 	}
 	
 	/// Reset to `default`, which may not be `Self::InitDefault`.
-	pub fn reset_to_default() -> Result<(), Errno>
+	pub fn reset_to_default() -> Result<(), SystemCallErrorNumber>
 	{
 		Self::set_internal(0)
 	}
 	
 	/// Set.
-	pub fn set(self) -> Result<(), Errno>
+	pub fn set(self) -> Result<(), SystemCallErrorNumber>
 	{
 		Self::set_internal(self.0.get())
 	}
 	
 	#[inline(always)]
-	fn set_internal(value: usize) -> Result<(), Errno>
+	fn set_internal(value: usize) -> Result<(), SystemCallErrorNumber>
 	{
 		process_control_wrapper2(PR_SET_TIMERSLACK,&value as *const usize as usize,result_must_be_zero,Err)
 	}

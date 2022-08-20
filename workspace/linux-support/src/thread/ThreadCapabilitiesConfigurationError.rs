@@ -16,7 +16,7 @@ pub enum ThreadCapabilitiesConfigurationError
 	CouldNotConfigureAmbient(AmbientCapabilityError),
 
 	#[allow(missing_docs)]
-	CouldNotLockSecureBits(Errno),
+	CouldNotLockSecureBits(SystemCallErrorNumber),
 }
 
 impl Display for ThreadCapabilitiesConfigurationError

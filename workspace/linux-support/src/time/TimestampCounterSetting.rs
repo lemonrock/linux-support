@@ -20,7 +20,7 @@ impl TimestampCounterSetting
 {
 	/// Set.
 	#[inline(always)]
-	pub fn set(self) -> Result<(), Errno>
+	pub fn set(self) -> Result<(), SystemCallErrorNumber>
 	{
 		let value: i32 = self as i32;
 		

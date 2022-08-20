@@ -8,7 +8,11 @@ use crate::devices::*;
 use crate::environment::Environment;
 use crate::file_systems::*;
 use crate::inode::*;
-use crate::syscall::SystemCallNumber;
+use crate::syscall::system_call_getdents;
+use crate::syscall::system_call_openat2;
+use crate::syscall::system_call_renameat2;
+use crate::syscall::system_call_statx;
+use crate::syscall::SystemCallResult;
 use crate::user_and_groups::*;
 
 

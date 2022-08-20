@@ -2,6 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use crate::syscall::SystemCallResult;
+
 #[repr(C, align(8))]
 #[derive(Copy, Clone)]
 pub(crate) union bpf_attr
@@ -44,10 +46,10 @@ impl Debug for bpf_attr
 impl bpf_attr
 {
 	#[inline(always)]
-	pub(crate) fn syscall(&mut self, command: bpf_cmd) -> c_int
+	pub(crate) fn syscall(&mut self, command: bpf_cmd) -> SystemCallResult
 	{
 		const size: u32 = size_of::<bpf_attr>() as u32;
 		
-		SystemCallNumber::system_call_bpf::<size>(command, self)
+		system_call_bpf::<size>(command, self)
 	}
 }

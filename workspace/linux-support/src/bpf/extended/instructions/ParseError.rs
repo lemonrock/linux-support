@@ -57,7 +57,7 @@ pub enum ParseError
 	/// Could not load BPF type format data.
 	///
 	/// Contains syscall result code and verifier log messages (if logging done).
-	CouldNotLoadBpfTypeFormatData(Errno, Option<CString>),
+	CouldNotLoadBpfTypeFormatData(SystemCallErrorNumber, Option<CString>),
 	
 	/// Invalid BTF.
 	BpfTypeFormat(BpfTypeFormatError),

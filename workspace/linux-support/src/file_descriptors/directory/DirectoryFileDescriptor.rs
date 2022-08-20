@@ -130,7 +130,7 @@ impl DirectoryFileDescriptor
 			mode: 0,
 			resolve: path_resolution.bits,
 		};
-		let result = SystemCallNumber::system_call_openat2(self.as_raw_fd(), path.as_ptr(), &mut how, size_of::<open_how>());
+		let result = system_call_openat2(self, path, &mut how, size_of::<open_how>());
 		if likely!(result >= 0)
 		{
 			Ok(Self(result as RawFd))
@@ -208,7 +208,7 @@ impl DirectoryFileDescriptor
 			mode: mode as u64,
 			resolve: path_resolution.bits,
 		};
-		let result = SystemCallNumber::system_call_openat2(self.as_raw_fd(), path, &mut how, size_of::<open_how>());
+		let result = system_call_openat2(self.as_raw_fd(), path, &mut how, size_of::<open_how>());
 		if likely!(result >= 0)
 		{
 			Ok(unsafe { File::from_raw_fd(result as RawFd) })
@@ -615,7 +615,7 @@ impl DirectoryFileDescriptor
 			match SystemCallErrorNumber::from_errno()
 			{
 				EACCES  | ENOENT | ENOTDIR | EROFS => Ok(false),
-				other @ _ => Err(io::Error::from_raw_os_error(other)),
+				other @ _ => Err(io::Error::from(other)),
 			}
 		}
 		else
@@ -704,7 +704,7 @@ impl DirectoryFileDescriptor
 		debug_assert!(!from_path.to_bytes().is_empty(), "Empty from_path is not permitted");
 		debug_assert!(!to_path.to_bytes().is_empty(), "Empty to_path is not permitted");
 
-		let result = SystemCallNumber::system_call_renameat2(self.as_raw_fd(), from_path.as_ptr(), to.as_raw_fd(), to_path.as_ptr(), rename_flags as i32);
+		let result = system_call_renameat2(self.as_raw_fd(), from_path.as_ptr(), to.as_raw_fd(), to_path.as_ptr(), rename_flags as i32);
 		if likely!(result == 0)
 		{
 			Ok(())
@@ -779,7 +779,7 @@ impl DirectoryFileDescriptor
 	}
 
 	#[inline(always)]
-	fn extended_metadata_internal(&self, path: NonNull<c_char>, force_synchronization: Option<bool>, extended_metadata_wanted: ExtendedMetadataWanted, do_not_dereference_path_if_it_is_a_symlink: bool, do_not_automount_basename_of_path: bool, flags: i32) -> io::Result<ExtendedMetadata>
+	fn extended_metadata_internal(&self, path: &CStr, force_synchronization: Option<bool>, extended_metadata_wanted: ExtendedMetadataWanted, do_not_dereference_path_if_it_is_a_symlink: bool, do_not_automount_basename_of_path: bool, flags: i32) -> io::Result<ExtendedMetadata>
 	{
 		let flags = flags
 		| match force_synchronization
@@ -805,9 +805,9 @@ impl DirectoryFileDescriptor
 			0
 		};
 
-		let mut statx: statx = unsafe_uninitialized();
+		let mut statx: MaybeUninit<statx> = MaybeUninit::uninit();
 
-		let result = SystemCallNumber::system_call_statx(self.as_raw_fd(), path.as_ptr(), flags as u32, extended_metadata_wanted.bits, &mut statx);
+		let result = system_call_statx(self, path, flags as u32, extended_metadata_wanted.bits, new_non_null(statx.as_mut_ptr()));
 		if likely!(result == 0)
 		{
 			statx.zero_padding();
@@ -1020,17 +1020,17 @@ impl DirectoryFileDescriptor
 	}
 
 	#[inline(always)]
-	fn non_empty_path(path: &CStr) -> NonNull<c_char>
+	fn non_empty_path(path: &CStr) -> &CStr
 	{
 		debug_assert!(!path.to_bytes().is_empty(), "Empty path is not permitted");
 		
-		new_non_null(path.as_ptr() as *mut _)
+		path
 	}
 
 	#[inline(always)]
-	fn empty_path() -> NonNull<c_char>
+	const fn empty_path() -> &'static CStr
 	{
 		const EmptyPath: &'static [u8] = b"\0";
-		new_non_null(EmptyPath.as_ptr() as *const u8 as *const c_char as *mut _)
+		unsafe { CStr::from_bytes_with_nul_unchecked(EmptyPath) }
 	}
 }

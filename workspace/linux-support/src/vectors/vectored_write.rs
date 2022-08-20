@@ -18,7 +18,7 @@ macro_rules! vectored_write
 			}
 
 			// NOTE: Relies on iovec having the same layout as a Rust slice.
-			let result = unsafe { libc::writev(self.as_raw_fd(), buffers.as_ptr() as *const libc::iovec, buffers.len() as libc::c_int) };
+			let result = unsafe { libc::writev(self.as_raw_fd(), buffers.as_ptr() as *const iovec, buffers.len() as c_int) };
 			if likely!(result > 0)
 			{
 				Ok(result as usize)
@@ -39,21 +39,21 @@ macro_rules! vectored_write
 						{
 							match SystemCallErrorNumber::from_errno()
 							{
-								libc::EAGAIN => WouldBlock,
-								libc::EINTR => Interrupted,
-								libc::ENOMEM | ENOBUFS => Other,
-								libc::EPIPE => BrokenPipe,
-								libc::EACCES => PermissionDenied,
-								libc::ECONNRESET => ConnectionReset,
-								libc::EBADF => panic!("The argument `sockfd` is an invalid descriptor"),
-								libc::EFAULT => panic!("The receive buffer pointer(s) point outside the process's address space"),
-								libc::EINVAL => panic!("Invalid argument passed"),
-								libc::ENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
-								libc::ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
-								libc::EOPNOTSUPP => panic!("Some flags in the `flags` argument are inappropriate for the socket type"),
-								libc::EMSGSIZE => panic!("The socket type requires that message be sent atomically, and the size of the message to be sent made this impossible"),
-								libc::EISCONN => panic!("The connection-mode socket was connected already but a recipient was specified"),
-								libc::EDESTADDRREQ => panic!("The socket is not connection-mode, and no peer address is set"),
+								EAGAIN => WouldBlock,
+								EINTR => Interrupted,
+								ENOMEM | ENOBUFS => Other,
+								EPIPE => BrokenPipe,
+								EACCES => PermissionDenied,
+								ECONNRESET => ConnectionReset,
+								EBADF => panic!("The argument `sockfd` is an invalid descriptor"),
+								EFAULT => panic!("The receive buffer pointer(s) point outside the process's address space"),
+								EINVAL => panic!("Invalid argument passed"),
+								ENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
+								ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
+								EOPNOTSUPP => panic!("Some flags in the `flags` argument are inappropriate for the socket type"),
+								EMSGSIZE => panic!("The socket type requires that message be sent atomically, and the size of the message to be sent made this impossible"),
+								EISCONN => panic!("The connection-mode socket was connected already but a recipient was specified"),
+								EDESTADDRREQ => panic!("The socket is not connection-mode, and no peer address is set"),
 								unexpected @ _ => unreachable_code(format_args!("Unexpected error code {}", unexpected)),
 							}
 						}

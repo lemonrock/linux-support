@@ -4,7 +4,7 @@
 
 /// Will fail with `EINVAL` if the Linux kernel was not compiled with `CONFIG_PERF_EVENTS`.
 #[inline(always)]
-pub fn change_process_performance_counters(enable_or_disable_process_performance_counters: bool) -> Result<(), Errno>
+pub fn change_process_performance_counters(enable_or_disable_process_performance_counters: bool) -> Result<(), SystemCallErrorNumber>
 {
 	let command = if enable_or_disable_process_performance_counters
 	{

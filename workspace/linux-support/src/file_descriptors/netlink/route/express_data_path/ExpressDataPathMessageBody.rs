@@ -20,7 +20,7 @@ impl<V: NetlinkAttributeOrFollowedByNetlinkAttribute> NetlinkRequestMessageBody 
 impl<V: NetlinkAttributeOrFollowedByNetlinkAttribute> ExpressDataPathMessageBody<V>
 {
 	#[inline(always)]
-	pub(super) fn make_request_and_get_acknowledgment_or_error(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<RouteNetlinkProtocol>, network_interface_index: NetworkInterfaceIndex, payload: V) -> Result<(), Errno>
+	pub(super) fn make_request_and_get_acknowledgment_or_error(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<RouteNetlinkProtocol>, network_interface_index: NetworkInterfaceIndex, payload: V) -> Result<(), SystemCallErrorNumber>
 	{
 		use self::IFLA::*;
 		

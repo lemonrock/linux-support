@@ -8368,7 +8368,15 @@ impl const From<SystemCallErrorNumber> for Errno
 	#[inline(always)]
 	fn from(value: SystemCallErrorNumber) -> Self
 	{
-		Errno(i32::from(value))
+		Errno(value as u16 as i32)
+	}
+}
+impl const From<SystemCallErrorNumber> for io::Error
+{
+	#[inline(always)]
+	fn from(value: SystemCallErrorNumber) -> Self
+	{
+		io::Error::from_raw_os_error(value as i32)
 	}
 }
 
@@ -8476,7 +8484,7 @@ impl const From<SystemCallErrorNumber> for NonZeroU32
 	#[inline(always)]
 	fn from(value: SystemCallErrorNumber) -> Self
 	{
-		new_non_zero_u32(value.0.get() as u32)
+		new_non_zero_u32(value as u16 as u32)
 	}
 }
 
@@ -8485,7 +8493,7 @@ impl const From<SystemCallErrorNumber> for NonZeroU64
 	#[inline(always)]
 	fn from(value: SystemCallErrorNumber) -> Self
 	{
-		new_non_zero_u64(value.0.get() as u64)
+		new_non_zero_u64(value as u16 as u64)
 	}
 }
 
@@ -8494,7 +8502,7 @@ impl const From<SystemCallErrorNumber> for NonZeroU128
 	#[inline(always)]
 	fn from(value: SystemCallErrorNumber) -> Self
 	{
-		new_non_zero_u128(value.0.get() as u128)
+		new_non_zero_u128(value as u16 as u128)
 	}
 }
 
@@ -8503,7 +8511,7 @@ impl const From<SystemCallErrorNumber> for NonZeroUsize
 	#[inline(always)]
 	fn from(value: SystemCallErrorNumber) -> Self
 	{
-		new_non_zero_usize(value.0.get() as usize)
+		new_non_zero_usize(value as u16 as usize)
 	}
 }
 
@@ -8557,7 +8565,7 @@ impl const From<NonZeroU8> for SystemCallErrorNumber
 	#[inline(always)]
 	fn from(value: NonZeroU8) -> Self
 	{
-		Self::from_valid_u16(value as u16)
+		Self::from_valid_u16(value.get() as u16)
 	}
 }
 
@@ -8568,8 +8576,18 @@ impl const TryFrom<Errno> for SystemCallErrorNumber
 	#[inline(always)]
 	fn try_from(value: Errno) -> Result<Self, Self::Error>
 	{
+		Self::try_from(value.0)
+	}
+}
+
+impl const TryFrom<i32> for SystemCallErrorNumber
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: i32) -> Result<Self, Self::Error>
+	{
 		use ParseNumberError::*;
-		let value = value.0;
 		if unlikely!(value <= 1)
 		{
 			let error = if value == 0
@@ -8590,6 +8608,22 @@ impl const TryFrom<Errno> for SystemCallErrorNumber
 	}
 }
 
+impl const TryFrom<io::Error> for SystemCallErrorNumber
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(error: io::Error) -> Result<Self, Self::Error>
+	{
+		match error.raw_os_error()
+		{
+			None => Err(ParseNumberError::OutOfRange),
+			
+			Some(value) => Self::try_from(value),
+		}
+	}
+}
+
 impl const FromUnchecked<Errno> for SystemCallErrorNumber
 {
 	#[inline(always)]
@@ -8600,13 +8634,22 @@ impl const FromUnchecked<Errno> for SystemCallErrorNumber
 		{
 			if value < 1
 			{
-				panic!("Errno should not be negative or zero")
+				panic!("SystemCallErrorNumber should not be negative or zero")
 			}
 			if value > Self::InclusiveMaximumI32
 			{
-				panic!("Errno should not be greater than 4095")
+				panic!("SystemCallErrorNumber should not be greater than 4095")
 			}
 		}
+		Self::from_unchecked(value as u16)
+	}
+}
+
+impl const FromUnchecked<i32> for SystemCallErrorNumber
+{
+	#[inline(always)]
+	unsafe fn from_unchecked(value: i32) -> Self
+	{
 		Self::from_unchecked(value as u16)
 	}
 }
@@ -8644,6 +8687,17 @@ impl const AsUsizeIndex for SystemCallErrorNumber
 	fn as_usize(self) -> usize
 	{
 		self.into()
+	}
+}
+
+impl const Neg for SystemCallErrorNumber
+{
+	type Output = i32;
+	
+	#[inline(always)]
+	fn neg(self) -> i32
+	{
+		-(self as u16 as i32)
 	}
 }
 
@@ -8725,23 +8779,425 @@ impl Step for SystemCallErrorNumber
 
 impl SystemCallErrorNumber
 {
-	const InclusiveMinimumU16: u16 = 1;
-	
-	const InclusiveMaximumU16: u16 = 4095;
-	
-	const InclusiveMaximumI32: i32 = Self::InclusiveMaximumU16 as i32;
-	
 	#[cfg(any(target_arch = "aarch64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))]
 	#[allow(missing_docs)]
-	pub const EDEADLOCK: Self = SystemCallNumber::EDEADLK;
+	pub const EDEADLOCK: Self = SystemCallErrorNumber::EDEADLK;
 	
 	#[cfg(any(target_arch = "aarch64", target_arch = "mips64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))]
 	#[allow(missing_docs)]
-	pub const ENOTSUP: Self = SystemCallNumber::EOPNOTSUPP;
+	pub const ENOTSUP: Self = SystemCallErrorNumber::EOPNOTSUPP;
 	
 	#[cfg(any(target_arch = "aarch64", target_arch = "mips64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))]
 	#[allow(missing_docs)]
-	pub const EWOULDBLOCK: Self = SystemCallNumber::EAGAIN;
+	pub const EWOULDBLOCK: Self = SystemCallErrorNumber::EAGAIN;
+
+	/// Negated i32 value of `E2BIG`.
+	pub const NegativeE2BIG: i32 = -Self::E2BIG;
+
+	/// Negated i32 value of `EACCES`.
+	pub const NegativeEACCES: i32 = -Self::EACCES;
+
+	/// Negated i32 value of `EADDRINUSE`.
+	pub const NegativeEADDRINUSE: i32 = -Self::EADDRINUSE;
+
+	/// Negated i32 value of `EADDRNOTAVAIL`.
+	pub const NegativeEADDRNOTAVAIL: i32 = -Self::EADDRNOTAVAIL;
+
+	/// Negated i32 value of `EADV`.
+	pub const NegativeEADV: i32 = -Self::EADV;
+
+	/// Negated i32 value of `EAFNOSUPPORT`.
+	pub const NegativeEAFNOSUPPORT: i32 = -Self::EAFNOSUPPORT;
+
+	/// Negated i32 value of `EAGAIN`.
+	pub const NegativeEAGAIN: i32 = -Self::EAGAIN;
+
+	/// Negated i32 value of `EALREADY`.
+	pub const NegativeEALREADY: i32 = -Self::EALREADY;
+
+	/// Negated i32 value of `EBADE`.
+	pub const NegativeEBADE: i32 = -Self::EBADE;
+
+	/// Negated i32 value of `EBADF`.
+	pub const NegativeEBADF: i32 = -Self::EBADF;
+
+	/// Negated i32 value of `EBADFD`.
+	pub const NegativeEBADFD: i32 = -Self::EBADFD;
+
+	/// Negated i32 value of `EBADMSG`.
+	pub const NegativeEBADMSG: i32 = -Self::EBADMSG;
+
+	/// Negated i32 value of `EBADR`.
+	pub const NegativeEBADR: i32 = -Self::EBADR;
+
+	/// Negated i32 value of `EBADRQC`.
+	pub const NegativeEBADRQC: i32 = -Self::EBADRQC;
+
+	/// Negated i32 value of `EBADSLT`.
+	pub const NegativeEBADSLT: i32 = -Self::EBADSLT;
+
+	/// Negated i32 value of `EBFONT`.
+	pub const NegativeEBFONT: i32 = -Self::EBFONT;
+
+	/// Negated i32 value of `EBUSY`.
+	pub const NegativeEBUSY: i32 = -Self::EBUSY;
+
+	/// Negated i32 value of `ECANCELED`.
+	pub const NegativeECANCELED: i32 = -Self::ECANCELED;
+
+	/// Negated i32 value of `ECHILD`.
+	pub const NegativeECHILD: i32 = -Self::ECHILD;
+
+	/// Negated i32 value of `ECHRNG`.
+	pub const NegativeECHRNG: i32 = -Self::ECHRNG;
+
+	/// Negated i32 value of `ECOMM`.
+	pub const NegativeECOMM: i32 = -Self::ECOMM;
+
+	/// Negated i32 value of `ECONNABORTED`.
+	pub const NegativeECONNABORTED: i32 = -Self::ECONNABORTED;
+
+	/// Negated i32 value of `ECONNREFUSED`.
+	pub const NegativeECONNREFUSED: i32 = -Self::ECONNREFUSED;
+
+	/// Negated i32 value of `ECONNRESET`.
+	pub const NegativeECONNRESET: i32 = -Self::ECONNRESET;
+
+	/// Negated i32 value of `EDEADLK`.
+	pub const NegativeEDEADLK: i32 = -Self::EDEADLK;
+
+	/// Negated i32 value of `EDEADLOCK`.
+	pub const NegativeEDEADLOCK: i32 = -Self::EDEADLOCK;
+
+	/// Negated i32 value of `EDESTADDRREQ`.
+	pub const NegativeEDESTADDRREQ: i32 = -Self::EDESTADDRREQ;
+
+	/// Negated i32 value of `EDOM`.
+	pub const NegativeEDOM: i32 = -Self::EDOM;
+
+	/// Negated i32 value of `EDOTDOT`.
+	pub const NegativeEDOTDOT: i32 = -Self::EDOTDOT;
+
+	/// Negated i32 value of `EDQUOT`.
+	pub const NegativeEDQUOT: i32 = -Self::EDQUOT;
+
+	/// Negated i32 value of `EEXIST`.
+	pub const NegativeEEXIST: i32 = -Self::EEXIST;
+
+	/// Negated i32 value of `EFAULT`.
+	pub const NegativeEFAULT: i32 = -Self::EFAULT;
+
+	/// Negated i32 value of `EFBIG`.
+	pub const NegativeEFBIG: i32 = -Self::EFBIG;
+
+	/// Negated i32 value of `EHOSTDOWN`.
+	pub const NegativeEHOSTDOWN: i32 = -Self::EHOSTDOWN;
+
+	/// Negated i32 value of `EHOSTUNREACH`.
+	pub const NegativeEHOSTUNREACH: i32 = -Self::EHOSTUNREACH;
+
+	/// Negated i32 value of `EHWPOISON`.
+	pub const NegativeEHWPOISON: i32 = -Self::EHWPOISON;
+
+	/// Negated i32 value of `EIDRM`.
+	pub const NegativeEIDRM: i32 = -Self::EIDRM;
+
+	/// Negated i32 value of `EILSEQ`.
+	pub const NegativeEILSEQ: i32 = -Self::EILSEQ;
+
+	/// Negated i32 value of `EINPROGRESS`.
+	pub const NegativeEINPROGRESS: i32 = -Self::EINPROGRESS;
+
+	/// Negated i32 value of `EINTR`.
+	pub const NegativeEINTR: i32 = -Self::EINTR;
+
+	/// Negated i32 value of `EINVAL`.
+	pub const NegativeEINVAL: i32 = -Self::EINVAL;
+
+	/// Negated i32 value of `EIO`.
+	pub const NegativeEIO: i32 = -Self::EIO;
+
+	/// Negated i32 value of `EISCONN`.
+	pub const NegativeEISCONN: i32 = -Self::EISCONN;
+
+	/// Negated i32 value of `EISDIR`.
+	pub const NegativeEISDIR: i32 = -Self::EISDIR;
+
+	/// Negated i32 value of `EISNAM`.
+	pub const NegativeEISNAM: i32 = -Self::EISNAM;
+
+	/// Negated i32 value of `EKEYEXPIRED`.
+	pub const NegativeEKEYEXPIRED: i32 = -Self::EKEYEXPIRED;
+
+	/// Negated i32 value of `EKEYREJECTED`.
+	pub const NegativeEKEYREJECTED: i32 = -Self::EKEYREJECTED;
+
+	/// Negated i32 value of `EKEYREVOKED`.
+	pub const NegativeEKEYREVOKED: i32 = -Self::EKEYREVOKED;
+
+	/// Negated i32 value of `EL2HLT`.
+	pub const NegativeEL2HLT: i32 = -Self::EL2HLT;
+
+	/// Negated i32 value of `EL2NSYNC`.
+	pub const NegativeEL2NSYNC: i32 = -Self::EL2NSYNC;
+
+	/// Negated i32 value of `EL3HLT`.
+	pub const NegativeEL3HLT: i32 = -Self::EL3HLT;
+
+	/// Negated i32 value of `EL3RST`.
+	pub const NegativeEL3RST: i32 = -Self::EL3RST;
+
+	/// Negated i32 value of `ELIBACC`.
+	pub const NegativeELIBACC: i32 = -Self::ELIBACC;
+
+	/// Negated i32 value of `ELIBBAD`.
+	pub const NegativeELIBBAD: i32 = -Self::ELIBBAD;
+
+	/// Negated i32 value of `ELIBEXEC`.
+	pub const NegativeELIBEXEC: i32 = -Self::ELIBEXEC;
+
+	/// Negated i32 value of `ELIBMAX`.
+	pub const NegativeELIBMAX: i32 = -Self::ELIBMAX;
+
+	/// Negated i32 value of `ELIBSCN`.
+	pub const NegativeELIBSCN: i32 = -Self::ELIBSCN;
+
+	/// Negated i32 value of `ELNRNG`.
+	pub const NegativeELNRNG: i32 = -Self::ELNRNG;
+
+	/// Negated i32 value of `ELOOP`.
+	pub const NegativeELOOP: i32 = -Self::ELOOP;
+
+	/// Negated i32 value of `EMEDIUMTYPE`.
+	pub const NegativeEMEDIUMTYPE: i32 = -Self::EMEDIUMTYPE;
+
+	/// Negated i32 value of `EMFILE`.
+	pub const NegativeEMFILE: i32 = -Self::EMFILE;
+
+	/// Negated i32 value of `EMLINK`.
+	pub const NegativeEMLINK: i32 = -Self::EMLINK;
+
+	/// Negated i32 value of `EMSGSIZE`.
+	pub const NegativeEMSGSIZE: i32 = -Self::EMSGSIZE;
+
+	/// Negated i32 value of `EMULTIHOP`.
+	pub const NegativeEMULTIHOP: i32 = -Self::EMULTIHOP;
+
+	/// Negated i32 value of `ENAMETOOLONG`.
+	pub const NegativeENAMETOOLONG: i32 = -Self::ENAMETOOLONG;
+
+	/// Negated i32 value of `ENAVAIL`.
+	pub const NegativeENAVAIL: i32 = -Self::ENAVAIL;
+
+	/// Negated i32 value of `ENETDOWN`.
+	pub const NegativeENETDOWN: i32 = -Self::ENETDOWN;
+
+	/// Negated i32 value of `ENETRESET`.
+	pub const NegativeENETRESET: i32 = -Self::ENETRESET;
+
+	/// Negated i32 value of `ENETUNREACH`.
+	pub const NegativeENETUNREACH: i32 = -Self::ENETUNREACH;
+
+	/// Negated i32 value of `ENFILE`.
+	pub const NegativeENFILE: i32 = -Self::ENFILE;
+
+	/// Negated i32 value of `ENOANO`.
+	pub const NegativeENOANO: i32 = -Self::ENOANO;
+
+	/// Negated i32 value of `ENOBUFS`.
+	pub const NegativeENOBUFS: i32 = -Self::ENOBUFS;
+
+	/// Negated i32 value of `ENOCSI`.
+	pub const NegativeENOCSI: i32 = -Self::ENOCSI;
+
+	/// Negated i32 value of `ENODATA`.
+	pub const NegativeENODATA: i32 = -Self::ENODATA;
+
+	/// Negated i32 value of `ENODEV`.
+	pub const NegativeENODEV: i32 = -Self::ENODEV;
+
+	/// Negated i32 value of `ENOENT`.
+	pub const NegativeENOENT: i32 = -Self::ENOENT;
+
+	/// Negated i32 value of `ENOEXEC`.
+	pub const NegativeENOEXEC: i32 = -Self::ENOEXEC;
+
+	/// Negated i32 value of `ENOKEY`.
+	pub const NegativeENOKEY: i32 = -Self::ENOKEY;
+
+	/// Negated i32 value of `ENOLCK`.
+	pub const NegativeENOLCK: i32 = -Self::ENOLCK;
+
+	/// Negated i32 value of `ENOLINK`.
+	pub const NegativeENOLINK: i32 = -Self::ENOLINK;
+
+	/// Negated i32 value of `ENOMEDIUM`.
+	pub const NegativeENOMEDIUM: i32 = -Self::ENOMEDIUM;
+
+	/// Negated i32 value of `ENOMEM`.
+	pub const NegativeENOMEM: i32 = -Self::ENOMEM;
+
+	/// Negated i32 value of `ENOMSG`.
+	pub const NegativeENOMSG: i32 = -Self::ENOMSG;
+
+	/// Negated i32 value of `ENONET`.
+	pub const NegativeENONET: i32 = -Self::ENONET;
+
+	/// Negated i32 value of `ENOPKG`.
+	pub const NegativeENOPKG: i32 = -Self::ENOPKG;
+
+	/// Negated i32 value of `ENOPROTOOPT`.
+	pub const NegativeENOPROTOOPT: i32 = -Self::ENOPROTOOPT;
+
+	/// Negated i32 value of `ENOSPC`.
+	pub const NegativeENOSPC: i32 = -Self::ENOSPC;
+
+	/// Negated i32 value of `ENOSR`.
+	pub const NegativeENOSR: i32 = -Self::ENOSR;
+
+	/// Negated i32 value of `ENOSTR`.
+	pub const NegativeENOSTR: i32 = -Self::ENOSTR;
+
+	/// Negated i32 value of `ENOSYS`.
+	pub const NegativeENOSYS: i32 = -Self::ENOSYS;
+
+	/// Negated i32 value of `ENOTBLK`.
+	pub const NegativeENOTBLK: i32 = -Self::ENOTBLK;
+
+	/// Negated i32 value of `ENOTCONN`.
+	pub const NegativeENOTCONN: i32 = -Self::ENOTCONN;
+
+	/// Negated i32 value of `ENOTDIR`.
+	pub const NegativeENOTDIR: i32 = -Self::ENOTDIR;
+
+	/// Negated i32 value of `ENOTEMPTY`.
+	pub const NegativeENOTEMPTY: i32 = -Self::ENOTEMPTY;
+
+	/// Negated i32 value of `ENOTNAM`.
+	pub const NegativeENOTNAM: i32 = -Self::ENOTNAM;
+
+	/// Negated i32 value of `ENOTRECOVERABLE`.
+	pub const NegativeENOTRECOVERABLE: i32 = -Self::ENOTRECOVERABLE;
+
+	/// Negated i32 value of `ENOTSOCK`.
+	pub const NegativeENOTSOCK: i32 = -Self::ENOTSOCK;
+
+	/// Negated i32 value of `ENOTTY`.
+	pub const NegativeENOTTY: i32 = -Self::ENOTTY;
+
+	/// Negated i32 value of `ENOTUNIQ`.
+	pub const NegativeENOTUNIQ: i32 = -Self::ENOTUNIQ;
+
+	/// Negated i32 value of `ENXIO`.
+	pub const NegativeENXIO: i32 = -Self::ENXIO;
+
+	/// Negated i32 value of `EOPNOTSUPP`.
+	pub const NegativeEOPNOTSUPP: i32 = -Self::EOPNOTSUPP;
+
+	/// Negated i32 value of `EOVERFLOW`.
+	pub const NegativeEOVERFLOW: i32 = -Self::EOVERFLOW;
+
+	/// Negated i32 value of `EOWNERDEAD`.
+	pub const NegativeEOWNERDEAD: i32 = -Self::EOWNERDEAD;
+
+	/// Negated i32 value of `EPERM`.
+	pub const NegativeEPERM: i32 = -Self::EPERM;
+
+	/// Negated i32 value of `EPFNOSUPPORT`.
+	pub const NegativeEPFNOSUPPORT: i32 = -Self::EPFNOSUPPORT;
+
+	/// Negated i32 value of `EPIPE`.
+	pub const NegativeEPIPE: i32 = -Self::EPIPE;
+
+	/// Negated i32 value of `EPROTO`.
+	pub const NegativeEPROTO: i32 = -Self::EPROTO;
+
+	/// Negated i32 value of `EPROTONOSUPPORT`.
+	pub const NegativeEPROTONOSUPPORT: i32 = -Self::EPROTONOSUPPORT;
+
+	/// Negated i32 value of `EPROTOTYPE`.
+	pub const NegativeEPROTOTYPE: i32 = -Self::EPROTOTYPE;
+
+	/// Negated i32 value of `ERANGE`.
+	pub const NegativeERANGE: i32 = -Self::ERANGE;
+
+	/// Negated i32 value of `EREMCHG`.
+	pub const NegativeEREMCHG: i32 = -Self::EREMCHG;
+
+	/// Negated i32 value of `EREMOTE`.
+	pub const NegativeEREMOTE: i32 = -Self::EREMOTE;
+
+	/// Negated i32 value of `EREMOTEIO`.
+	pub const NegativeEREMOTEIO: i32 = -Self::EREMOTEIO;
+
+	/// Negated i32 value of `ERESTART`.
+	pub const NegativeERESTART: i32 = -Self::ERESTART;
+
+	/// Negated i32 value of `ERFKILL`.
+	pub const NegativeERFKILL: i32 = -Self::ERFKILL;
+
+	/// Negated i32 value of `EROFS`.
+	pub const NegativeEROFS: i32 = -Self::EROFS;
+
+	/// Negated i32 value of `ESHUTDOWN`.
+	pub const NegativeESHUTDOWN: i32 = -Self::ESHUTDOWN;
+
+	/// Negated i32 value of `ESOCKTNOSUPPORT`.
+	pub const NegativeESOCKTNOSUPPORT: i32 = -Self::ESOCKTNOSUPPORT;
+
+	/// Negated i32 value of `ESPIPE`.
+	pub const NegativeESPIPE: i32 = -Self::ESPIPE;
+
+	/// Negated i32 value of `ESRCH`.
+	pub const NegativeESRCH: i32 = -Self::ESRCH;
+
+	/// Negated i32 value of `ESRMNT`.
+	pub const NegativeESRMNT: i32 = -Self::ESRMNT;
+
+	/// Negated i32 value of `ESTALE`.
+	pub const NegativeESTALE: i32 = -Self::ESTALE;
+
+	/// Negated i32 value of `ESTRPIPE`.
+	pub const NegativeESTRPIPE: i32 = -Self::ESTRPIPE;
+
+	/// Negated i32 value of `ETIME`.
+	pub const NegativeETIME: i32 = -Self::ETIME;
+
+	/// Negated i32 value of `ETIMEDOUT`.
+	pub const NegativeETIMEDOUT: i32 = -Self::ETIMEDOUT;
+
+	/// Negated i32 value of `ETOOMANYREFS`.
+	pub const NegativeETOOMANYREFS: i32 = -Self::ETOOMANYREFS;
+
+	/// Negated i32 value of `ETXTBSY`.
+	pub const NegativeETXTBSY: i32 = -Self::ETXTBSY;
+
+	/// Negated i32 value of `EUCLEAN`.
+	pub const NegativeEUCLEAN: i32 = -Self::EUCLEAN;
+
+	/// Negated i32 value of `EUNATCH`.
+	pub const NegativeEUNATCH: i32 = -Self::EUNATCH;
+
+	/// Negated i32 value of `EUSERS`.
+	pub const NegativeEUSERS: i32 = -Self::EUSERS;
+
+	/// Negated i32 value of `EXDEV`.
+	pub const NegativeEXDEV: i32 = -Self::EXDEV;
+
+	/// Negated i32 value of `EXFULL`.
+	pub const NegativeEXFULL: i32 = -Self::EXFULL;
+	
+	pub(crate) const InclusiveMinimumU16: u16 = 1;
+	
+	pub(crate) const InclusiveMaximumU16: u16 = 4095;
+	
+	pub(crate) const InclusiveMinimumI32: i32 = Self::InclusiveMinimumU16 as i32;
+	
+	pub(crate) const InclusiveMaximumI32: i32 = Self::InclusiveMaximumU16 as i32;
+	
+	pub(crate) const NegativeInclusiveMinimumI32: i32 = -Self::InclusiveMaximumI32;
+	
+	pub(crate) const NegativeInclusiveMaximumI32: i32 = -(Self::InclusiveMinimumU16 as i32);
 	
 	/// Use this value in `match` inclusive range clauses as `SystemCallErrorNumber::InclusiveMinimum ..= SystemCallErrorNumber::InclusiveMaximum`.
 	///
@@ -8774,23 +9230,23 @@ impl SystemCallErrorNumber
 		start: Self::InclusiveMinimum
 	};
 	
-	/// Creates from the global static value `errno` used in C.
+	/// Creates from the global static value `SystemCallErrorNumber` used in C.
 	///
-	/// Panics if the errno is out of range.
+	/// Panics if the SystemCallErrorNumber is out of range.
 	#[inline(always)]
 	pub fn from_errno() -> Self
 	{
-		Self::try_from(errno()).expect("Errno was not in the range 1 ..= 4095")
+		Self::try_from(errno()).expect("SystemCallErrorNumber was not in the range 1 ..= 4095")
 	}
 	
-	/// Creates from the global static value `errno` used in C.
+	/// Creates from the global static value `SystemCallErrorNumber` used in C.
 	#[inline(always)]
 	pub unsafe fn from_errno_unchecked() -> Self
 	{
 		Self::from_unchecked(errno())
 	}
 	
-	/// Sets the global static value `errno` used in C.
+	/// Sets the global static value `SystemCallErrorNumber` used in C.
 	#[inline(always)]
 	pub const fn set_errno(self)
 	{

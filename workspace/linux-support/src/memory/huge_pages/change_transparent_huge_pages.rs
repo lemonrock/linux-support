@@ -4,7 +4,7 @@
 
 /// Enable or disable transparent huge pages.
 #[inline(always)]
-pub fn change_transparent_huge_pages(enable_or_disable_transparent_huge_pages: bool) -> Result<(), Errno>
+pub fn change_transparent_huge_pages(enable_or_disable_transparent_huge_pages: bool) -> Result<(), SystemCallErrorNumber>
 {
 	let arg2 = if enable_or_disable_transparent_huge_pages
 	{

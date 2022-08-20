@@ -26,7 +26,7 @@ impl<V: 'static + Copy + HasReflectionInformation> SpinLockableArrayMap<V>
 	
 	/// Freeze.
 	#[inline(always)]
-	pub fn freeze(&self) -> Result<(), Errno>
+	pub fn freeze(&self) -> Result<(), SystemCallErrorNumber>
 	{
 		self.0.freeze()
 	}
@@ -40,14 +40,14 @@ impl<V: 'static + Copy + HasReflectionInformation> SpinLockableArrayMap<V>
 	
 	/// Get, batched.
 	#[inline(always)]
-	pub fn get_batch(&self, in_batch: Option<&OpaqueBatchPosition<u32>>, indices: &[u32]) -> Result<(Vec<SpinLockableValue<V>>, OpaqueBatchPosition<u32>, bool), Errno>
+	pub fn get_batch(&self, in_batch: Option<&OpaqueBatchPosition<u32>>, indices: &[u32]) -> Result<(Vec<SpinLockableValue<V>>, OpaqueBatchPosition<u32>, bool), SystemCallErrorNumber>
 	{
 		self.0.get_batch(in_batch, indices)
 	}
 	
 	/// Set, batched.
 	#[inline(always)]
-	pub fn set_batch(&self, indices: &[u32], values: &[SpinLockableValue<V>]) -> Result<usize, Errno>
+	pub fn set_batch(&self, indices: &[u32], values: &[SpinLockableValue<V>]) -> Result<usize, SystemCallErrorNumber>
 	{
 		self.0.set_batch_locked(indices, values)
 	}

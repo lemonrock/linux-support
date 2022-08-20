@@ -89,7 +89,7 @@ impl ThreadName
 
 	/// This should not fail under ordinary circumstances.
 	#[inline(always)]
-	pub fn set_current_thread_name(&self) -> Result<(), Errno>
+	pub fn set_current_thread_name(&self) -> Result<(), SystemCallErrorNumber>
 	{
 		let pointer = self.0.as_ptr();
 		process_control_wrapper2(PR_SET_NAME,pointer as usize,result_must_be_zero, Err)

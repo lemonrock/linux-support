@@ -100,7 +100,7 @@ impl BpfTypeFormatFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			Err(CouldNotLoadBpfTypeFormatData(errno(), verifier_log.map(|verifier_log| verifier_log.into())))
+			Err(CouldNotLoadBpfTypeFormatData(SystemCallErrorNumber::from_errno(), verifier_log.map(|verifier_log| verifier_log.into())))
 		}
 		else
 		{

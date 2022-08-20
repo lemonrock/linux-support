@@ -162,7 +162,7 @@ impl SeccompProgram
 			filter: self.as_mut_ptr(),
 		};
 
-		let result = SystemCallNumber::system_call_seccomp(SECCOMP_SET_MODE_FILTER, flags, &mut program as *mut sock_fprog as *mut _);
+		let result = system_call_seccomp(SECCOMP_SET_MODE_FILTER, flags, &mut program as *mut sock_fprog as *mut _);
 		if likely!(result >= 0)
 		{
 			Ok(result)

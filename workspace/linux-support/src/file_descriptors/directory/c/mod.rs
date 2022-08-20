@@ -9,7 +9,6 @@ include!("AT_STATX_.rs");
 include!("dirent.rs");
 include!("execveat.rs");
 include!("FI.rs");
-include!("getdents.rs");
 include!("MAX_HANDLE_SZ.rs");
 include!("file_handle.rs");
 include!("fstrim_range.rs");

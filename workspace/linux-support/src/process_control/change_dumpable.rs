@@ -12,7 +12,7 @@
 /// * Changing file system group identifier;
 /// * After `execve()`
 #[inline(always)]
-pub fn change_dumpable(enable_or_disable_dumpable: bool) -> Result<(), Errno>
+pub fn change_dumpable(enable_or_disable_dumpable: bool) -> Result<(), SystemCallErrorNumber>
 {
 	let value = if enable_or_disable_dumpable
 	{

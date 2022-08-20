@@ -439,7 +439,7 @@ impl Status
 					}
 					else
 					{
-						return Err(CouldNotParseLine { zero_based_line_number, cause: ValueNotPreceededByHorizontalTab })
+						return Err(CouldNotParseLine { zero_based_line_number, cause: ValueNotPrecededByHorizontalTab })
 					};
 
 					match statistic_name

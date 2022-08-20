@@ -12,7 +12,7 @@ impl SystemCallNumber
 		asm!
 		(
 			"svc 0",
-			in("x8") self.0,
+			in("x8") (self as usize),
 			lateout("x0") result,
 		);
 		SystemCallResult(result)
@@ -26,7 +26,7 @@ impl SystemCallNumber
 		asm!
 		(
 			"svc 0",
-			in("x8") self.0,
+			in("x8") (self as usize),
 			in("x0") a,
 			lateout("x0") result,
 		);
@@ -41,7 +41,7 @@ impl SystemCallNumber
 		asm!
 		(
 			"svc 0",
-			in("x8") self.0,
+			in("x8") (self as usize),
 			in("x0") a,
 			in("x1") b,
 			lateout("x0") result,
@@ -57,7 +57,7 @@ impl SystemCallNumber
 		asm!
 		(
 			"svc 0",
-			in("x8") self.0,
+			in("x8") (self as usize),
 			in("x0") a,
 			in("x1") b,
 			in("x2") c,
@@ -74,7 +74,7 @@ impl SystemCallNumber
 		asm!
 		(
 			"svc 0",
-			in("x8") self.0,
+			in("x8") (self as usize),
 			in("x0") a,
 			in("x1") b,
 			in("x2") c,
@@ -92,7 +92,7 @@ impl SystemCallNumber
 		asm!
 		(
 			"svc 0",
-			in("x8") self.0,
+			in("x8") (self as usize),
 			in("x0") a,
 			in("x1") b,
 			in("x2") c,
@@ -111,7 +111,7 @@ impl SystemCallNumber
 		asm!
 		(
 			"svc 0",
-			in("x8") self.0,
+			in("x8") (self as usize),
 			in("x0") a,
 			in("x1") b,
 			in("x2") c,

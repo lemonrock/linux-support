@@ -31,14 +31,14 @@ impl<IPA: InternetProtocolAddress, V: Copy> LongestPrefixMatchTrieMap<IPA, V>
 	
 	/// Freeze.
 	#[inline(always)]
-	pub fn freeze(&self) -> Result<(), Errno>
+	pub fn freeze(&self) -> Result<(), SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.freeze()
 	}
 	
 	/// Iterator of keys.
 	#[inline(always)]
-	pub fn keys(&self) -> Result<KeyIterator<InternetProtocolAddressWithMask<IPA>>, Errno>
+	pub fn keys(&self) -> Result<KeyIterator<InternetProtocolAddressWithMask<IPA>>, SystemCallErrorNumber>
 	{
 		KeyIterator::new(&self.map_file_descriptor)
 	}
@@ -61,7 +61,7 @@ impl<IPA: InternetProtocolAddress, V: Copy> LongestPrefixMatchTrieMap<IPA, V>
 	///
 	/// Returns `Ok(true)` if `key` was present.
 	#[inline(always)]
-	pub fn delete(&self, key: &InternetProtocolAddressWithMask<IPA>) -> Result<bool, Errno>
+	pub fn delete(&self, key: &InternetProtocolAddressWithMask<IPA>) -> Result<bool, SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.delete(key)
 	}

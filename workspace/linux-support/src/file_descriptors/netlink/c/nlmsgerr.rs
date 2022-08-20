@@ -19,32 +19,26 @@ pub(super) struct nlmsgerr
 impl nlmsgerr
 {
 	#[inline(always)]
-	pub fn error_or_acknowledgment_io_result(&self) -> Result<(), Errno>
+	pub fn error_or_acknowledgment_io_result(&self) -> Result<(), SystemCallErrorNumber>
 	{
-		if likely!(self.error > 0 && self.error < 4096)
+		match self.error
 		{
-			Err(Errno(self.error))
-		}
-		else if likely!(self.error == 0)
-		{
-			Ok(())
-		}
-		else
-		{
-			unreachable_code(format_args!("error field is either negative or greater than 4095: {}", self.error))
+			0 => Ok(()),
+			
+			error @ SystemCallErrorNumber::InclusiveMinimumI32 ..= SystemCallErrorNumber::InclusiveMaximumI32 => Err(unsafe { SystemCallErrorNumber::from_unchecked(error) }),
+			
+			unexpected => unreachable_code(format_args!("error field is either negative or greater than 4095: {}", unexpected))
 		}
 	}
 	
 	#[inline(always)]
-	pub fn over_run_io_result(&self) -> Errno
+	pub fn over_run_io_result(&self) -> SystemCallErrorNumber
 	{
-		if likely!(self.error > 0 && self.error < 4096)
+		match self.error
 		{
-			Errno(self.error)
-		}
-		else
-		{
-			unreachable_code(format_args!("error field is either negative or greater than 4095: {}", self.error))
+			error @ SystemCallErrorNumber::InclusiveMinimumI32 ..= SystemCallErrorNumber::InclusiveMaximumI32 => unsafe { SystemCallErrorNumber::from_unchecked(error) },
+			
+			unexpected => unreachable_code(format_args!("error field is either zero, negative or greater than 4095: {}", unexpected))
 		}
 	}
 }

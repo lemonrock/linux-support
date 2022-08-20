@@ -59,14 +59,14 @@ impl<K: Copy, V: Copy> BpfHashMap<K, V>
 	
 	/// Freeze.
 	#[inline(always)]
-	pub fn freeze(&self) -> Result<(), Errno>
+	pub fn freeze(&self) -> Result<(), SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.freeze()
 	}
 	
 	/// Iterator of keys.
 	#[inline(always)]
-	pub fn keys(&self) -> Result<KeyIterator<K>, Errno>
+	pub fn keys(&self) -> Result<KeyIterator<K>, SystemCallErrorNumber>
 	{
 		KeyIterator::new(&self.map_file_descriptor)
 	}
@@ -76,7 +76,7 @@ impl<K: Copy, V: Copy> BpfHashMap<K, V>
 	/// Use `None` for `batch_position` when starting a new batch.
 	/// Each value in `keys` must be valid.
 	#[inline(always)]
-	pub fn get_batch(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K]) -> Result<(Vec<V>, OpaqueBatchPosition<K>, bool), Errno>
+	pub fn get_batch(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K]) -> Result<(Vec<V>, OpaqueBatchPosition<K>, bool), SystemCallErrorNumber>
 	{
 		self.guard_keys(keys);
 		
@@ -85,7 +85,7 @@ impl<K: Copy, V: Copy> BpfHashMap<K, V>
 	
 	/// Get and delete, batched.
 	#[inline(always)]
-	pub fn get_and_delete_batch(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K]) -> Result<(Vec<V>, OpaqueBatchPosition<K>, bool), Errno>
+	pub fn get_and_delete_batch(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K]) -> Result<(Vec<V>, OpaqueBatchPosition<K>, bool), SystemCallErrorNumber>
 	{
 		self.guard_keys(keys);
 		
@@ -97,7 +97,7 @@ impl<K: Copy, V: Copy> BpfHashMap<K, V>
 	/// `keys` and `values` must be the same length.
 	/// Each value in `keys` must be valid.
 	#[inline(always)]
-	pub fn set_batch(&self, keys: &[K], values: &[V]) -> Result<usize, Errno>
+	pub fn set_batch(&self, keys: &[K], values: &[V]) -> Result<usize, SystemCallErrorNumber>
 	{
 		self.guard_keys_and_values(keys, values);
 		
@@ -106,7 +106,7 @@ impl<K: Copy, V: Copy> BpfHashMap<K, V>
 	
 	/// Delete, batched.
 	#[inline(always)]
-	pub fn delete_batch(&self, keys: &[K]) -> Result<(usize, bool), Errno>
+	pub fn delete_batch(&self, keys: &[K]) -> Result<(usize, bool), SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.delete_batch(keys)
 	}
@@ -143,7 +143,7 @@ impl<K: Copy, V: Copy> BpfHashMap<K, V>
 	///
 	/// Returns `Ok(true)` if `key` was present.
 	#[inline(always)]
-	pub fn delete(&self, key: &K) -> Result<bool, Errno>
+	pub fn delete(&self, key: &K) -> Result<bool, SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.delete(key)
 	}

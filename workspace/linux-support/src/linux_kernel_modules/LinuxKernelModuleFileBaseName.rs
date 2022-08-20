@@ -65,7 +65,7 @@ impl LinuxKernelModuleFileBaseName
     	}
 		const flags: i32 = 0;
 
-		match SystemCallNumber::system_call_finit_module( file_descriptor, options.as_c_str(), flags)
+		match system_call_finit_module( file_descriptor, options.as_c_str(), flags)
 		{
 			0 => Ok(true),
 

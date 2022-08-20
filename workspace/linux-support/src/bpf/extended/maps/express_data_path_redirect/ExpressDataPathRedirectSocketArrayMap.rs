@@ -63,7 +63,7 @@ impl ExpressDataPathRedirectSocketArrayMap
 	
 	/// Freeze.
 	#[inline(always)]
-	pub fn freeze(&self) -> Result<(), Errno>
+	pub fn freeze(&self) -> Result<(), SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.freeze()
 	}
@@ -94,7 +94,7 @@ impl ExpressDataPathRedirectSocketArrayMap
 	
 	/// Removes a file descriptor.
 	#[inline(always)]
-	pub fn delete(&self, index: QueueIdentifier) -> Result<bool, Errno>
+	pub fn delete(&self, index: QueueIdentifier) -> Result<bool, SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.delete(&index.into_u16())
 	}

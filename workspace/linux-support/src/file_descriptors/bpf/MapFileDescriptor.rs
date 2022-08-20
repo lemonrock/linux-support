@@ -116,10 +116,10 @@ impl MapFileDescriptor
 		{
 			match SystemCallErrorNumber::from_errno()
 			{
-				// "If key is the last element, -1 is returned and errno is set to ENOENT'.
+				// "If key is the last element, -1 is returned and SystemCallErrorNumber is set to ENOENT'.
 				ENOENT => Ok(None),
 				
-				// "Other possible errno values are ENOMEM, EFAULT, EPERM, and EINVAL".
+				// "Other possible SystemCallErrorNumber values are ENOMEM, EFAULT, EPERM, and EINVAL".
 				other @ _ => Err(other)
 			}
 		}
@@ -508,7 +508,7 @@ impl MapFileDescriptor
 	/// Requires the capability `CAP_SYS_ADMIN`.
 	/// Can only be called once.
 	#[inline(always)]
-	pub(crate) fn freeze(&self) -> Result<(), Errno>
+	pub(crate) fn freeze(&self) -> Result<(), SystemCallErrorNumber>
 	{
 		let mut attr = bpf_attr::default();
 		attr.map_change = BpfCommandMapChange
@@ -551,7 +551,7 @@ impl MapFileDescriptor
 	/// Returns `(values_filled, start of next batch position, more_entries_to_return)`.
 	/// `values_filled.len()` may be less than `keys.len()`.
 	#[inline(always)]
-	pub(crate) fn get_batch<K: Copy, V: Copy>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K]) -> Result<(Vec<V>, OpaqueBatchPosition<K>, bool), Errno>
+	pub(crate) fn get_batch<K: Copy, V: Copy>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K]) -> Result<(Vec<V>, OpaqueBatchPosition<K>, bool), SystemCallErrorNumber>
 	{
 		let keys_length = keys.len();
 		let mut values = Vec::with_capacity(keys_length);
@@ -562,7 +562,7 @@ impl MapFileDescriptor
 	}
 	
 	#[inline(always)]
-	pub(crate) fn get_batch_variably_sized<K: Copy>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K], values: &mut [u8]) -> Result<(usize, OpaqueBatchPosition<K>, bool), Errno>
+	pub(crate) fn get_batch_variably_sized<K: Copy>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K], values: &mut [u8]) -> Result<(usize, OpaqueBatchPosition<K>, bool), SystemCallErrorNumber>
 	{
 		let (count, out_batch, more) = self.lookup_batch(batch_position, keys, AlignedU64::from(values.as_mut_ptr()))?;
 		Ok((count as usize, out_batch, more))
@@ -620,7 +620,7 @@ impl MapFileDescriptor
 	/// Returns `(values_filled, start of next batch position, more_entries_to_return)`.
 	/// `values_filled.len()` may be less than `keys.len()`.
 	#[inline(always)]
-	pub(crate) fn get_and_delete_batch<K: Copy, V: Copy>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K]) -> Result<(Vec<V>, OpaqueBatchPosition<K>, bool), Errno>
+	pub(crate) fn get_and_delete_batch<K: Copy, V: Copy>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K]) -> Result<(Vec<V>, OpaqueBatchPosition<K>, bool), SystemCallErrorNumber>
 	{
 		let keys_length = keys.len();
 		let mut values = Vec::with_capacity(keys_length);
@@ -631,7 +631,7 @@ impl MapFileDescriptor
 	}
 	
 	#[inline(always)]
-	pub(crate) fn get_and_delete_batch_variably_sized<K: Copy>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K], values: &mut [u8]) -> Result<(usize, OpaqueBatchPosition<K>, bool), Errno>
+	pub(crate) fn get_and_delete_batch_variably_sized<K: Copy>(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K], values: &mut [u8]) -> Result<(usize, OpaqueBatchPosition<K>, bool), SystemCallErrorNumber>
 	{
 		let (count, out_batch, more) = self.lookup_and_delete_batch(batch_position, keys, AlignedU64::from(values.as_mut_ptr()))?;
 		Ok((count as usize, out_batch, more))
@@ -688,20 +688,20 @@ impl MapFileDescriptor
 	
 	/// `keys` and `values` must be the same length.
 	#[inline(always)]
-	pub(crate) fn set_batch<K: Copy, V: Copy>(&self, keys: &[K], values: &[V], lock_flags: LockFlags) -> Result<usize, Errno>
+	pub(crate) fn set_batch<K: Copy, V: Copy>(&self, keys: &[K], values: &[V], lock_flags: LockFlags) -> Result<usize, SystemCallErrorNumber>
 	{
 		self.update_batch(keys, AlignedU64::from(values), lock_flags)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn set_batch_variably_sized<K: Copy>(&self, keys: &[K], values: &[u8]) -> Result<usize, Errno>
+	pub(crate) fn set_batch_variably_sized<K: Copy>(&self, keys: &[K], values: &[u8]) -> Result<usize, SystemCallErrorNumber>
 	{
 		self.update_batch(keys, AlignedU64::from(values), LockFlags::DoNotLock)
 	}
 	
 	/// `keys` and `values` must be the same length.
 	#[inline(always)]
-	 fn update_batch<K: Copy>(&self, keys: &[K], values: AlignedU64, lock_flags: LockFlags) -> Result<usize, Errno>
+	 fn update_batch<K: Copy>(&self, keys: &[K], values: AlignedU64, lock_flags: LockFlags) -> Result<usize, SystemCallErrorNumber>
 	{
 		let keys_length = keys.len();
 		assert_ne!(keys_length, 0, "There must be at least one key");
@@ -728,7 +728,7 @@ impl MapFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			Err(errno())
+			Err(SystemCallErrorNumber::from_errno())
 		}
 		else
 		{
@@ -819,7 +819,7 @@ impl MapFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			Err(MapCreationError::CreateFailed(errno()))
+			Err(MapCreationError::CreateFailed(SystemCallErrorNumber::from_errno()))
 		}
 		else
 		{

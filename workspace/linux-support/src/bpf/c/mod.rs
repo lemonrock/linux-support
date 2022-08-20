@@ -16,7 +16,7 @@ use crate::file_descriptors::bpf::BpfFileDescriptor;
 use crate::file_descriptors::bpf::MapFileDescriptor;
 use crate::inode::Inode;
 use crate::network_device::NetworkInterfaceIndex;
-use crate::syscall::SystemCallNumber;
+use crate::syscall::system_call_bpf;
 use crate::user_and_groups::UserIdentifier;
 
 

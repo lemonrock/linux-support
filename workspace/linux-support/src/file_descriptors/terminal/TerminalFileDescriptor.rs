@@ -250,7 +250,7 @@ impl TerminalFileDescriptor
 	}
 
 	#[inline(always)]
-	fn handle_terminal_settings_error(result: c_int, constructor: impl FnOnce(Errno) -> TerminalSettingsError) -> Result<(), TerminalSettingsError>
+	fn handle_terminal_settings_error(result: c_int, constructor: impl FnOnce(SystemCallErrorNumber) -> TerminalSettingsError) -> Result<(), TerminalSettingsError>
 	{
 		if likely!(result == 0)
 		{
@@ -258,7 +258,7 @@ impl TerminalFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			Err(constructor(errno()))
+			Err(constructor(SystemCallErrorNumber::from_errno()))
 		}
 		else
 		{

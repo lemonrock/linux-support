@@ -14,7 +14,7 @@ pub struct DirectoryEntryIterator<'a>
 	buffer: [u8; BufferCapacity],
 }
 
-const BufferCapacity: usize = 2048;
+const BufferCapacity: usize = size_of::<dirent>() * 16;
 
 impl<'a> StreamingIterator for DirectoryEntryIterator<'a>
 {
@@ -28,38 +28,44 @@ impl<'a> StreamingIterator for DirectoryEntryIterator<'a>
 			return
 		}
 
-		// NOTE: Strictly ,self.buffer_offset != self.buffer_end, but >= is defensive.
+		// NOTE: Strictly, `self.buffer_offset != self.buffer_end`, but `>=` is defensive.
 		if unlikely!(self.buffer_offset >= self.buffer_end)
 		{
-			let result = unsafe { getdents(self.directory_file_descriptor.as_raw_fd(), self.buffer.as_mut_ptr() as *mut u8 as *mut dirent, BufferCapacity) };
-			if likely!(result > 0)
+			let result = unsafe { system_call_getdents(self.directory_file_descriptor.as_raw_fd(), self.buffer.as_mut_ptr() as *mut u8, BufferCapacity) };
+			
+			match result
 			{
-				self.buffer_offset = 0;
-				self.buffer_end =
+				SystemCallResult::InclusiveOkRangeStartsFrom ..= SystemCallResult::InclusiveOkRangeEndsAt =>
 				{
-					let length = result as usize;
-					debug_assert!(length <= BufferCapacity);
-					length
-				};
-			}
-			else if likely!(result == 0)
-			{
-				return self.finished()
-			}
-			else if likely!(result < 0)
-			{
-				let error_number = -result;
-
-				match error_number
+					if likely!(result > 0)
+					{
+						self.buffer_offset = 0;
+						self.buffer_end =
+						{
+							let length = result as usize;
+							debug_assert!(length <= BufferCapacity);
+							length
+						};
+					}
+					else
+					{
+						return self.finished()
+					}
+				}
+				
+				SystemCallResult::InclusiveErrorRangeStartsFrom ..= SystemCallResult::InclusiveErrorRangeEndsAt =>
 				{
-					ENOENT => return self.finished(),
-
-					EBADF => panic!("Invalid file descriptor fd"),
-					EFAULT => panic!("Argument points outside the calling process's address space"),
-					EINVAL => panic!("Result buffer is too small"),
-					ENOTDIR => panic!("File descriptor does not refer to a directory"),
-
-					_ => panic!("Unexpected error {} from from getdents()", error_number)
+					match result.system_call_error_number()
+					{
+						ENOENT => return self.finished(),
+						
+						EBADF => panic!("Invalid file descriptor fd"),
+						EFAULT => panic!("Argument points outside the calling process's address space"),
+						EINVAL => panic!("Result buffer is too small"),
+						ENOTDIR => panic!("File descriptor does not refer to a directory"),
+						
+						_ => panic!("Unexpected error {} from from getdents()", error_number)
+					}
 				}
 			}
 		}

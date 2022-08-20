@@ -52,19 +52,19 @@ pub enum ProcessConfigurationError
 	ProcessIoPriorityConfiguration(ProcessIoPriorityConfigurationError),
 
 	#[allow(missing_docs)]
-	CouldNotEnableOrDisableIoFlusher(Errno),
+	CouldNotEnableOrDisableIoFlusher(SystemCallErrorNumber),
 
 	#[allow(missing_docs)]
 	CouldNotChangeMachineCheckExceptionKillPolicy(io::Error),
 
 	#[allow(missing_docs)]
-	CouldNotSetTimestampCounterSetting(Errno),
+	CouldNotSetTimestampCounterSetting(SystemCallErrorNumber),
 
 	#[allow(missing_docs)]
-	CouldNotEnableOrDisableProcessPerformanceCounters(Errno),
+	CouldNotEnableOrDisableProcessPerformanceCounters(SystemCallErrorNumber),
 
 	#[allow(missing_docs)]
-	CouldNotDisableDumpable(Errno),
+	CouldNotDisableDumpable(SystemCallErrorNumber),
 
 	#[allow(missing_docs)]
 	CouldNotCloseAllOpenFileDescriptorsApartFromStandard(io::Error),
@@ -100,7 +100,7 @@ pub enum ProcessConfigurationError
 	UtcFilePathDoesNotExistOrIsNotReadable(io::Error),
 
 	#[allow(missing_docs)]
-	CouldNotPreventTheGrantingOfNoNewPrivileges(Errno),
+	CouldNotPreventTheGrantingOfNoNewPrivileges(SystemCallErrorNumber),
 
 	#[allow(missing_docs)]
 	CouldNotGetInternetProtocolAddressesUsingNetlink(String),

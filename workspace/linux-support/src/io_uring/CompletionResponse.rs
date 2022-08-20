@@ -2,7 +2,24 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+macro_rules! unexpected_error
+{
+	($self: ident, $function_name: tt) =>
+	{
+		unreachable_code(format_args!("Unexpected error code {} from completion of {}", unsafe { SystemCallErrorNumber::from_unchecked($self.0) }, stringify!($function_name)))
+	}
+}
+
+macro_rules! unexpected
+{
+	($self: ident, $function_name: tt) =>
+	{
+		unreachable_code(format_args!("Unexpected result {} from completion of {}", $self.0, stringify!($function_name)))
+	}
+}
+
 /// A completion response code.
+#[repr(transparent)]
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct CompletionResponse(i32);
 
@@ -15,33 +32,21 @@ impl CompletionResponse
 	#[inline(always)]
 	pub fn splice(self) -> Result<Option<u32>, StructWriteError>
 	{
-		let result = self.0;
+		use self::StructWriteError::*;
 		
-		if likely!(result >= 0 )
+		match self.0
 		{
-			Ok(Some(result as u32))
-		}
-		else if likely!(self.is_error())
-		{
-			use self::StructWriteError::*;
+			ok @ 0 ..= i32::MAX => Self::ok_u32(ok),
 			
-			match -self.0
-			{
-				ECANCELED => Ok(None),
-				
-				EAGAIN | ENOMEM => Err(WouldBlock),
-				EINTR => Err(Interrupted),
-				
-				EBADF => panic!("One or both file descriptors are not valid, or do not have proper read-write mode"),
-				EINVAL => panic!("The target filesystem doesn't support splicing; or the target file is opened in append mode; or neither of the file descriptors refers to a pipe; or an offset was given for a non-seekable device (eg, a pipe); or `fd_in` and `fd_out` refer to the same pipe"),
-				ESPIPE => panic!("Either `off_in` or `off_out` was not `NULL`, but the corresponding file descriptor refers to a pipe"),
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from splice completion of {}", unexpected)),
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result from splice completion of {}", result))
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => Err(WouldBlock),
+			SystemCallErrorNumber::NegativeEINTR => Err(Interrupted),
+			SystemCallErrorNumber::NegativeEBADF => panic!("One or both file descriptors are not valid, or do not have proper read-write mode"),
+			SystemCallErrorNumber::NegativeEINVAL => panic!("The target filesystem doesn't support splicing; or the target file is opened in append mode; or neither of the file descriptors refers to a pipe; or an offset was given for a non-seekable device (eg, a pipe); or `fd_in` and `fd_out` refer to the same pipe"),
+			SystemCallErrorNumber::NegativeESPIPE => panic!("Either `off_in` or `off_out` was not `NULL`, but the corresponding file descriptor refers to a pipe"),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, splice),
+			
+			_ => unexpected!(self, splice),
 		}
 	}
 	
@@ -53,38 +58,27 @@ impl CompletionResponse
 	#[inline(always)]
 	pub fn read_vectored(self) -> Result<Option<u32>, StructReadError>
 	{
-		let result = self.0;
+		use self::StructReadError::*;
 		
-		if likely!(result >= 0 )
+		match self.0
 		{
-			Ok(Some(result as u32))
-		}
-		else if likely!(self.is_error())
-		{
-			use self::StructReadError::*;
+			ok @ 0 ..= i32::MAX => Self::ok_u32(ok),
 			
-			match -self.0
-			{
-				ECANCELED => Ok(None),
-				EAGAIN | ENOMEM => Err(WouldBlock),
-				EINTR => Err(Interrupted),
-				EIO => Err(Cancelled),
-				
-				EFAULT => panic!("buf is outside your accessible address space"),
-				EISDIR => panic!("fd refers to a directory"),
-				EBADF => panic!("fd is not a valid file descriptor or is not open for reading"),
-				ENXIO => panic!("whence is SEEK_DATA or SEEK_HOLE, and offset is beyond the end of the file, or whence is SEEK_DATA and offset is within a hole at the end of the file."),
-				EOVERFLOW => panic!("The resulting file offset cannot be represented in an off_t."),
-				ESPIPE => panic!("fd is associated with a pipe, socket, or FIFO."),
-				EINVAL => panic!("fd is attached to an object which is unsuitable for reading; or the file was opened with the O_DIRECT flag, and either the address specified in buf, the value specified in count, or the file offset is not suitably aligned. Or, fd was created via a call to timerfd_create(2) and the wrong size buffer was given to read(); see timerfd_create(2) for further information. Or, whence is not valid. Or: the resulting file offset would be negative, or beyond the end of a seekable device. Or the sum of the iov_len values overflows an ssize_t value. Or, the vector count, iovcnt, is less than zero or greater than the permitted maximum."),
-				EOPNOTSUPP=> panic!("An unknown flag is specified in flags."),
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from read_vectored completion of {}", unexpected)),
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result from read_vectored completion of {}", result))
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => Err(WouldBlock),
+			SystemCallErrorNumber::NegativeEINTR => Err(Interrupted),
+			SystemCallErrorNumber::NegativeEIO => Err(Cancelled),
+			SystemCallErrorNumber::NegativeEFAULT => panic!("buf is outside your accessible address space"),
+			SystemCallErrorNumber::NegativeEISDIR => panic!("fd refers to a directory"),
+			SystemCallErrorNumber::NegativeEBADF => panic!("fd is not a valid file descriptor or is not open for reading"),
+			SystemCallErrorNumber::NegativeENXIO => panic!("whence is SEEK_DATA or SEEK_HOLE, and offset is beyond the end of the file, or whence is SEEK_DATA and offset is within a hole at the end of the file."),
+			SystemCallErrorNumber::NegativeEOVERFLOW => panic!("The resulting file offset cannot be represented in an off_t."),
+			SystemCallErrorNumber::NegativeESPIPE => panic!("fd is associated with a pipe, socket, or FIFO."),
+			SystemCallErrorNumber::NegativeEINVAL => panic!("fd is attached to an object which is unsuitable for reading; or the file was opened with the O_DIRECT flag, and either the address specified in buf, the value specified in count, or the file offset is not suitably aligned. Or, fd was created via a call to timerfd_create(2) and the wrong size buffer was given to read(); see timerfd_create(2) for further information. Or, whence is not valid. Or: the resulting file offset would be negative, or beyond the end of a seekable device. Or the sum of the iov_len values overflows an ssize_t value. Or, the vector count, iovcnt, is less than zero or greater than the permitted maximum."),
+			SystemCallErrorNumber::NegativeEOPNOTSUPP => panic!("An unknown flag is specified in flags."),
+			unexpected_error @ SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unreachable_code(format_args!("Unexpected result from read_vectored completion of {}", unexpected_error)),
+			
+			_ => unexpected!(self, read_vectored),
 		}
 	}
 	
@@ -96,38 +90,27 @@ impl CompletionResponse
 	#[inline(always)]
 	pub fn read_fixed(self) -> Result<Option<u32>, StructReadError>
 	{
-		let result = self.0;
+		use self::StructReadError::*;
 		
-		if likely!(result >= 0 )
+		match self.0
 		{
-			Ok(Some(result as u32))
-		}
-		else if likely!(self.is_error())
-		{
-			use self::StructReadError::*;
+			ok @ 0 ..= i32::MAX => Self::ok_u32(ok),
 			
-			match -self.0
-			{
-				ECANCELED => Ok(None),
-				EAGAIN | ENOMEM => Err(WouldBlock),
-				EINTR => Err(Interrupted),
-				EIO => Err(Cancelled),
-				
-				EFAULT => panic!("buf is outside your accessible address space"),
-				EISDIR => panic!("fd refers to a directory"),
-				EBADF => panic!("fd is not a valid file descriptor or is not open for reading"),
-				ENXIO => panic!("whence is SEEK_DATA or SEEK_HOLE, and offset is beyond the end of the file, or whence is SEEK_DATA and offset is within a hole at the end of the file."),
-				EOVERFLOW => panic!("The resulting file offset cannot be represented in an off_t."),
-				ESPIPE => panic!("fd is associated with a pipe, socket, or FIFO."),
-				EINVAL => panic!("fd is attached to an object which is unsuitable for reading; or the file was opened with the O_DIRECT flag, and either the address specified in buf, the value specified in count, or the file offset is not suitably aligned. Or, fd was created via a call to timerfd_create(2) and the wrong size buffer was given to read(); see timerfd_create(2) for further information. Or, whence is not valid. Or: the resulting file offset would be negative, or beyond the end of a seekable device. Or the sum of the iov_len values overflows an ssize_t value. Or, the vector count, iovcnt, is less than zero or greater than the permitted maximum."),
-				EOPNOTSUPP=> panic!("An unknown flag is specified in flags."),
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from read_fixed completion of {}", unexpected)),
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result from read_fixed completion of {}", result))
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => Err(WouldBlock),
+			SystemCallErrorNumber::NegativeEINTR => Err(Interrupted),
+			SystemCallErrorNumber::NegativeEIO => Err(Cancelled),
+			SystemCallErrorNumber::NegativeEFAULT => panic!("buf is outside your accessible address space"),
+			SystemCallErrorNumber::NegativeEISDIR => panic!("fd refers to a directory"),
+			SystemCallErrorNumber::NegativeEBADF => panic!("fd is not a valid file descriptor or is not open for reading"),
+			SystemCallErrorNumber::NegativeENXIO => panic!("whence is SEEK_DATA or SEEK_HOLE, and offset is beyond the end of the file, or whence is SEEK_DATA and offset is within a hole at the end of the file."),
+			SystemCallErrorNumber::NegativeEOVERFLOW => panic!("The resulting file offset cannot be represented in an off_t."),
+			SystemCallErrorNumber::NegativeESPIPE => panic!("fd is associated with a pipe, socket, or FIFO."),
+			SystemCallErrorNumber::NegativeEINVAL => panic!("fd is attached to an object which is unsuitable for reading; or the file was opened with the O_DIRECT flag, and either the address specified in buf, the value specified in count, or the file offset is not suitably aligned. Or, fd was created via a call to timerfd_create(2) and the wrong size buffer was given to read(); see timerfd_create(2) for further information. Or, whence is not valid. Or: the resulting file offset would be negative, or beyond the end of a seekable device. Or the sum of the iov_len values overflows an ssize_t value. Or, the vector count, iovcnt, is less than zero or greater than the permitted maximum."),
+			SystemCallErrorNumber::NegativeEOPNOTSUPP => panic!("An unknown flag is specified in flags."),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, read_fixed),
+			
+			_ => unexpected!(self, read_fixed),
 		}
 	}
 	
@@ -142,36 +125,25 @@ impl CompletionResponse
 	#[inline(always)]
 	pub fn read(self) -> Result<Option<u32>, StructReadError>
 	{
-		let result = self.0;
+		use self::StructReadError::*;
 		
-		if likely!(result >= 0 )
+		match self.0
 		{
-			Ok(Some(result as u32))
-		}
-		else if likely!(self.is_error())
-		{
-			use self::StructReadError::*;
+			ok @ 0 ..= i32::MAX => Self::ok_u32(ok),
 			
-			match -self.0
-			{
-				ECANCELED => Ok(None),
-				EAGAIN | ENOMEM => Err(WouldBlock),
-				EINTR => Err(Interrupted),
-				EIO => Err(Cancelled),
-				
-				ENXIO => panic!("whence is SEEK_DATA or SEEK_HOLE, and offset is beyond the end of the file, or whence is SEEK_DATA and offset is within a hole at the end of the file."),
-				EOVERFLOW => panic!("The resulting file offset cannot be represented in an off_t."),
-				ESPIPE => panic!("fd is associated with a pipe, socket, or FIFO."),
-				EBADF => panic!("fd is not a valid file descriptor or is not open for reading"),
-				EINVAL => panic!("fd is attached to an object which is unsuitable for reading; or the file was opened with the O_DIRECT flag, and either the address specified in buf, the value specified in count, or the file offset is not suitably aligned. Or, fd was created via a call to timerfd_create(2) and the wrong size buffer was given to read(); see timerfd_create(2) for further information. Or, whence is not valid. Or: the resulting file offset would be negative, or beyond the end of a seekable device."),
-				EISDIR => panic!("fd refers to a directory"),
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from read completion of {}", unexpected)),
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result from read completion of {}", result))
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => Err(WouldBlock),
+			SystemCallErrorNumber::NegativeEINTR => Err(Interrupted),
+			SystemCallErrorNumber::NegativeEIO => Err(Cancelled),
+			SystemCallErrorNumber::NegativeENXIO => panic!("whence is SEEK_DATA or SEEK_HOLE, and offset is beyond the end of the file, or whence is SEEK_DATA and offset is within a hole at the end of the file."),
+			SystemCallErrorNumber::NegativeEOVERFLOW => panic!("The resulting file offset cannot be represented in an off_t."),
+			SystemCallErrorNumber::NegativeESPIPE => panic!("fd is associated with a pipe, socket, or FIFO."),
+			SystemCallErrorNumber::NegativeEBADF => panic!("fd is not a valid file descriptor or is not open for reading"),
+			SystemCallErrorNumber::NegativeEINVAL => panic!("fd is attached to an object which is unsuitable for reading; or the file was opened with the O_DIRECT flag, and either the address specified in buf, the value specified in count, or the file offset is not suitably aligned. Or, fd was created via a call to timerfd_create(2) and the wrong size buffer was given to read(); see timerfd_create(2) for further information. Or, whence is not valid. Or: the resulting file offset would be negative, or beyond the end of a seekable device."),
+			SystemCallErrorNumber::NegativeEISDIR => panic!("fd refers to a directory"),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, read),
+			
+			_ => unexpected!(self, read),
 		}
 	}
 	
@@ -184,41 +156,30 @@ impl CompletionResponse
 	#[inline(always)]
 	pub fn write_vectored(self) -> Result<Option<u32>, StructWriteError>
 	{
-		let result = self.0;
+		use self::StructWriteError::*;
 		
-		if likely!(result >= 0 )
+		match self.0
 		{
-			Ok(Some(result as u32))
-		}
-		else if likely!(self.is_error())
-		{
-			use self::StructWriteError::*;
+			ok @ 0 ..= i32::MAX => Self::ok_u32(ok),
 			
-			match -self.0
-			{
-				ECANCELED => Ok(None),
-				EAGAIN | ENOMEM | EINPROGRESS => Err(WouldBlock),
-				EINTR => Err(Interrupted),
-				EIO | EDQUOT | ENOSPC => Err(Cancelled),
-				
-				EBADF => panic!("fd is not a valid file descriptor or is not open for writing."),
-				EDESTADDRREQ => panic!("fd refers to a datagram socket for which a peer address has not been set using connect(2)"),
-				EFAULT => panic!("buf is outside your accessible address space"),
-				EFBIG => panic!("An attempt was made to write a file that exceeds the implementation-defined maximum file size or the process's file size limit, or to write at a position past the maximum allowed offset"),
-				EINVAL => panic!("fd is attached to an object which is unsuitable for writing; or the file was opened with the O_DIRECT flag, and either the address specified in buf, the value specified in count, or the file offset is not suitably aligned. Or, whence is not valid. Or: the resulting file offset would be negative, or beyond the end of a seekable device. Or the sum of the iov_len values overflows an ssize_t value. Or the vector count, iovcnt, is less than zero or greater than the permitted maximum"),
-				EPERM => panic!("The operation was prevented by a file seal; see fcntl(2)."),
-				EPIPE => panic!("fd is connected to a pipe or socket whose reading end is closed. When this happens the writing process will also receive a SIGPIPE signal. (Thus, the write return value is seen only if the program catches, blocks or ignores this signal)."),
-				ENXIO=> panic!("whence is SEEK_DATA or SEEK_HOLE, and offset is beyond the end of the file, or whence is SEEK_DATA and offset is within a hole at the end of the file."),
-				EOVERFLOW=> panic!("The resulting file offset cannot be represented in an off_t"),
-				ESPIPE=> panic!("fd is associated with a pipe, socket, or FIFO"),
-				EOPNOTSUPP=> panic!(" An unknown flag is specified in flags"),
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from write_vectored completion of {}", unexpected)),
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result from write_vectored completion of {}", result))
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM | SystemCallErrorNumber::NegativeEINPROGRESS => Err(WouldBlock),
+			SystemCallErrorNumber::NegativeEINTR => Err(Interrupted),
+			SystemCallErrorNumber::NegativeEIO | SystemCallErrorNumber::NegativeEDQUOT | SystemCallErrorNumber::NegativeENOSPC => Err(Cancelled),
+			SystemCallErrorNumber::NegativeEBADF => panic!("fd is not a valid file descriptor or is not open for writing."),
+			SystemCallErrorNumber::NegativeEDESTADDRREQ => panic!("fd refers to a datagram socket for which a peer address has not been set using connect(2)"),
+			SystemCallErrorNumber::NegativeEFAULT => panic!("buf is outside your accessible address space"),
+			SystemCallErrorNumber::NegativeEFBIG => panic!("An attempt was made to write a file that exceeds the implementation-defined maximum file size or the process's file size limit, or to write at a position past the maximum allowed offset"),
+			SystemCallErrorNumber::NegativeEINVAL => panic!("fd is attached to an object which is unsuitable for writing; or the file was opened with the O_DIRECT flag, and either the address specified in buf, the value specified in count, or the file offset is not suitably aligned. Or, whence is not valid. Or: the resulting file offset would be negative, or beyond the end of a seekable device. Or the sum of the iov_len values overflows an ssize_t value. Or the vector count, iovcnt, is less than zero or greater than the permitted maximum"),
+			SystemCallErrorNumber::NegativeEPERM => panic!("The operation was prevented by a file seal; see fcntl(2)."),
+			SystemCallErrorNumber::NegativeEPIPE => panic!("fd is connected to a pipe or socket whose reading end is closed. When this happens the writing process will also receive a SIGPIPE signal. (Thus, the write return value is seen only if the program catches, blocks or ignores this signal)."),
+			SystemCallErrorNumber::NegativeENXIO => panic!("whence is SEEK_DATA or SEEK_HOLE, and offset is beyond the end of the file, or whence is SEEK_DATA and offset is within a hole at the end of the file."),
+			SystemCallErrorNumber::NegativeEOVERFLOW => panic!("The resulting file offset cannot be represented in an off_t"),
+			SystemCallErrorNumber::NegativeESPIPE => panic!("fd is associated with a pipe, socket, or FIFO"),
+			SystemCallErrorNumber::NegativeEOPNOTSUPP => panic!(" An unknown flag is specified in flags"),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, write_vectored),
+			
+			_ => unexpected!(self, write_vectored),
 		}
 	}
 	
@@ -231,41 +192,30 @@ impl CompletionResponse
 	#[inline(always)]
 	pub fn write_fixed(self) -> Result<Option<u32>, StructWriteError>
 	{
-		let result = self.0;
+		use self::StructWriteError::*;
 		
-		if likely!(result >= 0 )
+		match self.0
 		{
-			Ok(Some(result as u32))
-		}
-		else if likely!(self.is_error())
-		{
-			use self::StructWriteError::*;
+			ok @ 0 ..= i32::MAX => Self::ok_u32(ok),
 			
-			match -self.0
-			{
-				ECANCELED => Ok(None),
-				EAGAIN | ENOMEM | EINPROGRESS => Err(WouldBlock),
-				EINTR => Err(Interrupted),
-				EIO | EDQUOT | ENOSPC => Err(Cancelled),
-				
-				EBADF => panic!("fd is not a valid file descriptor or is not open for writing."),
-				EDESTADDRREQ => panic!("fd refers to a datagram socket for which a peer address has not been set using connect(2)"),
-				EFAULT => panic!("buf is outside your accessible address space"),
-				EFBIG => panic!("An attempt was made to write a file that exceeds the implementation-defined maximum file size or the process's file size limit, or to write at a position past the maximum allowed offset"),
-				EINVAL => panic!("fd is attached to an object which is unsuitable for writing; or the file was opened with the O_DIRECT flag, and either the address specified in buf, the value specified in count, or the file offset is not suitably aligned. Or, whence is not valid. Or: the resulting file offset would be negative, or beyond the end of a seekable device. Or the sum of the iov_len values overflows an ssize_t value. Or the vector count, iovcnt, is less than zero or greater than the permitted maximum"),
-				EPERM => panic!("The operation was prevented by a file seal; see fcntl(2)."),
-				EPIPE => panic!("fd is connected to a pipe or socket whose reading end is closed. When this happens the writing process will also receive a SIGPIPE signal. (Thus, the write return value is seen only if the program catches, blocks or ignores this signal)."),
-				ENXIO=> panic!("whence is SEEK_DATA or SEEK_HOLE, and offset is beyond the end of the file, or whence is SEEK_DATA and offset is within a hole at the end of the file."),
-				EOVERFLOW=> panic!("The resulting file offset cannot be represented in an off_t"),
-				ESPIPE=> panic!("fd is associated with a pipe, socket, or FIFO"),
-				EOPNOTSUPP=> panic!(" An unknown flag is specified in flags"),
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from write_fixed completion of {}", unexpected)),
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result from write_fixed completion of {}", result))
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM | SystemCallErrorNumber::NegativeEINPROGRESS => Err(WouldBlock),
+			SystemCallErrorNumber::NegativeEINTR => Err(Interrupted),
+			SystemCallErrorNumber::NegativeEIO | SystemCallErrorNumber::NegativeEDQUOT | SystemCallErrorNumber::NegativeENOSPC => Err(Cancelled),
+			SystemCallErrorNumber::NegativeEBADF => panic!("fd is not a valid file descriptor or is not open for writing."),
+			SystemCallErrorNumber::NegativeEDESTADDRREQ => panic!("fd refers to a datagram socket for which a peer address has not been set using connect(2)"),
+			SystemCallErrorNumber::NegativeEFAULT => panic!("buf is outside your accessible address space"),
+			SystemCallErrorNumber::NegativeEFBIG => panic!("An attempt was made to write a file that exceeds the implementation-defined maximum file size or the process's file size limit, or to write at a position past the maximum allowed offset"),
+			SystemCallErrorNumber::NegativeEINVAL => panic!("fd is attached to an object which is unsuitable for writing; or the file was opened with the O_DIRECT flag, and either the address specified in buf, the value specified in count, or the file offset is not suitably aligned. Or, whence is not valid. Or: the resulting file offset would be negative, or beyond the end of a seekable device. Or the sum of the iov_len values overflows an ssize_t value. Or the vector count, iovcnt, is less than zero or greater than the permitted maximum"),
+			SystemCallErrorNumber::NegativeEPERM => panic!("The operation was prevented by a file seal; see fcntl(2)."),
+			SystemCallErrorNumber::NegativeEPIPE => panic!("fd is connected to a pipe or socket whose reading end is closed. When this happens the writing process will also receive a SIGPIPE signal. (Thus, the write return value is seen only if the program catches, blocks or ignores this signal)."),
+			SystemCallErrorNumber::NegativeENXIO => panic!("whence is SEEK_DATA or SEEK_HOLE, and offset is beyond the end of the file, or whence is SEEK_DATA and offset is within a hole at the end of the file."),
+			SystemCallErrorNumber::NegativeEOVERFLOW => panic!("The resulting file offset cannot be represented in an off_t"),
+			SystemCallErrorNumber::NegativeESPIPE => panic!("fd is associated with a pipe, socket, or FIFO"),
+			SystemCallErrorNumber::NegativeEOPNOTSUPP => panic!(" An unknown flag is specified in flags"),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, write_fixed),
+			
+			_ => unexpected!(self, write_fixed),
 		}
 	}
 	
@@ -278,42 +228,31 @@ impl CompletionResponse
 	/// Returns `Err(WouldBlock)` if in progress with the `TCP_FASTOPEN_CONNECT` socket option which expects the client to write-first.
 	/// Returns `Err(WouldBlock)` if `EAGAIN` or `ENOMEM`.
 	#[inline(always)]
-	pub fn write(self) -> Result<Option<u32>, StructReadError>
+	pub fn write(self) -> Result<Option<u32>, StructWriteError>
 	{
-		let result = self.0;
+		use self::StructWriteError::*;
 		
-		if likely!(result >= 0 )
+		match self.0
 		{
-			Ok(Some(result as u32))
-		}
-		else if likely!(self.is_error())
-		{
-			use self::StructReadError::*;
+			ok @ 0 ..= i32::MAX => Self::ok_u32(ok),
 			
-			match -self.0
-			{
-				ECANCELED => Ok(None),
-				EAGAIN | ENOMEM | EINPROGRESS => Err(WouldBlock),
-				EINTR => Err(Interrupted),
-				EIO | EDQUOT | ENOSPC => Err(Cancelled),
-				
-				EBADF => panic!("fd is not a valid file descriptor or is not open for writing."),
-				EDESTADDRREQ => panic!("fd refers to a datagram socket for which a peer address has not been set using connect(2)"),
-				EFAULT => panic!("buf is outside your accessible address space"),
-				EFBIG => panic!("An attempt was made to write a file that exceeds the implementation-defined maximum file size or the process's file size limit, or to write at a position past the maximum allowed offset"),
-				EINVAL => panic!("fd is attached to an object which is unsuitable for writing; or the file was opened with the O_DIRECT flag, and either the address specified in buf, the value specified in count, or the file offset is not suitably aligned. Or, whence is not valid. Or: the resulting file offset would be negative, or beyond the end of a seekable device."),
-				EPERM => panic!("The operation was prevented by a file seal; see fcntl(2)."),
-				EPIPE => panic!("fd is connected to a pipe or socket whose reading end is closed. When this happens the writing process will also receive a SIGPIPE signal. (Thus, the write return value is seen only if the program catches, blocks or ignores this signal)."),
-				ENXIO=> panic!("whence is SEEK_DATA or SEEK_HOLE, and offset is beyond the end of the file, or whence is SEEK_DATA and offset is within a hole at the end of the file."),
-				EOVERFLOW=> panic!("The resulting file offset cannot be represented in an off_t"),
-				ESPIPE=> panic!("fd is associated with a pipe, socket, or FIFO"),
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from write completion of {}", unexpected)),
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result from write completion of {}", result))
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM | SystemCallErrorNumber::NegativeEINPROGRESS => Err(WouldBlock),
+			SystemCallErrorNumber::NegativeEINTR => Err(Interrupted),
+			SystemCallErrorNumber::NegativeEIO | SystemCallErrorNumber::NegativeEDQUOT | SystemCallErrorNumber::NegativeENOSPC => Err(Cancelled),
+			SystemCallErrorNumber::NegativeEBADF => panic!("fd is not a valid file descriptor or is not open for writing."),
+			SystemCallErrorNumber::NegativeEDESTADDRREQ => panic!("fd refers to a datagram socket for which a peer address has not been set using connect(2)"),
+			SystemCallErrorNumber::NegativeEFAULT => panic!("buf is outside your accessible address space"),
+			SystemCallErrorNumber::NegativeEFBIG => panic!("An attempt was made to write a file that exceeds the implementation-defined maximum file size or the process's file size limit, or to write at a position past the maximum allowed offset"),
+			SystemCallErrorNumber::NegativeEINVAL => panic!("fd is attached to an object which is unsuitable for writing; or the file was opened with the O_DIRECT flag, and either the address specified in buf, the value specified in count, or the file offset is not suitably aligned. Or, whence is not valid. Or: the resulting file offset would be negative, or beyond the end of a seekable device."),
+			SystemCallErrorNumber::NegativeEPERM => panic!("The operation was prevented by a file seal; see fcntl(2)."),
+			SystemCallErrorNumber::NegativeEPIPE => panic!("fd is connected to a pipe or socket whose reading end is closed. When this happens the writing process will also receive a SIGPIPE signal. (Thus, the write return value is seen only if the program catches, blocks or ignores this signal)."),
+			SystemCallErrorNumber::NegativeENXIO => panic!("whence is SEEK_DATA or SEEK_HOLE, and offset is beyond the end of the file, or whence is SEEK_DATA and offset is within a hole at the end of the file."),
+			SystemCallErrorNumber::NegativeEOVERFLOW => panic!("The resulting file offset cannot be represented in an off_t"),
+			SystemCallErrorNumber::NegativeESPIPE => panic!("fd is associated with a pipe, socket, or FIFO"),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, write),
+			
+			_ => unexpected!(self, write),
 		}
 	}
 	
@@ -325,22 +264,18 @@ impl CompletionResponse
 		
 		match self.0
 		{
-			error @ -4095 ..= -1 => match -error
-			{
-				ECANCELED => Ok(None),
-				EINTR | EAGAIN | ENOMEM => Err(()),
-				
-				EFAULT => panic!("The array given as argument was not contained in the calling program's address space."),
-				EINVAL => panic!("The nfds value exceeds the RLIMIT_NOFILE value."),
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from poll_add completion of {}", unexpected)),
-			}
-			
-			value @ 0 ..= U16Maximum => match PollResponseFlags::from_bits(value as u16)
+			ok @ 0 ..= U16Maximum => match PollResponseFlags::from_bits(ok as u16)
 			{
 				Some(poll_response_flags) => Ok(Some(poll_response_flags)),
-				None => unreachable_code(format_args!("Invalid PollResponse flags from poll_add completion of {}", value)),
+				
+				None => unreachable_code(format_args!("Invalid PollResponse flags from poll_add completion of {}", ok)),
 			}
+			
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => Err(()),
+			SystemCallErrorNumber::NegativeEFAULT => panic!("The array given as argument was not contained in the calling program's address space."),
+			SystemCallErrorNumber::NegativeEINVAL => panic!("The nfds value exceeds the RLIMIT_NOFILE value."),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, poll_add),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from poll_add completion of {}", unexpected))
 		}
@@ -354,20 +289,13 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 ..= -1 => match -error
-			{
-				ECANCELED => Ok(None),
-				
-				EINTR | EAGAIN | ENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
-				
-				EALREADY => Err(true),
-				
-				ENOENT => Err(false),
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from poll_cancel completion of {}", unexpected)),
-			}
-			
 			0 => Ok(Some(())),
+			
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
+			SystemCallErrorNumber::NegativeEALREADY => Err(true),
+			SystemCallErrorNumber::NegativeENOENT => Err(false),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, poll_cancel),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from poll_cancel completion of {}", unexpected))
 		}
@@ -381,23 +309,14 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 ..= -1 => match -error
-			{
-				ECANCELED => Ok(None),
-				
-				EINTR | EAGAIN | ENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
-				
-				EIO => Err(true),
-				
-				EROFS | EINVAL => Err(false),
-				
-				EBADF=> panic!("fd is not a valid open file descriptor."),
-				
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from file_synchronize completion of {}", unexpected)),
-			}
-			
 			0 => Ok(Some(())),
+			
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
+			SystemCallErrorNumber::NegativeEIO => Err(true),
+			SystemCallErrorNumber::NegativeEROFS | SystemCallErrorNumber::NegativeEINVAL => Err(false),
+			SystemCallErrorNumber::NegativeEBADF => panic!("fd is not a valid open file descriptor."),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, file_synchronize),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from file_synchronize completion of {}", unexpected))
 		}
@@ -411,44 +330,12 @@ impl CompletionResponse
 	#[inline(always)]
 	pub fn accept<SD: SocketData>(self, pending_accept_connection: PendingAcceptConnection<SD>) -> Result<Option<AcceptedConnection<SD>>, SocketAcceptError>
 	{
+		use self::ConnectionFailedReason::*;
+		use self::SocketAcceptError::*;
+		
 		match self.0
 		{
-			error @ -4095 ..= -1 =>
-			{
-				use self::ConnectionFailedReason::*;
-				use self::SocketAcceptError::*;
-				
-				let error = match -error
-				{
-					ECANCELED => return Ok(None),
-					
-					EAGAIN => Again,
-
-					EINTR => Interrupted,
-
-					ECONNABORTED => ConnectionFailed(Aborted),
-					EPERM => ConnectionFailed(FirewallPermissionDenied),
-					ETIMEDOUT => ConnectionFailed(TimedOut),
-					EPROTO => ConnectionFailed(Protocol),
-
-					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
-					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
-					ENOBUFS | ENOMEM | ENOSR => KernelWouldBeOutOfMemory,
-
-					EINVAL => panic!("Socket is not listening for connections, or `addrlen` is invalid, or the `flags` are invalid"),
-					EFAULT => panic!("`addr` points outside the user's accessible address space"),
-					EBADF => panic!("`sockfd` is not a valid descriptor"),
-					ENOTSOCK => panic!("`sockfd` is not a socket file descriptor"),
-					EOPNOTSUPP => panic!("The socket is not of a type that supports the `accept()` operation"),
-					ESOCKTNOSUPPORT => panic!("ESOCKTNOSUPPORT"),
-					EPROTONOSUPPORT => panic!("EPROTONOSUPPORT"),
-					
-					unexpected @ _ => unreachable_code(format_args!("Unexpected error code from accept4 completion of {}", unexpected)),
-				};
-				Err(error)
-			}
-			
-			file_descriptor if file_descriptor >= 0 =>
+			file_descriptor @ 0 ..= i32::MAX =>
 			{
 				debug_assert_eq!(pending_accept_connection.peer_address_length, PendingAcceptConnection::<SD>::SocketDataLength(), "peer_address was truncated");
 				
@@ -469,6 +356,25 @@ impl CompletionResponse
 				)
 			}
 			
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEAGAIN => Err(Again),
+			SystemCallErrorNumber::NegativeEINTR => Err(Interrupted),
+			SystemCallErrorNumber::NegativeECONNABORTED => Err(ConnectionFailed(Aborted)),
+			SystemCallErrorNumber::NegativeEPERM => Err(ConnectionFailed(FirewallPermissionDenied)),
+			SystemCallErrorNumber::NegativeETIMEDOUT => Err(ConnectionFailed(TimedOut)),
+			SystemCallErrorNumber::NegativeEPROTO => Err(ConnectionFailed(Protocol)),
+			SystemCallErrorNumber::NegativeEMFILE => Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
+			SystemCallErrorNumber::NegativeENFILE => Err(SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded),
+			SystemCallErrorNumber::NegativeENOBUFS | SystemCallErrorNumber::NegativeENOMEM | SystemCallErrorNumber::NegativeENOSR => Err(KernelWouldBeOutOfMemory),
+			SystemCallErrorNumber::NegativeEINVAL => panic!("Socket is not listening for connections, or `addrlen` is invalid, or the `flags` are invalid"),
+			SystemCallErrorNumber::NegativeEFAULT => panic!("`addr` points outside the user's accessible address space"),
+			SystemCallErrorNumber::NegativeEBADF => panic!("`sockfd` is not a valid descriptor"),
+			SystemCallErrorNumber::NegativeENOTSOCK => panic!("`sockfd` is not a socket file descriptor"),
+			SystemCallErrorNumber::NegativeEOPNOTSUPP => panic!("The socket is not of a type that supports the `accept()` operation"),
+			SystemCallErrorNumber::NegativeESOCKTNOSUPPORT => panic!("ESOCKTNOSUPPORT"),
+			SystemCallErrorNumber::NegativeEPROTONOSUPPORT => panic!("EPROTONOSUPPORT"),
+			unexpected_error @ SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unreachable_code(format_args!("Unexpected error code from accept4 completion of {}", unexpected_error)),
+			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from accept4 completion of {}", unexpected))
 		}
 	}
@@ -483,40 +389,30 @@ impl CompletionResponse
 	#[inline(always)]
 	pub fn connect<SD: SocketData>(self, _peer_address: &SD) -> Result<Option<()>, SocketConnectError>
 	{
+		use self::SocketConnectError::*;
+		
 		match self.0
 		{
-			error @ -4095 ..= -1 =>
-			{
-				use self::SocketConnectError::*;
-				
-				let error = match -error
-				{
-					ECANCELED => return Ok(None),
-					
-					ENOMEM => OutOfKernelMemory,
-					
-					EACCES | EPERM => PermissionDenied,
-					EADDRINUSE => AddressInUse,
-					EAGAIN => NoMoreFreeLocalPorts,
-					ECONNREFUSED => ConnectionRefused,
-					EINPROGRESS => InProgress,
-					EINTR => Interrupted,
-					ETIMEDOUT => TimedOut,
-					ENETUNREACH => NetworkUnreachable,
-					EISCONN => panic!("The socket is already connected."),
-					EALREADY => panic!("The socket is nonblocking and a previous connection attempt has not yet been completed."),
-					EBADF => panic!("`sockfd` is not a valid descriptor"),
-					EINVAL => panic!("already bound, or the `addrlen` is wrong, or the socket was not in the `AF_UNIX` family"),
-					ENOTSOCK => panic!("`sockfd` is not a socket file descriptor"),
-					EFAULT => panic!("`addr` points outside the user's accessible address space"),
-					EAFNOSUPPORT => panic!("Invalid `sa_family_t` value"),
-					
-					unexpected @ _ => unreachable_code(format_args!("Unexpected error code from connect completion of {}", unexpected)),
-				};
-				Err(error)
-			}
-			
 			0 => Ok(Some(())),
+			
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeENOMEM => Err(OutOfKernelMemory),
+			SystemCallErrorNumber::NegativeEACCES | SystemCallErrorNumber::NegativeEPERM => Err(PermissionDenied),
+			SystemCallErrorNumber::NegativeEADDRINUSE => Err(AddressInUse),
+			SystemCallErrorNumber::NegativeEAGAIN => Err(NoMoreFreeLocalPorts),
+			SystemCallErrorNumber::NegativeECONNREFUSED => Err(ConnectionRefused),
+			SystemCallErrorNumber::NegativeEINPROGRESS => Err(InProgress),
+			SystemCallErrorNumber::NegativeEINTR => Err(Interrupted),
+			SystemCallErrorNumber::NegativeETIMEDOUT => Err(TimedOut),
+			SystemCallErrorNumber::NegativeENETUNREACH => Err(NetworkUnreachable),
+			SystemCallErrorNumber::NegativeEISCONN => panic!("The socket is already connected."),
+			SystemCallErrorNumber::NegativeEALREADY => panic!("The socket is nonblocking and a previous connection attempt has not yet been completed."),
+			SystemCallErrorNumber::NegativeEBADF => panic!("`sockfd` is not a valid descriptor"),
+			SystemCallErrorNumber::NegativeEINVAL => panic!("already bound, or the `addrlen` is wrong, or the socket was not in the `AF_UNIX` family"),
+			SystemCallErrorNumber::NegativeENOTSOCK => panic!("`sockfd` is not a socket file descriptor"),
+			SystemCallErrorNumber::NegativeEFAULT => panic!("`addr` points outside the user's accessible address space"),
+			SystemCallErrorNumber::NegativeEAFNOSUPPORT => panic!("Invalid `sa_family_t` value"),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, connect),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from connect completion of {}", unexpected))
 		}
@@ -541,32 +437,11 @@ impl CompletionResponse
 	#[inline(always)]
 	pub fn receive(self, buffer: &[u8]) -> io::Result<Option<u32>>
 	{
-		use crate::ErrorKind::*;
+		use std::io::ErrorKind::*;
 		
 		match self.0
 		{
-			error @ -4095 ..= -1 =>
-			{
-				let error = match -error
-				{
-					ECANCELED => return Ok(None),
-					
-					EAGAIN => WouldBlock,
-					EINTR => Interrupted,
-					ENOMEM => Other,
-					ECONNRESET => ConnectionReset,
-					ECONNREFUSED => ConnectionRefused,
-					EBADF => panic!("The argument `sockfd` is an invalid descriptor"),
-					EFAULT => panic!("The receive buffer pointer(s) point outside the process's address space"),
-					EINVAL => panic!("Invalid argument passed"),
-					ENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
-					ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
-					EOPNOTSUPP => panic!("Some flags in the `flags` argument are inappropriate for the socket type"),
-					
-					unexpected @ _ => unreachable_code(format_args!("Unexpected error code from receive completion of {}", unexpected)),
-				};
-				Err(io::Error::from(error))
-			}
+			length @ 1 ..= i32::MAX => Self::ok_u32(length),
 			
 			0 => if buffer.is_empty()
 			{
@@ -574,10 +449,22 @@ impl CompletionResponse
 			}
 			else
 			{
-				Err(io::Error::from(UnexpectedEof))
+				Self::io_error_from_error_kind(UnexpectedEof)
 			}
 			
-			length if length > 0 => Ok(Some(length as u32)),
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEAGAIN => Self::io_error_from_error_kind(WouldBlock),
+			SystemCallErrorNumber::NegativeEINTR => Self::io_error_from_error_kind(Interrupted),
+			SystemCallErrorNumber::NegativeENOMEM => Self::io_error_from_error_kind(Other),
+			SystemCallErrorNumber::NegativeECONNRESET => Self::io_error_from_error_kind(ConnectionReset),
+			SystemCallErrorNumber::NegativeECONNREFUSED => Self::io_error_from_error_kind(ConnectionRefused),
+			SystemCallErrorNumber::NegativeEBADF => panic!("The argument `sockfd` is an invalid descriptor"),
+			SystemCallErrorNumber::NegativeEFAULT => panic!("The receive buffer pointer(s) point outside the process's address space"),
+			SystemCallErrorNumber::NegativeEINVAL => panic!("Invalid argument passed"),
+			SystemCallErrorNumber::NegativeENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
+			SystemCallErrorNumber::NegativeENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
+			SystemCallErrorNumber::NegativeEOPNOTSUPP => panic!("Some flags in the `flags` argument are inappropriate for the socket type"),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, receive),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from receive completion of {}", unexpected))
 		}
@@ -604,37 +491,11 @@ impl CompletionResponse
 	#[inline(always)]
 	pub fn send(self, buffer: &[u8]) -> io::Result<Option<u32>>
 	{
-		use crate::ErrorKind::*;
+		use std::io::ErrorKind::*;
 		
 		match self.0
 		{
-			error @ -4095 ..= -1 =>
-			{
-				let error = match -error
-				{
-					ECANCELED => return Ok(None),
-					
-					EAGAIN => WouldBlock,
-					EINTR => Interrupted,
-					ENOMEM | ENOBUFS => Other,
-					EPIPE => BrokenPipe,
-					EACCES => PermissionDenied,
-					ECONNRESET => ConnectionReset,
-					ECONNREFUSED => ConnectionRefused,
-					EBADF => panic!("The argument `sockfd` is an invalid descriptor"),
-					EFAULT => panic!("The receive buffer pointer(s) point outside the process's address space"),
-					EINVAL => panic!("Invalid argument passed"),
-					ENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
-					ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
-					EOPNOTSUPP => panic!("Some flags in the `flags` argument are inappropriate for the socket type"),
-					EMSGSIZE => panic!("The socket type requires that message be sent atomically, and the size of the message to be sent made this impossible"),
-					EISCONN => panic!("The connection-mode socket was connected already but a recipient was specified"),
-					EDESTADDRREQ => panic!("The socket is not connection-mode, and no peer address is set"),
-					
-					unexpected @ _ => unreachable_code(format_args!("Unexpected error code from send completion of {}", unexpected)),
-				};
-				Err(io::Error::from(error))
-			}
+			length @ 1 ..= i32::MAX => Self::ok_u32(length),
 			
 			0 => if buffer.is_empty()
 			{
@@ -642,10 +503,27 @@ impl CompletionResponse
 			}
 			else
 			{
-				Err(io::Error::from(WriteZero))
+				Self::io_error_from_error_kind(WriteZero)
 			}
 			
-			length if length > 0 => Ok(Some(length as u32)),
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEAGAIN => Self::io_error_from_error_kind(WouldBlock),
+			SystemCallErrorNumber::NegativeEINTR => Self::io_error_from_error_kind(Interrupted),
+			SystemCallErrorNumber::NegativeENOMEM | SystemCallErrorNumber::NegativeENOBUFS => Self::io_error_from_error_kind(Other),
+			SystemCallErrorNumber::NegativeEPIPE => Self::io_error_from_error_kind(BrokenPipe),
+			SystemCallErrorNumber::NegativeEACCES => Self::io_error_from_error_kind(PermissionDenied),
+			SystemCallErrorNumber::NegativeECONNRESET => Self::io_error_from_error_kind(ConnectionReset),
+			SystemCallErrorNumber::NegativeECONNREFUSED => Self::io_error_from_error_kind(ConnectionRefused),
+			SystemCallErrorNumber::NegativeEBADF => panic!("The argument `sockfd` is an invalid descriptor"),
+			SystemCallErrorNumber::NegativeEFAULT => panic!("The receive buffer pointer(s) point outside the process's address space"),
+			SystemCallErrorNumber::NegativeEINVAL => panic!("Invalid argument passed"),
+			SystemCallErrorNumber::NegativeENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
+			SystemCallErrorNumber::NegativeENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
+			SystemCallErrorNumber::NegativeEOPNOTSUPP => panic!("Some flags in the `flags` argument are inappropriate for the socket type"),
+			SystemCallErrorNumber::NegativeEMSGSIZE => panic!("The socket type requires that message be sent atomically, and the size of the message to be sent made this impossible"),
+			SystemCallErrorNumber::NegativeEISCONN => panic!("The connection-mode socket was connected already but a recipient was specified"),
+			SystemCallErrorNumber::NegativeEDESTADDRREQ => panic!("The socket is not connection-mode, and no peer address is set"),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, send),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from send completion of {}", unexpected))
 		}
@@ -667,34 +545,23 @@ impl CompletionResponse
 	#[inline(always)]
 	pub fn receive_message<SD: SocketData>(self, _message: &mut ReceiveMessage<SD>) -> Result<Option<u32>, StructReadError>
 	{
+		use self::StructReadError::*;
+		
 		match self.0
 		{
-			error @ -4095 ..= -1 =>
-			{
-				use self::StructReadError::*;
-				
-				let error = match -error
-				{
-					ECANCELED => return Ok(None),
-					
-					EAGAIN => WouldBlock,
-					EINTR => Interrupted,
-					EIO | ENOMEM => Cancelled,
-					
-					EBADF | ENOTSOCK => panic!("`fd` is not a valid socket file descriptor"),
-					EFAULT => panic!("`buf` is outside your accessible address space"),
-					EINVAL => panic!("`fd` is attached to an object which is unsuitable for reading OR was created via a call to `timerfd_create()` and the wrong size buffer was given to `read()`"),
-					EISDIR => panic!("`fd` refers to a directory"),
-					
-					ENOTCONN=> panic!("Using recvmsg() for a connected socket which hasn't been connected"),
-					ECONNREFUSED=> panic!("Using recvmsg() for a connected socket"),
-					
-					unexpected @ _ => unreachable_code(format_args!("Unexpected error code from receive_message completion of {}", unexpected)),
-				};
-				Err(error)
-			}
+			length@ 0 ..= i32::MAX => Self::ok_u32(length),
 			
-			length if length >= 0 => Ok(Some(length as u32)),
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEAGAIN => Err(WouldBlock),
+			SystemCallErrorNumber::NegativeEINTR => Err(Interrupted),
+			SystemCallErrorNumber::NegativeEIO | SystemCallErrorNumber::NegativeENOMEM => Err(Cancelled),
+			SystemCallErrorNumber::NegativeEBADF | SystemCallErrorNumber::NegativeENOTSOCK => panic!("`fd` is not a valid socket file descriptor"),
+			SystemCallErrorNumber::NegativeEFAULT => panic!("`buf` is outside your accessible address space"),
+			SystemCallErrorNumber::NegativeEINVAL => panic!("`fd` is attached to an object which is unsuitable for reading OR was created via a call to `timerfd_create()` and the wrong size buffer was given to `read()`"),
+			SystemCallErrorNumber::NegativeEISDIR => panic!("`fd` refers to a directory"),
+			SystemCallErrorNumber::NegativeENOTCONN => panic!("Using recvmsg() for a connected socket which hasn't been connected"),
+			SystemCallErrorNumber::NegativeECONNREFUSED => panic!("Using recvmsg() for a connected socket"),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, receive_message),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from receive_message completion of {}", unexpected))
 		}
@@ -718,38 +585,29 @@ impl CompletionResponse
 	#[inline(always)]
 	pub fn send_message<SD: SocketData>(self, _message: &mut ReceiveMessage<SD>) -> io::Result<Option<u32>>
 	{
+		use std::io::ErrorKind::*;
+		
 		match self.0
 		{
-			error @ -4095 ..= -1 =>
-			{
-				use crate::ErrorKind::*;
-				
-				let error = match -error
-				{
-					ECANCELED => return Ok(None),
-					
-					EAGAIN => WouldBlock,
-					EINTR => Interrupted,
-					ENOMEM | ENOBUFS => Other,
-					EPIPE => BrokenPipe,
-					EACCES => PermissionDenied,
-					ECONNRESET => ConnectionReset,
-					EBADF => panic!("The argument `sockfd` is an invalid descriptor"),
-					EFAULT => panic!("The receive buffer pointer(s) point outside the process's address space"),
-					EINVAL => panic!("Invalid argument passed"),
-					ENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
-					ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
-					EOPNOTSUPP => panic!("Some flags in the `flags` argument are inappropriate for the socket type"),
-					EMSGSIZE => panic!("The socket type requires that message be sent atomically, and the size of the message to be sent made this impossible"),
-					EISCONN => panic!("The connection-mode socket was connected already but a recipient was specified"),
-					EDESTADDRREQ => panic!("The socket is not connection-mode, and no peer address is set"),
-					
-					unexpected @ _ => unreachable_code(format_args!("Unexpected error code from send_message completion of {}", unexpected)),
-				};
-				Err(io::Error::from(error))
-			}
+			length @ 0 ..= i32::MAX => Self::ok_u32(length),
 			
-			length if length >= 0 => Ok(Some(length as u32)),
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEAGAIN => Self::io_error_from_error_kind(WouldBlock),
+			SystemCallErrorNumber::NegativeEINTR => Self::io_error_from_error_kind(Interrupted),
+			SystemCallErrorNumber::NegativeENOMEM | SystemCallErrorNumber::NegativeENOBUFS => Self::io_error_from_error_kind(Other),
+			SystemCallErrorNumber::NegativeEPIPE => Self::io_error_from_error_kind(BrokenPipe),
+			SystemCallErrorNumber::NegativeEACCES => Self::io_error_from_error_kind(PermissionDenied),
+			SystemCallErrorNumber::NegativeECONNRESET => Self::io_error_from_error_kind(ConnectionReset),
+			SystemCallErrorNumber::NegativeEBADF => panic!("The argument `sockfd` is an invalid descriptor"),
+			SystemCallErrorNumber::NegativeEFAULT => panic!("The receive buffer pointer(s) point outside the process's address space"),
+			SystemCallErrorNumber::NegativeEINVAL => panic!("Invalid argument passed"),
+			SystemCallErrorNumber::NegativeENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
+			SystemCallErrorNumber::NegativeENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
+			SystemCallErrorNumber::NegativeEOPNOTSUPP => panic!("Some flags in the `flags` argument are inappropriate for the socket type"),
+			SystemCallErrorNumber::NegativeEMSGSIZE => panic!("The socket type requires that message be sent atomically, and the size of the message to be sent made this impossible"),
+			SystemCallErrorNumber::NegativeEISCONN => panic!("The connection-mode socket was connected already but a recipient was specified"),
+			SystemCallErrorNumber::NegativeEDESTADDRREQ => panic!("The socket is not connection-mode, and no peer address is set"),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, send_message),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from send_message completion of {}", unexpected))
 		}
@@ -763,33 +621,22 @@ impl CompletionResponse
 	#[inline(always)]
 	pub fn epoll_control_add(self, _epoll_event: &epoll_event) -> Result<Option<()>, EPollAddError>
 	{
+		use self::EPollAddError::*;
+		
 		match self.0
 		{
-			error @ -4095 ..= -1 =>
-			{
-				use self::EPollAddError::*;
-				
-				match -error
-				{
-					ECANCELED => Ok(None),
-					
-					EINTR | EAGAIN => Err(TryAgain),
-					
-					ENOMEM => Err(ThereWasInsufficientKernelMemory),
-					
-					ENOSPC => Err(LimitOnWatchesWouldBeExceeded),
-					
-					EBADF => panic!("The supplied file descriptor was not a valid file descriptor"),
-					EEXIST => panic!("The supplied file descriptor was already registered with this epoll instance"),
-					EINVAL => panic!("Can not add epoll file descriptor to its self, or can not make wait on an epoll file descriptor `EPOLLEXCLUSIVE`"),
-					ELOOP => panic!("The supplied file descriptor is for an epoll instance and this operation would result in a circular loop of epoll instances monitoring one another"),
-					EPERM => panic!("The supplied file descriptor does not support epoll (perhaps it is an open regular file or the like)"),
-					
-					unexpected @ _ => unreachable_code(format_args!("Unexpected error code from epoll_control_add completion of {}", unexpected)),
-				}
-			}
-			
 			0 => Ok(Some(())),
+			
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN => Err(TryAgain),
+			SystemCallErrorNumber::NegativeENOMEM => Err(ThereWasInsufficientKernelMemory),
+			SystemCallErrorNumber::NegativeENOSPC => Err(LimitOnWatchesWouldBeExceeded),
+			SystemCallErrorNumber::NegativeEBADF => panic!("The supplied file descriptor was not a valid file descriptor"),
+			SystemCallErrorNumber::NegativeEEXIST => panic!("The supplied file descriptor was already registered with this epoll instance"),
+			SystemCallErrorNumber::NegativeEINVAL => panic!("Can not add epoll file descriptor to its self, or can not make wait on an epoll file descriptor `EPOLLEXCLUSIVE`"),
+			SystemCallErrorNumber::NegativeELOOP => panic!("The supplied file descriptor is for an epoll instance and this operation would result in a circular loop of epoll instances monitoring one another"),
+			SystemCallErrorNumber::NegativeEPERM => panic!("The supplied file descriptor does not support epoll (perhaps it is an open regular file or the like)"),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, epoll_control_add),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from epoll_control_add completion of {}", unexpected))
 		}
@@ -803,30 +650,20 @@ impl CompletionResponse
 	#[inline(always)]
 	pub fn epoll_control_modify(self, _epoll_event: &epoll_event) -> Result<Option<()>, EPollModifyError>
 	{
+		use self::EPollModifyError::*;
+		
 		match self.0
 		{
-			error @ -4095 ..= -1 =>
-			{
-				use self::EPollModifyError::*;
-				
-				match -error
-				{
-					ECANCELED => Ok(None),
-					
-					EINTR | EAGAIN => Err(TryAgain),
-					
-					ENOMEM => Err(ThereWasInsufficientKernelMemory),
-					
-					EBADF => panic!("The supplied file descriptor was not a valid file descriptor"),
-					EINVAL => panic!("Supplied file descriptor was not usable or there was the presence or absence of `Exclusive` when required"),
-					ENOENT => panic!("The supplied file descriptor is not registered with this epoll instance"),
-					EPERM => panic!("The supplied file descriptor does not support epoll (perhaps it is an open regular file or the like)"),
-					
-					unexpected @ _ => unreachable_code(format_args!("Unexpected error code from epoll_control_modify completion of {}", unexpected)),
-				}
-			}
-			
 			0 => Ok(Some(())),
+			
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN => Err(TryAgain),
+			SystemCallErrorNumber::NegativeENOMEM => Err(ThereWasInsufficientKernelMemory),
+			SystemCallErrorNumber::NegativeEBADF => panic!("The supplied file descriptor was not a valid file descriptor"),
+			SystemCallErrorNumber::NegativeEINVAL => panic!("Supplied file descriptor was not usable or there was the presence or absence of `Exclusive` when required"),
+			SystemCallErrorNumber::NegativeENOENT => panic!("The supplied file descriptor is not registered with this epoll instance"),
+			SystemCallErrorNumber::NegativeEPERM => panic!("The supplied file descriptor does not support epoll (perhaps it is an open regular file or the like)"),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, epoll_control_modify),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from epoll_control_modify completion of {}", unexpected))
 		}
@@ -840,26 +677,16 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 ..= -1 =>
-			{
-				match -error
-				{
-					ECANCELED => Ok(None),
-					
-					EINTR | EAGAIN => Err(()),
-					
-					ENOMEM => panic!("Examination of the Linux source code fs/eventpoll.c suggests `ENOMEM` should not occur for `EPOLL_CTL_DEL`"),
-					
-					EBADF => panic!("The supplied file descriptor was not a valid file descriptor"),
-					EINVAL => panic!("Supplied file descriptor was not usable"),
-					ENOENT => panic!("The supplied file descriptor is not registered with this epoll instance"),
-					EPERM => panic!("The supplied file descriptor does not support epoll (perhaps it is an open regular file or the like)"),
-					
-					unexpected @ _ => unreachable_code(format_args!("Unexpected error code from epoll_control_delete completion of {}", unexpected)),
-				}
-			}
-			
 			0 => Ok(Some(())),
+			
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN => Err(()),
+			SystemCallErrorNumber::NegativeENOMEM => panic!("Examination of the Linux source code fs/eventpoll.c suggests `ENOMEM` should not occur for `EPOLL_CTL_DEL`"),
+			SystemCallErrorNumber::NegativeEBADF => panic!("The supplied file descriptor was not a valid file descriptor"),
+			SystemCallErrorNumber::NegativeEINVAL => panic!("Supplied file descriptor was not usable"),
+			SystemCallErrorNumber::NegativeENOENT => panic!("The supplied file descriptor is not registered with this epoll instance"),
+			SystemCallErrorNumber::NegativeEPERM => panic!("The supplied file descriptor does not support epoll (perhaps it is an open regular file or the like)"),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, epoll_control_delete),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from epoll_control_delete completion of {}", unexpected))
 		}
@@ -873,20 +700,13 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 ..= -1 => match -error
-			{
-				ECANCELED => Ok(None),
-				
-				EALREADY => Err(true),
-				
-				ENOENT => Err(false),
-				
-				EINTR | EAGAIN | ENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from cancel completion of {}", unexpected)),
-			}
-			
 			0 => Ok(Some(())),
+			
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEALREADY => Err(true),
+			SystemCallErrorNumber::NegativeENOENT => Err(false),
+			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, cancel),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from cancel completion of {}", unexpected))
 		}
@@ -898,16 +718,11 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 ..= -1 => match -error
-			{
-				ECANCELED => None,
-				
-				EINTR | EAGAIN | ENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from nop completion of {}", unexpected)),
-			}
-			
 			0 => Some(()),
+			
+			SystemCallErrorNumber::NegativeECANCELED => None,
+			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, nop),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from nop completion of {}", unexpected))
 		}
@@ -926,18 +741,12 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 ..= -1 => match -error
-			{
-				ECANCELED => Ok(None),
-				
-				ETIME => Ok(Some(false)),
-				
-				EINTR | EAGAIN | ENOMEM => Err(()),
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from timeout completion of {}", unexpected)),
-			}
-			
 			0 => Ok(Some(true)),
+			
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeETIME => Ok(Some(false)),
+			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => Err(()),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, timeout),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from timeout completion of {}", unexpected))
 		}
@@ -954,18 +763,12 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 ..= -1 => match -error
-			{
-				ECANCELED => None,
-				
-				ETIME => Some(false),
-				
-				EINTR | EAGAIN | ENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from linked_timeout completion of {}", unexpected)),
-			}
-			
 			0 => Some(true),
+			
+			SystemCallErrorNumber::NegativeECANCELED => None,
+			SystemCallErrorNumber::NegativeETIME => Some(false),
+			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, linked_timeout),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from linked_timeout completion of {}", unexpected))
 		}
@@ -980,22 +783,14 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 ..= -1 => match -error
-			{
-				ECANCELED => Ok(None),
-				
-				EALREADY => Err(Some(true)),
-				
-				ENOENT => Err(Some(false)),
-				
-				EBUSY => Err(None),
-				
-				EINTR | EAGAIN | ENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from cancel_timeout completion of {}", unexpected)),
-			}
-			
 			0 => Ok(Some(())),
+			
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEALREADY => Err(Some(true)),
+			SystemCallErrorNumber::NegativeENOENT => Err(Some(false)),
+			SystemCallErrorNumber::NegativeEBUSY => Err(None),
+			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, cancel_timeout),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from cancel_timeout completion of {}", unexpected))
 		}
@@ -1009,29 +804,21 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 ..= -1 => match -error
-			{
-				ECANCELED => Ok(None),
-				
-				EINTR | EAGAIN| ENOMEM => Err(true),
-				ENOSPC => Err(false),
-				
-				// mode specifies FALLOC_FL_COLLAPSE_RANGE or FALLOC_FL_INSERT_RANGE, but the file referred to by fd is currently being executed.
-				ETXTBSY => Err(true),
-				
-				EBADF => panic!("fd is not a valid file descriptor, or is not opened for writing"),
-				EFBIG => panic!("`offset + length` exceeds the maximum file size"),
-				EINVAL => panic!("offset was less than 0, or len was less than or equal to 0, or the underlying filesystem does not support the operation"),
-				ENODEV => panic!("fd does not refer to a regular file"),
-				ESPIPE => panic!("fd refers to a pipe"),
-				ENOSYS => panic!("This kernel does not implement fallocate()"),
-				EOPNOTSUPP => panic!("The filesystem containing the file referred to by fd does not support this operation; or the mode is not supported by the filesystem containing the file referred to by fd"),
-				EPERM => panic!("The file referred to by fd is marked immutable (see chattr(1)). Or mode specifies FALLOC_FL_PUNCH_HOLE or FALLOC_FL_COLLAPSE_RANGE or FALLOC_FL_INSERT_RANGE and the file referred to by fd is marked append-only (see chattr(1)). Or the operation was prevented by a file seal; see fcntl(2)."),
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from file_allocate completion of {}", unexpected)),
-			}
-			
 			0 => Ok(Some(())),
+			
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => Err(true),
+			SystemCallErrorNumber::NegativeENOSPC => Err(false),
+			SystemCallErrorNumber::NegativeETXTBSY => Err(true), // `mode` specifies `FALLOC_FL_COLLAPSE_RANGE` or `FALLOC_FL_INSERT_RANGE`, but the file referred to by fd is currently being executed.
+			SystemCallErrorNumber::NegativeEBADF => panic!("fd is not a valid file descriptor, or is not opened for writing"),
+			SystemCallErrorNumber::NegativeEFBIG => panic!("`offset + length` exceeds the maximum file size"),
+			SystemCallErrorNumber::NegativeEINVAL => panic!("offset was less than 0, or len was less than or equal to 0, or the underlying filesystem does not support the operation"),
+			SystemCallErrorNumber::NegativeENODEV => panic!("fd does not refer to a regular file"),
+			SystemCallErrorNumber::NegativeESPIPE => panic!("fd refers to a pipe"),
+			SystemCallErrorNumber::NegativeENOSYS => panic!("This kernel does not implement fallocate()"),
+			SystemCallErrorNumber::NegativeEOPNOTSUPP => panic!("The filesystem containing the file referred to by fd does not support this operation; or the mode is not supported by the filesystem containing the file referred to by fd"),
+			SystemCallErrorNumber::NegativeEPERM => panic!("The file referred to by fd is marked immutable (see chattr(1)). Or mode specifies FALLOC_FL_PUNCH_HOLE or FALLOC_FL_COLLAPSE_RANGE or FALLOC_FL_INSERT_RANGE and the file referred to by fd is marked append-only (see chattr(1)). Or the operation was prevented by a file seal; see fcntl(2)."),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, file_allocate),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from file_allocate completion of {}", unexpected))
 		}
@@ -1044,20 +831,14 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 ..= -1 => match -error
-			{
-				ECANCELED => None,
-				
-				EINTR | EAGAIN | ENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
-				
-				EINVAL => panic!("An invalid value was specified for advice"),
-				EBADF => panic!("fd is not a valid file descriptor"),
-				ESPIPE => panic!("The specified file descriptor refers to a pipe or FIFO (before Linux 2.6.16, this was EINVAL)"),
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from file_advise completion of {}", unexpected)),
-			}
-			
 			0 => Some(()),
+			
+			SystemCallErrorNumber::NegativeECANCELED => None,
+			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
+			SystemCallErrorNumber::NegativeEINVAL => panic!("An invalid value was specified for advice"),
+			SystemCallErrorNumber::NegativeEBADF => panic!("fd is not a valid file descriptor"),
+			SystemCallErrorNumber::NegativeESPIPE => panic!("The specified file descriptor refers to a pipe or FIFO (before Linux 2.6.16, this was EINVAL)"),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, file_advise),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from file_advise completion of {}", unexpected))
 		}
@@ -1071,23 +852,16 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 ..= -1 => match -error
-			{
-				ECANCELED => Ok(None),
-				
-				EIO => Err(true),
-				ENOMEM | ENOSPC => Err(false),
-				
-				EINTR | EAGAIN => panic!("EINTR / EAGAIN - are these possible?"),
-				
-				EBADF => panic!("fd is not a valid file descriptor"),
-				EINVAL => panic!("flags specifies an invalid bit; or offset or n bytes is invalid"),
-				ESPIPE => panic!("fd refers to something other than a regular file, a block device, a directory, or a symbolic link"),
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from synchronize_file_range completion of {}", unexpected)),
-			}
-			
 			0 => Ok(Some(())),
+			
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEIO => Err(true),
+			SystemCallErrorNumber::NegativeENOMEM | SystemCallErrorNumber::NegativeENOSPC => Err(false),
+			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN => panic!("EINTR / EAGAIN - are these possible?"),
+			SystemCallErrorNumber::NegativeEBADF => panic!("fd is not a valid file descriptor"),
+			SystemCallErrorNumber::NegativeEINVAL => panic!("flags specifies an invalid bit; or offset or n bytes is invalid"),
+			SystemCallErrorNumber::NegativeESPIPE => panic!("fd refers to something other than a regular file, a block device, a directory, or a symbolic link"),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, synchronize_file_range),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from synchronize_file_range completion of {}", unexpected))
 		}
@@ -1101,16 +875,11 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 ..= -1 => match -error
-			{
-				ECANCELED => Ok(None),
-				
-				EINTR | EAGAIN | ENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
-				
-				code @ _ => Err(io::Error::from_raw_os_error(code)),
-			}
-			
 			0 => Ok(Some(())),
+			
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => self.as_io_error(),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from memory_advise completion of {}", unexpected))
 		}
@@ -1126,18 +895,12 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 ..= -1 => match -error
-			{
-				ECANCELED => None,
-				
-				EIO | EINTR | EAGAIN | ENOMEM | ENOSPC => Some(false),
-				
-				EBADF=> panic!("fd isn't a valid open file descriptor."),
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from close completion of {}", unexpected)),
-			}
-			
 			0 => Some(true),
+			
+			SystemCallErrorNumber::NegativeECANCELED => None,
+			SystemCallErrorNumber::NegativeEIO | SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM | SystemCallErrorNumber::NegativeENOSPC => Some(false),
+			SystemCallErrorNumber::NegativeEBADF => panic!("fd isn't a valid open file descriptor."),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, close),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from close completion of {}", unexpected))
 		}
@@ -1150,14 +913,10 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 ..= -1 => match -error
-			{
-				ECANCELED => Ok(None),
-				
-				code @ _ => Err(io::Error::from_raw_os_error(code)),
-			}
+			raw_file_descriptor @ 0 ..= i32::MAX => Self::raw_file_descriptor_ok(raw_file_descriptor),
 			
-			raw_file_descriptor if raw_file_descriptor >= 0 => Ok(Some(unsafe { Open::from_raw_fd(raw_file_descriptor) })),
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => self.as_io_error(),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from openat completion of {}", unexpected))
 		}
@@ -1171,14 +930,10 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 ..= -1 => match -error
-			{
-				ECANCELED => Ok(None),
-				
-				code @ _ => Err(io::Error::from_raw_os_error(code)),
-			}
+			raw_file_descriptor @ 0 ..= i32::MAX => Self::raw_file_descriptor_ok(raw_file_descriptor),
 			
-			raw_file_descriptor if raw_file_descriptor >= 0 => Ok(Some(unsafe { Open::from_raw_fd(raw_file_descriptor) })),
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => self.as_io_error(),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from openat2 completion of {}", unexpected))
 		}
@@ -1190,22 +945,15 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 ..= -1 => match -error
-			{
-				ECANCELED => Ok(None),
-				
-				EINTR | EAGAIN => panic!("EINTR / EAGAIN - are these possible?"),
-				
-				EACCES | ELOOP | ENAMETOOLONG | ENOMEM | ENOTDIR | ENOENT => Err(io::Error::from_raw_os_error(-error)),
-				
-				EBADF => panic!("dirfd is not a valid open file descriptor"),
-				EFAULT => panic!("pathname or statxbuf is NULL or points to a location outside the process's accessible address space"),
-				EINVAL => panic!("Invalid flag specified in flags. Or, reserved flag specified in mask. (Currently, there is one such flag, designated by the constant STATX__RESERVED, with the value 0x80000000U)."),
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from extended_metadata_for_path completion of {}", unexpected)),
-			}
-			
 			0 => Ok(Some(())),
+			
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEACCES | SystemCallErrorNumber::NegativeELOOP | SystemCallErrorNumber::NegativeENAMETOOLONG | SystemCallErrorNumber::NegativeENOMEM | SystemCallErrorNumber::NegativeENOTDIR | SystemCallErrorNumber::NegativeENOENT => self.as_io_error(),
+			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN => panic!("EINTR / EAGAIN - are these possible?"),
+			SystemCallErrorNumber::NegativeEBADF => panic!("dirfd is not a valid open file descriptor"),
+			SystemCallErrorNumber::NegativeEFAULT => panic!("pathname or statxbuf is NULL or points to a location outside the process's accessible address space"),
+			SystemCallErrorNumber::NegativeEINVAL => panic!("Invalid flag specified in flags. Or, reserved flag specified in mask. (Currently, there is one such flag, designated by the constant STATX__RESERVED, with the value 0x80000000U)."),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, extended_metadata_for_path),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from extended_metadata_for_path completion of {}", unexpected))
 		}
@@ -1217,24 +965,17 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 ..= -1 => match -error
-			{
-				ECANCELED => Ok(None),
-				
-				EINTR | EAGAIN => panic!("EINTR / EAGAIN - are these possible?"),
-				
-				EACCES | ELOOP | ENAMETOOLONG | ENOMEM => Err(io::Error::from_raw_os_error(-error)),
-				
-				EBADF => panic!("dirfd is not a valid open file descriptor"),
-				EFAULT => panic!("pathname or statxbuf is NULL or points to a location outside the process's accessible address space"),
-				EINVAL => panic!("Invalid flag specified in flags. Or, reserved flag specified in mask. (Currently, there is one such flag, designated by the constant STATX__RESERVED, with the value 0x80000000U)."),
-				ENOENT => panic!("ENOENT A component of pathname does not exist, or pathname is an empty string and AT_EMPTY_PATH was not specified in flags."),
-				ENOTDIR => panic!("A component of the path prefix of pathname is not a directory or pathname is relative and dirfd is a file descriptor referring to a file other than a directory"),
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from extended_metadata_for_directory completion of {}", unexpected)),
-			}
-			
 			0 => Ok(Some(())),
+			
+			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
+			SystemCallErrorNumber::NegativeEACCES | SystemCallErrorNumber::NegativeELOOP | SystemCallErrorNumber::NegativeENAMETOOLONG | SystemCallErrorNumber::NegativeENOMEM => self.as_io_error(),
+			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN => panic!("EINTR / EAGAIN - are these possible?"),
+			SystemCallErrorNumber::NegativeEBADF => panic!("dirfd is not a valid open file descriptor"),
+			SystemCallErrorNumber::NegativeEFAULT => panic!("pathname or statxbuf is NULL or points to a location outside the process's accessible address space"),
+			SystemCallErrorNumber::NegativeEINVAL => panic!("Invalid flag specified in flags. Or, reserved flag specified in mask. (Currently, there is one such flag, designated by the constant STATX__RESERVED, with the value 0x80000000U)."),
+			SystemCallErrorNumber::NegativeENOENT => panic!("ENOENT A component of pathname does not exist, or pathname is an empty string and AT_EMPTY_PATH was not specified in flags."),
+			SystemCallErrorNumber::NegativeENOTDIR => panic!("A component of the path prefix of pathname is not a directory or pathname is relative and dirfd is a file descriptor referring to a file other than a directory"),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, extended_metadata_for_directory),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from extended_metadata_for_directory completion of {}", unexpected))
 		}
@@ -1248,30 +989,62 @@ impl CompletionResponse
 	{
 		match self.0
 		{
-			error @ -4095 ..= -1 => match -error
-			{
-				ECANCELED => None,
-				
-				EINVAL => panic!("Unsupported"),
-				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error code from registered_file_descriptors_update completion of {}", unexpected)),
-			}
-			
-			count if count >= 0 =>
+			count @ 0 ..= i32::MAX =>
 			{
 				debug_assert!(count <= replace_with_files_descriptors.len() as i32);
 				Some(count as u32)
 			}
+			
+			SystemCallErrorNumber::NegativeECANCELED => None,
+			SystemCallErrorNumber::NegativeEINVAL => panic!("Unsupported"),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, registered_file_descriptors_update),
 			
 			unexpected @ _ => unreachable_code(format_args!("Unexpected result from registered_file_descriptors_update completion of {}", unexpected))
 		}
 	}
 	
 	#[inline(always)]
-	fn is_error(self) -> bool
+	const fn ok_u32<E>(ok: i32) -> Result<Option<u32>, E>
 	{
-		Self::ErrorResponseRange.contains(&self.0)
+		if cfg!(debug_assertions)
+		{
+			if ok < 0
+			{
+				panic!("Not a positive value")
+			}
+		}
+		
+		Ok(Some(ok as u32))
 	}
 	
-	const ErrorResponseRange: RangeInclusive<i32> = -4095 ..= -1;
+	#[inline(always)]
+	fn as_io_error<X>(self) -> io::Result<X>
+	{
+		let value = self.0;
+		
+		debug_assert!(value >= SystemCallErrorNumber::NegativeInclusiveMinimumI32);
+		debug_assert!(value <= SystemCallErrorNumber::NegativeInclusiveMaximumI32);
+		
+		Err(io::Error::from_raw_os_error(value))
+	}
+	
+	#[inline(always)]
+	fn io_error_from_error_kind<X>(kind: ErrorKind) -> io::Result<X>
+	{
+		Err(io::Error::from(kind))
+	}
+	
+	#[inline(always)]
+	const fn raw_file_descriptor_ok<Open: OnDiskFileDescriptor>(raw_file_descriptor: i32) -> io::Result<Option<Open>>
+	{
+		if cfg!(debug_assertions)
+		{
+			if raw_file_descriptor < 0
+			{
+				panic!("Not a raw file descriptor")
+			}
+		}
+		
+		Ok(Some(unsafe { Open::from_raw_fd(raw_file_descriptor) }))
+	}
 }

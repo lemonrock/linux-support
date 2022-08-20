@@ -26,14 +26,14 @@ impl<K: Copy, V: 'static + Copy + HasReflectionInformation> SpinLockableHashMap<
 	
 	/// Freeze.
 	#[inline(always)]
-	pub fn freeze(&self) -> Result<(), Errno>
+	pub fn freeze(&self) -> Result<(), SystemCallErrorNumber>
 	{
 		self.0.freeze()
 	}
 	
 	/// Iterator of keys.
 	#[inline(always)]
-	pub fn keys(&self) -> Result<KeyIterator<K>, Errno>
+	pub fn keys(&self) -> Result<KeyIterator<K>, SystemCallErrorNumber>
 	{
 		self.0.keys()
 	}
@@ -43,14 +43,14 @@ impl<K: Copy, V: 'static + Copy + HasReflectionInformation> SpinLockableHashMap<
 	/// Use `None` for `batch_position` when starting a new batch.
 	/// Each value in `keys` must be valid.
 	#[inline(always)]
-	pub fn get_batch(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K]) -> Result<(Vec<SpinLockableValue<V>>, OpaqueBatchPosition<K>, bool), Errno>
+	pub fn get_batch(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K]) -> Result<(Vec<SpinLockableValue<V>>, OpaqueBatchPosition<K>, bool), SystemCallErrorNumber>
 	{
 		self.0.get_batch(batch_position, keys)
 	}
 	
 	/// Delete, batched.
 	#[inline(always)]
-	pub fn delete_batch(&self, keys: &[K]) -> Result<(usize, bool), Errno>
+	pub fn delete_batch(&self, keys: &[K]) -> Result<(usize, bool), SystemCallErrorNumber>
 	{
 		self.0.delete_batch(keys)
 	}
@@ -87,7 +87,7 @@ impl<K: Copy, V: 'static + Copy + HasReflectionInformation> SpinLockableHashMap<
 	///
 	/// Returns `Ok(true)` if `key` was present.
 	#[inline(always)]
-	pub fn delete(&self, key: &K) -> Result<bool, Errno>
+	pub fn delete(&self, key: &K) -> Result<bool, SystemCallErrorNumber>
 	{
 		self.0.delete(key)
 	}
@@ -97,7 +97,7 @@ impl<K: Copy, V: 'static + Copy + HasReflectionInformation> SpinLockableHashMap<
 	/// `keys` and `values` must be the same length.
 	/// Each value in `keys` must be valid.
 	#[inline(always)]
-	pub fn set_batch(&self, keys: &[K], values: &[SpinLockableValue<V>]) -> Result<usize, Errno>
+	pub fn set_batch(&self, keys: &[K], values: &[SpinLockableValue<V>]) -> Result<usize, SystemCallErrorNumber>
 	{
 		self.0.guard_keys_and_values(keys, values);
 		

@@ -46,7 +46,7 @@ impl SyscallOutcome
 	pub fn is_supported_by_current_linux_kernel(self) -> io::Result<bool>
 	{
 		let mut bits = self.bits;
-		let result = SystemCallNumber::system_call_seccomp(SECCOMP_GET_ACTION_AVAIL, 0, &mut bits as *mut u32 as *mut _);
+		let result = system_call_seccomp(SECCOMP_GET_ACTION_AVAIL, 0, &mut bits as *mut u32 as *mut _);
 		if likely!(result == 0)
 		{
 			Ok(true)

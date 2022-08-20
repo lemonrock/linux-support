@@ -66,7 +66,7 @@ impl SetMemoryPolicy
 			}
 		};
 
-		let result = SystemCallNumber::system_call_set_mempolicy(set_memory_policy, nodemask, maxnode);
+		let result = system_call_set_mempolicy(set_memory_policy, nodemask, maxnode);
 
 		if likely!(result == 0)
 		{
@@ -185,7 +185,7 @@ impl SetMemoryPolicy
 	}
 
 	#[inline(always)]
-	fn set_address_policy_(&self, address: NonNull<u8>, length: usize, memory_bind_flags: MemoryBindFlags) -> Result<(), i32>
+	fn set_address_policy_(&self, address: NonNull<u8>, length: usize, memory_bind_flags: MemoryBindFlags) -> Result<(), SystemCallErrorNumber>
 	{
 		debug_assert_eq!((address.as_ptr() as u64) % PageSize::default() as u64, 0, "address is not a multiple of the system page size");
 
@@ -211,7 +211,7 @@ impl SetMemoryPolicy
 		};
 
 		let mode = policy;
-		let result = SystemCallNumber::system_call_mbind(address.as_ptr() as *mut c_void, length, mode, nodemask, maxnode, memory_bind_flags);
+		let result = system_call_mbind(address.as_ptr() as *mut c_void, length, mode, nodemask, maxnode, memory_bind_flags);
 
 		if likely!(result == 0)
 		{

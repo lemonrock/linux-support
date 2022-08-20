@@ -8,7 +8,7 @@
 ///
 /// This MUST be called prior to `seccomp(SECCOMP_SET_MODE_FILTER)` if the current thread does not the `CAP_SYS_ADMIN` capability.
 #[inline(always)]
-pub fn change_no_new_privileges(enable_or_disable_no_new_privileges: bool) -> Result<(), Errno>
+pub fn change_no_new_privileges(enable_or_disable_no_new_privileges: bool) -> Result<(), SystemCallErrorNumber>
 {
 	let value = if enable_or_disable_no_new_privileges
 	{

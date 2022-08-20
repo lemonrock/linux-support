@@ -25,14 +25,14 @@ impl<V: 'static + Copy + HasReflectionInformation> SpinLockableCgroupStorageMap<
 	
 	/// Freeze.
 	#[inline(always)]
-	pub fn freeze(&self) -> Result<(), Errno>
+	pub fn freeze(&self) -> Result<(), SystemCallErrorNumber>
 	{
 		self.0.freeze()
 	}
 	
 	/// Iterator of keys.
 	#[inline(always)]
-	pub fn keys(&self) -> Result<KeyIterator<bpf_cgroup_storage_key>, Errno>
+	pub fn keys(&self) -> Result<KeyIterator<bpf_cgroup_storage_key>, SystemCallErrorNumber>
 	{
 		self.0.keys()
 	}
@@ -53,7 +53,7 @@ impl<V: 'static + Copy + HasReflectionInformation> SpinLockableCgroupStorageMap<
 	
 	/// Delete.
 	#[inline(always)]
-	pub fn delete(&self, key: &bpf_cgroup_storage_key) -> Result<bool, Errno>
+	pub fn delete(&self, key: &bpf_cgroup_storage_key) -> Result<bool, SystemCallErrorNumber>
 	{
 		self.0.delete(key)
 	}

@@ -30,7 +30,9 @@ use crate::memory::AbsoluteMemoryRange;
 use crate::memory::huge_pages::DefaultHugePageSizes;
 use crate::memory::huge_pages::PageSizeOrHugePageSizeSettings;
 use crate::memory::mapping::*;
-use crate::syscall::SystemCallNumber;
+use crate::syscall::system_call_io_uring_enter;
+use crate::syscall::system_call_io_uring_register;
+use crate::syscall::system_call_io_uring_setup;
 use crate::poll::*;
 
 

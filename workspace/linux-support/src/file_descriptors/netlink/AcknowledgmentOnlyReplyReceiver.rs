@@ -6,7 +6,7 @@ pub(crate) struct AcknowledgmentOnlyReplyReceiver<Protocol: NetlinkProtocol>
 {
 	expected_message_identification: MultipartMessagePartIdentification,
 	start_of_set_of_messages_called: bool,
-	acknowledgment: Option<Result<(), Errno>>,
+	acknowledgment: Option<Result<(), SystemCallErrorNumber>>,
 	marker: PhantomData<Protocol>,
 }
 
@@ -49,7 +49,7 @@ impl<Protocol: NetlinkProtocol> ReplyReceiver<Protocol> for AcknowledgmentOnlyRe
 	}
 	
 	#[inline(always)]
-	fn end_of_set_of_messages(&mut self, result: Result<bool, Errno>)
+	fn end_of_set_of_messages(&mut self, result: Result<bool, SystemCallErrorNumber>)
 	{
 		assert!(self.start_of_set_of_messages_called, "start_of_set_of_messages() should be called before end_of_set_of_messages({:?})", result);
 		assert!(self.acknowledgment.is_none(), "end_of_set_of_messages({:?}) should never be called more than once", result);
@@ -62,7 +62,7 @@ impl<Protocol: NetlinkProtocol> ReplyReceiver<Protocol> for AcknowledgmentOnlyRe
 				
 				Ok(DumpWasInterrupted) => panic!("end_of_set_of_messages(DumpWasInterrupted) can never be valid - Linux kernel bug?"),
 				
-				Err(errno) => Err(errno)
+				Err(SystemCallErrorNumber) => Err(SystemCallErrorNumber)
 			}
 		);
 	}
@@ -83,7 +83,7 @@ impl<Protocol: NetlinkProtocol> AcknowledgmentOnlyReplyReceiver<Protocol>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn acknowledgment(self) -> Result<(), Errno>
+	pub(crate) fn acknowledgment(self) -> Result<(), SystemCallErrorNumber>
 	{
 		self.acknowledgment.expect("end_of_set_of_messages() was never called - Linux kernel bug?")
 	}

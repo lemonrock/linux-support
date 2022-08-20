@@ -15,7 +15,7 @@ impl PageMoveStatus
 	{
 		if unlikely!(self.0 < 0)
 		{
-			Err(PerPageMoveError::from_i32(-self.0))
+			Err(PerPageMoveError::from_errno(Errno(-self.0)))
 		}
 		else
 		{

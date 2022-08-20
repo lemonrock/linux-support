@@ -32,14 +32,14 @@ impl<SF: StackFrame> StackTraceMap<SF>
 	
 	/// Freeze.
 	#[inline(always)]
-	pub fn freeze(&self) -> Result<(), Errno>
+	pub fn freeze(&self) -> Result<(), SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.freeze()
 	}
 	
 	/// Iterator of keys.
 	#[inline(always)]
-	pub fn keys(&self) -> Result<KeyIterator<u32>, Errno>
+	pub fn keys(&self) -> Result<KeyIterator<u32>, SystemCallErrorNumber>
 	{
 		KeyIterator::new(&self.map_file_descriptor)
 	}
@@ -89,7 +89,7 @@ impl<SF: StackFrame> StackTraceMap<SF>
 	///
 	/// Returns `Ok(true)` if `index` was present.
 	#[inline(always)]
-	pub fn delete(&self, key: u32) -> Result<bool, Errno>
+	pub fn delete(&self, key: u32) -> Result<bool, SystemCallErrorNumber>
 	{
 		self.guard_key(key);
 		

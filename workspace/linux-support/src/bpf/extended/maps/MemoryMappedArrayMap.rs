@@ -32,7 +32,7 @@ impl<V: Copy> MemoryMappedArrayMap<V>
 	
 	/// Freeze.
 	#[inline(always)]
-	pub fn freeze(&self) -> Result<(), Errno>
+	pub fn freeze(&self) -> Result<(), SystemCallErrorNumber>
 	{
 		self.array_map.freeze()
 	}

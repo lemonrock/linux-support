@@ -53,14 +53,14 @@ impl<K: Copy, V: Copy> PerHyperThreadHashMap<K, V>
 	
 	/// Freeze.
 	#[inline(always)]
-	pub fn freeze(&self) -> Result<(), Errno>
+	pub fn freeze(&self) -> Result<(), SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.freeze()
 	}
 	
 	/// Iterator of keys.
 	#[inline(always)]
-	pub fn keys(&self) -> Result<KeyIterator<K>, Errno>
+	pub fn keys(&self) -> Result<KeyIterator<K>, SystemCallErrorNumber>
 	{
 		KeyIterator::new(&self.map_file_descriptor)
 	}
@@ -148,7 +148,7 @@ impl<K: Copy, V: Copy> PerHyperThreadHashMap<K, V>
 	///
 	/// Returns `Ok(true)` if `key` was present.
 	#[inline(always)]
-	pub fn delete(&self, key: &K) -> Result<bool, Errno>
+	pub fn delete(&self, key: &K) -> Result<bool, SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.delete(key)
 	}
@@ -160,7 +160,7 @@ impl<K: Copy, V: Copy> PerHyperThreadHashMap<K, V>
 	///
 	/// ***Expensive*** as creates a vector first.
 	#[inline(always)]
-	pub fn get_batch(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K]) -> Result<(PerHyperThreadValues<V>, OpaqueBatchPosition<K>, bool), Errno>
+	pub fn get_batch(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K]) -> Result<(PerHyperThreadValues<V>, OpaqueBatchPosition<K>, bool), SystemCallErrorNumber>
 	{
 		self.guard_keys(keys);
 		
@@ -175,7 +175,7 @@ impl<K: Copy, V: Copy> PerHyperThreadHashMap<K, V>
 	///
 	/// ***Expensive*** as creates a vector first.
 	#[inline(always)]
-	pub fn get_and_delete_batch(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K]) -> Result<(PerHyperThreadValues<V>, OpaqueBatchPosition<K>, bool), Errno>
+	pub fn get_and_delete_batch(&self, batch_position: Option<&OpaqueBatchPosition<K>>, keys: &[K]) -> Result<(PerHyperThreadValues<V>, OpaqueBatchPosition<K>, bool), SystemCallErrorNumber>
 	{
 		self.guard_keys(keys);
 		
@@ -191,7 +191,7 @@ impl<K: Copy, V: Copy> PerHyperThreadHashMap<K, V>
 	/// `keys` and `values` must be the same length.
 	/// Each value in `keys` must be valid.
 	#[inline(always)]
-	pub fn set_batch(&self, keys: &[K], initializer: &impl Fn(usize, &K, &mut [PerHyperThreadValue<V>])) -> Result<usize, Errno>
+	pub fn set_batch(&self, keys: &[K], initializer: &impl Fn(usize, &K, &mut [PerHyperThreadValue<V>])) -> Result<usize, SystemCallErrorNumber>
 	{
 		self.guard_keys(keys);
 		
@@ -210,7 +210,7 @@ impl<K: Copy, V: Copy> PerHyperThreadHashMap<K, V>
 	
 	/// Delete, batched.
 	#[inline(always)]
-	pub fn delete_batch(&self, keys: &[K]) -> Result<(usize, bool), Errno>
+	pub fn delete_batch(&self, keys: &[K]) -> Result<(usize, bool), SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.delete_batch(keys)
 	}

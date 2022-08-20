@@ -91,6 +91,7 @@ impl Signals
 	#[inline(always)]
 	pub fn block_signals(signal_mask: &sigset_t)
 	{
+		// TODO: The parsing of the result is probably wrong - the man page is naff.
 		let result = unsafe { pthread_sigmask(SIG_BLOCK, signal_mask, null_mut()) };
 		if unlikely!(result != 0)
 		{

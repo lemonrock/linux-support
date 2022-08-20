@@ -4,7 +4,7 @@
 
 /// Set IO flusher.
 #[inline(always)]
-pub fn change_io_flusher(enable_or_disable_io_flusher: bool) -> Result<(), Errno>
+pub fn change_io_flusher(enable_or_disable_io_flusher: bool) -> Result<(), SystemCallErrorNumber>
 {
 	let value = if enable_or_disable_io_flusher
 	{

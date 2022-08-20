@@ -52,7 +52,7 @@ impl NetlinkProtocol for RouteNetlinkProtocol
 impl RouteNetlinkProtocol
 {
 	#[inline(always)]
-	fn make_request_and_get_reply_messages<NRMB: NetlinkRequestMessageBody, RMP: MessageProcessor>(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, route_message_processor: &RMP, mut request: NetlinkRequestMessage<NRMB>) -> Result<Vec<RMP::ProcessedMessage>, Either<Vec<String>, Errno>>
+	fn make_request_and_get_reply_messages<NRMB: NetlinkRequestMessageBody, RMP: MessageProcessor>(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, route_message_processor: &RMP, mut request: NetlinkRequestMessage<NRMB>) -> Result<Vec<RMP::ProcessedMessage>, Either<Vec<String>, SystemCallErrorNumber>>
 	{
 		loop
 		{
@@ -181,7 +181,7 @@ impl RouteNetlinkProtocol
 	/// Remove a eXpress Data Path (XDP) program.
 	///
 	/// Returns `ENODEV` if interface does not exist.
-	pub fn xdp_fd_remove(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor) -> Result<(), Errno>
+	pub fn xdp_fd_remove(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor) -> Result<(), SystemCallErrorNumber>
 	{
 		const SpecialUndocumentedDeleteValue: RawFd = -1;
 		Self::xdp_fd_change(netlink_socket_file_descriptor, network_interface_index, SpecialUndocumentedDeleteValue, AttachMode::GenericOrNative, UpdateMode::Update(express_data_path_extended_bpf_program_file_descriptor))
@@ -190,7 +190,7 @@ impl RouteNetlinkProtocol
 	/// Attach an eXpress Data Path (XDP) program.
 	///
 	/// Returns `ENODEV` if interface does not exist.
-	pub fn xdp_fd_replace(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor, attach_mode: AttachMode, update_mode: UpdateMode) -> Result<(), Errno>
+	pub fn xdp_fd_replace(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor, attach_mode: AttachMode, update_mode: UpdateMode) -> Result<(), SystemCallErrorNumber>
 	{
 		Self::xdp_fd_change(netlink_socket_file_descriptor, network_interface_index, express_data_path_extended_bpf_program_file_descriptor.as_raw_fd(), attach_mode, update_mode)
 	}
@@ -199,12 +199,12 @@ impl RouteNetlinkProtocol
 	///
 	/// Returns `ENODEV` if interface does not exist.
 	#[inline(always)]
-	fn xdp_fd_change(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: RawFd, attach_mode: AttachMode, update_mode: UpdateMode) -> Result<(), Errno>
+	fn xdp_fd_change(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: RawFd, attach_mode: AttachMode, update_mode: UpdateMode) -> Result<(), SystemCallErrorNumber>
 	{
 		use self::IFLA_XDP::*;
 		
 		#[inline(always)]
-		fn request_0(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<RouteNetlinkProtocol>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: RawFd) -> Result<(), Errno>
+		fn request_0(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<RouteNetlinkProtocol>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: RawFd) -> Result<(), SystemCallErrorNumber>
 		{
 			ExpressDataPathMessageBody::make_request_and_get_acknowledgment_or_error
 			(
@@ -215,7 +215,7 @@ impl RouteNetlinkProtocol
 		}
 		
 		#[inline(always)]
-		fn request_1(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<RouteNetlinkProtocol>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: RawFd, flags: u32) -> Result<(), Errno>
+		fn request_1(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<RouteNetlinkProtocol>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: RawFd, flags: u32) -> Result<(), SystemCallErrorNumber>
 		{
 			ExpressDataPathMessageBody::make_request_and_get_acknowledgment_or_error
 			(
@@ -227,7 +227,7 @@ impl RouteNetlinkProtocol
 		}
 		
 		#[inline(always)]
-		fn request_2(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<RouteNetlinkProtocol>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: RawFd, flags: u32, replace_express_data_path_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor) -> Result<(), Errno>
+		fn request_2(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<RouteNetlinkProtocol>, network_interface_index: NetworkInterfaceIndex, express_data_path_extended_bpf_program_file_descriptor: RawFd, flags: u32, replace_express_data_path_extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor) -> Result<(), SystemCallErrorNumber>
 		{
 			ExpressDataPathMessageBody::make_request_and_get_acknowledgment_or_error
 			(

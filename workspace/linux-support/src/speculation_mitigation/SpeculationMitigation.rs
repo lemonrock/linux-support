@@ -29,20 +29,20 @@ impl SpeculationMitigation
 {
 	/// Store bypass speculation mitigation for the current thread.
 	#[inline(always)]
-	pub fn store_bypass() -> Result<Self, Errno>
+	pub fn store_bypass() -> Result<Self, SystemCallErrorNumber>
 	{
 		Self::current(PR_SPEC_STORE_BYPASS)
 	}
 	
 	/// Indirect branch speculation mitigation for the current thread.
 	#[inline(always)]
-	pub fn indirect_branch() -> Result<Self, Errno>
+	pub fn indirect_branch() -> Result<Self, SystemCallErrorNumber>
 	{
 		Self::current(PR_SPEC_INDIRECT_BRANCH)
 	}
 	
 	#[inline(always)]
-	fn current(subcommand: usize) -> Result<Self, Errno>
+	fn current(subcommand: usize) -> Result<Self, SystemCallErrorNumber>
 	{
 		process_control_wrapper2(PR_GET_SPECULATION_CTRL,subcommand,|non_negative_result| Ok(Self::from_bits_truncate(non_negative_result)),Err)
 	}

@@ -45,7 +45,7 @@ impl<V: Copy> QueueOrStackMap<V>
 	
 	/// Freeze.
 	#[inline(always)]
-	pub fn freeze(&self) -> Result<(), Errno>
+	pub fn freeze(&self) -> Result<(), SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.freeze()
 	}
@@ -68,7 +68,7 @@ impl<V: Copy> QueueOrStackMap<V>
 	
 	/// Pop.
 	#[inline(always)]
-	pub fn pop(&self) -> Result<Option<V>, Errno>
+	pub fn pop(&self) -> Result<Option<V>, SystemCallErrorNumber>
 	{
 		static IgnoredKey: u32 = 0;
 		self.map_file_descriptor.lookup_and_delete(&IgnoredKey)

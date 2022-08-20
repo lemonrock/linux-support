@@ -42,6 +42,7 @@ pub trait Identifier: From<u32> + Into<u32> + Into<BpfCommandGetIdentifierValueO
 			match SystemCallErrorNumber::from_errno()
 			{
 				ENOENT => None,
+				
 				unexpected @ _ => panic!("Unexpected error {}", unexpected),
 			}
 		}

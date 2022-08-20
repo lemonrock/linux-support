@@ -39,7 +39,7 @@ impl ExpressDataPathRedirectHyperThreadArrayMap
 	
 	/// Freeze.
 	#[inline(always)]
-	pub fn freeze(&self) -> Result<(), Errno>
+	pub fn freeze(&self) -> Result<(), SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.freeze()
 	}
@@ -86,7 +86,7 @@ impl ExpressDataPathRedirectHyperThreadArrayMap
 	
 	/// Removes a queue (sets its queue depth to zero).
 	#[inline(always)]
-	pub fn delete(&self, hyper_thread: HyperThread) -> Result<bool, Errno>
+	pub fn delete(&self, hyper_thread: HyperThread) -> Result<bool, SystemCallErrorNumber>
 	{
 		let index: u32 = hyper_thread.into();
 		

@@ -84,7 +84,7 @@ impl ProvidesIdentifierWhenUsedAsValueInArrayMapDescriptor for ExtendedBpfProgra
 impl ExtendedBpfProgramFileDescriptor
 {
 	/// Test run.
-	pub fn test_run<C: Sized>(&self, context: &C, test_data: &[u8], expected_output_data_length: usize, repetitions: NonZeroU32) -> Result<TestRunResults<C>, Errno>
+	pub fn test_run<C: Sized>(&self, context: &C, test_data: &[u8], expected_output_data_length: usize, repetitions: NonZeroU32) -> Result<TestRunResults<C>, SystemCallErrorNumber>
 	{
 		let mut attr = bpf_attr::default();
 		let mut context_out: C = unsafe_uninitialized();
@@ -131,7 +131,7 @@ impl ExtendedBpfProgramFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			Err(errno())
+			Err(SystemCallErrorNumber::from_errno())
 		}
 		else
 		{

@@ -302,7 +302,7 @@ impl Signal
 	}
 	
 	/// Set parent death signal; disabled if `None`.
-	pub fn set_current_process_parent_death_signal(signal: Option<Self>) -> Result<(), Errno>
+	pub fn set_current_process_parent_death_signal(signal: Option<Self>) -> Result<(), SystemCallErrorNumber>
 	{
 		let parent_death_signal_number: i32 = match signal
 		{

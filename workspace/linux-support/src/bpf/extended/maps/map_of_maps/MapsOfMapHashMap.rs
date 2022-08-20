@@ -42,14 +42,14 @@ impl<K: Copy, MC: MapConstructor> MapsOfMapHashMap<K, MC>
 	
 	/// Freeze.
 	#[inline(always)]
-	pub fn freeze(&self) -> Result<(), Errno>
+	pub fn freeze(&self) -> Result<(), SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.freeze()
 	}
 	
 	/// Iterator of keys.
 	#[inline(always)]
-	pub fn keys(&self) -> Result<KeyIterator<K>, Errno>
+	pub fn keys(&self) -> Result<KeyIterator<K>, SystemCallErrorNumber>
 	{
 		KeyIterator::new(&self.map_file_descriptor)
 	}
@@ -83,7 +83,7 @@ impl<K: Copy, MC: MapConstructor> MapsOfMapHashMap<K, MC>
 	
 	/// Removes a map.
 	#[inline(always)]
-	pub fn delete(&self, key: &K) -> Result<bool, Errno>
+	pub fn delete(&self, key: &K) -> Result<bool, SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.delete(key)
 	}

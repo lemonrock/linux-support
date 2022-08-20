@@ -51,7 +51,7 @@ impl<V: Copy> ArrayMap<V>
 	
 	/// Freeze.
 	#[inline(always)]
-	pub fn freeze(&self) -> Result<(), Errno>
+	pub fn freeze(&self) -> Result<(), SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.freeze()
 	}
@@ -68,7 +68,7 @@ impl<V: Copy> ArrayMap<V>
 	/// Use `None` for `batch_position` when starting a new batch.
 	/// Each value in `indices` must be valid.
 	#[inline(always)]
-	pub fn get_batch(&self, batch_position: Option<&OpaqueBatchPosition<u32>>, indices: &[u32]) -> Result<(Vec<V>, OpaqueBatchPosition<u32>, bool), Errno>
+	pub fn get_batch(&self, batch_position: Option<&OpaqueBatchPosition<u32>>, indices: &[u32]) -> Result<(Vec<V>, OpaqueBatchPosition<u32>, bool), SystemCallErrorNumber>
 	{
 		self.guard_indices(indices);
 	
@@ -80,7 +80,7 @@ impl<V: Copy> ArrayMap<V>
 	/// `indices` and `values` must be the same length.
 	/// Each value in `indices` must be valid.
 	#[inline(always)]
-	pub fn set_batch(&self, indices: &[u32], values: &[V]) -> Result<usize, Errno>
+	pub fn set_batch(&self, indices: &[u32], values: &[V]) -> Result<usize, SystemCallErrorNumber>
 	{
 		self.guard_indices_and_values(indices, values);
 	
@@ -90,7 +90,7 @@ impl<V: Copy> ArrayMap<V>
 	/// `indices` and `values` must be the same length.
 	/// Each value in `indices` must be valid.
 	#[inline(always)]
-	fn set_batch_locked(&self, indices: &[u32], values: &[V]) -> Result<usize, Errno>
+	fn set_batch_locked(&self, indices: &[u32], values: &[V]) -> Result<usize, SystemCallErrorNumber>
 	{
 		self.guard_indices_and_values(indices, values);
 		

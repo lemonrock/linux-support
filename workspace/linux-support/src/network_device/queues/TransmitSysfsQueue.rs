@@ -75,7 +75,7 @@ impl<'a> TransmitSysfsQueue<'a>
 				)
 			},
 			
-			Err(error) => if error.raw_os_error() == Some(ENOENT)
+			Err(error) => if SystemCallErrorNumber::try_from(error) == Ok(ENOENT)
 			{
 				Ok(None)
 			}
@@ -123,7 +123,7 @@ impl<'a> TransmitSysfsQueue<'a>
 			{
 				Ok(()) => Ok(true),
 				
-				Err(error) => if error.raw_os_error() == Some(EOPNOTSUPP)
+				Err(error) => if SystemCallErrorNumber::try_from(error) == Ok(EOPNOTSUPP)
 				{
 					Ok(false)
 				}
@@ -162,7 +162,7 @@ impl<'a> TransmitSysfsQueue<'a>
 		{
 			Ok(bit_set) => Ok(Some(HyperThreads(bit_set))),
 			
-			Err(error) => if error.raw_os_error() == Some(ENOENT)
+			Err(error) => if SystemCallErrorNumber::try_from(error) == Ok(ENOENT)
 			{
 				Ok(None)
 			}
@@ -198,7 +198,7 @@ impl<'a> TransmitSysfsQueue<'a>
 			{
 				Ok(()) => Ok(true),
 				
-				Err(error) => if error.raw_os_error() == Some(ENOENT)
+				Err(error) => if SystemCallErrorNumber::try_from(error) == Ok(ENOENT)
 				{
 					Ok(false)
 				}

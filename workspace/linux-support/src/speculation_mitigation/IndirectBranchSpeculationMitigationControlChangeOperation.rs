@@ -25,7 +25,7 @@ impl IndirectBranchSpeculationMitigationControlChangeOperation
 	/// * `EPERM` if speculation mitigation has been force disabled.
 	/// * `ERANGE` if an unsupported speculation mitigation strategy is used.
 	#[inline(always)]
-	pub fn change_for_current_thread(self) -> Result<(), Errno>
+	pub fn change_for_current_thread(self) -> Result<(), SystemCallErrorNumber>
 	{
 		StoreBypassSpeculationMitigationControlChangeOperation::change(PR_SPEC_INDIRECT_BRANCH, self as i32)
 	}

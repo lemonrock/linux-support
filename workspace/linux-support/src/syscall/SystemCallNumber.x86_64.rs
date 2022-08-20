@@ -11,7 +11,7 @@ impl SystemCallNumber
 		asm!
 		(
 			"syscall",
-			in("rax") self.0,
+			in("rax") (self as usize),
 			out("rcx") _, // Address of the instruction following `SYSCALL`.
 			out("r11") _, // Saved `RFLAGS`.
 			lateout("rax") result,
@@ -26,7 +26,7 @@ impl SystemCallNumber
 		asm!
 		(
 			"syscall",
-			in("rax") self.0,
+			in("rax") (self as usize),
 			in("rdi") a,
 			out("rcx") _, // Address of the instruction following `SYSCALL`.
 			out("r11") _, // Saved `RFLAGS`.
@@ -42,7 +42,7 @@ impl SystemCallNumber
 		asm!
 		(
 			"syscall",
-			in("rax") self.0,
+			in("rax") (self as usize),
 			in("rdi") a,
 			in("rsi") b,
 			out("rcx") _, // Address of the instruction following `SYSCALL`.
@@ -59,7 +59,7 @@ impl SystemCallNumber
 		asm!
 		(
 			"syscall",
-			in("rax") self.0,
+			in("rax") (self as usize),
 			in("rdi") a,
 			in("rsi") b,
 			in("rdx") c,
@@ -77,7 +77,7 @@ impl SystemCallNumber
 		asm!
 		(
 			"syscall",
-			in("rax") self.0,
+			in("rax") (self as usize),
 			in("rdi") a,
 			in("rsi") b,
 			in("rdx") c,
@@ -96,7 +96,7 @@ impl SystemCallNumber
 		asm!
 		(
 			"syscall",
-			in("rax") self.0,
+			in("rax") (self as usize),
 			in("rdi") a,
 			in("rsi") b,
 			in("rdx") c,
@@ -116,7 +116,7 @@ impl SystemCallNumber
 		asm!
 		(
 			"syscall",
-			in("rax") self.0,
+			in("rax") (self as usize),
 			in("rdi") a,
 			in("rsi") b,
 			in("rdx") c,

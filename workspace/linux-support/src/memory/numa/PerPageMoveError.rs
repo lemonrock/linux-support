@@ -53,21 +53,28 @@ impl error::Error for PerPageMoveError
 
 impl PerPageMoveError
 {
-	fn from_i32(error_code: i32) -> Self
+	#[inline(always)]
+	fn from_errno(error_code: Errno) -> Self
 	{
 		use self::PerPageMoveError::*;
-
-		match error_code
+		
+		match SystemCallErrorNumber::try_from(error_code).expect("Invalid i32 error number returned as a page move error code")
 		{
 			EACCES => PageIsMappedByMultipleProcesses,
+			
 			EBUSY => BusyTryAgainLater,
+			
 			EFAULT => Fault,
+			
 			EIO => CanNotWriteBackPage,
+			
 			EINVAL => DirtyPageCanNotBeMoved,
+			
 			ENOENT => PageIsNotPresent,
+			
 			ENOMEM => OutOfMemoryOnTargetNode,
 
-			unexpected @ _ => panic!("unexpected error code '{}'", unexpected),
+			unexpected @ _ => panic!("Unexpected page move error code '{}'", unexpected),
 		}
 	}
 }

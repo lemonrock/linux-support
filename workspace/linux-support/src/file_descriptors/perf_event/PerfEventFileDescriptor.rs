@@ -90,7 +90,7 @@ impl PerfEventFileDescriptor
 			0
 		};
 		
-		let result = SystemCallNumber::system_call_perf_event_open(&mut attr, pid, cpu, group_fd, flags);
+		let result = system_call_perf_event_open(&mut attr, pid, cpu, group_fd, flags);
 		if likely!(result >= 0)
 		{
 			Ok(Self(result))

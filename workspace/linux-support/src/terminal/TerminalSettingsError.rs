@@ -7,10 +7,10 @@
 pub enum TerminalSettingsError
 {
 	/// Not a terminal.
-	NotATerminal(Errno),
+	NotATerminal(SystemCallErrorNumber),
 
 	/// Could not set terminal attributes.
-	CouldNotSetTerminalAttributes(Errno),
+	CouldNotSetTerminalAttributes(SystemCallErrorNumber),
 }
 
 impl Display for TerminalSettingsError

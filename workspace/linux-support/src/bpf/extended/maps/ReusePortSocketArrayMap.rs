@@ -33,7 +33,7 @@ impl<SV: SocketValue> ReusePortSocketArrayMap<SV>
 	
 	/// Freeze.
 	#[inline(always)]
-	pub fn freeze(&self) -> Result<(), Errno>
+	pub fn freeze(&self) -> Result<(), SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.freeze()
 	}
@@ -92,7 +92,7 @@ impl<SV: SocketValue> ReusePortSocketArrayMap<SV>
 	
 	/// Removes a file descriptor.
 	#[inline(always)]
-	pub fn delete(&self, index: u32) -> Result<bool, Errno>
+	pub fn delete(&self, index: u32) -> Result<bool, SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.delete(&index)
 	}

@@ -5,7 +5,7 @@
 /// A reply receiver for route netlink.
 pub(crate) struct RouteReplyReceiver<'a, RMP: 'a + MessageProcessor>
 {
-	message_sets: HashMap<MultipartMessagePartIdentification, (Vec<RMP::ProcessedMessage>, Vec<String>, Result<bool, Errno>)>,
+	message_sets: HashMap<MultipartMessagePartIdentification, (Vec<RMP::ProcessedMessage>, Vec<String>, Result<bool, SystemCallErrorNumber>)>,
 	current_message_set: Option<(MultipartMessagePartIdentification, Vec<RMP::ProcessedMessage>, Vec<String>)>,
 	could_not_start_messages_errors: Vec<io::Error>,
 	route_message_processor: &'a RMP,
@@ -64,7 +64,7 @@ impl<'a, RMP: 'a + MessageProcessor> ReplyReceiver<RouteNetlinkProtocol> for Rou
 	}
 	
 	#[inline(always)]
-	fn end_of_set_of_messages(&mut self, result: Result<bool, Errno>)
+	fn end_of_set_of_messages(&mut self, result: Result<bool, SystemCallErrorNumber>)
 	{
 		debug_assert!(self.current_message_set.is_some());
 		
@@ -79,7 +79,7 @@ impl<'a, RMP: 'a + MessageProcessor> RouteReplyReceiver<'a, RMP>
 {
 	// Not sure we need to try receiving more than once but nothing about netlink seems obvious.
 	#[doc(hidden)]
-	pub(super) fn try_receiving_until_get_reply(netlink_socket_file_descriptor: &NetlinkSocketFileDescriptor<RouteNetlinkProtocol>, route_message_processor: &RMP, message_identification: MultipartMessagePartIdentification) -> Result<Option<Vec<RMP::ProcessedMessage>>, Either<Vec<String>, Errno>>
+	pub(super) fn try_receiving_until_get_reply(netlink_socket_file_descriptor: &NetlinkSocketFileDescriptor<RouteNetlinkProtocol>, route_message_processor: &RMP, message_identification: MultipartMessagePartIdentification) -> Result<Option<Vec<RMP::ProcessedMessage>>, Either<Vec<String>, SystemCallErrorNumber>>
 	{
 		let mut reply_receiver = RouteReplyReceiver::new(route_message_processor);
 		loop
@@ -125,7 +125,7 @@ impl<'a, RMP: 'a + MessageProcessor> RouteReplyReceiver<'a, RMP>
 	
 	/// Messages.
 	#[inline(always)]
-	fn messages(mut self, message_identification: &MultipartMessagePartIdentification) -> Result<Result<Option<Vec<RMP::ProcessedMessage>>, Either<Vec<String>, Errno>>, Self>
+	fn messages(mut self, message_identification: &MultipartMessagePartIdentification) -> Result<Result<Option<Vec<RMP::ProcessedMessage>>, Either<Vec<String>, SystemCallErrorNumber>>, Self>
 	{
 		match self.message_sets.remove(message_identification)
 		{

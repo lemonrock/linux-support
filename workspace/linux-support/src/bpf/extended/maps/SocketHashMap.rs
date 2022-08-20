@@ -33,14 +33,14 @@ impl<K: Copy, SV: SocketValue> SocketHashMap<K, SV>
 	
 	/// Freeze.
 	#[inline(always)]
-	pub fn freeze(&self) -> Result<(), Errno>
+	pub fn freeze(&self) -> Result<(), SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.freeze()
 	}
 	
 	/// Iterator of keys.
 	#[inline(always)]
-	pub fn keys(&self) -> Result<KeyIterator<K>, Errno>
+	pub fn keys(&self) -> Result<KeyIterator<K>, SystemCallErrorNumber>
 	{
 		KeyIterator::new(&self.map_file_descriptor)
 	}
@@ -83,7 +83,7 @@ impl<K: Copy, SV: SocketValue> SocketHashMap<K, SV>
 	
 	/// Removes a file descriptor.
 	#[inline(always)]
-	pub fn delete(&self, key: &K) -> Result<bool, Errno>
+	pub fn delete(&self, key: &K) -> Result<bool, SystemCallErrorNumber>
 	{
 		self.map_file_descriptor.delete(key)
 	}

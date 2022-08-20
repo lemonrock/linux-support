@@ -7,13 +7,13 @@
 pub enum ThreadConfigurationError
 {
 	#[allow(missing_docs)]
-	DisableTransparentHugePages(Errno),
+	DisableTransparentHugePages(SystemCallErrorNumber),
 	
 	#[allow(missing_docs)]
-	StoreBypassSpeculationMitigationControl(Errno),
+	StoreBypassSpeculationMitigationControl(SystemCallErrorNumber),
 	
 	#[allow(missing_docs)]
-	IndirectBranchSpeculationMitigationControl(Errno),
+	IndirectBranchSpeculationMitigationControl(SystemCallErrorNumber),
 	
 	#[allow(missing_docs)]
 	PerThreadMemoryAllocatorInstantiation(MemoryMapError),

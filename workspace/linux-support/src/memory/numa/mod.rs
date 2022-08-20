@@ -13,7 +13,11 @@ use crate::current_numa_node_and_hyper_thread;
 use crate::paths::*;
 use crate::process::*;
 use crate::process::status::Status;
-use crate::syscall::SystemCallNumber;
+use crate::syscall::system_call_get_mempolicy;
+use crate::syscall::system_call_mbind;
+use crate::syscall::system_call_migrate_pages;
+use crate::syscall::system_call_move_pages;
+use crate::syscall::system_call_set_mempolicy;
 use crate::user_and_groups::assert_effective_user_id_is_root;
 
 

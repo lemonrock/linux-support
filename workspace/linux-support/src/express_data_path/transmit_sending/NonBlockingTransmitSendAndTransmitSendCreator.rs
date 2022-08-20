@@ -33,7 +33,7 @@ impl TransmitSend for NonBlockingTransmitSendAndTransmitSendCreator
 			{
 				ENOBUFS | EAGAIN | EBUSY | ENETDOWN => return,
 				
-				_ => panic!("Unexpected error `{}` from `sendto()`", errno)
+				unexpected @ _ => panic!("Unexpected error `{}` from `sendto()`", unexpected)
 			}
 		}
 		else

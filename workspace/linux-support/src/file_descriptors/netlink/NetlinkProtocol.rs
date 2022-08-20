@@ -33,7 +33,7 @@ pub trait NetlinkProtocol: Debug + Sized
 	
 	/// Make a a request and get and an acknowledgment or error.
 	#[inline(always)]
-	fn make_request_and_get_acknowledgment_or_error<Body: NetlinkRequestMessageBody>(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, mut request: NetlinkRequestMessage<Body>) -> Result<(), Errno>
+	fn make_request_and_get_acknowledgment_or_error<Body: NetlinkRequestMessageBody>(netlink_socket_file_descriptor: &mut NetlinkSocketFileDescriptor<Self>, mut request: NetlinkRequestMessage<Body>) -> Result<(), SystemCallErrorNumber>
 	{
 		let sequence_number = netlink_socket_file_descriptor.send_request(&mut request).expect("Send a request");
 		

@@ -7,10 +7,12 @@ use self::c::*;
 use crate::bpf::classic::ClassicBpfProgram;
 use crate::bpf::c::*;
 use crate::signals::AuditArchitecture;
+use crate::syscall::system_call_seccomp;
 use crate::syscall::SystemCallNumber;
 use crate::thread::ThreadIdentifier;
 use crate::file_descriptors::seccomp_user_notification::SeccompUserNotificationFileDescriptor;
-use crate::process_control::{process_control_wrapper2, result_must_be_zero};
+use crate::process_control::process_control_wrapper2;
+use crate::process_control::result_must_be_zero;
 
 
 /// C definitions.
@@ -22,8 +24,7 @@ pub mod c;
 pub mod libseccomp;
 
 
-include!("disabled_seccomp.rs");
-include!("PermittedSyscalls.rs");
+include!("disabled_seccomp.rs");include!("PermittedSyscalls.rs");
 include!("SeccompProgram.rs");
 include!("strict_seccomp.rs");
 include!("SyscallOutcome.rs");

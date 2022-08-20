@@ -6,7 +6,8 @@ use super::*;
 use self::c::*;
 use crate::process::ProcessIdentifierChoice;
 use crate::process::ProcessGroupIdentifierChoice;
-use crate::syscall::SystemCallNumber;
+use crate::syscall::system_call_ioprio_get;
+use crate::syscall::system_call_ioprio_set;
 use crate::thread::ThreadIdentifier;
 use crate::user_and_groups::UserIdentifier;
 

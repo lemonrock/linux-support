@@ -7,6 +7,15 @@
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct SystemCallResult(usize);
 
+impl Display for SystemCallResult
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
 impl const From<SystemCallResult> for u64
 {
 	#[inline(always)]
@@ -199,22 +208,6 @@ impl SystemCallResult
 		else
 		{
 			self.0 as isize
-		}
-	}
-	
-	// TODO: Problem with this design is fast-return, as it is not macro based.
-	#[inline(always)]
-	pub fn success_is_zero<R>(self, success: impl FnOnce() -> R, error: impl FnOnce(SystemCallErrorNumber) -> R) -> R
-	{
-		if likely!(self.is_ok())
-		{
-			if likely!(self.0 == 0)
-			{
-			}
-		}
-		else
-		{
-			Err(self.system_call_error_number())
 		}
 	}
 	

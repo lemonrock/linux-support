@@ -131,7 +131,7 @@ impl ProcessIdentifier
 	
 	/// Get child subreaper process; `None` implies disabled.
 	#[inline(always)]
-	pub fn get_current_process_child_subreaper_process() -> Result<Option<Self>, Errno>
+	pub fn get_current_process_child_subreaper_process() -> Result<Option<Self>, SystemCallErrorNumber>
 	{
 		let mut attribute: i32 = unsafe_uninitialized();
 		process_control_wrapper2
@@ -159,7 +159,7 @@ impl ProcessIdentifier
 	
 	/// Changes the child subreaper process; `None` resets.
 	#[inline(always)]
-	pub fn set_current_process_child_subreaper_process(process_identifier: Option<ProcessIdentifier>) -> Result<(), Errno>
+	pub fn set_current_process_child_subreaper_process(process_identifier: Option<ProcessIdentifier>) -> Result<(), SystemCallErrorNumber>
 	{
 		let attribute: i32 = match process_identifier
 		{

@@ -43,7 +43,7 @@ impl SecureBits
 {
 	/// Current.
 	#[inline(always)]
-	pub fn current() -> Result<Self, Errno>
+	pub fn current() -> Result<Self, SystemCallErrorNumber>
 	{
 		process_control_wrapper1(PR_GET_SECUREBITS, |non_negative_result| Ok(SecureBits::from_bits_truncate(non_negative_result as u32)), Err)
 	}
@@ -59,7 +59,7 @@ impl SecureBits
 	/// 	* Prevents this ever being revoked.
 	/// 	* Technically `SECBIT_NO_CAP_AMBIENT_RAISE` and `SECBIT_NO_CAP_AMBIENT_RAISE_LOCKED` aren't needed.
 	#[inline(always)]
-	pub fn lock_secure_bits_so_capabilities_are_always_enforced(allow_keep_capabilities: bool) -> Result<(), Errno>
+	pub fn lock_secure_bits_so_capabilities_are_always_enforced(allow_keep_capabilities: bool) -> Result<(), SystemCallErrorNumber>
 	{
 		let secure_bits = Self::lock_down(allow_keep_capabilities);
 		

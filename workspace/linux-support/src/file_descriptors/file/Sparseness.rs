@@ -45,7 +45,7 @@ pub trait Sparseness: AsRawFd + Seek + FileExt
 			Left(file_extents) => Ok(Left(file_extents)),
 			Right(incompatible_flags) => if incompatible_flags & FIEMAP_FLAG_XATTR != 0
 			{
-				Err(io::Error::from_raw_os_error(EOPNOTSUPP))
+				Err(io::Error::from(EOPNOTSUPP))
 			}
 			else
 			{

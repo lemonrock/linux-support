@@ -27,7 +27,7 @@ impl<V: 'static + Copy + HasReflectionInformation> SpinLockableSocketStorageMap<
 	
 	/// Freeze.
 	#[inline(always)]
-	pub fn freeze(&self) -> Result<(), Errno>
+	pub fn freeze(&self) -> Result<(), SystemCallErrorNumber>
 	{
 		self.0.freeze()
 	}
@@ -62,7 +62,7 @@ impl<V: 'static + Copy + HasReflectionInformation> SpinLockableSocketStorageMap<
 	
 	/// Removes.
 	#[inline(always)]
-	pub fn delete<SD: SocketData>(&self, key: &SocketFileDescriptor<SD>) -> Result<bool, Errno>
+	pub fn delete<SD: SocketData>(&self, key: &SocketFileDescriptor<SD>) -> Result<bool, SystemCallErrorNumber>
 	{
 		self.0.delete(key)
 	}

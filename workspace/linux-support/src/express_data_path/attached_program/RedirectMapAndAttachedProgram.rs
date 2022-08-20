@@ -50,7 +50,7 @@ impl RedirectMapAndAttachedProgram
 	
 	/// Based on `libbpf`'s `xsk_delete_bpf_maps()`.
 	#[inline(always)]
-	pub(super) fn remove_receive_map_receive_queue_identifier(&self, receive_queue_identifier: QueueIdentifier) -> Result<bool, Errno>
+	pub(super) fn remove_receive_map_receive_queue_identifier(&self, receive_queue_identifier: QueueIdentifier) -> Result<bool, SystemCallErrorNumber>
 	{
 		self.redirect_map.delete(receive_queue_identifier)
 	}

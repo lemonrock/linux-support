@@ -340,6 +340,7 @@ impl Nice
 		
 		match SystemCallErrorNumber::from_errno()
 		{
+			// TODO: Why are we checking for 0 for the errno?
 			0 => match result
 			{
 				-20 ..= 19 => Ok(unsafe { transmute(result) }),
