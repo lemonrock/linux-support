@@ -4,6 +4,7 @@
 
 use super::*;
 use crate::file_descriptors::bpf::ProcessQueryableFileDescriptor;
+use crate::syscall::SystemCallResult;
 
 
 include!("FileDescriptorType.rs");

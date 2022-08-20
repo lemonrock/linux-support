@@ -49,32 +49,24 @@ impl ProcessQueryInformation
 		
 		loop
 		{
-			let result = attr.syscall(bpf_cmd::BPF_TASK_FD_QUERY);
-			if likely!(result == 0)
+			match attr.syscall(bpf_cmd::BPF_TASK_FD_QUERY).as_usize()
 			{
-				return Ok(Some(Self::construct(buffer, unsafe { &attr.task_fd_query })))
-			}
-			else if likely!(result == -1)
-			{
-				match SystemCallErrorNumber::from_errno()
+				0 => Ok(Some(Self::construct(buffer, unsafe { &attr.task_fd_query }))),
+				
+				SystemCallResult::ENOSPC_usize =>
 				{
-					ENOSPC =>
-					{
-						buffer.reserve(SizeIncrement);
-						unsafe { buffer.set_len(buffer.capacity()) };
-						attr.task_fd_query.buf_len = buffer.capacity() as u32;
-						continue
-					}
-					EINVAL => panic!("Invalid attr"),
-					EPERM => return Err(()),
-					ENOENT | EBADF | ENOTSUPP | EOPNOTSUPP => return Ok(None),
-					EFAULT => panic!("Could not access buffer"),
-					errno @ _ => panic!("Unexpected error `{}`", errno),
+					buffer.reserve(SizeIncrement);
+					unsafe { buffer.set_len(buffer.capacity()) };
+					attr.task_fd_query.buf_len = buffer.capacity() as u32;
+					continue
 				}
-			}
-			else
-			{
-				unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_TASK_FD_QUERY)", result))
+				SystemCallResult::EPERM_usize => return Err(()),
+				SystemCallResult::ENOENT_usize | SystemCallResult::EBADF_usize | SystemCallResult::ENOTSUPP_usize | SystemCallResult::EOPNOTSUPP_usize => return Ok(None),
+				SystemCallResult::EINVAL_usize => panic!("Invalid attr"),
+				SystemCallResult::EFAULT_usize => panic!("Could not access buffer"),
+				unexpected_error @ _ => panic!("Unexpected error `{}`", unexpected_error),
+				
+				unexpected @ _ => unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_TASK_FD_QUERY)", unexpected))
 			}
 		}
 	}

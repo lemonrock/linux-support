@@ -32,23 +32,15 @@ pub trait Identifier: From<u32> + Into<u32> + Into<BpfCommandGetIdentifierValueO
 			open_flags: 0,
 		};
 		
-		let result = attr.syscall(Self::Next);
-		if likely!(result == 0)
+		match attr.syscall(Self::Next).as_usize()
 		{
-			Some(Self::from(unsafe { attr.get_identifier.next_id }))
-		}
-		else if likely!(result == -1)
-		{
-			match SystemCallErrorNumber::from_errno()
-			{
-				ENOENT => None,
-				
-				unexpected @ _ => panic!("Unexpected error {}", unexpected),
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result `{}` from bpf({:?})", result, Self::Next))
+			0 => Some(Self::from(unsafe { attr.get_identifier.next_id })),
+			
+			SystemCallResult::ENOENT_usize => None,
+			unexpected_error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => panic!("Unexpected error {}", unexpected_error),
+			
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result `{}` from bpf({:?})", unexpected, Self::Next)),
+			
 		}
 	}
 }
