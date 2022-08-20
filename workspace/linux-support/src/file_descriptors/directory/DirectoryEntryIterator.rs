@@ -31,42 +31,26 @@ impl<'a> StreamingIterator for DirectoryEntryIterator<'a>
 		// NOTE: Strictly, `self.buffer_offset != self.buffer_end`, but `>=` is defensive.
 		if unlikely!(self.buffer_offset >= self.buffer_end)
 		{
-			let result = unsafe { system_call_getdents(self.directory_file_descriptor.as_raw_fd(), self.buffer.as_mut_ptr() as *mut u8, BufferCapacity) };
-			
-			match result
+			const LowestInvalidLength: usize = BufferCapacity + 1;
+			match system_call_getdents(self.directory_file_descriptor.as_raw_fd(), self.buffer.as_mut_ptr() as *mut c_void, BufferCapacity).as_usize()
 			{
-				SystemCallResult::InclusiveOkRangeStartsFrom ..= SystemCallResult::InclusiveOkRangeEndsAt =>
+				0 => self.finished(),
+				
+				length @ 1 ..= BufferCapacity =>
 				{
-					if likely!(result > 0)
-					{
-						self.buffer_offset = 0;
-						self.buffer_end =
-						{
-							let length = result as usize;
-							debug_assert!(length <= BufferCapacity);
-							length
-						};
-					}
-					else
-					{
-						return self.finished()
-					}
+					debug_assert!(length <= BufferCapacity);
+					self.buffer_offset = 0;
+					self.buffer_end = length;
 				}
 				
-				SystemCallResult::InclusiveErrorRangeStartsFrom ..= SystemCallResult::InclusiveErrorRangeEndsAt =>
-				{
-					match result.system_call_error_number()
-					{
-						ENOENT => return self.finished(),
-						
-						EBADF => panic!("Invalid file descriptor fd"),
-						EFAULT => panic!("Argument points outside the calling process's address space"),
-						EINVAL => panic!("Result buffer is too small"),
-						ENOTDIR => panic!("File descriptor does not refer to a directory"),
-						
-						_ => panic!("Unexpected error {} from from getdents()", error_number)
-					}
-				}
+				invalid_length @ LowestInvalidLength ..= SystemCallResult::InclusiveOkRangeEndsAt_usize => panic!("Length {} exceeded BufferCapacity of {}", invalid_length, BufferCapacity),
+				
+				SystemCallResult::ENOENT_usize => return self.finished(),
+				SystemCallResult::EBADF_usize => panic!("Invalid file descriptor fd"),
+				SystemCallResult::EFAULT_usize => panic!("Argument points outside the calling process's address space"),
+				SystemCallResult::EINVAL_usize => panic!("Result buffer is too small"),
+				SystemCallResult::ENOTDIR_usize => panic!("File descriptor does not refer to a directory"),
+				unexpected_error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => panic!("Unexpected error {} from from getdents()", unexpected_error)
 			}
 		}
 

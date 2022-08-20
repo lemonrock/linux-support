@@ -130,18 +130,13 @@ impl DirectoryFileDescriptor
 			mode: 0,
 			resolve: path_resolution.bits,
 		};
-		let result = system_call_openat2(self, path, &mut how, size_of::<open_how>());
-		if likely!(result >= 0)
+		match system_call_openat2(self, Some(path), &mut how, size_of::<open_how>()).as_usize()
 		{
-			Ok(Self(result as RawFd))
-		}
-		else if likely!(result == -1)
-		{
-			Err(io::Error::last_os_error())
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result {} from openat2()", result))
+			raw_file_descriptor @ SystemCallResult::InclusiveMinimumRawFileDescriptor_usize ..= SystemCallResult::InclusiveMaximumRawFileDescriptor_usize => Ok(Self(raw_file_descriptor as RawFd)),
+			
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Err(SystemCallResult::usize_to_io_error(error)),
+			
+			unexpected @ _ => unreachable_code(format_args!("Unexpected result {} from openat2()", unexpected)),
 		}
 	}
 
@@ -166,7 +161,7 @@ impl DirectoryFileDescriptor
 			0
 		};
 
-		let result = unsafe { openat(self.as_raw_fd(), path, o_flags, mode) };
+		let result = unsafe { openat(self.as_raw_fd(), unsafe { transmute(path) }, o_flags, mode) };
 		if likely!(result >= 0)
 		{
 			Ok(unsafe { File::from_raw_fd(result) })
@@ -208,18 +203,13 @@ impl DirectoryFileDescriptor
 			mode: mode as u64,
 			resolve: path_resolution.bits,
 		};
-		let result = system_call_openat2(self.as_raw_fd(), path, &mut how, size_of::<open_how>());
-		if likely!(result >= 0)
+		match system_call_openat2(self, path, &mut how, size_of::<open_how>()).as_usize()
 		{
-			Ok(unsafe { File::from_raw_fd(result as RawFd) })
-		}
-		else if likely!(result == -1)
-		{
-			Err(io::Error::last_os_error())
-		}
-		else
-		{
-			unreachable_code(format_args!("result of openat2() was unexpected value {}", result))
+			raw_file_descriptor @ SystemCallResult::InclusiveMinimumRawFileDescriptor_usize ..= SystemCallResult::InclusiveMaximumRawFileDescriptor_usize => Ok(unsafe { File::from_raw_fd(raw_file_descriptor as RawFd) }),
+			
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Err(SystemCallResult::usize_to_io_error(error)),
+			
+			unexpected @ _ => unreachable_code(format_args!("result of openat2() was unexpected value {}", unexpected)),
 		}
 	}
 
@@ -244,7 +234,7 @@ impl DirectoryFileDescriptor
 	}
 
 	#[inline(always)]
-	fn name_to_handle_internal(&self, path: NonNull<c_char>, do_not_dereference_path_if_it_is_a_symlink: bool, flags: i32) -> io::Result<LinuxFileHandle>
+	fn name_to_handle_internal(&self, path: &CStr, do_not_dereference_path_if_it_is_a_symlink: bool, flags: i32) -> io::Result<LinuxFileHandle>
 	{
 		let mut file_handle = file_handle::new();
 
@@ -448,7 +438,7 @@ impl DirectoryFileDescriptor
 	}
 
 	#[inline(always)]
-	fn change_ownership_internal(&self, path: NonNull<c_char>, owner: Option<UserIdentifier>, group: Option<GroupIdentifier>, do_not_dereference_path_if_it_is_a_symlink: bool, flags: i32) -> io::Result<()>
+	fn change_ownership_internal(&self, path: &CStr, owner: Option<UserIdentifier>, group: Option<GroupIdentifier>, do_not_dereference_path_if_it_is_a_symlink: bool, flags: i32) -> io::Result<()>
 	{
 		let flags = flags | if unlikely!(do_not_dereference_path_if_it_is_a_symlink)
 		{
@@ -642,7 +632,7 @@ impl DirectoryFileDescriptor
 	}
 
 	#[inline(always)]
-	fn make_hard_link_internal(&self, from_path: NonNull<c_char>, to: &Self, to_path: &CStr, do_not_dereference_path_if_it_is_a_symlink: bool) -> io::Result<()>
+	fn make_hard_link_internal(&self, from_path: &CStr, to: &Self, to_path: &CStr, do_not_dereference_path_if_it_is_a_symlink: bool) -> io::Result<()>
 	{
 		debug_assert!(!to_path.to_bytes().is_empty(), "Empty to_path is not permitted");
 
@@ -704,18 +694,13 @@ impl DirectoryFileDescriptor
 		debug_assert!(!from_path.to_bytes().is_empty(), "Empty from_path is not permitted");
 		debug_assert!(!to_path.to_bytes().is_empty(), "Empty to_path is not permitted");
 
-		let result = system_call_renameat2(self.as_raw_fd(), from_path.as_ptr(), to.as_raw_fd(), to_path.as_ptr(), rename_flags as i32);
-		if likely!(result == 0)
+		match system_call_renameat2(self.as_raw_fd(), from_path, to.as_raw_fd(), to_path, rename_flags as i32).as_usize()
 		{
-			Ok(())
-		}
-		else if likely!(result == -1)
-		{
-			Err(io::Error::last_os_error())
-		}
-		else
-		{
-			unreachable_code(format_args!("unlinkat() returned unexpected result {}", result))
+			0 => Ok(()),
+			
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Err(SystemCallResult::usize_to_io_error(error)),
+			
+			result @ _ => unreachable_code(format_args!("unlinkat() returned unexpected result {}", result))
 		}
 	}
 
@@ -736,7 +721,7 @@ impl DirectoryFileDescriptor
 
 	/// Execute a command with a new environment but keep the current process identifier, any file descriptors not set to close-on-exec, etc.
 	#[inline(always)]
-	fn execve_internal(&self, path: NonNull<c_char>, do_not_dereference_path_if_it_is_a_symlink: bool, arguments: &NulTerminatedCStringArray, environment: &Environment, flags: i32) -> io::Result<!>
+	fn execve_internal(&self, path: &CStr, do_not_dereference_path_if_it_is_a_symlink: bool, arguments: &NulTerminatedCStringArray, environment: &Environment, flags: i32) -> io::Result<!>
 	{
 		let environment = environment.to_environment_c_string_array();
 
@@ -810,6 +795,7 @@ impl DirectoryFileDescriptor
 		let result = system_call_statx(self, path, flags as u32, extended_metadata_wanted.bits, new_non_null(statx.as_mut_ptr()));
 		if likely!(result == 0)
 		{
+			let mut statx = unsafe { statx.assume_init() };
 			statx.zero_padding();
 			Ok(ExtendedMetadata(statx))
 		}
@@ -842,7 +828,7 @@ impl DirectoryFileDescriptor
 	}
 
 	#[inline(always)]
-	fn metadata_internal(&self, path: NonNull<c_char>, do_not_dereference_path_if_it_is_a_symlink: bool, do_not_automount_basename_of_path: bool, flags: i32) -> io::Result<Metadata>
+	fn metadata_internal(&self, path: &CStr, do_not_dereference_path_if_it_is_a_symlink: bool, do_not_automount_basename_of_path: bool, flags: i32) -> io::Result<Metadata>
 	{
 		let flags = flags | if unlikely!(do_not_dereference_path_if_it_is_a_symlink)
 		{

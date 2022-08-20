@@ -112,9 +112,9 @@ pub(crate) fn system_call_ioprio_set(which: c_int, who: IOPRIO_WHO, ioprio: u16)
 
 /// `dirfd` is either a `RawFd` or the special value `AT_FDCWD`.
 #[inline(always)]
-pub(crate) fn system_call_openat2(dirfd: &DirectoryFileDescriptor, pathname: &CStr, how: &open_how, size: size_t) -> SystemCallResult // isize
+pub(crate) fn system_call_openat2(dirfd: &DirectoryFileDescriptor, pathname: *const c_char, how: &open_how, size: size_t) -> SystemCallResult // isize
 {
-	unsafe { SystemCallNumber::openat2.system_call_4(dirfd.as_raw_fd() as usize, pathname.as_ptr() as usize, how as *const open_how as usize, size as usize) }
+	unsafe { SystemCallNumber::openat2.system_call_4(dirfd.as_raw_fd() as usize, pathname as usize, how as *const open_how as usize, size as usize) }
 }
 
 /// `start` is a pointer to memory.
@@ -195,9 +195,8 @@ pub(crate) fn system_call_pidfd_open(pid: pid_t, flags: u32) -> SystemCallResult
 }
 
 #[inline(always)]
-pub(crate) fn system_call_pidfd_send_signal(process_file_descriptor: RawFd, signo: c_int, information: Option<&siginfo_t>, flags: u32) -> SystemCallResult
+pub(crate) fn system_call_pidfd_send_signal(process_file_descriptor: RawFd, signo: c_int, information: *const siginfo_t, flags: u32) -> SystemCallResult
 {
-	let information: *const siginfo_t = unsafe { transmute(information) };
 	unsafe { SystemCallNumber::pidfd_send_signal.system_call_4(process_file_descriptor as usize, signo as usize, information as usize, flags as usize) }
 }
 

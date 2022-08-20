@@ -17,7 +17,6 @@ use crate::signals::c::_NSIG;
 use crate::memory::numa::GetMemoryPolicyFlags;
 use crate::memory::numa::c::MemoryBindFlags;
 use libc::INT_MAX;
-use crate::file_descriptors::directory::c::dirent;
 use std::ops::Neg;
 use super::*;
 use swiss_army_knife::from_unchecked::FromUnchecked;

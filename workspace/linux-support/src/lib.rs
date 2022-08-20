@@ -107,7 +107,6 @@ use crate::syscall::SystemCallErrorNumber::EROFS;
 use crate::syscall::SystemCallErrorNumber::ESOCKTNOSUPPORT;
 use crate::syscall::SystemCallErrorNumber::ESPIPE;
 use crate::syscall::SystemCallErrorNumber::ESRCH;
-use crate::syscall::SystemCallErrorNumber::ETIME;
 use crate::syscall::SystemCallErrorNumber::ETIMEDOUT;
 use crate::syscall::SystemCallErrorNumber::ETXTBSY;
 use crate::syscall::SystemCallErrorNumber::EXDEV;
