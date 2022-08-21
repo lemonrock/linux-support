@@ -8,6 +8,7 @@ use crate::process::ProcessIdentifierChoice;
 use crate::process::ProcessGroupIdentifierChoice;
 use crate::syscall::system_call_ioprio_get;
 use crate::syscall::system_call_ioprio_set;
+use crate::syscall::SystemCallResult;
 use crate::thread::ThreadIdentifier;
 use crate::user_and_groups::UserIdentifier;
 

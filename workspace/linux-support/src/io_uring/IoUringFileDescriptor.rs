@@ -108,32 +108,30 @@ impl IoUringFileDescriptor
 			cq_off: unsafe_uninitialized(),
 		};
 
-		let result = system_call_io_uring_setup(number_of_submission_queue_entries, &mut parameters);
-		if likely!(result >= 0)
+		match system_call_io_uring_setup(number_of_submission_queue_entries, &mut parameters).as_usize()
 		{
-			let features = parameters.features;
-
-			if unlikely!(!features.contains(ParametersFeatureFlags::AllAsOfLinux57))
+			raw_file_descriptor @ SystemCallResult::InclusiveMinimumRawFileDescriptor_usize ..= SystemCallResult::InclusiveMaximumRawFileDescriptor_usize =>
 			{
-				panic!("Essential features coded for not supported (instead {:?} is supported", features)
+				let features = parameters.features;
+				
+				if unlikely!(!features.contains(ParametersFeatureFlags::AllAsOfLinux57))
+				{
+					panic!("Essential features coded for not supported (instead {:?} is supported", features)
+				}
+				
+				let this = Self
+				{
+					raw_file_descriptor: raw_file_descriptor as RawFd,
+					using_kernel_submission_queue_poll: flags.contains(SetupFlags::SubmissionQueuePoll),
+					using_io_poll: flags.contains(SetupFlags::IoPoll),
+				};
+				
+				Ok((this, parameters))
 			}
-
-			let this = Self
-			{
-				raw_file_descriptor: result,
-				using_kernel_submission_queue_poll: flags.contains(SetupFlags::SubmissionQueuePoll),
-				using_io_poll: flags.contains(SetupFlags::IoPoll),
-			};
 			
-			Ok((this, parameters))
-		}
-		else if likely!(result == -1)
-		{
-			Err(io::Error::last_os_error())
-		}
-		else
-		{
-			unexpected_result!(io_uring_setup, result)
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Err(SystemCallResult::usize_to_system_call_error_number(error).into()),
+			
+			unexpected @ _ => unexpected_result!(io_uring_setup, result),
 		}
 	}
 
@@ -177,36 +175,24 @@ impl IoUringFileDescriptor
 				return Ok(to_submit)
 			}
 		}
-
-		let result = system_call_io_uring_enter(self.raw_file_descriptor, to_submit, minimum_wanted_to_complete, flags, unsafe { transmute(temporary_thread_signal_mask) });
-		if likely!(result >= 0)
+		
+		use self::SubmitError::*;
+		const MaximumOk: usize = u32::MAX as usize;
+		
+		match system_call_io_uring_enter(self.raw_file_descriptor, to_submit, minimum_wanted_to_complete, flags, unsafe { transmute(temporary_thread_signal_mask) }).as_usize()
 		{
-			Ok(result as u32)
-		}
-		else if likely!(result == -1)
-		{
-			use self::SubmitError::*;
-
-			match SystemCallErrorNumber::from_errno_panic()
-			{
-				EAGAIN => Err(TryAgain),
-				EBUSY => Err(Busy),
-
-				EBADF => panic!("The fd field in the submission queue entry is invalid, or the IOSQE_FIXED_FILE flag was set in the submission queue entry, but no files were registered with the io_uring instance"),
-
-				EFAULT => panic!("IORING_OP_READ_FIXED or IORING_OP_WRITE_FIXED was specified in the opcode field of the submission queue entry, but either buffers were not registered for this io_uring instance, or the address range described by addr and len does not fit within the buffer registered at buf_index. Or, buffer is outside of the process' accessible address space."),
-
-				EINVAL => panic!("The index member of the submission queue entry is invalid. Or, The flags field or opcode in a submission queue entry is invalid. Or, IORING_OP_NOP was specified in the submission queue entry, but the io_uring context was setup for polling (IORING_SETUP_IOPOLL was specified in the call to io_uring_setup). Or, IORING_OP_READV or IORING_OP_WRITEV was specified in the submission queue entry, but the io_uring instance has fixed buffers registered. Or, IORING_OP_READ_FIXED or IORING_OP_WRITE_FIXED was specified in the submission queue entry, and the buf_index is invalid. Or, IORING_OP_READV, IORING_OP_WRITEV, IORING_OP_READ_FIXED, IORING_OP_WRITE_FIXED or IORING_OP_FSYNC was specified in the submission queue entry, but the io_uring instance was configured for IOPOLLing, or any of addr, ioprio, off, len, or buf_index was set in the submission queue entry. Or, IORING_OP_POLL_ADD or IORING_OP_POLL_REMOVE was specified in the opcode field of the submission queue entry, but the io_uring instance was configured for busy-wait polling (IORING_SETUP_IOPOLL), or any of ioprio, off, len, or buf_index was non-zero in the submission queue entry. Or, IORING_OP_POLL_ADD was specified in the opcode field of the submission queue entry, and the addr field was non-zero."),
-
-				ENXIO => panic!("The io_uring instance is in the process of being torn down"),
-				EOPNOTSUPP => panic!("fd does not refer to an io_uring instance. Or, opcode is valid, but not supported by this kernel."),
-
-				unexpected_error @ _ => unexpected_error!(io_uring_enter, unexpected_error),
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("io_uring_enter() returned unexpected result {}", result))
+			count @ 0 ..= MaximumOk => Ok(count as u32),
+			
+			SystemCallResult::EAGAIN_usize => Err(TryAgain),
+			SystemCallResult::EBUSY_usize => Err(Busy),
+			SystemCallResult::EBADF_usize => panic!("The fd field in the submission queue entry is invalid, or the IOSQE_FIXED_FILE flag was set in the submission queue entry, but no files were registered with the io_uring instance"),
+			SystemCallResult::EFAULT_usize => panic!("IORING_OP_READ_FIXED or IORING_OP_WRITE_FIXED was specified in the opcode field of the submission queue entry, but either buffers were not registered for this io_uring instance, or the address range described by addr and len does not fit within the buffer registered at buf_index. Or, buffer is outside of the process' accessible address space."),
+			SystemCallResult::EINVAL_usize => panic!("The index member of the submission queue entry is invalid. Or, The flags field or opcode in a submission queue entry is invalid. Or, IORING_OP_NOP was specified in the submission queue entry, but the io_uring context was setup for polling (IORING_SETUP_IOPOLL was specified in the call to io_uring_setup). Or, IORING_OP_READV or IORING_OP_WRITEV was specified in the submission queue entry, but the io_uring instance has fixed buffers registered. Or, IORING_OP_READ_FIXED or IORING_OP_WRITE_FIXED was specified in the submission queue entry, and the buf_index is invalid. Or, IORING_OP_READV, IORING_OP_WRITEV, IORING_OP_READ_FIXED, IORING_OP_WRITE_FIXED or IORING_OP_FSYNC was specified in the submission queue entry, but the io_uring instance was configured for IOPOLLing, or any of addr, ioprio, off, len, or buf_index was set in the submission queue entry. Or, IORING_OP_POLL_ADD or IORING_OP_POLL_REMOVE was specified in the opcode field of the submission queue entry, but the io_uring instance was configured for busy-wait polling (IORING_SETUP_IOPOLL), or any of ioprio, off, len, or buf_index was non-zero in the submission queue entry. Or, IORING_OP_POLL_ADD was specified in the opcode field of the submission queue entry, and the addr field was non-zero."),
+			SystemCallResult::ENXIO_usize => panic!("The io_uring instance is in the process of being torn down"),
+			SystemCallResult::EOPNOTSUPP_usize => panic!("fd does not refer to an io_uring instance. Or, opcode is valid, but not supported by this kernel."),
+			unexpected_error @ _ => unexpected_error!(io_uring_enter, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
+			
+			unexpected @ _ => unreachable_code(format_args!("io_uring_enter() returned unexpected result {}", unexpected)),
 		}
 	}
 	
@@ -496,13 +482,13 @@ impl IoUringFileDescriptor
 	}
 
 	#[inline(always)]
-	fn unregister(&self, unregister_operation: RegisterOperation) -> i32
+	fn unregister(&self, unregister_operation: RegisterOperation) -> SystemCallResult
 	{
 		self.register::<()>(unregister_operation, null_mut(), 0)
 	}
 
 	#[inline(always)]
-	fn register_array<Argument>(&self, register_operation: RegisterOperation, arguments: &[Argument]) -> i32
+	fn register_array<Argument>(&self, register_operation: RegisterOperation, arguments: &[Argument]) -> SystemCallResult
 	{
 		let length = arguments.len();
 		debug_assert!(length <= u32::MAX as usize);
@@ -510,7 +496,7 @@ impl IoUringFileDescriptor
 	}
 
 	#[inline(always)]
-	fn register<Argument>(&self, register_operation: RegisterOperation, arguments: *mut Argument, length: u32) -> i32
+	fn register<Argument>(&self, register_operation: RegisterOperation, arguments: *mut Argument, length: u32) -> SystemCallResult
 	{
 		system_call_io_uring_register(self.raw_file_descriptor, register_operation, arguments as *mut c_void, length)
 	}

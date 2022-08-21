@@ -60,21 +60,30 @@ impl TryFrom<u16> for IoPriority
 	}
 }
 
-impl Into<u16> for IoPriority
+impl const From<IoPriority> for usize
 {
 	#[inline(always)]
-	fn into(self) -> u16
+	fn from(value: IoPriority) -> Self
+	{
+		u16::from(value) as usize
+	}
+}
+
+impl const From<IoPriority> for u16
+{
+	#[inline(always)]
+	fn from(value: IoPriority) -> Self
 	{
 		use self::IoPriority::*;
 		use RealTimeOrBestEffortIoPriorityLevel::_0;
-
-		let (scheduling_class, scheduling_level) = match self
+		
+		let (scheduling_class, scheduling_level) = match value
 		{
 			Idle => (IOPRIO_CLASS::IOPRIO_CLASS_IDLE, _0),
 			BestEffort(priority) => (IOPRIO_CLASS::IOPRIO_CLASS_BE, priority),
 			RealTime(priority) => (IOPRIO_CLASS::IOPRIO_CLASS_RT, priority),
 		};
-
+		
 		IOPRIO_PRIO_VALUE(scheduling_class as u8 as u16, scheduling_level as u8 as u16)
 	}
 }
@@ -147,24 +156,56 @@ impl IoPriority
 	#[inline(always)]
 	fn get(which: impl Into<i32>, who: IOPRIO_WHO) -> Result<Self, bool>
 	{
-		let result = system_call_ioprio_get(which.into(), who);
-		if likely!(result >= 0)
+		use IoPriority::*;
+		use RealTimeOrBestEffortIoPriorityLevel::*;
+		
+		const MaximumInclusiveIoprioValue: usize = u16::MAX as usize;
+		
+		const Idle0: usize = Idle.into();
+		const BestEffort0: usize = BestEffort(_0).into();
+		const BestEffort1: usize = BestEffort(_1).into();
+		const BestEffort2: usize = BestEffort(_2).into();
+		const BestEffort3: usize = BestEffort(_3).into();
+		const BestEffort4: usize = BestEffort(_4).into();
+		const BestEffort5: usize = BestEffort(_5).into();
+		const BestEffort6: usize = BestEffort(_6).into();
+		const BestEffort7: usize = BestEffort(_7).into();
+		const RealTime0: usize = RealTime(_0).into();
+		const RealTime1: usize = RealTime(_1).into();
+		const RealTime2: usize = RealTime(_2).into();
+		const RealTime3: usize = RealTime(_3).into();
+		const RealTime4: usize = RealTime(_4).into();
+		const RealTime5: usize = RealTime(_5).into();
+		const RealTime6: usize = RealTime(_6).into();
+		const RealTime7: usize = RealTime(_7).into();
+		
+		match system_call_ioprio_get(which.into(), who).as_usize()
 		{
-			Ok(Self::parse_ioprio_result(result).unwrap().expect("Should never be NONE"))
-		}
-		else if likely!(result == -1)
-		{
-			match SystemCallErrorNumber::from_errno_panic()
-			{
-				EPERM => Err(true),
-				ESRCH => Err(false),
-				EINVAL => panic!("Invalid value for which"),
-				unexpected_error @ _ => unexpected_error!(ioprio_get, unexpected_error),
-			}
-		}
-		else
-		{
-			unexpected_result!(ioprio_get, result)
+			Idle0 => Ok(Idle),
+			BestEffort0 => Ok(BestEffort(_0)),
+			BestEffort1 => Ok(BestEffort(_1)),
+			BestEffort2 => Ok(BestEffort(_2)),
+			BestEffort3 => Ok(BestEffort(_3)),
+			BestEffort4 => Ok(BestEffort(_4)),
+			BestEffort5 => Ok(BestEffort(_5)),
+			BestEffort6 => Ok(BestEffort(_6)),
+			BestEffort7 => Ok(BestEffort(_7)),
+			RealTime0 => Ok(RealTime(_0)),
+			RealTime1 => Ok(RealTime(_1)),
+			RealTime2 => Ok(RealTime(_2)),
+			RealTime3 => Ok(RealTime(_3)),
+			RealTime4 => Ok(RealTime(_4)),
+			RealTime5 => Ok(RealTime(_5)),
+			RealTime6 => Ok(RealTime(_6)),
+			RealTime7 => Ok(RealTime(_7)),
+			unexpected_ioprio @ 0 ..= MaximumInclusiveIoprioValue => panic!("Unexpected ioprio `{}`", (unexpected_ioprio as u16)),
+			
+			SystemCallResult::EPERM_usize => Err(true),
+			SystemCallResult::ESRCH_usize => Err(false),
+			SystemCallResult::EINVAL_usize => panic!("Invalid value for which"),
+			unexpected_error @ _ => unexpected_error!(ioprio_get, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
+			
+			unexpected @ _ => unexpected_result!(ioprio_get, unexpected),
 		}
 	}
 
@@ -248,24 +289,16 @@ impl IoPriority
 	#[inline(always)]
 	fn change(which: impl Into<i32>, who: IOPRIO_WHO, value: u16) -> Result<(), bool>
 	{
-		let result = system_call_ioprio_set(which.into(), who, value);
-		if likely!(result == 0)
+		match system_call_ioprio_set(which.into(), who, value).as_usize()
 		{
-			Ok(())
-		}
-		else if likely!(result == -1)
-		{
-			match SystemCallErrorNumber::from_errno_panic()
-			{
-				EPERM => Err(true),
-				ESRCH => Err(false),
-				EINVAL => panic!("Invalid value for which"),
-				unexpected_error @ _ => unexpected_error!(ioprio_set, unexpected_error),
-			}
-		}
-		else
-		{
-			unexpected_result!(ioprio_get, result)
+			0 => Ok(()),
+			
+			SystemCallResult::EPERM_usize => Err(true),
+			SystemCallResult::ESRCH_usize => Err(false),
+			SystemCallResult::EINVAL_usize => panic!("Invalid value for which"),
+			unexpected_error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => unexpected_error!(ioprio_set, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
+			
+			unexpected @ _ => unexpected_result!(ioprio_get, unexpected),
 		}
 	}
 

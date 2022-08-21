@@ -193,33 +193,20 @@ impl UserFaultFileDescriptor
 			flags
 		};
 		
-		let result = system_call_userfaultfd(flags);
-		if likely!(result >= 0)
+		use self::CreationError::*;
+		
+		match system_call_userfaultfd(flags).as_usize()
 		{
-			Ok(Arc::new(Self(result)))
-		}
-		else if likely!(result == -1)
-		{
-			use self::CreationError::*;
+			raw_file_descriptor @ SystemCallResult::InclusiveMinimumRawFileDescriptor_usize ..= SystemCallResult::InclusiveMaximumRawFileDescriptor_usize => Ok(Arc::new(Self(raw_file_descriptor as RawFd))),
 			
-			match SystemCallErrorNumber::from_errno_panic()
-			{
-				EMFILE => Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
-				
-				ENFILE => Err(SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded),
-				
-				ENOMEM => Err(KernelWouldBeOutOfMemory),
-				
-				EPERM => Err(PermissionDenied),
-				
-				EINVAL => panic!("Invalid combination of flags"),
-				
-				unexpected_error @ _ => unexpected_error!(userfaultfd, unexpected_error),
-			}
-		}
-		else
-		{
-			unexpected_result!(userfaultfd, result)
+			SystemCallResult::EMFILE_usize => Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
+			SystemCallResult::ENFILE_usize => Err(SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded),
+			SystemCallResult::ENOMEM_usize => Err(KernelWouldBeOutOfMemory),
+			SystemCallResult::EPERM_usize => Err(PermissionDenied),
+			SystemCallResult::EINVAL_usize => panic!("Invalid combination of flags"),
+			unexpected_error @ _ => unexpected_error!(userfaultfd, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
+			
+			unexpected @ _ => unexpected_result!(userfaultfd, result),
 		}
 	}
 	

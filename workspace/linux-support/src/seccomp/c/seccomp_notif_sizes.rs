@@ -2,6 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use crate::syscall::SystemCallResult;
+
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(C)]
 struct seccomp_notif_sizes
@@ -26,19 +28,14 @@ impl seccomp_notif_sizes
 		{
     		static ref Sizes: seccomp_notif_sizes =
     		{
-				let mut sizes: seccomp_notif_sizes = unsafe_uninitialized();
-				let result = system_call_seccomp(SECCOMP_GET_NOTIF_SIZES, 0, &mut sizes as *mut seccomp_notif_sizes as *mut _);
-				if result == 0
+				let mut sizes: MaybeUninit<seccomp_notif_sizes> = MaybeUninit::uninit();
+				match system_call_seccomp(SECCOMP_GET_NOTIF_SIZES, 0, &mut sizes as *mut seccomp_notif_sizes as *mut _).as_usize()
 				{
-					sizes
-				}
-				else if unlikely!(result == -1)
-				{
-					panic!("seccomp() failed with {}", SystemCallErrorNumber::from_errno_panic())
-				}
-				else
-				{
-					unreachable_code(format_args!("seccomp() returned unexpected result {}", result))
+					0 => unsafe { sizes.assume_init() },
+					
+					error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => unexpected_error!(seccomp, SystemCallResult::usize_to_system_call_error_number(error)),
+					
+					unexpected @ _ => unexpected_error!(seccomp, unexpected),
 				}
     		};
     	}

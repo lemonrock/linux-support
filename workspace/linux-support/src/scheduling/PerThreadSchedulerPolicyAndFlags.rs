@@ -23,90 +23,83 @@ impl PerThreadSchedulerPolicyAndFlags
 	{
 		const FlagsIsAlwaysZero: u32 = 0;
 		let mut parameters = MaybeUninit::uninit();
-		let result = system_call_sched_getattr(thread_identifier.into(), new_non_null(parameters.as_mut_ptr()), SCHED_ATTR_SIZE_VER0, FlagsIsAlwaysZero);
+		let result = ;
 
-		if likely!(result == 0)
+		match system_call_sched_getattr(thread_identifier.into(), new_non_null(parameters.as_mut_ptr()), SCHED_ATTR_SIZE_VER0, FlagsIsAlwaysZero).as_usize()
 		{
-			use self::SchedulerPolicy::*;
+			0 =>
+			{
+				use self::SchedulerPolicy::*;
+				
+				let parameters = unsafe { parameters.assume_init() };
+				
+				#[inline(always)]
+				fn nice(parameters: &sched_attr) -> Result<Nice, &'static str>
+				{
+					let value = parameters.sched_nice;
+					if likely!(value < Nice::InclusiveMinimum && value > Nice::InclusiveMaximum)
+					{
+						Ok(unsafe { transmute(value) })
+					}
+					else
+					{
+						Err("nice value out of range")
+					}
+				}
+	
+				#[inline(always)]
+				fn real_time_priority(parameters: &sched_attr) -> Result<RealTimePriority, &'static str>
+				{
+					let value = parameters.sched_priority;
+					let InclusiveMinimum: i32 = RealTimePriority::InclusiveMinimum.into();
+					let InclusiveMaximum: i32 = RealTimePriority::InclusiveMaximum.into();
+					if likely!(value < InclusiveMinimum && value > InclusiveMaximum)
+					{
+						Ok(unsafe { transmute(value as u8) })
+					}
+					else
+					{
+						Err("nice value out of range")
+					}
+				}
+	
+				let scheduler_policy = match parameters.sched_policy
+				{
+					SCHED_IDLE => Idle,
+					SCHED_BATCH => Batch(nice(&parameters)?),
+					SCHED_OTHER => Normal(nice(&parameters)?),
+					SCHED_FIFO => RealTimeFirstInFirstOut(real_time_priority(&parameters)?),
+					SCHED_RR => RealTimeRoundRobin(real_time_priority(&parameters)?),
+					SCHED_DEADLINE => Deadline
+					{
+						runtime_in_nanoseconds: parameters.sched_runtime,
+						deadline_in_nanoseconds: parameters.sched_deadline,
+						period_in_nanoseconds: parameters.sched_period
+					},
+	
+					SCHED_ISO => return Err("SCHED_ISO is not implemented by Linux as far as was known when this code was written"),
+	
+					_ => return Err("Unknown scheduler policy"),
+				};
+	
+				let scheduler_policy_flags = SchedulerPolicyFlags::from_bits_truncate(parameters.sched_flags);
+	
+				Ok
+				(
+					Self
+					{
+						scheduler_policy,
+						scheduler_policy_flags,
+					}
+				)
+			}
 			
-			let parameters = unsafe { parameters.assume_init() };
+			SystemCallResult::ESRCH_usize => Err("The thread whose ID is pid could not be found"),
+			SystemCallResult::E2BIG_usize => panic!("Size mismatch of sched_attr between userpace and kernel"),
+			SystemCallResult::EINVAL_usize => unreachable_code(format_args!("attr is NULL; or pid is negative; or flags is not zero. Or, size is invalid; that is, it is smaller than the initial version of the sched_attr structure (48 bytes) or larger than the system page size")),
+			unexpected_error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => unexpected_error!(sched_setattr, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
 			
-			#[inline(always)]
-			fn nice(parameters: &sched_attr) -> Result<Nice, &'static str>
-			{
-				let value = parameters.sched_nice;
-				if likely!(value < Nice::InclusiveMinimum && value > Nice::InclusiveMaximum)
-				{
-					Ok(unsafe { transmute(value) })
-				}
-				else
-				{
-					Err("nice value out of range")
-				}
-			}
-
-			#[inline(always)]
-			fn real_time_priority(parameters: &sched_attr) -> Result<RealTimePriority, &'static str>
-			{
-				let value = parameters.sched_priority;
-				let InclusiveMinimum: i32 = RealTimePriority::InclusiveMinimum.into();
-				let InclusiveMaximum: i32 = RealTimePriority::InclusiveMaximum.into();
-				if likely!(value < InclusiveMinimum && value > InclusiveMaximum)
-				{
-					Ok(unsafe { transmute(value as u8) })
-				}
-				else
-				{
-					Err("nice value out of range")
-				}
-			}
-
-			let scheduler_policy = match parameters.sched_policy
-			{
-				SCHED_IDLE => Idle,
-				SCHED_BATCH => Batch(nice(&parameters)?),
-				SCHED_OTHER => Normal(nice(&parameters)?),
-				SCHED_FIFO => RealTimeFirstInFirstOut(real_time_priority(&parameters)?),
-				SCHED_RR => RealTimeRoundRobin(real_time_priority(&parameters)?),
-				SCHED_DEADLINE => Deadline
-				{
-					runtime_in_nanoseconds: parameters.sched_runtime,
-					deadline_in_nanoseconds: parameters.sched_deadline,
-					period_in_nanoseconds: parameters.sched_period
-				},
-
-				SCHED_ISO => return Err("SCHED_ISO is not implemented by Linux as far as was known when this code was written"),
-
-				_ => return Err("Unknown scheduler policy"),
-			};
-
-			let scheduler_policy_flags = SchedulerPolicyFlags::from_bits_truncate(parameters.sched_flags);
-
-			Ok
-			(
-				Self
-				{
-					scheduler_policy,
-					scheduler_policy_flags,
-				}
-			)
-		}
-		else if likely!(result == -1)
-		{
-			match SystemCallErrorNumber::from_errno_panic()
-			{
-				ESRCH => Err("The thread whose ID is pid could not be found"),
-
-				E2BIG => panic!("Size mismatch of sched_attr between userpace and kernel"),
-
-				EINVAL => unreachable_code(format_args!("attr is NULL; or pid is negative; or flags is not zero. Or, size is invalid; that is, it is smaller than the initial version of the sched_attr structure (48 bytes) or larger than the system page size")),
-
-				unexpected @ _ => unexpected_error!(sched_setattr, unexpected),
-			}
-		}
-		else
-		{
-			unexpected_result!(sched_setattr, result)
+			unexpected @ _ => unexpected_result!(sched_setattr, result),
 		}
 	}
 
@@ -194,30 +187,18 @@ impl PerThreadSchedulerPolicyAndFlags
 		};
 
 		const FlagsIsAlwaysZero: u32 = 0;
-		let result = system_call_sched_setattr(thread_identifier.into(), &mut parameters, FlagsIsAlwaysZero);
-
-		if likely!(result == 0)
+		match system_call_sched_setattr(thread_identifier.into(), &mut parameters, FlagsIsAlwaysZero).as_usize()
 		{
-			Ok(())
-		}
-		else if likely!(result == -1)
-		{
-			match SystemCallErrorNumber::from_errno_panic()
-			{
-				EPERM => Err("Permission denied, or, for deadline tasks, the CPU affinity mask of the thread (pid) does not include all CPUS in the current cgroup (or system)"),
-				EBUSY => Err("Deadline scheduler admission control failure (?)"),
-				ESRCH => Err("The thread whose ID is pid could not be found"),
-
-				EINVAL => panic!("`attr` is NULL; or `pid` is negative; or `flags` is not zero; `attr.sched_policy` is not one of the recognized policies; `attr.sched_flags` contains a flag other than `SCHED_FLAG_RESET_ON_FORK`; or `attr.sched_priority` is invalid; or `attr.sched_policy` is `SCHED_DEADLINE` and the deadline scheduling parameters in `attr` are invalid"),
-				E2BIG => panic!("The buffer specified by `size` and `attr` is larger than the kernel structure, and one or more of the excess bytes is nonzero"),
-
-				unexpected @ _ => unexpected_error!(sched_getattr, unexpected),
-
-			}
-		}
-		else
-		{
-			unexpected_result!(sched_getattr, result)
+			0 => Ok(()),
+			
+			SystemCallResult::EPERM_usize => Err("Permission denied, or, for deadline tasks, the CPU affinity mask of the thread (pid) does not include all CPUS in the current cgroup (or system)"),
+			SystemCallResult::EBUSY_usize => Err("Deadline scheduler admission control failure (?)"),
+			SystemCallResult::ESRCH_usize => Err("The thread whose ID is pid could not be found"),
+			SystemCallResult::EINVAL_usize => panic!("`attr` is NULL; or `pid` is negative; or `flags` is not zero; `attr.sched_policy` is not one of the recognized policies; `attr.sched_flags` contains a flag other than `SCHED_FLAG_RESET_ON_FORK`; or `attr.sched_priority` is invalid; or `attr.sched_policy` is `SCHED_DEADLINE` and the deadline scheduling parameters in `attr` are invalid"),
+			SystemCallResult::E2BIG_usize => panic!("The buffer specified by `size` and `attr` is larger than the kernel structure, and one or more of the excess bytes is nonzero"),
+			unexpected_error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => unexpected_error!(sched_getattr, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
+			
+			unexpected @ _ => unexpected_result!(sched_getattr, result),
 		}
 	}
 }

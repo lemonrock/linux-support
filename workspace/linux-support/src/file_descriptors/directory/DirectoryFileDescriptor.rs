@@ -792,20 +792,18 @@ impl DirectoryFileDescriptor
 
 		let mut statx: MaybeUninit<statx> = MaybeUninit::uninit();
 
-		let result = system_call_statx(self, path, flags as u32, extended_metadata_wanted.bits, new_non_null(statx.as_mut_ptr()));
-		if likely!(result == 0)
+		match system_call_statx(self, path, flags as u32, extended_metadata_wanted.bits, new_non_null(statx.as_mut_ptr())).as_usize()
 		{
-			let mut statx = unsafe { statx.assume_init() };
-			statx.zero_padding();
-			Ok(ExtendedMetadata(statx))
-		}
-		else if likely!(result == -1)
-		{
-			Err(io::Error::last_os_error())
-		}
-		else
-		{
-			unreachable_code(format_args!("unlinkat() returned unexpected result {}", result))
+			0 =>
+			{
+				let mut statx = unsafe { statx.assume_init() };
+				statx.zero_padding();
+				Ok(ExtendedMetadata(statx))
+			}
+			
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Err(SystemCallResult::usize_to_system_call_error_number(error).into()),
+			
+			unexpected @ _ => unexpected_result!(statx, result),
 		}
 	}
 

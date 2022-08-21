@@ -9,6 +9,7 @@ use crate::process::ProcessIdentifierChoice;
 use crate::process::ProcessGroupIdentifierChoice;
 use crate::syscall::system_call_sched_getattr;
 use crate::syscall::system_call_sched_setattr;
+use crate::syscall::SystemCallResult;
 use crate::thread::ThreadIdentifier;
 use crate::thread::ThreadIdentifierChoice;
 use crate::user_and_groups::UserIdentifier;

@@ -63,33 +63,24 @@ impl ProcessIdentifierFileDescriptor
 	#[inline(always)]
 	pub fn open(process_identifier: ProcessIdentifierChoice) -> Result<Self, CreationError>
 	{
+		use self::CreationError::*;
+		
 		let pid: pid_t = process_identifier.into();
 		const flags: u32 = 0;
-		let result = system_call_pidfd_open(pid, flags);
-		if likely!(result >= 0)
+		
+		match system_call_pidfd_open(pid, flags).as_usize()
 		{
-			Ok(Self(result as RawFd))
-		}
-		else if likely!(result == -1)
-		{
-			use self::CreationError::*;
-			match SystemCallErrorNumber::from_errno_panic()
-			{
-				EMFILE => Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
-				ENFILE => Err(SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded),
-
-				ENOMEM => Err(KernelWouldBeOutOfMemory),
-				ESRCH => Err(ProcessForProcessIdentifierDoesNotExist),
-
-				ENODEV => panic!("The anonymous inode filesystem is not available in this kernel"),
-				EINVAL => panic!("flags is not 0 or pid is not valid"),
-				
-				unexpected_error @ _ => unexpected_error!(pidfd_open, unexpected_error),
-			}
-		}
-		else
-		{
-			unexpected_result!(pidfd_open, result)
+			raw_file_descriptor @ SystemCallResult::InclusiveMinimumRawFileDescriptor_usize ..= SystemCallResult::InclusiveMaximumRawFileDescriptor_usize => Ok(Self(raw_file_descriptor as RawFd)),
+			
+			SystemCallResult::EMFILE_usize => Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
+			SystemCallResult::ENFILE_usize => Err(SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded),
+			SystemCallResult::ENOMEM_usize => Err(KernelWouldBeOutOfMemory),
+			SystemCallResult::ESRCH_usize => Err(ProcessForProcessIdentifierDoesNotExist),
+			SystemCallResult::ENODEV_usize => panic!("The anonymous inode filesystem is not available in this kernel"),
+			SystemCallResult::EINVAL_usize => panic!("flags is not 0 or pid is not valid"),
+			unexpected_error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => unexpected_error!(pidfd_open, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
+			
+			unexpected @ _ => unexpected_result!(pidfd_open, unexpected),
 		}
 	}
 
@@ -101,31 +92,20 @@ impl ProcessIdentifierFileDescriptor
 	#[inline(always)]
 	pub fn send_signal(&self, signal: Signal, signal_information: Option<&siginfo_t>) -> Result<(), SendSignalError>
 	{
+		use self::SendSignalError::*;
+		
 		const flags: u32 = 0;
-		let result = system_call_pidfd_send_signal(self.0, signal.into(), signal_information, flags);
-
-		if likely!(result == 0)
+		
+		match system_call_pidfd_send_signal(self.0, signal.into(), signal_information, flags).as_usize()
 		{
-			Ok(())
-		}
-		else if likely!(result == -1)
-		{
-			use self::SendSignalError::*;
-
-			match SystemCallErrorNumber::from_errno_panic()
-			{
-				EPERM => Err(PermissionDenied),
-
-				ESRCH => Err(ProcessHasFinished),
-
-				EINVAL => panic!("sig is not a valid signal, or, the calling process is not in a PID namespace from which it can send a signal to the target process, or, flags is not 0"),
-				
-				unexpected_error @ _ => unexpected_error!(pidfd_send_signal, unexpected_error),
-			}
-		}
-		else
-		{
-			unexpected_result!(pidfd_send_signal, result)
+			0 => Ok(()),
+			
+			SystemCallResult::EPERM_usize => Err(PermissionDenied),
+			SystemCallResult::ESRCH_usize => Err(ProcessHasFinished),
+			SystemCallResult::EINVAL_usize => panic!("sig is not a valid signal, or, the calling process is not in a PID namespace from which it can send a signal to the target process, or, flags is not 0"),
+			unexpected_error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => unexpected_error!(pidfd_send_signal, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
+			
+			unexpected @ _ => unexpected_result!(pidfd_open, unexpected),
 		}
 	}
 
@@ -137,32 +117,23 @@ impl ProcessIdentifierFileDescriptor
 	#[inline(always)]
 	pub fn duplicate_file_descriptor_from_other_process<FD: AsRawFd + FromRawFd>(&self, other_process_file_descriptor: &FD) -> Result<FD, CreationError>
 	{
+		use self::CreationError::*;
+		
 		const flags: u32 = 0;
-		let result = system_call_pidfd_getfd(self.as_raw_fd(), other_process_file_descriptor.as_raw_fd(), flags);
-		if likely!(result >= 0)
+		
+		match system_call_pidfd_getfd(self.as_raw_fd(), other_process_file_descriptor.as_raw_fd(), flags).as_usize()
 		{
-			Ok(unsafe { FD::from_raw_fd(result) })
-		}
-		else if likely!(result == -1)
-		{
-			use self::CreationError::*;
-
-			match SystemCallErrorNumber::from_errno_panic()
-			{
-				EMFILE => Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
-				ENFILE => Err(SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded),
-				EPERM => Err(PermissionDenied),
-				ESRCH => Err(ProcessForProcessIdentifierDoesNotExist),
-
-				EBADF => panic!("pidfd is not a valid PID file descriptor, or target fd is not an open file descriptor in the process referred to by pidfd"),
-				EINVAL => panic!("flags is not 0"),
-
-				unexpected_error @ _ => unexpected_error!(pidfd_getfd, unexpected_error),
-			}
-		}
-		else
-		{
-			unexpected_result!(pidfd_getfd, result)
+			raw_file_descriptor @ SystemCallResult::InclusiveMinimumRawFileDescriptor_usize ..= SystemCallResult::InclusiveMaximumRawFileDescriptor_usize => Ok(unsafe { FD::from_raw_fd(raw_file_descriptor as RawFd) }),
+			
+			SystemCallResult::EMFILE_usize => Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
+			SystemCallResult::ENFILE_usize => Err(SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded),
+			SystemCallResult::EPERM_usize => Err(PermissionDenied),
+			SystemCallResult::ESRCH_usize => Err(ProcessForProcessIdentifierDoesNotExist),
+			SystemCallResult::EBADF_usize => panic!("pidfd is not a valid PID file descriptor, or target fd is not an open file descriptor in the process referred to by pidfd"),
+			SystemCallResult::EINVAL_usize => panic!("flags is not 0"),
+			unexpected_error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => unexpected_error!(pidfd_getfd, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
+			
+			unexpected @ _ => unexpected_result!(pidfd_getfd, result),
 		}
 	}
 }

@@ -2,6 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use crate::syscall::SystemCallResult;
+
 /// Represents a perf event file descriptor.
 ///
 /// Can have `ExtendedBpfProgramFileDescriptor` attached using an `ioctl(PERF_EVENT_IOC_SET_BPF)`.
@@ -81,27 +83,22 @@ impl PerfEventFileDescriptor
 			Some(event_group_leader) => event_group_leader.as_raw_fd(),
 		};
 		
-		let flags = flags | if output
+		let flags = if output
 		{
-			PERF_FLAG_FD_OUTPUT
+			flags | PERF_FLAG_FD_OUTPUT
 		}
 		else
 		{
-			0
+			flags
 		};
 		
-		let result = system_call_perf_event_open(&mut attr, pid, cpu, group_fd, flags);
-		if likely!(result >= 0)
+		match system_call_perf_event_open(&mut attr, pid, cpu, group_fd, flags).as_usize()
 		{
-			Ok(Self(result))
-		}
-		else if likely!(result == -1)
-		{
-			Err(io::Error::last_os_error())
-		}
-		else
-		{
-			unexpected_result!(perf_event_open, result)
+			raw_file_descriptor @ SystemCallResult::InclusiveMinimumRawFileDescriptor_usize ..= SystemCallResult::InclusiveMaximumRawFileDescriptor_usize => Ok(Self(raw_file_descriptor as RawFd)),
+			
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Err(SystemCallResult::usize_to_system_call_error_number(error).into()),
+			
+			unexpected @ _ => unexpected_result!(perf_event_open, unexpected),
 		}
 	}
 }

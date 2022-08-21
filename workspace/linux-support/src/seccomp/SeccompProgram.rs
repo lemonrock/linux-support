@@ -45,10 +45,7 @@ impl SeccompProgram
 	#[inline(always)]
 	pub fn load(self, log: bool, disable_speculative_store_bypass_mitigation: bool) -> io::Result<()>
 	{
-		self.load_internal(log, disable_speculative_store_bypass_mitigation, true, false).map(|outcome| if unlikely!(outcome != 0)
-		{
-			unreachable_code(format_args!("outcome non-zero"))
-		})
+		self.load_internal(log, disable_speculative_store_bypass_mitigation, true, false, (), |non_zero_positive_i32| unexpected_result!(seccomp, non_zero_positive_i32.get() as usize))
 	}
 
 	/// The calling thread must either have the `CAP_SYS_ADMIN` capability or the call to `no_new_privileges()` (inside this logic) must succeed.
@@ -86,14 +83,7 @@ impl SeccompProgram
 	#[inline(always)]
 	pub fn load_and_synchronize_all_threads(self, log: bool, disable_speculative_store_bypass_mitigation: bool) -> io::Result<Result<(), ThreadIdentifier>>
 	{
-		self.load_internal(log, disable_speculative_store_bypass_mitigation, true, false).map(|outcome| if likely!(outcome == 0)
-		{
-			Ok(())
-		}
-		else
-		{
-			Err(ThreadIdentifier::from(new_non_zero_i32(outcome)))
-		})
+		self.load_internal(log, disable_speculative_store_bypass_mitigation, true, false, Ok(()), |non_zero_positive_i32| Err(ThreadIdentifier::from(non_zero_positive_i32)))
 	}
 
 	/// # `log`
@@ -113,11 +103,11 @@ impl SeccompProgram
 	#[inline(always)]
 	pub fn load_and_accept_user_notification(self, log: bool, disable_speculative_store_bypass_mitigation: bool) -> io::Result<SeccompUserNotificationFileDescriptor>
 	{
-		self.load_internal(log, disable_speculative_store_bypass_mitigation, true, false).map(|outcome| SeccompUserNotificationFileDescriptor(outcome))
+		self.load_internal(log, disable_speculative_store_bypass_mitigation, true, false, SeccompUserNotificationFileDescriptor(0), |non_zero_positive_i32| SeccompUserNotificationFileDescriptor(non_zero_positive_i32.get()))
 	}
 
 	#[inline(always)]
-	fn load_internal(mut self, log: bool, disable_speculative_store_bypass_mitigation: bool, synchronize_all_threads: bool, new_listener: bool) -> io::Result<i32>
+	fn load_internal<O>(mut self, log: bool, disable_speculative_store_bypass_mitigation: bool, synchronize_all_threads: bool, new_listener: bool, zero: impl FnOnce() -> O, non_zero_positive_i32: impl FnOnce(NonZeroI32) -> O) -> io::Result<O>
 	{
 		debug_assert!(synchronize_all_threads != new_listener && new_listener != true);
 
@@ -162,18 +152,15 @@ impl SeccompProgram
 			filter: self.as_mut_ptr(),
 		};
 
-		let result = system_call_seccomp(SECCOMP_SET_MODE_FILTER, flags, &mut program as *mut sock_fprog as *mut _);
-		if likely!(result >= 0)
+		match system_call_seccomp(SECCOMP_SET_MODE_FILTER, flags, &mut program as *mut sock_fprog as *mut _).as_usize()
 		{
-			Ok(result)
-		}
-		else if likely!(result == -1)
-		{
-			Err(io::Error::last_os_error())
-		}
-		else
-		{
-			unexpected_result!(seccomp, result)
+			0 => Ok(zero()),
+			
+			ok @ 1 ..= SystemCallResult::I32Maximum_usize => non_zero_positive_i32(new_non_zero_i32(ok as i32)),
+			
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Err(SystemCallResult::usize_to_system_call_error_number(error).into()),
+			
+			unexpected @ _ => unexpected_result!(seccomp, unexpected),
 		}
 	}
 

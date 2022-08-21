@@ -18,6 +18,7 @@ use crate::memory::mapping::Sharing;
 use crate::poll::PollRequestFlags;
 use crate::poll::PollResponseFlags;
 use crate::syscall::system_call_userfaultfd;
+use crate::syscall::SystemCallResult;
 use crate::thread::ThreadFunction;
 use crate::thread::ThreadIdentifier;
 use crate::thread::ThreadLoopBodyFunction;

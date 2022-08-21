@@ -9,6 +9,7 @@ use crate::bpf::c::*;
 use crate::signals::AuditArchitecture;
 use crate::syscall::system_call_seccomp;
 use crate::syscall::SystemCallNumber;
+use crate::syscall::SystemCallResult;
 use crate::thread::ThreadIdentifier;
 use crate::file_descriptors::seccomp_user_notification::SeccompUserNotificationFileDescriptor;
 use crate::process_control::process_control_wrapper2;

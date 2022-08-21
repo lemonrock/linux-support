@@ -66,26 +66,16 @@ impl SetMemoryPolicy
 			}
 		};
 
-		let result = system_call_set_mempolicy(set_memory_policy, nodemask, maxnode);
-
-		if likely!(result == 0)
+		match system_call_set_mempolicy(set_memory_policy, nodemask, maxnode).as_usize()
 		{
-			return
-		}
-		else if likely!(result == -1)
-		{
-			match SystemCallErrorNumber::from_errno_panic()
-			{
-				EFAULT => panic!("part of or all of the memory range specified by nodemask and maxnode points outside your accessible address space."),
-				EINVAL => panic!("mode is invalid. Or, mode is MPOL_DEFAULT and nodemask is nonempty, or mode is MPOL_BIND or MPOL_INTERLEAVE and nodemask is empty. Or, maxnode specifies more than a page worth of bits. Or, nodemask specifies one or more node IDs that are greater than the maximum supported node ID. Or, none of the node IDs specified by nodemask are on-line and allowed by the process's current cpuset context, or none of the specified nodes contain memory. Or, the mode argument specified both MPOL_F_STATIC_NODES and MPOL_F_RELATIVE_NODES."),
-				ENOMEM => panic!("insufficient kernel memory was available."),
-
-				unexpected_error @ _ => unexpected_error!(set_mempolicy, unexpected_error),
-			}
-		}
-		else
-		{
-			unexpected_result!(set_mempolicy, result)
+			0 => return,
+			
+			SystemCallResult::EFAULT_usize => panic!("part of or all of the memory range specified by nodemask and maxnode points outside your accessible address space."),
+			SystemCallResult::EINVAL_usize => panic!("mode is invalid. Or, mode is MPOL_DEFAULT and nodemask is nonempty, or mode is MPOL_BIND or MPOL_INTERLEAVE and nodemask is empty. Or, maxnode specifies more than a page worth of bits. Or, nodemask specifies one or more node IDs that are greater than the maximum supported node ID. Or, none of the node IDs specified by nodemask are on-line and allowed by the process's current cpuset context, or none of the specified nodes contain memory. Or, the mode argument specified both MPOL_F_STATIC_NODES and MPOL_F_RELATIVE_NODES."),
+			SystemCallResult::ENOMEM_usize => panic!("insufficient kernel memory was available."),
+			unexpected_error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => unexpected_error!(set_mempolicy, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
+			
+			unexpected @ _ => unexpected_result!(set_mempolicy, result),
 		}
 	}
 
@@ -211,29 +201,18 @@ impl SetMemoryPolicy
 		};
 
 		let mode = policy;
-		let result = system_call_mbind(address.as_ptr() as *mut c_void, length, mode, nodemask, maxnode, memory_bind_flags);
-
-		if likely!(result == 0)
+		match system_call_mbind(address.as_ptr() as *mut c_void, length, mode, nodemask, maxnode, memory_bind_flags).as_usize()
 		{
-			Ok(())
-		}
-		else if likely!(result == -1)
-		{
-			match SystemCallErrorNumber::from_errno_panic()
-			{
-				EFAULT => panic!("part of or all of the memory range specified by nodemask and maxnode points outside your accessible address space."),
-				EINVAL => panic!("An invalid value was specified for flags or mode; or addr + len was less than addr; or addr is not a multiple of the system page size. Or, mode is MPOL_DEFAULT and nodemask specified a nonempty set; or mode is MPOL_BIND or MPOL_INTERLEAVE and nodemask is empty. Or, maxnode exceeds a kernel-imposed limit. Or, nodemask specifies one or more node IDs that are greater than the maximum supported node ID. Or, none of the node IDs specified by nodemask are on-line and allowed by the thread's current cpuset context, or none of the specified nodes contain memory. Or, the mode argument specified both MPOL_F_STATIC_NODES and MPOL_F_RELATIVE_NODES."),
-				ENOMEM => panic!("insufficient kernel memory was available."),
-
-				EIO => Err(EIO),
-				EPERM => Err(EPERM),
-				
-				unexpected_error @ _ => unexpected_error!(mbind, unexpected_error),
-			}
-		}
-		else
-		{
-			unexpected_error!(mbind, result)
+			0 => Ok(()),
+			
+			SystemCallResult::EFAULT_usize => panic!("part of or all of the memory range specified by nodemask and maxnode points outside your accessible address space."),
+			SystemCallResult::EINVAL_usize => panic!("An invalid value was specified for flags or mode; or addr + len was less than addr; or addr is not a multiple of the system page size. Or, mode is MPOL_DEFAULT and nodemask specified a nonempty set; or mode is MPOL_BIND or MPOL_INTERLEAVE and nodemask is empty. Or, maxnode exceeds a kernel-imposed limit. Or, nodemask specifies one or more node IDs that are greater than the maximum supported node ID. Or, none of the node IDs specified by nodemask are on-line and allowed by the thread's current cpuset context, or none of the specified nodes contain memory. Or, the mode argument specified both MPOL_F_STATIC_NODES and MPOL_F_RELATIVE_NODES."),
+			SystemCallResult::ENOMEM_usize => panic!("insufficient kernel memory was available."),
+			SystemCallResult::EIO_usize => Err(EIO),
+			SystemCallResult::EPERM_usize => Err(EPERM),
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => unexpected_error!(mbind, SystemCallResult::usize_to_system_call_error_number(error)),
+			
+			unexpected @ _ => unexpected_result!(mbind, unexpected),
 		}
 	}
 }

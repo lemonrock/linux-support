@@ -3,7 +3,7 @@
 
 
 #[inline(always)]
-pub(crate) fn system_call_bpf<const size: u32>(cmd: bpf_cmd, attr: &mut bpf_attr) -> SystemCallResult // c_int
+pub(crate) fn system_call_bpf<const size: u32>(cmd: bpf_cmd, attr: &mut bpf_attr) -> SystemCallResult
 {
 	unsafe { SystemCallNumber::bpf.system_call_3(cmd as i32 as usize, attr as *mut bpf_attr as usize, size as usize) }
 }
@@ -15,7 +15,7 @@ pub(crate) fn system_call_delete_module(name: &CStr, flags: c_long) -> SystemCal
 }
 
 #[inline(always)]
-pub(crate) fn system_call_finit_module(file_descriptor: RawFd, options: &CStr, flags: c_int) -> SystemCallResult // c_int
+pub(crate) fn system_call_finit_module(file_descriptor: RawFd, options: &CStr, flags: c_int) -> SystemCallResult
 {
 	unsafe { SystemCallNumber::finit_module.system_call_3(file_descriptor as usize, options.as_ptr() as usize, flags as usize) }
 }
@@ -44,7 +44,7 @@ pub(crate) fn system_call_getdents64(file_descriptor: RawFd, dirp: *mut c_void, 
 ///
 /// See <http://man7.org/linux/man-pages/man2/get_mempolicy.2.html>.
 #[inline(always)]
-pub(crate) fn system_call_get_mempolicy(mode: *mut i32, nodemask: *mut usize, maxnode: usize, addr: *const c_void, flags: GetMemoryPolicyFlags) -> SystemCallResult // isize
+pub(crate) fn system_call_get_mempolicy(mode: *mut i32, nodemask: *mut usize, maxnode: usize, addr: *const c_void, flags: GetMemoryPolicyFlags) -> SystemCallResult
 {
 	let flags = flags.bits();
 	
@@ -63,7 +63,7 @@ pub(crate) fn system_call_get_mempolicy(mode: *mut i32, nodemask: *mut usize, ma
 }
 
 #[inline(always)]
-pub(crate) fn system_call_io_uring_enter(fd: RawFd, to_submit: c_uint, min_complete: c_uint, flags: EnterFlags, sig: *mut sigset_t) -> SystemCallResult // c_int
+pub(crate) fn system_call_io_uring_enter(fd: RawFd, to_submit: c_uint, min_complete: c_uint, flags: EnterFlags, sig: *mut sigset_t) -> SystemCallResult
 {
 	let flags = flags.bits();
 	unsafe { SystemCallNumber::io_uring_enter.system_call_6(fd as usize, to_submit as usize, min_complete as usize, flags as usize, sig as usize, (_NSIG / 8) as usize) }
@@ -75,7 +75,7 @@ pub(crate) fn system_call_io_uring_enter(fd: RawFd, to_submit: c_uint, min_compl
 ///
 /// If `arg` is `NULL` then `nr_args` must be `0`.
 #[inline(always)]
-pub(crate) fn system_call_io_uring_register(fd: RawFd, opcode: RegisterOperation, arg: *mut c_void, nr_args: c_uint) -> SystemCallResult // c_int
+pub(crate) fn system_call_io_uring_register(fd: RawFd, opcode: RegisterOperation, arg: *mut c_void, nr_args: c_uint) -> SystemCallResult
 {
 	if cfg!(debug_assertions)
 	{
@@ -90,20 +90,20 @@ pub(crate) fn system_call_io_uring_register(fd: RawFd, opcode: RegisterOperation
 }
 
 #[inline(always)]
-pub(crate) fn system_call_io_uring_setup(entries: c_uint, p: &mut io_uring_params) -> SystemCallResult // c_int
+pub(crate) fn system_call_io_uring_setup(entries: c_uint, p: &mut io_uring_params) -> SystemCallResult
 {
 	unsafe { SystemCallNumber::io_uring_setup.system_call_2(entries as usize, p as *mut io_uring_params as usize) }
 }
 
 #[inline(always)]
-pub(crate) fn system_call_ioprio_get(which: c_int, who: IOPRIO_WHO) -> SystemCallResult // c_int
+pub(crate) fn system_call_ioprio_get(which: c_int, who: IOPRIO_WHO) -> SystemCallResult
 {
 	let who = who as i32;
 	unsafe { SystemCallNumber::ioprio_get.system_call_2(which as usize, who as usize) }
 }
 
 #[inline(always)]
-pub(crate) fn system_call_ioprio_set(which: c_int, who: IOPRIO_WHO, ioprio: u16) -> SystemCallResult // c_int
+pub(crate) fn system_call_ioprio_set(which: c_int, who: IOPRIO_WHO, ioprio: u16) -> SystemCallResult
 {
 	let who = who as i32;
 	let ioprio = ioprio as i32;
@@ -112,7 +112,7 @@ pub(crate) fn system_call_ioprio_set(which: c_int, who: IOPRIO_WHO, ioprio: u16)
 
 /// `dirfd` is either a `RawFd` or the special value `AT_FDCWD`.
 #[inline(always)]
-pub(crate) fn system_call_openat2(dirfd: &DirectoryFileDescriptor, pathname: *const c_char, how: &open_how, size: size_t) -> SystemCallResult // isize
+pub(crate) fn system_call_openat2(dirfd: &DirectoryFileDescriptor, pathname: *const c_char, how: &open_how, size: size_t) -> SystemCallResult
 {
 	unsafe { SystemCallNumber::openat2.system_call_4(dirfd.as_raw_fd() as usize, pathname as usize, how as *const open_how as usize, size as usize) }
 }
@@ -125,7 +125,7 @@ pub(crate) fn system_call_openat2(dirfd: &DirectoryFileDescriptor, pathname: *co
 ///
 /// See <http://man7.org/linux/man-pages/man2/mbind.2.html>.
 #[inline(always)]
-pub(crate) fn system_call_mbind(start: NonNull<c_void>, len: usize, mode: i32, nodemask: *const usize, maxnode: usize, flags: MemoryBindFlags) -> SystemCallResult // isize
+pub(crate) fn system_call_mbind(start: NonNull<c_void>, len: usize, mode: i32, nodemask: *const usize, maxnode: usize, flags: MemoryBindFlags) -> SystemCallResult
 {
 	if cfg!(debug_assertions)
 	{
@@ -143,7 +143,7 @@ pub(crate) fn system_call_mbind(start: NonNull<c_void>, len: usize, mode: i32, n
 /// * `count` is the size of the `nodes` array if it is *not* `NULL`.
 /// * `pages` can be `null()`; in which case, `count` is `0`..
 #[inline(always)]
-pub(crate) fn system_call_move_pages(pid: pid_t, count: usize, pages: *const NonNull<c_void>, nodes: *const i32, status: NonNull<i32>, flags: MemoryBindFlags) -> SystemCallResult // isize
+pub(crate) fn system_call_move_pages(pid: pid_t, count: usize, pages: *const NonNull<c_void>, nodes: *const i32, status: NonNull<i32>, flags: MemoryBindFlags) -> SystemCallResult
 {
 	if cfg!(debug_assertions)
 	{
@@ -160,7 +160,7 @@ pub(crate) fn system_call_move_pages(pid: pid_t, count: usize, pages: *const Non
 /// * `frommask` can be `null()`; in which case, `maxnode` is `0`.
 /// * `tomask` can be `null()`; in which case, `maxnode` is `0`.
 #[inline(always)]
-pub(crate) fn system_call_migrate_pages(pid: i32, maxnode: usize, frommask: *const usize, tomask: *const usize) -> SystemCallResult // isize
+pub(crate) fn system_call_migrate_pages(pid: i32, maxnode: usize, frommask: *const usize, tomask: *const usize) -> SystemCallResult
 {
 	if cfg!(debug_assertions)
 	{
@@ -177,7 +177,7 @@ pub(crate) fn system_call_migrate_pages(pid: i32, maxnode: usize, frommask: *con
 }
 
 #[inline(always)]
-pub(crate) fn system_call_perf_event_open(attr: &mut perf_event_attr, pid: pid_t, cpu: c_int, group_fd: RawFd, flags: c_ulong) -> SystemCallResult // c_int
+pub(crate) fn system_call_perf_event_open(attr: &mut perf_event_attr, pid: pid_t, cpu: c_int, group_fd: RawFd, flags: c_ulong) -> SystemCallResult
 {
 	unsafe { SystemCallNumber::perf_event_open.system_call_5(attr as *mut perf_event_attr as usize, pid as usize, cpu as usize, group_fd as usize, flags as usize) }
 }
@@ -201,7 +201,7 @@ pub(crate) fn system_call_pidfd_send_signal(process_file_descriptor: RawFd, sign
 }
 
 #[inline(always)]
-pub(crate) fn system_call_renameat2(oldfd: c_int, old: &CStr, newfd: c_int, new: &CStr, flags: c_int) -> SystemCallResult // c_int
+pub(crate) fn system_call_renameat2(oldfd: c_int, old: &CStr, newfd: c_int, new: &CStr, flags: c_int) -> SystemCallResult
 {
 	unsafe { SystemCallNumber::renameat2.system_call_5(oldfd as usize, old.as_ptr() as usize, newfd as usize, new.as_ptr() as usize, flags as usize) }
 }
@@ -210,7 +210,7 @@ pub(crate) fn system_call_renameat2(oldfd: c_int, old: &CStr, newfd: c_int, new:
 ///
 /// The `flags` argument is provided to allow for future extensions to the interface; in the current implementation it must be specified as `0`.
 #[inline(always)]
-pub(crate) fn system_call_sched_getattr(pid: pid_t, attr: NonNull<sched_attr>, size: u32, flags: c_uint) -> SystemCallResult // c_int
+pub(crate) fn system_call_sched_getattr(pid: pid_t, attr: NonNull<sched_attr>, size: u32, flags: c_uint) -> SystemCallResult
 {
 	debug_assert_eq!(flags, 0);
 	
@@ -219,7 +219,7 @@ pub(crate) fn system_call_sched_getattr(pid: pid_t, attr: NonNull<sched_attr>, s
 
 /// The `flags` argument is provided to allow for future extensions to the interface; in the current implementation it must be specified as `0`.
 #[inline(always)]
-pub(crate) fn system_call_sched_setattr(pid: pid_t, attr: &sched_attr, flags: c_uint) -> SystemCallResult // c_int
+pub(crate) fn system_call_sched_setattr(pid: pid_t, attr: &sched_attr, flags: c_uint) -> SystemCallResult
 {
 	debug_assert_eq!(flags, 0);
 	
@@ -227,7 +227,7 @@ pub(crate) fn system_call_sched_setattr(pid: pid_t, attr: &sched_attr, flags: c_
 }
 
 #[inline(always)]
-pub(crate) fn system_call_seccomp(op: u32, flags: u32, args: *mut c_void) -> SystemCallResult // c_int
+pub(crate) fn system_call_seccomp(op: u32, flags: u32, args: *mut c_void) -> SystemCallResult
 {
 	unsafe { SystemCallNumber::seccomp.system_call_3(op as usize, flags as usize, args as usize) }
 }
@@ -238,7 +238,7 @@ pub(crate) fn system_call_seccomp(op: u32, flags: u32, args: *mut c_void) -> Sys
 ///
 /// See <http://man7.org/linux/man-pages/man2/set_mempolicy.2.html>.
 #[inline(always)]
-pub(crate) fn system_call_set_mempolicy(mode: i32, nodemask: *const usize, maxnode: usize) -> SystemCallResult // isize
+pub(crate) fn system_call_set_mempolicy(mode: i32, nodemask: *const usize, maxnode: usize) -> SystemCallResult
 {
 	if cfg!(debug_assertions)
 	{
@@ -252,7 +252,7 @@ pub(crate) fn system_call_set_mempolicy(mode: i32, nodemask: *const usize, maxno
 
 /// On failure, the memory pointer to be `buffer` may not have been initialized.
 #[inline(always)]
-pub(crate) fn system_call_statx(dirfd: &DirectoryFileDescriptor, filename: &CStr, flags: c_uint, mask: c_uint, buffer: NonNull<statx>) -> SystemCallResult // c_int
+pub(crate) fn system_call_statx(dirfd: &DirectoryFileDescriptor, filename: &CStr, flags: c_uint, mask: c_uint, buffer: NonNull<statx>) -> SystemCallResult
 {
 	unsafe { SystemCallNumber::statx.system_call_5(dirfd.as_raw_fd() as usize, filename.as_ptr() as usize, flags as usize, mask as usize, buffer.as_ptr() as usize) }
 }
@@ -260,7 +260,7 @@ pub(crate) fn system_call_statx(dirfd: &DirectoryFileDescriptor, filename: &CStr
 /// `flags` is a combination of `O_CLOEXEC` (`UFFD_CLOEXEC`), `O_NONBLOCK` (`UFFD_NONBLOCK`) and `UFFD_USER_MODE_ONLY`.
 /// `UFFD_SHARED_FCNTL_FLAGS`, used internally, is `UFFD_CLOEXEC | UFFD_NONBLOCK`.
 #[inline(always)]
-pub(crate) fn system_call_userfaultfd(flags: c_int) -> SystemCallResult // c_int
+pub(crate) fn system_call_userfaultfd(flags: c_int) -> SystemCallResult
 {
 	unsafe { SystemCallNumber::userfaultfd.system_call_1(flags as usize) }
 }

@@ -46,22 +46,16 @@ impl SyscallOutcome
 	pub fn is_supported_by_current_linux_kernel(self) -> io::Result<bool>
 	{
 		let mut bits = self.bits;
-		let result = system_call_seccomp(SECCOMP_GET_ACTION_AVAIL, 0, &mut bits as *mut u32 as *mut _);
-		if likely!(result == 0)
+		
+		match system_call_seccomp(SECCOMP_GET_ACTION_AVAIL, 0, &mut bits as *mut u32 as *mut _).as_usize()
 		{
-			Ok(true)
-		}
-		else if likely!(result == -1)
-		{
-			match SystemCallErrorNumber::from_errno_panic()
-			{
-				EOPNOTSUPP => Ok(false),
-				_ => Err(io::Error::last_os_error())
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("seccomp() returned unexpected result {}", result))
+			0 => Ok(true),
+			
+			SystemCallResult::EOPNOTSUPP_usize => Ok(false),
+			
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Err(SystemCallResult::usize_to_system_call_error_number(error).into()),
+			
+			unexpected @ _ => unexpected_result!(seccomp, unexpected),
 		}
 	}
 }

@@ -14,17 +14,12 @@
 #[inline(always)]
 pub fn strict_seccomp() -> io::Result<()>
 {
-	let result = system_call_seccomp(SECCOMP_SET_MODE_STRICT, 0, null_mut());
-	if likely!(result == 0)
+	match system_call_seccomp(SECCOMP_SET_MODE_STRICT, 0, null_mut()).as_usize()
 	{
-		Ok(())
-	}
-	else if likely!(result == -1)
-	{
-		Err(io::Error::last_os_error())
-	}
-	else
-	{
-		unreachable_code(format_args!("seccomp() returned unexpected result {}", result))
+		0 => Ok(()),
+		
+		error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Err(SystemCallResult::usize_to_system_call_error_number(error).into()),
+		
+		unexpected @ _ => unexpected_result!(seccomp, unexpected),
 	}
 }

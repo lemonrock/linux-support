@@ -41,3 +41,8 @@ impl PartialOrd for IOPRIO_CLASS
 		Some(self.cmp(other))
 	}
 }
+
+impl IOPRIO_CLASS
+{
+	const InclusiveMaximum: Self = IOPRIO_CLASS::IOPRIO_CLASS_IDLE;
+}
