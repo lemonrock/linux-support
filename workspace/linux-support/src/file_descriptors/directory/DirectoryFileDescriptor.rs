@@ -803,7 +803,7 @@ impl DirectoryFileDescriptor
 			
 			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Err(SystemCallResult::usize_to_system_call_error_number(error).into()),
 			
-			unexpected @ _ => unexpected_result!(statx, result),
+			unexpected @ _ => unexpected_result!(statx, unexpected),
 		}
 	}
 

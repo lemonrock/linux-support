@@ -65,15 +65,12 @@ impl LinuxKernelModuleFileBaseName
     	}
 		const flags: i32 = 0;
 
-		match system_call_finit_module( file_descriptor, options.as_c_str(), flags)
+		match system_call_finit_module( file_descriptor, options.as_c_str(), flags).as_usize()
 		{
 			0 => Ok(true),
-
-			-1 => match SystemCallErrorNumber::from_errno_panic()
-			{
-				EPERM => Err(io_error_permission_denied("permission denied")),
-				unknown @ _ => Err(io_error_other(format!("Error Code was '{}'", unknown))),
-			},
+			
+			SystemCallResult::EPERM_usize => Err(io_error_permission_denied("permission denied")),
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Err(SystemCallResult::usize_to_io_error(error)),
 			
 			unexpected @ _ => unexpected_result!(finit_module, unexpected),
 		}

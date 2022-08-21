@@ -92,7 +92,7 @@ impl SoftAndHardResourceLimit
 				unexpected_error @ _ => unexpected_error!(setrlimit, unexpected_error),
 			},
 			
-			unexpected @ _ => unexpected_result!(setrlimit, result),
+			unexpected @ _ => unexpected_result!(setrlimit, unexpected),
 		}
 	}
 
@@ -118,7 +118,7 @@ impl SoftAndHardResourceLimit
 				unexpected_error @ _ => unexpected_error!(getrlimit, unexpected_error),
 			},
 
-			unexpected @ _ => unexpected_result!(getrlimit, result)
+			unexpected @ _ => unexpected_result!(getrlimit, unexpected)
 		};
 
 		Self

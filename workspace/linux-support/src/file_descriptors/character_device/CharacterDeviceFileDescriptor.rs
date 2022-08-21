@@ -123,7 +123,7 @@ impl Read for CharacterDeviceFileDescriptor
 							EFAULT => panic!("The receive buffer pointer(s) point outside the process's address space"),
 							EINVAL => panic!("Invalid argument passed"),
 							EISDIR => panic!("`fd` refers to a directory"),
-							unexpected_error @ _ => unexpected_error!(read, "character device file descriptor" unexpected_error),
+							unexpected_error @ _ => unexpected_error!(read, "character device file descriptor", unexpected_error),
 						}
 					}
 					else
@@ -190,7 +190,7 @@ impl Write for CharacterDeviceFileDescriptor
 							EFAULT => panic!("The write buffer pointer(s) point outside the process's address space"),
 							EINVAL => panic!("Invalid argument passed"),
 							EDESTADDRREQ => panic!("`fd` refers to a datagram socket for which a peer address has not been set using `connect()`"),
-							unexpected_error @ _ => unexpected_error!(write, "character device file descriptor" unexpected_error),
+							unexpected_error @ _ => unexpected_error!(write, "character device file descriptor", unexpected_error),
 						}
 					}
 					else
@@ -269,7 +269,7 @@ impl CharacterDeviceFileDescriptor
 					ENOSPC => panic!("`pathname` was to be created but the device containing `pathname` has no room for the new file"),
 					EPERM => panic!("The `O_NOATIME` flag was specified, but the effective user ID of the caller did not match the owner of the file and the caller was not privileged (`CAP_FOWNER`)"),
 
-					unexpected_error @ _ => unexpected_error!(open, "character device file descriptor" unexpected_error),
+					unexpected_error @ _ => unexpected_error!(open, "character device file descriptor", unexpected_error),
 				}
 			)
 		}

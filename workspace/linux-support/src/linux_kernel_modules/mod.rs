@@ -10,6 +10,7 @@ use crate::pci_express::PciDeviceAddress;
 use crate::user_and_groups::*;
 use crate::syscall::system_call_finit_module;
 use crate::syscall::system_call_delete_module;
+use crate::syscall::SystemCallResult;
 
 
 /// Parameters.

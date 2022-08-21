@@ -6,10 +6,7 @@ macro_rules! unexpected_error_in_completion
 {
 	($self: ident, $function_name: tt) =>
 	{
-		{
-			const Literal: &'static str = concat!($function_name, " (completion)");
-			unexpected_error!(Literal, unsafe { SystemCallErrorNumber::from_unchecked($self.0) })
-		}
+		unexpected_error!($function_name, "completion", unsafe { SystemCallErrorNumber::from_unchecked($self.0) })
 	}
 }
 
@@ -17,10 +14,7 @@ macro_rules! unexpected_result_in_completion
 {
 	($self: ident, $function_name: tt) =>
 	{
-		{
-			const Literal: &'static str = concat!($function_name, " (completion)");
-			unexpected_result!(Literal, unsafe { SystemCallErrorNumber::from_unchecked($self.0) })
-		}
+		unexpected_result!($function_name, "completion", unsafe { SystemCallErrorNumber::from_unchecked($self.0) })
 	}
 }
 

@@ -2,8 +2,6 @@
 // Copyright © 2018-2019 The developers of file-descriptors. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/file-descriptors/master/COPYRIGHT.
 
 
-use crate::syscall::SystemCallResult;
-
 /// Represents a timer instance.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct TimerFileDescriptor(RawFd);
@@ -54,12 +52,9 @@ impl TimerFileDescriptor
 	#[inline(always)]
 	pub fn new(clock: TimerClock) -> Result<Self, CreationError>
 	{
-		use self::CreationError::*;
+		use CreationError::*;
 		
-		xxx; fix me.
-		let result = unsafe { timerfd_create(clock as i32, TFD_NONBLOCK | TFD_CLOEXEC) };
-		
-		match result
+		match unsafe { timerfd_create(clock as i32, TFD_NONBLOCK | TFD_CLOEXEC) }
 		{
 			raw_file_descriptor @ SystemCallResult::InclusiveMinimumRawFileDescriptor_i32 ..= SystemCallResult::InclusiveMaximumRawFileDescriptor_i32 => Ok(Self(raw_file_descriptor)),
 			
@@ -76,7 +71,7 @@ impl TimerFileDescriptor
 				}
 			),
 			
-			_ => unexpected_result!(timerfd_create, result),
+			unexpected @ _ => unexpected_result!(timerfd_create, unexpected),
 		}
 	}
 
@@ -121,7 +116,7 @@ impl TimerFileDescriptor
 
 				0 => panic!("End of file but we haven't closed the file descriptor"),
 
-				unexpected @ _ => unexpected_result!(read, "timer file descriptor", unexpected_error),
+				unexpected @ _ => unexpected_result!(read, "timer file descriptor", unexpected),
 			}
 		}
 	}

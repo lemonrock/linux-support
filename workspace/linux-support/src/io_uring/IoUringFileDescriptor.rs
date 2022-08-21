@@ -131,7 +131,7 @@ impl IoUringFileDescriptor
 			
 			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Err(SystemCallResult::usize_to_system_call_error_number(error).into()),
 			
-			unexpected @ _ => unexpected_result!(io_uring_setup, result),
+			unexpected @ _ => unexpected_result!(io_uring_setup, unexpected),
 		}
 	}
 
@@ -199,6 +199,17 @@ impl IoUringFileDescriptor
 	#[inline(always)]
 	fn register_buffers(&self, buffers: &[&mut [u8]]) -> io::Result<()>
 	{
+		/*
+			There are 28 errors in this file like the one below.
+			
+			All need converting to the new error format!!!!
+			
+			RJC
+		 */
+		
+		XXX:
+		
+		
 		let result = self.register_array(RegisterOperation::RegisterBuffers, buffers);
 
 		if likely!(result == 0)

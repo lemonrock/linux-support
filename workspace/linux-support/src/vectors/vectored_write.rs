@@ -37,7 +37,7 @@ macro_rules! vectored_write
 						}
 						else if likely!(result == -1)
 						{
-							match SystemCallErrorNumber::from_errno()
+							match SystemCallErrorNumber::from_errno_panic()
 							{
 								EAGAIN => WouldBlock,
 								EINTR => Interrupted,
@@ -54,12 +54,12 @@ macro_rules! vectored_write
 								EMSGSIZE => panic!("The socket type requires that message be sent atomically, and the size of the message to be sent made this impossible"),
 								EISCONN => panic!("The connection-mode socket was connected already but a recipient was specified"),
 								EDESTADDRREQ => panic!("The socket is not connection-mode, and no peer address is set"),
-								unexpected @ _ => unexpected_error!(vectored_write, unexpected),
+								unexpected @ _ => unexpected_error!(writev, unexpected),
 							}
 						}
 						else
 						{
-							unexpected_result!(vectored_write, result)
+							unexpected_result!(writev, result)
 						}
 					)
 				)

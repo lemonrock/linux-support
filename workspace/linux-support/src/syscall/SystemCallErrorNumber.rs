@@ -9215,9 +9215,9 @@ impl SystemCallErrorNumber
 	
 	pub(crate) const InclusiveMaximumU16: u16 = 4095;
 	
-	pub(crate) const InclusiveMinimumUsize: Usize = Self::InclusiveMinimumUsize as usize;
+	pub(crate) const InclusiveMinimumUsize: usize = Self::InclusiveMinimumUsize as usize;
 	
-	pub(crate) const InclusiveMaximumUsize: Usize = Self::InclusiveMaximumUsize as Usize;
+	pub(crate) const InclusiveMaximumUsize: usize = Self::InclusiveMaximumUsize as usize;
 	
 	pub(crate) const InclusiveMinimumI32: i32 = Self::InclusiveMinimumU16 as i32;
 	

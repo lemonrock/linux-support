@@ -206,7 +206,7 @@ impl UserFaultFileDescriptor
 			SystemCallResult::EINVAL_usize => panic!("Invalid combination of flags"),
 			unexpected_error @ _ => unexpected_error!(userfaultfd, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
 			
-			unexpected @ _ => unexpected_result!(userfaultfd, result),
+			unexpected @ _ => unexpected_result!(userfaultfd, unexpected),
 		}
 	}
 	

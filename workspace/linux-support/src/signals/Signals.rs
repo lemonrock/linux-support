@@ -119,7 +119,7 @@ impl Signals
 			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EINVAL => panic!("Invalid arguments"),
-				unexpected_error @ _ => unexpected_error!((sigfillset, result), unexpected_error),
+				unexpected_error @ _ => unexpected_error!(sigfillset, unexpected_error),
 			}
 		}
 		else

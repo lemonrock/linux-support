@@ -75,7 +75,7 @@ impl SetMemoryPolicy
 			SystemCallResult::ENOMEM_usize => panic!("insufficient kernel memory was available."),
 			unexpected_error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => unexpected_error!(set_mempolicy, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
 			
-			unexpected @ _ => unexpected_result!(set_mempolicy, result),
+			unexpected @ _ => unexpected_result!(set_mempolicy, unexpected),
 		}
 	}
 

@@ -133,7 +133,7 @@ impl ProcessIdentifierFileDescriptor
 			SystemCallResult::EINVAL_usize => panic!("flags is not 0"),
 			unexpected_error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => unexpected_error!(pidfd_getfd, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
 			
-			unexpected @ _ => unexpected_result!(pidfd_getfd, result),
+			unexpected @ _ => unexpected_result!(pidfd_getfd, unexpected),
 		}
 	}
 }

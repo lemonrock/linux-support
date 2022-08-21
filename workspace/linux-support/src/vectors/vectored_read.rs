@@ -38,7 +38,7 @@ macro_rules! vectored_read
 						}
 						else if likely!(result == -1)
 						{
-							match SystemCallErrorNumber::from_errno()
+							match SystemCallErrorNumber::from_errno_panic()
 							{
 								EAGAIN => WouldBlock,
 								EINTR => Interrupted,
@@ -51,12 +51,12 @@ macro_rules! vectored_read
 								ENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
 								ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
 								EOPNOTSUPP => panic!("Some flags in the `flags` argument are inappropriate for the socket type"),
-								unexpected @ _ => unexpected_error!(vectored_read, unexpected),
+								unexpected @ _ => unexpected_error!(readv, unexpected),
 							}
 						}
 						else
 						{
-							unexpected_result!(vectored_read, result)
+							unexpected_result!(readv, result)
 						}
 					)
 				)

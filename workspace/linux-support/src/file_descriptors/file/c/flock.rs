@@ -37,7 +37,7 @@ impl flock
 
 		let process_identifier = match self.l_pid
 		{
-			1 ..= i32::MAX => Some(ProcessIdentifierChoice::Other(ProcessIdentifier::from(new_non_zero_i32(pid)))),
+			pid @ 1 ..= i32::MAX => Some(ProcessIdentifierChoice::Other(ProcessIdentifier::from(new_non_zero_i32(pid)))),
 			
 			0 => Some(ProcessIdentifierChoice::Current),
 			

@@ -245,7 +245,7 @@ impl NumaNode
 			SystemCallResult::ENODEV_usize => panic!("OneOrMoreTargetNodesIsNotOnline"),
 			SystemCallResult::ESRCH_usize => if let Other(process_identifier) = process_identifier
 			{
-				Err(c(process_identifier))
+				Err(ProcessDoesNotExist(process_identifier))
 			}
 			else
 			{
@@ -318,8 +318,6 @@ impl NumaNode
 			{
 				panic!("We got ESRCH for ourselves?!")
 			},
-			SystemCallResult::
-			SystemCallResult::
 			SystemCallResult::EPERM_usize => match move_all
 			{
 				true => Err(CallerNeedsToHaveSysNiceCapabilityForMoveAll),

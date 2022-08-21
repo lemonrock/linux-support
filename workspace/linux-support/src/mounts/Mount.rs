@@ -86,7 +86,7 @@ impl<'a> Mount<'a>
 				unexpected_error @ _ => unexpected_error!(umount, unexpected_error),
 			},
 			
-			unexpected @ _ => unexpected!(umount, unexpected),
+			unexpected @ _ => unexpected_result!(umount, unexpected),
 		}
 	}
 	

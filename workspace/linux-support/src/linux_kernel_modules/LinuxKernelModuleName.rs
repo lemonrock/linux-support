@@ -2,8 +2,6 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-use crate::syscall::SystemCallResult;
-
 /// A Linux kernel module name.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
@@ -247,22 +245,16 @@ impl LinuxKernelModuleName
 		let name: CString = self.into();
 		const flags: c_long = O_NONBLOCK as c_long;
 		
-		let system_call_result = system_call_delete_module(name.as_c_str(), flags);
-		match system_call_result
+		match system_call_delete_module(name.as_c_str(), flags).as_usize()
 		{
 			0 => Ok(true),
 			
-			-1 => match SystemCallErrorNumber::from_errno_panic()
-			{
-				EPERM => Err(io_error_permission_denied("permission denied")),
-				EBUSY => Err(io_error_permission_denied("busy")),
-				ENOENT => Ok(false),
-				EWOULDBLOCK => Err(io_error_permission_denied("in use")),
-
-				EFAULT => panic!("EFAULT should not occur"),
-				
-				unexpected_error @ _ => unexpected_error!(delete_module, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
-			},
+			SystemCallResult::EPERM_usize => Err(io_error_permission_denied("permission denied")),
+			SystemCallResult::EBUSY_usize => Err(io_error_permission_denied("busy")),
+			SystemCallResult::ENOENT_usize => Ok(false),
+			SystemCallResult::EWOULDBLOCK_usize => Err(io_error_permission_denied("in use")),
+			SystemCallResult::EFAULT_usize => panic!("EFAULT should not occur"),
+			unexpected_error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => unexpected_error!(delete_module, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
 			
 			unexpected @ _ => unexpected_result!(delete_module, unexpected),
 		}

@@ -4,6 +4,7 @@
 
 use super::*;
 use self::c::*;
+use crate::syscall::SystemCallResult;
 
 
 mod c;
