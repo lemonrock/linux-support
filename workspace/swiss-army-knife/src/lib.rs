@@ -152,6 +152,10 @@ use std::time::Duration;
 use std::time::SystemTime;
 
 
+include!("unexpected_error.rs");
+include!("unexpected_result.rs");
+
+
 /// Definitions of single byte constants.
 pub mod a_to_z;
 

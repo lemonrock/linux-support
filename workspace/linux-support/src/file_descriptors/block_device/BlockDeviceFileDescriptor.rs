@@ -112,7 +112,7 @@ impl Read for BlockDeviceFileDescriptor
 					}
 					else if likely!(result == -1)
 					{
-						match SystemCallErrorNumber::from_errno()
+						match SystemCallErrorNumber::from_errno_panic()
 						{
 							EAGAIN => WouldBlock,
 							EINTR => Interrupted,
@@ -121,12 +121,12 @@ impl Read for BlockDeviceFileDescriptor
 							EFAULT => panic!("The receive buffer pointer(s) point outside the process's address space"),
 							EINVAL => panic!("Invalid argument passed"),
 							EISDIR => panic!("`fd` refers to a directory"),
-							_ => unreachable_code(format_args!("")),
+							unexpected_error @ _ => unexpected_error!(read, "block device file descriptor", unexpected_error),
 						}
 					}
 					else
 					{
-						unreachable_code(format_args!(""))
+						unexpected_result!(read, "block device file descriptor", result)
 					}
 				)
 			)
@@ -178,7 +178,7 @@ impl Write for BlockDeviceFileDescriptor
 					}
 					else if likely!(result == -1)
 					{
-						match SystemCallErrorNumber::from_errno()
+						match SystemCallErrorNumber::from_errno_panic()
 						{
 							EAGAIN => WouldBlock,
 							EINTR => Interrupted,
@@ -188,12 +188,12 @@ impl Write for BlockDeviceFileDescriptor
 							EFAULT => panic!("The write buffer pointer(s) point outside the process's address space"),
 							EINVAL => panic!("Invalid argument passed"),
 							EDESTADDRREQ => panic!("`fd` refers to a datagram socket for which a peer address has not been set using `connect()`"),
-							_ => unreachable_code(format_args!("")),
+							unexpected_error @ _ => unexpected_error!(write, "block device file descriptor", unexpected_error),
 						}
 					}
 					else
 					{
-						unreachable_code(format_args!(""))
+						unexpected_result!(write, "block device file descriptor", result)
 					}
 				)
 			)
@@ -250,7 +250,7 @@ impl Seek for BlockDeviceFileDescriptor
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from lseek", result))
+			unexpected_result!(lseek, result)
 		}
 	}
 }
@@ -275,7 +275,7 @@ impl FileExt for BlockDeviceFileDescriptor
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from pread()", result))
+			unexpected_result!(pread, result)
 		}
 	}
 
@@ -293,7 +293,7 @@ impl FileExt for BlockDeviceFileDescriptor
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from pwrite()", result))
+			unexpected_result!(pwrite, result)
 		}
 	}
 }
@@ -329,7 +329,7 @@ impl BlockDeviceFileDescriptor
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EACCES => Common(PermissionDenied),
 					EMFILE => Common(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
@@ -351,8 +351,8 @@ impl BlockDeviceFileDescriptor
 					EFBIG | EOVERFLOW => panic!("`pathname` refers to a regular file that is too large to be opened. The usual scenario here is that an application compiled on a 32-bit platform without `-D_FILE_OFFSET_BITS=64` tried to open a file whose size exceeds `(2<<31)-1` bits; see also `O_LARGEFILE` above. This is the error specified by POSIX.1-2001; in kernels before 2.6.24, Linux gave the error `EFBIG` for this case"),
 					ENOSPC => panic!("`pathname` was to be created but the device containing `pathname` has no room for the new file"),
 					EPERM => panic!("The `O_NOATIME` flag was specified, but the effective user ID of the caller did not match the owner of the file and the caller was not privileged (`CAP_FOWNER`)"),
-
-					_ => unreachable_code(format_args!("")),
+					
+					unexpected_error @ _ => unexpected_error!(open, "block device file descriptor", unexpected_error),
 				}
 			)
 		}

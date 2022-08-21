@@ -100,7 +100,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			{
 				ERANGE => Err(TransmissionQueueLengthOutOfRangeError),
 				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from ioctl(SIOCGIFINDEX)", unexpected)),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error `{}` from ioctl(SIOCGIFINDEX)", unexpected)),
 			}
 		)
 	}
@@ -123,7 +123,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			{
 				ERANGE => Err(MaximumTransmissionUnitPayloadSizeOutOfRangeError),
 				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from ioctl(SIOCGIFINDEX)", unexpected)),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error `{}` from ioctl(SIOCGIFINDEX)", unexpected)),
 			}
 		)
 	}
@@ -1223,7 +1223,7 @@ impl<'a> NetworkDeviceInputOutputControl<'a>
 			|command| Ok(command),
 			|error_number| match error_number
 			{
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from ioctl(SIOCETHTOOL)", unexpected)),
+				unexpected @ _ => unreachable_code(format_args!("Unexpected error `{}` from ioctl(SIOCETHTOOL)", unexpected)),
 			},
 			|mut command|
 			{

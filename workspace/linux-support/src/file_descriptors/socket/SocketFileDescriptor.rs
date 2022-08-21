@@ -91,7 +91,7 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ENOBUFS => Err(()),
 
@@ -99,13 +99,12 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 				EFAULT => panic!("The `addr` argument points to memory not in a valid part of the process address space"),
 				EINVAL => panic!("`addrlen` is invalid"),
 				ENOTSOCK => panic!("The file descriptor `sockfd` does not refer to a socket"),
-
-				_ => unreachable_code(format_args!("")),
+				unexpected_error @ _ => unexpected_error!(getsockname, "socket file descriptor", unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!(""));
+			unexpected_result!(getsockname, "socket file descriptor", result)
 		}
 	}
 	
@@ -127,19 +126,18 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EADDRINUSE => Err(SocketListenError::AddressInUse),
 				EBADF => panic!("`sockfd` is not a valid descriptor"),
 				ENOTSOCK => panic!("`sockfd` is not a socket file descriptor"),
 				EOPNOTSUPP => panic!("The socket is not of a type that supports the `listen()` operation"),
-
-				_ => unreachable_code(format_args!("")),
+				unexpected_error @ _ => unexpected_error!(listen, "socket file descriptor", unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(listen, "socket file descriptor", result)
 		}
 	}
 	
@@ -163,7 +161,7 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 		{
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EACCES | EPERM => PermissionDenied,
 					EADDRINUSE => AddressInUse,
@@ -180,14 +178,13 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 					ENOTSOCK => panic!("`sockfd` is not a socket file descriptor"),
 					EFAULT => panic!("`addr` points outside the user's accessible address space"),
 					EAFNOSUPPORT => panic!("Invalid `sa_family_t` value"),
-
-					_ => unreachable_code(format_args!("")),
+					unexpected_error @ _ => unexpected_error!(connect, "socket file descriptor", unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(connect, "socket file descriptor", result)
 		}
 	}
 
@@ -204,7 +201,7 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EBADF => panic!("The argument `sockfd` is not a valid descriptor"),
 				EFAULT => panic!("The address pointed to by `optval` is not in a valid part of the process address space"),
@@ -212,13 +209,12 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 				ENOPROTOOPT => panic!("The option is unknown at the level indicated"),
 				ENOTSOCK => panic!("The argument `sockfd` is a file, not a socket"),
 				EOPNOTSUPP => panic!("Unsupported sockopt"),
-
-				_ => unreachable_code(format_args!("")),
+				unexpected_error @ _ => unexpected_error!(getsockopt, "socket file descriptor", unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!(""));
+			unexpected_result!(getsockopt, "socket file descriptor", result)
 		}
 	}
 
@@ -233,20 +229,19 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EBADF => panic!("The argument `sockfd` is not a valid descriptor"),
 				EFAULT => panic!("The address pointed to by `optval` is not in a valid part of the process address space"),
 				EINVAL => panic!("`optlen` is invalid, or there is an invalid value in `optval`"),
 				ENOPROTOOPT => panic!("The option is unknown at the level indicated"),
 				ENOTSOCK => panic!("The argument `sockfd` is a file, not a socket"),
-
-				_ => unreachable_code(format_args!("")),
+				unexpected_error @ _ => unexpected_error!(setsockopt, "socket file descriptor", unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!(""));
+			unexpected_result!(setsockopt, "socket file descriptor", result)
 		}
 	}
 
@@ -532,7 +527,7 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
 					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
@@ -540,14 +535,13 @@ impl<SD: SocketData> SocketFileDescriptor<SD>
 					EFAULT => panic!("The address `sv` does not specify a valid part of the process address space"),
 					EOPNOTSUPP => panic!("The specified `protocol` does not support creation of socket pairs"),
 					EPROTONOSUPPORT => panic!("TThe specified `protocol` is not supported on this machine"),
-
-					_ => unreachable_code(format_args!("")),
+					unexpected_error @ _ => unexpected_error!(socketpair, "socket file descriptor", unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""));
+			unexpected_result!(socketpair, "socket file descriptor", result)
 		}
 	}
 	
@@ -756,7 +750,7 @@ impl SocketFileDescriptor<sockaddr_un>
 		{
 			use self::StructReadError::*;
 
-			let read_error = match SystemCallErrorNumber::from_errno()
+			let read_error = match SystemCallErrorNumber::from_errno_panic()
 			{
 				EAGAIN => WouldBlock,
 				ECANCELED => Cancelled,
@@ -766,15 +760,15 @@ impl SocketFileDescriptor<sockaddr_un>
 				EFAULT => panic!("`buf` is outside your accessible address space"),
 				EINVAL => panic!("`fd` is attached to an object which is unsuitable for reading OR was created via a call to `timerfd_create()` and the wrong size buffer was given to `read()`"),
 				EISDIR => panic!("`fd` refers to a directory"),
-
-				unexpected @ _ => panic!("Unexpected error `{}`", unexpected),
+				
+				unexpected_error @ _ => unexpected_error!(recvmsg, "socket file descriptor", unexpected_error),
 			};
 
 			return Err(Read(read_error))
 		}
 		else if unlikely!(result < -1)
 		{
-			unreachable_code(format_args!(""));
+			unexpected_error!(recvmsg, result)
 		}
 
 		match message.first_header()
@@ -881,7 +875,7 @@ impl SocketFileDescriptor<sockaddr_un>
 					}
 					else if likely!(result == -1)
 					{
-						match SystemCallErrorNumber::from_errno()
+						match SystemCallErrorNumber::from_errno_panic()
 						{
 							EAGAIN => WouldBlock,
 							EINTR => Interrupted,
@@ -898,12 +892,12 @@ impl SocketFileDescriptor<sockaddr_un>
 							EMSGSIZE => panic!("The socket type requires that message be sent atomically, and the size of the message to be sent made this impossible"),
 							EISCONN => panic!("The connection-mode socket was connected already but a recipient was specified"),
 							EDESTADDRREQ => panic!("The socket is not connection-mode, and no peer address is set"),
-							_ => unreachable_code(format_args!("")),
+							unexpected_error @ _ => unexpected_error!(sendmsg, "socket file descriptor", unexpected_error),
 						}
 					}
 					else
 					{
-						unreachable_code(format_args!(""))
+						unexpected_result!(sendmsg, "socket file descriptor", result)
 					}
 				)
 			)

@@ -88,15 +88,15 @@ impl UserOrGroupIdentifier for GroupIdentifier
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EFAULT => panic!("Invalid address for real, effective or saved_set argument pointer"),
-				unexpected @ _ => panic!("Unexpected error `{}` from `getresgid()`", unexpected),
+				unexpected_error @ _ => unexpected_error!(getresgid, unexpected_error),
 			}
 		}
 		else
 		{
-			panic!("Unexpected result `{}` from `getresgid()`", result)
+			unexpected_result!(getresgid, result)
 		}
 	}
 
@@ -115,17 +115,17 @@ impl UserOrGroupIdentifier for GroupIdentifier
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EAGAIN => panic!("uid does not match the current UID and this call would bring that user ID over its `RLIMIT_NPROC` resource limit"),
 				EPERM => panic!("The calling process is not privileged (did not have the `CAP_SETGID` capability) and tried to change the IDs to values that are not permitted."),
 
-				unknown @ _ => panic!("Unknown error `{}` from `setresgid()`", unknown),
+				unexpected_error @ _ => unexpected_error!(setresgid, unexpected_error),
 			}
 		}
 		else
 		{
-			panic!("Invalid result `{}` from setresgid()", result)
+			unexpected_result!(setregid, result)
 		}
 	}
 

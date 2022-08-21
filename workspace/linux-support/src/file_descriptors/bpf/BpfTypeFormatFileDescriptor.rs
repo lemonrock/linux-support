@@ -93,18 +93,13 @@ impl BpfTypeFormatFileDescriptor
 			}
 		};
 		
-		let result = attributes.syscall(bpf_cmd::BPF_BTF_LOAD);
-		if likely!(result >= 0)
+		match attributes.syscall(bpf_cmd::BPF_BTF_LOAD).as_usize()
 		{
-			Ok((Self(result), verifier_log))
-		}
-		else if likely!(result == -1)
-		{
-			Err(CouldNotLoadBpfTypeFormatData(SystemCallErrorNumber::from_errno(), verifier_log.map(|verifier_log| verifier_log.into())))
-		}
-		else
-		{
-			unreachable_code(format_args!("result `{}` from bpf(BPF_BTF_LOAD) was unexpected", result))
+			raw_file_descriptor @ SystemCallResult::InclusiveMinimumRawFileDescriptor_usize ..= SystemCallResult::InclusiveMaximumRawFileDescriptor_usize => Ok((Self(raw_file_descriptor as RawFd), verifier_log)),
+			
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Err(CouldNotLoadBpfTypeFormatData(SystemCallResult::usize_to_system_call_error_number(error), verifier_log.map(|verifier_log| verifier_log.into()))),
+			
+			unexpected @ _ => unexpected_result!(bpf, BPF_BTF_LOAD, unexpected),
 		}
 	}
 }

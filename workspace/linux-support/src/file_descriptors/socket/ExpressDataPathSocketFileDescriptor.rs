@@ -124,7 +124,7 @@ impl ExpressDataPathSocketFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EBADF => panic!("The argument umem_or_xsk_socket_file_descriptor is not a valid file descriptor"),
 				EFAULT => panic!(" The address pointed to by optval is not in a valid part of the process address space. For getsockopt(), this error may also be returned if optlen is not in a valid part of the process address space."),
@@ -133,12 +133,12 @@ impl ExpressDataPathSocketFileDescriptor
 				ENOTSOCK => panic!("The file descriptor umem_or_xsk_socket_file_descriptor does not refer to a socket"),
 				EOPNOTSUPP => panic!("Unsupported sockopt"),
 				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from getsockopt()", unexpected)),
+				unexpected @ _ => unexpected_result!(getsockopt, unexpected),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from getsockopt()", result));
+			unexpected_result!(getsockopt, result);
 		}
 	}
 	
@@ -154,21 +154,19 @@ impl ExpressDataPathSocketFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EBADF => panic!("The argument `sockfd` is not a valid descriptor"),
 				EFAULT => panic!("The address pointed to by `optval` is not in a valid part of the process address space"),
 				EINVAL => panic!("`optlen` is invalid, or there is an invalid value in `optval`"),
 				ENOPROTOOPT => panic!("The option is unknown at the level indicated"),
 				ENOTSOCK => panic!("The argument `sockfd` is a file, not a socket"),
-
-				_ => unreachable_code(format_args!("")),
+				unexpected_error @ _ => unexpected_error!(setsockopt, "express data path socket file descriptor", unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!(""));
+			unexpected_result!(setsockopt, "express data path socket file descriptor", result)
 		}
 	}
-	
 }

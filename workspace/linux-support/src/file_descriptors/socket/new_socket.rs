@@ -25,7 +25,7 @@ pub(crate) fn new_socket(domain: c_int, type_: c_int, protocol: c_int, non_block
 
 		Err
 		(
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
 				ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
@@ -34,12 +34,12 @@ pub(crate) fn new_socket(domain: c_int, type_: c_int, protocol: c_int, non_block
 				EACCES => panic!("Permission denied"),
 				EAFNOSUPPORT => panic!("The implementation does not support the specified address family"),
 				EPROTONOSUPPORT => panic!("The protocol type or the specified protocol is not supported within this domain"),
-				_ => unreachable_code(format_args!("")),
+				unexpected_error @ _ => unexpected_error!(socket, unexpected_error),
 			}
 		)
 	}
 	else
 	{
-		unreachable_code(format_args!("Unexpected result {} from socket()", result))
+		unexpected_result!(socket, result)
 	}
 }

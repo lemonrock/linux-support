@@ -115,7 +115,7 @@ impl Read for ReceivePipeFileDescriptor
 					}
 					else if likely!(result == -1)
 					{
-						match SystemCallErrorNumber::from_errno()
+						match SystemCallErrorNumber::from_errno_panic()
 						{
 							EAGAIN => WouldBlock,
 							EINTR => Interrupted,
@@ -124,12 +124,12 @@ impl Read for ReceivePipeFileDescriptor
 							EFAULT => panic!("The receive buffer pointer(s) point outside the process's address space"),
 							EINVAL => panic!("Invalid argument passed"),
 							EISDIR => panic!("`fd` refers to a directory"),
-							_ => unreachable_code(format_args!("")),
+							unexpected_error @ _ => unexpected_error!(read, "receive pipe file descriptor", unexpected_error),
 						}
 					}
 					else
 					{
-						unreachable_code(format_args!(""))
+						unexpected_result!(read, "receive pipe file descriptor", result)
 					}
 				)
 			)
@@ -215,7 +215,7 @@ impl ReceivePipeFileDescriptor
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EAGAIN | ENOMEM => WouldBlock,
 
@@ -224,14 +224,14 @@ impl ReceivePipeFileDescriptor
 					EBADF => panic!("One or both file descriptors are not valid, or do not have proper read-write mode"),
 					EINVAL => panic!("The target filesystem doesn't support splicing; or the target file is opened in append mode; or neither of the file descriptors refers to a pipe; or an offset was given for a non-seekable device (eg, a pipe); or `fd_in` and `fd_out` refer to the same pipe"),
 					ESPIPE => panic!("Either `off_in` or `off_out` was not `NULL`, but the corresponding file descriptor refers to a pipe"),
-
-					_ => unreachable_code(format_args!("")),
+					
+					unexpected_error @ _ => unexpected_error!(splice, "receive pipe file descriptor", unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(splice, "receive pipe file descriptor", result)
 		}
 	}
 
@@ -282,7 +282,7 @@ impl ReceivePipeFileDescriptor
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EAGAIN | ENOMEM => WouldBlock,
 
@@ -291,14 +291,14 @@ impl ReceivePipeFileDescriptor
 					EBADF => panic!("One or both file descriptors are not valid, or do not have proper read-write mode"),
 					EINVAL => panic!("The target filesystem doesn't support splicing; or the target file is opened in append mode; or neither of the file descriptors refers to a pipe; or an offset was given for a non-seekable device (eg, a pipe); or `fd_in` and `fd_out` refer to the same pipe"),
 					ESPIPE => panic!("Either `off_in` or `off_out` was not `NULL`, but the corresponding file descriptor refers to a pipe"),
-
-					_ => unreachable_code(format_args!("")),
+					
+					unexpected_error @ _ => unexpected_error!(splice, "receive pipe file descriptor", unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(splice, "receive pipe file descriptor", result)
 		}
 	}
 
@@ -345,21 +345,21 @@ impl ReceivePipeFileDescriptor
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EAGAIN | ENOMEM => WouldBlock,
 
 					EINTR => Interrupted,
 
 					EINVAL => panic!("`fd_in` and `fd_out` does not refer to a pipe; or `fd_in` and `fd_out` refer to the same pipe"),
-
-					_ => unreachable_code(format_args!("")),
+					
+					unexpected_error @ _ => unexpected_error!(tee, "receive pipe file descriptor", unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(tee, "receive pipe file descriptor", result)
 		}
 	}
 }

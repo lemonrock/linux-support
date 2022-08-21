@@ -78,14 +78,14 @@ impl EventFileDescriptor
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
 					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
 					ENOMEM => KernelWouldBeOutOfMemory,
 					EINVAL => panic!("Invalid arguments"),
 					ENODEV => panic!("Could not mount (internal) anonymous inode device"),
-					_ => unreachable_code(format_args!("")),
+					unexpected_error @ _ => unexpected_error!(eventfd, unexpected_error),
 				}
 			)
 		}
@@ -125,7 +125,7 @@ impl EventFileDescriptor
 				{
 					use self::StructReadError::*;
 
-					match SystemCallErrorNumber::from_errno()
+					match SystemCallErrorNumber::from_errno_panic()
 					{
 						EAGAIN => Err(WouldBlock),
 						ECANCELED => Err(Cancelled),
@@ -136,13 +136,13 @@ impl EventFileDescriptor
 						EINVAL => panic!("`fd` is attached to an object which is unsuitable for reading OR was created via a call to `timerfd_create()` and the wrong size buffer was given to `read()`"),
 						EISDIR => panic!("`fd` refers to a directory"),
 
-						unexpected @ _ => panic!("Unexpected error `{}`", unexpected),
+						unexpected_error @ _ => unexpected_error!(read, "event file descriptor", unexpected_error),
 					}
 				}
 
 				0 => panic!("End of file but we haven't closed the file descriptor"),
 
-				_ => unreachable_code(format_args!("")),
+				unexpected @ _ => unexpected_result!(read, "event file descriptor", unexpected),
 			}
 		}
 	}
@@ -169,7 +169,7 @@ impl EventFileDescriptor
 			{
 				-1 =>
 				{
-					match SystemCallErrorNumber::from_errno()
+					match SystemCallErrorNumber::from_errno_panic()
 					{
 						EAGAIN => Err(WouldBlock),
 						ECANCELED => Err(Cancelled),
@@ -183,13 +183,13 @@ impl EventFileDescriptor
 						EDESTADDRREQ => panic!("EDESTADDRREQ!"),
 						EFBIG => panic!("EFBIG!"),
 						
-						error_number @ _ => panic!("Unexpected error `{}`", error_number),
+						unexpected_error @ _ => unexpected_error!(write, "event file descriptor", unexpected_error),
 					}
 				}
 
 				0 => panic!("End of file but we haven't closed the file descriptor"),
 
-				_ => unreachable_code(format_args!("")),
+				unexpected @ _ => unexpected_result!(write, "event file descriptor", unexpected),
 			}
 		}
 	}

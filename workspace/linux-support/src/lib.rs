@@ -28,6 +28,7 @@
 #![feature(step_trait)]
 #![feature(thread_id_value)]
 #![feature(thread_local)]
+#![feature(adt_const_params)]
 
 
 //! #linux-support
@@ -93,7 +94,6 @@ use crate::syscall::SystemCallErrorNumber::ENOTBLK;
 use crate::syscall::SystemCallErrorNumber::ENOTCONN;
 use crate::syscall::SystemCallErrorNumber::ENOTDIR;
 use crate::syscall::SystemCallErrorNumber::ENOTSOCK;
-use crate::syscall::SystemCallErrorNumber::ENOTSUPP;
 use crate::syscall::SystemCallErrorNumber::ENOTTY;
 use crate::syscall::SystemCallErrorNumber::ENXIO;
 use crate::syscall::SystemCallErrorNumber::EOPNOTSUPP;
@@ -755,6 +755,8 @@ use strum_macros::IntoStaticStr;
 use swiss_army_knife::bit_set_aware;
 use swiss_army_knife::fast_secure_hash_map;
 use swiss_army_knife::fast_secure_hash_set;
+use swiss_army_knife::unexpected_error;
+use swiss_army_knife::unexpected_result;
 use swiss_army_knife::LoadNonAtomically;
 use swiss_army_knife::move_to_front_of_vec;
 use swiss_army_knife::StaticInitializedOnce;

@@ -2,19 +2,25 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
-macro_rules! unexpected_error
+macro_rules! unexpected_error_in_completion
 {
 	($self: ident, $function_name: tt) =>
 	{
-		unreachable_code(format_args!("Unexpected error code {} from completion of {}", unsafe { SystemCallErrorNumber::from_unchecked($self.0) }, stringify!($function_name)))
+		{
+			const Literal: &'static str = concat!($function_name, " (completion)");
+			unexpected_error!(Literal, unsafe { SystemCallErrorNumber::from_unchecked($self.0) })
+		}
 	}
 }
 
-macro_rules! unexpected
+macro_rules! unexpected_result_in_completion
 {
 	($self: ident, $function_name: tt) =>
 	{
-		unreachable_code(format_args!("Unexpected result {} from completion of {}", $self.0, stringify!($function_name)))
+		{
+			const Literal: &'static str = concat!($function_name, " (completion)");
+			unexpected_result!(Literal, unsafe { SystemCallErrorNumber::from_unchecked($self.0) })
+		}
 	}
 }
 
@@ -44,9 +50,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeEBADF => panic!("One or both file descriptors are not valid, or do not have proper read-write mode"),
 			SystemCallErrorNumber::NegativeEINVAL => panic!("The target filesystem doesn't support splicing; or the target file is opened in append mode; or neither of the file descriptors refers to a pipe; or an offset was given for a non-seekable device (eg, a pipe); or `fd_in` and `fd_out` refer to the same pipe"),
 			SystemCallErrorNumber::NegativeESPIPE => panic!("Either `off_in` or `off_out` was not `NULL`, but the corresponding file descriptor refers to a pipe"),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, splice),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, splice),
 			
-			_ => unexpected!(self, splice),
+			_ => unexpected_result_in_completion!(self, splice),
 		}
 	}
 	
@@ -76,9 +82,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeESPIPE => panic!("fd is associated with a pipe, socket, or FIFO."),
 			SystemCallErrorNumber::NegativeEINVAL => panic!("fd is attached to an object which is unsuitable for reading; or the file was opened with the O_DIRECT flag, and either the address specified in buf, the value specified in count, or the file offset is not suitably aligned. Or, fd was created via a call to timerfd_create(2) and the wrong size buffer was given to read(); see timerfd_create(2) for further information. Or, whence is not valid. Or: the resulting file offset would be negative, or beyond the end of a seekable device. Or the sum of the iov_len values overflows an ssize_t value. Or, the vector count, iovcnt, is less than zero or greater than the permitted maximum."),
 			SystemCallErrorNumber::NegativeEOPNOTSUPP => panic!("An unknown flag is specified in flags."),
-			unexpected_error @ SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unreachable_code(format_args!("Unexpected result from read_vectored completion of {}", unexpected_error)),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, read_vectored),
 			
-			_ => unexpected!(self, read_vectored),
+			_ => unexpected_result_in_completion!(self, read_vectored),
 		}
 	}
 	
@@ -108,9 +114,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeESPIPE => panic!("fd is associated with a pipe, socket, or FIFO."),
 			SystemCallErrorNumber::NegativeEINVAL => panic!("fd is attached to an object which is unsuitable for reading; or the file was opened with the O_DIRECT flag, and either the address specified in buf, the value specified in count, or the file offset is not suitably aligned. Or, fd was created via a call to timerfd_create(2) and the wrong size buffer was given to read(); see timerfd_create(2) for further information. Or, whence is not valid. Or: the resulting file offset would be negative, or beyond the end of a seekable device. Or the sum of the iov_len values overflows an ssize_t value. Or, the vector count, iovcnt, is less than zero or greater than the permitted maximum."),
 			SystemCallErrorNumber::NegativeEOPNOTSUPP => panic!("An unknown flag is specified in flags."),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, read_fixed),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, read_fixed),
 			
-			_ => unexpected!(self, read_fixed),
+			_ => unexpected_result_in_completion!(self, read_fixed),
 		}
 	}
 	
@@ -141,9 +147,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeEBADF => panic!("fd is not a valid file descriptor or is not open for reading"),
 			SystemCallErrorNumber::NegativeEINVAL => panic!("fd is attached to an object which is unsuitable for reading; or the file was opened with the O_DIRECT flag, and either the address specified in buf, the value specified in count, or the file offset is not suitably aligned. Or, fd was created via a call to timerfd_create(2) and the wrong size buffer was given to read(); see timerfd_create(2) for further information. Or, whence is not valid. Or: the resulting file offset would be negative, or beyond the end of a seekable device."),
 			SystemCallErrorNumber::NegativeEISDIR => panic!("fd refers to a directory"),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, read),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, read),
 			
-			_ => unexpected!(self, read),
+			_ => unexpected_result_in_completion!(self, read),
 		}
 	}
 	
@@ -177,9 +183,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeEOVERFLOW => panic!("The resulting file offset cannot be represented in an off_t"),
 			SystemCallErrorNumber::NegativeESPIPE => panic!("fd is associated with a pipe, socket, or FIFO"),
 			SystemCallErrorNumber::NegativeEOPNOTSUPP => panic!(" An unknown flag is specified in flags"),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, write_vectored),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, write_vectored),
 			
-			_ => unexpected!(self, write_vectored),
+			_ => unexpected_result_in_completion!(self, write_vectored),
 		}
 	}
 	
@@ -213,9 +219,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeEOVERFLOW => panic!("The resulting file offset cannot be represented in an off_t"),
 			SystemCallErrorNumber::NegativeESPIPE => panic!("fd is associated with a pipe, socket, or FIFO"),
 			SystemCallErrorNumber::NegativeEOPNOTSUPP => panic!(" An unknown flag is specified in flags"),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, write_fixed),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, write_fixed),
 			
-			_ => unexpected!(self, write_fixed),
+			_ => unexpected_result_in_completion!(self, write_fixed),
 		}
 	}
 	
@@ -250,9 +256,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeENXIO => panic!("whence is SEEK_DATA or SEEK_HOLE, and offset is beyond the end of the file, or whence is SEEK_DATA and offset is within a hole at the end of the file."),
 			SystemCallErrorNumber::NegativeEOVERFLOW => panic!("The resulting file offset cannot be represented in an off_t"),
 			SystemCallErrorNumber::NegativeESPIPE => panic!("fd is associated with a pipe, socket, or FIFO"),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, write),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, write),
 			
-			_ => unexpected!(self, write),
+			_ => unexpected_result_in_completion!(self, write),
 		}
 	}
 	
@@ -275,9 +281,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => Err(()),
 			SystemCallErrorNumber::NegativeEFAULT => panic!("The array given as argument was not contained in the calling program's address space."),
 			SystemCallErrorNumber::NegativeEINVAL => panic!("The nfds value exceeds the RLIMIT_NOFILE value."),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, poll_add),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, poll_add),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from poll_add completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, poll_add),
 		}
 	}
 	
@@ -295,9 +301,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
 			SystemCallErrorNumber::NegativeEALREADY => Err(true),
 			SystemCallErrorNumber::NegativeENOENT => Err(false),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, poll_cancel),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, poll_cancel),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from poll_cancel completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, poll_cancel),
 		}
 	}
 	
@@ -316,9 +322,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeEIO => Err(true),
 			SystemCallErrorNumber::NegativeEROFS | SystemCallErrorNumber::NegativeEINVAL => Err(false),
 			SystemCallErrorNumber::NegativeEBADF => panic!("fd is not a valid open file descriptor."),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, file_synchronize),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, file_synchronize),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from file_synchronize completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, file_synchronize),
 		}
 	}
 	
@@ -375,7 +381,7 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeEPROTONOSUPPORT => panic!("EPROTONOSUPPORT"),
 			unexpected_error @ SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unreachable_code(format_args!("Unexpected error code from accept4 completion of {}", unexpected_error)),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from accept4 completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, accept4),
 		}
 	}
 	
@@ -412,9 +418,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeENOTSOCK => panic!("`sockfd` is not a socket file descriptor"),
 			SystemCallErrorNumber::NegativeEFAULT => panic!("`addr` points outside the user's accessible address space"),
 			SystemCallErrorNumber::NegativeEAFNOSUPPORT => panic!("Invalid `sa_family_t` value"),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, connect),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, connect),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from connect completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, connect),
 		}
 	}
 	
@@ -464,9 +470,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
 			SystemCallErrorNumber::NegativeENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
 			SystemCallErrorNumber::NegativeEOPNOTSUPP => panic!("Some flags in the `flags` argument are inappropriate for the socket type"),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, receive),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, receive),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from receive completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, receive),
 		}
 	}
 	
@@ -523,9 +529,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeEMSGSIZE => panic!("The socket type requires that message be sent atomically, and the size of the message to be sent made this impossible"),
 			SystemCallErrorNumber::NegativeEISCONN => panic!("The connection-mode socket was connected already but a recipient was specified"),
 			SystemCallErrorNumber::NegativeEDESTADDRREQ => panic!("The socket is not connection-mode, and no peer address is set"),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, send),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, send),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from send completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, send),
 		}
 	}
 	
@@ -561,9 +567,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeEISDIR => panic!("`fd` refers to a directory"),
 			SystemCallErrorNumber::NegativeENOTCONN => panic!("Using recvmsg() for a connected socket which hasn't been connected"),
 			SystemCallErrorNumber::NegativeECONNREFUSED => panic!("Using recvmsg() for a connected socket"),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, receive_message),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, receive_message),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from receive_message completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, receive_message),
 		}
 	}
 	
@@ -607,9 +613,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeEMSGSIZE => panic!("The socket type requires that message be sent atomically, and the size of the message to be sent made this impossible"),
 			SystemCallErrorNumber::NegativeEISCONN => panic!("The connection-mode socket was connected already but a recipient was specified"),
 			SystemCallErrorNumber::NegativeEDESTADDRREQ => panic!("The socket is not connection-mode, and no peer address is set"),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, send_message),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, send_message),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from send_message completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, send_message),
 		}
 	}
 	
@@ -636,9 +642,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeEINVAL => panic!("Can not add epoll file descriptor to its self, or can not make wait on an epoll file descriptor `EPOLLEXCLUSIVE`"),
 			SystemCallErrorNumber::NegativeELOOP => panic!("The supplied file descriptor is for an epoll instance and this operation would result in a circular loop of epoll instances monitoring one another"),
 			SystemCallErrorNumber::NegativeEPERM => panic!("The supplied file descriptor does not support epoll (perhaps it is an open regular file or the like)"),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, epoll_control_add),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, epoll_control_add),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from epoll_control_add completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, epoll_control_add),
 		}
 	}
 	
@@ -663,9 +669,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeEINVAL => panic!("Supplied file descriptor was not usable or there was the presence or absence of `Exclusive` when required"),
 			SystemCallErrorNumber::NegativeENOENT => panic!("The supplied file descriptor is not registered with this epoll instance"),
 			SystemCallErrorNumber::NegativeEPERM => panic!("The supplied file descriptor does not support epoll (perhaps it is an open regular file or the like)"),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, epoll_control_modify),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, epoll_control_modify),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from epoll_control_modify completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, epoll_control_modify),
 		}
 	}
 	
@@ -686,9 +692,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeEINVAL => panic!("Supplied file descriptor was not usable"),
 			SystemCallErrorNumber::NegativeENOENT => panic!("The supplied file descriptor is not registered with this epoll instance"),
 			SystemCallErrorNumber::NegativeEPERM => panic!("The supplied file descriptor does not support epoll (perhaps it is an open regular file or the like)"),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, epoll_control_delete),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, epoll_control_delete),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from epoll_control_delete completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, epoll_control_delete),
 		}
 	}
 	
@@ -706,9 +712,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeEALREADY => Err(true),
 			SystemCallErrorNumber::NegativeENOENT => Err(false),
 			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, cancel),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, cancel),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from cancel completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, cancel),
 		}
 	}
 	
@@ -722,9 +728,9 @@ impl CompletionResponse
 			
 			SystemCallErrorNumber::NegativeECANCELED => None,
 			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, nop),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, nop),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from nop completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, nop),
 		}
 	}
 	
@@ -746,9 +752,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
 			SystemCallErrorNumber::NegativeETIME => Ok(Some(false)),
 			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => Err(()),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, timeout),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, timeout),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from timeout completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, timeout),
 		}
 	}
 	
@@ -768,9 +774,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeECANCELED => None,
 			SystemCallErrorNumber::NegativeETIME => Some(false),
 			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, linked_timeout),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, linked_timeout),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from linked_timeout completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, linked_timeout),
 		}
 	}
 	
@@ -790,9 +796,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeENOENT => Err(Some(false)),
 			SystemCallErrorNumber::NegativeEBUSY => Err(None),
 			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, cancel_timeout),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, cancel_timeout),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from cancel_timeout completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, cancel_timeout),
 		}
 	}
 	
@@ -818,9 +824,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeENOSYS => panic!("This kernel does not implement fallocate()"),
 			SystemCallErrorNumber::NegativeEOPNOTSUPP => panic!("The filesystem containing the file referred to by fd does not support this operation; or the mode is not supported by the filesystem containing the file referred to by fd"),
 			SystemCallErrorNumber::NegativeEPERM => panic!("The file referred to by fd is marked immutable (see chattr(1)). Or mode specifies FALLOC_FL_PUNCH_HOLE or FALLOC_FL_COLLAPSE_RANGE or FALLOC_FL_INSERT_RANGE and the file referred to by fd is marked append-only (see chattr(1)). Or the operation was prevented by a file seal; see fcntl(2)."),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, file_allocate),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, file_allocate),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from file_allocate completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, file_allocate),
 		}
 	}
 	
@@ -838,9 +844,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeEINVAL => panic!("An invalid value was specified for advice"),
 			SystemCallErrorNumber::NegativeEBADF => panic!("fd is not a valid file descriptor"),
 			SystemCallErrorNumber::NegativeESPIPE => panic!("The specified file descriptor refers to a pipe or FIFO (before Linux 2.6.16, this was EINVAL)"),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, file_advise),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, file_advise),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from file_advise completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, file_advise),
 		}
 	}
 	
@@ -861,9 +867,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeEBADF => panic!("fd is not a valid file descriptor"),
 			SystemCallErrorNumber::NegativeEINVAL => panic!("flags specifies an invalid bit; or offset or n bytes is invalid"),
 			SystemCallErrorNumber::NegativeESPIPE => panic!("fd refers to something other than a regular file, a block device, a directory, or a symbolic link"),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, synchronize_file_range),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, synchronize_file_range),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from synchronize_file_range completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, synchronize_file_range),
 		}
 	}
 	
@@ -881,7 +887,7 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM => panic!("EINTR / EAGAIN / ENOMEM - are these possible?"),
 			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => self.as_io_error(),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from memory_advise completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, memory_advise),
 		}
 	}
 	
@@ -900,9 +906,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeECANCELED => None,
 			SystemCallErrorNumber::NegativeEIO | SystemCallErrorNumber::NegativeEINTR | SystemCallErrorNumber::NegativeEAGAIN | SystemCallErrorNumber::NegativeENOMEM | SystemCallErrorNumber::NegativeENOSPC => Some(false),
 			SystemCallErrorNumber::NegativeEBADF => panic!("fd isn't a valid open file descriptor."),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, close),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, close),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from close completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, close),
 		}
 	}
 	
@@ -918,7 +924,7 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
 			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => self.as_io_error(),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from openat completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, openat),
 		}
 	}
 	
@@ -935,7 +941,7 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeECANCELED => Ok(None),
 			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => self.as_io_error(),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from openat2 completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, openat2),
 		}
 	}
 	
@@ -953,9 +959,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeEBADF => panic!("dirfd is not a valid open file descriptor"),
 			SystemCallErrorNumber::NegativeEFAULT => panic!("pathname or statxbuf is NULL or points to a location outside the process's accessible address space"),
 			SystemCallErrorNumber::NegativeEINVAL => panic!("Invalid flag specified in flags. Or, reserved flag specified in mask. (Currently, there is one such flag, designated by the constant STATX__RESERVED, with the value 0x80000000U)."),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, extended_metadata_for_path),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, extended_metadata_for_path),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from extended_metadata_for_path completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, extended_metadata_for_path),
 		}
 	}
 	
@@ -975,9 +981,9 @@ impl CompletionResponse
 			SystemCallErrorNumber::NegativeEINVAL => panic!("Invalid flag specified in flags. Or, reserved flag specified in mask. (Currently, there is one such flag, designated by the constant STATX__RESERVED, with the value 0x80000000U)."),
 			SystemCallErrorNumber::NegativeENOENT => panic!("ENOENT A component of pathname does not exist, or pathname is an empty string and AT_EMPTY_PATH was not specified in flags."),
 			SystemCallErrorNumber::NegativeENOTDIR => panic!("A component of the path prefix of pathname is not a directory or pathname is relative and dirfd is a file descriptor referring to a file other than a directory"),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, extended_metadata_for_directory),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, extended_metadata_for_directory),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from extended_metadata_for_directory completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, extended_metadata_for_directory),
 		}
 	}
 	
@@ -997,9 +1003,9 @@ impl CompletionResponse
 			
 			SystemCallErrorNumber::NegativeECANCELED => None,
 			SystemCallErrorNumber::NegativeEINVAL => panic!("Unsupported"),
-			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(self, registered_file_descriptors_update),
+			SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error_in_completion!(self, registered_file_descriptors_update),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result from registered_file_descriptors_update completion of {}", unexpected))
+			_ => unexpected_result_in_completion!(self, registered_file_descriptors_update),
 		}
 	}
 	
@@ -1020,12 +1026,7 @@ impl CompletionResponse
 	#[inline(always)]
 	fn as_io_error<X>(self) -> io::Result<X>
 	{
-		let value = self.0;
-		
-		debug_assert!(value >= SystemCallErrorNumber::NegativeInclusiveMinimumI32);
-		debug_assert!(value <= SystemCallErrorNumber::NegativeInclusiveMaximumI32);
-		
-		Err(io::Error::from_raw_os_error(value))
+		Err(SystemCallErrorNumber::from_negative_i32_unchecked(self.0).into())
 	}
 	
 	#[inline(always)]

@@ -79,7 +79,7 @@ impl FanotifyFileDescriptor
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
 					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
@@ -87,13 +87,13 @@ impl FanotifyFileDescriptor
 					EPERM => PermissionDenied,
 					EINVAL => panic!("Invalid arguments"),
 					ENOSYS => panic!("The fanotify API is available only if the kernel was configured with `CONFIG_FANOTIFY`"),
-					_ => unreachable_code(format_args!("")),
+					unexpected_error @ _ => unexpected_error!(fanotify_init, unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""));
+			unexpected_result!(fanotify_init, result)
 		}
 	}
 
@@ -115,21 +115,20 @@ impl FanotifyFileDescriptor
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EBADF => panic!("An invalid file descriptor was passed in `fanotify_fd`"),
 					EINVAL => panic!("An invalid value was passed in `flags` or `mask`, or `fanotify_fd` was not an fanotify file descriptor, or the fanotify file descriptor was opened with `FAN_CLASS_NOTIF` and mask contains a flag for permission events (`FAN_OPEN_PERM` or `FAN_ACCESS_PERM`)"),
 					ENOENT | ENOTDIR => FilePathInvalid,
 					ENOMEM | ENOSPC => KernelWouldBeOutOfMemory,
 					ENOSYS => panic!("This kernel does not implement `fanotify_mark()`. The fanotify API is available only if the kernel was configured with `CONFIG_FANOTIFY`"),
-
-					_ => unreachable_code(format_args!("")),
+					unexpected_error @ _ => unexpected_error!(fanotify, FAN_MARK_ADD, unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""));
+			unexpected_result!(fanotify_mark, FAN_MARK_ADD, result)
 		}
 	}
 
@@ -151,21 +150,20 @@ impl FanotifyFileDescriptor
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EBADF => panic!("An invalid file descriptor was passed in `fanotify_fd`"),
 					EINVAL => panic!("An invalid value was passed in `flags` or `mask`, or `fanotify_fd` was not an fanotify file descriptor, or the fanotify file descriptor was opened with `FAN_CLASS_NOTIF` and mask contains a flag for permission events (`FAN_OPEN_PERM` or `FAN_ACCESS_PERM`)"),
 					ENOENT | ENOTDIR => FilePathInvalid,
 					ENOMEM | ENOSPC => KernelWouldBeOutOfMemory,
 					ENOSYS => panic!("This kernel does not implement `fanotify_mark()`. The fanotify API is available only if the kernel was configured with `CONFIG_FANOTIFY`"),
-
-					_ => unreachable_code(format_args!("")),
+					unexpected_error @ _ => unexpected_error!(fanotify, FAN_MARK_REMOVE, unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""));
+			unexpected_result!(fanotify_mark, FAN_MARK_REMOVE, result)
 		}
 	}
 
@@ -196,21 +194,20 @@ impl FanotifyFileDescriptor
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EBADF => panic!("An invalid file descriptor was passed in `fanotify_fd`"),
 					EINVAL => panic!("An invalid value was passed in `flags` or `mask`, or `fanotify_fd` was not an fanotify file descriptor, or the fanotify file descriptor was opened with `FAN_CLASS_NOTIF` and mask contains a flag for permission events (`FAN_OPEN_PERM` or `FAN_ACCESS_PERM`)"),
 					ENOENT | ENOTDIR => FilePathInvalid,
 					ENOMEM | ENOSPC => KernelWouldBeOutOfMemory,
 					ENOSYS => panic!("This kernel does not implement `fanotify_mark()`. The fanotify API is available only if the kernel was configured with `CONFIG_FANOTIFY`"),
-
-					_ => unreachable_code(format_args!("")),
+					unexpected_error @ _ => unexpected_error!(fanotify, FAN_MARK_FLUSH, unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""));
+			unexpected_result!(fanotify_mark, FAN_MARK_FLUSH, result)
 		}
 	}
 
@@ -250,7 +247,7 @@ impl FanotifyFileDescriptor
 			{
 				-1 =>
 				{
-					match SystemCallErrorNumber::from_errno()
+					match SystemCallErrorNumber::from_errno_panic()
 					{
 						EAGAIN => Err(WouldBlock),
 						ECANCELED => Err(Cancelled),
@@ -261,13 +258,13 @@ impl FanotifyFileDescriptor
 						EINVAL => panic!("`fd` is attached to an object which is unsuitable for reading OR was created via a call to `timerfd_create()` and the wrong size buffer was given to `read()`"),
 						EISDIR => panic!("`fd` refers to a directory"),
 						
-						error_number @ _ => panic!("Unexpected error `{}`", error_number),
+						unexpected_error @ _ => unexpected_error!(read, "fanotify file descriptor", unexpected_error),
 					}
 				}
 
 				0 => panic!("End of file but we haven't closed the file descriptor"),
-
-				_ => unreachable_code(format_args!("")),
+				
+				unexpected @ _ => unexpected_result!(read, "fanotify file descriptor", unexpected),
 			}
 		}
 	}
@@ -297,7 +294,7 @@ impl FanotifyFileDescriptor
 			{
 				-1 =>
 				{
-					match SystemCallErrorNumber::from_errno()
+					match SystemCallErrorNumber::from_errno_panic()
 					{
 						EAGAIN => Err(WouldBlock),
 						ECANCELED => Err(Cancelled),
@@ -311,13 +308,13 @@ impl FanotifyFileDescriptor
 						EDESTADDRREQ => panic!("EDESTADDRREQ!"),
 						EFBIG => panic!("EFBIG!"),
 						
-						error_number @ _ => panic!("Unexpected error `{}`", error_number),
+						unexpected_error @ _ => unexpected_error!(write, "fanotify file descriptor", unexpected_error),
 					}
 				}
 
 				0 => panic!("End of file but we haven't closed the file descriptor"),
-
-				_ => unreachable_code(format_args!("")),
+				
+				unexpected @ _ => unexpected_result!(write, "fanotify file descriptor", unexpected),
 			}
 		}
 	}

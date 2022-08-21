@@ -283,7 +283,7 @@ impl Nice
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ESRCH => Err(()),
 				
@@ -291,12 +291,12 @@ impl Nice
 				
 				EINVAL => panic!("`which` was not one of `PRIO_PROCESS`, `PRIO_PGRP`, or `PRIO_USER`"),
 
-				unexpected @ _ => panic!("Unexpected error `{}` from `setpriority()`", unexpected),
+				unexpected_error @ _ => unexpected_error!(setpriority, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result `{}` from `setpriority()`", result))
+			unexpected_result!(setpriority, result)
 		}
 	}
 	
@@ -335,23 +335,24 @@ impl Nice
 	#[inline(always)]
 	fn get_priority(which: i32, who: u32) -> Result<Self, ()>
 	{
-		set_errno(Errno(0));
+		SystemCallErrorNumber::reset_errno_to_zero();
+		
 		let result = unsafe { getpriority(which, who) };
 		
 		match SystemCallErrorNumber::from_errno()
 		{
-			// TODO: Why are we checking for 0 for the errno?
-			0 => match result
+			None => match result
 			{
 				-20 ..= 19 => Ok(unsafe { transmute(result) }),
-				invalid @ _ => panic!("Invalid priority value `{}`", invalid),
+				
+				invalid @ _ => panic!("Unknown priority value `{}` from getpriority", invalid),
 			}
 			
-			EINVAL => panic!("`which` was not one of `PRIO_PROCESS`, `PRIO_PGRP`, or `PRIO_USER`"),
+			Some(EINVAL) => panic!("`which` was not one of `PRIO_PROCESS`, `PRIO_PGRP`, or `PRIO_USER`"),
 			
-			ESRCH => Err(()),
+			Some(ESRCH) => Err(()),
 			
-			_ => unreachable_code(format_args!("")),
+			Some(unexpected_error) => unexpected_error!(getpriority, unexpected_error),
 		}
 	}
 }

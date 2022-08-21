@@ -2,6 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use crate::syscall::SystemCallResult;
+
 /// A Linux kernel module name.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
@@ -244,57 +246,25 @@ impl LinuxKernelModuleName
 	{
 		let name: CString = self.into();
 		const flags: c_long = O_NONBLOCK as c_long;
-
-		// TODO: Sample alternative code
-		//
-		// use crate::syscall::{SystemCallErrorNumber, SystemCallResultOkValue};
-		//
-		// if system_call_result.is_ok()
-		// {
-		// 	// get the usize value.
-		// 	if the_usize_value == 0
-		// 	{
-		//
-		// 	}
-		// 	else
-		// 	{
-		// 		panic!("syscall(SYS_delete_module) returned illegal value '{}'", illegal)
-		// 	}
-		// }
-		// else
-		// {
-		// 	let result: Result<SystemCallResultOkValue, SystemCallErrorNumber> = system_call_result.into();
-		// 	match unsafe { result.unwrap_err_unchecked() }
-		// 	{
-		// 		EPERM => Err(io_error_permission_denied("permission denied")),
-		// 		EBUSY => Err(io_error_permission_denied("busy")),
-		// 		ENOENT => Ok(false),
-		// 		EWOULDBLOCK => Err(io_error_permission_denied("In use")),
-		//
-		// 		EFAULT => panic!("EFAULT should not occur"),
-		//
-		// 		unknown @ _ => panic!("syscall(SYS_delete_module) failed with illegal error code '{}'", unknown),
-		// 	}
-		// }
 		
 		let system_call_result = system_call_delete_module(name.as_c_str(), flags);
 		match system_call_result
 		{
 			0 => Ok(true),
 			
-			-1 => match SystemCallErrorNumber::from_errno()
+			-1 => match SystemCallErrorNumber::from_errno_panic()
 			{
 				EPERM => Err(io_error_permission_denied("permission denied")),
 				EBUSY => Err(io_error_permission_denied("busy")),
 				ENOENT => Ok(false),
-				EWOULDBLOCK => Err(io_error_permission_denied("In use")),
+				EWOULDBLOCK => Err(io_error_permission_denied("in use")),
 
 				EFAULT => panic!("EFAULT should not occur"),
-
-				unknown @ _ => panic!("syscall(SYS_delete_module) failed with illegal error code '{}'", unknown),
+				
+				unexpected_error @ _ => unexpected_error!(delete_module, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
 			},
 			
-			illegal @ _ => panic!("syscall(SYS_delete_module) returned illegal value '{}'", illegal),
+			unexpected @ _ => unexpected_result!(delete_module, unexpected),
 		}
 	}
 }

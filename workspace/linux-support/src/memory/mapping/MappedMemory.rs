@@ -148,7 +148,7 @@ impl MappedMemory
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EAGAIN => Ok(false),
 				
@@ -156,12 +156,12 @@ impl MappedMemory
 				EPERM => panic!("The caller is not privileged, but needs privilege (CAP_IPC_LOCK) to perform the requested operation."),
 				EINVAL => panic!("The result of the addition addr+len was less than addr (eg, the addition may have resulted in an overflow). Or, Unknown flags were specified"),
 				
-				unexpected @ _ => panic!("Unexpected error {} from mlock2()", unexpected)
+				unexpected_error @ _ => unexpected_error!(mlock2, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from mlock2()", result))
+			unexpected_result!(mlock2, result)
 		}
 	}
 	
@@ -189,7 +189,7 @@ impl MappedMemory
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EAGAIN => Ok(false),
 				
@@ -197,12 +197,12 @@ impl MappedMemory
 				EPERM => panic!("The caller is not privileged, but needs privilege (CAP_IPC_LOCK) to perform the requested operation"),
 				EINVAL => panic!("The result of the addition addr+len was less than addr (eg, the addition may have resulted in an overflow)"),
 				
-				unexpected @ _ => panic!("Unexpected error {} from munlock()", unexpected)
+				unexpected_error @ _ => unexpected_error!(munlock, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from mlock2()", result))
+			unexpected_result!(munlock, result)
 		}
 	}
 	
@@ -235,13 +235,13 @@ impl MappedMemory
 			use self::MemoryAdvice::*;
 			use self::MemoryAdviceError::*;
 			
-			let error = match SystemCallErrorNumber::from_errno()
+			let error = match SystemCallErrorNumber::from_errno_panic()
 			{
 				EACCES => match advice
 				{
 					Remove => NotASharedWritableMapping,
 					
-					_ => panic!("Unexpected error EACCES from madvise() for advice {:?}", advice),
+					_ => unexpected_error!(madvise, advice, EACCES),
 				},
 				
 				EAGAIN => return Ok(false),
@@ -263,30 +263,30 @@ impl MappedMemory
 				{
 					WillNeed => ProcessMaximumResidentSetSizeWouldBeExceededForWillNeed,
 					
-					_ => panic!("Unexpected error EIO from madvise() for advice {:?}", advice),
+					_ => unexpected_error!(madvise, advice, EIO),
 				},
 				
 				ENOMEM => match advice
 				{
 					WillNeed => NotEnoughMemoryForWillNeed,
 					
-					_ => panic!("Unexpected error ENOMEM from madvise() for advice {:?}", advice),
+					_ => unexpected_error!(madvise, advice, ENOMEM),
 				},
 				
 				EPERM => match advice
 				{
 					HardwarePoison => PermissionDeniedForHardwarePoison,
 					
-					_ => panic!("Unexpected error EPERM from madvise() for advice {:?}", advice),
+					_ => unexpected_error!(madvise, advice, EPERM),
 				},
 				
-				error_number @ _ => panic!("Unexpected error {} from madvise() for advice {:?}", error_number, advice),
+				unexpected_error @ _ => unexpected_error!(madvise, advice, unexpected_error),
 			};
 			Err(error)
 		}
 		else
 		{
-			unreachable_code(format_args!("madvise() returned unexpected result {}", result))
+			unexpected_result!(madvise, result)
 		}
 	}
 	
@@ -320,7 +320,7 @@ impl MappedMemory
 		}
 		else
 		{
-			unreachable_code(format_args!("mprotect() returned unexpected result {}", result))
+			unexpected_result!(mprotect, result)
 		}
 	}
 	
@@ -351,23 +351,23 @@ impl MappedMemory
 		else if likely!(result == -1)
 		{
 			use self::SynchronizeFlags::*;
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EBUSY => match synchronize
 				{
 					AsynchronousAndInvalidate | SynchronousAndInvalidate => Err(()),
-					Asynchronous | Synchronous => panic!("Unexpected error EBUSY from msync()"),
+					Asynchronous | Synchronous => unexpected_error!(msync, synchronize, EBUSY),
 				},
 				
 				EINVAL => panic!("addr is not a multiple of PAGESIZE; or any bit other than MS_ASYNC | MS_INVALIDATE | MS_SYNC is set in flags; or both MS_SYNC and MS_ASYNC are set in flags."),
 				ENOMEM => panic!("The indicated memory (or part of it) was not mapped."),
 				
-				unexpected @ _ => panic!("Unexpected error {} from msync()", unexpected),
+				unexpected_error @ _ => unexpected_error!(msync, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("mprotect() returned unexpected result {}", result))
+			unexpected_result!(msync, result)
 		}
 	}
 	/// Zeros all mapped memory.
@@ -460,7 +460,7 @@ impl MappedMemory
 		let result = unsafe { mremap(self.virtual_address.into(), old_size, new_size, flags, to_address) };
 		if unlikely!(result == MAP_FAILED)
 		{
-			return match SystemCallErrorNumber::from_errno()
+			return match SystemCallErrorNumber::from_errno_panic()
 			{
 				EINTR => Err(true),
 				
@@ -472,7 +472,7 @@ impl MappedMemory
 				
 				EINVAL => panic!("See man 2 remap for a very long list of reasons"),
 				
-				unexpected @ _ => panic!("Unexpected error {:?} from mremap()", unexpected),
+				unexpected_error @ _ => unexpected_error!(mremap, unexpected_error),
 			}
 		}
 		
@@ -605,7 +605,7 @@ impl MappedMemory
 		{
 			use self::CreationError::*;
 			
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ENOMEM => Err(KernelWouldBeOutOfMemory),
 				ENFILE => Err(SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded),
@@ -621,7 +621,7 @@ impl MappedMemory
 				EOVERFLOW => panic!("This should only occur on 32-bit architectures"),
 				ETXTBSY => panic!("Legacy ETXTBUSY error; MAP_DENYWRITE was set but the object specified by fd is open for writing"),
 				
-				unexpected @ _ => panic!("Unexpected error `{}`", unexpected),
+				unexpected_error @ _ => unexpected_error!(mmap, unexpected_error),
 			}
 		}
 		else
@@ -754,7 +754,7 @@ impl MappedMemory
 		else if likely!(result == -1)
 		{
 			// `ENOMEM` can occur if a memory mapping is 'split' with the central section unmapped.
-			panic!("munmap() returned an error of {}", SystemCallErrorNumber::from_errno())
+			panic!("munmap() returned an error of {}", SystemCallErrorNumber::from_errno_panic())
 		}
 		else
 		{

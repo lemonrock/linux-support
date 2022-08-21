@@ -43,18 +43,18 @@ impl LockAllMemory
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ENOMEM => panic!("the caller had a nonzero RLIMIT_MEMLOCK soft resource limit, but tried to lock more memory than the limit permitted. This limit is not enforced if the process is privileged (CAP_IPC_LOCK)."),
 				EPERM => panic!("The caller is not privileged, but needs privilege (CAP_IPC_LOCK) to perform the requested operation."),
 				EINVAL => panic!("Unknown flags were specified or MCL_ONFAULT was specified without either MCL_FUTURE or MCL_CURRENT"),
 
-				unexpected @ _ => panic!("Unexpected error {} from mlockall()", unexpected)
+				unexpected_error @ _ => unexpected_error!(mlockall, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from mlockall()", result))
+			unexpected_result!(mlockall, result)
 		}
 	}
 
@@ -67,18 +67,18 @@ impl LockAllMemory
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ENOMEM => panic!("the caller had a nonzero RLIMIT_MEMLOCK soft resource limit, but tried to lock more memory than the limit permitted. This limit is not enforced if the process is privileged (CAP_IPC_LOCK)."),
 				EPERM => panic!("The caller is not privileged, but needs privilege (CAP_IPC_LOCK) to perform the requested operation. Or, (Linux 2.6.8 and earlier) The caller was not privileged (CAP_IPC_LOCK)"),
 				EINVAL => panic!("Unknown flags were specified or MCL_ONFAULT was specified without either MCL_FUTURE or MCL_CURRENT"),
 
-				unexpected @ _ => panic!("Unexpected error {} from munlockall()", unexpected)
+				unexpected_error @ _ => unexpected_error!(munlockall, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from munlockall()", result))
+			unexpected_result!(munlockall, result)
 		}
 	}
 }

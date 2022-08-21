@@ -67,7 +67,7 @@ impl<ERAD: EventsReaderAndDispatcher, T: Terminate> NonBlockingUserFaultFileDesc
 				
 				-1 =>
 				{
-					match SystemCallErrorNumber::from_errno()
+					match SystemCallErrorNumber::from_errno_panic()
 					{
 						// On Linux as opposed to the POSIX standard, `EAGAIN` is not possible as the result is `0`.
 						EINTR | ENOMEM => continue,
@@ -76,7 +76,7 @@ impl<ERAD: EventsReaderAndDispatcher, T: Terminate> NonBlockingUserFaultFileDesc
 						
 						EINVAL => panic!("The `nfds` value exceeds the `RLIMIT_NOFILE` value"),
 						
-						unexpected @ _ => panic!("Unexpected error_number `{}`", unexpected),
+						unexpected_error @ _ => unexpected_error!(poll, unexpected_error),
 					}
 				}
 				

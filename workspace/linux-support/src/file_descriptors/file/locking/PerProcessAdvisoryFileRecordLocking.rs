@@ -49,7 +49,7 @@ pub trait PerProcessAdvisoryFileRecordLocking: AsRawFd + Seek + FileExt
 		else if likely!(result == -1)
 		{
 			use self::AdvisoryFileRecordLock::*;
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EACCES | EAGAIN => Ok(false),
 				ENOLCK => Err(()),
@@ -60,12 +60,12 @@ pub trait PerProcessAdvisoryFileRecordLocking: AsRawFd + Seek + FileExt
 				},
 				EOVERFLOW => panic!("The cmd argument is F_GETLK, F_SETLK, or F_SETLKW and the smallest or, if l_len is non-zero, the largest offset of any byte in the requested segment cannot be represented correctly in an object of type off_t"),
 				EINVAL => panic!("The cmd argument is invalid, or the cmd argument is F_GETLK, F_SETLK, or F_SETLKW and the data pointed to by arg is not valid, or `fildes` refers to a file that does not support locking"),
-				unexpected @ _ => panic!("Unexpected error `{}` from fcntl()", unexpected),
+				unexpected_error @ _ => unexpected_error!(fcntl, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result `{}` from fcntl()", result))
+			unexpected_result!(fcntl, result)
 		}
 	}
 
@@ -92,7 +92,7 @@ pub trait PerProcessAdvisoryFileRecordLocking: AsRawFd + Seek + FileExt
 		else if likely!(result == -1)
 		{
 			use self::AdvisoryFileRecordLock::*;
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EDEADLK => Err(true),
 				ENOLCK => Err(false),
@@ -104,12 +104,12 @@ pub trait PerProcessAdvisoryFileRecordLocking: AsRawFd + Seek + FileExt
 				},
 				EOVERFLOW => panic!("The cmd argument is F_GETLK, F_SETLK, or F_SETLKW and the smallest or, if l_len is non-zero, the largest offset of any byte in the requested segment cannot be represented correctly in an object of type off_t"),
 				EINVAL => panic!("The cmd argument is invalid, or the cmd argument is F_GETLK, F_SETLK, or F_SETLKW and the data pointed to by arg is not valid, or `fildes` refers to a file that does not support locking"),
-				unexpected @ _ => panic!("Unexpected error `{}` from fcntl()", unexpected),
+				unexpected_error @ _ => unexpected_error!(fcntl, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result `{}` from fcntl()", result))
+			unexpected_result!(fcntl, result)
 		}
 	}
 
@@ -133,18 +133,18 @@ pub trait PerProcessAdvisoryFileRecordLocking: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EACCES | EAGAIN => false,
 				EBADF => panic!("File descriptor was not valid"),
 				EOVERFLOW => panic!("The cmd argument is F_GETLK, F_SETLK, or F_SETLKW and the smallest or, if l_len is non-zero, the largest offset of any byte in the requested segment cannot be represented correctly in an object of type off_t"),
 				EINVAL => panic!("The cmd argument is invalid, or the cmd argument is F_GETLK, F_SETLK, or F_SETLKW and the data pointed to by arg is not valid, or `fildes` refers to a file that does not support locking"),
-				unexpected @ _ => panic!("Unexpected error `{}` from fcntl()", unexpected),
+				unexpected_error @ _ => unexpected_error!(fcntl, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result `{}` from fcntl()", result))
+			unexpected_result!(fcntl, result)
 		}
 	}
 
@@ -168,18 +168,18 @@ pub trait PerProcessAdvisoryFileRecordLocking: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EINTR => false,
 				EBADF => panic!("File descriptor was not open or appropriate"),
 				EOVERFLOW => panic!("The cmd argument is F_GETLK, F_SETLK, or F_SETLKW and the smallest or, if l_len is non-zero, the largest offset of any byte in the requested segment cannot be represented correctly in an object of type off_t"),
 				EINVAL => panic!("The cmd argument is invalid, or the cmd argument is F_GETLK, F_SETLK, or F_SETLKW and the data pointed to by arg is not valid, or `fildes` refers to a file that does not support locking"),
-				unexpected @ _ => panic!("Unexpected error `{}` from fcntl()", unexpected),
+				unexpected_error @ _ => unexpected_error!(fcntl, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result `{}` from fcntl()", result))
+			unexpected_result!(fcntl, result)
 		}
 	}
 
@@ -204,12 +204,12 @@ pub trait PerProcessAdvisoryFileRecordLocking: AsRawFd + Seek + FileExt
 
 		if likely!(result == 0)
 		{
-			l.process_test()
+			l.process_test::<"F_GETLK">()
 		}
 		else if likely!(result == -1)
 		{
 			use self::AdvisoryFileRecordLock::*;
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EBADF => match advisory_file_record_lock
 				{
@@ -218,12 +218,12 @@ pub trait PerProcessAdvisoryFileRecordLocking: AsRawFd + Seek + FileExt
 				},
 				EOVERFLOW => panic!("The cmd argument is F_GETLK, F_SETLK, or F_SETLKW and the smallest or, if l_len is non-zero, the largest offset of any byte in the requested segment cannot be represented correctly in an object of type off_t"),
 				EINVAL => panic!("The cmd argument is invalid, or the cmd argument is F_GETLK, F_SETLK, or F_SETLKW and the data pointed to by arg is not valid, or `fildes` refers to a file that does not support locking"),
-				unexpected @ _ => panic!("Unexpected error `{}` from fcntl()", unexpected),
+				unexpected_error @ _ => unexpected_error!(fcntl, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result `{}` from fcntl()", result))
+			unexpected_result!(fcntl, result)
 		}
 	}
 }

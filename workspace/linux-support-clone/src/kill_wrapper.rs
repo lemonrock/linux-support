@@ -2,6 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use swiss_army_knife::unexpected_result;
+
 #[inline(always)]
 fn kill_wrapper(child_process_identifier: ProcessIdentifier)
 {
@@ -17,12 +19,12 @@ fn kill_wrapper(child_process_identifier: ProcessIdentifier)
 			ESRCH => return,
 			EINVAL => panic!("EINVAL from `kill()`"),
 			EPERM => panic!("Permission defined"),
-
-			unknown @ _ => panic!(("Unexpected error code of `{}` from `kill()`", unknown))
+			
+			unexpected_error @ _ => unexpected_error!(kill, unexpected_error)
 		}
 	}
 	else
 	{
-		panic!("Unexpected result code of `{}` from `kill()`", result)
+		unexpected_result!(kill, result)
 	}
 }

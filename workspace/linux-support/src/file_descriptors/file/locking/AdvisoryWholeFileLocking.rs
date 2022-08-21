@@ -30,7 +30,7 @@ pub trait AdvisoryWholeFileLocking: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ENOLCK => Err(()),
 				EWOULDBLOCK => Ok(false),
@@ -38,12 +38,12 @@ pub trait AdvisoryWholeFileLocking: AsRawFd + Seek + FileExt
 				EBADF => panic!("fd is not an open file descriptor"),
 				EINVAL => panic!("operation is invalid"),
 
-				unexpected @ _ => panic!("Unexpected error {} from flock()", unexpected)
+				unexpected_error @ _ => unexpected_error!(flock, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from flock()", result))
+			unexpected_result!(flock, result)
 		}
 	}
 
@@ -72,7 +72,7 @@ pub trait AdvisoryWholeFileLocking: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EINTR => Ok(false),
 				ENOLCK => Err(()),
@@ -80,12 +80,12 @@ pub trait AdvisoryWholeFileLocking: AsRawFd + Seek + FileExt
 				EINVAL => panic!("operation is invalid"),
 				EBADF => panic!("fd is not an open file descriptor"),
 
-				unexpected @ _ => panic!("Unexpected error {} from flock()", unexpected)
+				unexpected_error @ _ => unexpected_error!(flock, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from flock()", result))
+			unexpected_result!(flock, result)
 		}
 	}
 
@@ -111,7 +111,7 @@ pub trait AdvisoryWholeFileLocking: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EWOULDBLOCK => false,
 				EINTR => panic!("Should not be possible to interrupt with a signal as non-blocking"),
@@ -119,12 +119,12 @@ pub trait AdvisoryWholeFileLocking: AsRawFd + Seek + FileExt
 				EBADF => panic!("fd is not an open file descriptor"),
 				EINVAL => panic!("operation is invalid"),
 
-				unexpected @ _ => panic!("Unexpected error {} from flock()", unexpected)
+				unexpected_error @ _ => unexpected_error!(flock, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from flock()", result))
+			unexpected_result!(flock, result)
 		}
 	}
 
@@ -150,7 +150,7 @@ pub trait AdvisoryWholeFileLocking: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EINTR => false,
 				EWOULDBLOCK => panic!("The file is locked and the LOCK_NB flag was selected"),
@@ -158,12 +158,12 @@ pub trait AdvisoryWholeFileLocking: AsRawFd + Seek + FileExt
 				EBADF => panic!("fd is not an open file descriptor"),
 				EINVAL => panic!("operation is invalid"),
 
-				unexpected @ _ => panic!("Unexpected error {} from flock()", unexpected)
+				unexpected_error @ _ => unexpected_error!(flock, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from flock()", result))
+			unexpected_result!(flock, result)
 		}
 	}
 }

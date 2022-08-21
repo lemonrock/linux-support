@@ -55,7 +55,7 @@ impl<Protocol: NetlinkProtocol> FromRawFd for NetlinkSocketFileDescriptor<Protoc
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EBADF => panic!("The argument sockfd is not a valid file descriptor"),
 				EFAULT => panic!(" The address pointed to by optval is not in a valid part of the process address space. For getsockopt(), this error may also be returned if optlen is not in a valid part of the process address space."),
@@ -63,12 +63,12 @@ impl<Protocol: NetlinkProtocol> FromRawFd for NetlinkSocketFileDescriptor<Protoc
 				ENOPROTOOPT => panic!("The option is unknown at the level indicated"),
 				ENOTSOCK => panic!("The file descriptor sockfd does not refer to a socket"),
 				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from getsockopt()", unexpected)),
+				unexpected @ _ => unexpected_result!(getsockopt, unexpected),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from getsockopt()", result));
+			unexpected_result!(getsockopt, result);
 		}
 	}
 }
@@ -125,7 +125,7 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from send()", result))
+			unexpected_result!(send, result)
 		}
 	}
 	
@@ -164,7 +164,7 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 				}
 				else if likely!(result == -1)
 				{
-					match SystemCallErrorNumber::from_errno()
+					match SystemCallErrorNumber::from_errno_panic()
 					{
 						EINTR => continue,
 						
@@ -186,7 +186,7 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 				}
 				else
 				{
-					unreachable_code(format_args!("Unexpected result {} from recvfrom()", result))
+					unexpected_result!(recvfrom, result)
 				};
 			};
 			
@@ -208,7 +208,7 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 				}
 				else if likely!(result == -1)
 				{
-					match SystemCallErrorNumber::from_errno()
+					match SystemCallErrorNumber::from_errno_panic()
 					{
 						EINTR => continue,
 						
@@ -230,7 +230,7 @@ impl<Protocol: NetlinkProtocol> NetlinkSocketFileDescriptor<Protocol>
 				}
 				else
 				{
-					unreachable_code(format_args!("Unexpected result {} from recvfrom()", result))
+					unexpected_result!(recvfrom, result)
 				};
 			};
 			

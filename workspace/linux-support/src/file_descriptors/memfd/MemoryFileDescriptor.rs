@@ -328,7 +328,7 @@ impl MemoryFileDescriptor
 		{
 			use self::CreationError::*;
 
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EMFILE => Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
 
@@ -341,12 +341,12 @@ impl MemoryFileDescriptor
 				EINVAL => panic!("The address in name points to invalid memory, or, flags included unknown bits, or, name was too long (The limit is 249 bytes, excluding the
   terminating null byte), or, both  MFD_HUGETLB and MFD_ALLOW_SEALING were specified in flags before Linux 4.16"),
 
-				_ => unreachable_code(format_args!("")),
+				unexpected_error @ _ => unexpected_error!(memfd_create, unexpected_error)
 			}
 		}
 		else
 		{
-			panic!("Unexpected result {}", result)
+			unexpected_result!(memfd_create, result)
 		}
 	}
 
@@ -361,18 +361,18 @@ impl MemoryFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EPERM => Err(()),
 
 				EINVAL => panic!("This is not a memfd"),
-
-				unexpected @ _ => panic!("Unexpected error `{:?}`", unexpected)
+				
+				unexpected_error @ _ => unexpected_error!(fcntl, F_ADD_SEALS, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result from fcntl F_ADD_SEALS of `{}`", result))
+			unexpected_result!(fcntl, F_ADD_SEALS, result)
 		}
 	}
 
@@ -387,16 +387,16 @@ impl MemoryFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EINVAL => panic!("This is not a memfd"),
-
-				unexpected @ _ => panic!("Unexpected error `{:?}`", unexpected)
+				
+				unexpected_error @ _ => unexpected_error!(fcntl, F_GET_SEALS, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result from fcntl F_ADD_SEALS of `{}`", result))
+			unexpected_result!(fcntl, F_GET_SEALS, result)
 		}
 	}
 	

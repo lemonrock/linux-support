@@ -76,31 +76,16 @@ impl CgroupLinkFileDescriptor
 			old_prog_fd,
 		};
 		
-		let result = attr.syscall(bpf_cmd::BPF_LINK_UPDATE);
-		if likely!(result == 0)
+		match attr.syscall(bpf_cmd::BPF_LINK_UPDATE).as_usize()
 		{
-			Ok(())
-		}
-		else if likely!(result == -1)
-		{
-			match SystemCallErrorNumber::from_errno()
-			{
-				EINVAL => panic!("Invalid attr or invalid attach type"),
-				EPERM => if currently_attached_program.is_none()
-				{
-					panic!("Permission denied")
-				}
-				else
-				{
-					Err(())
-				},
-				
-				errno @ _ => panic!("Unexpected error `{}` from bpf(BPF_LINK_UPDATE)", errno),
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_LINK_UPDATE)", result))
+			0 => Ok(()),
+			
+			SystemCallResult::EINVAL_usize => panic!("Invalid attr or invalid attach type"),
+			SystemCallResult::EPERM_usize if currently_attached_program.is_none() => panic!("Permission denied"),
+			SystemCallResult::EPERM_usize => Err(()),
+			unexpected_error @ _ => unexpected_error!(bpf, BPF_LINK_UPDATE, unexpected_error),
+			
+			unexpected @ _ => unexpected_result!(bpf, BPF_LINK_UPDATE, unexpected),
 		}
 	}
 }

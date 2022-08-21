@@ -107,25 +107,17 @@ impl MapFileDescriptor
 			flags: BPF_MAP_UPDATE_ELEM_flags::BPF_ANY,
 		};
 		
-		let result = attr.syscall(bpf_cmd::BPF_MAP_GET_NEXT_KEY);
-		if likely!(result == 0)
+		match attr.syscall(bpf_cmd::BPF_MAP_GET_NEXT_KEY).as_usize()
 		{
-			Ok(Some(next_key))
-		}
-		else if likely!(result == -1)
-		{
-			match SystemCallErrorNumber::from_errno()
-			{
-				// "If key is the last element, -1 is returned and SystemCallErrorNumber is set to ENOENT'.
-				ENOENT => Ok(None),
-				
-				// "Other possible SystemCallErrorNumber values are ENOMEM, EFAULT, EPERM, and EINVAL".
-				other @ _ => Err(other)
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_MAP_GET_NEXT_KEY)", result))
+			0 => Ok(Some(next_key)),
+			
+			// "If key is the last element, -1 is returned and SystemCallErrorNumber is set to ENOENT'.
+			SystemCallResult::ENOENT_usize => Ok(None),
+			
+			// "Other possible SystemCallErrorNumber values are ENOMEM, EFAULT, EPERM, and EINVAL".
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Self::error(error),
+			
+			unexpected @ _ => unexpected_result!(bpf, BPF_MAP_GET_NEXT_KEY, unexpected),
 		}
 	}
 	
@@ -187,24 +179,18 @@ impl MapFileDescriptor
 		};
 		
 		let result = attr.syscall(bpf_cmd::BPF_MAP_LOOKUP_ELEM);
-		if likely!(result == 0)
+		
+		match attr.syscall(bpf_cmd::BPF_MAP_LOOKUP_ELEM).as_usize()
 		{
-			true
-		}
-		else if likely!(result == -1)
-		{
-			match SystemCallErrorNumber::from_errno()
-			{
-				ENOENT => false,
-				
-				ENOTSUPP | EOPNOTSUPP => panic!("Operation is unsupported"),
-				
-				unexpected @ _ => panic!("Unexpected error {}", unexpected)
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_MAP_LOOKUP_ELEM)", result))
+			0 => true,
+			
+			SystemCallResult::ENOENT_usize => false,
+			
+			SystemCallResult::ENOTSUPP_usize | SystemCallResult::EOPNOTSUPP_usize => panic!("Operation is unsupported"),
+			
+			unexpected_error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => unexpected_error!(bpf, BPF_MAP_LOOKUP_ELEM, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
+			
+			unexpected @ _ => unexpected_result!(bpf, BPF_MAP_LOOKUP_ELEM, unexpected),
 		}
 	}
 	
@@ -227,7 +213,7 @@ impl MapFileDescriptor
 				
 				ENOMEM => Err(()),
 				
-				_ => panic!("Unexpected error `{}`", error_number),
+				_ => unexpected_error!(bpf, BPF_MAP_UPDATE_ELEM, error_number),
 			}
 		}
 	}
@@ -251,7 +237,7 @@ impl MapFileDescriptor
 				
 				ENOMEM => Err(()),
 				
-				_ => panic!("Unexpected error `{}`", error_number),
+				_ => unexpected_error!(bpf, BPF_MAP_UPDATE_ELEM, error_number),
 			}
 		}
 	}
@@ -277,7 +263,7 @@ impl MapFileDescriptor
 				
 				ENOMEM => Err(OutOfMemory),
 				
-				_ => panic!("Unexpected error `{}`", error_number),
+				unexpected_error @ _ => unexpected_error!(bpf, BPF_MAP_UPDATE_ELEM, unexpected_error),
 			}
 		}
 	}
@@ -303,7 +289,7 @@ impl MapFileDescriptor
 				
 				ENOMEM => Err(OutOfMemory),
 				
-				_ => panic!("Unexpected error `{}`", error_number),
+				_ => unexpected_error!(bpf, BPF_MAP_UPDATE_ELEM, error_number),
 			}
 		}
 	}
@@ -332,7 +318,7 @@ impl MapFileDescriptor
 				
 				ENOENT => Err(()),
 				
-				_ => panic!("Unexpected error `{}`", error_number),
+				unexpected_error @ _ => unexpected_error!(bpf, BPF_MAP_UPDATE_ELEM, unexpected_error),
 			}
 		}
 	}
@@ -354,7 +340,7 @@ impl MapFileDescriptor
 				
 				ENOENT => Err(()),
 				
-				_ => panic!("Unexpected error `{}`", error_number),
+				_ => unexpected_error!(bpf, BPF_MAP_UPDATE_ELEM, error_number),
 			}
 		}
 	}
@@ -380,7 +366,7 @@ impl MapFileDescriptor
 				
 				ENOMEM => Err(()),
 				
-				_ => panic!("Unexpected error `{}`", error_number),
+				unexpected_error @ _ => unexpected_error!(bpf, BPF_MAP_UPDATE_ELEM, unexpected_error),
 			}
 		}
 	}
@@ -403,23 +389,14 @@ impl MapFileDescriptor
 			flags: flags | lock_flags.to_update_flags(),
 		};
 		
-		let result = attr.syscall(bpf_cmd::BPF_MAP_UPDATE_ELEM);
-		if likely!(result == 0)
+		match attr.syscall(bpf_cmd::BPF_MAP_UPDATE_ELEM).as_usize()
 		{
-			Ok(())
-		}
-		else if likely!(result == -1)
-		{
-			match SystemCallErrorNumber::from_errno()
-			{
-				ENOTSUPP | EOPNOTSUPP => panic!("Operation is unsupported"),
-				
-				other @ _ => Err(other)
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_MAP_UPDATE)", result))
+			0 => Ok(()),
+			
+			SystemCallResult::ENOTSUPP_usize | SystemCallResult::EOPNOTSUPP_usize => panic!("Operation is unsupported"),
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Self::error(error),
+			
+			unexpected @ _ => unexpected_result!(bpf, BPF_MAP_UPDATE, unexpected),
 		}
 	}
 	
@@ -443,23 +420,14 @@ impl MapFileDescriptor
 			flags: BPF_MAP_UPDATE_ELEM_flags::empty(),
 		};
 		
-		let result = attr.syscall(bpf_cmd::BPF_MAP_LOOKUP_AND_DELETE_ELEM);
-		if likely!(result == 0)
+		match attr.syscall(bpf_cmd::BPF_MAP_LOOKUP_AND_DELETE_ELEM).as_usize()
 		{
-			Ok(Some(value))
-		}
-		else if likely!(result == -1)
-		{
-			match SystemCallErrorNumber::from_errno()
-			{
-				ENOENT => Ok(None),
-				
-				other @ _ => Err(other)
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_MAP_LOOKUP_AND_DELETE_ELEM)", result))
+			0 => Ok(Some(value)),
+			
+			SystemCallResult::ENOENT_usize => Ok(None),
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Self::error(error),
+			
+			unexpected @ _ => unexpected_result!(bpf, BPF_MAP_LOOKUP_AND_DELETE_ELEM, unexpected),
 		}
 	}
 	
@@ -481,23 +449,14 @@ impl MapFileDescriptor
 			flags: BPF_MAP_UPDATE_ELEM_flags::empty(),
 		};
 		
-		let result = attr.syscall(bpf_cmd::BPF_MAP_DELETE_ELEM);
-		if likely!(result == 0)
+		match attr.syscall(bpf_cmd::BPF_MAP_DELETE_ELEM).as_usize()
 		{
-			Ok(true)
-		}
-		else if likely!(result == -1)
-		{
-			match SystemCallErrorNumber::from_errno()
-			{
-				ENOENT => Ok(false),
-				
-				other @ _ => Err(other)
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_MAP_DELETE_ELEM)", result))
+			0 => Ok(true),
+			
+			SystemCallResult::ENOENT_usize => Ok(false),
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Self::error(error),
+			
+			unexpected @ _ => unexpected_result!(bpf, BPF_MAP_DELETE_ELEM, unexpected),
 		}
 	}
 	
@@ -522,29 +481,17 @@ impl MapFileDescriptor
 			flags: BPF_MAP_UPDATE_ELEM_flags::empty(),
 		};
 		
-		let result = attr.syscall(bpf_cmd::BPF_MAP_FREEZE);
-		if likely!(result == 0)
+		match attr.syscall(bpf_cmd::BPF_MAP_FREEZE).as_usize()
 		{
-			Ok(())
-		}
-		else if likely!(result == -1)
-		{
-			match SystemCallErrorNumber::from_errno()
-			{
-				EINVAL => panic!("Invalid attr"),
-				
-				ENOTSUPP => panic!("Not supported for maps of type `BPF_MAP_TYPE_STRUCT_OPS`"),
-				
-				EBUSY => panic!("Already frozen"),
-				
-				EPERM => panic!("Permission denied"),
-				
-				unexpected @ _ => panic!("Unexpected error `{}`", unexpected),
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_MAP_FREEZE)", result))
+			0 => Ok(()),
+			
+			SystemCallResult::EINVAL_usize => panic!("Invalid attr"),
+			SystemCallResult::ENOTSUPP_usize => panic!("Not supported for maps of type `BPF_MAP_TYPE_STRUCT_OPS`"),
+			SystemCallResult::EBUSY_usize => panic!("Already frozen"),
+			SystemCallResult::EPERM_usize => panic!("Permission denied"),
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => unexpected_error!(bpf, BPF_MAP_FREEZE, SystemCallResult::usize_to_system_call_error_number(error)),
+			
+			unexpected @ _ => unexpected_result!(bpf, BPF_MAP_FREEZE, unexpected),
 		}
 	}
 	
@@ -596,24 +543,15 @@ impl MapFileDescriptor
 			flags: 0,
 		};
 		
-		let result = attr.syscall(bpf_cmd::BPF_MAP_LOOKUP_BATCH);
-		let count = unsafe { attr.batch.count };
-		if likely!(result == 0)
+		match attr.syscall(bpf_cmd::BPF_MAP_LOOKUP_BATCH).as_usize()
 		{
-			Ok((count, out_batch, true))
-		}
-		else if likely!(result == -1)
-		{
-			match SystemCallErrorNumber::from_errno()
-			{
-				ENOENT => Ok((count, out_batch, false)),
-				
-				other @ _ => Err(other),
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_MAP_LOOKUP_BATCH)", result))
+			0 => Ok((Self::count(attr), out_batch, true)),
+			
+			SystemCallResult::ENOENT_usize => Ok((Self::count(attr), out_batch, false)),
+			
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Self::error(error),
+			
+			unexpected @ _ => unexpected_result!(bpf, BPF_MAP_LOOKUP_BATCH, unexpected),
 		}
 	}
 	
@@ -665,24 +603,15 @@ impl MapFileDescriptor
 			flags: 0,
 		};
 		
-		let result = attr.syscall(bpf_cmd::BPF_MAP_LOOKUP_AND_DELETE_BATCH);
-		let count = unsafe { attr.batch.count };
-		if likely!(result == 0)
+		match attr.syscall(bpf_cmd::BPF_MAP_LOOKUP_AND_DELETE_BATCH).as_usize()
 		{
-			Ok((count, out_batch, true))
-		}
-		else if likely!(result == -1)
-		{
-			match SystemCallErrorNumber::from_errno()
-			{
-				ENOENT => Ok((count, out_batch, false)),
-				
-				other @ _ => Err(other),
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_MAP_LOOKUP_AND_DELETE_BATCH)", result))
+			0 => Ok((Self::count(attr), out_batch, true)),
+			
+			SystemCallResult::ENOENT_usize => Ok((Self::count(attr), out_batch, false)),
+			
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Self::error(error),
+			
+			unexpected @ _ => unexpected_result!(bpf, BPF_MAP_LOOKUP_AND_DELETE_BATCH, unexpected),
 		}
 	}
 	
@@ -701,7 +630,7 @@ impl MapFileDescriptor
 	
 	/// `keys` and `values` must be the same length.
 	#[inline(always)]
-	 fn update_batch<K: Copy>(&self, keys: &[K], values: AlignedU64, lock_flags: LockFlags) -> Result<usize, SystemCallErrorNumber>
+	fn update_batch<K: Copy>(&self, keys: &[K], values: AlignedU64, lock_flags: LockFlags) -> Result<usize, SystemCallErrorNumber>
 	{
 		let keys_length = keys.len();
 		assert_ne!(keys_length, 0, "There must be at least one key");
@@ -720,19 +649,13 @@ impl MapFileDescriptor
 			flags: 0,
 		};
 		
-		let result = attr.syscall(bpf_cmd::BPF_MAP_UPDATE_BATCH);
-		let count = unsafe { attr.batch.count };
-		if likely!(result == 0)
+		match attr.syscall(bpf_cmd::BPF_MAP_UPDATE_BATCH).as_usize()
 		{
-			Ok(count as usize)
-		}
-		else if likely!(result == -1)
-		{
-			Err(SystemCallErrorNumber::from_errno())
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_MAP_UPDATE_BATCH)", result))
+			0 => Ok(Self::count_usize(attr)),
+			
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Self::error(error),
+			
+			unexpected @ _ => unexpected_result!(bpf, BPF_MAP_UPDATE_BATCH, unexpected),
 		}
 	}
 	
@@ -756,24 +679,15 @@ impl MapFileDescriptor
 			flags: 0,
 		};
 		
-		let result = attr.syscall(bpf_cmd::BPF_MAP_DELETE_BATCH);
-		let count = unsafe { attr.batch.count };
-		if likely!(result == 0)
+		match attr.syscall(bpf_cmd::BPF_MAP_DELETE_BATCH).as_usize()
 		{
-			Ok((count as usize, true))
-		}
-		else if likely!(result == -1)
-		{
-			match SystemCallErrorNumber::from_errno()
-			{
-				ENOENT => Ok((count as usize, false)),
-				
-				other @ _ => Err(other),
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_MAP_DELETE_BATCH)", result))
+			0 => Ok((Self::count_usize(attr), true)),
+			
+			SystemCallResult::ENOENT_usize => Ok((Self::count_usize(attr), false)),
+			
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Self::error(error),
+			
+			unexpected @ _ => unexpected_result!(bpf, BPF_MAP_DELETE_BATCH, unexpected),
 		}
 	}
 	
@@ -811,19 +725,35 @@ impl MapFileDescriptor
 			}
 		};
 		
-		let result = attributes.syscall(bpf_cmd::BPF_MAP_CREATE);
-		if likely!(result >= 0)
+		match attributes.syscall(bpf_cmd::BPF_MAP_CREATE).as_usize()
 		{
-			let map_file_descriptor = Self(result);
-			Ok(map_file_descriptors.add(map_name.clone(), map_file_descriptor)?)
+			raw_file_descriptor @ SystemCallResult::InclusiveMinimumRawFileDescriptor_usize ..= SystemCallResult::InclusiveMaximumRawFileDescriptor_usize =>
+			{
+				let map_file_descriptor = Self(raw_file_descriptor as RawFd);
+				Ok(map_file_descriptors.add(map_name.clone(), map_file_descriptor)?)
+			}
+			
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Err(MapCreationError::CreateFailed(SystemCallResult::usize_to_system_call_error_number(error))),
+			
+			unexpected @ _ => unexpected_result!(bpf, BPF_MAP_CREATE, unexpected),
 		}
-		else if likely!(result == -1)
-		{
-			Err(MapCreationError::CreateFailed(SystemCallErrorNumber::from_errno()))
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_MAP_CREATE)", result))
-		}
+	}
+	
+	#[inline(always)]
+	const fn error<X>(error: usize) -> Result<X, SystemCallErrorNumber>
+	{
+		Err(SystemCallResult::usize_to_system_call_error_number(error))
+	}
+	
+	#[inline(always)]
+	const fn count_usize(attr: bpf_attr) -> usize
+	{
+		Self::count(attr) as usize
+	}
+	
+	#[inline(always)]
+	const fn count(attr: bpf_attr) -> u32
+	{
+		unsafe { attr.batch.count }
 	}
 }

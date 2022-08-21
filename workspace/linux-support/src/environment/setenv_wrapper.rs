@@ -13,12 +13,12 @@ fn setenv_wrapper(name: ConstCStr, value: &CStr, overwrite: bool)
 	}
 	else if likely!(result == -1)
 	{
-		match SystemCallErrorNumber::from_errno()
+		match SystemCallErrorNumber::from_errno_panic()
 		{
 			EINVAL => panic!("name is NULL, points to a string of length 0, or contains an '=' character"),
 			ENOMEM => panic!("Insufficient memory to add a new variable to the environment"),
-
-			unknown @ _ => panic!("Unknown errno from `setenv()` of `{}`", unknown),
+			
+			unexpected_error @ _ => unexpected_error!(setenv, unexpected_error),
 		}
 	}
 	else

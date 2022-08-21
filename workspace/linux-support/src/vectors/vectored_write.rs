@@ -54,12 +54,12 @@ macro_rules! vectored_write
 								EMSGSIZE => panic!("The socket type requires that message be sent atomically, and the size of the message to be sent made this impossible"),
 								EISCONN => panic!("The connection-mode socket was connected already but a recipient was specified"),
 								EDESTADDRREQ => panic!("The socket is not connection-mode, and no peer address is set"),
-								unexpected @ _ => unreachable_code(format_args!("Unexpected error code {}", unexpected)),
+								unexpected @ _ => unexpected_error!(vectored_write, unexpected),
 							}
 						}
 						else
 						{
-							unreachable_code(format_args!("Unexpected result {}", result))
+							unexpected_result!(vectored_write, result)
 						}
 					)
 				)

@@ -30,21 +30,21 @@ pub trait PosixMessageQueue: AsRawFd + IntoRawFd + Sized
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EACCES => PermissionDenied,
 
 					ENOENT => DoesNotExist,
 
 					ENAMETOOLONG => panic!("`name` was too long"),
-
-					_ => unreachable_code(format_args!("")),
+					
+					unexpected_error @ _ => unexpected_error!(mq_unlink, unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(mq_unlink, result)
 		}
 	}
 

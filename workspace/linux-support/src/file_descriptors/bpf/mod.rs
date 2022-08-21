@@ -14,6 +14,7 @@ use crate::bpf::extended::process_query::*;
 use crate::bpf::extended::programs::*;
 use crate::bpf::extended::BpfMountPoint;
 use crate::mounts::VirtualFileSystemMountPoint;
+use crate::syscall::SystemCallResult;
 
 
 include!("BpfFileDescriptor.rs");

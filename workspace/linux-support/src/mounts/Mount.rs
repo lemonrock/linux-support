@@ -63,7 +63,7 @@ impl<'a> Mount<'a>
 		{
 			0 => Ok(()),
 			
-			-1 => match SystemCallErrorNumber::from_errno()
+			-1 => match SystemCallErrorNumber::from_errno_panic()
 			{
 				EAGAIN =>
 					{
@@ -83,10 +83,10 @@ impl<'a> Mount<'a>
 				ENAMETOOLONG => panic!("mount_point path name is too long"),
 				EFAULT => panic!("Invalid data"),
 				
-				illegal @ _ => panic!("umount() set an illegal errno '{}'", illegal),
+				unexpected_error @ _ => unexpected_error!(umount, unexpected_error),
 			},
 			
-			illegal @ _ => panic!("umount() returned an illegal result '{}'", illegal),
+			unexpected @ _ => unexpected!(umount, unexpected),
 		}
 	}
 	

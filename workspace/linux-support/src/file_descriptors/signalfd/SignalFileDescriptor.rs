@@ -2,6 +2,8 @@
 // Copyright © 2018-2019 The developers of file-descriptors. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/file-descriptors/master/COPYRIGHT.
 
 
+use crate::syscall::SystemCallResult;
+
 /// Represents a signal instance.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct SignalFileDescriptor(RawFd);
@@ -70,27 +72,27 @@ impl SignalFileDescriptor
 	#[inline(always)]
 	pub fn new(signal_mask: &sigset_t) -> Result<Self, CreationError>
 	{
+		use self::CreationError::*;
+		
 		let result = unsafe { signalfd(-1, signal_mask, SFD_NONBLOCK | SFD_CLOEXEC) };
-		if likely!(result != -1)
+		match result
 		{
-			Ok(SignalFileDescriptor(result))
-		}
-		else
-		{
-			use self::CreationError::*;
-
-			Err
+			raw_file_descriptor @ SystemCallResult::InclusiveMinimumRawFileDescriptor_i32 ..= SystemCallResult::InclusiveMaximumRawFileDescriptor_i32 => Ok(SignalFileDescriptor(raw_file_descriptor)),
+			
+			-1 => Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
 					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
 					ENOMEM => KernelWouldBeOutOfMemory,
 					EINVAL => panic!("Invalid arguments"),
 					ENODEV => panic!("Could not mount (internal) anonymous inode device"),
-					_ => unreachable_code(format_args!("")),
+					unexpected_error @ _ => unexpected_error!(signalfd, unexpected_error),
 				}
-			)
+			),
+			
+			_ => unexpected_result!(signalfd, "new", result),
 		}
 	}
 
@@ -100,18 +102,19 @@ impl SignalFileDescriptor
 	#[inline(always)]
 	pub fn update_mask(&self, signal_mask: &sigset_t) -> Result<(), CreationError>
 	{
+		use self::CreationError::*;
+		
 		let result = unsafe { signalfd(self.0, signal_mask, SFD_NONBLOCK | SFD_CLOEXEC) };
-		if likely!(result != -1)
+		
+		match result
 		{
-			Ok(())
-		}
-		else
-		{
-			use self::CreationError::*;
-
-			Err
+			SystemCallResult::InclusiveMinimumRawFileDescriptor_i32 ..= SystemCallResult::InclusiveMinimumRawFileDescriptor_i32 if result == self.0 => Ok(()),
+			
+			SystemCallResult::InclusiveMinimumRawFileDescriptor_i32 ..= SystemCallResult::InclusiveMinimumRawFileDescriptor_i32 => unexpected_result!(signalfd, "update mask had mismatched file descriptor", result),
+			
+			-1 => Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
 					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
@@ -119,9 +122,20 @@ impl SignalFileDescriptor
 					EBADF => panic!("Invalid signalfd"),
 					EINVAL => panic!("Invalid arguments"),
 					ENODEV => panic!("Could not mount (internal) anonymous inode device"),
-					_ => unreachable_code(format_args!("")),
+					unexpected_error @ _ => unexpected_error!(signalfd, unexpected_error),
 				}
-			)
+			),
+			
+			_ => unexpected_result!(signalfd, "update mask", result),
+		}
+		
+		if likely!(result != -1)
+		{
+			Ok(())
+		}
+		else
+		{
+		
 		}
 	}
 
@@ -163,7 +177,7 @@ impl SignalFileDescriptor
 			{
 				-1 =>
 				{
-					match SystemCallErrorNumber::from_errno()
+					match SystemCallErrorNumber::from_errno_panic()
 					{
 						EAGAIN => Err(WouldBlock),
 						ECANCELED => Err(Cancelled),
@@ -176,13 +190,13 @@ impl SignalFileDescriptor
 
 						// ERESTARTSYS is possible but should not occur.
 						
-						error_number @ _ => panic!("Unexpected error `{}`", error_number),
+						unexpected_error @ _ => unexpected_error!(read, "signal file descriptor", unexpected_error),
 					}
 				}
 
 				0 => panic!("End of file but we haven't closed the file descriptor"),
 
-				_ => unreachable_code(format_args!("")),
+				unexpected @ _ => unexpected_result!(read, "signal file descriptor", unexpected),
 			}
 		}
 	}

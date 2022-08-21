@@ -17,7 +17,7 @@ fn bind_socket_with_length<SA>(socket_file_descriptor: &impl FileDescriptor, soc
 	{
 		Err
 		(
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EACCES => PermissionDenied,
 				EADDRINUSE => AddressInUse,
@@ -34,13 +34,13 @@ fn bind_socket_with_length<SA>(socket_file_descriptor: &impl FileDescriptor, soc
 				EROFS => FilePathInvalid(FilePathIsReadOnly),
 
 				EAFNOSUPPORT => panic!("Invalid `sa_family_t` value"),
-
-				_ => unreachable_code(format_args!("")),
+				
+				unexpected_error @ _ => unexpected_error!(bind, unexpected_error),
 			}
 		)
 	}
 	else
 	{
-		unreachable_code(format_args!(""))
+		unexpected_result!(bind, result)
 	}
 }

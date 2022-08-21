@@ -78,7 +78,7 @@ pub trait Sparseness: AsRawFd + Seek + FileExt
 			}
 			else if likely!(result == -1)
 			{
-				return match SystemCallErrorNumber::from_errno()
+				return match SystemCallErrorNumber::from_errno_panic()
 				{
 					EBADR =>
 					{

@@ -88,7 +88,7 @@ impl<SD: SocketData> StreamingServerListenerSocketFileDescriptor<SD>
 		{
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EAGAIN => Again,
 
@@ -110,14 +110,14 @@ impl<SD: SocketData> StreamingServerListenerSocketFileDescriptor<SD>
 					EOPNOTSUPP => panic!("The socket is not of a type that supports the `accept()` operation"),
 					ESOCKTNOSUPPORT => panic!("ESOCKTNOSUPPORT"),
 					EPROTONOSUPPORT => panic!("EPROTONOSUPPORT"),
-
-					_ => unreachable_code(format_args!("")),
+					
+					unexpected_error @ _ => unexpected_error!(accept4, "streaming server listener socket file descriptor", unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(accept4, "streaming server listener socket file descriptor", result)
 		}
 	}
 }

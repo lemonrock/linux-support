@@ -69,13 +69,13 @@ impl LinuxKernelModuleFileBaseName
 		{
 			0 => Ok(true),
 
-			-1 => match SystemCallErrorNumber::from_errno()
+			-1 => match SystemCallErrorNumber::from_errno_panic()
 			{
 				EPERM => Err(io_error_permission_denied("permission denied")),
 				unknown @ _ => Err(io_error_other(format!("Error Code was '{}'", unknown))),
 			},
-
-			illegal @ _ => panic!("syscall(SYS_finit_module) returned illegal value '{}'", illegal),
+			
+			unexpected @ _ => unexpected_result!(finit_module, unexpected),
 		}
 	}
 

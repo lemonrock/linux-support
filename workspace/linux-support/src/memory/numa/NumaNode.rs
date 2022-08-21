@@ -192,7 +192,7 @@ impl NumaNode
 		{
 			use self::PageMoveError::*;
 
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EACCES => Err(TargetNodeNotAllowed),
 
@@ -220,12 +220,12 @@ impl NumaNode
 
 				E2BIG => panic!("Kernel should not generate E2BIG"),
 
-				unexpected @ _ => panic!("Unexpected error number '{}'", unexpected),
+				unexpected_error @ _ => unexpected_error!(migrate_pages, unexpected_error),
 			}
 		}
 		else
 		{
-			panic!("Unexpected result {}", result);
+			unexpected_result!(migrate_pages, result)
 		}
 	}
 
@@ -256,7 +256,7 @@ impl NumaNode
 		{
 			use self::PageMoveError::*;
 
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EACCES => panic!("TargetNodeNotAllowed"),
 
@@ -283,8 +283,8 @@ impl NumaNode
 				EINVAL => panic!("Flags other than MPOL_MF_MOVE and MPOL_MF_MOVE_ALL was specified or an attempt was made to migrate pages of a kernel thread"),
 
 				E2BIG => panic!("Kernel should not generate E2BIG"),
-
-				unexpected @ _ => panic!("Unexpected error number '{}'", unexpected),
+				
+				unexpected_error @ _ => unexpected_error!(move_pages, unexpected_error),
 			}
 		}
 		else
@@ -334,7 +334,7 @@ impl NumaNode
 		{
 			use self::PageMoveError::*;
 
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EACCES => Err(TargetNodeNotAllowed),
 
@@ -365,8 +365,8 @@ impl NumaNode
 				EINVAL => panic!("Flags other than MPOL_MF_MOVE and MPOL_MF_MOVE_ALL was specified or an attempt was made to migrate pages of a kernel thread"),
 
 				E2BIG => panic!("Kernel should not generate E2BIG"),
-
-				unexpected @ _ => panic!("Unexpected error number '{}'", unexpected),
+				
+				unexpected_error @ _ => unexpected_error!(move_pages, unexpected_error),
 			}
 		}
 		else

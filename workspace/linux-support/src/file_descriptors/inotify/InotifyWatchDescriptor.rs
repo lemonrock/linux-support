@@ -24,16 +24,16 @@ impl Drop for InotifyWatchDescriptor
 			}
 			else if likely!(result == -1)
 			{
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EBADF => panic!("`fd` is not a valid file descriptor"),
 					EINVAL => panic!("The watch descriptor `wd` is not valid; or `fd` is not an inotify file descriptor"),
-					_ => unreachable_code(format_args!("")),
+					unexpected_error @ _ => unexpected_error!(inotify_rm_watch, unexpected_error),
 				}
 			}
 			else
 			{
-				unreachable_code(format_args!(""))
+				unexpected_result!(inotify_rm_watch, result)
 			}
 		}
 

@@ -96,44 +96,25 @@ impl<'name> ExtendedBpfProgramTemplate<'name>
 			}
 		};
 		
-		let result = attributes.syscall(bpf_cmd::BPF_PROG_LOAD);
 		
-		if likely!(result >= 0)
+		use self::ProgramLoadError::*;
+		
+		match attributes.syscall(bpf_cmd::BPF_PROG_LOAD).as_usize()
 		{
-			Ok((unsafe { ExtendedBpfProgramFileDescriptor::from_raw_fd(result) }, verifier_log))
-		}
-		else if likely!(result == -1)
-		{
-			use self::ProgramLoadError::*;
+			raw_file_descriptor @ SystemCallResult::InclusiveMinimumRawFileDescriptor_usize ..= SystemCallResult::InclusiveMaximumRawFileDescriptor_usize => Ok((unsafe { ExtendedBpfProgramFileDescriptor::from_raw_fd(raw_file_descriptor as RawFd) }, verifier_log)),
 			
-			match SystemCallErrorNumber::from_errno()
-			{
-				ENOSPC => if log_level > 0
-				{
-					Err(NotEnoughSpaceForVerifierLogMessages)
-				}
-				else
-				{
-					unreachable_code(format_args!(""))
-				},
-				
-				EBADF => unreachable_code(format_args!("")),
-				
-				EACCES | EINVAL | E2BIG => Err(InvalidProgram(verifier_log.map(|verifier_log| verifier_log.into()))),
-				
-				ENOMEM => Err(OutOfMemoryOrResources),
-				
-				EPERM => Err(PermissionDenied),
-					
-				EFAULT => panic!("Memory fault"),
-				
-				unexpected @ _ => panic!("Unexpected error `{}`", unexpected),
-			}
+			SystemCallResult::ENOSPC_usize if log_level > 0 => Err(NotEnoughSpaceForVerifierLogMessages),
+			SystemCallResult::ENOSPC_usize => unexpected_error!(bpf, BPF_PROG_LOAD, ENOSPC),
+			SystemCallResult::EBADF_usize => unexpected_error!(bpf, BPF_PROG_LOAD, EBADF),
+			SystemCallResult::EACCES_usize | SystemCallResult::EINVAL_usize | SystemCallResult::E2BIG_usize => Err(InvalidProgram(verifier_log.map(|verifier_log| verifier_log.into()))),
+			SystemCallResult::ENOMEM_usize => Err(OutOfMemoryOrResources),
+			SystemCallResult::EPERM_usize => Err(PermissionDenied),
+			SystemCallResult::EFAULT_usize => panic!("Memory fault"),
+			unexpected_error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => unexpected_error!(bpf, BPF_PROG_LOAD, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
+			
+			unexpected @ _ => unexpected_result!(bpf, BPF_PROG_LOAD, unexpected),
 		}
-		else
-		{
-			unreachable_code(format_args!("result `{}` from bpf(BPF_PROG_LOAD) was unexpected", result))
-		}
+		
 	}
 	
 	#[inline(always)]

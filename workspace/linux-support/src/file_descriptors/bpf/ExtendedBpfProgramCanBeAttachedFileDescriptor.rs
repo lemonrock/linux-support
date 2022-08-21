@@ -87,37 +87,30 @@ pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 		
 		loop
 		{
-			let result = attr.syscall(bpf_cmd::BPF_PROG_QUERY);
-			if likely!(result == 0)
+			match attr.syscall(bpf_cmd::BPF_PROG_QUERY).as_usize()
 			{
-				unsafe { programs.set_len(attr.query.prog_cnt as usize) };
-				programs.shrink_to_fit();
-				let program_attachment_flags = Self::ProgramAttachmentFlags::parse(unsafe { attr.query.attach_flags });
-				return Ok((programs, program_attachment_flags))
-			}
-			else if likely!(result == -1)
-			{
-				match SystemCallErrorNumber::from_errno()
+				0 =>
 				{
-					// Only returned as of Linux 5.6 for CgroupFileDescriptor.
-					ENOSPC =>
-					{
-						let required = unsafe { attr.query.prog_cnt as usize };
-						debug_assert!(required > programs.capacity());
-						programs.reserve(required - programs.capacity());
-						continue
-					}
-					
-					EPERM => return Err(()),
-					EINVAL => panic!("Invalid attr or invalid attach type"),
-					EFAULT => panic!("Fault copying to / from userspace"),
-					
-					errno @ _ => panic!("Unexpected error `{}`", errno),
+					unsafe { programs.set_len(attr.query.prog_cnt as usize) };
+					programs.shrink_to_fit();
+					let program_attachment_flags = Self::ProgramAttachmentFlags::parse(unsafe { attr.query.attach_flags });
+					return Ok((programs, program_attachment_flags))
 				}
-			}
-			else
-			{
-				unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_PROG_QUERY)", result))
+				
+				// Only returned as of Linux 5.6 for CgroupFileDescriptor.
+				SystemCallResult::ENOSPC_usize =>
+				{
+					let required = unsafe { attr.query.prog_cnt as usize };
+					debug_assert!(required > programs.capacity());
+					programs.reserve(required - programs.capacity());
+					continue
+				}
+				SystemCallResult::EPERM_usize => return Err(()),
+				SystemCallResult::EINVAL_usize => panic!("Invalid attr or invalid attach type"),
+				SystemCallResult::EFAULT_usize => panic!("Fault copying to / from userspace"),
+				unexpected_error @ _ => unexpected_error!(bpf, BPF_PROG_QUERY, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
+				
+				unexpected @ _ => unexpected_result!(bpf, BPF_PROG_QUERY, unexpected),
 			}
 		}
 	}
@@ -186,27 +179,19 @@ pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 			replace_bpf_fd,
 		};
 		
-		let result = attr.syscall(bpf_cmd::BPF_PROG_ATTACH);
-		if likely!(result == 0)
+		match attr.syscall(bpf_cmd::BPF_PROG_ATTACH).as_usize()
 		{
-			Ok(())
-		}
-		else if likely!(result == -1)
-		{
-			match SystemCallErrorNumber::from_errno()
-			{
-				EINVAL => panic!("Invalid attr or invalid attachment type to attach"),
-				EPERM => panic!("Permission denied"),
-				EEXIST => panic!("BPF_PROG_TYPE_FLOW_DISSECTOR only allows one program to exist at a time"),
-				E2BIG => Err(()),
-				ENODEV => panic!("BPF_PROG_TYPE_LIRC_MODE2 only supports raw mode 2"),
-				EOPNOTSUPP => panic!("BPF_PROG_TYPE_SK_* failure"),
-				errno @ _ => panic!("Unexpected error `{}`", errno),
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_PROG_ATTACH)", result))
+			0 => Ok(()),
+			
+			SystemCallResult::EINVAL_usize => panic!("Invalid attr or invalid attachment type to attach"),
+			SystemCallResult::EPERM_usize => panic!("Permission denied"),
+			SystemCallResult::EEXIST_usize => panic!("BPF_PROG_TYPE_FLOW_DISSECTOR only allows one program to exist at a time"),
+			SystemCallResult::E2BIG_usize => Err(()),
+			SystemCallResult::ENODEV_usize => panic!("BPF_PROG_TYPE_LIRC_MODE2 only supports raw mode 2"),
+			SystemCallResult::EOPNOTSUPP_usize => panic!("BPF_PROG_TYPE_SK_* failure"),
+			unexpected_error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => unexpected_error!(bpf, BPF_PROG_ATTACH, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
+			
+			unexpected @ _ => unexpected_result!(bpf, BPF_PROG_ATTACH, unexpected),
 		}
 	}
 	
@@ -270,22 +255,15 @@ pub trait ExtendedBpfProgramCanBeAttachedFileDescriptor: FileDescriptor
 			replace_bpf_fd: 0
 		};
 		
-		let result = attr.syscall(bpf_cmd::BPF_PROG_DETACH);
-		if likely!(result == 0)
+		match attr.syscall(bpf_cmd::BPF_PROG_DETACH).as_usize()
 		{
-		}
-		else if likely!(result == -1)
-		{
-			match SystemCallErrorNumber::from_errno()
-			{
-				EINVAL => panic!("Invalid attr or invalid attachment type to detach"),
-				EPERM => panic!("Permission denied"),
-				errno @ _ => panic!("Unexpected error `{}`", errno),
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_PROG_DETACH)", result))
+			0 => (),
+			
+			SystemCallResult::EINVAL_usize => panic!("Invalid attr or invalid attachment type to detach"),
+			SystemCallResult::EPERM_usize => panic!("Permission denied"),
+			unexpected_error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => unexpected_error!(bpf, BPF_PROG_DETACH, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
+			
+			unexpected @ _ => unexpected_result!(bpf, BPF_PROG_DETACH, unexpected),
 		}
 	}
 }

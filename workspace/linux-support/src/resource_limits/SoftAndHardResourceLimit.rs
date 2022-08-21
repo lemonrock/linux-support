@@ -82,17 +82,17 @@ impl SoftAndHardResourceLimit
 		{
 			0 => Ok(()),
 
-			-1 => match SystemCallErrorNumber::from_errno()
+			-1 => match SystemCallErrorNumber::from_errno_panic()
 			{
 				EPERM => Err(PermissionDeniedOrTriedToIncreaseAboveMaximumNumberOfFileDescriptors),
 				EINVAL => Err(LimitWasTooLarge),
 
 				EFAULT => panic!("Bad pointer"),
-
-				illegal @ _ => panic!("Illegal error number '{}' from setrlimit()", illegal),
+				
+				unexpected_error @ _ => unexpected_error!(setrlimit, unexpected_error),
 			},
-
-			illegal @ _ => panic!("Illegal result '{}' from setrlimit()", illegal),
+			
+			unexpected @ _ => unexpected_result!(setrlimit, result),
 		}
 	}
 
@@ -108,17 +108,17 @@ impl SoftAndHardResourceLimit
 		{
 			0 => (),
 
-			-1 => match SystemCallErrorNumber::from_errno()
+			-1 => match SystemCallErrorNumber::from_errno_panic()
 			{
 				EPERM => panic!("Permission denied"),
 
 				EINVAL => panic!("Bad resource id"),
 				EFAULT => panic!("Bad pointer"),
 
-				illegal @ _ => panic!("Illegal error number '{}' from setrlimit()", illegal),
+				unexpected_error @ _ => unexpected_error!(getrlimit, unexpected_error),
 			},
 
-			illegal @ _ => panic!("Illegal result '{}' from setrlimit()", illegal),
+			unexpected @ _ => unexpected_result!(getrlimit, result)
 		};
 
 		Self

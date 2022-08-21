@@ -92,7 +92,7 @@ impl<SD: SocketData> DatagramClientSocketFileDescriptor<SD>
 					}
 					else if likely!(result == -1)
 					{
-						match SystemCallErrorNumber::from_errno()
+						match SystemCallErrorNumber::from_errno_panic()
 						{
 							EAGAIN => WouldBlock,
 							EINTR => Interrupted,
@@ -105,12 +105,12 @@ impl<SD: SocketData> DatagramClientSocketFileDescriptor<SD>
 							ENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
 							ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
 							EOPNOTSUPP => panic!("Some flags in the `flags` argument are inappropriate for the socket type"),
-							_ => unreachable_code(format_args!("")),
+							unexpected_error @ _ => unexpected_error!(recv, "datagram client socket file descriptor", unexpected_error),
 						}
 					}
 					else
 					{
-						unreachable_code(format_args!(""))
+						unexpected_result!(recv, "datagram client socket file descriptor", result)
 					}
 				)
 			)
@@ -156,7 +156,7 @@ impl<SD: SocketData> DatagramClientSocketFileDescriptor<SD>
 					}
 					else if likely!(result == -1)
 					{
-						match SystemCallErrorNumber::from_errno()
+						match SystemCallErrorNumber::from_errno_panic()
 						{
 							EAGAIN => WouldBlock,
 							EINTR => Interrupted,
@@ -173,12 +173,12 @@ impl<SD: SocketData> DatagramClientSocketFileDescriptor<SD>
 							EMSGSIZE => panic!("The socket type requires that message be sent atomically, and the size of the message to be sent made this impossible"),
 							EISCONN => panic!("The connection-mode socket was connected already but a recipient was specified"),
 							EDESTADDRREQ => panic!("The socket is not connection-mode, and no peer address is set"),
-							_ => unreachable_code(format_args!("")),
+							unexpected_error @ _ => unexpected_error!(send, "datagram client socket file descriptor", unexpected_error),
 						}
 					}
 					else
 					{
-						unreachable_code(format_args!(""))
+						unexpected_result!(send, "datagram client socket file descriptor", result)
 					}
 				)
 			)
@@ -209,7 +209,7 @@ impl<SD: SocketData> DatagramClientSocketFileDescriptor<SD>
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EAGAIN | ENOMEM => WouldBlock,
 					EINTR => Interrupted,
@@ -219,14 +219,13 @@ impl<SD: SocketData> DatagramClientSocketFileDescriptor<SD>
 					EINVAL => panic!("Invalid argument passed"),
 					ENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
 					ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
-
-					_ => unreachable_code(format_args!("")),
+					unexpected_error @ _ => unexpected_error!(recvmmsg, "datagram client socket file descriptor", unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""));
+			unexpected_result!(recvmmsg, "datagram client socket file descriptor", result)
 		}
 	}
 }

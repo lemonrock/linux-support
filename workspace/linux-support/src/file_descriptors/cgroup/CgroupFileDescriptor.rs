@@ -2,6 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use crate::syscall::SystemCallResult;
+
 /// Represents a Cgroup file descriptor which is backed by a `File`.
 #[derive(Debug)]
 pub struct CgroupFileDescriptor(RawFd);
@@ -111,24 +113,15 @@ impl CgroupFileDescriptor
 			flags: 0,
 		};
 		
-		let result = attr.syscall(bpf_cmd::BPF_LINK_CREATE);
-		if likely!(result >= 0)
+		match attr.syscall(bpf_cmd::BPF_LINK_CREATE).as_usize()
 		{
-			Ok(CgroupLinkFileDescriptor(result))
-		}
-		else if likely!(result == -1)
-		{
-			match SystemCallErrorNumber::from_errno()
-			{
-				EINVAL => panic!("Invalid attr or invalid attach type"),
-				EPERM => panic!("Permission denied"),
-				
-				errno @ _ => panic!("Unexpected error `{}` from bpf(BPF_LINK_CREATE)", errno),
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_LINK_CREATE)", result))
+			raw_file_descriptor @ SystemCallResult::InclusiveMinimumRawFileDescriptor_usize ..= SystemCallResult::InclusiveMaximumRawFileDescriptor_usize => Ok(CgroupLinkFileDescriptor(raw_file_descriptor as RawFd)),
+			
+			SystemCallResult::EINVAL_usize => panic!("Invalid attr or invalid attach type"),
+			SystemCallResult::EPERM_usize => panic!("Permission denied"),
+			unexpected_error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => unexpected_error!(bpf, BPF_LINK_CREATE, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
+			
+			unexpected @ _ => unexpected_result!(bpf, BPF_LINK_CREATE, unexpected),
 		}
 	}
 }

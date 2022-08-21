@@ -20,7 +20,7 @@ impl<'a> VectoredRead for ProcessIdentifierVectoredRead<'a>
 	#[inline(always)]
 	fn read_vectored(&self, to_local: &[&mut [u8]]) -> io::Result<usize>
 	{
-		self.process_identifier.vectored_read(to_local, self.from_remote).map_err(|creation_error| io::Error::from_raw_os_error(creation_error as i32))
+		self.process_identifier.vectored_read(to_local, self.from_remote).map_err(|creation_error| creation_error.into())
 	}
 }
 

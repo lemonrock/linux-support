@@ -78,7 +78,7 @@ impl ExtendedSeekFrom
 			SEEK_CUR => Current(l.l_start),
 			SEEK_HOLE => Hole(l.l_start),
 			SEEK_DATA => Data(l.l_start),
-			unknown @ _ => panic!("Unknown l_whence {}", unknown),
+			unknown @ _ => panic!("Unknown l_whence `{}`", unknown),
 		}
 	}
 }

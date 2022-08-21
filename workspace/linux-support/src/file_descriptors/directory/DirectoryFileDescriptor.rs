@@ -81,7 +81,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from open()", result))
+			unexpected_result!(open, result)
 		}
 	}
 
@@ -108,7 +108,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from openat()", result))
+			unexpected_result!(openat, result)
 		}
 	}
 
@@ -136,7 +136,7 @@ impl DirectoryFileDescriptor
 			
 			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Err(SystemCallResult::usize_to_io_error(error)),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected result {} from openat2()", unexpected)),
+			unexpected @ _ => unexpected_result!(openat2, unexpected),
 		}
 	}
 
@@ -209,7 +209,7 @@ impl DirectoryFileDescriptor
 			
 			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Err(SystemCallResult::usize_to_io_error(error)),
 			
-			unexpected @ _ => unreachable_code(format_args!("result of openat2() was unexpected value {}", unexpected)),
+			unexpected @ _ => unexpected_result!(openat2, unexpected),
 		}
 	}
 
@@ -299,7 +299,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from ioctl()", result))
+			unexpected_result!(ioctl, result)
 		}
 	}
 
@@ -317,7 +317,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from ioctl()", result))
+			unexpected_result!(ioctl, result)
 		}
 	}
 
@@ -362,7 +362,7 @@ impl DirectoryFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EBADF | ENOTTY | EOPNOTSUPP => Ok(false),
 				_ => Err(io::Error::last_os_error()),
@@ -370,7 +370,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from ioctl()", result))
+			unexpected_result!(ioctl, result)
 		}
 	}
 
@@ -389,7 +389,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from fchdir()", result))
+			unexpected_result!(fchdir, result)
 		}
 	}
 
@@ -509,7 +509,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from fchmodat()", result))
+			unexpected_result!(fchmodat, result)
 		}
 	}
 
@@ -602,7 +602,7 @@ impl DirectoryFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EACCES  | ENOENT | ENOTDIR | EROFS => Ok(false),
 				other @ _ => Err(io::Error::from(other)),
@@ -610,7 +610,7 @@ impl DirectoryFileDescriptor
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from fchmodat()", result))
+			unexpected_result!(fchmodat, result)
 		}
 	}
 

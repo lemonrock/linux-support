@@ -25,15 +25,15 @@ pub fn one_millisecond_timed_wait_for_signals(signals_to_wait_for: &sigset_t) ->
 		#[cfg(any(target_arch = "aarch64", target_arch = "riscv64", target_arch = "powerpc64", target_arch = "s390x", target_arch = "x86_64"))] 1 ..= 64 => Signalled(unsafe { transmute(result as u8) }),
 		#[cfg(any(target_arch = "mips64"))] 1 ..= 128 => Signalled(unsafe { transmute(result as u8) }),
 
-		-1 => match SystemCallErrorNumber::from_errno()
+		-1 => match SystemCallErrorNumber::from_errno_panic()
 		{
 			EAGAIN => TimedOut,
 			EINTR => OtherSignalInterrupted,
 			EINVAL => panic!("timespec specified a tv_nsec value less than zero or greater than or equal to 1000 million"),
-
-			error_number @ _ => panic!("Invalid error number '{}' from sigtimedwait()", error_number),
+			
+			unexpected_error @ _ => unexpected_error!(sigtimedwait, unexpected_error),
 		},
-
-		illegal @ _ => panic!("Illegal result '{}' from sigtimedwait()", illegal)
+		
+		unexpected @ _ => unexpected_result!(sigtimedwait, unexpected),
 	}
 }

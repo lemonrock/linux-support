@@ -74,7 +74,7 @@ impl PerPageMoveError
 			
 			ENOMEM => OutOfMemoryOnTargetNode,
 
-			unexpected @ _ => panic!("Unexpected page move error code '{}'", unexpected),
+			unexpected_error @ _ => unexpected_error!(move_pages, unexpected_error),
 		}
 	}
 }

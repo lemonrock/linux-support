@@ -202,7 +202,7 @@ impl UserFaultFileDescriptor
 		{
 			use self::CreationError::*;
 			
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EMFILE => Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
 				
@@ -214,12 +214,12 @@ impl UserFaultFileDescriptor
 				
 				EINVAL => panic!("Invalid combination of flags"),
 				
-				unexpected @ _ => panic!("Unexpected error number '{}'", unexpected),
+				unexpected_error @ _ => unexpected_error!(userfaultfd, unexpected_error),
 			}
 		}
 		else
 		{
-			panic!("Unexpected result {}", result);
+			unexpected_result!(userfaultfd, result)
 		}
 	}
 	
@@ -243,7 +243,7 @@ impl UserFaultFileDescriptor
 			
 			Err(EFAULT) => panic!("`argp` does not point to a valid memory address"),
 			
-			Err(unexpected) => panic!("Unexpected error_number `{}` from userfaultfd ioctl(UFFDIO_API)", unexpected),
+			Err(unexpected_error) => unexpected_error!(ioctl, UFFDIO_API, unexpected_error),
 		}
 	}
 	
@@ -294,7 +294,7 @@ impl UserFaultFileDescriptor
 			
 			Err(EINVAL) => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or an invalid or unsupported bit was specified in the mode field; or the mode field was zero; or there is no mapping in the specified address range; or range.start or range.len is not a multiple of the system page size (or huge page size); or, range.len is zero; or these fields are otherwise invalid; or there as an incompatible mapping in the specified address range, ie one that does not support userfaults"),
 			
-			Err(unexpected) => panic!("Unexpected error_number `{}` from userfaultfd ioctl(UFFDIO_REGISTER)", unexpected),
+			Err(unexpected_error) => unexpected_error!(ioctl, UFFDIO_REGISTER, unexpected_error),
 		}
 	}
 	
@@ -322,7 +322,7 @@ impl UserFaultFileDescriptor
 			
 			Err(ENOMEM) => Err(CreationError::KernelWouldBeOutOfMemory),
 			
-			Err(unexpected) => panic!("Unexpected error_number `{}` from userfaultfd ioctl(UFFDIO_UNREGISTER)", unexpected),
+			Err(unexpected_error) => unexpected_error!(ioctl, UFFDIO_UNREGISTER, unexpected_error),
 		}
 	}
 	
@@ -392,7 +392,7 @@ impl UserFaultFileDescriptor
 				
 				Err(EINVAL) => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or memory addresses or length not aligned to page size or are outside of permitted range for process or invalid copy mode"),
 				
-				Err(unexpected) => panic!("Unexpected error_number `{}` from userfaultfd ioctl(UFFDIO_COPY)", unexpected),
+				Err(unexpected_error) => unexpected_error!(ioctl, UFFDIO_COPY, unexpected_error),
 			}
 		}
 	}
@@ -457,7 +457,7 @@ impl UserFaultFileDescriptor
 				
 				Err(EINVAL) => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or memory addresses or length not aligned to page size or are outside of permitted range for process or invalid zero page mode"),
 				
-				Err(unexpected) => panic!("Unexpected error_number `{}` from userfaultfd ioctl(UFFDIO_ZEROPAGE)", unexpected),
+				Err(unexpected_error) => unexpected_error!(ioctl, UFFDIO_ZEROPAGE, unexpected_error),
 			}
 		}
 	}
@@ -490,7 +490,7 @@ impl UserFaultFileDescriptor
 			
 			Err(EINVAL) => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or memory addresses or length not aligned to page size or are outside of permitted range for process"),
 			
-			Err(unexpected) => panic!("Unexpected error_number `{}` from userfaultfd ioctl(UFFDIO_WAKE)", unexpected),
+			Err(unexpected_error) => unexpected_error!(ioctl, UFFDIO_WAKE, unexpected_error),
 		}
 	}
 	
@@ -586,7 +586,7 @@ impl UserFaultFileDescriptor
 				
 				Err(EINVAL) => panic!("The userfaultfd object has not yet been enabled (via the UFFDIO_API operation); or either the start or the len field of the ufdio_range structure was not a multiple of the system page size; or the len field was zero; or these fields were otherwise invalid; or, there as an incompatible mapping in the specified address range; or, there was no mapping in the specified address range"),
 				
-				Err(unexpected) => panic!("Unexpected error_number `{}` from userfaultfd ioctl(UFFDIO_UNREGISTER)", unexpected),
+				Err(unexpected_error) => unexpected_error!(ioctl, UFFDIO_UNREGISTER, unexpected_error),
 			}
 		}
 	}
@@ -613,11 +613,11 @@ impl UserFaultFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			Err(SystemCallErrorNumber::from_errno())
+			Err(SystemCallErrorNumber::from_errno_panic())
 		}
 		else
 		{
-			panic!("Unexpected result {}", result);
+			unexpected_result!(ioctl, request, result)
 		}
 	}
 }

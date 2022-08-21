@@ -5,7 +5,7 @@
 /// Despite its function name, this function (a) attaches and (b) attaches to things other than raw trace points.
 /// Good ol'Linux.
 #[inline(always)]
-fn raw_trace_point_open(extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor, name: AlignedU64) -> Result<RawFd, SystemCallErrorNumber>
+fn raw_trace_point_open<O, E>(extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor, name: AlignedU64, constructor: impl FnOnce(RawFd) -> O, enoent: impl FnOnce() -> E, enomem: impl FnOnce() -> E) -> Result<O, E>
 {
 	let mut attr = bpf_attr::default();
 	attr.raw_tracepoint = BpfCommandRawTracePointOpen
@@ -14,27 +14,17 @@ fn raw_trace_point_open(extended_bpf_program_file_descriptor: &ExtendedBpfProgra
 		prog_fd: extended_bpf_program_file_descriptor.as_raw_fd(),
 	};
 	
-	let result = attr.syscall(bpf_cmd::BPF_RAW_TRACEPOINT_OPEN);
-	if likely!(result >= 0)
+	match attr.syscall(bpf_cmd::BPF_RAW_TRACEPOINT_OPEN).as_usize()
 	{
-		Ok(result)
-	}
-	else if likely!(result == -1)
-	{
-		match SystemCallErrorNumber::from_errno()
-		{
-			ENOENT => Err(ENOENT),
-			ENOMEM => Err(ENOMEM),
-			
-			EINVAL => panic!("Invalid attr or invalid attach type"),
-			EPERM => panic!("Permission denied"),
-			EFAULT => panic!("Fault copying to / from userspace"),
-			
-			errno @ _ => panic!("Unexpected error `{}` from bpf(BPF_RAW_TRACEPOINT_OPEN)", errno),
-		}
-	}
-	else
-	{
-		unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_RAW_TRACEPOINT_OPEN)", result))
+		raw_file_descriptor @ SystemCallResult::InclusiveMinimumRawFileDescriptor_usize ..= SystemCallResult::InclusiveMaximumRawFileDescriptor_usize => Ok(constructor(raw_file_descriptor as RawFd)),
+		
+		SystemCallResult::ENOENT_usize => Err(enoent()),
+		SystemCallResult::ENOMEM_usize => Err(enomem()),
+		SystemCallResult::EINVAL_usize => panic!("Invalid attr or invalid attach type"),
+		SystemCallResult::EPERM_usize => panic!("Permission denied"),
+		SystemCallResult::EFAULT_usize => panic!("Fault copying to / from userspace"),
+		unexpected_error @ _ => unexpected_error!(bpf, BPF_RAW_TRACEPOINT_OPEN, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
+		
+		unexpected @ _ => unexpected_result!(bpf, BPF_RAW_TRACEPOINT_OPEN, unexpected),
 	}
 }

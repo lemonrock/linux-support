@@ -20,17 +20,17 @@ fn set_ioport_permissions(range: RangeInclusive<u16>, enable: bool) -> Result<()
 	}
 	else if likely!(result == -1)
 	{
-		match SystemCallErrorNumber::from_errno()
+		match SystemCallErrorNumber::from_errno_panic()
 		{
 			EINVAL => Err("Invalid values for from or num"),
 			EPERM => Err("The calling thread has insufficient privilege"),
 			ENOMEM => panic!("Out of memory"),
 
-			unexpected @ _ => panic!("Unexpected error {} from ioperm()", unexpected),
+			unexpected_error @ _ => unexpected_error!(ioperm, unexpected_error),
 		}
 	}
 	else
 	{
-		unreachable_code(format_args!("Unexpected result {} from ioperm()", result))
+		unexpected_result!(ioperm, result)
 	}
 }

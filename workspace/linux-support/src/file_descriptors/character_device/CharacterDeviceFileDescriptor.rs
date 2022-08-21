@@ -114,7 +114,7 @@ impl Read for CharacterDeviceFileDescriptor
 					}
 					else if likely!(result == -1)
 					{
-						match SystemCallErrorNumber::from_errno()
+						match SystemCallErrorNumber::from_errno_panic()
 						{
 							EAGAIN => WouldBlock,
 							EINTR => Interrupted,
@@ -123,12 +123,12 @@ impl Read for CharacterDeviceFileDescriptor
 							EFAULT => panic!("The receive buffer pointer(s) point outside the process's address space"),
 							EINVAL => panic!("Invalid argument passed"),
 							EISDIR => panic!("`fd` refers to a directory"),
-							_ => unreachable_code(format_args!("")),
+							unexpected_error @ _ => unexpected_error!(read, "character device file descriptor" unexpected_error),
 						}
 					}
 					else
 					{
-						unreachable_code(format_args!(""))
+						unexpected_result!(read, "character device file descriptor", result)
 					}
 				)
 			)
@@ -180,7 +180,7 @@ impl Write for CharacterDeviceFileDescriptor
 					}
 					else if likely!(result == -1)
 					{
-						match SystemCallErrorNumber::from_errno()
+						match SystemCallErrorNumber::from_errno_panic()
 						{
 							EAGAIN => WouldBlock,
 							EINTR => Interrupted,
@@ -190,12 +190,12 @@ impl Write for CharacterDeviceFileDescriptor
 							EFAULT => panic!("The write buffer pointer(s) point outside the process's address space"),
 							EINVAL => panic!("Invalid argument passed"),
 							EDESTADDRREQ => panic!("`fd` refers to a datagram socket for which a peer address has not been set using `connect()`"),
-							_ => unreachable_code(format_args!("")),
+							unexpected_error @ _ => unexpected_error!(write, "character device file descriptor" unexpected_error),
 						}
 					}
 					else
 					{
-						unreachable_code(format_args!(""))
+						unexpected_result!(write, "character device file descriptor", result)
 					}
 				)
 			)
@@ -246,7 +246,7 @@ impl CharacterDeviceFileDescriptor
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EACCES => Common(PermissionDenied),
 					EMFILE => Common(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
@@ -269,7 +269,7 @@ impl CharacterDeviceFileDescriptor
 					ENOSPC => panic!("`pathname` was to be created but the device containing `pathname` has no room for the new file"),
 					EPERM => panic!("The `O_NOATIME` flag was specified, but the effective user ID of the caller did not match the owner of the file and the caller was not privileged (`CAP_FOWNER`)"),
 
-					_ => unreachable_code(format_args!("")),
+					unexpected_error @ _ => unexpected_error!(open, "character device file descriptor" unexpected_error),
 				}
 			)
 		}

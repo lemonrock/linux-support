@@ -31,7 +31,7 @@ pub trait StandardFileDescriptor: Sized + Debug + AsRawFd
 			}
 			else
 			{
-				unreachable_code(format_args!("Unexpected result {} from dup2()", result))
+				unexpected_result!(dup2, result)
 			}
 
 		}
@@ -41,7 +41,7 @@ pub trait StandardFileDescriptor: Sized + Debug + AsRawFd
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from open()", result))
+			unexpected_result!(open, result)
 		}
 	}
 }

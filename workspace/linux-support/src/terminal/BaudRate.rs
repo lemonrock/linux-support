@@ -171,16 +171,15 @@ impl BaudRate
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EINVAL => panic!("Baud was not valid (`& !CBAUD`)"),
-
-				_ => unreachable_code(format_args!("")),
+				unexpected_error @ _ => unexpected_error!(cfsetspeed, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(cfsetspeed, result)
 		}
 	}
 }

@@ -23,7 +23,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from fstatvfs()", result))
+			unexpected_result!(fstatvfs, result)
 		}
 	}
 
@@ -53,7 +53,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from ioctl()", result))
+			unexpected_result!(ioctl, result)
 		}
 	}
 
@@ -81,7 +81,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from ioctl()", result))
+			unexpected_result!(ioctl, result)
 		}
 	}
 
@@ -192,7 +192,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 		else if likely!(result == 0)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ENODATA => Ok(None),
 				_ => Err(io::Error::last_os_error()),
@@ -240,7 +240,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ENODATA if flags == XATTR_REPLACE =>
 				{
@@ -274,7 +274,7 @@ pub trait OnDiskFileDescriptor: FileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ENODATA => Ok(false),
 				_ => Err(io::Error::last_os_error()),

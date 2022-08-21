@@ -28,17 +28,17 @@ pub trait PipeFileDescriptor: FileDescriptor + OnDiskFileDescriptor + PipeLikeFi
 		else if likely!(result == -1)
 		{
 			use self::ChangeCapacityError::*;
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EPERM => Err(PermissionDenied),
 				EBUSY => Err(WouldReduceCapacityBelowThatInUse),
 
-				unexpected @ _ => panic!("Unexpected error {}", unexpected),
+				unexpected_error @ _ => unexpected_error!(fcntl, F_GETPIPE_SZ, unexpected_error)
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from fcntl(_, F_GETPIPE_SZ)", result))
+			unexpected_result!(fcntl, F_GETPIPE_SZ, result)
 		}
 	}
 
@@ -52,11 +52,11 @@ pub trait PipeFileDescriptor: FileDescriptor + OnDiskFileDescriptor + PipeLikeFi
 		}
 		else if likely!(result == -1)
 		{
-			panic!("Unexpected error {}", SystemCallErrorNumber::from_errno());
+			unexpected_error!(fcntl, F_GETPIPE_SZ, SystemCallErrorNumber::from_errno_panic())
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from fcntl(_, F_GETPIPE_SZ)", result))
+			unexpected_result!(fcntl, F_GETPIPE_SZ, result)
 		}
 	}
 
@@ -72,11 +72,11 @@ pub trait PipeFileDescriptor: FileDescriptor + OnDiskFileDescriptor + PipeLikeFi
 		}
 		else if likely!(result == -1)
 		{
-			panic!("Unexpected error {}", SystemCallErrorNumber::from_errno());
+			unexpected_error!(ioctl, FIONREAD, SystemCallErrorNumber::from_errno_panic())
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from ioctl(_, FIONREAD)", result))
+			unexpected_result!(ioctl, FIONREAD, result)
 		}
 	}
 }

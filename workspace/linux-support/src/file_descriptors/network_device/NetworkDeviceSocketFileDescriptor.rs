@@ -165,11 +165,11 @@ impl NetworkDeviceSocketFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			Err(SystemCallErrorNumber::from_errno())
+			Err(SystemCallErrorNumber::from_errno_panic())
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from ioctl()", result))
+			unexpected_result!(ioctl, result)
 		}
 	}
 }

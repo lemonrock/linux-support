@@ -69,7 +69,7 @@ impl EventReader
 			}
 			else if likely!(result == -1)
 			{
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EINTR => continue,
 					
@@ -85,7 +85,7 @@ impl EventReader
 					
 					// Internally, `read()` calls `userfaultfd_read()` which calls `userfaultfd_ctx_read()` which calls `resolve_userfault_fork()` which calls `anon_inode_getfd()` and this can error (?with what).
 					// This code path seems to only be possible if fork events can be raised.
-					unexpected @ _ => panic!("Unexpected error_number `{}` from userfaultfd non-blocking read()", unexpected),
+					unexpected_error @ _ => unexpected_error!(read, "userfaultfd non-blocking", unexpected_error),
 				}
 			}
 			else if likely!(result == 0)
@@ -94,7 +94,7 @@ impl EventReader
 			}
 			else
 			{
-				unreachable_code(format_args!("Unexpected result {}", result));
+				unexpected_result!(read, "userfaultfd non-blocking", result)
 			}
 		}
 	}

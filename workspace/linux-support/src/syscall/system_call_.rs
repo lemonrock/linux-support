@@ -23,7 +23,7 @@ pub(crate) fn system_call_finit_module(file_descriptor: RawFd, options: &CStr, f
 /// NOTE: The manpage defines the return type of `getdents64` as `ssize_t`, but musl libc defined the return type of `getdents` as `int` and aliases it to `getdents64`.
 /// NOTE: musl libc redefines `SYS_getdents` as `SYS_getdents64`.
 #[inline(always)]
-pub(crate) fn system_call_getdents(file_descriptor: RawFd, dirp: *mut c_void, count: size_t) -> SystemCallResult
+pub(crate) fn system_call_getdents64(file_descriptor: RawFd, dirp: *mut c_void, count: size_t) -> SystemCallResult
 {
 	if cfg!(debug_assertions)
 	{

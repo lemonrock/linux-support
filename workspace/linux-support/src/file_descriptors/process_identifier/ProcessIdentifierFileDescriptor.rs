@@ -73,7 +73,7 @@ impl ProcessIdentifierFileDescriptor
 		else if likely!(result == -1)
 		{
 			use self::CreationError::*;
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EMFILE => Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
 				ENFILE => Err(SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded),
@@ -83,13 +83,13 @@ impl ProcessIdentifierFileDescriptor
 
 				ENODEV => panic!("The anonymous inode filesystem is not available in this kernel"),
 				EINVAL => panic!("flags is not 0 or pid is not valid"),
-
-				_ => unreachable_code(format_args!("")),
+				
+				unexpected_error @ _ => unexpected_error!(pidfd_open, unexpected_error),
 			}
 		}
 		else
 		{
-			panic!("Unexpected result from pidfd_open of `{}`", result)
+			unexpected_result!(pidfd_open, result)
 		}
 	}
 
@@ -112,20 +112,20 @@ impl ProcessIdentifierFileDescriptor
 		{
 			use self::SendSignalError::*;
 
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EPERM => Err(PermissionDenied),
 
 				ESRCH => Err(ProcessHasFinished),
 
 				EINVAL => panic!("sig is not a valid signal, or, the calling process is not in a PID namespace from which it can send a signal to the target process, or, flags is not 0"),
-
-				unexpected @ _ => panic!("Unexpected error number {}", unexpected),
+				
+				unexpected_error @ _ => unexpected_error!(pidfd_send_signal, unexpected_error),
 			}
 		}
 		else
 		{
-			panic!("Unexpected result {}", result);
+			unexpected_result!(pidfd_send_signal, result)
 		}
 	}
 
@@ -147,7 +147,7 @@ impl ProcessIdentifierFileDescriptor
 		{
 			use self::CreationError::*;
 
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EMFILE => Err(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
 				ENFILE => Err(SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded),
@@ -157,12 +157,12 @@ impl ProcessIdentifierFileDescriptor
 				EBADF => panic!("pidfd is not a valid PID file descriptor, or target fd is not an open file descriptor in the process referred to by pidfd"),
 				EINVAL => panic!("flags is not 0"),
 
-				unexpected @ _ => panic!("Unexpected error {} from pidfd_getfd()", unexpected)
+				unexpected_error @ _ => unexpected_error!(pidfd_getfd, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from pidfd_getfd()", result))
+			unexpected_result!(pidfd_getfd, result)
 		}
 	}
 }

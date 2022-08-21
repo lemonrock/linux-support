@@ -74,18 +74,18 @@ impl SetMemoryPolicy
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EFAULT => panic!("part of or all of the memory range specified by nodemask and maxnode points outside your accessible address space."),
 				EINVAL => panic!("mode is invalid. Or, mode is MPOL_DEFAULT and nodemask is nonempty, or mode is MPOL_BIND or MPOL_INTERLEAVE and nodemask is empty. Or, maxnode specifies more than a page worth of bits. Or, nodemask specifies one or more node IDs that are greater than the maximum supported node ID. Or, none of the node IDs specified by nodemask are on-line and allowed by the process's current cpuset context, or none of the specified nodes contain memory. Or, the mode argument specified both MPOL_F_STATIC_NODES and MPOL_F_RELATIVE_NODES."),
 				ENOMEM => panic!("insufficient kernel memory was available."),
 
-				unknown @ _ => panic!("unknown error number {}", unknown),
+				unexpected_error @ _ => unexpected_error!(set_mempolicy, unexpected_error),
 			}
 		}
 		else
 		{
-			panic!("unexpected result code {}", result)
+			unexpected_result!(set_mempolicy, result)
 		}
 	}
 
@@ -98,7 +98,7 @@ impl SetMemoryPolicy
 			Ok(()) => return,
 			Err(EIO) => panic!("EIO should not occur"),
 			Err(EPERM) => panic!("EPERM should not occur"),
-			_ => unreachable_code(format_args!("")),
+			Err(unexpected_error) => unexpected_error!(mbind, unexpected_error),
 		}
 	}
 
@@ -116,7 +116,7 @@ impl SetMemoryPolicy
 			Ok(()) => Some(true),
 			Err(EIO) => Some(false),
 			Err(EPERM) => panic!("EPERM should not occur"),
-			_ => unreachable_code(format_args!("")),
+			Err(unexpected_error) => unexpected_error!(mbind, unexpected_error),
 		}
 	}
 
@@ -131,7 +131,7 @@ impl SetMemoryPolicy
 			Ok(()) => return,
 			Err(EIO) => panic!("EIO should not occur"),
 			Err(EPERM) => panic!("EPERM should not occur"),
-			_ => unreachable_code(format_args!("")),
+			Err(unexpected_error) => unexpected_error!(mbind, unexpected_error),
 		}
 	}
 
@@ -146,7 +146,7 @@ impl SetMemoryPolicy
 			Ok(()) => Ok(()),
 			Err(EIO) => Err(()),
 			Err(EPERM) => panic!("EPERM should not occur"),
-			_ => unreachable_code(format_args!("")),
+			Err(unexpected_error) => unexpected_error!(mbind, unexpected_error),
 		}
 	}
 
@@ -163,7 +163,7 @@ impl SetMemoryPolicy
 			Ok(()) => return,
 			Err(EIO) => panic!("EIO should not occur"),
 			Err(EPERM) => panic!("Current thread does not have the capability `CAP_SYS_NICE`"),
-			_ => unreachable_code(format_args!("")),
+			Err(unexpected_error) => unexpected_error!(mbind, unexpected_error),
 		}
 	}
 
@@ -180,7 +180,7 @@ impl SetMemoryPolicy
 			Ok(()) => Ok(()),
 			Err(EIO) => Err(()),
 			Err(EPERM) => panic!("Current thread does not have the capability `CAP_SYS_NICE`"),
-			_ => unreachable_code(format_args!("")),
+			Err(unexpected_error) => unexpected_error!(mbind, unexpected_error),
 		}
 	}
 
@@ -219,7 +219,7 @@ impl SetMemoryPolicy
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EFAULT => panic!("part of or all of the memory range specified by nodemask and maxnode points outside your accessible address space."),
 				EINVAL => panic!("An invalid value was specified for flags or mode; or addr + len was less than addr; or addr is not a multiple of the system page size. Or, mode is MPOL_DEFAULT and nodemask specified a nonempty set; or mode is MPOL_BIND or MPOL_INTERLEAVE and nodemask is empty. Or, maxnode exceeds a kernel-imposed limit. Or, nodemask specifies one or more node IDs that are greater than the maximum supported node ID. Or, none of the node IDs specified by nodemask are on-line and allowed by the thread's current cpuset context, or none of the specified nodes contain memory. Or, the mode argument specified both MPOL_F_STATIC_NODES and MPOL_F_RELATIVE_NODES."),
@@ -227,13 +227,13 @@ impl SetMemoryPolicy
 
 				EIO => Err(EIO),
 				EPERM => Err(EPERM),
-
-				unknown @ _ => panic!("unknown error number {}", unknown),
+				
+				unexpected_error @ _ => unexpected_error!(mbind, unexpected_error),
 			}
 		}
 		else
 		{
-			panic!("unexpected result code {}", result)
+			unexpected_error!(mbind, result)
 		}
 	}
 }

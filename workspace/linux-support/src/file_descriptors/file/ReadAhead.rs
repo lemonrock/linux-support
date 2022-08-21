@@ -27,16 +27,16 @@ pub trait ReadAhead: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EINVAL => Err(()),
 				EBADF => panic!("fd is not a valid file descriptor or is not open for reading"),
-				unexpected @ _ => panic!("Unexpected error {} for readahead()", unexpected),
+				unexpected_error @ _ => unexpected_error!(readahead, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} for readahead()", result))
+			unexpected_result!(readahead, result)
 		}
 	}
 }

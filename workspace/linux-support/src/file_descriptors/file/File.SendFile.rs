@@ -23,7 +23,7 @@ impl SendFile for File
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EAGAIN | ENOMEM => WouldBlock,
 					EINTR => Interrupted,
@@ -32,14 +32,14 @@ impl SendFile for File
 					EBADF => panic!("The input file was not opened for reading or the output file was not opened for writing"),
 					EFAULT => panic!("Bad address"),
 					EINVAL => panic!("Descriptor is not valid or locked, or an mmap(2)-like operation is not available for in_fd"),
-
-					_ => unreachable_code(format_args!("")),
+					
+					unexpected_error @ _ => unexpected_error!(sendfile, unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(sendfile, result)
 		}
 	}
 
@@ -62,7 +62,7 @@ impl SendFile for File
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EAGAIN | ENOMEM => WouldBlock,
 					EINTR => Interrupted,
@@ -71,14 +71,14 @@ impl SendFile for File
 					EBADF => panic!("The input file was not opened for reading or the output file was not opened for writing"),
 					EFAULT => panic!("Bad address"),
 					EINVAL => panic!("Descriptor is not valid or locked, or an mmap(2)-like operation is not available for in_fd"),
-
-					_ => unreachable_code(format_args!("")),
+					
+					unexpected_error @ _ => unexpected_error!(sendfile, unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(sendfile, result)
 		}
 	}
 }

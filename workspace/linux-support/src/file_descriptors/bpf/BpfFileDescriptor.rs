@@ -37,20 +37,18 @@ pub trait BpfFileDescriptor: FileDescriptor
 			info: AlignedU64::from(&mut information),
 		};
 		
-		let result = attr.syscall(bpf_cmd::BPF_OBJ_GET_INFO_BY_FD);
-		if likely!(result == 0)
+		match attr.syscall(bpf_cmd::BPF_OBJ_GET_INFO_BY_FD).as_usize()
 		{
-			// let length = (unsafe { attr.info.info_len }) as usize;
-			// unsafe { information.set_len(length) }
-			Ok(information)
-		}
-		else if likely!(result == -1)
-		{
-			Err(SystemCallErrorNumber::from_errno())
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_OBJ_GET_INFO_BY_FD)", result))
+			0 =>
+			{
+				// let length = (unsafe { attr.info.info_len }) as usize;
+				// unsafe { information.set_len(length) }
+				Ok(information)
+			}
+			
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Err(SystemCallResult::usize_to_system_call_error_number(error)),
+			
+			unexpected @ _ => unexpected_result!(bpf, BPF_OBJ_GET_INFO_BY_FD, unexpected),
 		}
 	}
 	
@@ -74,18 +72,13 @@ pub trait BpfFileDescriptor: FileDescriptor
 			file_flags: 0,
 		};
 		
-		let result = attr.syscall(bpf_cmd::BPF_OBJ_PIN);
-		if likely!(result == 0)
+		match attr.syscall(bpf_cmd::BPF_OBJ_PIN).as_usize()
 		{
-			Ok(())
-		}
-		else if likely!(result == -1)
-		{
-			Err(SystemCallErrorNumber::from_errno())
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_OBJ_PIN)", result))
+			0 => Ok(()),
+			
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Err(SystemCallResult::usize_to_system_call_error_number(error)),
+			
+			unexpected @ _ => unexpected_result!(bpf, BPF_OBJ_PIN, unexpected),
 		}
 	}
 	
@@ -118,20 +111,16 @@ pub trait BpfFileDescriptor: FileDescriptor
 			file_flags: access_permissions.to_map_flags().bits(),
 		};
 		
-		let result = attr.syscall(bpf_cmd::BPF_OBJ_GET);
-		if likely!(result == 0)
+		match attr.syscall(bpf_cmd::BPF_OBJ_GET).as_usize()
 		{
-			Ok(unsafe { Self::from_raw_fd(attr.object.bpf_fd) })
-		}
-		else if likely!(result == -1)
-		{
-			Err(SystemCallErrorNumber::from_errno())
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_OBJ_GET)", result))
+			0 => Ok(unsafe { Self::from_raw_fd(attr.object.bpf_fd) }),
+			
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Err(SystemCallResult::usize_to_system_call_error_number(error)),
+			
+			unexpected @ _ => unexpected_result!(bpf, BPF_OBJ_GET, unexpected),
 		}
 	}
+	
 	/// To file descriptor.
 	///
 	/// `MapIdentifier` usage requires the capability `CAP_SYS_ADMIN`.
@@ -157,22 +146,15 @@ pub trait BpfFileDescriptor: FileDescriptor
 		};
 		
 		let result = attr.syscall(Self::GetFileDescriptor);
-		if likely!(result > 0)
+		
+		match attr.syscall(Self::GetFileDescriptor).as_usize()
 		{
-			Ok(Some(unsafe { Self::from_raw_fd(result) }))
-		}
-		else if likely!(result == -1)
-		{
-			match SystemCallErrorNumber::from_errno()
-			{
-				ENOENT => Ok(None),
-				
-				other @ _ => Err(other)
-			}
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result `{}` from bpf({:?})", result, Self::GetFileDescriptor))
+			raw_file_descriptor @ SystemCallResult::InclusiveMaximumRawFileDescriptor_usize ..= SystemCallResult::InclusiveMaximumRawFileDescriptor_usize => Ok(Some(unsafe { Self::from_raw_fd(raw_file_descriptor as RawFd) })),
+			
+			SystemCallResult::ENOENT_usize => Ok(None),
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Err(SystemCallResult::usize_to_system_call_error_number(error)),
+			
+			unexpected @ _ => unexpected_result!(bpf, Self::GetFileDescriptor, unexpected),
 		}
 	}
 }

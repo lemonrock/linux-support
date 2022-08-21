@@ -17,6 +17,6 @@ fn mkdir_wrapper(path: &Path, mode: mode_t) -> io::Result<()>
 	}
 	else
 	{
-		panic!("Invalid result from mkdir of `{}`", result)
+		unexpected_result!(mkdir, result)
 	}
 }

@@ -2,6 +2,9 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use linux_support::syscall::SystemCallErrorNumber;
+use swiss_army_knife::unexpected_error;
+
 /// `top_of_child_stack_pointer` points to the top (highest) address of a stack; it must be 16-byte aligned.
 ///
 /// Interpretation of errors assumes this logic is running on at least Linux 4.9.
@@ -97,7 +100,7 @@ pub(crate) fn clone_wrapper<T>(child_process: extern "C" fn(Box<T>) -> (), top_o
 			EINVAL => panic!("Invalid combination of arguments, see `man 2 clone` as there are over 10 causes of this fault."),
 			EUSERS => panic!("Should not occur as of Linux 4.9."),
 
-			value @ _ => panic!("Unexpected error code from clone() of `{}`.", value),
+			unexpected_error @ _ => unexpected_error!(clone, unexpected_error),
 		}
 	}
 	else if result_code == 0

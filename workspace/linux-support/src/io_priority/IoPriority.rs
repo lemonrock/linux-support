@@ -154,18 +154,17 @@ impl IoPriority
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EPERM => Err(true),
 				ESRCH => Err(false),
-
-				EINVAL => panic!("Invalid value for which."),
-				unexpected @ _ => panic!("Unexpected error from ioprio_get() of {}", unexpected)
+				EINVAL => panic!("Invalid value for which"),
+				unexpected_error @ _ => unexpected_error!(ioprio_get, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result of {} from ioprio_get()", result))
+			unexpected_result!(ioprio_get, result)
 		}
 	}
 
@@ -256,18 +255,17 @@ impl IoPriority
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EPERM => Err(true),
 				ESRCH => Err(false),
-
-				EINVAL => panic!("Invalid value for which."),
-				unexpected @ _ => panic!("Unexpected error from ioprio_set() of {}", unexpected)
+				EINVAL => panic!("Invalid value for which"),
+				unexpected_error @ _ => unexpected_error!(ioprio_set, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result of {} from ioprio_get()", result))
+			unexpected_result!(ioprio_get, result)
 		}
 	}
 

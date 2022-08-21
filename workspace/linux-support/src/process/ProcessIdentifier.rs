@@ -294,7 +294,7 @@ impl ProcessIdentifier
 		{
 			use self::CreationError::*;
 
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ENOMEM => Err(KernelWouldBeOutOfMemory),
 				EPERM => Err(PermissionDenied),
@@ -302,13 +302,13 @@ impl ProcessIdentifier
 
 				EFAULT => panic!("The memory described by local_iov is outside the caller's accessible address space. Or the memory described by remote_iov is outside the accessible address space of the process pid."),
 				EINVAL => panic!("The sum of the iov_len values of either local_iov or remote_iov overflows a ssize_t value. Or flags is not 0. Or liovcnt or riovcnt is too large."),
-
-				_ => unreachable_code(format_args!("")),
+				
+				unexpected_error @ _ => unexpected_error!(process_vm_readv, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(process_vm_readv, result)
 		}
 	}
 
@@ -353,7 +353,7 @@ impl ProcessIdentifier
 		{
 			use self::CreationError::*;
 
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ENOMEM => Err(KernelWouldBeOutOfMemory),
 				EPERM => Err(PermissionDenied),
@@ -361,13 +361,13 @@ impl ProcessIdentifier
 
 				EFAULT => panic!("The memory described by local_iov is outside the caller's accessible address space. Or the memory described by remote_iov is outside the accessible address space of the process pid."),
 				EINVAL => panic!("The sum of the iov_len values of either local_iov or remote_iov overflows a ssize_t value. Or flags is not 0. Or liovcnt or riovcnt is too large."),
-
-				_ => unreachable_code(format_args!("")),
+				
+				unexpected_error @ _ => unexpected_error!(process_vm_writev, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(process_vm_writev, result)
 		}
 	}
 }

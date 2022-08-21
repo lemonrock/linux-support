@@ -32,7 +32,7 @@ impl RoundRobinInterval
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ESRCH => None,
 
@@ -40,12 +40,12 @@ impl RoundRobinInterval
 				EINVAL => panic!("Invalid pid"),
 				ENOSYS => panic!("The system call is not yet implemented (only on rather old kernels)"),
 
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from sched_rr_get_interval()", unexpected)),
+				unexpected @ _ => unexpected_error!(sched_rr_get_interval, unexpected),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from sched_rr_get_interval()", result))
+			unexpected_result!(sched_rr_get_interval, result)
 		}
 	}
 }

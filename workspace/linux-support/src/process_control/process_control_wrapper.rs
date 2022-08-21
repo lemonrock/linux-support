@@ -12,10 +12,10 @@ fn process_control_wrapper<V, E>(operation: i32, arg2: usize, arg3: usize, arg4:
 	}
 	else if likely!(result == -1)
 	{
-		err_handler(SystemCallErrorNumber::from_errno())
+		err_handler(SystemCallErrorNumber::from_errno_panic())
 	}
 	else
 	{
-		unreachable_code(format_args!("Unexpected result {} from prctl()", result))
+		unexpected_result!(prctl, result)
 	}
 }

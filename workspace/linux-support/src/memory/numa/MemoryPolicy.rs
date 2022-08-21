@@ -136,17 +136,17 @@ impl MemoryPolicy
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EFAULT => panic!("part of or all of the memory range specified by nodemask and maxnode points outside your accessible address space."),
 				EINVAL => panic!("The value specified by maxnode is less than the number of node IDs supported by the system. Or flags specified values other than MPOL_F_NODE or MPOL_F_ADDR; or flags specified MPOL_F_ADDR and addr is NULL, or flags did not specify MPOL_F_ADDR and addr is not NULL. Or, flags specified MPOL_F_NODE but not MPOL_F_ADDR and the current thread policy is not MPOL_INTERLEAVE. Or, flags specified MPOL_F_MEMS_ALLOWED with either MPOL_F_ADDR or MPOL_F_NODE. (And there are other EINVAL cases.)"),
 
-				unknown @ _ => panic!("unknown error number {}", unknown),
+				unexpected_error @ _ => unexpected_error!(get_mempolicy, unexpected_error),
 			}
 		}
 		else
 		{
-			panic!("unexpected result code {}", result)
+			unexpected_result!(get_mempolicy, result)
 		}
 	}
 }

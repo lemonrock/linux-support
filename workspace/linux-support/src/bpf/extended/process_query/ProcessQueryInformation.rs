@@ -51,7 +51,7 @@ impl ProcessQueryInformation
 		{
 			match attr.syscall(bpf_cmd::BPF_TASK_FD_QUERY).as_usize()
 			{
-				0 => Ok(Some(Self::construct(buffer, unsafe { &attr.task_fd_query }))),
+				0 => return Ok(Some(Self::construct(buffer, unsafe { &attr.task_fd_query }))),
 				
 				SystemCallResult::ENOSPC_usize =>
 				{
@@ -64,9 +64,9 @@ impl ProcessQueryInformation
 				SystemCallResult::ENOENT_usize | SystemCallResult::EBADF_usize | SystemCallResult::ENOTSUPP_usize | SystemCallResult::EOPNOTSUPP_usize => return Ok(None),
 				SystemCallResult::EINVAL_usize => panic!("Invalid attr"),
 				SystemCallResult::EFAULT_usize => panic!("Could not access buffer"),
-				unexpected_error @ _ => panic!("Unexpected error `{}`", unexpected_error),
+				unexpected_error @ _ => unexpected_error!(bpf, BPF_TASK_FD_QUERY, SystemCallResult::usize_to_system_call_error_number(unexpected_error)),
 				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_TASK_FD_QUERY)", unexpected))
+				unexpected @ _ => unexpected_result!(bpf, BPF_TASK_FD_QUERY, unexpected),
 			}
 		}
 	}

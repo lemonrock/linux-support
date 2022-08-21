@@ -18,7 +18,7 @@ pub trait Allocate: AsRawFd + Seek + FileExt
 		}
 		else
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EINTR => Err(true),
 				ENOSPC => Err(false),
@@ -35,7 +35,7 @@ pub trait Allocate: AsRawFd + Seek + FileExt
 				EOPNOTSUPP => panic!("The filesystem containing the file referred to by fd does not support this operation; or the mode is not supported by the filesystem containing the file referred to by fd"),
 				EPERM => panic!("The file referred to by fd is marked immutable (see chattr(1)). Or mode specifies FALLOC_FL_PUNCH_HOLE or FALLOC_FL_COLLAPSE_RANGE or FALLOC_FL_INSERT_RANGE and the file referred to by fd is marked append-only (see chattr(1)). Or the operation was prevented by a file seal; see fcntl(2)."),
 
-				unexpected @ _ => panic!("Unexpected error {} for posix_fallocate()", unexpected),
+				unexpected_error @ _ => unexpected_error!(posix_fallocate, unexpected_error),
 			}
 		}
 	}

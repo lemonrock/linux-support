@@ -37,7 +37,7 @@ pub fn mount_wrapper<'a>(source: &CStr, mount_point: &Path, file_system_type: &F
 	{
 		0 => Ok(()),
 
-		-1 => match SystemCallErrorNumber::from_errno()
+		-1 => match SystemCallErrorNumber::from_errno_panic()
 		{
 			EACCES => Err(io_error_not_found("Component of mount path to mount does not exist")),
 			ENOENT => Err(io_error_not_found("Mount path had an empty or non-existent component")),
@@ -54,10 +54,10 @@ pub fn mount_wrapper<'a>(source: &CStr, mount_point: &Path, file_system_type: &F
 			ENXIO => panic!("Block device major number is out of range"),
 			ENAMETOOLONG => panic!("Mount path name is too long"),
 			EFAULT => panic!("Invalid data"),
-
-			illegal @ _ => panic!("mount() set an illegal errno '{}'", illegal),
+			
+			unexpected_error @ _ => unexpected_error!(mount, unexpected_error),
 		},
-
-		illegal @ _ => panic!("mount() returned an illegal result '{}'", illegal),
+		
+		unexpected @ _ => unexpected_result!(mount, unexpected),
 	}
 }

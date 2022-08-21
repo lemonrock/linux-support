@@ -212,7 +212,7 @@ impl Capability
 				EPERM => Err(PermissionDenied),
 				EINVAL => Err(CapabilityNotKnownByThisLinuxKernel),
 				
-				unexpected @ _ => panic!("Unexpected error code '{}' from prctl()", unexpected),
+				unexpected_error @ _ => unexpected_error!(prctl, unexpected_error),
 			}
 		)
 	}
@@ -237,7 +237,7 @@ impl Capability
 				EPERM => Err(PermissionDenied),
 				EINVAL => Err(CapabilityNotKnownByThisLinuxKernel),
 				
-				unexpected @ _ => panic!("Unexpected error code '{}' from prctl()", unexpected),
+				unexpected_error @ _ => unexpected_error!(prctl, unexpected_error),
 			}
 		)
 	}
@@ -265,7 +265,7 @@ impl Capability
 			{
 				EINVAL => Err(CapabilityNotKnownByThisLinuxKernel),
 				
-				unexpected @ _ => panic!("Unexpected error code '{}' from prctl()", unexpected),
+				unexpected_error @ _ => unexpected_error!(prctl, unexpected_error),
 			}
 		)
 	}
@@ -290,7 +290,7 @@ impl Capability
 			{
 				EINVAL => Ok(None),
 				
-				unexpected @ _ => panic!("Unexpected error code '{}' from prctl()", unexpected),
+				unexpected_error @ _ => unexpected_error!(prctl, unexpected_error),
 			}
 		);
 		result.unwrap()
@@ -312,7 +312,7 @@ impl Capability
 				EPERM => Err(()),
 				EINVAL => panic!("Kernel does not support 'file' capabilities. Or capability `{:?}` is not a valid capability on this kernel", self),
 				
-				unexpected @ _ => panic!("Unexpected error code '{}' from prctl()", unexpected),
+				unexpected_error @ _ => unexpected_error!(prctl, unexpected_error),
 			}
 		)
 	}

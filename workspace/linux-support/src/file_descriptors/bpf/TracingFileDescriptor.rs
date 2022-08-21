@@ -71,18 +71,7 @@ impl TracingFileDescriptor
 	#[inline(always)]
 	pub fn attach(extended_bpf_program_file_descriptor: &ExtendedBpfProgramFileDescriptor) -> Result<Self, ()>
 	{
-		match raw_trace_point_open(extended_bpf_program_file_descriptor, AlignedU64::Null)
-		{
-			Ok(raw_fd) => Ok(Self(raw_fd)),
-			
-			Err(errno) => match errno
-			{
-				ENOENT => unreachable_code(format_args!("")),
-				ENOMEM => Err(()),
-				
-				_ => unreachable_code(format_args!("")),
-			}
-		}
+		raw_trace_point_open(extended_bpf_program_file_descriptor, AlignedU64::Null, Self, || unexpected_error!(bpf, BPF_RAW_TRACEPOINT_OPEN, ENOENT), || ())
 	}
 	
 }

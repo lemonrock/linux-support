@@ -41,6 +41,23 @@ pub enum CreationError
 	ProcessForProcessIdentifierDoesNotExist = ESRCH.into(),
 }
 
+impl From<CreationError> for SystemCallErrorNumber
+{
+	#[inline(always)]
+	fn from(value: CreationError) -> Self
+	{
+		unsafe { SystemCallErrorNumber::from_unchecked(value as i32) }
+	}
+}
+impl From<CreationError> for io::Error
+{
+	#[inline(always)]
+	fn from(value: CreationError) -> Self
+	{
+		SystemCallErrorNumber::from(value).into()
+	}
+}
+
 impl Display for CreationError
 {
 	#[inline(always)]

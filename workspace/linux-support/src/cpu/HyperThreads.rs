@@ -159,18 +159,18 @@ impl HyperThreads
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EINVAL => Err("The affinity bit mask mask contains no processors that are currently physically on the system and permitted to the process according to any restrictions that may be imposed by the cpuset mechanism described in man cpuset(7)".to_string()),
 				
 				EFAULT => panic!("A supplied memory address was invalid"),
 				
-				unknown @ _ => panic!("Unknown error number {}", unknown),
+				unexpected_error @ _ => unexpected_error!(sched_getaffinity, unexpected_error),
 			}
 		}
 		else
 		{
-			panic!("Unexpected result {}", result)
+			unexpected_result!(sched_getaffinity, result)
 		}
 	}
 	
@@ -192,7 +192,7 @@ impl HyperThreads
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EINVAL => Err("The affinity bit mask mask contains no processors that are currently physically on the system and permitted to the process according to any restrictions that may be imposed by the cpuset mechanism described in man cpuset(7)".to_string()),
 
@@ -216,12 +216,12 @@ impl HyperThreads
 
 				EFAULT => panic!("A supplied memory address was invalid"),
 
-				unknown @ _ => panic!("Unknown error number {}", unknown),
+				unexpected_error @ _ => unexpected_error!(sched_setaffinity, unexpected_error),
 			}
 		}
 		else
 		{
-			panic!("Unexpected result {}", result)
+			unexpected_result!(sched_setaffinity, result)
 		}
 	}
 	
@@ -237,7 +237,7 @@ impl HyperThreads
 	pub fn get_thread_affinity(thread_identifier: pthread_t) -> Result<Option<Self>, String>
 	{
 		let mut this = Self::new_for_cpu_set_t();
-		let result = unsafe { pthread_setaffinity_np(thread_identifier, this.cpu_set_t_size_in_bytes(), this.cpu_set_t_pointer()) };
+		let result = unsafe { pthread_getaffinity_np(thread_identifier, this.cpu_set_t_size_in_bytes(), this.cpu_set_t_pointer()) };
 		if likely!(result == 0)
 		{
 			this.shrink_to_fit();
@@ -245,7 +245,7 @@ impl HyperThreads
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EINVAL => Err("setsize is smaller than the size of the affinity mask used by the kernel".to_string()),
 				
@@ -253,12 +253,12 @@ impl HyperThreads
 
 				EFAULT => panic!("A supplied memory address was invalid"),
 
-				unknown @ _ => panic!("Unknown error number {}", unknown),
+				unexpected_error @ _ => unexpected_error!(pthread_getaffinity_np, unexpected_error),
 			}
 		}
 		else
 		{
-			panic!("Unexpected result {}", result)
+			unexpected_result!(pthread_getaffinity_np, result)
 		}
 	}
 	
@@ -280,7 +280,7 @@ impl HyperThreads
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EINVAL => Err("The affinity bit mask mask contains no processors that are currently physically on the system and permitted to the process according to any restrictions that may be imposed by the cpuset mechanism described in cpuset(7)".to_string()),
 
@@ -295,12 +295,12 @@ impl HyperThreads
 
 				EFAULT => panic!("A supplied memory address was invalid"),
 
-				unknown @ _ => panic!("Unknown error number {}", unknown),
+				unexpected_error @ _ => unexpected_error!(pthread_setaffinity_np, unexpected_error),
 			}
 		}
 		else
 		{
-			panic!("Unexpected result {}", result)
+			unexpected_result!(pthread_setaffinity_np, result)
 		}
 	}
 	

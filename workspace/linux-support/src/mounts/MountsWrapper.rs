@@ -15,7 +15,8 @@ impl Drop for MountsWrapper
 		match unsafe { endmntent(self.0) }
 		{
 			1 => (),
-			illegal @ _ => panic!("endmntent() returned '{}'; it should never return anything other than 1", illegal),
+			
+			unexpected @ _ => unexpected_result!(endmntent, unexpected),
 		}
 	}
 }

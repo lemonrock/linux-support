@@ -47,7 +47,7 @@ pub trait CopyFileRange: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EIO | ENOMEM => Err(true),
 				ENOSPC | EXDEV => Err(false),
@@ -60,12 +60,12 @@ pub trait CopyFileRange: AsRawFd + Seek + FileExt
 				EISDIR => panic!("Either fd_in or fd_out refers to a directory"),
 				ETXTBSY => panic!("Either fd_in or fd_out refers to an active swap file"),
 
-				unexpected @ _ => panic!("Unexpected error {} from fcntl()", unexpected),
+				unexpected_error @ _ => unexpected_error!(fcntl, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from copy_file_range()", result))
+			unexpected_result!(copy_file_range, result)
 		}
 	}
 }

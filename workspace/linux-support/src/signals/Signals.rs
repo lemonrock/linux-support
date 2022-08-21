@@ -91,16 +91,17 @@ impl Signals
 	#[inline(always)]
 	pub fn block_signals(signal_mask: &sigset_t)
 	{
-		// TODO: The parsing of the result is probably wrong - the man page is naff.
-		let result = unsafe { pthread_sigmask(SIG_BLOCK, signal_mask, null_mut()) };
-		if unlikely!(result != 0)
+		// TODO: The parsing of the result is possible wrong - the man page is poor; examination of musl libc code seems to suggest that `__syscall_ret()` is not called to set the `errno`.
+		match unsafe { pthread_sigmask(SIG_BLOCK, signal_mask, null_mut()) }
 		{
-			match result
-			{
-				EFAULT => panic!("The `set` or `oldset` argument points outside the process's allocated address space"),
-				EINVAL => panic!("Either the value specified in `how` was invalid or the kernel does not support the size passed in `sigsetsize`"),
-				_ => unreachable_code(format_args!("")),
-			}
+			0 => (),
+			
+			SystemCallErrorNumber::NegativeEFAULT => (),
+			SystemCallErrorNumber::NegativeEINVAL => (),
+			
+			unexpected_error @ SystemCallErrorNumber::NegativeInclusiveMinimumI32 ..= SystemCallErrorNumber::NegativeInclusiveMaximumI32 => unexpected_error!(pthread_sigmask, SystemCallErrorNumber::from_negative_i32_unchecked(unexpected_error)),
+			
+			result @ _ => unexpected_result!(pthread_sigmask, result)
 		}
 	}
 
@@ -108,22 +109,22 @@ impl Signals
 	pub(crate) fn filled_signal_mask() -> sigset_t
 	{
 		let mut signal_mask = unsafe_uninitialized();
-		let result = unsafe {  sigfillset(&mut signal_mask) };
+		let result = unsafe { sigfillset(&mut signal_mask) };
 		if likely!(result == 0)
 		{
 			signal_mask
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EINVAL => panic!("Invalid arguments"),
-				_ => unreachable_code(format_args!("")),
+				unexpected_error @ _ => unexpected_error!((sigfillset, result), unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!(""));
+			unexpected_result!(sigfillset, result)
 		}
 	}
 }

@@ -44,7 +44,7 @@ pub trait Synchronize: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EIO => Err(true),
 				ENOMEM => Err(false),
@@ -54,7 +54,7 @@ pub trait Synchronize: AsRawFd + Seek + FileExt
 				EINVAL => panic!("flags specifies an invalid bit; or offset or n bytes is invalid"),
 				ESPIPE => panic!("fd refers to something other than a regular file, a block device, a directory, or a symbolic link"),
 				
-				unexpected @ _ => panic!("Unexpected error {} for sync_file_range()", unexpected)
+				unexpected_error @ _ => unexpected_error!(sync_file_range, unexpected_error),
 			}
 
 		}
@@ -78,13 +78,13 @@ pub trait Synchronize: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EBADF => panic!("fd is not a valid file descriptor"),
 				EROFS | EINVAL => panic!("fd is bound to a special file (e.g., a pipe, FIFO, or socket) which does not support synchronization"),
 				EIO => Err(true),
 				ENOSPC | EDQUOT => Err(false),
-				unexpected @ _ => panic!("Unexpected error {} for fdatasync()", unexpected)
+				unexpected_error @ _ => unexpected_error!(fdatasync, unexpected_error),
 			}
 
 		}
@@ -108,13 +108,13 @@ pub trait Synchronize: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EBADF => panic!("fd is not a valid file descriptor"),
 				EROFS | EINVAL => panic!("fd is bound to a special file (e.g., a pipe, FIFO, or socket) which does not support synchronization"),
 				EIO => Err(true),
 				ENOSPC | EDQUOT => Err(false),
-				unexpected @ _ => panic!("Unexpected error {} for fsync()", unexpected)
+				unexpected_error @ _ => unexpected_error!(fsync, unexpected_error),
 			}
 
 		}
@@ -136,10 +136,10 @@ pub trait Synchronize: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EBADF => panic!("fd is not a valid file descriptor"),
-				unexpected @ _ => panic!("Unexpected error {} for syncfs()", unexpected)
+				unexpected_error @ _ => unexpected_error!(syncfs, unexpected_error),
 			}
 
 		}

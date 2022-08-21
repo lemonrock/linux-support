@@ -124,16 +124,16 @@ impl ProcessGroupIdentifier
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ESRCH | EPERM => Err(()),
-
-				_ => unreachable_code(format_args!("")),
+				
+				unexpected_error @ _ => unexpected_error!(getpgid, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(getpgid, result)
 		}
 	}
 
@@ -150,16 +150,16 @@ impl ProcessGroupIdentifier
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ESRCH | EPERM => Err(()),
-
-				_ => unreachable_code(format_args!("")),
+				
+				unexpected_error @ _ => unexpected_error!(getsid, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(getsid, result)
 		}
 	}
 	

@@ -173,7 +173,7 @@ impl SeccompProgram
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from seccomp()", result))
+			unexpected_result!(seccomp, result)
 		}
 	}
 

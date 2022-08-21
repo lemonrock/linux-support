@@ -93,7 +93,7 @@ impl<SD: SocketData> SendFile for StreamingSocketFileDescriptor<SD>
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EAGAIN | ENOMEM => WouldBlock,
 					EINTR => Interrupted,
@@ -102,14 +102,14 @@ impl<SD: SocketData> SendFile for StreamingSocketFileDescriptor<SD>
 					EBADF => panic!("The input file was not opened for reading or the output file was not opened for writing"),
 					EFAULT => panic!("Bad address"),
 					EINVAL => panic!("Descriptor is not valid or locked, or an mmap(2)-like operation is not available for in_fd"),
-
-					_ => unreachable_code(format_args!("")),
+					
+					unexpected_error @ _ => unexpected_error!(sendfile, "streaming socket file descriptor", unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(sendfile, "streaming socket file descriptor", result)
 		}
 	}
 
@@ -132,7 +132,7 @@ impl<SD: SocketData> SendFile for StreamingSocketFileDescriptor<SD>
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EAGAIN | ENOMEM => WouldBlock,
 					EINTR => Interrupted,
@@ -141,14 +141,14 @@ impl<SD: SocketData> SendFile for StreamingSocketFileDescriptor<SD>
 					EBADF => panic!("The input file was not opened for reading or the output file was not opened for writing"),
 					EFAULT => panic!("Bad address"),
 					EINVAL => panic!("Descriptor is not valid or locked, or an mmap(2)-like operation is not available for in_fd"),
-
-					_ => unreachable_code(format_args!("")),
+					
+					unexpected_error @ _ => unexpected_error!(sendfile, "streaming socket file descriptor", unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(sendfile, "streaming socket file descriptor", result)
 		}
 	}
 }
@@ -210,18 +210,18 @@ impl<SD: SocketData> StreamingSocketFileDescriptor<SD>
 		}
 		else if likely!(result != -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EBADF => panic!("The argument `sockfd` is an invalid descriptor"),
 				EINVAL => panic!("An invalid value was specified in `how`"),
 				ENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
 				ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
-				_ => unreachable_code(format_args!("")),
+				unexpected_error @ _ => unexpected_error!(shutdown, "streaming socket file descriptor", unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(shutdown, "streaming socket file descriptor", result)
 		}
 	}
 
@@ -264,7 +264,7 @@ impl<SD: SocketData> StreamingSocketFileDescriptor<SD>
 					}
 					else if likely!(result == -1)
 					{
-						match SystemCallErrorNumber::from_errno()
+						match SystemCallErrorNumber::from_errno_panic()
 						{
 							EAGAIN => WouldBlock,
 							EINTR => Interrupted,
@@ -277,12 +277,12 @@ impl<SD: SocketData> StreamingSocketFileDescriptor<SD>
 							ENOTCONN => panic!("The socket is associated with a connection-oriented protocol and has not been connected"),
 							ENOTSOCK => panic!("The argument `sockfd` does not refer to a socket"),
 							EOPNOTSUPP => panic!("Some flags in the `flags` argument are inappropriate for the socket type"),
-							_ => unreachable_code(format_args!("")),
+							unexpected_error @ _ => unexpected_error!(recvfrom, "streaming socket file descriptor", unexpected_error),
 						}
 					}
 					else
 					{
-						unreachable_code(format_args!(""))
+						unexpected_result!(recvfrom, "streaming socket file descriptor", result)
 					}
 				)
 			)
@@ -330,7 +330,7 @@ impl<SD: SocketData> StreamingSocketFileDescriptor<SD>
 					}
 					else if likely!(result == -1)
 					{
-						match SystemCallErrorNumber::from_errno()
+						match SystemCallErrorNumber::from_errno_panic()
 						{
 							EAGAIN => WouldBlock,
 							EINTR => Interrupted,
@@ -347,12 +347,12 @@ impl<SD: SocketData> StreamingSocketFileDescriptor<SD>
 							EMSGSIZE => panic!("The socket type requires that message be sent atomically, and the size of the message to be sent made this impossible"),
 							EISCONN => panic!("The connection-mode socket was connected already but a recipient was specified"),
 							EDESTADDRREQ => panic!("The socket is not connection-mode, and no peer address is set"),
-							_ => unreachable_code(format_args!("")),
+							unexpected_error @ _ => unexpected_error!(send, "streaming socket file descriptor", unexpected_error),
 						}
 					}
 					else
 					{
-						unreachable_code(format_args!(""))
+						unexpected_result!(send, "streaming socket file descriptor", result)
 					}
 				)
 			)

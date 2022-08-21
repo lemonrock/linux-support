@@ -12,17 +12,17 @@ pub fn remove_ioport_privileges()
 	}
 	else if likely!(result == -1)
 	{
-		match SystemCallErrorNumber::from_errno()
+		match SystemCallErrorNumber::from_errno_panic()
 		{
 			EINVAL => panic!("level is greater than 3"),
 			ENOSYS => panic!("This call is unimplemented (it should be)"),
 			EPERM => panic!("The calling process has insufficient privilege to call iopl(); the CAP_SYS_RAWIO capability is required to raise the I/O privilege level above its current value."),
 
-			unexpected @ _ => panic!("Unexpected error {} from iopl()", unexpected),
+			unexpected_error @ _ => unexpected_error!(iopl, unexpected_error),
 		}
 	}
 	else
 	{
-		unreachable_code(format_args!("Unexpected result {} from iopl()", result))
+		unexpected_result!(iopl, result)
 	}
 }

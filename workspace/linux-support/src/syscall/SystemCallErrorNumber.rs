@@ -12,10 +12,6 @@
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub enum SystemCallErrorNumber
 {
-	/// "Operation is not supported".
-	/// Not supposed to be returned to userspace.
-	ENOTSUPP = 524,
-	
 	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "mips64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] E2BIG = 7,
 	
 	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "mips64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] EACCES = 13,
@@ -271,7 +267,11 @@ pub enum SystemCallErrorNumber
 
 	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] ENOTSOCK = 88,
 	#[allow(missing_docs)] #[cfg(target_arch = "mips64")] ENOTSOCK = 95,
-
+	
+	/// "Operation is not supported".
+	/// Not supposed to be returned to userspace.
+	ENOTSUPP = 524,
+	
 	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "mips64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] ENOTTY = 25,
 	
 	#[allow(missing_docs)] #[cfg(any(target_arch = "aarch64", target_arch = "powerpc64", target_arch = "riscv64", target_arch = "s390x", target_arch = "x86_64"))] ENOTUNIQ = 76,
@@ -8608,6 +8608,27 @@ impl const TryFrom<i32> for SystemCallErrorNumber
 	}
 }
 
+impl const TryFrom<NonZeroI32> for SystemCallErrorNumber
+{
+	type Error = ParseNumberError;
+	
+	#[inline(always)]
+	fn try_from(value: NonZeroI32) -> Result<Self, Self::Error>
+	{
+		use ParseNumberError::*;
+		let value = value.get();
+		if unlikely!(value < 0)
+		{
+			return Err(TooSmall)
+		}
+		if unlikely!(value > Self::InclusiveMaximumI32)
+		{
+			return Err(TooLarge)
+		}
+		Ok(unsafe { Self::from_unchecked(value as u16) })
+	}
+}
+
 impl const TryFrom<io::Error> for SystemCallErrorNumber
 {
 	type Error = ParseNumberError;
@@ -9082,6 +9103,9 @@ impl SystemCallErrorNumber
 	/// Negated i32 value of `ENOTSOCK`.
 	pub const NegativeENOTSOCK: i32 = -Self::ENOTSOCK;
 
+	/// Negated i32 value of `ENOTSUPP`.
+	pub const NegativeENOTSUPP: i32 = -Self::ENOTSUPP;
+
 	/// Negated i32 value of `ENOTTY`.
 	pub const NegativeENOTTY: i32 = -Self::ENOTTY;
 
@@ -9191,12 +9215,18 @@ impl SystemCallErrorNumber
 	
 	pub(crate) const InclusiveMaximumU16: u16 = 4095;
 	
+	pub(crate) const InclusiveMinimumUsize: Usize = Self::InclusiveMinimumUsize as usize;
+	
+	pub(crate) const InclusiveMaximumUsize: Usize = Self::InclusiveMaximumUsize as Usize;
+	
 	pub(crate) const InclusiveMinimumI32: i32 = Self::InclusiveMinimumU16 as i32;
 	
 	pub(crate) const InclusiveMaximumI32: i32 = Self::InclusiveMaximumU16 as i32;
 	
+	/// NOTE: This is correct, assigning the Maximum as the Minimum when negated.
 	pub(crate) const NegativeInclusiveMinimumI32: i32 = -Self::InclusiveMaximumI32;
 	
+	/// NOTE: This is correct, assigning the Minimum as the Maximum when negated.
 	pub(crate) const NegativeInclusiveMaximumI32: i32 = -(Self::InclusiveMinimumU16 as i32);
 	
 	/// Use this value in `match` inclusive range clauses as `SystemCallErrorNumber::InclusiveMinimum ..= SystemCallErrorNumber::InclusiveMaximum`.
@@ -9230,16 +9260,46 @@ impl SystemCallErrorNumber
 		start: Self::InclusiveMinimum
 	};
 	
-	/// Creates from the global static value `SystemCallErrorNumber` used in C.
-	///
-	/// Panics if the SystemCallErrorNumber is out of range.
+	/// Sets the global static value `errno` used in C to zero (`0`).
 	#[inline(always)]
-	pub fn from_errno() -> Self
+	pub fn reset_errno_to_zero()
 	{
-		Self::try_from(errno()).expect("SystemCallErrorNumber was not in the range 1 ..= 4095")
+		set_errno(Errno(0))
 	}
 	
-	/// Creates from the global static value `SystemCallErrorNumber` used in C.
+	/// Creates from the global static value `errno` used in C.
+	///
+	/// Panics if the `errno` is out of range.
+	///
+	/// Returns `None` if it is zero.
+	#[inline(always)]
+	pub fn from_errno() -> Option<Self>
+	{
+		match errno().0
+		{
+			0 => None,
+			
+			error @ Self::InclusiveMinimumI32 ..= Self::InclusiveMaximumI32 => Some(Self::from_valid_i32(error)),
+			
+			unexpected @ _ => panic!("errno was not in the range 0 ..= 4095 but was `{}`", unexpected)
+		}
+	}
+	
+	/// Creates from the global static value `errno` used in C.
+	///
+	/// Panics if the `errno` is out of range or zero.
+	#[inline(always)]
+	pub fn from_errno_panic() -> Self
+	{
+		match errno().0
+		{
+			error @ Self::InclusiveMinimumI32 ..= Self::InclusiveMaximumI32 => Self::from_valid_i32(error),
+			
+			unexpected @ _ => panic!("errno was not in the range 1 ..= 4095 but was `{}`", unexpected)
+		}
+	}
+	
+	/// Creates from the global static value `errno` used in C.
 	#[inline(always)]
 	pub unsafe fn from_errno_unchecked() -> Self
 	{
@@ -9251,6 +9311,24 @@ impl SystemCallErrorNumber
 	pub const fn set_errno(self)
 	{
 		set_errno(self.into());
+	}
+	
+	/// Parses an negative error number contain in the range of an `i32`, as may be the result from some libc calls.
+	#[inline(always)]
+	pub const fn from_negative_i32_unchecked(error: i32) -> Self
+	{
+		if cfg!(debug_assertions)
+		{
+			if error < Self::NegativeInclusiveMinimumI32
+			{
+				panic!("Too negative")
+			}
+			if error > Self::NegativeInclusiveMaximumI32
+			{
+				panic!("Zero or positive")
+			}
+		}
+		unsafe { Self::from_unchecked((-error) as u16) }
 	}
 	
 	#[inline(always)]
@@ -9284,8 +9362,36 @@ impl SystemCallErrorNumber
 	}
 	
 	#[inline(always)]
+	const fn from_valid_i32(value: i32) -> Self
+	{
+		if cfg!(debug_assertions)
+		{
+			if value < Self::InclusiveMinimumI32
+			{
+				panic!("value is 0")
+			}
+			else if value > Self::InclusiveMaximumI32
+			{
+				panic!("value is greater than InclusiveMaximum")
+			}
+		}
+		Self::from_valid_u16(value as u16)
+	}
+	
+	#[inline(always)]
 	const fn from_valid_usize(value: usize) -> Self
 	{
+		if cfg!(debug_assertions)
+		{
+			if value < Self::InclusiveMinimumUsize
+			{
+				panic!("value is 0")
+			}
+			else if value > Self::InclusiveMaximumUsize
+			{
+				panic!("value is greater than InclusiveMaximum")
+			}
+		}
 		Self::from_valid_u16(value as u16)
 	}
 	

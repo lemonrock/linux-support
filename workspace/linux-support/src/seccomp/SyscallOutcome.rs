@@ -53,7 +53,7 @@ impl SyscallOutcome
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EOPNOTSUPP => Ok(false),
 				_ => Err(io::Error::last_os_error())

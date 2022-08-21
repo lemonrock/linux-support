@@ -89,7 +89,7 @@ impl PosixMessageQueueFileDescriptor
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EAGAIN => WouldBlock,
 					EINTR => Interrupted,
@@ -98,14 +98,14 @@ impl PosixMessageQueueFileDescriptor
 					EBADF => panic!("The descriptor specified in `mqdes` was invalid or not opened for reading"),
 					EINVAL => panic!("The call would have blocked, and `abs_timeout` was invalid, either because `tv_sec` was less than zero, or because `tv_nsec` was less than zero or greater than 1000 million"),
 					ETIMEDOUT => panic!("The call timed out before a message could be transferred"),
-
-					_ => unreachable_code(format_args!("")),
+					
+					unexpected_error @ _ => unexpected_error!(mq_timedsend, unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""));
+			unexpected_result!(mq_timedsend, result)
 		}
 	}
 
@@ -126,7 +126,7 @@ impl PosixMessageQueueFileDescriptor
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EAGAIN => WouldBlock,
 					EINTR => Interrupted,
@@ -135,14 +135,14 @@ impl PosixMessageQueueFileDescriptor
 					EBADF => panic!("The descriptor specified in `mqdes` was invalid or not opened for reading"),
 					EINVAL => panic!("The call would have blocked, and `abs_timeout` was invalid, either because `tv_sec` was less than zero, or because `tv_nsec` was less than zero or greater than 1000 million"),
 					ETIMEDOUT => panic!("The call timed out before a message could be transferred"),
-
-					_ => unreachable_code(format_args!("")),
+					
+					unexpected_error @ _ => unexpected_error!(mq_timedreceive, unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""));
+			unexpected_result!(mq_timedreceive, result);
 		}
 	}
 
@@ -167,17 +167,17 @@ impl PosixMessageQueueFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EBADF => panic!("The message queue descriptor specified in `mqdes` is invalid"),
 				EINVAL => panic!("`newattr.mq_flags` contained set bits other than `O_NONBLOCK`"),
-
-				_ => unreachable_code(format_args!("")),
+				
+				unexpected_error @ _ => unexpected_error!(mq_getattr, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(mq_getattr, result)
 		}
 	}
 

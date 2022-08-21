@@ -29,16 +29,16 @@ impl TransmitSend for NonBlockingTransmitSendAndTransmitSendCreator
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ENOBUFS | EAGAIN | EBUSY | ENETDOWN => return,
 				
-				unexpected @ _ => panic!("Unexpected error `{}` from `sendto()`", unexpected)
+				unexpected_error @ _ => unexpected_error!(sendto, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result `{}` from `sendto()`", result))
+			unexpected_result!(sendto, result)
 		};
 	}
 }

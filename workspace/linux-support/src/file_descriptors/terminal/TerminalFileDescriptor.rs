@@ -121,7 +121,7 @@ impl Write for TerminalFileDescriptor
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(tcdrain, result)
 		}
 	}
 }
@@ -258,11 +258,11 @@ impl TerminalFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			Err(constructor(SystemCallErrorNumber::from_errno()))
+			Err(constructor(SystemCallErrorNumber::from_errno_panic()))
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(tcgetattr_or_tcsetattr, result)
 		}
 	}
 
@@ -279,7 +279,7 @@ impl TerminalFileDescriptor
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(tcflow_or_tcflush_or_tcsendbreak, result)
 		}
 	}
 }

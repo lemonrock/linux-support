@@ -133,7 +133,7 @@ impl IoUringFileDescriptor
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from io_uring_setup()", result))
+			unexpected_result!(io_uring_setup, result)
 		}
 	}
 
@@ -187,7 +187,7 @@ impl IoUringFileDescriptor
 		{
 			use self::SubmitError::*;
 
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EAGAIN => Err(TryAgain),
 				EBUSY => Err(Busy),
@@ -201,7 +201,7 @@ impl IoUringFileDescriptor
 				ENXIO => panic!("The io_uring instance is in the process of being torn down"),
 				EOPNOTSUPP => panic!("fd does not refer to an io_uring instance. Or, opcode is valid, but not supported by this kernel."),
 
-				unexpected @ _ => panic!("Unexpected error {} from io_uring_enter()", unexpected),
+				unexpected_error @ _ => unexpected_error!(io_uring_enter, unexpected_error),
 			}
 		}
 		else
@@ -225,7 +225,7 @@ impl IoUringFileDescriptor
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from io_uring_register()", result))
+			unexpected_result!(io_uring_register, result)
 		}
 	}
 
@@ -244,7 +244,7 @@ impl IoUringFileDescriptor
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from io_uring_register()", result))
+			unexpected_result!(io_uring_register, result)
 		}
 	}
 
@@ -263,7 +263,7 @@ impl IoUringFileDescriptor
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from io_uring_register()", result))
+			unexpected_result!(io_uring_register, result)
 		}
 	}
 
@@ -282,7 +282,7 @@ impl IoUringFileDescriptor
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from io_uring_register()", result))
+			unexpected_result!(io_uring_register, result)
 		}
 	}
 
@@ -312,18 +312,18 @@ impl IoUringFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ENOMEM => Err(()),
 				ENXIO => panic!("io_uring is being torn down"),
 				EINVAL => panic!("bad arguments"),
 
-				unexpected @ _ => panic!("Unexpected error {} from io_uring_register()", unexpected)
+				unexpected_error @ _ => unexpected_error!(io_uring_register, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from io_uring_register()", result))
+			unexpected_result!(io_uring_register, result)
 		}
 	}
 
@@ -338,19 +338,19 @@ impl IoUringFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ENOMEM => Err(false),
 				EINTR => Err(true),
 				ENXIO => panic!("io_uring is being torn down"),
 				EINVAL => panic!("bad arguments"),
 
-				unexpected @ _ => panic!("Unexpected error {} from io_uring_register()", unexpected)
+				unexpected_error @ _ => unexpected_error!(io_uring_register, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from io_uring_register()", result))
+			unexpected_result!(io_uring_register, result)
 		}
 	}
 
@@ -365,19 +365,19 @@ impl IoUringFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ENOMEM => Err(false),
 				EINTR => Err(true),
 				ENXIO => panic!("io_uring is being torn down"),
 				EINVAL => panic!("bad arguments"),
 
-				unexpected @ _ => panic!("Unexpected error {} from io_uring_register()", unexpected)
+				unexpected_error @ _ => unexpected_error!(io_uring_register, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from io_uring_register()", result))
+			unexpected_result!(io_uring_register, result)
 		}
 	}
 
@@ -392,19 +392,19 @@ impl IoUringFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ENOMEM => Err(false),
 				EINTR => Err(true),
 				ENXIO => panic!("io_uring is being torn down"),
 				EINVAL => panic!("bad arguments"),
 
-				unexpected @ _ => panic!("Unexpected error {} from io_uring_register()", unexpected)
+				unexpected_error @ _ => unexpected_error!(io_uring_register, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from io_uring_register()", result))
+			unexpected_result!(io_uring_register, result)
 		}
 	}
 
@@ -428,7 +428,7 @@ impl IoUringFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ENOMEM => Err(()),
 
@@ -437,12 +437,12 @@ impl IoUringFileDescriptor
 				EFAULT => panic!("Bad pointers to user space data"),
 				EINVAL => panic!("arguments ops array field was empty"),
 
-				unexpected @ _ => panic!("Unexpected error {} from io_uring_register()", unexpected)
+				unexpected_error @ _ => unexpected_error!(io_uring_register, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from io_uring_register()", result))
+			unexpected_result!(io_uring_register, result)
 		}
 	}
 
@@ -456,19 +456,19 @@ impl IoUringFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ENOMEM => Err(()),
 
 				ENXIO => panic!("io_uring is being torn down"),
 				EINVAL => panic!("Bad arg or nr_arg"),
 
-				unexpected @ _ => panic!("Unexpected error {} from io_uring_register()", unexpected)
+				unexpected_error @ _ => unexpected_error!(io_uring_register, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from io_uring_register()", result))
+			unexpected_result!(io_uring_register, result)
 		}
 	}
 	
@@ -481,17 +481,17 @@ impl IoUringFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ENXIO => panic!("io_uring is being torn down"),
 				EINVAL => panic!("Invalid personality credentials identifier"),
 
-				unexpected @ _ => panic!("Unexpected error {} from io_uring_register()", unexpected)
+				unexpected_error @ _ => unexpected_error!(io_uring_register, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from io_uring_register()", result))
+			unexpected_result!(io_uring_register, result)
 		}
 	}
 

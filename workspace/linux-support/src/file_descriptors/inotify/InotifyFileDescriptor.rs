@@ -2,6 +2,8 @@
 // Copyright © 2018-2019 The developers of file-descriptors. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/file-descriptors/master/COPYRIGHT.
 
 
+use crate::syscall::SystemCallResult;
+
 /// Represents an inotify instance.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct InotifyFileDescriptor(RawFd);
@@ -53,25 +55,28 @@ impl InotifyFileDescriptor
 	pub fn new() -> Result<Rc<Self>, CreationError>
 	{
 		let result = unsafe { inotify_init1(IN_NONBLOCK | IN_CLOEXEC) };
-		if likely!(result != -1)
+		match result
 		{
-			Ok(Rc::new(InotifyFileDescriptor(result)))
-		}
-		else
-		{
-			use self::CreationError::*;
-
-			Err
-			(
-				match SystemCallErrorNumber::from_errno()
-				{
-					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
-					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
-					ENOMEM => KernelWouldBeOutOfMemory,
-					EINVAL => panic!("Invalid arguments"),
-					_ => unreachable_code(format_args!("")),
-				}
-			)
+			raw_file_descriptor @ SystemCallResult::InclusiveMinimumRawFileDescriptor_i32 ..= SystemCallResult::InclusiveMaximumRawFileDescriptor_i32 => Ok(Rc::new(InotifyFileDescriptor(raw_file_descriptor))),
+			
+			-1 =>
+			{
+				use self::CreationError::*;
+	
+				Err
+				(
+					match SystemCallErrorNumber::from_errno_panic()
+					{
+						EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
+						ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
+						ENOMEM => KernelWouldBeOutOfMemory,
+						EINVAL => panic!("Invalid arguments"),
+						unexpected_error @ _ => unexpected_error!(inotify_init1, unexpected_error),
+					}
+				)
+			}
+			
+			_ => unexpected_result!(inotify_init1, result),
 		}
 	}
 
@@ -121,7 +126,7 @@ impl InotifyFileDescriptor
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EACCES => PermissionDenied,
 					ENOMEM => KernelWouldBeOutOfMemory,
@@ -131,14 +136,14 @@ impl InotifyFileDescriptor
 					EBADF => panic!("`fd` is not a valid file descriptor"),
 					EFAULT => panic!("`pathname` points outside of the process's accessible address space"),
 					EINVAL => panic!("The given event `mask` contains no valid events; or `fd` is not an inotify file descriptor"),
-
-					_ => unreachable_code(format_args!("")),
+					
+					unexpected_error @ _ => unexpected_error!(inotify_add_watch, unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(inotify_add_watch, result)
 		}
 	}
 
@@ -168,7 +173,7 @@ impl InotifyFileDescriptor
 			{
 				-1 =>
 				{
-					match SystemCallErrorNumber::from_errno()
+					match SystemCallErrorNumber::from_errno_panic()
 					{
 						EAGAIN => Err(WouldBlock),
 						ECANCELED => Err(Cancelled),
@@ -179,13 +184,13 @@ impl InotifyFileDescriptor
 						EINVAL => panic!("`fd` is attached to an object which is unsuitable for reading OR was created via a call to `timerfd_create()` and the wrong size buffer was given to `read()`"),
 						EISDIR => panic!("`fd` refers to a directory"),
 						
-						error_number @ _ => panic!("Unexpected error `{}`", error_number),
+						unexpected_error @ _ => unexpected_error!(read, "inotify file descriptor", unexpected_error),
 					}
 				}
 
 				0 => panic!("End of file but we haven't closed the file descriptor"),
 
-				_ => unreachable_code(format_args!("")),
+				unexpected @ _ => unexpected_result!(read, "inotify file descriptor", unexpected),
 			}
 		}
 	}

@@ -206,13 +206,19 @@ impl SystemCallResult
 	pub const InclusiveErrorRangeEndsAt_usize: usize = Self::InclusiveErrorRangeEndsAt.0;
 	
 	/// Value is `i32::MAX`.
-	pub const I32Maximum_usize: usize = i32::MAX as usize;
+	pub const I32Maximum_usize: usize = Self::InclusiveMaximumRawFileDescriptor_i32 as usize;
 	
 	/// Value is `0`.
 	pub const InclusiveMinimumRawFileDescriptor_usize: usize = Self::InclusiveOkRangeStartsFrom.0;
 	
 	/// Value is `i32::MAX`
 	pub const InclusiveMaximumRawFileDescriptor_usize: usize = Self::I32Maximum_usize;
+	
+	/// Value is `0`.
+	pub const InclusiveMinimumRawFileDescriptor_i32: i32 = Self::InclusiveOkRangeStartsFrom.0 as i32;
+	
+	/// Value is `i32::MAX`
+	pub const InclusiveMaximumRawFileDescriptor_i32: i32 = i32::MAX;
 	
 	/// `E2BIG`.
 	pub const E2BIG: Self = Self::from(SystemCallErrorNumber::E2BIG);
@@ -504,6 +510,9 @@ impl SystemCallResult
 	
 	/// `ENOTSOCK`.
 	pub const ENOTSOCK: Self = Self::from(SystemCallErrorNumber::ENOTSOCK);
+	
+	/// `ENOTSUPP`.
+	pub const ENOTSUPP: Self = Self::from(SystemCallErrorNumber::ENOTSUPP);
 	
 	/// `ENOTTY`.
 	pub const ENOTTY: Self = Self::from(SystemCallErrorNumber::ENOTTY);
@@ -900,6 +909,9 @@ impl SystemCallResult
 	
 	/// `ENOTSOCK` (usize).
 	pub const ENOTSOCK_usize: usize = Self::ENOTSOCK.0;
+	
+	/// `ENOTSUPP` (usize).
+	pub const ENOTSUPP_usize: usize = Self::ENOTSUPP.0;
 	
 	/// `ENOTTY` (usize).
 	pub const ENOTTY_usize: usize = Self::ENOTTY.0;

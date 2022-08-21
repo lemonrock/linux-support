@@ -222,6 +222,8 @@ use strum_macros::EnumDiscriminants;
 use strum_macros::EnumIter;
 use strum_macros::IntoStaticStr;
 use swiss_army_knife::fast_secure_hash_set;
+use swiss_army_knife::unexpected_error;
+use swiss_army_knife::unexpected_result;
 use swiss_army_knife::unreachable_code;
 use swiss_army_knife::unreachable_code_const;
 //use swiss_army_knife::big_endian::BigEndianI16;

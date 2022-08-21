@@ -2,6 +2,8 @@
 // Copyright © 2020 The developers of linux-support. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/linux-support/master/COPYRIGHT.
 
 
+use linux_support::syscall::SystemCallErrorNumber;
+
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub enum DefaultHostNameChoice
 {
@@ -176,14 +178,14 @@ impl DefaultHostNameChoice
 		{
 			match SystemCallErrorNumber::from_errno()
 			{
-				EFAULT => unreachable_code(format_args!("Invald buffer")),
+				EFAULT => unreachable_code(format_args!("Invalid buffer")),
 				
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error `{}` from `uname()`", result))
+				unexpected_error @ _ => unexpected_error!(uname, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result `{}` from `uname()`", result))
+			unexpected_result!(uname, result)
 		}
 	}
 }

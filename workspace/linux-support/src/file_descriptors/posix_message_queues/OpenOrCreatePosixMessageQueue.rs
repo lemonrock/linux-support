@@ -45,7 +45,7 @@ impl OpenOrCreatePosixMessageQueue
 				{
 					Err
 					(
-						match SystemCallErrorNumber::from_errno()
+						match SystemCallErrorNumber::from_errno_panic()
 						{
 							EACCES => PermissionDenied,
 
@@ -60,14 +60,14 @@ impl OpenOrCreatePosixMessageQueue
 							ENAMETOOLONG => panic!("`name` is too long"),
 
 							EINVAL => panic!("`name` is invalid in some way"),
-
-							_ => unreachable_code(format_args!("")),
+							
+							unexpected_error @ _ => unexpected_error!(mq_open, unexpected_error),
 						}
 					)
 				}
 				else
 				{
-					unreachable_code(format_args!(""));
+					unexpected_result!(mq_open, result)
 				}
 			}
 
@@ -83,7 +83,7 @@ impl OpenOrCreatePosixMessageQueue
 				{
 					Err
 					(
-						match SystemCallErrorNumber::from_errno()
+						match SystemCallErrorNumber::from_errno_panic()
 						{
 							EACCES => PermissionDenied,
 
@@ -98,14 +98,14 @@ impl OpenOrCreatePosixMessageQueue
 							ENOENT => panic!("`name` was just \"/\" followed by no other characters"),
 
 							ENAMETOOLONG => panic!("`name` is too long"),
-
-							_ => unreachable_code(format_args!("")),
+							
+							unexpected_error @ _ => unexpected_error!(mq_open, unexpected_error),
 						}
 					)
 				}
 				else
 				{
-					unreachable_code(format_args!(""));
+					unexpected_result!(mq_open, result)
 				}
 			}
 
@@ -121,7 +121,7 @@ impl OpenOrCreatePosixMessageQueue
 				{
 					Err
 					(
-						match SystemCallErrorNumber::from_errno()
+						match SystemCallErrorNumber::from_errno_panic()
 						{
 							EACCES => PermissionDenied,
 
@@ -139,13 +139,13 @@ impl OpenOrCreatePosixMessageQueue
 
 							EEXIST => panic!("queue already exists"),
 
-							_ => unreachable_code(format_args!("")),
+							unexpected_error @ _ => unexpected_error!(mq_open, unexpected_error),
 						}
 					)
 				}
 				else
 				{
-					unreachable_code(format_args!(""));
+					unexpected_result!(mq_open, result)
 				}
 			}
 		}

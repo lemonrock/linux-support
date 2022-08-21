@@ -2,6 +2,8 @@
 // Copyright © 2018-2019 The developers of file-descriptors. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/file-descriptors/master/COPYRIGHT.
 
 
+use crate::syscall::SystemCallResult;
+
 /// Represents a timer instance.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct TimerFileDescriptor(RawFd);
@@ -52,27 +54,29 @@ impl TimerFileDescriptor
 	#[inline(always)]
 	pub fn new(clock: TimerClock) -> Result<Self, CreationError>
 	{
+		use self::CreationError::*;
+		
+		xxx; fix me.
 		let result = unsafe { timerfd_create(clock as i32, TFD_NONBLOCK | TFD_CLOEXEC) };
-		if likely!(result != -1)
+		
+		match result
 		{
-			Ok(TimerFileDescriptor(result))
-		}
-		else
-		{
-			use self::CreationError::*;
-
-			Err
+			raw_file_descriptor @ SystemCallResult::InclusiveMinimumRawFileDescriptor_i32 ..= SystemCallResult::InclusiveMaximumRawFileDescriptor_i32 => Ok(Self(raw_file_descriptor)),
+			
+			-1 => Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
 					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
 					ENOMEM => KernelWouldBeOutOfMemory,
 					EINVAL => panic!("Invalid clockid or flags"),
 					ENODEV => panic!("Could not mount (internal) anonymous inode device"),
-					_ => unreachable_code(format_args!("")),
+					unexpected_error @ _ => unexpected_error!(timerfd_create, unexpected_error),
 				}
-			)
+			),
+			
+			_ => unexpected_result!(timerfd_create, result),
 		}
 	}
 
@@ -100,7 +104,7 @@ impl TimerFileDescriptor
 			{
 				-1 =>
 				{
-					match SystemCallErrorNumber::from_errno()
+					match SystemCallErrorNumber::from_errno_panic()
 					{
 						EAGAIN => Err(WouldBlock),
 						ECANCELED => Err(Cancelled),
@@ -111,13 +115,13 @@ impl TimerFileDescriptor
 						EINVAL => panic!("`fd` is attached to an object which is unsuitable for reading OR was created via a call to `timerfd_create()` and the wrong size buffer was given to `read()`"),
 						EISDIR => panic!("`fd` refers to a directory"),
 						
-						error_number @ _ => panic!("Unexpected error `{}`", error_number),
+						unexpected_error @ _ => unexpected_error!(read, "timer file descriptor", unexpected_error),
 					}
 				}
 
 				0 => panic!("End of file but we haven't closed the file descriptor"),
 
-				_ => unreachable_code(format_args!("")),
+				unexpected @ _ => unexpected_result!(read, "timer file descriptor", unexpected_error),
 			}
 		}
 	}
@@ -134,17 +138,17 @@ impl TimerFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EBADF => panic!("`fd` is not a valid file descriptor"),
 				EFAULT => panic!("curr_value` is not a valid pointer"),
 				EINVAL => panic!("`fd` is not a valid timerfd file descriptor"),
-				_ => unreachable_code(format_args!("")),
+				unexpected_error @ _ => unexpected_error!(timerfd_gettime, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(timerfd_gettime, result)
 		}
 	}
 
@@ -263,17 +267,17 @@ impl TimerFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EBADF => panic!("`fd` is not a valid file descriptor"),
 				EFAULT => panic!("`new_value` or `old_value` is not a valid pointer"),
 				EINVAL => panic!("arguments were invalid"),
-				_ => unreachable_code(format_args!("")),
+				unexpected_error @ _ => unexpected_error!(timerfd_settime, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(timerfd_settime, result)
 		}
 	}
 }

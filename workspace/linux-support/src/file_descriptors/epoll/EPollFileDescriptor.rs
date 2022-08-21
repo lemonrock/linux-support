@@ -63,7 +63,7 @@ impl EPollFileDescriptor
 		{
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
 
@@ -72,14 +72,14 @@ impl EPollFileDescriptor
 					ENOMEM => KernelWouldBeOutOfMemory,
 
 					EINVAL => panic!("Invalid value specified in flags"),
-
-					_ => unreachable_code(format_args!("")),
+					
+					unexpected_error @ _ => unexpected_error!(epoll_create1, unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(epoll_create1, result)
 		}
 	}
 
@@ -105,20 +105,20 @@ impl EPollFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EINTR => Err(EPollWaitError::Interrupted),
 
 				EBADF => panic!("`epfd` is not a valid file descriptor"),
 				EFAULT => panic!("Memory for events was not writable"),
 				EINVAL => panic!("`epfd` is not an epoll file descriptor"),
-
-				_ => unreachable_code(format_args!("")),
+				
+				unexpected_error @ _ => unexpected_error!(epoll_wait, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!(""));
+			unexpected_result!(epoll_wait, result)
 		}
 	}
 
@@ -138,20 +138,20 @@ impl EPollFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EINTR => Err(EPollWaitError::Interrupted),
 
 				EBADF => panic!("`epfd` is not a valid file descriptor"),
 				EFAULT => panic!("Memory for events was not writable"),
 				EINVAL => panic!("`epfd` is not an epoll file descriptor"),
-
-				_ => unreachable_code(format_args!("")),
+				
+				unexpected_error @ _ => unexpected_error!(epoll_pwait, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!(""));
+			unexpected_result!(epoll_pwait, result)
 		}
 	}
 
@@ -180,7 +180,7 @@ impl EPollFileDescriptor
 		{
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					ENOMEM => ThereWasInsufficientKernelMemory,
 
@@ -191,14 +191,14 @@ impl EPollFileDescriptor
 					EINVAL => panic!("Can not add epoll file descriptor to its self, or can not make wait on an epoll file descriptor `EPOLLEXCLUSIVE`"),
 					ELOOP => panic!("The supplied file descriptor is for an epoll instance and this operation would result in a circular loop of epoll instances monitoring one another"),
 					EPERM => panic!("The supplied file descriptor does not support epoll (perhaps it is an open regular file or the like)"),
-
-					_ => unreachable_code(format_args!("")),
+					
+					unexpected_error @ _ => unexpected_error!(epoll_ctl, EPOLL_CTL_ADD, unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(epoll_ctl, EPOLL_CTL_ADD, result)
 		}
 	}
 
@@ -223,7 +223,7 @@ impl EPollFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ENOMEM => Err(EPollModifyError::ThereWasInsufficientKernelMemory),
 
@@ -231,13 +231,13 @@ impl EPollFileDescriptor
 				EINVAL => panic!("Supplied file descriptor was not usable or there was the presence or absence of `Exclusive` when required"),
 				ENOENT => panic!("The supplied file descriptor is not registered with this epoll instance"),
 				EPERM => panic!("The supplied file descriptor does not support epoll (perhaps it is an open regular file or the like)"),
-
-				_ => unreachable_code(format_args!("")),
+				
+				unexpected_error @ _ => unexpected_error!(epoll_ctl, EPOLL_CTL_MOD, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(epoll_ctl, EPOLL_CTL_MOD, result)
 		}
 	}
 
@@ -251,7 +251,7 @@ impl EPollFileDescriptor
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ENOMEM => panic!("Examination of the Linux source code fs/eventpoll.c suggests `ENOMEM` should not occur for `EPOLL_CTL_DEL`"),
 
@@ -259,13 +259,13 @@ impl EPollFileDescriptor
 				EINVAL => panic!("Supplied file descriptor was not usable"),
 				ENOENT => panic!("The supplied file descriptor is not registered with this epoll instance"),
 				EPERM => panic!("The supplied file descriptor does not support epoll (perhaps it is an open regular file or the like)"),
-
-				_ => unreachable_code(format_args!("")),
+				
+				unexpected_error @ _ => unexpected_error!(epoll_ctl, EPOLL_CTL_DEL, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(epoll_ctl, EPOLL_CTL_DEL, result)
 		}
 	}
 

@@ -14,15 +14,15 @@ pub fn system_information() -> sysinfo
 	}
 	else if likely!(result == -1)
 	{
-		match SystemCallErrorNumber::from_errno()
+		match SystemCallErrorNumber::from_errno_panic()
 		{
 			EFAULT => panic!("info is not a valid address"),
 			
-			unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from sysinfo()", unexpected)),
+			error @ _ => unreachable_code(format_args!("Unexpected error {} from sysinfo()", error)),
 		}
 	}
 	else
 	{
-		unreachable_code(format_args!("Unexpected result {} from sysinfo()", result));
+		unexpected_result!(sysinfo, result);
 	}
 }

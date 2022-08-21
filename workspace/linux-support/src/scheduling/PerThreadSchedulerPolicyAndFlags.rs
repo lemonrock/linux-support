@@ -93,7 +93,7 @@ impl PerThreadSchedulerPolicyAndFlags
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				ESRCH => Err("The thread whose ID is pid could not be found"),
 
@@ -101,12 +101,12 @@ impl PerThreadSchedulerPolicyAndFlags
 
 				EINVAL => unreachable_code(format_args!("attr is NULL; or pid is negative; or flags is not zero. Or, size is invalid; that is, it is smaller than the initial version of the sched_attr structure (48 bytes) or larger than the system page size")),
 
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from sched_setattr()", unexpected)),
+				unexpected @ _ => unexpected_error!(sched_setattr, unexpected),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from sched_setattr()", result))
+			unexpected_result!(sched_setattr, result)
 		}
 	}
 
@@ -202,7 +202,7 @@ impl PerThreadSchedulerPolicyAndFlags
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EPERM => Err("Permission denied, or, for deadline tasks, the CPU affinity mask of the thread (pid) does not include all CPUS in the current cgroup (or system)"),
 				EBUSY => Err("Deadline scheduler admission control failure (?)"),
@@ -211,13 +211,13 @@ impl PerThreadSchedulerPolicyAndFlags
 				EINVAL => panic!("`attr` is NULL; or `pid` is negative; or `flags` is not zero; `attr.sched_policy` is not one of the recognized policies; `attr.sched_flags` contains a flag other than `SCHED_FLAG_RESET_ON_FORK`; or `attr.sched_priority` is invalid; or `attr.sched_policy` is `SCHED_DEADLINE` and the deadline scheduling parameters in `attr` are invalid"),
 				E2BIG => panic!("The buffer specified by `size` and `attr` is larger than the kernel structure, and one or more of the excess bytes is nonzero"),
 
-				unexpected @ _ => unreachable_code(format_args!("Unexpected error {} from sched_getattr()", unexpected)),
+				unexpected @ _ => unexpected_error!(sched_getattr, unexpected),
 
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from sched_getattr()", result))
+			unexpected_result!(sched_getattr, result)
 		}
 	}
 }

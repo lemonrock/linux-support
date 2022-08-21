@@ -32,7 +32,7 @@ impl<'a> StreamingIterator for DirectoryEntryIterator<'a>
 		if unlikely!(self.buffer_offset >= self.buffer_end)
 		{
 			const LowestInvalidLength: usize = BufferCapacity + 1;
-			match system_call_getdents(self.directory_file_descriptor.as_raw_fd(), self.buffer.as_mut_ptr() as *mut c_void, BufferCapacity).as_usize()
+			match system_call_getdents64(self.directory_file_descriptor.as_raw_fd(), self.buffer.as_mut_ptr() as *mut c_void, BufferCapacity).as_usize()
 			{
 				0 => self.finished(),
 				
@@ -50,7 +50,7 @@ impl<'a> StreamingIterator for DirectoryEntryIterator<'a>
 				SystemCallResult::EFAULT_usize => panic!("Argument points outside the calling process's address space"),
 				SystemCallResult::EINVAL_usize => panic!("Result buffer is too small"),
 				SystemCallResult::ENOTDIR_usize => panic!("File descriptor does not refer to a directory"),
-				unexpected_error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => panic!("Unexpected error {} from from getdents()", unexpected_error)
+				unexpected_error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => unexpected_error!(getdents64, SystemCallResult::usize_to_system_call_error_number(unexpected_error))
 			}
 		}
 

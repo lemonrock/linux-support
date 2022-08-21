@@ -7,18 +7,23 @@
 pub(super) struct flock
 {
 	pub(super) l_type: c_short,
+	
 	pub(super) l_whence: c_short,
+	
 	pub(super) l_start: off_t,
+	
 	pub(super) l_len: off_t,
+	
 	pub(super) l_pid: pid_t,
 }
 
 impl flock
 {
 	#[inline(always)]
-	pub(super) fn process_test(&self) -> Result<(), (AdvisoryFileRecordLock, ExtendedSeekFrom, i64, Option<ProcessIdentifierChoice>)>
+	pub(super) fn process_test<const fcntl_operation: &'static str>(&self) -> Result<(), (AdvisoryFileRecordLock, ExtendedSeekFrom, i64, Option<ProcessIdentifierChoice>)>
 	{
 		use self::AdvisoryFileRecordLock::*;
+		
 		let advisory_record_lock = match self.l_type as i32
 		{
 			F_UNLCK => return Ok(()),
@@ -27,21 +32,24 @@ impl flock
 			
 			F_WRLCK => Write,
 			
-			unknown @ _ => panic!("Unknown l_type {}", unknown),
+			unknown @ _ => panic!("Unknown l_type `{}` for fcntl operation {}", unknown, fcntl_operation),
 		};
-
-		let seek = ExtendedSeekFrom::from_whence_and_start(self);
-
-		let length = self.l_len;
 
 		let process_identifier = match self.l_pid
 		{
-			-1 => None,
+			1 ..= i32::MAX => Some(ProcessIdentifierChoice::Other(ProcessIdentifier::from(new_non_zero_i32(pid)))),
+			
 			0 => Some(ProcessIdentifierChoice::Current),
-			pid if pid > 0 => Some(ProcessIdentifierChoice::Other(ProcessIdentifier::from(new_non_zero_i32(pid)))),
-			unexpected @ _ => panic!("Unexpected pid {}", unexpected),
+			
+			-1 => None,
+			
+			unexpected @ _ => panic!("Unexpected l_pid `{}` for fcntl operation {}", unexpected, fcntl_operation),
 		};
-
+		
+		let length = self.l_len;
+		
+		let seek = ExtendedSeekFrom::from_whence_and_start(self);
+		
 		Err((advisory_record_lock, seek, length, process_identifier))
 	}
 

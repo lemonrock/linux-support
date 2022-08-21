@@ -199,11 +199,11 @@ impl PersonalityFlags
 			return Ok(Self::from_bits(result).expect("Invalid bits in previous personality flags"))
 		}
 
-		match SystemCallErrorNumber::from_errno()
+		match SystemCallErrorNumber::from_errno_panic()
 		{
 			EINVAL => Err(()),
-
-			unexpected @ _ => panic!("Unexpected error number from 'personality' of '{:?}'", unexpected),
+			
+			unexpected_error @ _ => unexpected_error!(personality, unexpected_error),
 		}
 	}
 }

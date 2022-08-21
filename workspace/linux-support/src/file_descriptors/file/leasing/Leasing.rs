@@ -24,18 +24,18 @@ pub trait Leasing: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EINTR => false,
 				EBADF => panic!("fd is not an open file descriptor"),
 				EINVAL => panic!("operation is invalid"),
 
-				unexpected @ _ => panic!("Unexpected error {} from fcntl()", unexpected)
+				unexpected_error @ _ => unexpected_error!(fcntl, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from fcntl()", result))
+			unexpected_result!(fcntl, result)
 		}
 	}
 
@@ -53,18 +53,18 @@ pub trait Leasing: AsRawFd + Seek + FileExt
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EINTR => false,
 				EBADF => panic!("fd is not an open file descriptor"),
 				EINVAL => panic!("operation is invalid"),
 
-				unexpected @ _ => panic!("Unexpected error {} from fcntl()", unexpected)
+				unexpected_error @ _ => unexpected_error!(fcntl, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from fcntl()", result))
+			unexpected_result!(fcntl, result)
 		}
 	}
 
@@ -83,16 +83,16 @@ pub trait Leasing: AsRawFd + Seek + FileExt
 			F_WRLCK => Ok(Some(Write)),
 			F_UNLCK => Ok(None),
 
-			-1 => match SystemCallErrorNumber::from_errno()
+			-1 => match SystemCallErrorNumber::from_errno_panic()
 			{
 				EINTR => Err(()),
 				EBADF => panic!("fd is not an open file descriptor"),
 				EINVAL => panic!("operation is invalid"),
 
-				unexpected @ _ => panic!("Unexpected error {} from fcntl()", unexpected)
+				unexpected_error @ _ => unexpected_error!(fcntl, F_GETLEASE, unexpected_error),
 			},
-
-			result @ _ => panic!("Unexpected result {} from fcntl()", result)
+			
+			unexpected @ _ => unexpected_result!(fcntl, F_GETLEASE, unexpected),
 		}
 	}
 }

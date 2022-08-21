@@ -30,12 +30,12 @@ fn pivot_root_wrapper(new_root: &Path, put_old: &Path)
 			ENOENT => panic!("A component of path does not exist, or path is an empty string"),
 			ENOMEM => panic!("Out of (kernel) memory"),
 			EOVERFLOW => panic!("path or fd refers to a file whose size, inode number, or number of blocks cannot be represented in, respectively, the types off_t, ino_t, or u64. This error can occur when, for example, an application compiled on a 32-bit platform without -D_FILE_OFFSET_BITS=64 calls stat() on a file whose size exceeds (1<<31)-1 bytes"),
-
-			unknown @ _ => panic!("Unexpected error `{}` from `pivot_root()`", unknown),
+			
+			unexpected_error @ _ => unexpected_error!(pivot_root, unexpected_error),
 		}
 	}
 	else
 	{
-		panic!("Invalid result from pivot_root of `{}`", result)
+		unexpected_result!(pivot_root, result)
 	}
 }

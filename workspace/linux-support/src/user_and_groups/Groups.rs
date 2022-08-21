@@ -73,7 +73,7 @@ impl Groups
 		}
 		else if result == -1
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EFAULT => panic!("list has an invalid address"),
 				
@@ -84,7 +84,7 @@ impl Groups
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from `getgroups()`", result))
+			unexpected_result!(getgroups, result)
 		}
 	}
 	
@@ -107,7 +107,7 @@ impl Groups
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EFAULT => panic!("list has an invalid address"),
 				
@@ -117,7 +117,7 @@ impl Groups
 				
 				EPERM => panic!("Permission denied (either setgroups is denied in this user namespace or the process lacks the `CAP_SETGID` capability"),
 
-				unexpected @ _ => panic!("Unexpected error {} from setgroups()", unexpected)
+				unexpected_error @ _ => unexpected_error!(setgroups, unexpected_error),
 			}
 		}
 		else

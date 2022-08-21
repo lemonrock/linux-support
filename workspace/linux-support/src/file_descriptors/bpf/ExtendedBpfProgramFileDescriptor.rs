@@ -105,37 +105,35 @@ impl ExtendedBpfProgramFileDescriptor
 			ctx_out: AlignedU64::from(&mut context_out),
 		};
 		
-		let result = attr.syscall(bpf_cmd::BPF_PROG_TEST_RUN);
-		if likely!(result == 0)
+		match attr.syscall(bpf_cmd::BPF_PROG_TEST_RUN).as_usize()
 		{
-			let test = unsafe { attr.test };
+			0 =>
+			{
+				let test = unsafe { attr.test };
+				
+				let ctx_size_out = test.ctx_size_out;
+				debug_assert!(ctx_size_out <= size_of::<C>() as u32);
+				
+				let data_size_out = test.data_size_out;
+				debug_assert!(data_size_out <= data_out.len() as u32);
+				unsafe { data_out.set_len(data_size_out as usize) };
+				data_out.shrink_to_fit();
+				
+				Ok
+				(
+					TestRunResults
+					{
+						context: context_out,
+						data: data_out,
+						result_code: test.retval,
+						duration: test.duration,
+					}
+				)
+			}
 			
-			let ctx_size_out = test.ctx_size_out;
-			debug_assert!(ctx_size_out <= size_of::<C>() as u32);
+			error @ SystemCallResult::InclusiveErrorRangeStartsFrom_usize ..= SystemCallResult::InclusiveErrorRangeEndsAt_usize => Err(SystemCallResult::usize_to_system_call_error_number(error)),
 			
-			let data_size_out = test.data_size_out;
-			debug_assert!(data_size_out <= data_out.len() as u32);
-			unsafe { data_out.set_len(data_size_out as usize) };
-			data_out.shrink_to_fit();
-			
-			Ok
-			(
-				TestRunResults
-				{
-					context: context_out,
-					data: data_out,
-					result_code: test.retval,
-					duration: test.duration,
-				}
-			)
-		}
-		else if likely!(result == -1)
-		{
-			Err(SystemCallErrorNumber::from_errno())
-		}
-		else
-		{
-			unreachable_code(format_args!("Unexpected result `{}` from bpf(BPF_PROG_TEST_RUN)", result))
+			unexpected @ _ => unexpected_result!(bpf, BPF_PROG_TEST_RUN, unexpected),
 		}
 	}
 }

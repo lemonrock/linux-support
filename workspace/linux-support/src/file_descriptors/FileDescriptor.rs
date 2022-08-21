@@ -36,7 +36,7 @@ pub trait FileDescriptor: Sized + Debug + AsRawFd + FromRawFd + IntoRawFd
 			use self::CreationError::*;
 
 			// Errors are a bit of a guess based on a reading of the manpages of `dup()` and `fcntl()`.
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EBUSY | EINTR | EAGAIN => Ok(None),
 
@@ -48,12 +48,12 @@ pub trait FileDescriptor: Sized + Debug + AsRawFd + FromRawFd + IntoRawFd
 
 				EBADF => panic!("oldfd isn't an open file descriptor"),
 
-				unexpected @ _ => panic!("Unexpected error {} from fcntl()", unexpected),
+				unexpected_error @ _ => unexpected_error!(fcntl, unexpected_error),
 			}
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from fcntl()", result))
+			unexpected_result!(fcntl, result)
 		}
 	}
 
@@ -71,11 +71,11 @@ pub trait FileDescriptor: Sized + Debug + AsRawFd + FromRawFd + IntoRawFd
 		}
 		else if likely!(result == -1)
 		{
-			panic!("Error `{}` from fcntl()", SystemCallErrorNumber::from_errno())
+			panic!("Error `{}` from fcntl()", SystemCallErrorNumber::from_errno_panic())
 		}
 		else
 		{
-			unreachable_code(format_args!("Unexpected result {} from fcntl()", result))
+			unexpected_result!(fcntl, result)
 		}
 	}
 
@@ -93,11 +93,11 @@ pub trait FileDescriptor: Sized + Debug + AsRawFd + FromRawFd + IntoRawFd
 		}
 		else if likely!(result == -1)
 		{
-			panic!("Error from fcntl F_SETFL with `{}`", SystemCallErrorNumber::from_errno())
+			unexpected_error!(fcntl, F_SETFL, SystemCallErrorNumber::from_errno_panic())
 		}
 		else
 		{
-			panic!("Unexpected result from fcntl F_SETFL of `{}`", SystemCallErrorNumber::from_errno())
+			unexpected_result!(fcntl, F_SETFL, result)
 		}
 	}
 	
@@ -133,11 +133,11 @@ pub trait FileDescriptor: Sized + Debug + AsRawFd + FromRawFd + IntoRawFd
 		}
 		else if likely!(result == -1)
 		{
-			panic!("Error from fcntl F_GETFL with `{}`", SystemCallErrorNumber::from_errno())
+			unexpected_error!(fcntl, F_GETFL, SystemCallErrorNumber::from_errno_panic())
 		}
 		else
 		{
-			panic!("Unexpected result from fcntl F_GETFL of `{}`", result)
+			unexpected_result!(fcntl, F_GETFL, result)
 		}
 	}
 
@@ -145,11 +145,18 @@ pub trait FileDescriptor: Sized + Debug + AsRawFd + FromRawFd + IntoRawFd
 	#[inline(always)]
 	fn get_file_descriptor_flags(&self) -> i32
 	{
-		let file_descriptor_flags = unsafe { fcntl (self.as_raw_fd(), F_GETFD) };
-		if unlikely!(file_descriptor_flags < 0)
+		let result = unsafe { fcntl (self.as_raw_fd(), F_GETFD) };
+		if likely!(result >= 0)
 		{
-			panic!("Error getting file descriptor flags `{}`", SystemCallErrorNumber::from_errno())
+			result
 		}
-		file_descriptor_flags
+		else if likely!(result == -1)
+		{
+			unexpected_error!(fcntl, F_GETFD, SystemCallErrorNumber::from_errno_panic())
+		}
+		else
+		{
+			unexpected_result!(fcntl, F_GETFD, result)
+		}
 	}
 }

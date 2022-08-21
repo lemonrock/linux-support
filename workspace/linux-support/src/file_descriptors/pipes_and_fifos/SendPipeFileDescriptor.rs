@@ -2,6 +2,8 @@
 // Copyright © 2018-2019 The developers of file-descriptors. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/file-descriptors/master/COPYRIGHT.
 
 
+use crate::syscall::SystemCallResult;
+
 /// Represents the sending half of a pipe.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct SendPipeFileDescriptor(RawFd);
@@ -114,7 +116,7 @@ impl Write for SendPipeFileDescriptor
 					}
 					else if likely!(result == -1)
 					{
-						match SystemCallErrorNumber::from_errno()
+						match SystemCallErrorNumber::from_errno_panic()
 						{
 							EAGAIN => WouldBlock,
 							EINTR => Interrupted,
@@ -124,12 +126,12 @@ impl Write for SendPipeFileDescriptor
 							EFAULT => panic!("The write buffer pointer(s) point outside the process's address space"),
 							EINVAL => panic!("Invalid argument passed"),
 							EDESTADDRREQ => panic!("`fd` refers to a datagram socket for which a peer address has not been set using `connect()`"),
-							_ => unreachable_code(format_args!("")),
+							unexpected_error @ _ => unexpected_error!(write, "send pipe file descriptor", unexpected_error),
 						}
 					}
 					else
 					{
-						unreachable_code(format_args!(""))
+						unexpected_result!(write, "send pipe file descriptor", result)
 					}
 				)
 			)
@@ -196,20 +198,20 @@ impl SendPipeFileDescriptor
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EMFILE => PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded,
 					ENFILE => SystemWideLimitOnTotalNumberOfFileDescriptorsWouldBeExceeded,
 					EFAULT => panic!("`pipefd` is not valid"),
 					EINVAL => panic!("Invalid value in `flags`"),
-
-					_ => unreachable_code(format_args!("")),
+					
+					unexpected_error @ _ => unexpected_error!(pipe2, unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(pipe2, result)
 		}
 	}
 
@@ -234,24 +236,23 @@ impl SendPipeFileDescriptor
 	#[inline(always)]
 	pub(crate) fn open_fifo<PFD>(fifo_file_path: impl AsRef<Path>, access_flag: c_int, constructor: impl FnOnce(RawFd) -> PFD) -> Result<Option<PFD>, SpecialFileOpenError>
 	{
+		use self::CreationError::*;
+		use self::SpecialFileOpenError::*;
+		use self::InvalidPathReason::*;
+		
 		let fifo_path = CString::new(path_bytes_without_trailing_nul(&fifo_file_path)).unwrap();
 
 		const CommonFlags: c_int = O_CLOEXEC | O_NONBLOCK;
 
 		let result = unsafe { open(fifo_path.as_ptr(), access_flag | CommonFlags) };
-		if likely!(result != -1)
+		
+		match result
 		{
-			Ok(Some(constructor(result)))
-		}
-		else
-		{
-			use self::CreationError::*;
-			use self::SpecialFileOpenError::*;
-			use self::InvalidPathReason::*;
-
-			Err
+			raw_file_descriptor @ SystemCallResult::InclusiveMinimumRawFileDescriptor_i32 ..= SystemCallResult::InclusiveMaximumRawFileDescriptor_i32 => Ok(Some(constructor(raw_file_descriptor))),
+			
+			-1 => Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EACCES => Common(PermissionDenied),
 					EMFILE => Common(PerProcessLimitOnNumberOfFileDescriptorsWouldBeExceeded),
@@ -281,10 +282,12 @@ impl SendPipeFileDescriptor
 					EFBIG | EOVERFLOW => panic!("`pathname` refers to a regular file that is too large to be opened. The usual scenario here is that an application compiled on a 32-bit platform without `-D_FILE_OFFSET_BITS=64` tried to open a file whose size exceeds `(2<<31)-1` bits; see also `O_LARGEFILE` above. This is the error specified by POSIX.1-2001; in kernels before 2.6.24, Linux gave the error `EFBIG` for this case"),
 					ENOSPC => panic!("`pathname` was to be created but the device containing `pathname` has no room for the new file"),
 					EPERM => panic!("The `O_NOATIME` flag was specified, but the effective user ID of the caller did not match the owner of the file and the caller was not privileged (`CAP_FOWNER`)"),
-
-					_ => unreachable_code(format_args!("")),
+					
+					unexpected_error @ _ => unexpected_error!(open, "pipe file descriptor", unexpected_error),
 				}
-			)
+			),
+			
+			_ => unexpected_result!(open, "pipe file descriptor", result),
 		}
 	}
 
@@ -331,7 +334,7 @@ impl SendPipeFileDescriptor
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EAGAIN | ENOMEM => WouldBlock,
 
@@ -340,14 +343,14 @@ impl SendPipeFileDescriptor
 					EBADF => panic!("One or both file descriptors are not valid, or do not have proper read-write mode"),
 					EINVAL => panic!("The target filesystem doesn't support splicing; or the target file is opened in append mode; or neither of the file descriptors refers to a pipe; or an offset was given for a non-seekable device (eg, a pipe); or `fd_in` and `fd_out` refer to the same pipe"),
 					ESPIPE => panic!("Either `off_in` or `off_out` was not `NULL`, but the corresponding file descriptor refers to a pipe"),
-
-					_ => unreachable_code(format_args!("")),
+					
+					unexpected_error @ _ => unexpected_error!(splice, "send pipe file descriptor", unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(splice, result)
 		}
 	}
 
@@ -398,7 +401,7 @@ impl SendPipeFileDescriptor
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EAGAIN | ENOMEM => WouldBlock,
 
@@ -407,14 +410,14 @@ impl SendPipeFileDescriptor
 					EBADF => panic!("One or both file descriptors are not valid, or do not have proper read-write mode"),
 					EINVAL => panic!("The target filesystem doesn't support splicing; or the target file is opened in append mode; or neither of the file descriptors refers to a pipe; or an offset was given for a non-seekable device (eg, a pipe); or `fd_in` and `fd_out` refer to the same pipe"),
 					ESPIPE => panic!("Either `off_in` or `off_out` was not `NULL`, but the corresponding file descriptor refers to a pipe"),
-
-					_ => unreachable_code(format_args!("")),
+					
+					unexpected_error @ _ => unexpected_error!(splice, "send pipe file descriptor", unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(splice, result)
 		}
 	}
 
@@ -461,21 +464,21 @@ impl SendPipeFileDescriptor
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EAGAIN | ENOMEM => WouldBlock,
 
 					EINTR => Interrupted,
 
 					EINVAL => panic!("`fd_in` and `fd_in` does not refer to a pipe; or `fd_in` and `fd_in` refer to the same pipe"),
-
-					_ => unreachable_code(format_args!("")),
+					
+					unexpected_error @ _ => unexpected_error!(tee, "send pipe file descriptor", unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(tee, result)
 		}
 	}
 
@@ -515,7 +518,7 @@ impl SendPipeFileDescriptor
 
 			Err
 			(
-				match SystemCallErrorNumber::from_errno()
+				match SystemCallErrorNumber::from_errno_panic()
 				{
 					EAGAIN | ENOMEM => WouldBlock,
 
@@ -523,14 +526,14 @@ impl SendPipeFileDescriptor
 
 					EBADF => panic!("`fd` is either not valid, or doesn't refer to a pipe"),
 					EINVAL => panic!("`nr_segs` is greater than `IOV_MAX`; or memory not aligned if `SPLICE_F_GIFT` set"),
-
-					_ => unreachable_code(format_args!("")),
+					
+					unexpected_error @ _ => unexpected_error!(vmsplice, "send pipe file descriptor", unexpected_error),
 				}
 			)
 		}
 		else
 		{
-			unreachable_code(format_args!(""))
+			unexpected_result!(vmsplice, result)
 		}
 	}
 }

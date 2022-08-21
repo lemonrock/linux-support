@@ -31,16 +31,16 @@ pub fn daemonize(dev_path: &DevPath)
 		}
 		else if likely!(result == -1)
 		{
-			match SystemCallErrorNumber::from_errno()
+			match SystemCallErrorNumber::from_errno_panic()
 			{
 				EPERM => panic!("The process group ID of any process equals the PID of the calling process. Thus, in particular, setsid() fails if the calling process is already a process group leader."),
-
-				unknown @ _ => panic!("Unknown error code `{}` from `setsid()`", unknown),
+				
+				unexpected_error @ _ => unexpected_error!(setsid, unexpected_error),
 			}
 		}
 		else
 		{
-			panic!("Unknown result `{}` from `setsid()`", result)
+			unexpected_result!(setsid, result)
 		}
 	}
 
